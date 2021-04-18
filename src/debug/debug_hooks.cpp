@@ -27,6 +27,7 @@
  ******************************************************************************/
 #include "setup_hooks.h"
 #include "debughandler.h"
+#include "purecallhandler.h"
 #include "hooker.h"
 #include "hooker_macros.h"
 #include <string>
@@ -510,4 +511,10 @@ static void Debug_Handler_Hooks()
 void Debug_Hooks()
 {
     Debug_Handler_Hooks();
+
+    /**
+     *  Set the runtime pure call handler.
+     */
+    _set_purecall_handler(Vinifera_PureCall_Handler);
+    Hook_Function(0x006B51E5, &Vinifera_PureCall_Handler);
 }
