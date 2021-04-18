@@ -28,6 +28,7 @@
 #include "setup_hooks.h"
 #include "debughandler.h"
 #include "purecallhandler.h"
+#include "tspp_assert.h"
 #include "hooker.h"
 #include "hooker_macros.h"
 #include <string>
@@ -508,9 +509,33 @@ static void Debug_Handler_Hooks()
 }
 
 
+/**
+ *  The assertion handler to install.
+ * 
+ *  @author: CCHyper
+ */
+static void Vinifera_Assert_Handler(const char *expr, const char *file, int line, const char *msg)
+{
+#ifndef NDEBUG
+#endif
+}
+
+
+/**
+ *  Installs the assertion handler for the TS++ library.
+ * 
+ *  @author: CCHyper
+ */
+static void Assert_Handler_Hooks()
+{
+    TSPP_Install_Assertion_Handler(Vinifera_Assert_Handler);
+}
+
+
 void Debug_Hooks()
 {
     Debug_Handler_Hooks();
+    Assert_Handler_Hooks();
 
     /**
      *  Set the runtime pure call handler.
