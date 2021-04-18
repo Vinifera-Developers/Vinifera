@@ -1,0 +1,87 @@
+/*******************************************************************************
+/*                 O P E N  S O U R C E  --  V I N I F E R A                  **
+/*******************************************************************************
+ *
+ *  @project       Vinifera
+ *
+ *  @file          VINIFERA_GITINFO.CPP.IN
+ *
+ *  @authors       OmniBlade, CCHyper
+ *
+ *  @brief         Globals for accessing git version information from the build system.
+ *
+ *  @license       Vinifera is free software: you can redistribute it and/or
+ *                 modify it under the terms of the GNU General Public License
+ *                 as published by the Free Software Foundation, either version
+ *                 3 of the License, or (at your option) any later version.
+ *
+ *                 Vinifera is distributed in the hope that it will be
+ *                 useful, but WITHOUT ANY WARRANTY; without even the implied
+ *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ *                 PURPOSE. See the GNU General Public License for more details.
+ *
+ *                 You should have received a copy of the GNU General Public
+ *                 License along with this program.
+ *                 If not, see <http://www.gnu.org/licenses/>.
+ *
+ ******************************************************************************/
+#include "vinifera_gitinfo.h"
+#include <cstdio>
+
+
+/**
+ *  #WARNING:
+ *  This file is automatically populated by the CMake, do not edit!
+ */
+
+
+const char *Vinifera_Git_Hash()
+{
+	return "@GIT_HEAD_SHA1@";
+}
+
+
+const char *Vinifera_Git_Hash_Short()
+{
+	return "@GIT_HEAD_SHORT_SHA1@";
+}
+
+
+const char *Vinifera_Git_Author()
+{
+	return "@GIT_AUTHOR_NAME@";
+}
+
+
+const char *Vinifera_Git_Branch()
+{
+	return "@GIT_BRANCH@";
+}
+
+
+const char *Vinifera_Git_DateTime()
+{
+	return "@GIT_COMMIT_DATE_ISO8601@";
+}
+
+
+bool Vinifera_Git_Uncommitted_Changes()
+{
+	return @GIT_IS_DIRTY@;
+}
+
+
+const char *Vinifera_Git_Version_String()
+{
+	static char _buffer[1024];
+	static bool _onetime = false;
+
+	if (!_onetime) {
+		std::snprintf(_buffer, sizeof(_buffer), "%s %s %s%s %s",
+			Vinifera_Git_Branch(), Vinifera_Git_Author(),
+			Vinifera_Git_Uncommitted_Changes() ? "~" : "", Vinifera_Git_Hash_Short(), Vinifera_Git_DateTime());
+		_onetime = true;
+	}
+
+	return _buffer;
+}
