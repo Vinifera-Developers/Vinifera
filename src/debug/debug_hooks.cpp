@@ -28,6 +28,7 @@
 #include "setup_hooks.h"
 #include "debughandler.h"
 #include "purecallhandler.h"
+#include "exceptionhandler.h"
 #include "tspp_assert.h"
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -532,6 +533,22 @@ static void Assert_Handler_Hooks()
 }
 
 
+/**
+ *  Exception handlers to all out implementation.
+ * 
+ *  @author: CCHyper
+ */
+static LONG __stdcall _Top_Level_Exception_Filter(EXCEPTION_POINTERS *e_info)
+{
+    return Vinifera_Exception_Handler(e_info->ExceptionRecord->ExceptionCode, e_info);
+}
+
+static void __cdecl _Structured_Exception_Translator(unsigned int code, EXCEPTION_POINTERS *e_info)
+{
+    Vinifera_Exception_Handler(code, e_info);
+}
+
+
 void Debug_Hooks()
 {
     Debug_Handler_Hooks();
@@ -542,4 +559,19 @@ void Debug_Hooks()
      */
     _set_purecall_handler(Vinifera_PureCall_Handler);
     Hook_Function(0x006B51E5, &Vinifera_PureCall_Handler);
+
+    /**
+     *  Hook in the Exception handler.
+     */
+    SetUnhandledExceptionFilter((LPTOP_LEVEL_EXCEPTION_FILTER)&_Top_Level_Exception_Filter);
+    _set_se_translator((_se_translator_function)&_Structured_Exception_Translator);
+    Hook_Function(0x005FF7D0, &_Top_Level_Exception_Filter);
+    Hook_Function(0x00496350, &Vinifera_Exception_Handler);
+    //ASM_Hook_Function(0x00495610, Dump_Exception_Info);
+
+    /**
+     *  Change the exception dialog to use the developer dialog.
+     */
+    Patch_Dword(0x0049551B+1, 222); // +1 to skip the "push" opcode.
+    Patch_Dword(0x00495576+1, 222);
 }
