@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          SETUP_HOOKS.CPP
+ *  @file          EXT_SAVELOAD.H
  *
  *  @author        CCHyper
  *
- *  @brief         Contains the main function that sets up all hooks.
+ *  @brief         Handles the saving and loading of extended class data.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -25,17 +25,13 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "setup_hooks.h"
-
-/**
- *  Include the hook headers here.
- */
-#include "debug_hooks.h"
-#include "ext_hooks.h"
+#pragma once
 
 
-void Setup_Hooks()
-{
-    Debug_Hooks();
-    Extension_Hooks();
-}
+struct IStream;
+
+
+extern unsigned ViniferaSaveGameVersion;
+
+bool Vinifera_Put_All(IStream *pStm);
+bool Vinifera_Load_All(IStream *pStm);
