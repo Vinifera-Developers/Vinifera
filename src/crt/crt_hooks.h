@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          SETUP_HOOKS.CPP
+ *  @file          CRT_HOOKS.H
  *
  *  @author        CCHyper
  *
- *  @brief         Contains the main function that sets up all hooks.
+ *  @brief         Setup all the hooks to take control of the basic CRT.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -25,19 +25,7 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "setup_hooks.h"
-
-/**
- *  Include the hook headers here.
- */
-#include "crt_hooks.h"
-#include "debug_hooks.h"
-#include "ext_hooks.h"
+#pragma once
 
 
-void Setup_Hooks()
-{
-    CRT_Hooks();
-    Debug_Hooks();
-    Extension_Hooks();
-}
+void CRT_Hooks();
