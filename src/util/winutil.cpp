@@ -352,3 +352,87 @@ HICON LoadIconFromFile(const char *filename, int width, int height)
 
     return hIcon;
 }
+
+
+/**
+ *  Based off: https://stackoverflow.com/a/46203975
+ */
+bool DeleteFilesOlderThan(unsigned days, const char *in, const char *filename)
+{
+    #define FT_SECOND ((INT64) 10000000)
+    #define FT_MINUTE (60 * FT_SECOND)
+    #define FT_HOUR   (60 * FT_MINUTE)
+    #define FT_DAY    (24 * FT_HOUR)
+
+    if (days > 90 || !in || !filename) {
+        return false;
+    }
+
+    /**
+     *  Build full path.
+     */
+    std::string folder = /*std::string(".\\") +*/ std::string(in) + std::string("\\");
+
+    /**
+     *  Get date today @ 00:00:00:00 time, in UTC...
+     */
+    SYSTEMTIME stUTC = {0};
+    GetSystemTime(&stUTC);
+    stUTC.wHour = stUTC.wMinute = stUTC.wSecond =  stUTC.wMilliseconds = 0;
+
+    /**
+     *  Subtract age in days from it...
+     */
+    FILETIME ftDaysAgo = {0};
+    ULARGE_INTEGER ul;
+    SystemTimeToFileTime(&stUTC, &ftDaysAgo);
+    ul.LowPart = ftDaysAgo.dwLowDateTime;
+    ul.HighPart = ftDaysAgo.dwHighDateTime;
+    ul.QuadPart -= (days * FT_DAY);
+    ftDaysAgo.dwLowDateTime = ul.LowPart;
+    ftDaysAgo.dwHighDateTime = ul.HighPart;
+
+    /**
+     *  Now search for files...
+     */
+    WIN32_FIND_DATA info;
+    HANDLE hp = FindFirstFile((folder + filename).c_str(), &info);
+    if (hp != INVALID_HANDLE_VALUE) {
+        do {
+            std::string composite_filename = (folder + info.cFileName);
+
+            /**
+             *  Process only files...
+             */
+            if ((info.dwFileAttributes == FILE_ATTRIBUTE_DIRECTORY)) {
+                DEBUG_INFO("%s is dir\n", composite_filename.c_str());
+                continue;
+            }
+
+            /**
+             *  That have a last-write time...
+             */
+            if ((info.ftLastWriteTime.dwLowDateTime == 0) || (info.ftLastWriteTime.dwHighDateTime == 0)) {
+                continue;
+            }
+
+            /**
+             *  Older than 'X' days...
+             */
+            if (CompareFileTime(&(info.ftLastWriteTime), &ftDaysAgo) < 0) {
+
+                DEBUG_INFO("  Deleting \"%s\".\n", composite_filename.c_str());
+
+                /**
+                 *  And delete!
+                 */
+                DeleteFile(composite_filename.c_str());
+            }
+        }
+        while (FindNextFile(hp, &info));
+
+        FindClose(hp);
+    }
+
+    return true;
+}

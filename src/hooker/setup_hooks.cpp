@@ -32,6 +32,7 @@
  */
 #include "crt_hooks.h"
 #include "debug_hooks.h"
+#include "vinifera_hooks.h"
 #include "ext_hooks.h"
 
 
@@ -39,5 +40,6 @@ void Setup_Hooks()
 {
     CRT_Hooks();
     Debug_Hooks();
+    Vinifera_Hooks();
     Extension_Hooks();
 }

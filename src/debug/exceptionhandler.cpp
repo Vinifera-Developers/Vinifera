@@ -46,6 +46,7 @@
 #include "windialog.h"
 #include "tspp_gitinfo.h"
 #include "vinifera_gitinfo.h"
+#include "vinifera_globals.h"
 #include "tibsun_globals.h"
 #include <Windows.h>
 #include <dbghelp.h>
@@ -366,7 +367,6 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
     Exception_Printf("Application : %s (%s)\r\n", VINIFERA_PROJECT_NAME, VINIFERA_DLL);
     //Exception_Printf("Version : %s\r\n", VerNum.Version_Name());
 
-    bool Vinifera_DeveloperMode = false; // TEMP
 #ifndef NDEBUG
     const char *build_type = Vinifera_DeveloperMode ? "DEBUG (Dev mode enabled)" : "DEBUG";
 #else
@@ -790,7 +790,8 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
          *  Create a unique filename for the crash dump based on the time of execution.
          */
         char filename_buffer[512];
-        std::snprintf(filename_buffer, sizeof(filename_buffer), "EXCEPT_%02u-%02u-%04u_%02u-%02u-%02u.TXT",
+        std::snprintf(filename_buffer, sizeof(filename_buffer), ".\\%s\\EXCEPT_%02u-%02u-%04u_%02u-%02u-%02u.TXT",
+            Vinifera_DebugDirectory,
             Execute_Day, Execute_Month, Execute_Year, Execute_Hour, Execute_Min, Execute_Sec);
         
         ExceptionFile.Set_Name(filename_buffer);

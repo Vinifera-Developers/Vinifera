@@ -29,7 +29,9 @@
 #include "debughandler.h"
 #include "purecallhandler.h"
 #include "exceptionhandler.h"
+#include "vinifera_globals.h"
 #include "tspp_assert.h"
+#include "winutil.h"
 #include "hooker.h"
 #include "hooker_macros.h"
 #include <string>
@@ -574,4 +576,30 @@ void Debug_Hooks()
      */
     Patch_Dword(0x0049551B+1, 222); // +1 to skip the "push" opcode.
     Patch_Dword(0x00495576+1, 222);
+
+#ifndef NDEBUG
+    /**
+     *  Enable developer mode if the debugger is attached, otherwise ask
+     *  the user if they wish to enable it.
+     */
+    if (IsDebuggerPresent() || (MessageBox(nullptr, "Enable developer mode?", "Vinifera", MB_YESNO) == IDYES)) {
+        Vinifera_DeveloperMode = true;
+    }
+#endif
+
+    /**
+     *  Create the debug output directory.
+     */
+    CreateDirectory(Vinifera_DebugDirectory, nullptr);
+
+    /**
+     *  Cleanup debug files older than 14 days.
+     */
+    DEBUG_INFO("Running cleanup on debug folder...\n");
+    DEBUG_INFO("(files older than 14 days will be removed)\n");
+    DeleteFilesOlderThan(14, Vinifera_DebugDirectory, "DEBUG_*");
+    DeleteFilesOlderThan(14, Vinifera_DebugDirectory, "STACK_*");
+    DeleteFilesOlderThan(14, Vinifera_DebugDirectory, "EXCEPT_*");
+    DeleteFilesOlderThan(14, Vinifera_DebugDirectory, "CRASHDUMP_*");
+    DeleteFilesOlderThan(14, Vinifera_DebugDirectory, "MINIDUMP_*");
 }

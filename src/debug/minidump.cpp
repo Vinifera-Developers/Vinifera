@@ -31,6 +31,7 @@
 #include "critsection.h"
 #include "debughlp.h"
 #include "debughandler.h"
+#include "vinifera_globals.h"
 #include <Windows.h>
 #include <dbghelp.h>
 #include <tlhelp32.h> // Must be after Windows.h!
@@ -87,16 +88,16 @@ bool Create_Mini_Dump(struct _EXCEPTION_POINTERS *e_info, const char *app_name, 
         /**
          *  Create a unique filename for the crash dump based on the current time and module name.
          */
-        std::snprintf((char *)MinidumpFilename, sizeof(MinidumpFilename), "MINIDUMP_%s_%02u-%02u-%04u_%02u-%02u-%02u.DMP",
-            strupr((char *)app_name), Execute_Day, Execute_Month, Execute_Year, Execute_Hour, Execute_Min, Execute_Sec);
+        std::snprintf((char *)MinidumpFilename, sizeof(MinidumpFilename), ".\\%s\\MINIDUMP_%s_%02u-%02u-%04u_%02u-%02u-%02u.DMP",
+            Vinifera_DebugDirectory, strupr((char *)app_name), Execute_Day, Execute_Month, Execute_Year, Execute_Hour, Execute_Min, Execute_Sec);
 
     } else {
 
         /**
          *  Create a unique filename for the crash dump based on the current time and module name.
          */
-        std::snprintf((char *)MinidumpFilename, sizeof(MinidumpFilename), "CRASHDUMP_%s_%02u-%02u-%04u_%02u-%02u-%02u.DMP",
-            strupr((char *)app_name), Execute_Day, Execute_Month, Execute_Year, Execute_Hour, Execute_Min, Execute_Sec);
+        std::snprintf((char *)MinidumpFilename, sizeof(MinidumpFilename), ".\\%s\\CRASHDUMP_%s_%02u-%02u-%04u_%02u-%02u-%02u.DMP",
+            Vinifera_DebugDirectory, strupr((char *)app_name), Execute_Day, Execute_Month, Execute_Year, Execute_Hour, Execute_Min, Execute_Sec);
 
     }
 

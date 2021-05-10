@@ -32,6 +32,7 @@
 #include "fixedstring.h"
 #include "debughandler.h"
 #include "tibsun_globals.h"
+#include "vinifera_globals.h"
 #include <Windows.h>
 #include <string>
 
@@ -98,7 +99,8 @@ extern "C" void __cdecl Vinifera_PureCall_Handler()
      *  Create a unique filename for the stack dump based on the time of execution.
      */
     char filename_buffer[512];
-    std::snprintf(filename_buffer, sizeof(filename_buffer), "STACK_%02u-%02u-%04u_%02u-%02u-%02u.TXT",
+    std::snprintf(filename_buffer, sizeof(filename_buffer), ".\\%s\\STACK_%02u-%02u-%04u_%02u-%02u-%02u.LOG",
+        Vinifera_DebugDirectory,
         Execute_Day, Execute_Month, Execute_Year, Execute_Hour, Execute_Min, Execute_Sec);
         
     StackFile.Set_Name(filename_buffer);
