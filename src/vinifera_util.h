@@ -35,3 +35,5 @@ const char *Vinifera_Version_String();
 const char *TSpp_Version_String();
 
 void Vinifera_Draw_Version_Text(XSurface *surface, bool pre_init = false);
+
+bool Vinifera_Generate_Mini_Dump();

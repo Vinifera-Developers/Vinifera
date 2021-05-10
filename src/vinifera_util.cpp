@@ -35,6 +35,8 @@
 #include "textprint.h"
 #include "dsurface.h"
 #include "wwfont.h"
+#include "minidump.h"
+#include "winutil.h"
 #include <cstdio>
 
 
@@ -191,4 +193,37 @@ void Vinifera_Draw_Version_Text(XSurface *surface, bool pre_init)
 #endif
 
     }
+}
+
+
+/**
+ *  Write a mini dump file for analysis.
+ */
+bool Vinifera_Generate_Mini_Dump()
+{
+    MessageBox(MainWindow,
+        "A crash dump will now be generated that can be sent to the\n"
+        "developers for further analysis.\n\n"
+        "Please note: This may take some time depending on the options\n"
+        "set by the crash dump generator, please be patient and allow\n"
+        "this process to finish. You will be notified when it is complete.\n\n",
+        "Crash dump", 
+        MB_OK|MB_ICONQUESTION);
+
+    GenerateFullCrashDump = false; // We don't need a full memory dump.
+    bool res = Create_Mini_Dump(nullptr, Get_Module_File_Name());
+
+    if (res) {
+        char buffer[512];
+        std::snprintf(buffer, sizeof(buffer),
+            "Crash dump file generated successfully.\n\n"
+            "Please make sure you package DEBUG_<date-time>.LOG\n"
+            "and EXCEPT_<date-time>.LOG along with this crash dump file!\n\n"
+            "Filename:\n\"%s\" \n", MinidumpFilename);
+        MessageBox(MainWindow, buffer, "Crash dump", MB_OK);
+        return true;
+    }
+
+    MessageBox(MainWindow, "Failed to create crash dump!\n\n", "Crash dump", MB_OK|MB_ICONASTERISK);
+    return false;
 }
