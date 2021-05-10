@@ -32,6 +32,8 @@
 #include "asserthandler.h"
 #include <unknwn.h> // for IStream
 
+#include "tacticalext.h"
+
 
 /**
  *  Constant of the current build version number. This number should be
@@ -145,6 +147,38 @@ static bool Vinifera_Load_Version_Info(IStream *pStm)
 }
 
 
+static bool Vinifera_Save_TacticalExtension(IStream *pStm)
+{
+    if (!pStm) {
+        return false;
+    }
+
+    if (!TacticalExtension) {
+        return false;
+    }
+
+    TacticalExtension->Save(pStm, true);
+
+    return true;
+}
+
+
+static bool Vinifera_Load_TacticalExtension(IStream *pStm)
+{
+    if (!pStm) {
+        return false;
+    }
+    
+    if (!TacticalExtension) {
+        return false;
+    }
+
+    TacticalExtension->Load(pStm);
+
+    return true;
+}
+
+
 /**
  *  Save all Vinifera data to the file stream.
  * 
@@ -175,6 +209,12 @@ bool Vinifera_Put_All(IStream *pStm)
      *  Save class extensions here.
      */
     DEBUG_INFO("Saving extended class data...\n");
+
+    DEBUG_INFO("Saving TacticalExtension\n");
+    if (!Vinifera_Save_TacticalExtension(pStm)) {
+        DEBUG_INFO("\t***** FAILED!\n");
+        return false;
+    }
 
     /**
      *  Save global data and values here.
@@ -225,6 +265,12 @@ bool Vinifera_Load_All(IStream *pStm)
      *  Load class extensions here.
      */
     DEBUG_INFO("Loading extended class data...\n");
+
+    DEBUG_INFO("Loading TacticalExtension\n");
+    if (!Vinifera_Load_TacticalExtension(pStm)) {
+        DEBUG_INFO("\t***** FAILED!\n");
+        return false;
+    }
 
     /**
      *  Load global data and values here.

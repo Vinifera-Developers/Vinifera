@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          EXT_HOOKS.CPP
+ *  @file          TACTICALEXT_INIT.H
  *
  *  @author        CCHyper
  *
- *  @brief         Contains the hooks for implementing all the extended classes.
+ *  @brief         Contains the hooks for initialising the extended Tactical class.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -25,28 +25,7 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "ext_hooks.h"
-#include "saveload_hooks.h"
-#include "iomap.h"
-
-/**
- *  Extended classes here.
- */
-#include "tacticalext_hooks.h"
-
-#include "hooker.h"
-#include "hooker_macros.h"
+#pragma once
 
 
-void Extension_Hooks()
-{
-    /**
-     *  Hook the new save and load system in.
-     */
-    SaveLoad_Hooks();
-
-    /**
-     *  All class extensions here.
-     */
-    TacticalExtension_Hooks();
-}
+void TacticalExtension_Init();

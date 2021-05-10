@@ -29,6 +29,7 @@
 #include "ext_hooks.h"
 #include "iomap.h"
 #include "saveload.h"
+#include "vinifera_globals.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -190,8 +191,6 @@ void SaveLoad_Hooks()
     /**
      *  Uncomment this code when the extension classes are implemented!
      */
-#if 0
-
     static const char *DLL_NAME = VINIFERA_DLL;
 
     /**
@@ -213,14 +212,13 @@ void SaveLoad_Hooks()
     Patch_Jump(0x00505ABB, &_LoadOptionsClass_Read_File_Remove_Older_Prefixing);
 
 #ifndef RELEASE
-    /**
-     *  Disable loading and saving in non-release builds.
-     */
-    Patch_Jump(0x004B6D96, &_SaveLoad_Disable_Buttons);
-    Patch_Jump(0x0057FF8B, &_NewMenuClass_Process_Disable_Load_Button_Firestorm);
-    Patch_Jump(0x0058004D, &_NewMenuClass_Process_Disable_Load_Button_TiberianSun);
+    if (!Vinifera_DeveloperMode) {
+        /**
+         *  Disable loading and saving in non-release builds.
+         */
+        Patch_Jump(0x004B6D96, &_SaveLoad_Disable_Buttons);
+        Patch_Jump(0x0057FF8B, &_NewMenuClass_Process_Disable_Load_Button_Firestorm);
+        Patch_Jump(0x0058004D, &_NewMenuClass_Process_Disable_Load_Button_TiberianSun);
+    }
 #endif
-
-#endif
-
 }

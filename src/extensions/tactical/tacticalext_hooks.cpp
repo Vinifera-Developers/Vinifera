@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          EXT_HOOKS.CPP
+ *  @file          TACTICALEXT_HOOKS.CPP
  *
  *  @author        CCHyper
  *
- *  @brief         Contains the hooks for implementing all the extended classes.
+ *  @brief         Contains the hooks for the extended Tactical class.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -25,28 +25,58 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "ext_hooks.h"
-#include "saveload_hooks.h"
-#include "iomap.h"
+#include "tacticalext_hooks.h"
+#include "tacticalext_init.h"
+#include "tacticalext.h"
+#include "tactical.h"
+#include "dsurface.h"
+#include "fatal.h"
+#include "vinifera_util.h"
+#include "vinifera_gitinfo.h"
+#include "debughandler.h"
+#include "asserthandler.h"
+
 
 /**
- *  Extended classes here.
+ *  This patch intercepts the end of the rendering process for Tactical.
+ * 
+ *  @author: CCHyper
  */
-#include "tacticalext_hooks.h"
+DECLARE_PATCH(_Tactical_Render_Patch)
+{
+    GET_REGISTER_STATIC(Tactical *, this_ptr, ebp);
 
-#include "hooker.h"
-#include "hooker_macros.h"
+#ifndef RELEASE
+    /**
+     *  Draw the version number on screen for non-release builds.
+     * 
+     *  @note: This must be last in the draw order!
+     */
+    Vinifera_Draw_Version_Text(CompositeSurface);
+#endif
+
+    /**
+     *  Stolen bytes/code.
+     */
+original_code:
+    this_ptr->Draw_Screen_Text(this_ptr->ScreenText);
+
+    this_ptr->field_D30 = false;
+    this_ptr->IsToRedraw = false;
+
+    JMP(0x00611BE4);
+}
 
 
-void Extension_Hooks()
+/**
+ *  Main function for patching the hooks.
+ */
+void TacticalExtension_Hooks()
 {
     /**
-     *  Hook the new save and load system in.
+     *  Initialises the extended class.
      */
-    SaveLoad_Hooks();
+    TacticalExtension_Init();
 
-    /**
-     *  All class extensions here.
-     */
-    TacticalExtension_Hooks();
+    Patch_Jump(0x00611BCB, &_Tactical_Render_Patch);
 }
