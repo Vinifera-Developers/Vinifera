@@ -1,0 +1,57 @@
+#
+# GitHub action to build pull requests.
+#
+
+name: Pull Request
+
+on:
+  pull_request:
+
+jobs:
+  pr_build:
+    name: Pull Request
+    
+    strategy:
+      fail-fast: false
+      
+    runs-on: windows-latest
+
+    steps:
+      - name: Clone Repository
+        uses: actions/checkout@v2
+        
+      - name: Set Variables
+        id: vars
+        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+        
+      - name: Install Dependencies
+        run: |
+          Invoke-WebRequest -Uri https://github.com/ninja-build/ninja/releases/download/v1.10.1/ninja-win.zip -OutFile $Env:TEMP\ninja-win.zip
+          Expand-Archive $Env:TEMP\ninja-win.zip -DestinationPath $Env:TEMP\ninja
+          echo "$Env:TEMP\ninja" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - uses: ilammy/msvc-dev-cmd@v1.4.1
+        with:
+          arch: x86
+          
+      - name: Configure Project
+        run: |
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -B build -DPREVIEW=ON
+      
+      - name: Build Project
+        run: |
+          cmake --build build --config RelWithDebInfo
+      
+      - name: Copy Binaries
+        shell: bash
+        run: |
+          mkdir artifact
+          cp ./build/Vinifera.dll ./artifact/Vinifera.dll
+          cp ./build/Vinifera.pdb ./artifact/Vinifera.pdb
+          cp ./build/LaunchVinifera.exe ./artifact/LaunchVinifera.exe
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: vinifera-preview-${{ steps.vars.outputs.sha_short }}
+          path: artifact
