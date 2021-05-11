@@ -4,6 +4,12 @@
 <p align="center" style="font-size:12pt;font-style:bold">
   <b>Vinifera</b> is an open-source community collaboration project extending the Tiberian Sun engine. 
 </p>
+<p align="center">
+  <a href="https://github.com/vinifera-Developers/Vinifera/actions"><img alt="GitHub Workflow Status (develop)" src="https://img.shields.io/github/workflow/status/Vinifera-Developers/Vinifera/nightly/develop?style=flat-square"></a>
+  <a href="https://www.gnu.org/licenses/gpl-3.0.en.html"><img alt="GitHub" src="https://img.shields.io/github/license/Vinifera-Developers/Vinifera?style=flat-square"></a>
+  <br>
+  <b>Latest Nightly Build</b>: <a href="https://nightly.link/Vinifera-Developers/Vinifera/blob/develop/.github/workflows/nightly.yml">Download</a> 
+</p>
 
 # Table of Contents
 - [Intro](#intro)
