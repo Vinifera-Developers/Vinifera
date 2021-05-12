@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          EXT_HOOKS.CPP
+ *  @file          COMMANDEXT.H
  *
  *  @author        CCHyper
  *
- *  @brief         Contains the hooks for implementing all the extended classes.
+ *  @brief         Extended hotkey command class.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -25,30 +25,43 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "ext_hooks.h"
-#include "saveload_hooks.h"
-#include "iomap.h"
+#pragma once
+
+#include "extension.h"
+#include "command.h"
+
+
+class BuildingClass;
+class HouseClass;
+
 
 /**
- *  Extended classes here.
+ *  Based class for all new command classes.
  */
-#include "tacticalext_hooks.h"
-#include "commandext_hooks.h"
-
-#include "hooker.h"
-#include "hooker_macros.h"
-
-
-void Extension_Hooks()
+class ViniferaCommandClass : public CommandClass
 {
-    /**
-     *  Hook the new save and load system in.
-     */
-    SaveLoad_Hooks();
+    public:
+        ViniferaCommandClass() : CommandClass(), IsDeveloper(false) {}
+        virtual ~ViniferaCommandClass() {}
 
-    /**
-     *  All class extensions here.
-     */
-    TacticalExtension_Hooks();
-    CommandExtension_Hooks();
-}
+        virtual KeyNumType Default_Key() const = 0;
+
+    public:
+        /**
+         *  Is this command only available in developer mode?
+         */
+        bool IsDeveloper;
+};
+
+
+#ifndef DEBUG
+/**
+ *  Based class for all new developer/debug command classes.
+ */
+class ViniferaDebugCommandClass : public ViniferaCommandClass
+{
+    public:
+        ViniferaDebugCommandClass() : ViniferaCommandClass() {}
+        virtual ~ViniferaDebugCommandClass() {}
+};
+#endif

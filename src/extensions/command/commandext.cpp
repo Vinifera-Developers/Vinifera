@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          EXT_HOOKS.CPP
+ *  @file          COMMANDEXT.H
  *
  *  @author        CCHyper
  *
- *  @brief         Contains the hooks for implementing all the extended classes.
+ *  @brief         Extended hotkey command class.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -25,30 +25,5 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "ext_hooks.h"
-#include "saveload_hooks.h"
-#include "iomap.h"
+#include "commandext.h"
 
-/**
- *  Extended classes here.
- */
-#include "tacticalext_hooks.h"
-#include "commandext_hooks.h"
-
-#include "hooker.h"
-#include "hooker_macros.h"
-
-
-void Extension_Hooks()
-{
-    /**
-     *  Hook the new save and load system in.
-     */
-    SaveLoad_Hooks();
-
-    /**
-     *  All class extensions here.
-     */
-    TacticalExtension_Hooks();
-    CommandExtension_Hooks();
-}
