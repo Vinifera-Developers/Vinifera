@@ -29,6 +29,7 @@
 #include "tibsun_globals.h"
 #include "tibsun_functions.h"
 #include "vinifera_util.h"
+#include "vinifera_functions.h"
 #include "dsurface.h"
 #include "wwmouse.h"
 #include "vinifera_gitinfo.h"
@@ -111,6 +112,49 @@ DECLARE_PATCH(_Load_Title_Page_Version_Text_Patch)
 }
 
 
+/**
+ *  Patch in the Vinifera command line parser.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_WinMain_Parse_Command_Line)
+{
+    GET_REGISTER_STATIC(int, argc, edi);
+    static char **argv; _asm { lea eax, [ebp-0x178] } _asm { mov argv, eax }
+
+    /**
+     *  Parse_Command_Line could return 
+     */
+    if (!Parse_Command_Line(argc, argv) || !Vinifera_Parse_Command_Line(argc, argv)) {
+        JMP(0x00601A3B); // Failure.
+    } else {
+        JMP(0x00601085);
+    }
+}
+
+
+/**
+ *  Patch in the main Vinifera startup function.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_WinMain_Vinifera_Startup)
+{
+    if (Vinifera_Startup()) {
+        JMP(0x005FFC41);
+    }
+
+    /**
+     *  Something went wrong!
+     */
+
+    DEBUG_ERROR("Failed to initialise Vinifera systems!\n");
+
+    _asm { mov esi, EXIT_FAILURE }
+    JMP(0x00601A6B);
+}
+
+
 void Vinifera_Hooks()
 {
     /**
@@ -120,4 +164,10 @@ void Vinifera_Hooks()
     Patch_Jump(0x005ADFBE, &_ProgressClass_Load_Screen_Version_Text_Patch);
     Patch_Jump(0x004E084D, &_Init_Game_Loading_Screen_Version_Text_Patch);
     Patch_Jump(0x004E3B7A, &_Load_Title_Page_Version_Text_Patch);
+
+    /**
+     *  Add in Vinifera startup hooks.
+     */
+    Patch_Jump(0x00601070, &_WinMain_Parse_Command_Line);
+    Patch_Jump(0x005FF81C, &_WinMain_Vinifera_Startup);
 }
