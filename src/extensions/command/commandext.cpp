@@ -26,4 +26,56 @@
  *
  ******************************************************************************/
 #include "commandext.h"
+#include "session.h"
+#include "minidump.h"
+#include "winutil.h"
+#include "debughandler.h"
 
+
+/**
+ *  Handy defines for handling any adjustments.
+ */
+#define CATEGORY_DEVELOPER "Developer"
+
+
+/**
+ *  Produces a memory dump on request.
+ * 
+ *  @author: CCHyper
+ */
+const char *MemoryDumpCommandClass::Get_Name() const
+{
+    return "MemoryDump";
+}
+
+const char *MemoryDumpCommandClass::Get_UI_Name() const
+{
+    return "Memory Dump";
+}
+
+const char *MemoryDumpCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *MemoryDumpCommandClass::Get_Description() const
+{
+    return "Produces a mini-dump of the memory for analysis.";
+}
+
+bool MemoryDumpCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    DEBUG_INFO("About to produce memory dump...\n");
+
+    GenerateFullCrashDump = false; // We don't need a full memory dump.
+    NonFatalMinidump = true;
+    MinidumpUseCurrentTime = true;
+
+    Create_Mini_Dump(nullptr, Get_Module_File_Name());
+
+    return true;
+}

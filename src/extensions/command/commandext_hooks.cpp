@@ -52,9 +52,10 @@ void Init_Vinifera_Commands()
      *  Next, initialised any new commands here if the developer mode is enabled.
      */
     if (Vinifera_DeveloperMode) {
-        //DEBUG_INFO("Initialising developer commands.\n");
+        DEBUG_INFO("Initialising developer commands.\n");
 
-
+        cmdptr = new MemoryDumpCommandClass;
+        Commands.Add(cmdptr);
     }
 
 #ifndef NDEBUG
