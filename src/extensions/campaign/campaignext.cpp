@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          TACTICALEXT.CPP
+ *  @file          CAMPAIGNEXT.CPP
  *
  *  @author        CCHyper
  *
- *  @brief         Extended Tactical class.
+ *  @brief         Extended CampaignClass class.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -25,14 +25,17 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "tacticalext.h"
-#include "tactical.h"
-#include "wwcrc.h"
+#include "campaignext.h"
+#include "campaign.h"
+#include "ccini.h"
 #include "asserthandler.h"
 #include "debughandler.h"
 
 
-TacticalMapExtension *TacticalExtension = nullptr;
+/**
+ *  Provides the map for all CampaignClass extension instances.
+ */
+ExtensionMap<CampaignClass, CampaignClassExtension> CampaignClassExtensions;
 
 
 /**
@@ -40,12 +43,12 @@ TacticalMapExtension *TacticalExtension = nullptr;
  *  
  *  @author: CCHyper
  */
-TacticalMapExtension::TacticalMapExtension(Tactical *this_ptr) :
+CampaignClassExtension::CampaignClassExtension(CampaignClass *this_ptr) :
     Extension(this_ptr)
 {
     ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TacticalMapExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("TacticalMapExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("CampaignClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("CampaignClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     IsInitialized = true;
 }
@@ -56,7 +59,7 @@ TacticalMapExtension::TacticalMapExtension(Tactical *this_ptr) :
  *  
  *  @author: CCHyper
  */
-TacticalMapExtension::TacticalMapExtension(const NoInitClass &noinit) :
+CampaignClassExtension::CampaignClassExtension(const NoInitClass &noinit) :
     Extension(noinit)
 {
     IsInitialized = false;
@@ -68,10 +71,10 @@ TacticalMapExtension::TacticalMapExtension(const NoInitClass &noinit) :
  *  
  *  @author: CCHyper
  */
-TacticalMapExtension::~TacticalMapExtension()
+CampaignClassExtension::~CampaignClassExtension()
 {
-    //EXT_DEBUG_TRACE("TacticalMapExtension deconstructor - 0x%08X\n", (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("TacticalMapExtension deconstructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("CampaignClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("CampaignClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     IsInitialized = false;
 }
@@ -82,18 +85,18 @@ TacticalMapExtension::~TacticalMapExtension()
  *  
  *  @author: CCHyper
  */
-HRESULT TacticalMapExtension::Load(IStream *pStm)
+HRESULT CampaignClassExtension::Load(IStream *pStm)
 {
     ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TacticalMapExtension::Load - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("CampaignClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     HRESULT hr = Extension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
 
-    new (this) TacticalMapExtension(NoInitClass());
-
+    new (this) CampaignClassExtension(NoInitClass());
+    
     return hr;
 }
 
@@ -103,10 +106,10 @@ HRESULT TacticalMapExtension::Load(IStream *pStm)
  *  
  *  @author: CCHyper
  */
-HRESULT TacticalMapExtension::Save(IStream *pStm, BOOL fClearDirty)
+HRESULT CampaignClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
     ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TacticalMapExtension::Save - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("CampaignClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     HRESULT hr = Extension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
@@ -122,10 +125,10 @@ HRESULT TacticalMapExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int TacticalMapExtension::Size_Of() const
+int CampaignClassExtension::Size_Of() const
 {
     ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TacticalMapExtension::Size_Of - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("CampaignClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     return sizeof(*this);
 }
@@ -136,10 +139,10 @@ int TacticalMapExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void TacticalMapExtension::Detach(TARGET target, bool all)
+void CampaignClassExtension::Detach(TARGET target, bool all)
 {
     ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TacticalMapExtension::Detach - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("CampaignClassExtension::Detach - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 }
 
 
@@ -148,8 +151,29 @@ void TacticalMapExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void TacticalMapExtension::Compute_CRC(WWCRCEngine &crc) const
+void CampaignClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
     ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TacticalMapExtension::Compute_CRC - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("CampaignClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+}
+
+
+/**
+ *  Fetches the extension data from the INI database.  
+ *  
+ *  @author: CCHyper
+ */
+bool CampaignClassExtension::Read_INI(CCINIClass &ini)
+{
+    ASSERT(ThisPtr != nullptr);
+    //EXT_DEBUG_TRACE("CampaignClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    EXT_DEBUG_WARNING("CampaignClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+
+    const char *ini_name = ThisPtr->Name();
+
+    if (!ini.Is_Present(ini_name)) {
+        return false;
+    }
+    
+    return true;
 }

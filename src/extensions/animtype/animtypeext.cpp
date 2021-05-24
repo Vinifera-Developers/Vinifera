@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          TACTICALEXT.CPP
+ *  @file          ANIMTYPEEXT.CPP
  *
  *  @author        CCHyper
  *
- *  @brief         Extended Tactical class.
+ *  @brief         Extended AnimTypeClass class.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -25,14 +25,17 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "tacticalext.h"
-#include "tactical.h"
-#include "wwcrc.h"
+#include "animtypeext.h"
+#include "animtype.h"
+#include "ccini.h"
 #include "asserthandler.h"
 #include "debughandler.h"
 
 
-TacticalMapExtension *TacticalExtension = nullptr;
+/**
+ *  Provides the map for all AnimTypeClass extension instances.
+ */
+ExtensionMap<AnimTypeClass, AnimTypeClassExtension> AnimTypeClassExtensions;
 
 
 /**
@@ -40,12 +43,12 @@ TacticalMapExtension *TacticalExtension = nullptr;
  *  
  *  @author: CCHyper
  */
-TacticalMapExtension::TacticalMapExtension(Tactical *this_ptr) :
+AnimTypeClassExtension::AnimTypeClassExtension(AnimTypeClass *this_ptr) :
     Extension(this_ptr)
 {
     ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TacticalMapExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("TacticalMapExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("AnimTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("AnimTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     IsInitialized = true;
 }
@@ -56,7 +59,7 @@ TacticalMapExtension::TacticalMapExtension(Tactical *this_ptr) :
  *  
  *  @author: CCHyper
  */
-TacticalMapExtension::TacticalMapExtension(const NoInitClass &noinit) :
+AnimTypeClassExtension::AnimTypeClassExtension(const NoInitClass &noinit) :
     Extension(noinit)
 {
     IsInitialized = false;
@@ -68,10 +71,10 @@ TacticalMapExtension::TacticalMapExtension(const NoInitClass &noinit) :
  *  
  *  @author: CCHyper
  */
-TacticalMapExtension::~TacticalMapExtension()
+AnimTypeClassExtension::~AnimTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("TacticalMapExtension deconstructor - 0x%08X\n", (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("TacticalMapExtension deconstructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("AnimTypeClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("AnimTypeClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     IsInitialized = false;
 }
@@ -82,18 +85,18 @@ TacticalMapExtension::~TacticalMapExtension()
  *  
  *  @author: CCHyper
  */
-HRESULT TacticalMapExtension::Load(IStream *pStm)
+HRESULT AnimTypeClassExtension::Load(IStream *pStm)
 {
     ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TacticalMapExtension::Load - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     HRESULT hr = Extension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
 
-    new (this) TacticalMapExtension(NoInitClass());
-
+    new (this) AnimTypeClassExtension(NoInitClass());
+    
     return hr;
 }
 
@@ -103,10 +106,10 @@ HRESULT TacticalMapExtension::Load(IStream *pStm)
  *  
  *  @author: CCHyper
  */
-HRESULT TacticalMapExtension::Save(IStream *pStm, BOOL fClearDirty)
+HRESULT AnimTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
     ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TacticalMapExtension::Save - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     HRESULT hr = Extension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
@@ -122,10 +125,10 @@ HRESULT TacticalMapExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int TacticalMapExtension::Size_Of() const
+int AnimTypeClassExtension::Size_Of() const
 {
     ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TacticalMapExtension::Size_Of - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     return sizeof(*this);
 }
@@ -136,10 +139,10 @@ int TacticalMapExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void TacticalMapExtension::Detach(TARGET target, bool all)
+void AnimTypeClassExtension::Detach(TARGET target, bool all)
 {
     ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TacticalMapExtension::Detach - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Detach - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 }
 
 
@@ -148,8 +151,29 @@ void TacticalMapExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void TacticalMapExtension::Compute_CRC(WWCRCEngine &crc) const
+void AnimTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
     ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TacticalMapExtension::Compute_CRC - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+}
+
+
+/**
+ *  Fetches the extension data from the INI database.  
+ *  
+ *  @author: CCHyper
+ */
+bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
+{
+    ASSERT(ThisPtr != nullptr);
+    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    EXT_DEBUG_WARNING("AnimTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+
+    const char *ini_name = ThisPtr->Name();
+
+    if (!ini.Is_Present(ini_name)) {
+        return false;
+    }
+    
+    return true;
 }

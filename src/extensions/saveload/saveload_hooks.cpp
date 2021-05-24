@@ -30,6 +30,9 @@
 #include "iomap.h"
 #include "saveload.h"
 #include "vinifera_globals.h"
+#include "vinifera_util.h"
+#include "debughandler.h"
+#include "fatal.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -174,6 +177,20 @@ DECLARE_PATCH(_LoadOptionsClass_Read_File_Check_Game_Version)
     JMP(0x00505ABB);
 }
 
+
+/**
+ *  Change the saved module filename to the DLL name. 
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_Save_Game_Change_Module_Filename)
+{
+    static const char *DLL_NAME = VINIFERA_DLL;
+    _asm { push DLL_NAME }
+
+    JMP(0x005D50E2);
+}
+
        
 /**
  *  Removes the code which prefixed older save files with "*".
@@ -186,13 +203,65 @@ DECLARE_PATCH(_LoadOptionsClass_Read_File_Remove_Older_Prefixing)
 }
 
 
+/**
+ *  Replaces the division-by-zero crash in SwizzleManagerClass::Process_Tables() with
+ *  a readable error, produces a crash dump and then exit.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_SwizzleManagerClass_Process_Tables_Remap_Failed_Error)
+{
+    static int old_ptr;
+    _asm { mov eax, [edi+0x4] }
+    _asm { mov old_ptr, eax }
+    //GET_REGISTER_STATIC(int, old_ptr, edi);
+
+    DEBUG_ERROR("Swizzle Manager - Failed to re-map pointer! (old_ptr = 0x%08X)!\n", old_ptr);
+
+    ShowCursor(TRUE);
+
+    static char buffer[256];
+    std::snprintf(buffer, sizeof(buffer), "SwizzleManagerClass::Process_Tables()\n\nFailed to re-map pointer! (old_ptr = 0x%08X)!", old_ptr);
+    MessageBoxA(MainWindow, buffer, "Vinifera", MB_OK|MB_ICONEXCLAMATION);
+
+    Vinifera_Generate_Mini_Dump();
+    Fatal("Swizzle Manager - Failed to re-map pointer! (old_ptr = 0x%08X)!\n", old_ptr);
+
+    /**
+     *  We won't ever get here, but its here just for clean analysis.
+     */
+    JMP(0x0060DC15);
+}
+
+
+#ifndef NDEBUG
+#include "swizzle.h"
+class FakeSwizzleManagerClass final : public SwizzleManagerClass
+{
+    public:
+        COM_DECLSPEC_NOTHROW LONG STDMETHODVCALLTYPE _Swizzle(void **pointer)
+        {
+            DEBUG_INFO("Swizzle - pointer 0x%08X, 0x%08X\n", pointer, *pointer);
+            return SwizzleManagerClass::Swizzle(pointer);
+        }
+
+        COM_DECLSPEC_NOTHROW LONG STDMETHODVCALLTYPE _Fetch_Swizzle_ID(void *pointer, LONG *id)
+        {
+            DEBUG_INFO("Fetch_Swizzle_ID - pointer 0x%08X id 0x%08X\n", pointer, id);
+            return SwizzleManagerClass::Fetch_Swizzle_ID(pointer, id);
+        }
+
+        COM_DECLSPEC_NOTHROW LONG STDMETHODVCALLTYPE _Here_I_Am(LONG id, void *pointer)
+        {
+            DEBUG_INFO("Here_I_Am - id 0x%08X pointer 0x%08X\n", id, pointer);
+            return SwizzleManagerClass::Here_I_Am(id, pointer);
+        }
+};
+#endif
+
+
 void SaveLoad_Hooks()
 {
-    /**
-     *  Uncomment this code when the extension classes are implemented!
-     */
-    static const char *DLL_NAME = VINIFERA_DLL;
-
     /**
      *  Hook the new save and load system in.
      */
@@ -203,13 +272,15 @@ void SaveLoad_Hooks()
     /**
      *  Change SUN.EXE to our DLL name.
      */
-    Change_Address(0x005D50DD+1, *DLL_NAME); // +1 to skip the "push" opcode.
+    Patch_Jump(0x005D50DD, &_Save_Game_Change_Module_Filename);
 
     /**
      *  Handle save files in the dialogs.
      */
     Patch_Jump(0x00505A9E, &_LoadOptionsClass_Read_File_Check_Game_Version);
     Patch_Jump(0x00505ABB, &_LoadOptionsClass_Read_File_Remove_Older_Prefixing);
+
+    Patch_Jump(0x0060DBFF, &_SwizzleManagerClass_Process_Tables_Remap_Failed_Error);
 
 #ifndef RELEASE
     if (!Vinifera_DeveloperMode) {
@@ -220,5 +291,18 @@ void SaveLoad_Hooks()
         Patch_Jump(0x0057FF8B, &_NewMenuClass_Process_Disable_Load_Button_Firestorm);
         Patch_Jump(0x0058004D, &_NewMenuClass_Process_Disable_Load_Button_TiberianSun);
     }
+#endif
+
+#ifndef NDEBUG
+    //Patch_Call(0x, &FakeSwizzleManagerClass::_Swizzle);
+    //Patch_Call(0x004CE3C3, &FakeSwizzleManagerClass::_Fetch_Swizzle_ID);
+    //Change_Virtual_Address(0x006D7500, Get_Func_Address(&FakeSwizzleManagerClass::_Fetch_Swizzle_ID));
+    //Patch_Call(0x00405D47, &FakeSwizzleManagerClass::_Here_I_Am);
+    //Patch_Call(0x004CE387, &FakeSwizzleManagerClass::_Here_I_Am);
+    //Patch_Call(0x00506627, &FakeSwizzleManagerClass::_Here_I_Am);
+    //Patch_Call(0x0061F42E, &FakeSwizzleManagerClass::_Here_I_Am);
+    //Patch_Call(0x0062190D, &FakeSwizzleManagerClass::_Here_I_Am);
+    //Patch_Call(0x0066300B, &FakeSwizzleManagerClass::_Here_I_Am);
+    //Change_Virtual_Address(0x006D7504, Get_Func_Address(&FakeSwizzleManagerClass::_Here_I_Am));
 #endif
 }
