@@ -26,7 +26,17 @@
  *
  ******************************************************************************/
 #include "commandext.h"
+#include "tibsun_globals.h"
+#include "unit.h"
+#include "unittype.h"
+#include "infantry.h"
+#include "infantrytype.h"
+#include "building.h"
+#include "buildingtype.h"
+#include "aircraft.h"
+#include "aircrafttype.h"
 #include "session.h"
+#include "wwcrc.h"
 #include "minidump.h"
 #include "winutil.h"
 #include "debughandler.h"
@@ -76,6 +86,80 @@ bool MemoryDumpCommandClass::Process()
     MinidumpUseCurrentTime = true;
 
     Create_Mini_Dump(nullptr, Get_Module_File_Name());
+
+    return true;
+}
+
+
+/**
+ *  Dumps all the current game objects as CRCs to the log output.
+ * 
+ *  @author: CCHyper
+ */
+const char *DumpHeapCRCCommandClass::Get_Name() const
+{
+    return "DumpHeapCRC";
+}
+
+const char *DumpHeapCRCCommandClass::Get_UI_Name() const
+{
+    return "Dump Heap CRCs";
+}
+
+const char *DumpHeapCRCCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *DumpHeapCRCCommandClass::Get_Description() const
+{
+    return "Dumps all the current game objects as CRCs to the log output.";
+}
+
+/**
+ *  Handy macro for defining the logging the heaps CRCs.
+ * 
+ *  @author: CCHyper
+ */
+#define LOG_CRC(class_name, heap_name) \
+    { \
+        DEBUG_INFO(#class_name ":\n"); \
+        if (!heap_name.Count()) { \
+            DEBUG_INFO("  EMPTY\n"); \
+        } else { \
+            WWCRCEngine crc; \
+            for (unsigned i = 0; i < heap_name.Count(); ++i) { \
+                class_name *ptr = heap_name[i]; \
+                if (ptr != nullptr) { \
+                    ptr->Compute_CRC(crc); \
+                    DEBUG_INFO("  %04d\tCRC: 0x%08X\n", i, crc.CRC_Value()); \
+                } else { \
+                    DEBUG_INFO("  %04d\tFAILED!\n", i); \
+                } \
+            } \
+        } \
+        DEBUG_INFO("\n"); \
+    }
+
+bool DumpHeapCRCCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    DEBUG_INFO("\nAbout to dump heap CRC's...\n\n");
+
+    LOG_CRC(UnitClass, Units);
+    LOG_CRC(InfantryClass, Infantry);
+    LOG_CRC(BuildingClass, Buildings);
+    LOG_CRC(AircraftClass, Aircrafts);
+
+    LOG_CRC(UnitTypeClass, UnitTypes);
+    LOG_CRC(InfantryTypeClass, InfantryTypes);
+    LOG_CRC(BuildingTypeClass, BuildingTypes);
+    LOG_CRC(AircraftTypeClass, AircraftTypes);
+    
+    DEBUG_INFO("\nFinished!\n\n");
 
     return true;
 }

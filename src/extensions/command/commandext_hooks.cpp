@@ -56,6 +56,9 @@ void Init_Vinifera_Commands()
 
         cmdptr = new MemoryDumpCommandClass;
         Commands.Add(cmdptr);
+
+        cmdptr = new DumpHeapCRCCommandClass;
+        Commands.Add(cmdptr);
     }
 
 #ifndef NDEBUG
