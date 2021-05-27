@@ -33,8 +33,22 @@
 
 
 /**
+ *  #issue-244
+ * 
+ *  Changes the default value of "AllowHiResModes" to "true".
+ * 
+ *  @author: CCHyper
+ */
+static void _OptionsClass_Constructor_AllowHiResModes_Default_Patch()
+{
+    Patch_Byte(0x005899D6+1, 0x50); // "cl" (zero) to "dl" (1)
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void BugFix_Hooks()
 {
+    _OptionsClass_Constructor_AllowHiResModes_Default_Patch();
 }
