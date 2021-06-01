@@ -32,6 +32,9 @@
 #include "vinifera_functions.h"
 #include "dsurface.h"
 #include "wwmouse.h"
+#include "blowfish.h"
+#include "blowstraw.h"
+#include "blowpipe.h"
 #include "vinifera_gitinfo.h"
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -155,6 +158,47 @@ DECLARE_PATCH(_WinMain_Vinifera_Startup)
 }
 
 
+/**
+ *  #issue-96
+ * 
+ *  Remove the requirement for BLOWFISH.DLL (Blowfish encryption) and now
+ *  handle the encryption/decryption internally.
+ * 
+ *  @author: CCHyper
+ */
+
+class FakeBlowfishClass
+{
+    public:
+        BlowfishEngine *Hook_Ctor() { return new (reinterpret_cast<BlowfishEngine *>(this)) BlowfishEngine; }
+        void Hook_Dtor() { reinterpret_cast<BlowfishEngine *>(this)->BlowfishEngine::~BlowfishEngine(); }
+};
+
+static void _Remove_External_Blowfish_Dependency_Patch()
+{
+    /**
+     *  The following two patches remove dependency on BLOWFISH.DLL being registered at startup.
+     */
+    Patch_Jump(0x00600F6E, 0x00600FA3); // This forces the game init process to skip BLOWFISH.DLL loading errors.
+    Patch_Jump(0x005FFE46, 0x005FFF2B); // This skips code registering BLOWFISH.DLL.
+
+    /**
+     *  Hook in the implementations of BlowStraw, BlowPipe and BlowfishEngine.
+     */
+    Hook_Virtual(0x00424230, BlowStraw::Get);
+    Hook_Virtual(0x00424320, BlowStraw::Key);
+    Hook_Virtual(0x00424080, BlowPipe::Flush);
+    Hook_Virtual(0x004240C0, BlowPipe::Put);
+    Hook_Virtual(0x004241F0, BlowPipe::Key);
+
+    Hook_Function(0x00423F70, &FakeBlowfishClass::Hook_Ctor);
+    Hook_Function(0x00423FE0, &FakeBlowfishClass::Hook_Dtor);
+    Hook_Function(0x00423FF0, &BlowfishEngine::Submit_Key);
+    Hook_Function(0x00424020, &BlowfishEngine::Encrypt);
+    Hook_Function(0x00424050, &BlowfishEngine::Decrypt);
+}
+
+
 void Vinifera_Hooks()
 {
     /**
@@ -170,4 +214,9 @@ void Vinifera_Hooks()
      */
     Patch_Jump(0x00601070, &_WinMain_Parse_Command_Line);
     Patch_Jump(0x005FF81C, &_WinMain_Vinifera_Startup);
+
+    /**
+     *  Remove the requirement for BLOWFISH.DLL (Blowfish encryption).
+     */
+    _Remove_External_Blowfish_Dependency_Patch();
 }
