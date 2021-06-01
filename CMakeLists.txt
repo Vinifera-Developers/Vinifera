@@ -217,7 +217,7 @@ endif()
 # Set some handy defines we can use for error messages etc.
 ################################################################################
 set(PROJECT_DLL "${PROJECT_NAME}.dll")
-set(UNSUPPORTED_TARGET_ERROR "(Only TS203EN is currently supported)")
+set(UNSUPPORTED_TARGET_ERROR "(Only TS203EN and Freeware-TS is currently supported)")
 set(TARGET_EXE "GAME.EXE") # Define the EXE to launch.
 set(TARGET_NAME "Tiberian Sun")
 
