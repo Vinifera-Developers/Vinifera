@@ -47,6 +47,9 @@ void Init_Vinifera_Commands()
      *  Initialises any new commands here.
      */
     //DEBUG_INFO("Initialising new commands.\n");
+
+    //cmdptr = new PNGScreenCaptureCommandClass;
+    //Commands.Add(cmdptr);
     
     /**
      *  Next, initialised any new commands here if the developer mode is enabled.
@@ -98,4 +101,13 @@ original_code:
 void CommandExtension_Hooks()
 {
     Patch_Jump(0x004E6FA9, &_Init_Commands_Patch);
+
+    /**
+     *  Replace ScreenCaptureCommandClass with PNGScreenCaptureCommandClass.
+     */
+    Hook_Virtual(0x004EAAC0, PNGScreenCaptureCommandClass::Get_Name);
+    Hook_Virtual(0x004EAAE0, PNGScreenCaptureCommandClass::Get_UI_Name);
+    Hook_Virtual(0x004EAAD0, PNGScreenCaptureCommandClass::Get_Category);
+    Hook_Virtual(0x004EAAF0, PNGScreenCaptureCommandClass::Get_Description);
+    Hook_Virtual(0x004EAB00, PNGScreenCaptureCommandClass::Process);
 }

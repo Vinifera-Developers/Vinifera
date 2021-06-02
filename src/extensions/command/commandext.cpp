@@ -27,6 +27,8 @@
  ******************************************************************************/
 #include "commandext.h"
 #include "tibsun_globals.h"
+#include "dsurface.h"
+#include "wwmouse.h"
 #include "unit.h"
 #include "unittype.h"
 #include "infantry.h"
@@ -37,15 +39,134 @@
 #include "aircrafttype.h"
 #include "session.h"
 #include "wwcrc.h"
+#include "filepcx.h"
+#include "filepng.h"
 #include "minidump.h"
 #include "winutil.h"
+#include "miscutil.h"
 #include "debughandler.h"
+#include "asserthandler.h"
 
 
 /**
  *  Handy defines for handling any adjustments.
  */
 #define CATEGORY_DEVELOPER "Developer"
+
+
+/**
+ *  #issue-167
+ * 
+ *  Writes a PNG screenshot of the current screen buffer.
+ * 
+ *  @author: CCHyper
+ */
+const char *PNGScreenCaptureCommandClass::Get_Name() const
+{
+    return "ScreenCapture";
+}
+
+const char *PNGScreenCaptureCommandClass::Get_UI_Name() const
+{
+    return "Screen Capture";
+}
+
+const char *PNGScreenCaptureCommandClass::Get_Category() const
+{
+    return "Interface";
+}
+
+const char *PNGScreenCaptureCommandClass::Get_Description() const
+{
+    return "Takes a snapshot of the game screen (Saved as 'SCRN_<date-time>.PNG.)";
+}
+
+bool PNGScreenCaptureCommandClass::Process()
+{
+    if (!IsWindow(MainWindow)) {
+        return false;
+    }
+
+    RECT crect;
+    if (!GetClientRect(MainWindow, &crect)) {
+        return false;
+    }
+
+    POINT tl_point;
+    tl_point.x = crect.left;
+    tl_point.y = crect.top;
+    if (!ClientToScreen(MainWindow, &tl_point)) {
+        return false;
+    }
+
+    POINT br_point;
+    br_point.x = crect.right;
+    br_point.y = crect.bottom;
+    if (!ClientToScreen(MainWindow, &br_point)) {
+        return false;
+    }
+
+    int w = std::min((int)crect.right+1, HiddenSurface->Get_Width());
+    int h = std::min((int)crect.bottom+1, HiddenSurface->Get_Height());
+
+    Rect src(tl_point.x, tl_point.y, w, h);
+    Rect dest(0, 0, HiddenSurface->Get_Width(), HiddenSurface->Get_Height());
+
+    /**
+     *  We don't want the mouse to appear in screenshots!
+     */
+    WWMouse->Hide_Mouse();
+
+    /**
+     *  Blit primary surface to the hidden.
+     */
+    bool blit = HiddenSurface->Copy_From(dest, *PrimarySurface, src);
+    ASSERT(blit);
+
+    /**
+     *  Now show the mouse again.
+     */
+    WWMouse->Show_Mouse();
+
+    char buffer[256];
+
+#if 0
+    /**
+     *  Find a free filename slot.
+     */
+    for (unsigned i = 0; i <= 9999; ++i) {
+        std::snprintf(buffer, sizeof(buffer), "SCRN%04d.PNG", i);
+        if (!RawFileClass(buffer).Is_Available()) {
+            break;
+        }
+    }
+#endif
+
+    /**
+     *  Generate a unique filename with the current timestamp.
+     */
+    int day = 0;
+    int month = 0;
+    int year = 0;
+    int hour = 0;
+    int min = 0;
+    int sec = 0;
+    Get_Full_Time(day, month, year, hour, min, sec);
+    std::snprintf(buffer, sizeof(buffer), "SCRN_%02u-%02u-%04u_%02u-%02u-%02u.PNG", day, month, year, hour, min, sec);
+
+    /**
+     *  We found a free filename, now write the buffer to a PNG file.
+     */
+    bool success = Write_PNG_File(&RawFileClass(buffer), *HiddenSurface, &GamePalette);
+
+    if (success) {
+        DEBUG_INFO("PNG screenshot \"%s\" written sucessfully.\n", buffer);
+    } else {
+        DEBUG_ERROR("Failed to write PNG screenshot \"%s\"!\n", buffer);
+    }
+
+    return success;
+}
 
 
 /**
