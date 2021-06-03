@@ -29,16 +29,96 @@
 #include "bugfixes.h"
 
 #include "tibsun_globals.h"
+#include "vinifera_util.h"
 #include "campaign.h"
 #include "scenario.h"
 #include "playmovie.h"
 #include "ccfile.h"
 #include "cd.h"
 #include "vqa.h"
+#include "language.h"
+#include "theme.h"
+#include "msgbox.h"
+#include "loadoptions.h"
 #include "debughandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-269
+ * 
+ *  Adds a "Load Game" button to the dialog shown on mission lose.
+ * 
+ *  @author: CCHyper
+ */
+static bool _Save_Games_Available()
+{
+    return LoadOptionsClass().Read_Save_Files();
+}
+
+static bool _Do_Load_Dialog()
+{
+    return LoadOptionsClass().Load_Dialog();
+}
+
+DECLARE_PATCH(_Do_Lose_Create_Lose_WWMessageBox)
+{
+    static int ret;
+
+    /**
+     *  Show the message box.
+     */
+retry_dialog:
+    ret = Vinifera_Do_WWMessageBox(Text_String(TXT_TO_REPLAY), Text_String(TXT_YES), Text_String(TXT_NO), "Load Game");
+    switch (ret) {
+        default:
+        case 0: // User pressed "Yes"
+            JMP(0x005DCE1A);
+
+        case 1: // User pressed "No"
+            JMP(0x005DCE56);
+
+        case 2: // User pressed "Load Game"
+        {
+#ifdef RELEASE
+            /**
+             *  If no save games are available, notify the user and return back
+             *  and reissue the main dialog.
+             */
+            if (!_Save_Games_Available()) {
+                Vinifera_Do_WWMessageBox("No saved games available.", Text_String(TXT_OK));
+                goto retry_dialog;
+            }
+
+            /**
+             *  Show the load game dialog.
+             */
+            ret = _Do_Load_Dialog();
+            if (ret) {
+                Theme.Stop();
+                JMP(0x005DCE48);
+            }
+#else
+            /**
+             *  We disable loading in non-release builds.
+             */
+            Vinifera_Do_WWMessageBox("No saved games available.", Text_String(TXT_OK));
+#endif
+
+            /**
+             *  Reissue the dialog if the user pressed cancel on the load dialog.
+             */
+            goto retry_dialog;
+        }
+    };
+}
+
+static void _Show_Load_Game_On_Mission_Failure()
+{
+    Patch_Jump(0x005DCDFD, &_Do_Lose_Create_Lose_WWMessageBox);
+}
 
 
 /**
@@ -228,4 +308,5 @@ void BugFix_Hooks()
 {
     _OptionsClass_Constructor_AllowHiResModes_Default_Patch();
     _Intro_Movie_Patchies();
+    _Show_Load_Game_On_Mission_Failure();
 }
