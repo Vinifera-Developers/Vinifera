@@ -35,6 +35,7 @@
 #include "textprint.h"
 #include "dsurface.h"
 #include "wwfont.h"
+#include "msgbox.h"
 #include "minidump.h"
 #include "winutil.h"
 #include <cstdio>
@@ -226,4 +227,18 @@ bool Vinifera_Generate_Mini_Dump()
 
     MessageBox(MainWindow, "Failed to create crash dump!\n\n", "Crash dump", MB_OK|MB_ICONASTERISK);
     return false;
+}
+
+
+/**
+ *  Shows a in-game message box.
+ * 
+ *  This has been made its own function because we can not allocate on the stack with
+ *  our patches, so this handles all that within this function scope.
+ * 
+ *  @author: CCHyper
+ */
+int Vinifera_Do_WWMessageBox(const char *msg, const char *btn1, const char *btn2, const char *btn3)
+{
+    return WWMessageBox().Process(msg, 0, btn1, btn2, btn3);
 }

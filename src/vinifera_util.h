@@ -37,3 +37,5 @@ const char *TSpp_Version_String();
 void Vinifera_Draw_Version_Text(XSurface *surface, bool pre_init = false);
 
 bool Vinifera_Generate_Mini_Dump();
+
+int Vinifera_Do_WWMessageBox(const char *msg, const char *btn1, const char *btn2 = nullptr, const char *btn3 = nullptr);
