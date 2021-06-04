@@ -149,6 +149,63 @@ class AIInstantBuildCommandClass : public ViniferaCommandClass
 };
 
 
+/**
+ *  Forces the player to win the current game session.
+ */
+class ForceWinCommandClass : public ViniferaCommandClass
+{
+    public:
+        ForceWinCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+        virtual ~ForceWinCommandClass() {}
+
+        virtual const char *Get_Name() const override;
+        virtual const char *Get_UI_Name() const override;
+        virtual const char *Get_Category() const override;
+        virtual const char *Get_Description() const override;
+        virtual bool Process() override;
+
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+};
+
+
+/**
+ *  Forces the player to lose the current game session.
+ */
+class ForceLoseCommandClass : public ViniferaCommandClass
+{
+    public:
+        ForceLoseCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+        virtual ~ForceLoseCommandClass() {}
+
+        virtual const char *Get_Name() const override;
+        virtual const char *Get_UI_Name() const override;
+        virtual const char *Get_Category() const override;
+        virtual const char *Get_Description() const override;
+        virtual bool Process() override;
+
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+};
+
+
+/**
+ *  Forces the player to blowup and lose the current game session.
+ */
+class ForceDieCommandClass : public ViniferaCommandClass
+{
+    public:
+        ForceDieCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+        virtual ~ForceDieCommandClass() {}
+
+        virtual const char *Get_Name() const override;
+        virtual const char *Get_UI_Name() const override;
+        virtual const char *Get_Category() const override;
+        virtual const char *Get_Description() const override;
+        virtual bool Process() override;
+
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+};
+
+
 #ifndef DEBUG
 /**
  *  Based class for all new developer/debug command classes.

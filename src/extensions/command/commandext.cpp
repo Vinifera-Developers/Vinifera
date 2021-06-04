@@ -28,8 +28,10 @@
 #include "commandext.h"
 #include "tibsun_globals.h"
 #include "vinifera_globals.h"
+#include "iomap.h"
 #include "dsurface.h"
 #include "wwmouse.h"
+#include "house.h"
 #include "unit.h"
 #include "unittype.h"
 #include "infantry.h"
@@ -360,4 +362,118 @@ bool AIInstantBuildCommandClass::Process()
     Vinifera_Developer_AIInstantBuild = !Vinifera_Developer_AIInstantBuild;
 
     return true;
+}
+
+
+/**
+ *  Forces the player to win the current game session.
+ * 
+ *  @author: CCHyper
+ */
+const char *ForceWinCommandClass::Get_Name() const
+{
+    return "ForceWin";
+}
+
+const char *ForceWinCommandClass::Get_UI_Name() const
+{
+    return "To Win";
+}
+
+const char *ForceWinCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *ForceWinCommandClass::Get_Description() const
+{
+    return "Forces the player to win the current game session.";
+}
+
+bool ForceWinCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    /**
+     *  Player wins.
+     */
+    return PlayerPtr->Flag_To_Win();
+}
+
+
+/**
+ *  Forces the player to lose the current game session.
+ * 
+ *  @author: CCHyper
+ */
+const char *ForceLoseCommandClass::Get_Name() const
+{
+    return "ForceLose";
+}
+
+const char *ForceLoseCommandClass::Get_UI_Name() const
+{
+    return "To Lose";
+}
+
+const char *ForceLoseCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *ForceLoseCommandClass::Get_Description() const
+{
+    return "Forces the player to lose the current game session.";
+}
+
+bool ForceLoseCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    /**
+     *  Player loses
+     */
+    return PlayerPtr->Flag_To_Lose();
+}
+
+
+/**
+ *  Forces the player to blowup and lose the current game session.
+ * 
+ *  @author: CCHyper
+ */
+const char *ForceDieCommandClass::Get_Name() const
+{
+    return "ForceDie";
+}
+
+const char *ForceDieCommandClass::Get_UI_Name() const
+{
+    return "To Die";
+}
+
+const char *ForceDieCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *ForceDieCommandClass::Get_Description() const
+{
+    return "Forces the player to blowup, loosing the current game session.";
+}
+
+bool ForceDieCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    /**
+     *  Player dies.
+     */
+    return PlayerPtr->Flag_To_Die();
 }

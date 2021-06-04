@@ -68,6 +68,15 @@ void Init_Vinifera_Commands()
 
         cmdptr = new AIInstantBuildCommandClass;
         Commands.Add(cmdptr);
+
+        cmdptr = new ForceWinCommandClass;
+        Commands.Add(cmdptr);
+
+        cmdptr = new ForceLoseCommandClass;
+        Commands.Add(cmdptr);
+
+        cmdptr = new ForceDieCommandClass;
+        Commands.Add(cmdptr);
     }
 
 #ifndef NDEBUG
