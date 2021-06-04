@@ -86,6 +86,9 @@ void Init_Vinifera_Commands()
 
         cmdptr = new FreeMoneyCommandClass;
         Commands.Add(cmdptr);
+
+        cmdptr = new LightningBoltCommandClass;
+        Commands.Add(cmdptr);
     }
 
 #ifndef NDEBUG

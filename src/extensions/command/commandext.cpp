@@ -27,7 +27,9 @@
  ******************************************************************************/
 #include "commandext.h"
 #include "tibsun_globals.h"
+#include "tibsun_util.h"
 #include "vinifera_globals.h"
+#include "vinifera_util.h"
 #include "iomap.h"
 #include "dsurface.h"
 #include "wwmouse.h"
@@ -42,6 +44,7 @@
 #include "aircraft.h"
 #include "aircrafttype.h"
 #include "session.h"
+#include "ionstorm.h"
 #include "wwcrc.h"
 #include "filepcx.h"
 #include "filepng.h"
@@ -623,6 +626,45 @@ bool FreeMoneyCommandClass::Process()
      *  Give 10,000 credits to the player.
      */
     PlayerPtr->Refund_Money(10000);
+
+    return true;
+}
+
+
+/**
+ *  Fires a lightning bolt at the current mouse cursor location.
+ * 
+ *  @author: CCHyper
+ */
+const char *LightningBoltCommandClass::Get_Name() const
+{
+    return "LightningBolt";
+}
+
+const char *LightningBoltCommandClass::Get_UI_Name() const
+{
+    return "Lightning Bolt";
+}
+
+const char *LightningBoltCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *LightningBoltCommandClass::Get_Description() const
+{
+    return "Fires a lightning bolt at the current mouse location.";
+}
+
+bool LightningBoltCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    Cell mouse_cell = Get_Cell_Under_Mouse();
+
+    IonStorm_Lightning_Strike_At(mouse_cell);
 
     return true;
 }
