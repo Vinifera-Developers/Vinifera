@@ -113,6 +113,9 @@ void Init_Vinifera_Commands()
 
         cmdptr = new SpawnAllCommandClass;
         Commands.Add(cmdptr);
+
+        cmdptr = new DamageCommandClass;
+        Commands.Add(cmdptr);
     }
 
 #ifndef NDEBUG

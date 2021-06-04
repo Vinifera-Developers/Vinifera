@@ -1222,3 +1222,50 @@ bool SpawnAllCommandClass::Process()
 
     return true;
 }
+
+
+/**
+ *  Apply damage to all selected objects.
+ */
+const char *DamageCommandClass::Get_Name() const
+{
+    return "Damage";
+}
+
+const char *DamageCommandClass::Get_UI_Name() const
+{
+    return "Damage";
+}
+
+const char *DamageCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *DamageCommandClass::Get_Description() const
+{
+    return "Apply damage to all selected objects.";
+}
+
+bool DamageCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    /**
+     *  Iterate over all selected objects and deal 50 hit points. Use C4Damage as the backup.
+     */
+    for (int i = 0; i < CurrentObjects.Count(); ++i) {
+        int damage = std::max(50, Rule->MinDamage);
+        const WarheadTypeClass *warhead = WarheadTypeClass::As_Pointer("SA");
+        if (!warhead) {
+            warhead = Rule->C4Warhead;
+        }
+        CurrentObjects[i]->Take_Damage(damage, 0, warhead, nullptr);
+    }
+
+    Map.Recalc();
+
+    return true;
+}
