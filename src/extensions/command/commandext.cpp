@@ -27,6 +27,7 @@
  ******************************************************************************/
 #include "commandext.h"
 #include "tibsun_globals.h"
+#include "vinifera_globals.h"
 #include "dsurface.h"
 #include "wwmouse.h"
 #include "unit.h"
@@ -281,6 +282,82 @@ bool DumpHeapCRCCommandClass::Process()
     LOG_CRC(AircraftTypeClass, AircraftTypes);
     
     DEBUG_INFO("\nFinished!\n\n");
+
+    return true;
+}
+
+
+/**
+ *  Toggles the instant build cheat for the player.
+ * 
+ *  @author: CCHyper
+ */
+const char *InstantBuildCommandClass::Get_Name() const
+{
+    return "InstantBuild";
+}
+
+const char *InstantBuildCommandClass::Get_UI_Name() const
+{
+    return "Instant Build (Player)";
+}
+
+const char *InstantBuildCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *InstantBuildCommandClass::Get_Description() const
+{
+    return "Toggles the instant build cheat for the player.";
+}
+
+bool InstantBuildCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    Vinifera_Developer_InstantBuild = !Vinifera_Developer_InstantBuild;
+
+    return true;
+}
+
+
+/**
+ *  Toggles the instant build cheat for the AI.
+ *  
+ *  @note: This will effect ALL the AI houses currently in the game session!
+ * 
+ *  @author: CCHyper
+ */
+const char *AIInstantBuildCommandClass::Get_Name() const
+{
+    return "AIInstantBuild";
+}
+
+const char *AIInstantBuildCommandClass::Get_UI_Name() const
+{
+    return "Instant Build (AI)";
+}
+
+const char *AIInstantBuildCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *AIInstantBuildCommandClass::Get_Description() const
+{
+    return "Toggles the instant build cheat for the AI.";
+}
+
+bool AIInstantBuildCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    Vinifera_Developer_AIInstantBuild = !Vinifera_Developer_AIInstantBuild;
 
     return true;
 }

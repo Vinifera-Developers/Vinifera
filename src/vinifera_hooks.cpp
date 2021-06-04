@@ -28,6 +28,7 @@
 #include "vinifera_hooks.h"
 #include "tibsun_globals.h"
 #include "tibsun_functions.h"
+#include "vinifera_globals.h"
 #include "vinifera_util.h"
 #include "vinifera_functions.h"
 #include "dsurface.h"
@@ -35,6 +36,7 @@
 #include "blowfish.h"
 #include "blowstraw.h"
 #include "blowpipe.h"
+#include "iomap.h"
 #include "vinifera_gitinfo.h"
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -199,6 +201,28 @@ static void _Remove_External_Blowfish_Dependency_Patch()
 }
 
 
+/**
+ *  Clear any game session and global variables before next game.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_Select_Game_Clear_Globals_Patch)
+{
+    /**
+     *  Clear any developer mode globals.
+     */
+    Vinifera_Developer_AIInstantBuild = false;
+    Vinifera_Developer_InstantBuild = false;
+
+    /**
+     *  Stolen bytes/code.
+     */
+    Map.Set_Default_Mouse(MOUSE_NORMAL);
+
+    JMP(0x004E1F30);
+}
+
+
 void Vinifera_Hooks()
 {
     /**
@@ -219,4 +243,9 @@ void Vinifera_Hooks()
      *  Remove the requirement for BLOWFISH.DLL (Blowfish encryption).
      */
     _Remove_External_Blowfish_Dependency_Patch();
+
+    /**
+     *  Clear any game session and global variables before next game.
+     */
+    Patch_Jump(0x004E1F24, &_Select_Game_Clear_Globals_Patch);
 }
