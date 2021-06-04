@@ -80,6 +80,9 @@ void Init_Vinifera_Commands()
 
         cmdptr = new CaptureObjectCommandClass;
         Commands.Add(cmdptr);
+
+        cmdptr = new SpecialWeaponsCommandClass;
+        Commands.Add(cmdptr);
     }
 
 #ifndef NDEBUG
