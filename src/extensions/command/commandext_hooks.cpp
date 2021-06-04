@@ -98,6 +98,9 @@ void Init_Vinifera_Commands()
 
         //cmdptr = new SuperExplosionCommandClass;
         //Commands.Add(cmdptr);
+
+        cmdptr = new BailOutCommandClass;
+        Commands.Add(cmdptr);
     }
 
 #ifndef NDEBUG

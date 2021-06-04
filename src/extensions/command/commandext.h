@@ -339,6 +339,25 @@ class SuperExplosionCommandClass : public ViniferaCommandClass
 };
 
 
+/**
+ *  Exits the game completely.
+ */
+class BailOutCommandClass : public ViniferaCommandClass
+{
+    public:
+        BailOutCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+        virtual ~BailOutCommandClass() {}
+
+        virtual const char *Get_Name() const override;
+        virtual const char *Get_UI_Name() const override;
+        virtual const char *Get_Category() const override;
+        virtual const char *Get_Description() const override;
+        virtual bool Process() override;
+
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+};
+
+
 #ifndef DEBUG
 /**
  *  Based class for all new developer/debug command classes.
