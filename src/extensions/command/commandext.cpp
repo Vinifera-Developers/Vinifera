@@ -1043,3 +1043,182 @@ bool DeleteObjectCommandClass::Process()
 
     return true;
 }
+
+
+/**
+ *  Spawn all buildable units and structures at mouse cursor location.
+ * 
+ *  @author: CCHyper
+ */
+const char *SpawnAllCommandClass::Get_Name() const
+{
+    return "SpawnAll";
+}
+
+const char *SpawnAllCommandClass::Get_UI_Name() const
+{
+    return "Spawn All";
+}
+
+const char *SpawnAllCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *SpawnAllCommandClass::Get_Description() const
+{
+    return "Spawn all buildable units and structures at mouse location.";
+}
+
+/**
+ *  Attempt to unlimbo the object at the cell specified.
+ */
+bool SpawnAllCommandClass::Try_Unlimbo(TechnoClass *techno, Cell &cell)
+{
+    if (techno) {
+
+        int map_cell_x = Map.MapCellX;
+        int map_cell_y = Map.MapCellY;
+        int map_cell_right = map_cell_x + Map.MapCellWidth;
+        int map_cell_bottom = map_cell_y + Map.MapCellHeight;
+
+        /**
+         *  Generally try to prevent the objects from spawning off the right of the screen.
+         */
+        map_cell_right = std::min(map_cell_right, cell.X + 26);
+
+        Cell attempt = cell;
+
+        while (attempt.Y < map_cell_bottom) {
+
+            Coordinate coord = Cell_Coord(attempt, true);
+            if (techno->Unlimbo(coord)) {
+
+                attempt.X++;
+                if (attempt.X > map_cell_right - 2) {
+                    attempt.X = cell.X;	//map_cell_x + 2;
+                    attempt.Y++;
+                }
+
+                cell = attempt;
+                return true;
+            }
+
+            attempt.X++;
+            if (attempt.X > map_cell_right - 2) {
+                attempt.X = cell.X;	//map_cell_x + 2;
+                attempt.Y++;
+            }
+        }
+
+        cell = attempt;
+    }
+
+    return false;
+}
+
+bool SpawnAllCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    /**
+     *  Dont spawn anything lower than this row.
+     */
+    int map_cell_bottom = Map.MapCellY + Map.MapCellHeight;
+
+    /**
+     *  Default spawn location (top left of map).
+     */
+    CellStruct origin(Map.MapCellX + 2, Map.MapCellY + 2);
+
+    /**
+     *  If mouse position is valid, convert to world coordinates and update
+     *  the spawn origin position to that of the mouse position.
+     */
+    if (WWMouse->Get_Mouse_XY().Is_Valid()) {
+        origin = Get_Cell_Under_Mouse();
+    }
+
+    CellStruct attempt = origin;
+
+    /**
+     *  Attempt to spawn all ownable objects for the player house.
+     */
+
+    for (BuildingType index = BUILDING_FIRST; index < BuildingTypes.Count(); ++index) {
+        BuildingTypeClass const & building_type = BuildingTypeClass::As_Reference(index);
+        if (building_type.Get_Ownable() /*&& building_type.Level != -1*/) {
+            BuildingClass * building = (BuildingClass *)building_type.Create_One_Of(PlayerPtr);
+            if (building) {
+                attempt = origin;
+                while (attempt.Y < map_cell_bottom) {
+                    if (Try_Unlimbo(building, attempt)) {
+                        DEBUG_INFO("BuildingType %s spawned at %d,%d.\n", building_type.Name(),  attempt.X, attempt.Y);
+                        break;
+                    }
+                }
+            }
+        }	
+    }
+
+    for (UnitType index = UNIT_FIRST; index < UnitTypes.Count(); ++index) {
+        UnitTypeClass const & unit_type = UnitTypeClass::As_Reference(index);
+        if (unit_type.Get_Ownable() /*&& unit_type.Level != -1*/) {
+            UnitClass * unit = (UnitClass *)unit_type.Create_One_Of(PlayerPtr);
+            if (unit) {
+
+                attempt = origin;
+
+                while (attempt.Y < map_cell_bottom) {
+                    if (Try_Unlimbo(unit, attempt)) {
+                        DEBUG_INFO("UnitType %s spawned at %d,%d.\n", unit_type.Name(), attempt.X, attempt.Y);
+                        break;
+                    }
+                }
+            }		
+        }
+    }
+
+    for (InfantryType index = INFANTRY_FIRST; index < InfantryTypes.Count(); ++index) {
+        InfantryTypeClass const & infantry_type = InfantryTypeClass::As_Reference(index);
+        if (infantry_type.Get_Ownable() /*&& infantry_type.Level != -1*/) {
+            InfantryClass * inf = (InfantryClass *)infantry_type.Create_One_Of(PlayerPtr);
+            if (inf) {
+                attempt = origin;
+                while (attempt.Y < map_cell_bottom) {
+                    if (Try_Unlimbo(inf, attempt)) {
+                        DEBUG_INFO("InfantryType %s spawned at %d,%d.\n", infantry_type.Name(),  attempt.X, attempt.Y);
+                        break;
+                    }
+                }
+            }		
+        }
+    }
+
+    for (AircraftType index = AIRCRAFT_FIRST; index < AircraftTypes.Count(); ++index) {
+        AircraftTypeClass const & aircraft_type = AircraftTypeClass::As_Reference(index);
+
+        /**
+         *  DROPPOD breaks the game!
+         */
+        //if (index == AIRCRAFT_DROPPOD) continue;
+        if (aircraft_type == "DPOD") continue;
+
+        if (aircraft_type.Get_Ownable() /*&& aircraft_type.Level != -1*/) {
+            AircraftClass * air = (AircraftClass *)aircraft_type.Create_One_Of(PlayerPtr);
+            if (air) {
+                attempt = origin;
+                while (attempt.Y < map_cell_bottom) {
+                    if (Try_Unlimbo(air, attempt)) {
+                        DEBUG_INFO("AircraftType %s spawned at %d,%d.\n", aircraft_type.Name(),  attempt.X, attempt.Y);
+                        break;
+                    }
+                }
+            }		
+        }
+    }
+
+    return true;
+}
