@@ -83,6 +83,9 @@ void Init_Vinifera_Commands()
 
         cmdptr = new SpecialWeaponsCommandClass;
         Commands.Add(cmdptr);
+
+        cmdptr = new FreeMoneyCommandClass;
+        Commands.Add(cmdptr);
     }
 
 #ifndef NDEBUG
