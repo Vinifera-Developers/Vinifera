@@ -54,6 +54,7 @@
 #include "wwcrc.h"
 #include "filepcx.h"
 #include "filepng.h"
+#include "fatal.h"
 #include "minidump.h"
 #include "winutil.h"
 #include "miscutil.h"
@@ -847,6 +848,44 @@ bool SuperExplosionCommandClass::Process()
     new AnimClass(cellanim, mouse_coord);
 
     Explosion_Damage(&mouse_coord, damage, nullptr, warheadtypeptr);
+
+    return true;
+}
+
+
+/**
+ *  Exits the game completely.
+ * 
+ *  @author: CCHyper
+ */
+const char *BailOutCommandClass::Get_Name() const
+{
+    return "BailOut";
+}
+
+const char *BailOutCommandClass::Get_UI_Name() const
+{
+    return "Bail Out";
+}
+
+const char *BailOutCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *BailOutCommandClass::Get_Description() const
+{
+    return "Exits the game to the desktop.";
+}
+
+bool BailOutCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    DEBUG_WARNING("Bail out!");
+    Fatal("Bail out!");
 
     return true;
 }
