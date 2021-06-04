@@ -32,6 +32,7 @@
 #include "dsurface.h"
 #include "wwmouse.h"
 #include "house.h"
+#include "super.h"
 #include "unit.h"
 #include "unittype.h"
 #include "infantry.h"
@@ -531,6 +532,57 @@ bool CaptureObjectCommandClass::Process()
     }
 
     Map.Recalc();
+
+    return true;
+}
+
+
+/**
+ *  Grants all available special weapons to the player.
+ * 
+ *  @author: CCHyper
+ */
+const char *SpecialWeaponsCommandClass::Get_Name() const
+{
+    return "SpecialWeapons";
+}
+
+const char *SpecialWeaponsCommandClass::Get_UI_Name() const
+{
+    return "Special Weapons";
+}
+
+const char *SpecialWeaponsCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *SpecialWeaponsCommandClass::Get_Description() const
+{
+    return "Grants all available special weapons to the player.";
+}
+
+bool SpecialWeaponsCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    /**
+     *  Iterate over all the special weapon slots for the player house
+     *  and make them all available, fully charged!
+     */
+    for (SpecialWeaponType i = SPECIAL_FIRST; i < SuperWeaponTypes.Count(); ++i) {
+
+        PlayerPtr->SuperWeapon[i]->Enable(true, true, true);
+        PlayerPtr->SuperWeapon[i]->Forced_Charge(true);
+        Map.Add(RTTI_SPECIAL, i);
+
+        /**
+         *  Redraw the right column.
+         */
+        Map.Column[1].Flag_To_Redraw();
+    }
 
     return true;
 }
