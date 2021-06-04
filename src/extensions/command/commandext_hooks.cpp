@@ -110,6 +110,9 @@ void Init_Vinifera_Commands()
 
         cmdptr = new DeleteObjectCommandClass;
         Commands.Add(cmdptr);
+
+        cmdptr = new SpawnAllCommandClass;
+        Commands.Add(cmdptr);
     }
 
 #ifndef NDEBUG
