@@ -30,11 +30,63 @@
 #include "tacticalext.h"
 #include "tactical.h"
 #include "dsurface.h"
+#include "textprint.h"
+#include "wwfont.h"
+#include "scenario.h"
+#include "colorscheme.h"
 #include "fatal.h"
 #include "vinifera_util.h"
 #include "vinifera_gitinfo.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+
+
+/**
+ *  Draws the developer mode overlay.
+ * 
+ *  @authors: CCHyper
+ */
+static void Tactical_Draw_Debug_Overlay()
+{
+    RGBClass rgb_black(0,0,0);
+    unsigned color_black = DSurface::RGBA_To_Pixel(0, 0, 0);
+    ColorScheme *text_color = ColorScheme::As_Pointer("White");
+
+    int padding = 2;
+
+    char buffer[256];
+    std::snprintf(buffer, sizeof(buffer), "[%s]", strupr(Scen->ScenarioName));
+
+    /**
+     * Fetch the text occupy area.
+     */
+    Rect scenario_text_rect;
+    GradFont6Ptr->String_Pixel_Rect(buffer, &scenario_text_rect);
+
+    /**
+     *  Fill the background area.
+     */
+    Rect fill_rect;
+    fill_rect.X = 160; // Width of Options tab, so we draw from there.
+    fill_rect.Y = 0;
+    fill_rect.Width = scenario_text_rect.Width+(padding+1);
+    fill_rect.Height = 16; // Tab bar height
+    CompositeSurface->Fill_Rect(fill_rect, color_black);
+
+    /**
+     *  Move rects into position.
+     */
+    scenario_text_rect.X = fill_rect.X+padding;
+    scenario_text_rect.Y = 0;
+    scenario_text_rect.Width += padding;
+    scenario_text_rect.Height += 3;
+
+    /**
+     *  Draw the scenario name.
+     */
+    Fancy_Text_Print(buffer, CompositeSurface, &CompositeSurface->Get_Rect(),
+        &Point2D(scenario_text_rect.X, scenario_text_rect.Y), text_color, COLOR_TBLACK, TextPrintType(TPF_6PT_GRAD|TPF_NOSHADOW));
+}
 
 
 /**
@@ -45,6 +97,13 @@
 DECLARE_PATCH(_Tactical_Render_Patch)
 {
     GET_REGISTER_STATIC(Tactical *, this_ptr, ebp);
+
+    /**
+     *  If the developer mode is active, draw the developer overlay.
+     */
+    if (Vinifera_DeveloperMode) {
+        Tactical_Draw_Debug_Overlay();
+    }
 
 #ifndef RELEASE
     /**
