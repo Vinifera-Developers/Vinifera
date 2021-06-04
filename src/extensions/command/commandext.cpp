@@ -45,6 +45,7 @@
 #include "aircrafttype.h"
 #include "session.h"
 #include "ionstorm.h"
+#include "ionblast.h"
 #include "wwcrc.h"
 #include "filepcx.h"
 #include "filepng.h"
@@ -665,6 +666,46 @@ bool LightningBoltCommandClass::Process()
     Cell mouse_cell = Get_Cell_Under_Mouse();
 
     IonStorm_Lightning_Strike_At(mouse_cell);
+
+    return true;
+}
+
+
+/**
+ *  Fires an ion blast bolt at the current mouse cursor location.
+ * 
+ *  @author: CCHyper
+ */
+const char *IonBlastCommandClass::Get_Name() const
+{
+    return "IonBlast";
+}
+
+const char *IonBlastCommandClass::Get_UI_Name() const
+{
+    return "Ion Blast";
+}
+
+const char *IonBlastCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *IonBlastCommandClass::Get_Description() const
+{
+    return "Fires an ion blast bolt at the current mouse location.";
+}
+
+bool IonBlastCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    Coordinate mouse_coord = Get_Coord_Under_Mouse();
+    mouse_coord.Z = Map.Get_Cell_Height(mouse_coord);
+
+    new IonBlastClass(mouse_coord);
 
     return true;
 }

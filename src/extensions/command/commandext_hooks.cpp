@@ -89,6 +89,9 @@ void Init_Vinifera_Commands()
 
         cmdptr = new LightningBoltCommandClass;
         Commands.Add(cmdptr);
+
+        cmdptr = new IonBlastCommandClass;
+        Commands.Add(cmdptr);
     }
 
 #ifndef NDEBUG
