@@ -107,6 +107,9 @@ void Init_Vinifera_Commands()
 
         cmdptr = new MapSnapshotCommandClass;
         Commands.Add(cmdptr);
+
+        cmdptr = new DeleteObjectCommandClass;
+        Commands.Add(cmdptr);
     }
 
 #ifndef NDEBUG

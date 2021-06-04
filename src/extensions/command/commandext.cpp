@@ -988,3 +988,58 @@ bool MapSnapshotCommandClass::Process()
 
     return true;
 }
+
+
+/**
+ *  Removes the selected object(s) from the game world.
+ * 
+ *  @author: CCHyper
+ */
+const char *DeleteObjectCommandClass::Get_Name() const
+{
+    return "DeleteObject";
+}
+
+const char *DeleteObjectCommandClass::Get_UI_Name() const
+{
+    return "Delete Selected";
+}
+
+const char *DeleteObjectCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *DeleteObjectCommandClass::Get_Description() const
+{
+    return "Removes the selected object(s) from the game world.";
+}
+
+bool DeleteObjectCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    for (int i = 0; i < CurrentObjects.Count(); ++i) {
+        ObjectClass *object = CurrentObjects[i];
+        if (!object) {
+            continue;
+        }
+
+        /**
+         *  Buildings need to be "sold".
+         */
+        if (object->What_Am_I() == RTTI_BUILDING) {
+            object->Sell_Back(1);
+        } else {
+            object->Unselect();
+            object->Limbo();
+            delete object;
+        }
+    }
+
+    Map.Recalc();
+
+    return true;
+}

@@ -396,6 +396,25 @@ class MapSnapshotCommandClass : public ViniferaCommandClass
 };
 
 
+/**
+ *  Removes the selected object(s) from the game world.
+ */
+class DeleteObjectCommandClass : public ViniferaCommandClass
+{
+    public:
+        DeleteObjectCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+        virtual ~DeleteObjectCommandClass() {}
+
+        virtual const char *Get_Name() const override;
+        virtual const char *Get_UI_Name() const override;
+        virtual const char *Get_Category() const override;
+        virtual const char *Get_Description() const override;
+        virtual bool Process() override;
+
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+};
+
+
 #ifndef DEBUG
 /**
  *  Based class for all new developer/debug command classes.
