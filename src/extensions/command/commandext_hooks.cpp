@@ -104,6 +104,9 @@ void Init_Vinifera_Commands()
 
         cmdptr = new IonStormCommandClass;
         Commands.Add(cmdptr);
+
+        cmdptr = new MapSnapshotCommandClass;
+        Commands.Add(cmdptr);
     }
 
 #ifndef NDEBUG

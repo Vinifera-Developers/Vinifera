@@ -51,6 +51,7 @@
 #include "ionstorm.h"
 #include "ionblast.h"
 #include "combat.h"
+#include "scenarioini.h"
 #include "wwcrc.h"
 #include "filepcx.h"
 #include "filepng.h"
@@ -927,6 +928,63 @@ bool IonStormCommandClass::Process()
     } else {
         IonStorm_Start(TICKS_PER_SECOND * Rule->IonStormDuration/*, TICKS_PER_SECOND * Rule->IonStormWarning*/); // No warning (instant).
     }
+
+    return true;
+}
+
+
+/**
+ *  Saves a snapshot of the current scenario state.
+ * 
+ *  @author: CCHyper
+ */
+const char *MapSnapshotCommandClass::Get_Name() const
+{
+    return "MapSnapshot";
+}
+
+const char *MapSnapshotCommandClass::Get_UI_Name() const
+{
+    return "Scenario Snapshot";
+}
+
+const char *MapSnapshotCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *MapSnapshotCommandClass::Get_Description() const
+{
+    return "Saves a snapshot of the current scenario state (Saved as 'SCEN_<date-time>.MAP.).";
+}
+
+bool MapSnapshotCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    char buffer[128];
+
+    /**
+     *  Generate a unique filename with the current timestamp.
+     */
+    int day = 0;
+    int month = 0;
+    int year = 0;
+    int hour = 0;
+    int min = 0;
+    int sec = 0;
+    Get_Full_Time(day, month, year, hour, min, sec);
+    std::snprintf(buffer, sizeof(buffer), "SCEN_%02u-%02u-%04u_%02u-%02u-%02u.MAP", day, month, year, hour, min, sec);
+
+    DEBUG_INFO("Saving map snapshot...");
+
+    Write_Scenario_INI(buffer);
+    
+    DEBUG_INFO(" COMPLETE!\n");
+
+    DEBUG_INFO("Filename: %s\n", buffer);
 
     return true;
 }
