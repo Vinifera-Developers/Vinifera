@@ -889,3 +889,44 @@ bool BailOutCommandClass::Process()
 
     return true;
 }
+
+
+/**
+ *  Toggles the ion storm on/off.
+ * 
+ *  @author: CCHyper
+ */
+const char *IonStormCommandClass::Get_Name() const
+{
+    return "IonStorm";
+}
+
+const char *IonStormCommandClass::Get_UI_Name() const
+{
+    return "Ion Storm";
+}
+
+const char *IonStormCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *IonStormCommandClass::Get_Description() const
+{
+    return "Toggles an ion storm on/off.";
+}
+
+bool IonStormCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    if (IonStorm_Is_Active()) {
+        IonStorm_Stop();
+    } else {
+        IonStorm_Start(TICKS_PER_SECOND * Rule->IonStormDuration/*, TICKS_PER_SECOND * Rule->IonStormWarning*/); // No warning (instant).
+    }
+
+    return true;
+}

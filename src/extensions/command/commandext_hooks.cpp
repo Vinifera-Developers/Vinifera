@@ -101,6 +101,9 @@ void Init_Vinifera_Commands()
 
         cmdptr = new BailOutCommandClass;
         Commands.Add(cmdptr);
+
+        cmdptr = new IonStormCommandClass;
+        Commands.Add(cmdptr);
     }
 
 #ifndef NDEBUG
