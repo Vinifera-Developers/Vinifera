@@ -586,3 +586,43 @@ bool SpecialWeaponsCommandClass::Process()
 
     return true;
 }
+
+
+/**
+ *  Hands out free money to the player.
+ * 
+ *  @author: CCHyper
+ */
+const char *FreeMoneyCommandClass::Get_Name() const
+{
+    return "FreeMoney";
+}
+
+const char *FreeMoneyCommandClass::Get_UI_Name() const
+{
+    return "Free Money";
+}
+
+const char *FreeMoneyCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *FreeMoneyCommandClass::Get_Description() const
+{
+    return "Gives free money to the player.";
+}
+
+bool FreeMoneyCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    /**
+     *  Give 10,000 credits to the player.
+     */
+    PlayerPtr->Refund_Money(10000);
+
+    return true;
+}
