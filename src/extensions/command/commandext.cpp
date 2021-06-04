@@ -33,8 +33,11 @@
 #include "iomap.h"
 #include "dsurface.h"
 #include "wwmouse.h"
+#include "rules.h"
 #include "house.h"
 #include "super.h"
+#include "anim.h"
+#include "animtype.h"
 #include "unit.h"
 #include "unittype.h"
 #include "infantry.h"
@@ -43,9 +46,11 @@
 #include "buildingtype.h"
 #include "aircraft.h"
 #include "aircrafttype.h"
+#include "warheadtype.h"
 #include "session.h"
 #include "ionstorm.h"
 #include "ionblast.h"
+#include "combat.h"
 #include "wwcrc.h"
 #include "filepcx.h"
 #include "filepng.h"
@@ -706,6 +711,142 @@ bool IonBlastCommandClass::Process()
     mouse_coord.Z = Map.Get_Cell_Height(mouse_coord);
 
     new IonBlastClass(mouse_coord);
+
+    return true;
+}
+
+
+/**
+ *  Spawns an explosion at the mouse cursor location.
+ * 
+ *  @author: CCHyper
+ */
+const char *ExplosionCommandClass::Get_Name() const
+{
+    return "Explosion";
+}
+
+const char *ExplosionCommandClass::Get_UI_Name() const
+{
+    return "Explosion";
+}
+
+const char *ExplosionCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *ExplosionCommandClass::Get_Description() const
+{
+    return "Spawns a explosion at the mouse location.";
+}
+
+bool ExplosionCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    Coordinate mouse_coord = Get_Coord_Under_Mouse();
+    mouse_coord.Z = Map.Get_Cell_Height(mouse_coord);
+
+    const CellClass *cellptr = &Map[mouse_coord];
+    if (!cellptr) {
+        return false;
+    }
+
+    /**
+     *  The damage to deal at the coord.
+     */
+    int damage = Rule->MaxDamage;
+
+    /**
+     *  Pick a random warhead from the list, using C4Warhead as a backup.
+     */
+    const WarheadTypeClass *warheadtypeptr = WarheadTypeClass::As_Pointer(Percent_Chance(50) ? "AP" : "HE");
+    if (!warheadtypeptr) {
+        warheadtypeptr = Rule->C4Warhead;
+    }
+
+    /**
+     *  What anim should we use for this criteria.
+     */
+    const AnimTypeClass *cellanim = Combat_Anim(damage, warheadtypeptr, cellptr->Land_Type(), &mouse_coord);
+    if (!cellanim) {
+        return false;
+    }
+
+    new AnimClass(cellanim, mouse_coord);
+
+    Explosion_Damage(&mouse_coord, damage, nullptr, warheadtypeptr);
+
+    return true;
+}
+
+
+/**
+ *  Spawns a large explosion at the mouse cursor location.
+ * 
+ *  @author: CCHyper
+ */
+const char *SuperExplosionCommandClass::Get_Name() const
+{
+    return "SuperExplosion";
+}
+
+const char *SuperExplosionCommandClass::Get_UI_Name() const
+{
+    return "Super Explosion";
+}
+
+const char *SuperExplosionCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *SuperExplosionCommandClass::Get_Description() const
+{
+    return "Spawns a large explosion at the mouse location.";
+}
+
+bool SuperExplosionCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    Coordinate mouse_coord = Get_Coord_Under_Mouse();
+    mouse_coord.Z = Map.Get_Cell_Height(mouse_coord);
+
+    const CellClass *cellptr = &Map[mouse_coord];
+    if (!cellptr) {
+        return false;
+    }
+
+    /**
+     *  The damage to deal at the coord.
+     */
+    int damage = Rule->MaxDamage;
+
+    /**
+     *  Pick a random warhead from the list, using C4Warhead as a backup.
+     */
+    const WarheadTypeClass *warheadtypeptr = WarheadTypeClass::As_Pointer("Super");
+    if (!warheadtypeptr) {
+        warheadtypeptr = Rule->C4Warhead;
+    }
+
+    /**
+     *  What anim should we use for this criteria.
+     */
+    const AnimTypeClass *cellanim = Combat_Anim(damage, warheadtypeptr, cellptr->Land_Type(), &mouse_coord);
+    if (!cellanim) {
+        return false;
+    }
+
+    new AnimClass(cellanim, mouse_coord);
+
+    Explosion_Damage(&mouse_coord, damage, nullptr, warheadtypeptr);
 
     return true;
 }
