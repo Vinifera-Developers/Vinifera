@@ -1269,3 +1269,80 @@ bool DamageCommandClass::Process()
 
     return true;
 }
+
+
+/**
+ *  Toggle the elite status of the selected objects.
+ * 
+ *  @author: CCHyper
+ */
+const char *ToggleEliteCommandClass::Get_Name() const
+{
+    return "ToggleElite";
+}
+
+const char *ToggleEliteCommandClass::Get_UI_Name() const
+{
+    return "Toggle Elite";
+}
+
+const char *ToggleEliteCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *ToggleEliteCommandClass::Get_Description() const
+{
+    return "Toggle the elite status of the selected objects.";
+}
+
+bool ToggleEliteCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    for (int i = 0; i < CurrentObjects.Count(); ++i) {
+
+        TechnoClass *techno = reinterpret_cast<TechnoClass *>(CurrentObjects[i]);
+        if (!techno) {
+            continue;
+        }
+        
+        /**
+         *  Upgrade to rookie.
+         */
+        if (techno->Veterancy.Is_Dumbass()) {
+            techno->Veterancy.Set_Rookie(false);
+            continue;
+        }
+
+        /**
+         *  Upgrade to veteran.
+         */
+        if (techno->Veterancy.Is_Rookie()) {
+            techno->Veterancy.Set_Veteran(true);
+            continue;
+        }
+        
+        /**
+         *  Upgrade to elite.
+         */
+        if (techno->Veterancy.Is_Veteran()) {
+            techno->Veterancy.Set_Elite(true);
+            continue;
+        }
+        
+        /**
+         *  Degrade elite back to dumbass.
+         */
+        if (techno->Veterancy.Is_Elite()) {
+            techno->Veterancy.Set_Rookie(true);
+            continue;
+        }
+    }
+
+    Map.Recalc();
+
+    return true;
+}
