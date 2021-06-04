@@ -77,6 +77,9 @@ void Init_Vinifera_Commands()
 
         cmdptr = new ForceDieCommandClass;
         Commands.Add(cmdptr);
+
+        cmdptr = new CaptureObjectCommandClass;
+        Commands.Add(cmdptr);
     }
 
 #ifndef NDEBUG

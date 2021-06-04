@@ -477,3 +477,60 @@ bool ForceDieCommandClass::Process()
      */
     return PlayerPtr->Flag_To_Die();
 }
+
+
+/**
+ *  Take ownership of any selected objects.
+ * 
+ *  @author: CCHyper
+ */
+const char *CaptureObjectCommandClass::Get_Name() const
+{
+    return "CaptureObject";
+}
+
+const char *CaptureObjectCommandClass::Get_UI_Name() const
+{
+    return "Capture Object";
+}
+
+const char *CaptureObjectCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *CaptureObjectCommandClass::Get_Description() const
+{
+    return "Take ownership of any selected objects.";
+}
+
+bool CaptureObjectCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    /**
+     *  Iterate over all currently selected objects and take ownership of them.
+     */
+    for (int i = 0; i < CurrentObjects.Count(); ++i) {
+        ObjectClass * object = CurrentObjects[i];
+        if (!object || !object->Is_Techno()) {
+            continue;
+        }
+
+        /**
+         *  We own this object already, skip it.
+         */
+        if (object->Owning_House() == PlayerPtr) {
+            continue;
+        }
+
+        TechnoClass *techno = dynamic_cast<TechnoClass *>(object);
+        techno->Captured(PlayerPtr);
+    }
+
+    Map.Recalc();
+
+    return true;
+}
