@@ -64,6 +64,7 @@
 //#include "triggertypeext_hooks.h"
 
 #include "teamext_hooks.h"
+#include "factoryext_hooks.h"
 
 #include "dropshipext_hooks.h"
 
@@ -116,6 +117,7 @@ void Extension_Hooks()
     //TriggerTypeClassExtension_Hooks();
 
     TeamClassExtension_Hooks();
+	FactoryClassExtension_Hooks();
 
     DropshipExtension_Hooks();
 }
