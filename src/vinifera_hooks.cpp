@@ -213,6 +213,7 @@ DECLARE_PATCH(_Select_Game_Clear_Globals_Patch)
      */
     Vinifera_Developer_AIInstantBuild = false;
     Vinifera_Developer_InstantBuild = false;
+    Vinifera_Developer_BuildCheat = false;
 
     /**
      *  Stolen bytes/code.

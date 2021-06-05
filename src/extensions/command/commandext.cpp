@@ -1346,3 +1346,65 @@ bool ToggleEliteCommandClass::Process()
 
     return true;
 }
+
+
+/**
+ *  Unlock all available build options for the player house.
+ * 
+ *  @author: CCHyper
+ */
+const char *BuildCheatCommandClass::Get_Name() const
+{
+    return "BuildCheat";
+}
+
+const char *BuildCheatCommandClass::Get_UI_Name() const
+{
+    return "Build Cheat";
+}
+
+const char *BuildCheatCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *BuildCheatCommandClass::Get_Description() const
+{
+    return "Unlock all available build options for the player house.";
+}
+
+bool BuildCheatCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    /**
+     *  Toggle the build cheat flag.
+     */
+    Vinifera_Developer_BuildCheat = !Vinifera_Developer_BuildCheat;
+
+    /**
+     *  Flag the player house to recalculate buildables.
+     */
+    PlayerPtr->IsRecalcNeeded = true;
+
+    if (!ScenarioInit) {
+
+        /**
+         *  Update all factories.
+         */
+        for (int index = 0; index < Buildings.Count(); index++) {
+            BuildingClass *building = Buildings[index];
+            if (building) {
+                if (building->Owning_House() == PlayerPtr) {
+                    building->Update_Buildables();
+                }
+            }
+        }
+    }
+
+    Map.Recalc();
+
+    return true;
+}

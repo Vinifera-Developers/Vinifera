@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          VINIFERA_GLOBALS.H
+ *  @file          HOUSEEXT_HOOKS.H
  *
- *  @authors       CCHyper
+ *  @author        CCHyper
  *
- *  @brief         Vinifera global values.
+ *  @brief         Contains the hooks for the extended HouseClass.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -27,17 +27,5 @@
  ******************************************************************************/
 #pragma once
 
-#include "always.h"
 
-
-extern bool Vinifera_DeveloperMode;
-
-extern char Vinifera_DebugDirectory[PATH_MAX];
-
-
-/**
- *  Developer mode globals.
- */
-extern bool Vinifera_Developer_InstantBuild;
-extern bool Vinifera_Developer_AIInstantBuild;
-extern bool Vinifera_Developer_BuildCheat;
+void HouseClassExtension_Hooks();
