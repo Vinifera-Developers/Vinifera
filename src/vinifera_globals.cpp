@@ -36,3 +36,4 @@ extern char Vinifera_DebugDirectory[PATH_MAX] = { "Debug" };
 
 bool Vinifera_Developer_InstantBuild = false;
 bool Vinifera_Developer_AIInstantBuild = false;
+bool Vinifera_Developer_BuildCheat = false;

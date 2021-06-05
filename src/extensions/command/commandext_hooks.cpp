@@ -119,6 +119,9 @@ void Init_Vinifera_Commands()
 
         cmdptr = new ToggleEliteCommandClass;
         Commands.Add(cmdptr);
+
+        cmdptr = new BuildCheatCommandClass;
+        Commands.Add(cmdptr);
     }
 
 #ifndef NDEBUG
