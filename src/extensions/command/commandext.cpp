@@ -1408,3 +1408,59 @@ bool BuildCheatCommandClass::Process()
 
     return true;
 }
+
+
+/**
+ *  Toggles the visibility of the map shroud.
+ * 
+ *  @author: CCHyper
+ */
+const char *ToggleShroudCommandClass::Get_Name() const
+{
+    return "ToggleShroud";
+}
+
+const char *ToggleShroudCommandClass::Get_UI_Name() const
+{
+    return "Toggle Shroud";
+}
+
+const char *ToggleShroudCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *ToggleShroudCommandClass::Get_Description() const
+{
+    return "Toggles the visibility of the map shroud.";
+}
+
+bool ToggleShroudCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    /**
+     *  Toggle the unshroud flag.
+     */
+    Vinifera_Developer_Unshroud = !Vinifera_Developer_Unshroud;
+
+    /**
+     *  #NOTE:
+     *  This is temporary code until the Unshroud flag is correctly
+     *  hooked into DisplayClass and RadarClass!
+     */
+    if (Vinifera_Developer_Unshroud) {
+        Map.Reveal_The_Map();
+    } else {
+        Map.Shroud_The_Map();
+    }
+
+    /**
+     *  Force a redraw of the screen.
+     */
+    Map.Flag_To_Redraw(true);
+
+    return true;
+}
