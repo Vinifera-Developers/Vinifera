@@ -61,6 +61,27 @@
  */
 DECLARE_PATCH(_Start_Scenario_Dropship_Loadout_Show_Mouse_Patch)
 {
+    /**
+     *  issue-284
+     * 
+     *  Play a background theme during the loadout menu.
+     * 
+     *  @author: CCHyper
+     */
+    if (!Theme.Still_Playing()) {
+
+        /**
+         *  If DSHPLOAD is defined in THEME.INI, play that, otherwise default
+         *  to playing the TS Maps theme.
+         */
+        ThemeType theme = Theme.From_Name("DSHPLOAD");
+        if (theme == THEME_NONE) {
+            theme = Theme.From_Name("MAPS");
+        }
+
+        Theme.Play_Song(theme);
+    }
+
     WWMouse->Release_Mouse();
     WWMouse->Show_Mouse();
 
@@ -68,6 +89,10 @@ DECLARE_PATCH(_Start_Scenario_Dropship_Loadout_Show_Mouse_Patch)
 
     WWMouse->Hide_Mouse();
     WWMouse->Capture_Mouse();
+
+    if (Theme.Still_Playing()) {
+        Theme.Stop(true); // Smoothly fade out the track.
+    }
 
     JMP(0x005DB3C0);
 }
