@@ -128,6 +128,9 @@ void Init_Vinifera_Commands()
 
         cmdptr = new HealCommandClass;
         Commands.Add(cmdptr);
+
+        cmdptr = new ToggleInertCommandClass;
+        Commands.Add(cmdptr);
     }
 
 #ifndef NDEBUG
