@@ -1464,3 +1464,48 @@ bool ToggleShroudCommandClass::Process()
 
     return true;
 }
+
+
+/**
+ *  Heal the selected objects by 50 hit points.
+ * 
+ *  @author: CCHyper
+ */
+const char *HealCommandClass::Get_Name() const
+{
+    return "Heal";
+}
+
+const char *HealCommandClass::Get_UI_Name() const
+{
+    return "Heal";
+}
+
+const char *HealCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *HealCommandClass::Get_Description() const
+{
+    return "Heal the selected objects.";
+}
+
+bool HealCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    /**
+     *  Iterate over all selected objects and heal by 50 hit points.
+     */
+    for (int i = 0; i < CurrentObjects.Count(); ++i) {
+        int damage = -50;
+        CurrentObjects[i]->Take_Damage(damage, 0, Rule->C4Warhead, nullptr);
+    }
+
+    Map.Recalc();
+
+    return true;
+}
