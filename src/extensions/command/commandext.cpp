@@ -35,6 +35,8 @@
 #include "wwmouse.h"
 #include "rules.h"
 #include "house.h"
+#include "housetype.h"
+#include "base.h"
 #include "super.h"
 #include "anim.h"
 #include "animtype.h"
@@ -1097,7 +1099,7 @@ bool SpawnAllCommandClass::Try_Unlimbo(TechnoClass *techno, Cell &cell)
 
                 attempt.X++;
                 if (attempt.X > map_cell_right - 2) {
-                    attempt.X = cell.X;	//map_cell_x + 2;
+                    attempt.X = cell.X; //map_cell_x + 2;
                     attempt.Y++;
                 }
 
@@ -1107,7 +1109,7 @@ bool SpawnAllCommandClass::Try_Unlimbo(TechnoClass *techno, Cell &cell)
 
             attempt.X++;
             if (attempt.X > map_cell_right - 2) {
-                attempt.X = cell.X;	//map_cell_x + 2;
+                attempt.X = cell.X; //map_cell_x + 2;
                 attempt.Y++;
             }
         }
@@ -1161,7 +1163,7 @@ bool SpawnAllCommandClass::Process()
                     }
                 }
             }
-        }	
+        }
     }
 
     for (UnitType index = UNIT_FIRST; index < UnitTypes.Count(); ++index) {
@@ -1178,7 +1180,7 @@ bool SpawnAllCommandClass::Process()
                         break;
                     }
                 }
-            }		
+            }
         }
     }
 
@@ -1194,7 +1196,7 @@ bool SpawnAllCommandClass::Process()
                         break;
                     }
                 }
-            }		
+            }
         }
     }
 
@@ -1217,7 +1219,7 @@ bool SpawnAllCommandClass::Process()
                         break;
                     }
                 }
-            }		
+            }
         }
     }
 
@@ -1548,6 +1550,82 @@ bool ToggleInertCommandClass::Process()
      *  any damage. Effectively, if this is true, then units will never die.
      */
     Scen->SpecialFlags.IsInert = !Scen->SpecialFlags.IsInert;
+
+    return true;
+}
+
+
+/**
+ *  Dumps all the current AI house base node info to the log output.
+ * 
+ *  @author: CCHyper
+ */
+const char *DumpAIBaseNodesCommandClass::Get_Name() const
+{
+    return "DumpAIBaseNodes";
+}
+
+const char *DumpAIBaseNodesCommandClass::Get_UI_Name() const
+{
+    return "Dump AI Base Nodes";
+}
+
+const char *DumpAIBaseNodesCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *DumpAIBaseNodesCommandClass::Get_Description() const
+{
+    return "Dumps all the current AI house base node info to the log output.";
+}
+
+bool DumpAIBaseNodesCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    DEBUG_INFO("About to dump AI base nodes...\n\n");
+
+    for (int house_index = 0; house_index < Houses.Count(); ++house_index) {
+        HouseClass *house = Houses[house_index];
+
+        /**
+         *  Make sure we only process non-player houses.
+         */
+        if (!house->Is_Player_Control() && !house->Is_Human_Control()) {
+
+            DEBUG_INFO("\n");
+
+            DEBUG_INFO("%02d \"%s\":\n", house_index, house->Class->Name());
+
+            //DEBUG_INFO("  field_50: %d\n", house->Base.field_50);
+            //DEBUG_INFO("  field_64: %d\n", house->Base.field_64);
+            //DEBUG_INFO("  field_68: %d\n", house->Base.field_68);
+            //DEBUG_INFO("  field_6C: %d\n", house->Base.field_6C);
+            //DEBUG_INFO("  field_70: %d\n", house->Base.field_70);
+            DEBUG_INFO("  PercentBuilt: %03d\n", house->Base.PercentBuilt);
+
+            DEBUG_INFO("  Nodes.Count: %d\n", house->Base.Nodes.Count());
+
+            /**
+             *  Iterate all nodes for this house.
+             */
+            for (int node_index = 0; node_index < house->Base.Nodes.Count(); ++node_index) {
+                BaseNodeClass &node = house->Base.Nodes[node_index];
+
+                if (node.Type == BUILDING_NONE) {
+                    continue;
+                }
+
+                const char *name = BuildingTypeClass::Name_From(node.Type);
+                DEBUG_INFO("  Node %03d: \"%s\" at %d,%d\n", node_index, name, node.Where.X, node.Where.Y);
+            }
+        }
+    }
+
+    DEBUG_INFO("\nFinished!\n\n");
 
     return true;
 }
