@@ -131,6 +131,9 @@ void Init_Vinifera_Commands()
 
         cmdptr = new ToggleInertCommandClass;
         Commands.Add(cmdptr);
+
+        cmdptr = new DumpAIBaseNodesCommandClass;
+        Commands.Add(cmdptr);
     }
 
 #ifndef NDEBUG
