@@ -47,6 +47,20 @@
 
 
 /**
+ *  #issue-187
+ *  
+ *  Fixes incorrect spelling of "Loser" on the multiplayer score screen debug output.
+ * 
+ *  @author: CCHyper
+ */
+static void _MultiScore_Tally_Score_Fix_Loser_Typo_Patch()
+{
+    static const char *TEXT_LOSER = "Loser";
+    Patch_Dword(0x00568A05+1, (uintptr_t)TEXT_LOSER); // +1 skips "mov eax," opcode
+}
+
+
+/**
  *  #issue-287
  * 
  *  Main menu transition videos incorrectly scale up when "StretchMovies=true".
@@ -327,4 +341,5 @@ void BugFix_Hooks()
     _Intro_Movie_Patchies();
     _Show_Load_Game_On_Mission_Failure();
     _Dont_Stretch_Main_Menu_Video_Patch();
+    _MultiScore_Tally_Score_Fix_Loser_Typo_Patch();
 }
