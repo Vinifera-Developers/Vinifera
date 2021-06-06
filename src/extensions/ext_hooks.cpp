@@ -117,6 +117,8 @@
 
 #include "fetchres_hooks.h"
 
+#include "mapseedext_hooks.h"
+
 #include "skirmishdlg_hooks.h"
 
 #include "filepcx_hooks.h"
@@ -225,6 +227,8 @@ void Extension_Hooks()
     TheaterTypeClassExtension_Hooks();
 
     FetchRes_Hooks();
+
+    MapSeedClassExtension_Hooks();
 
     /**
      *  Dialogs and associated code.
