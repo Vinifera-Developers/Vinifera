@@ -47,6 +47,23 @@
 
 
 /**
+ *  #issue-287
+ * 
+ *  Main menu transition videos incorrectly scale up when "StretchMovies=true".
+ * 
+ *  @author: CCHyper
+ */
+static void _Dont_Stretch_Main_Menu_Video_Patch()
+{
+    /**
+     *  Change Play_Movie "stretch_allowed" arg to false.
+     */
+    Patch_Byte(0x0057FF34+1, 0); // TS_TITLE.VQA
+    Patch_Byte(0x0057FECF+1, 0); // FS_TITLE.VQA
+}
+
+
+/**
  *  #issue-269
  * 
  *  Adds a "Load Game" button to the dialog shown on mission lose.
@@ -309,4 +326,5 @@ void BugFix_Hooks()
     _OptionsClass_Constructor_AllowHiResModes_Default_Patch();
     _Intro_Movie_Patchies();
     _Show_Load_Game_On_Mission_Failure();
+    _Dont_Stretch_Main_Menu_Video_Patch();
 }
