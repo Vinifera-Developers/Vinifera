@@ -125,6 +125,9 @@ void Init_Vinifera_Commands()
 
         cmdptr = new ToggleShroudCommandClass;
         Commands.Add(cmdptr);
+
+        cmdptr = new HealCommandClass;
+        Commands.Add(cmdptr);
     }
 
 #ifndef NDEBUG

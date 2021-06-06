@@ -513,6 +513,25 @@ class ToggleShroudCommandClass : public ViniferaCommandClass
 };
 
 
+/**
+ *  Heal the selected objects by 50 hit points.
+ */
+class HealCommandClass : public ViniferaCommandClass
+{
+    public:
+        HealCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+        virtual ~HealCommandClass() {}
+
+        virtual const char *Get_Name() const override;
+        virtual const char *Get_UI_Name() const override;
+        virtual const char *Get_Category() const override;
+        virtual const char *Get_Description() const override;
+        virtual bool Process() override;
+
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+};
+
+
 #ifndef DEBUG
 /**
  *  Based class for all new developer/debug command classes.
