@@ -52,6 +52,7 @@
 #include "ionblast.h"
 #include "combat.h"
 #include "scenarioini.h"
+#include "scenario.h"
 #include "wwcrc.h"
 #include "filepcx.h"
 #include "filepng.h"
@@ -1506,6 +1507,47 @@ bool HealCommandClass::Process()
     }
 
     Map.Recalc();
+
+    return true;
+}
+
+
+/**
+ *  Toggles if weapons do damage or not.
+ * 
+ *  @author: CCHyper
+ */
+const char *ToggleInertCommandClass::Get_Name() const
+{
+    return "ToggleInert";
+}
+
+const char *ToggleInertCommandClass::Get_UI_Name() const
+{
+    return "Toggle Inert";
+}
+
+const char *ToggleInertCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *ToggleInertCommandClass::Get_Description() const
+{
+    return "Toggles if weapons are inert or not.";
+}
+
+bool ToggleInertCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    /**
+     *  This flags controls whether weapons are inert. An inert weapon doesn't do
+     *  any damage. Effectively, if this is true, then units will never die.
+     */
+    Scen->SpecialFlags.IsInert = !Scen->SpecialFlags.IsInert;
 
     return true;
 }
