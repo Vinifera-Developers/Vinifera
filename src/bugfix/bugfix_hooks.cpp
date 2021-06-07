@@ -36,6 +36,9 @@
 #include "ccfile.h"
 #include "cd.h"
 #include "vqa.h"
+#include "movie.h"
+#include "dsurface.h"
+#include "options.h"
 #include "language.h"
 #include "theme.h"
 #include "msgbox.h"
@@ -44,6 +47,118 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  Scale up the input rect to the desired width and height, while maintaining the aspect ratio.
+ * 
+ *  @author: CCHyper
+ */
+static bool Scale_Video_Rect(Rect &rect, int max_width, int max_height, bool maintain_ratio = false)
+{
+    /**
+     *  No need to scale the rect if it is larger than the max width/height
+     */
+    bool smaller = rect.Width < max_width && rect.Height < max_height;
+    if (!smaller) {
+        return false;
+    }
+
+    /**
+     *  This is a workaround for edge case issues with some versions
+     *  of cnc-ddraw. This ensures the available draw area is actually
+     *  the resolution the user defines, not what the cnc-ddraw forces
+     *  the primary surface to.
+     */
+    int surface_width = std::clamp(HiddenSurface->Width, 0, Options.ScreenWidth);
+    int surface_height = std::clamp(HiddenSurface->Height, 0, Options.ScreenHeight);
+
+    if (maintain_ratio) {
+
+        double dSurfaceWidth = surface_width;
+        double dSurfaceHeight = surface_height;
+        double dSurfaceAspectRatio = dSurfaceWidth / dSurfaceHeight;
+
+        double dVideoWidth = rect.Width;
+        double dVideoHeight = rect.Height;
+        double dVideoAspectRatio = dVideoWidth / dVideoHeight;
+    
+        /**
+         *  If the aspect ratios are the same then the screen rectangle
+         *  will do, otherwise we need to calculate the new rectangle.
+         */
+        if (dVideoAspectRatio > dSurfaceAspectRatio) {
+            int nNewHeight = (int)(surface_width/dVideoWidth*dVideoHeight);
+            int nCenteringFactor = (surface_height - nNewHeight) / 2;
+            rect.X = 0;
+            rect.Y = nCenteringFactor;
+            rect.Width = surface_width;
+            rect.Height = nNewHeight;
+
+        } else if (dVideoAspectRatio < dSurfaceAspectRatio) {
+            int nNewWidth = (int)(surface_height/dVideoHeight*dVideoWidth);
+            int nCenteringFactor = (surface_width - nNewWidth) / 2;
+            rect.X = nCenteringFactor;
+            rect.Y = 0;
+            rect.Width = nNewWidth;
+            rect.Height = surface_height;
+
+        } else {
+            rect.X = 0;
+            rect.Y = 0;
+            rect.Width = surface_width;
+            rect.Height = surface_height;
+        }
+
+    } else {
+        rect.X = 0;
+        rect.Y = 0;
+        rect.Width = surface_width;
+        rect.Height = surface_height;
+    }
+
+    return true;
+}
+
+
+/**
+ *  #issue-292
+ * 
+ *  Videos stretch to the whole screen size and ignore the video aspect ratio.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_Play_Movie_Scale_By_Ratio_Patch)
+{
+    GET_REGISTER_STATIC(MovieClass *, this_ptr, esi);
+    static Rect stretched_rect;
+
+    /**
+     *  Calculate the stretched rect for this video, maintaining the video ratio.
+     */
+    stretched_rect = this_ptr->VideoRect;
+    if (Scale_Video_Rect(stretched_rect, HiddenSurface->Width, HiddenSurface->Height, true)) {
+
+        /**
+         *  Stretched rect calculated, assign it to the movie instance.
+         */
+        this_ptr->StretchRect = stretched_rect;
+
+        DEBUG_INFO("Stretching movie - VideoRect: %d,%d -> StretchRect: %d,%d\n",
+                this_ptr->VideoRect.Width, this_ptr->VideoRect.Height,
+                this_ptr->StretchRect.Width, this_ptr->StretchRect.Height);
+
+        /*DEBUG_GAME("Stretching movie %dx%d -> %dx%d\n",
+            this_ptr->VideoRect.Width, this_ptr->VideoRect.Height, this_ptr->StretchRect.Width, this_ptr->StretchRect.Height);*/
+    }
+
+    JMP(0x00563805);
+}
+
+static void _Scale_Movies_By_Ratio_Patch()
+{
+    Patch_Jump(0x00563795, &_Play_Movie_Scale_By_Ratio_Patch);
+}
 
 
 /**
@@ -342,4 +457,5 @@ void BugFix_Hooks()
     _Show_Load_Game_On_Mission_Failure();
     _Dont_Stretch_Main_Menu_Video_Patch();
     _MultiScore_Tally_Score_Fix_Loser_Typo_Patch();
+    _Scale_Movies_By_Ratio_Patch();
 }
