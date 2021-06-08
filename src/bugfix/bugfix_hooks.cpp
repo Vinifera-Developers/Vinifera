@@ -42,6 +42,7 @@
 #include "options.h"
 #include "language.h"
 #include "theme.h"
+#include "endgame.h"
 #include "dropship.h"
 #include "msgbox.h"
 #include "command.h"
@@ -104,10 +105,59 @@ DECLARE_PATCH(_Select_Game_Set_EndGameClass_Difficulty_Patch)
     JMP(0x004E2AE3);
 }
 
+DECLARE_PATCH(_EndGameClass_Record_Debug_Patch)
+{
+    GET_REGISTER_STATIC(EndGameClass *, this_ptr, esi);
+
+    DEBUG_INFO("Recording end game information...\n");
+    DEBUG_INFO("  Credits: %d\n", this_ptr->Credits);
+    DEBUG_INFO("  MissionTimer: %d\n", this_ptr->MissionTimer);
+    DEBUG_INFO("  Difficulty: %d\n", this_ptr->Difficulty);
+    DEBUG_INFO("  Stage: %d\n", this_ptr->Stage);
+
+    /**
+     *  Stolen bytes/code.
+     */
+    _asm { pop esi }
+    _asm { ret }
+}
+
+DECLARE_PATCH(_EndGameClass_Apply_Debug_Patch)
+{
+    GET_REGISTER_STATIC(EndGameClass *, this_ptr, edi);
+
+    DEBUG_INFO("Applying end game information...\n");
+    DEBUG_INFO("  Credits: %d\n", this_ptr->Credits);
+    DEBUG_INFO("  MissionTimer: %d\n", this_ptr->MissionTimer);
+    DEBUG_INFO("  Difficulty: %d\n", this_ptr->Difficulty);
+    DEBUG_INFO("  Stage: %d\n", this_ptr->Stage);
+
+    /**
+     *  Stolen bytes/code.
+     */
+    Scen->Stage = this_ptr->Stage;
+
+    _asm { pop edi }
+    _asm { pop esi }
+    _asm { add esp, 0x0C }
+    _asm { ret }
+}
+
 static void _Set_Difficulty_On_Game_Restart_Patch()
 {
     Patch_Jump(0x00493881, &_EndGameClass_Constructor_Set_Difficulty_Patch);
     Patch_Jump(0x004E2AD7, &_Select_Game_Set_EndGameClass_Difficulty_Patch);
+}
+
+static void _EndGameClass_Debug_Output_Patches()
+{
+    /**
+     *  Patches to log the current state of EndGameClass.
+     */
+    Patch_Jump(0x00493919, &_EndGameClass_Record_Debug_Patch);
+    Patch_Jump(0x004939F1, &_EndGameClass_Apply_Debug_Patch);
+    Patch_Jump(0x00493A07, 0x004939F1);
+    Patch_Jump(0x00493A18, 0x004939F1);
 }
 
 
@@ -636,7 +686,7 @@ DECLARE_PATCH(_Select_Game_Intro_SneakPeak_Movies_Patch)
     JMP(0x004E288B);
 }
 
-static void _Intro_Movie_Patchies()
+static void _Intro_Movie_Patches()
 {
     Patch_Jump(0x005DB2DE, &_Start_Scenario_Intro_Movie_Patch);
     Patch_Jump(0x004E2796, &_Select_Game_Intro_SneakPeak_Movies_Patch);
@@ -671,7 +721,7 @@ static void _AllowHiResModes_Default_Patch()
 void BugFix_Hooks()
 {
     _AllowHiResModes_Default_Patch();
-    _Intro_Movie_Patchies();
+    _Intro_Movie_Patches();
     _Show_Load_Game_On_Mission_Failure();
     _Dont_Stretch_Main_Menu_Video_Patch();
     _MultiScore_Tally_Score_Fix_Loser_Typo_Patch();
@@ -681,4 +731,5 @@ void BugFix_Hooks()
     _OptionsClass_Constructor_IsScoreShuffle_Default_Patch();
     _Scroll_Sidebar_InGame_Check_Patch();
     _Set_Difficulty_On_Game_Restart_Patch();
+    _EndGameClass_Debug_Output_Patches();
 }
