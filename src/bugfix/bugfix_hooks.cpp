@@ -53,6 +53,65 @@
 
 
 /**
+ *  #issue-46
+ * 
+ *  Fixes bug where the game difficulty gets reset, but not reassigned
+ *  after restarting a mission.
+ * 
+ *  This also handles the case where the EndGame instance is re-initialised.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_EndGameClass_Constructor_Set_Difficulty_Patch)
+{
+    GET_REGISTER_STATIC(EndGameClass *, this_ptr, edx);
+
+    /**
+     *  The EndGameClass constructor initialises Difficulty to NORMAL.
+     *  This patch uses the ScenarioClass Difficulty if set at this point.
+     */
+    if (Scen && Scen->Difficulty != -1) {
+        this_ptr->Difficulty = Scen->Difficulty;
+    }
+
+    //DEBUG_INFO("EndGameClass constructor.\n");
+
+    /**
+     *  Stolen bytes/code.
+     */
+    _asm { mov eax, this_ptr }
+    _asm { pop edi }
+    _asm { ret }
+}
+
+DECLARE_PATCH(_Select_Game_Set_EndGameClass_Difficulty_Patch)
+{
+    DEBUG_INFO("Scen->Difficulty = %d\n", Scen->Difficulty);
+    DEBUG_INFO("Scen->CDifficulty = %d\n", Scen->CDifficulty);
+
+    /**
+     *  Assign the ScenarioClass Difficulty. This is done to ensure
+     *  the difficulty is restored after game restart.
+     */
+    DEBUG_INFO("Setting EndGame difficulty to %d.\n", Scen->Difficulty);
+    EndGame.Difficulty = Scen->Difficulty;
+
+    /**
+     *  Stolen bytes/code.
+     */
+    Theme.Stop(true);
+
+    JMP(0x004E2AE3);
+}
+
+static void _Set_Difficulty_On_Game_Restart_Patch()
+{
+    Patch_Jump(0x00493881, &_EndGameClass_Constructor_Set_Difficulty_Patch);
+    Patch_Jump(0x004E2AD7, &_Select_Game_Set_EndGameClass_Difficulty_Patch);
+}
+
+
+/**
  *  #issue-305
  * 
  *  Fixes bug where the sidebar mouse wheel scrolling "error" sound
@@ -621,4 +680,5 @@ void BugFix_Hooks()
     _MultiMission_Constructor_MaxPlayers_Typo_Patch();
     _OptionsClass_Constructor_IsScoreShuffle_Default_Patch();
     _Scroll_Sidebar_InGame_Check_Patch();
+    _Set_Difficulty_On_Game_Restart_Patch();
 }
