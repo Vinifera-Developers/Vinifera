@@ -33,6 +33,7 @@
 
 class XSurface;
 class BSurface;
+class Rect;
 
 
 const char *Vinifera_Version_String();
@@ -68,3 +69,4 @@ HGLOBAL Vinifera_Fetch_Resource(HMODULE handle, const char *id, const char *type
 #endif
 
 BSurface *Vinifera_Get_Image_Surface(const char *filename);
+bool Scale_Video_Rect(Rect &rect, int max_width, int max_height, bool maintain_ratio = false);
