@@ -52,6 +52,21 @@
 
 
 /**
+ *  #issue-8
+ *  
+ *  Fixes MultiMission "MaxPlayers" incorrectly loaded with "MinPlayers".
+ * 
+ *  @author: CCHyper
+ */
+static void _MultiMission_Constructor_MaxPlayers_Typo_Patch()
+{
+    static const char *TEXT_MAXPLAYERS = "MaxPlayers";
+    Patch_Dword(0x005EF124+1, (uintptr_t)TEXT_MAXPLAYERS); // +1 skips "push" opcode
+    Patch_Dword(0x005EF5E4+1, (uintptr_t)TEXT_MAXPLAYERS); // +1 skips "push" opcode
+}
+
+
+/**
  *  #issue-262
  * 
  *  In certain cases, the mouse might not be shown on the Dropship Loadout menu.
@@ -513,4 +528,5 @@ void BugFix_Hooks()
     _MultiScore_Tally_Score_Fix_Loser_Typo_Patch();
     _Scale_Movies_By_Ratio_Patch();
     _Dropship_Loadout_Show_Mouse_Patch();
+    _MultiMission_Constructor_MaxPlayers_Typo_Patch();
 }
