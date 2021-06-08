@@ -52,6 +52,19 @@
 
 
 /**
+ *  #issue-212
+ * 
+ *  Changes the default value of "IsScoreShuffle" to "true".
+ * 
+ *  @author: CCHyper
+ */
+static void _OptionsClass_Constructor_IsScoreShuffle_Default_Patch()
+{
+    Patch_Byte(0x005899F1+1, 0x50); // "cl" (zero) to "dl" (1)
+}
+
+
+/**
  *  #issue-8
  *  
  *  Fixes MultiMission "MaxPlayers" incorrectly loaded with "MinPlayers".
@@ -529,4 +542,5 @@ void BugFix_Hooks()
     _Scale_Movies_By_Ratio_Patch();
     _Dropship_Loadout_Show_Mouse_Patch();
     _MultiMission_Constructor_MaxPlayers_Typo_Patch();
+    _OptionsClass_Constructor_IsScoreShuffle_Default_Patch();
 }
