@@ -1811,3 +1811,45 @@ bool ToggleAllianceCommandClass::Process()
 
     return true;
 }
+
+
+/**
+ *  Adds 2000 power units to the player.
+ * 
+ *  @author: CCHyper
+ */
+const char *AddPowerCommandClass::Get_Name() const
+{
+    return "AddPower";
+}
+
+const char *AddPowerCommandClass::Get_UI_Name() const
+{
+    return "Add Power";
+}
+
+const char *AddPowerCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *AddPowerCommandClass::Get_Description() const
+{
+    return "Adds 2000 power units to the player.";
+}
+
+bool AddPowerCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    /**
+     *  Adjust the power value of the player house. 
+     */
+    PlayerPtr->Adjust_Power(2000);
+
+    Map.Recalc();
+
+    return true;
+}
