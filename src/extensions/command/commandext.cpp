@@ -1853,3 +1853,61 @@ bool AddPowerCommandClass::Process()
 
     return true;
 }
+
+
+/**
+ *  Places a random crate at the mouse location.
+ * 
+ *  @author: CCHyper
+ */
+const char *PlaceCrateCommandClass::Get_Name() const
+{
+    return "PlaceCrate";
+}
+
+const char *PlaceCrateCommandClass::Get_UI_Name() const
+{
+    return "Place Crate";
+}
+
+const char *PlaceCrateCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *PlaceCrateCommandClass::Get_Description() const
+{
+    return "Places a random crate at the mouse location.";
+}
+
+bool PlaceCrateCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    Cell mouse_cell = Get_Cell_Under_Mouse();
+
+    CellClass *cell = &Map[mouse_cell];
+    if (!cell) {
+        return false;
+    }
+
+    /**
+     *  Some safety checks;
+     *   - Don't place in unshrouded cells.
+     *   - Bridges are overlay, don't place there.
+     *   - Make sure the cell does not already contain overlay.
+     */
+    if (!cell->IsVisible || cell->Is_Bridge_Here() || cell->Overlay != OVERLAY_NONE) {
+        return false;
+    }
+
+    if (!Map.Place_Crate(mouse_cell)) {
+        return false;
+    }
+
+    DEBUG_INFO("Crate placed at %d, %d\n", mouse_cell.X, mouse_cell.Y);
+
+    return true;
+}

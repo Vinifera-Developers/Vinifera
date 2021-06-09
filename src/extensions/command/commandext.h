@@ -665,6 +665,25 @@ class AddPowerCommandClass : public ViniferaCommandClass
 };
 
 
+/**
+ *  Places a random crate at the mouse location.
+ */
+class PlaceCrateCommandClass : public ViniferaCommandClass
+{
+    public:
+        PlaceCrateCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+        virtual ~PlaceCrateCommandClass() {}
+
+        virtual const char *Get_Name() const override;
+        virtual const char *Get_UI_Name() const override;
+        virtual const char *Get_Category() const override;
+        virtual const char *Get_Description() const override;
+        virtual bool Process() override;
+
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+};
+
+
 #ifndef DEBUG
 /**
  *  Based class for all new developer/debug command classes.
