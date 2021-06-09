@@ -149,6 +149,9 @@ void Init_Vinifera_Commands()
 
         cmdptr = new AddPowerCommandClass;
         Commands.Add(cmdptr);
+
+        cmdptr = new PlaceCrateCommandClass;
+        Commands.Add(cmdptr);
     }
 
 #ifndef NDEBUG
