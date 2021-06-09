@@ -137,6 +137,9 @@ void Init_Vinifera_Commands()
 
         cmdptr = new ToggleBerzerkCommandClass;
         Commands.Add(cmdptr);
+
+        cmdptr = new EncroachShadowCommandClass;
+        Commands.Add(cmdptr);
     }
 
 #ifndef NDEBUG
