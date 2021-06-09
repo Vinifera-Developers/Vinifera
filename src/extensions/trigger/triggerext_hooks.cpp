@@ -4,7 +4,7 @@
  *
  *  @project       Vinifera
  *
- *  @file          TACTIONEXT_HOOKS.CPP
+ *  @file          TRIGGEREXT_HOOKS.CPP
  *
  *  @author        CCHyper
  *
@@ -25,7 +25,7 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "tactionext_hooks.h"
+#include "sideext_hooks.h"
 #include "tibsun_globals.h"
 #include "trigger.h"
 #include "triggertype.h"
@@ -44,63 +44,44 @@
  *  Fixes the issue with the current difficulty not being checked
  *  when enabling triggers.
  * 
- *  @see: TriggerClass and TriggerTypeClass for the other parts of this fix.
+ *  @see: TriggerTypeClass and TActionClass for the other parts of this fix.
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_TActionClass_Operator_Enable_Trigger_For_Difficulty_Patch)
+DECLARE_PATCH(_TriggerClass_Constructor_Enabled_For_Difficulty_Patch)
 {
-    GET_REGISTER_STATIC(int, trigger_index, edi);
-    static TriggerClass *trigger;
+    GET_REGISTER_STATIC(TriggerClass *, this_ptr, esi);
 
     /**
      *  This is direct port of the code from Red Alert 2, which looks to fix this issue.
      */
 
-    /**
-     *  We need to re-fetch the trigger from the vector as the
-     *  register is reused by this point.
-     */
-    trigger = Triggers[trigger_index];
-    if (trigger) {
+    if (this_ptr->Class) {
+
+        this_ptr->Reset();
 
         /**
-         *  Set this trigger to be disabled if it is marked as disabled
-         *  for this current mission difficulty.
+         *  Set this trigger to be disabled if;
+         *    - The class instance is marked as inactive.
+         *    - It is marked as disabled for this current mission difficulty.
          */
-        if (Scen->Difficulty == DIFF_EASY && !trigger->Class->Easy
-         || Scen->Difficulty == DIFF_NORMAL && !trigger->Class->Normal
-         || Scen->Difficulty == DIFF_HARD && !trigger->Class->Hard) {
+        if (!this_ptr->Class->Enabled
+          || (Scen->Difficulty == DIFF_EASY && !this_ptr->Class->Easy)
+          || (Scen->Difficulty == DIFF_NORMAL && !this_ptr->Class->Normal)
+          || (Scen->Difficulty == DIFF_HARD && !this_ptr->Class->Hard)) {
 
-            trigger->Disable();
-
-        } else {
-
-            trigger->Enable();
+            this_ptr->IsEnabled = false;
         }
     }
 
-    JMP(0x0061A611);
+    JMP(0x00649188);
 }
 
 
 /**
  *  Main function for patching the hooks.
  */
-void TActionClassExtension_Hooks()
+void TriggerClassExtension_Hooks()
 {
-    /**
-     *  #issue-674
-     * 
-     *  Fixes a bug where the game would crash when TACTION_WAKEUP_GROUP was
-     *  executed but the game was not able to match the Group to the triggers
-     *  group. This was because the game was searching the Foots vector with
-     *  the count of the Technos vector, and in cases where the Group did
-     *  not match, the game would crash trying to search out of bounds.
-     * 
-     *  @author: CCHyper
-     */
-    Patch_Dword(0x00619552+2, (0x007E4820+4)); // Foot vector to Technos vector.
-
-    Patch_Jump(0x0061A60C, &_TActionClass_Operator_Enable_Trigger_For_Difficulty_Patch);
+    Patch_Jump(0x00649171, &_TriggerClass_Constructor_Enabled_For_Difficulty_Patch);
 }
