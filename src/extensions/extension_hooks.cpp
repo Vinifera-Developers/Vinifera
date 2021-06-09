@@ -70,7 +70,7 @@
 //#include "teamtypeext_hooks.h"
 #include "terrainext_hooks.h"
 #include "terraintypeext_hooks.h"
-//#include "triggerext_hooks.h"
+#include "triggerext_hooks.h"
 #include "triggertypeext_hooks.h"
 #include "unittypeext_hooks.h"
 //#include "voxelanimext_hooks.h"
@@ -201,7 +201,7 @@ void Extension_Hooks()
     //TeamTypeClassExtension_Hooks();                       // Not yet implemented
     TerrainClassExtension_Hooks();
     TerrainTypeClassExtension_Hooks();
-    //TriggerTypeExtension_Hooks();                         // Not yet implemented
+    TriggerClassExtension_Hooks();
     TriggerTypeClassExtension_Hooks();
     UnitTypeClassExtension_Hooks();
     //VoxelAnimClassExtension_Hooks();                      // Not yet implemented
