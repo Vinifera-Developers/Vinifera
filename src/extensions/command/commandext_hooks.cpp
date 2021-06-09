@@ -146,6 +146,9 @@ void Init_Vinifera_Commands()
 
         cmdptr = new ToggleAllianceCommandClass;
         Commands.Add(cmdptr);
+
+        cmdptr = new AddPowerCommandClass;
+        Commands.Add(cmdptr);
     }
 
 #ifndef NDEBUG
