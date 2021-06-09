@@ -1755,3 +1755,59 @@ bool EncroachFogCommandClass::Process()
 
     return true;
 }
+
+
+/**
+ *  Toggles alliance with the selected objects house.
+ * 
+ *  @author: CCHyper
+ */
+const char *ToggleAllianceCommandClass::Get_Name() const
+{
+    return "ToggleAlly";
+}
+
+const char *ToggleAllianceCommandClass::Get_UI_Name() const
+{
+    return "Toggle Alliance";
+}
+
+const char *ToggleAllianceCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *ToggleAllianceCommandClass::Get_Description() const
+{
+    return "Toggles alliance with the selected objects house.";
+}
+
+bool ToggleAllianceCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    /**
+     *  Fetch the currently selected object and toggle the players alliance with its owner.
+     */
+    if (CurrentObjects.Count() == 1) {
+        ObjectClass *object = CurrentObjects.Fetch_Head();
+        if (object && object->Is_Techno()) {
+            TechnoClass *techno = reinterpret_cast<TechnoClass *>(object);
+            if (techno) {
+                if (PlayerPtr != techno->House) {
+                    if (PlayerPtr->Is_Ally(techno->House) || techno->House->Is_Ally(PlayerPtr)) {
+                        PlayerPtr->Make_Enemy(techno->House);
+                        techno->House->Make_Enemy(PlayerPtr);
+                    } else {
+                        PlayerPtr->Make_Ally(techno->House);
+                        techno->House->Make_Ally(PlayerPtr);
+                    }
+                }
+            }
+        }        
+    }
+
+    return true;
+}
