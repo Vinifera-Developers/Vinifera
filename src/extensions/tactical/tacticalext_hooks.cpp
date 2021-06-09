@@ -29,6 +29,7 @@
 #include "tacticalext_init.h"
 #include "tacticalext.h"
 #include "tactical.h"
+#include "tibsun_globals.h"
 #include "dsurface.h"
 #include "textprint.h"
 #include "wwfont.h"
@@ -57,10 +58,11 @@ static void Tactical_Draw_Debug_Overlay()
 
     char buffer[256];
     std::snprintf(buffer, sizeof(buffer),
-        "[%s]  %3d  %3d",
+        "[%s]  %3d  %3d  0x%08X",
         strupr(Scen->ScenarioName),
         Session.DesiredFrameRate,
-        FramesPerSecond
+        FramesPerSecond,
+        CurrentObjects.Count() == 1 ? CurrentObjects.Fetch_Head() : 0
     );
 
     /**
