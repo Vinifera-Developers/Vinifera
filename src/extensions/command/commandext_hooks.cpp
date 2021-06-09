@@ -143,6 +143,9 @@ void Init_Vinifera_Commands()
 
         cmdptr = new EncroachFogCommandClass;
         Commands.Add(cmdptr);
+
+        cmdptr = new ToggleAllianceCommandClass;
+        Commands.Add(cmdptr);
     }
 
 #ifndef NDEBUG
