@@ -1629,3 +1629,51 @@ bool DumpAIBaseNodesCommandClass::Process()
 
     return true;
 }
+
+
+/**
+ *  Toggles if weapons do damage or not.
+ * 
+ *  @author: CCHyper
+ */
+const char *ToggleBerzerkCommandClass::Get_Name() const
+{
+    return "ToggleBerzerk";
+}
+
+const char *ToggleBerzerkCommandClass::Get_UI_Name() const
+{
+    return "Toggle Berzerk";
+}
+
+const char *ToggleBerzerkCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *ToggleBerzerkCommandClass::Get_Description() const
+{
+    return "Toggles the berzerk state of the selected infantry.";
+}
+
+bool ToggleBerzerkCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    /**
+     *  Iterate over all selected infantry and toggle their berzerk state.
+     */
+    for (int i = 0; i < CurrentObjects.Count(); ++i) {
+        ObjectClass *object = CurrentObjects[i];
+        if (object && object->Is_Infantry()) {
+            InfantryClass *infantry = reinterpret_cast<InfantryClass *>(object);
+            if (infantry) {
+                infantry->IsBerzerk = !infantry->IsBerzerk;
+            }
+        }        
+    }
+
+    return true;
+}
