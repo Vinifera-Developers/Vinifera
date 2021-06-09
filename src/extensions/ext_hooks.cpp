@@ -97,6 +97,8 @@
 
 #include "combatext_hooks.h"
 
+#include "triggerext_hooks.h"
+#include "tactionext_hooks.h"
 #include "empulseext_hooks.h"
 #include "waveext_hooks.h"
 
@@ -206,6 +208,8 @@ void Extension_Hooks()
 
     CombatExtension_Hooks();
 
+    TriggerClassExtension_Hooks();
+    TActionClassExtension_Hooks();
     EMPulseClassExtension_Hooks();
     WaveClassExtension_Hooks();
 
