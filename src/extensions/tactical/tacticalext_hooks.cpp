@@ -33,6 +33,7 @@
 #include "textprint.h"
 #include "wwfont.h"
 #include "scenario.h"
+#include "session.h"
 #include "colorscheme.h"
 #include "fatal.h"
 #include "vinifera_util.h"
@@ -55,13 +56,18 @@ static void Tactical_Draw_Debug_Overlay()
     int padding = 2;
 
     char buffer[256];
-    std::snprintf(buffer, sizeof(buffer), "[%s]", strupr(Scen->ScenarioName));
+    std::snprintf(buffer, sizeof(buffer),
+        "[%s]  %3d  %3d",
+        strupr(Scen->ScenarioName),
+        Session.DesiredFrameRate,
+        FramesPerSecond
+    );
 
     /**
      * Fetch the text occupy area.
      */
-    Rect scenario_text_rect;
-    GradFont6Ptr->String_Pixel_Rect(buffer, &scenario_text_rect);
+    Rect text_rect;
+    GradFont6Ptr->String_Pixel_Rect(buffer, &text_rect);
 
     /**
      *  Fill the background area.
@@ -69,23 +75,23 @@ static void Tactical_Draw_Debug_Overlay()
     Rect fill_rect;
     fill_rect.X = 160; // Width of Options tab, so we draw from there.
     fill_rect.Y = 0;
-    fill_rect.Width = scenario_text_rect.Width+(padding+1);
+    fill_rect.Width = text_rect.Width+(padding+1);
     fill_rect.Height = 16; // Tab bar height
     CompositeSurface->Fill_Rect(fill_rect, color_black);
 
     /**
      *  Move rects into position.
      */
-    scenario_text_rect.X = fill_rect.X+padding;
-    scenario_text_rect.Y = 0;
-    scenario_text_rect.Width += padding;
-    scenario_text_rect.Height += 3;
+    text_rect.X = fill_rect.X+padding;
+    text_rect.Y = 0;
+    text_rect.Width += padding;
+    text_rect.Height += 3;
 
     /**
-     *  Draw the scenario name.
+     *  Draw the overlay text.
      */
     Fancy_Text_Print(buffer, CompositeSurface, &CompositeSurface->Get_Rect(),
-        &Point2D(scenario_text_rect.X, scenario_text_rect.Y), text_color, COLOR_TBLACK, TextPrintType(TPF_6PT_GRAD|TPF_NOSHADOW));
+        &Point2D(text_rect.X, text_rect.Y), text_color, COLOR_TBLACK, TextPrintType(TPF_6PT_GRAD|TPF_NOSHADOW));
 }
 
 
