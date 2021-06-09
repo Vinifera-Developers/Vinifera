@@ -60,6 +60,10 @@
     _asm { mov eax, address } \
     _asm { jmp eax }
 
+#define JMP_REG(reg, address) \
+    _asm { mov reg, address } \
+    _asm { jmp reg }
+
 #define JMP_THIS(address) \
     { \
         EPILOG_THISCALL; \
