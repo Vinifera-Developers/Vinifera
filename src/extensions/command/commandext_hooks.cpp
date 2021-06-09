@@ -140,6 +140,9 @@ void Init_Vinifera_Commands()
 
         cmdptr = new EncroachShadowCommandClass;
         Commands.Add(cmdptr);
+
+        cmdptr = new EncroachFogCommandClass;
+        Commands.Add(cmdptr);
     }
 
 #ifndef NDEBUG

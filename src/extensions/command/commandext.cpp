@@ -1716,3 +1716,42 @@ bool EncroachShadowCommandClass::Process()
 
     return true;
 }
+
+
+/**
+ *  Increase the fog of war by one step (cell).
+ * 
+ *  @author: CCHyper
+ */
+const char *EncroachFogCommandClass::Get_Name() const
+{
+    return "EncroachFog";
+}
+
+const char *EncroachFogCommandClass::Get_UI_Name() const
+{
+    return "Encroach Fog";
+}
+
+const char *EncroachFogCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *EncroachFogCommandClass::Get_Description() const
+{
+    return "Increase the fog of war by one step (cell).";
+}
+
+bool EncroachFogCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    Map.Encroach_Fog();
+
+    Map.Flag_To_Redraw(2);
+
+    return true;
+}
