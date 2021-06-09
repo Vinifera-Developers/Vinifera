@@ -1632,7 +1632,7 @@ bool DumpAIBaseNodesCommandClass::Process()
 
 
 /**
- *  Toggles if weapons do damage or not.
+ *  Toggles the berzerk state of the selected infantry.
  * 
  *  @author: CCHyper
  */
@@ -1674,6 +1674,45 @@ bool ToggleBerzerkCommandClass::Process()
             }
         }        
     }
+
+    return true;
+}
+
+
+/**
+ *  Increase the shroud darkness by one step (cell).
+ * 
+ *  @author: CCHyper
+ */
+const char *EncroachShadowCommandClass::Get_Name() const
+{
+    return "EncroachShadow";
+}
+
+const char *EncroachShadowCommandClass::Get_UI_Name() const
+{
+    return "Encroach Shadow";
+}
+
+const char *EncroachShadowCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *EncroachShadowCommandClass::Get_Description() const
+{
+    return "Increase the shroud darkness by one step (cell).";
+}
+
+bool EncroachShadowCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    Map.Encroach_Shadow();
+
+    Map.Flag_To_Redraw(2);
 
     return true;
 }
