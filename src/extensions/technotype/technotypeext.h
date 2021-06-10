@@ -76,6 +76,13 @@ class TechnoTypeClassExtension final : public Extension<TechnoTypeClass>
         unsigned int ShakePixelYLo;
         unsigned int ShakePixelXHi;
         unsigned int ShakePixelXLo;
+
+        /**
+         *  Is this object immune to EMP (electromagnetic pulse) effects?
+         *  Powered buildings, vehicles and cyborgs are typically disabled
+         *  by EMP, unless this is set for them.
+         */
+        bool IsImmuneToEMP;
 };
 
 
