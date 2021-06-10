@@ -42,3 +42,4 @@ extern bool Vinifera_Developer_InstantBuild;
 extern bool Vinifera_Developer_AIInstantBuild;
 extern bool Vinifera_Developer_BuildCheat;
 extern bool Vinifera_Developer_Unshroud;
+extern bool Vinifera_Developer_ShowCursorPosition;
