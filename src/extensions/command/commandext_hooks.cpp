@@ -152,6 +152,9 @@ void Init_Vinifera_Commands()
 
         cmdptr = new PlaceCrateCommandClass;
         Commands.Add(cmdptr);
+
+        cmdptr = new CursorPositionCommandClass;
+        Commands.Add(cmdptr);
     }
 
 #ifndef NDEBUG

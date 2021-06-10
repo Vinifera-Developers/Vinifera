@@ -33,6 +33,8 @@
  *  Extended classes here.
  */
 #include "tacticalext_hooks.h"
+#include "displayext_hooks.h"
+#include "tooltipext_hooks.h"
 #include "commandext_hooks.h"
 
 #include "objecttypeext_hooks.h"
@@ -84,6 +86,8 @@ void Extension_Hooks()
      *  All class extensions here.
      */
     TacticalExtension_Hooks();
+    DisplayClassExtension_Hooks();
+    ToolTipManagerExtension_Hooks();
     CommandExtension_Hooks();
 
     /**

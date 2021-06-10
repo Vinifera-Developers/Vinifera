@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          VINIFERA_GLOBALS.CPP
+ *  @file          TOOLTIPEXT_HOOKS.H
  *
- *  @authors       CCHyper
+ *  @author        CCHyper
  *
- *  @brief         Vinifera global values.
+ *  @brief         Contains the hooks for the extended ToolTipManager.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -27,15 +27,5 @@
  ******************************************************************************/
 #pragma once
 
-#include "vinifera_globals.h"
 
-
-bool Vinifera_DeveloperMode = false;
-
-extern char Vinifera_DebugDirectory[PATH_MAX] = { "Debug" };
-
-bool Vinifera_Developer_InstantBuild = false;
-bool Vinifera_Developer_AIInstantBuild = false;
-bool Vinifera_Developer_BuildCheat = false;
-bool Vinifera_Developer_Unshroud = false;
-bool Vinifera_Developer_ShowCursorPosition = false;
+void ToolTipManagerExtension_Hooks();

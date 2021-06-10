@@ -1911,3 +1911,43 @@ bool PlaceCrateCommandClass::Process()
 
     return true;
 }
+
+
+/**
+ *  Displays cell coordinates of the mouse cursor.
+ * 
+ *  @author: CCHyper
+ */
+const char *CursorPositionCommandClass::Get_Name() const
+{
+    return "CursorPosition";
+}
+
+const char *CursorPositionCommandClass::Get_UI_Name() const
+{
+    return "Cursor Position";
+}
+
+const char *CursorPositionCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *CursorPositionCommandClass::Get_Description() const
+{
+    return "Displays cell coordinates of the mouse cursor.";
+}
+
+bool CursorPositionCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    /**
+     *  Toggle the show cursor position flag.
+     */
+    Vinifera_Developer_ShowCursorPosition = !Vinifera_Developer_ShowCursorPosition;
+
+    return true;
+}
