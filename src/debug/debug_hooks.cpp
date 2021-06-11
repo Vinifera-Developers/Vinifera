@@ -582,7 +582,7 @@ void Debug_Hooks()
      *  Enable developer mode if the debugger is attached, otherwise ask
      *  the user if they wish to enable it.
      */
-    if (IsDebuggerPresent() || (MessageBox(nullptr, "Enable developer mode?", "Vinifera", MB_YESNO) == IDYES)) {
+    if (IsDebuggerPresent() /*|| (MessageBox(nullptr, "Enable developer mode?", "Vinifera", MB_YESNO) == IDYES)*/) {
         Vinifera_DeveloperMode = true;
     }
 #endif
