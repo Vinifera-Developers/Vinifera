@@ -370,14 +370,14 @@ void __cdecl Vinifera_Debug_Handler_Startup()
         Debug_Console_Init();
     }
 
-#ifndef NDEBUG
-    /**
-     *  Halt the program until the user is ready to continue.  
-     */
-    if (!IsDebuggerPresent()) {
-        Debug_Console_Wait_For_Input();
-    }
-#endif
+//#ifndef NDEBUG
+//    /**
+//     *  Halt the program until the user is ready to continue.  
+//     */
+//    if (!IsDebuggerPresent()) {
+//        Debug_Console_Wait_For_Input();
+//    }
+//#endif
 
 #ifdef NDEBUG
     } // DebugHandler_DeveloperMode
