@@ -48,7 +48,13 @@ BuildingTypeClassExtension::BuildingTypeClassExtension(BuildingTypeClass *this_p
     Extension(this_ptr),
 
     GateUpSound(VOC_NONE),
-    GateDownSound(VOC_NONE)
+    GateDownSound(VOC_NONE),
+    ProduceCashStartup(0),
+    ProduceCashAmount(0),
+    ProduceCashDelay(0),
+    ProduceCashBudget(0),
+    IsStartupCashOneTime(false),
+    IsResetBudgetOnCapture(false)
 {
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("BuildingTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -179,13 +185,15 @@ bool BuildingTypeClassExtension::Read_INI(CCINIClass &ini)
         return false;
     }
 
-    /**
-     *  #issue-65
-     * 
-     *  Gate lowering and rising sound overrides for buildings.
-     */
     GateUpSound = ini.Get_VocType(ini_name, "GateUpSound", GateUpSound);
     GateDownSound = ini.Get_VocType(ini_name, "GateDownSound", GateDownSound);
+
+    ProduceCashStartup = ini.Get_Int(ini_name, "ProduceCashStartup", ProduceCashStartup);
+    ProduceCashAmount = ini.Get_Int(ini_name, "ProduceCashAmount", ProduceCashAmount);
+    ProduceCashDelay = ini.Get_Int(ini_name, "ProduceCashDelay", ProduceCashDelay);
+    ProduceCashBudget = ini.Get_Int(ini_name, "ProduceCashBudget", ProduceCashBudget);
+    IsStartupCashOneTime = ini.Get_Int(ini_name, "ProduceCashStartupOneTime", IsStartupCashOneTime);
+    IsResetBudgetOnCapture = ini.Get_Bool(ini_name, "ProduceCashResetOnCapture", IsResetBudgetOnCapture);
     
     return true;
 }
