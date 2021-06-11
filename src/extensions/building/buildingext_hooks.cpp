@@ -26,13 +26,20 @@
  *
  ******************************************************************************/
 #include "buildingext_hooks.h"
+#include "buildingext_init.h"
+#include "buildingext_functions.h"
+#include "buildingext.h"
+#include "buildingtypeext.h"
 #include "tibsun_globals.h"
 #include "tibsun_functions.h"
+#include "vinifera_util.h"
 #include "building.h"
 #include "buildingtype.h"
 #include "buildingtypeext.h"
 #include "technotype.h"
 #include "technotypeext.h"
+#include "house.h"
+#include "housetype.h"
 #include "dsurface.h"
 #include "convert.h"
 #include "drawshape.h"
@@ -45,6 +52,177 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-26
+ * 
+ *  Adds functionality for the produce cash per-frame logic.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_BuildingClass_AI_ProduceCash_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass *, this_ptr, esi);
+
+    BuildingClassExtension_Produce_Cash_AI(this_ptr);
+
+    /**
+     *  Stolen bytes/code here.
+     */
+original_code:
+
+    /**
+     *  Animation per frame update.
+     */
+    this_ptr->Animation_AI();
+
+    JMP(0x00429A9D);
+}
+
+
+/**
+ *  #issue-26
+ * 
+ *  Grants cash bonus and starts the cash timer on building capture.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_BuildingClass_Captured_ProduceCash_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass *, this_ptr, esi);
+    GET_STACK_STATIC(HouseClass *, newowner, esp, 0x58);
+    static BuildingClassExtension *ext_ptr;
+    static BuildingTypeClassExtension *exttype_ptr;
+
+    /**
+     *  Find the extension instances.
+     */
+    ext_ptr = BuildingClassExtensions.find(this_ptr);
+    exttype_ptr = BuildingTypeClassExtensions.find(this_ptr->Class);
+    if (!ext_ptr || !exttype_ptr) {
+        goto original_code;
+    }
+
+    /**
+     *  Is the owner a passive/neutral house? Only they can provide the capture bonus.
+     */
+    if (this_ptr->House->Class->IsMultiplayPassive) {
+
+        /**
+         *  Should this building produce a cash bonus on capture?
+         */
+        if (exttype_ptr->ProduceCashStartup > 0) {
+
+            /**
+             *  Grant the bonus to the new owner, making sure this
+             *  building has not already done so if flagged
+             *  as a one time bonus.
+             */
+            if (!ext_ptr->IsCaptureOneTimeCashGiven) {
+                newowner->Refund_Money(exttype_ptr->ProduceCashStartup);
+            }
+
+            /**
+             *  Is a one time bonus?
+             */
+            if (exttype_ptr->IsStartupCashOneTime) {
+                ext_ptr->IsCaptureOneTimeCashGiven = true;
+            }
+
+            /**
+             *  Start the cycle timer.
+             */
+            ext_ptr->ProduceCashTimer = exttype_ptr->ProduceCashDelay;
+            ext_ptr->ProduceCashTimer.Start();
+        }
+
+        /**
+         *  Should we reset the available budget?
+         */
+        if (exttype_ptr->IsResetBudgetOnCapture) {
+            if (exttype_ptr->ProduceCashBudget > 0) {
+                ext_ptr->CurrentProduceCashBudget = exttype_ptr->ProduceCashBudget;
+            }
+        }
+    }
+
+    /**
+     *  Stolen bytes/code here.
+     */
+original_code:
+    if (this_ptr->Class->IsCloakGenerator) {
+        newowner->field_4F0 = true;
+    }
+
+    JMP(0x0042F68E);
+}
+
+
+/**
+ *  #issue-26
+ * 
+ *  Starts the cash timer on building placement complete (the "grand opening").
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_BuildingClass_Grand_Opening_ProduceCash_Patch)
+{
+    GET_STACK_STATIC8(bool, captured, esp, 0x40);
+    GET_REGISTER_STATIC(BuildingClass *, this_ptr, esi);
+    static BuildingClassExtension *ext_ptr;
+    static BuildingTypeClassExtension *exttype_ptr;
+
+    /**
+     *  Stolen bytes/code here.
+     */
+    if (this_ptr->HasOpened) {
+        if (!captured) {
+            goto function_return;
+        }
+        goto has_opened_else;
+    }
+
+    /**
+     *  Find the extension instances.
+     */
+    ext_ptr = BuildingClassExtensions.find(this_ptr);
+    exttype_ptr = BuildingTypeClassExtensions.find(this_ptr->Class);
+    if (!ext_ptr || !exttype_ptr) {
+        goto continue_function;
+    }
+
+    /**
+     *  Start the cash delay timer.
+     */
+    if (exttype_ptr->ProduceCashAmount != 0) {
+
+        ext_ptr->ProduceCashTimer = exttype_ptr->ProduceCashDelay;
+        ext_ptr->ProduceCashTimer.Start();
+
+        if (exttype_ptr->ProduceCashBudget > 0) {
+            ext_ptr->CurrentProduceCashBudget = exttype_ptr->ProduceCashBudget;
+        }
+    }
+
+    /**
+     *  Continue function flow (HasOpened == false).
+     */
+continue_function:
+    JMP(0x0042E197);
+
+    /**
+     *  Function return.
+     */
+function_return:
+    JMP(0x0042E9DF);
+
+    /**
+     *  Else case from "HasOpened" check.
+     */
+has_opened_else:
+    JMP(0x0042E4C7);
+}
 
 
 /**
@@ -269,8 +447,16 @@ DECLARE_PATCH(_BuildingClass_Draw_Spied_Cameo_Palette_Patch)
  */
 void BuildingClassExtension_Hooks()
 {
+    /**
+     *  Initialises the extended class.
+     */
+    BuildingClassExtension_Init();
+
     Patch_Jump(0x00428AD3, &_BuildingClass_Draw_Spied_Cameo_Palette_Patch);
     Patch_Jump(0x0042B250, &_BuildingClass_Explode_ShakeScreen_Division_BugFix_Patch);
     Patch_Jump(0x00433BB5, &_BuildingClass_Mission_Open_Gate_Open_Sound_Patch);
     Patch_Jump(0x00433C6F, &_BuildingClass_Mission_Open_Gate_Close_Sound_Patch);
+    Patch_Jump(0x00429A96, &_BuildingClass_AI_ProduceCash_Patch);
+    Patch_Jump(0x0042F67D, &_BuildingClass_Captured_ProduceCash_Patch);
+    Patch_Jump(0x0042E179, &_BuildingClass_Grand_Opening_ProduceCash_Patch);
 }

@@ -44,7 +44,17 @@ ExtensionMap<BuildingClass, BuildingClassExtension> BuildingClassExtensions;
  *  @author: CCHyper
  */
 BuildingClassExtension::BuildingClassExtension(BuildingClass *this_ptr) :
-    Extension(this_ptr)
+    Extension(this_ptr),
+
+    /**
+     *  #issue-26
+     * 
+     *  Members for the Produce Cash logic.
+     */
+    ProduceCashTimer(),
+    CurrentProduceCashBudget(-1),
+    IsCaptureOneTimeCashGiven(false),
+    IsBudgetDepleted(false)
 {
     ASSERT(ThisPtr != nullptr);
     //EXT_DEBUG_TRACE("BuildingClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -155,4 +165,11 @@ void BuildingClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
     ASSERT(ThisPtr != nullptr);
     //EXT_DEBUG_TRACE("BuildingClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+
+    /**
+     *  #issue-26
+     * 
+     *  Members for the Produce Cash logic.
+     */
+    crc(ProduceCashTimer());
 }

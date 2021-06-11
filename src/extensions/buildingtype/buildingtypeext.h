@@ -61,6 +61,36 @@ class BuildingTypeClassExtension final : public Extension<BuildingTypeClass>
          *  This is the sound effect to play when the animation of the gate is lowering.
          */
         VocType GateDownSound;
+
+        /**
+         *  Credits bonus when captured from a house with "IsMultiplayPassive" set.
+         */
+        unsigned ProduceCashStartup;
+        
+        /**
+         *  Amount every give to/take from the house every delay.
+         */
+        int ProduceCashAmount;
+        
+        /**
+         *  Frame delay between amounts.
+         */
+        unsigned ProduceCashDelay;
+        
+        /**
+         *  The total budget for this building.
+         */
+        unsigned ProduceCashBudget;
+        
+        /**
+         *  Is the capture bonus a "one one" special (further captures will not get the bonus)?
+         */
+        bool IsStartupCashOneTime;
+        
+        /**
+         *  Reset the available budget when captured?
+         */
+        bool IsResetBudgetOnCapture;
 };
 
 
