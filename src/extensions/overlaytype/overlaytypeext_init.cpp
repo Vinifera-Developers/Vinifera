@@ -48,7 +48,7 @@ DECLARE_PATCH(_OverlayTypeClass_Constructor_Patch)
     GET_STACK_STATIC(const char *, ini_name, esp, 0xC); // ini name.
     static OverlayTypeClassExtension *exttype_ptr;
 
-    //EXT_DEBUG_WARNING("Creating OverlayTypeClassExtension instance for \"%s\".\n", ini_name);
+    //DEV_DEBUG_WARNING("Creating OverlayTypeClassExtension instance for \"%s\".\n", ini_name);
 
     /**
      *  Find existing or create an extended class instance.

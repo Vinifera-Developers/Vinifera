@@ -49,7 +49,7 @@ DECLARE_PATCH(_TechnoTypeClass_Constructor_Patch)
     GET_STACK_STATIC(SpeedType, speed, esp, 0x14); // SpeedType.
     static TechnoTypeClassExtension *exttype_ptr;
 
-    //EXT_DEBUG_WARNING("Creating TechnoTypeClassExtension instance for \"%s\".\n", ini_name);
+    //DEV_DEBUG_WARNING("Creating TechnoTypeClassExtension instance for \"%s\".\n", ini_name);
 
     /**
      *  Find existing or create an extended class instance.

@@ -48,7 +48,7 @@ DECLARE_PATCH(_WarheadTypeClass_Constructor_Patch)
     GET_STACK_STATIC(const char *, ini_name, esp, 0x14); // ini name.
     static WarheadTypeClassExtension *exttype_ptr;
 
-    //EXT_DEBUG_WARNING("Creating WarheadTypeClassExtension instance for \"%s\".\n", ini_name);
+    //DEV_DEBUG_WARNING("Creating WarheadTypeClassExtension instance for \"%s\".\n", ini_name);
 
     /**
      *  Find existing or create an extended class instance.

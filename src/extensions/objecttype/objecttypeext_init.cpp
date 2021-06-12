@@ -48,7 +48,7 @@ DECLARE_PATCH(_ObjectTypeClass_Constructor_Patch)
     GET_STACK_STATIC(const char *, ini_name, esp, 0x30); // ini name.
     static ObjectTypeClassExtension *exttype_ptr;
 
-    //EXT_DEBUG_WARNING("Creating ObjectTypeClassExtension instance for \"%s\".\n", ini_name);
+    //DEV_DEBUG_WARNING("Creating ObjectTypeClassExtension instance for \"%s\".\n", ini_name);
 
     /**
      *  Find existing or create an extended class instance.

@@ -48,7 +48,7 @@ DECLARE_PATCH(_AnimTypeClass_Constructor_Patch)
     GET_STACK_STATIC(const char *, ini_name, esp, 0x10); // ini name.
     static AnimTypeClassExtension *exttype_ptr;
 
-    //EXT_DEBUG_WARNING("Creating AnimTypeClassExtension instance for \"%s\".\n", ini_name);
+    //DEV_DEBUG_WARNING("Creating AnimTypeClassExtension instance for \"%s\".\n", ini_name);
 
     /**
      *  Find existing or create an extended class instance.

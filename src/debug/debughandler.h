@@ -101,19 +101,19 @@ void Vinifera_Printf(DebugType type, const char *file, const char *function, int
  *  For printing out extension debug info.
  */
 #ifndef NDEBUG
-#define EXT_DEBUG_SAY(x, ...) Vinifera_Printf(DEBUGTYPE_NORMAL, nullptr, nullptr, -1, x, ##__VA_ARGS__)
-#define EXT_DEBUG_INFO(x, ...) Vinifera_Printf(DEBUGTYPE_INFO, nullptr, nullptr, -1, x, ##__VA_ARGS__)
-#define EXT_DEBUG_WARNING(x, ...) Vinifera_Printf(DEBUGTYPE_WARNING, nullptr, nullptr, -1, x, ##__VA_ARGS__)
-#define EXT_DEBUG_ERROR(x, ...) Vinifera_Printf(DEBUGTYPE_ERROR, nullptr, nullptr, -1, x, ##__VA_ARGS__)
-#define EXT_DEBUG_FATAL(x, ...) Vinifera_Printf(DEBUGTYPE_FATAL, nullptr, nullptr, -1, x, ##__VA_ARGS__)
-#define EXT_DEBUG_TRACE(x, ...) Vinifera_Printf(DEBUGTYPE_TRACE, __FILE__, __FUNCTION__, __LINE__, x, ##__VA_ARGS__)
+#define DEV_DEBUG_SAY(x, ...) Vinifera_Printf(DEBUGTYPE_NORMAL, nullptr, nullptr, -1, x, ##__VA_ARGS__)
+#define DEV_DEBUG_INFO(x, ...) Vinifera_Printf(DEBUGTYPE_INFO, nullptr, nullptr, -1, x, ##__VA_ARGS__)
+#define DEV_DEBUG_WARNING(x, ...) Vinifera_Printf(DEBUGTYPE_WARNING, nullptr, nullptr, -1, x, ##__VA_ARGS__)
+#define DEV_DEBUG_ERROR(x, ...) Vinifera_Printf(DEBUGTYPE_ERROR, nullptr, nullptr, -1, x, ##__VA_ARGS__)
+#define DEV_DEBUG_FATAL(x, ...) Vinifera_Printf(DEBUGTYPE_FATAL, nullptr, nullptr, -1, x, ##__VA_ARGS__)
+#define DEV_DEBUG_TRACE(x, ...) Vinifera_Printf(DEBUGTYPE_TRACE, __FILE__, __FUNCTION__, __LINE__, x, ##__VA_ARGS__)
 #else
-#define EXT_DEBUG_SAY(x, ...) if (Vinifera_DeveloperMode) { Vinifera_Printf(DEBUGTYPE_NORMAL, nullptr, nullptr, -1, x, ##__VA_ARGS__); }
-#define EXT_DEBUG_INFO(x, ...) if (Vinifera_DeveloperMode) { Vinifera_Printf(DEBUGTYPE_INFO, nullptr, nullptr, -1, x, ##__VA_ARGS__); }
-#define EXT_DEBUG_WARNING(x, ...) if (Vinifera_DeveloperMode) { Vinifera_Printf(DEBUGTYPE_WARNING, nullptr, nullptr, -1, x, ##__VA_ARGS__); }
-#define EXT_DEBUG_ERROR(x, ...) if (Vinifera_DeveloperMode) { Vinifera_Printf(DEBUGTYPE_ERROR, nullptr, nullptr, -1, x, ##__VA_ARGS__); }
-#define EXT_DEBUG_FATAL(x, ...) if (Vinifera_DeveloperMode) { Vinifera_Printf(DEBUGTYPE_FATAL, nullptr, nullptr, -1, x, ##__VA_ARGS__); }
-#define EXT_DEBUG_TRACE(x, ...) ((void)0)
+#define DEV_DEBUG_SAY(x, ...) if (Vinifera_DeveloperMode) { Vinifera_Printf(DEBUGTYPE_NORMAL, nullptr, nullptr, -1, x, ##__VA_ARGS__); }
+#define DEV_DEBUG_INFO(x, ...) if (Vinifera_DeveloperMode) { Vinifera_Printf(DEBUGTYPE_INFO, nullptr, nullptr, -1, x, ##__VA_ARGS__); }
+#define DEV_DEBUG_WARNING(x, ...) if (Vinifera_DeveloperMode) { Vinifera_Printf(DEBUGTYPE_WARNING, nullptr, nullptr, -1, x, ##__VA_ARGS__); }
+#define DEV_DEBUG_ERROR(x, ...) if (Vinifera_DeveloperMode) { Vinifera_Printf(DEBUGTYPE_ERROR, nullptr, nullptr, -1, x, ##__VA_ARGS__); }
+#define DEV_DEBUG_FATAL(x, ...) if (Vinifera_DeveloperMode) { Vinifera_Printf(DEBUGTYPE_FATAL, nullptr, nullptr, -1, x, ##__VA_ARGS__); }
+#define DEV_DEBUG_TRACE(x, ...) ((void)0)
 #endif
 
 

@@ -48,7 +48,7 @@ DECLARE_PATCH(_InfantryTypeClass_Constructor_Patch)
     GET_STACK_STATIC(const char *, ini_name, esp, 0x0C); // ini name.
     static InfantryTypeClassExtension *exttype_ptr;
 
-    //EXT_DEBUG_WARNING("Creating InfantryTypeClassExtension instance for \"%s\".\n", ini_name);
+    //DEV_DEBUG_WARNING("Creating InfantryTypeClassExtension instance for \"%s\".\n", ini_name);
 
     /**
      *  Find existing or create an extended class instance.
