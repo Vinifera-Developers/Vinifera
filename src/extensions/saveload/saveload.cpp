@@ -35,6 +35,7 @@
 #include <unknwn.h> // for IStream
 
 #include "rulesext.h"
+#include "sessionext.h"
 #include "tacticalext.h"
 
 #include "objecttypeext.h"
@@ -87,6 +88,7 @@ unsigned ViniferaSaveGameVersion =
             *  Global classes.
             */
             + sizeof(RulesClassExtension)
+            + sizeof(SessionClassExtension)
             + sizeof(TacticalExtension)
 
             /**
@@ -293,6 +295,38 @@ static bool Vinifera_Load_RulesExtension(IStream *pStm)
 }
 
 
+static bool Vinifera_Save_SessionExtension(IStream *pStm)
+{
+    if (!pStm) {
+        return false;
+    }
+
+    if (!SessionExtension) {
+        return false;
+    }
+
+    SessionExtension->Save(pStm, true);
+
+    return true;
+}
+
+
+static bool Vinifera_Load_SessionExtension(IStream *pStm)
+{
+    if (!pStm) {
+        return false;
+    }
+    
+    if (!SessionExtension) {
+        return false;
+    }
+
+    SessionExtension->Load(pStm);
+
+    return true;
+}
+
+
 static bool Vinifera_Save_TacticalExtension(IStream *pStm)
 {
     if (!pStm) {
@@ -433,6 +467,12 @@ bool Vinifera_Put_All(IStream *pStm)
 
     DEBUG_INFO("Saving RulesExtension\n");
     if (!Vinifera_Save_RulesExtension(pStm)) {
+        DEBUG_INFO("\t***** FAILED!\n");
+        return false;
+    }
+
+    DEBUG_INFO("Saving SessionExtension\n");
+    if (!Vinifera_Save_SessionExtension(pStm)) {
         DEBUG_INFO("\t***** FAILED!\n");
         return false;
     }
@@ -711,6 +751,12 @@ bool Vinifera_Load_All(IStream *pStm)
 
     DEBUG_INFO("Loading RulesExtension\n");
     if (!Vinifera_Load_RulesExtension(pStm)) {
+        DEBUG_INFO("\t***** FAILED!\n");
+        return false;
+    }
+
+    DEBUG_INFO("Loading SessionExtension\n");
+    if (!Vinifera_Load_SessionExtension(pStm)) {
         DEBUG_INFO("\t***** FAILED!\n");
         return false;
     }
