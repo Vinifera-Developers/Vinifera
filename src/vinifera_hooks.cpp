@@ -250,4 +250,13 @@ void Vinifera_Hooks()
      *  Clear any game session and global variables before next game.
      */
     Patch_Jump(0x004E1F24, &_Select_Game_Clear_Globals_Patch);
+
+#ifndef NDEBUG
+    /**
+     *  These patches remove the Digest requirement for LANGRULE.INI, allowing
+     *  this file to be used by developers to quickly test features.
+     */
+    Patch_Byte(0x005C656E+1, 0); // CCINIClass::Load argument from "true" to "false".
+    Patch_Byte(0x004E1436, 0x53); // CCINIClass::Load argument from "true" to "false".
+#endif
 }
