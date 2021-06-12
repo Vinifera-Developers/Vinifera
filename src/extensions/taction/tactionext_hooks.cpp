@@ -26,12 +26,98 @@
  *
  ******************************************************************************/
 #include "tactionext_hooks.h"
+#include "tactionext.h"
+#include "taction.h"
+#include "tibsun_defines.h"
+#include "vinifera_defines.h"
+#include "house.h"
+#include "housetype.h"
+#include "object.h"
+#include "objecttype.h"
+#include "trigger.h"
+#include "triggertype.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  This patch extends the TActionClass operator.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_TAction_Operator_Extend_Switch_Patch)
+{
+    GET_REGISTER_STATIC(bool, success, al);
+    GET_REGISTER_STATIC(TActionClass *, this_ptr, esi);
+
+    /**
+     *  Function arguments
+     */
+    GET_STACK_STATIC(HouseClass *, house, esp, 0x1C4);
+    GET_STACK_STATIC(ObjectClass *, object, esp, 0x1C8);
+    GET_STACK_STATIC(TriggerClass *, trigger, esp, 0x1CC);
+    GET_STACK_STATIC(Cell *, cell, esp, 0x1D0);
+
+#ifndef NDEBUG
+    /**
+     *  Helper info for debugging when adding new actions.
+     */
+    DEV_DEBUG_INFO("TActionClass::operator()\n");
+    if (house) DEV_DEBUG_INFO("  House: \"%s\"\n", house->Class->Name());
+    if (object) DEV_DEBUG_INFO("  Object: \"%s\"\n", object->Name());
+    if (trigger) DEV_DEBUG_INFO("  Trigger: \"%s\"\n", trigger->Class_Of()->Name());
+    if (cell && *cell) DEV_DEBUG_INFO("  Cell: %d,%d\n", cell->X, cell->Y);
+#endif
+
+    /**
+     *  Skip null actions.
+     */
+    if (this_ptr->Action == TACTION_NONE) {
+        goto do_nothing;
+    }
+
+    /**
+     *  Handle the original TActionTypes.
+     */
+    if (this_ptr->Action < TACTION_COUNT) {
+#ifndef NDEBUG
+        DEV_DEBUG_INFO("Executing action: \"%s\"\n", TActionClass::Action_Name(this_ptr->Action));
+#endif
+        goto taction_switch;
+    }
+
+    /**
+     *  New TActionType switch.
+     */
+    if (this_ptr->Action < NEW_TACTION_COUNT) {
+        DEV_DEBUG_INFO("Executing new action: \"%s\"\n", TActionClassExtension::Action_Name(this_ptr->Action));
+    }
+
+    /**
+     *  Execute the new trigger action.
+     */
+    TActionClassExtension::Execute(this_ptr, house, object, trigger, cell);
+
+    /**
+     *  The default case, return doing nothing.
+     */
+do_nothing:
+    _asm { mov al, success }
+    JMP(0x0061A9C5);
+
+    /**
+     *  The switch case for the original TActionTypes
+     */
+taction_switch:
+    _asm { mov esi, this_ptr }
+    _asm { mov edx, [esi+0x1C] } // this->Action
+    _asm { dec edx } 
+    JMP_REG(eax, 0x00619141);
+}
 
 
 /**
@@ -51,4 +137,6 @@ void TActionClassExtension_Hooks()
      *  @author: CCHyper
      */
     Patch_Dword(0x00619552+2, (0x007E4820+4)); // Foot vector to Technos vector.
+
+    Patch_Jump(0x00619134, &_TAction_Operator_Extend_Switch_Patch);
 }
