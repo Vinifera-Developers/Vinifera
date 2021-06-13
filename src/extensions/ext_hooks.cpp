@@ -76,6 +76,7 @@
 #include "buildingext_hooks.h"
 #include "aircraftext_hooks.h"
 #include "infantryext_hooks.h"
+#include "cellext_hooks.h"
 #include "houseext_hooks.h"
 #include "teamext_hooks.h"
 #include "factoryext_hooks.h"
@@ -148,6 +149,7 @@ void Extension_Hooks()
     AircraftClassExtension_Hooks();
     InfantryClassExtension_Hooks();
     BuildingClassExtension_Hooks();
+    CellClassExtension_Hooks();
     HouseClassExtension_Hooks();
     TeamClassExtension_Hooks();
     FactoryClassExtension_Hooks();
