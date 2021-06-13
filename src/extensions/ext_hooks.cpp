@@ -77,6 +77,7 @@
 #include "houseext_hooks.h"
 #include "teamext_hooks.h"
 #include "factoryext_hooks.h"
+#include "animext_hooks.h"
 
 #include "dropshipext_hooks.h"
 
@@ -147,6 +148,7 @@ void Extension_Hooks()
     TeamClassExtension_Hooks();
     FactoryClassExtension_Hooks();
     FootClassExtension_Hooks();
+    AnimClassExtension_Hooks();
 
     DropshipExtension_Hooks();
 
