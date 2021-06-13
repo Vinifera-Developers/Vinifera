@@ -124,4 +124,23 @@ return_label:
 void DisplayClassExtension_Hooks()
 {
     Patch_Jump(0x0047AFA6, &_DisplayClass_Help_Text_GetCursorPosition_Patch);
+
+    /**
+     *  #issue-76
+     * 
+     *  Extend the IsoMapPack5 decoding size buffer.
+     * 
+     *  When large maps with lots of terrain have over 9750 lines in the
+     *  IsoMapPack5 section, the game is unable to decode further lines and fills
+     *  the bottom left area of the map with clear tiles.
+     * 
+     *  These patches increase the buffer size to 3 times the original size.
+     * 
+     *  @author: CCHyper (based on research by E1Elite)
+     */
+    #define ISOMAPPACK_BUFF_WIDTH 1024
+    #define ISOMAPPACK_BUFF_HEIGHT 768
+    Patch_Dword(0x0047A0B5+1, ISOMAPPACK_BUFF_WIDTH);
+    Patch_Dword(0x0047A0BA+1, ISOMAPPACK_BUFF_HEIGHT);
+    Patch_Dword(0x0047A0C8+1, ISOMAPPACK_BUFF_WIDTH*ISOMAPPACK_BUFF_HEIGHT*sizeof(unsigned short));
 }
