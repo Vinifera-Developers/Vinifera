@@ -65,6 +65,7 @@
 //#include "tagtypeext_hooks.h"
 //#include "triggertypeext_hooks.h"
 
+#include "unitext_hooks.h"
 #include "houseext_hooks.h"
 #include "teamext_hooks.h"
 #include "factoryext_hooks.h"
@@ -124,6 +125,7 @@ void Extension_Hooks()
     //TagTypeClassExtension_Hooks();
     //TriggerTypeClassExtension_Hooks();
 
+	UnitClassExtension_Hooks();
 	HouseClassExtension_Hooks();
     TeamClassExtension_Hooks();
 	FactoryClassExtension_Hooks();
