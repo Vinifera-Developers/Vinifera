@@ -34,6 +34,7 @@
 namespace CnCNet4 {
 
 bool __stdcall Init();
+void __stdcall Shutdown();
 
 int __stdcall bind(SOCKET s, const struct sockaddr *name, int namelen);
 SOCKET __stdcall socket(int af, int type, int protocol);

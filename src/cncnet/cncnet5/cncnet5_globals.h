@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          SETUP_HOOKS.CPP
+ *  @file          CNCNET_GLOBALS.H
  *
  *  @author        CCHyper
  *
- *  @brief         Contains the main function that sets up all hooks.
+ *  @brief         Global values and types used for the CnCNet5 system. 
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -25,31 +25,39 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "setup_hooks.h"
+#pragma once
+
+#include <always.h>
+
+
+namespace CnCNet5
+{
+
+typedef struct TunnelInfoStruct
+{
+    unsigned long ID;
+    unsigned long IP;
+    unsigned short Port;
+    bool PortHack;
+
+    bool Is_Valid() const { return !(ID == -1 || IP == -1 || Port == -1); }
+
+} TunnelInfoStruct;
+
 
 /**
- *  Include the hook headers here.
+ *  Has the CnCNet5 system been activated?
  */
-#include "vinifera_newdel.h"
-#include "crt_hooks.h"
-#include "debug_hooks.h"
-#include "vinifera_hooks.h"
-#include "ext_hooks.h"
-#include "bugfix_hooks.h"
-#include "cncnet4_hooks.h"
-#include "cncnet5_hooks.h"
+extern bool IsActive;
 
+/**
+ *  Is the tunnel system active (set when tunnel information has been provided)?
+ */
+extern bool IsTunnelActive;
 
-void Setup_Hooks()
-{
-    Vinifera_Memory_Hooks();
+/**
+ *  CnCNet5 UDP Tunnel info.
+ */
+extern TunnelInfoStruct TunnelInfo;
 
-    CRT_Hooks();
-    Debug_Hooks();
-    Vinifera_Hooks();
-    Extension_Hooks();
-    BugFix_Hooks();
-
-    CnCNet4_Hooks();
-    CnCNet5_Hooks();
-}
+};
