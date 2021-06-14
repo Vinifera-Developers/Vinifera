@@ -213,6 +213,18 @@ void Init_Vinifera_Commands()
     cmdptr = new ManualPlaceCommandClass;
     Commands.Add(cmdptr);
 
+    cmdptr = new JustBuiltBuildingCommandClass;
+    Commands.Add(cmdptr);
+
+    cmdptr = new JustBuiltInfantryCommandClass;
+    Commands.Add(cmdptr);
+
+    cmdptr = new JustBuiltUnitCommandClass;
+    Commands.Add(cmdptr);
+
+    cmdptr = new JustBuiltAircraftCommandClass;
+    Commands.Add(cmdptr);
+
     cmdptr = new PrevThemeCommandClass;
     Commands.Add(cmdptr);
 
@@ -447,6 +459,38 @@ static void Process_Vinifera_Hotkeys()
 #if defined(TS_CLIENT)
     }
 #endif
+
+    if (!ini.Is_Present("Hotkey", "JustBuiltBuilding")) {
+        cmdptr = CommandClass::From_Name("JustBuiltBuilding");
+        if (cmdptr) {
+            key = reinterpret_cast<ViniferaCommandClass *>(cmdptr)->Default_Key();
+            HotkeyIndex.Add_Index(key, cmdptr);
+        }
+    }
+
+    if (!ini.Is_Present("Hotkey", "JustBuiltInfantry")) {
+        cmdptr = CommandClass::From_Name("JustBuiltInfantry");
+        if (cmdptr) {
+            key = reinterpret_cast<ViniferaCommandClass *>(cmdptr)->Default_Key();
+            HotkeyIndex.Add_Index(key, cmdptr);
+        }
+    }
+
+    if (!ini.Is_Present("Hotkey", "JustBuiltUnit")) {
+        cmdptr = CommandClass::From_Name("JustBuiltUnit");
+        if (cmdptr) {
+            key = reinterpret_cast<ViniferaCommandClass *>(cmdptr)->Default_Key();
+            HotkeyIndex.Add_Index(key, cmdptr);
+        }
+    }
+
+    if (!ini.Is_Present("Hotkey", "JustBuiltInfantry")) {
+        cmdptr = CommandClass::From_Name("JustBuiltInfantry");
+        if (cmdptr) {
+            key = reinterpret_cast<ViniferaCommandClass *>(cmdptr)->Default_Key();
+            HotkeyIndex.Add_Index(key, cmdptr);
+        }
+    }
 
     if (!ini.Is_Present("Hotkey", "PrevTheme")) {
         cmdptr = CommandClass::From_Name("PrevTheme");

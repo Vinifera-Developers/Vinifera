@@ -102,6 +102,82 @@ class ManualPlaceCommandClass : public ViniferaCommandClass
 
 
 /**
+ *  Reproduces the last structure that was built.
+ */
+class JustBuiltBuildingCommandClass : public ViniferaCommandClass
+{
+    public:
+        JustBuiltBuildingCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        virtual ~JustBuiltBuildingCommandClass() {}
+
+        virtual const char *Get_Name() const override;
+        virtual const char *Get_UI_Name() const override;
+        virtual const char *Get_Category() const override;
+        virtual const char *Get_Description() const override;
+        virtual bool Process() override;
+
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_Z|KN_CTRL_BIT); }
+};
+
+
+/**
+ *  Reproduces the last infantry that was built.
+ */
+class JustBuiltInfantryCommandClass : public ViniferaCommandClass
+{
+    public:
+        JustBuiltInfantryCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        virtual ~JustBuiltInfantryCommandClass() {}
+
+        virtual const char *Get_Name() const override;
+        virtual const char *Get_UI_Name() const override;
+        virtual const char *Get_Category() const override;
+        virtual const char *Get_Description() const override;
+        virtual bool Process() override;
+
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_X|KN_CTRL_BIT); }
+};
+
+
+/**
+ *  Reproduces the last unit that was built.
+ */
+class JustBuiltUnitCommandClass : public ViniferaCommandClass
+{
+    public:
+        JustBuiltUnitCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        virtual ~JustBuiltUnitCommandClass() {}
+
+        virtual const char *Get_Name() const override;
+        virtual const char *Get_UI_Name() const override;
+        virtual const char *Get_Category() const override;
+        virtual const char *Get_Description() const override;
+        virtual bool Process() override;
+
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_C|KN_CTRL_BIT); }
+};
+
+
+/**
+ *  Reproduces the last aircraft that was built.
+ */
+class JustBuiltAircraftCommandClass : public ViniferaCommandClass
+{
+    public:
+        JustBuiltAircraftCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        virtual ~JustBuiltAircraftCommandClass() {}
+
+        virtual const char *Get_Name() const override;
+        virtual const char *Get_UI_Name() const override;
+        virtual const char *Get_Category() const override;
+        virtual const char *Get_Description() const override;
+        virtual bool Process() override;
+
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_V|KN_CTRL_BIT); }
+};
+
+
+/**
  *  Skip to the previous playable music track.
  */
 class PrevThemeCommandClass : public ViniferaCommandClass

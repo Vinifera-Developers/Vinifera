@@ -62,6 +62,8 @@
 #include "scenarioini.h"
 #include "scenario.h"
 #include "vox.h"
+#include "event.h"
+#include "queue.h"
 #include "language.h"
 #include "wwcrc.h"
 #include "filepcx.h"
@@ -427,6 +429,314 @@ bool ManualPlaceCommandClass::Process()
      *  Go into placement mode.
      */
     return PlayerPtr->Manual_Place(builder, pending_bptr);
+}
+
+
+/**
+ *  #issue-168
+ * 
+ *  Reproduces the last structure that was built.
+ * 
+ *  @author: CCHyper (based on research by dkeeton)
+ */
+const char *JustBuiltBuildingCommandClass::Get_Name() const
+{
+    return "JustBuiltBuilding";
+}
+
+const char *JustBuiltBuildingCommandClass::Get_UI_Name() const
+{
+    return "Reproduce Last Building";
+}
+
+const char *JustBuiltBuildingCommandClass::Get_Category() const
+{
+    return Text_String(TXT_INTERFACE);
+}
+
+const char *JustBuiltBuildingCommandClass::Get_Description() const
+{
+    return "Reproduce the last structure that was built.";
+}
+
+bool JustBuiltBuildingCommandClass::Process()
+{
+    if (!PlayerPtr) {
+        return false;
+    }
+
+    /**
+     *  Fetch the houses factory associated with producing building. This is
+     *  done to make sure the house still has a factory.
+     */
+    if (!PlayerPtr->Factory_Count(RTTI_BUILDING)) {
+        DEV_DEBUG_WARNING("JustBuiltBuildingCommandClass - Unable to fetch primary factory!\n");
+        return false;
+    }
+    
+    /**
+     *  Nothing built? Nothing to reproduce...
+     */
+    BuildingType building = PlayerPtr->JustBuiltStructure;
+    if (building == BUILDING_NONE) {
+        return false;
+    }
+
+    const BuildingTypeClass *buildingtype = BuildingTypeClass::As_Pointer(building);
+    if (!buildingtype) {
+        return false;
+    }
+    
+    /**
+     *  Do an extra check to make sure we can produce this item.
+     */
+    if (((1 << PlayerPtr->ID) & buildingtype->Ownable) == 0) {
+        return false;
+    }
+
+    /**
+     *  Is the item currently available to build on the sidebar?
+     */
+    if (!Map.Is_On_Sidebar(RTTI_BUILDINGTYPE, building)) {
+        return false;
+    }
+
+    DEBUG_INFO("JustBuiltBuildingCommandClass - \"%s\"\n", buildingtype->Full_Name());
+
+    OutList.Add(EventClass(PlayerPtr->ID, EventType::PRODUCE, RTTI_BUILDINGTYPE, building));
+
+    return true;
+}
+
+
+/**
+ *  #issue-168
+ * 
+ *  Reproduces the last infantry that was built.
+ * 
+ *  @author: CCHyper (based on research by dkeeton)
+ */
+const char *JustBuiltInfantryCommandClass::Get_Name() const
+{
+    return "JustBuiltInfantry";
+}
+
+const char *JustBuiltInfantryCommandClass::Get_UI_Name() const
+{
+    return "Reproduce Last Infantry";
+}
+
+const char *JustBuiltInfantryCommandClass::Get_Category() const
+{
+    return Text_String(TXT_INTERFACE);
+}
+
+const char *JustBuiltInfantryCommandClass::Get_Description() const
+{
+    return "Reproduce the last infantry that was built.";
+}
+
+bool JustBuiltInfantryCommandClass::Process()
+{
+    if (!PlayerPtr) {
+        return false;
+    }
+
+    /**
+     *  Fetch the houses factory associated with producing infantry. This is
+     *  done to make sure the house still has a factory.
+     */
+    if (!PlayerPtr->Factory_Count(RTTI_INFANTRY)) {
+        DEV_DEBUG_WARNING("JustBuiltInfantryCommandClass - Unable to fetch primary factory!\n");
+        return false;
+    }
+    
+    /**
+     *  Nothing built? Nothing to reproduce...
+     */
+    InfantryType infantry = PlayerPtr->JustBuiltInfantry;
+    if (infantry == INFANTRY_NONE) {
+        return false;
+    }
+
+    const InfantryTypeClass *infantrytype = InfantryTypeClass::As_Pointer(infantry);
+    if (!infantrytype) {
+        return false;
+    }
+    
+    /**
+     *  Do an extra check to make sure we can produce this item.
+     */
+    if (((1 << PlayerPtr->ID) & infantrytype->Ownable) == 0) {
+        return false;
+    }
+    
+    /**
+     *  Is the item currently available to build on the sidebar?
+     */
+    if (!Map.Is_On_Sidebar(RTTI_INFANTRYTYPE, infantry)) {
+        return false;
+    }
+
+    DEBUG_INFO("JustBuiltInfantryCommandClass - \"%s\"\n", infantrytype->Full_Name());
+
+    OutList.Add(EventClass(PlayerPtr->ID, EventType::PRODUCE, RTTI_INFANTRYTYPE, infantry));
+
+    return true;
+}
+
+
+/**
+ *  #issue-168
+ * 
+ *  Reproduces the last unit that was built.
+ * 
+ *  @author: CCHyper (based on research by dkeeton)
+ */
+const char *JustBuiltUnitCommandClass::Get_Name() const
+{
+    return "JustBuiltUnit";
+}
+
+const char *JustBuiltUnitCommandClass::Get_UI_Name() const
+{
+    return "Reproduce Last Vehicle";
+}
+
+const char *JustBuiltUnitCommandClass::Get_Category() const
+{
+    return Text_String(TXT_INTERFACE);
+}
+
+const char *JustBuiltUnitCommandClass::Get_Description() const
+{
+    return "Reproduce the last vehicle that was built.";
+}
+
+bool JustBuiltUnitCommandClass::Process()
+{
+    if (!PlayerPtr) {
+        return false;
+    }
+
+    /**
+     *  Fetch the houses factory associated with producing unit. This is
+     *  done to make sure the house still has a factory.
+     */
+    if (!PlayerPtr->Factory_Count(RTTI_UNIT)) {
+        DEV_DEBUG_WARNING("JustBuiltUnitCommandClass - Unable to fetch primary factory!\n");
+        return false;
+    }
+    
+    /**
+     *  Nothing built? Nothing to reproduce...
+     */
+    UnitType unit = PlayerPtr->JustBuiltUnit;
+    if (unit == UNIT_NONE) {
+        return false;
+    }
+
+    const UnitTypeClass *unittype = UnitTypeClass::As_Pointer(unit);
+    if (!unittype) {
+        return false;
+    }
+    
+    /**
+     *  Do an extra check to make sure we can produce this item.
+     */
+    if (((1 << PlayerPtr->ID) & unittype->Ownable) == 0) {
+        return false;
+    }
+    
+    /**
+     *  Is the item currently available to build on the sidebar?
+     */
+    if (!Map.Is_On_Sidebar(RTTI_UNITTYPE, unit)) {
+        return false;
+    }
+
+    DEBUG_INFO("JustBuiltUnitCommandClass - \"%s\"\n", unittype->Full_Name());
+
+    OutList.Add(EventClass(PlayerPtr->ID, EventType::PRODUCE, RTTI_UNITTYPE, unit));
+
+    return true;
+}
+
+
+/**
+ *  #issue-168
+ * 
+ *  Reproduces the last aircraft that was built.
+ * 
+ *  @author: CCHyper (based on research by dkeeton)
+ */
+const char *JustBuiltAircraftCommandClass::Get_Name() const
+{
+    return "JustBuiltAircraft";
+}
+
+const char *JustBuiltAircraftCommandClass::Get_UI_Name() const
+{
+    return "Reproduce Last Aircraft";
+}
+
+const char *JustBuiltAircraftCommandClass::Get_Category() const
+{
+    return Text_String(TXT_INTERFACE);
+}
+
+const char *JustBuiltAircraftCommandClass::Get_Description() const
+{
+    return "Reproduce the last aircraft that was built.";
+}
+
+bool JustBuiltAircraftCommandClass::Process()
+{
+    if (!PlayerPtr) {
+        return false;
+    }
+
+    /**
+     *  Fetch the houses factory associated with producing aircraft. This is
+     *  done to make sure the house still has a factory.
+     */
+    if (!PlayerPtr->Factory_Count(RTTI_AIRCRAFT)) {
+        DEV_DEBUG_WARNING("JustBuiltAircraftCommand - Unable to fetch primary factory!\n");
+        return false;
+    }
+    
+    /**
+     *  Nothing built? Nothing to reproduce...
+     */
+    AircraftType aircraft = PlayerPtr->JustBuiltAircraft;
+    if (aircraft == AIRCRAFT_NONE) {
+        return false;
+    }
+
+    const AircraftTypeClass *aircrafttype = AircraftTypeClass::As_Pointer(aircraft);
+    if (!aircrafttype) {
+        return false;
+    }
+    
+    /**
+     *  Do an extra check to make sure we can produce this item.
+     */
+    if (((1 << PlayerPtr->ID) & aircrafttype->Ownable) == 0) {
+        return false;
+    }
+    
+    /**
+     *  Is the item currently available to build on the sidebar?
+     */
+    if (!Map.Is_On_Sidebar(RTTI_AIRCRAFTTYPE, aircraft)) {
+        return false;
+    }
+
+    DEBUG_INFO("JustBuiltAircraftCommand - \"%s\"\n", aircrafttype->Full_Name());
+
+    OutList.Add(EventClass(PlayerPtr->ID, EventType::PRODUCE, RTTI_AIRCRAFTTYPE, aircraft));
+
+    return true;
 }
 
 
