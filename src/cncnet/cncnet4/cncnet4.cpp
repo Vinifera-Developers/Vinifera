@@ -152,6 +152,16 @@ bool __stdcall CnCNet4::Init()
 }
 
 
+
+/**
+ *  Shutdown the CnCNet4 system.
+ */
+void __stdcall CnCNet4::Shutdown()
+{
+    net_free();
+}
+
+
 SOCKET __stdcall CnCNet4::socket(int af, int type, int protocol)
 {
 #ifndef NDEBUG

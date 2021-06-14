@@ -30,6 +30,7 @@
 #include "vinifera_newdel.h"
 #include "cncnet4.h"
 #include "cncnet4_globals.h"
+#include "cncnet5_globals.h"
 #include "debughandler.h"
 #include <string>
 
@@ -103,6 +104,14 @@ bool Vinifera_Startup()
 	if (!CnCNet4::Init()) {
 		CnCNet4::IsEnabled = false;
 		DEBUG_WARNING("Failed to initialise CnCNet4, continuing without CnCNet4 support!\n");
+	}
+
+	/**
+	 *  Disable CnCNet4 if CnCNet5 is active, they can not co-exist.
+	 */
+	if (CnCNet4::IsEnabled && CnCNet5::IsActive) {
+		CnCNet4::Shutdown();
+		CnCNet4::IsEnabled = false;
 	}
 
 	return true;
