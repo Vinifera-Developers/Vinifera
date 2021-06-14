@@ -99,6 +99,31 @@
 #endif // !SIZE_OF
 
 /**
+ *  Returns the absolute value of the number.
+ */
+#ifdef ABS
+#undef ABS
+#endif
+#define ABS(a, b) (a < 0) ? -a : a;
+
+/**
+ *  Returns the minimum of the two numbers.
+ */
+#ifdef MIN
+#undef MIN
+#endif
+#define MIN(a, b) (b < a) ? b : a;
+
+/**
+ *  Returns the maximum of the two numbers.
+ */
+#ifdef MAX
+#undef MAX
+#endif
+#define MAX(a, b) (b > a) ? b : a;
+
+
+/**
  *  Defines operator overloads to enable bit operations on enum values, useful for
  *  using an enum to define flags for a bitfield.
  *  
