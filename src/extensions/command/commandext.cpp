@@ -38,6 +38,7 @@
 #include "housetype.h"
 #include "base.h"
 #include "super.h"
+#include "factory.h"
 #include "anim.h"
 #include "animtype.h"
 #include "unit.h"
@@ -55,6 +56,8 @@
 #include "combat.h"
 #include "scenarioini.h"
 #include "scenario.h"
+#include "vox.h"
+#include "language.h"
 #include "wwcrc.h"
 #include "filepcx.h"
 #include "filepng.h"
@@ -184,6 +187,94 @@ bool PNGScreenCaptureCommandClass::Process()
     }
 
     return success;
+}
+
+
+/**
+ *  #issue-112
+ * 
+ *  Enter the manual placement mode when a building is complete
+ *  and pending placement on the sidebar.
+ * 
+ *  @author: CCHyper (based on research by dkeeton)
+ */
+const char *ManualPlaceCommandClass::Get_Name() const
+{
+    return "ManualPlace";
+}
+
+const char *ManualPlaceCommandClass::Get_UI_Name() const
+{
+    return "Place Building";
+}
+
+const char *ManualPlaceCommandClass::Get_Category() const
+{
+    return Text_String(TXT_INTERFACE);
+}
+
+const char *ManualPlaceCommandClass::Get_Description() const
+{
+    return "Enter the manual placement mode when a building is complete and pending on the sidebar.";
+}
+
+bool ManualPlaceCommandClass::Process()
+{
+    if (!PlayerPtr) {
+        return false;
+    }
+
+    /**
+     *  Fetch the houses factory associated with producing buildings.
+     */
+    FactoryClass *factory = PlayerPtr->Fetch_Factory(RTTI_BUILDING);
+    if (!factory) {
+        DEV_DEBUG_WARNING("ManualPlaceCommand - Unable to fetch primary factory!\n");
+        return false;
+    }
+
+    /**
+     *  If this object is still being built, then bail.
+     */
+    if (!factory->Has_Completed()) {
+        Speak(VOX_NO_FACTORY);
+        return false;
+    }
+
+    TechnoClass *pending = factory->Get_Object();
+
+    /**
+     *  If by some rare chance the product is not a building, then bail.
+     */
+    if (pending->What_Am_I() != RTTI_BUILDING) {
+        Speak(VOX_NO_FACTORY);
+        return false;
+    }
+
+    BuildingClass *pending_bptr = reinterpret_cast<BuildingClass *>(pending);
+
+    /**
+     *  Fetch the factory building that can build this object.
+     */
+    BuildingClass *builder = pending_bptr->Who_Can_Build_Me();
+    if (!builder) {
+        Speak(VOX_NO_FACTORY);
+        return false;
+    }
+
+    /**
+     *  Are we already trying to place this building? No need to re-enter placement mode...
+     */
+    if (Map.PendingObjectPtr == pending_bptr) {
+        return true;
+    }
+
+    DEV_DEBUG_INFO("ManualPlaceCommand - Entering placement mode with \"%s\"\n", pending_bptr->Full_Name());
+
+    /**
+     *  Go into placement mode.
+     */
+    return PlayerPtr->Manual_Place(builder, pending_bptr);
 }
 
 
