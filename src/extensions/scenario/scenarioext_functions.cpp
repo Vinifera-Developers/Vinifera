@@ -406,8 +406,10 @@ static Cell Clip_Move(Cell cell, FacingType facing, int dist)
  * 
  *  @author: 06/09/1995 BRR - Red Alert source code.
  *           CCHyper - Adjustments for Tiberian Sun.
+ * 
+ *  #issue-338 - Adds "min_dist" argument.
  */
-static int Scan_Place_Object(ObjectClass *obj, Cell cell)
+static int Scan_Place_Object(ObjectClass *obj, Cell cell, int min_dist = 1)
 {
     int dist;               // for object placement
     FacingType rot;         // for object placement
@@ -439,7 +441,7 @@ static int Scan_Place_Object(ObjectClass *obj, Cell cell)
      *  If that fails, go to the next distance.
      *  This ensures that the closest coordinates are filled first.
      */
-    for (dist = 1; dist < 32; dist++) {
+    for (dist = min_dist; dist < 32; dist++) {
 
         /**
          *  Pick a random starting direction
@@ -578,7 +580,18 @@ static DynamicVectorClass<Cell> Build_Starting_Waypoint_List(bool official)
  */
 void Vinifera_Create_Units(bool official)
 {
-    DynamicVectorClass<TechnoClass *> deployed_objects;
+    /**
+     *  #issue-338
+     * 
+     *  Change the starting unit formation to be like Red Alert 2.
+     * 
+     *  This sets the desired placement distance from the base center cell.
+     * 
+     *  @author: CCHyper
+     */
+    const unsigned int PLACEMENT_DISTANCE = 3;
+
+    //DynamicVectorClass<TechnoClass *> deployed_objects;
 
     int tot_units = Session.Options.UnitCount;
     if (Session.Options.Bases) {
@@ -908,7 +921,7 @@ void Vinifera_Create_Units(bool official)
         /**
          *  Clear the previous house's deployed list.
          */
-        deployed_objects.Clear();
+        //deployed_objects.Clear();
 
         //DEBUG_INFO("  budget == %d\n", budget);
 
@@ -944,7 +957,7 @@ void Vinifera_Create_Units(bool official)
                 obj = reinterpret_cast<TechnoClass *>(technotype->Create_One_Of(hptr));
                 if (obj) {
 
-                    if (Scan_Place_Object(obj, centroid)) {
+                    if (Scan_Place_Object(obj, centroid, PLACEMENT_DISTANCE)) {
 
                         DEBUG_INFO("  House %s deployed object %s at %d,%d\n",
                             hptr->Class->Name(), obj->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
@@ -964,7 +977,7 @@ void Vinifera_Create_Units(bool official)
                         /**
                          *  Add to the list of objects successfully deployed.
                          */
-                        deployed_objects.Add(obj);
+                        //deployed_objects.Add(obj);
 
                     } else if (obj) {
                         delete obj;
@@ -972,6 +985,16 @@ void Vinifera_Create_Units(bool official)
 
                 }
 
+                /**
+                 *  #issue-338
+                 * 
+                 *  Change the starting unit formation to be like Red Alert 2.
+                 *  As a result, this is no longer required as the units are
+                 *  now placed neatly around the base unit.
+                 * 
+                 *  @author: CCHyper
+                 */
+#if 0
                 /**
                  *  Scatter all the human placed objects to create
                  *  some space around the base unit.
@@ -984,6 +1007,7 @@ void Vinifera_Create_Units(bool official)
                         }
                     }
                 }
+#endif
 
             }
 
