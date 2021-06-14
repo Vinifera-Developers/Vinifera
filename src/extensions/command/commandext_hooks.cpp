@@ -28,6 +28,8 @@
 #include "commandext.h"
 #include "vinifera_globals.h"
 #include "tibsun_functions.h"
+#include "ccfile.h"
+#include "ccini.h"
 #include "asserthandler.h"
 #include "debughandler.h"
 
@@ -46,10 +48,13 @@ void Init_Vinifera_Commands()
     /**
      *  Initialises any new commands here.
      */
-    //DEBUG_INFO("Initialising new commands.\n");
+    DEBUG_INFO("Initialising new commands.\n");
 
     //cmdptr = new PNGScreenCaptureCommandClass;
     //Commands.Add(cmdptr);
+
+    cmdptr = new ManualPlaceCommandClass;
+    Commands.Add(cmdptr);
     
     /**
      *  Next, initialised any new commands here if the developer mode is enabled.
@@ -168,6 +173,29 @@ void Init_Vinifera_Commands()
     DEBUG_INFO("Init_Vinifera_Commands(exit).\n");
 }
 
+/**
+ *  Set the default key assignments.
+ * 
+ *  @author: CCHyper
+ */
+static void Process_Vinifera_Hotkeys()
+{
+    CommandClass *cmdptr = nullptr;
+    KeyNumType key;
+
+    CCFileClass file("KEYBOARD.INI");
+    CCINIClass ini;
+
+    ini.Load(file, false);
+
+    if (!ini.Is_Present("Hotkey", "ManualPlace")) {
+        cmdptr = CommandClass::From_Name("ManualPlace");
+        if (cmdptr) {
+            key = reinterpret_cast<ViniferaCommandClass *>(cmdptr)->Default_Key();
+            HotkeyIndex.Add_Index(key, cmdptr);
+        }
+    }
+}
 
 /**
  *  Patch for initialising the new hotkey commands.
@@ -183,6 +211,8 @@ DECLARE_PATCH(_Init_Commands_Patch)
      */
 original_code:
     Load_Keyboard_Hotkeys();
+
+    Process_Vinifera_Hotkeys();
 
     JMP(0x004E6FAE);
 }
