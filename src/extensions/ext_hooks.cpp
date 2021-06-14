@@ -139,6 +139,7 @@ void Extension_Hooks()
     BuildingClassExtension_Hooks();
     HouseClassExtension_Hooks();
 	UnitClassExtension_Hooks();
+    BuildingClassExtension_Hooks();
 	HouseClassExtension_Hooks();
     TeamClassExtension_Hooks();
     FactoryClassExtension_Hooks();

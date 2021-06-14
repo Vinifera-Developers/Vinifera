@@ -35,9 +35,55 @@
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "tibsun_functions.h"
+#include "building.h"
+#include "rules.h"
+#include "fatal.h"
+#include "asserthandler.h"
+#include "debughandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-333
+ * 
+ *  Fixes a division by zero crash when Rule->ShakeScreen is zero
+ *  and a building dies/explodes.
+ * 
+ *  @author: CCHyper
+ */
+static void BuildingClass_Shake_Screen(BuildingClass *building)
+{
+    /**
+     *  Make sure both the screen shake factor and the buildings cost
+     *  are valid before performing the division.
+     */
+    if (Rule->ShakeScreen > 0 && building->Class->Cost_Of() > 0) {
+
+        int shakes = std::min(building->Class->Cost_Of() / Rule->ShakeScreen, 6);
+        //int shakes = building->Class->Cost_Of() / Rule->ShakeScreen;
+        if (shakes > 0) {
+            Shake_The_Screen(shakes);
+        }
+
+    }
+}
+
+DECLARE_PATCH(_BuildingClass_Explode_ShakeScreen_Division_BugFix_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass *, this_ptr, esi);
+    static int shakes;
+
+    BuildingClass_Shake_Screen(this_ptr);
+
+    /**
+     *  Continue execution of function.
+     */
+continue_function:
+    JMP_REG(edx, 0x0042B27F);
+}
 
 
 /**
@@ -78,4 +124,5 @@ DECLARE_PATCH(_BuildingClass_Draw_Spied_Cameo_Palette_Patch)
 void BuildingClassExtension_Hooks()
 {
     Patch_Jump(0x00428AD3, &_BuildingClass_Draw_Spied_Cameo_Palette_Patch);
+    Patch_Jump(0x0042B250, &_BuildingClass_Explode_ShakeScreen_Division_BugFix_Patch);
 }
