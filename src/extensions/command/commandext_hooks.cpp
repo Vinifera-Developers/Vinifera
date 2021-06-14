@@ -195,6 +195,8 @@ void CommandExtension_Hooks()
 {
     Patch_Jump(0x004E6FA9, &_Init_Commands_Patch);
 
+    Patch_Dword(0x0058A917+1, 0x006FEFEC); // "Keyboard.ini" to "KEYBOARD.INI"
+
     /**
      *  Replace ScreenCaptureCommandClass with PNGScreenCaptureCommandClass.
      */
