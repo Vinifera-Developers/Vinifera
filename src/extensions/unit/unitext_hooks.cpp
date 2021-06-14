@@ -27,15 +27,65 @@
  ******************************************************************************/
 #include "houseext_hooks.h"
 #include "vinifera_globals.h"
+#include "tibsun_globals.h"
+#include "tibsun_functions.h"
 #include "unit.h"
 #include "unittype.h"
 #include "target.h"
+#include "rules.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-334
+ * 
+ *  Fixes a division by zero crash when Rule->ShakeScreen is zero
+ *  and a unit dies/explodes.
+ * 
+ *  @author: CCHyper
+ */
+static void UnitClass_Shake_Screen(UnitClass *unit)
+{
+    /**
+     *  Very strong units that have an explosion will also rock the
+     *  screen when they are destroyed.
+     */
+    if (unit->Class->MaxStrength > Rule->ShakeScreen) {
+
+        /**
+         *  Make sure both the screen shake factor and the units strength
+         *  are valid before performing the division.
+         */
+        if (Rule->ShakeScreen > 0 && unit->Class->MaxStrength > 0) {
+
+            int shakes = std::min<int>(unit->Class->MaxStrength / (Rule->ShakeScreen/2), 6);
+            Shake_The_Screen(shakes);
+        }
+    }
+}
+
+DECLARE_PATCH(_UnitClass_Explode_ShakeScreen_Division_BugFix_Patch)
+{
+    GET_REGISTER_STATIC(UnitClass *, this_ptr, edi);
+
+    /**
+     *  Stolen bytes/code.
+     */
+    _asm { pop ebx }
+
+    UnitClass_Shake_Screen(this_ptr);
+
+    /**
+     *  Return from the function.
+     */
+function_return:
+    JMP_REG(ecx, 0x0065B581);
+}
 
 
 /**
@@ -99,4 +149,5 @@ continue_check_scatter:
 void UnitClassExtension_Hooks()
 {
     Patch_Jump(0x006517BE, &_UnitClass_Per_Cell_Process_AutoHarvest_Assign_Harvest_Mission_Patch);
+    Patch_Jump(0x0065B547, &_UnitClass_Explode_ShakeScreen_Division_BugFix_Patch);
 }
