@@ -41,6 +41,87 @@
 #include "vinifera_gitinfo.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include <timeapi.h>
+
+
+/**
+ *  #issue-348
+ * 
+ *  The animation speed of Waypoint lines is not normalised and subjective to
+ *  the game speed setting. This patch adjusts the animation using the system
+ *  timer and makes the animation speed consistent across all game speeds.
+ * 
+ *  @authors: CCHyper
+ */
+DECLARE_PATCH(_Tactical_Draw_Rally_Points_NormaliseLineAnimation_Patch)
+{
+    GET_STACK_STATIC8(bool, blit, esp, 0x70);
+    LEA_STACK_STATIC(Point2D *, start_pos, esp, 0x1C);
+    LEA_STACK_STATIC(Point2D *, end_pos, esp, 0x14);
+
+    /**
+     *  5 pixels on, 3 off, 5 pixels on, 3 off.
+     */
+    static bool _pattern[16] = { true, true, true, true, true, false, false, false, true, true, true, true, true, false, false, false };
+    
+    static int time;
+    static int offset;
+    static unsigned color;
+
+    /**
+     *  Adjust the offset of the line pattern.
+     */
+    time = timeGetTime();
+    offset = (-time / 32) & (ARRAYSIZE(_pattern)-1);
+
+    color = DSurface::RGBA_To_Pixel(0,255,0);
+
+    /**
+     *  Draw the line line with the desired pattern.
+     */
+    TempSurface->entry_48(*start_pos, *end_pos, color, _pattern, offset, blit);
+
+    JMP(0x00616EFD);
+}
+
+
+/**
+ *  #issue-348
+ * 
+ *  The animation speed of Rally Point lines is not normalised and subjective to
+ *  the game speed setting. This patch adjusts the animation using the system
+ *  timer and makes the animation speed consistent across all game speeds.
+ * 
+ *  @authors: CCHyper
+ */
+DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_NormaliseLineAnimation_Patch)
+{
+    GET_REGISTER_STATIC(unsigned, color, eax);
+    GET_STACK_STATIC8(bool, blit, esp, 0x90);
+    LEA_STACK_STATIC(Point2D *, start_pos, esp, 0x34);
+    LEA_STACK_STATIC(Point2D *, end_pos, esp, 0x3C);
+
+    /**
+     *  5 pixels on, 3 off, 5 pixels on, 3 off.
+     */
+    static bool _pattern[16] = { true, true, true, true, true, false, false, false, true, true, true, true, true, false, false, false };
+
+    static int time;
+    static int offset;
+
+    /**
+     *  Adjust the offset of the line pattern (this animates a little slower than rally points).
+     */
+    time = timeGetTime();
+    offset = (-time / 64) & (ARRAYSIZE(_pattern)-1);
+
+    /**
+     *  Draw the line line with the desired pattern.
+     */
+    TempSurface->entry_48(*start_pos, *end_pos, color, _pattern, offset, blit);
+
+    JMP(0x00617307);
+}
 
 
 /**
@@ -146,4 +227,7 @@ void TacticalExtension_Hooks()
     TacticalExtension_Init();
 
     Patch_Jump(0x00611BCB, &_Tactical_Render_Patch);
+
+    Patch_Jump(0x00616E9A, &_Tactical_Draw_Rally_Points_NormaliseLineAnimation_Patch);
+    Patch_Jump(0x006172DB, &_Tactical_Draw_Waypoint_Paths_NormaliseLineAnimation_Patch);
 }
