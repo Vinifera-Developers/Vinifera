@@ -27,15 +27,69 @@
  ******************************************************************************/
 #include "displayext_hooks.h"
 #include "vinifera_globals.h"
+#include "tibsun_globals.h"
 #include "tibsun_util.h"
 #include "display.h"
 #include "iomap.h"
+#include "wwmouse.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-344
+ * 
+ *  This patch fixes a bug/glitch where the user can place a building
+ *  anywhere on the map by moving the mouse over the sidebar while the
+ *  proximity checks have been passed.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_DisplayClass_Mouse_Left_Release_PlaceAnywhere_BugFix_Patch)
+{
+    GET_REGISTER_STATIC(DisplayClass *, this_ptr, ebx);
+
+    static Point2D mouse_pos;
+
+    /**
+     *  Find out where the mouse cursor is, if its over the sidebar
+     *  then invalidate the proximity checks, fixing the glitch.
+     */
+    mouse_pos.X = WWMouse->Get_Mouse_X();
+    mouse_pos.Y = WWMouse->Get_Mouse_Y();
+    if (mouse_pos.X >= (TacticalRect.Width-1)) {
+        this_ptr->IsProximityCheck = false;
+        this_ptr->IsShroudCheck = false;
+        goto unable_to_deploy;
+    }
+
+    /**
+     *  Stolen bytes/code here.
+     */
+
+    /**
+     *  Try to place the pending object onto the map.
+     */
+    if (this_ptr->IsProximityCheck && this_ptr->IsShroudCheck) {
+        goto place_it;
+    }
+
+    /**
+     *  Cannot deploy here.
+     */
+unable_to_deploy:
+    JMP(0x00478A30);
+
+    /**
+     *  Create PLACE event.
+     */
+place_it:
+    JMP(0x00478990);
+}
 
 
 /**
@@ -124,6 +178,7 @@ return_label:
 void DisplayClassExtension_Hooks()
 {
     Patch_Jump(0x0047AFA6, &_DisplayClass_Help_Text_GetCursorPosition_Patch);
+    Patch_Jump(0x00478974, &_DisplayClass_Mouse_Left_Release_PlaceAnywhere_BugFix_Patch);
 
     /**
      *  #issue-76
