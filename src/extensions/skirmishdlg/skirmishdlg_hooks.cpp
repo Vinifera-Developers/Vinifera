@@ -40,6 +40,39 @@
 
 
 /**
+ *  #issue-346
+ * 
+ *  Fixes a limitation where returning to the Skirmish dialog after a game
+ *  clamps the chosen side between 0 (GDI) and 1 (NOD). This means the player
+ *  would be forced back to index 1 (NOD) on the combo box if they played as
+ *  a new side which was added in a mod for example.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_SkirmishDialog_InitDialog_RestoreSideIndex_Patch)
+{
+    GET_REGISTER_STATIC(HWND, hSideComboBox, edi);
+    static int side_index;
+
+    /**
+     *  Clamp the chosen House index within the range of known houses. If the
+     *  value is out of range for any reason, set back to index 0 (GDI).
+     */
+    side_index = Session.House;
+    if (side_index >= HouseTypes.Count()) {
+        side_index = 0;
+    }
+    
+    /**
+     *  Set the combo box entry.
+     */
+    SendMessage(hSideComboBox, CB_SETCURSEL, (WPARAM)side_index, (LPARAM)0);
+
+    JMP(0x005F782C);
+}
+
+
+/**
  *  #issue-324
  * 
  *  When the game is running in developer mode, allow Skirmish games to be
@@ -92,4 +125,5 @@ DECLARE_PATCH(_SkirmishDialog_InitDialog_AIPlayers_Patch)
 void SkirmishDialog_Hooks()
 {
     Patch_Jump(0x005F7759, &_SkirmishDialog_InitDialog_AIPlayers_Patch);
+    Patch_Jump(0x005F7812, &_SkirmishDialog_InitDialog_RestoreSideIndex_Patch);
 }
