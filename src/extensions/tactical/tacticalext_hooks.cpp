@@ -67,6 +67,7 @@ DECLARE_PATCH(_Tactical_Draw_Rally_Points_NormaliseLineAnimation_Patch)
     static int time;
     static int offset;
     static unsigned color;
+    static unsigned color_black;
 
     /**
      *  Adjust the offset of the line pattern.
@@ -75,10 +76,40 @@ DECLARE_PATCH(_Tactical_Draw_Rally_Points_NormaliseLineAnimation_Patch)
     offset = (-time / 32) & (ARRAYSIZE(_pattern)-1);
 
     color = DSurface::RGBA_To_Pixel(0,255,0);
+    color_black = DSurface::RGBA_To_Pixel(0,0,0);
 
+#if 0
     /**
      *  Draw the line line with the desired pattern.
      */
+    TempSurface->entry_48(*start_pos, *end_pos, color, _pattern, offset, blit);
+#endif
+
+    /**
+     *  #issue-351
+     * 
+     *  Thicken the rally point lines so they are easier to see in contrast to the terrain.
+     * 
+     *  @authors: CCHyper
+     */
+
+    /**
+     *  Draw the drop shadow line.
+     */
+    start_pos->Y += 2;
+    end_pos->Y += 2;
+    TempSurface->entry_48(*start_pos, *end_pos, color_black, _pattern, offset, blit);
+
+    /**
+     *  Draw two lines, offset by one pixel from each other, giving the
+     *  impression that it is double the thickness.
+     */
+    --start_pos->Y;
+    --end_pos->Y;
+    TempSurface->entry_48(*start_pos, *end_pos, color, _pattern, offset, blit);
+
+    --start_pos->Y;
+    --end_pos->Y;
     TempSurface->entry_48(*start_pos, *end_pos, color, _pattern, offset, blit);
 
     JMP(0x00616EFD);
@@ -108,6 +139,7 @@ DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_NormaliseLineAnimation_Patch)
 
     static int time;
     static int offset;
+    static unsigned color_black;
 
     /**
      *  Adjust the offset of the line pattern (this animates a little slower than rally points).
@@ -115,10 +147,82 @@ DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_NormaliseLineAnimation_Patch)
     time = timeGetTime();
     offset = (-time / 64) & (ARRAYSIZE(_pattern)-1);
 
+    color_black = DSurface::RGBA_To_Pixel(0,0,0);
+
+#if 0
     /**
      *  Draw the line line with the desired pattern.
      */
     TempSurface->entry_48(*start_pos, *end_pos, color, _pattern, offset, blit);
+#endif
+
+    /**
+     *  #issue-351
+     * 
+     *  Thicken the waypoint path lines so they are easier to see in contrast to the terrain.
+     * 
+     *  @authors: CCHyper
+     */
+
+    /**
+     *  Draw the drop shadow line.
+     */
+    start_pos->Y += 2;
+    end_pos->Y += 2;
+    TempSurface->entry_48(*start_pos, *end_pos, color_black, _pattern, offset, blit);
+
+    /**
+     *  Draw two lines, offset by one pixel from each other, giving the
+     *  impression that it is double the thickness.
+     */
+    --start_pos->Y;
+    --end_pos->Y;
+    TempSurface->entry_48(*start_pos, *end_pos, color, _pattern, offset, blit);
+
+    --start_pos->Y;
+    --end_pos->Y;
+    TempSurface->entry_48(*start_pos, *end_pos, color, _pattern, offset, blit);
+
+    JMP(0x00617307);
+}
+
+
+/**
+ *  #issue-351
+ * 
+ *  Thicken the waypoint path lines so they are easier to see in contrast to the terrain.
+ * 
+ *  @authors: CCHyper
+ */
+DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_DrawNormalLine_Patch)
+{
+    GET_REGISTER_STATIC(unsigned, color, eax);
+    GET_STACK_STATIC8(bool, blit, esp, 0x90);
+    LEA_STACK_STATIC(Point2D *, start_pos, esp, 0x34);
+    LEA_STACK_STATIC(Point2D *, end_pos, esp, 0x3C);
+
+    static unsigned color_black;
+
+    color_black = DSurface::RGBA_To_Pixel(0,0,0);
+
+    /**
+     *  Draw the drop shadow line.
+     */
+    start_pos->Y += 2;
+    end_pos->Y += 2;
+    TempSurface->entry_4C(*start_pos, *end_pos, color_black);
+
+    /**
+     *  Draw two lines, offset by one pixel from each other, giving the
+     *  impression that it is double the thickness.
+     */
+    --start_pos->Y;
+    --end_pos->Y;
+    TempSurface->entry_4C(*start_pos, *end_pos, color);
+
+    --start_pos->Y;
+    --end_pos->Y;
+    TempSurface->entry_4C(*start_pos, *end_pos, color);
 
     JMP(0x00617307);
 }
@@ -230,4 +334,5 @@ void TacticalExtension_Hooks()
 
     Patch_Jump(0x00616E9A, &_Tactical_Draw_Rally_Points_NormaliseLineAnimation_Patch);
     Patch_Jump(0x006172DB, &_Tactical_Draw_Waypoint_Paths_NormaliseLineAnimation_Patch);
+    Patch_Jump(0x00617327, &_Tactical_Draw_Waypoint_Paths_DrawNormalLine_Patch);
 }
