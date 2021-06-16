@@ -259,4 +259,15 @@ void Vinifera_Hooks()
     Patch_Byte(0x005C656E+1, 0); // CCINIClass::Load argument from "true" to "false".
     Patch_Byte(0x004E1436, 0x53); // CCINIClass::Load argument from "true" to "false".
 #endif
+
+    /**
+     *  These two patches changes the last character of the Autorun and Game
+     *  application mutex GUID's So Vinifera can be run alongside another instance
+     *  of Tiberian Sun (and even Red Alert 2 or Yuri's Revenge).
+     * 
+     *  "b350c6d2-2f36-11d3-a72c-0090272fa661" -> "b350c6d2-2f36-11d3-a72c-0090272fa662"
+     *  "29e3bb2a-2f36-11d3-a72c-0090272fa661" -> "29e3bb2a-2f36-11d3-a72c-0090272fa662"
+     */
+    Patch_Byte(0x0070EEAB, '2');
+    Patch_Byte(0x0070EF0F, '2');
 }
