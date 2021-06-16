@@ -66,6 +66,8 @@
 #include "wwcrc.h"
 #include "filepcx.h"
 #include "filepng.h"
+#include "saveload.h"
+#include "tacticalext.h"
 #include "extension.h"
 #include "fatal.h"
 #include "minidump.h"
@@ -822,6 +824,167 @@ bool ToggleSuperTimersCommandClass::Process()
     Vinifera_ShowSuperWeaponTimers = !Vinifera_ShowSuperWeaponTimers;
 
     return true;
+}
+
+
+/**
+ *  Perform a quick save.
+ *
+ *  @author: CCHyper
+ */
+const char *QuickSaveCommandClass::Get_Name() const
+{
+    return "QuickSave";
+}
+
+const char *QuickSaveCommandClass::Get_UI_Name() const
+{
+    return "Quick Save";
+}
+
+const char *QuickSaveCommandClass::Get_Category() const
+{
+    return "New";
+}
+
+const char *QuickSaveCommandClass::Get_Description() const
+{
+    return "Perform a quick save.";
+}
+
+
+bool QuickSaveCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    int free_slot = 0;
+
+    /**
+     *  Scan for a free save slot.
+     */
+    for (int slot = 0; slot < QUICK_SAVE_MAX_SLOTS; ++slot) {
+        char tmpbuf[16];
+        std::snprintf(tmpbuf, sizeof(tmpbuf), "QUICK%03d.SAV", slot);
+        if (!RawFileClass(tmpbuf).Is_Available()) {
+            free_slot = slot;
+            DEBUG_INFO("Found free quick save slot \"%d\".\n", free_slot);
+            break;
+        }
+    }
+
+    /**
+     *  Build the save file description and filename.
+     */
+    char desc[128];
+    std::snprintf(desc, sizeof(desc), "[Quick Save %d: %s]", free_slot+1, Scen->Description);
+
+    char fname[16];
+    std::snprintf(fname, sizeof(fname), "QUICK%03d.SAV", free_slot);
+
+    if (Save_Game(fname, desc)) {
+
+        TacticalMapExtension->CaptionTextTimer.Stop();
+
+        TacticalMap->Clear_Caption_Text();
+
+        std::strncpy(TacticalMap->ScreenText, "Game Saved", sizeof(TacticalMap->ScreenText));
+
+        TacticalMapExtension->IsCaptionTextSet = true;
+
+        TacticalMapExtension->CaptionTextTimer = QUICK_SAVE_TEXT_TIMEOUT;
+        TacticalMapExtension->CaptionTextTimer.Start();
+
+        return true;
+    }
+
+    return false;
+}
+
+
+/**
+ *  Load the last quick save if one exists.
+ *
+ *  @author: CCHyper
+ */
+const char *QuickLoadCommandClass::Get_Name() const
+{
+    return "QuickLoad";
+}
+
+const char *QuickLoadCommandClass::Get_UI_Name() const
+{
+    return "Quick Load";
+}
+
+const char *QuickLoadCommandClass::Get_Category() const
+{
+    return "New";
+}
+
+const char *QuickLoadCommandClass::Get_Description() const
+{
+    return "Load the last quick save if one exists.";
+}
+
+bool QuickLoadCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    Wstring fname;
+
+    /**
+     *  find the most recent quick save file.
+     */
+    FILETIME recentDate = { 0, 0 };
+    FILETIME curDate = { 0, 0 };
+
+    WIN32_FIND_DATA block;
+    HANDLE handle = FindFirstFile("QUICK*.SAV", &block);
+    while (handle != INVALID_HANDLE_VALUE) {
+        if ((block.dwFileAttributes & (FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_HIDDEN|FILE_ATTRIBUTE_SYSTEM|FILE_ATTRIBUTE_TEMPORARY)) == 0) {
+            char const *name = &block.cAlternateFileName[0];
+            if (*name == '\0') name = &block.cFileName[0];
+
+            DEV_DEBUG_INFO("Found file '%s'.\n", name);
+
+            curDate = block.ftCreationTime;
+
+            if (CompareFileTime(&curDate, &recentDate) > 0) {
+                recentDate = curDate;
+                fname = name;
+            }
+        }
+        if (FindNextFile(handle, &block) == 0) break;
+    }
+
+    if (!fname.Get_Length()) {
+        DEBUG_INFO("No quick save files found!\n");
+        return false;
+    }
+
+    DEBUG_INFO("Found most recent quick save \"%s\"", fname.Peek_Buffer());
+
+    if (Load_Game(fname.Peek_Buffer())) {
+
+        TacticalMapExtension->CaptionTextTimer.Stop();
+
+        TacticalMap->Clear_Caption_Text();
+
+        std::strncpy(TacticalMap->ScreenText, "Game Loaded", sizeof(TacticalMap->ScreenText));
+
+        TacticalMapExtension->IsCaptionTextSet = true;
+
+        TacticalMapExtension->CaptionTextTimer = QUICK_SAVE_TEXT_TIMEOUT;
+        TacticalMapExtension->CaptionTextTimer.Start();
+
+        return true;
+    }
+
+    return false;
 }
 
 
