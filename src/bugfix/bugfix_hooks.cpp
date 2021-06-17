@@ -437,31 +437,40 @@ static bool Play_Intro_Movie(CampaignType campaign_id)
         if (Scen->Scenario == 1) {
 
             /**
-             *  "The First Decade" and "Freeware TS" installations reshuffle
-             *  the movie files due to all mix files being local now and a
-             *  primitive "no-cd" added;
-             *  
-             *  MOVIES01.MIX -> INTRO.VQA (GDI) is now INTR0.VQA
-             *  MOVIES02.MIX -> INTRO.VQA (NOD) is now INTR1.VQA
-             * 
-             *  Build the movies filename based on the current campaigns desired CD (see DiskID enum). 
+             *  Finally, make sure this is the first map of each factions campaign.
              */
-            char filename[12];
-            std::snprintf(filename, sizeof(filename), "INTR%d.VQA", cd_num);
+            if (std::strcmp(Scen->ScenarioName, "GDI1A.MAP") == 0
+             || std::strcmp(Scen->ScenarioName, "NOD1A.MAP") == 0) {
 
-            /**
-             *  Now play the movie if it is found, falling back to original behavior otherwise.
-             */
-            if (CCFileClass(filename).Is_Available()) {
-                DEBUG_INFO("About to play %s.\n", filename);
-                Play_Movie(filename);
+                /**
+                 *  "The First Decade" and "Freeware TS" installations reshuffle
+                 *  the movie files due to all mix files being local now and a
+                 *  primitive "no-cd" added;
+                 *  
+                 *  MOVIES01.MIX -> INTRO.VQA (GDI) is now INTR0.VQA
+                 *  MOVIES02.MIX -> INTRO.VQA (NOD) is now INTR1.VQA
+                 * 
+                 *  Build the movies filename based on the current campaigns desired CD (see DiskID enum). 
+                 */
+                char filename[12];
+                std::snprintf(filename, sizeof(filename), "INTR%d.VQA", cd_num);
 
-            } else {
-                DEBUG_INFO("About to play INTRO.VQA.\n");
-                Play_Movie("INTRO.VQA");
+                /**
+                 *  Now play the movie if it is found, falling back to original behavior otherwise.
+                 */
+                if (CCFileClass(filename).Is_Available()) {
+                    DEBUG_INFO("About to play %s.\n", filename);
+                    Play_Movie(filename);
+
+                } else {
+                    DEBUG_INFO("About to play INTRO.VQA.\n");
+                    Play_Movie("INTRO.VQA");
+                }
+
+                return true;
+
             }
 
-            return true;
         }
 
     }
