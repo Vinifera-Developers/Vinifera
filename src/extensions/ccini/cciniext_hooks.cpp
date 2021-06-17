@@ -51,7 +51,63 @@ class CCINIClassFake final : public CCINIClass
 {
     public:
         TypeList<AnimTypeClass *> Get_AnimType_List(const char *section, const char *entry, const TypeList<AnimTypeClass *> defvalue);
+
+        long _Get_Owners(const char *section, const char *entry, const long defvalue);
+        bool _Put_Owners(const char *section, const char *entry, long value);
 };
+
+
+/**
+ *  Fetch the owners (list of house bits).
+ */
+long CCINIClassFake::_Get_Owners(const char *section, const char *entry, const long defvalue)
+{
+    char buffer[128];
+
+    long ownable = defvalue;
+
+    if (CCINIClass::Get_String(section, entry, "", buffer, sizeof(buffer)) > 0) {
+        ownable = 0;
+        char *name = std::strtok(buffer, ",");
+        while (name) {
+            ownable |= Owner_From_Name(name);
+            name = std::strtok(nullptr, ",");
+        }
+    }
+
+    return ownable;
+}
+
+
+/**
+ *  Store the house bitfield to the INI database.
+ */
+bool CCINIClassFake::_Put_Owners(const char *section, const char *entry, long value)
+{
+    char buffer[128];
+
+    buffer[0] = '\0';
+
+    if (!value || HouseTypes.Count() <= 0) {
+        return true;
+    }
+
+    for (HousesType house = HOUSE_FIRST; house < HouseTypes.Count(); ++house) {
+        HouseTypeClass *htptr = HouseTypes[house];
+        if ((value & (1 << htptr->House)) != 0) {
+            if (buffer[0] != '\0') {
+                std::strcat(buffer, ",");
+            }
+            std::strcat(buffer, HouseTypeClass::As_Reference(house).Name());
+        }
+    }
+
+    if (buffer[0] != '\0') {
+        return CCINIClass::Put_String(section, entry, buffer);
+    }
+
+    return true;
+}
 
 
 /**
@@ -142,4 +198,7 @@ void CCINIClassExtension_Hooks()
      *  Inlined CCINIClass function hooks from here.
      */
     Patch_Jump(0x00680F07, &_WeaponTypeClass_Read_INI_Get_AnimType_List_Patch);
+
+    Patch_Jump(0x0044ADC0, &CCINIClassFake::_Get_Owners);
+    Patch_Jump(0x0044AE40, &CCINIClassFake::_Put_Owners);
 }
