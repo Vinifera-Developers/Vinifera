@@ -32,6 +32,8 @@
 /**
  *  Extended classes here.
  */
+#include "mainloopext_hooks.h"
+
 #include "tacticalext_hooks.h"
 #include "displayext_hooks.h"
 #include "tooltipext_hooks.h"
@@ -87,6 +89,11 @@ void Extension_Hooks()
      *  Hook the new save and load system in.
      */
     SaveLoad_Hooks();
+
+    /**
+     *  Various functions.
+     */
+    MainLoop_Hooks();
 
     /**
      *  All class extensions here.
