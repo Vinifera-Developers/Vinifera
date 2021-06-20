@@ -596,10 +596,10 @@ void Debug_Hooks()
      *  Cleanup debug files older than 14 days.
      */
     DEBUG_INFO("Running cleanup on debug folder...\n");
-    DEBUG_INFO("(files older than 14 days will be removed)\n");
-    DeleteFilesOlderThan(14, Vinifera_DebugDirectory, "DEBUG_*");
-    DeleteFilesOlderThan(14, Vinifera_DebugDirectory, "STACK_*");
-    DeleteFilesOlderThan(14, Vinifera_DebugDirectory, "EXCEPT_*");
-    DeleteFilesOlderThan(14, Vinifera_DebugDirectory, "CRASHDUMP_*");
-    DeleteFilesOlderThan(14, Vinifera_DebugDirectory, "MINIDUMP_*");
+    DEBUG_INFO("(files older than 5 days will be removed)\n");
+    DeleteFilesOlderThan(5, Vinifera_DebugDirectory, "DEBUG_*");
+    DeleteFilesOlderThan(5, Vinifera_DebugDirectory, "STACK_*");
+    DeleteFilesOlderThan(5, Vinifera_DebugDirectory, "EXCEPT_*");
+    DeleteFilesOlderThan(5, Vinifera_DebugDirectory, "CRASHDUMP_*");
+    DeleteFilesOlderThan(5, Vinifera_DebugDirectory, "MINIDUMP_*");
 }
