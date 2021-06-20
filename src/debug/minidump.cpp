@@ -109,7 +109,8 @@ bool Create_Mini_Dump(struct _EXCEPTION_POINTERS *e_info, const char *app_name, 
 
     Init_Symbol_Info();
 
-    MINIDUMP_TYPE flags = MINIDUMP_TYPE(MiniDumpWithDataSegs
+    MINIDUMP_TYPE flags = MINIDUMP_TYPE(MiniDumpNormal
+                                       |MiniDumpWithDataSegs
                                        |MiniDumpWithIndirectlyReferencedMemory);
     if (GenerateFullCrashDump) {
         flags = MINIDUMP_TYPE(flags | MiniDumpWithFullMemory);
