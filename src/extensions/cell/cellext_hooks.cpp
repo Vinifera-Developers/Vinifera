@@ -26,6 +26,10 @@
  *
  ******************************************************************************/
 #include "houseext_hooks.h"
+#include "tibsun_globals.h"
+#include "session.h"
+#include "rules.h"
+#include "iomap.h"
 #include "techno.h"
 #include "technotype.h"
 #include "fatal.h"
@@ -34,6 +38,40 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-191
+ * 
+ *  Fixes a bug where pre-placed crates and crates spawned by a destroyed
+ *  truck will trigger a respawn when they are picked up, even when the
+ *  Crates game option was disabled.
+ * 
+ *  @author: CCHyper (based on research by Rampastring)
+ */
+DECLARE_PATCH(_CellClass_Goodie_Check_Crates_Disabled_Respawn_BugFix_Patch)
+{
+	/**
+	 *  Random crates are only thing in multiplayer.
+	 */
+	if (Session.Type != GAME_NORMAL) {
+
+		/**
+		 *  Check to make sure crates are enabled for this game session.
+		 * 
+		 *  The original code was missing the Session "Goodies" check.
+		 */
+		if (Rule->IsMPCrates && Session.Options.Goodies) {
+			Map.Place_Random_Crate();
+		}
+	}
+
+	/**
+	 *  Continues function flow.
+	 */
+continue_function:
+	JMP_REG(ecx, 0x00457ECE);
+}
 
 
 /**
@@ -85,4 +123,5 @@ passes_check:
 void CellClassExtension_Hooks()
 {
 	Patch_Jump(0x0045882C, &_CellClass_Goodie_Check_Veterency_Trainable_BugFix_Patch);
+	Patch_Jump(0x00457EAB, &_CellClass_Goodie_Check_Crates_Disabled_Respawn_BugFix_Patch);
 }
