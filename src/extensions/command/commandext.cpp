@@ -2042,3 +2042,167 @@ bool CursorPositionCommandClass::Process()
 
     return true;
 }
+
+
+/**
+ *  Toggle frame step mode to step through the game frame-by-frame (for inspection).
+ * 
+ *  @author: CCHyper
+ */
+const char *ToggleFrameStepCommandClass::Get_Name() const
+{
+    return "ToggleFrameStep";
+}
+
+const char *ToggleFrameStepCommandClass::Get_UI_Name() const
+{
+    return "Toggle Frame Step";
+}
+
+const char *ToggleFrameStepCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *ToggleFrameStepCommandClass::Get_Description() const
+{
+    return "Toggle frame step mode to step through the game frame-by-frame (for inspection).";
+}
+
+bool ToggleFrameStepCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    /**
+     *  Toggle the frame step mode flag.
+     */
+    Vinifera_Developer_FrameStep = !Vinifera_Developer_FrameStep;
+    Vinifera_Developer_FrameStepCount = 0;
+
+    return true;
+}
+
+
+/**
+ *  Frame Step Only: Step forward 1 frame.
+ * 
+ *  @author: CCHyper
+ */
+const char *Step1FrameCommandClass::Get_Name() const
+{
+    return "Step1Frame";
+}
+
+const char *Step1FrameCommandClass::Get_UI_Name() const
+{
+    return "Step Forward 1 Frame";
+}
+
+const char *Step1FrameCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *Step1FrameCommandClass::Get_Description() const
+{
+    return "Frame Step Only: Step forward 1 frame.";
+}
+
+bool Step1FrameCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    if (!Vinifera_Developer_FrameStep) {
+        return false;
+    }
+
+    Vinifera_Developer_FrameStepCount = 1;
+
+    return true;
+}
+
+
+/**
+ *  Frame Step Only: Step forward 5 frames.
+ * 
+ *  @author: CCHyper
+ */
+const char *Step5FramesCommandClass::Get_Name() const
+{
+    return "Step5Frame";
+}
+
+const char *Step5FramesCommandClass::Get_UI_Name() const
+{
+    return "Step Forward 5 Frames";
+}
+
+const char *Step5FramesCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *Step5FramesCommandClass::Get_Description() const
+{
+    return "Frame Step Only: Step forward 5 frames.";
+}
+
+bool Step5FramesCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    if (!Vinifera_Developer_FrameStep) {
+        return false;
+    }
+
+    Vinifera_Developer_FrameStepCount = 5;
+
+    return true;
+}
+
+
+/**
+ *  Frame Step Only: Step forward 10 frames.
+ * 
+ *  @author: CCHyper
+ */
+const char *Step10FramesCommandClass::Get_Name() const
+{
+    return "Step10Frames";
+}
+
+const char *Step10FramesCommandClass::Get_UI_Name() const
+{
+    return "Step Forward 10 Frames";
+}
+
+const char *Step10FramesCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *Step10FramesCommandClass::Get_Description() const
+{
+    return "Frame Step Only: Step forward 10 frames.";
+}
+
+bool Step10FramesCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    if (!Vinifera_Developer_FrameStep) {
+        return false;
+    }
+
+    Vinifera_Developer_FrameStepCount = 10;
+
+    return true;
+}
