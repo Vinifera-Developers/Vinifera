@@ -122,6 +122,16 @@ inline void Patch_Dword(uintptr_t in, uint32_t dword)
     //assert(bytes_written == 4);
 }
 
+inline void Patch_Byte_Range(uintptr_t in, uint8_t byte, int count = 1)
+{
+    SIZE_T bytes_written;
+    for (int i = 0; i < count; ++i) {
+        uintptr_t in_adj = in+i;
+        WriteProcessMemory(GetCurrentProcess(), (LPVOID)in_adj, &byte, sizeof(uint8_t), &bytes_written);
+        //assert(bytes_written == 1);
+    }
+}
+
 
 /**
  *  Get the memory address of a function.
