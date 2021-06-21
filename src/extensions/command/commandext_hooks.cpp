@@ -160,6 +160,18 @@ void Init_Vinifera_Commands()
 
         cmdptr = new CursorPositionCommandClass;
         Commands.Add(cmdptr);
+
+        cmdptr = new ToggleFrameStepCommandClass;
+        Commands.Add(cmdptr);
+
+        cmdptr = new Step1FrameCommandClass;
+        Commands.Add(cmdptr);
+
+        cmdptr = new Step5FramesCommandClass;
+        Commands.Add(cmdptr);
+
+        cmdptr = new Step10FramesCommandClass;
+        Commands.Add(cmdptr);
     }
 
 #ifndef NDEBUG

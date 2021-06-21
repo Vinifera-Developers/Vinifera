@@ -39,3 +39,5 @@ bool Vinifera_Developer_AIInstantBuild = false;
 bool Vinifera_Developer_BuildCheat = false;
 bool Vinifera_Developer_Unshroud = false;
 bool Vinifera_Developer_ShowCursorPosition = false;
+bool Vinifera_Developer_FrameStep = false;
+int Vinifera_Developer_FrameStepCount = 0;

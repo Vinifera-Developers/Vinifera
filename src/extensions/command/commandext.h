@@ -723,6 +723,82 @@ class CursorPositionCommandClass : public ViniferaCommandClass
 };
 
 
+/**
+ *  Toggle frame step mode to step through the game frame-by-frame (for inspection).
+ */
+class ToggleFrameStepCommandClass : public ViniferaCommandClass
+{
+    public:
+        ToggleFrameStepCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+        virtual ~ToggleFrameStepCommandClass() {}
+
+        virtual const char *Get_Name() const override;
+        virtual const char *Get_UI_Name() const override;
+        virtual const char *Get_Category() const override;
+        virtual const char *Get_Description() const override;
+        virtual bool Process() override;
+
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+};
+
+
+/**
+ *  Frame Step Only: Step forward 1 frame.
+ */
+class Step1FrameCommandClass : public ViniferaCommandClass
+{
+    public:
+        Step1FrameCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+        virtual ~Step1FrameCommandClass() {}
+
+        virtual const char *Get_Name() const override;
+        virtual const char *Get_UI_Name() const override;
+        virtual const char *Get_Category() const override;
+        virtual const char *Get_Description() const override;
+        virtual bool Process() override;
+
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+};
+
+
+/**
+ *  Frame Step Only: Step forward 5 frames.
+ */
+class Step5FramesCommandClass : public ViniferaCommandClass
+{
+    public:
+        Step5FramesCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+        virtual ~Step5FramesCommandClass() {}
+
+        virtual const char *Get_Name() const override;
+        virtual const char *Get_UI_Name() const override;
+        virtual const char *Get_Category() const override;
+        virtual const char *Get_Description() const override;
+        virtual bool Process() override;
+
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+};
+
+
+/**
+ *  Frame Step Only: Step forward 10 frames.
+ */
+class Step10FramesCommandClass : public ViniferaCommandClass
+{
+    public:
+        Step10FramesCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+        virtual ~Step10FramesCommandClass() {}
+
+        virtual const char *Get_Name() const override;
+        virtual const char *Get_UI_Name() const override;
+        virtual const char *Get_Category() const override;
+        virtual const char *Get_Description() const override;
+        virtual bool Process() override;
+
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+};
+
+
 #ifndef DEBUG
 /**
  *  Based class for all new developer/debug command classes.

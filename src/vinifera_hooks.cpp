@@ -215,6 +215,8 @@ DECLARE_PATCH(_Select_Game_Clear_Globals_Patch)
     Vinifera_Developer_InstantBuild = false;
     Vinifera_Developer_BuildCheat = false;
     Vinifera_Developer_Unshroud = false;
+    Vinifera_Developer_FrameStep = false;
+    Vinifera_Developer_FrameStepCount = 0;
 
     /**
      *  Stolen bytes/code.

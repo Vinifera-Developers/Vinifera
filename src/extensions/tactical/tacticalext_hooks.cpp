@@ -37,6 +37,7 @@
 #include "session.h"
 #include "colorscheme.h"
 #include "fatal.h"
+#include "vinifera_globals.h"
 #include "vinifera_util.h"
 #include "vinifera_gitinfo.h"
 #include "debughandler.h"
@@ -283,6 +284,53 @@ static void Tactical_Draw_Debug_Overlay()
 
 
 /**
+ *  Draws the overlay for frame step mode.
+ * 
+ *  @authors: CCHyper
+ */
+static void Tactical_Draw_FrameStep_Overlay()
+{
+    RGBClass rgb_black(0,0,0);
+    unsigned color_black = DSurface::RGBA_To_Pixel(0, 0, 0);
+    ColorScheme *text_color = ColorScheme::As_Pointer("White");
+
+    int padding = 2;
+
+    const char *text = "Frame Step Mode Enabled";
+
+    /**
+     * Fetch the text occupy area.
+     */
+    Rect text_rect;
+    GradFont6Ptr->String_Pixel_Rect(text, &text_rect);
+
+    /**
+     *  Fill the background area.
+     */
+    Rect fill_rect;
+    fill_rect.X = TacticalRect.X+TacticalRect.Width-text_rect.Width-(padding+1);
+    fill_rect.Y = 16; // Tab bar height
+    fill_rect.Width = text_rect.Width+(padding+1);
+    fill_rect.Height = 16;
+    CompositeSurface->Fill_Rect(fill_rect, color_black);
+
+    /**
+     *  Move rects into position.
+     */
+    text_rect.X = TacticalRect.X+TacticalRect.Width-1;
+    text_rect.Y = fill_rect.Y;
+    text_rect.Width += padding;
+    text_rect.Height += 3;
+
+    /**
+     *  Draw the overlay text.
+     */
+    Fancy_Text_Print(text, CompositeSurface, &CompositeSurface->Get_Rect(),
+        &Point2D(text_rect.X, text_rect.Y), text_color, COLOR_TBLACK, TextPrintType(TPF_RIGHT|TPF_6PT_GRAD|TPF_NOSHADOW));
+}
+
+
+/**
  *  This patch intercepts the end of the rendering process for Tactical.
  * 
  *  @author: CCHyper
@@ -296,6 +344,10 @@ DECLARE_PATCH(_Tactical_Render_Patch)
      */
     if (Vinifera_DeveloperMode) {
         Tactical_Draw_Debug_Overlay();
+
+        if (Vinifera_Developer_FrameStep) {
+            Tactical_Draw_FrameStep_Overlay();
+        }
     }
 
 #ifndef RELEASE

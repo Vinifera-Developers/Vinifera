@@ -26,13 +26,47 @@
  *
  ******************************************************************************/
 #include "mainloopext_hooks.h"
+#include "vinifera_globals.h"
+#include "tibsun_globals.h"
 #include "tibsun_functions.h"
+#include "iomap.h"
+#include "tactical.h"
+#include "house.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  This patch stops EVENT_OPTIONS from being created when frame step
+ *  mode is enabled. This is because we need to handle it differently
+ *  due to us not processing any event while in frame step mode.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_Queue_Options_Frame_Step_Check_Patch)
+{
+    _asm { sub esp, 0x30 }
+
+    if (Vinifera_Developer_FrameStep) {
+        goto function_return;
+    }
+
+    if (!PlayerPtr->IsToWin && !PlayerPtr->IsToLose && !PlayerPtr->IsToDie) {
+        goto create_event;
+    }
+
+function_return:
+    JMP_REG(ecx, 0x005B1171);
+
+create_event:
+    _asm { mov ecx, PlayerPtr } // Second dereference required due to the global reference in TS++.
+    _asm { mov eax, [ecx] }
+    JMP_REG(ecx, 0x005B1116);
+}
 
 
 static void Before_Main_Loop()
@@ -45,17 +79,100 @@ static void After_Main_Loop()
 }
 
 
-static void Main_Loop_Intercept()
+/**
+ *  Main loop for the frame step mode. This should only handle basic
+ *  input, redraw the map and update the scroll position.
+ * 
+ *  @author: CCHyper
+ */
+static bool FrameStep_Main_Loop()
 {
-	//DEV_DEBUG_INFO("Before Main_Loop()\n");
+    //DEV_DEBUG_INFO("FrameStep_Main_Loop(enter)\n");
 
-	Before_Main_Loop();
+    if (GameActive) {
 
-	Main_Loop();
+        Call_Back();
 
-	After_Main_Loop();
+        /**
+         *  Update the display, unless we're inside a dialog.
+         */
+        if (SpecialDialog == SDLG_NONE && GameInFocus) {
 
-	//DEV_DEBUG_INFO("After Main_Loop()\n");
+            Map.Flag_To_Redraw(2);
+
+            KeyNumType input;
+            int x;
+            int y;
+
+            Map.Input(input, x, y);
+            if (input != KN_NONE) {
+                Keyboard_Process(input);
+
+                /**
+                 *  Kludge to allow the options dialog to open.
+                 */
+                if (input == KN_ESC || input == KN_SPACE) {
+                    SpecialDialog = SDLG_OPTIONS;
+                }
+
+            }
+
+            Map.Render();
+            TacticalMap->AI();
+        }
+
+    }
+
+    Sleep(1);
+
+    //DEV_DEBUG_INFO("FrameStep_Main_Loop(exit)\n");
+
+    return !GameActive;
+}
+
+
+static bool Main_Loop_Intercept()
+{
+    bool ret = false;
+
+    /**
+     *  Frame step mode enabled but no frames to process, so just perform
+     *  a basic redraw and update of the screen, no game logic.
+     */
+    if (Vinifera_Developer_FrameStep && !Vinifera_Developer_FrameStepCount) {
+
+        ret = FrameStep_Main_Loop();
+
+    /**
+     *  This is basically the original main loop, but now encapsulated by
+     *  the frame step logic to allow us to process the requested frames.
+     */
+    } else if ((Vinifera_Developer_FrameStep && Vinifera_Developer_FrameStepCount > 0)
+           || (!Vinifera_Developer_FrameStep && !Vinifera_Developer_FrameStepCount)) {
+
+        //DEV_DEBUG_INFO("Before Main_Loop()\n");
+
+        Before_Main_Loop();
+
+        /**
+         *  The games main loop function.
+         */
+        ret = Main_Loop();
+
+        After_Main_Loop();
+
+        //DEV_DEBUG_INFO("After Main_Loop()\n");
+
+        /**
+         *  Decrement the frame step count.
+         */
+        if (Vinifera_Developer_FrameStep && Vinifera_Developer_FrameStepCount > 0) {
+            --Vinifera_Developer_FrameStepCount;
+        }
+
+    }
+
+    return ret;
 }
 
 /**
@@ -63,7 +180,8 @@ static void Main_Loop_Intercept()
  */
 void MainLoop_Hooks()
 {
-	Patch_Call(0x00462A8E, &Main_Loop_Intercept);
-	Patch_Call(0x00462A9C, &Main_Loop_Intercept);
-	Patch_Call(0x005A0B85, &Main_Loop_Intercept);
+    Patch_Call(0x00462A8E, &Main_Loop_Intercept);
+    Patch_Call(0x00462A9C, &Main_Loop_Intercept);
+    Patch_Call(0x005A0B85, &Main_Loop_Intercept);
+    Patch_Jump(0x005B10F0, &_Queue_Options_Frame_Step_Check_Patch);
 }

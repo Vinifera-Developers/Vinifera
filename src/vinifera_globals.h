@@ -43,3 +43,5 @@ extern bool Vinifera_Developer_AIInstantBuild;
 extern bool Vinifera_Developer_BuildCheat;
 extern bool Vinifera_Developer_Unshroud;
 extern bool Vinifera_Developer_ShowCursorPosition;
+extern bool Vinifera_Developer_FrameStep;
+extern int Vinifera_Developer_FrameStepCount;
