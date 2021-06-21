@@ -25,7 +25,8 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "houseext_hooks.h"
+#include "cellext_hooks.h"
+#include "cellext_const.h"
 #include "tibsun_globals.h"
 #include "session.h"
 #include "rules.h"
@@ -38,6 +39,98 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-381
+ * 
+ *  Hardcodes shroud and fog to circumvent cheating in multiplayer games.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_CellClass_Draw_Shroud_Fog_Patch)
+{
+	static bool _shroud_one_time = false;
+	static const ShapeFileStruct *_shroud_shape;
+	static const ShapeFileStruct *_fog_shape;
+
+	/**
+	 *  Stolen bytes/code.
+	 */
+	_asm { sub esp, 0x34 }
+
+	/**
+	 *  Perform a one-time load of the shroud and fog shape data.
+	 */
+	if (!_shroud_one_time) {
+		_shroud_shape = (const ShapeFileStruct *)MFCC::Retrieve("SHROUD.SHP");
+		_fog_shape = (const ShapeFileStruct *)MFCC::Retrieve("FOG.SHP");
+		_shroud_one_time = true;
+	}
+
+	/**
+	 *  If we are playing a multiplayer game, use the hardcoded shape data.
+	 */
+	if (!Session.Singleplayer_Game()) {
+		Cell_ShroudShape = (const ShapeFileStruct *)&ShroudShapeBinary;
+		Cell_FogShape = (const ShapeFileStruct *)&FogShapeBinary;
+
+	} else {
+		Cell_ShroudShape = _shroud_shape;
+		Cell_FogShape = _fog_shape;
+	}
+
+	/**
+	 *  Continues function flow.
+	 */
+continue_function:
+	JMP(0x00454E91);
+}
+
+
+/**
+ *  #issue-381
+ * 
+ *  Hardcodes shroud and fog to circumvent cheating in multiplayer games.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_CellClass_Draw_Fog_Patch)
+{
+	static bool _fog_one_time = false;
+	static const ShapeFileStruct *_fog_shape;
+	
+	/**
+	 *  Stolen bytes/code.
+	 */
+	_asm { sub esp, 0x2C }
+	
+	/**
+	 *  Perform a one-time load of the fog shape data.
+	 */
+	if (!_fog_one_time) {
+		_fog_shape = (const ShapeFileStruct *)MFCC::Retrieve("FOG.SHP");
+		_fog_one_time = true;
+	}
+
+	/**
+	 *  If we are playing a multiplayer game, use the hardcoded shape data.
+	 */
+	if (!Session.Singleplayer_Game()) {
+		Cell_FixupFogShape = (const ShapeFileStruct *)&FogShapeBinary;
+
+	} else {
+		Cell_FixupFogShape = _fog_shape;
+	}
+
+	/**
+	 *  Continues function flow.
+	 */
+continue_function:
+	_asm { mov eax, Cell_FixupFogShape }
+	_asm { mov eax, [eax] }
+	JMP_REG(ecx, 0x00455159);
+}
 
 
 /**
@@ -124,4 +217,6 @@ void CellClassExtension_Hooks()
 {
 	Patch_Jump(0x0045882C, &_CellClass_Goodie_Check_Veterency_Trainable_BugFix_Patch);
 	Patch_Jump(0x00457EAB, &_CellClass_Goodie_Check_Crates_Disabled_Respawn_BugFix_Patch);
+	Patch_Jump(0x00454E60, &_CellClass_Draw_Shroud_Fog_Patch);
+	Patch_Jump(0x00455130, &_CellClass_Draw_Fog_Patch);
 }
