@@ -86,8 +86,52 @@ TypeList<AnimTypeClass *> CCINIClassFake::Get_AnimType_List(const char *section,
 
 
 /**
+ *  #issue-391
+ *
+ *  This is actually a patch in WeaponTypeClass:Read_INI, but because
+ *  Get_AnimType_List is inlined there, its best to have it with all
+ *  the other CCINIClass hooks.
+ * 
+ *  @author: CCHyper
+ */
+static void WeaponTypeClass_Read_INI_Get_AnimType_List_Encapsultator(WeaponTypeClass *this_ptr, CCINIClassFake &ini, const char *ini_name)
+{
+    this_ptr->Anim = ini.Get_AnimType_List(ini_name, "Anim", this_ptr->Anim);
+}
+
+DECLARE_PATCH(_WeaponTypeClass_Read_INI_Get_AnimType_List_Patch)
+{
+    GET_REGISTER_STATIC(WeaponTypeClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(CCINIClassFake *, ini, ebx);
+    GET_REGISTER_STATIC(const char *, ini_name, edi);
+
+    /**
+     *  Load the AnimType list.
+     * 
+     *  We need to use an encapsulation function as we are replacing an inlined
+     *  function and the return value from Get_AnimType_List is an TypeList
+     *  instance, so it will trash the stack.
+     */
+    WeaponTypeClass_Read_INI_Get_AnimType_List_Encapsultator(this_ptr, *ini, ini_name);
+
+    /**
+     *  Clear ECX and restore some registers to be safe.
+     */
+    _asm { xor ecx, ecx }
+    _asm { mov edi, ini_name }
+    _asm { mov ebx, ini }
+
+    JMP_REG(ecx, 0x00681004);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void CCINIClassExtension_Hooks()
 {
+    /**
+     *  Inlined CCINIClass function hooks from here.
+     */
+    Patch_Jump(0x00680F07, &_WeaponTypeClass_Read_INI_Get_AnimType_List_Patch);
 }
