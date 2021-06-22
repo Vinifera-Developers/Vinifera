@@ -31,6 +31,8 @@
 #include "techno.h"
 #include "technotype.h"
 #include "technotypeext.h"
+#include "tibsun_inline.h"
+#include "weapontype.h"
 #include "rules.h"
 #include "voc.h"
 #include "fatal.h"
@@ -40,6 +42,62 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-391
+ * 
+ *  Extends the firing animation effect to support more facings.
+ * 
+ *  @author: CCHyper
+ */
+static DirStruct &Techno_Fire_Direction(TechnoClass *this_ptr)
+{
+    return this_ptr->Fire_Direction();
+}
+
+DECLARE_PATCH(_TechnoClass_Fire_At_Weapon_Anim_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(WeaponTypeClass *, weapon, ebx);
+    GET_REGISTER_STATIC(AnimTypeClass *, anim, edi);
+    static DirStruct *dir;
+    static int anim_count;
+    static int index;
+
+    anim_count = weapon->Anim.Count();
+    dir = &Techno_Fire_Direction(this_ptr);
+
+    if (anim_count == 8) {
+
+        index = Dir_To_8(*dir);
+        anim = weapon->Anim[index % FACING_COUNT];
+
+    } else if (anim_count == 16) {
+
+        index = Dir_To_16(*dir);
+        anim = weapon->Anim[index % 16];
+
+    } else if (anim_count == 32) {
+
+        index = Dir_To_32(*dir);
+        anim = weapon->Anim[index % 32];
+
+    } else if (anim_count == 64) {
+
+        index = Dir_To_64(*dir);
+        anim = weapon->Anim[index % 64];
+
+    } else {
+
+        index = 0;
+        anim = nullptr;
+
+    }
+
+    _asm { mov edx, anim }
+    JMP(0x006310A6);
+}
 
 
 /**
@@ -144,4 +202,5 @@ void TechnoClassExtension_Hooks()
 
     Patch_Jump(0x00633C78, &_TechnoClass_Do_Cloak_Cloak_Sound_Patch);
     Patch_Jump(0x00633BD4, &_TechnoClass_Do_Uncloak_Uncloak_Sound_Patch);
+    Patch_Jump(0x0063105C, &_TechnoClass_Fire_At_Weapon_Anim_Patch);
 }
