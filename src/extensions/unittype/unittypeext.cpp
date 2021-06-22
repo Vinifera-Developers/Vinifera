@@ -44,7 +44,14 @@ ExtensionMap<UnitTypeClass, UnitTypeClassExtension> UnitTypeClassExtensions;
  *  @author: CCHyper
  */
 UnitTypeClassExtension::UnitTypeClassExtension(UnitTypeClass *this_ptr) :
-    Extension(this_ptr)
+    Extension(this_ptr),
+
+    /**
+     *  #issue-208
+     * 
+     *  Adds flag to prevent a vehicle from being picked up by a Carryall.
+     */
+    IsTotable(true)
 {
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("UnitTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -174,6 +181,8 @@ bool UnitTypeClassExtension::Read_INI(CCINIClass &ini)
     if (!ini.Is_Present(ini_name)) {
         return false;
     }
+
+    IsTotable = ini.Get_Bool(ini_name, "Totable", IsTotable);
     
     return true;
 }
