@@ -56,6 +56,11 @@ class UnitTypeClassExtension final : public Extension<UnitTypeClass>
          *  Can this unit be picked up (toted) by the carryall aircraft?
          */
         bool IsTotable;
+
+        /**
+         *  The starting frame for the turret graphics in the units shape file.
+         */
+        int StartTurretFrame;
 };
 
 

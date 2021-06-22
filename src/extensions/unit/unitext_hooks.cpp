@@ -25,11 +25,12 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "houseext_hooks.h"
+#include "unitext_hooks.h"
 #include "tibsun_inline.h"
 #include "vinifera_globals.h"
 #include "tibsun_globals.h"
 #include "tibsun_functions.h"
+#include "unittypeext.h"
 #include "technotype.h"
 #include "technotypeext.h"
 #include "unit.h"
@@ -134,10 +135,13 @@ DECLARE_PATCH(_UnitClass_Draw_Shape_Turret_Facing_Patch)
     GET_REGISTER_STATIC(UnitClass *, this_ptr, ebp);
     GET_REGISTER_STATIC(const void *, shape, edi);
     static const UnitTypeClass *unittype;
+    static const UnitTypeClassExtension *unittypeext;
     static int shape_number;
     static int frame_number;
     static int turret_facings;
     static int start_turret_frame;
+
+    frame_number = 0;
 
     unittype = reinterpret_cast<UnitTypeClass *>(this_ptr->Class_Of());
     
@@ -159,7 +163,20 @@ DECLARE_PATCH(_UnitClass_Draw_Shape_Turret_Facing_Patch)
     /**
      *  Now adjust the frame index based on the units walk frames.
      */
-    frame_number = shape_number + (start_turret_frame * unittype->WalkFrames);
+
+    /**
+     *  #issue-389
+     * 
+     *  Allow the starting turret frame index to be defined.
+     * 
+     *  @author: CCHyper
+     */
+    unittypeext = UnitTypeClassExtensions.find(unittype);
+    if (unittypeext && unittypeext->StartTurretFrame != -1) {
+        frame_number = unittypeext->StartTurretFrame + (shape_number % turret_facings);
+    } else {
+        frame_number = start_turret_frame + (shape_number % turret_facings);
+    }
 
     /**
      *  The location we jump back to pushes EAX into the stack for
