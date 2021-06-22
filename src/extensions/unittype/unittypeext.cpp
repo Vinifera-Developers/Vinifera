@@ -47,7 +47,8 @@ UnitTypeClassExtension::UnitTypeClassExtension(UnitTypeClass *this_ptr) :
     Extension(this_ptr),
 
     IsTotable(true),
-    StartTurretFrame(-1)
+    StartTurretFrame(-1),
+    TurretFacings(32)		// Must default to 32 as all Tiberian Sun units have 32 facings for turrets.
 {
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("UnitTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -192,6 +193,13 @@ bool UnitTypeClassExtension::Read_INI(CCINIClass &ini)
      *  @note: This key is loaded from the ArtINI database.
      */
     StartTurretFrame = ArtINI.Get_Int(graphic_name, "StartTurretFrame", StartTurretFrame);
+
+    /**
+     *  Custom turret facings.
+     * 
+     *  @note: This key is loaded from the ArtINI database.
+     */
+    TurretFacings = ArtINI.Get_Int(graphic_name, "TurretFacings", TurretFacings);
     
     return true;
 }
