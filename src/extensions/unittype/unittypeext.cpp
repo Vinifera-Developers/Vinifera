@@ -46,12 +46,8 @@ ExtensionMap<UnitTypeClass, UnitTypeClassExtension> UnitTypeClassExtensions;
 UnitTypeClassExtension::UnitTypeClassExtension(UnitTypeClass *this_ptr) :
     Extension(this_ptr),
 
-    /**
-     *  #issue-208
-     * 
-     *  Adds flag to prevent a vehicle from being picked up by a Carryall.
-     */
-    IsTotable(true)
+    IsTotable(true),
+    StartTurretFrame(-1)
 {
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("UnitTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -182,7 +178,20 @@ bool UnitTypeClassExtension::Read_INI(CCINIClass &ini)
         return false;
     }
 
+    const char *graphic_name = ThisPtr->Graphic_Name();
+    
+    //if (!ArtINI.Is_Present(graphic_name)) {
+    //    return false;
+    //}
+
     IsTotable = ini.Get_Bool(ini_name, "Totable", IsTotable);
+
+    /**
+     *  Custom turret starting frame.
+     * 
+     *  @note: This key is loaded from the ArtINI database.
+     */
+    StartTurretFrame = ArtINI.Get_Int(graphic_name, "StartTurretFrame", StartTurretFrame);
     
     return true;
 }
