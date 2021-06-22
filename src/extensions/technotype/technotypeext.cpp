@@ -28,6 +28,8 @@
 #include "technotypeext.h"
 #include "technotype.h"
 #include "ccini.h"
+#include "swizzle.h"
+#include "tibsun_globals.h"
 #include "asserthandler.h"
 #include "debughandler.h"
 
@@ -49,11 +51,12 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(TechnoTypeClass *this_ptr) :
     CloakSound(VOC_NONE),
     UncloakSound(VOC_NONE),
     IsShakeScreen(false),
+    IsImmuneToEMP(false),
     ShakePixelYHi(0),
     ShakePixelYLo(0),
     ShakePixelXHi(0),
     ShakePixelXLo(0),
-    IsImmuneToEMP(false)
+    UnloadingClass(nullptr)
 {
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("TechnoTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -125,6 +128,8 @@ HRESULT TechnoTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
         return hr;
     }
 
+    SwizzleManager.Swizzle((void **)UnloadingClass);
+
     return hr;
 }
 
@@ -166,11 +171,11 @@ void TechnoTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
     //DEV_DEBUG_TRACE("TechnoTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     crc(IsShakeScreen);
+    crc(IsImmuneToEMP);
     crc(ShakePixelYHi);
     crc(ShakePixelYLo);
     crc(ShakePixelXHi);
     crc(ShakePixelXLo);
-    crc(IsImmuneToEMP);
 }
 
 
@@ -194,11 +199,12 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     CloakSound = ini.Get_VocType(ini_name, "CloakSound", CloakSound);
     UncloakSound = ini.Get_VocType(ini_name, "UncloakSound", UncloakSound);
     IsShakeScreen = ini.Get_Bool(ini_name, "CanShakeScreen", IsShakeScreen);
+    IsImmuneToEMP = ini.Get_Bool(ini_name, "ImmuneToEMP", IsImmuneToEMP);
     ShakePixelYHi = ini.Get_Int(ini_name, "ShakeYhi", ShakePixelYHi);
     ShakePixelYLo = ini.Get_Int(ini_name, "ShakeYlo", ShakePixelYLo);
     ShakePixelXHi = ini.Get_Int(ini_name, "ShakeXhi", ShakePixelXHi);
     ShakePixelXLo = ini.Get_Int(ini_name, "ShakeXlo", ShakePixelXLo);
-    IsImmuneToEMP = ini.Get_Bool(ini_name, "ImmuneToEMP", IsImmuneToEMP);
+    UnloadingClass = ini.Get_Techno(ini_name, "UnloadingClass", UnloadingClass);
 
     return true;
 }
