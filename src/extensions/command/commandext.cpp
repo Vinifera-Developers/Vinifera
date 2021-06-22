@@ -2206,3 +2206,91 @@ bool Step10FramesCommandClass::Process()
 
     return true;
 }
+
+
+/**
+ *  Toggles AI control of the player house.
+ * 
+ *  @author: CCHyper
+ */
+const char *ToggleAIControlCommandClass::Get_Name() const
+{
+    return "ToggleAIControl";
+}
+
+const char *ToggleAIControlCommandClass::Get_UI_Name() const
+{
+    return "Toggle AI Control";
+}
+
+const char *ToggleAIControlCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *ToggleAIControlCommandClass::Get_Description() const
+{
+    return "Toggles AI control of the player house.";
+}
+
+bool ToggleAIControlCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    HouseClass *player_house = PlayerPtr;
+
+    if (player_house->IsPlayerControl) {
+
+        /**
+         *  AI takes control of the player house. We flag both the automated
+         *  production and the alerted state, both of these will enter the
+         *  automated building production and auto team systems.
+         */
+
+        player_house->IsHuman = false;
+        player_house->IsPlayerControl = false;
+
+        player_house->IsStarted = true;
+        player_house->IsAlerted = true;
+
+        /**
+         *  Crank up the AI IQ to the max available.
+         */
+        player_house->IQ = Rule->MaxIQ;
+
+        player_house->Difficulty = DIFF_HARD;
+
+        DEV_DEBUG_INFO("Developer Mode: AI has taken control of player.\n");
+
+    } else {
+
+        /**
+         *  Player retakes control from the AI. Disable any automation flags
+         *  to allow the player have complete control of the house again.
+         */
+    
+        player_house->IsHuman = true;
+        player_house->IsPlayerControl = true;
+
+        player_house->IsStarted = false;
+        player_house->IsAlerted = false;
+
+        /**
+         *  Reset the IQ level.
+         */
+        player_house->IQ = 0;
+
+        player_house->Difficulty = DIFF_NORMAL;
+
+        DEV_DEBUG_INFO("Developer Mode: Player has resumed control.\n");
+    }
+
+    /**
+     *  Toggle the global state flag.
+     */
+    Vinifera_Developer_AIControl = !Vinifera_Developer_AIControl;
+
+    return true;
+}
