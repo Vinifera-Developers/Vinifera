@@ -61,6 +61,11 @@ class UnitTypeClassExtension final : public Extension<UnitTypeClass>
          *  The starting frame for the turret graphics in the units shape file.
          */
         int StartTurretFrame;
+
+        /**
+         *  The facing count for the turret graphics in the units shape file.
+         */
+        int TurretFacings;
 };
 
 

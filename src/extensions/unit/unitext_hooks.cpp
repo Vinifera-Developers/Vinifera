@@ -153,7 +153,20 @@ DECLARE_PATCH(_UnitClass_Draw_Shape_Turret_Facing_Patch)
     /**
      *  Turret frames start directly after the facing frames.
      */
-    start_turret_frame = unittype->Facings;
+    start_turret_frame = unittype->Facings * unittype->WalkFrames;
+
+    unittypeext = UnitTypeClassExtensions.find(unittype);
+    if (unittypeext) {
+
+        /**
+         *  #issue-393
+         * 
+         *  Allow the custom turret facings.
+         * 
+         *  @author: CCHyper
+         */
+        turret_facings = unittypeext->TurretFacings;
+    }
 
     /**
      *  Fetch the frame index for current turret facing.
@@ -171,7 +184,6 @@ DECLARE_PATCH(_UnitClass_Draw_Shape_Turret_Facing_Patch)
      * 
      *  @author: CCHyper
      */
-    unittypeext = UnitTypeClassExtensions.find(unittype);
     if (unittypeext && unittypeext->StartTurretFrame != -1) {
         frame_number = unittypeext->StartTurretFrame + (shape_number % turret_facings);
     } else {
