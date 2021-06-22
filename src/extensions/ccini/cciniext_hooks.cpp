@@ -61,7 +61,15 @@ class CCINIClassFake final : public CCINIClass
  */
 TypeList<AnimTypeClass *> CCINIClassFake::Get_AnimType_List(const char *section, const char *entry, const TypeList<AnimTypeClass *> defvalue)
 {
-    char buffer[128];
+    /**
+     *  #issue-391
+     * 
+     *  Increases the buffer size from 128 to 2048.
+     * 
+     *  @author: CCHyper
+     */
+    //char buffer[128];
+    char buffer[2048];
 
     if (CCINIClass::Get_String(section, entry, "", buffer, sizeof(buffer)) > 0) {
 
