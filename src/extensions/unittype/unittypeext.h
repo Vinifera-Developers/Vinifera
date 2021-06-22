@@ -52,7 +52,10 @@ class UnitTypeClassExtension final : public Extension<UnitTypeClass>
         bool Read_INI(CCINIClass &ini);
 
     public:
-
+        /**
+         *  Can this unit be picked up (toted) by the carryall aircraft?
+         */
+        bool IsTotable;
 };
 
 

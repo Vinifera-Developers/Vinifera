@@ -28,12 +28,105 @@
 #include "aircraftext_hooks.h"
 #include "aircraft.h"
 #include "aircrafttype.h"
+#include "object.h"
+#include "target.h"
+#include "unit.h"
+#include "unittype.h"
+#include "unittypeext.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-208
+ * 
+ *  Check if the target unit is "totable" before we attempt to pick it up.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_AircraftClass_What_Action_Is_Totable_Patch)
+{
+    GET_REGISTER_STATIC(AircraftClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(ObjectClass *, target, edi);
+    GET_REGISTER_STATIC(ActionType, action, ebx);
+    static UnitClass *target_unit;
+    static UnitTypeClassExtension *unittypeext;
+
+    /**
+     *  Code before this patch checks for if this aircraft
+     *  is a carryall and if it is owned by a player (non-AI).
+     */
+
+    /**
+     *  Make sure the mouse is over something.
+     */
+    if (action != ACTION_NONE) {
+
+        /**
+         *  Target is a unit?
+         */
+        if (target->What_Am_I() == RTTI_UNIT) {
+
+            target_unit = reinterpret_cast<UnitClass *>(target);
+
+            /**
+             *  Fetch the unit type extension instance if available.
+             */
+            unittypeext = UnitTypeClassExtensions.find(target_unit->Class);
+            if (unittypeext) {
+
+                /**
+                 *  Can this unit be toted/picked up by us?
+                 */
+                if (!unittypeext->IsTotable) {
+
+                    /**
+                     *  If not, then show the "no move" mouse.
+                     */
+                    action = ACTION_NOMOVE;
+
+                    goto failed_tote_check;
+
+                }
+            }
+        }
+    }
+
+    /**
+     *  Stolen code.
+     */
+    if (action != ACTION_NONE && action != ACTION_SELECT) {
+        goto action_self_check;
+    }
+
+    /**
+     *  Passes our tote check, continue original carryall checks.
+     */
+passes_tote_check:
+    _asm { mov ebx, action }
+    _asm { mov edi, target }
+    JMP_REG(ecx, 0x0040B826);
+
+    /**
+     *  Undeploy/unload check.
+     */
+action_self_check:
+    _asm { mov ebx, action }
+    _asm { mov edi, target }
+    JMP(0x0040B8C2);
+
+    /**
+     *  We cant pick this unit up, so continue to evaluate the target.
+     */
+failed_tote_check:
+    _asm { mov ebx, action }
+    _asm { mov edi, target }
+    JMP(0x0040B871);
+}
 
 
 /**
@@ -71,4 +164,5 @@ DECLARE_PATCH(_AircraftClass_Init_IsCloakable_BugFix_Patch)
 void AircraftClassExtension_Hooks()
 {
 	Patch_Jump(0x00408898, &_AircraftClass_Init_IsCloakable_BugFix_Patch);
+    Patch_Jump(0x0040B819, &_AircraftClass_What_Action_Is_Totable_Patch);
 }
