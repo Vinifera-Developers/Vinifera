@@ -172,6 +172,9 @@ void Init_Vinifera_Commands()
 
         cmdptr = new Step10FramesCommandClass;
         Commands.Add(cmdptr);
+
+        cmdptr = new ToggleAIControlCommandClass;
+        Commands.Add(cmdptr);
     }
 
 #ifndef NDEBUG

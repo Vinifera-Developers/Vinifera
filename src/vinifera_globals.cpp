@@ -41,3 +41,4 @@ bool Vinifera_Developer_Unshroud = false;
 bool Vinifera_Developer_ShowCursorPosition = false;
 bool Vinifera_Developer_FrameStep = false;
 int Vinifera_Developer_FrameStepCount = 0;
+extern bool Vinifera_Developer_AIControl = false;

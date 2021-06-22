@@ -68,6 +68,19 @@ DECLARE_PATCH(_FactoryClass_AI_InstantBuild_Patch)
 			this_ptr->StageClass::Set_Stage(FactoryClass::STEP_COUNT);
 			goto production_completed;
 		}
+
+		/**
+		 *  If the AI has taken control of the player house, it needs a special
+		 *  case to handle the "player" instant build mode.
+		 */
+		if (Vinifera_Developer_InstantBuild) {
+			if (Vinifera_Developer_AIControl && this_ptr->House == PlayerPtr) {
+
+				this_ptr->StageClass::Set_Stage(FactoryClass::STEP_COUNT);
+				goto production_completed;
+			}
+		}
+
 	}
 
 	/**
