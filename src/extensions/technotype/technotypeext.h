@@ -70,19 +70,24 @@ class TechnoTypeClassExtension final : public Extension<TechnoTypeClass>
         bool IsShakeScreen;
 
         /**
-         *  These values are used to shake the screen when the object is destroyed.
-         */
-        unsigned int ShakePixelYHi;
-        unsigned int ShakePixelYLo;
-        unsigned int ShakePixelXHi;
-        unsigned int ShakePixelXLo;
-
-        /**
          *  Is this object immune to EMP (electromagnetic pulse) effects?
          *  Powered buildings, vehicles and cyborgs are typically disabled
          *  by EMP, unless this is set for them.
          */
         bool IsImmuneToEMP;
+
+        /**
+         *  These values are used to shake the screen when the object is destroyed.
+         */
+        unsigned ShakePixelYHi;
+        unsigned ShakePixelYLo;
+        unsigned ShakePixelXHi;
+        unsigned ShakePixelXLo;
+
+        /**
+         *  The graphic class to switch to when this unit is unloading (e.g., at a refinery).
+         */
+        const TechnoTypeClass *UnloadingClass;
 };
 
 

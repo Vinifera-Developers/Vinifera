@@ -48,6 +48,78 @@
 
 
 /**
+ *  #issue-188
+ * 
+ *  Adds support for custom (per-type) unloading class when a harvester is unloading at a refinery.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_UnitClass_Draw_It_Unloading_Harvester_Patch)
+{
+    GET_REGISTER_STATIC(UnitClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(UnitTypeClass *, unittype, eax);
+    static const TechnoTypeClassExtension *technotypext;
+    static const UnitTypeClass *unloading_class;
+
+    /**
+     *  The code just before this backs up the current Class, so we
+     *  don't need to worry about doing that here.
+     */
+
+    /**
+     *  Are we currently unloading at a refinery?
+     */
+    if (this_ptr->IsDumping) {
+
+        /**
+         *  Is this unit some type of harvester that is unloading?
+         * 
+         *  The original code only checked for "IsToHarvest".
+         */
+        if (unittype->IsToHarvest || unittype->IsToVeinHarvest) {
+
+            unloading_class = nullptr;
+
+            /**
+             *  Fetch the default unloading class.
+             * 
+             *  If this is a weed harvester that is unloading, then they need
+             *  a special case to ensure they do not switch unless defined as
+             *  they do not have a unloading graphics switch in the original
+             *  Tiberian Sun when they enter the facility.
+             */
+            if (!unittype->IsToVeinHarvest) {
+                unloading_class = Rule->UnloadingHarvester;
+            }
+
+            /**
+             *  Fetch the unloading class from the extended class instance if it exists.
+             */
+            technotypext = TechnoTypeClassExtensions.find(unittype);
+            if (technotypext) {
+                if (technotypext->UnloadingClass) {
+                    if (technotypext->UnloadingClass->Kind_Of() == RTTI_UNITTYPE) {
+                        unloading_class = reinterpret_cast<const UnitTypeClass *>(technotypext->UnloadingClass);
+                    }
+                }
+            }
+
+            /**
+             *  Only switch the graphic if the unloading class is valid.
+             */
+            if (unloading_class) {
+                this_ptr->Class = const_cast<UnitTypeClass *>(unloading_class);
+            }
+
+        }
+
+    }
+
+    JMP(0x00653DA5);
+}
+
+
+/**
  *  Returns the graphic shape number based on the input current facing and desired facing count.
  * 
  *  @author: CCHyper
@@ -373,4 +445,5 @@ void UnitClassExtension_Hooks()
     Patch_Jump(0x0065B547, &_UnitClass_Explode_ShakeScreen_Division_BugFix_Patch);
     Patch_Jump(0x006530EB, &_UnitClass_Draw_Shape_Primary_Facing_Patch);
     Patch_Jump(0x006537A8, &_UnitClass_Draw_Shape_Turret_Facing_Patch);
+    Patch_Jump(0x00653D7F, &_UnitClass_Draw_It_Unloading_Harvester_Patch);
 }
