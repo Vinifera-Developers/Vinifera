@@ -26,12 +26,15 @@
  *
  ******************************************************************************/
 #include "technoext_hooks.h"
+#include "technoext_init.h"
+#include "technoext.h"
 #include "techno.h"
 #include "technotype.h"
 #include "technotypeext.h"
 #include "rules.h"
 #include "voc.h"
 #include "fatal.h"
+#include "vinifera_util.h"
 #include "asserthandler.h"
 #include "debughandler.h"
 
@@ -134,6 +137,11 @@ DECLARE_PATCH(_TechnoClass_Do_Uncloak_Uncloak_Sound_Patch)
  */
 void TechnoClassExtension_Hooks()
 {
+    /**
+     *  Initialises the extended class.
+     */
+    TechnoClassExtension_Init();
+
     Patch_Jump(0x00633C78, &_TechnoClass_Do_Cloak_Cloak_Sound_Patch);
     Patch_Jump(0x00633BD4, &_TechnoClass_Do_Uncloak_Uncloak_Sound_Patch);
 }
