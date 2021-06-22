@@ -30,6 +30,10 @@
 #include "tacticalext.h"
 #include "tactical.h"
 #include "tibsun_globals.h"
+#include "object.h"
+#include "objecttype.h"
+#include "unit.h"
+#include "unittype.h"
 #include "dsurface.h"
 #include "textprint.h"
 #include "wwfont.h"
@@ -284,6 +288,64 @@ static void Tactical_Draw_Debug_Overlay()
 }
 
 
+#ifndef NDEBUG
+/**
+ *  Draws the current unit facing number.
+ * 
+ *  @author: CCHyper
+ */
+bool Tactical_Debug_Draw_Facings()
+{
+    if (CurrentObjects.Count() != 1) {
+        return false;
+    }
+
+    ObjectClass *object = CurrentObjects.Fetch_Head();
+    if (object->What_Am_I() != RTTI_UNIT) {
+        return false;
+    }
+
+    UnitClass *unit = reinterpret_cast<UnitClass *>(object);
+
+    Point3D lept = unit->Class_Of()->Lepton_Dimensions();
+    Point3D lept_center = Point3D(lept.X/2, lept.Y/2, lept.Z/2);
+
+    Point3D pix = unit->Class_Of()->Pixel_Dimensions();
+    Point3D pixel_center = Point3D(pix.X/2, pix.Y/2, pix.Z/2);
+
+    Coordinate coord = unit->Center_Coord();
+
+    Point2D screen = TacticalMap->func_60F150(coord);
+
+    screen.X -= TacticalMap->field_5C.X;
+    screen.Y -= TacticalMap->field_5C.Y;
+
+    screen.X += TacticalRect.X;
+    screen.Y += TacticalRect.Y;
+
+    TempSurface->Fill_Rect(TacticalRect, Rect(screen.X, screen.Y, 2, 2), DSurface::RGBA_To_Pixel(255,0,0));
+
+    TextPrintType style = TPF_CENTER|TPF_FULLSHADOW|TPF_6POINT;
+    WWFontClass *font = Font_Ptr(style);
+
+    screen.Y -= font->Get_Char_Height()/2;
+
+    char buffer1[32];
+    char buffer2[32];
+
+    std::snprintf(buffer1, sizeof(buffer1), "%d", unit->PrimaryFacing.Current().Get_Dir());
+    std::snprintf(buffer2, sizeof(buffer2), "%d", unit->PrimaryFacing.Current().Get_Raw());
+
+    Simple_Text_Print(buffer1, TempSurface, &TacticalRect, &screen, ColorScheme::As_Pointer("White"), style);
+
+    screen.Y += 10;
+    Simple_Text_Print(buffer2, TempSurface, &TacticalRect, &screen, ColorScheme::As_Pointer("White"), style);
+
+    return true;
+}
+#endif
+
+
 /**
  *  Draws the overlay for frame step mode.
  * 
@@ -481,6 +543,13 @@ DECLARE_PATCH(_Tactical_Render_Patch)
             Tactical_Draw_FrameStep_Overlay();
         }
     }
+
+#ifndef NDEBUG
+    /**
+     *  Various developer only debugging.
+     */
+    //Tactical_Debug_Draw_Facings();
+#endif
 
 #ifndef RELEASE
     /**

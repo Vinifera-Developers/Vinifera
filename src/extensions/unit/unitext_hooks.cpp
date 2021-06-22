@@ -26,6 +26,7 @@
  *
  ******************************************************************************/
 #include "houseext_hooks.h"
+#include "tibsun_inline.h"
 #include "vinifera_globals.h"
 #include "tibsun_globals.h"
 #include "tibsun_functions.h"
@@ -42,6 +43,139 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  Returns the graphic shape number based on the input current facing and desired facing count.
+ * 
+ *  @author: CCHyper
+ */
+static int Facing_To_Frame_Number(FacingClass &facing, int facings_count)
+{
+    int shape_number = 0;
+
+    /**
+     *  Fetch the current facing value in the required units.
+     */
+    switch (facings_count) {
+
+        case 8:
+            shape_number = Dir_To_8(facing.Current());
+            break;
+
+        case 16:
+            shape_number = Dir_To_16(facing.Current());
+            break;
+
+        case 32:
+            shape_number = Dir_To_32(facing.Current());
+            break;
+
+        case 64:
+            shape_number = Dir_To_64(facing.Current());
+            break;
+
+        default:
+            shape_number = 0;
+            break;
+    };
+
+    return shape_number;
+}
+
+
+/**
+ *  #issue-#214
+ * 
+ *  Support for additional facings counts for units with shape graphics.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_UnitClass_Draw_Shape_Primary_Facing_Patch)
+{
+    GET_REGISTER_STATIC(UnitClass *, this_ptr, ebp);
+    GET_REGISTER_STATIC(const UnitTypeClass *, unittype, eax);
+    //const UnitTypeClass *unittype;
+    static int shape_number;
+
+    /**
+     *  #NOTE:
+     *  Using either of these causes a memory leak for some reason...
+     *  So we now just fetch EAX which is a UnitTypeClass instance already.
+     */
+    //unittype = reinterpret_cast<UnitTypeClass *>(this_ptr->Class_Of());
+    //unittype = this_ptr->Class;
+
+    /**
+     *  Fetch the frame index for current turret facing.
+     */
+    shape_number = Facing_To_Frame_Number(this_ptr->PrimaryFacing, unittype->Facings);
+
+    /**
+     *  EBX == desired shape number.
+     */
+    _asm { mov ebx, shape_number }
+
+    JMP(0x00653114);
+}
+
+
+/**
+ *  #issue-#214
+ * 
+ *  Support for additional facings counts for units with shape graphics.
+ * 
+ *  This function replaces and reimplements the call to Draw_Object();
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_UnitClass_Draw_Shape_Turret_Facing_Patch)
+{
+    GET_REGISTER_STATIC(UnitClass *, this_ptr, ebp);
+    GET_REGISTER_STATIC(const void *, shape, edi);
+    static const UnitTypeClass *unittype;
+    static int shape_number;
+    static int frame_number;
+    static int turret_facings;
+    static int start_turret_frame;
+
+    unittype = reinterpret_cast<UnitTypeClass *>(this_ptr->Class_Of());
+    
+    /**
+     *  All turrets have 32 facings in Tiberian Sun.
+     */
+    turret_facings = 32;
+
+    /**
+     *  Turret frames start directly after the facing frames.
+     */
+    start_turret_frame = unittype->Facings;
+
+    /**
+     *  Fetch the frame index for current turret facing.
+     */
+    shape_number = Facing_To_Frame_Number(this_ptr->SecondaryFacing, turret_facings);
+
+    /**
+     *  Now adjust the frame index based on the units walk frames.
+     */
+    frame_number = shape_number + (start_turret_frame * unittype->WalkFrames);
+
+    /**
+     *  The location we jump back to pushes EAX into the stack for
+     *  the call to Draw_Object().
+     */
+    _asm { mov eax, frame_number }
+
+    /**
+     *  Restore some registers to make sure nothing got reused and all is good.
+     */
+    _asm { mov edi, shape }
+    _asm { mov ecx, [this_ptr] }
+    _asm { mov ebx, [ecx] }
+
+    JMP_REG(edx, 0x006537AE);
+}
 
 
 /**
@@ -202,4 +336,6 @@ void UnitClassExtension_Hooks()
 {
     Patch_Jump(0x006517BE, &_UnitClass_Per_Cell_Process_AutoHarvest_Assign_Harvest_Mission_Patch);
     Patch_Jump(0x0065B547, &_UnitClass_Explode_ShakeScreen_Division_BugFix_Patch);
+    Patch_Jump(0x006530EB, &_UnitClass_Draw_Shape_Primary_Facing_Patch);
+    Patch_Jump(0x006537A8, &_UnitClass_Draw_Shape_Turret_Facing_Patch);
 }
