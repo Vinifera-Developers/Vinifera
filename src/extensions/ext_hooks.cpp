@@ -155,6 +155,7 @@ void Extension_Hooks()
     HouseClassExtension_Hooks();
     TeamClassExtension_Hooks();
     FactoryClassExtension_Hooks();
+    TechnoClassExtension_Hooks();
     FootClassExtension_Hooks();
     AnimClassExtension_Hooks();
 

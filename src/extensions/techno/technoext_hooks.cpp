@@ -45,6 +45,41 @@
 
 
 /**
+ *  #issue-404
+ * 
+ *  A object with "CloakStop" set has no effect on the cloaking behavior.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_TechnoClass_Is_Ready_To_Uncloak_Cloak_Stop_BugFix_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(bool, cloaked_by_house, al);
+
+    /**
+     *  Is this object unable to recloak or is it disabled by an EMP?
+     */
+    //if (!this_ptr->Is_Allowed_To_Recloak() && !this_ptr->IsCloakable || this_ptr->entry_2A4()) { // Original code.
+    if (!this_ptr->Is_Allowed_To_Recloak() || !this_ptr->IsCloakable || this_ptr->entry_2A4()) {
+        goto continue_check;
+    }
+
+    /**
+     *  Object is not allowed to un-cloak at this time.
+     */
+return_false:
+    JMP_REG(ecx, 0x0062F746);
+
+    /**
+     *  Continue checks.
+     */
+continue_check:
+    _asm { mov bl, cloaked_by_house }
+    JMP_REG(ecx, 0x0062F6DD);
+}
+
+
+/**
  *  #issue-391
  * 
  *  Extends the firing animation effect to support more facings.
@@ -203,4 +238,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x00633C78, &_TechnoClass_Do_Cloak_Cloak_Sound_Patch);
     Patch_Jump(0x00633BD4, &_TechnoClass_Do_Uncloak_Uncloak_Sound_Patch);
     Patch_Jump(0x0063105C, &_TechnoClass_Fire_At_Weapon_Anim_Patch);
+    Patch_Jump(0x0062F6B7, &_TechnoClass_Is_Ready_To_Uncloak_Cloak_Stop_BugFix_Patch);
 }
