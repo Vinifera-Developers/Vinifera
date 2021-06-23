@@ -27,23 +27,106 @@
  ******************************************************************************/
 #include "buildingext_hooks.h"
 #include "tibsun_globals.h"
+#include "tibsun_functions.h"
 #include "building.h"
 #include "buildingtype.h"
+#include "buildingtypeext.h"
 #include "dsurface.h"
 #include "convert.h"
 #include "drawshape.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-#include "tibsun_functions.h"
-#include "building.h"
 #include "rules.h"
+#include "voc.h"
 #include "fatal.h"
 #include "asserthandler.h"
 #include "debughandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-65
+ * 
+ *  Gate lowering and rising sound overrides for buildings.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_BuildingClass_Mission_Open_Gate_Open_Sound_Patch)
+{
+    GET_REGISTER_STATIC(Coordinate *, coord, eax);
+    GET_REGISTER_STATIC(BuildingClass *, this_ptr, esi);
+    static BuildingTypeClass *buildingtype;
+    static BuildingTypeClassExtension *buildingtypeext;
+    static VocType voc;
+
+    buildingtype = this_ptr->Class;
+
+    /**
+     *  Fetch the default gate lowering sound.
+     */
+    voc = Rule->GateDownSound;
+
+    /**
+     *  Fetch the class extension if it exists.
+     */
+    buildingtypeext = BuildingTypeClassExtensions.find(buildingtype);
+    if (buildingtypeext) {
+
+        /**
+         *  Does this building have a custom gate lowering sound? If so, use it.
+         */
+        if (buildingtypeext->GateDownSound != VOC_NONE) {
+            voc = buildingtypeext->GateDownSound;
+        }
+    }
+
+    /**
+     *  Play the sound effect at the buildings location.
+     */
+    Sound_Effect(voc, *coord);
+
+    JMP_REG(edx, 0x00433BC8);
+}
+
+DECLARE_PATCH(_BuildingClass_Mission_Open_Gate_Close_Sound_Patch)
+{
+    GET_REGISTER_STATIC(Coordinate *, coord, eax);
+    GET_REGISTER_STATIC(BuildingClass *, this_ptr, esi);
+    static BuildingTypeClass *buildingtype;
+    static BuildingTypeClassExtension *buildingtypeext;
+    static VocType voc;
+
+    buildingtype = this_ptr->Class;
+
+    /**
+     *  Fetch the default gate rising sound.
+     */
+    voc = Rule->GateUpSound;
+
+    /**
+     *  Fetch the class extension if it exists.
+     */
+    buildingtypeext = BuildingTypeClassExtensions.find(buildingtype);
+    if (buildingtypeext) {
+
+        /**
+         *  Does this building have a custom gate rising sound? If so, use it.
+         */
+        if (buildingtypeext->GateUpSound != VOC_NONE) {
+            voc = buildingtypeext->GateUpSound;
+        }
+    }
+
+    /**
+     *  Play the sound effect at the buildings location.
+     */
+    Sound_Effect(voc, *coord);
+
+    /**
+     *  Function return (0).
+     */
+    JMP(0x00433C81);
+}
 
 
 /**
@@ -125,4 +208,6 @@ void BuildingClassExtension_Hooks()
 {
     Patch_Jump(0x00428AD3, &_BuildingClass_Draw_Spied_Cameo_Palette_Patch);
     Patch_Jump(0x0042B250, &_BuildingClass_Explode_ShakeScreen_Division_BugFix_Patch);
+    Patch_Jump(0x00433BB5, &_BuildingClass_Mission_Open_Gate_Open_Sound_Patch);
+    Patch_Jump(0x00433C6F, &_BuildingClass_Mission_Open_Gate_Close_Sound_Patch);
 }

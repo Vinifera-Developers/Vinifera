@@ -52,7 +52,15 @@ class BuildingTypeClassExtension final : public Extension<BuildingTypeClass>
         bool Read_INI(CCINIClass &ini);
 
     public:
+        /**
+         *  This is the sound effect to play when the animation of the gate is rising.
+         */
+        VocType GateUpSound;
 
+        /**
+         *  This is the sound effect to play when the animation of the gate is lowering.
+         */
+        VocType GateDownSound;
 };
 
 

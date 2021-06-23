@@ -27,6 +27,7 @@
  ******************************************************************************/
 #include "buildingtypeext.h"
 #include "buildingtype.h"
+#include "tibsun_defines.h"
 #include "ccini.h"
 #include "asserthandler.h"
 #include "debughandler.h"
@@ -44,7 +45,10 @@ ExtensionMap<BuildingTypeClass, BuildingTypeClassExtension> BuildingTypeClassExt
  *  @author: CCHyper
  */
 BuildingTypeClassExtension::BuildingTypeClassExtension(BuildingTypeClass *this_ptr) :
-    Extension(this_ptr)
+    Extension(this_ptr),
+
+    GateUpSound(VOC_NONE),
+    GateDownSound(VOC_NONE)
 {
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("BuildingTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -174,6 +178,14 @@ bool BuildingTypeClassExtension::Read_INI(CCINIClass &ini)
     if (!ini.Is_Present(ini_name)) {
         return false;
     }
+
+    /**
+     *  #issue-65
+     * 
+     *  Gate lowering and rising sound overrides for buildings.
+     */
+    GateUpSound = ini.Get_VocType(ini_name, "GateUpSound", GateUpSound);
+    GateDownSound = ini.Get_VocType(ini_name, "GateDownSound", GateDownSound);
     
     return true;
 }
