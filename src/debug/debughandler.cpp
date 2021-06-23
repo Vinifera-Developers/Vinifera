@@ -386,7 +386,7 @@ void __cdecl Vinifera_Debug_Handler_Startup()
     /**
      *  Create a unique filename for the debug log based on the current time.
      */
-    std::snprintf((char *)DebugLogFilename, sizeof(DebugLogFilename), ".\\%s\\DEBUG_%02u-%02u-%04u_%02u-%02u-%02u.LOG",
+    std::snprintf((char *)DebugLogFilename, sizeof(DebugLogFilename), "%s\\DEBUG_%02u-%02u-%04u_%02u-%02u-%02u.LOG",
         Vinifera_DebugDirectory,
         Execute_Day, Execute_Month, Execute_Year, Execute_Hour, Execute_Min, Execute_Sec);
 

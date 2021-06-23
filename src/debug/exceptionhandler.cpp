@@ -790,7 +790,7 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
          *  Create a unique filename for the crash dump based on the time of execution.
          */
         char filename_buffer[512];
-        std::snprintf(filename_buffer, sizeof(filename_buffer), ".\\%s\\EXCEPT_%02u-%02u-%04u_%02u-%02u-%02u.TXT",
+        std::snprintf(filename_buffer, sizeof(filename_buffer), "%s\\EXCEPT_%02u-%02u-%04u_%02u-%02u-%02u.TXT",
             Vinifera_DebugDirectory,
             Execute_Day, Execute_Month, Execute_Year, Execute_Hour, Execute_Min, Execute_Sec);
         

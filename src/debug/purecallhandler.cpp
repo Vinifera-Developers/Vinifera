@@ -99,7 +99,7 @@ extern "C" void __cdecl Vinifera_PureCall_Handler()
      *  Create a unique filename for the stack dump based on the time of execution.
      */
     char filename_buffer[512];
-    std::snprintf(filename_buffer, sizeof(filename_buffer), ".\\%s\\STACK_%02u-%02u-%04u_%02u-%02u-%02u.LOG",
+    std::snprintf(filename_buffer, sizeof(filename_buffer), "%s\\STACK_%02u-%02u-%04u_%02u-%02u-%02u.LOG",
         Vinifera_DebugDirectory,
         Execute_Day, Execute_Month, Execute_Year, Execute_Hour, Execute_Min, Execute_Sec);
         

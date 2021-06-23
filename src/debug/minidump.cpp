@@ -88,7 +88,7 @@ bool Create_Mini_Dump(struct _EXCEPTION_POINTERS *e_info, const char *app_name, 
         /**
          *  Create a unique filename for the crash dump based on the current time and module name.
          */
-        std::snprintf((char *)MinidumpFilename, sizeof(MinidumpFilename), ".\\%s\\MINIDUMP_%s_%02u-%02u-%04u_%02u-%02u-%02u.DMP",
+        std::snprintf((char *)MinidumpFilename, sizeof(MinidumpFilename), "%s\\MINIDUMP_%s_%02u-%02u-%04u_%02u-%02u-%02u.DMP",
             Vinifera_DebugDirectory, strupr((char *)app_name), Execute_Day, Execute_Month, Execute_Year, Execute_Hour, Execute_Min, Execute_Sec);
 
     } else {
@@ -96,7 +96,7 @@ bool Create_Mini_Dump(struct _EXCEPTION_POINTERS *e_info, const char *app_name, 
         /**
          *  Create a unique filename for the crash dump based on the current time and module name.
          */
-        std::snprintf((char *)MinidumpFilename, sizeof(MinidumpFilename), ".\\%s\\CRASHDUMP_%s_%02u-%02u-%04u_%02u-%02u-%02u.DMP",
+        std::snprintf((char *)MinidumpFilename, sizeof(MinidumpFilename), "%s\\CRASHDUMP_%s_%02u-%02u-%04u_%02u-%02u-%02u.DMP",
             Vinifera_DebugDirectory, strupr((char *)app_name), Execute_Day, Execute_Month, Execute_Year, Execute_Hour, Execute_Min, Execute_Sec);
 
     }
