@@ -37,6 +37,52 @@
 
 
 /**
+ *  #issue-404
+ * 
+ *  A object with "CloakStop" set has no effect on the cloaking behavior.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_FootClass_Is_Allowed_To_Recloak_Cloak_Stop_BugFix_Patch)
+{
+    GET_REGISTER_STATIC(FootClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(TechnoTypeClass *, technotype, eax);
+    static ILocomotion *loco;
+
+    /**
+     *  Is this unit flagged to only re-cloak when not moving?
+     */
+    if (technotype->CloakStop) {
+
+        loco = this_ptr->Locomotor_Ptr();
+
+        /**
+         *  If the object is currently moving, then return false.
+         * 
+         *  The original code here called Is_Moving_Now, which returned
+         *  false when the locomotor was on a slope or rotating, which
+         *  breaks the CloakStop mechanic.
+         */
+        if (loco->Is_Moving()) {
+            goto return_false;
+        }
+    }
+
+    /**
+     *  The unit can re-cloak.
+     */
+return_true:
+    JMP_REG(ecx, 0x004A6897);
+
+    /**
+     *  The unit is not allowed to re-cloak.
+     */
+return_false:
+    JMP_REG(ecx, 0x004A689B);
+}
+
+
+/**
  *  #issue-192
  * 
  *  IsInsignificant is not checked on FootClass objects.
@@ -89,10 +135,6 @@ function_return:
  */
 void FootClassExtension_Hooks()
 {
-    /**
-     *  #issue-192
-     * 
-     *  IsInsignificant is not checked on FootClass objects.
-     */
     Patch_Jump(0x004A4D60, &_FootClass_Death_Announcement_IsInsignifcant_Patch);
+    Patch_Jump(0x004A6866, &_FootClass_Is_Allowed_To_Recloak_Cloak_Stop_BugFix_Patch);
 }
