@@ -28,6 +28,8 @@
 #include "buildingext_hooks.h"
 #include "rules.h"
 #include "tiberium.h"
+#include "weapontype.h"
+#include "ccini.h"
 #include "fatal.h"
 #include "asserthandler.h"
 #include "debughandler.h"
@@ -47,7 +49,48 @@ class RulesClassFake final : public RulesClass
 {
     public:
         void _Process(CCINIClass &ini);
+
+        bool Weapons(CCINIClass &ini);
 };
+
+
+/**
+ *  Fetch all the weapon characteristic values.
+ * 
+ *  @author: CCHyper
+ */
+bool RulesClassFake::Weapons(CCINIClass &ini)
+{
+    static const char * const WEAPONS = "Weapons";
+
+    char buf[128];
+    const WeaponTypeClass *weapontype;
+
+    int counter = ini.Entry_Count(WEAPONS);
+    for (int index = 0; index < counter; ++index) {
+        const char *entry = ini.Get_Entry(WEAPONS, index);
+
+        /**
+         *  Get a weapon entry.
+         */
+        if (ini.Get_String(WEAPONS, entry, buf, sizeof(buf))) {
+
+            /**
+             *  Find or create a weapon of the name specified.
+             */
+            weapontype = WeaponTypeClass::Find_Or_Make(buf);
+            if (weapontype) {
+                DEV_DEBUG_INFO("Rules: Found WeaponType \"%s\".\n", buf);
+            } else {
+                DEV_DEBUG_WARNING("Rules: Error processing WeaponType \"%s\"!\n", buf);
+            }
+
+        }
+
+    }
+
+    return counter > 0;
+}
 
 
 /**
@@ -61,6 +104,16 @@ void RulesClassFake::_Process(CCINIClass &ini)
     Houses(ini);
     Sides(ini);
     Overlays(ini);
+
+    /**
+     *  #issue-117
+     * 
+     *  Add reading of Weapons list from RULES.INI
+     * 
+     *  @author: CCHyper
+     */
+    Weapons(ini);
+
     SuperWeapons(ini);
     Warheads(ini);
     Smudges(ini);
