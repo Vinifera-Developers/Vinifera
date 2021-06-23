@@ -198,10 +198,25 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     //DEV_DEBUG_WARNING("TechnoTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     const char *ini_name = ThisPtr->Name();
+    const char *graphic_name = ThisPtr->Graphic_Name();
 
     if (!ini.Is_Present(ini_name)) {
         return false;
     }
+
+    //if (!ArtINI.Is_Present(graphic_name)) {
+    //    return false;
+    //}
+
+    /**
+     *  #issue-407
+     * 
+     *  Allow WalkRate to be optionally loaded from ART.INI image entries. This
+     *  will also override any value set on the RULES.INI section.
+     * 
+     *  @author: CCHyper
+     */
+    ThisPtr->WalkRate = ArtINI.Get_Int(graphic_name, "WalkRate", ThisPtr->WalkRate);
     
     CloakSound = ini.Get_VocType(ini_name, "CloakSound", CloakSound);
     UncloakSound = ini.Get_VocType(ini_name, "UncloakSound", UncloakSound);
