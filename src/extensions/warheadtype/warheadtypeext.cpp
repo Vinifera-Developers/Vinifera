@@ -46,7 +46,8 @@ ExtensionMap<WarheadTypeClass, WarheadTypeClassExtension> WarheadTypeClassExtens
 WarheadTypeClassExtension::WarheadTypeClassExtension(WarheadTypeClass *this_ptr) :
     Extension(this_ptr),
 
-    IsWallAbsoluteDestroyer(false)
+    IsWallAbsoluteDestroyer(false),
+    IsAffectsAllies(true)
 {
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("WarheadTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -159,6 +160,7 @@ void WarheadTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
     //DEV_DEBUG_TRACE("WarheadTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     crc(IsWallAbsoluteDestroyer);
+    crc(IsAffectsAllies);
 }
 
 
@@ -180,6 +182,7 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
     }
 
     IsWallAbsoluteDestroyer = ini.Get_Bool(ini_name, "WallAbsoluteDestroyer", IsWallAbsoluteDestroyer);
+    IsAffectsAllies = ini.Get_Bool(ini_name, "AffectsAllies", IsAffectsAllies);
     
     return true;
 }
