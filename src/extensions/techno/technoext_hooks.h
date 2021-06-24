@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          TECHNOTYPEEXT.H
+ *  @file          TECHNOEXT_HOOKS.H
  *
  *  @author        CCHyper
  *
- *  @brief         Extended TechnoTypeClass class.
+ *  @brief         Contains the hooks for the extended TechnoClass.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -27,42 +27,5 @@
  ******************************************************************************/
 #pragma once
 
-#include "extension.h"
-#include "container.h"
-#include "tibsun_defines.h"
 
-
-class TechnoTypeClass;
-class CCINIClass;
-
-
-class TechnoTypeClassExtension final : public Extension<TechnoTypeClass>
-{
-    public:
-        TechnoTypeClassExtension(TechnoTypeClass *this_ptr);
-        TechnoTypeClassExtension(const NoInitClass &noinit);
-        ~TechnoTypeClassExtension();
-
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
-        virtual int Size_Of() const override;
-
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
-
-        bool Read_INI(CCINIClass &ini);
-
-    public:
-        /**
-         *  This is the sound effect to play when the unit is cloaking.
-         */
-        VocType CloakSound;
-
-        /**
-         *  This is the sound effect to play when the unit is decloaking.
-         */
-        VocType UncloakSound;
-};
-
-
-extern ExtensionMap<TechnoTypeClass, TechnoTypeClassExtension> TechnoTypeClassExtensions;
+void TechnoClassExtension_Hooks();

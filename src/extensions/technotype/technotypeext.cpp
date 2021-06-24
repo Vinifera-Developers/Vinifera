@@ -44,7 +44,10 @@ ExtensionMap<TechnoTypeClass, TechnoTypeClassExtension> TechnoTypeClassExtension
  *  @author: CCHyper
  */
 TechnoTypeClassExtension::TechnoTypeClassExtension(TechnoTypeClass *this_ptr) :
-    Extension(this_ptr)
+    Extension(this_ptr),
+
+    CloakSound(VOC_NONE),
+    UncloakSound(VOC_NONE)
 {
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("TechnoTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -175,5 +178,8 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
         return false;
     }
     
+    CloakSound = ini.Get_VocType(ini_name, "CloakSound", CloakSound);
+    UncloakSound = ini.Get_VocType(ini_name, "UncloakSound", UncloakSound);
+
     return true;
 }
