@@ -82,6 +82,7 @@
 #include "teamext_hooks.h"
 #include "factoryext_hooks.h"
 #include "animext_hooks.h"
+#include "bulletext_hooks.h"
 #include "terrainext_hooks.h"
 
 #include "combatext_hooks.h"
@@ -162,6 +163,7 @@ void Extension_Hooks()
     TechnoClassExtension_Hooks();
     FootClassExtension_Hooks();
     AnimClassExtension_Hooks();
+    BulletClassExtension_Hooks();
     TerrainClassExtension_Hooks();
 
     CombatExtension_Hooks();
