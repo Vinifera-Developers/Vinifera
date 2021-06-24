@@ -67,6 +67,8 @@
 //#include "tagtypeext_hooks.h"
 //#include "triggertypeext_hooks.h"
 
+#include "technoext_hooks.h"
+#include "footext_hooks.h"
 #include "unitext_hooks.h"
 #include "aircraftext_hooks.h"
 #include "buildingext_hooks.h"
@@ -74,7 +76,6 @@
 #include "houseext_hooks.h"
 #include "teamext_hooks.h"
 #include "factoryext_hooks.h"
-#include "footext_hooks.h"
 
 #include "dropshipext_hooks.h"
 
@@ -135,6 +136,8 @@ void Extension_Hooks()
     //TagTypeClassExtension_Hooks();
     //TriggerTypeClassExtension_Hooks();
 
+    TechnoClassExtension_Hooks();
+    FootClassExtension_Hooks();
     UnitClassExtension_Hooks();
     AircraftClassExtension_Hooks();
     InfantryClassExtension_Hooks();
@@ -142,7 +145,6 @@ void Extension_Hooks()
     HouseClassExtension_Hooks();
     TeamClassExtension_Hooks();
     FactoryClassExtension_Hooks();
-    FootClassExtension_Hooks();
 
     DropshipExtension_Hooks();
 
