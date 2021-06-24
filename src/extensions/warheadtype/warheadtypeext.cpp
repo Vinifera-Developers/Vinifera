@@ -44,7 +44,9 @@ ExtensionMap<WarheadTypeClass, WarheadTypeClassExtension> WarheadTypeClassExtens
  *  @author: CCHyper
  */
 WarheadTypeClassExtension::WarheadTypeClassExtension(WarheadTypeClass *this_ptr) :
-    Extension(this_ptr)
+    Extension(this_ptr),
+
+    IsWallAbsoluteDestroyer(false)
 {
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("WarheadTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -155,6 +157,8 @@ void WarheadTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("WarheadTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+
+    crc(IsWallAbsoluteDestroyer);
 }
 
 
@@ -174,6 +178,8 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
     if (!ini.Is_Present(ini_name)) {
         return false;
     }
+
+    IsWallAbsoluteDestroyer = ini.Get_Bool(ini_name, "WallAbsoluteDestroyer", IsWallAbsoluteDestroyer);
     
     return true;
 }

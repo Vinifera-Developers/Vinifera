@@ -52,7 +52,10 @@ class WarheadTypeClassExtension final : public Extension<WarheadTypeClass>
         bool Read_INI(CCINIClass &ini);
 
     public:
-
+        /**
+         *  Does this warhead instantly destroy walls regardless of the warhead damage value?
+         */
+        bool IsWallAbsoluteDestroyer;
 };
 
 
