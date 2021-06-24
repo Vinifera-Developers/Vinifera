@@ -33,6 +33,8 @@
 #include "technotypeext.h"
 #include "tibsun_inline.h"
 #include "weapontype.h"
+#include "warheadtype.h"
+#include "warheadtypeext.h"
 #include "house.h"
 #include "housetype.h"
 #include "rules.h"
@@ -44,6 +46,70 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-411
+ * 
+ *  Implements IsAffectsAllies for WarheadTypes.
+ * 
+ *  @note: This patch does not replace "stolen" code as per our implementation
+ *         rules, this is because the call to ObjectClass::Take_Damage that follows
+ *         is too much of a risk to not have correctly implemented.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_TechnoClass_Take_Damage_IsAffectsAllies_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
+    GET_STACK_STATIC(int *, damage, esp, 0xEC);
+    GET_STACK_STATIC(int, distance, esp, 0xF0);
+    GET_STACK_STATIC(const WarheadTypeClass *, warhead, esp, 0xF4);
+    GET_STACK_STATIC(TechnoClass *, source, esp, 0xF8);
+    GET_STACK_STATIC8(bool, forced, esp, 0xFC);
+    GET_STACK_STATIC(int, a6, esp, 0x100);
+    static WarheadTypeClassExtension *warheadtypeext;
+    static ResultType result;
+
+    if (warhead) {
+
+        /**
+         *  Is the warhead that hit us one that affects units allied with its firing owner?
+         */
+        warheadtypeext = WarheadTypeClassExtensions.find(warhead);
+        if (warheadtypeext && !warheadtypeext->IsAffectsAllies) {
+
+            /**
+             *  If the source of the damage is an ally of ours, then reset
+             *  the damage amount and return that we took no damage.
+             */
+            if (source && source->House->Is_Ally(this_ptr->House)) {
+                *damage = 0;
+                goto return_RESULT_NONE;
+            }
+
+        }
+
+    }
+
+    /**
+     *  Stolen bytes/code.
+     */
+    _asm { mov ecx, a6 }
+
+    /**
+     *   Restore a few registers to be safe.
+     */
+    _asm { mov ebx, source }
+    //_asm { mov edi, damage }
+    JMP_REG(edx, 0x006328E5);
+
+    /**
+     *  Function returns RESULT_NONE.
+     */
+return_RESULT_NONE:
+    JMP_REG(edi, 0x00632882);
+}
 
 
 /**
@@ -271,4 +337,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x0063105C, &_TechnoClass_Fire_At_Weapon_Anim_Patch);
     Patch_Jump(0x0062F6B7, &_TechnoClass_Is_Ready_To_Uncloak_Cloak_Stop_BugFix_Patch);
     Patch_Jump(0x0062E6F0, &_TechnoClass_Null_House_Warning_Patch);
+    Patch_Jump(0x006328DE, &_TechnoClass_Take_Damage_IsAffectsAllies_Patch);
 }

@@ -56,6 +56,11 @@ class WarheadTypeClassExtension final : public Extension<WarheadTypeClass>
          *  Does this warhead instantly destroy walls regardless of the warhead damage value?
          */
         bool IsWallAbsoluteDestroyer;
+
+        /**
+         *  Can this warhead damage friendly units?
+         */
+        bool IsAffectsAllies;
 };
 
 
