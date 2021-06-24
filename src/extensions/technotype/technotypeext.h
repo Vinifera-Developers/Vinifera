@@ -68,6 +68,14 @@ class TechnoTypeClassExtension final : public Extension<TechnoTypeClass>
          *  (Must meet the rules as specified by Rule->ShakeScreen.
          */
         bool IsShakeScreen;
+
+        /**
+         *  These values are used to shake the screen when the object is destroyed.
+         */
+        unsigned int ShakePixelYHi;
+        unsigned int ShakePixelYLo;
+        unsigned int ShakePixelXHi;
+        unsigned int ShakePixelXLo;
 };
 
 

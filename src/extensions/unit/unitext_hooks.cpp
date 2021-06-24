@@ -73,30 +73,49 @@ static void UnitClass_Shake_Screen(UnitClass *unit)
     if (technotypeext && technotypeext->IsShakeScreen) {
 
         /**
-         *  Very strong units that have an explosion will also rock the
-         *  screen when they are destroyed.
+         *  If this unit has screen shake values defined, then set the blitter
+         *  offset values. GScreenClass::Blit will handle the rest for us.
          */
-        if (unit->Class->MaxStrength > Rule->ShakeScreen) {
+        if ((technotypeext->ShakePixelXLo > 0 || technotypeext->ShakePixelXHi > 0)
+         || (technotypeext->ShakePixelYLo > 0 || technotypeext->ShakePixelYHi > 0)) {
+
+            if (technotypeext->ShakePixelXLo > 0 || technotypeext->ShakePixelXHi > 0) {
+                Map.ScreenX = Sim_Random_Pick(technotypeext->ShakePixelXLo, technotypeext->ShakePixelXHi);
+            }
+            if (technotypeext->ShakePixelYLo > 0 || technotypeext->ShakePixelYHi > 0) {
+                Map.ScreenY = Sim_Random_Pick(technotypeext->ShakePixelYLo, technotypeext->ShakePixelYHi);
+            }
+
+        } else {
 
             /**
-             *  Make sure both the screen shake factor and the units strength
-             *  are valid before performing the division.
+             *  Very strong units that have an explosion will also rock the
+             *  screen when they are destroyed.
              */
-            if (Rule->ShakeScreen > 0 && unit->Class->MaxStrength > 0) {
-
-                int shakes = std::min<int>(unit->Class->MaxStrength / (Rule->ShakeScreen/2), 6);
+            if (unit->Class->MaxStrength > Rule->ShakeScreen) {
 
                 /**
-                 *  #issue-414
-                 * 
-                 *  Restores the vertical screen shake when a strong unit is destroyed.
-                 * 
-                 *  @author: CCHyper
+                 *  Make sure both the screen shake factor and the units strength
+                 *  are valid before performing the division.
                  */
-                Map.ScreenY = shakes;
+                if (Rule->ShakeScreen > 0 && unit->Class->MaxStrength > 0) {
 
-                //Shake_The_Screen(shakes);
+                    int shakes = std::min<int>(unit->Class->MaxStrength / (Rule->ShakeScreen/2), 6);
+
+                    /**
+                     *  #issue-414
+                     * 
+                     *  Restores the vertical screen shake when a strong unit is destroyed.
+                     * 
+                     *  @author: CCHyper
+                     */
+                    Map.ScreenY = shakes;
+
+                    //Shake_The_Screen(shakes);
+                }
+
             }
+
         }
 
     }
