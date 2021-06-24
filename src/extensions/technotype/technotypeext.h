@@ -62,6 +62,12 @@ class TechnoTypeClassExtension final : public Extension<TechnoTypeClass>
          *  This is the sound effect to play when the unit is decloaking.
          */
         VocType UncloakSound;
+
+        /**
+         *  Can this object shake the screen when it is destroyed?
+         *  (Must meet the rules as specified by Rule->ShakeScreen.
+         */
+        bool IsShakeScreen;
 };
 
 
