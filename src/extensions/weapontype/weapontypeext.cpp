@@ -44,7 +44,17 @@ ExtensionMap<WeaponTypeClass, WeaponTypeClassExtension> WeaponTypeClassExtension
  *  @author: CCHyper
  */
 WeaponTypeClassExtension::WeaponTypeClassExtension(WeaponTypeClass *this_ptr) :
-    Extension(this_ptr)
+    Extension(this_ptr),
+    SonicBeamColor{0,0,0},
+    SonicBeamAlpha(0.5),
+    SonicBeamSineDuration(0.125),
+    SonicBeamSineAmplitude(12.0),
+    SonicBeamOffset(0.49),
+    SonicBeamSurfacePattern(SURFACE_PATTERN_CIRCLE),
+    SonicBeamStartPinLeft(-30.0, -100.0, 0.0),
+    SonicBeamStartPinRight(-30.0, 100.0, 0.0),
+    SonicBeamEndPinLeft(30.0, -100.0, 0.0),
+    SonicBeamEndPinRight(30.0, 100.0, 0.0)
 {
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("WeaponTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -169,11 +179,64 @@ bool WeaponTypeClassExtension::Read_INI(CCINIClass &ini)
     //DEV_DEBUG_TRACE("WeaponTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
     DEV_DEBUG_WARNING("WeaponTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
+    char buffer[32];
+
     const char *ini_name = ThisPtr->Name();
 
     if (!ini.Is_Present(ini_name)) {
         return false;
     }
-    
+
+    /**
+     *  Make sure the entry is found before attempting to overwrite the default.
+     */
+    if (ini.Is_Present(ini_name, "SonicBeamColor")) {
+        SonicBeamColor = ini.Get_RGB(ini_name, "SonicBeamColor", SonicBeamColor);
+
+        /**
+         *  We use 0 as a indicator the color was unassigned, so bump
+         *  up and solid black by 1.
+         */
+        SonicBeamColor.R = std::clamp<unsigned char>(SonicBeamColor.R, 1, 255);
+        SonicBeamColor.G = std::clamp<unsigned char>(SonicBeamColor.G, 1, 255);
+        SonicBeamColor.B = std::clamp<unsigned char>(SonicBeamColor.B, 1, 255);
+    }
+
+    SonicBeamIsClear = ini.Get_Bool(ini_name, "SonicBeamIsClear", SonicBeamIsClear);
+    SonicBeamAlpha = ini.Get_Float_Clamp(ini_name, "SonicBeamAlpha", 0.0, 1.0, SonicBeamAlpha);
+    SonicBeamSineDuration = ini.Get_Float(ini_name, "SonicBeamSineDuration", SonicBeamSineDuration);
+    SonicBeamSineAmplitude = ini.Get_Float(ini_name, "SonicBeamSineAmplitude", SonicBeamSineAmplitude);
+    SonicBeamOffset = ini.Get_Float(ini_name, "SonicBeamOffset", SonicBeamOffset);
+    SonicBeamStartPinLeft = ini.Get_Vector3(ini_name, "SonicBeamStartPinLeft", SonicBeamStartPinLeft);
+    SonicBeamStartPinRight = ini.Get_Vector3(ini_name, "SonicBeamStartPinRight", SonicBeamStartPinRight);
+    SonicBeamEndPinLeft = ini.Get_Vector3(ini_name, "SonicBeamEndPinLeft", SonicBeamEndPinLeft);
+    SonicBeamEndPinRight = ini.Get_Vector3(ini_name, "SonicBeamEndPinRight", SonicBeamEndPinRight);
+
+    static const char *surface_pattern_names[SURFACE_PATTERN_COUNT] = {
+        "circle",
+        "ellipse",
+        "rhombus",
+        "square"
+    };
+    ini.Get_String(ini_name, "SonicBeamSurfacePattern", buffer, sizeof(buffer));
+    for (int i = 0; i < SURFACE_PATTERN_COUNT; ++i) {
+        if (strcmpi(surface_pattern_names[i], buffer) == 0) {
+            SonicBeamSurfacePattern = SonicBeamSurfacePatternType(i);
+        }
+    }
+
+    static const char *sine_pattern_names[SINE_PATTERN_COUNT] = {
+        "circle",
+        "square",
+        "sawtooth",
+        "triangle"
+    };
+    ini.Get_String(ini_name, "SonicBeamSinePattern", buffer, sizeof(buffer));
+    for (int i = 0; i < SINE_PATTERN_COUNT; ++i) {
+        if (strcmpi(sine_pattern_names[i], buffer) == 0) {
+            SonicBeamSinePattern = SonicBeamSinePatternType(i);
+        }
+    }
+
     return true;
 }

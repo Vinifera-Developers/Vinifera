@@ -30,6 +30,8 @@
 #include "extension.h"
 #include "container.h"
 #include "wave.h"
+#include "vector3.h"
+#include "weapontypeext.h"
 
 
 class WaveClassExtension final : public Extension<WaveClass>
@@ -46,8 +48,45 @@ class WaveClassExtension final : public Extension<WaveClass>
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
+        void Init();
+
+        void Draw_Sonic_Beam_Pixel(int a1, int a2, int a3, unsigned short *buffer);
+
+        bool Calculate_Sonic_Beam_Tables();
+
     public:
+        /**
+         *  Pointer to the weapon this is firing this wave.
+         */
+        WeaponTypeClass *WeaponTypePtr;
+
+        /**
+         *  The following are copied from WeaponTypeExtension on creation.
+         */
+        RGBStruct SonicBeamColor;
+        bool SonicBeamIsClear;
+        double SonicBeamAlpha;
+        double SonicBeamSineDuration;
+        double SonicBeamSineAmplitude;
+        double SonicBeamOffset;
+        SonicBeamSurfacePatternType SonicBeamSurfacePattern;
+        SonicBeamSinePatternType SonicBeamSinePattern;
+        Vector3 SonicBeamStartPinLeft;
+        Vector3 SonicBeamStartPinRight;
+        Vector3 SonicBeamEndPinLeft;
+        Vector3 SonicBeamEndPinRight;
+
+    private:
+        /**
+         *  Generated tables based on the custom values.
+         */
+        bool SonicBeamTablesCalculated;
+        short SonicBeamSineTable[500];
+        short SonicBeamSurfacePatternTable[300][300];
+        int SonicBeamIntensityTable[14];
 };
 
 
 extern ExtensionMap<WaveClass, WaveClassExtension> WaveClassExtensions;
+
+extern WeaponTypeClass *Wave_TempWeaponTypePtr;
