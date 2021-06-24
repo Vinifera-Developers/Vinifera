@@ -48,7 +48,11 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(TechnoTypeClass *this_ptr) :
 
     CloakSound(VOC_NONE),
     UncloakSound(VOC_NONE),
-    IsShakeScreen(false)
+    IsShakeScreen(false),
+    ShakePixelYHi(0),
+    ShakePixelYLo(0),
+    ShakePixelXHi(0),
+    ShakePixelXLo(0)
 {
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("TechnoTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -161,6 +165,10 @@ void TechnoTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
     //DEV_DEBUG_TRACE("TechnoTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     crc(IsShakeScreen);
+    crc(ShakePixelYHi);
+    crc(ShakePixelYLo);
+    crc(ShakePixelXHi);
+    crc(ShakePixelXLo);
 }
 
 
@@ -184,6 +192,10 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     CloakSound = ini.Get_VocType(ini_name, "CloakSound", CloakSound);
     UncloakSound = ini.Get_VocType(ini_name, "UncloakSound", UncloakSound);
     IsShakeScreen = ini.Get_Bool(ini_name, "CanShakeScreen", IsShakeScreen);
+    ShakePixelYHi = ini.Get_Int(ini_name, "ShakeYhi", ShakePixelYHi);
+    ShakePixelYLo = ini.Get_Int(ini_name, "ShakeYlo", ShakePixelYLo);
+    ShakePixelXHi = ini.Get_Int(ini_name, "ShakeXhi", ShakePixelXHi);
+    ShakePixelXLo = ini.Get_Int(ini_name, "ShakeXlo", ShakePixelXLo);
 
     return true;
 }

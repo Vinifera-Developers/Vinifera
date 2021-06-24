@@ -161,25 +161,43 @@ static void BuildingClass_Shake_Screen(BuildingClass *building)
     if (technotypeext && technotypeext->IsShakeScreen) {
 
         /**
-         *  Make sure both the screen shake factor and the buildings cost
-         *  are valid before performing the division.
+         *  If this building has screen shake values defined, then set the blitter
+         *  offset values. GScreenClass::Blit will handle the rest for us.
          */
-        if (Rule->ShakeScreen > 0 && building->Class->Cost_Of() > 0) {
+        if ((technotypeext->ShakePixelXLo > 0 || technotypeext->ShakePixelXHi > 0)
+         || (technotypeext->ShakePixelYLo > 0 || technotypeext->ShakePixelYHi > 0)) {
 
-            int shakes = std::min(building->Class->Cost_Of() / Rule->ShakeScreen, 6);
-            //int shakes = building->Class->Cost_Of() / Rule->ShakeScreen;
-            if (shakes > 0) {
+            if (technotypeext->ShakePixelXLo > 0 || technotypeext->ShakePixelXHi > 0) {
+                Map.ScreenX = Sim_Random_Pick(technotypeext->ShakePixelXLo, technotypeext->ShakePixelXHi);
+            }
+            if (technotypeext->ShakePixelYLo > 0 || technotypeext->ShakePixelYHi > 0) {
+                Map.ScreenY = Sim_Random_Pick(technotypeext->ShakePixelYLo, technotypeext->ShakePixelYHi);
+            }
 
-                /**
-                 *  #issue-414
-                 * 
-                 *  Restores the vertical screen shake when a strong building is destroyed.
-                 * 
-                 *  @author: CCHyper
-                 */
-                Map.ScreenY = shakes;
+        } else {
 
-                //Shake_The_Screen(shakes);
+            /**
+             *  Make sure both the screen shake factor and the buildings cost
+             *  are valid before performing the division.
+             */
+            if (Rule->ShakeScreen > 0 && building->Class->Cost_Of() > 0) {
+
+                int shakes = std::min(building->Class->Cost_Of() / Rule->ShakeScreen, 6);
+                //int shakes = building->Class->Cost_Of() / Rule->ShakeScreen;
+                if (shakes > 0) {
+
+                    /**
+                     *  #issue-414
+                     * 
+                     *  Restores the vertical screen shake when a strong building is destroyed.
+                     * 
+                     *  @author: CCHyper
+                     */
+                    Map.ScreenY = shakes;
+
+                    //Shake_The_Screen(shakes);
+                }
+
             }
 
         }
