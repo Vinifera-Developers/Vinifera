@@ -40,6 +40,18 @@
 
 
 /**
+ *  convert a float to integer with the desired scale.
+ * 
+ *  @author CCHyper
+ */
+static int Scale_Float_To_Int(float value, int scale)
+{
+    value = std::clamp(value, 0.0f, 1.0f);
+    return (value * scale);
+}
+
+
+/**
  *  #issue-410
  * 
  *  Implements IsWallAbsoluteDestroyer for WarheadTypes.
@@ -82,9 +94,75 @@ DECLARE_PATCH(_Explosion_Damage_IsWallAbsoluteDestroyer_Patch)
 
 
 /**
+ *  #issue-412
+ * 
+ *  Implements CombatLightSize for WarheadTypes.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_Do_Flash_CombatLightSize_Patch)
+{
+    GET_REGISTER_STATIC(int, damage, ecx);
+    GET_REGISTER_STATIC(const WarheadTypeClass *, warhead, edx);
+    static const WarheadTypeClassExtension *warheadtypeext;
+    static float light_size;
+    static int flash_size;
+
+    /**
+     *  Fetch the warhead type extension instance if it exists.
+     */
+    warheadtypeext = WarheadTypeClassExtensions.find(warhead);
+
+    /**
+     *  If extension instance is not found, or no custom light size
+     *  has been set, then just use the default code. This sets the
+     *  size of the light based on the damage dealt by the Warhead.
+     */
+    if (!warheadtypeext || warheadtypeext->CombatLightSize <= 0.0f) {
+
+        /**
+         *  Original code.
+         */
+        flash_size = (damage / 4);
+        if (flash_size < 63) {
+            if (flash_size <= 21) {
+                flash_size = 21;
+            }
+        } else {
+            flash_size = 63;
+        }
+    }
+
+
+    /**
+     *  Has a custom light size been set on the warhead?
+     */
+    if (warheadtypeext && warheadtypeext->CombatLightSize > 0.0f) {
+
+        /**
+         *  Clamp the light size and scale to expected size range.
+         */
+        light_size = warheadtypeext->CombatLightSize;
+        if (light_size > 1.0f) {
+            light_size = 1.0f;
+        }
+        flash_size = Scale_Float_To_Int(light_size, 63);
+    }
+
+    /**
+     *  Set the desired flash size.
+     */
+    _asm { mov esi, flash_size }
+
+    JMP(0x00460495);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void CombatExtension_Hooks()
 {
     Patch_Jump(0x0045FAA0, &_Explosion_Damage_IsWallAbsoluteDestroyer_Patch);
+    Patch_Jump(0x00460477, &_Do_Flash_CombatLightSize_Patch);
 }

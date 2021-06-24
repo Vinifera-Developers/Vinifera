@@ -27,5 +27,7 @@
  ******************************************************************************/
 #pragma once
 
+#include "always.h"
+
 
 void CombatExtension_Hooks();

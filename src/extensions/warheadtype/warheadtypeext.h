@@ -61,6 +61,11 @@ class WarheadTypeClassExtension final : public Extension<WarheadTypeClass>
          *  Can this warhead damage friendly units?
          */
         bool IsAffectsAllies;
+
+        /**
+         *  This is used to override the size of the combat light flash at the point of impact.
+         */
+        float CombatLightSize;
 };
 
 
