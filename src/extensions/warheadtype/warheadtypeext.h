@@ -66,6 +66,14 @@ class WarheadTypeClassExtension final : public Extension<WarheadTypeClass>
          *  This is used to override the size of the combat light flash at the point of impact.
          */
         float CombatLightSize;
+
+        /**
+         *  These values are used to shake the screen when the projectile impacts.
+         */
+        unsigned int ShakePixelYHi;
+        unsigned int ShakePixelYLo;
+        unsigned int ShakePixelXHi;
+        unsigned int ShakePixelXLo;
 };
 
 
