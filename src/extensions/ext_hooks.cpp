@@ -83,6 +83,8 @@
 #include "animext_hooks.h"
 #include "terrainext_hooks.h"
 
+#include "combatext_hooks.h"
+
 #include "dropshipext_hooks.h"
 
 #include "cciniext_hooks.h"
@@ -160,6 +162,8 @@ void Extension_Hooks()
     FootClassExtension_Hooks();
     AnimClassExtension_Hooks();
     TerrainClassExtension_Hooks();
+
+    CombatExtension_Hooks();
 
     DropshipExtension_Hooks();
 

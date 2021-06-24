@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          WEAPONTYPEEXT.H
+ *  @file          COMBATEXT_HOOKS.H
  *
  *  @author        CCHyper
  *
- *  @brief         Extended WeaponTypeClass class.
+ *  @brief         Contains the hooks for the extended Combat functions.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -27,32 +27,5 @@
  ******************************************************************************/
 #pragma once
 
-#include "extension.h"
-#include "container.h"
 
-
-class WeaponTypeClass;
-class CCINIClass;
-
-
-class WeaponTypeClassExtension final : public Extension<WeaponTypeClass>
-{
-    public:
-        WeaponTypeClassExtension(WeaponTypeClass *this_ptr);
-        WeaponTypeClassExtension(const NoInitClass &noinit);
-        ~WeaponTypeClassExtension();
-
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
-        virtual int Size_Of() const override;
-
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
-
-        bool Read_INI(CCINIClass &ini);
-
-    public:
-};
-
-
-extern ExtensionMap<WeaponTypeClass, WeaponTypeClassExtension> WeaponTypeClassExtensions;
+void CombatExtension_Hooks();
