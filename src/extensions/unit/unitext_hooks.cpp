@@ -29,6 +29,8 @@
 #include "vinifera_globals.h"
 #include "tibsun_globals.h"
 #include "tibsun_functions.h"
+#include "technotype.h"
+#include "technotypeext.h"
 #include "unit.h"
 #include "unittype.h"
 #include "target.h"
@@ -52,31 +54,51 @@
  */
 static void UnitClass_Shake_Screen(UnitClass *unit)
 {
+    TechnoTypeClass *technotype;
+    TechnoTypeClassExtension *technotypeext;
+
     /**
-     *  Very strong units that have an explosion will also rock the
-     *  screen when they are destroyed.
+     *  Fetch the extended techno type instance if it exists.
      */
-    if (unit->Class->MaxStrength > Rule->ShakeScreen) {
+    technotype = unit->Techno_Type_Class();
+    technotypeext = TechnoTypeClassExtensions.find(technotype);
+
+    /**
+     *  #issue-414
+     * 
+     *  Can this unit shake the screen when it is destroyed?
+     * 
+     *  @author: CCHyper
+     */
+    if (technotypeext && technotypeext->IsShakeScreen) {
 
         /**
-         *  Make sure both the screen shake factor and the units strength
-         *  are valid before performing the division.
+         *  Very strong units that have an explosion will also rock the
+         *  screen when they are destroyed.
          */
-        if (Rule->ShakeScreen > 0 && unit->Class->MaxStrength > 0) {
-
-            int shakes = std::min<int>(unit->Class->MaxStrength / (Rule->ShakeScreen/2), 6);
+        if (unit->Class->MaxStrength > Rule->ShakeScreen) {
 
             /**
-             *  #issue-414
-             * 
-             *  Restores the vertical screen shake when a strong unit is destroyed.
-             * 
-             *  @author: CCHyper
+             *  Make sure both the screen shake factor and the units strength
+             *  are valid before performing the division.
              */
-            Map.ScreenY = shakes;
+            if (Rule->ShakeScreen > 0 && unit->Class->MaxStrength > 0) {
 
-            //Shake_The_Screen(shakes);
+                int shakes = std::min<int>(unit->Class->MaxStrength / (Rule->ShakeScreen/2), 6);
+
+                /**
+                 *  #issue-414
+                 * 
+                 *  Restores the vertical screen shake when a strong unit is destroyed.
+                 * 
+                 *  @author: CCHyper
+                 */
+                Map.ScreenY = shakes;
+
+                //Shake_The_Screen(shakes);
+            }
         }
+
     }
 }
 

@@ -31,6 +31,8 @@
 #include "building.h"
 #include "buildingtype.h"
 #include "buildingtypeext.h"
+#include "technotype.h"
+#include "technotypeext.h"
 #include "dsurface.h"
 #include "convert.h"
 #include "drawshape.h"
@@ -140,26 +142,46 @@ DECLARE_PATCH(_BuildingClass_Mission_Open_Gate_Close_Sound_Patch)
  */
 static void BuildingClass_Shake_Screen(BuildingClass *building)
 {
+    TechnoTypeClass *technotype;
+    TechnoTypeClassExtension *technotypeext;
+
     /**
-     *  Make sure both the screen shake factor and the buildings cost
-     *  are valid before performing the division.
+     *  Fetch the extended techno type instance if it exists.
      */
-    if (Rule->ShakeScreen > 0 && building->Class->Cost_Of() > 0) {
+    technotype = building->Techno_Type_Class();
+    technotypeext = TechnoTypeClassExtensions.find(technotype);
 
-        int shakes = std::min(building->Class->Cost_Of() / Rule->ShakeScreen, 6);
-        //int shakes = building->Class->Cost_Of() / Rule->ShakeScreen;
-        if (shakes > 0) {
+    /**
+     *  #issue-414
+     * 
+     *  Can this unit shake the screen when it is destroyed?
+     * 
+     *  @author: CCHyper
+     */
+    if (technotypeext && technotypeext->IsShakeScreen) {
 
-            /**
-             *  #issue-414
-             * 
-             *  Restores the vertical screen shake when a strong building is destroyed.
-             * 
-             *  @author: CCHyper
-             */
-            Map.ScreenY = shakes;
+        /**
+         *  Make sure both the screen shake factor and the buildings cost
+         *  are valid before performing the division.
+         */
+        if (Rule->ShakeScreen > 0 && building->Class->Cost_Of() > 0) {
 
-            //Shake_The_Screen(shakes);
+            int shakes = std::min(building->Class->Cost_Of() / Rule->ShakeScreen, 6);
+            //int shakes = building->Class->Cost_Of() / Rule->ShakeScreen;
+            if (shakes > 0) {
+
+                /**
+                 *  #issue-414
+                 * 
+                 *  Restores the vertical screen shake when a strong building is destroyed.
+                 * 
+                 *  @author: CCHyper
+                 */
+                Map.ScreenY = shakes;
+
+                //Shake_The_Screen(shakes);
+            }
+
         }
 
     }
