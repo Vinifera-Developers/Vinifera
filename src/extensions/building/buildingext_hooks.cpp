@@ -36,6 +36,7 @@
 #include "drawshape.h"
 #include "rules.h"
 #include "voc.h"
+#include "iomap.h"
 #include "fatal.h"
 #include "asserthandler.h"
 #include "debughandler.h"
@@ -148,7 +149,17 @@ static void BuildingClass_Shake_Screen(BuildingClass *building)
         int shakes = std::min(building->Class->Cost_Of() / Rule->ShakeScreen, 6);
         //int shakes = building->Class->Cost_Of() / Rule->ShakeScreen;
         if (shakes > 0) {
-            Shake_The_Screen(shakes);
+
+            /**
+             *  #issue-414
+             * 
+             *  Restores the vertical screen shake when a strong building is destroyed.
+             * 
+             *  @author: CCHyper
+             */
+            Map.ScreenY = shakes;
+
+            //Shake_The_Screen(shakes);
         }
 
     }

@@ -33,6 +33,7 @@
 #include "unittype.h"
 #include "target.h"
 #include "rules.h"
+#include "iomap.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
@@ -64,7 +65,17 @@ static void UnitClass_Shake_Screen(UnitClass *unit)
         if (Rule->ShakeScreen > 0 && unit->Class->MaxStrength > 0) {
 
             int shakes = std::min<int>(unit->Class->MaxStrength / (Rule->ShakeScreen/2), 6);
-            Shake_The_Screen(shakes);
+
+            /**
+             *  #issue-414
+             * 
+             *  Restores the vertical screen shake when a strong unit is destroyed.
+             * 
+             *  @author: CCHyper
+             */
+            Map.ScreenY = shakes;
+
+            //Shake_The_Screen(shakes);
         }
     }
 }
