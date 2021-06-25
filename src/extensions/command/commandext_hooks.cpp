@@ -30,8 +30,94 @@
 #include "tibsun_functions.h"
 #include "ccfile.h"
 #include "ccini.h"
+#include "object.h"
+#include "unit.h"
+#include "unittype.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+
+
+/**
+ *  #issue-#53
+ * 
+ *  Allow harvesters to be considered when executing the "Guard" command.
+ * 
+ *  The original GuardCommandClass code checks if the unit has a weapon
+ *  before assigning MISSION_GUARD_AREA, so harvesters never pass this
+ *  check as they are without a weapon. Harvesters actually have a special
+ *  case in Mission_Guard_Area() to tell them to find the nearest tiberium
+ *  patch if GUARD_AREA is assigned.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_GuardCommandClass_Process_Harvesters_Set_Mission_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass *, techno, esi);
+    static UnitClass *unit;
+    static UnitTypeClass *unittype;
+
+    /**
+     *  Original code:
+     *  
+     *  Can the player control this object?
+     */
+    if (techno->Can_Player_Move()) {
+
+        /**
+         *  Is the selected object currently being processing a unit? We perform
+         *  this check 'before' Can_Player_Fire() so we can handle any possible
+         *  case where harvesters might have a weapon.
+         */
+        if (techno->What_Am_I() == RTTI_UNIT) {
+
+            /**
+             *  Make sure this object is in fact a harvester of some type.
+             */
+            unit = reinterpret_cast<UnitClass *>(techno);
+            unittype = unit->Class;
+            if (unittype->IsToHarvest || unittype->IsToVeinHarvest) {
+
+                /**
+                 *  If the harvester is currently busy unloading, skip it.
+                 */
+                if (unit->Get_Mission() != MISSION_UNLOAD && !unit->IsDumping) {
+
+                    /**
+                     *  For tiberium harvesters, GUARD_AREA actually tells the
+                     *  harvester to start scanning for a tiberium patch. But for
+                     *  weed eaters, we need to use HARVEST. So just use HARVEST
+                     *  for handling both units.
+                     */
+                    unit->Player_Assign_Mission(MISSION_HARVEST, techno->Get_Target_Cell_Ptr());
+
+                    AllowVoice = false;
+
+                    /**
+                     *  Mission assigned, iterate to the next selected object.
+                     */
+                    goto continue_loop;
+                }
+            }
+        }
+
+        /**
+         *  Original code:
+         *  
+         *  Any unit that has a weapon, assign the enter guard area mission.
+         */
+        if (techno->Can_Player_Fire()) {
+            techno->Player_Assign_Mission(MISSION_GUARD_AREA, techno->Get_Target_Cell_Ptr());
+            AllowVoice = false;
+        }
+
+    }
+
+    /**
+     *  Continue the loop over CurrentObjects.
+     */
+continue_loop:
+    JMP(0x004E95FC);
+}
 
 
 /**
@@ -247,4 +333,6 @@ void CommandExtension_Hooks()
     Hook_Virtual(0x004EAAD0, PNGScreenCaptureCommandClass::Get_Category);
     Hook_Virtual(0x004EAAF0, PNGScreenCaptureCommandClass::Get_Description);
     Hook_Virtual(0x004EAB00, PNGScreenCaptureCommandClass::Process);
+
+    Patch_Jump(0x004E95C2, &_GuardCommandClass_Process_Harvesters_Set_Mission_Patch);
 }
