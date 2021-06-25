@@ -232,7 +232,7 @@ original_code:
 DECLARE_PATCH(_ParticleTypeClass_Read_INI_Patch)
 {
     GET_REGISTER_STATIC(ParticleTypeClass *, this_ptr, esi);
-    GET_STACK_STATIC(CCINIClass *, ini, esp, 0xE8);
+    GET_STACK_STATIC(CCINIClass *, ini, esp, 0xE0);
     static ParticleTypeClassExtension *exttype_ptr;
 
     /**
