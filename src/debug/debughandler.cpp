@@ -439,13 +439,13 @@ void Vinifera_Printf(DebugType type, const char *file, const char *function, int
 #ifdef NDEBUG
             if (DebugHandler_DeveloperMode || Vinifera_DeveloperMode) {
 #endif
-            Vinifera_Output_Debug_String(buffer);
-
             std::snprintf(tmpbuff, sizeof(tmpbuff), AICLI_STRONG_BLUE "%s", buffer);
             Output_To_Console(tmpbuff);
 #ifdef NDEBUG
             } // DebugHandler_DeveloperMode
 #endif
+
+            Vinifera_Output_Debug_String(buffer);
 
             std::snprintf(filebuff, sizeof(filebuff), "%s", buffer);
 
@@ -459,13 +459,13 @@ void Vinifera_Printf(DebugType type, const char *file, const char *function, int
 #ifdef NDEBUG
             if (DebugHandler_DeveloperMode || Vinifera_DeveloperMode) {
 #endif
-            Vinifera_Output_Debug_String(buffer);
-
             std::snprintf(tmpbuff, sizeof(tmpbuff), AICLI_STRONG_CYAN "%s", buffer);
             Output_To_Console(tmpbuff);
 #ifdef NDEBUG
             } // DebugHandler_DeveloperMode
 #endif
+
+            Vinifera_Output_Debug_String(buffer);
 
             std::snprintf(filebuff, sizeof(filebuff), "%s", buffer);
 
@@ -480,13 +480,13 @@ void Vinifera_Printf(DebugType type, const char *file, const char *function, int
 #ifdef NDEBUG
             if (DebugHandler_DeveloperMode || Vinifera_DeveloperMode) {
 #endif
-            Vinifera_Output_Debug_String(buffer);
-
             std::snprintf(tmpbuff, sizeof(tmpbuff), AICLI_STRONG_GREEN "%s", buffer);
             Output_To_Console(tmpbuff);
 #ifdef NDEBUG
             } // DebugHandler_DeveloperMode
 #endif
+
+            Vinifera_Output_Debug_String(buffer);
 
             std::snprintf(filebuff, sizeof(filebuff), "%s", buffer);
 
@@ -500,13 +500,13 @@ void Vinifera_Printf(DebugType type, const char *file, const char *function, int
 #ifdef NDEBUG
             if (DebugHandler_DeveloperMode || Vinifera_DeveloperMode) {
 #endif
-            Vinifera_Output_Debug_String(buffer);
-
             std::snprintf(tmpbuff, sizeof(tmpbuff), AICLI_STRONG_YELLOW "%s", buffer);
             Output_To_Console(tmpbuff);
 #ifdef NDEBUG
             } // DebugHandler_DeveloperMode
 #endif
+
+            Vinifera_Output_Debug_String(buffer);
 
             std::snprintf(filebuff, sizeof(filebuff), "[WARNING] %s", buffer);
 
@@ -520,13 +520,13 @@ void Vinifera_Printf(DebugType type, const char *file, const char *function, int
 #ifdef NDEBUG
             if (DebugHandler_DeveloperMode || Vinifera_DeveloperMode) {
 #endif
-            Vinifera_Output_Debug_String(buffer);
-            
             std::snprintf(tmpbuff, sizeof(tmpbuff), AICLI_STRONG_RED "%s", buffer);
             Output_To_Console(tmpbuff);
 #ifdef NDEBUG
             } // DebugHandler_DeveloperMode
 #endif
+
+            Vinifera_Output_Debug_String(buffer);
 
             std::snprintf(filebuff, sizeof(filebuff), "[ERROR] %s", buffer);
 
@@ -540,13 +540,13 @@ void Vinifera_Printf(DebugType type, const char *file, const char *function, int
 #ifdef NDEBUG
             if (DebugHandler_DeveloperMode || Vinifera_DeveloperMode) {
 #endif
-            Vinifera_Output_Debug_String(buffer);
-            
             std::snprintf(tmpbuff, sizeof(tmpbuff), AICLI_STRONG_RED "%s", buffer);
             Output_To_Console(tmpbuff);
 #ifdef NDEBUG
             } // DebugHandler_DeveloperMode
 #endif
+
+            Vinifera_Output_Debug_String(buffer);
 
             std::snprintf(filebuff, sizeof(filebuff), "[FATAL] %s", buffer);
 
