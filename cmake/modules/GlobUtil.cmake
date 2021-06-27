@@ -72,6 +72,12 @@ function(GlobSources GLOBTYPE RESULT ROOT_PATH)
 		list(APPEND dirlist ${files})
 #		message(NOTICE "GlobSources - Added Files: ${files}")
 	endif()
+	
+	file(GLOB files "${ROOT_PATH}/*.asm")
+	if(NOT "${files}" STREQUAL "")
+		list(APPEND dirlist ${files})
+#		message(NOTICE "GlobSources - Added Files: ${files}")
+	endif()
 
 	file(GLOB children RELATIVE ${ROOT_PATH} ${ROOT_PATH}/*)
 	
@@ -94,6 +100,12 @@ function(GlobSources GLOBTYPE RESULT ROOT_PATH)
 				endif()
 				
 				file(GLOB_RECURSE files "${ROOT_PATH}/${child}/*.c")
+				if(NOT "${files}" STREQUAL "")
+					list(APPEND dirlist ${files})
+#					message(NOTICE "GlobSources - Added Files: ${files}")
+				endif()
+				
+				file(GLOB_RECURSE files "${ROOT_PATH}/${child}/*.asm")
 				if(NOT "${files}" STREQUAL "")
 					list(APPEND dirlist ${files})
 #					message(NOTICE "GlobSources - Added Files: ${files}")
