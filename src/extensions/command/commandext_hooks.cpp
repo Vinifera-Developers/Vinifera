@@ -98,11 +98,11 @@ void Init_Vinifera_Commands()
         cmdptr = new IonBlastCommandClass;
         Commands.Add(cmdptr);
 
-        //cmdptr = new ExplosionCommandClass;
-        //Commands.Add(cmdptr);
+        cmdptr = new ExplosionCommandClass;
+        Commands.Add(cmdptr);
 
-        //cmdptr = new SuperExplosionCommandClass;
-        //Commands.Add(cmdptr);
+        cmdptr = new SuperExplosionCommandClass;
+        Commands.Add(cmdptr);
 
         cmdptr = new BailOutCommandClass;
         Commands.Add(cmdptr);
