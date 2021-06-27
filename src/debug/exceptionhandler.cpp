@@ -48,6 +48,7 @@
 #include "vinifera_gitinfo.h"
 #include "vinifera_globals.h"
 #include "tibsun_globals.h"
+#include "vinifera_newdel.h"
 #include <Windows.h>
 #include <dbghelp.h>
 #include <eh.h>
@@ -391,6 +392,11 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
     Exception_Printf("Vinifera branch: %s\r\n", Vinifera_Git_Branch());
     Exception_Printf("Vinifera commit: %s\r\n", Vinifera_Git_Hash_Short());
     Exception_Printf("Vinifera local changes: %s\r\n", Vinifera_Git_Uncommitted_Changes() ? "YES" : "NO");
+
+    Exception_Printf("\r\n");
+
+    Exception_Printf("New Count: %s\r\n", Vinifera_New_Count);
+    Exception_Printf("Delete Count: %s\r\n", Vinifera_Delete_Count);
 
     Exception_Printf("\r\n");
 

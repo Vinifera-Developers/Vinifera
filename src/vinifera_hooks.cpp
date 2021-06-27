@@ -161,6 +161,28 @@ DECLARE_PATCH(_WinMain_Vinifera_Startup)
 
 
 /**
+ *  Patch in the main Vinifera shutdown function.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_Game_Shutdown_Vinifera_Shutdown)
+{
+    if (!Vinifera_Shutdown()) {
+
+        /**
+         *  Something went wrong!
+         */
+
+        DEBUG_ERROR("Failed to shutdown Vinifera systems!\n");
+    }
+
+    _asm { pop esi }
+    _asm { pop ebx }
+    _asm { ret }
+}
+
+
+/**
  *  #issue-96
  * 
  *  Remove the requirement for BLOWFISH.DLL (Blowfish encryption) and now
@@ -238,10 +260,11 @@ void Vinifera_Hooks()
     Patch_Jump(0x004E3B7A, &_Load_Title_Page_Version_Text_Patch);
 
     /**
-     *  Add in Vinifera startup hooks.
+     *  Add in Vinifera startup/shutdown hooks.
      */
     Patch_Jump(0x00601070, &_WinMain_Parse_Command_Line);
     Patch_Jump(0x005FF81C, &_WinMain_Vinifera_Startup);
+    Patch_Jump(0x00602474, &_Game_Shutdown_Vinifera_Shutdown);
 
     /**
      *  Remove the requirement for BLOWFISH.DLL (Blowfish encryption).
