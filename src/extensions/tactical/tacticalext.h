@@ -28,10 +28,23 @@
 #pragma once
 
 #include "extension.h"
+#include "ttimer.h"
+#include "stimer.h"
+#include "wstring.h"
+#include "point.h"
+#include "textprint.h"
 
 
 class Tactical;
 class HouseClass;
+
+
+enum InfoTextPosType {
+    TOP_LEFT,
+    TOP_RIGHT,
+    BOTTOM_LEFT,
+    BOTTOM_RIGHT,
+};
 
 
 /**
@@ -52,6 +65,40 @@ class TacticalMapExtension final : public Extension<Tactical>
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
     public:
+        /**
+         *  Has information text been set?
+         */
+        bool IsInfoTextSet;
+
+        /**
+         *  The information text to print on the screen.
+         */
+        Wstring InfoTextBuffer;
+
+        /**
+         *  Where on the screen shall the text be printed?
+         */
+        InfoTextPosType InfoTextPosition;
+
+        /**
+         *  Sound to play when this text is initially drawn.
+         */
+        VocType InfoTextNotifySound;
+
+        /**
+         *  Volume at which to play the initial sound.
+         */
+        float InfoTextNotifySoundVolume;
+
+        /**
+         *  The font style of the print text.
+         */
+        TextPrintType InfoTextStyle;
+
+        /**
+         *  The lifetime timer for the information text.
+         */
+        CDTimerClass<MSTimerClass> InfoTextTimer;
 };
 
 

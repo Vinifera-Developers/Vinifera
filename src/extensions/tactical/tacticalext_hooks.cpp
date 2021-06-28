@@ -36,6 +36,7 @@
 #include "scenario.h"
 #include "session.h"
 #include "colorscheme.h"
+#include "voc.h"
 #include "fatal.h"
 #include "vinifera_globals.h"
 #include "vinifera_util.h"
@@ -331,6 +332,137 @@ static void Tactical_Draw_FrameStep_Overlay()
 
 
 /**
+ *  Draw the overlay information text if set.
+ * 
+ *  @author: CCHyper
+ */
+static void Tactical_Draw_Information_Text()
+{
+    RGBClass rgb_black(0,0,0);
+    unsigned color_black = DSurface::RGBA_To_Pixel(0, 0, 0);
+    ColorScheme *text_color = ColorScheme::As_Pointer("White");
+
+    int padding = 2;
+
+    if (!TacticalExtension) {
+        return;
+    }
+
+    const char *text = TacticalExtension->InfoTextBuffer.Peek_Buffer();
+    if (!text) {
+        return;
+    }
+
+    /**
+     * Fetch the text occupy area.
+     */
+    Rect text_rect;
+    GradFont6Ptr->String_Pixel_Rect(text, &text_rect);
+
+    Rect fill_rect;
+
+    TextPrintType style = TacticalExtension->InfoTextStyle;
+    int pos_x = 0;
+    int pos_y = 0;
+
+    switch (TacticalExtension->InfoTextPosition) {
+
+        default:
+        case InfoTextPosType::TOP_LEFT:
+            pos_x = TacticalRect.X;
+            pos_y = TacticalRect.Y;
+            
+            /**
+             *  Move rects into position.
+             */
+            fill_rect.X = pos_x;
+            fill_rect.Y = pos_y;
+            fill_rect.Width = text_rect.Width+(padding+1)+2;
+            fill_rect.Height = text_rect.Height+1;
+
+            text_rect.X = fill_rect.X+2;
+            text_rect.Y = fill_rect.Y;
+            text_rect.Width += padding;
+            text_rect.Height += 3;
+
+            break;
+
+        case InfoTextPosType::TOP_RIGHT:
+            pos_x = TacticalRect.X+TacticalRect.Width-text_rect.Width;
+            pos_y = TacticalRect.Y;
+            
+            /**
+             *  Move rects into position.
+             */
+            fill_rect.X = pos_x-5;
+            fill_rect.Y = pos_y;
+            fill_rect.Width = TacticalRect.X+TacticalRect.Width-text_rect.Width+3;
+            fill_rect.Height = text_rect.Height+1;
+
+            text_rect.X = TacticalRect.X+TacticalRect.Width-2;
+            text_rect.Y = fill_rect.Y;
+            text_rect.Width += padding;
+            text_rect.Height += 3;
+
+            style |= TPF_RIGHT;
+            break;
+
+        case InfoTextPosType::BOTTOM_LEFT:
+            pos_x = 0;
+            pos_y = TacticalRect.Y+TacticalRect.Height-text_rect.Height;
+            
+            /**
+             *  Move rects into position.
+             */
+            fill_rect.X = pos_x;
+            fill_rect.Y = pos_y;
+            fill_rect.Width = text_rect.Width+(padding+1)+2;
+            fill_rect.Height = text_rect.Height+1;
+
+            text_rect.X = fill_rect.X+2;
+            text_rect.Y = fill_rect.Y;
+            text_rect.Width += padding;
+            text_rect.Height += 3;
+
+            break;
+
+        case InfoTextPosType::BOTTOM_RIGHT:
+            pos_x = TacticalRect.X+TacticalRect.Width-text_rect.Width;
+            pos_y = TacticalRect.Y+TacticalRect.Height-text_rect.Height;
+
+            /**
+             *  Move rects into position.
+             */
+            fill_rect.X = pos_x-5;
+            fill_rect.Y = pos_y;
+            fill_rect.Width = TacticalRect.X+TacticalRect.Width-text_rect.Width+3;
+            fill_rect.Height = text_rect.Height+1;
+
+            text_rect.X = TacticalRect.X+TacticalRect.Width-2;
+            text_rect.Y = fill_rect.Y;
+            text_rect.Width += padding;
+            text_rect.Height += 3;
+
+            style |= TPF_RIGHT;
+
+            break;
+
+    };
+
+    /**
+     *  Fill the background area.
+     */
+    CompositeSurface->Fill_Rect_Trans(fill_rect, rgb_black, 50);
+
+    /**
+     *  Draw the overlay text.
+     */
+    Fancy_Text_Print(text, CompositeSurface, &CompositeSurface->Get_Rect(),
+        &Point2D(text_rect.X, text_rect.Y), text_color, COLOR_TBLACK, style);
+}
+
+
+/**
  *  This patch intercepts the end of the rendering process for Tactical.
  * 
  *  @author: CCHyper
@@ -358,6 +490,38 @@ DECLARE_PATCH(_Tactical_Render_Patch)
      */
     Vinifera_Draw_Version_Text(CompositeSurface);
 #endif
+
+    if (TacticalExtension) {
+
+        /**
+         *  Has custom screen text been set?
+         */
+        if (TacticalExtension->IsInfoTextSet) {
+
+            /**
+             *  Draw it to the screen.
+             */
+            Tactical_Draw_Information_Text();
+            
+            /**
+             *  Play the one time notification sound if defined.
+             */
+            if (TacticalExtension->InfoTextNotifySound != VOC_NONE) {
+                Sound_Effect(TacticalExtension->InfoTextNotifySound, TacticalExtension->InfoTextNotifySoundVolume);
+                TacticalExtension->InfoTextNotifySound = VOC_NONE;
+            }
+            
+            /**
+             *  If the screen timer has expired, disable drawing.
+             */
+            if (TacticalExtension->InfoTextTimer.Expired()) {
+                TacticalExtension->InfoTextTimer.Stop();
+                TacticalExtension->IsInfoTextSet = false;
+                TacticalExtension->InfoTextNotifySound = VOC_NONE;
+                TacticalExtension->InfoTextPosition = TOP_LEFT;
+            }       
+        }
+    }
 
     /**
      *  Stolen bytes/code.
