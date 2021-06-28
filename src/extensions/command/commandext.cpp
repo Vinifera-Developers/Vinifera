@@ -32,6 +32,7 @@
 #include "vinifera_globals.h"
 #include "vinifera_util.h"
 #include "iomap.h"
+#include "tactical.h"
 #include "dsurface.h"
 #include "wwmouse.h"
 #include "rules.h"
@@ -2557,3 +2558,66 @@ bool ToggleAIControlCommandClass::Process()
 
     return true;
 }
+
+
+/**
+ *  Cycle the camera between the starting waypoints on the map.
+ * 
+ *  @author: CCHyper
+ */
+const char *StartingWaypointsCommandClass::Get_Name() const
+{
+    return "StartingWaypoints";
+}
+
+const char *StartingWaypointsCommandClass::Get_UI_Name() const
+{
+    return "Cycle Starting Waypoints";
+}
+
+const char *StartingWaypointsCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *StartingWaypointsCommandClass::Get_Description() const
+{
+    return "Cycle the camera between the starting waypoints on the map.";
+}
+
+bool StartingWaypointsCommandClass::Process()
+{
+    if (Session.Type != GAME_SKIRMISH) {
+        return false;
+    }
+
+    /**
+     *  Fetch the next starting waypoint. We clamp to the first 8 waypoints
+     *  as Tiberian Sun only supports these for starting locatons.
+     */
+    static int _current_index = 0;
+    Coordinate wp_coord = Scen->Get_Waypoint_Coord(_current_index++ % 8);
+    if (!wp_coord) {
+        return false;
+    }
+
+    wp_coord.Z = Map.Get_Cell_Height(wp_coord);
+
+    /**
+     *  Center the tactical camera at this waypoint.
+     */
+    TacticalMap->Set_Tactical_Position(wp_coord);
+
+    /**
+     *  Clear any interface actions if they are active.
+     */
+    if (Map.PendingObject) {
+        Map.Set_Cursor_Pos(Cell(0,0));
+    }
+    Map.Follow_This(nullptr);
+
+    Map.Flag_To_Redraw(true);
+
+    return true;
+}
+

@@ -279,6 +279,9 @@ void Init_Vinifera_Commands()
 
         cmdptr = new ToggleAIControlCommandClass;
         Commands.Add(cmdptr);
+
+        cmdptr = new StartingWaypointsCommandClass;
+        Commands.Add(cmdptr);
     }
 
 #ifndef NDEBUG
