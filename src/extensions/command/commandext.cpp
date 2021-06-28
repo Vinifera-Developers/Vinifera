@@ -26,6 +26,7 @@
  *
  ******************************************************************************/
 #include "commandext.h"
+#include "commandext_functions.h"
 #include "tibsun_globals.h"
 #include "tibsun_util.h"
 #include "vinifera_globals.h"
@@ -275,6 +276,72 @@ bool ManualPlaceCommandClass::Process()
      *  Go into placement mode.
      */
     return PlayerPtr->Manual_Place(builder, pending_bptr);
+}
+
+
+/**
+ *  Skip to the previous playable music track.
+ * 
+ *  @author: CCHyper
+ */
+const char *PrevThemeCommandClass::Get_Name() const
+{
+    return "PrevTheme";
+}
+
+const char *PrevThemeCommandClass::Get_UI_Name() const
+{
+    return "Music: Previous Track";
+}
+
+const char *PrevThemeCommandClass::Get_Category() const
+{
+    return Text_String(TXT_INTERFACE);
+}
+
+const char *PrevThemeCommandClass::Get_Description() const
+{
+    return "Play the previous music track in the jukebox.";
+}
+
+bool PrevThemeCommandClass::Process()
+{
+    Prev_Theme_Command();
+
+    return true;
+}
+
+
+/**
+ *  Skip to the next playable music track.
+ * 
+ *  @author: CCHyper
+ */
+const char *NextThemeCommandClass::Get_Name() const
+{
+    return "NextTheme";
+}
+
+const char *NextThemeCommandClass::Get_UI_Name() const
+{
+    return "Music: Next Track";
+}
+
+const char *NextThemeCommandClass::Get_Category() const
+{
+    return Text_String(TXT_INTERFACE);
+}
+
+const char *NextThemeCommandClass::Get_Description() const
+{
+    return "Play the next music track in the jukebox.";
+}
+
+bool NextThemeCommandClass::Process()
+{
+    Next_Theme_Command();
+
+    return true;
 }
 
 

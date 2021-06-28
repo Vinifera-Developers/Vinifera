@@ -141,7 +141,13 @@ void Init_Vinifera_Commands()
 
     cmdptr = new ManualPlaceCommandClass;
     Commands.Add(cmdptr);
-    
+
+    cmdptr = new PrevThemeCommandClass;
+    Commands.Add(cmdptr);
+
+    cmdptr = new NextThemeCommandClass;
+    Commands.Add(cmdptr);
+
     /**
      *  Next, initialised any new commands here if the developer mode is enabled.
      */
@@ -291,6 +297,22 @@ static void Process_Vinifera_Hotkeys()
 
     if (!ini.Is_Present("Hotkey", "ManualPlace")) {
         cmdptr = CommandClass::From_Name("ManualPlace");
+        if (cmdptr) {
+            key = reinterpret_cast<ViniferaCommandClass *>(cmdptr)->Default_Key();
+            HotkeyIndex.Add_Index(key, cmdptr);
+        }
+    }
+
+    if (!ini.Is_Present("Hotkey", "PrevTheme")) {
+        cmdptr = CommandClass::From_Name("PrevTheme");
+        if (cmdptr) {
+            key = reinterpret_cast<ViniferaCommandClass *>(cmdptr)->Default_Key();
+            HotkeyIndex.Add_Index(key, cmdptr);
+        }
+    }
+
+    if (!ini.Is_Present("Hotkey", "NextTheme")) {
+        cmdptr = CommandClass::From_Name("NextTheme");
         if (cmdptr) {
             key = reinterpret_cast<ViniferaCommandClass *>(cmdptr)->Default_Key();
             HotkeyIndex.Add_Index(key, cmdptr);

@@ -94,6 +94,44 @@ class ManualPlaceCommandClass : public ViniferaCommandClass
 
 
 /**
+ *  Skip to the previous playable music track.
+ */
+class PrevThemeCommandClass : public ViniferaCommandClass
+{
+    public:
+        PrevThemeCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        virtual ~PrevThemeCommandClass() {}
+
+        virtual const char *Get_Name() const override;
+        virtual const char *Get_UI_Name() const override;
+        virtual const char *Get_Category() const override;
+        virtual const char *Get_Description() const override;
+        virtual bool Process() override;
+
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_LBRACKET); }
+};
+
+
+/**
+ *  Skip to the next playable music track.
+ */
+class NextThemeCommandClass : public ViniferaCommandClass
+{
+    public:
+        NextThemeCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        virtual ~NextThemeCommandClass() {}
+
+        virtual const char *Get_Name() const override;
+        virtual const char *Get_UI_Name() const override;
+        virtual const char *Get_Category() const override;
+        virtual const char *Get_Description() const override;
+        virtual bool Process() override;
+
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_RBRACKET); }
+};
+
+
+/**
  *  Produces a memory dump on request.
  */
 class MemoryDumpCommandClass : public ViniferaCommandClass
