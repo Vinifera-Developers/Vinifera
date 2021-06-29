@@ -46,3 +46,10 @@ extern bool Vinifera_Developer_ShowCursorPosition;
 extern bool Vinifera_Developer_FrameStep;
 extern int Vinifera_Developer_FrameStepCount;
 extern bool Vinifera_Developer_AIControl;
+
+
+/**
+ *  Various globals.
+ */
+extern bool Vinifera_SkipWWLogoMovie;
+extern bool Vinifera_SkipStartupMovies;
