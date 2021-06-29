@@ -52,7 +52,11 @@ class AnimTypeClassExtension final : public Extension<AnimTypeClass>
         bool Read_INI(CCINIClass &ini);
 
     public:
-
+        /**
+         *  If the cell in which this animation is placed does not contain
+         *  tiberium overlay, then this anim will not be drawn.
+         */
+        bool IsHideIfNotTiberium;
 };
 
 
