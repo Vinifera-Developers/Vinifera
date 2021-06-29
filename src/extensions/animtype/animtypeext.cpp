@@ -44,7 +44,8 @@ ExtensionMap<AnimTypeClass, AnimTypeClassExtension> AnimTypeClassExtensions;
  *  @author: CCHyper
  */
 AnimTypeClassExtension::AnimTypeClassExtension(AnimTypeClass *this_ptr) :
-    Extension(this_ptr)
+    Extension(this_ptr),
+    IsHideIfNotTiberium(false)
 {
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("AnimTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -174,6 +175,8 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     if (!ini.Is_Present(ini_name)) {
         return false;
     }
+
+    IsHideIfNotTiberium = ini.Get_Bool(ini_name, "HideIfNoTiberium", IsHideIfNotTiberium);
     
     return true;
 }
