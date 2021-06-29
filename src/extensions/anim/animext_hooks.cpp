@@ -25,11 +25,12 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "houseext_hooks.h"
+#include "animext_hooks.h"
 #include "tibsun_globals.h"
 #include "tibsun_inline.h"
 #include "anim.h"
 #include "animtype.h"
+#include "animtypeext.h"
 #include "scenario.h"
 #include "fatal.h"
 #include "debughandler.h"
@@ -37,6 +38,56 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  Patch for setting initial anim values in the class constructor.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_AnimClass_Constructor_Init_Class_Values_Patch)
+{
+	GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
+
+	/**
+	 *  Stolen bytes/code.
+	 */
+	this_ptr->IsActive = true;
+
+	/**
+	 *  #BUGFIX:
+	 * 
+	 *  This check was observed in Red Alert 2, so there must be an edge case
+	 *  where anims are created with a null type instance. So lets do that
+	 *  here and also report a warning to the debug log.
+	 */
+	if (!this_ptr->Class) {
+		goto destroy_anim;
+	}
+
+	/**
+	 *  Restore some registers.
+	 */
+	_asm { mov ecx, this_ptr }
+	_asm { mov edx, [ecx+0x64] } // this->Class
+	_asm { mov ecx, edx }
+
+	JMP_REG(edx, 0x00413C80);
+
+	/**
+	 *  Report that the anim type instance was invalid.
+	 */
+destroy_anim:
+	DEBUG_WARNING("Anim: Invalid anim type instance!\n");
+
+	/**
+	 *  Remove the anim from the game world.
+	 */
+	this_ptr->entry_E4();
+	
+	_asm { mov esi, this_ptr }
+	JMP_REG(edx, 0x00414157);
+}
 
 
 /**
@@ -74,4 +125,5 @@ function_return:
 void AnimClassExtension_Hooks()
 {
 	Patch_Jump(0x00415ADA, &_AnimClass_AI_RandomLoop_Randomiser_BugFix_Patch);
+	Patch_Jump(0x00413C79, &_AnimClass_Constructor_Init_Class_Values_Patch);
 }
