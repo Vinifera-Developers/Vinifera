@@ -31,6 +31,7 @@
 #include "anim.h"
 #include "animtype.h"
 #include "animtypeext.h"
+#include "cell.h"
 #include "scenario.h"
 #include "fatal.h"
 #include "debughandler.h"
@@ -38,6 +39,57 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  Patch to intercept the start of the AnimClass::AI function.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_AnimClass_AI_Beginning_Patch)
+{
+	GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
+	static AnimTypeClass *animtype;
+	static AnimTypeClassExtension *animtypeext;
+	static CellClass *cell;
+
+	animtype = this_ptr->Class;
+	animtypeext = AnimTypeClassExtensions.find(animtype);
+
+	/**
+	 *  Stolen bytes/code.
+	 */
+	if (animtype->IsFlamingGuy) {
+		this_ptr->Flaming_Guy_AI();
+		this_ptr->ObjectClass::AI();
+	}
+
+	/**
+	 *  Do we have a valid extension instance?
+	 */
+	if (animtypeext) {
+
+		cell = this_ptr->Get_Cell_Ptr();
+
+		/**
+		 *  #issue-560
+		 * 
+		 *  Implements IsHideIfNotTiberium for Anims.
+		 * 
+		 *  @author: CCHyper
+		 */
+		if (animtypeext->IsHideIfNotTiberium) {
+
+			if (!cell || !cell->Get_Tiberium_Value()) {
+				this_ptr->IsInvisible = true;
+			}
+
+		}
+
+	}
+
+	JMP_REG(edx, 0x00414EAA);
+}
 
 
 /**
@@ -126,4 +178,5 @@ void AnimClassExtension_Hooks()
 {
 	Patch_Jump(0x00415ADA, &_AnimClass_AI_RandomLoop_Randomiser_BugFix_Patch);
 	Patch_Jump(0x00413C79, &_AnimClass_Constructor_Init_Class_Values_Patch);
+	Patch_Jump(0x00414E8F, &_AnimClass_AI_Beginning_Patch);
 }
