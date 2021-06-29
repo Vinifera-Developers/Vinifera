@@ -32,6 +32,7 @@
 /**
  *  Extended classes here.
  */
+#include "initext_hooks.h"
 #include "mainloopext_hooks.h"
 
 #include "tacticalext_hooks.h"
@@ -97,6 +98,7 @@ void Extension_Hooks()
     /**
      *  Various functions.
      */
+    GameInit_Hooks();
     MainLoop_Hooks();
 
     /**
