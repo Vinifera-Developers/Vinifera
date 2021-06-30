@@ -104,6 +104,12 @@ AnimTypeClassExtension final : public ObjectTypeClassExtension
         int NumberOfParticles;
 
         /**
+         *  The sound effect to play when this anim has finished.
+         */
+        VocType StopSound;
+};
+
+        /**
          *  The coordinate offset of the spawned particle.
          */
         Point3D ParticleSpawnOffset;

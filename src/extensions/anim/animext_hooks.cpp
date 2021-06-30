@@ -41,6 +41,7 @@
 #include "cell.h"
 #include "rules.h"
 #include "scenario.h"
+#include "voc.h"
 #include "extension.h"
 #include "fatal.h"
 #include "debughandler.h"
@@ -57,6 +58,55 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-475
+ * 
+ *  Implements StopSound for AnimTypes.
+ * 
+ *  @author: CCHyper
+ */
+static void Sound_Effect_At_Object(VocType sound, ObjectClass *object)
+{
+	Sound_Effect(sound, object->Center_Coord());
+}
+
+DECLARE_PATCH(_AnimClass_Remove_This_StopSound_Patch)
+{
+	GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
+	static AnimTypeClass *animtype;
+	static AnimTypeClassExtension *animtypeext;
+
+	animtype = this_ptr->Class;
+
+	animtypeext = AnimTypeClassExtensions.find(animtype);
+	if (animtypeext) {
+
+		/**
+		 *  Has the animation finished playing? StopSound should only
+		 *  be played if the animation was able to complete.
+		 */
+		if (!this_ptr->IsPlaying) {
+
+			/**
+			 *  Play the StopSound if one has been defined.
+			 */
+			if (animtypeext->StopSound != VOC_NONE) {
+				Sound_Effect_At_Object(animtypeext->StopSound, this_ptr);
+			}
+
+		}
+
+	}
+
+	/**
+	 *  Stolen bytes/code.
+	 */
+	this_ptr->ObjectClass::entry_E4();
+
+	JMP_REG(ecx, 0x004167D1);
+}
 
 
 /**
@@ -762,4 +812,5 @@ void AnimClassExtension_Hooks()
     Patch_Jump(0x00414E80, &AnimClassExt::_AI);
     Patch_Jump(0x00415D60, &AnimClassExt::_Start);
     Patch_Jump(0x00415F40, &AnimClassExt::_Middle);
+	Patch_Jump(0x004167CA, &_AnimClass_Remove_This_StopSound_Patch);
 }
