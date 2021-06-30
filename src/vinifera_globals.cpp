@@ -45,3 +45,11 @@ bool Vinifera_Developer_AIControl = false;
 
 bool Vinifera_SkipWWLogoMovie = false;
 bool Vinifera_SkipStartupMovies = false;
+
+bool Vinifera_SkipToTSMenu = false;
+bool Vinifera_SkipToFSMenu = false;
+bool Vinifera_SkipToLAN = false;
+bool Vinifera_SkipToSkirmish = false;
+bool Vinifera_SkipToCampaign = false;
+bool Vinifera_SkipToInternet = false;
+bool Vinifera_ExitAfterSkip = false;

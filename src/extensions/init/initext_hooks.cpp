@@ -74,9 +74,9 @@ DECLARE_PATCH(_Init_Game_Skip_Startup_Movies_Patch)
 
     if (!NewMenuClass::Get()) {
         if (CCFile_Is_Available("FS_TITLE.VQA")) {
-            Play_Movie("FS_TITLE.VQA", THEME_NONE, true, true, true);
+            Play_Movie("FS_TITLE.VQA", THEME_NONE, true, false, true);
         } else {
-            Play_Movie("STARTUP.VQA", THEME_NONE, true, true, true);
+            Play_Movie("STARTUP.VQA", THEME_NONE, true, false, true);
         }
     }
 

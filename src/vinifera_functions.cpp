@@ -46,6 +46,8 @@ bool Vinifera_Parse_Command_Line(int argc, char *argv[])
         DEBUG_INFO("Parsing command line arguments...\n");
     }
 
+    bool menu_skip = false;
+
     /**
      *  Iterate over all command line params.
      */
@@ -89,11 +91,92 @@ bool Vinifera_Parse_Command_Line(int argc, char *argv[])
             continue;
         }
 
+        /**
+         *  Skip directly to Tiberian Sun menu.
+         */
+        if (stricmp(string, "-SKIP_TO_TS_MENU") == 0) {
+            DEBUG_INFO("  - Skipping to Tiberian Sun menu.\n");
+            Vinifera_SkipToTSMenu = true;
+            menu_skip = true;
+            continue;
+        }
+
+        /**
+         *  Skip directly to Firestorm menu.
+         */
+        if (stricmp(string, "-SKIP_TO_FS_MENU") == 0) {
+            DEBUG_INFO("  - Skipping to Firestorm menu.\n");
+            Vinifera_SkipToFSMenu = true;
+            menu_skip = true;
+            continue;
+        }
+
+        /**
+         *  Skip directly to a specific game mode dialog.
+         */
+        if (stricmp(string, "-SKIP_TO_LAN") == 0) {
+            DEBUG_INFO("  - Skipping to LAN dialog.\n");
+            Vinifera_SkipToLAN = true;
+            menu_skip = true;
+            continue;
+        }
+
+        if (stricmp(string, "-SKIP_TO_CAMPAIGN") == 0) {
+            DEBUG_INFO("  - Skipping to campaign dialog.\n");
+            Vinifera_SkipToCampaign = true;
+            menu_skip = true;
+            continue;
+        }
+
+        if (stricmp(string, "-SKIP_TO_SKIRMISH") == 0) {
+            DEBUG_INFO("  - Skipping to skirmish dialog.\n");
+            Vinifera_SkipToSkirmish = true;
+            menu_skip = true;
+            continue;
+        }
+
+        if (stricmp(string, "-SKIP_TO_INTERNET") == 0) {
+            DEBUG_INFO("  - Skipping to internet dialog.\n");
+            Vinifera_SkipToInternet = true;
+            menu_skip = true;
+            continue;
+        }
+
+        /**
+         *  Exit the game after the dialog we skipped to has been canceled?
+         */
+        if (stricmp(string, "-EXIT_AFTER_SKIP") == 0) {
+            DEBUG_INFO("  - Skipping to Firestorm menu.\n");
+            Vinifera_ExitAfterSkip = true;
+            menu_skip = true;
+            continue;
+        }
+
     }
 
     if (argc > 1) {
         DEBUG_INFO("Finished parsing command line arguments.\n");
     }
+
+    /**
+     *  Firestorm has priority over Tiberian Sun.
+     */
+    if (Vinifera_SkipToTSMenu && Vinifera_SkipToFSMenu) {
+        Vinifera_SkipToTSMenu = false;
+    }
+
+    /**
+     *  If any of the menu skip commands have been set then
+     *  we also need to skip the startup movies.
+     */
+    if (menu_skip) {
+        Vinifera_SkipStartupMovies = true;
+    }
+
+
+
+    Vinifera_SkipToFSMenu = true;
+    Vinifera_SkipToSkirmish = true;
 
     return true;
 }
