@@ -34,6 +34,7 @@
  */
 #include "initext_hooks.h"
 #include "mainloopext_hooks.h"
+#include "newmenuext_hooks.h"
 
 #include "tacticalext_hooks.h"
 #include "scenarioext_hooks.h"
@@ -100,6 +101,7 @@ void Extension_Hooks()
      */
     GameInit_Hooks();
     MainLoop_Hooks();
+    NewMenuExtension_Hooks();
 
     /**
      *  All class extensions here.
