@@ -94,6 +94,7 @@
 #include "terrainext_hooks.h"
 #include "superext_hooks.h"
 #include "particlesysext_hooks.h"
+#include "voxelanimext_hooks.h"
 
 #include "combatext_hooks.h"
 
@@ -212,6 +213,7 @@ void Extension_Hooks()
     TerrainClassExtension_Hooks();
     SuperClassExtension_Hooks();
     ParticleSystemClassExtension_Hooks();
+    VoxelAnimClassExtension_Hooks();
 
     CombatExtension_Hooks();
 
