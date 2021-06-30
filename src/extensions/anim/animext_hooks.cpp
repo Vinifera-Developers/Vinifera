@@ -40,12 +40,62 @@
 #include "cell.h"
 #include "rules.h"
 #include "scenario.h"
+#include "voc.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-475
+ * 
+ *  Implements StopSound for AnimTypes.
+ * 
+ *  @author: CCHyper
+ */
+static void Sound_Effect_At_Object(VocType sound, ObjectClass *object)
+{
+	Sound_Effect(sound, object->Center_Coord());
+}
+
+DECLARE_PATCH(_AnimClass_Remove_This_StopSound_Patch)
+{
+	GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
+	static AnimTypeClass *animtype;
+	static AnimTypeClassExtension *animtypeext;
+
+	animtype = this_ptr->Class;
+
+	animtypeext = AnimTypeClassExtensions.find(animtype);
+	if (animtypeext) {
+
+		/**
+		 *  Has the animation finished playing? StopSound should only
+		 *  be played if the animation was able to complete.
+		 */
+		if (!this_ptr->IsPlaying) {
+
+			/**
+			 *  Play the StopSound if one has been defined.
+			 */
+			if (animtypeext->StopSound != VOC_NONE) {
+				Sound_Effect_At_Object(animtypeext->StopSound, this_ptr);
+			}
+
+		}
+
+	}
+
+	/**
+	 *  Stolen bytes/code.
+	 */
+	this_ptr->ObjectClass::entry_E4();
+
+	JMP_REG(ecx, 0x004167D1);
+}
 
 
 /**
@@ -366,21 +416,21 @@ destroy_anim:
  */
 DECLARE_PATCH(_AnimClass_AI_RandomLoop_Randomiser_BugFix_Patch)
 {
-    GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
-    static AnimTypeClass *animtype;
+	GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
+	static AnimTypeClass *animtype;
 
-    animtype = reinterpret_cast<AnimTypeClass *>(this_ptr->Class_Of());
+	animtype = reinterpret_cast<AnimTypeClass *>(this_ptr->Class_Of());
 
-    /**
-     *  Generate a random delay using the network synchronized RNG.
-     */
-    this_ptr->Delay = Random_Pick(animtype->RandomLoopDelayMin, animtype->RandomLoopDelayMax);
+	/**
+	 *  Generate a random delay using the network synchronized RNG.
+	 */
+	this_ptr->Delay = Random_Pick(animtype->RandomLoopDelayMin, animtype->RandomLoopDelayMax);
 
-    /**
-     *  Return from the function.
-     */
+	/**
+	 *  Return from the function.
+	 */
 function_return:
-    JMP(0x00415AF2);
+	JMP(0x00415AF2);
 }
 
 
@@ -401,4 +451,5 @@ void AnimClassExtension_Hooks()
     Patch_Jump(0x0041606C, &_AnimClass_Middle_SpawnParticle_Patch);
     Patch_Jump(0x00415D30, &AnimClassFake::_In_Which_Layer);
     Patch_Jump(0x00413D3E, &_AnimClass_Constructor_Layer_Set_Z_Height_Patch);
+	Patch_Jump(0x004167CA, &_AnimClass_Remove_This_StopSound_Patch);
 }
