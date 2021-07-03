@@ -958,7 +958,13 @@ void Vinifera_Create_Units(bool official)
 
         //DEBUG_INFO("  budget == %d\n", budget);
 
-        if (budget > 0) {
+        /**
+         *  #BUGFIX:
+         *  Make sure there are units available to place before entering the loop.
+         */
+        bool units_available = tot_count > 0;
+
+        if (units_available && budget > 0) {
 
             /**
              *  Calculate the cost cap for units.
