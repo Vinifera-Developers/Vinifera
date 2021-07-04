@@ -36,6 +36,7 @@
 #include "ccini.h"
 #include "cd.h"
 #include "ebolt.h"
+#include "optionsext.h"
 #include "tclassfactory.h"
 #include "testlocomotion.h"
 #include "debughandler.h"
@@ -284,6 +285,12 @@ bool Vinifera_Startup()
  */
 bool Vinifera_Shutdown()
 {
+	/**
+	 *  Delete static class extensions.
+	 */
+	delete OptionsExtension;
+	OptionsExtension = nullptr;
+
     /**
      *  Cleanup mixfiles.
      */
