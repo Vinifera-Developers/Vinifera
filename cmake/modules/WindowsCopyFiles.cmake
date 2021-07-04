@@ -30,6 +30,7 @@ function(PostBuild_WindowsCopyFiles TARGET SOURCE_DIR DEST_DIR)
     add_custom_command(TARGET ${TARGET} POST_BUILD
 #       COMMAND ${CMAKE_COMMAND} -E make_directory ${DEST_DIR}
         COMMAND robocopy ${SOURCE_DIR} ${DEST_DIR} ${ARGN} /NJH /NJS /NDL /NFL /NC /NS || cmd /c "exit /b 0"
+		COMMENT "Copying ${ARGN} from ${SOURCE_DIR} to ${DEST_DIR}"
     )
 	
 #	message(STATUS "Created post build script to copy files")
@@ -51,6 +52,7 @@ function(PreBuild_WindowsCopyFiles TARGET SOURCE_DIR DEST_DIR)
     add_custom_command(TARGET ${TARGET} PRE_BUILD
 #       COMMAND ${CMAKE_COMMAND} -E make_directory ${DEST_DIR}
         COMMAND robocopy ${SOURCE_DIR} ${DEST_DIR} ${ARGN} /NJH /NJS /NDL /NFL /NC /NS || cmd /c "exit /b 0"
+		COMMENT "Copying ${ARGN} from ${SOURCE_DIR} to ${DEST_DIR}"
     )
 	
 #	message(STATUS "Created post build script to copy files")
