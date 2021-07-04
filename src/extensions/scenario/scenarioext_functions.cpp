@@ -545,6 +545,68 @@ static int Scan_Place_Object(ObjectClass *obj, Cell cell, int min_dist = 1)
 
 
 /**
+ *  Checks if the cell adjacent from the input cell is occupied.
+ * 
+ *  @author: CCHyper
+ */
+static bool Is_Adjacent_Cell_Empty(Cell cell, FacingType facing, int dist)
+{
+    Cell newcell;
+    TechnoClass *techno;
+
+    /**
+     *  Pick a coordinate along this directional axis
+     */
+    newcell = Clip_Move(cell, facing, dist);
+
+    /**
+     *  Is there already an object on this cell?
+     */
+    techno = Map[newcell].Cell_Techno();
+    if (techno) {
+        return false;
+    }
+
+    return true;
+}
+
+
+/**
+ *  Places an object >at< the given cell.
+ * 
+ *  @author: CCHyper
+ * 
+ *  #issue-338 - Adds "min_dist" argument.
+ */
+static bool Place_Object(ObjectClass *obj, Cell cell, FacingType facing, int dist)
+{
+    Cell newcell;
+    TechnoClass *techno;
+
+    /**
+     *  Pick a coordinate along this directional axis
+     */
+    newcell = Clip_Move(cell, facing, dist);
+
+    /**
+     *  Try to unlimbo the object in the given cell.
+     */
+    if (Map.In_Radar(newcell)) {
+        techno = Map[newcell].Cell_Techno();
+        if (!techno) {
+            Coordinate coord = Cell_Coord(newcell, true);
+            coord.Z = Map.Get_Cell_Height(coord);
+            if (obj->Unlimbo(coord, DIR_N)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+
+/**
  *  Build a list of valid multiplayer starting waypoints.
  * 
  *  @author: CCHyper
@@ -964,90 +1026,144 @@ void Vinifera_Create_Units(bool official)
          */
         bool units_available = tot_count > 0;
 
-        if (units_available && budget > 0) {
-
-            /**
-             *  Calculate the cost cap for units.
-             */
-            int unit_cost_cap = 2 * budget / 3;
-
-            /**
-             *  Place starting units for this house.
-             */
-            int i = 0;
-            while (i < budget) {
-
-                TechnoTypeClass *technotype = nullptr;
-
-                if (i < unit_cost_cap && available_units.Count() > 0) {
-                    technotype = available_units[Random_Pick(0, available_units.Count()-1)];
-                } else if (available_infantry.Count() > 0) {
-                    technotype = available_infantry[Random_Pick(0, available_infantry.Count()-1)];
-                }
-
-                if (!technotype) {
-                    DEBUG_WARNING("  Invalid techno pointer!\n");
-                    continue;
-                }
+        if (units_available) {
+            
+            if (budget > 0) {
 
                 /**
-                 *  Create an instance of the unit.
+                 *  Calculate the cost cap for units.
                  */
-                obj = reinterpret_cast<TechnoClass *>(technotype->Create_One_Of(hptr));
-                if (obj) {
+                int unit_cost_cap = 2 * budget / 3;
 
-                    if (Scan_Place_Object(obj, centroid, PLACEMENT_DISTANCE)) {
+                /**
+                 *  Place starting units for this house.
+                 */
+                int i = 0;
+                while (i < budget) {
 
-                        DEBUG_INFO("  House %s deployed object %s at %d,%d\n",
-                            hptr->Class->Name(), obj->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
+                    TechnoTypeClass *technotype = nullptr;
 
-                        i += technotype->Raw_Cost();
+                    if (i < unit_cost_cap && available_units.Count() > 0) {
+                        technotype = available_units[Random_Pick(0, available_units.Count()-1)];
+                    } else if (available_infantry.Count() > 0) {
+                        technotype = available_infantry[Random_Pick(0, available_infantry.Count()-1)];
+                    }
 
-                        if (Scen->SpecialFlags.InitialVeteran) {
-                            obj->Veterancy.Set_Elite(true);
+                    if (!technotype) {
+                        DEBUG_WARNING("  Invalid techno pointer!\n");
+                        continue;
+                    }
+
+                    /**
+                     *  Create an instance of the unit.
+                     */
+                    obj = reinterpret_cast<TechnoClass *>(technotype->Create_One_Of(hptr));
+                    if (obj) {
+
+                        if (Scan_Place_Object(obj, centroid, PLACEMENT_DISTANCE)) {
+
+                            DEBUG_INFO("  House %s deployed object %s at %d,%d\n",
+                                hptr->Class->Name(), obj->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
+
+                            i += technotype->Raw_Cost();
+
+                            if (Scen->SpecialFlags.InitialVeteran) {
+                                obj->Veterancy.Set_Elite(true);
+                            }
+
+                            if (hptr->Is_Human_Control()) {
+                                obj->Set_Mission(MISSION_GUARD);
+                            } else {
+                                obj->Set_Mission(MISSION_GUARD_AREA);
+                            }
+
+                            /**
+                             *  Add to the list of objects successfully deployed.
+                             */
+                            //deployed_objects.Add(obj);
+
+                        } else if (obj) {
+                            delete obj;
                         }
 
-                        if (hptr->Is_Human_Control()) {
-                            obj->Set_Mission(MISSION_GUARD);
-                        } else {
-                            obj->Set_Mission(MISSION_GUARD_AREA);
+                    }
+
+                    /**
+                     *  #issue-338
+                     * 
+                     *  Change the starting unit formation to be like Red Alert 2.
+                     *  As a result, this is no longer required as the units are
+                     *  now placed neatly around the base unit.
+                     * 
+                     *  @author: CCHyper
+                     */
+#if 0
+                    /**
+                     *  Scatter all the human placed objects to create
+                     *  some space around the base unit.
+                     */
+                    if (hptr->Is_Human_Control()) {
+                        for (int i = 0; i < deployed_objects.Count(); ++i) {
+                            TechnoClass *techno = deployed_objects[i];
+                            if (techno) {
+                                techno->Scatter();
+                            }
+                        }
+                    }
+#endif
+                }
+
+            }
+
+            /**
+             *  #BUGFIX:
+             * 
+             *  Due to the costings of the starting units in Tiberian Sun, sometimes
+             *  there was a deficiency in the equal placement of units in the radius
+             *  around the starting unit. This code makes sure there are no blank
+             *  spaces around the base unit and that all players get 9 units.
+             */
+            if (Session.Options.UnitCount == 10) {
+                for (FacingType facing = FACING_FIRST; facing < FACING_COUNT; ++facing) {
+                    if (Is_Adjacent_Cell_Empty(centroid, facing, PLACEMENT_DISTANCE)) {
+
+                        TechnoTypeClass *technotype = nullptr;
+
+                        /**
+                         *  Very rarely should another unit be placed, the algorithm
+                         *  above places a fair amount already...
+                         */
+                        if (Percent_Chance(25)) {
+                            technotype = available_units[Random_Pick(0, available_units.Count()-1)];
+                        } else if (available_infantry.Count() > 0) {
+                            technotype = available_infantry[Random_Pick(0, available_infantry.Count()-1)];
                         }
 
                         /**
-                         *  Add to the list of objects successfully deployed.
+                         *  Create an instance of the unit.
                          */
-                        //deployed_objects.Add(obj);
+                        obj = reinterpret_cast<TechnoClass *>(technotype->Create_One_Of(hptr));
+                        if (obj) {
+                            if (Place_Object(obj, centroid, facing, PLACEMENT_DISTANCE)) {
+                                DEBUG_WARNING("  House %s deployed deficiency object %s at %d,%d\n",
+                                    hptr->Class->Name(), obj->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
 
-                    } else if (obj) {
-                        delete obj;
-                    }
+                                if (Scen->SpecialFlags.InitialVeteran) {
+                                    obj->Veterancy.Set_Elite(true);
+                                }
 
-                }
+                                if (hptr->Is_Human_Control()) {
+                                    obj->Set_Mission(MISSION_GUARD);
+                                } else {
+                                    obj->Set_Mission(MISSION_GUARD_AREA);
+                                }
 
-                /**
-                 *  #issue-338
-                 * 
-                 *  Change the starting unit formation to be like Red Alert 2.
-                 *  As a result, this is no longer required as the units are
-                 *  now placed neatly around the base unit.
-                 * 
-                 *  @author: CCHyper
-                 */
-#if 0
-                /**
-                 *  Scatter all the human placed objects to create
-                 *  some space around the base unit.
-                 */
-                if (hptr->Is_Human_Control()) {
-                    for (int i = 0; i < deployed_objects.Count(); ++i) {
-                        TechnoClass *techno = deployed_objects[i];
-                        if (techno) {
-                            techno->Scatter();
+                            } else if (obj) {
+                                delete obj;
+                            }
                         }
                     }
                 }
-#endif
-
             }
 
         }
