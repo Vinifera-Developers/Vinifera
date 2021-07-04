@@ -49,6 +49,7 @@ jobs:
           cp ./build/Vinifera.dll ./artifact/Vinifera.dll
           cp ./build/Vinifera.pdb ./artifact/Vinifera.pdb
           cp ./build/LaunchVinifera.exe ./artifact/LaunchVinifera.exe
+          cp ./build/_deps/tspp-src/pdb/Game.pdb ./artifact/Game.pdb
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
