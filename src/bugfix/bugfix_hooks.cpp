@@ -699,33 +699,10 @@ static void _Intro_Movie_Patches()
 
 
 /**
- *  #issue-244
- * 
- *  Changes the default value of "AllowHiResModes" to "true".
- * 
- *  #NOTE: This should be moved to the OptionsClass extension when implemented!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_OptionsClass_Constructor_AllowHiResModes_Default_Patch)
-{
-    _asm { mov [eax+25h], 1 }
-    _asm { ret }
-}
-
-static void _AllowHiResModes_Default_Patch()
-{
-    //Patch_Byte(0x005899D6+1, 0x50); // "cl" (zero) to "dl" (1)
-    Patch_Jump(0x00589A12, &_OptionsClass_Constructor_AllowHiResModes_Default_Patch);
-}
-
-
-/**
  *  Main function for patching the hooks.
  */
 void BugFix_Hooks()
 {
-    _AllowHiResModes_Default_Patch();
     _Intro_Movie_Patches();
     _Show_Load_Game_On_Mission_Failure();
     _Dont_Stretch_Main_Menu_Video_Patch();

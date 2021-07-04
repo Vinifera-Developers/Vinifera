@@ -99,6 +99,16 @@ DECLARE_PATCH(_OptionsClass_Constructor_Patch)
      *  Stolen bytes here.
      */
 original_code:
+
+    /**
+     *  #issue-244
+     * 
+     *  Changes the default value of "AllowHiResModes" to "true".
+     * 
+     *  @author: CCHyper
+     */
+    this_ptr->AllowHiResModes = true;
+
     _asm { ret }
 }
 
