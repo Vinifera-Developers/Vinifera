@@ -219,6 +219,7 @@ endif()
 set(PROJECT_DLL "${PROJECT_NAME}.dll")
 set(UNSUPPORTED_TARGET_ERROR "(Only TS203EN and Freeware-TS is currently supported)")
 set(TARGET_EXE "GAME.EXE") # Define the EXE to launch.
+set(TARGET_PDB "GAME.PDB") # Define the PDB for the target.
 set(TARGET_NAME "Tiberian Sun")
 
 # Standard TS203EN 'GAME.EXE'.
@@ -401,17 +402,29 @@ if(NOT ${OPTION_CUSTOM_DEBUGGER_DIRECTORY_PATH} STREQUAL " ")
 #		message(STATUS "Custom VS_DEBUGGER_WORKING_DIRECTORY set to '${OPTION_CUSTOM_DEBUGGER_DIRECTORY_PATH}'")
 endif()
 
+# Set input and output paths.
+set(PDB_COPY_SOURCE_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/_deps/tspp-src/pdb/)
+set(PDB_COPY_DESTINATION_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>/)
+
+# Create post build script to copy the Target Fake PDB to the build output directory.
+include(WindowsCopyFiles)
+PostBuild_WindowsCopyFiles(${PROJECT_NAME}
+	${PDB_COPY_SOURCE_PATH}
+	${PDB_COPY_DESTINATION_PATH}
+	"${TARGET_PDB}"
+)
+
 # Create post build script to copy the DLL to the custom debugger directory.
 if(NOT ${OPTION_CUSTOM_DEBUGGER_DIRECTORY_PATH} STREQUAL " ")
 
 	# Set input and output paths.
-	set(COPY_SOURCE_FILE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>/)
+	set(COPY_SOURCE_FILE_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>/)
 	set(COPY_DESTINATION_PATH ${OPTION_CUSTOM_DEBUGGER_DIRECTORY_PATH})
 
 	# Create the post build script.
 	include(WindowsCopyFiles)
 	PostBuild_WindowsCopyFiles(${PROJECT_NAME}
-		${COPY_SOURCE_FILE}
+		${COPY_SOURCE_FILE_PATH}
 		${COPY_DESTINATION_PATH}
 		"${PROJECT_NAME}.dll"
 	)
@@ -419,11 +432,20 @@ if(NOT ${OPTION_CUSTOM_DEBUGGER_DIRECTORY_PATH} STREQUAL " ")
 	# Create the post build script.
 	include(WindowsCopyFiles)
 	PostBuild_WindowsCopyFiles(${PROJECT_NAME}
-		${COPY_SOURCE_FILE}
+		${COPY_SOURCE_FILE_PATH}
 		${COPY_DESTINATION_PATH}
 		"${PROJECT_NAME}.pdb"
 	)
+	
+	# Create the post build script.
+	include(WindowsCopyFiles)
+	PostBuild_WindowsCopyFiles(${PROJECT_NAME}
+		${COPY_SOURCE_FILE_PATH}
+		${COPY_DESTINATION_PATH}
+		"${TARGET_PDB}"
+	)
 endif()
+
 
 # Set the custom project name.
 set_target_properties("${PROJECT_NAME}" PROPERTIES PROJECT_LABEL "${PROJECT_NAME}")
@@ -434,6 +456,7 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC VINIFERA_TARGET_NAME="${TARGET
 target_compile_definitions(${PROJECT_NAME} PUBLIC VINIFERA_UNSUPPORTED_TARGET_ERROR="${UNSUPPORTED_TARGET_ERROR}")
 target_compile_definitions(${PROJECT_NAME} PUBLIC VINIFERA_DLL="${PROJECT_DLL}")
 target_compile_definitions(${PROJECT_NAME} PUBLIC VINIFERA_TARGET_EXE="${TARGET_EXE}")
+target_compile_definitions(${PROJECT_NAME} PUBLIC VINIFERA_TARGET_PDB="${TARGET_PDB}")
 target_compile_definitions(${PROJECT_NAME} PUBLIC VINIFERA_TARGET_SIZE=${TARGET_SIZE})
 target_compile_definitions(${PROJECT_NAME} PUBLIC VINIFERA_TARGET_HASH="${TARGET_HASH}")
 

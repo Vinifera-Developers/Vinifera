@@ -81,6 +81,7 @@ char *DLLName = "@PROJECT_DLL@";
  *  The target DLL debug database file.
  */
 char *PDBName = "@PROJECT_NAME@.pdb";
+char *EXEPDBName = "@TARGET_PDB@";
 
 
 static STARTUPINFOA StartupInfo = {0};
@@ -468,6 +469,22 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 		MessageBox(NULL, buff, "Error!", MB_OK|MB_ICONEXCLAMATION);
 		return EXIT_FAILURE;
 	}
+	
+	/**
+	 *  Check the fake GAME.EXE PDB exists before we attempt injection, this is
+	 *  required to ensure the debug systems output the correct information.
+	 */
+    if (!File_Exists(EXEPDBName)) {
+		char buff[1024];
+		std::snprintf(buff, sizeof(buff),
+            "Unable to find %s !\n\n"
+            "Please check you have the correct version of " PROJECT_NAME " installed\n"
+			"or reinstall the latest version.\n",
+			EXEPDBName
+		);
+		MessageBoxA(NULL, buff, "Error!", MB_OK|MB_ICONEXCLAMATION);
+        return EXIT_FAILURE;
+    }
 
 	if (!Inject_Loader(EXEName, DLLName, Make_Args(lpCmdLine))) {
 		MessageBoxA(NULL, "Injection failed!", "Error!", MB_OK|MB_ICONEXCLAMATION);
