@@ -156,6 +156,15 @@ bool __cdecl Init_Symbol_Info()
 #ifndef NDEBUG
         dwOptions |= SYMOPT_DEBUG; // Enables debugger output of PDB loading.
 #endif
+
+        /**
+         *  Removes "Cannot find matching symbol files" error and prevents any validation of a .PDB file.
+         * 
+         *  Source:
+         *  https://web.archive.org/web/20190802055718/http://ntcoder.com/bab/2012/03/06/how-to-force-symbol-loading-in-windbg/
+         */
+        dwOptions |= SYMOPT_LOAD_ANYTHING;
+
         SymSetOptionsPtr(dwOptions);
 
         SymbolProcess = GetCurrentProcess();
