@@ -395,10 +395,10 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
 
     Exception_Printf("\r\n");
 
-    Exception_Printf("New Count: %s\r\n", Vinifera_New_Count);
-    Exception_Printf("Delete Count: %s\r\n", Vinifera_Delete_Count);
+    //Exception_Printf("New Count: %s\r\n", Vinifera_New_Count);
+    //Exception_Printf("Delete Count: %s\r\n", Vinifera_Delete_Count);
 
-    Exception_Printf("\r\n");
+    //Exception_Printf("\r\n");
 
     /**
      *  Log System information.
@@ -559,6 +559,11 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
         }
 
         /**
+         *  Removed, no longer needed as we ship a fake PDB for GAME.EXE that contains
+         *  most of the addresses for the original game.
+         */
+#if 0
+        /**
          *  Super kludge for catching target binary addresses!
          */
         if ((uintptr_t)*address >= (uintptr_t)0x00401000 && (uintptr_t)*address < (uintptr_t)0x006CA000) {
@@ -566,6 +571,7 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
             ++address;
             continue;
         }
+#endif
 
         /**
          *  Looks like a good address, try and find the debug symbol name for it.
