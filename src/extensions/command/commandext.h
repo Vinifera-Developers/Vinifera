@@ -132,6 +132,82 @@ class NextThemeCommandClass : public ViniferaCommandClass
 
 
 /**
+ *  Scroll tactical map to the north-east.
+ */
+class ScrollNECommandClass : public ViniferaCommandClass
+{
+    public:
+        ScrollNECommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        virtual ~ScrollNECommandClass() {}
+
+        virtual const char *Get_Name() const override;
+        virtual const char *Get_UI_Name() const override;
+        virtual const char *Get_Category() const override;
+        virtual const char *Get_Description() const override;
+        virtual bool Process() override;
+
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+};
+
+
+/**
+ *  Scroll tactical map to the south-east.
+ */
+class ScrollSECommandClass : public ViniferaCommandClass
+{
+    public:
+        ScrollSECommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        virtual ~ScrollSECommandClass() {}
+
+        virtual const char *Get_Name() const override;
+        virtual const char *Get_UI_Name() const override;
+        virtual const char *Get_Category() const override;
+        virtual const char *Get_Description() const override;
+        virtual bool Process() override;
+
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+};
+
+
+/**
+ *  Scroll tactical map to the south-west.
+ */
+class ScrollSWCommandClass : public ViniferaCommandClass
+{
+    public:
+        ScrollSWCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        virtual ~ScrollSWCommandClass() {}
+
+        virtual const char *Get_Name() const override;
+        virtual const char *Get_UI_Name() const override;
+        virtual const char *Get_Category() const override;
+        virtual const char *Get_Description() const override;
+        virtual bool Process() override;
+
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+};
+
+
+/**
+ *  Scroll tactical map to the north-west.
+ */
+class ScrollNWCommandClass : public ViniferaCommandClass
+{
+    public:
+        ScrollNWCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        virtual ~ScrollNWCommandClass() {}
+
+        virtual const char *Get_Name() const override;
+        virtual const char *Get_UI_Name() const override;
+        virtual const char *Get_Category() const override;
+        virtual const char *Get_Description() const override;
+        virtual bool Process() override;
+
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+};
+
+
+/**
  *  Produces a memory dump on request.
  */
 class MemoryDumpCommandClass : public ViniferaCommandClass

@@ -148,6 +148,18 @@ void Init_Vinifera_Commands()
     cmdptr = new NextThemeCommandClass;
     Commands.Add(cmdptr);
 
+    cmdptr = new ScrollNECommandClass;
+    Commands.Add(cmdptr);
+
+    cmdptr = new ScrollSECommandClass;
+    Commands.Add(cmdptr);
+
+    cmdptr = new ScrollSWCommandClass;
+    Commands.Add(cmdptr);
+
+    cmdptr = new ScrollNWCommandClass;
+    Commands.Add(cmdptr);
+
     /**
      *  Next, initialised any new commands here if the developer mode is enabled.
      */

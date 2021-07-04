@@ -346,6 +346,146 @@ bool NextThemeCommandClass::Process()
 
 
 /**
+ *  Scroll tactical map to the north-east.
+ * 
+ *  @author: CCHyper
+ */
+const char *ScrollNECommandClass::Get_Name() const
+{
+    return "ScrollNorthEast";
+}
+
+const char *ScrollNECommandClass::Get_UI_Name() const
+{
+    return "Scroll North-East";
+}
+
+const char *ScrollNECommandClass::Get_Category() const
+{
+    return Text_String(TXT_INTERFACE);
+}
+
+const char *ScrollNECommandClass::Get_Description() const
+{
+    return "Scroll tactical map to the north-east.";
+}
+
+bool ScrollNECommandClass::Process()
+{
+    int dist = 34;
+
+    Map.Scroll_Map(FACING_NE, dist);
+
+    return true;
+}
+
+
+/**
+ *  Scroll tactical map to the south-east.
+ * 
+ *  @author: CCHyper
+ */
+const char *ScrollSECommandClass::Get_Name() const
+{
+    return "ScrollSouthEast";
+}
+
+const char *ScrollSECommandClass::Get_UI_Name() const
+{
+    return "Scroll South-East";
+}
+
+const char *ScrollSECommandClass::Get_Category() const
+{
+    return Text_String(TXT_INTERFACE);
+}
+
+const char *ScrollSECommandClass::Get_Description() const
+{
+    return "Scroll tactical map to the south-east.";
+}
+
+bool ScrollSECommandClass::Process()
+{
+    int dist = 34;
+
+    Map.Scroll_Map(FACING_SE, dist);
+
+    return true;
+}
+
+
+/**
+ *  Scroll tactical map to the south-west.
+ * 
+ *  @author: CCHyper
+ */
+const char *ScrollSWCommandClass::Get_Name() const
+{
+    return "ScrollSouthWest";
+}
+
+const char *ScrollSWCommandClass::Get_UI_Name() const
+{
+    return "Scroll South-West";
+}
+
+const char *ScrollSWCommandClass::Get_Category() const
+{
+    return Text_String(TXT_INTERFACE);
+}
+
+const char *ScrollSWCommandClass::Get_Description() const
+{
+    return "Scroll tactical map to the south-west.";
+}
+
+bool ScrollSWCommandClass::Process()
+{
+    int dist = 34;
+
+    Map.Scroll_Map(FACING_SW, dist);
+
+    return true;
+}
+
+
+/**
+ *  Scroll tactical map to the north-west.
+ * 
+ *  @author: CCHyper
+ */
+const char *ScrollNWCommandClass::Get_Name() const
+{
+    return "ScrollNorthWest";
+}
+
+const char *ScrollNWCommandClass::Get_UI_Name() const
+{
+    return "Scroll North-West";
+}
+
+const char *ScrollNWCommandClass::Get_Category() const
+{
+    return Text_String(TXT_INTERFACE);
+}
+
+const char *ScrollNWCommandClass::Get_Description() const
+{
+    return "Scroll tactical map to the north-west.";
+}
+
+bool ScrollNWCommandClass::Process()
+{
+    int dist = 34;
+
+    Map.Scroll_Map(FACING_NW, dist);
+
+    return true;
+}
+
+
+/**
  *  Produces a memory dump on request.
  * 
  *  @author: CCHyper
