@@ -28,6 +28,8 @@
 #include "vinifera_functions.h"
 #include "vinifera_globals.h"
 #include "vinifera_newdel.h"
+#include "cncnet4.h"
+#include "cncnet4_globals.h"
 #include "debughandler.h"
 #include <string>
 
@@ -95,6 +97,14 @@ bool Vinifera_Parse_Command_Line(int argc, char *argv[])
  */
 bool Vinifera_Startup()
 {
+	/**
+	 *  Initialise the CnCNet4 system.
+	 */
+	if (!CnCNet4::Init()) {
+		CnCNet4::IsEnabled = false;
+		DEBUG_WARNING("Failed to initialise CnCNet4, continuing without CnCNet4 support!\n");
+	}
+
 	return true;
 }
 

@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          SETUP_HOOKS.CPP
+ *  @file          CNCNET4_GLOBALS.CPP
  *
  *  @author        CCHyper
  *
- *  @brief         Contains the main function that sets up all hooks.
+ *  @brief         CnCNet4 global values.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -25,29 +25,26 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "setup_hooks.h"
+#include "cncnet4_globals.h"
+#include "cncnet4.h"
+
 
 /**
- *  Include the hook headers here.
+ *  Is the CnCNet4 interface active?
  */
-#include "vinifera_newdel.h"
-#include "crt_hooks.h"
-#include "debug_hooks.h"
-#include "vinifera_hooks.h"
-#include "ext_hooks.h"
-#include "bugfix_hooks.h"
-#include "cncnet4_hooks.h"
+bool CnCNet4::IsEnabled = false;
 
+/**
+ *  The host name (Must be running a instance of the dedicated server).
+ */
+char CnCNet4::Host[256] = { "server.cncnet.org" };
+unsigned CnCNet4::Port = 9001;
 
-void Setup_Hooks()
-{
-    Vinifera_Memory_Hooks();
+/**
+ *  Clients connect to each other rather than the server?
+ */
+bool CnCNet4::Peer2Peer = false;
 
-    CRT_Hooks();
-    Debug_Hooks();
-    Vinifera_Hooks();
-    Extension_Hooks();
-    BugFix_Hooks();
+bool CnCNet4::IsDedicated = false;
 
-    CnCNet4_Hooks();
-}
+struct sockaddr_in CnCNet4::Server;
