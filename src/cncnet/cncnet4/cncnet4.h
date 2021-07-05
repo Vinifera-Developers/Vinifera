@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          SETUP_HOOKS.CPP
+ *  @file          CNCNET4.H
  *
  *  @author        CCHyper
  *
- *  @brief         Contains the main function that sets up all hooks.
+ *  @brief         CnCNet4 replacements for low level networking API.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -25,29 +25,23 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "setup_hooks.h"
+#pragma once
 
-/**
- *  Include the hook headers here.
- */
-#include "vinifera_newdel.h"
-#include "crt_hooks.h"
-#include "debug_hooks.h"
-#include "vinifera_hooks.h"
-#include "ext_hooks.h"
-#include "bugfix_hooks.h"
-#include "cncnet4_hooks.h"
+#include <winsock2.h>
+#include <windows.h>
 
 
-void Setup_Hooks()
-{
-    Vinifera_Memory_Hooks();
+namespace CnCNet4 {
 
-    CRT_Hooks();
-    Debug_Hooks();
-    Vinifera_Hooks();
-    Extension_Hooks();
-    BugFix_Hooks();
+bool __stdcall Init();
 
-    CnCNet4_Hooks();
-}
+int __stdcall bind(SOCKET s, const struct sockaddr *name, int namelen);
+SOCKET __stdcall socket(int af, int type, int protocol);
+int __stdcall recvfrom(SOCKET s, char *buf, int len, int flags, struct sockaddr *from, int *fromlen);
+int __stdcall sendto(SOCKET s, const char *buf, int len, int flags, const struct sockaddr *to, int tolen);
+int __stdcall getsockopt(SOCKET s, int level, int optname, char *optval, int *optlen);
+int __stdcall setsockopt(SOCKET s, int level, int optname, const char *optval, int optlen);
+int __stdcall closesocket(SOCKET s);
+int __stdcall getsockname(SOCKET s, struct sockaddr *name, int *namelen);
+
+}; // namespace CnCNet4

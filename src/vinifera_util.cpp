@@ -34,6 +34,7 @@
 #include "colorscheme.h"
 #include "textprint.h"
 #include "dsurface.h"
+#include "cncnet4_globals.h"
 #include "wwfont.h"
 #include "msgbox.h"
 #include "minidump.h"
@@ -53,7 +54,17 @@ const char *Vinifera_Version_String()
     static char _buffer[512] { '\0' };
 
     if (_buffer[0] == '\0') {
-        std::snprintf(_buffer, sizeof(_buffer), "Vinifera%s: %s %s %s%s %s",
+
+        /**
+         *  Append the CnCNet version if enabled.
+         */
+        char *cncnet_mode = nullptr;
+        if (CnCNet4::IsEnabled) {
+            cncnet_mode = " (CnCNet4)";
+        }
+
+        std::snprintf(_buffer, sizeof(_buffer), "Vinifera%s%s: %s %s %s%s %s",
+            cncnet_mode != nullptr ? cncnet_mode : "",
             Vinifera_DeveloperMode ? " (Dev)" : "",
             Vinifera_Git_Branch(), Vinifera_Git_Author(),
             Vinifera_Git_Uncommitted_Changes() ? "~" : "", Vinifera_Git_Hash_Short(), Vinifera_Git_DateTime());
