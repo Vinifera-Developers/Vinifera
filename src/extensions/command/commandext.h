@@ -951,6 +951,43 @@ class StartingWaypointsCommandClass : public ViniferaCommandClass
 };
 
 
+/**
+ *  Places a random infantry at the mouse cell.
+ */
+class PlaceInfantryCommandClass : public ViniferaCommandClass
+{
+    public:
+        PlaceInfantryCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+        virtual ~PlaceInfantryCommandClass() {}
+
+        virtual const char *Get_Name() const override;
+        virtual const char *Get_UI_Name() const override;
+        virtual const char *Get_Category() const override;
+        virtual const char *Get_Description() const override;
+        virtual bool Process() override;
+
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+};
+
+
+/**
+ *  Places a random unit at the mouse cell.
+ */
+class PlaceUnitCommandClass : public ViniferaCommandClass
+{
+    public:
+        PlaceUnitCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+        virtual ~PlaceUnitCommandClass() {}
+
+        virtual const char *Get_Name() const override;
+        virtual const char *Get_UI_Name() const override;
+        virtual const char *Get_Category() const override;
+        virtual const char *Get_Description() const override;
+        virtual bool Process() override;
+
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+};
+
 #ifndef DEBUG
 /**
  *  Based class for all new developer/debug command classes.

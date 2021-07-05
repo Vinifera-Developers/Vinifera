@@ -282,6 +282,12 @@ void Init_Vinifera_Commands()
 
         cmdptr = new StartingWaypointsCommandClass;
         Commands.Add(cmdptr);
+
+        cmdptr = new PlaceInfantryCommandClass;
+        Commands.Add(cmdptr);
+
+        cmdptr = new PlaceUnitCommandClass;
+        Commands.Add(cmdptr);
     }
 
 #ifndef NDEBUG

@@ -2621,3 +2621,149 @@ bool StartingWaypointsCommandClass::Process()
     return true;
 }
 
+
+/**
+ *  Places a random infantry at the mouse cell.
+ * 
+ *  @author: CCHyper
+ */
+const char *PlaceInfantryCommandClass::Get_Name() const
+{
+    return "PlaceInfantry";
+}
+
+const char *PlaceInfantryCommandClass::Get_UI_Name() const
+{
+    return "Place Infantry";
+}
+
+const char *PlaceInfantryCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *PlaceInfantryCommandClass::Get_Description() const
+{
+    return "Places a random infantry at the mouse cell.";
+}
+
+bool PlaceInfantryCommandClass::Process()
+{
+    if (Session.Type != GAME_SKIRMISH) {
+        return false;
+    }
+
+    Coordinate mouse_coord = Get_Coord_Under_Mouse();
+    mouse_coord.Z = Map.Get_Cell_Height(mouse_coord);
+
+    const CellClass *cellptr = &Map[mouse_coord];
+    if (!cellptr) {
+        return false;
+    }
+    
+    DynamicVectorClass<InfantryTypeClass *> available_infantry;
+
+    int owner_id = 1 << PlayerPtr->Class->ID;
+
+    /**
+     *  Build a list of infantry from the available starting units.
+     */
+    for (int i = 0; i < InfantryTypes.Count(); ++i) {
+        InfantryTypeClass *infantrytype = InfantryTypes[i];
+        if (infantrytype && infantrytype->IsAllowedToStartInMultiplayer) {
+            if (infantrytype->TechLevel <= PlayerPtr->Control.TechLevel && (owner_id & infantrytype->Ownable) != 0) {
+                available_infantry.Add(infantrytype);
+            }
+        }
+    }
+
+    InfantryTypeClass *infantrytype = available_infantry[Random_Pick(0, available_infantry.Count()-1)];
+
+    /**
+     *  Create an instance of the infantry.
+     */
+    InfantryClass *inf = reinterpret_cast<InfantryClass *>(infantrytype->Create_One_Of(PlayerPtr));
+    if (inf->Unlimbo(mouse_coord)) {
+        DEBUG_INFO("Placed infantry \"%s\" at %d,%d,%d\n", inf->Name(), inf->Coord.X, inf->Coord.Y, inf->Coord.Z);
+        return true;
+    } else {
+        delete inf;
+    }
+
+
+    return false;
+}
+
+
+/**
+ *  Places a random unit at the mouse cell.
+ * 
+ *  @author: CCHyper
+ */
+const char *PlaceUnitCommandClass::Get_Name() const
+{
+    return "PlaceUnit";
+}
+
+const char *PlaceUnitCommandClass::Get_UI_Name() const
+{
+    return "Place Unit";
+}
+
+const char *PlaceUnitCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *PlaceUnitCommandClass::Get_Description() const
+{
+    return "Places a random unit at the mouse cell.";
+}
+
+bool PlaceUnitCommandClass::Process()
+{
+    if (Session.Type != GAME_SKIRMISH) {
+        return false;
+    }
+
+    Coordinate mouse_coord = Get_Coord_Under_Mouse();
+    mouse_coord.Z = Map.Get_Cell_Height(mouse_coord);
+
+    const CellClass *cellptr = &Map[mouse_coord];
+    if (!cellptr) {
+        return false;
+    }
+    
+    DynamicVectorClass<UnitTypeClass *> available_units;
+
+    int owner_id = 1 << PlayerPtr->Class->ID;
+
+    /**
+     *  Build a list of units from the available starting units.
+     */
+    for (int i = 0; i < UnitTypes.Count(); ++i) {
+        UnitTypeClass *unittype = UnitTypes[i];
+        if (unittype && unittype->IsAllowedToStartInMultiplayer) {
+            if (Rule->BaseUnit->Fetch_ID() != unittype->Fetch_ID()) {
+                if (unittype->TechLevel <= PlayerPtr->Control.TechLevel && (owner_id & unittype->Ownable) != 0) {
+                    available_units.Add(unittype);
+                }
+            }
+        }
+    }
+
+    UnitTypeClass *unittype = available_units[Random_Pick(0, available_units.Count()-1)];
+
+    /**
+     *  Create an instance of the unit.
+     */
+    UnitClass *unit = reinterpret_cast<UnitClass *>(unittype->Create_One_Of(PlayerPtr));
+    if (unit->Unlimbo(mouse_coord)) {
+        DEBUG_INFO("Placed unit \"%s\" at %d,%d,%d\n", unit->Name(), unit->Coord.X, unit->Coord.Y, unit->Coord.Z);
+        return true;
+    } else {
+        delete unit;
+    }
+
+    return false;
+}
