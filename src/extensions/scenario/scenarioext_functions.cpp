@@ -442,7 +442,7 @@ static Cell Clip_Move(Cell cell, FacingType facing, int dist)
  * 
  *  #issue-338 - Adds "min_dist" argument.
  */
-static int Scan_Place_Object(ObjectClass *obj, Cell cell, int min_dist = 1)
+static int Scan_Place_Object(ObjectClass *obj, Cell cell, int min_dist = 1, int max_dist = 31, bool no_scatter = false)
 {
     int dist;               // for object placement
     FacingType rot;         // for object placement
@@ -474,7 +474,7 @@ static int Scan_Place_Object(ObjectClass *obj, Cell cell, int min_dist = 1)
      *  If that fails, go to the next distance.
      *  This ensures that the closest coordinates are filled first.
      */
-    for (dist = min_dist; dist < 32; dist++) {
+    for (dist = min_dist; dist <= max_dist; dist++) {
 
         /**
          *  Pick a random starting direction
@@ -502,7 +502,7 @@ static int Scan_Place_Object(ObjectClass *obj, Cell cell, int min_dist = 1)
                  *  If this is our second try at this distance, add a random scatter
                  *  to the desired cell, so our units aren't all aligned along spokes.
                  */
-                if (tryval > 0) {
+                if (!no_scatter && tryval > 0) {
                     newcell = Clip_Scatter(newcell, 1);
                 }
 
@@ -563,8 +563,32 @@ static bool Is_Adjacent_Cell_Empty(Cell cell, FacingType facing, int dist)
      *  Is there already an object on this cell?
      */
     techno = Map[newcell].Cell_Techno();
-    if (techno) {
-        return false;
+    if (!techno) {
+        return true;
+    }
+    
+    /**
+     *  Is there any free infantry spots?
+     */
+    if (techno->What_Am_I() == RTTI_INFANTRY
+        && Map[newcell].Is_Any_Spot_Free()) {
+
+        return true;
+    }
+
+    return false;
+}
+
+
+static bool Are_Starting_Cells_Full(Cell cell, int dist)
+{
+    static bool empty_flag[FACING_COUNT];
+    std::memset(empty_flag, false, FACING_COUNT);
+
+    for (FacingType facing = FACING_FIRST; facing < FACING_COUNT; ++facing) {
+        if (Is_Adjacent_Cell_Empty(cell, facing, dist)) {
+            return false;
+        }
     }
 
     return true;
@@ -686,8 +710,6 @@ void Vinifera_Create_Units(bool official)
      */
     const unsigned int PLACEMENT_DISTANCE = 3;
 
-    //DynamicVectorClass<TechnoClass *> deployed_objects;
-
     int tot_units = Session.Options.UnitCount;
     if (Session.Options.Bases) {
         --tot_units;
@@ -704,16 +726,14 @@ void Vinifera_Create_Units(bool official)
     /**
      *  Generate lists of all the available starting units (regardless of owner).
      */
-    int tot_count = 0;
-    int tot_cost = 0;
-    int budget = 0;
+    int tot_inf_count = 0;
+    int tot_unit_count = 0;
 
     for (int i = 0; i < UnitTypes.Count(); ++i) {
         UnitTypeClass *unittype = UnitTypes[i];
         if (unittype && unittype->IsAllowedToStartInMultiplayer) {
             if (Rule->BaseUnit->Fetch_ID() != unittype->Fetch_ID()) {
-                tot_cost += unittype->Raw_Cost();
-                ++tot_count;
+                ++tot_unit_count;
             }
         }
     }
@@ -721,21 +741,12 @@ void Vinifera_Create_Units(bool official)
     for (int i = 0; i < InfantryTypes.Count(); ++i) {
         InfantryTypeClass *infantrytype = InfantryTypes[i];
         if (infantrytype && infantrytype->IsAllowedToStartInMultiplayer) {
-            tot_cost += infantrytype->Raw_Cost();
-            ++tot_count;
+            ++tot_inf_count;
         }
     }
 
-    if (!tot_count) {
+    if (!(tot_inf_count + tot_unit_count)) {
         DEBUG_WARNING("No starting units available!");
-    }
-
-    /**
-     *  #BUGFIX:
-     *  Check to prevent division by zero crash.
-     */
-    if (tot_cost != 0 && tot_count != 0) {
-        budget = tot_units * (tot_cost / tot_count);
     }
 
     /**
@@ -1014,43 +1025,44 @@ void Vinifera_Create_Units(bool official)
         }
 
         /**
-         *  Clear the previous house's deployed list.
-         */
-        //deployed_objects.Clear();
-
-        //DEBUG_INFO("  budget == %d\n", budget);
-
-        /**
          *  #BUGFIX:
          *  Make sure there are units available to place before entering the loop.
          */
-        bool units_available = tot_count > 0;
+        bool units_available = (tot_inf_count + tot_unit_count) > 0;
 
         if (units_available) {
-            
-            if (budget > 0) {
 
-                /**
-                 *  Calculate the cost cap for units.
-                 */
-                int unit_cost_cap = 2 * budget / 3;
+            TechnoTypeClass *technotype = nullptr;
 
-                /**
-                 *  Place starting units for this house.
-                 */
-                int i = 0;
-                while (i < budget) {
+            int inf_percent = 50;
+            int unit_percent = 50;
 
-                    TechnoTypeClass *technotype = nullptr;
+            int inf_count = (Session.Options.UnitCount * inf_percent) / 100;
+            int unit_count = (Session.Options.UnitCount * unit_percent) / 100;
 
-                    if (i < unit_cost_cap && available_units.Count() > 0) {
-                        technotype = available_units[Random_Pick(0, available_units.Count()-1)];
-                    } else if (available_infantry.Count() > 0) {
-                        technotype = available_infantry[Random_Pick(0, available_infantry.Count()-1)];
+            /**
+             *  Make sure we place 3 infantry per cell.
+             */
+            inf_count *= 3;
+
+            /**
+             *  Place starting units for this house.
+             */
+            if (available_units.Count() > 0) {
+                for (int i = 0; i < unit_count; ++i) {
+
+                    /**
+                     *  #BUGFIX:
+                     *  If all cells are full, we can stop placing units. This
+                     *  stops any run away cases with Scan_Place_Object.
+                     */
+                    if (Are_Starting_Cells_Full(centroid, PLACEMENT_DISTANCE)) {
+                        break;
                     }
 
+                    technotype = available_units[Random_Pick(0, available_units.Count()-1)];
                     if (!technotype) {
-                        DEBUG_WARNING("  Invalid techno pointer!\n");
+                        DEBUG_WARNING("  Invalid unit pointer!\n");
                         continue;
                     }
 
@@ -1060,12 +1072,10 @@ void Vinifera_Create_Units(bool official)
                     obj = reinterpret_cast<TechnoClass *>(technotype->Create_One_Of(hptr));
                     if (obj) {
 
-                        if (Scan_Place_Object(obj, centroid, PLACEMENT_DISTANCE)) {
+                        if (Scan_Place_Object(obj, centroid, PLACEMENT_DISTANCE, PLACEMENT_DISTANCE, true)) {
 
                             DEBUG_INFO("  House %s deployed object %s at %d,%d\n",
                                 hptr->Class->Name(), obj->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
-
-                            i += technotype->Raw_Cost();
 
                             if (Scen->SpecialFlags.InitialVeteran) {
                                 obj->Veterancy.Set_Elite(true);
@@ -1077,10 +1087,57 @@ void Vinifera_Create_Units(bool official)
                                 obj->Set_Mission(MISSION_GUARD_AREA);
                             }
 
-                            /**
-                             *  Add to the list of objects successfully deployed.
-                             */
-                            //deployed_objects.Add(obj);
+                        } else if (obj) {
+                            delete obj;
+                        }
+
+                    }
+
+                }
+
+            }
+
+            /**
+             *  Place starting infantry for this house.
+             */
+            if (available_infantry.Count() > 0) {
+                for (int i = 0; i < inf_count; ++i) {
+
+                    /**
+                     *  #BUGFIX:
+                     *  If all cells are full, we can stop placing units. This
+                     *  stops any run away cases with Scan_Place_Object.
+                     */
+                    if (Are_Starting_Cells_Full(centroid, PLACEMENT_DISTANCE)) {
+                        break;
+                    }
+
+                    technotype = available_infantry[Random_Pick(0, available_infantry.Count()-1)];
+                    if (!technotype) {
+                        DEBUG_WARNING("  Invalid infantry pointer!\n");
+                        continue;
+                    }
+
+                    /**
+                     *  Create an instance of the unit.
+                     */
+                    obj = reinterpret_cast<TechnoClass *>(technotype->Create_One_Of(hptr));
+                    if (obj) {
+
+                        if (Scan_Place_Object(obj, centroid, PLACEMENT_DISTANCE, PLACEMENT_DISTANCE, true)) {
+
+                            DEBUG_INFO("  House %s deployed object %s at %d,%d\n",
+                                hptr->Class->Name(), obj->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
+
+                            if (Scen->SpecialFlags.InitialVeteran) {
+                                obj->Veterancy.Set_Elite(true);
+                            }
+
+                            if (hptr->Is_Human_Control()) {
+                                obj->Set_Mission(MISSION_GUARD);
+                            } else {
+                                obj->Set_Mission(MISSION_GUARD_AREA);
+                            }
 
                         } else if (obj) {
                             delete obj;
@@ -1088,33 +1145,35 @@ void Vinifera_Create_Units(bool official)
 
                     }
 
-                    /**
-                     *  #issue-338
-                     * 
-                     *  Change the starting unit formation to be like Red Alert 2.
-                     *  As a result, this is no longer required as the units are
-                     *  now placed neatly around the base unit.
-                     * 
-                     *  @author: CCHyper
-                     */
-#if 0
-                    /**
-                     *  Scatter all the human placed objects to create
-                     *  some space around the base unit.
-                     */
-                    if (hptr->Is_Human_Control()) {
-                        for (int i = 0; i < deployed_objects.Count(); ++i) {
-                            TechnoClass *techno = deployed_objects[i];
-                            if (techno) {
-                                techno->Scatter();
-                            }
-                        }
-                    }
-#endif
                 }
 
             }
 
+            /**
+             *  #issue-338
+             * 
+             *  Change the starting unit formation to be like Red Alert 2.
+             *  As a result, this is no longer required as the units are
+             *  now placed neatly around the base unit.
+             * 
+             *  @author: CCHyper
+             */
+#if 0
+            /**
+             *  Scatter all the human placed objects to create
+             *  some space around the base unit.
+             */
+            if (hptr->Is_Human_Control()) {
+                for (int i = 0; i < deployed_objects.Count(); ++i) {
+                    TechnoClass *techno = deployed_objects[i];
+                    if (techno) {
+                        techno->Scatter();
+                    }
+                }
+            }
+#endif
+
+#if 0
             /**
              *  #BUGFIX:
              * 
@@ -1123,7 +1182,7 @@ void Vinifera_Create_Units(bool official)
              *  around the starting unit. This code makes sure there are no blank
              *  spaces around the base unit and that all players get 9 units.
              */
-            if (Session.Options.UnitCount == 10) {
+            if (Session.Options.UnitCount) {
                 for (FacingType facing = FACING_FIRST; facing < FACING_COUNT; ++facing) {
                     if (Is_Adjacent_Cell_Empty(centroid, facing, PLACEMENT_DISTANCE)) {
 
@@ -1165,6 +1224,7 @@ void Vinifera_Create_Units(bool official)
                     }
                 }
             }
+#endif
 
         }
     }
