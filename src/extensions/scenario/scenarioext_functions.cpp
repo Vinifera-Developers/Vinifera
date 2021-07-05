@@ -66,6 +66,7 @@ void Vinifera_Assign_Houses()
     bool color_used[MAX_PLAYERS];   // true = this color is in use.
 
     HouseClass *housep;
+    HouseTypeClass *housetype;
     HousesType house;
     int lowest_color;
     int index;
@@ -166,10 +167,28 @@ void Vinifera_Assign_Houses()
      */
     for (int i = Session.Players.Count(); i < Session.Players.Count() + Session.Options.AIPlayers; ++i) {
 
+#if 0
         if (Percent_Chance(50)) {
             pref_house = HOUSE_GDI;
         } else {
             pref_house = HOUSE_NOD;
+        }
+#endif
+
+        /**
+         *  #issue-7
+         * 
+         *  Replaces code from above.
+         * 
+         *  Fixes a limitation where the AI would only be able to choose
+         *  between the houses GDI (0) and NOD (1). Now, all houses that
+         *  have "IsMultiplay" true will be considered for sellection.
+         */
+        while (true) {
+            pref_house = (HousesType)Random_Pick(0, HouseTypes.Count()-1);
+            if (HouseTypes[pref_house]->IsMultiplay) {
+                break;
+            }
         }
 
         /**
