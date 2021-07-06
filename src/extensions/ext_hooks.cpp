@@ -95,6 +95,8 @@
 
 #include "dropshipext_hooks.h"
 
+#include "mapseedext_hooks.h"
+
 #include "cciniext_hooks.h"
 
 #include "skirmishdlg_hooks.h"
@@ -181,6 +183,8 @@ void Extension_Hooks()
     WaveClassExtension_Hooks();
 
     DropshipExtension_Hooks();
+
+    MapSeedClassExtension_Hooks();
 
     CCINIClassExtension_Hooks();
 
