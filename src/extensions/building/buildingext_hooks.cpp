@@ -165,6 +165,18 @@ DECLARE_PATCH(_BuildingClass_Explode_ShakeScreen_Division_BugFix_Patch)
      *  Continue execution of function.
      */
 continue_function:
+
+    /**
+     *  #issue-502
+     * 
+     *  Fixes the bug where buildings randomly respawn in a "limbo" state
+     *  when destroyed. The EDI register was used to set Strength to 0 further
+     *  down in the function after we return back.
+     * 
+     *  @author: CCHyper
+     */
+    _asm { xor edi, edi }
+
     JMP_REG(edx, 0x0042B27F);
 }
 
