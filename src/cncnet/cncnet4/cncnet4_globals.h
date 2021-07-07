@@ -39,6 +39,7 @@ extern char Host[256];
 extern unsigned Port;
 extern bool Peer2Peer;
 extern bool IsDedicated;
+extern bool UseUDP;
 
 extern struct sockaddr_in Server;
 
