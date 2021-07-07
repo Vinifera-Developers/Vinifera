@@ -28,6 +28,11 @@
 #include "cncnet4_hooks.h"
 #include "cncnet4_globals.h"
 #include "cncnet4.h"
+#include "tibsun_globals.h"
+#include "session.h"
+#include "wspudp.h"
+#include "wspipx.h"
+#include "debughandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -107,6 +112,62 @@ static SOCKET __stdcall socket_intercept(int af, int type, int protocol)
 
 
 /**
+ *  #issue-504
+ * 
+ *  Create the CnCNet4 UDP interface or standard UDP interface depending
+ *  on if the CnCNet4 system has been enabled.
+ * 
+ *  @author: CCHyper
+ */
+static void CnCNet_Create_PacketTransport()
+{
+    bool created = false;
+
+    if (CnCNet4::IsEnabled && CnCNet4::UseUDP) {
+        PacketTransport = new UDPInterfaceClass();
+        if (PacketTransport) {
+            DEBUG_INFO("UDP PacketTransport for CnCNet4.\n");
+        }
+
+        created = (PacketTransport != nullptr);
+    }
+
+    if (!created) {
+        PacketTransport = new IPXInterfaceClass();
+        if (PacketTransport) {
+            DEBUG_INFO("IPX PacketTransport created.\n");
+        }
+    }
+
+    if (!PacketTransport) {
+        DEBUG_ERROR("Failed to create PacketTransport!\n");
+    }
+}
+
+
+/**
+ *  #issue-504
+ * 
+ *  This patch replaces the call to the IPXInterfaceClass constructor when
+ *  setting up the PacketTransport for network multiplayer games with
+ *  conditional code that creates the UDPInterfaceClass when enabled.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_Select_Game_Network_Create_PacketTransport_Patch)
+{
+    Session.Type = GAME_IPX;
+    Session.CommProtocol = 2; // COMM_PROTOCOL_MULTI_E_COMP
+
+    if (!PacketTransport) {
+        CnCNet_Create_PacketTransport();
+    }
+
+    JMP(0x004E2698);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void CnCNet4_Hooks()
@@ -119,4 +180,6 @@ void CnCNet4_Hooks()
     Patch_Jump(0x006B4D6C, &sendto_intercept);
     Patch_Jump(0x006B4D60, &setsockopt_intercept);
     Patch_Jump(0x006B4D5A, &socket_intercept);
+
+    Patch_Jump(0x004E2656, &_Select_Game_Network_Create_PacketTransport_Patch);
 }
