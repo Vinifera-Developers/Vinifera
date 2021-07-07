@@ -481,6 +481,13 @@ static void Debug_Print_Patch()
     Patch_Call(0x006A67FF, &Debug_Print_Warning);
     Patch_Call(0x006A6862, &Debug_Print_Warning);
     Patch_Call(0x006A68D5, &Debug_Print_Warning);
+
+    /**
+     *  Changes the RetryDelta message to be more general.
+     *  (original string "IPX Manager: RetryDelta = %d\n")
+     */
+    static const char *Network_Manager_RetryDelta = "RetryDelta = %d\n";
+    Patch_Dword(0x004F05C0+1, (uint32_t)Network_Manager_RetryDelta);
 }
 
 
