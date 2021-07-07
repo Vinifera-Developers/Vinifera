@@ -47,4 +47,9 @@ bool CnCNet4::Peer2Peer = false;
 
 bool CnCNet4::IsDedicated = false;
 
+/**
+ *  Use the UDP interface instead of IPX?
+ */
+bool CnCNet4::UseUDP = true;
+
 struct sockaddr_in CnCNet4::Server;
