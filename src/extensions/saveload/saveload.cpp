@@ -65,6 +65,7 @@
 //#include "triggertypeext.h"
 
 #include "technoext.h"
+#include "terrainext.h"
 
 
 /**
@@ -111,6 +112,7 @@ unsigned ViniferaSaveGameVersion =
             //+ sizeof(TagTypeClassExtension)
             //+ sizeof(TriggerTypeClassExtension)
             + sizeof(TechnoClassExtension)
+            + sizeof(TerrainClassExtension)
 ;
 
 
@@ -307,6 +309,7 @@ DEFINE_EXTENSION_SAVE(TiberiumClassExtension, TiberiumClassExtensions);
 //DEFINE_EXTENSION_SAVE(TriggerTypeClassExtension, TriggerTypeClassExtensions);
 
 DEFINE_EXTENSION_SAVE(TechnoClassExtension, TechnoClassExtensions);
+DEFINE_EXTENSION_SAVE(TerrainClassExtension, TerrainClassExtensions);
 
 DEFINE_EXTENSION_LOAD(ObjectTypeClassExtension, ObjectTypeClassExtensions);
 DEFINE_EXTENSION_LOAD(TechnoTypeClassExtension, TechnoTypeClassExtensions);
@@ -337,6 +340,7 @@ DEFINE_EXTENSION_LOAD(TiberiumClassExtension, TiberiumClassExtensions);
 //DEFINE_EXTENSION_LOAD(TriggerTypeClassExtension, TriggerTypeClassExtensions);
 
 DEFINE_EXTENSION_LOAD(TechnoClassExtension, TechnoClassExtensions);
+DEFINE_EXTENSION_LOAD(TerrainClassExtension, TerrainClassExtensions);
 
 
 /**
@@ -540,6 +544,12 @@ bool Vinifera_Put_All(IStream *pStm)
 
     DEBUG_INFO("Saving TechnoClassExtension\n");
     if (!Vinifera_Save_TechnoClassExtension(pStm)) {
+        DEBUG_INFO("\t***** FAILED!\n");
+        return false;
+    }
+
+    DEBUG_INFO("Saving TerrainClassExtension\n");
+    if (!Vinifera_Save_TerrainClassExtension(pStm)) {
         DEBUG_INFO("\t***** FAILED!\n");
         return false;
     }
@@ -776,6 +786,12 @@ bool Vinifera_Load_All(IStream *pStm)
 
     DEBUG_INFO("Loading TechnoClassExtension\n");
     if (!Vinifera_Load_TechnoClassExtension(pStm)) {
+        DEBUG_INFO("\t***** FAILED!\n");
+        return false;
+    }
+
+    DEBUG_INFO("Loading TerrainClassExtension\n");
+    if (!Vinifera_Load_TerrainClassExtension(pStm)) {
         DEBUG_INFO("\t***** FAILED!\n");
         return false;
     }
