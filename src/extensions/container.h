@@ -231,6 +231,15 @@ class ExtensionMap final
             delete Map.remove(key);
         }
 
+        
+        /**
+         *  Returns the number of elements in the map.
+         */
+        size_t size() const
+        {
+            return Map.size();
+        }
+
         /**
          *  Checks whether the container is empty.
          */
