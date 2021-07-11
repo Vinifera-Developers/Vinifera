@@ -81,6 +81,7 @@
 #include "teamext_hooks.h"
 #include "factoryext_hooks.h"
 #include "animext_hooks.h"
+#include "terrainext_hooks.h"
 
 #include "dropshipext_hooks.h"
 
@@ -158,6 +159,7 @@ void Extension_Hooks()
     TechnoClassExtension_Hooks();
     FootClassExtension_Hooks();
     AnimClassExtension_Hooks();
+    TerrainClassExtension_Hooks();
 
     DropshipExtension_Hooks();
 
