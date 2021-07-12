@@ -80,11 +80,17 @@ OverlayClassExtension::~OverlayClassExtension()
 {
     //EXT_DEBUG_TRACE("OverlayClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
     //EXT_DEBUG_WARNING("OverlayClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    
+    OverlayTypeClassExtension *overlaytypeext;
 
-    if (LightSource) {
-        LightSource->Disable();
-        delete LightSource;
-        LightSource = nullptr;
+    overlaytypeext = OverlayTypeClassExtensions.find(ThisPtr->Class);
+    if (!overlaytypeext || overlaytypeext->IsDisableLightOnLimbo) {
+
+        if (LightSource) {
+            LightSource->Disable();
+            delete LightSource;
+            LightSource = nullptr;
+        }
     }
 
     IsInitialized = false;

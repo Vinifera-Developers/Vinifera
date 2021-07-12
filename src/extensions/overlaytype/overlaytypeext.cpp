@@ -50,7 +50,8 @@ OverlayTypeClassExtension::OverlayTypeClassExtension(OverlayTypeClass *this_ptr)
     LightIntensity(0),
     LightRedTint(1000000),
     LightGreenTint(1000000),
-    LightBlueTint(1000000)
+    LightBlueTint(1000000),
+    IsDisableLightOnLimbo(true)
 {
     ASSERT(ThisPtr != nullptr);
     //EXT_DEBUG_TRACE("OverlayTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -186,6 +187,7 @@ bool OverlayTypeClassExtension::Read_INI(CCINIClass &ini)
     LightRedTint = ini.Get_Double(ini_name, "LightRedTint", (LightRedTint / 1000)) * 1000.0 + 0.1;
     LightGreenTint = ini.Get_Double(ini_name, "LightGreenTint", (LightGreenTint / 1000)) * 1000.0 + 0.1;
     LightBlueTint = ini.Get_Double(ini_name, "LightBlueTint", (LightBlueTint / 1000)) * 1000.0 + 0.1;
+    IsDisableLightOnLimbo = ini.Get_Bool(ini_name, "DisableLightOnLimbo", IsDisableLightOnLimbo);
     
     return true;
 }

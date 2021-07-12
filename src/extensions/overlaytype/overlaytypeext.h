@@ -76,6 +76,12 @@ class OverlayTypeClassExtension final : public Extension<OverlayTypeClass>
          *  The blue tint of this overlay objects light.
          */
         int LightBlueTint;
+
+        /**
+         *  Should this light source be removed from the map when this
+         *  overlay object has been limbo'd or destroyed?
+         */
+        bool IsDisableLightOnLimbo;
 };
 
 
