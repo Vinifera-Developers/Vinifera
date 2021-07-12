@@ -28,6 +28,7 @@
 #include "terrainext.h"
 #include "terrain.h"
 #include "wwcrc.h"
+#include "lightsource.h"
 #include "asserthandler.h"
 #include "debughandler.h"
 
@@ -44,7 +45,9 @@ ExtensionMap<TerrainClass, TerrainClassExtension> TerrainClassExtensions;
  *  @author: CCHyper
  */
 TerrainClassExtension::TerrainClassExtension(TerrainClass *this_ptr) :
-    Extension(this_ptr)
+    Extension(this_ptr),
+
+    LightSource(nullptr)
 {
     ASSERT(ThisPtr != nullptr);
     //EXT_DEBUG_TRACE("TerrainClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -76,6 +79,12 @@ TerrainClassExtension::~TerrainClassExtension()
     //EXT_DEBUG_TRACE("TerrainClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
     //EXT_DEBUG_WARNING("TerrainClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
+    if (LightSource) {
+        LightSource->Disable();
+        delete LightSource;
+        LightSource = nullptr;
+    }
+
     IsInitialized = false;
 }
 
@@ -96,6 +105,8 @@ HRESULT TerrainClassExtension::Load(IStream *pStm)
     }
 
     new (this) TerrainClassExtension(NoInitClass());
+
+    LightSource = nullptr;
     
     return hr;
 }

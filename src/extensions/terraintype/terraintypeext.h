@@ -52,7 +52,30 @@ class TerrainTypeClassExtension final : public Extension<TerrainTypeClass>
         bool Read_INI(CCINIClass &ini);
 
     public:
+        /**
+         *  This terrain object radiates this amount of light.
+         */
+        int LightVisibility;
 
+        /**
+         *  The distance (in leptons) that this light is visible from.
+         */
+        int LightIntensity;
+
+        /**
+         *  The red tint of this terrain objects light.
+         */
+        int LightRedTint;
+
+        /**
+         *  The green tint of this terrain objects light.
+         */
+        int LightGreenTint;
+
+        /**
+         *  The blue tint of this terrain objects light.
+         */
+        int LightBlueTint;
 };
 
 

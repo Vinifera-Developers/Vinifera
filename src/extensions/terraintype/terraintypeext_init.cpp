@@ -48,8 +48,6 @@ DECLARE_PATCH(_TerrainTypeClass_Constructor_Patch)
     GET_STACK_STATIC(const char *, ini_name, esp, 0xC); // ini name.
     static TerrainTypeClassExtension *exttype_ptr;
 
-    //DEV_DEBUG_WARNING("Creating TerrainTypeClassExtension instance for \"%s\".\n", ini_name);
-
     /**
      *  Find existing or create an extended class instance.
      */
