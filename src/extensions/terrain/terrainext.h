@@ -32,6 +32,9 @@
 #include "terrain.h"
 
 
+class LightSourceClass;
+
+
 class TerrainClassExtension final : public Extension<TerrainClass>
 {
     public:
@@ -47,6 +50,10 @@ class TerrainClassExtension final : public Extension<TerrainClass>
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
     public:
+        /**
+         *  The light source instance for this terrain object.
+         */
+        LightSourceClass *LightSource;
 };
 
 
