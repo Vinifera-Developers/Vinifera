@@ -27,7 +27,10 @@
  ******************************************************************************/
 #include "overlayext.h"
 #include "overlay.h"
+#include "overlaytype.h"
+#include "overlaytypeext.h"
 #include "wwcrc.h"
+#include "lightsource.h"
 #include "asserthandler.h"
 #include "debughandler.h"
 
@@ -44,7 +47,9 @@ ExtensionMap<OverlayClass, OverlayClassExtension> OverlayClassExtensions;
  *  @author: CCHyper
  */
 OverlayClassExtension::OverlayClassExtension(OverlayClass *this_ptr) :
-    Extension(this_ptr)
+    Extension(this_ptr),
+
+    LightSource(nullptr)
 {
     ASSERT(ThisPtr != nullptr);
     //EXT_DEBUG_TRACE("OverlayClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -76,6 +81,12 @@ OverlayClassExtension::~OverlayClassExtension()
     //EXT_DEBUG_TRACE("OverlayClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
     //EXT_DEBUG_WARNING("OverlayClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
+    if (LightSource) {
+        LightSource->Disable();
+        delete LightSource;
+        LightSource = nullptr;
+    }
+
     IsInitialized = false;
 }
 
@@ -96,6 +107,8 @@ HRESULT OverlayClassExtension::Load(IStream *pStm)
     }
 
     new (this) OverlayClassExtension(NoInitClass());
+
+    LightSource = nullptr;
     
     return hr;
 }
@@ -155,4 +168,66 @@ void OverlayClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
     ASSERT(ThisPtr != nullptr);
     //EXT_DEBUG_TRACE("OverlayClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+}
+
+
+/**
+ *  Unlimbo the overlay object onto the map. 
+ * 
+ *  @author: CCHyper
+ */
+bool OverlayClassExtension::Unlimbo(Coordinate &coord, DirType dir)
+{
+    ASSERT(ThisPtr != nullptr);
+    //EXT_DEBUG_TRACE("OverlayClassExtension::Unlimbo - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+
+    OverlayClassExtension *overlayext;
+    OverlayTypeClassExtension *overlaytypeext;
+
+    /**
+     *  #issue-507
+     * 
+     *  Create the light source object when the overlay is placed
+     *  into the game world.
+     * 
+     *  @author: CCHyper
+     */
+
+    /**
+     *  Fetch the extended class instances if they exist.
+     */
+    overlayext = OverlayClassExtensions.find(ThisPtr);
+    overlaytypeext = OverlayTypeClassExtensions.find(ThisPtr->Class);
+
+    if (overlaytypeext && overlaytypeext->LightIntensity > 0) {
+
+        if (overlayext && !overlayext->LightSource) {
+
+            /**
+             *  Create the light source object at the overlay coord.
+             */
+            LightSourceClass *light = new LightSourceClass(
+                                                ThisPtr->Center_Coord(),
+                                                overlaytypeext->LightVisibility,
+                                                overlaytypeext->LightIntensity,
+                                                overlaytypeext->LightRedTint,
+                                                overlaytypeext->LightGreenTint,
+                                                overlaytypeext->LightBlueTint
+                                            );
+            ASSERT(light != nullptr);
+
+            if (light) {
+                overlayext->LightSource = light;
+
+                /**
+                 *  Enable the light source.
+                 */
+                overlayext->LightSource->Enable();
+            }
+
+        }
+
+    }
+
+    return true;
 }

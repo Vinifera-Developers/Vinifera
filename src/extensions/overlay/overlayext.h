@@ -32,6 +32,9 @@
 #include "overlay.h"
 
 
+class LightSourceClass;
+
+
 class OverlayClassExtension final : public Extension<OverlayClass>
 {
     public:
@@ -46,7 +49,13 @@ class OverlayClassExtension final : public Extension<OverlayClass>
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
+        bool Unlimbo(Coordinate &coord, DirType dir = DIR_N);
+
     public:
+        /**
+         *  The light source instance for this overlay.
+         */
+        LightSourceClass *LightSource;
 };
 
 

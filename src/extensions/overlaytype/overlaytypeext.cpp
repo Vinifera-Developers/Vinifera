@@ -44,7 +44,13 @@ ExtensionMap<OverlayTypeClass, OverlayTypeClassExtension> OverlayTypeClassExtens
  *  @author: CCHyper
  */
 OverlayTypeClassExtension::OverlayTypeClassExtension(OverlayTypeClass *this_ptr) :
-    Extension(this_ptr)
+    Extension(this_ptr),
+
+    LightVisibility(5000),
+    LightIntensity(0),
+    LightRedTint(1000000),
+    LightGreenTint(1000000),
+    LightBlueTint(1000000)
 {
     ASSERT(ThisPtr != nullptr);
     //EXT_DEBUG_TRACE("OverlayTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -174,6 +180,12 @@ bool OverlayTypeClassExtension::Read_INI(CCINIClass &ini)
     if (!ini.Is_Present(ini_name)) {
         return false;
     }
+    
+    LightVisibility = ini.Get_Int(ini_name, "LightVisibility", LightVisibility);
+    LightIntensity = ini.Get_Double(ini_name, "LightIntensity", (LightIntensity / 1000)) * 1000.0 + 0.1;
+    LightRedTint = ini.Get_Double(ini_name, "LightRedTint", (LightRedTint / 1000)) * 1000.0 + 0.1;
+    LightGreenTint = ini.Get_Double(ini_name, "LightGreenTint", (LightGreenTint / 1000)) * 1000.0 + 0.1;
+    LightBlueTint = ini.Get_Double(ini_name, "LightBlueTint", (LightBlueTint / 1000)) * 1000.0 + 0.1;
     
     return true;
 }

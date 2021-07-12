@@ -28,10 +28,17 @@
 #include "overlayext_hooks.h"
 #include "overlayext_init.h"
 #include "overlayext.h"
+#include "overlay.h"
+#include "overlaytype.h"
+#include "overlaytypeext.h"
+#include "lightsource.h"
 #include "fatal.h"
 #include "asserthandler.h"
 #include "debughandler.h"
 #include "vinifera_util.h"
+
+#include "hooker.h"
+#include "hooker_macros.h"
 
 
 /**

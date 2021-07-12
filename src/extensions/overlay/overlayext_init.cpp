@@ -218,6 +218,8 @@ class OverlayClassFake final : public OverlayClass
     public:
         void _Detach(TARGET target, bool all = true);
         void _Compute_CRC(WWCRCEngine &crc) const;
+
+        bool _Unlimbo(Coordinate &coord, DirType dir = DIR_N);
 };
 
 
@@ -260,6 +262,29 @@ void OverlayClassFake::_Compute_CRC(WWCRCEngine &crc) const
 
 
 /**
+ *  Implementation of Compute_CRC() for OverlayClass.
+ */
+bool OverlayClassFake::_Unlimbo(Coordinate &coord, DirType dir)
+{
+    OverlayClassExtension *ext_ptr;
+
+    if (!ObjectClass::Unlimbo(coord, dir)) {
+        return false;
+    }
+
+    /**
+     *  Find the extension instance and call Unlimbo on it.
+     */
+    ext_ptr = OverlayClassExtensions.find(this);
+    if (ext_ptr) {
+        return ext_ptr->Unlimbo(coord, dir);
+    }
+
+    return true;
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void OverlayClassExtension_Init()
@@ -271,4 +296,6 @@ void OverlayClassExtension_Init()
     Patch_Jump(0x0058CB8F, &_OverlayClass_Scalar_Destructor_Patch);
     Change_Virtual_Address(0x006D4FC4, Get_Func_Address(&OverlayClassFake::_Detach));
     Change_Virtual_Address(0x006D4FD4, Get_Func_Address(&OverlayClassFake::_Compute_CRC));
+    Patch_Call(0x0058B536, &OverlayClassFake::_Unlimbo);
+    Patch_Call(0x0058C09A, &OverlayClassFake::_Unlimbo);
 }

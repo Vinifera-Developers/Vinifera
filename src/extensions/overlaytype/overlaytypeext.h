@@ -52,7 +52,30 @@ class OverlayTypeClassExtension final : public Extension<OverlayTypeClass>
         bool Read_INI(CCINIClass &ini);
 
     public:
+        /**
+         *  This overlay object radiates this amount of light.
+         */
+        int LightVisibility;
 
+        /**
+         *  The distance (in leptons) that this light is visible from.
+         */
+        int LightIntensity;
+
+        /**
+         *  The red tint of this overlay objects light.
+         */
+        int LightRedTint;
+
+        /**
+         *  The green tint of this overlay objects light.
+         */
+        int LightGreenTint;
+
+        /**
+         *  The blue tint of this overlay objects light.
+         */
+        int LightBlueTint;
 };
 
 
