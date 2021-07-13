@@ -50,6 +50,7 @@
 #include "buildingtype.h"
 #include "aircraft.h"
 #include "aircrafttype.h"
+#include "weapontype.h"
 #include "warheadtype.h"
 #include "session.h"
 #include "ionstorm.h"
@@ -569,7 +570,7 @@ const char *DumpHeapCRCCommandClass::Get_Description() const
                 class_name *ptr = heap_name[i]; \
                 if (ptr != nullptr) { \
                     ptr->Compute_CRC(crc); \
-                    DEBUG_INFO("  %04d\tCRC: 0x%08X\n", i, crc.CRC_Value()); \
+                    DEBUG_INFO("  %04d\tName: %s\tCRC: 0x%08X\n", i, ptr->Name(), crc.CRC_Value()); \
                 } else { \
                     DEBUG_INFO("  %04d\tFAILED!\n", i); \
                 } \
@@ -595,6 +596,9 @@ bool DumpHeapCRCCommandClass::Process()
     LOG_CRC(InfantryTypeClass, InfantryTypes);
     LOG_CRC(BuildingTypeClass, BuildingTypes);
     LOG_CRC(AircraftTypeClass, AircraftTypes);
+
+    LOG_CRC(WeaponTypeClass, WeaponTypes);
+    LOG_CRC(WarheadTypeClass, WarheadTypes);
     
     DEBUG_INFO("\nFinished!\n\n");
 
