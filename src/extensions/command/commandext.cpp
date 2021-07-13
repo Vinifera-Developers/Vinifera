@@ -599,6 +599,27 @@ bool DumpHeapCRCCommandClass::Process()
 
     LOG_CRC(WeaponTypeClass, WeaponTypes);
     LOG_CRC(WarheadTypeClass, WarheadTypes);
+
+    /**
+     *  Color Schemes.
+     */
+    {
+        DEBUG_INFO("ColorSchemes :\n");
+        if (!ColorSchemes.Count()) {
+            DEBUG_INFO("  EMPTY\n");
+        } else {
+            WWCRCEngine crc;
+            for (unsigned i = 0; i < ColorSchemes.Count(); ++i) {
+                ColorScheme *ptr = ColorSchemes[i];
+                if (ptr != nullptr) {
+                    DEBUG_INFO("  %04d\tName: %s\tfield_310: %d\n", i, ptr->Name, ptr->field_310);
+                } else {
+                    DEBUG_INFO("  %04d\tFAILED!\n", i);
+                }
+            }
+        }
+        DEBUG_INFO("\n");
+    }
     
     DEBUG_INFO("\nFinished!\n\n");
 
