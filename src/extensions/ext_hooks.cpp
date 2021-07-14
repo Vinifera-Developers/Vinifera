@@ -113,6 +113,8 @@
 #include "rawfileext_hooks.h"
 #include "ccfileext_hooks.h"
 
+#include "theatertype_hooks.h"
+
 #include "fetchres_hooks.h"
 
 #include "skirmishdlg_hooks.h"
@@ -219,6 +221,8 @@ void Extension_Hooks()
     CCINIClassExtension_Hooks();
     RawFileClassExtension_Hooks();
     CCFileClassExtension_Hooks();
+
+    TheaterTypeClassExtension_Hooks();
 
     FetchRes_Hooks();
 

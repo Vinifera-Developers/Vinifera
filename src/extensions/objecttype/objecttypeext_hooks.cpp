@@ -29,9 +29,77 @@
 #include "objecttypeext_init.h"
 #include "objecttypeext.h"
 #include "objecttype.h"
+#include "theatertype.h"
+#include "vinifera_globals.h"
+#include "tibsun_globals.h"
+#include "scenario.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+
+
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ * 
+ *  @note: This must not contain a constructor or deconstructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+static class ObjectTypeClassFake final : public ObjectTypeClass
+{
+    public:
+        void _Assign_Theater_Name(char *buffer, TheaterType theater);
+};
+
+
+/**
+ *  Reimplementation of ObjectTypeClass::Assign_Theater_Name to support new theater types.
+ * 
+ *  @author: CCHyper
+ */
+void ObjectTypeClassFake::_Assign_Theater_Name(char *buffer, TheaterType theater)
+{
+    if (theater != THEATER_NONE && theater < TheaterTypes.Count()) {
+
+        char first = buffer[0];
+        char second = buffer[1];
+
+        /**
+         *  Make sure characters are lowercase.
+         */
+        if (first >= 'A' && first <= 'Z') {
+            first += ' ';
+        }
+        if (second >= 'A' && second <= 'Z') {
+            second += ' ';
+        }
+
+        /**
+         *  Make sure this is a new theater style filename before assigning the theater id.
+         */
+        if ((first == 'g' || first == 'n' || first == 'c') && (second == 'a' || second == 't')) {
+            buffer[1] = TheaterTypeClass::ImageLetter_From(theater);
+        }
+    }
+}
+
+
+/**
+ *  This patch replaces an inlined instance of ObjectTypeClass::Assign_Theater_Name
+ *  with a direct call.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_ObjectTypeClass_Load_Theater_Art_Assign_Theater_Name_Theater_Patch)
+{
+    GET_REGISTER_STATIC(ObjectTypeClass *, this_ptr, edi);
+    LEA_STACK_STATIC(char *, fullname, esp, 0x0C);
+    LEA_STACK_STATIC(char *, destbuffer, esp, 0x08);
+
+    this_ptr->Assign_Theater_Name(fullname, Scen->Theater);
+
+    JMP(0x005889E2);
+}
 
 
 /**
@@ -43,4 +111,7 @@ void ObjectTypeClassExtension_Hooks()
      *  Initialises the extended class.
      */
     ObjectTypeClassExtension_Init();
+
+    Patch_Jump(0x00588D00, &ObjectTypeClassFake::_Assign_Theater_Name);
+    Patch_Jump(0x0058891D, &_ObjectTypeClass_Load_Theater_Art_Assign_Theater_Name_Theater_Patch);
 }
