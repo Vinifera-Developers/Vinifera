@@ -45,6 +45,7 @@
 #include "tacticalext.h"
 #include "tclassfactory.h"
 #include "testlocomotion.h"
+#include "theatertype.h"
 #include "debughandler.h"
 #include <string>
 
@@ -553,6 +554,7 @@ bool Vinifera_Shutdown()
      *  Cleanup global heaps/vectors.
      */
     EBoltClass::Clear_All();
+    TheaterTypes.Clear();
 
     DEV_DEBUG_INFO("Shutdown - New Count: %d, Delete Count: %d\n", Vinifera_New_Count, Vinifera_Delete_Count);
 
@@ -598,6 +600,24 @@ int Vinifera_Pre_Init_Game(int argc, char *argv[])
  */
 int Vinifera_Post_Init_Game(int argc, char *argv[])
 {
+    TheaterTypeClass::One_Time();
+
+    CCFileClass theater_file("THEATERS.INI");
+    CCINIClass theater_ini;
+
+    if (theater_file.Is_Available()) {
+
+        theater_ini.Load(theater_file, false);
+
+        if (!TheaterTypeClass::Read_Theaters_INI(theater_ini)) {
+            DEV_DEBUG_ERROR("Failed to read THEATERS.INI!\n");
+            //return -1;
+        }
+
+    } else {
+        DEV_DEBUG_WARNING("THEATERS.INI not found!\n");
+    }
+
     return EXIT_SUCCESS;
 }
 

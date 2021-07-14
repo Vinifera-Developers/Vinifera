@@ -29,6 +29,7 @@
 #include "isotiletype.h"
 #include "tibsun_globals.h"
 #include "scenario.h"
+#include "theatertype.h"
 #include "ccini.h"
 #include "asserthandler.h"
 #include "debughandler.h"
@@ -186,7 +187,7 @@ bool IsometricTileTypeClassExtension::Init(CCINIClass &ini)
 {
     static const char *GENERAL = "General";
 
-    DEV_DEBUG_INFO("IsometricTileTypeClassExtension::Init(%s)\n", Theaters[Scen->Theater].Name);
+    DEV_DEBUG_INFO("IsometricTileTypeClassExtension::Init(%s)\n", TheaterTypeClass::Name_From(Scen->Theater));
 
     if (!ini.Is_Present(GENERAL)) {
         return false;
