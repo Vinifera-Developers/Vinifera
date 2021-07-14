@@ -32,6 +32,7 @@
 #include "housetype.h"
 #include "weapontype.h"
 #include "animtype.h"
+#include "theatertype.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
@@ -47,13 +48,16 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-class CCINIClassFake final : public CCINIClass
+static class CCINIClassFake final : public CCINIClass
 {
     public:
         TypeList<AnimTypeClass *> Get_AnimType_List(const char *section, const char *entry, const TypeList<AnimTypeClass *> defvalue);
 
         long _Get_Owners(const char *section, const char *entry, const long defvalue);
         bool _Put_Owners(const char *section, const char *entry, long value);
+
+        TheaterType _Get_TheaterType(const char *section, const char *entry, const TheaterType defvalue);
+        bool _Put_TheaterType(const char *section, const char *entry, TheaterType value);
 };
 
 
@@ -129,6 +133,34 @@ bool CCINIClassFake::_Put_Owners(const char *section, const char *entry, long va
     }
 
     return true;
+}
+
+
+/**
+ *  Reimplementation of CCINIClass::Get_TheaterType to support TheaterTypeClass.
+ *  
+ *  @author: CCHyper
+ */
+TheaterType CCINIClassFake::_Get_TheaterType(const char *section, const char *entry, const TheaterType defvalue)
+{
+    char buffer[2048];
+
+    if (CCINIClass::Get_String(section, entry, "", buffer, sizeof(buffer))) {
+        return TheaterTypeClass::From_Name(buffer);
+    }
+
+    return defvalue;
+}
+
+
+/**
+ *  Reimplementation of CCINIClass::Put_TheaterType to support TheaterTypeClass.
+ *  
+ *  @author: CCHyper
+ */
+bool CCINIClassFake::_Put_TheaterType(const char *section, const char *entry, TheaterType value)
+{
+    return CCINIClass::Put_String(section, entry, TheaterTypeClass::Name_From(value));
 }
 
 
@@ -223,4 +255,7 @@ void CCINIClassExtension_Hooks()
 
     Patch_Jump(0x0044ADC0, &CCINIClassFake::_Get_Owners);
     Patch_Jump(0x0044AE40, &CCINIClassFake::_Put_Owners);
+
+    Patch_Jump(0x0044B310, &CCINIClassFake::_Get_TheaterType);
+    Patch_Jump(0x0044B360, &CCINIClassFake::_Put_TheaterType);
 }
