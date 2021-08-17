@@ -42,6 +42,112 @@
 
 
 /**
+ *  Reimplemention of Init_Bootstrap_Mixfiles()
+ *  
+ *  Registers and caches any mixfiles needed for bootstrapping.
+ * 
+ *  @author: CCHyper
+ */
+static bool Vinifera_Init_Bootstrap_Mixfiles()
+{
+    bool ok;
+    MFCC *mix;
+
+    int temp = CD::RequiredCD;
+    CD::Set_Required_CD(-2);
+
+    DEBUG_INFO("\n"); // Fixes missing new-line after "Bootstrap..." print.
+    //DEBUG_INFO("Init bootstrap mixfiles...\n");
+
+    if (RawFileClass("PATCH.MIX").Is_Available()) {
+        mix = new MFCC("PATCH.MIX", &FastKey);
+        ASSERT(mix);
+        if (mix) {
+            DEBUG_INFO(" PATCH.MIX\n");
+        }
+    }
+
+    if (CCFileClass("PCACHE.MIX").Is_Available()) {
+        mix = new MFCC("PCACHE.MIX", &FastKey);
+        ASSERT(mix);
+        if (mix) {
+            mix->Cache();
+            DEBUG_INFO(" PCACHE.MIX\n");
+        }
+    }
+
+    for (int i = 99; i >= 0; --i) {
+        char buffer[16];
+        std::snprintf(buffer, sizeof(buffer), "EXPAND%02d.MIX", i);
+        if (RawFileClass(buffer).Is_Available()) {
+            mix = new MFCC(buffer, &FastKey);
+            ASSERT(mix);
+            if (!mix) {
+                DEBUG_WARNING("Failed to load %s!\n", buffer);
+            } else {
+                ExpansionMixFiles.Add(mix);
+                DEBUG_INFO(" %s\n", buffer);
+            }
+        }
+    }
+
+    for (int i = 99; i >= 0; --i) {
+        char buffer[16];
+        std::snprintf(buffer, sizeof(buffer), "ECACHE%02d.MIX", i);
+        if (CCFileClass(buffer).Is_Available()) {
+            mix = new MFCC(buffer, &FastKey);
+            ASSERT(mix);
+            if (!mix) {
+                DEBUG_WARNING("Failed to load %s!\n", buffer);
+            } else {
+                mix->Cache();
+                ExpansionMixFiles.Add(mix);
+                DEBUG_INFO(" %s\n", buffer);
+            }
+        }
+    }
+
+    Addon_Present();
+
+    TibSunMix = new MFCC("TIBSUN.MIX", &FastKey);
+    ASSERT(TibSunMix);
+    if (!TibSunMix) {
+        DEBUG_WARNING("Failed to load TIBSUN.MIX!\n");
+        return false;
+    }
+    DEBUG_INFO(" TIBSUN.MIX\n");
+
+    /*
+    **	Bootstrap enough of the system so that the error dialog
+    *   box can successfully be displayed.
+    */
+    CacheMix = new MFCC("CACHE.MIX", &FastKey);
+    ASSERT(CacheMix);
+    if (!CacheMix) {
+        DEBUG_WARNING("Failed to load CACHE.MIX!\n");
+        return false;
+    }
+    if (!CacheMix->Cache()) {
+        DEBUG_WARNING("Failed to cache CACHE.MIX!\n");
+        return false;
+    }
+    DEBUG_INFO(" CACHE.MIX\n");
+
+    LocalMix = new MFCC("LOCAL.MIX", &FastKey);
+    ASSERT(LocalMix);
+    if (!LocalMix) {
+        DEBUG_WARNING("Failed to load LOCAL.MIX!\n");
+        return false;
+    }
+    DEBUG_INFO(" LOCAL.MIX\n");
+
+    CD::Set_Required_CD(temp);
+
+    return true;
+}
+
+
+/**
  *  #issue-513
  * 
  *  Patch to add check for CD::IsFilesLocal to make sure -CD really
@@ -143,4 +249,5 @@ void GameInit_Hooks()
 {
     Patch_Jump(0x004E0786, &_Init_Game_Skip_Startup_Movies_Patch);
     Patch_Jump(0x004E0461, &_Init_CDROM_Access_Local_Files_Patch);
+    Patch_Jump(0x004E3D20, &Vinifera_Init_Bootstrap_Mixfiles);
 }
