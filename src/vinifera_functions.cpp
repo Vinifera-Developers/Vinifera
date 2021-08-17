@@ -235,9 +235,107 @@ bool Vinifera_Shutdown()
  *  This function will get called right before the games "Init_Game" fuction,
  *  allowing you to perform any action that would effect the game initialisation process.
  * 
+ *  Related issues;
+ *    issue-514: Adds various search paths for loading files locally.
+ * 
  *  @author: CCHyper
  */
 int Vinifera_Init_Game(int argc, char *argv[])
 {
+    DWORD rc;
+    DynamicVectorClass<const char *> search_paths;
+
+    char *new_path = new char [_MAX_PATH * 100];
+    new_path[0] = '\0';
+
+    /**
+     *  If -CD has been defined, set the root directory as highest priority.
+     */
+    if (CD::IsFilesLocal) {
+        search_paths.Add(".");
+    }
+
+    /**
+     *  Add various local search drives to loading of files locally.
+     */
+    search_paths.Add("INI");
+    search_paths.Add("MIX");
+    search_paths.Add("SHP");
+    search_paths.Add("AUD");
+    search_paths.Add("PCX");
+    search_paths.Add("MAPS");
+    search_paths.Add("MAPS\\MULTIPLAYER");
+    search_paths.Add("MAPS\\MISSION");
+    search_paths.Add("MOVIES");
+    search_paths.Add("MUSIC");
+    search_paths.Add("SOUNDS");
+
+    /**
+     *  Load additional paths from the user environment vars.
+     * 
+     *  @note: Path must end in "\" otherwise this will fail.
+     */
+    char movies_var_buff[PATH_MAX];
+    rc = GetEnvironmentVariable("TIBSUN_MOVIES", movies_var_buff, sizeof(movies_var_buff));
+    if (rc && rc < sizeof(movies_var_buff)) {
+        DEV_DEBUG_INFO("Found TIBSUN_MOVIES EnvVar: \"%s\".\n", movies_var_buff);
+        search_paths.Add(movies_var_buff);
+    }
+    char music_var_buff[PATH_MAX];
+    rc = GetEnvironmentVariable("TIBSUN_MUSIC", music_var_buff, sizeof(music_var_buff));
+    if (rc && rc < sizeof(music_var_buff)) {
+        DEV_DEBUG_INFO("Found TIBSUN_MUSIC EnvVar: \"%s\".\n", music_var_buff);
+        search_paths.Add(music_var_buff);
+    }
+    char path_var_buff[PATH_MAX];
+    rc = GetEnvironmentVariable("TIBSUN_FILES", path_var_buff, sizeof(path_var_buff));
+    if (rc && rc < sizeof(path_var_buff)) {
+        DEV_DEBUG_INFO("Found TIBSUN_FILES EnvVar: \"%s\".\n", path_var_buff);
+        search_paths.Add(path_var_buff);
+    }
+
+    /**
+     *  Current path (perhaps set set with -CD) should go next.
+     */
+    if (CCFileClass::RawPath[0] != '\0') {
+        search_paths.Add(CCFileClass::RawPath);
+    }
+
+    /**
+     *  Add search drives for the CD contents.
+     */
+    search_paths.Add("TS1");
+    search_paths.Add("CD1");
+    search_paths.Add("GDI");
+    search_paths.Add("TS2");
+    search_paths.Add("CD2");
+    search_paths.Add("NOD");
+    search_paths.Add("TS3");
+    search_paths.Add("CD3");
+    search_paths.Add("FIRESTORM");
+
+    /**
+     *  Build the search path string.
+     */
+    for (int i = 0; i < search_paths.Count(); ++i) {
+        if (i != 0) std::strcat(new_path, ";");
+        std::strcat(new_path, search_paths[i]);
+    }
+
+    /**
+     *  Clear the current path ready to be set.
+     */
+    CCFileClass::Clear_Search_Drives();
+    CCFileClass::Reset_Raw_Path();
+
+    /**
+     *  Set the new search drive path.
+     */
+    CCFileClass::Set_Search_Drives(new_path);
+
+    delete [] new_path;
+
+    DEBUG_INFO("SearchPath: %s\n", CCFileClass::RawPath);
+
     return EXIT_SUCCESS;
 }
