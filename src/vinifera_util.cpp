@@ -253,3 +253,30 @@ int Vinifera_Do_WWMessageBox(const char *msg, const char *btn1, const char *btn2
 {
     return WWMessageBox().Process(msg, 0, btn1, btn2, btn3);
 }
+
+
+/**
+ *  Shows a in-game warning message box only if developer mode is active.
+ * 
+ *  This has been made its own function because we can not allocate on the stack with
+ *  our patches, so this handles all that within this function scope.
+ * 
+ *  @author: CCHyper
+ */
+void Vinifera_DeveloperMode_Warning_WWMessageBox(const char *msg, ...)
+{
+    if (Vinifera_DeveloperMode) {
+
+        char msg_buff[512];
+        std:snprintf(msg_buff, sizeof(msg_buff), "WARNING!\n%s", msg);
+        
+        char buffer[512];	    // Working staging buffer.
+        va_list	arg;		    // Argument list var.
+
+        va_start(arg, msg);
+        vsnprintf(buffer, sizeof(buffer), msg_buff, arg);
+        va_end(arg);
+
+        WWMessageBox().Process(buffer, 0, "OK");
+    }
+}
