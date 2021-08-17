@@ -31,6 +31,8 @@
 #include "cncnet4.h"
 #include "cncnet4_globals.h"
 #include "cncnet5_globals.h"
+#include "ccfile.h"
+#include "cd.h"
 #include "debughandler.h"
 #include <string>
 
@@ -149,6 +151,16 @@ bool Vinifera_Parse_Command_Line(int argc, char *argv[])
             DEBUG_INFO("  - Skipping to Firestorm menu.\n");
             Vinifera_ExitAfterSkip = true;
             menu_skip = true;
+        }
+
+        /**
+         *  #issue-513
+         * 
+         *  Re-implements the file search path override logic of "-CD" from Red Alert.
+         */
+        if (std::strstr(string, "-CD")) {
+            CCFileClass::Set_Search_Drives(&string[3]);
+            CD::IsFilesLocal = true;
             continue;
         }
 
