@@ -33,6 +33,8 @@
 #include "technotypeext.h"
 #include "tibsun_inline.h"
 #include "weapontype.h"
+#include "house.h"
+#include "housetype.h"
 #include "rules.h"
 #include "voc.h"
 #include "fatal.h"
@@ -226,6 +228,35 @@ DECLARE_PATCH(_TechnoClass_Do_Uncloak_Uncloak_Sound_Patch)
 
 
 /**
+ *  A patch that adds debug logging on null house pointers in TechnoClass::Owner().
+ * 
+ *  This is a common crash observed by mod developers and map creators, and
+ *  aims to assist tracking down the offending object.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_TechnoClass_Null_House_Warning_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, ecx);
+    static HouseClass *house;
+    static int id;
+    
+    house = this_ptr->House;
+    if (!house) {
+        DEBUG_WARNING("Techno \"%s\" has an invalid house!", this_ptr->Name());
+        Vinifera_DeveloperMode_Warning_WWMessageBox("Techno \"%s\" has an invalid house!", this_ptr->Name());
+        Fatal("Null house pointer in TechnoClass::Owner!\n");
+
+    } else {
+        id = house->ID;
+    }
+    
+    _asm { mov eax, id }
+    _asm { ret }
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void TechnoClassExtension_Hooks()
@@ -239,4 +270,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x00633BD4, &_TechnoClass_Do_Uncloak_Uncloak_Sound_Patch);
     Patch_Jump(0x0063105C, &_TechnoClass_Fire_At_Weapon_Anim_Patch);
     Patch_Jump(0x0062F6B7, &_TechnoClass_Is_Ready_To_Uncloak_Cloak_Stop_BugFix_Patch);
+    Patch_Jump(0x0062E6F0, &_TechnoClass_Null_House_Warning_Patch);
 }
