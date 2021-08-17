@@ -30,6 +30,7 @@
 #include "tibsun_globals.h"
 #include "special.h"
 #include "playmovie.h"
+#include "theme.h"
 #include "ccfile.h"
 #include "cd.h"
 #include "newmenu.h"
@@ -43,7 +44,7 @@
 
 
 /**
- *  #issue-478
+ *  #issue-
  * 
  *  Reimplemention of Init_Bootstrap_Mixfiles()
  *  
@@ -150,6 +151,129 @@ static bool Vinifera_Init_Bootstrap_Mixfiles()
 }
 
 
+/**
+ *  #issue-
+ * 
+ *  Reimplemention of Init_Secondary_Mixfiles()
+ *  
+ *  Register and cache secondary mixfiles.
+ * 
+ *  @author: CCHyper
+ */
+static bool Vinifera_Init_Secondary_Mixfiles()
+{
+    char buffer[16];
+
+    DEBUG_INFO("\n"); // Fixes missing new-line after "Init Secondary Mixfiles....." print.
+    //DEBUG_INFO("Init secondary mixfiles...\n");
+
+    if (CCFileClass("CONQUER.MIX").Is_Available()) {
+        ConquerMix = new MFCC("CONQUER.MIX", &FastKey);
+        ASSERT(ConquerMix);
+    }
+    if (!ConquerMix) {
+        DEBUG_WARNING("Failed to load CONQUER.MIX!\n");
+        return false;
+    }
+    DEBUG_INFO(" CONQUER.MIX\n");
+
+    int cd = CD::Get_Volume_Index();
+
+    /**
+     *  Make sure we have a grounded volume index (invalid volumes will cause error).
+     */
+    if (CD::Get_Volume_Index() < 0) {
+        cd = 0;
+    }
+
+    /**
+     *  Mix file indices are 1 based.
+     */
+    cd += 1;
+
+    std::snprintf(buffer, sizeof(buffer), "MAPS%02d.MIX", cd);
+    if (CCFileClass(buffer).Is_Available()) {
+        MapsMix = new MFCC(buffer, &FastKey);
+        ASSERT(MapsMix);
+    }
+    if (!MapsMix) {
+        DEBUG_WARNING("Failed to load %s!\n", buffer);
+        return false;
+    }
+    DEBUG_INFO(" %s\n", buffer);
+
+    if (CCFileClass("MULTI.MIX").Is_Available()) {
+        MultiMix = new MFCC("MULTI.MIX", &FastKey);
+        ASSERT(MultiMix);
+    }
+    if (!MultiMix) {
+        DEBUG_WARNING("Failed to load MULTI.MIX!\n");
+        return false;
+    }
+    DEBUG_INFO(" MULTI.MIX\n", buffer);
+
+    if (Addon_407120(ADDON_FIRESTORM)) {
+        if (CCFileClass("SOUNDS01.MIX").Is_Available()) {
+            FSSoundsMix = new MFCC("SOUNDS01.MIX", &FastKey);
+            ASSERT(FSSoundsMix);
+        }
+        if (!FSSoundsMix) {
+            DEBUG_WARNING("Failed to load SOUNDS01.MIX!\n");
+            return false;
+        }
+        DEBUG_INFO(" SOUNDS01.MIX\n", buffer);
+    }
+
+    if (CCFileClass("SOUNDS.MIX").Is_Available()) {
+        SoundsMix = new MFCC("SOUNDS.MIX", &FastKey);
+        ASSERT(SoundsMix);
+    }
+    if (!SoundsMix) {
+        DEBUG_WARNING("Failed to load SOUNDS.MIX!\n");
+        return false;
+    }
+    DEBUG_INFO(" SOUNDS.MIX\n", buffer);
+
+    if (CCFileClass("SCORES01.MIX").Is_Available()) {
+        FSScoresMix = new MFCC("SCORES01.MIX", &FastKey);
+        ASSERT(FSScoresMix);
+    }
+    if (!FSScoresMix) {
+        DEBUG_WARNING("Failed to load SCORES01.MIX!\n");
+        return false;
+    }
+    DEBUG_INFO(" SCORES01.MIX\n", buffer);
+
+	/*
+	**	Register the score mixfile.
+	*/
+    if (CCFileClass("SCORES.MIX").Is_Available()) {
+        ScoreMix = new MFCC("SCORES.MIX", &FastKey);
+        ASSERT(ScoreMix);
+    }
+    if (!ScoreMix) {
+        DEBUG_WARNING("Failed to load SCORES.MIX!\n");
+        return false;
+    }
+    DEBUG_INFO(" SCORES.MIX\n", buffer);
+	ScoresPresent = true;
+	Theme.Scan();
+
+    std::snprintf(buffer, sizeof(buffer), "MOVIES%02d.MIX", cd);
+    if (CCFileClass(buffer).Is_Available()) {
+        MoviesMix = new MFCC(buffer, &FastKey);
+        ASSERT(MoviesMix);
+    }
+    if (!MoviesMix) {
+        DEBUG_WARNING("Failed to load %s!\n", buffer);
+        return false;
+    }
+    DEBUG_INFO(" %s\n", buffer);
+
+    return true;
+}
+
+
 static bool CCFile_Is_Available(const char *filename)
 {
     return CCFileClass(filename).Is_Available();
@@ -206,4 +330,5 @@ void GameInit_Hooks()
 {
     Patch_Jump(0x004E0786, &_Init_Game_Skip_Startup_Movies_Patch);
     Patch_Jump(0x004E3D20, &Vinifera_Init_Bootstrap_Mixfiles);
+    Patch_Jump(0x004E4120, &Vinifera_Init_Secondary_Mixfiles);
 }
