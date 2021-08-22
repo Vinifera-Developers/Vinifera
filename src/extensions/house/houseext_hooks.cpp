@@ -26,6 +26,7 @@
  *
  ******************************************************************************/
 #include "houseext_hooks.h"
+#include "houseext_init.h"
 #include "vinifera_globals.h"
 #include "house.h"
 #include "housetype.h"
@@ -91,5 +92,10 @@ return_true:
  */
 void HouseClassExtension_Hooks()
 {
+    /**
+     *  Initialises the extended class.
+     */
+    HouseClassExtension_Init();
+
 	Patch_Jump(0x004BBD26, &_HouseClass_Can_Build_BuildCheat_Patch);
 }
