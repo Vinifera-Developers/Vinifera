@@ -121,6 +121,40 @@ continue_loop:
 
 
 /**
+ *  #issue-168
+ *
+ *  Intercepts event creation to store information about the 
+ *  building that the player last produced. This allows the
+ *  "repeat last building" keyboard command to check the
+ *  last-produced building.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_RepeatLastBuildingCommandClass_Event_Intercept_Store_Last_Building) {
+    GET_REGISTER_STATIC(EventClass*, e, ecx);
+    GET_STACK_STATIC(RTTIType, rtti, esp, 8);
+    GET_STACK_STATIC(int, heap_id, esp, 12);
+
+    if (rtti == RTTI_BUILDING || rtti == RTTI_BUILDINGTYPE) {
+        LastBuilding_RTTI = rtti;
+        LastBuilding_HeapID = heap_id;
+    }
+
+    /** 
+    *  Restore value of ecx in case it got trashed above,
+    *  it's needed for the following call.
+    */
+    __asm { mov ecx, e }
+
+    /**
+     *  Stolen bytes / code.
+     */
+    CALL(0x004940A0);
+    JMP_REG(ecx, 0x005F5DEE);
+}
+
+
+/**
  *  Initialises the new hotkey commands.
  * 
  *  @author: CCHyper
@@ -140,6 +174,9 @@ void Init_Vinifera_Commands()
     //Commands.Add(cmdptr);
 
     cmdptr = new ManualPlaceCommandClass;
+    Commands.Add(cmdptr);
+
+    cmdptr = new RepeatLastBuildingCommandClass;
     Commands.Add(cmdptr);
 
     cmdptr = new PrevThemeCommandClass;
@@ -372,4 +409,5 @@ void CommandExtension_Hooks()
     Hook_Virtual(0x004EAB00, PNGScreenCaptureCommandClass::Process);
 
     Patch_Jump(0x004E95C2, &_GuardCommandClass_Process_Harvesters_Set_Mission_Patch);
+    Patch_Jump(0x005F5DE9, &_RepeatLastBuildingCommandClass_Event_Intercept_Store_Last_Building);
 }

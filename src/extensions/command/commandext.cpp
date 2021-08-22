@@ -52,6 +52,7 @@
 #include "aircrafttype.h"
 #include "weapontype.h"
 #include "warheadtype.h"
+#include "event.h"
 #include "session.h"
 #include "ionstorm.h"
 #include "ionblast.h"
@@ -277,6 +278,51 @@ bool ManualPlaceCommandClass::Process()
      *  Go into placement mode.
      */
     return PlayerPtr->Manual_Place(builder, pending_bptr);
+}
+
+
+/**
+ *  #issue-168
+ *
+ *  Start producing the building type that the player last built.
+ *
+ *  @author: Rampastring (based on research by dkeeton)
+ */
+const char *RepeatLastBuildingCommandClass::Get_Name() const
+{
+    return "RepeatBuilding";
+}
+
+const char *RepeatLastBuildingCommandClass::Get_UI_Name() const
+{
+    return "Repeat Last Building";
+}
+
+const char *RepeatLastBuildingCommandClass::Get_Category() const
+{
+    return Text_String(TXT_INTERFACE);
+}
+
+const char *RepeatLastBuildingCommandClass::Get_Description() const
+{
+    return "Start production of the building type that the player built last.";
+}
+
+bool RepeatLastBuildingCommandClass::Process()
+{
+    if (!PlayerPtr) {
+        return false;
+    }
+
+    if (LastBuilding_HeapID > -1 && LastBuilding_RTTI != RTTI_NONE) {
+        if (Map.Is_On_Sidebar(LastBuilding_RTTI, LastBuilding_HeapID)) {
+            EventClass e = EventClass(PlayerPtr->ID, PRODUCE, LastBuilding_RTTI, LastBuilding_HeapID);
+            OutList.Add(e);
+            return true;
+        }
+    }
+
+    return false;
 }
 
 

@@ -28,7 +28,7 @@
 #pragma once
 
 #include "always.h"
-
+#include "tibsun_defines.h"
 
 extern bool Vinifera_DeveloperMode;
 
@@ -65,3 +65,11 @@ extern bool Vinifera_SkipToSkirmish;
 extern bool Vinifera_SkipToCampaign;
 extern bool Vinifera_SkipToInternet;
 extern bool Vinifera_ExitAfterSkip;
+
+
+/**
+ *  Variables necessary for the "Repeat Last Building" keyboard command.
+ */
+extern RTTIType LastBuilding_RTTI;
+extern int LastBuilding_HeapID;
+

@@ -53,3 +53,6 @@ bool Vinifera_SkipToSkirmish = false;
 bool Vinifera_SkipToCampaign = false;
 bool Vinifera_SkipToInternet = false;
 bool Vinifera_ExitAfterSkip = false;
+
+RTTIType LastBuilding_RTTI;
+int LastBuilding_HeapID;
