@@ -27,12 +27,53 @@
  ******************************************************************************/
 #include "scenarioext_hooks.h"
 #include "scenarioext_functions.h"
+#include "tibsun_globals.h"
+#include "multiscore.h"
+#include "scenario.h"
+#include "session.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-522
+ * 
+ *  These patches make the multiplayer score screen to honour the value of
+ *  "IsSkipScore" from ScenarioClass.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_Do_Win_Skip_MPlayer_Score_Screen_Patch)
+{
+    /**
+     *  Stolen bytes/code.
+     */
+    ++Session.GamesPlayed;
+
+    if (!Scen->IsSkipScore) {
+        MultiScore::Presentation();
+    }
+
+    JMP(0x005DC9DF);
+}
+
+DECLARE_PATCH(_Do_Lose_Skip_MPlayer_Score_Screen_Patch)
+{
+    /**
+     *  Stolen bytes/code.
+     */
+    ++Session.GamesPlayed;
+
+    if (!Scen->IsSkipScore) {
+        MultiScore::Presentation();
+    }
+
+    JMP(0x005DCD9D);
+}
 
 
 /**
@@ -46,4 +87,7 @@ void ScenarioClassExtension_Hooks()
      *  @author: CCHyper
      */
     Patch_Call(0x005E08E3, &Vinifera_Assign_Houses);
+
+    Patch_Jump(0x005DC9D4, &_Do_Win_Skip_MPlayer_Score_Screen_Patch);
+    Patch_Jump(0x005DCD92, &_Do_Lose_Skip_MPlayer_Score_Screen_Patch);
 }
