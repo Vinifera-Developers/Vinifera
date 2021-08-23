@@ -31,6 +31,7 @@
 #include "special.h"
 #include "playmovie.h"
 #include "ccfile.h"
+#include "cd.h"
 #include "newmenu.h"
 #include "fatal.h"
 #include "asserthandler.h"
@@ -38,6 +39,52 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-513
+ * 
+ *  Patch to add check for CD::IsFilesLocal to make sure -CD really
+ *  was set by the user.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_Init_CDROM_Access_Local_Files_Patch)
+{
+    _asm { add esp, 4 }
+
+	/**
+	 *  If there are search drives specified then all files are to be
+	 *  considered local.
+	 */
+    if (CCFileClass::Is_There_Search_Drives()) {
+        
+        /**
+         *  Double check that the game was launched with -CD.
+         */
+        if (CD::IsFilesLocal) {
+
+            /**
+             *  This is a workaround to ensure the mix loading code passes.
+             */
+            //CD::Set_Required_CD(DISK_GDI);
+
+            goto files_local;
+        }
+    }
+
+    /**
+     *  Continue to initialise the CD-ROM code.
+     */
+init_cdrom:
+    JMP(0x004E0471);
+
+    /**
+     *  Flag files as being local, no CD-ROM init.
+     */
+files_local:
+    JMP(0x004E06F5);
+}
 
 
 static bool CCFile_Is_Available(const char *filename)
@@ -95,4 +142,5 @@ skip_loading_screen:
 void GameInit_Hooks()
 {
     Patch_Jump(0x004E0786, &_Init_Game_Skip_Startup_Movies_Patch);
+    Patch_Jump(0x004E0461, &_Init_CDROM_Access_Local_Files_Patch);
 }

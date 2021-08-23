@@ -44,6 +44,7 @@
 #include "commandext_hooks.h"
 #include "msglistext_hooks.h"
 #include "sessionext_hooks.h"
+#include "cdext_hooks.h"
 
 #include "objecttypeext_hooks.h"
 #include "technotypeext_hooks.h"
@@ -128,6 +129,7 @@ void Extension_Hooks()
     CommandExtension_Hooks();
     MessageListClassExtension_Hooks();
     SessionClassExtension_Hooks();
+    CDExtension_Hooks();
 
     /**
      *  All type class extensions here.
