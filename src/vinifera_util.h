@@ -27,6 +27,9 @@
  ******************************************************************************/
 #pragma once
 
+#include "tibsun_defines.h"
+#include "wwkeyboard.h"
+
 
 class XSurface;
 
@@ -40,3 +43,5 @@ bool Vinifera_Generate_Mini_Dump();
 
 int Vinifera_Do_WWMessageBox(const char *msg, const char *btn1, const char *btn2 = nullptr, const char *btn3 = nullptr);
 void Vinifera_DeveloperMode_Warning_WWMessageBox(const char *msg, ...);
+
+KeyNumType Get_Command_Key_From_Name(const char *name, KeyNumType default = KN_NONE);
