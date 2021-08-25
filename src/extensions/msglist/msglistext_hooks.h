@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          VINIFERA_GLOBALS.H
+ *  @file          MSGLISTEXT_HOOKS.H
  *
- *  @authors       CCHyper
+ *  @author        CCHyper
  *
- *  @brief         Vinifera global values.
+ *  @brief         Contains the hooks for the extended message input function.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -27,47 +27,5 @@
  ******************************************************************************/
 #pragma once
 
-#include "always.h"
 
-
-extern bool Vinifera_DeveloperMode;
-
-extern char Vinifera_DebugDirectory[PATH_MAX];
-
-
-/**
- *  Defines and constants.
- */
-#define TEXT_S_S					"%s: %s"
-
-
-/**
- *  Developer mode globals.
- */
-extern bool Vinifera_Developer_InstantBuild;
-extern bool Vinifera_Developer_AIInstantBuild;
-extern bool Vinifera_Developer_BuildCheat;
-extern bool Vinifera_Developer_Unshroud;
-extern bool Vinifera_Developer_ShowCursorPosition;
-extern bool Vinifera_Developer_FrameStep;
-extern int Vinifera_Developer_FrameStepCount;
-extern bool Vinifera_Developer_AIControl;
-
-
-/**
- *  Various globals.
- */
-extern bool Vinifera_SkipWWLogoMovie;
-extern bool Vinifera_SkipStartupMovies;
-
-
-/**
- *  Skip to menus.
- */
-extern bool Vinifera_SkipToTSMenu;
-extern bool Vinifera_SkipToFSMenu;
-extern bool Vinifera_SkipToLAN;
-extern bool Vinifera_SkipToSkirmish;
-extern bool Vinifera_SkipToCampaign;
-extern bool Vinifera_SkipToInternet;
-extern bool Vinifera_ExitAfterSkip;
+void MessageListClassExtension_Hooks();
