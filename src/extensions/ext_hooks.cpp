@@ -42,6 +42,7 @@
 #include "displayext_hooks.h"
 #include "tooltipext_hooks.h"
 #include "commandext_hooks.h"
+#include "inputext_hooks.h"
 #include "msglistext_hooks.h"
 #include "sessionext_hooks.h"
 #include "cdext_hooks.h"
@@ -127,6 +128,7 @@ void Extension_Hooks()
     DisplayClassExtension_Hooks();
     ToolTipManagerExtension_Hooks();
     CommandExtension_Hooks();
+    InputExtension_Hooks();
     MessageListClassExtension_Hooks();
     SessionClassExtension_Hooks();
     CDExtension_Hooks();

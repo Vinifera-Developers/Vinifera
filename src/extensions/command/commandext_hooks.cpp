@@ -160,6 +160,9 @@ void Init_Vinifera_Commands()
     cmdptr = new ScrollNWCommandClass;
     Commands.Add(cmdptr);
 
+    cmdptr = new ChatToAllCommandClass;
+    Commands.Add(cmdptr);
+
     /**
      *  Next, initialised any new commands here if the developer mode is enabled.
      */
@@ -345,6 +348,14 @@ static void Process_Vinifera_Hotkeys()
 
     if (!ini.Is_Present("Hotkey", "NextTheme")) {
         cmdptr = CommandClass::From_Name("NextTheme");
+        if (cmdptr) {
+            key = reinterpret_cast<ViniferaCommandClass *>(cmdptr)->Default_Key();
+            HotkeyIndex.Add_Index(key, cmdptr);
+        }
+    }
+
+    if (!ini.Is_Present("Hotkey", TEXT_CHAT_TO_ALL_INI)) {
+        cmdptr = CommandClass::From_Name(TEXT_CHAT_TO_ALL_INI);
         if (cmdptr) {
             key = reinterpret_cast<ViniferaCommandClass *>(cmdptr)->Default_Key();
             HotkeyIndex.Add_Index(key, cmdptr);

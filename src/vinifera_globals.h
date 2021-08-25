@@ -41,6 +41,9 @@ extern char Vinifera_ScreenshotDirectory[PATH_MAX];
 /**
  *  Defines and constants.
  */
+#define TEXT_CHAT_TO_ALL			"Chat to all players"
+#define TEXT_CHAT_TO_ALL_INI		"ChatToAll"
+#define TEXT_CHAT_TO_ALL_DESC		"Send a message to all players (multiplayer only)."
 #define TEXT_S_S					"%s: %s"
 
 
