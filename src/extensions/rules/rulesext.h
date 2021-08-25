@@ -67,6 +67,11 @@ class RulesClassExtension final : public Extension<RulesClass>
             TPoint2D<int> UnitHealthBarDrawPos;
             TPoint2D<int> InfantryHealthBarDrawPos;
 
+            /**
+             *  QoL Improvement: Does a right mouse click cancel player message input?
+             */
+            bool IsRightClickCancelMessage;
+
         } UIControlsStruct;
 
         static UIControlsStruct UIControls;

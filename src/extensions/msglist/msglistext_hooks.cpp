@@ -35,6 +35,7 @@
 #include "house.h"
 #include "housetype.h"
 #include "rules.h"
+#include "rulesext.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
@@ -46,6 +47,65 @@
 static int Get_Message_Delay()
 {
     return Rule->MessageDelay * TICKS_PER_MINUTE;
+}
+
+
+/**
+ *  #issue-526
+ * 
+ *  This patch allows the message input to be canceled at any time by
+ *  pressing the right mouse button down.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_MessageListClass_Input_Allow_Right_Click_Patch)
+{
+    GET_REGISTER_STATIC(MessageListClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(KeyNumType *, input, ebp);
+
+    /**
+     *  Check if the left or right mouse buttons have been released.
+     */
+    if (((*input) & (~KN_RLSE_BIT)) == KN_LMOUSE
+     || ((*input) & (~KN_RLSE_BIT)) == KN_RMOUSE) {
+
+        /**
+         *  If right mouse was released and edit mode is enabled, cancel it.
+         */
+        if (RulesClassExtension::UIControls.IsRightClickCancelMessage) {
+            if (((*input) & KN_RMOUSE) != 0 && this_ptr->Is_Edit()) {
+                this_ptr->Remove_Edit();
+                *input = KN_NONE;
+                goto return_two;
+            }
+        }
+
+        /**
+         *  Do nothing.
+         */
+        goto return_zero;
+    }
+
+    /**
+     *  Continue checking input.
+     */
+proceeed:
+    _asm { mov eax, [input+0] } // Restore EAX just to be sure.
+    _asm { mov eax, [eax] }
+    JMP_REG(ecx, 0x00573AEE);
+
+    /**
+     *  Tell caller to completely refresh the display.
+     */
+return_two:
+    _asm { mov edi, 2 }
+    JMP(0x00573C29);
+
+    /**
+     *  Tell caller to do nothing.
+     */
+return_zero:
+    JMP(0x00573C77);
 }
 
 
@@ -163,4 +223,5 @@ void MessageListClassExtension_Hooks()
 {
     Patch_Jump(0x00509D16, &_MessageListClass_Echo_Sent_Messages_Patch);
     Patch_Jump(0x00573B05, &_MessageListClass_Skip_Assigned_Key_Echo_Patch);
+    Patch_Jump(0x00573AD9, &_MessageListClass_Input_Allow_Right_Click_Patch);
 }
