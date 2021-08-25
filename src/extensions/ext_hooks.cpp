@@ -41,6 +41,7 @@
 #include "displayext_hooks.h"
 #include "tooltipext_hooks.h"
 #include "commandext_hooks.h"
+#include "msglistext_hooks.h"
 
 #include "objecttypeext_hooks.h"
 #include "technotypeext_hooks.h"
@@ -121,6 +122,7 @@ void Extension_Hooks()
     DisplayClassExtension_Hooks();
     ToolTipManagerExtension_Hooks();
     CommandExtension_Hooks();
+    MessageListClassExtension_Hooks();
 
     /**
      *  All type class extensions here.
