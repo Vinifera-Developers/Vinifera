@@ -286,6 +286,13 @@ void Vinifera_Hooks()
     Patch_Byte(0x004E1436, 0x53); // CCINIClass::Load argument from "true" to "false".
 #endif
 
+#ifndef NDEBUG
+    /**
+     *  This patch allows 1 player LAN games for testing various network features.
+     */
+    Patch_Jump(0x00577029, 0x00577071);
+#endif
+
     /**
      *  These two patches changes the last character of the Autorun and Game
      *  application mutex GUID's So Vinifera can be run alongside another instance

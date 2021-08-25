@@ -316,7 +316,6 @@ static void Debug_Print_Patch()
     Patch_Call(0x005724E7, &Debug_Print_Error);
     Patch_Call(0x0057B56E, &Debug_Print_Error);
     Patch_Call(0x0057D78E, &Debug_Print_Warning);
-    Patch_Call(0x0057E87B, &Debug_Print_Error);
     Patch_Call(0x0057EDDF, &Debug_Print_Warning);
     Patch_Call(0x00581BBC, &Debug_Print_Error);
     Patch_Call(0x00581C8F, &Debug_Print_Error);
