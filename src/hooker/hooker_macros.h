@@ -116,6 +116,11 @@
 #define GET_REGISTER_STATIC(type, dst, reg) static type dst; _asm { mov dst, reg }
 #define SET_REGISTER(reg, src) _asm { mov reg, src }
 
+
+#define GET_ADDRESS_STATIC(type, dst, addr) static type dst; _asm { mov dst, addr }
+#define LEA_ADDRESS_STATIC(type, dst, addr) static type dst; _asm { lea eax, addr }
+
+
 /**
  *  Get stack value to a variable
  */
