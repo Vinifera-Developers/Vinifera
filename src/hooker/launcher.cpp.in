@@ -302,6 +302,11 @@ bool Inject_Loader(const char *path, const char *dllname, char *args)
 			 */
             ResumeThread(ProcessInformation.hThread);
 			
+			/**
+			 *  Keep the launcher running until the target process has exited.
+			 */
+			WaitForSingleObject(hProcess, INFINITE);
+			
 			return true;
 			
         } catch (...) {
