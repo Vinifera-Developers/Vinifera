@@ -58,3 +58,8 @@ extern int RecursionCount;
  *  The buffer which holds the exception log info.
  */
 extern FixedString<65536> ExceptionBuffer;
+
+/**
+ *  Installs a custom exception intercept handler.
+ */
+void Vinifera_Install_Exception_Handler_Intercept(LONG (* __stdcall func_ptr)(unsigned int, _EXCEPTION_POINTERS *));

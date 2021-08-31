@@ -83,6 +83,12 @@ FixedString<65536> ExceptionBuffer;
 static TextFileClass ExceptionFile;
 
 
+/**
+ *  The installable exception intercept function pointer.
+ */
+LONG (* __stdcall Exception_Intercept_Func_Ptr)(unsigned int code, EXCEPTION_POINTERS *e_info);
+
+
 static bool Any_Surface_Locked()
 {
     return (PrimarySurface && PrimarySurface->Is_Locked())
@@ -755,6 +761,27 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
     DEBUG_WARNING("Exception!\n");
 
     /**
+     *  
+     */
+    if (Exception_Intercept_Func_Ptr) {
+        LONG code = Exception_Intercept_Func_Ptr(e_code, e_info);
+        if (code == EXCEPTION_CONTINUE_EXECUTION) {
+
+            /**
+             *  Flag that we returned to the application after an exception occurred.
+             */
+            ReturnedAfterException = true;
+
+            /**
+             *  Clear the recursion flag.
+             */
+            RecursionCount = -1;
+
+            return EXCEPTION_CONTINUE_EXECUTION;
+        }
+    }
+
+    /**
      *  Store this exceptions info for use in other functions that
      *  so not take the section info struct.
      */
@@ -972,4 +999,10 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
      *  in the stack frame in which the handler is found.
      */
     return EXCEPTION_EXECUTE_HANDLER;
+}
+
+
+void Vinifera_Install_Exception_Handler_Intercept(LONG (* __stdcall func_ptr)(unsigned int, EXCEPTION_POINTERS *))
+{
+    Exception_Intercept_Func_Ptr = func_ptr;
 }
