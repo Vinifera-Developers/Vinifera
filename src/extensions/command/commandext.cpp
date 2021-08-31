@@ -249,7 +249,14 @@ bool ManualPlaceCommandClass::Process()
      *  If this object is still being built, then bail.
      */
     if (!factory->Has_Completed()) {
-        Speak(VOX_NO_FACTORY);
+        DEV_DEBUG_WARNING("ManualPlaceCommand - Factory object has not yet completed production!\n");
+
+        /**
+         *  #issue-537
+         * 
+         *  Removed due to them being a nuisance to the player.
+         */
+        //Speak(VOX_NO_FACTORY);
         return false;
     }
 
@@ -259,7 +266,14 @@ bool ManualPlaceCommandClass::Process()
      *  If by some rare chance the product is not a building, then bail.
      */
     if (pending->What_Am_I() != RTTI_BUILDING) {
-        Speak(VOX_NO_FACTORY);
+        DEV_DEBUG_ERROR("ManualPlaceCommand - Factory object is not a building!\n");
+
+        /**
+         *  #issue-537
+         * 
+         *  Removed due to them being a nuisance to the player.
+         */
+        //Speak(VOX_NO_FACTORY);
         return false;
     }
 
@@ -270,7 +284,14 @@ bool ManualPlaceCommandClass::Process()
      */
     BuildingClass *builder = pending_bptr->Who_Can_Build_Me();
     if (!builder) {
-        Speak(VOX_NO_FACTORY);
+        DEV_DEBUG_ERROR("ManualPlaceCommand - No builder available!\n");
+
+        /**
+         *  #issue-537
+         * 
+         *  Removed due to them being a nuisance to the player.
+         */
+        //Speak(VOX_NO_FACTORY);
         return false;
     }
 
