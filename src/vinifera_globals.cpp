@@ -47,6 +47,9 @@ bool Vinifera_Developer_AIControl = false;
 bool Vinifera_SkipWWLogoMovie = false;
 bool Vinifera_SkipStartupMovies = false;
 
+DynamicVectorClass<MFCC *> ViniferaMapsMixes;
+DynamicVectorClass<MFCC *> ViniferaMoviesMixes;
+
 bool Vinifera_SkipToTSMenu = false;
 bool Vinifera_SkipToFSMenu = false;
 bool Vinifera_SkipToLAN = false;

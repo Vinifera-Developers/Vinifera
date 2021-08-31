@@ -28,6 +28,8 @@
 #pragma once
 
 #include "always.h"
+#include "vector.h"
+#include "ccfile.h"
 
 
 extern bool Vinifera_DeveloperMode;
@@ -60,6 +62,9 @@ extern bool Vinifera_Developer_AIControl;
  */
 extern bool Vinifera_SkipWWLogoMovie;
 extern bool Vinifera_SkipStartupMovies;
+
+extern DynamicVectorClass<MFCC *> ViniferaMapsMixes;
+extern DynamicVectorClass<MFCC *> ViniferaMoviesMixes;
 
 
 /**

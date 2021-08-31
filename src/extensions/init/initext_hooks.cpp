@@ -52,6 +52,7 @@
  */
 static bool Vinifera_Init_Secondary_Mixfiles()
 {
+    MFCC *mix;
     char buffer[16];
 
     DEBUG_INFO("\n"); // Fixes missing new-line after "Init Secondary Mixfiles....." print.
@@ -81,16 +82,44 @@ static bool Vinifera_Init_Secondary_Mixfiles()
      */
     cd += 1;
 
-    std::snprintf(buffer, sizeof(buffer), "MAPS%02d.MIX", cd);
-    if (CCFileClass(buffer).Is_Available()) {
-        MapsMix = new MFCC(buffer, &FastKey);
-        ASSERT(MapsMix);
+    /**
+     *  #issue-513
+     * 
+     *  If the CD system has been flagged that the files are local, we
+     *  just glob all the map mix files in the game directory.
+     * 
+     *  @author: CCHyper
+     */
+    if (CD::IsFilesLocal) {
+
+        std::snprintf(buffer, sizeof(buffer), "MAPS*.MIX");
+        if (CCFileClass::Find_First_File(buffer)) {
+            DEBUG_INFO(" %s\n", buffer);
+            MapsMix = new MFCC(buffer, &FastKey);
+            ASSERT(MapsMix);
+            while (CCFileClass::Find_Next_File(buffer)) {
+                DEBUG_INFO(" %s\n", buffer);
+                mix = new MFCC(buffer, &FastKey);
+                ASSERT(mix);
+                if (mix) {
+                    ViniferaMapsMixes.Add(mix);
+                }
+            }
+        }
+        CCFileClass::Find_Close();
+
+    } else {
+        std::snprintf(buffer, sizeof(buffer), "MAPS%02d.MIX", cd);
+        if (CCFileClass(buffer).Is_Available()) {
+            MapsMix = new MFCC(buffer, &FastKey);
+            ASSERT(MapsMix);
+        }
     }
     if (!MapsMix) {
         DEBUG_WARNING("Failed to load %s!\n", buffer);
         return false;
     }
-    DEBUG_INFO(" %s\n", buffer);
+    if (!CD::IsFilesLocal) DEBUG_INFO(" %s\n", buffer);
 
     if (CCFileClass("MULTI.MIX").Is_Available()) {
         MultiMix = new MFCC("MULTI.MIX", &FastKey);
@@ -149,16 +178,44 @@ static bool Vinifera_Init_Secondary_Mixfiles()
 	ScoresPresent = true;
 	Theme.Scan();
 
-    std::snprintf(buffer, sizeof(buffer), "MOVIES%02d.MIX", cd);
-    if (CCFileClass(buffer).Is_Available()) {
-        MoviesMix = new MFCC(buffer, &FastKey);
-        ASSERT(MoviesMix);
+    /**
+     *  #issue-513
+     * 
+     *  If the CD system has been flagged that the files are local, we
+     *  just glob all the movies mix files in the game directory.
+     * 
+     *  @author: CCHyper
+     */
+    if (CD::IsFilesLocal) {
+
+        std::snprintf(buffer, sizeof(buffer), "MOVIES*.MIX");
+        if (CCFileClass::Find_First_File(buffer)) {
+            DEBUG_INFO(" %s\n", buffer);
+            MoviesMix = new MFCC(buffer, &FastKey);
+            ASSERT(MoviesMix);
+            while (CCFileClass::Find_Next_File(buffer)) {
+                DEBUG_INFO(" %s\n", buffer);
+                mix = new MFCC(buffer, &FastKey);
+                ASSERT(mix);
+                if (mix) {
+                    ViniferaMoviesMixes.Add(mix);
+                }
+            }
+        }
+        CCFileClass::Find_Close();
+
+    } else {
+        std::snprintf(buffer, sizeof(buffer), "MOVIES%02d.MIX", cd);
+        if (CCFileClass(buffer).Is_Available()) {
+            MoviesMix = new MFCC(buffer, &FastKey);
+            ASSERT(MoviesMix);
+        }
     }
     if (!MoviesMix) {
         DEBUG_WARNING("Failed to load %s!\n", buffer);
         return false;
     }
-    DEBUG_INFO(" %s\n", buffer);
+    if (!CD::IsFilesLocal) DEBUG_INFO(" %s\n", buffer);
 
     return true;
 }
