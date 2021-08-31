@@ -288,6 +288,11 @@ void Init_Vinifera_Commands()
     //DEBUG_INFO("Initialising debug commands.\n");
 
 #endif
+
+    /**
+     *  Create any supporting directories.
+     */
+    CreateDirectory(Vinifera_ScreenshotDirectory, nullptr);
     
     DEBUG_INFO("Init_Vinifera_Commands(exit).\n");
 }
