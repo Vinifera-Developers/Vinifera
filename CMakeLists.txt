@@ -142,6 +142,8 @@ if(NOT ${OPTION_CUSTOM_DEBUGGER_TARGET_NAME} STREQUAL " ")
 	message(STATUS " - Custom debugging target: ${OPTION_CUSTOM_DEBUGGER_TARGET_NAME}")
 endif()
 
+option(OPTION_CHECK_TARGET_BINARIES "This option controls if the launcher should check target binaries before injection." ON)
+
 
 ################################################################################
 # Some general Windows definitions to keep the MSVC compiler happy with our code.
@@ -241,6 +243,13 @@ set(TARGET_TUC_HASH "BEE10E9A55614D134D513909A44BBCC2830B607F") # SHA hash
 set(TARGET_FTS_SIZE 3457296)
 set(TARGET_FTS_ENTRY 0x006B7E21) # Entry point (start).
 set(TARGET_FTS_HASH "846F0077129CB390BB206431A63E9246E3D8DA72") # SHA hash
+
+# Debug option for the launcher to skip target checksum.
+if (OPTION_CHECK_TARGET_BINARIES)
+set(CHECK_TARGET_BINARIES "true")
+else()
+set(CHECK_TARGET_BINARIES "false")
+endif()
 
 
 ################################################################################

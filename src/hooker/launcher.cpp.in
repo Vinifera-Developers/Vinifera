@@ -52,6 +52,11 @@
 #define UNSUPPORTED_TARGET "@UNSUPPORTED_TARGET_ERROR@"
 
 /**
+ *  Should we check the target binary checksum before we attempt injection?
+ */
+const bool CheckTargetBinaries = @CHECK_TARGET_BINARIES@;
+
+/**
  *  Define the SHA hash to compare against.
  */
 const char *BinaryHash[] = {
@@ -401,17 +406,30 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
 	/**
 	 *  Check the target binary exists before we attempt injection.
 	 */
-    if (!File_Exists(EXEName)) {
-		char buff[1024];
-		std::snprintf(buff, sizeof(buff),
-			"Unable to find %s!\n\n"
-            "Please check you have the correct version of " TARGET_NAME " installed\n"
-            "and that it is up to date " UNSUPPORTED_TARGET ".\n",
-			EXEName
-		);
-        MessageBoxA(NULL, buff, "Error!", MB_OK|MB_ICONEXCLAMATION);
-        return EXIT_FAILURE;
-    }
+	if (CheckTargetBinaries) {
+		if (!File_Exists(EXEName)) {
+			char buff[1024];
+			std::snprintf(buff, sizeof(buff),
+				"Unable to find %s!\n\n"
+				"Please check you have the correct version of " TARGET_NAME " installed\n"
+				"and that it is up to date " UNSUPPORTED_TARGET ".\n",
+				EXEName
+			);
+			MessageBoxA(NULL, buff, "Error!", MB_OK|MB_ICONEXCLAMATION);
+			return EXIT_FAILURE;
+		}
+	} else {
+		if (!File_Exists(EXEName)) {
+			char buff[1024];
+			std::snprintf(buff, sizeof(buff),
+				"Unable to find %s!\n\n"
+				"Please check you have the correct version of " TARGET_NAME " installed\n",
+				EXEName
+			);
+			MessageBoxA(NULL, buff, "Error!", MB_OK|MB_ICONEXCLAMATION);
+			return EXIT_FAILURE;
+		}
+	}
 
 	/**
 	 *  Check the DLL exists before we attempt injection.
@@ -444,35 +462,40 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
         return EXIT_FAILURE;
     }
 	
-	bool matches = false;
-	
 	/**
-	 *  Iterate over all the possible target binaries to check if
-	 *  they match one we support.
+	 *  Check the target binary checksum before we attempt injection.
 	 */
-	for (int i = 0; i < 2; ++i) {
-		
+	if (CheckTargetBinaries) {
+		bool matches = false;
+	
 		/**
-		 *  Check the filesize and hash matches first before we attempt injection.
+		 *  Iterate over all the possible target binaries to check if
+		 *  they match one we support.
 		 */
-		if (Get_File_Size(EXEName) == BinarySize[i]) {
-			if (Check_Hash(EXEName, BinaryHash[i])) {
-				matches = true;
+		for (int i = 0; i < 2; ++i) {
+		
+			/**
+			 *  Check the filesize and hash matches first before we attempt injection.
+			 */
+			if (Get_File_Size(EXEName) == BinarySize[i]) {
+				if (Check_Hash(EXEName, BinaryHash[i])) {
+					matches = true;
+				}
 			}
+
 		}
 
-	}
-
-	if (!matches) {
-		char buff[1024];
-		std::snprintf(buff, sizeof(buff),
-			"Modified or unsupported version of %s detected!\n\n"
-			"Please check you have the correct version of " TARGET_NAME " installed\n"
-			"and that it is up to date " UNSUPPORTED_TARGET ".\n",
-			EXEName
-		);
-		MessageBox(NULL, buff, "Error!", MB_OK|MB_ICONEXCLAMATION);
-		return EXIT_FAILURE;
+		if (!matches) {
+			char buff[1024];
+			std::snprintf(buff, sizeof(buff),
+				"Modified or unsupported version of %s detected!\n\n"
+				"Please check you have the correct version of " TARGET_NAME " installed\n"
+				"and that it is up to date " UNSUPPORTED_TARGET ".\n",
+				EXEName
+			);
+			MessageBox(NULL, buff, "Error!", MB_OK|MB_ICONEXCLAMATION);
+			return EXIT_FAILURE;
+		}
 	}
 	
 	/**
