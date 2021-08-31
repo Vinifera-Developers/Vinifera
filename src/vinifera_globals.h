@@ -33,6 +33,7 @@
 extern bool Vinifera_DeveloperMode;
 
 extern char Vinifera_DebugDirectory[PATH_MAX];
+extern char Vinifera_ScreenshotDirectory[PATH_MAX];
 
 
 /**

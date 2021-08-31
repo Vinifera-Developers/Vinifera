@@ -33,6 +33,7 @@
 bool Vinifera_DeveloperMode = false;
 
 char Vinifera_DebugDirectory[PATH_MAX] = { "Debug" };
+char Vinifera_ScreenshotDirectory[PATH_MAX] = { "Screenshots" };
 
 bool Vinifera_Developer_InstantBuild = false;
 bool Vinifera_Developer_AIInstantBuild = false;

@@ -178,9 +178,19 @@ bool PNGScreenCaptureCommandClass::Process()
     std::snprintf(buffer, sizeof(buffer), "SCRN_%02u-%02u-%04u_%02u-%02u-%02u.PNG", day, month, year, hour, min, sec);
 
     /**
+     *  #issue-195
+     * 
+     *  Output screenshots to its own sub-directory.
+     * 
+     *  @author: CCHyper
+     */
+    char fullpath_buffer[PATH_MAX];
+    std::snprintf(fullpath_buffer, sizeof(fullpath_buffer), "%s\\%s", Vinifera_ScreenshotDirectory, buffer);
+
+    /**
      *  We found a free filename, now write the buffer to a PNG file.
      */
-    bool success = Write_PNG_File(&RawFileClass(buffer), *HiddenSurface, &GamePalette);
+    bool success = Write_PNG_File(&RawFileClass(fullpath_buffer), *HiddenSurface, &GamePalette);
 
     if (success) {
         DEBUG_INFO("PNG screenshot \"%s\" written sucessfully.\n", buffer);
