@@ -89,6 +89,7 @@
 #include "combatext_hooks.h"
 
 #include "empulseext_hooks.h"
+#include "waveext_hooks.h"
 
 #include "dropshipext_hooks.h"
 
@@ -173,6 +174,7 @@ void Extension_Hooks()
     CombatExtension_Hooks();
 
     EMPulseClassExtension_Hooks();
+    WaveClassExtension_Hooks();
 
     DropshipExtension_Hooks();
 

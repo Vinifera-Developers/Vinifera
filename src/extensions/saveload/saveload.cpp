@@ -68,6 +68,8 @@
 #include "buildingext.h"
 #include "terrainext.h"
 
+#include "waveext.h"
+
 
 /**
  *  Constant of the current build version number. This number should be
@@ -115,6 +117,7 @@ unsigned ViniferaSaveGameVersion =
             + sizeof(TechnoClassExtension)
             + sizeof(BuildingClassExtension)
             + sizeof(TerrainClassExtension)
+            + sizeof(WaveClassExtension)
 ;
 
 
@@ -314,6 +317,8 @@ DEFINE_EXTENSION_SAVE(TechnoClassExtension, TechnoClassExtensions);
 DEFINE_EXTENSION_SAVE(BuildingClassExtension, BuildingClassExtensions);
 DEFINE_EXTENSION_SAVE(TerrainClassExtension, TerrainClassExtensions);
 
+DEFINE_EXTENSION_SAVE(WaveClassExtension, WaveClassExtensions);
+
 DEFINE_EXTENSION_LOAD(ObjectTypeClassExtension, ObjectTypeClassExtensions);
 DEFINE_EXTENSION_LOAD(TechnoTypeClassExtension, TechnoTypeClassExtensions);
 DEFINE_EXTENSION_LOAD(BuildingTypeClassExtension, BuildingTypeClassExtensions);
@@ -345,6 +350,8 @@ DEFINE_EXTENSION_LOAD(TiberiumClassExtension, TiberiumClassExtensions);
 DEFINE_EXTENSION_LOAD(TechnoClassExtension, TechnoClassExtensions);
 DEFINE_EXTENSION_LOAD(BuildingClassExtension, BuildingClassExtensions);
 DEFINE_EXTENSION_LOAD(TerrainClassExtension, TerrainClassExtensions);
+
+DEFINE_EXTENSION_LOAD(WaveClassExtension, WaveClassExtensions);
 
 
 /**
@@ -560,6 +567,12 @@ bool Vinifera_Put_All(IStream *pStm)
 
     DEBUG_INFO("Saving TerrainClassExtension\n");
     if (!Vinifera_Save_TerrainClassExtension(pStm)) {
+        DEBUG_INFO("\t***** FAILED!\n");
+        return false;
+    }
+
+    DEBUG_INFO("Saving WaveClassExtension\n");
+    if (!Vinifera_Save_WaveClassExtension(pStm)) {
         DEBUG_INFO("\t***** FAILED!\n");
         return false;
     }
@@ -808,6 +821,12 @@ bool Vinifera_Load_All(IStream *pStm)
 
     DEBUG_INFO("Loading TerrainClassExtension\n");
     if (!Vinifera_Load_TerrainClassExtension(pStm)) {
+        DEBUG_INFO("\t***** FAILED!\n");
+        return false;
+    }
+
+    DEBUG_INFO("Loading WaveClassExtension\n");
+    if (!Vinifera_Load_WaveClassExtension(pStm)) {
         DEBUG_INFO("\t***** FAILED!\n");
         return false;
     }
