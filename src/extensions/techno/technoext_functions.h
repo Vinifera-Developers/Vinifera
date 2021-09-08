@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          TECHNOEXT.H
+ *  @file          TECHNOEXT_FUNCTIONS.H
  *
  *  @author        CCHyper
  *
- *  @brief         Extended TechnoClass class.
+ *  @brief         Contains the supporting functions for the extended TechnoClass.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -27,42 +27,13 @@
  ******************************************************************************/
 #pragma once
 
-#include "extension.h"
-#include "container.h"
-#include "techno.h"
+#include "always.h"
+#include "tibsun_defines.h"
 
 
+class TechnoClass;
 class EBoltClass;
 
 
-class TechnoClassExtension final : public Extension<TechnoClass>
-{
-    public:
-        TechnoClassExtension(TechnoClass *this_ptr);
-        TechnoClassExtension(const NoInitClass &noinit);
-        ~TechnoClassExtension();
-
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
-        virtual int Size_Of() const override;
-
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
-
-        /**
-         *  Extended class functions.
-         */
-        void Response_Capture();
-        void Response_Enter();
-        void Response_Deploy();
-        void Response_Harvest();
-
-    public:
-        /**
-         *  The current electric bolt instance fired by this object.
-         */
-        EBoltClass *ElectricBolt;
-};
-
-
-extern ExtensionMap<TechnoClass, TechnoClassExtension> TechnoClassExtensions;
+EBoltClass *TechnoClassExtension_Electric_Zap(TechnoClass *this_ptr, TARGET target, int which, const WeaponTypeClass *weapontype, Coordinate &source_coord);
+EBoltClass *TechnoClassExtension_Electric_Bolt(TechnoClass *this_ptr, TARGET target);

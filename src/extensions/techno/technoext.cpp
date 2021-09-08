@@ -49,7 +49,8 @@ ExtensionMap<TechnoClass, TechnoClassExtension> TechnoClassExtensions;
  *  @author: CCHyper
  */
 TechnoClassExtension::TechnoClassExtension(TechnoClass *this_ptr) :
-    Extension(this_ptr)
+    Extension(this_ptr),
+    ElectricBolt(nullptr)
 {
     ASSERT(ThisPtr != nullptr);
     //EXT_DEBUG_TRACE("TechnoClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -101,6 +102,8 @@ HRESULT TechnoClassExtension::Load(IStream *pStm)
     }
 
     new (this) TechnoClassExtension(NoInitClass());
+
+    ElectricBolt = nullptr;
     
     return hr;
 }
@@ -120,6 +123,9 @@ HRESULT TechnoClassExtension::Save(IStream *pStm, BOOL fClearDirty)
     if (FAILED(hr)) {
         return hr;
     }
+
+    delete ElectricBolt;
+    ElectricBolt = nullptr;
 
     return hr;
 }

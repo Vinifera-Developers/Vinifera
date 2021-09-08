@@ -27,6 +27,7 @@
  ******************************************************************************/
 #include "weapontypeext.h"
 #include "weapontype.h"
+#include "ebolt.h"
 #include "ccini.h"
 #include "asserthandler.h"
 #include "debughandler.h"
@@ -46,7 +47,15 @@ ExtensionMap<WeaponTypeClass, WeaponTypeClassExtension> WeaponTypeClassExtension
 WeaponTypeClassExtension::WeaponTypeClassExtension(WeaponTypeClass *this_ptr) :
     Extension(this_ptr),
     IsSuicide(false),
-    IsDeleteOnSuicide(false)
+    IsDeleteOnSuicide(false),
+    IsElectricBolt(false),
+    ElectricBoltColor1(EBOLT_DEFAULT_COLOR_1),
+    ElectricBoltColor2(EBOLT_DEFAULT_COLOR_2),
+    ElectricBoltColor3(EBOLT_DEFAULT_COLOR_3),
+    ElectricBoltSegmentCount(EBOLT_DEFAULT_LINE_SEGEMENTS),
+    ElectricBoltLifetime(EBOLT_DEFAULT_LIFETIME),
+    ElectricBoltIterationCount(EBOLT_DEFAULT_INTERATIONS),
+    ElectricBoltDeviation(EBOLT_DEFAULT_DEVIATION)
 {
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("WeaponTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -157,6 +166,8 @@ void WeaponTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("WeaponTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+
+    crc(IsElectricBolt);
 }
 
 
@@ -179,6 +190,18 @@ bool WeaponTypeClassExtension::Read_INI(CCINIClass &ini)
     
     IsSuicide = ini.Get_Bool(ini_name, "Suicide", IsSuicide);
     IsDeleteOnSuicide = ini.Get_Bool(ini_name, "DeleteOnSuicide", IsDeleteOnSuicide);
+
+    IsElectricBolt = ini.Get_Bool(ini_name, "IsElectricBolt", IsElectricBolt);
+    ElectricBoltColor1 = ini.Get_RGB(ini_name, "EBoltColor1", ElectricBoltColor1);
+    ElectricBoltColor2 = ini.Get_RGB(ini_name, "EBoltColor2", ElectricBoltColor2);
+    ElectricBoltColor3 = ini.Get_RGB(ini_name, "EBoltColor3", ElectricBoltColor3);
+    ElectricBoltSegmentCount = ini.Get_Int(ini_name, "EBoltSegmentCount", ElectricBoltSegmentCount);
+    ElectricBoltLifetime = ini.Get_Int(ini_name, "EBoltLifetime", ElectricBoltLifetime);
+    ElectricBoltIterationCount = ini.Get_Int(ini_name, "EBoltIterations", ElectricBoltIterationCount);
+    ElectricBoltDeviation = ini.Get_Float(ini_name, "EBoltDeviation", ElectricBoltDeviation);
+    //ElectricBoltSourceBoltParticleSys = ini.Get_ParticleSys(ini_name, "EBoltSourceParticleSys", ElectricBoltSourceBoltParticleSys);
+    //ElectricBoltTargetBoltParticleSys = ini.Get_ParticleSys(ini_name, "EBoltTargetBoltParticleSys", ElectricBoltTargetBoltParticleSys);
+    
 
     return true;
 }
