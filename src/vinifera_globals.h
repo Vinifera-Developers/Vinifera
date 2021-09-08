@@ -32,6 +32,9 @@
 #include "ccfile.h"
 
 
+class EBoltClass;
+
+
 extern bool Vinifera_DeveloperMode;
 
 extern char Vinifera_DebugDirectory[PATH_MAX];
@@ -68,6 +71,12 @@ extern DynamicVectorClass<MFCC *> ViniferaMoviesMixes;
 
 extern MFCC *GenericMix;
 extern MFCC *IsoGenericMix;
+
+
+/**
+ *  Global vectors and heaps.
+ */
+extern DynamicVectorClass<EBoltClass *> EBolts;
 
 
 /**

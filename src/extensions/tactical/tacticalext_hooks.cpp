@@ -41,6 +41,8 @@
 #include "session.h"
 #include "colorscheme.h"
 #include "voc.h"
+#include "laserdraw.h"
+#include "ebolt.h"
 #include "fatal.h"
 #include "vinifera_globals.h"
 #include "vinifera_util.h"
@@ -541,11 +543,38 @@ static void Tactical_Draw_Information_Text()
 
 
 /**
- *  This patch intercepts the end of the rendering process for Tactical.
+ *  This patch intercepts the post effects rendering process for Tactical
+ *  allowing us to draw any new effects/systems.
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Tactical_Render_Patch)
+DECLARE_PATCH(_Tactical_Render_Post_Effects_Patch)
+{
+    GET_REGISTER_STATIC(Tactical *, this_ptr, ebp);
+
+    /**
+     *  Stolen bytes/code.
+     */
+    LaserDrawClass::Draw_All();
+
+    /**
+     *  Draw any new post effects here.
+     */
+    //DEV_DEBUG_INFO("Before EBoltClass::Draw_All\n");
+    EBoltClass::Draw_All();
+    //DEV_DEBUG_INFO("After EBoltClass::Draw_All\n");
+
+    JMP(0x00611AFE);
+}
+
+
+/**
+ *  This patch intercepts the end of the rendering process for Tactical
+ *  for drawing any overlay or graphics.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_Tactical_Render_Overlay_Patch)
 {
     GET_REGISTER_STATIC(Tactical *, this_ptr, ebp);
 
@@ -631,7 +660,8 @@ void TacticalExtension_Hooks()
      */
     TacticalExtension_Init();
 
-    Patch_Jump(0x00611BCB, &_Tactical_Render_Patch);
+    Patch_Jump(0x00611AF9, &_Tactical_Render_Post_Effects_Patch);
+    Patch_Jump(0x00611BCB, &_Tactical_Render_Overlay_Patch);
 
     Patch_Jump(0x00616E9A, &_Tactical_Draw_Rally_Points_NormaliseLineAnimation_Patch);
     Patch_Jump(0x006172DB, &_Tactical_Draw_Waypoint_Paths_NormaliseLineAnimation_Patch);

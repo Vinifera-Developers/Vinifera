@@ -50,6 +50,8 @@ bool Vinifera_SkipStartupMovies = false;
 DynamicVectorClass<MFCC *> ViniferaMapsMixes;
 DynamicVectorClass<MFCC *> ViniferaMoviesMixes;
 
+DynamicVectorClass<EBoltClass *> EBolts;
+
 MFCC *GenericMix = nullptr;
 MFCC *IsoGenericMix = nullptr;
 

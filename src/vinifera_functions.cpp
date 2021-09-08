@@ -34,6 +34,7 @@
 #include "rulesext.h"
 #include "ccfile.h"
 #include "cd.h"
+#include "ebolt.h"
 #include "debughandler.h"
 #include <string>
 
@@ -243,6 +244,11 @@ bool Vinifera_Shutdown()
 
     delete IsoGenericMix;
     IsoGenericMix = nullptr;
+
+    /**
+     *  Cleanup global heaps/vectors.
+     */
+    EBoltClass::Clear_All();
 
     DEV_DEBUG_INFO("Shutdown - New Count: %d, Delete Count: %d\n", Vinifera_New_Count, Vinifera_Delete_Count);
 

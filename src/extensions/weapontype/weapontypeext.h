@@ -61,6 +61,44 @@ class WeaponTypeClassExtension final : public Extension<WeaponTypeClass>
          *  Does the firing unit get explictly deleted when this weapon is fired?
          */
         bool IsDeleteOnSuicide;
+
+        /**
+         *  Is this a electric bolt weapon (Uses custom drawing)?
+         */
+        bool IsElectricBolt;
+
+        /**
+         *  Electric bolts have 3 lines per section, these controls their colors.
+         */
+        RGBStruct ElectricBoltColor1;
+        RGBStruct ElectricBoltColor2;
+        RGBStruct ElectricBoltColor3;
+
+        /**
+         *  How many segment blocks should the electric bolt be made up from.
+         */
+        int ElectricBoltSegmentCount;
+
+        /**
+         *  The lifetime [in game frames] of the bolt graphic.
+         */
+        int ElectricBoltLifetime;
+
+        /**
+         *  How many draw iterations should the system perform?
+         */
+        int ElectricBoltIterationCount;
+
+        /**
+         *  The maximum deviation from a straight line the electric bolts can be.
+         */
+        float ElectricBoltDeviation;
+
+        /**
+         *  Particle systems to display.
+         */
+        //ParticleSystemClass *ElectricBoltSourceBoltParticleSys;
+        //ParticleSystemClass *ElectricBoltTargetBoltParticleSys;
 };
 
 

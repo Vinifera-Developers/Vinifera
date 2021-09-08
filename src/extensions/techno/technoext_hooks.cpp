@@ -27,6 +27,7 @@
  ******************************************************************************/
 #include "technoext_hooks.h"
 #include "technoext_init.h"
+#include "technoext_functions.h"
 #include "technoext.h"
 #include "techno.h"
 #include "technotype.h"
@@ -51,6 +52,39 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-357
+ * 
+ *  Creates an instance of the electric bolt from the firing techno to the target.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_TechnoClass_Fire_At_Electric_Bolt_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(WeaponTypeClass const *, weapon, ebx);
+    GET_STACK_STATIC(TARGET, target, ebp, 0x8);
+    static WeaponTypeClassExtension *weapontypeext;
+
+    /**
+     *  Stolen bytes/code.
+     */
+    this_ptr->Reduce_Ammunition();
+
+    /**
+     *  Spawn the electric bolt.
+     */
+    weapontypeext = WeaponTypeClassExtensions.find(weapon);
+    if (weapontypeext) {
+        if (weapontypeext->IsElectricBolt) {
+            TechnoClassExtension_Electric_Bolt(this_ptr, target);
+        }
+    }
+
+    JMP_REG(edx, 0x006312D7);
+}
 
 
 /**
@@ -656,4 +690,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x00638095, &_TechnoClass_Refund_Amount_Soylent_Patch);
     Patch_Jump(0x00631661, &_TechnoClass_Player_Assign_Mission_Response_Patch);
     Patch_Jump(0x00630390, &_TechnoClass_Fire_At_Suicide_Patch);
+    Patch_Jump(0x006312CD, &_TechnoClass_Fire_At_Electric_Bolt_Patch);
 }
