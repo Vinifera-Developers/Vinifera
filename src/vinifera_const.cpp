@@ -37,7 +37,7 @@ const char TXT_VINIFERA_NIGHTLY_BUILD[78] = { "This is a nightly build of Vinife
 #elif defined(PREVIEW)
 const char TXT_VINIFERA_PREVIEW_BUILD[78] = { "This is a preview build of Vinifera, please use with caution!" };
 #else
-const char TXT_VINIFERA_LOCAL_BUILD[78] = { "This is a local build of Vinifera, please use with caution!" };
+const char TXT_VINIFERA_LOCAL_BUILD[78] = { "This is a local unofficial build of Vinifera, please use with caution!" };
 const char TXT_VINIFERA_UNOFFICIAL_BUILD[78] = { "This is an unofficial build of Vinifera, please use with caution!" };
 #endif
 #endif

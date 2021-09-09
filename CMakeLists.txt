@@ -120,6 +120,10 @@ endif()
 # Available CMake options.
 ################################################################################
 
+# Option for producing Release builds.
+# DO NOT USE: This is for the CI build system only.
+option(OPTION_RELEASE_BUILD "Produce configurations for building a release build." OFF)
+
 # These are for debugging purposes only.
 option(OPTION_CUSTOM_DEBUGGER_DIRECTORY "Define custom debugger working path and target to copy binaries to on build." OFF)
 option(OPTION_CUSTOM_DEBUGGER_TARGET "Define custom debugger target binary name (only use with modified EXE which loads the DLL via an import)." OFF)
@@ -470,15 +474,17 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC VINIFERA_TARGET_SIZE=${TARGET_
 target_compile_definitions(${PROJECT_NAME} PUBLIC VINIFERA_TARGET_HASH="${TARGET_HASH}")
 
 # Set the build type defines.
-if(RELEASE)
-target_compile_definitions(${PROJECT_NAME} PUBLIC RELEASE=1)
+if(RELEASE OR OPTION_RELEASE_BUILD)
+target_compile_definitions(${PROJECT_NAME} PUBLIC "$<$<CONFIG:RelWithDebInfo>:RELEASE>")
 message(STATUS "Build: Release")
 elseif(NIGHTLY)
-target_compile_definitions(${PROJECT_NAME} PUBLIC NIGHTLY=1)
+target_compile_definitions(${PROJECT_NAME} PUBLIC "$<$<CONFIG:RelWithDebInfo>:NIGHTLY>")
 message(STATUS "Build: Nightly")
 elseif(PREVIEW)
-target_compile_definitions(${PROJECT_NAME} PUBLIC PREVIEW=1)
+target_compile_definitions(${PROJECT_NAME} PUBLIC "$<$<CONFIG:RelWithDebInfo>:PREVIEW>")
 message(STATUS "Build: Preview")
+else()
+message(STATUS "Build: Unofficial")
 endif()
 
 
@@ -553,7 +559,7 @@ set(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} /Oy")
 target_compile_options(${PROJECT_NAME} PUBLIC
 		$<$<CONFIG:Debug>:/Ob0>
 		$<$<CONFIG:Release>:/Ob1>
-		$<$<CONFIG:RelWithDbgInfo>:/Ob1>
+		$<$<CONFIG:RelWithDebInfo>:/Ob1>
 		$<$<CONFIG:MinSizeRel>:/Ob1>)
 
 # Build with multiple processes.

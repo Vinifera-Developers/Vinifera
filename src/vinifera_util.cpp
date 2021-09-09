@@ -62,12 +62,19 @@ const char *Vinifera_Version_String()
         if (CnCNet4::IsEnabled) {
             cncnet_mode = " (CnCNet4)";
         }
-
-        std::snprintf(_buffer, sizeof(_buffer), "Vinifera%s%s: %s %s %s%s %s",
+        
+#ifndef RELEASE
+        std::snprintf(_buffer, sizeof(_buffer), "Vinifera:%s%s - %s %s %s%s %s",
             cncnet_mode != nullptr ? cncnet_mode : "",
             Vinifera_DeveloperMode ? " (Dev)" : "",
             Vinifera_Git_Branch(), Vinifera_Git_Author(),
             Vinifera_Git_Uncommitted_Changes() ? "~" : "", Vinifera_Git_Hash_Short(), Vinifera_Git_DateTime());
+#else
+        std::snprintf(_buffer, sizeof(_buffer), "Vinifera:%s%s - %s%s %s",
+            cncnet_mode != nullptr ? cncnet_mode : "",
+            Vinifera_DeveloperMode ? " (Dev)" : "",
+            Vinifera_Git_Uncommitted_Changes() ? "~" : "", Vinifera_Git_Hash_Short(), Vinifera_Git_DateTime());
+#endif
     }
 
     return _buffer;
