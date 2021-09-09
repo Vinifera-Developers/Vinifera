@@ -36,6 +36,7 @@
 #include "mainloopext_hooks.h"
 #include "newmenuext_hooks.h"
 
+#include "rulesext_hooks.h"
 #include "tacticalext_hooks.h"
 #include "scenarioext_hooks.h"
 #include "displayext_hooks.h"
@@ -118,6 +119,7 @@ void Extension_Hooks()
     /**
      *  All class extensions here.
      */
+    RulesClassExtension_Hooks();
     TacticalExtension_Hooks();
     ScenarioClassExtension_Hooks();
     DisplayClassExtension_Hooks();
