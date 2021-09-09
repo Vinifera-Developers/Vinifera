@@ -68,6 +68,7 @@
 #include "technoext.h"
 #include "aircraftext.h"
 #include "buildingext.h"
+#include "infantryext.h"
 #include "terrainext.h"
 
 #include "waveext.h"
@@ -120,6 +121,7 @@ unsigned ViniferaSaveGameVersion =
             + sizeof(TechnoClassExtension)
             + sizeof(AircraftClassExtension)
             + sizeof(BuildingClassExtension)
+            + sizeof(InfantryClassExtension)
             + sizeof(TerrainClassExtension)
             + sizeof(WaveClassExtension)
 ;
@@ -352,6 +354,7 @@ DEFINE_EXTENSION_SAVE(TiberiumClassExtension, TiberiumClassExtensions);
 DEFINE_EXTENSION_SAVE(TechnoClassExtension, TechnoClassExtensions);
 DEFINE_EXTENSION_SAVE(AircraftClassExtension, AircraftClassExtensions);
 DEFINE_EXTENSION_SAVE(BuildingClassExtension, BuildingClassExtensions);
+DEFINE_EXTENSION_SAVE(InfantryClassExtension, InfantryClassExtensions);
 DEFINE_EXTENSION_SAVE(TerrainClassExtension, TerrainClassExtensions);
 
 DEFINE_EXTENSION_SAVE(WaveClassExtension, WaveClassExtensions);
@@ -387,6 +390,7 @@ DEFINE_EXTENSION_LOAD(TiberiumClassExtension, TiberiumClassExtensions);
 DEFINE_EXTENSION_LOAD(TechnoClassExtension, TechnoClassExtensions);
 DEFINE_EXTENSION_LOAD(AircraftClassExtension, AircraftClassExtensions);
 DEFINE_EXTENSION_LOAD(BuildingClassExtension, BuildingClassExtensions);
+DEFINE_EXTENSION_LOAD(InfantryClassExtension, InfantryClassExtensions);
 DEFINE_EXTENSION_LOAD(TerrainClassExtension, TerrainClassExtensions);
 
 DEFINE_EXTENSION_LOAD(WaveClassExtension, WaveClassExtensions);
@@ -611,6 +615,12 @@ bool Vinifera_Put_All(IStream *pStm)
 
     DEBUG_INFO("Saving BuildingClassExtension\n");
     if (!Vinifera_Save_BuildingClassExtension(pStm)) {
+        DEBUG_INFO("\t***** FAILED!\n");
+        return false;
+    }
+
+    DEBUG_INFO("Saving InfantryClassExtension\n");
+    if (!Vinifera_Save_InfantryClassExtension(pStm)) {
         DEBUG_INFO("\t***** FAILED!\n");
         return false;
     }
@@ -877,6 +887,12 @@ bool Vinifera_Load_All(IStream *pStm)
 
     DEBUG_INFO("Loading BuildingClassExtension\n");
     if (!Vinifera_Load_BuildingClassExtension(pStm)) {
+        DEBUG_INFO("\t***** FAILED!\n");
+        return false;
+    }
+
+    DEBUG_INFO("Loading InfantryClassExtension\n");
+    if (!Vinifera_Load_InfantryClassExtension(pStm)) {
         DEBUG_INFO("\t***** FAILED!\n");
         return false;
     }

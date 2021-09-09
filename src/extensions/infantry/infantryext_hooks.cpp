@@ -25,7 +25,8 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "houseext_hooks.h"
+#include "infantryext_hooks.h"
+#include "infantryext_init.h"
 #include "infantry.h"
 #include "infantrytype.h"
 #include "fatal.h"
@@ -210,6 +211,11 @@ DECLARE_PATCH(_InfantryClass_Firing_AI_JumpJet_In_Air_Patch)
  */
 void InfantryClassExtension_Hooks()
 {
+    /**
+     *  Initialises the extended class.
+     */
+    InfantryClassExtension_Init();
+
     Patch_Jump(0x004D88FA, &_InfantryClass_Firing_AI_JumpJet_In_Air_Patch);
     Patch_Jump(0x004D8C83, &_InfantryClass_Doing_AI_JumpJet_Idle_Patch);
     Patch_Jump(0x004D50C9, &_InfantryClass_AI_JumpJet_Idle_Between_Firing_Patch);
