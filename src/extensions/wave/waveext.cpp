@@ -321,6 +321,15 @@ void WaveClassExtension::Draw_Sonic_Beam_Pixel(int a1, int a2, int a3, unsigned 
     int pos = std::abs(SonicBeamSineTable[wave_pos]);
 
     /**
+     *  #issue-540
+     * 
+     *  Possible bug-fix for the common crash, back-ported from Red Alert 2.
+     */
+    if (pos > 9) {
+        pos = 9;
+    }
+
+    /**
      *  Get the intensity adjustment value based on the pattern position.
      */
     int intensity = SonicBeamIntensityTable[pos];
