@@ -94,6 +94,8 @@
 #include "dropshipext_hooks.h"
 
 #include "cciniext_hooks.h"
+#include "cdfileext_hooks.h"
+#include "mixfileext_hooks.h"
 
 #include "skirmishdlg_hooks.h"
 
@@ -179,6 +181,8 @@ void Extension_Hooks()
     DropshipExtension_Hooks();
 
     CCINIClassExtension_Hooks();
+    CDFileClassExtension_Hooks();
+    MixFileClassExtension_Hooks();
 
     /**
      *  Dialogs and associated code.
