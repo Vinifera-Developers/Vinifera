@@ -26,6 +26,7 @@
  *
  ******************************************************************************/
 #include "aircraftext_hooks.h"
+#include "aircraftext_init.h"
 #include "aircraft.h"
 #include "aircrafttype.h"
 #include "object.h"
@@ -163,6 +164,11 @@ DECLARE_PATCH(_AircraftClass_Init_IsCloakable_BugFix_Patch)
  */
 void AircraftClassExtension_Hooks()
 {
+    /**
+     *  Initialises the extended class.
+     */
+    AircraftClassExtension_Init();
+
 	Patch_Jump(0x00408898, &_AircraftClass_Init_IsCloakable_BugFix_Patch);
     Patch_Jump(0x0040B819, &_AircraftClass_What_Action_Is_Totable_Patch);
 }
