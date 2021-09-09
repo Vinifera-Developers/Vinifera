@@ -26,6 +26,7 @@
  *
  ******************************************************************************/
 #include "unitext_hooks.h"
+#include "unitext_init.h"
 #include "tibsun_inline.h"
 #include "vinifera_globals.h"
 #include "tibsun_globals.h"
@@ -363,6 +364,11 @@ continue_check_scatter:
  */
 void UnitClassExtension_Hooks()
 {
+    /**
+     *  Initialises the extended class.
+     */
+    UnitClassExtension_Init();
+
     Patch_Jump(0x006517BE, &_UnitClass_Per_Cell_Process_AutoHarvest_Assign_Harvest_Mission_Patch);
     Patch_Jump(0x0065B547, &_UnitClass_Explode_ShakeScreen_Division_BugFix_Patch);
     Patch_Jump(0x006530EB, &_UnitClass_Draw_Shape_Primary_Facing_Patch);
