@@ -32,6 +32,7 @@
 #include "rules.h"
 #include "extension.h"
 #include "tpoint.h"
+#include "typelist.h"
 
 
 class CCINIClass;
@@ -108,4 +109,9 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
          *  Customizable maximum counts for drawing different pips.
          */
         TypeList<int> MaxPips;
+        
+        /**
+         *  List of units to consider "home".
+         */
+        TypeList<UnitTypeClass *> BaseUnit;
 };
