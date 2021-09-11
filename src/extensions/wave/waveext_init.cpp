@@ -61,6 +61,18 @@ DECLARE_PATCH(_WaveClass_Default_Constructor_Patch)
     }
 
     /**
+     *  Store a pointer to the weapon type that fired this wave.
+     */
+    if (Wave_TempWeaponTypePtr) {
+        ext_ptr->WeaponType = Wave_TempWeaponTypePtr;
+    }
+
+    /**
+     *  Initialise the new created extension.
+     */
+    ext_ptr->Init();
+
+    /**
      *  Stolen bytes here.
      */
 original_code:
@@ -105,6 +117,18 @@ DECLARE_PATCH(_WaveClass_Default_Constructor_Before_Init_Patch)
     }
 
     /**
+     *  Store a pointer to the weapon type that fired this wave.
+     */
+    if (Wave_TempWeaponTypePtr) {
+        ext_ptr->WeaponTypePtr = Wave_TempWeaponTypePtr;
+    }
+
+    /**
+     *  Initialise the new created extension.
+     */
+    ext_ptr->Init();
+
+    /**
      *  Stolen bytes here.
      */
 original_code:
@@ -140,6 +164,18 @@ DECLARE_PATCH(_WaveClass_Constructor_Patch)
         Fatal("Failed to create WaveClassExtensions instance!\n");
         goto original_code; // Keep this for clean code analysis.
     }
+
+    /**
+     *  Store a pointer to the weapon type that fired this wave.
+     */
+    if (Wave_TempWeaponTypePtr) {
+        ext_ptr->WeaponType = Wave_TempWeaponTypePtr;
+    }
+
+    /**
+     *  Initialise the new created extension.
+     */
+    ext_ptr->Init();
 
     /**
      *  Stolen bytes here.
@@ -183,6 +219,18 @@ DECLARE_PATCH(_WaveClass_Constructor_Before_Init_Patch)
         Fatal("Failed to create WaveClassExtensions instance!\n");
         goto original_code; // Keep this for clean code analysis.
     }
+
+    /**
+     *  Store a pointer to the weapon type that fired this wave.
+     */
+    if (Wave_TempWeaponTypePtr) {
+        ext_ptr->WeaponTypePtr = Wave_TempWeaponTypePtr;
+    }
+
+    /**
+     *  Initialise the new created extension.
+     */
+    ext_ptr->Init();
 
     /**
      *  Stolen bytes here.

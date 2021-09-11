@@ -29,10 +29,34 @@
 
 #include "extension.h"
 #include "container.h"
+#include "rgb.h"
+#include "vector3.h"
 
 
 class WeaponTypeClass;
 class CCINIClass;
+
+
+typedef enum SonicBeamSurfacePatternType
+{
+    SURFACE_PATTERN_CIRCLE,
+    SURFACE_PATTERN_ELLIPSE,
+    SURFACE_PATTERN_RHOMBUS,
+    SURFACE_PATTERN_SQUARE,
+
+    SURFACE_PATTERN_COUNT
+} SonicBeamSurfacePatternType;
+
+
+typedef enum SonicBeamSinePatternType
+{
+    SINE_PATTERN_CIRCLE,
+    SINE_PATTERN_SQUARE,
+    SINE_PATTERN_SAWTOOTH,
+    SINE_PATTERN_TRIANGLE,
+
+    SINE_PATTERN_COUNT
+} SonicBeamSinePatternType;
 
 
 class WeaponTypeClassExtension final : public Extension<WeaponTypeClass>
@@ -52,6 +76,49 @@ class WeaponTypeClassExtension final : public Extension<WeaponTypeClass>
         bool Read_INI(CCINIClass &ini);
 
     public:
+        /**
+         *  Color of the sonic beam, in 24-bit RGB.
+         */
+        RGBStruct SonicBeamColor;
+
+        /**
+         *  Is the wave clear (no color)?
+         */
+        bool SonicBeamIsClear;
+
+        /**
+         *  The alpha blending of the sonic beam.
+         */
+        double SonicBeamAlpha;
+        
+        /**
+         *  The duration of one wave cycle.
+         */
+        double SonicBeamSineDuration;
+        
+        /**
+         *  The amplitude of the wave.
+         */
+        double SonicBeamSineAmplitude;
+        
+        /**
+         *  The amount to offset the pixel data.
+         */
+        double SonicBeamOffset;
+
+        /**
+         *  Start and end pins for the shape of the sonic beam.
+         */
+        Vector3 SonicBeamStartPinLeft;
+        Vector3 SonicBeamStartPinRight;
+        Vector3 SonicBeamEndPinLeft;
+        Vector3 SonicBeamEndPinRight;
+
+        /**
+         *  The pattern type for the sonic beam effect.
+         */
+        SonicBeamSurfacePatternType SonicBeamSurfacePattern;
+        SonicBeamSinePatternType SonicBeamSinePattern;
 };
 
 
