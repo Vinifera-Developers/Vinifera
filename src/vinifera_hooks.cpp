@@ -183,6 +183,55 @@ DECLARE_PATCH(_Game_Shutdown_Vinifera_Shutdown)
 
 
 /**
+ *  Patch in the Vinifera init game function.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_Main_Game_Vinifera_Init_Game)
+{
+    GET_REGISTER_STATIC(int, argc, ecx);
+    GET_REGISTER_STATIC(char **, argv, edx);
+    static int retval;
+
+    retval = Vinifera_Pre_Init_Game(argc, argv);
+    if (retval) {
+        if (retval < 0) {
+            goto show_error;
+        }
+        goto failure;
+    }
+    DEV_DEBUG_INFO("Vinifera_Pre_Init_Game returned OK.\n");
+
+    retval = Init_Game(argc, argv);
+    if (retval) {
+        if (retval < 0) {
+            goto show_error;
+        }
+        goto failure;
+    }
+    DEV_DEBUG_INFO("Init_Game returned OK.\n");
+
+    retval = Vinifera_Post_Init_Game(argc, argv);
+    if (retval) {
+        if (retval < 0) {
+            goto show_error;
+        }
+        goto failure;
+    }
+    DEV_DEBUG_INFO("Vinifera_Post_Init_Game returned OK.\n");
+
+success:
+    JMP(0x00462990);
+
+failure:
+    JMP(0x00462932);
+
+show_error:
+    JMP(0x00462938);
+}
+
+
+/**
  *  #issue-96
  * 
  *  Remove the requirement for BLOWFISH.DLL (Blowfish encryption) and now
@@ -266,6 +315,7 @@ void Vinifera_Hooks()
     Patch_Jump(0x00601070, &_WinMain_Parse_Command_Line);
     Patch_Jump(0x005FF81C, &_WinMain_Vinifera_Startup);
     Patch_Jump(0x00602474, &_Game_Shutdown_Vinifera_Shutdown);
+    Patch_Jump(0x00462927, &_Main_Game_Vinifera_Init_Game);
 
     /**
      *  Remove the requirement for BLOWFISH.DLL (Blowfish encryption).

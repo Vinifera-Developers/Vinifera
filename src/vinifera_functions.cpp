@@ -217,3 +217,27 @@ bool Vinifera_Shutdown()
 
     return true;
 }
+
+
+/**
+ *  This function will get called "before" the games "Init_Game" function,
+ *  allowing you to perform any action that would effect the game initialisation process.
+ * 
+ *  @author: CCHyper
+ */
+int Vinifera_Pre_Init_Game(int argc, char *argv[])
+{
+    return EXIT_SUCCESS;
+}
+
+
+/**
+ *  This function will get called "after" the games "Init_Game" function,
+ *  allowing you to perform any action that would effect the game initialisation process.
+ * 
+ *  @author: CCHyper
+ */
+int Vinifera_Post_Init_Game(int argc, char *argv[])
+{
+    return EXIT_SUCCESS;
+}

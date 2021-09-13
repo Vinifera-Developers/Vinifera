@@ -33,3 +33,5 @@
 bool Vinifera_Parse_Command_Line(int argc, char *argv[]);
 bool Vinifera_Startup();
 bool Vinifera_Shutdown();
+int Vinifera_Pre_Init_Game(int argc, char *argv[]);
+int Vinifera_Post_Init_Game(int argc, char *argv[]);
