@@ -53,6 +53,11 @@ class TerrainTypeClassExtension final : public Extension<TerrainTypeClass>
 
     public:
         /**
+         *  Does this terrain object emit light?
+         */
+        bool IsLightEnabled;
+
+        /**
          *  This terrain object radiates this amount of light.
          */
         int LightVisibility;

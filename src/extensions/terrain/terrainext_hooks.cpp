@@ -103,7 +103,7 @@ DECLARE_PATCH(_TerrainClass_Unlimbo_LightSource_Patch)
     terrainext = TerrainClassExtensions.find(this_ptr);
     terraintypeext = TerrainTypeClassExtensions.find(terraintype);
 
-    if (terraintypeext && terraintypeext->LightIntensity > 0) {
+    if (terraintypeext && terraintypeext->IsLightEnabled && terraintypeext->LightIntensity > 0) {
 
         if (terrainext && !terrainext->LightSource) {
 

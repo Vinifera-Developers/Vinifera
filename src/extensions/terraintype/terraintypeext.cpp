@@ -45,7 +45,7 @@ ExtensionMap<TerrainTypeClass, TerrainTypeClassExtension> TerrainTypeClassExtens
  */
 TerrainTypeClassExtension::TerrainTypeClassExtension(TerrainTypeClass *this_ptr) :
     Extension(this_ptr),
-
+    IsLightEnabled(false),
     LightVisibility(5000),
     LightIntensity(0),
     LightRedTint(1000000),
@@ -161,6 +161,8 @@ void TerrainTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("TerrainTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+
+    crc(IsLightEnabled);
 }
 
 
@@ -181,6 +183,7 @@ bool TerrainTypeClassExtension::Read_INI(CCINIClass &ini)
         return false;
     }
 
+    IsLightEnabled = ini.Get_Bool(ini_name, "IsLightEnabled", IsLightEnabled);
     LightVisibility = ini.Get_Int(ini_name, "LightVisibility", LightVisibility);
     LightIntensity = ini.Get_Double(ini_name, "LightIntensity", (LightIntensity / 1000)) * 1000.0 + 0.1;
     LightRedTint = ini.Get_Double(ini_name, "LightRedTint", (LightRedTint / 1000)) * 1000.0 + 0.1;
