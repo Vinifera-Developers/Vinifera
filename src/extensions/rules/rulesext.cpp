@@ -42,7 +42,8 @@ RulesClassExtension::UIControlsStruct RulesClassExtension::UIControls;
  *  @author: CCHyper
  */
 RulesClassExtension::RulesClassExtension(RulesClass *this_ptr) :
-    Extension(this_ptr)
+    Extension(this_ptr),
+    IsMPAutoDeployMCV(false)
 {
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("RulesClassExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
@@ -155,6 +156,7 @@ void RulesClassExtension::Compute_CRC(WWCRCEngine &crc) const
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("RulesClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(ThisPtr));
 
+    crc(IsMPAutoDeployMCV);
 }
 
 
@@ -169,6 +171,7 @@ void RulesClassExtension::Process(CCINIClass &ini)
     //DEV_DEBUG_TRACE("RulesClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(ThisPtr));
 
     General(ini);
+    MPlayer(ini);
 }
 
 
@@ -197,6 +200,25 @@ bool RulesClassExtension::General(CCINIClass &ini)
     if (!ini.Is_Present(GENERAL)) {
         return false;
     }
+
+    return true;
+}
+
+
+/**
+ *  Process the general main game rules.
+ *  
+ *  @author: CCHyper
+ */
+bool RulesClassExtension::MPlayer(CCINIClass &ini)
+{
+    static char const * const MPLAYER = "MultiplayerDefaults";
+
+    if (!ini.Is_Present(MPLAYER)) {
+        return false;
+    }
+
+    IsMPAutoDeployMCV = ini.Get_Bool(MPLAYER, "AutoDeployMCV", IsMPAutoDeployMCV);
 
     return true;
 }

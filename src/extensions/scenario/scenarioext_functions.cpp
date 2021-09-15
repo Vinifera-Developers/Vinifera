@@ -42,6 +42,8 @@
 #include "unit.h"
 #include "unittype.h"
 #include "language.h"
+#include "sessionext.h"
+#include "session.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
@@ -813,7 +815,23 @@ void Vinifera_Create_Units(bool official)
                     if (Special.IsCaptureTheFlag) {
                         hptr->Flag_Attach((UnitClass *)obj, true);
                     }
+
+                    /**
+                     *  #issue-206
+                     * 
+                     *  Adds game option to allow MCV's to auto-deploy on game start.
+                     * 
+                     *  @author: CCHyper
+                     */
+                    if (Session.Options.UnitCount == 1) {
+                        if (SessionExtension && SessionExtension->ExtOptions.IsAutoDeployMCV) {
+                            if (hptr->Is_Human_Control()) {
+                                obj->Set_Mission(MISSION_UNLOAD);
+                            }
+                        }
+                    }
                 }
+
             } else if (obj) {
                 delete obj;
                 obj = nullptr;

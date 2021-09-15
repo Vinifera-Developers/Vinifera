@@ -71,11 +71,15 @@ class RulesClassExtension final : public Extension<RulesClass>
 
         static UIControlsStruct UIControls;
 
-    private:
+    public:
         bool General(CCINIClass &ini);
+        bool MPlayer(CCINIClass &ini);
 
     public:
-
+        /**
+         *  Should the MCV unit auto deploy on game start?
+         */
+        bool IsMPAutoDeployMCV;
 };
 
 

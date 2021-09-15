@@ -31,6 +31,9 @@
 #include "rules.h"
 #include "tiberium.h"
 #include "weapontype.h"
+#include "tibsun_globals.h"
+#include "session.h"
+#include "sessionext.h"
 #include "ccini.h"
 #include "fatal.h"
 #include "asserthandler.h"
@@ -155,6 +158,44 @@ void RulesClassFake::_Process(CCINIClass &ini)
 
 
 /**
+ *  Patch to intercept the rules initialisation for setting extended values.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_Init_Rules_Extended_Class_Patch)
+{
+    /**
+     *  Original code.
+     */
+    Session.Options.UnitCount = Rule->MPUnitCount;
+    BuildLevel = Rule->MPTechLevel;
+    Session.Options.Credits = Rule->MPMaxMoney;
+    Session.Options.FogOfWar = false;
+    Session.Options.BridgeDestruction = Rule->IsMPBridgeDestruction;
+    Session.Options.Goodies = Rule->IsMPCrates;
+    Session.Options.Bases = Rule->IsMPBasesOn;
+    Session.Options.CaptureTheFlag = Rule->IsMPCaptureTheFlag;
+    Session.Options.AIPlayers = 0;
+    Session.Options.AIDifficulty = DIFF_NORMAL;
+
+    /**
+     *  Store extended class values.
+     */
+    if (SessionExtension && RulesExtension) {
+        SessionExtension->ExtOptions.IsAutoDeployMCV = RulesExtension->IsMPAutoDeployMCV; 
+    }
+
+    /**
+     *  Stolen bytes/code.
+     */
+    _asm { push 0x006FE02C } // "LANGRULE.INI"
+    _asm { lea ecx, [esp+0x1AC] }
+
+    JMP(0x004E1401);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void RulesClassExtension_Hooks()
@@ -165,4 +206,6 @@ void RulesClassExtension_Hooks()
     RulesClassExtension_Init();
 
     Patch_Jump(0x005C6710, &RulesClassFake::_Process);
+
+    Patch_Jump(0x004E138B, &_Init_Rules_Extended_Class_Patch);
 }
