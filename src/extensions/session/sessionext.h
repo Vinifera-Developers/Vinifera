@@ -53,6 +53,16 @@ class SessionClassExtension final : public Extension<SessionClass>
         void Write_MultiPlayer_Settings();
 
     public:
+        typedef struct ExtGameOptionsType
+        {
+            /**
+             *  Should the MCV unit auto deploy on game start?
+             */
+            bool IsAutoDeployMCV;
+
+        } ExtGameOptionsType;
+
+        ExtGameOptionsType ExtOptions;
 };
 
 

@@ -265,6 +265,38 @@ original_code:
 
 
 /**
+ *  Patch for including the extended class members when processing the MPlayer section.
+ * 
+ *  @warning: Do not touch this unless you know what you are doing!
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_RulesClass_MPlayer_Patch)
+{
+    GET_REGISTER_STATIC(RulesClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(CCINIClass *, ini, edi);
+
+    /**
+     *  Find the extension instance.
+     */
+    if (!RulesExtension) {
+        goto original_code;
+    }
+
+    RulesExtension->MPlayer(*ini);
+
+    /**
+     *  Stolen bytes here.
+     */
+original_code:
+    _asm { mov al, 1 }
+    _asm { pop edi }
+    _asm { pop esi }
+    _asm { ret 4 }
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void RulesClassExtension_Init()
@@ -275,4 +307,5 @@ void RulesClassExtension_Init()
     Patch_Jump(0x005C66FF, &_RulesClass_Initialize_Patch);
     Patch_Jump(0x005C6A4D, &_RulesClass_Process_Patch);
     Patch_Jump(0x005D17F5, &_RulesClass_Detach_Patch);
+    Patch_Jump(0x005CC3BF, &_RulesClass_MPlayer_Patch);
 }
