@@ -52,6 +52,11 @@ SessionClassExtension::SessionClassExtension(SessionClass *this_ptr) :
     //DEV_DEBUG_TRACE("SessionClassExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
     //DEV_DEBUG_WARNING("SessionClassExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
 
+   /**
+     *  Initialises the default game options.
+     */
+    ExtOptions.IsAutoDeployMCV = false;
+    
     IsInitialized = true;
 }
 
