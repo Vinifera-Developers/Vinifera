@@ -26,7 +26,9 @@
  *
  ******************************************************************************/
 #include "scenarioext_hooks.h"
+#include "scenarioext_init.h"
 #include "scenarioext_functions.h"
+#include "scenarioext.h"
 #include "tibsun_globals.h"
 #include "multiscore.h"
 #include "scenario.h"
@@ -81,6 +83,11 @@ DECLARE_PATCH(_Do_Lose_Skip_MPlayer_Score_Screen_Patch)
  */
 void ScenarioClassExtension_Hooks()
 {
+    /**
+     *  Initialises the extended class.
+     */
+    ScenarioClassExtension_Init();
+
     /**
      *  Hooks in the new Assign_Houses() function.
      * 
