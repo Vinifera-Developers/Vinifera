@@ -288,6 +288,9 @@ void Init_Vinifera_Commands()
 
         cmdptr = new PlaceUnitCommandClass;
         Commands.Add(cmdptr);
+
+        cmdptr = new PlaceTiberiumCommandClass;
+        Commands.Add(cmdptr);
     }
 
 #ifndef NDEBUG
