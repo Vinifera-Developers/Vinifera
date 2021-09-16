@@ -60,6 +60,11 @@ class SessionClassExtension final : public Extension<SessionClass>
              */
             bool IsAutoDeployMCV;
 
+            /**
+             *  Are construction yards pre-placed on the map rather than a MCV given to the player?
+             */
+            bool IsPrePlacedConYards;
+
         } ExtGameOptionsType;
 
         ExtGameOptionsType ExtOptions;

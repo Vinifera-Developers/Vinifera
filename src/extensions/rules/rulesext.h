@@ -55,6 +55,9 @@ class RulesClassExtension final : public Extension<RulesClass>
         void Process(CCINIClass &ini);
         void Initialize(CCINIClass &ini);
 
+        bool General(CCINIClass &ini);
+        bool MPlayer(CCINIClass &ini);
+
         static bool Read_UI_INI();
         static bool Init_UI_Controls();
 
@@ -72,14 +75,15 @@ class RulesClassExtension final : public Extension<RulesClass>
         static UIControlsStruct UIControls;
 
     public:
-        bool General(CCINIClass &ini);
-        bool MPlayer(CCINIClass &ini);
-
-    public:
         /**
          *  Should the MCV unit auto deploy on game start?
          */
         bool IsMPAutoDeployMCV;
+
+        /**
+         *  Are construction yards pre-placed on the map rather than a MCV given to the player?
+         */
+        bool IsMPPrePlacedConYards;
 };
 
 
