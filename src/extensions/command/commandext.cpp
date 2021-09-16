@@ -2804,13 +2804,61 @@ bool PlaceTiberiumCommandClass::Process()
     Coordinate mouse_coord = Get_Coord_Under_Mouse();
     mouse_coord.Z = Map.Get_Cell_Height(mouse_coord);
 
-    const CellClass *cellptr = &Map[mouse_coord];
+    CellClass *cellptr = &Map[mouse_coord];
     if (!cellptr) {
         return false;
     }
 
     if (cellptr->Place_Tiberium(TIBERIUM_FIRST, 1)) {
         DEBUG_INFO("Placed tiberium \"%s\" at %d,%d,%d\n", Tiberiums[TIBERIUM_FIRST]->IniName, mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
+        return true;
+    }
+
+    return false;
+}
+
+
+/**
+ *  Reduce tiberium at the mouse cell.
+ * 
+ *  @author: CCHyper
+ */
+const char *ReduceTiberiumCommandClass::Get_Name() const
+{
+    return "ReduceTiberium";
+}
+
+const char *ReduceTiberiumCommandClass::Get_UI_Name() const
+{
+    return "Reduce Tiberium";
+}
+
+const char *ReduceTiberiumCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *ReduceTiberiumCommandClass::Get_Description() const
+{
+    return "Reduces tiberium at the mouse cell.";
+}
+
+bool ReduceTiberiumCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    Coordinate mouse_coord = Get_Coord_Under_Mouse();
+    mouse_coord.Z = Map.Get_Cell_Height(mouse_coord);
+
+    CellClass *cellptr = &Map[mouse_coord];
+    if (!cellptr) {
+        return false;
+    }
+
+    if (cellptr->Reduce_Tiberium(1)) {
+        DEBUG_INFO("Reduced tiberium \"%s\" at %d,%d,%d\n", Tiberiums[TIBERIUM_FIRST]->IniName, mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
         return true;
     }
 
