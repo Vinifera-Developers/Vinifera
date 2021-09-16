@@ -43,7 +43,8 @@ RulesClassExtension::UIControlsStruct RulesClassExtension::UIControls;
  */
 RulesClassExtension::RulesClassExtension(RulesClass *this_ptr) :
     Extension(this_ptr),
-    IsMPAutoDeployMCV(false)
+    IsMPAutoDeployMCV(false),
+    IsMPPrePlacedConYards(false)
 {
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("RulesClassExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
@@ -157,6 +158,7 @@ void RulesClassExtension::Compute_CRC(WWCRCEngine &crc) const
     //DEV_DEBUG_TRACE("RulesClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(ThisPtr));
 
     crc(IsMPAutoDeployMCV);
+    crc(IsMPPrePlacedConYards);
 }
 
 
@@ -219,6 +221,7 @@ bool RulesClassExtension::MPlayer(CCINIClass &ini)
     }
 
     IsMPAutoDeployMCV = ini.Get_Bool(MPLAYER, "AutoDeployMCV", IsMPAutoDeployMCV);
+    IsMPPrePlacedConYards = ini.Get_Bool(MPLAYER, "PrePlacedConYards", IsMPPrePlacedConYards);
 
     return true;
 }

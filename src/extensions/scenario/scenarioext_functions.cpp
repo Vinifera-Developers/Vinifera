@@ -41,6 +41,8 @@
 #include "infantrytype.h"
 #include "unit.h"
 #include "unittype.h"
+#include "building.h"
+#include "buildingtype.h"
 #include "language.h"
 #include "sessionext.h"
 #include "session.h"
@@ -801,40 +803,105 @@ void Vinifera_Create_Units(bool official)
         if (Session.Options.Bases) {
 
             /**
-             *  For a human-controlled house:
-             *    - Create an MCV
-             *    - Attach a flag to it for capture-the-flag mode.
+             *  #issue-206
+             * 
+             *  Adds game option to allow construction yards to be placed on the
+             *  map at game start instead of an MCV.
+             * 
+             *  @author: CCHyper
              */
-            obj = new UnitClass(Rule->BaseUnit, hptr);
-            if (obj->Unlimbo(Cell_Coord(centroid, true), DIR_N) || Scan_Place_Object(obj, centroid)) {
-                if (obj != nullptr) {
-                    DEBUG_INFO("  Base unit %s placed at %d,%d.\n",
-                        obj->Class_Of()->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
-                    hptr->FlagHome = Cell(0,0);
-                    hptr->FlagLocation = nullptr;
-                    if (Special.IsCaptureTheFlag) {
-                        hptr->Flag_Attach((UnitClass *)obj, true);
-                    }
+            if (SessionExtension && SessionExtension->ExtOptions.IsPrePlacedConYards) {
 
-                    /**
-                     *  #issue-206
-                     * 
-                     *  Adds game option to allow MCV's to auto-deploy on game start.
-                     * 
-                     *  @author: CCHyper
-                     */
-                    if (Session.Options.UnitCount == 1) {
-                        if (SessionExtension && SessionExtension->ExtOptions.IsAutoDeployMCV) {
-                            if (hptr->Is_Human_Control()) {
-                                obj->Set_Mission(MISSION_UNLOAD);
+                /**
+                 *  Create a construction yard (decided from the base unit).
+                 */
+                obj = new BuildingClass(Rule->BaseUnit->DeploysInto, hptr);
+                if (obj->Unlimbo(Cell_Coord(centroid, true), DIR_N) || Scan_Place_Object(obj, centroid)) {
+                    if (obj != nullptr) {
+                        DEBUG_INFO("  Construction yard %s placed at %d,%d.\n",
+                            obj->Class_Of()->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
+
+                        BuildingClass *building = reinterpret_cast<BuildingClass *>(obj);
+
+                        /**
+                         *  Always reveal the construction yard to the player
+                         *  that owns it.
+                         */
+                        building->Revealed(obj->House);
+                        building->IsReadyToCommence = true;
+
+                        /**
+                         *  Always consider production to have started for the
+                         *  owning house. This ensures that in multiplay, computer
+                         *  opponents will begin construction as soon as they start
+                         *  their base.
+                         */
+                        if (Session.Type != GAME_NORMAL) {
+
+                            if (!building->House->Is_Player_Control()) {
+
+                                building->IsToRebuild = true;
+                                building->IsToRepair = true;
+
+                                if (building->Class->IsConstructionYard) {
+
+                                    Cell cell = Coord_Cell(building->Coord);
+
+                                    building->House->Begin_Construction();
+
+                                    building->House->Base.Nodes[0].Where = cell;
+                                    building->House->Base.field_50 = cell;
+
+                                    building->House->IsStarted = true;
+                                    building->House->field_C8 = true;
+                                    building->House->IsBaseBuilding = true;
+                                }
                             }
                         }
                     }
+                    hptr->FlagHome = Cell(0,0);
+                    hptr->FlagLocation = nullptr;
                 }
 
-            } else if (obj) {
-                delete obj;
-                obj = nullptr;
+            } else {
+
+                /**
+                 *  For a human-controlled house:
+                 *    - Create an MCV
+                 *    - Attach a flag to it for capture-the-flag mode.
+                 */
+                obj = new UnitClass(Rule->BaseUnit, hptr);
+                if (obj->Unlimbo(Cell_Coord(centroid, true), DIR_N) || Scan_Place_Object(obj, centroid)) {
+                    if (obj != nullptr) {
+                        DEBUG_INFO("  Base unit %s placed at %d,%d.\n",
+                            obj->Class_Of()->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
+                        hptr->FlagHome = Cell(0,0);
+                        hptr->FlagLocation = nullptr;
+                        if (Special.IsCaptureTheFlag) {
+                            hptr->Flag_Attach((UnitClass *)obj, true);
+                        }
+
+                        /**
+                         *  #issue-206
+                         * 
+                         *  Adds game option to allow MCV's to auto-deploy on game start.
+                         * 
+                         *  @author: CCHyper
+                         */
+                        if (Session.Options.UnitCount == 1) {
+                            if (SessionExtension && SessionExtension->ExtOptions.IsAutoDeployMCV) {
+                                if (hptr->Is_Human_Control()) {
+                                    obj->Set_Mission(MISSION_UNLOAD);
+                                }
+                            }
+                        }
+                    }
+
+                } else if (obj) {
+                    delete obj;
+                    obj = nullptr;
+                }
+
             }
         }
 
