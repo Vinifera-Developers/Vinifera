@@ -56,6 +56,7 @@
 #include "session.h"
 #include "ionstorm.h"
 #include "ionblast.h"
+#include "tiberium.h"
 #include "combat.h"
 #include "scenarioini.h"
 #include "scenario.h"
@@ -2763,6 +2764,54 @@ bool PlaceUnitCommandClass::Process()
         return true;
     } else {
         delete unit;
+    }
+
+    return false;
+}
+
+
+/**
+ *  Places tiberium at the mouse cell.
+ * 
+ *  @author: CCHyper
+ */
+const char *PlaceTiberiumCommandClass::Get_Name() const
+{
+    return "PlaceTiberium";
+}
+
+const char *PlaceTiberiumCommandClass::Get_UI_Name() const
+{
+    return "Place Tiberium";
+}
+
+const char *PlaceTiberiumCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *PlaceTiberiumCommandClass::Get_Description() const
+{
+    return "Places tiberium at the mouse cell.";
+}
+
+bool PlaceTiberiumCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    Coordinate mouse_coord = Get_Coord_Under_Mouse();
+    mouse_coord.Z = Map.Get_Cell_Height(mouse_coord);
+
+    const CellClass *cellptr = &Map[mouse_coord];
+    if (!cellptr) {
+        return false;
+    }
+
+    if (cellptr->Place_Tiberium(TIBERIUM_FIRST, 1)) {
+        DEBUG_INFO("Placed tiberium \"%s\" at %d,%d,%d\n", Tiberiums[TIBERIUM_FIRST]->IniName, mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
+        return true;
     }
 
     return false;
