@@ -56,6 +56,7 @@ SessionClassExtension::SessionClassExtension(SessionClass *this_ptr) :
      *  Initialises the default game options.
      */
     ExtOptions.IsAutoDeployMCV = false;
+    ExtOptions.IsPrePlacedConYards = false;
     
     IsInitialized = true;
 }

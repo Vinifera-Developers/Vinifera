@@ -183,6 +183,7 @@ DECLARE_PATCH(_Init_Rules_Extended_Class_Patch)
      */
     if (SessionExtension && RulesExtension) {
         SessionExtension->ExtOptions.IsAutoDeployMCV = RulesExtension->IsMPAutoDeployMCV; 
+        SessionExtension->ExtOptions.IsPrePlacedConYards = RulesExtension->IsMPPrePlacedConYards; 
     }
 
     /**
