@@ -54,6 +54,8 @@ class RulesClassExtension final : public Extension<RulesClass>
         void Process(CCINIClass &ini);
         void Initialize(CCINIClass &ini);
 
+        static bool Read_UI_INI();
+
     private:
         bool General(CCINIClass &ini);
 

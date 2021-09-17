@@ -31,6 +31,7 @@
 #include "cncnet4.h"
 #include "cncnet4_globals.h"
 #include "cncnet5_globals.h"
+#include "rulesext.h"
 #include "debughandler.h"
 #include <string>
 
@@ -227,6 +228,14 @@ bool Vinifera_Shutdown()
  */
 int Vinifera_Pre_Init_Game(int argc, char *argv[])
 {
+    /**
+     *  Read the UI controls and overrides.
+     */
+    if (!RulesClassExtension::Read_UI_INI()) {
+        DEBUG_WARNING("Failed to read UI.INI!\n");
+        //return EXIT_FAILURE;
+    }
+
     return EXIT_SUCCESS;
 }
 

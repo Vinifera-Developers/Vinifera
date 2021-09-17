@@ -199,3 +199,25 @@ bool RulesClassExtension::General(CCINIClass &ini)
 
     return true;
 }
+
+
+/**
+ *  Process the UI controls and overrides.
+ * 
+ *  This function is here for simplicity, and is loaded from its own INI, not Rules.
+ *  
+ *  @author: CCHyper
+ */
+bool RulesClassExtension::Read_UI_INI()
+{
+    static char const * const GENERAL = "General";
+
+    CCFileClass file("UI.INI");
+    CCINIClass ini(file);
+
+    if (!ini.Is_Present(GENERAL)) {
+        return false;
+    }
+
+    return true;
+}
