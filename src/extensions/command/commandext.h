@@ -208,6 +208,25 @@ class ScrollNWCommandClass : public ViniferaCommandClass
 
 
 /**
+ *  Remapable representation of the chat-to-all hotkey.
+ */
+class ChatToAllCommandClass : public ViniferaCommandClass
+{
+    public:
+        ChatToAllCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        virtual ~ChatToAllCommandClass() {}
+
+        virtual const char *Get_Name() const override;
+        virtual const char *Get_UI_Name() const override;
+        virtual const char *Get_Category() const override;
+        virtual const char *Get_Description() const override;
+        virtual bool Process() override;
+
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_F8); }
+};
+
+
+/**
  *  Produces a memory dump on request.
  */
 class MemoryDumpCommandClass : public ViniferaCommandClass

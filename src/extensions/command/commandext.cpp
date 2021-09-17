@@ -520,6 +520,40 @@ bool ScrollNWCommandClass::Process()
 
 
 /**
+ *  Send a message to all players.
+ * 
+ *  @note: Process() should be empty, logic for this can be found
+ *         in the Message_Input patches!
+ * 
+ *  @author: CCHyper
+ */
+const char *ChatToAllCommandClass::Get_Name() const
+{
+    return TEXT_CHAT_TO_ALL_INI;
+}
+
+const char *ChatToAllCommandClass::Get_UI_Name() const
+{
+    return TEXT_CHAT_TO_ALL;
+}
+
+const char *ChatToAllCommandClass::Get_Category() const
+{
+    return Text_String(TXT_INTERFACE);
+}
+
+const char *ChatToAllCommandClass::Get_Description() const
+{
+    return TEXT_CHAT_TO_ALL_DESC;
+}
+
+bool ChatToAllCommandClass::Process()
+{
+    return true;
+}
+
+
+/**
  *  Produces a memory dump on request.
  * 
  *  @author: CCHyper

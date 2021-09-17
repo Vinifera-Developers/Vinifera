@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          VINIFERA_UTIL.H
+ *  @file          INPUTEXT_HOOKS.H
  *
- *  @authors       CCHyper
+ *  @author        CCHyper
  *
- *  @brief         Various utility functions.
+ *  @brief         Contains the hooks for the extended message input function.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -27,21 +27,5 @@
  ******************************************************************************/
 #pragma once
 
-#include "tibsun_defines.h"
-#include "wwkeyboard.h"
 
-
-class XSurface;
-
-
-const char *Vinifera_Version_String();
-const char *TSpp_Version_String();
-
-void Vinifera_Draw_Version_Text(XSurface *surface, bool pre_init = false);
-
-bool Vinifera_Generate_Mini_Dump();
-
-int Vinifera_Do_WWMessageBox(const char *msg, const char *btn1, const char *btn2 = nullptr, const char *btn3 = nullptr);
-void Vinifera_DeveloperMode_Warning_WWMessageBox(const char *msg, ...);
-
-KeyNumType Get_Command_Key_From_Name(const char *name, KeyNumType default = KN_NONE);
+void InputExtension_Hooks();

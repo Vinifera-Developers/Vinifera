@@ -34,6 +34,8 @@
 #include "colorscheme.h"
 #include "textprint.h"
 #include "dsurface.h"
+#include "command.h"
+#include "search.h"
 #include "cncnet4_globals.h"
 #include "wwfont.h"
 #include "msgbox.h"
@@ -286,4 +288,27 @@ void Vinifera_DeveloperMode_Warning_WWMessageBox(const char *msg, ...)
 
         WWMessageBox().Process(buffer, 0, "OK");
     }
+}
+
+
+/**
+ *  What this function does should not be done normally, it goes against
+ *  the design of IndexClass, but it is the only way for us to fetch assigned
+ *  hotkeys.
+ * 
+ *  @author: CCHyper
+ */
+KeyNumType Get_Command_Key_From_Name(const char *name, KeyNumType default)
+{
+    CommandClass *cmd = CommandClass::From_Name(name);
+    if (cmd) {
+        KeyNumType key = HotkeyIndex.Fetch_ID_By_Data(cmd);
+        //DEV_DEBUG_INFO("Get_Command_Key_From_Name: Returning %X\n", key);
+        return key;
+    }
+
+    /**
+     *  Failed to find the command, use the specified default return value.
+     */
+    return default;
 }
