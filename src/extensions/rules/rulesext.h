@@ -31,6 +31,7 @@
 #include "container.h"
 
 #include "noinit.h"
+#include "tpoint.h"
 
 
 class CCINIClass;
@@ -55,6 +56,20 @@ class RulesClassExtension final : public Extension<RulesClass>
         void Initialize(CCINIClass &ini);
 
         static bool Read_UI_INI();
+        static bool Init_UI_Controls();
+
+    public:
+        typedef struct UIControlsStruct
+        {
+            /**
+             *  Health bar draw positions.
+             */
+            TPoint2D<int> UnitHealthBarDrawPos;
+            TPoint2D<int> InfantryHealthBarDrawPos;
+
+        } UIControlsStruct;
+
+        static UIControlsStruct UIControls;
 
     private:
         bool General(CCINIClass &ini);
