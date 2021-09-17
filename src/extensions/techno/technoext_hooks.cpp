@@ -38,6 +38,7 @@
 #include "house.h"
 #include "housetype.h"
 #include "rules.h"
+#include "rulesext.h"
 #include "voc.h"
 #include "fatal.h"
 #include "vinifera_util.h"
@@ -46,6 +47,52 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-541
+ * 
+ *  Allow customisation of the infantry health bar draw position.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_TechnoClass_Draw_Health_Bars_Infantry_Draw_Pos_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, ebx);
+    static int x_pos;
+    static int y_pos;
+
+    x_pos = RulesClassExtension::UIControls.InfantryHealthBarDrawPos.X;
+    y_pos = RulesClassExtension::UIControls.InfantryHealthBarDrawPos.Y;
+
+    _asm { mov ecx, [x_pos] }
+    _asm { mov eax, [y_pos] }
+
+    JMP_REG(esi, 0x0062C565);
+}
+
+
+/**
+ *  #issue-541
+ * 
+ *  Allow customisation of the unit health bar draw position.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_TechnoClass_Draw_Health_Bars_Unit_Draw_Pos_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, ebx);
+    static int x_pos;
+    static int y_pos;
+
+    x_pos = RulesClassExtension::UIControls.UnitHealthBarDrawPos.X;
+    y_pos = RulesClassExtension::UIControls.UnitHealthBarDrawPos.Y;
+
+    _asm { mov ecx, [x_pos] }
+    _asm { mov eax, [y_pos] }
+
+    JMP_REG(esi, 0x0062C5DF);
+}
 
 
 /**
@@ -345,4 +392,6 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x0062F6B7, &_TechnoClass_Is_Ready_To_Uncloak_Cloak_Stop_BugFix_Patch);
     Patch_Jump(0x0062E6F0, &_TechnoClass_Null_House_Warning_Patch);
     Patch_Jump(0x006328DE, &_TechnoClass_Take_Damage_IsAffectsAllies_Patch);
+    Patch_Jump(0x0062C5D5, &_TechnoClass_Draw_Health_Bars_Unit_Draw_Pos_Patch);
+    Patch_Jump(0x0062C55B, &_TechnoClass_Draw_Health_Bars_Infantry_Draw_Pos_Patch);
 }

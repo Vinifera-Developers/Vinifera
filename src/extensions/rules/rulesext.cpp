@@ -33,6 +33,7 @@
 
 
 RulesClassExtension *RulesExtension = nullptr;
+RulesClassExtension::UIControlsStruct RulesClassExtension::UIControls;
 
 
 /**
@@ -211,13 +212,41 @@ bool RulesClassExtension::General(CCINIClass &ini)
 bool RulesClassExtension::Read_UI_INI()
 {
     static char const * const GENERAL = "General";
+    static char const * const INGAME = "Ingame";
 
     CCFileClass file("UI.INI");
     CCINIClass ini(file);
 
-    if (!ini.Is_Present(GENERAL)) {
-        return false;
-    }
+    //if (!ini.Is_Present(GENERAL)) {
+    //    return false;
+    //}
+
+    UIControls.UnitHealthBarDrawPos = ini.Get_Point(INGAME, "UnitHealthBarPos", UIControls.UnitHealthBarDrawPos);
+    UIControls.InfantryHealthBarDrawPos = ini.Get_Point(INGAME, "InfantryHealthBarPos", UIControls.InfantryHealthBarDrawPos);
 
     return true;
+}
+
+
+/**
+ *  Initialises the UI controls defaults.
+ *  
+ *  @author: CCHyper
+ */
+bool RulesClassExtension::Init_UI_Controls()
+{
+    /**
+     *  #issue-541
+     * 
+     *  The health bar graphics "Y" position on selection boxes is off by 1 pixel.
+     * 
+     *  @author: CCHyper
+     */
+    UIControls.UnitHealthBarDrawPos.X = -25;
+    UIControls.UnitHealthBarDrawPos.Y = -16; // was -15
+
+    UIControls.InfantryHealthBarDrawPos.X = -24;
+    UIControls.InfantryHealthBarDrawPos.Y = -5;
+
+    return false;
 }

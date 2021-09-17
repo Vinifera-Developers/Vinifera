@@ -249,6 +249,8 @@ bool Vinifera_Shutdown()
  */
 int Vinifera_Pre_Init_Game(int argc, char *argv[])
 {
+    RulesClassExtension::Init_UI_Controls();
+
     /**
      *  Read the UI controls and overrides.
      */
