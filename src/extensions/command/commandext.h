@@ -1007,6 +1007,7 @@ class PlaceTiberiumCommandClass : public ViniferaCommandClass
         virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
+
 /**
  *  Reduce tiberium at the mouse cell.
  */
@@ -1034,6 +1035,25 @@ class PlaceFullTiberiumCommandClass : public ViniferaCommandClass
     public:
         PlaceFullTiberiumCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
         virtual ~PlaceFullTiberiumCommandClass() {}
+
+        virtual const char *Get_Name() const override;
+        virtual const char *Get_UI_Name() const override;
+        virtual const char *Get_Category() const override;
+        virtual const char *Get_Description() const override;
+        virtual bool Process() override;
+
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+};
+
+
+/**
+ *  Removes tiberium at the mouse cell.
+ */
+class RemoveTiberiumCommandClass : public ViniferaCommandClass
+{
+    public:
+        RemoveTiberiumCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+        virtual ~RemoveTiberiumCommandClass() {}
 
         virtual const char *Get_Name() const override;
         virtual const char *Get_UI_Name() const override;

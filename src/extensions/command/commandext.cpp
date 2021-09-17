@@ -2912,3 +2912,51 @@ bool PlaceFullTiberiumCommandClass::Process()
 
     return false;
 }
+
+
+/**
+ *  Removes tiberium at the mouse cell.
+ * 
+ *  @author: CCHyper
+ */
+const char *RemoveTiberiumCommandClass::Get_Name() const
+{
+    return "RemoveTiberium";
+}
+
+const char *RemoveTiberiumCommandClass::Get_UI_Name() const
+{
+    return "Remove Tiberium";
+}
+
+const char *RemoveTiberiumCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *RemoveTiberiumCommandClass::Get_Description() const
+{
+    return "Removes tiberium at the mouse cell.";
+}
+
+bool RemoveTiberiumCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    Coordinate mouse_coord = Get_Coord_Under_Mouse();
+    mouse_coord.Z = Map.Get_Cell_Height(mouse_coord);
+
+    CellClass *cellptr = &Map[mouse_coord];
+    if (!cellptr) {
+        return false;
+    }
+
+    if (cellptr->Reduce_Tiberium(12)) {
+        DEBUG_INFO("Removed tiberium at %d,%d,%d\n", mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
+        return true;
+    }
+
+    return false;
+}
