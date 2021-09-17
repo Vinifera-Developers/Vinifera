@@ -44,7 +44,8 @@ ExtensionMap<UnitClass, UnitClassExtension> UnitClassExtensions;
  *  @author: CCHyper
  */
 UnitClassExtension::UnitClassExtension(UnitClass *this_ptr) :
-    Extension(this_ptr)
+    Extension(this_ptr),
+    OriginalClass(nullptr)
 {
     ASSERT(ThisPtr != nullptr);
     //EXT_DEBUG_TRACE("UnitClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -60,7 +61,8 @@ UnitClassExtension::UnitClassExtension(UnitClass *this_ptr) :
  *  @author: CCHyper
  */
 UnitClassExtension::UnitClassExtension(const NoInitClass &noinit) :
-    Extension(noinit)
+    Extension(noinit),
+    OriginalClass(nullptr)
 {
     IsInitialized = false;
 }
