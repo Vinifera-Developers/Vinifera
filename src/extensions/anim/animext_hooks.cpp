@@ -31,6 +31,7 @@
 #include "anim.h"
 #include "animtype.h"
 #include "animtypeext.h"
+#include "smudgetype.h"
 #include "cell.h"
 #include "scenario.h"
 #include "fatal.h"
@@ -39,6 +40,54 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  Get the center coord of a anim. This is required as we can not allocate
+ *  on the stack and Center_Coord returns Coordinate value.
+ * 
+ *  @author: CCHyper
+ */
+static Coordinate &Anim_Get_Center_Coord(AnimClass *this_ptr)
+{
+	return this_ptr->Center_Coord();
+}
+
+
+/**
+ *  #issue-562
+ * 
+ *  Implements IsForceBigCraters to Anims.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_AnimClass_Middle_Create_Crater_ForceBigCraters_Patch)
+{
+	GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
+	GET_REGISTER_STATIC(int, width, ebp);
+	GET_REGISTER_STATIC(int, height, edi);
+	static AnimTypeClassExtension *animtypeext;
+	static Coordinate *tmpcoord;
+	static Coordinate coord;
+
+	tmpcoord = &Anim_Get_Center_Coord(this_ptr);
+	coord.X = tmpcoord->X;
+	coord.Y = tmpcoord->Y;
+	coord.Z = tmpcoord->Z;
+
+	animtypeext = AnimTypeClassExtensions.find(this_ptr->Class);
+
+	/**
+	 *  Is this anim is to spawn big craters?
+	 */
+	if (animtypeext && animtypeext->IsForceBigCraters) {
+		SmudgeTypeClass::Create_Crater(coord, 300, 300, true);
+	} else {
+		SmudgeTypeClass::Create_Crater(coord, width, height, false);
+	}
+
+	JMP(0x00416113);
+}
 
 
 /**
@@ -195,4 +244,5 @@ void AnimClassExtension_Hooks()
 	Patch_Jump(0x00415ADA, &_AnimClass_AI_RandomLoop_Randomiser_BugFix_Patch);
 	Patch_Jump(0x00413C79, &_AnimClass_Constructor_Init_Class_Values_Patch);
 	Patch_Jump(0x00414E8F, &_AnimClass_AI_Beginning_Patch);
+	Patch_Jump(0x004160FB, &_AnimClass_Middle_Create_Crater_ForceBigCraters_Patch);
 }
