@@ -59,6 +59,11 @@ class AnimTypeClassExtension final : public Extension<AnimTypeClass>
         bool IsHideIfNotTiberium;
 
         /**
+         *  Are the craters spawned by this anim when it ends much larger than normal?
+         */
+        bool IsForceBigCraters;
+
+        /**
          *  Fudge to this anims Z-axis (depth). Positive values move the
          *  animation "away from the screen" or "closer to the ground". Negative
          *  values do the opposite. 
