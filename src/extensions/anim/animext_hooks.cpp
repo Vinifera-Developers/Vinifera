@@ -32,7 +32,9 @@
 #include "animtype.h"
 #include "animtypeext.h"
 #include "smudgetype.h"
+#include "target.h"
 #include "cell.h"
+#include "rules.h"
 #include "scenario.h"
 #include "fatal.h"
 #include "debughandler.h"
@@ -43,6 +45,52 @@
 
 
 /**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ * 
+ *  @note: This must not contain a constructor or deconstructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+class AnimClassFake final : public AnimClass
+{
+    public:
+        LayerType _In_Which_Layer() const;
+};
+
+
+/**
+ *  Reimplementation of AnimClass::In_Which_Layer.
+ * 
+ *  @author: CCHyper
+ */
+LayerType AnimClassFake::_In_Which_Layer() const
+{
+    if (Target_Legal(xObject)) {
+        return LAYER_GROUND;
+    }
+
+    /**
+     *  #issue-564
+     * 
+     *  Implements layer override for anims.
+     * 
+     *  @author: CCHyper
+     */
+    AnimTypeClassExtension *animtypeext = nullptr;
+    animtypeext = AnimTypeClassExtensions.find(Class);
+    if (animtypeext && animtypeext->AttachLayer != LAYER_NONE) {
+        return animtypeext->AttachLayer;
+    }
+
+    if (Class && Class->IsGroundLayer) {
+        return LAYER_GROUND;
+    }
+
+    return LAYER_AIR;
+}
+
+
+/**
  *  Get the center coord of a anim. This is required as we can not allocate
  *  on the stack and Center_Coord returns Coordinate value.
  * 
@@ -50,7 +98,42 @@
  */
 static Coordinate &Anim_Get_Center_Coord(AnimClass *this_ptr)
 {
-	return this_ptr->Center_Coord();
+    return this_ptr->Center_Coord();
+}
+
+
+/**
+ *  #issue-562
+ * 
+ *  Handles top level layer sorting for the new "AttachLayer" key.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_AnimClass_Constructor_Layer_Set_Z_Height_Patch)
+{
+    GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
+    static AnimTypeClassExtension *animtypeext;
+    
+    animtypeext = AnimTypeClassExtensions.find(this_ptr->Class);
+
+    /**
+     *  Set the layer to the highest level if "air" or "top".
+     */
+    if (animtypeext && animtypeext->AttachLayer != LAYER_NONE
+        && (animtypeext->AttachLayer == LAYER_AIR || animtypeext->AttachLayer == LAYER_TOP)) {
+        this_ptr->Set_Z_Coord(Rule->FlightLevel);
+
+    /**
+     *  Original code.
+     */
+    } else if (!this_ptr->Class->IsGroundLayer) {
+        this_ptr->Set_Z_Coord(Rule->FlightLevel);
+
+    } else {
+        this_ptr->Set_Height(0);
+    }
+
+    JMP(0x00413D63);
 }
 
 
@@ -63,30 +146,30 @@ static Coordinate &Anim_Get_Center_Coord(AnimClass *this_ptr)
  */
 DECLARE_PATCH(_AnimClass_Middle_Create_Crater_ForceBigCraters_Patch)
 {
-	GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
-	GET_REGISTER_STATIC(int, width, ebp);
-	GET_REGISTER_STATIC(int, height, edi);
-	static AnimTypeClassExtension *animtypeext;
-	static Coordinate *tmpcoord;
-	static Coordinate coord;
+    GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(int, width, ebp);
+    GET_REGISTER_STATIC(int, height, edi);
+    static AnimTypeClassExtension *animtypeext;
+    static Coordinate *tmpcoord;
+    static Coordinate coord;
 
-	tmpcoord = &Anim_Get_Center_Coord(this_ptr);
-	coord.X = tmpcoord->X;
-	coord.Y = tmpcoord->Y;
-	coord.Z = tmpcoord->Z;
+    tmpcoord = &Anim_Get_Center_Coord(this_ptr);
+    coord.X = tmpcoord->X;
+    coord.Y = tmpcoord->Y;
+    coord.Z = tmpcoord->Z;
 
-	animtypeext = AnimTypeClassExtensions.find(this_ptr->Class);
+    animtypeext = AnimTypeClassExtensions.find(this_ptr->Class);
 
-	/**
-	 *  Is this anim is to spawn big craters?
-	 */
-	if (animtypeext && animtypeext->IsForceBigCraters) {
-		SmudgeTypeClass::Create_Crater(coord, 300, 300, true);
-	} else {
-		SmudgeTypeClass::Create_Crater(coord, width, height, false);
-	}
+    /**
+     *  Is this anim is to spawn big craters?
+     */
+    if (animtypeext && animtypeext->IsForceBigCraters) {
+        SmudgeTypeClass::Create_Crater(coord, 300, 300, true);
+    } else {
+        SmudgeTypeClass::Create_Crater(coord, width, height, false);
+    }
 
-	JMP(0x00416113);
+    JMP(0x00416113);
 }
 
 
@@ -97,47 +180,47 @@ DECLARE_PATCH(_AnimClass_Middle_Create_Crater_ForceBigCraters_Patch)
  */
 DECLARE_PATCH(_AnimClass_AI_Beginning_Patch)
 {
-	GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
-	static AnimTypeClass *animtype;
-	static AnimTypeClassExtension *animtypeext;
-	static CellClass *cell;
+    GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
+    static AnimTypeClass *animtype;
+    static AnimTypeClassExtension *animtypeext;
+    static CellClass *cell;
 
-	animtype = this_ptr->Class;
-	animtypeext = AnimTypeClassExtensions.find(animtype);
+    animtype = this_ptr->Class;
+    animtypeext = AnimTypeClassExtensions.find(animtype);
 
-	/**
-	 *  Stolen bytes/code.
-	 */
-	if (animtype->IsFlamingGuy) {
-		this_ptr->Flaming_Guy_AI();
-		this_ptr->ObjectClass::AI();
-	}
+    /**
+     *  Stolen bytes/code.
+     */
+    if (animtype->IsFlamingGuy) {
+        this_ptr->Flaming_Guy_AI();
+        this_ptr->ObjectClass::AI();
+    }
 
-	/**
-	 *  Do we have a valid extension instance?
-	 */
-	if (animtypeext) {
+    /**
+     *  Do we have a valid extension instance?
+     */
+    if (animtypeext) {
 
-		cell = this_ptr->Get_Cell_Ptr();
+        cell = this_ptr->Get_Cell_Ptr();
 
-		/**
-		 *  #issue-560
-		 * 
-		 *  Implements IsHideIfNotTiberium for Anims.
-		 * 
-		 *  @author: CCHyper
-		 */
-		if (animtypeext->IsHideIfNotTiberium) {
+        /**
+         *  #issue-560
+         * 
+         *  Implements IsHideIfNotTiberium for Anims.
+         * 
+         *  @author: CCHyper
+         */
+        if (animtypeext->IsHideIfNotTiberium) {
 
-			if (!cell || !cell->Get_Tiberium_Value()) {
-				this_ptr->IsInvisible = true;
-			}
+            if (!cell || !cell->Get_Tiberium_Value()) {
+                this_ptr->IsInvisible = true;
+            }
 
-		}
+        }
 
-	}
+    }
 
-	JMP_REG(edx, 0x00414EAA);
+    JMP_REG(edx, 0x00414EAA);
 }
 
 
@@ -148,62 +231,62 @@ DECLARE_PATCH(_AnimClass_AI_Beginning_Patch)
  */
 DECLARE_PATCH(_AnimClass_Constructor_Init_Class_Values_Patch)
 {
-	GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
-	static AnimTypeClassExtension *animtypeext;
+    GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
+    static AnimTypeClassExtension *animtypeext;
 
-	/**
-	 *  Stolen bytes/code.
-	 */
-	this_ptr->IsActive = true;
+    /**
+     *  Stolen bytes/code.
+     */
+    this_ptr->IsActive = true;
 
-	/**
-	 *  #BUGFIX:
-	 * 
-	 *  This check was observed in Red Alert 2, so there must be an edge case
-	 *  where anims are created with a null type instance. So lets do that
-	 *  here and also report a warning to the debug log.
-	 */
-	if (!this_ptr->Class) {
-		goto destroy_anim;
-	}
+    /**
+     *  #BUGFIX:
+     * 
+     *  This check was observed in Red Alert 2, so there must be an edge case
+     *  where anims are created with a null type instance. So lets do that
+     *  here and also report a warning to the debug log.
+     */
+    if (!this_ptr->Class) {
+        goto destroy_anim;
+    }
 
-	/**
-	 *  #issue-561
-	 * 
-	 *  Implements ZAdjust override for Anims. This will only have an effect
-	 *  if the anim is created with a z-adjustment value of "0" (default value).
-	 * 
-	 *  @author: CCHyper
-	 */
-	if (!this_ptr->ZAdjust) {
-		animtypeext = AnimTypeClassExtensions.find(this_ptr->Class);
-		if (animtypeext) {
-			this_ptr->ZAdjust = animtypeext->ZAdjust;
-		}
-	}
+    /**
+     *  #issue-561
+     * 
+     *  Implements ZAdjust override for Anims. This will only have an effect
+     *  if the anim is created with a z-adjustment value of "0" (default value).
+     * 
+     *  @author: CCHyper
+     */
+    if (!this_ptr->ZAdjust) {
+        animtypeext = AnimTypeClassExtensions.find(this_ptr->Class);
+        if (animtypeext) {
+            this_ptr->ZAdjust = animtypeext->ZAdjust;
+        }
+    }
 
-	/**
-	 *  Restore some registers.
-	 */
-	_asm { mov ecx, this_ptr }
-	_asm { mov edx, [ecx+0x64] } // this->Class
-	_asm { mov ecx, edx }
+    /**
+     *  Restore some registers.
+     */
+    _asm { mov ecx, this_ptr }
+    _asm { mov edx, [ecx+0x64] } // this->Class
+    _asm { mov ecx, edx }
 
-	JMP_REG(edx, 0x00413C80);
+    JMP_REG(edx, 0x00413C80);
 
-	/**
-	 *  Report that the anim type instance was invalid.
-	 */
+    /**
+     *  Report that the anim type instance was invalid.
+     */
 destroy_anim:
-	DEBUG_WARNING("Anim: Invalid anim type instance!\n");
+    DEBUG_WARNING("Anim: Invalid anim type instance!\n");
 
-	/**
-	 *  Remove the anim from the game world.
-	 */
-	this_ptr->entry_E4();
-	
-	_asm { mov esi, this_ptr }
-	JMP_REG(edx, 0x00414157);
+    /**
+     *  Remove the anim from the game world.
+     */
+    this_ptr->entry_E4();
+    
+    _asm { mov esi, this_ptr }
+    JMP_REG(edx, 0x00414157);
 }
 
 
@@ -218,21 +301,21 @@ destroy_anim:
  */
 DECLARE_PATCH(_AnimClass_AI_RandomLoop_Randomiser_BugFix_Patch)
 {
-	GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
-	static AnimTypeClass *animtype;
+    GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
+    static AnimTypeClass *animtype;
 
-	animtype = reinterpret_cast<AnimTypeClass *>(this_ptr->Class_Of());
+    animtype = reinterpret_cast<AnimTypeClass *>(this_ptr->Class_Of());
 
-	/**
-	 *  Generate a random delay using the network synchronized RNG.
-	 */
-	this_ptr->Delay = Random_Pick(animtype->RandomLoopDelayMin, animtype->RandomLoopDelayMax);
+    /**
+     *  Generate a random delay using the network synchronized RNG.
+     */
+    this_ptr->Delay = Random_Pick(animtype->RandomLoopDelayMin, animtype->RandomLoopDelayMax);
 
-	/**
-	 *  Return from the function.
-	 */
+    /**
+     *  Return from the function.
+     */
 function_return:
-	JMP(0x00415AF2);
+    JMP(0x00415AF2);
 }
 
 
@@ -241,8 +324,10 @@ function_return:
  */
 void AnimClassExtension_Hooks()
 {
-	Patch_Jump(0x00415ADA, &_AnimClass_AI_RandomLoop_Randomiser_BugFix_Patch);
-	Patch_Jump(0x00413C79, &_AnimClass_Constructor_Init_Class_Values_Patch);
-	Patch_Jump(0x00414E8F, &_AnimClass_AI_Beginning_Patch);
-	Patch_Jump(0x004160FB, &_AnimClass_Middle_Create_Crater_ForceBigCraters_Patch);
+    Patch_Jump(0x00415ADA, &_AnimClass_AI_RandomLoop_Randomiser_BugFix_Patch);
+    Patch_Jump(0x00413C79, &_AnimClass_Constructor_Init_Class_Values_Patch);
+    Patch_Jump(0x00414E8F, &_AnimClass_AI_Beginning_Patch);
+    Patch_Jump(0x004160FB, &_AnimClass_Middle_Create_Crater_ForceBigCraters_Patch);
+    Patch_Jump(0x00415D30, &AnimClassFake::_In_Which_Layer);
+    Patch_Jump(0x00413D3E, &_AnimClass_Constructor_Layer_Set_Z_Height_Patch);
 }
