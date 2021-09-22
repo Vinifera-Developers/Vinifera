@@ -379,3 +379,42 @@ void Vinifera_DeveloperMode_Warning_WWMessageBox(const char *msg, ...)
         WWMessageBox().Process(buffer, 0, "OK");
     }
 }
+
+
+/**
+ *  Build the window title name.
+ * 
+ *  @author: CCHyper
+ */
+const char *Vinifera_Get_Window_Title(DWORD dwPid)
+{
+    static char _window_name[512];
+
+    if (_window_name[0] != '\0') {
+        return _window_name;
+    }
+
+    char title_buff[32];
+    std::strncpy(title_buff, Text_String(TXT_SHORT_TITLE), sizeof(title_buff));
+
+#ifndef NDEBUG
+    std::snprintf(_window_name, sizeof(_window_name),
+        "%s (PID:%d) - [Vinifera (Dev)] (%s %s%s %s)",
+        title_buff,
+        dwPid,
+        Vinifera_Git_Branch(),
+        Vinifera_Git_Uncommitted_Changes() ? "~" : "",
+        Vinifera_Git_Hash_Short(),
+        Vinifera_Git_DateTime());
+#else
+    if (!Vinifera_DeveloperMode) {
+        std::snprintf(_window_name, sizeof(_window_name),
+            "%s (PID:%d) (Developer Mode)", title_buff, dwPid);
+    } else {
+        std::snprintf(_window_name, sizeof(_window_name),
+            "%s", title_buff);
+    }
+#endif
+
+    return _window_name;
+}
