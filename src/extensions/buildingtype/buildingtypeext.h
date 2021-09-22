@@ -91,6 +91,11 @@ class BuildingTypeClassExtension final : public Extension<BuildingTypeClass>
          *  Reset the available budget when captured?
          */
         bool IsResetBudgetOnCapture;
+
+        /**
+         *  Is this building eligible for proximity checks by players who are its owner's allies?
+         */
+        bool IsEligibleForAllyBuilding;
 };
 
 

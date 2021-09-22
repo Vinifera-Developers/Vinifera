@@ -46,7 +46,6 @@ ExtensionMap<BuildingTypeClass, BuildingTypeClassExtension> BuildingTypeClassExt
  */
 BuildingTypeClassExtension::BuildingTypeClassExtension(BuildingTypeClass *this_ptr) :
     Extension(this_ptr),
-
     GateUpSound(VOC_NONE),
     GateDownSound(VOC_NONE),
     ProduceCashStartup(0),
@@ -54,7 +53,8 @@ BuildingTypeClassExtension::BuildingTypeClassExtension(BuildingTypeClass *this_p
     ProduceCashDelay(0),
     ProduceCashBudget(0),
     IsStartupCashOneTime(false),
-    IsResetBudgetOnCapture(false)
+    IsResetBudgetOnCapture(false),
+    IsEligibleForAllyBuilding(false)
 {
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("BuildingTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -165,6 +165,8 @@ void BuildingTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("BuildingTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+
+    crc(IsEligibleForAllyBuilding);
 }
 
 
@@ -194,6 +196,9 @@ bool BuildingTypeClassExtension::Read_INI(CCINIClass &ini)
     ProduceCashBudget = ini.Get_Int(ini_name, "ProduceCashBudget", ProduceCashBudget);
     IsStartupCashOneTime = ini.Get_Int(ini_name, "ProduceCashStartupOneTime", IsStartupCashOneTime);
     IsResetBudgetOnCapture = ini.Get_Bool(ini_name, "ProduceCashResetOnCapture", IsResetBudgetOnCapture);
+
+    IsEligibleForAllyBuilding = ini.Get_Bool(ini_name, "EligibleForAllyBuilding",
+                                                    ThisPtr->IsConstructionYard ? true : IsEligibleForAllyBuilding);
     
     return true;
 }
