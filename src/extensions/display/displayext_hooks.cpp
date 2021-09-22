@@ -31,6 +31,14 @@
 #include "tibsun_util.h"
 #include "display.h"
 #include "iomap.h"
+#include "cell.h"
+#include "building.h"
+#include "buildingtype.h"
+#include "buildingtypeext.h"
+#include "house.h"
+#include "housetype.h"
+#include "session.h"
+#include "sessionext.h"
 #include "wwmouse.h"
 #include "fatal.h"
 #include "debughandler.h"
@@ -38,6 +46,68 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-171
+ * 
+ *  Adds game option to control if allies can build off each others bases.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_DisplayClass_Passes_Proximity_Passes_Check_Patch)
+{
+    //GET_REGISTER_STATIC(DisplayClass *, this_ptr, ?);   // No access to "this".
+    GET_REGISTER_STATIC(BuildingClass *, base, eax);
+    GET_STACK_STATIC(HousesType, house, esp, 0x38);
+    //GET_STACK_STATIC8(bool, passes, esp, 0x3C);
+    static BuildingTypeClassExtension *buildingtypeext;
+    static HouseClass *hptr;
+
+    /**
+     *  Store the proximity check result.
+     */
+    #define passes() _asm { mov byte ptr [esp+0x3C], 1 }
+
+    hptr = Houses[house];
+
+    /**
+     *  Stolen bytes/code.
+     * 
+     *  Ensure the building is considered eligible for adjacency checks.
+     */
+    if (base->House->ID == house && base->Class->IsBase) {
+        passes();
+    }
+
+    /**
+     *  If the build-off-ally option is enabled, ensure the building is
+     *  owned by an ally house and is eligible for adjacent building before
+     *  passing the check.
+     * 
+     *  #NOTE: This feature is only available for multiplayer games.
+     */
+    if (Session.Type != GAME_NORMAL) {
+        if (SessionExtension && SessionExtension->ExtOptions.IsBuildOffAlly) {
+
+            if (base->House != hptr && base->House->Is_Ally(hptr)) {
+
+                buildingtypeext = BuildingTypeClassExtensions.find(base->Class);
+                if (buildingtypeext && buildingtypeext->IsEligibleForAllyBuilding) {
+#ifndef NDEBUG
+                    //DEV_DEBUG_INFO("Ally \"%s's\" building \"%s\" is eligible for building off.\n", base->House->IniName, base->Name());
+#endif
+                    passes();
+                }
+            }
+        }
+    }
+
+    #undef passes
+
+continue_scan:
+    JMP(0x00476308);
+}
 
 
 /**
@@ -179,6 +249,7 @@ void DisplayClassExtension_Hooks()
 {
     Patch_Jump(0x0047AFA6, &_DisplayClass_Help_Text_GetCursorPosition_Patch);
     Patch_Jump(0x00478974, &_DisplayClass_Mouse_Left_Release_PlaceAnywhere_BugFix_Patch);
+    Patch_Jump(0x004762E4, &_DisplayClass_Passes_Proximity_Passes_Check_Patch);
 
     /**
      *  #issue-76

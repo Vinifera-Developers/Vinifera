@@ -91,6 +91,11 @@ class BuildingTypeClassExtension final : public Extension<BuildingTypeClass>
          *  Reset the available budget when captured?
          */
         bool IsResetBudgetOnCapture;
+
+        /**
+         *  
+         */
+        bool IsEligibleForAllyBuilding;
 };
 
 
