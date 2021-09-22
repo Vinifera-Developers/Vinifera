@@ -48,7 +48,9 @@ AnimTypeClassExtension::AnimTypeClassExtension(AnimTypeClass *this_ptr) :
     IsHideIfNotTiberium(false),
     IsForceBigCraters(false),
     ZAdjust(0),
-    AttachLayer(LAYER_NONE)
+    AttachLayer(LAYER_NONE),
+    ParticleToSpawn(PARTICLE_NONE),
+    NumberOfParticles(0)
 {
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("AnimTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -161,6 +163,7 @@ void AnimTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
     //DEV_DEBUG_TRACE("AnimTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     crc(AttachLayer);
+    crc(NumberOfParticles);
 }
 
 
@@ -185,6 +188,8 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     IsForceBigCraters = ini.Get_Bool(ini_name, "ForceBigCraters", IsForceBigCraters);
     ZAdjust = ini.Get_Int(ini_name, "ZAdjust", ZAdjust);
     AttachLayer = ini.Get_LayerType(ini_name, "Layer", AttachLayer);
+    ParticleToSpawn = ini.Get_ParticleType(ini_name, "SpawnsParticle", ParticleToSpawn);
+    NumberOfParticles = ini.Get_Int(ini_name, "NumParticles", NumberOfParticles);
     
     return true;
 }

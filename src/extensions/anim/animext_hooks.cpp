@@ -32,6 +32,9 @@
 #include "animtype.h"
 #include "animtypeext.h"
 #include "smudgetype.h"
+#include "particle.h"
+#include "particletype.h"
+#include "particlesys.h"
 #include "target.h"
 #include "cell.h"
 #include "rules.h"
@@ -99,6 +102,65 @@ LayerType AnimClassFake::_In_Which_Layer() const
 static Coordinate &Anim_Get_Center_Coord(AnimClass *this_ptr)
 {
     return this_ptr->Center_Coord();
+}
+
+
+/**
+ *  Spawn the attached particle systems. This is required as we can not
+ *  allocate on the stack.
+ * 
+ *  @author: CCHyper
+ */
+static void Anim_Spawn_Particles(AnimClass *this_ptr)
+{
+    AnimTypeClassExtension *animtypeext;
+
+    animtypeext = AnimTypeClassExtensions.find(this_ptr->Class);
+    if (animtypeext) {
+        if (animtypeext->ParticleToSpawn != PARTICLE_NONE) {
+
+            for (int i = 0; i < animtypeext->NumberOfParticles; ++i) {
+
+                Coordinate spawn_coord = this_ptr->Coord;
+
+                /**
+                 *  Spawn a new particle at this anims coord.
+                 */
+                MasterParticle->Spawn_Particle(
+                    (ParticleTypeClass *)ParticleTypeClass::As_Pointer(animtypeext->ParticleToSpawn),
+                    spawn_coord);
+
+            }
+        }
+    }
+}
+
+
+/**
+ *  #issue-568
+ * 
+ *  Implements SpawnParticle for anims.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_AnimClass_Middle_SpawnParticle_Patch)
+{
+    GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
+    static AnimTypeClassExtension *animtypeext;
+
+    /**
+     *  Spawn a new particle at this anims coord if one is set.
+     */
+    Anim_Spawn_Particles(this_ptr);
+
+    /**
+     *  Stolen bytes/code.
+     */
+    static int height;
+    height = this_ptr->Get_Height();
+    _asm { mov eax, [height] }
+
+    JMP_REG(ecx, 0x00416076);
 }
 
 
@@ -328,6 +390,7 @@ void AnimClassExtension_Hooks()
     Patch_Jump(0x00413C79, &_AnimClass_Constructor_Init_Class_Values_Patch);
     Patch_Jump(0x00414E8F, &_AnimClass_AI_Beginning_Patch);
     Patch_Jump(0x004160FB, &_AnimClass_Middle_Create_Crater_ForceBigCraters_Patch);
+    Patch_Jump(0x0041606C, &_AnimClass_Middle_SpawnParticle_Patch);
     Patch_Jump(0x00415D30, &AnimClassFake::_In_Which_Layer);
     Patch_Jump(0x00413D3E, &_AnimClass_Constructor_Layer_Set_Z_Height_Patch);
 }
