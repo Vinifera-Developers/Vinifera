@@ -42,8 +42,8 @@
 /**
  *  Use these defines in code to allow easy updating in all areas used.
  */
-#define MAINICON    IDI_VINIFERA
-#define MAINCURSOR  IDC_ARROW
+#define VINIFERA_MAINICON		 IDI_VINIFERA
+#define VINIFERA_MAINCURSOR		 IDC_ARROW
 
 
 /**

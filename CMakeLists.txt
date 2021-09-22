@@ -395,6 +395,7 @@ add_library(${PROJECT_NAME} SHARED
 		${GIT_POST_CONFIGURE_FILE}
 		${CMAKE_SOURCE_DIR}/res/resource.h
 		${CMAKE_SOURCE_DIR}/res/dialog.rc
+		${CMAKE_SOURCE_DIR}/res/icon.rc
 )
 target_include_directories(${PROJECT_NAME} BEFORE PUBLIC
 		${VINIFERA_INCLUDE_DIRS}
@@ -574,7 +575,7 @@ add_dependencies(${PROJECT_NAME} TSpp)
 # Ensure the launcher is built with the main project.
 add_dependencies(${PROJECT_NAME} Launch${PROJECT_NAME})
 
-set(REQUIRED_LIBRARIES ws2_32 dbghelp shlwapi version)
+set(REQUIRED_LIBRARIES ws2_32 dbghelp shlwapi version comctl32)
 
 # Link to any required libraries.
 target_link_libraries(${PROJECT_NAME} ${REQUIRED_LIBRARIES})

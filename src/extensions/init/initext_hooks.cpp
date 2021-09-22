@@ -26,6 +26,7 @@
  *
  ******************************************************************************/
 #include "initext_hooks.h"
+#include "initext_functions.h"
 #include "vinifera_globals.h"
 #include "tibsun_globals.h"
 #include "special.h"
@@ -530,6 +531,7 @@ void GameInit_Hooks()
     Patch_Jump(0x004E0461, &_Init_CDROM_Access_Local_Files_Patch);
     Patch_Jump(0x004E3D20, &Vinifera_Init_Bootstrap_Mixfiles);
     Patch_Jump(0x004E4120, &Vinifera_Init_Secondary_Mixfiles);
+    Patch_Jump(0x00686190, &Vinifera_Create_Main_Window);
 
     /**
      *  #issue-110
