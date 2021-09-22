@@ -33,6 +33,7 @@
 
 class AnimTypeClass;
 class CCINIClass;
+class ParticleTypeClass;
 
 
 class AnimTypeClassExtension final : public Extension<AnimTypeClass>
@@ -74,6 +75,16 @@ class AnimTypeClassExtension final : public Extension<AnimTypeClass>
          *	The map layer this animation is in when attached to an object.
          */
         LayerType AttachLayer;
+
+        /**
+         *  The particle to spawn at the mid-point of this animation.
+         */
+        ParticleType ParticleToSpawn;
+
+        /**
+         *  The number of the particle to spawn.
+         */
+        unsigned NumberOfParticles;
 };
 
 
