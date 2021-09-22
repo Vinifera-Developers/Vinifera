@@ -45,7 +45,8 @@ ExtensionMap<AnimTypeClass, AnimTypeClassExtension> AnimTypeClassExtensions;
  */
 AnimTypeClassExtension::AnimTypeClassExtension(AnimTypeClass *this_ptr) :
     Extension(this_ptr),
-    IsHideIfNotTiberium(false)
+    IsHideIfNotTiberium(false),
+    ZAdjust(0)
 {
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("AnimTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -177,6 +178,7 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     }
 
     IsHideIfNotTiberium = ini.Get_Bool(ini_name, "HideIfNoTiberium", IsHideIfNotTiberium);
+    ZAdjust = ini.Get_Int(ini_name, "ZAdjust", ZAdjust);
     
     return true;
 }
