@@ -57,6 +57,13 @@ class AnimTypeClassExtension final : public Extension<AnimTypeClass>
          *  tiberium overlay, then this anim will not be drawn.
          */
         bool IsHideIfNotTiberium;
+
+        /**
+         *  Fudge to this anims Z-axis (depth). Positive values move the
+         *  animation "away from the screen" or "closer to the ground". Negative
+         *  values do the opposite. 
+         */
+        int ZAdjust;
 };
 
 
