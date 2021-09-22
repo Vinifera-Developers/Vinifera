@@ -100,6 +100,7 @@ DECLARE_PATCH(_AnimClass_AI_Beginning_Patch)
 DECLARE_PATCH(_AnimClass_Constructor_Init_Class_Values_Patch)
 {
 	GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
+	static AnimTypeClassExtension *animtypeext;
 
 	/**
 	 *  Stolen bytes/code.
@@ -115,6 +116,21 @@ DECLARE_PATCH(_AnimClass_Constructor_Init_Class_Values_Patch)
 	 */
 	if (!this_ptr->Class) {
 		goto destroy_anim;
+	}
+
+	/**
+	 *  #issue-561
+	 * 
+	 *  Implements ZAdjust override for Anims. This will only have an effect
+	 *  if the anim is created with a z-adjustment value of "0" (default value).
+	 * 
+	 *  @author: CCHyper
+	 */
+	if (!this_ptr->ZAdjust) {
+		animtypeext = AnimTypeClassExtensions.find(this_ptr->Class);
+		if (animtypeext) {
+			this_ptr->ZAdjust = animtypeext->ZAdjust;
+		}
 	}
 
 	/**
