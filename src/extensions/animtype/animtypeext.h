@@ -69,6 +69,11 @@ class AnimTypeClassExtension final : public Extension<AnimTypeClass>
          *  values do the opposite. 
          */
         int ZAdjust;
+
+        /**
+         *	The map layer this animation is in when attached to an object.
+         */
+        LayerType AttachLayer;
 };
 
 

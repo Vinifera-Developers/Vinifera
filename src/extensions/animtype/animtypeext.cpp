@@ -47,7 +47,8 @@ AnimTypeClassExtension::AnimTypeClassExtension(AnimTypeClass *this_ptr) :
     Extension(this_ptr),
     IsHideIfNotTiberium(false),
     IsForceBigCraters(false),
-    ZAdjust(0)
+    ZAdjust(0),
+    AttachLayer(LAYER_NONE)
 {
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("AnimTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -158,6 +159,8 @@ void AnimTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("AnimTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+
+    crc(AttachLayer);
 }
 
 
@@ -181,6 +184,7 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     IsHideIfNotTiberium = ini.Get_Bool(ini_name, "HideIfNoTiberium", IsHideIfNotTiberium);
     IsForceBigCraters = ini.Get_Bool(ini_name, "ForceBigCraters", IsForceBigCraters);
     ZAdjust = ini.Get_Int(ini_name, "ZAdjust", ZAdjust);
+    AttachLayer = ini.Get_LayerType(ini_name, "Layer", AttachLayer);
     
     return true;
 }
