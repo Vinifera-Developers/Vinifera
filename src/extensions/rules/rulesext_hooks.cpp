@@ -35,6 +35,7 @@
 #include "session.h"
 #include "sessionext.h"
 #include "ccini.h"
+#include "addon.h"
 #include "fatal.h"
 #include "asserthandler.h"
 #include "debughandler.h"
@@ -164,6 +165,20 @@ void RulesClassFake::_Process(CCINIClass &ini)
  */
 DECLARE_PATCH(_Init_Rules_Extended_Class_Patch)
 {
+    /**
+     *  #issue-583
+     * 
+     *  Allow Colors, AudioVisual and MPlayer sections to be read
+     *  from FSRuleINI on rules init.
+     * 
+     *  @author: CCHyper
+     */
+    if (Addon_407120(ADDON_FIRESTORM)) {
+        Rule->Colors(FSRuleINI);
+        Rule->AudioVisual(FSRuleINI);
+        Rule->MPlayer(FSRuleINI);
+    }
+
     /**
      *  Original code.
      */
