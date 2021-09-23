@@ -27,6 +27,11 @@
  ******************************************************************************/
 #include "technoext.h"
 #include "techno.h"
+#include "technotype.h"
+#include "technotypeext.h"
+#include "house.h"
+#include "voc.h"
+#include "tibsun_inline.h"
 #include "wwcrc.h"
 #include "asserthandler.h"
 #include "debughandler.h"
@@ -155,4 +160,148 @@ void TechnoClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
     ASSERT(ThisPtr != nullptr);
     //EXT_DEBUG_TRACE("TechnoClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+}
+
+
+/**
+ *  Handles the voice response when given capture order.
+ * 
+ *  @author: CCHyper
+ */
+void TechnoClassExtension::Response_Capture()
+{
+    ASSERT(ThisPtr != nullptr);
+    //DEV_DEBUG_TRACE("TechnoClassExtension::Response_Capture - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+
+    if (!AllowVoice) {
+        return;
+    }
+
+    //if (!ThisPtr->House->Is_Player_Control()) {
+    //    return;
+    //}
+
+    VocType response = VOC_NONE;
+
+    TechnoTypeClass *technotype = ThisPtr->Techno_Type_Class();
+    TechnoTypeClassExtension *technotypeext = TechnoTypeClassExtensions.find(technotype);
+    if (technotypeext && technotypeext->VoiceCapture.Count() > 0) {
+
+        response = technotypeext->VoiceCapture[Sim_Random_Pick(0, technotypeext->VoiceCapture.Count()-1)];
+
+    } else if (technotype->VoiceMove.Count() > 0) {
+        
+        response = technotype->VoiceMove[Sim_Random_Pick(0, technotype->VoiceMove.Count()-1)];
+    
+    }
+
+    Sound_Effect(response);
+}
+
+
+/**
+ *  Handles the voice response when given enter order.
+ * 
+ *  @author: CCHyper
+ */
+void TechnoClassExtension::Response_Enter()
+{
+    ASSERT(ThisPtr != nullptr);
+    //DEV_DEBUG_TRACE("TechnoClassExtension::Response_Enter - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+
+    if (!AllowVoice) {
+        return;
+    }
+
+    //if (!ThisPtr->House->Is_Player_Control()) {
+    //    return;
+    //}
+
+    VocType response = VOC_NONE;
+
+    TechnoTypeClass *technotype = ThisPtr->Techno_Type_Class();
+    TechnoTypeClassExtension *technotypeext = TechnoTypeClassExtensions.find(technotype);
+    if (technotypeext && technotypeext->VoiceEnter.Count() > 0) {
+
+        response = technotypeext->VoiceEnter[Sim_Random_Pick(0, technotypeext->VoiceEnter.Count()-1)];
+
+    } else if (technotype->VoiceMove.Count() > 0) {
+        
+        response = technotype->VoiceMove[Sim_Random_Pick(0, technotype->VoiceMove.Count()-1)];
+    
+    }
+
+    Sound_Effect(response);
+}
+
+
+/**
+ *  Handles the voice response when given deploy order.
+ * 
+ *  @author: CCHyper
+ */
+void TechnoClassExtension::Response_Deploy()
+{
+    ASSERT(ThisPtr != nullptr);
+    //DEV_DEBUG_TRACE("TechnoClassExtension::Response_Deploy - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+
+    if (!AllowVoice) {
+        return;
+    }
+
+    //if (!ThisPtr->House->Is_Player_Control()) {
+    //    return;
+    //}
+
+    VocType response = VOC_NONE;
+
+    TechnoTypeClass *technotype = ThisPtr->Techno_Type_Class();
+    TechnoTypeClassExtension *technotypeext = TechnoTypeClassExtensions.find(technotype);
+    if (technotypeext && technotypeext->VoiceDeploy.Count() > 0) {
+
+        response = technotypeext->VoiceDeploy[Sim_Random_Pick(0, technotypeext->VoiceDeploy.Count()-1)];
+
+    } else if (technotype->VoiceMove.Count() > 0) {
+        
+        response = technotype->VoiceMove[Sim_Random_Pick(0, technotype->VoiceMove.Count()-1)];
+    
+    }
+
+    Sound_Effect(response);
+}
+
+
+/**
+ *  Handles the voice response when given harvest order.
+ * 
+ *  @author: CCHyper
+ */
+void TechnoClassExtension::Response_Harvest()
+{
+    ASSERT(ThisPtr != nullptr);
+    //DEV_DEBUG_TRACE("TechnoClassExtension::Response_Harvest - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+
+    if (!AllowVoice) {
+        return;
+    }
+
+    //if (!ThisPtr->House->Is_Player_Control()) {
+    //    return;
+    //}
+
+    VocType response = VOC_NONE;
+
+    TechnoTypeClass *technotype = ThisPtr->Techno_Type_Class();
+    TechnoTypeClassExtension *technotypeext = TechnoTypeClassExtensions.find(technotype);
+    if (technotypeext && technotypeext->VoiceHarvest.Count() > 0) {
+
+        response = technotypeext->VoiceHarvest[Sim_Random_Pick(0, technotypeext->VoiceHarvest.Count()-1)];
+
+    } else if (technotype->VoiceMove.Count() > 0) {
+        
+        response = technotype->VoiceMove[Sim_Random_Pick(0, technotype->VoiceMove.Count()-1)];
+    
+    }
+
+    Sound_Effect(response);
 }
