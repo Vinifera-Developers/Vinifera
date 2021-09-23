@@ -29,6 +29,7 @@
 
 #include "extension.h"
 #include "container.h"
+#include "typelist.h"
 #include "tibsun_defines.h"
 
 
@@ -103,6 +104,26 @@ class TechnoTypeClassExtension final : public Extension<TechnoTypeClass>
          *  This is the sound effect to play when a passenger leaves this unit.
          */
         VocType LeaveTransportSound;
+
+        /**
+         *  List of voices to use when giving this object a capture order.
+         */
+        TypeList<VocType> VoiceCapture;
+
+        /**
+         *  List of voices to use when giving this object an enter order (ie, transport, infiltrate building).
+         */
+        TypeList<VocType> VoiceEnter;
+
+        /**
+         *  List of voices to use when giving this object a unload order.
+         */
+        TypeList<VocType> VoiceDeploy;
+
+        /**
+         *  List of voices to use when giving this object a harvest order.
+         */
+        TypeList<VocType> VoiceHarvest;
 };
 
 

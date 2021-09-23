@@ -53,6 +53,93 @@
 
 
 /**
+ *  Handle the player assigned mission and play the respective voice response.
+ * 
+ *  @author: CCHyper
+ */
+static void Techno_Player_Assign_Mission_Response_Switch(TechnoClass *this_ptr, MissionType mission)
+{
+    if (!this_ptr) {
+        return;
+    }
+
+    if (!AllowVoice) {
+        return;
+    }
+
+    TechnoClassExtension *technoext;
+    technoext = TechnoClassExtensions.find(this_ptr);
+
+    switch (mission) {
+
+        default:
+        case MISSION_MOVE:
+            this_ptr->Response_Move();
+            break;
+
+        case MISSION_ATTACK:
+            this_ptr->Response_Attack();
+            break;
+
+        /**
+         *  #issue-574
+         * 
+         *  Implements VoiceCapture, VoiceEnter, VoiceDeploy and VoiceHarvest.
+         */
+        case MISSION_CAPTURE:
+            if (technoext) {
+                technoext->Response_Capture();
+            } else {
+                this_ptr->Response_Move();
+            }
+            break;
+
+        case MISSION_ENTER:
+            if (technoext) {
+                technoext->Response_Enter();
+            } else {
+                this_ptr->Response_Move();
+            }
+            break;
+
+        case MISSION_UNLOAD:
+            if (technoext) {
+                technoext->Response_Deploy();
+            } else {
+                this_ptr->Response_Move();
+            }
+            break;
+
+        case MISSION_HARVEST:
+            if (technoext) {
+                technoext->Response_Harvest();
+            } else {
+                this_ptr->Response_Move();
+            }
+            break;
+    }
+}
+
+
+/**
+ *  #issue-574
+ * 
+ *  Patch to allow additional voice responses.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_TechnoClass_Player_Assign_Mission_Response_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(MissionType, mission, edi);
+
+    Techno_Player_Assign_Mission_Response_Switch(this_ptr, mission);
+
+    JMP(0x0063167E);
+}
+
+
+/**
  *  #issue-434
  * 
  *  Implements Soylent value (refund amount override) for technos.
@@ -484,4 +571,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x0062C55B, &_TechnoClass_Draw_Health_Bars_Infantry_Draw_Pos_Patch);
     Patch_Jump(0x0062DD70, &_TechnoClass_Greatest_Threat_Infantry_Mechanic_Patch);
     Patch_Jump(0x00638095, &_TechnoClass_Refund_Amount_Soylent_Patch);
+    Patch_Jump(0x00631661, &_TechnoClass_Player_Assign_Mission_Response_Patch);
 }
