@@ -58,7 +58,11 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(TechnoTypeClass *this_ptr) :
     UnloadingClass(nullptr),
     SoylentValue(0),
     EnterTransportSound(VOC_NONE),
-    LeaveTransportSound(VOC_NONE)
+    LeaveTransportSound(VOC_NONE),
+    VoiceCapture(),
+    VoiceEnter(),
+    VoiceDeploy(),
+    VoiceHarvest()
 {
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("TechnoTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -211,6 +215,10 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     SoylentValue = ini.Get_Int(ini_name, "Soylent", SoylentValue);
     EnterTransportSound = ini.Get_VocType(ini_name, "EnterTransportSound", EnterTransportSound);
     LeaveTransportSound = ini.Get_VocType(ini_name, "LeaveTransportSound", LeaveTransportSound);
+    VoiceCapture = ini.Get_VocType_List(ini_name, "VoiceCapture", VoiceCapture);
+    VoiceEnter = ini.Get_VocType_List(ini_name, "VoiceEnter", VoiceEnter);
+    VoiceDeploy = ini.Get_VocType_List(ini_name, "VoiceDeploy", VoiceDeploy);
+    VoiceHarvest = ini.Get_VocType_List(ini_name, "VoiceHarvest", VoiceHarvest);
 
     return true;
 }

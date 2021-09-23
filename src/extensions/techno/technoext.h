@@ -46,6 +46,14 @@ class TechnoClassExtension final : public Extension<TechnoClass>
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
+        /**
+         *  Extended class functions.
+         */
+        void Response_Capture();
+        void Response_Enter();
+        void Response_Deploy();
+        void Response_Harvest();
+
     public:
 };
 
