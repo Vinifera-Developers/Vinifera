@@ -73,6 +73,7 @@
 #include "infantryext.h"
 #include "unitext.h"
 #include "terrainext.h"
+#include "superext.h"
 
 #include "waveext.h"
 
@@ -130,6 +131,7 @@ unsigned ViniferaSaveGameVersion =
             + sizeof(UnitClassExtension)
             + sizeof(TerrainClassExtension)
             + sizeof(WaveClassExtension)
+            + sizeof(SuperClassExtension)
 ;
 
 
@@ -427,6 +429,7 @@ DEFINE_EXTENSION_SAVE(BuildingClassExtension, BuildingClassExtensions);
 DEFINE_EXTENSION_SAVE(InfantryClassExtension, InfantryClassExtensions);
 DEFINE_EXTENSION_SAVE(UnitClassExtension, UnitClassExtensions);
 DEFINE_EXTENSION_SAVE(TerrainClassExtension, TerrainClassExtensions);
+DEFINE_EXTENSION_SAVE(SuperClassExtension, SuperClassExtensions);
 
 DEFINE_EXTENSION_SAVE(WaveClassExtension, WaveClassExtensions);
 
@@ -464,6 +467,7 @@ DEFINE_EXTENSION_LOAD(BuildingClassExtension, BuildingClassExtensions);
 DEFINE_EXTENSION_LOAD(InfantryClassExtension, InfantryClassExtensions);
 DEFINE_EXTENSION_LOAD(UnitClassExtension, UnitClassExtensions);
 DEFINE_EXTENSION_LOAD(TerrainClassExtension, TerrainClassExtensions);
+DEFINE_EXTENSION_LOAD(SuperClassExtension, SuperClassExtensions);
 
 DEFINE_EXTENSION_LOAD(WaveClassExtension, WaveClassExtensions);
 
@@ -717,6 +721,12 @@ bool Vinifera_Put_All(IStream *pStm)
 
     DEBUG_INFO("Saving TerrainClassExtension\n");
     if (!Vinifera_Save_TerrainClassExtension(pStm)) {
+        DEBUG_INFO("\t***** FAILED!\n");
+        return false;
+    }
+
+    DEBUG_INFO("Saving SuperClassExtension\n");
+    if (!Vinifera_Save_SuperClassExtension(pStm)) {
         DEBUG_INFO("\t***** FAILED!\n");
         return false;
     }
@@ -1007,6 +1017,12 @@ bool Vinifera_Load_All(IStream *pStm)
 
     DEBUG_INFO("Loading TerrainClassExtension\n");
     if (!Vinifera_Load_TerrainClassExtension(pStm)) {
+        DEBUG_INFO("\t***** FAILED!\n");
+        return false;
+    }
+
+    DEBUG_INFO("Loading SuperClassExtension\n");
+    if (!Vinifera_Load_SuperClassExtension(pStm)) {
         DEBUG_INFO("\t***** FAILED!\n");
         return false;
     }
