@@ -44,7 +44,9 @@ ExtensionMap<SuperClass, SuperClassExtension> SuperClassExtensions;
  *  @author: CCHyper
  */
 SuperClassExtension::SuperClassExtension(SuperClass *this_ptr) :
-    Extension(this_ptr)
+    Extension(this_ptr),
+    FlashTimeEnd(0),
+    TimerFlashState(false)
 {
     ASSERT(ThisPtr != nullptr);
     //EXT_DEBUG_TRACE("SuperClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));

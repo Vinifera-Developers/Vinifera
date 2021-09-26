@@ -28,6 +28,7 @@
 #include "tacticalext.h"
 #include "tactical.h"
 #include "wwcrc.h"
+#include "vinifera_globals.h"
 #include "tibsun_globals.h"
 #include "colorscheme.h"
 #include "rgb.h"
@@ -37,6 +38,13 @@
 #include "unittype.h"
 #include "session.h"
 #include "scenario.h"
+#include "ebolt.h"
+#include "house.h"
+#include "housetype.h"
+#include "super.h"
+#include "superext.h"
+#include "supertype.h"
+#include "supertypeext.h"
 #include "asserthandler.h"
 #include "debughandler.h"
 
@@ -511,4 +519,201 @@ void TacticalMapExtension::Draw_Information_Text()
      */
     Fancy_Text_Print(text, CompositeSurface, &CompositeSurface->Get_Rect(),
         &Point2D(text_rect.X, text_rect.Y), text_color, COLOR_TBLACK, style);
+}
+
+
+/**
+ *  For drawing any new post-effects/systems.
+ * 
+ *  @authors: CCHyper
+ */
+void TacticalMapExtension::Render_Post()
+{
+    ASSERT(ThisPtr != nullptr);
+    //EXT_DEBUG_TRACE("TacticalMapExtension::Render_Post - 0x%08X\n", (uintptr_t)(ThisPtr));
+
+    /**
+     *  Draw any new post effects here.
+     */
+    //DEV_DEBUG_INFO("Before EBoltClass::Draw_All\n");
+    EBoltClass::Draw_All();
+    //DEV_DEBUG_INFO("After EBoltClass::Draw_All\n");
+
+    /**
+     *  Draw any overlay text.
+     */
+    Draw_Super_Timers();
+}
+
+
+/**
+ *  Prints a single super weapon timer to the tactical screen.
+ * 
+ *  @authors: CCHyper
+ */
+void TacticalMapExtension::Super_Draw_Timer(int row_index, ColorScheme *color, int time, const char *name, unsigned long *flash_time, bool *flash_state)
+{
+    static WWFontClass *_font = nullptr;
+
+    TextPrintType style = TPF_8POINT|TPF_RIGHT|TPF_NOSHADOW|TPF_METAL12|TPF_SOLIDBLACK_BG;
+
+    if (!_font) {
+        _font = Font_Ptr(style);
+    }
+
+    char fullbuff[128];
+    char namebuff[128];
+    char timerbuff[128];
+    int text_width = -1;
+    int flash_delay = 500; // was 1000
+    bool to_flash = false;
+    unsigned color_black = DSurface::RGBA_To_Pixel(0, 0, 0);
+    RGBClass rgb_black(0, 0, 0);
+    ColorScheme *white_color = ColorScheme::As_Pointer("White", 1);
+    int background_tint = 50;
+
+    long hours = (time / 60 / 60);
+    long seconds = (time % 60);
+    long minutes = (time / 60 % 60);
+
+    if (hours) {
+        std::snprintf(fullbuff, sizeof(fullbuff), "%s %d:%02d:%02d", name, hours, minutes, seconds);
+        std::snprintf(namebuff, sizeof(namebuff), "%s", name);
+        std::snprintf(timerbuff, sizeof(timerbuff), "%d:%02d:%02d", hours, minutes, seconds);
+    } else {
+        std::snprintf(fullbuff, sizeof(fullbuff), "%s %02d:%02d", name, minutes, seconds);
+        std::snprintf(namebuff, sizeof(namebuff), "%s", name);
+        std::snprintf(timerbuff, sizeof(timerbuff), "%02d:%02d", minutes, seconds);
+    }
+
+    /**
+     *  Is it time to flash
+     */
+    if (!time) {
+        if (flash_time && flash_state) {
+            if (timeGetTime() >= *flash_time) {
+                *flash_time = timeGetTime() + flash_delay;
+                *flash_state = !*flash_state;
+            }
+            to_flash = *flash_state;
+        }
+    }
+
+    Rect name_rect;
+    _font->String_Pixel_Rect(namebuff, &name_rect);
+
+    Rect timer_rect;
+    _font->String_Pixel_Rect(timerbuff, &timer_rect);
+
+    int font_width = _font->Get_Font_Width();
+    int font_height = _font->Get_Font_Height();
+
+    int y_pos = TacticalRect.Height - (row_index * (font_height + 2)) + 3;
+
+    Point2D timer_point;
+    timer_point.X = TacticalRect.Width - 4;
+    timer_point.Y = y_pos;
+
+    int x_offset = hours ? 56 : 38; // timer_rect.Width
+
+    Point2D name_point;
+    name_point.X = TacticalRect.Width - x_offset - 3;
+    name_point.Y = y_pos;
+
+    Rect fill_rect;
+    fill_rect.X = TacticalRect.Width - (x_offset + name_rect.Width) - 4;
+    fill_rect.Y = y_pos-1;
+    fill_rect.Width = x_offset + name_rect.Width + 2;
+    fill_rect.Height = timer_rect.Height + 2;
+
+    //CompositeSurface->Fill_Rect(CompositeSurface->Get_Rect(), fill_rect, color_black);
+    CompositeSurface->Fill_Rect_Trans(fill_rect, rgb_black, background_tint);
+
+    Fancy_Text_Print(timerbuff, CompositeSurface, &CompositeSurface->Get_Rect(), 
+        &timer_point, to_flash ? white_color : color, COLOR_TBLACK, style);
+
+    Fancy_Text_Print(namebuff, CompositeSurface, &CompositeSurface->Get_Rect(), 
+        &name_point, color, COLOR_TBLACK, style);
+}
+
+
+/**
+ *  Draws super weapon timers to the tactical screen.
+ * 
+ *  @authors: CCHyper
+ */
+void TacticalMapExtension::Draw_Super_Timers()
+{
+    ASSERT(ThisPtr != nullptr);
+    //EXT_DEBUG_TRACE("TacticalMapExtension::Draw_Super_Timers - 0x%08X\n", (uintptr_t)(ThisPtr));
+
+    /**
+     *  Super weapon timers are for multiplayer only.
+     */
+#if 0
+    if (Session.Type == GAME_NORMAL) {
+        return;
+    }
+#endif
+
+    /**
+     *  Has the user toggled the visibility of the super weapon timers?
+     */
+    if (!Vinifera_ShowSuperWeaponTimers) {
+        return;
+    }
+
+    /**
+     *  Non-release builds print the version information to the tactical view
+     *  so we need to adjust the timers to print above this text.
+     */
+#ifdef RELEASE
+    int row_index = 0;
+#else
+    int row_index = 3;
+#endif
+
+    /**
+     *  Iterate over all active super weapons and print their recharge timers.
+     */
+    for (int i = 0; i < Supers.Count(); ++i) {
+
+        SuperClass *super = Supers[i];
+        SuperClassExtension *superext = SuperClassExtensions.find(super);
+        SuperWeaponTypeClassExtension *supertypeext = SuperWeaponTypeClassExtensions.find(super->Class);
+        if (!superext || !supertypeext) {
+            continue;
+        }
+
+        /**
+         *  Should we show the recharge timer for this super?
+         */
+        if (!supertypeext->IsShowTimer) {
+            continue;
+        }
+
+        if (super->House->Class->IsMultiplayPassive) {
+            continue;
+        }
+
+        /**
+         *  Skip supers that are disabled.
+         */
+        if (!super->IsPresent) {
+            continue;
+        }
+
+        if (super->Control.Value() != super->Class->RechargeTime) {
+
+            Super_Draw_Timer(
+                row_index++,
+                ColorSchemes[super->House->RemapColor],
+                super->Control.Value() / TICKS_PER_SECOND,
+                super->Class->FullName,
+                &superext->FlashTimeEnd,
+                &superext->TimerFlashState
+            );
+        }
+
+    }
 }

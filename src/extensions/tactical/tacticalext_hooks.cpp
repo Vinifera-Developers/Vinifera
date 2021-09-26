@@ -258,9 +258,9 @@ DECLARE_PATCH(_Tactical_Render_Post_Effects_Patch)
     /**
      *  Draw any new post effects here.
      */
-    //DEV_DEBUG_INFO("Before EBoltClass::Draw_All\n");
-    EBoltClass::Draw_All();
-    //DEV_DEBUG_INFO("After EBoltClass::Draw_All\n");
+    if (TacticalExtension) {
+        TacticalExtension->Render_Post();
+    }
 
     JMP(0x00611AFE);
 }

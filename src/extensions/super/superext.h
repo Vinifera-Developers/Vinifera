@@ -50,6 +50,15 @@ class SuperClassExtension final : public Extension<SuperClass>
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
     public:
+        /**
+         *  The time at which the flash mode should return to normal.
+         */
+        unsigned long FlashTimeEnd;
+
+        /**
+         *  The current flash state of the timer printed on the tactical view.
+         */
+        bool TimerFlashState;
 };
 
 
