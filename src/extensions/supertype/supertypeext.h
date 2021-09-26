@@ -52,7 +52,11 @@ class SuperWeaponTypeClassExtension final : public Extension<SuperWeaponTypeClas
         bool Read_INI(CCINIClass &ini);
 
     public:
-
+        /**
+         *  When this super weapon is active, does its recharge timer display
+         *  on the tactical view?
+         */
+        bool IsShowTimer;
 };
 
 
