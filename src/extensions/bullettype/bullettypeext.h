@@ -52,7 +52,10 @@ class BulletTypeClassExtension final : public Extension<BulletTypeClass>
         bool Read_INI(CCINIClass &ini);
 
     public:
-
+        /**
+         *  The number of frames between trailer anim spawns.
+         */
+        unsigned SpawnDelay;
 };
 
 

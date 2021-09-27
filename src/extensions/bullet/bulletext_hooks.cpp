@@ -26,6 +26,8 @@
  *
  ******************************************************************************/
 #include "bulletext_hooks.h"
+#include "bullettype.h"
+#include "bullettypeext.h"
 #include "bullet.h"
 #include "warheadtype.h"
 #include "warheadtypeext.h"
@@ -36,6 +38,46 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-563
+ * 
+ *  Implements SpawnDelay for BulletTypes.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_BulletClass_AI_SpawnDelay_Patch)
+{
+    GET_REGISTER_STATIC(BulletClass *, this_ptr, ebp);
+    static BulletTypeClassExtension *bullettypeext;
+
+    /**
+     *  Find the extended bullet type data.
+     */
+    bullettypeext = BulletTypeClassExtensions.find(this_ptr->Class);
+
+    /**
+     *  If this bullet has a custom spawn delay, perform that check first.
+     */
+    if (bullettypeext) {
+        if ((Frame % bullettypeext->SpawnDelay) == 0) {
+            goto create_trailer_anim;
+        }
+
+    /**
+     *  Original case, hardcoded delay of 3.
+     */
+    } else if ((Frame % 3) == 0) {
+        goto create_trailer_anim;
+    }
+
+skip_anim:
+    JMP(0x00444801);
+
+create_trailer_anim:
+    JMP(0x004447D0);
+}
 
 
 /**
@@ -89,4 +131,5 @@ DECLARE_PATCH(_BulletClass_Logic_ShakeScreen_Patch)
 void BulletClassExtension_Hooks()
 {
     Patch_Jump(0x00446652, &_BulletClass_Logic_ShakeScreen_Patch);
+    Patch_Jump(0x004447BF, &_BulletClass_AI_SpawnDelay_Patch);
 }
