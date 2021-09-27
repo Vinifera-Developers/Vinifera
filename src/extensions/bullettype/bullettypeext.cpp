@@ -44,7 +44,8 @@ ExtensionMap<BulletTypeClass, BulletTypeClassExtension> BulletTypeClassExtension
  *  @author: CCHyper
  */
 BulletTypeClassExtension::BulletTypeClassExtension(BulletTypeClass *this_ptr) :
-    Extension(this_ptr)
+    Extension(this_ptr),
+    SpawnDelay(3)           // Default hardcoded value.
 {
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("BulletTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -174,6 +175,17 @@ bool BulletTypeClassExtension::Read_INI(CCINIClass &ini)
     if (!ini.Is_Present(ini_name)) {
         return false;
     }
+
+    const char *graphic_name = ThisPtr->Graphic_Name();
+    
+    //if (!ArtINI.Is_Present(graphic_name)) {
+    //    return false;
+    //}
+
+    /**
+     *  The following keys are loaded from the ArtINI database.
+     */
+    SpawnDelay = ArtINI.Get_Int(graphic_name, "SpawnDelay", SpawnDelay);
     
     return true;
 }
