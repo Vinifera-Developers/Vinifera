@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          RESOURCE.H
+ *  @file          DIALOG.RC
  *
  *  @author        CCHyper
  *
- *  @brief         Windows resources include file.
+ *  @brief         Windows dialog resource-definition script.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -25,43 +25,15 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#pragma once
-
-#ifndef _WINUSER_
-#include <winres.h>
-#endif
+#include "resource.h"
 
 
-/**
- *  Icon with lowest ID value placed first to ensure application icon
- *  remains consistent on all systems.
- */
-#define IDI_VINIFERA     100
-
-
-/**
- *  Use these defines in code to allow easy updating in all areas used.
- */
-#define MAINICON    IDI_VINIFERA
-#define MAINCURSOR  IDC_ARROW
-
-
-/**
- *  Dialogs.
- */
-#define IDD_VINIFERA_START                4000        // Make sure our numbers are well above Tiberian Sun's
-
-#define IDD_RULES                         IDD_VINIFERA_START
-
-
-/**
- *  Replaceable dialogs from here.
- */
-#define IDD_VINIFERA_REPLACEABLE_START    4020        // Replaceable dialogs from here.
-
-
-/**
- *  Dialog controls.
- */
-#define IDC_RULE_SELECT                   1188
-#define IDC_RULE_LISTBOX                  1187
+IDD_RULES DIALOGEX 0, 0, 350, 220
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "Select the Rule file to load."
+FONT 8, "MS Sans Serif", 0, 0, 0x0
+BEGIN
+    DEFPUSHBUTTON   "Select",IDC_RULE_SELECT,145,188,60,14
+    CTEXT           "Select the Rule file to load.",-1,37,19,280,8,NOT WS_GROUP
+    LISTBOX         IDC_RULE_LISTBOX,18,35,313,144,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+END

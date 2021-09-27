@@ -35,13 +35,20 @@
 #include "session.h"
 #include "sessionext.h"
 #include "ccini.h"
+#include "vector.h"
 #include "addon.h"
+#include "wwmouse.h"
+#include "windialog.h"
 #include "fatal.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include <resource.h>
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+extern HMODULE DLLInstance;
 
 
 /**
@@ -159,6 +166,78 @@ void RulesClassFake::_Process(CCINIClass &ini)
 
 
 /**
+ *  Patch to only show the rules selection dialog when in Developer Mode.
+ *  
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_Init_Rules_Show_Rules_Select_Dialog_Patch)
+{
+    if (!Vinifera_DeveloperMode) {
+        goto use_rules_ini;
+    }
+
+    /**
+     *  Stolen bytes/code.
+     */
+    WWMouse->Release_Mouse();
+
+show_rules_dialog:
+    JMP(0x004E12F6);
+
+use_rules_ini:
+    JMP(0x004E12E3);
+}
+
+
+/**
+ *  The rules select dialog procedure.
+ * 
+ *  @author: CCHyper
+ */
+LRESULT CALLBACK Rules_Dialog_Procedure(HWND hWnd, UINT uMsg, UINT wParam, LONG lParam)
+{
+    char buffer[128];
+
+    switch (uMsg) {
+        case WM_INITDIALOG:
+        {
+            WinDialogClass::Center_Window(hWnd);
+
+            HWND hDlgItem = GetDlgItem(hWnd, IDC_RULE_LISTBOX);
+            DynamicVectorClass<CCINIClass *> *vec = reinterpret_cast<DynamicVectorClass<CCINIClass *> *>(lParam);
+            for (int i = 0; i < vec->Count(); ++i) {
+                (*vec)[i]->Get_String("General", "Name", buffer, sizeof(buffer));
+                SendMessage(hDlgItem, LB_ADDSTRING, 0, (LPARAM)buffer);
+            }
+            SendMessage(hDlgItem, LB_SETCURSEL, 0, 0);
+            break;
+        }
+        case WM_COMMAND:
+        {
+            if (/*wParam == IDCANCEL ||*/ wParam == IDC_RULE_SELECT) {
+                HWND hDlgItem = GetDlgItem(hWnd, IDC_RULE_LISTBOX);
+                LRESULT res = SendMessage(hDlgItem, LB_GETCURSEL, 0, 0);
+                EndDialog(hWnd, res);
+                //DestroyWindow(hWnd);  // Causes the return value to be lost.
+            }
+            break;
+        }
+        case WM_MOVING:
+            WinDialogClass::Dialog_Move(hWnd, wParam, lParam, uMsg);
+            break;
+        case WM_HELP:
+            //Show_Help_File(lparam);
+            break;
+        case WM_CONTEXTMENU:
+            //Show_Description_From_Help_File(wParam);
+            break;
+    };
+
+    return 0;
+}
+
+
+/**
  *  Patch to intercept the rules initialisation for setting extended values.
  * 
  *  @author: CCHyper
@@ -224,4 +303,12 @@ void RulesClassExtension_Hooks()
     Patch_Jump(0x005C6710, &RulesClassFake::_Process);
 
     Patch_Jump(0x004E138B, &_Init_Rules_Extended_Class_Patch);
+    Patch_Jump(0x004E12EB, &_Init_Rules_Show_Rules_Select_Dialog_Patch);
+
+    /**
+     *  Patch the dialog init to use out rules dialog resource.
+     */
+    Patch_Dword(0x004E12FC+1, (uintptr_t)&DLLInstance);
+    Patch_Dword(0x004E130C+1, IDD_RULES);
+    Patch_Jump(0x004E17B0, &Rules_Dialog_Procedure);
 }
