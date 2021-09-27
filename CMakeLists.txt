@@ -393,6 +393,8 @@ add_library(${PROJECT_NAME} SHARED
 		${HOOKER_HEADERS} ${HOOKER_SOURCES}
 		${VINIFERA_RESOURCES}
 		${GIT_POST_CONFIGURE_FILE}
+		${CMAKE_SOURCE_DIR}/res/resource.h
+		${CMAKE_SOURCE_DIR}/res/dialog.rc
 )
 target_include_directories(${PROJECT_NAME} BEFORE PUBLIC
 		${VINIFERA_INCLUDE_DIRS}
@@ -591,6 +593,11 @@ SetupProjectFilters("Vinifera" ${VINIFERA_HEADERS} ${VINIFERA_SOURCES} ${VINIFER
 
 SetCustomProjectFilters("Hooker Files"
 	${HOOKER_HEADERS} ${HOOKER_SOURCES}
+)
+
+SetCustomProjectFilters("Resource Files"
+		${CMAKE_SOURCE_DIR}/res/resource.h
+		${CMAKE_SOURCE_DIR}/res/dialog.rc
 )
 
 # Filter the configured git version source file manually.
