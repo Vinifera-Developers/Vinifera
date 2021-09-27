@@ -47,7 +47,6 @@ ExtensionMap<TechnoTypeClass, TechnoTypeClassExtension> TechnoTypeClassExtension
  */
 TechnoTypeClassExtension::TechnoTypeClassExtension(TechnoTypeClass *this_ptr) :
     Extension(this_ptr),
-
     CloakSound(VOC_NONE),
     UncloakSound(VOC_NONE),
     IsShakeScreen(false),
@@ -56,7 +55,8 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(TechnoTypeClass *this_ptr) :
     ShakePixelYLo(0),
     ShakePixelXHi(0),
     ShakePixelXLo(0),
-    UnloadingClass(nullptr)
+    UnloadingClass(nullptr),
+    SoylentValue(0)
 {
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("TechnoTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -176,6 +176,7 @@ void TechnoTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
     crc(ShakePixelYLo);
     crc(ShakePixelXHi);
     crc(ShakePixelXLo);
+    crc(SoylentValue);
 }
 
 
@@ -205,6 +206,7 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     ShakePixelXHi = ini.Get_Int(ini_name, "ShakeXhi", ShakePixelXHi);
     ShakePixelXLo = ini.Get_Int(ini_name, "ShakeXlo", ShakePixelXLo);
     UnloadingClass = ini.Get_Techno(ini_name, "UnloadingClass", UnloadingClass);
+    SoylentValue = ini.Get_Int(ini_name, "Soylent", SoylentValue);
 
     return true;
 }
