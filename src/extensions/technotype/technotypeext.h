@@ -88,6 +88,11 @@ class TechnoTypeClassExtension final : public Extension<TechnoTypeClass>
          *  The graphic class to switch to when this unit is unloading (e.g., at a refinery).
          */
         const TechnoTypeClass *UnloadingClass;
+
+        /**
+         *  The refund value for the unit when it is sold at a Service Depot.
+         */
+        unsigned SoylentValue;
 };
 
 

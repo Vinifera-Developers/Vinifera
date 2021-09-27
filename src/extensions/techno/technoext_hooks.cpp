@@ -53,6 +53,48 @@
 
 
 /**
+ *  #issue-434
+ * 
+ *  Implements Soylent value (refund amount override) for technos.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_TechnoClass_Refund_Amount_Soylent_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
+    static TechnoTypeClassExtension *technotypext;
+    static TechnoTypeClass *technotype;
+    static int cost;
+
+    /**
+     *  Stolen bytes/code.
+     */
+    technotype = this_ptr->Techno_Type_Class();
+
+    /**
+     *  Fetch the techno type extension.
+     */
+    technotypext = TechnoTypeClassExtensions.find(technotype);
+
+    /**
+     *  If the object has a soylent value defined, return this.
+     */
+    if (technotypext && technotypext->SoylentValue > 0) {
+        cost = technotypext->SoylentValue;
+        goto return_amount;
+    }
+
+continue_function:
+    _asm { mov eax, technotype }    // restore EAX pointer.
+    JMP_REG(ecx, 0x0063809D);
+
+return_amount:
+    _asm { mov edi, [cost] }
+    JMP(0x006380DC);
+}
+
+
+/**
  *  #issue-226
  * 
  *  Ensures infantry with IsMechanic only auto-target units and aircraft.
@@ -441,4 +483,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x0062C5D5, &_TechnoClass_Draw_Health_Bars_Unit_Draw_Pos_Patch);
     Patch_Jump(0x0062C55B, &_TechnoClass_Draw_Health_Bars_Infantry_Draw_Pos_Patch);
     Patch_Jump(0x0062DD70, &_TechnoClass_Greatest_Threat_Infantry_Mechanic_Patch);
+    Patch_Jump(0x00638095, &_TechnoClass_Refund_Amount_Soylent_Patch);
 }
