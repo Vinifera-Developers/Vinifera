@@ -52,6 +52,15 @@ class WeaponTypeClassExtension final : public Extension<WeaponTypeClass>
         bool Read_INI(CCINIClass &ini);
 
     public:
+        /**
+         *  Does the firing unit destroy itself when this weapon is fired?
+         */
+        bool IsSuicide;
+
+        /**
+         *  Does the firing unit get explictly deleted when this weapon is fired?
+         */
+        bool IsDeleteOnSuicide;
 };
 
 
