@@ -44,7 +44,9 @@ ExtensionMap<WeaponTypeClass, WeaponTypeClassExtension> WeaponTypeClassExtension
  *  @author: CCHyper
  */
 WeaponTypeClassExtension::WeaponTypeClassExtension(WeaponTypeClass *this_ptr) :
-    Extension(this_ptr)
+    Extension(this_ptr),
+    IsSuicide(false),
+    IsDeleteOnSuicide(false)
 {
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("WeaponTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -175,5 +177,8 @@ bool WeaponTypeClassExtension::Read_INI(CCINIClass &ini)
         return false;
     }
     
+    IsSuicide = ini.Get_Bool(ini_name, "Suicide", IsSuicide);
+    IsDeleteOnSuicide = ini.Get_Bool(ini_name, "DeleteOnSuicide", IsDeleteOnSuicide);
+
     return true;
 }

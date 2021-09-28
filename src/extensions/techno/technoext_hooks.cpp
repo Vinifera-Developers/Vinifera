@@ -33,6 +33,7 @@
 #include "technotypeext.h"
 #include "tibsun_inline.h"
 #include "weapontype.h"
+#include "weapontypeext.h"
 #include "warheadtype.h"
 #include "warheadtypeext.h"
 #include "house.h"
@@ -50,6 +51,88 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-579
+ * 
+ *  Implements the Suicide (death on firing) logic for technos.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_TechnoClass_Fire_At_Suicide_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(WeaponTypeClass *, weap, ebx);
+    GET_REGISTER_STATIC(BulletTypeClass *, bullet, edx);
+    GET_STACK_STATIC(TARGET, target, ebp, 0x8);
+    static WeaponTypeClassExtension *weapontypeext;
+    static int damage;
+
+    /**
+     *  Stolen bytes/code.
+     */
+    if (!target) {
+        goto return_null;
+    }
+
+    /**
+     *  Fetch the extended data for the firing weapon.
+     */
+    weapontypeext = WeaponTypeClassExtensions.find(weap);
+    if (weapontypeext) {
+
+        /**
+         *  Firing unit must be active in the game world when performing suicide.
+         */
+        if (this_ptr->IsActive && !this_ptr->IsInLimbo) {
+
+            /**
+             *  Explicitly delete the unit from the game world at this very moment.
+             *  This is legacy behavior similar to that of Red Alert.
+             */
+            if (weapontypeext->IsSuicide && weapontypeext->IsDeleteOnSuicide) {
+                DEV_DEBUG_INFO("Deleted: %s\n", this_ptr->Name());
+                this_ptr->entry_E4();
+
+            /**
+             *  Deal full damage to the firing unit. The removal of the unit will
+             *  go though the normal damage handling code.
+             */
+            } else if (weapontypeext->IsSuicide) {
+
+                /**
+                 *  #TODO:
+                 *  We have to skip aircraft as they crash the game because
+                 *  they do not get removed correctly after taking full damage.
+                 *  
+                 *  This same crash happens in Red Alert 2 also, possible engine bug.
+                 */
+                if (this_ptr->What_Am_I() == RTTI_AIRCRAFT) {
+                    goto limpet_check;
+                }
+
+                damage = this_ptr->Techno_Type_Class()->MaxStrength;
+                this_ptr->Take_Damage(damage, 0, Rule->C4Warhead, nullptr, true, false);
+            }
+
+        }
+    }
+
+    /**
+     *  Continue checks.
+     */
+limpet_check:
+    _asm { mov edi, target }    // Restore EDI to expected pointer.
+    JMP(0x0063039B);
+
+    /**
+     *  Return null (didn't fire, no bullet returned).
+     */
+return_null:
+    _asm { mov edi, target }
+    JMP(0x006304D2);
+}
 
 
 /**
@@ -572,4 +655,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x0062DD70, &_TechnoClass_Greatest_Threat_Infantry_Mechanic_Patch);
     Patch_Jump(0x00638095, &_TechnoClass_Refund_Amount_Soylent_Patch);
     Patch_Jump(0x00631661, &_TechnoClass_Player_Assign_Mission_Response_Patch);
+    Patch_Jump(0x00630390, &_TechnoClass_Fire_At_Suicide_Patch);
 }
