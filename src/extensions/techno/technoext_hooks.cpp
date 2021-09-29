@@ -73,12 +73,15 @@ DECLARE_PATCH(_TechnoClass_Greatest_Threat_Infantry_Mechanic_Patch)
     method = (method & (THREAT_RANGE|THREAT_AREA));
     
     /**
-     *  If this is a mechanic, then they only consider vehicles and aircraft
-     *  as valid targets, otherwise, we assume this is a medic and they can
-     *  only consider other infantry to be a threat.
+     *  The following;
+     *  - If this is a dual healer: Then infantry, vehicles and aircraft are valid targets.
+     *  - If this is a mechanic: Then only consider vehicles and aircraft as valid targets.
+     *  - Otherwise, we assume this is a medic and they can only consider other infantry to be a threat.
      */
     infantrytypeext = InfantryTypeClassExtensions.find(infantry_this_ptr->Class);
-    if (infantrytypeext && infantrytypeext->IsMechanic) {
+    if (infantrytypeext && infantrytypeext->IsOmniHealer) {
+        method = method|(THREAT_INFANTRY|THREAT_VEHICLES|THREAT_AIR|THREAT_4000);
+    } else if (infantrytypeext && infantrytypeext->IsMechanic) {
         method = method|(THREAT_VEHICLES|THREAT_AIR|THREAT_4000);
     } else {
         method = method|(THREAT_INFANTRY|THREAT_4000);
