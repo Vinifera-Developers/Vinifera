@@ -45,7 +45,8 @@ ExtensionMap<InfantryTypeClass, InfantryTypeClassExtension> InfantryTypeClassExt
  */
 InfantryTypeClassExtension::InfantryTypeClassExtension(InfantryTypeClass *this_ptr) :
     Extension(this_ptr),
-    IsMechanic(false)
+    IsMechanic(false),
+    IsOmniHealer(false)
 {
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("InfantryTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -158,6 +159,7 @@ void InfantryTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
     //DEV_DEBUG_TRACE("InfantryTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     crc(IsMechanic);
+    crc(IsOmniHealer);
 }
 
 
@@ -179,6 +181,7 @@ bool InfantryTypeClassExtension::Read_INI(CCINIClass &ini)
     }
 
     IsMechanic = ini.Get_Bool(ini_name, "Mechanic", IsMechanic);
+    IsOmniHealer = ini.Get_Bool(ini_name, "OmniHealer", IsOmniHealer);
     
     return true;
 }

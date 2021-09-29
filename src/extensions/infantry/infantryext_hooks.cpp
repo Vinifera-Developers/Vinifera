@@ -55,11 +55,25 @@ DECLARE_PATCH(_InfantryClass_Firing_AI_Mechanic_Patch)
     GET_REGISTER_STATIC(ObjectClass *, targ, esi);      // TarCom as ObjectClass.
     static InfantryTypeClassExtension *infantrytypeext;
 
+    infantrytypeext = InfantryTypeClassExtensions.find(this_ptr->Class);
+
+    /**
+     *  Is this infantry a "dual healer" (can it heal both infantry and units)?
+     */
+    if (infantrytypeext && infantrytypeext->IsOmniHealer) {
+
+        /**
+         *  Is the target being queried a unit, aircraft or infantry? If so, make
+         *  sure this infantry is a mechanic before allowing it to heal the unit.
+         */
+        if (targ->What_Am_I() == RTTI_UNIT || (targ->What_Am_I() == RTTI_AIRCRAFT && !targ->In_Air()) || targ->What_Am_I() == RTTI_INFANTRY) {
+            goto health_ratio_check;
+        }
+
     /**
      *  Is this infantry a mechanic?
      */
-    infantrytypeext = InfantryTypeClassExtensions.find(this_ptr->Class);
-    if (infantrytypeext && infantrytypeext->IsMechanic) {
+    } else if (infantrytypeext && infantrytypeext->IsMechanic) {
 
         /**
          *  Is the target being queried a unit or aircraft? If so, make sure this
@@ -90,7 +104,7 @@ health_ratio_check:
 /**
  *  #issue-226
  * 
- *  Implements IsMechanic for infantry when deciding what action to perform.
+ *  Implements IsMechanic and IsDualHealer for infantry when deciding what action to perform.
  * 
  *  @author: CCHyper
  */
@@ -100,11 +114,45 @@ DECLARE_PATCH(_InfantryClass_What_Action_Mechanic_Patch)
     GET_REGISTER_STATIC(/*const */ObjectClass *, object, esi);  // target
     static InfantryTypeClassExtension *infantrytypeext;
 
+    infantrytypeext = InfantryTypeClassExtensions.find(this_ptr->Class);
+
+    /**
+     *  Is this infantry a "dual healer" (can it heal both infantry and units)?
+     */
+    if (infantrytypeext && infantrytypeext->IsOmniHealer) {
+
+        /**
+         *  If the mouse is over ourself, show the guard area cursor.
+         */
+        if (object == this_ptr) {
+            goto guard_area;
+        }
+
+        /**
+         *  Is the target being queried a unit, aircraft or infantry? If so, make
+         *  sure this infantry is a mechanic before allowing it to heal the unit.
+         */
+        if (object->What_Am_I() == RTTI_UNIT || object->What_Am_I() == RTTI_AIRCRAFT || object->What_Am_I() == RTTI_INFANTRY) {
+
+            /**
+             *  If we are force-moving into an Transport, don't try to heal it!
+             */
+            if (object->Techno_Type_Class()->MaxPassengers > 0) {
+                if (WWKeyboard->Down(Options.KeyForceMove1) || WWKeyboard->Down(Options.KeyForceMove2)) {
+                    goto next_check;
+                }
+            }
+
+            /**
+             *  Before return ACTION_HEAL, check the targets health.
+             */
+            goto health_ratio_check;
+        }
+
     /**
      *  Is this infantry a mechanic?
      */
-    infantrytypeext = InfantryTypeClassExtensions.find(this_ptr->Class);
-    if (infantrytypeext && infantrytypeext->IsMechanic) {
+    } else if (infantrytypeext && infantrytypeext->IsMechanic) {
 
         /**
          *  If the mouse is over ourself, show the guard area cursor.

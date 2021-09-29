@@ -57,6 +57,12 @@ class InfantryTypeClassExtension final : public Extension<InfantryTypeClass>
          *  units and aircraft rather than other infantry (e.g., like a medic?)?
          */
         bool IsMechanic;
+
+        /**
+         *  If this infantry has a weapon with negative damage, does it target
+         *  units, aircraft and other infantry (e.g., medic and mechanic combined)?
+         */
+        bool IsOmniHealer;
 };
 
 
