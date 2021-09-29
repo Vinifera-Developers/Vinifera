@@ -30,6 +30,7 @@
 #include "technoext.h"
 #include "technotype.h"
 #include "technotypeext.h"
+#include "house.h"
 #include "extension.h"
 #include "fatal.h"
 #include "asserthandler.h"
@@ -37,6 +38,55 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-595
+ * 
+ *  Implements IsCanApproachTarget for TechnoTypes.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_FootClass_Approach_Target_Can_Approach_Patch)
+{
+    GET_REGISTER_STATIC(FootClass *, this_ptr, ebp);
+    static TechnoTypeClassExtension *technotypeext;
+
+    technotypeext = Extension::Fetch<TechnoTypeClassExtension>(this_ptr->Techno_Type_Class());
+
+    /**
+     *  Stolen bytes/code.
+     */
+    if (this_ptr->Mission == MISSION_STICKY) {
+        goto assign_null_target_return;
+    }
+
+    /**
+     *  Can this object approach its target? If so, 
+     */
+    if (!technotypeext->IsCanApproachTarget) {
+
+        static bool force_approach;
+        force_approach = false;
+
+        if (this_ptr->Mission == MISSION_ATTACK) {
+            force_approach = true;
+        }
+        if (this_ptr->Mission == MISSION_GUARD_AREA && this_ptr->House->Is_Player_Control()) {
+            force_approach = true;
+        }
+        if ((this_ptr->Mission != MISSION_HUNT || this_ptr->House->Is_Player_Control()) && !force_approach) {
+            goto assign_null_target_return;
+        }
+
+    }
+
+continue_checks:
+    JMP(0x004A1ED2);
+
+assign_null_target_return:
+    JMP(0x006371E7);
+}
 
 
 /**
@@ -283,4 +333,5 @@ void FootClassExtension_Hooks()
     Patch_Jump(0x004A2BE7, &_FootClass_Mission_Guard_Area_Can_Passive_Acquire_Patch);
     Patch_Jump(0x004A1AAE, &_FootClass_Mission_Guard_Can_Passive_Acquire_Patch);
     Patch_Jump(0x004A102F, &_FootClass_Mission_Move_Can_Passive_Acquire_Patch);
+    Patch_Jump(0x004A1EA8, &_FootClass_Approach_Target_Can_Approach_Patch);
 }

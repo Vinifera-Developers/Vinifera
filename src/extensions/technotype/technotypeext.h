@@ -102,6 +102,12 @@ class TechnoTypeClassExtension : public ObjectTypeClassExtension
         bool IsLegalTargetComputer;
 
         /**
+         *  Can this unit can continually move towards its intended target with
+         *  the intention of gaining more accuracy?
+         */
+        bool IsCanApproachTarget;
+
+        /**
          *  These values are used to shake the screen when the object is destroyed.
          */
         unsigned ShakePixelYHi;
