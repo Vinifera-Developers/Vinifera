@@ -55,6 +55,42 @@
 
 
 /**
+ *  #issue-594
+ * 
+ *  Implements IsCanRetaliate for TechnoTypes.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_TechnoClass_Is_Allowed_To_Retaliate_Can_Retaliate_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
+    static TechnoTypeClassExtension *technotypeext;
+
+    technotypeext = TechnoTypeClassExtensions.find(this_ptr->Techno_Type_Class());
+
+    /**
+     *  If this unit is flagged as no being allowed to retaliate to attacks, return false.
+     */
+    if (technotypeext && !technotypeext->IsCanRetaliate) {
+        goto return_FALSE;
+    }
+
+    /**
+     *  Stolen bytes/code.
+     */
+    if (this_ptr->House->Is_Player_Control() && this_ptr->TarCom) {
+        goto return_FALSE;
+    }
+
+continue_checks:
+    JMP(0x00636F26);
+
+return_FALSE:
+    JMP(0x006371E7);
+}
+
+
+/**
  *  #issue-357
  * 
  *  Creates an instance of the electric bolt from the firing techno to the target.
@@ -691,4 +727,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x00631661, &_TechnoClass_Player_Assign_Mission_Response_Patch);
     Patch_Jump(0x00630390, &_TechnoClass_Fire_At_Suicide_Patch);
     Patch_Jump(0x006312CD, &_TechnoClass_Fire_At_Electric_Bolt_Patch);
+    Patch_Jump(0x00636F09, &_TechnoClass_Is_Allowed_To_Retaliate_Can_Retaliate_Patch);
 }
