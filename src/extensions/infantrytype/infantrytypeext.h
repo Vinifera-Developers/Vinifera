@@ -52,7 +52,11 @@ class InfantryTypeClassExtension final : public Extension<InfantryTypeClass>
         bool Read_INI(CCINIClass &ini);
 
     public:
-
+        /**
+         *  If this infantry has a weapon with negative damage, does it target
+         *  units and aircraft rather than other infantry (e.g., like a medic?)?
+         */
+        bool IsMechanic;
 };
 
 
