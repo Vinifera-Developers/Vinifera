@@ -57,6 +57,7 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(TechnoTypeClass *this_ptr) :
     IsImmuneToEMP(false),
     IsCanPassiveAcquire(true),
     IsCanRetaliate(true),
+    IsCanApproachTarget(true),
     ShakePixelYHi(0),
     ShakePixelYLo(0),
     ShakePixelXHi(0),
@@ -259,6 +260,7 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     IsImmuneToEMP = ini.Get_Bool(ini_name, "ImmuneToEMP", IsImmuneToEMP);
     IsCanPassiveAcquire = ini.Get_Bool(ini_name, "CanPassiveAcquire", IsCanPassiveAcquire);
     IsCanRetaliate = ini.Get_Bool(ini_name, "CanRetaliate", IsCanRetaliate);
+    IsCanApproachTarget = ini.Get_Bool(ini_name, "CanApproachTarget", IsCanApproachTarget);
     ShakePixelYHi = ini.Get_Int(ini_name, "ShakeYhi", ShakePixelYHi);
     ShakePixelYLo = ini.Get_Int(ini_name, "ShakeYlo", ShakePixelYLo);
     ShakePixelXHi = ini.Get_Int(ini_name, "ShakeXhi", ShakePixelXHi);
