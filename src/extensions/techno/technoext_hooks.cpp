@@ -39,6 +39,9 @@
 #include "housetype.h"
 #include "rules.h"
 #include "rulesext.h"
+#include "infantry.h"
+#include "infantrytype.h"
+#include "infantrytypeext.h"
 #include "voc.h"
 #include "fatal.h"
 #include "vinifera_util.h"
@@ -47,6 +50,43 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-226
+ * 
+ *  Ensures infantry with IsMechanic only auto-target units and aircraft.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_TechnoClass_Greatest_Threat_Infantry_Mechanic_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(InfantryClass *, infantry_this_ptr, esi);
+    GET_REGISTER_STATIC(ThreatType, method, ebx);
+    static InfantryTypeClassExtension *infantrytypeext;
+
+    /**
+     *  #NOTE: This case is already within a infantry check.
+     */
+
+    method = (method & (THREAT_RANGE|THREAT_AREA));
+    
+    /**
+     *  If this is a mechanic, then they only consider vehicles and aircraft
+     *  as valid targets, otherwise, we assume this is a medic and they can
+     *  only consider other infantry to be a threat.
+     */
+    infantrytypeext = InfantryTypeClassExtensions.find(infantry_this_ptr->Class);
+    if (infantrytypeext && infantrytypeext->IsMechanic) {
+        method = method|(THREAT_VEHICLES|THREAT_AIR|THREAT_4000);
+    } else {
+        method = method|(THREAT_INFANTRY|THREAT_4000);
+    }
+
+    _asm { mov ebx, method }
+    JMP(0x0062DDB1);
+}
 
 
 /**
@@ -394,4 +434,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x006328DE, &_TechnoClass_Take_Damage_IsAffectsAllies_Patch);
     Patch_Jump(0x0062C5D5, &_TechnoClass_Draw_Health_Bars_Unit_Draw_Pos_Patch);
     Patch_Jump(0x0062C55B, &_TechnoClass_Draw_Health_Bars_Infantry_Draw_Pos_Patch);
+    Patch_Jump(0x0062DD70, &_TechnoClass_Greatest_Threat_Infantry_Mechanic_Patch);
 }
