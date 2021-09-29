@@ -29,12 +29,171 @@
 #include "infantryext_init.h"
 #include "infantry.h"
 #include "infantrytype.h"
+#include "infantrytypeext.h"
+#include "target.h"
+#include "tibsun_globals.h"
+#include "options.h"
+#include "wwkeyboard.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-226
+ * 
+ *  Implements IsMechanic for infantry when searching for targets.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_InfantryClass_Firing_AI_Mechanic_Patch)
+{
+    GET_REGISTER_STATIC(InfantryClass *, this_ptr, ebp);
+    GET_REGISTER_STATIC(ObjectClass *, targ, esi);      // TarCom as ObjectClass.
+    static InfantryTypeClassExtension *infantrytypeext;
+
+    /**
+     *  Is this infantry a mechanic?
+     */
+    infantrytypeext = InfantryTypeClassExtensions.find(this_ptr->Class);
+    if (infantrytypeext && infantrytypeext->IsMechanic) {
+
+        /**
+         *  Is the target being queried a unit or aircraft? If so, make sure this
+         *  infantry is a mechanic before allowing it to heal the unit.
+         */
+        if (targ->What_Am_I() == RTTI_UNIT || (targ->What_Am_I() == RTTI_AIRCRAFT && !targ->In_Air())) {
+            goto health_ratio_check;
+        }
+
+    /**
+     *  Original code.
+     */
+    } else if (targ->What_Am_I() == RTTI_INFANTRY) {
+        goto health_ratio_check;
+    }
+
+assign_NULL_target:
+    JMP(0x004D8824);
+
+    /**
+     *  Check the targets health ratio.
+     */
+health_ratio_check:
+    JMP(0x004D87F5);
+}
+
+
+/**
+ *  #issue-226
+ * 
+ *  Implements IsMechanic for infantry when deciding what action to perform.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_InfantryClass_What_Action_Mechanic_Patch)
+{
+    GET_REGISTER_STATIC(InfantryClass *, this_ptr, edi);
+    GET_REGISTER_STATIC(/*const */ObjectClass *, object, esi);  // target
+    static InfantryTypeClassExtension *infantrytypeext;
+
+    /**
+     *  Is this infantry a mechanic?
+     */
+    infantrytypeext = InfantryTypeClassExtensions.find(this_ptr->Class);
+    if (infantrytypeext && infantrytypeext->IsMechanic) {
+
+        /**
+         *  If the mouse is over ourself, show the guard area cursor.
+         */
+        if (object == this_ptr) {
+            goto guard_area;
+        }
+
+        /**
+         *  Is the target being queried a unit or aircraft? If so, make sure this
+         *  infantry is a mechanic before allowing it to heal the unit.
+         */
+        if (object->What_Am_I() == RTTI_UNIT || object->What_Am_I() == RTTI_AIRCRAFT) {
+
+            /**
+             *  If we are force-moving into an Transport, don't try to heal it!
+             */
+            if (object->Techno_Type_Class()->MaxPassengers > 0) {
+                if (WWKeyboard->Down(Options.KeyForceMove1) || WWKeyboard->Down(Options.KeyForceMove2)) {
+                    goto next_check;
+                }
+            }
+
+            /**
+             *  Before return ACTION_HEAL, check the targets health.
+             */
+            goto health_ratio_check;
+        }
+
+    /**
+     *  Original code.
+     */
+    } else if (object->What_Am_I() == RTTI_INFANTRY) {
+
+        /**
+         *  If the mouse is over ourself, show the guard area cursor.
+         */
+        if (object == this_ptr) {
+            goto guard_area;
+        }
+
+        /**
+         *  Before return ACTION_HEAL, check the targets health.
+         */
+        goto health_ratio_check;
+    }
+
+next_check:
+    JMP(0x004D71B0);
+
+    /**
+     *  Show the guard area mouse cursor over us.
+     */
+guard_area:
+    JMP(0x004D71A1);
+
+    /**
+     *  Check the targets health ratio.
+     */
+health_ratio_check:
+    JMP(0x004D7178);
+}
+
+
+/**
+ *  #issue-226
+ * 
+ *  Allow all foot objects to be valid targets when this infantry deals negative damage.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_InfantryClass_Can_Fire_Target_Check_Patch)
+{
+    GET_REGISTER_STATIC(InfantryClass *, this_ptr, esi);
+    GET_STACK_STATIC(TARGET, target, esp, 0x10);
+    GET_STACK_STATIC(int, which, esp, 0x14);
+    static FootClass *targ;
+
+    targ = Target_As_Foot(target);
+    if (targ == nullptr) {
+        goto return_FIRE_ILLEGAL;
+    }
+
+health_ratio_check:
+    JMP_REG(ecx, 0x004D5ACF);
+
+return_FIRE_ILLEGAL:
+    JMP(0x004D5AE8);
+}
 
 
 /**
@@ -220,4 +379,7 @@ void InfantryClassExtension_Hooks()
     Patch_Jump(0x004D8C83, &_InfantryClass_Doing_AI_JumpJet_Idle_Patch);
     Patch_Jump(0x004D50C9, &_InfantryClass_AI_JumpJet_Idle_Between_Firing_Patch);
     Patch_Jump(0x004D9076, &_InfantryClass_Movement_AI_JumpJet_Not_Moving_Patch);
+    Patch_Jump(0x004D5AB4, &_InfantryClass_Can_Fire_Target_Check_Patch);
+    Patch_Jump(0x004D7168, &_InfantryClass_What_Action_Mechanic_Patch);
+    Patch_Jump(0x004D87E9, &_InfantryClass_Firing_AI_Mechanic_Patch);
 }
