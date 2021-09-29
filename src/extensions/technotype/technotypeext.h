@@ -84,6 +84,11 @@ class TechnoTypeClassExtension final : public Extension<TechnoTypeClass>
         bool IsCanPassiveAcquire;
 
         /**
+         *  Can this object retaliate when hit by enemy fire?
+         */
+        bool IsCanRetaliate;
+
+        /**
          *  These values are used to shake the screen when the object is destroyed.
          */
         unsigned ShakePixelYHi;
