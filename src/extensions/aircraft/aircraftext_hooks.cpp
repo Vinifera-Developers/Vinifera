@@ -43,6 +43,36 @@
 
 
 /**
+ *  #issue-604
+ * 
+ *  Fixes a bug where air-transports are unable to land when given a move order.
+ * 
+ *  This is a well known side-effect of a official bug-fix from Patch 1.13. The
+ *  fix below is a back-port of a change in Red Alert 2 which fixes the issue.
+ * 
+ *  @author: tomsons26, CCHyper
+ */
+static bool Locomotion_Is_Moving(AircraftClass *this_ptr) { return this_ptr->Locomotion->Is_Moving(); }
+DECLARE_PATCH(_AircraftClass_Mission_Move_LAND_Is_Moving_Check_Patch)
+{
+    GET_REGISTER_STATIC(AircraftClass *, this_ptr, esi);
+    
+    /**
+     *  If the aircraft is not currently moving, enter idle mode.
+     */
+    if (!Locomotion_Is_Moving(this_ptr)) {
+        this_ptr->Enter_Idle_Mode(false, true);
+    }
+
+    /**
+     *  Function return with "1".
+     */
+return_one:
+    JMP(0x0040A421);
+}
+
+
+/**
  *  #issue-208
  * 
  *  Check if the target unit is "totable" before we attempt to pick it up.
@@ -141,21 +171,21 @@ failed_tote_check:
  */
 DECLARE_PATCH(_AircraftClass_Init_IsCloakable_BugFix_Patch)
 {
-	GET_REGISTER_STATIC(AircraftClass *, this_ptr, esi);
-	GET_REGISTER_STATIC(AircraftTypeClass *, aircrafttype, eax);
+    GET_REGISTER_STATIC(AircraftClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(AircraftTypeClass *, aircrafttype, eax);
 
-	/**
-	 *  Stolen bytes/code.
-	 */
-	this_ptr->Strength = aircrafttype->MaxStrength;
-	this_ptr->Ammo = aircrafttype->MaxAmmo;
+    /**
+     *  Stolen bytes/code.
+     */
+    this_ptr->Strength = aircrafttype->MaxStrength;
+    this_ptr->Ammo = aircrafttype->MaxAmmo;
 
-	/**
-	 *  This is the line that was missing (maybe it was by design?).
-	 */
-	this_ptr->IsCloakable = aircrafttype->IsCloakable;
+    /**
+     *  This is the line that was missing (maybe it was by design?).
+     */
+    this_ptr->IsCloakable = aircrafttype->IsCloakable;
 
-	JMP_REG(ecx, 0x004088AA);
+    JMP_REG(ecx, 0x004088AA);
 }
 
 
@@ -169,6 +199,7 @@ void AircraftClassExtension_Hooks()
      */
     AircraftClassExtension_Init();
 
-	Patch_Jump(0x00408898, &_AircraftClass_Init_IsCloakable_BugFix_Patch);
+    Patch_Jump(0x00408898, &_AircraftClass_Init_IsCloakable_BugFix_Patch);
     Patch_Jump(0x0040B819, &_AircraftClass_What_Action_Is_Totable_Patch);
+    Patch_Jump(0x0040A413, &_AircraftClass_Mission_Move_LAND_Is_Moving_Check_Patch);
 }
