@@ -362,11 +362,12 @@ void __cdecl Vinifera_Debug_Handler_Startup()
      */
     const char *cmdline = GetCommandLineA();
     DebugHandler_DeveloperMode = Vinifera_DeveloperMode || (std::strstr(cmdline, "-DEVELOPER") != nullptr);
+    bool enable_console = Vinifera_DeveloperMode || (std::strstr(cmdline, "-CONSOLE") != nullptr);
 
 #ifdef NDEBUG
     if (DebugHandler_DeveloperMode) {
 #endif
-    if (IsDebuggerPresent() || (MessageBox(nullptr, "Enable debug output console?", "Debug Console", MB_YESNO) == IDYES)) {
+    if (enable_console || IsDebuggerPresent() || (MessageBox(nullptr, "Enable debug output console?", "Debug Console", MB_YESNO) == IDYES)) {
         Debug_Console_Init();
     }
 
