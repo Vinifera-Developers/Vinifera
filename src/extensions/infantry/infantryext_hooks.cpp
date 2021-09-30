@@ -30,7 +30,10 @@
 #include "infantry.h"
 #include "infantrytype.h"
 #include "infantrytypeext.h"
+#include "technotype.h"
+#include "technotypeext.h"
 #include "target.h"
+#include "voc.h"
 #include "tibsun_globals.h"
 #include "options.h"
 #include "wwkeyboard.h"
@@ -40,6 +43,36 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-264
+ * 
+ *  Implements EnterTransportSound for infantry when they enter a transport.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_InfantryClass_Per_Cell_Process_Transport_Attach_Sound_Patch)
+{
+    GET_REGISTER_STATIC(InfantryClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(TechnoClass *, techno, edi);        // Radio contact
+    static TechnoTypeClassExtension *radio_technotypeext;
+
+    /**
+     *  Stolen bytes/code.
+     */
+    techno->Cargo.Attach(this_ptr);
+
+    /**
+     *  If this transport we are entering has a passenger entering sound, play it now.
+     */
+    radio_technotypeext = TechnoTypeClassExtensions.find(techno->Techno_Type_Class());
+    if (radio_technotypeext && radio_technotypeext->EnterTransportSound != VOC_NONE) {
+        Sound_Effect(radio_technotypeext->EnterTransportSound, techno->Coord);
+    }
+
+    JMP(0x004D3A87);
+}
 
 
 /**
@@ -430,4 +463,5 @@ void InfantryClassExtension_Hooks()
     Patch_Jump(0x004D5AB4, &_InfantryClass_Can_Fire_Target_Check_Patch);
     Patch_Jump(0x004D7168, &_InfantryClass_What_Action_Mechanic_Patch);
     Patch_Jump(0x004D87E9, &_InfantryClass_Firing_AI_Mechanic_Patch);
+    Patch_Jump(0x004D3A7B, &_InfantryClass_Per_Cell_Process_Transport_Attach_Sound_Patch);
 }

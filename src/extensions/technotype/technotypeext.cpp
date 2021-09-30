@@ -56,7 +56,9 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(TechnoTypeClass *this_ptr) :
     ShakePixelXHi(0),
     ShakePixelXLo(0),
     UnloadingClass(nullptr),
-    SoylentValue(0)
+    SoylentValue(0),
+    EnterTransportSound(VOC_NONE),
+    LeaveTransportSound(VOC_NONE)
 {
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("TechnoTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -207,6 +209,8 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     ShakePixelXLo = ini.Get_Int(ini_name, "ShakeXlo", ShakePixelXLo);
     UnloadingClass = ini.Get_Techno(ini_name, "UnloadingClass", UnloadingClass);
     SoylentValue = ini.Get_Int(ini_name, "Soylent", SoylentValue);
+    EnterTransportSound = ini.Get_VocType(ini_name, "EnterTransportSound", EnterTransportSound);
+    LeaveTransportSound = ini.Get_VocType(ini_name, "LeaveTransportSound", LeaveTransportSound);
 
     return true;
 }

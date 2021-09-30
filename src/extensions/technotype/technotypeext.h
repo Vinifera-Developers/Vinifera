@@ -93,6 +93,16 @@ class TechnoTypeClassExtension final : public Extension<TechnoTypeClass>
          *  The refund value for the unit when it is sold at a Service Depot.
          */
         unsigned SoylentValue;
+
+        /**
+         *  This is the sound effect to play when a passenger enters this unit.
+         */
+        VocType EnterTransportSound;
+
+        /**
+         *  This is the sound effect to play when a passenger leaves this unit.
+         */
+        VocType LeaveTransportSound;
 };
 
 
