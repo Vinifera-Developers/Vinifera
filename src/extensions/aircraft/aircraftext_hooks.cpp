@@ -34,12 +34,73 @@
 #include "unit.h"
 #include "unittype.h"
 #include "unittypeext.h"
+#include "technotype.h"
+#include "technotypeext.h"
+#include "voc.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-264
+ * 
+ *  Implements LeaveTransportSound for this aircraft is unloading its passengers.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_AircraftClass_Mission_Unload_Transport_Detach_Sound_Patch)
+{
+    GET_REGISTER_STATIC(AircraftClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(FootClass *, passenger, edi);
+    static TechnoTypeClassExtension *radio_technotypeext;
+
+    /**
+     *  Don't play the passenger leave sound for carryalls.
+     */
+    if (!this_ptr->Class->IsCarryall) {
+
+        /**
+         *  Do we have a sound to play when passengers leave us? If so, play it now.
+         */
+        radio_technotypeext = TechnoTypeClassExtensions.find(this_ptr->Techno_Type_Class());
+        if (radio_technotypeext && radio_technotypeext->LeaveTransportSound != VOC_NONE) {
+            Sound_Effect(radio_technotypeext->LeaveTransportSound, this_ptr->Coord);
+        }
+
+    }
+
+    /**
+     *  Stolen bytes/code.
+     * 
+     *  Carryalls do not add their cargo to its team, so skip them.
+     */
+    if (!this_ptr->Class->IsCarryall) {
+
+        /**
+         *  Are we a part of a team? If so, make any passengers we unload part of it too.
+         */
+        if (this_ptr->Team) {
+            goto add_to_team;
+        }
+    }
+
+    /**
+     *  Finished unloading passengers.
+     */
+finish_up:
+    JMP(0x004098AC);
+
+    /**
+     *  Add this passenger to my team.
+     */
+add_to_team:
+    _asm { mov edi, passenger }     // Restore EBP pointer.
+    JMP(0x004098A0);
+}
 
 
 /**
@@ -202,4 +263,5 @@ void AircraftClassExtension_Hooks()
     Patch_Jump(0x00408898, &_AircraftClass_Init_IsCloakable_BugFix_Patch);
     Patch_Jump(0x0040B819, &_AircraftClass_What_Action_Is_Totable_Patch);
     Patch_Jump(0x0040A413, &_AircraftClass_Mission_Move_LAND_Is_Moving_Check_Patch);
+    Patch_Jump(0x0040988C, &_AircraftClass_Mission_Unload_Transport_Detach_Sound_Patch);
 }

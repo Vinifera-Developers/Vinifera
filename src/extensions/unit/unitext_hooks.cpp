@@ -39,12 +39,58 @@
 #include "target.h"
 #include "rules.h"
 #include "iomap.h"
+#include "voc.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-264
+ * 
+ *  Implements LeaveTransportSound for this unit is unloading its passengers.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_UnitClass_Mission_Unload_Transport_Detach_Sound_Patch)
+{
+    GET_REGISTER_STATIC(UnitClass *, this_ptr, esi);
+    static FootClass *passenger;
+    static TechnoTypeClassExtension *radio_technotypeext;
+
+    /**
+     *  Do we have a sound to play when passengers leave us? If so, play it now.
+     */
+    radio_technotypeext = TechnoTypeClassExtensions.find(this_ptr->Techno_Type_Class());
+    if (radio_technotypeext && radio_technotypeext->LeaveTransportSound != VOC_NONE) {
+        Sound_Effect(radio_technotypeext->LeaveTransportSound, this_ptr->Coord);
+    }
+
+    /**
+     *  Stolen bytes/code.
+     * 
+     *  Are we a part of a team? If so, make any passengers we unload part of it too.
+     */
+    if (this_ptr->Team) {
+        goto add_to_team;
+    }
+
+    /**
+     *  Finished unloading passengers.
+     */
+finish_up:
+    JMP(0x006543BB);
+
+    /**
+     *  Add this passenger to my team.
+     */
+add_to_team:
+    _asm { mov ebp, passenger } // Restore EBP pointer.
+    JMP(0x006543A3);
+}
 
 
 /**
@@ -446,4 +492,5 @@ void UnitClassExtension_Hooks()
     Patch_Jump(0x006530EB, &_UnitClass_Draw_Shape_Primary_Facing_Patch);
     Patch_Jump(0x006537A8, &_UnitClass_Draw_Shape_Turret_Facing_Patch);
     Patch_Jump(0x00653D7F, &_UnitClass_Draw_It_Unloading_Harvester_Patch);
+    Patch_Jump(0x00654399, &_UnitClass_Mission_Unload_Transport_Detach_Sound_Patch);
 }
