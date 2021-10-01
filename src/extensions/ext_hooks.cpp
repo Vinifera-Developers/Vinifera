@@ -89,6 +89,7 @@
 #include "bulletext_hooks.h"
 #include "terrainext_hooks.h"
 #include "superext_hooks.h"
+#include "particlesysext_hooks.h"
 
 #include "combatext_hooks.h"
 
@@ -178,6 +179,7 @@ void Extension_Hooks()
     BulletClassExtension_Hooks();
     TerrainClassExtension_Hooks();
     SuperClassExtension_Hooks();
+    ParticleSystemClassExtension_Hooks();
 
     CombatExtension_Hooks();
 
