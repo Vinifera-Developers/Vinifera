@@ -92,9 +92,10 @@ static bool Vinifera_Init_Secondary_Mixfiles()
     }
     if (!ConquerMix) {
         DEBUG_WARNING("Failed to load CONQUER.MIX!\n");
-        return false;
+        //return false; // #issue-110: Unable to load startup mix files is no longer a fatal error.
+    } else {
+        DEBUG_INFO(" CONQUER.MIX\n");
     }
-    DEBUG_INFO(" CONQUER.MIX\n");
 
     int cd = CD::Get_Volume_Index();
 
@@ -145,9 +146,10 @@ static bool Vinifera_Init_Secondary_Mixfiles()
     }
     if (!MapsMix) {
         DEBUG_WARNING("Failed to load %s!\n", buffer);
-        return false;
+        //return false; // #issue-110: Unable to load startup mix files is no longer a fatal error.
+    } else {
+        if (!CD::IsFilesLocal) DEBUG_INFO(" %s\n", buffer);
     }
-    if (!CD::IsFilesLocal) DEBUG_INFO(" %s\n", buffer);
 
     if (CCFileClass("MULTI.MIX").Is_Available()) {
         MultiMix = new MFCC("MULTI.MIX", &FastKey);
@@ -155,9 +157,10 @@ static bool Vinifera_Init_Secondary_Mixfiles()
     }
     if (!MultiMix) {
         DEBUG_WARNING("Failed to load MULTI.MIX!\n");
-        return false;
+        //return false; // #issue-110: Unable to load startup mix files is no longer a fatal error.
+    } else {
+        DEBUG_INFO(" MULTI.MIX\n", buffer);
     }
-    DEBUG_INFO(" MULTI.MIX\n", buffer);
 
     if (Addon_407120(ADDON_FIRESTORM)) {
         if (CCFileClass("SOUNDS01.MIX").Is_Available()) {
@@ -166,9 +169,10 @@ static bool Vinifera_Init_Secondary_Mixfiles()
         }
         if (!FSSoundsMix) {
             DEBUG_WARNING("Failed to load SOUNDS01.MIX!\n");
-            return false;
+            //return false; // #issue-110: Unable to load startup mix files is no longer a fatal error.
+        } else {
+            DEBUG_INFO(" SOUNDS01.MIX\n", buffer);
         }
-        DEBUG_INFO(" SOUNDS01.MIX\n", buffer);
     }
 
     if (CCFileClass("SOUNDS.MIX").Is_Available()) {
@@ -177,9 +181,10 @@ static bool Vinifera_Init_Secondary_Mixfiles()
     }
     if (!SoundsMix) {
         DEBUG_WARNING("Failed to load SOUNDS.MIX!\n");
-        return false;
+        //return false; // #issue-110: Unable to load startup mix files is no longer a fatal error.
+    } else {
+        DEBUG_INFO(" SOUNDS.MIX\n", buffer);
     }
-    DEBUG_INFO(" SOUNDS.MIX\n", buffer);
 
     if (CCFileClass("SCORES01.MIX").Is_Available()) {
         FSScoresMix = new MFCC("SCORES01.MIX", &FastKey);
@@ -187,24 +192,26 @@ static bool Vinifera_Init_Secondary_Mixfiles()
     }
     if (!FSScoresMix) {
         DEBUG_WARNING("Failed to load SCORES01.MIX!\n");
-        return false;
+        //return false; // #issue-110: Unable to load startup mix files is no longer a fatal error.
+    } else {
+        DEBUG_INFO(" SCORES01.MIX\n", buffer);
     }
-    DEBUG_INFO(" SCORES01.MIX\n", buffer);
 
-    /*
-    **	Register the score mixfile.
-    */
+	/*
+	**	Register the score mixfile.
+	*/
     if (CCFileClass("SCORES.MIX").Is_Available()) {
         ScoreMix = new MFCC("SCORES.MIX", &FastKey);
         ASSERT(ScoreMix);
     }
     if (!ScoreMix) {
         DEBUG_WARNING("Failed to load SCORES.MIX!\n");
-        return false;
+        //return false; // #issue-110: Unable to load startup mix files is no longer a fatal error.
+    } else {
+        DEBUG_INFO(" SCORES.MIX\n", buffer);
     }
-    DEBUG_INFO(" SCORES.MIX\n", buffer);
-    ScoresPresent = true;
-    Theme.Scan();
+	ScoresPresent = true;
+	Theme.Scan();
 
     /**
      *  #issue-513
@@ -241,9 +248,10 @@ static bool Vinifera_Init_Secondary_Mixfiles()
     }
     if (!MoviesMix) {
         DEBUG_WARNING("Failed to load %s!\n", buffer);
-        return false;
+        //return false; // #issue-110: Unable to load startup mix files is no longer a fatal error.
+    } else {
+        if (!CD::IsFilesLocal) DEBUG_INFO(" %s\n", buffer);
     }
-    if (!CD::IsFilesLocal) DEBUG_INFO(" %s\n", buffer);
 
     return true;
 }
@@ -381,9 +389,10 @@ static bool Vinifera_Init_Bootstrap_Mixfiles()
     ASSERT(TibSunMix);
     if (!TibSunMix) {
         DEBUG_WARNING("Failed to load TIBSUN.MIX!\n");
-        return false;
+        //return false; // #issue-110: Unable to load startup mix files is no longer a fatal error.
+    } else {
+        DEBUG_INFO(" TIBSUN.MIX\n");
     }
-    DEBUG_INFO(" TIBSUN.MIX\n");
 
     /*
     **	Bootstrap enough of the system so that the error dialog
@@ -393,21 +402,23 @@ static bool Vinifera_Init_Bootstrap_Mixfiles()
     ASSERT(CacheMix);
     if (!CacheMix) {
         DEBUG_WARNING("Failed to load CACHE.MIX!\n");
-        return false;
+        //return false; // #issue-110: Unable to load startup mix files is no longer a fatal error.
+    } else {
+        if (!CacheMix->Cache()) {
+            DEBUG_WARNING("Failed to cache CACHE.MIX!\n");
+            return false;
+        }
+        DEBUG_INFO(" CACHE.MIX\n");
     }
-    if (!CacheMix->Cache()) {
-        DEBUG_WARNING("Failed to cache CACHE.MIX!\n");
-        return false;
-    }
-    DEBUG_INFO(" CACHE.MIX\n");
 
     LocalMix = new MFCC("LOCAL.MIX", &FastKey);
     ASSERT(LocalMix);
     if (!LocalMix) {
         DEBUG_WARNING("Failed to load LOCAL.MIX!\n");
-        return false;
+        //return false; // #issue-110: Unable to load startup mix files is no longer a fatal error.
+    } else {
+        DEBUG_INFO(" LOCAL.MIX\n");
     }
-    DEBUG_INFO(" LOCAL.MIX\n");
 
     CD::Set_Required_CD(temp);
 
@@ -519,4 +530,19 @@ void GameInit_Hooks()
     Patch_Jump(0x004E0461, &_Init_CDROM_Access_Local_Files_Patch);
     Patch_Jump(0x004E3D20, &Vinifera_Init_Bootstrap_Mixfiles);
     Patch_Jump(0x004E4120, &Vinifera_Init_Secondary_Mixfiles);
+
+    /**
+     *  #issue-110
+     * 
+     *  Unable to load startup mix files is no longer a fatal error. These
+     *  patches change the checks in Init_Bulk_Data to skip the cache process
+     *  and continue initialisation.
+     */
+    Patch_Word(0x004E4601, 0x5C74); // jz 0x004E49B7 -> jz 0x004E465F
+    Patch_Byte_Range(0x004E4601+2, 0x90, 4);
+    Patch_Word(0x004E460F, 0x4E74); // jz 0x004E49B7 -> jz 0x004E465F
+    Patch_Byte_Range(0x004E460F+2, 0x90, 4);
+    Patch_Word(0x004E4641, 0x1C74); // jz 0x004E49B7 -> jz 0x004E465F
+    Patch_Byte_Range(0x004E4641+2, 0x90, 4);
+    Patch_Byte_Range(0x004E4657, 0x90, 8);
 }
