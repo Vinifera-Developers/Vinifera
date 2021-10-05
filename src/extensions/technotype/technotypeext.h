@@ -108,6 +108,11 @@ class TechnoTypeClassExtension final : public Extension<TechnoTypeClass>
          *  Does this object spawn tiberium when it dies?
          */
         bool IsSpawnsTiberiumOnDeath;
+
+        /**
+         *  The type of Tiberium this unit will spawn when it dies.
+         */
+        TiberiumType SpawnTiberiumTypeOnDeath;
 };
 
 
