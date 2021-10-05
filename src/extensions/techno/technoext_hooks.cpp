@@ -53,6 +53,59 @@
 
 
 /**
+ *  #issue-580
+ * 
+ *  Implements IsSpawnsTiberiumOnDeath for technos.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_TechnoClass_Spawn_Tiberium_On_Death_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
+    static TechnoTypeClassExtension *technotypext;
+    static TechnoTypeClass *technotype;
+
+    /**
+     *  Does this object heal in Tiberium? If so, check to make sure it should
+     *  also spawn tiberium. Tiberium being spawn on death was previously hardcoded
+     *  to the tiberium healing logic.
+     */
+    technotype = this_ptr->Techno_Type_Class();
+    if (technotype->IsTiberiumHeal) {
+
+        /**
+         *  Fetch the techno type extension.
+         */
+        technotypext = TechnoTypeClassExtensions.find(technotype);
+
+        /**
+         *  Should this object spawn a tiberium patch when it dies?
+         */
+        if (technotypext && !technotypext->IsSpawnsTiberiumOnDeath) {
+            goto continue_processing;
+        }
+
+        /**
+         *  Original behaviour.
+         */
+        goto spawn_tiberium;
+    }
+
+    /**
+     *  Continue processing damage.
+     */
+continue_processing:
+    JMP(0x00632B07);
+
+    /**
+     *  Spawn the tiberium patch.
+     */
+spawn_tiberium:
+    JMP(0x00632A5C);
+}
+
+
+/**
  *  #issue-434
  * 
  *  Implements Soylent value (refund amount override) for technos.
@@ -484,4 +537,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x0062C55B, &_TechnoClass_Draw_Health_Bars_Infantry_Draw_Pos_Patch);
     Patch_Jump(0x0062DD70, &_TechnoClass_Greatest_Threat_Infantry_Mechanic_Patch);
     Patch_Jump(0x00638095, &_TechnoClass_Refund_Amount_Soylent_Patch);
+    Patch_Jump(0x00632A44, &_TechnoClass_Spawn_Tiberium_On_Death_Patch);
 }

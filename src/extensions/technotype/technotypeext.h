@@ -103,6 +103,11 @@ class TechnoTypeClassExtension final : public Extension<TechnoTypeClass>
          *  This is the sound effect to play when a passenger leaves this unit.
          */
         VocType LeaveTransportSound;
+
+        /**
+         *  Does this object spawn tiberium when it dies?
+         */
+        bool IsSpawnsTiberiumOnDeath;
 };
 
 
