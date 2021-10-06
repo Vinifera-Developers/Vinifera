@@ -208,6 +208,82 @@ class ScrollNWCommandClass : public ViniferaCommandClass
 
 
 /**
+ *  Jump the tactical map camera to the west edge of the map.
+ */
+class JumpCameraWestCommandClass : public ViniferaCommandClass
+{
+    public:
+        JumpCameraWestCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        virtual ~JumpCameraWestCommandClass() {}
+
+        virtual const char *Get_Name() const override;
+        virtual const char *Get_UI_Name() const override;
+        virtual const char *Get_Category() const override;
+        virtual const char *Get_Description() const override;
+        virtual bool Process() override;
+
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_CTRL_BIT|KN_LEFT); }
+};
+
+
+/**
+ *  Jump the tactical map camera to the east edge of the map.
+ */
+class JumpCameraEastCommandClass : public ViniferaCommandClass
+{
+    public:
+        JumpCameraEastCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        virtual ~JumpCameraEastCommandClass() {}
+
+        virtual const char *Get_Name() const override;
+        virtual const char *Get_UI_Name() const override;
+        virtual const char *Get_Category() const override;
+        virtual const char *Get_Description() const override;
+        virtual bool Process() override;
+
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_CTRL_BIT|KN_RIGHT); }
+};
+
+
+/**
+ *  Jump the tactical map camera to the north edge of the map.
+ */
+class JumpCameraNorthCommandClass : public ViniferaCommandClass
+{
+    public:
+        JumpCameraNorthCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        virtual ~JumpCameraNorthCommandClass() {}
+
+        virtual const char *Get_Name() const override;
+        virtual const char *Get_UI_Name() const override;
+        virtual const char *Get_Category() const override;
+        virtual const char *Get_Description() const override;
+        virtual bool Process() override;
+
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_CTRL_BIT|KN_UP); }
+};
+
+
+/**
+ *  Jump the tactical map camera to the south edge of the map.
+ */
+class JumpCameraSouthCommandClass : public ViniferaCommandClass
+{
+    public:
+        JumpCameraSouthCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        virtual ~JumpCameraSouthCommandClass() {}
+
+        virtual const char *Get_Name() const override;
+        virtual const char *Get_UI_Name() const override;
+        virtual const char *Get_Category() const override;
+        virtual const char *Get_Description() const override;
+        virtual bool Process() override;
+
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_CTRL_BIT|KN_DOWN); }
+};
+
+
+/**
  *  Produces a memory dump on request.
  */
 class MemoryDumpCommandClass : public ViniferaCommandClass
