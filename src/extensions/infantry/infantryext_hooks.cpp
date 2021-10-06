@@ -66,14 +66,21 @@ static int Get_Engineer_Damage(TechnoClass *tech)
 }
 
 
-/**
+/** 
  *  Is the target buildings health low enough to be captured? 
  * 
  *  @author: CCHyper
  */
 static bool Health_Low_Enough_To_Capture(TechnoClass *tech)
 {
-    return tech->Health_Ratio() <= Rule->ConditionRed;
+    /**
+     *  #issue-633
+     * 
+     *  Changed to use Rule->EngineerCaptureLevel.
+     * 
+     *  @author: CCHyper
+     */
+    return tech->Health_Ratio() <= Rule->EngineerCaptureLevel;
 }
 
 
