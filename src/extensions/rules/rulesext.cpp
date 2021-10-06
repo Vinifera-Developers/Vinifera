@@ -249,6 +249,9 @@ bool RulesClassExtension::Read_UI_INI()
     UIControls.UnitHealthBarDrawPos = ini.Get_Point(INGAME, "UnitHealthBarPos", UIControls.UnitHealthBarDrawPos);
     UIControls.InfantryHealthBarDrawPos = ini.Get_Point(INGAME, "InfantryHealthBarPos", UIControls.InfantryHealthBarDrawPos);
 
+    UIControls.IsTextLabelOutline = ini.Get_Bool(INGAME, "TextLabelOutline", UIControls.IsTextLabelOutline);
+    UIControls.TextLabelBackgroundTransparency = ini.Get_Int_Clamp(INGAME, "TextLabelBackgroundTransparency", 0, 100, UIControls.TextLabelBackgroundTransparency);
+
     return true;
 }
 
@@ -272,6 +275,9 @@ bool RulesClassExtension::Init_UI_Controls()
 
     UIControls.InfantryHealthBarDrawPos.X = -24;
     UIControls.InfantryHealthBarDrawPos.Y = -5;
+
+    UIControls.IsTextLabelOutline = true;
+    UIControls.TextLabelBackgroundTransparency = 50;
 
     return false;
 }

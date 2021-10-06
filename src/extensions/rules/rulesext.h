@@ -70,6 +70,16 @@ class RulesClassExtension final : public Extension<RulesClass>
             TPoint2D<int> UnitHealthBarDrawPos;
             TPoint2D<int> InfantryHealthBarDrawPos;
 
+            /**
+             *  Should the text label be drawn with an outline?
+             */
+            bool IsTextLabelOutline;
+
+            /**
+             *  Transparency of the text background.
+             */
+            unsigned TextLabelBackgroundTransparency;
+
         } UIControlsStruct;
 
         static UIControlsStruct UIControls;
