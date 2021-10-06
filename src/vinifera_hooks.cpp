@@ -348,9 +348,11 @@ void Vinifera_Hooks()
      *  application mutex GUID's So Vinifera can be run alongside another instance
      *  of Tiberian Sun (and even Red Alert 2 or Yuri's Revenge).
      * 
-     *  "b350c6d2-2f36-11d3-a72c-0090272fa661" -> "b350c6d2-2f36-11d3-a72c-0090272fa662"
-     *  "29e3bb2a-2f36-11d3-a72c-0090272fa661" -> "29e3bb2a-2f36-11d3-a72c-0090272fa662"
+     *  "b350c6d2-2f36-11d3-a72c-0090272fa661" -> "b350c6d2-2f36-11d3-a72c-0090272fa66n"
+     *  "29e3bb2a-2f36-11d3-a72c-0090272fa661" -> "29e3bb2a-2f36-11d3-a72c-0090272fa66n"
      */
-    Patch_Byte(0x0070EEAB, '2');
-    Patch_Byte(0x0070EF0F, '2');
+    std::srand(timeGetTime());
+    unsigned char num = (std::rand() % 10)+48;
+    Patch_Byte(0x0070EEAB, num);
+    Patch_Byte(0x0070EF0F, num);
 }
