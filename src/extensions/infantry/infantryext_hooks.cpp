@@ -32,11 +32,17 @@
 #include "infantrytypeext.h"
 #include "technotype.h"
 #include "technotypeext.h"
+#include "building.h"
+#include "buildingtype.h"
+#include "tagtype.h"
+#include "house.h"
+#include "housetype.h"
 #include "target.h"
 #include "voc.h"
 #include "tibsun_globals.h"
 #include "extension.h"
 #include "options.h"
+#include "rules.h"
 #include "wwkeyboard.h"
 #include "fatal.h"
 #include "debughandler.h"
@@ -44,6 +50,70 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-635
+ * 
+ *  Fixes a bug where EngineerDamage was not used to calculate the engineer damage.
+ * 
+ *  @author: CCHyper
+ */
+static int Get_Engineer_Damage(TechnoClass *tech)
+{
+    float damage = Rule->EngineerDamage;    // Was "Rule->ConditionRed * 0.5f"
+    return std::min((tech->Techno_Type_Class()->MaxStrength * damage), (float)(tech->Strength-1));
+}
+
+
+/**
+ *  Is the target buildings health low enough to be captured? 
+ * 
+ *  @author: CCHyper
+ */
+static bool Health_Low_Enough_To_Capture(TechnoClass *tech)
+{
+    return tech->Health_Ratio() <= Rule->ConditionRed;
+}
+
+
+/**
+ *  Patch to intercept the engineer capture checks.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_InfantryClass_Per_Cell_Process_Engineer_Capture_Damage_Patch)
+{
+    GET_REGISTER_STATIC(InfantryClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(TechnoClass *, tech, edi);      // From "cellptr->Cell_Building()".
+    GET_REGISTER_STATIC(bool, iscapturable, bl);
+    static int damage;
+
+    /**
+     *  If the target buildings health is low enough, go ahead and capture it.
+     */
+    if (Health_Low_Enough_To_Capture(tech)) {
+        goto capture;
+    }
+
+    /**
+     *  Health is still not low enough, go ahead and apply some more damage to it.
+     */
+    damage = Get_Engineer_Damage(tech);
+    tech->Take_Damage(damage, 0, Rule->C4Warhead, this_ptr, true);
+
+    /**
+     *  Spring the DESTROYED_BY_ANYTHING event and remove this infantry.
+     */
+spring_and_delete:
+    JMP(0x004D378D);
+
+    /**
+     *  Processing capturing of the target building.
+     */
+capture:
+    JMP(0x004D36E1);
+}
 
 
 /**
@@ -465,4 +535,5 @@ void InfantryClassExtension_Hooks()
     Patch_Jump(0x004D7168, &_InfantryClass_What_Action_Mechanic_Patch);
     Patch_Jump(0x004D87E9, &_InfantryClass_Firing_AI_Mechanic_Patch);
     Patch_Jump(0x004D3A7B, &_InfantryClass_Per_Cell_Process_Transport_Attach_Sound_Patch);
+    Patch_Jump(0x004D35F9, &_InfantryClass_Per_Cell_Process_Engineer_Capture_Damage_Patch);
 }
