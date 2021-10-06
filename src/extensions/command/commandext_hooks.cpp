@@ -160,6 +160,18 @@ void Init_Vinifera_Commands()
     cmdptr = new ScrollNWCommandClass;
     Commands.Add(cmdptr);
 
+    cmdptr = new JumpCameraWestCommandClass;
+    Commands.Add(cmdptr);
+
+    cmdptr = new JumpCameraEastCommandClass;
+    Commands.Add(cmdptr);
+
+    cmdptr = new JumpCameraNorthCommandClass;
+    Commands.Add(cmdptr);
+
+    cmdptr = new JumpCameraSouthCommandClass;
+    Commands.Add(cmdptr);
+
     /**
      *  Next, initialised any new commands here if the developer mode is enabled.
      */
@@ -351,6 +363,38 @@ static void Process_Vinifera_Hotkeys()
 
     if (!ini.Is_Present("Hotkey", "NextTheme")) {
         cmdptr = CommandClass::From_Name("NextTheme");
+        if (cmdptr) {
+            key = reinterpret_cast<ViniferaCommandClass *>(cmdptr)->Default_Key();
+            HotkeyIndex.Add_Index(key, cmdptr);
+        }
+    }
+
+    if (!ini.Is_Present("Hotkey", "JumpCameraWest")) {
+        cmdptr = CommandClass::From_Name("JumpCameraWest");
+        if (cmdptr) {
+            key = reinterpret_cast<ViniferaCommandClass *>(cmdptr)->Default_Key();
+            HotkeyIndex.Add_Index(key, cmdptr);
+        }
+    }
+
+    if (!ini.Is_Present("Hotkey", "JumpCameraEast")) {
+        cmdptr = CommandClass::From_Name("JumpCameraEast");
+        if (cmdptr) {
+            key = reinterpret_cast<ViniferaCommandClass *>(cmdptr)->Default_Key();
+            HotkeyIndex.Add_Index(key, cmdptr);
+        }
+    }
+
+    if (!ini.Is_Present("Hotkey", "JumpCameraNorth")) {
+        cmdptr = CommandClass::From_Name("JumpCameraNorth");
+        if (cmdptr) {
+            key = reinterpret_cast<ViniferaCommandClass *>(cmdptr)->Default_Key();
+            HotkeyIndex.Add_Index(key, cmdptr);
+        }
+    }
+
+    if (!ini.Is_Present("Hotkey", "JumpCameraSouth")) {
+        cmdptr = CommandClass::From_Name("JumpCameraSouth");
         if (cmdptr) {
             key = reinterpret_cast<ViniferaCommandClass *>(cmdptr)->Default_Key();
             HotkeyIndex.Add_Index(key, cmdptr);
