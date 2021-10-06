@@ -299,6 +299,38 @@ DECLARE_PATCH(_Select_Game_Clear_Globals_Patch)
 }
 
 
+#ifndef NDEBUG
+/**
+ *  Produces a random serial number for this client.
+ * 
+ *  #NOTE:
+ *  The result number string will be invalid and will not pass WWOnline/XWIS
+ *  checks, this is for local network use only.
+ * 
+ *  @author: CCHyper
+ */
+static void Decrypt_Serial(char *buffer)
+{
+    static bool _done = false;
+    static char _buf[] = { "0000000000000000000000" };
+    static const char _alphanum[] = { "0123456789" };
+
+    /**
+     *  Generate a one-time random number string.
+     */
+    if (!_done) {
+        std::srand(timeGetTime());
+        for (int i = 0; i < ARRAY_SIZE(_buf); ++i) {
+            _buf[i] = _alphanum[std::rand() % (ARRAY_SIZE(_alphanum)-1)];
+        }
+        _done = true;
+    }
+
+    std::strncpy(buffer, _buf, sizeof(_buf));
+}
+#endif
+
+
 void Vinifera_Hooks()
 {
     /**
@@ -341,6 +373,13 @@ void Vinifera_Hooks()
      *  This patch allows 1 player LAN games for testing various network features.
      */
     Patch_Jump(0x00577029, 0x00577071);
+#endif
+
+#ifndef NDEBUG
+    /**
+     *  This patch randomises the serial number for this client.
+     */
+    Patch_Jump(0x00576410, &Decrypt_Serial);
 #endif
 
     /**
