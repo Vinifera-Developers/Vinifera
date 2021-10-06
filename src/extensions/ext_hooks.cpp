@@ -96,6 +96,8 @@
 #include "empulseext_hooks.h"
 #include "waveext_hooks.h"
 
+#include "txtlabelext_hooks.h"
+
 #include "dropshipext_hooks.h"
 
 #include "cciniext_hooks.h"
@@ -185,6 +187,8 @@ void Extension_Hooks()
 
     EMPulseClassExtension_Hooks();
     WaveClassExtension_Hooks();
+
+    TextLabelClassExtension_Hooks();
 
     DropshipExtension_Hooks();
 
