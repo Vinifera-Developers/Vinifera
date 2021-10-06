@@ -404,6 +404,16 @@ bool RulesClassExtension::General(CCINIClass &ini)
         return false;
     }
 
+    /**
+     *  #issue-632
+     *
+     *  "EngineerDamage" was incorrectly loaded with "EngineerCaptureLevel", so
+     *  the value the value correctly.
+     *
+     *  @author: CCHyper
+     */
+    This()->EngineerDamage = ini.Get_Float(GENERAL, "EngineerDamage", This()->EngineerDamage);
+
     return true;
 }
 
