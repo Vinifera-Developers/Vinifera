@@ -520,6 +520,158 @@ bool ScrollNWCommandClass::Process()
 
 
 /**
+ *  Jump the tactical map camera to the west edge of the map.
+ * 
+ *  @author: CCHyper
+ */
+const char *JumpCameraWestCommandClass::Get_Name() const
+{
+    return "JumpCameraWest";
+}
+
+const char *JumpCameraWestCommandClass::Get_UI_Name() const
+{
+    return "Jump Camera West";
+}
+
+const char *JumpCameraWestCommandClass::Get_Category() const
+{
+    return Text_String(TXT_INTERFACE);
+}
+
+const char *JumpCameraWestCommandClass::Get_Description() const
+{
+    return "Jump the tactical map camera to the west edge of the map.";
+}
+
+bool JumpCameraWestCommandClass::Process()
+{
+    /**
+     *  Find the largest distance on the map.
+     */
+    int dist = Cell_To_Lepton(Map.MapSize.Width <= Map.MapSize.Height ? Map.MapSize.Height : Map.MapSize.Width);
+
+    Map.Scroll_Map(FACING_W, dist);
+
+    return true;
+}
+
+
+/**
+ *  Jump the tactical map camera to the east edge of the map.
+ * 
+ *  @author: CCHyper
+ */
+const char *JumpCameraEastCommandClass::Get_Name() const
+{
+    return "JumpCameraEast";
+}
+
+const char *JumpCameraEastCommandClass::Get_UI_Name() const
+{
+    return "Jump Camera East";
+}
+
+const char *JumpCameraEastCommandClass::Get_Category() const
+{
+    return Text_String(TXT_INTERFACE);
+}
+
+const char *JumpCameraEastCommandClass::Get_Description() const
+{
+    return "Jump the tactical map camera to the east edge of the map.";
+}
+
+bool JumpCameraEastCommandClass::Process()
+{
+    /**
+     *  Find the largest distance on the map.
+     */
+    int dist = Cell_To_Lepton(Map.MapSize.Width <= Map.MapSize.Height ? Map.MapSize.Height : Map.MapSize.Width);
+
+    Map.Scroll_Map(FACING_E, dist);
+
+    return true;
+}
+
+
+/**
+ *  Jump the tactical map camera to the north edge of the map.
+ * 
+ *  @author: CCHyper
+ */
+const char *JumpCameraNorthCommandClass::Get_Name() const
+{
+    return "JumpCameraNorth";
+}
+
+const char *JumpCameraNorthCommandClass::Get_UI_Name() const
+{
+    return "Jump Camera North";
+}
+
+const char *JumpCameraNorthCommandClass::Get_Category() const
+{
+    return Text_String(TXT_INTERFACE);
+}
+
+const char *JumpCameraNorthCommandClass::Get_Description() const
+{
+    return "Jump the tactical map camera to the north edge of the map.";
+}
+
+bool JumpCameraNorthCommandClass::Process()
+{
+    /**
+     *  Find the largest distance on the map.
+     */
+    int dist = Cell_To_Lepton(Map.MapSize.Width <= Map.MapSize.Height ? Map.MapSize.Height : Map.MapSize.Width);
+
+    Map.Scroll_Map(FACING_N, dist);
+
+    return true;
+}
+
+
+/**
+ *  Jump the tactical map camera to the south edge of the map.
+ * 
+ *  @author: CCHyper
+ */
+const char *JumpCameraSouthCommandClass::Get_Name() const
+{
+    return "JumpCameraSouth";
+}
+
+const char *JumpCameraSouthCommandClass::Get_UI_Name() const
+{
+    return "Jump Camera South";
+}
+
+const char *JumpCameraSouthCommandClass::Get_Category() const
+{
+    return Text_String(TXT_INTERFACE);
+}
+
+const char *JumpCameraSouthCommandClass::Get_Description() const
+{
+    return "Jump the tactical map camera to the south edge of the map.";
+}
+
+bool JumpCameraSouthCommandClass::Process()
+{
+    /**
+     *  Find the largest distance on the map.
+     */
+    int dist = Cell_To_Lepton(Map.MapSize.Width <= Map.MapSize.Height ? Map.MapSize.Height : Map.MapSize.Width);
+
+    Map.Scroll_Map(FACING_S, dist);
+
+    return true;
+}
+
+
+/**
  *  Produces a memory dump on request.
  * 
  *  @author: CCHyper
