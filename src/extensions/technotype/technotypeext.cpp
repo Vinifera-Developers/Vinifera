@@ -58,7 +58,9 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(TechnoTypeClass *this_ptr) :
     UnloadingClass(nullptr),
     SoylentValue(0),
     EnterTransportSound(VOC_NONE),
-    LeaveTransportSound(VOC_NONE)
+    LeaveTransportSound(VOC_NONE),
+    IsSpawnsTiberiumOnDeath(true),
+    SpawnTiberiumTypeOnDeath(TIBERIUM_RIPARIUS)
 {
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("TechnoTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -179,6 +181,8 @@ void TechnoTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
     crc(ShakePixelXHi);
     crc(ShakePixelXLo);
     crc(SoylentValue);
+    crc(IsSpawnsTiberiumOnDeath);
+    crc(SpawnTiberiumTypeOnDeath);
 }
 
 
@@ -211,6 +215,8 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     SoylentValue = ini.Get_Int(ini_name, "Soylent", SoylentValue);
     EnterTransportSound = ini.Get_VocType(ini_name, "EnterTransportSound", EnterTransportSound);
     LeaveTransportSound = ini.Get_VocType(ini_name, "LeaveTransportSound", LeaveTransportSound);
+    IsSpawnsTiberiumOnDeath = ini.Get_Bool(ini_name, "TiberiumOnDeath", IsSpawnsTiberiumOnDeath);
+    SpawnTiberiumTypeOnDeath = ini.Get_TiberiumType(ini_name, "TiberiumTypeOnDeath", SpawnTiberiumTypeOnDeath);
 
     return true;
 }

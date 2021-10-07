@@ -42,6 +42,7 @@
 #include "infantry.h"
 #include "infantrytype.h"
 #include "infantrytypeext.h"
+#include "cell.h"
 #include "voc.h"
 #include "fatal.h"
 #include "vinifera_util.h"
@@ -50,6 +51,103 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-580
+ * 
+ *  Implements SpawnTiberiumTypeOnDeath for technos.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_TechnoClass_Spawn_Tiberium_Type_On_Death_Patch)
+{
+    GET_REGISTER_STATIC(int, frame, eax);               // Random tiberium image frame (0-2).
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(CellClass *, cell, ebp);
+    static TechnoTypeClassExtension *technotypext;
+    static TechnoTypeClass *technotype;
+    static TiberiumType tiberium;
+
+    technotypext = TechnoTypeClassExtensions.find(this_ptr->Techno_Type_Class());
+
+    /**
+     *  Fetch the tiberium type override if set.
+     */
+    if (technotypext && technotypext->SpawnTiberiumTypeOnDeath != TIBERIUM_NONE) {
+        tiberium = technotypext->SpawnTiberiumTypeOnDeath;
+
+    /**
+     *  Original code (which should be TIBERIUM_RIPARIUS).
+     */
+    } else {
+        tiberium = TIBERIUM_FIRST;
+    }
+
+    /**
+     *  Final check to make sure the tiberium is within expected range.
+     */
+    if (tiberium == TIBERIUM_NONE || tiberium > Tiberiums.Count()) {
+        tiberium = TIBERIUM_FIRST;
+    }
+
+    cell->Place_Tiberium(tiberium, frame);
+
+    JMP(0x00632AFC);
+}
+
+
+/**
+ *  #issue-580
+ * 
+ *  Implements IsSpawnsTiberiumOnDeath for technos.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_TechnoClass_Spawn_Tiberium_On_Death_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
+    static TechnoTypeClassExtension *technotypext;
+    static TechnoTypeClass *technotype;
+
+    /**
+     *  Does this object heal in Tiberium? If so, check to make sure it should
+     *  also spawn tiberium. Tiberium being spawn on death was previously hardcoded
+     *  to the tiberium healing logic.
+     */
+    technotype = this_ptr->Techno_Type_Class();
+    if (technotype->IsTiberiumHeal) {
+
+        /**
+         *  Fetch the techno type extension.
+         */
+        technotypext = TechnoTypeClassExtensions.find(technotype);
+
+        /**
+         *  Should this object spawn a tiberium patch when it dies?
+         */
+        if (technotypext && !technotypext->IsSpawnsTiberiumOnDeath) {
+            goto continue_processing;
+        }
+
+        /**
+         *  Original behaviour.
+         */
+        goto spawn_tiberium;
+    }
+
+    /**
+     *  Continue processing damage.
+     */
+continue_processing:
+    JMP(0x00632B07);
+
+    /**
+     *  Spawn the tiberium patch.
+     */
+spawn_tiberium:
+    JMP(0x00632A5C);
+}
 
 
 /**
@@ -484,4 +582,6 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x0062C55B, &_TechnoClass_Draw_Health_Bars_Infantry_Draw_Pos_Patch);
     Patch_Jump(0x0062DD70, &_TechnoClass_Greatest_Threat_Infantry_Mechanic_Patch);
     Patch_Jump(0x00638095, &_TechnoClass_Refund_Amount_Soylent_Patch);
+    Patch_Jump(0x00632A44, &_TechnoClass_Spawn_Tiberium_On_Death_Patch);
+    Patch_Jump(0x00632AF2, &_TechnoClass_Spawn_Tiberium_Type_On_Death_Patch);
 }
