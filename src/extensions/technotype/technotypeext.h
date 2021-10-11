@@ -129,6 +129,11 @@ class TechnoTypeClassExtension final : public Extension<TechnoTypeClass>
          *  The rate at which this unit animates when it is standing idle (not moving).
          */
         unsigned IdleRate;
+
+        /**
+         *  These are the weapons that this techno object is armed with.
+         */
+        WeaponInfoStruct Weapons[WEAPON_SLOT_COUNT];
 };
 
 
