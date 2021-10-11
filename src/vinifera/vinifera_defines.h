@@ -41,3 +41,22 @@
  *  CLSID's for all new locomotors.
  */
 #define		CLSID_TEST_LOCOMOTOR	"EBE80B85-EED2-4DEF-92CA-BC0C99AF4A01"
+
+
+/**
+ *  Extension of the WeaponSlotType enum.
+ */
+typedef enum ExtWeaponSlotType
+{
+    /**
+     *  Add new ExtWeaponSlotType's from here, do not reorder these!
+     */
+
+    WEAPON_SLOT_ELITE_PRIMARY = WEAPON_SLOT_ELITE,     // This actually becomes a new alias for "Elite".
+    WEAPON_SLOT_ELITE_SECONDARY,
+
+    /**
+     *  The new total ExtWeaponSlotType count.
+     */
+    EXT_WEAPON_SLOT_COUNT,
+} ExtWeaponSlotType;

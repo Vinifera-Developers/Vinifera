@@ -56,6 +56,45 @@
 
 
 /**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ * 
+ *  @note: This must not contain a constructor or deconstructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+class BuildingClassFake final : public BuildingClass
+{
+    public:
+        const WeaponInfoStruct * _Get_Weapon(WeaponSlotType weapon) const;
+};
+
+
+/**
+ *  Reimplementation of BuildingClass::Get_Weapon.
+ * 
+ *  @author: CCHyper
+ */
+const WeaponInfoStruct * BuildingClassFake::_Get_Weapon(WeaponSlotType weapon) const
+{
+    BuildingClassExtension *buildingext;
+    buildingext = BuildingClassExtensions.find(this);
+
+    /**
+     *  Call the reimplementation of Get_Weapon().
+     */
+    if (buildingext) {
+        return buildingext->Get_Weapon(weapon);
+
+    /**
+     *  Call the original function.
+     */
+    } else {
+        return BuildingClass::Get_Weapon(weapon);
+    }
+}
+
+
+/**
  *  #issue-26
  * 
  *  Adds functionality for the produce cash per-frame logic.
@@ -493,4 +532,6 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x00429A96, &_BuildingClass_AI_ProduceCash_Patch);
     Patch_Jump(0x0042F67D, &_BuildingClass_Captured_ProduceCash_Patch);
     Patch_Jump(0x0042E179, &_BuildingClass_Grand_Opening_ProduceCash_Patch);
+
+    Change_Virtual_Address(0x006CC604, Get_Func_Address(&BuildingClassFake::_Get_Weapon));
 }

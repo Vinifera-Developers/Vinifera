@@ -58,6 +58,8 @@ class TechnoClassExtension final : public Extension<TechnoClass>
         void Response_Harvest();
         bool Can_Passive_Acquire() const;
 
+        const WeaponInfoStruct * Get_Weapon(WeaponSlotType weapon) const;
+
     public:
         /**
          *  The current electric bolt instance fired by this object.

@@ -55,6 +55,45 @@
 
 
 /**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ * 
+ *  @note: This must not contain a constructor or deconstructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+class TechnoClassExt final : public TechnoClass
+{
+    public:
+        const WeaponInfoStruct * _Get_Weapon(WeaponSlotType weapon) const;
+};
+
+
+/**
+ *  Reimplementation of TechnoClass::Get_Weapon.
+ * 
+ *  @author: CCHyper
+ */
+const WeaponInfoStruct * TechnoClassExt::_Get_Weapon(WeaponSlotType weapon) const
+{
+    TechnoClassExtension *technoext;
+    technoext = TechnoClassExtensions.find(this);
+
+    /**
+     *  Call the reimplementation of Get_Weapon().
+     */
+    if (technoext) {
+        return technoext->Get_Weapon(weapon);
+
+    /**
+     *  Call the original function.
+     */
+    } else {
+        return TechnoClass::Get_Weapon(weapon);
+    }
+}
+
+
+/**
  *  #issue-594
  * 
  *  Implements IsCanRetaliate for TechnoTypes.
@@ -728,4 +767,10 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x00630390, &_TechnoClass_Fire_At_Suicide_Patch);
     Patch_Jump(0x006312CD, &_TechnoClass_Fire_At_Electric_Bolt_Patch);
     Patch_Jump(0x00636F09, &_TechnoClass_Is_Allowed_To_Retaliate_Can_Retaliate_Patch);
+
+    Change_Virtual_Address(0x006CB104, Get_Func_Address(&TechnoClassExt::_Get_Weapon));
+    Change_Virtual_Address(0x006D06E4, Get_Func_Address(&TechnoClassExt::_Get_Weapon));
+    Change_Virtual_Address(0x006D2428, Get_Func_Address(&TechnoClassExt::_Get_Weapon));
+    Change_Virtual_Address(0x006D7F64, Get_Func_Address(&TechnoClassExt::_Get_Weapon));
+    Change_Virtual_Address(0x006D8E78, Get_Func_Address(&TechnoClassExt::_Get_Weapon));
 }

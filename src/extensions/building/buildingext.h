@@ -29,9 +29,9 @@
 
 #include "extension.h"
 #include "container.h"
-
 #include "ttimer.h"
 #include "ftimer.h"
+#include "tibsun_defines.h"
 
 
 class BuildingClass;
@@ -51,6 +51,8 @@ class BuildingClassExtension final : public Extension<BuildingClass>
 
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
+
+        const WeaponInfoStruct * Get_Weapon(WeaponSlotType weapon) const;
 
         void Produce_Cash_AI();
 
