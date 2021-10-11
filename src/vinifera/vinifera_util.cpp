@@ -460,7 +460,10 @@ const char *Name_From_WeaponSlot(WeaponSlotType slot)
         "Elite Primary",
         "Elite Secondary",
         "Veteran Primary",
-        "Veteran Secondary"
+        "Veteran Secondary",
+        "Tertiary",
+        "Veteran Tertiary",
+        "Elite Tertiary"
     };
 
     if (slot != WEAPON_SLOT_NONE || slot < EXT_WEAPON_SLOT_COUNT) {

@@ -59,6 +59,7 @@ class TechnoClassExtension final : public Extension<TechnoClass>
         bool Can_Passive_Acquire() const;
 
         const WeaponInfoStruct * Get_Weapon(WeaponSlotType weapon) const;
+        WeaponSlotType What_Weapon_Should_I_Use(TARGET target) const;
 
     public:
         /**

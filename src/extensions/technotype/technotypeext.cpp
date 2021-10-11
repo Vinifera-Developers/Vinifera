@@ -279,6 +279,37 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     Weapons[WEAPON_SLOT_ELITE_SECONDARY].BarrelThickness = ArtINI.Get_Int(ini_name, "EliteSBarrelThickness", Weapons[WEAPON_SLOT_ELITE_SECONDARY].BarrelThickness);
     Weapons[WEAPON_SLOT_ELITE_SECONDARY].BarrelLength = ArtINI.Get_Int(ini_name, "EliteSBarrelLength", Weapons[WEAPON_SLOT_ELITE_SECONDARY].BarrelLength);
 
+    std::memcpy(&Weapons[WEAPON_SLOT_VETERAN_PRIMARY], &ThisPtr->Weapons[WEAPON_SLOT_PRIMARY], sizeof(WeaponInfoStruct));
+
+    Weapons[WEAPON_SLOT_VETERAN_PRIMARY].Weapon = ini.Get_Weapon(ini_name, "VeteranPrimary", Weapons[WEAPON_SLOT_VETERAN_PRIMARY].Weapon);
+    Weapons[WEAPON_SLOT_VETERAN_PRIMARY].FireFLH = ArtINI.Get_Point(ini_name, "VeteranPrimaryFireFLH", Weapons[WEAPON_SLOT_VETERAN_PRIMARY].FireFLH);
+    Weapons[WEAPON_SLOT_VETERAN_PRIMARY].BarrelThickness = ArtINI.Get_Int(ini_name, "VeteranPBarrelThickness", Weapons[WEAPON_SLOT_VETERAN_PRIMARY].BarrelThickness);
+    Weapons[WEAPON_SLOT_VETERAN_PRIMARY].BarrelLength = ArtINI.Get_Int(ini_name, "VeteranPBarrelLength", Weapons[WEAPON_SLOT_VETERAN_PRIMARY].BarrelLength);
+
+    std::memcpy(&Weapons[WEAPON_SLOT_VETERAN_SECONDARY], &ThisPtr->Weapons[WEAPON_SLOT_SECONDARY], sizeof(WeaponInfoStruct));
+
+    Weapons[WEAPON_SLOT_VETERAN_SECONDARY].Weapon = ini.Get_Weapon(ini_name, "VeteranSecondary", Weapons[WEAPON_SLOT_VETERAN_SECONDARY].Weapon);
+    Weapons[WEAPON_SLOT_VETERAN_SECONDARY].FireFLH = ArtINI.Get_Point(ini_name, "VeteranSecondaryFireFLH", Weapons[WEAPON_SLOT_VETERAN_SECONDARY].FireFLH);
+    Weapons[WEAPON_SLOT_VETERAN_SECONDARY].BarrelThickness = ArtINI.Get_Int(ini_name, "VeteranSBarrelThickness", Weapons[WEAPON_SLOT_VETERAN_SECONDARY].BarrelThickness);
+    Weapons[WEAPON_SLOT_VETERAN_SECONDARY].BarrelLength = ArtINI.Get_Int(ini_name, "VeteranSBarrelLength", Weapons[WEAPON_SLOT_VETERAN_SECONDARY].BarrelLength);
+
+    Weapons[WEAPON_SLOT_TERTIARY].Weapon = ini.Get_Weapon(ini_name, "Tertiary", Weapons[WEAPON_SLOT_TERTIARY].Weapon);
+    Weapons[WEAPON_SLOT_TERTIARY].FireFLH = ArtINI.Get_Point(ini_name, "TertiaryFireFLH", Weapons[WEAPON_SLOT_TERTIARY].FireFLH);
+    Weapons[WEAPON_SLOT_TERTIARY].BarrelThickness = ArtINI.Get_Int(ini_name, "TBarrelThickness", Weapons[WEAPON_SLOT_TERTIARY].BarrelThickness);
+    Weapons[WEAPON_SLOT_TERTIARY].BarrelLength = ArtINI.Get_Int(ini_name, "TBarrelLength", Weapons[WEAPON_SLOT_TERTIARY].BarrelLength);
+
+    std::memcpy(&Weapons[WEAPON_SLOT_VETERAN_TERTIARY], &Weapons[WEAPON_SLOT_TERTIARY], sizeof(WeaponInfoStruct));
+    std::memcpy(&Weapons[WEAPON_SLOT_ELITE_TERTIARY], &Weapons[WEAPON_SLOT_TERTIARY], sizeof(WeaponInfoStruct));
+
+    Weapons[WEAPON_SLOT_VETERAN_TERTIARY].Weapon = ini.Get_Weapon(ini_name, "VeteranTertiary", Weapons[WEAPON_SLOT_VETERAN_TERTIARY].Weapon);
+    Weapons[WEAPON_SLOT_VETERAN_TERTIARY].FireFLH = ArtINI.Get_Point(ini_name, "VeteranTertiaryFireFLH", Weapons[WEAPON_SLOT_VETERAN_TERTIARY].FireFLH);
+    Weapons[WEAPON_SLOT_VETERAN_TERTIARY].BarrelThickness = ArtINI.Get_Int(ini_name, "VeteranTBarrelThickness", Weapons[WEAPON_SLOT_VETERAN_TERTIARY].BarrelThickness);
+    Weapons[WEAPON_SLOT_VETERAN_TERTIARY].BarrelLength = ArtINI.Get_Int(ini_name, "VeteranTBarrelLength", Weapons[WEAPON_SLOT_VETERAN_TERTIARY].BarrelLength);
+    Weapons[WEAPON_SLOT_ELITE_TERTIARY].Weapon = ini.Get_Weapon(ini_name, "EliteTertiary", Weapons[WEAPON_SLOT_ELITE_TERTIARY].Weapon);
+    Weapons[WEAPON_SLOT_ELITE_TERTIARY].FireFLH = ArtINI.Get_Point(ini_name, "EliteTertiaryFireFLH", Weapons[WEAPON_SLOT_ELITE_TERTIARY].FireFLH);
+    Weapons[WEAPON_SLOT_ELITE_TERTIARY].BarrelThickness = ArtINI.Get_Int(ini_name, "EliteTBarrelThickness", Weapons[WEAPON_SLOT_ELITE_TERTIARY].BarrelThickness);
+    Weapons[WEAPON_SLOT_ELITE_TERTIARY].BarrelLength = ArtINI.Get_Int(ini_name, "EliteTBarrelLength", Weapons[WEAPON_SLOT_ELITE_TERTIARY].BarrelLength);
+
     CloakSound = ini.Get_VocType(ini_name, "CloakSound", CloakSound);
     UncloakSound = ini.Get_VocType(ini_name, "UncloakSound", UncloakSound);
     IsShakeScreen = ini.Get_Bool(ini_name, "CanShakeScreen", IsShakeScreen);
