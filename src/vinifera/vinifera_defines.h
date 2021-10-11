@@ -54,6 +54,8 @@ typedef enum ExtWeaponSlotType
 
     WEAPON_SLOT_ELITE_PRIMARY = WEAPON_SLOT_ELITE,     // This actually becomes a new alias for "Elite".
     WEAPON_SLOT_ELITE_SECONDARY,
+    WEAPON_SLOT_VETERAN_PRIMARY,
+    WEAPON_SLOT_VETERAN_SECONDARY,
 
     /**
      *  The new total ExtWeaponSlotType count.

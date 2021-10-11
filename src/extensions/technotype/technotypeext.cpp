@@ -326,6 +326,15 @@ const WeaponInfoStruct &TechnoTypeClassExtension::Fetch_Weapon_Info(WeaponSlotTy
     if (slot == WEAPON_SLOT_ELITE_SECONDARY && !Weapons[slot].Weapon) {
         slot = WeaponSlotType(WEAPON_SLOT_ELITE_PRIMARY);
     }
+    if (slot == WEAPON_SLOT_VETERAN_SECONDARY && !Weapons[slot].Weapon) {
+        slot = WeaponSlotType(WEAPON_SLOT_VETERAN_PRIMARY);
+    }
+
+#ifndef NDEBUG
+    if (Weapons[slot].Weapon == nullptr) {
+        //DEBUG_WARNING("Fetching info for weapon \"%s\", but WeaponType pointer is null!\n", Name_From_WeaponSlot(slot));
+    }
+#endif
 
     return Weapons[slot];
 }

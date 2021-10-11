@@ -370,6 +370,20 @@ const WeaponInfoStruct * TechnoClassExtension::Get_Weapon(WeaponSlotType weapon)
                 break;
         };
 
+    } else if (ThisPtr->Veterancy.Is_Veteran()) {
+
+        switch (weapon) {
+            default:
+            case WEAPON_SLOT_PRIMARY:
+            case WEAPON_SLOT_VETERAN_PRIMARY:
+                weaponptr = &technotypeext->Fetch_Weapon_Info(WeaponSlotType(WEAPON_SLOT_VETERAN_PRIMARY));
+                break;
+            case WEAPON_SLOT_SECONDARY:
+            case WEAPON_SLOT_VETERAN_SECONDARY:
+                weaponptr = &technotypeext->Fetch_Weapon_Info(WeaponSlotType(WEAPON_SLOT_VETERAN_SECONDARY));
+                break;
+        };
+
     } else {
     
         technotypeext->Fetch_Weapon_Info(weapon);
