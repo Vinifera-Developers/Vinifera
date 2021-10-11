@@ -312,3 +312,44 @@ void TechnoClassExtension::Response_Harvest()
 
     Sound_Effect(response);
 }
+
+
+/**
+ *  Returns the control struct for the desired weapon type.
+ * 
+ *  @author: CCHyper
+ */
+const WeaponInfoStruct * TechnoClassExtension::Get_Weapon(WeaponSlotType weapon) const
+{
+    ASSERT(ThisPtr != nullptr);
+    //EXT_DEBUG_TRACE("TechnoClassExtension::Get_Weapon - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+
+    TechnoTypeClassExtension *technotypeext;
+    technotypeext = TechnoTypeClassExtensions.find(ThisPtr->Techno_Type_Class());
+    if (!technotypeext) {
+        return nullptr;
+    }
+
+    const WeaponInfoStruct * weaponptr = nullptr;
+
+    if (ThisPtr->Veterancy.Is_Elite()) {
+
+        switch (weapon) {
+            default:
+            case WEAPON_SLOT_PRIMARY:
+            case WEAPON_SLOT_ELITE_PRIMARY:
+                weaponptr = &technotypeext->Fetch_Weapon_Info(WeaponSlotType(WEAPON_SLOT_ELITE_PRIMARY));
+                break;
+            case WEAPON_SLOT_SECONDARY:
+            case WEAPON_SLOT_ELITE_SECONDARY:
+                weaponptr = &technotypeext->Fetch_Weapon_Info(WeaponSlotType(WEAPON_SLOT_ELITE_SECONDARY));
+                break;
+        };
+
+    } else {
+    
+        technotypeext->Fetch_Weapon_Info(weapon);
+    }
+
+    return weaponptr;
+}
