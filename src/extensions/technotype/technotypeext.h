@@ -146,6 +146,11 @@ class TechnoTypeClassExtension final : public Extension<TechnoTypeClass>
          *  Pointer to the cameo image surface.
          */
         BSurface *CameoImageSurface;
+
+        /**
+         *  These are the weapons that this techno object is armed with.
+         */
+        WeaponInfoStruct Weapons[WEAPON_SLOT_COUNT];
 };
 
 

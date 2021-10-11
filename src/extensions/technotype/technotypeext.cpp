@@ -70,13 +70,18 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(TechnoTypeClass *this_ptr) :
     VoiceDeploy(),
     VoiceHarvest(),
     IdleRate(0),
-    CameoImageSurface(nullptr)
+    CameoImageSurface(nullptr),
+    Weapons()
 {
     ASSERT(ThisPtr != nullptr);
     //EXT_DEBUG_TRACE("TechnoTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
     //EXT_DEBUG_WARNING("TechnoTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     IsInitialized = true;
+
+    for (int i = 0; i < ARRAY_SIZE(Weapons); ++i) {
+        Weapons[i].Weapon = nullptr;
+    }
 }
 
 
@@ -252,6 +257,21 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
      *  @author: CCHyper
      */
     ThisPtr->WalkRate = ArtINI.Get_Int(graphic_name, "WalkRate", ThisPtr->WalkRate);
+
+    /**
+     *  As we 
+     */
+    std::memcpy(&Weapons[WEAPON_SLOT_PRIMARY], &ThisPtr->Weapons[WEAPON_SLOT_PRIMARY], sizeof(WeaponInfoStruct));
+    std::memcpy(&Weapons[WEAPON_SLOT_SECONDARY], &ThisPtr->Weapons[WEAPON_SLOT_SECONDARY], sizeof(WeaponInfoStruct));
+    std::memcpy(&Weapons[WEAPON_SLOT_ELITE], &ThisPtr->Weapons[WEAPON_SLOT_ELITE], sizeof(WeaponInfoStruct));
+
+    /**
+     *  This is an alias for the "Elite" key, to fit the new naming format.
+     */
+    Weapons[WEAPON_SLOT_ELITE].Weapon = ini.Get_Weapon(ini_name, "ElitePrimary", Weapons[WEAPON_SLOT_ELITE].Weapon);
+    Weapons[WEAPON_SLOT_ELITE].FireFLH = ArtINI.Get_Point(ini_name, "ElitePrimaryFireFLH", Weapons[WEAPON_SLOT_ELITE].FireFLH);
+    Weapons[WEAPON_SLOT_ELITE].BarrelThickness = ArtINI.Get_Int(ini_name, "ElitePBarrelThickness", Weapons[WEAPON_SLOT_ELITE].BarrelThickness);
+    Weapons[WEAPON_SLOT_ELITE].BarrelLength = ArtINI.Get_Int(ini_name, "ElitePBarrelLength", Weapons[WEAPON_SLOT_ELITE].BarrelLength);
     
     CloakSound = ini.Get_VocType(ini_name, "CloakSound", CloakSound);
     UncloakSound = ini.Get_VocType(ini_name, "UncloakSound", UncloakSound);
