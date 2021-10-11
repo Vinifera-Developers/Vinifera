@@ -61,6 +61,10 @@ typedef enum ExtWeaponSlotType
     WEAPON_SLOT_VETERAN_TERTIARY,
     WEAPON_SLOT_ELITE_TERTIARY,
 
+    WEAPON_SLOT_QUATERNARY,
+    WEAPON_SLOT_VETERAN_QUATERNARY,
+    WEAPON_SLOT_ELITE_QUATERNARY,
+
     /**
      *  The new total ExtWeaponSlotType count.
      */
