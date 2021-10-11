@@ -378,6 +378,10 @@ const WeaponInfoStruct * TechnoClassExtension::Get_Weapon(WeaponSlotType weapon)
             case WEAPON_SLOT_ELITE_TERTIARY:
                 weaponptr = &technotypeext->Fetch_Weapon_Info(WeaponSlotType(WEAPON_SLOT_ELITE_TERTIARY));
                 break;
+            case WEAPON_SLOT_QUATERNARY:
+            case WEAPON_SLOT_ELITE_QUATERNARY:
+                weaponptr = &technotypeext->Fetch_Weapon_Info(WeaponSlotType(WEAPON_SLOT_ELITE_QUATERNARY));
+                break;
         };
 
     } else if (ThisPtr->Veterancy.Is_Veteran()) {
@@ -395,6 +399,10 @@ const WeaponInfoStruct * TechnoClassExtension::Get_Weapon(WeaponSlotType weapon)
             case WEAPON_SLOT_TERTIARY:
             case WEAPON_SLOT_VETERAN_TERTIARY:
                 weaponptr = &technotypeext->Fetch_Weapon_Info(WeaponSlotType(WEAPON_SLOT_VETERAN_TERTIARY));
+                break;
+            case WEAPON_SLOT_QUATERNARY:
+            case WEAPON_SLOT_VETERAN_QUATERNARY:
+                weaponptr = &technotypeext->Fetch_Weapon_Info(WeaponSlotType(WEAPON_SLOT_VETERAN_QUATERNARY));
                 break;
         };
 
@@ -483,6 +491,20 @@ WeaponSlotType TechnoClassExtension::What_Weapon_Should_I_Use(TARGET target) con
     if (ok == FIRE_CANT || ok == FIRE_ILLEGAL) w3 = 0;
 
     /**
+     *  Calculate a similar value for the quaternary weapon.
+     */
+    int w4 = 0;
+    bool w4_webby = false;
+    winfo = &ttype->Fetch_Weapon_Info(WeaponSlotType(WEAPON_SLOT_QUATERNARY));
+    if (winfo != nullptr && winfo->Weapon != nullptr && winfo->Weapon->WarheadPtr != nullptr) {
+        w4_webby = winfo->Weapon->WarheadPtr->IsWebby;
+        w4 = winfo->Weapon->WarheadPtr->Modifier[armor] * 1000;
+    }
+    if (ThisPtr->In_Range_Of(techno, WeaponSlotType(WEAPON_SLOT_QUATERNARY))) w4 *= 2;
+    ok = ThisPtr->Can_Fire(techno, WeaponSlotType(WEAPON_SLOT_QUATERNARY));
+    if (ok == FIRE_CANT || ok == FIRE_ILLEGAL) w4 = 0;
+
+    /**
      *  Return with the weapon identifier with the highest rating that should
      *  be used to fire upon the candidate target.
      */
@@ -492,7 +514,10 @@ WeaponSlotType TechnoClassExtension::What_Weapon_Should_I_Use(TARGET target) con
     if (w3 > w2) {
         slot = WeaponSlotType(WEAPON_SLOT_TERTIARY);
     }
-    if (!w1_webby && !w2_webby && !w3_webby) {
+    if (w4 > w3) {
+        slot = WeaponSlotType(WEAPON_SLOT_QUATERNARY);
+    }
+    if (!w1_webby && !w2_webby && !w3_webby && !w4_webby) {
         return slot;
     }
 

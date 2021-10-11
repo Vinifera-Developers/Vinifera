@@ -310,6 +310,23 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     Weapons[WEAPON_SLOT_ELITE_TERTIARY].BarrelThickness = ArtINI.Get_Int(ini_name, "EliteTBarrelThickness", Weapons[WEAPON_SLOT_ELITE_TERTIARY].BarrelThickness);
     Weapons[WEAPON_SLOT_ELITE_TERTIARY].BarrelLength = ArtINI.Get_Int(ini_name, "EliteTBarrelLength", Weapons[WEAPON_SLOT_ELITE_TERTIARY].BarrelLength);
 
+    Weapons[WEAPON_SLOT_QUATERNARY].Weapon = ini.Get_Weapon(ini_name, "Quaternary", Weapons[WEAPON_SLOT_QUATERNARY].Weapon);
+    Weapons[WEAPON_SLOT_QUATERNARY].FireFLH = ArtINI.Get_Point(ini_name, "QuaternaryFireFLH", Weapons[WEAPON_SLOT_QUATERNARY].FireFLH);
+    Weapons[WEAPON_SLOT_QUATERNARY].BarrelThickness = ArtINI.Get_Int(ini_name, "QBarrelThickness", Weapons[WEAPON_SLOT_QUATERNARY].BarrelThickness);
+    Weapons[WEAPON_SLOT_QUATERNARY].BarrelLength = ArtINI.Get_Int(ini_name, "QBarrelLength", Weapons[WEAPON_SLOT_QUATERNARY].BarrelLength);
+
+    std::memcpy(&Weapons[WEAPON_SLOT_VETERAN_QUATERNARY], &Weapons[WEAPON_SLOT_QUATERNARY], sizeof(WeaponInfoStruct));
+    std::memcpy(&Weapons[WEAPON_SLOT_ELITE_QUATERNARY], &Weapons[WEAPON_SLOT_QUATERNARY], sizeof(WeaponInfoStruct));
+
+    Weapons[WEAPON_SLOT_VETERAN_QUATERNARY].Weapon = ini.Get_Weapon(ini_name, "VeteranQuaternary", Weapons[WEAPON_SLOT_VETERAN_QUATERNARY].Weapon);
+    Weapons[WEAPON_SLOT_VETERAN_QUATERNARY].FireFLH = ArtINI.Get_Point(ini_name, "VeteranQuaternaryFireFLH", Weapons[WEAPON_SLOT_VETERAN_QUATERNARY].FireFLH);
+    Weapons[WEAPON_SLOT_VETERAN_QUATERNARY].BarrelThickness = ArtINI.Get_Int(ini_name, "VeteranQBarrelThickness", Weapons[WEAPON_SLOT_VETERAN_QUATERNARY].BarrelThickness);
+    Weapons[WEAPON_SLOT_VETERAN_QUATERNARY].BarrelLength = ArtINI.Get_Int(ini_name, "VeteranQBarrelLength", Weapons[WEAPON_SLOT_VETERAN_QUATERNARY].BarrelLength);
+    Weapons[WEAPON_SLOT_ELITE_QUATERNARY].Weapon = ini.Get_Weapon(ini_name, "EliteQuaternary", Weapons[WEAPON_SLOT_ELITE_QUATERNARY].Weapon);
+    Weapons[WEAPON_SLOT_ELITE_QUATERNARY].FireFLH = ArtINI.Get_Point(ini_name, "EliteQuaternaryFireFLH", Weapons[WEAPON_SLOT_ELITE_QUATERNARY].FireFLH);
+    Weapons[WEAPON_SLOT_ELITE_QUATERNARY].BarrelThickness = ArtINI.Get_Int(ini_name, "EliteQBarrelThickness", Weapons[WEAPON_SLOT_ELITE_QUATERNARY].BarrelThickness);
+    Weapons[WEAPON_SLOT_ELITE_QUATERNARY].BarrelLength = ArtINI.Get_Int(ini_name, "EliteQBarrelLength", Weapons[WEAPON_SLOT_ELITE_QUATERNARY].BarrelLength);
+
     CloakSound = ini.Get_VocType(ini_name, "CloakSound", CloakSound);
     UncloakSound = ini.Get_VocType(ini_name, "UncloakSound", UncloakSound);
     IsShakeScreen = ini.Get_Bool(ini_name, "CanShakeScreen", IsShakeScreen);
