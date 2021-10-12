@@ -112,6 +112,12 @@ void RulesClassFake::_Process(CCINIClass &ini)
     Overlays(ini);
 
     /**
+     *  Moved due to #issue-624 as Tiberiums were being loaded far too late, but
+     *  these must be loaded after overlay types as they have dependency on them.
+     */
+    TiberiumClass::Process(ini);
+
+    /**
      *  #issue-117
      * 
      *  Add reading of Weapons list from RULES.INI
@@ -145,7 +151,7 @@ void RulesClassFake::_Process(CCINIClass &ini)
     CombatDamage(ini);
     AudioVisual(ini);
     SpecialWeapons(ini);
-    TiberiumClass::Process(ini);
+    //TiberiumClass::Process(ini);
 
     /**
      *  Process the rules extension.

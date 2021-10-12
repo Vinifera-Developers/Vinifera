@@ -32,6 +32,7 @@
 #include "terrain.h"
 #include "terraintype.h"
 #include "lightsource.h"
+#include "cell.h"
 #include "fatal.h"
 #include "asserthandler.h"
 #include "debughandler.h"
@@ -39,6 +40,53 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-624
+ * 
+ *  Implements SpawnsTiberiumType for TerrainTypes.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_TerrainClass_AI_Spread_Tiberium_Patch)
+{
+    GET_REGISTER_STATIC(TerrainClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(CellClass *, cell, eax);
+    static TerrainTypeClassExtension *terraintypeext;
+    static TiberiumType tiberium;
+
+    /**
+     *  Fixup stack, as we are replacing a call to CellClass::Spread_Tiberium,
+     *  but not the args pushed to the original call.
+     */
+    _asm { add esp, 0x4 }
+
+    /**
+     *  Fetch the tiberium type override if set.
+     */
+    terraintypeext = TerrainTypeClassExtensions.find(this_ptr->Class);
+    if (terraintypeext) {
+        tiberium = terraintypeext->SpawnsTiberiumType;
+
+    /**
+     *  Original code (which should be TIBERIUM_RIPARIUS).
+     */
+    } else {
+        tiberium = TIBERIUM_FIRST;
+    }
+
+    /**
+     *  Final check to make sure the tiberium is within expected range.
+     */
+    if (tiberium == TIBERIUM_NONE || tiberium > Tiberiums.Count()) {
+        tiberium = TIBERIUM_FIRST;
+    }
+
+    cell->Spread_Tiberium(tiberium, true);
+
+    JMP(0x0064010F);
+}
 
 
 /**
@@ -189,4 +237,5 @@ void TerrainClassExtension_Hooks()
 
     Patch_Jump(0x006409C3, &_TerrainClass_Unlimbo_LightSource_Patch);
     Patch_Jump(0x0063F4D9, &_TerrainClass_Take_Damage_LightSource_Patch);
+    Patch_Jump(0x00640108, &_TerrainClass_AI_Spread_Tiberium_Patch);
 }

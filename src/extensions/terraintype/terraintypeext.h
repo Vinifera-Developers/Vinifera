@@ -81,6 +81,11 @@ class TerrainTypeClassExtension final : public Extension<TerrainTypeClass>
          *  The blue tint of this terrain objects light.
          */
         int LightBlueTint;
+
+        /**
+         *  The type of Tiberium this terrain object will spawn (if it has IsSpawnsTiberium).
+         */
+        TiberiumType SpawnsTiberiumType;
 };
 
 
