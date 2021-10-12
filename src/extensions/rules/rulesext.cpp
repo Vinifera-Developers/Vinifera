@@ -44,7 +44,8 @@ RulesClassExtension::UIControlsStruct RulesClassExtension::UIControls;
 RulesClassExtension::RulesClassExtension(RulesClass *this_ptr) :
     Extension(this_ptr),
     IsMPAutoDeployMCV(false),
-    IsMPPrePlacedConYards(false)
+    IsMPPrePlacedConYards(false),
+    IsBuildOffAlly(true)
 {
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("RulesClassExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
@@ -222,6 +223,7 @@ bool RulesClassExtension::MPlayer(CCINIClass &ini)
 
     IsMPAutoDeployMCV = ini.Get_Bool(MPLAYER, "AutoDeployMCV", IsMPAutoDeployMCV);
     IsMPPrePlacedConYards = ini.Get_Bool(MPLAYER, "PrePlacedConYards", IsMPPrePlacedConYards);
+    IsBuildOffAlly = ini.Get_Bool(MPLAYER, "BuildOffAlly", IsBuildOffAlly);
 
     return true;
 }

@@ -57,6 +57,7 @@ SessionClassExtension::SessionClassExtension(SessionClass *this_ptr) :
      */
     ExtOptions.IsAutoDeployMCV = false;
     ExtOptions.IsPrePlacedConYards = false;
+    ExtOptions.IsBuildOffAlly = true;
     
     IsInitialized = true;
 }

@@ -65,6 +65,11 @@ class SessionClassExtension final : public Extension<SessionClass>
              */
             bool IsPrePlacedConYards;
 
+            /**
+             *  Can players build their own structures adjacent to structures owned by their allies?
+             */
+            bool IsBuildOffAlly;
+
         } ExtGameOptionsType;
 
         ExtGameOptionsType ExtOptions;

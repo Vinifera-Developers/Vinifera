@@ -94,6 +94,11 @@ class RulesClassExtension final : public Extension<RulesClass>
          *  Are construction yards pre-placed on the map rather than a MCV given to the player?
          */
         bool IsMPPrePlacedConYards;
+
+        /**
+         *  Can players build their own structures adjacent to structures owned by their allies?
+         */
+        bool IsBuildOffAlly;
 };
 
 
