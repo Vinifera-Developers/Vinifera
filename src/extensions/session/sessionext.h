@@ -65,6 +65,11 @@ class SessionClassExtension final : public Extension<SessionClass>
              */
             bool IsPrePlacedConYards;
 
+            /**
+             *  
+             */
+            bool IsBuildOffAlly;
+
         } ExtGameOptionsType;
 
         ExtGameOptionsType ExtOptions;

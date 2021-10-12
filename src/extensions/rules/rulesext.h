@@ -84,6 +84,11 @@ class RulesClassExtension final : public Extension<RulesClass>
          *  Are construction yards pre-placed on the map rather than a MCV given to the player?
          */
         bool IsMPPrePlacedConYards;
+
+        /**
+         *  
+         */
+        bool IsBuildOffAlly;
 };
 
 
