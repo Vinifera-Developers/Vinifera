@@ -109,6 +109,11 @@ DECLARE_PATCH(_EndGameClass_Record_Debug_Patch)
 {
     GET_REGISTER_STATIC(EndGameClass *, this_ptr, esi);
 
+    /**
+     *  Stolen bytes/code.
+     */
+    this_ptr->Stage = Scen->Stage;
+
     DEBUG_INFO("Recording end game information...\n");
     DEBUG_INFO("  Credits: %d\n", this_ptr->Credits);
     DEBUG_INFO("  MissionTimer: %d\n", this_ptr->MissionTimer);
