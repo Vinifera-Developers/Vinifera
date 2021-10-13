@@ -184,6 +184,15 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
         return false;
     }
 
+    /**
+     *  #issue-646
+     * 
+     *  Some animations in the vanilla game have a DetailLevel of 3, which is out
+     *  of range and as a result do not play in-game. This makes sure the values
+     *  are never outside of the expected range.
+     */
+    ThisPtr->DetailLevel = std::clamp(ThisPtr->DetailLevel, 0, 2);
+
     IsHideIfNotTiberium = ini.Get_Bool(ini_name, "HideIfNoTiberium", IsHideIfNotTiberium);
     IsForceBigCraters = ini.Get_Bool(ini_name, "ForceBigCraters", IsForceBigCraters);
     ZAdjust = ini.Get_Int(ini_name, "ZAdjust", ZAdjust);
