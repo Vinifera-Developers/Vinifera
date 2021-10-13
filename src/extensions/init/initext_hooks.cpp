@@ -222,6 +222,95 @@ static bool Vinifera_Init_Secondary_Mixfiles()
 
 
 /**
+ *  Register and cache expansion mixfiles.
+ * 
+ *  @author: CCHyper
+ */
+static bool Vinifera_Init_Expansion_Mixfiles()
+{
+    MFCC *mix;
+    char buffer[16];
+
+    for (int i = 99; i >= 0; --i) {
+        std::snprintf(buffer, sizeof(buffer), "EXPAND%02d.MIX", i);
+        if (RawFileClass(buffer).Is_Available()) {
+            mix = new MFCC(buffer, &FastKey);
+            ASSERT(mix);
+            if (!mix) {
+                DEBUG_WARNING("Failed to load %s!\n", buffer);
+            } else {
+                ExpansionMixFiles.Add(mix);
+                DEBUG_INFO(" %s\n", buffer);
+            }
+        }
+    }
+
+    for (int i = 99; i >= 0; --i) {
+        std::snprintf(buffer, sizeof(buffer), "ECACHE%02d.MIX", i);
+        if (CCFileClass(buffer).Is_Available()) {
+            mix = new MFCC(buffer, &FastKey);
+            ASSERT(mix);
+            if (!mix) {
+                DEBUG_WARNING("Failed to load %s!\n", buffer);
+            } else {
+                mix->Cache();
+                ExpansionMixFiles.Add(mix);
+                DEBUG_INFO(" %s\n", buffer);
+            }
+        }
+    }
+
+    /**
+     *  #issue-648
+     * 
+     *  Load ELOCAL*.MIX expansion mixfiles.
+     * 
+     *  #NOTE:
+     *  Red Alert 2 uses the wild-card system to load these files, but to retain
+     *  the file naming format Tiberian Sun uses, we now use 00-99.
+     * 
+     *  @author: CCHyper
+     */
+#if 0
+    std::snprintf(buffer, sizeof(buffer), "ELOCAL*.MIX");
+    if (CCFileClass::Find_First_File(buffer)) {
+        DEBUG_INFO(" %s\n", buffer);
+        mix = new MFCC(buffer, &FastKey);
+        ASSERT(mix);
+        while (CCFileClass::Find_Next_File(buffer)) {
+            DEBUG_INFO(" %s\n", buffer);
+            mix = new MFCC(buffer, &FastKey);
+            ASSERT(mix);
+            if (!mix) {
+                DEBUG_WARNING("Failed to load %s!\n", buffer);
+            } else {
+                ExpansionMixFiles.Add(mix);
+                DEBUG_INFO(" %s\n", buffer);
+            }
+        }
+    }
+    CCFileClass::Find_Close();
+#else
+    for (int i = 99; i >= 0; --i) {
+        std::snprintf(buffer, sizeof(buffer), "ELOCAL%02d.MIX", i);
+        if (CCFileClass(buffer).Is_Available()) {
+            mix = new MFCC(buffer, &FastKey);
+            ASSERT(mix);
+            if (!mix) {
+                DEBUG_WARNING("Failed to load %s!\n", buffer);
+            } else {
+                ExpansionMixFiles.Add(mix);
+                DEBUG_INFO(" %s\n", buffer);
+            }
+        }
+    }
+#endif
+
+    return true;
+}
+
+
+/**
  *  Reimplemention of Init_Bootstrap_Mixfiles()
  *  
  *  Registers and caches any mixfiles needed for bootstrapping.
@@ -256,36 +345,7 @@ static bool Vinifera_Init_Bootstrap_Mixfiles()
         }
     }
 
-    for (int i = 99; i >= 0; --i) {
-        char buffer[16];
-        std::snprintf(buffer, sizeof(buffer), "EXPAND%02d.MIX", i);
-        if (RawFileClass(buffer).Is_Available()) {
-            mix = new MFCC(buffer, &FastKey);
-            ASSERT(mix);
-            if (!mix) {
-                DEBUG_WARNING("Failed to load %s!\n", buffer);
-            } else {
-                ExpansionMixFiles.Add(mix);
-                DEBUG_INFO(" %s\n", buffer);
-            }
-        }
-    }
-
-    for (int i = 99; i >= 0; --i) {
-        char buffer[16];
-        std::snprintf(buffer, sizeof(buffer), "ECACHE%02d.MIX", i);
-        if (CCFileClass(buffer).Is_Available()) {
-            mix = new MFCC(buffer, &FastKey);
-            ASSERT(mix);
-            if (!mix) {
-                DEBUG_WARNING("Failed to load %s!\n", buffer);
-            } else {
-                mix->Cache();
-                ExpansionMixFiles.Add(mix);
-                DEBUG_INFO(" %s\n", buffer);
-            }
-        }
-    }
+    Vinifera_Init_Expansion_Mixfiles();
 
     Addon_Present();
 
