@@ -483,7 +483,7 @@ retry_dialog:
 
         case 2: // User pressed "Load Game"
         {
-#ifdef RELEASE
+#if defined(RELEASE) || !defined(NDEBUG)
             /**
              *  If no save games are available, notify the user and return back
              *  and reissue the main dialog.
@@ -505,7 +505,7 @@ retry_dialog:
             /**
              *  We disable loading in non-release builds.
              */
-            Vinifera_Do_WWMessageBox("No saved games available.", Text_String(TXT_OK));
+            Vinifera_Do_WWMessageBox("Saving and Loading is disabled for non-release builds.", Text_String(TXT_OK));
 #endif
 
             /**
