@@ -89,7 +89,7 @@ DECLARE_PATCH(_InfantryClass_NoInit_Constructor_Patch)
      *  Stolen bytes here.
      */
 original_code:
-    _asm { mov dword ptr [ebx], 0x006D211C } // this->vftable = const AircraftClass::`vftable';
+    _asm { mov dword ptr [ebp+0], 0x006D2100 } // this->vftable = const InfantryClass::`vftable';
     JMP(0x004D9415);
 }
 

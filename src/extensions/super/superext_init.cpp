@@ -63,6 +63,7 @@ DECLARE_PATCH(_SuperClass_Default_Constructor_Patch)
      */
 original_code:
     _asm { mov eax, this_ptr }
+    _asm { pop esi }
     _asm { ret }
 }
 
