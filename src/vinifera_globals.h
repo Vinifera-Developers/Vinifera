@@ -66,6 +66,9 @@ extern bool Vinifera_SkipStartupMovies;
 extern DynamicVectorClass<MFCC *> ViniferaMapsMixes;
 extern DynamicVectorClass<MFCC *> ViniferaMoviesMixes;
 
+extern MFCC *GenericMix;
+extern MFCC *IsoGenericMix;
+
 
 /**
  *  Skip to menus.
