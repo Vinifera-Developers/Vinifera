@@ -58,6 +58,34 @@ static bool Vinifera_Init_Secondary_Mixfiles()
     DEBUG_INFO("\n"); // Fixes missing new-line after "Init Secondary Mixfiles....." print.
     //DEBUG_INFO("Init secondary mixfiles...\n");
 
+    /**
+     *  #issue-653
+     * 
+     *  Adds support for loading GENERIC.MIX and ISOGEN.MIX mix files.
+     * 
+     *  @author: CCHyper
+     */
+    if (CCFileClass("GENERIC.MIX").Is_Available()) {
+        GenericMix = new MFCC("GENERIC.MIX", &FastKey);
+        ASSERT(GenericMix);
+    }
+    if (!GenericMix) {
+        DEV_DEBUG_WARNING("Failed to load GENERIC.MIX!\n");
+    } else {
+        GenericMix->Cache();
+        DEBUG_INFO(" GENERIC.MIX\n");
+    }
+    if (CCFileClass("ISOGEN.MIX").Is_Available()) {
+        IsoGenericMix = new MFCC("ISOGEN.MIX", &FastKey);
+        ASSERT(IsoGenericMix);
+    }
+    if (!IsoGenericMix) {
+        DEV_DEBUG_WARNING("Failed to load ISOGEN.MIX!\n");
+    } else {
+        IsoGenericMix->Cache();
+        DEBUG_INFO(" ISOGEN.MIX\n");
+    }
+
     if (CCFileClass("CONQUER.MIX").Is_Available()) {
         ConquerMix = new MFCC("CONQUER.MIX", &FastKey);
         ASSERT(ConquerMix);
@@ -163,9 +191,9 @@ static bool Vinifera_Init_Secondary_Mixfiles()
     }
     DEBUG_INFO(" SCORES01.MIX\n", buffer);
 
-	/*
-	**	Register the score mixfile.
-	*/
+    /*
+    **	Register the score mixfile.
+    */
     if (CCFileClass("SCORES.MIX").Is_Available()) {
         ScoreMix = new MFCC("SCORES.MIX", &FastKey);
         ASSERT(ScoreMix);
@@ -175,8 +203,8 @@ static bool Vinifera_Init_Secondary_Mixfiles()
         return false;
     }
     DEBUG_INFO(" SCORES.MIX\n", buffer);
-	ScoresPresent = true;
-	Theme.Scan();
+    ScoresPresent = true;
+    Theme.Scan();
 
     /**
      *  #issue-513
@@ -399,10 +427,10 @@ DECLARE_PATCH(_Init_CDROM_Access_Local_Files_Patch)
 {
     _asm { add esp, 4 }
 
-	/**
-	 *  If there are search drives specified then all files are to be
-	 *  considered local.
-	 */
+    /**
+     *  If there are search drives specified then all files are to be
+     *  considered local.
+     */
     if (CCFileClass::Is_There_Search_Drives()) {
         
         /**

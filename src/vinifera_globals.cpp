@@ -50,6 +50,9 @@ bool Vinifera_SkipStartupMovies = false;
 DynamicVectorClass<MFCC *> ViniferaMapsMixes;
 DynamicVectorClass<MFCC *> ViniferaMoviesMixes;
 
+MFCC *GenericMix = nullptr;
+MFCC *IsoGenericMix = nullptr;
+
 bool Vinifera_SkipToTSMenu = false;
 bool Vinifera_SkipToFSMenu = false;
 bool Vinifera_SkipToLAN = false;

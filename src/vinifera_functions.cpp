@@ -235,6 +235,15 @@ bool Vinifera_Startup()
  */
 bool Vinifera_Shutdown()
 {
+    /**
+     *  Cleanup mixfiles.
+     */
+    delete GenericMix;
+    GenericMix = nullptr;
+
+    delete IsoGenericMix;
+    IsoGenericMix = nullptr;
+
     DEV_DEBUG_INFO("Shutdown - New Count: %d, Delete Count: %d\n", Vinifera_New_Count, Vinifera_Delete_Count);
 
     return true;
