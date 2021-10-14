@@ -51,6 +51,22 @@
 
 
 /**
+ *  #issue-315
+ * 
+ *  Set the waypoint number text for all theaters to be "White" (14).
+ *  TEMPERATE was "White" (14) and SNOW was "Black" (12).
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_Text_Color_Patch)
+{
+    _asm { mov eax, 14 }
+
+    JMP_REG(ecx, 0x00616FEB);
+}
+
+
+/**
  *  #issue-348
  * 
  *  The animation speed of Waypoint lines is not normalised and subjective to
@@ -629,4 +645,5 @@ void TacticalExtension_Hooks()
      *  @authors: CCHyper
      */
     Patch_Dword(0x006171C8+1, (TPF_CENTER|TPF_EFNT|TPF_FULLSHADOW));
+    Patch_Jump(0x00616FDA, &_Tactical_Draw_Waypoint_Paths_Text_Color_Patch);
 }
