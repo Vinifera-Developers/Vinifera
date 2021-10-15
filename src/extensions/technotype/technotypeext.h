@@ -129,6 +129,11 @@ class TechnoTypeClassExtension final : public Extension<TechnoTypeClass>
          *  The rate at which this unit animates when it is standing idle (not moving).
          */
         unsigned IdleRate;
+
+        /**
+         *  This is an individual control of the build time for this object.
+         */
+        float BuildTimeMultiplier;
 };
 
 

@@ -328,12 +328,26 @@ int TechnoClassExtension::Time_To_Build() const
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("TechnoClassExtension::Time_To_Build - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
+    TechnoTypeClassExtension *technotypeext;
+    technotypeext = TechnoTypeClassExtensions.find(ThisPtr->Techno_Type_Class());
+
     int time = ThisPtr->Techno_Type_Class()->Time_To_Build();
 
     /**
      *  Adjust the time based on the houses build speed bonus.
      */
     time *= ThisPtr->House->BuildSpeedBias;
+
+    /**
+     *  #issue-657
+     * 
+     *  Implements BuildTimeMultiplier for TechnoTypes.
+     * 
+     *  @author: CCHyper
+     */
+    if (technotypeext) {
+        time *= technotypeext->BuildTimeMultiplier;
+    }
 
     /**
      *  Adjust the time to build based on the power output of the owning house.
@@ -346,9 +360,9 @@ int TechnoClassExtension::Time_To_Build() const
     } else if (power < 1.0 && power >= Rule->BestLowPowerBuildRateCoefficient) {
 
         /**
-         *  #issue-
+         *  #issue-658
          * 
-         *  Restores the effect of "BestLowPowerBuildRateCoefficient".
+         *  Restores the affect of "BestLowPowerBuildRateCoefficient".
          * 
          *  @author: CCHyper
          */
@@ -357,9 +371,9 @@ int TechnoClassExtension::Time_To_Build() const
     } else if (power <= Rule->WorstLowPowerBuildRateCoefficient) {
 
         /**
-         *  #issue-
+         *  #issue-658
          * 
-         *  Restores the effect of "WorstLowPowerBuildRateCoefficient".
+         *  Restores the affect of "WorstLowPowerBuildRateCoefficient".
          * 
          *  @author: CCHyper
          */
