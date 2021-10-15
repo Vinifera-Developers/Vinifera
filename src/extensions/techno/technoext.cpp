@@ -343,11 +343,27 @@ int TechnoClassExtension::Time_To_Build() const
     if (power > 1.0) {
         scale = 1.0;
 
-    } else if (power < 1.0 && power > 0.75) {
-        scale = 0.75;
+    } else if (power < 1.0 && power >= Rule->BestLowPowerBuildRateCoefficient) {
 
-    } else if (power < 0.5) {
-        scale = 0.5;
+        /**
+         *  #issue-
+         * 
+         *  Restores the effect of "BestLowPowerBuildRateCoefficient".
+         * 
+         *  @author: CCHyper
+         */
+        scale = Rule->BestLowPowerBuildRateCoefficient; // Was "0.75"
+
+    } else if (power <= Rule->WorstLowPowerBuildRateCoefficient) {
+
+        /**
+         *  #issue-
+         * 
+         *  Restores the effect of "WorstLowPowerBuildRateCoefficient".
+         * 
+         *  @author: CCHyper
+         */
+        scale = Rule->WorstLowPowerBuildRateCoefficient; // Was 0.5;
 
     }
     if (power <= Rule->MinProductionSpeed) {
