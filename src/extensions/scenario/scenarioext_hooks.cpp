@@ -30,12 +30,15 @@
 #include "scenarioext.h"
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
+#include "tibsun_inline.h"
 #include "house.h"
+#include "housetype.h"
 #include "unit.h"
 #include "unittype.h"
 #include "unittypeext.h"
 #include "rules.h"
 #include "rulesext.h"
+#include "campaign.h"
 #include "multiscore.h"
 #include "scenario.h"
 #include "session.h"
@@ -51,6 +54,9 @@
 #include "unittype.h"
 #include "aircrafttype.h"
 #include "buildingtype.h"
+#include "progressscreen.h"
+#include "language.h"
+#include "wsproto.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
@@ -214,6 +220,183 @@ int _Waypoint_From_Name(char* wp)
     }
 
     return n - 1;
+}
+
+
+/**
+ *  Reimplements the loading screen setup routine.
+ * 
+ *  @author: CCHyper
+ */
+static void Init_Loading_Screen(const char *filename)
+{
+    int image_width = 640;
+    int image_height = 400;
+    int load_filename_height = 400;
+    char prefix = 'A';
+
+    bool solo = Session.Singleplayer_Game();
+    int player_count = solo ? 1 : Session.Players.Count();
+
+    /**
+     *  For the campaign, we abuse the required CD to get the desired Side.
+     */
+    SideType side = SIDE_GDI;
+    if (Session.Type == GAME_NORMAL) {
+
+        if (Scen->CampaignID != CAMPAIGN_NONE) {
+            side = SideType(Campaigns[Scen->CampaignID]->WhichCD);
+        }
+
+    /**
+     *  The first player in the player array is always the local player, so
+     *  fetch our player info and the house we are assigned as.
+     */
+    } else {
+        HousesType house = Session.Players.Fetch_Head()->Player.House;
+        HouseTypeClass *housetype = HouseTypes[house];
+
+        side = housetype->Side;
+    }
+
+    /**
+     *  Sanity check the side type.
+     */
+    if (side == SIDE_NONE || side >= Sides.Count()) {
+        side = SIDE_GDI;
+    }
+
+    /**
+     *  Get the loading screen variation prefix.
+     * 
+     *  #NOTE: Why does this use network random?
+     */
+    if (side == SIDE_GDI) {
+        prefix = Percent_Chance(50) ? 'C' : 'D';
+
+    } else {
+        prefix = Percent_Chance(50) ? 'A' : 'B';
+    }
+
+    Point2D textpos(0,0);
+
+    /**
+     *  Set the progress text draw positions (resolves #issue-294).
+     */
+    if (ScreenRect.Width >= 640 && ScreenRect.Height == 400) {
+
+        if (solo) {
+            textpos.X = 440;
+            textpos.Y = 158;
+        } else {
+            textpos.X = 570;
+            textpos.Y = 155;
+        }
+
+        image_width = 640;
+        image_height = 400;
+
+        load_filename_height = 400;
+
+    } else if (ScreenRect.Width >= 640 && ScreenRect.Height == 480) {
+
+        if (solo) {
+            textpos.X = 440;
+            textpos.Y = 189;
+        } else {
+            textpos.X = 570;
+            textpos.Y = 180;
+        }
+
+        image_width = 640;
+        image_height = 480;
+
+        load_filename_height = 480;
+
+    } else if (ScreenRect.Width >= 800 && ScreenRect.Height >= 600) {
+
+        if (solo) {
+            textpos.X = 550;
+            textpos.Y = 236;
+        } else {
+            textpos.X = 715;
+            textpos.Y = 230;
+        }
+
+        image_width = 800;
+        image_height = 600;
+
+        load_filename_height = 600;
+    }
+
+    /**
+     *  Adjust the position of the text so it is correct for widescreen resolutions.
+     */
+    textpos.X += (ScreenRect.Width - image_width) / 2;
+    textpos.Y += (ScreenRect.Height - image_height) / 2;
+
+    /**
+     *  Adjust the text positions for the Nod side graphics.
+     */
+    textpos.X -= 4;
+    if (side == SIDE_NOD) {
+        textpos.Y += 10;
+    } else {
+        textpos.Y += 3;
+    }
+
+    /**
+     *  Build the loading screen filename. (Format: LOAD[screen width][side char].PCX)
+     */
+    char loadname[16];
+    std::snprintf(loadname, sizeof(loadname), "LOAD%d%c.PCX", load_filename_height, prefix);
+
+    DEV_DEBUG_INFO("Loading Screen: \"%s\"\n", loadname);
+
+    /**
+     *  If this is a tournament game, format the game id.
+     */
+    char gamenamebuffer[128];
+    const char *gamename = nullptr;
+
+    if (Session.Type == GAME_INTERNET && TournamentGameType == WOL::TOURNAMENT_0) {
+        std::snprintf(gamenamebuffer, sizeof(gamenamebuffer), Text_String(TXT_GAME_ID), GameID);
+        gamename = gamenamebuffer;
+    }
+
+    /**
+     *  Select the progress bar graphic depending on the game mode.
+     */
+    const char *progress_name = player_count <= 1 ? "PROGBAR.SHP" : "PROGBARM.SHP";
+
+    /**
+     *  Initialise the loading screen.
+     */
+    ProgressScreen.Init(100.0f, player_count);
+
+    /**
+     *  Forces the initial draw, Call_Back calls will update the redraw from here on.
+     */
+    ProgressScreen.Draw_Graphics(progress_name, loadname, gamename, textpos.X, textpos.Y);
+    ProgressScreen.Draw_Bars_And_Text();
+}
+
+
+/**
+ *  Patch to intercept and replace the loading screen setup.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_Read_Scenario_Loading_Screen_Patch)
+{
+    LEA_STACK_STATIC(const char *, filename, esp, 0x50);
+
+    Init_Loading_Screen(filename);
+
+    /**
+     *  Jump to setting broadcast addresses.
+     */
+    JMP(0x005DBD4A);
 }
 
 
@@ -650,4 +833,6 @@ void ScenarioClassExtension_Hooks()
      */
     Patch_Byte(0x005DAFD0+6, 0x00); // +6 skips the opcode.
     Patch_Jump(0x005DD6FB, &_Read_Scenario_INI_Init_Side_Patch);
+
+    Patch_Jump(0x005DBA8B, &_Read_Scenario_Loading_Screen_Patch);
 }
