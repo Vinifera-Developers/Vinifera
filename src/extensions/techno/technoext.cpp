@@ -475,9 +475,28 @@ int TechnoClassExtension::Time_To_Build() const
      *  Calculate the bonus based on the current factory count.
      */
     int divisor = This()->House->Factory_Count(This()->Kind_Of());
+#if 0
+    /**
+     *  Original code for "MultipleFactory".
+     */
     if (Rule->MultipleFactory > 0.0 && divisor > 1) {
         time = (double)(1.0 / ((double)(divisor-1) * Rule->MultipleFactory) * (double)time);
     }
+#else
+    /**
+     *  #issue-106
+     * 
+     *  "MultipleFactory" calculation back ported from Red Alert 2.
+     * 
+     *  @author: CCHyper
+     */
+    if (Rule->MultipleFactory > 0.0 && (divisor-1) > 0) {
+        while (divisor) {
+            time *= Rule->MultipleFactory;
+            --divisor;
+        }
+    }
+#endif
 
     /**
      *  Walls have a coefficient as they are really cheap.
