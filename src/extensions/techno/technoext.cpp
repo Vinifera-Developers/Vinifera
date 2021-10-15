@@ -34,11 +34,13 @@
 #include "building.h"
 #include "buildingtype.h"
 #include "rules.h"
+#include "rulesext.h"
 #include "voc.h"
 #include "ebolt.h"
 #include "tactical.h"
 #include "tibsun_inline.h"
 #include "tibsun_globals.h"
+#include "extension_globals.h"
 #include "wwcrc.h"
 #include "extension.h"
 #include "asserthandler.h"
@@ -465,6 +467,16 @@ int TechnoClassExtension::Time_To_Build() const
      */
     double power = This()->House->Power_Fraction();
     double scale = 1.0f;
+
+    /**
+     *  #issue-656
+     * 
+     *  Implements LowPowerPenaltyModifier for RulesClass.
+     * 
+     *  @author: CCHyper
+     */
+    scale = 1.0f - (1.0f - power) * RuleExtension->LowPowerPenaltyModifier;
+
     if (power > 1.0) {
         scale = 1.0;
 

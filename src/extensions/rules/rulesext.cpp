@@ -85,7 +85,8 @@ RulesClassExtension::RulesClassExtension(const RulesClass *this_ptr) :
     MaxFreeRefineryDistanceBias(16),
     IsRecheckPrerequisites(false),
     IsMultiMCV(false),
-    AINavalYardAdjacency(20)
+    AINavalYardAdjacency(20),
+    LowPowerPenaltyModifier(1.0f)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
@@ -635,6 +636,7 @@ bool RulesClassExtension::General(CCINIClass &ini)
     MaxFreeRefineryDistanceBias = ini.Get_Int(GENERAL, "MaxFreeRefineryDistanceBias", MaxFreeRefineryDistanceBias);
     IsRecheckPrerequisites = ini.Get_Bool(GENERAL, "RecheckPrerequisites", IsRecheckPrerequisites);
     IsMultiMCV = ini.Get_Bool(GENERAL, "MultiMCV", IsMultiMCV);
+    LowPowerPenaltyModifier = ini.Get_Float(GENERAL, "LowPowerPenaltyModifier", LowPowerPenaltyModifier);
 
     return true;
 }
