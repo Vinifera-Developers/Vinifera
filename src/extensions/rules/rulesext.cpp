@@ -924,6 +924,7 @@ void RulesClassExtension::Fixups(CCINIClass &ini)
      */
     /*static*/ const float CorrectEngineerDamage = 1.0f / 3;                    // Amount of damage an engineer does.
     /*static*/ const float CorrectEngineerCaptureLevel = This()->ConditionRed;  // Building damage level before engineer can capture.
+    /*static*/ const float CorrectWorstLowPowerBuildRateCoefficient = 0.5f;     // Lowest the build rate can get for being low on power.
 
     /**
      *  Fetch the unique crc values for both rule databases.
@@ -939,16 +940,16 @@ void RulesClassExtension::Fixups(CCINIClass &ini)
     /**
      *  Check to see if the ini files have been modified.
      */
-    bool rule_unmodified = false;
+    bool is_rule_unmodified = false;
     if (rule_crc == Unmodified_RuleINI_CRC) {
         DEBUG_INFO("Rules: RuleINI is unmodified (version 2.03).\n");
-        rule_unmodified = true;
+        is_rule_unmodified = true;
     }
     bool fsrule_unmodified = false;
     if (Is_Addon_Available(ADDON_FIRESTORM)) {
         if (fsrule_crc == Unmodified_FSRuleINI_CRC) {
             DEBUG_INFO("Rules: FSRuleINI is unmodified (version 2.03).\n");
-            fsrule_unmodified = true;
+            is_fsrule_unmodified = true;
         }
     }
 
@@ -988,6 +989,29 @@ void RulesClassExtension::Fixups(CCINIClass &ini)
 
         }
 
+    }
+
+    /**
+     *  Fix up the WorstLowPowerBuildRateCoefficient value if we have possibly detected the original, unmodified rule ini database.
+     *
+     *  Match criteria;
+     *   - Are we currently processing RuleINI?
+     *   - WorstLowPowerBuildRateCoefficient is "0.3"
+     * 
+     *  We don't need to check BestLowPowerBuildRateCoefficient as the value in the INI matches the original
+     *  hardcoded value in TechnoClass::Time_To_Build.
+     */
+    if (is_ruleini) {
+
+        /**
+         *  The loaded value is 0.3, but gets stored as 0.333 (with 3 repeating until infinity), so
+         *  we need to use a math utility function to do a "essentually equal" comparison.
+         */
+        if (WWMath::EssentiallyEqual(This()->WorstLowPowerBuildRateCoefficient, 0.3)) {
+            DEBUG_WARNING("Rules: WorstLowPowerBuildRateCoefficient is '%.2f', changing to '%.2f'!\n", This()->WorstLowPowerBuildRateCoefficient, CorrectWorstLowPowerBuildRateCoefficient);
+            DEBUG_WARNING("Rules: Please consider changing WorstLowPowerBuildRateCoefficient to %.2f!\n", CorrectWorstLowPowerBuildRateCoefficient);
+            This()->WorstLowPowerBuildRateCoefficient = CorrectWorstLowPowerBuildRateCoefficient;
+        }
     }
 
     /**
