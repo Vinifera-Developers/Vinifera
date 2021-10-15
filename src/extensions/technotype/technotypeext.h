@@ -124,6 +124,11 @@ class TechnoTypeClassExtension final : public Extension<TechnoTypeClass>
          *  List of voices to use when giving this object a harvest order.
          */
         TypeList<VocType> VoiceHarvest;
+
+        /**
+         *  The rate at which this unit animates when it is standing idle (not moving).
+         */
+        unsigned IdleRate;
 };
 
 

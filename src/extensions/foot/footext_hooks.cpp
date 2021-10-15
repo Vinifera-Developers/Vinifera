@@ -28,12 +28,54 @@
 #include "footext_hooks.h"
 #include "foot.h"
 #include "technotype.h"
+#include "technotypeext.h"
 #include "fatal.h"
 #include "asserthandler.h"
 #include "debughandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-421
+ * 
+ *  Implements IdleRate for TechnoTypes.
+ * 
+ *  @author: CCHyper
+ */
+static bool Locomotion_Is_Moving_Now(FootClass *this_ptr) { return this_ptr->Locomotion->Is_Moving_Now(); }
+DECLARE_PATCH(_FootClass_AI_IdleRate_Patch)
+{
+    GET_REGISTER_STATIC(FootClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(ILocomotion *, loco, edi);
+    static TechnoTypeClassExtension *technotypeext;
+
+    technotypeext = TechnoTypeClassExtensions.find(this_ptr->Techno_Type_Class());
+
+    /**
+     *  Stolen bytes/code.
+     * 
+     *  If the object is currently moving, check to see if its time to update its walk frame.
+     */
+    if (Locomotion_Is_Moving_Now(this_ptr) && !(Frame % this_ptr->Techno_Type_Class()->WalkRate)) {
+        ++this_ptr->TotalFramesWalked;
+
+    /**
+     *  Otherwise, if the object is not currently moving, check to see if its time to update its idle frame.
+     */
+    } else if (technotypeext) {
+        if (technotypeext->IdleRate > 0) {
+            if (!Locomotion_Is_Moving_Now(this_ptr) && !(Frame % technotypeext->IdleRate)) {
+                ++this_ptr->TotalFramesWalked;
+            }
+        }
+    }
+
+    _asm { mov edi, loco }      // Restore EDI register.
+
+    JMP_REG(edx, 0x004A5A12);
+}
 
 
 /**
@@ -137,4 +179,5 @@ void FootClassExtension_Hooks()
 {
     Patch_Jump(0x004A4D60, &_FootClass_Death_Announcement_IsInsignifcant_Patch);
     Patch_Jump(0x004A6866, &_FootClass_Is_Allowed_To_Recloak_Cloak_Stop_BugFix_Patch);
+    Patch_Jump(0x004A59E1, &_FootClass_AI_IdleRate_Patch);
 }

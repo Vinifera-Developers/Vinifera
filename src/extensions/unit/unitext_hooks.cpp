@@ -49,6 +49,82 @@
 
 
 /**
+ *  #issue-421
+ * 
+ *  Implements IdleRate for UnitTypes.
+ *
+ *  This replaces the WalkFrames branch as we needed to move FiringSyncDelay
+ *  before so it has the highest priority over what shape frame to use.
+ * 
+ *  @author: CCHyper
+ */
+static bool Locomotion_Is_Moving(UnitClass *this_ptr) { return this_ptr->Locomotion->Is_Moving(); }
+DECLARE_PATCH(_UnitClass_Draw_Shape_IdleRate_Patch)
+{
+    GET_REGISTER_STATIC(UnitClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(int, facing, ebx);
+    static TechnoTypeClassExtension *technotypeext;
+    static UnitTypeClass *unittype;
+    static int frame;
+
+    unittype = this_ptr->Class;
+    technotypeext = TechnoTypeClassExtensions.find(this_ptr->Techno_Type_Class());
+
+    if (!Locomotion_Is_Moving(this_ptr)) {
+        if (this_ptr->FiringSyncDelay >= 0) {
+            frame = (this_ptr->FiringSyncDelay/2)
+                + this_ptr->Class->StartFiringFrame
+                + (this_ptr->Class->FiringFrames * facing);
+
+            goto continue_to_draw;
+        }
+    }
+
+    if (!Locomotion_Is_Moving(this_ptr)) {
+        if (this_ptr->DeathCounter >= 0) {
+
+            static int death_frame;
+
+            death_frame = (this_ptr->DeathCounter / unittype->DeathFrameRate);
+            if (death_frame >= (unittype->DeathFrames-1)) {
+                death_frame = (unittype->DeathFrames-1);
+            }
+
+            frame = death_frame + unittype->StartDeathFrame;
+
+            goto continue_to_draw;
+        }
+    }
+
+    if (Locomotion_Is_Moving(this_ptr) || (technotypeext && technotypeext->IdleRate > 0)) {
+        frame = unittype->StartWalkFrame
+            + (this_ptr->TotalFramesWalked % unittype->WalkFrames)
+            + (unittype->WalkFrames * facing);
+
+        goto continue_to_draw;
+    }
+
+    if (this_ptr->field_34D) {
+        if (unittype->StandingFrames > 0) {
+            frame = unittype->StartStandFrame + (facing * unittype->StandingFrames);
+
+        } else {
+            frame = unittype->StartWalkFrame + (facing * unittype->WalkFrames);
+        }
+
+        goto continue_to_draw;
+    }
+
+    /**
+     *  Continue to the shape drawing.
+     */
+continue_to_draw:
+    _asm { mov ebx, frame }
+    JMP(0x006531FB);
+}
+
+
+/**
  *  #issue-264
  * 
  *  Implements LeaveTransportSound for this unit is unloading its passengers.
@@ -493,4 +569,5 @@ void UnitClassExtension_Hooks()
     Patch_Jump(0x006537A8, &_UnitClass_Draw_Shape_Turret_Facing_Patch);
     Patch_Jump(0x00653D7F, &_UnitClass_Draw_It_Unloading_Harvester_Patch);
     Patch_Jump(0x00654399, &_UnitClass_Mission_Unload_Transport_Detach_Sound_Patch);
+    Patch_Jump(0x00653114, &_UnitClass_Draw_Shape_IdleRate_Patch);
 }

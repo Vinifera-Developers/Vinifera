@@ -62,7 +62,8 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(TechnoTypeClass *this_ptr) :
     VoiceCapture(),
     VoiceEnter(),
     VoiceDeploy(),
-    VoiceHarvest()
+    VoiceHarvest(),
+    IdleRate(0)
 {
     ASSERT(ThisPtr != nullptr);
     //DEV_DEBUG_TRACE("TechnoTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -234,6 +235,9 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     VoiceEnter = ini.Get_VocType_List(ini_name, "VoiceEnter", VoiceEnter);
     VoiceDeploy = ini.Get_VocType_List(ini_name, "VoiceDeploy", VoiceDeploy);
     VoiceHarvest = ini.Get_VocType_List(ini_name, "VoiceHarvest", VoiceHarvest);
+
+    IdleRate = ini.Get_Int(ini_name, "IdleRate", IdleRate);
+    IdleRate = ArtINI.Get_Int(graphic_name, "IdleRate", IdleRate);
 
     return true;
 }
