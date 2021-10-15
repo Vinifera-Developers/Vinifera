@@ -29,9 +29,14 @@
 #include "techno.h"
 #include "technotype.h"
 #include "technotypeext.h"
-#include "house.h"
-#include "voc.h"
 #include "tibsun_inline.h"
+#include "tibsun_globals.h"
+#include "house.h"
+#include "housetype.h"
+#include "building.h"
+#include "buildingtype.h"
+#include "rules.h"
+#include "voc.h"
 #include "wwcrc.h"
 #include "asserthandler.h"
 #include "debughandler.h"
@@ -310,4 +315,60 @@ void TechnoClassExtension::Response_Harvest()
     }
 
     Sound_Effect(response);
+}
+
+
+/**
+ *  Determines the time it would take to build this object.
+ * 
+ *  @author: CCHyper
+ */
+int TechnoClassExtension::Time_To_Build() const
+{
+    ASSERT(ThisPtr != nullptr);
+    //DEV_DEBUG_TRACE("TechnoClassExtension::Time_To_Build - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+
+    int time = ThisPtr->Techno_Type_Class()->Time_To_Build();
+
+    /**
+     *  Adjust the time based on the houses build speed bonus.
+     */
+    time *= ThisPtr->House->BuildSpeedBias;
+
+    /**
+     *  Adjust the time to build based on the power output of the owning house.
+     */
+    double power = ThisPtr->House->Power_Fraction();
+    double scale = 1.0f;
+    if (power > 1.0) {
+        scale = 1.0;
+
+    } else if (power < 1.0 && power > 0.75) {
+        scale = 0.75;
+
+    } else if (power < 0.5) {
+        scale = 0.5;
+
+    }
+    if (power <= Rule->MinProductionSpeed) {
+        scale = Rule->MinProductionSpeed;
+    }
+    time /= scale;
+
+    /**
+     *  Calculate the bonus based on the current factory count.
+     */
+    int divisor = ThisPtr->House->Factory_Count(ThisPtr->Kind_Of());
+    if (Rule->MultipleFactory > 0.0 && divisor > 1) {
+        time = (double)(1.0 / ((double)(divisor-1) * Rule->MultipleFactory) * (double)time);
+    }
+
+    /**
+     *  Walls have a coefficient as they are really cheap.
+     */
+    if (ThisPtr->What_Am_I() == RTTI_BUILDING && reinterpret_cast<const BuildingTypeClass *>(ThisPtr->Techno_Type_Class())->IsWall) {
+        time *= Rule->WallBuildSpeedCoefficient;
+    }
+
+    return time;
 }

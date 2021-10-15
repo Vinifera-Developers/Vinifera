@@ -57,6 +57,8 @@ class TechnoClassExtension final : public Extension<TechnoClass>
         void Response_Deploy();
         void Response_Harvest();
 
+        int Time_To_Build() const;
+
     public:
         /**
          *  The current electric bolt instance fired by this object.

@@ -55,6 +55,45 @@
 
 
 /**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ * 
+ *  @note: This must not contain a constructor or deconstructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+class TechnoClassFake final : public TechnoClass
+{
+    public:
+        int _Time_To_Build() const;
+};
+
+
+/**
+ *  Reimplementation of TechnoClass::Time_To_Build.
+ * 
+ *  @author: CCHyper
+ */
+int TechnoClassFake::_Time_To_Build() const
+{
+    TechnoClassExtension *technoext;
+
+    /**
+     *  Call the reimplementation of Time_To_Build().
+     */
+    technoext = TechnoClassExtensions.find(this);
+    if (technoext) {
+        return technoext->Time_To_Build();
+
+    /**
+     *  Call the original function.
+     */
+    } else {
+        return Time_To_Build();
+    }
+}
+
+
+/**
  *  #issue-357
  * 
  *  Creates an instance of the electric bolt from the firing techno to the target.
@@ -691,4 +730,8 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x00631661, &_TechnoClass_Player_Assign_Mission_Response_Patch);
     Patch_Jump(0x00630390, &_TechnoClass_Fire_At_Suicide_Patch);
     Patch_Jump(0x006312CD, &_TechnoClass_Fire_At_Electric_Bolt_Patch);
+
+    Patch_Call(0x0049725C, &TechnoClassFake::_Time_To_Build);
+    Patch_Call(0x004972F9, &TechnoClassFake::_Time_To_Build);
+    Patch_Call(0x00497A26, &TechnoClassFake::_Time_To_Build);
 }
