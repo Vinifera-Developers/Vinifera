@@ -36,6 +36,7 @@
 #include "building.h"
 #include "buildingtype.h"
 #include "rules.h"
+#include "rulesext.h"
 #include "voc.h"
 #include "wwcrc.h"
 #include "asserthandler.h"
@@ -354,6 +355,18 @@ int TechnoClassExtension::Time_To_Build() const
      */
     double power = ThisPtr->House->Power_Fraction();
     double scale = 1.0f;
+
+    /**
+     *  #issue-656
+     * 
+     *  Implements LowPowerPenaltyModifier for RulesClass.
+     * 
+     *  @author: CCHyper
+     */
+    if (RulesExtension) {
+        scale = 1.0f - (1.0f - power) * RulesExtension->LowPowerPenaltyModifier;
+    }
+
     if (power > 1.0) {
         scale = 1.0;
 

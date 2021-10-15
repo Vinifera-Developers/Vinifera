@@ -45,7 +45,8 @@ RulesClassExtension::RulesClassExtension(RulesClass *this_ptr) :
     Extension(this_ptr),
     IsMPAutoDeployMCV(false),
     IsMPPrePlacedConYards(false),
-    IsBuildOffAlly(true)
+    IsBuildOffAlly(true),
+    LowPowerPenaltyModifier(1.0f)
 {
     ASSERT(ThisPtr != nullptr);
     //EXT_DEBUG_TRACE("RulesClassExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
@@ -203,6 +204,8 @@ bool RulesClassExtension::General(CCINIClass &ini)
     if (!ini.Is_Present(GENERAL)) {
         return false;
     }
+
+    LowPowerPenaltyModifier = ini.Get_Float(GENERAL, "LowPowerPenaltyModifier", LowPowerPenaltyModifier);
 
     return true;
 }

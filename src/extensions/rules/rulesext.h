@@ -99,6 +99,12 @@ class RulesClassExtension final : public Extension<RulesClass>
          *  Can players build their own structures adjacent to structures owned by their allies?
          */
         bool IsBuildOffAlly;
+
+        /**
+         *  The "double penalty" or "half penalty". Multiply this by the power
+         *  units you are short of to get the actual penalty to the build speed.
+         */
+        float LowPowerPenaltyModifier;
 };
 
 
