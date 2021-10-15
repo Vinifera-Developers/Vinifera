@@ -86,7 +86,8 @@ RulesClassExtension::RulesClassExtension(const RulesClass *this_ptr) :
     IsRecheckPrerequisites(false),
     IsMultiMCV(false),
     AINavalYardAdjacency(20),
-    LowPowerPenaltyModifier(1.0f)
+    LowPowerPenaltyModifier(1.0f),
+    MultipleFactoryCap(0)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
@@ -651,6 +652,7 @@ bool RulesClassExtension::AudioVisual(CCINIClass &ini)
 {
     //EXT_DEBUG_TRACE("RulesClassExtension::General - 0x%08X\n", (uintptr_t)(This()));
 
+    static char const * const GENERAL = "General";
     static char const * const AUDIOVISUAL = "AudioVisual";
 
     if (!ini.Is_Present(AUDIOVISUAL)) {
@@ -660,6 +662,7 @@ bool RulesClassExtension::AudioVisual(CCINIClass &ini)
     IsShowSuperWeaponTimers = ini.Get_Bool(AUDIOVISUAL, "ShowSuperWeaponTimers", IsShowSuperWeaponTimers);
     WeedPipIndex = ini.Get_Int(AUDIOVISUAL, "WeedPipIndex", WeedPipIndex);
     MaxPips = ini.Get_Integers(AUDIOVISUAL, "MaxPips", MaxPips);
+    MultipleFactoryCap = ini.Get_Int(GENERAL, "MultipleFactoryCap", MultipleFactoryCap);
 
     for (int i = 0; i < MaxPips.Count(); i++)
         DEBUG_INFO("%d", MaxPips[i]);

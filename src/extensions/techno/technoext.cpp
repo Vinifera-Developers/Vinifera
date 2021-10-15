@@ -528,6 +528,20 @@ int TechnoClassExtension::Time_To_Build() const
      *  @author: CCHyper
      */
     if (Rule->MultipleFactory > 0.0 && (divisor-1) > 0) {
+
+        /**
+         *  #issue-659
+         * 
+         *  Implements MultipleFactoryCap for RulesClass.
+         * 
+         *  @author: CCHyper
+         */
+        if (RuleExtension->MultipleFactoryCap > 0) {
+            divisor = RuleExtension->MultipleFactoryCap;
+        }
+
+        divisor = (divisor-1);
+
         while (divisor) {
             time *= Rule->MultipleFactory;
             --divisor;
