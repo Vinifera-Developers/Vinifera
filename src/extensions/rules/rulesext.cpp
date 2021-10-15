@@ -46,7 +46,8 @@ RulesClassExtension::RulesClassExtension(RulesClass *this_ptr) :
     IsMPAutoDeployMCV(false),
     IsMPPrePlacedConYards(false),
     IsBuildOffAlly(true),
-    LowPowerPenaltyModifier(1.0f)
+    LowPowerPenaltyModifier(1.0f),
+    MultipleFactoryCap(0)
 {
     ASSERT(ThisPtr != nullptr);
     //EXT_DEBUG_TRACE("RulesClassExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
@@ -206,6 +207,7 @@ bool RulesClassExtension::General(CCINIClass &ini)
     }
 
     LowPowerPenaltyModifier = ini.Get_Float(GENERAL, "LowPowerPenaltyModifier", LowPowerPenaltyModifier);
+    MultipleFactoryCap = ini.Get_Int(GENERAL, "MultipleFactoryCap", MultipleFactoryCap);
 
     return true;
 }
