@@ -452,6 +452,15 @@ int TechnoClassExtension::Time_To_Build() const
     time *= This()->House->BuildSpeedBias;
 
     /**
+     *  #issue-657
+     * 
+     *  Implements BuildTimeMultiplier for TechnoTypes.
+     * 
+     *  @author: CCHyper
+     */
+    time *= technotypeext->BuildTimeMultiplier;
+
+    /**
      *  Adjust the time to build based on the power output of the owning house.
      */
     double power = This()->House->Power_Fraction();
