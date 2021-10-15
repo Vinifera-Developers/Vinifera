@@ -30,10 +30,15 @@
 #include "technotype.h"
 #include "technotypeext.h"
 #include "house.h"
+#include "housetype.h"
+#include "building.h"
+#include "buildingtype.h"
+#include "rules.h"
 #include "voc.h"
 #include "ebolt.h"
 #include "tactical.h"
 #include "tibsun_inline.h"
+#include "tibsun_globals.h"
 #include "wwcrc.h"
 #include "extension.h"
 #include "asserthandler.h"
@@ -424,6 +429,64 @@ bool TechnoClassExtension::Can_Passive_Acquire() const
      *  IsCanPassiveAcquire defaults to true to copy original behaviour, so all units can passive acquire unless told otherwise.
      */
     return Techno_Type_Class_Ext()->IsCanPassiveAcquire;
+}
+
+
+
+/**
+ *  Determines the time it would take to build this object.
+ * 
+ *  @author: CCHyper
+ */
+int TechnoClassExtension::Time_To_Build() const
+{
+    //EXT_DEBUG_TRACE("TechnoClassExtension::Time_To_Build - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    TechnoTypeClassExtension* technotypeext = Extension::Fetch< TechnoTypeClassExtension>(Techno_Type_Class());
+
+    int time = Techno_Type_Class()->Time_To_Build();
+
+    /**
+     *  Adjust the time based on the houses build speed bonus.
+     */
+    time *= This()->House->BuildSpeedBias;
+
+    /**
+     *  Adjust the time to build based on the power output of the owning house.
+     */
+    double power = This()->House->Power_Fraction();
+    double scale = 1.0f;
+    if (power > 1.0) {
+        scale = 1.0;
+
+    } else if (power < 1.0 && power > 0.75) {
+        scale = 0.75;
+
+    } else if (power < 0.5) {
+        scale = 0.5;
+
+    }
+    if (power <= Rule->MinProductionSpeed) {
+        scale = Rule->MinProductionSpeed;
+    }
+    time /= scale;
+
+    /**
+     *  Calculate the bonus based on the current factory count.
+     */
+    int divisor = This()->House->Factory_Count(This()->Kind_Of());
+    if (Rule->MultipleFactory > 0.0 && divisor > 1) {
+        time = (double)(1.0 / ((double)(divisor-1) * Rule->MultipleFactory) * (double)time);
+    }
+
+    /**
+     *  Walls have a coefficient as they are really cheap.
+     */
+    if (This()->What_Am_I() == RTTI_BUILDING && reinterpret_cast<const BuildingTypeClass *>(This()->Techno_Type_Class())->IsWall) {
+        time *= Rule->WallBuildSpeedCoefficient;
+    }
+
+    return time;
 }
 
 
