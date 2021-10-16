@@ -18,6 +18,7 @@
 - [Building The Project](#building-the-project)
 - [Installing The Game](#installing-the-game)
 - [Running The Game](#running-the-game)
+- [Third Party Libraries](#third-party-libraries)
 - [Anti-virus Warning](#anti-virus-warning)
 - [Legal](#legal)
 - [License](#license)
@@ -65,6 +66,11 @@ You can download the v2.03 patch in English, French, German and Spanish.<br>
 
 # Running The Game
 Copy the built executables from the build directory to the Tiberian Sun directory. Run `LaunchVinifera.exe` to start the game with the Vinifera project applied. For more information on how to use Vinifera, please read the documention or you can join the **C&C Modding Haven** [Discord server](<https://discord.gg/sZeMzz6qVg>) and use the **#vinifera-chat** channel.
+
+# Third-Party Libraries
+Vinifera makes use of third-party libraries to help implement features. Below is a list of libraries used by the project;
+ - [LodePNG](https://lodev.org/lodepng/)
+ - [Image-Resampler](https://github.com/ramenhut/image-resampler)
 
 # Anti-virus Warning
 Anti-virus software like Windows Defender could mark the binaries built from the DLL configuration in this project as a virus. We would like to assure that this is a false-positive and that these is completely safe to use. If you are still unsure about running these binaries on your system, your are welcome to join our Discord server where one of the developers can explain the process used by this project in detail.
