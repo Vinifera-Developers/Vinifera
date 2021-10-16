@@ -41,17 +41,6 @@ function(SetupProjectFilters REMOVE_FOLDER)
 		if(group STREQUAL "")
 #			set(group "root")
 			
-		# Group resources into "Resource Files"
-		elseif(("${arg_file}" MATCHES ".*\\res"
-		    OR "${arg_file}" MATCHES ".*\\resource"
-		    OR "${arg_file}" MATCHES ".*\\resources")
-		  AND ("${arg_file}" MATCHES ".*\\.h"
-			OR "${arg_file}" MATCHES ".*\\.ico"
-			OR "${arg_file}" MATCHES ".*\\.cur"
-			OR "${arg_file}" MATCHES ".*\\.rc"))
-			set(group "Resource Files")
-#			message(STATUS "Added Resource: ${arg_file}")
-			
 		# Group .c and .cpp into "Source Files"
 		elseif("${arg_file}" MATCHES ".*\\.c"
 			OR "${arg_file}" MATCHES ".*\\.cpp"
@@ -66,6 +55,17 @@ function(SetupProjectFilters REMOVE_FOLDER)
 			set(group "Source Files${group}")
 #    		set(group "Header Files${group}") # We want headers and sources to be in the same tree.
 #			message(STATUS "Added Header: ${arg_file}")
+
+		# Group resources into "Resource Files"
+		elseif(("${arg_file}" MATCHES ".*\\res"
+		    OR "${arg_file}" MATCHES ".*\\resource"
+		    OR "${arg_file}" MATCHES ".*\\resources")
+		  AND ("${arg_file}" MATCHES ".*\\.h"
+			OR "${arg_file}" MATCHES ".*\\.ico"
+			OR "${arg_file}" MATCHES ".*\\.cur"
+			OR "${arg_file}" MATCHES ".*\\.rc"))
+			set(group "Resource Files")
+#			message(STATUS "Added Resource: ${arg_file}")
 		
 		endif()
 
