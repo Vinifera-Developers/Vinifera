@@ -66,6 +66,16 @@ class UnitTypeClassExtension final : public Extension<UnitTypeClass>
          *  The facing count for the turret graphics in the units shape file.
          */
         int TurretFacings;
+
+        /**
+         *  The starting frame for the idle animation in the units shape file.
+         */
+        unsigned StartIdleFrame;
+
+        /**
+         *  The number of image frames for each of the idle animation sequences.
+         */
+        unsigned IdleFrames;
 };
 
 

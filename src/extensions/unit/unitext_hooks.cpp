@@ -31,11 +31,11 @@
 #include "vinifera_globals.h"
 #include "tibsun_globals.h"
 #include "tibsun_functions.h"
-#include "unittypeext.h"
 #include "technotype.h"
 #include "technotypeext.h"
 #include "unit.h"
 #include "unittype.h"
+#include "unittypeext.h"
 #include "target.h"
 #include "rules.h"
 #include "iomap.h"
@@ -65,11 +65,13 @@ DECLARE_PATCH(_UnitClass_Draw_Shape_IdleRate_Patch)
     GET_REGISTER_STATIC(int, facing, ebx);
     GET_REGISTER_STATIC(ShapeFileStruct *, shape, edi);
     static TechnoTypeClassExtension *technotypeext;
+    static UnitTypeClassExtension *unittypeext;
     static UnitTypeClass *unittype;
     static int frame;
 
     unittype = this_ptr->Class;
     technotypeext = TechnoTypeClassExtensions.find(this_ptr->Techno_Type_Class());
+    unittypeext = UnitTypeClassExtensions.find(unittype);
 
     if (!Locomotion_Is_Moving(this_ptr)) {
         if (this_ptr->FiringSyncDelay >= 0) {
@@ -97,10 +99,21 @@ DECLARE_PATCH(_UnitClass_Draw_Shape_IdleRate_Patch)
         }
     }
 
-    if (Locomotion_Is_Moving(this_ptr) || (technotypeext && technotypeext->IdleRate > 0)) {
+    if (Locomotion_Is_Moving(this_ptr)) {
         frame = unittype->StartWalkFrame
             + (this_ptr->TotalFramesWalked % unittype->WalkFrames)
             + (unittype->WalkFrames * facing);
+
+        goto continue_to_draw;
+    }
+
+    /**
+     *  Unit is not moving, so if the unit has a idle animation rate, use this.
+     */
+    if (!Locomotion_Is_Moving(this_ptr) && (technotypeext && technotypeext->IdleRate > 0) && unittypeext) {
+        frame = unittypeext->StartIdleFrame
+            + (this_ptr->TotalFramesWalked % unittypeext->IdleFrames)
+            + (unittypeext->IdleFrames * facing);
 
         goto continue_to_draw;
     }
