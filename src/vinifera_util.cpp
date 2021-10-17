@@ -43,6 +43,72 @@
 
 
 /**
+ *  Returns the Vinifera run config info as string.
+ * 
+ *  @author: CCHyper
+ */
+const char *Vinifera_Name_String()
+{
+    static char _buffer[512] { '\0' };
+
+    if (_buffer[0] == '\0') {
+
+        /**
+         *  Append the CnCNet version if enabled.
+         */
+        char *cncnet_mode = nullptr;
+        if (CnCNet4::IsEnabled) {
+            cncnet_mode = " (CnCNet4)";
+        }
+
+        char *dev_mode = nullptr;
+        if (Vinifera_DeveloperMode) {
+            dev_mode = " (Dev)";
+        }
+
+        if (!dev_mode && !cncnet_mode) {
+            std::snprintf(_buffer, sizeof(_buffer), "Vinifera");
+
+        } else {
+            std::snprintf(_buffer, sizeof(_buffer), "Vinifera:%s%s",
+                cncnet_mode != nullptr ? cncnet_mode : "",
+                dev_mode != nullptr ? dev_mode : "");
+        }
+        
+    }
+
+    return _buffer;
+}
+
+
+/**
+ *  Returns the Vinifera version git info as string.
+ * 
+ *  The "~" character is added if there are changes made locally before the build was produced.
+ * 
+ *  @author: CCHyper
+ */
+const char *Vinifera_Version_Git_String()
+{
+    static char _buffer[512] { '\0' };
+
+    if (_buffer[0] == '\0') {
+        
+#ifndef RELEASE
+        std::snprintf(_buffer, sizeof(_buffer), "%s %s %s%s %s",
+            Vinifera_Git_Branch(), Vinifera_Git_Author(),
+            Vinifera_Git_Uncommitted_Changes() ? "~" : "", Vinifera_Git_Hash_Short(), Vinifera_Git_DateTime());
+#else
+        std::snprintf(_buffer, sizeof(_buffer), "%s%s %s",
+            Vinifera_Git_Uncommitted_Changes() ? "~" : "", Vinifera_Git_Hash_Short(), Vinifera_Git_DateTime());
+#endif
+    }
+
+    return _buffer;
+}
+
+
+/**
  *  Returns the Vinifera version info as string.
  * 
  *  The "~" character is added if there are changes made locally before the build was produced.
@@ -117,6 +183,7 @@ void Vinifera_Draw_Version_Text(XSurface *surface, bool pre_init)
     
 #ifndef RELEASE
     static Point2D warning_pos;
+    static Point2D vinifera_pos;
 #endif
     static Point2D version_pos;
 
@@ -159,6 +226,8 @@ void Vinifera_Draw_Version_Text(XSurface *surface, bool pre_init)
     warning_pos.Y = surfrect.Height-offset-(print_rect.Height*1);
     version_pos.X = surfrect.Width-offset;
     version_pos.Y = surfrect.Height-offset-(print_rect.Height*2)-space;
+    vinifera_pos.X = surfrect.Width-offset;
+    vinifera_pos.Y = surfrect.Height-offset-(print_rect.Height*3)-space;
 #else
     version_pos.X = surfrect.Width-offset;
     version_pos.Y = surfrect.Height-offset-(print_rect.Height*1);
@@ -171,12 +240,12 @@ void Vinifera_Draw_Version_Text(XSurface *surface, bool pre_init)
      */
     if (pre_init) {
 
+#ifndef RELEASE
         /**
          *  Draw the version string.
          */
-        Simple_Text_Print(Vinifera_Version_String(), surface, &surfrect, &version_pos, NormalDrawer, version_color, back_color, style);
+        Simple_Text_Print(Vinifera_Version_Git_String(), surface, &surfrect, &version_pos, NormalDrawer, version_color, back_color, style);
 
-#ifndef RELEASE
         /**
          *  Draw the warning string.
          */
@@ -188,16 +257,28 @@ void Vinifera_Draw_Version_Text(XSurface *surface, bool pre_init)
         Simple_Text_Print(Vinifera_Git_Uncommitted_Changes() ? TXT_VINIFERA_LOCAL_BUILD : TXT_VINIFERA_UNOFFICIAL_BUILD,
             surface, &surfrect, &warning_pos, NormalDrawer, warning_color, warning_back_color, style);
     #endif
+
+        /**
+         *  Draw the vinifera name string.
+         */
+        Simple_Text_Print(Vinifera_Name_String(), surface, &surfrect, &vinifera_pos, NormalDrawer, version_color, back_color, style);
+#else
+
+        /**
+         *  Draw the vinifera name string.
+         */
+        Simple_Text_Print(Vinifera_Version_String(), surface, &surfrect, &version_pos, NormalDrawer, version_color, back_color, style);
 #endif
 
     } else {
 
+#ifndef RELEASE
+
         /**
          *  Draw the version string.
          */
-        Fancy_Text_Print(Vinifera_Version_String(), surface, &surfrect, &version_pos, color_white, back_color, style);
+        Fancy_Text_Print(Vinifera_Version_Git_String(), surface, &surfrect, &version_pos, color_white, back_color, style);
 
-#ifndef RELEASE
         /**
          *  Draw the warning string.
          */
@@ -209,6 +290,17 @@ void Vinifera_Draw_Version_Text(XSurface *surface, bool pre_init)
         Fancy_Text_Print(Vinifera_Git_Uncommitted_Changes() ? TXT_VINIFERA_LOCAL_BUILD : TXT_VINIFERA_UNOFFICIAL_BUILD,
             surface, &surfrect, &warning_pos, color_yellow, warning_back_color, style);
     #endif
+
+        /**
+         *  Draw the vinifera name string.
+         */
+        Fancy_Text_Print(Vinifera_Name_String(), surface, &surfrect, &vinifera_pos, color_white, back_color, style);
+#else
+
+        /**
+         *  Draw the version string.
+         */
+        Fancy_Text_Print(Vinifera_Version_String(), surface, &surfrect, &version_pos, color_white, back_color, style);
 #endif
 
     }
