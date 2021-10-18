@@ -29,16 +29,81 @@
 #include "scenarioext_init.h"
 #include "scenarioext_functions.h"
 #include "scenarioext.h"
+#include "tibsun_functions.h"
 #include "tibsun_globals.h"
 #include "multiscore.h"
 #include "scenario.h"
 #include "session.h"
+#include "rules.h"
+#include "ccfile.h"
+#include "ccini.h"
+#include "addon.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  Process additions to the Rules data from the input file.
+ * 
+ *  @author: CCHyper
+ */
+static bool Rule_Addition(const char *fname, bool with_digest = false)
+{
+    CCFileClass file(fname);
+    if (!file.Is_Available()) {
+        return false;
+    }
+
+    CCINIClass ini;
+    if (!ini.Load(file, with_digest)) {
+        return false;
+    }
+
+    DEBUG_INFO("Calling Rule->Addition() with \"%s\" overrides.\n", fname);
+
+    Rule->Addition(ini);
+
+    return true;
+}
+
+
+/**
+ *  #issue-#671
+ * 
+ *  Add loading of MPLAYER.INI to override Rules data for multiplayer games.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_Read_Scenario_INI_MPlayer_INI_Patch)
+{
+    if (Session.Type != GAME_NORMAL && Session.Type != GAME_WDT) {
+
+        /**
+         *  Process the multiplayer ini overrides.
+         */
+        Rule_Addition("MPLAYER.INI");
+        if (Addon_Enabled(ADDON_FIRESTORM)) { 
+            Rule_Addition("MPLAYERFS.INI");
+        }
+
+    }
+
+    /**
+     *  Update the progress screen bars.
+     */
+    Session.Loading_Callback(42);
+
+    /**
+     *  Stolen bytes/code.
+     */
+    Call_Back();
+
+    JMP(0x005DD8DA);
+}
 
 
 /**
@@ -106,4 +171,5 @@ void ScenarioClassExtension_Hooks()
 
     Patch_Jump(0x005DC9D4, &_Do_Win_Skip_MPlayer_Score_Screen_Patch);
     Patch_Jump(0x005DCD92, &_Do_Lose_Skip_MPlayer_Score_Screen_Patch);
+    Patch_Jump(0x005DD8D5, &_Read_Scenario_INI_MPlayer_INI_Patch);
 }
