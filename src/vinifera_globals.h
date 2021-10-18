@@ -41,6 +41,8 @@ extern char Vinifera_DebugDirectory[PATH_MAX];
 extern char Vinifera_ScreenshotDirectory[PATH_MAX];
 
 extern char Vinifera_ProjectName[64];
+extern char Vinifera_IconName[64];
+extern char Vinifera_CursorName[64];
 
 
 /**
