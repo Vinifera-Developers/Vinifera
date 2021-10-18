@@ -246,6 +246,14 @@ bool Vinifera_Startup()
         DEBUG_WARNING("Failed to load VINIFERA.INI!\n");
     }
 
+    if (Vinifera_ProjectName[0] != '\0') {
+        DEBUG_INFO("\n");
+        DEBUG_INFO("Project information:\n");
+        DEBUG_INFO("  Title: %s\n", Vinifera_ProjectName);
+        DEBUG_INFO("  Version: %s\n", Vinifera_ProjectVersion);
+        DEBUG_INFO("\n");
+    }
+
     /**
      *  Initialise the CnCNet4 system.
      */

@@ -371,6 +371,13 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
     
     Exception_Printf("\r\n");
 
+    Exception_Printf("Project information:\r\n");
+    if (Vinifera_ProjectName[0] != '\0') {
+        Exception_Printf("Title: %s\r\n", Vinifera_ProjectName);
+        Exception_Printf("Version: %s\r\n", Vinifera_ProjectVersion);
+        Exception_Printf("\r\n");
+    }
+
     Exception_Printf("Application : %s (%s)\r\n", VINIFERA_PROJECT_NAME, VINIFERA_DLL);
     //Exception_Printf("Version : %s\r\n", VerNum.Version_Name());
 
