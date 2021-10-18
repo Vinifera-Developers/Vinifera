@@ -70,6 +70,7 @@ void Vinifera_Create_Main_Window(HINSTANCE hInstance, int nCmdShow, int width, i
     WNDCLASSEX wc;
     tagRECT rect;
     HICON hIcon = nullptr;
+    HICON hSmIcon = nullptr;
     HCURSOR hCursor = nullptr;
 
     //DEV_DEBUG_INFO("Create_Main_Window() - About to call InitCommonControls()\n");
@@ -90,13 +91,39 @@ void Vinifera_Create_Main_Window(HINSTANCE hInstance, int nCmdShow, int width, i
      *  Load the Vinifera icon and cursor resources, falling back to the GAME.EXE
      *  resources if not available or failed to load.
      */
-    hIcon = LoadIcon((HINSTANCE)DLLInstance, MAKEINTRESOURCE(VINIFERA_MAINICON));
-    if (!hIcon) {
-        hIcon = LoadIcon((HINSTANCE)hInstance, MAKEINTRESOURCE(TS_MAINICON));
+    if (Vinifera_IconName[0] != '\0') {
+        DEBUG_INFO("Loading custom icon \"%s\"\n", Vinifera_IconName);
+        hIcon = (HICON)LoadImage(
+            nullptr,
+            Vinifera_IconName,
+            IMAGE_ICON,
+            0,
+            0,
+            LR_LOADFROMFILE);
+        DEBUG_INFO("Loading custom small icon \"%s\"\n", Vinifera_IconName);
+        hSmIcon = (HICON)LoadImage(
+            nullptr,
+            Vinifera_IconName,
+            IMAGE_ICON,
+            GetSystemMetrics(SM_CXSMICON),
+            GetSystemMetrics(SM_CXSMICON),
+            LR_LOADFROMFILE);
     }
-    hCursor = LoadCursor(nullptr, VINIFERA_MAINCURSOR); // IDC_ARROW is a system resource, does not require module.
+    if (!hIcon) {
+        hIcon = LoadIcon((HINSTANCE)DLLInstance, MAKEINTRESOURCE(VINIFERA_MAINICON));
+        if (!hIcon) {
+            hIcon = LoadIcon((HINSTANCE)hInstance, MAKEINTRESOURCE(TS_MAINICON));
+        }
+    }
+    if (Vinifera_CursorName[0] != '\0') {
+        DEBUG_INFO("Loading custom cursor \"%s\"\n", Vinifera_CursorName);
+        hCursor = LoadCursorFromFile(Vinifera_CursorName);
+    }
     if (!hCursor) {
-        hCursor = LoadCursor((HINSTANCE)hInstance, MAKEINTRESOURCE(TS_MAINCURSOR));
+        hCursor = LoadCursor(nullptr, VINIFERA_MAINCURSOR); // IDC_ARROW is a system resource, does not require module.
+        if (!hCursor) {
+            hCursor = LoadCursor((HINSTANCE)hInstance, MAKEINTRESOURCE(TS_MAINCURSOR));
+        }
     }
 
     //DEV_DEBUG_INFO("Create_Main_Window() - Setting up window class info.\n");
@@ -115,7 +142,7 @@ void Vinifera_Create_Main_Window(HINSTANCE hInstance, int nCmdShow, int width, i
     wc.hbrBackground  = nullptr;
     wc.lpszMenuName   = nullptr;
     wc.lpszClassName  = "Vinifera";
-    wc.hIconSm        = hIcon;
+    wc.hIconSm        = (hSmIcon ? hSmIcon : hIcon);
 
     //DEV_DEBUG_INFO("Create_Main_Window() - About to call RegisterClass()\n");
 
