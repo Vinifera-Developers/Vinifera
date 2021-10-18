@@ -53,8 +53,8 @@ AnimTypeClassExtension::AnimTypeClassExtension(AnimTypeClass *this_ptr) :
     NumberOfParticles(0)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("AnimTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //DEV_DEBUG_WARNING("AnimTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("AnimTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("AnimTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     IsInitialized = true;
 }
@@ -79,8 +79,8 @@ AnimTypeClassExtension::AnimTypeClassExtension(const NoInitClass &noinit) :
  */
 AnimTypeClassExtension::~AnimTypeClassExtension()
 {
-    //DEV_DEBUG_TRACE("AnimTypeClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //DEV_DEBUG_WARNING("AnimTypeClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("AnimTypeClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("AnimTypeClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     IsInitialized = false;
 }
@@ -94,7 +94,7 @@ AnimTypeClassExtension::~AnimTypeClassExtension()
 HRESULT AnimTypeClassExtension::Load(IStream *pStm)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("AnimTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     HRESULT hr = Extension::Load(pStm);
     if (FAILED(hr)) {
@@ -115,7 +115,7 @@ HRESULT AnimTypeClassExtension::Load(IStream *pStm)
 HRESULT AnimTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("AnimTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     HRESULT hr = Extension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
@@ -134,7 +134,7 @@ HRESULT AnimTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 int AnimTypeClassExtension::Size_Of() const
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("AnimTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     return sizeof(*this);
 }
@@ -148,7 +148,7 @@ int AnimTypeClassExtension::Size_Of() const
 void AnimTypeClassExtension::Detach(TARGET target, bool all)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("AnimTypeClassExtension::Detach - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Detach - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 }
 
 
@@ -160,7 +160,7 @@ void AnimTypeClassExtension::Detach(TARGET target, bool all)
 void AnimTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("AnimTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     crc(AttachLayer);
     crc(NumberOfParticles);
@@ -175,8 +175,8 @@ void AnimTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("AnimTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    DEV_DEBUG_WARNING("AnimTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    EXT_DEBUG_WARNING("AnimTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     const char *ini_name = ThisPtr->Name();
 

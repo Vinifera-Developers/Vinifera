@@ -47,8 +47,8 @@ TiberiumClassExtension::TiberiumClassExtension(TiberiumClass *this_ptr) :
     Extension(this_ptr)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("TiberiumClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //DEV_DEBUG_WARNING("TiberiumClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TiberiumClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("TiberiumClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     IsInitialized = true;
 }
@@ -73,8 +73,8 @@ TiberiumClassExtension::TiberiumClassExtension(const NoInitClass &noinit) :
  */
 TiberiumClassExtension::~TiberiumClassExtension()
 {
-    //DEV_DEBUG_TRACE("TiberiumClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //DEV_DEBUG_WARNING("TiberiumClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TiberiumClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("TiberiumClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     IsInitialized = false;
 }
@@ -88,7 +88,7 @@ TiberiumClassExtension::~TiberiumClassExtension()
 HRESULT TiberiumClassExtension::Load(IStream *pStm)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("TiberiumClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TiberiumClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     HRESULT hr = Extension::Load(pStm);
     if (FAILED(hr)) {
@@ -109,7 +109,7 @@ HRESULT TiberiumClassExtension::Load(IStream *pStm)
 HRESULT TiberiumClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("TiberiumClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TiberiumClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     HRESULT hr = Extension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
@@ -128,7 +128,7 @@ HRESULT TiberiumClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 int TiberiumClassExtension::Size_Of() const
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("TiberiumClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TiberiumClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     return sizeof(*this);
 }
@@ -142,7 +142,7 @@ int TiberiumClassExtension::Size_Of() const
 void TiberiumClassExtension::Detach(TARGET target, bool all)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("TiberiumClassExtension::Detach - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TiberiumClassExtension::Detach - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 }
 
 
@@ -154,7 +154,7 @@ void TiberiumClassExtension::Detach(TARGET target, bool all)
 void TiberiumClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("TiberiumClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TiberiumClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 }
 
 
@@ -166,8 +166,8 @@ void TiberiumClassExtension::Compute_CRC(WWCRCEngine &crc) const
 bool TiberiumClassExtension::Read_INI(CCINIClass &ini)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("TiberiumClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    DEV_DEBUG_WARNING("TiberiumClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TiberiumClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    EXT_DEBUG_WARNING("TiberiumClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     const char *ini_name = ThisPtr->Name();
 

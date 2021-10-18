@@ -52,8 +52,8 @@ TacticalMapExtension::TacticalMapExtension(Tactical *this_ptr) :
     InfoTextTimer(0)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("TacticalMapExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
-    //DEV_DEBUG_WARNING("TacticalMapExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TacticalMapExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("TacticalMapExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
 
     IsInitialized = true;
 }
@@ -81,8 +81,8 @@ TacticalMapExtension::TacticalMapExtension(const NoInitClass &noinit) :
  */
 TacticalMapExtension::~TacticalMapExtension()
 {
-    //DEV_DEBUG_TRACE("TacticalMapExtension deconstructor - 0x%08X\n", (uintptr_t)(ThisPtr));
-    //DEV_DEBUG_WARNING("TacticalMapExtension deconstructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TacticalMapExtension deconstructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("TacticalMapExtension deconstructor - 0x%08X\n", (uintptr_t)(ThisPtr));
 
     IsInitialized = false;
 }
@@ -96,7 +96,7 @@ TacticalMapExtension::~TacticalMapExtension()
 HRESULT TacticalMapExtension::Load(IStream *pStm)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("TacticalMapExtension::Load - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TacticalMapExtension::Load - 0x%08X\n", (uintptr_t)(ThisPtr));
 
     HRESULT hr = Extension::Load(pStm);
     if (FAILED(hr)) {
@@ -117,7 +117,7 @@ HRESULT TacticalMapExtension::Load(IStream *pStm)
 HRESULT TacticalMapExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("TacticalMapExtension::Save - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TacticalMapExtension::Save - 0x%08X\n", (uintptr_t)(ThisPtr));
 
     HRESULT hr = Extension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
@@ -136,7 +136,7 @@ HRESULT TacticalMapExtension::Save(IStream *pStm, BOOL fClearDirty)
 int TacticalMapExtension::Size_Of() const
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("TacticalMapExtension::Size_Of - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TacticalMapExtension::Size_Of - 0x%08X\n", (uintptr_t)(ThisPtr));
 
     return sizeof(*this);
 }
@@ -150,7 +150,7 @@ int TacticalMapExtension::Size_Of() const
 void TacticalMapExtension::Detach(TARGET target, bool all)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("TacticalMapExtension::Detach - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TacticalMapExtension::Detach - 0x%08X\n", (uintptr_t)(ThisPtr));
 }
 
 
@@ -162,5 +162,5 @@ void TacticalMapExtension::Detach(TARGET target, bool all)
 void TacticalMapExtension::Compute_CRC(WWCRCEngine &crc) const
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("TacticalMapExtension::Compute_CRC - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TacticalMapExtension::Compute_CRC - 0x%08X\n", (uintptr_t)(ThisPtr));
 }

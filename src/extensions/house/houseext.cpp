@@ -47,8 +47,8 @@ HouseClassExtension::HouseClassExtension(HouseClass *this_ptr) :
     Extension(this_ptr)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("HouseClassExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
-    //DEV_DEBUG_WARNING("HouseClassExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("HouseClassExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("HouseClassExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
 
     IsInitialized = true;
 }
@@ -73,8 +73,8 @@ HouseClassExtension::HouseClassExtension(const NoInitClass &noinit) :
  */
 HouseClassExtension::~HouseClassExtension()
 {
-    //DEV_DEBUG_TRACE("HouseClassExtension deconstructor - 0x%08X\n", (uintptr_t)(ThisPtr));
-    //DEV_DEBUG_WARNING("HouseClassExtension deconstructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("HouseClassExtension deconstructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("HouseClassExtension deconstructor - 0x%08X\n", (uintptr_t)(ThisPtr));
 
     IsInitialized = false;
 }
@@ -88,7 +88,7 @@ HouseClassExtension::~HouseClassExtension()
 HRESULT HouseClassExtension::Load(IStream *pStm)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("HouseClassExtension::Load - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("HouseClassExtension::Load - 0x%08X\n", (uintptr_t)(ThisPtr));
 
     HRESULT hr = Extension::Load(pStm);
     if (FAILED(hr)) {
@@ -109,7 +109,7 @@ HRESULT HouseClassExtension::Load(IStream *pStm)
 HRESULT HouseClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("HouseClassExtension::Save - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("HouseClassExtension::Save - 0x%08X\n", (uintptr_t)(ThisPtr));
 
     HRESULT hr = Extension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
@@ -128,7 +128,7 @@ HRESULT HouseClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 int HouseClassExtension::Size_Of() const
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("HouseClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("HouseClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(ThisPtr));
 
     return sizeof(*this);
 }
@@ -142,7 +142,7 @@ int HouseClassExtension::Size_Of() const
 void HouseClassExtension::Detach(TARGET target, bool all)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("HouseClassExtension::Detach - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("HouseClassExtension::Detach - 0x%08X\n", (uintptr_t)(ThisPtr));
 }
 
 
@@ -154,5 +154,5 @@ void HouseClassExtension::Detach(TARGET target, bool all)
 void HouseClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("HouseClassExtension::Compute_CRC - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("HouseClassExtension::Compute_CRC - 0x%08X\n", (uintptr_t)(ThisPtr));
 }

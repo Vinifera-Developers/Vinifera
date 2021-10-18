@@ -65,8 +65,8 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(TechnoTypeClass *this_ptr) :
     VoiceHarvest()
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("TechnoTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //DEV_DEBUG_WARNING("TechnoTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TechnoTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("TechnoTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     IsInitialized = true;
 }
@@ -91,8 +91,8 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const NoInitClass &noinit) :
  */
 TechnoTypeClassExtension::~TechnoTypeClassExtension()
 {
-    //DEV_DEBUG_TRACE("TechnoTypeClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //DEV_DEBUG_WARNING("TechnoTypeClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TechnoTypeClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("TechnoTypeClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     IsInitialized = false;
 }
@@ -106,7 +106,7 @@ TechnoTypeClassExtension::~TechnoTypeClassExtension()
 HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("TechnoTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     HRESULT hr = Extension::Load(pStm);
     if (FAILED(hr)) {
@@ -127,7 +127,7 @@ HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
 HRESULT TechnoTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("TechnoTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     HRESULT hr = Extension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
@@ -148,7 +148,7 @@ HRESULT TechnoTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 int TechnoTypeClassExtension::Size_Of() const
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("TechnoTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     return sizeof(*this);
 }
@@ -162,7 +162,7 @@ int TechnoTypeClassExtension::Size_Of() const
 void TechnoTypeClassExtension::Detach(TARGET target, bool all)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("TechnoTypeClassExtension::Detach - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Detach - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 }
 
 
@@ -174,7 +174,7 @@ void TechnoTypeClassExtension::Detach(TARGET target, bool all)
 void TechnoTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("TechnoTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     crc(IsShakeScreen);
     crc(IsImmuneToEMP);
@@ -194,8 +194,8 @@ void TechnoTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("TechnoTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //DEV_DEBUG_WARNING("TechnoTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("TechnoTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     const char *ini_name = ThisPtr->Name();
     const char *graphic_name = ThisPtr->Graphic_Name();

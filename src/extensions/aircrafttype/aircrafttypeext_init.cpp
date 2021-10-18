@@ -48,7 +48,7 @@ DECLARE_PATCH(_AircraftTypeClass_Constructor_Patch)
     GET_STACK_STATIC(const char *, ini_name, esp, 0x0C); // ini name.
     static AircraftTypeClassExtension *exttype_ptr;
 
-    //DEV_DEBUG_WARNING("Creating AircraftTypeClassExtension instance for \"%s\".\n", ini_name);
+    //EXT_DEBUG_WARNING("Creating AircraftTypeClassExtension instance for \"%s\".\n", ini_name);
 
     /**
      *  Find existing or create an extended class instance.

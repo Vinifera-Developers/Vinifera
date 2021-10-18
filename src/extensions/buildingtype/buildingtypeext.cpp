@@ -57,8 +57,8 @@ BuildingTypeClassExtension::BuildingTypeClassExtension(BuildingTypeClass *this_p
     IsEligibleForAllyBuilding(false)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("BuildingTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //DEV_DEBUG_WARNING("BuildingTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("BuildingTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("BuildingTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     IsInitialized = true;
 }
@@ -83,8 +83,8 @@ BuildingTypeClassExtension::BuildingTypeClassExtension(const NoInitClass &noinit
  */
 BuildingTypeClassExtension::~BuildingTypeClassExtension()
 {
-    //DEV_DEBUG_TRACE("BuildingTypeClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //DEV_DEBUG_WARNING("BuildingTypeClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("BuildingTypeClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("BuildingTypeClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     IsInitialized = false;
 }
@@ -98,7 +98,7 @@ BuildingTypeClassExtension::~BuildingTypeClassExtension()
 HRESULT BuildingTypeClassExtension::Load(IStream *pStm)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("BuildingTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     HRESULT hr = Extension::Load(pStm);
     if (FAILED(hr)) {
@@ -119,7 +119,7 @@ HRESULT BuildingTypeClassExtension::Load(IStream *pStm)
 HRESULT BuildingTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("BuildingTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     HRESULT hr = Extension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
@@ -138,7 +138,7 @@ HRESULT BuildingTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 int BuildingTypeClassExtension::Size_Of() const
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("BuildingTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     return sizeof(*this);
 }
@@ -152,7 +152,7 @@ int BuildingTypeClassExtension::Size_Of() const
 void BuildingTypeClassExtension::Detach(TARGET target, bool all)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("BuildingTypeClassExtension::Detach - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Detach - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 }
 
 
@@ -164,7 +164,7 @@ void BuildingTypeClassExtension::Detach(TARGET target, bool all)
 void BuildingTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("BuildingTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     crc(IsEligibleForAllyBuilding);
 }
@@ -178,8 +178,8 @@ void BuildingTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 bool BuildingTypeClassExtension::Read_INI(CCINIClass &ini)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("BuildingTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    DEV_DEBUG_WARNING("BuildingTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    EXT_DEBUG_WARNING("BuildingTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     const char *ini_name = ThisPtr->Name();
 

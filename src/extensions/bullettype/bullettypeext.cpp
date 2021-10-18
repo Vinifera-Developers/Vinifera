@@ -48,8 +48,8 @@ BulletTypeClassExtension::BulletTypeClassExtension(BulletTypeClass *this_ptr) :
     SpawnDelay(3)           // Default hardcoded value.
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("BulletTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //DEV_DEBUG_WARNING("BulletTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("BulletTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("BulletTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     IsInitialized = true;
 }
@@ -74,8 +74,8 @@ BulletTypeClassExtension::BulletTypeClassExtension(const NoInitClass &noinit) :
  */
 BulletTypeClassExtension::~BulletTypeClassExtension()
 {
-    //DEV_DEBUG_TRACE("BulletTypeClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //DEV_DEBUG_WARNING("BulletTypeClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("BulletTypeClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("BulletTypeClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     IsInitialized = false;
 }
@@ -89,7 +89,7 @@ BulletTypeClassExtension::~BulletTypeClassExtension()
 HRESULT BulletTypeClassExtension::Load(IStream *pStm)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("BulletTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("BulletTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     HRESULT hr = Extension::Load(pStm);
     if (FAILED(hr)) {
@@ -110,7 +110,7 @@ HRESULT BulletTypeClassExtension::Load(IStream *pStm)
 HRESULT BulletTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("BulletTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("BulletTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     HRESULT hr = Extension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
@@ -129,7 +129,7 @@ HRESULT BulletTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 int BulletTypeClassExtension::Size_Of() const
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("BulletTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("BulletTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     return sizeof(*this);
 }
@@ -143,7 +143,7 @@ int BulletTypeClassExtension::Size_Of() const
 void BulletTypeClassExtension::Detach(TARGET target, bool all)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("BulletTypeClassExtension::Detach - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("BulletTypeClassExtension::Detach - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 }
 
 
@@ -155,7 +155,7 @@ void BulletTypeClassExtension::Detach(TARGET target, bool all)
 void BulletTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("BulletTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("BulletTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 }
 
 
@@ -167,8 +167,8 @@ void BulletTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 bool BulletTypeClassExtension::Read_INI(CCINIClass &ini)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("BulletTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    DEV_DEBUG_WARNING("BulletTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("BulletTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    EXT_DEBUG_WARNING("BulletTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     const char *ini_name = ThisPtr->Name();
 

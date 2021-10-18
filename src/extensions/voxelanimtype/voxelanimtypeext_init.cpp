@@ -48,7 +48,7 @@ DECLARE_PATCH(_VoxelAnimTypeClass_Constructor_Patch)
     GET_STACK_STATIC(const char *, ini_name, esp, 0xC); // ini name.
     static VoxelAnimTypeClassExtension *exttype_ptr;
 
-    //DEV_DEBUG_WARNING("Creating VoxelAnimTypeClassExtension instance for \"%s\".\n", ini_name);
+    //EXT_DEBUG_WARNING("Creating VoxelAnimTypeClassExtension instance for \"%s\".\n", ini_name);
 
     /**
      *  Find existing or create an extended class instance.

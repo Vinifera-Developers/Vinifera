@@ -98,7 +98,7 @@ void Vinifera_Printf(DebugType type, const char *file, const char *function, int
 
 
 /**
- *  For printing out extension debug info.
+ *  For printing out debug info in developer mode only.
  */
 #ifndef NDEBUG
 #define DEV_DEBUG_SAY(x, ...) Vinifera_Printf(DEBUGTYPE_NORMAL, nullptr, nullptr, -1, x, ##__VA_ARGS__)

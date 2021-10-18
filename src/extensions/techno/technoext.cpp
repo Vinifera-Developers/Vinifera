@@ -177,7 +177,7 @@ void TechnoClassExtension::Compute_CRC(WWCRCEngine &crc) const
 void TechnoClassExtension::Response_Capture()
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("TechnoClassExtension::Response_Capture - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TechnoClassExtension::Response_Capture - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     if (!AllowVoice) {
         return;
@@ -213,7 +213,7 @@ void TechnoClassExtension::Response_Capture()
 void TechnoClassExtension::Response_Enter()
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("TechnoClassExtension::Response_Enter - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TechnoClassExtension::Response_Enter - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     if (!AllowVoice) {
         return;
@@ -249,7 +249,7 @@ void TechnoClassExtension::Response_Enter()
 void TechnoClassExtension::Response_Deploy()
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("TechnoClassExtension::Response_Deploy - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TechnoClassExtension::Response_Deploy - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     if (!AllowVoice) {
         return;
@@ -285,7 +285,7 @@ void TechnoClassExtension::Response_Deploy()
 void TechnoClassExtension::Response_Harvest()
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("TechnoClassExtension::Response_Harvest - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TechnoClassExtension::Response_Harvest - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     if (!AllowVoice) {
         return;

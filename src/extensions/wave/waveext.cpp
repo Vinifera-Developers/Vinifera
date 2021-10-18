@@ -47,8 +47,8 @@ WaveClassExtension::WaveClassExtension(WaveClass *this_ptr) :
     Extension(this_ptr)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("WaveClassExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
-    //DEV_DEBUG_WARNING("WaveClassExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("WaveClassExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("WaveClassExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
 
     IsInitialized = true;
 }
@@ -73,8 +73,8 @@ WaveClassExtension::WaveClassExtension(const NoInitClass &noinit) :
  */
 WaveClassExtension::~WaveClassExtension()
 {
-    //DEV_DEBUG_TRACE("WaveClassExtension deconstructor - 0x%08X\n", (uintptr_t)(ThisPtr));
-    //DEV_DEBUG_WARNING("WaveClassExtension deconstructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("WaveClassExtension deconstructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("WaveClassExtension deconstructor - 0x%08X\n", (uintptr_t)(ThisPtr));
 
     IsInitialized = false;
 }
@@ -88,7 +88,7 @@ WaveClassExtension::~WaveClassExtension()
 HRESULT WaveClassExtension::Load(IStream *pStm)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("WaveClassExtension::Load - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("WaveClassExtension::Load - 0x%08X\n", (uintptr_t)(ThisPtr));
 
     HRESULT hr = Extension::Load(pStm);
     if (FAILED(hr)) {
@@ -109,7 +109,7 @@ HRESULT WaveClassExtension::Load(IStream *pStm)
 HRESULT WaveClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("WaveClassExtension::Save - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("WaveClassExtension::Save - 0x%08X\n", (uintptr_t)(ThisPtr));
 
     HRESULT hr = Extension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
@@ -128,7 +128,7 @@ HRESULT WaveClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 int WaveClassExtension::Size_Of() const
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("WaveClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("WaveClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(ThisPtr));
 
     return sizeof(*this);
 }
@@ -142,7 +142,7 @@ int WaveClassExtension::Size_Of() const
 void WaveClassExtension::Detach(TARGET target, bool all)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("WaveClassExtension::Detach - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("WaveClassExtension::Detach - 0x%08X\n", (uintptr_t)(ThisPtr));
 }
 
 
@@ -154,5 +154,5 @@ void WaveClassExtension::Detach(TARGET target, bool all)
 void WaveClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("WaveClassExtension::Compute_CRC - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("WaveClassExtension::Compute_CRC - 0x%08X\n", (uintptr_t)(ThisPtr));
 }

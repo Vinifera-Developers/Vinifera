@@ -48,7 +48,7 @@ DECLARE_PATCH(_UnitTypeClass_Constructor_Patch)
     GET_STACK_STATIC(const char *, ini_name, esp, 0x10); // ini name.
     static UnitTypeClassExtension *exttype_ptr;
 
-    //DEV_DEBUG_WARNING("Creating UnitTypeClassExtension instance for \"%s\".\n", ini_name);
+    //EXT_DEBUG_WARNING("Creating UnitTypeClassExtension instance for \"%s\".\n", ini_name);
 
     /**
      *  Find existing or create an extended class instance.

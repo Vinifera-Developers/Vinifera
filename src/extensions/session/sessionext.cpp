@@ -49,8 +49,8 @@ SessionClassExtension::SessionClassExtension(SessionClass *this_ptr) :
     Extension(this_ptr)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("SessionClassExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
-    //DEV_DEBUG_WARNING("SessionClassExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("SessionClassExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("SessionClassExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
 
    /**
      *  Initialises the default game options.
@@ -82,8 +82,8 @@ SessionClassExtension::SessionClassExtension(const NoInitClass &noinit) :
  */
 SessionClassExtension::~SessionClassExtension()
 {
-    //DEV_DEBUG_TRACE("SessionClassExtension deconstructor - 0x%08X\n", (uintptr_t)(ThisPtr));
-    //DEV_DEBUG_WARNING("SessionClassExtension deconstructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("SessionClassExtension deconstructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("SessionClassExtension deconstructor - 0x%08X\n", (uintptr_t)(ThisPtr));
 
     IsInitialized = false;
 }
@@ -97,7 +97,7 @@ SessionClassExtension::~SessionClassExtension()
 int SessionClassExtension::Size_Of() const
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("SessionClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("SessionClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(ThisPtr));
 
     return sizeof(*this);
 }
@@ -111,8 +111,8 @@ int SessionClassExtension::Size_Of() const
 void SessionClassExtension::Read_MultiPlayer_Settings()
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("SessionClassExtension::Read_MultiPlayer_Settings - 0x%08X\n", (uintptr_t)(ThisPtr));
-    //DEV_DEBUG_WARNING("SessionClassExtension::Read_MultiPlayer_Settings - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("SessionClassExtension::Read_MultiPlayer_Settings - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("SessionClassExtension::Read_MultiPlayer_Settings - 0x%08X\n", (uintptr_t)(ThisPtr));
 }
 
 
@@ -124,6 +124,6 @@ void SessionClassExtension::Read_MultiPlayer_Settings()
 void SessionClassExtension::Write_MultiPlayer_Settings()
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("SessionClassExtension::Write_MultiPlayer_Settings - 0x%08X\n", (uintptr_t)(ThisPtr));
-    //DEV_DEBUG_WARNING("SessionClassExtension::Write_MultiPlayer_Settings - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("SessionClassExtension::Write_MultiPlayer_Settings - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("SessionClassExtension::Write_MultiPlayer_Settings - 0x%08X\n", (uintptr_t)(ThisPtr));
 }

@@ -48,7 +48,7 @@ DECLARE_PATCH(_CampaignClass_Constructor_Patch)
     GET_STACK_STATIC(const char *, ini_name, esp, 0x10); // ini name.
     static CampaignClassExtension *exttype_ptr;
 
-    //DEV_DEBUG_WARNING("Creating CampaignClassExtension instance for \"%s\".\n", ini_name);
+    //EXT_DEBUG_WARNING("Creating CampaignClassExtension instance for \"%s\".\n", ini_name);
 
     /**
      *  Find existing or create an extended class instance.

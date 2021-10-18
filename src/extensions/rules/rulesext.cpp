@@ -48,8 +48,8 @@ RulesClassExtension::RulesClassExtension(RulesClass *this_ptr) :
     IsBuildOffAlly(true)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("RulesClassExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
-    //DEV_DEBUG_WARNING("RulesClassExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("RulesClassExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("RulesClassExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
 
     IsInitialized = true;
 }
@@ -74,8 +74,8 @@ RulesClassExtension::RulesClassExtension(const NoInitClass &noinit) :
  */
 RulesClassExtension::~RulesClassExtension()
 {
-    //DEV_DEBUG_TRACE("RulesClassExtension deconstructor - 0x%08X\n", (uintptr_t)(ThisPtr));
-    //DEV_DEBUG_WARNING("RulesClassExtension deconstructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("RulesClassExtension deconstructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("RulesClassExtension deconstructor - 0x%08X\n", (uintptr_t)(ThisPtr));
 
     IsInitialized = false;
 }
@@ -89,7 +89,7 @@ RulesClassExtension::~RulesClassExtension()
 HRESULT RulesClassExtension::Load(IStream *pStm)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("RulesClassExtension::Load - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("RulesClassExtension::Load - 0x%08X\n", (uintptr_t)(ThisPtr));
 
     HRESULT hr = Extension::Load(pStm);
     if (FAILED(hr)) {
@@ -110,7 +110,7 @@ HRESULT RulesClassExtension::Load(IStream *pStm)
 HRESULT RulesClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("RulesClassExtension::Save - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("RulesClassExtension::Save - 0x%08X\n", (uintptr_t)(ThisPtr));
 
     HRESULT hr = Extension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
@@ -129,7 +129,7 @@ HRESULT RulesClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 int RulesClassExtension::Size_Of() const
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("RulesClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("RulesClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(ThisPtr));
 
     return sizeof(*this);
 }
@@ -143,7 +143,7 @@ int RulesClassExtension::Size_Of() const
 void RulesClassExtension::Detach(TARGET target, bool all)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("RulesClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("RulesClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(ThisPtr));
 
 }
 
@@ -156,7 +156,7 @@ void RulesClassExtension::Detach(TARGET target, bool all)
 void RulesClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("RulesClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("RulesClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(ThisPtr));
 
     crc(IsMPAutoDeployMCV);
     crc(IsMPPrePlacedConYards);
@@ -171,7 +171,7 @@ void RulesClassExtension::Compute_CRC(WWCRCEngine &crc) const
 void RulesClassExtension::Process(CCINIClass &ini)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("RulesClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("RulesClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(ThisPtr));
 
     General(ini);
     MPlayer(ini);
@@ -186,7 +186,7 @@ void RulesClassExtension::Process(CCINIClass &ini)
 void RulesClassExtension::Initialize(CCINIClass &ini)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("RulesClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("RulesClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(ThisPtr));
 
 }
 

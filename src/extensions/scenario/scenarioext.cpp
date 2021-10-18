@@ -42,8 +42,8 @@ ScenarioClassExtension::ScenarioClassExtension(ScenarioClass *this_ptr) :
     Extension(this_ptr)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("ScenarioClassExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
-    //DEV_DEBUG_WARNING("ScenarioClassExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("ScenarioClassExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("ScenarioClassExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
 
     /**
      *  This copies the behavior of the games ScenarioClass.
@@ -73,8 +73,8 @@ ScenarioClassExtension::ScenarioClassExtension(const NoInitClass &noinit) :
  */
 ScenarioClassExtension::~ScenarioClassExtension()
 {
-    //DEV_DEBUG_TRACE("ScenarioClassExtension deconstructor - 0x%08X\n", (uintptr_t)(ThisPtr));
-    //DEV_DEBUG_WARNING("ScenarioClassExtension deconstructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("ScenarioClassExtension deconstructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("ScenarioClassExtension deconstructor - 0x%08X\n", (uintptr_t)(ThisPtr));
 
     IsInitialized = false;
 }
@@ -88,7 +88,7 @@ ScenarioClassExtension::~ScenarioClassExtension()
 HRESULT ScenarioClassExtension::Load(IStream *pStm)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("ScenarioClassExtension::Load - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("ScenarioClassExtension::Load - 0x%08X\n", (uintptr_t)(ThisPtr));
 
     HRESULT hr = Extension::Load(pStm);
     if (FAILED(hr)) {
@@ -109,7 +109,7 @@ HRESULT ScenarioClassExtension::Load(IStream *pStm)
 HRESULT ScenarioClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("ScenarioClassExtension::Save - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("ScenarioClassExtension::Save - 0x%08X\n", (uintptr_t)(ThisPtr));
 
     HRESULT hr = Extension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
@@ -128,7 +128,7 @@ HRESULT ScenarioClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 int ScenarioClassExtension::Size_Of() const
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("ScenarioClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("ScenarioClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(ThisPtr));
 
     return sizeof(*this);
 }
@@ -142,7 +142,7 @@ int ScenarioClassExtension::Size_Of() const
 void ScenarioClassExtension::Detach(TARGET target, bool all)
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("ScenarioClassExtension::Detach - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("ScenarioClassExtension::Detach - 0x%08X\n", (uintptr_t)(ThisPtr));
 
 }
 
@@ -155,7 +155,7 @@ void ScenarioClassExtension::Detach(TARGET target, bool all)
 void ScenarioClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("ScenarioClassExtension::Compute_CRC - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("ScenarioClassExtension::Compute_CRC - 0x%08X\n", (uintptr_t)(ThisPtr));
 
 }
 
@@ -168,6 +168,6 @@ void ScenarioClassExtension::Compute_CRC(WWCRCEngine &crc) const
 void ScenarioClassExtension::Init_Clear()
 {
     ASSERT(ThisPtr != nullptr);
-    //DEV_DEBUG_TRACE("ScenarioClassExtension::Init - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("ScenarioClassExtension::Init - 0x%08X\n", (uintptr_t)(ThisPtr));
 
 }
