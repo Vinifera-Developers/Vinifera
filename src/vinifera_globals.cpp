@@ -36,6 +36,7 @@ char Vinifera_DebugDirectory[PATH_MAX] = { "Debug" };
 char Vinifera_ScreenshotDirectory[PATH_MAX] = { "Screenshots" };
 
 char Vinifera_ProjectName[64] = { '\0' };
+char Vinifera_ProjectVersion[64] = { '\0' };
 char Vinifera_IconName[64] = { '\0' };
 char Vinifera_CursorName[64] = { '\0' };
 

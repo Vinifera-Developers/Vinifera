@@ -33,10 +33,41 @@
 #include "cncnet5_globals.h"
 #include "rulesext.h"
 #include "ccfile.h"
+#include "ccini.h"
 #include "cd.h"
 #include "ebolt.h"
 #include "debughandler.h"
 #include <string>
+
+
+/**
+ *  Load any Vinifera settings that provide overrides.
+ * 
+ *  @author: CCHyper
+ */
+bool Vinifera_Load_INI()
+{
+    CCFileClass file("VINIFERA.INI");
+    INIClass ini;
+
+    if (!file.Is_Available()) {
+        return false;
+    }
+
+    ini.Load(file);
+
+    ini.Get_String("General", "ProjectName", Vinifera_ProjectName, sizeof(Vinifera_ProjectName));
+    ini.Get_String("General", "ProjectVersion", "Not Set", Vinifera_ProjectVersion, sizeof(Vinifera_ProjectVersion));
+    ini.Get_String("General", "IconFile", Vinifera_IconName, sizeof(Vinifera_IconName));
+    ini.Get_String("General", "CursorFile", Vinifera_CursorName, sizeof(Vinifera_CursorName));
+
+    Vinifera_ProjectName[sizeof(Vinifera_ProjectName)-1] = '\0';
+    Vinifera_ProjectVersion[sizeof(Vinifera_ProjectVersion)-1] = '\0';
+    Vinifera_IconName[sizeof(Vinifera_IconName)-1] = '\0';
+    Vinifera_CursorName[sizeof(Vinifera_CursorName)-1] = '\0';
+
+    return true;
+}
 
 
 /**
@@ -208,6 +239,13 @@ bool Vinifera_Parse_Command_Line(int argc, char *argv[])
  */
 bool Vinifera_Startup()
 {
+    /**
+     *  Load Vinifera settings and overrides.
+     */
+    if (!Vinifera_Load_INI()) {
+        DEBUG_WARNING("Failed to load VINIFERA.INI!\n");
+    }
+
     /**
      *  Initialise the CnCNet4 system.
      */
