@@ -395,7 +395,12 @@ const char *Vinifera_Get_Window_Title(DWORD dwPid)
     }
 
     char title_buff[32];
-    std::strncpy(title_buff, Text_String(TXT_SHORT_TITLE), sizeof(title_buff));
+    if (Vinifera_ProjectName[0] != '\0') {
+        std::strncpy(title_buff, Vinifera_ProjectName, sizeof(title_buff));
+    } else {
+        std::strncpy(title_buff, Text_String(TXT_SHORT_TITLE), sizeof(title_buff));
+    }
+    title_buff[sizeof(title_buff)-1] = '\0';
 
 #ifndef NDEBUG
     std::snprintf(_window_name, sizeof(_window_name),
@@ -407,7 +412,7 @@ const char *Vinifera_Get_Window_Title(DWORD dwPid)
         Vinifera_Git_Hash_Short(),
         Vinifera_Git_DateTime());
 #else
-    if (!Vinifera_DeveloperMode) {
+    if (Vinifera_DeveloperMode) {
         std::snprintf(_window_name, sizeof(_window_name),
             "%s (PID:%d) (Developer Mode)", title_buff, dwPid);
     } else {
