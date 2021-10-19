@@ -103,6 +103,12 @@ class RulesClassExtension final : public Extension<RulesClass>
          *  Can players build their own structures adjacent to structures owned by their allies?
          */
         bool IsBuildOffAlly;
+
+        /**
+         *  The "approach target" position should be recalculated if the target is
+         *  now more than weapon range times this value.
+         */
+        double ApproachTargetResetMultiplier;
 };
 
 
