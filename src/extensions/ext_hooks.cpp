@@ -84,6 +84,7 @@
 #include "cellext_hooks.h"
 #include "houseext_hooks.h"
 #include "teamext_hooks.h"
+#include "tactionext_hooks.h"
 #include "factoryext_hooks.h"
 #include "animext_hooks.h"
 #include "bulletext_hooks.h"
@@ -174,6 +175,7 @@ void Extension_Hooks()
     CellClassExtension_Hooks();
     HouseClassExtension_Hooks();
     TeamClassExtension_Hooks();
+    TActionClassExtension_Hooks();
     FactoryClassExtension_Hooks();
     TechnoClassExtension_Hooks();
     FootClassExtension_Hooks();
