@@ -52,6 +52,7 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(TechnoTypeClass *this_ptr) :
     IsShakeScreen(false),
     IsImmuneToEMP(false),
     IsCanApproachTarget(true),
+    IsCanRecalcApproachTarget(true),
     ShakePixelYHi(0),
     ShakePixelYLo(0),
     ShakePixelXHi(0),
@@ -237,6 +238,7 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     VoiceDeploy = ini.Get_VocType_List(ini_name, "VoiceDeploy", VoiceDeploy);
     VoiceHarvest = ini.Get_VocType_List(ini_name, "VoiceHarvest", VoiceHarvest);
     IsCanApproachTarget = ini.Get_Bool(ini_name, "CanApproachTarget", IsCanApproachTarget);
+    IsCanRecalcApproachTarget = ini.Get_Bool(ini_name, "CanRecalcApproachTarget", IsCanRecalcApproachTarget);
 
     IdleRate = ini.Get_Int(ini_name, "IdleRate", IdleRate);
     IdleRate = ArtINI.Get_Int(graphic_name, "IdleRate", IdleRate);
