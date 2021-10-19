@@ -54,6 +54,7 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     IsCanRetaliate(true),
     IsLegalTargetComputer(true),
     IsCanApproachTarget(true),
+    IsStupidHunt(false),
     ShakePixelYHi(0),
     ShakePixelYLo(0),
     ShakePixelXHi(0),
@@ -252,6 +253,7 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     IsCanRetaliate = ini.Get_Bool(ini_name, "CanRetaliate", IsCanRetaliate);
     IsLegalTargetComputer = ini.Get_Bool(ini_name, "AILegalTarget", IsLegalTargetComputer);
     IsCanApproachTarget = ini.Get_Bool(ini_name, "CanApproachTarget", IsCanApproachTarget);
+    IsStupidHunt = ini.Get_Bool(ini_name, "StupidHunt", IsStupidHunt);
     ShakePixelYHi = ini.Get_Int(ini_name, "ShakeYhi", ShakePixelYHi);
     ShakePixelYLo = ini.Get_Int(ini_name, "ShakeYlo", ShakePixelYLo);
     ShakePixelXHi = ini.Get_Int(ini_name, "ShakeXhi", ShakePixelXHi);
