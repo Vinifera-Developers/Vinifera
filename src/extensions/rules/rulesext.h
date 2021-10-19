@@ -97,4 +97,10 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
          *  to break from a shot.
          */
         int IceStrength;
+
+        /**
+         *  The "approach target" position should be recalculated if the target is
+         *  now more than weapon range times this value.
+         */
+        double ApproachTargetResetMultiplier;
 };
