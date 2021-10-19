@@ -30,13 +30,76 @@
 #include "technoext.h"
 #include "technotype.h"
 #include "technotypeext.h"
+#include "tibsun_inline.h"
 #include "house.h"
+#include "rules.h"
+#include "rulesext.h"
+#include "target.h"
 #include "fatal.h"
 #include "asserthandler.h"
 #include "debughandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-595
+ * 
+ *  Implements IsCanRecalcApproachTarget for TechnoTypes.
+ * 
+ *  @author: CCHyper
+ */
+static short NavCom_TarCom_Distance(FootClass *this_ptr) { return Distance(this_ptr->NavCom->Center_Coord(), this_ptr->TarCom->Center_Coord()); }
+static int Multiply_Integer(int a, double b) { return (a * b); }
+DECLARE_PATCH(_FootClass_Approach_Target_Can_Recalc_Approach_Target_Patch)
+{
+    GET_REGISTER_STATIC(FootClass *, this_ptr, ebp);
+    GET_REGISTER_STATIC(bool, in_range, bl);
+    GET_STACK_STATIC(int, maxrange, esp, 0x34);
+    static TechnoTypeClassExtension *technotypeext;
+
+    if (Target_Legal(this_ptr->NavCom)) {
+
+        if (Target_Legal(this_ptr->TarCom)) {
+
+            technotypeext = TechnoTypeClassExtensions.find(this_ptr->Techno_Type_Class());
+            if (technotypeext && technotypeext->IsCanRecalcApproachTarget) {
+
+                //DEV_DEBUG_INFO("Approach_Target: CanRecalcApproachTarget branch.\n");
+
+                if (!in_range) {
+
+                    static double reset_multiplier = 1.0;
+                    if (RulesExtension) {
+                        reset_multiplier = RulesExtension->ApproachTargetResetMultiplier;
+                    }
+
+                    if (NavCom_TarCom_Distance(this_ptr) > Multiply_Integer(maxrange, reset_multiplier)) {
+                        DEV_DEBUG_INFO("Approach_Target: Clearing NavCom.\n");
+                        this_ptr->NavCom = nullptr;
+                    }
+
+                }
+
+            }
+
+        }
+
+        if (Target_Legal(this_ptr->NavCom)) {
+            if (!this_ptr->In_Air()) {
+                goto function_return;
+            }
+        }
+    }
+
+    _asm { mov bl, byte ptr [in_range] }    // restore BL register.
+
+    JMP(0x004A2004);
+
+function_return:
+    JMP(0x004A2813);
+}
 
 
 /**
@@ -335,4 +398,5 @@ void FootClassExtension_Hooks()
     Patch_Jump(0x004A1AAE, &_FootClass_Mission_Guard_Can_Passive_Acquire_Patch);
     Patch_Jump(0x004A102F, &_FootClass_Mission_Move_Can_Passive_Acquire_Patch);
     Patch_Jump(0x004A1EA8, &_FootClass_Approach_Target_Can_Approach_Patch);
+    Patch_Jump(0x004A1FEA, &_FootClass_Approach_Target_Can_Recalc_Approach_Target_Patch);
 }
