@@ -312,3 +312,27 @@ void TechnoClassExtension::Response_Harvest()
 
     Sound_Effect(response);
 }
+
+
+/**
+ *  Returns if this object can acquire targets that are within range and attack them automatically.
+ * 
+ *  @author: CCHyper
+ */
+bool TechnoClassExtension::Can_Passive_Acquire() const
+{
+    ASSERT(ThisPtr != nullptr);
+    //EXT_DEBUG_TRACE("TechnoClassExtension::Can_Passive_Acquire - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    
+    TechnoTypeClass *technotype = ThisPtr->Techno_Type_Class();
+    TechnoTypeClassExtension *technotypeext = TechnoTypeClassExtensions.find(technotype);
+
+    if (technotypeext) {
+        return technotypeext->IsCanPassiveAcquire;
+    }
+
+    /**
+     *  Original behaviour, all units can passive acquire.
+     */
+    return true;
+}

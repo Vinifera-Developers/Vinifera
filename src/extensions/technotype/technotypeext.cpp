@@ -51,6 +51,7 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(TechnoTypeClass *this_ptr) :
     UncloakSound(VOC_NONE),
     IsShakeScreen(false),
     IsImmuneToEMP(false),
+    IsCanPassiveAcquire(true),
     ShakePixelYHi(0),
     ShakePixelYLo(0),
     ShakePixelXHi(0),
@@ -223,6 +224,7 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     UncloakSound = ini.Get_VocType(ini_name, "UncloakSound", UncloakSound);
     IsShakeScreen = ini.Get_Bool(ini_name, "CanShakeScreen", IsShakeScreen);
     IsImmuneToEMP = ini.Get_Bool(ini_name, "ImmuneToEMP", IsImmuneToEMP);
+    IsCanPassiveAcquire = ini.Get_Bool(ini_name, "CanPassiveAcquire", IsCanPassiveAcquire);
     ShakePixelYHi = ini.Get_Int(ini_name, "ShakeYhi", ShakePixelYHi);
     ShakePixelYLo = ini.Get_Int(ini_name, "ShakeYlo", ShakePixelYLo);
     ShakePixelXHi = ini.Get_Int(ini_name, "ShakeXhi", ShakePixelXHi);

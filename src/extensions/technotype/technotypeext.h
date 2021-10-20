@@ -78,6 +78,12 @@ class TechnoTypeClassExtension final : public Extension<TechnoTypeClass>
         bool IsImmuneToEMP;
 
         /**
+         *  Can this object acquire targets that are within its weapons range
+         *  and attack them automatically?
+         */
+        bool IsCanPassiveAcquire;
+
+        /**
          *  These values are used to shake the screen when the object is destroyed.
          */
         unsigned ShakePixelYHi;
