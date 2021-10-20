@@ -3112,3 +3112,77 @@ bool RemoveTiberiumCommandClass::Process()
 
     return false;
 }
+
+
+/**
+ *  Toggles the instant recharge cheat for the players super weapons.
+ * 
+ *  @author: CCHyper
+ */
+const char *InstantSuperRechargeCommandClass::Get_Name() const
+{
+    return "InstantSpecialRecharge";
+}
+
+const char *InstantSuperRechargeCommandClass::Get_UI_Name() const
+{
+    return "Instant Special Recharge (Player)";
+}
+
+const char *InstantSuperRechargeCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *InstantSuperRechargeCommandClass::Get_Description() const
+{
+    return "Toggles the instant recharge cheat for the players super weapons.";
+}
+
+bool InstantSuperRechargeCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    Vinifera_Developer_InstantSuperRecharge = !Vinifera_Developer_InstantSuperRecharge;
+
+    return true;
+}
+
+
+/**
+ *  Toggles the instant recharge cheat for the AI player super weapons.
+ * 
+ *  @author: CCHyper
+ */
+const char *AIInstantSuperRechargeCommandClass::Get_Name() const
+{
+    return "AIInstantSpecialRecharge";
+}
+
+const char *AIInstantSuperRechargeCommandClass::Get_UI_Name() const
+{
+    return "Instant Special Recharge (AI)";
+}
+
+const char *AIInstantSuperRechargeCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *AIInstantSuperRechargeCommandClass::Get_Description() const
+{
+    return "Toggles the instant recharge cheat for the AI player super weapons.";
+}
+
+bool AIInstantSuperRechargeCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    Vinifera_Developer_AIInstantSuperRecharge = !Vinifera_Developer_AIInstantSuperRecharge;
+
+    return true;
+}
