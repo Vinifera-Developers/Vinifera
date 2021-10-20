@@ -672,6 +672,43 @@ bool JumpCameraSouthCommandClass::Process()
 
 
 /**
+ *  Toggles the visibility of the special weapon timers on the tactical view.
+ * 
+ *  @author: CCHyper
+ */
+const char *ToggleSuperTimersCommandClass::Get_Name() const
+{
+    return "ToggleSuperTimers";
+}
+
+const char *ToggleSuperTimersCommandClass::Get_UI_Name() const
+{
+    return "Toggle Special Timers";
+}
+
+const char *ToggleSuperTimersCommandClass::Get_Category() const
+{
+    return Text_String(TXT_INTERFACE);
+}
+
+const char *ToggleSuperTimersCommandClass::Get_Description() const
+{
+    return "Toggles the visibility of the special weapon timers on the tactical view.";
+}
+
+bool ToggleSuperTimersCommandClass::Process()
+{
+    if (Session.Type == GAME_NORMAL) {
+        return false;
+    }
+
+    Vinifera_ShowSuperWeaponTimers = !Vinifera_ShowSuperWeaponTimers;
+
+    return true;
+}
+
+
+/**
  *  Produces a memory dump on request.
  * 
  *  @author: CCHyper

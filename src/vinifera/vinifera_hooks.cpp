@@ -306,6 +306,11 @@ DECLARE_PATCH(_Select_Game_Clear_Globals_Patch)
     Vinifera_Developer_AIControl = false;
 
     /**
+     *  Reset any globals.
+     */
+    Vinifera_ShowSuperWeaponTimers = true;
+
+    /**
      *  Stolen bytes/code.
      */
     Map.Set_Default_Mouse(MOUSE_NORMAL);
