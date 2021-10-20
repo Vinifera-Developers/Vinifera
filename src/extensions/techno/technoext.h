@@ -56,6 +56,7 @@ class TechnoClassExtension final : public Extension<TechnoClass>
         void Response_Enter();
         void Response_Deploy();
         void Response_Harvest();
+        bool Can_Passive_Acquire() const;
 
     public:
         /**

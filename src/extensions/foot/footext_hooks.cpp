@@ -27,6 +27,7 @@
  ******************************************************************************/
 #include "footext_hooks.h"
 #include "foot.h"
+#include "technoext.h"
 #include "technotype.h"
 #include "technotypeext.h"
 #include "fatal.h"
@@ -35,6 +36,107 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-593
+ * 
+ *  Implements IsCanPassiveAcquire for TechnoTypes when the unit is in MISSION_MOVE.
+ * 
+ *  @author: CCHyper
+ */
+static Coordinate &Foot_Get_Coord(FootClass *this_ptr) { return this_ptr->Get_Coord(); }
+DECLARE_PATCH(_FootClass_Mission_Move_Can_Passive_Aqcuire_Patch)
+{
+    GET_REGISTER_STATIC(FootClass *, this_ptr, esi);
+    static TechnoClassExtension *technoclassext;
+
+    technoclassext = TechnoClassExtensions.find(this_ptr);
+
+    /**
+     *  Can this unit passively acquire new targets?
+     */
+    if (technoclassext && !technoclassext->Can_Passive_Acquire()) {
+        goto finish_mission_process;
+    }
+
+    /**
+     *  Find a fresh target within my range.
+     */
+    !this_ptr->Target_Something_Nearby(Foot_Get_Coord(this_ptr), THREAT_RANGE);
+
+finish_mission_process:
+    JMP(0x004A104B);
+}
+
+
+/**
+ *  #issue-593
+ * 
+ *  Implements IsCanPassiveAcquire for TechnoTypes when the unit is in MISSION_GUARD.
+ * 
+ *  @author: CCHyper
+ */
+//static Coordinate &Foot_Get_Coord(FootClass *this_ptr) { return this_ptr->Get_Coord(); }
+DECLARE_PATCH(_FootClass_Mission_Guard_Can_Passive_Aqcuire_Patch)
+{
+    GET_REGISTER_STATIC(FootClass *, this_ptr, esi);
+    static TechnoClassExtension *technoclassext;
+
+    technoclassext = TechnoClassExtensions.find(this_ptr);
+
+    /**
+     *  Can this unit passively acquire new targets?
+     */
+    if (technoclassext && !technoclassext->Can_Passive_Acquire()) {
+        goto continue_check;
+    }
+
+    /**
+     *  Find a fresh target within my range.
+     */
+    if (!this_ptr->Target_Something_Nearby(Foot_Get_Coord(this_ptr), THREAT_RANGE)) {
+        goto continue_check;
+    }
+
+random_animate:
+    JMP(0x004A1ACC);
+
+continue_check:
+    JMP(0x004A1AD6);
+}
+
+
+/**
+ *  #issue-593
+ * 
+ *  Implements IsCanPassiveAcquire for TechnoTypes when the unit is in MISSION_GUARD_AREA.
+ * 
+ *  @author: CCHyper
+ */
+static Coordinate &Foot_Archive_Center_Coord(FootClass *this_ptr) { return this_ptr->ArchiveTarget->Center_Coord(); }
+DECLARE_PATCH(_FootClass_Mission_Guard_Area_Can_Passive_Aqcuire_Patch)
+{
+    GET_REGISTER_STATIC(FootClass *, this_ptr, esi);
+    static TechnoClassExtension *technoclassext;
+
+    technoclassext = TechnoClassExtensions.find(this_ptr);
+
+    /**
+     *  Can this unit passively acquire new targets?
+     */
+    if (technoclassext && !technoclassext->Can_Passive_Acquire()) {
+        goto tarcom_check;
+    }
+
+    /**
+     *  Find a fresh target in my area.
+     */
+    this_ptr->Target_Something_Nearby(Foot_Archive_Center_Coord(this_ptr), THREAT_AREA);
+
+tarcom_check:
+    JMP(0x004A2C04);
+}
 
 
 /**
@@ -180,4 +282,7 @@ void FootClassExtension_Hooks()
     Patch_Jump(0x004A4D60, &_FootClass_Death_Announcement_IsInsignifcant_Patch);
     Patch_Jump(0x004A6866, &_FootClass_Is_Allowed_To_Recloak_Cloak_Stop_BugFix_Patch);
     Patch_Jump(0x004A59E1, &_FootClass_AI_IdleRate_Patch);
+    Patch_Jump(0x004A2BE7, &_FootClass_Mission_Guard_Area_Can_Passive_Aqcuire_Patch);
+    Patch_Jump(0x004A1AAE, &_FootClass_Mission_Guard_Can_Passive_Aqcuire_Patch);
+    Patch_Jump(0x004A102F, &_FootClass_Mission_Move_Can_Passive_Aqcuire_Patch);
 }
