@@ -52,6 +52,8 @@ extern char Vinifera_ScreenshotDirectory[PATH_MAX];
  */
 extern bool Vinifera_Developer_InstantBuild;
 extern bool Vinifera_Developer_AIInstantBuild;
+extern bool Vinifera_Developer_InstantSuperRecharge;
+extern bool Vinifera_Developer_AIInstantSuperRecharge;
 extern bool Vinifera_Developer_BuildCheat;
 extern bool Vinifera_Developer_Unshroud;
 extern bool Vinifera_Developer_ShowCursorPosition;

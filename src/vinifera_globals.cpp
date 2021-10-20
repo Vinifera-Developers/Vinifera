@@ -37,6 +37,8 @@ char Vinifera_ScreenshotDirectory[PATH_MAX] = { "Screenshots" };
 
 bool Vinifera_Developer_InstantBuild = false;
 bool Vinifera_Developer_AIInstantBuild = false;
+bool Vinifera_Developer_InstantSuperRecharge = false;
+bool Vinifera_Developer_AIInstantSuperRecharge = false;
 bool Vinifera_Developer_BuildCheat = false;
 bool Vinifera_Developer_Unshroud = false;
 bool Vinifera_Developer_ShowCursorPosition = false;

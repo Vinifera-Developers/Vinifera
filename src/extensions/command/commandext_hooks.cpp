@@ -312,6 +312,12 @@ void Init_Vinifera_Commands()
 
         cmdptr = new RemoveTiberiumCommandClass;
         Commands.Add(cmdptr);
+
+        cmdptr = new InstantSuperRechargeCommandClass;
+        Commands.Add(cmdptr);
+
+        cmdptr = new AIInstantSuperRechargeCommandClass;
+        Commands.Add(cmdptr);
     }
 
 #ifndef NDEBUG

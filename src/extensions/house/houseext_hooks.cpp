@@ -28,15 +28,83 @@
 #include "houseext_hooks.h"
 #include "houseext_init.h"
 #include "vinifera_globals.h"
+#include "tibsun_globals.h"
 #include "house.h"
 #include "housetype.h"
 #include "technotype.h"
+#include "super.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  Patch for InstantSuperRechargeCommandClass
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_HouseClass_Super_Weapon_Handler_InstantRecharge_Patch)
+{
+    GET_REGISTER_STATIC(HouseClass *, this_ptr, edi);
+    GET_REGISTER_STATIC(SuperClass *, special, esi);
+    static bool is_player;
+
+    is_player = false;
+    if (this_ptr == PlayerPtr) {
+        is_player = true;
+    }
+
+    if (Vinifera_DeveloperMode) {
+
+        if (!special->IsReady) {
+
+            /**
+             *  If AIInstantBuild is toggled on, make sure this is a non-human AI house.
+             */
+            if (Vinifera_Developer_AIInstantSuperRecharge
+                && !this_ptr->Is_Human_Control() && this_ptr != PlayerPtr) {
+
+                special->Forced_Charge(is_player);
+
+            /**
+             *  If InstantBuild is toggled on, make sure the local player is a human house.
+             */
+            } else if (Vinifera_Developer_InstantSuperRecharge
+                && this_ptr->Is_Human_Control() && this_ptr == PlayerPtr) {
+                
+                special->Forced_Charge(is_player);
+
+            /**
+             *  If the AI has taken control of the player house, it needs a special
+             *  case to handle the "player" instant recharge mode.
+             */
+            } else if (Vinifera_Developer_InstantSuperRecharge) {
+                if (Vinifera_Developer_AIControl && this_ptr == PlayerPtr) {
+                    
+                    special->Forced_Charge(is_player);
+                }
+            }
+
+        }
+
+    }
+
+    /**
+     *  Stolen bytes/code.
+     */
+    if (!special->AI(is_player)) {
+        goto continue_function;
+    }
+
+add_to_sidebar:
+    JMP(0x004BD320);
+
+continue_function:
+    JMP(0x004BD332);
+}
 
 
 /**
@@ -97,5 +165,6 @@ void HouseClassExtension_Hooks()
      */
     HouseClassExtension_Init();
 
-	Patch_Jump(0x004BBD26, &_HouseClass_Can_Build_BuildCheat_Patch);
+    Patch_Jump(0x004BBD26, &_HouseClass_Can_Build_BuildCheat_Patch);
+    Patch_Jump(0x004BD30B, &_HouseClass_Super_Weapon_Handler_InstantRecharge_Patch);
 }

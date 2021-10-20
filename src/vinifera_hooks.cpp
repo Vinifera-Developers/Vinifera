@@ -284,6 +284,8 @@ DECLARE_PATCH(_Select_Game_Clear_Globals_Patch)
      */
     Vinifera_Developer_AIInstantBuild = false;
     Vinifera_Developer_InstantBuild = false;
+    Vinifera_Developer_InstantSuperRecharge = false;
+    Vinifera_Developer_AIInstantSuperRecharge = false;
     Vinifera_Developer_BuildCheat = false;
     Vinifera_Developer_Unshroud = false;
     Vinifera_Developer_FrameStep = false;
