@@ -32,7 +32,11 @@
 
 class FileClass;
 class Surface;
+class BSurface;
+class Buffer;
 class PaletteClass;
 
 
 bool Write_PNG_File(FileClass *name, Surface &pic, const PaletteClass *palette, bool greyscale = false);
+BSurface *Read_PNG_File(FileClass *name, unsigned char *palette = nullptr, void *buff = nullptr, long size = 0);
+BSurface *Read_PNG_File(FileClass *name, const Buffer &buff, PaletteClass *palette = nullptr);

@@ -28,7 +28,12 @@
 #include "filepng.h"
 #include "ccfile.h"
 #include "surface.h"
+#include "bsurface.h"
+#include "dsurface.h"
+#include "buff.h"
+#include "stristr.h"
 #include "debughandler.h"
+#include "asserthandler.h"
 #include <lodepng.h>
 
 
@@ -105,4 +110,153 @@ bool Write_PNG_File(FileClass *name, Surface &pic, const PaletteClass *palette, 
     }
 
     return true;
+}
+
+
+/** 
+ *  Read the contents of a PNG file into a graphic surface.
+ * 
+ *  @author: CCHyper
+ */
+BSurface *Read_PNG_File(FileClass *name, unsigned char *palette, void *buff, long size)
+{
+    ASSERT(name != nullptr);
+
+    LodePNGState state;
+    BSurface *pic = nullptr;
+
+    unsigned char *png_image = nullptr;     // Output png image.
+    unsigned int png_width;
+    unsigned int png_height;
+
+    unsigned char *png_buffer = nullptr;    // Raw png loaded from file.
+    size_t png_buffersize;
+
+    if (!stristr(name->File_Name(), ".png")) {
+        DEBUG_ERROR("Read_PNG_File() - Invalid filename!\n");
+        return false;
+    }
+
+    if (!name->Is_Available()) return nullptr;
+
+    bool file_opened = false;
+    if (!name->Is_Open()) {
+        name->Open(FILE_ACCESS_READ);
+        file_opened = true;
+    }
+
+    png_buffersize = name->Size();
+
+    png_buffer = (unsigned char *)std::malloc(png_buffersize);
+    if (!png_buffer) {
+        DEBUG_ERROR("Read_PNG_File() - Failed to allocate PNG buffer!\n");
+        return nullptr;
+    }
+
+    if (!name->Read(png_buffer, png_buffersize)) {
+        DEBUG_ERROR("Read_PNG_File() - Failed to read PNG file!\n");
+
+        //delete [] png_buffer;
+        std::free(png_buffer);
+
+        return nullptr;
+    }
+
+    lodepng_state_init(&state);
+
+    state.info_raw.colortype = LCT_RGB;
+    state.info_raw.bitdepth = 8;
+    state.decoder.color_convert = false;
+
+    /**
+     *  Decode the PNG data.
+     */
+    unsigned error = lodepng_decode(&png_image, &png_width, &png_height, &state, png_buffer, png_buffersize);
+    if (!png_image || error) {
+        DEBUG_ERROR("Read_PNG_File() - Failed to decode PNG data!\n");
+    
+        lodepng_state_cleanup(&state);
+    
+        //delete [] png_buffer;
+        std::free(png_buffer);
+        std::free(png_image);
+    
+        return nullptr;
+    }
+
+    /**
+     *  We only support standard 8bit PNG RGB, report error otherwise.
+     */
+    if (state.info_raw.bitdepth == 16
+     || state.info_raw.colortype == LCT_GREY
+     || state.info_raw.colortype == LCT_PALETTE
+     || state.info_raw.colortype == LCT_GREY_ALPHA
+     || state.info_raw.colortype == LCT_RGBA) {
+
+        DEBUG_ERROR("Read_PNG_File() - Unsupported PNG format type!\n");
+
+        lodepng_state_cleanup(&state);
+    
+        //delete [] png_buffer;
+        std::free(png_buffer);
+        std::free(png_image);
+    
+        return nullptr;
+    }
+
+
+#ifndef NDEBUG
+    DEBUG_INFO("Read_PNG_File() - bitdepth: %d, colortype: %d.\n",
+        state.info_raw.bitdepth, state.info_raw.colortype);
+#endif
+
+    if (buff) {
+        Buffer b(buff, size);
+        pic = new BSurface(png_width, png_height, 2, b);
+    } else {
+        pic = new BSurface(png_width, png_height, 2);
+    }
+    ASSERT(pic != nullptr);
+
+    //size_t buffersize = lodepng_get_raw_size(png_width, png_height, &state.info_raw);
+    //ASSERT(buffersize == (png_width * png_height));
+
+    /**
+     *  Copy the decoded PNG data into the image surface.
+     */
+    for (int y = 0; y < pic->Get_Height(); ++y) {
+    
+        unsigned short *buffptr = (unsigned short *)pic->Lock(0, y);
+        for (int x = 0; x < pic->Get_Width(); ++x) {
+    
+            int r = *png_image++; // & 0xFF;
+            int g = *png_image++; // & 0xFF;
+            int b = *png_image++; // & 0xFF;
+    
+            *buffptr++ = DSurface::RGBA_To_Pixel(r, g, b);
+        }
+    
+        pic->Unlock();
+    }
+
+    std::free(png_buffer);
+
+    lodepng_state_cleanup(&state);
+
+    if (file_opened) {
+        name->Close();
+    }
+
+    return pic;
+}
+
+
+/** 
+ *  Read the contents of a PNG file into a graphic surface.
+ * 
+ *  @author: CCHyper
+ */
+BSurface *Read_PNG_File(FileClass *name, const Buffer &buff, PaletteClass *palette)
+{
+    return Read_PNG_File(name, (unsigned char *)palette, buff.Get_Buffer(), buff.Get_Size());
 }
