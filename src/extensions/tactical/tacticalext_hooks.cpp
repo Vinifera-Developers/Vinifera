@@ -267,7 +267,7 @@ static void Tactical_Draw_Debug_Overlay()
 
     char buffer[256];
     std::snprintf(buffer, sizeof(buffer),
-        "[%s]  %3d  %3d  0x%08X",
+        "[%s] %3d %3d 0x%08X",
         strupr(Scen->ScenarioName),
         Session.DesiredFrameRate,
         FramesPerSecond,
@@ -303,6 +303,26 @@ static void Tactical_Draw_Debug_Overlay()
      */
     Fancy_Text_Print(buffer, CompositeSurface, &CompositeSurface->Get_Rect(),
         &Point2D(text_rect.X, text_rect.Y), text_color, COLOR_TBLACK, TextPrintType(TPF_6PT_GRAD|TPF_NOSHADOW));
+
+    /**
+     *  Draw the current frame number.
+     */
+    std::snprintf(buffer, sizeof(buffer), "%d", Frame);
+    GradFont6Ptr->String_Pixel_Rect(buffer, &text_rect);
+
+    fill_rect.Width = text_rect.Width+(padding+1);
+    fill_rect.Height = 16;
+    fill_rect.X = CompositeSurface->Get_Width()-fill_rect.Width;
+    fill_rect.Y = 0;
+    CompositeSurface->Fill_Rect(fill_rect, color_black);
+
+    text_rect.X = CompositeSurface->Get_Width();
+    text_rect.Y = 0;
+    text_rect.Width += padding;
+    text_rect.Height += 3;
+
+    Fancy_Text_Print(buffer, CompositeSurface, &CompositeSurface->Get_Rect(),
+        &Point2D(text_rect.X, text_rect.Y), text_color, COLOR_TBLACK, TextPrintType(TPF_RIGHT|TPF_6PT_GRAD|TPF_NOSHADOW));
 }
 
 
