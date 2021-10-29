@@ -545,4 +545,20 @@ void GameInit_Hooks()
     Patch_Word(0x004E4641, 0x1C74); // jz 0x004E49B7 -> jz 0x004E465F
     Patch_Byte_Range(0x004E4641+2, 0x90, 4);
     Patch_Byte_Range(0x004E4657, 0x90, 8);
+
+    /**
+     *  #issue-494
+     * 
+     *  Fixes a bug where FSMENU would play instead of INTRO in Tiberian Sun
+     *  mode after returning to the main menu from a game.
+     * 
+     *  This was a because the game was checking if the Firestorm addon was
+     *  installed rather than if it was the currently active game mode.
+     */
+    Patch_Call(0x004E1F70, &Addon_Enabled);
+    Patch_Call(0x004E25A6, &Addon_Enabled);
+    Patch_Call(0x004E2890, &Addon_Enabled);
+    Patch_Call(0x004E2991, &Addon_Enabled);
+    Patch_Call(0x004E86F5, &Addon_Enabled);
+    Patch_Call(0x004E8735, &Addon_Enabled);
 }
