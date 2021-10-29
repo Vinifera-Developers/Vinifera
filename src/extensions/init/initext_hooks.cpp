@@ -37,12 +37,124 @@
 #include "addon.h"
 #include "theme.h"
 #include "command.h"
+#include "side.h"
+#include "session.h"
+#include "iomap.h"
 #include "fatal.h"
 #include "asserthandler.h"
 #include "debughandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  Reimplemention of Prep_For_Side()
+ *  
+ *  Prepare the mixfiles for the player side.
+ * 
+ *  @author: CCHyper
+ */
+static bool Vinifera_Prep_For_Side(SideType side)
+{
+    DEBUG_INFO("Preparing Mixfiles for Side %02d.\n", side);
+
+    MFCC *mix;
+    char buffer[16];
+
+    int sidenum = (side+1); // Logical side number.
+
+    if (SideCachedMix) {
+        DEBUG_INFO("  Releasing %s\n", SideCachedMix->Filename);
+        delete SideCachedMix;
+        SideCachedMix = nullptr;
+    }
+    if (SideNotCachedMix) {
+        DEBUG_INFO("  Releasing %s\n", SideNotCachedMix->Filename);
+        delete SideNotCachedMix;
+        SideNotCachedMix = nullptr;
+    }
+    if (SideCDMix) {
+        DEBUG_INFO("  Releasing %s\n", SideCDMix->Filename);
+        delete SideCDMix;
+        SideCDMix = nullptr;
+    }
+
+    for (int i = 0; i < SideMixFiles.Count(); ++i) {
+        DEBUG_INFO("  Releasing %s\n", SideMixFiles[i]->Filename);
+        delete SideMixFiles[i];
+        SideMixFiles.Delete(i);
+    }
+
+    if (Addon_Enabled(-1) == 1) {
+
+        for (int i = 99; i >= 0; --i) {
+            std::snprintf(buffer, sizeof(buffer), "E%02dSC%02d.MIX", i, sidenum);
+            if (CCFileClass(buffer).Is_Available()) {
+                mix = new MFCC(buffer, &FastKey);
+                ASSERT(mix);
+                if (!mix) {
+                    DEBUG_WARNING("  Failed to load %s!\n", buffer);
+                    return false;
+                }
+                if (!mix->Cache()) {
+                    DEBUG_WARNING("  Failed to cache %s!\n", buffer);
+                    return false;
+                }
+                ExpansionMixFiles.Add(mix);
+                DEBUG_INFO(" %s\n", buffer);
+            }
+        }
+
+    }
+
+    std::snprintf(buffer, sizeof(buffer), "SIDEC%02d.MIX", sidenum);
+    if (CCFileClass(buffer).Is_Available()) {
+        SideCachedMix = new MFCC(buffer, &FastKey);
+        ASSERT(SideCachedMix);
+        if (!SideCachedMix) {
+            DEBUG_WARNING("  Failed to load %s!\n", buffer);
+            return false;
+        }
+        if (!SideCachedMix->Cache()) {
+            DEBUG_WARNING("  Failed to cache %s!\n", buffer);
+            return false;
+        }
+        DEBUG_INFO(" %s\n", buffer);
+    }
+
+    std::snprintf(buffer, sizeof(buffer), "SIDENC%02d.MIX", sidenum);
+    if (CCFileClass(buffer).Is_Available()) {
+        SideNotCachedMix = new MFCC(buffer, &FastKey);
+        ASSERT(SideNotCachedMix);
+        if (!SideNotCachedMix) {
+            DEBUG_WARNING("  Failed to load %s!\n", buffer);
+            return false;
+        }
+        DEBUG_INFO(" %s\n", buffer);
+    }
+
+    if (Session.Type == GAME_NORMAL) {
+        if (Addon_Enabled(-1) == 1) {
+            std::snprintf(buffer, sizeof(buffer), "E%02dSCD%02d.MIX", Get_Required_Addon(), sidenum);
+        } else {
+            std::snprintf(buffer, sizeof(buffer), "SIDECD%02d.MIX", sidenum);
+        }
+        if (CCFileClass(buffer).Is_Available()) {
+            SideCDMix = new MFCC(buffer, &FastKey);
+            ASSERT(SideCDMix);
+            if (!SideCDMix) {
+                DEBUG_WARNING("  Failed to load %s!\n", buffer);
+                return false;
+            }
+            DEBUG_INFO(" %s\n", buffer);
+        }
+    }
+
+    Map.Init_For_House();
+
+    return true;
+}
 
 
 /**
@@ -585,6 +697,7 @@ void GameInit_Hooks()
     Patch_Jump(0x004E0461, &_Init_CDROM_Access_Local_Files_Patch);
     Patch_Jump(0x004E3D20, &Vinifera_Init_Bootstrap_Mixfiles);
     Patch_Jump(0x004E4120, &Vinifera_Init_Secondary_Mixfiles);
+    Patch_Jump(0x004E7EB0, &Vinifera_Prep_For_Side);
     Patch_Jump(0x00686190, &Vinifera_Create_Main_Window);
 
     /**
