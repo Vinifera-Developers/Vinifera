@@ -44,7 +44,8 @@ ExtensionMap<CampaignClass, CampaignClassExtension> CampaignClassExtensions;
  *  @author: CCHyper
  */
 CampaignClassExtension::CampaignClassExtension(CampaignClass *this_ptr) :
-    Extension(this_ptr)
+    Extension(this_ptr),
+    IsDebugOnly(false)
 {
     ASSERT(ThisPtr != nullptr);
     //EXT_DEBUG_TRACE("CampaignClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -173,6 +174,17 @@ bool CampaignClassExtension::Read_INI(CCINIClass &ini)
 
     if (!ini.Is_Present(ini_name)) {
         return false;
+    }
+
+    IsDebugOnly = ini.Get_Bool(ini_name, "DebugOnly", IsDebugOnly);
+
+    /**
+     *  Reload the campaign description so we can prepend the debug string.
+     */
+    if (IsDebugOnly) {
+        char buffer[128];
+        std::strncpy(buffer, ThisPtr->Description, sizeof(buffer));
+        std::snprintf(ThisPtr->Description, sizeof(ThisPtr->Description), "[Debug] - %s", buffer);
     }
     
     return true;
