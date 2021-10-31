@@ -201,6 +201,11 @@ DECLARE_PATCH(_CampaignClass_Read_INI_Patch)
     static CampaignClassExtension *exttype_ptr;
 
     /**
+     *  Stolen bytes here.
+     */
+    this_ptr->RequiredAddon = (AddonType)required_addon;
+
+    /**
      *  Find the extension instance.
      */
     exttype_ptr = CampaignClassExtensions.find(this_ptr);
@@ -213,12 +218,7 @@ DECLARE_PATCH(_CampaignClass_Read_INI_Patch)
      */
     exttype_ptr->Read_INI(*ini);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    this_ptr->RequiredAddon = (AddonType)required_addon;
-
     _asm { mov al, 1 }
     _asm { pop edi }
     _asm { pop ebp }

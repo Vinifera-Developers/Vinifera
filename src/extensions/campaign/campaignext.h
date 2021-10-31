@@ -52,7 +52,10 @@ class CampaignClassExtension final : public Extension<CampaignClass>
         bool Read_INI(CCINIClass &ini);
 
     public:
-
+        /**
+         *  Is this campaign only available in Developer mode?
+         */
+        bool IsDebugOnly;
 };
 
 
