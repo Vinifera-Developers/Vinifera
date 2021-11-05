@@ -91,7 +91,7 @@ DECLARE_PATCH(_UnitClass_NoInit_Constructor_Patch)
      *  Stolen bytes here.
      */
 original_code:
-    _asm { mov dword ptr [ebx], 0x006D8B6C } // this->vftable = const UnitClass::`vftable';
+    _asm { mov dword ptr [esi], 0x006D8B6C } // this->vftable = const UnitClass::`vftable';
     JMP(0x00659680);
 }
 
