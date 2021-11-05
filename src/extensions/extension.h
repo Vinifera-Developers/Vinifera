@@ -31,6 +31,7 @@
 #include "tibsun_defines.h"
 #include "tibsun_globals.h"
 #include "swizzle.h"
+#include "noinit.h"
 #include "debughandler.h"
 
 /**
@@ -42,9 +43,7 @@
 #include <unknwn.h> // for IStream.
 
 
-class NoInitClass;
 class WWCRCEngine;
-
 
 
 /**
@@ -101,7 +100,7 @@ class ExtensionBase
          *  
          *  @note: This must be overridden by the extended class!
          */
-        virtual int Size_Of() const = 0;
+        virtual int Size_Of() const { return -1; }
 
     private:
         /**
@@ -142,12 +141,12 @@ class Extension : public ExtensionBase
         /**
          *  Removes the specified target from any targeting and reference trackers.
          */
-        virtual void Detach(TARGET target, bool all = true) = 0;
+        virtual void Detach(TARGET target, bool all = true) {}
 
         /**
          *  Compute a unique crc value for this instance.
          */
-        virtual void Compute_CRC(WWCRCEngine &crc) const = 0;
+        virtual void Compute_CRC(WWCRCEngine &crc) const {}
 
     protected:
         /**
@@ -186,14 +185,28 @@ HRESULT Extension<T>::Load(IStream *pStm)
     if (FAILED(hr)) {
         return E_FAIL;
     }
-    
+
     ULONG size = Size_Of();
     hr = pStm->Read(this, size, nullptr);
     if (FAILED(hr)) {
         return E_FAIL;
     }
 
-    SwizzleManager.Swizzle((void **)&ThisPtr);
+    new (this) Extension(NoInitClass());
+
+    /**
+     *  Announce ourself to the swizzle manager.
+     */
+    SWIZZLE_HERE_I_AM(id, this);
+
+    /**
+     *  Request the pointer to the base class be remapped.
+     */
+    SWIZZLE_REQUEST_POINTER_REMAP(ThisPtr);
+
+#ifndef NDEBUG
+    EXT_DEBUG_INFO("Ext Load: ID 0x%08X Ptr 0x%08X ThisPtr 0x%08X\n", id, this, ThisPtr);
+#endif
 
     return S_OK;
 }
@@ -212,7 +225,8 @@ HRESULT Extension<T>::Save(IStream *pStm, BOOL fClearDirty)
         return E_FAIL;
     }
 
-    ULONG id = (ULONG)this;
+    LONG id;
+    SWIZZLE_FETCH_POINTER_ID(this, &id);
     hr = pStm->Write(&id, sizeof(id), nullptr);
     if (FAILED(hr)) {
         return E_FAIL;
@@ -223,6 +237,10 @@ HRESULT Extension<T>::Save(IStream *pStm, BOOL fClearDirty)
     if (FAILED(hr)) {
         return E_FAIL;
     }
+    
+#ifndef NDEBUG
+    EXT_DEBUG_INFO("Ext Save: ID 0x%08X Ptr 0x%08X ThisPtr 0x%08X\n", id, this, ThisPtr);
+#endif
 
     return S_OK;
 }

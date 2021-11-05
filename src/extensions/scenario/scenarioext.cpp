@@ -112,7 +112,11 @@ HRESULT ScenarioClassExtension::Load(IStream *pStm)
 
     new (this) ScenarioClassExtension(NoInitClass());
 
-    SwizzleManager.Here_I_Am(id, this);
+    SWIZZLE_HERE_I_AM(id, this);
+
+#ifndef NDEBUG
+    EXT_DEBUG_INFO("ScenarioExt Load: ID 0x%08X Ptr 0x%08X\n", id, this);
+#endif
 
     return S_OK;
 }

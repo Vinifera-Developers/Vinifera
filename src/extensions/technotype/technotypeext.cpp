@@ -116,7 +116,7 @@ HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
 
     new (this) TechnoTypeClassExtension(NoInitClass());
 
-    SwizzleManager.Swizzle((void **)UnloadingClass);
+    SWIZZLE_REQUEST_POINTER_REMAP(UnloadingClass);
     
     return hr;
 }

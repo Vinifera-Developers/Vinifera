@@ -120,7 +120,11 @@ HRESULT TacticalMapExtension::Load(IStream *pStm)
 
     new (this) TacticalMapExtension(NoInitClass());
 
-    SwizzleManager.Here_I_Am(id, this);
+    SWIZZLE_HERE_I_AM(id, this);
+
+#ifndef NDEBUG
+    EXT_DEBUG_INFO("TacticalExt Load: ID 0x%08X Ptr 0x%08X\n", id, this);
+#endif
 
     return S_OK;
 }
