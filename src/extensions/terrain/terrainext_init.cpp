@@ -182,6 +182,34 @@ original_code:
 
 
 /**
+ *  Patch for including the extended class members in the virtual destruction process.
+ * 
+ *  @warning: Do not touch this unless you know what you are doing!
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_TerrainClass_Scalar_Destructor_Patch)
+{
+    GET_REGISTER_STATIC(TerrainClass *, this_ptr, esi);
+
+    /**
+     *  Remove the extended class from the global index.
+     */
+    TerrainClassExtensions.remove(this_ptr);
+
+    /**
+     *  Stolen bytes here.
+     */
+original_code:
+    _asm { mov eax, this_ptr }
+    _asm { pop edi }
+    _asm { pop esi }
+    _asm { add esp, 0x8 }
+    _asm { ret 4 }
+}
+
+
+/**
  *  Patch for including the extended class members to the base class detach process.
  * 
  *  @warning: Do not touch this unless you know what you are doing!
@@ -256,7 +284,8 @@ void TerrainClassExtension_Init()
     Patch_Jump(0x0063F88C, _TerrainClass_Default_Constructor_Patch);
     //Patch_Jump(0x0063F701, _TerrainClass_Constructor_Patch);
     Patch_Jump(0x0063F556, _TerrainClass_Constructor_Before_Unlimbo_Patch);
-    Patch_Jump(0x0063F2BC, _TerrainClass_Deconstructor_Patch);
+    Patch_Jump(0x0063F2BC, _TerrainClass_Deconstructor_Patch); // Destructor is actually inlined in scalar destructor!
+    Patch_Jump(0x00640D7C, _TerrainClass_Scalar_Destructor_Patch);
     Patch_Jump(0x0064089F, _TerrainClass_Detach_Patch);
     Patch_Jump(0x0064086E, _TerrainClass_Compute_CRC_Patch);
 }
