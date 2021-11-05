@@ -115,6 +115,8 @@ HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
     }
 
     new (this) TechnoTypeClassExtension(NoInitClass());
+
+    SwizzleManager.Swizzle((void **)UnloadingClass);
     
     return hr;
 }
@@ -134,8 +136,6 @@ HRESULT TechnoTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
     if (FAILED(hr)) {
         return hr;
     }
-
-    SwizzleManager.Swizzle((void **)UnloadingClass);
 
     return hr;
 }
