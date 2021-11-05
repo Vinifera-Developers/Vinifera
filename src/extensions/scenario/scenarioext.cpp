@@ -82,6 +82,9 @@ ScenarioClassExtension::~ScenarioClassExtension()
 
 /**
  *  Initializes an object from the stream where it was saved previously.
+ *
+ *  As ScenarioClassExtension is static data, we do not need to request
+ *  pointer remap of "ThisPtr" after loading has finished.
  *  
  *  @author: CCHyper
  */
@@ -90,14 +93,28 @@ HRESULT ScenarioClassExtension::Load(IStream *pStm)
     ASSERT(ThisPtr != nullptr);
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Load - 0x%08X\n", (uintptr_t)(ThisPtr));
 
-    HRESULT hr = Extension::Load(pStm);
+    HRESULT hr = ExtensionBase::Load(pStm);
+    if (FAILED(hr)) {
+        return E_FAIL;
+    }
+
+    LONG id;
+    hr = pStm->Read(&id, sizeof(id), nullptr);
+    if (FAILED(hr)) {
+        return E_FAIL;
+    }
+
+    ULONG size = Size_Of();
+    hr = pStm->Read(this, size, nullptr);
     if (FAILED(hr)) {
         return E_FAIL;
     }
 
     new (this) ScenarioClassExtension(NoInitClass());
 
-    return hr;
+    SwizzleManager.Here_I_Am(id, this);
+
+    return S_OK;
 }
 
 
