@@ -36,6 +36,8 @@
 #include "ccini.h"
 #include "cd.h"
 #include "ebolt.h"
+#include "tclassfactory.h"
+#include "testlocomotion.h"
 #include "debughandler.h"
 #include <string>
 
@@ -333,4 +335,22 @@ int Vinifera_Pre_Init_Game(int argc, char *argv[])
 int Vinifera_Post_Init_Game(int argc, char *argv[])
 {
     return EXIT_SUCCESS;
+}
+
+
+/**
+ *  This function registers any com objects required by the DLL.
+ * 
+ *  @author: CCHyper
+ */
+bool Vinifera_Register_Com_Objects()
+{
+    DEBUG_INFO("Registering new com objects...\n");
+
+    DEBUG_INFO("  TestLocomotionClass\n");
+    REGISTER_CLASS(TestLocomotionClass);
+
+    DEBUG_INFO("  ...OK!\n");
+
+    return true;
 }

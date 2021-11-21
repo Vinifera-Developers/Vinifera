@@ -161,6 +161,19 @@ DECLARE_PATCH(_WinMain_Vinifera_Startup)
 
 
 /**
+ *  Patch in the Vinifera com object register function.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_WinMain_Register_Com_Objects)
+{
+    Vinifera_Register_Com_Objects();
+
+    JMP(0x00600FA3);
+}
+
+
+/**
  *  Patch in the main Vinifera shutdown function.
  * 
  *  @author: CCHyper
@@ -336,6 +349,11 @@ static void Decrypt_Serial(char *buffer)
 void Vinifera_Hooks()
 {
     /**
+     *  Remove the requirement for BLOWFISH.DLL (Blowfish encryption).
+     */
+    _Remove_External_Blowfish_Dependency_Patch();
+
+    /**
      *  Draw the build version info on the bottom on the screen.
      */
     Patch_Jump(0x004E53C0, &_Version_Text_Draw_Patch);
@@ -348,13 +366,9 @@ void Vinifera_Hooks()
      */
     Patch_Jump(0x00601070, &_WinMain_Parse_Command_Line);
     Patch_Jump(0x005FF81C, &_WinMain_Vinifera_Startup);
+    Patch_Jump(0x00600F6E, &_WinMain_Register_Com_Objects);
     Patch_Jump(0x00602474, &_Game_Shutdown_Vinifera_Shutdown);
     Patch_Jump(0x00462927, &_Main_Game_Vinifera_Init_Game);
-
-    /**
-     *  Remove the requirement for BLOWFISH.DLL (Blowfish encryption).
-     */
-    _Remove_External_Blowfish_Dependency_Patch();
 
     /**
      *  Clear any game session and global variables before next game.
