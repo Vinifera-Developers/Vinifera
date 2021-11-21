@@ -1642,7 +1642,7 @@ bool SpawnAllCommandClass::Process()
     /**
      *  Default spawn location (top left of map).
      */
-    CellStruct origin(Map.MapCellX + 2, Map.MapCellY + 2);
+    Cell origin(Map.MapCellX + 2, Map.MapCellY + 2);
 
     /**
      *  If mouse position is valid, convert to world coordinates and update
@@ -1652,7 +1652,7 @@ bool SpawnAllCommandClass::Process()
         origin = Get_Cell_Under_Mouse();
     }
 
-    CellStruct attempt = origin;
+    Cell attempt = origin;
 
     /**
      *  Attempt to spawn all ownable objects for the player house.
