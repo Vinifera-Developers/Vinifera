@@ -160,6 +160,7 @@ void RulesClassExtension::Compute_CRC(WWCRCEngine &crc) const
 
     crc(IsMPAutoDeployMCV);
     crc(IsMPPrePlacedConYards);
+    crc(IsBuildOffAlly);
 }
 
 
