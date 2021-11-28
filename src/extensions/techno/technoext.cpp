@@ -31,6 +31,7 @@
 #include "technotypeext.h"
 #include "house.h"
 #include "voc.h"
+#include "ebolt.h"
 #include "tibsun_inline.h"
 #include "wwcrc.h"
 #include "asserthandler.h"
