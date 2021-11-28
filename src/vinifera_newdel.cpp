@@ -64,6 +64,9 @@ void * __cdecl vinifera_allocate(unsigned int size)
     if (!block_ptr) {
         DEBUG_FATAL("Failed to allocate memory!\n");
     }
+
+    ++Vinifera_New_Count;
+
     return block_ptr;
 }
 
@@ -101,6 +104,9 @@ void __cdecl vinifera_free(void *ptr)
     if (!freed) {
         DEBUG_FATAL("Failed to free memory!\n");
     }
+
+    ++Vinifera_Delete_Count;
+
     ASSERT(freed);
 }
 

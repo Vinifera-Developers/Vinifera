@@ -37,6 +37,10 @@
 #include "cd.h"
 #include "ebolt.h"
 #include "optionsext.h"
+#include "rulesext.h"
+#include "sessionext.h"
+#include "scenarioext.h"
+#include "tacticalext.h"
 #include "tclassfactory.h"
 #include "testlocomotion.h"
 #include "debughandler.h"
@@ -291,6 +295,18 @@ bool Vinifera_Shutdown()
 	delete OptionsExtension;
 	OptionsExtension = nullptr;
 
+	delete RulesExtension;
+	RulesExtension = nullptr;
+
+	delete SessionExtension;
+	SessionExtension = nullptr;
+
+	delete ScenarioExtension;
+	ScenarioExtension = nullptr;
+
+	delete TacticalExtension;
+	TacticalExtension = nullptr;
+
     /**
      *  Cleanup mixfiles.
      */
@@ -299,6 +315,9 @@ bool Vinifera_Shutdown()
 
     delete IsoGenericMix;
     IsoGenericMix = nullptr;
+
+    ViniferaMapsMixes.Clear();
+    ViniferaMoviesMixes.Clear();
 
     /**
      *  Cleanup global heaps/vectors.
