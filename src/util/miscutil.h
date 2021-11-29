@@ -55,6 +55,7 @@ void HexPrint64(const uint64_t *data, size_t size);
 int Clock_Get_Time(clockid_t id, struct timespec *ts);
 
 bool Create_Directory(char const *name);
+bool Directory_Exists(char const *name);
 
 void Set_Working_Directory();
 

@@ -427,6 +427,19 @@ bool Create_Directory(const char *name)
 }
 
 
+bool Directory_Exists(char const *name)
+{
+    DWORD ftyp = GetFileAttributes(name);
+    if (ftyp == INVALID_FILE_ATTRIBUTES) {
+        return false;
+    }
+    if ((ftyp & FILE_ATTRIBUTE_DIRECTORY) != 0) {
+        return true;
+    }
+    return false;
+}
+
+
 void Set_Working_Directory()
 {
     char path[MAX_PATH];
