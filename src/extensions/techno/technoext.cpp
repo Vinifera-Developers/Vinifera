@@ -29,10 +29,15 @@
 #include "techno.h"
 #include "technotype.h"
 #include "technotypeext.h"
+#include "tibsun_inline.h"
+#include "tibsun_globals.h"
+#include "particlesys.h"
+#include "particlesystype.h"
 #include "house.h"
 #include "voc.h"
 #include "ebolt.h"
 #include "tibsun_inline.h"
+#include "iomap.h"
 #include "wwcrc.h"
 #include "asserthandler.h"
 #include "debughandler.h"
@@ -335,4 +340,42 @@ bool TechnoClassExtension::Can_Passive_Acquire() const
      *  Original behaviour, all units can passive acquire.
      */
     return true;
+}
+
+
+/**
+ *  Handles the voice response when given harvest order.
+ * 
+ *  @author: CCHyper
+ */
+void TechnoClassExtension::Spawn_Natural_Particle_System()
+{
+    ASSERT(ThisPtr != nullptr);
+    //EXT_DEBUG_TRACE("TechnoClassExtension::Spawn_Natural_Particle_System - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    
+    Coordinate where;
+
+    TechnoTypeClass *technotype = ThisPtr->Techno_Type_Class();
+    TechnoTypeClassExtension *technotypeext = TechnoTypeClassExtensions.find(technotype);
+
+    /**
+     *  Spawn NaturalParticleSystem.
+     */
+    if (!ThisPtr->ParticleSystems[ATTACHED_PARTICLE_NATURAL] && technotype->NaturalParticleSystem) {
+
+        where = ThisPtr->Get_Coord();
+
+        where.X += technotype->NaturalParticleSystemLocation.X;
+        where.Y += technotype->NaturalParticleSystemLocation.Y;
+
+        /**
+         *  #BUGFIX: The original code did not take into account the Z coord
+         *           of the NaturalParticleSystem location.
+         */
+        where.Z += technotype->NaturalParticleSystemLocation.Z;
+
+        ThisPtr->ParticleSystems[ATTACHED_PARTICLE_NATURAL] = new ParticleSystemClass(
+            technotype->NaturalParticleSystem, where, &Map[ThisPtr->Get_Coord()]
+        );
+    }
 }

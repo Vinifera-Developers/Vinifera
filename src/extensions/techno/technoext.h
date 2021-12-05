@@ -57,6 +57,7 @@ class TechnoClassExtension final : public Extension<TechnoClass>
         void Response_Deploy();
         void Response_Harvest();
         bool Can_Passive_Acquire() const;
+        void Spawn_Natural_Particle_System();
 
     public:
         /**
