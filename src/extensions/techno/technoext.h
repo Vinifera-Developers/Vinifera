@@ -74,4 +74,9 @@ class TechnoClassExtension : public RadioClassExtension
          *  The current electric bolt instance fired by this object.
          */
         EBoltClass *ElectricBolt;
+
+        /**
+         *  Additional attached particle system trackers for this object. 
+         */
+        ParticleSystemClass *ParticleSystems[EXT_ATTACHED_PARTICLE_COUNT];
 };
