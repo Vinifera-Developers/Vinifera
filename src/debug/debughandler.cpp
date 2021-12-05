@@ -331,7 +331,7 @@ static void Debug_Announce()
     DEBUG_INFO("\n");
     DEBUG_INFO("TS++ author: %s\n", TSPP_Git_Author());
     DEBUG_INFO("TS++ date: %s\n", TSPP_Git_DateTime());
-    DEBUG_INFO("TS++ branch: %s\n", TSPP_Git_Branch());
+    DEBUG_INFO("TS++ branch: %s\n", "master"); // TSPP_Git_Branch());
     DEBUG_INFO("TS++ commit: %s\n", TSPP_Git_Hash_Short());
     DEBUG_INFO("TS++ local changes: %s\n", TSPP_Git_Uncommitted_Changes() ? "YES" : "NO");
     DEBUG_INFO("Vinifera author: %s\n", Vinifera_Git_Author());
