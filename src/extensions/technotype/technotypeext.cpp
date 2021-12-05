@@ -65,6 +65,10 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     VoiceDeploy(),
     VoiceHarvest(),
     IdleRate(0),
+    NaturalParticleSystem2(nullptr),
+    NaturalParticleSystemLocation2(0,0,0),
+    NaturalParticleSystem3(nullptr),
+    NaturalParticleSystemLocation3(0,0,0),
     CameoImageSurface(nullptr)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
@@ -262,6 +266,11 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
 
     IdleRate = ini.Get_Int(ini_name, "IdleRate", IdleRate);
     IdleRate = ArtINI.Get_Int(graphic_name, "IdleRate", IdleRate);
+
+    NaturalParticleSystem2 = ini.Get_ParticleSystem(ini_name, "NaturalParticleSystem2", NaturalParticleSystem2);
+    NaturalParticleSystemLocation2 = ini.Get_Point(ini_name, "NaturalParticleLocation2", NaturalParticleSystemLocation2);
+    NaturalParticleSystem3 = ini.Get_ParticleSystem(ini_name, "NaturalParticleSystem3", NaturalParticleSystem3);
+    NaturalParticleSystemLocation3 = ini.Get_Point(ini_name, "NaturalParticleLocation3", NaturalParticleSystemLocation3);
 
     /**
      *  Fetch the cameo image surface if it exists.
