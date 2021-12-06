@@ -389,6 +389,11 @@ void Vinifera_Hooks()
      *  This patch allows 1 player LAN games for testing various network features.
      */
     Patch_Jump(0x00577029, 0x00577071);
+
+    /**
+     *  Allow up to 7 AI players in LAN games.
+     */
+    Patch_Byte(0x0057C97E+3, 0x07);
 #endif
 
 #ifndef NDEBUG
