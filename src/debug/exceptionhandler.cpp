@@ -47,6 +47,7 @@
 #include "tspp_gitinfo.h"
 #include "vinifera_gitinfo.h"
 #include "vinifera_globals.h"
+#include "vinifera_util.h"
 #include "tibsun_globals.h"
 #include "vinifera_newdel.h"
 #include <Windows.h>
@@ -882,6 +883,7 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
                      *  Ask the user if the wish to produce a minidump.
                      */
                     Exception_Generate_Mini_Dump();
+                    Vinifera_Collect_Debug_Files();
 
                     ExitAfterException = true; // #TEMP!
                     break;
@@ -898,6 +900,8 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
                          */
                         Exception_Generate_Mini_Dump();
                     }
+
+                    Vinifera_Collect_Debug_Files();
 
                     __debugbreak();
 
@@ -924,6 +928,8 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
                         return EXCEPTION_EXECUTE_HANDLER;
                     }
                     
+                    Vinifera_Collect_Debug_Files();
+
                     /**
                      *  #BUGFIX:
                      *  Clear all surfaces to remove any blitting artifacts.
@@ -965,6 +971,8 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
                      */
                     Exception_Generate_Mini_Dump();
 
+                    Vinifera_Collect_Debug_Files();
+
                     ExitAfterException = true;
                     break;
             };
@@ -1000,6 +1008,8 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
     }
     
     CDControl.Unlock_All_CD_Drives();
+
+    Vinifera_Collect_Debug_Files();
 
     /**
      *  The system transfers control to the exception handler, and execution continues

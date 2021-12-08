@@ -28,6 +28,7 @@
 #pragma once
 
 #include "always.h"
+#include "vector.h"
 
 
 class XSurface;
@@ -44,3 +45,6 @@ int Vinifera_Do_WWMessageBox(const char *msg, const char *btn1, const char *btn2
 void Vinifera_DeveloperMode_Warning_WWMessageBox(const char *msg, ...);
 
 const char *Vinifera_Get_Window_Title(DWORD dwPid);
+
+bool Vinifera_Create_Zip(const char *filename, DynamicVectorClass<const char *> &filelist, const char *path = nullptr);
+bool Vinifera_Collect_Debug_Files();

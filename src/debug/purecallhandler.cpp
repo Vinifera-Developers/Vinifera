@@ -33,6 +33,7 @@
 #include "debughandler.h"
 #include "tibsun_globals.h"
 #include "vinifera_globals.h"
+#include "vinifera_util.h"
 #include <Windows.h>
 #include <string>
 
@@ -142,6 +143,8 @@ extern "C" void __cdecl Vinifera_PureCall_Handler()
     if (IsDebuggerPresent()) {
         __debugbreak();
     }
+    
+    Vinifera_Collect_Debug_Files();
 
     /**
      *  Exit gracefully.

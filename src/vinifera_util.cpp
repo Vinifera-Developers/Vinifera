@@ -39,7 +39,11 @@
 #include "msgbox.h"
 #include "minidump.h"
 #include "winutil.h"
+#include "xzip.h"
 #include <cstdio>
+
+
+extern char Execute_Time_Buffer[256];
 
 
 /**
@@ -422,4 +426,122 @@ const char *Vinifera_Get_Window_Title(DWORD dwPid)
 #endif
 
     return _window_name;
+}
+
+
+/**
+ *  Creates a zip file is the specified files.
+ * 
+ *  @note: If the zip file already exists, it will be updated.
+ * 
+ *  @author: CCHyper
+ */
+bool Vinifera_Create_Zip(const char *filename, DynamicVectorClass<const char *> &filelist, const char *path)
+{
+    char buffer[PATH_MAX];
+    
+    if (path) {
+        std::snprintf(buffer, sizeof(buffer), "%s\\%s", path, filename);
+    } else {
+        std::snprintf(buffer, sizeof(buffer), ".\\%s", filename);
+    }
+
+    HZIP hZip = CreateZip((void *)buffer, 0, ZIP_FILENAME);
+    if (!hZip) {
+        DEBUG_ERROR("Failed to create zip archive \"%s\"!\n", filename);
+        return false;
+    }
+
+    /**
+     *  
+     */
+    for (int i = 0; i < filelist.Count(); ++i) {
+        if (path) {
+            std::snprintf(buffer, sizeof(buffer), "%s\\%s", path, filelist[i]);
+        } else {
+            std::snprintf(buffer, sizeof(buffer), ".\\%s", filelist[i]);
+        }
+        ZRESULT zresult = ZipAdd(hZip, filelist[i], buffer, 0, ZIP_FILENAME);
+        if (zresult != ZR_OK) {
+            DEBUG_ERROR("Failed to add file \"%s\" to zip archive \"%s\"!\n", buffer, filename);
+            return false;
+        }
+    }
+    
+    DEBUG_INFO("Zip archive \"%s\" created sucessfully.\n", filename);
+
+    return CloseZip(hZip) == ZR_OK;
+}
+
+
+/**
+ *  Collects the debug files from this session and creates a zip file.
+ * 
+ *  @note: If the zip file already exists, it will be updated.
+ * 
+ *  @author: CCHyper
+ */
+bool Vinifera_Collect_Debug_Files()
+{
+    char buffer[PATH_MAX];
+
+    char debug_buffer[PATH_MAX];
+    char except_buffer[PATH_MAX];
+    char stack_buffer[PATH_MAX];
+    char crashdump_buffer[PATH_MAX];
+
+    RawFileClass tmpfile;
+    DynamicVectorClass<const char *> files;
+
+    std::snprintf(debug_buffer, sizeof(debug_buffer), "%s\\DEBUG_%s.LOG", Vinifera_DebugDirectory, Execute_Time_Buffer);
+    tmpfile.Set_Name(debug_buffer);
+    if (tmpfile.Is_Available()) {
+        std::snprintf(buffer, sizeof(buffer), "DEBUG_%s.LOG", Execute_Time_Buffer);
+        files.Add(strdup(buffer));
+    }
+
+    std::snprintf(except_buffer, sizeof(except_buffer), "%s\\EXCEPT_%s.TXT", Vinifera_DebugDirectory, Execute_Time_Buffer);
+    tmpfile.Set_Name(except_buffer);
+    if (tmpfile.Is_Available()) {
+        std::snprintf(buffer, sizeof(buffer), "EXCEPT_%s.TXT", Execute_Time_Buffer);
+        files.Add(strdup(buffer));
+    }
+
+    std::snprintf(stack_buffer, sizeof(stack_buffer), "%s\\STACK_%s.LOG", Vinifera_DebugDirectory, Execute_Time_Buffer);
+    tmpfile.Set_Name(stack_buffer);
+    if (tmpfile.Is_Available()) {
+        std::snprintf(buffer, sizeof(buffer), "STACK_%s.LOG", Execute_Time_Buffer);
+        files.Add(strdup(buffer));
+    }
+
+    const char *module_name = strupr((char *)Get_Module_File_Name());
+    std::snprintf(crashdump_buffer, sizeof(crashdump_buffer), "%s\\CRASHDUMP_%s_%s.DMP", Vinifera_DebugDirectory, module_name, Execute_Time_Buffer);
+    tmpfile.Set_Name(crashdump_buffer);
+    if (tmpfile.Is_Available()) {
+        std::snprintf(buffer, sizeof(buffer), "CRASHDUMP_%s_%s.DMP", module_name, Execute_Time_Buffer);
+        files.Add(strdup(buffer));
+    }
+
+    std::snprintf(buffer, sizeof(buffer), "%s_%s.ZIP", "DEBUG", Execute_Time_Buffer);
+    bool result = Vinifera_Create_Zip(buffer, files, Vinifera_DebugDirectory);
+
+    /**
+     *  Cleanup files.
+     */
+    if (result) {
+        RawFileClass(debug_buffer).Delete();
+        RawFileClass(except_buffer).Delete();
+        RawFileClass(stack_buffer).Delete();
+        RawFileClass(crashdump_buffer).Delete();
+    }
+
+    /**
+     *  Cleanup memory.
+     */
+    for (int i = 0; i < files.Count(); ++i) {
+        std::free((void *)files[i]);
+    }
+    files.Delete_All();
+
+    return result;
 }

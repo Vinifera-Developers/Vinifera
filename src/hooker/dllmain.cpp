@@ -34,6 +34,7 @@
 #include "setup_hooks.h"
 
 #include "miscutil.h"
+#include "vinifera_util.h"
 
 
 /**
@@ -51,6 +52,7 @@ int Execute_Year = 0;
 int Execute_Hour = 0;
 int Execute_Min = 0;
 int Execute_Sec = 0;
+char Execute_Time_Buffer[256];
 
 
 /**
@@ -97,6 +99,8 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved
              *  Get the timestamp of execution. Used for generating debug log filenames.
              */
             Get_Full_Time(Execute_Day, Execute_Month, Execute_Year, Execute_Hour, Execute_Min, Execute_Sec);
+            std::snprintf(Execute_Time_Buffer, sizeof(Execute_Time_Buffer), "%02u-%02u-%04u_%02u-%02u-%02u",
+                              Execute_Day, Execute_Month, Execute_Year, Execute_Hour, Execute_Min, Execute_Sec);
 
             /**
              *  Setup hooks and any other systems here.
@@ -114,6 +118,11 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved
              *  Shutdown systems here.
              */
 
+
+            /**
+             *  Collect the debug files from this session.
+             */
+            Vinifera_Collect_Debug_Files();
             
             DLLInstance = nullptr;
             break;

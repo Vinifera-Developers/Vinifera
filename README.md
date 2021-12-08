@@ -71,6 +71,7 @@ Copy the built executables from the build directory to the Tiberian Sun director
 Vinifera makes use of third-party libraries to help implement features. Below is a list of libraries used by the project;
  - [LodePNG](https://lodev.org/lodepng/)
  - [Image-Resampler](https://github.com/ramenhut/image-resampler)
+ - [XZip](https://www.codeproject.com/Articles/4135/XZip-and-XUnzip-Add-zip-and-or-unzip-to-your-app-w?msg=3792406)
 
 # Anti-virus Warning
 Anti-virus software like Windows Defender could mark the binaries built from the DLL configuration in this project as a virus. We would like to assure that this is a false-positive and that these is completely safe to use. If you are still unsure about running these binaries on your system, your are welcome to join our Discord server where one of the developers can explain the process used by this project in detail.
