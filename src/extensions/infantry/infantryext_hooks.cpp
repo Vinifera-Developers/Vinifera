@@ -32,6 +32,7 @@
 #include "infantrytypeext.h"
 #include "technotype.h"
 #include "technotypeext.h"
+#include "weapontype.h"
 #include "target.h"
 #include "voc.h"
 #include "tibsun_globals.h"
@@ -43,6 +44,33 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  x
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_InfantryClass_Greatest_Threat_New_Weapons_Patch)
+{
+    GET_REGISTER_STATIC(InfantryClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(ThreatType, threat, edi);
+    static WeaponSlotType slot;
+    static const WeaponTypeClass *weaponptr;
+
+    /**
+     *  
+     */
+    for (slot = WEAPON_SLOT_FIRST; slot < EXT_WEAPON_SLOT_COUNT; ++slot) {
+        weaponptr = this_ptr->Get_Weapon(slot)->Weapon;
+        if (weaponptr) {
+            threat = threat | weaponptr->Allowed_Threats();
+        }
+    }
+
+    _asm { mov edi, threat }
+    JMP(0x004D6F01);
+}
 
 
 /**
@@ -464,4 +492,5 @@ void InfantryClassExtension_Hooks()
     Patch_Jump(0x004D7168, &_InfantryClass_What_Action_Mechanic_Patch);
     Patch_Jump(0x004D87E9, &_InfantryClass_Firing_AI_Mechanic_Patch);
     Patch_Jump(0x004D3A7B, &_InfantryClass_Per_Cell_Process_Transport_Attach_Sound_Patch);
+    Patch_Jump(0x004D6EB5, &_InfantryClass_Greatest_Threat_New_Weapons_Patch);
 }

@@ -53,6 +53,7 @@ class BuildingClassExtension final : public Extension<BuildingClass>
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
         const WeaponInfoStruct * Get_Weapon(WeaponSlotType weapon) const;
+        TARGET Greatest_Threat(ThreatType method, Coordinate &coord, bool a3 = false) const;
 
         void Produce_Cash_AI();
 

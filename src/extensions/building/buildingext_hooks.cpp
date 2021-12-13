@@ -37,6 +37,7 @@
 #include "buildingtypeext.h"
 #include "technotype.h"
 #include "technotypeext.h"
+#include "weapontype.h"
 #include "house.h"
 #include "housetype.h"
 #include "bsurface.h"
@@ -91,6 +92,33 @@ const WeaponInfoStruct * BuildingClassFake::_Get_Weapon(WeaponSlotType weapon) c
     } else {
         return BuildingClass::Get_Weapon(weapon);
     }
+}
+
+
+/**
+ *  x
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_BuildingClass_Greatest_Threat_New_Weapons_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass *, this_ptr, esi);
+    GET_STACK_STATIC(ThreatType, threat, esp, 0x0C);
+    static WeaponSlotType slot;
+    static const WeaponTypeClass *weaponptr;
+
+    /**
+     *  
+     */
+    for (slot = WEAPON_SLOT_FIRST; slot < EXT_WEAPON_SLOT_COUNT; ++slot) {
+        weaponptr = this_ptr->Get_Weapon(slot)->Weapon;
+        if (weaponptr) {
+            threat |= weaponptr->Allowed_Threats();
+        }
+    }
+
+    _asm { mov edi, threat }
+    JMP(0x0042E138);
 }
 
 
@@ -532,6 +560,7 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x00429A96, &_BuildingClass_AI_ProduceCash_Patch);
     Patch_Jump(0x0042F67D, &_BuildingClass_Captured_ProduceCash_Patch);
     Patch_Jump(0x0042E179, &_BuildingClass_Grand_Opening_ProduceCash_Patch);
+    Patch_Jump(0x0042E0E4, &_BuildingClass_Greatest_Threat_New_Weapons_Patch);
 
     Change_Virtual_Address(0x006CC604, Get_Func_Address(&BuildingClassFake::_Get_Weapon));
 }

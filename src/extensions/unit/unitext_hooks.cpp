@@ -36,6 +36,7 @@
 #include "unit.h"
 #include "unittype.h"
 #include "unittypeext.h"
+#include "weapontype.h"
 #include "target.h"
 #include "rules.h"
 #include "iomap.h"
@@ -46,6 +47,33 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  x
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_UnitClass_Greatest_Threat_New_Weapons_Patch)
+{
+    GET_REGISTER_STATIC(UnitClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(ThreatType, threat, edi);
+    static WeaponSlotType slot;
+    static const WeaponTypeClass *weaponptr;
+
+    /**
+     *  
+     */
+    for (slot = WEAPON_SLOT_FIRST; slot < EXT_WEAPON_SLOT_COUNT; ++slot) {
+        weaponptr = this_ptr->Get_Weapon(slot)->Weapon;
+        if (weaponptr) {
+            threat |= weaponptr->Allowed_Threats();
+        }
+    }
+
+    _asm { mov edi, threat }
+    JMP(0x006585A1);
+}
 
 
 #if 0
@@ -708,4 +736,5 @@ void UnitClassExtension_Hooks()
     Patch_Jump(0x0065665D, &_UnitClass_What_Action_ACTION_HARVEST_Block_On_Bridge_Patch); // IsToVeinHarvest
     //Patch_Jump(0x0065054F, &_UnitClass_Enter_Idle_Mode_Block_Harvesting_On_Bridge_Patch); // Removed, keeping code for reference.
     //Patch_Jump(0x00654AB0, &_UnitClass_Mission_Harvest_Block_Harvesting_On_Bridge_Patch); // Removed, keeping code for reference.
+    Patch_Jump(0x00658555, &_UnitClass_Greatest_Threat_New_Weapons_Patch);
 }
