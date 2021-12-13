@@ -36,6 +36,7 @@
 #include "unit.h"
 #include "unittype.h"
 #include "unittypeext.h"
+#include "weapontype.h"
 #include "target.h"
 #include "rules.h"
 #include "iomap.h"
@@ -46,6 +47,33 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  x
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_UnitClass_Greatest_Threat_New_Weapons_Patch)
+{
+    GET_REGISTER_STATIC(UnitClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(ThreatType, threat, edi);
+    static WeaponSlotType slot;
+    static const WeaponTypeClass *weaponptr;
+
+    /**
+     *  
+     */
+    for (slot = WEAPON_SLOT_FIRST; slot < EXT_WEAPON_SLOT_COUNT; ++slot) {
+        weaponptr = this_ptr->Get_Weapon(slot)->Weapon;
+        if (weaponptr) {
+            threat |= weaponptr->Allowed_Threats();
+        }
+    }
+
+    _asm { mov edi, threat }
+    JMP(0x006585A1);
+}
 
 
 /**
@@ -585,4 +613,5 @@ void UnitClassExtension_Hooks()
     Patch_Jump(0x00653D7F, &_UnitClass_Draw_It_Unloading_Harvester_Patch);
     Patch_Jump(0x00654399, &_UnitClass_Mission_Unload_Transport_Detach_Sound_Patch);
     Patch_Jump(0x00653114, &_UnitClass_Draw_Shape_IdleRate_Patch);
+    Patch_Jump(0x00658555, &_UnitClass_Greatest_Threat_New_Weapons_Patch);
 }

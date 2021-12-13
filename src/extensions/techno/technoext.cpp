@@ -384,7 +384,7 @@ const WeaponInfoStruct * TechnoClassExtension::Get_Weapon(WeaponSlotType weapon)
 
     } else {
     
-        technotypeext->Fetch_Weapon_Info(weapon);
+        weaponptr = &technotypeext->Fetch_Weapon_Info(weapon);
     }
 
     return weaponptr;
