@@ -98,7 +98,7 @@ static PROCESS_INFORMATION ProcessInformation;
  */
 bool Check_Hash(const char *filename, const char *target_hash)
 {
-    SHAEngine sha;
+    SHA sha;
     char buffer[1024];
     char hash[41];
     std::ifstream in(EXEName, std::ifstream::in|std::ifstream::binary);

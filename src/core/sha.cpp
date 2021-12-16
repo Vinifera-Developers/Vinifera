@@ -2,7 +2,7 @@
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
  *
- *  @project       ProjectTSYR (Common Library)
+ *  @project       Vinifera
  *
  *  @file          SHA.CPP
  *
@@ -36,7 +36,7 @@
 #include <algorithm>
 
 
-void SHAEngine::Process_Partial(void const * & data, long & length)
+void SHA::Process_Partial(void const * & data, long & length)
 {
     if (length == 0 || data == nullptr) return;
     if (PartialCount == 0 && length >= SRC_BLOCK_SIZE) return;
@@ -55,7 +55,7 @@ void SHAEngine::Process_Partial(void const * & data, long & length)
 }
 
 
-void SHAEngine::Hash(void const * data, long length)
+void SHA::Hash(void const * data, long length)
 {
     IsCached = false;
 
@@ -77,7 +77,7 @@ void SHAEngine::Hash(void const * data, long length)
 }
 
 
-int SHAEngine::Result(void * result) const
+int SHA::Result(void * result) const
 {
     if (IsCached) {
         std::memcpy(result, &FinalResult, sizeof(FinalResult));
@@ -116,7 +116,7 @@ int SHAEngine::Result(void * result) const
 }
 
 
-void SHAEngine::Process_Block(void const * source, SHADigest & acc) const
+void SHA::Process_Block(void const * source, SHADigest & acc) const
 {
     long block[PROC_BLOCK_SIZE/sizeof(long)];
     long const * data = (long const *)source;
@@ -148,7 +148,7 @@ void SHAEngine::Process_Block(void const * source, SHADigest & acc) const
 }
 
 
-void SHAEngine::Print(const void *buffer, char *output)
+void SHA::Print(const void *buffer, char *output)
 {
     for (int i = 0; i < 20; i++) {
         std::sprintf(&output[2 * i], "%02x", *(static_cast<const uint8_t *>(buffer) + i));
@@ -156,7 +156,7 @@ void SHAEngine::Print(const void *buffer, char *output)
 }
 
 
-int SHAEngine::Print_Result(char *output)
+int SHA::Print_Result(char *output)
 {
     uint8_t buffer[20];
 

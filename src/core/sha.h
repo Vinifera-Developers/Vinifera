@@ -2,7 +2,7 @@
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
  *
- *  @project       ProjectTSYR (Common Library)
+ *  @project       Vinifera
  *
  *  @file          SHA.H
  *
@@ -38,10 +38,10 @@
 #include <new>
 
 
-class SHAEngine
+class SHA
 {
     public:
-        SHAEngine() :
+        SHA() :
             IsCached(false), FinalResult(), Length(0),
             PartialCount(0), Partial()
         {
@@ -53,7 +53,7 @@ class SHAEngine
         };
 
         void Init() {
-            new ((void*)this) SHAEngine;
+            new ((void*)this) SHA;
         };
 
         int Result(void * result) const;
