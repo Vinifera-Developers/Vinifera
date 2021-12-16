@@ -39,6 +39,7 @@ class FixedString
         ~FixedString() {}
 
         void operator+=(const char *string) { Append(string); }
+        void operator=(const char *string) { Clear(); Append(string); }
 
         void Append(const char *string);
         int Format(const char *format, ...);
