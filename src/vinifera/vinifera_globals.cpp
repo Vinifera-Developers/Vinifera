@@ -36,6 +36,7 @@ bool Vinifera_PrintFileErrors = true;
 bool Vinifera_FatalFileErrors = false;
 bool Vinifera_AssertFileErrors = false;
 
+char Vinifera_ExceptionDatabaseFilename[PATH_MAX] = { "GAME.EDB" };
 char Vinifera_DebugDirectory[PATH_MAX] = { "Debug" };
 char Vinifera_ScreenshotDirectory[PATH_MAX] = { "Screenshots" };
 
@@ -73,3 +74,5 @@ bool Vinifera_SkipToSkirmish = false;
 bool Vinifera_SkipToCampaign = false;
 bool Vinifera_SkipToInternet = false;
 bool Vinifera_ExitAfterSkip = false;
+
+DynamicVectorClass<ExceptionInfoDatabaseStruct> ExceptionInfoDatabase;
