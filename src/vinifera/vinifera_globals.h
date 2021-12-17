@@ -41,6 +41,7 @@ extern bool Vinifera_PrintFileErrors;
 extern bool Vinifera_FatalFileErrors;
 extern bool Vinifera_AssertFileErrors;
 
+extern char Vinifera_ExceptionDatabaseFilename[PATH_MAX];
 extern char Vinifera_DebugDirectory[PATH_MAX];
 extern char Vinifera_ScreenshotDirectory[PATH_MAX];
 
@@ -100,3 +101,30 @@ extern bool Vinifera_SkipToSkirmish;
 extern bool Vinifera_SkipToCampaign;
 extern bool Vinifera_SkipToInternet;
 extern bool Vinifera_ExitAfterSkip;
+
+
+/**
+ *  Definition for the exception database struct. If you update this
+ *  struct, make sure you check if you need to update the exception handler.
+ */
+struct ExceptionInfoDatabaseStruct
+{
+    ExceptionInfoDatabaseStruct() :
+        Address(0x00000000),
+        CanContinue(false),
+        Ignore(false),
+        Description()
+    {
+        std::memset(Description, 0, sizeof(Description));
+    }
+
+    bool operator==(const ExceptionInfoDatabaseStruct &src) const { return false; }
+    bool operator!=(const ExceptionInfoDatabaseStruct &src) const { return true; }
+
+    uint32_t Address;
+    bool CanContinue;
+    bool Ignore;
+    char Description[1024];
+};
+
+extern DynamicVectorClass<ExceptionInfoDatabaseStruct> ExceptionInfoDatabase;

@@ -50,6 +50,7 @@ jobs:
           cp ./build/Vinifera.pdb ./artifact/Vinifera.pdb
           cp ./build/LaunchVinifera.exe ./artifact/LaunchVinifera.exe
           cp ./build/_deps/tspp-src/pdb/Game.pdb ./artifact/Game.pdb
+          cp ./build/_deps/tspp-src/edb/Game.edb ./artifact/Game.edb
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
@@ -99,6 +100,7 @@ jobs:
           cp ./build/Vinifera.pdb ./artifact/Vinifera.pdb
           cp ./build/LaunchVinifera.exe ./artifact/LaunchVinifera.dat
           cp ./build/_deps/tspp-src/pdb/Game.pdb ./artifact/Game.pdb
+          cp ./build/_deps/tspp-src/edb/Game.edb ./artifact/Game.edb
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
