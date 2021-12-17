@@ -48,3 +48,19 @@ const char *Vinifera_Get_Window_Title(DWORD dwPid);
 
 bool Vinifera_Create_Zip(const char *filename, DynamicVectorClass<const char *> &filelist, const char *path = nullptr);
 bool Vinifera_Collect_Debug_Files();
+
+/**
+ *  Functions for fetching windows resources.
+ */
+#ifndef NDEBUG
+const char *Vinifera_Fetch_String(HMODULE handle, ULONG id, const char *file = nullptr, int line = 0);
+HGLOBAL Vinifera_Fetch_Resource(HMODULE handle, const char *id, const char *type, const char *file = nullptr, int line = 0);
+#define FETCH_STRING(handle, id) Vinifera_Fetch_String(handle, id, __FILE__, __LINE__);
+#define FETCH_RESOURCE(handle, id, type) Vinifera_Fetch_Resource(handle, id, type, __FILE__, __LINE__);
+#else
+const char *Vinifera_Fetch_String(HMODULE handle, ULONG id);
+HGLOBAL Vinifera_Fetch_Resource(HMODULE handle, ULONG id, ULONG type);
+HGLOBAL Vinifera_Fetch_Resource(HMODULE handle, const char *id, const char *type);
+#define FETCH_STRING Vinifera_Fetch_String
+#define FETCH_RESOURCE Vinifera_Fetch_Resource
+#endif

@@ -545,3 +545,126 @@ bool Vinifera_Collect_Debug_Files()
 
     return result;
 }
+
+
+/**
+ *  Fetch string from the program resources.
+ */
+#ifndef NDEBUG
+const char *Vinifera_Fetch_String(HMODULE handle, ULONG id, const char *file, int line)
+#else
+const char *Vinifera_Fetch_String(HMODULE handle, ULONG id)
+#endif
+{
+    static struct StringCache
+    {
+        StringCache() : ID(-1), Index(-1), Buffer() {}
+        ~StringCache() {}
+
+        int ID;
+        int Index;
+        char Buffer[2048];
+
+    } _string_cache[256];
+
+    static int _used = 0;
+
+    static const char _null = '\0';
+    //static char _buffer[2048];
+    //char _buff[2048];
+
+    //DEBUG_INFO("Fetch_String(enter)\n");
+
+    if (handle == nullptr || id == -1) {
+        return _null;
+    }
+
+    int next_index = ++_used;
+
+    for (int i = 0; i < ARRAY_SIZE(_string_cache); ++i) {
+        StringCache &s = _string_cache[i];
+        if (s.ID == id) {
+            s.Index = next_index;
+            return s.Buffer;
+        }
+    }
+
+    int free_index = -1;
+
+    int last_index = -1;
+    for (int i = 0; i < ARRAY_SIZE(_string_cache); ++i) {
+
+        StringCache &s = _string_cache[i];
+        if (free_index == -1 || last_index > s.Index) {
+
+            free_index = i;
+            last_index = s.Index;
+
+            if (s.Index == -1 || s.ID == -1) {
+                break;
+            }
+        }
+    }
+
+    StringCache &free_entry = _string_cache[free_index];
+    free_entry.ID = id;
+    free_entry.Index = free_index;
+
+    DWORD rc = LoadString(handle, id, free_entry.Buffer, sizeof(free_entry.Buffer));
+    //DWORD rc = Load_String_Ex(handle, id, free_entry.Buffer, sizeof(free_entry.Buffer), ResourceLang);
+    if (!rc) {
+        DEBUG_ERROR("Fetch_String() - LoadString failed. Error! %s.\n", Last_System_Error_As_String());
+        return _null;
+    }
+
+    //std::strncpy(_buffer, _buff, sizeof(_buffer));
+    //_buffer[sizeof(_buffer)-1] = '\0';
+    free_entry.Buffer[sizeof(free_entry.Buffer)-1] = '\0';
+
+    //DEBUG_INFO("Fetch_String() - Returning '%s'.\n", free_entry.Buffer);
+
+    return free_entry.Buffer;
+}
+
+
+/**
+ *  Fetch a resource.
+ */
+#ifndef NDEBUG
+HGLOBAL Vinifera_Fetch_Resource(HMODULE handle, const char *id, const char *type, const char *file, int line)
+#else
+HGLOBAL Vinifera_Fetch_Resource(HMODULE handle, const char *id, const char *type)
+#endif
+{
+    //DEBUGINFO("Fetch_Resource(enter)\n");
+    
+    //HRSRC res = FindResourceEx(handle, MAKEINTRESOURCE(id), MAKEINTRESOURCE(type), ResourceLang);
+    HRSRC res = FindResource(handle, MAKEINTRESOURCE(id), MAKEINTRESOURCE(type));
+    if (res == nullptr) {
+        DEBUG_ERROR("Fetch_Resource() - FindResource failed. Error! %s.\n", Last_System_Error_As_String());
+        return nullptr;
+    }
+
+    HGLOBAL res_handle = LoadResource(handle, res);
+    if (res_handle == nullptr) {
+        DEBUG_ERROR("Fetch_Resource() - LoadResource failed. Error! %s.\n", Last_System_Error_As_String());
+        return nullptr;
+    }
+
+    /**
+     *  Note from MSDN for LockResource().
+     *    LockResource does not actually lock memory, it is just used to obtain
+     *    a pointer to the memory containing the resource data. The name of the
+     *    function comes from versions prior to Windows XP, when it was used to
+     *    lock a global memory block allocated by LoadResource.
+     */
+    void *res_data = LockResource(res_handle);
+    if (res_data == nullptr) {
+        DEBUG_ERROR("Fetch_Resource() - LockResource failed. Error! %s.\n", Last_System_Error_As_String());
+        return nullptr;
+    }
+
+    //DEBUGINFO("Fetch_Resource() - Resource loaded sucessfully.\n");
+
+    return res_data;
+}
