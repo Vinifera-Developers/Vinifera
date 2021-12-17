@@ -56,6 +56,8 @@
 #include <string>
 
 
+extern HMODULE DLLInstance;
+
 extern int Execute_Day;
 extern int Execute_Month;
 extern int Execute_Year;
@@ -65,6 +67,7 @@ extern int Execute_Sec;
 
 
 register_t LastExceptionEIP = 0x0;
+uint32_t CurrentExceptionCRC = 0;
 uint32_t LastExceptionCRC = 0;
 
 _EXCEPTION_POINTERS *ExceptionInfo = nullptr;
@@ -82,6 +85,10 @@ int RecursionCount = -1;
 FixedString<65536> ExceptionBuffer;
 
 static TextFileClass ExceptionFile;
+
+static FixedString<1024> ExceptionInfoDescription;
+static bool ExceptionInfoCanContinue = false;
+static bool ExceptionInfoIgnore = false;
 
 
 /**
@@ -109,6 +116,23 @@ static void Clear_All_Surfaces()
     if (TileSurface) TileSurface->Clear();
     if (SidebarSurface) SidebarSurface->Clear();
     if (AlternateSurface) AlternateSurface->Clear();
+}
+
+
+/**
+ *  Finds the first instance of the address in the loaded database and extracts its info.
+ */
+static bool Exception_Find_Datbase_Entry(uintptr_t address, bool &can_continue, bool &ignore, FixedString<1024> &desc)
+{
+    for (int i = 0; i < ExceptionInfoDatabase.Count(); ++i) {
+        if (ExceptionInfoDatabase[i].Address == address) {
+            can_continue = ExceptionInfoDatabase[i].CanContinue;
+            ignore = ExceptionInfoDatabase[i].Ignore;
+            desc = ExceptionInfoDatabase[i].Description;
+            return true;
+        }
+    }
+    return false;
 }
 
 
@@ -358,6 +382,17 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
 
     Exception_Printf("\r\n");
 
+    /**
+     *  Has additional info for this EIP been loaded from the exception database?
+     */
+    if (ExceptionInfoDescription.Peek_Buffer()[0] != '\0') {
+        Exception_Printf("Additional Information:\r\n");
+        DEBUG_WARNING("\r\nAdditional Information:\n");
+        Exception_Printf("  %s\r\n", ExceptionInfoDescription.Peek_Buffer());
+        DEBUG_WARNING("  %s\n\n", ExceptionInfoDescription.Peek_Buffer());
+        Exception_Printf("\r\n");
+    }
+
     DEBUG_WARNING("Call dump...\n");
     //Exception_Printf("Call stack:\r\n");
 
@@ -571,11 +606,17 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
          *  and breaks into the debugger. Leaving the debugger, the function continues as
          *  usual, and returns a nonzero value. This behavior is by design, as a debugging aid.
          */
+#ifndef NDEBUG
+        if (!IsDebuggerPresent()) {
+#endif
         if (IsBadCodePtr(reinterpret_cast<FARPROC>(*address))) {
             Exception_Printf("%" PRIPTRSIZE PRIXPTR ": %" PRIPTRSIZE PRIXPTR " DATA_PTR\r\n", (uintptr_t)address, *address);
             ++address;
             continue;
         }
+#ifndef NDEBUG
+        }
+#endif
 
         /**
          *  Removed, no longer needed as we ship a fake PDB for GAME.EXE that contains
@@ -644,7 +685,7 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
     /**
      *  Calculate unique crc for the exception data (used for checking recursive exceptions).
      */
-    LastExceptionCRC = CRC32_Memory(ExceptionBuffer.Peek_Buffer(), ExceptionBuffer.Get_Length());
+    CurrentExceptionCRC = CRC32_Memory(ExceptionBuffer.Peek_Buffer(), ExceptionBuffer.Get_Length());
 
     DEBUG_WARNING("****************************** END EXEPTION DUMP ******************************!\n");
 }
@@ -658,7 +699,12 @@ static INT_PTR CALLBACK Exception_Dialog_Proc(HWND hDlg, UINT uMsg, WPARAM wPara
     /**
      *  Temporary code to disable the Main Menu button.
      */
-    EnableWindow(GetDlgItem(hDlg, 1154), FALSE); // Main Menu button
+    //EnableWindow(GetDlgItem(hDlg, IDC_EXCEPTION_MAINMENU), FALSE); // Main Menu button
+
+    /**
+     *  Disable/Enable the Continue button.
+     */
+    EnableWindow(GetDlgItem(hDlg, IDC_EXCEPTION_CONTINUE), ExceptionInfoCanContinue ? TRUE : FALSE); // Continue button
 
     switch (uMsg) {
         case WM_MOVING:
@@ -667,9 +713,9 @@ static INT_PTR CALLBACK Exception_Dialog_Proc(HWND hDlg, UINT uMsg, WPARAM wPara
 
         case WM_COMMAND:
             switch (wParam) {
-                case 1149: // Emergency save button
+                case IDC_EXCEPTION_SAVE: // Emergency save button
                     if (Debug_Map) {
-                        EndDialog(hDlg, 1149);
+                        EndDialog(hDlg, IDC_EXCEPTION_SAVE);
                         result = TRUE;
                     } else {
                         MessageBox(hDlg,
@@ -679,18 +725,23 @@ static INT_PTR CALLBACK Exception_Dialog_Proc(HWND hDlg, UINT uMsg, WPARAM wPara
                     }
                     break;
 
-                case 1153: // Quit button
-                    EndDialog(hDlg, 1153);
+                case IDC_EXCEPTION_QUIT: // Quit button
+                    EndDialog(hDlg, IDC_EXCEPTION_QUIT);
                     result = TRUE;
                     break;
 
-                case 1150: // Debug button
-                    EndDialog(hDlg, 1150);
+                case IDC_EXCEPTION_DEBUG: // Debug button
+                    EndDialog(hDlg, IDC_EXCEPTION_DEBUG);
                     result = TRUE;
                     break;
 
-                case 1154: // Main menu button
-                    EndDialog(hDlg, 1154);
+                case IDC_EXCEPTION_MAINMENU: // Main menu button
+                    EndDialog(hDlg, IDC_EXCEPTION_MAINMENU);
+                    result = TRUE;
+                    break;
+
+                case IDC_EXCEPTION_CONTINUE: // Continue button
+                    EndDialog(hDlg, IDC_EXCEPTION_CONTINUE);
                     result = TRUE;
                     break;
 
@@ -701,7 +752,7 @@ static INT_PTR CALLBACK Exception_Dialog_Proc(HWND hDlg, UINT uMsg, WPARAM wPara
             break;
 
         case WM_CLOSE:
-            EndDialog(hDlg, 1153);
+            EndDialog(hDlg, IDC_EXCEPTION_QUIT);
             result = FALSE;
             break;
 
@@ -710,7 +761,7 @@ static INT_PTR CALLBACK Exception_Dialog_Proc(HWND hDlg, UINT uMsg, WPARAM wPara
              *  Send the exception buffer to the dialog.
              */
             if (ExceptionDumpFinished) {
-                SetDlgItemTextA(hDlg, 1156, ExceptionBuffer.Peek_Buffer()); // Debug edit box.
+                SetDlgItemTextA(hDlg, IDC_EXCEPTION_LOG, ExceptionBuffer.Peek_Buffer()); // Debug edit box.
             }
 
             SetFocus(hDlg);
@@ -740,23 +791,24 @@ static INT_PTR Exception_Dialog()
             DEBUG_ERROR("Recursive exception detected!\n");
             MessageBox(nullptr, "Recursive exception detected!\n", "Error!", MB_OK|MB_ICONEXCLAMATION);
             Sleep(1000); // was 4000
-            return 1153; // Quit button
+            return IDC_EXCEPTION_QUIT; // Quit button
 
         case 2:
             CDControl.Unlock_All_CD_Drives();
-            return 1153; // Quit button
+            return IDC_EXCEPTION_QUIT; // Quit button
 
         case 3:
             CDControl.Unlock_All_CD_Drives();
             ExitProcess(EXIT_SUCCESS);
-            break; //return 1153; // Quit button
+            break; //return IDC_EXCEPTION_QUIT; // Quit button
 
         default:
             break;
     };
 
     DWORD retval = 0;
-    HGLOBAL hGlobalDlg = Fetch_Resource(MAKEINTRESOURCE(222), RT_DIALOG);
+    //HGLOBAL hGlobalDlg = Fetch_Resource(MAKEINTRESOURCE(IDD_EXCEPTION), RT_DIALOG);
+    HGLOBAL hGlobalDlg = FETCH_RESOURCE(DLLInstance, MAKEINTRESOURCE(IDD_EXCEPTION), RT_DIALOG);
     if (hGlobalDlg != nullptr) {
         retval = DialogBoxIndirectParam(ProgramInstance, (LPDLGTEMPLATE)hGlobalDlg, MainWindow, (DLGPROC)Exception_Dialog_Proc, (LPARAM)0);
     } else {
@@ -772,6 +824,13 @@ static INT_PTR Exception_Dialog()
 LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS *e_info)
 {
     DEBUG_WARNING("Exception!\n");
+
+    /**
+     *  Clear previous exception info.
+     */
+    ExceptionInfoCanContinue = false;
+    ExceptionInfoIgnore = false;
+    ExceptionInfoDescription.Clear();
 
     /**
      *  
@@ -831,6 +890,18 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
     }
 
     /**
+     *  Search for additional info for this EIP in the exception database.
+     */
+    Exception_Find_Datbase_Entry(e_info->ContextRecord->Eip, ExceptionInfoCanContinue, ExceptionInfoIgnore, ExceptionInfoDescription);
+
+    /**
+     *  Should we ignore this exception?
+     */
+    if (ExceptionInfoIgnore) {
+        return EXCEPTION_CONTINUE_EXECUTION;
+    }
+
+    /**
      *  It most cases, this is our first attempt at an exception crash dump.
      */
     if (RecursionCount < 2) {
@@ -853,9 +924,11 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
          */
         ExceptionFile.Write(ExceptionBuffer.Peek_Buffer(), ExceptionBuffer.Get_Length());
 
-        if (LastExceptionCRC == CRC32_Memory(ExceptionBuffer.Peek_Buffer(), ExceptionBuffer.Get_Length())) {
+        if (LastExceptionCRC && CurrentExceptionCRC == LastExceptionCRC) {
             DEBUG_WARNING("Exception dump is identical to the previous exception!\n");
         }
+
+        LastExceptionCRC = CurrentExceptionCRC;
 
         /**
          *  If OS is Windows 9x only.
@@ -881,7 +954,7 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
                 /**
                  *  Emergency save (scenario editor only).
                  */
-                case 1149: // Emergency save button
+                case IDC_EXCEPTION_SAVE: // Emergency save button
                     DEBUG_WARNING("Emergency save button pressed!\n");
 
                     /**
@@ -896,7 +969,7 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
                 /**
                  *  Trigger the debugger to break at the exception address.
                  */
-                case 1150: // Debug button
+                case IDC_EXCEPTION_DEBUG: // Debug button
                     DEBUG_WARNING("Break debugger button pressed!\n");
 
                     if (!IsDebuggerPresent()) {
@@ -917,7 +990,7 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
                  *  occurred. We force the EIP to that of "Select_Game" and return "CONTINUE_EXECUTION"
                  *  which will tell the handler to continue execution from this address.
                  */
-                case 1154: // Main menu button
+                case IDC_EXCEPTION_MAINMENU: // Main menu button
                 {
                     DEBUG_WARNING("Main menu button pressed!\n");
 
@@ -967,8 +1040,41 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
                     return EXCEPTION_CONTINUE_EXECUTION;
                 }
 
+                /**
+                 *  Similar to the "return to the main menu" button hack above, this
+                 *  will tell the process to continue after the exception. We do
+                 *  this by returning "CONTINUE_EXECUTION" which will tell the
+                 *  handler to continue execution from this address.
+                 */
+                case IDC_EXCEPTION_CONTINUE: // Continue button
+                    DEBUG_WARNING("Continue button pressed!\n");
+
+                    /**
+                     *  Ask the user if the wish to produce a minidump.
+                     */
+                    Exception_Generate_Mini_Dump();
+
+                    Vinifera_Collect_Debug_Files();
+                    
+                    //WWMouseClass::System_Hide_Mouse();
+                    ShowCursor(FALSE);
+
+                    /**
+                     *  Flag that we returned to the application after an exception occurred.
+                     */
+                    ReturnedAfterException = true;
+                    
+                    /**
+                     *  Clear the recursion flag.
+                     */
+                    RecursionCount = -1;
+
+                    ExitAfterException = false;
+
+                    return EXCEPTION_CONTINUE_EXECUTION;
+
                 default:
-                case 1153: // Quit button
+                case IDC_EXCEPTION_QUIT: // Quit button
                     DEBUG_WARNING("Quit button pressed!\n");
                     
                     /**
