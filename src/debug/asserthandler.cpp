@@ -128,6 +128,9 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
         expr,
         msgbuff);
 
+   //WWMouseClass::System_Show_Mouse();
+    ShowCursor(TRUE);
+
     /**
      *  Display the assertion dialog.
      */
@@ -144,7 +147,7 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
         case IDRETRY:
             *allow_break = true;
         case IDIGNORE:
-            result = MessageBoxA(nullptr, buffer, "Assertion", MB_ICONERROR | MB_YESNO | MB_DEFBUTTON1);
+            result = MessageBoxA(nullptr, "Ignore further occurrences of this assert?", "Assertion", MB_ICONERROR | MB_YESNO | MB_DEFBUTTON1);
             if (result == IDNO) {
                 *ignore = false;
                 break;
@@ -153,6 +156,9 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
             ++GlobalIgnoreCount;
             break;
     }
+
+    //WWMouseClass::System_Hide_Mouse();
+    ShowCursor(FALSE);
 
     /**
      *  Output the assertion to the debugger (if it is attached).
