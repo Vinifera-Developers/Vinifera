@@ -51,7 +51,8 @@
  */
 #define IDD_VINIFERA_START                4000        // Make sure our numbers are well above Tiberian Sun's
 
-#define IDD_RULES                         IDD_VINIFERA_START
+#define IDD_RULES                         4000
+#define IDD_EXCEPTION                     4001
 
 
 /**
@@ -65,3 +66,11 @@
  */
 #define IDC_RULE_SELECT                   1188
 #define IDC_RULE_LISTBOX                  1187
+
+#define IDC_EXCEPTION_SAVE                1149
+#define IDC_EXCEPTION_DEBUG               1150
+#define IDC_EXCEPTION_FILENAME            1151
+#define IDC_EXCEPTION_QUIT                1153
+#define IDC_EXCEPTION_MAINMENU            1154
+#define IDC_EXCEPTION_LOG                 1156
+#define IDC_EXCEPTION_CONTINUE            1157

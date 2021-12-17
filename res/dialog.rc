@@ -37,3 +37,24 @@ BEGIN
     CTEXT           "Select the Rule file to load.",-1,37,19,280,8,NOT WS_GROUP
     LISTBOX         IDC_RULE_LISTBOX,18,35,313,144,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
 END
+
+
+IDD_EXCEPTION DIALOGEX 0, 0, 350, 225
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "Exception!"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
+BEGIN
+    DEFPUSHBUTTON   "Quit",IDC_EXCEPTION_QUIT,19,202,60,14
+    PUSHBUTTON      "Debug",IDC_EXCEPTION_DEBUG,81,202,60,14,BS_CENTER
+    PUSHBUTTON      "Main Menu",IDC_EXCEPTION_MAINMENU,270,202,60,14
+    PUSHBUTTON      "Save",IDC_EXCEPTION_SAVE,144,202,60,14
+    PUSHBUTTON      "Continue",IDC_EXCEPTION_CONTINUE,207,202,60,14
+    CTEXT           "The game has encountered an error and is unable to continue normally.\nPlease see the DEBUG.LOG for details.",-1,7,7,335,19,NOT WS_GROUP
+    LTEXT           "Press Quit to close the application immediately.",-1,17,27,325,41,NOT WS_GROUP
+    LTEXT           "Press Debug to debug the application (JIT must be enabled).",-1,17,35,325,41,NOT WS_GROUP
+    LTEXT           "Press Save to attempt an emergency save of the scenario (map editor only).",-1,17,43,325,41,NOT WS_GROUP
+    LTEXT           "Press Continue to ignore this exception and attempt to continue the process.",-1,17,51,325,41,NOT WS_GROUP
+    LTEXT           "Press Main Menu to ignore this exception and attempt to return to the main menu.\n",-1,17,59,325,41,NOT WS_GROUP
+    LTEXT           "EXCEPT.TXT Details:",IDC_EXCEPTION_FILENAME,19,72,141,8
+    EDITTEXT        IDC_EXCEPTION_LOG,17,82,315,116,ES_MULTILINE | ES_NOHIDESEL | ES_READONLY | ES_WANTRETURN | WS_VSCROLL | WS_HSCROLL
+END

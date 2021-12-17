@@ -34,6 +34,8 @@
 #include "rulesext.h"
 #include "ccfile.h"
 #include "ccini.h"
+#include "filestraw.h"
+#include "readline.h"
 #include "cd.h"
 #include "ebolt.h"
 #include "optionsext.h"
@@ -72,6 +74,110 @@ bool Vinifera_Load_INI()
     Vinifera_ProjectVersion[sizeof(Vinifera_ProjectVersion)-1] = '\0';
     Vinifera_IconName[sizeof(Vinifera_IconName)-1] = '\0';
     Vinifera_CursorName[sizeof(Vinifera_CursorName)-1] = '\0';
+
+    return true;
+}
+
+
+/**
+ *  Loads the exception database.
+ * 
+ *  @author: CCHyper
+ */
+static bool Vinifera_Load_Exception_Database(const char *filename)
+{
+    RawFileClass file(filename);
+    if (!file.Is_Available()) {
+        return false;
+    }
+
+    FileStraw fstraw(file);
+
+    bool eof = false;
+    bool found_first_line = false;
+    char line_buffer[11 + 2 + 2 + 1024]; // address, bool, bool, desc
+    ExceptionInfoDatabaseStruct einfo;
+
+    while (true) {
+
+        char *tok = nullptr;
+           
+        /**
+         *  Read the line into the buffer.
+         */
+        int count = Read_Line(fstraw, line_buffer, sizeof(line_buffer), eof);
+
+        /**
+         *  Handle end of file and invalid line cases.
+         */
+        if (eof) {
+            break;
+        }
+        if (!count) {
+            continue;
+        }
+        if (count >= sizeof(line_buffer)) {
+            break;
+        }
+
+        int index = 0; // cursor position.
+
+        /**
+         *  Step over any indenting.
+         */
+        while (std::isspace(line_buffer[index])) {
+            ++index;
+        }
+
+        /**
+         *  Handle commented out lines.
+         */
+        if (line_buffer[index] == ';') {
+            continue;
+        }
+
+        /**
+         *  Process the database line.
+         */
+
+        tok = std::strtok(&line_buffer[index], ",");
+        ASSERT(tok != nullptr);
+        if (tok[0] != '0' || tok[1] != 'x') {
+            DEBUG_WARNING("Invalid address format in exception database!\n");
+            return false;
+        }
+        einfo.Address = std::strtoul(tok+2, nullptr, 16);
+
+        tok = std::strtok(nullptr, ",");
+        ASSERT(tok != nullptr);
+        einfo.CanContinue = std::strtoul(tok, nullptr, 10) ? true : false;
+
+        tok = std::strtok(nullptr, ",");
+        ASSERT(tok != nullptr);
+        einfo.Ignore = std::strtoul(tok, nullptr, 10) ? true : false;
+        
+        tok = std::strtok(nullptr, ",");
+        ASSERT(tok != nullptr);
+        std::strncpy(einfo.Description, tok, std::strlen(tok));
+
+        ExceptionInfoDatabase.Add(einfo);
+    }
+
+    if (!ExceptionInfoDatabase.Count()) {
+        DEBUG_WARNING("Invalid format in exception database!\n");
+        return false;
+    }
+
+#ifndef NDEBUG
+    DEV_DEBUG_INFO("Exception database dump...\n");
+    for (int i = 0; i < ExceptionInfoDatabase.Count(); ++i) {
+        ExceptionInfoDatabaseStruct &e = ExceptionInfoDatabase[i];
+        DEV_DEBUG_INFO("  0x%08X %s %s \"%.32s...\"\n",
+                       e.Address, e.CanContinue ? "true " : "false",
+                       e.Ignore ? "true " : "false",
+                       e.Description);
+    }
+#endif
 
     return true;
 }
@@ -361,6 +467,26 @@ bool Vinifera_Startup()
         MessageBoxA(nullptr, "Failed to load VINIFERA.INI!", "Vinifera", MB_ICONERROR|MB_OK);
         return false;
 #endif
+    }
+
+    /**
+     *  Check for the existence of the exception database.
+     */
+    RawFileClass dbfile(VINIFERA_TARGET_EDB);
+    if (!dbfile.Is_Available()) {
+        DEBUG_ERROR("Failed to find the exception database!\n");
+        MessageBox(MainWindow, "Failed to find the exception database, please reinstall Vinifera.", "Vinifera", MB_OK);
+        return false;
+    }
+    if (!dbfile.Size()) {
+        DEBUG_ERROR("Invalid or corrupt exception database!\n");
+        MessageBox(MainWindow, "Invalid or corrupt exception database, please reinstall Vinifera.", "Vinifera", MB_OK);
+        return false;
+    }
+    if (!Vinifera_Load_Exception_Database(dbfile.File_Name())) {
+        DEBUG_ERROR("Failed to load the exception database!\n");
+        MessageBox(MainWindow, "Failed to load the exception database, please reinstall Vinifera.", "Vinifera", MB_OK);
+        return false;
     }
 
     /**
