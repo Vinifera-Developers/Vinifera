@@ -111,6 +111,8 @@
 
 #include "cciniext_hooks.h"
 
+#include "fetchres_hooks.h"
+
 #include "skirmishdlg_hooks.h"
 
 #include "filepcx_hooks.h"
@@ -213,6 +215,8 @@ void Extension_Hooks()
     MultiMissionExtension_Hooks();
 
     CCINIClassExtension_Hooks();
+
+    FetchRes_Hooks();
 
     /**
      *  Dialogs and associated code.
