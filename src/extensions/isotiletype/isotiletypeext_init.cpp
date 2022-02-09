@@ -315,6 +315,50 @@ original_code:
 }
 
 
+class dummy : public IsometricTileTypeClass
+{
+public:
+    int Load_Tile();
+    int Load_Tile_Wrapper()
+    {
+
+        bool available = false;
+        int file_size = 0;
+        {
+            CCFileClass file(Filename);
+
+            available = file.Is_Available();
+            file_size = file.Size();
+        }
+
+        if (!available) {
+            DEBUG_ERROR("ISOTILEDEBUG - Isometric Tile %s is missing!\n", Filename);
+            return 0;
+        }
+
+        if (file_size == 0) {
+            DEBUG_ERROR("ISOTILEDEBUG - Isometric Tile %s is a empty file!\n", Filename);
+            return 0;
+        }
+
+        int read_size = Load_Tile();
+
+        if (Image == nullptr) {
+            DEBUG_ERROR("ISOTILEDEBUG - Failed to load image for Isometric Tile %s!\n", Filename);
+            return 0;
+        }
+
+        if (read_size != file_size) {
+            DEBUG_ERROR("ISOTILEDEBUG - Isometric Tile %s file size %d doesn't match read size!\n", file_size, read_size, Filename);
+        }
+
+        return read_size;
+    }
+};
+
+//need to change tspp otherwise
+DEFINE_IMPLEMENTATION(int dummy::Load_Tile(), 0x004F5940);
+
 /**
  *  Main function for patching the hooks.
  */
@@ -328,4 +372,13 @@ void IsometricTileTypeClassExtension_Init()
     Patch_Jump(0x004F55F2, &_IsometricTileTypeClass_Init_Patch);
     Patch_Jump(0x004F50AE, &_IsometricTileTypeClass_Read_INI_Patch_1);
     Patch_Jump(0x004F53E9, &_IsometricTileTypeClass_Read_INI_Patch_2);
+
+
+    Patch_Call(0x004F350C, &dummy::Load_Tile_Wrapper);
+    Patch_Call(0x004F3554, &dummy::Load_Tile_Wrapper);
+    Patch_Call(0x004F3586, &dummy::Load_Tile_Wrapper);
+    Patch_Call(0x004F58E6, &dummy::Load_Tile_Wrapper);
+    Patch_Call(0x004F8424, &dummy::Load_Tile_Wrapper);
+    Patch_Call(0x004F8784, &dummy::Load_Tile_Wrapper);
+
 }
