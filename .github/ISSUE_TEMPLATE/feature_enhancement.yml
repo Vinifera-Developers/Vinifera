@@ -1,0 +1,51 @@
+name: Feature or Enhancement Request
+description: Open an issue to give request a feature or engine enhancement.
+title: "[New Feature] Your new feature request title here"
+labels: [new-feature]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        *__NOTE:__ Please do not remove the `[New Feature]` prefix from the issue title, this helps us with filtering issues.*
+        
+        Thanks for taking the time to fill out this feature request! If you wish to discuss the feature in detail first, join us on the [Mod Haven Discord](https://discord.gg/sZeMzz6qVg) server in the __#vinifera-chat__ channel.
+        
+        Please make sure you follow these instructions and fill in every question with as much detial as possible.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: First Check
+      description: Please confirm and check all the following options;
+      options:
+        - label: I added a very descriptive title to this issue.
+          required: true
+        - label: I used the GitHub search to find a similar issue and didn't find it.
+          required: true
+        - label: I have attached as much information as possible *(screenshots, videos, links, etc)*.
+          required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: |
+        Describe your new feature or enhancement request here. Please use as much detail as possible.
+
+    validations:
+      required: true
+
+  - type: textarea
+    id: implementation
+    attributes:
+      label: Proposed Code (optional)
+      description: |
+        Tell us how this new feature could be implemented, using any example INI code, etc.
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Add any additional context information, screenshots, images, videos, debug logs, and/or exception files you think would be useful.
