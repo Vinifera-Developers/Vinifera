@@ -109,19 +109,6 @@ static void _Scroll_Sidebar_InGame_Check_Patch()
 
 
 /**
- *  #issue-212
- * 
- *  Changes the default value of "IsScoreShuffle" to "true".
- * 
- *  @author: CCHyper
- */
-static void _OptionsClass_Constructor_IsScoreShuffle_Default_Patch()
-{
-    Patch_Byte(0x005899F1+1, 0x50); // "cl" (zero) to "dl" (1)
-}
-
-
-/**
  *  #issue-8
  *  
  *  Fixes MultiMission "MaxPlayers" incorrectly loaded with "MinPlayers".
@@ -450,6 +437,5 @@ void BugFix_Hooks()
     _Dont_Stretch_Main_Menu_Video_Patch();
     _Scale_Movies_By_Ratio_Patch();
     _MultiMission_Constructor_MaxPlayers_Typo_Patch();
-    _OptionsClass_Constructor_IsScoreShuffle_Default_Patch();
     _Scroll_Sidebar_InGame_Check_Patch();
 }

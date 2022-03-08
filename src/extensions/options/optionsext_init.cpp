@@ -109,6 +109,15 @@ original_code:
      */
     this_ptr->AllowHiResModes = true;
 
+    /**
+     *  #issue-212
+     * 
+     *  Changes the default value of "IsScoreShuffle" to "true".
+     * 
+     *  @author: CCHyper
+     */
+    this_ptr->IsScoreShuffle = true;
+
     _asm { ret }
 }
 
