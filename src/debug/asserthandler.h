@@ -31,6 +31,7 @@
 #ifndef NDEBUG
 
 #include "always.h"
+#include "fatal.h"
 #include <intrinsics.h>
 #include <cstdlib>
 
@@ -44,7 +45,6 @@ extern bool ExitOnAssert;
 
 enum AssertType {
     ASSERT_NORMAL,
-    ASSERT_PRINT,
     ASSERT_FATAL,
 };
 
@@ -55,15 +55,16 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
         static volatile bool _ignore_assert = false; \
         static volatile bool _break = false; \
         static volatile bool _exit = false; \
-        if (!_ignore_assert) { \
-            if (!(exp)) { \
-                Vinifera_Assert(ASSERT_NORMAL, #exp, __FILE__, __LINE__, __FUNCTION__, &_ignore_assert, &_break, &_exit, nullptr); \
-                if (_break) { \
-                    __debugbreak(); \
-                } \
-                if (_exit || ExitOnAssert) { \
-                    /*Emergency_Exit(EXIT_FAILURE);*/ \
-                    std::exit(EXIT_FAILURE); \
+        if (!IgnoreAllAsserts) { \
+            if (!_ignore_assert) { \
+                if (!(exp)) { \
+                    Vinifera_Assert(ASSERT_NORMAL, #exp, __FILE__, __LINE__, __FUNCTION__, &_ignore_assert, &_break, &_exit, nullptr); \
+                    if (_break) { \
+                        __debugbreak(); \
+                    } \
+                    if (_exit || ExitOnAssert) { \
+                        Emergency_Exit(EXIT_FAILURE); \
+                    } \
                 } \
             } \
         } \
@@ -74,15 +75,16 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
         static volatile bool _ignore_assert = false; \
         static volatile bool _break = false; \
         static volatile bool _exit = false; \
-        if (!_ignore_assert) { \
-            if (!(exp)) { \
-                Vinifera_Assert(ASSERT_PRINT, #exp, __FILE__, __LINE__, __FUNCTION__, &_ignore_assert, &_break, &_exit, msg, ##__VA_ARGS__); \
-                if (_break) { \
-                    __debugbreak(); \
-                } \
-                if (_exit || ExitOnAssert) { \
-                    /*Emergency_Exit(EXIT_FAILURE);*/ \
-                    std::exit(EXIT_FAILURE); \
+        if (!IgnoreAllAsserts) { \
+            if (!_ignore_assert) { \
+                if (!(exp)) { \
+                    Vinifera_Assert(ASSERT_NORMAL, #exp, __FILE__, __LINE__, __FUNCTION__, &_ignore_assert, &_break, &_exit, msg, ##__VA_ARGS__); \
+                    if (_break) { \
+                        __debugbreak(); \
+                    } \
+                    if (_exit || ExitOnAssert) { \
+                        Emergency_Exit(EXIT_FAILURE); \
+                    } \
                 } \
             } \
         } \
@@ -93,16 +95,17 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
         static volatile bool _ignore_assert = false; \
         static volatile bool _break = false; \
         static volatile bool _exit = false; \
-        if (!_ignore_assert) { \
-            if (!(exp)) { \
-                Vinifera_Assert(ASSERT_FATAL, #exp, __FILE__, __LINE__, __FUNCTION__, &_ignore_assert, &_break, &_exit, nullptr, ##__VA_ARGS__); \
-                if (_break) { \
-                    __debugbreak(); \
+        if (!IgnoreAllAsserts) { \
+            if (!_ignore_assert) { \
+                if (!(exp)) { \
+                    Vinifera_Assert(ASSERT_FATAL, #exp, __FILE__, __LINE__, __FUNCTION__, &_ignore_assert, &_break, &_exit, nullptr, ##__VA_ARGS__); \
+                    if (_break) { \
+                        __debugbreak(); \
+                    } \
+                    /*if (_exit || ExitOnAssert) {*/ \
+                        Emergency_Exit(EXIT_FAILURE); \
+                    /*}*/ \
                 } \
-                /*if (_exit || ExitOnAssert) {*/ \
-                    /*Emergency_Exit(EXIT_FAILURE);*/ \
-                    std::exit(EXIT_FAILURE); \
-                /*}*/ \
             } \
         } \
     } while (false)
@@ -112,16 +115,17 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
         static volatile bool _ignore_assert = false; \
         static volatile bool _break = false; \
         static volatile bool _exit = false; \
-        if (!_ignore_assert) { \
-            if (!(exp)) { \
-                Vinifera_Assert(ASSERT_FATAL, #exp, __FILE__, __LINE__, __FUNCTION__, &_ignore_assert, &_break, &_exit, msg, ##__VA_ARGS__); \
-                if (_break) { \
-                    __debugbreak(); \
+        if (!IgnoreAllAsserts) { \
+            if (!_ignore_assert) { \
+                if (!(exp)) { \
+                    Vinifera_Assert(ASSERT_FATAL, #exp, __FILE__, __LINE__, __FUNCTION__, &_ignore_assert, &_break, &_exit, msg, ##__VA_ARGS__); \
+                    if (_break) { \
+                        __debugbreak(); \
+                    } \
+                    /*if (_exit || ExitOnAssert) {*/ \
+                        Emergency_Exit(EXIT_FAILURE); \
+                    /*}*/ \
                 } \
-                /*if (_exit || ExitOnAssert) {*/ \
-                    /*Emergency_Exit(EXIT_FAILURE);*/ \
-                    std::exit(EXIT_FAILURE); \
-                /*}*/ \
             } \
         } \
     } while (false)

@@ -37,6 +37,8 @@
 #include <cstring>
 #include <cassert>
 
+#include "tspp_assert.h"
+
 
 /**
  *  Ignore all assertions, even under DEBUG builds.
@@ -89,7 +91,7 @@ static wchar_t *to_utf16(const char *str)
 void Vinifera_Assert(AssertType type, const char *expr, const char *file, int line, const char *function, volatile bool *ignore, volatile bool *allow_break, volatile bool *exit, const char *msg, ...)
 {
     static const char *_assert_names[] = {
-        "NORMAL", "PRINT", "FATAL"
+        "NORMAL", "FATAL"
     };
 
     static SimpleCriticalSectionClass AssertMutex;
@@ -100,7 +102,7 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
 
     ++TotalAssertions;
 
-    if (SilentAsserts || *ignore) {
+    if (SilentAsserts || (*ignore)) {
         return;
     }
 
@@ -168,14 +170,11 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
     /**
      *  Output the assertion to the debugger (if it is attached).
      */
-    if (type == ASSERT_NORMAL) {
-        std::snprintf(buffer, sizeof(buffer),
-            "[ASSERT] %s:%d %s Expr: \"%s\"\n", file, line, function, expr);
-    } else {
+    if (IsDebuggerPresent()) {
         std::snprintf(buffer, sizeof(buffer),
             "[%s] %s:%d %s Expr: \"%s\"\n", _assert_names[type], file, line, function, expr);
+        Vinifera_Output_Debug_String(buffer);
     }
-    Vinifera_Output_Debug_String(buffer);
 #endif
 
     /**

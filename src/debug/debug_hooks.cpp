@@ -26,6 +26,7 @@
  *
  ******************************************************************************/
 #include "setup_hooks.h"
+#include "asserthandler.h"
 #include "debughandler.h"
 #include "purecallhandler.h"
 #include "exceptionhandler.h"
@@ -35,6 +36,7 @@
 #include "hooker.h"
 #include "hooker_macros.h"
 #include <string>
+#include <stdarg.h>
 
 
 /**
@@ -516,10 +518,17 @@ static void Debug_Handler_Hooks()
  * 
  *  @author: CCHyper
  */
-static void Vinifera_Assert_Handler(const char *expr, const char *file, int line, const char *msg)
+static void Vinifera_Assert_Handler(TSPPAssertType type, const char *expr, const char *file, int line, const char *function, volatile bool *ignore, volatile bool *allow_break, volatile bool *exit, const char *msg, ...)
 {
-#ifndef NDEBUG
-#endif
+    va_list args;
+    static char buf[4096];
+
+    va_start(args, msg);
+    vsnprintf(buf, sizeof(buf), msg, args);
+
+    Vinifera_Assert((AssertType)type, expr, file, line, function, ignore, allow_break, exit, msg, args);
+
+    va_end(args);
 }
 
 
@@ -531,6 +540,10 @@ static void Vinifera_Assert_Handler(const char *expr, const char *file, int line
 static void Assert_Handler_Hooks()
 {
     TSPP_Install_Assertion_Handler(Vinifera_Assert_Handler);
+
+    TSPP_IgnoreAllAsserts = false;
+    TSPP_SilentAsserts = false;
+    TSPP_ExitOnAssert = false;
 }
 
 
