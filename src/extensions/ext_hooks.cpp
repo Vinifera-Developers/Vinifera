@@ -101,6 +101,7 @@
 #include "txtlabelext_hooks.h"
 
 #include "dropshipext_hooks.h"
+#include "endgameext_hooks.h"
 
 #include "mapseedext_hooks.h"
 
@@ -199,6 +200,7 @@ void Extension_Hooks()
     TextLabelClassExtension_Hooks();
 
     DropshipExtension_Hooks();
+    EndGameExtension_Hooks();
 
     MapSeedClassExtension_Hooks();
 

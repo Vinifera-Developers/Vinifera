@@ -41,7 +41,6 @@
 #include "dsurface.h"
 #include "options.h"
 #include "theme.h"
-#include "endgame.h"
 #include "dropship.h"
 #include "msgbox.h"
 #include "command.h"
@@ -49,119 +48,6 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
-
-
-/**
- *  #issue-46
- * 
- *  Fixes bug where the game difficulty gets reset, but not reassigned
- *  after restarting a mission.
- * 
- *  This also handles the case where the EndGame instance is re-initialised.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_EndGameClass_Constructor_Set_Difficulty_Patch)
-{
-    GET_REGISTER_STATIC(EndGameClass *, this_ptr, edx);
-
-    /**
-     *  The EndGameClass constructor initialises Difficulty to NORMAL.
-     *  This patch uses the ScenarioClass Difficulty if set at this point.
-     */
-    if (Scen && Scen->Difficulty != -1) {
-        this_ptr->Difficulty = Scen->Difficulty;
-    }
-
-    //DEBUG_INFO("EndGameClass constructor.\n");
-
-    /**
-     *  Stolen bytes/code.
-     */
-    _asm { mov eax, this_ptr }
-    _asm { pop edi }
-    _asm { ret }
-}
-
-DECLARE_PATCH(_Select_Game_Set_EndGameClass_Difficulty_Patch)
-{
-    DEBUG_INFO("Scen->Difficulty = %d\n", Scen->Difficulty);
-    DEBUG_INFO("Scen->CDifficulty = %d\n", Scen->CDifficulty);
-
-    /**
-     *  Assign the ScenarioClass Difficulty. This is done to ensure
-     *  the difficulty is restored after game restart.
-     */
-    DEBUG_INFO("Setting EndGame difficulty to %d.\n", Scen->Difficulty);
-    EndGame.Difficulty = Scen->Difficulty;
-
-    /**
-     *  Stolen bytes/code.
-     */
-    Theme.Stop(true);
-
-    JMP(0x004E2AE3);
-}
-
-DECLARE_PATCH(_EndGameClass_Record_Debug_Patch)
-{
-    GET_REGISTER_STATIC(EndGameClass *, this_ptr, esi);
-
-    /**
-     *  Stolen bytes/code.
-     */
-    this_ptr->Stage = Scen->Stage;
-
-    DEBUG_INFO("Recording end game information...\n");
-    DEBUG_INFO("  Credits: %d\n", this_ptr->Credits);
-    DEBUG_INFO("  MissionTimer: %d\n", this_ptr->MissionTimer);
-    DEBUG_INFO("  Difficulty: %d\n", this_ptr->Difficulty);
-    DEBUG_INFO("  Stage: %d\n", this_ptr->Stage);
-
-    /**
-     *  Stolen bytes/code.
-     */
-    _asm { pop esi }
-    _asm { ret }
-}
-
-DECLARE_PATCH(_EndGameClass_Apply_Debug_Patch)
-{
-    GET_REGISTER_STATIC(EndGameClass *, this_ptr, edi);
-
-    DEBUG_INFO("Applying end game information...\n");
-    DEBUG_INFO("  Credits: %d\n", this_ptr->Credits);
-    DEBUG_INFO("  MissionTimer: %d\n", this_ptr->MissionTimer);
-    DEBUG_INFO("  Difficulty: %d\n", this_ptr->Difficulty);
-    DEBUG_INFO("  Stage: %d\n", this_ptr->Stage);
-
-    /**
-     *  Stolen bytes/code.
-     */
-    Scen->Stage = this_ptr->Stage;
-
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { add esp, 0x0C }
-    _asm { ret }
-}
-
-static void _Set_Difficulty_On_Game_Restart_Patch()
-{
-    Patch_Jump(0x00493881, &_EndGameClass_Constructor_Set_Difficulty_Patch);
-    Patch_Jump(0x004E2AD7, &_Select_Game_Set_EndGameClass_Difficulty_Patch);
-}
-
-static void _EndGameClass_Debug_Output_Patches()
-{
-    /**
-     *  Patches to log the current state of EndGameClass.
-     */
-    Patch_Jump(0x00493919, &_EndGameClass_Record_Debug_Patch);
-    Patch_Jump(0x004939F1, &_EndGameClass_Apply_Debug_Patch);
-    Patch_Jump(0x00493A07, 0x004939F1);
-    Patch_Jump(0x00493A18, 0x004939F1);
-}
 
 
 /**
@@ -581,6 +467,4 @@ void BugFix_Hooks()
     _MultiMission_Constructor_MaxPlayers_Typo_Patch();
     _OptionsClass_Constructor_IsScoreShuffle_Default_Patch();
     _Scroll_Sidebar_InGame_Check_Patch();
-    _Set_Difficulty_On_Game_Restart_Patch();
-    _EndGameClass_Debug_Output_Patches();
 }
