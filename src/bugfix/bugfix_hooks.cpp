@@ -40,13 +40,11 @@
 #include "movie.h"
 #include "dsurface.h"
 #include "options.h"
-#include "language.h"
 #include "theme.h"
 #include "endgame.h"
 #include "dropship.h"
 #include "msgbox.h"
 #include "command.h"
-#include "loadoptions.h"
 #include "debughandler.h"
 
 #include "hooker.h"
@@ -448,81 +446,6 @@ static void _Dont_Stretch_Main_Menu_Video_Patch()
 
 
 /**
- *  #issue-269
- * 
- *  Adds a "Load Game" button to the dialog shown on mission lose.
- * 
- *  @author: CCHyper
- */
-static bool _Save_Games_Available()
-{
-    return LoadOptionsClass().Read_Save_Files();
-}
-
-static bool _Do_Load_Dialog()
-{
-    return LoadOptionsClass().Load_Dialog();
-}
-
-DECLARE_PATCH(_Do_Lose_Create_Lose_WWMessageBox)
-{
-    static int ret;
-
-    /**
-     *  Show the message box.
-     */
-retry_dialog:
-    ret = Vinifera_Do_WWMessageBox(Text_String(TXT_TO_REPLAY), Text_String(TXT_YES), Text_String(TXT_NO), "Load Game");
-    switch (ret) {
-        default:
-        case 0: // User pressed "Yes"
-            JMP(0x005DCE1A);
-
-        case 1: // User pressed "No"
-            JMP(0x005DCE56);
-
-        case 2: // User pressed "Load Game"
-        {
-#if defined(RELEASE) || !defined(NDEBUG)
-            /**
-             *  If no save games are available, notify the user and return back
-             *  and reissue the main dialog.
-             */
-            if (!_Save_Games_Available()) {
-                Vinifera_Do_WWMessageBox("No saved games available.", Text_String(TXT_OK));
-                goto retry_dialog;
-            }
-
-            /**
-             *  Show the load game dialog.
-             */
-            ret = _Do_Load_Dialog();
-            if (ret) {
-                Theme.Stop();
-                JMP(0x005DCE48);
-            }
-#else
-            /**
-             *  We disable loading in non-release builds.
-             */
-            Vinifera_Do_WWMessageBox("Saving and Loading is disabled for non-release builds.", Text_String(TXT_OK));
-#endif
-
-            /**
-             *  Reissue the dialog if the user pressed cancel on the load dialog.
-             */
-            goto retry_dialog;
-        }
-    };
-}
-
-static void _Show_Load_Game_On_Mission_Failure()
-{
-    Patch_Jump(0x005DCDFD, &_Do_Lose_Create_Lose_WWMessageBox);
-}
-
-
-/**
  *  #issue-95
  * 
  *  Patch for handling the campaign intro movies
@@ -704,7 +627,6 @@ static void _Intro_Movie_Patches()
 void BugFix_Hooks()
 {
     _Intro_Movie_Patches();
-    _Show_Load_Game_On_Mission_Failure();
     _Dont_Stretch_Main_Menu_Video_Patch();
     _MultiScore_Tally_Score_Fix_Loser_Typo_Patch();
     _Scale_Movies_By_Ratio_Patch();

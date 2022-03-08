@@ -28,7 +28,10 @@
  ******************************************************************************/
 #include "ext_hooks.h"
 #include "iomap.h"
+#include "theme.h"
 #include "saveload.h"
+#include "loadoptions.h"
+#include "language.h"
 #include "vinifera_globals.h"
 #include "vinifera_util.h"
 #include "debughandler.h"
@@ -39,6 +42,76 @@
 
 
 struct IStream;
+
+
+/**
+ *  #issue-269
+ * 
+ *  Adds a "Load Game" button to the dialog shown on mission lose.
+ * 
+ *  @author: CCHyper
+ */
+static bool _Save_Games_Available()
+{
+    return LoadOptionsClass().Read_Save_Files();
+}
+
+static bool _Do_Load_Dialog()
+{
+    return LoadOptionsClass().Load_Dialog();
+}
+
+DECLARE_PATCH(_Do_Lose_Create_Lose_WWMessageBox)
+{
+    static int ret;
+
+    /**
+     *  Show the message box.
+     */
+retry_dialog:
+    ret = Vinifera_Do_WWMessageBox(Text_String(TXT_TO_REPLAY), Text_String(TXT_YES), Text_String(TXT_NO), "Load Game");
+    switch (ret) {
+        default:
+        case 0: // User pressed "Yes"
+            JMP(0x005DCE1A);
+
+        case 1: // User pressed "No"
+            JMP(0x005DCE56);
+
+        case 2: // User pressed "Load Game"
+        {
+#if defined(RELEASE) || !defined(NDEBUG)
+            /**
+             *  If no save games are available, notify the user and return back
+             *  and reissue the main dialog.
+             */
+            if (!_Save_Games_Available()) {
+                Vinifera_Do_WWMessageBox("No saved games available.", Text_String(TXT_OK));
+                goto retry_dialog;
+            }
+
+            /**
+             *  Show the load game dialog.
+             */
+            ret = _Do_Load_Dialog();
+            if (ret) {
+                Theme.Stop();
+                JMP(0x005DCE48);
+            }
+#else
+            /**
+             *  We disable loading in non-release builds.
+             */
+            Vinifera_Do_WWMessageBox("Saving and Loading is disabled for non-release builds.", Text_String(TXT_OK));
+#endif
+
+            /**
+             *  Reissue the dialog if the user pressed cancel on the load dialog.
+             */
+            goto retry_dialog;
+        }
+    };
+}
 
 
 /**
@@ -284,6 +357,8 @@ class FakeSwizzleManagerClass final : public SwizzleManagerClass
 
 void SaveLoad_Hooks()
 {
+    Patch_Jump(0x005DCDFD, &_Do_Lose_Create_Lose_WWMessageBox);
+
     /**
      *  Hook the new save and load system in.
      */
