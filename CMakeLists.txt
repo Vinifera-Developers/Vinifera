@@ -307,7 +307,7 @@ message(STATUS "Fetching git repository information.")
 # find_package(Git) # Removed, GitWatcher does this quietly.
 
 # The following two defines are automatically picked up by GitWatcher.
-set(GIT_PRE_CONFIGURE_FILE "${CMAKE_SOURCE_DIR}/src/vinifera_gitinfo.cpp.in")
+set(GIT_PRE_CONFIGURE_FILE "${CMAKE_SOURCE_DIR}/src/vinifera/vinifera_gitinfo.cpp.in")
 set(GIT_POST_CONFIGURE_FILE "${CMAKE_CURRENT_BINARY_DIR}/generated/vinifera_gitinfo.cpp")
 set(GIT_STATE_FILE "${CMAKE_CURRENT_BINARY_DIR}/vinifera-git-state-hash")
 set(GIT_WORKING_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
