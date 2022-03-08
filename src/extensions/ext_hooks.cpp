@@ -104,6 +104,7 @@
 #include "endgameext_hooks.h"
 
 #include "mapseedext_hooks.h"
+#include "multiscoreext_hooks.h"
 
 #include "cciniext_hooks.h"
 
@@ -203,6 +204,7 @@ void Extension_Hooks()
     EndGameExtension_Hooks();
 
     MapSeedClassExtension_Hooks();
+    MultiScoreExtension_Hooks();
 
     CCINIClassExtension_Hooks();
 
