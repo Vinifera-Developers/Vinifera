@@ -31,9 +31,11 @@
 #include "dropship.h"
 #include "dsurface.h"
 #include "gscreen.h"
+#include "theme.h"
 #include "colorscheme.h"
 #include "textprint.h"
 #include "fatal.h"
+#include "wwmouse.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 
@@ -42,6 +44,53 @@
 
 
 #define TEXT_PRESS_SPACE "Press SPACE to start the mission"
+
+
+/**
+ *  #issue-262
+ * 
+ *  In certain cases, the mouse might not be shown on the Dropship Loadout menu.
+ *  This patch fixes that by showing the mouse regardless of its current state.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_Start_Scenario_Dropship_Loadout_Show_Mouse_Patch)
+{
+    /**
+     *  issue-284
+     * 
+     *  Play a background theme during the loadout menu.
+     * 
+     *  @author: CCHyper
+     */
+    if (!Theme.Still_Playing()) {
+
+        /**
+         *  If DSHPLOAD is defined in THEME.INI, play that, otherwise default
+         *  to playing the TS Maps theme.
+         */
+        ThemeType theme = Theme.From_Name("DSHPLOAD");
+        if (theme == THEME_NONE) {
+            theme = Theme.From_Name("MAPS");
+        }
+
+        Theme.Play_Song(theme);
+    }
+
+    WWMouse->Release_Mouse();
+    WWMouse->Show_Mouse();
+
+    Dropship_Loadout();
+
+    WWMouse->Hide_Mouse();
+    WWMouse->Capture_Mouse();
+
+    if (Theme.Still_Playing()) {
+        Theme.Stop(true); // Smoothly fade out the track.
+    }
+
+    JMP(0x005DB3C0);
+}
 
 
 /**
@@ -98,4 +147,5 @@ original_code:
 void DropshipExtension_Hooks()
 {
     Patch_Jump(0x004868FB, &_Dropship_Loadout_Help_Text_Patch);
+    Patch_Jump(0x005DB3BB, &_Start_Scenario_Dropship_Loadout_Show_Mouse_Patch);
 }

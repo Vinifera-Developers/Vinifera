@@ -251,58 +251,6 @@ static void _MultiMission_Constructor_MaxPlayers_Typo_Patch()
 
 
 /**
- *  #issue-262
- * 
- *  In certain cases, the mouse might not be shown on the Dropship Loadout menu.
- *  This patch fixes that by showing the mouse regardless of its current state.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_Start_Scenario_Dropship_Loadout_Show_Mouse_Patch)
-{
-    /**
-     *  issue-284
-     * 
-     *  Play a background theme during the loadout menu.
-     * 
-     *  @author: CCHyper
-     */
-    if (!Theme.Still_Playing()) {
-
-        /**
-         *  If DSHPLOAD is defined in THEME.INI, play that, otherwise default
-         *  to playing the TS Maps theme.
-         */
-        ThemeType theme = Theme.From_Name("DSHPLOAD");
-        if (theme == THEME_NONE) {
-            theme = Theme.From_Name("MAPS");
-        }
-
-        Theme.Play_Song(theme);
-    }
-
-    WWMouse->Release_Mouse();
-    WWMouse->Show_Mouse();
-
-    Dropship_Loadout();
-
-    WWMouse->Hide_Mouse();
-    WWMouse->Capture_Mouse();
-
-    if (Theme.Still_Playing()) {
-        Theme.Stop(true); // Smoothly fade out the track.
-    }
-
-    JMP(0x005DB3C0);
-}
-
-static void _Dropship_Loadout_Show_Mouse_Patch()
-{
-    Patch_Jump(0x005DB3BB, &_Start_Scenario_Dropship_Loadout_Show_Mouse_Patch);
-}
-
-
-/**
  *  Scale up the input rect to the desired width and height, while maintaining the aspect ratio.
  * 
  *  @author: CCHyper
@@ -630,7 +578,6 @@ void BugFix_Hooks()
     _Dont_Stretch_Main_Menu_Video_Patch();
     _MultiScore_Tally_Score_Fix_Loser_Typo_Patch();
     _Scale_Movies_By_Ratio_Patch();
-    _Dropship_Loadout_Show_Mouse_Patch();
     _MultiMission_Constructor_MaxPlayers_Typo_Patch();
     _OptionsClass_Constructor_IsScoreShuffle_Default_Patch();
     _Scroll_Sidebar_InGame_Check_Patch();
