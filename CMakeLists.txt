@@ -49,12 +49,16 @@ if(POLICY CMP0074)
 endif()
 
 # Check supported generators
+if(NOT MSVC)
+    message(FATAL_ERROR "This project can only be built using Visual Studio!")
+endif()
+
 if(MSVC AND MSVC_VERSION LESS 1910)
     message(FATAL_ERROR "This version of Visual Studio is not supported: ${CMAKE_GENERATOR}.")
 endif()
 
-if(NOT MSVC)
-    message(FATAL_ERROR "This project can only be built using Visual Studio!")
+if("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
+    message(FATAL_ERROR "This project can only be built as Win32!")
 endif()
 
 
