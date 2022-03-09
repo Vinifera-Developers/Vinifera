@@ -105,6 +105,7 @@
 
 #include "mapseedext_hooks.h"
 #include "multiscoreext_hooks.h"
+#include "multimissionext_hooks.h"
 
 #include "cciniext_hooks.h"
 
@@ -205,6 +206,7 @@ void Extension_Hooks()
 
     MapSeedClassExtension_Hooks();
     MultiScoreExtension_Hooks();
+    MultiMissionExtension_Hooks();
 
     CCINIClassExtension_Hooks();
 

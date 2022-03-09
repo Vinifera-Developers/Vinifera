@@ -50,21 +50,6 @@
 
 
 /**
- *  #issue-8
- *  
- *  Fixes MultiMission "MaxPlayers" incorrectly loaded with "MinPlayers".
- * 
- *  @author: CCHyper
- */
-static void _MultiMission_Constructor_MaxPlayers_Typo_Patch()
-{
-    static const char *TEXT_MAXPLAYERS = "MaxPlayers";
-    Patch_Dword(0x005EF124+1, (uintptr_t)TEXT_MAXPLAYERS); // +1 skips "push" opcode
-    Patch_Dword(0x005EF5E4+1, (uintptr_t)TEXT_MAXPLAYERS); // +1 skips "push" opcode
-}
-
-
-/**
  *  Scale up the input rect to the desired width and height, while maintaining the aspect ratio.
  * 
  *  @author: CCHyper
@@ -377,5 +362,4 @@ void BugFix_Hooks()
     _Intro_Movie_Patches();
     _Dont_Stretch_Main_Menu_Video_Patch();
     _Scale_Movies_By_Ratio_Patch();
-    _MultiMission_Constructor_MaxPlayers_Typo_Patch();
 }
