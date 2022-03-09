@@ -47,6 +47,8 @@
 #include "sessionext_hooks.h"
 #include "cdext_hooks.h"
 
+#include "playmovie_hooks.h"
+
 #include "objecttypeext_hooks.h"
 #include "technotypeext_hooks.h"
 #include "buildingtypeext_hooks.h"
@@ -144,6 +146,8 @@ void Extension_Hooks()
     MessageListClassExtension_Hooks();
     SessionClassExtension_Hooks();
     CDExtension_Hooks();
+
+    PlayMovieExtension_Hooks();
 
     /**
      *  All type class extensions here.

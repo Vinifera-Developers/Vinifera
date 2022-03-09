@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          BUGFIX_HOOKS.H
+ *  @file          PLAYMOVIE_HOOKS.H
  *
  *  @author        CCHyper
  *
- *  @brief         Contains the hooks for all bug fixes.
+ *  @brief         Contains the hooks related to Play_Movie and related functions.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -27,5 +27,5 @@
  ******************************************************************************/
 #pragma once
 
-#include "always.h"
 
+void PlayMovieExtension_Hooks();

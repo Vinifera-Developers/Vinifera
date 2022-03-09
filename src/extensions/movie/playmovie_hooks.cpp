@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          BUGFIX_HOOKS.CPP
+ *  @file          PLAYMOVIE_HOOKS.CPP
  *
  *  @author        CCHyper
  *
- *  @brief         Contains the hooks for all bug fixes.
+ *  @brief         Contains the hooks related to Play_Movie and related functions.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -25,25 +25,18 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "bugfix_hooks.h"
-#include "bugfixes.h"
-
+#include "playmovie_hooks.h"
 #include "tibsun_globals.h"
-#include "vinifera_util.h"
-#include "wwmouse.h"
+#include "options.h"
 #include "campaign.h"
 #include "scenario.h"
-#include "playmovie.h"
-#include "ccfile.h"
-#include "cd.h"
 #include "vqa.h"
 #include "movie.h"
-#include "dsurface.h"
-#include "options.h"
-#include "theme.h"
-#include "dropship.h"
-#include "msgbox.h"
+#include "playmovie.h"
+#include "cd.h"
+#include "fatal.h"
 #include "debughandler.h"
+#include "asserthandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -153,28 +146,6 @@ DECLARE_PATCH(_Play_Movie_Scale_By_Ratio_Patch)
     }
 
     JMP(0x00563805);
-}
-
-static void _Scale_Movies_By_Ratio_Patch()
-{
-    Patch_Jump(0x00563795, &_Play_Movie_Scale_By_Ratio_Patch);
-}
-
-
-/**
- *  #issue-287
- * 
- *  Main menu transition videos incorrectly scale up when "StretchMovies=true".
- * 
- *  @author: CCHyper
- */
-static void _Dont_Stretch_Main_Menu_Video_Patch()
-{
-    /**
-     *  Change Play_Movie "stretch_allowed" arg to false.
-     */
-    Patch_Byte(0x0057FF34+1, 0); // TS_TITLE.VQA
-    Patch_Byte(0x0057FECF+1, 0); // FS_TITLE.VQA
 }
 
 
@@ -340,6 +311,7 @@ static void Play_Intro_SneakPeak_Movies()
     //CD().Force_Available(disk);
 }
 
+
 DECLARE_PATCH(_Select_Game_Intro_SneakPeak_Movies_Patch)
 {
     Play_Intro_SneakPeak_Movies();
@@ -347,19 +319,25 @@ DECLARE_PATCH(_Select_Game_Intro_SneakPeak_Movies_Patch)
     JMP(0x004E288B);
 }
 
-static void _Intro_Movie_Patches()
-{
-    Patch_Jump(0x005DB2DE, &_Start_Scenario_Intro_Movie_Patch);
-    Patch_Jump(0x004E2796, &_Select_Game_Intro_SneakPeak_Movies_Patch);
-}
-
 
 /**
  *  Main function for patching the hooks.
  */
-void BugFix_Hooks()
+void PlayMovieExtension_Hooks()
 {
-    _Intro_Movie_Patches();
-    _Dont_Stretch_Main_Menu_Video_Patch();
-    _Scale_Movies_By_Ratio_Patch();
+    Patch_Jump(0x005DB2DE, &_Start_Scenario_Intro_Movie_Patch);
+    Patch_Jump(0x004E2796, &_Select_Game_Intro_SneakPeak_Movies_Patch);
+
+    /**
+     *  #issue-287
+     * 
+     *  Main menu transition videos incorrectly scale up when "StretchMovies=true".
+     *  Changes Change Play_Movie "stretch_allowed" arg to false.
+     * 
+     *  @author: CCHyper
+     */
+    Patch_Byte(0x0057FF34+1, 0); // TS_TITLE.VQA
+    Patch_Byte(0x0057FECF+1, 0); // FS_TITLE.VQA
+
+    Patch_Jump(0x00563795, &_Play_Movie_Scale_By_Ratio_Patch);
 }
