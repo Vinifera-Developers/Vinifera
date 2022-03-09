@@ -26,10 +26,6 @@
  *
  ******************************************************************************/
 #include "asserthandler.h"
-
-
-#ifndef NDEBUG
-
 #include "critsection.h"
 #include "debughandler.h"
 #include <Windows.h>
@@ -68,20 +64,17 @@ bool ExitOnAssert = false;
 
 static wchar_t *to_utf16(const char *str)
 {
-    int len;
-    wchar_t *ret;
-
-    if (str == NULL) {
-        return NULL;
+    if (str == nullptr) {
+        return nullptr;
     }
 
-    len = MultiByteToWideChar(CP_UTF8, 0, str, -1, NULL, 0);
+    int len = MultiByteToWideChar(CP_UTF8, 0, str, -1, nullptr, 0);
 
-    if (len == 0) {
-        return NULL;
+    if (!len) {
+        return nullptr;
     }
 
-    ret = (wchar_t *)malloc(len * sizeof(wchar_t));
+    wchar_t *ret = (wchar_t *)malloc(len * sizeof(wchar_t));
     MultiByteToWideChar(CP_UTF8, 0, str, -1, ret, len);
 
     return ret;
@@ -138,10 +131,7 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
     /**
      *  Display the assertion dialog.
      */
-    wchar_t *utf16_cap = to_utf16("Assertion");
-    wchar_t *utf16_msg = to_utf16(buffer);
-    int result = MessageBoxW(nullptr, utf16_msg, utf16_cap, MB_APPLMODAL | MB_ICONERROR| MB_ABORTRETRYIGNORE);
-    std::free(utf16_msg);
+    int result = MessageBoxA(nullptr, buffer, "Assertion", MB_APPLMODAL | MB_ICONERROR| MB_ABORTRETRYIGNORE);
 
     /**
      *  Handle the user choice.
@@ -154,9 +144,7 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
         case IDRETRY:
             *allow_break = true;
         case IDIGNORE:
-            utf16_cap = to_utf16("Assertion");
-            utf16_msg = to_utf16("Ignore further occurrences of this assert?");
-            result = MessageBoxW(nullptr, utf16_msg, utf16_cap, MB_ICONERROR | MB_YESNO | MB_DEFBUTTON1);
+            result = MessageBoxA(nullptr, buffer, "Assertion", MB_ICONERROR | MB_YESNO | MB_DEFBUTTON1);
             if (result == IDNO) {
                 *ignore = false;
                 break;
@@ -166,7 +154,6 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
             break;
     }
 
-#ifndef NDEBUG
     /**
      *  Output the assertion to the debugger (if it is attached).
      */
@@ -175,7 +162,6 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
             "[%s] %s:%d %s Expr: \"%s\"\n", _assert_names[type], file, line, function, expr);
         Vinifera_Output_Debug_String(buffer);
     }
-#endif
 
     /**
      *  If we are in the debugger, we want to force break.
@@ -191,5 +177,3 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
         *exit = true;
     }
 }
-
-#endif

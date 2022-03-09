@@ -27,13 +27,11 @@
  ******************************************************************************/
 #pragma once
 
-
-#ifndef NDEBUG
-
 #include "always.h"
 #include "fatal.h"
 #include <intrinsics.h>
 #include <cstdlib>
+
 
 extern bool IgnoreAllAsserts;
 extern bool SilentAsserts;
@@ -102,9 +100,7 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
                     if (_break) { \
                         __debugbreak(); \
                     } \
-                    /*if (_exit || ExitOnAssert) {*/ \
-                        Emergency_Exit(EXIT_FAILURE); \
-                    /*}*/ \
+                    Emergency_Exit(EXIT_FAILURE); \
                 } \
             } \
         } \
@@ -122,17 +118,8 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
                     if (_break) { \
                         __debugbreak(); \
                     } \
-                    /*if (_exit || ExitOnAssert) {*/ \
-                        Emergency_Exit(EXIT_FAILURE); \
-                    /*}*/ \
+                    Emergency_Exit(EXIT_FAILURE); \
                 } \
             } \
         } \
     } while (false)
-
-#else
-#define ASSERT(x) ((void)0)
-#define ASSERT_PRINT(exp, msg, ...) ((void)0)
-#define ASSERT_FATAL(exp, ...) ((void)0)
-#define ASSERT_FATAL_PRINT(exp, msg, ...) ((void)0)
-#endif

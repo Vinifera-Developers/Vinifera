@@ -213,6 +213,24 @@ bool Vinifera_Parse_Command_Line(int argc, char *argv[])
             continue;
         }
 
+        /**
+         *  Should assertions only be printed to the debug log?
+         */
+        if (stricmp(string, "-SILENT_ASSERTS") == 0) {
+            DEBUG_INFO("  - Assertions are silent.\n");
+            SilentAsserts = true;
+            continue;
+        }
+
+        /**
+         *  Ignore all assertions?
+         */
+        if (stricmp(string, "-IGNORE_ASSERTS") == 0) {
+            DEBUG_INFO("  - Ignore all assertions.\n");
+            IgnoreAllAsserts = true;
+            continue;
+        }
+
     }
 
     if (argc > 1) {
@@ -289,24 +307,6 @@ bool Vinifera_Startup()
  */
 bool Vinifera_Shutdown()
 {
-	/**
-	 *  Delete static class extensions.
-	 */
-	delete OptionsExtension;
-	OptionsExtension = nullptr;
-
-	delete RulesExtension;
-	RulesExtension = nullptr;
-
-	delete SessionExtension;
-	SessionExtension = nullptr;
-
-	delete ScenarioExtension;
-	ScenarioExtension = nullptr;
-
-	delete TacticalExtension;
-	TacticalExtension = nullptr;
-
     /**
      *  Cleanup mixfiles.
      */
