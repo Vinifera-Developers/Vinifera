@@ -43,69 +43,10 @@
 #include "theme.h"
 #include "dropship.h"
 #include "msgbox.h"
-#include "command.h"
 #include "debughandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
-
-
-/**
- *  #issue-305
- * 
- *  Fixes bug where the sidebar mouse wheel scrolling "error" sound
- *  can be heard at the main menu.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_Main_Window_Procedure_Scroll_Sidebar_Check_Patch)
-{
-    GET_STACK_STATIC(UINT, wParam, esp, 0x14);
-    static bool _mouse_wheel_scolling;
-
-    /**
-     *  The code before this patch checks for WM_MOUSEWHEEL.
-     */
-
-    /**
-     *  We are not currently playing a scenario, no need to execute this command.
-     */
-    if (!bool_007E4040 && !bool_007E48FC) {
-        goto message_handler;
-    }
-
-    /**
-     *  Are we currently executing a scroll command? This is required because
-     *  the Main_Window_Procedure function runs at a Windows level.
-     */
-    if (_mouse_wheel_scolling) {
-        goto message_handler;
-    }
-
-    _mouse_wheel_scolling = true;
-
-    /**
-     *  Execute the command based on the direction of the mouse wheel.
-     */
-    if ((wParam & 0x80000000) == 0) {
-        CommandClass::Activate_From_Name("SidebarUp");
-    } else {
-        CommandClass::Activate_From_Name("SidebarDown");
-    }
-
-    _mouse_wheel_scolling = false;
-
-executed:
-    JMP_REG(eax, 0x00685F9C);
-
-message_handler:
-    JMP_REG(ecx, 0x00685FA0);
-}
-
-static void _Scroll_Sidebar_InGame_Check_Patch()
-{
-    Patch_Jump(0x00685F69, &_Main_Window_Procedure_Scroll_Sidebar_Check_Patch);
-}
 
 
 /**
@@ -437,5 +378,4 @@ void BugFix_Hooks()
     _Dont_Stretch_Main_Menu_Video_Patch();
     _Scale_Movies_By_Ratio_Patch();
     _MultiMission_Constructor_MaxPlayers_Typo_Patch();
-    _Scroll_Sidebar_InGame_Check_Patch();
 }
