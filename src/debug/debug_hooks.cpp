@@ -605,6 +605,11 @@ void Debug_Hooks()
     CreateDirectory(Vinifera_DebugDirectory, nullptr);
 
     /**
+     *  MSVC does not need to know this information.
+     */
+    DisableDebuggerOutput = true;
+
+    /**
      *  Cleanup debug files older than 14 days.
      */
     DEBUG_INFO("Running cleanup on debug folder...\n");
@@ -615,4 +620,6 @@ void Debug_Hooks()
     DeleteFilesOlderThan(5, Vinifera_DebugDirectory, "CRASHDUMP_*");
     DeleteFilesOlderThan(5, Vinifera_DebugDirectory, "MINIDUMP_*");
     DeleteFilesOlderThan(5, Vinifera_DebugDirectory, "DEBUG_*.ZIP");
+
+    DisableDebuggerOutput = false;
 }

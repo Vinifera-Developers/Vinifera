@@ -38,21 +38,25 @@ static const int GameBinarySize = VINIFERA_TARGET_SIZE;  // Raw size of binary i
 static DWORD OldProtect = 0;
 
 
-void StartHooking()
+bool StartHooking()
 {
 	/**
 	 *  Change the protection of the .text segment to READ+WRITE in the target binary.
 	 *  This allows us to modify code and place hooks in the binary.
 	 */
-    VirtualProtectEx(GetCurrentProcess(), (LPVOID)&TextSegementStart, GameBinarySize, PAGE_EXECUTE_READWRITE, &OldProtect);
+    BOOL success = VirtualProtectEx(GetCurrentProcess(), (LPVOID)&TextSegementStart, GameBinarySize, PAGE_EXECUTE_READWRITE, &OldProtect);
+
+    return true;
 }
 
 
-void StopHooking()
+bool StopHooking()
 {
 	/**
 	 *  Restore the protection of the .text segment back to the original access.
 	 */
     DWORD OldProtect2;
-    VirtualProtectEx(GetCurrentProcess(), (LPVOID)&TextSegementStart, GameBinarySize, OldProtect, &OldProtect2);
+    BOOL success = VirtualProtectEx(GetCurrentProcess(), (LPVOID)&TextSegementStart, GameBinarySize, OldProtect, &OldProtect2);
+
+	return true;
 }

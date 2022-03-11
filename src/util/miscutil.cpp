@@ -468,6 +468,21 @@ bool File_Exists(const char *filename)
 }
 
 
+/**
+ *  Checks if a file exists in the directory using the Windows API.
+ */
+bool WinAPI_File_Exists(const char *file)
+{
+    WIN32_FIND_DATA fileinfo;
+    HANDLE handle = FindFirstFile(file, &fileinfo) ;
+    bool found = (handle != INVALID_HANDLE_VALUE);
+    if (found) {
+        FindClose(handle);
+    }
+    return found;
+}
+
+
 bool Is_Full_Path(const char *path)
 {
     if (path == nullptr) {

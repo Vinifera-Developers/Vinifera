@@ -63,6 +63,7 @@ int Get_Last_System_Error();
 bool Delete_File(char const *filename);
 bool Rename_File(char const *filename, char const *new_filename);
 bool File_Exists(char const *filename);
+bool WinAPI_File_Exists(const char *filename);
 
 bool Is_Full_Path(const char *path);
 

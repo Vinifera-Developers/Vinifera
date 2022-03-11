@@ -38,8 +38,8 @@
  *  These are the functions that must be called at both DLL attach and detach
  *  to handle changing of the code segments read only protection to read|write.
  */
-__declspec(dllexport) void StartHooking();
-__declspec(dllexport) void StopHooking();
+__declspec(dllexport) bool StartHooking();
+__declspec(dllexport) bool StopHooking();
 
 
 /**

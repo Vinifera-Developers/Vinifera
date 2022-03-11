@@ -103,7 +103,7 @@ static bool DebugConsoleActive = false;
 
 static HANDLE DebugConsoleHandle = nullptr;
 
-static bool DisableDebuggerOutput = false;
+/*static*/ bool DisableDebuggerOutput = false;
 
 static bool DebugHandler_DeveloperMode = false;
 

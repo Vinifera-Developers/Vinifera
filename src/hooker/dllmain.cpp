@@ -56,34 +56,6 @@ char Execute_Time_Buffer[256];
 
 
 /**
- *  We need to use a static object so any global instances are initialised
- *  before we hook anything into the binary. Place any priority classes here.
- */
-class StaticInitObject
-{
-	public:
-		StaticInitObject() {}
-		~StaticInitObject() {}
-};
-StaticInitObject InitHooks;
-
-
-/**
- *  Checks if a file exists in the directory.
- */
-static bool File_Exists(const char *file)
-{
-    WIN32_FIND_DATA fileinfo;
-    HANDLE handle = FindFirstFile(file, &fileinfo) ;
-    bool found = (handle != INVALID_HANDLE_VALUE);
-    if (found) {
-        FindClose(handle);
-    }
-    return found;
-}
-
-
-/**
  *  Use DLLMain to Set up our hooks when the DLL loads. The launcher should stall
  *  the main thread at the entry point so hooked code called after that should
  *  be our code.
@@ -92,8 +64,20 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved
 {
     switch (ul_reason_for_call) {
         case DLL_PROCESS_ATTACH:
-            std::printf("Attaching DLL to process.\n");
-            StartHooking();
+
+            if (lpReserved) {
+                OutputDebugString(VINIFERA_DLL " is being loaded statically.\n");
+            } else {
+                OutputDebugString(VINIFERA_DLL " is being loaded dynamicly.\n");
+            }
+
+            OutputDebugString(VINIFERA_DLL " attached to " VINIFERA_TARGET_EXE ".\n");
+
+            OutputDebugString("About to call StartHooking()...\n\n");
+
+            if (!StartHooking()) {
+                return FALSE;
+            }
 
             /**
              *  Get the timestamp of execution. Used for generating debug log filenames.
@@ -106,18 +90,20 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved
              *  Setup hooks and any other systems here.
              */
             Setup_Hooks();
-			
+
+            OutputDebugString("\n\nSetup_Hooks() done!\n\n");
+
             DLLInstance = hModule;
-            break;
+
+            return TRUE;
 
         case DLL_PROCESS_DETACH:
-            std::printf("Detaching DLL from process.\n");
-            StopHooking();
-			
-            /**
-             *  Shutdown systems here.
-             */
 
+            OutputDebugString("\n\nAbout to call StopHooking()...\n\n");
+
+            if (!StopHooking()) {
+                return FALSE;
+            }
 
             /**
              *  Collect the debug files from this session.
@@ -125,13 +111,17 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved
             Vinifera_Collect_Debug_Files();
             
             DLLInstance = nullptr;
-            break;
+
+            OutputDebugString(VINIFERA_DLL " detached from " VINIFERA_TARGET_EXE ".\n");
+
+            return TRUE;
             
         case DLL_THREAD_ATTACH:
         case DLL_THREAD_DETACH:
-        default:
-            break;
-    };
+            OutputDebugString(VINIFERA_DLL " is not allowed to be loaded within a thread!\n");
+            return FALSE;
 
-    return TRUE;
+        default:
+            return FALSE;
+    };
 }

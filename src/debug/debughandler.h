@@ -128,3 +128,5 @@ void Vinifera_Output_Debug_String(const char *string);
 
 
 extern char CrashdumpFilename[PATH_MAX];
+
+extern bool DisableDebuggerOutput;
