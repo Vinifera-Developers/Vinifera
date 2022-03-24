@@ -50,7 +50,19 @@ AnimTypeClassExtension::AnimTypeClassExtension(AnimTypeClass *this_ptr) :
     ZAdjust(0),
     AttachLayer(LAYER_NONE),
     ParticleToSpawn(PARTICLE_NONE),
-    NumberOfParticles(0)
+    NumberOfParticles(0),
+    StartAnims(),
+    StartAnimsCount(),
+    StartAnimsMinimum(),
+    StartAnimsMaximum(),
+    MiddleAnims(),
+    MiddleAnimsCount(),
+    MiddleAnimsMinimum(),
+    MiddleAnimsMaximum(),
+    EndAnims(),
+    EndAnimsCount(),
+    EndAnimsMinimum(),
+    EndAnimsMaximum()
 {
     ASSERT(ThisPtr != nullptr);
     //EXT_DEBUG_TRACE("AnimTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -101,7 +113,45 @@ HRESULT AnimTypeClassExtension::Load(IStream *pStm)
         return E_FAIL;
     }
 
+    StartAnims.Clear();
+    StartAnimsCount.Clear();
+    StartAnimsMinimum.Clear();
+    StartAnimsMaximum.Clear();
+    MiddleAnims.Clear();
+    MiddleAnimsCount.Clear();
+    MiddleAnimsMinimum.Clear();
+    MiddleAnimsMaximum.Clear();
+    EndAnims.Clear();
+    EndAnimsCount.Clear();
+    EndAnimsMinimum.Clear();
+    EndAnimsMaximum.Clear();
+
     new (this) AnimTypeClassExtension(NoInitClass());
+
+    StartAnims.Load(pStm);
+    StartAnimsCount.Load(pStm);
+    StartAnimsMinimum.Load(pStm);
+    StartAnimsMaximum.Load(pStm);
+    MiddleAnims.Load(pStm);
+    MiddleAnimsCount.Load(pStm);
+    MiddleAnimsMinimum.Load(pStm);
+    MiddleAnimsMaximum.Load(pStm);
+    EndAnims.Load(pStm);
+    EndAnimsCount.Load(pStm);
+    EndAnimsMinimum.Load(pStm);
+    EndAnimsMaximum.Load(pStm);
+
+    for (int i = 0; i < StartAnims.Count(); ++i) {
+        SwizzleManager.Swizzle((void **)&StartAnims[i]);
+    }
+
+    for (int i = 0; i < MiddleAnims.Count(); ++i) {
+        SwizzleManager.Swizzle((void **)&MiddleAnims[i]);
+    }
+
+    for (int i = 0; i < EndAnims.Count(); ++i) {
+        SwizzleManager.Swizzle((void **)&EndAnims[i]);
+    }
     
     return hr;
 }
@@ -121,6 +171,19 @@ HRESULT AnimTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
     if (FAILED(hr)) {
         return hr;
     }
+
+    StartAnims.Save(pStm);
+    StartAnimsCount.Save(pStm);
+    StartAnimsMinimum.Save(pStm);
+    StartAnimsMaximum.Save(pStm);
+    MiddleAnims.Save(pStm);
+    MiddleAnimsCount.Save(pStm);
+    MiddleAnimsMinimum.Save(pStm);
+    MiddleAnimsMaximum.Save(pStm);
+    EndAnims.Save(pStm);
+    EndAnimsCount.Save(pStm);
+    EndAnimsMinimum.Save(pStm);
+    EndAnimsMaximum.Save(pStm);
 
     return hr;
 }
@@ -164,6 +227,18 @@ void AnimTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 
     crc(AttachLayer);
     crc(NumberOfParticles);
+    crc(StartAnims.Count());
+    crc(StartAnimsCount.Count());
+    crc(StartAnimsMinimum.Count());
+    crc(StartAnimsMaximum.Count());
+    crc(MiddleAnims.Count());
+    crc(MiddleAnimsCount.Count());
+    crc(MiddleAnimsMinimum.Count());
+    crc(MiddleAnimsMaximum.Count());
+    crc(EndAnims.Count());
+    crc(EndAnimsCount.Count());
+    crc(EndAnimsMinimum.Count());
+    crc(EndAnimsMaximum.Count());
 }
 
 
@@ -199,6 +274,58 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     AttachLayer = ini.Get_LayerType(ini_name, "Layer", AttachLayer);
     ParticleToSpawn = ini.Get_ParticleType(ini_name, "SpawnsParticle", ParticleToSpawn);
     NumberOfParticles = ini.Get_Int(ini_name, "NumParticles", NumberOfParticles);
+    
+    return true;
+}
+
+
+/**
+ *  Fetches the extension data from the INI database. This function is to be
+ *  called only after the main rules processing has been done.
+ *  
+ *  @author: CCHyper
+ */
+bool AnimTypeClassExtension::Post_Read_INI(CCINIClass &ini)
+{
+    ASSERT(ThisPtr != nullptr);
+    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Post_Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    EXT_DEBUG_WARNING("AnimTypeClassExtension::Post_Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+
+    const char *ini_name = ThisPtr->Name();
+
+    if (!ini.Is_Present(ini_name)) {
+        return false;
+    }
+
+    StartAnims = ini.Get_Anims(ini_name, "StartAnims", StartAnims);
+    StartAnimsCount = ini.Get_Integer_List(ini_name, "StartAnimsCount", StartAnimsCount);
+    StartAnimsMinimum = ini.Get_Integer_List(ini_name, "StartAnimsMinimum", StartAnimsMinimum);
+    StartAnimsMaximum = ini.Get_Integer_List(ini_name, "StartAnimsMaximum", StartAnimsMaximum);
+
+    if (!StartAnimsCount.Count()) {
+        ASSERT(StartAnims.Count() == StartAnimsMinimum.Count());
+        ASSERT(StartAnims.Count() == StartAnimsMaximum.Count());
+    }
+
+    MiddleAnims = ini.Get_Anims(ini_name, "MiddleAnims", MiddleAnims);
+    MiddleAnimsCount = ini.Get_Integer_List(ini_name, "MiddleAnimsCount", MiddleAnimsCount);
+    MiddleAnimsMinimum = ini.Get_Integer_List(ini_name, "MiddleAnimsMinimum", MiddleAnimsMinimum);
+    MiddleAnimsMaximum = ini.Get_Integer_List(ini_name, "MiddleAnimsMaximum", MiddleAnimsMaximum);
+
+    if (!MiddleAnimsCount.Count()) {
+        ASSERT(MiddleAnims.Count() == MiddleAnimsMinimum.Count());
+        ASSERT(MiddleAnims.Count() == MiddleAnimsMaximum.Count());
+    }
+
+    EndAnims = ini.Get_Anims(ini_name, "EndAnims", EndAnims);
+    EndAnimsCount = ini.Get_Integer_List(ini_name, "EndAnimsCount", EndAnimsCount);
+    EndAnimsMinimum = ini.Get_Integer_List(ini_name, "EndAnimsMinimum", EndAnimsMinimum);
+    EndAnimsMaximum = ini.Get_Integer_List(ini_name, "EndAnimsMaximum", EndAnimsMaximum);
+
+    if (!EndAnimsCount.Count()) {
+        ASSERT(EndAnims.Count() == EndAnimsMinimum.Count());
+        ASSERT(EndAnims.Count() == EndAnimsMaximum.Count());
+    }
     
     return true;
 }

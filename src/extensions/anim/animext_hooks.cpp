@@ -29,6 +29,7 @@
 #include "tibsun_globals.h"
 #include "tibsun_inline.h"
 #include "anim.h"
+#include "animext.h"
 #include "animext_init.h"
 #include "animtype.h"
 #include "animtypeext.h"
@@ -59,6 +60,8 @@ class AnimClassFake final : public AnimClass
 {
     public:
         LayerType _In_Which_Layer() const;
+
+
 };
 
 
@@ -134,6 +137,85 @@ static void Anim_Spawn_Particles(AnimClass *this_ptr)
             }
         }
     }
+}
+
+
+/**
+ *  Calls the AnimClass extension middle event processor.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_AnimClass_Start_Ext_Patch)
+{
+    GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
+    static AnimClassExtension *animext;
+
+    animext = AnimClassExtensions.find(this_ptr);
+    if (animext) {
+        animext->Start();
+    }
+    
+original_code:
+    _asm { pop esi }
+    _asm { pop ebx }
+    _asm { add esp, 0x24 }
+    _asm { retn }
+}
+
+
+/**
+ *  Calls the AnimClass extension middle event processor.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_AnimClass_Middle_Ext_Patch)
+{
+    GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
+    static AnimClassExtension *animext;
+
+    animext = AnimClassExtensions.find(this_ptr);
+    if (animext) {
+        animext->Middle();
+    }
+    
+original_code:
+    _asm { pop edi }
+    _asm { pop esi }
+    _asm { pop ebp }
+    _asm { add esp, 0x38 }
+    _asm { retn }
+}
+
+
+/**
+ *  Calls the AnimClass extension middle event processor.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_AnimClass_AI_End_Ext_Patch)
+{
+    GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
+    static AnimClassExtension *animext;
+
+    animext = AnimClassExtensions.find(this_ptr);
+    if (animext) {
+        animext->End();
+    }
+    
+original_code:
+    /**
+     *  Restore expected register states.
+     */
+    _asm { mov esi, this_ptr }
+    _asm { xor ebp, ebp}
+
+    /**
+     *  Stolen bytes/code.
+     */
+    _asm { mov edx, [esi+0x64] } // this->Class
+    _asm { mov ecx, [edx+0x154] } // Class->ChainTo
+
+    JMP_REG(edx, 0x00415B03);
 }
 
 
@@ -393,6 +475,28 @@ void AnimClassExtension_Hooks()
      *  Initialises the extended class.
      */
     AnimClassExtension_Init();
+
+    /**
+     *  This patch removes duplicate return in AnimClass::Middle, so we only
+     *  need to hook one place.
+     */
+    Patch_Jump(0x004162BD, 0x0041637C);
+
+    Patch_Jump(0x00415F38, &_AnimClass_Start_Ext_Patch);
+
+    /**
+     *  Unfortunately, this manual patch is required because the code is optimised
+     *  and reuses "this" (ESI), which we need for the ext patch.
+     */
+    Patch_Byte(0x0041636D, 0x8B); // mov esi, [esi+0x68] -> mov ebp, [esi+0x68]
+    Patch_Byte(0x0041636D+1, 0x6E); // ^
+    Patch_Byte(0x0041636D+2, 0x68); // ^
+    Patch_Byte(0x00416370, 0x85); // test esi, esi -> test ebp, ebp
+    Patch_Byte(0x00416370+1, 0xED); // ^
+    Patch_Byte(0x00416374, 0x55); // push esi -> push ebp
+    Patch_Jump(0x0041637C, &_AnimClass_Middle_Ext_Patch);
+
+    Patch_Jump(0x00415AFA, &_AnimClass_AI_End_Ext_Patch);
 
     Patch_Jump(0x00415ADA, &_AnimClass_AI_RandomLoop_Randomiser_BugFix_Patch);
     //Patch_Jump(0x00413C79, &_AnimClass_Constructor_Init_Class_Values_Patch); // Moved to AnimClassExtension due to patching conflict.
