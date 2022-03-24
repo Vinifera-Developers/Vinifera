@@ -149,7 +149,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_ScenarioClass_Deconstructor_Patch)
+DECLARE_PATCH(_ScenarioClass_Destructor_Patch)
 {
     GET_REGISTER_STATIC(ScenarioClass *, this_ptr, esi);
 
@@ -242,7 +242,7 @@ void ScenarioClassExtension_Init()
 {
     Patch_Jump(0x005DADDE, &_ScenarioClass_Constructor_Patch);
     Patch_Jump(0x005DAE87, &_ScenarioClass_NoInit_Constructor_Patch);
-    Patch_Jump(0x006023CC, &_ScenarioClass_Deconstructor_Patch); // Inlined in game shutdown.
+    Patch_Jump(0x006023CC, &_ScenarioClass_Destructor_Patch); // Inlined in game shutdown.
     Patch_Jump(0x005DB166, &_ScenarioClass_Init_Clear_Patch);
     Patch_Jump(0x005E1440, &_ScenarioClass_Compute_CRC_Patch);
 }

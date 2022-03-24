@@ -67,14 +67,14 @@ SuperClassExtension::SuperClassExtension(const NoInitClass &noinit) :
 
 
 /**
- *  Class deconstructor.
+ *  Class destructor.
  *  
  *  @author: CCHyper
  */
 SuperClassExtension::~SuperClassExtension()
 {
-    //EXT_DEBUG_TRACE("SuperClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("SuperClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("SuperClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("SuperClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     IsInitialized = false;
 }

@@ -101,7 +101,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_InfantryClass_Deconstructor_Patch)
+DECLARE_PATCH(_InfantryClass_Destructor_Patch)
 {
     GET_REGISTER_STATIC(InfantryClass *, this_ptr, esi);
 
@@ -196,7 +196,7 @@ void InfantryClassExtension_Init()
 {
     Patch_Jump(0x004D21E1, &_InfantryClass_Constructor_Patch);
     Patch_Jump(0x004D940F, &_InfantryClass_NoInit_Constructor_Patch);
-    Patch_Jump(0x004D23F2, &_InfantryClass_Deconstructor_Patch);
+    Patch_Jump(0x004D23F2, &_InfantryClass_Destructor_Patch);
     Patch_Jump(0x004D40E5, &_InfantryClass_Detach_Patch);
     Patch_Jump(0x004D96DB, &_InfantryClass_Compute_CRC_Patch);
 }

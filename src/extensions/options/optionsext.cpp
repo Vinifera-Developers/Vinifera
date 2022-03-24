@@ -68,14 +68,14 @@ OptionsClassExtension::OptionsClassExtension(const NoInitClass &noinit) :
 
 
 /**
- *  Class deconstructor.
+ *  Class destructor.
  *  
  *  @author: CCHyper
  */
 OptionsClassExtension::~OptionsClassExtension()
 {
-    //EXT_DEBUG_TRACE("OptionsClassExtension deconstructor - 0x%08X\n", (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("OptionsClassExtension deconstructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("OptionsClassExtension destructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("OptionsClassExtension destructor - 0x%08X\n", (uintptr_t)(ThisPtr));
 
     IsInitialized = false;
 }

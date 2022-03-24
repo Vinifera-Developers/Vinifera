@@ -67,14 +67,14 @@ HouseClassExtension::HouseClassExtension(const NoInitClass &noinit) :
 
 
 /**
- *  Class deconstructor.
+ *  Class destructor.
  *  
  *  @author: CCHyper
  */
 HouseClassExtension::~HouseClassExtension()
 {
-    //EXT_DEBUG_TRACE("HouseClassExtension deconstructor - 0x%08X\n", (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("HouseClassExtension deconstructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("HouseClassExtension destructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("HouseClassExtension destructor - 0x%08X\n", (uintptr_t)(ThisPtr));
 
     IsInitialized = false;
 }

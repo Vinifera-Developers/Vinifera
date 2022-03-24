@@ -73,14 +73,14 @@ AnimTypeClassExtension::AnimTypeClassExtension(const NoInitClass &noinit) :
 
 
 /**
- *  Class deconstructor.
+ *  Class destructor.
  *  
  *  @author: CCHyper
  */
 AnimTypeClassExtension::~AnimTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("AnimTypeClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("AnimTypeClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("AnimTypeClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("AnimTypeClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     IsInitialized = false;
 }

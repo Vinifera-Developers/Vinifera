@@ -102,7 +102,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_AircraftClass_Deconstructor_Patch)
+DECLARE_PATCH(_AircraftClass_Destructor_Patch)
 {
     GET_REGISTER_STATIC(AircraftClass *, this_ptr, esi);
 
@@ -197,7 +197,7 @@ void AircraftClassExtension_Init()
 {
     Patch_Jump(0x0040880C, &_AircraftClass_Constructor_Patch);
     Patch_Jump(0x0040EB81, &_AircraftClass_NoInit_Constructor_Patch);
-    Patch_Jump(0x0040DCCA, &_AircraftClass_Deconstructor_Patch);
+    Patch_Jump(0x0040DCCA, &_AircraftClass_Destructor_Patch);
     Patch_Jump(0x0040EDC5, &_AircraftClass_Detach_Patch);
     Patch_Jump(0x0040ED91, &_AircraftClass_Compute_CRC_Patch);
 }

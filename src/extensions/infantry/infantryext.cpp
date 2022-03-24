@@ -67,14 +67,14 @@ InfantryClassExtension::InfantryClassExtension(const NoInitClass &noinit) :
 
 
 /**
- *  Class deconstructor.
+ *  Class destructor.
  *  
  *  @author: CCHyper
  */
 InfantryClassExtension::~InfantryClassExtension()
 {
-    //EXT_DEBUG_TRACE("InfantryClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("InfantryClassExtension deconstructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("InfantryClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("InfantryClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     IsInitialized = false;
 }

@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          CAMPAIGNEXT.CPP
+ *  @file          ANIMEXT.CPP
  *
  *  @author        CCHyper
  *
- *  @brief         Extended CampaignClass class.
+ *  @brief         Extended AnimClass class.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -25,17 +25,17 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "campaignext.h"
-#include "campaign.h"
-#include "ccini.h"
+#include "animext.h"
+#include "anim.h"
+#include "wwcrc.h"
 #include "asserthandler.h"
 #include "debughandler.h"
 
 
 /**
- *  Provides the map for all CampaignClass extension instances.
+ *  Provides the map for all AnimClass extension instances.
  */
-ExtensionMap<CampaignClass, CampaignClassExtension> CampaignClassExtensions;
+ExtensionMap<AnimClass, AnimClassExtension> AnimClassExtensions;
 
 
 /**
@@ -43,12 +43,12 @@ ExtensionMap<CampaignClass, CampaignClassExtension> CampaignClassExtensions;
  *  
  *  @author: CCHyper
  */
-CampaignClassExtension::CampaignClassExtension(CampaignClass *this_ptr) :
+AnimClassExtension::AnimClassExtension(AnimClass *this_ptr) :
     Extension(this_ptr)
 {
     ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("CampaignClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("CampaignClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("AnimClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("AnimClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     IsInitialized = true;
 }
@@ -59,7 +59,7 @@ CampaignClassExtension::CampaignClassExtension(CampaignClass *this_ptr) :
  *  
  *  @author: CCHyper
  */
-CampaignClassExtension::CampaignClassExtension(const NoInitClass &noinit) :
+AnimClassExtension::AnimClassExtension(const NoInitClass &noinit) :
     Extension(noinit)
 {
     IsInitialized = false;
@@ -71,10 +71,10 @@ CampaignClassExtension::CampaignClassExtension(const NoInitClass &noinit) :
  *  
  *  @author: CCHyper
  */
-CampaignClassExtension::~CampaignClassExtension()
+AnimClassExtension::~AnimClassExtension()
 {
-    //EXT_DEBUG_TRACE("CampaignClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("CampaignClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("AnimClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_WARNING("AnimClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     IsInitialized = false;
 }
@@ -85,17 +85,17 @@ CampaignClassExtension::~CampaignClassExtension()
  *  
  *  @author: CCHyper
  */
-HRESULT CampaignClassExtension::Load(IStream *pStm)
+HRESULT AnimClassExtension::Load(IStream *pStm)
 {
     ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("CampaignClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("AnimClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     HRESULT hr = Extension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
 
-    new (this) CampaignClassExtension(NoInitClass());
+    new (this) AnimClassExtension(NoInitClass());
     
     return hr;
 }
@@ -106,10 +106,10 @@ HRESULT CampaignClassExtension::Load(IStream *pStm)
  *  
  *  @author: CCHyper
  */
-HRESULT CampaignClassExtension::Save(IStream *pStm, BOOL fClearDirty)
+HRESULT AnimClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
     ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("CampaignClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("AnimClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     HRESULT hr = Extension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
@@ -125,10 +125,10 @@ HRESULT CampaignClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int CampaignClassExtension::Size_Of() const
+int AnimClassExtension::Size_Of() const
 {
     ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("CampaignClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("AnimClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     return sizeof(*this);
 }
@@ -139,10 +139,10 @@ int CampaignClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void CampaignClassExtension::Detach(TARGET target, bool all)
+void AnimClassExtension::Detach(TARGET target, bool all)
 {
     ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("CampaignClassExtension::Detach - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("AnimClassExtension::Detach - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 }
 
 
@@ -151,29 +151,8 @@ void CampaignClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void CampaignClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void AnimClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
     ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("CampaignClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-}
-
-
-/**
- *  Fetches the extension data from the INI database.  
- *  
- *  @author: CCHyper
- */
-bool CampaignClassExtension::Read_INI(CCINIClass &ini)
-{
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("CampaignClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    EXT_DEBUG_WARNING("CampaignClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-
-    const char *ini_name = ThisPtr->Name();
-
-    if (!ini.Is_Present(ini_name)) {
-        return false;
-    }
-    
-    return true;
+    //EXT_DEBUG_TRACE("AnimClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 }

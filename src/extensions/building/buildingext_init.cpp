@@ -105,7 +105,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_BuildingClass_Deconstructor_Patch)
+DECLARE_PATCH(_BuildingClass_Destructor_Patch)
 {
     GET_REGISTER_STATIC(BuildingClass *, this_ptr, esi);
 
@@ -201,7 +201,7 @@ void BuildingClassExtension_Init()
 {
     Patch_Jump(0x00426615, &_BuildingClass_Constructor_Patch);
     Patch_Jump(0x00426184, &_BuildingClass_NoInit_Constructor_Patch);
-    Patch_Jump(0x004268BB, &_BuildingClass_Deconstructor_Patch);
+    Patch_Jump(0x004268BB, &_BuildingClass_Destructor_Patch);
     Patch_Jump(0x00433FA9, &_BuildingClass_Detach_Patch);
     Patch_Jump(0x0043843D, &_BuildingClass_Compute_CRC_Patch);
 }

@@ -202,7 +202,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_WaveClass_Deconstructor_Patch)
+DECLARE_PATCH(_WaveClass_Destructor_Patch)
 {
     GET_REGISTER_STATIC(WaveClass *, this_ptr, esi);
 
@@ -292,7 +292,7 @@ void WaveClassExtension_Init()
     Patch_Jump(0x00670189, &_WaveClass_Default_Constructor_Before_Init_Patch);
     //Patch_Jump(0x006700A2, &_WaveClass_Constructor_Patch);
     Patch_Jump(0x0066FECF, &_WaveClass_Constructor_Before_Init_Patch);
-    Patch_Jump(0x00670369, &_WaveClass_Deconstructor_Patch); // Destructor is actually inlined in scalar destructor!
+    Patch_Jump(0x00670369, &_WaveClass_Destructor_Patch); // Destructor is actually inlined in scalar destructor!
     Patch_Jump(0x00672F1B, &_WaveClass_Scalar_Destructor_Patch);
     Patch_Jump(0x00670B3D, &_WaveClass_Detach_Patch);
 }

@@ -103,7 +103,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_UnitClass_Deconstructor_Patch)
+DECLARE_PATCH(_UnitClass_Destructor_Patch)
 {
     GET_REGISTER_STATIC(UnitClass *, this_ptr, esi);
 
@@ -199,7 +199,7 @@ void UnitClassExtension_Init()
 {
     Patch_Jump(0x0064D7B4, &_UnitClass_Constructor_Patch);
     Patch_Jump(0x0065967A, &_UnitClass_NoInit_Constructor_Patch);
-    Patch_Jump(0x0064D9C0, &_UnitClass_Deconstructor_Patch);
+    Patch_Jump(0x0064D9C0, &_UnitClass_Destructor_Patch);
     Patch_Jump(0x00659863, &_UnitClass_Detach_Patch);
     Patch_Jump(0x00659825, &_UnitClass_Compute_CRC_Patch);
 }

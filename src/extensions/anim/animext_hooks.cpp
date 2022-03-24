@@ -29,6 +29,7 @@
 #include "tibsun_globals.h"
 #include "tibsun_inline.h"
 #include "anim.h"
+#include "animext_init.h"
 #include "animtype.h"
 #include "animtypeext.h"
 #include "smudgetype.h"
@@ -51,7 +52,7 @@
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
  * 
- *  @note: This must not contain a constructor or deconstructor!
+ *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
 class AnimClassFake final : public AnimClass
@@ -286,6 +287,7 @@ DECLARE_PATCH(_AnimClass_AI_Beginning_Patch)
 }
 
 
+#if 0
 /**
  *  Patch for setting initial anim values in the class constructor.
  * 
@@ -350,6 +352,7 @@ destroy_anim:
     _asm { mov esi, this_ptr }
     JMP_REG(edx, 0x00414157);
 }
+#endif
 
 
 /**
@@ -386,8 +389,13 @@ function_return:
  */
 void AnimClassExtension_Hooks()
 {
+    /**
+     *  Initialises the extended class.
+     */
+    AnimClassExtension_Init();
+
     Patch_Jump(0x00415ADA, &_AnimClass_AI_RandomLoop_Randomiser_BugFix_Patch);
-    Patch_Jump(0x00413C79, &_AnimClass_Constructor_Init_Class_Values_Patch);
+    //Patch_Jump(0x00413C79, &_AnimClass_Constructor_Init_Class_Values_Patch); // Moved to AnimClassExtension due to patching conflict.
     Patch_Jump(0x00414E8F, &_AnimClass_AI_Beginning_Patch);
     Patch_Jump(0x004160FB, &_AnimClass_Middle_Create_Crater_ForceBigCraters_Patch);
     Patch_Jump(0x0041606C, &_AnimClass_Middle_SpawnParticle_Patch);

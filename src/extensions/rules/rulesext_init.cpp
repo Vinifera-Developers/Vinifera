@@ -142,7 +142,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_RulesClass_Deconstructor_Patch)
+DECLARE_PATCH(_RulesClass_Destructor_Patch)
 {
     GET_REGISTER_STATIC(RulesClass *, this_ptr, esi);
 
@@ -303,7 +303,7 @@ void RulesClassExtension_Init()
 {
     Patch_Jump(0x005C59A1, &_RulesClass_Constructor_Patch);
     Patch_Jump(0x005C4347, &_RulesClass_NoInit_Constructor_Patch);
-    Patch_Jump(0x005C6120, &_RulesClass_Deconstructor_Patch);
+    Patch_Jump(0x005C6120, &_RulesClass_Destructor_Patch);
     Patch_Jump(0x005C66FF, &_RulesClass_Initialize_Patch);
     Patch_Jump(0x005C6A4D, &_RulesClass_Process_Patch);
     Patch_Jump(0x005D17F5, &_RulesClass_Detach_Patch);

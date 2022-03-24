@@ -141,7 +141,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Tactical_Deconstructor_Patch)
+DECLARE_PATCH(_Tactical_Destructor_Patch)
 {
     GET_REGISTER_STATIC(Tactical *, this_ptr, esi);
 
@@ -163,7 +163,7 @@ original_code:
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
  * 
- *  @note: This must not contain a constructor or deconstructor.
+ *  @note: This must not contain a constructor or destructor.
  * 
  *  @note: All functions must not be virtual and must also be prefixed
  *         with "_" to prevent accidental virtualization.
@@ -217,7 +217,7 @@ void TacticalExtension_Init()
 {
     Patch_Jump(0x0060F08A, &_Tactical_Constructor_Patch);
     Patch_Jump(0x0060F0C5, &_Tactical_NoInit_Constructor_Patch);
-    Patch_Jump(0x0060F0E7, &_Tactical_Deconstructor_Patch);
+    Patch_Jump(0x0060F0E7, &_Tactical_Destructor_Patch);
     Change_Virtual_Address(0x006D7720, Get_Func_Address(&FakeTacticalClass::_Detach));
     Change_Virtual_Address(0x006D7730, Get_Func_Address(&FakeTacticalClass::_Compute_CRC));
 }

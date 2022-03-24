@@ -103,7 +103,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_TechnoClass_Deconstructor_Patch)
+DECLARE_PATCH(_TechnoClass_Destructor_Patch)
 {
     GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
 
@@ -199,7 +199,7 @@ void TechnoClassExtension_Init()
 {
     Patch_Jump(0x0062A004, _TechnoClass_Constructor_Patch);
     Patch_Jump(0x0062A8CC, _TechnoClass_NoInit_Constructor_Patch);
-    Patch_Jump(0x0062A968, _TechnoClass_Deconstructor_Patch);
+    Patch_Jump(0x0062A968, _TechnoClass_Destructor_Patch);
     Patch_Jump(0x0063641C, _TechnoClass_Detach_Patch);
     Patch_Jump(0x0063910C, _TechnoClass_Compute_CRC_Patch);
 }
