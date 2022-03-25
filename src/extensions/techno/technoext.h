@@ -57,6 +57,9 @@ class TechnoClassExtension final : public Extension<TechnoClass>
         void Response_Deploy();
         void Response_Harvest();
 
+        const WeaponInfoStruct * Get_Weapon(WeaponSlotType weapon) const;
+        WeaponSlotType What_Weapon_Should_I_Use(TARGET target) const;
+
     public:
         /**
          *  The current electric bolt instance fired by this object.
