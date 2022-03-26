@@ -28,6 +28,7 @@
 #include "animtypeext.h"
 #include "animtype.h"
 #include "ccini.h"
+#include "tibsun_defines.h"
 #include "asserthandler.h"
 #include "debughandler.h"
 
@@ -183,6 +184,30 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     if (!ini.Is_Present(ini_name)) {
         return false;
     }
+
+    /**
+     *  #issue-756
+     * 
+     *  Reload the RandomRate value and correctly fix up negative and back to front values.
+     */
+    TPoint2D<int> random_rate = ini.Get_Point(ini_name, "RandomRate", TPoint2D<int>(-1, -1));
+    if (random_rate.X != -1) {
+        if (random_rate.Y < 0) {
+            DEV_DEBUG_WARNING("Animation \"%s\" has a negative random rate 'Low' value!\n", ThisPtr->Name());
+        }
+        random_rate.X = TICKS_PER_MINUTE / std::abs(random_rate.X);
+    }
+    if (random_rate.Y != -1) {
+        if (random_rate.Y < 0) {
+            DEV_DEBUG_WARNING("Animation \"%s\" has a negative random rate 'High' value!\n", ThisPtr->Name());
+        }
+        random_rate.Y = TICKS_PER_MINUTE / std::abs(random_rate.Y);
+    }
+    if ((random_rate.X != -1 && random_rate.Y != -1) && random_rate.X > random_rate.Y) {
+        std::swap(random_rate.X, random_rate.Y);
+    }
+    ThisPtr->RandomRateMin = std::clamp(random_rate.X, 0, random_rate.X);
+    ThisPtr->RandomRateMax = std::clamp(random_rate.Y, 0, random_rate.Y);
 
     /**
      *  #issue-646
