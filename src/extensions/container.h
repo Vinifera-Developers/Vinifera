@@ -28,8 +28,13 @@
 #pragma once
 
 #include "always.h"
-#include <unordered_map>
 #include <typeinfo>
+
+#ifdef USE_ROBIN_HOOD
+#include <robin_hood.h>
+#else
+#include <unordered_map>
+#endif
 
 #include "debughandler.h"
 #include "asserthandler.h"
@@ -42,7 +47,11 @@ template<typename Key, typename Value>
 class ContainerMap
 {
     public:
+#ifdef USE_ROBIN_HOOD
+        using map_type = robin_hood::unordered_flat_map<const Key *, Value *>;
+#else
         using map_type = std::unordered_map<const Key *, Value *>;
+#endif
         using iterator = typename map_type::iterator;
         using const_iterator = typename map_type::const_iterator;
 
