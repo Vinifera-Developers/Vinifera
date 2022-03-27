@@ -33,6 +33,7 @@
 #include "vinifera_globals.h"
 #include "tspp_assert.h"
 #include "winutil.h"
+#include "wstring.h"
 #include "hooker.h"
 #include "hooker_macros.h"
 #include <string>
@@ -49,10 +50,10 @@ static void __cdecl Debug_Print(const char *fmt, ...)
     va_list args;
     va_start(args, fmt);
 
-    std::string tmp = fmt;
+    Wstring tmp = fmt;
 
     char buffer[4096];
-    vsprintf(buffer, tmp.c_str(), args);
+    vsprintf(buffer, tmp.Peek_Buffer(), args);
 
     DEBUG_GAME(buffer);
 
@@ -70,10 +71,10 @@ static void __cdecl Debug_Print_Line(const char *fmt, ...)
     va_list args;
     va_start(args, fmt);
 
-    std::string tmp = fmt;
+    Wstring tmp = fmt;
 
     char buffer[4096];
-    vsprintf(buffer, tmp.c_str(), args);
+    vsprintf(buffer, tmp.Peek_Buffer(), args);
 
     DEBUG_GAME_LINE(buffer);
 
@@ -91,10 +92,10 @@ static void __cdecl Debug_Print_Warning(const char *fmt, ...)
     va_list args;
     va_start(args, fmt);
 
-    std::string tmp = fmt;
+    Wstring tmp = fmt;
 
     char buffer[4096];
-    vsprintf(buffer, tmp.c_str(), args);
+    vsprintf(buffer, tmp.Peek_Buffer(), args);
 
     DEBUG_WARNING(buffer);
 
@@ -112,10 +113,10 @@ static void __cdecl Debug_Print_Error(const char *fmt, ...)
     va_list args;
     va_start(args, fmt);
 
-    std::string tmp = fmt;
+    Wstring tmp = fmt;
 
     char buffer[4096];
-    vsprintf(buffer, tmp.c_str(), args);
+    vsprintf(buffer, tmp.Peek_Buffer(), args);
 
     DEBUG_ERROR(buffer);
 
