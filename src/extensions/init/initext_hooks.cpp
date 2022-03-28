@@ -436,7 +436,7 @@ static bool Vinifera_Init_Expansion_Mixfiles()
 
     for (int i = 99; i >= 0; --i) {
         std::snprintf(buffer, sizeof(buffer), "EXPAND%02d.MIX", i);
-        if (RawFileClass(buffer).Is_Available()) {
+        if (CCFileClass(buffer).Is_Available()) {
             mix = new MFCC(buffer, &FastKey);
             ASSERT(mix);
             if (!mix) {
@@ -531,7 +531,7 @@ static bool Vinifera_Init_Bootstrap_Mixfiles()
     DEBUG_INFO("\n"); // Fixes missing new-line after "Bootstrap..." print.
     //DEBUG_INFO("Init bootstrap mixfiles...\n");
 
-    if (RawFileClass("PATCH.MIX").Is_Available()) {
+    if (CCFileClass("PATCH.MIX").Is_Available()) {
         mix = new MFCC("PATCH.MIX", &FastKey);
         ASSERT(mix);
         if (mix) {

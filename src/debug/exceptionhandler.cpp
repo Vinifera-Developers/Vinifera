@@ -393,11 +393,16 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
     const char *build_type = Vinifera_DeveloperMode ? "RELEASE (Dev mode enabled)" : "RELEASE";
 #endif
 #endif
+#if defined(TS_CLIENT)
+    char buffer[1024];
+    std::snprintf(buffer, sizeof(buffer), "%s [TS-Client]", build_type);
+    build_type = buffer;
+#endif
     Exception_Printf("Build Type : %s\r\n", build_type);
 
     Exception_Printf("TS++ author: %s\r\n", TSPP_Git_Author());
     Exception_Printf("TS++ date: %s\r\n", TSPP_Git_DateTime());
-    Exception_Printf("TS++ branch: %s\r\n", TSPP_Git_Branch());
+    Exception_Printf("TS++ branch: %s\r\n", "master"); // TSPP_Git_Branch());
     Exception_Printf("TS++ commit: %s\r\n", TSPP_Git_Hash_Short());
     Exception_Printf("TS++ local changes: %s\r\n", TSPP_Git_Uncommitted_Changes() ? "YES" : "NO");
 

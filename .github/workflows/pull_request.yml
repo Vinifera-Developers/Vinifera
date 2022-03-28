@@ -57,8 +57,8 @@ jobs:
           name: vinifera-preview-${{ steps.vars.outputs.sha_short }}
           path: artifact
           
-  pr_build_compat:
-    name: Pull Request (Compatibility Build)
+  pr_build_ts_client:
+    name: Pull Request (TS-Client)
     
     strategy:
       fail-fast: false
@@ -85,7 +85,7 @@ jobs:
           
       - name: Configure Project
         run: |
-          cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -B build -DPREVIEW=ON -DCOMPATIBILITY=ON
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -B build -DPREVIEW=ON -DOPTION_TS_CLIENT_BUILD=ON
       
       - name: Build Project
         run: |
@@ -97,11 +97,11 @@ jobs:
           mkdir artifact
           cp ./build/Vinifera.dll ./artifact/Vinifera.dll
           cp ./build/Vinifera.pdb ./artifact/Vinifera.pdb
-          cp ./build/LaunchVinifera.exe ./artifact/LaunchVinifera.exe
+          cp ./build/LaunchVinifera.exe ./artifact/LaunchVinifera.dat
           cp ./build/_deps/tspp-src/pdb/Game.pdb ./artifact/Game.pdb
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: vinifera-preview-${{ steps.vars.outputs.sha_short }}-compatibility
+          name: vinifera-preview-${{ steps.vars.outputs.sha_short }}-ts_client
           path: artifact

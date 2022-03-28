@@ -351,6 +351,15 @@ static void Process_Vinifera_Hotkeys()
 
     ini.Load(file, false);
 
+    /**
+     *  For compatibility with existing patches.
+     */
+#if defined(TS_CLIENT)
+    KeyNumType altkey = (KeyNumType)ini.Get_Int("Hotkey", "PlaceBuilding", KN_NONE);
+    if (altkey != KN_NONE) {
+        HotkeyIndex.Add_Index(altkey, cmdptr);
+    } else {
+#endif
     if (!ini.Is_Present("Hotkey", "ManualPlace")) {
         cmdptr = CommandClass::From_Name("ManualPlace");
         if (cmdptr) {
@@ -358,6 +367,9 @@ static void Process_Vinifera_Hotkeys()
             HotkeyIndex.Add_Index(key, cmdptr);
         }
     }
+#if defined(TS_CLIENT)
+    }
+#endif
 
     if (!ini.Is_Present("Hotkey", "PrevTheme")) {
         cmdptr = CommandClass::From_Name("PrevTheme");
