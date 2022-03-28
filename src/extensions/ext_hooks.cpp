@@ -110,6 +110,7 @@
 #include "multimissionext_hooks.h"
 
 #include "cciniext_hooks.h"
+#include "rawfileext_hooks.h"
 
 #include "fetchres_hooks.h"
 
@@ -215,6 +216,7 @@ void Extension_Hooks()
     MultiMissionExtension_Hooks();
 
     CCINIClassExtension_Hooks();
+    RawFileClassExtension_Hooks();
 
     FetchRes_Hooks();
 
