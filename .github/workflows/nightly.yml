@@ -95,8 +95,8 @@ jobs:
           name: vinifera-nightly-${{ steps.vars.outputs.sha_short }}
           path: artifact
 
-  nightly_build_compat:
-    name: Nightly (Compatibility)
+  nightly_build_ts_client:
+    name: Nightly (TS-Client)
     strategy:
       fail-fast: false
     runs-on: windows-latest
@@ -157,7 +157,7 @@ jobs:
           
       - name: Configure Project
         run: |
-          cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -B build -DNIGHTLY=ON -DCOMPATIBILITY=ON
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -B build -DNIGHTLY=ON -DOPTION_TS_CLIENT_BUILD=ON
       
       - name: Build Project
         run: |
@@ -176,5 +176,5 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: vinifera-nightly-${{ steps.vars.outputs.sha_short }}-compatibility
+          name: vinifera-nightly-${{ steps.vars.outputs.sha_short }}-ts_client
           path: artifact

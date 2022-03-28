@@ -283,18 +283,84 @@ bool Vinifera_Parse_Command_Line(int argc, char *argv[])
 bool Vinifera_Startup()
 {
     /**
-     *  Load Vinifera settings and overrides.
+     *  #issue-514:
+     * 
+     *  Adds various search paths for loading files locally for the TS-Client builds only.
+     * 
+     *  @author: CCHyper
      */
-    if (!Vinifera_Load_INI()) {
-        DEBUG_WARNING("Failed to load VINIFERA.INI!\n");
+#if defined(TS_CLIENT)
+    DWORD rc;
+    DynamicVectorClass<Wstring> search_paths;
+
+    /**
+     *  If -CD has been defined, set the root directory as highest priority.
+     */
+    if (CD::IsFilesLocal) {
+        search_paths.Add(".");
     }
 
-    if (Vinifera_ProjectName[0] != '\0') {
+    /**
+     *  Add various local search drives to loading of files locally.
+     */
+    search_paths.Add("INI");
+    search_paths.Add("MIX");
+    search_paths.Add("MOVIES");
+    search_paths.Add("MUSIC");
+    search_paths.Add("SOUNDS");
+    search_paths.Add("MAPS");
+    search_paths.Add("MAPS\\MULTIPLAYER");
+    search_paths.Add("MAPS\\MISSION");
+
+    /**
+     *  Current path (perhaps set set with -CD) should go next.
+     */
+    if (CCFileClass::RawPath[0] != '\0' && std::strlen(CCFileClass::RawPath) > 1) {
+        search_paths.Add(CCFileClass::RawPath);
+    }
+
+    char *new_path = new char [_MAX_PATH * search_paths.Count()+1];
+    new_path[0] = '\0';
+
+    /**
+     *  Build the search path string.
+     */
+    for (int i = 0; i < search_paths.Count(); ++i) {
+        if (i != 0) std::strcat(new_path, ";");
+        std::strcat(new_path, search_paths[i].Peek_Buffer());
+    }
+
+    /**
+     *  Clear the current path ready to be set.
+     */
+    CCFileClass::Clear_Search_Drives();
+    CCFileClass::Reset_Raw_Path();
+
+    /**
+     *  Set the new search drive path.
+     */
+    CCFileClass::Set_Search_Drives(new_path);
+
+    delete [] new_path;
+
+    DEBUG_INFO("SearchPath: %s\n", CCFileClass::RawPath);
+#endif
+
+    /**
+     *  Load Vinifera settings and overrides.
+     */
+    if (Vinifera_Load_INI()) {
         DEBUG_INFO("\n");
         DEBUG_INFO("Project information:\n");
         DEBUG_INFO("  Title: %s\n", Vinifera_ProjectName);
         DEBUG_INFO("  Version: %s\n", Vinifera_ProjectVersion);
         DEBUG_INFO("\n");
+    } else {
+        DEBUG_WARNING("Failed to load VINIFERA.INI!\n");
+#if defined(TS_CLIENT)
+        MessageBoxA(nullptr, "Failed to load VINIFERA.INI!", "Vinifera", MB_ICONERROR|MB_OK);
+        return false;
+#endif
     }
 
     /**
@@ -356,11 +422,11 @@ bool Vinifera_Shutdown()
  */
 int Vinifera_Pre_Init_Game(int argc, char *argv[])
 {
-    RulesClassExtension::Init_UI_Controls();
-
     /**
      *  Read the UI controls and overrides.
      */
+    RulesClassExtension::Init_UI_Controls();
+
     if (!RulesClassExtension::Read_UI_INI()) {
         DEBUG_WARNING("Failed to read UI.INI!\n");
         //return EXIT_FAILURE;

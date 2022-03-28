@@ -78,6 +78,10 @@ const char *Vinifera_Name_String()
                 cncnet_mode != nullptr ? cncnet_mode : "",
                 dev_mode != nullptr ? dev_mode : "");
         }
+
+#if defined(TS_CLIENT)
+        std::strcat(_buffer, " (TS-Client)");
+#endif
         
     }
 
