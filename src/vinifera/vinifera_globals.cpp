@@ -32,6 +32,10 @@
 
 bool Vinifera_DeveloperMode = false;
 
+bool Vinifera_PrintFileErrors = true;
+bool Vinifera_FatalFileErrors = false;
+bool Vinifera_AssertFileErrors = false;
+
 char Vinifera_DebugDirectory[PATH_MAX] = { "Debug" };
 char Vinifera_ScreenshotDirectory[PATH_MAX] = { "Screenshots" };
 

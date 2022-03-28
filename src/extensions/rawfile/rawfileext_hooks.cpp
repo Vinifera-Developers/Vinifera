@@ -26,6 +26,7 @@
  *
  ******************************************************************************/
 #include "rawfileext_hooks.h"
+#include "vinifera_globals.h"
 #include "rawfile.h"
 #include "fatal.h"
 #include "debughandler.h"
@@ -46,6 +47,7 @@ class RawFileClassFake final : public RawFileClass
 {
     public:
         long _Read(void *buffer, int length);
+        void _Error(FileErrorType error, bool can_retry = false, const char *filename = nullptr);
 };
 
 
@@ -126,9 +128,51 @@ long RawFileClassFake::_Read(void *buffer, int length)
 
 
 /**
+ *  Handles displaying a file error message. 
+ * 
+ *  @author: 10/17/1994 JLB - Red Alert source code.
+ *           CCHyper - Adjustments for Tiberian Sun, minor bug fix.
+ */
+void RawFileClassFake::_Error(FileErrorType error, bool can_retry, const char *filename)
+{
+    static char buffer[2048];
+
+    bool handled = false;
+
+    std::snprintf(buffer, sizeof(buffer),
+        "File - error:(%d) \"%s\"  can_retry:%s  filename:%s.\n",
+        error, File_Error_To_String(error),
+        can_retry ? "true" : "false",
+        filename != nullptr ? filename : Filename);
+
+    /**
+     *  Output error to the debug system.
+     */
+    if (Vinifera_PrintFileErrors) {
+        DEV_DEBUG_ERROR(buffer);
+    }
+
+    /**
+     *  If flagged, force exit the game.
+     */
+    if (!can_retry && Vinifera_FatalFileErrors) {
+        Emergency_Exit(EXIT_FAILURE);
+    }
+    
+    /**
+     *  If flagged, trigger a fatal assert to the user.
+     */
+    if (Vinifera_AssertFileErrors) {
+        ASSERT_FATAL_PRINT(can_retry, buffer);
+    }
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void RawFileClassExtension_Hooks()
 {
     Patch_Jump(0x005BE560, &RawFileClassFake::_Read);
+    Patch_Jump(0x005BE300, &RawFileClassFake::_Error);
 }

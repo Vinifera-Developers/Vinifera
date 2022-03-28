@@ -111,6 +111,7 @@
 
 #include "cciniext_hooks.h"
 #include "rawfileext_hooks.h"
+#include "ccfileext_hooks.h"
 
 #include "fetchres_hooks.h"
 
@@ -217,6 +218,7 @@ void Extension_Hooks()
 
     CCINIClassExtension_Hooks();
     RawFileClassExtension_Hooks();
+    CCFileClassExtension_Hooks();
 
     FetchRes_Hooks();
 

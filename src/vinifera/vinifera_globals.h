@@ -37,6 +37,10 @@ class EBoltClass;
 
 extern bool Vinifera_DeveloperMode;
 
+extern bool Vinifera_PrintFileErrors;
+extern bool Vinifera_FatalFileErrors;
+extern bool Vinifera_AssertFileErrors;
+
 extern char Vinifera_DebugDirectory[PATH_MAX];
 extern char Vinifera_ScreenshotDirectory[PATH_MAX];
 

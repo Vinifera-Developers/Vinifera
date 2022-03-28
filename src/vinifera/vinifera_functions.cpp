@@ -231,6 +231,24 @@ bool Vinifera_Parse_Command_Line(int argc, char *argv[])
             continue;
         }
 
+        /**
+         *  Are file io errors fatal?
+         */
+        if (stricmp(string, "-FILE_ERROR_FATAL") == 0) {
+            DEBUG_INFO("  - File read/write errors are fatal.\n");
+            Vinifera_FatalFileErrors = true;
+            continue;
+        }
+
+        /**
+         *  Trigger an assertion on file io errors?
+         */
+        if (stricmp(string, "-FILE_ERROR_ASSERT") == 0) {
+            DEBUG_INFO("  - Assertions on file read/write error.\n");
+            Vinifera_AssertFileErrors = true;
+            continue;
+        }
+
     }
 
     if (argc > 1) {
