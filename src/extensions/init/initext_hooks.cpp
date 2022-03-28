@@ -59,7 +59,7 @@ static bool Vinifera_Prep_For_Side(SideType side)
 {
     DEBUG_INFO("Preparing Mixfiles for Side %02d.\n", side);
 
-    MFCC *mix;
+    MFCC *mix = nullptr;
     char buffer[16];
 
     int sidenum = (side+1); // Logical side number.
@@ -86,7 +86,7 @@ static bool Vinifera_Prep_For_Side(SideType side)
         SideMixFiles.Delete(i);
     }
 
-    if (Addon_Enabled(-1) == 1) {
+    if (Addon_Enabled(ADDON_ANY) == ADDON_FIRESTORM) {
 
         for (int i = 99; i >= 0; --i) {
             std::snprintf(buffer, sizeof(buffer), "E%02dSC%02d.MIX", i, sidenum);
@@ -95,7 +95,7 @@ static bool Vinifera_Prep_For_Side(SideType side)
                 ASSERT(mix);
                 if (!mix) {
                     DEBUG_WARNING("  Failed to load %s!\n", buffer);
-                    return false;
+                    //return false; // #issue-193: Unable to load side mix files is no longer a fatal error.
                 }
                 if (!mix->Cache()) {
                     DEBUG_WARNING("  Failed to cache %s!\n", buffer);
@@ -114,7 +114,7 @@ static bool Vinifera_Prep_For_Side(SideType side)
         ASSERT(SideCachedMix);
         if (!SideCachedMix) {
             DEBUG_WARNING("  Failed to load %s!\n", buffer);
-            return false;
+            //return false; // #issue-193: Unable to load side mix files is no longer a fatal error.
         }
         if (!SideCachedMix->Cache()) {
             DEBUG_WARNING("  Failed to cache %s!\n", buffer);
@@ -129,14 +129,14 @@ static bool Vinifera_Prep_For_Side(SideType side)
         ASSERT(SideNotCachedMix);
         if (!SideNotCachedMix) {
             DEBUG_WARNING("  Failed to load %s!\n", buffer);
-            return false;
+            //return false; // #issue-193: Unable to load side mix files is no longer a fatal error.
         }
         DEBUG_INFO(" %s\n", buffer);
     }
 
     if (Session.Type == GAME_NORMAL) {
-        if (Addon_Enabled(-1) == 1) {
-            std::snprintf(buffer, sizeof(buffer), "E%02dSCD%02d.MIX", Get_Required_Addon(), sidenum);
+        if (Addon_Enabled(ADDON_ANY) == ADDON_FIRESTORM) {
+            std::snprintf(buffer, sizeof(buffer), "E%02dSCD%02d.MIX", (int)Get_Required_Addon(), sidenum);
         } else {
             std::snprintf(buffer, sizeof(buffer), "SIDECD%02d.MIX", sidenum);
         }
@@ -145,7 +145,7 @@ static bool Vinifera_Prep_For_Side(SideType side)
             ASSERT(SideCDMix);
             if (!SideCDMix) {
                 DEBUG_WARNING("  Failed to load %s!\n", buffer);
-                return false;
+                //return false; // #issue-193: Unable to load side mix files is no longer a fatal error.
             }
             DEBUG_INFO(" %s\n", buffer);
         }
