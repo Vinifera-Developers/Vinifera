@@ -95,7 +95,7 @@ static bool Vinifera_Prep_For_Side(SideType side)
                 ASSERT(mix);
                 if (!mix) {
                     DEBUG_WARNING("  Failed to load %s!\n", buffer);
-                    return false;
+                    //return false; // #issue-193: Unable to load side mix files is no longer a fatal error.
                 }
                 if (!mix->Cache()) {
                     DEBUG_WARNING("  Failed to cache %s!\n", buffer);
@@ -114,7 +114,7 @@ static bool Vinifera_Prep_For_Side(SideType side)
         ASSERT(SideCachedMix);
         if (!SideCachedMix) {
             DEBUG_WARNING("  Failed to load %s!\n", buffer);
-            return false;
+            //return false; // #issue-193: Unable to load side mix files is no longer a fatal error.
         }
         if (!SideCachedMix->Cache()) {
             DEBUG_WARNING("  Failed to cache %s!\n", buffer);
@@ -129,7 +129,7 @@ static bool Vinifera_Prep_For_Side(SideType side)
         ASSERT(SideNotCachedMix);
         if (!SideNotCachedMix) {
             DEBUG_WARNING("  Failed to load %s!\n", buffer);
-            return false;
+            //return false; // #issue-193: Unable to load side mix files is no longer a fatal error.
         }
         DEBUG_INFO(" %s\n", buffer);
     }
@@ -145,7 +145,7 @@ static bool Vinifera_Prep_For_Side(SideType side)
             ASSERT(SideCDMix);
             if (!SideCDMix) {
                 DEBUG_WARNING("  Failed to load %s!\n", buffer);
-                return false;
+                //return false; // #issue-193: Unable to load side mix files is no longer a fatal error.
             }
             DEBUG_INFO(" %s\n", buffer);
         }
