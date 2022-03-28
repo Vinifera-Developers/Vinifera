@@ -393,6 +393,11 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
     const char *build_type = Vinifera_DeveloperMode ? "RELEASE (Dev mode enabled)" : "RELEASE";
 #endif
 #endif
+#if defined(TS_CLIENT)
+    char buffer[1024];
+    std::snprintf(buffer, sizeof(buffer), "%s [TS-Client]", build_type);
+    build_type = buffer;
+#endif
     Exception_Printf("Build Type : %s\r\n", build_type);
 
     Exception_Printf("TS++ author: %s\r\n", TSPP_Git_Author());
