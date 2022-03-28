@@ -436,7 +436,7 @@ static bool Vinifera_Init_Expansion_Mixfiles()
 
     for (int i = 99; i >= 0; --i) {
         std::snprintf(buffer, sizeof(buffer), "EXPAND%02d.MIX", i);
-        if (RawFileClass(buffer).Is_Available()) {
+        if (CCFileClass(buffer).Is_Available()) {
             mix = new MFCC(buffer, &FastKey);
             ASSERT(mix);
             if (!mix) {
@@ -531,7 +531,7 @@ static bool Vinifera_Init_Bootstrap_Mixfiles()
     DEBUG_INFO("\n"); // Fixes missing new-line after "Bootstrap..." print.
     //DEBUG_INFO("Init bootstrap mixfiles...\n");
 
-    if (RawFileClass("PATCH.MIX").Is_Available()) {
+    if (CCFileClass("PATCH.MIX").Is_Available()) {
         mix = new MFCC("PATCH.MIX", &FastKey);
         ASSERT(mix);
         if (mix) {
@@ -688,6 +688,32 @@ skip_loading_screen:
 }
 
 
+#if defined(TS_CLIENT)
+/**
+ *  Forces Firestorm addon as Present (installed).
+ * 
+ *  @author: CCHyper
+ */
+static bool Vinifera_Addon_Present()
+{
+    /**
+     *  Tiberian Sun is installed and enabled.
+     */
+    InstalledMode = 1;
+    EnabledMode = 1;
+
+    DEBUG_INFO("Forcing Firestorm addon as installed.");
+
+    /**
+     *  Firestorm is installed.
+     */
+    InstalledMode |= 2;
+
+    return true;
+}
+#endif
+
+
 /**
  *  Main function for patching the hooks.
  */
@@ -732,4 +758,11 @@ void GameInit_Hooks()
     Patch_Call(0x004E8735, &Addon_Enabled);
 
     Patch_Jump(0x00685F69, &_Main_Window_Procedure_Scroll_Sidebar_Check_Patch);
+
+#if defined(TS_CLIENT)
+    /**
+     *  TS Client file structure assumes Firestorm is always installed and enabled.
+     */
+    Patch_Jump(0x00407050, &Vinifera_Addon_Present);
+#endif
 }

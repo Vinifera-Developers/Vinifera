@@ -78,6 +78,10 @@ const char *Vinifera_Name_String()
                 cncnet_mode != nullptr ? cncnet_mode : "",
                 dev_mode != nullptr ? dev_mode : "");
         }
+
+#if defined(TS_CLIENT)
+        std::strcat(_buffer, " (TS-Client)");
+#endif
         
     }
 
@@ -419,6 +423,11 @@ const char *Vinifera_Get_Window_Title(DWORD dwPid)
     if (Vinifera_DeveloperMode) {
         std::snprintf(_window_name, sizeof(_window_name),
             "%s (PID:%d) (Developer Mode)", title_buff, dwPid);
+
+#if defined(TS_CLIENT)
+        std::strcat(_window_name, " (TS-Client)");
+#endif
+
     } else {
         std::snprintf(_window_name, sizeof(_window_name),
             "%s", title_buff);
