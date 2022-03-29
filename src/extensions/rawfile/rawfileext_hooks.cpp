@@ -59,8 +59,8 @@ class RawFileClassFake final : public RawFileClass
  */
 long RawFileClassFake::_Read(void *buffer, int length)
 {
-    ASSERT(buffer != nullptr);
-    ASSERT(length > 0);
+    ASSERT_PRINT(buffer != nullptr, "Filename -> %s", Get_Safe_File_Name());
+    ASSERT_PRINT(length > 0, "Filename -> %s", Get_Safe_File_Name());
 
     long bytesread = 0; // Running count of the number of bytes read into the buffer.
     int	opened = false; // Was the file opened by this routine?
