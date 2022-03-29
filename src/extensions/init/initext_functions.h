@@ -28,7 +28,11 @@
 #pragma once
 
 #include "always.h"
+#include "tibsun_defines.h"
 
 
 void Vinifera_Create_Main_Window(HINSTANCE hInstance, int nCmdShow, int width, int height);
-
+bool Vinifera_Prep_For_Side(SideType side);
+bool Vinifera_Init_Secondary_Mixfiles();
+bool Vinifera_Init_Expansion_Mixfiles();
+bool Vinifera_Init_Bootstrap_Mixfiles();
