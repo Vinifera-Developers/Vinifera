@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          OVERLAYTYPEEXT.H
+ *  @file          OVERLAYEXT.H
  *
  *  @author        CCHyper
  *
- *  @brief         Extended OverlayTypeClass class.
+ *  @brief         Extended OverlayClass class.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -29,18 +29,18 @@
 
 #include "extension.h"
 #include "container.h"
+#include "overlay.h"
 
 
-class OverlayTypeClass;
-class CCINIClass;
+class LightSourceClass;
 
 
-class OverlayTypeClassExtension final : public Extension<OverlayTypeClass>
+class OverlayClassExtension final : public Extension<OverlayClass>
 {
     public:
-        OverlayTypeClassExtension(OverlayTypeClass *this_ptr);
-        OverlayTypeClassExtension(const NoInitClass &noinit);
-        ~OverlayTypeClassExtension();
+        OverlayClassExtension(OverlayClass *this_ptr);
+        OverlayClassExtension(const NoInitClass &noinit);
+        ~OverlayClassExtension();
 
         virtual HRESULT Load(IStream *pStm) override;
         virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
@@ -49,40 +49,14 @@ class OverlayTypeClassExtension final : public Extension<OverlayTypeClass>
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
-        bool Read_INI(CCINIClass &ini);
+        bool Unlimbo(Coordinate &coord, DirType dir = DIR_N);
 
     public:
         /**
-         *  This overlay object radiates this amount of light.
+         *  The light source instance for this overlay.
          */
-        int LightVisibility;
-
-        /**
-         *  The distance (in leptons) that this light is visible from.
-         */
-        int LightIntensity;
-
-        /**
-         *  The red tint of this overlay objects light.
-         */
-        int LightRedTint;
-
-        /**
-         *  The green tint of this overlay objects light.
-         */
-        int LightGreenTint;
-
-        /**
-         *  The blue tint of this overlay objects light.
-         */
-        int LightBlueTint;
-
-        /**
-         *  Should this light source be removed from the map when this
-         *  overlay object has been limbo'd or destroyed?
-         */
-        bool IsDisableLightOnLimbo;
+        LightSourceClass *LightSource;
 };
 
 
-extern ExtensionMap<OverlayTypeClass, OverlayTypeClassExtension> OverlayTypeClassExtensions;
+extern ExtensionMap<OverlayClass, OverlayClassExtension> OverlayClassExtensions;

@@ -92,6 +92,7 @@
 #include "animext_hooks.h"
 #include "bulletext_hooks.h"
 #include "terrainext_hooks.h"
+#include "overlayext_hooks.h"
 #include "superext_hooks.h"
 #include "particlesysext_hooks.h"
 
@@ -201,6 +202,7 @@ void Extension_Hooks()
     AnimClassExtension_Hooks();
     BulletClassExtension_Hooks();
     TerrainClassExtension_Hooks();
+    OverlayClassExtension_Hooks();
     SuperClassExtension_Hooks();
     ParticleSystemClassExtension_Hooks();
 
