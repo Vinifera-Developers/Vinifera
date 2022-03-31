@@ -46,6 +46,39 @@
 
 
 /**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ * 
+ *  @note: This must not contain a constructor or deconstructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+class InfantryClassFake final : public InfantryClass
+{
+    public:
+        int _Mission_Guard_Area();
+};
+
+
+/**
+ *  Implementation of Mission_Guard_Area() for InfantryClass.
+ */
+int InfantryClassFake::_Mission_Guard_Area()
+{
+    /**
+     *  #issue-366
+     * 
+     *  Fixes a bug were infantry do not switch to use DO_STAND_GUARD when
+     *  issued with a "Area Guard" order.
+     * 
+     *  @author: CCHyper
+     */
+    Do_Action(DO_STAND_GUARD);
+
+    return FootClass::Mission_Guard_Area();
+}
+
+
+/**
  *  #issue-264
  * 
  *  Implements EnterTransportSound for infantry when they enter a transport.
@@ -464,4 +497,5 @@ void InfantryClassExtension_Hooks()
     Patch_Jump(0x004D7168, &_InfantryClass_What_Action_Mechanic_Patch);
     Patch_Jump(0x004D87E9, &_InfantryClass_Firing_AI_Mechanic_Patch);
     Patch_Jump(0x004D3A7B, &_InfantryClass_Per_Cell_Process_Transport_Attach_Sound_Patch);
+    Change_Virtual_Address(0x006D22E4, Get_Func_Address(&InfantryClassFake::_Mission_Guard_Area));
 }
