@@ -75,7 +75,7 @@
 //#include "aitrigtypeext_hooks.h"
 //#include "scripttypeext_hooks.h"
 //#include "tagtypeext_hooks.h"
-//#include "triggertypeext_hooks.h"
+#include "triggertypeext_hooks.h"
 
 #include "technoext_hooks.h"
 #include "footext_hooks.h"
@@ -97,6 +97,8 @@
 
 #include "combatext_hooks.h"
 
+#include "triggerext_hooks.h"
+#include "tactionext_hooks.h"
 #include "empulseext_hooks.h"
 #include "waveext_hooks.h"
 
@@ -184,7 +186,7 @@ void Extension_Hooks()
     //AITriggerTypeClassExtension_Hooks();
     //ScriptTypeClassExtension_Hooks();
     //TagTypeClassExtension_Hooks();
-    //TriggerTypeClassExtension_Hooks();
+    TriggerTypeClassExtension_Hooks();
 
     TechnoClassExtension_Hooks();
     UnitClassExtension_Hooks();
@@ -206,6 +208,8 @@ void Extension_Hooks()
 
     CombatExtension_Hooks();
 
+    TriggerClassExtension_Hooks();
+    TActionClassExtension_Hooks();
     EMPulseClassExtension_Hooks();
     WaveClassExtension_Hooks();
 
