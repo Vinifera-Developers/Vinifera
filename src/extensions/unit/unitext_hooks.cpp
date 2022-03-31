@@ -48,6 +48,125 @@
 #include "hooker_macros.h"
 
 
+#if 0
+/**
+ *  #issue-510
+ * 
+ *  This patch fixes a bug where harvesters that are idling on a bridge with
+ *  tiberium below it would begin erroneously harvesting the patch below it.
+ * 
+ *  @author: CCHyper
+ */
+static CellClass *Unit_Get_Current_Cell(UnitClass *this_ptr) { return &Map[this_ptr->Get_Coord()]; }
+DECLARE_PATCH(_UnitClass_Mission_Harvest_Block_Harvesting_On_Bridge_Patch)
+{
+    GET_REGISTER_STATIC(UnitClass *, this_ptr, esi);
+    static CellClass *cellptr;
+
+    /**
+     *  Perform a check to see if the cell we occupy contains a bridge.
+     */
+    cellptr = Unit_Get_Current_Cell(this_ptr);
+    if (cellptr && cellptr->Is_Bridge_Here()) {
+        goto function_return;
+    }
+
+    /**
+     *  Stolen bytes/code.
+     */
+original_code:
+    _asm { mov eax, [esi+0x360] } // this->Class
+    _asm { mov ecx, [eax+0x268] } // Class->Dock.ActiveCount
+    JMP_REG(ebp, 0x00654AB6);
+
+function_return:
+    JMP(0x00654AA3);
+}
+#endif
+
+
+#if 0
+/**
+ *  #issue-510
+ * 
+ *  This patch fixes a bug where harvesters that are idling on a bridge with
+ *  tiberium below it would begin erroneously harvesting the patch below it.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_UnitClass_Enter_Idle_Mode_Block_Harvesting_On_Bridge_Patch)
+{
+    GET_REGISTER_STATIC(UnitClass *, this_ptr, esi);
+    static CellClass *cellptr;
+
+    /**
+     *  Code before here assumes we are a harvester of some kind.
+     */
+
+    /**
+     *  Perform a check to see if the cell we occupy contains a bridge.
+     */
+    cellptr = Unit_Get_Current_Cell(this_ptr);
+    if (cellptr && cellptr->Is_Bridge_Here()) {
+        goto function_return;
+    }
+
+    /**
+     *  Stolen bytes/code.
+     */
+original_code:
+    static MissionType mission;
+    mission = this_ptr->Get_Mission();
+    _asm { mov eax, mission }
+    JMP_REG(edi, 0x00650559);
+
+function_return:
+    JMP_REG(ecx, 0x0065066A);
+}
+#endif
+
+
+/**
+ *  #issue-510
+ * 
+ *  This patch fixes the bug where the user could action a harvester to 
+ *  target tiberium that was 'hidden' below a bridge by forcing any orders
+ *  on a bridge with tiberium below it to be move orders.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_UnitClass_What_Action_ACTION_HARVEST_Block_On_Bridge_Patch)
+{
+    GET_REGISTER_STATIC(UnitClass *, this_ptr, edi);
+    GET_REGISTER_STATIC(Cell *, cell, esi);
+    static CellClass *cellptr;
+    static ActionType action;
+
+    /**
+     *  Code before here assumes we are a harvester of some kind.
+     */
+
+    action = ACTION_HARVEST;
+
+    /**
+     *  If the user has the mouse over a cell that contains tiberium, but also
+     *  contains a bridge above it, force the MOVE action.
+     */
+    cellptr = &Map[*cell];
+    if (cellptr && cellptr->Is_Bridge_Here()) {
+        action = ACTION_MOVE;
+    }
+
+    _asm { mov eax, action }
+    _asm { pop edi }
+    _asm { pop esi }
+    _asm { pop ebp }
+    _asm { pop ebx }
+    _asm { add esp, 0x10 }
+    _asm { ret 0x0C }
+}
+
+
 /**
  *  #issue-421
  * 
@@ -585,4 +704,8 @@ void UnitClassExtension_Hooks()
     Patch_Jump(0x00653D7F, &_UnitClass_Draw_It_Unloading_Harvester_Patch);
     Patch_Jump(0x00654399, &_UnitClass_Mission_Unload_Transport_Detach_Sound_Patch);
     Patch_Jump(0x00653114, &_UnitClass_Draw_Shape_IdleRate_Patch);
+    Patch_Jump(0x00656623, &_UnitClass_What_Action_ACTION_HARVEST_Block_On_Bridge_Patch); // IsToHarvest
+    Patch_Jump(0x0065665D, &_UnitClass_What_Action_ACTION_HARVEST_Block_On_Bridge_Patch); // IsToVeinHarvest
+    //Patch_Jump(0x0065054F, &_UnitClass_Enter_Idle_Mode_Block_Harvesting_On_Bridge_Patch); // Removed, keeping code for reference.
+    //Patch_Jump(0x00654AB0, &_UnitClass_Mission_Harvest_Block_Harvesting_On_Bridge_Patch); // Removed, keeping code for reference.
 }
