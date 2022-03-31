@@ -162,9 +162,28 @@ unsigned ViniferaSaveGameVersion =
     }
 
 
-static char LoadedCommitHash[40];
-static char DataHeaderString[20];
-#define VINIFERA_SAVE_HEADER_NAME "VINIFERA_SAVE_DATA  "
+/**
+ *  Save file header.
+ */
+typedef struct ViniferaSaveFileHeaderStruct
+{
+    // Header marker.
+    char Marker[20];
+
+    // Git commit hash.
+    char CommitHash[40];
+
+    // Constant header marker to check for.
+    static const char * Marker_String() { return "VINIFERA_SAVE_FILE"; }
+
+private:
+    char _padding[1024
+                 - sizeof(Marker)
+                 - sizeof(CommitHash)];
+};
+static_assert(sizeof(ViniferaSaveFileHeaderStruct), "ViniferaSaveFileHeaderStruct must be 1024 bytes in size!");
+
+static ViniferaSaveFileHeaderStruct ViniferaSaveFileHeader; 
 
 
 /**
@@ -181,9 +200,14 @@ static bool Vinifera_Save_Header(IStream *pStm)
     HRESULT hr;
 
     /**
-     *  Save the header string.
+     *  Save the new header.
      */
-    hr = pStm->Write(VINIFERA_SAVE_HEADER_NAME, sizeof(DataHeaderString), nullptr);
+    std::memset(&ViniferaSaveFileHeader, 0, sizeof(ViniferaSaveFileHeader));
+
+    strncpy(ViniferaSaveFileHeader.Marker, ViniferaSaveFileHeaderStruct::Marker_String(), sizeof(ViniferaSaveFileHeader.Marker));
+    strncpy(ViniferaSaveFileHeader.CommitHash, Vinifera_Git_Hash(), sizeof(ViniferaSaveFileHeader.CommitHash));
+
+    hr = pStm->Write(&ViniferaSaveFileHeader, sizeof(ViniferaSaveFileHeader), nullptr);
     if (FAILED(hr)) {
         return false;
     }
@@ -206,59 +230,11 @@ static bool Vinifera_Load_Header(IStream *pStm)
     HRESULT hr;
 
     /**
-     *  Load the header string.
+     *  Load the new header.
      */
-    hr = pStm->Read(DataHeaderString, sizeof(DataHeaderString), nullptr);
-    if (FAILED(hr)) {
-        return false;
-    }
+    std::memset(&ViniferaSaveFileHeader, 0, sizeof(ViniferaSaveFileHeader));
 
-    return true;
-}
-
-
-/**
- *  Saves the commit hash for checking on load.
- * 
- *  @author: CCHyper
- */
-static bool Vinifera_Save_Version_Info(IStream *pStm)
-{
-    if (!pStm) {
-        return false;
-    }
-
-    HRESULT hr;
-
-    /**
-     *  Save the commit hash.
-     */
-    hr = pStm->Write(Vinifera_Git_Hash(), 40, nullptr);
-    if (FAILED(hr)) {
-        return false;
-    }
-
-    return true;
-}
-
-
-/**
- *  Load the commit hash for version checks.
- * 
- *  @author: CCHyper
- */
-static bool Vinifera_Load_Version_Info(IStream *pStm)
-{
-    if (!pStm) {
-        return false;
-    }
-
-    HRESULT hr;
-
-    /**
-     *  Load the commit hash.
-     */
-    hr = pStm->Read(LoadedCommitHash, 40, nullptr);
+    hr = pStm->Read(&ViniferaSaveFileHeader, sizeof(ViniferaSaveFileHeader), nullptr);
     if (FAILED(hr)) {
         return false;
     }
@@ -483,17 +459,8 @@ bool Vinifera_Put_All(IStream *pStm)
      *  Save the Vinifera data marker which can be used to verify
      *  the state of the data to follow on load.
      */
-    DEBUG_INFO("Saving Vinifera header marker\n");
+    DEBUG_INFO("Saving Vinifera header\n");
     if (!Vinifera_Save_Header(pStm)) {
-        DEBUG_INFO("\t***** FAILED!\n");
-        return false;
-    }
-
-    /**
-     *  Save the build version information for load checks.
-     */
-    DEBUG_INFO("Saving Vinifera version information\n");
-    if (!Vinifera_Save_Version_Info(pStm)) {
         DEBUG_INFO("\t***** FAILED!\n");
         return false;
     }
@@ -757,7 +724,7 @@ bool Vinifera_Load_All(IStream *pStm)
      *  Load the Vinifera data marker which can be used to verify
      *  the state of the data to follow.
      */
-    DEBUG_INFO("Loading Vinifera header marker\n");
+    DEBUG_INFO("Loading Vinifera header\n");
     if (!Vinifera_Load_Header(pStm)) {
         DEBUG_INFO("\t***** FAILED!\n");
 
@@ -769,7 +736,7 @@ bool Vinifera_Load_All(IStream *pStm)
         return false;
     }
 
-    if (std::strncmp(VINIFERA_SAVE_HEADER_NAME, DataHeaderString, sizeof(DataHeaderString)) != 0) {
+    if (std::strncmp(ViniferaSaveFileHeader.Marker, ViniferaSaveFileHeaderStruct::Marker_String(), sizeof(ViniferaSaveFileHeader.Marker)) != 0) {
         DEBUG_WARNING("Invalid header in save file!");
 
         ShowCursor(TRUE);
@@ -780,17 +747,8 @@ bool Vinifera_Load_All(IStream *pStm)
         return false;
     }
 
-    /**
-     *  Load the build version information.
-     */
-    DEBUG_INFO("Loading Vinifera version information\n");
-    if (!Vinifera_Load_Version_Info(pStm)) {
-        DEBUG_INFO("\t***** FAILED!\n");
-        return false;
-    }
-
-    if (std::strncmp(Vinifera_Git_Hash(), LoadedCommitHash, 40) != 0) {
-        DEBUG_WARNING("Git has mismatch in save file!");
+    if (std::strncmp(ViniferaSaveFileHeader.CommitHash, Vinifera_Git_Hash(), sizeof(ViniferaSaveFileHeader.CommitHash)) != 0) {
+        DEBUG_WARNING("Git hash mismatch in save file!");
         //return false;
     }
 
