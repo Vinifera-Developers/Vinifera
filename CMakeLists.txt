@@ -555,7 +555,7 @@ add_dependencies(${PROJECT_NAME} TSpp)
 
 target_link_libraries(${PROJECT_NAME} SDL3::SDL3)
 
-set(REQUIRED_LIBRARIES ws2_32 dbghelp shlwapi version comctl32)
+set(REQUIRED_LIBRARIES ws2_32 dbghelp shlwapi version comctl32 strmiids)
 
 # Link to any required libraries.
 target_link_libraries(${PROJECT_NAME} ${REQUIRED_LIBRARIES})

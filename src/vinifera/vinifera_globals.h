@@ -31,6 +31,8 @@
 #include "ccfile.h"
 #include "extension_globals.h"
 #include "vector.h"
+#include "ccfile.h"
+#include "tibsun_defines.h"
 
 #include <unordered_map>
 
@@ -48,6 +50,13 @@ class ActionTypeClass;
 struct SDL_Window;
 struct SDL_Renderer;
 struct SDL_Texture;
+
+
+/**
+ *  Externs to various Vinifera functions.
+ */
+extern void Vinifera_Play_Movie(const char *, ThemeType = THEME_NONE, bool = true, bool = true, bool = true);
+extern bool Vinifera_Is_Movie_Available(const char *);
 
 
 extern bool Vinifera_DeveloperMode;
