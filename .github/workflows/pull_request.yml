@@ -58,7 +58,7 @@ jobs:
           cp ./build/LaunchVinifera.exe ./artifact/LaunchVinifera.exe
           cp ./build/_deps/tspp-src/pdb/Game.pdb ./artifact/Game.pdb
           cp ./build/_deps/tspp-src/edb/Game.edb ./artifact/Game.edb
-          cp ./vinifera-files/files/VINIFERA.VQA ./artifact/Movies/VINIFERA.VQA
+          cp ./vinifera-files/files/VINIFERA.WMV ./artifact/Movies/Vinifera.wmv
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
@@ -116,7 +116,7 @@ jobs:
           cp ./build/LaunchVinifera.exe ./artifact/LaunchVinifera.dat
           cp ./build/_deps/tspp-src/pdb/Game.pdb ./artifact/Game.pdb
           cp ./build/_deps/tspp-src/edb/Game.edb ./artifact/Game.edb
-          cp ./vinifera-files/files/VINIFERA.WMV ./artifact/Movies/VINIFERA.VQA
+          cp ./vinifera-files/files/VINIFERA.WMV ./artifact/Movies/Vinifera.wmv
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v2

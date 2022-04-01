@@ -186,23 +186,14 @@ static bool Vinifera_Play_Startup_Movies()
     static const int WWLOGO_VQA_SIZE = 2415362;
 
     if (Special.IsFromInstall) {
-        DEBUG_INFO("Playing first time intro sequence.\n");
-        Play_Movie("EVA.VQA");
+        DEBUG_GAME("Playing first time intro sequence.\n");
+        Vinifera_Play_Movie("EVA.VQA", THEME_NONE, true, true, true);
     }
 
     if (!Vinifera_SkipLogoMovies) {
-        DEBUG_INFO("Playing logo movies.\n");
-        if (!CCFile_Validate_Is_Available("VINIFERA.VQA", VINIFERA_VQA_SIZE)) {
-            DEBUG_INFO("Failed to find VINIFERA.VQA!\n");
-        } else {
-            Play_Movie("VINIFERA.VQA");
-        }
-        
-        if (!CCFile_Validate_Is_Available("WWLOGO.VQA", WWLOGO_VQA_SIZE)) {
-            DEBUG_INFO("Failed to find WWLOGO.VQA!\n");
-        } else {
-            Play_Movie("WWLOGO.VQA");
-        }
+        DEBUG_GAME("Playing startup movies.\n");
+        Vinifera_Play_Movie("VINIFERA.VQA", THEME_NONE, true, true, true);
+        Vinifera_Play_Movie("WWLOGO.VQA", THEME_NONE, true, true, true);
     } else {
         DEBUG_INFO("Skipping logo movies.\n");
     }
@@ -210,9 +201,9 @@ static bool Vinifera_Play_Startup_Movies()
     if (!NewMenuClass::Get()) {
         DEBUG_INFO("Playing title movie.\n");
         if (CCFile_Is_Available("FS_TITLE.VQA")) {
-            Play_Movie("FS_TITLE.VQA", THEME_NONE, true, false, true);
+            Vinifera_Play_Movie("FS_TITLE.VQA", THEME_NONE, false, false, false);
         } else {
-            Play_Movie("STARTUP.VQA", THEME_NONE, true, false, true);
+            Vinifera_Play_Movie("STARTUP.VQA", THEME_NONE, true, false, false);
         }
     }
 

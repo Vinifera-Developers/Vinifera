@@ -767,15 +767,15 @@ BSurface *Vinifera_Get_Image_Surface(const char *filename)
  * 
  *  @author: CCHyper
  */
-bool Scale_Video_Rect(Rect &rect, int max_width, int max_height, bool maintain_ratio)
+bool Scale_Video_Rect(Rect &rect, int area_width, int area_height, bool maintain_ratio, bool clamp)
 {
     /**
      *  No need to scale the rect if it is larger than the max width/height
      */
-    bool smaller = rect.Width < max_width && rect.Height < max_height;
-    if (!smaller) {
-        return false;
-    }
+    //bool smaller = rect.Width < area_width && rect.Height < area_height;
+    //if (!smaller) {
+    //    return false;
+    //}
 
     /**
      *  This is a workaround for edge case issues with some versions
@@ -783,13 +783,15 @@ bool Scale_Video_Rect(Rect &rect, int max_width, int max_height, bool maintain_r
      *  the resolution the user defines, not what the cnc-ddraw forces
      *  the primary surface to.
      */
-    int surface_width = std::clamp(HiddenSurface->Width, 0, Options.ScreenWidth);
-    int surface_height = std::clamp(HiddenSurface->Height, 0, Options.ScreenHeight);
+    if (clamp) {
+        area_width = std::clamp(HiddenSurface->Width, 0, Options.ScreenWidth);
+        area_height = std::clamp(HiddenSurface->Height, 0, Options.ScreenHeight);
+    }
 
     if (maintain_ratio) {
 
-        double dSurfaceWidth = surface_width;
-        double dSurfaceHeight = surface_height;
+        double dSurfaceWidth = area_width;
+        double dSurfaceHeight = area_height;
         double dSurfaceAspectRatio = dSurfaceWidth / dSurfaceHeight;
 
         double dVideoWidth = rect.Width;
@@ -801,33 +803,33 @@ bool Scale_Video_Rect(Rect &rect, int max_width, int max_height, bool maintain_r
          *  will do, otherwise we need to calculate the new rectangle.
          */
         if (dVideoAspectRatio > dSurfaceAspectRatio) {
-            int nNewHeight = (int)(surface_width/dVideoWidth*dVideoHeight);
-            int nCenteringFactor = (surface_height - nNewHeight) / 2;
+            int nNewHeight = (int)(area_width/dVideoWidth*dVideoHeight);
+            int nCenteringFactor = (area_height - nNewHeight) / 2;
             rect.X = 0;
             rect.Y = nCenteringFactor;
-            rect.Width = surface_width;
+            rect.Width = area_width;
             rect.Height = nNewHeight;
 
         } else if (dVideoAspectRatio < dSurfaceAspectRatio) {
-            int nNewWidth = (int)(surface_height/dVideoHeight*dVideoWidth);
-            int nCenteringFactor = (surface_width - nNewWidth) / 2;
+            int nNewWidth = (int)(area_height/dVideoHeight*dVideoWidth);
+            int nCenteringFactor = (area_width - nNewWidth) / 2;
             rect.X = nCenteringFactor;
             rect.Y = 0;
             rect.Width = nNewWidth;
-            rect.Height = surface_height;
+            rect.Height = area_height;
 
         } else {
             rect.X = 0;
             rect.Y = 0;
-            rect.Width = surface_width;
-            rect.Height = surface_height;
+            rect.Width = area_width;
+            rect.Height = area_height;
         }
 
     } else {
         rect.X = 0;
         rect.Y = 0;
-        rect.Width = surface_width;
-        rect.Height = surface_height;
+        rect.Width = area_width;
+        rect.Height = area_height;
     }
 
     return true;

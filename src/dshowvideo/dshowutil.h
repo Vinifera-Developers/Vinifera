@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          SETUP_HOOKS.CPP
+ *  @file          DSHOWUTIL.H
  *
  *  @author        CCHyper
  *
- *  @brief         Contains the main function that sets up all hooks.
+ *  @brief         DirectShow utility functions.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -25,34 +25,26 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "setup_hooks.h"
+#pragma once
 
-/**
- *  Include the hook headers here.
- */
-#include "vinifera_newdel.h"
-#include "crt_hooks.h"
-#include "debug_hooks.h"
-#include "vinifera_hooks.h"
-#include "newswizzle_hooks.h"
-#include "extension_hooks.h"
-#include "cncnet4_hooks.h"
-#include "cncnet5_hooks.h"
-#include "dshowvideo_hooks.h"
+#include <windows.h>
+#include <dshow.h>
 
 
-void Setup_Hooks()
-{
-    Vinifera_Memory_Hooks();
+template <class T> void SafeRelease(T **ppT) { if (*ppT) { (*ppT)->Release(); *ppT = nullptr; } }
 
-    CRT_Hooks();
-    Debug_Hooks();
-    Vinifera_Hooks();
-    NewSwizzle_Hooks();
-    Extension_Hooks();
 
-    CnCNet4_Hooks();
-    CnCNet5_Hooks();
+#ifndef SAFE_ARRAY_DELETE
+#define SAFE_ARRAY_DELETE(x) { if(x) { delete[] x; x = nullptr; } }
+#endif
 
-    DirectShowVideo_Hooks();
-}
+#ifndef SAFE_DELETE
+#define SAFE_DELETE(x) { delete x; x = nullptr; }
+#endif
+
+
+HRESULT RemoveUnconnectedRenderer(IGraphBuilder *pGraph, IBaseFilter *pRenderer, BOOL *pbRemoved);
+HRESULT IsPinConnected(IPin *pPin, BOOL *pResult);
+HRESULT IsPinDirection(IPin *pPin, PIN_DIRECTION dir, BOOL *pResult);
+HRESULT FindConnectedPin(IBaseFilter *pFilter, PIN_DIRECTION PinDir, IPin **ppPin);
+HRESULT AddFilterByCLSID(IGraphBuilder *pGraph, REFGUID clsid, IBaseFilter **ppF, LPCWSTR wszName);

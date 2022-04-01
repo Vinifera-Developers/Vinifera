@@ -34,6 +34,7 @@ const char *Last_System_Error_As_String();
 void Convert_System_Error_To_String(int id, char *buffer, int buf_len);
 
 const char *Get_Module_File_Name();
+const char *Get_Module_Directory();
 const char *Get_Module_File_Name_Ext();
 
 int Load_String_Ex(HINSTANCE hInstance, UINT uID, LPWSTR lpBuffer, INT nBufferMax, WORD wLanguage);

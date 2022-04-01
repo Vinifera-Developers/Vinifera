@@ -68,10 +68,10 @@ static void Draw_Title_Screen(bool firestorm)
  */
 static void Set_Addon_Mode(bool firestorm)
 {
-    Addon_4071C0(ADDON_ANY);
+    Addon_Enabled(ADDON_ANY);
 
     if (firestorm) {
-         Addon_407190(ADDON_FIRESTORM);
+         Addon_Enabled(ADDON_FIRESTORM);
     }
 
     Set_Required_Addon(firestorm ? ADDON_FIRESTORM : ADDON_NONE);
