@@ -501,7 +501,7 @@ bool Vinifera_Init_Secondary_Mixfiles()
         DEBUG_INFO(" MULTI.MIX\n", buffer);
     }
 
-    if (Addon_407120(ADDON_FIRESTORM)) {
+    if (Addon_Installed(ADDON_FIRESTORM)) {
         if (CCFileClass("SOUNDS01.MIX").Is_Available()) {
             FSSoundsMix = new MFCC("SOUNDS01.MIX", &FastKey);
             ASSERT(FSSoundsMix);
