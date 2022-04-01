@@ -66,4 +66,4 @@ HGLOBAL Vinifera_Fetch_Resource(HMODULE handle, const char *id, const char *type
 #define FETCH_RESOURCE Vinifera_Fetch_Resource
 #endif
 
-bool Scale_Video_Rect(Rect &rect, int max_width, int max_height, bool maintain_ratio = false);
+bool Scale_Video_Rect(Rect &rect, int area_width, int area_height, bool maintain_ratio = false, bool clamp = true);

@@ -163,21 +163,22 @@ DECLARE_PATCH(_Init_Game_Skip_Startup_Movies_Patch)
 
     if (Special.IsFromInstall) {
         DEBUG_GAME("Playing first time intro sequence.\n");
-        Play_Movie("EVA.VQA", THEME_NONE, true, true, true);
+        Vinifera_Play_Movie("EVA.VQA", THEME_NONE, true, true, true);
     }
 
     if (!Vinifera_SkipWWLogoMovie) {
         DEBUG_GAME("Playing startup movies.\n");
-        Play_Movie("WWLOGO.VQA", THEME_NONE, true, true, true);
+        Vinifera_Play_Movie("VINIFERA.VQA", THEME_NONE, true, true, true);
+        Vinifera_Play_Movie("WWLOGO.VQA", THEME_NONE, true, true, true);
     } else {
         DEBUG_INFO("Skipping startup movie.\n");
     }
 
     if (!NewMenuClass::Get()) {
         if (CCFile_Is_Available("FS_TITLE.VQA")) {
-            Play_Movie("FS_TITLE.VQA", THEME_NONE, true, false, true);
+            Vinifera_Play_Movie("FS_TITLE.VQA", THEME_NONE, false, false, false);
         } else {
-            Play_Movie("STARTUP.VQA", THEME_NONE, true, false, true);
+            Vinifera_Play_Movie("STARTUP.VQA", THEME_NONE, true, false, false);
         }
     }
 
