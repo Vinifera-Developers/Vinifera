@@ -416,7 +416,6 @@ bool Vinifera_Startup()
      * 
      *  @author: CCHyper
      */
-#if defined(TS_CLIENT)
     DWORD rc;
     DynamicVectorClass<Wstring> search_paths;
 
@@ -430,14 +429,30 @@ bool Vinifera_Startup()
     /**
      *  Add various local search drives to loading of files locally.
      */
+#if defined(TS_CLIENT)
     search_paths.Add("INI");
     search_paths.Add("MIX");
+#endif
     search_paths.Add("MOVIES");
+#if defined(TS_CLIENT)
     search_paths.Add("MUSIC");
     search_paths.Add("SOUNDS");
     search_paths.Add("MAPS");
     search_paths.Add("MAPS\\MULTIPLAYER");
     search_paths.Add("MAPS\\MISSION");
+#endif
+
+    /**
+     *  Load additional paths from the user environment vars.
+     * 
+     *  @note: Path must end in "\" otherwise this will fail.
+     */
+    char movies_var_buff[PATH_MAX];
+    rc = GetEnvironmentVariable("TIBSUN_MOVIES", movies_var_buff, sizeof(movies_var_buff));
+    if (rc && rc < sizeof(movies_var_buff)) {
+        DEV_DEBUG_INFO("Found TIBSUN_MOVIES EnvVar: \"%s\".\n", movies_var_buff);
+        search_paths.Add(movies_var_buff);
+    }
 
     /**
      *  Current path (perhaps set set with -CD) should go next.
@@ -471,7 +486,6 @@ bool Vinifera_Startup()
     delete [] new_path;
 
     DEBUG_INFO("SearchPath: %s\n", CCFileClass::RawPath);
-#endif
 
     /**
      *  Load Vinifera settings and overrides.

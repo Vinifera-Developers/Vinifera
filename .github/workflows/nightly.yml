@@ -57,6 +57,12 @@ jobs:
         if:   ${{ steps.vars.outputs.GHA_REPO_ALIVE }} == 'true'
         uses: actions/checkout@v2
         
+      - name: Checkout Files
+        uses: actions/checkout@v2
+        with:
+          repository: Vinifera-Developers/Vinifera-Files
+          path: vinifera-files
+        
       - name: Set Variables
         id: vars
         run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
@@ -83,12 +89,14 @@ jobs:
         shell: bash
         run: |
           mkdir artifact
+          mkdir artifact/Movies
           ls -p | grep -v /
           cp ./build/Vinifera.dll ./artifact/Vinifera.dll
           cp ./build/Vinifera.pdb ./artifact/Vinifera.pdb
           cp ./build/LaunchVinifera.exe ./artifact/LaunchVinifera.exe
           cp ./build/_deps/tspp-src/pdb/Game.pdb ./artifact/Game.pdb
           cp ./build/_deps/tspp-src/edb/Game.edb ./artifact/Game.edb
+          cp ./vinifera-files/files/VINIFERA.WMV ./artifact/Movies/Vinifera.wmv
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
@@ -142,6 +150,12 @@ jobs:
         if:   ${{ steps.vars.outputs.GHA_REPO_ALIVE }} == 'true'
         uses: actions/checkout@v2
         
+      - name: Checkout Files
+        uses: actions/checkout@v2
+        with:
+          repository: Vinifera-Developers/Vinifera-Files
+          path: vinifera-files
+        
       - name: Set Variables
         id: vars
         run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
@@ -168,12 +182,14 @@ jobs:
         shell: bash
         run: |
           mkdir artifact
+          mkdir artifact/Movies
           ls -p | grep -v /
           cp ./build/Vinifera.dll ./artifact/Vinifera.dll
           cp ./build/Vinifera.pdb ./artifact/Vinifera.pdb
           cp ./build/LaunchVinifera.exe ./artifact/LaunchVinifera.dat
           cp ./build/_deps/tspp-src/pdb/Game.pdb ./artifact/Game.pdb
           cp ./build/_deps/tspp-src/edb/Game.edb ./artifact/Game.edb
+          cp ./vinifera-files/files/VINIFERA.WMV ./artifact/Movies/Vinifera.wmv
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v2

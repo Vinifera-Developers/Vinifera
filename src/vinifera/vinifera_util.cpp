@@ -33,6 +33,7 @@
 #include "tibsun_globals.h"
 #include "colorscheme.h"
 #include "textprint.h"
+#include "options.h"
 #include "dsurface.h"
 #include "cncnet4_globals.h"
 #include "wwfont.h"
@@ -676,4 +677,78 @@ HGLOBAL Vinifera_Fetch_Resource(HMODULE handle, const char *id, const char *type
     //DEBUGINFO("Fetch_Resource() - Resource loaded sucessfully.\n");
 
     return res_data;
+}
+
+
+/**
+ *  Scale up the input rect to the desired width and height, while maintaining the aspect ratio.
+ * 
+ *  @author: CCHyper
+ */
+bool Scale_Video_Rect(Rect &rect, int area_width, int area_height, bool maintain_ratio, bool clamp)
+{
+    /**
+     *  No need to scale the rect if it is larger than the max width/height
+     */
+    //bool smaller = rect.Width < area_width && rect.Height < area_height;
+    //if (!smaller) {
+    //    return false;
+    //}
+
+    /**
+     *  This is a workaround for edge case issues with some versions
+     *  of cnc-ddraw. This ensures the available draw area is actually
+     *  the resolution the user defines, not what the cnc-ddraw forces
+     *  the primary surface to.
+     */
+    if (clamp) {
+        area_width = std::clamp(HiddenSurface->Width, 0, Options.ScreenWidth);
+        area_height = std::clamp(HiddenSurface->Height, 0, Options.ScreenHeight);
+    }
+
+    if (maintain_ratio) {
+
+        double dSurfaceWidth = area_width;
+        double dSurfaceHeight = area_height;
+        double dSurfaceAspectRatio = dSurfaceWidth / dSurfaceHeight;
+
+        double dVideoWidth = rect.Width;
+        double dVideoHeight = rect.Height;
+        double dVideoAspectRatio = dVideoWidth / dVideoHeight;
+    
+        /**
+         *  If the aspect ratios are the same then the screen rectangle
+         *  will do, otherwise we need to calculate the new rectangle.
+         */
+        if (dVideoAspectRatio > dSurfaceAspectRatio) {
+            int nNewHeight = (int)(area_width/dVideoWidth*dVideoHeight);
+            int nCenteringFactor = (area_height - nNewHeight) / 2;
+            rect.X = 0;
+            rect.Y = nCenteringFactor;
+            rect.Width = area_width;
+            rect.Height = nNewHeight;
+
+        } else if (dVideoAspectRatio < dSurfaceAspectRatio) {
+            int nNewWidth = (int)(area_height/dVideoHeight*dVideoWidth);
+            int nCenteringFactor = (area_width - nNewWidth) / 2;
+            rect.X = nCenteringFactor;
+            rect.Y = 0;
+            rect.Width = nNewWidth;
+            rect.Height = area_height;
+
+        } else {
+            rect.X = 0;
+            rect.Y = 0;
+            rect.Width = area_width;
+            rect.Height = area_height;
+        }
+
+    } else {
+        rect.X = 0;
+        rect.Y = 0;
+        rect.Width = area_width;
+        rect.Height = area_height;
+    }
+
+    return true;
 }

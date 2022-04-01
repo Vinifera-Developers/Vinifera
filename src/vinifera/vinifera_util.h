@@ -32,6 +32,7 @@
 
 
 class XSurface;
+class Rect;
 
 
 const char *Vinifera_Version_String();
@@ -64,3 +65,5 @@ HGLOBAL Vinifera_Fetch_Resource(HMODULE handle, const char *id, const char *type
 #define FETCH_STRING Vinifera_Fetch_String
 #define FETCH_RESOURCE Vinifera_Fetch_Resource
 #endif
+
+bool Scale_Video_Rect(Rect &rect, int area_width, int area_height, bool maintain_ratio = false, bool clamp = true);
