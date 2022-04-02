@@ -133,6 +133,15 @@ void Extension_Hooks()
     SaveLoad_Hooks();
 
     /**
+     *  Command line option to disable class extensions.
+     */
+    const char *cmdline = GetCommandLineA();
+    bool no_class_extensions = (std::strstr(cmdline, "-NO_EXT") != nullptr);
+    if (no_class_extensions) {
+        return;
+    }
+
+    /**
      *  Various functions.
      */
     GameInit_Hooks();
