@@ -29,11 +29,13 @@
 #include "tibsun_globals.h"
 #include "options.h"
 #include "campaign.h"
+#include "campaignext.h"
 #include "scenario.h"
 #include "vqa.h"
 #include "movie.h"
 #include "playmovie.h"
 #include "cd.h"
+#include "wstring.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
@@ -166,57 +168,72 @@ static bool Play_Intro_Movie(CampaignType campaign_id)
         return false;
     }
 
+    char movie_filename[32];
+    VQType intro_vq = VQ_NONE;
+
     /**
-     *  Only handle campaigns with either DISK_GDI (0) or DISK_NOD (1) set.
+     *  Fetch the campaign disk id.
      */
-    int cd_num = Campaigns[campaign_id]->WhichCD;
-    if (cd_num >= 0 && cd_num < 2) {
+    CampaignClass *campaign = Campaigns[campaign_id];
+    DiskID cd_num = campaign->WhichCD;
+
+    /**
+     *  Check if the current campaign is an original GDI or NOD campaign.
+     */
+    bool is_original_gdi = (cd_num == DISK_GDI && (Wstring(campaign->IniName) == "GDI1" || Wstring(campaign->IniName) == "GDI1A") && Wstring(campaign->Scenario) == "GDI1A.MAP");
+    bool is_original_nod = (cd_num == DISK_NOD && (Wstring(campaign->IniName) == "NOD1" || Wstring(campaign->IniName) == "NOD1A") && Wstring(campaign->Scenario) == "NOD1A.MAP");
+    
+    /**
+     *  #issue-762
+     * 
+     *  Fetch the campaign extension (if available) and get the custom intro movie.
+     * 
+     *  @author: CCHyper
+     */
+    CampaignClassExtension *campaignext = CampaignClassExtensions.find(campaign);
+    if (campaignext && campaignext->IntroMovie[0] != '\0') {
+        std::snprintf(movie_filename, sizeof(movie_filename), "%s.VQA", campaignext->IntroMovie);
+        DEBUG_INFO("About to play \"%s\".\n", movie_filename);
+        Play_Movie(movie_filename);
+
+    /**
+     *  If this is an original Tiberian Sun campaign, play the respective intro movie.
+     */
+    } else if (is_original_gdi || is_original_nod) {
 
         /**
-         *  And make sure its only the first mission of this campaign.
+         *  "The First Decade" and "Freeware TS" installations reshuffle
+         *  the movie files due to all mix files being local now and a
+         *  primitive "no-cd" added;
+         *  
+         *  MOVIES01.MIX -> INTRO.VQA (GDI) is now INTR0.VQA
+         *  MOVIES02.MIX -> INTRO.VQA (NOD) is now INTR1.VQA
+         * 
+         *  Build the movie filename based on the current campaigns desired CD (see DiskID enum). 
          */
-        if (Scen->Scenario == 1) {
+        std::snprintf(movie_filename, sizeof(movie_filename), "INTR%d.VQA", cd_num);
 
-            /**
-             *  Finally, make sure this is the first map of each factions campaign.
-             */
-            if (std::strcmp(Scen->ScenarioName, "GDI1A.MAP") == 0
-             || std::strcmp(Scen->ScenarioName, "NOD1A.MAP") == 0) {
+        /**
+         *  Now play the movie if it is found, falling back to original behavior otherwise.
+         */
+        if (CCFileClass(movie_filename).Is_Available()) {
+            DEBUG_INFO("About to play \"%s\".\n", movie_filename);
+            Play_Movie(movie_filename);
 
-                /**
-                 *  "The First Decade" and "Freeware TS" installations reshuffle
-                 *  the movie files due to all mix files being local now and a
-                 *  primitive "no-cd" added;
-                 *  
-                 *  MOVIES01.MIX -> INTRO.VQA (GDI) is now INTR0.VQA
-                 *  MOVIES02.MIX -> INTRO.VQA (NOD) is now INTR1.VQA
-                 * 
-                 *  Build the movies filename based on the current campaigns desired CD (see DiskID enum). 
-                 */
-                char filename[12];
-                std::snprintf(filename, sizeof(filename), "INTR%d.VQA", cd_num);
+        } else if (CCFileClass("INTRO.VQA").Is_Available()) {
+            DEBUG_INFO("About to play \"INTRO.VQA\".\n");
+            Play_Movie("INTRO.VQA");
 
-                /**
-                 *  Now play the movie if it is found, falling back to original behavior otherwise.
-                 */
-                if (CCFileClass(filename).Is_Available()) {
-                    DEBUG_INFO("About to play %s.\n", filename);
-                    Play_Movie(filename);
-
-                } else {
-                    DEBUG_INFO("About to play INTRO.VQA.\n");
-                    Play_Movie("INTRO.VQA");
-                }
-
-                return true;
-
-            }
-
+        } else {
+            DEBUG_WARNING("Failed to find Intro movie!\n");
+            return false;
         }
 
+    } else {
+        DEBUG_WARNING("No campaign intro movie defined.\n");
     }
 
-    return false;
+    return true;
 }
 
 DECLARE_PATCH(_Start_Scenario_Intro_Movie_Patch)
