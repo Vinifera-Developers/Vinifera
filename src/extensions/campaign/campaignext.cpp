@@ -45,7 +45,8 @@ ExtensionMap<CampaignClass, CampaignClassExtension> CampaignClassExtensions;
  */
 CampaignClassExtension::CampaignClassExtension(CampaignClass *this_ptr) :
     Extension(this_ptr),
-    IsDebugOnly(false)
+    IsDebugOnly(false),
+    IntroMovie()
 {
     ASSERT(ThisPtr != nullptr);
     //EXT_DEBUG_TRACE("CampaignClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -187,5 +188,7 @@ bool CampaignClassExtension::Read_INI(CCINIClass &ini)
         std::snprintf(ThisPtr->Description, sizeof(ThisPtr->Description), "[Debug] - %s", buffer);
     }
     
+    ini.Get_String(ini_name, "IntroMovie", IntroMovie, sizeof(IntroMovie));
+
     return true;
 }

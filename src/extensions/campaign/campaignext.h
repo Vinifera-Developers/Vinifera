@@ -56,6 +56,11 @@ class CampaignClassExtension final : public Extension<CampaignClass>
          *  Is this campaign only available in Developer mode?
          */
         bool IsDebugOnly;
+
+        /**
+         *  The movie to play at start of this campaign.
+         */
+        char IntroMovie[64];
 };
 
 
