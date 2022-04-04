@@ -29,6 +29,7 @@
 
 #include "extension.h"
 #include "container.h"
+#include "typelist.h"
 
 
 class AnimTypeClass;
@@ -51,6 +52,7 @@ class AnimTypeClassExtension final : public Extension<AnimTypeClass>
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
         bool Read_INI(CCINIClass &ini);
+        bool Post_Read_INI(CCINIClass &ini);
 
     public:
         /**
@@ -85,6 +87,30 @@ class AnimTypeClassExtension final : public Extension<AnimTypeClass>
          *  The number of the particle to spawn.
          */
         unsigned NumberOfParticles;
+
+        /**
+         *  
+         */
+        TypeList<AnimTypeClass *> StartAnims;
+        TypeList<int> StartAnimsCount;
+        TypeList<int> StartAnimsMinimum;
+        TypeList<int> StartAnimsMaximum;
+
+        /**
+         *  
+         */
+        TypeList<AnimTypeClass *> MiddleAnims;
+        TypeList<int> MiddleAnimsCount;
+        TypeList<int> MiddleAnimsMinimum;
+        TypeList<int> MiddleAnimsMaximum;
+
+        /**
+         *  
+         */
+        TypeList<AnimTypeClass *> EndAnims;
+        TypeList<int> EndAnimsCount;
+        TypeList<int> EndAnimsMinimum;
+        TypeList<int> EndAnimsMaximum;
 };
 
 

@@ -32,6 +32,7 @@
 
 #include "ttimer.h"
 #include "ftimer.h"
+#include "typelist.h"
 
 
 class AnimClass;
@@ -51,6 +52,13 @@ class AnimClassExtension final : public Extension<AnimClass>
 
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
+
+        bool Start();
+        bool Middle();
+        bool End();
+
+    private:
+        bool Spawn_Animations(const Coordinate &coord, const TypeList<AnimTypeClass *> &animlist, const TypeList<int> &countlist, const TypeList<int> &minlist, const TypeList<int> &maxlist);
 
     public:
 };

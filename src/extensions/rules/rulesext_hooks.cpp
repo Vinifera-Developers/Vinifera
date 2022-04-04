@@ -29,6 +29,8 @@
 #include "rulesext_init.h"
 #include "rulesext.h"
 #include "rules.h"
+#include "animtype.h"
+#include "animtypeext.h"
 #include "tiberium.h"
 #include "weapontype.h"
 #include "tibsun_globals.h"
@@ -161,6 +163,19 @@ void RulesClassFake::_Process(CCINIClass &ini)
      */
     if (RulesExtension) {
         RulesExtension->Process(ini);
+    }
+
+    /**
+     *  Because of the additions added for #issue-752, we need to do a second
+     *  pass on the AnimTypes. This is becauses it is a recursive operation if
+     *  the animation referes to itself, but it has not yet been allocated.
+     */
+    for (int i = ANIM_FIRST; i < AnimTypes.Count(); ++i) {
+        AnimTypeClass *animtype = AnimTypes[i];
+        AnimTypeClassExtension *animtypeext = AnimTypeClassExtensions.find(animtype);
+        if (animtypeext) {
+            animtypeext->Post_Read_INI(ArtINI);
+        }
     }
 }
 
