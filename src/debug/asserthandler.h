@@ -41,6 +41,8 @@ extern int TotalAssertions;
 
 extern bool ExitOnAssert;
 
+extern void Vinifera_Assert_StackDump();
+
 enum AssertType {
     ASSERT_NORMAL,
     ASSERT_FATAL,
@@ -119,6 +121,48 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
                         __debugbreak(); \
                     } \
                     Emergency_Exit(EXIT_FAILURE); \
+                } \
+            } \
+        } \
+    } while (false)
+
+#define ASSERT_STACKDUMP(exp) \
+    do { \
+        static volatile bool _ignore_assert = false; \
+        static volatile bool _break = false; \
+        static volatile bool _exit = false; \
+        if (!IgnoreAllAsserts) { \
+            if (!_ignore_assert) { \
+                if (!(exp)) { \
+                    Vinifera_Assert_StackDump(); \
+                    Vinifera_Assert(ASSERT_NORMAL, #exp, __FILE__, __LINE__, __FUNCTION__, &_ignore_assert, &_break, &_exit, nullptr); \
+                    if (_break) { \
+                        __debugbreak(); \
+                    } \
+                    if (_exit || ExitOnAssert) { \
+                        Emergency_Exit(EXIT_FAILURE); \
+                    } \
+                } \
+            } \
+        } \
+    } while (false)
+
+#define ASSERT_STACKDUMP_PRINT(exp, msg, ...) \
+    do { \
+        static volatile bool _ignore_assert = false; \
+        static volatile bool _break = false; \
+        static volatile bool _exit = false; \
+        if (!IgnoreAllAsserts) { \
+            if (!_ignore_assert) { \
+                if (!(exp)) { \
+                    Vinifera_Assert_StackDump(); \
+                    Vinifera_Assert(ASSERT_NORMAL, #exp, __FILE__, __LINE__, __FUNCTION__, &_ignore_assert, &_break, &_exit, msg, ##__VA_ARGS__); \
+                    if (_break) { \
+                        __debugbreak(); \
+                    } \
+                    if (_exit || ExitOnAssert) { \
+                        Emergency_Exit(EXIT_FAILURE); \
+                    } \
                 } \
             } \
         } \

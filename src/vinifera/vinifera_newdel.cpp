@@ -61,9 +61,7 @@ void * __cdecl vinifera_allocate(unsigned int size)
     unsigned r_size = Round_Up(size, 4);
 
     void *block_ptr = HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, r_size);
-    if (!block_ptr) {
-        DEBUG_FATAL("Failed to allocate memory!\n");
-    }
+    ASSERT_STACKDUMP_PRINT(block_ptr != nullptr, "Failed to allocate memory!\n");
 
     ++Vinifera_New_Count;
 
@@ -78,9 +76,8 @@ void * __cdecl vinifera_count_allocate(unsigned int count, unsigned int size)
     unsigned r_size = Round_Up(size, 4);
 
     void *block_ptr = HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, r_size * count);
-    if (!block_ptr) {
-        DEBUG_FATAL("Failed to allocate memory!\n");
-    }
+    ASSERT_STACKDUMP_PRINT(block_ptr != nullptr, "Failed to allocate memory!\n");
+
     return block_ptr;
 }
 
@@ -92,18 +89,15 @@ void * __cdecl vinifera_reallocate(void *ptr, unsigned int size)
     unsigned r_size = Round_Up(size, 4);
 
     void *block_ptr = HeapReAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, ptr, r_size);
-    if (!block_ptr) {
-        DEBUG_FATAL("Failed to allocate memory!\n");
-    }
+    ASSERT_STACKDUMP_PRINT(block_ptr != nullptr, "Failed to allocate memory!\n");
+
     return block_ptr;
 }
 
 void __cdecl vinifera_free(void *ptr)
 {
     bool freed = HeapFree(GetProcessHeap(), HEAP_ZERO_MEMORY, ptr);
-    if (!freed) {
-        DEBUG_FATAL("Failed to free memory!\n");
-    }
+    ASSERT_STACKDUMP_PRINT(freed, "Failed to free memory!\n");
 
     ++Vinifera_Delete_Count;
 
