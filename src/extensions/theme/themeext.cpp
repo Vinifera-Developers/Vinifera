@@ -44,7 +44,8 @@ ExtensionMap<ThemeClass::ThemeControl, ThemeControlExtension> ThemeControlExtens
  *  @author: CCHyper
  */
 ThemeControlExtension::ThemeControlExtension(ThemeClass::ThemeControl *this_ptr) :
-    Extension(this_ptr)
+    Extension(this_ptr),
+    RequiredAddon(ADDON_NONE)
 {
     ASSERT(ThisPtr != nullptr);
     //EXT_DEBUG_TRACE("ThemeControlExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name, (uintptr_t)(ThisPtr));
@@ -110,6 +111,8 @@ bool ThemeControlExtension::Read_INI(CCINIClass &ini)
     if (!ini.Is_Present(ini_name)) {
         return false;
     }
+
+    RequiredAddon = (AddonType)ini.Get_Int(ini_name, "RequiredAddon", RequiredAddon);
     
     return true;
 }
