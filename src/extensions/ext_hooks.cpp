@@ -48,6 +48,7 @@
 #include "cdext_hooks.h"
 
 #include "playmovie_hooks.h"
+#include "themeext_hooks.h"
 
 #include "objecttypeext_hooks.h"
 #include "technotypeext_hooks.h"
@@ -163,6 +164,7 @@ void Extension_Hooks()
     CDExtension_Hooks();
 
     PlayMovieExtension_Hooks();
+    ThemeClassExtension_Hooks();
 
     /**
      *  All type class extensions here.
