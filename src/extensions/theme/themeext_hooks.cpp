@@ -29,9 +29,83 @@
 #include "themeext_init.h"
 #include "themeext.h"
 #include "theme.h"
+#include "tibsun_globals.h"
+#include "house.h"
+#include "housetype.h"
+#include "session.h"
+#include "scenario.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+
+
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ * 
+ *  @note: This must not contain a constructor or deconstructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+static class ThemeClassFake final : public ThemeClass
+{
+    public:
+        bool _Is_Allowed(ThemeType index) const;
+};
+
+
+/**
+ *  Checks to see if the specified theme is legal.
+ * 
+ *  @author: 07/04/1996 JLB - Red Alert source code.
+ *           CCHyper - Adjustments for Tiberian Sun.
+ */
+bool ThemeClassFake::_Is_Allowed(ThemeType index) const
+{
+    if (index == THEME_QUIET || index == THEME_PICK_ANOTHER) {
+        return true;
+    }
+    
+    if (index >= Themes.Count()) {
+        return true;
+    }
+
+    /**
+     *  If the theme is not present, then it certainly isn't allowed.
+     */
+    if (!Themes[index]->Available) {
+        return false;
+    }
+
+    /**
+     *  Only normal themes (playable during battle) are considered allowed.
+     */
+    if (!Themes[index]->Normal) {
+        return false;
+    }
+
+    /**
+     *  If the theme is not allowed to be played by the player's house, then don't allow
+     *  it. If the player's house hasn't yet been determined, then presume this test
+     *  passes.
+     */
+    SideType owner = Themes[index]->Owner;
+    if (PlayerPtr != nullptr && owner != SIDE_NONE && PlayerPtr->Class->Side != owner) {
+        return false;
+    }
+
+    /**
+     *  If the scenario doesn't allow this theme yet, then return the failure flag. The
+     *  scenario check only makes sense for solo play.
+     */
+    if (Session.Type == GAME_NORMAL && Scen->Scenario < Themes[index]->Scenario) {
+        return false;
+    }
+
+    /**
+     *  Since all tests passed, return with the "is allowed" flag.
+     */
+    return true;
+}
 
 
 /**
@@ -43,4 +117,6 @@ void ThemeClassExtension_Hooks()
      *  Initialises the extended class.
      */
     ThemeClassExtension_Init();
+
+    Patch_Jump(0x00644300, &ThemeClassFake::_Is_Allowed);
 }
