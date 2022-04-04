@@ -47,6 +47,10 @@ class ThemeControlExtension final : public Extension<ThemeClass::ThemeControl>
         bool Read_INI(CCINIClass &ini);
 
     public:
+        /**
+         *  The addon required to be active for this theme to be available.
+         */
+        AddonType RequiredAddon;
 };
 
 

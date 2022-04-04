@@ -34,6 +34,7 @@
 #include "housetype.h"
 #include "session.h"
 #include "scenario.h"
+#include "addon.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
@@ -81,6 +82,20 @@ bool ThemeClassFake::_Is_Allowed(ThemeType index) const
      */
     if (!Themes[index]->Normal) {
         return false;
+    }
+
+    /**
+     *  #issue-764
+     * 
+     *  If this theme requires an addon, make sure that addon is active.
+     * 
+     *  @author: CCHyper
+     */
+    ThemeControlExtension *themectrlext = ThemeControlExtensions.find(Themes[index]);
+    if (themectrlext && themectrlext->RequiredAddon != ADDON_NONE) {
+        if (!Addon_Enabled(themectrlext->RequiredAddon)) {
+            return false;
+        }
     }
 
     /**
