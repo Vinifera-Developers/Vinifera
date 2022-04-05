@@ -64,6 +64,15 @@ class TacticalMapExtension final : public Extension<Tactical>
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
+        void Draw_Debug_Overlay();
+        void Draw_FrameStep_Overlay();
+
+        void Draw_Information_Text();
+
+#ifndef NDEBUG
+        bool Debug_Draw_Facings();
+#endif
+
     public:
         /**
          *  Has information text been set?
