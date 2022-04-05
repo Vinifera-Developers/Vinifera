@@ -29,8 +29,6 @@
 #include "rulesext_init.h"
 #include "rulesext.h"
 #include "rules.h"
-#include "tiberium.h"
-#include "weapontype.h"
 #include "tibsun_globals.h"
 #include "session.h"
 #include "sessionext.h"
@@ -62,98 +60,16 @@ class RulesClassFake final : public RulesClass
 {
     public:
         void _Process(CCINIClass &ini);
-
-        bool Weapons(CCINIClass &ini);
 };
 
 
 /**
- *  Fetch all the weapon characteristic values.
- * 
- *  @author: CCHyper
- */
-bool RulesClassFake::Weapons(CCINIClass &ini)
-{
-    static const char * const WEAPONS = "Weapons";
-
-    char buf[128];
-    const WeaponTypeClass *weapontype;
-
-    int counter = ini.Entry_Count(WEAPONS);
-    for (int index = 0; index < counter; ++index) {
-        const char *entry = ini.Get_Entry(WEAPONS, index);
-
-        /**
-         *  Get a weapon entry.
-         */
-        if (ini.Get_String(WEAPONS, entry, buf, sizeof(buf))) {
-
-            /**
-             *  Find or create a weapon of the name specified.
-             */
-            weapontype = WeaponTypeClass::Find_Or_Make(buf);
-            if (weapontype) {
-                DEV_DEBUG_INFO("Rules: Found WeaponType \"%s\".\n", buf);
-            } else {
-                DEV_DEBUG_WARNING("Rules: Error processing WeaponType \"%s\"!\n", buf);
-            }
-
-        }
-
-    }
-
-    return counter > 0;
-}
-
-
-/**
- *  Fetch the bulk of the rule data from the control file.
+ *  Intercepts the rules main rules processing.
  * 
  *  @author: CCHyper
  */
 void RulesClassFake::_Process(CCINIClass &ini)
 {
-    Colors(ini);
-    Houses(ini);
-    Sides(ini);
-    Overlays(ini);
-
-    /**
-     *  #issue-117
-     * 
-     *  Add reading of Weapons list from RULES.INI
-     * 
-     *  @author: CCHyper
-     */
-    Weapons(ini);
-
-    SuperWeapons(ini);
-    Warheads(ini);
-    Smudges(ini);
-    Terrains(ini);
-    Buildings(ini);
-    Vehicles(ini);
-    Aircraft(ini);
-    Infantry(ini);
-    Animations(ini);
-    VoxelAnims(ini);
-    Particles(ini);
-    ParticleSystems(ini);
-    JumpjetControls(ini);
-    MPlayer(ini);
-    AI(ini);
-    Powerups(ini);
-    Land_Types(ini);
-    IQ(ini);
-    General(ini);
-    Objects(ini);
-    Difficulty(ini);
-    CrateRules(ini);
-    CombatDamage(ini);
-    AudioVisual(ini);
-    SpecialWeapons(ini);
-    TiberiumClass::Process(ini);
-
     /**
      *  Process the rules extension.
      * 
@@ -161,6 +77,8 @@ void RulesClassFake::_Process(CCINIClass &ini)
      */
     if (RulesExtension) {
         RulesExtension->Process(ini);
+    } else {
+        Process(ini);
     }
 }
 

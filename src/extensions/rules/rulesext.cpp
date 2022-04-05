@@ -28,6 +28,8 @@
 #include "rulesext.h"
 #include "ccini.h"
 #include "rules.h"
+#include "tiberium.h"
+#include "weapontype.h"
 #include "asserthandler.h"
 #include "debughandler.h"
 
@@ -193,8 +195,60 @@ void RulesClassExtension::Compute_CRC(WWCRCEngine &crc) const
 void RulesClassExtension::Process(CCINIClass &ini)
 {
     ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("RulesClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("RulesClassExtension::Process - 0x%08X\n", (uintptr_t)(ThisPtr));
 
+    /**
+     *  This function replaces the original rules process, so we need to duplicate
+     *  the its behaviour here first.
+     */
+
+    ThisPtr->Colors(ini);
+    ThisPtr->Houses(ini);
+    ThisPtr->Sides(ini);
+    ThisPtr->Overlays(ini);
+
+    /**
+     *  #issue-117
+     * 
+     *  Add reading of Weapons list from RULES.INI. This needs to be done before
+     *  all weapon
+     * 
+     *  @author: CCHyper
+     */
+    Weapons(ini);
+
+    ThisPtr->SuperWeapons(ini);
+    ThisPtr->Warheads(ini);
+    ThisPtr->Smudges(ini);
+    ThisPtr->Terrains(ini);
+    ThisPtr->Buildings(ini);
+    ThisPtr->Vehicles(ini);
+    ThisPtr->Aircraft(ini);
+    ThisPtr->Infantry(ini);
+    ThisPtr->Animations(ini);
+    ThisPtr->VoxelAnims(ini);
+    ThisPtr->Particles(ini);
+    ThisPtr->ParticleSystems(ini);
+    ThisPtr->JumpjetControls(ini);
+    ThisPtr->MPlayer(ini);
+    ThisPtr->AI(ini);
+    ThisPtr->Powerups(ini);
+    ThisPtr->Land_Types(ini);
+    ThisPtr->IQ(ini);
+    ThisPtr->General(ini);
+    ThisPtr->Objects(ini);
+    ThisPtr->Difficulty(ini);
+    ThisPtr->CrateRules(ini);
+    ThisPtr->CombatDamage(ini);
+    ThisPtr->AudioVisual(ini);
+    ThisPtr->SpecialWeapons(ini);
+    TiberiumClass::Process(ini);
+
+    /**
+     *  Process the rules extension.
+     * 
+     *  #NOTE: These must be performed last!
+     */
     General(ini);
     MPlayer(ini);
 }
@@ -220,6 +274,9 @@ void RulesClassExtension::Initialize(CCINIClass &ini)
  */
 bool RulesClassExtension::General(CCINIClass &ini)
 {
+    ASSERT(ThisPtr != nullptr);
+    //EXT_DEBUG_TRACE("RulesClassExtension::General - 0x%08X\n", (uintptr_t)(ThisPtr));
+
     static char const * const GENERAL = "General";
 
     if (!ini.Is_Present(GENERAL)) {
@@ -237,6 +294,9 @@ bool RulesClassExtension::General(CCINIClass &ini)
  */
 bool RulesClassExtension::MPlayer(CCINIClass &ini)
 {
+    ASSERT(ThisPtr != nullptr);
+    //EXT_DEBUG_TRACE("RulesClassExtension::MPlayer - 0x%08X\n", (uintptr_t)(ThisPtr));
+
     static char const * const MPLAYER = "MultiplayerDefaults";
 
     if (!ini.Is_Present(MPLAYER)) {
@@ -248,6 +308,48 @@ bool RulesClassExtension::MPlayer(CCINIClass &ini)
     IsBuildOffAlly = ini.Get_Bool(MPLAYER, "BuildOffAlly", IsBuildOffAlly);
 
     return true;
+}
+
+
+/**
+ *  Fetch all the weapon characteristic values.
+ * 
+ *  @author: CCHyper
+ */
+bool RulesClassExtension::Weapons(CCINIClass &ini)
+{
+    ASSERT(ThisPtr != nullptr);
+    //EXT_DEBUG_TRACE("RulesClassExtension::Weapons - 0x%08X\n", (uintptr_t)(ThisPtr));
+
+    static const char * const WEAPONS = "Weapons";
+
+    char buf[128];
+    const WeaponTypeClass *weapontype;
+
+    int counter = ini.Entry_Count(WEAPONS);
+    for (int index = 0; index < counter; ++index) {
+        const char *entry = ini.Get_Entry(WEAPONS, index);
+
+        /**
+         *  Get a weapon entry.
+         */
+        if (ini.Get_String(WEAPONS, entry, buf, sizeof(buf))) {
+
+            /**
+             *  Find or create a weapon of the name specified.
+             */
+            weapontype = WeaponTypeClass::Find_Or_Make(buf);
+            if (weapontype) {
+                DEV_DEBUG_INFO("Rules: Found WeaponType \"%s\".\n", buf);
+            } else {
+                DEV_DEBUG_WARNING("Rules: Error processing WeaponType \"%s\"!\n", buf);
+            }
+
+        }
+
+    }
+
+    return counter > 0;
 }
 
 
