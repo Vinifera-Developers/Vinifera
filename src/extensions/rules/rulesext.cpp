@@ -251,6 +251,11 @@ void RulesClassExtension::Process(CCINIClass &ini)
      */
     General(ini);
     MPlayer(ini);
+
+    /**
+     *  Run some checks to ensure certain values are as expected.
+     */
+    Check();
 }
 
 
@@ -406,4 +411,15 @@ bool RulesClassExtension::Init_UI_Controls()
     UIControls.TextLabelBackgroundTransparency = 50;
 
     return false;
+}
+
+
+/**
+ *  Performs checks on rules data to ensure values are as expected.
+ *  
+ *  @author: CCHyper
+ */
+void RulesClassExtension::Check()
+{
+    ASSERT_PRINT(ThisPtr->CreditTicks.Count() == 2, "CreditTicks must contain 2 valid entries!");
 }

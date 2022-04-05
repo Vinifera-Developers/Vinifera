@@ -62,6 +62,9 @@ class RulesClassExtension final : public Extension<RulesClass>
         static bool Read_UI_INI();
         static bool Init_UI_Controls();
 
+    private:
+        void Check();
+
     public:
         typedef struct UIControlsStruct
         {
