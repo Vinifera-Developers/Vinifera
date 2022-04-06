@@ -57,6 +57,7 @@ class RulesClassExtension final : public Extension<RulesClass>
 
         bool General(CCINIClass &ini);
         bool MPlayer(CCINIClass &ini);
+        bool AudioVisual(CCINIClass &ini);
         bool Weapons(CCINIClass &ini);
 
         static bool Read_UI_INI();
@@ -103,6 +104,12 @@ class RulesClassExtension final : public Extension<RulesClass>
          *  Can players build their own structures adjacent to structures owned by their allies?
          */
         bool IsBuildOffAlly;
+
+        /**
+         *  Should active super weapons show their recharge timer display
+         *  on the tactical view?
+         */
+        bool IsShowSuperWeaponTimers;
 };
 
 
