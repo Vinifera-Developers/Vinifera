@@ -47,7 +47,8 @@ RulesClassExtension::RulesClassExtension(RulesClass *this_ptr) :
     Extension(this_ptr),
     IsMPAutoDeployMCV(false),
     IsMPPrePlacedConYards(false),
-    IsBuildOffAlly(true)
+    IsBuildOffAlly(true),
+    IsShowSuperWeaponTimers(true)
 {
     ASSERT(ThisPtr != nullptr);
     //EXT_DEBUG_TRACE("RulesClassExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
@@ -184,6 +185,7 @@ void RulesClassExtension::Compute_CRC(WWCRCEngine &crc) const
     crc(IsMPAutoDeployMCV);
     crc(IsMPPrePlacedConYards);
     crc(IsBuildOffAlly);
+    crc(IsShowSuperWeaponTimers);
 }
 
 
@@ -251,6 +253,7 @@ void RulesClassExtension::Process(CCINIClass &ini)
      */
     General(ini);
     MPlayer(ini);
+    AudioVisual(ini);
 
     /**
      *  Run some checks to ensure certain values are as expected.
@@ -287,6 +290,28 @@ bool RulesClassExtension::General(CCINIClass &ini)
     if (!ini.Is_Present(GENERAL)) {
         return false;
     }
+
+    return true;
+}
+
+
+/**
+ *  Process the audio/visual game settings.
+ *  
+ *  @author: CCHyper
+ */
+bool RulesClassExtension::AudioVisual(CCINIClass &ini)
+{
+    ASSERT(ThisPtr != nullptr);
+    //EXT_DEBUG_TRACE("RulesClassExtension::General - 0x%08X\n", (uintptr_t)(ThisPtr));
+
+    static char const * const AUDIOVISUAL = "AudioVisual";
+
+    if (!ini.Is_Present(AUDIOVISUAL)) {
+        return false;
+    }
+
+    IsShowSuperWeaponTimers = ini.Get_Bool(AUDIOVISUAL, "ShowSuperWeaponTimers", IsShowSuperWeaponTimers);
 
     return true;
 }

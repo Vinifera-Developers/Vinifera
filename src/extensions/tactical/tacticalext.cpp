@@ -45,6 +45,8 @@
 #include "superext.h"
 #include "supertype.h"
 #include "supertypeext.h"
+#include "rules.h"
+#include "rulesext.h"
 #include "asserthandler.h"
 #include "debughandler.h"
 
@@ -655,6 +657,13 @@ void TacticalMapExtension::Draw_Super_Timers()
         return;
     }
 #endif
+
+    /**
+     *  Does the game rules state that the super weapon timers should be shown?
+     */
+    if (!RulesExtension->IsShowSuperWeaponTimers) {
+        return;
+    }
 
     /**
      *  Has the user toggled the visibility of the super weapon timers?
