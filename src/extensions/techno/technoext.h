@@ -33,10 +33,19 @@
 
 
 class EBoltClass;
+class ParticleSystemClass;
 
 
 class TechnoClassExtension final : public Extension<TechnoClass>
 {
+    private:
+        enum {
+            ATTACHED_PARTICLE_NATURAL2,
+            ATTACHED_PARTICLE_NATURAL3,
+
+            EXT_ATTACHED_PARTICLE_COUNT
+        };
+
     public:
         TechnoClassExtension(TechnoClass *this_ptr);
         TechnoClassExtension(const NoInitClass &noinit);
@@ -57,12 +66,18 @@ class TechnoClassExtension final : public Extension<TechnoClass>
         void Response_Deploy();
         void Response_Harvest();
         bool Can_Passive_Acquire() const;
+        void Spawn_Natural_Particle_System();
 
     public:
         /**
          *  The current electric bolt instance fired by this object.
          */
         EBoltClass *ElectricBolt;
+
+        /**
+         *  Additional attached particle system trackers for this object. 
+         */
+        ParticleSystemClass *ParticleSystems[EXT_ATTACHED_PARTICLE_COUNT];
 };
 
 

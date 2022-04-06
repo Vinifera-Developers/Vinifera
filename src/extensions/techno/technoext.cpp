@@ -29,10 +29,15 @@
 #include "techno.h"
 #include "technotype.h"
 #include "technotypeext.h"
+#include "tibsun_inline.h"
+#include "tibsun_globals.h"
+#include "particlesys.h"
+#include "particlesystype.h"
 #include "house.h"
 #include "voc.h"
 #include "ebolt.h"
 #include "tibsun_inline.h"
+#include "iomap.h"
 #include "wwcrc.h"
 #include "asserthandler.h"
 #include "debughandler.h"
@@ -56,6 +61,10 @@ TechnoClassExtension::TechnoClassExtension(TechnoClass *this_ptr) :
     ASSERT(ThisPtr != nullptr);
     //EXT_DEBUG_TRACE("TechnoClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
     //EXT_DEBUG_WARNING("TechnoClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+
+    for (int index = 0; index < EXT_ATTACHED_PARTICLE_COUNT; ++index) {
+        ParticleSystems[index] = nullptr;
+    }
 
     IsInitialized = true;
 }
@@ -105,6 +114,10 @@ HRESULT TechnoClassExtension::Load(IStream *pStm)
     new (this) TechnoClassExtension(NoInitClass());
 
     ElectricBolt = nullptr;
+   
+	for (int index = 0; index < EXT_ATTACHED_PARTICLE_COUNT; ++index) {
+        SWIZZLE_REQUEST_POINTER_REMAP(ParticleSystems[index]);
+    }
     
     return hr;
 }
@@ -335,4 +348,74 @@ bool TechnoClassExtension::Can_Passive_Acquire() const
      *  Original behaviour, all units can passive acquire.
      */
     return true;
+}
+
+
+/**
+ *  Handles the voice response when given harvest order.
+ * 
+ *  @author: CCHyper
+ */
+void TechnoClassExtension::Spawn_Natural_Particle_System()
+{
+    ASSERT(ThisPtr != nullptr);
+    //EXT_DEBUG_TRACE("TechnoClassExtension::Spawn_Natural_Particle_System - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    
+    Coordinate where;
+
+    TechnoTypeClass *technotype = ThisPtr->Techno_Type_Class();
+    TechnoTypeClassExtension *technotypeext = TechnoTypeClassExtensions.find(technotype);
+
+    /**
+     *  Spawn NaturalParticleSystem.
+     */
+    if (!ThisPtr->ParticleSystems[ATTACHED_PARTICLE_NATURAL] && technotype->NaturalParticleSystem) {
+
+        where = ThisPtr->Get_Coord();
+
+        where.X += technotype->NaturalParticleSystemLocation.X;
+        where.Y += technotype->NaturalParticleSystemLocation.Y;
+
+        /**
+         *  #BUGFIX: The original code did not take into account the Z coord
+         *           of the NaturalParticleSystem location.
+         */
+        where.Z += technotype->NaturalParticleSystemLocation.Z;
+
+        ThisPtr->ParticleSystems[ATTACHED_PARTICLE_NATURAL] = new ParticleSystemClass(
+            technotype->NaturalParticleSystem, where, &Map[ThisPtr->Get_Coord()]
+        );
+    }
+
+    /**
+     *  Spawn NaturalParticleSystem2.
+     */
+    if (!ParticleSystems[ATTACHED_PARTICLE_NATURAL2] && technotypeext->NaturalParticleSystem2) {
+
+        where = ThisPtr->Get_Coord();
+
+        where.X += technotypeext->NaturalParticleSystemLocation2.X;
+        where.Y += technotypeext->NaturalParticleSystemLocation2.Y;
+        where.Z += technotypeext->NaturalParticleSystemLocation2.Z;
+
+        ParticleSystems[ATTACHED_PARTICLE_NATURAL2] = new ParticleSystemClass(
+            technotypeext->NaturalParticleSystem2, where, &Map[ThisPtr->Get_Coord()]
+        );
+    }
+
+    /**
+     *  Spawn NaturalParticleSystem3.
+     */
+    if (!ParticleSystems[ATTACHED_PARTICLE_NATURAL3] && technotypeext->NaturalParticleSystem3) {
+
+        where = ThisPtr->Get_Coord();
+
+        where.X += technotypeext->NaturalParticleSystemLocation3.X;
+        where.Y += technotypeext->NaturalParticleSystemLocation3.Y;
+        where.Z += technotypeext->NaturalParticleSystemLocation3.Z;
+
+        ParticleSystems[ATTACHED_PARTICLE_NATURAL3] = new ParticleSystemClass(
+            technotypeext->NaturalParticleSystem3, where, &Map[ThisPtr->Get_Coord()]
+        );
+    }
 }

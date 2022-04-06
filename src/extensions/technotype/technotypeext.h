@@ -30,11 +30,13 @@
 #include "extension.h"
 #include "container.h"
 #include "typelist.h"
+#include "point.h"
 #include "tibsun_defines.h"
 
 
 class TechnoTypeClass;
 class CCINIClass;
+class ParticleSystemTypeClass;
 
 
 class TechnoTypeClassExtension final : public Extension<TechnoTypeClass>
@@ -135,6 +137,15 @@ class TechnoTypeClassExtension final : public Extension<TechnoTypeClass>
          *  The rate at which this unit animates when it is standing idle (not moving).
          */
         unsigned IdleRate;
+
+        /**
+         *  These define the additional particle systems to display on the
+         *  building while it is active.
+         */
+        const ParticleSystemTypeClass *NaturalParticleSystem2;
+        TPoint3D<int> NaturalParticleSystemLocation2;
+        const ParticleSystemTypeClass *NaturalParticleSystem3;
+        TPoint3D<int> NaturalParticleSystemLocation3;
 };
 
 
