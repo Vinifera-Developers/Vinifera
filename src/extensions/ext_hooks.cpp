@@ -134,11 +134,11 @@ void Extension_Hooks()
     SaveLoad_Hooks();
 
     /**
-     *  Command line option to disable class extensions.
+     *  Command line option to disable all extensions.
      */
     const char *cmdline = GetCommandLineA();
-    bool no_class_extensions = (std::strstr(cmdline, "-NO_EXT") != nullptr);
-    if (no_class_extensions) {
+    bool no_extensions = (std::strstr(cmdline, "-NO_EXT") != nullptr);
+    if (no_extensions) {
         return;
     }
 
@@ -150,7 +150,68 @@ void Extension_Hooks()
     NewMenuExtension_Hooks();
 
     /**
-     *  All class extensions here.
+     *  Command line option to disable class extensions.
+     */
+    cmdline = GetCommandLineA();
+    bool no_class_extensions = (std::strstr(cmdline, "-NO_CLASS_EXT") != nullptr);
+    if (!no_class_extensions) {
+
+        /**
+         *  All game class extensions here.
+         */
+        ObjectTypeClassExtension_Hooks();
+        TechnoTypeClassExtension_Hooks();
+        BuildingTypeClassExtension_Hooks();
+        UnitTypeClassExtension_Hooks();
+        InfantryTypeClassExtension_Hooks();
+        AircraftTypeClassExtension_Hooks();
+        WarheadTypeClassExtension_Hooks();
+        WeaponTypeClassExtension_Hooks();
+        BulletTypeClassExtension_Hooks();
+        SuperWeaponTypeClassExtension_Hooks();
+        VoxelAnimTypeClassExtension_Hooks();
+        AnimTypeClassExtension_Hooks();
+        ParticleTypeClassExtension_Hooks();
+        ParticleSystemTypeClassExtension_Hooks();
+        IsometricTileTypeClassExtension_Hooks();
+        OverlayTypeClassExtension_Hooks();
+        SmudgeTypeClassExtension_Hooks();
+        TerrainTypeClassExtension_Hooks();
+        HouseTypeClassExtension_Hooks();
+        SideClassExtension_Hooks();
+        CampaignClassExtension_Hooks();
+        TiberiumClassExtension_Hooks();
+        //TaskForceClassExtension_Hooks();
+        //AITriggerTypeClassExtension_Hooks();
+        //ScriptTypeClassExtension_Hooks();
+        //TagTypeClassExtension_Hooks();
+        //TriggerTypeClassExtension_Hooks();
+
+        TechnoClassExtension_Hooks();
+        UnitClassExtension_Hooks();
+        AircraftClassExtension_Hooks();
+        InfantryClassExtension_Hooks();
+        BuildingClassExtension_Hooks();
+        CellClassExtension_Hooks();
+        HouseClassExtension_Hooks();
+        TeamClassExtension_Hooks();
+        TActionClassExtension_Hooks();
+        FactoryClassExtension_Hooks();
+        TechnoClassExtension_Hooks();
+        FootClassExtension_Hooks();
+        AnimClassExtension_Hooks();
+        BulletClassExtension_Hooks();
+        TerrainClassExtension_Hooks();
+        SuperClassExtension_Hooks();
+        ParticleSystemClassExtension_Hooks();
+
+        EMPulseClassExtension_Hooks();
+        WaveClassExtension_Hooks();
+
+    }
+
+    /**
+     *  All global class extensions here.
      */
     RulesClassExtension_Hooks();
     TacticalExtension_Hooks();
@@ -163,62 +224,10 @@ void Extension_Hooks()
     SessionClassExtension_Hooks();
     CDExtension_Hooks();
 
-    PlayMovieExtension_Hooks();
-    ThemeClassExtension_Hooks();
-
-    /**
-     *  All type class extensions here.
-     */
-    ObjectTypeClassExtension_Hooks();
-    TechnoTypeClassExtension_Hooks();
-    BuildingTypeClassExtension_Hooks();
-    UnitTypeClassExtension_Hooks();
-    InfantryTypeClassExtension_Hooks();
-    AircraftTypeClassExtension_Hooks();
-    WarheadTypeClassExtension_Hooks();
-    WeaponTypeClassExtension_Hooks();
-    BulletTypeClassExtension_Hooks();
-    SuperWeaponTypeClassExtension_Hooks();
-    VoxelAnimTypeClassExtension_Hooks();
-    AnimTypeClassExtension_Hooks();
-    ParticleTypeClassExtension_Hooks();
-    ParticleSystemTypeClassExtension_Hooks();
-    IsometricTileTypeClassExtension_Hooks();
-    OverlayTypeClassExtension_Hooks();
-    SmudgeTypeClassExtension_Hooks();
-    TerrainTypeClassExtension_Hooks();
-    HouseTypeClassExtension_Hooks();
-    SideClassExtension_Hooks();
-    CampaignClassExtension_Hooks();
-    TiberiumClassExtension_Hooks();
-    //TaskForceClassExtension_Hooks();
-    //AITriggerTypeClassExtension_Hooks();
-    //ScriptTypeClassExtension_Hooks();
-    //TagTypeClassExtension_Hooks();
-    //TriggerTypeClassExtension_Hooks();
-
-    TechnoClassExtension_Hooks();
-    UnitClassExtension_Hooks();
-    AircraftClassExtension_Hooks();
-    InfantryClassExtension_Hooks();
-    BuildingClassExtension_Hooks();
-    CellClassExtension_Hooks();
-    HouseClassExtension_Hooks();
-    TeamClassExtension_Hooks();
-    TActionClassExtension_Hooks();
-    FactoryClassExtension_Hooks();
-    TechnoClassExtension_Hooks();
-    FootClassExtension_Hooks();
-    AnimClassExtension_Hooks();
-    BulletClassExtension_Hooks();
-    TerrainClassExtension_Hooks();
-    SuperClassExtension_Hooks();
-    ParticleSystemClassExtension_Hooks();
-
     CombatExtension_Hooks();
 
-    EMPulseClassExtension_Hooks();
-    WaveClassExtension_Hooks();
+    PlayMovieExtension_Hooks();
+    ThemeClassExtension_Hooks();
 
     TextLabelClassExtension_Hooks();
 
