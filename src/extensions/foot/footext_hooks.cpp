@@ -26,15 +26,145 @@
  *
  ******************************************************************************/
 #include "footext_hooks.h"
+#include "tibsun_inline.h"
+#include "tibsun_globals.h"
 #include "foot.h"
 #include "technotype.h"
 #include "technotypeext.h"
+#include "house.h"
+#include "rules.h"
+#include "rulesext.h"
+#include "session.h"
+#include "iomap.h"
+#include "target.h"
 #include "fatal.h"
 #include "asserthandler.h"
 #include "debughandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-680
+ * 
+ *  Implements IsStupidHunt for TechnoTypes.
+ * 
+ *  @author: CCHyper
+ */
+static Coordinate &Foot_Get_Coord(FootClass *this_ptr) { return this_ptr->Get_Coord(); }
+DECLARE_PATCH(_FootClass_Mission_Hunt_Stupid_Hunt_Patch)
+{
+    GET_REGISTER_STATIC(FootClass *, this_ptr, esi);
+    static TechnoTypeClassExtension *technotypeext;
+
+    technotypeext = TechnoTypeClassExtensions.find(this_ptr->Techno_Type_Class());
+
+    /**
+     *  Should this unit just head towards the enemy without picking a target?
+     */
+    if (technotypeext && technotypeext->IsStupidHunt) {
+
+        /**
+         *  Player controlled units don't ignore by the "stupid hunt" rule, so
+         *  tell them to randomly animate. Same goes for if this is a multiplayer
+         *  game.
+         */
+        if (this_ptr->House->Is_Player_Control() || Session.Type != GAME_NORMAL) {
+            this_ptr->Random_Animate();
+
+        /**
+         *  AI controlled units in the campaign should head directly towards
+         *  the player, not its current enemy. This ensures the units do not
+         *  head towards a partner house that attacked them last.
+         */
+        } else {
+
+            if (PlayerPtr->Center) {
+                CellClass *cell = &Map[PlayerPtr->Center];
+                this_ptr->Assign_Destination(cell);
+                this_ptr->Assign_Mission(MISSION_MOVE);
+            }
+
+        }
+
+        goto mission_return;
+    }
+
+    /**
+     *  Find a fresh target within my range.
+     */
+    if (this_ptr->Target_Something_Nearby(Foot_Get_Coord(this_ptr), THREAT_NORMAL)) {
+        goto target_picked;
+    }
+
+    /**
+     *  Failed to pick a target, random animate and return.
+     */
+random_animate:
+    JMP(0x004A1C03);
+
+    /**
+     *  We picked a target, continue.
+     */
+target_picked:
+    JMP(0x004A1C12);
+
+    /**
+     *  Mission complete!
+     */
+mission_return:
+    JMP(0x004A1D28);
+}
+
+
+/**
+ *  #issue-595
+ * 
+ *  Implements IsCanApproachTarget for TechnoTypes.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_FootClass_Approach_Target_Can_Approach_Patch)
+{
+    GET_REGISTER_STATIC(FootClass *, this_ptr, ebp);
+    static TechnoTypeClassExtension *technotypeext;
+
+    technotypeext = TechnoTypeClassExtensions.find(this_ptr->Techno_Type_Class());
+
+    /**
+     *  Stolen bytes/code.
+     */
+    if (this_ptr->Mission == MISSION_STICKY) {
+        goto assign_null_target_return;
+    }
+
+    /**
+     *  
+     */
+    if (technotypeext && !technotypeext->IsCanApproachTarget) {
+
+        static bool force_approach;
+        force_approach = false;
+
+        if (this_ptr->Mission == MISSION_ATTACK) {
+            force_approach = true;
+        }
+        if (this_ptr->Mission == MISSION_GUARD_AREA && this_ptr->House->Is_Player_Control()) {
+            force_approach = true;
+        }
+        if ((this_ptr->Mission != MISSION_HUNT || this_ptr->House->Is_Player_Control()) && !force_approach) {
+            goto assign_null_target_return;
+        }
+
+    }
+
+continue_checks:
+    JMP(0x004A1ED2);
+
+assign_null_target_return:
+    JMP(0x006371E7);
+}
 
 
 /**
@@ -180,4 +310,6 @@ void FootClassExtension_Hooks()
     Patch_Jump(0x004A4D60, &_FootClass_Death_Announcement_IsInsignifcant_Patch);
     Patch_Jump(0x004A6866, &_FootClass_Is_Allowed_To_Recloak_Cloak_Stop_BugFix_Patch);
     Patch_Jump(0x004A59E1, &_FootClass_AI_IdleRate_Patch);
+    Patch_Jump(0x004A1EA8, &_FootClass_Approach_Target_Can_Approach_Patch);
+    Patch_Jump(0x004A1BEB, &_FootClass_Mission_Hunt_Stupid_Hunt_Patch);
 }

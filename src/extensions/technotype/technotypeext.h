@@ -78,6 +78,18 @@ class TechnoTypeClassExtension final : public Extension<TechnoTypeClass>
         bool IsImmuneToEMP;
 
         /**
+         *  Can this unit can continually move towards its intended target with
+         *  the intention of gaining more accuracy?
+         */
+        bool IsCanApproachTarget;
+
+        /**
+         *  Should this unit just head towards the enemy if possible rather than
+         *  assigning itself a nearby target (computer-controlled units only)?
+         */
+        bool IsStupidHunt;
+
+        /**
          *  These values are used to shake the screen when the object is destroyed.
          */
         unsigned ShakePixelYHi;

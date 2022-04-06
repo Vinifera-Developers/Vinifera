@@ -51,6 +51,8 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(TechnoTypeClass *this_ptr) :
     UncloakSound(VOC_NONE),
     IsShakeScreen(false),
     IsImmuneToEMP(false),
+    IsCanApproachTarget(true),
+    IsStupidHunt(false),
     ShakePixelYHi(0),
     ShakePixelYLo(0),
     ShakePixelXHi(0),
@@ -235,6 +237,8 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     VoiceEnter = ini.Get_VocType_List(ini_name, "VoiceEnter", VoiceEnter);
     VoiceDeploy = ini.Get_VocType_List(ini_name, "VoiceDeploy", VoiceDeploy);
     VoiceHarvest = ini.Get_VocType_List(ini_name, "VoiceHarvest", VoiceHarvest);
+    IsCanApproachTarget = ini.Get_Bool(ini_name, "CanApproachTarget", IsCanApproachTarget);
+    IsStupidHunt = ini.Get_Bool(ini_name, "StupidHunt", IsStupidHunt);
 
     IdleRate = ini.Get_Int(ini_name, "IdleRate", IdleRate);
     IdleRate = ArtINI.Get_Int(graphic_name, "IdleRate", IdleRate);
