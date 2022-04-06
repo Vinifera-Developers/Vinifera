@@ -78,6 +78,18 @@ class TechnoTypeClassExtension final : public Extension<TechnoTypeClass>
         bool IsImmuneToEMP;
 
         /**
+         *  Can this unit can continually move towards its intended target with
+         *  the intention of gaining more accuracy?
+         */
+        bool IsCanApproachTarget;
+
+        /**
+         *  Can this unit recalculate what its next target will be when conducting
+         *  its threat scan if its current target is out of range?
+         */
+        bool IsCanRecalcApproachTarget;
+
+        /**
          *  These values are used to shake the screen when the object is destroyed.
          */
         unsigned ShakePixelYHi;
