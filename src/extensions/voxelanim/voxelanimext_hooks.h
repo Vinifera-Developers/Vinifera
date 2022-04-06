@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          VOXELANIMTYPEEXT.H
+ *  @file          VOXELANIMEXT_HOOKS.H
  *
  *  @author        CCHyper
  *
- *  @brief         Extended VoxelAnimTypeClass class.
+ *  @brief         Contains the hooks for the extended VoxelAnimClass.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -27,36 +27,5 @@
  ******************************************************************************/
 #pragma once
 
-#include "extension.h"
-#include "container.h"
 
-
-class VoxelAnimTypeClass;
-class CCINIClass;
-
-
-class VoxelAnimTypeClassExtension final : public Extension<VoxelAnimTypeClass>
-{
-    public:
-        VoxelAnimTypeClassExtension(VoxelAnimTypeClass *this_ptr);
-        VoxelAnimTypeClassExtension(const NoInitClass &noinit);
-        ~VoxelAnimTypeClassExtension();
-
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
-        virtual int Size_Of() const override;
-
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
-
-        bool Read_INI(CCINIClass &ini);
-
-    public:
-        /**
-         *  The sound effect to play when this voxel anim has finished.
-         */
-        VocType StopSound;
-};
-
-
-extern ExtensionMap<VoxelAnimTypeClass, VoxelAnimTypeClassExtension> VoxelAnimTypeClassExtensions;
+void VoxelAnimClassExtension_Hooks();
