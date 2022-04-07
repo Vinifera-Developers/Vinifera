@@ -87,8 +87,8 @@ DECLARE_PATCH(_Tactical_Draw_Rally_Points_NormaliseLineAnimation_Patch)
     time = timeGetTime();
     offset = (-time / 32) & (ARRAYSIZE(_pattern)-1);
 
-    color = DSurface::RGBA_To_Pixel(0,255,0);
-    color_black = DSurface::RGBA_To_Pixel(0,0,0);
+    color = DSurface::RGB_To_Pixel(0,255,0);
+    color_black = DSurface::RGB_To_Pixel(0,0,0);
 
 #if 0
     /**
@@ -159,7 +159,7 @@ DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_NormaliseLineAnimation_Patch)
     time = timeGetTime();
     offset = (-time / 64) & (ARRAYSIZE(_pattern)-1);
 
-    color_black = DSurface::RGBA_To_Pixel(0,0,0);
+    color_black = DSurface::RGB_To_Pixel(0,0,0);
 
 #if 0
     /**
@@ -215,7 +215,7 @@ DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_DrawNormalLine_Patch)
 
     static unsigned color_black;
 
-    color_black = DSurface::RGBA_To_Pixel(0,0,0);
+    color_black = DSurface::RGB_To_Pixel(0,0,0);
 
     /**
      *  Draw the drop shadow line.
