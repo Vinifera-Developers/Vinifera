@@ -243,24 +243,57 @@ void Vinifera_Assign_Houses()
      *  Added checks to make sure the houses exist before blindly
      *  attempting to create a instance of them.
      */
-    
+    ColorSchemeType remap_color = ColorScheme::From_Name("LightGrey");
+    ColorSchemeType grey_color = ColorScheme::From_Name("Grey");
+
     house = HouseTypeClass::From_Name("Neutral");
     if (house != HOUSE_NONE) {
         DEBUG_INFO("  Creating Neutral house...\n");
 
-        housep = new HouseClass(HouseTypes[house]);
-        housep->RemapColor = ColorScheme::From_Name("LightGrey");
+        housetype = HouseTypes[house];
+        housep = new HouseClass(housetype);
+
+        /**
+         *  #issue-773
+         * 
+         *  Allow the remap colour of Neutral to be overriden. Due to the difference
+         *  in the colours used between RULES.INI and scenarios for official maps, we
+         *  need to check for both LightGrey and Grey, and only allow overrides
+         *  if it does not match these colors.
+         * 
+         *  @author: CCHyper
+         */
+        if (housetype->RemapColor != remap_color && housetype->RemapColor != grey_color) {
+            remap_color = housetype->RemapColor;
+        }
+        housep->RemapColor = remap_color;
+
         housep->Init_Remap_Color();
     }
 
     house = HouseTypeClass::From_Name("Special");
     if (house != HOUSE_NONE) {
         DEBUG_INFO("  Creating Special house...\n");
-        
-        housep = new HouseClass(HouseTypes[house]);
-        housep->RemapColor = ColorScheme::From_Name("LightGrey");
-        housep->Init_Remap_Color();
 
+        housetype = HouseTypes[house];
+        housep = new HouseClass(housetype);
+
+        /**
+         *  #issue-773
+         * 
+         *  Allow the remap colour of Special to be overriden. Due to the difference
+         *  in the colours used between RULES.INI and scenarios for official maps, we
+         *  need to check for both LightGrey and Grey, and only allow overrides
+         *  if it does not match these colors.
+         * 
+         *  @author: CCHyper
+         */
+        if (housetype->RemapColor != remap_color && housetype->RemapColor != grey_color) {
+            remap_color = housetype->RemapColor;
+        }
+        housep->RemapColor = remap_color;
+
+        housep->Init_Remap_Color();
     }
 
     DEBUG_INFO("Assign_Houses(exit)\n");
