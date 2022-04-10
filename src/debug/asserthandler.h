@@ -167,3 +167,85 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
             } \
         } \
     } while (false)
+
+
+/**
+ *  Assertion macros for overriding source information.
+ */
+#define ASSERT_CUSTOM(exp, file, line, func) \
+    do { \
+        static volatile bool _ignore_assert = false; \
+        static volatile bool _break = false; \
+        static volatile bool _exit = false; \
+        if (!IgnoreAllAsserts) { \
+            if (!_ignore_assert) { \
+                if (!(exp)) { \
+                    Vinifera_Assert(ASSERT_NORMAL, #exp, file, line, func, &_ignore_assert, &_break, &_exit, nullptr); \
+                    if (_break) { \
+                        __debugbreak(); \
+                    } \
+                    if (_exit || ExitOnAssert) { \
+                        Emergency_Exit(EXIT_FAILURE); \
+                    } \
+                } \
+            } \
+        } \
+    } while (false)
+
+#define ASSERT_CUSTOM_FATAL(exp, file, line, func) \
+    do { \
+        static volatile bool _ignore_assert = false; \
+        static volatile bool _break = false; \
+        static volatile bool _exit = false; \
+        if (!IgnoreAllAsserts) { \
+            if (!_ignore_assert) { \
+                if (!(exp)) { \
+                    Vinifera_Assert(ASSERT_NORMAL, #exp, file, line, func, &_ignore_assert, &_break, &_exit, nullptr); \
+                    if (_break) { \
+                        __debugbreak(); \
+                    } \
+                    if (_exit || ExitOnAssert) { \
+                        Emergency_Exit(EXIT_FAILURE); \
+                    } \
+                } \
+            } \
+        } \
+    } while (false)
+
+#define ASSERT_CUSTOM_PRINT(exp, file, line, func, msg, ...) \
+    do { \
+        static volatile bool _ignore_assert = false; \
+        static volatile bool _break = false; \
+        static volatile bool _exit = false; \
+        if (!IgnoreAllAsserts) { \
+            if (!_ignore_assert) { \
+                if (!(exp)) { \
+                    Vinifera_Assert(ASSERT_NORMAL, #exp, file, line, func, &_ignore_assert, &_break, &_exit, msg, ##__VA_ARGS__); \
+                    if (_break) { \
+                        __debugbreak(); \
+                    } \
+                    if (_exit || ExitOnAssert) { \
+                        Emergency_Exit(EXIT_FAILURE); \
+                    } \
+                } \
+            } \
+        } \
+    } while (false)
+
+#define ASSERT_CUSTOM_PRINT_FATAL(exp, file, line, func, msg, ...) \
+    do { \
+        static volatile bool _ignore_assert = false; \
+        static volatile bool _break = false; \
+        static volatile bool _exit = false; \
+        if (!IgnoreAllAsserts) { \
+            if (!_ignore_assert) { \
+                if (!(exp)) { \
+                    Vinifera_Assert(ASSERT_NORMAL, #exp, file, line, func, &_ignore_assert, &_break, &_exit, msg, ##__VA_ARGS__); \
+                    if (_break) { \
+                        __debugbreak(); \
+                    } \
+                    Emergency_Exit(EXIT_FAILURE); \
+                } \
+            } \
+        } \
+    } while (false)
