@@ -27,11 +27,33 @@
  ******************************************************************************/
 #include "animtypeext_hooks.h"
 #include "animtypeext_init.h"
+#include "animtype.h"
 #include "animtypeext.h"
 #include "supertype.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+
+
+/**
+ *  Patches in an assertion check for image data.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_AnimTypeClass_Get_Image_Data_Assertion_Patch)
+{
+    GET_REGISTER_STATIC(AnimTypeClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(const ShapeFileStruct *, image, eax);
+
+    if (image == nullptr) {
+        DEBUG_WARNING("Anim %s has NULL image data!\n", this_ptr->Name());
+    }
+
+    _asm { mov eax, image } // restore eax state.
+    _asm { pop esi }
+    _asm { add esp, 0x264 }
+    _asm { ret }
+}
 
 
 /**
@@ -43,4 +65,6 @@ void AnimTypeClassExtension_Hooks()
      *  Initialises the extended class.
      */
     AnimTypeClassExtension_Init();
+
+    //Patch_Jump(0x00419B37, &_AnimTypeClass_Get_Image_Data_Assertion_Patch);
 }

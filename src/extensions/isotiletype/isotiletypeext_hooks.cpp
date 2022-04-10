@@ -27,11 +27,48 @@
  ******************************************************************************/
 #include "isotiletypeext_hooks.h"
 #include "isotiletypeext_init.h"
+#include "isotiletype.h"
 #include "isotiletypeext.h"
-#include "supertype.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+
+
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ * 
+ *  @note: This must not contain a constructor or deconstructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+static class IsometricTileTypeClassFake final : public IsometricTileTypeClass
+{
+    public:
+        const ShapeFileStruct * _Get_Image_Data();
+};
+
+
+/**
+ *  Reimplementation of IsometricTileTypeClass::Get_Image_Data with added assertion.
+ * 
+ *  @author: CCHyper
+ */
+const ShapeFileStruct * IsometricTileTypeClassFake::_Get_Image_Data()
+{
+    if (Image) {
+        return Image;
+    }
+
+    if (IsFileLoaded) {
+        Load_Image_Data();
+    }
+    
+    if (Image == nullptr) {
+        DEBUG_WARNING("IsoTile %s has NULL image data!\n", Name());
+    }
+
+    return Image;
+}
 
 
 /**
@@ -43,4 +80,6 @@ void IsometricTileTypeClassExtension_Hooks()
      *  Initialises the extended class.
      */
     IsometricTileTypeClassExtension_Init();
+
+    Patch_Jump(0x004F3570, &IsometricTileTypeClassFake::_Get_Image_Data);
 }
