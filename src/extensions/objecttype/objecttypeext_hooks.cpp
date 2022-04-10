@@ -49,6 +49,7 @@ static class ObjectTypeClassFake final : public ObjectTypeClass
 {
     public:
         void _Assign_Theater_Name(char *buffer, TheaterType theater);
+        const ShapeFileStruct * _Get_Image_Data() const;
 };
 
 
@@ -103,6 +104,21 @@ DECLARE_PATCH(_ObjectTypeClass_Load_Theater_Art_Assign_Theater_Name_Theater_Patc
 
 
 /**
+ *  Reimplementation of ObjectTypeClass::Get_Image_Data with added assertion.
+ * 
+ *  @author: CCHyper
+ */
+const ShapeFileStruct * ObjectTypeClassFake::_Get_Image_Data() const
+{
+    if (Image == nullptr) {
+        DEBUG_WARNING("Object %s has NULL image data!\n", Name());
+    }
+
+    return Image;
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void ObjectTypeClassExtension_Hooks()
@@ -112,6 +128,7 @@ void ObjectTypeClassExtension_Hooks()
      */
     ObjectTypeClassExtension_Init();
 
+    Patch_Jump(0x004101A0, &ObjectTypeClassFake::_Get_Image_Data);
     Patch_Jump(0x00588D00, &ObjectTypeClassFake::_Assign_Theater_Name);
     Patch_Jump(0x0058891D, &_ObjectTypeClass_Load_Theater_Art_Assign_Theater_Name_Theater_Patch);
 }

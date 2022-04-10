@@ -35,6 +35,27 @@
 
 
 /**
+ *  Patches in an assertion check for image data.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_OverlayTypeClass_Get_Image_Data_Assertion_Patch)
+{
+    GET_REGISTER_STATIC(OverlayTypeClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(const ShapeFileStruct *, image, eax);
+
+    if (image == nullptr) {
+        DEBUG_WARNING("Overlay %s has NULL image data!\n", this_ptr->Name());
+    }
+
+    _asm { mov eax, image } // restore eax state.
+    _asm { pop esi }
+    _asm { add esp, 0x264 }
+    _asm { ret }
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void OverlayTypeClassExtension_Hooks()
@@ -43,4 +64,6 @@ void OverlayTypeClassExtension_Hooks()
      *  Initialises the extended class.
      */
     OverlayTypeClassExtension_Init();
+
+    Patch_Jump(0x0058DC18, &_OverlayTypeClass_Get_Image_Data_Assertion_Patch);
 }
