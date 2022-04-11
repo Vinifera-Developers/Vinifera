@@ -40,12 +40,14 @@
 #include "technotypeext.h"
 #include "house.h"
 #include "housetype.h"
+#include "bsurface.h"
 #include "dsurface.h"
 #include "convert.h"
 #include "drawshape.h"
 #include "rules.h"
 #include "voc.h"
 #include "iomap.h"
+#include "spritecollection.h"
 #include "fatal.h"
 #include "asserthandler.h"
 #include "debughandler.h"
@@ -423,20 +425,46 @@ DECLARE_PATCH(_BuildingClass_Draw_Spied_Cameo_Palette_Patch)
     GET_REGISTER_STATIC(TechnoClass *, factory_obj, eax);
     GET_REGISTER_STATIC(Point2D *, pos_xy, edi);
     GET_REGISTER_STATIC(Rect *, window_rect, ebp);
-
     static TechnoTypeClass *technotype;
+    static TechnoTypeClassExtension *technotypeext;
     static const ShapeFileStruct *cameo_shape;
+    static Surface *pcx_image;
+    static Rect pcxrect;
 
     technotype = factory_obj->Techno_Type_Class();
-    cameo_shape = technotype->Get_Cameo_Data();
 
     /**
-     *  Draw the cameo shape.
+     *  #issue-487
      * 
-     *  Original code used NormalDrawer, which is the old Red Alert shape
-     *  drawer, so we need to use CameoDrawer here for the correct palette.
+     *  Adds support for PCX/PNG cameo icons.
+     * 
+     *  @author: CCHyper
      */
-    CC_Draw_Shape(TempSurface, CameoDrawer, cameo_shape, 0, pos_xy, window_rect, ShapeFlagsType(SHAPE_CENTER|SHAPE_400|SHAPE_ALPHA|SHAPE_NORMAL));
+    technotypeext = TechnoTypeClassExtensions.find(technotype);
+    if (technotypeext->CameoImageSurface) {
+
+        /**
+         *  Draw the cameo pcx image.
+         */
+        pcxrect.X = window_rect->X + pos_xy->X;
+        pcxrect.Y = window_rect->Y + pos_xy->Y;
+        pcxrect.Width = technotypeext->CameoImageSurface->Get_Width();
+        pcxrect.Height = technotypeext->CameoImageSurface->Get_Height();
+
+        SpriteCollection.Draw(pcxrect, *TempSurface, *technotypeext->CameoImageSurface);
+
+    } else {
+
+        cameo_shape = technotype->Get_Cameo_Data();
+
+        /**
+         *  Draw the cameo shape.
+         * 
+         *  Original code used NormalDrawer, which is the old Red Alert shape
+         *  drawer, so we need to use CameoDrawer here for the correct palette.
+         */
+        CC_Draw_Shape(TempSurface, CameoDrawer, cameo_shape, 0, pos_xy, window_rect, ShapeFlagsType(SHAPE_CENTER|SHAPE_400|SHAPE_ALPHA|SHAPE_NORMAL));
+    }
 
     JMP(0x00428B13);
 }
