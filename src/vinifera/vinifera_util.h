@@ -32,6 +32,7 @@
 
 
 class XSurface;
+class BSurface;
 
 
 const char *Vinifera_Version_String();
@@ -64,3 +65,5 @@ HGLOBAL Vinifera_Fetch_Resource(HMODULE handle, const char *id, const char *type
 #define FETCH_STRING Vinifera_Fetch_String
 #define FETCH_RESOURCE Vinifera_Fetch_Resource
 #endif
+
+BSurface *Vinifera_Get_Image_Surface(const char *filename);
