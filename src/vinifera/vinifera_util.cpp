@@ -34,6 +34,10 @@
 #include "colorscheme.h"
 #include "textprint.h"
 #include "dsurface.h"
+#include "bsurface.h"
+#include "spritecollection.h"
+#include "filepng.h"
+#include "filepcx.h"
 #include "cncnet4_globals.h"
 #include "wwfont.h"
 #include "msgbox.h"
@@ -676,4 +680,45 @@ HGLOBAL Vinifera_Fetch_Resource(HMODULE handle, const char *id, const char *type
     //DEBUGINFO("Fetch_Resource() - Resource loaded sucessfully.\n");
 
     return res_data;
+}
+
+
+/**
+ *  Fetch a image surface from the specified filename if it exists.
+ *  
+ *  @return      NULL if the image file was not found.
+ * 
+ *  @warning     The input filename must not contain an extension!
+ * 
+ *  @author: CCHyper
+ */
+BSurface *Vinifera_Get_Image_Surface(const char *filename)
+{
+    BSurface *surface = nullptr;
+    CCFileClass file;
+
+    Wstring fname = filename;
+    fname.To_Upper();
+
+    Wstring png_fname = fname;
+    png_fname += ".PNG";
+
+    file.Set_Name(png_fname.Peek_Buffer());
+
+    surface = Read_PNG_File(&file);
+    if (surface) {
+        return surface;
+    }
+
+    surface = Get_BMP_Image_Surface(fname.Peek_Buffer());
+    if (surface) {
+        return surface;
+    }
+
+    surface = Get_PCX_Image_Surface(fname.Peek_Buffer());
+    if (surface) {
+        return surface;
+    }
+
+    return nullptr;
 }
