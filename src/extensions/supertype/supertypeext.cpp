@@ -27,6 +27,7 @@
  ******************************************************************************/
 #include "supertypeext.h"
 #include "supertype.h"
+#include "vinifera_util.h"
 #include "ccini.h"
 #include "asserthandler.h"
 #include "debughandler.h"
@@ -45,7 +46,8 @@ ExtensionMap<SuperWeaponTypeClass, SuperWeaponTypeClassExtension> SuperWeaponTyp
  */
 SuperWeaponTypeClassExtension::SuperWeaponTypeClassExtension(SuperWeaponTypeClass *this_ptr) :
     Extension(this_ptr),
-    IsShowTimer(false)
+    IsShowTimer(false),
+    CameoImageSurface(nullptr)
 {
     ASSERT(ThisPtr != nullptr);
     //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -77,6 +79,9 @@ SuperWeaponTypeClassExtension::~SuperWeaponTypeClassExtension()
     //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
     //EXT_DEBUG_WARNING("SuperWeaponTypeClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
+    delete CameoImageSurface;
+    CameoImageSurface = nullptr;
+
     IsInitialized = false;
 }
 
@@ -97,6 +102,14 @@ HRESULT SuperWeaponTypeClassExtension::Load(IStream *pStm)
     }
 
     new (this) SuperWeaponTypeClassExtension(NoInitClass());
+
+    /**
+     *  Fetch the cameo image surface if it exists.
+     */
+    BSurface *imagesurface = Vinifera_Get_Image_Surface(ThisPtr->SidebarImage);
+    if (imagesurface) {
+        CameoImageSurface = imagesurface;
+    }
     
     return hr;
 }
@@ -177,6 +190,14 @@ bool SuperWeaponTypeClassExtension::Read_INI(CCINIClass &ini)
     }
 
     IsShowTimer = ini.Get_Bool(ini_name, "ShowTimer", IsShowTimer);
+
+    /**
+     *  Fetch the cameo image surface if it exists.
+     */
+    BSurface *imagesurface = Vinifera_Get_Image_Surface(ThisPtr->SidebarImage);
+    if (imagesurface) {
+        CameoImageSurface = imagesurface;
+    }
     
     return true;
 }

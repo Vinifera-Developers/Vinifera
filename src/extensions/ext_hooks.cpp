@@ -40,6 +40,7 @@
 #include "tacticalext_hooks.h"
 #include "scenarioext_hooks.h"
 #include "displayext_hooks.h"
+#include "sidebarext_hooks.h"
 #include "tooltipext_hooks.h"
 #include "commandext_hooks.h"
 #include "optionsext_hooks.h"
@@ -217,6 +218,7 @@ void Extension_Hooks()
     TacticalExtension_Hooks();
     ScenarioClassExtension_Hooks();
     DisplayClassExtension_Hooks();
+    SidebarClassExtension_Hooks();
     ToolTipManagerExtension_Hooks();
     CommandExtension_Hooks();
     OptionsClassExtension_Hooks();

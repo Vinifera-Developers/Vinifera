@@ -35,6 +35,7 @@
 
 class TechnoTypeClass;
 class CCINIClass;
+class BSurface;
 
 
 class TechnoTypeClassExtension final : public Extension<TechnoTypeClass>
@@ -140,6 +141,11 @@ class TechnoTypeClassExtension final : public Extension<TechnoTypeClass>
          *  The rate at which this unit animates when it is standing idle (not moving).
          */
         unsigned IdleRate;
+
+        /**
+         *  Pointer to the cameo image surface.
+         */
+        BSurface *CameoImageSurface;
 };
 
 

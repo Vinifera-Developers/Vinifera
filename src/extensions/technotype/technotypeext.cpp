@@ -28,8 +28,11 @@
 #include "technotypeext.h"
 #include "technotype.h"
 #include "ccini.h"
+#include "filepng.h"
 #include "swizzle.h"
 #include "tibsun_globals.h"
+#include "vinifera_util.h"
+#include "spritecollection.h"
 #include "asserthandler.h"
 #include "debughandler.h"
 
@@ -65,7 +68,8 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(TechnoTypeClass *this_ptr) :
     VoiceEnter(),
     VoiceDeploy(),
     VoiceHarvest(),
-    IdleRate(0)
+    IdleRate(0),
+    CameoImageSurface(nullptr)
 {
     ASSERT(ThisPtr != nullptr);
     //EXT_DEBUG_TRACE("TechnoTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -97,6 +101,9 @@ TechnoTypeClassExtension::~TechnoTypeClassExtension()
     //EXT_DEBUG_TRACE("TechnoTypeClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
     //EXT_DEBUG_WARNING("TechnoTypeClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
+    delete CameoImageSurface;
+    CameoImageSurface = nullptr;
+
     IsInitialized = false;
 }
 
@@ -119,6 +126,30 @@ HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
     new (this) TechnoTypeClassExtension(NoInitClass());
 
     SWIZZLE_REQUEST_POINTER_REMAP(UnloadingClass);
+
+    /**
+     *  We need to reload the "Cameo" key because TechnoTypeClass does
+     *  not store the entry value. 
+     */
+    const char *ini_name = ThisPtr->Name();
+    const char *graphic_name = ThisPtr->Graphic_Name();
+
+    char cameo_buffer[32];
+    
+    ArtINI.Get_String(ini_name, "Cameo", "XXICON", cameo_buffer, sizeof(cameo_buffer));
+    if (Wstring(cameo_buffer) != "XXICON") {
+
+        ArtINI.Get_String(graphic_name, "Cameo", "XXICON", cameo_buffer, sizeof(cameo_buffer));
+
+        /**
+         *  Fetch the cameo image surface if it exists.
+         */
+        BSurface *imagesurface = Vinifera_Get_Image_Surface(cameo_buffer);
+        if (imagesurface) {
+            CameoImageSurface = imagesurface;
+        }
+
+    }
     
     return hr;
 }
@@ -242,6 +273,14 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
 
     IdleRate = ini.Get_Int(ini_name, "IdleRate", IdleRate);
     IdleRate = ArtINI.Get_Int(graphic_name, "IdleRate", IdleRate);
+
+    /**
+     *  Fetch the cameo image surface if it exists.
+     */
+    BSurface *imagesurface = Vinifera_Get_Image_Surface(ThisPtr->CameoFilename);
+    if (imagesurface) {
+        CameoImageSurface = imagesurface;
+    }
 
     return true;
 }
