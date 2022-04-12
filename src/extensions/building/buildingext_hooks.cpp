@@ -27,7 +27,6 @@
  ******************************************************************************/
 #include "buildingext_hooks.h"
 #include "buildingext_init.h"
-#include "buildingext_functions.h"
 #include "buildingext.h"
 #include "buildingtypeext.h"
 #include "tibsun_globals.h"
@@ -66,8 +65,15 @@
 DECLARE_PATCH(_BuildingClass_AI_ProduceCash_Patch)
 {
     GET_REGISTER_STATIC(BuildingClass *, this_ptr, esi);
+    static BuildingClassExtension *ext_ptr;
 
-    BuildingClassExtension_Produce_Cash_AI(this_ptr);
+    /**
+     *  Find the extension instances.
+     */
+    ext_ptr = BuildingClassExtensions.find(this_ptr);
+    if (ext_ptr) {
+        ext_ptr->Produce_Cash_AI();
+    }
 
     /**
      *  Stolen bytes/code here.

@@ -52,16 +52,28 @@ class BuildingClassExtension final : public Extension<BuildingClass>
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
+        void Produce_Cash_AI();
+
     public:
         /**
-         *  #issue-26
-         * 
-         *  Members for the Produce Cash logic.
+         *  The delay between each cash bonus.
          */
-        CDTimerClass<FrameTimerClass> ProduceCashTimer;     // The delay between each cash bonus.
-        int CurrentProduceCashBudget;                       // The remaining budget for the building.
-        bool IsCaptureOneTimeCashGiven;                     // Have we given our "one time" cash bonus on capture?
-        bool IsBudgetDepleted;                              // Has the cash budget been depleted (stops producing cash)?
+        CDTimerClass<FrameTimerClass> ProduceCashTimer;
+
+        /**
+         *  The remaining budget for the building.
+         */
+        int CurrentProduceCashBudget;
+
+        /**
+         *  Have we given our "one time" cash bonus on capture?
+         */
+        bool IsCaptureOneTimeCashGiven;
+
+        /**
+         *  Has the cash budget been depleted (stops producing cash)?
+         */
+        bool IsBudgetDepleted;
 };
 
 
