@@ -57,6 +57,12 @@ jobs:
         if:   ${{ steps.vars.outputs.GHA_REPO_ALIVE }} == 'true'
         uses: actions/checkout@v2
         
+      - name: Checkout Files
+        uses: actions/checkout@v2
+        with:
+          repository: Vinifera-Developers/Vinifera-Files
+          path: vinifera-files
+        
       - name: Set Variables
         id: vars
         run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
@@ -141,6 +147,12 @@ jobs:
       - name: Clone Repository
         if:   ${{ steps.vars.outputs.GHA_REPO_ALIVE }} == 'true'
         uses: actions/checkout@v2
+        
+      - name: Checkout Files
+        uses: actions/checkout@v2
+        with:
+          repository: Vinifera-Developers/Vinifera-Files
+          path: vinifera-files
         
       - name: Set Variables
         id: vars
