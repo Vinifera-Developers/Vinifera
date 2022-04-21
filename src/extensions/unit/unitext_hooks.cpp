@@ -36,8 +36,11 @@
 #include "unit.h"
 #include "unittype.h"
 #include "unittypeext.h"
+#include "unitext.h"
+#include "unitext_functions.h"
 #include "target.h"
 #include "rules.h"
+#include "rulesext.h"
 #include "iomap.h"
 #include "voc.h"
 #include "fatal.h"
@@ -686,6 +689,137 @@ continue_check_scatter:
     JMP_REG(ecx, 0x0065194E);
 }
 
+/**
+ *  #issue-201
+ *
+ *  A "quality of life" patch for harvesters so they don't discriminate against dock
+ *  buildings that are not the first on their Dock= list. Also makes harvesters
+ *  smarter by making them prefer queuing for nearby occupied refineries instead
+ *  of wandering to distant free refineries.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_UnitClass_Mission_Harvest_FINDHOME_Find_Nearest_Refinery_Patch)
+{
+    /**
+     *  Enum for MISSION_HARVEST status constants.
+     */
+    enum {
+        LOOKING,
+        HARVESTING,
+        FINDHOME,
+        HEADINGHOME,
+        GOINGTOIDLE,
+    };
+
+
+    GET_REGISTER_STATIC(UnitClass*, harvester, esi);
+    static RadioMessageType response;
+    static UnitClassExtension* unitext;
+    static int free_refinery_distance_bias;
+    static BuildingClass* nearest_free_refinery;
+    static int nearest_free_refinery_distance;
+    static BuildingClass* nearest_possibly_occupied_refinery;
+    static int nearest_possibly_occupied_refinery_distance;
+    static bool reserve_free_refinery;
+
+    /**
+     *  Find the nearest refinery that is not occupied.
+     */
+    UnitClassExtension_Find_Nearest_Refinery(harvester, &nearest_free_refinery, &nearest_free_refinery_distance);
+
+    /**
+     *  Find the nearest refinery, regardless of whether it's occupied.
+     */
+    UnitClassExtension_Find_Nearest_Refinery(harvester, &nearest_possibly_occupied_refinery, &nearest_possibly_occupied_refinery_distance, true);
+
+    reserve_free_refinery = true;
+
+    if (nearest_free_refinery == nullptr) {
+
+        /**
+         *  There was no free refinery, check if there was an occupied one.
+         */
+        if (nearest_possibly_occupied_refinery == nullptr) {
+
+            /**
+             *  No refinery existed at all! We have nothing to do here.
+             */
+            goto set_mission_delay_and_return;
+        }
+
+        /**
+         *  There was an occupied refinery, queue for it instead.
+         */
+        reserve_free_refinery = false;
+    }
+    else if (nearest_free_refinery != nearest_possibly_occupied_refinery) {
+
+        /**
+         *  There was a free refinery as well as an occupied one.
+         *  Check if the occupied refinery is significantly closer to us than the free refinery.
+         */
+
+        free_refinery_distance_bias = 16;
+        if (RulesExtension) {
+            free_refinery_distance_bias = RulesExtension->MaxFreeRefineryDistanceBias;
+        }
+
+        if (nearest_free_refinery_distance >
+            nearest_possibly_occupied_refinery_distance + Cell_To_Lepton(free_refinery_distance_bias)) {
+
+            reserve_free_refinery = false;
+        }
+    }
+
+    unitext = UnitClassExtensions.find(harvester);
+
+    if (reserve_free_refinery) {
+
+        /**
+         *  We want to contact the free refinery, send a radio message to it.
+         */
+        response = harvester->Transmit_Message(RADIO_HELLO, nearest_free_refinery);
+
+        /**
+         *  Check if the refinery answered as expected. If not, we'll queue for it instead.
+         */
+        if (response == RADIO_ROGER) {
+
+            /**
+             *  The refinery accepted us! Change mission status to HEADINGHOME and jump to original code.
+             */
+            harvester->Status = HEADINGHOME;
+
+            if (unitext) {
+                unitext->LastDockedBuilding = nearest_free_refinery;
+            }
+
+            goto set_mission_delay_and_return;
+        }
+    }
+
+
+    /**
+     *  Re-use the original game's code for queueing to an occupied refinery.
+     *  The game expects the occupied refinery pointer to be in edi.
+     */
+queue_to_occupied:
+
+    if (unitext) {
+        unitext->LastDockedBuilding = nearest_possibly_occupied_refinery;
+    }
+
+    _asm { mov edi, [nearest_possibly_occupied_refinery] };
+    JMP(0x00654FAA);
+
+
+    /**
+     *  Set mission delay and return from function.
+     */
+set_mission_delay_and_return:
+    JMP(0x00655226);
+}
 
 /**
  *  Main function for patching the hooks.
@@ -708,4 +842,5 @@ void UnitClassExtension_Hooks()
     Patch_Jump(0x0065665D, &_UnitClass_What_Action_ACTION_HARVEST_Block_On_Bridge_Patch); // IsToVeinHarvest
     //Patch_Jump(0x0065054F, &_UnitClass_Enter_Idle_Mode_Block_Harvesting_On_Bridge_Patch); // Removed, keeping code for reference.
     //Patch_Jump(0x00654AB0, &_UnitClass_Mission_Harvest_Block_Harvesting_On_Bridge_Patch); // Removed, keeping code for reference.
+    Patch_Jump(0x00654EEE, &_UnitClass_Mission_Harvest_FINDHOME_Find_Nearest_Refinery_Patch);
 }

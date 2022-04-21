@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          UNITEXT.H
+ *  @file          FOOTEXT_FUNCTIONS.H
  *
- *  @author        CCHyper
+ *  @author        Rampastring
  *
- *  @brief         Extended UnitClass class.
+ *  @brief         Contains the supporting functions for the extended UnitClass.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -27,39 +27,10 @@
  ******************************************************************************/
 #pragma once
 
-#include "extension.h"
-#include "container.h"
+#include "always.h"
+#include "foot.h"
+#include "tibsun_defines.h"
 
+class FootClass;
 
-class UnitClass;
-class HouseClass;
-
-
-class UnitClassExtension final : public Extension<UnitClass>
-{
-    public:
-        UnitClassExtension(UnitClass *this_ptr);
-        UnitClassExtension(const NoInitClass &noinit);
-        ~UnitClassExtension();
-
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
-        virtual int Size_Of() const override;
-
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
-
-    public:
-
-        /**
-         *  #issue-203
-         *
-         *  The building that this unit last docked with.
-         *  Used by harvesters for considering the distance to their last refinery
-         *  when picking a tiberium cell to harvest from.
-         */
-        BuildingClass* LastDockedBuilding;
-};
-
-
-extern ExtensionMap<UnitClass, UnitClassExtension> UnitClassExtensions;
+Cell Vinifera_FootClass_Search_For_Tiberium(FootClass* this_ptr, int rad, bool a2);

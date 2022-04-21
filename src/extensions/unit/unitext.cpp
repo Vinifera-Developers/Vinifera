@@ -27,6 +27,7 @@
  ******************************************************************************/
 #include "unitext.h"
 #include "unit.h"
+#include "building.h"
 #include "wwcrc.h"
 #include "asserthandler.h"
 #include "debughandler.h"
@@ -44,7 +45,9 @@ ExtensionMap<UnitClass, UnitClassExtension> UnitClassExtensions;
  *  @author: CCHyper
  */
 UnitClassExtension::UnitClassExtension(UnitClass *this_ptr) :
-    Extension(this_ptr)
+    Extension(this_ptr),
+
+    LastDockedBuilding(nullptr)
 {
     ASSERT(ThisPtr != nullptr);
     //EXT_DEBUG_TRACE("UnitClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -97,6 +100,8 @@ HRESULT UnitClassExtension::Load(IStream *pStm)
 
     new (this) UnitClassExtension(NoInitClass());
     
+    SWIZZLE_REQUEST_POINTER_REMAP(LastDockedBuilding);
+
     return hr;
 }
 
@@ -155,4 +160,6 @@ void UnitClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
     ASSERT(ThisPtr != nullptr);
     //EXT_DEBUG_TRACE("UnitClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+
+    crc(LastDockedBuilding != nullptr ? LastDockedBuilding->Fetch_ID() : 0);
 }

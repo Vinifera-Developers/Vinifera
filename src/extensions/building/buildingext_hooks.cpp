@@ -37,13 +37,17 @@
 #include "buildingtypeext.h"
 #include "technotype.h"
 #include "technotypeext.h"
+#include "unit.h"
+#include "unitext.h"
 #include "house.h"
 #include "housetype.h"
+#include "cargo.h"
 #include "bsurface.h"
 #include "dsurface.h"
 #include "convert.h"
 #include "drawshape.h"
 #include "rules.h"
+#include "rulesext.h"
 #include "voc.h"
 #include "iomap.h"
 #include "spritecollection.h"
@@ -477,6 +481,165 @@ DECLARE_PATCH(_BuildingClass_Draw_Spied_Cameo_Palette_Patch)
 
 
 /**
+ *  #issue-202
+ *
+ *  For harvester queue jumping.
+ *  Don't return RADIO_NEGATIVE if a refinery is already in radio contact
+ *  with a unit that is different from the one that sent us the message.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_BuildingClass_Receive_Message_Harvester_Queue_Jump_No_Ignoring_If_In_Contact_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, building, esi);
+
+    if (building->Class->IsRefinery) {
+        goto skip_returning_negative;
+    }
+
+    /**
+     *  We're not a refinery, don't skip the check.
+     */
+    goto original_behaviour;
+
+
+    /**
+     *  Skip the (!ScenarioInit && In_Radio_Contact()) and following (Contact_With_Whom() != from)
+     *  condition and related code for the refinery and continue function
+     *  execution from beyond that point.
+     */
+skip_returning_negative:
+    JMP(0x0042697B);
+
+
+    /**
+     *  Stolen bytes / code, perform the check.
+     */
+original_behaviour:
+    if (ScenarioInit) {
+        JMP(0x00426962);
+    }
+
+    JMP(0x00426953);
+}
+
+
+/**
+ *  #issue-202
+ *
+ *  For harvester queue jumping.
+ *  If we're a refinery and the harvester contacting us is closer to us than a
+ *  potentially existing harvester heading towards us, allow the new harvester
+ *  to take priority and tell the old harvester to go do something else.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_BuildingClass_Receive_Message_Harvester_Queue_Jump_Allow_Replacing_Old_Harv_If_Closer_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, building, esi);
+    GET_REGISTER_STATIC(TechnoClass*, message_sender, edi);
+    static int queue_jump_distance;
+    static int old_harvester_distance;
+    static int new_harvester_distance;
+    static TechnoClass* old_harvester;
+
+    if (ScenarioInit) {
+        /**
+         *  Stolen bytes / code, return RADIO_ROGER if ScenarioInit is set.
+         */
+    return_roger_scenarioinit:
+        JMP(0x0042707B);
+    }
+
+
+    if (building->Cargo.Is_Something_Attached()) {
+
+        /**
+         *  We're not free (perhaps a harvester is unloading), return RADIO_STATIC.
+         */
+    return_static:
+        _asm { mov  eax, [RADIO_STATIC] }
+        JMP_REG(ecx, 0x004271CA);
+    }
+
+    /**
+     *  Check if we're already in radio contact with another harvester
+     *  than the one that sent us the message.
+     *  If not, we can simply accept the new harvester.
+     */
+    old_harvester = building->Contact_With_Whom();
+
+    if (old_harvester != nullptr && old_harvester != message_sender) {
+
+        /**
+         *  Get distance to the old harvester and distance
+         *  to the new harvester and compare the distances.
+         */
+        old_harvester_distance = building->Distance(old_harvester);
+        new_harvester_distance = building->Distance(message_sender);
+
+        queue_jump_distance = 7;
+        if (RulesExtension) {
+            queue_jump_distance = RulesExtension->MinHarvesterQueueJumpDistance;
+        }
+
+        if (new_harvester_distance + Cell_To_Lepton(queue_jump_distance) > old_harvester_distance) {
+
+            /**
+             *  The new harvester is not significantly closer to us than the old one,
+             *  exit the function and return RADIO_NEGATIVE.
+             */
+        return_negative:
+            JMP(0x0042696C);
+        }
+
+        /**
+         *  The harvester that sent us the message is significantly closer to us than
+         *  our old assigned harvester. Tell the old harvester to figure out a new
+         *  purpose for their life and accept the new harvester by returning RADIO_ROGER.
+         */
+        building->Transmit_Message(RADIO_OVER_OUT, old_harvester);
+    }
+
+    /**
+     *  Exits the function and returns RADIO_ROGER.
+     */
+return_roger:
+    JMP(0x004269BD);
+}
+
+
+/**
+ *  #issue-203
+ *
+ *  Assigns the last docked building of a spawned free unit on
+ *  building placement complete (the "grand opening").
+ *  This allows harvesters to know which refinery they spawned from.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_BuildingClass_Grand_Opening_Assign_FreeUnit_LastDockedBuilding_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    GET_REGISTER_STATIC(UnitClass*, unit, edi);
+    static UnitClassExtension* unitext_ptr;
+
+    unitext_ptr = UnitClassExtensions.find(unit);
+    if (unitext_ptr) {
+        unitext_ptr->LastDockedBuilding = this_ptr;
+    }
+
+
+    /**
+     *  Continue the FreeUnit down-placing process.
+     */
+original_code:
+    _asm { movsx   eax, bp }
+    _asm { movsx   ecx, bx }
+    JMP_REG(edx, 0x0042E5FB);
+}
+
+/**
  *  Main function for patching the hooks.
  */
 void BuildingClassExtension_Hooks()
@@ -493,4 +656,7 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x00429A96, &_BuildingClass_AI_ProduceCash_Patch);
     Patch_Jump(0x0042F67D, &_BuildingClass_Captured_ProduceCash_Patch);
     Patch_Jump(0x0042E179, &_BuildingClass_Grand_Opening_ProduceCash_Patch);
+    Patch_Jump(0x0042694A, &_BuildingClass_Receive_Message_Harvester_Queue_Jump_No_Ignoring_If_In_Contact_Patch);
+    Patch_Jump(0x00426A71, &_BuildingClass_Receive_Message_Harvester_Queue_Jump_Allow_Replacing_Old_Harv_If_Closer_Patch);
+    Patch_Jump(0x0042E5F5, &_BuildingClass_Grand_Opening_Assign_FreeUnit_LastDockedBuilding_Patch);
 }
