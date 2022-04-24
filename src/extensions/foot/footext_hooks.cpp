@@ -26,16 +26,46 @@
  *
  ******************************************************************************/
 #include "footext_hooks.h"
+#include "footext_functions.h"
 #include "foot.h"
 #include "technoext.h"
 #include "technotype.h"
 #include "technotypeext.h"
+#include "unit.h"
+#include "unittype.h"
 #include "fatal.h"
 #include "asserthandler.h"
 #include "debughandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+ /**
+  *  A fake class for implementing new member functions which allow
+  *  access to the "this" pointer of the intended class.
+  *
+  *  @note: This must not contain a constructor or deconstructor!
+  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+  */
+static class FootClassFake final : public FootClass
+{
+public:
+    Cell _Search_For_Tiberium(int rad, bool a2);
+};
+
+
+/**
+ * #issue-203
+ *
+ * Enables smarter harvester tiberium-seeking algorithm.
+ *
+ * Author: Rampastring
+ */
+Cell FootClassFake::_Search_For_Tiberium(int rad, bool a2)
+{
+    return Vinifera_FootClass_Search_For_Tiberium(this, rad, a2);
+}
 
 
 /**
@@ -275,6 +305,62 @@ function_return:
 
 
 /**
+ *  #issue-202
+ *
+ *  For harvester queue jumping.
+ *  Make harvesters seek for a new refinery to unload into when their
+ *  existing refinery has dumped them for a different harvester.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_FootClass_Mission_Enter_Seek_New_Refinery_After_Dropped)
+{
+    GET_REGISTER_STATIC(FootClass*, this_ptr, esi);
+    static UnitTypeClass* unittype;
+
+    /**
+     *  Check if we're a harvester.
+     */
+
+    if (this_ptr->What_Am_I() != RTTI_UNIT) {
+
+        /**
+         *  We're not a unit and so we can't be a harvester, don't change original behaviour.
+         */
+        goto original_code;
+    }
+
+    unittype = reinterpret_cast<UnitClass*>(this_ptr)->Class;
+
+    if (!unittype->IsToHarvest && !unittype->IsToVeinHarvest) {
+
+        /**
+         *  We're not a harvester, don't change original behaviour.
+         */
+        goto original_code;
+    }
+
+    /**
+     *  We're a harvester, try to find a new refinery instead of going idle.
+     */
+    this_ptr->Assign_Mission(MISSION_HARVEST);
+    goto commence_mission;
+
+    /**
+     *  Put the object into idle mode and continue on to commencing the mission.
+     */
+original_code:
+    this_ptr->Enter_Idle_Mode(false, true);
+
+    /**
+     *  Commences the given mission and exits the function afterwards.
+     */
+commence_mission:
+    JMP(0x004A49B1);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void FootClassExtension_Hooks()
@@ -285,4 +371,6 @@ void FootClassExtension_Hooks()
     Patch_Jump(0x004A2BE7, &_FootClass_Mission_Guard_Area_Can_Passive_Aqcuire_Patch);
     Patch_Jump(0x004A1AAE, &_FootClass_Mission_Guard_Can_Passive_Aqcuire_Patch);
     Patch_Jump(0x004A102F, &_FootClass_Mission_Move_Can_Passive_Aqcuire_Patch);
+    Patch_Jump(0x004A49A3, &_FootClass_Mission_Enter_Seek_New_Refinery_After_Dropped);
+    Patch_Jump(0x004A76F0, &FootClassFake::_Search_For_Tiberium);
 }

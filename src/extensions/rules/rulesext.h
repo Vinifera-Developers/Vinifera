@@ -110,6 +110,21 @@ class RulesClassExtension final : public Extension<RulesClass>
          *  on the tactical view?
          */
         bool IsShowSuperWeaponTimers;
+
+        /**
+         *  When looking for refineries, harvesters will prefer a distant free
+         *  refinery over a closer occupied refinery if the refineries' distance
+         *  difference in cells is less than this.
+         */
+        int MaxFreeRefineryDistanceBias;
+
+        /**
+         *  If a refinery is already occupied by a returning harvester and another
+         *  harvester is also looking to dock, allow the new harvester to take over
+         *  the refinery if the difference in distance to the refinery between
+         *  the existing harvester and the new harvester is at least this many cells.
+         */
+        int MinHarvesterQueueJumpDistance;
 };
 
 
