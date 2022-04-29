@@ -45,8 +45,8 @@
  * 
  *  @author: CCHyper
  */
-static Coordinate &Foot_Get_Coord(FootClass *this_ptr) { return this_ptr->Get_Coord(); }
-DECLARE_PATCH(_FootClass_Mission_Move_Can_Passive_Aqcuire_Patch)
+static bool Foot_Target_Something_Nearby_Coord(FootClass *this_ptr, ThreatType threat) { return this_ptr->Target_Something_Nearby(this_ptr->Get_Coord(), threat); }
+DECLARE_PATCH(_FootClass_Mission_Move_Can_Passive_Acquire_Patch)
 {
     GET_REGISTER_STATIC(FootClass *, this_ptr, esi);
     static TechnoClassExtension *technoclassext;
@@ -63,7 +63,7 @@ DECLARE_PATCH(_FootClass_Mission_Move_Can_Passive_Aqcuire_Patch)
     /**
      *  Find a fresh target within my range.
      */
-    !this_ptr->Target_Something_Nearby(Foot_Get_Coord(this_ptr), THREAT_RANGE);
+    Foot_Target_Something_Nearby_Coord(this_ptr, THREAT_RANGE);
 
 finish_mission_process:
     JMP(0x004A104B);
@@ -77,8 +77,7 @@ finish_mission_process:
  * 
  *  @author: CCHyper
  */
-//static Coordinate &Foot_Get_Coord(FootClass *this_ptr) { return this_ptr->Get_Coord(); }
-DECLARE_PATCH(_FootClass_Mission_Guard_Can_Passive_Aqcuire_Patch)
+DECLARE_PATCH(_FootClass_Mission_Guard_Can_Passive_Acquire_Patch)
 {
     GET_REGISTER_STATIC(FootClass *, this_ptr, esi);
     static TechnoClassExtension *technoclassext;
@@ -95,7 +94,7 @@ DECLARE_PATCH(_FootClass_Mission_Guard_Can_Passive_Aqcuire_Patch)
     /**
      *  Find a fresh target within my range.
      */
-    if (!this_ptr->Target_Something_Nearby(Foot_Get_Coord(this_ptr), THREAT_RANGE)) {
+    if (!Foot_Target_Something_Nearby_Coord(this_ptr, THREAT_RANGE)) {
         goto continue_check;
     }
 
@@ -114,8 +113,8 @@ continue_check:
  * 
  *  @author: CCHyper
  */
-static Coordinate &Foot_Archive_Center_Coord(FootClass *this_ptr) { return this_ptr->ArchiveTarget->Center_Coord(); }
-DECLARE_PATCH(_FootClass_Mission_Guard_Area_Can_Passive_Aqcuire_Patch)
+static bool Foot_Target_Something_Nearby_Archive(FootClass *this_ptr, ThreatType threat) { return this_ptr->Target_Something_Nearby(this_ptr->ArchiveTarget->Center_Coord(), threat); }
+DECLARE_PATCH(_FootClass_Mission_Guard_Area_Can_Passive_Acquire_Patch)
 {
     GET_REGISTER_STATIC(FootClass *, this_ptr, esi);
     static TechnoClassExtension *technoclassext;
@@ -130,9 +129,9 @@ DECLARE_PATCH(_FootClass_Mission_Guard_Area_Can_Passive_Aqcuire_Patch)
     }
 
     /**
-     *  Find a fresh target in my area.
+     *  Find a fresh target in my area using the backup target.
      */
-    this_ptr->Target_Something_Nearby(Foot_Archive_Center_Coord(this_ptr), THREAT_AREA);
+    Foot_Target_Something_Nearby_Archive(this_ptr, THREAT_AREA);
 
 tarcom_check:
     JMP(0x004A2C04);
@@ -282,7 +281,7 @@ void FootClassExtension_Hooks()
     Patch_Jump(0x004A4D60, &_FootClass_Death_Announcement_IsInsignifcant_Patch);
     Patch_Jump(0x004A6866, &_FootClass_Is_Allowed_To_Recloak_Cloak_Stop_BugFix_Patch);
     Patch_Jump(0x004A59E1, &_FootClass_AI_IdleRate_Patch);
-    Patch_Jump(0x004A2BE7, &_FootClass_Mission_Guard_Area_Can_Passive_Aqcuire_Patch);
-    Patch_Jump(0x004A1AAE, &_FootClass_Mission_Guard_Can_Passive_Aqcuire_Patch);
-    Patch_Jump(0x004A102F, &_FootClass_Mission_Move_Can_Passive_Aqcuire_Patch);
+    Patch_Jump(0x004A2BE7, &_FootClass_Mission_Guard_Area_Can_Passive_Acquire_Patch);
+    Patch_Jump(0x004A1AAE, &_FootClass_Mission_Guard_Can_Passive_Acquire_Patch);
+    Patch_Jump(0x004A102F, &_FootClass_Mission_Move_Can_Passive_Acquire_Patch);
 }
