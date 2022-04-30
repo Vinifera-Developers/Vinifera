@@ -188,7 +188,6 @@ void Extension_Hooks()
         //TagTypeClassExtension_Hooks();
         //TriggerTypeClassExtension_Hooks();
 
-        TechnoClassExtension_Hooks();
         UnitClassExtension_Hooks();
         AircraftClassExtension_Hooks();
         InfantryClassExtension_Hooks();
