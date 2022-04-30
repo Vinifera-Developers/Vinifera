@@ -60,6 +60,32 @@
 
 
 /**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ * 
+ *  @note: This must not contain a constructor or destructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+class BuildingClassExt final : public BuildingClass
+{
+    public:
+        Coordinate _Docking_Coord() const;
+};
+
+
+/**
+ *  Reimplementation of BuildingClass::Docking_Coord.
+ * 
+ *  @author: CCHyper
+ */
+Coordinate BuildingClassExt::_Docking_Coord() const
+{
+    BuildingClassExtension *buildingext = Extension::Fetch<BuildingClassExtension>(this);
+    return buildingext->Docking_Coord();
+}
+
+
+/**
  *  #issue-204
  * 
  *  Implements ReloadRate for AircraftTypes, allowing each aircraft to have
@@ -514,4 +540,5 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x0042E179, &_BuildingClass_Grand_Opening_ProduceCash_Patch);
     Patch_Jump(0x004325F9, &_BuildingClass_Mission_Repair_ReloadRate_Patch);
     Patch_Jump(0x0043266C, &_BuildingClass_Mission_Repair_ReloadRate_Patch);
+    Patch_Dword(0x006CC3A0, Get_Func_Address(&BuildingClassExt::_Docking_Coord));
 }
