@@ -528,15 +528,17 @@ static void Debug_Handler_Hooks()
  */
 static void Vinifera_Assert_Handler(TSPPAssertType type, const char *expr, const char *file, int line, const char *function, volatile bool *ignore, volatile bool *allow_break, volatile bool *exit, const char *msg, ...)
 {
-    va_list args;
     static char buf[4096];
 
-    va_start(args, msg);
-    vsnprintf(buf, sizeof(buf), msg, args);
-
-    Vinifera_Assert((AssertType)type, expr, file, line, function, ignore, allow_break, exit, msg, args);
-
-    va_end(args);
+    if (msg) {
+        va_list args;
+        va_start(args, msg);
+        vsnprintf(buf, sizeof(buf), msg, args);
+        Vinifera_Assert((AssertType)type, expr, file, line, function, ignore, allow_break, exit, msg, args);
+        va_end(args);
+    } else {
+        Vinifera_Assert((AssertType)type, expr, file, line, function, ignore, allow_break, exit, msg, nullptr);
+    }
 }
 
 
