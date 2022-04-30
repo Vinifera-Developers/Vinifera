@@ -183,6 +183,13 @@ bool TerrainTypeClassExtension::Read_INI(CCINIClass &ini)
         return false;
     }
 
+    /**
+     *  #issue-570
+     * 
+     *  Implements RadarColor reading support to TerrainTypes.
+     */
+    ThisPtr->RadarColor = ini.Get_RGB(ini_name, "RadarColor", ThisPtr->RadarColor);
+
     IsLightEnabled = ini.Get_Bool(ini_name, "IsLightEnabled", IsLightEnabled);
     LightVisibility = ini.Get_Int(ini_name, "LightVisibility", LightVisibility);
     LightIntensity = ini.Get_Double(ini_name, "LightIntensity", (LightIntensity / 1000)) * 1000.0 + 0.1;
