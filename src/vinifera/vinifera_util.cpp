@@ -496,6 +496,7 @@ bool Vinifera_Create_Zip(const char *filename, DynamicVectorClass<const char *> 
  */
 bool Vinifera_Collect_Debug_Files()
 {
+#if 0
     char buffer[PATH_MAX];
 
     char debug_buffer[PATH_MAX];
@@ -557,6 +558,8 @@ bool Vinifera_Collect_Debug_Files()
     files.Delete_All();
 
     return result;
+#endif
+    return true;
 }
 
 
