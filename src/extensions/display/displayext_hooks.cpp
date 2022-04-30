@@ -80,6 +80,14 @@ class DisplayClassExt final : public DisplayClass
 ObjectClass * DisplayClassExt::_Next_Object(ObjectClass * object) const
 {
     static const LayerType _layers[] = {
+        
+        /**
+         *  #issue-785
+         * 
+         *  Adds underground layer to display search.
+         */
+        LAYER_UNDERGROUND,
+
         LAYER_GROUND, LAYER_AIR, LAYER_TOP,
     };
 
@@ -121,6 +129,13 @@ ObjectClass * DisplayClassExt::_Prev_Object(ObjectClass * object)  const
 {
     static const LayerType _layers[] = {
         LAYER_TOP, LAYER_AIR, LAYER_GROUND,
+
+        /**
+         *  #issue-785
+         * 
+         *  Adds underground layer to display search.
+         */
+        LAYER_UNDERGROUND,
     };
 
     ObjectClass * firstobj = nullptr;
