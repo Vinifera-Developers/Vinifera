@@ -40,6 +40,7 @@ int Load_String_Ex(HINSTANCE hInstance, UINT uID, LPWSTR lpBuffer, INT nBufferMa
 int Load_String_Ex(HINSTANCE hInstance, UINT uID, LPCSTR lpBuffer, INT nBufferMax, WORD wLanguage);
 
 DWORD Find_Process_Id(const char *process_name);
+HANDLE Get_Process_by_Id(DWORD pId);
 HANDLE Get_Process_By_Name(const char *process_name);
 
 DWORD Get_Process_Main_Thread_Id(DWORD pId);

@@ -251,6 +251,35 @@ DWORD Find_Process_Id(const char *process_name)
 }
 
 
+HANDLE Get_Process_by_Id(DWORD pId)
+{
+    PROCESSENTRY32 processInfo;
+    ZeroMemory(&processInfo, sizeof(processInfo));
+    processInfo.dwSize = sizeof(processInfo);
+
+    // Create toolhelp snapshot.
+    HANDLE processesSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
+
+    Process32First(processesSnapshot, &processInfo);
+    if (processInfo.th32ProcessID == pId) {
+        CloseHandle(processesSnapshot);
+        return OpenProcess(PROCESS_ALL_ACCESS, FALSE, processInfo.th32ProcessID);
+    }
+
+    while (Process32Next(processesSnapshot, &processInfo)) {
+        //DEBUG_INFO("Checking process %s %d...\n", processInfo.szExeFile, processInfo.th32ProcessID);
+        if (processInfo.th32ProcessID == pId) {
+            CloseHandle(processesSnapshot);
+            return OpenProcess(PROCESS_ALL_ACCESS, FALSE, processInfo.th32ProcessID);
+        }
+    }
+
+    CloseHandle(processesSnapshot);
+
+    return nullptr;
+}
+
+
 HANDLE Get_Process_By_Name(const char *process_name)
 {
     PROCESSENTRY32 processInfo;
