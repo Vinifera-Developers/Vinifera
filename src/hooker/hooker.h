@@ -32,6 +32,7 @@
 
 #include "always.h"
 #include <Windows.h>
+#include "asserthandler.h"
 
 
 /**
@@ -77,7 +78,7 @@ void Patch_Call(uintptr_t address, T new_address)
     call_opcode cmd;
     cmd.addr = reinterpret_cast<uintptr_t>((void*&)new_address) - address - sizeof(call_opcode);
     WriteProcessMemory(GetCurrentProcess(), (LPVOID)address, &cmd, sizeof(call_opcode), &bytes_written);
-    //assert(bytes_written == 5);
+    ASSERT_FATAL(bytes_written == sizeof(call_opcode));
 }
 
 
@@ -94,7 +95,7 @@ void Patch_Jump(uintptr_t address, T new_address)
     jump_opcode cmd;
     cmd.addr = reinterpret_cast<uintptr_t>((void*&)new_address) - address - sizeof(jump_opcode);
     WriteProcessMemory(GetCurrentProcess(), (LPVOID)address, &cmd, sizeof(jump_opcode), &bytes_written);
-    //assert(bytes_written == 5);
+    ASSERT_FATAL(bytes_written == sizeof(jump_opcode));
 }
 
 
@@ -105,21 +106,21 @@ inline void Patch_Byte(uintptr_t in, uint8_t byte)
 {
     SIZE_T bytes_written;
     WriteProcessMemory(GetCurrentProcess(), (LPVOID)in, &byte, sizeof(uint8_t), &bytes_written);
-    //assert(bytes_written == 1);
+    ASSERT_FATAL(bytes_written == sizeof(uint8_t));
 }
 
 inline void Patch_Word(uintptr_t in, uint16_t word)
 {
     SIZE_T bytes_written;
     WriteProcessMemory(GetCurrentProcess(), (LPVOID)in, &word, sizeof(uint16_t), &bytes_written);
-    //assert(bytes_written == 2);
+    ASSERT_FATAL(bytes_written == sizeof(uint16_t));
 }
 
 inline void Patch_Dword(uintptr_t in, uint32_t dword)
 {
     SIZE_T bytes_written;
     WriteProcessMemory(GetCurrentProcess(), (LPVOID)in, &dword, sizeof(uint32_t), &bytes_written);
-    //assert(bytes_written == 4);
+    ASSERT_FATAL(bytes_written == sizeof(uint32_t));
 }
 
 inline void Patch_Byte_Range(uintptr_t in, uint8_t byte, int count = 1)
@@ -128,7 +129,7 @@ inline void Patch_Byte_Range(uintptr_t in, uint8_t byte, int count = 1)
     for (int i = 0; i < count; ++i) {
         uintptr_t in_adj = in+i;
         WriteProcessMemory(GetCurrentProcess(), (LPVOID)in_adj, &byte, sizeof(uint8_t), &bytes_written);
-        //assert(bytes_written == 1);
+        ASSERT_FATAL(bytes_written == sizeof(uint8_t));
     }
 }
 
