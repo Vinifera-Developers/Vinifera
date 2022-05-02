@@ -146,6 +146,15 @@ class TechnoTypeClassExtension final : public Extension<TechnoTypeClass>
          *  Pointer to the cameo image surface.
          */
         BSurface *CameoImageSurface;
+
+        /**
+         *  Is this object considered a water based vehicle (i.e. ship, submarine, etc)?
+         * 
+         *  #NOTE: This is a temporary property that is used to enforce special rules to
+         *         allow better naval and shipyard support until a full Vessel class is hooked
+         *         up and implemented.
+         */
+        bool IsNaval;
 };
 
 
