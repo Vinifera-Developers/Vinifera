@@ -28,35 +28,78 @@
  *
  ******************************************************************************/
 #include "hooker.h"
-#include <cassert>
+#include "mapview.h"
+#include "asserthandler.h"
 
 
-extern HMODULE DLLInstance;
+static DWORD OriginalCodeProtect = 0;
+static DWORD OriginalDataProtect = 0;
 
-static const int TextSegementStart = 0x00401000;  // Start of the .text segment in the binary.
-static const int GameBinarySize = VINIFERA_TARGET_SIZE;  // Raw size of binary in bytes.
-static DWORD OldProtect = 0;
+static bool HookingFlag = false;
 
 
+/**
+ *  Unprotects the binary, run before patches are applied.
+ */
 bool StartHooking()
 {
-	/**
-	 *  Change the protection of the .text segment to READ+WRITE in the target binary.
-	 *  This allows us to modify code and place hooks in the binary.
-	 */
-    BOOL success = VirtualProtectEx(GetCurrentProcess(), (LPVOID)&TextSegementStart, GameBinarySize, PAGE_EXECUTE_READWRITE, &OldProtect);
+    if (HookingFlag) {
+        return true;
+    }
 
-    return true;
+    OutputDebugString("StartHooking()...\n\n");
+
+    bool success = false;
+    ImageSectionInfo info;
+
+    if (GetModuleSectionInfo(info)) {
+        success = true;
+        HANDLE process = GetCurrentProcess();
+        if (VirtualProtectEx(process, info.BaseOfCode, info.SizeOfCode, PAGE_EXECUTE_READWRITE, &OriginalCodeProtect) == FALSE) {
+            success = false;
+            ASSERT_FATAL_PRINT(success == true, "Failed to change code section permissions!");
+        }
+        if (VirtualProtectEx(process, info.BaseOfData, info.SizeOfData, PAGE_READWRITE, &OriginalDataProtect) == FALSE) {
+            success = false;
+            ASSERT_FATAL_PRINT(success == true, "Failed to change data section permissions!");
+        }
+    }
+
+    ASSERT_FATAL(success == true);
+
+    HookingFlag = success;
+
+    return success;
 }
 
 
+/**
+ *  Restores protection on the binary, run once patches have been applied.
+ */
 bool StopHooking()
 {
-	/**
-	 *  Restore the protection of the .text segment back to the original access.
-	 */
-    DWORD OldProtect2;
-    BOOL success = VirtualProtectEx(GetCurrentProcess(), (LPVOID)&TextSegementStart, GameBinarySize, OldProtect, &OldProtect2);
+    OutputDebugString("StopHooking()...\n\n");
 
-	return true;
+    bool success = false;
+    DWORD old_protect;
+    ImageSectionInfo info;
+
+    if (GetModuleSectionInfo(info)) {
+        success = true;
+        HANDLE process = GetCurrentProcess();
+        if (VirtualProtectEx(process, info.BaseOfCode, info.SizeOfCode, OriginalCodeProtect, &old_protect) == FALSE) {
+            success = false;
+            ASSERT_FATAL_PRINT(success == true, "Failed to change code section permissions!");
+        }
+        if (VirtualProtectEx(process, info.BaseOfData, info.SizeOfData, OriginalDataProtect, &old_protect) == FALSE) {
+            success = false;
+            ASSERT_FATAL_PRINT(success == true, "Failed to change data section permissions!");
+        }
+    }
+    
+    ASSERT_FATAL(success == true);
+
+    HookingFlag = false;
+
+    return success;
 }
