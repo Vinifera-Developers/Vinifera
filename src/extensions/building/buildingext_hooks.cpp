@@ -58,6 +58,45 @@
 /**
  *  #issue-531
  * 
+ *  This patch allows buildings with the IsNavalYard property to be assigned
+ *  as "Primary" seperate from other UnitType factories.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_BuildingClass_Toggle_Primary_NavalYard_Check_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(BuildingClass *, building, eax);
+    static BuildingTypeClassExtension *this_buildingtypeext;
+    static BuildingTypeClassExtension *i_buildingtypeext;
+
+    /**
+     *  Find the type class extension instance.
+     */
+    this_buildingtypeext = BuildingTypeClassExtensions.find(this_ptr->Class);
+    i_buildingtypeext = BuildingTypeClassExtensions.find(building->Class);
+
+    /**
+     *  If we found another naval yard, remove its leadership status so we can
+     *  assign it to ourself.
+     */
+    if (this_buildingtypeext && i_buildingtypeext
+     && this_buildingtypeext->IsNavalYard && i_buildingtypeext->IsNavalYard) {
+
+        building->IsLeader = false;
+
+    } else {
+        building->IsLeader = false;
+    }
+
+continue_loop:
+    JMP(0x0042F61A);
+}
+
+
+/**
+ *  #issue-531
+ * 
  *  This patch allows buildings with the IsNavalYard property to place rally
  *  points on water rather than on land.
  * 
@@ -552,4 +591,5 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x0042F67D, &_BuildingClass_Captured_ProduceCash_Patch);
     Patch_Jump(0x0042E179, &_BuildingClass_Grand_Opening_ProduceCash_Patch);
     Patch_Jump(0x0042C37F, &_BuildingClass_Set_Rally_To_Point_NavalYard_Check_Patch);
+    Patch_Jump(0x0042F614, &_BuildingClass_Toggle_Primary_NavalYard_Check_Patch);
 }
