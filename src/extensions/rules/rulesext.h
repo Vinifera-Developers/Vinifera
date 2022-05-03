@@ -116,6 +116,11 @@ class RulesClassExtension final : public Extension<RulesClass>
          *  from when building its base.
          */
         TypeList<BuildingTypeClass *> BuildNavalYard;
+
+        /**
+         *  The distance in cells the computer player can place their Naval Yard from their Construction Yard.
+         */
+        unsigned AINavalYardAdjacency;
 };
 
 
