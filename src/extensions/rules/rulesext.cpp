@@ -50,7 +50,8 @@ RulesClassExtension::RulesClassExtension(RulesClass *this_ptr) :
     IsMPPrePlacedConYards(false),
     IsBuildOffAlly(true),
     IsShowSuperWeaponTimers(true),
-    BuildNavalYard()
+    BuildNavalYard(),
+    AINavalYardAdjacency(20)
 {
     ASSERT(ThisPtr != nullptr);
     //EXT_DEBUG_TRACE("RulesClassExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
@@ -180,6 +181,9 @@ void RulesClassExtension::Detach(TARGET target, bool all)
     ASSERT(ThisPtr != nullptr);
     //EXT_DEBUG_TRACE("RulesClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(ThisPtr));
 
+    if (target->What_Am_I() == RTTI_BUILDINGTYPE) {
+        BuildNavalYard.Delete(reinterpret_cast<BuildingTypeClass *>(target));
+    }
 }
 
 
@@ -198,6 +202,7 @@ void RulesClassExtension::Compute_CRC(WWCRCEngine &crc) const
     crc(IsBuildOffAlly);
     crc(IsShowSuperWeaponTimers);
     crc(BuildNavalYard.Count());
+    crc(AINavalYardAdjacency);
 }
 
 
@@ -304,6 +309,8 @@ bool RulesClassExtension::General(CCINIClass &ini)
     }
 
     BuildNavalYard = ini.Get_Buildings(GENERAL, "BuildNavalYard", BuildNavalYard);
+
+    AINavalYardAdjacency = ini.Get_Int(GENERAL, "AINavalYardAdjacency", AINavalYardAdjacency);
 
     return true;
 }
