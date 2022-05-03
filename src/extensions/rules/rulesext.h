@@ -29,7 +29,7 @@
 
 #include "extension.h"
 #include "container.h"
-
+#include "typelist.h"
 #include "noinit.h"
 #include "tpoint.h"
 
@@ -110,6 +110,12 @@ class RulesClassExtension final : public Extension<RulesClass>
          *  on the tactical view?
          */
         bool IsShowSuperWeaponTimers;
+
+        /**
+         *  A list of buildings considered Naval Yard's for the computer to choose
+         *  from when building its base.
+         */
+        TypeList<BuildingTypeClass *> BuildNavalYard;
 };
 
 
