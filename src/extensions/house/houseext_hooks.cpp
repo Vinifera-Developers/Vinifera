@@ -33,12 +33,114 @@
 #include "housetype.h"
 #include "technotype.h"
 #include "super.h"
+#include "building.h"
+#include "buildingtype.h"
+#include "buildingtypeext.h"
+#include "rules.h"
+#include "rulesext.h"
+#include "iomap.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ * 
+ *  @note: This must not contain a constructor or destructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+class HouseClassExt final : public HouseClass
+{
+    public:
+        Cell _Find_Build_Location(BuildingTypeClass *buildingtype, int (__fastcall *callback)(int, Cell &, int, int), int a3 = -1);
+};
+
+
+/**
+ *  #issue-531
+ * 
+ *  Interception of Find_Build_Location. This allows us to find a suitable building
+ *  location for the specific buildings, such as the Naval Yard.
+ * 
+ *  @author: CCHyper
+ */
+Cell HouseClassExt::_Find_Build_Location(BuildingTypeClass *buildingtype, int (__fastcall *callback)(int, Cell &, int, int), int a3)
+{
+    /**
+     *  Find the type class extension instance.
+     */
+    BuildingTypeClassExtension *buildingtypeext = BuildingTypeClassExtensions.find(buildingtype);
+    if (buildingtypeext && buildingtypeext->IsNavalYard) {
+
+        if (RulesExtension) {
+
+            DEV_DEBUG_INFO("Find_Build_Location(%s): Searching for Naval Yard \"%s\" build location...\n", Name(), buildingtype->Name());
+
+            Cell cell(0,0);
+
+            //BuildingTypeClass *desired_navalyard = Get_First_Ownable(RulesExtension->BuildNavalYard);
+            //ASSERT_PRINT(desired_navalyard != nullptr, "Failed to find a ownable building in BuildNavalYard list!");
+
+            /**
+             *  Get the cell footprint for the Naval Yard, then add a safety margin of 2.
+             */
+            //int area_w = desired_navalyard->Width() + 2;
+            //int area_h = desired_navalyard->Height() + 2;
+            int area_w = buildingtype->Width() + 2;
+            int area_h = buildingtype->Height() + 2;
+
+            /**
+             *  find a nearby location from the center of the base that fits our naval yard.
+             */
+            Cell found_cell = Map.Nearby_Location(Coord_Cell(Center), SPEED_FLOAT, -1, MZONE_NORMAL, 0, area_w, area_h);
+            if (found_cell) {
+
+                DEV_DEBUG_INFO("Find_Build_Location(%s): Found possible Naval Yard location at %d,%d...\n", Name(), found_cell.X, found_cell.Y);
+
+                /**
+                 *  Iterate over all owned construction yards and find the first that is closest to our cell.
+                 */
+                for (int i = 0; i < ConstructionYards.Count(); ++i) {
+                    BuildingClass *conyard = ConstructionYards[i];
+                    if (conyard) {
+
+                        Coordinate conyard_coord = conyard->Center_Coord();
+                        Coordinate found_coord = Map[found_cell].Center_Coord();
+
+                        /**
+                         *  Is this location close enough to the construction yard for us to use?
+                         */
+                        if (Distance(conyard_coord, found_coord) <= Cell_To_Lepton(RulesExtension->AINavalYardAdjacency)) {
+                            DEV_DEBUG_INFO("Find_Build_Location(%s): Using location %d,%d for Naval Yard.\n", Name(), found_cell.X, found_cell.Y);
+                            cell = found_cell;
+                            break;
+                        }
+
+                    }
+
+                }
+
+            }
+                
+            if (!cell) {
+                DEV_DEBUG_WARNING("Find_Build_Location(%s): Failed to find suitable location for \"%s\"!\n", Name(), buildingtype->Name());
+            }
+
+            return cell;
+        }
+
+    }
+
+    /**
+     *  Call the original function to find a location for land buildings.
+     */
+    return HouseClass::Find_Build_Location(buildingtype, callback, a3);
+}
 
 
 /**
@@ -167,4 +269,8 @@ void HouseClassExtension_Hooks()
 
     Patch_Jump(0x004BBD26, &_HouseClass_Can_Build_BuildCheat_Patch);
     Patch_Jump(0x004BD30B, &_HouseClass_Super_Weapon_Handler_InstantRecharge_Patch);
+
+    Patch_Call(0x0042D460, &HouseClassExt::_Find_Build_Location);
+    Patch_Call(0x0042D53C, &HouseClassExt::_Find_Build_Location);
+    Patch_Call(0x004C8104, &HouseClassExt::_Find_Build_Location);
 }
