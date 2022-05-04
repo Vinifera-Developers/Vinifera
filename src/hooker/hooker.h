@@ -78,7 +78,7 @@ void Patch_Call(uintptr_t address, T new_address)
     call_opcode cmd;
     cmd.addr = reinterpret_cast<uintptr_t>((void*&)new_address) - address - sizeof(call_opcode);
     WriteProcessMemory(GetCurrentProcess(), (LPVOID)address, &cmd, sizeof(call_opcode), &bytes_written);
-    ASSERT_FATAL(bytes_written == sizeof(call_opcode));
+    ASSERT_FATAL_PRINT(bytes_written == sizeof(call_opcode), "Failed to patch call at 0x%p!", address);
 }
 
 
@@ -95,7 +95,7 @@ void Patch_Jump(uintptr_t address, T new_address)
     jump_opcode cmd;
     cmd.addr = reinterpret_cast<uintptr_t>((void*&)new_address) - address - sizeof(jump_opcode);
     WriteProcessMemory(GetCurrentProcess(), (LPVOID)address, &cmd, sizeof(jump_opcode), &bytes_written);
-    ASSERT_FATAL(bytes_written == sizeof(jump_opcode));
+    ASSERT_FATAL_PRINT(bytes_written == sizeof(jump_opcode), "Failed to patch jump at 0x%p!", address);
 }
 
 
@@ -106,21 +106,21 @@ inline void Patch_Byte(uintptr_t in, uint8_t byte)
 {
     SIZE_T bytes_written;
     WriteProcessMemory(GetCurrentProcess(), (LPVOID)in, &byte, sizeof(uint8_t), &bytes_written);
-    ASSERT_FATAL(bytes_written == sizeof(uint8_t));
+    ASSERT_FATAL_PRINT(bytes_written == sizeof(uint8_t), "Failed to patch byte at 0x%p!", in);
 }
 
 inline void Patch_Word(uintptr_t in, uint16_t word)
 {
     SIZE_T bytes_written;
     WriteProcessMemory(GetCurrentProcess(), (LPVOID)in, &word, sizeof(uint16_t), &bytes_written);
-    ASSERT_FATAL(bytes_written == sizeof(uint16_t));
+    ASSERT_FATAL_PRINT(bytes_written == sizeof(uint16_t), "Failed to patch word at 0x%p!", in);
 }
 
 inline void Patch_Dword(uintptr_t in, uint32_t dword)
 {
     SIZE_T bytes_written;
     WriteProcessMemory(GetCurrentProcess(), (LPVOID)in, &dword, sizeof(uint32_t), &bytes_written);
-    ASSERT_FATAL(bytes_written == sizeof(uint32_t));
+    ASSERT_FATAL_PRINT(bytes_written == sizeof(uint32_t), "Failed to patch dword at 0x%p!", in);
 }
 
 inline void Patch_Byte_Range(uintptr_t in, uint8_t byte, int count = 1)
@@ -129,7 +129,7 @@ inline void Patch_Byte_Range(uintptr_t in, uint8_t byte, int count = 1)
     for (int i = 0; i < count; ++i) {
         uintptr_t in_adj = in+i;
         WriteProcessMemory(GetCurrentProcess(), (LPVOID)in_adj, &byte, sizeof(uint8_t), &bytes_written);
-        ASSERT_FATAL(bytes_written == sizeof(uint8_t));
+        ASSERT_FATAL_PRINT(bytes_written == sizeof(uint8_t), "Failed to patch %d bytes at 0x%p!", count, in);
     }
 }
 
