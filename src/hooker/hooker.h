@@ -32,6 +32,7 @@
 
 #include "always.h"
 #include <Windows.h>
+#include "debughandler.h"
 #include "asserthandler.h"
 
 
@@ -175,7 +176,25 @@ __forceinline void Change_Address(uintptr_t addr, uintptr_t newaddr)
  */
 __forceinline void Change_Virtual_Address(uintptr_t addr, uintptr_t newaddr)
 {
-    Patch_Dword(addr, newaddr);
+    //Patch_Dword(addr, newaddr);   // Fails when modifying .rdata segment.
+
+    /**
+     *  We need to change the permissions for .rdata segment access on the fly, otherwise
+     *  it WriteProcessMemory will fail.
+     */
+    bool success = false;
+    DWORD oldprotect;
+
+    success = VirtualProtect((LPVOID)addr, sizeof(uint32_t), PAGE_EXECUTE_READWRITE, &oldprotect);
+    ASSERT_FATAL_PRINT(success == true, "VirtualProtect failed to change permissions at 0x%p!", addr);
+
+    //std::memcpy((void *)addr, (void *)newaddr, sizeof(uint32_t));
+    SIZE_T bytes_written;
+    WriteProcessMemory(GetCurrentProcess(), (LPVOID)addr, &newaddr, sizeof(uint32_t), &bytes_written);
+    ASSERT_FATAL_PRINT(bytes_written == sizeof(uint32_t), "Failed to patch dword at 0x%p!", addr);
+
+    success = VirtualProtect((LPVOID)addr, sizeof(uint32_t), oldprotect, &oldprotect);
+    ASSERT_FATAL_PRINT(success == true, "VirtualProtect failed to restore permissions at 0x%p!", addr);
 }
 
 

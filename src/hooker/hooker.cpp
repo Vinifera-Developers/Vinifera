@@ -59,7 +59,7 @@ bool StartHooking()
             success = false;
             ASSERT_FATAL_PRINT(success == true, "Failed to change code section permissions!");
         }
-        if (VirtualProtectEx(process, info.BaseOfData, info.SizeOfData, PAGE_READWRITE, &OriginalDataProtect) == FALSE) {
+        if (VirtualProtectEx(process, info.BaseOfData, info.SizeOfData, PAGE_EXECUTE_READWRITE, &OriginalDataProtect) == FALSE) {
             success = false;
             ASSERT_FATAL_PRINT(success == true, "Failed to change data section permissions!");
         }
