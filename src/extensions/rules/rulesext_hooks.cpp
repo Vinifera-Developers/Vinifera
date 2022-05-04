@@ -221,6 +221,16 @@ void RulesClassExtension_Hooks()
 
     Patch_Jump(0x005C6710, &RulesClassFake::_Process);
 
+    /**
+     *  #issue-632
+     * 
+     *  "EngineerDamage" is incorrectly loaded with "EngineerCaptureLevel".
+     * 
+     *  @author: CCHyper
+     */
+    static const char *INI_EngineerDamage = "EngineerDamage";
+    Patch_Dword(0x005CC1EA+1, (uintptr_t)INI_EngineerDamage);
+
     Patch_Jump(0x004E138B, &_Init_Rules_Extended_Class_Patch);
     Patch_Jump(0x004E12EB, &_Init_Rules_Show_Rules_Select_Dialog_Patch);
 
