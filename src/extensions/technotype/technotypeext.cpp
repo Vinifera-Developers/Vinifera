@@ -30,6 +30,7 @@
 #include "ccini.h"
 #include "filepng.h"
 #include "swizzle.h"
+#include "bsurface.h"
 #include "tibsun_globals.h"
 #include "vinifera_util.h"
 #include "spritecollection.h"

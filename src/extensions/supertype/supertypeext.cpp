@@ -28,6 +28,7 @@
 #include "supertypeext.h"
 #include "supertype.h"
 #include "vinifera_util.h"
+#include "bsurface.h"
 #include "ccini.h"
 #include "asserthandler.h"
 #include "debughandler.h"
