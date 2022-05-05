@@ -41,16 +41,24 @@ class HouseClass;
 class ViniferaCommandClass : public CommandClass
 {
     public:
-        ViniferaCommandClass() : CommandClass(), IsDeveloper(false) {}
+        ViniferaCommandClass() : CommandClass(), IsDeveloper(false), IsMultiplayerOnly(false) {}
         virtual ~ViniferaCommandClass() {}
 
         virtual KeyNumType Default_Key() const = 0;
+
+        bool Developer_Only() const { return IsDeveloper; }
+        bool Multiplayer_Only() const { return IsMultiplayerOnly; }
 
     public:
         /**
          *  Is this command only available in developer mode?
          */
         bool IsDeveloper;
+
+        /**
+         *  Is this command only available in multiplayer games?
+         */
+        bool IsMultiplayerOnly;
 };
 
 
@@ -60,7 +68,7 @@ class ViniferaCommandClass : public CommandClass
 class PNGScreenCaptureCommandClass : public ViniferaCommandClass
 {
     public:
-        PNGScreenCaptureCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        PNGScreenCaptureCommandClass() : ViniferaCommandClass() {}
         virtual ~PNGScreenCaptureCommandClass() {}
 
         virtual const char *Get_Name() const override;
@@ -80,7 +88,7 @@ class PNGScreenCaptureCommandClass : public ViniferaCommandClass
 class ManualPlaceCommandClass : public ViniferaCommandClass
 {
     public:
-        ManualPlaceCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        ManualPlaceCommandClass() : ViniferaCommandClass() {}
         virtual ~ManualPlaceCommandClass() {}
 
         virtual const char *Get_Name() const override;
@@ -99,7 +107,7 @@ class ManualPlaceCommandClass : public ViniferaCommandClass
 class PrevThemeCommandClass : public ViniferaCommandClass
 {
     public:
-        PrevThemeCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        PrevThemeCommandClass() : ViniferaCommandClass() {}
         virtual ~PrevThemeCommandClass() {}
 
         virtual const char *Get_Name() const override;
@@ -118,7 +126,7 @@ class PrevThemeCommandClass : public ViniferaCommandClass
 class NextThemeCommandClass : public ViniferaCommandClass
 {
     public:
-        NextThemeCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        NextThemeCommandClass() : ViniferaCommandClass() {}
         virtual ~NextThemeCommandClass() {}
 
         virtual const char *Get_Name() const override;
@@ -137,7 +145,7 @@ class NextThemeCommandClass : public ViniferaCommandClass
 class ScrollNECommandClass : public ViniferaCommandClass
 {
     public:
-        ScrollNECommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        ScrollNECommandClass() : ViniferaCommandClass() {}
         virtual ~ScrollNECommandClass() {}
 
         virtual const char *Get_Name() const override;
@@ -156,7 +164,7 @@ class ScrollNECommandClass : public ViniferaCommandClass
 class ScrollSECommandClass : public ViniferaCommandClass
 {
     public:
-        ScrollSECommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        ScrollSECommandClass() : ViniferaCommandClass() {}
         virtual ~ScrollSECommandClass() {}
 
         virtual const char *Get_Name() const override;
@@ -175,7 +183,7 @@ class ScrollSECommandClass : public ViniferaCommandClass
 class ScrollSWCommandClass : public ViniferaCommandClass
 {
     public:
-        ScrollSWCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        ScrollSWCommandClass() : ViniferaCommandClass() {}
         virtual ~ScrollSWCommandClass() {}
 
         virtual const char *Get_Name() const override;
@@ -194,7 +202,7 @@ class ScrollSWCommandClass : public ViniferaCommandClass
 class ScrollNWCommandClass : public ViniferaCommandClass
 {
     public:
-        ScrollNWCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        ScrollNWCommandClass() : ViniferaCommandClass() {}
         virtual ~ScrollNWCommandClass() {}
 
         virtual const char *Get_Name() const override;
@@ -213,7 +221,7 @@ class ScrollNWCommandClass : public ViniferaCommandClass
 class JumpCameraWestCommandClass : public ViniferaCommandClass
 {
     public:
-        JumpCameraWestCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        JumpCameraWestCommandClass() : ViniferaCommandClass() {}
         virtual ~JumpCameraWestCommandClass() {}
 
         virtual const char *Get_Name() const override;
@@ -232,7 +240,7 @@ class JumpCameraWestCommandClass : public ViniferaCommandClass
 class JumpCameraEastCommandClass : public ViniferaCommandClass
 {
     public:
-        JumpCameraEastCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        JumpCameraEastCommandClass() : ViniferaCommandClass() {}
         virtual ~JumpCameraEastCommandClass() {}
 
         virtual const char *Get_Name() const override;
@@ -251,7 +259,7 @@ class JumpCameraEastCommandClass : public ViniferaCommandClass
 class JumpCameraNorthCommandClass : public ViniferaCommandClass
 {
     public:
-        JumpCameraNorthCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        JumpCameraNorthCommandClass() : ViniferaCommandClass() {}
         virtual ~JumpCameraNorthCommandClass() {}
 
         virtual const char *Get_Name() const override;
@@ -270,7 +278,7 @@ class JumpCameraNorthCommandClass : public ViniferaCommandClass
 class JumpCameraSouthCommandClass : public ViniferaCommandClass
 {
     public:
-        JumpCameraSouthCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        JumpCameraSouthCommandClass() : ViniferaCommandClass() {}
         virtual ~JumpCameraSouthCommandClass() {}
 
         virtual const char *Get_Name() const override;
@@ -289,7 +297,7 @@ class JumpCameraSouthCommandClass : public ViniferaCommandClass
 class ToggleSuperTimersCommandClass : public ViniferaCommandClass
 {
     public:
-        ToggleSuperTimersCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        ToggleSuperTimersCommandClass() : ViniferaCommandClass() {}
         virtual ~ToggleSuperTimersCommandClass() {}
 
         virtual const char *Get_Name() const override;

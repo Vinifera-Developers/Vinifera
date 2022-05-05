@@ -28,6 +28,8 @@
 #include "commandext.h"
 #include "vinifera_globals.h"
 #include "tibsun_functions.h"
+#include "tibsun_globals.h"
+#include "session.h"
 #include "ccfile.h"
 #include "ccini.h"
 #include "object.h"
@@ -35,6 +37,72 @@
 #include "unittype.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+
+
+/**
+ *  This function reimplements the chunk of code that populates the keyboard
+ *  command list box. This allows us to enforce limits on what commands
+ *  to show depending on the current game mode.
+ * 
+ *  @author: CCHyper
+ */
+static void Populate_Command_Categories(HWND hWnd, const char *category)
+{
+    for (int i = 0; i < Commands.Count(); ++i) {
+        CommandClass *cmd = Commands[i];
+        if (!cmd) {
+            continue;
+        }
+
+        /**
+         *  Any Vinifera commands are subject to game mode checks. We only need
+         *  to check these if are actually "in game".
+         */
+        if (bool_007E4040 || bool_007E48FC) {
+
+            ViniferaCommandClass *vcmd = dynamic_cast<ViniferaCommandClass *>(cmd);
+            if (vcmd) {
+                if (vcmd->Multiplayer_Only() && (Session.Type == GAME_NORMAL || Session.Type == GAME_SKIRMISH || Session.Type == GAME_WDT)) {
+                    continue;
+                }
+                if (vcmd->Developer_Only() && !Vinifera_DeveloperMode) {
+                    continue;
+                }
+            }
+
+        }
+
+        if (strcmpi(cmd->Get_Category(), category) != 0) {
+            continue;
+        }
+
+        /**
+         *  Add the string and data pair to the list box.
+         */
+        LRESULT result = SendMessage(hWnd, LB_ADDSTRING, 0, (LPARAM)cmd->Get_UI_Name());
+        if (result != LB_ERR && result != LB_ERRSPACE) {
+            UINT index = (UINT)result;
+            SendMessage(hWnd, LB_SETITEMDATA, index, (LPARAM)cmd);
+        }
+
+    }
+}
+
+
+/**
+ *  Patch to intercept the populating of the keyboard command list box.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_OptionsClass_Keyboard_Options_Dialog_Populate_Intercept_Patch)
+{
+    GET_REGISTER_STATIC(HWND, hWnd, ebp);
+    LEA_STACK_STATIC(const char *, category, esp, 0x0A4);
+
+    Populate_Command_Categories(hWnd, category);
+
+    JMP(0x0058A79C);
+}
 
 
 /**
@@ -463,4 +531,12 @@ void CommandExtension_Hooks()
     Hook_Virtual(0x004EAB00, PNGScreenCaptureCommandClass::Process);
 
     Patch_Jump(0x004E95C2, &_GuardCommandClass_Process_Harvesters_Set_Mission_Patch);
+
+    /**
+     *  This can not be in client compatabile builds currently as the additional
+     *  commands added do not have runtime type information.
+     */
+#if !defined(TS_CLIENT)
+    Patch_Jump(0x0058A72E, &_OptionsClass_Keyboard_Options_Dialog_Populate_Intercept_Patch);
+#endif
 }
