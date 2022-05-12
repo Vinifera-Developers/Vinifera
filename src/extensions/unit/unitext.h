@@ -33,6 +33,7 @@
 
 class UnitClass;
 class HouseClass;
+class UnitTypeClass;
 
 
 class UnitClassExtension final : public Extension<UnitClass>
@@ -50,6 +51,11 @@ class UnitClassExtension final : public Extension<UnitClass>
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
     public:
+        /**
+         *  Pointer to the original class for this unit. This allows us to
+         *  switch and restore the class in various situations.
+         */
+        const UnitTypeClass *OriginalClass;
 };
 
 

@@ -76,6 +76,11 @@ class UnitTypeClassExtension final : public Extension<UnitTypeClass>
          *  The number of image frames for each of the idle animation sequences.
          */
         unsigned IdleFrames;
+
+        /**
+         *  The graphic class to switch to when this unit enters water.
+         */
+        const UnitTypeClass *WaterClass;
 };
 
 
