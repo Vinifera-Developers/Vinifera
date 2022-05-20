@@ -53,6 +53,7 @@ class BuildingClassExtension final : public Extension<BuildingClass>
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
         void Produce_Cash_AI();
+        Coordinate Docking_Coord() const;
 
     public:
         /**

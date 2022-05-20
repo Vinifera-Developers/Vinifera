@@ -54,7 +54,9 @@ BuildingTypeClassExtension::BuildingTypeClassExtension(BuildingTypeClass *this_p
     ProduceCashBudget(0),
     IsStartupCashOneTime(false),
     IsResetBudgetOnCapture(false),
-    IsEligibleForAllyBuilding(false)
+    IsEligibleForAllyBuilding(false),
+    NumberOfDocks(0),
+    DockingOffsets()
 {
     ASSERT(ThisPtr != nullptr);
     //EXT_DEBUG_TRACE("BuildingTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -167,6 +169,8 @@ void BuildingTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
     //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     crc(IsEligibleForAllyBuilding);
+    crc(NumberOfDocks);
+    crc(DockingOffsets.Count());
 }
 
 
@@ -181,10 +185,24 @@ bool BuildingTypeClassExtension::Read_INI(CCINIClass &ini)
     //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
     EXT_DEBUG_WARNING("BuildingTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
+    char buffer[1024];
+
     const char *ini_name = ThisPtr->Name();
+    const char *graphic_name = ThisPtr->Graphic_Name();
 
     if (!ini.Is_Present(ini_name)) {
         return false;
+    }
+
+    //if (!ArtINI.Is_Present(graphic_name)) {
+    //    return false;
+    //}
+
+    /**
+     *  The following structures have at least one docking location.
+     */
+    if (ThisPtr->IsHelipad) {
+        NumberOfDocks = 1;
     }
 
     GateUpSound = ini.Get_VocType(ini_name, "GateUpSound", GateUpSound);
@@ -199,6 +217,14 @@ bool BuildingTypeClassExtension::Read_INI(CCINIClass &ini)
 
     IsEligibleForAllyBuilding = ini.Get_Bool(ini_name, "EligibleForAllyBuilding",
                                                     ThisPtr->IsConstructionYard ? true : IsEligibleForAllyBuilding);
+
+    NumberOfDocks = ini.Get_Int(ini_name, "NumberOfDocks", NumberOfDocks);
+
+    for (int i = 0; i < NumberOfDocks; ++i) {
+        std::snprintf(buffer, sizeof(buffer), "DockingOffset%d", i);
+        TPoint3D<int> offset = ArtINI.Get_Point(graphic_name, buffer, TPoint3D<int>(0,0,0));
+        DockingOffsets.Add(offset);
+    }
     
     return true;
 }

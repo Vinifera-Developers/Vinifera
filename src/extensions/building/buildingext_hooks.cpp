@@ -56,6 +56,36 @@
 
 
 /**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ * 
+ *  @note: This must not contain a constructor or destructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+class BuildingClassExt final : public BuildingClass
+{
+    public:
+        Coordinate _Docking_Coord() const;
+};
+
+
+/**
+ *  Reimplementation of BuildingClass::Docking_Coord.
+ * 
+ *  @author: CCHyper
+ */
+Coordinate BuildingClassExt::_Docking_Coord() const
+{
+    BuildingClassExtension *buildingext = BuildingClassExtensions.find(this);
+    if (buildingext) {
+        return buildingext->Docking_Coord();
+    } else {
+        return BuildingClass::Docking_Coord();
+    }
+}
+
+
+/**
  *  #issue-26
  * 
  *  Adds functionality for the produce cash per-frame logic.
@@ -493,4 +523,5 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x00429A96, &_BuildingClass_AI_ProduceCash_Patch);
     Patch_Jump(0x0042F67D, &_BuildingClass_Captured_ProduceCash_Patch);
     Patch_Jump(0x0042E179, &_BuildingClass_Grand_Opening_ProduceCash_Patch);
+    Patch_Dword(0x006CC3A0, Get_Func_Address(&BuildingClassExt::_Docking_Coord));
 }
