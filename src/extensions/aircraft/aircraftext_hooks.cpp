@@ -37,12 +37,54 @@
 #include "technotype.h"
 #include "technotypeext.h"
 #include "voc.h"
+#include "iomap.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-770
+ * 
+ *  Fixes a bug where cargo toted by a aircraft was always unloaded facing north. 
+ * 
+ *  @author: CCHyper
+ */
+static Coordinate this_coord;
+static DirType Get_Techno_Primary_Dir(TechnoClass *this_ptr) { return Dir_Snap(this_ptr->PrimaryFacing.Current().Get_Dir()); }
+DECLARE_PATCH(_AircraftClass_Drop_Off_Cargo_Unlimbo_Dir_Patch)
+{
+    GET_REGISTER_STATIC(AircraftClass *, this_ptr, edi);
+    GET_REGISTER_STATIC(FootClass *, cargo, esi);
+    //GET_STACK_STATIC(Coordinate *, cargo_coord, esp, 0x14);
+
+    /**
+     *  We need to so this again otherwise we risk trashing the stack.
+     */
+    this_coord.X = this_ptr->Coord.X;
+    this_coord.Y = this_ptr->Coord.Y;
+    this_coord.Z = Map.Get_Cell_Height(this_coord);
+    
+    /**
+     *  Unlimbo the cargo object back into the game world. The bug-fix
+     *  here is that DIR_NORTH (Unlimbo() default argument) was used, rather
+     *  than the toting aircrafts current facing. 
+     */
+    if (!cargo->Unlimbo(this_coord, Get_Techno_Primary_Dir(this_ptr))) {
+        goto unlimbo_fail;
+    }
+
+unlimbo_success:
+    DEBUG_INFO("Drop_Off_Cargo - Cargo \"%s\" unlimboed at %d,%d,%d.\n", cargo->Name(), this_coord.X, this_coord.Y, this_coord.Z);
+    JMP_REG(edx, 0x0040A8B7);
+
+unlimbo_fail:
+    DEBUG_WARNING("Drop_Off_Cargo - Failed to unlimbo cargo \"%s\" at %d,%d,%d!\n", cargo->Name(), this_coord.X, this_coord.Y, this_coord.Z);
+    JMP_REG(ecx, 0x0040A8A6);
+}
 
 
 /**
@@ -264,4 +306,5 @@ void AircraftClassExtension_Hooks()
     Patch_Jump(0x0040B819, &_AircraftClass_What_Action_Is_Totable_Patch);
     Patch_Jump(0x0040A413, &_AircraftClass_Mission_Move_LAND_Is_Moving_Check_Patch);
     Patch_Jump(0x0040988C, &_AircraftClass_Mission_Unload_Transport_Detach_Sound_Patch);
+    Patch_Jump(0x0040A892, &_AircraftClass_Drop_Off_Cargo_Unlimbo_Dir_Patch);
 }
