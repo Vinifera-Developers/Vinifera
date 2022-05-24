@@ -83,7 +83,7 @@ class BuildingTypeClassExtension final : public Extension<BuildingTypeClass>
         unsigned ProduceCashBudget;
         
         /**
-         *  Is the capture bonus a "one one" special (further captures will not get the bonus)?
+         *  Is the capture bonus a "one off" special (further captures will not get the bonus)?
          */
         bool IsStartupCashOneTime;
         
@@ -96,6 +96,15 @@ class BuildingTypeClassExtension final : public Extension<BuildingTypeClass>
          *  Is this building eligible for proximity checks by players who are its owner's allies?
          */
         bool IsEligibleForAllyBuilding;
+
+        /**
+         *  Is this building a factory that is placed on water and produces vessels (i.e. ships)?
+         * 
+         *  #NOTE: This is a temporary property that is used to enforce special rules to
+         *         allow better naval and shipyard support until a full Vessel class is hooked
+         *         up and implemented.
+         */
+        bool IsNavalYard;
 };
 
 

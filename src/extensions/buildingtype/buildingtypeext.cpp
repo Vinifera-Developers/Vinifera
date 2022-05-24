@@ -54,7 +54,8 @@ BuildingTypeClassExtension::BuildingTypeClassExtension(BuildingTypeClass *this_p
     ProduceCashBudget(0),
     IsStartupCashOneTime(false),
     IsResetBudgetOnCapture(false),
-    IsEligibleForAllyBuilding(false)
+    IsEligibleForAllyBuilding(false),
+    IsNavalYard(false)
 {
     ASSERT(ThisPtr != nullptr);
     //EXT_DEBUG_TRACE("BuildingTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -167,6 +168,7 @@ void BuildingTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
     //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     crc(IsEligibleForAllyBuilding);
+    crc(IsNavalYard);
 }
 
 
@@ -200,5 +202,7 @@ bool BuildingTypeClassExtension::Read_INI(CCINIClass &ini)
     IsEligibleForAllyBuilding = ini.Get_Bool(ini_name, "EligibleForAllyBuilding",
                                                     ThisPtr->IsConstructionYard ? true : IsEligibleForAllyBuilding);
     
+    IsNavalYard = ini.Get_Bool(ini_name, "Shipyard", IsNavalYard);
+
     return true;
 }
