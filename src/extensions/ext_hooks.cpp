@@ -49,6 +49,7 @@
 #include "cdext_hooks.h"
 
 #include "playmovie_hooks.h"
+#include "vqaext_hooks.h"
 #include "themeext_hooks.h"
 
 #include "objecttypeext_hooks.h"
@@ -229,6 +230,7 @@ void Extension_Hooks()
     CombatExtension_Hooks();
 
     PlayMovieExtension_Hooks();
+    VQAExtension_Hooks();
     ThemeClassExtension_Hooks();
 
     TextLabelClassExtension_Hooks();
