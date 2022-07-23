@@ -89,12 +89,14 @@ jobs:
         shell: bash
         run: |
           mkdir artifact
+          mkdir artifact/Movies
           ls -p | grep -v /
           cp ./build/Vinifera.dll ./artifact/Vinifera.dll
           cp ./build/Vinifera.pdb ./artifact/Vinifera.pdb
           cp ./build/LaunchVinifera.exe ./artifact/LaunchVinifera.exe
           cp ./build/_deps/tspp-src/pdb/Game.pdb ./artifact/Game.pdb
           cp ./build/_deps/tspp-src/edb/Game.edb ./artifact/Game.edb
+          cp ./vinifera-files/files/VINIFERA.VQA ./artifact/Movies/VINIFERA.VQA
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
@@ -180,12 +182,14 @@ jobs:
         shell: bash
         run: |
           mkdir artifact
+          mkdir artifact/Movies
           ls -p | grep -v /
           cp ./build/Vinifera.dll ./artifact/Vinifera.dll
           cp ./build/Vinifera.pdb ./artifact/Vinifera.pdb
           cp ./build/LaunchVinifera.exe ./artifact/LaunchVinifera.dat
           cp ./build/_deps/tspp-src/pdb/Game.pdb ./artifact/Game.pdb
           cp ./build/_deps/tspp-src/edb/Game.edb ./artifact/Game.edb
+          cp ./vinifera-files/files/VINIFERA.VQA ./artifact/Movies/VINIFERA.VQA
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v2

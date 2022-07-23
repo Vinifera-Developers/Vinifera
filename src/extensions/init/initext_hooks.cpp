@@ -146,14 +146,57 @@ static bool CCFile_Is_Available(const char *filename)
     return CCFileClass(filename).Is_Available();
 }
 
+static bool CCFile_Validate_Is_Available(const char *filename, int size)
+{
+    return CCFileClass(filename).Is_Available() && CCFileClass(filename).Size() == size;
+}
+
 
 /**
  *  #issue-478
  * 
- *  
+ *  Adds command line options to skip startup movies.
  * 
  *  @author: CCHyper
  */
+static bool Vinifera_Play_Startup_Movies()
+{
+    static const int VINIFERA_VQA_SIZE = 704889;
+    static const int WWLOGO_VQA_SIZE = 2415362;
+
+    if (Special.IsFromInstall) {
+        DEBUG_INFO("Playing first time intro sequence.\n");
+        Play_Movie("EVA.VQA");
+    }
+
+    if (!Vinifera_SkipLogoMovies) {
+        DEBUG_INFO("Playing logo movies.\n");
+        if (!CCFile_Validate_Is_Available("VINIFERA.VQA", VINIFERA_VQA_SIZE)) {
+            DEBUG_ERROR("Failed to find VINIFERA.VQA!\n");
+            return false;
+        }
+        Play_Movie("VINIFERA.VQA");
+        if (!CCFile_Validate_Is_Available("WWLOGO.VQA", WWLOGO_VQA_SIZE)) {
+            DEBUG_ERROR("Failed to find WWLOGO.VQA!\n");
+            return false;
+        }
+        Play_Movie("WWLOGO.VQA");
+    } else {
+        DEBUG_INFO("Skipping logo movies.\n");
+    }
+
+    if (!NewMenuClass::Get()) {
+        DEBUG_INFO("Playing title movie.\n");
+        if (CCFile_Is_Available("FS_TITLE.VQA")) {
+            Play_Movie("FS_TITLE.VQA", THEME_NONE, true, false, true);
+        } else {
+            Play_Movie("STARTUP.VQA", THEME_NONE, true, false, true);
+        }
+    }
+
+    return true;
+}
+
 DECLARE_PATCH(_Init_Game_Skip_Startup_Movies_Patch)
 {
     if (Vinifera_SkipStartupMovies) {
@@ -161,24 +204,8 @@ DECLARE_PATCH(_Init_Game_Skip_Startup_Movies_Patch)
         goto skip_loading_screen;
     }
 
-    if (Special.IsFromInstall) {
-        DEBUG_GAME("Playing first time intro sequence.\n");
-        Play_Movie("EVA.VQA", THEME_NONE, true, true, true);
-    }
-
-    if (!Vinifera_SkipWWLogoMovie) {
-        DEBUG_GAME("Playing startup movies.\n");
-        Play_Movie("WWLOGO.VQA", THEME_NONE, true, true, true);
-    } else {
-        DEBUG_INFO("Skipping startup movie.\n");
-    }
-
-    if (!NewMenuClass::Get()) {
-        if (CCFile_Is_Available("FS_TITLE.VQA")) {
-            Play_Movie("FS_TITLE.VQA", THEME_NONE, true, false, true);
-        } else {
-            Play_Movie("STARTUP.VQA", THEME_NONE, true, false, true);
-        }
+    if (!Vinifera_Play_Startup_Movies()) {
+        goto failed;
     }
 
 loading_screen:
@@ -187,6 +214,10 @@ loading_screen:
 
 skip_loading_screen:
     JMP(0x004E084D);
+
+failed:
+    _asm { mov ebx, 1 }
+    JMP(0x004E08B3);
 }
 
 

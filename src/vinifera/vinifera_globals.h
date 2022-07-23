@@ -76,7 +76,7 @@ extern bool Vinifera_Developer_AIControl;
 /**
  *  Various globals.
  */
-extern bool Vinifera_SkipWWLogoMovie;
+extern bool Vinifera_SkipLogoMovies;
 extern bool Vinifera_SkipStartupMovies;
 
 extern bool Vinifera_ShowSuperWeaponTimers;

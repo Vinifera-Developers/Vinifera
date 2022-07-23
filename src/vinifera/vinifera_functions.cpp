@@ -409,6 +409,18 @@ bool Vinifera_Parse_Command_Line(int argc, char *argv[])
  */
 bool Vinifera_Startup()
 {
+    DWORD rc;
+    DynamicVectorClass<Wstring> search_paths;
+    
+#ifndef NDEBUG
+    /**
+     *  Debug paths for CD contents (folders must contain .DSK files of the same name).
+     */
+    search_paths.Add("TS1");
+    search_paths.Add("TS2");
+    search_paths.Add("TS3");
+#endif
+
     /**
      *  #issue-514:
      * 
@@ -417,9 +429,6 @@ bool Vinifera_Startup()
      *  @author: CCHyper
      */
 #if defined(TS_CLIENT)
-    DWORD rc;
-    DynamicVectorClass<Wstring> search_paths;
-
     /**
      *  If -CD has been defined, set the root directory as highest priority.
      */
@@ -432,12 +441,17 @@ bool Vinifera_Startup()
      */
     search_paths.Add("INI");
     search_paths.Add("MIX");
+#endif
+
     search_paths.Add("MOVIES");
+
+#if defined(TS_CLIENT)
     search_paths.Add("MUSIC");
     search_paths.Add("SOUNDS");
     search_paths.Add("MAPS");
     search_paths.Add("MAPS\\MULTIPLAYER");
     search_paths.Add("MAPS\\MISSION");
+#endif
 
     /**
      *  Current path (perhaps set set with -CD) should go next.
@@ -446,32 +460,33 @@ bool Vinifera_Startup()
         search_paths.Add(CCFileClass::RawPath);
     }
 
-    char *new_path = new char [_MAX_PATH * search_paths.Count()+1];
-    new_path[0] = '\0';
+    if (search_paths.Count() > 0) {
+        char *new_path = new char [_MAX_PATH * search_paths.Count()+1];
+        new_path[0] = '\0';
 
-    /**
-     *  Build the search path string.
-     */
-    for (int i = 0; i < search_paths.Count(); ++i) {
-        if (i != 0) std::strcat(new_path, ";");
-        std::strcat(new_path, search_paths[i].Peek_Buffer());
+        /**
+         *  Build the search path string.
+         */
+        for (int i = 0; i < search_paths.Count(); ++i) {
+            if (i != 0) std::strcat(new_path, ";");
+            std::strcat(new_path, search_paths[i].Peek_Buffer());
+        }
+
+        /**
+         *  Clear the current path ready to be set.
+         */
+        CCFileClass::Clear_Search_Drives();
+        CCFileClass::Reset_Raw_Path();
+
+        /**
+         *  Set the new search drive path.
+         */
+        CCFileClass::Set_Search_Drives(new_path);
+
+        delete [] new_path;
+
+        DEBUG_INFO("SearchPath: %s\n", CCFileClass::RawPath);
     }
-
-    /**
-     *  Clear the current path ready to be set.
-     */
-    CCFileClass::Clear_Search_Drives();
-    CCFileClass::Reset_Raw_Path();
-
-    /**
-     *  Set the new search drive path.
-     */
-    CCFileClass::Set_Search_Drives(new_path);
-
-    delete [] new_path;
-
-    DEBUG_INFO("SearchPath: %s\n", CCFileClass::RawPath);
-#endif
 
     /**
      *  Load Vinifera settings and overrides.
