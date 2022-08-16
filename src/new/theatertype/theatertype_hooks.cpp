@@ -597,10 +597,13 @@ DECLARE_PATCH(_MapClass_Ice_Growth_AI_Theater_Patch)
     }
 
 continue_check:
-    JMP(0x00520DC8);  
+    _asm { mov eax, scen } // restore ScenarioClass
+    _asm { xor ecx, ecx }
+    JMP_REG(edx, 0x00520DC8);  
 
 return_false:
-    JMP(0x00520F2F);
+    _asm { xor eax, eax }
+    JMP_REG(edx, 0x00520F2F);
 }
 
 
@@ -623,7 +626,8 @@ continue_check:
     JMP(0x005209C2);  
 
 return_false:
-    JMP(0x00520D8F);
+    _asm { xor eax, eax }
+    JMP_REG(ecx, 0x00520D8F);
 }
 
 
