@@ -54,7 +54,8 @@
  *  @author: CCHyper
  */
 static Coordinate this_coord;
-static DirType Get_Techno_Primary_Dir(TechnoClass *this_ptr) { return Dir_Snap(this_ptr->PrimaryFacing.Current().Get_Dir()); }
+static DirType Get_Techno_Primary_Dir(TechnoClass *this_ptr) { return this_ptr->PrimaryFacing.Current().Get_Dir(); }
+static void Set_Techno_Primary_Dir_From_Techno(TechnoClass *this_ptr, TechnoClass *that_ptr) { this_ptr->PrimaryFacing = that_ptr->PrimaryFacing; }
 DECLARE_PATCH(_AircraftClass_Drop_Off_Cargo_Unlimbo_Dir_Patch)
 {
     GET_REGISTER_STATIC(AircraftClass *, this_ptr, edi);
@@ -67,6 +68,8 @@ DECLARE_PATCH(_AircraftClass_Drop_Off_Cargo_Unlimbo_Dir_Patch)
     this_coord.X = this_ptr->Coord.X;
     this_coord.Y = this_ptr->Coord.Y;
     this_coord.Z = Map.Get_Cell_Height(this_coord);
+
+    DEBUG_INFO("Drop_Off_Cargo - My facing %d.\n", Get_Techno_Primary_Dir(this_ptr));
     
     /**
      *  Unlimbo the cargo object back into the game world. The bug-fix
@@ -77,8 +80,14 @@ DECLARE_PATCH(_AircraftClass_Drop_Off_Cargo_Unlimbo_Dir_Patch)
         goto unlimbo_fail;
     }
 
+    DEBUG_INFO("Drop_Off_Cargo - Cargo facing before %d.\n", Get_Techno_Primary_Dir(cargo));
+
+    Set_Techno_Primary_Dir_From_Techno(cargo, this_ptr);
+    
+    DEBUG_INFO("Drop_Off_Cargo - Cargo facing after %d.\n", Get_Techno_Primary_Dir(cargo));
+
 unlimbo_success:
-    DEBUG_INFO("Drop_Off_Cargo - Cargo \"%s\" unlimboed at %d,%d,%d.\n", cargo->Name(), this_coord.X, this_coord.Y, this_coord.Z);
+    DEV_DEBUG_INFO("Drop_Off_Cargo - Cargo \"%s\" unlimboed at %d,%d,%d.\n", cargo->Name(), this_coord.X, this_coord.Y, this_coord.Z);
     JMP_REG(edx, 0x0040A8B7);
 
 unlimbo_fail:
