@@ -156,7 +156,7 @@ original_code:
     _asm { mov eax, this_ptr }
     _asm { pop esi }
     _asm { pop ebx }
-    _asm { ret 0x10 }
+    _asm { ret }
 }
 
 
