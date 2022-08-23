@@ -673,6 +673,13 @@ void TacticalMapExtension::Draw_Super_Timers()
     }
 
     /**
+     *  If no SuperClass extensions are found, then this feature is unavailable.
+     */
+    if (!SuperClassExtensions.size() || !SuperWeaponTypeClassExtensions.size()) {
+        return;
+    }
+
+    /**
      *  Non-release builds print the version information to the tactical view
      *  so we need to adjust the timers to print above this text.
      */
