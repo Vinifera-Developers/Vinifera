@@ -110,6 +110,12 @@ class RulesClassExtension final : public Extension<RulesClass>
          *  on the tactical view?
          */
         bool IsShowSuperWeaponTimers;
+
+        /**
+         *  The "approach target" position should be recalculated if the target is
+         *  now more than weapon range times this value.
+         */
+        double ApproachTargetResetMultiplier;
 };
 
 
