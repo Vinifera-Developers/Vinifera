@@ -197,7 +197,7 @@ HRESULT Extension<T>::Load(IStream *pStm)
     /**
      *  Announce ourself to the swizzle manager.
      */
-    SWIZZLE_HERE_I_AM(id, this);
+    SWIZZLE_REGISTER_POINTER(id, this);
 
     /**
      *  Request the pointer to the base class be remapped.

@@ -116,7 +116,7 @@ HRESULT RulesClassExtension::Load(IStream *pStm)
 
     new (this) RulesClassExtension(NoInitClass());
 
-    SWIZZLE_HERE_I_AM(id, this);
+    SWIZZLE_REGISTER_POINTER(id, this);
 
 #ifndef NDEBUG
     EXT_DEBUG_INFO("RulesExt Load: ID 0x%08X Ptr 0x%08X\n", id, this);
