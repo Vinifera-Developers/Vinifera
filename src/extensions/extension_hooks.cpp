@@ -25,8 +25,8 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "ext_hooks.h"
-#include "saveload_hooks.h"
+#include "extension_hooks.h"
+
 #include "iomap.h"
 
 /**
@@ -128,36 +128,12 @@
 #include "hooker_macros.h"
 
 
+extern bool Vinifera_ClassExtensionsDisabled;
+
+
 void Extension_Hooks()
 {
-    /**
-     *  Hook the new save and load system in.
-     */
-    SaveLoad_Hooks();
-
-    /**
-     *  Command line option to disable all extensions.
-     */
-    const char *cmdline = GetCommandLineA();
-    bool no_extensions = (std::strstr(cmdline, "-NO_EXT") != nullptr);
-    if (no_extensions) {
-        return;
-    }
-
-    /**
-     *  Various functions.
-     */
-    GameInit_Hooks();
-    MainLoop_Hooks();
-    NewMenuExtension_Hooks();
-
-    /**
-     *  Command line option to disable class extensions.
-     */
-    cmdline = GetCommandLineA();
-    bool no_class_extensions = (std::strstr(cmdline, "-NO_CLASS_EXT") != nullptr);
-    if (!no_class_extensions) {
-
+    if (!Vinifera_ClassExtensionsDisabled) {
         /**
          *  All game class extensions here.
          */
@@ -188,7 +164,6 @@ void Extension_Hooks()
         //ScriptTypeClassExtension_Hooks();
         //TagTypeClassExtension_Hooks();
         //TriggerTypeClassExtension_Hooks();
-
         TechnoClassExtension_Hooks();
         UnitClassExtension_Hooks();
         AircraftClassExtension_Hooks();
@@ -206,49 +181,51 @@ void Extension_Hooks()
         TerrainClassExtension_Hooks();
         SuperClassExtension_Hooks();
         ParticleSystemClassExtension_Hooks();
-
         EMPulseClassExtension_Hooks();
         WaveClassExtension_Hooks();
 
+        /**
+         *  All global class extensions here.
+         */
+        RulesClassExtension_Hooks();
+        TacticalExtension_Hooks();
+        ScenarioClassExtension_Hooks();
+        DisplayClassExtension_Hooks();
+        SidebarClassExtension_Hooks();
+        OptionsClassExtension_Hooks();
+        SessionClassExtension_Hooks();
+        ThemeClassExtension_Hooks();
     }
 
     /**
-     *  All global class extensions here.
+     *  New classes and interfaces.
      */
-    RulesClassExtension_Hooks();
-    TacticalExtension_Hooks();
-    ScenarioClassExtension_Hooks();
-    DisplayClassExtension_Hooks();
-    SidebarClassExtension_Hooks();
-    ToolTipManagerExtension_Hooks();
+    TheaterTypeClassExtension_Hooks();
+
+    /**
+     *  Various modules and functions.
+     */
+    GameInit_Hooks();
+    MainLoop_Hooks();
+    NewMenuExtension_Hooks();
     CommandExtension_Hooks();
-    OptionsClassExtension_Hooks();
-    MessageListClassExtension_Hooks();
-    SessionClassExtension_Hooks();
     CDExtension_Hooks();
-
-    CombatExtension_Hooks();
-
     PlayMovieExtension_Hooks();
     VQAExtension_Hooks();
-    ThemeClassExtension_Hooks();
-
-    TextLabelClassExtension_Hooks();
-
-    DropshipExtension_Hooks();
-    EndGameExtension_Hooks();
-
-    MapSeedClassExtension_Hooks();
-    MultiScoreExtension_Hooks();
-    MultiMissionExtension_Hooks();
-
     CCINIClassExtension_Hooks();
     RawFileClassExtension_Hooks();
     CCFileClassExtension_Hooks();
 
-    TheaterTypeClassExtension_Hooks();
+    MessageListClassExtension_Hooks();
+    TextLabelClassExtension_Hooks();
+    ToolTipManagerExtension_Hooks();
 
-    FetchRes_Hooks();
+    CombatExtension_Hooks();
+    DropshipExtension_Hooks();
+    EndGameExtension_Hooks();
+    MapSeedClassExtension_Hooks();
+    MultiScoreExtension_Hooks();
+    MultiMissionExtension_Hooks();
 
     /**
      *  Dialogs and associated code.
@@ -259,4 +236,5 @@ void Extension_Hooks()
      *  Miscellaneous hooks
      */
     FilePCXExtension_Hooks();
+    FetchRes_Hooks();
 }

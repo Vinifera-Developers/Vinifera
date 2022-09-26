@@ -97,7 +97,7 @@ static bool ExceptionInfoIgnore = false;
 LONG (* __stdcall Exception_Intercept_Func_Ptr)(unsigned int code, EXCEPTION_POINTERS *e_info);
 
 
-static bool Any_Surface_Locked()
+bool Any_Surface_Locked()
 {
     return (PrimarySurface && PrimarySurface->Is_Locked())
         || (HiddenSurface && HiddenSurface->Is_Locked())
@@ -108,7 +108,7 @@ static bool Any_Surface_Locked()
 }
 
 
-static void Clear_All_Surfaces()
+void Clear_All_Surfaces()
 {
     if (PrimarySurface) PrimarySurface->Clear();
     if (HiddenSurface) HiddenSurface->Clear();
