@@ -37,6 +37,10 @@
 #include "blowstraw.h"
 #include "blowpipe.h"
 #include "iomap.h"
+#include "theme.h"
+#include "extension_saveload.h"
+#include "loadoptions.h"
+#include "language.h"
 #include "vinifera_gitinfo.h"
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -319,6 +323,353 @@ DECLARE_PATCH(_Select_Game_Clear_Globals_Patch)
 }
 
 
+/**
+ *  When writing save game info, write the base level Vinifera version. This patch
+ *  will block vanilla Tiberian Sun from loading any Vinifera save files.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_Save_Game_Put_Game_Version)
+{
+    static int version;
+    version = ViniferaSaveGameVersion;
+
+    /**
+     *  If we are in developer mode, offset the build number as these save
+     *  files should not appear in normal game modes.
+     * 
+     *  For debug builds, we force an offset so they don't appear in any
+     *  other builds or releases.
+     */
+#ifndef NDEBUG
+    version *= 3;
+#else
+    if (Vinifera_DeveloperMode) {
+        version *= 2;
+    }
+#endif
+
+    _asm { mov edx, version };
+
+    JMP(0x005D5064);
+}
+
+
+/**
+ *  x
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_Load_Game_Check_Return_Value)
+{
+    GET_REGISTER_STATIC(const char *, filename, esi);
+
+    _asm { mov ecx, [esp+0x20] }
+    _asm { xor dl, dl }
+    _asm { mov eax, 0x005D6BE0 }
+    _asm { call eax } // Load_All
+
+    _asm { test al, al }
+    _asm { jz failure }
+
+    DEBUG_INFO("Loading of save game \"%s\" complete.\n", filename);
+    JMP(0x005D6B1C);
+
+failure:
+    DEBUG_ERROR("Error loading save game \"%s\"!\n", filename);
+    JMP(0x005D6A65);
+}
+
+
+/**
+ *  Do not allow save games below our the base level Vinifera version. This patch
+ *  will remove any support for save games made with vanilla Tiberian Sun 2.03!
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_LoadOptionsClass_Read_File_Check_Game_Version)
+{
+    GET_REGISTER_STATIC(int, version, eax);
+    static int ver;
+
+    /**
+     *  If the version in the save file does not match our build
+     *  version exactly, then don't add this file to the listing.
+     */
+    ver = ViniferaSaveGameVersion;
+#ifndef NDEBUG
+    ver *= 3;
+#else
+    if (Vinifera_DeveloperMode) {
+        ver *= 2;
+    }
+#endif
+    if (version != ver) {
+        JMP(0x00505AAD);
+    }
+
+    JMP(0x00505ABB);
+}
+
+
+/**
+ *  Change the saved module filename to the DLL name. 
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_Save_Game_Change_Module_Filename)
+{
+    static const char *DLL_NAME = VINIFERA_DLL;
+    _asm { push DLL_NAME }
+
+    JMP(0x005D50E2);
+}
+
+       
+/**
+ *  Removes the code which prefixed older save files with "*".
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_LoadOptionsClass_Read_File_Remove_Older_Prefixing)
+{
+    JMP(0x00505AE9);
+}
+
+
+/**
+ *  Replaces the division-by-zero crash in SwizzleManagerClass::Process_Tables() with
+ *  a readable error, produces a crash dump and then exit.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_SwizzleManagerClass_Process_Tables_Remap_Failed_Error)
+{
+    static int old_ptr;
+
+    _asm { mov eax, [edi+0x4] }
+    _asm { mov old_ptr, eax }
+    //GET_REGISTER_STATIC(int, old_ptr, edi);
+
+    DEBUG_ERROR("Swizzle Manager - Failed to remap pointer! (old_ptr = 0x%08X)!\n", old_ptr);
+
+    ShowCursor(TRUE);
+
+    MessageBoxA(MainWindow, "Failed to process save game file!", "Vinifera", MB_OK|MB_ICONEXCLAMATION);
+
+#if 0
+    if (!IsDebuggerPresent()) {
+        Vinifera_Generate_Mini_Dump();
+    }
+#endif
+
+    Fatal("Swizzle Manager - Failed to remap pointer! (old_ptr = 0x%08X)!\n", old_ptr);
+
+    /**
+     *  We won't ever get here, but its here just for clean analysis.
+     */
+    JMP(0x0060DC15);
+}
+
+
+#ifndef RELEASE
+/**
+ *  Disables the Load, Save and Delete buttons in the options menu.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_SaveLoad_Disable_Buttons)
+{
+    GET_REGISTER_STATIC(HWND, hDlg, ebp);
+
+    EnableWindow(GetDlgItem(hDlg, 1310), FALSE); // Load button
+    EnableWindow(GetDlgItem(hDlg, 1311), FALSE); // Save button
+    EnableWindow(GetDlgItem(hDlg, 1312), FALSE); // Delete button
+
+    JMP(0x004B6DF5);
+}
+
+/**
+ *  Disables the Load button on the Firestorm main menu.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_NewMenuClass_Process_Disable_Load_Button_Firestorm)
+{
+    JMP(0x0057FFAC);
+}
+
+/**
+ *  Disables the Load button on the Tiberian Sun main menu.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_NewMenuClass_Process_Disable_Load_Button_TiberianSun)
+{
+    JMP(0x00580075);
+}
+#endif
+
+
+/**
+ *  Patch in the Vinifera data to be saved in the stream.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_Put_All_Vinifera_Data)
+{
+    GET_REGISTER_STATIC(IStream *, pStm, esi);
+
+    /**
+     *  Call to the Vinifera data stream saver.
+     */
+    if (!Vinifera_Put_All(pStm)) {
+        goto failed;
+    }
+
+    /**
+     *  Stolen bytes/code.
+     */
+original_code:
+    _asm { mov al, 1 }
+    _asm { pop edi }
+    _asm { pop esi }
+    _asm { pop ebp }
+    _asm { pop ebx }
+    _asm { add esp, 0x8 }
+    _asm { ret }
+
+failed:
+    _asm { xor al, al }
+    _asm { pop edi }
+    _asm { pop esi }
+    _asm { pop ebp }
+    _asm { pop ebx }
+    _asm { add esp, 0x8 }
+    _asm { ret }
+}
+
+
+/**
+ *  Patch in the Vinifera data to be loaded in the stream.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_Load_All_Vinifera_Data)
+{
+    GET_REGISTER_STATIC(IStream *, pStm, esi);
+
+    /**
+     *  Call to the Vinifera data stream loader.
+     */
+    if (!Vinifera_Load_All(pStm)) {
+        goto failed;
+    }
+
+    /**
+     *  Stolen bytes/code.
+     */
+original_code:
+
+    Map.Flag_To_Redraw(2);
+
+    _asm { mov al, 1 }
+    _asm { pop edi }
+    _asm { pop esi }
+    _asm { pop ebp }
+    _asm { pop ebx }
+    _asm { add esp, 0xB0 }
+    _asm { ret }
+
+failed:
+    _asm { xor al, al }
+    _asm { pop edi }
+    _asm { pop esi }
+    _asm { pop ebp }
+    _asm { pop ebx }
+    _asm { add esp, 0xB0 }
+    _asm { ret }
+}
+
+
+/**
+ *  #issue-269
+ * 
+ *  Adds a "Load Game" button to the dialog shown on mission lose.
+ * 
+ *  @author: CCHyper
+ */
+static bool _Save_Games_Available()
+{
+    return LoadOptionsClass().Read_Save_Files();
+}
+
+static bool _Do_Load_Dialog()
+{
+    return LoadOptionsClass().Load_Dialog();
+}
+
+
+DECLARE_PATCH(_Do_Lose_Create_Lose_WWMessageBox)
+{
+    static int ret;
+
+    /**
+     *  Show the message box.
+     */
+retry_dialog:
+    ret = Vinifera_Do_WWMessageBox(Text_String(TXT_TO_REPLAY), Text_String(TXT_YES), Text_String(TXT_NO), "Load Game");
+    switch (ret) {
+        default:
+        case 0: // User pressed "Yes"
+            JMP(0x005DCE1A);
+
+        case 1: // User pressed "No"
+            JMP(0x005DCE56);
+
+        case 2: // User pressed "Load Game"
+        {
+#if !defined(RELEASE) && defined(NDEBUG)
+            /**
+             *  We disable loading in non-release builds or if extensions are disabled.
+             */
+            if (!Vinifera_ClassExtensionsDisabled) {
+                Vinifera_Do_WWMessageBox("Saving and Loading is disabled for non-release builds.", Text_String(TXT_OK));
+
+            } else {
+#endif
+
+                /**
+                 *  If no save games are available, notify the user and return back
+                 *  and reissue the main dialog.
+                 */
+                if (!_Save_Games_Available()) {
+                    Vinifera_Do_WWMessageBox("No saved games available.", Text_String(TXT_OK));
+                    goto retry_dialog;
+                }
+
+                /**
+                 *  Show the load game dialog.
+                 */
+                ret = _Do_Load_Dialog();
+                if (ret) {
+                    Theme.Stop();
+                    JMP(0x005DCE48);
+                }
+
+#if !defined(RELEASE) && defined(NDEBUG)
+            }
+#endif
+
+            /**
+             *  Reissue the dialog if the user pressed cancel on the load dialog.
+             */
+            goto retry_dialog;
+        }
+    };
+}
+
+
 #ifndef NDEBUG
 /**
  *  Produces a random serial number for this client.
@@ -400,6 +751,46 @@ void Vinifera_Hooks()
      */
     Patch_Byte(0x0057C97E+3, 0x07);
 #endif
+
+    /**
+     *  Write Vinifera save files with the new base version number.
+     */
+    Patch_Jump(0x005D505E, &_Save_Game_Put_Game_Version);
+
+    /**
+     *  Check the return value of Load_Game to ensure no false game starts.
+     */
+    Patch_Jump(0x005D6B11, &_Load_Game_Check_Return_Value);
+
+    /**
+     *  Change SUN.EXE to our DLL name.
+     */
+    Patch_Jump(0x005D50DD, &_Save_Game_Change_Module_Filename);
+
+    /**
+     *  Handle save files in the dialogs.
+     */
+    Patch_Jump(0x00505A9E, &_LoadOptionsClass_Read_File_Check_Game_Version);
+    Patch_Jump(0x00505ABB, &_LoadOptionsClass_Read_File_Remove_Older_Prefixing);
+
+    /**
+     *  Fire an assert on save/load fail, rather than hard crash.
+     */
+    Patch_Jump(0x0060DBFF, &_SwizzleManagerClass_Process_Tables_Remap_Failed_Error);
+
+    /**
+     *  Enable and hook the new save and load system only if extensions are disabled.
+     */
+    if (Vinifera_ClassExtensionsDisabled) {
+        Patch_Jump(0x005D68F7, &_Put_All_Vinifera_Data);
+        Patch_Jump(0x005D78ED, &_Load_All_Vinifera_Data);
+
+        Patch_Jump(0x004B6D96, &_SaveLoad_Disable_Buttons);
+        Patch_Jump(0x0057FF8B, &_NewMenuClass_Process_Disable_Load_Button_Firestorm);
+        Patch_Jump(0x0058004D, &_NewMenuClass_Process_Disable_Load_Button_TiberianSun);
+    }
+
+    Patch_Jump(0x005DCDFD, &_Do_Lose_Create_Lose_WWMessageBox);
 
 #ifndef NDEBUG
     /**

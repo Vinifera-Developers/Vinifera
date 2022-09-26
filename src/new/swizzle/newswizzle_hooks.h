@@ -4,12 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          SAVELOAD_HOOKS.H
+ *  @file          NEWSWIZZLE_HOOKS.H
  *
  *  @author        CCHyper
  *
- *  @brief         Contains the hooks for implementing save/load support for
- *                 the extended classes.
+ *  @brief         Contains the hooks for implementing the new swizzle manager.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -29,4 +28,4 @@
 #pragma once
 
 
-void SaveLoad_Hooks();
+void NewSwizzle_Hooks();

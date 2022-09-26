@@ -32,6 +32,21 @@
 
 
 /**
+ *  If defined, this will replace the SwizzleManagerClass with our own new implementation.
+ */
+#define VINIFERA_USE_NEW_SWIZZLE_MANAGER 1
+
+/**
+ *  Enable debug printing of the swizzle remapping process.
+ * 
+ *  WARNING: This will take cause the save/load process to take up to 10 minutes!
+ */
+#ifndef NDEBUG
+//#define VINIFERA_ENABLE_SWIZZLE_DEBUG_PRINTING 1
+#endif
+
+
+/**
  *  This is the base CLSID for all COM objects. When defining a new COM CLSID,
  *  you must append the two digit hex number, incrementing from the previous.
  */
