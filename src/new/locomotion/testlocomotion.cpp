@@ -469,7 +469,7 @@ IFACEMETHODIMP_(bool) TestLocomotionClass::Power_On()
 
 
 /**
- *  Locomotor becomes powered.
+ *  Locomotor loses power.
  * 
  *  @author: CCHyper
  */
@@ -660,7 +660,7 @@ IFACEMETHODIMP_(void) TestLocomotionClass::Mark_All_Occupation_Bits(int mark)
     if (mark != 0) {
         Linked_To()->Set_Occupy_Bit(headto);
     } else {
-        Linked_To()->Set_Occupy_Bit(headto);
+        Linked_To()->Clear_Occupy_Bit(headto);
     }
 }
 
