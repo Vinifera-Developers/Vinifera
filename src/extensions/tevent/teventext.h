@@ -76,6 +76,17 @@ TEventClassExtension final : public AbstractClassExtension
         static const char *Event_Name(int event);
         static const char *Event_Description(int event);
 
-    protected:
-        
+    private:
+        static bool TechnoType_Exists_From_Value(const int data_value);
+        static bool TechnoType_Exists_From_Name(const char *name);
+
+        static bool Spy_As_House(TEventClass *this_ptr, TEventType event, HouseClass *house, const ObjectClass *object, TDEventClass &td, bool &tripped, TechnoClass *source);
+        static bool Spy_As_Infantry(TEventClass *this_ptr, TEventType event, HouseClass *house, const ObjectClass *object, TDEventClass &td, bool &tripped, TechnoClass *source);
+        static bool Destroyed_Units_Naval(TEventClass *this_ptr, TEventType event, HouseClass *house, const ObjectClass *object, TDEventClass &td, bool &tripped, TechnoClass *source);
+        static bool Destroyed_Units_Land(TEventClass *this_ptr, TEventType event, HouseClass *house, const ObjectClass *object, TDEventClass &td, bool &tripped, TechnoClass *source);
+        static bool Building_Does_Not_Exist(TEventClass *this_ptr, TEventType event, HouseClass *house, const ObjectClass *object, TDEventClass &td, bool &tripped, TechnoClass *source);
+        static bool Power_Full(TEventClass *this_ptr, TEventType event, HouseClass *house, const ObjectClass *object, TDEventClass &td, bool &tripped, TechnoClass *source);
+        static bool Entered_Or_Overflown_By(TEventClass *this_ptr, TEventType event, HouseClass *house, const ObjectClass *object, TDEventClass &td, bool &tripped, TechnoClass *source);
+        static bool TechType_Exists(TEventClass *this_ptr, TEventType event, HouseClass *house, const ObjectClass *object, TDEventClass &td, bool &tripped, TechnoClass *source, bool by_name = false);
+        static bool TechType_Does_Not_Exist(TEventClass *this_ptr, TEventType event, HouseClass *house, const ObjectClass *object, TDEventClass &td, bool &tripped, TechnoClass *source, bool by_name = false);
 };

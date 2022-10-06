@@ -159,6 +159,25 @@ typedef enum ExtTEventType
      *  Add new ExtTEventType's from here, do not reorder these!
      */
 
+    /**
+     *  The following are from RA2.
+     */
+    TEVENT_SPY_AS_HOUSE,
+    TEVENT_SPY_AS_INFANTRY,
+    TEVENT_DESTROYED_UNITS_NAVAL,
+    TEVENT_DESTROYED_UNITS_LAND,
+    TEVENT_BUILDING_DOES_NOT_EXIST,
+
+    /**
+     *  The following are from YR.
+     */
+    TEVENT_POWER_FULL,
+    TEVENT_ENTERED_OR_OVERFLOWN_BY,
+    TEVENT_TECHTYPE_EXISTS,
+    TEVENT_TECHTYPE_DOESNT_EXIST,
+
+    TEVENT_TECHTYPE_EXISTS_NAME,        // These two are the "real" copies of the YR logic, but they are reserved until TEventClass can be extended.
+    TEVENT_TECHTYPE_DOESNT_EXIST_NAME,
 
     /**
      *  The new total ExtTEventType count.
