@@ -89,4 +89,6 @@ TEventClassExtension final : public AbstractClassExtension
         static bool Entered_Or_Overflown_By(TEventClass *this_ptr, TEventType event, HouseClass *house, const ObjectClass *object, TDEventClass &td, bool &tripped, TechnoClass *source);
         static bool TechType_Exists(TEventClass *this_ptr, TEventType event, HouseClass *house, const ObjectClass *object, TDEventClass &td, bool &tripped, TechnoClass *source, bool by_name = false);
         static bool TechType_Does_Not_Exist(TEventClass *this_ptr, TEventType event, HouseClass *house, const ObjectClass *object, TDEventClass &td, bool &tripped, TechnoClass *source, bool by_name = false);
+        static bool Power_Less_Than(TEventClass *this_ptr, TEventType event, HouseClass *house, const ObjectClass *object, TDEventClass &td, bool &tripped, TechnoClass *source);
+        static bool Power_Greater_Than(TEventClass *this_ptr, TEventType event, HouseClass *house, const ObjectClass *object, TDEventClass &td, bool &tripped, TechnoClass *source);
 };

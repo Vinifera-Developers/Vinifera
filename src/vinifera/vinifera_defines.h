@@ -180,6 +180,12 @@ typedef enum ExtTEventType
     TEVENT_TECHTYPE_DOESNT_EXIST_NAME,
 
     /**
+     *  New events from here onwards.
+     */
+    TEVENT_POWER_LESS_THAN,
+    TEVENT_POWER_GREATER_THAN,
+
+    /**
      *  The new total ExtTEventType count.
      */
     EXT_TEVENT_COUNT
