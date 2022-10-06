@@ -185,6 +185,7 @@ typedef enum ExtTEventType
     TEVENT_POWER_LESS_THAN,
     TEVENT_POWER_GREATER_THAN,
     TEVENT_INFANTRY_DESTROYED,
+    TEVENT_CONSTRUCTION_YARD,
 
     /**
      *  The new total ExtTEventType count.
