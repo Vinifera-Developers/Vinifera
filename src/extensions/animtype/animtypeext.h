@@ -29,6 +29,7 @@
 
 #include "extension.h"
 #include "container.h"
+#include "tibsun_defines.h"
 
 
 class AnimTypeClass;
@@ -85,6 +86,11 @@ class AnimTypeClassExtension final : public Extension<AnimTypeClass>
          *  The number of the particle to spawn.
          */
         unsigned NumberOfParticles;
+
+        /**
+         *  The sound effect to play when this anim has finished.
+         */
+        VocType StopSound;
 };
 
 

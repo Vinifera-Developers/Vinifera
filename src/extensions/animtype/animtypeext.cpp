@@ -51,7 +51,8 @@ AnimTypeClassExtension::AnimTypeClassExtension(AnimTypeClass *this_ptr) :
     ZAdjust(0),
     AttachLayer(LAYER_NONE),
     ParticleToSpawn(PARTICLE_NONE),
-    NumberOfParticles(0)
+    NumberOfParticles(0),
+    StopSound(VOC_NONE)
 {
     ASSERT(ThisPtr != nullptr);
     //EXT_DEBUG_TRACE("AnimTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
@@ -165,6 +166,7 @@ void AnimTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 
     crc(AttachLayer);
     crc(NumberOfParticles);
+    crc(StopSound);
 }
 
 
@@ -224,6 +226,7 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     AttachLayer = ini.Get_LayerType(ini_name, "Layer", AttachLayer);
     ParticleToSpawn = ini.Get_ParticleType(ini_name, "SpawnsParticle", ParticleToSpawn);
     NumberOfParticles = ini.Get_Int(ini_name, "NumParticles", NumberOfParticles);
+    StopSound = ini.Get_VocType(ini_name, "StopSound", StopSound);
     
     return true;
 }
