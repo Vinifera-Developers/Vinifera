@@ -30,6 +30,7 @@
 #include "rules.h"
 #include "tiberium.h"
 #include "weapontype.h"
+#include "vinifera_globals.h"
 #include "asserthandler.h"
 #include "debughandler.h"
 
@@ -48,7 +49,9 @@ RulesClassExtension::RulesClassExtension(RulesClass *this_ptr) :
     IsMPAutoDeployMCV(false),
     IsMPPrePlacedConYards(false),
     IsBuildOffAlly(true),
-    IsShowSuperWeaponTimers(true)
+    IsShowSuperWeaponTimers(true),
+    BuildNavalYard(),
+    AINavalYardAdjacency(20)
 {
     ASSERT(ThisPtr != nullptr);
     //EXT_DEBUG_TRACE("RulesClassExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
@@ -64,7 +67,8 @@ RulesClassExtension::RulesClassExtension(RulesClass *this_ptr) :
  *  @author: CCHyper
  */
 RulesClassExtension::RulesClassExtension(const NoInitClass &noinit) :
-    Extension(noinit)
+    Extension(noinit),
+    BuildNavalYard()
 {
     IsInitialized = false;
 }
@@ -114,7 +118,13 @@ HRESULT RulesClassExtension::Load(IStream *pStm)
         return E_FAIL;
     }
 
+    BuildNavalYard.Clear();
+
     new (this) RulesClassExtension(NoInitClass());
+
+    BuildNavalYard.Load(pStm);
+
+    SWIZZLE_REQUEST_POINTER_REMAP_LIST("BuildNavalYard", BuildNavalYard);
 
     SWIZZLE_REGISTER_POINTER(id, this);
 
@@ -140,6 +150,8 @@ HRESULT RulesClassExtension::Save(IStream *pStm, BOOL fClearDirty)
     if (FAILED(hr)) {
         return hr;
     }
+
+    BuildNavalYard.Save(pStm);
 
     return hr;
 }
@@ -169,6 +181,9 @@ void RulesClassExtension::Detach(TARGET target, bool all)
     ASSERT(ThisPtr != nullptr);
     //EXT_DEBUG_TRACE("RulesClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(ThisPtr));
 
+    if (target->What_Am_I() == RTTI_BUILDINGTYPE) {
+        BuildNavalYard.Delete(reinterpret_cast<BuildingTypeClass *>(target));
+    }
 }
 
 
@@ -186,6 +201,8 @@ void RulesClassExtension::Compute_CRC(WWCRCEngine &crc) const
     crc(IsMPPrePlacedConYards);
     crc(IsBuildOffAlly);
     crc(IsShowSuperWeaponTimers);
+    crc(BuildNavalYard.Count());
+    crc(AINavalYardAdjacency);
 }
 
 
@@ -290,6 +307,10 @@ bool RulesClassExtension::General(CCINIClass &ini)
     if (!ini.Is_Present(GENERAL)) {
         return false;
     }
+
+    BuildNavalYard = ini.Get_Buildings(GENERAL, "BuildNavalYard", BuildNavalYard);
+
+    AINavalYardAdjacency = ini.Get_Int(GENERAL, "AINavalYardAdjacency", AINavalYardAdjacency);
 
     return true;
 }

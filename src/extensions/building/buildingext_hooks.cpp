@@ -46,6 +46,7 @@
 #include "rules.h"
 #include "voc.h"
 #include "iomap.h"
+#include "target.h"
 #include "spritecollection.h"
 #include "fatal.h"
 #include "asserthandler.h"
@@ -53,6 +54,149 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-531
+ * 
+ *  Buildings with IsNavalYard will be assigned an initial random rally point at
+ *  least two cells aways from the building occupation footprint.
+ * 
+ *  @author: CCHyper
+ */
+static Cell NearbyCell;
+static void Building_Get_Nearby_Location_MZONE_AMPHIBIOUS_DESTROYER(BuildingClass *this_ptr) { NearbyCell = Map.Nearby_Location(this_ptr->Get_Cell(), SPEED_FLOAT, -1, MZONE_AMPHIBIOUS_DESTROYER, false, 5, 5); }
+DECLARE_PATCH(_BuildingClass_Grand_Opening_NavalYard_Initial_Rally_Point_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass *, this_ptr, esi);
+    static BuildingTypeClassExtension *buildingtypeext;
+    static BuildingTypeClass *buildingtype;
+
+    buildingtype = this_ptr->Class;
+
+    if (buildingtype->IsWeaponsFactory) {
+
+        /**
+         *  Find the type class extension instance.
+         */
+        buildingtypeext = BuildingTypeClassExtensions.find(buildingtype);
+        if (buildingtypeext && buildingtypeext->IsNavalYard) {
+            if (Target_Legal(this_ptr->ArchiveTarget)) {
+                Building_Get_Nearby_Location_MZONE_AMPHIBIOUS_DESTROYER(this_ptr);
+                NearbyCell.X += 2;
+                NearbyCell.Y += 2;
+                if (NearbyCell) {
+                    this_ptr->Assign_Rally_Point(NearbyCell);
+                }
+            }
+        }
+    }
+    
+    /**
+     *  Stolen bytes/code.
+     */
+    _asm { mov eax, [esi+0x0EC] } // this->House
+    _asm { mov byte ptr [eax+0x0D2], 1 } // House->IsRecalcNeeded = true
+
+    JMP(0x0042E4D4);
+}
+
+
+/**
+ *  #issue-531
+ * 
+ *  This patch allows buildings with the IsNavalYard property to be assigned
+ *  as "Primary" seperate from other UnitType factories.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_BuildingClass_Toggle_Primary_NavalYard_Check_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(BuildingClass *, building, eax);
+    static BuildingTypeClassExtension *this_buildingtypeext;
+    static BuildingTypeClassExtension *i_buildingtypeext;
+
+    /**
+     *  Find the type class extension instance.
+     */
+    this_buildingtypeext = BuildingTypeClassExtensions.find(this_ptr->Class);
+    i_buildingtypeext = BuildingTypeClassExtensions.find(building->Class);
+
+    /**
+     *  If we found another naval yard, remove its leadership status so we can
+     *  assign it to ourself.
+     */
+    if (this_buildingtypeext && i_buildingtypeext
+     && this_buildingtypeext->IsNavalYard && i_buildingtypeext->IsNavalYard) {
+
+        building->IsLeader = false;
+
+    } else {
+        building->IsLeader = false;
+    }
+
+continue_loop:
+    JMP(0x0042F61A);
+}
+
+
+/**
+ *  #issue-531
+ * 
+ *  This patch allows buildings with the IsNavalYard property to place rally
+ *  points on water rather than on land.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_BuildingClass_Set_Rally_To_Point_NavalYard_Check_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(SpeedType, speed, ebx);
+    GET_REGISTER_STATIC(MZoneType, mzone, edi);
+    static BuildingTypeClassExtension *buildingtypeext;
+    static BuildingTypeClass *buildingtype;
+
+    buildingtype = this_ptr->Class;
+
+    /**
+     *  Stolen bytes/code.
+     */
+    if (buildingtype->ToBuild == RTTI_AIRCRAFTTYPE) {
+        speed = SPEED_WINGED;
+        mzone = MZONE_FLYER;
+
+    } else {
+
+        /**
+         *  Find the type class extension instance.
+         */
+        buildingtypeext = BuildingTypeClassExtensions.find(buildingtype);
+        if (buildingtypeext) {
+
+            /**
+             *  If this is a factory that produces units, but is flagged as a shipyard, then
+             *  change the zone flags to scan for water regions only.
+             */
+            if (buildingtype->ToBuild == RTTI_UNITTYPE && buildingtypeext->IsNavalYard) {
+                speed = SPEED_AMPHIBIOUS;
+                mzone = MZONE_AMPHIBIOUS_DESTROYER;
+            }
+
+        }
+
+    }
+
+    /**
+     *  Assign the zone flags to the expected registers.
+     */
+    _asm { mov eax, speed }
+    _asm { mov dword ptr [esp+0x14], eax }
+
+    _asm { mov edi, mzone }
+
+    JMP(0x0042C38E);
+}
 
 
 /**
@@ -493,4 +637,7 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x00429A96, &_BuildingClass_AI_ProduceCash_Patch);
     Patch_Jump(0x0042F67D, &_BuildingClass_Captured_ProduceCash_Patch);
     Patch_Jump(0x0042E179, &_BuildingClass_Grand_Opening_ProduceCash_Patch);
+    Patch_Jump(0x0042C37F, &_BuildingClass_Set_Rally_To_Point_NavalYard_Check_Patch);
+    Patch_Jump(0x0042F614, &_BuildingClass_Toggle_Primary_NavalYard_Check_Patch);
+    Patch_Jump(0x0042E4C7, &_BuildingClass_Grand_Opening_NavalYard_Initial_Rally_Point_Patch);
 }
