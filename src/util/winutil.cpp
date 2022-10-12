@@ -105,7 +105,7 @@ const char *Last_System_Error_As_String()
     DWORD dw = GetLastError(); 
 
     FormatMessage(
-        FORMAT_MESSAGE_MAX_WIDTH_MASK | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+        FORMAT_MESSAGE_MAX_WIDTH_MASK | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
         nullptr,
         dw,
         MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), 
@@ -113,7 +113,7 @@ const char *Last_System_Error_As_String()
         sizeof(buffer),
         nullptr);
 
-    return "No";
+    return buffer;
 }
 
 
