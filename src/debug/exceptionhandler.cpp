@@ -806,9 +806,22 @@ static INT_PTR Exception_Dialog()
             break;
     };
 
+    HMODULE hResHandle = DLLInstance;
+    const char *resId = MAKEINTRESOURCE(IDD_EXCEPTION);
+
+    /**
+     *  In rare cases, the DLL can be detached before the exception handler
+     *  has time to process the exception. In the event of this, use the original
+     *  exception dialog.
+     */
+    if (!hResHandle) {
+        hResHandle = ProgramInstance;
+        resId = MAKEINTRESOURCE(222);
+    }
+
     DWORD retval = 0;
     //HGLOBAL hGlobalDlg = Fetch_Resource(MAKEINTRESOURCE(IDD_EXCEPTION), RT_DIALOG);
-    HGLOBAL hGlobalDlg = FETCH_RESOURCE(DLLInstance, MAKEINTRESOURCE(IDD_EXCEPTION), RT_DIALOG);
+    HGLOBAL hGlobalDlg = FETCH_RESOURCE(hResHandle, resId, RT_DIALOG);
     if (hGlobalDlg != nullptr) {
         retval = DialogBoxIndirectParam(ProgramInstance, (LPDLGTEMPLATE)hGlobalDlg, MainWindow, (DLGPROC)Exception_Dialog_Proc, (LPARAM)0);
     } else {

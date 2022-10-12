@@ -52,9 +52,11 @@ static HGLOBAL Fetch_Resource_Intercept(const char *id, const char *type)
         return hGlobal;
     }
 
-    HGLOBAL v_hGlobal = FETCH_RESOURCE(DLLInstance, id, type);
-    if (v_hGlobal) {
-        return v_hGlobal;
+    if (DLLInstance) {
+        HGLOBAL v_hGlobal = FETCH_RESOURCE(DLLInstance, id, type);
+        if (v_hGlobal) {
+            return v_hGlobal;
+        }
     }
 
     return nullptr;

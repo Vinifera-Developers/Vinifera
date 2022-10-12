@@ -654,8 +654,8 @@ HGLOBAL Vinifera_Fetch_Resource(HMODULE handle, const char *id, const char *type
 {
     //DEBUGINFO("Fetch_Resource(enter)\n");
     
-    //HRSRC res = FindResourceEx(handle, MAKEINTRESOURCE(id), MAKEINTRESOURCE(type), ResourceLang);
-    HRSRC res = FindResource(handle, MAKEINTRESOURCE(id), MAKEINTRESOURCE(type));
+    //HRSRC res = FindResourceEx(handle, id, type, ResourceLang);
+    HRSRC res = FindResource(handle, id, type);
     if (res == nullptr) {
         DEBUG_ERROR("Fetch_Resource() - FindResource failed. Error! %s.\n", Last_System_Error_As_String());
         return nullptr;
