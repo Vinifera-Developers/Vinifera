@@ -314,6 +314,8 @@ static void Debug_Console_Init()
 
     SetConsoleTitle("Vinifera Debug Console");
 
+    DeleteMenu(GetSystemMenu(GetConsoleWindow(), FALSE), SC_CLOSE, MF_BYCOMMAND);
+
     DebugConsoleActive = true;
 }
 
