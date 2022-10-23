@@ -168,6 +168,10 @@ static bool Play_Intro_Movie(CampaignType campaign_id)
         return false;
     }
 
+    if (Scen->Scenario != 1) {
+        return false;
+    }
+
     char movie_filename[32];
     VQType intro_vq = VQ_NONE;
 
