@@ -64,12 +64,18 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved
 {
     switch (ul_reason_for_call) {
         case DLL_PROCESS_ATTACH:
-
-#if !defined(NDEBUG) && defined(TS_CLIENT)
+        {
             /**
              *  Give the user time to attach the debugger if one is not already present.
              */
+#if !defined(NDEBUG) && defined(TS_CLIENT)
             if (!IsDebuggerPresent()) {
+                MessageBox(NULL, "Attach the debugger now or continue.", "Vinifera", MB_OK|MB_SERVICE_NOTIFICATION);
+            }
+#elif defined(TS_CLIENT)
+            const char *cmdline = GetCommandLineA();
+            bool wait_for_debugger = (std::strstr(cmdline, "-DEBUGGER_ATTACH") != nullptr);
+            if (wait_for_debugger) {
                 MessageBox(NULL, "Attach the debugger now or continue.", "Vinifera", MB_OK|MB_SERVICE_NOTIFICATION);
             }
 #endif
@@ -105,9 +111,10 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved
             DLLInstance = hModule;
 
             return TRUE;
+        }
 
         case DLL_PROCESS_DETACH:
-
+        {
             OutputDebugString("\n\nAbout to call StopHooking()...\n\n");
 
             if (!StopHooking()) {
@@ -124,6 +131,7 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved
             OutputDebugString(VINIFERA_DLL " detached from " VINIFERA_TARGET_EXE ".\n");
 
             return TRUE;
+        }
             
         case DLL_THREAD_ATTACH:
         case DLL_THREAD_DETACH:
