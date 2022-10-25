@@ -60,34 +60,8 @@ class RulesClassExtension final : public Extension<RulesClass>
         bool AudioVisual(CCINIClass &ini);
         bool Weapons(CCINIClass &ini);
 
-        static bool Read_UI_INI();
-        static bool Init_UI_Controls();
-
     private:
         void Check();
-
-    public:
-        typedef struct UIControlsStruct
-        {
-            /**
-             *  Health bar draw positions.
-             */
-            TPoint2D<int> UnitHealthBarDrawPos;
-            TPoint2D<int> InfantryHealthBarDrawPos;
-
-            /**
-             *  Should the text label be drawn with an outline?
-             */
-            bool IsTextLabelOutline;
-
-            /**
-             *  Transparency of the text background.
-             */
-            unsigned TextLabelBackgroundTransparency;
-
-        } UIControlsStruct;
-
-        static UIControlsStruct UIControls;
 
     public:
         /**

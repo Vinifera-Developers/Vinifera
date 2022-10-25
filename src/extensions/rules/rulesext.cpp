@@ -35,7 +35,6 @@
 
 
 RulesClassExtension *RulesExtension = nullptr;
-RulesClassExtension::UIControlsStruct RulesClassExtension::UIControls;
 
 
 /**
@@ -380,62 +379,6 @@ bool RulesClassExtension::Weapons(CCINIClass &ini)
     }
 
     return counter > 0;
-}
-
-
-/**
- *  Process the UI controls and overrides.
- * 
- *  This function is here for simplicity, and is loaded from its own INI, not Rules.
- *  
- *  @author: CCHyper
- */
-bool RulesClassExtension::Read_UI_INI()
-{
-    static char const * const GENERAL = "General";
-    static char const * const INGAME = "Ingame";
-
-    CCFileClass file("UI.INI");
-    CCINIClass ini(file);
-
-    //if (!ini.Is_Present(GENERAL)) {
-    //    return false;
-    //}
-
-    UIControls.UnitHealthBarDrawPos = ini.Get_Point(INGAME, "UnitHealthBarPos", UIControls.UnitHealthBarDrawPos);
-    UIControls.InfantryHealthBarDrawPos = ini.Get_Point(INGAME, "InfantryHealthBarPos", UIControls.InfantryHealthBarDrawPos);
-
-    UIControls.IsTextLabelOutline = ini.Get_Bool(INGAME, "TextLabelOutline", UIControls.IsTextLabelOutline);
-    UIControls.TextLabelBackgroundTransparency = ini.Get_Int_Clamp(INGAME, "TextLabelBackgroundTransparency", 0, 100, UIControls.TextLabelBackgroundTransparency);
-
-    return true;
-}
-
-
-/**
- *  Initialises the UI controls defaults.
- *  
- *  @author: CCHyper
- */
-bool RulesClassExtension::Init_UI_Controls()
-{
-    /**
-     *  #issue-541
-     * 
-     *  The health bar graphics "Y" position on selection boxes is off by 1 pixel.
-     * 
-     *  @author: CCHyper
-     */
-    UIControls.UnitHealthBarDrawPos.X = -25;
-    UIControls.UnitHealthBarDrawPos.Y = -16; // was -15
-
-    UIControls.InfantryHealthBarDrawPos.X = -24;
-    UIControls.InfantryHealthBarDrawPos.Y = -5;
-
-    UIControls.IsTextLabelOutline = true;
-    UIControls.TextLabelBackgroundTransparency = 50;
-
-    return false;
 }
 
 

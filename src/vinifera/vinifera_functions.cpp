@@ -46,6 +46,7 @@
 #include "tclassfactory.h"
 #include "testlocomotion.h"
 #include "theatertype.h"
+#include "uicontrol.h"
 #include "debughandler.h"
 #include <string>
 
@@ -571,6 +572,9 @@ bool Vinifera_Shutdown()
     EBoltClass::Clear_All();
     TheaterTypes.Clear();
 
+    delete UIControls;
+    UIControls = nullptr;
+
     DEV_DEBUG_INFO("Shutdown - New Count: %d, Delete Count: %d\n", Vinifera_New_Count, Vinifera_Delete_Count);
 
     return true;
@@ -588,11 +592,22 @@ int Vinifera_Pre_Init_Game(int argc, char *argv[])
     /**
      *  Read the UI controls and overrides.
      */
-    RulesClassExtension::Init_UI_Controls();
+    UIControls = new UIControlsClass;
 
-    if (!RulesClassExtension::Read_UI_INI()) {
-        DEBUG_WARNING("Failed to read UI.INI!\n");
-        //return EXIT_FAILURE;
+    CCFileClass ui_file("UI.INI");
+    CCINIClass ui_ini;
+
+    if (ui_file.Is_Available()) {
+
+        ui_ini.Load(ui_file, false);
+
+        if (!UIControls->Read_INI(ui_ini)) {
+            DEV_DEBUG_ERROR("Failed to read UI.INI!\n");
+            //return EXIT_FAILURE;
+        }
+
+    } else {
+        DEV_DEBUG_WARNING("UI.INI not found!\n");
     }
 
 #if defined(TS_CLIENT)
@@ -626,7 +641,7 @@ int Vinifera_Post_Init_Game(int argc, char *argv[])
 
         if (!TheaterTypeClass::Read_Theaters_INI(theater_ini)) {
             DEV_DEBUG_ERROR("Failed to read THEATERS.INI!\n");
-            //return -1;
+            //return EXIT_FAILURE;
         }
 
     } else {

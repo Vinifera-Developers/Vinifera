@@ -30,7 +30,7 @@
 #include "tibsun_globals.h"
 #include "colorscheme.h"
 #include "wwfont.h"
-#include "rulesext.h"
+#include "uicontrol.h"
 #include "fatal.h"
 #include "asserthandler.h"
 #include "debughandler.h"
@@ -85,7 +85,7 @@ bool TextLabelClassFake::_Draw_Me(bool forced)
      * 
      *  @author: CCHyper
      */
-    if (RulesClassExtension::UIControls.TextLabelBackgroundTransparency > 0) {
+    if (UIControls->TextLabelBackgroundTransparency > 0) {
 
         RGBClass black_color(0,0,0);
         WWFontClass *font = Font_Ptr(style);
@@ -113,7 +113,7 @@ bool TextLabelClassFake::_Draw_Me(bool forced)
         }
 
         TempSurface->Fill_Rect_Trans(text_rect, black_color,
-            RulesClassExtension::UIControls.TextLabelBackgroundTransparency);
+            UIControls->TextLabelBackgroundTransparency);
     }
 
     /**
@@ -123,7 +123,7 @@ bool TextLabelClassFake::_Draw_Me(bool forced)
      * 
      *  @author: CCHyper
      */
-    if (!RulesClassExtension::UIControls.IsTextLabelOutline) {
+    if (!UIControls->IsTextLabelOutline) {
         style |= TPF_NOSHADOW;
     }
 

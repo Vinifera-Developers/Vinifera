@@ -41,6 +41,7 @@
 #include "housetype.h"
 #include "rules.h"
 #include "rulesext.h"
+#include "uicontrol.h"
 #include "infantry.h"
 #include "infantrytype.h"
 #include "infantrytypeext.h"
@@ -390,8 +391,8 @@ DECLARE_PATCH(_TechnoClass_Draw_Health_Bars_Infantry_Draw_Pos_Patch)
     static int x_pos;
     static int y_pos;
 
-    x_pos = RulesClassExtension::UIControls.InfantryHealthBarDrawPos.X;
-    y_pos = RulesClassExtension::UIControls.InfantryHealthBarDrawPos.Y;
+    x_pos = UIControls->InfantryHealthBarDrawPos.X;
+    y_pos = UIControls->InfantryHealthBarDrawPos.Y;
 
     _asm { mov ecx, [x_pos] }
     _asm { mov eax, [y_pos] }
@@ -413,8 +414,8 @@ DECLARE_PATCH(_TechnoClass_Draw_Health_Bars_Unit_Draw_Pos_Patch)
     static int x_pos;
     static int y_pos;
 
-    x_pos = RulesClassExtension::UIControls.UnitHealthBarDrawPos.X;
-    y_pos = RulesClassExtension::UIControls.UnitHealthBarDrawPos.Y;
+    x_pos = UIControls->UnitHealthBarDrawPos.X;
+    y_pos = UIControls->UnitHealthBarDrawPos.Y;
 
     _asm { mov ecx, [x_pos] }
     _asm { mov eax, [y_pos] }
