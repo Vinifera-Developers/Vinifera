@@ -32,10 +32,14 @@
 #include "theatertype.h"
 #include "vinifera_globals.h"
 #include "tibsun_globals.h"
+#include "house.h"
+#include "housetype.h"
 #include "scenario.h"
+#include "wstring.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include <cctype>
 
 
 /**
@@ -58,29 +62,30 @@ static class ObjectTypeClassFake final : public ObjectTypeClass
  * 
  *  @author: CCHyper
  */
-void ObjectTypeClassFake::_Assign_Theater_Name(char *buffer, TheaterType theater)
+void ObjectTypeClassFake::_Assign_Theater_Name(char *fname, TheaterType theater)
 {
     if (theater != THEATER_NONE && theater < TheaterTypes.Count()) {
 
-        char first = buffer[0];
-        char second = buffer[1];
+        /**
+         *  Make sure filename is uppercase.
+         */
+        strupr(fname);
+
+        char first = fname[0];
+        char second = fname[1];
 
         /**
-         *  Make sure characters are lowercase.
+         *  Remap the second character to the current theater image character. We perform
+         *  a simple check to make sure the characters are valid.
          */
-        if (first >= 'A' && first <= 'Z') {
-            first += ' ';
-        }
-        if (second >= 'A' && second <= 'Z') {
-            second += ' ';
+        if (std::isalpha(first) && std::isalpha(second)) {
+            fname[0] = first;
+            fname[1] = TheaterTypeClass::ImageLetter_From(theater);
+
+        } else {
+            DEV_DEBUG_WARNING("Failed to remap \"%s\" to current theater (%s)!\n", TheaterTypeClass::Name_From(theater));
         }
 
-        /**
-         *  Make sure this is a new theater style filename before assigning the theater id.
-         */
-        if ((first == 'g' || first == 'n' || first == 'c') && (second == 'a' || second == 't')) {
-            buffer[1] = TheaterTypeClass::ImageLetter_From(theater);
-        }
     }
 }
 

@@ -31,6 +31,7 @@
 #include "colorscheme.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include <string>
 
 
 /**
@@ -139,7 +140,7 @@ TheaterTypeClass::TheaterTypeClass(const char *name,
         MMSuffix[sizeof(MMSuffix)-1] = '\0';
     }
     if (isascii(letter)) {
-        ImageLetter = letter;
+        ImageLetter = std::toupper(letter);
     }
     std::strncpy(BiomeName, "New Biome", sizeof(BiomeName));
     BiomeName[sizeof(BiomeName)-1] = '\0';
@@ -188,7 +189,7 @@ bool TheaterTypeClass::Read_INI(CCINIClass &ini)
     char chr[2] = { '\0' };
     ini.Get_String(Name, "ImageLetter", chr, sizeof(chr));
     if (isascii(chr[0])) {
-        ImageLetter = chr[0];
+        ImageLetter = std::toupper(chr[0]);
     }
     
     ini.Get_String(Name, "BiomeName", BiomeName, BiomeName, sizeof(BiomeName));
