@@ -31,6 +31,9 @@
 #include "tiberium.h"
 #include "weapontype.h"
 #include "buildingtype.h"
+#include "housetype.h"
+#include "side.h"
+#include "wstring.h"
 #include "asserthandler.h"
 #include "debughandler.h"
 
@@ -275,6 +278,11 @@ void RulesClassExtension::Process(CCINIClass &ini)
      *  Run some checks to ensure certain values are as expected.
      */
     Check();
+
+    /**
+     *  Fixup various inconsistencies in the original INI files.
+     */
+    Fixups();
 }
 
 
@@ -407,4 +415,50 @@ bool RulesClassExtension::Weapons(CCINIClass &ini)
 void RulesClassExtension::Check()
 {
     ASSERT_PRINT(ThisPtr->CreditTicks.Count() == 2, "CreditTicks must contain 2 valid entries!");
+}
+
+
+/**
+ *  This function is for fixing up any erroneous rules data in the unmodded Tiberian Sun to
+ *  ensure the original game works as expected with any new systems we implement.
+ *
+ *  @author: CCHyper
+ */
+void RulesClassExtension::Fixups()
+{
+    HouseTypeClass *housetype = HouseTypes[HOUSE_NOD];
+    if (housetype) {
+
+        /**
+         *  #issue-903
+         * 
+         *  Workaround because NOD has Side=GDI in unmodded Tiberian Sun.
+         * 
+         *  Match criteria;
+         *   - The HouseType's name is "Nod"
+         *   - HouseType "Nod" is index 1
+         *   - Side is GDI (index 0)
+         *   - Side GDI (index 0) name is "GDI"
+         *   - Side 1 name is "Nod"
+         */
+        if (Wstring(housetype->Name()) == Wstring("Nod")
+            && housetype->Get_Heap_ID() == HOUSE_NOD
+            && housetype->Side == SIDE_GDI
+            && Wstring(Sides[housetype->Side]->Name()) == Wstring("GDI")
+            && Wstring(Sides[SIDE_NOD]->Name()) == Wstring("Nod")) {
+
+            DEBUG_WARNING("Rules: House \"%s\" (%d) has \"Side=GDI\", changing Side to \"Nod\"!\n",
+                housetype->Name(), housetype->Get_Heap_ID());
+
+            /**
+             *  We are pretty sure this house is NOD, force the Side to SIDE_NOD.
+             */
+            housetype->Side = SIDE_NOD;
+
+            DEBUG_WARNING("Rules: Please consider changing House \"%s\" to have \"Side=Nod\"!\n",
+                housetype->Name());
+        }
+
+    }
+
 }
