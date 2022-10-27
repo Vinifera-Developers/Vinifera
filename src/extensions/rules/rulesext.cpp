@@ -459,6 +459,32 @@ void RulesClassExtension::Fixups()
                 housetype->Name());
         }
 
+        /**
+         *  #issue-903
+         * 
+         *  Workaround because NOD has Prefix=B in unmodded Tiberian Sun.
+         * 
+         *  Match criteria;
+         *   - The HouseType's name is "Nod"
+         *   - HouseType "Nod" is index 1
+         *   - HouseType "Nod" has Prefix=B
+         */
+        if (Wstring(housetype->Name()) == Wstring("Nod")
+            && housetype->Get_Heap_ID() == HOUSE_NOD
+            && housetype->Prefix == 'B') {
+
+            DEBUG_WARNING("Rules: House \"%s\" (%d) has \"Prefix=B\", changing Prefix to \"N\"!\n",
+                housetype->Name(), housetype->Get_Heap_ID());
+
+            /**
+             *  We are pretty sure this house is NOD, force the Prefix to the 'N' character.
+             */
+            housetype->Prefix = 'N';
+
+            DEBUG_WARNING("Rules: Please consider changing House \"%s\" to have \"Side=Nod\"!\n",
+                housetype->Name());
+        }
+
     }
 
 }
