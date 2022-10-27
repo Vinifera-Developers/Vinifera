@@ -30,6 +30,7 @@
 #include "tspp_gitinfo.h"
 #include "vinifera_const.h"
 #include "vinifera_globals.h"
+#include "vinifera_defines.h"
 #include "tibsun_globals.h"
 #include "colorscheme.h"
 #include "textprint.h"
@@ -439,6 +440,39 @@ const char *Vinifera_Get_Window_Title(DWORD dwPid)
 #endif
 
     return _window_name;
+}
+
+
+/**
+ *  Retrieves the name for the given WeaponSlotType.
+ * 
+ *  @author: CCHyper
+ */
+const char *Name_From_WeaponSlot(WeaponSlotType slot)
+{
+    /**
+     *  These are the ASCII names for the weapon info slot types.
+     */
+    static const char * const WeaponSlotName[EXT_WEAPON_SLOT_COUNT] =
+    {
+        "Primary",
+        "Secondary",
+        "Elite Primary",
+        "Elite Secondary",
+        "Veteran Primary",
+        "Veteran Secondary",
+        "Tertiary",
+        "Veteran Tertiary",
+        "Elite Tertiary",
+        "Quaternary",
+        "Veteran Quaternary",
+        "Elite Quaternary"
+    };
+
+    if (slot != WEAPON_SLOT_NONE || slot < EXT_WEAPON_SLOT_COUNT) {
+        return WeaponSlotName[slot];
+    }
+    return "<invalid>";
 }
 
 

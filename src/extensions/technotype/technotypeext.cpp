@@ -70,13 +70,18 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(TechnoTypeClass *this_ptr) :
     VoiceDeploy(),
     VoiceHarvest(),
     IdleRate(0),
-    CameoImageSurface(nullptr)
+    CameoImageSurface(nullptr),
+    Weapons()
 {
     ASSERT(ThisPtr != nullptr);
     //EXT_DEBUG_TRACE("TechnoTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
     //EXT_DEBUG_WARNING("TechnoTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
 
     IsInitialized = true;
+
+    for (int i = 0; i < ARRAY_SIZE(Weapons); ++i) {
+        Weapons[i].Weapon = nullptr;
+    }
 }
 
 
@@ -252,7 +257,76 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
      *  @author: CCHyper
      */
     ThisPtr->WalkRate = ArtINI.Get_Int(graphic_name, "WalkRate", ThisPtr->WalkRate);
-    
+
+    /**
+     *  As we 
+     */
+    std::memcpy(&Weapons[WEAPON_SLOT_PRIMARY], &ThisPtr->Weapons[WEAPON_SLOT_PRIMARY], sizeof(WeaponInfoStruct));
+    std::memcpy(&Weapons[WEAPON_SLOT_SECONDARY], &ThisPtr->Weapons[WEAPON_SLOT_SECONDARY], sizeof(WeaponInfoStruct));
+    std::memcpy(&Weapons[WEAPON_SLOT_ELITE_PRIMARY], &ThisPtr->Weapons[WEAPON_SLOT_ELITE], sizeof(WeaponInfoStruct));
+    std::memcpy(&Weapons[WEAPON_SLOT_ELITE_SECONDARY], &ThisPtr->Weapons[WEAPON_SLOT_SECONDARY], sizeof(WeaponInfoStruct));
+
+    /**
+     *  This is an alias for the "Elite" key, to fit the new naming format.
+     */
+    Weapons[WEAPON_SLOT_ELITE_PRIMARY].Weapon = ini.Get_Weapon(ini_name, "ElitePrimary", Weapons[WEAPON_SLOT_ELITE_PRIMARY].Weapon);
+    Weapons[WEAPON_SLOT_ELITE_PRIMARY].FireFLH = ArtINI.Get_Point(ini_name, "ElitePrimaryFireFLH", Weapons[WEAPON_SLOT_ELITE_PRIMARY].FireFLH);
+    Weapons[WEAPON_SLOT_ELITE_PRIMARY].BarrelThickness = ArtINI.Get_Int(ini_name, "ElitePBarrelThickness", Weapons[WEAPON_SLOT_ELITE_PRIMARY].BarrelThickness);
+    Weapons[WEAPON_SLOT_ELITE_PRIMARY].BarrelLength = ArtINI.Get_Int(ini_name, "ElitePBarrelLength", Weapons[WEAPON_SLOT_ELITE_PRIMARY].BarrelLength);
+
+    Weapons[WEAPON_SLOT_ELITE_SECONDARY].Weapon = ini.Get_Weapon(ini_name, "EliteSecondary", Weapons[WEAPON_SLOT_ELITE_SECONDARY].Weapon);
+    Weapons[WEAPON_SLOT_ELITE_SECONDARY].FireFLH = ArtINI.Get_Point(ini_name, "EliteSecondaryFireFLH", Weapons[WEAPON_SLOT_ELITE_SECONDARY].FireFLH);
+    Weapons[WEAPON_SLOT_ELITE_SECONDARY].BarrelThickness = ArtINI.Get_Int(ini_name, "EliteSBarrelThickness", Weapons[WEAPON_SLOT_ELITE_SECONDARY].BarrelThickness);
+    Weapons[WEAPON_SLOT_ELITE_SECONDARY].BarrelLength = ArtINI.Get_Int(ini_name, "EliteSBarrelLength", Weapons[WEAPON_SLOT_ELITE_SECONDARY].BarrelLength);
+
+    std::memcpy(&Weapons[WEAPON_SLOT_VETERAN_PRIMARY], &ThisPtr->Weapons[WEAPON_SLOT_PRIMARY], sizeof(WeaponInfoStruct));
+
+    Weapons[WEAPON_SLOT_VETERAN_PRIMARY].Weapon = ini.Get_Weapon(ini_name, "VeteranPrimary", Weapons[WEAPON_SLOT_VETERAN_PRIMARY].Weapon);
+    Weapons[WEAPON_SLOT_VETERAN_PRIMARY].FireFLH = ArtINI.Get_Point(ini_name, "VeteranPrimaryFireFLH", Weapons[WEAPON_SLOT_VETERAN_PRIMARY].FireFLH);
+    Weapons[WEAPON_SLOT_VETERAN_PRIMARY].BarrelThickness = ArtINI.Get_Int(ini_name, "VeteranPBarrelThickness", Weapons[WEAPON_SLOT_VETERAN_PRIMARY].BarrelThickness);
+    Weapons[WEAPON_SLOT_VETERAN_PRIMARY].BarrelLength = ArtINI.Get_Int(ini_name, "VeteranPBarrelLength", Weapons[WEAPON_SLOT_VETERAN_PRIMARY].BarrelLength);
+
+    std::memcpy(&Weapons[WEAPON_SLOT_VETERAN_SECONDARY], &ThisPtr->Weapons[WEAPON_SLOT_SECONDARY], sizeof(WeaponInfoStruct));
+
+    Weapons[WEAPON_SLOT_VETERAN_SECONDARY].Weapon = ini.Get_Weapon(ini_name, "VeteranSecondary", Weapons[WEAPON_SLOT_VETERAN_SECONDARY].Weapon);
+    Weapons[WEAPON_SLOT_VETERAN_SECONDARY].FireFLH = ArtINI.Get_Point(ini_name, "VeteranSecondaryFireFLH", Weapons[WEAPON_SLOT_VETERAN_SECONDARY].FireFLH);
+    Weapons[WEAPON_SLOT_VETERAN_SECONDARY].BarrelThickness = ArtINI.Get_Int(ini_name, "VeteranSBarrelThickness", Weapons[WEAPON_SLOT_VETERAN_SECONDARY].BarrelThickness);
+    Weapons[WEAPON_SLOT_VETERAN_SECONDARY].BarrelLength = ArtINI.Get_Int(ini_name, "VeteranSBarrelLength", Weapons[WEAPON_SLOT_VETERAN_SECONDARY].BarrelLength);
+
+    Weapons[WEAPON_SLOT_TERTIARY].Weapon = ini.Get_Weapon(ini_name, "Tertiary", Weapons[WEAPON_SLOT_TERTIARY].Weapon);
+    Weapons[WEAPON_SLOT_TERTIARY].FireFLH = ArtINI.Get_Point(ini_name, "TertiaryFireFLH", Weapons[WEAPON_SLOT_TERTIARY].FireFLH);
+    Weapons[WEAPON_SLOT_TERTIARY].BarrelThickness = ArtINI.Get_Int(ini_name, "TBarrelThickness", Weapons[WEAPON_SLOT_TERTIARY].BarrelThickness);
+    Weapons[WEAPON_SLOT_TERTIARY].BarrelLength = ArtINI.Get_Int(ini_name, "TBarrelLength", Weapons[WEAPON_SLOT_TERTIARY].BarrelLength);
+
+    std::memcpy(&Weapons[WEAPON_SLOT_VETERAN_TERTIARY], &Weapons[WEAPON_SLOT_TERTIARY], sizeof(WeaponInfoStruct));
+    std::memcpy(&Weapons[WEAPON_SLOT_ELITE_TERTIARY], &Weapons[WEAPON_SLOT_TERTIARY], sizeof(WeaponInfoStruct));
+
+    Weapons[WEAPON_SLOT_VETERAN_TERTIARY].Weapon = ini.Get_Weapon(ini_name, "VeteranTertiary", Weapons[WEAPON_SLOT_VETERAN_TERTIARY].Weapon);
+    Weapons[WEAPON_SLOT_VETERAN_TERTIARY].FireFLH = ArtINI.Get_Point(ini_name, "VeteranTertiaryFireFLH", Weapons[WEAPON_SLOT_VETERAN_TERTIARY].FireFLH);
+    Weapons[WEAPON_SLOT_VETERAN_TERTIARY].BarrelThickness = ArtINI.Get_Int(ini_name, "VeteranTBarrelThickness", Weapons[WEAPON_SLOT_VETERAN_TERTIARY].BarrelThickness);
+    Weapons[WEAPON_SLOT_VETERAN_TERTIARY].BarrelLength = ArtINI.Get_Int(ini_name, "VeteranTBarrelLength", Weapons[WEAPON_SLOT_VETERAN_TERTIARY].BarrelLength);
+    Weapons[WEAPON_SLOT_ELITE_TERTIARY].Weapon = ini.Get_Weapon(ini_name, "EliteTertiary", Weapons[WEAPON_SLOT_ELITE_TERTIARY].Weapon);
+    Weapons[WEAPON_SLOT_ELITE_TERTIARY].FireFLH = ArtINI.Get_Point(ini_name, "EliteTertiaryFireFLH", Weapons[WEAPON_SLOT_ELITE_TERTIARY].FireFLH);
+    Weapons[WEAPON_SLOT_ELITE_TERTIARY].BarrelThickness = ArtINI.Get_Int(ini_name, "EliteTBarrelThickness", Weapons[WEAPON_SLOT_ELITE_TERTIARY].BarrelThickness);
+    Weapons[WEAPON_SLOT_ELITE_TERTIARY].BarrelLength = ArtINI.Get_Int(ini_name, "EliteTBarrelLength", Weapons[WEAPON_SLOT_ELITE_TERTIARY].BarrelLength);
+
+    Weapons[WEAPON_SLOT_QUATERNARY].Weapon = ini.Get_Weapon(ini_name, "Quaternary", Weapons[WEAPON_SLOT_QUATERNARY].Weapon);
+    Weapons[WEAPON_SLOT_QUATERNARY].FireFLH = ArtINI.Get_Point(ini_name, "QuaternaryFireFLH", Weapons[WEAPON_SLOT_QUATERNARY].FireFLH);
+    Weapons[WEAPON_SLOT_QUATERNARY].BarrelThickness = ArtINI.Get_Int(ini_name, "QBarrelThickness", Weapons[WEAPON_SLOT_QUATERNARY].BarrelThickness);
+    Weapons[WEAPON_SLOT_QUATERNARY].BarrelLength = ArtINI.Get_Int(ini_name, "QBarrelLength", Weapons[WEAPON_SLOT_QUATERNARY].BarrelLength);
+
+    std::memcpy(&Weapons[WEAPON_SLOT_VETERAN_QUATERNARY], &Weapons[WEAPON_SLOT_QUATERNARY], sizeof(WeaponInfoStruct));
+    std::memcpy(&Weapons[WEAPON_SLOT_ELITE_QUATERNARY], &Weapons[WEAPON_SLOT_QUATERNARY], sizeof(WeaponInfoStruct));
+
+    Weapons[WEAPON_SLOT_VETERAN_QUATERNARY].Weapon = ini.Get_Weapon(ini_name, "VeteranQuaternary", Weapons[WEAPON_SLOT_VETERAN_QUATERNARY].Weapon);
+    Weapons[WEAPON_SLOT_VETERAN_QUATERNARY].FireFLH = ArtINI.Get_Point(ini_name, "VeteranQuaternaryFireFLH", Weapons[WEAPON_SLOT_VETERAN_QUATERNARY].FireFLH);
+    Weapons[WEAPON_SLOT_VETERAN_QUATERNARY].BarrelThickness = ArtINI.Get_Int(ini_name, "VeteranQBarrelThickness", Weapons[WEAPON_SLOT_VETERAN_QUATERNARY].BarrelThickness);
+    Weapons[WEAPON_SLOT_VETERAN_QUATERNARY].BarrelLength = ArtINI.Get_Int(ini_name, "VeteranQBarrelLength", Weapons[WEAPON_SLOT_VETERAN_QUATERNARY].BarrelLength);
+    Weapons[WEAPON_SLOT_ELITE_QUATERNARY].Weapon = ini.Get_Weapon(ini_name, "EliteQuaternary", Weapons[WEAPON_SLOT_ELITE_QUATERNARY].Weapon);
+    Weapons[WEAPON_SLOT_ELITE_QUATERNARY].FireFLH = ArtINI.Get_Point(ini_name, "EliteQuaternaryFireFLH", Weapons[WEAPON_SLOT_ELITE_QUATERNARY].FireFLH);
+    Weapons[WEAPON_SLOT_ELITE_QUATERNARY].BarrelThickness = ArtINI.Get_Int(ini_name, "EliteQBarrelThickness", Weapons[WEAPON_SLOT_ELITE_QUATERNARY].BarrelThickness);
+    Weapons[WEAPON_SLOT_ELITE_QUATERNARY].BarrelLength = ArtINI.Get_Int(ini_name, "EliteQBarrelLength", Weapons[WEAPON_SLOT_ELITE_QUATERNARY].BarrelLength);
+
     CloakSound = ini.Get_VocType(ini_name, "CloakSound", CloakSound);
     UncloakSound = ini.Get_VocType(ini_name, "UncloakSound", UncloakSound);
     IsShakeScreen = ini.Get_Bool(ini_name, "CanShakeScreen", IsShakeScreen);
@@ -284,4 +358,31 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     }
 
     return true;
+}
+
+
+/**
+ *  
+ *  
+ *  @author: CCHyper
+ */
+const WeaponInfoStruct &TechnoTypeClassExtension::Fetch_Weapon_Info(WeaponSlotType slot) const
+{
+    if (slot == WEAPON_SLOT_SECONDARY && !Weapons[slot].Weapon) {
+        slot = WEAPON_SLOT_PRIMARY;
+    }
+    if (slot == WEAPON_SLOT_ELITE_SECONDARY && !Weapons[slot].Weapon) {
+        slot = WeaponSlotType(WEAPON_SLOT_ELITE_PRIMARY);
+    }
+    if (slot == WEAPON_SLOT_VETERAN_SECONDARY && !Weapons[slot].Weapon) {
+        slot = WeaponSlotType(WEAPON_SLOT_VETERAN_PRIMARY);
+    }
+
+#ifndef NDEBUG
+    if (Weapons[slot].Weapon == nullptr) {
+        //DEBUG_WARNING("Fetching info for weapon \"%s\", but WeaponType pointer is null!\n", Name_From_WeaponSlot(slot));
+    }
+#endif
+
+    return Weapons[slot];
 }

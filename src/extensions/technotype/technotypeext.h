@@ -29,8 +29,10 @@
 
 #include "extension.h"
 #include "container.h"
+#include "technotype.h"
 #include "typelist.h"
 #include "tibsun_defines.h"
+#include "vinifera_defines.h"
 
 
 class TechnoTypeClass;
@@ -53,6 +55,8 @@ class TechnoTypeClassExtension final : public Extension<TechnoTypeClass>
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
         bool Read_INI(CCINIClass &ini);
+
+        const WeaponInfoStruct &Fetch_Weapon_Info(WeaponSlotType slot) const;
 
     public:
         /**
@@ -146,6 +150,11 @@ class TechnoTypeClassExtension final : public Extension<TechnoTypeClass>
          *  Pointer to the cameo image surface.
          */
         BSurface *CameoImageSurface;
+
+        /**
+         *  These are the weapons that this techno object is armed with.
+         */
+        WeaponInfoStruct Weapons[EXT_WEAPON_SLOT_COUNT];
 };
 
 

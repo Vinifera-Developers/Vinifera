@@ -31,7 +31,12 @@
 #include "buildingtypeext.h"
 #include "house.h"
 #include "housetype.h"
+#include "technoext.h"
+#include "technotypeext.h"
+#include "weapontype.h"
+#include "house.h"
 #include "wwcrc.h"
+#include "vinifera_defines.h"
 #include "asserthandler.h"
 #include "debughandler.h"
 
@@ -285,4 +290,83 @@ void BuildingClassExtension::Produce_Cash_AI()
 
     }
 
+}
+
+
+/**
+ *  Returns the control struct for the desired weapon type.
+ * 
+ *  @author: CCHyper
+ */
+const WeaponInfoStruct * BuildingClassExtension::Get_Weapon(WeaponSlotType weapon) const
+{
+    ASSERT(ThisPtr != nullptr);
+    //EXT_DEBUG_TRACE("BuildingClassExtension::Get_Weapon - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+
+    TechnoClassExtension *technoext;
+    technoext = TechnoClassExtensions.find(ThisPtr);
+    if (!technoext) {
+        return nullptr;
+    }
+
+    TechnoTypeClassExtension *technotypeext;
+
+    const WeaponInfoStruct * weaponptr = nullptr;
+
+    /**
+     *  Fetch the desired weapon from the upgrade.
+     */
+    for (int upgrade = 0; upgrade < BUILDING_UPGRADE_MAX; ++upgrade) {
+        if (ThisPtr->Upgrades[upgrade]) {
+            technotypeext = TechnoTypeClassExtensions.find(ThisPtr->Upgrades[upgrade]);
+            ASSERT(technotypeext != nullptr);
+            if (technotypeext) {
+                weaponptr = &technotypeext->Fetch_Weapon_Info(weapon);
+                if (technotypeext->Fetch_Weapon_Info(weapon).Weapon) {
+                    return weaponptr;
+                }
+            }
+        }
+        if (upgrade >= ThisPtr->UpgradeLevel) {
+            break;
+        }
+    }
+    
+    return technoext->Get_Weapon(weapon);
+}
+
+
+/**
+ *  Searches for target that building can fire upon.
+ * 
+ *  @author: CCHyper
+ */
+TARGET BuildingClassExtension::Greatest_Threat(ThreatType method, Coordinate &coord, bool a3) const
+{
+    ASSERT(ThisPtr != nullptr);
+    //EXT_DEBUG_TRACE("BuildingClassExtension::Greatest_Threat - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+
+    TechnoTypeClassExtension *technotypeext;
+    technotypeext = TechnoTypeClassExtensions.find(ThisPtr->Techno_Type_Class());
+    if (!technotypeext) {
+        return nullptr;
+    }
+
+    /**
+     *  
+     */
+    for (WeaponSlotType slot = WEAPON_SLOT_FIRST; slot < EXT_WEAPON_SLOT_COUNT; ++slot) {
+        const WeaponTypeClass *weaponptr = ThisPtr->Get_Weapon(slot)->Weapon;
+        if (weaponptr) {
+            method |= weaponptr->Allowed_Threats();
+        }
+    }
+
+    if (ThisPtr->House->Is_Human_Control()) {
+        method = method & ~THREAT_BUILDINGS;
+    }
+
+    method |= THREAT_RANGE;
+
+    return ThisPtr->TechnoClass::Greatest_Threat(method, coord, a3);
 }
