@@ -62,6 +62,7 @@ class RulesClassExtension final : public Extension<RulesClass>
 
     private:
         void Check();
+        void Fixups();
 
     public:
         /**
