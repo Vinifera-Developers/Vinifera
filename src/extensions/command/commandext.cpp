@@ -2000,7 +2000,23 @@ bool ToggleShroudCommandClass::Process()
      *  hooked into DisplayClass and RadarClass!
      */
     if (Vinifera_Developer_Unshroud) {
-        Map.Reveal_The_Map();
+
+        //Map.Reveal_The_Map();
+
+        if (!PlayerPtr->IsVisionary) {
+
+            PlayerPtr->IsVisionary = true;
+
+            Map.Iterator_Reset();
+
+            for (CellClass *cell = Map.Iterator_Next_Cell(); cell != nullptr; cell = Map.Iterator_Next_Cell()) {
+                Map.Map_Cell(cell->Pos, PlayerPtr);
+            }
+
+            Map.Flag_To_Redraw(true);
+
+        }
+
     } else {
         Map.Shroud_The_Map();
     }
