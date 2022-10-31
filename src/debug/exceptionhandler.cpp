@@ -919,6 +919,8 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
      */
     if (RecursionCount < 2) {
 
+        ExceptionBuffer.Clear();
+
         DEBUG_WARNING("About to call Dump_Exception_Info()\n");
         Dump_Exception_Info(e_code, e_info);
 
