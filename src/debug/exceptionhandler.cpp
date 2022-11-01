@@ -698,10 +698,12 @@ static INT_PTR CALLBACK Exception_Dialog_Proc(HWND hDlg, UINT uMsg, WPARAM wPara
     // FALSE == We are not interested in the message. Let dialog manager do any default processing.
     INT_PTR result = FALSE;
 
+#if defined(TS_CLIENT)
     /**
-     *  Temporary code to disable the Main Menu button.
+     *  Disable the Main Menu button.
      */
-    //EnableWindow(GetDlgItem(hDlg, IDC_EXCEPTION_MAINMENU), FALSE); // Main Menu button
+    EnableWindow(GetDlgItem(hDlg, IDC_EXCEPTION_MAINMENU), FALSE); // Main Menu button
+#endif
 
     /**
      *  Disable/Enable the Continue button.
