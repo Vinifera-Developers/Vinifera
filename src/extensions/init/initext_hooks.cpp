@@ -235,7 +235,7 @@ static bool Vinifera_Addon_Present()
     InstalledMode = 1;
     EnabledMode = 1;
 
-    DEBUG_INFO("Forcing Firestorm addon as installed.");
+    DEBUG_INFO("Forcing Firestorm addon as installed.\n");
 
     /**
      *  Firestorm is installed.
@@ -296,6 +296,6 @@ void GameInit_Hooks()
     /**
      *  TS Client file structure assumes Firestorm is always installed and enabled.
      */
-    Patch_Jump(0x00407050, &Vinifera_Addon_Present);
+    //Patch_Jump(0x00407050, &Vinifera_Addon_Present);
 #endif
 }
