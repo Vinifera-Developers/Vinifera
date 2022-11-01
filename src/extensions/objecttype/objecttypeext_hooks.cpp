@@ -64,6 +64,15 @@ static class ObjectTypeClassFake final : public ObjectTypeClass
  */
 void ObjectTypeClassFake::_Assign_Theater_Name(char *fname, TheaterType theater)
 {
+    /**
+     *  An edge case we exposed in the original game where it assumed anything that
+     *  matched the pattern (e.g. GACNST) would also be marked with "IsNewTheater".
+     *  Now that we support custom theaters, this means that might no longer be
+     *  the case, so we perform a check before we perform the filename theater remap
+     *  so the filename is left unmodified.
+     */
+    if (!IsNewTheater) return;
+
     if (theater != THEATER_NONE && theater < TheaterTypes.Count()) {
 
         /**
