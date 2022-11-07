@@ -65,6 +65,11 @@ static class ObjectTypeClassFake final : public ObjectTypeClass
 void ObjectTypeClassFake::_Assign_Theater_Name(char *fname, TheaterType theater)
 {
     /**
+     *  Make sure filename is uppercase.
+     */
+    strupr(fname);
+
+    /**
      *  An edge case we exposed in the original game where it assumed anything that
      *  matched the pattern (e.g. GACNST) would also be marked with "IsNewTheater".
      *  Now that we support custom theaters, this means that might no longer be
@@ -73,12 +78,28 @@ void ObjectTypeClassFake::_Assign_Theater_Name(char *fname, TheaterType theater)
      */
     if (!IsNewTheater) return;
 
-    if (theater != THEATER_NONE && theater < TheaterTypes.Count()) {
+    /**
+     *  Another edge case we have exposed in the original where some civilian buildings were
+     *  marked with "IsNewTheater", but did not follow the theater filename system. These
+     *  were most likely early additions into the game development when it was still using
+     *  the Red Alert filename format. Unfortunately, the only way we can resolve this is
+     *  to hard code checks for this filename prefixes and skip any remap attempt.
+     */
+    if (What_Am_I() == RTTI_BUILDINGTYPE && (!std::strncmp(fname, "CITY", 4) || !std::strncmp(fname, "ABAN", 4) || !std::strncmp(fname, "BBOARD", 5))) {
+        DEV_DEBUG_WARNING("Skipping remap of %s!\n", fname);
+        return;
+    }
 
-        /**
-         *  Make sure filename is uppercase.
-         */
-        strupr(fname);
+    /**
+     *  Same as above, but for the deployed mobile war factory, cabal obelisk, and their
+     *  respective animations.
+     */
+    if (What_Am_I() == RTTI_BUILDINGTYPE && (std::strstr(fname, "MWAR") || std::strstr(fname, "OBL1"))) {
+        DEV_DEBUG_WARNING("Skipping remap of %s!\n", fname);
+        return;
+    }
+
+    if (theater != THEATER_NONE && theater < TheaterTypes.Count()) {
 
         char first = fname[0];
         char second = fname[1];
@@ -92,7 +113,7 @@ void ObjectTypeClassFake::_Assign_Theater_Name(char *fname, TheaterType theater)
             fname[1] = TheaterTypeClass::ImageLetter_From(theater);
 
         } else {
-            DEV_DEBUG_WARNING("Failed to remap \"%s\" to current theater (%s)!\n", TheaterTypeClass::Name_From(theater));
+            DEV_DEBUG_WARNING("Failed to remap \"%s\" to current theater (%s)!\n", fname, TheaterTypeClass::Name_From(theater));
         }
 
     }
