@@ -30,6 +30,7 @@
 #include "rules.h"
 #include "tiberium.h"
 #include "weapontype.h"
+#include "buildingtype.h"
 #include "asserthandler.h"
 #include "debughandler.h"
 
@@ -237,6 +238,22 @@ void RulesClassExtension::Process(CCINIClass &ini)
     ThisPtr->Land_Types(ini);
     ThisPtr->IQ(ini);
     ThisPtr->General(ini);
+
+    /**
+     *  This is a edge case issue we exposed in the original RULES.INI where the
+     *  Nod Radar (NARADR) has "IsNewTheater" set to false, and as a result, the
+     *  new theater system ends up making this build show in the wrong drawing
+     *  palette. To fix this, just before Read_INI() is called on all the
+     *  BuildingTypes (see RulesClass::Objects()), we make sure NARADR has the
+     *  default value of "IsNewTheater" set to true.
+     */
+    for (int index = 0; index < BuildingTypes.Count(); ++index) {
+        BuildingTypeClass *btype = BuildingTypes[index];
+        if (!strcmpi(btype->Name(), "NARADR")) {
+            btype->IsNewTheater = true;
+        }
+    }
+
     ThisPtr->Objects(ini);
     ThisPtr->Difficulty(ini);
     ThisPtr->CrateRules(ini);
