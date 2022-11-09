@@ -670,7 +670,6 @@ retry_dialog:
 }
 
 
-#ifndef NDEBUG
 /**
  *  Produces a random serial number for this client.
  * 
@@ -699,7 +698,6 @@ static void Decrypt_Serial(char *buffer)
 
     std::strncpy(buffer, _buf, sizeof(_buf));
 }
-#endif
 
 
 void Vinifera_Hooks()
@@ -792,12 +790,10 @@ void Vinifera_Hooks()
 
     Patch_Jump(0x005DCDFD, &_Do_Lose_Create_Lose_WWMessageBox);
 
-#ifndef NDEBUG
     /**
      *  This patch randomises the serial number for this client.
      */
     Patch_Jump(0x00576410, &Decrypt_Serial);
-#endif
 
     /**
      *  These two patches changes the last character of the Autorun and Game
