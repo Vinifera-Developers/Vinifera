@@ -526,6 +526,7 @@ bool Vinifera_Startup()
         return false;
     }
 
+#if !defined(TS_CLIENT)
     /**
      *  Initialise the CnCNet4 system.
      */
@@ -541,6 +542,13 @@ bool Vinifera_Startup()
         CnCNet4::Shutdown();
         CnCNet4::IsEnabled = false;
     }
+#else
+    /**
+     *  Client builds can only use CnCNet5.
+     */
+    CnCNet4::IsEnabled = false;
+    //CnCNet5::IsActive = true; // Enable when new Client system is implemented.
+#endif
 
     return true;
 }
