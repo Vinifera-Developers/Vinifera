@@ -377,6 +377,14 @@ bool Vinifera_Parse_Command_Line(int argc, char *argv[])
             continue;
         }
 
+        /**
+         *  Specify the random number seed (for debugging).
+         */
+        if (std::strstr(string, "-SEED")) {
+            CustomSeed = (unsigned short)(std::atoi(string + std::strlen("SEED")));
+            continue;
+        }
+
     }
 
     if (argc > 1) {
