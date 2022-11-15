@@ -871,7 +871,7 @@ void Vinifera_Create_Units(bool official)
                          */
                         if (Session.Type != GAME_NORMAL) {
 
-                            if (!building->House->Is_Player_Control()) {
+                            if (!building->House->Is_Human_Control()) {
 
                                 building->IsToRebuild = true;
                                 building->IsToRepair = true;

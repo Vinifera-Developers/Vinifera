@@ -79,7 +79,7 @@ DECLARE_PATCH(_TechnoClass_Is_Allowed_To_Retaliate_Can_Retaliate_Patch)
     /**
      *  Stolen bytes/code.
      */
-    if (this_ptr->House->Is_Player_Control() && this_ptr->TarCom) {
+    if (this_ptr->House->Is_Human_Control() && this_ptr->TarCom) {
         goto return_FALSE;
     }
 
