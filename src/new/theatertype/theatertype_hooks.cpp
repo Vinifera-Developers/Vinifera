@@ -290,7 +290,7 @@ DECLARE_PATCH(_SmudgeTypeClass_Read_INI_Theater_Patch)
 {
     GET_REGISTER_STATIC(SmudgeTypeClass *, this_ptr, esi);
     GET_REGISTER_STATIC(TheaterType, theater, eax);
-    LEA_STACK_STATIC(char *, fullname, esp, 0x0C); // char [_MAX_FNAME+_MAX_EXT]
+    LEA_STACK_STATIC(char *, fullname, esp, 0x08); // char [_MAX_FNAME+_MAX_EXT]
 
     std::snprintf(fullname, 512, "%s.%s", this_ptr->GraphicName, TheaterTypeClass::Suffix_From(theater));
 
