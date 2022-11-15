@@ -95,14 +95,14 @@ DECLARE_PATCH(_FootClass_Mission_Guard_Can_Passive_Acquire_Patch)
      *  Find a fresh target within my range.
      */
     if (!Foot_Target_Something_Nearby_Coord(this_ptr, THREAT_RANGE)) {
-        goto continue_check;
+        goto random_animate;
     }
-
-random_animate:
-    JMP(0x004A1ACC);
 
 continue_check:
     JMP(0x004A1AD6);
+
+random_animate:
+    JMP(0x004A1ACC);
 }
 
 
