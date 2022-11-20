@@ -27,6 +27,8 @@
  ******************************************************************************/
 #include "tibsun_inline.h"
 #include "buildingext_hooks.h"
+#include "combatext_hooks.h"
+#include "vinifera_globals.h"
 #include "combat.h"
 #include "cell.h"
 #include "overlaytype.h"
@@ -34,6 +36,7 @@
 #include "scenarioext.h"
 #include "warheadtype.h"
 #include "warheadtypeext.h"
+#include "armortype.h"
 #include "extension.h"
 #include "fatal.h"
 #include "asserthandler.h"
@@ -41,6 +44,50 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  Calculate the damage to apply based on the warhead and target armor.
+ *
+ *  @author: CCHyper
+ */
+static int Modifier_Damage_Value(WarheadTypeClass *warhead, ArmorType armor, int damage)
+{
+    WarheadTypeClassExtension *warheadext = Extension::Fetch<WarheadTypeClassExtension>(warhead);
+    return (damage * warheadext->Modifier[armor]);
+}
+
+
+/**
+ *  x
+ *
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_Modify_Damage_Ext_Verses_Patch)
+{
+    GET_REGISTER_STATIC(WarheadTypeClass *, warhead, edi);
+    GET_STACK_STATIC(ArmorType, armor, esp, 0x0C);
+    GET_STACK_STATIC(const int, damage, esp, 0x4);
+    static ArmorTypeClass *atype;
+    static int damage_value;
+
+    atype = ArmorTypes[armor];
+
+    /**
+     *  Get the modified damage to apply.
+     */
+    damage_value = Modifier_Damage_Value(warhead, armor, damage);
+
+    /**
+     *  Always apply at least one damage point, unless this target armor has a special flag.
+     */
+    if (damage_value <= 0 && !atype->Is_Allowed_Zero_Damage()) {
+        damage_value = 1;
+    }
+
+    _asm { mov esi, damage_value }
+    JMP(0x0045EBBB);
+}
 
 
 /**
@@ -213,4 +260,5 @@ void CombatExtension_Hooks()
     Patch_Jump(0x0045FAA0, &_Explosion_Damage_IsWallAbsoluteDestroyer_Patch);
     Patch_Jump(0x00460244, &_Explosion_Damage_IsIceDestruction_Patch);
     Patch_Jump(0x00460477, &_Do_Flash_CombatLightSize_Patch);
+    Patch_Jump(0x0045EB9E, &_Modify_Damage_Ext_Verses_Patch);
 }

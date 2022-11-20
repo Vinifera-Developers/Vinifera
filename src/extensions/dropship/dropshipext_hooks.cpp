@@ -34,6 +34,7 @@
 #include "theme.h"
 #include "colorscheme.h"
 #include "textprint.h"
+#include "armortype.h"
 #include "fatal.h"
 #include "wwmouse.h"
 #include "debughandler.h"
@@ -43,7 +44,23 @@
 #include "hooker_macros.h"
 
 
-#define TEXT_PRESS_SPACE "Press SPACE to start the mission"
+/**
+ *  #issue-107
+ * 
+ *  x
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_Dropship_Draw_Info_Text_ArmorName_Patch)
+{
+    GET_REGISTER_STATIC(ArmorType, armor, edx);
+    static const char* armor_name;
+
+    armor_name = ArmorTypeClass::Name_From(armor);
+    _asm { mov eax, armor_name }
+
+    JMP_REG(edx, 0x00487071);
+}
 
 
 /**
@@ -102,6 +119,8 @@ DECLARE_PATCH(_Start_Scenario_Dropship_Loadout_Show_Mouse_Patch)
  */
 static void Draw_Dropship_Loadout_Help_Text(XSurface *surface)
 {
+    #define TEXT_PRESS_SPACE "Press SPACE to start the mission"
+
     if (!surface) {
         return;
     }
@@ -148,4 +167,5 @@ void DropshipExtension_Hooks()
 {
     Patch_Jump(0x004868FB, &_Dropship_Loadout_Help_Text_Patch);
     Patch_Jump(0x005DB3BB, &_Start_Scenario_Dropship_Loadout_Show_Mouse_Patch);
+    Patch_Jump(0x0048706A, &_Dropship_Draw_Info_Text_ArmorName_Patch);
 }

@@ -33,6 +33,7 @@
 #include "buildingtype.h"
 #include "housetype.h"
 #include "side.h"
+#include "armortype.h"
 #include "wstring.h"
 #include "wwcrc.h"
 #include "noinit.h"
@@ -552,6 +553,47 @@ bool RulesClassExtension::Weapons(CCINIClass &ini)
                 DEV_DEBUG_INFO("Rules: Found WeaponType \"%s\".\n", buf);
             } else {
                 DEV_DEBUG_WARNING("Rules: Error processing WeaponType \"%s\"!\n", buf);
+            }
+
+        }
+
+    }
+
+    return counter > 0;
+}
+
+
+/**
+ *  Fetch all the armor characteristic values.
+ *
+ *  @author: CCHyper
+ */
+bool RulesClassExtension::Armors(CCINIClass &ini)
+{
+    //EXT_DEBUG_TRACE("RulesClassExtension::Armors - 0x%08X\n", (uintptr_t)(This()));
+
+    static const char *const ARMORS = "Armors";
+
+    char buf[128];
+    const ArmorTypeClass *armortype;
+
+    int counter = ini.Entry_Count(ARMORS);
+    for (int index = 0; index < counter; ++index) {
+        const char *entry = ini.Get_Entry(ARMORS, index);
+
+        /**
+         *  Get a weapon entry.
+         */
+        if (ini.Get_String(ARMORS, entry, buf, sizeof(buf))) {
+
+            /**
+             *  Find or create a weapon of the name specified.
+             */
+            armortype = ArmorTypeClass::Find_Or_Make(buf);
+            if (armortype) {
+                DEV_DEBUG_INFO("Rules: Found ArmorType \"%s\".\n", buf);
+            } else {
+                DEV_DEBUG_WARNING("Rules: Error processing ArmorType \"%s\"!\n", buf);
             }
 
         }

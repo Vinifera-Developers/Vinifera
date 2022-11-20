@@ -84,4 +84,10 @@ WarheadTypeClassExtension final : public AbstractTypeClassExtension
         unsigned int ShakePixelYLo;
         unsigned int ShakePixelXHi;
         unsigned int ShakePixelXLo;
+
+        /**
+         *  The warhead damage is reduced depending on the the type of armor the
+         *  defender has. This table is what gives weapons their "character".
+         */
+        DynamicVectorClass<double> Modifier;
 };

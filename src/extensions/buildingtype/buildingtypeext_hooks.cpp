@@ -37,6 +37,12 @@
 #include "hooker_macros.h"
 
 
+// TS 00443D7D, YR 
+
+// TS 00443DCB, YR 
+
+// TS 00443E03, YR 
+
 
 /**
  *  A fake class for implementing new member functions which allow

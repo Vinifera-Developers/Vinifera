@@ -27,6 +27,10 @@
  ******************************************************************************/
 #include "warheadtypeext.h"
 #include "warheadtype.h"
+#include "vinifera_globals.h"
+#include "tibsun_globals.h"
+#include "armortype.h"
+#include "rules.h"
 #include "ccini.h"
 #include "wwcrc.h"
 #include "extension.h"
@@ -47,9 +51,14 @@ WarheadTypeClassExtension::WarheadTypeClassExtension(const WarheadTypeClass *thi
     ShakePixelYHi(0),
     ShakePixelYLo(0),
     ShakePixelXHi(0),
-    ShakePixelXLo(0)
+    ShakePixelXLo(0),
+    Modifier()
 {
     //if (this_ptr) EXT_DEBUG_TRACE("WarheadTypeClassExtension::WarheadTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    for (int armor = 0; armor < ArmorTypes.Count(); ++armor) {
+        Modifier.Add(1.0f);
+    }
 
     WarheadTypeExtensions.Add(this);
 }
@@ -193,6 +202,8 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
         return false;
     }
 
+    char buffer[256];
+
     const char *ini_name = Name();
 
     IsWallAbsoluteDestroyer = ini.Get_Bool(ini_name, "WallAbsoluteDestroyer", IsWallAbsoluteDestroyer);
@@ -202,6 +213,25 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
     ShakePixelYLo = ini.Get_Int(ini_name, "ShakeYlo", ShakePixelYLo);
     ShakePixelXHi = ini.Get_Int(ini_name, "ShakeXhi", ShakePixelXHi);
     ShakePixelXLo = ini.Get_Int(ini_name, "ShakeXlo", ShakePixelXLo);
+
+    /**
+     *  Reload the Verses entry into the new Modifier array.
+     */
+    if (ini.Get_String(ini_name, "Verses", ArmorTypeClass::Get_Modifier_Default_String(), buffer, sizeof(buffer)) > 0) {
+        char *aval = std::strtok(buffer, ",");
+        for (int armor = 0; armor < ArmorTypes.Count(); ++armor) {
+
+            if (std::strchr(aval, '%')) {
+                Modifier[armor] = std::atoi(aval) * 0.01;
+            } else {
+                Modifier[armor] = std::atof(aval);
+            }
+
+            //Modifier[armor] = Percent_String_To_Float(aval);
+
+            aval = std::strtok(nullptr, ",");
+        }
+    }
 
     return true;
 }
