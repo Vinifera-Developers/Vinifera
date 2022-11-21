@@ -30,9 +30,14 @@
 #include "weapontype.h"
 #include "tibsun_globals.h"
 #include "vinifera_util.h"
+#include "vinifera_globals.h"
+#include "extension.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+
+#include "hooker.h"
+#include "hooker_macros.h"
 
 
 /**
@@ -46,22 +51,19 @@ DECLARE_PATCH(_WeaponTypeClass_Constructor_Patch)
 {
     GET_REGISTER_STATIC(WeaponTypeClass *, this_ptr, esi); // "this" pointer.
     GET_STACK_STATIC(const char *, ini_name, esp, 0x10); // ini name.
-    static WeaponTypeClassExtension *exttype_ptr;
-
-    //EXT_DEBUG_WARNING("Creating WeaponTypeClassExtension instance for \"%s\".\n", ini_name);
 
     /**
-     *  Find existing or create an extended class instance.
+     *  If we are performing a load operation, the Windows API will invoke the
+     *  constructors for us as part of the operation, so we can skip our hook here.
      */
-    exttype_ptr = WeaponTypeClassExtensions.find_or_create(this_ptr);
-    if (!exttype_ptr) {
-        DEBUG_ERROR("Failed to create WeaponTypeClassExtension instance for \"%s\"!\n", ini_name);
-        ShowCursor(TRUE);
-        MessageBoxA(MainWindow, "Failed to create WeaponTypeClassExtension instance!\n", "Vinifera", MB_OK|MB_ICONEXCLAMATION);
-        Vinifera_Generate_Mini_Dump();
-        Fatal("Failed to create WeaponTypeClassExtension instance!\n");
-        goto original_code; // Keep this for clean code analysis.
+    if (Vinifera_PerformingLoad) {
+        goto original_code;
     }
+
+    /**
+     *  Create an extended class instance.
+     */
+    Extension::Make<WeaponTypeClassExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
@@ -71,28 +73,6 @@ original_code:
     _asm { pop edi }
     _asm { pop esi }
     _asm { pop ebx }
-    _asm { ret 4 }
-}
-
-
-/**
- *  Patch for including the extended class members in the noinit creation process.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_WeaponTypeClass_NoInit_Constructor_Patch)
-{
-    GET_REGISTER_STATIC(WeaponTypeClass *, this_ptr, esi);
-    GET_STACK_STATIC(const NoInitClass *, noinit_ptr, esp, 0x4);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop esi }
     _asm { ret 4 }
 }
 
@@ -109,18 +89,22 @@ DECLARE_PATCH(_WeaponTypeClass_Destructor_Patch)
     GET_REGISTER_STATIC(WeaponTypeClass *, this_ptr, esi);
 
     /**
+     *  Stolen bytes here.
+     */
+    _asm { mov [esi+0x0A5], bl }
+    _asm { mov [esi+0x0A0], ebx }
+
+    /**
      *  Remove the extended class from the global index.
      */
-    WeaponTypeClassExtensions.remove(this_ptr);
+    Extension::Destroy<WeaponTypeClassExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
      */
 original_code:
-    _asm { pop esi }
-    _asm { pop ebx }
-    _asm { pop ecx }
-    _asm { ret }
+    this_ptr->AbstractTypeClass::~AbstractTypeClass();
+    JMP_REG(ecx, 0x00680D1F);
 }
 
 
@@ -136,95 +120,22 @@ DECLARE_PATCH(_WeaponTypeClass_Scalar_Destructor_Patch)
     GET_REGISTER_STATIC(WeaponTypeClass *, this_ptr, esi);
 
     /**
+     *  Stolen bytes here.
+     */
+    _asm { mov [esi+0x0A5], bl }
+    _asm { mov [esi+0x0A0], ebx }
+
+    /**
      *  Remove the extended class from the global index.
      */
-    WeaponTypeClassExtensions.remove(this_ptr);
+    Extension::Destroy<WeaponTypeClassExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
      */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop esi }
-    _asm { pop ebx }
-    _asm { pop ecx }
-    _asm { ret 4 }
-}
-
-
-/**
- *  Patch for including the extended class members when computing a unique crc value for this instance.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_WeaponTypeClass_Compute_CRC_Patch)
-{
-    GET_REGISTER_STATIC(WeaponTypeClass *, this_ptr, esi);
-    GET_STACK_STATIC(WWCRCEngine *, crc, esp, 0xC);
-    static WeaponTypeClassExtension *exttype_ptr;
-
-    /**
-     *  Find the extension instance.
-     */
-    exttype_ptr = WeaponTypeClassExtensions.find(this_ptr);
-    if (!exttype_ptr) {
-        goto original_code;
-    }
-
-    /**
-     *  Read type class compute crc.
-     */
-    exttype_ptr->Compute_CRC(*crc);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { ret 4 }
-}
-
-
-/**
- *  Patch for reading the extended class members from the ini instance.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_WeaponTypeClass_Read_INI_Patch)
-{
-    GET_REGISTER_STATIC(WeaponTypeClass *, this_ptr, esi);
-    GET_STACK_STATIC(CCINIClass *, ini, esp, 0x0E4); // Can't use EBX as its reused by this point.
-    static WeaponTypeClassExtension *exttype_ptr;
-
-    /**
-     *  Find the extension instance.
-     */
-    exttype_ptr = WeaponTypeClassExtensions.find(this_ptr);
-    if (!exttype_ptr) {
-        goto original_code;
-    }
-
-    /**
-     *  Read type class ini.
-     */
-    exttype_ptr->Read_INI(*ini);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { mov al, 1 }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { pop ebx }
-    _asm { add esp, 0x0D0 }
-    _asm { ret 4 }
+    this_ptr->AbstractTypeClass::~AbstractTypeClass();
+    JMP_REG(ecx, 0x006819BF);
 }
 
 
@@ -234,9 +145,6 @@ original_code:
 void WeaponTypeClassExtension_Init()
 {
     Patch_Jump(0x00680BEF, &_WeaponTypeClass_Constructor_Patch);
-    Patch_Jump(0x00680C2E, &_WeaponTypeClass_NoInit_Constructor_Patch);
-    //Patch_Jump(0x00680D1F, &_WeaponTypeClass_Destructor_Patch); // Destructor is actually inlined in scalar destructor!
-    Patch_Jump(0x006819CF, &_WeaponTypeClass_Scalar_Destructor_Patch);
-    Patch_Jump(0x00681514, &_WeaponTypeClass_Compute_CRC_Patch);
-    Patch_Jump(0x0068129D, &_WeaponTypeClass_Read_INI_Patch);
+    //Patch_Jump(0x00680D0C, &_WeaponTypeClass_Destructor_Patch); // Destructor is actually inlined in scalar destructor!
+    Patch_Jump(0x006819AC, &_WeaponTypeClass_Scalar_Destructor_Patch);
 }

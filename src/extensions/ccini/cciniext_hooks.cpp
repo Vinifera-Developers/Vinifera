@@ -48,7 +48,7 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-static class CCINIClassFake final : public CCINIClass
+static class CCINIClassExt final : public CCINIClass
 {
     public:
         TypeList<AnimTypeClass *> Get_AnimType_List(const char *section, const char *entry, const TypeList<AnimTypeClass *> defvalue);
@@ -64,7 +64,7 @@ static class CCINIClassFake final : public CCINIClass
 /**
  *  Fetch the owners (list of house bits).
  */
-long CCINIClassFake::_Get_Owners(const char *section, const char *entry, const long defvalue)
+long CCINIClassExt::_Get_Owners(const char *section, const char *entry, const long defvalue)
 {
     /**
      *  #issue-372
@@ -97,7 +97,7 @@ long CCINIClassFake::_Get_Owners(const char *section, const char *entry, const l
 /**
  *  Store the house bitfield to the INI database.
  */
-bool CCINIClassFake::_Put_Owners(const char *section, const char *entry, long value)
+bool CCINIClassExt::_Put_Owners(const char *section, const char *entry, long value)
 {
     /**
      *  #issue-372
@@ -141,7 +141,7 @@ bool CCINIClassFake::_Put_Owners(const char *section, const char *entry, long va
  *  
  *  @author: CCHyper
  */
-TheaterType CCINIClassFake::_Get_TheaterType(const char *section, const char *entry, const TheaterType defvalue)
+TheaterType CCINIClassExt::_Get_TheaterType(const char *section, const char *entry, const TheaterType defvalue)
 {
     char buffer[2048];
 
@@ -158,7 +158,7 @@ TheaterType CCINIClassFake::_Get_TheaterType(const char *section, const char *en
  *  
  *  @author: CCHyper
  */
-bool CCINIClassFake::_Put_TheaterType(const char *section, const char *entry, TheaterType value)
+bool CCINIClassExt::_Put_TheaterType(const char *section, const char *entry, TheaterType value)
 {
     return CCINIClass::Put_String(section, entry, TheaterTypeClass::Name_From(value));
 }
@@ -169,7 +169,7 @@ bool CCINIClassFake::_Put_TheaterType(const char *section, const char *entry, Th
  * 
  *  @author: CCHyper
  */
-TypeList<AnimTypeClass *> CCINIClassFake::Get_AnimType_List(const char *section, const char *entry, const TypeList<AnimTypeClass *> defvalue)
+TypeList<AnimTypeClass *> CCINIClassExt::Get_AnimType_List(const char *section, const char *entry, const TypeList<AnimTypeClass *> defvalue)
 {
     /**
      *  #issue-391
@@ -212,7 +212,7 @@ TypeList<AnimTypeClass *> CCINIClassFake::Get_AnimType_List(const char *section,
  * 
  *  @author: CCHyper
  */
-static void WeaponTypeClass_Read_INI_Get_AnimType_List_Encapsultator(WeaponTypeClass *this_ptr, CCINIClassFake &ini, const char *ini_name)
+static void WeaponTypeClass_Read_INI_Get_AnimType_List_Encapsultator(WeaponTypeClass *this_ptr, CCINIClassExt &ini, const char *ini_name)
 {
     this_ptr->Anim = ini.Get_AnimType_List(ini_name, "Anim", this_ptr->Anim);
 }
@@ -220,7 +220,7 @@ static void WeaponTypeClass_Read_INI_Get_AnimType_List_Encapsultator(WeaponTypeC
 DECLARE_PATCH(_WeaponTypeClass_Read_INI_Get_AnimType_List_Patch)
 {
     GET_REGISTER_STATIC(WeaponTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(CCINIClassFake *, ini, ebx);
+    GET_REGISTER_STATIC(CCINIClassExt *, ini, ebx);
     GET_REGISTER_STATIC(const char *, ini_name, edi);
 
     /**
@@ -253,9 +253,9 @@ void CCINIClassExtension_Hooks()
      */
     Patch_Jump(0x00680F07, &_WeaponTypeClass_Read_INI_Get_AnimType_List_Patch);
 
-    Patch_Jump(0x0044ADC0, &CCINIClassFake::_Get_Owners);
-    Patch_Jump(0x0044AE40, &CCINIClassFake::_Put_Owners);
+    Patch_Jump(0x0044ADC0, &CCINIClassExt::_Get_Owners);
+    Patch_Jump(0x0044AE40, &CCINIClassExt::_Put_Owners);
 
-    Patch_Jump(0x0044B310, &CCINIClassFake::_Get_TheaterType);
-    Patch_Jump(0x0044B360, &CCINIClassFake::_Put_TheaterType);
+    Patch_Jump(0x0044B310, &CCINIClassExt::_Get_TheaterType);
+    Patch_Jump(0x0044B360, &CCINIClassExt::_Put_TheaterType);
 }

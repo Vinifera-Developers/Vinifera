@@ -47,7 +47,7 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-class TextLabelClassFake final : public TextLabelClass
+class TextLabelClassExt final : public TextLabelClass
 {
     public:
         bool _Draw_Me(bool forced = false);
@@ -59,7 +59,7 @@ class TextLabelClassFake final : public TextLabelClass
  * 
  *  @author: CCHyper
  */
-bool TextLabelClassFake::_Draw_Me(bool forced)
+bool TextLabelClassExt::_Draw_Me(bool forced)
 {
     if (!GadgetClass::Draw_Me(forced)) {
         return false;
@@ -146,5 +146,5 @@ bool TextLabelClassFake::_Draw_Me(bool forced)
  */
 void TextLabelClassExtension_Hooks()
 {
-    Patch_Jump(0x0064D120, &TextLabelClassFake::_Draw_Me);
+    Patch_Jump(0x0064D120, &TextLabelClassExt::_Draw_Me);
 }

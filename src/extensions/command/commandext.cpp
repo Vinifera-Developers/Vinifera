@@ -65,6 +65,7 @@
 #include "wwcrc.h"
 #include "filepcx.h"
 #include "filepng.h"
+#include "extension.h"
 #include "fatal.h"
 #include "minidump.h"
 #include "winutil.h"
@@ -876,9 +877,9 @@ const char *InstantBuildCommandClass::Get_Description() const
 
 bool InstantBuildCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
-        return false;
-    }
+    //if (!Session.Singleplayer_Game()) {
+    //    return false;
+    //}
 
     Vinifera_Developer_InstantBuild = !Vinifera_Developer_InstantBuild;
 
@@ -3236,6 +3237,89 @@ bool AIInstantSuperRechargeCommandClass::Process()
     }
 
     Vinifera_Developer_AIInstantSuperRecharge = !Vinifera_Developer_AIInstantSuperRecharge;
+
+    return true;
+}
+
+
+/**
+ *  Toggles the instant recharge cheat for the AI player super weapons.
+ *
+ *  @author: CCHyper
+ */
+const char *DumpNetworkCRCCommandClass::Get_Name() const
+{
+    return "DumpNetworkCRC";
+}
+
+const char *DumpNetworkCRCCommandClass::Get_UI_Name() const
+{
+    return "Dump Network CRC's";
+}
+
+const char *DumpNetworkCRCCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *DumpNetworkCRCCommandClass::Get_Description() const
+{
+    return "Dumps all the current game network state to an output log.";
+}
+
+bool DumpNetworkCRCCommandClass::Process()
+{
+    static unsigned _last_frame = -1;
+
+    if (Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    /**
+     *  Check to make sure we are not within a window that might cause rapid network desync.
+     */
+    if (_last_frame != -1 && Frame < (_last_frame+30)) {
+        return false;
+    }
+
+    /**
+     *  Store the last execution frame.
+     */
+    _last_frame = Frame;
+
+    int day = 0;
+    int month = 0;
+    int year = 0;
+    int hour = 0;
+    int min = 0;
+    int sec = 0;
+
+    Get_Full_Time(day, month, year, hour, min, sec);
+
+    /**
+     *  Create a unique filename for the sync log based on the current time and the player name.
+     */
+    char filename_buffer[512];
+    std::snprintf(filename_buffer, sizeof(filename_buffer), "%s\\SYNC_%s-%02d_%02u-%02u-%04u_%02u-%02u-%02u.LOG",
+        Vinifera_DebugDirectory,
+        PlayerPtr->IniName,
+        PlayerPtr->ID,
+        day, month, year, hour, min, sec);
+
+    /**
+     *  Open the sync log.
+     */
+    FILE *fp = std::fopen(filename_buffer, "w+");
+    if (fp == nullptr) {
+        DEBUG_ERROR("Failed to open sync log file for writing!\n");
+        return false;
+    }
+
+    DEBUG_INFO("Writing sync log to file %s.\n", filename_buffer);
+
+    Extension::Print_CRCs(fp, nullptr);
+
+    std::fclose(fp);
 
     return true;
 }

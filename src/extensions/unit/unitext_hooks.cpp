@@ -40,6 +40,7 @@
 #include "rules.h"
 #include "iomap.h"
 #include "voc.h"
+#include "extension.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
@@ -183,14 +184,12 @@ DECLARE_PATCH(_UnitClass_Draw_Shape_IdleRate_Patch)
     GET_REGISTER_STATIC(UnitClass *, this_ptr, esi);
     GET_REGISTER_STATIC(int, facing, ebx);
     GET_REGISTER_STATIC(ShapeFileStruct *, shape, edi);
-    static TechnoTypeClassExtension *technotypeext;
     static UnitTypeClassExtension *unittypeext;
-    static UnitTypeClass *unittype;
+    static const UnitTypeClass *unittype;
     static int frame;
 
-    unittype = this_ptr->Class;
-    technotypeext = TechnoTypeClassExtensions.find(this_ptr->Techno_Type_Class());
-    unittypeext = UnitTypeClassExtensions.find(unittype);
+    unittype = reinterpret_cast<const UnitTypeClass *>(this_ptr->Techno_Type_Class());
+    unittypeext = Extension::Fetch<UnitTypeClassExtension>(unittype);
 
     if (!Locomotion_Is_Moving(this_ptr)) {
         if (this_ptr->FiringSyncDelay >= 0) {
@@ -229,7 +228,7 @@ DECLARE_PATCH(_UnitClass_Draw_Shape_IdleRate_Patch)
     /**
      *  Unit is not moving, so if the unit has a idle animation rate, use this.
      */
-    if (!Locomotion_Is_Moving(this_ptr) && (technotypeext && technotypeext->IdleRate > 0) && unittypeext) {
+    if (!Locomotion_Is_Moving(this_ptr) && unittypeext->IdleRate > 0) {
         frame = unittypeext->StartIdleFrame
             + (this_ptr->TotalFramesWalked % unittypeext->IdleFrames)
             + (unittypeext->IdleFrames * facing);
@@ -274,8 +273,8 @@ DECLARE_PATCH(_UnitClass_Mission_Unload_Transport_Detach_Sound_Patch)
     /**
      *  Do we have a sound to play when passengers leave us? If so, play it now.
      */
-    radio_technotypeext = TechnoTypeClassExtensions.find(this_ptr->Techno_Type_Class());
-    if (radio_technotypeext && radio_technotypeext->LeaveTransportSound != VOC_NONE) {
+    radio_technotypeext = Extension::Fetch<TechnoTypeClassExtension>(this_ptr->Techno_Type_Class());
+    if (radio_technotypeext->LeaveTransportSound != VOC_NONE) {
         Sound_Effect(radio_technotypeext->LeaveTransportSound, this_ptr->Coord);
     }
 
@@ -314,8 +313,8 @@ DECLARE_PATCH(_UnitClass_Draw_It_Unloading_Harvester_Patch)
 {
     GET_REGISTER_STATIC(UnitClass *, this_ptr, esi);
     GET_REGISTER_STATIC(UnitTypeClass *, unittype, eax);
-    static const TechnoTypeClassExtension *technotypext;
     static const UnitTypeClass *unloading_class;
+    static const UnitTypeClassExtension *unittypeext;
 
     /**
      *  The code just before this backs up the current Class, so we
@@ -351,12 +350,10 @@ DECLARE_PATCH(_UnitClass_Draw_It_Unloading_Harvester_Patch)
             /**
              *  Fetch the unloading class from the extended class instance if it exists.
              */
-            technotypext = TechnoTypeClassExtensions.find(unittype);
-            if (technotypext) {
-                if (technotypext->UnloadingClass) {
-                    if (technotypext->UnloadingClass->Kind_Of() == RTTI_UNITTYPE) {
-                        unloading_class = reinterpret_cast<const UnitTypeClass *>(technotypext->UnloadingClass);
-                    }
+            unittypeext = Extension::Fetch<UnitTypeClassExtension>(unittype);
+            if (unittypeext->UnloadingClass) {
+                if (unittypeext->UnloadingClass->Kind_Of() == RTTI_UNITTYPE) {
+                    unloading_class = reinterpret_cast<const UnitTypeClass *>(unittypeext->UnloadingClass);
                 }
             }
 
@@ -433,7 +430,7 @@ DECLARE_PATCH(_UnitClass_Draw_Shape_Primary_Facing_Patch)
      *  Using either of these causes a memory leak for some reason...
      *  So we now just fetch EAX which is a UnitTypeClass instance already.
      */
-    //unittype = reinterpret_cast<UnitTypeClass *>(this_ptr->Class_Of());
+    //unittype = reinterpret_cast<UnitTypeClass *>(this_ptr->Techno_Type_Class());
     //unittype = this_ptr->Class;
 
     /**
@@ -472,7 +469,7 @@ DECLARE_PATCH(_UnitClass_Draw_Shape_Turret_Facing_Patch)
 
     frame_number = 0;
 
-    unittype = reinterpret_cast<UnitTypeClass *>(this_ptr->Class_Of());
+    unittype = reinterpret_cast<UnitTypeClass *>(this_ptr->Techno_Type_Class());
     
     /**
      *  All turrets have 32 facings in Tiberian Sun.
@@ -484,18 +481,16 @@ DECLARE_PATCH(_UnitClass_Draw_Shape_Turret_Facing_Patch)
      */
     start_turret_frame = unittype->Facings * unittype->WalkFrames;
 
-    unittypeext = UnitTypeClassExtensions.find(unittype);
-    if (unittypeext) {
+    unittypeext = Extension::Fetch<UnitTypeClassExtension>(unittype);
 
-        /**
-         *  #issue-393
-         * 
-         *  Allow the custom turret facings.
-         * 
-         *  @author: CCHyper
-         */
-        turret_facings = unittypeext->TurretFacings;
-    }
+    /**
+     *  #issue-393
+     * 
+     *  Allow the custom turret facings.
+     * 
+     *  @author: CCHyper
+     */
+    turret_facings = unittypeext->TurretFacings;
 
     /**
      *  Fetch the frame index for current turret facing.
@@ -546,14 +541,12 @@ DECLARE_PATCH(_UnitClass_Draw_Shape_Turret_Facing_Patch)
  */
 static void UnitClass_Shake_Screen(UnitClass *unit)
 {
-    TechnoTypeClass *technotype;
-    TechnoTypeClassExtension *technotypeext;
+    UnitTypeClassExtension *unittypeext;
 
     /**
-     *  Fetch the extended techno type instance if it exists.
+     *  Fetch the extension instance.
      */
-    technotype = unit->Techno_Type_Class();
-    technotypeext = TechnoTypeClassExtensions.find(technotype);
+    unittypeext = Extension::Fetch<UnitTypeClassExtension>(unit->Techno_Type_Class());
 
     /**
      *  #issue-414
@@ -562,20 +555,20 @@ static void UnitClass_Shake_Screen(UnitClass *unit)
      * 
      *  @author: CCHyper
      */
-    if (technotypeext && technotypeext->IsShakeScreen) {
+    if (unittypeext->IsShakeScreen) {
 
         /**
          *  If this unit has screen shake values defined, then set the blitter
          *  offset values. GScreenClass::Blit will handle the rest for us.
          */
-        if ((technotypeext->ShakePixelXLo > 0 || technotypeext->ShakePixelXHi > 0)
-         || (technotypeext->ShakePixelYLo > 0 || technotypeext->ShakePixelYHi > 0)) {
+        if ((unittypeext->ShakePixelXLo > 0 || unittypeext->ShakePixelXHi > 0)
+         || (unittypeext->ShakePixelYLo > 0 || unittypeext->ShakePixelYHi > 0)) {
 
-            if (technotypeext->ShakePixelXLo > 0 || technotypeext->ShakePixelXHi > 0) {
-                Map.ScreenX = Sim_Random_Pick(technotypeext->ShakePixelXLo, technotypeext->ShakePixelXHi);
+            if (unittypeext->ShakePixelXLo > 0 || unittypeext->ShakePixelXHi > 0) {
+                Map.ScreenX = Sim_Random_Pick(unittypeext->ShakePixelXLo, unittypeext->ShakePixelXHi);
             }
-            if (technotypeext->ShakePixelYLo > 0 || technotypeext->ShakePixelYHi > 0) {
-                Map.ScreenY = Sim_Random_Pick(technotypeext->ShakePixelYLo, technotypeext->ShakePixelYHi);
+            if (unittypeext->ShakePixelYLo > 0 || unittypeext->ShakePixelYHi > 0) {
+                Map.ScreenY = Sim_Random_Pick(unittypeext->ShakePixelYLo, unittypeext->ShakePixelYHi);
             }
 
         } else {

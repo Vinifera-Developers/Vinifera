@@ -27,29 +27,39 @@
  ******************************************************************************/
 #pragma once
 
-#include "extension.h"
-#include "container.h"
+#include "abstracttypeext.h"
+#include "warheadtype.h"
 
 
-class WarheadTypeClass;
-class CCINIClass;
-
-
-class WarheadTypeClassExtension final : public Extension<WarheadTypeClass>
+class DECLSPEC_UUID(UUID_WARHEADTYPE_EXTENSION)
+WarheadTypeClassExtension final : public AbstractTypeClassExtension
 {
     public:
-        WarheadTypeClassExtension(WarheadTypeClass *this_ptr);
+        /**
+         *  IPersist
+         */
+        IFACEMETHOD(GetClassID)(CLSID *pClassID);
+
+        /**
+         *  IPersistStream
+         */
+        IFACEMETHOD(Load)(IStream *pStm);
+        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+
+    public:
+        WarheadTypeClassExtension(const WarheadTypeClass *this_ptr = nullptr);
         WarheadTypeClassExtension(const NoInitClass &noinit);
-        ~WarheadTypeClassExtension();
+        virtual ~WarheadTypeClassExtension();
 
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
         virtual int Size_Of() const override;
-
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
-        bool Read_INI(CCINIClass &ini);
+        virtual WarheadTypeClass *This() const override { return reinterpret_cast<WarheadTypeClass *>(AbstractTypeClassExtension::This()); }
+        virtual const WarheadTypeClass *This_Const() const override { return reinterpret_cast<const WarheadTypeClass *>(AbstractTypeClassExtension::This_Const()); }
+        virtual RTTIType What_Am_I() const override { return RTTI_WARHEADTYPE; }
+
+        virtual bool Read_INI(CCINIClass &ini) override;
 
     public:
         /**
@@ -75,6 +85,3 @@ class WarheadTypeClassExtension final : public Extension<WarheadTypeClass>
         unsigned int ShakePixelXHi;
         unsigned int ShakePixelXLo;
 };
-
-
-extern ExtensionMap<WarheadTypeClass, WarheadTypeClassExtension> WarheadTypeClassExtensions;

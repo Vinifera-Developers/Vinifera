@@ -27,22 +27,35 @@
  ******************************************************************************/
 #pragma once
 
+#include "always.h"
 #include "extension.h"
-#include "container.h"
 #include "theme.h"
 
 
 class CCINIClass;
 
 
-class ThemeControlExtension final : public Extension<ThemeClass::ThemeControl>
+class ThemeControlExtension final : public GlobalExtensionClass<ThemeClass::ThemeControl>
 {
     public:
-        ThemeControlExtension(ThemeClass::ThemeControl *this_ptr);
-        ThemeControlExtension(const NoInitClass &noinit);
-        ~ThemeControlExtension();
+        IFACEMETHOD(Load)(IStream *pStm);
+        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
 
+    public:
+        ThemeControlExtension(const ThemeClass::ThemeControl *this_ptr);
+        ThemeControlExtension(const NoInitClass &noinit);
+        virtual ~ThemeControlExtension();
+
+        /**
+         *  ThemeControl extension does not require these to be used, but we
+         *  implement them for completeness.
+         */
         virtual int Size_Of() const override;
+        virtual void Detach(TARGET target, bool all = true) override;
+        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+
+        virtual const char *Name() const override { return "ThemeControl"; }
+        virtual const char *Full_Name() const override { return "ThemeControl"; }
 
         bool Read_INI(CCINIClass &ini);
 
@@ -52,6 +65,3 @@ class ThemeControlExtension final : public Extension<ThemeClass::ThemeControl>
          */
         AddonType RequiredAddon;
 };
-
-
-extern ExtensionMap<ThemeClass::ThemeControl, ThemeControlExtension> ThemeControlExtensions;

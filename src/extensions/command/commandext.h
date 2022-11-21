@@ -27,8 +27,8 @@
  ******************************************************************************/
 #pragma once
 
-#include "extension.h"
 #include "command.h"
+#include "tibsun_defines.h"
 
 
 class BuildingClass;
@@ -1195,6 +1195,25 @@ class AIInstantSuperRechargeCommandClass : public ViniferaCommandClass
     public:
         AIInstantSuperRechargeCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
         virtual ~AIInstantSuperRechargeCommandClass() {}
+
+        virtual const char *Get_Name() const override;
+        virtual const char *Get_UI_Name() const override;
+        virtual const char *Get_Category() const override;
+        virtual const char *Get_Description() const override;
+        virtual bool Process() override;
+
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+};
+
+
+/**
+ *  Print CRC's
+ */
+class DumpNetworkCRCCommandClass : public ViniferaCommandClass
+{
+    public:
+        DumpNetworkCRCCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+        virtual ~DumpNetworkCRCCommandClass() {}
 
         virtual const char *Get_Name() const override;
         virtual const char *Get_UI_Name() const override;

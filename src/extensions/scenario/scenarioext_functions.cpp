@@ -44,6 +44,7 @@
 #include "building.h"
 #include "buildingtype.h"
 #include "language.h"
+#include "extension_globals.h"
 #include "sessionext.h"
 #include "session.h"
 #include "fatal.h"
@@ -843,7 +844,7 @@ void Vinifera_Create_Units(bool official)
              * 
              *  @author: CCHyper
              */
-            if (SessionExtension && SessionExtension->ExtOptions.IsPrePlacedConYards) {
+            if (SessionExtension->ExtOptions.IsPrePlacedConYards) {
 
                 /**
                  *  Create a construction yard (decided from the base unit).
@@ -922,7 +923,7 @@ void Vinifera_Create_Units(bool official)
                          *  @author: CCHyper
                          */
                         if (Session.Options.UnitCount == 1) {
-                            if (SessionExtension && SessionExtension->ExtOptions.IsAutoDeployMCV) {
+                            if (SessionExtension->ExtOptions.IsAutoDeployMCV) {
                                 if (hptr->Is_Human_Control()) {
                                     obj->Set_Mission(MISSION_UNLOAD);
                                 }

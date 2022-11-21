@@ -35,9 +35,13 @@
 #include "session.h"
 #include "scenario.h"
 #include "addon.h"
+#include "extension.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+
+#include "hooker.h"
+#include "hooker_macros.h"
 
 
 /**
@@ -47,7 +51,7 @@
  *  @note: This must not contain a constructor or deconstructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-static class ThemeClassFake final : public ThemeClass
+static class ThemeClassExt final : public ThemeClass
 {
     public:
         bool _Is_Allowed(ThemeType index) const;
@@ -60,7 +64,7 @@ static class ThemeClassFake final : public ThemeClass
  *  @author: 07/04/1996 JLB - Red Alert source code.
  *           CCHyper - Adjustments for Tiberian Sun.
  */
-bool ThemeClassFake::_Is_Allowed(ThemeType index) const
+bool ThemeClassExt::_Is_Allowed(ThemeType index) const
 {
     if (index == THEME_QUIET || index == THEME_PICK_ANOTHER) {
         return true;
@@ -91,8 +95,8 @@ bool ThemeClassFake::_Is_Allowed(ThemeType index) const
      * 
      *  @author: CCHyper
      */
-    ThemeControlExtension *themectrlext = ThemeControlExtensions.find(Themes[index]);
-    if (themectrlext && themectrlext->RequiredAddon != ADDON_NONE) {
+    ThemeControlExtension *themectrlext = Extension::List::Fetch<ThemeClass::ThemeControl, ThemeControlExtension>(Themes[index], ThemeControlExtensions);
+    if (themectrlext->RequiredAddon != ADDON_NONE) {
         if (!Addon_Enabled(themectrlext->RequiredAddon)) {
             return false;
         }
@@ -133,5 +137,5 @@ void ThemeClassExtension_Hooks()
      */
     ThemeClassExtension_Init();
 
-    Patch_Jump(0x00644300, &ThemeClassFake::_Is_Allowed);
+    Patch_Jump(0x00644300, &ThemeClassExt::_Is_Allowed);
 }

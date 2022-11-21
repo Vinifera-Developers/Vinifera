@@ -43,7 +43,7 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-class CCFileClassFake final : public CCFileClass
+class CCFileClassExt final : public CCFileClass
 {
     public:
         void _Error(FileErrorType error, bool can_retry = false, const char *filename = nullptr);
@@ -56,7 +56,7 @@ class CCFileClassFake final : public CCFileClass
  *  @author: 10/17/1994 JLB - Red Alert source code.
  *           CCHyper - Adjustments for Tiberian Sun, minor bug fix.
  */
-void CCFileClassFake::_Error(FileErrorType error, bool can_retry, const char *filename)
+void CCFileClassExt::_Error(FileErrorType error, bool can_retry, const char *filename)
 {
     /**
      *  File system is failled as local, no need to check if required cd is available.
@@ -90,5 +90,5 @@ void CCFileClassFake::_Error(FileErrorType error, bool can_retry, const char *fi
  */
 void CCFileClassExtension_Hooks()
 {
-    Patch_Jump(0x00449820, &CCFileClassFake::_Error);
+    Patch_Jump(0x00449820, &CCFileClassExt::_Error);
 }

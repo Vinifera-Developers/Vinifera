@@ -27,27 +27,28 @@
  ******************************************************************************/
 #pragma once
 
+#include "always.h"
 #include "extension.h"
-#include "container.h"
+#include "session.h"
 
 
-class SessionClass;
-class CCINIClass;
-
-
-class SessionClassExtension final : public Extension<SessionClass>
+class SessionClassExtension final : public GlobalExtensionClass<SessionClass>
 {
     public:
-        SessionClassExtension(SessionClass *this_ptr);
+        IFACEMETHOD(Load)(IStream *pStm);
+        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+
+    public:
+        SessionClassExtension(const SessionClass *this_ptr);
         SessionClassExtension(const NoInitClass &noinit);
-        ~SessionClassExtension();
+        virtual ~SessionClassExtension();
 
-        virtual HRESULT Load(IStream *pStm) override { return S_OK; }
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override { return S_OK; }
         virtual int Size_Of() const override;
+        virtual void Detach(TARGET target, bool all = true) override;
+        virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
-        virtual void Detach(TARGET target, bool all = true) override {}
-        virtual void Compute_CRC(WWCRCEngine &crc) const override {}
+        virtual const char *Name() const override { return "Session"; }
+        virtual const char *Full_Name() const override { return "Session"; }
 
         void Read_MultiPlayer_Settings();
         void Write_MultiPlayer_Settings();
@@ -74,6 +75,3 @@ class SessionClassExtension final : public Extension<SessionClass>
 
         ExtGameOptionsType ExtOptions;
 };
-
-
-extern SessionClassExtension *SessionExtension;

@@ -27,29 +27,39 @@
  ******************************************************************************/
 #pragma once
 
-#include "extension.h"
-#include "container.h"
+#include "objecttypeext.h"
+#include "terraintype.h"
 
 
-class TerrainTypeClass;
-class CCINIClass;
-
-
-class TerrainTypeClassExtension final : public Extension<TerrainTypeClass>
+class DECLSPEC_UUID(UUID_TERRAINTYPE_EXTENSION)
+TerrainTypeClassExtension final : public ObjectTypeClassExtension
 {
     public:
-        TerrainTypeClassExtension(TerrainTypeClass *this_ptr);
+        /**
+         *  IPersist
+         */
+        IFACEMETHOD(GetClassID)(CLSID *pClassID);
+
+        /**
+         *  IPersistStream
+         */
+        IFACEMETHOD(Load)(IStream *pStm);
+        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+
+    public:
+        TerrainTypeClassExtension(const TerrainTypeClass *this_ptr = nullptr);
         TerrainTypeClassExtension(const NoInitClass &noinit);
-        ~TerrainTypeClassExtension();
+        virtual ~TerrainTypeClassExtension();
 
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
         virtual int Size_Of() const override;
-
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
-        bool Read_INI(CCINIClass &ini);
+        virtual TerrainTypeClass *This() const override { return reinterpret_cast<TerrainTypeClass *>(ObjectTypeClassExtension::This()); }
+        virtual const TerrainTypeClass *This_Const() const override { return reinterpret_cast<const TerrainTypeClass *>(ObjectTypeClassExtension::This_Const()); }
+        virtual RTTIType What_Am_I() const override { return RTTI_TERRAINTYPE; }
+
+        virtual bool Read_INI(CCINIClass &ini) override;
 
     public:
         /**
@@ -82,6 +92,3 @@ class TerrainTypeClassExtension final : public Extension<TerrainTypeClass>
          */
         int LightBlueTint;
 };
-
-
-extern ExtensionMap<TerrainTypeClass, TerrainTypeClassExtension> TerrainTypeClassExtensions;

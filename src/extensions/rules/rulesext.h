@@ -27,33 +27,38 @@
  ******************************************************************************/
 #pragma once
 
+#include "always.h"
+#include "tibsun_defines.h"
+#include "rules.h"
 #include "extension.h"
-#include "container.h"
-
-#include "noinit.h"
 #include "tpoint.h"
 
 
 class CCINIClass;
-class RulesClass;
 
 
-class RulesClassExtension final : public Extension<RulesClass>
+class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
 {
     public:
-        RulesClassExtension(RulesClass *this_ptr);
+        IFACEMETHOD(Load)(IStream *pStm);
+        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+
+    public:
+        RulesClassExtension(const RulesClass *this_ptr);
         RulesClassExtension(const NoInitClass &noinit);
-        ~RulesClassExtension();
+        virtual ~RulesClassExtension();
 
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
         virtual int Size_Of() const override;
-
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
+        virtual const char *Name() const override { return "Rule"; }
+        virtual const char *Full_Name() const override { return "Rule"; }
+
         void Process(CCINIClass &ini);
         void Initialize(CCINIClass &ini);
+
+        bool Objects(CCINIClass &ini);
 
         bool General(CCINIClass &ini);
         bool MPlayer(CCINIClass &ini);
@@ -86,9 +91,3 @@ class RulesClassExtension final : public Extension<RulesClass>
          */
         bool IsShowSuperWeaponTimers;
 };
-
-
-/**
- *  Global instance of the extended class.
- */
-extern RulesClassExtension *RulesExtension;

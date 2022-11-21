@@ -29,14 +29,10 @@
 #include "buildingtype.h"
 #include "tibsun_defines.h"
 #include "ccini.h"
+#include "wwcrc.h"
+#include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
-
-
-/**
- *  Provides the map for all BuildingTypeClass extension instances.
- */
-ExtensionMap<BuildingTypeClass, BuildingTypeClassExtension> BuildingTypeClassExtensions;
 
 
 /**
@@ -44,8 +40,8 @@ ExtensionMap<BuildingTypeClass, BuildingTypeClassExtension> BuildingTypeClassExt
  *  
  *  @author: CCHyper
  */
-BuildingTypeClassExtension::BuildingTypeClassExtension(BuildingTypeClass *this_ptr) :
-    Extension(this_ptr),
+BuildingTypeClassExtension::BuildingTypeClassExtension(const BuildingTypeClass *this_ptr) :
+    TechnoTypeClassExtension(this_ptr),
     GateUpSound(VOC_NONE),
     GateDownSound(VOC_NONE),
     ProduceCashStartup(0),
@@ -56,11 +52,9 @@ BuildingTypeClassExtension::BuildingTypeClassExtension(BuildingTypeClass *this_p
     IsResetBudgetOnCapture(false),
     IsEligibleForAllyBuilding(false)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("BuildingTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("BuildingTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //if (this_ptr) EXT_DEBUG_TRACE("BuildingTypeClassExtension::BuildingTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    IsInitialized = true;
+    BuildingTypeExtensions.Add(this);
 }
 
 
@@ -70,9 +64,9 @@ BuildingTypeClassExtension::BuildingTypeClassExtension(BuildingTypeClass *this_p
  *  @author: CCHyper
  */
 BuildingTypeClassExtension::BuildingTypeClassExtension(const NoInitClass &noinit) :
-    Extension(noinit)
+    TechnoTypeClassExtension(noinit)
 {
-    IsInitialized = false;
+    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::BuildingTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -83,10 +77,28 @@ BuildingTypeClassExtension::BuildingTypeClassExtension(const NoInitClass &noinit
  */
 BuildingTypeClassExtension::~BuildingTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("BuildingTypeClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("BuildingTypeClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::~BuildingTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    IsInitialized = false;
+    BuildingTypeExtensions.Delete(this);
+}
+
+
+/**
+ *  Retrieves the class identifier (CLSID) of the object.
+ *  
+ *  @author: CCHyper
+ */
+HRESULT BuildingTypeClassExtension::GetClassID(CLSID *lpClassID)
+{
+    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    if (lpClassID == nullptr) {
+        return E_POINTER;
+    }
+
+    *lpClassID = __uuidof(this);
+
+    return S_OK;
 }
 
 
@@ -97,10 +109,9 @@ BuildingTypeClassExtension::~BuildingTypeClassExtension()
  */
 HRESULT BuildingTypeClassExtension::Load(IStream *pStm)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Load(pStm);
+    HRESULT hr = TechnoTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
@@ -118,10 +129,9 @@ HRESULT BuildingTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT BuildingTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Save(pStm, fClearDirty);
+    HRESULT hr = TechnoTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
     }
@@ -137,8 +147,7 @@ HRESULT BuildingTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int BuildingTypeClassExtension::Size_Of() const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -151,8 +160,7 @@ int BuildingTypeClassExtension::Size_Of() const
  */
 void BuildingTypeClassExtension::Detach(TARGET target, bool all)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Detach - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -163,8 +171,7 @@ void BuildingTypeClassExtension::Detach(TARGET target, bool all)
  */
 void BuildingTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     crc(IsEligibleForAllyBuilding);
 }
@@ -177,15 +184,13 @@ void BuildingTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
  */
 bool BuildingTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    EXT_DEBUG_WARNING("BuildingTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    const char *ini_name = ThisPtr->Name();
-
-    if (!ini.Is_Present(ini_name)) {
+    if (!TechnoTypeClassExtension::Read_INI(ini)) {
         return false;
     }
+
+    const char *ini_name = Name();
 
     GateUpSound = ini.Get_VocType(ini_name, "GateUpSound", GateUpSound);
     GateDownSound = ini.Get_VocType(ini_name, "GateDownSound", GateDownSound);
@@ -198,7 +203,7 @@ bool BuildingTypeClassExtension::Read_INI(CCINIClass &ini)
     IsResetBudgetOnCapture = ini.Get_Bool(ini_name, "ProduceCashResetOnCapture", IsResetBudgetOnCapture);
 
     IsEligibleForAllyBuilding = ini.Get_Bool(ini_name, "EligibleForAllyBuilding",
-                                                    ThisPtr->IsConstructionYard ? true : IsEligibleForAllyBuilding);
+                                                    This()->IsConstructionYard ? true : IsEligibleForAllyBuilding);
     
     return true;
 }

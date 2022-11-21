@@ -32,12 +32,16 @@
 #include "voc.h"
 #include "laserdraw.h"
 #include "ebolt.h"
-#include "fatal.h"
 #include "vinifera_globals.h"
 #include "vinifera_util.h"
+#include "extension_globals.h"
+#include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 #include <timeapi.h>
+
+#include "hooker.h"
+#include "hooker_macros.h"
 
 
 /**
@@ -258,9 +262,7 @@ DECLARE_PATCH(_Tactical_Render_Post_Effects_Patch)
     /**
      *  Draw any new post effects here.
      */
-    if (TacticalExtension) {
-        TacticalExtension->Render_Post();
-    }
+    TacticalMapExtension->Render_Post();
 
     JMP(0x00611AFE);
 }
@@ -281,14 +283,10 @@ DECLARE_PATCH(_Tactical_Render_Overlay_Patch)
      */
     if (Vinifera_DeveloperMode) {
 
-        if (TacticalExtension) {
+        TacticalMapExtension->Draw_Debug_Overlay();
 
-            TacticalExtension->Draw_Debug_Overlay();
-
-            if (Vinifera_Developer_FrameStep) {
-                TacticalExtension->Draw_FrameStep_Overlay();
-            }
-
+        if (Vinifera_Developer_FrameStep) {
+            TacticalMapExtension->Draw_FrameStep_Overlay();
         }
     }
 
@@ -308,36 +306,34 @@ DECLARE_PATCH(_Tactical_Render_Overlay_Patch)
     Vinifera_Draw_Version_Text(CompositeSurface);
 #endif
 
-    if (TacticalExtension) {
+    /**
+     *  Has custom screen text been set?
+     */
+    if (TacticalMapExtension->IsInfoTextSet) {
 
         /**
-         *  Has custom screen text been set?
+         *  Draw it to the screen.
          */
-        if (TacticalExtension->IsInfoTextSet) {
-
-            /**
-             *  Draw it to the screen.
-             */
-            TacticalExtension->Draw_Information_Text();
-            
-            /**
-             *  Play the one time notification sound if defined.
-             */
-            if (TacticalExtension->InfoTextNotifySound != VOC_NONE) {
-                Sound_Effect(TacticalExtension->InfoTextNotifySound, TacticalExtension->InfoTextNotifySoundVolume);
-                TacticalExtension->InfoTextNotifySound = VOC_NONE;
-            }
-            
-            /**
-             *  If the screen timer has expired, disable drawing.
-             */
-            if (TacticalExtension->InfoTextTimer.Expired()) {
-                TacticalExtension->InfoTextTimer.Stop();
-                TacticalExtension->IsInfoTextSet = false;
-                TacticalExtension->InfoTextNotifySound = VOC_NONE;
-                TacticalExtension->InfoTextPosition = TOP_LEFT;
-            }       
+        TacticalMapExtension->Draw_Information_Text();
+        
+        /**
+         *  Play the one time notification sound if defined.
+         */
+        if (TacticalMapExtension->InfoTextNotifySound != VOC_NONE) {
+            Sound_Effect(TacticalMapExtension->InfoTextNotifySound, TacticalMapExtension->InfoTextNotifySoundVolume);
+            TacticalMapExtension->InfoTextNotifySound = VOC_NONE;
         }
+        
+        /**
+         *  If the screen timer has expired, disable drawing.
+         */
+        if (TacticalMapExtension->InfoTextTimer.Expired()) {
+            TacticalMapExtension->InfoTextTimer.Stop();
+            TacticalMapExtension->IsInfoTextSet = false;
+            std::memset(TacticalMapExtension->InfoTextBuffer, 0, sizeof(TacticalMapExtension->InfoTextBuffer));
+            TacticalMapExtension->InfoTextNotifySound = VOC_NONE;
+            TacticalMapExtension->InfoTextPosition = TOP_LEFT;
+        }       
     }
 
     /**

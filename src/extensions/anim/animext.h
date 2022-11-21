@@ -27,33 +27,41 @@
  ******************************************************************************/
 #pragma once
 
-#include "extension.h"
-#include "container.h"
-
-#include "ttimer.h"
-#include "ftimer.h"
+#include "objectext.h"
+#include "anim.h"
 
 
 class AnimClass;
 class HouseClass;
 
 
-class AnimClassExtension final : public Extension<AnimClass>
+class DECLSPEC_UUID(UUID_ANIM_EXTENSION)
+AnimClassExtension final : public ObjectClassExtension
 {
     public:
-        AnimClassExtension(AnimClass *this_ptr);
+        /**
+         *  IPersist
+         */
+        IFACEMETHOD(GetClassID)(CLSID *pClassID);
+
+        /**
+         *  IPersistStream
+         */
+        IFACEMETHOD(Load)(IStream *pStm);
+        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+
+    public:
+        AnimClassExtension(const AnimClass *this_ptr = nullptr);
         AnimClassExtension(const NoInitClass &noinit);
-        ~AnimClassExtension();
+        virtual ~AnimClassExtension();
 
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
         virtual int Size_Of() const override;
-
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
+        virtual AnimClass *This() const override { return reinterpret_cast<AnimClass *>(ObjectClassExtension::This()); }
+        virtual const AnimClass *This_Const() const override { return reinterpret_cast<const AnimClass *>(ObjectClassExtension::This_Const()); }
+        virtual RTTIType What_Am_I() const override { return RTTI_ANIM; }
+
     public:
 };
-
-
-extern ExtensionMap<AnimClass, AnimClassExtension> AnimClassExtensions;

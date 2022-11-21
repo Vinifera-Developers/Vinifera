@@ -27,9 +27,8 @@
  ******************************************************************************/
 #pragma once
 
-#include "extension.h"
-#include "container.h"
-
+#include "technoext.h"
+#include "building.h"
 #include "ttimer.h"
 #include "ftimer.h"
 
@@ -38,19 +37,33 @@ class BuildingClass;
 class HouseClass;
 
 
-class BuildingClassExtension final : public Extension<BuildingClass>
+class DECLSPEC_UUID(UUID_BUILDING_EXTENSION)
+BuildingClassExtension final : public TechnoClassExtension
 {
     public:
-        BuildingClassExtension(BuildingClass *this_ptr);
+        /**
+         *  IPersist
+         */
+        IFACEMETHOD(GetClassID)(CLSID *pClassID);
+
+        /**
+         *  IPersistStream
+         */
+        IFACEMETHOD(Load)(IStream *pStm);
+        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+
+    public:
+        BuildingClassExtension(const BuildingClass *this_ptr = nullptr);
         BuildingClassExtension(const NoInitClass &noinit);
-        ~BuildingClassExtension();
+        virtual ~BuildingClassExtension();
 
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
         virtual int Size_Of() const override;
-
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
+
+        virtual BuildingClass *This() const override { return reinterpret_cast<BuildingClass *>(TechnoClassExtension::This()); }
+        virtual const BuildingClass *This_Const() const override { return reinterpret_cast<const BuildingClass *>(TechnoClassExtension::This_Const()); }
+        virtual RTTIType What_Am_I() const override { return RTTI_BUILDING; }
 
         void Produce_Cash_AI();
 
@@ -75,6 +88,3 @@ class BuildingClassExtension final : public Extension<BuildingClass>
          */
         bool IsBudgetDepleted;
 };
-
-
-extern ExtensionMap<BuildingClass, BuildingClassExtension> BuildingClassExtensions;

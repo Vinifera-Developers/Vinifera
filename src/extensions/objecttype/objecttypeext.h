@@ -27,33 +27,44 @@
  ******************************************************************************/
 #pragma once
 
-#include "extension.h"
-#include "container.h"
+#include "abstracttypeext.h"
+#include "objecttype.h"
 
 
-class ObjectTypeClass;
-class CCINIClass;
-
-
-class ObjectTypeClassExtension final : public Extension<ObjectTypeClass>
+class ObjectTypeClassExtension : public AbstractTypeClassExtension
 {
     public:
-        ObjectTypeClassExtension(ObjectTypeClass *this_ptr);
-        ObjectTypeClassExtension(const NoInitClass &noinit);
-        ~ObjectTypeClassExtension();
+        /**
+         *  IPersistStream
+         */
+        IFACEMETHOD(Load)(IStream *pStm);
+        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
 
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
-        virtual int Size_Of() const override;
+    public:
+        ObjectTypeClassExtension(const ObjectTypeClass *this_ptr);
+        ObjectTypeClassExtension(const NoInitClass &noinit);
+        virtual ~ObjectTypeClassExtension();
 
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
-        bool Read_INI(CCINIClass &ini);
+        virtual const char *Name() const override { return reinterpret_cast<const ObjectTypeClass *>(This())->Name(); }
+        virtual const char *Full_Name() const override { return reinterpret_cast<const ObjectTypeClass *>(This())->Full_Name(); }
+
+        virtual ObjectTypeClass *This() const override { return reinterpret_cast<ObjectTypeClass *>(AbstractTypeClassExtension::This()); }
+        virtual const ObjectTypeClass *This_Const() const override { return reinterpret_cast<const ObjectTypeClass *>(AbstractTypeClassExtension::This_Const()); }
+
+        virtual const char *Graphic_Name() const { return reinterpret_cast<const ObjectTypeClass *>(This())->Graphic_Name(); }
+        virtual const char *Alpha_Graphic_Name() const { return reinterpret_cast<const ObjectTypeClass *>(This())->Alpha_Graphic_Name(); }
+
+        virtual bool Read_INI(CCINIClass &ini) override;
+
+    protected:
+        /**
+         *  These are only to be accessed for save and load operations!
+         */
+        char GraphicName[24 + 1];
+        char AlphaGraphicName[24 + 1];
 
     public:
-
 };
-
-
-extern ExtensionMap<ObjectTypeClass, ObjectTypeClassExtension> ObjectTypeClassExtensions;

@@ -31,6 +31,8 @@
 #include "vinifera_globals.h"
 #include "vinifera_util.h"
 #include "vinifera_functions.h"
+#include "vinifera_saveload.h"
+#include "vinifera_gitinfo.h"
 #include "dsurface.h"
 #include "wwmouse.h"
 #include "blowfish.h"
@@ -38,14 +40,86 @@
 #include "blowpipe.h"
 #include "iomap.h"
 #include "theme.h"
-#include "extension_saveload.h"
+#include "tracker.h"
 #include "loadoptions.h"
 #include "language.h"
-#include "vinifera_gitinfo.h"
+#include "extension.h"
 #include "hooker.h"
 #include "hooker_macros.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+
+
+/**
+ *  This function is for intercepting the calls to Detach_This_From_All to also
+ *  process the object through the extension interface.
+ * 
+ *  @author: CCHyper
+ */
+static void _Detach_This_From_All_Intercept(TARGET target, bool all)
+{
+    Extension::Detach_This_From_All(target, all);
+
+    Detach_This_From_All(target, all);
+}
+
+
+/**
+ *  This function is for intercepting the calls to Free_Heaps to also process
+ *  the extension interface.
+ * 
+ *  @author: CCHyper
+ */
+static void _Free_Heaps_Intercept()
+{
+    Extension::Free_Heaps();
+
+    Free_Heaps();
+}
+
+
+/**
+ *  This patch calls the Print_CRCs function from extension interface.
+ *
+ *  @author: CCHyper
+ */
+static void _Print_CRCs_Intercept(EventClass *ev)
+{
+#if 0
+    /**
+     *  Call the original function to print the object CRCs.
+     */
+    DEBUG_INFO("About to call Print_CRCs...\n");
+    Print_CRCs(ev);
+#endif
+
+    /**
+     *  Calls a reimplementation of Print_CRCs that prints both the original
+     *  information and the new class extension CRCs.
+     */
+    DEBUG_INFO("About to call Extension::Print_CRCs...\n");
+    Extension::Print_CRCs(ev);
+}
+
+
+/**
+ *  This function is for intercepting the call to Clear_Scenarion in Load_All
+ *  to flag that we are performing a load operation, which stops the game from
+ *  creating extensions while the Windows API calls the class factories to create
+ *  the instances.
+ *
+ *  @author: tomsons26
+ */
+static void _On_Load_Clear_Scenario_Intercept()
+{
+    Clear_Scenario();
+
+    /**
+     *  Now the scenario data has been cleaned up, we can now tell the extension
+     *  hooks that we will be creating the extension classes via the class factories.
+     */
+    Vinifera_PerformingLoad = true;
+}
 
 
 /**
@@ -331,39 +405,27 @@ DECLARE_PATCH(_Select_Game_Clear_Globals_Patch)
  */
 DECLARE_PATCH(_Save_Game_Put_Game_Version)
 {
-    static int version;
-    version = ViniferaSaveGameVersion;
-
-    /**
-     *  If we are in developer mode, offset the build number as these save
-     *  files should not appear in normal game modes.
-     * 
-     *  For debug builds, we force an offset so they don't appear in any
-     *  other builds or releases.
-     */
-#ifndef NDEBUG
-    version *= 3;
-#else
-    if (Vinifera_DeveloperMode) {
-        version *= 2;
-    }
-#endif
-
-    _asm { mov edx, version };
+    _asm { mov edx, ViniferaSaveGameVersion };
 
     JMP(0x005D5064);
 }
 
 
 /**
- *  x
+ *  Sanity check on the return value of Load_All().
  * 
  *  @author: CCHyper
  */
 DECLARE_PATCH(_Load_Game_Check_Return_Value)
 {
     GET_REGISTER_STATIC(const char *, filename, esi);
+    GET_STACK_STATIC(IStream *, pStm, esp, 0x20);
 
+    /**
+     *  Replace this with a direct call to the Vinifera Get_All, otherwise we
+     *  get stuck in an infinite loop.
+     */
+#if 0
     _asm { mov ecx, [esp+0x20] }
     _asm { xor dl, dl }
     _asm { mov eax, 0x005D6BE0 }
@@ -371,6 +433,11 @@ DECLARE_PATCH(_Load_Game_Check_Return_Value)
 
     _asm { test al, al }
     _asm { jz failure }
+#endif
+
+    if (!Vinifera_Get_All(pStm)) {
+        goto failure;
+    }
 
     DEBUG_INFO("Loading of save game \"%s\" complete.\n", filename);
     JMP(0x005D6B1C);
@@ -389,24 +456,21 @@ failure:
  */
 DECLARE_PATCH(_LoadOptionsClass_Read_File_Check_Game_Version)
 {
-    GET_REGISTER_STATIC(int, version, eax);
-    static int ver;
+    GET_REGISTER_STATIC(FileEntryClass *, file, ebp);
+    GET_REGISTER_STATIC(int, file_version, eax);
+    GET_REGISTER_OFFSET_STATIC(WIN32_FIND_DATA *, wfd, esp, 0x348);
+    //GET_REGISTER_OFFSET_STATIC(WWSaveLoadClass *, saveload, esp, 0x0C);
 
     /**
      *  If the version in the save file does not match our build
      *  version exactly, then don't add this file to the listing.
      */
-    ver = ViniferaSaveGameVersion;
-#ifndef NDEBUG
-    ver *= 3;
-#else
-    if (Vinifera_DeveloperMode) {
-        ver *= 2;
-    }
-#endif
-    if (version != ver) {
+    if (file_version != ViniferaSaveGameVersion) {
+        DEBUG_WARNING("Save file \"%s\" is incompatible! File version 0x%X, Expected version 0x%X.\n", wfd->cFileName, file_version, ViniferaSaveGameVersion);
         JMP(0x00505AAD);
     }
+
+    DEV_DEBUG_INFO("Save file \"%s\" is compatible.\n", wfd->cFileName);
 
     JMP(0x00505ABB);
 }
@@ -562,7 +626,7 @@ DECLARE_PATCH(_Load_All_Vinifera_Data)
     /**
      *  Call to the Vinifera data stream loader.
      */
-    if (!Vinifera_Load_All(pStm)) {
+    if (!Vinifera_Get_All(pStm)) {
         goto failed;
     }
 
@@ -631,33 +695,26 @@ retry_dialog:
         {
 #if !defined(RELEASE) && defined(NDEBUG)
             /**
-             *  We disable loading in non-release builds or if extensions are disabled.
+             *  We disable loading in non-release.
              */
-            if (!Vinifera_ClassExtensionsDisabled) {
-                Vinifera_Do_WWMessageBox("Saving and Loading is disabled for non-release builds.", Text_String(TXT_OK));
+            Vinifera_Do_WWMessageBox("Saving and Loading is disabled for non-release builds.", Text_String(TXT_OK));
+#else
+            /**
+             *  If no save games are available, notify the user and return back
+             *  and reissue the main dialog.
+             */
+            if (!_Save_Games_Available()) {
+                Vinifera_Do_WWMessageBox("No saved games available.", Text_String(TXT_OK));
+                goto retry_dialog;
+            }
 
-            } else {
-#endif
-
-                /**
-                 *  If no save games are available, notify the user and return back
-                 *  and reissue the main dialog.
-                 */
-                if (!_Save_Games_Available()) {
-                    Vinifera_Do_WWMessageBox("No saved games available.", Text_String(TXT_OK));
-                    goto retry_dialog;
-                }
-
-                /**
-                 *  Show the load game dialog.
-                 */
-                ret = _Do_Load_Dialog();
-                if (ret) {
-                    Theme.Stop();
-                    JMP(0x005DCE48);
-                }
-
-#if !defined(RELEASE) && defined(NDEBUG)
+            /**
+             *  Show the load game dialog.
+             */
+            ret = _Do_Load_Dialog();
+            if (ret) {
+                Theme.Stop();
+                JMP(0x005DCE48);
             }
 #endif
 
@@ -697,6 +754,17 @@ static void Decrypt_Serial(char *buffer)
     }
 
     std::strncpy(buffer, _buf, sizeof(_buf));
+}
+
+
+/**
+ *  Export function that returns the supported save file version.
+ *
+ *  @author: CCHyper
+ */
+__declspec(dllexport) uint32_t __cdecl Vinifera_Save_File_Version()
+{
+    return Extension::Get_Save_Version_Number();
 }
 
 
@@ -777,16 +845,16 @@ void Vinifera_Hooks()
     Patch_Jump(0x0060DBFF, &_SwizzleManagerClass_Process_Tables_Remap_Failed_Error);
 
     /**
-     *  Enable and hook the new save and load system only if extensions are disabled.
+     *  Patch in the new save and load system functions.
      */
-    if (Vinifera_ClassExtensionsDisabled) {
-        Patch_Jump(0x005D68F7, &_Put_All_Vinifera_Data);
-        Patch_Jump(0x005D78ED, &_Load_All_Vinifera_Data);
+    Patch_Call(0x005D5307, &Vinifera_Put_All);
+    Patch_Call(0x005D6B17, &Vinifera_Get_All);
 
-        Patch_Jump(0x004B6D96, &_SaveLoad_Disable_Buttons);
-        Patch_Jump(0x0057FF8B, &_NewMenuClass_Process_Disable_Load_Button_Firestorm);
-        Patch_Jump(0x0058004D, &_NewMenuClass_Process_Disable_Load_Button_TiberianSun);
-    }
+    /**
+     *  Set the save game version.
+     */
+    ViniferaSaveGameVersion = Extension::Get_Save_Version_Number();
+    DEBUG_INFO("Save game version number: 0x%X\n", ViniferaSaveGameVersion);
 
     Patch_Jump(0x005DCDFD, &_Do_Lose_Create_Lose_WWMessageBox);
 
@@ -821,4 +889,114 @@ void Vinifera_Hooks()
     Patch_Byte_Range(0x0057FE2A, 0x90, 10); // NewMenuClass::Process_Game_Select
     Patch_Byte_Range(0x00580377, 0x90, 10); // NewMenuClass::Process_Game_Select
 #endif
+
+    /**
+     *  Various patches to intercept the games object tracking and heap processing.
+     */
+    Patch_Call(0x0053DF7A, &_Free_Heaps_Intercept); // MapSeedClass::Init_Random
+    Patch_Call(0x005DC590, &_Free_Heaps_Intercept); // Clear_Scenario
+    Patch_Call(0x00601BA2, &_Free_Heaps_Intercept); // Game_Shutdown
+
+    Patch_Call(0x0040DBB3, &_Detach_This_From_All_Intercept); // AircraftClass::~AircraftClass
+    Patch_Call(0x0040F123, &_Detach_This_From_All_Intercept); // AircraftClass_Fall_To_Death
+    Patch_Call(0x0040FCD3, &_Detach_This_From_All_Intercept); // AircraftTypeClass::~AircraftTypeClass
+    Patch_Call(0x00410223, &_Detach_This_From_All_Intercept); // AircraftTypeClass::~AircraftTypeClass
+    Patch_Call(0x004142C6, &_Detach_This_From_All_Intercept); // AnimClass::~AnimClass
+    Patch_Call(0x00426662, &_Detach_This_From_All_Intercept); // BuildingClass::~BuildingClass
+    Patch_Call(0x0043F94D, &_Detach_This_From_All_Intercept); // BuildingTypeClass::~BuildingTypeClass
+    Patch_Call(0x0044407D, &_Detach_This_From_All_Intercept); // BuildingTypeClass::~BuildingTypeClass
+    Patch_Call(0x004445F3, &_Detach_This_From_All_Intercept); // BulletClass::~BulletClass
+    Patch_Call(0x004474D3, &_Detach_This_From_All_Intercept); // BulletClass::~BulletClass
+    Patch_Call(0x00447DC3, &_Detach_This_From_All_Intercept); // BulletTypeClass::~BulletTypeClass
+    Patch_Call(0x00448723, &_Detach_This_From_All_Intercept); // BulletTypeClass::~BulletTypeClass
+    Patch_Call(0x00448AE3, &_Detach_This_From_All_Intercept); // CampaignClass::~CampaignClass
+    Patch_Call(0x00448EF3, &_Detach_This_From_All_Intercept); // CampaignClass::~CampaignClass
+    Patch_Call(0x00456A26, &_Detach_This_From_All_Intercept); // CellClass::Wall_Update
+    Patch_Call(0x00456A58, &_Detach_This_From_All_Intercept); // CellClass::Wall_Update
+    Patch_Call(0x00456A7F, &_Detach_This_From_All_Intercept); // CellClass::Wall_Update
+    Patch_Call(0x00456AAB, &_Detach_This_From_All_Intercept); // CellClass::Wall_Update
+    Patch_Call(0x00456AD2, &_Detach_This_From_All_Intercept); // CellClass::Wall_Update
+    Patch_Call(0x004571F9, &_Detach_This_From_All_Intercept); // CellClass::Reduce_Wall
+    Patch_Call(0x004927D3, &_Detach_This_From_All_Intercept); // EMPulseClass::~EMPulseClass
+    Patch_Call(0x004931E3, &_Detach_This_From_All_Intercept); // EMPulseClass::~EMPulseClass
+    Patch_Call(0x00496DB3, &_Detach_This_From_All_Intercept); // FactoryClass::~FactoryClass
+    Patch_Call(0x00497AA3, &_Detach_This_From_All_Intercept); // FactoryClass::~FactoryClass
+    Patch_Call(0x004BB6DB, &_Detach_This_From_All_Intercept); // HouseClass::~HouseClass
+    Patch_Call(0x004CDE93, &_Detach_This_From_All_Intercept); // HouseTypeClass::~HouseTypeClass
+    Patch_Call(0x004CE603, &_Detach_This_From_All_Intercept); // HouseTypeClass::~HouseTypeClass
+    Patch_Call(0x004D22DC, &_Detach_This_From_All_Intercept); // InfantryClass::~InfantryClass
+    Patch_Call(0x004DA3B4, &_Detach_This_From_All_Intercept); // InfantryTypeClass::~InfantryTypeClass
+    Patch_Call(0x004DB133, &_Detach_This_From_All_Intercept); // InfantryTypeClass::~InfantryTypeClass
+    Patch_Call(0x004F2173, &_Detach_This_From_All_Intercept); // IsometricTileClass::~IsometricTileClass
+    Patch_Call(0x004F23E3, &_Detach_This_From_All_Intercept); // IsometricTileClass::~IsometricTileClass
+    Patch_Call(0x004F3344, &_Detach_This_From_All_Intercept); // IsometricTileTypeClass::~IsometricTileTypeClass
+    Patch_Call(0x005015E3, &_Detach_This_From_All_Intercept); // LightSourceClass::~LightSourceClass
+    Patch_Call(0x00501DA3, &_Detach_This_From_All_Intercept); // LightSourceClass::~LightSourceClass
+    Patch_Call(0x00585F9E, &_Detach_This_From_All_Intercept); // ObjectClass::Detach_All
+    Patch_Call(0x00586DB5, &_Detach_This_From_All_Intercept); // ObjectClass::entry_E4
+    Patch_Call(0x0058B563, &_Detach_This_From_All_Intercept); // OverlayClass::~OverlayClass
+    Patch_Call(0x0058CB13, &_Detach_This_From_All_Intercept); // OverlayClass::~OverlayClass
+    Patch_Call(0x0058D196, &_Detach_This_From_All_Intercept); // OverlayTypeClass::~OverlayTypeClass
+    Patch_Call(0x0058DC86, &_Detach_This_From_All_Intercept); // OverlayTypeClass::~OverlayTypeClass
+    Patch_Call(0x005A32FA, &_Detach_This_From_All_Intercept); // ParticleClass::~ParticleClass
+    Patch_Call(0x005A503A, &_Detach_This_From_All_Intercept); // ParticleClass::~ParticleClass
+    Patch_Call(0x005A56D4, &_Detach_This_From_All_Intercept); // ParticleSystemClass::~ParticleSystemClass
+    Patch_Call(0x005AE573, &_Detach_This_From_All_Intercept); // ParticleSystemTypeClass::~ParticleSystemTypeClass
+    Patch_Call(0x005AEC63, &_Detach_This_From_All_Intercept); // ParticleSystemTypeClass::~ParticleSystemTypeClass
+    Patch_Call(0x005AF153, &_Detach_This_From_All_Intercept); // ParticleTypeClass::~ParticleTypeClass
+    Patch_Call(0x005AFC33, &_Detach_This_From_All_Intercept); // ParticleTypeClass::~ParticleTypeClass
+    Patch_Call(0x005E78C3, &_Detach_This_From_All_Intercept); // ScriptClass::~ScriptClass
+    Patch_Call(0x005E7B83, &_Detach_This_From_All_Intercept); // ScriptTypeClass::~ScriptTypeClass
+    Patch_Call(0x005E81E3, &_Detach_This_From_All_Intercept); // ScriptClass::~ScriptClass
+    Patch_Call(0x005E8293, &_Detach_This_From_All_Intercept); // ScriptTypeClass::~ScriptTypeClass
+    Patch_Call(0x005F1AE3, &_Detach_This_From_All_Intercept); // SideClass::~SideClass
+    Patch_Call(0x005F1D93, &_Detach_This_From_All_Intercept); // SideClass::~SideClass
+    Patch_Call(0x005FAAD3, &_Detach_This_From_All_Intercept); // SmudgeClass::~SmudgeClass
+    Patch_Call(0x005FAF03, &_Detach_This_From_All_Intercept); // SmudgeClass::~SmudgeClass
+    Patch_Call(0x005FB313, &_Detach_This_From_All_Intercept); // SmudgeTypeClass::~SmudgeTypeClass
+    Patch_Call(0x005FC023, &_Detach_This_From_All_Intercept); // SmudgeTypeClass::~SmudgeTypeClass
+    Patch_Call(0x00618D03, &_Detach_This_From_All_Intercept); // TActionClass::~TActionClass
+    Patch_Call(0x0061DAD3, &_Detach_This_From_All_Intercept); // TActionClass::~TActionClass
+    Patch_Call(0x0061E4B6, &_Detach_This_From_All_Intercept); // TagClass::~TagClass
+    Patch_Call(0x0061E73B, &_Detach_This_From_All_Intercept); // TagClass::~TagClass
+    Patch_Call(0x0061E9AA, &_Detach_This_From_All_Intercept); // TagClass::Spring
+    Patch_Call(0x0061F164, &_Detach_This_From_All_Intercept); // TagTypeClass::~TagTypeClass
+    Patch_Call(0x00621503, &_Detach_This_From_All_Intercept); // TaskForceClass::~TaskForceClass
+    Patch_Call(0x00621E43, &_Detach_This_From_All_Intercept); // TaskForceClass::~TaskForceClass
+    Patch_Call(0x006224E3, &_Detach_This_From_All_Intercept); // TeamClass::~TeamClass
+    Patch_Call(0x00627EF3, &_Detach_This_From_All_Intercept); // TeamTypeClass::~TeamTypeClass
+    Patch_Call(0x00629293, &_Detach_This_From_All_Intercept); // TeamTypeClass::~TeamTypeClass
+    Patch_Call(0x0063F188, &_Detach_This_From_All_Intercept); // TerrainClass::~TerrainClass
+    Patch_Call(0x00640C38, &_Detach_This_From_All_Intercept); // TerrainClass::~TerrainClass
+    Patch_Call(0x00641653, &_Detach_This_From_All_Intercept); // TerrainTypeClass::~TerrainTypeClass
+    Patch_Call(0x00641D83, &_Detach_This_From_All_Intercept); // TerrainTypeClass::~TerrainTypeClass
+    Patch_Call(0x00642223, &_Detach_This_From_All_Intercept); // TEventClass::~TEventClass
+    Patch_Call(0x00642F23, &_Detach_This_From_All_Intercept); // TEventClass::~TEventClass
+    Patch_Call(0x00644A45, &_Detach_This_From_All_Intercept); // TiberiumClass::~TiberiumClass
+    Patch_Call(0x006491A3, &_Detach_This_From_All_Intercept); // TriggerClass::~TriggerClass
+    Patch_Call(0x00649943, &_Detach_This_From_All_Intercept); // TriggerClass::~TriggerClass
+    Patch_Call(0x00649E03, &_Detach_This_From_All_Intercept); // TriggerTypeClass::~TriggerTypeClass
+    Patch_Call(0x0064AFD3, &_Detach_This_From_All_Intercept); // TubeClass::~TubeClass
+    Patch_Call(0x0064B603, &_Detach_This_From_All_Intercept); // TubeClass::~TubeClass
+    Patch_Call(0x0064D8A9, &_Detach_This_From_All_Intercept); // UnitClass::~UnitClass
+    Patch_Call(0x0065BAD3, &_Detach_This_From_All_Intercept); // UnitTypeClass::~UnitTypeClass
+    Patch_Call(0x0065C793, &_Detach_This_From_All_Intercept); // UnitTypeClass::~UnitTypeClass
+    Patch_Call(0x0065DF23, &_Detach_This_From_All_Intercept); // VoxelAnimClass::~VoxelAnimClass
+    Patch_Call(0x0065F5A3, &_Detach_This_From_All_Intercept); // VoxelAnimTypeClass::~VoxelAnimTypeClass
+    Patch_Call(0x00660093, &_Detach_This_From_All_Intercept); // VoxelAnimTypeClass::~VoxelAnimTypeClass
+    Patch_Call(0x00661227, &_Detach_This_From_All_Intercept); // VeinholeMonsterClass::~VeinholeMonsterClass
+    Patch_Call(0x00661C00, &_Detach_This_From_All_Intercept); // VeinholeMonsterClass::Take_Damage
+    Patch_Call(0x0066EF73, &_Detach_This_From_All_Intercept); // WarheadTypeClass::~WarheadTypeClass
+    Patch_Call(0x0066FA93, &_Detach_This_From_All_Intercept); // WarheadTypeClass::~WarheadTypeClass
+    Patch_Call(0x006702D4, &_Detach_This_From_All_Intercept); // WaveClass::~WaveClass
+    Patch_Call(0x00672E73, &_Detach_This_From_All_Intercept); // WaveClass::~WaveClass
+    Patch_Call(0x00673563, &_Detach_This_From_All_Intercept); // WaypointPathClass::~WaypointPathClass
+    Patch_Call(0x00673AA3, &_Detach_This_From_All_Intercept); // WaypointPathClass::~WaypointPathClass
+    Patch_Call(0x00680C54, &_Detach_This_From_All_Intercept); // WeaponTypeClass::~WeaponTypeClass
+    Patch_Call(0x006818F4, &_Detach_This_From_All_Intercept); // WeaponTypeClass::~WeaponTypeClass
+
+    Patch_Call(0x005B1363, &_Print_CRCs_Intercept);
+    Patch_Call(0x005B5340, &_Print_CRCs_Intercept);
+
+    Patch_Call(0x005D6BEC, &_On_Load_Clear_Scenario_Intercept); // Load_All
 }

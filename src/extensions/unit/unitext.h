@@ -27,30 +27,37 @@
  ******************************************************************************/
 #pragma once
 
-#include "extension.h"
-#include "container.h"
+#include "footext.h"
+#include "unit.h"
 
 
-class UnitClass;
-class HouseClass;
-
-
-class UnitClassExtension final : public Extension<UnitClass>
+class DECLSPEC_UUID(UUID_UNIT_EXTENSION)
+UnitClassExtension final : public FootClassExtension
 {
     public:
-        UnitClassExtension(UnitClass *this_ptr);
+        /**
+         *  IPersist
+         */
+        IFACEMETHOD(GetClassID)(CLSID *pClassID);
+
+        /**
+         *  IPersistStream
+         */
+        IFACEMETHOD(Load)(IStream *pStm);
+        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+
+    public:
+        UnitClassExtension(const UnitClass *this_ptr = nullptr);
         UnitClassExtension(const NoInitClass &noinit);
-        ~UnitClassExtension();
+        virtual ~UnitClassExtension();
 
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
         virtual int Size_Of() const override;
-
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
+        virtual UnitClass *This() const override { return reinterpret_cast<UnitClass *>(FootClassExtension::This()); }
+        virtual const UnitClass *This_Const() const override { return reinterpret_cast<const UnitClass *>(FootClassExtension::This_Const()); }
+        virtual RTTIType What_Am_I() const override { return RTTI_UNIT; }
+
     public:
 };
-
-
-extern ExtensionMap<UnitClass, UnitClassExtension> UnitClassExtensions;

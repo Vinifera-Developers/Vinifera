@@ -32,6 +32,7 @@
 #include "warheadtype.h"
 #include "warheadtypeext.h"
 #include "iomap.h"
+#include "extension.h"
 #include "fatal.h"
 #include "asserthandler.h"
 #include "debughandler.h"
@@ -53,22 +54,14 @@ DECLARE_PATCH(_BulletClass_AI_SpawnDelay_Patch)
     static BulletTypeClassExtension *bullettypeext;
 
     /**
-     *  Find the extended bullet type data.
+     *  Fetch the extension instance.
      */
-    bullettypeext = BulletTypeClassExtensions.find(this_ptr->Class);
+    bullettypeext = Extension::Fetch<BulletTypeClassExtension>(this_ptr->Class);
 
     /**
-     *  If this bullet has a custom spawn delay, perform that check first.
+     *  If this bullet has a custom spawn delay (defaults to the original delay of 3), perform that check first.
      */
-    if (bullettypeext) {
-        if ((Frame % bullettypeext->SpawnDelay) == 0) {
-            goto create_trailer_anim;
-        }
-
-    /**
-     *  Original case, hardcoded delay of 3.
-     */
-    } else if ((Frame % 3) == 0) {
+    if ((Frame % bullettypeext->SpawnDelay) == 0) {
         goto create_trailer_anim;
     }
 
@@ -95,21 +88,19 @@ DECLARE_PATCH(_BulletClass_Logic_ShakeScreen_Patch)
     static WarheadTypeClassExtension *warheadext;
 
     /**
-     *  Fetch the extended warhead type instance if it exists.
+     *  Fetch the extension instance.
      */
-    warheadext = WarheadTypeClassExtensions.find(warhead);
-    if (warheadext) {
+    warheadext = Extension::Fetch<WarheadTypeClassExtension>(warhead);
 
-        /**
-         *  If this warhead has screen shake values defined, then set the blitter
-         *  offset values. GScreenClass::Blit will handle the rest for us.
-         */
-        if (warheadext->ShakePixelXLo > 0 || warheadext->ShakePixelXHi > 0) {
-            Map.ScreenX = Sim_Random_Pick(warheadext->ShakePixelXLo, warheadext->ShakePixelXHi);
-        }
-        if (warheadext->ShakePixelYLo > 0 || warheadext->ShakePixelYHi > 0) {
-            Map.ScreenY = Sim_Random_Pick(warheadext->ShakePixelYLo, warheadext->ShakePixelYHi);
-        }
+    /**
+     *  If this warhead has screen shake values defined, then set the blitter
+     *  offset values. GScreenClass::Blit will handle the rest for us.
+     */
+    if (warheadext->ShakePixelXLo > 0 || warheadext->ShakePixelXHi > 0) {
+        Map.ScreenX = Sim_Random_Pick(warheadext->ShakePixelXLo, warheadext->ShakePixelXHi);
+    }
+    if (warheadext->ShakePixelYLo > 0 || warheadext->ShakePixelYHi > 0) {
+        Map.ScreenY = Sim_Random_Pick(warheadext->ShakePixelYLo, warheadext->ShakePixelYHi);
     }
 
     /**

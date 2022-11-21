@@ -27,30 +27,39 @@
  ******************************************************************************/
 #pragma once
 
-#include "extension.h"
-#include "container.h"
+#include "objecttypeext.h"
+#include "animtype.h"
 
 
-class AnimTypeClass;
-class CCINIClass;
-class ParticleTypeClass;
-
-
-class AnimTypeClassExtension final : public Extension<AnimTypeClass>
+class DECLSPEC_UUID(UUID_ANIMTYPE_EXTENSION)
+AnimTypeClassExtension final : public ObjectTypeClassExtension
 {
     public:
-        AnimTypeClassExtension(AnimTypeClass *this_ptr);
+        /**
+         *  IPersist
+         */
+        IFACEMETHOD(GetClassID)(CLSID *pClassID);
+
+        /**
+         *  IPersistStream
+         */
+        IFACEMETHOD(Load)(IStream *pStm);
+        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+
+    public:
+        AnimTypeClassExtension(const AnimTypeClass *this_ptr = nullptr);
         AnimTypeClassExtension(const NoInitClass &noinit);
-        ~AnimTypeClassExtension();
+        virtual ~AnimTypeClassExtension();
 
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
         virtual int Size_Of() const override;
-
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
-        bool Read_INI(CCINIClass &ini);
+        virtual AnimTypeClass *This() const override { return reinterpret_cast<AnimTypeClass *>(ObjectTypeClassExtension::This()); }
+        virtual const AnimTypeClass *This_Const() const override { return reinterpret_cast<const AnimTypeClass *>(ObjectTypeClassExtension::This_Const()); }
+        virtual RTTIType What_Am_I() const override { return RTTI_ANIMTYPE; }
+
+        virtual bool Read_INI(CCINIClass &ini) override;
 
     public:
         /**
@@ -86,6 +95,3 @@ class AnimTypeClassExtension final : public Extension<AnimTypeClass>
          */
         unsigned NumberOfParticles;
 };
-
-
-extern ExtensionMap<AnimTypeClass, AnimTypeClassExtension> AnimTypeClassExtensions;

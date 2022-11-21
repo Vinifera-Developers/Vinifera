@@ -27,29 +27,39 @@
  ******************************************************************************/
 #pragma once
 
-#include "extension.h"
-#include "container.h"
+#include "technotypeext.h"
+#include "buildingtype.h"
 
 
-class BuildingTypeClass;
-class CCINIClass;
-
-
-class BuildingTypeClassExtension final : public Extension<BuildingTypeClass>
+class DECLSPEC_UUID(UUID_BUILDINGTYPE_EXTENSION)
+BuildingTypeClassExtension final : public TechnoTypeClassExtension
 {
     public:
-        BuildingTypeClassExtension(BuildingTypeClass *this_ptr);
+        /**
+         *  IPersist
+         */
+        IFACEMETHOD(GetClassID)(CLSID *pClassID);
+
+        /**
+         *  IPersistStream
+         */
+        IFACEMETHOD(Load)(IStream *pStm);
+        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+
+    public:
+        BuildingTypeClassExtension(const BuildingTypeClass *this_ptr = nullptr);
         BuildingTypeClassExtension(const NoInitClass &noinit);
-        ~BuildingTypeClassExtension();
+        virtual ~BuildingTypeClassExtension();
 
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
         virtual int Size_Of() const override;
-
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
-        bool Read_INI(CCINIClass &ini);
+        virtual BuildingTypeClass *This() const override { return reinterpret_cast<BuildingTypeClass *>(TechnoTypeClassExtension::This()); }
+        virtual const BuildingTypeClass *This_Const() const override { return reinterpret_cast<const BuildingTypeClass *>(TechnoTypeClassExtension::This_Const()); }
+        virtual RTTIType What_Am_I() const override { return RTTI_BUILDINGTYPE; }
+
+        virtual bool Read_INI(CCINIClass &ini) override;
 
     public:
         /**
@@ -97,6 +107,3 @@ class BuildingTypeClassExtension final : public Extension<BuildingTypeClass>
          */
         bool IsEligibleForAllyBuilding;
 };
-
-
-extern ExtensionMap<BuildingTypeClass, BuildingTypeClassExtension> BuildingTypeClassExtensions;

@@ -4,7 +4,7 @@
  *
  *  @project       Vinifera
  *
- *  @file          EXT_HOOKS.H
+ *  @file          EXTENSION_HOOKS.H
  *
  *  @author        CCHyper
  *

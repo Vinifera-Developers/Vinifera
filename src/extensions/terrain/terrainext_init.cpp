@@ -27,10 +27,16 @@
  ******************************************************************************/
 #include "terrainext.h"
 #include "terrain.h"
+#include "tibsun_globals.h"
+#include "vinifera_util.h"
+#include "vinifera_globals.h"
+#include "extension.h"
 #include "fatal.h"
 #include "asserthandler.h"
 #include "debughandler.h"
-#include "vinifera_util.h"
+
+#include "hooker.h"
+#include "hooker_macros.h"
 
 
 /**
@@ -45,20 +51,19 @@ DECLARE_PATCH(_TerrainClass_Default_Constructor_Patch)
     GET_REGISTER_STATIC(TerrainClass *, this_ptr, esi); // Current "this" pointer.
     GET_STACK_STATIC(const TerrainTypeClass *, classof, esp, 0x20);
     GET_STACK_STATIC(const Cell *, cell, esp, 0x24);
-    static TerrainClassExtension *ext_ptr;
 
     /**
-     *  Find existing or create an extended class instance.
+     *  If we are performing a load operation, the Windows API will invoke the
+     *  constructors for us as part of the operation, so we can skip our hook here.
      */
-    ext_ptr = TerrainClassExtensions.find_or_create(this_ptr);
-    if (!ext_ptr) {
-        DEBUG_ERROR("Failed to create TerrainClassExtension instance for 0x%08X!\n", (uintptr_t)this_ptr);
-        ShowCursor(TRUE);
-        MessageBoxA(MainWindow, "Failed to create TerrainClassExtensions instance!\n", "Vinifera", MB_OK|MB_ICONEXCLAMATION);
-        Vinifera_Generate_Mini_Dump();
-        Fatal("Failed to create TerrainClassExtensions instance!\n");
-        goto original_code; // Keep this for clean code analysis.
+    if (Vinifera_PerformingLoad) {
+        goto original_code;
     }
+
+    /**
+     *  Create an extended class instance.
+     */
+    Extension::Make<TerrainClassExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
@@ -84,20 +89,11 @@ original_code:
 DECLARE_PATCH(_TerrainClass_Constructor_Patch)
 {
     GET_REGISTER_STATIC(TerrainClass *, this_ptr, esi); // Current "this" pointer.
-    static TerrainClassExtension *ext_ptr;
 
     /**
-     *  Find existing or create an extended class instance.
+     *  Create an extended class instance.
      */
-    ext_ptr = TerrainClassExtensions.find_or_create(this_ptr);
-    if (!ext_ptr) {
-        DEBUG_ERROR("Failed to create TerrainClassExtension instance for 0x%08X!\n", (uintptr_t)this_ptr);
-        ShowCursor(TRUE);
-        MessageBoxA(MainWindow, "Failed to create TerrainClassExtensions instance!\n", "Vinifera", MB_OK|MB_ICONEXCLAMATION);
-        Vinifera_Generate_Mini_Dump();
-        Fatal("Failed to create TerrainClassExtensions instance!\n");
-        goto original_code; // Keep this for clean code analysis.
-    }
+    Extension::Make<TerrainClassExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
@@ -127,20 +123,11 @@ DECLARE_PATCH(_TerrainClass_Constructor_Before_Unlimbo_Patch)
 {
     GET_REGISTER_STATIC(TerrainClass *, this_ptr, esi); // Current "this" pointer.
     GET_STACK_STATIC(Cell *, cell, esp, 0x24);
-    static TerrainClassExtension *ext_ptr;
 
     /**
-     *  Find existing or create an extended class instance.
+     *  Create an extended class instance.
      */
-    ext_ptr = TerrainClassExtensions.find_or_create(this_ptr);
-    if (!ext_ptr) {
-        DEBUG_ERROR("Failed to create TerrainClassExtension instance for 0x%08X!\n", (uintptr_t)this_ptr);
-        ShowCursor(TRUE);
-        MessageBoxA(MainWindow, "Failed to create TerrainClassExtensions instance!\n", "Vinifera", MB_OK|MB_ICONEXCLAMATION);
-        Vinifera_Generate_Mini_Dump();
-        Fatal("Failed to create TerrainClassExtensions instance!\n");
-        goto original_code; // Keep this for clean code analysis.
-    }
+    Extension::Make<TerrainClassExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
@@ -168,16 +155,14 @@ DECLARE_PATCH(_TerrainClass_Destructor_Patch)
     /**
      *  Remove the extended class from the global index.
      */
-    TerrainClassExtensions.remove(this_ptr);
+    Extension::Destroy<TerrainClassExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
      */
 original_code:
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { add esp, 0x8 }
-    _asm { ret }
+    _asm { mov edx, ds:0x007E4568 } // Terrains.vtble
+    JMP_REG(eax, 0x0063F193);
 }
 
 
@@ -195,84 +180,14 @@ DECLARE_PATCH(_TerrainClass_Scalar_Destructor_Patch)
     /**
      *  Remove the extended class from the global index.
      */
-    TerrainClassExtensions.remove(this_ptr);
+    Extension::Destroy<TerrainClassExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
      */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { add esp, 0x8 }
-    _asm { ret 4 }
-}
-
-
-/**
- *  Patch for including the extended class members to the base class detach process.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_TerrainClass_Detach_Patch)
-{
-    GET_REGISTER_STATIC(TerrainClass *, this_ptr, esi);
-    GET_STACK_STATIC(TARGET, target, esp, 0x10);
-    GET_STACK_STATIC8(bool, all, esp, 0x8);
-    static TerrainClassExtension *ext_ptr;
-
-    /**
-     *  Find the extension instance.
-     */
-    ext_ptr = TerrainClassExtensions.find(this_ptr);
-    if (!ext_ptr) {
-        goto original_code;
-    }
-
-    ext_ptr->Detach(target, all);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { ret 8 }
-}
-
-
-/**
- *  Patch for including the extended class members to the base class crc calculation.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_TerrainClass_Compute_CRC_Patch)
-{
-    GET_REGISTER_STATIC(TerrainClass *, this_ptr, esi);
-    GET_STACK_STATIC(WWCRCEngine *, crc, esp, 0xC);
-    static TerrainClassExtension *ext_ptr;
-
-    /**
-     *  Find the extension instance.
-     */
-    ext_ptr = TerrainClassExtensions.find(this_ptr);
-    if (!ext_ptr) {
-        goto original_code;
-    }
-
-    ext_ptr->Compute_CRC(*crc);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { ret 4 }
+    _asm { mov edx, ds:0x007E4568 } // Terrains.vtble
+    JMP_REG(eax, 0x00640C43);
 }
 
 
@@ -284,8 +199,6 @@ void TerrainClassExtension_Init()
     Patch_Jump(0x0063F88C, _TerrainClass_Default_Constructor_Patch);
     //Patch_Jump(0x0063F701, _TerrainClass_Constructor_Patch);
     Patch_Jump(0x0063F556, _TerrainClass_Constructor_Before_Unlimbo_Patch);
-    Patch_Jump(0x0063F2BC, _TerrainClass_Destructor_Patch); // Destructor is actually inlined in scalar destructor!
-    Patch_Jump(0x00640D7C, _TerrainClass_Scalar_Destructor_Patch);
-    Patch_Jump(0x0064089F, _TerrainClass_Detach_Patch);
-    Patch_Jump(0x0064086E, _TerrainClass_Compute_CRC_Patch);
+    Patch_Jump(0x0063F18D, _TerrainClass_Destructor_Patch); // Destructor is actually inlined in scalar destructor!
+    Patch_Jump(0x00640C3D, _TerrainClass_Scalar_Destructor_Patch);
 }

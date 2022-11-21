@@ -43,7 +43,7 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-class RawFileClassFake final : public RawFileClass
+class RawFileClassExt final : public RawFileClass
 {
     public:
         long _Read(void *buffer, int length);
@@ -57,7 +57,7 @@ class RawFileClassFake final : public RawFileClass
  *  @author: 10/18/1994 JLB - Red Alert source code.
  *           CCHyper - Adjustments for Tiberian Sun, minor bug fix.
  */
-long RawFileClassFake::_Read(void *buffer, int length)
+long RawFileClassExt::_Read(void *buffer, int length)
 {
     ASSERT_PRINT(buffer != nullptr, "Filename -> %s", Get_Safe_File_Name());
     ASSERT_PRINT(length > 0, "Filename -> %s", Get_Safe_File_Name());
@@ -133,7 +133,7 @@ long RawFileClassFake::_Read(void *buffer, int length)
  *  @author: 10/17/1994 JLB - Red Alert source code.
  *           CCHyper - Adjustments for Tiberian Sun, minor bug fix.
  */
-void RawFileClassFake::_Error(FileErrorType error, bool can_retry, const char *filename)
+void RawFileClassExt::_Error(FileErrorType error, bool can_retry, const char *filename)
 {
     static char buffer[2048];
 
@@ -173,6 +173,6 @@ void RawFileClassFake::_Error(FileErrorType error, bool can_retry, const char *f
  */
 void RawFileClassExtension_Hooks()
 {
-    Patch_Jump(0x005BE560, &RawFileClassFake::_Read);
-    Patch_Jump(0x005BE300, &RawFileClassFake::_Error);
+    Patch_Jump(0x005BE560, &RawFileClassExt::_Read);
+    Patch_Jump(0x005BE300, &RawFileClassExt::_Error);
 }

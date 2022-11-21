@@ -29,9 +29,11 @@
 #include "technoext.h"
 #include "technotypeext.h"
 #include "techno.h"
+#include "tibsun_globals.h"
 #include "ebolt.h"
 #include "target.h"
 #include "tactical.h"
+#include "extension.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 
@@ -95,22 +97,19 @@ EBoltClass *TechnoClassExtension_Electric_Bolt(TechnoClass *this_ptr, TARGET tar
     if (ebolt) {
         if (this_ptr->IsActive) {
 
-            TechnoClassExtension *technoext;
-            technoext = TechnoClassExtensions.find(this_ptr);
-            if (technoext) {
+            TechnoClassExtension *technoext = Extension::Fetch<TechnoClassExtension>(this_ptr);
 
-                /**
-                 *  Remove existing electric bolt from the object.
-                 */
-                if (technoext->ElectricBolt) {
-                    technoext->ElectricBolt->Flag_To_Delete();
-                    technoext->ElectricBolt = nullptr;
-                }
+            /**
+             *  Remove existing electric bolt from the object.
+             */
+            if (technoext->ElectricBolt) {
+                technoext->ElectricBolt->Flag_To_Delete();
+                technoext->ElectricBolt = nullptr;
+            }
 
-                if (!technoext->ElectricBolt) {
-                    technoext->ElectricBolt = ebolt;
-                    technoext->ElectricBolt->Set_Properties(this_ptr, weapontype, which);
-                }
+            if (!technoext->ElectricBolt) {
+                technoext->ElectricBolt = ebolt;
+                technoext->ElectricBolt->Set_Properties(this_ptr, weapontype, which);
             }
         }
     }

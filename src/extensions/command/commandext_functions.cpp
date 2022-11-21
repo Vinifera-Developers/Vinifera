@@ -32,6 +32,7 @@
 #include "rules.h"
 #include "tacticalext.h"
 #include "tactical.h"
+#include "extension_globals.h"
 #include "asserthandler.h"
 #include "debughandler.h"
 
@@ -73,24 +74,21 @@ bool Prev_Theme_Command()
     /**
      *  Print the chosen music track name on the screen.
      */
-    if (TacticalExtension) {
+    TacticalMapExtension->InfoTextTimer.Stop();
 
-        TacticalExtension->InfoTextTimer.Stop();
+    char buffer[256];
+    std::snprintf(buffer, sizeof(buffer), "Now Playing: %s", Theme.ThemeClass::Full_Name(theme));
 
-        char buffer[256];
-        std::snprintf(buffer, sizeof(buffer), "Now Playing: %s", Theme.ThemeClass::Full_Name(theme));
+    TacticalMapExtension->Set_Info_Text(buffer);
+    TacticalMapExtension->IsInfoTextSet = true;
 
-        TacticalExtension->InfoTextBuffer = buffer;
-        TacticalExtension->IsInfoTextSet = true;
+    TacticalMapExtension->InfoTextPosition = InfoTextPosType::BOTTOM_LEFT;
 
-        TacticalExtension->InfoTextPosition = InfoTextPosType::BOTTOM_LEFT;
+    //TacticalMapExtension->InfoTextNotifySound = Rule->OptionsChanged;
+    //TacticalMapExtension->InfoTextNotifySoundVolume = 0.5f;
 
-        //TacticalExtension->InfoTextNotifySound = Rule->OptionsChanged;
-        //TacticalExtension->InfoTextNotifySoundVolume = 0.5f;
-
-        TacticalExtension->InfoTextTimer = SECONDS_TO_MILLISECONDS(4);
-        TacticalExtension->InfoTextTimer.Start();
-    }
+    TacticalMapExtension->InfoTextTimer = SECONDS_TO_MILLISECONDS(4);
+    TacticalMapExtension->InfoTextTimer.Start();
 
     return true;
 }
@@ -133,24 +131,21 @@ bool Next_Theme_Command()
     /**
      *  Print the chosen music track name on the screen.
      */
-    if (TacticalExtension) {
+    TacticalMapExtension->InfoTextTimer.Stop();
 
-        TacticalExtension->InfoTextTimer.Stop();
+    char buffer[256];
+    std::snprintf(buffer, sizeof(buffer), "Now Playing: %s", Theme.ThemeClass::Full_Name(theme));
 
-        char buffer[256];
-        std::snprintf(buffer, sizeof(buffer), "Now Playing: %s", Theme.ThemeClass::Full_Name(theme));
+    TacticalMapExtension->Set_Info_Text(buffer);
+    TacticalMapExtension->IsInfoTextSet = true;
+    
+    TacticalMapExtension->InfoTextPosition = InfoTextPosType::BOTTOM_LEFT;
 
-        TacticalExtension->InfoTextBuffer = buffer;
-        TacticalExtension->IsInfoTextSet = true;
-        
-        TacticalExtension->InfoTextPosition = InfoTextPosType::BOTTOM_LEFT;
+    //TacticalMapExtension->InfoTextNotifySound = Rule->OptionsChanged;
+    //TacticalMapExtension->InfoTextNotifySoundVolume = 0.5f;
 
-        //TacticalExtension->InfoTextNotifySound = Rule->OptionsChanged;
-        //TacticalExtension->InfoTextNotifySoundVolume = 0.5f;
-
-        TacticalExtension->InfoTextTimer = SECONDS_TO_MILLISECONDS(4);
-        TacticalExtension->InfoTextTimer.Start();
-    }
+    TacticalMapExtension->InfoTextTimer = SECONDS_TO_MILLISECONDS(4);
+    TacticalMapExtension->InfoTextTimer.Start();
 
     return true;
 }

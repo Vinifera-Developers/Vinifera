@@ -47,6 +47,7 @@
 #include "voc.h"
 #include "iomap.h"
 #include "spritecollection.h"
+#include "extension.h"
 #include "fatal.h"
 #include "asserthandler.h"
 #include "debughandler.h"
@@ -68,12 +69,11 @@ DECLARE_PATCH(_BuildingClass_AI_ProduceCash_Patch)
     static BuildingClassExtension *ext_ptr;
 
     /**
-     *  Find the extension instances.
+     *  Fetch the extension instance.
      */
-    ext_ptr = BuildingClassExtensions.find(this_ptr);
-    if (ext_ptr) {
-        ext_ptr->Produce_Cash_AI();
-    }
+    ext_ptr = Extension::Fetch<BuildingClassExtension>(this_ptr);
+
+    ext_ptr->Produce_Cash_AI();
 
     /**
      *  Stolen bytes/code here.
@@ -104,13 +104,10 @@ DECLARE_PATCH(_BuildingClass_Captured_ProduceCash_Patch)
     static BuildingTypeClassExtension *exttype_ptr;
 
     /**
-     *  Find the extension instances.
+     *  Fetch the extension instances.
      */
-    ext_ptr = BuildingClassExtensions.find(this_ptr);
-    exttype_ptr = BuildingTypeClassExtensions.find(this_ptr->Class);
-    if (!ext_ptr || !exttype_ptr) {
-        goto original_code;
-    }
+    ext_ptr = Extension::Fetch<BuildingClassExtension>(this_ptr);
+    exttype_ptr = Extension::Fetch<BuildingTypeClassExtension>(this_ptr->Class);
 
     /**
      *  Is the owner a passive/neutral house? Only they can provide the capture bonus.
@@ -192,13 +189,10 @@ DECLARE_PATCH(_BuildingClass_Grand_Opening_ProduceCash_Patch)
     }
 
     /**
-     *  Find the extension instances.
+     *  Fetch the extension instances.
      */
-    ext_ptr = BuildingClassExtensions.find(this_ptr);
-    exttype_ptr = BuildingTypeClassExtensions.find(this_ptr->Class);
-    if (!ext_ptr || !exttype_ptr) {
-        goto continue_function;
-    }
+    ext_ptr = Extension::Fetch<BuildingClassExtension>(this_ptr);
+    exttype_ptr = Extension::Fetch<BuildingTypeClassExtension>(this_ptr->Class);
 
     /**
      *  Start the cash delay timer.
@@ -256,17 +250,15 @@ DECLARE_PATCH(_BuildingClass_Mission_Open_Gate_Open_Sound_Patch)
     voc = Rule->GateDownSound;
 
     /**
-     *  Fetch the class extension if it exists.
+     *  Fetch the extension instance.
      */
-    buildingtypeext = BuildingTypeClassExtensions.find(buildingtype);
-    if (buildingtypeext) {
+    buildingtypeext = Extension::Fetch<BuildingTypeClassExtension>(buildingtype);
 
-        /**
-         *  Does this building have a custom gate lowering sound? If so, use it.
-         */
-        if (buildingtypeext->GateDownSound != VOC_NONE) {
-            voc = buildingtypeext->GateDownSound;
-        }
+    /**
+     *  Does this building have a custom gate lowering sound? If so, use it.
+     */
+    if (buildingtypeext->GateDownSound != VOC_NONE) {
+        voc = buildingtypeext->GateDownSound;
     }
 
     /**
@@ -293,17 +285,15 @@ DECLARE_PATCH(_BuildingClass_Mission_Open_Gate_Close_Sound_Patch)
     voc = Rule->GateUpSound;
 
     /**
-     *  Fetch the class extension if it exists.
+     *  Fetch the extension instance.
      */
-    buildingtypeext = BuildingTypeClassExtensions.find(buildingtype);
-    if (buildingtypeext) {
+    buildingtypeext = Extension::Fetch<BuildingTypeClassExtension>(buildingtype);
 
-        /**
-         *  Does this building have a custom gate rising sound? If so, use it.
-         */
-        if (buildingtypeext->GateUpSound != VOC_NONE) {
-            voc = buildingtypeext->GateUpSound;
-        }
+    /**
+     *  Does this building have a custom gate rising sound? If so, use it.
+     */
+    if (buildingtypeext->GateUpSound != VOC_NONE) {
+        voc = buildingtypeext->GateUpSound;
     }
 
     /**
@@ -328,14 +318,12 @@ DECLARE_PATCH(_BuildingClass_Mission_Open_Gate_Close_Sound_Patch)
  */
 static void BuildingClass_Shake_Screen(BuildingClass *building)
 {
-    TechnoTypeClass *technotype;
-    TechnoTypeClassExtension *technotypeext;
+    BuildingTypeClassExtension *buildingtypeext;
 
     /**
-     *  Fetch the extended techno type instance if it exists.
+     *  Fetch the extension instance.
      */
-    technotype = building->Techno_Type_Class();
-    technotypeext = TechnoTypeClassExtensions.find(technotype);
+    buildingtypeext = Extension::Fetch<BuildingTypeClassExtension>(building->Techno_Type_Class());
 
     /**
      *  #issue-414
@@ -344,20 +332,20 @@ static void BuildingClass_Shake_Screen(BuildingClass *building)
      * 
      *  @author: CCHyper
      */
-    if (technotypeext && technotypeext->IsShakeScreen) {
+    if (buildingtypeext->IsShakeScreen) {
 
         /**
          *  If this building has screen shake values defined, then set the blitter
          *  offset values. GScreenClass::Blit will handle the rest for us.
          */
-        if ((technotypeext->ShakePixelXLo > 0 || technotypeext->ShakePixelXHi > 0)
-         || (technotypeext->ShakePixelYLo > 0 || technotypeext->ShakePixelYHi > 0)) {
+        if ((buildingtypeext->ShakePixelXLo > 0 || buildingtypeext->ShakePixelXHi > 0)
+         || (buildingtypeext->ShakePixelYLo > 0 || buildingtypeext->ShakePixelYHi > 0)) {
 
-            if (technotypeext->ShakePixelXLo > 0 || technotypeext->ShakePixelXHi > 0) {
-                Map.ScreenX = Sim_Random_Pick(technotypeext->ShakePixelXLo, technotypeext->ShakePixelXHi);
+            if (buildingtypeext->ShakePixelXLo > 0 || buildingtypeext->ShakePixelXHi > 0) {
+                Map.ScreenX = Sim_Random_Pick(buildingtypeext->ShakePixelXLo, buildingtypeext->ShakePixelXHi);
             }
-            if (technotypeext->ShakePixelYLo > 0 || technotypeext->ShakePixelYHi > 0) {
-                Map.ScreenY = Sim_Random_Pick(technotypeext->ShakePixelYLo, technotypeext->ShakePixelYHi);
+            if (buildingtypeext->ShakePixelYLo > 0 || buildingtypeext->ShakePixelYHi > 0) {
+                Map.ScreenY = Sim_Random_Pick(buildingtypeext->ShakePixelYLo, buildingtypeext->ShakePixelYHi);
             }
 
         } else {
@@ -446,7 +434,7 @@ DECLARE_PATCH(_BuildingClass_Draw_Spied_Cameo_Palette_Patch)
      * 
      *  @author: CCHyper
      */
-    technotypeext = TechnoTypeClassExtensions.find(technotype);
+    technotypeext = Extension::Fetch<TechnoTypeClassExtension>(technotype);
     if (technotypeext->CameoImageSurface) {
 
         /**

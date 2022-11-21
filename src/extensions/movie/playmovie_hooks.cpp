@@ -36,6 +36,7 @@
 #include "playmovie.h"
 #include "cd.h"
 #include "wstring.h"
+#include "extension.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
@@ -186,7 +187,7 @@ static bool Play_Intro_Movie(CampaignType campaign_id)
      */
     bool is_original_gdi = (cd_num == DISK_GDI && (Wstring(campaign->IniName) == "GDI1" || Wstring(campaign->IniName) == "GDI1A") && Wstring(campaign->Scenario) == "GDI1A.MAP");
     bool is_original_nod = (cd_num == DISK_NOD && (Wstring(campaign->IniName) == "NOD1" || Wstring(campaign->IniName) == "NOD1A") && Wstring(campaign->Scenario) == "NOD1A.MAP");
-    
+
     /**
      *  #issue-762
      * 
@@ -194,8 +195,8 @@ static bool Play_Intro_Movie(CampaignType campaign_id)
      * 
      *  @author: CCHyper
      */
-    CampaignClassExtension *campaignext = CampaignClassExtensions.find(campaign);
-    if (campaignext && campaignext->IntroMovie[0] != '\0') {
+    CampaignClassExtension *campaignext = Extension::Fetch<CampaignClassExtension>(campaign);
+    if (campaignext->IntroMovie[0] != '\0') {
         std::snprintf(movie_filename, sizeof(movie_filename), "%s.VQA", campaignext->IntroMovie);
         DEBUG_INFO("About to play \"%s\".\n", movie_filename);
         Play_Movie(movie_filename);

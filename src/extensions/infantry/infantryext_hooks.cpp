@@ -35,6 +35,7 @@
 #include "target.h"
 #include "voc.h"
 #include "tibsun_globals.h"
+#include "extension.h"
 #include "options.h"
 #include "wwkeyboard.h"
 #include "fatal.h"
@@ -66,8 +67,8 @@ DECLARE_PATCH(_InfantryClass_Per_Cell_Process_Transport_Attach_Sound_Patch)
     /**
      *  If this transport we are entering has a passenger entering sound, play it now.
      */
-    radio_technotypeext = TechnoTypeClassExtensions.find(techno->Techno_Type_Class());
-    if (radio_technotypeext && radio_technotypeext->EnterTransportSound != VOC_NONE) {
+    radio_technotypeext = Extension::Fetch<TechnoTypeClassExtension>(techno->Techno_Type_Class());
+    if (radio_technotypeext->EnterTransportSound != VOC_NONE) {
         Sound_Effect(radio_technotypeext->EnterTransportSound, techno->Coord);
     }
 
@@ -88,12 +89,12 @@ DECLARE_PATCH(_InfantryClass_Firing_AI_Mechanic_Patch)
     GET_REGISTER_STATIC(ObjectClass *, targ, esi);      // TarCom as ObjectClass.
     static InfantryTypeClassExtension *infantrytypeext;
 
-    infantrytypeext = InfantryTypeClassExtensions.find(this_ptr->Class);
+    infantrytypeext = Extension::Fetch<InfantryTypeClassExtension>(this_ptr->Class);
 
     /**
      *  Is this infantry a "dual healer" (can it heal both infantry and units)?
      */
-    if (infantrytypeext && infantrytypeext->IsOmniHealer) {
+    if (infantrytypeext->IsOmniHealer) {
 
         /**
          *  Is the target being queried a unit, aircraft or infantry? If so, make
@@ -106,7 +107,7 @@ DECLARE_PATCH(_InfantryClass_Firing_AI_Mechanic_Patch)
     /**
      *  Is this infantry a mechanic?
      */
-    } else if (infantrytypeext && infantrytypeext->IsMechanic) {
+    } else if (infantrytypeext->IsMechanic) {
 
         /**
          *  Is the target being queried a unit or aircraft? If so, make sure this
@@ -147,12 +148,12 @@ DECLARE_PATCH(_InfantryClass_What_Action_Mechanic_Patch)
     GET_REGISTER_STATIC(/*const */ObjectClass *, object, esi);  // target
     static InfantryTypeClassExtension *infantrytypeext;
 
-    infantrytypeext = InfantryTypeClassExtensions.find(this_ptr->Class);
+    infantrytypeext = Extension::Fetch<InfantryTypeClassExtension>(this_ptr->Class);
 
     /**
      *  Is this infantry a "dual healer" (can it heal both infantry and units)?
      */
-    if (infantrytypeext && infantrytypeext->IsOmniHealer) {
+    if (infantrytypeext->IsOmniHealer) {
 
         /**
          *  If the mouse is over ourself, show the guard area cursor.
@@ -185,7 +186,7 @@ DECLARE_PATCH(_InfantryClass_What_Action_Mechanic_Patch)
     /**
      *  Is this infantry a mechanic?
      */
-    } else if (infantrytypeext && infantrytypeext->IsMechanic) {
+    } else if (infantrytypeext->IsMechanic) {
 
         /**
          *  If the mouse is over ourself, show the guard area cursor.

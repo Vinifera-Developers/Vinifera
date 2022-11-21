@@ -33,25 +33,15 @@
 
 
 /**
- *  Provides the map for all ThemeControlClass extension instances.
- */
-ExtensionMap<ThemeClass::ThemeControl, ThemeControlExtension> ThemeControlExtensions;
-
-
-/**
  *  Class constructor.
  *  
  *  @author: CCHyper
  */
-ThemeControlExtension::ThemeControlExtension(ThemeClass::ThemeControl *this_ptr) :
-    Extension(this_ptr),
+ThemeControlExtension::ThemeControlExtension(const ThemeClass::ThemeControl *this_ptr) :
+    GlobalExtensionClass(this_ptr),
     RequiredAddon(ADDON_NONE)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("ThemeControlExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name, (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("ThemeControlExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name, (uintptr_t)(ThisPtr));
-
-    IsInitialized = true;
+    //EXT_DEBUG_TRACE("ThemeControlExtension::ThemeControlExtension - 0x%08X\n", (uintptr_t)(This()));
 }
 
 
@@ -61,9 +51,9 @@ ThemeControlExtension::ThemeControlExtension(ThemeClass::ThemeControl *this_ptr)
  *  @author: CCHyper
  */
 ThemeControlExtension::ThemeControlExtension(const NoInitClass &noinit) :
-    Extension(noinit)
+    GlobalExtensionClass(noinit)
 {
-    IsInitialized = false;
+    //EXT_DEBUG_TRACE("ThemeControlExtension::ThemeControlExtension(NoInitClass) - 0x%08X\n", (uintptr_t)(This()));
 }
 
 
@@ -74,10 +64,45 @@ ThemeControlExtension::ThemeControlExtension(const NoInitClass &noinit) :
  */
 ThemeControlExtension::~ThemeControlExtension()
 {
-    //EXT_DEBUG_TRACE("ThemeControlExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name, (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("ThemeControlExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name, (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("ThemeControlExtension::~ThemeControlExtension - 0x%08X\n", (uintptr_t)(This()));
+}
 
-    IsInitialized = false;
+
+/**
+ *  Initializes an object from the stream where it was saved previously.
+ *  
+ *  @author: CCHyper
+ */
+HRESULT ThemeControlExtension::Load(IStream *pStm)
+{
+    //EXT_DEBUG_TRACE("ThemeControlExtension::Load - 0x%08X\n", (uintptr_t)(This()));
+
+    HRESULT hr = GlobalExtensionClass::Load(pStm);
+    if (FAILED(hr)) {
+        return E_FAIL;
+    }
+
+    new (this) ThemeControlExtension(NoInitClass());
+    
+    return hr;
+}
+
+
+/**
+ *  Saves an object to the specified stream.
+ *  
+ *  @author: CCHyper
+ */
+HRESULT ThemeControlExtension::Save(IStream *pStm, BOOL fClearDirty)
+{
+    //EXT_DEBUG_TRACE("ThemeControlExtension::Save - 0x%08X\n", (uintptr_t)(This()));
+
+    HRESULT hr = GlobalExtensionClass::Save(pStm, fClearDirty);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    return hr;
 }
 
 
@@ -88,10 +113,31 @@ ThemeControlExtension::~ThemeControlExtension()
  */
 int ThemeControlExtension::Size_Of() const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("ThemeControlExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name, (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("ThemeControlExtension::Size_Of - 0x%08X\n", (uintptr_t)(This()));
 
     return sizeof(*this);
+}
+
+
+/**
+ *  Removes the specified target from any targeting and reference trackers.
+ *  
+ *  @author: CCHyper
+ */
+void ThemeControlExtension::Detach(TARGET target, bool all)
+{
+    //EXT_DEBUG_TRACE("ThemeControlExtension::Detach - 0x%08X\n", (uintptr_t)(This()));
+}
+
+
+/**
+ *  Compute a unique crc value for this instance.
+ *  
+ *  @author: CCHyper
+ */
+void ThemeControlExtension::Compute_CRC(WWCRCEngine &crc) const
+{
+    //EXT_DEBUG_TRACE("ThemeControlExtension::Compute_CRC - 0x%08X\n", (uintptr_t)(This()));
 }
 
 
@@ -102,11 +148,9 @@ int ThemeControlExtension::Size_Of() const
  */
 bool ThemeControlExtension::Read_INI(CCINIClass &ini)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("ThemeControlExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name, (uintptr_t)(ThisPtr));
-    EXT_DEBUG_WARNING("ThemeControlExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name, (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("ThemeControlExtension::Read_INI - Name: %s (0x%08X)\n", This()->Name, (uintptr_t)(This()));
 
-    const char *ini_name = ThisPtr->Name;
+    const char *ini_name = This()->Name;
 
     if (!ini.Is_Present(ini_name)) {
         return false;

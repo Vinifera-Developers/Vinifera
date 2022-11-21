@@ -31,8 +31,14 @@
 #include "animtype.h"
 #include "fatal.h"
 #include "vinifera_util.h"
+#include "vinifera_globals.h"
+#include "tibsun_globals.h"
+#include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+
+#include "hooker.h"
+#include "hooker_macros.h"
 
 
 /**
@@ -45,20 +51,14 @@
 DECLARE_PATCH(_AnimClass_Constructor_Patch)
 {
     GET_REGISTER_STATIC(AnimClass *, this_ptr, esi); // Current "this" pointer.
-    static AnimClassExtension *exttype_ptr;
     static AnimTypeClassExtension *animtypeext;
 
     /**
-     *  Find existing or create an extended class instance.
+     *  If we are performing a load operation, the Windows API will invoke the
+     *  constructors for us as part of the operation, so we can skip our hook here.
      */
-    exttype_ptr = AnimClassExtensions.find_or_create(this_ptr);
-    if (!exttype_ptr) {
-        DEBUG_ERROR("Failed to create AnimClassExtension instance for 0x%08X!\n", (uintptr_t)this_ptr);
-        ShowCursor(TRUE);
-        MessageBoxA(MainWindow, "Failed to create AnimClassExtensions instance!\n", "Vinifera", MB_OK|MB_ICONEXCLAMATION);
-        Vinifera_Generate_Mini_Dump();
-        Fatal("Failed to create AnimClassExtensions instance!\n");
-        goto original_code; // Keep this for clean code analysis.
+    if (Vinifera_PerformingLoad) {
+        goto original_code;
     }
 
     /**
@@ -79,6 +79,11 @@ DECLARE_PATCH(_AnimClass_Constructor_Patch)
     }
 
     /**
+     *  Create an extended class instance.
+     */
+    Extension::Make<AnimClassExtension>(this_ptr);
+
+    /**
      *  #issue-561
      * 
      *  Implements ZAdjust override for Anims. This will only have an effect
@@ -87,10 +92,8 @@ DECLARE_PATCH(_AnimClass_Constructor_Patch)
      *  @author: CCHyper
      */
     if (!this_ptr->ZAdjust) {
-        animtypeext = AnimTypeClassExtensions.find(this_ptr->Class);
-        if (animtypeext) {
-            this_ptr->ZAdjust = animtypeext->ZAdjust;
-        }
+        animtypeext = Extension::Fetch<AnimTypeClassExtension>(this_ptr->Class);
+        this_ptr->ZAdjust = animtypeext->ZAdjust;
     }
 
 original_code:
@@ -134,20 +137,19 @@ destroy_anim:
 DECLARE_PATCH(_AnimClass_Default_Constructor_Patch)
 {
     GET_REGISTER_STATIC(AnimClass *, this_ptr, esi); // Current "this" pointer.
-    static AnimClassExtension *exttype_ptr;
 
     /**
-     *  Find existing or create an extended class instance.
+     *  If we are performing a load operation, the Windows API will invoke the
+     *  constructors for us as part of the operation, so we can skip our hook here.
      */
-    exttype_ptr = AnimClassExtensions.find_or_create(this_ptr);
-    if (!exttype_ptr) {
-        DEBUG_ERROR("Failed to create AnimClassExtension instance for 0x%08X!\n", (uintptr_t)this_ptr);
-        ShowCursor(TRUE);
-        MessageBoxA(MainWindow, "Failed to create AnimClassExtensions instance!\n", "Vinifera", MB_OK|MB_ICONEXCLAMATION);
-        Vinifera_Generate_Mini_Dump();
-        Fatal("Failed to create AnimClassExtensions instance!\n");
-        goto original_code; // Keep this for clean code analysis.
+    if (Vinifera_PerformingLoad) {
+        goto original_code;
     }
+
+    /**
+     *  Create an extended class instance.
+     */
+    Extension::Make<AnimClassExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
@@ -157,28 +159,6 @@ original_code:
     _asm { pop esi }
     _asm { pop ebx }
     _asm { ret }
-}
-
-
-/**
- *  Patch for including the extended class members in the noinit creation process.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_AnimClass_NoInit_Constructor_Patch)
-{
-    GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
-    GET_STACK_STATIC(const NoInitClass *, noinit, esp, 0x10);
-    static AnimClassExtension *ext_ptr;
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { mov dword ptr [esi], 0x006CB92C } // this->vftable = const AnimClass::`vftable'{for `IRTTITypeInfo'};
-    JMP(0x004164DD);
 }
 
 
@@ -194,85 +174,25 @@ DECLARE_PATCH(_AnimClass_Destructor_Patch)
     GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
 
     /**
+     *  If this anim instance was destoryed because it has a NULL class type, then
+     *  it would not have created an extension instance, so we can skip the destroy
+     *  call here.
+     */
+    if (!this_ptr->Class) {
+        goto original_code;
+    }
+
+    /**
      *  Remove the extended class from the global index.
      */
-    AnimClassExtensions.remove(this_ptr);
+    Extension::Destroy<AnimClassExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
      */
 original_code:
-    _asm { pop esi }
-    _asm { pop ebx }
-    _asm { add esp, 0x10 }
-    _asm { ret }
-}
-
-
-/**
- *  Patch for including the extended class members to the base class detach process.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_AnimClass_Detach_Patch)
-{
-    GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
-    GET_STACK_STATIC(TARGET, target, esp, 0x10);
-    GET_STACK_STATIC8(bool, all, esp, 0x8);
-    static AnimClassExtension *ext_ptr;
-
-    /**
-     *  Find the extension instance.
-     */
-    ext_ptr = AnimClassExtensions.find(this_ptr);
-    if (!ext_ptr) {
-        goto original_code;
-    }
-
-    ext_ptr->Detach(target, all);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { ret 8 }
-}
-
-
-/**
- *  Patch for including the extended class members to the base class crc calculation.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_AnimClass_Compute_CRC_Patch)
-{
-    GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
-    GET_STACK_STATIC(WWCRCEngine *, crc, esp, 0xC);
-    static AnimClassExtension *ext_ptr;
-
-    /**
-     *  Find the extension instance.
-     */
-    ext_ptr = AnimClassExtensions.find(this_ptr);
-    if (!ext_ptr) {
-        goto original_code;
-    }
-
-    ext_ptr->Compute_CRC(*crc);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { ret 4 }
+    _asm { mov eax, ds:0x007E4580 } // GameActive
+    JMP_REG(ebx, 0x004142D0);
 }
 
 
@@ -283,9 +203,6 @@ void AnimClassExtension_Init()
 {
     Patch_Jump(0x00413C79, &_AnimClass_Constructor_Patch);
     Patch_Jump(0x004142A6, &_AnimClass_Default_Constructor_Patch);
-    Patch_Jump(0x004164D7, &_AnimClass_NoInit_Constructor_Patch);
     Patch_Jump(0x0041441F, 0x00414475); // This jump goes from duplicate code in the destructor to our patch, removing the need for two hooks.
-    Patch_Jump(0x0041447C, &_AnimClass_Destructor_Patch);
-    Patch_Jump(0x004163D9, &_AnimClass_Detach_Patch);
-    Patch_Jump(0x00416626, &_AnimClass_Compute_CRC_Patch);
+    Patch_Jump(0x004142CB, &_AnimClass_Destructor_Patch);
 }

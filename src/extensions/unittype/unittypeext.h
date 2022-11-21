@@ -27,29 +27,39 @@
  ******************************************************************************/
 #pragma once
 
-#include "extension.h"
-#include "container.h"
+#include "technotypeext.h"
+#include "unittype.h"
 
 
-class UnitTypeClass;
-class CCINIClass;
-
-
-class UnitTypeClassExtension final : public Extension<UnitTypeClass>
+class DECLSPEC_UUID(UUID_UNITTYPE_EXTENSION)
+UnitTypeClassExtension final : public TechnoTypeClassExtension
 {
     public:
-        UnitTypeClassExtension(UnitTypeClass *this_ptr);
+        /**
+         *  IPersist
+         */
+        IFACEMETHOD(GetClassID)(CLSID *pClassID);
+
+        /**
+         *  IPersistStream
+         */
+        IFACEMETHOD(Load)(IStream *pStm);
+        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+
+    public:
+        UnitTypeClassExtension(const UnitTypeClass *this_ptr = nullptr);
         UnitTypeClassExtension(const NoInitClass &noinit);
-        ~UnitTypeClassExtension();
+        virtual ~UnitTypeClassExtension();
 
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
         virtual int Size_Of() const override;
-
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
-        bool Read_INI(CCINIClass &ini);
+        virtual UnitTypeClass *This() const override { return reinterpret_cast<UnitTypeClass *>(TechnoTypeClassExtension::This()); }
+        virtual const UnitTypeClass *This_Const() const override { return reinterpret_cast<const UnitTypeClass *>(TechnoTypeClassExtension::This_Const()); }
+        virtual RTTIType What_Am_I() const override { return RTTI_UNITTYPE; }
+
+        virtual bool Read_INI(CCINIClass &ini) override;
 
     public:
         /**
@@ -77,6 +87,3 @@ class UnitTypeClassExtension final : public Extension<UnitTypeClass>
          */
         unsigned IdleFrames;
 };
-
-
-extern ExtensionMap<UnitTypeClass, UnitTypeClassExtension> UnitTypeClassExtensions;

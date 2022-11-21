@@ -27,33 +27,39 @@
  ******************************************************************************/
 #pragma once
 
-#include "extension.h"
-#include "container.h"
+#include "objecttypeext.h"
+#include "particletype.h"
 
 
-class ParticleTypeClass;
-class CCINIClass;
-
-
-class ParticleTypeClassExtension final : public Extension<ParticleTypeClass>
+class DECLSPEC_UUID(UUID_PARTICLETYPE_EXTENSION)
+ParticleTypeClassExtension final : public ObjectTypeClassExtension
 {
     public:
-        ParticleTypeClassExtension(ParticleTypeClass *this_ptr);
+        /**
+         *  IPersist
+         */
+        IFACEMETHOD(GetClassID)(CLSID *pClassID);
+
+        /**
+         *  IPersistStream
+         */
+        IFACEMETHOD(Load)(IStream *pStm);
+        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+
+    public:
+        ParticleTypeClassExtension(const ParticleTypeClass *this_ptr = nullptr);
         ParticleTypeClassExtension(const NoInitClass &noinit);
-        ~ParticleTypeClassExtension();
+        virtual ~ParticleTypeClassExtension();
 
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
         virtual int Size_Of() const override;
-
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
-        bool Read_INI(CCINIClass &ini);
+        virtual ParticleTypeClass *This() const override { return reinterpret_cast<ParticleTypeClass *>(ObjectTypeClassExtension::This()); }
+        virtual const ParticleTypeClass *This_Const() const override { return reinterpret_cast<const ParticleTypeClass *>(ObjectTypeClassExtension::This_Const()); }
+        virtual RTTIType What_Am_I() const override { return RTTI_PARTICLETYPE; }
+
+        virtual bool Read_INI(CCINIClass &ini) override;
 
     public:
-
 };
-
-
-extern ExtensionMap<ParticleTypeClass, ParticleTypeClassExtension> ParticleTypeClassExtensions;

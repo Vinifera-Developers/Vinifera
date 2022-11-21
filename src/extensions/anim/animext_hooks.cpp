@@ -40,6 +40,7 @@
 #include "cell.h"
 #include "rules.h"
 #include "scenario.h"
+#include "extension.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
@@ -55,7 +56,7 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-class AnimClassFake final : public AnimClass
+class AnimClassExt final : public AnimClass
 {
     public:
         LayerType _In_Which_Layer() const;
@@ -67,7 +68,7 @@ class AnimClassFake final : public AnimClass
  * 
  *  @author: CCHyper
  */
-LayerType AnimClassFake::_In_Which_Layer() const
+LayerType AnimClassExt::_In_Which_Layer() const
 {
     if (Target_Legal(xObject)) {
         return LAYER_GROUND;
@@ -81,8 +82,8 @@ LayerType AnimClassFake::_In_Which_Layer() const
      *  @author: CCHyper
      */
     AnimTypeClassExtension *animtypeext = nullptr;
-    animtypeext = AnimTypeClassExtensions.find(Class);
-    if (animtypeext && animtypeext->AttachLayer != LAYER_NONE) {
+    animtypeext = Extension::Fetch<AnimTypeClassExtension>(Class);
+    if (animtypeext->AttachLayer != LAYER_NONE) {
         return animtypeext->AttachLayer;
     }
 
@@ -116,22 +117,20 @@ static void Anim_Spawn_Particles(AnimClass *this_ptr)
 {
     AnimTypeClassExtension *animtypeext;
 
-    animtypeext = AnimTypeClassExtensions.find(this_ptr->Class);
-    if (animtypeext) {
-        if (animtypeext->ParticleToSpawn != PARTICLE_NONE) {
+    animtypeext = Extension::Fetch<AnimTypeClassExtension>(this_ptr->Class);
+    if (animtypeext->ParticleToSpawn != PARTICLE_NONE) {
 
-            for (int i = 0; i < animtypeext->NumberOfParticles; ++i) {
+        for (int i = 0; i < animtypeext->NumberOfParticles; ++i) {
 
-                Coordinate spawn_coord = this_ptr->Coord;
+            Coordinate spawn_coord = this_ptr->Coord;
 
-                /**
-                 *  Spawn a new particle at this anims coord.
-                 */
-                MasterParticle->Spawn_Particle(
-                    (ParticleTypeClass *)ParticleTypeClass::As_Pointer(animtypeext->ParticleToSpawn),
-                    spawn_coord);
+            /**
+             *  Spawn a new particle at this anims coord.
+             */
+            MasterParticle->Spawn_Particle(
+                (ParticleTypeClass *)ParticleTypeClass::As_Pointer(animtypeext->ParticleToSpawn),
+                spawn_coord);
 
-            }
         }
     }
 }
@@ -177,12 +176,12 @@ DECLARE_PATCH(_AnimClass_Constructor_Layer_Set_Z_Height_Patch)
     GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
     static AnimTypeClassExtension *animtypeext;
     
-    animtypeext = AnimTypeClassExtensions.find(this_ptr->Class);
+    animtypeext = Extension::Fetch<AnimTypeClassExtension>(this_ptr->Class);
 
     /**
      *  Set the layer to the highest level if "air" or "top".
      */
-    if (animtypeext && animtypeext->AttachLayer != LAYER_NONE
+    if (animtypeext->AttachLayer != LAYER_NONE
         && (animtypeext->AttachLayer == LAYER_AIR || animtypeext->AttachLayer == LAYER_TOP)) {
         this_ptr->Set_Z_Coord(Rule->FlightLevel);
 
@@ -221,12 +220,12 @@ DECLARE_PATCH(_AnimClass_Middle_Create_Crater_ForceBigCraters_Patch)
     coord.Y = tmpcoord->Y;
     coord.Z = tmpcoord->Z;
 
-    animtypeext = AnimTypeClassExtensions.find(this_ptr->Class);
+    animtypeext = Extension::Fetch<AnimTypeClassExtension>(this_ptr->Class);
 
     /**
      *  Is this anim is to spawn big craters?
      */
-    if (animtypeext && animtypeext->IsForceBigCraters) {
+    if (animtypeext->IsForceBigCraters) {
         SmudgeTypeClass::Create_Crater(coord, 300, 300, true);
     } else {
         SmudgeTypeClass::Create_Crater(coord, width, height, false);
@@ -249,7 +248,7 @@ DECLARE_PATCH(_AnimClass_AI_Beginning_Patch)
     static CellClass *cell;
 
     animtype = this_ptr->Class;
-    animtypeext = AnimTypeClassExtensions.find(animtype);
+    animtypeext = Extension::Fetch<AnimTypeClassExtension>(animtype);
 
     /**
      *  Stolen bytes/code.
@@ -259,28 +258,21 @@ DECLARE_PATCH(_AnimClass_AI_Beginning_Patch)
         this_ptr->ObjectClass::AI();
     }
 
+    cell = this_ptr->Get_Cell_Ptr();
+    
     /**
-     *  Do we have a valid extension instance?
+     *  #issue-560
+     * 
+     *  Implements IsHideIfNotTiberium for Anims.
+     * 
+     *  @author: CCHyper
      */
-    if (animtypeext) {
-
-        cell = this_ptr->Get_Cell_Ptr();
-
-        /**
-         *  #issue-560
-         * 
-         *  Implements IsHideIfNotTiberium for Anims.
-         * 
-         *  @author: CCHyper
-         */
-        if (animtypeext->IsHideIfNotTiberium) {
-
-            if (!cell || !cell->Get_Tiberium_Value()) {
-                this_ptr->IsInvisible = true;
-            }
-
+    if (animtypeext->IsHideIfNotTiberium) {
+    
+        if (!cell || !cell->Get_Tiberium_Value()) {
+            this_ptr->IsInvisible = true;
         }
-
+    
     }
 
     JMP_REG(edx, 0x00414EAA);
@@ -323,10 +315,8 @@ DECLARE_PATCH(_AnimClass_Constructor_Init_Class_Values_Patch)
      *  @author: CCHyper
      */
     if (!this_ptr->ZAdjust) {
-        animtypeext = AnimTypeClassExtensions.find(this_ptr->Class);
-        if (animtypeext) {
-            this_ptr->ZAdjust = animtypeext->ZAdjust;
-        }
+        animtypeext = Extension::Fetch<AnimTypeClassExtension>(this_ptr->Class);
+        this_ptr->ZAdjust = animtypeext->ZAdjust;
     }
 
     /**
@@ -399,6 +389,6 @@ void AnimClassExtension_Hooks()
     Patch_Jump(0x00414E8F, &_AnimClass_AI_Beginning_Patch);
     Patch_Jump(0x004160FB, &_AnimClass_Middle_Create_Crater_ForceBigCraters_Patch);
     Patch_Jump(0x0041606C, &_AnimClass_Middle_SpawnParticle_Patch);
-    Patch_Jump(0x00415D30, &AnimClassFake::_In_Which_Layer);
+    Patch_Jump(0x00415D30, &AnimClassExt::_In_Which_Layer);
     Patch_Jump(0x00413D3E, &_AnimClass_Constructor_Layer_Set_Z_Height_Patch);
 }

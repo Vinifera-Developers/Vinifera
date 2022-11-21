@@ -117,6 +117,15 @@
 #define SET_REGISTER(reg, src) _asm { mov reg, src }
 
 
+/**
+ *  Get value of an offset relative to a register (eg, [this + member_offset])
+ */
+#define GET_REGISTER_OFFSET_STATIC(type, dst, reg, off) static type dst; _asm { mov eax, [reg+off] } _asm { mov dst, eax }
+#define LEA_REGISTER_OFFSET_STATIC(type, dst, reg, off) static type dst; _asm { lea eax, [reg+off] } _asm { mov dst, eax }
+#define GET_REGISTER_OFFSET_STATIC8(type, dst, reg, off) static type dst; _asm { mov al, byte ptr [reg+off] } _asm { mov dst, al }
+#define GET_REGISTER_OFFSET_STATIC16(type, dst, reg, off) static type dst; _asm { mov ax, word ptr [reg+off] } _asm { mov dst, ax }
+
+
 #define GET_ADDRESS_STATIC(type, dst, addr) static type dst; _asm { mov dst, addr }
 #define LEA_ADDRESS_STATIC(type, dst, addr) static type dst; _asm { lea eax, addr }
 

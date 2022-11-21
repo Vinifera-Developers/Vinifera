@@ -34,14 +34,9 @@
 #include "ebolt.h"
 #include "tibsun_inline.h"
 #include "wwcrc.h"
+#include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
-
-
-/**
- *  Provides the map for all TechnoClass extension instances.
- */
-ExtensionMap<TechnoClass, TechnoClassExtension> TechnoClassExtensions;
 
 
 /**
@@ -49,15 +44,11 @@ ExtensionMap<TechnoClass, TechnoClassExtension> TechnoClassExtensions;
  *  
  *  @author: CCHyper
  */
-TechnoClassExtension::TechnoClassExtension(TechnoClass *this_ptr) :
-    Extension(this_ptr),
+TechnoClassExtension::TechnoClassExtension(const TechnoClass *this_ptr) :
+    ObjectClassExtension(this_ptr),
     ElectricBolt(nullptr)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TechnoClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("TechnoClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-
-    IsInitialized = true;
+    //if (this_ptr) EXT_DEBUG_TRACE("TechnoClassExtension::TechnoClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -67,9 +58,9 @@ TechnoClassExtension::TechnoClassExtension(TechnoClass *this_ptr) :
  *  @author: CCHyper
  */
 TechnoClassExtension::TechnoClassExtension(const NoInitClass &noinit) :
-    Extension(noinit)
+    ObjectClassExtension(noinit)
 {
-    IsInitialized = false;
+    //EXT_DEBUG_TRACE("TechnoClassExtension::TechnoClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -80,10 +71,9 @@ TechnoClassExtension::TechnoClassExtension(const NoInitClass &noinit) :
  */
 TechnoClassExtension::~TechnoClassExtension()
 {
-    //EXT_DEBUG_TRACE("TechnoClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("TechnoClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TechnoClassExtension::~TechnoClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    IsInitialized = false;
+    ElectricBolt = nullptr;
 }
 
 
@@ -94,15 +84,12 @@ TechnoClassExtension::~TechnoClassExtension()
  */
 HRESULT TechnoClassExtension::Load(IStream *pStm)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TechnoClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TechnoClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Load(pStm);
+    HRESULT hr = ObjectClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
-
-    new (this) TechnoClassExtension(NoInitClass());
 
     ElectricBolt = nullptr;
     
@@ -117,10 +104,9 @@ HRESULT TechnoClassExtension::Load(IStream *pStm)
  */
 HRESULT TechnoClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TechnoClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TechnoClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Save(pStm, fClearDirty);
+    HRESULT hr = ObjectClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
     }
@@ -133,28 +119,15 @@ HRESULT TechnoClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 
 
 /**
- *  Return the raw size of class data for save/load purposes.
- *  
- *  @author: CCHyper
- */
-int TechnoClassExtension::Size_Of() const
-{
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TechnoClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-
-    return sizeof(*this);
-}
-
-
-/**
  *  Removes the specified target from any targeting and reference trackers.
  *  
  *  @author: CCHyper
  */
 void TechnoClassExtension::Detach(TARGET target, bool all)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TechnoClassExtension::Detach - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TechnoClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    ObjectClassExtension::Detach(target, all);
 }
 
 
@@ -165,8 +138,9 @@ void TechnoClassExtension::Detach(TARGET target, bool all)
  */
 void TechnoClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TechnoClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TechnoClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    ObjectClassExtension::Compute_CRC(crc);
 }
 
 
@@ -177,22 +151,21 @@ void TechnoClassExtension::Compute_CRC(WWCRCEngine &crc) const
  */
 void TechnoClassExtension::Response_Capture()
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TechnoClassExtension::Response_Capture - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TechnoClassExtension::Response_Capture - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     if (!AllowVoice) {
         return;
     }
 
-    //if (!ThisPtr->House->Is_Player_Control()) {
+    //if (!This()->House->Is_Player_Control()) {
     //    return;
     //}
 
     VocType response = VOC_NONE;
 
-    TechnoTypeClass *technotype = ThisPtr->Techno_Type_Class();
-    TechnoTypeClassExtension *technotypeext = TechnoTypeClassExtensions.find(technotype);
-    if (technotypeext && technotypeext->VoiceCapture.Count() > 0) {
+    const TechnoTypeClass *technotype = Techno_Type_Class();
+    const TechnoTypeClassExtension *technotypeext = Extension::Fetch<TechnoTypeClassExtension>(technotype);
+    if (technotypeext->VoiceCapture.Count() > 0) {
 
         response = technotypeext->VoiceCapture[Sim_Random_Pick(0, technotypeext->VoiceCapture.Count()-1)];
 
@@ -213,22 +186,21 @@ void TechnoClassExtension::Response_Capture()
  */
 void TechnoClassExtension::Response_Enter()
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TechnoClassExtension::Response_Enter - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TechnoClassExtension::Response_Enter - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     if (!AllowVoice) {
         return;
     }
 
-    //if (!ThisPtr->House->Is_Player_Control()) {
+    //if (!This()->House->Is_Player_Control()) {
     //    return;
     //}
 
     VocType response = VOC_NONE;
 
-    TechnoTypeClass *technotype = ThisPtr->Techno_Type_Class();
-    TechnoTypeClassExtension *technotypeext = TechnoTypeClassExtensions.find(technotype);
-    if (technotypeext && technotypeext->VoiceEnter.Count() > 0) {
+    const TechnoTypeClass *technotype = Techno_Type_Class();
+    const TechnoTypeClassExtension *technotypeext = Extension::Fetch<TechnoTypeClassExtension>(technotype);
+    if (technotypeext->VoiceEnter.Count() > 0) {
 
         response = technotypeext->VoiceEnter[Sim_Random_Pick(0, technotypeext->VoiceEnter.Count()-1)];
 
@@ -249,22 +221,21 @@ void TechnoClassExtension::Response_Enter()
  */
 void TechnoClassExtension::Response_Deploy()
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TechnoClassExtension::Response_Deploy - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TechnoClassExtension::Response_Deploy - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     if (!AllowVoice) {
         return;
     }
 
-    //if (!ThisPtr->House->Is_Player_Control()) {
+    //if (!This()->House->Is_Player_Control()) {
     //    return;
     //}
 
     VocType response = VOC_NONE;
 
-    TechnoTypeClass *technotype = ThisPtr->Techno_Type_Class();
-    TechnoTypeClassExtension *technotypeext = TechnoTypeClassExtensions.find(technotype);
-    if (technotypeext && technotypeext->VoiceDeploy.Count() > 0) {
+    const TechnoTypeClass *technotype = Techno_Type_Class();
+    const TechnoTypeClassExtension *technotypeext = Extension::Fetch<TechnoTypeClassExtension>(technotype);
+    if (technotypeext->VoiceDeploy.Count() > 0) {
 
         response = technotypeext->VoiceDeploy[Sim_Random_Pick(0, technotypeext->VoiceDeploy.Count()-1)];
 
@@ -285,22 +256,21 @@ void TechnoClassExtension::Response_Deploy()
  */
 void TechnoClassExtension::Response_Harvest()
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TechnoClassExtension::Response_Harvest - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TechnoClassExtension::Response_Harvest - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     if (!AllowVoice) {
         return;
     }
 
-    //if (!ThisPtr->House->Is_Player_Control()) {
+    //if (!This()->House->Is_Player_Control()) {
     //    return;
     //}
 
     VocType response = VOC_NONE;
 
-    TechnoTypeClass *technotype = ThisPtr->Techno_Type_Class();
-    TechnoTypeClassExtension *technotypeext = TechnoTypeClassExtensions.find(technotype);
-    if (technotypeext && technotypeext->VoiceHarvest.Count() > 0) {
+    const TechnoTypeClass *technotype = Techno_Type_Class();
+    const TechnoTypeClassExtension *technotypeext = Extension::Fetch<TechnoTypeClassExtension>(technotype);
+    if (technotypeext->VoiceHarvest.Count() > 0) {
 
         response = technotypeext->VoiceHarvest[Sim_Random_Pick(0, technotypeext->VoiceHarvest.Count()-1)];
 
@@ -321,18 +291,24 @@ void TechnoClassExtension::Response_Harvest()
  */
 bool TechnoClassExtension::Can_Passive_Acquire() const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TechnoClassExtension::Can_Passive_Acquire - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TechnoClassExtension::Can_Passive_Acquire - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
     
-    TechnoTypeClass *technotype = ThisPtr->Techno_Type_Class();
-    TechnoTypeClassExtension *technotypeext = TechnoTypeClassExtensions.find(technotype);
-
-    if (technotypeext) {
-        return technotypeext->IsCanPassiveAcquire;
-    }
+    const TechnoTypeClass *technotype = Techno_Type_Class();
+    const TechnoTypeClassExtension *technotypeext = Extension::Fetch<TechnoTypeClassExtension>(technotype);
 
     /**
-     *  Original behaviour, all units can passive acquire.
+     *  IsCanPassiveAcquire defaults to true to copy original behaviour, so all units can passive acquire unless told otherwise.
      */
-    return true;
+    return technotypeext->IsCanPassiveAcquire;
+}
+
+
+/**
+ *  Provides access to the TechnoTypeClass instance for this extension. 
+ * 
+ *  @author: CCHyper
+ */
+const TechnoTypeClass *TechnoClassExtension::Techno_Type_Class() const
+{
+    return reinterpret_cast<TechnoClass *>(This())->Techno_Type_Class();
 }

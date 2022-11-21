@@ -36,6 +36,7 @@
 #include "unittypeext.h"
 #include "technotype.h"
 #include "technotypeext.h"
+#include "extension.h"
 #include "voc.h"
 #include "fatal.h"
 #include "debughandler.h"
@@ -56,7 +57,7 @@ DECLARE_PATCH(_AircraftClass_Mission_Unload_Transport_Detach_Sound_Patch)
 {
     GET_REGISTER_STATIC(AircraftClass *, this_ptr, esi);
     GET_REGISTER_STATIC(FootClass *, passenger, edi);
-    static TechnoTypeClassExtension *radio_technotypeext;
+    static TechnoTypeClassExtension *technotypeext;
 
     /**
      *  Don't play the passenger leave sound for carryalls.
@@ -66,9 +67,9 @@ DECLARE_PATCH(_AircraftClass_Mission_Unload_Transport_Detach_Sound_Patch)
         /**
          *  Do we have a sound to play when passengers leave us? If so, play it now.
          */
-        radio_technotypeext = TechnoTypeClassExtensions.find(this_ptr->Techno_Type_Class());
-        if (radio_technotypeext && radio_technotypeext->LeaveTransportSound != VOC_NONE) {
-            Sound_Effect(radio_technotypeext->LeaveTransportSound, this_ptr->Coord);
+        technotypeext = Extension::Fetch<TechnoTypeClassExtension>(this_ptr->Techno_Type_Class());
+        if (technotypeext->LeaveTransportSound != VOC_NONE) {
+            Sound_Effect(technotypeext->LeaveTransportSound, this_ptr->Coord);
         }
 
     }
@@ -166,24 +167,22 @@ DECLARE_PATCH(_AircraftClass_What_Action_Is_Totable_Patch)
             target_unit = reinterpret_cast<UnitClass *>(target);
 
             /**
-             *  Fetch the unit type extension instance if available.
+             *  Fetch the extension instance.
              */
-            unittypeext = UnitTypeClassExtensions.find(target_unit->Class);
-            if (unittypeext) {
+            unittypeext = Extension::Fetch<UnitTypeClassExtension>(target_unit->Class);
+
+            /**
+             *  Can this unit be toted/picked up by us?
+             */
+            if (!unittypeext->IsTotable) {
 
                 /**
-                 *  Can this unit be toted/picked up by us?
+                 *  If not, then show the "no move" mouse.
                  */
-                if (!unittypeext->IsTotable) {
+                action = ACTION_NOMOVE;
 
-                    /**
-                     *  If not, then show the "no move" mouse.
-                     */
-                    action = ACTION_NOMOVE;
+                goto failed_tote_check;
 
-                    goto failed_tote_check;
-
-                }
             }
         }
     }

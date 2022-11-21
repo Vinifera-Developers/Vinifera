@@ -27,30 +27,41 @@
  ******************************************************************************/
 #pragma once
 
-#include "extension.h"
-#include "container.h"
+#include "footext.h"
+#include "infantry.h"
 
 
 class InfantryClass;
 class HouseClass;
 
 
-class InfantryClassExtension final : public Extension<InfantryClass>
+class DECLSPEC_UUID(UUID_INFANTRY_EXTENSION)
+InfantryClassExtension final : public FootClassExtension
 {
     public:
-        InfantryClassExtension(InfantryClass *this_ptr);
+        /**
+         *  IPersist
+         */
+        IFACEMETHOD(GetClassID)(CLSID *pClassID);
+
+        /**
+         *  IPersistStream
+         */
+        IFACEMETHOD(Load)(IStream *pStm);
+        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+
+    public:
+        InfantryClassExtension(const InfantryClass *this_ptr = nullptr);
         InfantryClassExtension(const NoInitClass &noinit);
-        ~InfantryClassExtension();
+        virtual ~InfantryClassExtension();
 
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
         virtual int Size_Of() const override;
-
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
+        virtual InfantryClass *This() const override { return reinterpret_cast<InfantryClass *>(FootClassExtension::This()); }
+        virtual const InfantryClass *This_Const() const override { return reinterpret_cast<const InfantryClass *>(FootClassExtension::This_Const()); }
+        virtual RTTIType What_Am_I() const override { return RTTI_INFANTRY; }
+
     public:
 };
-
-
-extern ExtensionMap<InfantryClass, InfantryClassExtension> InfantryClassExtensions;

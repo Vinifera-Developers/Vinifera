@@ -36,22 +36,15 @@
 #include "debughandler.h"
 
 
-OptionsClassExtension *OptionsExtension = nullptr;
-
-
 /**
  *  Class constructor.
  *  
  *  @author: CCHyper
  */
-OptionsClassExtension::OptionsClassExtension(OptionsClass *this_ptr) :
-    Extension(this_ptr)
+OptionsClassExtension::OptionsClassExtension(const OptionsClass *this_ptr) :
+    GlobalExtensionClass(this_ptr)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("OptionsClassExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("OptionsClassExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
-
-    IsInitialized = true;
+    //EXT_DEBUG_TRACE("OptionsClassExtension::OptionsClassExtension - 0x%08X\n", (uintptr_t)(This()));
 }
 
 
@@ -61,9 +54,9 @@ OptionsClassExtension::OptionsClassExtension(OptionsClass *this_ptr) :
  *  @author: CCHyper
  */
 OptionsClassExtension::OptionsClassExtension(const NoInitClass &noinit) :
-    Extension(noinit)
+    GlobalExtensionClass(noinit)
 {
-    IsInitialized = false;
+    //EXT_DEBUG_TRACE("OptionsClassExtension::OptionsClassExtension(NoInitClass) - 0x%08X\n", (uintptr_t)(This()));
 }
 
 
@@ -74,10 +67,45 @@ OptionsClassExtension::OptionsClassExtension(const NoInitClass &noinit) :
  */
 OptionsClassExtension::~OptionsClassExtension()
 {
-    //EXT_DEBUG_TRACE("OptionsClassExtension destructor - 0x%08X\n", (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("OptionsClassExtension destructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("OptionsClassExtension::~OptionsClassExtension - 0x%08X\n", (uintptr_t)(This()));
+}
 
-    IsInitialized = false;
+
+/**
+ *  Initializes an object from the stream where it was saved previously.
+ *  
+ *  @author: CCHyper
+ */
+HRESULT OptionsClassExtension::Load(IStream *pStm)
+{
+    //EXT_DEBUG_TRACE("OptionsClassExtension::Load - 0x%08X\n", (uintptr_t)(This()));
+
+    HRESULT hr = GlobalExtensionClass::Load(pStm);
+    if (FAILED(hr)) {
+        return E_FAIL;
+    }
+
+    new (this) OptionsClassExtension(NoInitClass());
+    
+    return hr;
+}
+
+
+/**
+ *  Saves an object to the specified stream.
+ *  
+ *  @author: CCHyper
+ */
+HRESULT OptionsClassExtension::Save(IStream *pStm, BOOL fClearDirty)
+{
+    //EXT_DEBUG_TRACE("OptionsClassExtension::Save - 0x%08X\n", (uintptr_t)(This()));
+
+    HRESULT hr = GlobalExtensionClass::Save(pStm, fClearDirty);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    return hr;
 }
 
 
@@ -88,10 +116,31 @@ OptionsClassExtension::~OptionsClassExtension()
  */
 int OptionsClassExtension::Size_Of() const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("OptionsClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("OptionsClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(This()));
 
     return sizeof(*this);
+}
+
+
+/**
+ *  Removes the specified target from any targeting and reference trackers.
+ *  
+ *  @author: CCHyper
+ */
+void OptionsClassExtension::Detach(TARGET target, bool all)
+{
+    //EXT_DEBUG_TRACE("OptionsClassExtension::Detach - 0x%08X\n", (uintptr_t)(This()));
+}
+
+
+/**
+ *  Compute a unique crc value for this instance.
+ *  
+ *  @author: CCHyper
+ */
+void OptionsClassExtension::Compute_CRC(WWCRCEngine &crc) const
+{
+    //EXT_DEBUG_TRACE("OptionsClassExtension::Compute_CRC - 0x%08X\n", (uintptr_t)(This()));
 }
 
 
@@ -102,9 +151,7 @@ int OptionsClassExtension::Size_Of() const
  */
 void OptionsClassExtension::Load_Settings()
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("OptionsClassExtension::Load_Settings - 0x%08X\n", (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("OptionsClassExtension::Load_Settings - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("OptionsClassExtension::Load_Settings - 0x%08X\n", (uintptr_t)(This()));
     
     RawFileClass file("SUN.INI");
 }
@@ -117,9 +164,7 @@ void OptionsClassExtension::Load_Settings()
  */
 void OptionsClassExtension::Load_Init_Settings()
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("OptionsClassExtension::Load_Settings - 0x%08X\n", (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("OptionsClassExtension::Load_Settings - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("OptionsClassExtension::Load_Settings - 0x%08X\n", (uintptr_t)(This()));
     
     RawFileClass file("SUN.INI");
 }
@@ -132,9 +177,7 @@ void OptionsClassExtension::Load_Init_Settings()
  */
 void OptionsClassExtension::Save_Settings()
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("OptionsClassExtension::Save_Settings - 0x%08X\n", (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("OptionsClassExtension::Save_Settings - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("OptionsClassExtension::Save_Settings - 0x%08X\n", (uintptr_t)(This()));
     
     RawFileClass file("SUN.INI");
 }
@@ -147,8 +190,5 @@ void OptionsClassExtension::Save_Settings()
  */
 void OptionsClassExtension::Set()
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("OptionsClassExtension::Save_Settings - 0x%08X\n", (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("OptionsClassExtension::Save_Settings - 0x%08X\n", (uintptr_t)(ThisPtr));
-
+    //EXT_DEBUG_TRACE("OptionsClassExtension::Set - 0x%08X\n", (uintptr_t)(This()));
 }

@@ -41,6 +41,7 @@
 #include "random.h"
 #include "wwmath.h"
 #include "clipline.h"
+#include "extension.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 
@@ -90,11 +91,8 @@ void EBoltClass::Clear()
 {
     if (Source) {
 
-        TechnoClassExtension *technoext;
-        technoext = TechnoClassExtensions.find(Source);
-        if (technoext) {
-            technoext->ElectricBolt = nullptr;
-        }
+        TechnoClassExtension *technoext = Extension::Fetch<TechnoClassExtension>(Source);
+        technoext->ElectricBolt = nullptr;
 
         Source = nullptr;
     }
@@ -214,17 +212,15 @@ void EBoltClass::Set_Properties(TechnoClass *techno, const WeaponTypeClass *weap
                 /**
                  *  Copy the color overrides from the firing objects weapon.
                  */
-                WeaponTypeClassExtension *weapontypeext;
-                weapontypeext = WeaponTypeClassExtensions.find(weapon);
-                if (weapontypeext) {
-                    LineColor1 = weapontypeext->ElectricBoltColor1;
-                    LineColor2 = weapontypeext->ElectricBoltColor2;
-                    LineColor3 = weapontypeext->ElectricBoltColor3;
-                    IterationCount = weapontypeext->ElectricBoltIterationCount;
-                    LineSegmentCount = weapontypeext->ElectricBoltSegmentCount;
-                    Lifetime = std::clamp(weapontypeext->ElectricBoltLifetime, 0, EBOLT_MAX_LIFETIME);
-                    Deviation = weapontypeext->ElectricBoltDeviation;
-                }
+                WeaponTypeClassExtension *weapontypeext = Extension::Fetch<WeaponTypeClassExtension>(weapon);
+
+                LineColor1 = weapontypeext->ElectricBoltColor1;
+                LineColor2 = weapontypeext->ElectricBoltColor2;
+                LineColor3 = weapontypeext->ElectricBoltColor3;
+                IterationCount = weapontypeext->ElectricBoltIterationCount;
+                LineSegmentCount = weapontypeext->ElectricBoltSegmentCount;
+                Lifetime = std::clamp(weapontypeext->ElectricBoltLifetime, 0, EBOLT_MAX_LIFETIME);
+                Deviation = weapontypeext->ElectricBoltDeviation;
             }
         }
     }

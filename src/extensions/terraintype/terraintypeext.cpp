@@ -28,14 +28,10 @@
 #include "terraintypeext.h"
 #include "terraintype.h"
 #include "ccini.h"
+#include "wwcrc.h"
+#include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
-
-
-/**
- *  Provides the map for all TerrainTypeClass extension instances.
- */
-ExtensionMap<TerrainTypeClass, TerrainTypeClassExtension> TerrainTypeClassExtensions;
 
 
 /**
@@ -43,8 +39,8 @@ ExtensionMap<TerrainTypeClass, TerrainTypeClassExtension> TerrainTypeClassExtens
  *  
  *  @author: CCHyper
  */
-TerrainTypeClassExtension::TerrainTypeClassExtension(TerrainTypeClass *this_ptr) :
-    Extension(this_ptr),
+TerrainTypeClassExtension::TerrainTypeClassExtension(const TerrainTypeClass *this_ptr) :
+    ObjectTypeClassExtension(this_ptr),
     IsLightEnabled(false),
     LightVisibility(5000),
     LightIntensity(0),
@@ -52,11 +48,9 @@ TerrainTypeClassExtension::TerrainTypeClassExtension(TerrainTypeClass *this_ptr)
     LightGreenTint(1000000),
     LightBlueTint(1000000)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TerrainTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("TerrainTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //if (this_ptr) EXT_DEBUG_TRACE("TerrainTypeClassExtension::TerrainTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    IsInitialized = true;
+    TerrainTypeExtensions.Add(this);
 }
 
 
@@ -66,9 +60,9 @@ TerrainTypeClassExtension::TerrainTypeClassExtension(TerrainTypeClass *this_ptr)
  *  @author: CCHyper
  */
 TerrainTypeClassExtension::TerrainTypeClassExtension(const NoInitClass &noinit) :
-    Extension(noinit)
+    ObjectTypeClassExtension(noinit)
 {
-    IsInitialized = false;
+    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::TerrainTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -79,10 +73,28 @@ TerrainTypeClassExtension::TerrainTypeClassExtension(const NoInitClass &noinit) 
  */
 TerrainTypeClassExtension::~TerrainTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("TerrainTypeClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("TerrainTypeClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::~TerrainTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    IsInitialized = false;
+    TerrainTypeExtensions.Delete(this);
+}
+
+
+/**
+ *  Retrieves the class identifier (CLSID) of the object.
+ *  
+ *  @author: CCHyper
+ */
+HRESULT TerrainTypeClassExtension::GetClassID(CLSID *lpClassID)
+{
+    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    if (lpClassID == nullptr) {
+        return E_POINTER;
+    }
+
+    *lpClassID = __uuidof(this);
+
+    return S_OK;
 }
 
 
@@ -93,10 +105,9 @@ TerrainTypeClassExtension::~TerrainTypeClassExtension()
  */
 HRESULT TerrainTypeClassExtension::Load(IStream *pStm)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Load(pStm);
+    HRESULT hr = ObjectTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
@@ -114,10 +125,9 @@ HRESULT TerrainTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT TerrainTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Save(pStm, fClearDirty);
+    HRESULT hr = ObjectTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
     }
@@ -133,8 +143,7 @@ HRESULT TerrainTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int TerrainTypeClassExtension::Size_Of() const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -147,8 +156,7 @@ int TerrainTypeClassExtension::Size_Of() const
  */
 void TerrainTypeClassExtension::Detach(TARGET target, bool all)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::Detach - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -159,8 +167,7 @@ void TerrainTypeClassExtension::Detach(TARGET target, bool all)
  */
 void TerrainTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     crc(IsLightEnabled);
 }
@@ -173,15 +180,13 @@ void TerrainTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
  */
 bool TerrainTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    EXT_DEBUG_WARNING("TerrainTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    const char *ini_name = ThisPtr->Name();
-
-    if (!ini.Is_Present(ini_name)) {
+    if (!ObjectTypeClassExtension::Read_INI(ini)) {
         return false;
     }
+
+    const char *ini_name = Name();
 
     IsLightEnabled = ini.Get_Bool(ini_name, "IsLightEnabled", IsLightEnabled);
     LightVisibility = ini.Get_Int(ini_name, "LightVisibility", LightVisibility);

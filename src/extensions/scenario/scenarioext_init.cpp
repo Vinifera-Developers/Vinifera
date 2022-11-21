@@ -30,36 +30,14 @@
 #include "scenario.h"
 #include "tibsun_globals.h"
 #include "vinifera_util.h"
+#include "extension.h"
+#include "extension_globals.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 
-
-/**
- *  "new" operations must be done within a new function for patched code.
- * 
- *  @author: CCHyper
- */
-static void New_Scenario_Extension(ScenarioClass *this_ptr)
-{
-    /**
-     *  Delete existing instance (should never be the case).
-     */
-    delete ScenarioExtension;
-
-    ScenarioExtension = new ScenarioClassExtension(this_ptr);
-}
-
-
-/**
- *  "delete" operations must be done within a new function for patched code.
- * 
- *  @author: CCHyper
- */
-static void Delete_Scenario_Extension()
-{
-    delete ScenarioExtension;
-}
+#include "hooker.h"
+#include "hooker_macros.h"
 
 
 /**
@@ -76,15 +54,7 @@ DECLARE_PATCH(_ScenarioClass_Constructor_Patch)
     /**
      *  Create the extended class instance.
      */
-    New_Scenario_Extension(this_ptr);
-    if (!ScenarioExtension) {
-        DEBUG_ERROR("Failed to create ScenarioExtension instance for 0x%08X!\n", (uintptr_t)this_ptr);
-        ShowCursor(TRUE);
-        MessageBoxA(MainWindow, "Failed to create ScenarioExtension instance!\n", "Vinifera", MB_OK|MB_ICONEXCLAMATION);
-        Vinifera_Generate_Mini_Dump();
-        Fatal("Failed to create ScenarioExtension instance!\n");
-        goto original_code; // Keep this for clean code analysis.
-    }
+    ScenExtension = Extension::Singleton::Make<ScenarioClass, ScenarioClassExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
@@ -106,43 +76,6 @@ original_code:
 
 
 /**
- *  Patch for including the extended class members in the noinit creation process.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_ScenarioClass_NoInit_Constructor_Patch)
-{
-    GET_REGISTER_STATIC(ScenarioClass *, this_ptr, esi); // "this" pointer.
-    GET_STACK_STATIC(const NoInitClass *, noinit, esp, 0x4);
-
-    /**
-     *  Create the extended class instance.
-     */
-    New_Scenario_Extension(this_ptr);
-    if (!ScenarioExtension) {
-        DEBUG_ERROR("Failed to create ScenarioExtension instance for 0x%08X!\n", (uintptr_t)this_ptr);
-        ShowCursor(TRUE);
-        MessageBoxA(MainWindow, "Failed to create ScenarioExtension instance!\n", "Vinifera", MB_OK|MB_ICONEXCLAMATION);
-        Vinifera_Generate_Mini_Dump();
-        Fatal("Failed to create ScenarioExtension instance!\n");
-        goto original_code; // Keep this for clean code analysis.
-    }
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebx }
-    _asm { ret 4 }
-}
-
-
-/**
  *  Patch for including the extended class members in the destruction process.
  * 
  *  @warning: Do not touch this unless you know what you are doing!
@@ -156,7 +89,7 @@ DECLARE_PATCH(_ScenarioClass_Destructor_Patch)
     /**
      *  Remove the extended class instance.
      */
-    Delete_Scenario_Extension();
+    Extension::Singleton::Destroy<ScenarioClass, ScenarioClassExtension>(ScenExtension);
 
     /**
      *  Stolen bytes here.
@@ -180,13 +113,14 @@ DECLARE_PATCH(_ScenarioClass_Init_Clear_Patch)
     GET_REGISTER_STATIC(ScenarioClass *, this_ptr, esi);
 
     /**
-     *  Find the extension instance.
+     *  This is a odd case; ScenarioClass::Init_Clear is called within the class
+     *  constructor, so the first time this patch is called, ScenExtension is NULL.
+     *  The ScenarioClassExtension calls it's Init_Clear to mirror this behaviour
+     *  so we can just check if the extension has be created first to catch this.
      */
-    if (!ScenarioExtension) {
-        goto original_code;
+    if (ScenExtension) {
+        ScenExtension->Init_Clear();
     }
-
-    ScenarioExtension->Init_Clear();
 
     /**
      *  Stolen bytes here.
@@ -202,47 +136,11 @@ original_code:
 
 
 /**
- *  Patch for including the extended class members when computing a unique crc value for this instance.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_ScenarioClass_Compute_CRC_Patch)
-{
-    GET_REGISTER_STATIC(OverlayTypeClass *, this_ptr, esi);
-    GET_STACK_STATIC(WWCRCEngine *, crc, esp, 0xC);
-
-    /**
-     *  Find the extension instance.
-     */
-    if (!ScenarioExtension) {
-        goto original_code;
-    }
-
-    /**
-     *  Read type class compute crc.
-     */
-    ScenarioExtension->Compute_CRC(*crc);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { ret 4 }
-}
-
-
-/**
  *  Main function for patching the hooks.
  */
 void ScenarioClassExtension_Init()
 {
     Patch_Jump(0x005DADDE, &_ScenarioClass_Constructor_Patch);
-    Patch_Jump(0x005DAE87, &_ScenarioClass_NoInit_Constructor_Patch);
     Patch_Jump(0x006023CC, &_ScenarioClass_Destructor_Patch); // Inlined in game shutdown.
     Patch_Jump(0x005DB166, &_ScenarioClass_Init_Clear_Patch);
-    Patch_Jump(0x005E1440, &_ScenarioClass_Compute_CRC_Patch);
 }

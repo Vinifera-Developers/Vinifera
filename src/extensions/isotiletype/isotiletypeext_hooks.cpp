@@ -33,6 +33,9 @@
 #include "debughandler.h"
 #include "asserthandler.h"
 
+#include "hooker.h"
+#include "hooker_macros.h"
+
 
 /**
  *  A fake class for implementing new member functions which allow
@@ -41,7 +44,7 @@
  *  @note: This must not contain a constructor or deconstructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-static class IsometricTileTypeClassFake final : public IsometricTileTypeClass
+static class IsometricTileTypeClassExt final : public IsometricTileTypeClass
 {
     public:
         const ShapeFileStruct * _Get_Image_Data();
@@ -53,7 +56,7 @@ static class IsometricTileTypeClassFake final : public IsometricTileTypeClass
  * 
  *  @author: CCHyper
  */
-const ShapeFileStruct * IsometricTileTypeClassFake::_Get_Image_Data()
+const ShapeFileStruct * IsometricTileTypeClassExt::_Get_Image_Data()
 {
     if (Image) {
         return Image;
@@ -81,5 +84,5 @@ void IsometricTileTypeClassExtension_Hooks()
      */
     IsometricTileTypeClassExtension_Init();
 
-    Patch_Jump(0x004F3570, &IsometricTileTypeClassFake::_Get_Image_Data);
+    Patch_Jump(0x004F3570, &IsometricTileTypeClassExt::_Get_Image_Data);
 }

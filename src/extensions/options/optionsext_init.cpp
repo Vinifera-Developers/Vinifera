@@ -27,39 +27,18 @@
  ******************************************************************************/
 #include "optionsext_hooks.h"
 #include "optionsext.h"
+#include "tibsun_globals.h"
 #include "vinifera_util.h"
+#include "extension.h"
+#include "extension_globals.h"
 #include "options.h"
 #include "techno.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 
-
-/**
- *  "new" operations must be done within a new function for patched code.
- * 
- *  @author: CCHyper
- */
-static void New_Options_Extension(OptionsClass *this_ptr)
-{
-    /**
-     *  Delete existing instance (should never be the case).
-     */
-    delete OptionsExtension;
-
-    OptionsExtension = new OptionsClassExtension(this_ptr);
-}
-
-
-/**
- *  "delete" operations must be done within a new function for patched code.
- * 
- *  @author: CCHyper
- */
-static void Delete_Options_Extension()
-{
-    delete OptionsExtension;
-}
+#include "hooker.h"
+#include "hooker_macros.h"
 
 
 /**
@@ -85,15 +64,7 @@ DECLARE_PATCH(_OptionsClass_Constructor_Patch)
     /**
      *  Create the extended class instance.
      */
-    New_Options_Extension(this_ptr);
-    if (!OptionsExtension) {
-        DEBUG_ERROR("Failed to create OptionsExtension instance for 0x%08X!\n", (uintptr_t)this_ptr);
-        ShowCursor(TRUE);
-        MessageBoxA(MainWindow, "Failed to create OptionsExtension instance!\n", "Vinifera", MB_OK|MB_ICONEXCLAMATION);
-        Vinifera_Generate_Mini_Dump();
-        Fatal("Failed to create OptionsExtension instance!\n");
-        goto original_code; // Keep this for clean code analysis.
-    }
+    OptionsExtension = Extension::Singleton::Make<OptionsClass, OptionsClassExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
@@ -123,7 +94,8 @@ original_code:
 
 
 /**
- *  OptionsClass has no destructor! 
+ *  OptionsClass has no destructor to hook! See Vinifera shutdown for cleaning
+ *  up the extension instance.
  */
 #if 0
 /**
@@ -138,17 +110,9 @@ DECLARE_PATCH(_OptionsClass_Destructor_Patch)
     GET_REGISTER_STATIC(OptionsClass *, this_ptr, esi);
 
     /**
-     *  Create the extended class instance.
+     *  Remove the extended class instance.
      */
-    New_Options_Extension(this_ptr);
-    if (!OptionsExtension) {
-        DEBUG_ERROR("Failed to create OptionsExtension instance for 0x%08X!\n", (uintptr_t)this_ptr);
-        ShowCursor(TRUE);
-        MessageBoxA(MainWindow, "Failed to create OptionsExtension instance!\n", "Vinifera", MB_OK|MB_ICONEXCLAMATION);
-        Vinifera_Generate_Mini_Dump();
-        Fatal("Failed to create OptionsExtension instance!\n");
-        goto original_code; // Keep this for clean code analysis.
-    }
+    Extension::Singleton::Destroy<OptionsClass, OptionsClassExtension>(OptionsExtension);
 
     /**
      *  Stolen bytes here.
@@ -175,9 +139,7 @@ DECLARE_PATCH(_OptionsClass_Load_Settings_Patch)
     /**
      *  Load ini.
      */
-    if (OptionsExtension) {
-        OptionsExtension->Load_Settings();
-    }
+    OptionsExtension->Load_Settings();
 
     /**
      *  Stolen bytes here.
@@ -202,9 +164,7 @@ DECLARE_PATCH(_WinMain_Load_Init_Options_Settings_Patch)
     /**
      *  Load ini.
      */
-    if (OptionsExtension) {
-        OptionsExtension->Load_Init_Settings();
-    }
+    OptionsExtension->Load_Init_Settings();
 
     /**
      *  Stolen bytes here.
@@ -229,9 +189,7 @@ DECLARE_PATCH(_OptionsClass_Save_Settings_Patch)
     /**
      *  Save ini.
      */
-    if (OptionsExtension) {
-        OptionsExtension->Save_Settings();
-    }
+    OptionsExtension->Save_Settings();
 
     /**
      *  Stolen bytes here.
@@ -257,9 +215,7 @@ DECLARE_PATCH(_OptionsClass_Set_Patch)
     /**
      *  Set options.
      */
-    if (OptionsExtension) {
-        OptionsExtension->Set();
-    }
+    OptionsExtension->Set();
 
     /**
      *  Stolen bytes here.

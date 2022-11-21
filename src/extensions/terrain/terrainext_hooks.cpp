@@ -32,10 +32,11 @@
 #include "terrain.h"
 #include "terraintype.h"
 #include "lightsource.h"
+#include "vinifera_util.h"
+#include "extension.h"
 #include "fatal.h"
 #include "asserthandler.h"
 #include "debughandler.h"
-#include "vinifera_util.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -57,10 +58,10 @@ static LightSourceClass *Terrain_New_LightSource(TerrainClass *this_ptr)
     LightSourceClass *light;
 
     /**
-     *  Fetch the extended class instances if they exist.
+     *  Fetch the extension instance.
      */
-    terrainext = TerrainClassExtensions.find(this_ptr);
-    terraintypeext = TerrainTypeClassExtensions.find(this_ptr->Class);
+    terrainext = Extension::Fetch<TerrainClassExtension>(this_ptr);
+    terraintypeext = Extension::Fetch<TerrainTypeClassExtension>(this_ptr->Class);
 
     /**
      *  Create the light source object at the terrain coord.
@@ -98,14 +99,14 @@ DECLARE_PATCH(_TerrainClass_Unlimbo_LightSource_Patch)
     terraintype = this_ptr->Class;
 
     /**
-     *  Fetch the extended class instances if they exist.
+     *  Fetch the extension instances.
      */
-    terrainext = TerrainClassExtensions.find(this_ptr);
-    terraintypeext = TerrainTypeClassExtensions.find(terraintype);
+    terrainext = Extension::Fetch<TerrainClassExtension>(this_ptr);
+    terraintypeext = Extension::Fetch<TerrainTypeClassExtension>(terraintype);
 
-    if (terraintypeext && terraintypeext->IsLightEnabled && terraintypeext->LightIntensity > 0) {
+    if (terraintypeext->IsLightEnabled && terraintypeext->LightIntensity > 0) {
 
-        if (terrainext && !terrainext->LightSource) {
+        if (!terrainext->LightSource) {
 
             /**
              *  Create the light source object.
@@ -153,10 +154,10 @@ DECLARE_PATCH(_TerrainClass_Take_Damage_LightSource_Patch)
     static TerrainClassExtension *terrainext;
 
     /**
-     *  Fetch the extended class instance if it exists.
+     *  Fetch the extension instance.
      */
-    terrainext = TerrainClassExtensions.find(this_ptr);
-    if (terrainext && terrainext->LightSource) {
+    terrainext = Extension::Fetch<TerrainClassExtension>(this_ptr);
+    if (terrainext->LightSource) {
 
         /**
          *  This terrain object was destroyed, disable the attached lighting.

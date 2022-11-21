@@ -27,33 +27,39 @@
  ******************************************************************************/
 #pragma once
 
-#include "extension.h"
-#include "container.h"
+#include "abstracttypeext.h"
+#include "housetype.h"
 
 
-class HouseTypeClass;
-class CCINIClass;
-
-
-class HouseTypeClassExtension final : public Extension<HouseTypeClass>
+class DECLSPEC_UUID(UUID_HOUSETYPE_EXTENSION)
+HouseTypeClassExtension final : public AbstractTypeClassExtension
 {
     public:
-        HouseTypeClassExtension(HouseTypeClass *this_ptr);
-        HouseTypeClassExtension(const NoInitClass &noinit);
-        ~HouseTypeClassExtension();
+        /**
+         *  IPersist
+         */
+        IFACEMETHOD(GetClassID)(CLSID *pClassID);
 
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
-        virtual int Size_Of() const override;
-
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
-
-        bool Read_INI(CCINIClass &ini);
+        /**
+         *  IPersistStream
+         */
+        IFACEMETHOD(Load)(IStream *pStm);
+        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
 
     public:
+        HouseTypeClassExtension(const HouseTypeClass *this_ptr = nullptr);
+        HouseTypeClassExtension(const NoInitClass &noinit);
+        virtual ~HouseTypeClassExtension();
 
+        virtual int Size_Of() const override;
+        virtual void Detach(TARGET target, bool all = true) override;
+        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+        
+        virtual HouseTypeClass *This() const override { return reinterpret_cast<HouseTypeClass *>(AbstractTypeClassExtension::This()); }
+        virtual const HouseTypeClass *This_Const() const override { return reinterpret_cast<const HouseTypeClass *>(AbstractTypeClassExtension::This_Const()); }
+        virtual RTTIType What_Am_I() const override { return RTTI_HOUSETYPE; }
+
+        virtual bool Read_INI(CCINIClass &ini) override;
+
+    public:
 };
-
-
-extern ExtensionMap<HouseTypeClass, HouseTypeClassExtension> HouseTypeClassExtensions;

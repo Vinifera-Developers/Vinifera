@@ -30,9 +30,14 @@
 #include "terraintype.h"
 #include "tibsun_globals.h"
 #include "vinifera_util.h"
+#include "vinifera_globals.h"
+#include "extension.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+
+#include "hooker.h"
+#include "hooker_macros.h"
 
 
 /**
@@ -46,20 +51,19 @@ DECLARE_PATCH(_TerrainTypeClass_Constructor_Patch)
 {
     GET_REGISTER_STATIC(TerrainTypeClass *, this_ptr, esi); // "this" pointer.
     GET_STACK_STATIC(const char *, ini_name, esp, 0xC); // ini name.
-    static TerrainTypeClassExtension *exttype_ptr;
 
     /**
-     *  Find existing or create an extended class instance.
+     *  If we are performing a load operation, the Windows API will invoke the
+     *  constructors for us as part of the operation, so we can skip our hook here.
      */
-    exttype_ptr = TerrainTypeClassExtensions.find_or_create(this_ptr);
-    if (!exttype_ptr) {
-        DEBUG_ERROR("Failed to create TerrainTypeClassExtensions instance for \"%s\"!\n", ini_name);
-        ShowCursor(TRUE);
-        MessageBoxA(MainWindow, "Failed to create TerrainTypeClassExtensions instance!\n", "Vinifera", MB_OK|MB_ICONEXCLAMATION);
-        Vinifera_Generate_Mini_Dump();
-        Fatal("Failed to create TerrainTypeClassExtensions instance!\n");
-        goto original_code; // Keep this for clean code analysis.
+    if (Vinifera_PerformingLoad) {
+        goto original_code;
     }
+
+    /**
+     *  Create an extended class instance.
+     */
+    Extension::Make<TerrainTypeClassExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
@@ -68,28 +72,6 @@ original_code:
     _asm { mov eax, this_ptr }
     _asm { pop esi }
     _asm { pop ebx }
-    _asm { ret 4 }
-}
-
-
-/**
- *  Patch for including the extended class members in the noinit creation process.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_TerrainTypeClass_NoInit_Constructor_Patch)
-{
-    GET_REGISTER_STATIC(TerrainTypeClass *, this_ptr, esi);
-    GET_STACK_STATIC(const NoInitClass *, noinit_ptr, esp, 0x4);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop esi }
     _asm { ret 4 }
 }
 
@@ -108,15 +90,14 @@ DECLARE_PATCH(_TerrainTypeClass_Destructor_Patch)
     /**
      *  Remove the extended class from the global index.
      */
-    TerrainTypeClassExtensions.remove(this_ptr);
+    Extension::Destroy<TerrainTypeClassExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
      */
 original_code:
-    _asm { pop esi }
-    _asm { pop ecx }
-    _asm { ret }
+    _asm { mov edx, ds:0x007E3FE0 } // TerrainTypes.vtble
+    JMP_REG(eax, 0x0064165E);
 }
 
 
@@ -134,91 +115,14 @@ DECLARE_PATCH(_TerrainTypeClass_Scalar_Destructor_Patch)
     /**
      *  Remove the extended class from the global index.
      */
-    TerrainTypeClassExtensions.remove(this_ptr);
+    Extension::Destroy<TerrainTypeClassExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
      */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop esi }
-    _asm { pop ecx }
-    _asm { ret 4 }
-}
-
-
-/**
- *  Patch for including the extended class members when computing a unique crc value for this instance.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_TerrainTypeClass_Compute_CRC_Patch)
-{
-    GET_REGISTER_STATIC(TerrainTypeClass *, this_ptr, esi);
-    GET_STACK_STATIC(WWCRCEngine *, crc, esp, 0xC);
-    static TerrainTypeClassExtension *exttype_ptr;
-
-    /**
-     *  Find the extension instance.
-     */
-    exttype_ptr = TerrainTypeClassExtensions.find(this_ptr);
-    if (!exttype_ptr) {
-        goto original_code;
-    }
-
-    /**
-     *  Read type class compute crc.
-     */
-    exttype_ptr->Compute_CRC(*crc);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { ret 4 }
-}
-
-
-/**
- *  Patch for reading the extended class members from the ini instance.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_TerrainTypeClass_Read_INI_Patch)
-{
-    GET_REGISTER_STATIC(TerrainTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(CCINIClass *, ini, ebp);
-    static TerrainTypeClassExtension *exttype_ptr;
-
-    /**
-     *  Find the extension instance.
-     */
-    exttype_ptr = TerrainTypeClassExtensions.find(this_ptr);
-    if (!exttype_ptr) {
-        goto original_code;
-    }
-
-    /**
-     *  Read type class ini.
-     */
-    exttype_ptr->Read_INI(*ini);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { mov al, 1 }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { add esp, 0x204 }
-    _asm { ret 4 }
+    _asm { mov edx, ds:0x007E3FE0 } // TerrainTypes.vtble
+    JMP_REG(eax, 0x00641D8E);
 }
 
 
@@ -228,9 +132,6 @@ original_code:
 void TerrainTypeClassExtension_Init()
 {
     Patch_Jump(0x00641619, &_TerrainTypeClass_Constructor_Patch);
-    Patch_Jump(0x0064163A, &_TerrainTypeClass_NoInit_Constructor_Patch);
-    //Patch_Jump(0x006416A8, &_TerrainTypeClass_Destructor_Patch); // Destructor is actually inlined in scalar destructor!
-    Patch_Jump(0x00641DE8, &_TerrainTypeClass_Scalar_Destructor_Patch);
-    Patch_Jump(0x00641B6E, &_TerrainTypeClass_Compute_CRC_Patch);
-    Patch_Jump(0x00641A63, &_TerrainTypeClass_Read_INI_Patch);
+    //Patch_Jump(0x00641658, &_TerrainTypeClass_Destructor_Patch); // Destructor is actually inlined in scalar destructor!
+    Patch_Jump(0x00641D88, &_TerrainTypeClass_Scalar_Destructor_Patch);
 }

@@ -29,14 +29,10 @@
 #include "animtype.h"
 #include "ccini.h"
 #include "tibsun_defines.h"
+#include "wwcrc.h"
+#include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
-
-
-/**
- *  Provides the map for all AnimTypeClass extension instances.
- */
-ExtensionMap<AnimTypeClass, AnimTypeClassExtension> AnimTypeClassExtensions;
 
 
 /**
@@ -44,8 +40,8 @@ ExtensionMap<AnimTypeClass, AnimTypeClassExtension> AnimTypeClassExtensions;
  *  
  *  @author: CCHyper
  */
-AnimTypeClassExtension::AnimTypeClassExtension(AnimTypeClass *this_ptr) :
-    Extension(this_ptr),
+AnimTypeClassExtension::AnimTypeClassExtension(const AnimTypeClass *this_ptr) :
+    ObjectTypeClassExtension(this_ptr),
     IsHideIfNotTiberium(false),
     IsForceBigCraters(false),
     ZAdjust(0),
@@ -53,11 +49,9 @@ AnimTypeClassExtension::AnimTypeClassExtension(AnimTypeClass *this_ptr) :
     ParticleToSpawn(PARTICLE_NONE),
     NumberOfParticles(0)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("AnimTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("AnimTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //if (this_ptr) EXT_DEBUG_TRACE("AnimTypeClassExtension::AnimTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    IsInitialized = true;
+    AnimTypeExtensions.Add(this);
 }
 
 
@@ -67,9 +61,9 @@ AnimTypeClassExtension::AnimTypeClassExtension(AnimTypeClass *this_ptr) :
  *  @author: CCHyper
  */
 AnimTypeClassExtension::AnimTypeClassExtension(const NoInitClass &noinit) :
-    Extension(noinit)
+    ObjectTypeClassExtension(noinit)
 {
-    IsInitialized = false;
+    //EXT_DEBUG_TRACE("AnimTypeClassExtension::AnimTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -80,10 +74,28 @@ AnimTypeClassExtension::AnimTypeClassExtension(const NoInitClass &noinit) :
  */
 AnimTypeClassExtension::~AnimTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("AnimTypeClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("AnimTypeClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("AnimTypeClassExtension::~AnimTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    IsInitialized = false;
+    AnimTypeExtensions.Delete(this);
+}
+
+
+/**
+ *  Retrieves the class identifier (CLSID) of the object.
+ *  
+ *  @author: CCHyper
+ */
+HRESULT AnimTypeClassExtension::GetClassID(CLSID *lpClassID)
+{
+    //EXT_DEBUG_TRACE("AnimTypeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    if (lpClassID == nullptr) {
+        return E_POINTER;
+    }
+
+    *lpClassID = __uuidof(this);
+
+    return S_OK;
 }
 
 
@@ -94,10 +106,9 @@ AnimTypeClassExtension::~AnimTypeClassExtension()
  */
 HRESULT AnimTypeClassExtension::Load(IStream *pStm)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Load(pStm);
+    HRESULT hr = ObjectTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
@@ -115,10 +126,9 @@ HRESULT AnimTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT AnimTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Save(pStm, fClearDirty);
+    HRESULT hr = ObjectTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
     }
@@ -134,8 +144,7 @@ HRESULT AnimTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int AnimTypeClassExtension::Size_Of() const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -148,8 +157,7 @@ int AnimTypeClassExtension::Size_Of() const
  */
 void AnimTypeClassExtension::Detach(TARGET target, bool all)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Detach - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -160,8 +168,7 @@ void AnimTypeClassExtension::Detach(TARGET target, bool all)
  */
 void AnimTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     crc(AttachLayer);
     crc(NumberOfParticles);
@@ -175,11 +182,13 @@ void AnimTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
  */
 bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    EXT_DEBUG_WARNING("AnimTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    const char *ini_name = ThisPtr->Name();
+    if (!ObjectTypeClassExtension::Read_INI(ini)) {
+        return false;
+    }
+
+    const char *ini_name = This()->Name();
 
     if (!ini.Is_Present(ini_name)) {
         return false;
@@ -193,21 +202,21 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     TPoint2D<int> random_rate = ini.Get_Point(ini_name, "RandomRate", TPoint2D<int>(-1, -1));
     if (random_rate.X != -1) {
         if (random_rate.Y <= 0) {
-            DEV_DEBUG_WARNING("Animation \"%s\" has a zero or negative random rate 'Low' value!\n", ThisPtr->Name());
+            DEV_DEBUG_WARNING("Animation \"%s\" has a zero or negative random rate 'Low' value!\n", This()->Name());
         }
         random_rate.X = TICKS_PER_MINUTE / std::abs(random_rate.X);
     }
     if (random_rate.Y != -1) {
         if (random_rate.Y <= 0) {
-            DEV_DEBUG_WARNING("Animation \"%s\" has a zero or negative random rate 'High' value!\n", ThisPtr->Name());
+            DEV_DEBUG_WARNING("Animation \"%s\" has a zero or negative random rate 'High' value!\n", This()->Name());
         }
         random_rate.Y = TICKS_PER_MINUTE / std::abs(random_rate.Y);
     }
     if ((random_rate.X != -1 && random_rate.Y != -1) && random_rate.X > random_rate.Y) {
         std::swap(random_rate.X, random_rate.Y);
     }
-    ThisPtr->RandomRateMin = std::clamp(random_rate.X, 0, random_rate.X);
-    ThisPtr->RandomRateMax = std::clamp(random_rate.Y, 0, random_rate.Y);
+    This()->RandomRateMin = std::clamp(random_rate.X, 0, random_rate.X);
+    This()->RandomRateMax = std::clamp(random_rate.Y, 0, random_rate.Y);
 
     /**
      *  #issue-646
@@ -216,7 +225,7 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
      *  of range and as a result do not play in-game. This makes sure the values
      *  are never outside of the expected range.
      */
-    ThisPtr->DetailLevel = std::clamp(ThisPtr->DetailLevel, 0, 2);
+    This()->DetailLevel = std::clamp(This()->DetailLevel, 0, 2);
 
     IsHideIfNotTiberium = ini.Get_Bool(ini_name, "HideIfNoTiberium", IsHideIfNotTiberium);
     IsForceBigCraters = ini.Get_Bool(ini_name, "ForceBigCraters", IsForceBigCraters);

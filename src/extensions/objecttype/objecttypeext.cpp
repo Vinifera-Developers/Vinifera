@@ -33,24 +33,16 @@
 
 
 /**
- *  Provides the map for all ObjectTypeClass extension instances.
- */
-ExtensionMap<ObjectTypeClass, ObjectTypeClassExtension> ObjectTypeClassExtensions;
-
-
-/**
  *  Class constructor.
  *  
  *  @author: CCHyper
  */
-ObjectTypeClassExtension::ObjectTypeClassExtension(ObjectTypeClass *this_ptr) :
-    Extension(this_ptr)
+ObjectTypeClassExtension::ObjectTypeClassExtension(const ObjectTypeClass *this_ptr) :
+    AbstractTypeClassExtension(this_ptr),
+    GraphicName(),
+    AlphaGraphicName()
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("ObjectTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("ObjectTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-
-    IsInitialized = true;
+    //if (this_ptr) EXT_DEBUG_TRACE("ObjectTypeClassExtension::ObjectTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -60,9 +52,9 @@ ObjectTypeClassExtension::ObjectTypeClassExtension(ObjectTypeClass *this_ptr) :
  *  @author: CCHyper
  */
 ObjectTypeClassExtension::ObjectTypeClassExtension(const NoInitClass &noinit) :
-    Extension(noinit)
+    AbstractTypeClassExtension(noinit)
 {
-    IsInitialized = false;
+    //EXT_DEBUG_TRACE("ObjectTypeClassExtension::ObjectTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -73,10 +65,7 @@ ObjectTypeClassExtension::ObjectTypeClassExtension(const NoInitClass &noinit) :
  */
 ObjectTypeClassExtension::~ObjectTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("ObjectTypeClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("ObjectTypeClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-
-    IsInitialized = false;
+    //EXT_DEBUG_TRACE("ObjectTypeClassExtension::~ObjectTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -87,15 +76,12 @@ ObjectTypeClassExtension::~ObjectTypeClassExtension()
  */
 HRESULT ObjectTypeClassExtension::Load(IStream *pStm)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("ObjectTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("ObjectTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Load(pStm);
+    HRESULT hr = AbstractTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
-
-    new (this) ObjectTypeClassExtension(NoInitClass());
     
     return hr;
 }
@@ -108,29 +94,20 @@ HRESULT ObjectTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT ObjectTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("ObjectTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("ObjectTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Save(pStm, fClearDirty);
+    /**
+     *  Store the graphic name strings as raw data, these are used by the load operation.
+     */
+    std::strncpy(GraphicName, Graphic_Name(), sizeof(GraphicName));
+    std::strncpy(AlphaGraphicName, Alpha_Graphic_Name(), sizeof(AlphaGraphicName));
+
+    HRESULT hr = AbstractTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
     }
 
     return hr;
-}
-
-
-/**
- *  Return the raw size of class data for save/load purposes.
- *  
- *  @author: CCHyper
- */
-int ObjectTypeClassExtension::Size_Of() const
-{
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("ObjectTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-
-    return sizeof(*this);
 }
 
 
@@ -141,8 +118,7 @@ int ObjectTypeClassExtension::Size_Of() const
  */
 void ObjectTypeClassExtension::Detach(TARGET target, bool all)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("ObjectTypeClassExtension::Detach - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("ObjectTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -153,8 +129,7 @@ void ObjectTypeClassExtension::Detach(TARGET target, bool all)
  */
 void ObjectTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("ObjectTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("ObjectTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -165,11 +140,13 @@ void ObjectTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
  */
 bool ObjectTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("ObjectTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("ObjectTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("ObjectTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    const char *ini_name = ThisPtr->Name();
+    if (!AbstractTypeClassExtension::Read_INI(ini)) {
+        return false;
+    }
+
+    const char *ini_name = Name();
 
     if (!ini.Is_Present(ini_name)) {
         return false;
