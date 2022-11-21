@@ -32,6 +32,7 @@
 #include "wspipx.h"
 #include "wspudp.h"
 #include "tibsun_globals.h"
+#include "session.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 #include "hooker.h"
@@ -80,7 +81,12 @@ DECLARE_PATCH(_Select_Game_Create_PacketTransport_Patch)
 {
     Create_PacketTransport();
 
-    JMP(0x004E2430);
+    Session.CommProtocol = COMM_PROTOCOL_SINGLE_NO_COMP;
+
+    _asm { mov eax, [0x0074C8D8] } // PacketProtocol
+    _asm { mov eax, [eax] }
+
+    JMP_REG(edx, 0x004E2436);
 }
 
 

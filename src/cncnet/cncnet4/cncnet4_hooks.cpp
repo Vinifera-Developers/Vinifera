@@ -157,7 +157,7 @@ static void CnCNet_Create_PacketTransport()
 DECLARE_PATCH(_Select_Game_Network_Create_PacketTransport_Patch)
 {
     Session.Type = GAME_IPX;
-    Session.CommProtocol = 2; // COMM_PROTOCOL_MULTI_E_COMP
+    Session.CommProtocol = COMM_PROTOCOL_MULTI_E_COMP;
 
     if (!PacketTransport) {
         CnCNet_Create_PacketTransport();
