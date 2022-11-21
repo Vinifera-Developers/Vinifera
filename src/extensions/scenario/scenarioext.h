@@ -27,37 +27,31 @@
  ******************************************************************************/
 #pragma once
 
+#include "always.h"
 #include "extension.h"
-#include "container.h"
-
-#include "noinit.h"
+#include "scenario.h"
 
 
-class ScenarioClass;
-
-
-class ScenarioClassExtension final : public Extension<ScenarioClass>
+class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
 {
     public:
-        ScenarioClassExtension(ScenarioClass *this_ptr);
+        IFACEMETHOD(Load)(IStream *pStm);
+        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+
+    public:
+        ScenarioClassExtension(const ScenarioClass *this_ptr);
         ScenarioClassExtension(const NoInitClass &noinit);
-        ~ScenarioClassExtension();
+        virtual ~ScenarioClassExtension();
 
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
         virtual int Size_Of() const override;
-
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
+
+        virtual const char *Name() const override { return "Scenario"; }
+        virtual const char *Full_Name() const override { return "Scenario"; }
 
         void Init_Clear();
 
     public:
 
 };
-
-
-/**
- *  Global instance of the extended class.
- */
-extern ScenarioClassExtension *ScenarioExtension;

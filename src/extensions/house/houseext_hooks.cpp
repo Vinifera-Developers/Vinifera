@@ -147,8 +147,7 @@ original_code:
     _asm { mov ecx, vector_count }
     _asm { test ecx, ecx }
 
-    _asm { mov ecx, 0x004BBD2E }; // Need to use ECX as EAX is used later on.
-    _asm { jmp ecx };
+    JMP_REG(ecx, 0x004BBD2E); // Need to use ECX as EAX is used later on.
 
 return_true:
     JMP(0x004BBD17);

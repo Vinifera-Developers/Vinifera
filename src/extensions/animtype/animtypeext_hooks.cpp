@@ -34,6 +34,9 @@
 #include "debughandler.h"
 #include "asserthandler.h"
 
+#include "hooker.h"
+#include "hooker_macros.h"
+
 
 /**
  *  Patches in an assertion check for image data.

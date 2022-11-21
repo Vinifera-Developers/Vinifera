@@ -27,30 +27,48 @@
  ******************************************************************************/
 #pragma once
 
-#include "extension.h"
-#include "container.h"
+#include "abstracttypeext.h"
+#include "supertype.h"
 
 
-class SuperWeaponTypeClass;
-class CCINIClass;
 class BSurface;
 
 
-class SuperWeaponTypeClassExtension final : public Extension<SuperWeaponTypeClass>
+class DECLSPEC_UUID(UUID_SUPERWEAPONTYPE_EXTENSION)
+SuperWeaponTypeClassExtension final : public AbstractTypeClassExtension
 {
     public:
-        SuperWeaponTypeClassExtension(SuperWeaponTypeClass *this_ptr);
+        /**
+         *  IPersist
+         */
+        IFACEMETHOD(GetClassID)(CLSID *pClassID);
+
+        /**
+         *  IPersistStream
+         */
+        IFACEMETHOD(Load)(IStream *pStm);
+        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+
+    public:
+        SuperWeaponTypeClassExtension(const SuperWeaponTypeClass *this_ptr = nullptr);
         SuperWeaponTypeClassExtension(const NoInitClass &noinit);
-        ~SuperWeaponTypeClassExtension();
+        virtual ~SuperWeaponTypeClassExtension();
 
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
         virtual int Size_Of() const override;
-
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
-        bool Read_INI(CCINIClass &ini);
+        virtual bool Read_INI(CCINIClass &ini) override;
+
+        virtual SuperWeaponTypeClass *This() const override { return reinterpret_cast<SuperWeaponTypeClass *>(AbstractTypeClassExtension::This()); }
+        virtual const SuperWeaponTypeClass *This_Const() const override { return reinterpret_cast<const SuperWeaponTypeClass *>(AbstractTypeClassExtension::This_Const()); }
+        virtual RTTIType What_Am_I() const override { return RTTI_SUPERWEAPONTYPE; }
+
+    protected:
+        /**
+         *  These are only to be accessed for save and load operations!
+         */
+        char SidebarImage[24 + 1];
 
     public:
         /**
@@ -64,6 +82,3 @@ class SuperWeaponTypeClassExtension final : public Extension<SuperWeaponTypeClas
          */
         BSurface *CameoImageSurface;
 };
-
-
-extern ExtensionMap<SuperWeaponTypeClass, SuperWeaponTypeClassExtension> SuperWeaponTypeClassExtensions;

@@ -40,9 +40,6 @@
 #include "cncnet5_hooks.h"
 
 
-extern bool Vinifera_ClassExtensionsDisabled;
-
-
 void Setup_Hooks()
 {
     Vinifera_Memory_Hooks();
@@ -51,23 +48,7 @@ void Setup_Hooks()
     Debug_Hooks();
     Vinifera_Hooks();
     NewSwizzle_Hooks();
-
-    /**
-     *  Command line option to disable class extensions.
-     */
-    const char *cmdline = GetCommandLineA();
-    Vinifera_ClassExtensionsDisabled = (std::strstr(cmdline, "-NO_CLASS_EXTENSIONS") != nullptr);
-
-    /**
-     *  Command line option to disable all extensions and new gameplay code.
-     */
-    bool no_extensions = (std::strstr(cmdline, "-NO_EXTENSIONS") != nullptr);
-
-    if (!no_extensions) {
-        Extension_Hooks();
-    } else {
-        Vinifera_ClassExtensionsDisabled = true;
-    }
+    Extension_Hooks();
 
     CnCNet4_Hooks();
     CnCNet5_Hooks();

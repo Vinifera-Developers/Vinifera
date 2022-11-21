@@ -30,9 +30,14 @@
 #include "campaign.h"
 #include "tibsun_globals.h"
 #include "vinifera_util.h"
+#include "vinifera_globals.h"
+#include "extension.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+
+#include "hooker.h"
+#include "hooker_macros.h"
 
 
 /**
@@ -46,22 +51,22 @@ DECLARE_PATCH(_CampaignClass_Constructor_Patch)
 {
     GET_REGISTER_STATIC(CampaignClass *, this_ptr, ebp); // "this" pointer.
     GET_STACK_STATIC(const char *, ini_name, esp, 0x10); // ini name.
-    static CampaignClassExtension *exttype_ptr;
 
-    //EXT_DEBUG_WARNING("Creating CampaignClassExtension instance for \"%s\".\n", ini_name);
+    // Campaign's are not saved to file, so this case is not required.
+#if 0
+    /**
+     *  If we are performing a load operation, the Windows API will invoke the
+     *  constructors for us as part of the operation, so we can skip our hook here.
+     */
+    if (Vinifera_PerformingLoad) {
+        goto original_code;
+    }
+#endif
 
     /**
-     *  Find existing or create an extended class instance.
+     *  Create an extended class instance.
      */
-    exttype_ptr = CampaignClassExtensions.find_or_create(this_ptr);
-    if (!exttype_ptr) {
-        DEBUG_ERROR("Failed to create CampaignClassExtensions instance for \"%s\"!\n", ini_name);
-        ShowCursor(TRUE);
-        MessageBoxA(MainWindow, "Failed to create CampaignClassExtensions instance!\n", "Vinifera", MB_OK|MB_ICONEXCLAMATION);
-        Vinifera_Generate_Mini_Dump();
-        Fatal("Failed to create CampaignClassExtensions instance!\n");
-        goto original_code; // Keep this for clean code analysis.
-    }
+    Extension::Make<CampaignClassExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
@@ -89,15 +94,14 @@ DECLARE_PATCH(_CampaignClass_Destructor_Patch)
     /**
      *  Remove the extended class from the global index.
      */
-    CampaignClassExtensions.remove(this_ptr);
+    Extension::Destroy<CampaignClassExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
      */
 original_code:
-    _asm { pop esi }
-    _asm { pop ecx }
-    _asm { ret }
+    _asm { mov edx, ds:0x007E2230 } // Campaigns.vtble
+    JMP_REG(eax, 0x00448AEE);
 }
 
 
@@ -137,52 +141,14 @@ DECLARE_PATCH(_CampaignClass_Scalar_Destructor_Patch)
     /**
      *  Remove the extended class from the global index.
      */
-    CampaignClassExtensions.remove(this_ptr);
+    Extension::Destroy<CampaignClassExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
      */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop esi }
-    _asm { pop ecx }
-    _asm { ret 4 }
-}
-
-
-/**
- *  Patch for including the extended class members when computing a unique crc value for this instance.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_CampaignClass_Compute_CRC_Patch)
-{
-    GET_REGISTER_STATIC(CampaignClass *, this_ptr, esi);
-    GET_STACK_STATIC(WWCRCEngine *, crc, esp, 0xC);
-    static CampaignClassExtension *exttype_ptr;
-
-    /**
-     *  Find the extension instance.
-     */
-    exttype_ptr = CampaignClassExtensions.find(this_ptr);
-    if (!exttype_ptr) {
-        goto original_code;
-    }
-
-    /**
-     *  Read type class compute crc.
-     */
-    exttype_ptr->Compute_CRC(*crc);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { ret 4 }
+    _asm { mov edx, ds:0x007E2230 } // Campaigns.vtble
+    JMP_REG(eax, 0x00448EFE);
 }
 
 
@@ -206,12 +172,9 @@ DECLARE_PATCH(_CampaignClass_Read_INI_Patch)
     this_ptr->RequiredAddon = (AddonType)required_addon;
 
     /**
-     *  Find the extension instance.
+     *  Fetch the extension instance.
      */
-    exttype_ptr = CampaignClassExtensions.find(this_ptr);
-    if (!exttype_ptr) {
-        goto original_code;
-    }
+    exttype_ptr = Extension::Fetch<CampaignClassExtension>(this_ptr);
 
     /**
      *  Read type class ini.
@@ -234,9 +197,8 @@ original_code:
 void CampaignClassExtension_Init()
 {
     Patch_Jump(0x00448AC4, &_CampaignClass_Constructor_Patch);
-    //Patch_Jump(0x00448B38, &_CampaignClass_Destructor_Patch); // Destructor is actually inlined in scalar destructor!
+    //Patch_Jump(0x00448AE8, &_CampaignClass_Destructor_Patch); // Destructor is actually inlined in scalar destructor!
     Patch_Jump(0x00448CD0, &_CampaignClass_Process_Patch); // Constructor is also inlined in CampaignClass::Process!
-    Patch_Jump(0x00448F58, &_CampaignClass_Scalar_Destructor_Patch);
-    Patch_Jump(0x00448E4E, &_CampaignClass_Compute_CRC_Patch);
+    Patch_Jump(0x00448EF8, &_CampaignClass_Scalar_Destructor_Patch);
     Patch_Jump(0x00448C17, &_CampaignClass_Read_INI_Patch);
 }

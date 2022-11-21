@@ -28,14 +28,9 @@
 #include "overlaytypeext.h"
 #include "overlaytype.h"
 #include "ccini.h"
+#include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
-
-
-/**
- *  Provides the map for all OverlayTypeClass extension instances.
- */
-ExtensionMap<OverlayTypeClass, OverlayTypeClassExtension> OverlayTypeClassExtensions;
 
 
 /**
@@ -43,14 +38,12 @@ ExtensionMap<OverlayTypeClass, OverlayTypeClassExtension> OverlayTypeClassExtens
  *  
  *  @author: CCHyper
  */
-OverlayTypeClassExtension::OverlayTypeClassExtension(OverlayTypeClass *this_ptr) :
-    Extension(this_ptr)
+OverlayTypeClassExtension::OverlayTypeClassExtension(const OverlayTypeClass *this_ptr) :
+    ObjectTypeClassExtension(this_ptr)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("OverlayTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("OverlayTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //if (this_ptr) EXT_DEBUG_TRACE("OverlayTypeClassExtension::OverlayTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    IsInitialized = true;
+    OverlayTypeExtensions.Add(this);
 }
 
 
@@ -60,9 +53,9 @@ OverlayTypeClassExtension::OverlayTypeClassExtension(OverlayTypeClass *this_ptr)
  *  @author: CCHyper
  */
 OverlayTypeClassExtension::OverlayTypeClassExtension(const NoInitClass &noinit) :
-    Extension(noinit)
+    ObjectTypeClassExtension(noinit)
 {
-    IsInitialized = false;
+    //EXT_DEBUG_TRACE("OverlayTypeClassExtension::OverlayTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -73,10 +66,28 @@ OverlayTypeClassExtension::OverlayTypeClassExtension(const NoInitClass &noinit) 
  */
 OverlayTypeClassExtension::~OverlayTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("OverlayTypeClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("OverlayTypeClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("OverlayTypeClassExtension::~OverlayTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    IsInitialized = false;
+    OverlayTypeExtensions.Delete(this);
+}
+
+
+/**
+ *  Retrieves the class identifier (CLSID) of the object.
+ *  
+ *  @author: CCHyper
+ */
+HRESULT OverlayTypeClassExtension::GetClassID(CLSID *lpClassID)
+{
+    //EXT_DEBUG_TRACE("OverlayTypeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    if (lpClassID == nullptr) {
+        return E_POINTER;
+    }
+
+    *lpClassID = __uuidof(this);
+
+    return S_OK;
 }
 
 
@@ -87,10 +98,9 @@ OverlayTypeClassExtension::~OverlayTypeClassExtension()
  */
 HRESULT OverlayTypeClassExtension::Load(IStream *pStm)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("OverlayTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("OverlayTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Load(pStm);
+    HRESULT hr = ObjectTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
@@ -108,10 +118,9 @@ HRESULT OverlayTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT OverlayTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("OverlayTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("OverlayTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Save(pStm, fClearDirty);
+    HRESULT hr = ObjectTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
     }
@@ -127,8 +136,7 @@ HRESULT OverlayTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int OverlayTypeClassExtension::Size_Of() const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("OverlayTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("OverlayTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -141,8 +149,7 @@ int OverlayTypeClassExtension::Size_Of() const
  */
 void OverlayTypeClassExtension::Detach(TARGET target, bool all)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("OverlayTypeClassExtension::Detach - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("OverlayTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -153,8 +160,7 @@ void OverlayTypeClassExtension::Detach(TARGET target, bool all)
  */
 void OverlayTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("OverlayTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("OverlayTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -165,11 +171,13 @@ void OverlayTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
  */
 bool OverlayTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("OverlayTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    EXT_DEBUG_WARNING("OverlayTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("OverlayTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    const char *ini_name = ThisPtr->Name();
+    if (!ObjectTypeClassExtension::Read_INI(ini)) {
+        return false;
+    }
+
+    const char *ini_name = Name();
 
     if (!ini.Is_Present(ini_name)) {
         return false;

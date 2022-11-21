@@ -27,33 +27,39 @@
  ******************************************************************************/
 #pragma once
 
-#include "extension.h"
-#include "container.h"
+#include "objecttypeext.h"
+#include "overlaytype.h"
 
 
-class OverlayTypeClass;
-class CCINIClass;
-
-
-class OverlayTypeClassExtension final : public Extension<OverlayTypeClass>
+class DECLSPEC_UUID(UUID_OVERLAYTYPE_EXTENSION)
+OverlayTypeClassExtension final : public ObjectTypeClassExtension
 {
     public:
-        OverlayTypeClassExtension(OverlayTypeClass *this_ptr);
+        /**
+         *  IPersist
+         */
+        IFACEMETHOD(GetClassID)(CLSID *pClassID);
+
+        /**
+         *  IPersistStream
+         */
+        IFACEMETHOD(Load)(IStream *pStm);
+        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+
+    public:
+        OverlayTypeClassExtension(const OverlayTypeClass *this_ptr = nullptr);
         OverlayTypeClassExtension(const NoInitClass &noinit);
-        ~OverlayTypeClassExtension();
+        virtual ~OverlayTypeClassExtension();
 
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
         virtual int Size_Of() const override;
-
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
-        bool Read_INI(CCINIClass &ini);
+        virtual bool Read_INI(CCINIClass &ini) override;
+
+        virtual OverlayTypeClass *This() const override { return reinterpret_cast<OverlayTypeClass *>(ObjectTypeClassExtension::This()); }
+        virtual const OverlayTypeClass *This_Const() const override { return reinterpret_cast<const OverlayTypeClass *>(ObjectTypeClassExtension::This_Const()); }
+        virtual RTTIType What_Am_I() const override { return RTTI_INFANTRYTYPE; }
 
     public:
-
 };
-
-
-extern ExtensionMap<OverlayTypeClass, OverlayTypeClassExtension> OverlayTypeClassExtensions;

@@ -28,14 +28,9 @@
 #include "unitext.h"
 #include "unit.h"
 #include "wwcrc.h"
+#include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
-
-
-/**
- *  Provides the map for all UnitClass extension instances.
- */
-ExtensionMap<UnitClass, UnitClassExtension> UnitClassExtensions;
 
 
 /**
@@ -43,14 +38,12 @@ ExtensionMap<UnitClass, UnitClassExtension> UnitClassExtensions;
  *  
  *  @author: CCHyper
  */
-UnitClassExtension::UnitClassExtension(UnitClass *this_ptr) :
-    Extension(this_ptr)
+UnitClassExtension::UnitClassExtension(const UnitClass *this_ptr) :
+    FootClassExtension(this_ptr)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("UnitClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("UnitClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //if (this_ptr) EXT_DEBUG_TRACE("UnitClassExtension::UnitClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    IsInitialized = true;
+    UnitExtensions.Add(this);
 }
 
 
@@ -60,9 +53,9 @@ UnitClassExtension::UnitClassExtension(UnitClass *this_ptr) :
  *  @author: CCHyper
  */
 UnitClassExtension::UnitClassExtension(const NoInitClass &noinit) :
-    Extension(noinit)
+    FootClassExtension(noinit)
 {
-    IsInitialized = false;
+    //EXT_DEBUG_TRACE("UnitClassExtension::UnitClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -73,10 +66,28 @@ UnitClassExtension::UnitClassExtension(const NoInitClass &noinit) :
  */
 UnitClassExtension::~UnitClassExtension()
 {
-    //EXT_DEBUG_TRACE("UnitClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("UnitClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("UnitClassExtension::~UnitClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    IsInitialized = false;
+    UnitExtensions.Delete(this);
+}
+
+
+/**
+ *  Retrieves the class identifier (CLSID) of the object.
+ *  
+ *  @author: CCHyper
+ */
+HRESULT UnitClassExtension::GetClassID(CLSID *lpClassID)
+{
+    //EXT_DEBUG_TRACE("UnitClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    if (lpClassID == nullptr) {
+        return E_POINTER;
+    }
+
+    *lpClassID = __uuidof(this);
+
+    return S_OK;
 }
 
 
@@ -87,10 +98,9 @@ UnitClassExtension::~UnitClassExtension()
  */
 HRESULT UnitClassExtension::Load(IStream *pStm)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("UnitClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("UnitClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Load(pStm);
+    HRESULT hr = FootClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
@@ -108,10 +118,9 @@ HRESULT UnitClassExtension::Load(IStream *pStm)
  */
 HRESULT UnitClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("UnitClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("UnitClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Save(pStm, fClearDirty);
+    HRESULT hr = FootClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
     }
@@ -127,8 +136,7 @@ HRESULT UnitClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int UnitClassExtension::Size_Of() const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("UnitClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("UnitClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -141,8 +149,7 @@ int UnitClassExtension::Size_Of() const
  */
 void UnitClassExtension::Detach(TARGET target, bool all)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("UnitClassExtension::Detach - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("UnitClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -153,6 +160,5 @@ void UnitClassExtension::Detach(TARGET target, bool all)
  */
 void UnitClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("UnitClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("UnitClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }

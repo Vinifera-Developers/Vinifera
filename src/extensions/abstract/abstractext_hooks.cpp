@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          TECHNOTYPEEXT_INIT.H
+ *  @file          ABSTRACTEXT_HOOKS.CPP
  *
  *  @author        CCHyper
  *
- *  @brief         Contains the hooks for initialising the extended TechnoTypeClass.
+ *  @brief         Contains the hooks for the extended AbstractClass.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -25,7 +25,24 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#pragma once
+#include "abstractext_hooks.h"
+#include "abstractext_init.h"
+#include "extension.h"
+#include "fatal.h"
+#include "debughandler.h"
+#include "asserthandler.h"
+
+#include "hooker.h"
+#include "hooker_macros.h"
 
 
-void TechnoTypeClassExtension_Init();
+/**
+ *  Main function for patching the hooks.
+ */
+void AbstractClassExtension_Hooks()
+{
+    /**
+     *  Initialises the extended class.
+     */
+    AbstractClassExtension_Init();
+}

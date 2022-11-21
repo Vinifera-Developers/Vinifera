@@ -31,6 +31,7 @@
 #include "overlaytype.h"
 #include "warheadtype.h"
 #include "warheadtypeext.h"
+#include "extension.h"
 #include "fatal.h"
 #include "asserthandler.h"
 #include "debughandler.h"
@@ -76,8 +77,8 @@ DECLARE_PATCH(_Explosion_Damage_IsWallAbsoluteDestroyer_Patch)
          *  of damage? If so, then pass -1 into Reduce_Wall to remove the wall
          *  section from the cell.
          */
-        warheadtypeext = WarheadTypeClassExtensions.find(warhead);
-        if (warheadtypeext && warheadtypeext->IsWallAbsoluteDestroyer) {
+        warheadtypeext = Extension::Fetch<WarheadTypeClassExtension>(warhead);
+        if (warheadtypeext->IsWallAbsoluteDestroyer) {
             cellptr->Reduce_Wall(-1);
 
         /**
@@ -109,16 +110,15 @@ DECLARE_PATCH(_Do_Flash_CombatLightSize_Patch)
     static int flash_size;
 
     /**
-     *  Fetch the warhead type extension instance if it exists.
+     *  Fetch the extension instance.
      */
-    warheadtypeext = WarheadTypeClassExtensions.find(warhead);
+    warheadtypeext = Extension::Fetch<WarheadTypeClassExtension>(warhead);
 
     /**
-     *  If extension instance is not found, or no custom light size
-     *  has been set, then just use the default code. This sets the
-     *  size of the light based on the damage dealt by the Warhead.
+     *  If no custom light size has been set, then just use the default code.
+     *  This sets the size of the light based on the damage dealt by the Warhead.
      */
-    if (!warheadtypeext || warheadtypeext->CombatLightSize <= 0.0f) {
+    if (warheadtypeext->CombatLightSize <= 0.0f) {
 
         /**
          *  Original code.
@@ -137,7 +137,7 @@ DECLARE_PATCH(_Do_Flash_CombatLightSize_Patch)
     /**
      *  Has a custom light size been set on the warhead?
      */
-    if (warheadtypeext && warheadtypeext->CombatLightSize > 0.0f) {
+    if (warheadtypeext->CombatLightSize > 0.0f) {
 
         /**
          *  Clamp the light size and scale to expected size range.

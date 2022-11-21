@@ -27,29 +27,39 @@
  ******************************************************************************/
 #pragma once
 
-#include "extension.h"
-#include "container.h"
+#include "objecttypeext.h"
+#include "bullettype.h"
 
 
-class BulletTypeClass;
-class CCINIClass;
-
-
-class BulletTypeClassExtension final : public Extension<BulletTypeClass>
+class DECLSPEC_UUID(UUID_BULLETTYPE_EXTENSION)
+BulletTypeClassExtension final : public ObjectTypeClassExtension
 {
     public:
-        BulletTypeClassExtension(BulletTypeClass *this_ptr);
+        /**
+         *  IPersist
+         */
+        IFACEMETHOD(GetClassID)(CLSID *pClassID);
+
+        /**
+         *  IPersistStream
+         */
+        IFACEMETHOD(Load)(IStream *pStm);
+        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+
+    public:
+        BulletTypeClassExtension(const BulletTypeClass *this_ptr = nullptr);
         BulletTypeClassExtension(const NoInitClass &noinit);
-        ~BulletTypeClassExtension();
+        virtual ~BulletTypeClassExtension();
 
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
         virtual int Size_Of() const override;
-
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
+        
+        virtual BulletTypeClass *This() const override { return reinterpret_cast<BulletTypeClass *>(ObjectTypeClassExtension::This()); }
+        virtual const BulletTypeClass *This_Const() const override { return reinterpret_cast<const BulletTypeClass *>(ObjectTypeClassExtension::This_Const()); }
+        virtual RTTIType What_Am_I() const override { return RTTI_BULLETTYPE; }
 
-        bool Read_INI(CCINIClass &ini);
+        virtual bool Read_INI(CCINIClass &ini) override;
 
     public:
         /**
@@ -57,6 +67,3 @@ class BulletTypeClassExtension final : public Extension<BulletTypeClass>
          */
         unsigned SpawnDelay;
 };
-
-
-extern ExtensionMap<BulletTypeClass, BulletTypeClassExtension> BulletTypeClassExtensions;

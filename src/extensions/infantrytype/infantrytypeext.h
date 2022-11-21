@@ -27,29 +27,39 @@
  ******************************************************************************/
 #pragma once
 
-#include "extension.h"
-#include "container.h"
+#include "technotypeext.h"
+#include "infantrytype.h"
 
 
-class InfantryTypeClass;
-class CCINIClass;
-
-
-class InfantryTypeClassExtension final : public Extension<InfantryTypeClass>
+class DECLSPEC_UUID(UUID_INFANTRYTYPE_EXTENSION)
+InfantryTypeClassExtension final : public TechnoTypeClassExtension
 {
     public:
-        InfantryTypeClassExtension(InfantryTypeClass *this_ptr);
+        /**
+         *  IPersist
+         */
+        IFACEMETHOD(GetClassID)(CLSID *pClassID);
+
+        /**
+         *  IPersistStream
+         */
+        IFACEMETHOD(Load)(IStream *pStm);
+        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+
+    public:
+        InfantryTypeClassExtension(const InfantryTypeClass *this_ptr = nullptr);
         InfantryTypeClassExtension(const NoInitClass &noinit);
-        ~InfantryTypeClassExtension();
+        virtual ~InfantryTypeClassExtension();
 
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
         virtual int Size_Of() const override;
-
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
+        
+        virtual InfantryTypeClass *This() const override { return reinterpret_cast<InfantryTypeClass *>(TechnoTypeClassExtension::This()); }
+        virtual const InfantryTypeClass *This_Const() const override { return reinterpret_cast<const InfantryTypeClass *>(TechnoTypeClassExtension::This_Const()); }
+        virtual RTTIType What_Am_I() const override { return RTTI_INFANTRYTYPE; }
 
-        bool Read_INI(CCINIClass &ini);
+        virtual bool Read_INI(CCINIClass &ini) override;
 
     public:
         /**
@@ -64,6 +74,3 @@ class InfantryTypeClassExtension final : public Extension<InfantryTypeClass>
          */
         bool IsOmniHealer;
 };
-
-
-extern ExtensionMap<InfantryTypeClass, InfantryTypeClassExtension> InfantryTypeClassExtensions;

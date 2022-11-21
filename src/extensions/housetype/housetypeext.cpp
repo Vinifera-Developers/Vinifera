@@ -28,14 +28,9 @@
 #include "housetypeext.h"
 #include "housetype.h"
 #include "ccini.h"
+#include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
-
-
-/**
- *  Provides the map for all HouseTypeClass extension instances.
- */
-ExtensionMap<HouseTypeClass, HouseTypeClassExtension> HouseTypeClassExtensions;
 
 
 /**
@@ -43,14 +38,12 @@ ExtensionMap<HouseTypeClass, HouseTypeClassExtension> HouseTypeClassExtensions;
  *  
  *  @author: CCHyper
  */
-HouseTypeClassExtension::HouseTypeClassExtension(HouseTypeClass *this_ptr) :
-    Extension(this_ptr)
+HouseTypeClassExtension::HouseTypeClassExtension(const HouseTypeClass *this_ptr) :
+    AbstractTypeClassExtension(this_ptr)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("HouseTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("HouseTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //if (this_ptr) EXT_DEBUG_TRACE("HouseTypeClassExtension::HouseTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    IsInitialized = true;
+    HouseTypeExtensions.Add(this);
 }
 
 
@@ -60,9 +53,9 @@ HouseTypeClassExtension::HouseTypeClassExtension(HouseTypeClass *this_ptr) :
  *  @author: CCHyper
  */
 HouseTypeClassExtension::HouseTypeClassExtension(const NoInitClass &noinit) :
-    Extension(noinit)
+    AbstractTypeClassExtension(noinit)
 {
-    IsInitialized = false;
+    //EXT_DEBUG_TRACE("HouseTypeClassExtension::HouseTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -73,10 +66,28 @@ HouseTypeClassExtension::HouseTypeClassExtension(const NoInitClass &noinit) :
  */
 HouseTypeClassExtension::~HouseTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("HouseTypeClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("HouseTypeClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("HouseTypeClassExtension::~HouseTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    IsInitialized = false;
+    HouseTypeExtensions.Delete(this);
+}
+
+
+/**
+ *  Retrieves the class identifier (CLSID) of the object.
+ *  
+ *  @author: CCHyper
+ */
+HRESULT HouseTypeClassExtension::GetClassID(CLSID *lpClassID)
+{
+    //EXT_DEBUG_TRACE("HouseTypeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    if (lpClassID == nullptr) {
+        return E_POINTER;
+    }
+
+    *lpClassID = __uuidof(this);
+
+    return S_OK;
 }
 
 
@@ -87,10 +98,9 @@ HouseTypeClassExtension::~HouseTypeClassExtension()
  */
 HRESULT HouseTypeClassExtension::Load(IStream *pStm)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("HouseTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("HouseTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Load(pStm);
+    HRESULT hr = AbstractTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
@@ -108,10 +118,9 @@ HRESULT HouseTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT HouseTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("HouseTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("HouseTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Save(pStm, fClearDirty);
+    HRESULT hr = AbstractTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
     }
@@ -127,8 +136,7 @@ HRESULT HouseTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int HouseTypeClassExtension::Size_Of() const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("HouseTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("HouseTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -141,8 +149,7 @@ int HouseTypeClassExtension::Size_Of() const
  */
 void HouseTypeClassExtension::Detach(TARGET target, bool all)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("HouseTypeClassExtension::Detach - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("HouseTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -153,8 +160,7 @@ void HouseTypeClassExtension::Detach(TARGET target, bool all)
  */
 void HouseTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("HouseTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("HouseTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -165,11 +171,13 @@ void HouseTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
  */
 bool HouseTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("HouseTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    EXT_DEBUG_WARNING("HouseTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("HouseTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    const char *ini_name = ThisPtr->Name();
+    if (!AbstractTypeClassExtension::Read_INI(ini)) {
+        return false;
+    }
+
+    const char *ini_name = Name();
 
     if (!ini.Is_Present(ini_name)) {
         return false;

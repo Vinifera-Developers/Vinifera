@@ -27,27 +27,40 @@
  ******************************************************************************/
 #pragma once
 
-#include "extension.h"
-#include "container.h"
+#include "objectext.h"
 #include "terrain.h"
 
 
 class LightSourceClass;
 
 
-class TerrainClassExtension final : public Extension<TerrainClass>
+class DECLSPEC_UUID(UUID_TERRAIN_EXTENSION)
+TerrainClassExtension final : public ObjectClassExtension
 {
     public:
-        TerrainClassExtension(TerrainClass *this_ptr);
+        /**
+         *  IPersist
+         */
+        IFACEMETHOD(GetClassID)(CLSID *pClassID);
+
+        /**
+         *  IPersistStream
+         */
+        IFACEMETHOD(Load)(IStream *pStm);
+        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+
+    public:
+        TerrainClassExtension(const TerrainClass *this_ptr = nullptr);
         TerrainClassExtension(const NoInitClass &noinit);
-        ~TerrainClassExtension();
+        virtual ~TerrainClassExtension();
 
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
         virtual int Size_Of() const override;
-
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
+
+        virtual TerrainClass *This() const override { return reinterpret_cast<TerrainClass *>(ObjectClassExtension::This()); }
+        virtual const TerrainClass *This_Const() const override { return reinterpret_cast<const TerrainClass *>(ObjectClassExtension::This_Const()); }
+        virtual RTTIType What_Am_I() const override { return RTTI_TERRAIN; }
 
     public:
         /**
@@ -55,6 +68,3 @@ class TerrainClassExtension final : public Extension<TerrainClass>
          */
         LightSourceClass *LightSource;
 };
-
-
-extern ExtensionMap<TerrainClass, TerrainClassExtension> TerrainClassExtensions;

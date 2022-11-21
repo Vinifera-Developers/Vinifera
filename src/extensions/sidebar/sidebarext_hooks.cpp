@@ -35,6 +35,7 @@
 #include "spritecollection.h"
 #include "bsurface.h"
 #include "drawshape.h"
+#include "extension.h"
 #include "fatal.h"
 #include "asserthandler.h"
 #include "debughandler.h"
@@ -68,8 +69,8 @@ DECLARE_PATCH(_SidebarClass_StripClass_ObjectTypeClass_Custom_Cameo_Image_Patch)
     _SidebarClass_StripClass_obj = obj;
     _SidebarClass_StripClass_CustomImage = nullptr;
 
-    technotypeext = TechnoTypeClassExtensions.find(reinterpret_cast<const TechnoTypeClass *>(obj));
-    if (technotypeext && technotypeext->CameoImageSurface) {
+    technotypeext = Extension::Fetch<TechnoTypeClassExtension>(reinterpret_cast<const TechnoTypeClass *>(obj));
+    if (technotypeext->CameoImageSurface) {
         _SidebarClass_StripClass_CustomImage = technotypeext->CameoImageSurface;
     }
 
@@ -89,8 +90,8 @@ DECLARE_PATCH(_SidebarClass_StripClass_SuperWeaponType_Custom_Cameo_Image_Patch)
     _SidebarClass_StripClass_spc = supertype;
     _SidebarClass_StripClass_CustomImage = nullptr;
 
-    supertypeext = SuperWeaponTypeClassExtensions.find(supertype);
-    if (supertypeext && supertypeext->CameoImageSurface) {
+    supertypeext = Extension::Fetch<SuperWeaponTypeClassExtension>(supertype);
+    if (supertypeext->CameoImageSurface) {
         _SidebarClass_StripClass_CustomImage = supertypeext->CameoImageSurface;
     }
 

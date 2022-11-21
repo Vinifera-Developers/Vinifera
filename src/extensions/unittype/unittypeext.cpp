@@ -28,14 +28,10 @@
 #include "unittypeext.h"
 #include "unittype.h"
 #include "ccini.h"
+#include "tibsun_globals.h"
+#include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
-
-
-/**
- *  Provides the map for all UnitTypeClass extension instances.
- */
-ExtensionMap<UnitTypeClass, UnitTypeClassExtension> UnitTypeClassExtensions;
 
 
 /**
@@ -43,19 +39,17 @@ ExtensionMap<UnitTypeClass, UnitTypeClassExtension> UnitTypeClassExtensions;
  *  
  *  @author: CCHyper
  */
-UnitTypeClassExtension::UnitTypeClassExtension(UnitTypeClass *this_ptr) :
-    Extension(this_ptr),
+UnitTypeClassExtension::UnitTypeClassExtension(const UnitTypeClass *this_ptr) :
+    TechnoTypeClassExtension(this_ptr),
     IsTotable(true),
     StartTurretFrame(-1),
     TurretFacings(32),		// Must default to 32 as all Tiberian Sun units have 32 facings for turrets.,
     StartIdleFrame(0),
     IdleFrames(0)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("UnitTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("UnitTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //if (this_ptr) EXT_DEBUG_TRACE("UnitTypeClassExtension::UnitTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    IsInitialized = true;
+    UnitTypeExtensions.Add(this);
 }
 
 
@@ -65,9 +59,9 @@ UnitTypeClassExtension::UnitTypeClassExtension(UnitTypeClass *this_ptr) :
  *  @author: CCHyper
  */
 UnitTypeClassExtension::UnitTypeClassExtension(const NoInitClass &noinit) :
-    Extension(noinit)
+    TechnoTypeClassExtension(noinit)
 {
-    IsInitialized = false;
+    //EXT_DEBUG_TRACE("UnitTypeClassExtension::UnitTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -78,10 +72,28 @@ UnitTypeClassExtension::UnitTypeClassExtension(const NoInitClass &noinit) :
  */
 UnitTypeClassExtension::~UnitTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("UnitTypeClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("UnitTypeClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("UnitTypeClassExtension::~UnitTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    IsInitialized = false;
+    UnitTypeExtensions.Delete(this);
+}
+
+
+/**
+ *  Retrieves the class identifier (CLSID) of the object.
+ *  
+ *  @author: CCHyper
+ */
+HRESULT UnitTypeClassExtension::GetClassID(CLSID *lpClassID)
+{
+    //EXT_DEBUG_TRACE("UnitTypeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    if (lpClassID == nullptr) {
+        return E_POINTER;
+    }
+
+    *lpClassID = __uuidof(this);
+
+    return S_OK;
 }
 
 
@@ -92,10 +104,9 @@ UnitTypeClassExtension::~UnitTypeClassExtension()
  */
 HRESULT UnitTypeClassExtension::Load(IStream *pStm)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("UnitTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("UnitTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Load(pStm);
+    HRESULT hr = TechnoTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
@@ -113,10 +124,9 @@ HRESULT UnitTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT UnitTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("UnitTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("UnitTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Save(pStm, fClearDirty);
+    HRESULT hr = TechnoTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
     }
@@ -132,8 +142,7 @@ HRESULT UnitTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int UnitTypeClassExtension::Size_Of() const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("UnitTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("UnitTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -146,8 +155,7 @@ int UnitTypeClassExtension::Size_Of() const
  */
 void UnitTypeClassExtension::Detach(TARGET target, bool all)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("UnitTypeClassExtension::Detach - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("UnitTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -158,8 +166,7 @@ void UnitTypeClassExtension::Detach(TARGET target, bool all)
  */
 void UnitTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("UnitTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("UnitTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -170,17 +177,14 @@ void UnitTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
  */
 bool UnitTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("UnitTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    EXT_DEBUG_WARNING("UnitTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("UnitTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    const char *ini_name = ThisPtr->Name();
-
-    if (!ini.Is_Present(ini_name)) {
+    if (!TechnoTypeClassExtension::Read_INI(ini)) {
         return false;
     }
 
-    const char *graphic_name = ThisPtr->Graphic_Name();
+    const char *ini_name = Name();
+    const char *graphic_name = This()->Graphic_Name();
     
     //if (!ArtINI.Is_Present(graphic_name)) {
     //    return false;
@@ -194,8 +198,8 @@ bool UnitTypeClassExtension::Read_INI(CCINIClass &ini)
     /**
      *  Set the defaults to walk frames (this ensures IdleRate by itself works as expected).
      */
-    StartIdleFrame = ThisPtr->StartWalkFrame;
-    IdleFrames = ThisPtr->WalkFrames;
+    StartIdleFrame = This()->StartWalkFrame;
+    IdleFrames = This()->WalkFrames;
 
     StartIdleFrame = ArtINI.Get_Int(graphic_name, "StartIdleFrame", StartIdleFrame);
     IdleFrames = ArtINI.Get_Int(graphic_name, "IdleFrames", IdleFrames);

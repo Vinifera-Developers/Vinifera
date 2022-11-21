@@ -30,9 +30,13 @@
 #include "campaign.h"
 #include "campaignext.h"
 #include "addon.h"
+#include "extension.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+
+#include "hooker.h"
+#include "hooker_macros.h"
 
 
 /**
@@ -48,17 +52,15 @@ DECLARE_PATCH(_Choose_Campaign_Debug_Only_Patch)
     GET_REGISTER_STATIC(int, index, edi);
     static CampaignClassExtension *campaignext;
 
-    campaignext = CampaignClassExtensions.find(campaign);
+    campaignext = Extension::Fetch<CampaignClassExtension>(campaign);
 
     /**
      *  Is this a debug campaign? Make sure the developer mode is enabled
      *  first before allowing it to continue availability checks.
      */
-    if (campaignext) {
-        if (campaignext->IsDebugOnly && !Vinifera_DeveloperMode) {
-            DEBUG_INFO("  Skipping Debug-Only Campaign [%d] - %s\n", index, campaign->Description);
-            goto skip_no_print;
-        }
+    if (campaignext->IsDebugOnly && !Vinifera_DeveloperMode) {
+        DEBUG_INFO("  Skipping Debug-Only Campaign [%d] - %s\n", index, campaign->Description);
+        goto skip_no_print;
     }
     
     /**

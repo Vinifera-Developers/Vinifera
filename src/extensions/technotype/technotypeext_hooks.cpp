@@ -26,7 +26,6 @@
  *
  ******************************************************************************/
 #include "technotypeext_hooks.h"
-#include "technotypeext_init.h"
 #include "technotypeext.h"
 #include "technotype.h"
 #include "fatal.h"
@@ -39,8 +38,4 @@
  */
 void TechnoTypeClassExtension_Hooks()
 {
-    /**
-     *  Initialises the extended class.
-     */
-    TechnoTypeClassExtension_Init();
 }

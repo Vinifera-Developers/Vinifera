@@ -30,6 +30,7 @@
 #include "technoext.h"
 #include "technotype.h"
 #include "technotypeext.h"
+#include "extension.h"
 #include "fatal.h"
 #include "asserthandler.h"
 #include "debughandler.h"
@@ -51,12 +52,12 @@ DECLARE_PATCH(_FootClass_Mission_Move_Can_Passive_Acquire_Patch)
     GET_REGISTER_STATIC(FootClass *, this_ptr, esi);
     static TechnoClassExtension *technoclassext;
 
-    technoclassext = TechnoClassExtensions.find(this_ptr);
+    technoclassext = Extension::Fetch<TechnoClassExtension>(this_ptr);
 
     /**
      *  Can this unit passively acquire new targets?
      */
-    if (technoclassext && !technoclassext->Can_Passive_Acquire()) {
+    if (!technoclassext->Can_Passive_Acquire()) {
         goto finish_mission_process;
     }
 
@@ -82,12 +83,12 @@ DECLARE_PATCH(_FootClass_Mission_Guard_Can_Passive_Acquire_Patch)
     GET_REGISTER_STATIC(FootClass *, this_ptr, esi);
     static TechnoClassExtension *technoclassext;
 
-    technoclassext = TechnoClassExtensions.find(this_ptr);
+    technoclassext = Extension::Fetch<TechnoClassExtension>(this_ptr);
 
     /**
      *  Can this unit passively acquire new targets?
      */
-    if (technoclassext && !technoclassext->Can_Passive_Acquire()) {
+    if (!technoclassext->Can_Passive_Acquire()) {
         goto continue_check;
     }
 
@@ -119,12 +120,12 @@ DECLARE_PATCH(_FootClass_Mission_Guard_Area_Can_Passive_Acquire_Patch)
     GET_REGISTER_STATIC(FootClass *, this_ptr, esi);
     static TechnoClassExtension *technoclassext;
 
-    technoclassext = TechnoClassExtensions.find(this_ptr);
+    technoclassext = Extension::Fetch<TechnoClassExtension>(this_ptr);
 
     /**
      *  Can this unit passively acquire new targets?
      */
-    if (technoclassext && !technoclassext->Can_Passive_Acquire()) {
+    if (!technoclassext->Can_Passive_Acquire()) {
         goto tarcom_check;
     }
 
@@ -152,7 +153,7 @@ DECLARE_PATCH(_FootClass_AI_IdleRate_Patch)
     GET_REGISTER_STATIC(ILocomotion *, loco, edi);
     static TechnoTypeClassExtension *technotypeext;
 
-    technotypeext = TechnoTypeClassExtensions.find(this_ptr->Techno_Type_Class());
+    technotypeext = Extension::Fetch<TechnoTypeClassExtension>(this_ptr->Techno_Type_Class());
 
     /**
      *  Stolen bytes/code.
@@ -165,11 +166,9 @@ DECLARE_PATCH(_FootClass_AI_IdleRate_Patch)
     /**
      *  Otherwise, if the object is not currently moving, check to see if its time to update its idle frame.
      */
-    } else if (technotypeext) {
-        if (technotypeext->IdleRate > 0) {
-            if (!Locomotion_Is_Moving_Now(this_ptr) && !(Frame % technotypeext->IdleRate)) {
-                ++this_ptr->TotalFramesWalked;
-            }
+    } else if (technotypeext->IdleRate > 0) {
+        if (!Locomotion_Is_Moving_Now(this_ptr) && !(Frame % technotypeext->IdleRate)) {
+            ++this_ptr->TotalFramesWalked;
         }
     }
 

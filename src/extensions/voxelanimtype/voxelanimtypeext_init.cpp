@@ -30,9 +30,14 @@
 #include "voxelanimtype.h"
 #include "tibsun_globals.h"
 #include "vinifera_util.h"
+#include "vinifera_globals.h"
+#include "extension.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+
+#include "hooker.h"
+#include "hooker_macros.h"
 
 
 /**
@@ -46,22 +51,19 @@ DECLARE_PATCH(_VoxelAnimTypeClass_Constructor_Patch)
 {
     GET_REGISTER_STATIC(VoxelAnimTypeClass *, this_ptr, esi); // "this" pointer.
     GET_STACK_STATIC(const char *, ini_name, esp, 0xC); // ini name.
-    static VoxelAnimTypeClassExtension *exttype_ptr;
-
-    //EXT_DEBUG_WARNING("Creating VoxelAnimTypeClassExtension instance for \"%s\".\n", ini_name);
 
     /**
-     *  Find existing or create an extended class instance.
+     *  If we are performing a load operation, the Windows API will invoke the
+     *  constructors for us as part of the operation, so we can skip our hook here.
      */
-    exttype_ptr = VoxelAnimTypeClassExtensions.find_or_create(this_ptr);
-    if (!exttype_ptr) {
-        DEBUG_ERROR("Failed to create VoxelAnimTypeClassExtension instance for \"%s\"!\n", ini_name);
-        ShowCursor(TRUE);
-        MessageBoxA(MainWindow, "Failed to create VoxelAnimTypeClassExtension instance!\n", "Vinifera", MB_OK|MB_ICONEXCLAMATION);
-        Vinifera_Generate_Mini_Dump();
-        Fatal("Failed to create VoxelAnimTypeClassExtension instance!\n");
-        goto original_code; // Keep this for clean code analysis.
+    if (Vinifera_PerformingLoad) {
+        goto original_code;
     }
+
+    /**
+     *  Create an extended class instance.
+     */
+    Extension::Make<VoxelAnimTypeClassExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
@@ -70,28 +72,6 @@ original_code:
     _asm { mov eax, this_ptr }
     _asm { pop esi }
     _asm { pop ebx }
-    _asm { ret 4 }
-}
-
-
-/**
- *  Patch for including the extended class members in the noinit creation process.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_VoxelAnimTypeClass_NoInit_Constructor_Patch)
-{
-    GET_REGISTER_STATIC(VoxelAnimTypeClass *, this_ptr, esi);
-    GET_STACK_STATIC(const NoInitClass *, noinit_ptr, esp, 0x4);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop esi }
     _asm { ret 4 }
 }
 
@@ -110,15 +90,14 @@ DECLARE_PATCH(_VoxelAnimTypeClass_Destructor_Patch)
     /**
      *  Remove the extended class from the global index.
      */
-    VoxelAnimTypeClassExtensions.remove(this_ptr);
+    Extension::Destroy<VoxelAnimTypeClassExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
      */
 original_code:
-    _asm { pop esi }
-    _asm { pop ecx }
-    _asm { ret }
+    _asm { mov edx, ds:0x007E46F0 } // VoxelAnimTypes.vtble
+    JMP_REG(eax, 0x0065F5F7);
 }
 
 
@@ -136,127 +115,14 @@ DECLARE_PATCH(_VoxelAnimTypeClass_Scalar_Destructor_Patch)
     /**
      *  Remove the extended class from the global index.
      */
-    VoxelAnimTypeClassExtensions.remove(this_ptr);
+    Extension::Destroy<VoxelAnimTypeClassExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
      */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop esi }
-    _asm { pop ecx }
-    _asm { ret 4 }
-}
-
-
-/**
- *  Patch for including the extended class members to the base class detach process.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_VoxelAnimTypeClass_Detach_Patch)
-{
-    GET_REGISTER_STATIC(VoxelAnimTypeClass *, this_ptr, ecx);
-    GET_STACK_STATIC(TARGET, target, esp, 0x4);
-    GET_STACK_STATIC8(bool, all, esp, 0x8);
-    static VoxelAnimTypeClassExtension *exttype_ptr;
-
-    /**
-     *  Find the extension instance.
-     */
-    exttype_ptr = VoxelAnimTypeClassExtensions.find(this_ptr, false);
-    if (!exttype_ptr) {
-        goto original_code;
-    }
-
-    /**
-     *  Read type class detach.
-     */
-    exttype_ptr->Detach(target, all);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { ret 8 }
-}
-
-
-/**
- *  Patch for including the extended class members when computing a unique crc value for this instance.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_VoxelAnimTypeClass_Compute_CRC_Patch)
-{
-    GET_REGISTER_STATIC(VoxelAnimTypeClass *, this_ptr, esi);
-    GET_STACK_STATIC(WWCRCEngine *, crc, esp, 0xC);
-    static VoxelAnimTypeClassExtension *exttype_ptr;
-
-    /**
-     *  Find the extension instance.
-     */
-    exttype_ptr = VoxelAnimTypeClassExtensions.find(this_ptr);
-    if (!exttype_ptr) {
-        goto original_code;
-    }
-
-    /**
-     *  Read type class compute crc.
-     */
-    exttype_ptr->Compute_CRC(*crc);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { ret 4 }
-}
-
-
-/**
- *  Patch for reading the extended class members from the ini instance.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_VoxelAnimTypeClass_Read_INI_Patch)
-{
-    GET_REGISTER_STATIC(VoxelAnimTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(CCINIClass *, ini, ebx);
-    static VoxelAnimTypeClassExtension *exttype_ptr;
-
-    /**
-     *  Find the extension instance.
-     */
-    exttype_ptr = VoxelAnimTypeClassExtensions.find(this_ptr);
-    if (!exttype_ptr) {
-        goto original_code;
-    }
-
-    /**
-     *  Read type class ini.
-     */
-    exttype_ptr->Read_INI(*ini);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { mov al, 1 }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebx }
-    _asm { mov esp, ebp }
-    _asm { pop ebp }
-    _asm { ret 4 }
+    _asm { mov edx, ds:0x007E46F0 } // VoxelAnimTypes.vtble
+    JMP_REG(eax, 0x006600E7);
 }
 
 
@@ -266,14 +132,6 @@ original_code:
 void VoxelAnimTypeClassExtension_Init()
 {
     Patch_Jump(0x0065F584, &_VoxelAnimTypeClass_Constructor_Patch);
-    //Patch_Jump(0x, &_VoxelAnimTypeClass_NoInit_Constructor_Patch);
-    //Patch_Jump(0x0065F653, &_VoxelAnimTypeClass_Destructor_Patch); // Destructor is actually inlined in scalar destructor!
-    Patch_Jump(0x00660153, &_VoxelAnimTypeClass_Scalar_Destructor_Patch);
-    Patch_Jump(0x0065FFA0, &_VoxelAnimTypeClass_Detach_Patch);
-    Patch_Jump(0x0065FE22, &_VoxelAnimTypeClass_Compute_CRC_Patch);
-    Patch_Jump(0x0065FB54, &_VoxelAnimTypeClass_Read_INI_Patch);
-    Patch_Jump(0x0065FB76, &_VoxelAnimTypeClass_Read_INI_Patch);
-    Patch_Jump(0x0065FB9F, &_VoxelAnimTypeClass_Read_INI_Patch);
-    Patch_Jump(0x0065FBB0, &_VoxelAnimTypeClass_Read_INI_Patch);
-    Patch_Jump(0x0065FC53, &_VoxelAnimTypeClass_Read_INI_Patch);
+    //Patch_Jump(0x0065F5F1, &_VoxelAnimTypeClass_Destructor_Patch); // Destructor is actually inlined in scalar destructor!
+    Patch_Jump(0x006600E1, &_VoxelAnimTypeClass_Scalar_Destructor_Patch);
 }

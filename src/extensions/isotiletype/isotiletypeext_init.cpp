@@ -30,9 +30,14 @@
 #include "isotiletype.h"
 #include "tibsun_globals.h"
 #include "vinifera_util.h"
+#include "vinifera_globals.h"
+#include "extension.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+
+#include "hooker.h"
+#include "hooker_macros.h"
 
 
 /**
@@ -46,22 +51,22 @@ DECLARE_PATCH(_IsometricTileTypeClass_Constructor_Patch)
 {
     GET_REGISTER_STATIC(IsometricTileTypeClass *, this_ptr, ebp); // "this" pointer.
     GET_STACK_STATIC(const char *, ini_name, esp, 0x50); // ini name.
-    static IsometricTileTypeClassExtension *exttype_ptr;
 
-    //EXT_DEBUG_WARNING("Creating IsometricTileTypeClassExtension instance for \"%s\".\n", ini_name);
+    // IsoTileTypes's are not saved to file, so this case is not required.
+#if 0
+    /**
+     *  If we are performing a load operation, the Windows API will invoke the
+     *  constructors for us as part of the operation, so we can skip our hook here.
+     */
+    if (Vinifera_PerformingLoad) {
+        goto original_code;
+    }
+#endif
 
     /**
-     *  Find existing or create an extended class instance.
+     *  Create an extended class instance.
      */
-    exttype_ptr = IsometricTileTypeClassExtensions.find_or_create(this_ptr);
-    if (!exttype_ptr) {
-        DEBUG_ERROR("Failed to create IsometricTileTypeClassExtension instance for \"%s\"!\n", ini_name);
-        ShowCursor(TRUE);
-        MessageBoxA(MainWindow, "Failed to create IsometricTileTypeClassExtension instance!\n", "Vinifera", MB_OK|MB_ICONEXCLAMATION);
-        Vinifera_Generate_Mini_Dump();
-        Fatal("Failed to create IsometricTileTypeClassExtension instance!\n");
-        goto original_code; // Keep this for clean code analysis.
-    }
+    Extension::Make<IsometricTileTypeClassExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
@@ -73,28 +78,6 @@ original_code:
     _asm { pop ebx }
     _asm { add esp, 0x34 }
     _asm { ret 0x14 }
-}
-
-
-/**
- *  Patch for including the extended class members in the noinit creation process.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_IsometricTileTypeClass_NoInit_Constructor_Patch)
-{
-    GET_REGISTER_STATIC(IsometricTileTypeClass *, this_ptr, esi);
-    GET_STACK_STATIC(const NoInitClass *, noinit_ptr, esp, 0x4);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop esi }
-    _asm { ret 4 }
 }
 
 
@@ -112,87 +95,14 @@ DECLARE_PATCH(_IsometricTileTypeClass_Destructor_Patch)
     /**
      *  Remove the extended class from the global index.
      */
-    IsometricTileTypeClassExtensions.remove(this_ptr);
+    Extension::Destroy<IsometricTileTypeClassExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
      */
 original_code:
-    _asm { pop esi }
-    _asm { pop ebx }
-    _asm { pop ecx }
-    _asm { ret }
-}
-
-
-/**
- *  Patch for including the extended class members to the base class detach process.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_IsometricTileTypeClass_Detach_Patch)
-{
-    GET_REGISTER_STATIC(IsometricTileTypeClass *, this_ptr, esi);
-    GET_STACK_STATIC(TARGET, target, esp, 0x4);
-    GET_STACK_STATIC8(bool, all, esp, 0x8);
-    static IsometricTileTypeClassExtension *exttype_ptr;
-
-    /**
-     *  Find the extension instance.
-     */
-    exttype_ptr = IsometricTileTypeClassExtensions.find(this_ptr, false);
-    if (!exttype_ptr) {
-        goto original_code;
-    }
-
-    /**
-     *  Read type class detach.
-     */
-    exttype_ptr->Detach(target, all);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { ret 8 }
-}
-
-
-/**
- *  Patch for including the extended class members when computing a unique crc value for this instance.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_IsometricTileTypeClass_Compute_CRC_Patch)
-{
-    GET_REGISTER_STATIC(IsometricTileTypeClass *, this_ptr, esi);
-    GET_STACK_STATIC(WWCRCEngine *, crc, esp, 0xC);
-    static IsometricTileTypeClassExtension *exttype_ptr;
-
-    /**
-     *  Find the extension instance.
-     */
-    exttype_ptr = IsometricTileTypeClassExtensions.find(this_ptr);
-    if (!exttype_ptr) {
-        goto original_code;
-    }
-
-    /**
-     *  Read type class compute crc.
-     */
-    exttype_ptr->Compute_CRC(*crc);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { ret 4 }
+    _asm { mov edx, ds:0x0080F588 } // Neuron vector vtble
+    JMP_REG(eax, 0x004F33CC);
 }
 
 
@@ -244,12 +154,9 @@ DECLARE_PATCH(_IsometricTileTypeClass_Read_INI_Patch_1)
     _asm { mov [esp+0x20], ebp }
 
     /**
-     *  Find the extension instance.
+     *  Fetch the extension instance.
      */
-    exttype_ptr = IsometricTileTypeClassExtensions.find(this_ptr);
-    if (!exttype_ptr) {
-        goto original_code;
-    }
+    exttype_ptr = Extension::Fetch<IsometricTileTypeClassExtension>(this_ptr);
 
     /**
      *  Read type class ini.
@@ -293,12 +200,9 @@ DECLARE_PATCH(_IsometricTileTypeClass_Read_INI_Patch_2)
     _asm { mov [esp+0x20], ebp } // Must be before to retain stack.
 
     /**
-     *  Find the extension instance.
+     *  Fetch the extension instance.
      */
-    exttype_ptr = IsometricTileTypeClassExtensions.find(this_ptr);
-    if (!exttype_ptr) {
-        goto original_code;
-    }
+    exttype_ptr = Extension::Fetch<IsometricTileTypeClassExtension>(this_ptr);
 
     /**
      *  Read type class ini.
@@ -321,10 +225,7 @@ original_code:
 void IsometricTileTypeClassExtension_Init()
 {
     Patch_Jump(0x004F32C4, &_IsometricTileTypeClass_Constructor_Patch);
-    Patch_Jump(0x004F331F, &_IsometricTileTypeClass_NoInit_Constructor_Patch);
-    Patch_Jump(0x004F34A2, &_IsometricTileTypeClass_Destructor_Patch);
-    //Patch_Jump(0x004F872E, &_IsometricTileTypeClass_Detach_Patch);
-    Patch_Jump(0x004F85AA, &_IsometricTileTypeClass_Compute_CRC_Patch);
+    Patch_Jump(0x004F33C6, &_IsometricTileTypeClass_Destructor_Patch);
     Patch_Jump(0x004F55F2, &_IsometricTileTypeClass_Init_Patch);
     Patch_Jump(0x004F50AE, &_IsometricTileTypeClass_Read_INI_Patch_1);
     Patch_Jump(0x004F53E9, &_IsometricTileTypeClass_Read_INI_Patch_2);

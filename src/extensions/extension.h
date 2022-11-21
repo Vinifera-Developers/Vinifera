@@ -8,7 +8,7 @@
  *
  *  @author        CCHyper
  *
- *  @brief         Base class for declaring extended class instances.
+ *  @brief         The file contains the functions required for the extension system.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -28,219 +28,430 @@
 #pragma once
 
 #include "always.h"
-#include "tibsun_defines.h"
-#include "tibsun_globals.h"
+#include "vinifera_defines.h"
+#include "extension_globals.h"
+#include "abstract.h"
+#include "abstractext.h"
 #include "swizzle.h"
 #include "noinit.h"
 #include "debughandler.h"
+#include "asserthandler.h"
 
-/**
- *  Included here so all extended classes don't have to.
- */
-#include "hooker.h"
-#include "hooker_macros.h"
-
-#include <unknwn.h> // for IStream.
+#include <unknwn.h> // for IStream
+#include <typeinfo>
+#include <string>
 
 
+class EventClass;
 class WWCRCEngine;
 
 
+namespace Extension
+{
+
 /**
- *  For printing out extension debug info.
+ *  Do not call these directly! Use the template functions below.
  */
-#ifndef NDEBUG
-#define EXT_DEBUG_SAY(x, ...) DEV_DEBUG_SAY(x, ##__VA_ARGS__)
-#define EXT_DEBUG_INFO(x, ...) DEV_DEBUG_INFO(x, ##__VA_ARGS__)
-#define EXT_DEBUG_WARNING(x, ...) DEV_DEBUG_WARNING(x, ##__VA_ARGS__)
-#define EXT_DEBUG_ERROR(x, ...) DEV_DEBUG_ERROR(x, ##__VA_ARGS__)
-#define EXT_DEBUG_FATAL(x, ...) DEV_DEBUG_FATAL(x, ##__VA_ARGS__)
-#define EXT_DEBUG_TRACE(x, ...) DEV_DEBUG_TRACE(x, ##__VA_ARGS__)
-#else
-#define EXT_DEBUG_SAY(x, ...) ((void)0)
-#define EXT_DEBUG_INFO(x, ...) ((void)0)
-#define EXT_DEBUG_WARNING(x, ...) ((void)0)
-#define EXT_DEBUG_ERROR(x, ...) ((void)0)
-#define EXT_DEBUG_FATAL(x, ...) ((void)0)
-#define EXT_DEBUG_TRACE(x, ...) ((void)0)
-#endif
+namespace Private
+{
+
+AbstractClassExtension *Make_Internal(const AbstractClass *abstract);
+bool Destroy_Internal(const AbstractClass *abstract);
+AbstractClassExtension *Fetch_Internal(const AbstractClass *abstract);
+
+}; // namespace "Extension::Private".
+
+namespace Utility
+{
+
+/**
+ *  Erase First Occurrence of given substring from main string.
+ * 
+ *  @author: CCHyper
+ */
+inline void Erase_Sub_String(std::string &str, const std::string &erase)
+{
+    /**
+     *  Search for the substring in string.
+     */
+    size_t pos = str.find(erase);
+    if (pos != std::string::npos) {
+
+        /**
+         *  If found then erase it from string.
+         */
+        str.erase(pos, erase.length());
+    }
+}
+
+/**
+ *  Wrapper for "typeid(T).name()", removes the "class" or "struct" prefix on the string.
+ * 
+ *  @author: CCHyper
+ */
+template<typename T>
+std::string Get_TypeID_Name()
+{
+    std::string str = typeid(T).name();
+    Erase_Sub_String(str, "class ");
+    Erase_Sub_String(str, "struct ");
+    return str;
+}
+
+static std::string Get_TypeID_Name(const AbstractClass *abstract)
+{
+    std::string str = typeid(*abstract).name();
+    Erase_Sub_String(str, "class ");
+    return str;
+}
+
+static std::string Get_TypeID_Name(const AbstractClassExtension *abstract_ext)
+{
+    std::string str = typeid(*abstract_ext).name();
+    Erase_Sub_String(str, "class ");
+    return str;
+}
+
+}; // namespace "Extension::Utility"
+
+namespace Singleton
+{
+
+/**
+ *  Create an isntance of the singleton class.
+ * 
+ *  @author: CCHyper
+ */
+template<class BASE_CLASS, class EXT_CLASS>
+EXT_CLASS *Make(const BASE_CLASS *base)
+{
+    ASSERT(base != nullptr);
+
+    EXT_CLASS *ext_ptr = new EXT_CLASS(base);
+    ASSERT(ext_ptr != nullptr);
+
+    EXT_DEBUG_INFO("Created \"%s\" extension.\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str());
+
+    return ext_ptr;
+}
+
+/**
+ *  Destroy an instance of the singleton class.
+ * 
+ *  @author: CCHyper
+ */
+template<class BASE_CLASS, class EXT_CLASS>
+void Destroy(const EXT_CLASS *ext)
+{
+    ASSERT(ext != nullptr);
+
+    delete ext;
+
+    EXT_DEBUG_INFO("Destroyed \"%s\" extension.\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str());
+}
+
+}; // namespace "Extension::Singleton".
+
+namespace List
+{
+
+/**
+ *  Fetch an extension instance from a list whose extension pointer points to the base class.
+ * 
+ *  @author: CCHyper
+ */
+template<class BASE_CLASS, class EXT_CLASS>
+EXT_CLASS *Fetch(const BASE_CLASS *base, DynamicVectorClass<EXT_CLASS *> &list)
+{
+    ASSERT(base != nullptr);
+
+    for (int index = 0; index < list.Count(); ++index) {
+        EXT_CLASS * ext = list[index];
+        if (list[index]->This() == base) {
+            EXT_DEBUG_INFO("Found \"%s\" extension.\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str());
+            return ext;
+        }
+    }
+
+    return nullptr;
+}
+
+/**
+ *  Creation an instance of the extension class and add it to the list.
+ * 
+ *  @author: CCHyper
+ */
+template<class BASE_CLASS, class EXT_CLASS>
+EXT_CLASS *Make(const BASE_CLASS *base, DynamicVectorClass<EXT_CLASS *> &list)
+{
+    ASSERT(base != nullptr);
+
+    EXT_CLASS *ext_ptr = new EXT_CLASS(base);
+    ASSERT(ext_ptr != nullptr);
+
+    EXT_DEBUG_INFO("Created \"%s\" extension.\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str());
+
+    list.Add(ext_ptr);
+
+    return ext_ptr;
+}
+
+/**
+ *  Destroy an instance of the extension and remove it from the list.
+ * 
+ *  @author: CCHyper
+ */
+template<class BASE_CLASS, class EXT_CLASS>
+void Destroy(const BASE_CLASS *base, DynamicVectorClass<EXT_CLASS *> &list)
+{
+    ASSERT(base != nullptr);
+
+    for (int index = 0; index < list.Count(); ++index) {
+        EXT_CLASS * ext = list[index].This();
+        if (ext->This() == base) {
+            EXT_DEBUG_INFO("Found \"%s\" extension.\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str());
+            delete ext;
+            return;
+        }
+    }
+
+    EXT_DEBUG_INFO("Destroyed \"%s\" extension.\n", Extension::Utility::Get_TypeID_Name<BASE_CLASS>().c_str());
+}
+
+}; // namespace "Extension::List".
+
+/**
+ *  Fetch the extension instance linked to this abstract object. 
+ * 
+ *  @author: CCHyper
+ */
+template<class EXT_CLASS>
+EXT_CLASS *Fetch(const AbstractClass *abstract)
+{
+    ASSERT(abstract != nullptr);
+
+    return (EXT_CLASS *)Extension::Private::Fetch_Internal(abstract);
+}
+
+/**
+ *  Create an instance of the extension class and link it to the abstract object.
+ * 
+ *  @author: CCHyper
+ */
+template<class EXT_CLASS>
+EXT_CLASS *Make(const AbstractClass *abstract)
+{
+    ASSERT(abstract != nullptr);
+
+    return (EXT_CLASS *)Extension::Private::Make_Internal(abstract);
+}
+
+/**
+ *  Destory an instance of the extension class linked to this abstract object.
+ * 
+ *  @author: CCHyper
+ */
+template<class EXT_CLASS>
+void Destroy(const AbstractClass *abstract)
+{
+    ASSERT(abstract != nullptr);
+
+    Extension::Private::Destroy_Internal(abstract);
+}
+
+/**
+ *  Save and load interface.
+ */
+bool Save(IStream *pStm);
+bool Load(IStream *pStm);
+bool Request_Pointer_Remap();
+unsigned Get_Save_Version_Number();
+
+/**
+ *  Tracking, announcement, and debugging functions.
+ */
+void Detach_This_From_All(TARGET target, bool all = true);
+bool Register_Class_Factories();
+void Free_Heaps();
+void Print_CRCs(EventClass *ev);
+void Print_CRCs(FILE *fp, EventClass *ev);
+
+}; // namespace "Extension".
 
 
 /**
- *  The base class for the extension class which implements save/load.
+ * 
+ *  Base class for all global extension classes.
+ * 
  */
-class ExtensionBase
+template<class T>
+class GlobalExtensionClass
 {
     public:
-        ExtensionBase() :
-            IsDirty(false)
-        {
-        }
+        STDMETHOD(Load)(IStream *pStm);
+        STDMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
 
-        ExtensionBase(const NoInitClass &noinit)
-        {
-        }
-
-        virtual ~ExtensionBase()
-        {
-        }
-
-        /**
-         *  Initializes an object from the stream where it was saved previously.
-         */
-        virtual HRESULT Load(IStream *pStm);
-
-        /**
-         *  Saves an object to the specified stream.
-         */
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty);
+    public:
+        GlobalExtensionClass(const T *this_ptr = nullptr);
+        GlobalExtensionClass(const NoInitClass &noinit);
+        virtual ~GlobalExtensionClass();
 
         /**
          *  Return the raw size of class data for save/load purposes.
          *  
          *  @note: This must be overridden by the extended class!
          */
-        virtual int Size_Of() const { return -1; }
+        virtual int Size_Of() const = 0;
+
+        /**
+         *  Removes the specified target from any targeting and reference trackers.
+         *  
+         *  @note: This must be overridden by the extended class!
+         */
+        virtual void Detach(TARGET target, bool all = true) = 0;
+
+        /**
+         *  Compute a unique crc value for this instance.
+         *  
+         *  @note: This must be overridden by the extended class!
+         */
+        virtual void Compute_CRC(WWCRCEngine &crc) const = 0;
+
+        /**
+         *  Access to the class instance we extend.
+         */
+        virtual T *This() const { return const_cast<T *>(ThisPtr); }
+        virtual const T *This_Const() const { return ThisPtr; }
+
+        /**
+         *  Assign the class instance that we extend.
+         */
+        virtual void Assign_This(const T *this_ptr) { ASSERT(this_ptr != nullptr); ThisPtr = this_ptr; }
+
+        /**
+         *  Returns the name of this object type.
+         *  
+         *  @note: This must be overridden by the extended class!
+         */
+        virtual const char *Name() const = 0;
+
+        /**
+         *  Returns the full name of this object type.
+         *  
+         *  @note: This must be overridden by the extended class!
+         */
+        virtual const char *Full_Name() const = 0;
 
     private:
         /**
-         *  Has the object changed since the last save?
+         *  Pointer to the class we are extending. This provides us with a way of
+         *  quickly referencing the base class without doing a look-up each time.
          */
-        bool IsDirty;
+        const T *ThisPtr;
+
+    private:
+        GlobalExtensionClass(const GlobalExtensionClass &) = delete;
+        void operator = (const GlobalExtensionClass &) = delete;
+
+    public:
 };
 
 
 /**
- *  This is the main base class for all class extensions.
+ *  Class constructor
+ * 
+ *  @author: CCHyper
  */
 template<class T>
-class Extension : public ExtensionBase
+GlobalExtensionClass<T>::GlobalExtensionClass(const T *this_ptr) :
+    ThisPtr(this_ptr)
 {
-    public:
-        Extension(T *this_ptr) :
-            ExtensionBase(),
-            IsInitialized(false),
-            ThisPtr(this_ptr)
-        {
-        }
+    //if (this_ptr) EXT_DEBUG_TRACE("GlobalExtensionClass<%s>::GlobalExtensionClass - 0x%08X\n", typeid(T).name(), (uintptr_t)(ThisPtr));
+    //ASSERT(ThisPtr != nullptr);      // NULL ThisPtr is valid when performing a Load state operation.
+}
 
-        Extension(const NoInitClass &noinit) :
-            ExtensionBase(noinit)
-        {
-        }
 
-        virtual ~Extension()
-        {
-            IsInitialized = false;
-            ThisPtr = nullptr;
-        }
+/**
+ *  Class no-init constructor.
+ * 
+ *  @author: CCHyper
+ */
+template<class T>
+GlobalExtensionClass<T>::GlobalExtensionClass(const NoInitClass &noinit)
+{
+    //EXT_DEBUG_TRACE("GlobalExtensionClass<%s>::GlobalExtensionClass(NoInitClass) - 0x%08X\n", typeid(T).name(), (uintptr_t)(ThisPtr));
+}
 
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
 
-        /**
-         *  Removes the specified target from any targeting and reference trackers.
-         */
-        virtual void Detach(TARGET target, bool all = true) {}
+/**
+ *  Class destructor
+ * 
+ *  @author: CCHyper
+ */
+template<class T>
+GlobalExtensionClass<T>::~GlobalExtensionClass()
+{
+    //EXT_DEBUG_TRACE("GlobalExtensionClass<%s>::~GlobalExtensionClass - 0x%08X\n", typeid(T).name(), (uintptr_t)(ThisPtr));
 
-        /**
-         *  Compute a unique crc value for this instance.
-         */
-        virtual void Compute_CRC(WWCRCEngine &crc) const {}
-
-    protected:
-        /**
-         *  Is this instance extended and valid?
-         */
-        bool IsInitialized;
-
-    public:
-        /**
-         *  Pointer to the class we are extending.
-         */
-        T *ThisPtr;
-
-    private:
-        Extension(const Extension &) = delete;
-        void operator = (const Extension &) = delete;
-};
+    ThisPtr = nullptr;
+}
 
 
 /**
  *  Loads the object from the stream and requests a new pointer to
  *  the class we extended post-load.
  * 
- *  @author: CCHyper
+ *  As singleton is static data, we do not need to request
+ *  pointer remap of "ThisPtr" after loading has finished.
+ * 
+ *  @author: CCHyper, tomsons26
  */
 template<class T>
-HRESULT Extension<T>::Load(IStream *pStm)
+HRESULT GlobalExtensionClass<T>::Load(IStream *pStm)
 {
-    HRESULT hr = ExtensionBase::Load(pStm);
-    if (FAILED(hr)) {
-        return E_FAIL;
+    //EXT_DEBUG_TRACE("GlobalExtensionClass<%s>::Load - 0x%08X\n", typeid(T).name(), (uintptr_t)(ThisPtr));
+
+    if (!pStm) {
+        return E_POINTER;
     }
 
-    LONG id;
-    hr = pStm->Read(&id, sizeof(id), nullptr);
-    if (FAILED(hr)) {
-        return E_FAIL;
-    }
-
-    ULONG size = Size_Of();
-    hr = pStm->Read(this, size, nullptr);
-    if (FAILED(hr)) {
-        return E_FAIL;
-    }
-
-    new (this) Extension(NoInitClass());
+    HRESULT hr;
 
     /**
-     *  Announce ourself to the swizzle manager.
+     *  Read this classes binary blob data directly into this instance.
      */
-    SWIZZLE_REGISTER_POINTER(id, this);
+    hr = pStm->Read(this, Size_Of(), nullptr);
+    if (FAILED(hr)) {
+        return hr;
+    }
 
-    /**
-     *  Request the pointer to the base class be remapped.
-     */
-    SWIZZLE_REQUEST_POINTER_REMAP(ThisPtr);
-
-#ifndef NDEBUG
-    EXT_DEBUG_INFO("Ext Load: ID 0x%08X Ptr 0x%08X ThisPtr 0x%08X\n", id, this, ThisPtr);
-#endif
-
-    return S_OK;
+    return hr;
 }
 
 
 /**
  *  Saves the object to the stream.
  * 
- *  @author: CCHyper
+ *  @author: CCHyper, tomsons26
  */
 template<class T>
-HRESULT Extension<T>::Save(IStream *pStm, BOOL fClearDirty)
+HRESULT GlobalExtensionClass<T>::Save(IStream *pStm, BOOL fClearDirty)
 {
-    HRESULT hr = ExtensionBase::Save(pStm, fClearDirty);
-    if (FAILED(hr)) {
-        return E_FAIL;
+    //EXT_DEBUG_TRACE("GlobalExtensionClass<%s>::Save - 0x%08X\n", typeid(T).name(), (uintptr_t)(ThisPtr));
+
+    if (!pStm) {
+        return E_POINTER;
     }
 
-    LONG id;
-    SWIZZLE_FETCH_POINTER_ID(this, &id);
-    hr = pStm->Write(&id, sizeof(id), nullptr);
-    if (FAILED(hr)) {
-        return E_FAIL;
-    }
-
-    ULONG size = Size_Of();
-    hr = pStm->Write(this, size, nullptr);
-    if (FAILED(hr)) {
-        return E_FAIL;
-    }
+    HRESULT hr;
     
-#ifndef NDEBUG
-    EXT_DEBUG_INFO("Ext Save: ID 0x%08X Ptr 0x%08X ThisPtr 0x%08X\n", id, this, ThisPtr);
-#endif
+    /**
+     *  Write this class instance as a binary blob.
+     */
+    hr = pStm->Write(this, Size_Of(), nullptr);
+    if (FAILED(hr)) {
+        return hr;
+    }
 
-    return S_OK;
+    return hr;
 }

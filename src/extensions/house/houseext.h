@@ -27,31 +27,41 @@
  ******************************************************************************/
 #pragma once
 
-#include "extension.h"
-#include "container.h"
+#include "abstractext.h"
+#include "house.h"
+#include "housetype.h"
 
 
-class HouseClass;
-class CCINIClass;
-
-
-class HouseClassExtension final : public Extension<HouseClass>
+class DECLSPEC_UUID(UUID_HOUSE_EXTENSION)
+HouseClassExtension final : public AbstractClassExtension
 {
     public:
-        HouseClassExtension(HouseClass *this_ptr);
+        /**
+         *  IPersist
+         */
+        IFACEMETHOD(GetClassID)(CLSID *pClassID);
+
+        /**
+         *  IPersistStream
+         */
+        IFACEMETHOD(Load)(IStream *pStm);
+        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+
+    public:
+        HouseClassExtension(const HouseClass *this_ptr = nullptr);
         HouseClassExtension(const NoInitClass &noinit);
-        ~HouseClassExtension();
+        virtual ~HouseClassExtension();
 
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
         virtual int Size_Of() const override;
-
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
+        virtual const char *Name() const override { return reinterpret_cast<const HouseClass *>(This())->Class->Name(); }
+        virtual const char *Full_Name() const override { return reinterpret_cast<const HouseClass *>(This())->Class->Full_Name(); }
+        
+        virtual HouseClass *This() const override { return reinterpret_cast<HouseClass *>(AbstractClassExtension::This()); }
+        virtual const HouseClass *This_Const() const override { return reinterpret_cast<const HouseClass *>(AbstractClassExtension::This_Const()); }
+        virtual RTTIType What_Am_I() const override { return RTTI_HOUSE; }
+
     public:
-
 };
-
-
-extern ExtensionMap<HouseClass, HouseClassExtension> HouseClassExtensions;

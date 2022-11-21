@@ -28,10 +28,16 @@
 #include "waveext.h"
 #include "wave.h"
 #include "techno.h"
+#include "tibsun_globals.h"
+#include "vinifera_util.h"
+#include "vinifera_globals.h"
+#include "extension.h"
 #include "fatal.h"
 #include "asserthandler.h"
 #include "debughandler.h"
-#include "vinifera_util.h"
+
+#include "hooker.h"
+#include "hooker_macros.h"
 
 
 #if 0
@@ -45,20 +51,19 @@
 DECLARE_PATCH(_WaveClass_Default_Constructor_Patch)
 {
     GET_REGISTER_STATIC(WaveClass *, this_ptr, esi); // Current "this" pointer.
-    static WaveClassExtension *ext_ptr;
 
     /**
-     *  Find existing or create an extended class instance.
+     *  If we are performing a load operation, the Windows API will invoke the
+     *  constructors for us as part of the operation, so we can skip our hook here.
      */
-    ext_ptr = WaveClassExtensions.find_or_create(this_ptr);
-    if (!ext_ptr) {
-        DEBUG_ERROR("Failed to create WaveClassExtension instance for 0x%08X!\n", (uintptr_t)this_ptr);
-        ShowCursor(TRUE);
-        MessageBoxA(MainWindow, "Failed to create WaveClassExtensions instance!\n", "Vinifera", MB_OK|MB_ICONEXCLAMATION);
-        Vinifera_Generate_Mini_Dump();
-        Fatal("Failed to create WaveClassExtensions instance!\n");
-        goto original_code; // Keep this for clean code analysis.
+    if (Vinifera_PerformingLoad) {
+        goto original_code;
     }
+
+    /**
+     *  Create an extended class instance.
+     */
+    Extension::Make<WaveClassExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
@@ -89,20 +94,19 @@ original_code:
 DECLARE_PATCH(_WaveClass_Default_Constructor_Before_Init_Patch)
 {
     GET_REGISTER_STATIC(WaveClass *, this_ptr, esi); // Current "this" pointer.
-    static WaveClassExtension *ext_ptr;
 
     /**
-     *  Find existing or create an extended class instance.
+     *  If we are performing a load operation, the Windows API will invoke the
+     *  constructors for us as part of the operation, so we can skip our hook here.
      */
-    ext_ptr = WaveClassExtensions.find_or_create(this_ptr);
-    if (!ext_ptr) {
-        DEBUG_ERROR("Failed to create WaveClassExtension instance for 0x%08X!\n", (uintptr_t)this_ptr);
-        ShowCursor(TRUE);
-        MessageBoxA(MainWindow, "Failed to create WaveClassExtensions instance!\n", "Vinifera", MB_OK|MB_ICONEXCLAMATION);
-        Vinifera_Generate_Mini_Dump();
-        Fatal("Failed to create WaveClassExtensions instance!\n");
-        goto original_code; // Keep this for clean code analysis.
+    if (Vinifera_PerformingLoad) {
+        goto original_code;
     }
+
+    /**
+     *  Create an extended class instance.
+     */
+    Extension::Make<WaveClassExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
@@ -126,20 +130,19 @@ original_code:
 DECLARE_PATCH(_WaveClass_Constructor_Patch)
 {
     GET_REGISTER_STATIC(WaveClass *, this_ptr, esi); // Current "this" pointer.
-    static WaveClassExtension *ext_ptr;
 
     /**
-     *  Find existing or create an extended class instance.
+     *  If we are performing a load operation, the Windows API will invoke the
+     *  constructors for us as part of the operation, so we can skip our hook here.
      */
-    ext_ptr = WaveClassExtensions.find_or_create(this_ptr);
-    if (!ext_ptr) {
-        DEBUG_ERROR("Failed to create WaveClassExtension instance for 0x%08X!\n", (uintptr_t)this_ptr);
-        ShowCursor(TRUE);
-        MessageBoxA(MainWindow, "Failed to create WaveClassExtensions instance!\n", "Vinifera", MB_OK|MB_ICONEXCLAMATION);
-        Vinifera_Generate_Mini_Dump();
-        Fatal("Failed to create WaveClassExtensions instance!\n");
-        goto original_code; // Keep this for clean code analysis.
+    if (Vinifera_PerformingLoad) {
+        goto original_code;
     }
+
+    /**
+     *  Create an extended class instance.
+     */
+    Extension::Make<WaveClassExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
@@ -169,20 +172,19 @@ original_code:
 DECLARE_PATCH(_WaveClass_Constructor_Before_Init_Patch)
 {
     GET_REGISTER_STATIC(WaveClass *, this_ptr, esi); // Current "this" pointer.
-    static WaveClassExtension *ext_ptr;
 
     /**
-     *  Find existing or create an extended class instance.
+     *  If we are performing a load operation, the Windows API will invoke the
+     *  constructors for us as part of the operation, so we can skip our hook here.
      */
-    ext_ptr = WaveClassExtensions.find_or_create(this_ptr);
-    if (!ext_ptr) {
-        DEBUG_ERROR("Failed to create WaveClassExtension instance for 0x%08X!\n", (uintptr_t)this_ptr);
-        ShowCursor(TRUE);
-        MessageBoxA(MainWindow, "Failed to create WaveClassExtensions instance!\n", "Vinifera", MB_OK|MB_ICONEXCLAMATION);
-        Vinifera_Generate_Mini_Dump();
-        Fatal("Failed to create WaveClassExtensions instance!\n");
-        goto original_code; // Keep this for clean code analysis.
+    if (Vinifera_PerformingLoad) {
+        goto original_code;
     }
+
+    /**
+     *  Create an extended class instance.
+     */
+    Extension::Make<WaveClassExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
@@ -209,16 +211,14 @@ DECLARE_PATCH(_WaveClass_Destructor_Patch)
     /**
      *  Remove the extended class from the global index.
      */
-    WaveClassExtensions.remove(this_ptr);
+    Extension::Destroy<WaveClassExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
      */
 original_code:
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ecx }
-    _asm { ret }
+    _asm { mov edx, ds:0x007E47E8 } // Waves.vtble
+    JMP_REG(eax, 0x006702DF);
 }
 
 
@@ -236,50 +236,14 @@ DECLARE_PATCH(_WaveClass_Scalar_Destructor_Patch)
     /**
      *  Remove the extended class from the global index.
      */
-    WaveClassExtensions.remove(this_ptr);
+    Extension::Destroy<WaveClassExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
      */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop edi }
-    _asm { pop ecx }
-    _asm { ret 4 }
-}
-
-
-/**
- *  Patch for including the extended class members to the base class detach process.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_WaveClass_Detach_Patch)
-{
-    GET_REGISTER_STATIC(WaveClass *, this_ptr, esi);
-    GET_STACK_STATIC(TARGET, target, esp, 0x10);
-    GET_STACK_STATIC8(bool, all, esp, 0x8);
-    static WaveClassExtension *ext_ptr;
-
-    /**
-     *  Find the extension instance.
-     */
-    ext_ptr = WaveClassExtensions.find(this_ptr);
-    if (!ext_ptr) {
-        goto original_code;
-    }
-
-    ext_ptr->Detach(target, all);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { ret 8 }
+    _asm { mov edx, ds:0x007E47E8 } // Waves.vtble
+    JMP_REG(eax, 0x00672E7E);
 }
 
 
@@ -292,7 +256,6 @@ void WaveClassExtension_Init()
     Patch_Jump(0x00670189, &_WaveClass_Default_Constructor_Before_Init_Patch);
     //Patch_Jump(0x006700A2, &_WaveClass_Constructor_Patch);
     Patch_Jump(0x0066FECF, &_WaveClass_Constructor_Before_Init_Patch);
-    Patch_Jump(0x00670369, &_WaveClass_Destructor_Patch); // Destructor is actually inlined in scalar destructor!
-    Patch_Jump(0x00672F1B, &_WaveClass_Scalar_Destructor_Patch);
-    Patch_Jump(0x00670B3D, &_WaveClass_Detach_Patch);
+    Patch_Jump(0x006702D9, &_WaveClass_Destructor_Patch); // Destructor is actually inlined in scalar destructor!
+    Patch_Jump(0x00672E78, &_WaveClass_Scalar_Destructor_Patch);
 }

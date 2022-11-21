@@ -28,39 +28,16 @@
 #include "tacticalext_hooks.h"
 #include "tacticalext.h"
 #include "tactical.h"
-#include "fatal.h"
+#include "tibsun_globals.h"
 #include "vinifera_util.h"
+#include "vinifera_globals.h"
+#include "extension.h"
+#include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+
 #include "hooker.h"
 #include "hooker_macros.h"
-
-
-/**
- *  "new" operations must be done within a new function for patched code.
- * 
- *  @author: CCHyper
- */
-static void New_Tactical_Extension(Tactical *this_ptr)
-{
-    /**
-     *  Delete existing instance (should never be the case).
-     */
-    delete TacticalExtension;
-
-    TacticalExtension = new TacticalMapExtension(this_ptr);
-}
-
-
-/**
- *  "delete" operations must be done within a new function for patched code.
- * 
- *  @author: CCHyper
- */
-static void Delete_Tactical_Extension()
-{
-    delete TacticalExtension;
-}
 
 
 /**
@@ -77,15 +54,7 @@ DECLARE_PATCH(_Tactical_Constructor_Patch)
     /**
      *  Create the extended class instance.
      */
-    New_Tactical_Extension(this_ptr);
-    if (!TacticalExtension) {
-        DEBUG_ERROR("Failed to create TacticalExtension instance for 0x%08X!\n", (uintptr_t)this_ptr);
-        ShowCursor(TRUE);
-        MessageBoxA(MainWindow, "Failed to create TacticalExtension instance!\n", "Vinifera", MB_OK|MB_ICONEXCLAMATION);
-        Vinifera_Generate_Mini_Dump();
-        Fatal("Failed to create TacticalExtension instance!\n");
-        goto original_code; // Keep this for clean code analysis.
-    }
+    TacticalMapExtension = Extension::Singleton::Make<Tactical, TacticalExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
@@ -96,41 +65,6 @@ original_code:
     _asm { pop esi }
     _asm { pop ebx }
     _asm { ret }
-}
-
-
-/**
- *  Patch for including the extended class members in the noinit creation process.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_Tactical_NoInit_Constructor_Patch)
-{
-    GET_REGISTER_STATIC(Tactical *, this_ptr, esi);
-    GET_STACK_STATIC(const NoInitClass *, noinit, esp, 0x4);
-
-    /**
-     *  Create the extended class instance.
-     */
-    New_Tactical_Extension(this_ptr);
-    if (!TacticalExtension) {
-        DEBUG_ERROR("Failed to create TacticalExtension instance for 0x%08X!\n", (uintptr_t)this_ptr);
-        ShowCursor(TRUE);
-        MessageBoxA(MainWindow, "Failed to create TacticalExtension instance!\n", "Vinifera", MB_OK|MB_ICONEXCLAMATION);
-        Vinifera_Generate_Mini_Dump();
-        Fatal("Failed to create TacticalExtension instance!\n");
-        goto original_code; // Keep this for clean code analysis.
-    }
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop esi }
-    _asm { ret 4 }
 }
 
 
@@ -148,7 +82,7 @@ DECLARE_PATCH(_Tactical_Destructor_Patch)
     /**
      *  Remove the extended class instance.
      */
-    Delete_Tactical_Extension();
+    Extension::Singleton::Destroy<Tactical, TacticalExtension>(TacticalMapExtension);
 
     /**
      *  Stolen bytes here.
@@ -160,53 +94,27 @@ original_code:
 
 
 /**
- *  A fake class for implementing new member functions which allow
- *  access to the "this" pointer of the intended class.
- * 
- *  @note: This must not contain a constructor or destructor.
- * 
- *  @note: All functions must not be virtual and must also be prefixed
- *         with "_" to prevent accidental virtualization.
- */
-static class FakeTacticalClass final : public Tactical
-{
-    public:
-        void _Detach(TARGET target, bool all);
-        void _Compute_CRC(WWCRCEngine &crc);
-};
-
-
-/**
- *  Patch for including the extended class members to the base class detach process.
+ *  Patch for including the extended class members in the virtual destruction process.
  * 
  *  @warning: Do not touch this unless you know what you are doing!
  * 
  *  @author: CCHyper
  */
-void FakeTacticalClass::_Detach(TARGET target, bool all)
+DECLARE_PATCH(_Tactical_Scalar_Destructor_Patch)
 {
-    Tactical::Detach(target, all);
+    GET_REGISTER_STATIC(Tactical *, this_ptr, esi);
 
-    if (TacticalExtension) {
-        TacticalExtension->Detach(target, all);
-    }
-}
+    /**
+     *  Remove the extended class instance.
+     */
+    Extension::Singleton::Destroy<Tactical, TacticalExtension>(TacticalMapExtension);
 
-
-/**
- *  Patch for including the extended class members to the base class crc calculation.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-void FakeTacticalClass::_Compute_CRC(WWCRCEngine &crc)
-{
-    AbstractClass::Compute_CRC(crc);
-
-    if (TacticalExtension) {
-        TacticalExtension->Compute_CRC(crc);
-    }
+    /**
+     *  Stolen bytes here.
+     */
+original_code:
+    this_ptr->AbstractClass::~AbstractClass();
+    JMP(0x0061802F);
 }
 
 
@@ -216,8 +124,6 @@ void FakeTacticalClass::_Compute_CRC(WWCRCEngine &crc)
 void TacticalExtension_Init()
 {
     Patch_Jump(0x0060F08A, &_Tactical_Constructor_Patch);
-    Patch_Jump(0x0060F0C5, &_Tactical_NoInit_Constructor_Patch);
     Patch_Jump(0x0060F0E7, &_Tactical_Destructor_Patch);
-    Change_Virtual_Address(0x006D7720, Get_Func_Address(&FakeTacticalClass::_Detach));
-    Change_Virtual_Address(0x006D7730, Get_Func_Address(&FakeTacticalClass::_Compute_CRC));
+    Patch_Jump(0x0061802A, &_Tactical_Scalar_Destructor_Patch);
 }

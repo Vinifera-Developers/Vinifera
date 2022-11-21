@@ -27,27 +27,35 @@
  ******************************************************************************/
 #pragma once
 
+#include "always.h"
 #include "extension.h"
-#include "container.h"
+#include "options.h"
 
 
-class OptionsClass;
 class CCINIClass;
 
 
-class OptionsClassExtension final : public Extension<OptionsClass>
+class OptionsClassExtension final : public GlobalExtensionClass<OptionsClass>
 {
     public:
-        OptionsClassExtension(OptionsClass *this_ptr);
+        IFACEMETHOD(Load)(IStream *pStm);
+        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+
+    public:
+        OptionsClassExtension(const OptionsClass *this_ptr);
         OptionsClassExtension(const NoInitClass &noinit);
-        ~OptionsClassExtension();
+        virtual ~OptionsClassExtension();
 
-        virtual HRESULT Load(IStream *pStm) override { return S_OK; }
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override { return S_OK; }
+        /**
+         *  OptionsClass extension does not require these to be used, but we
+         *  implement them for completeness.
+         */
         virtual int Size_Of() const override;
+        virtual void Detach(TARGET target, bool all = true) override;
+        virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
-        virtual void Detach(TARGET target, bool all = true) override {}
-        virtual void Compute_CRC(WWCRCEngine &crc) const override {}
+        virtual const char *Name() const override { return "Options"; }
+        virtual const char *Full_Name() const override { return "Options"; }
 
         void Load_Settings();
         void Load_Init_Settings();
@@ -57,6 +65,3 @@ class OptionsClassExtension final : public Extension<OptionsClass>
 
     public:
 };
-
-
-extern OptionsClassExtension *OptionsExtension;

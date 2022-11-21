@@ -31,10 +31,15 @@
 #include "buildingtype.h"
 #include "house.h"
 #include "housetype.h"
+#include "vinifera_util.h"
+#include "vinifera_globals.h"
+#include "extension.h"
 #include "fatal.h"
 #include "asserthandler.h"
 #include "debughandler.h"
-#include "vinifera_util.h"
+
+#include "hooker.h"
+#include "hooker_macros.h"
 
 
 /**
@@ -47,20 +52,19 @@
 DECLARE_PATCH(_BuildingClass_Constructor_Patch)
 {
     GET_REGISTER_STATIC(BuildingClass *, this_ptr, esi); // Current "this" pointer.
-    static BuildingClassExtension *exttype_ptr;
 
     /**
-     *  Find existing or create an extended class instance.
+     *  If we are performing a load operation, the Windows API will invoke the
+     *  constructors for us as part of the operation, so we can skip our hook here.
      */
-    exttype_ptr = BuildingClassExtensions.find_or_create(this_ptr);
-    if (!exttype_ptr) {
-        DEBUG_ERROR("Failed to create BuildingClassExtension instance for 0x%08X!\n", (uintptr_t)this_ptr);
-        ShowCursor(TRUE);
-        MessageBoxA(MainWindow, "Failed to create BuildingClassExtensions instance!\n", "Vinifera", MB_OK|MB_ICONEXCLAMATION);
-        Vinifera_Generate_Mini_Dump();
-        Fatal("Failed to create BuildingClassExtensions instance!\n");
-        goto original_code; // Keep this for clean code analysis.
+    if (Vinifera_PerformingLoad) {
+        goto original_code;
     }
+
+    /**
+     *  Create an extended class instance.
+     */
+    Extension::Make<BuildingClassExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
@@ -72,29 +76,6 @@ original_code:
     _asm { pop ebp }
     _asm { pop ebx }
     _asm { ret 8 }
-}
-
-
-/**
- *  Patch for including the extended class members in the noinit creation process.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_BuildingClass_NoInit_Constructor_Patch)
-{
-    GET_REGISTER_STATIC(BuildingClass *, this_ptr, esi);
-    GET_STACK_STATIC(const NoInitClass *, noinit, esp, 0x4);
-    static BuildingClassExtension *ext_ptr;
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop esi }
-    _asm { ret 4 }
 }
 
 
@@ -112,85 +93,14 @@ DECLARE_PATCH(_BuildingClass_Destructor_Patch)
     /**
      *  Remove the extended class from the global index.
      */
-    BuildingClassExtensions.remove(this_ptr);
+    Extension::Destroy<BuildingClassExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
      */
 original_code:
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { pop ecx }
-    _asm { ret }
-}
-
-
-/**
- *  Patch for including the extended class members to the base class detach process.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_BuildingClass_Detach_Patch)
-{
-    GET_REGISTER_STATIC(BuildingClass *, this_ptr, esi);
-    GET_STACK_STATIC(TARGET, target, esp, 0x10);
-    GET_STACK_STATIC8(bool, all, esp, 0x8);
-    static BuildingClassExtension *ext_ptr;
-
-    /**
-     *  Find the extension instance.
-     */
-    ext_ptr = BuildingClassExtensions.find(this_ptr);
-    if (!ext_ptr) {
-        goto original_code;
-    }
-
-    ext_ptr->Detach(target, all);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebx }
-    _asm { ret 8 }
-}
-
-
-/**
- *  Patch for including the extended class members to the base class crc calculation.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_BuildingClass_Compute_CRC_Patch)
-{
-    GET_REGISTER_STATIC(BuildingClass *, this_ptr, esi);
-    GET_STACK_STATIC(WWCRCEngine *, crc, esp, 0xC);
-    static BuildingClassExtension *ext_ptr;
-
-    /**
-     *  Find the extension instance.
-     */
-    ext_ptr = BuildingClassExtensions.find(this_ptr);
-    if (!ext_ptr) {
-        goto original_code;
-    }
-
-    ext_ptr->Compute_CRC(*crc);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { ret 4 }
+    _asm { mov edx, ds:0x007E4708 } // Buildings.vtble
+    JMP_REG(eax, 0x00426674);
 }
 
 
@@ -200,8 +110,5 @@ original_code:
 void BuildingClassExtension_Init()
 {
     Patch_Jump(0x00426615, &_BuildingClass_Constructor_Patch);
-    Patch_Jump(0x00426184, &_BuildingClass_NoInit_Constructor_Patch);
-    Patch_Jump(0x004268BB, &_BuildingClass_Destructor_Patch);
-    Patch_Jump(0x00433FA9, &_BuildingClass_Detach_Patch);
-    Patch_Jump(0x0043843D, &_BuildingClass_Compute_CRC_Patch);
+    Patch_Jump(0x0042666E, &_BuildingClass_Destructor_Patch);
 }

@@ -31,14 +31,9 @@
 #include "scenario.h"
 #include "theatertype.h"
 #include "ccini.h"
+#include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
-
-
-/**
- *  Provides the map for all IsometricTileTypeClass extension instances.
- */
-ExtensionMap<IsometricTileTypeClass, IsometricTileTypeClassExtension> IsometricTileTypeClassExtensions;
 
 
 /**
@@ -46,15 +41,13 @@ ExtensionMap<IsometricTileTypeClass, IsometricTileTypeClassExtension> IsometricT
  *  
  *  @author: CCHyper
  */
-IsometricTileTypeClassExtension::IsometricTileTypeClassExtension(IsometricTileTypeClass *this_ptr) :
-    Extension(this_ptr),
+IsometricTileTypeClassExtension::IsometricTileTypeClassExtension(const IsometricTileTypeClass *this_ptr) :
+    ObjectTypeClassExtension(this_ptr),
     TileSetName(nullptr)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("IsometricTileTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //if (this_ptr) EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::~IsometricTileTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    IsInitialized = true;
+    IsometricTileTypeExtensions.Add(this);
 }
 
 
@@ -64,9 +57,9 @@ IsometricTileTypeClassExtension::IsometricTileTypeClassExtension(IsometricTileTy
  *  @author: CCHyper
  */
 IsometricTileTypeClassExtension::IsometricTileTypeClassExtension(const NoInitClass &noinit) :
-    Extension(noinit)
+    ObjectTypeClassExtension(noinit)
 {
-    IsInitialized = false;
+    //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::~IsometricTileTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -77,10 +70,28 @@ IsometricTileTypeClassExtension::IsometricTileTypeClassExtension(const NoInitCla
  */
 IsometricTileTypeClassExtension::~IsometricTileTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("IsometricTileTypeClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::~IsometricTileTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    IsInitialized = false;
+    IsometricTileTypeExtensions.Delete(this);
+}
+
+
+/**
+ *  Retrieves the class identifier (CLSID) of the object.
+ *  
+ *  @author: CCHyper
+ */
+HRESULT IsometricTileTypeClassExtension::GetClassID(CLSID *lpClassID)
+{
+    //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    if (lpClassID == nullptr) {
+        return E_POINTER;
+    }
+
+    *lpClassID = __uuidof(this);
+
+    return S_OK;
 }
 
 
@@ -91,10 +102,9 @@ IsometricTileTypeClassExtension::~IsometricTileTypeClassExtension()
  */
 HRESULT IsometricTileTypeClassExtension::Load(IStream *pStm)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Load(pStm);
+    HRESULT hr = ObjectTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
@@ -112,10 +122,9 @@ HRESULT IsometricTileTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT IsometricTileTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Save(pStm, fClearDirty);
+    HRESULT hr = ObjectTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
     }
@@ -131,8 +140,7 @@ HRESULT IsometricTileTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int IsometricTileTypeClassExtension::Size_Of() const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -145,8 +153,7 @@ int IsometricTileTypeClassExtension::Size_Of() const
  */
 void IsometricTileTypeClassExtension::Detach(TARGET target, bool all)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::Detach - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -157,8 +164,7 @@ void IsometricTileTypeClassExtension::Detach(TARGET target, bool all)
  */
 void IsometricTileTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -169,11 +175,13 @@ void IsometricTileTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
  */
 bool IsometricTileTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::Read_INI - Name: %s, TileSetName %s (0x%08X)\n", ThisPtr->Name(), TileSetName, (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("IsometricTileTypeClassExtension::Read_INI - Name: %s, TileSetName %s (0x%08X)\n", ThisPtr->Name(), TileSetName, (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::Read_INI - Name: %s, TileSetName %s (0x%08X)\n", Name(), TileSetName, (uintptr_t)(This()));
 
-    const char *ini_name = ThisPtr->Name();
+    if (!ObjectTypeClassExtension::Read_INI(ini)) {
+        return false;
+    }
+
+    const char *ini_name = Name();
 
     if (!ini.Is_Present(ini_name)) {
         return false;

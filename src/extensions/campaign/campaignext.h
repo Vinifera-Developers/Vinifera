@@ -27,29 +27,39 @@
  ******************************************************************************/
 #pragma once
 
-#include "extension.h"
-#include "container.h"
+#include "abstracttypeext.h"
+#include "campaign.h"
 
 
-class CampaignClass;
-class CCINIClass;
-
-
-class CampaignClassExtension final : public Extension<CampaignClass>
+class DECLSPEC_UUID(UUID_CAMPAIGN_EXTENSION)
+CampaignClassExtension final : public AbstractTypeClassExtension
 {
     public:
-        CampaignClassExtension(CampaignClass *this_ptr);
+        /**
+         *  IPersist
+         */
+        IFACEMETHOD(GetClassID)(CLSID *pClassID);
+
+        /**
+         *  IPersistStream
+         */
+        IFACEMETHOD(Load)(IStream *pStm);
+        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+
+    public:
+        CampaignClassExtension(const CampaignClass *this_ptr = nullptr);
         CampaignClassExtension(const NoInitClass &noinit);
-        ~CampaignClassExtension();
+        virtual ~CampaignClassExtension();
 
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
         virtual int Size_Of() const override;
-
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
-        bool Read_INI(CCINIClass &ini);
+        virtual CampaignClass *This() const override { return reinterpret_cast<CampaignClass *>(AbstractTypeClassExtension::This()); }
+        virtual const CampaignClass *This_Const() const override { return reinterpret_cast<const CampaignClass *>(AbstractTypeClassExtension::This_Const()); }
+        virtual RTTIType What_Am_I() const override { return RTTI_CAMPAIGN; }
+
+        virtual bool Read_INI(CCINIClass &ini) override;
 
     public:
         /**
@@ -62,6 +72,3 @@ class CampaignClassExtension final : public Extension<CampaignClass>
          */
         char IntroMovie[64];
 };
-
-
-extern ExtensionMap<CampaignClass, CampaignClassExtension> CampaignClassExtensions;

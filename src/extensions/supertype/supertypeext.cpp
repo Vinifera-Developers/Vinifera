@@ -30,14 +30,9 @@
 #include "vinifera_util.h"
 #include "bsurface.h"
 #include "ccini.h"
+#include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
-
-
-/**
- *  Provides the map for all SuperWeaponTypeClass extension instances.
- */
-ExtensionMap<SuperWeaponTypeClass, SuperWeaponTypeClassExtension> SuperWeaponTypeClassExtensions;
 
 
 /**
@@ -45,16 +40,15 @@ ExtensionMap<SuperWeaponTypeClass, SuperWeaponTypeClassExtension> SuperWeaponTyp
  *  
  *  @author: CCHyper
  */
-SuperWeaponTypeClassExtension::SuperWeaponTypeClassExtension(SuperWeaponTypeClass *this_ptr) :
-    Extension(this_ptr),
+SuperWeaponTypeClassExtension::SuperWeaponTypeClassExtension(const SuperWeaponTypeClass *this_ptr) :
+    AbstractTypeClassExtension(this_ptr),
+    SidebarImage(),
     IsShowTimer(false),
     CameoImageSurface(nullptr)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("SuperWeaponTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //if (this_ptr) EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::SuperWeaponTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    IsInitialized = true;
+    SuperWeaponTypeExtensions.Add(this);
 }
 
 
@@ -64,9 +58,9 @@ SuperWeaponTypeClassExtension::SuperWeaponTypeClassExtension(SuperWeaponTypeClas
  *  @author: CCHyper
  */
 SuperWeaponTypeClassExtension::SuperWeaponTypeClassExtension(const NoInitClass &noinit) :
-    Extension(noinit)
+    AbstractTypeClassExtension(noinit)
 {
-    IsInitialized = false;
+    //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::SuperWeaponTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -77,13 +71,31 @@ SuperWeaponTypeClassExtension::SuperWeaponTypeClassExtension(const NoInitClass &
  */
 SuperWeaponTypeClassExtension::~SuperWeaponTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("SuperWeaponTypeClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::~SuperWeaponTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     delete CameoImageSurface;
     CameoImageSurface = nullptr;
 
-    IsInitialized = false;
+    SuperWeaponTypeExtensions.Delete(this);
+}
+
+
+/**
+ *  Retrieves the class identifier (CLSID) of the object.
+ *  
+ *  @author: CCHyper
+ */
+HRESULT SuperWeaponTypeClassExtension::GetClassID(CLSID *lpClassID)
+{
+    //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    if (lpClassID == nullptr) {
+        return E_POINTER;
+    }
+
+    *lpClassID = __uuidof(this);
+
+    return S_OK;
 }
 
 
@@ -94,10 +106,9 @@ SuperWeaponTypeClassExtension::~SuperWeaponTypeClassExtension()
  */
 HRESULT SuperWeaponTypeClassExtension::Load(IStream *pStm)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Load(pStm);
+    HRESULT hr = AbstractTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
@@ -107,7 +118,7 @@ HRESULT SuperWeaponTypeClassExtension::Load(IStream *pStm)
     /**
      *  Fetch the cameo image surface if it exists.
      */
-    BSurface *imagesurface = Vinifera_Get_Image_Surface(ThisPtr->SidebarImage);
+    BSurface *imagesurface = Vinifera_Get_Image_Surface(SidebarImage);
     if (imagesurface) {
         CameoImageSurface = imagesurface;
     }
@@ -123,10 +134,14 @@ HRESULT SuperWeaponTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT SuperWeaponTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Save(pStm, fClearDirty);
+    /**
+     *  Store the graphic name strings as raw data, these are used by the load operation.
+     */
+    std::strncpy(SidebarImage, This()->SidebarImage, sizeof(SidebarImage));
+
+    HRESULT hr = AbstractTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
     }
@@ -142,8 +157,7 @@ HRESULT SuperWeaponTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int SuperWeaponTypeClassExtension::Size_Of() const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -156,8 +170,7 @@ int SuperWeaponTypeClassExtension::Size_Of() const
  */
 void SuperWeaponTypeClassExtension::Detach(TARGET target, bool all)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::Detach - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -168,8 +181,7 @@ void SuperWeaponTypeClassExtension::Detach(TARGET target, bool all)
  */
 void SuperWeaponTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -180,22 +192,20 @@ void SuperWeaponTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
  */
 bool SuperWeaponTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    EXT_DEBUG_WARNING("SuperWeaponTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    const char *ini_name = ThisPtr->Name();
-
-    if (!ini.Is_Present(ini_name)) {
+    if (!AbstractTypeClassExtension::Read_INI(ini)) {
         return false;
     }
+
+    const char *ini_name = Name();
 
     IsShowTimer = ini.Get_Bool(ini_name, "ShowTimer", IsShowTimer);
 
     /**
      *  Fetch the cameo image surface if it exists.
      */
-    BSurface *imagesurface = Vinifera_Get_Image_Surface(ThisPtr->SidebarImage);
+    BSurface *imagesurface = Vinifera_Get_Image_Surface(This()->SidebarImage);
     if (imagesurface) {
         CameoImageSurface = imagesurface;
     }

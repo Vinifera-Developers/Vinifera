@@ -29,14 +29,10 @@
 #include "weapontype.h"
 #include "ebolt.h"
 #include "ccini.h"
+#include "wwcrc.h"
+#include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
-
-
-/**
- *  Provides the map for all WeaponTypeClass extension instances.
- */
-ExtensionMap<WeaponTypeClass, WeaponTypeClassExtension> WeaponTypeClassExtensions;
 
 
 /**
@@ -44,8 +40,8 @@ ExtensionMap<WeaponTypeClass, WeaponTypeClassExtension> WeaponTypeClassExtension
  *  
  *  @author: CCHyper
  */
-WeaponTypeClassExtension::WeaponTypeClassExtension(WeaponTypeClass *this_ptr) :
-    Extension(this_ptr),
+WeaponTypeClassExtension::WeaponTypeClassExtension(const WeaponTypeClass *this_ptr) :
+    AbstractTypeClassExtension(this_ptr),
     IsSuicide(false),
     IsDeleteOnSuicide(false),
     IsElectricBolt(false),
@@ -57,11 +53,9 @@ WeaponTypeClassExtension::WeaponTypeClassExtension(WeaponTypeClass *this_ptr) :
     ElectricBoltIterationCount(EBOLT_DEFAULT_INTERATIONS),
     ElectricBoltDeviation(EBOLT_DEFAULT_DEVIATION)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("WeaponTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("WeaponTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //if (this_ptr) EXT_DEBUG_TRACE("WeaponTypeClassExtension::WeaponTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    IsInitialized = true;
+    WeaponTypeExtensions.Add(this);
 }
 
 
@@ -71,9 +65,9 @@ WeaponTypeClassExtension::WeaponTypeClassExtension(WeaponTypeClass *this_ptr) :
  *  @author: CCHyper
  */
 WeaponTypeClassExtension::WeaponTypeClassExtension(const NoInitClass &noinit) :
-    Extension(noinit)
+    AbstractTypeClassExtension(noinit)
 {
-    IsInitialized = false;
+    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::WeaponTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -84,10 +78,27 @@ WeaponTypeClassExtension::WeaponTypeClassExtension(const NoInitClass &noinit) :
  */
 WeaponTypeClassExtension::~WeaponTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("WeaponTypeClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("WeaponTypeClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::~WeaponTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    IsInitialized = false;
+    WeaponTypeExtensions.Delete(this);
+}
+
+/**
+ *  Retrieves the class identifier (CLSID) of the object.
+ *  
+ *  @author: CCHyper
+ */
+HRESULT WeaponTypeClassExtension::GetClassID(CLSID *lpClassID)
+{
+    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    if (lpClassID == nullptr) {
+        return E_POINTER;
+    }
+
+    *lpClassID = __uuidof(this);
+
+    return S_OK;
 }
 
 
@@ -98,10 +109,9 @@ WeaponTypeClassExtension::~WeaponTypeClassExtension()
  */
 HRESULT WeaponTypeClassExtension::Load(IStream *pStm)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Load(pStm);
+    HRESULT hr = AbstractTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
@@ -119,10 +129,9 @@ HRESULT WeaponTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT WeaponTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Save(pStm, fClearDirty);
+    HRESULT hr = AbstractTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
     }
@@ -138,8 +147,7 @@ HRESULT WeaponTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int WeaponTypeClassExtension::Size_Of() const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -152,8 +160,7 @@ int WeaponTypeClassExtension::Size_Of() const
  */
 void WeaponTypeClassExtension::Detach(TARGET target, bool all)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Detach - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -164,8 +171,7 @@ void WeaponTypeClassExtension::Detach(TARGET target, bool all)
  */
 void WeaponTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     crc(IsElectricBolt);
 }
@@ -178,15 +184,13 @@ void WeaponTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
  */
 bool WeaponTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    EXT_DEBUG_WARNING("WeaponTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    const char *ini_name = ThisPtr->Name();
-
-    if (!ini.Is_Present(ini_name)) {
+    if (!AbstractTypeClassExtension::Read_INI(ini)) {
         return false;
     }
+
+    const char *ini_name = Name();
     
     IsSuicide = ini.Get_Bool(ini_name, "Suicide", IsSuicide);
     IsDeleteOnSuicide = ini.Get_Bool(ini_name, "DeleteOnSuicide", IsDeleteOnSuicide);

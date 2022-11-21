@@ -30,9 +30,14 @@
 #include "infantrytype.h"
 #include "tibsun_globals.h"
 #include "vinifera_util.h"
+#include "vinifera_globals.h"
+#include "extension.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+
+#include "hooker.h"
+#include "hooker_macros.h"
 
 
 /**
@@ -46,22 +51,19 @@ DECLARE_PATCH(_InfantryTypeClass_Constructor_Patch)
 {
     GET_REGISTER_STATIC(InfantryTypeClass *, this_ptr, esi); // "this" pointer.
     GET_STACK_STATIC(const char *, ini_name, esp, 0x0C); // ini name.
-    static InfantryTypeClassExtension *exttype_ptr;
-
-    //EXT_DEBUG_WARNING("Creating InfantryTypeClassExtension instance for \"%s\".\n", ini_name);
 
     /**
-     *  Find existing or create an extended class instance.
+     *  If we are performing a load operation, the Windows API will invoke the
+     *  constructors for us as part of the operation, so we can skip our hook here.
      */
-    exttype_ptr = InfantryTypeClassExtensions.find_or_create(this_ptr);
-    if (!exttype_ptr) {
-        DEBUG_ERROR("Failed to create InfantryTypeClassExtensions instance for \"%s\"!\n", ini_name);
-        ShowCursor(TRUE);
-        MessageBoxA(MainWindow, "Failed to create InfantryTypeClassExtensions instance!\n", "Vinifera", MB_OK|MB_ICONEXCLAMATION);
-        Vinifera_Generate_Mini_Dump();
-        Fatal("Failed to create InfantryTypeClassExtensions instance!\n");
-        goto original_code; // Keep this for clean code analysis.
+    if (Vinifera_PerformingLoad) {
+        goto original_code;
     }
+
+    /**
+     *  Create an extended class instance.
+     */
+    Extension::Make<InfantryTypeClassExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
@@ -70,28 +72,6 @@ original_code:
     _asm { mov eax, this_ptr }
     _asm { pop esi }
     _asm { pop ebx }
-    _asm { ret 4 }
-}
-
-
-/**
- *  Patch for including the extended class members in the noinit creation process.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_InfantryTypeClass_NoInit_Constructor_Patch)
-{
-    GET_REGISTER_STATIC(InfantryTypeClass *, this_ptr, esi);
-    GET_STACK_STATIC(const NoInitClass *, noinit_ptr, esp, 0x4);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop esi }
     _asm { ret 4 }
 }
 
@@ -110,16 +90,14 @@ DECLARE_PATCH(_InfantryTypeClass_Destructor_Patch)
     /**
      *  Remove the extended class from the global index.
      */
-    InfantryTypeClassExtensions.remove(this_ptr);
+    Extension::Destroy<InfantryTypeClassExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
      */
 original_code:
-    _asm { pop esi }
-    _asm { pop ebx }
-    _asm { pop ecx }
-    _asm { ret }
+    _asm { mov edx, ds:0x007E4010 } // InfantryType.vtble
+    JMP_REG(eax, 0x004DA3BF);
 }
 
 
@@ -137,92 +115,14 @@ DECLARE_PATCH(_InfantryTypeClass_Scalar_Destructor_Patch)
     /**
      *  Remove the extended class from the global index.
      */
-    InfantryTypeClassExtensions.remove(this_ptr);
+    Extension::Destroy<InfantryTypeClassExtension>(this_ptr);
 
     /**
      *  Stolen bytes here.
      */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop esi }
-    _asm { pop ecx }
-    _asm { ret 4 }
-}
-
-
-/**
- *  Patch for including the extended class members when computing a unique crc value for this instance.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_InfantryTypeClass_Compute_CRC_Patch)
-{
-    GET_REGISTER_STATIC(InfantryTypeClass *, this_ptr, esi);
-    GET_STACK_STATIC(WWCRCEngine *, crc, esp, 0xC);
-    static InfantryTypeClassExtension *exttype_ptr;
-
-    /**
-     *  Find the extension instance.
-     */
-    exttype_ptr = InfantryTypeClassExtensions.find(this_ptr);
-    if (!exttype_ptr) {
-        goto original_code;
-    }
-
-    /**
-     *  Read type class compute crc.
-     */
-    exttype_ptr->Compute_CRC(*crc);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { ret 4 }
-}
-
-
-/**
- *  Patch for reading the extended class members from the ini instance.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_InfantryTypeClass_Read_INI_Patch)
-{
-    GET_REGISTER_STATIC(InfantryTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(CCINIClass *, ini, ebp);
-    static InfantryTypeClassExtension *exttype_ptr;
-
-    /**
-     *  Find the extension instance.
-     */
-    exttype_ptr = InfantryTypeClassExtensions.find(this_ptr);
-    if (!exttype_ptr) {
-        goto original_code;
-    }
-
-    /**
-     *  Read type class ini.
-     */
-    exttype_ptr->Read_INI(*ini);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { mov al, 1 }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { pop ebx }
-    _asm { add esp, 0x1C }
-    _asm { ret 4 }
+    _asm { mov edx, ds:0x007E4010 } // InfantryType.vtble
+    JMP_REG(eax, 0x004DB13E);
 }
 
 
@@ -232,9 +132,6 @@ original_code:
 void InfantryTypeClassExtension_Init()
 {
     Patch_Jump(0x004DA360, &_InfantryTypeClass_Constructor_Patch);
-    Patch_Jump(0x004DA394, &_InfantryTypeClass_NoInit_Constructor_Patch);
-    //Patch_Jump(0x004DA457, &_InfantryTypeClass_Destructor_Patch); // Destructor is actually inlined in scalar destructor!
-    Patch_Jump(0x004DB1E9, &_InfantryTypeClass_Scalar_Destructor_Patch);
-    Patch_Jump(0x004DAE11, &_InfantryTypeClass_Compute_CRC_Patch);
-    Patch_Jump(0x004DAC2F, &_InfantryTypeClass_Read_INI_Patch);
+    //Patch_Jump(0x004DA3B9, &_InfantryTypeClass_Destructor_Patch); // Destructor is actually inlined in scalar destructor!
+    Patch_Jump(0x004DB138, &_InfantryTypeClass_Scalar_Destructor_Patch);
 }

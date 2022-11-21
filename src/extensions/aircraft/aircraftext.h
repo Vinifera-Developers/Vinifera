@@ -27,30 +27,41 @@
  ******************************************************************************/
 #pragma once
 
-#include "extension.h"
-#include "container.h"
+#include "footext.h"
+#include "aircraft.h"
 
 
 class AircraftClass;
 class HouseClass;
 
 
-class AircraftClassExtension final : public Extension<AircraftClass>
+class DECLSPEC_UUID(UUID_AIRCRAFT_EXTENSION)
+AircraftClassExtension final : public FootClassExtension
 {
     public:
-        AircraftClassExtension(AircraftClass *this_ptr);
+        /**
+         *  IPersist
+         */
+        IFACEMETHOD(GetClassID)(CLSID *pClassID);
+
+        /**
+         *  IPersistStream
+         */
+        IFACEMETHOD(Load)(IStream *pStm);
+        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+
+    public:
+        AircraftClassExtension(const AircraftClass *this_ptr = nullptr);
         AircraftClassExtension(const NoInitClass &noinit);
-        ~AircraftClassExtension();
+        virtual ~AircraftClassExtension();
 
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
         virtual int Size_Of() const override;
-
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
+        virtual AircraftClass *This() const override { return reinterpret_cast<AircraftClass *>(FootClassExtension::This()); }
+        virtual const AircraftClass *This_Const() const override { return reinterpret_cast<const AircraftClass *>(FootClassExtension::This_Const()); }
+        virtual RTTIType What_Am_I() const override { return RTTI_AIRCRAFT; }
+
     public:
 };
-
-
-extern ExtensionMap<AircraftClass, AircraftClassExtension> AircraftClassExtensions;

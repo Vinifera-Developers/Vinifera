@@ -475,8 +475,6 @@ LONG STDAPICALLTYPE SwizzleManagerClassExt::_Here_I_Am(LONG id, void *pointer)
 {
     //DEV_DEBUG_INFO("SwizzleManager::Here_I_Am - retaddr 0x%08X id 0x%08X pointer 0x%08X\n", (uintptr_t)_ReturnAddress(), id, pointer);
 
-    bool added = false;
-
     /**
      *  Get the caller return address, we use this to identify a location in which the annoucement was made.
      */
@@ -518,12 +516,12 @@ LONG STDAPICALLTYPE SwizzleManagerClassExt::_Reset()
 {
     //DEV_DEBUG_INFO("SwizzleManager::Reset - retaddr 0x%08X id 0x%08X pointer 0x%08X\n", (uintptr_t)_ReturnAddress(), id, pointer);
 
+#ifdef VINIFERA_ENABLE_SWIZZLE_DEBUG_PRINTING
     /**
      *  Get the caller return address, we use this to identify a location in which the request was made.
      */
     uintptr_t retaddr = (uintptr_t)_ReturnAddress();
 
-#ifdef VINIFERA_ENABLE_SWIZZLE_DEBUG_PRINTING
     switch (retaddr) {
         case 0x005D69C7:
             DEV_DEBUG_INFO("Reset() - From Load_Game\n");
@@ -546,8 +544,6 @@ LONG STDAPICALLTYPE SwizzleManagerClassExt::_Reset()
 LONG STDAPICALLTYPE SwizzleManagerClassExt::_Swizzle(void **pointer)
 {
     //DEV_DEBUG_INFO("SwizzleManager::Swizzle - retaddr 0x%08X id 0x%08X pointer 0x%08X\n", (uintptr_t)_ReturnAddress(), id, pointer);
-
-    bool added = false;
 
     /**
      *  Get the caller return address, we use this to identify a location in which the request was made.

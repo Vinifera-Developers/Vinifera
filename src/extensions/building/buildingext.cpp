@@ -32,14 +32,9 @@
 #include "house.h"
 #include "housetype.h"
 #include "wwcrc.h"
+#include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
-
-
-/**
- *  Provides the map for all BuildingClass extension instances.
- */
-ExtensionMap<BuildingClass, BuildingClassExtension> BuildingClassExtensions;
 
 
 /**
@@ -47,18 +42,16 @@ ExtensionMap<BuildingClass, BuildingClassExtension> BuildingClassExtensions;
  *  
  *  @author: CCHyper
  */
-BuildingClassExtension::BuildingClassExtension(BuildingClass *this_ptr) :
-    Extension(this_ptr),
+BuildingClassExtension::BuildingClassExtension(const BuildingClass *this_ptr) :
+    TechnoClassExtension(this_ptr),
     ProduceCashTimer(),
     CurrentProduceCashBudget(-1),
     IsCaptureOneTimeCashGiven(false),
     IsBudgetDepleted(false)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("BuildingClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("BuildingClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //if (this_ptr) EXT_DEBUG_TRACE("BuildingClassExtension::BuildingClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    IsInitialized = true;
+    BuildingExtensions.Add(this);
 }
 
 
@@ -68,9 +61,9 @@ BuildingClassExtension::BuildingClassExtension(BuildingClass *this_ptr) :
  *  @author: CCHyper
  */
 BuildingClassExtension::BuildingClassExtension(const NoInitClass &noinit) :
-    Extension(noinit)
+    TechnoClassExtension(noinit)
 {
-    IsInitialized = false;
+    //EXT_DEBUG_TRACE("BuildingClassExtension::BuildingClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -81,10 +74,28 @@ BuildingClassExtension::BuildingClassExtension(const NoInitClass &noinit) :
  */
 BuildingClassExtension::~BuildingClassExtension()
 {
-    //EXT_DEBUG_TRACE("BuildingClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("BuildingClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("BuildingClassExtension::~BuildingClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    IsInitialized = false;
+    BuildingExtensions.Delete(this);
+}
+
+
+/**
+ *  Retrieves the class identifier (CLSID) of the object.
+ *  
+ *  @author: CCHyper
+ */
+HRESULT BuildingClassExtension::GetClassID(CLSID *lpClassID)
+{
+    //EXT_DEBUG_TRACE("BuildingClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    if (lpClassID == nullptr) {
+        return E_POINTER;
+    }
+
+    *lpClassID = __uuidof(this);
+
+    return S_OK;
 }
 
 
@@ -95,10 +106,9 @@ BuildingClassExtension::~BuildingClassExtension()
  */
 HRESULT BuildingClassExtension::Load(IStream *pStm)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("BuildingClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("BuildingClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Load(pStm);
+    HRESULT hr = TechnoClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
@@ -116,10 +126,9 @@ HRESULT BuildingClassExtension::Load(IStream *pStm)
  */
 HRESULT BuildingClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("BuildingClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("BuildingClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Save(pStm, fClearDirty);
+    HRESULT hr = TechnoClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
     }
@@ -135,8 +144,7 @@ HRESULT BuildingClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int BuildingClassExtension::Size_Of() const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("BuildingClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("BuildingClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -149,8 +157,7 @@ int BuildingClassExtension::Size_Of() const
  */
 void BuildingClassExtension::Detach(TARGET target, bool all)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("BuildingClassExtension::Detach - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("BuildingClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -161,8 +168,7 @@ void BuildingClassExtension::Detach(TARGET target, bool all)
  */
 void BuildingClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("BuildingClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("BuildingClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     /**
      *  #issue-26
@@ -181,16 +187,15 @@ void BuildingClassExtension::Compute_CRC(WWCRCEngine &crc) const
  */
 void BuildingClassExtension::Produce_Cash_AI()
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("BuildingClassExtension::Produce_Cash_AI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("BuildingClassExtension::Produce_Cash_AI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    const BuildingClass *this_building = reinterpret_cast<const BuildingClass *>(This());
+    const BuildingTypeClass *this_buildingtype = reinterpret_cast<const BuildingTypeClass *>(This()->Class_Of());
 
     /**
-     *  Find the type class extension instance.
+     *  Fetch the extension instance.
      */
-    BuildingTypeClassExtension *buildingtypeext = BuildingTypeClassExtensions.find(ThisPtr->Class);
-    if (!buildingtypeext) {
-        return;
-    }
+    BuildingTypeClassExtension *buildingtypeext = Extension::Fetch<BuildingTypeClassExtension>(this_buildingtype);
 
 #if 0
     /**
@@ -198,7 +203,7 @@ void BuildingClassExtension::Produce_Cash_AI()
      * 
      *  Only updates player owned buildings.
      */
-    if (ThisPtr->House != PlayerPtr) {
+    if (This()->House != PlayerPtr) {
         return;
     }
 #endif
@@ -211,19 +216,19 @@ void BuildingClassExtension::Produce_Cash_AI()
         /**
          *  Check if this building requires power to produce cash.
          */
-        if (reinterpret_cast<BuildingTypeClass const *>(ThisPtr->Class_Of())->IsPowered) {
+        if (this_buildingtype->IsPowered) {
 
             /**
              *  Stop the timer if the building is offline or has low power.
              */
-            if (ProduceCashTimer.Is_Active() && !ThisPtr->Is_Powered_On()) {
+            if (ProduceCashTimer.Is_Active() && !This()->Is_Powered_On()) {
                 ProduceCashTimer.Stop();
             }
 
             /**
              *  Restart the timer is if it previously stopped due to low power or is offline.
              */
-            if (!ProduceCashTimer.Is_Active() && ThisPtr->Is_Powered_On()) {
+            if (!ProduceCashTimer.Is_Active() && This()->Is_Powered_On()) {
                 ProduceCashTimer.Start();
             }
 
@@ -237,7 +242,7 @@ void BuildingClassExtension::Produce_Cash_AI()
             /**
              *  Is the owner a passive house? If so, they should not be receiving cash.
              */
-            if (!ThisPtr->House->Class->IsMultiplayPassive) {
+            if (!This()->House->Class->IsMultiplayPassive) {
 
                 int amount = buildingtypeext->ProduceCashAmount;
 
@@ -268,9 +273,9 @@ void BuildingClassExtension::Produce_Cash_AI()
                  */
                 if (!IsBudgetDepleted && amount != 0) {
                     if (amount < 0) {
-                        ThisPtr->House->Spend_Money(std::abs(amount));
+                        This()->House->Spend_Money(std::abs(amount));
                     } else {
-                        ThisPtr->House->Refund_Money(amount);
+                        This()->House->Refund_Money(amount);
                     }
                 }
 

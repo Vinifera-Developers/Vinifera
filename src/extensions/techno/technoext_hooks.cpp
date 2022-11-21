@@ -26,7 +26,6 @@
  *
  ******************************************************************************/
 #include "technoext_hooks.h"
-#include "technoext_init.h"
 #include "technoext_functions.h"
 #include "technoext.h"
 #include "techno.h"
@@ -46,8 +45,9 @@
 #include "infantrytype.h"
 #include "infantrytypeext.h"
 #include "voc.h"
-#include "fatal.h"
 #include "vinifera_util.h"
+#include "extension.h"
+#include "fatal.h"
 #include "asserthandler.h"
 #include "debughandler.h"
 
@@ -67,12 +67,12 @@ DECLARE_PATCH(_TechnoClass_Is_Allowed_To_Retaliate_Can_Retaliate_Patch)
     GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
     static TechnoTypeClassExtension *technotypeext;
 
-    technotypeext = TechnoTypeClassExtensions.find(this_ptr->Techno_Type_Class());
+    technotypeext = Extension::Fetch<TechnoTypeClassExtension>(this_ptr->Techno_Type_Class());
 
     /**
      *  If this unit is flagged as no being allowed to retaliate to attacks, return false.
      */
-    if (technotypeext && !technotypeext->IsCanRetaliate) {
+    if (!technotypeext->IsCanRetaliate) {
         goto return_FALSE;
     }
 
@@ -106,21 +106,23 @@ DECLARE_PATCH(_TechnoClass_Fire_At_Electric_Bolt_Patch)
     static WeaponTypeClassExtension *weapontypeext;
 
     /**
-     *  Stolen bytes/code.
-     */
-    this_ptr->Reduce_Ammunition();
-
-    /**
      *  Spawn the electric bolt.
      */
-    weapontypeext = WeaponTypeClassExtensions.find(weapon);
-    if (weapontypeext) {
-        if (weapontypeext->IsElectricBolt) {
-            TechnoClassExtension_Electric_Bolt(this_ptr, target);
-        }
+    weapontypeext = Extension::Fetch<WeaponTypeClassExtension>(weapon);
+    if (weapontypeext->IsElectricBolt) {
+        TechnoClassExtension_Electric_Bolt(this_ptr, target);
+
+    /**
+     *  Spawn the laser.
+     */
+    } else if (weapon->IsLaser) {
+        goto is_laser;
     }
 
-    JMP_REG(edx, 0x006312D7);
+    JMP(0x006312CD);
+
+is_laser:
+    JMP_REG(edi, 0x00631231);
 }
 
 
@@ -148,46 +150,44 @@ DECLARE_PATCH(_TechnoClass_Fire_At_Suicide_Patch)
     }
 
     /**
-     *  Fetch the extended data for the firing weapon.
+     *  Fetch the extension instance for the firing weapon.
      */
-    weapontypeext = WeaponTypeClassExtensions.find(weap);
-    if (weapontypeext) {
+    weapontypeext = Extension::Fetch<WeaponTypeClassExtension>(weap);
+
+    /**
+     *  Firing unit must be active in the game world when performing suicide.
+     */
+    if (this_ptr->IsActive && !this_ptr->IsInLimbo) {
 
         /**
-         *  Firing unit must be active in the game world when performing suicide.
+         *  Explicitly delete the unit from the game world at this very moment.
+         *  This is legacy behavior similar to that of Red Alert.
          */
-        if (this_ptr->IsActive && !this_ptr->IsInLimbo) {
+        if (weapontypeext->IsSuicide && weapontypeext->IsDeleteOnSuicide) {
+            DEV_DEBUG_INFO("Deleted: %s\n", this_ptr->Name());
+            this_ptr->entry_E4();
+
+        /**
+         *  Deal full damage to the firing unit. The removal of the unit will
+         *  go though the normal damage handling code.
+         */
+        } else if (weapontypeext->IsSuicide) {
 
             /**
-             *  Explicitly delete the unit from the game world at this very moment.
-             *  This is legacy behavior similar to that of Red Alert.
+             *  #TODO:
+             *  We have to skip aircraft as they crash the game because
+             *  they do not get removed correctly after taking full damage.
+             *  
+             *  This same crash happens in Red Alert 2 also, possible engine bug.
              */
-            if (weapontypeext->IsSuicide && weapontypeext->IsDeleteOnSuicide) {
-                DEV_DEBUG_INFO("Deleted: %s\n", this_ptr->Name());
-                this_ptr->entry_E4();
-
-            /**
-             *  Deal full damage to the firing unit. The removal of the unit will
-             *  go though the normal damage handling code.
-             */
-            } else if (weapontypeext->IsSuicide) {
-
-                /**
-                 *  #TODO:
-                 *  We have to skip aircraft as they crash the game because
-                 *  they do not get removed correctly after taking full damage.
-                 *  
-                 *  This same crash happens in Red Alert 2 also, possible engine bug.
-                 */
-                if (this_ptr->What_Am_I() == RTTI_AIRCRAFT) {
-                    goto limpet_check;
-                }
-
-                damage = this_ptr->Techno_Type_Class()->MaxStrength;
-                this_ptr->Take_Damage(damage, 0, Rule->C4Warhead, nullptr, true, false);
+            if (this_ptr->What_Am_I() == RTTI_AIRCRAFT) {
+                goto limpet_check;
             }
 
+            damage = this_ptr->Techno_Type_Class()->MaxStrength;
+            this_ptr->Take_Damage(damage, 0, Rule->C4Warhead, nullptr, true, false);
         }
+
     }
 
     /**
@@ -221,8 +221,7 @@ static void Techno_Player_Assign_Mission_Response_Switch(TechnoClass *this_ptr, 
         return;
     }
 
-    TechnoClassExtension *technoext;
-    technoext = TechnoClassExtensions.find(this_ptr);
+    TechnoClassExtension *technoext = Extension::Fetch<TechnoClassExtension>(this_ptr);
 
     switch (mission) {
 
@@ -241,35 +240,19 @@ static void Techno_Player_Assign_Mission_Response_Switch(TechnoClass *this_ptr, 
          *  Implements VoiceCapture, VoiceEnter, VoiceDeploy and VoiceHarvest.
          */
         case MISSION_CAPTURE:
-            if (technoext) {
-                technoext->Response_Capture();
-            } else {
-                this_ptr->Response_Move();
-            }
+            technoext->Response_Capture();
             break;
 
         case MISSION_ENTER:
-            if (technoext) {
-                technoext->Response_Enter();
-            } else {
-                this_ptr->Response_Move();
-            }
+            technoext->Response_Enter();
             break;
 
         case MISSION_UNLOAD:
-            if (technoext) {
-                technoext->Response_Deploy();
-            } else {
-                this_ptr->Response_Move();
-            }
+            technoext->Response_Deploy();
             break;
 
         case MISSION_HARVEST:
-            if (technoext) {
-                technoext->Response_Harvest();
-            } else {
-                this_ptr->Response_Move();
-            }
+            technoext->Response_Harvest();
             break;
     }
 }
@@ -313,14 +296,14 @@ DECLARE_PATCH(_TechnoClass_Refund_Amount_Soylent_Patch)
     technotype = this_ptr->Techno_Type_Class();
 
     /**
-     *  Fetch the techno type extension.
+     *  Fetch the extension instance.
      */
-    technotypext = TechnoTypeClassExtensions.find(technotype);
+    technotypext = Extension::Fetch<TechnoTypeClassExtension>(technotype);
 
     /**
      *  If the object has a soylent value defined, return this.
      */
-    if (technotypext && technotypext->SoylentValue > 0) {
+    if (technotypext->SoylentValue > 0) {
         cost = technotypext->SoylentValue;
         goto return_amount;
     }
@@ -364,10 +347,10 @@ DECLARE_PATCH(_TechnoClass_Greatest_Threat_Infantry_Mechanic_Patch)
      *  #NOTE: Removed THREAT_AIR for IsMechanic and IsOmniHealer infantry and it causes
      *         them to chase down damaged friendly aircraft in the air.
      */
-    infantrytypeext = InfantryTypeClassExtensions.find(infantry_this_ptr->Class);
-    if (infantrytypeext && infantrytypeext->IsOmniHealer) {
+    infantrytypeext = Extension::Fetch<InfantryTypeClassExtension>(infantry_this_ptr->Class);
+    if (infantrytypeext->IsOmniHealer) {
         method = method|(THREAT_INFANTRY|THREAT_VEHICLES/*|THREAT_AIR*/|THREAT_4000);
-    } else if (infantrytypeext && infantrytypeext->IsMechanic) {
+    } else if (infantrytypeext->IsMechanic) {
         method = method|(THREAT_VEHICLES/*|THREAT_AIR*/|THREAT_4000);
     } else {
         method = method|(THREAT_INFANTRY|THREAT_4000);
@@ -452,8 +435,8 @@ DECLARE_PATCH(_TechnoClass_Take_Damage_IsAffectsAllies_Patch)
         /**
          *  Is the warhead that hit us one that affects units allied with its firing owner?
          */
-        warheadtypeext = WarheadTypeClassExtensions.find(warhead);
-        if (warheadtypeext && !warheadtypeext->IsAffectsAllies) {
+        warheadtypeext = Extension::Fetch<WarheadTypeClassExtension>(warhead);
+        if (!warheadtypeext->IsAffectsAllies) {
 
             /**
              *  If the source of the damage is an ally of ours, then reset
@@ -609,17 +592,15 @@ DECLARE_PATCH(_TechnoClass_Do_Cloak_Cloak_Sound_Patch)
     voc = Rule->CloakSound;
 
     /**
-     *  Fetch the class extension if it exists.
+     *  Fetch the extension instance.
      */
-    technotypeext = TechnoTypeClassExtensions.find(technotype);
-    if (technotypeext) {
+    technotypeext = Extension::Fetch<TechnoTypeClassExtension>(technotype);
 
-        /**
-         *  Does this object have a custom cloaking sound? If so, use it.
-         */
-        if (technotypeext->CloakSound != VOC_NONE) {
-            voc = technotypeext->CloakSound;
-        }
+    /**
+     *  Does this object have a custom cloaking sound? If so, use it.
+     */
+    if (technotypeext->CloakSound != VOC_NONE) {
+        voc = technotypeext->CloakSound;
     }
 
     /**
@@ -654,17 +635,15 @@ DECLARE_PATCH(_TechnoClass_Do_Uncloak_Uncloak_Sound_Patch)
     voc = Rule->CloakSound;
 
     /**
-     *  Fetch the class extension if it exists.
+     *  Fetch the extension instance.
      */
-    technotypeext = TechnoTypeClassExtensions.find(technotype);
-    if (technotypeext) {
+    technotypeext = Extension::Fetch<TechnoTypeClassExtension>(technotype);
 
-        /**
-         *  Does this object have a custom decloaking sound? If so, use it.
-         */
-        if (technotypeext->UncloakSound != VOC_NONE) {
-            voc = technotypeext->UncloakSound;
-        }
+    /**
+     *  Does this object have a custom decloaking sound? If so, use it.
+     */
+    if (technotypeext->UncloakSound != VOC_NONE) {
+        voc = technotypeext->UncloakSound;
     }
 
     /**
@@ -710,11 +689,6 @@ DECLARE_PATCH(_TechnoClass_Null_House_Warning_Patch)
  */
 void TechnoClassExtension_Hooks()
 {
-    /**
-     *  Initialises the extended class.
-     */
-    TechnoClassExtension_Init();
-
     Patch_Jump(0x00633C78, &_TechnoClass_Do_Cloak_Cloak_Sound_Patch);
     Patch_Jump(0x00633BD4, &_TechnoClass_Do_Uncloak_Uncloak_Sound_Patch);
     Patch_Jump(0x0063105C, &_TechnoClass_Fire_At_Weapon_Anim_Patch);
@@ -727,6 +701,6 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x00638095, &_TechnoClass_Refund_Amount_Soylent_Patch);
     Patch_Jump(0x00631661, &_TechnoClass_Player_Assign_Mission_Response_Patch);
     Patch_Jump(0x00630390, &_TechnoClass_Fire_At_Suicide_Patch);
-    Patch_Jump(0x006312CD, &_TechnoClass_Fire_At_Electric_Bolt_Patch);
+    Patch_Jump(0x00631223, &_TechnoClass_Fire_At_Electric_Bolt_Patch);
     Patch_Jump(0x00636F09, &_TechnoClass_Is_Allowed_To_Retaliate_Can_Retaliate_Patch);
 }

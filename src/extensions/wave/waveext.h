@@ -27,27 +27,37 @@
  ******************************************************************************/
 #pragma once
 
-#include "extension.h"
-#include "container.h"
+#include "objectext.h"
 #include "wave.h"
 
 
-class WaveClassExtension final : public Extension<WaveClass>
+class DECLSPEC_UUID(UUID_WAVE_EXTENSION)
+WaveClassExtension final : public ObjectClassExtension
 {
     public:
-        WaveClassExtension(WaveClass *this_ptr);
+        /**
+         *  IPersist
+         */
+        IFACEMETHOD(GetClassID)(CLSID *pClassID);
+
+        /**
+         *  IPersistStream
+         */
+        IFACEMETHOD(Load)(IStream *pStm);
+        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+
+    public:
+        WaveClassExtension(const WaveClass *this_ptr = nullptr);
         WaveClassExtension(const NoInitClass &noinit);
-        ~WaveClassExtension();
+        virtual ~WaveClassExtension();
 
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
         virtual int Size_Of() const override;
-
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
+        virtual WaveClass *This() const override { return reinterpret_cast<WaveClass *>(ObjectClassExtension::This()); }
+        virtual const WaveClass *This_Const() const override { return reinterpret_cast<const WaveClass *>(ObjectClassExtension::This_Const()); }
+        virtual RTTIType What_Am_I() const override { return RTTI_WAVE; }
+
     public:
 };
-
-
-extern ExtensionMap<WaveClass, WaveClassExtension> WaveClassExtensions;

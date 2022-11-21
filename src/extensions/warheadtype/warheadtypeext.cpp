@@ -28,14 +28,10 @@
 #include "warheadtypeext.h"
 #include "warheadtype.h"
 #include "ccini.h"
+#include "wwcrc.h"
+#include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
-
-
-/**
- *  Provides the map for all WarheadTypeClass extension instances.
- */
-ExtensionMap<WarheadTypeClass, WarheadTypeClassExtension> WarheadTypeClassExtensions;
 
 
 /**
@@ -43,9 +39,8 @@ ExtensionMap<WarheadTypeClass, WarheadTypeClassExtension> WarheadTypeClassExtens
  *  
  *  @author: CCHyper
  */
-WarheadTypeClassExtension::WarheadTypeClassExtension(WarheadTypeClass *this_ptr) :
-    Extension(this_ptr),
-
+WarheadTypeClassExtension::WarheadTypeClassExtension(const WarheadTypeClass *this_ptr) :
+    AbstractTypeClassExtension(this_ptr),
     IsWallAbsoluteDestroyer(false),
     IsAffectsAllies(true),
     CombatLightSize(0.0f),
@@ -54,11 +49,9 @@ WarheadTypeClassExtension::WarheadTypeClassExtension(WarheadTypeClass *this_ptr)
     ShakePixelXHi(0),
     ShakePixelXLo(0)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("WarheadTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("WarheadTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //if (this_ptr) EXT_DEBUG_TRACE("WarheadTypeClassExtension::WarheadTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    IsInitialized = true;
+    WarheadTypeExtensions.Add(this);
 }
 
 
@@ -68,9 +61,9 @@ WarheadTypeClassExtension::WarheadTypeClassExtension(WarheadTypeClass *this_ptr)
  *  @author: CCHyper
  */
 WarheadTypeClassExtension::WarheadTypeClassExtension(const NoInitClass &noinit) :
-    Extension(noinit)
+    AbstractTypeClassExtension(noinit)
 {
-    IsInitialized = false;
+    //EXT_DEBUG_TRACE("WarheadTypeClassExtension::WarheadTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -81,10 +74,28 @@ WarheadTypeClassExtension::WarheadTypeClassExtension(const NoInitClass &noinit) 
  */
 WarheadTypeClassExtension::~WarheadTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("WarheadTypeClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("WarheadTypeClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("WarheadTypeClassExtension::~WarheadTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    IsInitialized = false;
+    WarheadTypeExtensions.Delete(this);
+}
+
+
+/**
+ *  Retrieves the class identifier (CLSID) of the object.
+ *  
+ *  @author: CCHyper
+ */
+HRESULT WarheadTypeClassExtension::GetClassID(CLSID *lpClassID)
+{
+    //EXT_DEBUG_TRACE("WarheadTypeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    if (lpClassID == nullptr) {
+        return E_POINTER;
+    }
+
+    *lpClassID = __uuidof(this);
+
+    return S_OK;
 }
 
 
@@ -95,12 +106,11 @@ WarheadTypeClassExtension::~WarheadTypeClassExtension()
  */
 HRESULT WarheadTypeClassExtension::Load(IStream *pStm)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("WarheadTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("WarheadTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Load(pStm);
+    HRESULT hr = AbstractTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
-        return E_FAIL;
+        return hr;
     }
 
     new (this) WarheadTypeClassExtension(NoInitClass());
@@ -116,10 +126,9 @@ HRESULT WarheadTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT WarheadTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("WarheadTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("WarheadTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Save(pStm, fClearDirty);
+    HRESULT hr = AbstractTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
     }
@@ -135,8 +144,7 @@ HRESULT WarheadTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int WarheadTypeClassExtension::Size_Of() const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("WarheadTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("WarheadTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -149,8 +157,7 @@ int WarheadTypeClassExtension::Size_Of() const
  */
 void WarheadTypeClassExtension::Detach(TARGET target, bool all)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("WarheadTypeClassExtension::Detach - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("WarheadTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -161,8 +168,7 @@ void WarheadTypeClassExtension::Detach(TARGET target, bool all)
  */
 void WarheadTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("WarheadTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("WarheadTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     crc(IsWallAbsoluteDestroyer);
     crc(IsAffectsAllies);
@@ -181,15 +187,13 @@ void WarheadTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
  */
 bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("WarheadTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    EXT_DEBUG_WARNING("WarheadTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("WarheadTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    const char *ini_name = ThisPtr->Name();
-
-    if (!ini.Is_Present(ini_name)) {
+    if (!AbstractTypeClassExtension::Read_INI(ini)) {
         return false;
     }
+
+    const char *ini_name = Name();
 
     IsWallAbsoluteDestroyer = ini.Get_Bool(ini_name, "WallAbsoluteDestroyer", IsWallAbsoluteDestroyer);
     IsAffectsAllies = ini.Get_Bool(ini_name, "AffectsAllies", IsAffectsAllies);

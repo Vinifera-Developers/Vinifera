@@ -28,14 +28,9 @@
 #include "voxelanimtypeext.h"
 #include "voxelanimtype.h"
 #include "ccini.h"
+#include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
-
-
-/**
- *  Provides the map for all VoxelAnimTypeClass extension instances.
- */
-ExtensionMap<VoxelAnimTypeClass, VoxelAnimTypeClassExtension> VoxelAnimTypeClassExtensions;
 
 
 /**
@@ -43,14 +38,12 @@ ExtensionMap<VoxelAnimTypeClass, VoxelAnimTypeClassExtension> VoxelAnimTypeClass
  *  
  *  @author: CCHyper
  */
-VoxelAnimTypeClassExtension::VoxelAnimTypeClassExtension(VoxelAnimTypeClass *this_ptr) :
-    Extension(this_ptr)
+VoxelAnimTypeClassExtension::VoxelAnimTypeClassExtension(const VoxelAnimTypeClass *this_ptr) :
+    ObjectTypeClassExtension(this_ptr)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("VoxelAnimTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("VoxelAnimTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //if (this_ptr) EXT_DEBUG_TRACE("VoxelAnimTypeClassExtension::VoxelAnimTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    IsInitialized = true;
+    VoxelAnimTypeExtensions.Add(this);
 }
 
 
@@ -60,9 +53,9 @@ VoxelAnimTypeClassExtension::VoxelAnimTypeClassExtension(VoxelAnimTypeClass *thi
  *  @author: CCHyper
  */
 VoxelAnimTypeClassExtension::VoxelAnimTypeClassExtension(const NoInitClass &noinit) :
-    Extension(noinit)
+    ObjectTypeClassExtension(noinit)
 {
-    IsInitialized = false;
+    //EXT_DEBUG_TRACE("VoxelAnimTypeClassExtension::VoxelAnimTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -73,10 +66,28 @@ VoxelAnimTypeClassExtension::VoxelAnimTypeClassExtension(const NoInitClass &noin
  */
 VoxelAnimTypeClassExtension::~VoxelAnimTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("VoxelAnimTypeClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("VoxelAnimTypeClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("VoxelAnimTypeClassExtension::~VoxelAnimTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    IsInitialized = false;
+    VoxelAnimTypeExtensions.Delete(this);
+}
+
+
+/**
+ *  Retrieves the class identifier (CLSID) of the object.
+ *  
+ *  @author: CCHyper
+ */
+HRESULT VoxelAnimTypeClassExtension::GetClassID(CLSID *lpClassID)
+{
+    //EXT_DEBUG_TRACE("VoxelAnimTypeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    if (lpClassID == nullptr) {
+        return E_POINTER;
+    }
+
+    *lpClassID = __uuidof(this);
+
+    return S_OK;
 }
 
 
@@ -87,10 +98,9 @@ VoxelAnimTypeClassExtension::~VoxelAnimTypeClassExtension()
  */
 HRESULT VoxelAnimTypeClassExtension::Load(IStream *pStm)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("VoxelAnimTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("VoxelAnimTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Load(pStm);
+    HRESULT hr = ObjectTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
@@ -108,10 +118,9 @@ HRESULT VoxelAnimTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT VoxelAnimTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("VoxelAnimTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("VoxelAnimTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Save(pStm, fClearDirty);
+    HRESULT hr = ObjectTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
     }
@@ -127,8 +136,7 @@ HRESULT VoxelAnimTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int VoxelAnimTypeClassExtension::Size_Of() const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("VoxelAnimTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("VoxelAnimTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -141,8 +149,7 @@ int VoxelAnimTypeClassExtension::Size_Of() const
  */
 void VoxelAnimTypeClassExtension::Detach(TARGET target, bool all)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("VoxelAnimTypeClassExtension::Detach - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("VoxelAnimTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -153,8 +160,7 @@ void VoxelAnimTypeClassExtension::Detach(TARGET target, bool all)
  */
 void VoxelAnimTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("VoxelAnimTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("VoxelAnimTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -165,11 +171,13 @@ void VoxelAnimTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
  */
 bool VoxelAnimTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("VoxelAnimTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    EXT_DEBUG_WARNING("VoxelAnimTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("VoxelAnimTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    const char *ini_name = ThisPtr->Name();
+    if (!ObjectTypeClassExtension::Read_INI(ini)) {
+        return false;
+    }
+
+    const char *ini_name = Name();
 
     if (!ini.Is_Present(ini_name)) {
         return false;

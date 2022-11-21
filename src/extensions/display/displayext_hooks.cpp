@@ -40,6 +40,7 @@
 #include "session.h"
 #include "sessionext.h"
 #include "wwmouse.h"
+#include "extension.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
@@ -92,8 +93,8 @@ DECLARE_PATCH(_DisplayClass_Passes_Proximity_Passes_Check_Patch)
 
             if (base->House != hptr && base->House->Is_Ally(hptr)) {
 
-                buildingtypeext = BuildingTypeClassExtensions.find(base->Class);
-                if (buildingtypeext && buildingtypeext->IsEligibleForAllyBuilding) {
+                buildingtypeext = Extension::Fetch<BuildingTypeClassExtension>(base->Class);
+                if (buildingtypeext->IsEligibleForAllyBuilding) {
 #ifndef NDEBUG
                     //DEV_DEBUG_INFO("Ally \"%s's\" building \"%s\" is eligible for building off.\n", base->House->IniName, base->Name());
 #endif

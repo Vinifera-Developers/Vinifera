@@ -27,33 +27,39 @@
  ******************************************************************************/
 #pragma once
 
-#include "extension.h"
-#include "container.h"
+#include "technotypeext.h"
+#include "aircrafttype.h"
 
 
-class AircraftTypeClass;
-class CCINIClass;
-
-
-class AircraftTypeClassExtension final : public Extension<AircraftTypeClass>
+class DECLSPEC_UUID(UUID_AIRCRAFTTYPE_EXTENSION)
+AircraftTypeClassExtension final : public TechnoTypeClassExtension
 {
     public:
-        AircraftTypeClassExtension(AircraftTypeClass *this_ptr);
-        AircraftTypeClassExtension(const NoInitClass &noinit);
-        ~AircraftTypeClassExtension();
+        /**
+         *  IPersist
+         */
+        IFACEMETHOD(GetClassID)(CLSID *pClassID);
 
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
-        virtual int Size_Of() const override;
-
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
-
-        bool Read_INI(CCINIClass &ini);
+        /**
+         *  IPersistStream
+         */
+        IFACEMETHOD(Load)(IStream *pStm);
+        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
 
     public:
+        AircraftTypeClassExtension(const AircraftTypeClass *this_ptr = nullptr);
+        AircraftTypeClassExtension(const NoInitClass &noinit);
+        virtual ~AircraftTypeClassExtension();
 
+        virtual int Size_Of() const override;
+        virtual void Detach(TARGET target, bool all = true) override;
+        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+        
+        virtual AircraftTypeClass *This() const override { return reinterpret_cast<AircraftTypeClass *>(TechnoTypeClassExtension::This()); }
+        virtual const AircraftTypeClass *This_Const() const override { return reinterpret_cast<const AircraftTypeClass *>(TechnoTypeClassExtension::This_Const()); }
+        virtual RTTIType What_Am_I() const override { return RTTI_AIRCRAFTTYPE; }
+
+        virtual bool Read_INI(CCINIClass &ini) override;
+
+    public:
 };
-
-
-extern ExtensionMap<AircraftTypeClass, AircraftTypeClassExtension> AircraftTypeClassExtensions;

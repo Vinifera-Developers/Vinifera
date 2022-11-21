@@ -28,14 +28,9 @@
 #include "waveext.h"
 #include "wave.h"
 #include "wwcrc.h"
+#include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
-
-
-/**
- *  Provides the map for all WaveClass extension instances.
- */
-ExtensionMap<WaveClass, WaveClassExtension> WaveClassExtensions;
 
 
 /**
@@ -43,14 +38,12 @@ ExtensionMap<WaveClass, WaveClassExtension> WaveClassExtensions;
  *  
  *  @author: CCHyper
  */
-WaveClassExtension::WaveClassExtension(WaveClass *this_ptr) :
-    Extension(this_ptr)
+WaveClassExtension::WaveClassExtension(const WaveClass *this_ptr) :
+    ObjectClassExtension(this_ptr)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("WaveClassExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("WaveClassExtension constructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //if (this_ptr) EXT_DEBUG_TRACE("WaveClassExtension::WaveClassExtension - 0x%08X\n", (uintptr_t)(This()));
 
-    IsInitialized = true;
+    WaveExtensions.Add(this);
 }
 
 
@@ -60,9 +53,9 @@ WaveClassExtension::WaveClassExtension(WaveClass *this_ptr) :
  *  @author: CCHyper
  */
 WaveClassExtension::WaveClassExtension(const NoInitClass &noinit) :
-    Extension(noinit)
+    ObjectClassExtension(noinit)
 {
-    IsInitialized = false;
+    //EXT_DEBUG_TRACE("WaveClassExtension::WaveClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -73,10 +66,28 @@ WaveClassExtension::WaveClassExtension(const NoInitClass &noinit) :
  */
 WaveClassExtension::~WaveClassExtension()
 {
-    //EXT_DEBUG_TRACE("WaveClassExtension destructor - 0x%08X\n", (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("WaveClassExtension destructor - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("WaveClassExtension::~WaveClassExtension - 0x%08X\n", (uintptr_t)(This()));
 
-    IsInitialized = false;
+    WaveExtensions.Delete(this);
+}
+
+
+/**
+ *  Retrieves the class identifier (CLSID) of the object.
+ *  
+ *  @author: CCHyper
+ */
+HRESULT WaveClassExtension::GetClassID(CLSID *lpClassID)
+{
+    //EXT_DEBUG_TRACE("WaveClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    if (lpClassID == nullptr) {
+        return E_POINTER;
+    }
+
+    *lpClassID = __uuidof(this);
+
+    return S_OK;
 }
 
 
@@ -87,10 +98,9 @@ WaveClassExtension::~WaveClassExtension()
  */
 HRESULT WaveClassExtension::Load(IStream *pStm)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("WaveClassExtension::Load - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("WaveClassExtension::Load - 0x%08X\n", (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Load(pStm);
+    HRESULT hr = ObjectClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
@@ -108,10 +118,9 @@ HRESULT WaveClassExtension::Load(IStream *pStm)
  */
 HRESULT WaveClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("WaveClassExtension::Save - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("WaveClassExtension::Save - 0x%08X\n", (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Save(pStm, fClearDirty);
+    HRESULT hr = ObjectClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
     }
@@ -127,8 +136,7 @@ HRESULT WaveClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int WaveClassExtension::Size_Of() const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("WaveClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("WaveClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -141,8 +149,7 @@ int WaveClassExtension::Size_Of() const
  */
 void WaveClassExtension::Detach(TARGET target, bool all)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("WaveClassExtension::Detach - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("WaveClassExtension::Detach - 0x%08X\n", (uintptr_t)(This()));
 }
 
 
@@ -153,6 +160,5 @@ void WaveClassExtension::Detach(TARGET target, bool all)
  */
 void WaveClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("WaveClassExtension::Compute_CRC - 0x%08X\n", (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("WaveClassExtension::Compute_CRC - 0x%08X\n", (uintptr_t)(This()));
 }

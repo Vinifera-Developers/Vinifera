@@ -27,33 +27,39 @@
  ******************************************************************************/
 #pragma once
 
-#include "extension.h"
-#include "container.h"
+#include "abstracttypeext.h"
+#include "tiberium.h"
 
 
-class TiberiumClass;
-class CCINIClass;
-
-
-class TiberiumClassExtension final : public Extension<TiberiumClass>
+class DECLSPEC_UUID(UUID_TIBERIUM_EXTENSION)
+TiberiumClassExtension final : public AbstractTypeClassExtension
 {
     public:
-        TiberiumClassExtension(TiberiumClass *this_ptr);
+        /**
+         *  IPersist
+         */
+        IFACEMETHOD(GetClassID)(CLSID *pClassID);
+
+        /**
+         *  IPersistStream
+         */
+        IFACEMETHOD(Load)(IStream *pStm);
+        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+
+    public:
+        TiberiumClassExtension(const TiberiumClass *this_ptr = nullptr);
         TiberiumClassExtension(const NoInitClass &noinit);
-        ~TiberiumClassExtension();
+        virtual ~TiberiumClassExtension();
 
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
         virtual int Size_Of() const override;
-
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
-        bool Read_INI(CCINIClass &ini);
+        virtual TiberiumClass *This() const override { return reinterpret_cast<TiberiumClass *>(AbstractTypeClassExtension::This()); }
+        virtual const TiberiumClass *This_Const() const override { return reinterpret_cast<const TiberiumClass *>(AbstractTypeClassExtension::This_Const()); }
+        virtual RTTIType What_Am_I() const override { return RTTI_TIBERIUM; }
+
+        virtual bool Read_INI(CCINIClass &ini) override;
 
     public:
-
 };
-
-
-extern ExtensionMap<TiberiumClass, TiberiumClassExtension> TiberiumClassExtensions;

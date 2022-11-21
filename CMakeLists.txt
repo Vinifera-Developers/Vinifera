@@ -304,29 +304,6 @@ endif()
 
 
 ################################################################################
-# Fetch the latest "robin-hood-hashing" source code
-################################################################################
-FetchContent_Declare(
-	robin_hood_hashing 
-	GIT_REMOTE_UPDATE_STRATEGY REBASE
-	GIT_REPOSITORY https://github.com/martinus/robin-hood-hashing.git
-	GIT_TAG        origin/master
-	GIT_SUBMODULES ""
-)
-
-FetchContent_GetProperties(robin_hood_hashing)
-if(NOT robin_hood_hashing_POPULATED)
-	message(STATUS "Fetching robin-hood-hashing...")
-	FetchContent_Populate(robin_hood_hashing)
-	message(STATUS "  Source: ${robin_hood_hashing_SOURCE_DIR}")
-	message(STATUS "  Build: ${robin_hood_hashing_BINARY_DIR}")
-	add_subdirectory(${robin_hood_hashing_SOURCE_DIR} ${robin_hood_hashing_BINARY_DIR})
-else()
-	message(STATUS "Found robin-hood-hashing.")
-endif()
-
-
-################################################################################
 # Embed some git version information in the binary.
 ################################################################################
 message(STATUS "Fetching git repository information.")
@@ -548,8 +525,6 @@ else()
 message(STATUS "Build: Unofficial")
 endif()
 
-# Use the robin-hood-hashing library containers instead of the std C++ containers.
-target_compile_definitions(${PROJECT_NAME} PUBLIC USE_ROBIN_HOOD=1)
 
 #
 # Add/Remove flags required for trying matching pre-compiled game code.
@@ -642,10 +617,6 @@ target_link_libraries(${PROJECT_NAME} ${REQUIRED_LIBRARIES})
 
 # Make build check state of git to check for uncommitted changes.
 add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_check_git)
-
-# Link to the robin-hood-hashing library.
-target_link_libraries(${PROJECT_NAME} robin_hood)
-add_dependencies(${PROJECT_NAME} robin_hood)
 
 
 ################################################################################

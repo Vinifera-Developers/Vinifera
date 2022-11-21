@@ -34,14 +34,9 @@
 #include "tibsun_globals.h"
 #include "vinifera_util.h"
 #include "spritecollection.h"
+#include "vinifera_saveload.h"
 #include "asserthandler.h"
 #include "debughandler.h"
-
-
-/**
- *  Provides the map for all TechnoTypeClass extension instances.
- */
-ExtensionMap<TechnoTypeClass, TechnoTypeClassExtension> TechnoTypeClassExtensions;
 
 
 /**
@@ -49,8 +44,8 @@ ExtensionMap<TechnoTypeClass, TechnoTypeClassExtension> TechnoTypeClassExtension
  *  
  *  @author: CCHyper
  */
-TechnoTypeClassExtension::TechnoTypeClassExtension(TechnoTypeClass *this_ptr) :
-    Extension(this_ptr),
+TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_ptr) :
+    ObjectTypeClassExtension(this_ptr),
     CloakSound(VOC_NONE),
     UncloakSound(VOC_NONE),
     IsShakeScreen(false),
@@ -72,11 +67,7 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(TechnoTypeClass *this_ptr) :
     IdleRate(0),
     CameoImageSurface(nullptr)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TechnoTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("TechnoTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-
-    IsInitialized = true;
+    //if (this_ptr) EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -86,9 +77,9 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(TechnoTypeClass *this_ptr) :
  *  @author: CCHyper
  */
 TechnoTypeClassExtension::TechnoTypeClassExtension(const NoInitClass &noinit) :
-    Extension(noinit)
+    ObjectTypeClassExtension(noinit)
 {
-    IsInitialized = false;
+    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -99,13 +90,10 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const NoInitClass &noinit) :
  */
 TechnoTypeClassExtension::~TechnoTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("TechnoTypeClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("TechnoTypeClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::~TechnoTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     delete CameoImageSurface;
     CameoImageSurface = nullptr;
-
-    IsInitialized = false;
 }
 
 
@@ -116,24 +104,21 @@ TechnoTypeClassExtension::~TechnoTypeClassExtension()
  */
 HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Load(pStm);
+    HRESULT hr = ObjectTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
 
-    new (this) TechnoTypeClassExtension(NoInitClass());
-
-    SWIZZLE_REQUEST_POINTER_REMAP(UnloadingClass);
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(UnloadingClass, "UnloadingClass");
 
     /**
      *  We need to reload the "Cameo" key because TechnoTypeClass does
      *  not store the entry value. 
      */
-    const char *ini_name = ThisPtr->Name();
-    const char *graphic_name = ThisPtr->Graphic_Name();
+    const char *ini_name = IniName;
+    const char *graphic_name = GraphicName;
 
     char cameo_buffer[32];
     
@@ -163,10 +148,9 @@ HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT TechnoTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Save(pStm, fClearDirty);
+    HRESULT hr = ObjectTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
     }
@@ -176,16 +160,24 @@ HRESULT TechnoTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 
 
 /**
- *  Return the raw size of class data for save/load purposes.
- *  
- *  @author: CCHyper
+ *  Retrieves the size of the stream needed to save the object.
+ * 
+ *  @author: CCHyper, tomsons26
  */
-int TechnoTypeClassExtension::Size_Of() const
+LONG TechnoTypeClassExtension::GetSizeMax(ULARGE_INTEGER *pcbSize)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("AbstractClassExtension::GetSizeMax - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    return sizeof(*this);
+    if (!pcbSize) {
+        return E_POINTER;
+    }
+
+    pcbSize->LowPart += VoiceCapture.Count() * sizeof(uint32_t);
+    pcbSize->LowPart += VoiceEnter.Count() * sizeof(uint32_t);
+    pcbSize->LowPart += VoiceDeploy.Count() * sizeof(uint32_t);
+    pcbSize->LowPart += VoiceHarvest.Count() * sizeof(uint32_t);
+
+    return S_OK;
 }
 
 
@@ -196,8 +188,7 @@ int TechnoTypeClassExtension::Size_Of() const
  */
 void TechnoTypeClassExtension::Detach(TARGET target, bool all)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Detach - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -208,8 +199,7 @@ void TechnoTypeClassExtension::Detach(TARGET target, bool all)
  */
 void TechnoTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     crc(IsShakeScreen);
     crc(IsImmuneToEMP);
@@ -228,16 +218,14 @@ void TechnoTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
  */
 bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("TechnoTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    const char *ini_name = ThisPtr->Name();
-    const char *graphic_name = ThisPtr->Graphic_Name();
-
-    if (!ini.Is_Present(ini_name)) {
+    if (!ObjectTypeClassExtension::Read_INI(ini)) {
         return false;
     }
+
+    const char *ini_name = Name();
+    const char *graphic_name = Graphic_Name();
 
     //if (!ArtINI.Is_Present(graphic_name)) {
     //    return false;
@@ -251,7 +239,7 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
      * 
      *  @author: CCHyper
      */
-    ThisPtr->WalkRate = ArtINI.Get_Int(graphic_name, "WalkRate", ThisPtr->WalkRate);
+    This()->WalkRate = ArtINI.Get_Int(graphic_name, "WalkRate", This()->WalkRate);
     
     CloakSound = ini.Get_VocType(ini_name, "CloakSound", CloakSound);
     UncloakSound = ini.Get_VocType(ini_name, "UncloakSound", UncloakSound);
@@ -278,7 +266,7 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     /**
      *  Fetch the cameo image surface if it exists.
      */
-    BSurface *imagesurface = Vinifera_Get_Image_Surface(ThisPtr->CameoFilename);
+    BSurface *imagesurface = Vinifera_Get_Image_Surface(This()->CameoFilename);
     if (imagesurface) {
         CameoImageSurface = imagesurface;
     }

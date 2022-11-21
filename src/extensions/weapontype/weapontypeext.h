@@ -27,29 +27,39 @@
  ******************************************************************************/
 #pragma once
 
-#include "extension.h"
-#include "container.h"
+#include "abstracttypeext.h"
+#include "weapontype.h"
 
 
-class WeaponTypeClass;
-class CCINIClass;
-
-
-class WeaponTypeClassExtension final : public Extension<WeaponTypeClass>
+class DECLSPEC_UUID(UUID_WEAPONTYPE_EXTENSION)
+WeaponTypeClassExtension final : public AbstractTypeClassExtension
 {
     public:
-        WeaponTypeClassExtension(WeaponTypeClass *this_ptr);
+        /**
+         *  IPersist
+         */
+        IFACEMETHOD(GetClassID)(CLSID *pClassID);
+
+        /**
+         *  IPersistStream
+         */
+        IFACEMETHOD(Load)(IStream *pStm);
+        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+
+    public:
+        WeaponTypeClassExtension(const WeaponTypeClass *this_ptr = nullptr);
         WeaponTypeClassExtension(const NoInitClass &noinit);
-        ~WeaponTypeClassExtension();
+        virtual ~WeaponTypeClassExtension();
 
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
         virtual int Size_Of() const override;
-
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
-        bool Read_INI(CCINIClass &ini);
+        virtual WeaponTypeClass *This() const override { return reinterpret_cast<WeaponTypeClass *>(AbstractTypeClassExtension::This()); }
+        virtual const WeaponTypeClass *This_Const() const override { return reinterpret_cast<const WeaponTypeClass *>(AbstractTypeClassExtension::This_Const()); }
+        virtual RTTIType What_Am_I() const override { return RTTI_WEAPONTYPE; }
+
+        virtual bool Read_INI(CCINIClass &ini) override;
 
     public:
         /**
@@ -100,6 +110,3 @@ class WeaponTypeClassExtension final : public Extension<WeaponTypeClass>
         //ParticleSystemClass *ElectricBoltSourceBoltParticleSys;
         //ParticleSystemClass *ElectricBoltTargetBoltParticleSys;
 };
-
-
-extern ExtensionMap<WeaponTypeClass, WeaponTypeClassExtension> WeaponTypeClassExtensions;

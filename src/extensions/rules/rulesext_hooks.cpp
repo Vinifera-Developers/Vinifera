@@ -37,6 +37,7 @@
 #include "addon.h"
 #include "wwmouse.h"
 #include "windialog.h"
+#include "extension_globals.h"
 #include "fatal.h"
 #include "asserthandler.h"
 #include "debughandler.h"
@@ -56,7 +57,7 @@ extern HMODULE DLLInstance;
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-class RulesClassFake final : public RulesClass
+class RulesClassExt final : public RulesClass
 {
     public:
         void _Process(CCINIClass &ini);
@@ -68,18 +69,14 @@ class RulesClassFake final : public RulesClass
  * 
  *  @author: CCHyper
  */
-void RulesClassFake::_Process(CCINIClass &ini)
+void RulesClassExt::_Process(CCINIClass &ini)
 {
     /**
      *  Process the rules extension.
      * 
      *  #NOTE: This must be last!
      */
-    if (RulesExtension) {
-        RulesExtension->Process(ini);
-    } else {
-        Process(ini);
-    }
+    RuleExtension->Process(ini);
 }
 
 
@@ -193,11 +190,9 @@ DECLARE_PATCH(_Init_Rules_Extended_Class_Patch)
     /**
      *  Store extended class values.
      */
-    if (SessionExtension && RulesExtension) {
-        SessionExtension->ExtOptions.IsAutoDeployMCV = RulesExtension->IsMPAutoDeployMCV;
-        SessionExtension->ExtOptions.IsPrePlacedConYards = RulesExtension->IsMPPrePlacedConYards;
-        SessionExtension->ExtOptions.IsBuildOffAlly = RulesExtension->IsBuildOffAlly;
-    }
+    SessionExtension->ExtOptions.IsAutoDeployMCV = RuleExtension->IsMPAutoDeployMCV;
+    SessionExtension->ExtOptions.IsPrePlacedConYards = RuleExtension->IsMPPrePlacedConYards;
+    SessionExtension->ExtOptions.IsBuildOffAlly = RuleExtension->IsBuildOffAlly;
 
     /**
      *  Stolen bytes/code.
@@ -219,7 +214,7 @@ void RulesClassExtension_Hooks()
      */
     RulesClassExtension_Init();
 
-    Patch_Jump(0x005C6710, &RulesClassFake::_Process);
+    Patch_Jump(0x005C6710, &RulesClassExt::_Process);
 
     Patch_Jump(0x004E138B, &_Init_Rules_Extended_Class_Patch);
     Patch_Jump(0x004E12EB, &_Init_Rules_Show_Rules_Select_Dialog_Patch);

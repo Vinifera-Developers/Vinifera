@@ -28,14 +28,9 @@
 #include "smudgetypeext.h"
 #include "smudgetype.h"
 #include "ccini.h"
+#include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
-
-
-/**
- *  Provides the map for all SmudgeTypeClass extension instances.
- */
-ExtensionMap<SmudgeTypeClass, SmudgeTypeClassExtension> SmudgeTypeClassExtensions;
 
 
 /**
@@ -43,14 +38,12 @@ ExtensionMap<SmudgeTypeClass, SmudgeTypeClassExtension> SmudgeTypeClassExtension
  *  
  *  @author: CCHyper
  */
-SmudgeTypeClassExtension::SmudgeTypeClassExtension(SmudgeTypeClass *this_ptr) :
-    Extension(this_ptr)
+SmudgeTypeClassExtension::SmudgeTypeClassExtension(const SmudgeTypeClass *this_ptr) :
+    ObjectTypeClassExtension(this_ptr)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("SmudgeTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("SmudgeTypeClassExtension constructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //if (this_ptr) EXT_DEBUG_TRACE("SmudgeTypeClassExtension::SmudgeTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    IsInitialized = true;
+    SmudgeTypeExtensions.Add(this);
 }
 
 
@@ -60,9 +53,9 @@ SmudgeTypeClassExtension::SmudgeTypeClassExtension(SmudgeTypeClass *this_ptr) :
  *  @author: CCHyper
  */
 SmudgeTypeClassExtension::SmudgeTypeClassExtension(const NoInitClass &noinit) :
-    Extension(noinit)
+    ObjectTypeClassExtension(noinit)
 {
-    IsInitialized = false;
+    //EXT_DEBUG_TRACE("SmudgeTypeClassExtension::SmudgeTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -73,10 +66,28 @@ SmudgeTypeClassExtension::SmudgeTypeClassExtension(const NoInitClass &noinit) :
  */
 SmudgeTypeClassExtension::~SmudgeTypeClassExtension()
 {
-    //EXT_DEBUG_TRACE("SmudgeTypeClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    //EXT_DEBUG_WARNING("SmudgeTypeClassExtension destructor - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("SmudgeTypeClassExtension::~SmudgeTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    IsInitialized = false;
+    SmudgeTypeExtensions.Delete(this);
+}
+
+
+/**
+ *  Retrieves the class identifier (CLSID) of the object.
+ *  
+ *  @author: CCHyper
+ */
+HRESULT SmudgeTypeClassExtension::GetClassID(CLSID *lpClassID)
+{
+    //EXT_DEBUG_TRACE("SmudgeTypeClassExtension::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    if (lpClassID == nullptr) {
+        return E_POINTER;
+    }
+
+    *lpClassID = __uuidof(this);
+
+    return S_OK;
 }
 
 
@@ -87,10 +98,9 @@ SmudgeTypeClassExtension::~SmudgeTypeClassExtension()
  */
 HRESULT SmudgeTypeClassExtension::Load(IStream *pStm)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("SmudgeTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("SmudgeTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Load(pStm);
+    HRESULT hr = ObjectTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
@@ -108,10 +118,9 @@ HRESULT SmudgeTypeClassExtension::Load(IStream *pStm)
  */
 HRESULT SmudgeTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("SmudgeTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("SmudgeTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = Extension::Save(pStm, fClearDirty);
+    HRESULT hr = ObjectTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
     }
@@ -127,8 +136,7 @@ HRESULT SmudgeTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  */
 int SmudgeTypeClassExtension::Size_Of() const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("SmudgeTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("SmudgeTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -141,8 +149,7 @@ int SmudgeTypeClassExtension::Size_Of() const
  */
 void SmudgeTypeClassExtension::Detach(TARGET target, bool all)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("SmudgeTypeClassExtension::Detach - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("SmudgeTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -153,8 +160,7 @@ void SmudgeTypeClassExtension::Detach(TARGET target, bool all)
  */
 void SmudgeTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("SmudgeTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("SmudgeTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -165,11 +171,13 @@ void SmudgeTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
  */
 bool SmudgeTypeClassExtension::Read_INI(CCINIClass &ini)
 {
-    ASSERT(ThisPtr != nullptr);
-    //EXT_DEBUG_TRACE("SmudgeTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
-    EXT_DEBUG_WARNING("SmudgeTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", ThisPtr->Name(), (uintptr_t)(ThisPtr));
+    //EXT_DEBUG_TRACE("SmudgeTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    const char *ini_name = ThisPtr->Name();
+    if (!ObjectTypeClassExtension::Read_INI(ini)) {
+        return false;
+    }
+
+    const char *ini_name = Name();
 
     if (!ini.Is_Present(ini_name)) {
         return false;

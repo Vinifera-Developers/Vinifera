@@ -27,33 +27,39 @@
  ******************************************************************************/
 #pragma once
 
-#include "extension.h"
-#include "container.h"
+#include "objecttypeext.h"
+#include "voxelanimtype.h"
 
 
-class VoxelAnimTypeClass;
-class CCINIClass;
-
-
-class VoxelAnimTypeClassExtension final : public Extension<VoxelAnimTypeClass>
+class DECLSPEC_UUID(UUID_VOXELANIMTYPE_EXTENSION)
+VoxelAnimTypeClassExtension final : public ObjectTypeClassExtension
 {
     public:
-        VoxelAnimTypeClassExtension(VoxelAnimTypeClass *this_ptr);
+        /**
+         *  IPersist
+         */
+        IFACEMETHOD(GetClassID)(CLSID *pClassID);
+
+        /**
+         *  IPersistStream
+         */
+        IFACEMETHOD(Load)(IStream *pStm);
+        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+
+    public:
+        VoxelAnimTypeClassExtension(const VoxelAnimTypeClass *this_ptr = nullptr);
         VoxelAnimTypeClassExtension(const NoInitClass &noinit);
-        ~VoxelAnimTypeClassExtension();
+        virtual ~VoxelAnimTypeClassExtension();
 
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
         virtual int Size_Of() const override;
-
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
-        bool Read_INI(CCINIClass &ini);
+        virtual VoxelAnimTypeClass *This() const override { return reinterpret_cast<VoxelAnimTypeClass *>(ObjectTypeClassExtension::This()); }
+        virtual const VoxelAnimTypeClass *This_Const() const override { return reinterpret_cast<const VoxelAnimTypeClass *>(ObjectTypeClassExtension::This_Const()); }
+        virtual RTTIType What_Am_I() const override { return RTTI_VOXELANIMTYPE; }
+
+        virtual bool Read_INI(CCINIClass &ini) override;
 
     public:
-
 };
-
-
-extern ExtensionMap<VoxelAnimTypeClass, VoxelAnimTypeClassExtension> VoxelAnimTypeClassExtensions;

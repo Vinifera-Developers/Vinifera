@@ -27,27 +27,44 @@
  ******************************************************************************/
 #pragma once
 
-#include "extension.h"
-#include "container.h"
+#include "abstracttypeext.h"
+#include "super.h"
+#include "supertype.h"
 
 
-class SuperClass;
 class HouseClass;
 
 
-class SuperClassExtension final : public Extension<SuperClass>
+class DECLSPEC_UUID(UUID_SUPERWEAPON_EXTENSION)
+SuperClassExtension final : public AbstractClassExtension
 {
     public:
-        SuperClassExtension(SuperClass *this_ptr);
+        /**
+         *  IPersist
+         */
+        IFACEMETHOD(GetClassID)(CLSID *pClassID);
+
+        /**
+         *  IPersistStream
+         */
+        IFACEMETHOD(Load)(IStream *pStm);
+        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+
+    public:
+        SuperClassExtension(const SuperClass *this_ptr = nullptr);
         SuperClassExtension(const NoInitClass &noinit);
-        ~SuperClassExtension();
+        virtual ~SuperClassExtension();
 
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
         virtual int Size_Of() const override;
-
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
+
+        virtual const char *Name() const override { return reinterpret_cast<const SuperClass *>(This())->Class->Name(); }
+        virtual const char *Full_Name() const override { return reinterpret_cast<const SuperClass *>(This())->Class->Full_Name(); }
+
+        virtual SuperClass *This() const override { return reinterpret_cast<SuperClass *>(AbstractClassExtension::This()); }
+        virtual const SuperClass *This_Const() const override { return reinterpret_cast<const SuperClass *>(AbstractClassExtension::This_Const()); }
+        virtual RTTIType What_Am_I() const override { return RTTI_SUPERWEAPON; }
 
     public:
         /**
@@ -60,6 +77,3 @@ class SuperClassExtension final : public Extension<SuperClass>
          */
         bool TimerFlashState;
 };
-
-
-extern ExtensionMap<SuperClass, SuperClassExtension> SuperClassExtensions;

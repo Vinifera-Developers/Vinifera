@@ -27,16 +27,19 @@
  ******************************************************************************/
 #pragma once
 
+#include "abstractext.h"
 #include "extension.h"
+#include "tactical.h"
 #include "ttimer.h"
 #include "stimer.h"
 #include "wstring.h"
 #include "point.h"
 #include "textprint.h"
+#include <objidl.h>
 
 
-class Tactical;
 class HouseClass;
+class WWCRCEngine;
 
 
 enum InfoTextPosType {
@@ -47,22 +50,25 @@ enum InfoTextPosType {
 };
 
 
-/**
- *  Extension to Tactical.
- */
-class TacticalMapExtension final : public Extension<Tactical>
+class TacticalExtension final : public GlobalExtensionClass<Tactical>
 {
     public:
-        TacticalMapExtension(Tactical *this_ptr);
-        TacticalMapExtension(const NoInitClass &noinit);
-        ~TacticalMapExtension();
+        IFACEMETHOD(Load)(IStream *pStm);
+        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
 
-        virtual HRESULT Load(IStream *pStm) override;
-        virtual HRESULT Save(IStream *pStm, BOOL fClearDirty) override;
+    public:
+        TacticalExtension(const Tactical *this_ptr = nullptr);
+        TacticalExtension(const NoInitClass &noinit);
+        virtual ~TacticalExtension();
+
         virtual int Size_Of() const override;
-
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
+
+        virtual const char *Name() const override { return "TacticalMap"; }
+        virtual const char *Full_Name() const override { return "TacticalMap"; }
+
+        void Set_Info_Text(const char *text);
 
         void Draw_Debug_Overlay();
         void Draw_FrameStep_Overlay();
@@ -88,7 +94,7 @@ class TacticalMapExtension final : public Extension<Tactical>
         /**
          *  The information text to print on the screen.
          */
-        Wstring InfoTextBuffer;
+        char InfoTextBuffer[512];
 
         /**
          *  Where on the screen shall the text be printed?
@@ -115,9 +121,3 @@ class TacticalMapExtension final : public Extension<Tactical>
          */
         CDTimerClass<MSTimerClass> InfoTextTimer;
 };
-
-
-/**
- *  Global instance of the extended class.
- */
-extern TacticalMapExtension *TacticalExtension;

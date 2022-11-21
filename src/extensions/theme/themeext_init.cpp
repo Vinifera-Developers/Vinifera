@@ -30,9 +30,14 @@
 #include "theme.h"
 #include "tibsun_globals.h"
 #include "vinifera_util.h"
+#include "vinifera_globals.h"
+#include "extension.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+
+#include "hooker.h"
+#include "hooker_macros.h"
 
 
 /**
@@ -45,22 +50,12 @@
 DECLARE_PATCH(_ThemeClass_ThemeControl_Constructor_Patch)
 {
     GET_REGISTER_STATIC(ThemeClass::ThemeControl *, this_ptr, eax); // "this" pointer.
-    static ThemeControlExtension *exttype_ptr;
-
-    //EXT_DEBUG_WARNING("Creating ThemeClass_ThemeControlExtension.\n");
+    static ThemeControlExtension *ext_ptr;
 
     /**
-     *  Find existing or create an extended class instance.
+     *  Create an extended class instance.
      */
-    exttype_ptr = ThemeControlExtensions.find_or_create(this_ptr);
-    if (!exttype_ptr) {
-        DEBUG_ERROR("Failed to create ThemeControlExtension instance!\n");
-        ShowCursor(TRUE);
-        MessageBoxA(MainWindow, "Failed to create ThemeControlExtension instance!\n", "Vinifera", MB_OK|MB_ICONEXCLAMATION);
-        Vinifera_Generate_Mini_Dump();
-        Fatal("Failed to create ThemeControlExtension instance!\n");
-        goto original_code; // Keep this for clean code analysis.
-    }
+    Extension::List::Make<ThemeClass::ThemeControl, ThemeControlExtension>(this_ptr, ThemeControlExtensions);
 
     /**
      *  Stolen bytes here.
@@ -106,10 +101,7 @@ DECLARE_PATCH(_ThemeClass_ThemeControl_Read_INI_Patch)
     /**
      *  Find the extension instance.
      */
-    exttype_ptr = ThemeControlExtensions.find(this_ptr);
-    if (!exttype_ptr) {
-        goto original_code;
-    }
+    exttype_ptr = Extension::List::Fetch<ThemeClass::ThemeControl, ThemeControlExtension>(this_ptr, ThemeControlExtensions);
 
     /**
      *  Read type class ini.

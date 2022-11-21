@@ -38,6 +38,9 @@
 #include "asserthandler.h"
 #include "debughandler.h"
 
+#include "hooker.h"
+#include "hooker_macros.h"
+
 
 /**
  *  This function reimplements the chunk of code that populates the keyboard
@@ -388,6 +391,9 @@ void Init_Vinifera_Commands()
         Commands.Add(cmdptr);
 
         cmdptr = new AIInstantSuperRechargeCommandClass;
+        Commands.Add(cmdptr);
+
+        cmdptr = new DumpNetworkCRCCommandClass;
         Commands.Add(cmdptr);
     }
 
