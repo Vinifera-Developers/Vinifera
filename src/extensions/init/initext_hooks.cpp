@@ -40,6 +40,8 @@
 #include "theme.h"
 #include "session.h"
 #include "iomap.h"
+#include "house.h"
+#include "housetype.h"
 #include "dsaudio.h"
 #include "vinifera_gitinfo.h"
 #include "tspp_gitinfo.h"
@@ -61,6 +63,44 @@ extern HMODULE DLLInstance;
  */
 #define TS_MAINICON         93
 #define TS_MAINCURSOR       104
+
+
+/**
+ *  #issue-218
+ *
+ *  We abuse SessionClass::IsGDI in this patch to store the current players
+ *  HouseType so it can be used to fetch the SideType from it for loading
+ *  the assets. This also means this bugfix works without extending any of
+ *  the games classes.
+ *
+ *  @warning: This does mean we are limited to 255 unique houses (oh no!).
+ *)
+ *  @author: CCHyper
+ */
+static void Set_Session_House() { Session.IsGDI = (unsigned char)Session.Players.Fetch_Head()->Player.House & 0xFF; }
+DECLARE_PATCH(_Select_Game_PreStart_SetPlayerHouse_Patch)
+{
+    /**
+     *  This patch removes the code that sets the "IsGDI" member of SessionClass
+     *  bool based on if the house name matched "GDI" or not and stores
+     *  the player HouseType directly.
+     */
+#if 0
+    /**
+     *  Original game code.
+     */
+    static HouseTypeClass *housetype;
+    housetype = HouseTypes[Session.Players.Fetch_Head()->Player.House & 0xFF];
+    Session.IsGDI = strcmpi("GDI", housetype->Name()) == 0;
+#endif
+
+    /**
+     *  Accessing unions trashes the stack, so this operation is wrapped.
+     */
+    Set_Session_House();
+
+    JMP(0x004E2D13);
+}
 
 
 /**
@@ -1031,4 +1071,6 @@ void GameInit_Hooks()
      */
     Patch_Jump(0x00407050, &Vinifera_Detect_Addons);
 #endif
+
+    Patch_Jump(0x004E2CE4, &_Select_Game_PreStart_SetPlayerHouse_Patch);
 }
