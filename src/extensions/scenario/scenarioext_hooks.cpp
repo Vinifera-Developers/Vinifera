@@ -285,12 +285,33 @@ static void Init_Loading_Screen(const char *filename)
      */
     if (ScreenRect.Width >= 640 && ScreenRect.Height == 400) {
 
+        /**
+         *  #issue-294
+         * 
+         *  Centralises the position of the loading screen text.
+         * 
+         *  Original code retained below.
+         */
+#if 0
         if (solo) {
             textpos.X = 440;
             textpos.Y = 158;
         } else {
             textpos.X = 570;
             textpos.Y = 155;
+        }
+#endif
+
+        /**
+         *  The text box is in slightly different positions between GDI and NOD.
+         */
+        if (side == SIDE_GDI) {
+            textpos.X = solo ? 435 : 435;
+            textpos.Y = solo ? 157 : 157;
+
+        } else {
+            textpos.X = solo ? 436 : 436;
+            textpos.Y = solo ? 161 : 161;
         }
 
         image_width = 640;
@@ -300,12 +321,33 @@ static void Init_Loading_Screen(const char *filename)
 
     } else if (ScreenRect.Width >= 640 && ScreenRect.Height == 480) {
 
+        /**
+         *  #issue-294
+         *
+         *  Centralises the position of the loading screen text.
+         *
+         *  Original code retained below.
+         */
+#if 0
         if (solo) {
             textpos.X = 440;
             textpos.Y = 189;
         } else {
             textpos.X = 570;
             textpos.Y = 180;
+        }
+#endif
+
+        /**
+         *  The text box is in slightly different positions between GDI and NOD.
+         */
+        if (side == SIDE_GDI) {
+            textpos.X = solo ? 435 : 435;
+            textpos.Y = solo ? 195 : 195;
+
+        } else {
+            textpos.X = solo ? 436 : 436;
+            textpos.Y = solo ? 200 : 200;
         }
 
         image_width = 640;
@@ -315,12 +357,33 @@ static void Init_Loading_Screen(const char *filename)
 
     } else if (ScreenRect.Width >= 800 && ScreenRect.Height >= 600) {
 
+        /**
+         *  #issue-294
+         *
+         *  Centralises the position of the loading screen text.
+         *
+         *  Original code retained below.
+         */
+#if 0
         if (solo) {
             textpos.X = 550;
             textpos.Y = 236;
         } else {
             textpos.X = 715;
             textpos.Y = 230;
+        }
+#endif
+
+        /**
+         *  The text box is in slightly different positions between GDI and NOD.
+         */
+        if (side == SIDE_GDI) {
+            textpos.X = solo ? 563 : 563;
+            textpos.Y = solo ? 252 : 252;
+
+        } else {
+            textpos.X = solo ? 565 : 565;
+            textpos.Y = solo ? 258 : 258;
         }
 
         image_width = 800;
