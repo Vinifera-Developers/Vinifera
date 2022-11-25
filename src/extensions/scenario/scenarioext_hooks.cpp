@@ -274,8 +274,21 @@ static void Init_Loading_Screen(const char *filename)
     if (side == SIDE_GDI) {
         prefix = Percent_Chance(50) ? 'C' : 'D';
 
+    } else if (side == SIDE_NOD) {
+        prefix = Percent_Chance(50) ? 'A' : 'B';
+
+    /**
+     *  #issue-665
+     *
+     *  The remaining characters can be used in standard order for new sides.
+     *  This gives us support for 11 new sides before this system breaks.
+     */
     } else {
         prefix = Percent_Chance(50) ? 'A' : 'B';
+        prefix += char(2*side); // Offset the character based on the side index.
+        if (prefix > 'Z') {
+            prefix = 'Z';
+        }
     }
 
     Point2D textpos(0,0);
@@ -309,9 +322,16 @@ static void Init_Loading_Screen(const char *filename)
             textpos.X = solo ? 435 : 435;
             textpos.Y = solo ? 157 : 157;
 
-        } else {
+        } else if (side == SIDE_NOD) {
             textpos.X = solo ? 436 : 436;
             textpos.Y = solo ? 161 : 161;
+
+        /**
+         *  All other sides (uses the GDI offsets).
+         */
+        } else {
+            textpos.X = solo ? 435 : 435;
+            textpos.Y = solo ? 157 : 157;
         }
 
         image_width = 640;
@@ -345,9 +365,16 @@ static void Init_Loading_Screen(const char *filename)
             textpos.X = solo ? 435 : 435;
             textpos.Y = solo ? 195 : 195;
 
-        } else {
+        } else if (side == SIDE_NOD) {
             textpos.X = solo ? 436 : 436;
             textpos.Y = solo ? 200 : 200;
+
+        /**
+         *  All other sides (uses the GDI offsets).
+         */
+        } else {
+            textpos.X = solo ? 435 : 435;
+            textpos.Y = solo ? 195 : 195;
         }
 
         image_width = 640;
@@ -381,9 +408,16 @@ static void Init_Loading_Screen(const char *filename)
             textpos.X = solo ? 563 : 563;
             textpos.Y = solo ? 252 : 252;
 
-        } else {
+        } else if (side == SIDE_NOD) {
             textpos.X = solo ? 565 : 565;
             textpos.Y = solo ? 258 : 258;
+
+        /**
+         *  All other sides (uses the GDI offsets).
+         */
+        } else {
+            textpos.X = solo ? 563 : 563;
+            textpos.Y = solo ? 252 : 252;
         }
 
         image_width = 800;
@@ -413,6 +447,14 @@ static void Init_Loading_Screen(const char *filename)
      */
     char loadname[16];
     std::snprintf(loadname, sizeof(loadname), "LOAD%d%c.PCX", load_filename_height, prefix);
+
+    /**
+     *  Check to make sure the loading screen file can be found, if not, then
+     *  default to the GDI loading screen image set.
+     */
+    if (!CCFileClass(loadname).Is_Available()) {
+        std::snprintf(loadname, sizeof(loadname), "LOAD%d%c.PCX", load_filename_height, Sim_Percent_Chance(50) ? 'C' : 'D');
+    }
 
     DEV_DEBUG_INFO("Loading Screen: \"%s\"\n", loadname);
 
