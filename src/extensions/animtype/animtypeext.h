@@ -124,4 +124,10 @@ AnimTypeClassExtension final : public ObjectTypeClassExtension
         TypeList<int> EndAnimsCount;
         TypeList<int> EndAnimsMinimum;
         TypeList<int> EndAnimsMaximum;
+
+        /**
+         *  The width and height of the biggest frame, if set by the user.
+         */
+        unsigned BiggestFrameWidth;
+        unsigned BiggestFrameHeight;
 };

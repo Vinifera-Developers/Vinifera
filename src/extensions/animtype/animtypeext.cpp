@@ -60,7 +60,9 @@ AnimTypeClassExtension::AnimTypeClassExtension(const AnimTypeClass *this_ptr) :
     EndAnims(),
     EndAnimsCount(),
     EndAnimsMinimum(),
-    EndAnimsMaximum()
+    EndAnimsMaximum(),
+    BiggestFrameWidth(0),
+    BiggestFrameHeight(0)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("AnimTypeClassExtension::AnimTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -313,9 +315,9 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     NumberOfParticles = ini.Get_Int(ini_name, "NumParticles", NumberOfParticles);
 
     StartAnims = ini.Get_Anims(ini_name, "StartAnims", StartAnims);
-    StartAnimsCount = ini.Get_Integer_List(ini_name, "StartAnimsCount", StartAnimsCount);
-    StartAnimsMinimum = ini.Get_Integer_List(ini_name, "StartAnimsMinimum", StartAnimsMinimum);
-    StartAnimsMaximum = ini.Get_Integer_List(ini_name, "StartAnimsMaximum", StartAnimsMaximum);
+    StartAnimsCount = ini.Get_Integers(ini_name, "StartAnimsCount", StartAnimsCount);
+    StartAnimsMinimum = ini.Get_Integers(ini_name, "StartAnimsMinimum", StartAnimsMinimum);
+    StartAnimsMaximum = ini.Get_Integers(ini_name, "StartAnimsMaximum", StartAnimsMaximum);
 
     if (!StartAnimsCount.Count()) {
         ASSERT_FATAL(StartAnims.Count() == StartAnimsMinimum.Count());
@@ -323,9 +325,9 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     }
 
     MiddleAnims = ini.Get_Anims(ini_name, "MiddleAnims", MiddleAnims);
-    MiddleAnimsCount = ini.Get_Integer_List(ini_name, "MiddleAnimsCount", MiddleAnimsCount);
-    MiddleAnimsMinimum = ini.Get_Integer_List(ini_name, "MiddleAnimsMinimum", MiddleAnimsMinimum);
-    MiddleAnimsMaximum = ini.Get_Integer_List(ini_name, "MiddleAnimsMaximum", MiddleAnimsMaximum);
+    MiddleAnimsCount = ini.Get_Integers(ini_name, "MiddleAnimsCount", MiddleAnimsCount);
+    MiddleAnimsMinimum = ini.Get_Integers(ini_name, "MiddleAnimsMinimum", MiddleAnimsMinimum);
+    MiddleAnimsMaximum = ini.Get_Integers(ini_name, "MiddleAnimsMaximum", MiddleAnimsMaximum);
 
     if (!MiddleAnimsCount.Count()) {
         ASSERT_FATAL(MiddleAnims.Count() == MiddleAnimsMinimum.Count());
@@ -333,13 +335,46 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     }
 
     EndAnims = ini.Get_Anims(ini_name, "EndAnims", EndAnims);
-    EndAnimsCount = ini.Get_Integer_List(ini_name, "EndAnimsCount", EndAnimsCount);
-    EndAnimsMinimum = ini.Get_Integer_List(ini_name, "EndAnimsMinimum", EndAnimsMinimum);
-    EndAnimsMaximum = ini.Get_Integer_List(ini_name, "EndAnimsMaximum", EndAnimsMaximum);
+    EndAnimsCount = ini.Get_Integers(ini_name, "EndAnimsCount", EndAnimsCount);
+    EndAnimsMinimum = ini.Get_Integers(ini_name, "EndAnimsMinimum", EndAnimsMinimum);
+    EndAnimsMaximum = ini.Get_Integers(ini_name, "EndAnimsMaximum", EndAnimsMaximum);
 
     if (!EndAnimsCount.Count()) {
         ASSERT_FATAL(EndAnims.Count() == EndAnimsMinimum.Count());
         ASSERT_FATAL(EndAnims.Count() == EndAnimsMaximum.Count());
+    }
+
+    /**
+     *  #issue-883
+     * 
+     *  The "biggest" frame of a animation is frame which should hide all cosmetic
+     *  changes to the underlaying ground (e.g. craters) that the animation causes,
+     *  so these effects are delayed until this frame is reached. TibSun calculates
+     *  this by scanning the entire shape file to find the largest visible frame, but
+     *  in some cases, this might not be ideal (e.g. the shape has consistent frame
+     *  dimensions). This new value allows the frame in which these effects are 
+     *  spawned be set.
+     * 
+     *  A special value of "-1" will set the biggest frame to the actual middle frame
+     *  of the shape file. This behavior was observed in Red Alert 2.
+     */
+    if (This()->Image != nullptr && This()->Image->Get_Frame_Count() > 0) {
+        ShapeFileStruct *image = const_cast<ShapeFileStruct *>(This()->Image);
+
+        int biggest = ini.Get_Int_Clamp(ini_name, "MiddleFrame", -1, image->Get_Frame_Count()-1, This()->Biggest);
+
+        if (biggest == -1 && image->Get_Frame_Count() >= 2) {
+
+            This()->Biggest = image->Get_Frame_Count() / 2;
+            BiggestFrameWidth = image->Get_Frame_Data(This()->Biggest)->FrameWidth;
+            BiggestFrameHeight = image->Get_Frame_Data(This()->Biggest)->FrameHeight;
+
+        } else if (biggest != This()->Biggest) {
+
+            This()->Biggest = biggest;
+            BiggestFrameWidth = image->Get_Frame_Data(biggest)->FrameWidth;
+            BiggestFrameHeight = image->Get_Frame_Data(biggest)->FrameHeight;
+        }
     }
     
 
