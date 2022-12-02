@@ -94,4 +94,32 @@ AnimTypeClassExtension final : public ObjectTypeClassExtension
          *  The number of the particle to spawn.
          */
         unsigned NumberOfParticles;
+
+        /**
+         *  The raw amount of area damage dealt by this animation.
+         */
+        int AreaDamage;
+
+        /**
+         *  The radius of the area damage dealt by this animation, in cells.
+         */
+        int AreaDamageRadius;
+
+        /**
+         *  How much of the specified maximum damage the animation does to objects
+         *  that reside at maximum distance from the animation's coordinate.
+         *  This is used to scale the damage linearly.
+         */
+        int AreaDamagePercentAtMaxRange;
+
+        /**
+         *  An additional damage percentage to use when calculating damage against units.
+         *  This allows customizing damage to be different against units compared to buildings.
+         */
+        int AreaDamagePercentAgainstUnits;
+
+        /**
+         *  Should smudges be created under the area blast?
+         */
+        bool AreaDamageCreateSmudges;
 };

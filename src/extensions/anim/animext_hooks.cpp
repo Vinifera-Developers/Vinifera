@@ -32,15 +32,19 @@
 #include "animext_init.h"
 #include "animtype.h"
 #include "animtypeext.h"
+#include "building.h"
 #include "smudgetype.h"
+#include "smudge.h"
 #include "particle.h"
 #include "particletype.h"
 #include "particlesys.h"
+#include "mouse.h"
 #include "target.h"
 #include "cell.h"
 #include "rules.h"
 #include "scenario.h"
 #include "extension.h"
+#include "warheadtypeext.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
@@ -375,6 +379,199 @@ function_return:
 
 
 /**
+ * 
+ *  #issue-520
+ * 
+ *  Implements "RA1 nuke style" area damage logic.
+ *
+ *  @author: Rampastring
+*/
+void DoAreaDamage(const ObjectClass* object_ptr, const int damageradius, const int rawdamage, const int damagepercentageatmaxrange, const bool createsmudges, const WarheadTypeClass* warhead, int unitDamageMultiplier) {
+    Cell cell = Coord_Cell(object_ptr->Center_Coord());
+
+    int				distance;	          // Distance to unit.
+    ObjectClass* object;			      // Working object pointer.
+    ObjectClass* objects[128];	      // Maximum number of objects that can be damaged.
+    int             distances[128];       // Distances of the objects that can be damaged.
+    int             count = 0;            // Number of objects to damage.
+
+
+    // If we should create smudges, 
+    // gather all valid smudgetypes for it
+    SmudgeTypeClass* smudgetypes[6];
+    int smudgetypecount = 0;
+    if (createsmudges) {
+
+        for (int i = 0; i < SmudgeTypes.Count() && smudgetypecount < ARRAY_SIZE(smudgetypes); i++) {
+            SmudgeTypeClass* smudgetype = SmudgeTypes[i];
+
+            if (smudgetype->IsScorch) {
+                smudgetypes[smudgetypecount] = smudgetype;
+                smudgetypecount++;
+            }
+        }
+    }
+
+    for (int x = -damageradius; x <= damageradius; x++) {
+        for (int y = -damageradius; y <= damageradius; y++) {
+            int xpos = cell.X + x;
+            int ypos = cell.Y + y;
+
+            /*
+            **	If the potential damage cell is outside of the map bounds,
+            **	then don't process it. This unusual check method ensures that
+            **	damage won't wrap from one side of the map to the other.
+            */
+            if ((unsigned)xpos > MAP_CELL_W) {
+                continue;
+            }
+            if ((unsigned)ypos > MAP_CELL_H) {
+                continue;
+            }
+            Cell tcell = XY_Cell(xpos, ypos);
+            if (!Map.In_Radar(tcell)) continue;
+
+            Coordinate tcellcoord = Cell_Coord(tcell);
+
+            object = Map[tcell].Cell_Occupier();
+            while (object) {
+                if (!object->IsToDamage) {
+                    object->IsToDamage = true;
+                    objects[count] = object;
+
+                    if (object->What_Am_I() == RTTI_BUILDING) {
+                        // Find the cell of the building that is closest 
+                        // to the explosion point and use that as the reference point for the distance
+
+                        BuildingClass* building = reinterpret_cast<BuildingClass*>(object);
+
+                        Cell* occupy = building->Class->Occupy_List();
+                        distances[count] = INT_MAX;
+
+                        while (occupy->X != REFRESH_EOL && occupy->Y != REFRESH_EOL) {
+                            Coordinate buildingcellcoord = building->Coord + Cell_Coord(*occupy, true) - Coordinate(CELL_LEPTON_W / 2, CELL_LEPTON_H / 2, 0);
+                            distance = Distance(Cell_Coord(cell, true), buildingcellcoord);
+                            distances[count] = std::min(distance, distances[count]);
+                            occupy++;
+                        }
+                    }
+                    else {
+                        // For non-building objects, just check the distance directly
+                        distances[count] = Distance(Cell_Coord(cell, true), object->Center_Coord());
+                    }
+
+                    count++;
+                    if (count >= ARRAY_SIZE(objects)) break;
+                }
+
+                object = object->Next;
+            }
+            if (count >= ARRAY_SIZE(objects)) break;
+
+            if (createsmudges && smudgetypecount > 0) {
+
+                // Create a smudge on the tile
+                int smudgeindex = Random_Pick(0, smudgetypecount);
+
+                SmudgeTypeClass* smudgetype = smudgetypes[smudgeindex];
+                new SmudgeClass(smudgetype, tcellcoord);
+            }
+        }
+    }
+
+    int maxdistance = damageradius * CELL_LEPTON_W;
+
+    /*
+    **	Sweep through the objects to be damaged and damage them.
+    */
+    for (int index = 0; index < count; index++) {
+        object = objects[index];
+
+        object->IsToDamage = false;
+        if (object->IsActive) {
+            distance = distances[index];
+
+            float distancemult = (float)distance / (float)maxdistance;
+            if (distancemult > 1.0f)
+                distancemult = 1.0f;
+
+            if (object->IsDown && !object->IsInLimbo) {
+                int percentDecrease = (100 - damagepercentageatmaxrange) * distancemult;
+                int damage = rawdamage - ((percentDecrease * rawdamage) / 100);
+
+                // Adjust damage against units if necessary
+                if (unitDamageMultiplier != 100 && object->Is_Foot()) {
+                    damage = (damage * unitDamageMultiplier) / 100;
+                }
+
+                // We've taken the distance into account already
+                object->Take_Damage(damage, 0, warhead, nullptr, false);
+            }
+        }
+    }
+
+    WarheadTypeClassExtension* warheadext = Extension::Fetch<WarheadTypeClassExtension>(warhead);
+
+    if (warheadext) {
+
+        /**
+         *  If this warhead has screen shake values defined, then set the blitter
+         *  offset values. GScreenClass::Blit will handle the rest for us.
+         */
+        if (warheadext->ShakePixelXLo > 0 || warheadext->ShakePixelXHi > 0) {
+            Map.ScreenX = Sim_Random_Pick(warheadext->ShakePixelXLo, warheadext->ShakePixelXHi);
+        }
+        if (warheadext->ShakePixelYLo > 0 || warheadext->ShakePixelYHi > 0) {
+            Map.ScreenY = Sim_Random_Pick(warheadext->ShakePixelYLo, warheadext->ShakePixelYHi);
+        }
+    }
+}
+
+
+/**
+ *  Allows the animation to perform area damage
+ *  when it has reached its largest stage.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_AnimClass_Middle_Area_Damage_Patch)
+{
+    GET_REGISTER_STATIC(AnimClass*, this_ptr, esi);
+    static AnimTypeClass* animtype;
+    static AnimTypeClassExtension* animtypeext;
+
+    animtype = reinterpret_cast<AnimTypeClass*>(this_ptr->Class_Of());
+
+    /*
+     * If this animation is specified to do area damage, do the area damage effect now.
+     */
+    animtypeext = Extension::Fetch<AnimTypeClassExtension>(animtype);
+    if (animtypeext->AreaDamage > 0 && animtypeext->AreaDamageRadius > 0) {
+        ASSERT(animtype->Warhead != nullptr);
+
+        if (animtype->Warhead) {
+            DoAreaDamage(this_ptr,
+                animtypeext->AreaDamageRadius,
+                animtypeext->AreaDamage,
+                animtypeext->AreaDamagePercentAtMaxRange,
+                animtypeext->AreaDamageCreateSmudges,
+                animtype->Warhead,
+                animtypeext->AreaDamagePercentAgainstUnits);
+        }
+     }
+
+    /**
+     *  Continue function execution.
+     */
+continue_function:
+    _asm { lea  ecx, [esp + 18h] }
+    _asm { mov  eax, [esi] }
+    _asm { push ecx }
+    JMP_REG(ecx, 0x00415F4F);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void AnimClassExtension_Hooks()
@@ -391,4 +588,5 @@ void AnimClassExtension_Hooks()
     Patch_Jump(0x0041606C, &_AnimClass_Middle_SpawnParticle_Patch);
     Patch_Jump(0x00415D30, &AnimClassExt::_In_Which_Layer);
     Patch_Jump(0x00413D3E, &_AnimClass_Constructor_Layer_Set_Z_Height_Patch);
+    Patch_Jump(0x00415F48, &_AnimClass_Middle_Area_Damage_Patch);
 }

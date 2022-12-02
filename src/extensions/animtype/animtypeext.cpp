@@ -40,14 +40,19 @@
  *  
  *  @author: CCHyper
  */
-AnimTypeClassExtension::AnimTypeClassExtension(const AnimTypeClass *this_ptr) :
+AnimTypeClassExtension::AnimTypeClassExtension(const AnimTypeClass* this_ptr) :
     ObjectTypeClassExtension(this_ptr),
     IsHideIfNotTiberium(false),
     IsForceBigCraters(false),
     ZAdjust(0),
     AttachLayer(LAYER_NONE),
     ParticleToSpawn(PARTICLE_NONE),
-    NumberOfParticles(0)
+    NumberOfParticles(0),
+    AreaDamage(0),
+    AreaDamageRadius(0),
+    AreaDamagePercentAtMaxRange(100),
+    AreaDamagePercentAgainstUnits(100),
+    AreaDamageCreateSmudges(true)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("AnimTypeClassExtension::AnimTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -172,6 +177,11 @@ void AnimTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 
     crc(AttachLayer);
     crc(NumberOfParticles);
+    crc(AreaDamage);
+    crc(AreaDamageRadius);
+    crc(AreaDamagePercentAtMaxRange);
+    crc(AreaDamagePercentAgainstUnits);
+    crc(AreaDamageCreateSmudges);
 }
 
 
@@ -233,6 +243,19 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     AttachLayer = ini.Get_LayerType(ini_name, "Layer", AttachLayer);
     ParticleToSpawn = ini.Get_ParticleType(ini_name, "SpawnsParticle", ParticleToSpawn);
     NumberOfParticles = ini.Get_Int(ini_name, "NumParticles", NumberOfParticles);
-    
+
+    /**
+     *  #issue-520
+     *
+     *  Implements "RA1 nuke style" area damage logic.
+     * 
+     *  @author: Rampastring
+     */
+    AreaDamage = ini.Get_Int(ini_name, "AreaDamage", AreaDamage);
+    AreaDamageRadius = ini.Get_Int(ini_name, "AreaDamageRadius", AreaDamageRadius);
+    AreaDamagePercentAtMaxRange = ini.Get_Int(ini_name, "AreaDamagePercentAtMaxRange", AreaDamagePercentAtMaxRange);
+    AreaDamagePercentAgainstUnits = ini.Get_Int(ini_name, "AreaDamagePercentAgainstUnits", AreaDamagePercentAgainstUnits);
+    AreaDamageCreateSmudges = ini.Get_Bool(ini_name, "AreaDamageCreateSmudges", AreaDamageCreateSmudges);
+
     return true;
 }
