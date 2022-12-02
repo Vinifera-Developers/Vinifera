@@ -27,6 +27,9 @@
  ******************************************************************************/
 #pragma once
 
+#include "ccini.h"
+
 
 void Vinifera_Assign_Houses();
 void Vinifera_Create_Units(bool official);
+void Read_Scenario_Read_Basic_Section_Options(CCINIClass &scenario_ini);

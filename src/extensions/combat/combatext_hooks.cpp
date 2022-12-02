@@ -29,6 +29,8 @@
 #include "combat.h"
 #include "cell.h"
 #include "overlaytype.h"
+#include "scenarioext.h"
+#include "rulesext.h"
 #include "warheadtype.h"
 #include "warheadtypeext.h"
 #include "extension.h"
@@ -91,6 +93,50 @@ DECLARE_PATCH(_Explosion_Damage_IsWallAbsoluteDestroyer_Patch)
     }
 
     JMP_REG(ecx, 0x0045FAD0);
+}
+
+
+/**
+ *  #issue-897
+ *
+ *  Implements IsIceDestruction scenario option for preventing destruction of ice,
+ *  and IceStrength for configuring the chance for ice getting destroyed.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_Explosion_Damage_IsIceDestruction_Patch)
+{
+    GET_REGISTER_STATIC(const WarheadTypeClass*, warhead, edi);
+    GET_STACK_STATIC(int, strength, esp, 0x54);
+
+    if (!ScenExtension->IsIceDestruction) {
+        goto no_ice_destruction;
+    }
+
+    /**
+     *  Stolen bytes/code here.
+     */
+    if (warhead->IsWallDestroyer || warhead->IsConventional) {
+
+        /**
+         *  Allow destroying ice if the strength of ice is 0 or the random number check allows it.
+         */
+        if (RuleExtension->IceStrength <= 0 || Scen->RandomNumber(0, RuleExtension->IceStrength) < strength) {
+            goto allow_ice_destruction;
+        }
+    }
+
+    /**
+     *  Don't allow destroying ice, continue execution after ice-destruction logic.
+     */
+no_ice_destruction:
+    JMP_REG(ecx, 0x004602DF);
+
+    /**
+     *  Allow destroying any potential ice on the cell.
+     */
+allow_ice_destruction:
+    JMP_REG(ecx, 0x0046025C);
 }
 
 
@@ -164,5 +210,6 @@ DECLARE_PATCH(_Do_Flash_CombatLightSize_Patch)
 void CombatExtension_Hooks()
 {
     Patch_Jump(0x0045FAA0, &_Explosion_Damage_IsWallAbsoluteDestroyer_Patch);
+    Patch_Jump(0x00460244, &_Explosion_Damage_IsIceDestruction_Patch);
     Patch_Jump(0x00460477, &_Do_Flash_CombatLightSize_Patch);
 }
