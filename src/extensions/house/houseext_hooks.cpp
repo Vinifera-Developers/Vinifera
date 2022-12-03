@@ -29,8 +29,12 @@
 #include "houseext_init.h"
 #include "vinifera_globals.h"
 #include "tibsun_globals.h"
+#include "tibsun_inline.h"
 #include "house.h"
 #include "housetype.h"
+#include "building.h"
+#include "unit.h"
+#include "infantry.h"
 #include "technotype.h"
 #include "buildingtype.h"
 #include "techno.h"
@@ -38,6 +42,10 @@
 #include "super.h"
 #include "unittypeext.h"
 #include "extension.h"
+#include "techno.h"
+#include "super.h"
+#include "scenario.h"
+#include "mouse.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
@@ -45,6 +53,19 @@
 #include "hooker.h"
 #include "hooker_macros.h"
 
+
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or deconstructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+static class HouseClassFake final : public HouseClass
+{
+public:
+    bool _AI_Target_MultiMissile(SuperClass* super);
+};
 
 /**
  *  Patch for InstantSuperRechargeCommandClass
@@ -213,6 +234,28 @@ int _HouseClass_ShouldDisableCameo_Get_Queued_Count(FactoryClass* factory, Techn
 
 
 /**
+ *  Helper function. Returns the value of an object for super-weapon targeting.
+ */
+int SuperTargeting_Evaluate_Object(HouseClass* house, HouseClass* enemy, TechnoClass* techno)
+{
+    int threat = -1;
+
+    if (techno->Owning_House() == enemy) {
+
+        if (techno->Cloak == CLOAKED || (techno->What_Am_I() == RTTI_BUILDING && reinterpret_cast<BuildingClass*>(techno)->TranslucencyLevel == 0xF)) {
+            threat = Scen->RandomNumber(0, 100);
+        }
+        else {
+            Cell targetcell = Coord_Cell(techno->Center_Coord());
+            threat = Map.Cell_Threat(targetcell, house);
+        }
+    }
+
+    return threat;
+}
+
+
+/**
  *  #issue-611, #issue-715
  *
  *  Fixes the game allowing the player to queue one unit too few
@@ -282,6 +325,75 @@ continue_function:
 
 
 /**
+ *  #issue-700
+ *
+ *  Custom implementation of the multi-missile super weapon AI targeting.
+ *  This is functionally identical to the original game's function
+ *  at 0x004CA4A0 aside from also considering vehicles as potential targets.
+ *  The original function only evaluated buildings.
+ *
+ *  Author: Rampastring
+ */
+bool Vinifera_HouseClass_AI_Target_MultiMissile(HouseClass* this_ptr, SuperClass* super)
+{
+    if (this_ptr->Enemy == HOUSE_NONE) {
+        return false;
+    }
+
+    ObjectClass* besttarget = nullptr;
+    int          highestthreat = -1;
+    HouseClass* enemyhouse = Houses[this_ptr->Enemy];
+
+    for (int i = 0; i < Buildings.Count(); i++) {
+        BuildingClass* target = Buildings[i];
+        int threat = SuperTargeting_Evaluate_Object(this_ptr, enemyhouse, target);
+
+        if (threat > highestthreat) {
+            highestthreat = threat;
+            besttarget = target;
+        }
+    }
+
+    // AI improvement: also go through enemy units and infantry
+    for (int i = 0; i < Units.Count(); i++) {
+        UnitClass* target = Units[i];
+        int threat = SuperTargeting_Evaluate_Object(this_ptr, enemyhouse, target);
+
+        if (threat > highestthreat) {
+            highestthreat = threat;
+            besttarget = target;
+        }
+    }
+
+    for (int i = 0; i < Infantry.Count(); i++) {
+        InfantryClass* target = Infantry[i];
+        int threat = SuperTargeting_Evaluate_Object(this_ptr, enemyhouse, target);
+
+        if (threat > highestthreat) {
+            highestthreat = threat;
+            besttarget = target;
+        }
+    }
+
+    if (besttarget) {
+        Coordinate center = besttarget->Center_Coord();
+        Cell targetcell = Coord_Cell(center);
+        int superid = this_ptr->SuperWeapon.ID(super);
+        bool result = this_ptr->SuperWeapon[superid]->Discharged(this_ptr == PlayerPtr, &targetcell);
+        return result;
+    }
+
+    return false;
+}
+
+
+bool HouseClassFake::_AI_Target_MultiMissile(SuperClass* super)
+{
+    return Vinifera_HouseClass_AI_Target_MultiMissile(this, super);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void HouseClassExtension_Hooks()
@@ -295,4 +407,5 @@ void HouseClassExtension_Hooks()
     Patch_Jump(0x004BD30B, &_HouseClass_Super_Weapon_Handler_InstantRecharge_Patch);
     Patch_Jump(0x004CB777, &_HouseClass_ShouldDisableCameo_BuildLimit_Fix);
     Patch_Jump(0x004BC187, _HouseClass_Can_Build_BuildLimit_Handle_Vehicle_Transform);
+    Patch_Jump(0x004CA4A0, &HouseClassFake::_AI_Target_MultiMissile);
 }
