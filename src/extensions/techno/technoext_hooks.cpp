@@ -44,6 +44,8 @@
 #include "infantry.h"
 #include "infantrytype.h"
 #include "infantrytypeext.h"
+#include "unittype.h"
+#include "unittypeext.h"
 #include "voc.h"
 #include "vinifera_util.h"
 #include "extension.h"
@@ -685,6 +687,56 @@ DECLARE_PATCH(_TechnoClass_Null_House_Warning_Patch)
 
 
 /**
+ *  #issue-356
+ *
+ *  Enables the deploy keyboard command to work for units that
+ *  transform into a different unit on deploy.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_TechnoClass_2A0_Is_Allowed_To_Deploy_Unit_Transform_Patch)
+{
+    GET_REGISTER_STATIC(UnitTypeClass*, unittype, eax);
+    static UnitTypeClassExtension* unittypeext;
+
+    /**
+     *  Stolen bytes/code.
+     */
+    if (unittype->DeploysInto != nullptr) {
+        goto has_deploy_ability;
+
+    } else if (unittype->MaxPassengers > 0) {
+        goto has_deploy_ability;
+
+    } else if (unittype->IsMobileEMP) {
+        goto has_deploy_ability;
+    }
+
+    unittypeext = Extension::Fetch<UnitTypeClassExtension>(unittype);
+
+    if (unittypeext->TransformsInto != nullptr) {
+        goto has_deploy_ability;
+    }
+
+    /**
+     *  The unit has no ability that allows it to deploy / unload.
+     *  Mark that and continue function after the check.
+     */
+has_no_deploy_ability:
+    _asm { mov eax, unittype }
+    JMP_REG(ecx, 0x006320E0);
+
+    /**
+     *  The unit has some kind of an ability that allows it to deploy / unload.
+     *  Continue function after the check.
+     */
+has_deploy_ability:
+    _asm { mov eax, unittype }
+    JMP_REG(ecx, 0x006320E5);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void TechnoClassExtension_Hooks()
@@ -703,4 +755,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x00630390, &_TechnoClass_Fire_At_Suicide_Patch);
     Patch_Jump(0x00631223, &_TechnoClass_Fire_At_Electric_Bolt_Patch);
     Patch_Jump(0x00636F09, &_TechnoClass_Is_Allowed_To_Retaliate_Can_Retaliate_Patch);
+    Patch_Jump(0x006320C2, &_TechnoClass_2A0_Is_Allowed_To_Deploy_Unit_Transform_Patch);
 }
