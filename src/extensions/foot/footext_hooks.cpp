@@ -36,9 +36,14 @@
 #include "textprint.h"
 #include "clipline.h"
 #include "convert.h"
+#include "house.h"
 #include "iomap.h"
 #include "rules.h"
 #include "rulesext.h"
+#include "session.h"
+#include "unit.h"
+#include "unitext.h"
+#include "unittype.h"
 #include "extension.h"
 #include "fatal.h"
 #include "asserthandler.h"
@@ -64,6 +69,7 @@ public:
     void _Draw_Action_Line() const;
     void _Draw_NavComQueue_Lines() const;
     void _Death_Announcement(TechnoClass* source) const;
+    Cell _Search_For_Tiberium(int rad, bool a2);
 
 private:
     void _Draw_Line(Coordinate& start_coord, Coordinate& end_coord, bool is_dashed, bool is_thick, bool is_dropshadow, unsigned line_color, unsigned drop_color, int rate) const;
@@ -362,6 +368,115 @@ void FootClassExt::_Draw_Action_Line() const
 
 
 /**
+ *  #issue-203
+ *  
+ *  Evaluates the value of Tiberium on a single cell.
+ *  
+ *  Author: Rampastring
+ */
+void _Vinifera_FootClass_Search_For_Tiberium_Check_Tiberium_Value_Of_Cell(FootClass* this_ptr, Cell& cell_coords, Cell* besttiberiumcell, int* besttiberiumvalue, UnitClassExtension* unitext)
+{
+    if (this_ptr->Tiberium_Check(cell_coords)) {
+
+        CellClass* cell = &Map[cell_coords];
+        int tiberiumvalue = cell->Get_Tiberium_Value();
+
+        /**
+        *  #issue-203
+        *
+        *  Consider distance to refinery when selecting the next tiberium patch to harvest.
+        *  Prefer the most resourceful tiberium patch, but if there's a tie, prefer one that's
+        *  closer to our refinery. Original game only cares about the value.
+        *
+        *  @author: Rampastring
+        */
+        if (unitext && unitext->LastDockedBuilding && unitext->LastDockedBuilding->IsActive && !unitext->LastDockedBuilding->IsInLimbo) {
+            tiberiumvalue *= 100;
+            tiberiumvalue -= ::Distance(cell_coords, unitext->LastDockedBuilding->Get_Cell());
+        }
+
+        if (tiberiumvalue > *besttiberiumvalue)
+        {
+            *besttiberiumvalue = tiberiumvalue;
+            *besttiberiumcell = cell_coords;
+        }
+    }
+}
+
+
+/**
+ *  #issue-203
+ * 
+ *  Smarter replacement for the Search_For_Tiberium method.
+ *  Makes harvesters consider the distance to their refinery when
+ *  looking for the cell of tiberium to harvest.
+ * 
+ *  Author: Rampastring
+ */
+Cell FootClassExt::_Search_For_Tiberium(int rad, bool a2)
+{
+    if (!Owning_House()->Is_Human_Control() &&
+        What_Am_I() == RTTI_UNIT &&
+        ((UnitClass*)this)->Class->IsToHarvest &&
+        a2 &&
+        Session.Type != GAME_NORMAL)
+    {
+        /**
+         *  Use weighted tiberium-seeking algorithm for AI in multiplayer.
+         */
+
+        return Search_For_Tiberium_Weighted(rad);
+    }
+
+    Coordinate center_coord = Center_Coord();
+    Cell cell_coords = Coord_Cell(center_coord);
+    Cell unit_cell_coords = cell_coords;
+
+    if (Map[unit_cell_coords].Land_Type() == LAND_TIBERIUM) {
+
+        /**
+         *  If we're already standing on tiberium, then we don't need to move anywhere.
+         */
+
+        return unit_cell_coords;
+    }
+
+    int besttiberiumvalue = -1;
+    Cell besttiberiumcell = Cell(0, 0);
+
+    UnitClassExtension* unitext = nullptr;
+    if (What_Am_I() == RTTI_UNIT) {
+        unitext = Extension::Fetch<UnitClassExtension>(this);
+    }
+
+    /**
+     *  Perform a ring search outward from the center.
+     */
+    for (int radius = 1; radius < rad; radius++) {
+        for (int x = -radius; x <= radius; x++) {
+
+            cell_coords = Cell(unit_cell_coords.X + x, unit_cell_coords.Y - radius);
+            _Vinifera_FootClass_Search_For_Tiberium_Check_Tiberium_Value_Of_Cell(this, cell_coords, &besttiberiumcell, &besttiberiumvalue, unitext);
+
+            cell_coords = Cell(unit_cell_coords.X + x, unit_cell_coords.Y + radius);
+            _Vinifera_FootClass_Search_For_Tiberium_Check_Tiberium_Value_Of_Cell(this, cell_coords, &besttiberiumcell, &besttiberiumvalue, unitext);
+
+            cell_coords = Cell(unit_cell_coords.X - radius, unit_cell_coords.Y + x);
+            _Vinifera_FootClass_Search_For_Tiberium_Check_Tiberium_Value_Of_Cell(this, cell_coords, &besttiberiumcell, &besttiberiumvalue, unitext);
+
+            cell_coords = Cell(unit_cell_coords.X + radius, unit_cell_coords.Y + x);
+            _Vinifera_FootClass_Search_For_Tiberium_Check_Tiberium_Value_Of_Cell(this, cell_coords, &besttiberiumcell, &besttiberiumvalue, unitext);
+        }
+
+        if (besttiberiumvalue != -1)
+            break;
+    }
+
+    return besttiberiumcell;
+}
+
+
+/**
  *  #issue-593
  * 
  *  Implements IsCanPassiveAcquire for TechnoTypes when the unit is in MISSION_MOVE.
@@ -578,4 +693,5 @@ void FootClassExtension_Hooks()
     Patch_Jump(0x004A102F, &_FootClass_Mission_Move_Can_Passive_Acquire_Patch);
     Patch_Jump(0x004A6A40, &FootClassExt::_Draw_Action_Line);
     Patch_Jump(0x004A4D60, &FootClassExt::_Death_Announcement);
+    Patch_Jump(0x004A76F0, &FootClassExt::_Search_For_Tiberium);
 }

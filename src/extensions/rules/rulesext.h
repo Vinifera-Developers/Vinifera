@@ -110,4 +110,11 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
          *  Customizable maximum counts for drawing different pips.
          */
         TypeList<int> MaxPips;
+
+        /**
+         *  When looking for refineries, harvesters will prefer a distant free
+         *  refinery over a closer occupied refinery if the refineries' distance
+         *  difference in cells is less than this.
+         */
+        int MaxFreeRefineryDistanceBias;
 };

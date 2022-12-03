@@ -81,7 +81,8 @@ RulesClassExtension::RulesClassExtension(const RulesClass *this_ptr) :
     IsBuildOffAlly(true),
     IsShowSuperWeaponTimers(true),
     IceStrength(0),
-    WeedPipIndex(1)
+    WeedPipIndex(1),
+    MaxFreeRefineryDistanceBias(16)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
@@ -211,6 +212,7 @@ void RulesClassExtension::Compute_CRC(WWCRCEngine &crc) const
     crc(IsBuildOffAlly);
     crc(IsShowSuperWeaponTimers);
     crc(IceStrength);
+    crc(MaxFreeRefineryDistanceBias);
 }
 
 
@@ -605,6 +607,7 @@ bool RulesClassExtension::General(CCINIClass &ini)
      *  @author: CCHyper
      */
     This()->EngineerDamage = ini.Get_Float(GENERAL, "EngineerDamage", This()->EngineerDamage);
+    MaxFreeRefineryDistanceBias = ini.Get_Int(GENERAL, "MaxFreeRefineryDistanceBias", MaxFreeRefineryDistanceBias);
 
     return true;
 }
