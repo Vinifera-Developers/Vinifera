@@ -27,6 +27,8 @@
  ******************************************************************************/
 #include "unitext.h"
 #include "unit.h"
+#include "building.h"
+#include "vinifera_saveload.h"
 #include "wwcrc.h"
 #include "extension.h"
 #include "asserthandler.h"
@@ -39,7 +41,8 @@
  *  @author: CCHyper
  */
 UnitClassExtension::UnitClassExtension(const UnitClass *this_ptr) :
-    FootClassExtension(this_ptr)
+    FootClassExtension(this_ptr),
+    LastDockedBuilding(nullptr)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("UnitClassExtension::UnitClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -107,6 +110,8 @@ HRESULT UnitClassExtension::Load(IStream *pStm)
 
     new (this) UnitClassExtension(NoInitClass());
     
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(LastDockedBuilding, "LastDockedBuilding");
+
     return hr;
 }
 
@@ -161,4 +166,6 @@ void UnitClassExtension::Detach(TARGET target, bool all)
 void UnitClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
     //EXT_DEBUG_TRACE("UnitClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    crc(LastDockedBuilding != nullptr ? LastDockedBuilding->Fetch_ID() : 0);
 }

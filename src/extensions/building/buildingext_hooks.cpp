@@ -35,6 +35,8 @@
 #include "building.h"
 #include "buildingtype.h"
 #include "buildingtypeext.h"
+#include "unit.h";
+#include "unitext.h"
 #include "technotype.h"
 #include "technotypeext.h"
 #include "house.h"
@@ -465,6 +467,34 @@ DECLARE_PATCH(_BuildingClass_Draw_Spied_Cameo_Palette_Patch)
 
 
 /**
+ *  #issue-203
+ *
+ *  Assigns the last docked building of a spawned free unit on
+ *  building placement complete (the "grand opening").
+ *  This allows harvesters to know which refinery they spawned from.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_BuildingClass_Grand_Opening_Assign_FreeUnit_LastDockedBuilding_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    GET_REGISTER_STATIC(UnitClass*, unit, edi);
+    static UnitClassExtension* unitext;
+
+    unitext = Extension::Fetch<UnitClassExtension>(unit);
+    unitext->LastDockedBuilding = this_ptr;
+
+    /**
+     *  Continue the FreeUnit down-placing process.
+     */
+original_code:
+    _asm { movsx   eax, bp }
+    _asm { movsx   ecx, bx }
+    JMP_REG(edx, 0x0042E5FB);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void BuildingClassExtension_Hooks()
@@ -481,4 +511,5 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x00429A96, &_BuildingClass_AI_ProduceCash_Patch);
     Patch_Jump(0x0042F67D, &_BuildingClass_Captured_ProduceCash_Patch);
     Patch_Jump(0x0042E179, &_BuildingClass_Grand_Opening_ProduceCash_Patch);
+    Patch_Jump(0x0042E5F5, &_BuildingClass_Grand_Opening_Assign_FreeUnit_LastDockedBuilding_Patch);
 }
