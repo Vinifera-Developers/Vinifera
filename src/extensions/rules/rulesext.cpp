@@ -76,7 +76,8 @@ RulesClassExtension::RulesClassExtension(const RulesClass *this_ptr) :
     IsMPAutoDeployMCV(false),
     IsMPPrePlacedConYards(false),
     IsBuildOffAlly(true),
-    IsShowSuperWeaponTimers(true)
+    IsShowSuperWeaponTimers(true),
+    MaxFreeRefineryDistanceBias(16)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
@@ -192,6 +193,7 @@ void RulesClassExtension::Compute_CRC(WWCRCEngine &crc) const
     crc(IsMPPrePlacedConYards);
     crc(IsBuildOffAlly);
     crc(IsShowSuperWeaponTimers);
+    crc(MaxFreeRefineryDistanceBias);
 }
 
 
@@ -426,6 +428,7 @@ bool RulesClassExtension::General(CCINIClass &ini)
      *  @author: CCHyper
      */
     This()->EngineerDamage = ini.Get_Float(GENERAL, "EngineerDamage", This()->EngineerDamage);
+    MaxFreeRefineryDistanceBias = ini.Get_Int(GENERAL, "MaxFreeRefineryDistanceBias", MaxFreeRefineryDistanceBias);
 
     return true;
 }
