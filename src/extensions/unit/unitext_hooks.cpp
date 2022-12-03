@@ -36,6 +36,7 @@
 #include "unit.h"
 #include "unittype.h"
 #include "unittypeext.h"
+#include "tag.h"
 #include "target.h"
 #include "rules.h"
 #include "iomap.h"
@@ -681,6 +682,284 @@ continue_check_scatter:
 
 
 /**
+ *  Helper function.
+ *  Creates a unit based on an already existing unit.
+ *  Returns the new unit if successful, otherwise null.
+ *
+ *  @author: Rampastring
+ */
+UnitClass* Create_Transform_Unit(UnitClass* this_ptr) {
+
+    UnitTypeClassExtension* unittypeext = Extension::Fetch<UnitTypeClassExtension>(this_ptr->Class);
+
+    UnitClass* newunit = reinterpret_cast<UnitClass*>(unittypeext->TransformsInto->Create_One_Of(this_ptr->House));
+    if (newunit == nullptr) {
+
+        /**
+         *  Creating the new unit failed! Re-mark our occupation bits and return false.
+         */
+        return nullptr;
+    }
+
+    // Try_To_Deploy copies the tag this way at 0x0065112C
+    if (this_ptr->Tag != nullptr) {
+        newunit->Attach_Tag(this_ptr->Tag);
+        this_ptr->Tag->AttachCount--;
+        this_ptr->Tag = nullptr;
+    }
+
+    newunit->ActLike = this_ptr->ActLike;
+    newunit->LimpetSpeedFactor = this_ptr->LimpetSpeedFactor;
+    newunit->field_214 = this_ptr->field_214; // also copied at 0x00650F4E
+    newunit->Veterancy.From_Integer(this_ptr->Veterancy.To_Integer());
+    newunit->Group = this_ptr->Group;
+    newunit->BarrelFacing.Set(this_ptr->BarrelFacing.Current());
+    newunit->BarrelFacing.Set_Desired(this_ptr->BarrelFacing.Desired());
+    newunit->PrimaryFacing.Set(this_ptr->PrimaryFacing.Current());
+    newunit->PrimaryFacing.Set_Desired(this_ptr->PrimaryFacing.Desired());
+    newunit->SecondaryFacing.Set(this_ptr->SecondaryFacing.Current());
+    newunit->SecondaryFacing.Set_Desired(this_ptr->SecondaryFacing.Desired());
+    newunit->Strength = (int)(this_ptr->Health_Ratio() * (int)newunit->Class->MaxStrength);
+    newunit->ArmorBias = this_ptr->ArmorBias;
+    newunit->FirepowerBias = this_ptr->FirepowerBias;
+    newunit->SpeedBias = this_ptr->SpeedBias;
+    newunit->Coord = this_ptr->Coord;
+    newunit->EMPFramesRemaining = this_ptr->EMPFramesRemaining;
+    newunit->Ammo = this_ptr->Ammo;
+
+
+    if (newunit->Unlimbo(newunit->Coord, this_ptr->PrimaryFacing.Current().Get_Dir())) {
+
+        /**
+         *  Unlimbo successful, select our new unit and return it
+         */
+
+        if (PlayerPtr == newunit->Owning_House()) {
+            newunit->Select();
+        }
+
+        if (this_ptr->TarCom) {
+            newunit->Assign_Target(this_ptr->TarCom);
+            newunit->Assign_Mission(MISSION_ATTACK);
+            newunit->Commence();
+        }
+
+        return newunit;
+    }
+
+    /**
+     *  Unlimboing the new unit failed! Delete the new unit and return false.
+     */
+    delete newunit;
+    return nullptr;
+}
+
+/**
+ *  Work-around function because the compiler likes smashing the stack by using ebp
+ *  when calling locomotor functions :)
+ *
+ *  Returns the address that the calling function should jump to after calling this.
+ *
+ *  @author: Rampastring
+ */
+int _UnitClass_Try_To_Deploy_Transform_To_Vehicle_Patch_Func(UnitClass* this_ptr) {
+
+    /**
+     *  Stolen bytes/code.
+     */
+    if (this_ptr->Class->DeploysInto != nullptr) {
+
+        /**
+         *  This unit is deployable rather than transformable, check whether it can deploy.
+         */
+        goto original_code;
+    }
+
+    UnitTypeClassExtension* unittypeext = Extension::Fetch<UnitTypeClassExtension>(this_ptr->Class);
+
+    if (unittypeext->TransformsInto != nullptr) {
+
+        /**
+         *  Use custom "transform to vehicle" logic if we don't need charge or we have enough of it.
+         */
+
+        if (unittypeext->IsTransformRequiresFullCharge && this_ptr->CurrentCharge < this_ptr->Class->MaxCharge) {
+
+            /**
+             *  We don't have enough charge, return false
+             */
+            return 0x006511A0;
+        }
+
+        this_ptr->Mark(MARK_UP);
+        this_ptr->Locomotor_Ptr()->Mark_All_Occupation_Bits(0);
+
+        UnitClass* newunit = Create_Transform_Unit(this_ptr);
+
+        if (newunit != nullptr) {
+
+            /**
+             *  Creating transformed unit succeeded, erase the original unit and force function to return true
+             */
+            return 0x0065114C;
+        } else {
+
+            /**
+             *  Creating transformed unit failed. Re-mark our occupation bits and return false.
+             */
+            return 0x00651168;
+        }
+    }
+
+    /**
+     *  Continue to deployability check.
+     */
+original_code:
+    return 0x00650BC2;
+}
+
+
+/**
+ *  #issue-715
+ *
+ *  Transforms a unit to another unit when a transformable unit deploys.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_UnitClass_Try_To_Deploy_Transform_To_Vehicle_Patch) {
+    GET_REGISTER_STATIC(UnitClass*, this_ptr, esi);
+    static int address;
+    address = _UnitClass_Try_To_Deploy_Transform_To_Vehicle_Patch_Func(this_ptr);
+    JMP(address);
+}
+
+
+/**
+ *  #issue-715
+ *
+ *  Hack to display the the correct cursor for transformable units
+ *  upon ACTION_SELF.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_UnitClass_What_Action_Self_Check_For_Vehicle_Transform_Patch) {
+    GET_REGISTER_STATIC(UnitClass*, this_ptr, esi);
+    static UnitTypeClass* unittype;
+    static UnitTypeClassExtension* unittypeext;
+
+    unittype = this_ptr->Class;
+    unittypeext = Extension::Fetch<UnitTypeClassExtension>(unittype);
+
+    /**
+     *  Stolen bytes/code.
+     */
+    if (unittype->DeploysInto != nullptr) {
+        goto original_code;
+    }
+
+    /**
+     *  Check if this unit is able to transform into another unit.
+     *  If not, we don't have anything else to do here.
+     */
+    if (unittypeext->TransformsInto == nullptr) {
+        goto no_deploy_action;
+    }
+
+    /**
+     *  If this unit is able to transform to a different unit, check if it requires charge for it.
+     *  If it does, then check whether we have enough charge.
+     */
+    if (unittypeext->IsTransformRequiresFullCharge && this_ptr->CurrentCharge < this_ptr->Class->MaxCharge) {
+
+        /**
+         *  We don't have enough charge!
+         */
+        goto return_no_deploy;
+
+    } else if (this_ptr->entry_2A4()) {
+
+        /**
+         *  The unit is dying or under an EMP effect, don't allow it to transform.
+         */
+        goto return_no_deploy;
+    }
+
+
+    /**
+     *  We can transform and either don't need charge or we have enough of it, return ACTION_SELF
+     */
+return_self:
+    _asm { pop edi }
+    _asm { pop esi }
+    _asm { pop ebp }
+    _asm { pop ebx }
+    _asm { add esp, 10h }
+    _asm { mov eax, ACTION_SELF }
+    _asm { retn 8 }
+
+    /**
+     *  We don't have enough charge, return ACTION_NO_DEPLOY
+     */
+return_no_deploy:
+    _asm { pop edi }
+    _asm { pop esi }
+    _asm { pop ebp }
+    _asm { pop ebx }
+    _asm { add esp, 10h }
+    _asm { mov eax, ACTION_NO_DEPLOY }
+    _asm { retn 8 }
+
+
+    /**
+     *  Check whether the unit can deploy.
+     */
+original_code:
+    JMP(0x0065602B);
+
+    /**
+     *  The unit can neither deploy nor transform.
+     *  Continue function execution after the deployable check.
+     */
+no_deploy_action:
+    _asm{ mov eax, unittype }
+    JMP_REG(ecx, 0x00656344);
+}
+
+
+/**
+ *  #issue-715
+ *
+ *  Check whether the unit is able to transform into another unit
+ *  when performing the "Unload" mission.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_UnitClass_Mission_Unload_Transform_To_Vehicle_Patch) {
+    GET_REGISTER_STATIC(UnitTypeClass*, unittype, eax);
+    static UnitTypeClassExtension* unittypeext;
+
+    /**
+     *  Stolen bytes/code.
+     */
+    if (unittype->IsToHarvest || unittype->IsToVeinHarvest) {
+harvester_process:
+        JMP(0x006545A5);
+    }
+
+    unittypeext = Extension::Fetch<UnitTypeClassExtension>(unittype);
+
+    if (unittype->DeploysInto != nullptr || unittypeext->TransformsInto != nullptr) {
+deployable_process:
+        JMP(0x00654403);
+    }
+
+mobile_emp_process:
+    _asm { mov eax, unittype }
+    JMP_REG(edx, 0x006543FD);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void UnitClassExtension_Hooks()
@@ -701,4 +980,7 @@ void UnitClassExtension_Hooks()
     Patch_Jump(0x0065665D, &_UnitClass_What_Action_ACTION_HARVEST_Block_On_Bridge_Patch); // IsToVeinHarvest
     //Patch_Jump(0x0065054F, &_UnitClass_Enter_Idle_Mode_Block_Harvesting_On_Bridge_Patch); // Removed, keeping code for reference.
     //Patch_Jump(0x00654AB0, &_UnitClass_Mission_Harvest_Block_Harvesting_On_Bridge_Patch); // Removed, keeping code for reference.
+    Patch_Jump(0x00650BAE, &_UnitClass_Try_To_Deploy_Transform_To_Vehicle_Patch);
+    Patch_Jump(0x00656017, &_UnitClass_What_Action_Self_Check_For_Vehicle_Transform_Patch);
+    Patch_Jump(0x006543DB, &_UnitClass_Mission_Unload_Transform_To_Vehicle_Patch);
 }
