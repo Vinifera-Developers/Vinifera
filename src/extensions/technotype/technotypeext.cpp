@@ -48,7 +48,7 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     ObjectTypeClassExtension(this_ptr),
     CloakSound(VOC_NONE),
     UncloakSound(VOC_NONE),
-    IsShakeScreen(false),
+    IsShakeScreen(true),
     IsImmuneToEMP(false),
     IsCanPassiveAcquire(true),
     IsCanRetaliate(true),
