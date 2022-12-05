@@ -105,4 +105,9 @@ public:
      */
     int StartingPositions[MAX_PLAYERS];
     Cell StartingPositionCells[MAX_PLAYERS];
+
+        /**
+         *  The side to use for the sidebar assets (singleplayer only).
+         */
+        SideType SidebarSide;
 };

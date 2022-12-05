@@ -658,6 +658,15 @@ static bool Read_Scenario_INI_Init_Side(CCINIClass &ini)
 
         ASSERT_FATAL_PRINT(Scen->SpeechSide != SIDE_NONE && Scen->SpeechSide < Sides.Count(), "Invalid \"SpeechSide\" value in [Basic] section!");
 
+        /**
+         *  #issue-309
+         * 
+         *  Read sidebar side override.
+         */
+        ScenExtension->SidebarSide = ini.Get_SideType("Basic", "SidebarSide", housetype->Side);
+
+        ASSERT_FATAL_PRINT(ScenExtension->SidebarSide != SIDE_NONE && ScenExtension->SidebarSide < Sides.Count(), "Invalid \"SidebarSide\" value in [Basic] section!");
+
     } else {
 
 #if 0
@@ -676,6 +685,7 @@ static bool Read_Scenario_INI_Init_Side(CCINIClass &ini)
 
         Scen->IsGDI = (unsigned char)housetype->Side & 0xFF;
         Scen->SpeechSide = housetype->Side;
+        ScenExtension->SidebarSide = housetype->Side;
 
     }
 
@@ -712,9 +722,9 @@ static bool Read_Scenario_INI_Prep_For_Side()
 #endif
 
     DEBUG_INFO("Calling Prep_For_Side()...\n");
-    if (!Prep_For_Side(housetype->Side)) {
+    if (!Prep_For_Side(ScenExtension->SidebarSide)) {
 
-        DEBUG_WARNING("Prep_For_Side(%d) failed! Trying with side 0...\n", housetype->Side);
+        DEBUG_WARNING("Prep_For_Side(%d) failed! Trying with side 0...\n", ScenExtension->SidebarSide);
 
         /**
          *  Try once again but with the Side 0 (GDI) assets.

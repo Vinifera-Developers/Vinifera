@@ -140,6 +140,8 @@
 #include "technoext.h"
 #include "verses.h"
 
+#include "scenarioext.h"
+
 
 /**
  *  Constant of the current build version number. This number should be
@@ -481,7 +483,7 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
      *  Fetch the houses side type and use this to decide which assets to load.
      */
     DEBUG_INFO("About to call Prep_For_Side()...\n");
-    if (!Prep_For_Side(housetype->Side)) {
+    if (!Prep_For_Side(ScenExtension->SidebarSide)) {
         DEBUG_WARNING("Prep_For_Side(%d) failed! Trying with side 0...\n", housetype->Side);
 
         /**
