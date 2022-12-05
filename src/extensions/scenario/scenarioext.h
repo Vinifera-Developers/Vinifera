@@ -63,4 +63,9 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
          *  Can ice get destroyed when hit by certain weapons?
          */
         bool IsIceDestruction;
+
+        /**
+         *  The side to use for the sidebar assets (singleplayer only).
+         */
+        SideType SidebarSide;
 };
