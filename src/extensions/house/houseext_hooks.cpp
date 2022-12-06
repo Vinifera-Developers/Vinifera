@@ -160,7 +160,7 @@ return_true:
 
 
 /**
- *  #issue-715
+ *  #issue-611, #issue-715
  *
  *  Gets the number of queued objects when determining whether a cameo
  *  should be disabled.
@@ -185,6 +185,15 @@ int _HouseClass_ShouldDisableCameo_Get_Queued_Count(FactoryClass* factory, Techn
     }
 
     /**
+     *  #issue-611
+     *
+     *  If the object has a build limit, then reduce count by 1
+     */
+    if (technotype->BuildLimit > 0) {
+        count--;
+    }
+
+    /**
     *  #issue-715
     *
     *  If the object can transform into another object through our special logic,
@@ -204,10 +213,13 @@ int _HouseClass_ShouldDisableCameo_Get_Queued_Count(FactoryClass* factory, Techn
 
 
 /**
- *  #issue-715
+ *  #issue-611, #issue-715
  *
- *  Updates the build limit logic with unit queuing to 
- *  take our unit transformation logic into account.
+ *  Fixes the game allowing the player to queue one unit too few
+ *  when a unit has BuildLimit > 1.
+ *
+ *  Also updates the logic to take our unit transformation logic
+ *  into account.
  */
 DECLARE_PATCH(_HouseClass_ShouldDisableCameo_BuildLimit_Fix)
 {
