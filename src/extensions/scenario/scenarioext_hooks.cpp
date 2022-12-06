@@ -58,6 +58,8 @@
 #include "language.h"
 #include "wsproto.h"
 #include "rulesext.h"
+#include "ownrdraw.h"
+#include "spritecollection.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
@@ -748,6 +750,24 @@ static bool Read_Scenario_INI_Prep_For_Side()
             return false;
         }
     }
+
+    Call_Back();
+
+    /**
+     *  #issue-913
+     * 
+     *  Clear the sprite collection database and reload the owner draw graphics.
+     * 
+     *  #NOTE: This is really, really bad voodoo, but we don't have any easy
+     *         way to clean a Dictionary class yet, so this will have to do.
+     */
+    {
+    SpriteCollection.SpriteCollectionClass::~SpriteCollectionClass();
+    SpriteCollection.SpriteCollectionClass::SpriteCollectionClass();
+    OwnerDraw::Load_Graphics();
+    }
+
+    Call_Back();
 
     return true;
 }
