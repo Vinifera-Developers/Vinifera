@@ -112,6 +112,7 @@
 #include "buildingtypeext.h"
 #include "bullettypeext.h"
 #include "campaignext.h"
+#include "factoryext.h"
 #include "sideext.h"
 #include "houseext.h"
 #include "housetypeext.h"
@@ -494,7 +495,7 @@ AbstractClassExtension *Extension::Private::Make_Internal(const AbstractClass *a
         case RTTI_BULLETTYPE: { extptr = Extension_Make<BulletTypeClass, BulletTypeClassExtension>(reinterpret_cast<const BulletTypeClass *>(abstract)); break; }
         case RTTI_CAMPAIGN: { extptr = Extension_Make<CampaignClass, CampaignClassExtension>(reinterpret_cast<const CampaignClass *>(abstract)); break; }
         //case RTTI_CELL: { extptr = Extension_Make<CellClass, CellClassExtension>(reinterpret_cast<const CellClass *>(abstract)); break; } // Not yet implemented
-        //case RTTI_FACTORY: { extptr = Extension_Make<FactoryClass, FactoryClassExtension>(reinterpret_cast<const FactoryClass *>(abstract)); break; } // Not yet implemented
+        case RTTI_FACTORY: { extptr = Extension_Make<FactoryClass, FactoryClassExtension>(reinterpret_cast<const FactoryClass *>(abstract)); break; }
         case RTTI_HOUSE: { extptr = Extension_Make<HouseClass, HouseClassExtension>(reinterpret_cast<const HouseClass *>(abstract)); break; }
         case RTTI_HOUSETYPE: { extptr = Extension_Make<HouseTypeClass, HouseTypeClassExtension>(reinterpret_cast<const HouseTypeClass *>(abstract)); break; }
         case RTTI_INFANTRY: {  extptr = Extension_Make<InfantryClass, InfantryClassExtension>(reinterpret_cast<const InfantryClass *>(abstract)); break; }
@@ -574,7 +575,7 @@ bool Extension::Private::Destroy_Internal(const AbstractClass *abstract)
         case RTTI_BULLETTYPE: { removed = Extension_Destroy<BulletTypeClass, BulletTypeClassExtension>(reinterpret_cast<const BulletTypeClass *>(abstract)); break; }
         case RTTI_CAMPAIGN: { removed = Extension_Destroy<CampaignClass, CampaignClassExtension>(reinterpret_cast<const CampaignClass *>(abstract)); break; }
         //case RTTI_CELL: { removed = Extension_Destroy<CellClass, CellClassExtension>(reinterpret_cast<const CellClass *>(abstract)); break; } // Not yet implemented
-        //case RTTI_FACTORY: { removed = Extension_Destroy<FactoryClass, FactoryClassExtension>(reinterpret_cast<const FactoryClass *>(abstract)); break; } // Not yet implemented
+        case RTTI_FACTORY: { removed = Extension_Destroy<FactoryClass, FactoryClassExtension>(reinterpret_cast<const FactoryClass *>(abstract)); break; }
         case RTTI_HOUSE: { removed = Extension_Destroy<HouseClass, HouseClassExtension>(reinterpret_cast<const HouseClass *>(abstract)); break; }
         case RTTI_HOUSETYPE: { removed = Extension_Destroy<HouseTypeClass, HouseTypeClassExtension>(reinterpret_cast<const HouseTypeClass *>(abstract)); break; }
         case RTTI_INFANTRY: {  removed = Extension_Destroy<InfantryClass, InfantryClassExtension>(reinterpret_cast<const InfantryClass *>(abstract)); break; }
@@ -699,7 +700,7 @@ bool Extension::Save(IStream *pStm)
     if (!Extension_Save<BulletTypeClass, BulletTypeClassExtension>(pStm, BulletTypeExtensions)) { return false; }
     //if (!Extension_Save<CampaignClass, CampaignClassExtension>(pStm, CampaignExtensions)) { return false; }           // Supported, but Campaign's are not saved to file.
     //if (!Extension_Save<CellClass, CellClassExtension>(pStm, CellExtensions)) { return false; }                       // Not yet implemented
-    //if (!Extension_Save<FactoryClass, FactoryClassExtension>(pStm, FactoryExtensions)) { return false; }              // Not yet implemented
+    if (!Extension_Save<FactoryClass, FactoryClassExtension>(pStm, FactoryExtensions)) { return false; }
     if (!Extension_Save<HouseClass, HouseClassExtension>(pStm, HouseExtensions)) { return false; }
     if (!Extension_Save<HouseTypeClass, HouseTypeClassExtension>(pStm, HouseTypeExtensions)) { return false; }
     if (!Extension_Save<InfantryClass, InfantryClassExtension>(pStm, InfantryExtensions)) { return false; }
@@ -796,7 +797,7 @@ bool Extension::Load(IStream *pStm)
     if (!Extension_Load<BulletTypeClass, BulletTypeClassExtension>(pStm, BulletTypeExtensions)) { return false; }
     //if (!Extension_Load<CampaignClass, CampaignClassExtension>(pStm, CampaignExtensions)) { return false; }           // Supported, but Campaign's are not saved to file.
     //if (!Extension_Load<CellClass, CellClassExtension>(pStm, CellExtensions)) { return false; }                       // Not yet implemented
-    //if (!Extension_Load<FactoryClass, FactoryClassExtension>(pStm, FactoryExtensions)) { return false; }              // Not yet implemented
+    if (!Extension_Load<FactoryClass, FactoryClassExtension>(pStm, FactoryExtensions)) { return false; }
     if (!Extension_Load<HouseClass, HouseClassExtension>(pStm, HouseExtensions)) { return false; }
     if (!Extension_Load<HouseTypeClass, HouseTypeClassExtension>(pStm, HouseTypeExtensions)) { return false; }
     if (!Extension_Load<InfantryClass, InfantryClassExtension>(pStm, InfantryExtensions)) { return false; }
@@ -897,7 +898,7 @@ bool Extension::Request_Pointer_Remap()
     if (!Extension_Request_Pointer_Remap<BulletTypeClass, BulletTypeClassExtension>(BulletTypes)) { return false; }
     //if (!Extension_Request_Pointer_Remap<CampaignClass, CampaignClassExtension>(Campaigns)) { return false; }         // Does not need to be processed for pointer remapping.
     //if (!Extension_Request_Pointer_Remap<CellClass, CellClassExtension>()) { return false; }                          // Not yet implemented
-    //if (!Extension_Request_Pointer_Remap<FactoryClass, FactoryClassExtension>(Factories)) { return false; }           // Not yet implemented
+    if (!Extension_Request_Pointer_Remap<FactoryClass, FactoryClassExtension>(Factories)) { return false; }
     if (!Extension_Request_Pointer_Remap<HouseClass, HouseClassExtension>(Houses)) { return false; }
     if (!Extension_Request_Pointer_Remap<HouseTypeClass, HouseTypeClassExtension>(HouseTypes)) { return false; }
     if (!Extension_Request_Pointer_Remap<InfantryClass, InfantryClassExtension>(Infantry)) { return false; }
@@ -976,7 +977,7 @@ bool Extension::Register_Class_Factories()
     REGISTER_CLASS(BulletTypeClassExtension);
     REGISTER_CLASS(CampaignClassExtension);
     //REGISTER_CLASS(CellClassExtension);                                       // Not yet implemented
-    //REGISTER_CLASS(FactoryClassExtension);                                    // Not yet implemented
+    REGISTER_CLASS(FactoryClassExtension);
     REGISTER_CLASS(HouseClassExtension);
     REGISTER_CLASS(HouseTypeClassExtension);
     REGISTER_CLASS(InfantryClassExtension);
@@ -1058,7 +1059,7 @@ void Extension::Free_Heaps()
     BulletTypeExtensions.Clear();
     //CampaignExtensions.Clear();                                               // Campaign's do not need to be processed.
     //CellExtensions.Clear();                                                   // Not yet implemented
-    //FactoryExtensions.Clear();                                                // Not yet implemented
+    FactoryExtensions.Clear();
     HouseExtensions.Clear();
     HouseTypeExtensions.Clear();
     InfantryExtensions.Clear();
@@ -1373,7 +1374,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     //std::fprintf(fp, "BulletExtensions.Count = %d\n", BulletExtensions.Count());                                      // Not yet implemented
     std::fprintf(fp, "BulletTypeExtensions.Count = %d\n", BulletTypeExtensions.Count());
     //std::fprintf(fp, "CampaignExtensions.Count = %d\n", CampaignExtensions.Count());                                  // Does not need to be logged as these have no impact on networking.
-    //std::fprintf(fp, "FactoryExtensions.Count = %d\n", FactoryExtensions.Count());                                    // Not yet implemented
+    std::fprintf(fp, "FactoryExtensions.Count = %d\n", FactoryExtensions.Count());
     std::fprintf(fp, "HouseExtensions.Count = %d\n", HouseExtensions.Count());
     std::fprintf(fp, "HouseTypeExtensions.Count = %d\n", HouseTypeExtensions.Count());
     std::fprintf(fp, "InfantryExtensions.Count = %d\n", InfantryExtensions.Count());
@@ -1830,7 +1831,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     Print_Heap_CRC_Lists(fp, BulletTypeExtensions);
     //Print_Heap_CRC_Lists(fp, CampaignExtensions);                             // Does not need to be processed as these have no impact on networking.
     //Print_Heap_CRC_Lists(fp, CellExtensions);                                 // Not yet implemented
-    //Print_Heap_CRC_Lists(fp, FactoryExtensions);                              // Not yet implemented
+    Print_Heap_CRC_Lists(fp, FactoryExtensions);
     Print_Heap_CRC_Lists(fp, HouseExtensions);
     Print_Heap_CRC_Lists(fp, HouseTypeExtensions);
     Print_Heap_CRC_Lists(fp, InfantryExtensions);
@@ -1907,7 +1908,7 @@ void Extension::Detach_This_From_All(TARGET target, bool all)
     Extension_Detach_This_From_All(BulletTypeExtensions, target, all);
     //Extension_Detach_This_From_All(CampaignExtensions, target, all);          // Does not need to be processed.
     //Extension_Detach_This_From_All(CellExtensions, target, all);              // Not yet implemented
-    //Extension_Detach_This_From_All(FactoryExtensions, target, all);           // Not yet implemented
+    Extension_Detach_This_From_All(FactoryExtensions, target, all);
     Extension_Detach_This_From_All(HouseExtensions, target, all);
     Extension_Detach_This_From_All(HouseTypeExtensions, target, all);
     Extension_Detach_This_From_All(InfantryExtensions, target, all);
@@ -1996,7 +1997,7 @@ unsigned Extension::Get_Save_Version_Number()
     version += sizeof(BulletTypeClassExtension);
     version += sizeof(CampaignClassExtension);
     //version += sizeof(CellClassExtension);                                    // Not yet implemented
-    //version += sizeof(FactoryClassExtension);                                 // Not yet implemented
+    version += sizeof(FactoryClassExtension);
     version += sizeof(HouseClassExtension);
     version += sizeof(HouseTypeClassExtension);
     version += sizeof(InfantryClassExtension);

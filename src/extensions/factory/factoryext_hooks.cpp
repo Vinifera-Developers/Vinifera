@@ -26,6 +26,7 @@
  *
  ******************************************************************************/
 #include "factoryext_hooks.h"
+#include "factoryext_init.h"
 #include "tibsun_globals.h"
 #include "vinifera_globals.h"
 #include "house.h"
@@ -106,5 +107,10 @@ production_completed:
  */
 void FactoryClassExtension_Hooks()
 {
+	/**
+	 *  Initialises the extended class.
+	 */
+	FactoryClassExtension_Init();
+
 	Patch_Jump(0x00496F6D, &_FactoryClass_AI_InstantBuild_Patch);
 }
