@@ -120,6 +120,7 @@
 #include "infantrytypeext.h"
 #include "isotiletypeext.h"
 #include "objecttypeext.h"
+#include "overlayext.h"
 #include "overlaytypeext.h"
 #include "particlesystypeext.h"
 #include "particletypeext.h"
@@ -503,7 +504,7 @@ AbstractClassExtension *Extension::Private::Make_Internal(const AbstractClass *a
         //case RTTI_ISOTILE: { extptr = Extension_Make<IsometricTileClass, IsometricTileClassExtension>(reinterpret_cast<const IsometricTileClass *>(abstract)); break; } // Not yet implemented
         case RTTI_ISOTILETYPE: { extptr = Extension_Make<IsometricTileTypeClass, IsometricTileTypeClassExtension>(reinterpret_cast<const IsometricTileTypeClass *>(abstract)); break; }
         //case RTTI_LIGHT: { extptr = Extension_Make<BuildingLightClass, BuildingLightClassExtension>(reinterpret_cast<const BuildingLightClass *>(abstract)); break; } // Not yet implemented
-        //case RTTI_OVERLAY: { extptr = Extension_Make<OverlayClass, OverlayClassExtension>(reinterpret_cast<const OverlayClass *>(abstract)); break; } // Not yet implemented
+        case RTTI_OVERLAY: { extptr = Extension_Make<OverlayClass, OverlayClassExtension>(reinterpret_cast<const OverlayClass *>(abstract)); break; }
         case RTTI_OVERLAYTYPE: { extptr = Extension_Make<OverlayTypeClass, OverlayTypeClassExtension>(reinterpret_cast<const OverlayTypeClass *>(abstract)); break; }
         //case RTTI_PARTICLE: { extptr = Extension_Make<ParticleClass, ParticleClassExtension>(reinterpret_cast<const ParticleClass *>(abstract)); break; } // Not yet implemented
         case RTTI_PARTICLETYPE: { extptr = Extension_Make<ParticleTypeClass, ParticleTypeClassExtension>(reinterpret_cast<const ParticleTypeClass *>(abstract)); break; }
@@ -583,7 +584,7 @@ bool Extension::Private::Destroy_Internal(const AbstractClass *abstract)
         //case RTTI_ISOTILE: { removed = Extension_Destroy<IsometricTileClass, IsometricTileClassExtension>(reinterpret_cast<const IsometricTileClass *>(abstract)); break; } // Not yet implemented
         case RTTI_ISOTILETYPE: { removed = Extension_Destroy<IsometricTileTypeClass, IsometricTileTypeClassExtension>(reinterpret_cast<const IsometricTileTypeClass *>(abstract)); break; }
         //case RTTI_LIGHT: { removed = Extension_Destroy<BuildingLightClass, BuildingLightClassExtension>(reinterpret_cast<const BuildingLightClass *>(abstract)); break; } // Not yet implemented
-        //case RTTI_OVERLAY: { removed = Extension_Destroy<OverlayClass, OverlayClassExtension>(reinterpret_cast<const OverlayClass *>(abstract)); break; } // Not yet implemented
+        case RTTI_OVERLAY: { removed = Extension_Destroy<OverlayClass, OverlayClassExtension>(reinterpret_cast<const OverlayClass *>(abstract)); break; }
         case RTTI_OVERLAYTYPE: { removed = Extension_Destroy<OverlayTypeClass, OverlayTypeClassExtension>(reinterpret_cast<const OverlayTypeClass *>(abstract)); break; }
         //case RTTI_PARTICLE: { removed = Extension_Destroy<ParticleClass, ParticleClassExtension>(reinterpret_cast<const ParticleClass *>(abstract)); break; } // Not yet implemented
         case RTTI_PARTICLETYPE: { removed = Extension_Destroy<ParticleTypeClass, ParticleTypeClassExtension>(reinterpret_cast<const ParticleTypeClass *>(abstract)); break; }
@@ -708,7 +709,7 @@ bool Extension::Save(IStream *pStm)
     //if (!Extension_Save<IsometricTileClass, IsometricTileClassExtension>(pStm, IsometricTileExtensions)) { return false; } // Not yet implemented
     //if (!Extension_Save<IsometricTileTypeClass, IsometricTileTypeClassExtension>(pStm, IsometricTileTypeExtensions)) { return false; } // Supported, but IsoTileTypes's are not saved to file.
     //if (!Extension_Save<BuildingLightClass, BuildingLightClassExtension>(pStm, BuildingLightExtensions)) { return false; } // Not yet implemented
-    //if (!Extension_Save<OverlayClass, OverlayClassExtension>(pStm, OverlayExtensions)) { return false; }              // Not yet implemented
+    if (!Extension_Save<OverlayClass, OverlayClassExtension>(pStm, OverlayExtensions)) { return false; }
     if (!Extension_Save<OverlayTypeClass, OverlayTypeClassExtension>(pStm, OverlayTypeExtensions)) { return false; }
     //if (!Extension_Save<ParticleClass, ParticleClassExtension>(pStm, ParticleClassExtensions)) { return false; }      // Not yet implemented
     if (!Extension_Save<ParticleTypeClass, ParticleTypeClassExtension>(pStm, ParticleTypeExtensions)) { return false; }
@@ -805,7 +806,7 @@ bool Extension::Load(IStream *pStm)
     //if (!Extension_Load<IsometricTileClass, IsometricTileClassExtension>(pStm, IsometricTileExtensions)) { return false; } // Not yet implemented
     //if (!Extension_Load<IsometricTileTypeClass, IsometricTileTypeClassExtension>(pStm, IsometricTileTypeExtensions)) { return false; } // Supported, but IsoTileTypes's are not saved to file.
     //if (!Extension_Load<BuildingLightClass, BuildingLightClassExtension>(pStm, BuildingLightExtensions)) { return false; } // Not yet implemented
-    //if (!Extension_Load<OverlayClass, OverlayClassExtension>(pStm, OverlayExtensions)) { return false; }              // Not yet implemented
+    if (!Extension_Load<OverlayClass, OverlayClassExtension>(pStm, OverlayExtensions)) { return false; }
     if (!Extension_Load<OverlayTypeClass, OverlayTypeClassExtension>(pStm, OverlayTypeExtensions)) { return false; }
     //if (!Extension_Load<ParticleClass, ParticleClassExtension>(pStm, ParticleClassExtensions)) { return false; }      // Not yet implemented
     if (!Extension_Load<ParticleTypeClass, ParticleTypeClassExtension>(pStm, ParticleTypeExtensions)) { return false; }
@@ -906,7 +907,7 @@ bool Extension::Request_Pointer_Remap()
     //if (!Extension_Request_Pointer_Remap<IsometricTileClass, IsometricTileClassExtension>(IsoTiles)) { return false; } // Not yet implemented
     //if (!Extension_Request_Pointer_Remap<IsometricTileTypeClass, IsometricTileTypeClassExtension>(IsoTileTypes)) { return false; } // Does not need to be processed.
     //if (!Extension_Request_Pointer_Remap<BuildingLightClass, BuildingLightClassExtension>(BuildingLights)) { return false; } // Not yet implemented
-    //if (!Extension_Request_Pointer_Remap<OverlayClass, OverlayClassExtension>(Overlays)) { return false; }            // Not yet implemented
+    if (!Extension_Request_Pointer_Remap<OverlayClass, OverlayClassExtension>(Overlays)) { return false; }
     if (!Extension_Request_Pointer_Remap<OverlayTypeClass, OverlayTypeClassExtension>(OverlayTypes)) { return false; }
     //if (!Extension_Request_Pointer_Remap<ParticleClass, ParticleClassExtension>(Particles)) { return false; }         // Not yet implemented
     if (!Extension_Request_Pointer_Remap<ParticleTypeClass, ParticleTypeClassExtension>(ParticleTypes)) { return false; }
@@ -985,7 +986,7 @@ bool Extension::Register_Class_Factories()
     //REGISTER_CLASS(IsometricTileClassExtension);                              // Not yet implemented
     REGISTER_CLASS(IsometricTileTypeClassExtension);
     //REGISTER_CLASS(BuildingLightClassExtension);                              // Not yet implemented
-    //REGISTER_CLASS(OverlayClassExtension);                                    // Not yet implemented
+    REGISTER_CLASS(OverlayClassExtension);
     REGISTER_CLASS(OverlayTypeClassExtension);
     //REGISTER_CLASS(ParticleClassExtension);                                   // Not yet implemented
     REGISTER_CLASS(ParticleTypeClassExtension);
@@ -1067,8 +1068,8 @@ void Extension::Free_Heaps()
     //IsometricTileExtensions.Clear();                                          // Not yet implemented
     //IsometricTileTypeExtensions.Clear();                                      // IsoTileType's not need to be processed.
     //BuildingLightExtensions.Clear();                                          // Not yet implemented
-    //OverlayExtensions.Clear();                                                // Not yet implemented
-     OverlayTypeExtensions.Clear();
+    OverlayExtensions.Clear();
+    OverlayTypeExtensions.Clear();
     //ParticleExtensions.Clear();                                               // Not yet implemented
     ParticleTypeExtensions.Clear();
     //ParticleSystemExtensions.Clear();                                         // Not yet implemented
@@ -1382,7 +1383,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     //std::fprintf(fp, "IsometricTileExtensions.Count = %d\n", IsometricTileExtensions.Count());                        // Not yet implemented
     std::fprintf(fp, "IsometricTileTypeExtensions.Count = %d\n", IsometricTileTypeExtensions.Count());
     //std::fprintf(fp, "BuildingLightExtensions.Count = %d\n", BuildingLightExtensions.Count());                        // Not yet implemented
-    //std::fprintf(fp, "OverlayExtensions.Count = %d\n", OverlayExtensions.Count());                                    // Not yet implemented
+    std::fprintf(fp, "OverlayExtensions.Count = %d\n", OverlayExtensions.Count());
     std::fprintf(fp, "OverlayTypeExtensions.Count = %d\n", OverlayTypeExtensions.Count());
     //std::fprintf(fp, "ParticleExtensions.Count = %d\n", ParticleExtensions.Count());                                  // Not yet implemented
     std::fprintf(fp, "ParticleTypeExtensions.Count = %d\n", ParticleTypeExtensions.Count());
@@ -1839,7 +1840,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     //Print_Heap_CRC_Lists(fp, IsometricTileExtensions);                        // Not yet implemented
     Print_Heap_CRC_Lists(fp, IsometricTileTypeExtensions);
     //Print_Heap_CRC_Lists(fp, BuildingLightExtensions);                        // Not yet implemented
-    //Print_Heap_CRC_Lists(fp, OverlayExtensions);                              // Not yet implemented
+    Print_Heap_CRC_Lists(fp, OverlayExtensions);
     Print_Heap_CRC_Lists(fp, OverlayTypeExtensions);
     //Print_Heap_CRC_Lists(fp, ParticleExtensions);                             // Not yet implemented
     Print_Heap_CRC_Lists(fp, ParticleTypeExtensions);
@@ -1916,7 +1917,7 @@ void Extension::Detach_This_From_All(TARGET target, bool all)
     //Extension_Detach_This_From_All(IsometricTileExtensions, target, all);     // Not yet implemented
     Extension_Detach_This_From_All(IsometricTileTypeExtensions, target, all);
     //Extension_Detach_This_From_All(BuildingLightExtensions, target, all);     // Not yet implemented
-    //Extension_Detach_This_From_All(OverlayExtensions, target, all);           // Not yet implemented
+    Extension_Detach_This_From_All(OverlayExtensions, target, all);
     Extension_Detach_This_From_All(OverlayTypeExtensions, target, all);
     //Extension_Detach_This_From_All(ParticleExtensions, target, all);          // Not yet implemented
     Extension_Detach_This_From_All(ParticleTypeExtensions, target, all);
@@ -2005,7 +2006,7 @@ unsigned Extension::Get_Save_Version_Number()
     //version += sizeof(IsometricTileClassExtension);                           // Not yet implemented
     version += sizeof(IsometricTileTypeClassExtension);
     //version += sizeof(BuildingLightClassExtension);                           // Not yet implemented
-    //version += sizeof(OverlayClassExtension);                                 // Not yet implemented
+    version += sizeof(OverlayClassExtension);
     version += sizeof(OverlayTypeClassExtension);
     //version += sizeof(ParticleClassExtension);                                // Not yet implemented
     version += sizeof(ParticleTypeClassExtension);

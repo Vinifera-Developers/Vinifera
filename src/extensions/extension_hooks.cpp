@@ -53,7 +53,7 @@
 //#include "isotileext_hooks.h"
 #include "isotiletypeext_hooks.h"
 //#include "buildinglightext_hooks.h"
-//#include "overlayext_hooks.h"
+#include "overlayext_hooks.h"
 #include "overlaytypeext_hooks.h"
 //#include "particleext_hooks.h"
 #include "particletypeext_hooks.h"
@@ -184,7 +184,7 @@ void Extension_Hooks()
     //IsometricTileClassExtension_Hooks();                  // Not yet implemented
     IsometricTileTypeClassExtension_Hooks();
     //BuildingLightExtension_Hooks();                       // Not yet implemented
-    //OverlayClassExtension_Hooks();                        // Not yet implemented
+    OverlayClassExtension_Hooks();
     OverlayTypeClassExtension_Hooks();
     //ParticleClassExtension_Hooks();                       // Not yet implemented
     ParticleTypeClassExtension_Hooks();

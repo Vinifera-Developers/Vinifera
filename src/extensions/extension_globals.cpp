@@ -44,6 +44,7 @@ DynamicVectorClass<HouseTypeClassExtension *> HouseTypeExtensions;
 DynamicVectorClass<InfantryClassExtension *> InfantryExtensions;
 DynamicVectorClass<InfantryTypeClassExtension *> InfantryTypeExtensions;
 DynamicVectorClass<IsometricTileTypeClassExtension *> IsometricTileTypeExtensions;
+DynamicVectorClass<OverlayClassExtension *> OverlayExtensions;
 DynamicVectorClass<OverlayTypeClassExtension *> OverlayTypeExtensions;
 DynamicVectorClass<ParticleSystemTypeClassExtension *> ParticleSystemTypeExtensions;
 DynamicVectorClass<ParticleTypeClassExtension *> ParticleTypeExtensions;
