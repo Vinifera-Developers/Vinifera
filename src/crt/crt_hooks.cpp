@@ -123,4 +123,9 @@ void CRT_Hooks()
      */
     Hook_Function(0x006B51D7, &vinifera_allocate);
     Hook_Function(0x006B51CC, &vinifera_free);
+
+    /**
+     *  Redirect the games CRT functions to use use the DLL's CRT.
+     */
+    Hook_Function(0x006B602A, &std::strtok);
 }
