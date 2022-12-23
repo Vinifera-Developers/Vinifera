@@ -96,6 +96,8 @@
 #include "waypointpath.h"
 #include "alphashape.h"
 
+#include "scenarioext.h"
+
 #include "scenario.h"
 #include "endgame.h"
 #include "rules.h"
@@ -482,6 +484,31 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
      */
     DEBUG_INFO("Loading Scenario...\n");
     Scen->Load(pStm);
+
+    /**
+     *  #issue-123
+     *
+     *  Save files do not store the tutorial messages, so we reload them from
+     *  the scenario file.
+     */
+    {
+        DEBUG_INFO("Loading Tutorial section from scenario (if present)...\n");
+
+        CCFileClass scen_file(Scen->ScenarioName);
+        CCINIClass scen_ini;
+
+        if (!scen_file.Is_Available()) {
+            DEBUG_ERROR("Failed to read scenario file!\n");
+            return false;
+        }
+
+        scen_ini.Load(scen_file, false);
+
+        if (!ScenExtension->Read_Tutorial_INI(scen_ini, true)) {
+            DEBUG_ERROR("Failed to read tutorial strings from scenario file!\n");
+            return false;
+        }
+    }
 
     Addon_4071C0(ADDON_NONE);
 

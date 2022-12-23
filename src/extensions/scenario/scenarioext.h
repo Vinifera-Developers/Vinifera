@@ -51,6 +51,9 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
         virtual const char *Full_Name() const override { return "Scenario"; }
 
         void Init_Clear();
+        bool Read_INI(CCINIClass &ini);
+
+        bool Read_Tutorial_INI(CCINIClass &ini, bool log = false);
 
     public:
 
