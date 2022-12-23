@@ -28,6 +28,7 @@
 #include "scenarioext.h"
 #include "tibsun_globals.h"
 #include "tibsun_defines.h"
+#include "ccini.h"
 #include "noinit.h"
 #include "swizzle.h"
 #include "vinifera_saveload.h"
@@ -156,4 +157,101 @@ void ScenarioClassExtension::Compute_CRC(WWCRCEngine &crc) const
 void ScenarioClassExtension::Init_Clear()
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Init_Clear - 0x%08X\n", (uintptr_t)(This()));
+
+    {
+        /**
+         *  Clear the any previously loaded tutorial messages in preperation for
+         *  reloading the TUTORIAL.INI as they might contain scenario overrides.
+         */
+        TutorialText.Clear();
+
+        /**
+         *  Reload the main tutorial message data.
+         */
+        CCINIClass ini;
+        ini.Load(CCFileClass("TUTORIAL.INI"), false);
+        Read_Tutorial_INI(ini);
+    }
+}
+
+
+/**
+ *  Initialises any values for this instance.
+ *
+ *  @author: CCHyper
+ */
+bool ScenarioClassExtension::Read_INI(CCINIClass &ini)
+{
+    //EXT_DEBUG_TRACE("ScenarioClassExtension::Read_INI - 0x%08X\n", (uintptr_t)(This()));
+
+    /**
+     *  #issue-123
+     * 
+     *  Fetch additional tutorial message data (if present) from the scenario.
+     */
+    Read_Tutorial_INI(ini, true);
+
+    return true;
+}
+
+
+/**
+ *  Load the tutorial messages section from the ini database.
+ *
+ *  @author: CCHyper
+ */
+bool ScenarioClassExtension::Read_Tutorial_INI(CCINIClass &ini, bool log)
+{
+    static char const * const TUTORIAL = "Tutorial";
+
+    /**
+     *  Fetch the additional tutorial message data (if present).
+     */
+    if (ini.Is_Present(TUTORIAL)) {
+
+        char buf[128];
+
+        int counter = ini.Entry_Count(TUTORIAL);
+
+        if (counter > 0 && log) DEBUG_INFO("Tutorial section found and has %d entries.\n", counter);
+
+        for (int index = 0; index < counter; ++index) {
+            const char *entry = ini.Get_Entry(TUTORIAL, index);
+
+            /**
+             *  Get a tutorial message entry.
+             */
+            if (ini.Get_String(TUTORIAL, entry, buf, sizeof(buf))) {
+
+                /**
+                 *  Convert the entry name (which in this context is an index) to an "id" value.
+                 */
+                int id = std::strtol(entry, nullptr, 10);
+                const char *string = strdup(buf);
+
+                /**
+                 *  Check to see if this id already exists before adding it, otherwise
+                 *  the replacement message will not get used.
+                 */
+                if (TutorialText.Is_Present(id)) {
+                    TutorialText.Remove_Index(id);
+                    if (log) DEV_DEBUG_INFO("  Removed ID '%d' from TutorialText index.\n", id);
+#ifndef NDEBUG
+                    if (log) { DEV_DEBUG_INFO("  %d = \"%s\".\n", id, TutorialText[id]); }
+#endif
+                }
+
+                if (log) DEV_DEBUG_INFO("  Adding ID '%d' from TutorialText index.\n", id);
+#ifndef NDEBUG
+                if (log) DEV_DEBUG_INFO("  %d = \"%s\".\n", id, string);
+#endif
+
+                TutorialText.Add_Index(id, string);
+            }
+
+        }
+
+    }
+
+    return true;
 }
