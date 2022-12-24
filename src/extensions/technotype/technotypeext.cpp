@@ -104,7 +104,8 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     IsNaval(false),
     BuiltAt(),
     BuildTimeMultiplier(1.0f),
-    IsOpportunityFire(false)
+    IsOpportunityFire(false),
+    WakeAnim(nullptr)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -169,6 +170,7 @@ HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
 
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(UnloadingClass, "UnloadingClass");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Spawns, "Spawns");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(WakeAnim, "WakeAnim");
 
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(BuiltAt, "BuiltAt");
 
@@ -375,6 +377,7 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     VoiceHarvest = ini.Get_VocTypes(ini_name, "VoiceHarvest", VoiceHarvest);
     SpecialPipIndex = ini.Get_Int(ini_name, "SpecialPipIndex", SpecialPipIndex);
     PipWrap = ini.Get_Int(ini_name, "PipWrap", PipWrap);
+    WakeAnim = ini.Get_Anim(ini_name, "WakeAnim", WakeAnim);
 
     if (ini.Is_Present(ini_name, "Description"))
         ini.Get_String(ini_name, "Description", Description, std::size(Description));
