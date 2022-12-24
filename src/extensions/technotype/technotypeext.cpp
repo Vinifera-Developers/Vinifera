@@ -105,7 +105,8 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     BuiltAt(),
     BuildTimeMultiplier(1.0f),
     IsOpportunityFire(false),
-    WakeAnim(nullptr)
+    WakeAnim(nullptr),
+    WakeAnimRate(10)                    // Default DriveLocomotion value.
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -294,6 +295,7 @@ void TechnoTypeClassExtension::Object_CRC(CRCEngine &crc) const
     crc(IsNaval);
     crc(BuiltAt.Count());
     crc(IsOpportunityFire);
+    crc(WakeAnimRate);
 }
 
 
@@ -377,7 +379,9 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     VoiceHarvest = ini.Get_VocTypes(ini_name, "VoiceHarvest", VoiceHarvest);
     SpecialPipIndex = ini.Get_Int(ini_name, "SpecialPipIndex", SpecialPipIndex);
     PipWrap = ini.Get_Int(ini_name, "PipWrap", PipWrap);
-    WakeAnim = ini.Get_Anim(ini_name, "WakeAnim", WakeAnim);
+
+    WakeAnim = ArtINI.Get_Anim(graphic_name, "WakeAnim", WakeAnim);
+    WakeAnimRate = ArtINI.Get_Int(graphic_name, "WakeAnimRate", WakeAnimRate);
 
     if (ini.Is_Present(ini_name, "Description"))
         ini.Get_String(ini_name, "Description", Description, std::size(Description));
