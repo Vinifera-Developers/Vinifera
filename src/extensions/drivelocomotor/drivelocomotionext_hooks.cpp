@@ -50,12 +50,15 @@
  */
 static void DriveLocomotionClass_Process_Create_WakeAnim(DriveLocomotionClass *this_ptr)
 {
-    /**
-     *  Only spawn the wake animation every 10 frames.
-     */
-    if (!(Frame % 10)) {
+    FootClass *linked_foot = this_ptr->Linked_To();
+    TechnoTypeClassExtension *technotype_ext = Extension::Fetch<TechnoTypeClassExtension>(linked_foot->Techno_Type_Class());
 
-        FootClass *linked_foot = this_ptr->Linked_To();
+    /**
+     *  #issue-944
+     * 
+     *  Only spawn the wake animation every 'X' frames, as set by the objects properties.
+     */
+    if (!(Frame % technotype_ext->WakeAnimRate)) {
 
         if (!linked_foot->IsOnBridge && linked_foot->Get_Cell_Ptr()->Land_Type() == LAND_WATER) {
 
@@ -66,7 +69,6 @@ static void DriveLocomotionClass_Process_Create_WakeAnim(DriveLocomotionClass *t
              *  locomotor, and fall-back to the Rules wake animation if
              *  one is not defined.
              */
-            TechnoTypeClassExtension *technotype_ext = Extension::Fetch<TechnoTypeClassExtension>(linked_foot->Techno_Type_Class());
             const AnimTypeClass *wake_anim = technotype_ext->WakeAnim != nullptr ? technotype_ext->WakeAnim : Rule->Wake;
 
             /**
