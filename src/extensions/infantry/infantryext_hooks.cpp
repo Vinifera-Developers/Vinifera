@@ -543,4 +543,13 @@ void InfantryClassExtension_Hooks()
     Patch_Jump(0x004D87E9, &_InfantryClass_Firing_AI_Mechanic_Patch);
     Patch_Jump(0x004D3A7B, &_InfantryClass_Per_Cell_Process_Transport_Attach_Sound_Patch);
     Patch_Jump(0x004D35F9, &_InfantryClass_Per_Cell_Process_Engineer_Capture_Damage_Patch);
+
+    /**
+     *  ACTION_DAMAGE no longer a case in DisplayClass::Left_Mouse_Up to show the
+     *  correct mouse cursor for the multi-engineer damage (MOUSE.SHP also does not
+     *  contain any artwork for this), so with the multi-engineer fixes above it shows
+     *  the default arrow cursor. We fix this by making it use ACTION_CAPTURE still
+     *  to make sure the mouse shows the correct visual cursor.
+     */
+    Patch_Byte(0x004D7124+1, ACTION_CAPTURE);
 }
