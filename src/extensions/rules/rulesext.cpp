@@ -37,6 +37,7 @@
 #include "wwcrc.h"
 #include "noinit.h"
 #include "swizzle.h"
+#include "addon.h"
 #include "vinifera_saveload.h"
 #include "asserthandler.h"
 #include "debughandler.h"
@@ -78,6 +79,18 @@ RulesClassExtension::RulesClassExtension(const RulesClass *this_ptr) :
     IsShowSuperWeaponTimers(true)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
+
+    /**
+     *  Due to the changes made when addressing issues #632, 633, and 635, we
+     *  need change the default engineer capture values. These values are from
+     *  Red Alert 1 MPLAYER.INI, and they match the expected hardcoded behavior
+     *  of the Multi Engineer logic in the release version of Tiberian Sun.
+     * 
+     *  Fixing the default values here ensures Multi-Engineer works in Tiberian Sun
+     *  without manually fixing up the ini data (which is required for Firestorm).
+     */
+    This()->EngineerDamage = 0.33f;
+    This()->EngineerCaptureLevel = 0.66f;
 }
 
 
@@ -276,7 +289,7 @@ void RulesClassExtension::Process(CCINIClass &ini)
     /**
      *  Fixup various inconsistencies in the original INI files.
      */
-    Fixups();
+    Fixups(ini);
 }
 
 
@@ -520,8 +533,87 @@ void RulesClassExtension::Check()
  *
  *  @author: CCHyper
  */
-void RulesClassExtension::Fixups()
+void RulesClassExtension::Fixups(CCINIClass &ini)
 {
+    DEBUG_INFO("Rules::Fixups(enter)\n");
+
+    /**
+     *  These are the CRC values for the unmodified ini files, TS2.03EN.
+     */
+    static const int Unmodified_RuleINI_CRC = 0x9F3ECD2A;
+    static const int Unmodified_FSRuleINI_CRC = 0xA0738E22;
+
+    /**
+     *  Constant values to change to.
+     */
+    static const float CorrectEngineerDamage = 0.33f;
+    static const float CorrectEngineerCaptureLevel = 0.66f;
+
+    /**
+     *  Fetch the unique crc values for both rule databases.
+     */
+    int rule_crc = RuleINI->Get_Unique_ID();
+    DEV_DEBUG_INFO("Rules: RuleINI CRC = %lX\n", rule_crc);
+
+    int fsrule_crc = FSRuleINI.Get_Unique_ID();
+    if (Addon_Installed(ADDON_FIRESTORM)) {
+        DEV_DEBUG_INFO("Rules: FSRuleINI CRC = %lX\n", fsrule_crc);
+    }
+
+    /**
+     *  Check to see if the ini files have been modified.
+     */
+    bool rule_unmodified = false;
+    if (rule_crc == Unmodified_RuleINI_CRC) {
+        DEBUG_INFO("Rules: RuleINI is unmodified (version 2.03).\n");
+        rule_unmodified = true;
+    }
+    bool fsrule_unmodified = false;
+    if (Addon_Installed(ADDON_FIRESTORM)) {
+        if (fsrule_crc == Unmodified_FSRuleINI_CRC) {
+            DEBUG_INFO("Rules: FSRuleINI is unmodified (version 2.03).\n");
+            fsrule_unmodified = true;
+        }
+    }
+
+    /**
+     *  Detect which unmodified ini file we are currently processing.
+     */
+    bool is_ruleini = false;
+    if (ini.Get_Unique_ID() == Unmodified_RuleINI_CRC) {
+        DEV_DEBUG_INFO("Rules: Current INI is RuleINI.\n");
+        is_ruleini = true;
+    }
+    bool is_fsruleini = false;
+    if (Addon_Installed(ADDON_FIRESTORM) && ini.Get_Unique_ID() == Unmodified_FSRuleINI_CRC) {
+        DEV_DEBUG_INFO("Rules: Current INI is FSRuleINI.\n");
+        is_fsruleini = true;
+    }
+
+    /**
+     *  Fix up the multi engineer values if we have possibly detected the original, unmodified ini databases.
+     * 
+     *  Match criteria;
+     *   - Are we currently processing FSRuleINI?
+     *   - EngineerCaptureLevel is "1.0"
+     *   - EngineerDamage is "0.0"
+     */
+    if (is_fsruleini) {
+
+        if (This()->EngineerCaptureLevel == 1.0f && This()->EngineerDamage == 0.0f) {
+
+            DEBUG_WARNING("Rules: EngineerCaptureLevel is '%.2f', changing to '%.2f'!\n", This()->EngineerDamage, CorrectEngineerCaptureLevel);
+            DEBUG_WARNING("Rules: Please consider changing EngineerCaptureLevel to %.2f!\n", CorrectEngineerCaptureLevel);
+            This()->EngineerCaptureLevel = CorrectEngineerCaptureLevel;
+
+            DEBUG_WARNING("Rules: EngineerDamage is '%.2f', changing to '%.2f'!\n", This()->EngineerDamage, CorrectEngineerDamage);
+            DEBUG_WARNING("Rules: Please consider changing EngineerDamage to %.2f!\n", CorrectEngineerDamage);
+            This()->EngineerDamage = CorrectEngineerDamage;
+
+        }
+
+    }
+
     HouseTypeClass *housetype = HouseTypes[HOUSE_NOD];
     if (housetype) {
 
@@ -583,4 +675,5 @@ void RulesClassExtension::Fixups()
 
     }
 
+    DEBUG_INFO("Rules::Fixups(exit)\n");
 }

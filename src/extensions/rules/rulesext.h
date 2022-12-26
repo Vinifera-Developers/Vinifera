@@ -67,7 +67,7 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
 
     private:
         void Check();
-        void Fixups();
+        void Fixups(CCINIClass &ini);
 
     public:
         /**
