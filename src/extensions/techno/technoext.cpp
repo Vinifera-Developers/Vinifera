@@ -55,7 +55,8 @@ TechnoClassExtension::TechnoClassExtension(const TechnoClass *this_ptr) :
     ElectricBolt(nullptr),
     Storage(Tiberiums.Count()),
     SpawnManager(nullptr),
-    SpawnOwner(nullptr)
+    SpawnOwner(nullptr),
+    IdleWakeAnim(nullptr)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoClassExtension::TechnoClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -108,6 +109,9 @@ TechnoClassExtension::~TechnoClassExtension()
         delete SpawnManager;
         SpawnManager = nullptr;
     }
+    
+    delete IdleWakeAnim;
+    IdleWakeAnim = nullptr;
 }
 
 
@@ -131,6 +135,8 @@ HRESULT TechnoClassExtension::Load(IStream *pStm)
 
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(SpawnManager, "SpawnManager");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(SpawnOwner, "SpawnOwner");
+
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(IdleWakeAnim, "IdleWakeAnim");
     
     return hr;
 }
