@@ -35,6 +35,7 @@ class SpawnManagerClass;
 class EBoltClass;
 class TechnoTypeClass;
 class TechnoTypeClassExtension;
+class AnimClass;
 
 
 class TechnoClassExtension : public RadioClassExtension
@@ -122,4 +123,9 @@ class TechnoClassExtension : public RadioClassExtension
          *  Used to determine when a unit has ranked up.
          */
         VeterancyRankType LastVeterancy;
+
+        /**
+         *  The idle wake animation attached to this object.
+         */
+        AnimClass *IdleWakeAnim;
 };

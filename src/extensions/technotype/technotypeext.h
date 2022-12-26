@@ -375,4 +375,9 @@ public:
      *  The rate at which this object creates the wake animation while moving.
      */
     unsigned WakeAnimRate;
+
+    /**
+     *  The wake graphic to show as the object moves across water.
+     */
+    const AnimTypeClass *IdleWakeAnim;
 };

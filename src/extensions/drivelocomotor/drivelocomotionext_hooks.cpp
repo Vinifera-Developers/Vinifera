@@ -28,6 +28,7 @@
 #include "drivelocomotionext_hooks.h"
 #include "drivelocomotion.h"
 #include "foot.h"
+#include "footext.h"
 #include "technotype.h"
 #include "technotypeext.h"
 #include "cell.h"
@@ -51,20 +52,52 @@
 static void DriveLocomotionClass_Process_Create_WakeAnim(DriveLocomotionClass *this_ptr)
 {
     FootClass *linked_foot = this_ptr->Linked_To();
+    FootClassExtension *linked_footext = Extension::Fetch<FootClassExtension>(linked_foot);
     TechnoTypeClassExtension *technotype_ext = Extension::Fetch<TechnoTypeClassExtension>(linked_foot->Techno_Type_Class());
 
     /**
-     *  #issue-944
-     * 
-     *  Only spawn the wake animation every 'X' frames, as set by the objects properties.
+     *  x
      */
-    if (!(Frame % technotype_ext->WakeAnimRate)) {
+    if (linked_foot->IsOnBridge || linked_foot->Get_Cell_Ptr()->Land_Type() != LAND_WATER) {
+        return;
+    }
 
-        if (!linked_foot->IsOnBridge && linked_foot->Get_Cell_Ptr()->Land_Type() == LAND_WATER) {
+    /**
+     *  x
+     */
+    if (linked_footext->IdleWakeAnim) {
+
+        if (!this_ptr->Is_Moving()) {
+            linked_footext->IdleWakeAnim->Make_Invisible();
+        } else {
+            linked_footext->IdleWakeAnim->Make_Visible();
+        }
+
+    } else {
+        
+        /**
+         *  x
+         */
+        linked_footext->IdleWakeAnim = new AnimClass(technotype_ext->IdleWakeAnim, linked_foot->Get_Coord());
+        ASSERT(linked_footext->IdleWakeAnim != nullptr);
+
+    }
+
+    /**
+     *  x
+     */
+    if (this_ptr->Is_Moving()) {
+
+        /**
+         *  #issue-944
+         * 
+         *  Only spawn the wake animation every 'X' frames, as set by the objects properties.
+         */
+        if (!(Frame % technotype_ext->WakeAnimRate)) {
 
             /**
              *  #issue-944
-             * 
+             *
              *  Fetch the wake animation from the object attached to this
              *  locomotor, and fall-back to the Rules wake animation if
              *  one is not defined.
@@ -78,7 +111,9 @@ static void DriveLocomotionClass_Process_Create_WakeAnim(DriveLocomotionClass *t
                 AnimClass *animptr = new AnimClass(wake_anim, linked_foot->Get_Coord());
                 ASSERT(animptr != nullptr);
             }
+
         }
+
     }
 }
 
@@ -105,5 +140,5 @@ DECLARE_PATCH(_DriveLocomotionClass_Process_WakeAnim_Patch)
  */
 void DriveLocomotionClassExtension_Hooks()
 {
-    Patch_Jump(0x0047DFE8, &_DriveLocomotionClass_Process_WakeAnim_Patch);
+    Patch_Jump(0x0047DFDB, &_DriveLocomotionClass_Process_WakeAnim_Patch);
 }
