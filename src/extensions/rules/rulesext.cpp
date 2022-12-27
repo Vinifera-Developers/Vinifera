@@ -38,6 +38,8 @@
 #include "noinit.h"
 #include "swizzle.h"
 #include "addon.h"
+#include "session.h"
+#include "tibsun_inline.h"
 #include "vinifera_saveload.h"
 #include "asserthandler.h"
 #include "debughandler.h"
@@ -590,16 +592,16 @@ void RulesClassExtension::Fixups(CCINIClass &ini)
     /**
      *  Check to see if the ini files have been modified.
      */
-    bool rule_unmodified = false;
+    bool is_rule_unmodified = false;
     if (rule_crc == Unmodified_RuleINI_CRC) {
         DEBUG_INFO("Rules: RuleINI is unmodified (version 2.03).\n");
-        rule_unmodified = true;
+        is_rule_unmodified = true;
     }
-    bool fsrule_unmodified = false;
+    bool is_fsrule_unmodified = false;
     if (Addon_Installed(ADDON_FIRESTORM)) {
         if (fsrule_crc == Unmodified_FSRuleINI_CRC) {
             DEBUG_INFO("Rules: FSRuleINI is unmodified (version 2.03).\n");
-            fsrule_unmodified = true;
+            is_fsrule_unmodified = true;
         }
     }
 
@@ -615,6 +617,159 @@ void RulesClassExtension::Fixups(CCINIClass &ini)
     if (Addon_Installed(ADDON_FIRESTORM) && ini.Get_Unique_ID() == Unmodified_FSRuleINI_CRC) {
         DEV_DEBUG_INFO("Rules: Current INI is FSRuleINI.\n");
         is_fsruleini = true;
+    }
+
+    /**
+     *  #issue-554
+     * 
+     *  Various game object types have hardcoded overrides in the binary. We now
+     *  remove those overrides so they can be modified via RULES.INI, but we still
+     *  need to retain the expected gameplay in the original game.
+     * 
+     *  So, we make sure the game has detected the original, unmodified RULES.INI
+     *  and perform this fixup's for each of the object types.
+     * 
+     *  Match criteria;
+     *   - Are we currently processing RuleINI?
+     *   - Does the name of the object exist?
+     */
+    if (is_ruleini && is_rule_unmodified) {
+
+        ObjectTypeClass *objecttype = nullptr;
+        TechnoTypeClass *technotype = nullptr;
+        BuildingTypeClass *buildingtype = nullptr;
+        WarheadTypeClass *warheadtype = nullptr;
+        WeaponTypeClass *weapontype = nullptr;
+        TiberiumClass *tiberium = nullptr;
+
+        /**
+         *  TechnoType "HMEC" is expected to have "Strength" with the value of "1200".
+         *
+         *  We do an additional check of RTTI_UNITTYPE just to make sure it
+         *  is the expected type.
+         */
+        objecttype = const_cast<ObjectTypeClass *>(ObjectTypeClass::As_Pointer("HMEC"));
+        if (objecttype && objecttype->What_Am_I() == RTTI_UNITTYPE) {
+            DEBUG_WARNING("Rules: Changing \"MaxStrength\" for ObjectType \"%s\" to \"1200\"!\n", objecttype->Name());
+            objecttype->MaxStrength = 1200;
+        }
+
+        /**
+         *  TechnoType "GAFSDF" is expected to have "GuardRange" with the value of "5",
+         *  and "Cost" with the value of "250".
+         *
+         *  We do an additional check of RTTI_BUILDINGTYPE just to make sure it
+         *  is the expected type.
+         */
+        technotype = const_cast<TechnoTypeClass *>(TechnoTypeClass::As_Pointer("GAFSDF"));
+        if (technotype && technotype->What_Am_I() == RTTI_BUILDINGTYPE) {
+            DEBUG_WARNING("Rules: Changing \"ThreatRange\" for TechnoType \"%s\" to \"%d\"!\n", technotype->Name(), Cell_To_Lepton(5));
+            DEBUG_WARNING("Rules: Changing \"Cost\" for TechnoType \"%s\" to \"250\"!\n", technotype->Name());
+            technotype->ThreatRange = Cell_To_Lepton(5);
+            technotype->Cost = 250;
+        }
+
+        /**
+         *  TechnoType "GAWALL" is expected to have "GuardRange" with the value of "5",
+         *  and "Cost" with the value of "250".
+         *
+         *  We do an additional check of RTTI_BUILDINGTYPE just to make sure it
+         *  is the expected type.
+         */
+        technotype = const_cast<TechnoTypeClass *>(TechnoTypeClass::As_Pointer("GAWALL"));
+        if (technotype && technotype->What_Am_I() == RTTI_BUILDINGTYPE) {
+            DEBUG_WARNING("Rules: Changing \"ThreatRange\" for TechnoType \"%s\" to \"%d\"!\n", technotype->Name(), Cell_To_Lepton(5));
+            DEBUG_WARNING("Rules: Changing \"Cost\" for TechnoType \"%s\" to \"250\"!\n", technotype->Name());
+            technotype->ThreatRange = Cell_To_Lepton(5);
+            technotype->Cost = 250;
+        }
+
+        /**
+         *  TechnoType "NAWALL" is expected to have "GuardRange" with the value of "5",
+         *  and "Cost" with the value of "250".
+         *
+         *  We do an additional check of RTTI_BUILDINGTYPE just to make sure it
+         *  is the expected type.
+         */
+        technotype = const_cast<TechnoTypeClass *>(TechnoTypeClass::As_Pointer("NAWALL"));
+        if (technotype && technotype->What_Am_I() == RTTI_BUILDINGTYPE) {
+            DEBUG_WARNING("Rules: Changing \"ThreatRange\" for TechnoType \"%s\" to \"%d\"!\n", technotype->Name(), Cell_To_Lepton(5));
+            DEBUG_WARNING("Rules: Changing \"Cost\" for TechnoType \"%s\" to \"250\"!\n", technotype->Name());
+            technotype->ThreatRange = Cell_To_Lepton(5);
+            technotype->Cost = 250;
+        }
+
+        /**
+         *  TechnoType "E2" is expected to have "Explodes" with the value of "yes".
+         * 
+         *  We do an additional check of RTTI_INFANTRYTYPE just to make sure it
+         *  is the expected type.
+         */
+        technotype = const_cast<TechnoTypeClass *>(TechnoTypeClass::As_Pointer("E2"));
+        if (technotype && technotype->What_Am_I() == RTTI_INFANTRYTYPE) {
+            DEBUG_WARNING("Rules: Changing \"IsExploding\" for TechnoType \"%s\" to \"true\"!\n", technotype->Name());
+            technotype->IsExploding = true;
+        }
+
+        /**
+         *  BuildingType "NAFNCE" is expected to have "BaseNormal" with the value of "no".
+         */
+        buildingtype = const_cast<BuildingTypeClass *>(BuildingTypeClass::As_Pointer("NAFNCE"));
+        if (buildingtype) {
+            DEBUG_WARNING("Rules: Changing \"IsBase\" for BuildingType \"%s\" to \"false\"!\n", buildingtype->Name());
+            buildingtype->IsBase = false;
+        }
+
+        /**
+         *  BuildingType "NAPOST" is expected to have "BaseNormal" with the value of "no".
+         */
+        buildingtype = const_cast<BuildingTypeClass *>(BuildingTypeClass::As_Pointer("NAPOST"));
+        if (buildingtype) {
+            DEBUG_WARNING("Rules: Changing \"IsBase\" for BuildingType \"%s\" to \"false\"!\n", buildingtype->Name());
+            buildingtype->IsBase = false;
+        }
+
+        /**
+         *  WarheadType "ARTYHE" is expected to have "ProneDamage" with the value of "0.3"
+         *  and "Verses" with the values of "0.4, 0.85, 0.68, 0.35, 0.35".
+         */
+        warheadtype = const_cast<WarheadTypeClass *>(WarheadTypeClass::As_Pointer("ARTYHE"));
+        if (warheadtype && Session.Type != GAME_NORMAL) {
+            DEBUG_WARNING("Rules: Changing \"ProneFactor\" for WarheadType \"%s\" to \"0.3\"!\n", warheadtype->Name());
+            DEBUG_WARNING("Rules: Changing \"Modifier[ARMOR_NONE]\" for WarheadType \"%s\" to \"0.4\"!\n", warheadtype->Name());
+            DEBUG_WARNING("Rules: Changing \"Modifier[ARMOR_WOOD]\" for WarheadType \"%s\" to \"0.85\"!\n", warheadtype->Name());
+            DEBUG_WARNING("Rules: Changing \"Modifier[ARMOR_ALUMINUM]\" for WarheadType \"%s\" to \"0.68\"!\n", warheadtype->Name());
+            DEBUG_WARNING("Rules: Changing \"Modifier[ARMOR_STEEL]\" for WarheadType \"%s\" to \"0.35\"!\n", warheadtype->Name());
+            DEBUG_WARNING("Rules: Changing \"Modifier[ARMOR_CONCRETE]\" for WarheadType \"%s\" to \"0.35\"!\n", warheadtype->Name());
+            warheadtype->ProneFactor = 0.3;
+            warheadtype->Modifier[ARMOR_NONE] = 0.4;
+            warheadtype->Modifier[ARMOR_WOOD] = 0.85;
+            warheadtype->Modifier[ARMOR_ALUMINUM] = 0.68;
+            warheadtype->Modifier[ARMOR_STEEL] = 0.35;
+            warheadtype->Modifier[ARMOR_CONCRETE] = 0.35;
+        }
+
+        /**
+         *  WeaponType "155mm" is expected to have "ROF" with the value of "150",
+         *  and "Damage" with the value of "115".
+         */
+        weapontype = const_cast<WeaponTypeClass *>(WeaponTypeClass::As_Pointer("155mm"));
+        if (weapontype && Session.Type != GAME_NORMAL) {
+            DEBUG_WARNING("Rules: Changing \"ROF\" for WeaponType \"%s\" to \"150\"!\n", weapontype->Name());
+            DEBUG_WARNING("Rules: Changing \"Attack\" for WeaponType \"%s\" to \"115\"!\n", weapontype->Name());
+            weapontype->ROF = 150;
+            weapontype->Attack = 115;
+        }
+
+        /**
+         *  TiberiumType "Vinifera" is expected to have "Power" with the value of "17".
+         */
+        tiberium = const_cast<TiberiumClass *>(TiberiumClass::As_Pointer("Vinifera"));
+        if (tiberium) {
+            DEBUG_WARNING("Rules: Changing \"Power\" for TiberiumType \"%s\" to \"17\"!\n", tiberium->Name());
+            tiberium->Power = 17;
+        }
+
     }
 
     /**
