@@ -46,6 +46,57 @@
 
 
 /**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or destructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+class ScenarioClassExt final : public ScenarioClass
+{
+    public:
+        Cell _Get_Waypoint_Cell(WaypointType wp) const { return ScenExtension->Get_Waypoint_Cell(wp); }
+        CellClass *_Get_Waypoint_CellPtr(WaypointType wp) const { return ScenExtension->Get_Waypoint_CellPtr(wp); }
+        Coordinate _Get_Waypoint_Coord(WaypointType wp) const { return ScenExtension->Get_Waypoint_Coord(wp); }
+        Coordinate _Get_Waypoint_Coord_Height(WaypointType wp) const { return ScenExtension->Get_Waypoint_Coord_Height(wp); }
+
+        void _Set_Waypoint_Cell(WaypointType wp, Cell cell) { ScenExtension->Set_Waypoint_Cell(wp, cell); }
+        void _Set_Waypoint_Coord(WaypointType wp, Coordinate &coord) { ScenExtension->Set_Waypoint_Coord(wp, coord); }
+
+        bool _Is_Valid_Waypoint(WaypointType wp) const { return ScenExtension->Is_Valid_Waypoint(wp); }
+        void _Clear_Waypoint(WaypointType wp) { ScenExtension->Clear_Waypoint(wp); }
+
+        void _Clear_All_Waypoints() { ScenExtension->Clear_All_Waypoints(); }
+
+        void _Read_Waypoint_INI(CCINIClass &ini) { ScenExtension->Read_Waypoint_INI(ini); }
+        void _Write_Waypoint_INI(CCINIClass &ini) { ScenExtension->Write_Waypoint_INI(ini); }
+
+        const char *_Waypoint_As_String(WaypointType wp) const { return ScenExtension->Waypoint_As_String(wp); }
+};
+
+
+/**
+ *  #issue-71
+ * 
+ *  Clear all waypoints in preperation for loading the scenario data.
+ *
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_Clear_Scenario_Clear_Waypoints_Patch)
+{
+    /**
+     *  Stolen bytes/code.
+     */
+    _asm { add esp, 0x4 } // Fixes up the stack from the WWDebugPrintf call.
+
+    //DEBUG_INFO("Clearing waypoints...\n");
+    ScenExtension->Clear_All_Waypoints();
+
+    JMP(0x005DC872);
+}
+
+
+/**
  *  Process additions to the Rules data from the input file.
  * 
  *  @author: CCHyper
@@ -177,4 +228,27 @@ void ScenarioClassExtension_Hooks()
     Patch_Jump(0x005DC9D4, &_Do_Win_Skip_MPlayer_Score_Screen_Patch);
     Patch_Jump(0x005DCD92, &_Do_Lose_Skip_MPlayer_Score_Screen_Patch);
     Patch_Jump(0x005DD8D5, &_Read_Scenario_INI_MPlayer_INI_Patch);
+
+    /**
+     *  #issue-71
+     *
+     *  Increases the amount of available waypoints (see ScenarioClassExtension for implementation).
+     *
+     *  @author: CCHyper
+     */
+    Patch_Jump(0x005E1460, &ScenarioClassExt::_Get_Waypoint_Cell);
+    Patch_Jump(0x005E1480, &ScenarioClassExt::_Get_Waypoint_CellPtr);
+    Patch_Jump(0x005E14A0, &ScenarioClassExt::_Get_Waypoint_Coord);
+    Patch_Jump(0x005E1500, &ScenarioClassExt::_Clear_All_Waypoints);
+    Patch_Jump(0x005E1520, &ScenarioClassExt::_Is_Valid_Waypoint);
+    Patch_Jump(0x005E1560, &ScenarioClassExt::_Read_Waypoint_INI);
+    Patch_Jump(0x005E1630, &ScenarioClassExt::_Write_Waypoint_INI);
+    Patch_Jump(0x005E16C0, &ScenarioClassExt::_Clear_Waypoint);
+    Patch_Jump(0x005E16E0, &ScenarioClassExt::_Set_Waypoint_Cell);
+    Patch_Jump(0x005E1700, &ScenarioClassExt::_Get_Waypoint_CellPtr);
+    Patch_Jump(0x005E1720, &ScenarioClassExt::_Waypoint_As_String);
+    Patch_Jump(0x005DC852, &_Clear_Scenario_Clear_Waypoints_Patch);
+
+    // 0047A856
+    // 0047A96C
 }
