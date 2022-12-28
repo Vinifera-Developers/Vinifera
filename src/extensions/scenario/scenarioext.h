@@ -55,10 +55,38 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
 
         bool Read_Tutorial_INI(CCINIClass &ini, bool log = false);
 
+        Cell Get_Waypoint_Cell(WaypointType wp) const;
+        CellClass * Get_Waypoint_CellPtr(WaypointType wp) const;
+        Coordinate Get_Waypoint_Coord(WaypointType wp) const;
+        Coordinate Get_Waypoint_Coord_Height(WaypointType wp) const;
+
+        void Set_Waypoint_Cell(WaypointType wp, Cell &cell);
+        void Set_Waypoint_Coord(WaypointType wp, Coordinate &coord);
+
+        bool Is_Valid_Waypoint(WaypointType wp) const;
+        void Clear_Waypoint(WaypointType wp);
+
+        void Clear_All_Waypoints();
+
+        void Read_Waypoint_INI(CCINIClass &ini);
+        void Write_Waypoint_INI(CCINIClass &ini);
+
+        const char *Waypoint_As_String(WaypointType wp) const;
+
         static void Assign_Houses();
         static void Create_Units(bool official);
 
     public:
+        /**
+         *  This is an vector of waypoints; each waypoint corresponds to a letter of
+         *  the alphabet, and points to a cell position.
+         * 
+         *  The CellClass has a bit that tells if that cell has a waypoint attached to
+         *  it; the only way to find which waypoint it is, is to scan this array. This
+         *  shouldn't be needed often; usually, you know the waypoint & you want the "Cell".
+         */
+        VectorClass<Cell> Waypoint;
+
         /**
          *  Can ice get destroyed when hit by certain weapons?
          */

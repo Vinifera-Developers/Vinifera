@@ -93,4 +93,6 @@ coordinate_move:
 void TeamClassExtension_Hooks()
 {
     Patch_Jump(0x00622B2C, &_TeamClass_AI_MoveCell_FixCellCalc_Patch);
+
+    // 00625886
 }

@@ -27,15 +27,96 @@
  ******************************************************************************/
 #include "tactionext_hooks.h"
 #include "tibsun_globals.h"
+#include "tibsun_inline.h"
 #include "trigger.h"
 #include "triggertype.h"
+#include "taction.h"
 #include "scenario.h"
+#include "scenarioext.h"
+#include "voc.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or destructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+class TActionClassExt final : public TActionClass
+{
+    public:
+        bool _Play_Sound_At_Random_Waypoint(HouseClass *house, ObjectClass *object, TriggerClass *trigger, Cell &cell);
+};
+
+
+/**
+ *  #issue-71
+ *
+ *  x
+ *
+ *  @author: CCHyper
+ */
+bool TActionClassExt::_Play_Sound_At_Random_Waypoint(HouseClass *house, ObjectClass *object, TriggerClass *trigger, Cell &cell)
+{
+    Cell cell_list[100];
+    int cell_list_count = 0;
+
+    /**
+     *  Make a list of all the valid waypoints in this scenario.
+     */
+    for (WaypointType wp = WAYPOINT_FIRST; wp < NEW_WAYPOINT_COUNT; ++wp) {
+        if (ScenExtension->Is_Valid_Waypoint(wp)) {
+            cell_list[cell_list_count++] = ScenExtension->Get_Waypoint_Cell(wp);
+            if (cell_list_count >= ARRAY_SIZE(cell_list)) {
+                break;
+            }
+        }
+    }
+
+    /**
+     *  Pick a random cell from the valid waypoint list and play the desired sound.
+     */
+    Cell rnd_cell = cell_list[Random_Pick<unsigned int>(0, ARRAY_SIZE(cell_list)-1)];
+
+    Sound_Effect(Data.Sound, Cell_Coord(rnd_cell, true));
+
+    return true;
+}
+
+
+/**
+ *  #issue-71
+ *
+ *  x
+ *
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_TActionClass_Operator_Play_Sound_At_Random_Waypoint_Remove_Inline_Patch)
+{
+    GET_REGISTER_STATIC(TActionClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(ObjectClass *, object, ecx);
+    GET_STACK_STATIC(Cell *, cell, esp, 0x1D0);
+    GET_STACK_STATIC(TriggerClass *, trigger, esp, 0x1CC);
+    //GET_STACK_STATIC(ObjectClass *, object, esp, 0x1C8); // Use ECX instead.
+    GET_STACK_STATIC(HouseClass *, house, esp, 0x1C4);
+    static bool retval;
+
+    retval = this_ptr->TAction_Play_Sound_At_Random_Waypoint(house, object, trigger, *cell);
+
+    /**
+     *  Function return.
+     */
+return_true:
+    _asm { mov al, retval }
+    JMP_REG(ecx, 0x0061A9C5);
+}
 
 
 /**
@@ -103,4 +184,14 @@ void TActionClassExtension_Hooks()
     Patch_Dword(0x00619552+2, (0x007E4820+4)); // Foot vector to Technos vector.
 
     Patch_Jump(0x0061A60C, &_TActionClass_Operator_Enable_Trigger_For_Difficulty_Patch);
+
+    /**
+     *  #issue-71
+     *
+     *  Increases the amount of available waypoints (see ScenarioClassExtension for implementation).
+     *
+     *  @author: CCHyper
+     */
+    Patch_Jump(0x0061BF50, &TActionClassExt::_Play_Sound_At_Random_Waypoint);
+    Patch_Jump(0x00619E42, &_TActionClass_Operator_Play_Sound_At_Random_Waypoint_Remove_Inline_Patch);
 }
