@@ -77,8 +77,7 @@ RulesClassExtension::RulesClassExtension(const RulesClass *this_ptr) :
     IsMPPrePlacedConYards(false),
     IsBuildOffAlly(true),
     IsShowSuperWeaponTimers(true),
-    IceStrength(0)
-    IsShowSuperWeaponTimers(true),
+    IceStrength(0),
     MaxFreeRefineryDistanceBias(16)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
