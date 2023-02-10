@@ -119,7 +119,14 @@ AnimTypeClassExtension final : public ObjectTypeClassExtension
         int AreaDamagePercentAgainstUnits;
 
         /**
-         *  Should smudges be created under the area blast?
+         *  Percentual chance that a smudge will be created on a cell impacted by
+         *  the anim's area damage.
          */
-        bool AreaDamageCreateSmudges;
+        int AreaDamageSmudgeChance;
+
+        /**
+         *  Percentual chance that a flame anim will be created on a cell impacted by
+         *  the anim's area damage.
+         */
+        int AreaDamageFlameChance;
 };

@@ -386,7 +386,8 @@ function_return:
  *
  *  @author: Rampastring
 */
-void DoAreaDamage(const ObjectClass* object_ptr, const int damageradius, const int rawdamage, const int damagepercentageatmaxrange, const bool createsmudges, const WarheadTypeClass* warhead, int unitDamageMultiplier) {
+void DoAreaDamage(const ObjectClass* object_ptr, const int damageradius, const int rawdamage, const int damagepercentageatmaxrange,
+    const int smudgechance, const int flamechance, const WarheadTypeClass* warhead, int unitDamageMultiplier) {
     Cell cell = Coord_Cell(object_ptr->Center_Coord());
 
     int				distance;	          // Distance to unit.
@@ -400,7 +401,7 @@ void DoAreaDamage(const ObjectClass* object_ptr, const int damageradius, const i
     // gather all valid smudgetypes for it
     SmudgeTypeClass* smudgetypes[6];
     int smudgetypecount = 0;
-    if (createsmudges) {
+    if (smudgechance > 0) {
 
         for (int i = 0; i < SmudgeTypes.Count() && smudgetypecount < ARRAY_SIZE(smudgetypes); i++) {
             SmudgeTypeClass* smudgetype = SmudgeTypes[i];
@@ -432,6 +433,8 @@ void DoAreaDamage(const ObjectClass* object_ptr, const int damageradius, const i
             if (!Map.In_Radar(tcell)) continue;
 
             Coordinate tcellcoord = Cell_Coord(tcell);
+            tcellcoord.X += CELL_LEPTON_W / 2;
+            tcellcoord.Y += CELL_LEPTON_H / 2;
 
             object = Map[tcell].Cell_Occupier();
             while (object) {
@@ -468,13 +471,24 @@ void DoAreaDamage(const ObjectClass* object_ptr, const int damageradius, const i
             }
             if (count >= ARRAY_SIZE(objects)) break;
 
-            if (createsmudges && smudgetypecount > 0) {
+            if (smudgechance > 0 && smudgetypecount > 0) {
 
-                // Create a smudge on the tile
-                int smudgeindex = Random_Pick(0, smudgetypecount);
+                if (smudgechance >= 100 || Random_Pick(0, 100) < smudgechance) {
+                    // Create a smudge on the cell
+                    int smudgeindex = Random_Pick(0, smudgetypecount - 1);
 
-                SmudgeTypeClass* smudgetype = smudgetypes[smudgeindex];
-                new SmudgeClass(smudgetype, tcellcoord);
+                    SmudgeTypeClass* smudgetype = smudgetypes[smudgeindex];
+                    new SmudgeClass(smudgetype, tcellcoord);
+                }
+            }
+
+            if (flamechance > 0) {
+
+                if (flamechance >= 100 || Random_Pick(0, 100) < flamechance) {
+                    // Create a flame anim on the cell
+                    AnimTypeClass* animtype = Rule->OnFire[Random_Pick(0, Rule->OnFire.Count() - 1)];
+                    new AnimClass(animtype, tcellcoord);
+                }
             }
         }
     }
@@ -554,7 +568,8 @@ DECLARE_PATCH(_AnimClass_Middle_Area_Damage_Patch)
                 animtypeext->AreaDamageRadius,
                 animtypeext->AreaDamage,
                 animtypeext->AreaDamagePercentAtMaxRange,
-                animtypeext->AreaDamageCreateSmudges,
+                animtypeext->AreaDamageSmudgeChance,
+                animtypeext->AreaDamageFlameChance,
                 animtype->Warhead,
                 animtypeext->AreaDamagePercentAgainstUnits);
         }

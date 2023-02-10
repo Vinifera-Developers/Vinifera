@@ -52,7 +52,8 @@ AnimTypeClassExtension::AnimTypeClassExtension(const AnimTypeClass* this_ptr) :
     AreaDamageRadius(0),
     AreaDamagePercentAtMaxRange(100),
     AreaDamagePercentAgainstUnits(100),
-    AreaDamageCreateSmudges(true)
+    AreaDamageSmudgeChance(0),
+    AreaDamageFlameChance(0)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("AnimTypeClassExtension::AnimTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -181,7 +182,8 @@ void AnimTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
     crc(AreaDamageRadius);
     crc(AreaDamagePercentAtMaxRange);
     crc(AreaDamagePercentAgainstUnits);
-    crc(AreaDamageCreateSmudges);
+    crc(AreaDamageSmudgeChance);
+    crc(AreaDamageFlameChance);
 }
 
 
@@ -255,7 +257,8 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     AreaDamageRadius = ini.Get_Int(ini_name, "AreaDamageRadius", AreaDamageRadius);
     AreaDamagePercentAtMaxRange = ini.Get_Int(ini_name, "AreaDamagePercentAtMaxRange", AreaDamagePercentAtMaxRange);
     AreaDamagePercentAgainstUnits = ini.Get_Int(ini_name, "AreaDamagePercentAgainstUnits", AreaDamagePercentAgainstUnits);
-    AreaDamageCreateSmudges = ini.Get_Bool(ini_name, "AreaDamageCreateSmudges", AreaDamageCreateSmudges);
+    AreaDamageSmudgeChance = ini.Get_Int(ini_name, "AreaDamageSmudgeChance", AreaDamageSmudgeChance);
+    AreaDamageFlameChance = ini.Get_Int(ini_name, "AreaDamageFlameChance", AreaDamageFlameChance);
 
     return true;
 }
