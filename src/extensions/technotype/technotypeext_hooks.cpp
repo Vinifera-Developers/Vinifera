@@ -32,10 +32,27 @@
 #include "debughandler.h"
 #include "asserthandler.h"
 
+#include "hooker.h"
+#include "hooker_macros.h"
+
+
+/**
+ *  #issue-90
+ *
+ *  Disables the bugged bonus range for arcing projectiles.
+ *
+ *  Author: Rampastring
+ */
+DECLARE_PATCH(_TechnoTypeClass_In_Range_Disable_Arcing_Bonus_Range_Patch)
+{
+    JMP(0x0063D6AA);
+}
+
 
 /**
  *  Main function for patching the hooks.
  */
 void TechnoTypeClassExtension_Hooks()
 {
+    Patch_Jump(0x0063D5A7, &_TechnoTypeClass_In_Range_Disable_Arcing_Bonus_Range_Patch);
 }
