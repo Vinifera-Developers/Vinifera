@@ -77,6 +77,8 @@ RulesClassExtension::RulesClassExtension(const RulesClass *this_ptr) :
     IsMPPrePlacedConYards(false),
     IsBuildOffAlly(true),
     IsShowSuperWeaponTimers(true),
+    IceStrength(0)
+    IsShowSuperWeaponTimers(true),
     MaxFreeRefineryDistanceBias(16)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
@@ -193,6 +195,7 @@ void RulesClassExtension::Compute_CRC(WWCRCEngine &crc) const
     crc(IsMPPrePlacedConYards);
     crc(IsBuildOffAlly);
     crc(IsShowSuperWeaponTimers);
+    crc(IceStrength);
     crc(MaxFreeRefineryDistanceBias);
 }
 
@@ -277,6 +280,7 @@ void RulesClassExtension::Process(CCINIClass &ini)
     General(ini);
     MPlayer(ini);
     AudioVisual(ini);
+    CombatDamage(ini);
 
     /**
      *  Process the objects (extension classes).
@@ -450,6 +454,27 @@ bool RulesClassExtension::AudioVisual(CCINIClass &ini)
     }
 
     IsShowSuperWeaponTimers = ini.Get_Bool(AUDIOVISUAL, "ShowSuperWeaponTimers", IsShowSuperWeaponTimers);
+
+    return true;
+}
+
+
+/**
+ *  Process the combat damage related game settings.
+ *
+ *  @author: Rampastring
+ */
+bool RulesClassExtension::CombatDamage(CCINIClass &ini)
+{
+    //EXT_DEBUG_TRACE("RulesClassExtension::CombatDamage - 0x%08X\n", (uintptr_t)(This()));
+
+    static char const * const COMBATDAMAGE = "CombatDamage";
+
+    if (!ini.Is_Present(COMBATDAMAGE)) {
+        return false;
+    }
+
+    IceStrength = ini.Get_Int(COMBATDAMAGE, "IceStrength", IceStrength);
 
     return true;
 }

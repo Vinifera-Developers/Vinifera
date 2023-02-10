@@ -63,6 +63,7 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
         bool General(CCINIClass &ini);
         bool MPlayer(CCINIClass &ini);
         bool AudioVisual(CCINIClass &ini);
+        bool CombatDamage(CCINIClass& ini);
         bool Weapons(CCINIClass &ini);
 
     private:
@@ -90,6 +91,12 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
          *  on the tactical view?
          */
         bool IsShowSuperWeaponTimers;
+
+        /**
+         *  Defines the strength of ice. Higher values make ice less likely
+         *  to break from a shot.
+         */
+        int IceStrength;
 
         /**
          *  When looking for refineries, harvesters will prefer a distant free

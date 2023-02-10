@@ -156,6 +156,8 @@ void ScenarioClassExtension::Compute_CRC(WWCRCEngine &crc) const
  */
 void ScenarioClassExtension::Init_Clear()
 {
+    IsIceDestruction = true;
+
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Init_Clear - 0x%08X\n", (uintptr_t)(This()));
 
     {

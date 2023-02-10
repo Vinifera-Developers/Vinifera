@@ -29,6 +29,8 @@
 #include "tibsun_defines.h"
 #include "tibsun_globals.h"
 #include "tibsun_inline.h"
+#include "ccini.h"
+#include "scenarioext.h"
 #include "session.h"
 #include "scenario.h"
 #include "rules.h"
@@ -1027,3 +1029,33 @@ void Vinifera_Create_Units(bool official)
     DEBUG_INFO("Finished unit generation. Random number is %d\n", Scen->RandomNumber);
 }
 
+
+/**
+ *  Reimplements a part of scenario [Basic] section reading to support
+ *  reading in new options added to the section.
+ *
+ *  @author: Rampastring
+ */
+void Read_Scenario_Read_Basic_Section_Options(CCINIClass &scenario_ini)
+{
+    // This reimplements 0x005E03ED - 0x005E04E7 in the original game's code
+    const char* const BASIC = "Basic";
+    Scen->IsTiberiumGrowth = scenario_ini.Get_Bool(BASIC, "TiberiumGrowthEnabled", Scen->IsTiberiumGrowth);
+    Scen->IsVeinGrowth = scenario_ini.Get_Bool(BASIC, "VeinGrowthEnabled", Scen->IsVeinGrowth);
+    Scen->IsIceGrowth = scenario_ini.Get_Bool(BASIC, "IceGrowthEnabled", Scen->IsIceGrowth);
+    Scen->IsTiberiumDeathToVisceroid = scenario_ini.Get_Bool(BASIC, "TiberiumDeathToVisceroid", Scen->IsTiberiumDeathToVisceroid);
+    Scen->IsFreeRadar = scenario_ini.Get_Bool(BASIC, "FreeRadar", Scen->IsFreeRadar);
+    Scen->HomeCell = scenario_ini.Get_Int(BASIC, "HomeCell", Scen->HomeCell);
+    Scen->AltHomeCell = scenario_ini.Get_Int(BASIC, "AltHomeCell", Scen->AltHomeCell);
+    Scen->RequiredAddOn = static_cast<AddonType>(scenario_ini.Get_Int(BASIC, "RequiredAddOn", Scen->RequiredAddOn));
+    // This is read by the original game, but the value is not saved anywhere
+    // scenario_ini.Get_Bool(BASIC, "CivEvac", false);
+
+
+    /**
+     *  #issue-897
+     *
+     *  Read INI key for the ice destruction option.
+     */
+    ScenExtension->IsIceDestruction = scenario_ini.Get_Bool(BASIC, "IceDestructionEnabled", ScenExtension->IsIceDestruction);
+}

@@ -56,5 +56,8 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
         bool Read_Tutorial_INI(CCINIClass &ini, bool log = false);
 
     public:
-
+        /**
+         *  Can ice get destroyed when hit by certain weapons?
+         */
+        bool IsIceDestruction;
 };
