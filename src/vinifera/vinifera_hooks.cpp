@@ -102,6 +102,7 @@ static void _Print_CRCs_Intercept(EventClass *ev)
 }
 
 
+#if 0
 /**
  *  This function is for intercepting the call to Clear_Scenarion in Load_All
  *  to flag that we are performing a load operation, which stops the game from
@@ -120,6 +121,7 @@ static void _On_Load_Clear_Scenario_Intercept()
      */
     Vinifera_PerformingLoad = true;
 }
+#endif
 
 
 /**
@@ -998,5 +1000,5 @@ void Vinifera_Hooks()
     Patch_Call(0x005B1363, &_Print_CRCs_Intercept);
     Patch_Call(0x005B5340, &_Print_CRCs_Intercept);
 
-    Patch_Call(0x005D6BEC, &_On_Load_Clear_Scenario_Intercept); // Load_All
+    //Patch_Call(0x005D6BEC, &_On_Load_Clear_Scenario_Intercept); // Load_All
 }

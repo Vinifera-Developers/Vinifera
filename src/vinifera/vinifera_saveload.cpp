@@ -480,6 +480,15 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
     Clear_Scenario();
 
     /**
+     *  Now the scenario data has been cleaned up, we can now tell the extension
+     *  hooks that we will be creating the extension classes via the class factories.
+     * 
+     *  Fixes #issue-951, this line was not copied over when the loading process
+     *  was reimplemented.
+     */
+    Vinifera_PerformingLoad = true;
+
+    /**
      *  Load the scenario global information.
      */
     DEBUG_INFO("Loading Scenario...\n");
