@@ -32,6 +32,7 @@
 #include "voc.h"
 #include "laserdraw.h"
 #include "ebolt.h"
+#include "buildingtype.h"
 #include "vinifera_globals.h"
 #include "vinifera_util.h"
 #include "extension_globals.h"
@@ -350,6 +351,38 @@ original_code:
 
 
 /**
+ *  Enables drawing of rally points for Service Depots.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_Tactical_Draw_Rally_Points_Draw_For_Service_Depots)
+{
+    GET_REGISTER_STATIC(BuildingTypeClass*, buildingtype, ecx);
+    static RTTIType tobuild;
+
+    tobuild = buildingtype->ToBuild;
+    if (tobuild == RTTI_UNITTYPE || tobuild == RTTI_INFANTRYTYPE || tobuild == RTTI_AIRCRAFTTYPE)
+        goto draw_rally_point;
+
+    if (buildingtype->CanUnitRepair)
+        goto draw_rally_point;
+
+    /**
+     *  This building is not eligible for having a rally point,
+     *  skip the drawing process.
+     */
+no_rally_point:
+    JMP(0x00616EFD);
+
+    /**
+     *  Draw the potential rally point of the building.
+     */
+draw_rally_point:
+    JMP(0x00616D28);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void TacticalExtension_Hooks()
@@ -365,6 +398,8 @@ void TacticalExtension_Hooks()
     Patch_Jump(0x00616E9A, &_Tactical_Draw_Rally_Points_NormaliseLineAnimation_Patch);
     Patch_Jump(0x006172DB, &_Tactical_Draw_Waypoint_Paths_NormaliseLineAnimation_Patch);
     Patch_Jump(0x00617327, &_Tactical_Draw_Waypoint_Paths_DrawNormalLine_Patch);
+
+    Patch_Jump(0x00616D0F, &_Tactical_Draw_Rally_Points_Draw_For_Service_Depots);
 
     /**
      *  #issue-351

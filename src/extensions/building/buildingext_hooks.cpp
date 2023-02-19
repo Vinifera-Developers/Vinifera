@@ -41,6 +41,9 @@
 #include "technotypeext.h"
 #include "house.h"
 #include "housetype.h"
+#include "map.h"
+#include "mouse.h"
+#include "cell.h"
 #include "bsurface.h"
 #include "dsurface.h"
 #include "convert.h"
@@ -56,6 +59,157 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or deconstructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+static class BuildingClassFake final : public BuildingClass
+{
+public:
+    bool _Can_Have_Rally_Point();
+};
+
+
+bool BuildingClassFake::_Can_Have_Rally_Point()
+{
+    RTTIType tobuild = this->Class->ToBuild;
+    if (tobuild == RTTI_UNITTYPE || tobuild == RTTI_INFANTRYTYPE || tobuild == RTTI_AIRCRAFTTYPE)
+        return true;
+
+    /**
+     *  #issue-966
+     *
+     *  Makes it possible to give rally points to Service Depots.
+     *
+     *  @author: Rampastring
+     */
+    if (this->Class->CanUnitRepair)
+        return true;
+
+    return false;
+}
+
+
+/**
+ *  #issue-966
+ *
+ *  Assigns destination to a unit when it's leaving a service depot.
+ *
+ *  @author: Rampastring
+ */
+bool _BuildingClass_Mission_Repair_Assign_Unit_Destination(BuildingClass *building, TechnoClass *techno, bool clear_archive) {
+    Cell exitcell;
+    CellClass* cellptr;
+
+    TARGET target = nullptr;
+
+    if (building->ArchiveTarget != nullptr)
+    {
+        bool is_object = Target_As_Object(building->ArchiveTarget) != nullptr;
+
+        if (Target_Legal(building->ArchiveTarget, is_object))
+            target = building->ArchiveTarget;
+    }
+
+    if (target == nullptr)
+    {
+        /**
+         *  Stolen bytes/code.
+         *  Reimplements original game behaviour.
+         */
+        exitcell = building->Find_Exit_Cell(reinterpret_cast<TechnoClass*>(building->Radio));
+
+        if (exitcell.X == 0 && exitcell.Y == 0) {
+            /**
+             *  Failed to find valid exit cell.
+             */
+            return false;
+        }
+
+        cellptr = &Map[exitcell];
+        target = As_Target(cellptr);
+    }
+
+    techno->Assign_Mission(MISSION_MOVE);
+    techno->Assign_Destination(target);
+
+    if (clear_archive) {
+        /**
+         *  Clear the archive target in cases where the original game did so as well.
+         */
+        techno->ArchiveTarget = nullptr;
+    }
+
+    building->Transmit_Message(RADIO_OVER_OUT);
+    techno->field_20C = 0;
+    return true;
+}
+
+
+/**
+ *  #issue-966
+ *
+ *  Makes Service Depots assign their archive target as the destination to units
+ *  that didn't need any repair when entering the depot.
+ *
+ *  This reimplements the whole 0x00432184 - 0x00432202 range of the original game's code.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_BuildingClass_Mission_Repair_Assign_Rally_Destination_When_No_Repair_Needed)
+{
+    GET_REGISTER_STATIC(BuildingClass*, building, ebp);
+    GET_REGISTER_STATIC(TechnoClass*, techno, esi);
+
+    _BuildingClass_Mission_Repair_Assign_Unit_Destination(building, techno, true);
+
+    /**
+     *  Set mission delay and return, regardless of whether the
+     *  destination assignment succeeded.
+     */
+    JMP_REG(ecx, 0x004324DF);
+}
+
+
+/**
+ *  #issue-966
+ *
+ *  Makes Service Depots assign their archive target as the destination to the
+ *  unit that they've finished repairing.
+ *
+ *  This reimplements the whole 0x00431DAB - 0x00431E27 range of the original game's code.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_BuildingClass_Mission_Repair_Assign_Rally_Destination_After_Repair_Complete)
+{
+    GET_REGISTER_STATIC(BuildingClass *, building, ebp);
+    GET_REGISTER_STATIC(TechnoClass *, techno, esi);
+
+    if (_BuildingClass_Mission_Repair_Assign_Unit_Destination(building, techno, false)) {
+        goto success;
+    } else {
+        goto fail_return;
+    }
+
+    /**
+     *  The unit destination was applied successfully.
+     */
+success:
+    _asm { mov eax, 1 }
+    JMP_REG(edi, 0x00431E27);
+
+    /**
+     *  Return from the function without assigning any location for the unit to move into.
+     */
+fail_return:
+    JMP(0x00431E90);
+}
 
 
 /**
@@ -512,4 +666,7 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x0042F67D, &_BuildingClass_Captured_ProduceCash_Patch);
     Patch_Jump(0x0042E179, &_BuildingClass_Grand_Opening_ProduceCash_Patch);
     Patch_Jump(0x0042E5F5, &_BuildingClass_Grand_Opening_Assign_FreeUnit_LastDockedBuilding_Patch);
+    Patch_Jump(0x00432184, &_BuildingClass_Mission_Repair_Assign_Rally_Destination_When_No_Repair_Needed);
+    Patch_Jump(0x00431DAB, &_BuildingClass_Mission_Repair_Assign_Rally_Destination_After_Repair_Complete);
+    Patch_Jump(0x00439D10, &BuildingClassFake::_Can_Have_Rally_Point);
 }
