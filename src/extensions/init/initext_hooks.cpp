@@ -260,6 +260,32 @@ void GameInit_Hooks()
     Patch_Jump(0x00686190, &Vinifera_Create_Main_Window);
 
     /**
+     *  Load side MIX files properly for additional sides while initializing
+     *  the scenario.
+     *
+     *  Ported over from ts-patches by Rampastring, original author unknown.
+     */
+    // @SET 0x005DD798, {mov cl, byte [0x007E2500]}
+    Patch_Dword(0x005DD798, 0x25000D8A);
+    Patch_Word(0x005DD79C, 0x007E);
+    // @CLEAR 0x005DD79E, 0x90, 0x005DD7A2
+    Patch_Byte_Range(0x005DD79E, 0x90, 4);
+
+    /**
+     *  Load speech MIX files properly for additional sides while
+     *  initializing the scenario.
+     *
+     *  Ported over from ts-patches by Rampastring, original author unknown.
+     */
+    // @SET 0x005DD822, {xor ecx, ecx}
+    Patch_Word(0x005DD822, 0xC931);
+    // @CLEAR 0x005DD824, 0x90, 0x005DD828
+    Patch_Byte_Range(0x005DD824, 0x90, 4);
+    // @SET 0x005DD82B, {mov cl, byte [0x007E2500]}
+    Patch_Dword(0x005DD82B, 0x25000D8A);
+    Patch_Word(0x005DD82F, 0x007E);
+
+    /**
      *  #issue-110
      * 
      *  Unable to load startup mix files is no longer a fatal error. These
