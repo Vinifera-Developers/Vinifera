@@ -339,8 +339,14 @@ void DisplayClassExtension_Hooks()
 {
     Patch_Jump(0x0047AFA6, &_DisplayClass_Help_Text_GetCursorPosition_Patch);
     Patch_Jump(0x00478974, &_DisplayClass_Mouse_Left_Release_PlaceAnywhere_BugFix_Patch);
+
+    /**
+     *  The ts-patches spawner has its own Build off Ally implementation.
+     */
+#ifndef TS_CLIENT
     Patch_Jump(0x004762E4, &_DisplayClass_Passes_Proximity_Passes_Check_Patch);
-    
+#endif
+
     Patch_Jump(0x004782CA, &_DisplayClass_Mouse_Left_Up_Set_Mouse);
 
     /**
