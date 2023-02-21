@@ -33,6 +33,7 @@
 #include "tspp_gitinfo.h"
 #include "vinifera_gitinfo.h"
 #include "vinifera_globals.h"
+#include "vinifera_util.h"
 #include <cstdio>
 #include <cstring>
 #include <conio.h>
@@ -327,28 +328,11 @@ static void Debug_Announce()
      */
     DisableDebuggerOutput = true;
 
-#ifndef NDEBUG
-    const char *build_type = DebugHandler_DeveloperMode ? "DEBUG (Dev mode enabled)" : "DEBUG";
-#else
-#if defined(NIGHTLY)
-    const char *build_type = DebugHandler_DeveloperMode ? "NIGHTLY (Dev mode enabled)" : "NIGHTLY";
-#elif defined(PREVIEW)
-    const char *build_type = DebugHandler_DeveloperMode ? "PREVIEW (Dev mode enabled)" : "PREVIEW";
-#else
-    const char *build_type = DebugHandler_DeveloperMode ? "RELEASE (Dev mode enabled)" : "RELEASE";
-#endif
-#endif
-#if defined(TS_CLIENT)
-    char buffer[1024];
-    std::snprintf(buffer, sizeof(buffer), "%s [TS-Client]", build_type);
-    build_type = buffer;
-#endif
-
     DEBUG_INFO("--------------------------------------------------------------------------------\n");
     DEBUG_INFO("--------------------  V I N I F E R A   D E B U G   L O G  ---------------------\n"); 
     DEBUG_INFO("--------------------------------------------------------------------------------\n");
     DEBUG_INFO("\n");
-    DEBUG_INFO("Build Type : %s\n", build_type);
+    DEBUG_INFO("Build Type : %s\n", Vinifera_Build_Type_String());
     DEBUG_INFO("TS++ author: %s\n", TSPP_Git_Author());
     DEBUG_INFO("TS++ date: %s\n", TSPP_Git_DateTime());
     DEBUG_INFO("TS++ branch: %s\n", "master"); // TSPP_Git_Branch());

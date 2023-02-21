@@ -36,6 +36,7 @@ class BSurface;
 
 
 const char *Vinifera_Version_String();
+const char *Vinifera_Build_Type_String();
 const char *TSpp_Version_String();
 
 void Vinifera_Draw_Version_Text(XSurface *surface, bool pre_init = false);

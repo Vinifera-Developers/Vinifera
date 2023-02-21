@@ -94,6 +94,40 @@ const char *Vinifera_Name_String()
 
 
 /**
+ *  Returns the Vinfiera build type string.
+ * 
+ *  @author: CCHyper
+ */
+const char * Vinifera_Build_Type_String()
+{
+    static char _buffer[512] { '\0' };
+
+    if (_buffer[0] == '\0') {
+
+    #ifndef NDEBUG
+        const char *build_type = Vinifera_DeveloperMode ? "DEBUG (Dev mode enabled)" : "DEBUG";
+    #else
+    #if defined(NIGHTLY)
+        const char *build_type = Vinifera_DeveloperMode ? "NIGHTLY (Dev mode enabled)" : "NIGHTLY";
+    #elif defined(PREVIEW)
+        const char *build_type = Vinifera_DeveloperMode ? "PREVIEW (Dev mode enabled)" : "PREVIEW";
+    #else
+        const char *build_type = Vinifera_DeveloperMode ? "RELEASE (Dev mode enabled)" : "RELEASE";
+    #endif
+    #endif
+    #if defined(TS_CLIENT)
+        char buffer[1024];
+        std::snprintf(buffer, sizeof(buffer), "%s [TS-Client]", build_type);
+        build_type = buffer;
+    #endif
+
+    }
+
+    return _buffer;
+}
+
+
+/**
  *  Returns the Vinifera version git info as string.
  * 
  *  The "~" character is added if there are changes made locally before the build was produced.

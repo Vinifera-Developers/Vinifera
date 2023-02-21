@@ -419,23 +419,7 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
     Exception_Printf("Application : %s (%s)\r\n", VINIFERA_PROJECT_NAME, VINIFERA_DLL);
     //Exception_Printf("Version : %s\r\n", VerNum.Version_Name());
 
-#ifndef NDEBUG
-    const char *build_type = Vinifera_DeveloperMode ? "DEBUG (Dev mode enabled)" : "DEBUG";
-#else
-#if defined(NIGHTLY)
-    const char *build_type = Vinifera_DeveloperMode ? "NIGHTLY (Dev mode enabled)" : "NIGHTLY";
-#elif defined(PREVIEW)
-    const char *build_type = Vinifera_DeveloperMode ? "PREVIEW (Dev mode enabled)" : "PREVIEW";
-#else
-    const char *build_type = Vinifera_DeveloperMode ? "RELEASE (Dev mode enabled)" : "RELEASE";
-#endif
-#endif
-#if defined(TS_CLIENT)
-    char buffer[1024];
-    std::snprintf(buffer, sizeof(buffer), "%s [TS-Client]", build_type);
-    build_type = buffer;
-#endif
-    Exception_Printf("Build Type : %s\r\n", build_type);
+    Exception_Printf("Build Type : %s\r\n", Vinifera_Build_Type_String());
 
     Exception_Printf("TS++ author: %s\r\n", TSPP_Git_Author());
     Exception_Printf("TS++ date: %s\r\n", TSPP_Git_DateTime());
