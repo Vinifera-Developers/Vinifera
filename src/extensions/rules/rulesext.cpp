@@ -614,7 +614,10 @@ void RulesClassExtension::Fixups(CCINIClass &ini)
 
     }
 
-    HouseTypeClass *housetype = HouseTypes[HOUSE_NOD];
+    /**
+     *  Ensure at least two HouseTypes are defined before performing this fixup case.
+     */
+    HouseTypeClass *housetype = HouseTypes.Count() >= 2 ? HouseTypes[HOUSE_NOD] : nullptr;
     if (housetype) {
 
         /**
