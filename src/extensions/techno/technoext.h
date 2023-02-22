@@ -28,6 +28,7 @@
 #pragma once
 
 #include "objectext.h"
+#include "techno.h"
 
 
 class EBoltClass;
@@ -49,6 +50,9 @@ class TechnoClassExtension : public ObjectClassExtension
 
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
+
+        virtual TechnoClass *This() const override { return reinterpret_cast<TechnoClass *>(ObjectClassExtension::This()); }
+        virtual const TechnoClass *This_Const() const override { return reinterpret_cast<const TechnoClass *>(ObjectClassExtension::This_Const()); }
 
         /**
          *  Extended class functions.

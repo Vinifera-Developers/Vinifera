@@ -55,5 +55,8 @@ class ObjectClassExtension : public AbstractClassExtension
         virtual const char *Name() const override;
         virtual const char *Full_Name() const override;
 
+        virtual ObjectClass *This() const override { return reinterpret_cast<ObjectClass *>(AbstractClassExtension::This()); }
+        virtual const ObjectClass *This_Const() const override { return reinterpret_cast<const ObjectClass *>(AbstractClassExtension::This_Const()); }
+
     public:
 };
