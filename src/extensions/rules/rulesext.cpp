@@ -63,9 +63,6 @@
 #include "extension_globals.h"
 
 
-RulesClassExtension *RulesExtension = nullptr;
-
-
 /**
  *  Class constructor.
  *  
