@@ -124,6 +124,7 @@
 #include "overlaytypeext.h"
 #include "particlesystypeext.h"
 #include "particletypeext.h"
+#include "smudgeext.h"
 #include "smudgetypeext.h"
 #include "superext.h"
 #include "supertypeext.h"
@@ -513,7 +514,7 @@ AbstractClassExtension *Extension::Private::Make_Internal(const AbstractClass *a
         //case RTTI_SCRIPT: { extptr = Extension_Make<ScriptClass, ScriptClassExtension>(reinterpret_cast<const ScriptClass *>(abstract)); break; } // Not yet implemented
         //case RTTI_SCRIPTTYPE: { extptr = Extension_Make<ScriptTypeClass, Extension>(reinterpret_cast<const ScriptTypeClass *>(abstract)); break; } // Not yet implemented
         case RTTI_SIDE: { extptr = Extension_Make<SideClass, SideClassExtension>(reinterpret_cast<const SideClass *>(abstract)); break; }
-        //case RTTI_SMUDGE: { extptr = Extension_Make<SmudgeClass, SmudgeClassExtension>(reinterpret_cast<const SmudgeClass *>(abstract)); break; } // Not yet implemented
+        case RTTI_SMUDGE: { extptr = Extension_Make<SmudgeClass, SmudgeClassExtension>(reinterpret_cast<const SmudgeClass *>(abstract)); break; }
         case RTTI_SMUDGETYPE: { extptr = Extension_Make<SmudgeTypeClass, SmudgeTypeClassExtension>(reinterpret_cast<const SmudgeTypeClass *>(abstract)); break; }
         case RTTI_SUPERWEAPONTYPE: { extptr = Extension_Make<SuperWeaponTypeClass, SuperWeaponTypeClassExtension>(reinterpret_cast<const SuperWeaponTypeClass *>(abstract)); break; }
         //case RTTI_TASKFORCE: { extptr = Extension_Make<TaskForceClass, TaskForceClassExtension>(reinterpret_cast<const TaskForceClass *>(abstract)); break; } // Not yet implemented
@@ -593,7 +594,7 @@ bool Extension::Private::Destroy_Internal(const AbstractClass *abstract)
         //case RTTI_SCRIPT: { removed = Extension_Destroy<ScriptClass, ScriptClassExtension>(reinterpret_cast<const ScriptClass *>(abstract)); break; } // Not yet implemented
         //case RTTI_SCRIPTTYPE: { removed = Extension_Destroy<ScriptTypeClass, Extension>(reinterpret_cast<const ScriptTypeClass *>(abstract)); break; } // Not yet implemented
         case RTTI_SIDE: { removed = Extension_Destroy<SideClass, SideClassExtension>(reinterpret_cast<const SideClass *>(abstract)); break; }
-        //case RTTI_SMUDGE: { removed = Extension_Destroy<SmudgeClass, SmudgeClassExtension>(reinterpret_cast<const SmudgeClass *>(abstract)); break; } // Not yet implemented
+        case RTTI_SMUDGE: { removed = Extension_Destroy<SmudgeClass, SmudgeClassExtension>(reinterpret_cast<const SmudgeClass *>(abstract)); break; }
         case RTTI_SMUDGETYPE: { removed = Extension_Destroy<SmudgeTypeClass, SmudgeTypeClassExtension>(reinterpret_cast<const SmudgeTypeClass *>(abstract)); break; }
         case RTTI_SUPERWEAPONTYPE: { removed = Extension_Destroy<SuperWeaponTypeClass, SuperWeaponTypeClassExtension>(reinterpret_cast<const SuperWeaponTypeClass *>(abstract)); break; }
         //case RTTI_TASKFORCE: { removed = Extension_Destroy<TaskForceClass, TaskForceClassExtension>(reinterpret_cast<const TaskForceClass *>(abstract)); break; } // Not yet implemented
@@ -718,7 +719,7 @@ bool Extension::Save(IStream *pStm)
     //if (!Extension_Save<ScriptClass, ScriptClassExtension>(pStm, ScriptExtensions)) { return false; }                 // Not yet implemented
     //if (!Extension_Save<ScriptTypeClass, ScriptTypeClassExtension>(pStm, ScriptTypeExtensions)) { return false; }     // Not yet implemented
     if (!Extension_Save<SideClass, SideClassExtension>(pStm, SideExtensions)) { return false; }
-    //if (!Extension_Save<SmudgeClass, SmudgeClassExtension>(pStm, SmudgeExtensions)) { return false; }                 // Not yet implemented
+    if (!Extension_Save<SmudgeClass, SmudgeClassExtension>(pStm, SmudgeExtensions)) { return false; }
     if (!Extension_Save<SmudgeTypeClass, SmudgeTypeClassExtension>(pStm, SmudgeTypeExtensions)) { return false; }
     if (!Extension_Save<SuperWeaponTypeClass, SuperWeaponTypeClassExtension>(pStm, SuperWeaponTypeExtensions)) { return false; }
     //if (!Extension_Save<TaskForceClass, TaskForceClassExtension>(pStm, TaskForceExtensions)) { return false; }        // Not yet implemented
@@ -815,7 +816,7 @@ bool Extension::Load(IStream *pStm)
     //if (!Extension_Load<ScriptClass, ScriptClassExtension>(pStm, ScriptExtensions)) { return false; }                 // Not yet implemented
     //if (!Extension_Load<ScriptTypeClass, ScriptTypeClassExtension>(pStm, ScriptTypeExtensions)) { return false; }     // Not yet implemented
     if (!Extension_Load<SideClass, SideClassExtension>(pStm, SideExtensions)) { return false; }
-    //if (!Extension_Load<SmudgeClass, SmudgeClassExtension>(pStm, SmudgeExtensions)) { return false; }                 // Not yet implemented
+    if (!Extension_Load<SmudgeClass, SmudgeClassExtension>(pStm, SmudgeExtensions)) { return false; }
     if (!Extension_Load<SmudgeTypeClass, SmudgeTypeClassExtension>(pStm, SmudgeTypeExtensions)) { return false; }
     if (!Extension_Load<SuperWeaponTypeClass, SuperWeaponTypeClassExtension>(pStm, SuperWeaponTypeExtensions)) { return false; }
     //if (!Extension_Load<TaskForceClass, TaskForceClassExtension>(pStm, TaskForceExtensions)) { return false; }        // Not yet implemented
@@ -916,7 +917,7 @@ bool Extension::Request_Pointer_Remap()
     //if (!Extension_Request_Pointer_Remap<ScriptClass, ScriptClassExtension>(Scripts)) { return false; }               // Not yet implemented
     //if (!Extension_Request_Pointer_Remap<ScriptTypeClass, ScriptTypeClassExtension>(ScriptTypes)) { return false; }   // Not yet implemented
     if (!Extension_Request_Pointer_Remap<SideClass, SideClassExtension>(Sides)) { return false; }
-    //if (!Extension_Request_Pointer_Remap<SmudgeClass, SmudgeClassExtension>(Smudges)) { return false; }               // Not yet implemented
+    if (!Extension_Request_Pointer_Remap<SmudgeClass, SmudgeClassExtension>(Smudges)) { return false; }
     if (!Extension_Request_Pointer_Remap<SmudgeTypeClass, SmudgeTypeClassExtension>(SmudgeTypes)) { return false; }
     if (!Extension_Request_Pointer_Remap<SuperWeaponTypeClass, SuperWeaponTypeClassExtension>(SuperWeaponTypes)) { return false; }
     //if (!Extension_Request_Pointer_Remap<TaskForceClass, TaskForceClassExtension>(TaskForces)) { return false; }      // Not yet implemented
@@ -995,7 +996,7 @@ bool Extension::Register_Class_Factories()
     //REGISTER_CLASS(ScriptClassExtension);                                     // Not yet implemented
     //REGISTER_CLASS(ScriptTypeClassExtension);                                 // Not yet implemented
     REGISTER_CLASS(SideClassExtension);
-    //REGISTER_CLASS(SmudgeClassExtension);                                     // Not yet implemented
+    REGISTER_CLASS(SmudgeClassExtension);
     REGISTER_CLASS(SmudgeTypeClassExtension);
     REGISTER_CLASS(SuperWeaponTypeClassExtension);
     //REGISTER_CLASS(TaskForceClassExtension);                                  // Not yet implemented
@@ -1077,7 +1078,7 @@ void Extension::Free_Heaps()
     //ScriptExtensions.Clear();                                                 // Not yet implemented
     //ScriptTypeExtensions.Clear();                                             // Not yet implemented
     SideExtensions.Clear();
-    //SmudgeExtensions.Clear();                                                 // Not yet implemented
+    SmudgeExtensions.Clear();
     SmudgeTypeExtensions.Clear();
     SuperWeaponTypeExtensions.Clear();
     //TaskForceExtensions.Clear();                                              // Not yet implemented
@@ -1392,7 +1393,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     //std::fprintf(fp, "ScriptExtensions.Count = %d\n", ScriptExtensions.Count());                                      // Not yet implemented
     //std::fprintf(fp, "ScriptTypeExtensions.Count = %d\n", ScriptTypeExtensions.Count());                              // Not yet implemented
     std::fprintf(fp, "SideExtensions.Count = %d\n", SideExtensions.Count());
-    //std::fprintf(fp, "SmudgeExtensions.Count = %d\n", SmudgeExtensions.Count());                                      // Not yet implemented
+    std::fprintf(fp, "SmudgeExtensions.Count = %d\n", SmudgeExtensions.Count());
     std::fprintf(fp, "SmudgeTypeExtensions.Count = %d\n", SmudgeTypeExtensions.Count());
     std::fprintf(fp, "SuperWeaponTypeExtensions.Count = %d\n", SuperWeaponTypeExtensions.Count());
     //std::fprintf(fp, "TaskForceExtensions.Count = %d\n", TaskForceExtensions.Count());                                // Not yet implemented
@@ -1849,7 +1850,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     //Print_Heap_CRC_Lists(fp, ScriptExtensions);                               // Not yet implemented
     //Print_Heap_CRC_Lists(fp, ScriptTypeExtensions);                           // Not yet implemented
     Print_Heap_CRC_Lists(fp, SideExtensions);
-    //Print_Heap_CRC_Lists(fp, SmudgeExtensions);                               // Not yet implemented
+    Print_Heap_CRC_Lists(fp, SmudgeExtensions);
     Print_Heap_CRC_Lists(fp, SmudgeTypeExtensions);
     Print_Heap_CRC_Lists(fp, SuperWeaponTypeExtensions);
     //Print_Heap_CRC_Lists(fp, TaskForceExtensions);                            // Not yet implemented
@@ -1926,7 +1927,7 @@ void Extension::Detach_This_From_All(TARGET target, bool all)
     //Extension_Detach_This_From_All(ScriptExtensions, target, all);            // Not yet implemented
     //Extension_Detach_This_From_All(ScriptTypeExtensions, target, all);        // Not yet implemented
     Extension_Detach_This_From_All(SideExtensions, target, all);
-    //Extension_Detach_This_From_All(SmudgeExtensions, target, all);            // Not yet implemented
+    Extension_Detach_This_From_All(SmudgeExtensions, target, all);
     Extension_Detach_This_From_All(SmudgeTypeExtensions, target, all);
     Extension_Detach_This_From_All(SuperWeaponTypeExtensions, target, all);
     //Extension_Detach_This_From_All(TaskForceExtensions, target, all);         // Not yet implemented
@@ -2015,7 +2016,7 @@ unsigned Extension::Get_Save_Version_Number()
     //version += sizeof(ScriptClassExtension);                                  // Not yet implemented
     //version += sizeof(ScriptTypeClassExtension);                              // Not yet implemented
     version += sizeof(SideClassExtension);
-    //version += sizeof(SmudgeClassExtension);                                  // Not yet implemented
+    version += sizeof(SmudgeClassExtension);
     version += sizeof(SmudgeTypeClassExtension);
     version += sizeof(SuperWeaponTypeClassExtension);
     //version += sizeof(TaskForceClassExtension);                               // Not yet implemented

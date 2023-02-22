@@ -48,6 +48,7 @@ DynamicVectorClass<OverlayClassExtension *> OverlayExtensions;
 DynamicVectorClass<OverlayTypeClassExtension *> OverlayTypeExtensions;
 DynamicVectorClass<ParticleSystemTypeClassExtension *> ParticleSystemTypeExtensions;
 DynamicVectorClass<ParticleTypeClassExtension *> ParticleTypeExtensions;
+DynamicVectorClass<SmudgeClassExtension *> SmudgeExtensions;
 DynamicVectorClass<SmudgeTypeClassExtension *> SmudgeTypeExtensions;
 DynamicVectorClass<SuperClassExtension *> SuperExtensions;
 DynamicVectorClass<SuperWeaponTypeClassExtension *> SuperWeaponTypeExtensions;

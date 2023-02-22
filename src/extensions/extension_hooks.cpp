@@ -62,7 +62,7 @@
 //#include "scriptext_hooks.h"
 //#include "scripttypeext_hooks.h"
 #include "sideext_hooks.h"
-//#include "smudgeext_hooks.h"
+#include "smudgeext_hooks.h"
 #include "smudgetypeext_hooks.h"
 #include "supertypeext_hooks.h"
 //#include "taskforceext_hooks.h"
@@ -193,7 +193,7 @@ void Extension_Hooks()
     //ScriptClassExtension_Hooks();                         // Not yet implemented
     //ScriptTypeClassExtension_Hooks();                     // Not yet implemented
     SideClassExtension_Hooks();
-    //SmudgeClassExtension_Hooks();                         // Not yet implemented
+    SmudgeClassExtension_Hooks();
     SmudgeTypeClassExtension_Hooks();
     SuperWeaponTypeClassExtension_Hooks();
     //TaskForceClassExtension_Hooks();                      // Not yet implemented
