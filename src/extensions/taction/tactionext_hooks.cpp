@@ -96,6 +96,7 @@ original_code:
      *  Stolen bytes / code.
      */
     _asm { mov ecx, [PlayerPtr] }
+    _asm { mov ecx, [ecx]}
     JMP(0x00619FE1);
 }
 
@@ -158,6 +159,7 @@ original_code:
      *  Stolen bytes / code.
      */
     _asm { mov ecx, [PlayerPtr] }
+    _asm { mov ecx, [ecx]}
     JMP(0x0061A00B);
 }
 
