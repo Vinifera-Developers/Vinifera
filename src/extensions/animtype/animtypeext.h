@@ -29,6 +29,7 @@
 
 #include "objecttypeext.h"
 #include "animtype.h"
+#include "typelist.h"
 
 
 class DECLSPEC_UUID(UUID_ANIMTYPE_EXTENSION)
@@ -129,4 +130,34 @@ AnimTypeClassExtension final : public ObjectTypeClassExtension
          *  the anim's area damage.
          */
         int AreaDamageFlameChance;
+
+        /**
+         *  List of animations to spawn at the logical start of this animation.
+         */
+        TypeList<AnimTypeClass*> StartAnims;
+        TypeList<int> StartAnimsCount;
+        TypeList<int> StartAnimsMinimum;
+        TypeList<int> StartAnimsMaximum;
+
+        /**
+         *  List of animations to spawn at the logical middle of this animation.
+         */
+        TypeList<AnimTypeClass*> MiddleAnims;
+        TypeList<int> MiddleAnimsCount;
+        TypeList<int> MiddleAnimsMinimum;
+        TypeList<int> MiddleAnimsMaximum;
+
+        /**
+         *  List of animations to spawn at the logical end of this animation.
+         */
+        TypeList<AnimTypeClass*> EndAnims;
+        TypeList<int> EndAnimsCount;
+        TypeList<int> EndAnimsMinimum;
+        TypeList<int> EndAnimsMaximum;
+
+        /**
+         *  The width and height of the biggest frame, if set by the user.
+         */
+        unsigned BiggestFrameWidth;
+        unsigned BiggestFrameHeight;
 };
