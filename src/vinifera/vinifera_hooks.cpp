@@ -85,13 +85,11 @@ static void _Free_Heaps_Intercept()
  */
 static void _Print_CRCs_Intercept(EventClass *ev)
 {
-#if 0
     /**
      *  Call the original function to print the object CRCs.
      */
     DEBUG_INFO("About to call Print_CRCs...\n");
     Print_CRCs(ev);
-#endif
 
     /**
      *  Calls a reimplementation of Print_CRCs that prints both the original
