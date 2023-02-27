@@ -1748,7 +1748,9 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
 
     /**
      *  Event queues.
+     *  Rampastring: printing these causes a crash atm
      */
+#if 0
     std::fprintf(fp, "-------------------- DoList Events -------------------\n");
     Print_Event_List(fp, DoList);
     std::fprintf(fp, "\n");
@@ -1756,6 +1758,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     std::fprintf(fp, "-------------------- OutList Events -------------------\n");
     Print_Event_List(fp, OutList);
     std::fprintf(fp, "\n");
+#endif
 
     /**
      *  Print heap CRC's.
