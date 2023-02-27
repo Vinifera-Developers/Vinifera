@@ -1455,7 +1455,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     /**
      *  Infantry
      */
-    for (int house = 0; house <= Houses.Count(); ++house) {
+    for (int house = 0; house < Houses.Count(); ++house) {
         HouseClass *housep = Houses[house];
         if (housep) {
             GameCRC = 0;
@@ -1498,7 +1498,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     /**
      *  Units
      */
-    for (int house = 0; house <= Houses.Count(); ++house) {
+    for (int house = 0; house < Houses.Count(); ++house) {
         HouseClass *housep = Houses[house];
         if (housep) {
             GameCRC = 0;
@@ -1541,7 +1541,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     /**
      *  Buildings
      */
-    for (int house = 0; house <= Houses.Count(); ++house) {
+    for (int house = 0; house < Houses.Count(); ++house) {
         HouseClass *housep = Houses[house];
         if (housep) {
             GameCRC = 0;
@@ -1574,7 +1574,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     /**
      *  Units
      */
-    for (int house = 0; house <= Houses.Count(); ++house) {
+    for (int house = 0; house < Houses.Count(); ++house) {
         HouseClass *housep = Houses[house];
         if (housep) {
             GameCRC = 0;
