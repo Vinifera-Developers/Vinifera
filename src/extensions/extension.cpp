@@ -1126,19 +1126,19 @@ void Extension::Free_Heaps()
 template<class T, int I>
 static bool Print_Event_List(FILE *fp, QueueClass<T, I> &list)
 {
-    for (int index = 0; index < DoList.Count; ++index) {
-        EventClass *ev = &DoList[index];
+    for (int index = 0; index < list.Count; ++index) {
+        EventClass *ev = &list[index];
         if (ev) {
-            char ev_byte_format[8];
-            char ev_data_buffer[128];
+            char ev_byte_format[4];
+            Wstring ev_data_buffer;
             int ev_size = EventClass::Event_Length(ev->Type);
+            const char *ev_name = EventClass::Event_Name(ev->Type);
             for (int i = 0; i < ev_size; ++i) {
-                unsigned char ev_byte = ((unsigned char *)ev->Data.Variable.Pointer)[i]; // We use this union member so we can do array access.
-                std::snprintf(ev_byte_format, sizeof(ev_byte_format), "%02X", ev_byte);
-                std::strcat(ev_data_buffer, ev_byte_format);
-                if (i < ev_size-1) std::strcat(ev_data_buffer, " ");
+                std::snprintf(ev_byte_format, sizeof(ev_byte_format), "%02X", (unsigned char)ev->Data.Array.Byte[i]); // We use this union member so we can do array access.
+                ev_data_buffer += ev_byte_format;
+                if (i < ev_size-1) ev_data_buffer += " ";
             }
-            std::fprintf(fp, "%04d  %s  Frame: %d  ID: %d  Data: %s\n", index, EventClass::Event_Name(ev->Type), ev->Frame, ev->ID, ev->Data);
+            std::fprintf(fp, "%04d  %s  Frame: %d  ID: %d  Data: %s\n", index, ev_name, ev->Frame, ev->ID, ev_data_buffer.Peek_Buffer());
         }
     }
     return true;
