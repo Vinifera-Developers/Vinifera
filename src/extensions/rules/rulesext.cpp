@@ -612,67 +612,76 @@ void RulesClassExtension::Fixups(CCINIClass &ini)
     }
 
     /**
-     *  Ensure at least two HouseTypes are defined before performing this fixup case.
+     *  Workaround because NOD has Side=GDI and Prefix=B in unmodded Tiberian Sun.
+     *
+     *  Match criteria;
+     *   - Are we currently processing RuleINI?
      */
-    HouseTypeClass *housetype = HouseTypes.Count() >= 2 ? HouseTypes[HOUSE_NOD] : nullptr;
-    if (housetype) {
+    if (is_ruleini) {
 
         /**
-         *  #issue-903
-         * 
-         *  Workaround because NOD has Side=GDI in unmodded Tiberian Sun.
-         * 
-         *  Match criteria;
-         *   - The HouseType's name is "Nod"
-         *   - HouseType "Nod" is index 1
-         *   - Side is GDI (index 0)
-         *   - Side GDI (index 0) name is "GDI"
-         *   - Side 1 name is "Nod"
+         *  Ensure at least two HouseTypes are defined before performing this fixup case.
          */
-        if (Wstring(housetype->Name()) == Wstring("Nod")
-            && housetype->Get_Heap_ID() == HOUSE_NOD
-            && housetype->Side == SIDE_GDI
-            && Wstring(Sides[housetype->Side]->Name()) == Wstring("GDI")
-            && Wstring(Sides[SIDE_NOD]->Name()) == Wstring("Nod")) {
-
-            DEBUG_WARNING("Rules: House \"%s\" (%d) has \"Side=GDI\", changing Side to \"Nod\"!\n",
-                housetype->Name(), housetype->Get_Heap_ID());
+        HouseTypeClass *housetype = HouseTypes.Count() >= 2 ? HouseTypes[HOUSE_NOD] : nullptr;
+        if (housetype) {
 
             /**
-             *  We are pretty sure this house is NOD, force the Side to SIDE_NOD.
+             *  #issue-903
+             *
+             *  Workaround because NOD has Side=GDI in unmodded Tiberian Sun.
+             *
+             *  Match criteria;
+             *   - The HouseType's name is "Nod"
+             *   - HouseType "Nod" is index 1
+             *   - The HouseType's Side is GDI (index 0)
+             *   - The HouseType's Side name is "GDI"
+             *   - Side 1 name is "Nod"
              */
-            housetype->Side = SIDE_NOD;
+            if (Wstring(housetype->Name()) == Wstring("Nod")
+                && housetype->Get_Heap_ID() == HOUSE_NOD
+                && housetype->Side == SIDE_GDI
+                && Wstring(Sides[housetype->Side]->Name()) == Wstring("GDI")
+                && Wstring(Sides[SIDE_NOD]->Name()) == Wstring("Nod")) {
 
-            DEBUG_WARNING("Rules: Please consider changing House \"%s\" to have \"Side=Nod\"!\n",
-                housetype->Name());
-        }
+                DEBUG_WARNING("Rules: House \"%s\" (%d) has \"Side=GDI\", changing Side to \"Nod\"!\n",
+                    housetype->Name(), housetype->Get_Heap_ID());
 
-        /**
-         *  #issue-903
-         * 
-         *  Workaround because NOD has Prefix=B in unmodded Tiberian Sun.
-         * 
-         *  Match criteria;
-         *   - The HouseType's name is "Nod"
-         *   - HouseType "Nod" is index 1
-         *   - HouseType "Nod" has Prefix=B
-         */
-        if (Wstring(housetype->Name()) == Wstring("Nod")
-            && housetype->Get_Heap_ID() == HOUSE_NOD
-            && housetype->Prefix == 'B') {
+                /**
+                 *  We are pretty sure this house is NOD, force the Side to SIDE_NOD.
+                 */
+                housetype->Side = SIDE_NOD;
 
-            DEBUG_WARNING("Rules: House \"%s\" (%d) has \"Prefix=B\", changing Prefix to \"N\"!\n",
-                housetype->Name(), housetype->Get_Heap_ID());
+                DEBUG_WARNING("Rules: Please consider changing House \"%s\" to have \"Side=Nod\"!\n",
+                    housetype->Name());
+            }
 
             /**
-             *  We are pretty sure this house is NOD, force the Prefix to the 'N' character.
+             *  #issue-903
+             * 
+             *  Workaround because NOD has Prefix=B in unmodded Tiberian Sun.
+             * 
+             *  Match criteria;
+             *   - The HouseType's name is "Nod"
+             *   - HouseType "Nod" is index 1
+             *   - HouseType "Nod" has Prefix=B
              */
-            housetype->Prefix = 'N';
+            if (Wstring(housetype->Name()) == Wstring("Nod")
+                && housetype->Get_Heap_ID() == HOUSE_NOD
+                && housetype->Prefix == 'B') {
 
-            DEBUG_WARNING("Rules: Please consider changing House \"%s\" to have \"Side=Nod\"!\n",
-                housetype->Name());
+                DEBUG_WARNING("Rules: House \"%s\" (%d) has \"Prefix=B\", changing Prefix to \"N\"!\n",
+                    housetype->Name(), housetype->Get_Heap_ID());
+
+                /**
+                 *  We are pretty sure this house is NOD, force the Prefix to the 'N' character.
+                 */
+                housetype->Prefix = 'N';
+
+                DEBUG_WARNING("Rules: Please consider changing House \"%s\" to have \"Side=Nod\"!\n",
+                    housetype->Name());
+            }
+
         }
-
     }
 
     DEBUG_INFO("Rules::Fixups(exit)\n");
