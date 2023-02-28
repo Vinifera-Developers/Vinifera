@@ -445,6 +445,13 @@ bool Vinifera_Startup()
     DWORD rc;
 
     ViniferaSearchPaths.Clear();
+
+    /**
+     *  If -CD has been defined, set the root directory as highest priority.
+     */
+    if (CD::IsFilesLocal) {
+        ViniferaSearchPaths.Add(".");
+    }
     
 #ifndef NDEBUG
     /**
@@ -460,26 +467,24 @@ bool Vinifera_Startup()
      * 
      *  Adds various search paths for loading files locally for the TS-Client builds only.
      * 
+     *  #NOTE: REMOVED: Additional paths must now be set via SearchPaths in VINIFERA.INI!
+     * 
      *  @author: CCHyper
      */
-#if defined(TS_CLIENT)
-    /**
-     *  If -CD has been defined, set the root directory as highest priority.
-     */
-    if (CD::IsFilesLocal) {
-        ViniferaSearchPaths.Add(".");
-    }
+#if 0 // #if defined(TS_CLIENT)
 
     // Only required for the TS Client builds as most projects will
     // put VINIFERA.INI in this directory.
     ViniferaSearchPaths.Add("INI");
-#endif
 
     // Required for startup mix files to be found.
     ViniferaSearchPaths.Add("MIX");
+#endif
 
+#if !defined(TS_CLIENT)
     // Required for startup movies to be found.
     ViniferaSearchPaths.Add("MOVIES");
+#endif
 
     // REMOVED: Paths are now set via SearchPaths in VINIFERA.INI
 //#if defined(TS_CLIENT)
