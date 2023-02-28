@@ -292,6 +292,11 @@ void GameInit_Hooks()
 
     Patch_Jump(0x00685F69, &_Main_Window_Procedure_Scroll_Sidebar_Check_Patch);
 
+    /**
+     *  Fixes a bug where CompositeSurface is used instead of HiddenSurface in Allocate_Surfaces.
+     */
+    Patch_Dword(0x004E743D+1, (uint32_t)0x0074C5DC);
+
 #if defined(TS_CLIENT)
     /**
      *  TS Client file structure assumes Firestorm is always installed and enabled.
