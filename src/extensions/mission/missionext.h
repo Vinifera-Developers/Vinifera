@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          TECHNOEXT.H
+ *  @file          MISSIONEXT.H
  *
  *  @author        CCHyper
  *
- *  @brief         Extended TechnoClass class.
+ *  @brief         Extended Mission class.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -27,16 +27,11 @@
  ******************************************************************************/
 #pragma once
 
-#include "missionext.h"
-#include "techno.h"
+#include "objectext.h"
+#include "mission.h"
 
 
-class EBoltClass;
-class TechnoTypeClass;
-class TechnoTypeClassExtension;
-
-
-class TechnoClassExtension : public MissionClassExtension
+class MissionClassExtension : public ObjectClassExtension
 {
     public:
         /**
@@ -46,31 +41,15 @@ class TechnoClassExtension : public MissionClassExtension
         IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
 
     public:
-        TechnoClassExtension(const TechnoClass *this_ptr);
-        TechnoClassExtension(const NoInitClass &noinit);
-        virtual ~TechnoClassExtension();
+        MissionClassExtension(const MissionClass *this_ptr);
+        MissionClassExtension(const NoInitClass &noinit);
+        virtual ~MissionClassExtension();
 
         virtual void Detach(TARGET target, bool all = true) override;
         virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
-        virtual TechnoClass *This() const override { return reinterpret_cast<TechnoClass *>(MissionClassExtension::This()); }
-        virtual const TechnoClass *This_Const() const override { return reinterpret_cast<const TechnoClass *>(MissionClassExtension::This_Const()); }
-
-        virtual EBoltClass *Electric_Zap(TARGET target, int which, const WeaponTypeClass *weapontype, Coordinate &source_coord);
-        virtual EBoltClass *Electric_Bolt(TARGET target);
-        virtual void Response_Capture();
-        virtual void Response_Enter();
-        virtual void Response_Deploy();
-        virtual void Response_Harvest();
-        virtual bool Can_Passive_Acquire() const;
-
-    private:
-        const TechnoTypeClass *Techno_Type_Class() const;
-        const TechnoTypeClassExtension *Techno_Type_Class_Ext() const;
+        virtual MissionClass *This() const override { return reinterpret_cast<MissionClass *>(ObjectClassExtension::This()); }
+        virtual const MissionClass *This_Const() const override { return reinterpret_cast<const MissionClass *>(ObjectClassExtension::This_Const()); }
 
     public:
-        /**
-         *  The current electric bolt instance fired by this object.
-         */
-        EBoltClass *ElectricBolt;
 };

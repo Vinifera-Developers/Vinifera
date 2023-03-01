@@ -46,7 +46,7 @@
  *  @author: CCHyper
  */
 TechnoClassExtension::TechnoClassExtension(const TechnoClass *this_ptr) :
-    ObjectClassExtension(this_ptr),
+    MissionClassExtension(this_ptr),
     ElectricBolt(nullptr)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoClassExtension::TechnoClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
@@ -59,7 +59,7 @@ TechnoClassExtension::TechnoClassExtension(const TechnoClass *this_ptr) :
  *  @author: CCHyper
  */
 TechnoClassExtension::TechnoClassExtension(const NoInitClass &noinit) :
-    ObjectClassExtension(noinit)
+    MissionClassExtension(noinit)
 {
     //EXT_DEBUG_TRACE("TechnoClassExtension::TechnoClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -87,7 +87,7 @@ HRESULT TechnoClassExtension::Load(IStream *pStm)
 {
     //EXT_DEBUG_TRACE("TechnoClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = ObjectClassExtension::Load(pStm);
+    HRESULT hr = MissionClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
@@ -107,7 +107,7 @@ HRESULT TechnoClassExtension::Save(IStream *pStm, BOOL fClearDirty)
 {
     //EXT_DEBUG_TRACE("TechnoClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = ObjectClassExtension::Save(pStm, fClearDirty);
+    HRESULT hr = MissionClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
         return hr;
     }
@@ -128,7 +128,7 @@ void TechnoClassExtension::Detach(TARGET target, bool all)
 {
     //EXT_DEBUG_TRACE("TechnoClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    ObjectClassExtension::Detach(target, all);
+    MissionClassExtension::Detach(target, all);
 }
 
 
@@ -141,7 +141,7 @@ void TechnoClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
     //EXT_DEBUG_TRACE("TechnoClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    ObjectClassExtension::Compute_CRC(crc);
+    MissionClassExtension::Compute_CRC(crc);
 }
 
 

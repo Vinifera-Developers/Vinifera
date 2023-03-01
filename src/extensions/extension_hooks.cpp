@@ -28,6 +28,7 @@
 #include "extension_hooks.h"
 
 #include "abstractext_hooks.h"
+#include "missionext_hooks.h"
 #include "technoext_hooks.h"
 #include "footext_hooks.h"
 
@@ -162,6 +163,7 @@ void Extension_Hooks()
     /**
      *  All game class extensions here.
      */
+    MissionClassExtension_Hooks();
     TechnoClassExtension_Hooks();
     FootClassExtension_Hooks();
 
