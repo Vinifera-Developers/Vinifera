@@ -1178,11 +1178,11 @@ void Extension::Print_CRCs(EventClass *ev)
      *  Create a unique filename for the sync log based on the time of execution and the player name.
      */
     char filename_buffer[512];
-    std::snprintf(filename_buffer, sizeof(filename_buffer), "%s\\SYNC_%s-%02d_%02u-%02u-%04u_%02u-%02u-%02u.LOG",
+    std::snprintf(filename_buffer, sizeof(filename_buffer), "%s\\SYNC_%s-%02d_%02u-%02u-%04u_%02u-%02u-%02u-%d.LOG",
         Vinifera_DebugDirectory,
         PlayerPtr->IniName,
         PlayerPtr->ID,
-        Execute_Day, Execute_Month, Execute_Year, Execute_Hour, Execute_Min, Execute_Sec);
+        Execute_Day, Execute_Month, Execute_Year, Execute_Hour, Execute_Min, Execute_Sec, Frame);
 
     /**
      *  Open the sync log.
@@ -1439,11 +1439,14 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         if (housep) {
             //const char *a = HouseTypes[housep->ID]->Name();
             //const char *b = housep->ActLike != SIDE_NONE ? Sides[housep->ActLike]->Name() : "<none>";
-            std::fprintf(fp, "%s: IsHuman:%d  Color:%s  ID:%d  HouseType:%s  ActLike:%s\n",
+            std::fprintf(fp, "%s: IsHuman:%d  Color:%s  ID:%d  Credits:%d  Power:%d  Drain:%d  HouseType:%s  ActLike:%s\n",
                 housep->IniName,
                 housep->IsHuman,
                 ColorSchemes[housep->RemapColor]->Name,
                 housep->ID,
+                housep->Credits,
+                housep->Power,
+                housep->Drain,
                 housep->Class->Name(),
                 housep->ActLike != SIDE_NONE ? Sides[housep->ActLike]->Name() : "<none>");
             Add_CRC(&GameCRC, (int)housep->Credits + (int)housep->Power + (int)housep->Drain);
@@ -1481,13 +1484,14 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                         navcom_coord = ptr->NavCom->Center_Coord();
                     }
 
-                    std::fprintf(fp, "COORD:%d,%d,%d  Facing:%d  Mission:%s  Type:%s(%d)  Speed:%d  TarCom:%s(%d,%d,%d)  NavCom:%s(%d,%d,%d)\n",
+                    std::fprintf(fp, "COORD:%d,%d,%d  Facing:%d  Mission:%s  Type:%s(%d)  Speed:%d  TarCom:%s(%d,%d,%d)  NavCom:%s(%d,%d,%d)  Doing:%d\n",
                                 ptr->Center_Coord().X, ptr->Center_Coord().Y, ptr->Center_Coord().Z,
                                 (int)ptr->PrimaryFacing.Current().Get_Dir(), MissionClass::Mission_Name(ptr->Get_Mission()),
                                 ptr->Class->Name(), ptr->Class->Type,
                                 (int)(ptr->Speed * 256.0),
                                 tarcom_name, tarcom_coord.X, tarcom_coord.Y, tarcom_coord.Z,
-                                navcom_name, navcom_coord.X, navcom_coord.Y, navcom_coord.Z);
+                                navcom_name, navcom_coord.X, navcom_coord.Y, navcom_coord.Z,
+                                ptr->Doing);
                 }
             }
             EXT_DEBUG_INFO("%s %s:%x\n", housep->Class->Name(), Extension::Utility::Get_TypeID_Name<InfantryClassExtension>().c_str(), GameCRC);
@@ -1619,8 +1623,16 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     std::fprintf(fp, "-------------------- Animations -------------------\n");
     for (int index = 0; index < Anims.Count(); ++index) {
         AnimClass *animp = Anims[index];
-        std::fprintf(fp, "Target:%x OwnerHouse:%d Loops:%d\n",
-            (uintptr_t)animp->xObject,
+        const char* xobject_name = "None";
+        Coordinate xobject_coord;
+
+        if (animp->xObject) {
+            xobject_name = Name_From_RTTI((RTTIType)animp->xObject->What_Am_I());
+            xobject_coord = animp->xObject->Center_Coord();
+        }
+
+        std::fprintf(fp, "Target:%s(%d,%d,%d) OwnerHouse:%d Loops:%d\n",
+            xobject_name, xobject_coord.X, xobject_coord.Y, xobject_coord.Z,
             animp->OwnerHouse,
             animp->Loops);
     }
