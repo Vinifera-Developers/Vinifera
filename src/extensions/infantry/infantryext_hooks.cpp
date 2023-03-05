@@ -49,6 +49,7 @@
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "tibsun_inline.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -534,13 +535,45 @@ DECLARE_PATCH(_InfantryClass_Firing_AI_JumpJet_In_Air_Patch)
 DECLARE_PATCH(_InfantryClass_Per_Cell_Process_Tiberium_Damage_Patch)
 {
     GET_REGISTER_STATIC(int, tib_id, eax);
-    
+
     static int damage;
     damage = Extension::Fetch<TiberiumClassExtension>(Tiberiums[tib_id])->DamageToInfantry;
 
     _asm mov edx, damage;
 
     JMP(0x004D3F7D);
+}
+
+
+/**
+ *  #issue-1080
+ *
+ *  Fixes an out-of-bounds DoControls read when an infantry is "doing nothing".
+ *
+ *  @author: Rampastring
+ */
+void _Set_Infantry_Facing_After_Doing_Check_For_Do_Nothing(InfantryClass* this_ptr)
+{
+    if (this_ptr->Doing == DO_NOTHING) {
+        return;
+    }
+
+    FacingType facing = this_ptr->Class->DoControls[this_ptr->Doing].Finish;
+    if (facing == FACING_NONE) {
+        return;
+    }
+
+    DirType dirtype = Facing_Dir(facing);
+    DirStruct ds = DirStruct(dirtype);
+    this_ptr->PrimaryFacing.Set(ds);
+}
+
+
+DECLARE_PATCH(_InfantryClass_Doing_AI_Fix_Invalid_Facing_Set)
+{
+    GET_REGISTER_STATIC(InfantryClass*, inf, esi);
+    _Set_Infantry_Facing_After_Doing_Check_For_Do_Nothing(inf);
+    JMP(0x004D8C14);
 }
 
 
@@ -564,6 +597,7 @@ void InfantryClassExtension_Hooks()
     Patch_Jump(0x004D3A7B, &_InfantryClass_Per_Cell_Process_Transport_Attach_Sound_Patch);
     Patch_Jump(0x004D35F9, &_InfantryClass_Per_Cell_Process_Engineer_Capture_Damage_Patch);
     Patch_Jump(0x004D3F5D, &_InfantryClass_Per_Cell_Process_Tiberium_Damage_Patch);
+    Patch_Jump(0x004D8BE4, &_InfantryClass_Doing_AI_Fix_Invalid_Facing_Set);
 
     /**
      *  ACTION_DAMAGE no longer a case in DisplayClass::Left_Mouse_Up to show the
