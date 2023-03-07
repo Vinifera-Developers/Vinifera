@@ -95,6 +95,13 @@ class TechnoTypeClassExtension : public ObjectTypeClassExtension
         bool IsCanRetaliate;
 
         /**
+         *  Can this object be the target of an attack or move command by the computer?
+         *  Typically, only objects that take damage or can be destroyed are allow to be
+         *  a target. This flag is also subject to "IsLegalTarget" being "true".
+         */
+        bool IsLegalTargetComputer;
+
+        /**
          *  These values are used to shake the screen when the object is destroyed.
          */
         unsigned ShakePixelYHi;

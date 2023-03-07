@@ -52,6 +52,7 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     IsImmuneToEMP(false),
     IsCanPassiveAcquire(true),
     IsCanRetaliate(true),
+    IsLegalTargetComputer(true),
     ShakePixelYHi(0),
     ShakePixelYLo(0),
     ShakePixelXHi(0),
@@ -208,6 +209,7 @@ void TechnoTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
     crc(ShakePixelXHi);
     crc(ShakePixelXLo);
     crc(SoylentValue);
+    crc(IsLegalTargetComputer);
 }
 
 
@@ -247,6 +249,7 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     IsImmuneToEMP = ini.Get_Bool(ini_name, "ImmuneToEMP", IsImmuneToEMP);
     IsCanPassiveAcquire = ini.Get_Bool(ini_name, "CanPassiveAcquire", IsCanPassiveAcquire);
     IsCanRetaliate = ini.Get_Bool(ini_name, "CanRetaliate", IsCanRetaliate);
+    IsLegalTargetComputer = ini.Get_Bool(ini_name, "AILegalTarget", IsLegalTargetComputer);
     ShakePixelYHi = ini.Get_Int(ini_name, "ShakeYhi", ShakePixelYHi);
     ShakePixelYLo = ini.Get_Int(ini_name, "ShakeYlo", ShakePixelYLo);
     ShakePixelXHi = ini.Get_Int(ini_name, "ShakeXhi", ShakePixelXHi);
