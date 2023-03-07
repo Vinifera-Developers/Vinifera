@@ -54,6 +54,56 @@
 #include "hooker_macros.h"
 
 
+ /**
+  *  #issue-977
+  *
+  *  Adds check for IsLegalTargetComputer when evaluating a target for attacking.
+  *
+  *  @author: CCHyper
+  */
+DECLARE_PATCH(_TechnoClass_Evaluate_Object_Is_Legal_Target_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(const TechnoClass *, object, esi); // The target object being evaluated. 
+    static TechnoClassExtension *this_technoext;
+    static TechnoClassExtension *object_technoext;
+    static const TechnoTypeClass *object_tclass;
+    static const TechnoTypeClassExtension *object_tclassext;
+
+    //this_technoext = Extension::Fetch<TechnoClassExtension>(this_ptr);
+    //object_technoext = Extension::Fetch<TechnoClassExtension>(object);
+
+    object_tclass = object->Techno_Type_Class();
+    object_tclassext = Extension::Fetch<TechnoTypeClassExtension>(object_tclass);
+
+    /**
+     *  Determine if the target is theoretically allowed to be a target.
+     */
+    if (!object_tclass->IsLegalTarget) {
+        goto return_false;
+    }
+
+    /**
+     *  Now, determine if "we" are owned by a non-human house and the target is not theoretically allowed to be a target.
+     */
+    if (!this_ptr->House->Is_Human_Control() && !object_tclassext->IsLegalTargetComputer) {
+        goto return_false;
+    }
+
+    /**
+     *  Target object passed the "theoretical" check, for now...
+     */
+continue_eval:
+    JMP_REG(edi, 0x0062D8C0);
+
+    /**
+     *  Target object is not a "theoretically legal" target.
+     */
+return_false:
+    JMP_REG(edi, 0x0062D8C0);
+}
+
+
 /**
  *  #issue-594
  * 
@@ -705,4 +755,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x00630390, &_TechnoClass_Fire_At_Suicide_Patch);
     Patch_Jump(0x00631223, &_TechnoClass_Fire_At_Electric_Bolt_Patch);
     Patch_Jump(0x00636F09, &_TechnoClass_Is_Allowed_To_Retaliate_Can_Retaliate_Patch);
+    Patch_Jump(0x0062D4CA, &_TechnoClass_Evaluate_Object_Is_Legal_Target_Patch);
 }
