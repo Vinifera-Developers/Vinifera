@@ -32,6 +32,8 @@
 
 
 class EBoltClass;
+class TechnoTypeClass;
+class TechnoTypeClassExtension;
 
 
 class TechnoClassExtension : public ObjectClassExtension
@@ -65,6 +67,7 @@ class TechnoClassExtension : public ObjectClassExtension
 
     private:
         const TechnoTypeClass *Techno_Type_Class() const;
+        const TechnoTypeClassExtension *Techno_Type_Class_Ext() const;
 
     public:
         /**
