@@ -56,14 +56,11 @@ class TechnoClassExtension : public ObjectClassExtension
         virtual TechnoClass *This() const override { return reinterpret_cast<TechnoClass *>(ObjectClassExtension::This()); }
         virtual const TechnoClass *This_Const() const override { return reinterpret_cast<const TechnoClass *>(ObjectClassExtension::This_Const()); }
 
-        /**
-         *  Extended class functions.
-         */
-        void Response_Capture();
-        void Response_Enter();
-        void Response_Deploy();
-        void Response_Harvest();
-        bool Can_Passive_Acquire() const;
+        virtual void Response_Capture();
+        virtual void Response_Enter();
+        virtual void Response_Deploy();
+        virtual void Response_Harvest();
+        virtual bool Can_Passive_Acquire() const;
 
     private:
         const TechnoTypeClass *Techno_Type_Class() const;
