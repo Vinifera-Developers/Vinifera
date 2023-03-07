@@ -50,14 +50,19 @@
 DECLARE_PATCH(_TeamClass_AI_MoveCell_FixCellCalc_Patch)
 {
     GET_STACK_STATIC(unsigned, argument, esp, 0x24);
-    static CellClass *cell;
+    static CellClass* cell;
     static Cell tmpcell;
 
     /**
      *  Get the cell X and Y position from the script argument.
      */
-    tmpcell.X = argument % 1000;
-    tmpcell.Y = argument / 1000;
+    if (NewINIFormat < 4) {
+        tmpcell.X = argument % 256;
+        tmpcell.Y = argument / 256;
+    } else {
+        tmpcell.X = argument % 1000;
+        tmpcell.Y = argument / 1000;
+    }
 
     /**
      *  Fetch the map cell. Added pointer check to make sure the
