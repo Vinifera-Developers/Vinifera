@@ -27,7 +27,6 @@
  ******************************************************************************/
 #include "scenarioext_hooks.h"
 #include "scenarioext_init.h"
-#include "scenarioext_functions.h"
 #include "scenarioext.h"
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
@@ -163,7 +162,7 @@ void ScenarioClassExtension_Hooks()
      * 
      *  @author: CCHyper
      */
-    Patch_Call(0x005E08E3, &Vinifera_Assign_Houses);
+    Patch_Call(0x005E08E3, &ScenarioClassExtension::Assign_Houses);
 
     /**
      *  #issue-338
@@ -172,7 +171,7 @@ void ScenarioClassExtension_Hooks()
      * 
      *  @author: CCHyper
      */
-    Patch_Call(0x005DD320, &Vinifera_Create_Units);
+    Patch_Call(0x005DD320, &ScenarioClassExtension::Create_Units);
 #endif
 
     Patch_Jump(0x005DC9D4, &_Do_Win_Skip_MPlayer_Score_Screen_Patch);

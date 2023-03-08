@@ -55,6 +55,9 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
 
         bool Read_Tutorial_INI(CCINIClass &ini, bool log = false);
 
+        static void Assign_Houses();
+        static void Create_Units(bool official);
+
     public:
 
 };
