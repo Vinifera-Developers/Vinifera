@@ -353,6 +353,13 @@ bool Vinifera_Parse_Command_Line(int argc, char *argv[])
          */
         if (std::strstr(string, "-CD")) {
             DEBUG_INFO("  - \"-CD\" argument detected.\n");
+
+            if (std::isspace(string[3]) || !std::isgraph(string[3])) {
+                DEBUG_ERROR("Invalid search path defined!");
+                MessageBox(MainWindow, "Invalid search path defined with -CD command line argument!", "Vinifera", MB_ICONEXCLAMATION|MB_OK);
+                return false;
+            }
+
             CCFileClass::Set_Search_Drives(&string[3]);
             if (CCFileClass::Is_There_Search_Drives()) {
                 DEBUG_INFO("  - Search path set to \"%s\".\n", &string[3]);
@@ -360,7 +367,7 @@ bool Vinifera_Parse_Command_Line(int argc, char *argv[])
                 /**
                  *  Flag the cd search system to search for files locally.
                  */
-                CD::IsFilesLocal = true;            
+                CD::IsFilesLocal = true;
             }
             continue;
         }
