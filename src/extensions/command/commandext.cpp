@@ -26,13 +26,14 @@
  *
  ******************************************************************************/
 #include "commandext.h"
-#include "commandext_functions.h"
 #include "tibsun_globals.h"
 #include "tibsun_util.h"
 #include "vinifera_globals.h"
 #include "vinifera_util.h"
 #include "iomap.h"
 #include "tactical.h"
+#include "tacticalext.h"
+#include "theme.h"
 #include "dsurface.h"
 #include "wwmouse.h"
 #include "rules.h"
@@ -78,6 +79,121 @@
  *  Handy defines for handling any adjustments.
  */
 #define CATEGORY_DEVELOPER "Developer"
+
+
+/**
+ *  Skips to the previous available music track allowed.
+ * 
+ *  @author: CCHyper
+ */
+static bool Prev_Theme_Command()
+{
+    ThemeType theme = Theme.What_Is_Playing();
+
+    /**
+     *  Iterate backward from the current theme and find the next available
+     *  music track we can play.
+     */
+    while (theme >= THEME_FIRST) {
+
+        --theme;
+
+        if (theme < THEME_FIRST) {
+            theme = ThemeType(Theme.Max_Themes());
+        }
+
+        if (Theme.Is_Allowed(theme)) {
+            break;
+        }
+
+    }
+
+    /**
+     *  Queue the track for playback. We need to stop the track first
+     *  otherwise Queue_Song() will fade the track out.
+     */
+    Theme.Stop();
+    Theme.Queue_Song(theme);
+
+    /**
+     *  Print the chosen music track name on the screen.
+     */
+    TacticalMapExtension->InfoTextTimer.Stop();
+
+    char buffer[256];
+    std::snprintf(buffer, sizeof(buffer), "Now Playing: %s", Theme.ThemeClass::Full_Name(theme));
+
+    TacticalMapExtension->Set_Info_Text(buffer);
+    TacticalMapExtension->IsInfoTextSet = true;
+
+    TacticalMapExtension->InfoTextPosition = InfoTextPosType::BOTTOM_LEFT;
+
+    //TacticalMapExtension->InfoTextNotifySound = Rule->OptionsChanged;
+    //TacticalMapExtension->InfoTextNotifySoundVolume = 0.5f;
+
+    TacticalMapExtension->InfoTextTimer = SECONDS_TO_MILLISECONDS(4);
+    TacticalMapExtension->InfoTextTimer.Start();
+
+    return true;
+}
+
+
+/**
+ *  Skips to the next available music track allowed.
+ * 
+ *  @author: CCHyper
+ */
+static bool Next_Theme_Command()
+{
+    ThemeType theme = Theme.What_Is_Playing();
+
+    /**
+     *  Iterate forward from the current theme and find the next available
+     *  music track we can play.
+     */
+    while (theme < ThemeType(Theme.Max_Themes())) {
+
+        ++theme;
+
+        if (theme >= ThemeType(Theme.Max_Themes())) {
+            theme = ThemeType(THEME_FIRST);
+        }
+
+        if (Theme.Is_Allowed(theme)) {
+            break;
+        }
+
+    }
+
+    /**
+     *  Queue the track for playback. We need to stop the track first
+     *  otherwise Queue_Song() will fade the track out.
+     */
+    Theme.Stop();
+    Theme.Queue_Song(theme);
+
+    /**
+     *  Print the chosen music track name on the screen.
+     */
+    TacticalMapExtension->InfoTextTimer.Stop();
+
+    char buffer[256];
+    std::snprintf(buffer, sizeof(buffer), "Now Playing: %s", Theme.ThemeClass::Full_Name(theme));
+
+    TacticalMapExtension->Set_Info_Text(buffer);
+    TacticalMapExtension->IsInfoTextSet = true;
+    
+    TacticalMapExtension->InfoTextPosition = InfoTextPosType::BOTTOM_LEFT;
+
+    //TacticalMapExtension->InfoTextNotifySound = Rule->OptionsChanged;
+    //TacticalMapExtension->InfoTextNotifySoundVolume = 0.5f;
+
+    TacticalMapExtension->InfoTextTimer = SECONDS_TO_MILLISECONDS(4);
+    TacticalMapExtension->InfoTextTimer.Start();
+
+    return true;
+}
+
 
 
 /**
