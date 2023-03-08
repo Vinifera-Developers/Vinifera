@@ -421,16 +421,16 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
 
     Exception_Printf("Build Type : %s\r\n", Vinifera_Build_Type_String());
 
-    Exception_Printf("TS++ author: %s\r\n", TSPP_Git_Author());
-    Exception_Printf("TS++ date: %s\r\n", TSPP_Git_DateTime());
-    Exception_Printf("TS++ branch: %s\r\n", "master"); // TSPP_Git_Branch());
-    Exception_Printf("TS++ commit: %s\r\n", TSPP_Git_Hash_Short());
+    Exception_Printf("TS++ commit author: %s\r\n", TSPP_Git_Author());
+    Exception_Printf("TS++ commit date: %s\r\n", TSPP_Git_DateTime());
+    Exception_Printf("TS++ commit branch: %s\r\n", "master"); // TSPP_Git_Branch());
+    Exception_Printf("TS++ commit hash: %s\r\n", TSPP_Git_Hash_Short());
     Exception_Printf("TS++ local changes: %s\r\n", TSPP_Git_Uncommitted_Changes() ? "YES" : "NO");
 
-    Exception_Printf("Vinifera author: %s\r\n", Vinifera_Git_Author());
-    Exception_Printf("Vinifera date: %s\r\n", Vinifera_Git_DateTime());
-    Exception_Printf("Vinifera branch: %s\r\n", Vinifera_Git_Branch());
-    Exception_Printf("Vinifera commit: %s\r\n", Vinifera_Git_Hash_Short());
+    Exception_Printf("Vinifera commit author: %s\r\n", Vinifera_Git_Author());
+    Exception_Printf("Vinifera commit date: %s\r\n", Vinifera_Git_DateTime());
+    Exception_Printf("Vinifera commit branch: %s\r\n", Vinifera_Git_Branch());
+    Exception_Printf("Vinifera commit hash: %s\r\n", Vinifera_Git_Hash_Short());
     Exception_Printf("Vinifera local changes: %s\r\n", Vinifera_Git_Uncommitted_Changes() ? "YES" : "NO");
 
     Exception_Printf("\r\n");
