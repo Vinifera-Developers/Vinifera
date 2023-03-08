@@ -26,7 +26,6 @@
  *
  ******************************************************************************/
 #include "technoext_hooks.h"
-#include "technoext_functions.h"
 #include "technoext.h"
 #include "techno.h"
 #include "technotype.h"
@@ -104,13 +103,16 @@ DECLARE_PATCH(_TechnoClass_Fire_At_Electric_Bolt_Patch)
     GET_REGISTER_STATIC(WeaponTypeClass const *, weapon, ebx);
     GET_STACK_STATIC(TARGET, target, ebp, 0x8);
     static WeaponTypeClassExtension *weapontypeext;
+    static TechnoClassExtension *technoext;
 
     /**
      *  Spawn the electric bolt.
      */
     weapontypeext = Extension::Fetch<WeaponTypeClassExtension>(weapon);
     if (weapontypeext->IsElectricBolt) {
-        TechnoClassExtension_Electric_Bolt(this_ptr, target);
+
+        technoext = Extension::Fetch<TechnoClassExtension>(this_ptr);
+        technoext->Electric_Bolt(target);
 
     /**
      *  Spawn the laser.

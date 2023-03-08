@@ -32,6 +32,7 @@
 #include "house.h"
 #include "voc.h"
 #include "ebolt.h"
+#include "tactical.h"
 #include "tibsun_inline.h"
 #include "wwcrc.h"
 #include "extension.h"
@@ -141,6 +142,84 @@ void TechnoClassExtension::Compute_CRC(WWCRCEngine &crc) const
     //EXT_DEBUG_TRACE("TechnoClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     ObjectClassExtension::Compute_CRC(crc);
+}
+
+
+/**
+ *  Creates a electric bolt zap from the firing techno to the target.
+ * 
+ *  @author: CCHyper
+ */
+EBoltClass * TechnoClassExtension::Electric_Zap(TARGET target, int which, const WeaponTypeClass *weapontype, Coordinate &source_coord)
+{
+    //EXT_DEBUG_TRACE("TechnoClassExtension::Electric_Zap - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    EBoltClass *ebolt = new EBoltClass;
+    if (!ebolt) {
+        return nullptr;
+    }
+
+    int z_adj = 0;
+
+    if (Is_Target_Building(target)) {
+        Coordinate source = This()->Render_Coord();
+
+        Point2D p1 = TacticalMap->func_60F150(source);
+        Point2D p2 = TacticalMap->func_60F150(source_coord);
+
+        z_adj = p2.Y - p1.Y;
+
+        if (z_adj > 0) {
+            z_adj = 0;
+        }
+    }
+
+    Coordinate target_coord = Is_Target_Object(target) ?
+        reinterpret_cast<ObjectClass *>(target)->Target_Coord() : // #TODO: Should be Target_As_Object.
+        target->entry_5C();
+
+    /**
+     *  Spawn the electric bolt.
+     */
+    ebolt->Create(source_coord, target_coord, z_adj);
+
+    return ebolt;
+}
+
+
+/**
+ *  Creates an instance of the electric bolt from the firing techno to the target.
+ * 
+ *  @author: CCHyper
+ */
+EBoltClass * TechnoClassExtension::Electric_Bolt(TARGET target)
+{
+    //EXT_DEBUG_TRACE("TechnoClassExtension::Electric_Bolt - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    WeaponSlotType which = This()->What_Weapon_Should_I_Use(target);
+    const WeaponTypeClass *weapontype = This()->Get_Weapon(which)->Weapon;
+    Coordinate fire_coord = This()->Fire_Coord(which);
+
+    EBoltClass *ebolt = Electric_Zap(target, which, weapontype, fire_coord);
+    if (ebolt) {
+        if (This()->IsActive) {
+
+            /**
+             *  Remove existing electric bolt from the object.
+             */
+            if (ElectricBolt) {
+                ElectricBolt->Flag_To_Delete();
+                ElectricBolt = nullptr;
+            }
+
+            if (!ElectricBolt) {
+                ElectricBolt = ebolt;
+                ElectricBolt->Set_Properties(This(), weapontype, which);
+            }
+        }
+    }
+
+    return ebolt;
 }
 
 

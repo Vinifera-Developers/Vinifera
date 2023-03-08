@@ -56,6 +56,8 @@ class TechnoClassExtension : public ObjectClassExtension
         virtual TechnoClass *This() const override { return reinterpret_cast<TechnoClass *>(ObjectClassExtension::This()); }
         virtual const TechnoClass *This_Const() const override { return reinterpret_cast<const TechnoClass *>(ObjectClassExtension::This_Const()); }
 
+        virtual EBoltClass *Electric_Zap(TARGET target, int which, const WeaponTypeClass *weapontype, Coordinate &source_coord);
+        virtual EBoltClass *Electric_Bolt(TARGET target);
         virtual void Response_Capture();
         virtual void Response_Enter();
         virtual void Response_Deploy();
