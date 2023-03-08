@@ -1576,7 +1576,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     }
 
     /**
-     *  Units
+     *  Aircraft
      */
     for (int house = 0; house < Houses.Count(); ++house) {
         HouseClass *housep = Houses[house];
@@ -1618,12 +1618,39 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     }
 
     /**
+     *  Projectiles
+     */
+    std::fprintf(fp, "-------------------- Projectiles / Bullets ------------------ - \n");
+    for (int index = 0; index < Bullets.Count(); ++index) {
+        BulletClass *bullet = Bullets[index];
+
+        const char *bullet_name = bullet->Full_Name();
+
+        const char* payback = "None";
+        const char* payback_owner = "None";
+        int owner_id = -1;
+
+        if (bullet->Payback) {
+            payback = bullet->Payback->Full_Name();
+
+            payback_owner = bullet->Payback->Owning_House()->IniName;
+            owner_id = bullet->Payback->Owner();
+        }
+
+        std::fprintf(fp, "Coord:%d,%d,%d  TargetCoord:(%d,%d,%d)  Payback:%s  Owner:%s  OwnerID:%d  Type:%s\n",
+            bullet->Center_Coord().X, bullet->Center_Coord().Y, bullet->Center_Coord().Z,
+            bullet->Target_Coord().X, bullet->Target_Coord().Y, bullet->Target_Coord().Z,
+            payback, payback_owner, owner_id, bullet_name);
+    }
+    std::fprintf(fp, "\n");
+
+    /**
      *  Animations
      */
     std::fprintf(fp, "-------------------- Animations -------------------\n");
     for (int index = 0; index < Anims.Count(); ++index) {
         AnimClass *animp = Anims[index];
-        const char* xobject_name = "None";
+        const char *xobject_name = "None";
         Coordinate xobject_coord;
 
         if (animp->xObject) {
@@ -1631,10 +1658,14 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
             xobject_coord = animp->xObject->Center_Coord();
         }
 
-        std::fprintf(fp, "Target:%s(%d,%d,%d) OwnerHouse:%d Loops:%d\n",
+        const char *anim_name = animp->Full_Name();
+
+        std::fprintf(fp, "Coord:%d,%d,%d  Target:%s(%d,%d,%d)  OwnerHouse:%d  Loops:%d  Type:%s  \n",
+            animp->Center_Coord().X, animp->Center_Coord().Y, animp->Center_Coord().Z,
             xobject_name, xobject_coord.X, xobject_coord.Y, xobject_coord.Z,
             animp->OwnerHouse,
-            animp->Loops);
+            animp->Loops,
+            anim_name);
     }
     std::fprintf(fp, "\n");
 
