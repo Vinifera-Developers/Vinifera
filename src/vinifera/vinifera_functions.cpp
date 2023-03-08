@@ -85,22 +85,23 @@ bool Vinifera_Load_INI()
     ini.Get_String("General", "CursorFile", Vinifera_CursorName, sizeof(Vinifera_CursorName));
 
 #if defined(TS_CLIENT)
+    {
     /**
      *  TS Client uses a seperate "version" file, so its best we fetch the current
      *  version from there rather than have the user update the INI file each time
      *  they update the project.
      */
-    ini.Clear();
-
     RawFileClass ver_file("version");
     if (!ver_file.Is_Available()) {
         DEBUG_ERROR("Failed to find TS Client version file!\n");
         return false;
     }
 
-    ini.Load(ver_file);
+    INIClass ver_ini;
+    ver_ini.Load(ver_file);
 
-    ini.Get_String("DTA", "Version", Vinifera_ProjectVersion, sizeof(Vinifera_ProjectVersion));
+    ver_ini.Get_String("DTA", "Version", Vinifera_ProjectVersion, sizeof(Vinifera_ProjectVersion));
+    }
 #else
     ini.Get_String("General", "ProjectVersion", "No version number set", Vinifera_ProjectVersion, sizeof(Vinifera_ProjectVersion));
 #endif
@@ -119,6 +120,12 @@ bool Vinifera_Load_INI()
             }
             path = std::strtok(nullptr, ",");
         }
+#if defined(TS_CLIENT)
+    } else {
+        DEBUG_ERROR("Failed to find SearchPaths in VINIFERA.INI!\n");
+        MessageBox(MainWindow, "Failed to find SearchPaths in VINIFERA.INI, please reinstall Vinifera.", "Vinifera", MB_ICONEXCLAMATION|MB_OK);
+        return false;
+#endif
     }
 
     return true;
