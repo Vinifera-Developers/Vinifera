@@ -87,7 +87,7 @@ void ObjectTypeClassExt::_Assign_Theater_Name(char *fname, TheaterType theater)
      *  to hard code checks for this filename prefixes and skip any remap attempt.
      */
     if (What_Am_I() == RTTI_BUILDINGTYPE && (!std::strncmp(fname, "CITY", 4) || !std::strncmp(fname, "ABAN", 4) || !std::strncmp(fname, "BBOARD", 5))) {
-        DEV_DEBUG_WARNING("Skipping remap of %s!\n", fname);
+        DEV_DEBUG_WARNING("Skipping new theater filename remap of %s!\n", fname);
         return;
     }
 
@@ -96,7 +96,7 @@ void ObjectTypeClassExt::_Assign_Theater_Name(char *fname, TheaterType theater)
      *  respective animations.
      */
     if (What_Am_I() == RTTI_BUILDINGTYPE && (std::strstr(fname, "MWAR") || std::strstr(fname, "OBL1"))) {
-        DEV_DEBUG_WARNING("Skipping remap of %s!\n", fname);
+        DEV_DEBUG_WARNING("Skipping new theater filename remap of %s!\n", fname);
         return;
     }
 
@@ -114,7 +114,7 @@ void ObjectTypeClassExt::_Assign_Theater_Name(char *fname, TheaterType theater)
             fname[1] = TheaterTypeClass::ImageLetter_From(theater);
 
         } else {
-            DEV_DEBUG_WARNING("Failed to remap \"%s\" to current theater (%s)!\n", fname, TheaterTypeClass::Name_From(theater));
+            DEV_DEBUG_WARNING("Failed to remap filename \"%s\" to current theater (%s)!\n", fname, TheaterTypeClass::Name_From(theater));
         }
     }
 }
