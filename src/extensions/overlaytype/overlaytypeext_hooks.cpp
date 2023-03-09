@@ -37,6 +37,49 @@
 #include "hooker_macros.h"
 
 
+
+/**
+ *  Write to the debug log when freeing up pre-loaded buildup images.
+ * 
+ *  #NOTE:
+ *  These patches are also done to remove the incorrect freeing
+ *  of memory the game does not actually allocate, and as a result
+ *  of this, Vinifera's new memory management triggers an assertion
+ *  because this is not allowed. The original game silently failed
+ *  when doing this.
+ * 
+ *  @author: CCHyper
+ */
+static void OverlayTypeClass_Free_Image(OverlayTypeClass *this_ptr)
+{
+    if (this_ptr->IsDemandLoad && this_ptr->Image) {
+        DEV_DEBUG_WARNING("Overlay: Freeing loaded image for %s\n", this_ptr->Name());
+
+        /**
+         *  The original function would incorrectly try to free memory
+         *  that the game does not actually allocate, and as a result of
+         *  this, Vinifera's new memory management triggers an assertion
+         *  because this is no longer allowed. The original game silently
+         *  failed when doing this.
+         *
+         *  We now remove this and just correctly nullify the pointer.
+         */
+        //delete this_ptr->Image;
+
+        this_ptr->Image = nullptr;
+    }
+}
+
+
+/**
+ *  Write to the debug log when freeing up pre-loaded buildup images.
+ *
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_OverlayTypeClass_DTOR_Free_Image_Patch) { GET_REGISTER_STATIC(OverlayTypeClass *, this_ptr, esi); OverlayTypeClass_Free_Image(this_ptr); JMP(0x0058D192); }
+DECLARE_PATCH(_OverlayTypeClass_SDDTOR_Free_Image_Patch) { GET_REGISTER_STATIC(OverlayTypeClass *, this_ptr, esi); OverlayTypeClass_Free_Image(this_ptr); JMP(0x0058DC82); }
+
+
 /**
  *  Patches in an assertion check for image data.
  * 
@@ -69,4 +112,7 @@ void OverlayTypeClassExtension_Hooks()
     OverlayTypeClassExtension_Init();
 
     //Patch_Jump(0x0058DC18, &_OverlayTypeClass_Get_Image_Data_Assertion_Patch);
+
+    Patch_Jump(0x0058D17B, &_OverlayTypeClass_DTOR_Free_Image_Patch);
+    Patch_Jump(0x0058DC6B, &_OverlayTypeClass_SDDTOR_Free_Image_Patch);
 }
