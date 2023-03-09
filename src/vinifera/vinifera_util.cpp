@@ -59,7 +59,7 @@ const char *Vinifera_Name_String()
 {
     static char _buffer[512] { '\0' };
 
-    std::snprintf(_buffer, sizeof(_buffer), "Vinifera - special build for Dawn of the Tiberium Age");
+    std::snprintf(_buffer, sizeof(_buffer), "Vinifera - Custom Build by Dawn of the Tiberium Age");
 
     return _buffer;
 
