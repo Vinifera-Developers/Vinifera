@@ -693,12 +693,6 @@ retry_dialog:
 
         case 2: // User pressed "Load Game"
         {
-#if !defined(RELEASE) && defined(NDEBUG)
-            /**
-             *  We disable loading in non-release.
-             */
-            Vinifera_Do_WWMessageBox("Saving and Loading is disabled for non-release builds.", Text_String(TXT_OK));
-#else
             /**
              *  If no save games are available, notify the user and return back
              *  and reissue the main dialog.
@@ -716,7 +710,6 @@ retry_dialog:
                 Theme.Stop();
                 JMP(0x005DCE48);
             }
-#endif
 
             /**
              *  Reissue the dialog if the user pressed cancel on the load dialog.
