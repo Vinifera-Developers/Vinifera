@@ -28,6 +28,7 @@
 #include "extension.h"
 #include "tibsun_functions.h"
 #include "vinifera_saveload.h"
+#include "vinifera_util.h"
 #include "wstring.h"
 #include "vector.h"
 #include "tclassfactory.h"
@@ -1213,29 +1214,11 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
 {
     DEV_DEBUG_INFO("Extension::Print_CRCs(enter)\n");
 
-    char buffer[128];
-
-#ifndef NDEBUG
-    const char *build_type = Vinifera_DeveloperMode ? "DEBUG (Dev mode enabled)" : "DEBUG";
-#else
-#if defined(NIGHTLY)
-    const char *build_type = Vinifera_DeveloperMode ? "NIGHTLY (Dev mode enabled)" : "NIGHTLY";
-#elif defined(PREVIEW)
-    const char *build_type = Vinifera_DeveloperMode ? "PREVIEW (Dev mode enabled)" : "PREVIEW";
-#else
-    const char *build_type = Vinifera_DeveloperMode ? "RELEASE (Dev mode enabled)" : "RELEASE";
-#endif
-#endif
-#if defined(TS_CLIENT)
-    std::snprintf(buffer, sizeof(buffer), "%s [TS-Client]", build_type);
-    build_type = buffer;
-#endif
-
     std::fprintf(fp, "--------------------------------------------------------------------------------\n");
     std::fprintf(fp, "---------------------  V I N I F E R A   S Y N C   L O G  ----------------------\n");
     std::fprintf(fp, "--------------------------------------------------------------------------------\n");
     std::fprintf(fp, "\n");
-    std::fprintf(fp, "Build Type : %s\n", build_type);
+    std::fprintf(fp, "Build Type : %s\n", Vinifera_Build_Type_String());
     std::fprintf(fp, "TS++ commit author: %s\n", TSPP_Git_Author());
     std::fprintf(fp, "TS++ commit date: %s\n", TSPP_Git_DateTime());
     std::fprintf(fp, "TS++ commit branch: %s\n", "master"); // TSPP_Git_Branch());

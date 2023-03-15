@@ -116,9 +116,7 @@ const char * Vinifera_Build_Type_String()
     #endif
     #endif
     #if defined(TS_CLIENT)
-        char buffer[1024];
-        std::snprintf(buffer, sizeof(buffer), "%s [TS-Client]", build_type);
-        build_type = buffer;
+        std::snprintf(_buffer, sizeof(_buffer), "%s [TS-Client]", build_type);
     #endif
 
     }
