@@ -221,7 +221,7 @@ bool ScenarioClassExtension::Read_Tutorial_INI(CCINIClass &ini, bool log)
      */
     if (ini.Is_Present(TUTORIAL)) {
 
-        char buf[128];
+        char buf[300];
 
         int counter = ini.Entry_Count(TUTORIAL);
 
