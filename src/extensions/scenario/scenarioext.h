@@ -59,5 +59,8 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
         static void Create_Units(bool official);
 
     public:
-
+        /**
+         *  Can ice get destroyed when hit by certain weapons?
+         */
+        bool IsIceDestruction;
 };
