@@ -532,12 +532,12 @@ void Vinifera_Create_Main_Window(HINSTANCE hInstance, int nCmdShow, int width, i
  */
 bool Vinifera_Prep_For_Side(SideType side)
 {
-    DEBUG_INFO("Preparing Mixfiles for Side %02d.\n", side);
+    int sidenum = (side+1); // Logical side number.
+
+    DEBUG_INFO("Preparing Mixfiles for Side %02d (logical %02d).\n", side, sidenum);
 
     MFCC *mix = nullptr;
     char buffer[16];
-
-    int sidenum = (side+1); // Logical side number.
 
     if (SideCachedMix) {
         DEBUG_INFO("  Releasing %s\n", SideCachedMix->Filename);
