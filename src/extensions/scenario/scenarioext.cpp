@@ -54,7 +54,8 @@
  *  @author: CCHyper
  */
 ScenarioClassExtension::ScenarioClassExtension(const ScenarioClass *this_ptr) :
-    GlobalExtensionClass(this_ptr)
+    GlobalExtensionClass(this_ptr),
+    IsIceDestruction(true)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("ScenarioClassExtension::ScenarioClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
@@ -158,6 +159,8 @@ void ScenarioClassExtension::Detach(TARGET target, bool all)
 void ScenarioClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Compute_CRC - 0x%08X\n", (uintptr_t)(This()));
+
+    crc(IsIceDestruction);
 }
 
 
@@ -169,6 +172,8 @@ void ScenarioClassExtension::Compute_CRC(WWCRCEngine &crc) const
 void ScenarioClassExtension::Init_Clear()
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Init_Clear - 0x%08X\n", (uintptr_t)(This()));
+
+    IsIceDestruction = true;
 
     {
         /**
@@ -195,6 +200,10 @@ void ScenarioClassExtension::Init_Clear()
 bool ScenarioClassExtension::Read_INI(CCINIClass &ini)
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Read_INI - 0x%08X\n", (uintptr_t)(This()));
+
+    static const char * const BASIC = "Basic";
+
+    IsIceDestruction = ini.Get_Bool(BASIC, "IceDestructionEnabled", IsIceDestruction);
 
     /**
      *  #issue-123
