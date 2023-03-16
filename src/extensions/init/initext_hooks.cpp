@@ -595,6 +595,8 @@ bool Vinifera_Prep_For_Side(SideType side)
             return false;
         }
         DEBUG_INFO(" %s\n", buffer);
+    } else {
+        DEBUG_WARNING("  Failed to find %s!\n", buffer);
     }
 
     std::snprintf(buffer, sizeof(buffer), "SIDENC%02d.MIX", sidenum);
@@ -606,6 +608,8 @@ bool Vinifera_Prep_For_Side(SideType side)
             //return false; // #issue-193: Unable to load side mix files is no longer a fatal error.
         }
         DEBUG_INFO(" %s\n", buffer);
+    } else {
+        DEBUG_WARNING("  Failed to find %s!\n", buffer);
     }
 
     if (Session.Type == GAME_NORMAL) {
@@ -622,6 +626,8 @@ bool Vinifera_Prep_For_Side(SideType side)
                 //return false; // #issue-193: Unable to load side mix files is no longer a fatal error.
             }
             DEBUG_INFO(" %s\n", buffer);
+        } else {
+            DEBUG_WARNING("  Failed to find %s!\n", buffer);
         }
     }
 
