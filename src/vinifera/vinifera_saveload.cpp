@@ -430,19 +430,6 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
     Scen->Load(pStm);
 
     /**
-     *  #issue-218
-     *
-     *  We now abuse ScenarioClass::IsGDI to store the player house so it can be used to
-     *  fetch the SideType from it for loading the assets. This also means this
-     *  bugfix works without extending any of the games classes, but this does mean we
-     *  are limited to 255 unique houses!
-     */
-    HousesType house = HousesType(Scen->IsGDI);
-    ASSERT_FATAL(house != HOUSE_NONE & house < HouseTypes.Count());
-    HouseTypeClass *housetype = HouseTypes[house];
-    ASSERT_FATAL(housetype != nullptr);
-
-    /**
      *  #issue-123
      *
      *  Save files do not store the tutorial messages, so we reload them from
@@ -479,22 +466,6 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
 
     Enable_Addon(Scen->RequiredAddOn);
 
-    /**
-     *  Fetch the houses side type and use this to decide which assets to load.
-     */
-    DEBUG_INFO("About to call Prep_For_Side()...\n");
-    if (!Prep_For_Side(ScenExtension->SidebarSide)) {
-        DEBUG_WARNING("Prep_For_Side(%d) failed! Trying with side 0...\n", housetype->Side);
-
-        /**
-         *  Try once again but with the Side 0 (GDI) assets.
-         */
-        if (!Prep_For_Side(SIDE_GDI)) {
-            DEBUG_ERROR("Prep_For_Side() failed!\n");
-            return false;
-        }
-    }
-
     {
     Rect tactical_rect = Get_Tactical_Rect();
     Rect composite_rect(0, 0, tactical_rect.Width, ScreenRect.Height);
@@ -522,22 +493,6 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
 
     DEBUG_INFO("Loading Rule...\n");
     Rule->Load(pStm);
-
-    /**
-     *  Fetch the houses side type and use this to decide which speech assets to load.
-     */
-    DEBUG_INFO("About to call Prep_Speech_For_Side()...\n");
-    if (!Prep_Speech_For_Side(housetype->Side)) {
-        DEBUG_WARNING("Prep_Speech_For_Side(%d) failed! Trying with side 0...\n", housetype->Side);
-
-        /**
-         *  Try once again but with the Side 0 (GDI) assets.
-         */
-        if (!Prep_Speech_For_Side(SIDE_GDI)) {
-            DEBUG_ERROR("Prep_Speech_For_Side() failed!\n");
-            return false;
-        }
-    }
 
     if (FAILED(Vinifera_Load_Vector(pStm, AnimTypes, "AnimTypes"))) { return false; }
 
@@ -659,6 +614,51 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
     if (!Extension::Load(pStm)) {
         DEBUG_ERROR("\t***** FAILED!\n");
         return false;
+    }
+
+    /**
+     *  #issue-218
+     *
+     *  We now abuse ScenarioClass::IsGDI to store the player house so it can be used to
+     *  fetch the SideType from it for loading the assets. This also means this
+     *  bugfix works without extending any of the games classes, but this does mean we
+     *  are limited to 255 unique houses!
+     */
+    HousesType house = HousesType(Scen->IsGDI);
+    ASSERT_FATAL(house != HOUSE_NONE & house < HouseTypes.Count());
+    HouseTypeClass* housetype = HouseTypes[house];
+    ASSERT_FATAL(housetype != nullptr);
+
+    /**
+     *  Fetch the houses side type and use this to decide which assets to load.
+     */
+    DEBUG_INFO("About to call Prep_For_Side()...\n");
+    if (!Prep_For_Side(ScenExtension->SidebarSide)) {
+        DEBUG_WARNING("Prep_For_Side(%d) failed! Trying with side 0...\n", housetype->Side);
+
+        /**
+         *  Try once again but with the Side 0 (GDI) assets.
+         */
+        if (!Prep_For_Side(SIDE_GDI)) {
+            DEBUG_ERROR("Prep_For_Side() failed!\n");
+            return false;
+        }
+    }
+
+    /**
+     *  Fetch the houses side type and use this to decide which speech assets to load.
+     */
+    DEBUG_INFO("About to call Prep_Speech_For_Side()...\n");
+    if (!Prep_Speech_For_Side(housetype->Side)) {
+        DEBUG_WARNING("Prep_Speech_For_Side(%d) failed! Trying with side 0...\n", housetype->Side);
+
+        /**
+         *  Try once again but with the Side 0 (GDI) assets.
+         */
+        if (!Prep_Speech_For_Side(SIDE_GDI)) {
+            DEBUG_ERROR("Prep_Speech_For_Side() failed!\n");
+            return false;
+        }
     }
 
     Map.Flag_To_Redraw(2);
