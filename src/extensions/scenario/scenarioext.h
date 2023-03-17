@@ -110,4 +110,20 @@ public:
          *  The side to use for the sidebar assets (singleplayer only).
          */
         SideType SidebarSide;
+
+        /**
+         *  Scenarios can override the loading screen with a custom variant, these
+         *  define the filename to load.
+         */
+        char LoadingScreen400BackgroundName[32];
+        char LoadingScreen480BackgroundName[32];
+        char LoadingScreen600BackgroundName[32];
+
+        /**
+         *  These are the custom text positions for each of the loading screen
+         *  overrides.
+         */
+        TPoint2D<int> LoadingScreen400Loc;
+        TPoint2D<int> LoadingScreen480Loc;
+        TPoint2D<int> LoadingScreen600Loc;
 };

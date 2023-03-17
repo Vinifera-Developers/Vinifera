@@ -41,6 +41,7 @@
 #include "campaign.h"
 #include "multiscore.h"
 #include "scenario.h"
+#include "scenarioext.h"
 #include "session.h"
 #include "rules.h"
 #include "ccfile.h"
@@ -308,166 +309,217 @@ static void Init_Loading_Screen(const char *filename)
 
     Point2D textpos(0,0);
 
+    bool is_400 = ScreenRect.Width >= 640 && ScreenRect.Height == 400;
+    bool is_480 = ScreenRect.Width >= 640 && ScreenRect.Height == 480;
+    bool is_600 = ScreenRect.Width >= 800 && ScreenRect.Height >= 600; // (or higher).
+
     /**
-     *  Set the progress text draw positions (resolves #issue-294).
+     *  #issue-922
+     * 
+     *  Adds support for overriding the scenario loading screen.
+     * 
+     *  @author: CCHyper
      */
-    if (ScreenRect.Width >= 640 && ScreenRect.Height == 400) {
+    const char *override_filename = nullptr;
+    Point2D override_loc = Point2D(0,0);
 
-        /**
-         *  #issue-294
-         * 
-         *  Centralises the position of the loading screen text.
-         * 
-         *  Original code retained below.
-         */
-#if 0
-        if (solo) {
-            textpos.X = 440;
-            textpos.Y = 158;
-        } else {
-            textpos.X = 570;
-            textpos.Y = 155;
-        }
-#endif
+    if (is_400 && std::strlen(ScenExtension->LoadingScreen400BackgroundName) > 0) {
+        override_filename = ScenExtension->LoadingScreen400BackgroundName;
 
-        /**
-         *  The text box is in slightly different positions between GDI and NOD.
-         */
-        if (side == SIDE_GDI) {
-            textpos.X = solo ? 435 : 435;
-            textpos.Y = solo ? 157 : 157;
+    } else if (is_480 && std::strlen(ScenExtension->LoadingScreen480BackgroundName) > 0) {
+        override_filename = ScenExtension->LoadingScreen480BackgroundName;
 
-        } else if (side == SIDE_NOD) {
-            textpos.X = solo ? 436 : 436;
-            textpos.Y = solo ? 161 : 161;
+    } else if (is_600 && std::strlen(ScenExtension->LoadingScreen600BackgroundName) > 0) {
+        override_filename = ScenExtension->LoadingScreen600BackgroundName;
+    }
+    if (is_400 && ScenExtension->LoadingScreen400Loc.Is_Valid()) {
+        override_loc = ScenExtension->LoadingScreen400Loc;
 
-        /**
-         *  All other sides (uses the GDI offsets).
-         */
-        } else {
-            textpos.X = solo ? 435 : 435;
-            textpos.Y = solo ? 157 : 157;
-        }
+    } else if (is_480 && ScenExtension->LoadingScreen480Loc.Is_Valid()) {
+        override_loc = ScenExtension->LoadingScreen480Loc;
 
-        image_width = 640;
-        image_height = 400;
-
-        load_filename_height = 400;
-
-    } else if (ScreenRect.Width >= 640 && ScreenRect.Height == 480) {
-
-        /**
-         *  #issue-294
-         *
-         *  Centralises the position of the loading screen text.
-         *
-         *  Original code retained below.
-         */
-#if 0
-        if (solo) {
-            textpos.X = 440;
-            textpos.Y = 189;
-        } else {
-            textpos.X = 570;
-            textpos.Y = 180;
-        }
-#endif
-
-        /**
-         *  The text box is in slightly different positions between GDI and NOD.
-         */
-        if (side == SIDE_GDI) {
-            textpos.X = solo ? 435 : 435;
-            textpos.Y = solo ? 195 : 195;
-
-        } else if (side == SIDE_NOD) {
-            textpos.X = solo ? 436 : 436;
-            textpos.Y = solo ? 200 : 200;
-
-        /**
-         *  All other sides (uses the GDI offsets).
-         */
-        } else {
-            textpos.X = solo ? 435 : 435;
-            textpos.Y = solo ? 195 : 195;
-        }
-
-        image_width = 640;
-        image_height = 480;
-
-        load_filename_height = 480;
-
-    } else if (ScreenRect.Width >= 800 && ScreenRect.Height >= 600) {
-
-        /**
-         *  #issue-294
-         *
-         *  Centralises the position of the loading screen text.
-         *
-         *  Original code retained below.
-         */
-#if 0
-        if (solo) {
-            textpos.X = 550;
-            textpos.Y = 236;
-        } else {
-            textpos.X = 715;
-            textpos.Y = 230;
-        }
-#endif
-
-        /**
-         *  The text box is in slightly different positions between GDI and NOD.
-         */
-        if (side == SIDE_GDI) {
-            textpos.X = solo ? 563 : 563;
-            textpos.Y = solo ? 252 : 252;
-
-        } else if (side == SIDE_NOD) {
-            textpos.X = solo ? 565 : 565;
-            textpos.Y = solo ? 258 : 258;
-
-        /**
-         *  All other sides (uses the GDI offsets).
-         */
-        } else {
-            textpos.X = solo ? 563 : 563;
-            textpos.Y = solo ? 252 : 252;
-        }
-
-        image_width = 800;
-        image_height = 600;
-
-        load_filename_height = 600;
+    } else if (is_600 && ScenExtension->LoadingScreen600Loc.Is_Valid()) {
+        override_loc = ScenExtension->LoadingScreen600Loc;
     }
 
-    /**
-     *  Adjust the position of the text so it is correct for widescreen resolutions.
-     */
-    textpos.X += (ScreenRect.Width - image_width) / 2;
-    textpos.Y += (ScreenRect.Height - image_height) / 2;
+    if (!override_loc.Is_Valid()) {
 
-    /**
-     *  Adjust the text positions for the Nod side graphics.
-     */
-    textpos.X -= 4;
-    if (side == SIDE_NOD) {
-        textpos.Y += 10;
+        /**
+         *  Set the progress text draw positions (resolves #issue-294).
+         */
+        if (is_400) {
+
+            /**
+             *  #issue-294
+             * 
+             *  Centralises the position of the loading screen text.
+             * 
+             *  Original code retained below.
+             */
+#if 0
+            if (solo) {
+                textpos.X = 440;
+                textpos.Y = 158;
+            } else {
+                textpos.X = 570;
+                textpos.Y = 155;
+            }
+#endif
+
+            /**
+             *  The text box is in slightly different positions between GDI and NOD.
+             */
+            if (side == SIDE_GDI) {
+                textpos.X = solo ? 435 : 435;
+                textpos.Y = solo ? 157 : 157;
+
+            } else if (side == SIDE_NOD) {
+                textpos.X = solo ? 436 : 436;
+                textpos.Y = solo ? 161 : 161;
+
+            /**
+             *  All other sides (uses the GDI offsets).
+             */
+            } else {
+                textpos.X = solo ? 435 : 435;
+                textpos.Y = solo ? 157 : 157;
+            }
+
+            image_width = 640;
+            image_height = 400;
+
+            load_filename_height = 400;
+
+        } else if (is_480) {
+
+            /**
+             *  #issue-294
+             *
+             *  Centralises the position of the loading screen text.
+             *
+             *  Original code retained below.
+             */
+#if 0
+            if (solo) {
+                textpos.X = 440;
+                textpos.Y = 189;
+            } else {
+                textpos.X = 570;
+                textpos.Y = 180;
+            }
+#endif
+
+            /**
+             *  The text box is in slightly different positions between GDI and NOD.
+             */
+            if (side == SIDE_GDI) {
+                textpos.X = solo ? 435 : 435;
+                textpos.Y = solo ? 195 : 195;
+
+            } else if (side == SIDE_NOD) {
+                textpos.X = solo ? 436 : 436;
+                textpos.Y = solo ? 200 : 200;
+
+            /**
+             *  All other sides (uses the GDI offsets).
+             */
+            } else {
+                textpos.X = solo ? 435 : 435;
+                textpos.Y = solo ? 195 : 195;
+            }
+
+            image_width = 640;
+            image_height = 480;
+
+            load_filename_height = 480;
+
+        } else if (is_600) {
+
+            /**
+             *  #issue-294
+             *
+             *  Centralises the position of the loading screen text.
+             *
+             *  Original code retained below.
+             */
+#if 0
+            if (solo) {
+                textpos.X = 550;
+                textpos.Y = 236;
+            } else {
+                textpos.X = 715;
+                textpos.Y = 230;
+            }
+#endif
+
+            /**
+             *  The text box is in slightly different positions between GDI and NOD.
+             */
+            if (side == SIDE_GDI) {
+                textpos.X = solo ? 563 : 563;
+                textpos.Y = solo ? 252 : 252;
+
+            } else if (side == SIDE_NOD) {
+                textpos.X = solo ? 565 : 565;
+                textpos.Y = solo ? 258 : 258;
+
+            /**
+             *  All other sides (uses the GDI offsets).
+             */
+            } else {
+                textpos.X = solo ? 563 : 563;
+                textpos.Y = solo ? 252 : 252;
+            }
+
+            image_width = 800;
+            image_height = 600;
+
+            load_filename_height = 600;
+        }
+
+        /**
+         *  Adjust the position of the text so it is correct for widescreen resolutions.
+         */
+        textpos.X += (ScreenRect.Width - image_width) / 2;
+        textpos.Y += (ScreenRect.Height - image_height) / 2;
+
+        /**
+         *  Adjust the text positions for the Nod side graphics.
+         */
+        textpos.X -= 4;
+        if (side == SIDE_NOD) {
+            textpos.Y += 10;
+        } else {
+            textpos.Y += 3;
+        }
+
     } else {
-        textpos.Y += 3;
+
+        /**
+         *  A loading screen override has been found for this scenario, use its custom text position.
+         */
+        textpos = override_loc;
+
     }
 
     /**
-     *  Build the loading screen filename. (Format: LOAD[screen width][side char].PCX)
+     *  Build the loading screen filename.
+     *  Standard Format (if no override is present):
+     *    "LOAD[screen width][side char].PCX"
      */
-    char loadname[16];
-    std::snprintf(loadname, sizeof(loadname), "LOAD%d%c.PCX", load_filename_height, prefix);
+    char loadname[32];
+    if (override_filename != nullptr) {
+        std::strncpy(loadname, override_filename, sizeof(loadname));
+    } else {
+        std::snprintf(loadname, sizeof(loadname), "LOAD%d%c.PCX", load_filename_height, prefix);
+    }
 
     /**
      *  Check to make sure the loading screen file can be found, if not, then
      *  default to the GDI loading screen image set.
      */
     if (!CCFileClass(loadname).Is_Available()) {
+        DEV_DEBUG_INFO("Failed to find loading screen \"%s\"!\n", loadname);
         std::snprintf(loadname, sizeof(loadname), "LOAD%d%c.PCX", load_filename_height, Sim_Percent_Chance(50) ? 'C' : 'D');
     }
 
@@ -510,6 +562,8 @@ static void Init_Loading_Screen(const char *filename)
 DECLARE_PATCH(_Read_Scenario_Loading_Screen_Patch)
 {
     LEA_STACK_STATIC(const char *, filename, esp, 0x50);
+
+    ScenExtension->Read_Loading_Screen_INI(filename);
 
     Init_Loading_Screen(filename);
 

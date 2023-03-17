@@ -85,10 +85,20 @@ ScenarioClassExtension::ScenarioClassExtension(const ScenarioClass *this_ptr) :
     GlobalExtensionClass(this_ptr),
     Waypoint(NEW_WAYPOINT_COUNT),
     IsIceDestruction(true),
-    SidebarSide(SIDE_NONE)
+    SidebarSide(SIDE_NONE),
+    LoadingScreen400BackgroundName(),
+    LoadingScreen480BackgroundName(),
+    LoadingScreen600BackgroundName(),
+    LoadingScreen400Loc(0,0),
+    LoadingScreen480Loc(0,0),
+    LoadingScreen600Loc(0,0)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("ScenarioClassExtension::ScenarioClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
+    LoadingScreen400BackgroundName[0] = '\0';
+    LoadingScreen480BackgroundName[0] = '\0';
+    LoadingScreen600BackgroundName[0] = '\0';
+    
     /**
      *  This copies the behavior of the games ScenarioClass.
      */
@@ -217,6 +227,13 @@ void ScenarioClassExtension::Init_Clear()
 
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Init_Clear - 0x%08X\n", (uintptr_t)(This()));
 
+    LoadingScreen400BackgroundName[0] = '\0';
+    LoadingScreen480BackgroundName[0] = '\0';
+    LoadingScreen600BackgroundName[0] = '\0';
+    LoadingScreen400Loc = TPoint2D<int>(0,0);
+    LoadingScreen480Loc = TPoint2D<int>(0,0);
+    LoadingScreen600Loc = TPoint2D<int>(0,0);
+
     {
         /**
          *  Clear the any previously loaded tutorial messages in preperation for
@@ -268,6 +285,78 @@ bool ScenarioClassExtension::Read_INI(CCINIClass &ini)
      *  Fetch additional tutorial message data (if present) from the scenario.
      */
     Read_Tutorial_INI(ini, true);
+
+    return true;
+}
+
+
+/**
+ *  Read the loading screen overrides from the scenario INI.
+ *
+ *  @author: CCHyper
+ */
+bool ScenarioClassExtension::Read_Scenario_INI(CCINIClass &ini)
+{
+    //EXT_DEBUG_TRACE("ScenarioClassExtension::Read_Scenario_INI - 0x%08X\n", (uintptr_t)(This()));
+
+    return true;
+}
+
+
+/**
+ *  Read the loading screen overrides from the scenario INI.
+ *
+ *  @author: CCHyper
+ */
+bool ScenarioClassExtension::Read_Loading_Screen_INI(const char *filename)
+{
+    //EXT_DEBUG_TRACE("ScenarioClassExtension::Read_Loading_Screen_INI - 0x%08X\n", (uintptr_t)(This()));
+
+    static const char * const BASIC = "Basic";
+
+    CCFileClass file(filename);
+    CCINIClass ini(file);
+
+    if (!ini.Is_Loaded()) {
+        return false;
+    }
+
+    ScenExtension->LoadingScreen400BackgroundName[0] = '\0';
+    ScenExtension->LoadingScreen480BackgroundName[0] = '\0';
+    ScenExtension->LoadingScreen400BackgroundName[0] = '\0';
+    ScenExtension->LoadingScreen400Loc = TPoint2D<int>(0, 0);
+    ScenExtension->LoadingScreen480Loc = TPoint2D<int>(0, 0);
+    ScenExtension->LoadingScreen600Loc = TPoint2D<int>(0, 0);
+
+    if (Session.Type == GAME_NORMAL) {
+
+        if (ini.Is_Present(BASIC, "LS400BkgdName")) {
+            ini.Get_String(BASIC, "LS400BkgdName", ScenExtension->LoadingScreen400BackgroundName, sizeof(ScenExtension->LoadingScreen400BackgroundName));
+            ASSERT(std::strlen(ScenExtension->LoadingScreen400BackgroundName) > 0);
+        }
+        if (ini.Is_Present(BASIC, "LS480BkgdName")) {
+            ini.Get_String(BASIC, "LS480BkgdName", ScenExtension->LoadingScreen480BackgroundName, sizeof(ScenExtension->LoadingScreen480BackgroundName));
+            ASSERT(std::strlen(ScenExtension->LoadingScreen480BackgroundName) > 0);
+        }
+        if (ini.Is_Present(BASIC, "LS600BkgdName")) {
+            ini.Get_String(BASIC, "LS600BkgdName", ScenExtension->LoadingScreen600BackgroundName, sizeof(ScenExtension->LoadingScreen600BackgroundName));
+            ASSERT(std::strlen(ScenExtension->LoadingScreen600BackgroundName) > 0);
+        }
+
+        if (ini.Is_Present(BASIC, "LS400TextLoc")) {
+            ScenExtension->LoadingScreen400Loc = ini.Get_Point(BASIC, "LS400TextLoc", ScenExtension->LoadingScreen400Loc);
+            ASSERT(ScenExtension->LoadingScreen400Loc.Is_Valid());
+        }
+        if (ini.Is_Present(BASIC, "LS480TextLoc")) {
+            ScenExtension->LoadingScreen480Loc = ini.Get_Point(BASIC, "LS480TextLoc", ScenExtension->LoadingScreen480Loc);
+            ASSERT(ScenExtension->LoadingScreen480Loc.Is_Valid());
+        }
+        if (ini.Is_Present(BASIC, "LS600TextLoc")) {
+            ScenExtension->LoadingScreen600Loc = ini.Get_Point(BASIC, "LS600TextLoc", ScenExtension->LoadingScreen600Loc);
+            ASSERT(ScenExtension->LoadingScreen600Loc.Is_Valid());
+        }
+
+    }
 
     return true;
 }
