@@ -255,13 +255,23 @@ static void Init_Loading_Screen(const char *filename)
     }
 
     /**
-     *  For the campaign, we abuse the required CD to get the desired Side.
+     *  For the campaign, we check to see if the scenario name contains either
+     *  "GDI" or "NOD", and then set the side to those respectively.
      */
     SideType side = SIDE_GDI;
     if (Session.Type == GAME_NORMAL) {
 
         if (Scen->CampaignID != CAMPAIGN_NONE) {
-            side = SideType(Campaigns[Scen->CampaignID]->WhichCD);
+
+            const char *scen_name = Campaigns[Scen->CampaignID]->Scenario;
+
+            if (std::strstr(scen_name, "GDI")) {
+                side = SIDE_GDI;
+
+            } else if (std::strstr(scen_name, "NOD")) {
+                side = SIDE_NOD;
+            }
+
         }
 
     /**
