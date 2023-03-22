@@ -241,17 +241,23 @@ void RulesClassExtension::Process(CCINIClass &ini)
     This()->IQ(ini);
     This()->General(ini);
 
-    /**
-     *  This is a edge case issue we exposed in the original RULES.INI where the
-     *  Nod Radar (NARADR) has "IsNewTheater" set to false, and as a result, the
-     *  new theater system ends up making this build show in the wrong drawing
-     *  palette. To fix this, just before Read_INI() is called on all the
-     *  BuildingTypes (see RulesClass::Objects()), we make sure NARADR has the
-     *  default value of "IsNewTheater" set to true.
-     */
     for (int index = 0; index < BuildingTypes.Count(); ++index) {
+
         BuildingTypeClass *btype = BuildingTypes[index];
-        if (!strcmpi(btype->Name(), "NARADR")) {
+        Wstring name = btype->Name();
+        Wstring graphic_name = btype->Graphic_Name();
+
+        /**
+         *  This is a edge case issue we exposed in the original RULES.INI where the
+         *  Nod Radar (NARADR) has "IsNewTheater" set to false, and as a result, the
+         *  new theater system ends up making this build show in the wrong drawing
+         *  palette. To fix this, just before Read_INI() is called on all the
+         *  BuildingTypes (see RulesClass::Objects()), we make sure NARADR has the
+         *  default value of "IsNewTheater" set to true.
+         */
+        if (name == "NARADR" && btype->IsNewTheater == false) {
+            DEBUG_WARNING("Rules: Changing the default value of IsNewTheater for NARADR to 'true'!\n");
+            DEBUG_WARNING("Rules: Please consider changing NewTheater on NARADR to 'yes'!\n");
             btype->IsNewTheater = true;
         }
     }
@@ -682,6 +688,10 @@ void RulesClassExtension::Fixups(CCINIClass &ini)
             }
 
         }
+    }
+
+    if (is_ruleini) {
+
     }
 
     DEBUG_INFO("Rules::Fixups(exit)\n");
