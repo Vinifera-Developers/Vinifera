@@ -394,6 +394,51 @@ bool HouseClassFake::_AI_Target_MultiMissile(SuperClass* super)
 
 
 /**
+ *  #issue-994
+ *
+ *  Fixes a bug where a superweapon was enabled in non-suspended mode
+ *  when the scenario was started with a pre-placed powered-down superweapon
+ *  building on the map.
+ *
+ *  Author: Rampastring
+ */
+DECLARE_PATCH(_HouseClass_Enable_SWs_Check_For_Building_Power)
+{
+    GET_REGISTER_STATIC(int, quiet, eax);
+    GET_REGISTER_STATIC(BuildingClass *, building, esi);
+
+    if (!building->IsPowerOn) {
+        goto not_powered;
+    }
+
+    /**
+     *  Stolen bytes/code.
+     */
+    _asm { mov  esi, [PlayerPtr] }
+
+    /**
+     *  Enable the superweapon in non-suspended mode.
+     *  EAX is used to determine the mode.
+     */
+powered:
+    _asm { xor  eax, eax }
+    goto enable_sw;
+
+    /**
+     *  Enable the superweapon in suspended mode.
+     */
+not_powered:
+    _asm { mov eax, 1 }
+
+    /**
+     *  Continue the SW enablement process.
+     */
+enable_sw:
+    JMP_REG(ecx, 0x004CB6C7);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void HouseClassExtension_Hooks()
@@ -408,4 +453,5 @@ void HouseClassExtension_Hooks()
     Patch_Jump(0x004CB777, &_HouseClass_ShouldDisableCameo_BuildLimit_Fix);
     Patch_Jump(0x004BC187, _HouseClass_Can_Build_BuildLimit_Handle_Vehicle_Transform);
     Patch_Jump(0x004CA4A0, &HouseClassFake::_AI_Target_MultiMissile);
+    Patch_Jump(0x004CB6C1, &_HouseClass_Enable_SWs_Check_For_Building_Power);
 }
