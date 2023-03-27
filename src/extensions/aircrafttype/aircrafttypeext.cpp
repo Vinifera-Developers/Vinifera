@@ -42,6 +42,7 @@
  */
 AircraftTypeClassExtension::AircraftTypeClassExtension(const AircraftTypeClass *this_ptr) :
     TechnoTypeClassExtension(this_ptr),
+    IsCurleyShuffle(false), // Same as the RulesClass default.
     ReloadRate(0.05f) // Same as the RulesClass default.
 {
     //if (this_ptr) EXT_DEBUG_TRACE("AircraftTypeClassExtension::AircraftTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
@@ -186,6 +187,7 @@ bool AircraftTypeClassExtension::Read_INI(CCINIClass &ini)
         return false;
     }
 
+    IsCurleyShuffle = ini.Get_Bool(ini_name, "CurleyShuffle", Rule->IsCurleyShuffle);
     ReloadRate = ini.Get_Float(ini_name, "ReloadRate", Rule->ReloadRate);
 
     return true;

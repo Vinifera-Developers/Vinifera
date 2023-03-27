@@ -63,6 +63,11 @@ AircraftTypeClassExtension final : public TechnoTypeClassExtension
 
     public:
         /**
+         *  Should this aircraft shuffle its position between firing at its target?
+         */
+        bool IsCurleyShuffle;
+
+        /**
          *  This is the rate that this aircraft will reload its ammo when docked with a helipad.
          */
         double ReloadRate;

@@ -29,6 +29,7 @@
 #include "aircraftext_init.h"
 #include "aircraft.h"
 #include "aircrafttype.h"
+#include "aircrafttypeext.h"
 #include "object.h"
 #include "target.h"
 #include "unit.h"
@@ -44,6 +45,71 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-996
+ * 
+ *  Implements IsCurleyShuffle for AircraftTypes.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET0_Can_Fire_FIRE_FACING_Patch)
+{
+    GET_REGISTER_STATIC(AircraftClass *, this_ptr, esi);
+    static AircraftTypeClassExtension *class_ext;
+    static bool is_curley_shuffle;
+
+    class_ext = Extension::Fetch<AircraftTypeClassExtension>(this_ptr->Class);
+
+    is_curley_shuffle = class_ext->IsCurleyShuffle;
+
+    _asm { mov al, is_curley_shuffle }
+    JMP_REG(edx, 0x0040BDDB);
+
+}
+
+DECLARE_PATCH(_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_Fire_FIRE_OK_Patch)
+{
+    GET_REGISTER_STATIC(AircraftClass *, this_ptr, esi);
+    static AircraftTypeClassExtension * class_ext;
+    static bool is_curley_shuffle;
+
+    class_ext = Extension::Fetch<AircraftTypeClassExtension>(this_ptr->Class);
+
+    is_curley_shuffle = class_ext->IsCurleyShuffle;
+
+    _asm { mov cl, is_curley_shuffle }
+    JMP_REG(edx, 0x0040BFA8);
+}
+
+DECLARE_PATCH(_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_Fire_FIRE_FACING_Patch)
+{
+    GET_REGISTER_STATIC(AircraftClass *, this_ptr, esi);
+    static AircraftTypeClassExtension * class_ext;
+    static bool is_curley_shuffle;
+
+    class_ext = Extension::Fetch<AircraftTypeClassExtension>(this_ptr->Class);
+
+    is_curley_shuffle = class_ext->IsCurleyShuffle;
+
+    _asm { mov dl, is_curley_shuffle }
+    JMP_REG(edx, 0x0040C060);
+}
+
+DECLARE_PATCH(_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_Fire_DEFAULT_Patch)
+{
+    GET_REGISTER_STATIC(AircraftClass *, this_ptr, esi);
+    static AircraftTypeClassExtension *class_ext;
+    static bool is_curley_shuffle;
+
+    class_ext = Extension::Fetch<AircraftTypeClassExtension>(this_ptr->Class);
+
+    is_curley_shuffle = class_ext->IsCurleyShuffle;
+
+    _asm { mov al, is_curley_shuffle }
+    JMP_REG(edx, 0x0040C0B8);
+}
 
 
 /**
@@ -263,4 +329,8 @@ void AircraftClassExtension_Hooks()
     Patch_Jump(0x0040B819, &_AircraftClass_What_Action_Is_Totable_Patch);
     Patch_Jump(0x0040A413, &_AircraftClass_Mission_Move_LAND_Is_Moving_Check_Patch);
     Patch_Jump(0x0040988C, &_AircraftClass_Mission_Unload_Transport_Detach_Sound_Patch);
+    Patch_Jump(0x0040BDCF, &_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET0_Can_Fire_FIRE_FACING_Patch);
+    Patch_Jump(0x0040C054, &_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_Fire_FIRE_OK_Patch);
+    Patch_Jump(0x0040BF9D, &_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_Fire_FIRE_FACING_Patch);
+    Patch_Jump(0x0040C0AC, &_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_Fire_DEFAULT_Patch);
 }
