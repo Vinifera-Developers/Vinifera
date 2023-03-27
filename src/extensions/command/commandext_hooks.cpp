@@ -431,6 +431,9 @@ void Init_Vinifera_Commands()
 
         cmdptr = new DumpHeapsCommandClass;
         Commands.Add(cmdptr);
+
+        cmdptr = new ReloadRulesCommandClass;
+        Commands.Add(cmdptr);
     }
 
     /**

@@ -4107,3 +4107,40 @@ bool DumpHeapsCommandClass::Process()
 
     return true;
 }
+
+
+/**
+ *  Reloads the Rules and Art INI files.
+ * 
+ *  @author: CCHyper
+ */
+const char *ReloadRulesCommandClass::Get_Name() const
+{
+    return "ReloadRules";
+}
+
+const char * ReloadRulesCommandClass::Get_UI_Name() const
+{
+    return "Reload Rules";
+}
+
+const char *ReloadRulesCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *ReloadRulesCommandClass::Get_Description() const
+{
+    return "Reloads the Rules and Art INI files.";
+}
+
+bool ReloadRulesCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    Vinifera_Developer_IsToReloadRules = true;
+
+    return true;
+}
