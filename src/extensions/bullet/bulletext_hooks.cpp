@@ -33,6 +33,9 @@
 #include "warheadtypeext.h"
 #include "iomap.h"
 #include "extension.h"
+#include "vinifera_globals.h"
+#include "session.h"
+#include "tacticalext.h"
 #include "fatal.h"
 #include "asserthandler.h"
 #include "debughandler.h"
@@ -74,13 +77,13 @@ create_trailer_anim:
 
 
 /**
- *  #issue-415
+ *  #issue-415, #issue-
  * 
  *  Implements screen shake values for WarheadTypes.
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_BulletClass_Logic_ShakeScreen_Patch)
+DECLARE_PATCH(_BulletClass_Logic_Start_Patch)
 {
     GET_REGISTER_STATIC(BulletClass *, this_ptr, ebx);
     GET_REGISTER_STATIC(WarheadTypeClass *, warhead, eax);
@@ -104,6 +107,15 @@ DECLARE_PATCH(_BulletClass_Logic_ShakeScreen_Patch)
     }
 
     /**
+     *  Does this warhead trigger a screen flash (offline games only)? 
+     */
+    if (Session.Singleplayer_Game()) {
+        if (warheadext->IsScreenFlash && !TacticalMapExtension->IsPendingScreenFlash) {
+            TacticalMapExtension->IsPendingScreenFlash = true;
+        }
+    }
+
+    /**
      *  Restore some registers.
      */
     _asm { mov eax, warhead }
@@ -121,6 +133,6 @@ DECLARE_PATCH(_BulletClass_Logic_ShakeScreen_Patch)
  */
 void BulletClassExtension_Hooks()
 {
-    Patch_Jump(0x00446652, &_BulletClass_Logic_ShakeScreen_Patch);
+    Patch_Jump(0x00446652, &_BulletClass_Logic_Start_Patch);
     Patch_Jump(0x004447BF, &_BulletClass_AI_SpawnDelay_Patch);
 }

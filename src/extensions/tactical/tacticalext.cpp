@@ -68,7 +68,10 @@ TacticalExtension::TacticalExtension(const Tactical *this_ptr) :
     InfoTextNotifySound(VOC_NONE),
     InfoTextNotifySoundVolume(1.0f),
     InfoTextStyle(TPF_6PT_GRAD|TPF_DROPSHADOW),
-    InfoTextTimer(0)
+    InfoTextTimer(0),
+    IsPendingScreenFlash(false),
+    ScreenFlashColor(255,255,255),
+    ScreenFlashTrans(100)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TacticalExtension::TacticalExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -508,9 +511,73 @@ void TacticalExtension::Render_Post()
     //DEV_DEBUG_INFO("After EBoltClass::Draw_All\n");
 
     /**
+     *  x
+     */
+    Screen_Flash_AI();
+
+    /**
      *  Draw any overlay text.
      */
     Draw_Super_Timers();
+}
+
+
+/**
+ *  x
+ *
+ *  @authors: CCHyper
+ */
+void TacticalExtension::Screen_Flash_AI()
+{
+    static bool _is_fading_in = false;
+    static bool _is_fading_out = false;
+
+    static CDTimerClass<MSTimerClass> _fading_in_timer;
+    static CDTimerClass<MSTimerClass> _fading_out_timer;
+
+    static const int FADE_IN_RATE = 1000 / 4;
+    static const int FADE_OUT_RATE = 1000 / 3;
+
+    /**
+     *  If a screen flash was triggered, initialize the timers.
+     */
+    if (IsPendingScreenFlash) {
+        _is_fading_in = true;
+        _is_fading_out = false;
+        _fading_in_timer = FADE_IN_RATE;
+        IsPendingScreenFlash = false;
+    }
+
+    /**
+     *  Fading from white to game.
+     */
+    if (_is_fading_out) {
+        if (_fading_out_timer.Expired()) {
+            _is_fading_out = false;
+            //IsPendingScreenFlash = false;
+        }
+        unsigned adjust = (_fading_out_timer) * ScreenFlashTrans / FADE_OUT_RATE;
+        CompositeSurface->Fill_Rect_Trans(TacticalRect, ScreenFlashColor, adjust);
+    }
+
+    /**
+     *  Fading from game to white.
+     */
+    if (_is_fading_in) {
+        if (_fading_in_timer.Expired()) {
+            _is_fading_in = false;
+        }
+        unsigned adjust = (FADE_IN_RATE - _fading_in_timer) * ScreenFlashTrans / FADE_IN_RATE;
+        CompositeSurface->Fill_Rect_Trans(TacticalRect, ScreenFlashColor, adjust);
+
+        /**
+         *  Flag and prepare the fade back timer.
+         */
+        if (!_is_fading_in) {
+            _is_fading_out = true;
+            _fading_out_timer = FADE_OUT_RATE;
+        }
+    }
 }
 
 

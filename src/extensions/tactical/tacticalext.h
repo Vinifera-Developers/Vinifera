@@ -34,6 +34,7 @@
 #include "stimer.h"
 #include "wstring.h"
 #include "point.h"
+#include "rgb.h"
 #include "textprint.h"
 #include <objidl.h>
 
@@ -78,6 +79,8 @@ class TacticalExtension final : public GlobalExtensionClass<Tactical>
 
         void Render_Post();
 
+        void Screen_Flash_AI();
+
 #ifndef NDEBUG
         bool Debug_Draw_Facings();
 #endif
@@ -120,4 +123,19 @@ class TacticalExtension final : public GlobalExtensionClass<Tactical>
          *  The lifetime timer for the information text.
          */
         CDTimerClass<MSTimerClass> InfoTextTimer;
+
+        /**
+         *  x
+         */
+        bool IsPendingScreenFlash;
+
+        /**
+         *
+         */
+        RGBClass ScreenFlashColor;
+
+        /**
+         *
+         */
+        unsigned ScreenFlashTrans;
 };

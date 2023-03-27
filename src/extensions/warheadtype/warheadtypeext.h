@@ -29,6 +29,7 @@
 
 #include "abstracttypeext.h"
 #include "warheadtype.h"
+#include "rgb.h"
 
 
 class DECLSPEC_UUID(UUID_WARHEADTYPE_EXTENSION)
@@ -73,6 +74,21 @@ WarheadTypeClassExtension final : public AbstractTypeClassExtension
         bool IsAffectsAllies;
 
         /**
+         *  
+         */
+        bool IsScreenFlash;
+
+        /**
+         *
+         */
+        RGBClass ScreenFlashColor;
+
+        /**
+         *
+         */
+        unsigned ScreenFlashTrans;
+
+        /**
          *  This is used to override the size of the combat light flash at the point of impact.
          */
         float CombatLightSize;
@@ -80,8 +96,8 @@ WarheadTypeClassExtension final : public AbstractTypeClassExtension
         /**
          *  These values are used to shake the screen when the projectile impacts.
          */
-        unsigned int ShakePixelYHi;
-        unsigned int ShakePixelYLo;
-        unsigned int ShakePixelXHi;
-        unsigned int ShakePixelXLo;
+        unsigned ShakePixelYHi;
+        unsigned ShakePixelYLo;
+        unsigned ShakePixelXHi;
+        unsigned ShakePixelXLo;
 };
