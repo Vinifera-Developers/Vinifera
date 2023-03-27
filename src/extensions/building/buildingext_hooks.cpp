@@ -37,6 +37,9 @@
 #include "buildingtypeext.h"
 #include "technotype.h"
 #include "technotypeext.h"
+#include "aircraft.h"
+#include "aircrafttype.h"
+#include "aircrafttypeext.h"
 #include "house.h"
 #include "housetype.h"
 #include "bsurface.h"
@@ -54,6 +57,34 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-204
+ * 
+ *  Implements ReloadRate for AircraftTypes, allowing each aircraft to have
+ *  its own independent ammo reloading rate when docked with a helipad.
+ * 
+ *  @author: CCHyper
+ */
+static int Building_Radio_Reload_Rate(BuildingClass *this_ptr)
+{
+    AircraftClass *radio = reinterpret_cast<AircraftClass *>(this_ptr->Contact_With_Whom());
+    AircraftTypeClassExtension *radio_class_ext = Extension::Fetch<AircraftTypeClassExtension>(radio->Class);
+
+    return radio_class_ext->ReloadRate * TICKS_PER_MINUTE;
+}
+
+DECLARE_PATCH(_BuildingClass_Mission_Repair_ReloadRate_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass *, this_ptr, ebp);
+    static int time;
+
+    time = Building_Radio_Reload_Rate(this_ptr);
+
+    _asm { mov eax, time }
+    JMP_REG(edi, 0x0043260F);
+}
 
 
 /**
@@ -481,4 +512,6 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x00429A96, &_BuildingClass_AI_ProduceCash_Patch);
     Patch_Jump(0x0042F67D, &_BuildingClass_Captured_ProduceCash_Patch);
     Patch_Jump(0x0042E179, &_BuildingClass_Grand_Opening_ProduceCash_Patch);
+    Patch_Jump(0x004325F9, &_BuildingClass_Mission_Repair_ReloadRate_Patch);
+    Patch_Jump(0x0043266C, &_BuildingClass_Mission_Repair_ReloadRate_Patch);
 }

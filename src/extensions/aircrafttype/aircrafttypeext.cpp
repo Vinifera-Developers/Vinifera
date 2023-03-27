@@ -27,6 +27,8 @@
  ******************************************************************************/
 #include "aircrafttypeext.h"
 #include "aircrafttype.h"
+#include "tibsun_globals.h"
+#include "rules.h"
 #include "ccini.h"
 #include "extension.h"
 #include "asserthandler.h"
@@ -39,7 +41,8 @@
  *  @author: CCHyper
  */
 AircraftTypeClassExtension::AircraftTypeClassExtension(const AircraftTypeClass *this_ptr) :
-    TechnoTypeClassExtension(this_ptr)
+    TechnoTypeClassExtension(this_ptr),
+    ReloadRate(0.05f) // Same as the RulesClass default.
 {
     //if (this_ptr) EXT_DEBUG_TRACE("AircraftTypeClassExtension::AircraftTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -182,6 +185,8 @@ bool AircraftTypeClassExtension::Read_INI(CCINIClass &ini)
     if (!ini.Is_Present(ini_name)) {
         return false;
     }
-    
+
+    ReloadRate = ini.Get_Float(ini_name, "ReloadRate", Rule->ReloadRate);
+
     return true;
 }
