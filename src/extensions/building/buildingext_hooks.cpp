@@ -39,6 +39,9 @@
 #include "unitext.h"
 #include "technotype.h"
 #include "technotypeext.h"
+#include "aircraft.h"
+#include "aircrafttype.h"
+#include "aircrafttypeext.h"
 #include "house.h"
 #include "housetype.h"
 #include "map.h"
@@ -209,6 +212,34 @@ success:
      */
 fail_return:
     JMP(0x00431E90);
+}
+
+
+/**
+ *  #issue-204
+ * 
+ *  Implements ReloadRate for AircraftTypes, allowing each aircraft to have
+ *  its own independent ammo reloading rate when docked with a helipad.
+ * 
+ *  @author: CCHyper
+ */
+static int Building_Radio_Reload_Rate(BuildingClass *this_ptr)
+{
+    AircraftClass *radio = reinterpret_cast<AircraftClass *>(this_ptr->Contact_With_Whom());
+    AircraftTypeClassExtension *radio_class_ext = Extension::Fetch<AircraftTypeClassExtension>(radio->Class);
+
+    return radio_class_ext->ReloadRate * TICKS_PER_MINUTE;
+}
+
+DECLARE_PATCH(_BuildingClass_Mission_Repair_ReloadRate_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass *, this_ptr, ebp);
+    static int time;
+
+    time = Building_Radio_Reload_Rate(this_ptr);
+
+    _asm { mov eax, time }
+    JMP_REG(edi, 0x0043260F);
 }
 
 
@@ -669,4 +700,6 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x00432184, &_BuildingClass_Mission_Repair_Assign_Rally_Destination_When_No_Repair_Needed);
     Patch_Jump(0x00431DAB, &_BuildingClass_Mission_Repair_Assign_Rally_Destination_After_Repair_Complete);
     Patch_Jump(0x00439D10, &BuildingClassFake::_Can_Have_Rally_Point);
+    Patch_Jump(0x004325F9, &_BuildingClass_Mission_Repair_ReloadRate_Patch);
+    Patch_Jump(0x0043266C, &_BuildingClass_Mission_Repair_ReloadRate_Patch);
 }
