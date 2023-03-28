@@ -35,6 +35,8 @@
 #include "building.h"
 #include "buildingtype.h"
 #include "buildingtypeext.h"
+#include "techno.h"
+#include "technoext.h"
 #include "technotype.h"
 #include "technotypeext.h"
 #include "house.h"
@@ -54,6 +56,61 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-721
+ * 
+ *  Takes over control of spawning the natural particle system when
+ *  the building is uncloaking.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_BuildingClass_Cloaking_AI_Spawn_Natural_Particle_System_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass *, this_ptr, ebp);
+    static TechnoClassExtension *technoext_ptr;
+
+    /**
+     *  Stolen bytes/code.
+     */
+    _asm { mov [ebp+0x0F0], 0 } // this->Cloak = UNCLOAKED;
+
+    /**
+     *  Find the extension instances.
+     */
+    technoext_ptr = TechnoClassExtensions.find(this_ptr);
+    if (technoext_ptr) {
+        technoext_ptr->Spawn_Natural_Particle_System();
+    }
+
+    JMP(0x00438BE4);
+}
+
+
+/**
+ *  #issue-721
+ * 
+ *  Takes over control of spawning the natural particle system when
+ *  the building is unlimbo'd in the game world.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_BuildingClass_Unlimbo_Spawn_Natural_Particle_System_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass *, this_ptr, esi);
+    static TechnoClassExtension *technoext_ptr;
+
+    /**
+     *  Find the extension instances.
+     */
+    technoext_ptr = TechnoClassExtensions.find(this_ptr);
+    if (technoext_ptr) {
+        technoext_ptr->Spawn_Natural_Particle_System();
+    }
+
+    JMP(0x0042A80F);
+}
 
 
 /**
@@ -481,4 +538,6 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x00429A96, &_BuildingClass_AI_ProduceCash_Patch);
     Patch_Jump(0x0042F67D, &_BuildingClass_Captured_ProduceCash_Patch);
     Patch_Jump(0x0042E179, &_BuildingClass_Grand_Opening_ProduceCash_Patch);
+    Patch_Jump(0x0042A753, &_BuildingClass_Unlimbo_Spawn_Natural_Particle_System_Patch);
+    Patch_Jump(0x00438B06, &_BuildingClass_Cloaking_AI_Spawn_Natural_Particle_System_Patch);
 }

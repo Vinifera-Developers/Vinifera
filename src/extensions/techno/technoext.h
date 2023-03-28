@@ -63,6 +63,7 @@ class TechnoClassExtension : public RadioClassExtension
         virtual void Response_Deploy();
         virtual void Response_Harvest();
         virtual bool Can_Passive_Acquire() const;
+        void Spawn_Natural_Particle_System();
 
     private:
         const TechnoTypeClass *Techno_Type_Class() const;
@@ -73,4 +74,9 @@ class TechnoClassExtension : public RadioClassExtension
          *  The current electric bolt instance fired by this object.
          */
         EBoltClass *ElectricBolt;
+
+        /**
+         *  Additional attached particle system trackers for this object. 
+         */
+        ParticleSystemClass *ParticleSystems[EXT_ATTACHED_PARTICLE_COUNT];
 };

@@ -30,6 +30,7 @@
 #include "objecttypeext.h"
 #include "technotype.h"
 #include "typelist.h"
+#include "point.h"
 #include "tibsun_defines.h"
 
 
@@ -151,4 +152,13 @@ class TechnoTypeClassExtension : public ObjectTypeClassExtension
          *  Pointer to the cameo image surface.
          */
         BSurface *CameoImageSurface;
+
+        /**
+         *  These define the additional particle systems to display on the
+         *  building while it is active.
+         */
+        const ParticleSystemTypeClass *NaturalParticleSystem2;
+        TPoint3D<int> NaturalParticleSystemLocation2;
+        const ParticleSystemTypeClass *NaturalParticleSystem3;
+        TPoint3D<int> NaturalParticleSystemLocation3;
 };
