@@ -55,6 +55,32 @@
 
 
 /**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ * 
+ *  @note: This must not contain a constructor or deconstructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+static class TechnoClassExt final : public TechnoClass
+{
+    public:
+        int _Time_To_Build() const;
+};
+
+
+/**
+ *  Reimplementation of TechnoClass::Time_To_Build.
+ * 
+ *  @author: CCHyper
+ */
+int TechnoClassExt::_Time_To_Build() const
+{
+    TechnoClassExtension *technoext = Extension::Fetch<TechnoClassExtension>(this);
+    return technoext->Time_To_Build();
+}
+
+
+/**
  *  #issue-594
  * 
  *  Implements IsCanRetaliate for TechnoTypes.
@@ -705,4 +731,8 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x00630390, &_TechnoClass_Fire_At_Suicide_Patch);
     Patch_Jump(0x00631223, &_TechnoClass_Fire_At_Electric_Bolt_Patch);
     Patch_Jump(0x00636F09, &_TechnoClass_Is_Allowed_To_Retaliate_Can_Retaliate_Patch);
+
+    Patch_Call(0x0049725C, &TechnoClassExt::_Time_To_Build);
+    Patch_Call(0x004972F9, &TechnoClassExt::_Time_To_Build);
+    Patch_Call(0x00497A26, &TechnoClassExt::_Time_To_Build);
 }

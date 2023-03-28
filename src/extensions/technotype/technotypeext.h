@@ -148,6 +148,11 @@ class TechnoTypeClassExtension : public ObjectTypeClassExtension
         unsigned IdleRate;
 
         /**
+         *  This is an individual control of the build time for this object.
+         */
+        float BuildTimeMultiplier;
+
+        /**
          *  Pointer to the cameo image surface.
          */
         BSurface *CameoImageSurface;

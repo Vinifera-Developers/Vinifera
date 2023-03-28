@@ -65,6 +65,7 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     VoiceDeploy(),
     VoiceHarvest(),
     IdleRate(0),
+    BuildTimeMultiplier(1.0f),
     CameoImageSurface(nullptr)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
@@ -262,6 +263,8 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
 
     IdleRate = ini.Get_Int(ini_name, "IdleRate", IdleRate);
     IdleRate = ArtINI.Get_Int(graphic_name, "IdleRate", IdleRate);
+
+    BuildTimeMultiplier = ini.Get_Float(ini_name, "BuildTimeMultiplier", BuildTimeMultiplier);
 
     /**
      *  Fetch the cameo image surface if it exists.
