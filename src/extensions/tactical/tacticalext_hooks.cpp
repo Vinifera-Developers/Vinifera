@@ -32,10 +32,15 @@
 #include "voc.h"
 #include "laserdraw.h"
 #include "ebolt.h"
+#include  "house.h"
 #include "buildingtype.h"
+#include "unittype.h"
+#include "unit.h"
 #include "vinifera_globals.h"
 #include "vinifera_util.h"
 #include "extension_globals.h"
+#include "optionsext.h"
+#include "session.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
@@ -301,7 +306,7 @@ DECLARE_PATCH(_Tactical_Render_Overlay_Patch)
 #ifndef RELEASE
     /**
      *  Draw the version number on screen for non-release builds.
-     * 
+     *
      *  @note: This must be last in the draw order!
      */
     Vinifera_Draw_Version_Text(CompositeSurface);
@@ -316,7 +321,7 @@ DECLARE_PATCH(_Tactical_Render_Overlay_Patch)
          *  Draw it to the screen.
          */
         TacticalMapExtension->Draw_Information_Text();
-        
+
         /**
          *  Play the one time notification sound if defined.
          */
@@ -324,7 +329,7 @@ DECLARE_PATCH(_Tactical_Render_Overlay_Patch)
             Sound_Effect(TacticalMapExtension->InfoTextNotifySound, TacticalMapExtension->InfoTextNotifySoundVolume);
             TacticalMapExtension->InfoTextNotifySound = VOC_NONE;
         }
-        
+
         /**
          *  If the screen timer has expired, disable drawing.
          */
@@ -334,7 +339,7 @@ DECLARE_PATCH(_Tactical_Render_Overlay_Patch)
             std::memset(TacticalMapExtension->InfoTextBuffer, 0, sizeof(TacticalMapExtension->InfoTextBuffer));
             TacticalMapExtension->InfoTextNotifySound = VOC_NONE;
             TacticalMapExtension->InfoTextPosition = TOP_LEFT;
-        }       
+        }
     }
 
     /**
@@ -351,6 +356,8 @@ original_code:
 
 
 /**
+ *  #issue-966
+ *
  *  Enables drawing of rally points for Service Depots.
  *
  *  @author: Rampastring
@@ -383,6 +390,127 @@ draw_rally_point:
 
 
 /**
+ *  Helper function.
+ *  Checks whether a specific object should be filtered
+ *  out from selection if the selection includes combatants.
+ */
+bool Should_Exclude_From_Selection(ObjectClass* obj)
+{
+    /**
+     *  Don't exclude objects that we don't own.
+     */
+    if (obj->Owning_House() != nullptr && !obj->Owning_House()->IsPlayerControl) {
+        return false;
+    }
+
+    if (obj->What_Am_I() == RTTI_UNIT) {
+        UnitTypeClass* unittype = reinterpret_cast<UnitClass*>(obj)->Class;
+
+        /**
+         *  Exclude units that harvest either Tiberium or Tiberium weeds,
+         *  and units that can deploy into factories.
+         *
+         *  However, never exclude units that have a weapon! (DTA's Enforcer
+         *  can deploy into a Barracks, yet still has a weapon)
+         */
+        if (unittype->IsToHarvest || unittype->IsToVeinHarvest ||
+            (unittype->DeploysInto != nullptr && unittype->DeploysInto->ToBuild != RTTI_NONE))
+        {
+            if (unittype->Fetch_Weapon_Info(WEAPON_SLOT_PRIMARY).Weapon == nullptr) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+
+void Filter_Selection()
+{
+    if (!OptionsExtension->FilterBandBoxSelection) {
+        return;
+    }
+
+    /**
+     *  This is a bit tricky. Optimally, when Shift is hold, the game should
+     *  decide what to do depending on what units were already selected
+     *  prior to the selection.
+     *
+     *  Scenario 1: the player has selected only combatant units. In this case,
+     *  shift-selection should exclude non-combatants.
+     *
+     *  Scenario 2: the player has selected one or more non-combatant units,
+     *  exlusively or in addition to combatants. In this case, shift-selection
+     *  should include non-combatants as it's already a mixed group.
+     *
+     *  However, the C&C RC implementation only filters out units AFTER they
+     *  have been selected. Meaning we don't know what units were selected prior
+     *  to the selection. Knowing that would require a somewhat more complex hack,
+     *  with either a reimplementation of the selection algorithm or hooks at the
+     *  beginning and at the end of it.
+     *
+     *  The best we can do for now is not to filter if the user is holding Shift.
+     *  Actually looks like this is what the C&C RC also does.
+     */
+    if (WWKeyboard->Down(KN_LSHIFT)) {
+        return;
+    }
+
+    bool any_to_exclude = false;
+    bool all_to_exclude = true;
+
+    for (int i = 0; i < CurrentObjects.Count(); i++) {
+        bool exclude = Should_Exclude_From_Selection(CurrentObjects[i]);
+        any_to_exclude |= exclude;
+        all_to_exclude &= exclude;
+    }
+
+    if (any_to_exclude && !all_to_exclude) {
+        for (int i = 0; i < CurrentObjects.Count(); i++) {
+            if (Should_Exclude_From_Selection(CurrentObjects[i])) {
+
+                /**
+                 *  Petroglyph added a count check here.
+                 *  Maybe they had trouble with the feature?
+                 *  Let's also add it just to be sure we won't end up
+                 *  in an infinite loop.
+                 */
+                int count_before = CurrentObjects.Count();
+                CurrentObjects[i]->Unselect();
+                int count_after = CurrentObjects.Count();
+                if (count_after < count_before) {
+                    i--;
+                }
+            }
+        }
+    }
+}
+
+
+/**
+ *  #issue-825
+ *
+ *  Excludes harvesters and deployable factories from band-box selection
+ *  when the selection also includes combatant units.
+ *
+ *  Ported over from Red Alert Remastered source code.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_Tactical_Select_These_Unselect_NonCombatants_Patch)
+{
+    Filter_Selection();
+
+    /**
+     *  Stolen bytes / code.
+     */
+    AllowVoice = true;
+    JMP_REG(ecx, 0x00616A7A);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void TacticalExtension_Hooks()
@@ -395,11 +523,15 @@ void TacticalExtension_Hooks()
     Patch_Jump(0x00611AF9, &_Tactical_Render_Post_Effects_Patch);
     Patch_Jump(0x00611BCB, &_Tactical_Render_Overlay_Patch);
 
-    Patch_Jump(0x00616E9A, &_Tactical_Draw_Rally_Points_NormaliseLineAnimation_Patch);
+    // Rampastring: DTA players have seen occasional crashes when the game draws rally point lines.
+    // Disable this for now to see whether the problem goes away.
+    // Patch_Jump(0x00616E9A, &_Tactical_Draw_Rally_Points_NormaliseLineAnimation_Patch);
     Patch_Jump(0x006172DB, &_Tactical_Draw_Waypoint_Paths_NormaliseLineAnimation_Patch);
     Patch_Jump(0x00617327, &_Tactical_Draw_Waypoint_Paths_DrawNormalLine_Patch);
 
     Patch_Jump(0x00616D0F, &_Tactical_Draw_Rally_Points_Draw_For_Service_Depots);
+
+    Patch_Jump(0x00616A73, &_Tactical_Select_These_Unselect_NonCombatants_Patch);
 
     /**
      *  #issue-351
