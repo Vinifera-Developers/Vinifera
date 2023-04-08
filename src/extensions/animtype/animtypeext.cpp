@@ -330,30 +330,30 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     AreaDamageSmudgeChance = ini.Get_Int(ini_name, "AreaDamageSmudgeChance", AreaDamageSmudgeChance);
     AreaDamageFlameChance = ini.Get_Int(ini_name, "AreaDamageFlameChance", AreaDamageFlameChance);
 
-    StartAnims = ini.Get_Anims(ini_name, "StartAnims", StartAnims);
-    StartAnimsCount = ini.Get_Integer_List(ini_name, "StartAnimsCount", StartAnimsCount);
-    StartAnimsMinimum = ini.Get_Integer_List(ini_name, "StartAnimsMinimum", StartAnimsMinimum);
-    StartAnimsMaximum = ini.Get_Integer_List(ini_name, "StartAnimsMaximum", StartAnimsMaximum);
+    // StartAnims = ini.Get_Anims(ini_name, "StartAnims", StartAnims);
+    // StartAnimsCount = ini.Get_Integer_List(ini_name, "StartAnimsCount", StartAnimsCount);
+    // StartAnimsMinimum = ini.Get_Integer_List(ini_name, "StartAnimsMinimum", StartAnimsMinimum);
+    // StartAnimsMaximum = ini.Get_Integer_List(ini_name, "StartAnimsMaximum", StartAnimsMaximum);
 
     if (!StartAnimsCount.Count()) {
         ASSERT_FATAL(StartAnims.Count() == StartAnimsMinimum.Count());
         ASSERT_FATAL(StartAnims.Count() == StartAnimsMaximum.Count());
     }
 
-    MiddleAnims = ini.Get_Anims(ini_name, "MiddleAnims", MiddleAnims);
-    MiddleAnimsCount = ini.Get_Integer_List(ini_name, "MiddleAnimsCount", MiddleAnimsCount);
-    MiddleAnimsMinimum = ini.Get_Integer_List(ini_name, "MiddleAnimsMinimum", MiddleAnimsMinimum);
-    MiddleAnimsMaximum = ini.Get_Integer_List(ini_name, "MiddleAnimsMaximum", MiddleAnimsMaximum);
+    // MiddleAnims = ini.Get_Anims(ini_name, "MiddleAnims", MiddleAnims);
+    // MiddleAnimsCount = ini.Get_Integer_List(ini_name, "MiddleAnimsCount", MiddleAnimsCount);
+    // MiddleAnimsMinimum = ini.Get_Integer_List(ini_name, "MiddleAnimsMinimum", MiddleAnimsMinimum);
+    // MiddleAnimsMaximum = ini.Get_Integer_List(ini_name, "MiddleAnimsMaximum", MiddleAnimsMaximum);
 
     if (!MiddleAnimsCount.Count()) {
         ASSERT_FATAL(MiddleAnims.Count() == MiddleAnimsMinimum.Count());
         ASSERT_FATAL(MiddleAnims.Count() == MiddleAnimsMaximum.Count());
     }
 
-    EndAnims = ini.Get_Anims(ini_name, "EndAnims", EndAnims);
-    EndAnimsCount = ini.Get_Integer_List(ini_name, "EndAnimsCount", EndAnimsCount);
-    EndAnimsMinimum = ini.Get_Integer_List(ini_name, "EndAnimsMinimum", EndAnimsMinimum);
-    EndAnimsMaximum = ini.Get_Integer_List(ini_name, "EndAnimsMaximum", EndAnimsMaximum);
+    // EndAnims = ini.Get_Anims(ini_name, "EndAnims", EndAnims);
+    // EndAnimsCount = ini.Get_Integer_List(ini_name, "EndAnimsCount", EndAnimsCount);
+    // EndAnimsMinimum = ini.Get_Integer_List(ini_name, "EndAnimsMinimum", EndAnimsMinimum);
+    // EndAnimsMaximum = ini.Get_Integer_List(ini_name, "EndAnimsMaximum", EndAnimsMaximum);
 
     if (!EndAnimsCount.Count()) {
         ASSERT_FATAL(EndAnims.Count() == EndAnimsMinimum.Count());
