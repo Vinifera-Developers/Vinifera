@@ -61,6 +61,8 @@ bool Vinifera_Developer_AIControl = false;
 bool Vinifera_SkipLogoMovies = false;
 bool Vinifera_SkipStartupMovies = false;
 
+bool Vinifera_NoTacticalVersionString = false;
+
 bool Vinifera_ShowSuperWeaponTimers = true;
 
 DynamicVectorClass<MFCC *> ViniferaMapsMixes;

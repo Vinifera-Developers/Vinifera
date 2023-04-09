@@ -81,6 +81,8 @@ extern bool Vinifera_Developer_AIControl;
 extern bool Vinifera_SkipLogoMovies;
 extern bool Vinifera_SkipStartupMovies;
 
+extern bool Vinifera_NoTacticalVersionString;
+
 extern bool Vinifera_ShowSuperWeaponTimers;
 
 extern DynamicVectorClass<MFCC *> ViniferaMapsMixes;

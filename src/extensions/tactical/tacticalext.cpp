@@ -29,6 +29,7 @@
 #include "tactical.h"
 #include "wwcrc.h"
 #include "vinifera_globals.h"
+#include "vinifera_util.h"
 #include "tibsun_globals.h"
 #include "colorscheme.h"
 #include "rgb.h"
@@ -181,6 +182,23 @@ void TacticalExtension::Set_Info_Text(const char *text)
     std::memset(TacticalMapExtension->InfoTextBuffer, 0, sizeof(TacticalMapExtension->InfoTextBuffer));
     std::strncpy(TacticalMapExtension->InfoTextBuffer, text, sizeof(TacticalMapExtension->InfoTextBuffer));
     TacticalMapExtension->InfoTextBuffer[std::strlen(text)-1] = '\0';
+}
+
+
+/**
+ *  Draws the version number on screen for non-release builds.
+ *
+ *  @authors: CCHyper
+ */
+void TacticalExtension::Draw_Version_Number_Text()
+{
+#ifndef RELEASE
+    if (!Vinifera_NoTacticalVersionString) {
+#else
+    if (false) {
+#endif
+        Vinifera_Draw_Version_Text(CompositeSurface);
+    }
 }
 
 

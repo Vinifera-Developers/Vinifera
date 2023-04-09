@@ -297,15 +297,6 @@ DECLARE_PATCH(_Tactical_Render_Overlay_Patch)
     //Tactical_Debug_Draw_Facings();
 #endif
 
-#ifndef RELEASE
-    /**
-     *  Draw the version number on screen for non-release builds.
-     * 
-     *  @note: This must be last in the draw order!
-     */
-    Vinifera_Draw_Version_Text(CompositeSurface);
-#endif
-
     /**
      *  Has custom screen text been set?
      */
@@ -335,6 +326,13 @@ DECLARE_PATCH(_Tactical_Render_Overlay_Patch)
             TacticalMapExtension->InfoTextPosition = TOP_LEFT;
         }       
     }
+
+    /**
+     *  Draw the version number on screen.
+     * 
+     *  @note: This must be last in the draw order!
+     */
+    TacticalMapExtension->Draw_Version_Number_Text();
 
     /**
      *  Stolen bytes/code.

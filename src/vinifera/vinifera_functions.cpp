@@ -423,6 +423,17 @@ bool Vinifera_Parse_Command_Line(int argc, char *argv[])
             continue;
         }
 
+#ifndef RELEASE
+        /**
+         *  Hide the version string from the ingame tactical view?
+         */
+        if (stricmp(string, "-NO_VERSION_STRING") == 0) {
+            DEBUG_INFO("  - No version string on tactical view.\n");
+            Vinifera_NoTacticalVersionString = true;
+            continue;
+        }
+#endif
+
     }
 
     if (argc > 1) {

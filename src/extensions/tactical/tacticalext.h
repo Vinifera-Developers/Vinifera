@@ -70,6 +70,8 @@ class TacticalExtension final : public GlobalExtensionClass<Tactical>
 
         void Set_Info_Text(const char *text);
 
+        void Draw_Version_Number_Text();
+
         void Draw_Debug_Overlay();
         void Draw_FrameStep_Overlay();
 
