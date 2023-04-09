@@ -63,8 +63,8 @@
   */
 DECLARE_PATCH(_TechnoClass_Evaluate_Object_Is_Legal_Target_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(const TechnoClass *, object, esi); // The target object being evaluated. 
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, edi);
+    GET_REGISTER_STATIC(const TechnoClass *, object, esi); // The target object being evaluated.
     static TechnoClassExtension *this_technoext;
     static TechnoClassExtension *object_technoext;
     static const TechnoTypeClass *object_tclass;
@@ -94,13 +94,13 @@ DECLARE_PATCH(_TechnoClass_Evaluate_Object_Is_Legal_Target_Patch)
      *  Target object passed the "theoretical" check, for now...
      */
 continue_eval:
-    JMP_REG(edi, 0x0062D8C0);
+    JMP_REG(edx, 0x0062D4D8);
 
     /**
      *  Target object is not a "theoretically legal" target.
      */
 return_false:
-    JMP_REG(edi, 0x0062D8C0);
+    JMP_REG(edx, 0x0062D8C0);
 }
 
 
