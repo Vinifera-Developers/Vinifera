@@ -3000,21 +3000,24 @@ bool PlaceInfantryCommandClass::Process()
         }
     }
 
+    if (!available_infantry.Count()) {
+        DEBUG_WARNING("Failed to generate list of available InfantryTypes!\n");
+        return false;
+    }
+
     InfantryTypeClass *infantrytype = available_infantry[Random_Pick(0, available_infantry.Count()-1)];
 
     /**
      *  Create an instance of the infantry.
      */
     InfantryClass *inf = reinterpret_cast<InfantryClass *>(infantrytype->Create_One_Of(PlayerPtr));
-    if (inf->Unlimbo(mouse_coord)) {
-        DEBUG_INFO("Placed infantry \"%s\" at %d,%d,%d\n", inf->Name(), inf->Coord.X, inf->Coord.Y, inf->Coord.Z);
-        return true;
-    } else {
+    if (!inf->Unlimbo(mouse_coord)) {
         delete inf;
+        return false;
     }
 
-
-    return false;
+    DEBUG_INFO("Placed infantry \"%s\" at %d,%d,%d\n", inf->Name(), inf->Coord.X, inf->Coord.Y, inf->Coord.Z);
+    return true;
 }
 
 
@@ -3075,20 +3078,24 @@ bool PlaceUnitCommandClass::Process()
         }
     }
 
+    if (!available_units.Count()) {
+        DEBUG_WARNING("Failed to generate list of available UnitTypes!\n");
+        return false;
+    }
+
     UnitTypeClass *unittype = available_units[Random_Pick(0, available_units.Count()-1)];
 
     /**
      *  Create an instance of the unit.
      */
     UnitClass *unit = reinterpret_cast<UnitClass *>(unittype->Create_One_Of(PlayerPtr));
-    if (unit->Unlimbo(mouse_coord)) {
-        DEBUG_INFO("Placed unit \"%s\" at %d,%d,%d\n", unit->Name(), unit->Coord.X, unit->Coord.Y, unit->Coord.Z);
-        return true;
-    } else {
+    if (!unit->Unlimbo(mouse_coord)) {
         delete unit;
+        return false;
     }
 
-    return false;
+    DEBUG_INFO("Placed unit \"%s\" at %d,%d,%d\n", unit->Name(), unit->Coord.X, unit->Coord.Y, unit->Coord.Z);
+    return true;
 }
 
 
