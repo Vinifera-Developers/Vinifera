@@ -52,6 +52,7 @@
 #include "convert.h"
 #include "drawshape.h"
 #include "rules.h"
+#include "rulesext.h"
 #include "voc.h"
 #include "iomap.h"
 #include "spritecollection.h"
@@ -680,6 +681,51 @@ original_code:
 
 
 /**
+ *  DTA-specific patch. Prevents buildings from catching flames
+ *  when rapidly switching between damage yellow and green
+ *  damage states.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_BuildingClass_Take_Damage_Prevent_Cumulative_Flame_Spawn_Patch)
+{
+    GET_REGISTER_STATIC(Coordinate *, coord, eax);
+    GET_REGISTER_STATIC(BuildingClass *, this_ptr, esi);
+    static BuildingClassExtension *buildingext;
+
+    /**
+     *  Stolen bytes / code.
+     */
+    Sound_Effect(Rule->BlowupSound, *coord);
+
+    /**
+     *  Actual functionality of the hack.
+     *  Do not spawn flames on the building if flames were spawned
+     *  on it too recently.
+     */
+    buildingext = Extension::Fetch<BuildingClassExtension>(this_ptr);
+    if (Frame < buildingext->LastFlameSpawnFrame + RuleExtension->BuildingFlameSpawnBlockFrames) {
+        goto past_flame_spawn;
+    }
+
+    buildingext->LastFlameSpawnFrame = Frame;
+
+    /**
+     *  Continue into applying building flames.
+     */
+original_code:
+    _asm { mov  ebx, 7FFFh }
+    JMP(0x0042B6E4);
+
+    /**
+     *  Skip the game's code block for spawning flames on buildings.
+     */
+past_flame_spawn:
+    JMP(0x0042B684);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void BuildingClassExtension_Hooks()
@@ -702,4 +748,5 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x00439D10, &BuildingClassFake::_Can_Have_Rally_Point);
     Patch_Jump(0x004325F9, &_BuildingClass_Mission_Repair_ReloadRate_Patch);
     Patch_Jump(0x0043266C, &_BuildingClass_Mission_Repair_ReloadRate_Patch);
+    Patch_Jump(0x0042B6CC, &_BuildingClass_Take_Damage_Prevent_Cumulative_Flame_Spawn_Patch);
 }

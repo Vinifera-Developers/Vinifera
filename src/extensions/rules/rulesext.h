@@ -104,4 +104,10 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
          *  difference in cells is less than this.
          */
         int MaxFreeRefineryDistanceBias;
+
+        /**
+         *  Defines for how many frames buildings do not get flames spawned on them on
+         *  damage state change after once catching fire.
+         */
+        int BuildingFlameSpawnBlockFrames;
 };

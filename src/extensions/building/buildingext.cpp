@@ -47,7 +47,8 @@ BuildingClassExtension::BuildingClassExtension(const BuildingClass *this_ptr) :
     ProduceCashTimer(),
     CurrentProduceCashBudget(-1),
     IsCaptureOneTimeCashGiven(false),
-    IsBudgetDepleted(false)
+    IsBudgetDepleted(false),
+    LastFlameSpawnFrame(0)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("BuildingClassExtension::BuildingClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
