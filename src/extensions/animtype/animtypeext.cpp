@@ -55,18 +55,18 @@ AnimTypeClassExtension::AnimTypeClassExtension(const AnimTypeClass* this_ptr) :
     AreaDamagePercentAgainstUnits(100),
     AreaDamageSmudgeChance(0),
     AreaDamageFlameChance(0),
-    StartAnims(),
-    StartAnimsCount(),
-    StartAnimsMinimum(),
-    StartAnimsMaximum(),
-    MiddleAnims(),
-    MiddleAnimsCount(),
-    MiddleAnimsMinimum(),
-    MiddleAnimsMaximum(),
-    EndAnims(),
-    EndAnimsCount(),
-    EndAnimsMinimum(),
-    EndAnimsMaximum(),
+    // StartAnims(),
+    // StartAnimsCount(),
+    // StartAnimsMinimum(),
+    // StartAnimsMaximum(),
+    // MiddleAnims(),
+    // MiddleAnimsCount(),
+    // MiddleAnimsMinimum(),
+    // MiddleAnimsMaximum(),
+    // EndAnims(),
+    // EndAnimsCount(),
+    // EndAnimsMinimum(),
+    // EndAnimsMaximum(),
     BiggestFrameWidth(0),
     BiggestFrameHeight(0)
 {
@@ -134,37 +134,37 @@ HRESULT AnimTypeClassExtension::Load(IStream *pStm)
         return E_FAIL;
     }
 
-    StartAnims.Clear();
-    StartAnimsCount.Clear();
-    StartAnimsMinimum.Clear();
-    StartAnimsMaximum.Clear();
-    MiddleAnims.Clear();
-    MiddleAnimsCount.Clear();
-    MiddleAnimsMinimum.Clear();
-    MiddleAnimsMaximum.Clear();
-    EndAnims.Clear();
-    EndAnimsCount.Clear();
-    EndAnimsMinimum.Clear();
-    EndAnimsMaximum.Clear();
+    //StartAnims.Clear();
+    //StartAnimsCount.Clear();
+    //StartAnimsMinimum.Clear();
+    //StartAnimsMaximum.Clear();
+    //MiddleAnims.Clear();
+    //MiddleAnimsCount.Clear();
+    //MiddleAnimsMinimum.Clear();
+    //MiddleAnimsMaximum.Clear();
+    //EndAnims.Clear();
+    //EndAnimsCount.Clear();
+    //EndAnimsMinimum.Clear();
+    //EndAnimsMaximum.Clear();
 
     new (this) AnimTypeClassExtension(NoInitClass());
     
-    StartAnims.Load(pStm);
-    StartAnimsCount.Load(pStm);
-    StartAnimsMinimum.Load(pStm);
-    StartAnimsMaximum.Load(pStm);
-    MiddleAnims.Load(pStm);
-    MiddleAnimsCount.Load(pStm);
-    MiddleAnimsMinimum.Load(pStm);
-    MiddleAnimsMaximum.Load(pStm);
-    EndAnims.Load(pStm);
-    EndAnimsCount.Load(pStm);
-    EndAnimsMinimum.Load(pStm);
-    EndAnimsMaximum.Load(pStm);
+    //StartAnims.Load(pStm);
+    //StartAnimsCount.Load(pStm);
+    //StartAnimsMinimum.Load(pStm);
+    //StartAnimsMaximum.Load(pStm);
+    //MiddleAnims.Load(pStm);
+    //MiddleAnimsCount.Load(pStm);
+    //MiddleAnimsMinimum.Load(pStm);
+    //MiddleAnimsMaximum.Load(pStm);
+    //EndAnims.Load(pStm);
+    //EndAnimsCount.Load(pStm);
+    //EndAnimsMinimum.Load(pStm);
+    //EndAnimsMaximum.Load(pStm);
 
-    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(StartAnims, "StartAnims");
-    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(MiddleAnims, "MiddleAnims");
-    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(EndAnims, "EndAnims");
+    //VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(StartAnims, "StartAnims");
+    //VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(MiddleAnims, "MiddleAnims");
+    //VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(EndAnims, "EndAnims");
 
     return hr;
 }
@@ -184,18 +184,18 @@ HRESULT AnimTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
         return hr;
     }
 
-    StartAnims.Save(pStm);
-    StartAnimsCount.Save(pStm);
-    StartAnimsMinimum.Save(pStm);
-    StartAnimsMaximum.Save(pStm);
-    MiddleAnims.Save(pStm);
-    MiddleAnimsCount.Save(pStm);
-    MiddleAnimsMinimum.Save(pStm);
-    MiddleAnimsMaximum.Save(pStm);
-    EndAnims.Save(pStm);
-    EndAnimsCount.Save(pStm);
-    EndAnimsMinimum.Save(pStm);
-    EndAnimsMaximum.Save(pStm);
+    //StartAnims.Save(pStm);
+    //StartAnimsCount.Save(pStm);
+    //StartAnimsMinimum.Save(pStm);
+    //StartAnimsMaximum.Save(pStm);
+    //MiddleAnims.Save(pStm);
+    //MiddleAnimsCount.Save(pStm);
+    //MiddleAnimsMinimum.Save(pStm);
+    //MiddleAnimsMaximum.Save(pStm);
+    //EndAnims.Save(pStm);
+    //EndAnimsCount.Save(pStm);
+    //EndAnimsMinimum.Save(pStm);
+    //EndAnimsMaximum.Save(pStm);
 
     return hr;
 }
@@ -242,18 +242,18 @@ void AnimTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
     crc(AreaDamagePercentAgainstUnits);
     crc(AreaDamageSmudgeChance);
     crc(AreaDamageFlameChance);
-    crc(StartAnims.Count());
-    crc(StartAnimsCount.Count());
-    crc(StartAnimsMinimum.Count());
-    crc(StartAnimsMaximum.Count());
-    crc(MiddleAnims.Count());
-    crc(MiddleAnimsCount.Count());
-    crc(MiddleAnimsMinimum.Count());
-    crc(MiddleAnimsMaximum.Count());
-    crc(EndAnims.Count());
-    crc(EndAnimsCount.Count());
-    crc(EndAnimsMinimum.Count());
-    crc(EndAnimsMaximum.Count());
+    // crc(StartAnims.Count());
+    // crc(StartAnimsCount.Count());
+    // crc(StartAnimsMinimum.Count());
+    // crc(StartAnimsMaximum.Count());
+    // crc(MiddleAnims.Count());
+    // crc(MiddleAnimsCount.Count());
+    // crc(MiddleAnimsMinimum.Count());
+    // crc(MiddleAnimsMaximum.Count());
+    // crc(EndAnims.Count());
+    // crc(EndAnimsCount.Count());
+    // crc(EndAnimsMinimum.Count());
+    // crc(EndAnimsMaximum.Count());
 }
 
 
@@ -335,30 +335,30 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     // StartAnimsMinimum = ini.Get_Integer_List(ini_name, "StartAnimsMinimum", StartAnimsMinimum);
     // StartAnimsMaximum = ini.Get_Integer_List(ini_name, "StartAnimsMaximum", StartAnimsMaximum);
 
-    if (!StartAnimsCount.Count()) {
-        ASSERT_FATAL(StartAnims.Count() == StartAnimsMinimum.Count());
-        ASSERT_FATAL(StartAnims.Count() == StartAnimsMaximum.Count());
-    }
+    // if (!StartAnimsCount.Count()) {
+    //     ASSERT_FATAL(StartAnims.Count() == StartAnimsMinimum.Count());
+    //     ASSERT_FATAL(StartAnims.Count() == StartAnimsMaximum.Count());
+    // }
 
     // MiddleAnims = ini.Get_Anims(ini_name, "MiddleAnims", MiddleAnims);
     // MiddleAnimsCount = ini.Get_Integer_List(ini_name, "MiddleAnimsCount", MiddleAnimsCount);
     // MiddleAnimsMinimum = ini.Get_Integer_List(ini_name, "MiddleAnimsMinimum", MiddleAnimsMinimum);
     // MiddleAnimsMaximum = ini.Get_Integer_List(ini_name, "MiddleAnimsMaximum", MiddleAnimsMaximum);
 
-    if (!MiddleAnimsCount.Count()) {
-        ASSERT_FATAL(MiddleAnims.Count() == MiddleAnimsMinimum.Count());
-        ASSERT_FATAL(MiddleAnims.Count() == MiddleAnimsMaximum.Count());
-    }
+    // if (!MiddleAnimsCount.Count()) {
+    //     ASSERT_FATAL(MiddleAnims.Count() == MiddleAnimsMinimum.Count());
+    //     ASSERT_FATAL(MiddleAnims.Count() == MiddleAnimsMaximum.Count());
+    // }
 
     // EndAnims = ini.Get_Anims(ini_name, "EndAnims", EndAnims);
     // EndAnimsCount = ini.Get_Integer_List(ini_name, "EndAnimsCount", EndAnimsCount);
     // EndAnimsMinimum = ini.Get_Integer_List(ini_name, "EndAnimsMinimum", EndAnimsMinimum);
     // EndAnimsMaximum = ini.Get_Integer_List(ini_name, "EndAnimsMaximum", EndAnimsMaximum);
 
-    if (!EndAnimsCount.Count()) {
-        ASSERT_FATAL(EndAnims.Count() == EndAnimsMinimum.Count());
-        ASSERT_FATAL(EndAnims.Count() == EndAnimsMaximum.Count());
-    }
+    // if (!EndAnimsCount.Count()) {
+    //     ASSERT_FATAL(EndAnims.Count() == EndAnimsMinimum.Count());
+    //     ASSERT_FATAL(EndAnims.Count() == EndAnimsMaximum.Count());
+    // }
 
     /**
      *  #issue-883

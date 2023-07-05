@@ -181,7 +181,7 @@ bool AnimClassExtension::Start()
      *
      *  Spawns the start animations.
      */
-    Spawn_Animations(This()->Center_Coord(), animtypeext->StartAnims, animtypeext->StartAnimsCount, animtypeext->StartAnimsMinimum, animtypeext->StartAnimsMaximum);
+    //Spawn_Animations(This()->Center_Coord(), animtypeext->StartAnims, animtypeext->StartAnimsCount, animtypeext->StartAnimsMinimum, animtypeext->StartAnimsMaximum);
 
     return true;
 }
@@ -201,7 +201,7 @@ bool AnimClassExtension::Middle()
      *
      *  Spawns the middle animations.
      */
-    Spawn_Animations(This()->Center_Coord(), animtypeext->MiddleAnims, animtypeext->MiddleAnimsCount, animtypeext->MiddleAnimsMinimum, animtypeext->MiddleAnimsMaximum);
+    //Spawn_Animations(This()->Center_Coord(), animtypeext->MiddleAnims, animtypeext->MiddleAnimsCount, animtypeext->MiddleAnimsMinimum, animtypeext->MiddleAnimsMaximum);
 
     return true;
 }
@@ -221,7 +221,7 @@ bool AnimClassExtension::End()
      *
      *  Spawns the end animations.
      */
-    Spawn_Animations(This()->Center_Coord(), animtypeext->EndAnims, animtypeext->EndAnimsCount, animtypeext->EndAnimsMinimum, animtypeext->EndAnimsMaximum);
+    //Spawn_Animations(This()->Center_Coord(), animtypeext->EndAnims, animtypeext->EndAnimsCount, animtypeext->EndAnimsMinimum, animtypeext->EndAnimsMaximum);
 
     return true;
 }
