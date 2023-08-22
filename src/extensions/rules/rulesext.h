@@ -110,4 +110,20 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
          *  damage state change after once catching fire.
          */
         int BuildingFlameSpawnBlockFrames;
+
+        /**
+         *  How much value (in credits) a house needs to destroy to strengthen their objects by one percentage.
+         */
+        int StrengthenDestroyedValueThreshold;
+
+        /**
+         *  A multiplier for value of buildings when a house destroys objects.
+         *  Allows making buildings more valuable than units for purposes of the Strengthening mechanic.
+         */
+        int StrengthenBuildingValueMultiplier;
+
+        /**
+         *  Is the strengthening mechanic enabled?
+         */
+        bool IsStrengtheningEnabled;
 };

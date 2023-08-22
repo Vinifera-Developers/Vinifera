@@ -38,6 +38,7 @@
 #include "warheadtypeext.h"
 #include "house.h"
 #include "housetype.h"
+#include "houseext.h"
 #include "rules.h"
 #include "rulesext.h"
 #include "uicontrol.h"
@@ -737,6 +738,54 @@ has_deploy_ability:
 
 
 /**
+ *  Accumulates killed value for house that killed that our unit.
+ *  If they have gathered enough value, then strengthen that house.
+ */
+DECLARE_PATCH(_TechnoClass_Record_The_Kill_Strengthen_Killer_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass *, source, edi);
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(int, cost, ebx);
+    static HouseClassExtension *houseext;
+    static int value;
+
+    /**
+     *  Stolen bytes / code.
+     *  Mark the damage source's house as the house that last hurt our owner.
+     */
+    this_ptr->House->WhoLastHurtMe = (HousesType)source->Owner();
+
+    if (RuleExtension->IsStrengtheningEnabled) {
+        houseext = Extension::Fetch<HouseClassExtension>(source->House);
+        value = cost;
+
+        // Buildings have a multiplier to their value.
+        if (this_ptr->What_Am_I() == RTTI_BUILDING) {
+            value = value * RuleExtension->StrengthenBuildingValueMultiplier;
+        }
+
+        houseext->StrengthenDestroyedCost += value;
+
+        /**
+         *  Strengthen the house if they have exceeded the threshold.
+         */
+        while (houseext->StrengthenDestroyedCost > RuleExtension->StrengthenDestroyedValueThreshold) {
+            source->House->FirepowerBias += 0.01;
+            source->House->ArmorBias += 0.01;
+
+            houseext->StrengthenDestroyedCost -= RuleExtension->StrengthenDestroyedValueThreshold;
+        }
+    }
+
+    /**
+     *  Continue the kill recording process from the point where the
+     *  game updates the points for the owner of the damage source.
+     */
+    JMP(0x0063382D);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void TechnoClassExtension_Hooks()
@@ -756,4 +805,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x00631223, &_TechnoClass_Fire_At_Electric_Bolt_Patch);
     Patch_Jump(0x00636F09, &_TechnoClass_Is_Allowed_To_Retaliate_Can_Retaliate_Patch);
     Patch_Jump(0x006320C2, &_TechnoClass_2A0_Is_Allowed_To_Deploy_Unit_Transform_Patch);
+    Patch_Jump(0x0063381A, &_TechnoClass_Record_The_Kill_Strengthen_Killer_Patch);
 }

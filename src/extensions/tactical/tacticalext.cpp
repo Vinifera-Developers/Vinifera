@@ -511,6 +511,61 @@ void TacticalExtension::Render_Post()
      *  Draw any overlay text.
      */
     Draw_Super_Timers();
+    Draw_Strengthen_Info();
+}
+
+
+/**
+ *  Prints strengthening information to the tactical screen.
+ *
+ *  @author: Rampastring (based on CCHyper's Super_Draw_Timer)
+ */
+void TacticalExtension::Draw_Strengthen_Info()
+{
+    static WWFontClass* _font = nullptr;
+
+    if (!RuleExtension->IsStrengtheningEnabled) {
+        return;
+    }
+
+    TextPrintType style = TPF_8POINT | TPF_RIGHT | TPF_NOSHADOW | TPF_METAL12 | TPF_SOLIDBLACK_BG;
+
+    if (!_font) {
+        _font = Font_Ptr(style);
+    }
+
+    char fullbuff[128];
+    int text_width = -1;
+    unsigned color_black = DSurface::RGB_To_Pixel(0, 0, 0);
+    RGBClass rgb_black(0, 0, 0);
+    int background_tint = 50;
+
+    float value = PlayerPtr->FirepowerBias;
+    std::snprintf(fullbuff, sizeof(fullbuff), "Strength: %.2f", value);
+
+    Rect draw_rect;
+    _font->String_Pixel_Rect(fullbuff, &draw_rect);
+
+    int font_width = _font->Get_Font_Width();
+    int font_height = _font->Get_Font_Height();
+
+    int y_pos = TacticalRect.Y + TacticalRect.Height - (font_height + 2) + 3;
+
+    Point2D text_draw_point;
+    text_draw_point.X = TacticalRect.Width - 4;
+    text_draw_point.Y = y_pos;
+
+    Rect fill_rect;
+    fill_rect.X = TacticalRect.Width - draw_rect.Width - 4;
+    fill_rect.Y = y_pos - 1;
+    fill_rect.Width = draw_rect.Width + 2;
+    fill_rect.Height = draw_rect.Height + 2;
+
+    //CompositeSurface->Fill_Rect(CompositeSurface->Get_Rect(), fill_rect, color_black);
+    CompositeSurface->Fill_Rect_Trans(fill_rect, rgb_black, background_tint);
+
+    Fancy_Text_Print(fullbuff, CompositeSurface, &CompositeSurface->Get_Rect(),
+        &text_draw_point, ColorSchemes[PlayerPtr->RemapColor], COLOR_TBLACK, style);
 }
 
 

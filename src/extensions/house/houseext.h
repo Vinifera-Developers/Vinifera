@@ -64,4 +64,5 @@ HouseClassExtension final : public AbstractClassExtension
         virtual RTTIType What_Am_I() const override { return RTTI_HOUSE; }
 
     public:
+        int StrengthenDestroyedCost;
 };

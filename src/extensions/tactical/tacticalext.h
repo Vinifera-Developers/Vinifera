@@ -74,6 +74,7 @@ class TacticalExtension final : public GlobalExtensionClass<Tactical>
         void Draw_FrameStep_Overlay();
 
         void Draw_Information_Text();
+        void Draw_Strengthen_Info();
         void Draw_Super_Timers();
 
         void Render_Post();
