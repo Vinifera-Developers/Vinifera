@@ -29,9 +29,13 @@
 #include "techno.h"
 #include "technotype.h"
 #include "technotypeext.h"
+#include "aircraft.h"
+#include "aircraftext.h"
 #include "house.h"
 #include "voc.h"
 #include "ebolt.h"
+#include "weapontype.h"
+#include "weapontypeext.h"
 #include "tibsun_inline.h"
 #include "wwcrc.h"
 #include "extension.h"
@@ -128,6 +132,39 @@ void TechnoClassExtension::Detach(TARGET target, bool all)
     //EXT_DEBUG_TRACE("TechnoClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     ObjectClassExtension::Detach(target, all);
+
+    /**
+     *  Destroy any aircraft that we have potentially spawned.
+     *  To lessen the performance hit, we only look through all aircraft
+     *  if one of more of our weapons are able to spawn aircraft.
+     */
+
+    const TechnoTypeClass* technotype = Techno_Type_Class();
+    bool can_spawn_aircraft = false;
+
+    for (WeaponSlotType i = WEAPON_SLOT_FIRST; i < WEAPON_SLOT_COUNT; i++) {
+        WeaponTypeClass const *weapon = technotype->Fetch_Weapon_Info(i).Weapon;
+
+        if (weapon != nullptr) {
+            WeaponTypeClassExtension* weaponext = Extension::Fetch<WeaponTypeClassExtension>(weapon);
+            if (weaponext->IsSpawnAircraft) {
+                can_spawn_aircraft = true;
+                break;
+            }
+        }
+    }
+
+    if (can_spawn_aircraft) {
+        for (int i = 0; i < Aircrafts.Count(); i++) {
+            AircraftClass *aircraft = Aircrafts[i];
+            AircraftClassExtension *aircraftext = Extension::Fetch<AircraftClassExtension>(aircraft);
+
+            if (aircraftext->Spawner == This()) {
+                aircraftext->Spawner = nullptr;
+                aircraft->entry_E4();
+            }
+        }
+    }
 }
 
 

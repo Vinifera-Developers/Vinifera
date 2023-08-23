@@ -42,6 +42,9 @@
 #include "rules.h"
 #include "rulesext.h"
 #include "uicontrol.h"
+#include "aircraft.h"
+#include "aircraftext.h"
+#include "aircrafttypeext.h"
 #include "infantry.h"
 #include "infantrytype.h"
 #include "infantrytypeext.h"
@@ -740,6 +743,8 @@ has_deploy_ability:
 /**
  *  Accumulates killed value for house that killed that our unit.
  *  If they have gathered enough value, then strengthen that house.
+ * 
+ *  @author: Rampastring
  */
 DECLARE_PATCH(_TechnoClass_Record_The_Kill_Strengthen_Killer_Patch)
 {
@@ -785,6 +790,92 @@ DECLARE_PATCH(_TechnoClass_Record_The_Kill_Strengthen_Killer_Patch)
 }
 
 
+void Create_Aircraft(TechnoClass* creator, WeaponTypeClassExtension* weaponext) 
+{
+    /**
+     *  Spawn an aircraft and make it attack the same target as our creator.
+     */
+    AircraftClass *aircraft = reinterpret_cast<AircraftClass*>(weaponext->AircraftTypeToSpawn->Create_One_Of(creator->House));
+
+    if (aircraft == nullptr) {
+        return;
+    }
+
+    aircraft->PrimaryFacing.Set(creator->PrimaryFacing.Current());
+    aircraft->Coord = creator->Coord;
+    aircraft->FirepowerBias = creator->FirepowerBias;
+    aircraft->ArmorBias = creator->ArmorBias;
+
+    /**
+     *  Use ScenarioInit to allow the aircraft to spawn on the same cell
+     *  with its creator.
+     */
+    ScenarioInit++;
+
+    if (aircraft->Unlimbo(aircraft->Coord, creator->PrimaryFacing.Current().Get_Dir())) {
+
+        /**
+         *  If the creator of the aircraft was targeting something, then assign its
+         *  target as the target of the spawned aircraft.
+         */
+        if (creator->TarCom) {
+            aircraft->Assign_Target(creator->TarCom);
+            aircraft->Assign_Mission(MISSION_ATTACK);
+            aircraft->Commence();
+        }
+
+        AircraftClassExtension *aircraftext = Extension::Fetch<AircraftClassExtension>(aircraft);
+        aircraftext->Spawner = creator;
+    }
+
+    ScenarioInit--;
+}
+
+
+/**
+ *  Allows a weapon to spawn aircraft when fired.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_TechnoClass_Fire_At_Spawn_Aircraft_Patch)
+{
+    GET_REGISTER_STATIC(TARGET, target, edi);
+    GET_REGISTER_STATIC(WeaponTypeClass *, weapontype, ebx);
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
+    static WeaponTypeClassExtension *weaponext;
+    static bool isbright;
+
+    weaponext = Extension::Fetch<WeaponTypeClassExtension>(weapontype);
+
+    if (!weaponext->IsSpawnAircraft) {
+        goto original_code;
+    }
+
+    Create_Aircraft(this_ptr, weaponext);
+
+    /**
+     *  Exit from function.
+     *  Actually it's best to just carry over, spawning the projectile
+     *  seems to do some beneficial stuff (like setting the ROF timer).
+     */
+    // _asm { xor  eax, eax }
+    // JMP_REG(edi, 0x006313C2);
+
+    /**
+     *  Launch the weapon as normal.
+     */
+original_code:
+
+    isbright = weapontype->IsBright;
+
+    /**
+     *  Stolen bytes / code.
+     */
+    _asm { mov dl, [isbright] }
+    JMP(0x006306BB);
+}
+
+
 /**
  *  Main function for patching the hooks.
  */
@@ -806,4 +897,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x00636F09, &_TechnoClass_Is_Allowed_To_Retaliate_Can_Retaliate_Patch);
     Patch_Jump(0x006320C2, &_TechnoClass_2A0_Is_Allowed_To_Deploy_Unit_Transform_Patch);
     Patch_Jump(0x0063381A, &_TechnoClass_Record_The_Kill_Strengthen_Killer_Patch);
+    Patch_Jump(0x006306B5, &_TechnoClass_Fire_At_Spawn_Aircraft_Patch);
 }

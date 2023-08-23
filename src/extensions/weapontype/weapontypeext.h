@@ -28,6 +28,7 @@
 #pragma once
 
 #include "abstracttypeext.h"
+#include "aircrafttype.h"
 #include "weapontype.h"
 
 
@@ -103,6 +104,16 @@ WeaponTypeClassExtension final : public AbstractTypeClassExtension
          *  The maximum deviation from a straight line the electric bolts can be.
          */
         float ElectricBoltDeviation;
+
+        /**
+         *  Does this weapon spawn aircraft when fired?
+         */
+        bool IsSpawnAircraft;
+
+        /**
+         *  The aircraft type that this weapon spawns.
+         */
+        const AircraftTypeClass *AircraftTypeToSpawn;
 
         /**
          *  Particle systems to display.

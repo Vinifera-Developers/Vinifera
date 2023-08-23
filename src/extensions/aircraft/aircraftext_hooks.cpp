@@ -29,6 +29,7 @@
 #include "aircraftext_init.h"
 #include "aircraft.h"
 #include "aircrafttype.h"
+#include "aircraftext.h"
 #include "object.h"
 #include "target.h"
 #include "unit.h"
@@ -36,6 +37,7 @@
 #include "unittypeext.h"
 #include "technotype.h"
 #include "technotypeext.h"
+#include "tibsun_inline.h"
 #include "extension.h"
 #include "voc.h"
 #include "fatal.h"
@@ -250,6 +252,90 @@ DECLARE_PATCH(_AircraftClass_Init_IsCloakable_BugFix_Patch)
 
 
 /**
+ *  Updates logic for aircraft spawned by weapons.
+ *  Returns true if the spawned aircraft should be removed afterwards,
+ *  otherwise false.
+ *
+ *  @author: Rampastring
+ */
+bool Spawned_Check_Destruction(AircraftClass *aircraft, AircraftClassExtension *aircraftext) 
+{
+    if (aircraftext->Spawner == nullptr) {
+        return false;
+    }
+
+    /**
+     *  If our TarCom is null, our original target has died.
+     *  Try targeting something else that is nearby,
+     *  unless we've already decided to head back to the spawner.
+     */
+    if (aircraft->TarCom == nullptr && aircraft->NavCom != aircraftext->Spawner) {
+        aircraft->Target_Something_Nearby(aircraft->Center_Coord(), THREAT_AREA);
+    }
+
+    /**
+     *  If our TarCom is still null or we're run out of ammo, return to 
+     *  whoever spawned us. Once we're close enough, we should be erased from the map.
+     */
+    if (aircraft->TarCom == nullptr || aircraft->Ammo == 0) {
+        
+        if (aircraft->NavCom != aircraftext->Spawner) {
+            aircraft->Assign_Destination(aircraftext->Spawner);
+            aircraft->Assign_Mission(MISSION_MOVE);
+            aircraft->Commence();
+        }
+
+        if (::Distance(aircraft->Center_Coord(), aircraftext->Spawner->Center_Coord()) < CELL_LEPTON_W)
+            return true;
+    }
+
+    return false;
+}
+
+
+/**
+ *  Checks if a weapon-spawned aircraft is out of ammo or whether its target has died.
+ *  If so, makes it return into its spawner.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_AircraftClass_AI_Spawned_Return_To_Owner_Patch)
+{
+    GET_REGISTER_STATIC(AircraftClass*, this_ptr, ebp);
+    static AircraftClassExtension *aircraftext;
+    
+    aircraftext = Extension::Fetch<AircraftClassExtension>(this_ptr);
+
+    if (aircraftext->Spawner != nullptr) {
+
+        /**
+         *  If we are close enough to our owner, delete us
+         *  and jump out from the function.
+         */
+        if (Spawned_Check_Destruction(this_ptr, aircraftext)) {
+            this_ptr->entry_E4();
+            JMP_REG(ebx, 0x004093DE);
+        }
+    }
+
+    /**
+     *  Stolen bytes / code.
+     *  Process FootClass AI logic, jump out if we are
+     *  not active afterwards.
+     */
+    this_ptr->FootClass::AI();
+    if (!this_ptr->IsActive) {
+        JMP_REG(ebx, 0x004093DE);
+    }
+
+    /**
+     *  Continue function execution.
+     */
+    JMP(0x0040918A);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void AircraftClassExtension_Hooks()
@@ -263,4 +349,6 @@ void AircraftClassExtension_Hooks()
     Patch_Jump(0x0040B819, &_AircraftClass_What_Action_Is_Totable_Patch);
     Patch_Jump(0x0040A413, &_AircraftClass_Mission_Move_LAND_Is_Moving_Check_Patch);
     Patch_Jump(0x0040988C, &_AircraftClass_Mission_Unload_Transport_Detach_Sound_Patch);
+    Patch_Jump(0x0040917A, &_AircraftClass_AI_Spawned_Return_To_Owner_Patch);
+
 }

@@ -64,4 +64,11 @@ AircraftClassExtension final : public FootClassExtension
         virtual RTTIType What_Am_I() const override { return RTTI_AIRCRAFT; }
 
     public:
+        /**
+         *  If this aircraft was spawned from a techno's weapon, this
+         *  field records who spawned us. If this is not null, and if 
+         *  we run out of ammo or we have no target anymore,
+         *  we should attempt to head back towards it.
+         */
+        TechnoClass *Spawner;
 };

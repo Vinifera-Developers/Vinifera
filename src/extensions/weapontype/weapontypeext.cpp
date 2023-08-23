@@ -28,9 +28,11 @@
 #include "weapontypeext.h"
 #include "weapontype.h"
 #include "ebolt.h"
+#include "aircrafttype.h"
 #include "ccini.h"
 #include "wwcrc.h"
 #include "extension.h"
+#include "vinifera_saveload.h"
 #include "asserthandler.h"
 #include "debughandler.h"
 
@@ -51,7 +53,9 @@ WeaponTypeClassExtension::WeaponTypeClassExtension(const WeaponTypeClass *this_p
     ElectricBoltSegmentCount(EBOLT_DEFAULT_LINE_SEGEMENTS),
     ElectricBoltLifetime(EBOLT_DEFAULT_LIFETIME),
     ElectricBoltIterationCount(EBOLT_DEFAULT_INTERATIONS),
-    ElectricBoltDeviation(EBOLT_DEFAULT_DEVIATION)
+    ElectricBoltDeviation(EBOLT_DEFAULT_DEVIATION),
+    IsSpawnAircraft(false),
+    AircraftTypeToSpawn(nullptr)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("WeaponTypeClassExtension::WeaponTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -118,6 +122,8 @@ HRESULT WeaponTypeClassExtension::Load(IStream *pStm)
 
     new (this) WeaponTypeClassExtension(NoInitClass());
     
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(AircraftTypeToSpawn, "AircraftTypeToSpawn");
+
     return hr;
 }
 
@@ -203,9 +209,16 @@ bool WeaponTypeClassExtension::Read_INI(CCINIClass &ini)
     ElectricBoltLifetime = ini.Get_Int(ini_name, "EBoltLifetime", ElectricBoltLifetime);
     ElectricBoltIterationCount = ini.Get_Int(ini_name, "EBoltIterations", ElectricBoltIterationCount);
     ElectricBoltDeviation = ini.Get_Float(ini_name, "EBoltDeviation", ElectricBoltDeviation);
+    IsSpawnAircraft = ini.Get_Bool(ini_name, "SpawnAircraft", IsSpawnAircraft);
+    //char * aircraft_type_name = ini.Get_String(ini_name, "AircraftTypeToSpawn", )
+    
+    char buffer[1024];
+    if (ini.Get_String(ini_name, "AircraftTypeToSpawn", buffer, sizeof(buffer)) > 0) {
+        AircraftTypeToSpawn = AircraftTypeClass::Find_Or_Make(buffer);
+    }
+
     //ElectricBoltSourceBoltParticleSys = ini.Get_ParticleSys(ini_name, "EBoltSourceParticleSys", ElectricBoltSourceBoltParticleSys);
     //ElectricBoltTargetBoltParticleSys = ini.Get_ParticleSys(ini_name, "EBoltTargetBoltParticleSys", ElectricBoltTargetBoltParticleSys);
     
-
     return true;
 }
