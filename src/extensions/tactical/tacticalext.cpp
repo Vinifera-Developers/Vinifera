@@ -49,6 +49,7 @@
 #include "rules.h"
 #include "rulesext.h"
 #include "swizzle.h"
+#include "txtlabel.h"
 #include "vinifera_saveload.h"
 #include "extension.h"
 #include "asserthandler.h"
@@ -512,6 +513,69 @@ void TacticalExtension::Render_Post()
      */
     Draw_Super_Timers();
     Draw_Strengthen_Info();
+    Draw_Messages();
+}
+
+
+/**
+ *  Prints a tactical message on the screen.
+ *
+ *  @author: Rampastring (based on CCHyper's Super_Draw_Timer)
+ */
+void TacticalExtension::Draw_Message(int index, const char *text, ColorSchemeType color)
+{
+    static WWFontClass* _font = nullptr;
+
+    TextPrintType style = TPF_DROPSHADOW | TPF_6PT_GRAD | TPF_SOLIDBLACK_BG;
+
+    if (!_font) {
+        _font = Font_Ptr(style);
+    }
+
+    int text_width = -1;
+    unsigned color_black = DSurface::RGB_To_Pixel(0, 0, 0);
+    RGBClass rgb_black(0, 0, 0);
+    int background_tint = 50;
+
+    Rect draw_rect;
+    _font->String_Pixel_Rect(text, &draw_rect);
+
+    int font_width = _font->Get_Font_Width();
+    int font_height = _font->Get_Font_Height();
+
+    int base_y_pos = TacticalRect.Y + TacticalRect.Height - 150;
+    int y_pos = base_y_pos + (index * (font_height + 2));
+
+    int base_x_pos = 50;
+    int margin = 2;
+
+    Point2D text_draw_point;
+    text_draw_point.X = TacticalRect.X + base_x_pos;
+    text_draw_point.Y = y_pos;
+
+    Rect fill_rect;
+    fill_rect.X = TacticalRect.X + base_x_pos - margin;
+    fill_rect.Y = y_pos - 1;
+    fill_rect.Width = draw_rect.Width + (margin * 2);
+    fill_rect.Height = draw_rect.Height + margin;
+
+    //CompositeSurface->Fill_Rect(CompositeSurface->Get_Rect(), fill_rect, color_black);
+    CompositeSurface->Fill_Rect_Trans(fill_rect, rgb_black, background_tint);
+
+    Fancy_Text_Print(text, CompositeSurface, &CompositeSurface->Get_Rect(),
+        &text_draw_point, ColorSchemes[color], COLOR_TBLACK, style);
+}
+
+
+void TacticalExtension::Draw_Messages() 
+{
+    TextLabelClass* msg = Session.Messages.MessageList;
+    int i = 0;
+    while (msg != nullptr) {
+        Draw_Message(i, msg->Text, msg->Color);
+        msg = (TextLabelClass*)msg->Get_Next();
+        i++;
+    }
 }
 
 
