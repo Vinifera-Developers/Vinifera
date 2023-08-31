@@ -877,6 +877,36 @@ original_code:
 
 
 /**
+ *  #issue-1032
+ *
+ *  Fixes a bug where the Medic indicator is drawn for a medic that has
+ *  not been discovered by the player.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_TechnoClass_Draw_Pips_No_Medic_Indicator_In_Shroud_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
+
+    if (!this_ptr->IsDiscoveredByPlayer || this_ptr->Combat_Damage() >= 0) {
+        goto no_indicator;
+    }
+
+    /**
+     *  Draw the medic indicator pip.
+     */
+display_indicator:
+    JMP(0x00637B90);
+
+    /**
+     *  Continue the function, but skip drawing the medic indicator pip.
+     */
+no_indicator:
+    JMP(0x00637BD2);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void TechnoClassExtension_Hooks()
@@ -898,4 +928,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x006320C2, &_TechnoClass_2A0_Is_Allowed_To_Deploy_Unit_Transform_Patch);
     Patch_Jump(0x0063381A, &_TechnoClass_Record_The_Kill_Strengthen_Killer_Patch);
     Patch_Jump(0x006306B5, &_TechnoClass_Fire_At_Spawn_Aircraft_Patch);
+    Patch_Jump(0x00637B83, &_TechnoClass_Draw_Pips_No_Medic_Indicator_In_Shroud_Patch);
 }
