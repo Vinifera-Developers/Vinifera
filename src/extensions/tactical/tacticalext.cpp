@@ -48,6 +48,7 @@
 #include "supertypeext.h"
 #include "rules.h"
 #include "rulesext.h"
+#include "uicontrol.h"
 #include "swizzle.h"
 #include "txtlabel.h"
 #include "vinifera_saveload.h"
@@ -535,7 +536,7 @@ void TacticalExtension::Draw_Message(int index, const char *text, ColorSchemeTyp
     int text_width = -1;
     unsigned color_black = DSurface::RGB_To_Pixel(0, 0, 0);
     RGBClass rgb_black(0, 0, 0);
-    int background_tint = 50;
+    unsigned int background_tint = UIControls->TextLabelBackgroundTransparency;
 
     Rect draw_rect;
     _font->String_Pixel_Rect(text, &draw_rect);
@@ -546,7 +547,7 @@ void TacticalExtension::Draw_Message(int index, const char *text, ColorSchemeTyp
     int base_y_pos = TacticalRect.Y + TacticalRect.Height - 150;
     int y_pos = base_y_pos + (index * (font_height + 2));
 
-    int base_x_pos = 50;
+    int base_x_pos = UIControls->MessageListPositionX;
     int margin = 2;
 
     Point2D text_draw_point;

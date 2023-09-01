@@ -65,6 +65,11 @@ class UIControlsClass
          *  Transparency of the text background.
          */
         unsigned TextLabelBackgroundTransparency;
+
+        /**
+         *  Horizontal left-most pixel position of the message list.
+         */
+        int MessageListPositionX;
 };
 
 extern UIControlsClass *UIControls;

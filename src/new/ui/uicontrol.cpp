@@ -50,7 +50,8 @@ UIControlsClass::UIControlsClass() :
     UnitHealthBarDrawPos(-25, -16), // Y was -15
     InfantryHealthBarDrawPos(-24, -5),
     IsTextLabelOutline(true),
-    TextLabelBackgroundTransparency(50)
+    TextLabelBackgroundTransparency(50),
+    MessageListPositionX(50)
 {
 }
 
@@ -89,6 +90,8 @@ bool UIControlsClass::Read_INI(CCINIClass &ini)
 
     IsTextLabelOutline = ini.Get_Bool(INGAME, "TextLabelOutline", IsTextLabelOutline);
     TextLabelBackgroundTransparency = ini.Get_Int_Clamp(INGAME, "TextLabelBackgroundTransparency", 0, 100, TextLabelBackgroundTransparency);
+
+    MessageListPositionX = ini.Get_Int(INGAME, "MessageListPositionX", MessageListPositionX);
 
     return true;
 }

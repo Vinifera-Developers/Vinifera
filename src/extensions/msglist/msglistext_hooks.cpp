@@ -32,6 +32,7 @@
 #include "msglist.h"
 #include "house.h"
 #include "housetype.h"
+#include "uicontrol.h"
 #include "rules.h"
 #include "fatal.h"
 #include "debughandler.h"
@@ -84,9 +85,37 @@ DECLARE_PATCH(_MessageListClass_Echo_Sent_Messages_Patch)
 
 
 /**
+ *  Shrinks the width of the message list to accommodate for its moved position.
+ *
+ *  Author: Rampastring
+ */
+DECLARE_PATCH(_MessageListClass_Init_Modify_Width_Patch)
+{
+    GET_REGISTER_STATIC(MessageListClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(int, width, eax);
+    static int posx;
+
+    posx = 0;
+    if (UIControls != nullptr) {
+        posx = UIControls->MessageListPositionX;
+    }
+
+    width -= posx;
+
+    DEBUG_INFO("MessageListClass::Init(Width: %d)", width);
+    this_ptr->Width = width;
+
+    _asm { xor ebx, ebx }
+    _asm { mov edi, [esi] }
+    JMP(0x00572EC4);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void MessageListClassExtension_Hooks()
 {
     Patch_Jump(0x00509D16, &_MessageListClass_Echo_Sent_Messages_Patch);
+    Patch_Jump(0x00572EAC, &_MessageListClass_Init_Modify_Width_Patch);
 }
