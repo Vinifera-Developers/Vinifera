@@ -40,7 +40,9 @@
  */
 HouseClassExtension::HouseClassExtension(const HouseClass *this_ptr) :
     AbstractClassExtension(this_ptr),
-    StrengthenDestroyedCost(0)
+    StrengthenDestroyedCost(0),
+    NextExpansionPointLocation(0, 0),
+    ShouldBuildRefinery(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("HouseClassExtension::HouseClassExtension - 0x%08X\n", (uintptr_t)(This()));
 

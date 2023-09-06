@@ -65,4 +65,18 @@ HouseClassExtension final : public AbstractClassExtension
 
     public:
         int StrengthenDestroyedCost;
+
+        /**
+         *  If we are currently expanding our base towards a resourceful location,
+         *  this records the cell that we are expanding towards.
+         */
+        Cell NextExpansionPointLocation;
+
+        /**
+         *  Locations that we should never expand towards.
+         *  Basically, locations that are unreachable.
+         */
+        Cell PermanentlyBlockedExpansionPointLocations[20];
+
+        bool ShouldBuildRefinery;
 };

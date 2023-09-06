@@ -32,19 +32,28 @@
 #include "tibsun_inline.h"
 #include "house.h"
 #include "housetype.h"
+#include "houseext.h"
+#include "houseext.h"
 #include "building.h"
+#include "buildingtype.h"
+#include "buildingext.h"
 #include "unit.h"
 #include "infantry.h"
 #include "technotype.h"
-#include "buildingtype.h"
 #include "techno.h"
+#include "terrain.h"
+#include "terraintype.h"
 #include "factory.h"
 #include "super.h"
 #include "unittypeext.h"
 #include "extension.h"
 #include "techno.h"
 #include "super.h"
+#include "rules.h"
+#include "rulesext.h"
 #include "scenario.h"
+#include "scenarioext.h"
+#include "session.h"
 #include "mouse.h"
 #include "fatal.h"
 #include "debughandler.h"
@@ -65,6 +74,7 @@ static class HouseClassFake final : public HouseClass
 {
 public:
     bool _AI_Target_MultiMissile(SuperClass* super);
+    int _AI_Building_Replacement(void);
 };
 
 /**
@@ -393,6 +403,521 @@ bool HouseClassFake::_AI_Target_MultiMissile(SuperClass* super)
 }
 
 
+bool AdvAI_House_Search_For_Next_Expansion_Point(HouseClass* house)
+{
+    HouseClassExtension* ext = Extension::Fetch<HouseClassExtension>(house);
+
+    if (ext->NextExpansionPointLocation.X != 0 && ext->NextExpansionPointLocation.Y != 0) {
+        return false;
+    }
+
+    // Fetch our first ConYard.
+    BuildingClass* firstbuilding = nullptr;
+    for (int i = 0; i < Buildings.Count(); i++) {
+        BuildingClass* building = Buildings[i];
+        if (building->IsActive && !building->IsInLimbo && building->House == house && building->Class->ToBuild == RTTI_BUILDINGTYPE) {
+            firstbuilding = Buildings[i];
+            break;
+        }
+    }
+
+    if (firstbuilding == nullptr) {
+        return false;
+    }
+
+    // Scan through terrain objects that spawn Tiberium, pick the closest one that does not have a refinery near it yet
+    int nearestdistance = INT_MAX;
+    Cell target = Cell();
+
+    for (int i = 0; i < Terrains.Count(); i++) {
+        TerrainClass* terrain = Terrains[i];
+        if (terrain->IsActive && !terrain->IsInLimbo && terrain->Class->IsSpawnsTiberium) {
+
+            Cell terraincell = terrain->Get_Cell();
+
+            bool found = false;
+            for (int j = 0; j < Buildings.Count(); j++) {
+                BuildingClass* building = Buildings[j];
+
+                if (!building->IsActive || building->IsInLimbo || !building->Class->IsRefinery) {
+                    continue;
+                }
+
+                // Check if any existing AI refinery has been assigned for this expansion point yet.
+                // If yes, consider it occupied, but only if it is ours.
+                BuildingClassExtension* buildingext = Extension::Fetch<BuildingClassExtension>(building);
+                if (building->House == house && buildingext->AssignedExpansionPoint == terraincell) {
+                    found = true;
+                    break;
+                }
+
+                // Not all refineries have an assigned expansion point. For example, initial 
+                // base refineries and human players' refineries do not.
+                // For these refineries, we rely on a distance check.
+                int dist = ::Distance(building->Get_Cell(), terraincell);
+                if (dist < 15) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (found)
+                continue; // Someone is already occupying this Tiberium tree
+
+            int distance = ::Distance(firstbuilding->Center_Coord(), terrain->Center_Coord());
+            if (distance < nearestdistance) {
+                // Don't expand super far.
+                if (distance / CELL_LEPTON_W < 100) {
+                    nearestdistance = distance;
+                    target = terrain->Get_Cell();
+                }
+            }
+        }
+    }
+
+    if (target.X == 0 || target.Y == 0) {
+        // We couldn't find anywhere to expand towards
+        return false;
+    }
+
+    ext->NextExpansionPointLocation = target;
+
+    return true;
+}
+
+
+bool AdvAI_Can_Build_Building(HouseClass* house, const BuildingTypeClass* buildingtype, bool check_prereqs = true)
+{
+    if (buildingtype->TechLevel > house->Control.TechLevel) {
+        return false;
+    }
+
+    if (!buildingtype->CanAIBuildThis) {
+        return false;
+    }
+
+    if ((buildingtype->Ownable & (1 << house->ActLike)) != (1 << house->ActLike)) {
+        return false;
+    }
+
+    if (check_prereqs) {
+        for (int i = 0; i < buildingtype->Prerequisite.Count(); i++) {
+            if (house->ActiveBQuantity.Count_Of((BuildingType)(buildingtype->Prerequisite[i])) == 0) {
+                return false;
+            }
+        }
+    }
+
+    // If this is an upgrade, do we have a building we could upgrade with it?
+    if (buildingtype->PowersUpBuilding[0] != '\0') {
+        const BuildingTypeClass* base = BuildingTypeClass::Find_Or_Make(buildingtype->PowersUpBuilding);
+
+        if (house->ActiveBQuantity.Count_Of((BuildingType)base->Get_Heap_ID()) == 0) {
+            return false;
+        }
+
+        // Scan through the buildings...
+        for (int i = 0; i < Buildings.Count(); i++) {
+            BuildingClass* building = Buildings[i];
+
+            if (!building->IsActive ||
+                building->IsInLimbo ||
+                building->Class != base ||
+                building->House != house) {
+                continue;
+            }
+
+            if (building->UpgradeLevel >= base->Upgrades) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+
+const BuildingTypeClass* AdvAI_Evaluate_Get_Best_Building(HouseClass* house) {
+    HouseClassExtension* houseext = Extension::Fetch<HouseClassExtension>(house);
+
+    BuildingType our_refinery = BUILDING_NONE;
+    BuildingType our_basic_power = BUILDING_NONE;
+    BuildingType our_advanced_power = BUILDING_NONE;
+
+    for (int i = 0; i < Rule->BuildRefinery.Count(); i++) {
+        if (AdvAI_Can_Build_Building(house, Rule->BuildRefinery[i])) {
+            our_refinery = (BuildingType)Rule->BuildRefinery[i]->Get_Heap_ID();
+        }
+    }
+
+    for (int i = 0; i < Rule->BuildPower.Count(); i++) {
+        if (AdvAI_Can_Build_Building(house, Rule->BuildPower[i])) {
+            if (our_basic_power != BUILDING_NONE) {
+                our_advanced_power = (BuildingType)Rule->BuildPower[i]->Get_Heap_ID();
+            }
+            else {
+                our_basic_power = (BuildingType)Rule->BuildPower[i]->Get_Heap_ID();
+            }
+        }
+    }
+
+    // Since we do not currently know how to handle prerequisite groups, our basic and
+    // advanced power plants might be reversed.
+    // Check if this is the case and if so, reverse them.
+    if (our_basic_power != BUILDING_NONE && our_advanced_power != BUILDING_NONE &&
+        BuildingTypes[our_basic_power]->Power > BuildingTypes[our_advanced_power]->Power) {
+        BuildingType tmp = our_basic_power;
+        our_basic_power = our_advanced_power;
+        our_advanced_power = our_basic_power;
+    }
+
+    // If we have no power plants yet, then build one
+    if (house->ActiveBQuantity.Count_Of(our_basic_power) == 0) {
+        return BuildingTypes[our_basic_power];
+    }
+
+    // Build refinery if we're expanding
+    if (our_refinery != BUILDING_NONE && houseext->ShouldBuildRefinery) {
+        return BuildingTypes[our_refinery];
+    }
+
+    // Build a refinery if we have 0 left
+    if (our_refinery != BUILDING_NONE && house->ActiveBQuantity.Count_Of(our_refinery) == 0) {
+        return BuildingTypes[our_refinery];
+    }
+
+    // Build power if necessary
+    if (house->Power - house->Drain < 100) {
+        if (our_advanced_power != BUILDING_NONE) {
+            return BuildingTypes[our_advanced_power];
+        }
+
+        if (our_basic_power != BUILDING_NONE) {
+            return BuildingTypes[our_basic_power];
+        }
+    }
+
+    // If we don't have enough barracks, then build one
+    int optimal_barracks_count = 1 + (house->ActiveBQuantity.Count_Of(our_refinery) / 3);
+
+    for (int i = 0; i < Rule->BuildBarracks.Count(); i++) {
+        if (AdvAI_Can_Build_Building(house, Rule->BuildBarracks[i])) {
+            if (house->ActiveBQuantity.Count_Of((BuildingType)Rule->BuildBarracks[i]->Get_Heap_ID()) < optimal_barracks_count) {
+                return Rule->BuildBarracks[i];
+            }
+        }
+    }
+
+    // If we don't have enough weapons factory, then build one
+    int optimal_wf_count = 1 + (house->ActiveBQuantity.Count_Of(our_refinery) / 4);
+
+    for (int i = 0; i < Rule->BuildWeapons.Count(); i++) {
+        if (AdvAI_Can_Build_Building(house, Rule->BuildWeapons[i])) {
+            if (house->ActiveBQuantity.Count_Of((BuildingType)Rule->BuildWeapons[i]->Get_Heap_ID()) < optimal_wf_count) {
+                return Rule->BuildWeapons[i];
+            }
+        }
+    }
+
+    // If we only have 1 refinery, build another one.
+    // Because this is not for expanding but an emergency situation,
+    // cancel any potential expanding.
+    if (house->ActiveBQuantity.Count_Of(our_refinery) < 2) {
+        houseext->NextExpansionPointLocation = Cell(0, 0);
+        return BuildingTypes[our_refinery];
+    }
+
+    // If we don't have enough defenses, then build one
+    BuildingType our_anti_infantry_defense = BUILDING_NONE;
+    BuildingType our_anti_vehicle_defense = BUILDING_NONE;
+
+    int best_anti_infantry_rating = INT_MIN;
+    int best_anti_vehicle_rating = INT_MIN;
+
+    for (int i = 0; i < Rule->BuildDefense.Count(); i++) {
+
+        BuildingTypeClass* buildingtype = Rule->BuildDefense[i];
+
+        if (AdvAI_Can_Build_Building(house, buildingtype)) {
+            if (buildingtype->AntiInfantryValue > best_anti_infantry_rating) {
+                best_anti_infantry_rating = buildingtype->AntiInfantryValue;
+                our_anti_infantry_defense = (BuildingType)buildingtype->Get_Heap_ID();
+            }
+
+            if (buildingtype->AntiArmorValue > best_anti_vehicle_rating) {
+                best_anti_vehicle_rating = buildingtype->AntiArmorValue;
+                our_anti_vehicle_defense = (BuildingType)buildingtype->Get_Heap_ID();
+            }
+        }
+    }
+
+    int optimal_defense_count = house->ActiveBQuantity.Count_Of(our_refinery) + (house->ActiveBQuantity.Count_Of(our_basic_power) + house->ActiveBQuantity.Count_Of(our_advanced_power)) / 4;
+    if (houseext->NextExpansionPointLocation.X > 0 && houseext->NextExpansionPointLocation.Y > 0) {
+        optimal_defense_count++;
+    }
+
+    // If we are under attack, prioritize defense.
+    if (house->LATime + TICKS_PER_MINUTE > Frame) {
+        optimal_defense_count++;
+    }
+
+    if (our_anti_infantry_defense != BUILDING_NONE) {
+        if (house->ActiveBQuantity.Count_Of(our_anti_infantry_defense) < optimal_defense_count) {
+            return BuildingTypes[our_anti_infantry_defense];
+        }
+    }
+
+    // If we have no radar, then build one
+    for (int i = 0; i < Rule->BuildRadar.Count(); i++) {
+        if (AdvAI_Can_Build_Building(house, Rule->BuildRadar[i])) {
+            if (house->ActiveBQuantity.Count_Of((BuildingType)Rule->BuildRadar[i]->Get_Heap_ID()) < 1) {
+                return Rule->BuildRadar[i];
+            }
+        }
+    }
+
+    // Build some anti-vehicle defenses if we should
+    if (our_anti_infantry_defense != our_anti_vehicle_defense && our_anti_vehicle_defense != BUILDING_NONE) {
+        if (house->ActiveBQuantity.Count_Of(our_anti_vehicle_defense) < optimal_defense_count) {
+            return BuildingTypes[our_anti_vehicle_defense];
+        }
+    }
+
+    // Build some AA if we should.
+    BuildingType our_anti_air_defense = BUILDING_NONE;
+
+    for (int i = 0; i < Rule->BuildAA.Count(); i++) {
+        if (AdvAI_Can_Build_Building(house, Rule->BuildAA[i])) {
+            our_anti_air_defense = (BuildingType)Rule->BuildAA[i]->Get_Heap_ID();
+        }
+    }
+
+    if (our_anti_air_defense != BUILDING_NONE) {
+        if (house->ActiveBQuantity.Count_Of(our_anti_air_defense) < optimal_defense_count) {
+            return BuildingTypes[our_anti_air_defense];
+        }
+    }
+
+    // If we don't have enough helipads, then build one
+    int optimal_helipad_count = 1 + (house->ActiveBQuantity.Count_Of(our_refinery) / 2);
+
+    for (int i = 0; i < Rule->BuildHelipad.Count(); i++) {
+        if (AdvAI_Can_Build_Building(house, Rule->BuildHelipad[i])) {
+            if (house->ActiveBQuantity.Count_Of((BuildingType)Rule->BuildHelipad[i]->Get_Heap_ID()) < optimal_helipad_count) {
+                return Rule->BuildHelipad[i];
+            }
+        }
+    }
+
+    // If we have no tech center, then build one
+    for (int i = 0; i < Rule->BuildTech.Count(); i++) {
+        if (AdvAI_Can_Build_Building(house, Rule->BuildTech[i])) {
+            if (house->ActiveBQuantity.Count_Of((BuildingType)Rule->BuildTech[i]->Get_Heap_ID()) < 1) {
+                return Rule->BuildTech[i];
+            }
+        }
+    }
+
+    // Build some advanced defenses if we do not have enough
+    int optimal_adv_defense_count = optimal_defense_count / 2;
+
+    BuildingType our_adv_defense = BUILDING_NONE;
+
+    for (int i = 0; i < Rule->BuildPDefense.Count(); i++) {
+        if (AdvAI_Can_Build_Building(house, Rule->BuildPDefense[i])) {
+            our_adv_defense = (BuildingType)Rule->BuildPDefense[i]->Get_Heap_ID();
+        }
+    }
+
+    if (our_adv_defense != BUILDING_NONE) {
+        if (house->ActiveBQuantity.Count_Of(our_adv_defense) < optimal_adv_defense_count) {
+            return BuildingTypes[our_adv_defense];
+        }
+    }
+
+    // Are there other AIBuildThis=yes buildings that we haven't built yet?
+    for (int i = 0; i < BuildingTypes.Count(); i++) {
+        if (AdvAI_Can_Build_Building(house, BuildingTypes[i], false)) {
+            if (house->ActiveBQuantity.Count_Of((BuildingType)i) < 1) {
+                return BuildingTypes[i];
+            }
+        }
+    }
+
+    // Build power by default, but only if we have somewhere to expand towards.
+    if (houseext->NextExpansionPointLocation.X != 0 && houseext->NextExpansionPointLocation.Y != 0) {
+        if (our_basic_power != BUILDING_NONE) {
+            return BuildingTypes[our_basic_power];
+        }
+    }
+
+    return nullptr;
+}
+
+
+const BuildingTypeClass* AdvAI_Get_Building_To_Build(HouseClass* house) 
+{
+    const BuildingTypeClass* buildchoice = AdvAI_Evaluate_Get_Best_Building(house);
+
+    if (buildchoice == nullptr) {
+        return nullptr;
+    }
+
+    // If our power budget couldn't afford the building, then build a power plant first instead.
+    // Unless it's a refinery that we're building, those are considered more critical.
+    if (buildchoice->Power < 0 && !buildchoice->IsRefinery && (house->Power - house->Drain + buildchoice->Power > house->Power)) {
+        BuildingType our_basic_power = BUILDING_NONE;
+        BuildingType our_advanced_power = BUILDING_NONE;
+
+        for (int i = 0; i < Rule->BuildPower.Count(); i++) {
+            if (AdvAI_Can_Build_Building(house, Rule->BuildPower[i])) {
+                if (our_basic_power != BUILDING_NONE) {
+                    our_advanced_power = (BuildingType)Rule->BuildPower[i]->Get_Heap_ID();
+                }
+                else {
+                    our_basic_power = (BuildingType)Rule->BuildPower[i]->Get_Heap_ID();
+                }
+            }
+        }
+
+        if (our_advanced_power != BUILDING_NONE) {
+            return BuildingTypes[our_advanced_power];
+        }
+
+        if (our_basic_power != BUILDING_NONE) {
+            return BuildingTypes[our_basic_power];
+        }
+    }
+
+    return buildchoice;
+}
+
+
+/**
+ *  Sells extra construction yards of the specific house until there is one one left.
+ *
+ *  Author: Rampastring
+ */
+void AdvAI_Sell_Extra_ConYards(HouseClass* house) 
+{
+    int to_sell_count = house->ConstructionYards.Count() - 1;
+
+    if (to_sell_count <= 1) {
+        return;
+    }
+
+    int sold_count = 0;
+
+    for (int i = 0; i < Buildings.Count(); i++) {
+        BuildingClass* building = Buildings[i];
+
+        if (!building->IsActive || building->IsInLimbo || building->House != house || !building->Class->IsConstructionYard) {
+            continue;
+        }
+
+        if (building->Mission == MISSION_DECONSTRUCTION || building->MissionQueue == MISSION_DECONSTRUCTION) {
+            sold_count++;
+            continue;
+        }
+
+        building->Sell_Back(1);
+        sold_count++;
+    }
+}
+
+
+/**
+ *  Implements DTA's custom AI building selection logic.
+ *
+ *  Author: Rampastring
+ */
+int Vinifera_HouseClass_AI_Building(HouseClass* this_ptr)
+{
+    if (this_ptr->BuildStructure != BUILDING_NONE) return TICKS_PER_SECOND;
+
+    if (this_ptr->ConstructionYards.Count() <= 0) return TICKS_PER_SECOND;
+
+    // If we have more than 1 ConYard without Rules allowing it, sell some of them off
+    // to avoid the "Extreme AI" syndrome.
+    if (this_ptr->ConstructionYards.Count() > 1 && !RuleExtension->IsAdvancedAIMultiConYard) {
+        AdvAI_Sell_Extra_ConYards(this_ptr);
+    }
+
+    HouseClassExtension *houseext = Extension::Fetch<HouseClassExtension>(this_ptr);
+
+    if (RuleExtension->IsUseAdvancedAI) {
+
+        // If we have nowhere to expand towards, check for a new location to expand to.
+        if (houseext->NextExpansionPointLocation.X <= 0 || houseext->NextExpansionPointLocation.Y <= 0) {
+            AdvAI_House_Search_For_Next_Expansion_Point(this_ptr);
+        }
+
+        const BuildingTypeClass* tobuild = AdvAI_Get_Building_To_Build(this_ptr);
+
+        if (tobuild == nullptr) {
+            return TICKS_PER_SECOND;
+        }
+
+        this_ptr->BuildStructure = (BuildingType)(tobuild->Get_Heap_ID());
+        return TICKS_PER_SECOND * 5; // Limit it a bit for better performance and fairness
+
+    } else {
+        BaseNodeClass* node = this_ptr->Base.Next_Buildable();
+
+        if (node != nullptr) {
+            this_ptr->BuildStructure = node->Type;
+        }
+    }
+
+    return TICKS_PER_SECOND;
+}
+
+
+int HouseClassFake::_AI_Building_Replacement() 
+{
+    return Vinifera_HouseClass_AI_Building(this);
+}
+
+
+/**
+ *  Entry point for DTA's custom AI building selection logic.
+ *
+ *  Author: Rampastring
+ */
+DECLARE_PATCH(_HouseClass_AI_Building_Intercept)
+{
+    GET_REGISTER_STATIC(HouseClass*, house, ebx);
+    static int retvalue;
+
+    /**
+     *  If our custom AI logic is enabled, transfer control to it and return.
+     */
+    if (RuleExtension->IsUseAdvancedAI) {
+        retvalue = Vinifera_HouseClass_AI_Building(house);
+
+        // Rebuild function epilogue
+        _asm { pop edi }
+        _asm { pop esi }
+        _asm { pop ebp }
+        _asm { mov eax, dword ptr ds:retvalue }
+        _asm { pop ebx }
+        _asm { add esp, 20h }
+        _asm { retn }
+    }
+
+    /**
+     *  Stolen bytes / code. Run the game's original building selection AI.
+     *  If BuildStructure already has a building, then bail out.
+     *  Otherwise continue the function.
+     */
+    if (house->BuildStructure != BUILDING_NONE) {
+        JMP(0x004C1641);
+    }
+
+    JMP(0x004C10F8);
+}
+
+
 /**
  *  #issue-994
  *
@@ -437,7 +962,6 @@ enable_sw:
     JMP_REG(ecx, 0x004CB6C7);
 }
 
-
 /**
  *  Main function for patching the hooks.
  */
@@ -453,5 +977,8 @@ void HouseClassExtension_Hooks()
     Patch_Jump(0x004CB777, &_HouseClass_ShouldDisableCameo_BuildLimit_Fix);
     Patch_Jump(0x004BC187, _HouseClass_Can_Build_BuildLimit_Handle_Vehicle_Transform);
     Patch_Jump(0x004CA4A0, &HouseClassFake::_AI_Target_MultiMissile);
+    // Patch_Jump(0x004C10E0, &HouseClassFake::_AI_Building_Replacement);
+    Patch_Jump(0x004C10F2, &_HouseClass_AI_Building_Intercept);
     Patch_Jump(0x004CB6C1, &_HouseClass_Enable_SWs_Check_For_Building_Power);
+    // Patch_Jump(0x004C10E8, &_HouseClass_AI_Building_Intercept);
 }

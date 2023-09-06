@@ -97,4 +97,10 @@ BuildingClassExtension final : public TechnoClassExtension
          *  with building repair bringing it back to green health).
          */
         int LastFlameSpawnFrame;
+
+        /**
+         *  If this building was built by the AI for it to reach an expansion
+         *  point, this records the expansion point that the building helped reach.
+         */
+        Cell AssignedExpansionPoint;
 };
