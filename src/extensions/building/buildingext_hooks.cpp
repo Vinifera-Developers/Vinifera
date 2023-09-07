@@ -1046,10 +1046,25 @@ int Near_Enemy_Placement_Position_Value(Cell cell, BuildingClass* building)
     if (enemy == nullptr) {
         Point2D mapcenter = Map.MapLocalSize.Center_Point();
         Cell mapcenter_cell = Cell(mapcenter.X, mapcenter.Y);
-        return SHRT_MAX - ::Distance(cell, mapcenter_cell);
+        return ::Distance(cell, mapcenter_cell);
     }
 
     return ::Distance(cell, enemy->Base_Center());
+}
+
+int Near_ConYard_Placement_Position_Value(Cell cell, BuildingClass* building)
+{
+    Cell conyardcell = Cell(0, 0);
+    if (building->House->ConstructionYards.Count() > 0) {
+        conyardcell = building->House->ConstructionYards[0]->Get_Cell();
+    } else {
+        // Fallback
+        Point2D mapcenter = Map.MapLocalSize.Center_Point();
+        Cell mapcenter_cell = Cell(mapcenter.X, mapcenter.Y);
+        conyardcell = mapcenter_cell;
+    }
+
+    return SHRT_MAX - ::Distance(cell, conyardcell);
 }
 
 int Far_From_Enemy_Placement_Position_Value(Cell cell, BuildingClass* building)
@@ -1088,9 +1103,21 @@ int Towards_Expansion_Placement_Cell_Value(Cell cell, BuildingClass* building)
         return SHRT_MAX - ::Distance(cell, center);
     }
 
+    HouseClass* enemy = nullptr;
+
+    if (owner->Enemy != HOUSE_NONE) {
+        enemy = HouseClass::As_Pointer(owner->Enemy);
+    }
+
+    int enemydistance = 0;
+    if (enemy != nullptr && enemy->ConstructionYards.Count() > 0) {
+        enemydistance = ::Distance(cell, enemy->ConstructionYards[0]->Get_Cell());
+    }
+
     // Otherwise, we can basically make the value equal to the distance
     // that the building has to our next expansion point.
-    return ::Distance(cell, houseext->NextExpansionPointLocation);
+    // Also, secondarily take distance into enemy into account.
+    return ::Distance(cell, houseext->NextExpansionPointLocation) * 100 + enemydistance;
 }
 
 Cell Get_Best_Expansion_Placement_Position(BuildingClass* building)
@@ -1254,9 +1281,9 @@ Cell Get_Best_Defense_Placement_Position(BuildingClass* building)
         return Find_Best_Building_Placement_Cell(basearea, building, Near_AttackCell_Cell_Value);
     }
 
-    // If we are expanding, then build defenses towards the expansion node.
-    if (houseext->NextExpansionPointLocation.X > 0 && houseext->NextExpansionPointLocation.Y > 0) {
-        Find_Best_Building_Placement_Cell(basearea, building, Towards_Expansion_Placement_Cell_Value);
+    // If we are expanding, then it's likely we should build defenses towards the expansion node.
+    if (houseext->NextExpansionPointLocation.X > 0 && houseext->NextExpansionPointLocation.Y > 0 && Percent_Chance(50)) {
+        return Find_Best_Building_Placement_Cell(basearea, building, Towards_Expansion_Placement_Cell_Value);
     }
 
     HouseClass* enemy = nullptr;
@@ -1264,7 +1291,12 @@ Cell Get_Best_Defense_Placement_Position(BuildingClass* building)
         enemy = HouseClass::As_Pointer(owner->Enemy);
     }
 
-    if (enemy == nullptr || Percent_Chance(50)) {
+    // Place some defenses to the backline.
+    if (Percent_Chance(20)) {
+        return Find_Best_Building_Placement_Cell(basearea, building, Near_ConYard_Placement_Position_Value);
+    }
+
+    if (enemy == nullptr || Percent_Chance(30)) {
         return Find_Best_Building_Placement_Cell(basearea, building, Near_Base_Center_Placement_Position_Value);
     }
 
