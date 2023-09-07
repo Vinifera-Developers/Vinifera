@@ -78,5 +78,16 @@ HouseClassExtension final : public AbstractClassExtension
          */
         Cell PermanentlyBlockedExpansionPointLocations[20];
 
+        /**
+         *  Records whether the AI has reached its expansion point.
+         *  If yes, the AI should build a refinery.
+         */
         bool ShouldBuildRefinery;
+
+        /**
+         *  Set when the AI has built its first barracks during the game.
+         *  Used to figure out whether the AI should reset its TeamDelay
+         *  timer when it has built a barracks.
+         */
+        bool HasBuiltFirstBarracks;
 };

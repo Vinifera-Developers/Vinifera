@@ -608,6 +608,23 @@ const BuildingTypeClass* AdvAI_Evaluate_Get_Best_Building(HouseClass* house)
         return BuildingTypes[our_basic_power];
     }
 
+    // On Medium and Hard, build a barracks if we do not have any yet
+    if (house->Difficulty < DIFF_HARD && house->Credits >= Rule->AIAlternateProductionCreditCutoff) {
+        for (int i = 0; i < Rule->BuildBarracks.Count(); i++) {
+            BuildingTypeClass* barracks = Rule->BuildBarracks[i];
+
+            if (AdvAI_Can_Build_Building(house, barracks, true)) {
+                int barrackscount = house->ActiveBQuantity.Count_Of((BuildingType)barracks->Get_Heap_ID());
+                if (barrackscount < 1) {
+
+                    DEBUG_INFO("AdvAI: Making AI build %s because it does not have a Barracks at all.\n", barracks->IniName);
+
+                    return barracks;
+                }
+            }
+        }
+    }
+
     // Build refinery if we're expanding
     if (our_refinery != BUILDING_NONE && houseext->ShouldBuildRefinery) {
         DEBUG_INFO("AdvAI: Making AI build %s because it has reached an expansion point\n", BuildingTypes[our_refinery]->IniName);
@@ -913,6 +930,8 @@ void AdvAI_Sell_Extra_ConYards(HouseClass* house)
             sold_count++;
             continue;
         }
+
+        DEBUG_INFO("AdvAI: Found a Construction Yard to sell.\n");
 
         building->Sell_Back(1);
         sold_count++;

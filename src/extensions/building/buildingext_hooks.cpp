@@ -764,11 +764,21 @@ int Try_Place(BuildingClass* building, Cell cell)
         building->Assign_Mission(MISSION_CONSTRUCTION);
         building->Commence();
 
-        int close_enough = 15;
+        int close_enough = 7;
+
+        // If we just placed down our first barracks, then set our team timer to 0
+        // so we can immediately start producing infantry.
+        if (owner->Difficulty < DIFF_EASY &&
+            !ext->HasBuiltFirstBarracks &&
+            building->Class->ToBuild == RTTI_INFANTRYTYPE)
+        {
+            ext->HasBuiltFirstBarracks = true;
+            owner->TeamTime = 0;
+        }
 
         // Check if we placed a refinery.
         // If yes, check if we were expanding. If yes, the expanding is done.
-        // If no but we're close to an expansion field, then flag us to build a refinery as our next building.
+        // If not, but we're close to an expansion field, then flag us to build a refinery as our next building.
         if (building->Class->IsRefinery) {
             if (ext->NextExpansionPointLocation.X != 0 && ext->NextExpansionPointLocation.Y != 0) {
                 BuildingClassExtension* buildingext = Extension::Fetch<BuildingClassExtension>(building);
