@@ -31,6 +31,9 @@
 #include "terraintypeext.h"
 #include "terrain.h"
 #include "terraintype.h"
+#include "overlaytype.h"
+#include "cell.h"
+#include "mouse.h"
 #include "lightsource.h"
 #include "vinifera_util.h"
 #include "extension.h"
@@ -179,6 +182,59 @@ DECLARE_PATCH(_TerrainClass_Take_Damage_LightSource_Patch)
 
 
 /**
+ *  Workaround for getting the cell of a terrain object without smashing the stack.
+ */
+CellClass* Get_Terrain_Cell(TerrainClass* terrain) { return &Map[terrain->Coord]; }
+
+/**
+ *  By default, the game removes all overlay from under Tiberium trees.
+ *  Change this behaviour so that only Tiberium is removed from under Tiberium trees,
+ *  all other overlay is allowed.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_TerrainClass_Unlimbo_No_Overlay_Erase_Patch)
+{
+    GET_REGISTER_STATIC(TerrainClass *, this_ptr, edi);
+    GET_REGISTER_STATIC(TerrainTypeClass *, terraintype, eax);
+    // didn't work for some reason, maybe I don't know enough about C++ syntax
+    // GET_STACK_STATIC(Coordinate*, coord, esp, 0x1C);
+    static CellClass* cellptr;
+    static OverlayTypeClass* overlaytype;
+
+    /**
+     *  Stolen bytes/code.
+     *  Skip erasing overlay if the terrain type does not spawn Tiberium.
+     */
+    if (!terraintype->IsSpawnsTiberium) {
+        goto continue_function;
+    }
+
+    cellptr = Get_Terrain_Cell(this_ptr);
+
+    /**
+     *  Fetch the overlay type.
+     *  Only erase the overlay if the overlay is Tiberium.
+     */
+    if (cellptr->Overlay != OVERLAY_NONE)
+    {
+        overlaytype = OverlayTypes[cellptr->Overlay];
+        if (overlaytype->IsTiberium)
+        {
+            cellptr->Overlay = OVERLAY_NONE;
+            cellptr->OverlayData = 0;
+        }
+    }
+
+    /**
+     *  Return "true" from function.
+     */
+continue_function:
+    JMP(0x006409C3);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void TerrainClassExtension_Hooks()
@@ -190,4 +246,5 @@ void TerrainClassExtension_Hooks()
 
     Patch_Jump(0x006409C3, &_TerrainClass_Unlimbo_LightSource_Patch);
     Patch_Jump(0x0063F4D9, &_TerrainClass_Take_Damage_LightSource_Patch);
+    Patch_Jump(0x00640991, &_TerrainClass_Unlimbo_No_Overlay_Erase_Patch);
 }
