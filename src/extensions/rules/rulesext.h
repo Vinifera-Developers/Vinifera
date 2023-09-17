@@ -137,4 +137,9 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
          *  Is the advanced AI allowed to own multiple Construction Yards at a time?
          */
         bool IsAdvancedAIMultiConYard;
+
+        /**
+         *  Specifies the maximum distance that the advanced AI is allowed to expand at.
+         */
+        int AdvancedAIMaxExpansionDistance;
 };

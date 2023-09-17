@@ -435,6 +435,14 @@ bool AdvAI_House_Search_For_Next_Expansion_Point(HouseClass* house)
 
             Cell terraincell = terrain->Get_Cell();
 
+            // Fetch the cell of the terrain. If the cell has overlay on it,
+            // we should not expand towards it. This allows a way for mappers to mark
+            // that the AI should not expand towards specific Tiberium trees.
+            CellClass& cell = Map[terraincell];
+            if (cell.Overlay != OVERLAY_NONE) {
+                continue;
+            }
+
             bool found = false;
             for (int j = 0; j < Buildings.Count(); j++) {
                 BuildingClass* building = Buildings[j];
@@ -467,7 +475,7 @@ bool AdvAI_House_Search_For_Next_Expansion_Point(HouseClass* house)
             int distance = ::Distance(firstbuilding->Center_Coord(), terrain->Center_Coord());
             if (distance < nearestdistance) {
                 // Don't expand super far.
-                if (distance / CELL_LEPTON_W < 150) {
+                if (distance / CELL_LEPTON_W < RuleExtension->AdvancedAIMaxExpansionDistance) {
                     nearestdistance = distance;
                     target = terrain->Get_Cell();
                 }
