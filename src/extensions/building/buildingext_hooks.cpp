@@ -730,6 +730,17 @@ past_flame_spawn:
 }
 
 
+/**
+ *  Stores a record of buildings owned by the house
+ *  that is currently placing down a building.
+ *  Allows performing lookups on them without
+ *  needing to go through the list of all buildings on
+ *  the entire map.
+ */
+static BuildingClass* our_buildings[1000];
+static int our_building_count = 0;
+
+
 void Mark_Expansion_As_Done(HouseClass* house) {
     HouseClassExtension* ext = Extension::Fetch<HouseClassExtension>(house);
 
@@ -848,11 +859,11 @@ Rect Get_Base_Rect(HouseClass* house, int adjacency, int width, int height)
 /**
  *  Checks whether a cell should be evaluated for AI building placement.
  */
-bool Should_Evaluate_Cell_For_Placement(Cell cell, BuildingClass* building)
+bool Should_Evaluate_Cell_For_Placement(Cell cell, BuildingClass* building, int adjacency_bonus)
 {
     bool retvalue = false;
 
-    int adjacency = building->Class->Adjacent + 1;
+    int adjacency = building->Class->Adjacent + 1 + adjacency_bonus;
 
     for (int i = 0; i < Buildings.Count(); i++) {
         BuildingClass* otherbuilding = Buildings[i];
@@ -884,7 +895,7 @@ bool Should_Evaluate_Cell_For_Placement(Cell cell, BuildingClass* building)
                 ydiff = ABS(ydiff);
 
                 if (xdiff < 2 && ydiff < 2) {
-                    // This foundation cell too close to the compared building
+                    // This foundation cell is too close to the compared building
                     allowance = false;
                     break;
                 }
@@ -963,12 +974,80 @@ bool Should_Evaluate_Cell_For_Placement(Cell cell, BuildingClass* building)
 }
 
 /**
+ *  Implements an extra check for terrain passability around the building.
+ *  This is to make the AI less likely to get stuck.
+ */
+int inline Modify_Rating_By_Terrain_Passability(Cell cell, BuildingClass* building, int original_value)
+{
+    int value = original_value;
+
+    Cell cell_above_coords = cell + Cell(-1, -1);
+    Cell cell_below_coords = cell + Cell(building->Class->Width(), building->Class->Height());
+    bool passable_above = true;
+    bool passable_below = true;
+
+    if (Map.In_Radar(cell_above_coords)) {
+        CellClass& cell_above = Map[cell_above_coords];
+        if (!cell_above.Is_Clear_To_Move(SPEED_FOOT, true, true)) {
+            passable_above = false;
+        }
+    }
+
+    if (Map.In_Radar(cell_below_coords)) {
+        CellClass& cell_below = Map[cell_below_coords];
+        if (!cell_below.Is_Clear_To_Move(SPEED_FOOT, true, true)) {
+            passable_below = false;
+        }
+    }
+
+    // If both above and below are impassable, consider this a very high-risk
+    // position when it comes to the possibility of the AI getting stuck.
+    if (!passable_above && !passable_below) {
+        return INT_MAX;
+    }
+
+    // Do the same processing for left and right (east and west, considering in-game rendering iow. NOT logical in-game compass)
+    Cell cell_east_coords = cell + Cell(building->Class->Width(), -1);
+    Cell cell_west_coords = cell + Cell(-1, building->Class->Height());
+    bool passable_east = true;
+    bool passable_west = true;
+
+    if (Map.In_Radar(cell_east_coords)) {
+        CellClass& cell_above = Map[cell_east_coords];
+        if (!cell_above.Is_Clear_To_Move(SPEED_FOOT, true, true)) {
+            passable_east = false;
+        }
+    }
+
+    if (Map.In_Radar(cell_west_coords)) {
+        CellClass& cell_below = Map[cell_west_coords];
+        if (!cell_below.Is_Clear_To_Move(SPEED_FOOT, true, true)) {
+            passable_west = false;
+        }
+    }
+
+    // If both east and west are impassable, consider this a very high-risk
+    // position when it comes to the possibility of the AI getting stuck.
+    if (!passable_east && !passable_west) {
+        return INT_MAX;
+    }
+
+    // Individual stuck positions just result in a worse rating.
+    if (!passable_above) value = (value * 4) / 3;
+    if (!passable_below) value = (value * 4) / 3;
+    if (!passable_east) value = (value * 4) / 3;
+    if (!passable_west) value = (value * 4) / 3;
+
+    return value;
+}
+
+/**
  *  Evaluates a rectangle from the map with a value generator 
  *  function and finds the best cell for placing down a building.
  *  The best cell is one that has the LOWEST value and that allows legal
  *  building placement.
  */
-Cell Find_Best_Building_Placement_Cell(Rect basearea, BuildingClass* building, int (*valuegenerator)(Cell, BuildingClass*))
+Cell Find_Best_Building_Placement_Cell(Rect basearea, BuildingClass* building, int (*valuegenerator)(Cell, BuildingClass*), int adjacency_bonus = 0)
 {
     int lowestrating = INT_MAX;
     Cell bestcell = Cell(0, 0);
@@ -994,10 +1073,16 @@ Cell Find_Best_Building_Placement_Cell(Rect basearea, BuildingClass* building, i
                 continue;
 
             // Check whether this cell is fine by proximity rules.
-            if (!Should_Evaluate_Cell_For_Placement(cell, building))
+            if (!Should_Evaluate_Cell_For_Placement(cell, building, adjacency_bonus))
                 continue;
 
+            // Get value for the cell.
             int value = valuegenerator(cell, building);
+
+            // Adjust for terrain passability (lessen the chance for the dumb AI to get stuck).
+            value = Modify_Rating_By_Terrain_Passability(cell, building, value);
+
+            // Check whether this is the best placement cell so far.
             if (value < lowestrating) {
                 lowestrating = value;
                 bestcell = cell;
@@ -1008,20 +1093,57 @@ Cell Find_Best_Building_Placement_Cell(Rect basearea, BuildingClass* building, i
     return bestcell;
 }
 
+int inline Modify_Rating_By_Allied_Building_Proximity(Cell cell, BuildingClass* building, int original_value) {
+    int value = original_value * 1000;
+    
+    Cell center_cell = cell + Cell(building->Class->Width() / 2, building->Class->Height() / 2);
+
+    int closest_distance = INT_MAX;
+
+    for (int i = 0; i < our_building_count; i++) {
+        BuildingClass* otherbuilding = our_buildings[i];
+
+        Cell other_center_cell = Coord_Cell(otherbuilding->Center_Coord());
+        int dist = ::Distance(center_cell, other_center_cell);
+        if (dist < closest_distance) {
+            closest_distance = dist;
+        }
+    }
+
+    // Extra check for terrain passability around the building.
+    // If cells on both sides of the buildings are blocked, this is an unusually
+    // bad place for placing the building and we should place it somewhere else.
+
+
+
+    // The closer the building is to an existing building, the worse the placement position is.
+    // In other words, being closer INCREASES the value (as lower is better).
+    return value + (1000 - closest_distance);
+}
+
 int Refinery_Placement_Cell_Value(Cell cell, BuildingClass* building) 
 {
     HouseClass* owner = building->House;
     HouseClassExtension* houseext = Extension::Fetch<HouseClassExtension>(owner);
 
+    int value = 0;
+
     // If we have nowhere to expand, then just try placing it somewhere central, hopefully it's safe there.
     if (houseext->NextExpansionPointLocation.X <= 0 || houseext->NextExpansionPointLocation.Y <= 0) {
         Cell center = owner->Base_Center();
-        return ::Distance(cell, center);
+        value = ::Distance(cell, center);
+    }
+    else {
+        // For refinery placement, we can basically make the value equal to the distance
+        // that the refinery has to our next expansion point.
+        value = ::Distance(cell, houseext->NextExpansionPointLocation);
     }
 
-    // For refinery placement, we can basically make the value equal to the distance
-    // that the refinery has to our next expansion point.
-    return ::Distance(cell, houseext->NextExpansionPointLocation);
+    // Take proximity into nearby buildings into account.
+    // We do this to avoid traffic congestion in tight spaces in the AI's base.
+    value = Modify_Rating_By_Allied_Building_Proximity(cell, building, value);
+
+    return value;
 }
 
 /**
@@ -1029,16 +1151,16 @@ int Refinery_Placement_Cell_Value(Cell cell, BuildingClass* building)
  */
 Cell Get_Best_Refinery_Placement_Position(BuildingClass* building)
 {
-    int adjacency = building->Class->Adjacent + 1;
+    int adjacency = building->Class->Adjacent + 1 + 1;
     Rect basearea = Get_Base_Rect(building->House, adjacency, building->Class->Width(), building->Class->Height());
-    return Find_Best_Building_Placement_Cell(basearea, building, Refinery_Placement_Cell_Value);
+    return Find_Best_Building_Placement_Cell(basearea, building, Refinery_Placement_Cell_Value, 1);
 }
 
 int Near_Base_Center_Placement_Position_Value(Cell cell, BuildingClass* building)
 {
     HouseClass* owner = building->House;
     Cell center = owner->Base_Center();
-    return ::Distance(cell, center);
+    return Modify_Rating_By_Allied_Building_Proximity(cell, building, ::Distance(cell, center));
 }
 
 int Near_Enemy_Placement_Position_Value(Cell cell, BuildingClass* building)
@@ -1059,7 +1181,7 @@ int Near_Enemy_Placement_Position_Value(Cell cell, BuildingClass* building)
         return ::Distance(cell, mapcenter_cell);
     }
 
-    return ::Distance(cell, enemy->Base_Center());
+    return Modify_Rating_By_Allied_Building_Proximity(cell, building, ::Distance(cell, enemy->Base_Center()));
 }
 
 int Near_ConYard_Placement_Position_Value(Cell cell, BuildingClass* building)
@@ -1074,7 +1196,7 @@ int Near_ConYard_Placement_Position_Value(Cell cell, BuildingClass* building)
         conyardcell = mapcenter_cell;
     }
 
-    return SHRT_MAX - ::Distance(cell, conyardcell);
+    return Modify_Rating_By_Allied_Building_Proximity(cell, building, SHRT_MAX - ::Distance(cell, conyardcell));
 }
 
 int Far_From_Enemy_Placement_Position_Value(Cell cell, BuildingClass* building)
@@ -1132,13 +1254,23 @@ int Towards_Expansion_Placement_Cell_Value(Cell cell, BuildingClass* building)
 
 Cell Get_Best_Expansion_Placement_Position(BuildingClass* building)
 {
-    int adjacency = building->Class->Adjacent + 1;
+    int adjacency = building->Class->Adjacent + 1 + 1; // allow cheating in adjacency by 1 cell
     Rect basearea = Get_Base_Rect(building->House, adjacency, building->Class->Width(), building->Class->Height());
 
     HouseClass* owner = building->House;
     HouseClassExtension* houseext = Extension::Fetch<HouseClassExtension>(owner);
 
-    Cell bestcell = Find_Best_Building_Placement_Cell(basearea, building, Towards_Expansion_Placement_Cell_Value);
+    Cell bestcell = Find_Best_Building_Placement_Cell(basearea, building, Towards_Expansion_Placement_Cell_Value, 0);
+
+    // Fetch an expansion cell with adjacency bonus.
+    // This makes the algorithm much heavier, but allows the AI to jump over some gaps that it otherwise
+    // could not. Should make it able to hop over cliffs in a more reliable way.
+    Cell altbestcell = Find_Best_Building_Placement_Cell(basearea, building, Towards_Expansion_Placement_Cell_Value, 1);
+
+    // Use the "adjacency cheat" if it resulted in a bigger difference in distance than 1 cell.
+    if (::Distance(bestcell, altbestcell) > 1) {
+        bestcell = altbestcell;
+    }
 
     if (houseext->NextExpansionPointLocation.X > 0 &&
         houseext->NextExpansionPointLocation.Y > 0 &&
@@ -1154,16 +1286,9 @@ Cell Get_Best_Expansion_Placement_Position(BuildingClass* building)
         int nearestdistance = INT_MAX;
         Cell nearestcell = Cell(0, 0);
 
-        for (int i = 0; i < Buildings.Count(); i++)
+        for (int i = 0; i < our_building_count; i++)
         {
-            BuildingClass* otherbuilding = Buildings[i];
-
-            if (!otherbuilding->IsActive ||
-                otherbuilding->IsInLimbo ||
-                otherbuilding->Class->IsInvisibleInGame ||
-                otherbuilding->House != owner) {
-                continue;
-            }
+            BuildingClass* otherbuilding = our_buildings[i];
 
             int distance = ::Distance(houseext->NextExpansionPointLocation, otherbuilding->Get_Cell());
             if (distance < nearestdistance) {
@@ -1211,7 +1336,7 @@ int Barracks_Placement_Cell_Value(Cell cell, BuildingClass* building)
 
     // If we do not have an opponent AND do not expand, just place it somewhere on our base outskirts.
     Cell center = owner->Base_Center();
-    return SHRT_MAX - ::Distance(cell, center);
+    return Modify_Rating_By_Allied_Building_Proximity(cell, building, SHRT_MAX - ::Distance(cell, center));
 
     // TODO: Distance to other barracks of our house could be a good factor too.
     // It would require us to go through all buildings though... which might give a significant perf hit.
@@ -1255,7 +1380,7 @@ static Cell attackcell;
 
 int Near_AttackCell_Cell_Value(Cell cell, BuildingClass* building) 
 {
-    return ::Distance(cell, attackcell);
+    return Modify_Rating_By_Allied_Building_Proximity(cell, building, ::Distance(cell, attackcell));
 }
 
 Cell Get_Best_Defense_Placement_Position(BuildingClass* building)
@@ -1349,6 +1474,26 @@ int BuildingClass_Exit_Object_Custom_Position(BuildingClass* building)
 {
     HouseClass* owner = building->House;
     HouseClassExtension* ext = Extension::Fetch<HouseClassExtension>(owner);
+
+    our_building_count = 0;
+
+    for (int i = 0; i < Buildings.Count(); i++) {
+        BuildingClass* otherbuilding = Buildings[i];
+
+        if (!otherbuilding->IsActive ||
+            otherbuilding->IsInLimbo ||
+            otherbuilding->Class->IsInvisibleInGame ||
+            otherbuilding->House != owner) {
+            continue;
+        }
+
+        our_buildings[our_building_count] = otherbuilding;
+        our_building_count++;
+
+        if (our_building_count >= ARRAY_SIZE(our_buildings)) {
+            break;
+        }
+    }
 
     Cell placement_cell = Get_Best_Placement_Position(building);
 

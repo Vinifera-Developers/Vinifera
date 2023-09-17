@@ -935,6 +935,10 @@ void AdvAI_Sell_Extra_ConYards(HouseClass* house)
 
         building->Sell_Back(1);
         sold_count++;
+
+        if (sold_count >= to_sell_count) {
+            break;
+        }
     }
 }
 
