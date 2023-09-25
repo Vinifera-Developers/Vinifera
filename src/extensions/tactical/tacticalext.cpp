@@ -532,7 +532,7 @@ void TacticalExtension::Render_Post()
      */
     Draw_Super_Timers();
     Draw_Strengthen_Info();
-    Draw_Messages();
+    //Draw_Messages();
 }
 
 
