@@ -25,7 +25,6 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "scenarioext_functions.h"
 #include "tibsun_defines.h"
 #include "tibsun_globals.h"
 #include "tibsun_inline.h"

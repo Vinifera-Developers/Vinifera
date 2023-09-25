@@ -389,7 +389,7 @@ bool Vinifera_HouseClass_AI_Target_MultiMissile(HouseClass* this_ptr, SuperClass
         Coordinate center = besttarget->Center_Coord();
         Cell targetcell = Coord_Cell(center);
         int superid = this_ptr->SuperWeapon.ID(super);
-        bool result = this_ptr->SuperWeapon[superid]->Discharged(this_ptr == PlayerPtr, &targetcell);
+        bool result = this_ptr->SuperWeapon[superid]->Discharged(this_ptr == PlayerPtr, targetcell);
         return result;
     }
 

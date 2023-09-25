@@ -25,7 +25,6 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "initext_functions.h"
 #include "vinifera_const.h"
 #include "vinifera_globals.h"
 #include "vinifera_util.h"
