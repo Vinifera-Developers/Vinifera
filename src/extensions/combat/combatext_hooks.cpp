@@ -30,8 +30,8 @@
 #include "combat.h"
 #include "cell.h"
 #include "overlaytype.h"
-#include "rulesext.h"
 #include "scenarioext.h"
+#include "rulesext.h"
 #include "warheadtype.h"
 #include "warheadtypeext.h"
 #include "extension.h"
@@ -107,7 +107,7 @@ DECLARE_PATCH(_Explosion_Damage_IsWallAbsoluteDestroyer_Patch)
  */
 DECLARE_PATCH(_Explosion_Damage_IsIceDestruction_Patch)
 {
-    GET_REGISTER_STATIC(const WarheadTypeClass *, warhead, edi);
+    GET_REGISTER_STATIC(const WarheadTypeClass*, warhead, edi);
     GET_STACK_STATIC(int, strength, esp, 0x54);
 
     if (!ScenExtension->IsIceDestruction) {
@@ -122,7 +122,7 @@ DECLARE_PATCH(_Explosion_Damage_IsIceDestruction_Patch)
         /**
          *  Allow destroying ice if the strength of ice is 0 or the random number check allows it.
          */
-        if (RuleExtension->IceStrength <= 0 || Random_Pick(0, RuleExtension->IceStrength) < strength) {
+        if (RuleExtension->IceStrength <= 0 || Scen->RandomNumber(0, RuleExtension->IceStrength) < strength) {
             goto allow_ice_destruction;
         }
     }

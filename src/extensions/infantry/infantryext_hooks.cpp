@@ -47,6 +47,7 @@
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "tibsun_inline.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -177,7 +178,10 @@ DECLARE_PATCH(_InfantryClass_Firing_AI_Mechanic_Patch)
          *  Is the target being queried a unit, aircraft or infantry? If so, make
          *  sure this infantry is a mechanic before allowing it to heal the unit.
          */
-        if (targ->What_Am_I() == RTTI_UNIT || (targ->What_Am_I() == RTTI_AIRCRAFT && !targ->In_Air()) || targ->What_Am_I() == RTTI_INFANTRY) {
+        if (targ->What_Am_I() == RTTI_UNIT || 
+            (targ->What_Am_I() == RTTI_AIRCRAFT && !targ->In_Air()) || 
+            targ->What_Am_I() == RTTI_INFANTRY || 
+            (targ->What_Am_I() == RTTI_BUILDING && targ->Techno_Type_Class()->UndeploysInto != nullptr)) {
             goto health_ratio_check;
         }
 
@@ -190,7 +194,9 @@ DECLARE_PATCH(_InfantryClass_Firing_AI_Mechanic_Patch)
          *  Is the target being queried a unit or aircraft? If so, make sure this
          *  infantry is a mechanic before allowing it to heal the unit.
          */
-        if (targ->What_Am_I() == RTTI_UNIT || (targ->What_Am_I() == RTTI_AIRCRAFT && !targ->In_Air())) {
+        if (targ->What_Am_I() == RTTI_UNIT || 
+            (targ->What_Am_I() == RTTI_AIRCRAFT && !targ->In_Air()) || 
+            (targ->What_Am_I() == RTTI_BUILDING && targ->Techno_Type_Class()->UndeploysInto != nullptr)) {
             goto health_ratio_check;
         }
 
@@ -243,7 +249,10 @@ DECLARE_PATCH(_InfantryClass_What_Action_Mechanic_Patch)
          *  Is the target being queried a unit, aircraft or infantry? If so, make
          *  sure this infantry is a mechanic before allowing it to heal the unit.
          */
-        if (object->What_Am_I() == RTTI_UNIT || object->What_Am_I() == RTTI_AIRCRAFT || object->What_Am_I() == RTTI_INFANTRY) {
+        if (object->What_Am_I() == RTTI_UNIT ||
+            object->What_Am_I() == RTTI_AIRCRAFT || 
+            object->What_Am_I() == RTTI_INFANTRY || 
+            (object->What_Am_I() == RTTI_BUILDING && object->Techno_Type_Class()->UndeploysInto != nullptr)) {
 
             /**
              *  If we are force-moving into an Transport, don't try to heal it!
@@ -276,7 +285,9 @@ DECLARE_PATCH(_InfantryClass_What_Action_Mechanic_Patch)
          *  Is the target being queried a unit or aircraft? If so, make sure this
          *  infantry is a mechanic before allowing it to heal the unit.
          */
-        if (object->What_Am_I() == RTTI_UNIT || object->What_Am_I() == RTTI_AIRCRAFT) {
+        if (object->What_Am_I() == RTTI_UNIT ||
+            object->What_Am_I() == RTTI_AIRCRAFT ||
+            (object->What_Am_I() == RTTI_BUILDING && object->Techno_Type_Class()->UndeploysInto != nullptr) ) {
 
             /**
              *  If we are force-moving into an Transport, don't try to heal it!
@@ -340,9 +351,9 @@ DECLARE_PATCH(_InfantryClass_Can_Fire_Target_Check_Patch)
     GET_REGISTER_STATIC(InfantryClass *, this_ptr, esi);
     GET_STACK_STATIC(TARGET, target, esp, 0x10);
     GET_STACK_STATIC(int, which, esp, 0x14);
-    static FootClass *targ;
+    static TechnoClass *targ;
 
-    targ = Target_As_Foot(target);
+    targ = Target_As_Techno(target);
     if (targ == nullptr) {
         goto return_FIRE_ILLEGAL;
     }
@@ -524,6 +535,30 @@ DECLARE_PATCH(_InfantryClass_Firing_AI_JumpJet_In_Air_Patch)
 }
 
 
+void _Set_Infantry_Facing_After_Doing_Check_For_Do_Nothing(InfantryClass* this_ptr)
+{
+    if (this_ptr->Doing == DO_NOTHING) {
+        return;
+    }
+
+    FacingType facing = this_ptr->Class->DoControls[this_ptr->Doing].Finish;
+    if (facing == FACING_NONE) {
+        return;
+    }
+
+    DirType dirtype = Facing_Dir(facing);
+    DirStruct ds = DirStruct(dirtype);
+    this_ptr->PrimaryFacing.Set(ds);
+}
+
+
+DECLARE_PATCH(_InfantryClass_Doing_AI_Fix_Invalid_Facing_Set)
+{
+    GET_REGISTER_STATIC(InfantryClass*, inf, esi);
+    _Set_Infantry_Facing_After_Doing_Check_For_Do_Nothing(inf);
+    JMP(0x004D8C14);
+}
+
 /**
  *  Main function for patching the hooks.
  */
@@ -533,6 +568,8 @@ void InfantryClassExtension_Hooks()
      *  Initialises the extended class.
      */
     InfantryClassExtension_Init();
+
+    Patch_Jump(0x004D8BE4, &_InfantryClass_Doing_AI_Fix_Invalid_Facing_Set);
 
     Patch_Jump(0x004D88FA, &_InfantryClass_Firing_AI_JumpJet_In_Air_Patch);
     Patch_Jump(0x004D8C83, &_InfantryClass_Doing_AI_JumpJet_Idle_Patch);

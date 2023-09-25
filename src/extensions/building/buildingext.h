@@ -87,4 +87,20 @@ BuildingClassExtension final : public TechnoClassExtension
          *  Has the cash budget been depleted (stops producing cash)?
          */
         bool IsBudgetDepleted;
+
+        /**
+         *  Records the last frame when flames were created on the building
+         *  as a result of it receiving damage. This is used to check to
+         *  prevent the flames from accumulating if the building rapidly
+         *  switches between damage stages (typically as a result of
+         *  existing flames or another damage-over-time effect combined
+         *  with building repair bringing it back to green health).
+         */
+        int LastFlameSpawnFrame;
+
+        /**
+         *  If this building was built by the AI for it to reach an expansion
+         *  point, this records the expansion point that the building helped reach.
+         */
+        Cell AssignedExpansionPoint;
 };

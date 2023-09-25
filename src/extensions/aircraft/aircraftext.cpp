@@ -29,6 +29,7 @@
 #include "aircraft.h"
 #include "wwcrc.h"
 #include "extension.h"
+#include "vinifera_saveload.h"
 #include "asserthandler.h"
 #include "debughandler.h"
 
@@ -107,6 +108,10 @@ HRESULT AircraftClassExtension::Load(IStream *pStm)
 
     new (this) AircraftClassExtension(NoInitClass());
     
+    if (Spawner != nullptr) {
+        VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Spawner, "Spawner");
+    }
+
     return hr;
 }
 

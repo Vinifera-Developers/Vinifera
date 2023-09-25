@@ -29,6 +29,7 @@
 
 #include "objecttypeext.h"
 #include "animtype.h"
+#include "typelist.h"
 
 
 class DECLSPEC_UUID(UUID_ANIMTYPE_EXTENSION)
@@ -94,4 +95,69 @@ AnimTypeClassExtension final : public ObjectTypeClassExtension
          *  The number of the particle to spawn.
          */
         unsigned NumberOfParticles;
+
+        /**
+         *  The raw amount of area damage dealt by this animation.
+         */
+        int AreaDamage;
+
+        /**
+         *  The radius of the area damage dealt by this animation, in cells.
+         */
+        int AreaDamageRadius;
+
+        /**
+         *  How much of the specified maximum damage the animation does to objects
+         *  that reside at maximum distance from the animation's coordinate.
+         *  This is used to scale the damage linearly.
+         */
+        int AreaDamagePercentAtMaxRange;
+
+        /**
+         *  An additional damage percentage to use when calculating damage against units.
+         *  This allows customizing damage to be different against units compared to buildings.
+         */
+        int AreaDamagePercentAgainstUnits;
+
+        /**
+         *  Percentual chance that a smudge will be created on a cell impacted by
+         *  the anim's area damage.
+         */
+        int AreaDamageSmudgeChance;
+
+        /**
+         *  Percentual chance that a flame anim will be created on a cell impacted by
+         *  the anim's area damage.
+         */
+        int AreaDamageFlameChance;
+
+        /**
+         *  List of animations to spawn at the logical start of this animation.
+         */
+        //TypeList<AnimTypeClass*> StartAnims;
+        //TypeList<int> StartAnimsCount;
+        //TypeList<int> StartAnimsMinimum;
+        //TypeList<int> StartAnimsMaximum;
+
+        /**
+         *  List of animations to spawn at the logical middle of this animation.
+         */
+        //TypeList<AnimTypeClass*> MiddleAnims;
+        //TypeList<int> MiddleAnimsCount;
+        //TypeList<int> MiddleAnimsMinimum;
+        //TypeList<int> MiddleAnimsMaximum;
+
+        /**
+         *  List of animations to spawn at the logical end of this animation.
+         */
+        //TypeList<AnimTypeClass*> EndAnims;
+        //TypeList<int> EndAnimsCount;
+        //TypeList<int> EndAnimsMinimum;
+        //TypeList<int> EndAnimsMaximum;
+
+        /**
+         *  The width and height of the biggest frame, if set by the user.
+         */
+        unsigned BiggestFrameWidth;
+        unsigned BiggestFrameHeight;
 };

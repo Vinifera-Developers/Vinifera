@@ -74,7 +74,15 @@ RulesClassExtension::RulesClassExtension(const RulesClass *this_ptr) :
     IsMPPrePlacedConYards(false),
     IsBuildOffAlly(true),
     IsShowSuperWeaponTimers(true),
-    IceStrength(0)
+    IceStrength(0),
+    MaxFreeRefineryDistanceBias(16),
+    BuildingFlameSpawnBlockFrames(0),
+    StrengthenDestroyedValueThreshold(0),
+    StrengthenBuildingValueMultiplier(3),
+    IsStrengtheningEnabled(false),
+    IsUseAdvancedAI(false),
+    IsAdvancedAIMultiConYard(false),
+    AdvancedAIMaxExpansionDistance(150)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
@@ -191,6 +199,11 @@ void RulesClassExtension::Compute_CRC(WWCRCEngine &crc) const
     crc(IsBuildOffAlly);
     crc(IsShowSuperWeaponTimers);
     crc(IceStrength);
+    crc(MaxFreeRefineryDistanceBias);
+    crc(BuildingFlameSpawnBlockFrames);
+    crc(StrengthenDestroyedValueThreshold);
+    crc(StrengthenBuildingValueMultiplier);
+    crc(IsStrengtheningEnabled);
 }
 
 
@@ -277,6 +290,7 @@ void RulesClassExtension::Process(CCINIClass &ini)
      * 
      *  #NOTE: These must be performed last!
      */
+    AI(ini);
     General(ini);
     MPlayer(ini);
     AudioVisual(ini);
@@ -409,6 +423,27 @@ bool RulesClassExtension::Objects(CCINIClass &ini)
 
 
 /**
+ *  Process AI-related game rules.
+ *
+ *  @author: Rampastring
+ */
+bool RulesClassExtension::AI(CCINIClass &ini)
+{
+    static char const* const AI = "AI";
+
+    if (!ini.Is_Present(AI)) {
+        return false;
+    }
+
+    IsUseAdvancedAI = ini.Get_Bool(AI, "UseAdvancedAI", IsUseAdvancedAI);
+    IsAdvancedAIMultiConYard = ini.Get_Bool(AI, "AdvancedAIMultiConYard", IsAdvancedAIMultiConYard);
+    AdvancedAIMaxExpansionDistance = ini.Get_Int(AI, "AdvancedAIMaxExpansionDistance", AdvancedAIMaxExpansionDistance);
+
+    return true;
+}
+
+
+/**
  *  Process the general main game rules.
  *  
  *  @author: CCHyper
@@ -432,6 +467,7 @@ bool RulesClassExtension::General(CCINIClass &ini)
      *  @author: CCHyper
      */
     This()->EngineerDamage = ini.Get_Float(GENERAL, "EngineerDamage", This()->EngineerDamage);
+    MaxFreeRefineryDistanceBias = ini.Get_Int(GENERAL, "MaxFreeRefineryDistanceBias", MaxFreeRefineryDistanceBias);
 
     return true;
 }
@@ -463,7 +499,7 @@ bool RulesClassExtension::AudioVisual(CCINIClass &ini)
  *
  *  @author: Rampastring
  */
-bool RulesClassExtension::CombatDamage(CCINIClass & ini)
+bool RulesClassExtension::CombatDamage(CCINIClass &ini)
 {
     //EXT_DEBUG_TRACE("RulesClassExtension::CombatDamage - 0x%08X\n", (uintptr_t)(This()));
 
@@ -474,6 +510,10 @@ bool RulesClassExtension::CombatDamage(CCINIClass & ini)
     }
 
     IceStrength = ini.Get_Int(COMBATDAMAGE, "IceStrength", IceStrength);
+    BuildingFlameSpawnBlockFrames = ini.Get_Int(COMBATDAMAGE, "BuildingFlameSpawnBlockFrames", BuildingFlameSpawnBlockFrames);
+    StrengthenDestroyedValueThreshold = ini.Get_Int(COMBATDAMAGE, "StrengthenDestroyedValueThreshold", StrengthenDestroyedValueThreshold);
+    StrengthenBuildingValueMultiplier = ini.Get_Int(COMBATDAMAGE, "StrengthenBuildingValueMultiplier", StrengthenBuildingValueMultiplier);
+    IsStrengtheningEnabled = ini.Get_Bool(COMBATDAMAGE, "StrengtheningEnabled", IsStrengtheningEnabled);
 
     return true;
 }

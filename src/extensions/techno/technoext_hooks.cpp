@@ -37,12 +37,18 @@
 #include "warheadtypeext.h"
 #include "house.h"
 #include "housetype.h"
+#include "houseext.h"
 #include "rules.h"
 #include "rulesext.h"
 #include "uicontrol.h"
+#include "aircraft.h"
+#include "aircraftext.h"
+#include "aircrafttypeext.h"
 #include "infantry.h"
 #include "infantrytype.h"
 #include "infantrytypeext.h"
+#include "unittype.h"
+#include "unittypeext.h"
 #include "voc.h"
 #include "vinifera_util.h"
 #include "extension.h"
@@ -737,6 +743,222 @@ DECLARE_PATCH(_TechnoClass_Null_House_Warning_Patch)
 
 
 /**
+ *  #issue-356
+ *
+ *  Enables the deploy keyboard command to work for units that
+ *  transform into a different unit on deploy.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_TechnoClass_2A0_Is_Allowed_To_Deploy_Unit_Transform_Patch)
+{
+    GET_REGISTER_STATIC(UnitTypeClass*, unittype, eax);
+    static UnitTypeClassExtension* unittypeext;
+
+    /**
+     *  Stolen bytes/code.
+     */
+    if (unittype->DeploysInto != nullptr) {
+        goto has_deploy_ability;
+
+    } else if (unittype->MaxPassengers > 0) {
+        goto has_deploy_ability;
+
+    } else if (unittype->IsMobileEMP) {
+        goto has_deploy_ability;
+    }
+
+    unittypeext = Extension::Fetch<UnitTypeClassExtension>(unittype);
+
+    if (unittypeext->TransformsInto != nullptr) {
+        goto has_deploy_ability;
+    }
+
+    /**
+     *  The unit has no ability that allows it to deploy / unload.
+     *  Mark that and continue function after the check.
+     */
+has_no_deploy_ability:
+    _asm { mov eax, unittype }
+    JMP_REG(ecx, 0x006320E0);
+
+    /**
+     *  The unit has some kind of an ability that allows it to deploy / unload.
+     *  Continue function after the check.
+     */
+has_deploy_ability:
+    _asm { mov eax, unittype }
+    JMP_REG(ecx, 0x006320E5);
+}
+
+
+/**
+ *  Accumulates killed value for house that killed that our unit.
+ *  If they have gathered enough value, then strengthen that house.
+ * 
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_TechnoClass_Record_The_Kill_Strengthen_Killer_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass *, source, edi);
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(int, cost, ebx);
+    static HouseClassExtension *houseext;
+    static int value;
+
+    /**
+     *  Stolen bytes / code.
+     *  Mark the damage source's house as the house that last hurt our owner.
+     */
+    this_ptr->House->WhoLastHurtMe = (HousesType)source->Owner();
+
+    if (RuleExtension->IsStrengtheningEnabled) {
+        houseext = Extension::Fetch<HouseClassExtension>(source->House);
+        value = cost;
+
+        // Buildings have a multiplier to their value.
+        if (this_ptr->What_Am_I() == RTTI_BUILDING) {
+            value = value * RuleExtension->StrengthenBuildingValueMultiplier;
+        }
+
+        houseext->StrengthenDestroyedCost += value;
+
+        /**
+         *  Strengthen the house if they have exceeded the threshold.
+         */
+        while (houseext->StrengthenDestroyedCost > RuleExtension->StrengthenDestroyedValueThreshold) {
+            source->House->FirepowerBias += 0.01;
+            source->House->ArmorBias += 0.01;
+
+            houseext->StrengthenDestroyedCost -= RuleExtension->StrengthenDestroyedValueThreshold;
+        }
+    }
+
+    /**
+     *  Continue the kill recording process from the point where the
+     *  game updates the points for the owner of the damage source.
+     */
+    JMP(0x0063382D);
+}
+
+
+void Create_Aircraft(TechnoClass* creator, WeaponTypeClassExtension* weaponext) 
+{
+    /**
+     *  Spawn an aircraft and make it attack the same target as our creator.
+     */
+    AircraftClass *aircraft = reinterpret_cast<AircraftClass*>(weaponext->AircraftTypeToSpawn->Create_One_Of(creator->House));
+
+    if (aircraft == nullptr) {
+        return;
+    }
+
+    aircraft->PrimaryFacing.Set(creator->PrimaryFacing.Current());
+    aircraft->Coord = creator->Coord;
+    aircraft->FirepowerBias = creator->FirepowerBias;
+    aircraft->ArmorBias = creator->ArmorBias;
+
+    /**
+     *  Use ScenarioInit to allow the aircraft to spawn on the same cell
+     *  with its creator.
+     */
+    ScenarioInit++;
+
+    if (aircraft->Unlimbo(aircraft->Coord, creator->PrimaryFacing.Current().Get_Dir())) {
+
+        /**
+         *  If the creator of the aircraft was targeting something, then assign its
+         *  target as the target of the spawned aircraft.
+         */
+        if (creator->TarCom) {
+            aircraft->Assign_Target(creator->TarCom);
+            aircraft->Assign_Mission(MISSION_ATTACK);
+            aircraft->Commence();
+        }
+
+        AircraftClassExtension *aircraftext = Extension::Fetch<AircraftClassExtension>(aircraft);
+        aircraftext->Spawner = creator;
+    }
+
+    ScenarioInit--;
+}
+
+
+/**
+ *  Allows a weapon to spawn aircraft when fired.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_TechnoClass_Fire_At_Spawn_Aircraft_Patch)
+{
+    GET_REGISTER_STATIC(TARGET, target, edi);
+    GET_REGISTER_STATIC(WeaponTypeClass *, weapontype, ebx);
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
+    static WeaponTypeClassExtension *weaponext;
+    static bool isbright;
+
+    weaponext = Extension::Fetch<WeaponTypeClassExtension>(weapontype);
+
+    if (!weaponext->IsSpawnAircraft) {
+        goto original_code;
+    }
+
+    Create_Aircraft(this_ptr, weaponext);
+
+    /**
+     *  Exit from function.
+     *  Actually it's best to just carry over, spawning the projectile
+     *  seems to do some beneficial stuff (like setting the ROF timer).
+     */
+    // _asm { xor  eax, eax }
+    // JMP_REG(edi, 0x006313C2);
+
+    /**
+     *  Launch the weapon as normal.
+     */
+original_code:
+
+    isbright = weapontype->IsBright;
+
+    /**
+     *  Stolen bytes / code.
+     */
+    _asm { mov dl, [isbright] }
+    JMP(0x006306BB);
+}
+
+
+/**
+ *  #issue-1032
+ *
+ *  Fixes a bug where the Medic indicator is drawn for a medic that has
+ *  not been discovered by the player.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_TechnoClass_Draw_Pips_No_Medic_Indicator_In_Shroud_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
+
+    if (!this_ptr->IsDiscoveredByPlayer || this_ptr->Combat_Damage() >= 0) {
+        goto no_indicator;
+    }
+
+    /**
+     *  Draw the medic indicator pip.
+     */
+display_indicator:
+    JMP(0x00637B90);
+
+    /**
+     *  Continue the function, but skip drawing the medic indicator pip.
+     */
+no_indicator:
+    JMP(0x00637BD2);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void TechnoClassExtension_Hooks()
@@ -755,5 +977,9 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x00630390, &_TechnoClass_Fire_At_Suicide_Patch);
     Patch_Jump(0x00631223, &_TechnoClass_Fire_At_Electric_Bolt_Patch);
     Patch_Jump(0x00636F09, &_TechnoClass_Is_Allowed_To_Retaliate_Can_Retaliate_Patch);
+    Patch_Jump(0x006320C2, &_TechnoClass_2A0_Is_Allowed_To_Deploy_Unit_Transform_Patch);
+    Patch_Jump(0x0063381A, &_TechnoClass_Record_The_Kill_Strengthen_Killer_Patch);
+    Patch_Jump(0x006306B5, &_TechnoClass_Fire_At_Spawn_Aircraft_Patch);
+    Patch_Jump(0x00637B83, &_TechnoClass_Draw_Pips_No_Medic_Indicator_In_Shroud_Patch);
     Patch_Jump(0x0062D4CA, &_TechnoClass_Evaluate_Object_Is_Legal_Target_Patch);
 }

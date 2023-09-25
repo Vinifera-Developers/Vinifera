@@ -34,10 +34,14 @@
 #include "technotype.h"
 #include "technotypeext.h"
 #include "unit.h"
+#include "unitext.h"
 #include "unittype.h"
 #include "unittypeext.h"
+#include "unitext_functions.h"
+#include "tag.h"
 #include "target.h"
 #include "rules.h"
+#include "rulesext.h"
 #include "iomap.h"
 #include "voc.h"
 #include "extension.h"
@@ -681,6 +685,409 @@ continue_check_scatter:
 
 
 /**
+ *  #issue-201
+ *
+ *  A "quality of life" patch for harvesters so they don't discriminate against dock
+ *  buildings that are not the first on their Dock= list. Also makes harvesters
+ *  smarter by making them prefer queuing for nearby occupied refineries instead
+ *  of wandering to distant free refineries.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_UnitClass_Mission_Harvest_FINDHOME_Find_Nearest_Refinery_Patch)
+{
+    /**
+     *  Enum for MISSION_HARVEST status constants.
+     */
+    enum {
+        LOOKING,
+        HARVESTING,
+        FINDHOME,
+        HEADINGHOME,
+        GOINGTOIDLE,
+    };
+
+
+    GET_REGISTER_STATIC(UnitClass*, harvester, esi);
+    static RadioMessageType response;
+    static UnitClassExtension* unitext;
+    static int free_refinery_distance_bias;
+    static BuildingClass* nearest_free_refinery;
+    static int nearest_free_refinery_distance;
+    static BuildingClass* nearest_possibly_occupied_refinery;
+    static int nearest_possibly_occupied_refinery_distance;
+    static bool reserve_free_refinery;
+
+    /**
+     *  Find the nearest refinery that is not occupied.
+     */
+    UnitClassExtension_Find_Nearest_Refinery(harvester, &nearest_free_refinery, &nearest_free_refinery_distance);
+
+    /**
+     *  Find the nearest refinery, regardless of whether it's occupied.
+     */
+    UnitClassExtension_Find_Nearest_Refinery(harvester, &nearest_possibly_occupied_refinery, &nearest_possibly_occupied_refinery_distance, true);
+
+    reserve_free_refinery = true;
+
+    if (nearest_free_refinery == nullptr) {
+
+        /**
+         *  There was no free refinery, check if there was an occupied one.
+         */
+        if (nearest_possibly_occupied_refinery == nullptr) {
+
+            /**
+             *  No refinery existed at all! We have nothing to do here.
+             */
+            goto set_mission_delay_and_return;
+        }
+
+        /**
+         *  There was an occupied refinery, queue for it instead.
+         */
+        reserve_free_refinery = false;
+    }
+    else if (nearest_free_refinery != nearest_possibly_occupied_refinery) {
+
+        /**
+         *  There was a free refinery as well as an occupied one.
+         *  Check if the occupied refinery is significantly closer to us than the free refinery.
+         */
+
+        free_refinery_distance_bias = RuleExtension->MaxFreeRefineryDistanceBias;
+
+        if (nearest_free_refinery_distance >
+            nearest_possibly_occupied_refinery_distance + Cell_To_Lepton(free_refinery_distance_bias)) {
+
+            reserve_free_refinery = false;
+        }
+    }
+
+    unitext = Extension::Fetch<UnitClassExtension>(harvester);
+
+    if (reserve_free_refinery) {
+
+        /**
+         *  We want to contact the free refinery, send a radio message to it.
+         */
+        response = harvester->Transmit_Message(RADIO_HELLO, nearest_free_refinery);
+
+        /**
+         *  Check if the refinery answered as expected. If not, we'll queue for it instead.
+         */
+        if (response == RADIO_ROGER) {
+
+            /**
+             *  The refinery accepted us! Change mission status to HEADINGHOME and jump to original code.
+             */
+            harvester->Status = HEADINGHOME;
+
+            unitext->LastDockedBuilding = nearest_free_refinery;
+
+            goto set_mission_delay_and_return;
+        }
+    }
+
+
+    /**
+     *  Re-use the original game's code for queueing to an occupied refinery.
+     *  The game expects the occupied refinery pointer to be in edi.
+     */
+queue_to_occupied:
+
+    unitext->LastDockedBuilding = nearest_possibly_occupied_refinery;
+
+    _asm { mov edi, [nearest_possibly_occupied_refinery] };
+    JMP(0x00654FAA);
+
+
+    /**
+     *  Set mission delay and return from function.
+     */
+set_mission_delay_and_return:
+    JMP(0x00655226);
+}
+
+/**
+ *  Helper function.
+ *  Creates a unit based on an already existing unit.
+ *  Returns the new unit if successful, otherwise null.
+ *
+ *  @author: Rampastring
+ */
+UnitClass* Create_Transform_Unit(UnitClass* this_ptr) {
+
+    UnitTypeClassExtension* unittypeext = Extension::Fetch<UnitTypeClassExtension>(this_ptr->Class);
+
+    UnitClass* newunit = reinterpret_cast<UnitClass*>(unittypeext->TransformsInto->Create_One_Of(this_ptr->House));
+    if (newunit == nullptr) {
+
+        /**
+         *  Creating the new unit failed! Re-mark our occupation bits and return false.
+         */
+        return nullptr;
+    }
+
+    // Try_To_Deploy copies the tag this way at 0x0065112C
+    if (this_ptr->Tag != nullptr) {
+        newunit->Attach_Tag(this_ptr->Tag);
+        this_ptr->Tag->AttachCount--;
+        this_ptr->Tag = nullptr;
+    }
+
+    newunit->ActLike = this_ptr->ActLike;
+    newunit->LimpetSpeedFactor = this_ptr->LimpetSpeedFactor;
+    newunit->field_214 = this_ptr->field_214; // also copied at 0x00650F4E
+    newunit->Veterancy.From_Integer(this_ptr->Veterancy.To_Integer());
+    newunit->Group = this_ptr->Group;
+    newunit->BarrelFacing.Set(this_ptr->BarrelFacing.Current());
+    newunit->BarrelFacing.Set_Desired(this_ptr->BarrelFacing.Desired());
+    newunit->PrimaryFacing.Set(this_ptr->PrimaryFacing.Current());
+    newunit->PrimaryFacing.Set_Desired(this_ptr->PrimaryFacing.Desired());
+    newunit->SecondaryFacing.Set(this_ptr->SecondaryFacing.Current());
+    newunit->SecondaryFacing.Set_Desired(this_ptr->SecondaryFacing.Desired());
+    newunit->Strength = (int)(this_ptr->Health_Ratio() * (int)newunit->Class->MaxStrength);
+    newunit->ArmorBias = this_ptr->ArmorBias;
+    newunit->FirepowerBias = this_ptr->FirepowerBias;
+    newunit->SpeedBias = this_ptr->SpeedBias;
+    newunit->Coord = this_ptr->Coord;
+    newunit->EMPFramesRemaining = this_ptr->EMPFramesRemaining;
+    newunit->Ammo = this_ptr->Ammo;
+
+
+    if (newunit->Unlimbo(newunit->Coord, this_ptr->PrimaryFacing.Current().Get_Dir())) {
+
+        /**
+         *  Unlimbo successful, select our new unit and return it
+         */
+
+        if (PlayerPtr == newunit->Owning_House()) {
+            newunit->Select();
+        }
+
+        if (this_ptr->TarCom) {
+            newunit->Assign_Target(this_ptr->TarCom);
+            newunit->Assign_Mission(MISSION_ATTACK);
+            newunit->Commence();
+        }
+
+        return newunit;
+    }
+
+    /**
+     *  Unlimboing the new unit failed! Delete the new unit and return false.
+     */
+    delete newunit;
+    return nullptr;
+}
+
+/**
+ *  Work-around function because the compiler likes smashing the stack by using ebp
+ *  when calling locomotor functions :)
+ *
+ *  Returns the address that the calling function should jump to after calling this.
+ *
+ *  @author: Rampastring
+ */
+int _UnitClass_Try_To_Deploy_Transform_To_Vehicle_Patch_Func(UnitClass* this_ptr) {
+
+    /**
+     *  Stolen bytes/code.
+     */
+    if (this_ptr->Class->DeploysInto != nullptr) {
+
+        /**
+         *  This unit is deployable rather than transformable, check whether it can deploy.
+         */
+        goto original_code;
+    }
+
+    UnitTypeClassExtension* unittypeext = Extension::Fetch<UnitTypeClassExtension>(this_ptr->Class);
+
+    if (unittypeext->TransformsInto != nullptr) {
+
+        /**
+         *  Use custom "transform to vehicle" logic if we don't need charge or we have enough of it.
+         */
+
+        if (unittypeext->IsTransformRequiresFullCharge && this_ptr->CurrentCharge < this_ptr->Class->MaxCharge) {
+
+            /**
+             *  We don't have enough charge, return false
+             */
+            return 0x006511A0;
+        }
+
+        this_ptr->Mark(MARK_UP);
+        this_ptr->Locomotor_Ptr()->Mark_All_Occupation_Bits(MARK_UP);
+
+        UnitClass* newunit = Create_Transform_Unit(this_ptr);
+
+        if (newunit != nullptr) {
+
+            /**
+             *  Creating transformed unit succeeded, erase the original unit and force function to return true
+             */
+            return 0x0065114C;
+        } else {
+
+            /**
+             *  Creating transformed unit failed. Re-mark our occupation bits and return false.
+             */
+            return 0x00651168;
+        }
+    }
+
+    /**
+     *  Continue to deployability check.
+     */
+original_code:
+    return 0x00650BC2;
+}
+
+
+/**
+ *  #issue-715
+ *
+ *  Transforms a unit to another unit when a transformable unit deploys.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_UnitClass_Try_To_Deploy_Transform_To_Vehicle_Patch) {
+    GET_REGISTER_STATIC(UnitClass*, this_ptr, esi);
+    static int address;
+    address = _UnitClass_Try_To_Deploy_Transform_To_Vehicle_Patch_Func(this_ptr);
+    JMP(address);
+}
+
+
+/**
+ *  #issue-715
+ *
+ *  Hack to display the the correct cursor for transformable units
+ *  upon ACTION_SELF.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_UnitClass_What_Action_Self_Check_For_Vehicle_Transform_Patch) {
+    GET_REGISTER_STATIC(UnitClass*, this_ptr, esi);
+    static UnitTypeClass* unittype;
+    static UnitTypeClassExtension* unittypeext;
+
+    unittype = this_ptr->Class;
+    unittypeext = Extension::Fetch<UnitTypeClassExtension>(unittype);
+
+    /**
+     *  Stolen bytes/code.
+     */
+    if (unittype->DeploysInto != nullptr) {
+        goto original_code;
+    }
+
+    /**
+     *  Check if this unit is able to transform into another unit.
+     *  If not, we don't have anything else to do here.
+     */
+    if (unittypeext->TransformsInto == nullptr) {
+        goto no_deploy_action;
+    }
+
+    /**
+     *  If this unit is able to transform to a different unit, check if it requires charge for it.
+     *  If it does, then check whether we have enough charge.
+     */
+    if (unittypeext->IsTransformRequiresFullCharge && this_ptr->CurrentCharge < this_ptr->Class->MaxCharge) {
+
+        /**
+         *  We don't have enough charge!
+         */
+        goto return_no_deploy;
+
+    } else if (this_ptr->entry_2A4()) {
+
+        /**
+         *  The unit is dying or under an EMP effect, don't allow it to transform.
+         */
+        goto return_no_deploy;
+    }
+
+
+    /**
+     *  We can transform and either don't need charge or we have enough of it, return ACTION_SELF
+     */
+return_self:
+    _asm { pop edi }
+    _asm { pop esi }
+    _asm { pop ebp }
+    _asm { pop ebx }
+    _asm { add esp, 10h }
+    _asm { mov eax, ACTION_SELF }
+    _asm { retn 8 }
+
+    /**
+     *  We don't have enough charge, return ACTION_NO_DEPLOY
+     */
+return_no_deploy:
+    _asm { pop edi }
+    _asm { pop esi }
+    _asm { pop ebp }
+    _asm { pop ebx }
+    _asm { add esp, 10h }
+    _asm { mov eax, ACTION_NO_DEPLOY }
+    _asm { retn 8 }
+
+
+    /**
+     *  Check whether the unit can deploy.
+     */
+original_code:
+    JMP(0x0065602B);
+
+    /**
+     *  The unit can neither deploy nor transform.
+     *  Continue function execution after the deployable check.
+     */
+no_deploy_action:
+    _asm{ mov eax, unittype }
+    JMP_REG(ecx, 0x00656344);
+}
+
+
+/**
+ *  #issue-715
+ *
+ *  Check whether the unit is able to transform into another unit
+ *  when performing the "Unload" mission.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_UnitClass_Mission_Unload_Transform_To_Vehicle_Patch) {
+    GET_REGISTER_STATIC(UnitTypeClass*, unittype, eax);
+    static UnitTypeClassExtension* unittypeext;
+
+    /**
+     *  Stolen bytes/code.
+     */
+    if (unittype->IsToHarvest || unittype->IsToVeinHarvest) {
+harvester_process:
+        JMP(0x006545A5);
+    }
+
+    unittypeext = Extension::Fetch<UnitTypeClassExtension>(unittype);
+
+    if (unittype->DeploysInto != nullptr || unittypeext->TransformsInto != nullptr) {
+deployable_process:
+        JMP(0x00654403);
+    }
+
+mobile_emp_process:
+    _asm { mov eax, unittype }
+    JMP_REG(edx, 0x006543FD);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void UnitClassExtension_Hooks()
@@ -699,6 +1106,10 @@ void UnitClassExtension_Hooks()
     Patch_Jump(0x00653114, &_UnitClass_Draw_Shape_IdleRate_Patch);
     Patch_Jump(0x00656623, &_UnitClass_What_Action_ACTION_HARVEST_Block_On_Bridge_Patch); // IsToHarvest
     Patch_Jump(0x0065665D, &_UnitClass_What_Action_ACTION_HARVEST_Block_On_Bridge_Patch); // IsToVeinHarvest
+    Patch_Jump(0x00654EEE, &_UnitClass_Mission_Harvest_FINDHOME_Find_Nearest_Refinery_Patch);
     //Patch_Jump(0x0065054F, &_UnitClass_Enter_Idle_Mode_Block_Harvesting_On_Bridge_Patch); // Removed, keeping code for reference.
     //Patch_Jump(0x00654AB0, &_UnitClass_Mission_Harvest_Block_Harvesting_On_Bridge_Patch); // Removed, keeping code for reference.
+    Patch_Jump(0x00650BAE, &_UnitClass_Try_To_Deploy_Transform_To_Vehicle_Patch);
+    Patch_Jump(0x00656017, &_UnitClass_What_Action_Self_Check_For_Vehicle_Transform_Patch);
+    Patch_Jump(0x006543DB, &_UnitClass_Mission_Unload_Transform_To_Vehicle_Patch);
 }

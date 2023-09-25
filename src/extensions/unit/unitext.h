@@ -29,6 +29,7 @@
 
 #include "footext.h"
 #include "unit.h"
+#include "building.h"
 
 
 class DECLSPEC_UUID(UUID_UNIT_EXTENSION)
@@ -60,4 +61,12 @@ UnitClassExtension final : public FootClassExtension
         virtual RTTIType What_Am_I() const override { return RTTI_UNIT; }
 
     public:
+        /**
+        *  #issue-203
+        *
+        *  The building that this unit last docked with.
+        *  Used by harvesters for considering the distance to their last refinery
+        *  when picking a tiberium cell to harvest from.
+        */
+        BuildingClass *LastDockedBuilding;
 };

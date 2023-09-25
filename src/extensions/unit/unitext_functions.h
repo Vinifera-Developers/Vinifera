@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          UICONTROL.H
+ *  @file          UNITEXT_FUNCTIONS.H
  *
- *  @author        CCHyper
+ *  @author        Rampastring
  *
- *  @brief         UI controls and overrides.
+ *  @brief         Contains the supporting functions for the extended UnitClass.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -28,48 +28,7 @@
 #pragma once
 
 #include "always.h"
-#include "tpoint.h"
+#include "building.h"
+#include "unit.h"
 
-
-struct IStream;
-class CCINIClass;
-class NoInitClass;
-
-
-class UIControlsClass
-{
-    public:
-        UIControlsClass();
-        UIControlsClass(const NoInitClass &noinit);
-        ~UIControlsClass();
-
-        HRESULT Load(IStream *pStm);
-        HRESULT Save(IStream *pStm, BOOL fClearDirty);
-        int Size_Of() const;
-
-        bool Read_INI(CCINIClass &ini);
-
-    public:
-        /**
-         *  Health bar draw positions.
-         */
-        TPoint2D<int> UnitHealthBarDrawPos;
-        TPoint2D<int> InfantryHealthBarDrawPos;
-
-        /**
-         *  Should the text label be drawn with an outline?
-         */
-        bool IsTextLabelOutline;
-
-        /**
-         *  Transparency of the text background.
-         */
-        unsigned TextLabelBackgroundTransparency;
-
-        /**
-         *  Horizontal left-most pixel position of the message list.
-         */
-        int MessageListPositionX;
-};
-
-extern UIControlsClass *UIControls;
+void UnitClassExtension_Find_Nearest_Refinery(UnitClass* this_ptr, BuildingClass** building_addr, int* distance_addr, bool include_reserved = false);

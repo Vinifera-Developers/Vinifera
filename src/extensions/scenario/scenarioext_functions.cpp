@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          SCENARIOEXT.CPP
+ *  @file          SCENARIOEXT_FUNCTIONS.CPP
  *
  *  @author        CCHyper
  *
- *  @brief         Extended ScenarioClass class.
+ *  @brief         Contains the supporting functions for the extended ScenarioClass.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -25,259 +25,40 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "scenarioext.h"
-#include "tibsun_globals.h"
+#include "scenarioext_functions.h"
 #include "tibsun_defines.h"
+#include "tibsun_globals.h"
+#include "tibsun_inline.h"
 #include "ccini.h"
-#include "unit.h"
-#include "building.h"
-#include "unittype.h"
-#include "buildingtype.h"
-#include "infantrytype.h"
+#include "scenarioext.h"
+#include "session.h"
+#include "scenario.h"
+#include "rules.h"
+#include "iomap.h"
 #include "house.h"
 #include "housetype.h"
-#include "rules.h"
+#include "object.h"
+#include "techno.h"
+#include "technotype.h"
+#include "infantrytype.h"
+#include "unit.h"
+#include "unittype.h"
+#include "building.h"
+#include "buildingtype.h"
 #include "language.h"
-#include "session.h"
+#include "extension_globals.h"
 #include "sessionext.h"
-#include "iomap.h"
-#include "noinit.h"
-#include "swizzle.h"
-#include "vinifera_saveload.h"
-#include "asserthandler.h"
+#include "session.h"
+#include "fatal.h"
 #include "debughandler.h"
+#include "asserthandler.h"
+
+#include "hooker.h"
+#include "hooker_macros.h"
 
 
-/**
- *  Class constructor.
- *  
- *  @author: CCHyper
- */
-ScenarioClassExtension::ScenarioClassExtension(const ScenarioClass *this_ptr) :
-    GlobalExtensionClass(this_ptr),
-    IsIceDestruction(true)
-{
-    //if (this_ptr) EXT_DEBUG_TRACE("ScenarioClassExtension::ScenarioClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
-
-    /**
-     *  This copies the behavior of the games ScenarioClass.
-     */
-    Init_Clear();
-}
-
-
-/**
- *  Class no-init constructor.
- *  
- *  @author: CCHyper
- */
-ScenarioClassExtension::ScenarioClassExtension(const NoInitClass &noinit) :
-    GlobalExtensionClass(noinit)
-{
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::ScenarioClassExtension(NoInitClass) - 0x%08X\n", (uintptr_t)(ThisPtr));
-}
-
-
-/**
- *  Class destructor.
- *  
- *  @author: CCHyper
- */
-ScenarioClassExtension::~ScenarioClassExtension()
-{
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::~ScenarioClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
-}
-
-
-/**
- *  Initializes an object from the stream where it was saved previously.
- *  
- *  @author: CCHyper
- */
-HRESULT ScenarioClassExtension::Load(IStream *pStm)
-{
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Load - 0x%08X\n", (uintptr_t)(This()));
-
-    HRESULT hr = GlobalExtensionClass::Load(pStm);
-    if (FAILED(hr)) {
-        return E_FAIL;
-    }
-
-    new (this) ScenarioClassExtension(NoInitClass());
-    
-    return hr;
-}
-
-
-/**
- *  Saves an object to the specified stream.
- *  
- *  @author: CCHyper
- */
-HRESULT ScenarioClassExtension::Save(IStream *pStm, BOOL fClearDirty)
-{
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Save - 0x%08X\n", (uintptr_t)(This()));
-
-    HRESULT hr = GlobalExtensionClass::Save(pStm, fClearDirty);
-    if (FAILED(hr)) {
-        return hr;
-    }
-
-    return hr;
-}
-
-
-/**
- *  Return the raw size of class data for save/load purposes.
- *  
- *  @author: CCHyper
- */
-int ScenarioClassExtension::Size_Of() const
-{
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(This()));
-
-    return sizeof(*this);
-}
-
-
-/**
- *  Removes the specified target from any targeting and reference trackers.
- *  
- *  @author: CCHyper
- */
-void ScenarioClassExtension::Detach(TARGET target, bool all)
-{
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Detach - 0x%08X\n", (uintptr_t)(This()));
-}
-
-
-/**
- *  Compute a unique crc value for this instance.
- *  
- *  @author: CCHyper
- */
-void ScenarioClassExtension::Compute_CRC(WWCRCEngine &crc) const
-{
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Compute_CRC - 0x%08X\n", (uintptr_t)(This()));
-
-    crc(IsIceDestruction);
-}
-
-
-/**
- *  Initialises any values for this instance.
- *  
- *  @author: CCHyper
- */
-void ScenarioClassExtension::Init_Clear()
-{
-    IsIceDestruction = true;
-
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Init_Clear - 0x%08X\n", (uintptr_t)(This()));
-
-    IsIceDestruction = true;
-
-    {
-        /**
-         *  Clear the any previously loaded tutorial messages in preperation for
-         *  reloading the TUTORIAL.INI as they might contain scenario overrides.
-         */
-        TutorialText.Clear();
-
-        /**
-         *  Reload the main tutorial message data.
-         */
-        CCINIClass ini;
-        ini.Load(CCFileClass("TUTORIAL.INI"), false);
-        Read_Tutorial_INI(ini);
-    }
-}
-
-
-/**
- *  Initialises any values for this instance.
- *
- *  @author: CCHyper
- */
-bool ScenarioClassExtension::Read_INI(CCINIClass &ini)
-{
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Read_INI - 0x%08X\n", (uintptr_t)(This()));
-
-    static const char * const BASIC = "Basic";
-
-    IsIceDestruction = ini.Get_Bool(BASIC, "IceDestructionEnabled", IsIceDestruction);
-
-    /**
-     *  #issue-123
-     * 
-     *  Fetch additional tutorial message data (if present) from the scenario.
-     */
-    Read_Tutorial_INI(ini, true);
-
-    return true;
-}
-
-
-/**
- *  Load the tutorial messages section from the ini database.
- *
- *  @author: CCHyper
- */
-bool ScenarioClassExtension::Read_Tutorial_INI(CCINIClass &ini, bool log)
-{
-    static char const * const TUTORIAL = "Tutorial";
-
-    /**
-     *  Fetch the additional tutorial message data (if present).
-     */
-    if (ini.Is_Present(TUTORIAL)) {
-
-        char buf[300];
-
-        int counter = ini.Entry_Count(TUTORIAL);
-
-        if (counter > 0 && log) DEBUG_INFO("Tutorial section found and has %d entries.\n", counter);
-
-        for (int index = 0; index < counter; ++index) {
-            const char *entry = ini.Get_Entry(TUTORIAL, index);
-
-            /**
-             *  Get a tutorial message entry.
-             */
-            if (ini.Get_String(TUTORIAL, entry, buf, sizeof(buf))) {
-
-                /**
-                 *  Convert the entry name (which in this context is an index) to an "id" value.
-                 */
-                int id = std::strtol(entry, nullptr, 10);
-                const char *string = strdup(buf);
-
-                /**
-                 *  Check to see if this id already exists before adding it, otherwise
-                 *  the replacement message will not get used.
-                 */
-                if (TutorialText.Is_Present(id)) {
-                    TutorialText.Remove_Index(id);
-                    if (log) DEV_DEBUG_INFO("  Removed ID '%d' from TutorialText index.\n", id);
-#ifndef NDEBUG
-                    if (log) { DEV_DEBUG_INFO("  %d = \"%s\".\n", id, TutorialText[id]); }
-#endif
-                }
-
-                if (log) DEV_DEBUG_INFO("  Adding ID '%d' from TutorialText index.\n", id);
-#ifndef NDEBUG
-                if (log) DEV_DEBUG_INFO("  %d = \"%s\".\n", id, string);
-#endif
-
-                TutorialText.Add_Index(id, string);
-            }
-
-        }
-
-    }
-
-    return true;
-}
+#define HOUSE_GDI HousesType(0)
+#define HOUSE_NOD HousesType(1)
 
 
 /**
@@ -286,7 +67,7 @@ bool ScenarioClassExtension::Read_Tutorial_INI(CCINIClass &ini, bool log)
  *  @author: 06/09/1995 BRR - Red Alert source code.
  *           CCHyper - Adjustments for Tiberian Sun.
  */
-void ScenarioClassExtension::Assign_Houses()
+void Vinifera_Assign_Houses()
 {
     bool assigned[MAX_PLAYERS];     // true = this house slot is in use.
     bool color_used[MAX_PLAYERS];   // true = this color is in use.
@@ -831,7 +612,7 @@ static DynamicVectorClass<Cell> Build_Starting_Waypoint_List(bool official)
  * 
  *  @author: CCHyper (assistance from tomsons26).
  */
-void ScenarioClassExtension::Create_Units(bool official)
+void Vinifera_Create_Units(bool official)
 {
     DynamicVectorClass<TechnoClass *> deployed_objects;
 
@@ -1246,4 +1027,35 @@ void ScenarioClassExtension::Create_Units(bool official)
     }
 
     DEBUG_INFO("Finished unit generation. Random number is %d\n", Scen->RandomNumber);
+}
+
+
+/**
+ *  Reimplements a part of scenario [Basic] section reading to support
+ *  reading in new options added to the section.
+ *
+ *  @author: Rampastring
+ */
+void Read_Scenario_Read_Basic_Section_Options(CCINIClass &scenario_ini)
+{
+    // This reimplements 0x005E03ED - 0x005E04E7 in the original game's code
+    const char* const BASIC = "Basic";
+    Scen->IsTiberiumGrowth = scenario_ini.Get_Bool(BASIC, "TiberiumGrowthEnabled", Scen->IsTiberiumGrowth);
+    Scen->IsVeinGrowth = scenario_ini.Get_Bool(BASIC, "VeinGrowthEnabled", Scen->IsVeinGrowth);
+    Scen->IsIceGrowth = scenario_ini.Get_Bool(BASIC, "IceGrowthEnabled", Scen->IsIceGrowth);
+    Scen->IsTiberiumDeathToVisceroid = scenario_ini.Get_Bool(BASIC, "TiberiumDeathToVisceroid", Scen->IsTiberiumDeathToVisceroid);
+    Scen->IsFreeRadar = scenario_ini.Get_Bool(BASIC, "FreeRadar", Scen->IsFreeRadar);
+    Scen->HomeCell = scenario_ini.Get_Int(BASIC, "HomeCell", Scen->HomeCell);
+    Scen->AltHomeCell = scenario_ini.Get_Int(BASIC, "AltHomeCell", Scen->AltHomeCell);
+    Scen->RequiredAddOn = static_cast<AddonType>(scenario_ini.Get_Int(BASIC, "RequiredAddOn", Scen->RequiredAddOn));
+    // This is read by the original game, but the value is not saved anywhere
+    // scenario_ini.Get_Bool(BASIC, "CivEvac", false);
+
+
+    /**
+     *  #issue-897
+     *
+     *  Read INI key for the ice destruction option.
+     */
+    ScenExtension->IsIceDestruction = scenario_ini.Get_Bool(BASIC, "IceDestructionEnabled", ScenExtension->IsIceDestruction);
 }

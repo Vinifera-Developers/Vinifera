@@ -60,10 +60,11 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
 
         bool Objects(CCINIClass &ini);
 
+        bool AI(CCINIClass &ini);
         bool General(CCINIClass &ini);
         bool MPlayer(CCINIClass &ini);
         bool AudioVisual(CCINIClass &ini);
-        bool CombatDamage(CCINIClass &ini);
+        bool CombatDamage(CCINIClass& ini);
         bool Weapons(CCINIClass &ini);
 
     private:
@@ -97,4 +98,48 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
          *  to break from a shot.
          */
         int IceStrength;
+
+        /**
+         *  When looking for refineries, harvesters will prefer a distant free
+         *  refinery over a closer occupied refinery if the refineries' distance
+         *  difference in cells is less than this.
+         */
+        int MaxFreeRefineryDistanceBias;
+
+        /**
+         *  Defines for how many frames buildings do not get flames spawned on them on
+         *  damage state change after once catching fire.
+         */
+        int BuildingFlameSpawnBlockFrames;
+
+        /**
+         *  How much value (in credits) a house needs to destroy to strengthen their objects by one percentage.
+         */
+        int StrengthenDestroyedValueThreshold;
+
+        /**
+         *  A multiplier for value of buildings when a house destroys objects.
+         *  Allows making buildings more valuable than units for purposes of the Strengthening mechanic.
+         */
+        int StrengthenBuildingValueMultiplier;
+
+        /**
+         *  Is the strengthening mechanic enabled?
+         */
+        bool IsStrengtheningEnabled;
+
+        /**
+         *  Is DTA's custom advanced AI logic enabled?
+         */
+        bool IsUseAdvancedAI;
+
+        /**
+         *  Is the advanced AI allowed to own multiple Construction Yards at a time?
+         */
+        bool IsAdvancedAIMultiConYard;
+
+        /**
+         *  Specifies the maximum distance that the advanced AI is allowed to expand at.
+         */
+        int AdvancedAIMaxExpansionDistance;
 };

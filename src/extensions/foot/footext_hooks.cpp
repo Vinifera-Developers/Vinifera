@@ -26,10 +26,13 @@
  *
  ******************************************************************************/
 #include "footext_hooks.h"
+#include "footext_functions.h"
 #include "foot.h"
 #include "technoext.h"
 #include "technotype.h"
 #include "technotypeext.h"
+#include "unit.h"
+#include "unittype.h"
 #include "extension.h"
 #include "fatal.h"
 #include "asserthandler.h"
@@ -37,6 +40,33 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+ /**
+  *  A fake class for implementing new member functions which allow
+  *  access to the "this" pointer of the intended class.
+  *
+  *  @note: This must not contain a constructor or deconstructor!
+  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+  */
+static class FootClassFake final : public FootClass
+{
+public:
+    Cell _Search_For_Tiberium(int rad, bool a2);
+};
+
+
+/**
+ * #issue-203
+ *
+ * Enables smarter harvester tiberium-seeking algorithm.
+ *
+ * Author: Rampastring
+ */
+Cell FootClassFake::_Search_For_Tiberium(int rad, bool a2)
+{
+    return Vinifera_FootClass_Search_For_Tiberium(this, rad, a2);
+}
 
 
 /**
@@ -283,4 +313,5 @@ void FootClassExtension_Hooks()
     Patch_Jump(0x004A2BE7, &_FootClass_Mission_Guard_Area_Can_Passive_Acquire_Patch);
     Patch_Jump(0x004A1AAE, &_FootClass_Mission_Guard_Can_Passive_Acquire_Patch);
     Patch_Jump(0x004A102F, &_FootClass_Mission_Move_Can_Passive_Acquire_Patch);
+    Patch_Jump(0x004A76F0, &FootClassFake::_Search_For_Tiberium);
 }

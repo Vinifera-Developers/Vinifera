@@ -104,7 +104,7 @@
 #ifdef ABS
 #undef ABS
 #endif
-#define ABS(a, b) (a < 0) ? -a : a;
+#define ABS(a) (a < 0) ? -a : a
 
 /**
  *  Returns the minimum of the two numbers.

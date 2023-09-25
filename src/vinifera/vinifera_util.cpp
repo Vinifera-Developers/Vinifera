@@ -53,12 +53,17 @@ extern char Execute_Time_Buffer[256];
 /**
  *  Returns the Vinifera run config info as string.
  * 
- *  @author: CCHyper
+ *  @author: CCHyper, modified by Rampastring
  */
 const char *Vinifera_Name_String()
 {
     static char _buffer[512] { '\0' };
 
+    std::snprintf(_buffer, sizeof(_buffer), "Vinifera - Custom Build by Dawn of the Tiberium Age");
+
+    return _buffer;
+
+#if 0
     if (_buffer[0] == '\0') {
 
         /**
@@ -90,6 +95,7 @@ const char *Vinifera_Name_String()
     }
 
     return _buffer;
+#endif
 }
 
 
@@ -268,10 +274,12 @@ void Vinifera_Draw_Version_Text(XSurface *surface, bool pre_init)
     int space = 0; // Line space
     warning_pos.X = surfrect.Width-offset;
     warning_pos.Y = surfrect.Height-offset-(print_rect.Height*1);
+
+    // Rampastring: edit the offsets
     version_pos.X = surfrect.Width-offset;
-    version_pos.Y = surfrect.Height-offset-(print_rect.Height*2)-space;
+    version_pos.Y = surfrect.Height-offset-(print_rect.Height*1)-space;
     vinifera_pos.X = surfrect.Width-offset;
-    vinifera_pos.Y = surfrect.Height-offset-(print_rect.Height*3)-space;
+    vinifera_pos.Y = surfrect.Height-offset-(print_rect.Height*2)-space;
 #else
     version_pos.X = surfrect.Width-offset;
     version_pos.Y = surfrect.Height-offset-(print_rect.Height*1);
@@ -292,14 +300,15 @@ void Vinifera_Draw_Version_Text(XSurface *surface, bool pre_init)
 
         /**
          *  Draw the warning string.
+         *  Rampastring: regular players don't do anything with this information
          */
     #if defined(NIGHTLY)
         Simple_Text_Print(TXT_VINIFERA_NIGHTLY_BUILD, surface, &surfrect, &warning_pos, NormalDrawer, nightly_color, nightly_back_color, style);
     #elif defined(PREVIEW)
         Simple_Text_Print(TXT_VINIFERA_PREVIEW_BUILD, surface, &surfrect, &warning_pos, NormalDrawer, preview_color, preview_back_color, style);
     #else
-        Simple_Text_Print(Vinifera_Git_Uncommitted_Changes() ? TXT_VINIFERA_LOCAL_BUILD : TXT_VINIFERA_UNOFFICIAL_BUILD,
-            surface, &surfrect, &warning_pos, NormalDrawer, warning_color, warning_back_color, style);
+        // Simple_Text_Print(Vinifera_Git_Uncommitted_Changes() ? TXT_VINIFERA_LOCAL_BUILD : TXT_VINIFERA_UNOFFICIAL_BUILD,
+        //     surface, &surfrect, &warning_pos, NormalDrawer, warning_color, warning_back_color, style);
     #endif
 
         /**
@@ -321,24 +330,25 @@ void Vinifera_Draw_Version_Text(XSurface *surface, bool pre_init)
         /**
          *  Draw the version string.
          */
-        Fancy_Text_Print(Vinifera_Version_Git_String(), surface, &surfrect, &version_pos, color_white, back_color, style);
+        // Fancy_Text_Print(Vinifera_Version_Git_String(), surface, &surfrect, &version_pos, color_white, back_color, style);
 
         /**
          *  Draw the warning string.
+         *  Rampastring: regular players don't do anything with this information
          */
     #if defined(NIGHTLY)
         Fancy_Text_Print(TXT_VINIFERA_NIGHTLY_BUILD, surface, &surfrect, &warning_pos, color_white, nightly_back_color, style);
     #elif defined(PREVIEW)
         Fancy_Text_Print(TXT_VINIFERA_PREVIEW_BUILD, surface, &surfrect, &warning_pos, color_white, preview_back_color, style);
     #else
-        Fancy_Text_Print(Vinifera_Git_Uncommitted_Changes() ? TXT_VINIFERA_LOCAL_BUILD : TXT_VINIFERA_UNOFFICIAL_BUILD,
-            surface, &surfrect, &warning_pos, color_yellow, warning_back_color, style);
+        // Fancy_Text_Print(Vinifera_Git_Uncommitted_Changes() ? TXT_VINIFERA_LOCAL_BUILD : TXT_VINIFERA_UNOFFICIAL_BUILD,
+        //     surface, &surfrect, &warning_pos, color_yellow, warning_back_color, style);
     #endif
 
         /**
          *  Draw the vinifera name string.
          */
-        Fancy_Text_Print(Vinifera_Name_String(), surface, &surfrect, &vinifera_pos, color_white, back_color, style);
+        // Fancy_Text_Print(Vinifera_Name_String(), surface, &surfrect, &vinifera_pos, color_white, back_color, style);
 #else
 
         /**

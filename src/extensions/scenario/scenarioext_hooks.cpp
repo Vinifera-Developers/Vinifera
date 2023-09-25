@@ -143,6 +143,22 @@ DECLARE_PATCH(_Do_Lose_Skip_MPlayer_Score_Screen_Patch)
 
 
 /**
+ *  Reimplements a part of scenario [Basic] section reading to support
+ *  reading in new options added to the section.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_Read_Basic_Section_Read_New_Options_Patch)
+{
+    GET_REGISTER_STATIC(CCINIClass*, scenario_ini, edi);
+
+    Read_Scenario_Read_Basic_Section_Options(*scenario_ini);
+
+    JMP_REG(ecx, 0x005E04E8);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void ScenarioClassExtension_Hooks()
@@ -177,4 +193,5 @@ void ScenarioClassExtension_Hooks()
     Patch_Jump(0x005DC9D4, &_Do_Win_Skip_MPlayer_Score_Screen_Patch);
     Patch_Jump(0x005DCD92, &_Do_Lose_Skip_MPlayer_Score_Screen_Patch);
     Patch_Jump(0x005DD8D5, &_Read_Scenario_INI_MPlayer_INI_Patch);
+    Patch_Jump(0x005E03EB, &_Read_Basic_Section_Read_New_Options_Patch);
 }

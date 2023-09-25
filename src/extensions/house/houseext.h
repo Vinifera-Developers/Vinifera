@@ -64,4 +64,30 @@ HouseClassExtension final : public AbstractClassExtension
         virtual RTTIType What_Am_I() const override { return RTTI_HOUSE; }
 
     public:
+        int StrengthenDestroyedCost;
+
+        /**
+         *  If we are currently expanding our base towards a resourceful location,
+         *  this records the cell that we are expanding towards.
+         */
+        Cell NextExpansionPointLocation;
+
+        /**
+         *  Locations that we should never expand towards.
+         *  Basically, locations that are unreachable.
+         */
+        Cell PermanentlyBlockedExpansionPointLocations[20];
+
+        /**
+         *  Records whether the AI has reached its expansion point.
+         *  If yes, the AI should build a refinery.
+         */
+        bool ShouldBuildRefinery;
+
+        /**
+         *  Set when the AI has built its first barracks during the game.
+         *  Used to figure out whether the AI should reset its TeamDelay
+         *  timer when it has built a barracks.
+         */
+        bool HasBuiltFirstBarracks;
 };

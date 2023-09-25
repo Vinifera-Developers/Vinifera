@@ -27,6 +27,9 @@
  ******************************************************************************/
 #include "animext.h"
 #include "anim.h"
+#include "animtype.h"
+#include "animtypeext.h"
+#include "tibsun_inline.h"
 #include "wwcrc.h"
 #include "extension.h"
 #include "asserthandler.h"
@@ -161,4 +164,128 @@ void AnimClassExtension::Detach(TARGET target, bool all)
 void AnimClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
     //EXT_DEBUG_TRACE("AnimClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+}
+
+
+/**
+ *  Processes any start events.
+ *
+ *  @author: CCHyper
+ */
+bool AnimClassExtension::Start()
+{
+    AnimTypeClassExtension* animtypeext = Extension::Fetch<AnimTypeClassExtension>(This()->Class);
+
+    /**
+     *  #issue-752
+     *
+     *  Spawns the start animations.
+     */
+    //Spawn_Animations(This()->Center_Coord(), animtypeext->StartAnims, animtypeext->StartAnimsCount, animtypeext->StartAnimsMinimum, animtypeext->StartAnimsMaximum);
+
+    return true;
+}
+
+
+/**
+ *  Processes any middle events.
+ *
+ *  @author: CCHyper
+ */
+bool AnimClassExtension::Middle()
+{
+    AnimTypeClassExtension* animtypeext = Extension::Fetch<AnimTypeClassExtension>(This()->Class);
+
+    /**
+     *  #issue-752
+     *
+     *  Spawns the middle animations.
+     */
+    //Spawn_Animations(This()->Center_Coord(), animtypeext->MiddleAnims, animtypeext->MiddleAnimsCount, animtypeext->MiddleAnimsMinimum, animtypeext->MiddleAnimsMaximum);
+
+    return true;
+}
+
+
+/**
+ *  Processes any end events.
+ *
+ *  @author: CCHyper
+ */
+bool AnimClassExtension::End()
+{
+    AnimTypeClassExtension* animtypeext = Extension::Fetch<AnimTypeClassExtension>(This()->Class);
+
+    /**
+     *  #issue-752
+     *
+     *  Spawns the end animations.
+     */
+    //Spawn_Animations(This()->Center_Coord(), animtypeext->EndAnims, animtypeext->EndAnimsCount, animtypeext->EndAnimsMinimum, animtypeext->EndAnimsMaximum);
+
+    return true;
+}
+
+
+/**
+ *  #issue-752
+ *
+ *  Spawns the requested animation from the parsed type lists.
+ *
+ *  @author: CCHyper
+ */
+bool AnimClassExtension::Spawn_Animations(const Coordinate& coord, const TypeList<AnimTypeClass*>& animlist, const TypeList<int>& countlist, const TypeList<int>& minlist, const TypeList<int>& maxlist)
+{
+    if (!animlist.Count()) {
+        return false;
+    }
+
+    /**
+     *  Some checks to make sure values are within expected ranges.
+     */
+    if (!countlist.Count()) {
+        ASSERT(animlist.Count() == minlist.Count());
+        ASSERT(animlist.Count() == maxlist.Count());
+    }
+
+    /**
+     *  Iterate over all animations set and spawn them.
+     */
+    for (int index = 0; index < animlist.Count(); ++index) {
+
+        const AnimTypeClass* animtype = animlist[index];
+
+        int count = 1;
+
+        /**
+         *  Pick a random count based on the minimum and maximum values
+         *  defined and spawn the animations.
+         */
+        if (animlist.Count() == countlist.Count()) {
+            count = countlist[index];
+
+        }
+        else if (minlist.Count() && maxlist.Count()) {
+
+            int min = minlist[index];
+            int max = maxlist[index];
+
+            if (min != max) {
+                count = Random_Pick(std::min(min, max), std::max(min, max));
+            }
+            else {
+                count = std::min(min, max);
+            }
+        }
+
+        /**
+         *  Based on the count decided above, spawn the animation type.
+         */
+        for (int i = 0; i < count; ++i) {
+            AnimClass* anim = new AnimClass(animtype, (Coordinate&)coord);
+            ASSERT(anim != nullptr);
+        }
+    }
+
+    return true;
 }
