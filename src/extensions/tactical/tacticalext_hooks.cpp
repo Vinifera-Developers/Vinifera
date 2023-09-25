@@ -308,7 +308,7 @@ DECLARE_PATCH(_Tactical_Render_Overlay_Patch)
      *
      *  @note: This must be last in the draw order!
      */
-    Vinifera_Draw_Version_Text(CompositeSurface);
+    //Vinifera_Draw_Version_Text(CompositeSurface);
 
     /**
      *  Has custom screen text been set?
