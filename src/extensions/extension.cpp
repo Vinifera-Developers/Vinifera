@@ -1218,6 +1218,35 @@ void Extension::Print_CRCs(EventClass *ev)
 }
 
 
+const char* Facing_To_String(FacingType facing) 
+{
+    if (facing == FACING_NONE) {
+        return "";
+    }
+
+    static const char* facing_names[8] = { "N", "NE", "E", "SE", "S", "SW", "W", "NW" };
+
+    return facing_names[(int)facing];
+}
+
+
+void Print_Path(FILE* fp, FootClass *foot)
+{
+    // Print path
+    FacingType facing = foot->Path[0];
+    int pathindex = 0;
+
+    while (facing != FACING_NONE) {
+        std::fprintf(fp, Facing_To_String(facing));
+        std::fprintf(fp, " ");
+        pathindex++;
+        facing = foot->Path[pathindex];
+    }
+
+    std::fprintf(fp, "\n");
+}
+
+
 /**
  *  Prints a data file for finding Sync Bugs.
  * 
@@ -1483,7 +1512,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                         navcom_coord = ptr->NavCom->Center_Coord();
                     }
 
-                    std::fprintf(fp, "COORD:%d,%d,%d  Facing:%d  Mission:%s  Type:%s(%d)  Speed:%d  TarCom:%s(%d,%d,%d)  NavCom:%s(%d,%d,%d)  Doing:%d\n",
+                    std::fprintf(fp, "COORD:%d,%d,%d  Facing:%d  Mission:%s  Type:%s(%d)  Speed:%d  TarCom:%s(%d,%d,%d)  NavCom:%s(%d,%d,%d)  Doing:%d  Path: ",
                                 ptr->Center_Coord().X, ptr->Center_Coord().Y, ptr->Center_Coord().Z,
                                 (int)ptr->PrimaryFacing.Current().Get_Dir(), MissionClass::Mission_Name(ptr->Get_Mission()),
                                 ptr->Class->Name(), ptr->Class->Type,
@@ -1491,6 +1520,8 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                                 tarcom_name, tarcom_coord.X, tarcom_coord.Y, tarcom_coord.Z,
                                 navcom_name, navcom_coord.X, navcom_coord.Y, navcom_coord.Z,
                                 ptr->Doing);
+
+                    Print_Path(fp, ptr);
                 }
             }
             EXT_DEBUG_INFO("%s %s:%x\n", housep->Class->Name(), Extension::Utility::Get_TypeID_Name<InfantryClassExtension>().c_str(), GameCRC);
@@ -1527,13 +1558,15 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                         navcom_coord = ptr->NavCom->Center_Coord();
                     }
 
-                    std::fprintf(fp, "COORD:%d,%d,%d  Facing:%d  Facing2:%d  Mission:%s  Type:%s(%d)  TarCom:%s(%d,%d,%d)  NavCom:%s(%d,%d,%d)  TrkNum:%d  TrkInd:%d  SpdAcc:%d\n",
+                    std::fprintf(fp, "COORD:%d,%d,%d  Facing:%d  Facing2:%d  Mission:%s  Type:%s(%d)  TarCom:%s(%d,%d,%d)  NavCom:%s(%d,%d,%d)  TrkNum:%d  TrkInd:%d  SpdAcc:%d  Path:",
                                 ptr->Center_Coord().X, ptr->Center_Coord().Y, ptr->Center_Coord().Z,
                                 (int)ptr->PrimaryFacing.Current().Get_Dir(), (int)ptr->SecondaryFacing.Current().Get_Dir(), MissionClass::Mission_Name(ptr->Get_Mission()),
                                 ptr->Class->Name(), ptr->Class->Type,
                                 tarcom_name, tarcom_coord.X, tarcom_coord.Y, tarcom_coord.Z,
                                 navcom_name, navcom_coord.X, navcom_coord.Y, navcom_coord.Z,
                                 ptr->Locomotor_Ptr()->Get_Track_Number(), ptr->Locomotor_Ptr()->Get_Track_Number(), ptr->Locomotor_Ptr()->Get_Speed_Accum());
+
+                    Print_Path(fp, ptr);
                 }
             }
             EXT_DEBUG_INFO("%s %s:%x\n", housep->Class->Name(), Extension::Utility::Get_TypeID_Name<UnitClass>().c_str(), GameCRC);
@@ -1603,12 +1636,14 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                         navcom_coord = ptr->NavCom->Center_Coord();
                     }
 
-                    std::fprintf(fp, "COORD:%d,%d,%d  Facing:%d  Mission:%s  Type:%s(%d) TarCom:%s(%d,%d,%d)  NavCom:%s(%d,%d,%d)\n",
+                    std::fprintf(fp, "COORD:%d,%d,%d  Facing:%d  Mission:%s  Type:%s(%d) TarCom:%s(%d,%d,%d)  NavCom:%s(%d,%d,%d)  Path:",
                                 ptr->Center_Coord().X, ptr->Center_Coord().Y, ptr->Center_Coord().Z,
                                 (int)ptr->PrimaryFacing.Current().Get_Dir(), MissionClass::Mission_Name(ptr->Get_Mission()),
                                 ptr->Class->Name(), ptr->Class->Type,
                                 tarcom_name, tarcom_coord.X, tarcom_coord.Y, tarcom_coord.Z,
                                 navcom_name, navcom_coord.X, navcom_coord.Y, navcom_coord.Z);
+
+                    Print_Path(fp, ptr);
                 }
             }
             EXT_DEBUG_INFO("%s %s:%x\n", housep->Class->Name(), Extension::Utility::Get_TypeID_Name<AircraftClass>().c_str(), GameCRC);
@@ -1706,6 +1741,9 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                 case RTTI_UNIT:
                     std::fprintf(fp, "Unit      (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
                     break;
+                case RTTI_PARTICLE:
+                    std::fprintf(fp, "Particle  (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                    break;
             };
             HouseClass *housep = objp->Owning_House();
             if (housep) {
@@ -1755,6 +1793,9 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                 break;
             case RTTI_UNIT:
                 std::fprintf(fp, "Unit      (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                break;
+            case RTTI_PARTICLE:
+                std::fprintf(fp, "Particle  (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
                 break;
         };
         HouseClass *housep = objp->Owning_House();
