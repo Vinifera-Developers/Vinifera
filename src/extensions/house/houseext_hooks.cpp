@@ -1299,6 +1299,39 @@ DECLARE_PATCH(_HouseClass_AI_Fix_Player_Winning_When_Their_Allies_Lose)
 
 
 /**
+ *  Fixes an edge case bug where HouseClass::AI_Raise_Money can corrupt
+ *  the house's Base Node vector by writing to the vector at index -1.
+ *
+ *  Author: Rampastring
+ */
+DECLARE_PATCH(_HouseClass_AI_Raise_Money_Fix_Memory_Corruption)
+{
+    GET_REGISTER_STATIC(HouseClass*, this_ptr, esi);
+    GET_REGISTER_STATIC(StructType, buildingtype, eax);
+    static int buildable_index;
+
+    buildable_index = this_ptr->Base.Next_Buildable_Index(buildingtype);
+
+    // Stolen bytes / code. Do not insert element to Base Nodes vector
+    // if buildable index is 0.
+    if (buildable_index == 0) {
+        JMP(0x004C10BC);
+    }
+
+    // Bugfix: also do not insert element if buildable index is -1. (or below 0)
+    if (buildable_index < 0) {
+        JMP(0x004C10BC);
+    }
+
+    // Apply node index variable and also save it in eax,
+    // original game code expects this
+    _asm { mov eax, dword ptr buildable_index }
+    _asm { mov[esp + 28], eax }
+    JMP_REG(ecx, 0x004C0F9F);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void HouseClassExtension_Hooks()
@@ -1355,4 +1388,5 @@ void HouseClassExtension_Hooks()
 
     Patch_Jump(0x004BC78D, &_HouseClass_AI_Fix_Player_Losing_When_Their_Allies_Win);
     Patch_Jump(0x004BC855, &_HouseClass_AI_Fix_Player_Winning_When_Their_Allies_Lose);
+    Patch_Jump(0x004C0F87, &_HouseClass_AI_Raise_Money_Fix_Memory_Corruption);
 }
