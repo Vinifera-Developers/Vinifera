@@ -245,4 +245,9 @@ class TechnoTypeClassExtension : public ObjectTypeClassExtension
          *  Is this meant to be spawned by something else (a spawner, or perhaps, off-map like a paradrop plane)?
          */
         bool IsSpawned;
+
+        /**
+         *  Optional override for the cost that is used for determining the techno's build time.
+         */
+        int BuildTimeCost;
 };

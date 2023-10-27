@@ -27,7 +27,12 @@
  ******************************************************************************/
 #include "technotypeext_hooks.h"
 #include "technotypeext.h"
+#include "objecttypeext.h"
 #include "technotype.h"
+#include "house.h"
+#include "rules.h"
+#include "tibsun_defines.h"
+#include "extension.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
@@ -49,6 +54,7 @@ class TechnoTypeClassExt : public TechnoTypeClass
 {
 public:
     int _Max_Pips() const;
+    int _Time_To_Build();
 };
 
 
@@ -84,9 +90,38 @@ int TechnoTypeClassExt::_Max_Pips() const
 }
 
 /**
+ *  #issue-433
+ *
+ *  Allows overriding the cost value that is used for calculating the build time of a TechnoType.
+ *
+ *  Author: Rampastring
+ */
+int TechnoTypeClassExt::_Time_To_Build()
+{
+    // TechnoClass::Time_To_Build calls TechnoTypeClass::Time_To_Build,
+    // so replacing TechnoTypeClass::Time_To_Build is enough for the desired functionality.
+
+    TechnoTypeClassExtension* technotypeext = Extension::Fetch<TechnoTypeClassExtension>(this);
+
+    int cost;
+
+    if (technotypeext->BuildTimeCost != 0)
+    {
+        cost = technotypeext->BuildTimeCost;
+    }
+    else
+    {
+        cost = Cost;
+    }
+
+    return (int)(cost * Rule->BuildSpeedBias * 0.9);
+}
+
+/**
  *  Main function for patching the hooks.
  */
 void TechnoTypeClassExtension_Hooks()
 {
     Patch_Jump(0x0063D460, &TechnoTypeClassExt::_Max_Pips);
+    Patch_Jump(0x0063B8B0, &TechnoTypeClassExt::_Time_To_Build);
 }

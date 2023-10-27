@@ -45,7 +45,6 @@
 #include "verses.h"
 #include "warheadtypeext.h"
 
-
 /**
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
@@ -58,6 +57,8 @@ class BuildingTypeClassExt final : public BuildingTypeClass
     public:
         void _Free_Buildup_Image();
         void _Set_Base_Defense_Values();
+        int _Raw_Cost();
+        int _Cost_Of(HouseClass* house);
 };
 
 
@@ -205,7 +206,6 @@ DECLARE_PATCH(_BuildingTypeClass_SDDTOR_Free_Image_Patch) { GET_REGISTER_STATIC(
 DECLARE_PATCH(_BuildingTypeClass_Init_Free_Image_Patch) { GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, esi); BuildingTypeClass_Free_Image(this_ptr); JMP(0x0043FD9E); }
 DECLARE_PATCH(_BuildingTypeClass_DTOR_Free_Image_Patch) { GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, esi); BuildingTypeClass_Free_Image(this_ptr); JMP(0x0043F922); }
 
-
 /**
  *  Patches in an assertion check for image data.
  * 
@@ -228,6 +228,33 @@ DECLARE_PATCH(_BuildingTypeClass_Get_Image_Data_Assertion_Patch)
 
 
 /**
+ *  #issue-433
+ *
+ *  Disables unintuitive Westwood logic that links a BuildingType's cost to the cost
+ *  of its FreeUnit or pad aircraft.
+ *
+ *  Author: Rampastring
+ */
+int BuildingTypeClassExt::_Raw_Cost()
+{
+    return TechnoTypeClass::Raw_Cost();
+}
+
+
+/**
+ *  #issue-433
+ *
+ *  Disables unintuitive Westwood logic that links a BuildingType's cost to the cost
+ *  of its FreeUnit or pad aircraft.
+ *
+ *  Author: Rampastring
+ */
+int BuildingTypeClassExt::_Cost_Of(HouseClass* house)
+{
+    return TechnoTypeClass::Cost_Of(house);
+}
+
+/**
  *  Main function for patching the hooks.
  */
 void BuildingTypeClassExtension_Hooks()
@@ -248,4 +275,6 @@ void BuildingTypeClassExtension_Hooks()
     Patch_Jump(0x00444052, &_BuildingTypeClass_SDDTOR_Free_Buildup_Image_Patch);
     Patch_Jump(0x0043FDB0, &_BuildingTypeClass_Init_Free_Buildup_Image_Patch);
     Patch_Jump(0x0043F936, &_BuildingTypeClass_DTOR_Free_Buildup_Image_Patch);
+    Patch_Jump(0x00440000, &BuildingTypeClassExt::_Raw_Cost);
+    Patch_Jump(0x00440080, &BuildingTypeClassExt::_Cost_Of);
 }
