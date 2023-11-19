@@ -197,6 +197,16 @@ RoofDeployingAnim=  ; AnimType, the animation of the open roof when a Jump Jet i
 UnderRoofDoorAnim=  ; AnimType, the animation of the rest of the building when a Jump Jet is exiting the factory.
 ```
 
+### WallOwner
+
+- By default, all buildings in the game claim ownership of nearby pre-placed walls on maps. Vinifera allows disabling this behaviour per building, so that, for example, invisible light posts can be made not to claim ownership of nearby walls for their owning house.
+
+In `RULES.INI`:
+```ini
+[SOMEBUILDING]      ; BuildingType
+WallOwner=no        ; boolean, should the building claim ownership of pre-placed walls near it?
+```
+
 ## Harvesters
 
 - In the original game, harvesters always prefer free refineries over occupied ones, even if the free refinery was much farther away than the occupied refinery. Vinifera fixes this so that harvesters now prefer queueing to occupied refineries if they are much closer than free refineries. The distance for this preference is customizable.

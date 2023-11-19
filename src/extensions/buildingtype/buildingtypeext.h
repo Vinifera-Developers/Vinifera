@@ -132,4 +132,9 @@ public:
      *  If this building is a factory, can it only produce those units that list it in BuiltAt=?
      */
     bool IsExclusiveFactory;
+
+    /**
+     *  Determines whether this building is able to claim nearby walls pre-placed on maps as belonging to the owner's house.
+     */
+    bool IsWallOwner;
 };

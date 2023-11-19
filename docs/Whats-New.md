@@ -58,12 +58,14 @@ New:
 - Implement an option to disable Tiberium storage (by Rampastring)
 - Tooltips for super weapons on the sidebar can now show a custom description (by Rampastring)
 - Allow deploying air transports with the "Deploy" keyboard command (by Rampastring)
+- Add WallOwner to BuildingTypes (by Rampastring)
 
 
 Vinifera fixes:
 - Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)
 - Fix a bug where `CellSpread` incorrectly handled height distance with buildings (by ZivDero)
 - Units spawned from naval factories now face away from the factory, instead of always facing North (by ZivDero)
+- Fix mechanic infantry being unable to repair deployed vehicles (by Rampastring)
 
 
 Vanilla fixes:
