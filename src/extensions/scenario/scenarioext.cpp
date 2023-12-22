@@ -1204,7 +1204,7 @@ void ScenarioClassExtension::Create_Units(bool official)
 
                         i += technotype->Raw_Cost();
 
-                        if (Scen->SpecialFlags.InitialVeteran) {
+                        if (Scen->SpecialFlags.IsInitialVeteran) {
                             obj->Veterancy.Set_Elite(true);
                         }
 
