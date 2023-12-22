@@ -18,10 +18,10 @@ jobs:
 
     steps:
       - name: Clone Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         
       - name: Checkout Files
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           repository: Vinifera-Developers/Vinifera-Files
           path: vinifera-files
@@ -76,10 +76,10 @@ jobs:
 
     steps:
       - name: Clone Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         
       - name: Checkout Files
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           repository: Vinifera-Developers/Vinifera-Files
           path: vinifera-files

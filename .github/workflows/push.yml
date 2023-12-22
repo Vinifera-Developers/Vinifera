@@ -19,10 +19,10 @@ jobs:
         
       - name: Clone Repository
         if:   ${{ steps.vars.outputs.GHA_REPO_ALIVE }} == 'true'
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         
       - name: Checkout Files
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           repository: Vinifera-Developers/Vinifera-Files
           path: vinifera-files
@@ -77,10 +77,10 @@ jobs:
         
       - name: Clone Repository
         if:   ${{ steps.vars.outputs.GHA_REPO_ALIVE }} == 'true'
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         
       - name: Checkout Files
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           repository: Vinifera-Developers/Vinifera-Files
           path: vinifera-files
