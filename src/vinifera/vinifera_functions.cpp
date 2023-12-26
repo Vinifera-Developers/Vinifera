@@ -347,7 +347,7 @@ bool Vinifera_Parse_Command_Line(int argc, char *argv[])
          *  Exit the game after the dialog we skipped to has been canceled?
          */
         if (stricmp(string, "-EXIT_AFTER_SKIP") == 0) {
-            DEBUG_INFO("  - Skipping to Firestorm menu.\n");
+            DEBUG_INFO("  - Forcing game exit after return from menu skip.\n");
             Vinifera_ExitAfterSkip = true;
             menu_skip = true;
             continue;
