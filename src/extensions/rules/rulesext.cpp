@@ -74,7 +74,8 @@ RulesClassExtension::RulesClassExtension(const RulesClass *this_ptr) :
     IsMPPrePlacedConYards(false),
     IsBuildOffAlly(true),
     IsShowSuperWeaponTimers(true),
-    IceStrength(0)
+    IceStrength(0),
+    ApproachTargetResetMultiplier(1.0)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
@@ -432,6 +433,8 @@ bool RulesClassExtension::General(CCINIClass &ini)
      *  @author: CCHyper
      */
     This()->EngineerDamage = ini.Get_Float(GENERAL, "EngineerDamage", This()->EngineerDamage);
+
+    ApproachTargetResetMultiplier = ini.Get_Float(GENERAL, "ApproachTargetResetMultiplier", ApproachTargetResetMultiplier);
 
     return true;
 }
