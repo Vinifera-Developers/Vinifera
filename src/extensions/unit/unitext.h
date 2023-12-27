@@ -31,6 +31,9 @@
 #include "unit.h"
 
 
+class UnitTypeClass;
+
+
 class DECLSPEC_UUID(UUID_UNIT_EXTENSION)
 UnitClassExtension final : public FootClassExtension
 {
@@ -60,4 +63,9 @@ UnitClassExtension final : public FootClassExtension
         virtual RTTIType What_Am_I() const override { return RTTI_UNIT; }
 
     public:
+        /**
+         *  Pointer to the original class for this unit. This allows us to
+         *  switch and restore the class in various situations.
+         */
+        const UnitTypeClass *OriginalClass;
 };

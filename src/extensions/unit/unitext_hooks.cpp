@@ -34,11 +34,13 @@
 #include "technotype.h"
 #include "technotypeext.h"
 #include "unit.h"
+#include "unitext.h"
 #include "unittype.h"
 #include "unittypeext.h"
 #include "target.h"
 #include "rules.h"
 #include "iomap.h"
+#include "cell.h"
 #include "voc.h"
 #include "extension.h"
 #include "fatal.h"
@@ -47,6 +49,86 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-64
+ * 
+ *  Allow alternate water art for units other than the GDI Amphibious APC.
+ * 
+ *  @author: CCHyper
+ */
+static CellClass *Unit_Get_Cell(UnitClass *this_ptr) { return &Map[this_ptr->Get_Coord()];  }
+DECLARE_PATCH(_UnitClass_Draw_Voxel_Water_Image_Patch)
+{
+    GET_REGISTER_STATIC(UnitClass *, this_ptr, ebp);
+    static UnitClassExtension *unitext;
+    static UnitTypeClassExtension *unittypeext;
+
+    unitext = Extension::Fetch<UnitClassExtension>(this_ptr);
+    unittypeext = Extension::Fetch<UnitTypeClassExtension>(this_ptr->Class);
+
+    /**
+     *  Store a copy of the original type class so we can restore it when we are back on land.
+     */
+    if (!unitext->OriginalClass) {
+        unitext->OriginalClass = this_ptr->Class;
+    }
+
+    /**
+     *  Does this unit have a unqiue water image?
+     */
+    if (unittypeext->WaterClass) {
+
+        /**
+         *  Make sure this unit is currently traveling on water and is not
+         *  currently on a bridge over water.
+         */
+        if (Unit_Get_Cell(this_ptr)->Land_Type() == LAND_WATER
+            && !this_ptr->IsOnBridge
+            && this_ptr->Get_Height() < CELL_HEIGHT(1)) {
+
+            /**
+             *  Unit is legally in the water, switch image.
+             */
+            this_ptr->Class = const_cast<UnitTypeClass *>(unittypeext->WaterClass);
+
+        } else {
+
+            /**
+             *  Unit is presumed to be on dry land, use the normal class.
+             */
+            this_ptr->Class = const_cast<UnitTypeClass *>(unitext->OriginalClass);
+        }
+
+        goto use_BodyImage;
+    }
+
+    /**
+     *  Original code:
+     * 
+     *  This ensures the APC in the original game works as intended when there
+     *  is no water class defined to switch to.
+     * 
+     *  Check for "TurretVoxel" added to make absolutely sure.
+     */
+    if (!std::strcmp(this_ptr->Class->Name(), "APC") && this_ptr->Class->TurretVoxel) {
+        goto use_TurretImage;
+    }
+
+    /**
+     *  Standard unit drawing (with body and turret) or APC is on dry land.
+     */
+use_BodyImage:
+    JMP(0x00652889);
+
+    /**
+     *  This is the original case for the APC[W] logic where it uses TurretImage
+     *  as the voxel image to use when driving through water.
+     */
+use_TurretImage:
+    JMP(0x006527F4);
+}
 
 
 #if 0
@@ -701,4 +783,5 @@ void UnitClassExtension_Hooks()
     Patch_Jump(0x0065665D, &_UnitClass_What_Action_ACTION_HARVEST_Block_On_Bridge_Patch); // IsToVeinHarvest
     //Patch_Jump(0x0065054F, &_UnitClass_Enter_Idle_Mode_Block_Harvesting_On_Bridge_Patch); // Removed, keeping code for reference.
     //Patch_Jump(0x00654AB0, &_UnitClass_Mission_Harvest_Block_Harvesting_On_Bridge_Patch); // Removed, keeping code for reference.
+    Patch_Jump(0x006527B1, &_UnitClass_Draw_Voxel_Water_Image_Patch);
 }
