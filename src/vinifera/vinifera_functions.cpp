@@ -64,6 +64,9 @@ static DynamicVectorClass<Wstring> ViniferaSearchPaths;
  */
 bool Vinifera_Load_INI()
 {
+    static char const * const GENERAL = "General";
+    static char const * const SETTINGS = "Settings";
+
     CCFileClass file;
     INIClass ini;
 
@@ -80,9 +83,9 @@ bool Vinifera_Load_INI()
 
     ini.Load(file);
 
-    ini.Get_String("General", "ProjectName", Vinifera_ProjectName, sizeof(Vinifera_ProjectName));
-    ini.Get_String("General", "IconFile", Vinifera_IconName, sizeof(Vinifera_IconName));
-    ini.Get_String("General", "CursorFile", Vinifera_CursorName, sizeof(Vinifera_CursorName));
+    ini.Get_String(GENERAL, "ProjectName", Vinifera_ProjectName, sizeof(Vinifera_ProjectName));
+    ini.Get_String(GENERAL, "IconFile", Vinifera_IconName, sizeof(Vinifera_IconName));
+    ini.Get_String(GENERAL, "CursorFile", Vinifera_CursorName, sizeof(Vinifera_CursorName));
 
 #if defined(TS_CLIENT)
     {
@@ -103,7 +106,7 @@ bool Vinifera_Load_INI()
     ver_ini.Get_String("DTA", "Version", Vinifera_ProjectVersion, sizeof(Vinifera_ProjectVersion));
     }
 #else
-    ini.Get_String("General", "ProjectVersion", "No version number set", Vinifera_ProjectVersion, sizeof(Vinifera_ProjectVersion));
+    ini.Get_String(GENERAL, "ProjectVersion", "No version number set", Vinifera_ProjectVersion, sizeof(Vinifera_ProjectVersion));
 #endif
 
     Vinifera_ProjectName[sizeof(Vinifera_ProjectName)-1] = '\0';
@@ -112,7 +115,7 @@ bool Vinifera_Load_INI()
     Vinifera_CursorName[sizeof(Vinifera_CursorName)-1] = '\0';
 
     char buffer[1024];
-    if (ini.Get_String("General", "SearchPaths", buffer, sizeof(buffer)) > 0) {
+    if (ini.Get_String(GENERAL, "SearchPaths", buffer, sizeof(buffer)) > 0) {
         char *path = std::strtok(buffer, ",");
         while (path) {
             if (!ViniferaSearchPaths.Is_Present(path)) {
@@ -127,6 +130,8 @@ bool Vinifera_Load_INI()
         return false;
 #endif
     }
+
+    Vinifera_AutoMissionSaveEnabled = ini.Get_Bool(SETTINGS, "AutoMissionSaveEnabled", Vinifera_AutoMissionSaveEnabled);
 
     return true;
 }

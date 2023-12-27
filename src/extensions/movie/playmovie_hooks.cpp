@@ -153,6 +153,27 @@ DECLARE_PATCH(_Play_Movie_Scale_By_Ratio_Patch)
 
 
 /**
+ *  Strip the the full filename of its path, returning only the filename.
+ *
+ *  @author: CCHyper
+ */
+static Wstring Strip_Scenario_Path(Wstring file_path)
+{
+    char path[_MAX_PATH];
+    char fname[_MAX_FNAME];
+    char fext[_MAX_EXT];
+
+    /**
+     *  Strip the drive and path (if present) from the filename.
+     */
+    _splitpath(file_path.Peek_Buffer(), nullptr, nullptr, fname, fext);
+    _makepath(path, nullptr, nullptr, fname, fext);
+
+    return path;
+}
+
+
+/**
  *  #issue-95
  * 
  *  Patch for handling the campaign intro movies
@@ -185,8 +206,9 @@ static bool Play_Intro_Movie(CampaignType campaign_id)
     /**
      *  Check if the current campaign is an original GDI or NOD campaign.
      */
-    bool is_original_gdi = (cd_num == DISK_GDI && (Wstring(campaign->IniName) == "GDI1" || Wstring(campaign->IniName) == "GDI1A") && Wstring(campaign->Scenario) == "GDI1A.MAP");
-    bool is_original_nod = (cd_num == DISK_NOD && (Wstring(campaign->IniName) == "NOD1" || Wstring(campaign->IniName) == "NOD1A") && Wstring(campaign->Scenario) == "NOD1A.MAP");
+    Wstring scenario_name = Strip_Scenario_Path(campaign->Scenario);
+    bool is_original_gdi = (cd_num == DISK_GDI && (Wstring(campaign->IniName) == "GDI1" || Wstring(campaign->IniName) == "GDI1A") && scenario_name.Compare_No_Case("GDI1A.MAP") == 0);
+    bool is_original_nod = (cd_num == DISK_NOD && (Wstring(campaign->IniName) == "NOD1" || Wstring(campaign->IniName) == "NOD1A") && scenario_name.Compare_No_Case("NOD1A.MAP") == 0);
 
     /**
      *  #issue-762
