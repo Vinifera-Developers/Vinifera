@@ -63,4 +63,9 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
          *  Can ice get destroyed when hit by certain weapons?
          */
         bool IsIceDestruction;
+
+        /**
+         *  Should the mission briefing statement be shown before the mission starts?
+         */
+        bool IsShowBriefing;
 };

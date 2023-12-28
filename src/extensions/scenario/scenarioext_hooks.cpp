@@ -37,12 +37,74 @@
 #include "ccfile.h"
 #include "ccini.h"
 #include "addon.h"
+#include "wwmouse.h"
+#include "restate.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  Show the mission briefing statement.
+ * 
+ *  @author: CCHyper
+ */
+static void Scenario_Show_Mission_Briefing()
+{
+    char buffer[25];
+
+    /**
+     *  If there's no briefing movie, restate the mission at the beginning.
+     */
+    if (Scen->BriefMovie != VQ_NONE) {
+        std::snprintf(buffer, sizeof(buffer), "%s.VQA", Movies[Scen->BriefMovie]);
+    }
+
+    /**
+     *  Briefings are only displayed in normal games when no briefing video is found.
+     * 
+     *  #issue-28
+     * 
+     *  Also, Show the briefing if the scenario has been flagged to show it.
+     */
+    if (Session.Type == GAME_NORMAL && (Scen->BriefMovie == VQ_NONE || !CCFileClass(buffer).Is_Available() || ScenExtension->IsShowBriefing)) {
+
+        /**
+         *  Make sure the mouse is visible before showing the restatement.
+         */
+        while (WWMouse->Get_Mouse_State()) {
+            WWMouse->Show_Mouse();
+        }
+
+        /**
+         *  Show the mission briefing screen.
+         */
+        Restate_Mission(Scen);
+    }
+}
+
+/**
+ *  This patch replaces the section of code in Start_Scenario() that shows
+ *  the mission briefing statement if no briefing video is found.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_Start_Scenario_BriefMovie_RestateMission_Patch)
+{
+    /**
+     *  Show the mission briefing statement.
+     */
+    Scenario_Show_Mission_Briefing();
+
+    /**
+     *  Continue to showing the Dropship Loadout menu (if enabled).
+     */
+    _asm { mov eax, 0x007E2438 } // Scen
+    JMP_REG(ecx, 0x005DB3B1);
+}
 
 
 /**
@@ -177,4 +239,5 @@ void ScenarioClassExtension_Hooks()
     Patch_Jump(0x005DC9D4, &_Do_Win_Skip_MPlayer_Score_Screen_Patch);
     Patch_Jump(0x005DCD92, &_Do_Lose_Skip_MPlayer_Score_Screen_Patch);
     Patch_Jump(0x005DD8D5, &_Read_Scenario_INI_MPlayer_INI_Patch);
+    Patch_Jump(0x005DB37F, &_Start_Scenario_BriefMovie_RestateMission_Patch);
 }
