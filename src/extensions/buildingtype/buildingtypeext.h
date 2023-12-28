@@ -106,4 +106,14 @@ BuildingTypeClassExtension final : public TechnoTypeClassExtension
          *  Is this building eligible for proximity checks by players who are its owner's allies?
          */
         bool IsEligibleForAllyBuilding;
+
+        /**
+         *  The number of available docking positions this building has.
+         */
+        unsigned NumberOfDocks;
+
+        /**
+         *  The offset(s) from the center of the building for each docking position.
+         */
+        DynamicVectorClass<TPoint3D<int>> DockingOffsets;
 };

@@ -29,6 +29,7 @@
 #include "building.h"
 #include "buildingtype.h"
 #include "buildingtypeext.h"
+#include "tibsun_inline.h"
 #include "house.h"
 #include "housetype.h"
 #include "wwcrc.h"
@@ -178,6 +179,7 @@ void BuildingClassExtension::Compute_CRC(WWCRCEngine &crc) const
     crc(ProduceCashTimer());
 }
 
+
 /**
  *  #issue-26
  * 
@@ -290,4 +292,48 @@ void BuildingClassExtension::Produce_Cash_AI()
 
     }
 
+}
+
+
+/**
+ *  Fetches the coordinate to use for docking.
+ *  
+ *  @author: CCHyper
+ */
+Coordinate BuildingClassExtension::Docking_Coord() const
+{
+    //EXT_DEBUG_TRACE("BuildingClassExtension::Docking_Coord - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    Coordinate coord = This()->Center_Coord();
+
+    /**
+     *  #issue-786
+     * 
+     *  Implements DockingOffset for BuildingTypes (currently limited to Helipads and Refinerys).
+     *  
+     *  @author: CCHyper
+     */
+    BuildingTypeClassExtension *buildingtypeext = Extension::Fetch<BuildingTypeClassExtension>(This()->Class);
+
+    if (buildingtypeext->NumberOfDocks > 0) {
+
+        if (This()->Class->IsRefinery || This()->Class->IsWeeder) {
+            TPoint3D<int> docking_offset = buildingtypeext->DockingOffsets[0];
+            coord.X += docking_offset.X;
+            coord.Y += docking_offset.Y;
+            coord.Z += docking_offset.Z;
+            return coord;
+        }
+
+        if (This()->Class->IsHelipad) {
+            TPoint3D<int> docking_offset = buildingtypeext->DockingOffsets[0];
+            coord.X += docking_offset.X;
+            coord.Y += docking_offset.Y;
+            coord.Z += docking_offset.Z;
+            return coord;
+        }
+
+    }
+
+    return coord;
 }

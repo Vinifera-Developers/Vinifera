@@ -27,6 +27,7 @@
  ******************************************************************************/
 #include "buildingtypeext.h"
 #include "buildingtype.h"
+#include "tibsun_globals.h"
 #include "tibsun_defines.h"
 #include "ccini.h"
 #include "wwcrc.h"
@@ -50,7 +51,9 @@ BuildingTypeClassExtension::BuildingTypeClassExtension(const BuildingTypeClass *
     ProduceCashBudget(0),
     IsStartupCashOneTime(false),
     IsResetBudgetOnCapture(false),
-    IsEligibleForAllyBuilding(false)
+    IsEligibleForAllyBuilding(false),
+    NumberOfDocks(0),
+    DockingOffsets()
 {
     //if (this_ptr) EXT_DEBUG_TRACE("BuildingTypeClassExtension::BuildingTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -174,6 +177,8 @@ void BuildingTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
     //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     crc(IsEligibleForAllyBuilding);
+    crc(NumberOfDocks);
+    crc(DockingOffsets.Count());
 }
 
 
@@ -190,7 +195,14 @@ bool BuildingTypeClassExtension::Read_INI(CCINIClass &ini)
         return false;
     }
 
+    char buffer[1024];
+
     const char *ini_name = Name();
+    const char *graphic_name = Graphic_Name();
+
+    //if (!ArtINI.Is_Present(graphic_name)) {
+    //    return false;
+    //}
 
     GateUpSound = ini.Get_VocType(ini_name, "GateUpSound", GateUpSound);
     GateDownSound = ini.Get_VocType(ini_name, "GateDownSound", GateDownSound);
@@ -204,6 +216,37 @@ bool BuildingTypeClassExtension::Read_INI(CCINIClass &ini)
 
     IsEligibleForAllyBuilding = ini.Get_Bool(ini_name, "EligibleForAllyBuilding",
                                                     This()->IsConstructionYard ? true : IsEligibleForAllyBuilding);
+
+    /**
+     *  The following structures must have at least one docking location.
+     */
+    if (This()->IsHelipad || This()->IsRefinery || This()->IsWeeder) {
+        NumberOfDocks = 1;
+    }
+
+    NumberOfDocks = ini.Get_Int(ini_name, "NumberOfDocks", NumberOfDocks);
+
+    for (int i = 0; i < NumberOfDocks; ++i) {
+        std::snprintf(buffer, sizeof(buffer), "DockingOffset%d", i);
+
+        TPoint3D<int> default_value(0, 0, 0);
+
+        /**
+         *  Both of these refinerys have artwork specific dock locations. As we have
+         *  reimplemented Docking_Coord, we need to ensure the original positions
+         *  remain unmodified.
+         */
+        if (This()->IsWeeder) {
+            default_value.X += CELL_LEPTON_W * 2;
+            default_value.Y += CELL_LEPTON_H;
+
+        } else if (This()->IsRefinery) {
+            default_value.X += CELL_LEPTON_W / 2;
+        }
+
+        TPoint3D<int> offset = ArtINI.Get_Point(graphic_name, buffer, default_value);
+        DockingOffsets.Add(offset);
+    }
     
     return true;
 }
