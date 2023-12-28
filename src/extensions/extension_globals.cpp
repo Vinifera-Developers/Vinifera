@@ -53,6 +53,7 @@ DynamicVectorClass<SmudgeTypeClassExtension *> SmudgeTypeExtensions;
 DynamicVectorClass<SuperClassExtension *> SuperExtensions;
 DynamicVectorClass<SuperWeaponTypeClassExtension *> SuperWeaponTypeExtensions;
 DynamicVectorClass<TActionClassExtension *> TActionExtensions;
+DynamicVectorClass<TEventClassExtension *> TEventExtensions;
 DynamicVectorClass<TerrainClassExtension *> TerrainExtensions;
 DynamicVectorClass<TerrainTypeClassExtension *> TerrainTypeExtensions;
 DynamicVectorClass<TiberiumClassExtension *> TiberiumExtensions;

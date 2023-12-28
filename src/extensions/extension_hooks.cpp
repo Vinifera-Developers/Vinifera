@@ -82,7 +82,7 @@
 //#include "tagtypeext_hooks.h"
 #include "tiberiumext_hooks.h"
 #include "tactionext_hooks.h"
-//#include "teventext_hooks.h"
+#include "teventext_hooks.h"
 #include "weapontypeext_hooks.h"
 #include "warheadtypeext_hooks.h"
 //#include "waypointeext_hooks.h"
@@ -215,7 +215,7 @@ void Extension_Hooks()
     //TagTypeClassExtension_Hooks();                        // Not yet implemented
     TiberiumClassExtension_Hooks();
     TActionClassExtension_Hooks();
-    //TEventClassExtension_Hooks();                         // Not yet implemented
+    TEventClassExtension_Hooks();
     WeaponTypeClassExtension_Hooks();
     WarheadTypeClassExtension_Hooks();
     //WaypointClassExtension_Hooks();                       // Not yet implemented

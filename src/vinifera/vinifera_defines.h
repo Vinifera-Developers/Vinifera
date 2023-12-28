@@ -140,9 +140,29 @@ typedef enum ExtTActionType
      */
 
 
-
     /**
      *  The new total ExtTActionType count.
      */
     EXT_TACTION_COUNT
+
 } ExtTActionType;
+
+
+/**
+ *  Extension of the TEventType enum.
+ */
+typedef enum ExtTEventType
+{
+    EXT_TEVENT_PAD = TEVENT_LIMPED, // The last TEventType
+
+    /**
+     *  Add new ExtTEventType's from here, do not reorder these!
+     */
+
+
+    /**
+     *  The new total ExtTEventType count.
+     */
+    EXT_TEVENT_COUNT
+
+} ExtTEventType;
