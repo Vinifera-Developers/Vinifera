@@ -27,10 +27,13 @@
  ******************************************************************************/
 #include "mainloopext_hooks.h"
 #include "vinifera_globals.h"
+#include "vinifera_defines.h"
 #include "tibsun_globals.h"
 #include "tibsun_functions.h"
 #include "iomap.h"
 #include "tactical.h"
+#include "tacticalext.h"
+#include "saveload.h"
 #include "house.h"
 #include "fatal.h"
 #include "debughandler.h"
@@ -76,6 +79,111 @@ static void Before_Main_Loop()
 
 static void After_Main_Loop()
 {
+    /**
+     *  Perform a quick save operation.
+     */
+    if (Vinifera_PendingQuickSave) {
+
+        int free_slot = 0;
+
+        /**
+         *  Scan for a free save slot.
+         */
+        for (int slot = 0; slot < QUICK_SAVE_MAX_SLOTS; ++slot) {
+            char tmpbuf[16];
+            std::snprintf(tmpbuf, sizeof(tmpbuf), "QUICK%03d.SAV", slot);
+            if (!RawFileClass(tmpbuf).Is_Available()) {
+                free_slot = slot;
+                DEBUG_INFO("Found free quick save slot \"%d\".\n", free_slot);
+                break;
+            }
+        }
+
+        /**
+         *  Build the save file description and filename.
+         */
+        char desc[128];
+        std::snprintf(desc, sizeof(desc), "[Quick Save %d: %s]", free_slot + 1, Scen->Description);
+
+        char fname[16];
+        std::snprintf(fname, sizeof(fname), "QUICK%03d.SAV", free_slot);
+
+        if (Save_Game(fname, desc)) {
+
+            TacticalMapExtension->CaptionTextTimer.Stop();
+
+            TacticalMap->Clear_Caption_Text();
+
+            std::strncpy(TacticalMap->ScreenText, "Game Saved", sizeof(TacticalMap->ScreenText));
+
+            TacticalMapExtension->IsCaptionTextSet = true;
+
+            TacticalMapExtension->CaptionTextTimer = QUICK_SAVE_TEXT_TIMEOUT;
+            TacticalMapExtension->CaptionTextTimer.Start();
+
+        }
+
+    /**
+     *  Perform a quick load operation.
+     */
+    } else if (Vinifera_PendingQuickLoad) {
+
+        Wstring fname;
+
+        /**
+         *  Find the most recent quick save file.
+         */
+        FILETIME recentDate = { 0, 0 };
+        FILETIME curDate = { 0, 0 };
+
+        WIN32_FIND_DATA block;
+        HANDLE handle = FindFirstFile("QUICK*.SAV", &block);
+        while (handle != INVALID_HANDLE_VALUE) {
+            if ((block.dwFileAttributes & (FILE_ATTRIBUTE_DIRECTORY | FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_SYSTEM | FILE_ATTRIBUTE_TEMPORARY)) == 0) {
+                char const* name = &block.cAlternateFileName[0];
+                if (*name == '\0') name = &block.cFileName[0];
+
+                DEV_DEBUG_INFO("Found file '%s'.\n", name);
+
+                curDate = block.ftCreationTime;
+
+                if (CompareFileTime(&curDate, &recentDate) > 0) {
+                    recentDate = curDate;
+                    fname = name;
+                }
+            }
+            if (FindNextFile(handle, &block) == 0) break;
+        }
+
+        if (!fname.Get_Length()) {
+            DEBUG_INFO("No quick save files found!\n");
+            return;
+        }
+
+        DEBUG_INFO("Found most recent quick save \"%s\"", fname.Peek_Buffer());
+
+        if (Load_Game(fname.Peek_Buffer())) {
+
+            TacticalMapExtension->CaptionTextTimer.Stop();
+
+            TacticalMap->Clear_Caption_Text();
+
+            std::strncpy(TacticalMap->ScreenText, "Game Loaded", sizeof(TacticalMap->ScreenText));
+
+            TacticalMapExtension->IsCaptionTextSet = true;
+
+            TacticalMapExtension->CaptionTextTimer = QUICK_SAVE_TEXT_TIMEOUT;
+            TacticalMapExtension->CaptionTextTimer.Start();
+
+        }
+
+    }
+
+    /**
+     *  Reset the pending flags for the next loop.
+     */
+    Vinifera_PendingQuickSave = false;
+    Vinifera_PendingQuickLoad = false;
 }
 
 

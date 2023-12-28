@@ -85,6 +85,9 @@ extern bool Vinifera_NoTacticalVersionString;
 
 extern bool Vinifera_ShowSuperWeaponTimers;
 
+extern bool Vinifera_PendingQuickSave;
+extern bool Vinifera_PendingQuickLoad;
+
 extern DynamicVectorClass<MFCC *> ViniferaMapsMixes;
 extern DynamicVectorClass<MFCC *> ViniferaMoviesMixes;
 

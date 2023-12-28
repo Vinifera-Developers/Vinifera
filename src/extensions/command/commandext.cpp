@@ -66,6 +66,8 @@
 #include "wwcrc.h"
 #include "filepcx.h"
 #include "filepng.h"
+#include "saveload.h"
+#include "tacticalext.h"
 #include "extension.h"
 #include "fatal.h"
 #include "minidump.h"
@@ -820,6 +822,83 @@ bool ToggleSuperTimersCommandClass::Process()
     }
 
     Vinifera_ShowSuperWeaponTimers = !Vinifera_ShowSuperWeaponTimers;
+
+    return true;
+}
+
+
+/**
+ *  Perform a quick save.
+ *
+ *  @author: CCHyper
+ */
+const char *QuickSaveCommandClass::Get_Name() const
+{
+    return "QuickSave";
+}
+
+const char *QuickSaveCommandClass::Get_UI_Name() const
+{
+    return "Quick Save";
+}
+
+const char *QuickSaveCommandClass::Get_Category() const
+{
+    return "New";
+}
+
+const char *QuickSaveCommandClass::Get_Description() const
+{
+    return "Perform a quick save.";
+}
+
+
+bool QuickSaveCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    Vinifera_PendingQuickSave = true;
+    Vinifera_PendingQuickLoad = false;
+
+    return true;
+}
+
+
+/**
+ *  Load the last quick save if one exists.
+ *
+ *  @author: CCHyper
+ */
+const char *QuickLoadCommandClass::Get_Name() const
+{
+    return "QuickLoad";
+}
+
+const char *QuickLoadCommandClass::Get_UI_Name() const
+{
+    return "Quick Load";
+}
+
+const char *QuickLoadCommandClass::Get_Category() const
+{
+    return "New";
+}
+
+const char *QuickLoadCommandClass::Get_Description() const
+{
+    return "Load the last quick save if one exists.";
+}
+
+bool QuickLoadCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    Vinifera_PendingQuickSave = false;
+    Vinifera_PendingQuickLoad = true;
 
     return true;
 }

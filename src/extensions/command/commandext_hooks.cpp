@@ -246,6 +246,12 @@ void Init_Vinifera_Commands()
     cmdptr = new ToggleSuperTimersCommandClass;
     Commands.Add(cmdptr);
 
+    cmdptr = new QuickSaveCommandClass;
+    Commands.Add(cmdptr);
+
+    cmdptr = new QuickLoadCommandClass;
+    Commands.Add(cmdptr);
+
     /**
      *  Next, initialised any new commands here if the developer mode is enabled.
      */
@@ -490,6 +496,22 @@ static void Process_Vinifera_Hotkeys()
 
     if (!ini.Is_Present("Hotkey", "JumpCameraSouth")) {
         cmdptr = CommandClass::From_Name("JumpCameraSouth");
+        if (cmdptr) {
+            key = reinterpret_cast<ViniferaCommandClass *>(cmdptr)->Default_Key();
+            HotkeyIndex.Add_Index(key, cmdptr);
+        }
+    }
+
+    if (!ini.Is_Present("Hotkey", "QuickSave")) {
+        cmdptr = CommandClass::From_Name("QuickSave");
+        if (cmdptr) {
+            key = reinterpret_cast<ViniferaCommandClass *>(cmdptr)->Default_Key();
+            HotkeyIndex.Add_Index(key, cmdptr);
+        }
+    }
+
+    if (!ini.Is_Present("Hotkey", "QuickLoad")) {
+        cmdptr = CommandClass::From_Name("QuickLoad");
         if (cmdptr) {
             key = reinterpret_cast<ViniferaCommandClass *>(cmdptr)->Default_Key();
             HotkeyIndex.Add_Index(key, cmdptr);

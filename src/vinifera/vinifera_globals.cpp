@@ -65,6 +65,9 @@ bool Vinifera_NoTacticalVersionString = false;
 
 bool Vinifera_ShowSuperWeaponTimers = true;
 
+bool Vinifera_PendingQuickSave = false;
+bool Vinifera_PendingQuickLoad = false;
+
 DynamicVectorClass<MFCC *> ViniferaMapsMixes;
 DynamicVectorClass<MFCC *> ViniferaMoviesMixes;
 

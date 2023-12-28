@@ -122,4 +122,14 @@ class TacticalExtension final : public GlobalExtensionClass<Tactical>
          *  The lifetime timer for the information text.
          */
         CDTimerClass<MSTimerClass> InfoTextTimer;
+
+        /**
+         *  Has custom caption text been set?
+         */
+        bool IsCaptionTextSet;
+
+        /**
+         *  The lifetime timer for the custom caption text.
+         */
+        CDTimerClass<MSTimerClass> CaptionTextTimer;
 };
