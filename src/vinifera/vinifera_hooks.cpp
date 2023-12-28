@@ -51,6 +51,70 @@
 
 
 /**
+ *  #issue-554
+ * 
+ *  This function patches out various hardcoded properties for game types.
+ * 
+ *  @author: CCHyper
+ */
+static void Vinifera_Remove_Hardcoded_Type_Properties()
+{
+    /**
+     *  Removes hardcoded "Strength=1200" from ObjectType with the name "HMEC".
+     */
+    Patch_Byte_Range(0x00588C5F, 0x90, 6);
+    Patch_Jump(0x00588C6B, 0x00588C7E);
+
+    /**
+     *  Removes hardcoded values;
+     *    "GuardRange=5"
+     *    "Cost=250"
+     *
+     *  from TechnoTypes with the names "GAFSDF", "GAWALL" and/or "NAWALL"
+     */
+    Patch_Jump(0x0063BAC8, 0x0063BB6E);
+    Patch_Jump(0x0063C8E2, 0x0063C988);
+
+    /**
+     *  Removes hardcoded "Explodes=yes" from TechnoType with the name "E2".
+     */
+    Patch_Byte_Range(0x0063BB82, 0x90, 6);
+    Patch_Jump(0x0063BB8E, 0x0063BBA1);
+
+    /**
+     *  Removes hardcoded "BaseNormal=no" from BuildingTypes with the names "NAFNCE" and/or "NAPOST"
+     */
+    Patch_Byte_Range(0x00440C38, 0x90, 6);
+    Patch_Jump(0x00440C44, 0x00440C69);
+
+    /**
+     *  Removes hardcoded values;
+     *    "ProneDamage=0.3"
+     *    "Verses=0.4, 0.85, 0.68, 0.35, 0.35"
+     * 
+     *  from WarheadType with the name "ARTYHE". These hardcoded properties
+     *  only applied to multiplayer games, and not the singleplayer campaign.
+     */
+    Patch_Jump(0x0066F4C6, 0x0066F566);
+
+    /**
+     *  Removes hardcoded values;
+     *    "ROF=150"
+     *    "Damage=115"
+     * 
+     *  from WeaponType with the name "155mm". These hardcoded properties
+     *  only applied to multiplayer games, and not the singleplayer campaign.
+     */
+    Patch_Jump(0x00681250, 0x0068129D);
+
+    /**
+     *  Removes hardcoded "Power=17" from TiberiumType "Vinifera".
+     */
+    Patch_Jump(0x00644DB8, 0x00644DD4);
+}
+
+
+/**
  *  This function is for intercepting the calls to Detach_This_From_All to also
  *  process the object through the extension interface.
  * 
@@ -891,6 +955,13 @@ void Vinifera_Hooks()
     Patch_Byte_Range(0x0057FE2A, 0x90, 10); // NewMenuClass::Process_Game_Select
     Patch_Byte_Range(0x00580377, 0x90, 10); // NewMenuClass::Process_Game_Select
 #endif
+
+    /**
+     *  Remove various hardcoded game object type properties.
+     * 
+     *  See RulesClassExtension::Fixups for more information.
+     */
+    Vinifera_Remove_Hardcoded_Type_Properties();
 
     /**
      *  Various patches to intercept the games object tracking and heap processing.
