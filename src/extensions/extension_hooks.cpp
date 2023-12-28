@@ -214,7 +214,7 @@ void Extension_Hooks()
     //TagClassExtension_Hooks();                            // Not yet implemented
     //TagTypeClassExtension_Hooks();                        // Not yet implemented
     TiberiumClassExtension_Hooks();
-    //TActionClassExtension_Hooks();                        // Not yet implemented
+    TActionClassExtension_Hooks();
     //TEventClassExtension_Hooks();                         // Not yet implemented
     WeaponTypeClassExtension_Hooks();
     WarheadTypeClassExtension_Hooks();
