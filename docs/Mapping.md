@@ -44,6 +44,19 @@ In a scenario file:
 IceDestructionEnabled=yes  ; boolean, can ice tiles be destroyed in the scenario?
 ```
 
+### Score Screen Bar Color Customization
+
+- You can now customize colors of the score screen casualty bars.
+
+In a scenario file:
+```ini
+[Basic]
+ScorePlayerColor=253,181,28  ; color in R,G,B, color of the player's score bars
+ScoreEnemyColor=250,28,28    ; color in R,G,B, color of the enemy's score bars
+```
+
+![Score screen colors in DTA:CR](https://github.com/user-attachments/assets/bc901430-abfc-4b8e-9648-107d07b7eafe)
+
 ## Script Actions
 
 ## Trigger Actions

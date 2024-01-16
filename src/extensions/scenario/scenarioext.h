@@ -91,4 +91,7 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
          *  Can ice get destroyed when hit by certain weapons?
          */
         bool IsIceDestruction;
+
+        RGBStruct ScorePlayerColor;
+        RGBStruct ScoreEnemyColor;
 };

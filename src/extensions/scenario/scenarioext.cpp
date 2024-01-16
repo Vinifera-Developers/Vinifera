@@ -183,9 +183,11 @@ void ScenarioClassExtension::Compute_CRC(WWCRCEngine &crc) const
  */
 void ScenarioClassExtension::Init_Clear()
 {
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Init_Clear - 0x%08X\n", (uintptr_t)(This()));
-
     IsIceDestruction = true;
+    ScorePlayerColor = RGBStruct{ 253, 181, 28 }; // Default to TS GDI score color
+    ScoreEnemyColor = RGBStruct{ 250, 28, 28 };   // Default to TS Nod score color
+
+    //EXT_DEBUG_TRACE("ScenarioClassExtension::Init_Clear - 0x%08X\n", (uintptr_t)(This()));
 
     {
         /**
@@ -221,6 +223,8 @@ bool ScenarioClassExtension::Read_INI(CCINIClass &ini)
     static const char * const BASIC = "Basic";
 
     IsIceDestruction = ini.Get_Bool(BASIC, "IceDestructionEnabled", IsIceDestruction);
+    ScorePlayerColor = ini.Get_RGB(BASIC, "ScorePlayerColor", ScorePlayerColor);
+    ScoreEnemyColor = ini.Get_RGB(BASIC, "ScoreEnemyColor", ScoreEnemyColor);
 
     /**
      *  #issue-123
