@@ -27,7 +27,10 @@
  ******************************************************************************/
 #include "teamext_hooks.h"
 #include "team.h"
+#include "teamtype.h"
 #include "cell.h"
+#include "foot.h"
+#include "technotype.h"
 #include "iomap.h"
 #include "fatal.h"
 #include "debughandler.h"
@@ -35,6 +38,98 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  #issue-231
+ * 
+ *  Fixes a bug where transports do not not return to their loading cell (home)
+ *  when they have finished unloading and are flagged with "TransportsReturnOnUnload".
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_TeamClass_AI_Log_Transport_Return_Patch)
+{
+    GET_REGISTER_STATIC(TeamClass *, this_ptr, esi);
+    static Cell cell;
+    static FootClass *i;
+
+    /**
+     *  Iterate over all members of this team and clear the archive cell.
+     */
+    for (i = this_ptr->Member; i; i = i->Member) {
+
+        /**
+         *  ...Unless its a transport that has been flagged to return after unload.
+         */
+        if (this_ptr->Class->TransportsReturnOnUnload && i->Techno_Type_Class()->MaxPassengers > 0) {
+            if (i->ArchiveTarget) {
+                cell.X = i->Coord.X / 256;
+                cell.Y = i->Coord.Y / 256;
+                DEBUG_INFO("Transport \"%s\" just received orders to go home to %d,%d after unloading.\n", i->Name(), cell.X, cell.Y);
+#ifndef NDEBUG
+                /**
+                 *  #DEBUG: Jump to the position of the transport in question.
+                 */
+                Map.Set_Tactical_Position(i->Coord);
+#endif
+            }
+
+        } else {
+
+            /**
+             *  Not a "real" transport, clear the archive cell.
+             */
+            i->ArchiveTarget = nullptr;
+        }
+    }
+
+    /**
+     *  Continue function flow.
+     */
+    JMP_REG(ecx, 0x0062297C);
+}
+
+
+/**
+ *  #issue-231
+ * 
+ *  Fixes a bug where transports do not not return to their loading cell (home)
+ *  when they have finished unloading and are flagged with "TransportsReturnOnUnload".
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_TeamClass_TMission_Load_Assign_Archive_Patch)
+{
+    GET_STACK_STATIC(TeamClass *, this_ptr, esp, 0x10);
+    GET_REGISTER_STATIC(FootClass *, trans, ebp); // Pointer to the first member of the team.
+    static Cell cell;
+
+    /**
+     *  This this team is flagged that transports should return to
+     *  the location they loaded at, then backup the current cell
+     *  to the transport archive so it knows where to return to.
+     */
+    if (this_ptr->Class->TransportsReturnOnUnload) {
+        trans->ArchiveTarget = (TARGET)&Map[trans->Coord];
+        cell.X = trans->Coord.X / 256;
+        cell.Y = trans->Coord.Y / 256;
+        DEV_DEBUG_INFO("Transport \"%s\" loaded, returning to %d,%d after unloading.\n", trans->Name(), cell.X, cell.Y);
+#ifndef NDEBUG
+        /**
+         *  #DEBUG: Jump to the position of the transport in question.
+         */
+        Map.Set_Tactical_Position(trans->Coord);
+#endif
+    }
+
+    /**
+     *  Stolen bytes/code.
+     */
+    this_ptr->IsNextMission = true;
+
+    JMP_REG(ecx, 0x00625FD3);
+}
 
 
 /**
@@ -93,4 +188,14 @@ coordinate_move:
 void TeamClassExtension_Hooks()
 {
     Patch_Jump(0x00622B2C, &_TeamClass_AI_MoveCell_FixCellCalc_Patch);
+
+    /**
+     *  This patch writes a short jump to some padding, where we then
+     *  jump from. This is because the area we need to patch is only
+     *  4 bytes, and a long jump needs 5.
+     */
+    Patch_Word(0x00625FCF, 0x37EB);
+    Patch_Jump(0x00626008, &_TeamClass_TMission_Load_Assign_Archive_Patch);
+
+    Patch_Jump(0x00622962, &_TeamClass_AI_Log_Transport_Return_Patch);
 }
