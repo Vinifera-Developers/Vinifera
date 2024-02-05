@@ -107,6 +107,7 @@
 
 #include "displayext_hooks.h"
 #include "sidebarext_hooks.h"
+#include "mouseext_hooks.h"
 
 #include "initext_hooks.h"
 #include "mainloopext_hooks.h"
@@ -243,6 +244,7 @@ void Extension_Hooks()
 
     DisplayClassExtension_Hooks();
     SidebarClassExtension_Hooks();
+    MouseClassExtension_Hooks();
 
     /**
      *  Various modules and functions.

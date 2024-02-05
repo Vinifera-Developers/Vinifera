@@ -49,6 +49,7 @@
 #include "extension.h"
 #include "theatertype.h"
 #include "uicontrol.h"
+#include "mousetype.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 #include <string>
@@ -650,6 +651,7 @@ bool Vinifera_Shutdown()
      */
     EBoltClass::Clear_All();
     TheaterTypes.Clear();
+    MouseTypes.Clear();
 
     /**
      *  Cleanup global extension instances.
@@ -707,6 +709,44 @@ int Vinifera_Pre_Init_Game(int argc, char *argv[])
      */
     Vinifera_SkipStartupMovies = true;
 #endif
+
+    /**
+     *  Read the mouse controls and overrides.
+     * 
+     *  This must be loaded before Init_Game as MouseClass::Override_Mouse_Shape
+     *  is called as part of the games initialisation.
+     */
+    MouseTypeClass::One_Time();
+
+#ifndef NDEBUG
+    /**
+     *  Write the default mouse control values to ini.
+     */
+    {
+        CCFileClass mouse_write_file("MOUSE.DBG");
+        CCINIClass mouse_write_ini;
+        mouse_write_file.Delete();
+        MouseTypeClass::Write_Default_Mouse_INI(mouse_write_ini);
+        mouse_write_ini.Save(mouse_write_file, false);
+        mouse_write_file.Close();
+    }
+#endif
+
+    CCFileClass mouse_file("MOUSE.INI");
+
+    if (mouse_file.Is_Available()) {
+
+        CCINIClass mouse_ini;
+        mouse_ini.Load(mouse_file, false);
+
+        if (!MouseTypeClass::Read_Mouse_INI(mouse_ini)) {
+            DEV_DEBUG_ERROR("Failed to read MOUSE.INI!\n");
+            return EXIT_FAILURE;
+        }
+
+    } else {
+        DEV_DEBUG_WARNING("MOUSE.INI not found!\n");
+    }
 
     return EXIT_SUCCESS;
 }
