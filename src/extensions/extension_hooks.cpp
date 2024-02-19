@@ -122,6 +122,7 @@
 #include "msglistext_hooks.h"
 #include "txtlabelext_hooks.h"
 #include "tooltipext_hooks.h"
+#include "textprintext_hooks.h"
 
 #include "combatext_hooks.h"
 #include "dropshipext_hooks.h"
@@ -264,6 +265,7 @@ void Extension_Hooks()
     MessageListClassExtension_Hooks();
     TextLabelClassExtension_Hooks();
     ToolTipManagerExtension_Hooks();
+    TextPrintExtension_Hooks();
 
     CombatExtension_Hooks();
     DropshipExtension_Hooks();

@@ -43,12 +43,18 @@ SortDefensesAsLast=yes  ; boolean, are base defenses sorted to the end of the si
 ### Desciptions
 
 - Tooltips displayed when hovering over icons on the sidebar have been expanded.
-- By default, hovering over an icon will display the object's name and price. Additionally, a description can be specified, which will appear after the price.
+- By default, hovering over an icon will display the object's name and price. Additionally, a description can be specified for TechnoTypes, which will appear after the price.
 
 In `RULES.INI`:
 ```ini
-[SOMETECHNO]  ; TechnoType
-Description=  ; string, an extended description of the techno. Up to 200 characters in length.
+[SOMETECHNO]        ; TechnoType
+Description=Basic infantry.@@Cheap and effective against infantry and light vehicles, but very short-ranged.
+```
+
+You can use `@` to force a linebreak, just like with most text in the game.
+
+```{note}
+Due to limitations of the game's tooltip system, the length of the description is limited to 200 characters.
 ```
 
 ### Queues
