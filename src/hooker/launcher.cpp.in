@@ -62,6 +62,7 @@ const bool CheckTargetBinaries = @CHECK_TARGET_BINARIES@;
 const char *BinaryHash[] = {
 	"@TARGET_HASH@",
 	"@TARGET_FTS_HASH@"
+	"@TARGET_TUC_HASH@"
 };
 
 /**
@@ -70,6 +71,7 @@ const char *BinaryHash[] = {
 int BinarySize[] = {
 	@TARGET_SIZE@,
 	@TARGET_FTS_SIZE@
+	@TARGET_TUC_SIZE@
 };
 
 /**

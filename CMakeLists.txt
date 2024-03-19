@@ -228,7 +228,7 @@ endif()
 # Set some handy defines we can use for error messages etc.
 ################################################################################
 set(PROJECT_DLL "${PROJECT_NAME}.dll")
-set(UNSUPPORTED_TARGET_ERROR "(Only TS203EN and Freeware-TS is currently supported)")
+set(UNSUPPORTED_TARGET_ERROR "(Only TS203EN, Freeware-TS, and TUC-TS (2024 release) is currently supported)")
 set(TARGET_EXE "GAME.EXE") # Define the EXE to launch.
 set(TARGET_PDB "GAME.PDB") # Define the PDB for the target.
 set(TARGET_EDB "GAME.EDB") # Define the EDB (exception database) for the target.
@@ -244,10 +244,15 @@ set(TARGET_TFD_SIZE 4677437)
 set(TARGET_TFD_ENTRY 0x006B7E21) # Entry point (start).
 set(TARGET_TFD_HASH "2309D215AC10A0F331009A02EEBFAC4001755A99") # SHA hash
 
-# "The Ultimate Collection" 'GAME.EXE'.
-set(TARGET_TUC_SIZE 3465936)
-set(TARGET_TUC_ENTRY 0x0086D830) # Origin activation changes the entry point (start).
-set(TARGET_TUC_HASH "BEE10E9A55614D134D513909A44BBCC2830B607F") # SHA hash
+# "The Ultimate Collection (2012 release)" 'GAME.EXE'.
+set(TARGET_OLD_TUC_SIZE 3465936)
+set(TARGET_OLD_TUC_ENTRY 0x0086D830) # Origin activation changes the entry point (start).
+set(TARGET_OLD_TUC_HASH "BEE10E9A55614D134D513909A44BBCC2830B607F") # SHA hash
+
+# "The Ultimate Collection (2024 release)" 'GAME.EXE'.
+set(TARGET_TUC_SIZE 3850240)
+set(TARGET_TUC_ENTRY 0x006B7E21) # Entry point (start).
+set(TARGET_TUC_HASH "AC408535113C221E26C7CF2AAF69AF06FB447CD2") # SHA hash
 
 # "Freeware TS" 'GAME.EXE'.
 set(TARGET_FTS_SIZE 3457296)
