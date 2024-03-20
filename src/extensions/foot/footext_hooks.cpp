@@ -27,6 +27,7 @@
  ******************************************************************************/
 #include "footext_hooks.h"
 #include "foot.h"
+#include "footext.h"
 #include "technoext.h"
 #include "technotype.h"
 #include "technotypeext.h"
@@ -35,9 +36,41 @@
 #include "asserthandler.h"
 #include "debughandler.h"
 
+#include "infantry.h"
+#include "unit.h"
+
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "tibsun_defines.h"
 
+DECLARE_PATCH(_FootClass_Initialize_Passengers_Patch) {
+    GET_REGISTER_STATIC(FootClass*, this_ptr, edi);
+    static FootClassExtension* footclassext;
+    static TechnoTypeClassExtension* technotypeext;
+
+    footclassext = Extension::Fetch<FootClassExtension>(this_ptr);
+    //technotypeext = Extension::Fetch<TechnoTypeClassExtension>(this_ptr->Techno_Type_Class());
+    
+    // Original location code.
+    if (!this_ptr->Locomotion) {
+        goto error_return;
+    }
+
+    // If it has already been initialized, it is automatically skipped.
+    if (footclassext->IsInitialized) {
+        goto normal;
+    }
+
+    footclassext->IsInitialized = true;
+
+    footclassext->InitialPassenger();
+
+normal:
+    JMP(0x004A2CA0);
+
+error_return:
+    JMP(0x004A2C96);
+}
 
 /**
  *  #issue-593
@@ -277,6 +310,7 @@ function_return:
  */
 void FootClassExtension_Hooks()
 {
+    Patch_Jump(0x004A2C8C, &_FootClass_Initialize_Passengers_Patch);
     Patch_Jump(0x004A4D60, &_FootClass_Death_Announcement_IsInsignifcant_Patch);
     Patch_Jump(0x004A6866, &_FootClass_Is_Allowed_To_Recloak_Cloak_Stop_BugFix_Patch);
     Patch_Jump(0x004A59E1, &_FootClass_AI_IdleRate_Patch);

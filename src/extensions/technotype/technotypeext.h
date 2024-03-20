@@ -158,4 +158,14 @@ class TechnoTypeClassExtension : public ObjectTypeClassExtension
          *  Pointer to the cameo image surface.
          */
         BSurface *CameoImageSurface;
+
+        /**
+         * List of initial passengers.
+         */
+        TypeList<int> InitPassengerNums;
+
+        /**
+         * Initial list of passenger types.
+         */
+        TypeList<TechnoTypeClass*> InitPassengers;
 };

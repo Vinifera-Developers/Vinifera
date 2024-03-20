@@ -52,4 +52,5 @@ class FootClassExtension : public TechnoClassExtension
         virtual const FootClass *This_Const() const override { return reinterpret_cast<const FootClass *>(TechnoClassExtension::This_Const()); }
 
     public:
+        void __stdcall InitialPassenger();
 };

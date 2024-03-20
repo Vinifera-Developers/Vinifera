@@ -73,4 +73,13 @@ class TechnoClassExtension : public RadioClassExtension
          *  The current electric bolt instance fired by this object.
          */
         EBoltClass *ElectricBolt;
+
+        /**
+         * Is the object appearing for the first time?
+         */
+        bool IsInitialized;
 };
+
+
+
+
