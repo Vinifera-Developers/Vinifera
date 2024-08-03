@@ -1235,6 +1235,9 @@ const char* HoldPositionCommandClass::Get_Description() const
 
 bool HoldPositionCommandClass::Process()
 {
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
      
     /**
      *  Iterate over all currently selected objects force them to hold position
