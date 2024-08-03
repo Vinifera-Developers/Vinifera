@@ -246,6 +246,9 @@ void Init_Vinifera_Commands()
     cmdptr = new ToggleSuperTimersCommandClass;
     Commands.Add(cmdptr);
 
+    cmdptr = new HoldPositionCommandClass;
+    Commands.Add(cmdptr);
+
     /**
      *  Next, initialised any new commands here if the developer mode is enabled.
      */
