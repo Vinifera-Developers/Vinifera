@@ -54,3 +54,4 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where the camera kept following a followed object when a trigger or script told it to center on a waypoint or team.
 - Fix a bug where aircraft are unable to attack shrouded targets in campaign games and instead get stuck in mid-air.
 - Fix a bug where the player was able to input keyboard commands while input was locked through a trigger action.
+- Fix a bug where a vehicle transport could end up attached to its own cargo, causing the transport to disappear upon unloading.
