@@ -73,7 +73,7 @@
 #include "miscutil.h"
 #include "debughandler.h"
 #include "asserthandler.h"
-
+#include "event.h"
 
 /**
  *  Handy defines for handling any adjustments.
@@ -1213,6 +1213,11 @@ bool CaptureObjectCommandClass::Process()
 }
 
 
+/**
+ *  Force selected units to hold position.
+ *
+ *  @author: hacklex
+ */
 const char* HoldPositionCommandClass::Get_Name() const
 {
     return "HoldPosition";
@@ -1235,10 +1240,24 @@ const char* HoldPositionCommandClass::Get_Description() const
 
 bool HoldPositionCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
-        return false;
+    bool areAllAlreadySticky = true;
+
+    for (int i = 0; i < CurrentObjects.Count(); ++i) {
+        ObjectClass* object = CurrentObjects[i];
+        if (!object || !object->Is_Techno()) {
+            continue;
+        }
+        if (object->Owning_House() == PlayerPtr && object->Can_Player_Move()) {
+            TechnoClass* techno = dynamic_cast<TechnoClass*>(object);
+            if (techno->Mission != MISSION_STICKY) { 
+                areAllAlreadySticky = false;
+                break;
+            }
+        }
     }
-     
+
+    MissionType targetMissionType = areAllAlreadySticky ? MISSION_MOVE : MISSION_STICKY;
+
     /**
      *  Iterate over all currently selected objects force them to hold position
      */
@@ -1247,10 +1266,20 @@ bool HoldPositionCommandClass::Process()
         if (!object || !object->Is_Techno()) {
             continue;
         }
-        if (object->Owning_House() == PlayerPtr && object->Can_Player_Move()) {
-            TechnoClass* techno = dynamic_cast<TechnoClass*>(object);
-            techno->Assign_Mission(MISSION_STICKY);
-            techno->Response_Select();
+        if (object->Owning_House() == PlayerPtr && object->Can_Player_Move()) {            
+            UnitClass* unit = dynamic_cast<UnitClass*>(object);
+            bool skipThis = unit == NULL || unit->Class->DeploysInto != NULL;
+            if (!skipThis) {                
+                // if we don't skip deployable units like this, MCVs will be rendered unusable.
+                OutList.Add(EventClass(unit->Owning_House()->ID, object, targetMissionType, TARGET_NONE, TARGET_NONE));
+                //    techno->Assign_Mission(targetMissionType);
+                if (targetMissionType == MISSION_STICKY) {
+                    unit->Response_Select();
+                }
+                else {
+                    unit->Response_Move();
+                }
+            }
         }        
     }
 
