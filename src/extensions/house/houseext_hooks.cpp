@@ -68,6 +68,7 @@ public:
     ProdFailType _Abandon_Production(RTTIType type, int id);
     int _AI_Building();
     int _Expert_AI();
+    bool _Can_Build_Required_Forbidden_Houses(const TechnoTypeClass* techno_type);
 };
 
 
@@ -885,6 +886,62 @@ DECLARE_PATCH(_HouseClass_Enable_SWs_Check_For_Building_Power)
 
 
 /**
+ *  Checks if the TechnoType can be built by this house based on RequiredHouses and ForbiddenHouses, if set.
+ *
+ *  Author: ZivDero, Rampastring
+ */
+bool HouseClassExt::_Can_Build_Required_Forbidden_Houses(const TechnoTypeClass* techno_type)
+{
+    const auto technotypeext = Extension::Fetch<TechnoTypeClassExtension>(techno_type);
+
+    if (technotypeext->RequiredHouses != -1 &&
+        (technotypeext->RequiredHouses & 1 << ActLike) == 0)
+    {
+        return false;
+    }
+
+    if (technotypeext->ForbiddenHouses != -1 &&
+        (technotypeext->ForbiddenHouses & 1 << ActLike) != 0)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+/**
+ *  Adds a check to Can_Build to check for RequiredHouses and ForbiddenHouses
+ *
+ *  Author: ZivDero
+ */
+DECLARE_PATCH(_Can_Build_Required_Forbidden_Houses_Patch)
+{
+    GET_REGISTER_STATIC(TechnoTypeClass*, techno_type, edi);
+    GET_REGISTER_STATIC(HouseClassExt*, this_ptr, ebp);
+    static bool can_build;
+
+    can_build = this_ptr->_Can_Build_Required_Forbidden_Houses(techno_type);
+
+    if (!can_build)
+    {
+        //return false;
+        JMP(0x004BBC9A);
+    }
+
+    // Stolen bytes
+    _asm
+    {
+        mov eax, [esi+0x14]
+        mov edx, [edi+0x32C]
+    }
+
+    // Continue Can_Build
+    JMP_REG(ecx, 0x004BBC7D);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void HouseClassExtension_Hooks()
@@ -907,6 +964,7 @@ void HouseClassExtension_Hooks()
 
     Patch_Jump(0x004C10E0, &HouseClassExt::_AI_Building);
     Patch_Jump(0x004C0630, &HouseClassExt::_Expert_AI);
+    Patch_Jump(0x004BBC74, &_Can_Build_Required_Forbidden_Houses_Patch);
 
     Patch_Jump(0x004BAC2C, 0x004BAC39); // Patch a jump in the constructor to always allocate unit trackers
 }

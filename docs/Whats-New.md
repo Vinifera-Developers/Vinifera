@@ -163,6 +163,7 @@ New:
 - Implement customizable mouse cursors and actions (by CCHyper/tomsons26, ZivDero)
 - Implement support for a Saved Games subdirectory (by ZivDero)
 - Allow customizing minimum damage per warhead (by ZivDero)
+- Implement required and forbidden houses (by ZivDero)
 
 
 Vanilla fixes:

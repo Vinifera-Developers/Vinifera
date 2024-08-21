@@ -625,6 +625,17 @@ PassiveAcquire.myarmor=yes  ; boolean, whether this warhead can be used to passi
 It is recommended to set both `Retaliate.X` and `PassiveAcquire.X` to `no` if `ForceFire.X` is disabled. Otherwise, units may lock onto targets they are not permitted to fire at and continue to target them until they receive another order.
 ```
 
+### Required/Forbidden Houses
+
+- Vinifera ports the `RequiredHouses` and `ForbiddenHouses` keys from Red Alert 2.
+
+In `RULES.INI`:
+```ini
+[SOMETECHNO]      ; TechnoType
+RequiredHouses=   ; list of HouseTypes, if specified, only these houses will be able to build this, provided they fulfil all other requirements.
+ForbiddenHouses=  ; list of HouseTypes, if specified, these houses will never be able to build this.
+```
+
 ### Crew
 
 - Vinifera allows customizing how many crew will exit a unit upon its death. Crew will only exit if `Crewed=yes`, even if `CrewCount` is set to a number greater than 0.
