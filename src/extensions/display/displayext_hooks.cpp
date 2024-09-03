@@ -193,7 +193,7 @@ static void Get_Mouse_Cursor_Coords()
 DECLARE_PATCH(_DisplayClass_Help_Text_GetCursorPosition_Patch)
 {
     GET_REGISTER_STATIC(DisplayClass *, this_ptr, ebx);
-    LEA_STACK_STATIC(Cell *, cell, esp, 0x2C);
+    LEA_STACK_STATIC(Coordinate *, coordinate, esp, 0x2C);
     static char _cursor_position_buffer[128];
 
     if (Vinifera_Developer_ShowCursorPosition) {
@@ -219,7 +219,7 @@ DECLARE_PATCH(_DisplayClass_Help_Text_GetCursorPosition_Patch)
      *  Stolen bytes/code.
      */
 original_code:
-    if (Map[*cell].IsVisible && MainWindow) {
+    if (!Map[*coordinate].IsMapped && MainWindow) {
         goto txt_shadow;
     }
 
