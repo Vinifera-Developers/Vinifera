@@ -146,7 +146,7 @@ DECLARE_PATCH(_SidebarClass_StripClass_Custom_Cameo_Image_Patch)
         pointxy.X = pos_x;
         pointxy.Y = pos_y;
 
-        CC_Draw_Shape(SidebarSurface, CameoDrawer, shapefile, 0, &pointxy, window_rect, SHAPE_400|SHAPE_NORMAL);
+        CC_Draw_Shape(SidebarSurface, CameoDrawer, shapefile, 0, &pointxy, window_rect, SHAPE_WIN_REL|SHAPE_NORMAL);
     }
 
     _SidebarClass_StripClass_CustomImage = nullptr;
