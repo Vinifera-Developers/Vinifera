@@ -193,15 +193,16 @@ static bool Vinifera_Play_Startup_Movies()
     if (!Vinifera_SkipLogoMovies) {
         DEBUG_INFO("Playing logo movies.\n");
         if (!CCFile_Validate_Is_Available("VINIFERA.VQA", VINIFERA_VQA_SIZE)) {
-            DEBUG_ERROR("Failed to find VINIFERA.VQA!\n");
-            return false;
+            DEBUG_INFO("Failed to find VINIFERA.VQA!\n");
+        } else {
+            Play_Movie("VINIFERA.VQA");
         }
-        Play_Movie("VINIFERA.VQA");
+        
         if (!CCFile_Validate_Is_Available("WWLOGO.VQA", WWLOGO_VQA_SIZE)) {
-            DEBUG_ERROR("Failed to find WWLOGO.VQA!\n");
-            return false;
+            DEBUG_INFO("Failed to find WWLOGO.VQA!\n");
+        } else {
+            Play_Movie("WWLOGO.VQA");
         }
-        Play_Movie("WWLOGO.VQA");
     } else {
         DEBUG_INFO("Skipping logo movies.\n");
     }
