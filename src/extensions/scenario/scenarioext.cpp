@@ -55,7 +55,8 @@
  */
 ScenarioClassExtension::ScenarioClassExtension(const ScenarioClass *this_ptr) :
     GlobalExtensionClass(this_ptr),
-    IsIceDestruction(true)
+    IsIceDestruction(true),
+    IsShowBriefing(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("ScenarioClassExtension::ScenarioClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
@@ -204,6 +205,7 @@ bool ScenarioClassExtension::Read_INI(CCINIClass &ini)
     static const char * const BASIC = "Basic";
 
     IsIceDestruction = ini.Get_Bool(BASIC, "IceDestructionEnabled", IsIceDestruction);
+    IsShowBriefing = ini.Get_Bool(BASIC, "ShowBriefing", IsShowBriefing);
 
     /**
      *  #issue-123

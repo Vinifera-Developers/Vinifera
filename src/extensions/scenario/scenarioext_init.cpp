@@ -42,9 +42,9 @@
 
 /**
  *  Patch for including the extended class members in the creation process.
- * 
+ *
  *  @warning: Do not touch this unless you know what you are doing!
- * 
+ *
  *  @author: CCHyper
  */
 DECLARE_PATCH(_ScenarioClass_Constructor_Patch)
@@ -77,9 +77,9 @@ original_code:
 
 /**
  *  Patch for including the extended class members in the destruction process.
- * 
+ *
  *  @warning: Do not touch this unless you know what you are doing!
- * 
+ *
  *  @author: CCHyper
  */
 DECLARE_PATCH(_ScenarioClass_Destructor_Patch)
@@ -103,9 +103,9 @@ original_code:
 
 /**
  *  Patch for including the extended class members when initialsing the scenario data.
- * 
+ *
  *  @warning: Do not touch this unless you know what you are doing!
- * 
+ *
  *  @author: CCHyper
  */
 DECLARE_PATCH(_ScenarioClass_Init_Clear_Patch)
