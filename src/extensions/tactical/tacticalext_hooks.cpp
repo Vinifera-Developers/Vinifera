@@ -298,6 +298,13 @@ DECLARE_PATCH(_Tactical_Render_Overlay_Patch)
 #endif
 
     /**
+     *  Draw the version number on screen for non-release builds.
+     * 
+     *  @note: This must be last in the draw order!
+     */
+    Vinifera_Draw_Version_Text(CompositeSurface);
+
+    /**
      *  Has custom screen text been set?
      */
     if (TacticalMapExtension->IsInfoTextSet) {
@@ -328,11 +335,12 @@ DECLARE_PATCH(_Tactical_Render_Overlay_Patch)
     }
 
     /**
-     *  Draw the version number on screen.
-     * 
-     *  @note: This must be last in the draw order!
+     *  If caption text was set and the time-out timer has expired, its time
+     *  to clear the text from the screen.
      */
-    TacticalMapExtension->Draw_Version_Number_Text();
+    if (std::strlen(this_ptr->ScreenText) > 0 && TacticalMapExtension->CaptionTextTimer.Expired()) {
+        TacticalMap->Clear_Caption_Text();
+    }
 
     /**
      *  Stolen bytes/code.

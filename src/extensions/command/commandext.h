@@ -311,6 +311,44 @@ class ToggleSuperTimersCommandClass : public ViniferaCommandClass
 
 
 /**
+ *  Perform a quick save.
+ */
+class QuickSaveCommandClass : public ViniferaCommandClass
+{
+    public:
+        QuickSaveCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        virtual ~QuickSaveCommandClass() {}
+
+        virtual const char *Get_Name() const override;
+        virtual const char *Get_UI_Name() const override;
+        virtual const char *Get_Category() const override;
+        virtual const char *Get_Description() const override;
+        virtual bool Process() override;
+
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_N|KN_CTRL_BIT); }
+};
+
+
+/**
+ *  Load the last quick save if one exists.
+ */
+class QuickLoadCommandClass : public ViniferaCommandClass
+{
+    public:
+        QuickLoadCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        virtual ~QuickLoadCommandClass() {}
+
+        virtual const char *Get_Name() const override;
+        virtual const char *Get_UI_Name() const override;
+        virtual const char *Get_Category() const override;
+        virtual const char *Get_Description() const override;
+        virtual bool Process() override;
+
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_M|KN_CTRL_BIT); }
+};
+
+
+/**
  *  Produces a memory dump on request.
  */
 class MemoryDumpCommandClass : public ViniferaCommandClass
