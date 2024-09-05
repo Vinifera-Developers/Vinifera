@@ -244,6 +244,28 @@ return_label:
 
 
 /**
+ *  #issue-71
+ *
+ *  Replace the old waypoint count in a loop.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_DisplayClass_47A790_Patch)
+{
+    GET_REGISTER_STATIC(int, i, edi)
+
+        if (i < NEW_WAYPOINT_COUNT)
+        {
+            JMP(0x0047A7FC);
+        }
+        else
+        {
+            JMP(0x0047A85B);
+        }
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void DisplayClassExtension_Hooks()
@@ -270,4 +292,13 @@ void DisplayClassExtension_Hooks()
     Patch_Dword(0x0047A0B5+1, ISOMAPPACK_BUFF_WIDTH);
     Patch_Dword(0x0047A0BA+1, ISOMAPPACK_BUFF_HEIGHT);
     Patch_Dword(0x0047A0C8+1, ISOMAPPACK_BUFF_WIDTH*ISOMAPPACK_BUFF_HEIGHT*sizeof(unsigned short));
+
+    /**
+     *  #issue-71
+     *
+     *  Increases the amount of available waypoints (see ScenarioClassExtension for implementation).
+     *
+     *  @author: ZivDero
+     */
+    Patch_Jump(0x0047A856, &_DisplayClass_47A790_Patch);
 }

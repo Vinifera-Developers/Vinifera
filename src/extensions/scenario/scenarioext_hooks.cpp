@@ -97,6 +97,87 @@ DECLARE_PATCH(_Clear_Scenario_Clear_Waypoints_Patch)
 
 
 /**
+ *  #issue-71
+ *
+ *  Assign the home cell waypoint.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_Fill_In_Data_Home_Cell_Patch)
+{
+    GET_REGISTER_STATIC(int, home_cell_number, eax);
+
+    _asm push ecx
+
+    static Cell home_cell;
+    home_cell = ScenExtension->Waypoint[home_cell_number];
+
+    _asm
+    {
+        pop ecx
+        mov eax, dword ptr home_cell
+    }
+
+    JMP_REG(edx, 0x005DC0DD);
+}
+
+
+/**
+ *  #issue-71
+ *
+ *  Replace waypoint number to string conversion.
+ *
+ *  @author: secsome, ZivDero
+ */
+const char* _Waypoint_To_Name(int wp)
+{
+    static char buffer[8]{ '\0' };
+
+    if (wp < 0)
+        return buffer;
+
+    ++wp;
+    int pos = 7;
+
+    while (wp > 0)
+    {
+        --pos;
+        char m = wp % 26;
+        if (m == 0) m = 26;
+        buffer[pos] = m + '@'; // '@' = 'A' - 1
+        wp = (wp - m) / 26;
+    }
+
+    return buffer + pos;
+}
+
+
+/**
+ *  #issue-71
+ *
+ *  Replace waypoint string to number conversion.
+ *
+ *  @author: secsome, ZivDero
+ */
+int _Waypoint_From_Name(char* wp)
+{
+    int n = 0;
+    int len = strlen(wp);
+
+    for (int i = len - 1, j = 1; i >= 0; i--, j *= 26)
+    {
+        int c = toupper(wp[i]);
+        if (c < 'A' || c > 'Z')
+            return WAYPOINT_NONE;
+
+        n += (c - 64) * j;
+    }
+
+    return (n - 1);
+}
+
+
+/**
  *  Process additions to the Rules data from the input file.
  * 
  *  @author: CCHyper
@@ -234,7 +315,7 @@ void ScenarioClassExtension_Hooks()
      *
      *  Increases the amount of available waypoints (see ScenarioClassExtension for implementation).
      *
-     *  @author: CCHyper
+     *  @author: CCHyper, ZivDero
      */
     Patch_Jump(0x005E1460, &ScenarioClassExt::_Get_Waypoint_Cell);
     Patch_Jump(0x005E1480, &ScenarioClassExt::_Get_Waypoint_CellPtr);
@@ -248,7 +329,8 @@ void ScenarioClassExtension_Hooks()
     Patch_Jump(0x005E1700, &ScenarioClassExt::_Get_Waypoint_CellPtr);
     Patch_Jump(0x005E1720, &ScenarioClassExt::_Waypoint_As_String);
     Patch_Jump(0x005DC852, &_Clear_Scenario_Clear_Waypoints_Patch);
-
-    // 0047A856
+    Patch_Jump(0x005DC0D6, &_Fill_In_Data_Home_Cell_Patch);
+    Patch_Jump(0x00673330, &_Waypoint_From_Name);
+    Patch_Jump(0x006732B0, &_Waypoint_To_Name);
     // 0047A96C
 }

@@ -36,6 +36,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "vinifera_defines.h"
 
 
 /**
@@ -289,6 +290,26 @@ DECLARE_PATCH(_MapSeedClass_Init_Random_Map_Init_Houses_Patch)
 
 
 /**
+ *  #issue-71
+ *
+ *  Increases the amount of available waypoints (see ScenarioClassExtension for implementation).
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_MapClass_Set_Map_Dimensions_WaypointMax)
+{
+    GET_REGISTER_STATIC(int, i, esi);
+
+    if (i < NEW_WAYPOINT_COUNT)
+    {
+        JMP_REG(ecx, 0x005104B7);
+    }
+
+    JMP(0x00510502);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void MapSeedClassExtension_Hooks()
@@ -301,4 +322,5 @@ void MapSeedClassExtension_Hooks()
     Patch_Jump(0x0054C701, &_MapSeedClass_Generate_Place_Town_Infantry_Neutral_House_Crash_Fix);
     Patch_Jump(0x0054E498, &_MapSeedClass_Generate_Place_Town_Buildings_Neutral_House_Crash_Fix);
     Patch_Jump(0x0054E7DE, &_MapSeedClass_Generate_Place_Units_And_Infantry_Neutral_House_Crash_Fix);
+    Patch_Jump(0x005104FD, &_MapClass_Set_Map_Dimensions_WaypointMax);
 }

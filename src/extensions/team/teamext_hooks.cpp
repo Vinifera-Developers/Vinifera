@@ -35,6 +35,8 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "scripttype.h"
+#include "vinifera_defines.h"
 
 
 /**
@@ -88,11 +90,30 @@ coordinate_move:
 
 
 /**
+ *  #issue-71
+ *
+ *  Increases the amount of available waypoints (see ScenarioClassExtension for implementation).
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_TeamClass_TMission_PATROL_WaypointMax)
+{
+    GET_REGISTER_STATIC(ScriptMissionClass*, mission, eax);
+
+    if (mission->Data.Value < NEW_WAYPOINT_COUNT)
+    {
+        JMP_REG(ecx, 0x0062588C);
+    }
+
+    JMP_REG(ecx, 0x00625894);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void TeamClassExtension_Hooks()
 {
     Patch_Jump(0x00622B2C, &_TeamClass_AI_MoveCell_FixCellCalc_Patch);
-
-    // 00625886
+    Patch_Jump(0x00625886, &_TeamClass_TMission_PATROL_WaypointMax);
 }

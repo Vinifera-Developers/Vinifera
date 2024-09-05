@@ -132,4 +132,4 @@
 /**
  *  The maximum amount of waypoints available for a scenario to use.
  */
-#define NEW_WAYPOINT_COUNT         702      // "ZZ"
+#define NEW_WAYPOINT_COUNT         SHRT_MAX      // "AVLG"
