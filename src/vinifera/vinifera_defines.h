@@ -127,3 +127,72 @@
 #define UUID_FOGGEDOBJECT_EXTENSION         "7D9C5263-465F-42CE-AD81-5C057B52226F"
 #define UUID_ALPHASHAPE_EXTENSION           "4C8171D5-E7A7-43D1-80F3-0C285CF6B352"
 #define UUID_VEINHOLEMONSTER_EXTENSION      "4AD76F43-090A-44BF-BB1A-5BFDE52BC842"
+
+/**
+ *  Extension of the TActionType enum.
+ */
+typedef enum ExtTActionType
+{
+    EXT_TACTION_PAD = TACTION_TALK_BUBBLE, // The last TActionType
+
+    /**
+     *  Add new ExtTActionType's from here, do not reorder these!
+     */
+
+
+    /**
+     *  The new total ExtTActionType count.
+     */
+    EXT_TACTION_COUNT
+
+} ExtTActionType;
+
+
+/**
+ *  Extension of the TEventType enum.
+ */
+typedef enum ExtTEventType
+{
+    EXT_TEVENT_PAD = TEVENT_LIMPED, // The last TEventType
+
+    /**
+     *  Add new ExtTEventType's from here, do not reorder these!
+     */
+
+    /**
+     *  The following are from RA2.
+     */
+    TEVENT_SPY_AS_HOUSE,
+    TEVENT_SPY_AS_INFANTRY,
+    TEVENT_DESTROYED_UNITS_NAVAL,
+    TEVENT_DESTROYED_UNITS_LAND,
+    TEVENT_BUILDING_DOES_NOT_EXIST,
+
+    /**
+     *  The following are from YR.
+     */
+    TEVENT_POWER_FULL,
+    TEVENT_ENTERED_OR_OVERFLOWN_BY,
+    TEVENT_TECHTYPE_EXISTS,
+    TEVENT_TECHTYPE_DOESNT_EXIST,
+
+    TEVENT_TECHTYPE_EXISTS_NAME,        // These two are the "real" copies of the YR logic, but they are reserved until TEventClass can be extended.
+    TEVENT_TECHTYPE_DOESNT_EXIST_NAME,
+
+    /**
+     *  New events from here onwards.
+     */
+    TEVENT_POWER_LESS_THAN,
+    TEVENT_POWER_GREATER_THAN,
+    TEVENT_INFANTRY_DESTROYED,
+    TEVENT_CONSTRUCTION_YARD,
+    TEVENT_MISSION_TIMER_LESS_THAN,
+    TEVENT_MISSION_TIMER_GREATER_THAN,
+    TEVENT_MISSION_TIMER_EQUALS,
+
+    /**
+     *  The new total ExtTEventType count.
+     */
+    EXT_TEVENT_COUNT
+
+} ExtTEventType;
