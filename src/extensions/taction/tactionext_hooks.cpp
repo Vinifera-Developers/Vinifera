@@ -59,13 +59,13 @@ class TActionClassExt final : public TActionClass
 /**
  *  #issue-71
  *
- *  x
+ *  Reimplement Play_Sound_At_Random_Waypoint to support the new waypoint limit.
  *
  *  @author: CCHyper
  */
 bool TActionClassExt::_Play_Sound_At_Random_Waypoint(HouseClass *house, ObjectClass *object, TriggerClass *trigger, Cell &cell)
 {
-    Cell cell_list[100];
+    Cell cell_list[NEW_WAYPOINT_COUNT];
     int cell_list_count = 0;
 
     /**
@@ -83,7 +83,7 @@ bool TActionClassExt::_Play_Sound_At_Random_Waypoint(HouseClass *house, ObjectCl
     /**
      *  Pick a random cell from the valid waypoint list and play the desired sound.
      */
-    Cell rnd_cell = cell_list[Random_Pick<unsigned int>(0, ARRAY_SIZE(cell_list)-1)];
+    Cell rnd_cell = cell_list[Random_Pick<unsigned int>(0, ARRAY_SIZE(cell_list) - 1)];
 
     Sound_Effect(Data.Sound, Cell_Coord(rnd_cell, true));
 
@@ -94,7 +94,7 @@ bool TActionClassExt::_Play_Sound_At_Random_Waypoint(HouseClass *house, ObjectCl
 /**
  *  #issue-71
  *
- *  x
+ *  Replace inlined instance of Play_Sound_At_Random_Waypoint.
  *
  *  @author: CCHyper
  */
