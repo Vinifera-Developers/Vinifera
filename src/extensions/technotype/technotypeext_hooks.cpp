@@ -60,9 +60,9 @@ int TechnoTypeClassExt::_Max_Pips() const
         max_pips = RuleExtension->MaxPips[PIP_AMMO - 1];
     }
 
-    // Negative values result in uncapped pips
+    // Negative values are not allowed
     if (max_pips < 0)
-        return INT_MAX;
+        return 0;
 
     switch (PipScale)
     {
