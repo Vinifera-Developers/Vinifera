@@ -286,7 +286,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect&
             if (group == 10)
                 group = 0;
 
-            sprintf(buffer, "%d", group >= 10 ? 0 : group);
+            snprintf(buffer, ARRAY_SIZE(buffer), "%d", group >= 10 ? 0 : group);
             Plain_Text_Print(buffer, TempSurface, &rect, &drawpoint, COLOR_WHITE, COLOR_TBLACK, TPF_FULLSHADOW | TPF_EFNT, COLORSCHEME_NONE, 1);
         }
     }
