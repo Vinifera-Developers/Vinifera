@@ -186,11 +186,11 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect&
                     /*
                     **  Add all the pips to draw to a vector.
                     */
-                    for (auto tibtuple : tibtypes)
+                    for (auto& tibtuple : tibtypes)
                     {
-                        double amount = Storage.Get_Amount((TiberiumType)std::get<1>(tibtuple));
-                        double fraction = amount / technotype->Storage;
-                        int pip_count = technotype->Max_Pips() * fraction + 0.5;
+                        const double amount = Storage.Get_Amount((TiberiumType)std::get<1>(tibtuple));
+                        const double fraction = amount / technotype->Storage;
+                        const int pip_count = technotype->Max_Pips() * fraction + 0.5;
 
                         int piptype = Extension::Fetch<TiberiumClassExtension>(Tiberiums[std::get<1>(tibtuple)])->PipIndex;
                         for (int i = 0; i < pip_count; i++)
