@@ -166,7 +166,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect&
                     **	Add the pips to draw to a vector.
                     */
                     for (int i = 0; i < pips; i++)
-                        pips_to_draw.push_back(RuleExtension->WeedPip);
+                        pips_to_draw.push_back(RuleExtension->WeedPipIndex);
                 }
                 else
                 {
@@ -263,11 +263,16 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect&
 
     if (veterancy_shape != -1)
     {
-        Point2D drawpoint(bottomright.X + 5, bottomright.Y + 2);
-        if (What_Am_I() != RTTI_UNIT)
+        Point2D drawpoint = bottomright;
+        if (What_Am_I() == RTTI_UNIT)
         {
-            drawpoint.X += 5;
-            drawpoint.Y += 4;
+            drawpoint.X += RuleExtension->UnitVeterancyPipOffsetX;
+            drawpoint.Y += RuleExtension->UnitVeterancyPipOffsetY;
+        }
+        else
+        {
+            drawpoint.X += RuleExtension->VeterancyPipOffsetX;
+            drawpoint.Y += RuleExtension->VeterancyPipOffsetY;
         }
         CC_Draw_Shape(TempSurface, NormalDrawer, pip_shapes, veterancy_shape, &drawpoint, &rect, SHAPE_WIN_REL | SHAPE_CENTER);
     }
@@ -282,18 +287,26 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect&
         {
             char buffer[12];
 
-            int yval = -30 /*ts-patches, vanilla -1*/;
-            int group = Group + 1;
+            Point2D drawpoint = bottomleft;
 
-            // disabled for ts-patches
-            /*if (Class_Of()->Max_Pips())
-                yval -= 5;*/
+            if (Class_Of()->Max_Pips())
+            {
+                drawpoint.X += RuleExtension->PipTeamNumberOffsetX;
+                drawpoint.Y += RuleExtension->PipTeamNumberOffsetY;
+            }
+            else
+            {
+                drawpoint.X += RuleExtension->TeamNumberOffsetX;
+                drawpoint.Y += RuleExtension->TeamNumberOffsetY;
+            }
+
+            int group = Group + 1;
 
             if (group == 10)
                 group = 0;
 
             sprintf(buffer, "%d", group >= 10 ? 0 : group);
-            Plain_Text_Print(buffer, TempSurface, &rect, &Point2D(bottomleft.X - 8 /*ts-patches, vanilla 4*/, bottomleft.Y + yval - 3), COLOR_WHITE, COLOR_TBLACK, TPF_FULLSHADOW | TPF_EFNT, COLORSCHEME_NONE, 1);
+            Plain_Text_Print(buffer, TempSurface, &rect, &drawpoint, COLOR_WHITE, COLOR_TBLACK, TPF_FULLSHADOW | TPF_EFNT, COLORSCHEME_NONE, 1);
         }
     }
 }

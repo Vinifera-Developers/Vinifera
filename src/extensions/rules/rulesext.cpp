@@ -75,7 +75,15 @@ RulesClassExtension::RulesClassExtension(const RulesClass *this_ptr) :
     IsBuildOffAlly(true),
     IsShowSuperWeaponTimers(true),
     IceStrength(0),
-    WeedPip(1)
+    WeedPipIndex(1),
+    TeamNumberOffsetX(-4),
+    TeamNumberOffsetY(-4),
+    PipTeamNumberOffsetX(-4),
+    PipTeamNumberOffsetY(-8),
+    VeterancyPipOffsetX(5),
+    VeterancyPipOffsetY(4),
+    UnitVeterancyPipOffsetX(5),
+    UnitVeterancyPipOffsetY(2)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
@@ -454,7 +462,15 @@ bool RulesClassExtension::AudioVisual(CCINIClass &ini)
     }
 
     IsShowSuperWeaponTimers = ini.Get_Bool(AUDIOVISUAL, "ShowSuperWeaponTimers", IsShowSuperWeaponTimers);
-    WeedPip = ini.Get_Int(AUDIOVISUAL, "WeedPip", WeedPip);
+    WeedPipIndex = ini.Get_Int(AUDIOVISUAL, "WeedPipIndex", WeedPipIndex);
+    TeamNumberOffsetX = ini.Get_Int(AUDIOVISUAL, "TeamNumberOffsetX", TeamNumberOffsetX);
+    TeamNumberOffsetY = ini.Get_Int(AUDIOVISUAL, "TeamNumberOffsetY", TeamNumberOffsetY);
+    PipTeamNumberOffsetX = ini.Get_Int(AUDIOVISUAL, "PipTeamNumberOffsetX", PipTeamNumberOffsetX);
+    PipTeamNumberOffsetY = ini.Get_Int(AUDIOVISUAL, "PipTeamNumberOffsetY", PipTeamNumberOffsetY);
+    VeterancyPipOffsetX = ini.Get_Int(AUDIOVISUAL, "VeterancyPipOffsetX", VeterancyPipOffsetX);
+    VeterancyPipOffsetY = ini.Get_Int(AUDIOVISUAL, "VeterancyPipOffsetY", VeterancyPipOffsetY);
+    UnitVeterancyPipOffsetX = ini.Get_Int(AUDIOVISUAL, "UnitVeterancyPipOffsetX", UnitVeterancyPipOffsetX);
+    UnitVeterancyPipOffsetY = ini.Get_Int(AUDIOVISUAL, "UnitVeterancyPipOffsetY", UnitVeterancyPipOffsetY);
 
     return true;
 }
