@@ -102,4 +102,9 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
          *  Storage pip used for weeds.
          */
         int WeedPipIndex;
+
+        /**
+         *  Customizable maximum counts for drawing different pips.
+         */
+        TypeList<int> MaxPips;
 };

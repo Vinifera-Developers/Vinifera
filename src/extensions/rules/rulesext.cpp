@@ -90,6 +90,13 @@ RulesClassExtension::RulesClassExtension(const RulesClass *this_ptr) :
      */
     This()->EngineerDamage = 1.0f / 3;                    // Amount of damage an engineer does.
     This()->EngineerCaptureLevel = This()->ConditionRed;  // Building damage level before engineer can capture.
+
+    MaxPips = TypeList<int>(5);
+    MaxPips.Add(5);     // PIP_AMMO
+    MaxPips.Add(5);     // PIP_TIBERIUM
+    MaxPips.Add(5);     // PIP_PASSENGERS
+    MaxPips.Add(10);    // PIP_POWER
+    MaxPips.Add(8);     // PIP_CHARGE
 }
 
 
@@ -455,6 +462,7 @@ bool RulesClassExtension::AudioVisual(CCINIClass &ini)
 
     IsShowSuperWeaponTimers = ini.Get_Bool(AUDIOVISUAL, "ShowSuperWeaponTimers", IsShowSuperWeaponTimers);
     WeedPipIndex = ini.Get_Int(AUDIOVISUAL, "WeedPipIndex", WeedPipIndex);
+    MaxPips = ini.Get_Integers(AUDIOVISUAL, "MaxPips", MaxPips);
 
     return true;
 }
