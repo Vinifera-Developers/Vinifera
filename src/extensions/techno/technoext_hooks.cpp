@@ -148,12 +148,9 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect&
             ** Check if it's a harvester, to show the right type of pips for the
             ** various minerals it could have harvested.
             */
-            if (What_Am_I() == RTTI_UNIT && Techno_Type_Class()->PipScale == PIP_TIBERIUM)
+            if ((What_Am_I() == RTTI_UNIT || What_Am_I() == RTTI_BUILDING) && Techno_Type_Class()->PipScale == PIP_TIBERIUM)
             {
-                int greentib = Storage.Get_Amount(TIBERIUM_RIPARIUS);
-                int bluetib = greentib - Storage.Get_Total_Amount();
-
-                TechnoTypeClass* harvtype = Techno_Type_Class();
+                TechnoTypeClass* technotype = Techno_Type_Class();
 
                 /*
                 **	The first element is the sorting order, second element is the Tiberium ID.
@@ -177,8 +174,8 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect&
                 for (auto tibtuple : tibtypes)
                 {
                     double amount = Storage.Get_Amount((TiberiumType)std::get<1>(tibtuple));
-                    double fraction = amount / harvtype->Storage;
-                    int pip_count = harvtype->Max_Pips() * fraction + 0.5;
+                    double fraction = amount / technotype->Storage;
+                    int pip_count = technotype->Max_Pips() * fraction + 0.5;
 
                     int piptype = Extension::Fetch<TiberiumClassExtension>(Tiberiums[std::get<1>(tibtuple)])->PipIndex;
                     for (int i = 0; i < pip_count; i++)
@@ -200,19 +197,6 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect&
                 for (int index = 0; index < Class_Of()->Max_Pips() && pips > 0; index++, pips--)
                 {
                     CC_Draw_Shape(TempSurface, NormalDrawer, pips2, 6, &Point2D(drawx + dx * index, drawy + dy * index - 3), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
-                }
-            }
-            else if (What_Am_I() == RTTI_BUILDING && Techno_Type_Class()->PipScale == PIP_TIBERIUM)
-            {
-                for (int index = 0; index < Class_Of()->Max_Pips(); index++)
-                {
-                    int shape = 0;
-                    if (pips > 0)
-                    {
-                        shape = 1;
-                        pips--;
-                    }
-                    CC_Draw_Shape(TempSurface, NormalDrawer, pip_shapes, shape, &Point2D(drawx + dx * index, drawy + dy * index), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
                 }
             }
             else if (Techno_Type_Class()->PipScale == PIP_CHARGE)
