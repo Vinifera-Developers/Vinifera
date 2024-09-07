@@ -264,16 +264,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect&
     if (veterancy_shape != -1)
     {
         Point2D drawpoint = bottomright;
-        if (What_Am_I() == RTTI_UNIT)
-        {
-            drawpoint.X += RuleExtension->UnitVeterancyPipOffsetX;
-            drawpoint.Y += RuleExtension->UnitVeterancyPipOffsetY;
-        }
-        else
-        {
-            drawpoint.X += RuleExtension->VeterancyPipOffsetX;
-            drawpoint.Y += RuleExtension->VeterancyPipOffsetY;
-        }
+        drawpoint += UIControls->GetVeterancyPipOffset((RTTIType)What_Am_I());
         CC_Draw_Shape(TempSurface, NormalDrawer, pip_shapes, veterancy_shape, &drawpoint, &rect, SHAPE_WIN_REL | SHAPE_CENTER);
     }
 
@@ -288,17 +279,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect&
             char buffer[12];
 
             Point2D drawpoint = bottomleft;
-
-            if (Class_Of()->Max_Pips())
-            {
-                drawpoint.X += RuleExtension->PipTeamNumberOffsetX;
-                drawpoint.Y += RuleExtension->PipTeamNumberOffsetY;
-            }
-            else
-            {
-                drawpoint.X += RuleExtension->TeamNumberOffsetX;
-                drawpoint.Y += RuleExtension->TeamNumberOffsetY;
-            }
+            drawpoint += UIControls->GetGroupNumberOffset((RTTIType)What_Am_I(), Class_Of()->Max_Pips() > 0);
 
             int group = Group + 1;
 

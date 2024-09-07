@@ -28,6 +28,7 @@
 #pragma once
 
 #include "always.h"
+#include "tibsun_defines.h"
 #include "tpoint.h"
 
 
@@ -49,6 +50,48 @@ class UIControlsClass
 
         bool Read_INI(CCINIClass &ini);
 
+        TPoint2D<int> GetGroupNumberOffset(RTTIType type, bool has_pip) const
+        {
+            switch (type)
+            {
+            case RTTI_UNIT:
+            case RTTI_UNITTYPE:
+                return has_pip ? UnitWithPipGroupNumberOffset : UnitGroupNumberOffset;
+            case RTTI_INFANTRY:
+            case RTTI_INFANTRYTYPE:
+                return has_pip ? InfantryWithPipGroupNumberOffset : InfantryGroupNumberOffset;
+            case RTTI_BUILDING:
+            case RTTI_BUILDINGTYPE:
+                return has_pip ? BuildingWithPipGroupNumberOffset : BuildingGroupNumberOffset;
+            case RTTI_AIRCRAFT:
+            case RTTI_AIRCRAFTTYPE:
+                return has_pip ? AircraftWithPipGroupNumberOffset : AircraftGroupNumberOffset;
+            default:
+                return TPoint2D<int>();
+            }
+        }
+
+        TPoint2D<int> GetVeterancyPipOffset(RTTIType type) const
+        {
+            switch (type)
+            {
+            case RTTI_UNIT:
+            case RTTI_UNITTYPE:
+                return UnitVeterancyPipOffset;
+            case RTTI_INFANTRY:
+            case RTTI_INFANTRYTYPE:
+                return InfantryVeterancyPipOffset;
+            case RTTI_BUILDING:
+            case RTTI_BUILDINGTYPE:
+                return BuildingVeterancyPipOffset;
+            case RTTI_AIRCRAFT:
+            case RTTI_AIRCRAFTTYPE:
+                return AircraftVeterancyPipOffset;
+            default:
+                return TPoint2D<int>();
+            }
+        }
+
     public:
         /**
          *  Health bar draw positions.
@@ -65,6 +108,22 @@ class UIControlsClass
          *  Transparency of the text background.
          */
         unsigned TextLabelBackgroundTransparency;
+
+        /**
+         *  Customizable offsets for drawing different pips.
+         */
+        TPoint2D<int> UnitGroupNumberOffset;
+        TPoint2D<int> InfantryGroupNumberOffset;
+        TPoint2D<int> BuildingGroupNumberOffset;
+        TPoint2D<int> AircraftGroupNumberOffset;
+        TPoint2D<int> UnitWithPipGroupNumberOffset;
+        TPoint2D<int> InfantryWithPipGroupNumberOffset;
+        TPoint2D<int> BuildingWithPipGroupNumberOffset;
+        TPoint2D<int> AircraftWithPipGroupNumberOffset;
+        TPoint2D<int> UnitVeterancyPipOffset;
+        TPoint2D<int> InfantryVeterancyPipOffset;
+        TPoint2D<int> BuildingVeterancyPipOffset;
+        TPoint2D<int> AircraftVeterancyPipOffset;
 };
 
 extern UIControlsClass *UIControls;

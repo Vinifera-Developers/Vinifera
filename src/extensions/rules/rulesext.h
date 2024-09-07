@@ -102,16 +102,4 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
          *  Storage pip used for weeds.
          */
         int WeedPipIndex;
-
-        /**
-         *  Customizable offsets to drawing different pips.
-         */
-        int TeamNumberOffsetX;
-        int TeamNumberOffsetY;
-        int PipTeamNumberOffsetX;
-        int PipTeamNumberOffsetY;
-        int VeterancyPipOffsetX;
-        int VeterancyPipOffsetY;
-        int UnitVeterancyPipOffsetX;
-        int UnitVeterancyPipOffsetY;
 };
