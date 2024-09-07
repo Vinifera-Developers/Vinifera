@@ -26,6 +26,9 @@
  *
  ******************************************************************************/
 #include "technoext_hooks.h"
+
+#include <vector>
+
 #include "technoext.h"
 #include "techno.h"
 #include "technotype.h"
@@ -39,6 +42,7 @@
 #include "housetype.h"
 #include "rules.h"
 #include "rulesext.h"
+#include "tiberium.h"
 #include "uicontrol.h"
 #include "infantry.h"
 #include "infantrytype.h"
@@ -54,6 +58,7 @@
 #include "hooker.h"
 #include "hooker_macros.h"
 #include "textprint.h"
+#include "tiberiumext.h"
 
 
 /**
@@ -150,27 +155,42 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect&
 
                 TechnoTypeClass* harvtype = Techno_Type_Class();
 
-                double green_fraction = (double)greentib / harvtype->Storage;
-                int greenpips = harvtype->Max_Pips() * green_fraction + 0.5;
+                /*
+                **	The first element is the sorting order, second element is the Tiberium ID.
+                */
+                std::vector<std::tuple<int, int>> tibtypes;
 
-                double blue_fraction = (double)bluetib / harvtype->Storage;
-                int bluepips = harvtype->Max_Pips() * blue_fraction + 0.5;
+                /*
+                **	Add all the Tiberiums and sort.
+                */
+                for (int i = 0; i < Tiberiums.Count(); i++)
+                    tibtypes.push_back(std::make_tuple(Extension::Fetch<TiberiumClassExtension>(Tiberiums[i])->PipDrawOrder, i));
+
+                std::sort(tibtypes.begin(), tibtypes.end());
+
+                /*
+                **	Add all the pips to draw to a vector.
+                */
+
+                std::vector<int> pips;
+
+                for (auto tibtuple : tibtypes)
+                {
+                    double amount = Storage.Get_Amount((TiberiumType)std::get<1>(tibtuple));
+                    double fraction = amount / harvtype->Storage;
+                    int pip_count = harvtype->Max_Pips() * fraction + 0.5;
+
+                    int piptype = Extension::Fetch<TiberiumClassExtension>(Tiberiums[std::get<1>(tibtuple)])->PipIndex;
+                    for (int i = 0; i < pip_count; i++)
+                        pips.push_back(piptype);
+                }
 
                 for (int index = 0; index < Class_Of()->Max_Pips(); index++)
                 {
                     int shape = 0;
-                    if (index < pips)
+                    if (index < pips.size())
                     {
-                        if (bluepips)
-                        {
-                            shape = 5;
-                            bluepips--;
-                        }
-                        else
-                        {
-                            shape = 1;
-                            greenpips--;
-                        }
+                        shape = pips[index];
                     }
                     CC_Draw_Shape(TempSurface, NormalDrawer, pip_shapes, shape, &Point2D(drawx + dx * index, drawy + dy * index), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
                 }
