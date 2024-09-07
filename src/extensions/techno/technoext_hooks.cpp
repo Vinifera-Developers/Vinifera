@@ -108,14 +108,14 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect&
     }
 
     /*
-    **	Because of ts-patches we have to check if the object is selected,
+    **  Because of ts-patches we have to check if the object is selected,
     **  or we'll draw pips for unselected objects
     */
     if (IsSelected)
     {
         /*
-        **	Transporter type objects have a different graphic representation for the pips. The
-        **	pip color represents the type of occupant.
+        **  Transporter type objects have a different graphic representation for the pips. The
+        **  pip color represents the type of occupant.
         */
         const bool carrying_passengers = Techno_Type_Class()->Max_Passengers() > 0;
         if (carrying_passengers)
@@ -141,14 +141,14 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect&
         else
         {
             /*
-            **	Display number of how many attached objects there are. This is also used
-            **	to display the fullness rating for a harvester.
+            **  Display number of how many attached objects there are. This is also used
+            **  to display the fullness rating for a harvester.
             */
             int pips = Pip_Count();
 
             /*
-            ** Check if it's a harvester, to show the right type of pips for the
-            ** various minerals it could have harvested.
+            **  Check if it contains Tiberium to show the right type of pips for the
+            **  various minerals it could have stored.
             */
             if ((What_Am_I() == RTTI_UNIT || What_Am_I() == RTTI_BUILDING) && Techno_Type_Class()->PipScale == PIP_TIBERIUM)
             {
@@ -157,13 +157,13 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect&
                 std::vector<int> pips_to_draw;
 
                 /*
-                **	Weeders/Waste Facilities draw all their contents with the Weed pip.
+                **  Weeders/Waste Facilities draw all their contents with the Weed pip.
                 */
                 if ((technotype->What_Am_I() == RTTI_UNITTYPE && ((UnitTypeClass*)technotype)->IsToVeinHarvest) ||
                     (technotype->What_Am_I() == RTTI_BUILDINGTYPE && ((BuildingTypeClass*)technotype)->IsWeeder))
                 {
                     /*
-                    **	Add the pips to draw to a vector.
+                    **  Add the pips to draw to a vector.
                     */
                     for (int i = 0; i < pips; i++)
                         pips_to_draw.push_back(RuleExtension->WeedPipIndex);
@@ -171,12 +171,12 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect&
                 else
                 {
                     /*
-                    **	The first element is the sorting order, second element is the Tiberium ID.
+                    **  The first element is the sorting order, second element is the Tiberium ID.
                     */
                     std::vector<std::tuple<int, int>> tibtypes;
 
                     /*
-                    **	Add all the Tiberiums and sort.
+                    **  Add all the Tiberiums and sort.
                     */
                     for (int i = 0; i < Tiberiums.Count(); i++)
                         tibtypes.push_back(std::make_tuple(Extension::Fetch<TiberiumClassExtension>(Tiberiums[i])->PipDrawOrder, i));
@@ -184,7 +184,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect&
                     std::sort(tibtypes.begin(), tibtypes.end());
 
                     /*
-                    **	Add all the pips to draw to a vector.
+                    **  Add all the pips to draw to a vector.
                     */
                     for (auto tibtuple : tibtypes)
                     {
@@ -226,7 +226,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect&
     }
 
     /*
-    **	Special hack to display a red pip on the medic.
+    **  Special hack to display a red pip on the medic.
     */
     if (What_Am_I() == RTTI_INFANTRY && Combat_Damage() < 0)
     {
@@ -234,7 +234,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect&
     }
 
     /*
-    **	Print the primary (IsLeader) text.
+    **  Print the primary (IsLeader) text.
     **  Maybe a leftover of RA formations?
     */
     if (What_Am_I() != RTTI_BUILDING)
@@ -243,7 +243,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect&
     }
 
     /*
-    **	Display a veterancy pip is the unit is promoted.
+    **  Display a veterancy pip is the unit is promoted.
     */
     int veterancy_shape = -1;
     if (Veterancy.Is_Veteran())
@@ -271,8 +271,8 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect&
     if (IsSelected)
     {
         /*
-        **	Display what group this unit belongs to. This corresponds to the team
-        **	number assigned with the <CTRL> key.
+        **  Display what group this unit belongs to. This corresponds to the team
+        **  number assigned with the <CTRL> key.
         */
         if (Group < 10)
         {
