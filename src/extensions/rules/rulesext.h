@@ -97,4 +97,9 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
          *  to break from a shot.
          */
         int IceStrength;
+
+        /**
+         *  Storage pip used for weeds.
+         */
+        int WeedPip;
 };

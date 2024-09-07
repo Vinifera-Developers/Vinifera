@@ -52,6 +52,7 @@
 #include "extension.h"
 #include "fatal.h"
 #include "asserthandler.h"
+#include "buildingext.h"
 #include "debughandler.h"
 #include "drawshape.h"
 
@@ -59,6 +60,7 @@
 #include "hooker_macros.h"
 #include "textprint.h"
 #include "tiberiumext.h"
+#include "unittype.h"
 
 
 /**
@@ -152,42 +154,56 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect&
             {
                 TechnoTypeClass* technotype = Techno_Type_Class();
 
-                /*
-                **	The first element is the sorting order, second element is the Tiberium ID.
-                */
-                std::vector<std::tuple<int, int>> tibtypes;
+                std::vector<int> pips_to_draw;
 
                 /*
-                **	Add all the Tiberiums and sort.
+                **	Weeders/Waste Facilities draw all their contents with the Weed pip.
                 */
-                for (int i = 0; i < Tiberiums.Count(); i++)
-                    tibtypes.push_back(std::make_tuple(Extension::Fetch<TiberiumClassExtension>(Tiberiums[i])->PipDrawOrder, i));
-
-                std::sort(tibtypes.begin(), tibtypes.end());
-
-                /*
-                **	Add all the pips to draw to a vector.
-                */
-
-                std::vector<int> pips;
-
-                for (auto tibtuple : tibtypes)
+                if ((technotype->What_Am_I() == RTTI_UNITTYPE && ((UnitTypeClass*)technotype)->IsToVeinHarvest) ||
+                    (technotype->What_Am_I() == RTTI_BUILDINGTYPE && ((BuildingTypeClass*)technotype)->IsWeeder))
                 {
-                    double amount = Storage.Get_Amount((TiberiumType)std::get<1>(tibtuple));
-                    double fraction = amount / technotype->Storage;
-                    int pip_count = technotype->Max_Pips() * fraction + 0.5;
+                    /*
+                    **	Add the pips to draw to a vector.
+                    */
+                    for (int i = 0; i < pips; i++)
+                        pips_to_draw.push_back(RuleExtension->WeedPip);
+                }
+                else
+                {
+                    /*
+                    **	The first element is the sorting order, second element is the Tiberium ID.
+                    */
+                    std::vector<std::tuple<int, int>> tibtypes;
 
-                    int piptype = Extension::Fetch<TiberiumClassExtension>(Tiberiums[std::get<1>(tibtuple)])->PipIndex;
-                    for (int i = 0; i < pip_count; i++)
-                        pips.push_back(piptype);
+                    /*
+                    **	Add all the Tiberiums and sort.
+                    */
+                    for (int i = 0; i < Tiberiums.Count(); i++)
+                        tibtypes.push_back(std::make_tuple(Extension::Fetch<TiberiumClassExtension>(Tiberiums[i])->PipDrawOrder, i));
+
+                    std::sort(tibtypes.begin(), tibtypes.end());
+
+                    /*
+                    **	Add all the pips to draw to a vector.
+                    */
+                    for (auto tibtuple : tibtypes)
+                    {
+                        double amount = Storage.Get_Amount((TiberiumType)std::get<1>(tibtuple));
+                        double fraction = amount / technotype->Storage;
+                        int pip_count = technotype->Max_Pips() * fraction + 0.5;
+
+                        int piptype = Extension::Fetch<TiberiumClassExtension>(Tiberiums[std::get<1>(tibtuple)])->PipIndex;
+                        for (int i = 0; i < pip_count; i++)
+                            pips_to_draw.push_back(piptype);
+                    }
                 }
 
                 for (int index = 0; index < Class_Of()->Max_Pips(); index++)
                 {
                     int shape = 0;
-                    if (index < pips.size())
+                    if (index < pips_to_draw.size())
                     {
-                        shape = pips[index];
+                        shape = pips_to_draw[index];
                     }
                     CC_Draw_Shape(TempSurface, NormalDrawer, pip_shapes, shape, &Point2D(drawx + dx * index, drawy + dy * index), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
                 }
