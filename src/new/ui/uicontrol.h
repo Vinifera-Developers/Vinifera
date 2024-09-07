@@ -50,7 +50,7 @@ class UIControlsClass
 
         bool Read_INI(CCINIClass &ini);
 
-        TPoint2D<int> GetGroupNumberOffset(RTTIType type, bool has_pip) const
+        TPoint2D<int> Get_Group_Number_Offset(RTTIType type, bool has_pip) const
         {
             switch (type)
             {
@@ -71,7 +71,7 @@ class UIControlsClass
             }
         }
 
-        TPoint2D<int> GetVeterancyPipOffset(RTTIType type) const
+        TPoint2D<int> Get_Veterancy_Pip_Offset(RTTIType type) const
         {
             switch (type)
             {

@@ -264,7 +264,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect&
     if (veterancy_shape != -1)
     {
         Point2D drawpoint = bottomright;
-        drawpoint += UIControls->GetVeterancyPipOffset((RTTIType)What_Am_I());
+        drawpoint += UIControls->Get_Veterancy_Pip_Offset((RTTIType)What_Am_I());
         CC_Draw_Shape(TempSurface, NormalDrawer, pip_shapes, veterancy_shape, &drawpoint, &rect, SHAPE_WIN_REL | SHAPE_CENTER);
     }
 
@@ -279,7 +279,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect&
             char buffer[12];
 
             Point2D drawpoint = bottomleft;
-            drawpoint += UIControls->GetGroupNumberOffset((RTTIType)What_Am_I(), Class_Of()->Max_Pips() > 0);
+            drawpoint += UIControls->Get_Group_Number_Offset((RTTIType)What_Am_I(), Class_Of()->Max_Pips() > 0);
 
             int group = Group + 1;
 
