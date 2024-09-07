@@ -36,6 +36,7 @@
 #include "rules.h"
 #include "ccfile.h"
 #include "ccini.h"
+#include "endgame.h"
 #include "addon.h"
 #include "fatal.h"
 #include "debughandler.h"
@@ -43,6 +44,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "mouse.h"
 
 
 /**
@@ -99,26 +101,43 @@ DECLARE_PATCH(_Clear_Scenario_Clear_Waypoints_Patch)
 /**
  *  #issue-71
  *
+ *  Reimplements a part of the Fill_In_Data function to set the view to the HomeCell.
+ *
+ *  @author: ZivDero
+ */
+void Init_Home_Cell()
+{
+    Map.SidebarClass::Activate(1);
+    if (Session.Type == GAME_NORMAL)
+    {
+        int home_cell_number = EndGame.Globals[0] ? Scen->AltHomeCell : Scen->HomeCell;
+        Cell home_cell = ScenExtension->Waypoint[home_cell_number];
+
+        Scen->Views[0] = home_cell;
+        Scen->Views[1] = Scen->Views[0];
+        Scen->Views[2] = Scen->Views[1];
+        Scen->Views[3] = Scen->Views[2];
+
+        Coordinate home_coord = Cell_Coord(home_cell);
+        home_coord.Z = Map.Get_Cell_Height(home_coord);
+
+        Map.RadarClass::Set_Tactical_Position(home_coord);
+    }
+}
+
+
+/**
+ *  #issue-71
+ *
  *  Assign the home cell waypoint.
  *
  *  @author: ZivDero
  */
 DECLARE_PATCH(_Fill_In_Data_Home_Cell_Patch)
 {
-    GET_REGISTER_STATIC(int, home_cell_number, eax);
+    Init_Home_Cell();
 
-    _asm push ecx
-
-    static Cell home_cell;
-    home_cell = ScenExtension->Waypoint[home_cell_number];
-
-    _asm
-    {
-        pop ecx
-        mov eax, dword ptr home_cell
-    }
-
-    JMP_REG(edx, 0x005DC0DD);
+    JMP(0x005DC166);
 }
 
 
@@ -329,7 +348,7 @@ void ScenarioClassExtension_Hooks()
     Patch_Jump(0x005E1700, &ScenarioClassExt::_Get_Waypoint_CellPtr);
     Patch_Jump(0x005E1720, &ScenarioClassExt::_Waypoint_As_String);
     Patch_Jump(0x005DC852, &_Clear_Scenario_Clear_Waypoints_Patch);
-    Patch_Jump(0x005DC0D6, &_Fill_In_Data_Home_Cell_Patch);
+    Patch_Jump(0x005DC0A0, &_Fill_In_Data_Home_Cell_Patch);
     Patch_Jump(0x00673330, &_Waypoint_From_Name);
     Patch_Jump(0x006732B0, &_Waypoint_To_Name);
     // 0047A96C
