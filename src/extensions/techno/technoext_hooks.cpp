@@ -181,7 +181,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect&
                     for (int i = 0; i < Tiberiums.Count(); i++)
                         tibtypes.push_back(std::make_tuple(Extension::Fetch<TiberiumClassExtension>(Tiberiums[i])->PipDrawOrder, i));
 
-                    std::sort(tibtypes.begin(), tibtypes.end());
+                    std::stable_sort(tibtypes.begin(), tibtypes.end());
 
                     /*
                     **  Add all the pips to draw to a vector.
