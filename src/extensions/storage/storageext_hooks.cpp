@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          TIBERIUMEXT_HOOKS.CPP
+ *  @file          STORAGEEXT_HOOKS.CPP
  *
- *  @author        CCHyper
+ *  @author        ZivDero
  *
- *  @brief         Contains the hooks for the extended TiberiumClass.
+ *  @brief         Contains the hooks for the extended StorageClass.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -25,25 +25,28 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "tiberiumext_hooks.h"
-#include "tiberiumext_init.h"
-#include "tiberiumext.h"
-#include "tiberium.h"
+#include "storageext_hooks.h"
+#include "extension.h"
 #include "fatal.h"
-#include "debughandler.h"
 #include "asserthandler.h"
+#include "debughandler.h"
+
 #include "hooker.h"
+#include "hooker_macros.h"
+#include "storageext.h"
 
 
 /**
  *  Main function for patching the hooks.
  */
-void TiberiumClassExtension_Hooks()
+void StorageClassExtension_Hooks()
 {
-    /**
-     *  Initialises the extended class.
-     */
-    TiberiumClassExtension_Init();
-
-    Patch_Jump(0x00644DB8, 0x00644DD4); // De-hardcode Power for Tiberium Vinifera
+	Patch_Jump(0x0060AD80, &StorageClassExt::Get_Total_Value);
+	Patch_Jump(0x0060ADB0, &StorageClassExt::Get_Total_Amount);
+	Patch_Jump(0x0060ADD0, &StorageClassExt::Get_Amount);
+	Patch_Jump(0x0060ADE0, &StorageClassExt::Increase_Amount);
+	Patch_Jump(0x0060AE00, &StorageClassExt::Decrease_Amount);
+	Patch_Jump(0x0060AFA0, &StorageClassExt::First_Used_Slot);
+	Patch_Jump(0x0060AE90, &StorageClassExt::operator+=);
+	Patch_Jump(0x0060AF50, &StorageClassExt::operator-=);
 }

@@ -73,4 +73,9 @@ class TechnoClassExtension : public RadioClassExtension
          *  The current electric bolt instance fired by this object.
          */
         EBoltClass *ElectricBolt;
+
+        /**
+         *  Replacement Tiberium storage.
+         */
+        DynamicVectorClass<int> Storage;
 };

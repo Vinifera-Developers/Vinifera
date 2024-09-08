@@ -64,4 +64,13 @@ HouseClassExtension final : public AbstractClassExtension
         virtual RTTIType What_Am_I() const override { return RTTI_HOUSE; }
 
     public:
+        /**
+         *  Replacement Tiberium storage.
+         */
+        DynamicVectorClass<int> TiberiumStorage;
+
+        /**
+         *  Replacement Weed storage.
+         */
+        DynamicVectorClass<int> WeedStorage;
 };

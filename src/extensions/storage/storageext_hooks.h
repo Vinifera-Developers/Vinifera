@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          TIBERIUMEXT_HOOKS.CPP
+ *  @file          STORAGEEXT_HOOKS.H
  *
- *  @author        CCHyper
+ *  @author        ZivDero
  *
- *  @brief         Contains the hooks for the extended TiberiumClass.
+ *  @brief         Contains the hooks for the extended StorageClass.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -25,25 +25,7 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "tiberiumext_hooks.h"
-#include "tiberiumext_init.h"
-#include "tiberiumext.h"
-#include "tiberium.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-#include "hooker.h"
+#pragma once
 
 
-/**
- *  Main function for patching the hooks.
- */
-void TiberiumClassExtension_Hooks()
-{
-    /**
-     *  Initialises the extended class.
-     */
-    TiberiumClassExtension_Init();
-
-    Patch_Jump(0x00644DB8, 0x00644DD4); // De-hardcode Power for Tiberium Vinifera
-}
+void StorageClassExtension_Hooks();

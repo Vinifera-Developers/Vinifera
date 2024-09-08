@@ -2,13 +2,13 @@
 /*                 O P E N  S O U R C E  --  V I N I F E R A                  **
 /*******************************************************************************
  *
- *  @project       Vinifera
+ *  @project       ZivDero
  *
- *  @file          TIBERIUMEXT_HOOKS.CPP
+ *  @file          STORAGEEXT.H
  *
  *  @author        CCHyper
  *
- *  @brief         Contains the hooks for the extended TiberiumClass.
+ *  @brief         Extended StorageClass class.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -25,25 +25,35 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "tiberiumext_hooks.h"
-#include "tiberiumext_init.h"
-#include "tiberiumext.h"
-#include "tiberium.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-#include "hooker.h"
+#pragma once
+#include "vector.h"
 
-
-/**
- *  Main function for patching the hooks.
- */
-void TiberiumClassExtension_Hooks()
+ /**
+  *  This class does not extend the vanilla StorageClass like AbstractClass extensions do.
+  *  Instead, it is constructed in its place by the owner class's extension.
+  */
+class StorageClassExt
 {
-    /**
-     *  Initialises the extended class.
-     */
-    TiberiumClassExtension_Init();
+public:
+    StorageClassExt(DynamicVectorClass<int>* vector) :
+    Types(vector) { }
 
-    Patch_Jump(0x00644DB8, 0x00644DD4); // De-hardcode Power for Tiberium Vinifera
-}
+public:
+    /**
+     *  Pointer to the DVC located in the extension for class that contains the StorageClass.
+     */
+    DynamicVectorClass<int>* Types;
+
+	int Padding[3];
+
+public:
+	int Get_Total_Value() const;
+	int Get_Total_Amount() const;
+	int Get_Amount(int index) const;
+	int Increase_Amount(int amount, int index);
+	int Decrease_Amount(int amount, int index);
+	int First_Used_Slot() const;
+
+	StorageClassExt operator+=(StorageClassExt& that);
+	StorageClassExt operator-=(StorageClassExt& that);
+};

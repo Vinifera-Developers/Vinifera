@@ -146,6 +146,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "storage/storageext_hooks.h"
 
 
 void Extension_Hooks()
@@ -231,6 +232,7 @@ void Extension_Hooks()
     //FoggedObjectClassExtension_Hooks();                   // Not yet implemented
     //AlphaShapeClassExtension_Hooks();                     // Not yet implemented
     //VeinholeMonsterClassExtension_Hooks();                // Not yet implemented
+    StorageClassExtension_Hooks();
 
     /**
      *  All global class extensions here.
