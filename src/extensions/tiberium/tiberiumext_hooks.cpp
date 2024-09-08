@@ -29,6 +29,7 @@
 #include "tiberiumext_init.h"
 #include "tiberiumext.h"
 #include "tiberium.h"
+#include "overlaytype.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
@@ -36,13 +37,14 @@
 #include "extension.h"
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "debughandler.h"
 
 
- /**
-  *  Uses a new extension value as the damage Tiberium deals when exploding.
-  *
-  *  @author: ZivDero
-  */
+/**
+ *  Uses a new extension value as the damage Tiberium deals when exploding.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_Chain_Reaction_Damage_Patch)
 {
     GET_REGISTER_STATIC(CellClass*, cell, esi);
@@ -70,6 +72,23 @@ DECLARE_PATCH(_Chain_Reaction_Damage_Patch)
 
 
 /**
+ *  For some reason, the WW call to DebugString here causes a crash
+ *  under some circumstances, and is otherwise buggy.
+ *  This replaces it with a Vinifera equivalent
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_Get_Tiberium_Type_Debug_Info_Patch)
+{
+    GET_REGISTER_STATIC(OverlayTypeClass*, overlaytype, eax);
+
+    DEBUG_FATAL("Overlay %s [%d] is not really Tiberium!\nAll overlays with Tiberium=yes must be used by a Tiberium!\n", overlaytype->Full_Name(), overlaytype->Get_Heap_ID());
+
+    JMP(0x0058C951);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void TiberiumClassExtension_Hooks()
@@ -81,4 +100,5 @@ void TiberiumClassExtension_Hooks()
 
     Patch_Jump(0x00644DB8, 0x00644DD4); // De-hardcode Power for Tiberium Vinifera
     Patch_Jump(0x0045ED02, _Chain_Reaction_Damage_Patch);
+    Patch_Jump(0x0058C934, _Get_Tiberium_Type_Debug_Info_Patch);
 }
