@@ -63,7 +63,8 @@ TechnoClassExtension::TechnoClassExtension(const TechnoClass *this_ptr) :
  *  @author: CCHyper
  */
 TechnoClassExtension::TechnoClassExtension(const NoInitClass &noinit) :
-    RadioClassExtension(noinit)
+    RadioClassExtension(noinit),
+    Storage(noinit)
 {
     //EXT_DEBUG_TRACE("TechnoClassExtension::TechnoClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
