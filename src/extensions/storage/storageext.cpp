@@ -32,77 +32,81 @@
 
 int StorageClassExt::Get_Total_Value() const
 {
-	int total = 0;
+    int total = 0;
 
-	for (int i = 0; i < Tiberiums.Count(); i++)
-	{
-		total += ((*Types)[i] * Tiberiums[i]->Value);
-	}
+    for (int i = 0; i < Tiberiums.Count(); i++)
+    {
+        total += ((*Types)[i] * Tiberiums[i]->Value);
+    }
 
-	return total;
+    return total;
 }
 
 int StorageClassExt::Get_Total_Amount() const
 {
-	int total = 0;
+    int total = 0;
 
-	for (int i = 0; i < Tiberiums.Count(); i++)
-	{
-		total += (*Types)[i];
-	}
+    for (int i = 0; i < Tiberiums.Count(); i++)
+    {
+        total += (*Types)[i];
+    }
 
-	return total;
+    return total;
 }
+
 
 int StorageClassExt::Get_Amount(int index) const
 {
-	return (*Types)[index];
+    return (*Types)[index];
 }
+
 
 int StorageClassExt::Increase_Amount(int amount, int index)
 {
-	(*Types)[index] += amount;
-	return (*Types)[index];
+    (*Types)[index] += amount;
+    return (*Types)[index];
 }
+
 
 int StorageClassExt::Decrease_Amount(int amount, int index)
 {
-	if (amount < (*Types)[index])
-		amount = (*Types)[index];
+    if (amount < (*Types)[index])
+        amount = (*Types)[index];
 
-	(*Types)[index] -= amount;
-	return amount;
+    (*Types)[index] -= amount;
+    return amount;
 }
+
 
 int StorageClassExt::First_Used_Slot() const
 {
-	for (int i = 0; i < Tiberiums.Count(); i++)
-	{
-		if ((*Types)[i] > 0.0)
-			return i;
-	}
+    for (int i = 0; i < Tiberiums.Count(); i++)
+    {
+        if ((*Types)[i] > 0.0)
+            return i;
+    }
 
-	return -1;
+    return -1;
 }
 
 
 StorageClassExt StorageClassExt::operator+=(StorageClassExt& that)
 {
-	for (int i = 0; i < Tiberiums.Count(); i++)
-	{
-		(*Types)[i] += (*that.Types)[i];
-	}
+    for (int i = 0; i < Tiberiums.Count(); i++)
+    {
+        (*Types)[i] += (*that.Types)[i];
+    }
 
-	return *this;
+    return *this;
 }
 
 
 StorageClassExt StorageClassExt::operator-=(StorageClassExt& that)
 {
-	for (int i = 0; i < Tiberiums.Count(); i++)
-	{
-		(*Types)[i] -= (*that.Types)[i];
-	}
+    for (int i = 0; i < Tiberiums.Count(); i++)
+    {
+        (*Types)[i] -= (*that.Types)[i];
+    }
 
-	return *this;
+    return *this;
 }

@@ -41,12 +41,12 @@
  */
 void StorageClassExtension_Hooks()
 {
-	Patch_Jump(0x0060AD80, &StorageClassExt::Get_Total_Value);
-	Patch_Jump(0x0060ADB0, &StorageClassExt::Get_Total_Amount);
-	Patch_Jump(0x0060ADD0, &StorageClassExt::Get_Amount);
-	Patch_Jump(0x0060ADE0, &StorageClassExt::Increase_Amount);
-	Patch_Jump(0x0060AE00, &StorageClassExt::Decrease_Amount);
-	Patch_Jump(0x0060AFA0, &StorageClassExt::First_Used_Slot);
-	Patch_Jump(0x0060AE90, &StorageClassExt::operator+=);
-	Patch_Jump(0x0060AF50, &StorageClassExt::operator-=);
+    Patch_Jump(0x0060AD80, &StorageClassExt::Get_Total_Value);
+    Patch_Jump(0x0060ADB0, &StorageClassExt::Get_Total_Amount);
+    Patch_Jump(0x0060ADD0, &StorageClassExt::Get_Amount);
+    Patch_Jump(0x0060ADE0, &StorageClassExt::Increase_Amount);
+    Patch_Jump(0x0060AE00, &StorageClassExt::Decrease_Amount);
+    Patch_Jump(0x0060AFA0, &StorageClassExt::First_Used_Slot);
+    Patch_Jump(0x0060AE90, &StorageClassExt::operator+=);
+    Patch_Jump(0x0060AF50, &StorageClassExt::operator-=);
 }

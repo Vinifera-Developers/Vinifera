@@ -36,7 +36,9 @@ class StorageClassExt
 {
 public:
     StorageClassExt(DynamicVectorClass<int>* vector) :
-    Types(vector) { }
+        Types(vector)
+    {
+    }
 
 public:
     /**
@@ -44,16 +46,14 @@ public:
      */
     DynamicVectorClass<int>* Types;
 
-	int Padding[3];
-
 public:
-	int Get_Total_Value() const;
-	int Get_Total_Amount() const;
-	int Get_Amount(int index) const;
-	int Increase_Amount(int amount, int index);
-	int Decrease_Amount(int amount, int index);
-	int First_Used_Slot() const;
+    int Get_Total_Value() const;
+    int Get_Total_Amount() const;
+    int Get_Amount(int index) const;
+    int Increase_Amount(int amount, int index);
+    int Decrease_Amount(int amount, int index);
+    int First_Used_Slot() const;
 
-	StorageClassExt operator+=(StorageClassExt& that);
-	StorageClassExt operator-=(StorageClassExt& that);
+    StorageClassExt operator+=(StorageClassExt& that);
+    StorageClassExt operator-=(StorageClassExt& that);
 };
