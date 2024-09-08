@@ -92,6 +92,27 @@ class UIControlsClass
             }
         }
 
+        TPoint2D<int> Get_Special_Pip_Offset(RTTIType type) const
+        {
+            switch (type)
+            {
+            case RTTI_UNIT:
+            case RTTI_UNITTYPE:
+                return UnitSpecialPipOffset;
+            case RTTI_INFANTRY:
+            case RTTI_INFANTRYTYPE:
+                return InfantrySpecialPipOffset;
+            case RTTI_BUILDING:
+            case RTTI_BUILDINGTYPE:
+                return BuildingSpecialPipOffset;
+            case RTTI_AIRCRAFT:
+            case RTTI_AIRCRAFTTYPE:
+                return AircraftSpecialPipOffset;
+            default:
+                return TPoint2D<int>();
+            }
+        }
+
     public:
         /**
          *  Health bar draw positions.
@@ -124,6 +145,10 @@ class UIControlsClass
         TPoint2D<int> InfantryVeterancyPipOffset;
         TPoint2D<int> BuildingVeterancyPipOffset;
         TPoint2D<int> AircraftVeterancyPipOffset;
+        TPoint2D<int> UnitSpecialPipOffset;
+        TPoint2D<int> InfantrySpecialPipOffset;
+        TPoint2D<int> BuildingSpecialPipOffset;
+        TPoint2D<int> AircraftSpecialPipOffset;
 };
 
 extern UIControlsClass *UIControls;

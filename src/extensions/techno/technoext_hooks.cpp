@@ -226,16 +226,21 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect&
     }
 
     /*
-    **  Special hack to display a red pip on the medic.
+    **  Special hack to display a red pip on the medic,
+    **  or a custom pip.
     */
-    if (What_Am_I() == RTTI_INFANTRY && Combat_Damage() < 0)
+    const int specialpip = Extension::Fetch<TechnoTypeClassExtension>(Techno_Type_Class())->SpecialPipIndex;
+    if (specialpip >= 0)
     {
-        CC_Draw_Shape(TempSurface, NormalDrawer, pips1, 6, &Point2D(drawx, drawy - 8), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
+        CC_Draw_Shape(TempSurface, NormalDrawer, pips1, specialpip, &(Point2D(drawx, drawy) + UIControls->Get_Special_Pip_Offset((RTTIType)What_Am_I())), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
+    }
+    else if (What_Am_I() == RTTI_INFANTRY && Combat_Damage() < 0)
+    {
+        CC_Draw_Shape(TempSurface, NormalDrawer, pips1, 6, &(Point2D(drawx, drawy) + UIControls->Get_Special_Pip_Offset((RTTIType)What_Am_I())), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
     }
 
     /*
-    **  Print the primary (IsLeader) text.
-    **  Maybe a leftover of RA formations?
+    **	Display whether this unit is a leader unit or not.
     */
     if (What_Am_I() != RTTI_BUILDING)
     {

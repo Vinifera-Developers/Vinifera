@@ -150,6 +150,11 @@ class TechnoTypeClassExtension : public ObjectTypeClassExtension
         TypeList<VocType> VoiceHarvest;
 
         /**
+         *  Custom index of a pip to be drawn (like the medic pip).
+         */
+        int SpecialPipIndex;
+
+        /**
          *  The rate at which this unit animates when it is standing idle (not moving).
          */
         unsigned IdleRate;

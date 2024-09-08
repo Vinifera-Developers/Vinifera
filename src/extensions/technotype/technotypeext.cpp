@@ -65,6 +65,7 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     VoiceEnter(),
     VoiceDeploy(),
     VoiceHarvest(),
+    SpecialPipIndex(-1),
     IdleRate(0),
     CameoImageSurface(nullptr)
 {
@@ -262,6 +263,7 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     VoiceEnter = ini.Get_VocTypes(ini_name, "VoiceEnter", VoiceEnter);
     VoiceDeploy = ini.Get_VocTypes(ini_name, "VoiceDeploy", VoiceDeploy);
     VoiceHarvest = ini.Get_VocTypes(ini_name, "VoiceHarvest", VoiceHarvest);
+    SpecialPipIndex = ini.Get_Int(ini_name, "SpecialPipIndex", SpecialPipIndex);
 
     IdleRate = ini.Get_Int(ini_name, "IdleRate", IdleRate);
     IdleRate = ArtINI.Get_Int(graphic_name, "IdleRate", IdleRate);
