@@ -30,6 +30,12 @@
 #include "tiberium.h"
 #include "tibsun_globals.h"
 
+
+ /**
+  *  Reimplements StorageClass::Get_Total_Value.
+  *
+  *  @author: ZivDero
+  */
 int StorageClassExt::Get_Total_Value() const
 {
     int total = 0;
@@ -42,6 +48,12 @@ int StorageClassExt::Get_Total_Value() const
     return total;
 }
 
+
+/**
+ *  Reimplements StorageClass::Get_Total_Amount.
+ *
+ *  @author: ZivDero
+ */
 int StorageClassExt::Get_Total_Amount() const
 {
     int total = 0;
@@ -55,12 +67,22 @@ int StorageClassExt::Get_Total_Amount() const
 }
 
 
+/**
+ *  Reimplements StorageClass::Get_Amount.
+ *
+ *  @author: ZivDero
+ */
 int StorageClassExt::Get_Amount(int index) const
 {
     return (*Types)[index];
 }
 
 
+/**
+ *  Reimplements StorageClass::Increase_Amount.
+ *
+ *  @author: ZivDero
+ */
 int StorageClassExt::Increase_Amount(int amount, int index)
 {
     (*Types)[index] += amount;
@@ -68,6 +90,11 @@ int StorageClassExt::Increase_Amount(int amount, int index)
 }
 
 
+/**
+ *  Reimplements StorageClass::Decrease_Amount.
+ *
+ *  @author: ZivDero
+ */
 int StorageClassExt::Decrease_Amount(int amount, int index)
 {
     if (amount < (*Types)[index])
@@ -78,6 +105,11 @@ int StorageClassExt::Decrease_Amount(int amount, int index)
 }
 
 
+/**
+ *  Reimplements StorageClass::First_Used_Slot.
+ *
+ *  @author: ZivDero
+ */
 int StorageClassExt::First_Used_Slot() const
 {
     for (int i = 0; i < Tiberiums.Count(); i++)
@@ -90,6 +122,11 @@ int StorageClassExt::First_Used_Slot() const
 }
 
 
+/**
+ *  Reimplements StorageClass::operator+=.
+ *
+ *  @author: ZivDero
+ */
 StorageClassExt StorageClassExt::operator+=(StorageClassExt& that)
 {
     for (int i = 0; i < Tiberiums.Count(); i++)
@@ -101,6 +138,11 @@ StorageClassExt StorageClassExt::operator+=(StorageClassExt& that)
 }
 
 
+/**
+ *  Reimplements StorageClass::operator-=.
+ *
+ *  @author: ZivDero
+ */
 StorageClassExt StorageClassExt::operator-=(StorageClassExt& that)
 {
     for (int i = 0; i < Tiberiums.Count(); i++)

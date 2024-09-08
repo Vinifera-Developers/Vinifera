@@ -41,6 +41,12 @@
  */
 void StorageClassExtension_Hooks()
 {
+    /**
+     *  Patch all the methods of StorageClass to our new extension class.
+     *  Operators '+' and '-' are not patched because they are not used in the game,
+     *  and require us to instantiate a new class, which we cannot do
+     *  (because we now store the amounts in a DVC that belongs to the owner class)
+     */
     Patch_Jump(0x0060AD80, &StorageClassExt::Get_Total_Value);
     Patch_Jump(0x0060ADB0, &StorageClassExt::Get_Total_Amount);
     Patch_Jump(0x0060ADD0, &StorageClassExt::Get_Amount);
