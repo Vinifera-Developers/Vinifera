@@ -86,9 +86,4 @@ TiberiumClassExtension final : public AbstractTypeClassExtension
          *  The damage this Tiberium does to infantry.
          */
         int DamageToInfantry;
-
-        /**
-         *  The damage this Tiberium causes when exploding.
-         */
-        int ChainReactionDamage;
 };
