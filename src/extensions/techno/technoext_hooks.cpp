@@ -223,58 +223,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect&
                 }
             }
         }
-    }
 
-    /*
-    **  Special hack to display a red pip on the medic,
-    **  or a custom pip.
-    */
-    const int specialpip = Extension::Fetch<TechnoTypeClassExtension>(Techno_Type_Class())->SpecialPipIndex;
-    if (specialpip >= 0)
-    {
-        CC_Draw_Shape(TempSurface, NormalDrawer, pips1, specialpip, &(Point2D(drawx, drawy) + UIControls->Get_Special_Pip_Offset((RTTIType)What_Am_I())), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
-    }
-    else if (What_Am_I() == RTTI_INFANTRY && Combat_Damage() < 0)
-    {
-        CC_Draw_Shape(TempSurface, NormalDrawer, pips1, 6, &(Point2D(drawx, drawy) + UIControls->Get_Special_Pip_Offset((RTTIType)What_Am_I())), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
-    }
-
-    /*
-    **	Display whether this unit is a leader unit or not.
-    */
-    if (What_Am_I() != RTTI_BUILDING)
-    {
-        this->entry_338(Point2D(bottomleft.X - 10, bottomleft.Y + 10), bottomleft, rect);
-    }
-
-    /*
-    **  Display a veterancy pip is the unit is promoted.
-    */
-    int veterancy_shape = -1;
-    if (Veterancy.Is_Veteran())
-    {
-        veterancy_shape = 7;
-    }
-
-    if (Veterancy.Is_Elite())
-    {
-        veterancy_shape = 8;
-    }
-
-    if (Veterancy.Is_Dumbass())
-    {
-        veterancy_shape = 12;
-    }
-
-    if (veterancy_shape != -1)
-    {
-        Point2D drawpoint = bottomright;
-        drawpoint += UIControls->Get_Veterancy_Pip_Offset((RTTIType)What_Am_I());
-        CC_Draw_Shape(TempSurface, NormalDrawer, pip_shapes, veterancy_shape, &drawpoint, &rect, SHAPE_WIN_REL | SHAPE_CENTER);
-    }
-
-    if (IsSelected)
-    {
         /*
         **  Display what group this unit belongs to. This corresponds to the team
         **  number assigned with the <CTRL> key.
@@ -293,6 +242,61 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect&
 
             snprintf(buffer, ARRAY_SIZE(buffer), "%d", group >= 10 ? 0 : group);
             Plain_Text_Print(buffer, TempSurface, &rect, &drawpoint, COLOR_WHITE, COLOR_TBLACK, TPF_FULLSHADOW | TPF_EFNT, COLORSCHEME_NONE, 1);
+        }
+    }
+
+    /*
+    **  Because of ts-patches we have to check if the object is discovered by the player,
+    **  or we'll draw pips for shrouded objects
+    */
+    if (IsDiscoveredByPlayer)
+    {
+        /*
+        **  Special hack to display a red pip on the medic,
+        **  or a custom pip.
+        */
+        const int specialpip = Extension::Fetch<TechnoTypeClassExtension>(Techno_Type_Class())->SpecialPipIndex;
+        if (specialpip >= 0)
+        {
+            CC_Draw_Shape(TempSurface, NormalDrawer, pips1, specialpip, &(Point2D(drawx, drawy) + UIControls->Get_Special_Pip_Offset((RTTIType)What_Am_I())), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
+        }
+        else if (What_Am_I() == RTTI_INFANTRY && Combat_Damage() < 0)
+        {
+            CC_Draw_Shape(TempSurface, NormalDrawer, pips1, 6, &(Point2D(drawx, drawy) + UIControls->Get_Special_Pip_Offset((RTTIType)What_Am_I())), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
+        }
+
+        /*
+        **	Display whether this unit is a leader unit or not.
+        */
+        if (What_Am_I() != RTTI_BUILDING)
+        {
+            this->entry_338(Point2D(bottomleft.X - 10, bottomleft.Y + 10), bottomleft, rect);
+        }
+
+        /*
+        **  Display a veterancy pip is the unit is promoted.
+        */
+        int veterancy_shape = -1;
+        if (Veterancy.Is_Veteran())
+        {
+            veterancy_shape = 7;
+        }
+
+        if (Veterancy.Is_Elite())
+        {
+            veterancy_shape = 8;
+        }
+
+        if (Veterancy.Is_Dumbass())
+        {
+            veterancy_shape = 12;
+        }
+
+        if (veterancy_shape != -1)
+        {
+            Point2D drawpoint = bottomright;
+            drawpoint += UIControls->Get_Veterancy_Pip_Offset((RTTIType)What_Am_I());
+            CC_Draw_Shape(TempSurface, NormalDrawer, pip_shapes, veterancy_shape, &drawpoint, &rect, SHAPE_WIN_REL | SHAPE_CENTER);
         }
     }
 }
