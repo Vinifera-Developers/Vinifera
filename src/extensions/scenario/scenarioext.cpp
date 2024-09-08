@@ -74,7 +74,8 @@ ScenarioClassExtension::ScenarioClassExtension(const ScenarioClass *this_ptr) :
  *  @author: CCHyper
  */
 ScenarioClassExtension::ScenarioClassExtension(const NoInitClass &noinit) :
-    GlobalExtensionClass(noinit)
+    GlobalExtensionClass(noinit),
+    Waypoint(noinit)
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::ScenarioClassExtension(NoInitClass) - 0x%08X\n", (uintptr_t)(ThisPtr));
 }
