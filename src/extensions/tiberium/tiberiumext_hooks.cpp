@@ -51,23 +51,29 @@ DECLARE_PATCH(_Chain_Reaction_Damage_Patch)
     GET_REGISTER_STATIC(TiberiumClass*, tib, ebx);
     static bool reduce_tib;
     static int damage;
+    static char overlay_data;
 
     reduce_tib = false;
-    damage = (cell->OverlayData / 2) * Extension::Fetch<TiberiumClassExtension>(tib)->ChainReactionDamage;
+    overlay_data = cell->OverlayData;
+
+    damage = (overlay_data / 2) * Extension::Fetch<TiberiumClassExtension>(tib)->ChainReactionDamage;
 
     if (cell->OverlayData >= 11)
         reduce_tib = true;
 
-    cell->OverlayData -= cell->OverlayData / 2;
+    cell->OverlayData -= overlay_data / 2;
 
     _asm
     {
         movzx eax, reduce_tib
         mov [esp + 0xF], al
         mov edi, damage
+        mov esi, cell
+        mov ecx, cell
+        push ebp
     }
 
-    JMP_REG(ecx, 0x0045ED29);
+    JMP_REG(eax, 0x0045ED34);
 }
 
 
