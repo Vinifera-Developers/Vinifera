@@ -196,6 +196,8 @@ bool TiberiumClassExtension::Read_INI(CCINIClass &ini)
     // Default values set from the TiberiumType
     OverlayIndex = This()->Image ? This()->Image->Get_Heap_ID() : 0;
     UseSlopes = This()->NumSlopeFacings > 0;
+    DamageToInfantry = This()->Power / 10;
+    ChainReactionDamage = This()->Power;
 
     if (!AbstractTypeClassExtension::Read_INI(ini)) {
         return false;
@@ -220,6 +222,9 @@ bool TiberiumClassExtension::Read_INI(CCINIClass &ini)
     This()->NumFrames = 12;
     This()->NumImages = 12;
     This()->NumSlopeFacings = UseSlopes ? 8 : 0;
+
+    DamageToInfantry = ini.Get_Int(ini_name, "DamageToInfantry", DamageToInfantry);
+    ChainReactionDamage = ini.Get_Int(ini_name, "ChainReactionDamage", ChainReactionDamage);
     
     return true;
 }

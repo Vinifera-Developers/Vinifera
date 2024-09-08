@@ -32,7 +32,41 @@
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "cell.h"
+#include "extension.h"
 #include "hooker.h"
+#include "hooker_macros.h"
+
+
+ /**
+  *  Uses a new extension value as the damage Tiberium deals when exploding.
+  *
+  *  @author: ZivDero
+  */
+DECLARE_PATCH(_Chain_Reaction_Damage_Patch)
+{
+    GET_REGISTER_STATIC(CellClass*, cell, esi);
+    GET_REGISTER_STATIC(TiberiumClass*, tib, ebx);
+    static bool reduce_tib;
+    static int damage;
+
+    reduce_tib = false;
+    damage = (cell->OverlayData / 2) * Extension::Fetch<TiberiumClassExtension>(tib)->ChainReactionDamage;
+
+    if (cell->OverlayData >= 11)
+        reduce_tib = true;
+
+    cell->OverlayData -= cell->OverlayData / 2;
+
+    _asm
+    {
+        movzx eax, reduce_tib
+        mov [esp + 0xF], al
+        mov edi, damage
+    }
+
+    JMP_REG(ecx, 0x0045ED29);
+}
 
 
 /**
@@ -46,4 +80,5 @@ void TiberiumClassExtension_Hooks()
     TiberiumClassExtension_Init();
 
     Patch_Jump(0x00644DB8, 0x00644DD4); // De-hardcode Power for Tiberium Vinifera
+    Patch_Jump(0x0045ED02, _Chain_Reaction_Damage_Patch);
 }
