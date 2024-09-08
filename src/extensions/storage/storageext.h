@@ -42,7 +42,7 @@ public:
 
 public:
     /**
-     *  Pointer to the DVC located in the extension for class that contains the StorageClass.
+     *  Pointer to the DVC located in the extension for the class that contains the StorageClass.
      */
     DynamicVectorClass<int>* Types;
 
