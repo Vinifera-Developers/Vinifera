@@ -663,10 +663,10 @@ AbstractClassExtension *Extension::Private::Fetch_Internal(const AbstractClass *
     /**
      *  Its still possible the pointer could be invalid, so perform a final check.
      */
-    if (ext_ptr->What_Am_I() <= RTTI_NONE || ext_ptr->What_Am_I() >= RTTI_COUNT) {
-        DEBUG_ERROR("Extension::Fetch: Invalid extension rtti type for \"%s\"!\n", Extension::Utility::Get_TypeID_Name(abstract).c_str());
-        return nullptr;
-    }
+    //if (ext_ptr->What_Am_I() <= RTTI_NONE || ext_ptr->What_Am_I() >= RTTI_COUNT) {
+    //    DEBUG_ERROR("Extension::Fetch: Invalid extension rtti type for \"%s\"!\n", Extension::Utility::Get_TypeID_Name(abstract).c_str());
+    //    return nullptr;
+    //}
 
     //EXT_DEBUG_INFO("Extension::Fetch: Abstract \"%s\", got extension \"%s\".\n", Extension::Utility::Get_TypeID_Name(abstract).c_str(), ext_ptr->Name());
 

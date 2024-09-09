@@ -986,12 +986,18 @@ DECLARE_PATCH(_TechnoClass_Null_House_Warning_Patch)
 }
 
 
+static void Put_Storage_Pointers(TechnoClass* techno)
+{
+    new ((StorageClassExt*)&(techno->Storage)) StorageClassExt(&Extension::Fetch<TechnoClassExtension>(techno)->Storage);
+}
+
+
 DECLARE_PATCH(_TechnoClass_Load_StorageExtPtr)
 {
     GET_REGISTER_STATIC(int, result, eax);
     GET_REGISTER_STATIC(TechnoClass*, this_ptr, esi);
 
-    new ((StorageClassExt*)&(this_ptr->Storage)) StorageClassExt(&Extension::Fetch<TechnoClassExtension>(this_ptr)->Storage);
+    Put_Storage_Pointers(this_ptr);
 
     if (result >= 0)
     {
