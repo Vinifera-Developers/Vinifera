@@ -46,8 +46,11 @@ HouseClassExtension::HouseClassExtension(const HouseClass *this_ptr) :
 {
     //if (this_ptr) EXT_DEBUG_TRACE("HouseClassExtension::HouseClassExtension - 0x%08X\n", (uintptr_t)(This()));
 
-    new ((StorageClassExt*)&(this_ptr->Tiberium)) StorageClassExt(&TiberiumStorage);
-    new ((StorageClassExt*)&(this_ptr->Weed)) StorageClassExt(&WeedStorage);
+    if (this_ptr)
+    {
+        new ((StorageClassExt*)&(this_ptr->Tiberium)) StorageClassExt(&TiberiumStorage);
+        new ((StorageClassExt*)&(this_ptr->Weed)) StorageClassExt(&WeedStorage);
+    }
 
     HouseExtensions.Add(this);
 }
@@ -112,9 +115,6 @@ HRESULT HouseClassExtension::Load(IStream *pStm)
     }
 
     new (this) HouseClassExtension(NoInitClass());
-
-    new ((StorageClassExt*)&(This()->Tiberium)) StorageClassExt(&TiberiumStorage);
-    new ((StorageClassExt*)&(This()->Weed)) StorageClassExt(&WeedStorage);
     
     return hr;
 }

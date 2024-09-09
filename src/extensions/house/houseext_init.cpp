@@ -38,6 +38,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "storageext.h"
 
 
 /**
@@ -51,6 +52,9 @@ DECLARE_PATCH(_HouseClass_Constructor_Patch)
 {
     GET_REGISTER_STATIC(HouseClass *, this_ptr, ebp); // "this" pointer.
     GET_STACK_STATIC(const char *, ini_name, esp, 0xC); // ini name.
+
+    new ((StorageClassExt*)&(this_ptr->Tiberium)) StorageClassExt(&Extension::Fetch<HouseClassExtension>(this_ptr)->TiberiumStorage);
+    new ((StorageClassExt*)&(this_ptr->Weed)) StorageClassExt(&Extension::Fetch<HouseClassExtension>(this_ptr)->WeedStorage);
 
     /**
      *  If we are performing a load operation, the Windows API will invoke the

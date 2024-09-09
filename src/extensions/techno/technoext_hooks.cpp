@@ -58,6 +58,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "storageext.h"
 #include "textprint.h"
 #include "tiberiumext.h"
 #include "unittype.h"
@@ -985,6 +986,22 @@ DECLARE_PATCH(_TechnoClass_Null_House_Warning_Patch)
 }
 
 
+DECLARE_PATCH(_TechnoClass_Load_StorageExtPtr)
+{
+    GET_REGISTER_STATIC(int, result, eax);
+    GET_REGISTER_STATIC(TechnoClass*, this_ptr, esi);
+
+    new ((StorageClassExt*)&(this_ptr->Storage)) StorageClassExt(&Extension::Fetch<TechnoClassExtension>(this_ptr)->Storage);
+
+    if (result >= 0)
+    {
+        JMP(0x00638D94);
+    }
+
+    JMP(0x00638E73);
+}
+
+
 /**
  *  Main function for patching the hooks.
  */
@@ -1006,4 +1023,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x00636F09, &_TechnoClass_Is_Allowed_To_Retaliate_Can_Retaliate_Patch);
     Patch_Jump(0x0062D4CA, &_TechnoClass_Evaluate_Object_Is_Legal_Target_Patch);
     Patch_Jump(0x00637540, &TechnoClassExt::_Draw_Pips);
+    Patch_Jump(0x00638D8C, &_TechnoClass_Load_StorageExtPtr);
 }
