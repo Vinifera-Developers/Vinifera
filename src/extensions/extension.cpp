@@ -663,10 +663,10 @@ AbstractClassExtension *Extension::Private::Fetch_Internal(const AbstractClass *
     /**
      *  Its still possible the pointer could be invalid, so perform a final check.
      */
-    //if (ext_ptr->What_Am_I() <= RTTI_NONE || ext_ptr->What_Am_I() >= RTTI_COUNT) {
-    //    DEBUG_ERROR("Extension::Fetch: Invalid extension rtti type for \"%s\"!\n", Extension::Utility::Get_TypeID_Name(abstract).c_str());
-    //    return nullptr;
-    //}
+    if (ext_ptr->What_Am_I() <= RTTI_NONE || ext_ptr->What_Am_I() >= RTTI_COUNT) {
+        DEBUG_ERROR("Extension::Fetch: Invalid extension rtti type for \"%s\"!\n", Extension::Utility::Get_TypeID_Name(abstract).c_str());
+        return nullptr;
+    }
 
     //EXT_DEBUG_INFO("Extension::Fetch: Abstract \"%s\", got extension \"%s\".\n", Extension::Utility::Get_TypeID_Name(abstract).c_str(), ext_ptr->Name());
 
@@ -872,6 +872,8 @@ bool Extension::Load(IStream *pStm)
      */
     if (!Extension::Request_Pointer_Remap()) { return false; }
 
+    Put_Storage_Pointers();
+
     DEV_DEBUG_INFO("Extension::Load(exit)\n");
 
     return true;
@@ -954,6 +956,22 @@ bool Extension::Request_Pointer_Remap()
     DEBUG_INFO("Extension::Request_Pointer_Remap(exit)\n");
 
     return true;
+}
+
+
+void Extension::Put_Storage_Pointers()
+{
+    for (int i = 0; i < Technos.Count(); i++)
+    {
+        const TechnoClass* techno = Technos[i];
+        Extension::Fetch<TechnoClassExtension>(techno)->Put_Storage_Pointers();
+    }
+
+    for (int i = 0; i < Houses.Count(); i++)
+    {
+        const HouseClass* house = Houses[i];
+        Extension::Fetch<HouseClassExtension>(house)->Put_Storage_Pointers();
+    }
 }
 
 

@@ -64,6 +64,8 @@ class TechnoClassExtension : public RadioClassExtension
         virtual void Response_Harvest();
         virtual bool Can_Passive_Acquire() const;
 
+        void Put_Storage_Pointers();
+
     private:
         const TechnoTypeClass *Techno_Type_Class() const;
         const TechnoTypeClassExtension *Techno_Type_Class_Ext() const;

@@ -386,6 +386,12 @@ bool TechnoClassExtension::Can_Passive_Acquire() const
 }
 
 
+void TechnoClassExtension::Put_Storage_Pointers()
+{
+    new ((StorageClassExt*)&(This()->Storage)) StorageClassExt(&Storage);
+}
+
+
 /**
  *  Provides access to the TechnoTypeClass instance for this extension. 
  * 

@@ -265,6 +265,7 @@ void Destroy(const AbstractClass *abstract)
 bool Save(IStream *pStm);
 bool Load(IStream *pStm);
 bool Request_Pointer_Remap();
+void Put_Storage_Pointers();
 unsigned Get_Save_Version_Number();
 
 /**

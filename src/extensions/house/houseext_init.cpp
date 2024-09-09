@@ -105,29 +105,6 @@ original_code:
 }
 
 
-static void Put_Storage_Pointers(HouseClass* house)
-{
-    new ((StorageClassExt*)&(house->Tiberium)) StorageClassExt(&Extension::Fetch<HouseClassExtension>(house)->TiberiumStorage);
-    new ((StorageClassExt*)&(house->Weed)) StorageClassExt(&Extension::Fetch<HouseClassExtension>(house)->WeedStorage);
-}
-
-
-DECLARE_PATCH(_HouseClass_Load_StorageExtPtr)
-{
-    GET_REGISTER_STATIC(int, result, eax);
-    GET_REGISTER_STATIC(HouseClass*, this_ptr, esi);
-
-    Put_Storage_Pointers(this_ptr);
-
-    if (result >= 0)
-    {
-        JMP(0x004C4AD9);
-    }
-
-    JMP(0x004C503B);
-}
-
-
 /**
  *  Main function for patching the hooks.
  */
@@ -135,5 +112,4 @@ void HouseClassExtension_Init()
 {
     Patch_Jump(0x004BAEBE, &_HouseClass_Constructor_Patch);
     Patch_Jump(0x004BB9B7, &_HouseClass_Destructor_Patch);
-    Patch_Jump(0x004C4AD1, &_HouseClass_Load_StorageExtPtr);
 }
