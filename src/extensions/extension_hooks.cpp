@@ -200,6 +200,7 @@ void Extension_Hooks()
     SmudgeClassExtension_Hooks();
     SmudgeTypeClassExtension_Hooks();
     SuperWeaponTypeClassExtension_Hooks();
+    TActionClassExtension_Hooks();
     //TaskForceClassExtension_Hooks();                      // Not yet implemented
     TeamClassExtension_Hooks();
     //TeamTypeClassExtension_Hooks();                       // Not yet implemented

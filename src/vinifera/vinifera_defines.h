@@ -127,3 +127,9 @@
 #define UUID_FOGGEDOBJECT_EXTENSION         "7D9C5263-465F-42CE-AD81-5C057B52226F"
 #define UUID_ALPHASHAPE_EXTENSION           "4C8171D5-E7A7-43D1-80F3-0C285CF6B352"
 #define UUID_VEINHOLEMONSTER_EXTENSION      "4AD76F43-090A-44BF-BB1A-5BFDE52BC842"
+
+
+/**
+ *  The maximum amount of waypoints available for a scenario to use.
+ */
+#define NEW_WAYPOINT_COUNT         SHRT_MAX      // "AVLG"
