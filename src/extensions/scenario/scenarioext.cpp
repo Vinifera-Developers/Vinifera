@@ -1061,8 +1061,8 @@ static DynamicVectorClass<Cell> Build_Starting_Waypoint_List(bool official)
      *  Find first valid?
      */
     int min_waypts = 0;
-    for (int i = 0; i < WAYPT_COUNT; ++i) {
-        if (Scen->Waypoint[min_waypts]) {
+    for (int i = 0; i < NEW_WAYPOINT_COUNT; ++i) {
+        if (ScenExtension->Waypoint[min_waypts]) {
             break;
         }
     }
