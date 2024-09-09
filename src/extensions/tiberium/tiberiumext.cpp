@@ -194,7 +194,7 @@ bool TiberiumClassExtension::Read_INI(CCINIClass &ini)
     //EXT_DEBUG_TRACE("TiberiumClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     // Default values set from the TiberiumType
-    OverlayIndex = This()->Image ? This()->Image->Get_Heap_ID() : 0;
+    Overlay = This()->Image;
     UseSlopes = This()->NumSlopeFacings > 0;
     DamageToInfantry = This()->Power / 10;
 
@@ -211,13 +211,10 @@ bool TiberiumClassExtension::Read_INI(CCINIClass &ini)
     PipIndex = ini.Get_Int(ini_name, "PipIndex", PipIndex);
     PipDrawOrder = ini.Get_Int(ini_name, "PipDrawOrder", PipDrawOrder);
 
-    OverlayIndex = ini.Get_Int(ini_name, "OverlayIndex", OverlayIndex);
+    Overlay = (OverlayTypeClass*)ini.Get_Overlay(ini_name, "Overlay", Overlay);
     UseSlopes = ini.Get_Bool(ini_name, "UseSlopes", UseSlopes);
 
-    ASSERT_PRINT(OverlayIndex >= 0 && OverlayIndex < OverlayTypes.Count(), "TiberiumType %d has an invalid OverlayIndex %d!\n", This()->Get_Heap_ID(), OverlayIndex);
-    if (OverlayIndex >= 0 && OverlayIndex < OverlayTypes.Count())
-        This()->Image = OverlayTypes[OverlayIndex];
-
+    This()->Image = Overlay;
     This()->NumFrames = 12;
     This()->NumImages = 12;
     This()->NumSlopeFacings = UseSlopes ? 8 : 0;

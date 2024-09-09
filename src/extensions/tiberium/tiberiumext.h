@@ -73,9 +73,9 @@ TiberiumClassExtension final : public AbstractTypeClassExtension
         int PipDrawOrder;
 
         /**
-         *  Index of a custom OverlayType that is the start of this Tiberium's overlays.
+         *  Custom OverlayType that is the start of this Tiberium's overlays.
          */
-        int OverlayIndex;
+        OverlayTypeClass* Overlay;
 
         /**
          *  Should this Tiberium type use slopes?
