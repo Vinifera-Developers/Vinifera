@@ -92,3 +92,4 @@ extern unsigned ViniferaSaveGameVersion;
 bool Vinifera_Put_All(IStream *pStm, bool save_net = false);
 bool Vinifera_Get_All(IStream *pStm, bool load_net = false);
 bool Vinifera_Remap_Extension_Pointers();
+void Vinifera_Remap_Storage_Pointers();

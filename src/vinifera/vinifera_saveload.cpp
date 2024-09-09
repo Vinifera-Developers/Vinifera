@@ -96,6 +96,7 @@
 #include "waypointpath.h"
 #include "alphashape.h"
 
+#include "houseext.h"
 #include "scenarioext.h"
 
 #include "scenario.h"
@@ -107,6 +108,7 @@
 #include "session.h"
 #include "addon.h"
 #include "ccini.h"
+#include "technoext.h"
 
 
 /**
@@ -703,4 +705,19 @@ bool Vinifera_Remap_Extension_Pointers()
     }
 
     return true;
+}
+
+void Vinifera_Remap_Storage_Pointers()
+{
+    for (int i = 0; i < Technos.Count(); i++)
+    {
+        const TechnoClass* techno = Technos[i];
+        Extension::Fetch<TechnoClassExtension>(techno)->Put_Storage_Pointers();
+    }
+
+    for (int i = 0; i < Houses.Count(); i++)
+    {
+        const HouseClass* house = Houses[i];
+        Extension::Fetch<HouseClassExtension>(house)->Put_Storage_Pointers();
+    }
 }

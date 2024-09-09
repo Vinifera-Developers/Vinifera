@@ -62,7 +62,9 @@ HouseClassExtension::HouseClassExtension(const HouseClass *this_ptr) :
  *  @author: CCHyper
  */
 HouseClassExtension::HouseClassExtension(const NoInitClass &noinit) :
-    AbstractClassExtension(noinit)
+    AbstractClassExtension(noinit),
+    TiberiumStorage(noinit),
+    WeedStorage(noinit)
 {
     //EXT_DEBUG_TRACE("HouseClassExtension::HouseClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }

@@ -453,6 +453,17 @@ failure:
 }
 
 
+DECLARE_PATCH(_Load_Game_Remap_Storage_Pointers)
+{
+    Vinifera_Remap_Storage_Pointers();
+
+    // Stolen instructions
+    Map.Init_IO();
+
+    JMP(0x005D6B52);
+}
+
+
 /**
  *  Do not allow save games below our the base level Vinifera version. This patch
  *  will remove any support for save games made with vanilla Tiberian Sun 2.03!
@@ -832,6 +843,8 @@ void Vinifera_Hooks()
      *  Check the return value of Load_Game to ensure no false game starts.
      */
     Patch_Jump(0x005D6B11, &_Load_Game_Check_Return_Value);
+
+    Patch_Jump(0x005D6B48, &_Load_Game_Remap_Storage_Pointers);
 
     /**
      *  Change SUN.EXE to our DLL name.
