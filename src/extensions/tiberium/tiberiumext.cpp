@@ -33,6 +33,7 @@
 #include "debughandler.h"
 #include "overlaytype.h"
 #include "tibsun_globals.h"
+#include "vinifera_saveload.h"
 
 
 /**
@@ -126,6 +127,8 @@ HRESULT TiberiumClassExtension::Load(IStream *pStm)
     }
 
     new (this) TiberiumClassExtension(NoInitClass());
+
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Overlay, "Overlay");
     
     return hr;
 }
