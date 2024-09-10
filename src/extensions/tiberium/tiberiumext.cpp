@@ -43,19 +43,22 @@ TiberiumClassExtension::TiberiumClassExtension(const TiberiumClass *this_ptr) :
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TiberiumClassExtension::TiberiumClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    /**
-     *  By default Tiberium 0 gets green pips, and the rest get blue.
-     *  Blue Tiberium is also drawn first
-     */
-    if (this_ptr->Get_Heap_ID() == 0)
+    if (this_ptr)
     {
-        PipIndex = 1;
-        PipDrawOrder = 1;
-    }
-    else
-    {
-        PipIndex = 5;
-        PipDrawOrder = 0;
+        /**
+         *  By default Tiberium 0 gets green pips, and the rest get blue.
+         *  Blue Tiberium is also drawn first
+         */
+        if (this_ptr->Get_Heap_ID() == 0)
+        {
+            PipIndex = 1;
+            PipDrawOrder = 1;
+        }
+        else
+        {
+            PipIndex = 5;
+            PipDrawOrder = 0;
+        }
     }
 
     TiberiumExtensions.Add(this);

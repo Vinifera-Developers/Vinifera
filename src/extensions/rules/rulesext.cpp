@@ -106,7 +106,8 @@ RulesClassExtension::RulesClassExtension(const RulesClass *this_ptr) :
  *  @author: CCHyper
  */
 RulesClassExtension::RulesClassExtension(const NoInitClass &noinit) :
-    GlobalExtensionClass(noinit)
+    GlobalExtensionClass(noinit),
+    MaxPips(noinit)
 {
     //EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension(NoInitClass) - 0x%08X\n", (uintptr_t)(ThisPtr));
 }
@@ -137,6 +138,9 @@ HRESULT RulesClassExtension::Load(IStream *pStm)
         return E_FAIL;
     }
 
+    MaxPips.Clear();
+    MaxPips.Load(pStm);
+
     new (this) RulesClassExtension(NoInitClass());
     
     return hr;
@@ -156,6 +160,8 @@ HRESULT RulesClassExtension::Save(IStream *pStm, BOOL fClearDirty)
     if (FAILED(hr)) {
         return hr;
     }
+
+    MaxPips.Save(pStm);
 
     return hr;
 }
@@ -463,6 +469,9 @@ bool RulesClassExtension::AudioVisual(CCINIClass &ini)
     IsShowSuperWeaponTimers = ini.Get_Bool(AUDIOVISUAL, "ShowSuperWeaponTimers", IsShowSuperWeaponTimers);
     WeedPipIndex = ini.Get_Int(AUDIOVISUAL, "WeedPipIndex", WeedPipIndex);
     MaxPips = ini.Get_Integers(AUDIOVISUAL, "MaxPips", MaxPips);
+
+    for (int i = 0; i < MaxPips.Count(); i++)
+        DEBUG_INFO("%d", MaxPips[i]);
 
     return true;
 }
