@@ -31,6 +31,8 @@
 #include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "saveload.h"
+#include "vinifera_saveload.h"
 #include "storage/storageext.h"
 
 
@@ -45,6 +47,12 @@ HouseClassExtension::HouseClassExtension(const HouseClass *this_ptr) :
     WeedStorage(Tiberiums.Count())
 {
     //if (this_ptr) EXT_DEBUG_TRACE("HouseClassExtension::HouseClassExtension - 0x%08X\n", (uintptr_t)(This()));
+
+    for (int i = 0; i < Tiberiums.Count(); i++)
+    {
+        TiberiumStorage.Add(0);
+        WeedStorage.Add(0);
+    }
 
     if (this_ptr)
     {
@@ -116,6 +124,9 @@ HRESULT HouseClassExtension::Load(IStream *pStm)
         return E_FAIL;
     }
 
+    Load_Primitive_Vector(pStm, TiberiumStorage);
+    Load_Primitive_Vector(pStm, WeedStorage);
+
     new (this) HouseClassExtension(NoInitClass());
     
     return hr;
@@ -135,6 +146,9 @@ HRESULT HouseClassExtension::Save(IStream *pStm, BOOL fClearDirty)
     if (FAILED(hr)) {
         return hr;
     }
+
+    Save_Primitive_Vector(pStm, TiberiumStorage);
+    Save_Primitive_Vector(pStm, WeedStorage);
 
     return hr;
 }

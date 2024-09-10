@@ -38,6 +38,8 @@
 #include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "saveload.h"
+#include "vinifera_saveload.h"
 #include "storage/storageext.h"
 
 
@@ -52,6 +54,11 @@ TechnoClassExtension::TechnoClassExtension(const TechnoClass *this_ptr) :
     Storage(Tiberiums.Count())
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoClassExtension::TechnoClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    for (int i = 0; i < Tiberiums.Count(); i++)
+    {
+        Storage.Add(0);
+    }
 
     if (this_ptr)
     {
@@ -100,6 +107,8 @@ HRESULT TechnoClassExtension::Load(IStream *pStm)
         return E_FAIL;
     }
 
+    Load_Primitive_Vector(pStm, Storage);
+
     ElectricBolt = nullptr;
     
     return hr;
@@ -120,6 +129,7 @@ HRESULT TechnoClassExtension::Save(IStream *pStm, BOOL fClearDirty)
         return hr;
     }
 
+    Save_Primitive_Vector(pStm, Storage);
     ElectricBolt = nullptr;
 
     return hr;
