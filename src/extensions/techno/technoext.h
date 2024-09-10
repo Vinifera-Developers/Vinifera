@@ -79,5 +79,5 @@ class TechnoClassExtension : public RadioClassExtension
         /**
          *  Replacement Tiberium storage.
          */
-        DynamicVectorClass<int> Storage;
+        VectorClass<int> Storage;
 };

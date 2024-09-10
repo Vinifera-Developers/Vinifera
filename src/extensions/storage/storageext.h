@@ -35,16 +35,16 @@
 class StorageClassExt
 {
 public:
-    StorageClassExt(DynamicVectorClass<int>* vector) :
+    StorageClassExt(VectorClass<int>* vector) :
         Types(vector)
     {
     }
 
 public:
     /**
-     *  Pointer to the DVC located in the extension for the class that contains the StorageClass.
+     *  Pointer to the vector located in the extension for the class that contains the StorageClass.
      */
-    DynamicVectorClass<int>* Types;
+    VectorClass<int>* Types;
 
 public:
     int Get_Total_Value() const;

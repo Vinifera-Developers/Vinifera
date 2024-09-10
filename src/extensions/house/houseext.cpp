@@ -50,8 +50,8 @@ HouseClassExtension::HouseClassExtension(const HouseClass *this_ptr) :
 
     for (int i = 0; i < Tiberiums.Count(); i++)
     {
-        TiberiumStorage.Add(0);
-        WeedStorage.Add(0);
+        TiberiumStorage[i] = 0;
+        WeedStorage[i] = 0;
     }
 
     if (this_ptr)

@@ -57,7 +57,7 @@ TechnoClassExtension::TechnoClassExtension(const TechnoClass *this_ptr) :
 
     for (int i = 0; i < Tiberiums.Count(); i++)
     {
-        Storage.Add(0);
+        Storage[i] = 0;
     }
 
     if (this_ptr)

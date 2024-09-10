@@ -69,10 +69,10 @@ HouseClassExtension final : public AbstractClassExtension
         /**
          *  Replacement Tiberium storage.
          */
-        DynamicVectorClass<int> TiberiumStorage;
+        VectorClass<int> TiberiumStorage;
 
         /**
          *  Replacement Weed storage.
          */
-        DynamicVectorClass<int> WeedStorage;
+        VectorClass<int> WeedStorage;
 };

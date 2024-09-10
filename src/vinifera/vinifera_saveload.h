@@ -96,9 +96,9 @@ void Vinifera_Remap_Storage_Pointers();
 
 
 template<class T>
-HRESULT Save_Primitive_Vector(LPSTREAM& pStm, DynamicVectorClass<T>& list)
+HRESULT Save_Primitive_Vector(LPSTREAM& pStm, VectorClass<T>& list)
 {
-    int count = list.Count();
+    int count = list.Length();
     HRESULT hr = pStm->Write(&count, sizeof(count), nullptr);
     if (FAILED(hr)) {
         return hr;
@@ -122,7 +122,7 @@ HRESULT Save_Primitive_Vector(LPSTREAM& pStm, DynamicVectorClass<T>& list)
 
 
 template<class T>
-HRESULT Load_Primitive_Vector(LPSTREAM& pStm, DynamicVectorClass<T>& list)
+HRESULT Load_Primitive_Vector(LPSTREAM& pStm, VectorClass<T>& list)
 {
     int count = 0;
     HRESULT hr = pStm->Read(&count, sizeof(count), nullptr);
@@ -130,7 +130,7 @@ HRESULT Load_Primitive_Vector(LPSTREAM& pStm, DynamicVectorClass<T>& list)
         return hr;
     }
 
-    new (&list) DynamicVectorClass<T>();
+    new (&list) VectorClass<T>(count);
 
     if (count <= 0) {
         return hr;
@@ -143,7 +143,7 @@ HRESULT Load_Primitive_Vector(LPSTREAM& pStm, DynamicVectorClass<T>& list)
         if (FAILED(hr)) {
             return hr;
         }
-        list.Add(obj);
+        list[index] = obj;
 
     }
 
