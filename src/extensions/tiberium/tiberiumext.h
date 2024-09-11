@@ -73,16 +73,6 @@ TiberiumClassExtension final : public AbstractTypeClassExtension
         int PipDrawOrder;
 
         /**
-         *  Custom OverlayType that is the start of this Tiberium's overlays.
-         */
-        OverlayTypeClass* Overlay;
-
-        /**
-         *  Should this Tiberium type use slopes?
-         */
-        bool UseSlopes;
-
-        /**
          *  The damage this Tiberium does to infantry.
          */
         int DamageToInfantry;

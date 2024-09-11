@@ -127,8 +127,6 @@ HRESULT TiberiumClassExtension::Load(IStream *pStm)
     }
 
     new (this) TiberiumClassExtension(NoInitClass());
-
-    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Overlay, "Overlay");
     
     return hr;
 }
@@ -196,11 +194,6 @@ bool TiberiumClassExtension::Read_INI(CCINIClass &ini)
 {
     //EXT_DEBUG_TRACE("TiberiumClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    // Default values set from the TiberiumType
-    Overlay = This()->Image;
-    UseSlopes = This()->NumSlopeFacings > 0;
-    DamageToInfantry = This()->Power / 10;
-
     if (!AbstractTypeClassExtension::Read_INI(ini)) {
         return false;
     }
@@ -214,13 +207,18 @@ bool TiberiumClassExtension::Read_INI(CCINIClass &ini)
     PipIndex = ini.Get_Int(ini_name, "PipIndex", PipIndex);
     PipDrawOrder = ini.Get_Int(ini_name, "PipDrawOrder", PipDrawOrder);
 
-    Overlay = (OverlayTypeClass*)ini.Get_Overlay(ini_name, "Overlay", Overlay);
-    UseSlopes = ini.Get_Bool(ini_name, "UseSlopes", UseSlopes);
+    // Default values set from the TiberiumType
+    OverlayTypeClass* overlay = This()->Image;
+    bool useSlopes = This()->NumSlopeFacings > 0;
+    DamageToInfantry = This()->Power / 10;
 
-    This()->Image = Overlay;
+    overlay = (OverlayTypeClass*)ini.Get_Overlay(ini_name, "Overlay", overlay);
+    useSlopes = ini.Get_Bool(ini_name, "UseSlopes", useSlopes);
+
+    This()->Image = overlay;
     This()->NumFrames = 12;
     This()->NumImages = 12;
-    This()->NumSlopeFacings = UseSlopes ? 8 : 0;
+    This()->NumSlopeFacings = useSlopes ? 8 : 0;
 
     DamageToInfantry = ini.Get_Int(ini_name, "DamageToInfantry", DamageToInfantry);
     
