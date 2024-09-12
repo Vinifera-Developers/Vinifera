@@ -1058,13 +1058,14 @@ static DynamicVectorClass<Cell> Build_Starting_Waypoint_List(bool official)
     DynamicVectorClass<Cell> waypts;
 
     /**
-     *  Find first valid?
+     *  Find first valid player spawn waypoint.
      */
     int min_waypts = 0;
-    for (int i = 0; i < NEW_WAYPOINT_COUNT; ++i) {
-        if (ScenExtension->Waypoint[min_waypts]) {
+    for (int i = 0; i < 8; i++) {
+        if (!Scen->Is_Valid_Waypoint(i)) {
             break;
         }
+        min_waypts++;
     }
 
     /**
