@@ -99,7 +99,7 @@ jobs:
           cp ./vinifera-files/files/VINIFERA.VQA ./artifact/Movies/VINIFERA.VQA
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: vinifera-nightly-${{ steps.vars.outputs.sha_short }}
           path: artifact
@@ -192,7 +192,7 @@ jobs:
           cp ./vinifera-files/files/VINIFERA.VQA ./artifact/Movies/VINIFERA.VQA
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: vinifera-nightly-${{ steps.vars.outputs.sha_short }}-ts_client
           path: artifact
