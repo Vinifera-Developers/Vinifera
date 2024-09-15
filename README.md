@@ -47,7 +47,7 @@ Download your desired version. Once the desired download is finished, extract th
 
 # Installing Tiberian Sun
 **NOTE: If you already have Tiberian Sun installed, you can skip this step;**<br><br>
-<b><img width="190" src="https://thecodeconquerors.github.io/img/tibsun_logo.png" alt="Tiberian Sun"></b><br>
+<b><img width="190" src="https://github.com/CnCNet/cncnet-ts-client-package/raw/master/Resources/Default%20Theme/MainMenu/Logo.png" alt="Tiberian Sun"></b><br>
 Tiberian Sun was released as freeware by Electronic Arts in 2010 as a part of a promotional build-up to the release of Command & Conquer 4: Tiberian Twilight.
 
 The original links to these downloads on the Electronic Arts servers are no longer active, but an unofficial mirror can be found at the [C&C-Comm Center](<https://cnc-comm.com/>).<br>
