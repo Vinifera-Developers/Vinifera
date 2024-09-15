@@ -62,5 +62,5 @@ myst_enable_extensions = [
 
 html_theme_options = {
     'navigation_depth': 4,
-    'style_nav_header_background': '#408931',
+    # 'style_nav_header_background': '#408931',
 }
