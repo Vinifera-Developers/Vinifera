@@ -5,10 +5,9 @@
   <b>Vinifera</b> is an open-source community collaboration project extending the Tiberian Sun engine. 
 </p>
 <p align="center">
-  <a href="https://github.com/Vinifera-Developers/Vinifera/releases"><img alt="GitHub Workflow Status (develop)" src="https://img.shields.io/github/downloads/Vinifera-Developers/Vinifera/total?style=flat-square"></a> <a href="https://github.com/Vinifera-Developers/Vinifera/actions"><img alt="GitHub Workflow Status (develop)" src="https://img.shields.io/github/actions/workflow/status/Vinifera-Developers/Vinifera/nightly.yml?style=flat-square"></a>
-  <a href='https://vinifera.readthedocs.io/en/latest/?badge=latest'>
-    <img src='https://readthedocs.org/projects/vinifera/badge/?version=latest&style=flat-square' alt='Documentation Status' />
-  </a>
+  <a href="https://github.com/Vinifera-Developers/Vinifera/releases"><img alt="GitHub Workflow Status (develop)" src="https://img.shields.io/github/downloads/Vinifera-Developers/Vinifera/total?style=flat-square"></a>
+  <a href="https://github.com/Vinifera-Developers/Vinifera/actions"><img alt="GitHub Workflow Status (develop)" src="https://img.shields.io/github/actions/workflow/status/Vinifera-Developers/Vinifera/nightly.yml?style=flat-square"></a>
+  <a href='https://vinifera.readthedocs.io/en/latest/?badge=latest'><img src='https://readthedocs.org/projects/vinifera/badge/?version=latest&style=flat-square' alt='Documentation Status' /></a>
   <a href="https://www.gnu.org/licenses/gpl-3.0.en.html"><img alt="GitHub" src="https://img.shields.io/github/license/Vinifera-Developers/Vinifera?style=flat-square"></a> 
 </p>
 
