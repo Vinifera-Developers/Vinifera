@@ -114,7 +114,7 @@ DECLARE_PATCH(_Tactical_Draw_Rally_Points_NormaliseLineAnimation_Patch)
      */
     start_pos->Y += 2;
     end_pos->Y += 2;
-    TempSurface->entry_48(*start_pos, *end_pos, color_black, _pattern, offset, blit);
+    LogicSurface->entry_48(*start_pos, *end_pos, color_black, _pattern, offset, blit);
 
     /**
      *  Draw two lines, offset by one pixel from each other, giving the
@@ -122,11 +122,11 @@ DECLARE_PATCH(_Tactical_Draw_Rally_Points_NormaliseLineAnimation_Patch)
      */
     --start_pos->Y;
     --end_pos->Y;
-    TempSurface->entry_48(*start_pos, *end_pos, color, _pattern, offset, blit);
+    LogicSurface->entry_48(*start_pos, *end_pos, color, _pattern, offset, blit);
 
     --start_pos->Y;
     --end_pos->Y;
-    TempSurface->entry_48(*start_pos, *end_pos, color, _pattern, offset, blit);
+    LogicSurface->entry_48(*start_pos, *end_pos, color, _pattern, offset, blit);
 
     JMP(0x00616EFD);
 }
@@ -185,7 +185,7 @@ DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_NormaliseLineAnimation_Patch)
      */
     start_pos->Y += 2;
     end_pos->Y += 2;
-    TempSurface->entry_48(*start_pos, *end_pos, color_black, _pattern, offset, blit);
+    LogicSurface->entry_48(*start_pos, *end_pos, color_black, _pattern, offset, blit);
 
     /**
      *  Draw two lines, offset by one pixel from each other, giving the
@@ -193,11 +193,11 @@ DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_NormaliseLineAnimation_Patch)
      */
     --start_pos->Y;
     --end_pos->Y;
-    TempSurface->entry_48(*start_pos, *end_pos, color, _pattern, offset, blit);
+    LogicSurface->entry_48(*start_pos, *end_pos, color, _pattern, offset, blit);
 
     --start_pos->Y;
     --end_pos->Y;
-    TempSurface->entry_48(*start_pos, *end_pos, color, _pattern, offset, blit);
+    LogicSurface->entry_48(*start_pos, *end_pos, color, _pattern, offset, blit);
 
     JMP(0x00617307);
 }
@@ -226,7 +226,7 @@ DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_DrawNormalLine_Patch)
      */
     start_pos->Y += 2;
     end_pos->Y += 2;
-    TempSurface->entry_4C(*start_pos, *end_pos, color_black);
+    LogicSurface->entry_4C(*start_pos, *end_pos, color_black);
 
     /**
      *  Draw two lines, offset by one pixel from each other, giving the
@@ -234,11 +234,11 @@ DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_DrawNormalLine_Patch)
      */
     --start_pos->Y;
     --end_pos->Y;
-    TempSurface->entry_4C(*start_pos, *end_pos, color);
+    LogicSurface->entry_4C(*start_pos, *end_pos, color);
 
     --start_pos->Y;
     --end_pos->Y;
-    TempSurface->entry_4C(*start_pos, *end_pos, color);
+    LogicSurface->entry_4C(*start_pos, *end_pos, color);
 
     JMP(0x00617307);
 }
