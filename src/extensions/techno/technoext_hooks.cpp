@@ -296,7 +296,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect&
         {
             Point2D drawpoint = bottomright;
             drawpoint += UIControls->Get_Veterancy_Pip_Offset((RTTIType)What_Am_I());
-            CC_Draw_Shape(LogicSurface, NormalDrawer, pip_shapes, veterancy_shape, &drawpoint, &rect, SHAPE_WIN_REL | SHAPE_CENTER);
+            CC_Draw_Shape(LogicSurface, NormalDrawer, pips1, veterancy_shape, &drawpoint, &rect, SHAPE_WIN_REL | SHAPE_CENTER);
         }
     }
 }
