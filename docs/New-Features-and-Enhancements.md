@@ -8,7 +8,7 @@ This page describes all the engine features that are either new and introduced b
 
 - `[General]->CurleyShuffle`, which controls if the aircraft will shuffle its position between firing at its target, can now be overridden on a per-type basis.
 
-In `rulesmd.ini`:
+In `rules.ini`:
 ```ini
 [AircraftType]
 CurleyShuffle=<boolean>  ; Should this aircraft shuffle its position between firing at its target? Defaults to [General]->CurleyShuffle.
@@ -18,7 +18,7 @@ CurleyShuffle=<boolean>  ; Should this aircraft shuffle its position between fir
 
 - `[General]->ReloadRate`, which controls the rate that aircraft will reload its ammo when docked with a helipad, can now be overridden on a per-type basis.
 
-In `rulesmd.ini`:
+In `rules.ini`:
 ```ini
 [AircraftType]
 ReloadRate=<floating point>  ; The rate that this aircraft will reload its ammo when docked with a helipad. Defaults to [General]->ReloadRate.
@@ -34,7 +34,7 @@ ReloadRate=<floating point>  ; The rate that this aircraft will reload its ammo 
 
 - Ice strength can now be customized.
 
-In `rulesmd.ini`:
+In `rules.ini`:
 ```ini
 [CombatDamage]
 IceStrength=<integer>  ; The strength of ice. Higher values make ice less likely to break from a shot.
@@ -57,13 +57,22 @@ IceStrength=<integer>  ; The strength of ice. Higher values make ice less likely
 
 - `AILegalTarget` can be used with TEchnoTypes to forbid the AI from performing a targeting evaluation on this object. It is subject to LegalTarget=yes.
 
-In `rulesmd.ini`:
+In `rules.ini`:
 ```ini
 [TechnoType]
 AILegalTarget=<boolean>  ; Can this object be the target of an attack or move command by the computer? Defaults to yes.
 ```
 
 ## Terrain
+
+## Themes
+
+- `RequiredAddon` can be set to be limit new and existing themes to a specific addon (i. e., Firestorm).
+In `theme.ini`:
+```ini
+[ThemeType]
+RequiredAddon=<AddonType>  ; The addon required to be active for this theme to be available. Currently, only 1 (Firestorm) is supported. Defaults to 0 (none).
+```
 
 ## Tiberiums
 
