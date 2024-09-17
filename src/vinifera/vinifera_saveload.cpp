@@ -684,6 +684,12 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
      */
     Vinifera_PerformingLoad = false;
 
+    /**
+     *  Flag that we just loaded a save file, this is the make sure mission
+     *  start save files do not try to re-save on load.
+     */
+    Vinifera_JustLoadedSaveFile = true;
+
     return true;
 }
 
