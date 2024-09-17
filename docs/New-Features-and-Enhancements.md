@@ -33,6 +33,7 @@ ReloadRate=<floating point>  ; The rate that this aircraft will reload its ammo 
 ## Ice
 
 - Ice strength can now be customized.
+
 In `rulesmd.ini`:
 ```ini
 [CombatDamage]

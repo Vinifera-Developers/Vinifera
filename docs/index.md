@@ -13,7 +13,7 @@ License<License.md>
 :caption: Extension Documentation
 Bugfixes<Bugfixes.md>
 New Features and Enhancements<New-Features-and-Enhancements.md>
-AI Scripting and Mapping<AI-Scripting-and-Mapping.md>
+Mapping<Mapping.md>
 User Interface<User-Interface.md>
 Miscellanous<Miscellanous.md>
 ```
