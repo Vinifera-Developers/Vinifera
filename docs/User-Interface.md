@@ -46,6 +46,14 @@ This page lists all user interface additions, changes, fixes that are implemente
 
 - Scroll the camera North-West. Defaults to `<none>`.
 
+### `[ ]` Previous Track
+
+- Plays the previous music track. Defaults to `[`.
+
+### `[ ]` Next Track
+
+- Plays the next music track. Defaults to `]`.
+
 ## Loading screen
 
 - PNG images can be used as an alternative to PCX images. This new system scans for the requested filename with the .PNG extension and use that if found, otherwise it will fall back to scanning and load the .PCX file.

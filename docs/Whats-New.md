@@ -86,11 +86,11 @@ New:
 - Allow the score screen to be skipped at the end of a multiplayer game (by CCHyper/tomsons26)
 - Add warning notification if a NULL house instance is detected during the game loading screen (by CCHyper/tomsons26)
 - Implement light sources for TerrainTypes (by CCHyper/tomsons26)
-- Fix a bug where the agme would crash when attempting to generate a random map if the `Neutral` or `Special` HouseTypes are not found (by CCHyper/tomsons26)
-- Fix a bug where the agme would crash when attempting to generate a random map if there are fewer than 4 HouseTypes defined (by CCHyper/tomsons26)
-- Fix a limitation where the game could only choose between the first two HouseTypes for the AI players (by CCHyper/tomsons26)
 - Add command line options to skip to specific game modes and to skip startup movies (by CCHyper/tomsons26)
 - Implement diagonal scroll commands (by CCHyper/tomsons26)
+- Add keyboard commands for playing previous and next music tracks in the jukebox (by CCHyper/tomsons26)
+- Implement CloakSound and UncloakSound for TechnoTypes (by CCHyper/tomsons26)
+- Restore the screen shake when a strong unit or building is destroyed (by CCHyper/tomsons26)
 
 Vanilla fixes:
 - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively (by CCHyper/tomsons26)
@@ -105,6 +105,10 @@ Vanilla fixes:
 - Fix a bug where `EngineerCaptureLevel` was not considered when checking the target building (by CCHyper/tomsons26)
 - Fix a bug where air transports are unable to land when given a move order (by CCHyper/tomsons26)
 - Fix the position of the health bar graphic on unit selection boxes (by CCHyper/tomsons26)
+- Fix a bug where the agme would crash when attempting to generate a random map if the `Neutral` or `Special` HouseTypes are not found (by CCHyper/tomsons26)
+- Fix a bug where the agme would crash when attempting to generate a random map if there are fewer than 4 HouseTypes defined (by CCHyper/tomsons26)
+- Fix a limitation where the game could only choose between the first two HouseTypes for the AI players (by CCHyper/tomsons26)
+- Fix a bug where the `Cloakable=yes` had no effect on AircraftTypes (by CCHyper/tomsons26)
 
 </details>
 

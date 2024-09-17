@@ -189,6 +189,42 @@ VoiceDeploy=<VocType list>  ; List of voices to use when giving this object a un
 VoiceHarvest=<VocType list>  ; List of voices to use when giving this object a harvest order. Defaults to <none>.
 ```
 
+### Customizable Cloaking Sounds
+
+- Vinifera implements Cloaking and Uncloaking sound overrides to TechnoTypes.
+
+In `RULES.INI`:
+```ini
+[TechnoType]
+CloakSound=<Sound>  ; The sound effect to play when the object is cloaking. Defaults to [AudioVisual]->CloakSound.
+UncloakSound=<Sound>  ; The sound effect to play when the object is decloaking. Defaults to [AudioVisual]->CloakSound.
+```
+
+### Screen Shake on Destruction
+
+- Vinifera restores the screen shake when a strong unit or building is destroyed. In addition to this, it also implements new options to control the amount the screen moves.
+
+In `RULES.INI`:
+```ini
+[TechnoType]
+CanShakeScreen=<boolean>  ; Can this unit or building cause the screen to shake the screen when it dies? Defaults to no.
+```
+
+```{note}
+The object must meet the rules as specified by `[AudioVisual]->ShakeScreen`.
+```
+
+- Shake Screen Controls
+These values are used to shake the screen when the unit or building is destroyed. All of these values default to 0 and do not support negative values.
+In `RULES.INI`:
+```ini
+[TechnoType]
+ShakeYhi=<unsigned integer>  ; The maximum pixel Y value.
+ShakeYlo=<unsigned integer>  ; The minimum pixel Y value.
+ShakeXhi=<unsigned integer>  ; The maximum pixel X value.
+ShakeXlo=<unsigned integer>  ; The minimum pixel X value.
+```
+
 ## Terrain
 
 ### Light Sources

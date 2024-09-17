@@ -69,6 +69,10 @@ This page lists all the individual contributions to the project by their author.
   - Fix a limitation where the game could only choose between the first two HouseTypes for the AI players.
   - Add command line options to skip to specific game modes and to skip startup movies.
   - Implement diagonal scroll commands.
+  - Fix a bug where the `Cloakable=yes` had no effect on AircraftTypes. 
+  - Add keyboard commands for playing previous and next music tracks in the jukebox.
+  - Implement CloakSound and UncloakSound for TechnoTypes.
+  - Restore the screen shake when a strong unit or building is destroyed.
 - **Kerbiter (Metadorius)**:
   - Initial doc setup
 - **Rampastring**:

@@ -19,3 +19,4 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where the agme would crash when attempting to generate a random map if the `Neutral` or `Special` HouseTypes are not found.
 - Fix a bug where the agme would crash when attempting to generate a random map if there are fewer than 4 HouseTypes defined.
 - Fix a limitation where the game could only choose between the first two HouseTypes for the AI players. Now, all HouseTypes with `Multiplay=yes` will be considered.
+- Fix a bug where the `Cloakable=yes` had no effect on AircraftTypes. 
