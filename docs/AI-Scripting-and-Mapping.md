@@ -4,7 +4,8 @@ This page describes all AI scripting and mapping related additions and changes i
 
 ## Bugfixes and Miscellanous
 
-TODO
+- The game now supports reading and using up to 32767 waypoints in scenarios.
+- Tutorial messages are now loaded from scenarios. This can be used to replace/update an existing entry from `TUTORIAL.INI`, or to add a new tutorial message index which can be used by trigger actions.
 
 ## Singleplayer Mission Maps
 

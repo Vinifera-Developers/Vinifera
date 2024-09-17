@@ -41,7 +41,11 @@ This page lists the history of changes across stable Vinifera releases and also 
   <summary>Click to show</summary>
 
 New:
-- Make CurleyShuffle customizable per AircraftType (by CCHyper/tomsons26)
+- Implement CurleyShuffle for AircraftTypes (by CCHyper/tomsons26)
+- Implement ReloadRate for AircraftTypes (by CCHyper/tomsons26)
+- Implement AILegalTarget for TechnoTypes (by CCHyper/tomsons26)
+- Add support for up to 32767 waypoints to be used in scenarios (by CCHyper, tomsons26, ZivDero, secsome)
+- Implement the loading of Tutorial messages from scenarios (by CCHyper/tomsons26)
 
 Vanilla fixes:
 - Fixed something (by someone)
