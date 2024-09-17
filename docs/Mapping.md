@@ -13,7 +13,7 @@ This page describes all mapping-related additions and changes introduced by Vini
 ### Intro Movie
 
 - `IntroMovie` can now be set for campaigns, allowing the customisation of the intro movie that plays before the campaign path starts.
-In a `battle.ini`:
+In `BATTLE.INI`:
 ```ini
 [Campaign]
 IntroMovie=<string>  ; The intro movie name (without the .VQA extension) to play at the start of the campaign? Defaults to <none>.
@@ -22,7 +22,7 @@ IntroMovie=<string>  ; The intro movie name (without the .VQA extension) to play
 ### DebugOnly
 
 - `DebugOnly` can now be set for campaigns, which adds the prefix of "[Debug]" to the campaign description. In addition to this, it also makes the campaign only available Developer mode.
-In a `battle.ini`:
+In `BATTLE.INI`:
 ```ini
 [Campaign]
 DebugOnly=<boolean>  ; Is this campaign only available in Developer mode? Defaults to no.

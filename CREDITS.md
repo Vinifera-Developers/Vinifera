@@ -19,7 +19,34 @@ This page lists all the individual contributions to the project by their author.
   - Implement `IntroMovie` for Campaigns.
   - Fix a bug where the player could issue a harvester to begin harvesting Tiberium that is below a bridge while the mouse is over the bridge itself.
   - Fixes a bug where the values of `RandomRate` were not stored correctly.
-  - Implement DebugOnly for Campaigns.
+  - Implement `DebugOnly` for Campaigns.
+  - Fix a bug where the `FSMENU` theme would incorrectly play instead of the `INTRO` theme when in Tiberian Sun mode after returning to the main menu.
+  - Implement developer commands for instant superweapon recharge.
+  - Add support for PNG images as an alternative to PCX images.
+  - Implement option to display the super weapon recharge timer on the tactical view.
+  - Implement `CanPassiveAcquire` for TechnoTypes.
+  - Implement `CanRetaliate` for TechnoTypes.
+  - Fix a bug where the game would crash when a trigger with the action "Wakeup group..." is executed and the requested Group was not found.
+  - Add loading of `MPLAYER.INI` and `MPLAYERFS.INI` to override Rules data for multiplayer games.
+  - Allow the game's Window title, Cursor and Icon to be overridden.
+  - Implement `IdleRate`, `StartIdleFrame` and `IdleFrames` for TechnoTypes.
+  - Add loading of `GENERIC.MIX` and `ISOGEN.MIX` mixfiles.
+  - The game will no longer fail to start if the startup mix files are not found.
+  - Implement support for new custom theater types.
+  - Add loading of `ELOCAL(00-99).MIX` expansion mixfiles.
+  - Fix a bug where animations with a `DetailLevel` value greater than 2 would not show in-game.
+  - Add Rules INI selection dialog for Developer Mode.
+  - Implement the "Build Off Ally" feature from Red Alert 2.
+  - Adds background fill behind in-game user typed messages.
+  - Fix a bug where `EngineerDamage` was incorrectly loaded with `EngineerCaptureLevel`.
+  - Fix a bug where `EngineerDamage` was not used to calculate the engineer damage.
+  - Fix a bug where `EngineerCaptureLevel` was not considered when checking the target building.
+  - Fix a number of issues related to the "multi-engineer" logic.
+  - Implement JumpCamera (North, South, East and West) commands.
+  - Implement `EnterTransportSound` and `LeaveTransportSound` for TechnoTypes.
+  - Fix a bug where air transports are unable to land when given a move order.
+  - Hardcode shroud and fog graphics to circumvent cheating in multiplayer games.
+  - Implement `Mechanic` and `OmniHealer` for InfantryTypes.
 - **Kerbiter (Metadorius)**:
   - Initial doc setup
 - **Rampastring**:
