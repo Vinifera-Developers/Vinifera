@@ -64,8 +64,8 @@ jobs:
           # Check that Documentation has been updated
           if (git diff --name-only $(git merge-base origin/$BASE_BRANCH HEAD) | \
               grep \
-              -e ^docs/New-or-Enhanced-Logics.md$   \
-              -e ^docs/Fixed-or-Improved-Logics.md$ \
+              -e ^docs/Bugfixes.md$   \
+              -e ^docs/New-or-Enhanced-Logics.md$ \
               -e ^docs/AI-Scripting-and-Mapping.md$ \
               -e ^docs/User-Interface.md$           \
               -e ^docs/Miscellanous.md$             \
