@@ -41,7 +41,7 @@ This page lists the history of changes across stable Vinifera releases and also 
   <summary>Click to show</summary>
 
 New:
-- Added something (by someone)
+- Make CurleyShuffle customizable per AircraftType (by CCHyper/tomsons26)
 
 Vanilla fixes:
 - Fixed something (by someone)
