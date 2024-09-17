@@ -11,8 +11,8 @@ License<License.md>
 ```{toctree}
 :hidden:
 :caption: Extension Documentation
-New / Enhanced Logics<New-or-Enhanced-Logics.md>
-Fixed / Improved Logics<Fixed-or-Improved-Logics.md>
+Bugfixes<Bugfixes.md>
+New Features and Enhancements<New-Features-and-Enhancements.md>
 AI Scripting and Mapping<AI-Scripting-and-Mapping.md>
 User Interface<User-Interface.md>
 Miscellanous<Miscellanous.md>
