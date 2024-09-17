@@ -148,9 +148,10 @@ The random map generator does not currently support new theater types.
 ```
 - <details>
     <summary>Basic `THEATERS.INI`</summary>
+
     ```ini
     ;============================================================================
-    ; THEATER.INI
+    ; THEATERS.INI
     ;
     ; This control file specifies the theater types that are in the game.
     ;
@@ -220,8 +221,9 @@ The random map generator does not currently support new theater types.
     ```
    </details>
 
-   - <details>
+- <details>
     <summary>Sample new theater</summary>
+    
     ```ini
     [TheaterTypes]
     3=DESERT
