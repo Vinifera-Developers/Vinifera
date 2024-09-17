@@ -26,6 +26,24 @@ ReloadRate=<floating point>  ; The rate that this aircraft will reload its ammo 
 
 ## Animations
 
+### Various keys ported from Red Alert 2
+
+- Vinifera implements various AnimType keys from Red Alert 2.
+
+In `ART.INI`:
+```ini
+[AnimType]
+HideIfNoTiberium=<boolean>  ; Should this animation be hidden if the holding cell does not contain Tiberium? Defaults to no.
+ForceBigCraters=<boolean>  ; Are the craters spawned by this animation when it ends much larger than normal? Defaults to no.
+ZAdjust=<integer>  ; Fudge to this animations Z-axis (depth). Positive values move the animation "away from the screen"/"closer to the ground", negative values do the opposite. Defaults to 0.
+Layer=<LayerType>  ; The map layer this animation is in when attached to an object. Defaults to <none>.
+                   ;Available Options: underground, surface, ground, air, and top.
+                   ;NOTE: This will override the value of Surface= which forces a layer of ground.
+SpawnsParticle=<ParticleType>  ; The particle to spawn at the mid-point of this animation. Defaults to <none>.
+                               ; This accepts any entry from the [Particles] list from RULES.INI.
+NumParticles=<integer>  ; The number of particles to spawn (as defined by SpawnsParticle=). Defaults to 0.
+```
+
 ## Buildings
 
 ## Crates
@@ -67,6 +85,16 @@ When an infantry with `Mechanic=yes` and `OmniHealer=yes` is selected and the mo
 ## Particles
 
 ## Projectiles
+
+### SpawnDelay
+
+- Vinifera adds the `SpawnDelay` key from Red Alert 2.
+
+In `RULES.INI`:
+```ini
+[BulletType]
+SpawnDelay=<unsigned integer>  ; The number of frames between each of the spawned trailer animations. Defaults to 3.
+```
 
 ## Super Weapons
 
@@ -129,7 +157,7 @@ IdleFrames=<unsigned integer>  ; The number of image frames for each of the idle
 
 ### EnterTransportSound/LeaveTransportSound
 
-- Vinifera implements EnterTransportSound and LeaveTransportSound from Red Alert 2 for TechnoTypes.
+- Vinifera implements `EnterTransportSound` and `LeaveTransportSound` from Red Alert 2 for TechnoTypes.
 
 In `RULES.INI`:
 ```ini
@@ -138,7 +166,45 @@ EnterTransportSound=<VocType>  ; The sound effect to play when a passenger enter
 LeaveTransportSound=<VocType>  ; The sound effect to play when a passenger leaves this unit. Defaults to <none>.
 ```
 
+### Soylent
+
+- Vinifera adds the `Soylent` key from Red Alert 2.
+
+In `RULES.INI`:
+```ini
+[TechnoType]
+Soylent=<unsigned integer>  ; The refund value for the unit when it is sold at a Service Depot, or a building when sold by the player. Defaults to 0 (uses normal refund amount logic).
+```
+
+### New Voice Responses
+
+- Vinifera implements various TechnoTypes keys from Red Alert 2 for adding new voice responses.
+
+In `RULES.INI`:
+```ini
+[TechnoType]
+VoiceCapture=<VocType list>  ; List of voices to use when giving this object a capture order. Defaults to <none>.
+VoiceEnter=<VocType list>  ; List of voices to use when giving this object an enter order (ie, transport, infiltrate building). Defaults to <none>.
+VoiceDeploy=<VocType list>  ; List of voices to use when giving this object a unload order. Defaults to <none>.
+VoiceHarvest=<VocType list>  ; List of voices to use when giving this object a harvest order. Defaults to <none>.
+```
+
 ## Terrain
+
+### Light Sources
+
+- Vinifera implements light sources for TerrainTypes.
+
+In `RULES.INI`:
+```ini
+[TerrainType]
+IsLightEnabled=<boolean>  ; Does this terrain object emit light? (default false).
+LightVisibility=<integer>  ; This terrain object radiates this amount of light (default 5000).
+LightIntensity=<float>  ; The distance that this light is visible from (default 0).
+LightRedTint=<float>  ; The red tint of this terrain objects light (default 1.0).
+LightGreenTint=<float>  ; The green tint of this terrain objects light (default 1.0).
+LightBlueTint=<float>  ; The blue tint of this terrain objects light (default 1.0).
+```
 
 ## Theaters
 
@@ -264,3 +330,42 @@ RequiredAddon=<AddonType>  ; The addon required to be active for this theme to b
 ## Warheads
 
 ## Weapons
+
+### Electric Bolts
+
+- Vinifera implements the Electric Bolt (aka. "Tesla Bolts") weapon effect from Red Alert 2, with additional controls.
+
+In `RULES.INI`:
+```ini
+[WeaponType]
+IsElectricBolt=<boolean>  ; Is this weapon an electric bolt? This is required to enable the drawing feature. Defaults to no.
+                     ; Electric bolts are made up of 3 lines, these values define the colours for each of the lines.
+EBoltColor1=<r,g,b>  ; Defaults to 255,255,255.
+EBoltColor2=<r,g,b>  ; Defaults to 82,81,255.
+EBoltColor3=<r,g,b>  ; Defaults to 82,81,255.
+EBoltSegmentCount=<integer>  ; How many segment blocks should the electric bolt be made up from. A larger number will give a more "wild" effect. Defaults to 8.
+EBoltLifetime=<integer>  ; The lifetime of the electric bolt graphic in game frames. Defaults to 17.
+EBoltIterations=<integer>  ; How many draw iterations should the system perform? Defaults to 1.
+EBoltDeviation=<float>  ; The maximum deviation from a straight line the electric bolts can be. A value of 0.0 will draw straight lines. Defaults to 1.0.
+```
+
+```{warning}
+Electric bolts are currently known to potentially cause issues on save/load.
+```
+
+![GIF 08-09-2021 19-17-13](https://user-images.githubusercontent.com/73803386/132563132-7ebb771f-8acf-4ee2-ba4b-8dfa8a01de8f.gif)
+
+### Suicide
+
+- Vinifera adds the `Suicide` key or WeaponTypes from Red Alert 2, and adds an additional control `DeleteOnSuicide` for alternative behaviour.
+
+In `RULES.INI`:
+```ini
+[WeaponType]
+Suicide=<boolean>  ; Will the firing unit commit suicide when this weapon is fired? Defaults to no.
+DeleteOnSuicide=<boolean>  ; Logical option for Suicide=yes which will instantly remove the unit from the game world instead of dealing full damage. Defaults to no.
+```
+
+```{note}
+`DeleteOnSuicide=yes` mimicks Red Alert 2 behavior.
+```

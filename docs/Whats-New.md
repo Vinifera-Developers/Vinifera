@@ -69,7 +69,28 @@ New:
 - Implement JumpCamera (North, South, East and West) commands (by CCHyper/tomsons26)
 - Implement `EnterTransportSound` and `LeaveTransportSound` for TechnoTypes (by CCHyper/tomsons26)
 - Hardcode shroud and fog graphics to circumvent cheating in multiplayer games (by CCHyper/tomsons26)
-- Implement `Mechanic` and `OmniHealer` for InfantryTypes.
+- Implement `Mechanic` and `OmniHealer` for InfantryTypes (by CCHyper/tomsons26)
+- Add support for 8-bit PCX and PNG cameos (by CCHyper/tomsons26)
+- Implement `Soylent` for TechnoTypes (by CCHyper/tomsons26)
+- Implement `SpawnDelay` for BulletTypes (by CCHyper/tomsons26)
+- Implement `Suicide` and `DeleteOnSuicide` for WeaponTypes (by CCHyper/tomsons26)
+- Implement `VoiceHarvest`, `VoiceDeploy`, `VoiceEnter`, and `VoiceCapture` for TechnoTypes (by CCHyper/tomsons26)
+- Implement various Red Alert 2 AnimType features (by CCHyper/tomsons26)
+- Add game options to allow MCV's to auto-deploy on game start and to pre-place construction yards instead of spawning an MCV (by CCHyper/tomsons26)
+- Add developer commands for placing and removing Tiberium from a cell (by CCHyper/tomsons26)
+- Implement Electric Bolts for WeaponTypes (by CCHyper/tomsons26)
+- Make the position of the health bar graphic on unit selection boxes customizable (by CCHyper/tomsons26)
+- Output screenshots to their own sub-directory (by CCHyper/tomsons26)
+- Echo the user's sent messages back to them as confirmation they were sent (by CCHyper/tomsons26)
+- Reimplement the command line argument `-CD` from Red Alert to allow file search path override logic (by CCHyper/tomsons26)
+- Allow the score screen to be skipped at the end of a multiplayer game (by CCHyper/tomsons26)
+- Add warning notification if a NULL house instance is detected during the game loading screen (by CCHyper/tomsons26)
+- Implement light sources for TerrainTypes (by CCHyper/tomsons26)
+- Fix a bug where the agme would crash when attempting to generate a random map if the `Neutral` or `Special` HouseTypes are not found (by CCHyper/tomsons26)
+- Fix a bug where the agme would crash when attempting to generate a random map if there are fewer than 4 HouseTypes defined (by CCHyper/tomsons26)
+- Fix a limitation where the game could only choose between the first two HouseTypes for the AI players (by CCHyper/tomsons26)
+- Add command line options to skip to specific game modes and to skip startup movies (by CCHyper/tomsons26)
+- Implement diagonal scroll commands (by CCHyper/tomsons26)
 
 Vanilla fixes:
 - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively (by CCHyper/tomsons26)
@@ -83,9 +104,7 @@ Vanilla fixes:
 - Fix a bug where `EngineerDamage` was not used to calculate the engineer damage (by CCHyper/tomsons26)
 - Fix a bug where `EngineerCaptureLevel` was not considered when checking the target building (by CCHyper/tomsons26)
 - Fix a bug where air transports are unable to land when given a move order (by CCHyper/tomsons26)
-
-Fixes / interactions with TS Patches:
-- Fixed something (by someone)
+- Fix the position of the health bar graphic on unit selection boxes (by CCHyper/tomsons26)
 
 </details>
 

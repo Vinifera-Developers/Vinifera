@@ -47,6 +47,28 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where air transports are unable to land when given a move order.
   - Hardcode shroud and fog graphics to circumvent cheating in multiplayer games.
   - Implement `Mechanic` and `OmniHealer` for InfantryTypes.
+  - Add support for 8-bit PCX and PNG cameos.
+  - Implement `Soylent` for TechnoTypes.
+  - Implement `SpawnDelay` for BulletTypes.
+  - Implements `Suicide` and `DeleteOnSuicide` for WeaponTypes.
+  - Implement`VoiceHarvest`, `VoiceDeploy`, `VoiceEnter`, and `VoiceCapture` for TechnoTypes.
+  - Implement various Red Alert 2 AnimType features.
+  - Add game options to allow MCV's to auto-deploy on game start and to pre-place construction yards instead of spawning an MCV.
+  - Add developer commands for placing and removing Tiberium from a cell.
+  - Implement Electric Bolts for WeaponTypes.
+  - Fix the position of the health bar graphic on unit selection boxes.
+  - Make the position of the health bar graphic on unit selection boxes customizable.
+  - Output screenshots to their own sub-directory.
+  - Echo the user's sent messages back to them as confirmation they were sent.
+  - Reimplement the command line argument `-CD` from Red Alert to allow file search path override logic.
+  - Allow the score screen to be skipped at the end of a multiplayer game.
+  - Add warning notification if a NULL house instance is detected during the game loading screen.
+  - Implement light sources for TerrainTypes.
+  - Fix a bug where the agme would crash when attempting to generate a random map if the `Neutral` or `Special` HouseTypes are not found.
+  - Fix a bug where the agme would crash when attempting to generate a random map if there are fewer than 4 HouseTypes defined.
+  - Fix a limitation where the game could only choose between the first two HouseTypes for the AI players.
+  - Add command line options to skip to specific game modes and to skip startup movies.
+  - Implement diagonal scroll commands.
 - **Kerbiter (Metadorius)**:
   - Initial doc setup
 - **Rampastring**:
