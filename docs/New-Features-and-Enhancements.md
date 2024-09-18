@@ -140,7 +140,7 @@ In `RULES.INI`:
 CanPassiveAcquire=<boolean>  ; Can this object acquire targets that are within its weapons range and attack them automatically? Defaults to yes.
 ```
 ```{note}
-This key has a spelling error for "Acquire" and should be `CanPassiveAcquire`.
+In Red Alert 2, this key has a spelling error for "Acquire", spelling it as "Aquire". This has been fixed in Vinifera.
 ```
 
 ### CanRetaliate
