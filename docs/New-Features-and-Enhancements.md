@@ -426,7 +426,7 @@ StartTurretFrame=<integer>  ; The starting turret frame index, allowing them to 
 TurretFacings=<integer>  ; The turret facing count. Defaults to 32.
 ```
 
-- Additionally, the `Anim=` INI key for WeaponTypes will now read the number of entries that matches the firing objects Facings= entry.
+- Additionally, the `Anim=` INI key for WeaponTypes will now read the number of entries that matches the firing object's Facings= entry.
 - Because of the new extended facing support, it was observed that the buffer size was too small and has now been increased to allow a larger entry to accommodate a larger facing count.
 
 ## Warheads
