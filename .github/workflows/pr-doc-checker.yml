@@ -65,10 +65,10 @@ jobs:
           if (git diff --name-only $(git merge-base origin/$BASE_BRANCH HEAD) | \
               grep \
               -e ^docs/Bugfixes.md$   \
-              -e ^docs/New-or-Enhanced-Logics.md$ \
-              -e ^docs/AI-Scripting-and-Mapping.md$ \
-              -e ^docs/User-Interface.md$           \
-              -e ^docs/Miscellanous.md$             \
+              -e ^docs/New-Features-and-Enhancements.md$ \
+              -e ^docs/Mapping.md$ \
+              -e ^docs/User-Interface.md$ \
+              -e ^docs/Miscellaneous.md$ \
           )
           then
             echo "Thank you for remembering to add your changes to the docs! 😋"
