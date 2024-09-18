@@ -50,6 +50,9 @@ class UIControlsClass
 
         bool Read_INI(CCINIClass &ini);
 
+        /**
+         *  Helper to get the group number drawing offset based on the object type.
+         */
         TPoint2D<int> Get_Group_Number_Offset(RTTIType type, bool has_pip) const
         {
             switch (type)
@@ -71,6 +74,9 @@ class UIControlsClass
             }
         }
 
+        /**
+         *  Helper to get the veterancy pip drawing offset based on the object type.
+         */
         TPoint2D<int> Get_Veterancy_Pip_Offset(RTTIType type) const
         {
             switch (type)
@@ -92,6 +98,9 @@ class UIControlsClass
             }
         }
 
+        /**
+         *  Helper to get the special pip drawing offset based on the object type.
+         */
         TPoint2D<int> Get_Special_Pip_Offset(RTTIType type) const
         {
             switch (type)
