@@ -77,8 +77,6 @@ ProduceCashResetOnCapture=<boolean>  ; Reset the buildings available budget when
 ProduceCashStartupOneTime=<boolean>  ; Is the bonus on capture a "one one" special (further captures will not get the bonus)? Defaults to false.
 ```
 
-## Crates
-
 ## Ice
 
 - Ice strength can now be customized.
@@ -111,10 +109,6 @@ OmniHealer=<boolean>  ; Should this infantry consider other infantry, unit, and 
 When an infantry with `Mechanic=yes` and `OmniHealer=yes` is selected and the mouse is over a transport unit or aircraft, holding down the `Alt` key (Force Move) will allow you to enter the transport instead of healing it.
 ```
 
-## Particle Systems
-
-## Particles
-
 ## Projectiles
 
 ### SpawnDelay
@@ -126,8 +120,6 @@ In `RULES.INI`:
 [BulletType]
 SpawnDelay=<unsigned integer>  ; The number of frames between each of the spawned trailer animations. Defaults to 3.
 ```
-
-## Super Weapons
 
 ## Technos
 
@@ -403,8 +395,6 @@ In `THEME.INI`:
 [ThemeType]
 RequiredAddon=<AddonType>  ; The addon required to be active for this theme to be available. Currently, only 1 (Firestorm) is supported. Defaults to 0 (none).
 ```
-
-## Tiberiums
 
 ## Vehicles
 
