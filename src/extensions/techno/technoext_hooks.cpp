@@ -87,7 +87,7 @@ public:
  *           09/10/1996 JLB - Medic hack for red pip.
  *           ZivDero - Adjustments for Tiberian Sun.
  */
-void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect& rect) const
+void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect) const
 {
     int drawx = bottomleft.X + 6;
     int drawy = bottomleft.Y - 1;
@@ -294,7 +294,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect&
 
         if (veterancy_shape != -1)
         {
-            Point2D drawpoint = bottomright;
+            Point2D drawpoint = center;
             drawpoint += UIControls->Get_Veterancy_Pip_Offset((RTTIType)What_Am_I());
             CC_Draw_Shape(LogicSurface, NormalDrawer, pips1, veterancy_shape, &drawpoint, &rect, SHAPE_WIN_REL | SHAPE_CENTER);
         }
