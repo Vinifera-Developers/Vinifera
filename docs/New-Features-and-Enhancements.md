@@ -254,7 +254,7 @@ ShakeXlo=<unsigned integer>  ; The minimum pixel X value.
 
 ### ImmuneToEMP
 
-- Vinifera allows specific TEchnoTypes to be immune to EMP effects.
+- Vinifera allows specific TechnoTypes to be immune to EMP effects.
 
 In `RULES.INI`:
 ```ini
