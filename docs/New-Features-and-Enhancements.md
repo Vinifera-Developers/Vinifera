@@ -175,7 +175,7 @@ StartIdleFrame=<unsigned integer>  ; The starting frame for the idle animation i
 IdleFrames=<unsigned integer>  ; The number of image frames for each of the idle animation sequences. Defaults to the value of WalkFrames.
 ```
 
-### EnterTransportSound/LeaveTransportSound
+### Transport Sounds
 
 - Vinifera implements `EnterTransportSound` and `LeaveTransportSound` from Red Alert 2 for TechnoTypes.
 
