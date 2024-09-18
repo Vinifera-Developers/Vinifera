@@ -62,4 +62,13 @@ TiberiumClassExtension final : public AbstractTypeClassExtension
         virtual bool Read_INI(CCINIClass &ini) override;
 
     public:
+        /**
+         *  The index of the pip shape to be drawn for this Tiberium.
+         */
+        int PipIndex;
+
+        /**
+         *  The order in which this Tiberium appears when pips are drawn.
+         */
+        int PipDrawOrder;
 };

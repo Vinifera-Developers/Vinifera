@@ -26,6 +26,9 @@
  *
  ******************************************************************************/
 #include "technoext_hooks.h"
+
+#include <vector>
+
 #include "technoext.h"
 #include "techno.h"
 #include "technotype.h"
@@ -39,6 +42,7 @@
 #include "housetype.h"
 #include "rules.h"
 #include "rulesext.h"
+#include "tiberium.h"
 #include "uicontrol.h"
 #include "infantry.h"
 #include "infantrytype.h"
@@ -48,10 +52,255 @@
 #include "extension.h"
 #include "fatal.h"
 #include "asserthandler.h"
+#include "buildingext.h"
 #include "debughandler.h"
+#include "drawshape.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "textprint.h"
+#include "tiberiumext.h"
+#include "unittype.h"
+
+
+/**
+  *  A fake class for implementing new member functions which allow
+  *  access to the "this" pointer of the intended class.
+  *
+  *  @note: This must not contain a constructor or destructor.
+  *
+  *  @note: All functions must not be virtual and must also be prefixed
+  *         with "_" to prevent accidental virtualization.
+  */
+class TechnoClassExt : public TechnoClass
+{
+public:
+    void _Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect& rect) const;
+};
+
+
+/**
+ *  Draw the pips of this Techno.
+ *
+ *  @author: 08/08/1995 JLB - Created.                       
+ *           10/06/1995 JLB - Displays the team group number.
+ *           09/10/1996 JLB - Medic hack for red pip.
+ *           ZivDero - Adjustments for Tiberian Sun.
+ */
+void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect) const
+{
+    int drawx = bottomleft.X + 6;
+    int drawy = bottomleft.Y - 1;
+    int dx = 4;
+    int dy = 2;
+
+    const ShapeFileStruct* pip_shapes = Class_Of()->PipShapes;
+    const ShapeFileStruct* pips1 = Class_Of()->PipShapes;
+    const ShapeFileStruct* pips2 = Class_Of()->Pip2Shapes;
+
+    if (What_Am_I() != RTTI_BUILDING)
+    {
+        drawx = bottomleft.X - 5;
+        drawy = bottomleft.Y;
+        dx = 4;
+        dy = 0;
+        pip_shapes = pips2;
+    }
+
+    /*
+    **  Because of ts-patches we have to check if the object is selected,
+    **  or we'll draw pips for unselected objects
+    */
+    if (IsSelected)
+    {
+        /*
+        **  Transporter type objects have a different graphic representation for the pips. The
+        **  pip color represents the type of occupant.
+        */
+        const bool carrying_passengers = Techno_Type_Class()->Max_Passengers() > 0;
+        if (carrying_passengers)
+        {
+            ObjectClass const* object = Cargo.Attached_Object();
+            for (int index = 0; index < Class_Of()->Max_Pips(); index++)
+            {
+                int pip = 0;
+
+                if (object != nullptr)
+                {
+                    pip = 1;
+                    if (object->What_Am_I() == RTTI_INFANTRY)
+                    {
+                        pip = ((InfantryClass*)object)->Class->Pip;
+                    }
+                    object = object->Next;
+                }
+                CC_Draw_Shape(LogicSurface, NormalDrawer, pip_shapes, pip, &Point2D(drawx + dx * index, drawy + dy * index), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
+            }
+
+        }
+        else
+        {
+            /*
+            **  Display number of how many attached objects there are. This is also used
+            **  to display the fullness rating for a harvester.
+            */
+            int pips = Pip_Count();
+
+            /*
+            **  Check if it contains Tiberium to show the right type of pips for the
+            **  various minerals it could have stored.
+            */
+            if ((What_Am_I() == RTTI_UNIT || What_Am_I() == RTTI_BUILDING) && Techno_Type_Class()->PipScale == PIP_TIBERIUM)
+            {
+                TechnoTypeClass* technotype = Techno_Type_Class();
+
+                std::vector<int> pips_to_draw;
+
+                /*
+                **  Weeders/Waste Facilities draw all their contents with the Weed pip.
+                */
+                if ((technotype->What_Am_I() == RTTI_UNITTYPE && ((UnitTypeClass*)technotype)->IsToVeinHarvest) ||
+                    (technotype->What_Am_I() == RTTI_BUILDINGTYPE && ((BuildingTypeClass*)technotype)->IsWeeder))
+                {
+                    /*
+                    **  Add the pips to draw to a vector.
+                    */
+                    for (int i = 0; i < pips; i++)
+                        pips_to_draw.push_back(RuleExtension->WeedPipIndex);
+                }
+                else
+                {
+                    /*
+                    **  The first element is the sorting order, second element is the Tiberium ID.
+                    */
+                    std::vector<std::tuple<int, int>> tibtypes;
+
+                    /*
+                    **  Add all the Tiberiums and sort.
+                    */
+                    for (int i = 0; i < Tiberiums.Count(); i++)
+                        tibtypes.push_back(std::make_tuple(Extension::Fetch<TiberiumClassExtension>(Tiberiums[i])->PipDrawOrder, i));
+
+                    std::stable_sort(tibtypes.begin(), tibtypes.end());
+
+                    /*
+                    **  Add all the pips to draw to a vector.
+                    */
+                    for (auto& tibtuple : tibtypes)
+                    {
+                        const double amount = Storage.Get_Amount((TiberiumType)std::get<1>(tibtuple));
+                        const double fraction = amount / technotype->Storage;
+                        const int pip_count = technotype->Max_Pips() * fraction + 0.5;
+
+                        int piptype = Extension::Fetch<TiberiumClassExtension>(Tiberiums[std::get<1>(tibtuple)])->PipIndex;
+                        for (int i = 0; i < pip_count; i++)
+                            pips_to_draw.push_back(piptype);
+                    }
+                }
+
+                for (int index = 0; index < Class_Of()->Max_Pips(); index++)
+                {
+                    int shape = 0;
+                    if (index < pips_to_draw.size())
+                    {
+                        shape = pips_to_draw[index];
+                    }
+                    CC_Draw_Shape(LogicSurface, NormalDrawer, pip_shapes, shape, &Point2D(drawx + dx * index, drawy + dy * index), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
+                }
+            }
+            else if (Techno_Type_Class()->PipScale == PIP_AMMO)
+            {
+                for (int index = 0; index < Class_Of()->Max_Pips() && pips > 0; index++, pips--)
+                {
+                    CC_Draw_Shape(LogicSurface, NormalDrawer, pips2, 6, &Point2D(drawx + dx * index, drawy + dy * index - 3), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
+                }
+            }
+            else if (Techno_Type_Class()->PipScale == PIP_CHARGE)
+            {
+                for (int index = 0; index < Class_Of()->Max_Pips(); index++)
+                {
+                    CC_Draw_Shape(LogicSurface, NormalDrawer, pip_shapes, index < pips ? 1 : 0, &Point2D(drawx + dx * index, drawy + dy * index), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
+                }
+            }
+        }
+
+        /*
+        **  Display what group this unit belongs to. This corresponds to the team
+        **  number assigned with the <CTRL> key.
+        */
+        if (Group < 10)
+        {
+            char buffer[12];
+
+            Point2D drawpoint = bottomleft;
+            drawpoint += UIControls->Get_Group_Number_Offset((RTTIType)What_Am_I(), Class_Of()->Max_Pips() > 0);
+
+            int group = Group + 1;
+
+            if (group == 10)
+                group = 0;
+
+            snprintf(buffer, ARRAY_SIZE(buffer), "%d", group >= 10 ? 0 : group);
+            Plain_Text_Print(buffer, LogicSurface, &rect, &drawpoint, COLOR_WHITE, COLOR_TBLACK, TPF_FULLSHADOW | TPF_EFNT, COLORSCHEME_NONE, 1);
+        }
+    }
+
+    /*
+    **  Because of ts-patches we have to check if the object is discovered by the player,
+    **  or we'll draw pips for shrouded objects
+    */
+    if (IsDiscoveredByPlayer)
+    {
+        /*
+        **  Special hack to display a red pip on the medic,
+        **  or a custom pip.
+        */
+        const int specialpip = Extension::Fetch<TechnoTypeClassExtension>(Techno_Type_Class())->SpecialPipIndex;
+        if (specialpip >= 0)
+        {
+            CC_Draw_Shape(LogicSurface, NormalDrawer, pips1, specialpip, &(Point2D(drawx, drawy) + UIControls->Get_Special_Pip_Offset((RTTIType)What_Am_I())), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
+        }
+        else if (What_Am_I() == RTTI_INFANTRY && Combat_Damage() < 0)
+        {
+            CC_Draw_Shape(LogicSurface, NormalDrawer, pips1, 6, &(Point2D(drawx, drawy) + UIControls->Get_Special_Pip_Offset((RTTIType)What_Am_I())), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
+        }
+
+        /*
+        **	Display whether this unit is a leader unit or not.
+        */
+        if (What_Am_I() != RTTI_BUILDING)
+        {
+            this->entry_338(Point2D(bottomleft.X - 10, bottomleft.Y + 10), bottomleft, rect);
+        }
+
+        /*
+        **  Display a veterancy pip is the unit is promoted.
+        */
+        int veterancy_shape = -1;
+        if (Veterancy.Is_Veteran())
+        {
+            veterancy_shape = 7;
+        }
+
+        if (Veterancy.Is_Elite())
+        {
+            veterancy_shape = 8;
+        }
+
+        if (Veterancy.Is_Dumbass())
+        {
+            veterancy_shape = 12;
+        }
+
+        if (veterancy_shape != -1)
+        {
+            Point2D drawpoint = center;
+            drawpoint += UIControls->Get_Veterancy_Pip_Offset((RTTIType)What_Am_I());
+            CC_Draw_Shape(LogicSurface, NormalDrawer, pips1, veterancy_shape, &drawpoint, &rect, SHAPE_WIN_REL | SHAPE_CENTER);
+        }
+    }
+}
+
 
 
  /**
@@ -756,4 +1005,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x00631223, &_TechnoClass_Fire_At_Electric_Bolt_Patch);
     Patch_Jump(0x00636F09, &_TechnoClass_Is_Allowed_To_Retaliate_Can_Retaliate_Patch);
     Patch_Jump(0x0062D4CA, &_TechnoClass_Evaluate_Object_Is_Legal_Target_Patch);
+    Patch_Jump(0x00637540, &TechnoClassExt::_Draw_Pips);
 }

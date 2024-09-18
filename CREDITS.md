@@ -130,3 +130,10 @@ This page lists all the individual contributions to the project by their author.
 - **ZivDero**:
   - Filling the documentation for previously implemented features.
   - Add support for up to 32767 waypoints to be used in scenarios.
+  - Allow customizing the pips used for Tiberiums in unit storage, as well as their draw order.
+  - Buildings now show their storage with the proper pips, instead of showing pip 1 for all tiberiums.
+  - The pip used to diplay weeds can now be customized via `[AudioVisual]->WeedPipIndex`.
+  - Technos can have a custom pip be drawn in the same place as the medic pip using `[TechnoType]->SpecialPipIndex`.
+  - The location of the control group number and veterancy pips can now be customized in `UI.ini`.
+  - MaxPips can now we customized.
+

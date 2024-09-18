@@ -50,7 +50,23 @@ UIControlsClass::UIControlsClass() :
     UnitHealthBarDrawPos(-25, -16), // Y was -15
     InfantryHealthBarDrawPos(-24, -5),
     IsTextLabelOutline(true),
-    TextLabelBackgroundTransparency(50)
+    TextLabelBackgroundTransparency(50),
+    UnitGroupNumberOffset(-4, -4),
+    InfantryGroupNumberOffset(-4, -4),
+    BuildingGroupNumberOffset(-4, -4),
+    AircraftGroupNumberOffset(-4, -4),
+    UnitWithPipGroupNumberOffset(-4, -8),
+    InfantryWithPipGroupNumberOffset(-4, -8),
+    BuildingWithPipGroupNumberOffset(-4, -8),
+    AircraftWithPipGroupNumberOffset(-4, -8),
+    UnitVeterancyPipOffset(10, 6),
+    InfantryVeterancyPipOffset(5, 2),
+    BuildingVeterancyPipOffset(10, 6),
+    AircraftVeterancyPipOffset(10, 6),
+    UnitSpecialPipOffset(0, -8),
+    InfantrySpecialPipOffset(0, -8),
+    BuildingSpecialPipOffset(0, -8),
+    AircraftSpecialPipOffset(0, -8)
 {
 }
 
@@ -89,6 +105,23 @@ bool UIControlsClass::Read_INI(CCINIClass &ini)
 
     IsTextLabelOutline = ini.Get_Bool(INGAME, "TextLabelOutline", IsTextLabelOutline);
     TextLabelBackgroundTransparency = ini.Get_Int_Clamp(INGAME, "TextLabelBackgroundTransparency", 0, 100, TextLabelBackgroundTransparency);
+
+    UnitGroupNumberOffset = ini.Get_Point(INGAME, "UnitGroupNumberOffset", UnitGroupNumberOffset);
+    InfantryGroupNumberOffset = ini.Get_Point(INGAME, "InfantryGroupNumberOffset", InfantryGroupNumberOffset);
+    BuildingGroupNumberOffset = ini.Get_Point(INGAME, "BuildingGroupNumberOffset", BuildingGroupNumberOffset);
+    AircraftGroupNumberOffset = ini.Get_Point(INGAME, "AircraftGroupNumberOffset", AircraftGroupNumberOffset);
+    UnitWithPipGroupNumberOffset = ini.Get_Point(INGAME, "UnitWithPipGroupNumberOffset", UnitWithPipGroupNumberOffset);
+    InfantryWithPipGroupNumberOffset = ini.Get_Point(INGAME, "InfantryWithPipGroupNumberOffset", InfantryWithPipGroupNumberOffset);
+    BuildingWithPipGroupNumberOffset = ini.Get_Point(INGAME, "BuildingWithPipGroupNumberOffset", BuildingWithPipGroupNumberOffset);
+    AircraftWithPipGroupNumberOffset = ini.Get_Point(INGAME, "AircraftWithPipGroupNumberOffset", AircraftWithPipGroupNumberOffset);
+    UnitVeterancyPipOffset = ini.Get_Point(INGAME, "UnitVeterancyPipOffset", UnitVeterancyPipOffset);
+    InfantryVeterancyPipOffset = ini.Get_Point(INGAME, "InfantryVeterancyPipOffset", InfantryVeterancyPipOffset);
+    BuildingVeterancyPipOffset = ini.Get_Point(INGAME, "BuildingVeterancyPipOffset", BuildingVeterancyPipOffset);
+    AircraftVeterancyPipOffset = ini.Get_Point(INGAME, "AircraftVeterancyPipOffset", AircraftVeterancyPipOffset);
+    UnitSpecialPipOffset = ini.Get_Point(INGAME, "UnitSpecialPipOffset", UnitSpecialPipOffset);
+    InfantrySpecialPipOffset = ini.Get_Point(INGAME, "InfantrySpecialPipOffset", InfantrySpecialPipOffset);
+    BuildingSpecialPipOffset = ini.Get_Point(INGAME, "BuildingSpecialPipOffset", BuildingSpecialPipOffset);
+    AircraftSpecialPipOffset = ini.Get_Point(INGAME, "AircraftSpecialPipOffset", AircraftSpecialPipOffset);
 
     return true;
 }

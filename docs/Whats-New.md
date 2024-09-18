@@ -119,6 +119,12 @@ New:
 - Implement CnCNet4 support (by CCHyper/tomsons26)
 - Implement CnCNet5 support (by CCHyper/tomsons26)
 - Adds keyboard commands to reproduce the last items that were built (by CCHyper/tomsons26)
+- Allow customizing the pips used for Tiberiums in unit storage, as well as their draw order (by ZivDero)
+- Buildings now show their storage with the proper pips, instead of showing pip 1 for all tiberiums (by ZivDero)
+- The pip used to diplay weeds can now be customized via `[AudioVisual]->WeedPipIndex` (by ZivDero)
+- Technos can have a custom pip be drawn in the same place as the medic pip using `[TechnoType]->SpecialPipIndex` (by ZivDero)
+- The location of the control group number and veterancy pips can now be customized in `UI.ini` (by ZivDero)
+- MaxPips can now we customized (by ZivDero)
 
 Vanilla fixes:
 - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively (by CCHyper/tomsons26)

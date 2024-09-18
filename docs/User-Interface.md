@@ -131,6 +131,54 @@ UnitHealthBarPos=<x,y>  ; The draw position of the unit health bar (Defaults to 
 InfantryHealthBarPos=<x,y>  ; The draw position of the infantry health bar (Defaults to -24,-5)
 ```
 
+### Unit Pips
+
+- The location of the control group number and veterancy pips can now be customized.
+
+In `UI.INI`:
+```ini
+[Ingame]
+UnitGroupNumberOffset=<x,y>  ; Defaults to -4,-4
+InfantryGroupNumberOffset=<x,y>  ; Defaults to -4,-4
+BuildingGroupNumberOffset=<x,y>  ; Defaults to -4,-4
+AircraftGroupNumberOffset=<x,y>  ; Defaults to -4,-4
+UnitWithPipGroupNumberOffset=<x,y>  ; Defaults to -4,-8
+InfantryWithPipGroupNumberOffset=<x,y>  ; Defaults to -4,-8
+BuildingWithPipGroupNumberOffset=<x,y>  ; Defaults to -4,-8
+AircraftWithPipGroupNumberOffset=<x,y>  ; Defaults to -4,-8
+UnitVeterancyPipOffset=<x,y>  ; Defaults to 10,6
+InfantryVeterancyPipOffset=<x,y>  ; Defaults to 5,4
+BuildingVeterancyPipOffset=<x,y>  ; Defaults to 10,6
+AircraftVeterancyPipOffset=<x,y>  ; Defaults to 10,6
+UnitSpecialPipOffset=<x,y>  ; Defaults to 0,-8
+InfantrySpecialPipOffset=<x,y>  ; Defaults to 0,-8
+BuildingSpecialPipOffset=<x,y>  ; Defaults to 0,-8
+AircraftSpecialPipOffset=<x,y>  ; Defaults to 0,-8
+```
+
+- TS Patches changes some of the default values. Below are the values that match them:
+
+In `UI.INI`:
+```ini
+[Ingame]
+UnitGroupNumberOffset=-8,-33
+InfantryGroupNumberOffset=-8,-33
+BuildingGroupNumberOffset=-8,-33
+AircraftGroupNumberOffset=-8,-33
+UnitWithPipGroupNumberOffset=-8,-33
+InfantryWithPipGroupNumberOffset=-8,-33
+BuildingWithPipGroupNumberOffset=-8,-33
+AircraftWithPipGroupNumberOffset=-8,-33
+```
+
+- You can also customize how many pips can be drawn per PipScale.
+
+In `RULES.INI`:
+```ini
+[AudioVisual]
+MaxPips=<list of integers>  ; Ammo, Tiberium, Passengers, Power, Charge. Defaults to 5,5,5,10,8.
+```
+
 ## Tooltips
 
 ## Miscellanous
