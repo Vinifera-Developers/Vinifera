@@ -102,8 +102,8 @@ Attached is a set of the original loading screens with a minor edit and saved as
 - Super Weapon timers, similar to those found in Red Alert 2, can now be displayed on the tactical view. This is disabled by default and each relevant SuperWeaponType must have it enabled. Superweapons that are offline due to low power or are disabled via other purposes will not show.
 In `RULES.INI`:
 ```ini
-[SuperWeaponType]
-ShowTimer=<boolean>  ; When this superweapon is active, does its recharge timer display on the tactical view? Defaults to no.
+[SOMESUPERWEAPON]  ; SuperWeaponType
+ShowTimer=no       ; boolean, when this superweapon is active, does its recharge timer display on the tactical view?
 ```
 
 ### Chat Improvements
@@ -116,8 +116,8 @@ ShowTimer=<boolean>  ; When this superweapon is active, does its recharge timer 
 In `UI.INI`:
 ```ini
 [Ingame]
-TextLabelOutline=<boolean>  ; Should the text be drawn with a black outline? Defaults to yes.
-TextLabelBackgroundTransparency=<unsigned integer>  ; The transparency of the text background fill. Ranged between 0 and 100. Defaults to 50.
+TextLabelOutline=yes                ; boolean, should the text be drawn with a black outline?
+TextLabelBackgroundTransparency=50  ; unsigned integer, the transparency of the text background fill. Ranged between 0 and 100.
 ```
 
 ### Unit Health Bar
@@ -127,8 +127,8 @@ TextLabelBackgroundTransparency=<unsigned integer>  ; The transparency of the te
 In `UI.INI`:
 ```ini
 [Ingame]
-UnitHealthBarPos=<x,y>  ; The draw position of the unit health bar (Defaults to -25,-16)
-InfantryHealthBarPos=<x,y>  ; The draw position of the infantry health bar (Defaults to -24,-5)
+UnitHealthBarPos=-25,-16     ; Point2D, the draw position of the unit health bar
+InfantryHealthBarPos=-24,-5  ; Point2D, the draw position of the infantry health bar
 ```
 
 ### Unit Pips
@@ -138,22 +138,25 @@ InfantryHealthBarPos=<x,y>  ; The draw position of the infantry health bar (Defa
 In `UI.INI`:
 ```ini
 [Ingame]
-UnitGroupNumberOffset=<x,y>  ; Defaults to -4,-4
-InfantryGroupNumberOffset=<x,y>  ; Defaults to -4,-4
-BuildingGroupNumberOffset=<x,y>  ; Defaults to -4,-4
-AircraftGroupNumberOffset=<x,y>  ; Defaults to -4,-4
-UnitWithPipGroupNumberOffset=<x,y>  ; Defaults to -4,-8
-InfantryWithPipGroupNumberOffset=<x,y>  ; Defaults to -4,-8
-BuildingWithPipGroupNumberOffset=<x,y>  ; Defaults to -4,-8
-AircraftWithPipGroupNumberOffset=<x,y>  ; Defaults to -4,-8
-UnitVeterancyPipOffset=<x,y>  ; Defaults to 10,6
-InfantryVeterancyPipOffset=<x,y>  ; Defaults to 5,4
-BuildingVeterancyPipOffset=<x,y>  ; Defaults to 10,6
-AircraftVeterancyPipOffset=<x,y>  ; Defaults to 10,6
-UnitSpecialPipOffset=<x,y>  ; Defaults to 0,-8
-InfantrySpecialPipOffset=<x,y>  ; Defaults to 0,-8
-BuildingSpecialPipOffset=<x,y>  ; Defaults to 0,-8
-AircraftSpecialPipOffset=<x,y>  ; Defaults to 0,-8
+UnitGroupNumberOffset=-4,-4            ; Point2D, the group number offset for units
+InfantryGroupNumberOffset=-4,-4        ; Point2D, the group number offset for infantry
+BuildingGroupNumberOffset=-4,-4        ; Point2D, the group number offset for buildings
+AircraftGroupNumberOffset=-4,-4        ; Point2D, the group number offset for aircraft
+
+UnitWithPipGroupNumberOffset=-4,-8     ; Point2D, the group number offset for units with pips
+InfantryWithPipGroupNumberOffset=-4,-8 ; Point2D, the group number offset for infantry with pips
+BuildingWithPipGroupNumberOffset=-4,-8 ; Point2D, the group number offset for buildings with pips
+AircraftWithPipGroupNumberOffset=-4,-8 ; Point2D, the group number offset for aircraft with pips
+
+UnitVeterancyPipOffset=10,6            ; Point2D, the veterancy pip offset for units
+InfantryVeterancyPipOffset=5,4         ; Point2D, the veterancy pip offset for infantry
+BuildingVeterancyPipOffset=10,6        ; Point2D, the veterancy pip offset for buildings
+AircraftVeterancyPipOffset=10,6        ; Point2D, the veterancy pip offset for aircraft
+
+UnitSpecialPipOffset=0,-8              ; Point2D, the special pip offset for units
+InfantrySpecialPipOffset=0,-8          ; Point2D, the special pip offset for infantry
+BuildingSpecialPipOffset=0,-8          ; Point2D, the special pip offset for buildings
+AircraftSpecialPipOffset=0,-8          ; Point2D, the special pip offset for aircraft
 ```
 
 - TS Patches changes some of the default values. Below are the values that match them:
@@ -176,7 +179,7 @@ AircraftWithPipGroupNumberOffset=-8,-33
 In `RULES.INI`:
 ```ini
 [AudioVisual]
-MaxPips=<list of integers>  ; Ammo, Tiberium, Passengers, Power, Charge. Defaults to 5,5,5,10,8.
+MaxPips=5,5,5,10,8  ; list of integers - Ammo, Tiberium, Passengers, Power, Charge.
 ```
 
 ## Tooltips

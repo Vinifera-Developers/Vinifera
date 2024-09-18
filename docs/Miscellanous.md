@@ -21,10 +21,10 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 In `RULES.INI`:
 ```ini
 [MultiplayerDefaults]
-AutoDeployMCV=<boolean>  ; Player MCV's will auto-deploy on game start. (Defaults to no).
-                         ; NOTE: This option only has an effect if the unit count is set to 1.
-PrePlacedConYards=<boolean> ; Pre-place construction yards instead of spawning an MCV. (Defaults to no).
-                            ; NOTE: This option has priority over AutoDeployMCV.
+AutoDeployMCV=no      ; boolean, should player MCV's auto-deploy on game start?
+PrePlacedConYards=no  ; boolean, should pre-place construction yards instead of spawning an MCV?
+                      ; NOTE: This option only has an effect if the unit count is set to 1.
+                      ; NOTE: This option has priority over AutoDeployMCV.
 ```
 
 ## Multi-Engineer
@@ -34,8 +34,8 @@ PrePlacedConYards=<boolean> ; Pre-place construction yards instead of spawning a
 In `RULES.INI`:
 ```ini
 [General]
-EngineerDamage=<float>  ; The engineer will damage a building by this percent of its full health each time it enters. Defaults to 0.0.
-EngineerCaptureLevel=<float>  ; If the building’s health is equal to or below this percentage of its strength it can be captured by an engineer. Defaults to 1.0.
+EngineerDamage=0.0        ; float, the engineer will damage a building by this percent of its full health each time it enters.
+EngineerCaptureLevel=1.0  ; float, if the building’s health is equal to or below this percentage of its strength it can be captured by an engineer.
 ```
 ```{warning}
 Upon observing the values used in `FIRESTRM.INI`, this could potentially cause an issue with the vanilla game. `FIRESTRM.INI` has the values `EngineerCaptureLevel=1.0` and `EngineerDamage=0.0`. Below are some values to help test these bug fixes and their potential impact on the vanilla game.
@@ -56,9 +56,9 @@ Red Alert Multiplayer (MPLAYER.INI) values:
 In `RULES.INI`:
 ```ini
 [MultiplayerDefaults]
-BuildOffAlly=<boolean>  ; Can players build their own structures adjacent to structures owned by their allies? (Defaults to yes).
+BuildOffAlly=yes                   ; boolean, can players build their own structures adjacent to structures owned by their allies?
 
-[BuildingTypes]
+[SOMEBUILDING]                     ; BuildingType
 EligibleForAllyBuilding=<boolean>  ; Is this building eligible for proximity checks by players who are its owner's allies?
                                    ; For buildings with `ConstructionYard=yes` this defaults to yes, otherwise it defaults to no.
 ```
@@ -73,10 +73,10 @@ While this is INI file is optional, it is recommended the `ProjectName` and `Pro
 In `VINIFERA.INI`:
 ```ini
 [General]
-ProjectName=<string>  ; The project's title name string. Limited to 64 characters.
+ProjectName=<string>     ; The project's title name string. Limited to 64 characters.
 ProjectVersion=<string>  ; The project's version string. Limited to 64 characters.
-IconFile=<string>  ; The name of the icon file (including the .ICO extension) to use for the games window. Limited to 64 characters.
-CursorFile=<string>  ; The name of the cursor file (including the .CUR extension) to use for the game's cursor. Limited to 64 characters.
+IconFile=<string>        ; The name of the icon file (including the .ICO extension) to use for the games window. Limited to 64 characters.
+CursorFile=<string>      ; The name of the cursor file (including the .CUR extension) to use for the game's cursor. Limited to 64 characters.
 ```
 ```{note}
 The filenames also support subdirectories.

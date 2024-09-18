@@ -10,8 +10,8 @@ This page describes all the engine features that are either new and introduced b
 
 In `RULES.INI`:
 ```ini
-[AircraftType]
-CurleyShuffle=<boolean>  ; Should this aircraft shuffle its position between firing at its target? Defaults to [General]->CurleyShuffle.
+[SOMEAIRCRAFT]  ; AircraftType
+CurleyShuffle=  ; boolean, should this aircraft shuffle its position between firing at its target?
 ```
 
 ### ReloadRate
@@ -20,8 +20,8 @@ CurleyShuffle=<boolean>  ; Should this aircraft shuffle its position between fir
 
 In `RULES.INI`:
 ```ini
-[AircraftType]
-ReloadRate=<floating point>  ; The rate that this aircraft will reload its ammo when docked with a helipad. Defaults to [General]->ReloadRate.
+[SOMEAIRCRAFT]  ; AircraftType
+ReloadRate=     ; float, the rate that this aircraft will reload its ammo when docked with a helipad. Defaults to [General]->ReloadRate.
 ```
 
 ## Animations
@@ -32,16 +32,16 @@ ReloadRate=<floating point>  ; The rate that this aircraft will reload its ammo 
 
 In `ART.INI`:
 ```ini
-[AnimType]
-HideIfNoTiberium=<boolean>  ; Should this animation be hidden if the holding cell does not contain Tiberium? Defaults to no.
-ForceBigCraters=<boolean>  ; Are the craters spawned by this animation when it ends much larger than normal? Defaults to no.
-ZAdjust=<integer>  ; Fudge to this animations Z-axis (depth). Positive values move the animation "away from the screen"/"closer to the ground", negative values do the opposite. Defaults to 0.
-Layer=<LayerType>  ; The map layer this animation is in when attached to an object. Defaults to <none>.
-                   ; Available Options: underground, surface, ground, air, and top.
-                   ; NOTE: This will override the value of Surface= which forces a layer of ground.
-SpawnsParticle=<ParticleType>  ; The particle to spawn at the mid-point of this animation. Defaults to <none>.
-                               ; This accepts any entry from the [Particles] list from RULES.INI.
-NumParticles=<integer>  ; The number of particles to spawn (as defined by SpawnsParticle=). Defaults to 0.
+[SOMEANIM]             ; AnimType
+HideIfNoTiberium=no    ; boolean, should this animation be hidden if the holding cell does not contain Tiberium?
+ForceBigCraters=no     ; boolean, are the craters spawned by this animation when it ends much larger than normal?
+ZAdjust=0              ; integer, fudge to this animation's Z-axis (depth). Positive values move the animation "away from the screen"/"closer to the ground", negative values do the opposite.
+Layer=<none>           ; LayerType, the map layer this animation is in when attached to an object.
+                       ; Available Options: underground, surface, ground, air, and top.
+                       ; NOTE: This will override the value of Surface= which forces a layer of ground.
+SpawnsParticle=<none>  ; ParticleType, the particle to spawn at the mid-point of this animation.
+                       ; This accepts any entry from the [Particles] list from RULES.INI.
+NumParticles=0         ; integer, the number of particles to spawn (as defined by SpawnsParticle=).
 ```
 
 ## Buildings
@@ -52,9 +52,9 @@ NumParticles=<integer>  ; The number of particles to spawn (as defined by Spawns
 
 In `RULES.INI`:
 ```ini
-[BuildingType]
-GateUpSound=<VocType>  ; Sound effect to play when the gate is rising.
-GateDownSound=<VocType>  ; Sound effect to play when the gate is lowering.
+[SOMEBUILDING]  ; BuildingType
+GateUpSound=    ; VocType, sound effect to play when the gate is rising. Defaults to [AudioVisual]->GateUp.
+GateDownSound=  ; VocType, sound effect to play when the gate is lowering. Defaults to [AudioVisual]->GateDown.
 ```
 
 ### ProduceCash
@@ -65,13 +65,13 @@ GateDownSound=<VocType>  ; Sound effect to play when the gate is lowering.
 
 In `RULES.INI`:
 ```ini
-[BuildingType]
-ProduceCashStartup=<integer>  ; Credits when captured from a house that has MultiplayPassive=yes set. Defaults to 0.
-ProduceCashAmount=<integer>  ; Amount every give to/take from the house every delay. This value supports negative values which will deduct money from the house which owns this building. Defaults to 0.
-ProduceCashDelay=<integer>  ; Frame delay between amounts. Defaults to 0 (instant).
-ProduceCashBudget=<integer>  ; The total cash budget for this building. Defaults to 0 (infinite budget).
-ProduceCashResetOnCapture=<boolean>  ; Reset the buildings available budget when captured. Defaults to no.
-ProduceCashStartupOneTime=<boolean>  ; Is the bonus on capture a "one one" special (further captures will not get the bonus)? Defaults to no.
+[SOMEBUILDING]                ; BuildingType
+ProduceCashStartup=0          ; integer, credits when captured from a house that has MultiplayPassive=yes set.
+ProduceCashAmount=0           ; integer, amount every give to/take from the house every delay. This value supports negative values which will deduct money from the house which owns this building.
+ProduceCashDelay=0            ; integer, frame delay between amounts.
+ProduceCashBudget=0           ; integer, the total cash budget for this building.
+ProduceCashResetOnCapture=no  ; boolean, reset the buildings available budget when captured.
+ProduceCashStartupOneTime=no  ; boolean, is the bonus on capture a "one one" special (further captures will not get the bonus)?
 ```
 
 ## Ice
@@ -81,8 +81,8 @@ ProduceCashStartupOneTime=<boolean>  ; Is the bonus on capture a "one one" speci
 In `RULES.INI`:
 ```ini
 [CombatDamage]
-IceStrength=<integer>  ; The strength of ice. Higher values make ice less likely to break from a shot.
-                       ; 0 makes ice break from any shot. Defaults to 0.
+IceStrength=0   ; integer, the strength of ice. Higher values make ice less likely to break from a shot.
+                ; 0 makes ice break from any shot.
 ```
 
 ## Infantry
@@ -97,9 +97,9 @@ Both these systems require the warhead to deal negative damage.
 
 In `RULES.INI`:
 ```ini
-[InfantryType]
-Mechanic=<boolean>  ; Should this infantry only consider unit and aircraft as valid targets? Defaults to no.
-OmniHealer=<boolean>  ; Should this infantry consider other infantry, unit, and aircraft as valid targets? Defaults to no.
+[SOMEINFANTRY]  ; InfantryType
+Mechanic=no     ; boolean, should this infantry only consider unit and aircraft as valid targets?
+OmniHealer=no   ; boolean, should this infantry consider other infantry, unit, and aircraft as valid targets?
 ```
 
 ```{note}
@@ -114,8 +114,8 @@ When an infantry with `Mechanic=yes` and `OmniHealer=yes` is selected and the mo
 
 In `RULES.INI`:
 ```ini
-[BulletType]
-SpawnDelay=<unsigned integer>  ; The number of frames between each of the spawned trailer animations. Defaults to 3.
+[SOMEBULLET]  ; BulletType
+SpawnDelay=3  ; unsigned integer, the number of frames between each of the spawned trailer animations.
 ```
 
 ## Technos
@@ -126,8 +126,8 @@ SpawnDelay=<unsigned integer>  ; The number of frames between each of the spawne
 
 In `RULES.INI`:
 ```ini
-[TechnoType]
-AILegalTarget=<boolean>  ; Can this object be the target of an attack or move command by the computer? Defaults to yes.
+[SOMETECHNO]       ; TechnoType
+AILegalTarget=yes  ; boolean, can this object be the target of an attack or move command by the computer?
 ```
 
 ### CanPassiveAcquire
@@ -136,8 +136,8 @@ AILegalTarget=<boolean>  ; Can this object be the target of an attack or move co
 
 In `RULES.INI`:
 ```ini
-[TechnoType]
-CanPassiveAcquire=<boolean>  ; Can this object acquire targets that are within its weapons range and attack them automatically? Defaults to yes.
+[SOMETECHNO]           ; TechnoType
+CanPassiveAcquire=yes  ; boolean, can this object acquire targets that are within its weapons range and attack them automatically?
 ```
 ```{note}
 In Red Alert 2, this key has a spelling error for "Acquire", spelling it as "Aquire". This has been fixed in Vinifera.
@@ -149,8 +149,8 @@ In Red Alert 2, this key has a spelling error for "Acquire", spelling it as "Aqu
 
 In `RULES.INI`:
 ```ini
-[TechnoType]
-CanRetaliate=<boolean>  ; Can this unit retaliate (if general conditions are met) when hit by enemy fire? Defaults to yes.
+[SOMETECHNO]      ; TechnoType
+CanRetaliate=yes  ; boolean, can this unit retaliate (if general conditions are met) when hit by enemy fire?
 ```
 
 ### Idle Animation Improvements
@@ -162,17 +162,17 @@ This key can be defined on either the `RULES.INI` section or the `ART.INI` image
 
 In `ART.INI`:
 ```ini
-[TechnoType]
-IdleRate=<unsigned integer>  ; The rate at which this unit animates when it is standing idle (not moving). Defaults to 0.
+[SOMETECHNO]  ; TechnoType
+IdleRate=0    ; unsigned integer, the rate at which this unit animates when it is standing idle (not moving). Defaults to 0.
 ```
 
 - In addition to this, to help define custom idle animations, `StartIdleFrame` and `IdleFrames` has been added for UnitTypes. These will only be used if the UnitType has an `IdleRate` greater than 0.
 
 In `ART.INI`:
 ```ini
-[TechnoType]
-StartIdleFrame=<unsigned integer>  ; The starting frame for the idle animation in the units shape file. Defaults to the value of StartWalkFrame.
-IdleFrames=<unsigned integer>  ; The number of image frames for each of the idle animation sequences. Defaults to the value of WalkFrames.
+[SOMETECHNO]     ; TechnoType
+StartIdleFrame=  ; unsigned integer, the starting frame for the idle animation in the units shape file. Defaults to StartWalkFrame.
+IdleFrames=      ; unsigned integer, the number of image frames for each of the idle animation sequences. Defaults to WalkFrames.
 ```
 
 ### Transport Sounds
@@ -181,9 +181,9 @@ IdleFrames=<unsigned integer>  ; The number of image frames for each of the idle
 
 In `RULES.INI`:
 ```ini
-[TechnoType]
-EnterTransportSound=<VocType>  ; The sound effect to play when a passenger enters this unit. Defaults to <none>.
-LeaveTransportSound=<VocType>  ; The sound effect to play when a passenger leaves this unit. Defaults to <none>.
+[SOMETECHNO]                ; TechnoType
+EnterTransportSound=<none>  ; VocType, the sound effect to play when a passenger enters this unit.
+LeaveTransportSound=<none>  ; VocType, the sound effect to play when a passenger leaves this unit.
 ```
 
 ### Soylent
@@ -192,8 +192,8 @@ LeaveTransportSound=<VocType>  ; The sound effect to play when a passenger leave
 
 In `RULES.INI`:
 ```ini
-[TechnoType]
-Soylent=<unsigned integer>  ; The refund value for the unit when it is sold at a Service Depot, or a building when sold by the player. Defaults to 0 (uses normal refund amount logic).
+[SOMETECHNO]  ; TechnoType
+Soylent=0     ; unsigned integer, the refund value for the unit when it is sold at a Service Depot, or a building when sold by the player. 0 uses normal refund amount logic.
 ```
 
 ### New Voice Responses
@@ -202,11 +202,11 @@ Soylent=<unsigned integer>  ; The refund value for the unit when it is sold at a
 
 In `RULES.INI`:
 ```ini
-[TechnoType]
-VoiceCapture=<VocType list>  ; List of voices to use when giving this object a capture order. Defaults to <none>.
-VoiceEnter=<VocType list>  ; List of voices to use when giving this object an enter order (ie, transport, infiltrate building). Defaults to <none>.
-VoiceDeploy=<VocType list>  ; List of voices to use when giving this object a unload order. Defaults to <none>.
-VoiceHarvest=<VocType list>  ; List of voices to use when giving this object a harvest order. Defaults to <none>.
+[SOMETECHNO]         ; TechnoType
+VoiceCapture=<none>  ; VocType list, list of voices to use when giving this object a capture order.
+VoiceEnter=<none>    ; VocType list, list of voices to use when giving this object an enter order.
+VoiceDeploy=<none>   ; VocType list, list of voices to use when giving this object a unload order.
+VoiceHarvest=<none>  ; VocType list, list of voices to use when giving this object a harvest order.
 ```
 
 ### Customizable Cloaking Sounds
@@ -215,9 +215,9 @@ VoiceHarvest=<VocType list>  ; List of voices to use when giving this object a h
 
 In `RULES.INI`:
 ```ini
-[TechnoType]
-CloakSound=<Sound>  ; The sound effect to play when the object is cloaking. Defaults to [AudioVisual]->CloakSound.
-UncloakSound=<Sound>  ; The sound effect to play when the object is decloaking. Defaults to [AudioVisual]->CloakSound.
+[SOMETECHNO]   ; TechnoType
+CloakSound=    ; sound, the sound effect to play when the object is cloaking. Defaults to [AudioVisual]->CloakSound.
+UncloakSound=  ; sound, the sound effect to play when the object is decloaking. Defaults to [AudioVisual]->CloakSound.
 ```
 
 ### Screen Shake on Destruction
@@ -226,8 +226,8 @@ UncloakSound=<Sound>  ; The sound effect to play when the object is decloaking. 
 
 In `RULES.INI`:
 ```ini
-[TechnoType]
-CanShakeScreen=<boolean>  ; Can this unit or building cause the screen to shake the screen when it dies? Defaults to no.
+[SOMETECHNO]       ; TechnoType
+CanShakeScreen=no  ; boolean, can this unit or building cause the screen to shake the screen when it dies?
 ```
 
 ```{note}
@@ -235,14 +235,14 @@ The object must meet the rules as specified by `[AudioVisual]->ShakeScreen`.
 ```
 
 - Shake Screen Controls
-These values are used to shake the screen when the unit or building is destroyed. All of these values default to 0 and do not support negative values.
+These values are used to shake the screen when the unit or building is destroyed.
 In `RULES.INI`:
 ```ini
-[TechnoType]
-ShakeYhi=<unsigned integer>  ; The maximum pixel Y value.
-ShakeYlo=<unsigned integer>  ; The minimum pixel Y value.
-ShakeXhi=<unsigned integer>  ; The maximum pixel X value.
-ShakeXlo=<unsigned integer>  ; The minimum pixel X value.
+[SOMETECHNO]  ; TechnoType
+ShakeYhi=0    ; unsigned integer, the maximum pixel Y value.
+ShakeYlo=0    ; unsigned integer, the minimum pixel Y value.
+ShakeXhi=0    ; unsigned integer, the maximum pixel X value.
+ShakeXlo=0    ; unsigned integer, the minimum pixel X value.
 ```
 
 ### WalkRate
@@ -255,8 +255,8 @@ ShakeXlo=<unsigned integer>  ; The minimum pixel X value.
 
 In `RULES.INI`:
 ```ini
-[TechnoType]
-ImmuneToEMP=<boolean>  ; Is this Techno immune to EMP effects? Defaults to no.
+[SOMETECHNO]    ; TechnoType
+ImmuneToEMP=no  ; boolean, is this Techno immune to EMP effects?
 ```
 
 ### Custom Special Pip
@@ -265,8 +265,8 @@ ImmuneToEMP=<boolean>  ; Is this Techno immune to EMP effects? Defaults to no.
 
 In `RULES.INI`:
 ```ini
-[TechnoType]
-SpecialPipIndex=<integer>  ; Index of the pip to draw in place of the medic pip. Defaults to -1 (none).
+[SOMETECHNO]        ; TechnoType
+SpecialPipIndex=-1  ; integer, index of the pip to draw in place of the medic pip.
 ```
 
 ## Terrain
@@ -277,13 +277,13 @@ SpecialPipIndex=<integer>  ; Index of the pip to draw in place of the medic pip.
 
 In `RULES.INI`:
 ```ini
-[TerrainType]
-IsLightEnabled=<boolean>  ; Does this terrain object emit light? Defaults to no.
-LightVisibility=<integer>  ; This terrain object radiates this amount of light. Defaults to 5000.
-LightIntensity=<float>  ; The distance that this light is visible from. Defaults to 0.
-LightRedTint=<float>  ; The red tint of this terrain objects light. Defaults to 1.0.
-LightGreenTint=<float>  ; The green tint of this terrain objects light. Defaults to 1.0.
-LightBlueTint=<float>  ; The blue tint of this terrain objects light. Defaults to 1.0.
+[SOMETERRAIN]         ; TerrainType
+IsLightEnabled=no     ; boolean, does this terrain object emit light?
+LightVisibility=5000  ; integer, this terrain object radiates this amount of light.
+LightIntensity=0      ; float, the distance that this light is visible from.
+LightRedTint=1        ; float, the red tint of this terrain objects light.
+LightGreenTint=1      ; float, the green tint of this terrain objects light.
+LightBlueTint=1       ; float, the blue tint of this terrain objects light.
 ```
 
 ## Theaters
@@ -400,8 +400,8 @@ The random map generator does not currently support new theater types.
 
 In `THEME.INI`:
 ```ini
-[ThemeType]
-RequiredAddon=<AddonType>  ; The addon required to be active for this theme to be available. Currently, only 1 (Firestorm) is supported. Defaults to 0 (none).
+[SOMETHEME]      ; ThemeType
+RequiredAddon=0  ; AddonType, the addon required to be active for this theme to be available. Currently, only 0 (none) and 1 (Firestorm) are supported. 
 ```
 
 ## Tiberiums
@@ -413,8 +413,8 @@ RequiredAddon=<AddonType>  ; The addon required to be active for this theme to b
 In `RULES.INI`:
 ```ini
 [Tiberium]
-PipIndex=<integer>  ; Pip index to use. Defaults to 1 for Tiberium 0, 5 for others
-PipDrawOrder=<integer>  ; The order the pips are drawn in. Less is earlier. Defaults to 1 for Tiberium 0, 0 for others.
+PipIndex=1      ; integer, pip index to use.
+PipDrawOrder=1  ; integer, the order the pips are drawn in. Less is earlier.
 ```
 
 - Additionally, buildings now show their storage with the proper pips, instead of showing pip 1 for all tiberiums
@@ -423,7 +423,7 @@ PipDrawOrder=<integer>  ; The order the pips are drawn in. Less is earlier. Defa
 In `RULES.INI`:
 ```ini
 [AudioVisual]
-WeedPipIndex=<integer>  ;  The pip index used for Weeds. Defaults to 1.
+WeedPipIndex=1  ; integer, the pip index used for Weeds.
 ```
 
 ## Vehicles
@@ -434,8 +434,8 @@ WeedPipIndex=<integer>  ;  The pip index used for Weeds. Defaults to 1.
 
 In `RULES.INI`:
 ```ini
-[UnitType]
-Totable=<boolean>  ; Can this unit be picked up by a Carryall? Defaults to yes.
+[SOMEUNIT]   ; UnitType
+Totable=yes  ; boolean, can this unit be picked up by a Carryall?
 ```
 
 ### UnloadingClass
@@ -444,8 +444,8 @@ Totable=<boolean>  ; Can this unit be picked up by a Carryall? Defaults to yes.
 
 In `RULES.INI`:
 ```ini
-[UnitType]
-UnloadingClass=<UnitType>  ; UnitType whose image will be used when this harvester is docked. Defaults to [AudioVisual]->UnloadingClass
+[SOMEUNIT]       ; UnitType
+UnloadingClass=  ; UnitType, UnitType whose image will be used when this harvester is docked.
 ```
 
 ### More Graphic Facings
@@ -454,9 +454,9 @@ UnloadingClass=<UnitType>  ; UnitType whose image will be used when this harvest
 
 In `RULES.INI`:
 ```ini
-[UnitType]
-StartTurretFrame=<integer>  ; The starting turret frame index, allowing them to be adjusted manually if required. Defaults to -1 (not used).
-TurretFacings=<integer>  ; The turret facing count. Defaults to 32.
+[SOMEUNIT]           ; UnitType
+StartTurretFrame=-1  ; integer, the starting turret frame index, allowing them to be adjusted manually if required.
+TurretFacings=32     ; integer, the turret facing count.
 ```
 
 - Additionally, the `Anim=` INI key for WeaponTypes will now read the number of entries that matches the firing object's Facings= entry.
@@ -475,21 +475,21 @@ This is to fix the issue known as the "Weed Guy" hack, and ensure all weapons ar
 
 In `RULES.INI`:
 ```ini
-[WarheadType]
-WallAbsoluteDestroyer=<boolean>  ; Does this warhead instantly destroy walls regardless of the warhead damage value? Defaults to no.
-AffectsAllies=<boolean>  ; Can this warhead damage friendly units? Defaults to yes.
-CombatLightSize=<boolean>  ; This is used to override the size of the combat light flash at the point of impact for Warheads with Bright=yes set (Bright=yes must also be set on the Weapon using this warhead). Defaults to 0.0. Ranges between 0.0 (uses the default behaviour seen with Bright=yes) and 1.0 (full size).
+[SOMEWARHEAD]             ; WarheadType
+WallAbsoluteDestroyer=no  ; boolean, does this warhead instantly destroy walls regardless of the warhead damage value?
+AffectsAllies=yes         ; boolean, can this warhead damage friendly units?
+CombatLightSize=0         ; boolean, this is used to override the size of the combat light flash at the point of impact for Warheads with Bright=yes set (Bright=yes must also be set on the Weapon using this warhead).
 ```
 
 - Shake Screen Controls
-These values are used to shake the screen when the projectile impacts. All of these values default to 0 and do not support negative values.
+These values are used to shake the screen when the projectile impacts.
 In `RULES.INI`:
 ```ini
-[WarheadType]
-ShakeXhi=<unsigned integer>  ; Maxiumum Y pixel movement.
-ShakeXlo=<unsigned integer>  ; Minimum Y pixel movement.
-ShakeXhi=<unsigned integer>  ; Maxiumum X pixel movement.
-ShakeXlo=<unsigned integer>  ; Minimum X pixel movement.
+[SOMEWARHEAD]   ; WarheadType
+ShakeYhi=0      ; unsigned integer, the maximum pixel Y value.
+ShakeYlo=0      ; unsigned integer, the minimum pixel Y value.
+ShakeXhi=0      ; unsigned integer, the maximum pixel X value.
+ShakeXlo=0      ; unsigned integer, the minimum pixel X value.
 ```
 
 ## Weapons
@@ -500,16 +500,16 @@ ShakeXlo=<unsigned integer>  ; Minimum X pixel movement.
 
 In `RULES.INI`:
 ```ini
-[WeaponType]
-IsElectricBolt=<boolean>  ; Is this weapon an electric bolt? This is required to enable the drawing feature. Defaults to no.
-                     ; Electric bolts are made up of 3 lines, these values define the colours for each of the lines.
-EBoltColor1=<r,g,b>  ; Defaults to 255,255,255.
-EBoltColor2=<r,g,b>  ; Defaults to 82,81,255.
-EBoltColor3=<r,g,b>  ; Defaults to 82,81,255.
-EBoltSegmentCount=<integer>  ; How many segment blocks should the electric bolt be made up from. A larger number will give a more "wild" effect. Defaults to 8.
-EBoltLifetime=<integer>  ; The lifetime of the electric bolt graphic in game frames. Defaults to 17.
-EBoltIterations=<integer>  ; How many draw iterations should the system perform? Defaults to 1.
-EBoltDeviation=<float>  ; The maximum deviation from a straight line the electric bolts can be. A value of 0.0 will draw straight lines. Defaults to 1.0.
+[SOMEWEAPON]             ; WeaponType
+IsElectricBolt=no        ; boolean, is this weapon an electric bolt? This is required to enable the drawing feature.
+EBoltSegmentCount=8      ; integer, how many segment blocks should the electric bolt be made up from. A larger number will give a more "wild" effect.
+EBoltLifetime=17         ; integer, the lifetime of the electric bolt graphic in game frames.
+EBoltIterations=1        ; integer, how many draw iterations should the system perform?
+EBoltDeviation=1         ; float, the maximum deviation from a straight line the electric bolts can be. A value of 0.0 will draw straight lines.
+                         ; Electric bolts are made up of 3 lines, these values define the colours for each of the lines.
+EBoltColor1=255,255,255  ; RGB color.
+EBoltColor2=82,81,255    ; RGB color.
+EBoltColor3=82,81,255    ; RGB color.
 ```
 
 ```{warning}
@@ -524,9 +524,9 @@ Electric bolts are currently known to potentially cause issues on save/load.
 
 In `RULES.INI`:
 ```ini
-[WeaponType]
-Suicide=<boolean>  ; Will the firing unit commit suicide when this weapon is fired? Defaults to no.
-DeleteOnSuicide=<boolean>  ; Logical option for Suicide=yes which will instantly remove the unit from the game world instead of dealing full damage. Defaults to no.
+[SOMEWEAPON]        ; WeaponType
+Suicide=no          ; boolean, will the firing unit commit suicide when this weapon is fired?
+DeleteOnSuicide=no  ; boolean, logical option for Suicide=yes which will instantly remove the unit from the game world instead of dealing full damage.
 ```
 
 ```{note}

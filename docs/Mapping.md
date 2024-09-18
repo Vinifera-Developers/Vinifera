@@ -18,7 +18,7 @@ This page describes all mapping-related additions and changes introduced by Vini
 In `BATTLE.INI`:
 ```ini
 [Campaign]
-IntroMovie=<string>  ; The intro movie name (without the .VQA extension) to play at the start of the campaign? Defaults to <none>.
+IntroMovie=<none>  ; string, the intro movie name (without the .VQA extension) to play at the start of the campaign.
 ```
 
 ### DebugOnly
@@ -28,7 +28,7 @@ IntroMovie=<string>  ; The intro movie name (without the .VQA extension) to play
 In `BATTLE.INI`:
 ```ini
 [Campaign]
-DebugOnly=<boolean>  ; Is this campaign only available in Developer mode? Defaults to no.
+DebugOnly=no  ; boolean, is this campaign only available in Developer mode?
 ```
 For testing/debugging versions of the Tiberian Sun and Firestorm campaigns, download [BATTLE_DEBUG_CAMPAIGN.INI](https://github.com/Vinifera-Developers/Vinifera-Files/blob/master/files/BATTLE_DEBUG_CAMPAIGN.INI) and place it in your game install directory.
 
@@ -41,7 +41,7 @@ For testing/debugging versions of the Tiberian Sun and Firestorm campaigns, down
 In a scenario file:
 ```ini
 [Basic]
-IceDestructionEnabled=<boolean> ; Can ice tiles be destroyed in the scenario? Defaults to yes.
+IceDestructionEnabled=yes  ; boolean, can ice tiles be destroyed in the scenario?
 ```
 
 ## Script Actions
