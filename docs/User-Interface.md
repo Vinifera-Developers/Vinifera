@@ -5,10 +5,15 @@ This page lists all user interface additions, changes, fixes that are implemente
 ## Miscellanous
 
 - Vinifera adds support for 8-bit (paletted and non-paletted) PCX and 8-bit PNG cameos. This system auto-detects and prioritises the PNG or PCX file if found, no additional settings are required.
+- Vinifera thickens the waypoint and rally point lines and adds stroke/outline to the waypoint number.
 
 ## Audio
 
 ## Hotkey Commands
+
+### `[ ]` Place Building
+
+- Enters the manual placement mode when a building is complete and pending on the sidebar. Defaults to `Z`.
 
 ### `[ ]` Toggle Special Timers
 
@@ -53,6 +58,8 @@ This page lists all user interface additions, changes, fixes that are implemente
 ### `[ ]` Next Track
 
 - Plays the next music track. Defaults to `]`.
+
+![image](https://user-images.githubusercontent.com/73803386/123566309-4ade4600-d7b7-11eb-9b77-5c9de7959822.png)
 
 ## Loading screen
 

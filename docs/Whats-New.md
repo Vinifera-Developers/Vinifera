@@ -91,6 +91,19 @@ New:
 - Add keyboard commands for playing previous and next music tracks in the jukebox (by CCHyper/tomsons26)
 - Implement CloakSound and UncloakSound for TechnoTypes (by CCHyper/tomsons26)
 - Restore the screen shake when a strong unit or building is destroyed (by CCHyper/tomsons26)
+- Implement various Red Alert 2 WarheadType features (by CCHyper/tomsons26)
+- Add reading of Weapons list from RULES.INI (by CCHyper/tomsons26)
+- Allow WalkRate to be optionally loaded from ART.INI image entries (by CCHyper/tomsons26)
+- Add gate rising and lowering sound overrides for buildings (by CCHyper/tomsons26)
+- Add UnitType flag to prevent a vehicle from being picked up by a Carryall (by CCHyper/tomsons26)
+- Add support for a custom unloading class when a harvester is unloading at a refinery (by CCHyper/tomsons26)
+- Implement ToggleAIControlCommandClass (by CCHyper/tomsons26)
+- Add support for more graphic facings for UnitTypes and various associated items (by CCHyper/tomsons26)
+- Add `ImmuneToEMP` to TechnoTypes (by Rampastring)
+- Implement ToggleFrameStepCommandClass (by CCHyper/tomsons26)
+- Thicken the waypoint and rally point lines and adds stroke/outline to the waypoint number (by CCHyper/tomsons26)
+- Implement hotkey command to enter the manual placement mode (by CCHyper/tomsons26)
+- Allow harvesters to be considered when executing the "Guard" command (by CCHyper/tomsons26)
 
 Vanilla fixes:
 - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively (by CCHyper/tomsons26)
@@ -109,6 +122,14 @@ Vanilla fixes:
 - Fix a bug where the agme would crash when attempting to generate a random map if there are fewer than 4 HouseTypes defined (by CCHyper/tomsons26)
 - Fix a limitation where the game could only choose between the first two HouseTypes for the AI players (by CCHyper/tomsons26)
 - Fix a bug where the `Cloakable=yes` had no effect on AircraftTypes (by CCHyper/tomsons26)
+- Fix a bug where `CloakStop` had no effect on the cloaking behaviour (by CCHyper/tomsons26)
+- Fix a bug where pre-placed crates and crates spawned by a destroyed truck will trigger a respawn when they are picked up (by CCHyper/tomsons26)
+- Increase the string buffer size from 128 to 2048 characters for when reading and writing Owners from INI (by CCHyper/tomsons26)
+- Fix bugs where the Jumpjet uses the wrong animation sequence when firing and in the air (by CCHyper/tomsons26)
+- Fix a bug where the wrong palette is used to draw the cameo above an enemy spied factory building (by CCHyper/tomsons26)
+- Fix the animation speed of Waypoint and Rally Point lines so they are normalised and no longer subjected to the game speed setting (by CCHyper/tomsons26)
+- Fix a limitation where returning to the Skirmish dialog after a game clamps the chosen side between 0 (GDI) and 1 (Nod) (by CCHyper/tomsons26)
+- Fix a bug where the user is able to place a building anywhere on the map by taking advantage of the sidebar (by CCHyper/tomsons26)
 
 </details>
 

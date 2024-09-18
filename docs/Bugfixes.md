@@ -20,3 +20,11 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where the agme would crash when attempting to generate a random map if there are fewer than 4 HouseTypes defined.
 - Fix a limitation where the game could only choose between the first two HouseTypes for the AI players. Now, all HouseTypes with `Multiplay=yes` will be considered.
 - Fix a bug where the `Cloakable=yes` had no effect on AircraftTypes. 
+- Fix a bug where `CloakStop` had no effect on the cloaking behaviour.
+- Fix a bug where pre-placed crates and crates spawned by a destroyed truck will trigger a respawn when they are picked up.
+- Increase the string buffer size from 128 to 2048 characters for when reading and writing Owners from INI.
+- Fix bugs where the Jumpjet uses the wrong animation sequence when firing and in the air.
+- Fix a bug where the wrong palette is used to draw the cameo above an enemy spied factory building.
+- Fix the animation speed of Waypoint and Rally Point lines so they are normalised and no longer subjected to the game speed setting.
+- Fix a limitation where returning to the Skirmish dialog after a game clamps the chosen side between 0 (GDI) and 1 (Nod).
+- Fix a bug where the user is able to place a building anywhere on the map by taking advantage of the sidebar.

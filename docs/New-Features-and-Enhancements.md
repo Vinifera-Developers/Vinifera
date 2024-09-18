@@ -26,7 +26,7 @@ ReloadRate=<floating point>  ; The rate that this aircraft will reload its ammo 
 
 ## Animations
 
-### Various keys ported from Red Alert 2
+### Various Keys Ported from Red Alert 2
 
 - Vinifera implements various AnimType keys from Red Alert 2.
 
@@ -45,6 +45,17 @@ NumParticles=<integer>  ; The number of particles to spawn (as defined by Spawns
 ```
 
 ## Buildings
+
+### Gate Sounds
+
+- Vinifera implements overrides for the gate rising and lowering sounds on BuildingTypes.
+
+In `RULES.INI`:
+```ini
+[BuildingType]
+GateUpSound=<VocType>  ; Sound effect to play when the gate is rising.
+GateDownSound=<VocType>  ; Sound effect to play when the gate is lowering.
+```
 
 ## Crates
 
@@ -225,6 +236,20 @@ ShakeXhi=<unsigned integer>  ; The maximum pixel X value.
 ShakeXlo=<unsigned integer>  ; The minimum pixel X value.
 ```
 
+### WalkRate
+
+- Vinifera allows `WalkRate` to be optionally loaded from ART.INI image entries, overriding any value defined in RULES.INI.
+
+### ImmuneToEMP
+
+- Vinifera allows specific TEchnoTypes to be immune to EMP effects.
+
+In `RULES.INI`:
+```ini
+[TechnoType]
+ImmuneToEMP=<boolean>  ; Is this Techno immune to EMP effects? Defaults to false.
+```
+
 ## Terrain
 
 ### Light Sources
@@ -363,7 +388,69 @@ RequiredAddon=<AddonType>  ; The addon required to be active for this theme to b
 
 ## Vehicles
 
+### Totable
+
+- Vinifera adds a new flag which can prevent a vehicle from being picked up by a Carryall.
+
+In `RULES.INI`:
+```ini
+[UnitType]
+Totable=<boolean>  ; Can this unit be picked up by a Carryall? Defaults to yes.
+```
+
+### UnloadingClass
+
+- Vinifera adds support for a custom unloading class when a harvester is unloading at a refinery. In addition to this working for regular harvesters, this will now work on harvesters with `Weeder=yes` for when they dock at a building that has `Weeder=yes`.
+
+In `RULES.INI`:
+```ini
+[UnitType]
+UnloadingClass=<UnitType>  ; UnitType whose image will be used when this harvester is docked. Defaults to [AudioVisual]->UnloadingClass
+```
+
+### More Graphic Facings
+
+- The engine now supports 16, 32 and 64 graphic facings for UnitTypes.
+
+In `RULES.INI`:
+```ini
+[UnitType]
+StartTurretFrame=<integer>  ; The starting turret frame index, allowing them to be adjusted manually if required. Defaults to -1 (not used).
+TurretFacings=<integer>  ; The turret facing count. Defaults to 32.
+```
+
+- Additionally, the `Anim=` INI key for WeaponTypes will now read the number of entries that matches the firing objects Facings= entry.
+- Because of the new extended facing support, it was observed that the buffer size was too small and has now been increased to allow a larger entry to accommodate a larger facing count.
+
 ## Warheads
+
+### `[Weapons]` Section
+
+- Vinifera implements the reading of a new `RULES.INI` section, `[Weapons]`, to allow the definition of WeaponTypes.
+This is to fix the issue known as the "Weed Guy" hack, and ensure all weapons are allocated in the WeaponsType heaps before any weapon lookup or loading is performed.
+
+### Various Keys Ported from Red Alert 2
+
+- Vinifera implements various WarheadType keys from Red Alert 2.
+
+In `RULES.INI`:
+```ini
+[WarheadType]
+WallAbsoluteDestroyer=<boolean>  ; Does this warhead instantly destroy walls regardless of the warhead damage value? Defaults to no.
+AffectsAllies=<boolean>  ; Can this warhead damage friendly units? Defaults to yes.
+CombatLightSize=<boolean>  ; This is used to override the size of the combat light flash at the point of impact for Warheads with Bright=yes set (Bright=yes must also be set on the Weapon using this warhead). Defaults to 0.0. Ranges between 0.0 (uses the default behaviour seen with Bright=yes) and 1.0 (full size).
+```
+
+- Shake Screen Controls
+These values are used to shake the screen when the projectile impacts. All of these values default to 0 and do not support negative values.
+In `RULES.INI`:
+```ini
+[WarheadType]
+ShakeXhi=<unsigned integer>  ; Maxiumum Y pixel movement.
+ShakeXlo=<unsigned integer>  ; Minimum Y pixel movement.
+ShakeXhi=<unsigned integer>  ; Maxiumum X pixel movement.
+ShakeXlo=<unsigned integer>  ; Minimum X pixel movement.
+```
 
 ## Weapons
 
@@ -403,5 +490,5 @@ DeleteOnSuicide=<boolean>  ; Logical option for Suicide=yes which will instantly
 ```
 
 ```{note}
-`DeleteOnSuicide=yes` mimicks Red Alert 2 behavior.
+`DeleteOnSuicide=yes` mimics Red Alert 2 behavior.
 ```

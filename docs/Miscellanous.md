@@ -4,6 +4,7 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 
 - Vinifera hardcodes the shroud and fog graphics to circumvent cheating in multiplayer games.
 - Vinifera redirects saved screenshots using the keyboard command to a new sub-directory in the games folders, `Screenshots`.
+- Harvesters are now considered when executing the "Guard" command. They have a special case when assigned with the Guard mission that tells them to find the nearest Tiberium patch and begin harvesting.
 
 ## MCV Auto-deploy
 
@@ -158,7 +159,27 @@ This option tells the game to exit when you press Cancel or Back from the dialog
 
 #### `[ ]` Reduce Tiberium
 
-- TRemoves Tiberium from a cell.
+- Removes Tiberium from a cell.
+
+#### `[ ]` Toggle AI Control
+
+- Allows the user the toggle the player house between full control and automated AI control.
+
+#### `[ ]` Toggle Frame Step
+
+- Allows the user to pause the game and to step frame-by-frame.
+
+#### `[ ]` Step 1 Frame
+
+- Steps the game 1 frame forward.
+
+#### `[ ]` Step 5 Frame
+
+- Steps the game 5 frames forward.
+
+#### `[ ]` Step 10 Frame
+
+- Steps the game 10 frames forward.
 
 ## INI
 

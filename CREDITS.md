@@ -73,10 +73,31 @@ This page lists all the individual contributions to the project by their author.
   - Add keyboard commands for playing previous and next music tracks in the jukebox.
   - Implement CloakSound and UncloakSound for TechnoTypes.
   - Restore the screen shake when a strong unit or building is destroyed.
+  - Implement various Red Alert 2 WarheadType features.
+  - Add reading of Weapons list from RULES.INI.\
+  - Allow WalkRate to be optionally loaded from ART.INI image entries.
+  - Fix a bug where `CloakStop` had no effect on the cloaking behaviour.
+  - Add gate rising and lowering sound overrides for buildings.
+  - Add UnitType flag to prevent a vehicle from being picked up by a Carryall.
+  - Add support for a custom unloading class when a harvester is unloading at a refinery.
+  - Implement ToggleAIControlCommandClass.
+  - Add support for more graphic facings for UnitTypes and various associated items.
+  - Implement ToggleFrameStepCommandClass.
+  - Fix a bug where pre-placed crates and crates spawned by a destroyed truck will trigger a respawn when they are picked up.
+  - Increase the string buffer size from 128 to 2048 characters for when reading and writing Owners from INI.
+  - Thicken the waypoint and rally point lines and adds stroke/outline to the waypoint number. 
+  - Fix bugs where the Jumpjet uses the wrong animation sequence when firing and in the air.
+  - Fix a bug where the wrong palette is used to draw the cameo above an enemy spied factory building.
+  - Fix the animation speed of Waypoint and Rally Point lines so they are normalised and no longer subjected to the game speed setting.
+  - Fix a limitation where returning to the Skirmish dialog after a game clamps the chosen side between 0 (GDI) and 1 (Nod).
+  - Fix a bug where the user is able to place a building anywhere on the map by taking advantage of the sidebar.
+  - Implement hotkey command to enter the manual placement mode.
+  - Allow harvesters to be considered when executing the "Guard" command.
 - **Kerbiter (Metadorius)**:
   - Initial doc setup
 - **Rampastring**:
   - Add `IceStrength` to Rules, and `IceDestructionEnabled` scenario option.
+  - Add `ImmuneToEMP` to TechnoTypes.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **ZivDero**:
