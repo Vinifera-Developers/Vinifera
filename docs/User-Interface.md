@@ -21,6 +21,22 @@ This page lists all user interface additions, changes, fixes that are implemente
 
 - Toggles the visibility of Super Weapon timers. Defaults to `<none>`.
 
+### `[ ]` Repeat Last Building
+
+- Queue the last structure that was built. Defaults to `Ctrl` + `Z`.
+
+### `[ ]` Repeat Last Infantry
+
+- Queue the last infantry that was built. Defaults to `<none>`.
+
+### `[ ]` Repeat Last Unit
+
+- Queue the last vehicle that was built. Defaults to `<none>`.
+
+### `[ ]` Repeat Last Aircraft
+
+- Queue the last aircraft that was built. Defaults to `<none>`.
+
 ### `[ ]` Jump Camera West
 
 - Jump the tactical map camera to the west edge of the map. Defaults to `Ctrl` + `Left Arrow`.

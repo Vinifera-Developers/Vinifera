@@ -2,7 +2,7 @@
 
 This page lists the history of changes across stable Vinifera releases and also all the stuff that requires modders to change something in their mods to accommodate.
 
-% ## Migrating
+## Migrating
 
 % ```{hint}
 % You can use the migration utility (can be found on [Vinifera supplementaries repo](https://github.com/Vinifera-Developers/ViniferaSupplementaries)) to apply most of the changes automatically using a corresponding sed script file.
@@ -12,7 +12,9 @@ This page lists the history of changes across stable Vinifera releases and also 
 
 % ### When updating Vinifera
 
-% ### From TS Patches
+### From TS Patches
+
+- [place_building_hotkey.c](https://github.com/CnCNet/ts-patches/blob/master/src/place_building_hotkey.c) and [repeat_last_building_hotkey.c](https://github.com/CnCNet/ts-patches/blob/master/src/repeat_last_building_hotkey.c) should be disabled to avoid conflict with the analogous Vinifera keyboard commands.
 
 % ### New user settings in `SUN.ini`
 % 
@@ -116,6 +118,7 @@ New:
 - Change the default value of AllowHiResModes to true (by CCHyper/tomsons26)
 - Implement CnCNet4 support (by CCHyper/tomsons26)
 - Implement CnCNet5 support (by CCHyper/tomsons26)
+- Adds keyboard commands to reproduce the last items that were built (by CCHyper/tomsons26)
 
 Vanilla fixes:
 - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively (by CCHyper/tomsons26)

@@ -213,6 +213,18 @@ void Init_Vinifera_Commands()
     cmdptr = new ManualPlaceCommandClass;
     Commands.Add(cmdptr);
 
+    cmdptr = new RepeatLastBuildingCommandClass;
+    Commands.Add(cmdptr);
+
+    cmdptr = new RepeatLastInfantryCommandClass;
+    Commands.Add(cmdptr);
+
+    cmdptr = new RepeatLastUnitCommandClass;
+    Commands.Add(cmdptr);
+
+    cmdptr = new RepeatLastAircraftCommandClass;
+    Commands.Add(cmdptr);
+
     cmdptr = new PrevThemeCommandClass;
     Commands.Add(cmdptr);
 
@@ -447,6 +459,14 @@ static void Process_Vinifera_Hotkeys()
 #if defined(TS_CLIENT)
     }
 #endif
+
+    if (!ini.Is_Present("Hotkey", "RepeatLastBuilding")) {
+        cmdptr = CommandClass::From_Name("RepeatLastBuilding");
+        if (cmdptr) {
+            key = reinterpret_cast<ViniferaCommandClass *>(cmdptr)->Default_Key();
+            HotkeyIndex.Add_Index(key, cmdptr);
+        }
+    }
 
     if (!ini.Is_Present("Hotkey", "PrevTheme")) {
         cmdptr = CommandClass::From_Name("PrevTheme");

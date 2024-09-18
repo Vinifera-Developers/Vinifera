@@ -119,6 +119,7 @@ This page lists all the individual contributions to the project by their author.
   - Change the default value of AllowHiResModes to true.
   - Implement CnCNet4 support.
   - Implement CnCNet5 support.
+  - Adds keyboard commands to reproduce the last items that were built.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Rampastring**:
