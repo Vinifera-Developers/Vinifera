@@ -8,7 +8,7 @@ This page lists all the individual contributions to the project by their author.
 - **CCHyper/tomsons26**:
   - Vinifera foundations: TS++, game.exe hooker, extension system and other core features
   - Implement `CurleyShuffle` for AircraftTypes
-  - Implement `ReloadRate `for AircraftTypes
+  - Implement `ReloadRate` for AircraftTypes
   - Implement `AILegalTarget` for TechnoTypes
   - Add support for up to 32767 waypoints to be used in scenarios.
   - Implement the loading of Tutorial messages from scenarios.
