@@ -98,7 +98,7 @@ DECLARE_PATCH(_Tactical_Draw_Rally_Points_NormaliseLineAnimation_Patch)
     /**
      *  Draw the line line with the desired pattern.
      */
-    TempSurface->entry_48(*start_pos, *end_pos, color, _pattern, offset, blit);
+    LogicSurface->entry_48(*start_pos, *end_pos, color, _pattern, offset, blit);
 #endif
 
     /**
@@ -169,7 +169,7 @@ DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_NormaliseLineAnimation_Patch)
     /**
      *  Draw the line line with the desired pattern.
      */
-    TempSurface->entry_48(*start_pos, *end_pos, color, _pattern, offset, blit);
+    LogicSurface->entry_48(*start_pos, *end_pos, color, _pattern, offset, blit);
 #endif
 
     /**
