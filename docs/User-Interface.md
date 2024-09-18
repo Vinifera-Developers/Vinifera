@@ -6,6 +6,8 @@ This page lists all user interface additions, changes, fixes that are implemente
 
 - Vinifera adds support for 8-bit (paletted and non-paletted) PCX and 8-bit PNG cameos. This system auto-detects and prioritises the PNG or PCX file if found, no additional settings are required.
 - Vinifera thickens the waypoint and rally point lines and adds stroke/outline to the waypoint number.
+- Vinifera adds a "Load Game" button to the retry dialog shown after a failed mission.
+- Vinifera changes the game to save screenshots as a PNG file instead of PCX file. In addition to this, it also changes the filename format to be unique. Instead of writing `SCRN[0000-9999].PNG`, the game now writes `SCRN_[date-time].PNG` (example, `SCRN_02-06-2021_12-51-40.PNG`).
 
 ## Audio
 
@@ -60,6 +62,13 @@ This page lists all user interface additions, changes, fixes that are implemente
 - Plays the next music track. Defaults to `]`.
 
 ![image](https://user-images.githubusercontent.com/73803386/123566309-4ade4600-d7b7-11eb-9b77-5c9de7959822.png)
+
+## Dropship Loadout
+
+- The Tiberian Sun Map theme is now played on the Dropship Loadout screen (`DSHPLOAD` can be defined in THEME.INI to customise this.)
+- Help text is now shown on the screen to aid the user.
+
+![image](https://user-images.githubusercontent.com/73803386/120932514-13b3d200-c6ee-11eb-9538-3f812323cb9f.png)
 
 ## Loading screen
 

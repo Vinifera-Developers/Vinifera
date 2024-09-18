@@ -57,6 +57,26 @@ GateUpSound=<VocType>  ; Sound effect to play when the gate is rising.
 GateDownSound=<VocType>  ; Sound effect to play when the gate is lowering.
 ```
 
+### ProduceCash
+
+- Vinifera implements the Produce Cash logic from Red Alert 2.
+
+- The system works exactly as it does in Red Alert 2, but with the following differences;
+
+- Ability to set a total budget available to the building.
+- The logic is sensitive to Powered=yes, meaning it will stop when the house has low power.
+
+In `RULES.INI`:
+```ini
+[BuildingType]
+ProduceCashStartup=<integer>  ; Credits when captured from a house that has MultiplayPassive=yes set. Defaults to 0.
+ProduceCashAmount=<integer>  ; Amount every give to/take from the house every delay. This value supports negative values which will deduct money from the house which owns this building. Defaults to 0.
+ProduceCashDelay=<integer>  ; Frame delay between amounts. Defaults to 0 (instant).
+ProduceCashBudget=<integer>  ; The total cash budget for this building. Defaults to 0 (infinite budget).
+ProduceCashResetOnCapture=<boolean>  ; Reset the buildings available budget when captured. Defaults to false.
+ProduceCashStartupOneTime=<boolean>  ; Is the bonus on capture a "one one" special (further captures will not get the bonus)? Defaults to false.
+```
+
 ## Crates
 
 ## Ice

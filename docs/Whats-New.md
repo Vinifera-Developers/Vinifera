@@ -104,6 +104,16 @@ New:
 - Thicken the waypoint and rally point lines and adds stroke/outline to the waypoint number (by CCHyper/tomsons26)
 - Implement hotkey command to enter the manual placement mode (by CCHyper/tomsons26)
 - Allow harvesters to be considered when executing the "Guard" command (by CCHyper/tomsons26)
+- Harvesters now auto harvest when built from the war factory (by CCHyper/tomsons26)
+- Patch to allow Skirmish games to be started with no AI house(s) (by CCHyper/tomsons26)
+- Implement the Produce Cash logic for BuildingTypes (by CCHyper/tomsons26)
+- Add various developer mode hotkey commands (by CCHyper/tomsons26)
+- Add a "Load Game" button to the retry dialog on mission failure (by CCHyper/tomsons26)
+- Save screenshots as a PNG file instead of PCX file (by CCHyper/tomsons26)
+- Add support for playing the renamed intro movies from The First Decade and Freeware TS installations (by CCHyper/tomsons26)
+- Implement the Blowfish algorithm and removes the requirement for BLOWFISH.DLL (by CCHyper/tomsons26)
+- Allow the game to continue if the side specific mix files are not found (by CCHyper/tomsons26)
+- Change the default value of AllowHiResModes to true (by CCHyper/tomsons26)
 
 Vanilla fixes:
 - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively (by CCHyper/tomsons26)
@@ -130,6 +140,20 @@ Vanilla fixes:
 - Fix the animation speed of Waypoint and Rally Point lines so they are normalised and no longer subjected to the game speed setting (by CCHyper/tomsons26)
 - Fix a limitation where returning to the Skirmish dialog after a game clamps the chosen side between 0 (GDI) and 1 (Nod) (by CCHyper/tomsons26)
 - Fix a bug where the user is able to place a building anywhere on the map by taking advantage of the sidebar (by CCHyper/tomsons26)
+- Fix division by zero crashes when ShakeScreen is set to 0 (by CCHyper/tomsons26)
+- Increase the IsoMapPack5 buffer size when decoding a map (by CCHyper/tomsons26)
+- Fix a bug where looping animations incorrectly use the unsynchronized RNG (by CCHyper/tomsons26)
+- Fix a bug where `IsTrainable` is not checked when an object picks up a veteracy crate (by CCHyper/tomsons26)
+- Fix a bug where `IsInsignificant` was not checked when a unit dies (by CCHyper/tomsons26)
+- Fix the incorrect (RA legacy) cell calculation for the "move to cell" team script (by CCHyper/tomsons26)
+- Fix a bug where the sidebar mouse wheel scrolling "error" sound can be heard at the main menu (by CCHyper/tomsons26)
+- Fix a bug with TriggerTypes not setting difficulty flags correctly when reading from INI (by CCHyper/tomsons26)
+- Fix a bug with triggers enabled via other triggers ignoring difficulty settings (by CCHyper/tomsons26)
+- Fix MultiMission `MaxPlayers` incorrectly loaded with `MinPlayers` (by CCHyper/tomsons26)
+- Fix to maintain aspect ratio when scaling movies/videos (by CCHyper/tomsons26)
+- Fix incorrect spelling of "Loser" on the multiplayer score screen debug output (by CCHyper/tomsons26)
+- Fix incorrect stretching of the main menu transition movies (by CCHyper/tomsons26)
+- Bugfixes and improvements for the Dropship Loadout menu (by CCHyper/tomsons26)
 
 </details>
 

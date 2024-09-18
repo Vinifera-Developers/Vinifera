@@ -4,9 +4,17 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 
 - Vinifera hardcodes the shroud and fog graphics to circumvent cheating in multiplayer games.
 - Vinifera redirects saved screenshots using the keyboard command to a new sub-directory in the games folders, `Screenshots`.
-- Harvesters are now considered when executing the "Guard" command. They have a special case when assigned with the Guard mission that tells them to find the nearest Tiberium patch and begin harvesting.
+- Vinifera allows Skirmish games to be started with no AI house(s).
+- Vinifera implements the Blowfish algorithm into the Vinifera DLL itself, removing the requirement for the external BLOWFISH.DLL library. As a result, this allows the game will run without BLOWFISH.DLL registered on the target system or present in the installation directory. The game can still load encrypted mix files to be loaded without any issues.
 
-## MCV Auto-deploy
+## Quality of Life
+
+- Harvesters are now considered when executing the "Guard" command. They have a special case when assigned with the Guard mission that tells them to find the nearest Tiberium patch and begin harvesting.
+- Harvesters now auto harvest when built from the war factory.
+- Vinifera changes the default value of `IsScoreShuffle` to true. 
+- Vinifera changes the default value of `AllowHiResModes` to true. 
+
+### MCV Auto-deploy
 
 - Vinifera allow you to start the game with the MCV deployed, or have the MCV auto-deploy on start.
 
@@ -87,10 +95,16 @@ The argument supports multiple entries separated by the `;` character. Below are
 
 ## Developer Features
 
+```{note}
+You can enable the developer mode by running Vinifera (LaunchVinifera.exe) with the command line argument `-DEVELOPER`.
+```
+
 - The game will no longer fail to start if the startup mix files are not found.
 ```{note}
 It is not recommended that you modify or remove any of the original mix files, this could lead to undefined behaviour and the Vinifera developers will not be able to troubleshoot any issue related to these changes.
 ```
+
+- The game will no longer fail if the side specific mix files are not found.
 
 ### Rule Selection
 
@@ -180,6 +194,134 @@ This option tells the game to exit when you press Cancel or Back from the dialog
 #### `[ ]` Step 10 Frame
 
 - Steps the game 10 frames forward.
+
+#### `[ ]` Build Cheat
+
+- Unlocks all available build options for the player house.
+
+#### `[ ]` Toggle Elite
+
+- Toggle the elite status of the selected objects.
+
+#### `[ ]` Damage
+
+- Apply damage to all selected objects.
+
+#### `[ ]` Spawn All
+
+- Spawn all buildable units and structures at mouse cursor location.
+
+#### `[ ]` Delete Object
+
+- Removes the selected object(s) from the game world.
+
+#### `[ ]` Map Snapshot
+
+- Saves a snapshot of the current scenario state.
+
+#### `[ ]` Ion Storm
+
+- Toggles the ion storm on/off.
+
+#### `[ ]` Bail Out
+
+- Exits the game completely.
+
+```{note}
+`ExplosionCommandClass` and `SuperExplosionCommandClass` are currently disabled due to possible engine bug.
+```
+
+#### `[ ]` Explosion
+
+- Spawns an explosion at the mouse cursor location.
+
+#### `[ ]` Super Explosion
+
+- Spawns a large explosion at the mouse cursor location.
+
+#### `[ ]` Ion Blast
+
+- Fires an ion blast bolt at the current mouse cursor location.
+
+#### `[ ]` Lightning Bolt
+
+- Fires a lightning bolt at the current mouse cursor location.
+
+#### `[ ]` Free Money
+
+- Hands out free money to the player.
+
+#### `[ ]` Special Weapons
+
+- Grants all available special weapons to the player.
+
+#### `[ ]` Capture Object
+
+- Take ownership of any selected objects.
+
+#### `[ ]` Force Win
+
+- Forces the player to win the current game session.
+
+#### `[ ]` Force Lose
+
+- Forces the player to lose the current game session.
+
+#### `[ ]` Force Die
+
+- Forces the player to blowup and lose the current game session.
+
+#### `[ ]` Instant Build
+
+- Toggles the instant build cheat for the player.
+
+#### `[ ]` Instant Build (AI)
+
+- Toggles the instant build cheat for the AI.
+
+#### `[ ]` Toggle Shroud
+
+- Toggles the visibility of the map shroud.
+
+#### `[ ]` Heal
+
+- Heal the selected objects by 50 hit points.
+
+#### `[ ]` Toggle Inert
+
+- Toggles if weapons are inert or not.
+
+#### `[ ]` Dump AI Base Nodes
+
+- Dumps all the current AI house base node info to the log output.
+
+#### `[ ]` Toggle Alliance
+
+- Toggles alliance with the selected objects house.
+
+#### `[ ]` Encroach Fog
+
+- Increase the fog of war by one step (cell).
+
+#### `[ ]` Encroach Shadow
+
+- Increase the shroud darkness by one step (cell).
+
+#### `[ ]` Toggle Berzerk
+
+- Toggles the berzerk state of the selected infantry.
+
+#### `[ ]` Place Crate
+
+- Places a random crate at the mouse location.
+
+#### `[ ]` Add Power
+
+- Adds 2000 power units to the player.
+
+#### `[ ]` Cursor Position
+
+- Displays cell coordinates of the mouse cursor.
 
 ## INI
 

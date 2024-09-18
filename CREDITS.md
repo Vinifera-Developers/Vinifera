@@ -93,6 +93,30 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where the user is able to place a building anywhere on the map by taking advantage of the sidebar.
   - Implement hotkey command to enter the manual placement mode.
   - Allow harvesters to be considered when executing the "Guard" command.
+  - Fix division by zero crashes when ShakeScreen is set to 0.
+  - Increase the IsoMapPack5 buffer size when decoding a map.
+  - Fix a bug where looping animations incorrectly use the unsynchronized RNG.
+  - Fix a bug where `IsTrainable` is not checked when an object picks up a veteracy crate.
+  - Harvesters now auto harvest when built from the war factory.
+  - Patch to allow Skirmish games to be started with no AI house(s).
+  - Fix a bug where `IsInsignificant` was not checked when a unit dies.
+  - Implement the Produce Cash logic for BuildingTypes.
+  - Fix the incorrect (RA legacy) cell calculation for the "move to cell" team script.
+  - Fix a bug where the sidebar mouse wheel scrolling "error" sound can be heard at the main menu.
+  - Fix a bug with TriggerTypes not setting difficulty flags correctly when reading from INI.
+  - Fix a bug with triggers enabled via other triggers ignoring difficulty settings.
+  - Fix MultiMission `MaxPlayers` incorrectly loaded with `MinPlayers`.
+  - Fix to maintain aspect ratio when scaling movies/videos.
+  - Fix incorrect spelling of "Loser" on the multiplayer score screen debug output.
+  - Fix incorrect stretching of the main menu transition movies.
+  - Bugfixes and improvements for the Dropship Loadout menu.
+  - Add various developer mode hotkey commands.
+  - Add a "Load Game" button to the retry dialog on mission failure.
+  - Save screenshots as a PNG file instead of PCX file.
+  - Add support for playing the renamed intro movies from The First Decade and Freeware TS installations.
+  - Implement the Blowfish algorithm and removes the requirement for BLOWFISH.DLL.
+  - Allow the game to continue if the side specific mix files are not found.
+  - Change the default value of AllowHiResModes to true.
 - **Kerbiter (Metadorius)**:
   - Initial doc setup
 - **Rampastring**:
