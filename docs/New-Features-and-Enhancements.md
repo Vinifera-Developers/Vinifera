@@ -70,8 +70,8 @@ ProduceCashStartup=<integer>  ; Credits when captured from a house that has Mult
 ProduceCashAmount=<integer>  ; Amount every give to/take from the house every delay. This value supports negative values which will deduct money from the house which owns this building. Defaults to 0.
 ProduceCashDelay=<integer>  ; Frame delay between amounts. Defaults to 0 (instant).
 ProduceCashBudget=<integer>  ; The total cash budget for this building. Defaults to 0 (infinite budget).
-ProduceCashResetOnCapture=<boolean>  ; Reset the buildings available budget when captured. Defaults to false.
-ProduceCashStartupOneTime=<boolean>  ; Is the bonus on capture a "one one" special (further captures will not get the bonus)? Defaults to false.
+ProduceCashResetOnCapture=<boolean>  ; Reset the buildings available budget when captured. Defaults to no.
+ProduceCashStartupOneTime=<boolean>  ; Is the bonus on capture a "one one" special (further captures will not get the bonus)? Defaults to no.
 ```
 
 ## Ice
@@ -256,7 +256,7 @@ ShakeXlo=<unsigned integer>  ; The minimum pixel X value.
 In `RULES.INI`:
 ```ini
 [TechnoType]
-ImmuneToEMP=<boolean>  ; Is this Techno immune to EMP effects? Defaults to false.
+ImmuneToEMP=<boolean>  ; Is this Techno immune to EMP effects? Defaults to no.
 ```
 
 ## Terrain
@@ -268,12 +268,12 @@ ImmuneToEMP=<boolean>  ; Is this Techno immune to EMP effects? Defaults to false
 In `RULES.INI`:
 ```ini
 [TerrainType]
-IsLightEnabled=<boolean>  ; Does this terrain object emit light? (default false).
-LightVisibility=<integer>  ; This terrain object radiates this amount of light (default 5000).
-LightIntensity=<float>  ; The distance that this light is visible from (default 0).
-LightRedTint=<float>  ; The red tint of this terrain objects light (default 1.0).
-LightGreenTint=<float>  ; The green tint of this terrain objects light (default 1.0).
-LightBlueTint=<float>  ; The blue tint of this terrain objects light (default 1.0).
+IsLightEnabled=<boolean>  ; Does this terrain object emit light? Defaults to no.
+LightVisibility=<integer>  ; This terrain object radiates this amount of light. Defaults to 5000.
+LightIntensity=<float>  ; The distance that this light is visible from. Defaults to 0.
+LightRedTint=<float>  ; The red tint of this terrain objects light. Defaults to 1.0.
+LightGreenTint=<float>  ; The green tint of this terrain objects light. Defaults to 1.0.
+LightBlueTint=<float>  ; The blue tint of this terrain objects light. Defaults to 1.0.
 ```
 
 ## Theaters
