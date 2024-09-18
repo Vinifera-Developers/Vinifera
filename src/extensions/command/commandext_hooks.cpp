@@ -468,30 +468,6 @@ static void Process_Vinifera_Hotkeys()
         }
     }
 
-    if (!ini.Is_Present("Hotkey", "RepeatLastInfantry")) {
-        cmdptr = CommandClass::From_Name("RepeatLastInfantry");
-        if (cmdptr) {
-            key = reinterpret_cast<ViniferaCommandClass *>(cmdptr)->Default_Key();
-            HotkeyIndex.Add_Index(key, cmdptr);
-        }
-    }
-
-    if (!ini.Is_Present("Hotkey", "RepeatLastUnit")) {
-        cmdptr = CommandClass::From_Name("RepeatLastUnit");
-        if (cmdptr) {
-            key = reinterpret_cast<ViniferaCommandClass *>(cmdptr)->Default_Key();
-            HotkeyIndex.Add_Index(key, cmdptr);
-        }
-    }
-
-    if (!ini.Is_Present("Hotkey", "RepeatLastAircraft")) {
-        cmdptr = CommandClass::From_Name("RepeatLastAircraft");
-        if (cmdptr) {
-            key = reinterpret_cast<ViniferaCommandClass *>(cmdptr)->Default_Key();
-            HotkeyIndex.Add_Index(key, cmdptr);
-        }
-    }
-
     if (!ini.Is_Present("Hotkey", "PrevTheme")) {
         cmdptr = CommandClass::From_Name("PrevTheme");
         if (cmdptr) {

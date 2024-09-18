@@ -135,7 +135,7 @@ class RepeatLastInfantryCommandClass : public ViniferaCommandClass
         virtual const char *Get_Description() const override;
         virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_X|KN_CTRL_BIT); }
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -154,7 +154,7 @@ class RepeatLastUnitCommandClass : public ViniferaCommandClass
         virtual const char *Get_Description() const override;
         virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_C|KN_CTRL_BIT); }
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -173,7 +173,7 @@ class RepeatLastAircraftCommandClass : public ViniferaCommandClass
         virtual const char *Get_Description() const override;
         virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_V|KN_CTRL_BIT); }
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 

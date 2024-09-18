@@ -2,7 +2,7 @@
 
 This page lists the history of changes across stable Vinifera releases and also all the stuff that requires modders to change something in their mods to accommodate.
 
-% ## Migrating
+## Migrating
 
 % ```{hint}
 % You can use the migration utility (can be found on [Vinifera supplementaries repo](https://github.com/Vinifera-Developers/ViniferaSupplementaries)) to apply most of the changes automatically using a corresponding sed script file.
@@ -12,7 +12,9 @@ This page lists the history of changes across stable Vinifera releases and also 
 
 % ### When updating Vinifera
 
-% ### From TS Patches
+### From TS Patches
+
+- [place_building_hotkey.c](https://github.com/CnCNet/ts-patches/blob/master/src/place_building_hotkey.c) and [repeat_last_building_hotkey.c](https://github.com/CnCNet/ts-patches/blob/master/src/repeat_last_building_hotkey.c) should be disabled to avoid conflict with the analogous Vinifera keyboard commands.
 
 % ### New user settings in `SUN.ini`
 % 

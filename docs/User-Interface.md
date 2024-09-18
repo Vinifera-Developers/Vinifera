@@ -27,15 +27,15 @@ This page lists all user interface additions, changes, fixes that are implemente
 
 ### `[ ]` Repeat Last Infantry
 
-- Queue the last infantry that was built. Defaults to `Ctrl` + `X`.
+- Queue the last infantry that was built. Defaults to `<none>`.
 
 ### `[ ]` Repeat Last Unit
 
-- Queue the last vehicle that was built. Defaults to `Ctrl` + `C`.
+- Queue the last vehicle that was built. Defaults to `<none>`.
 
 ### `[ ]` Repeat Last Aircraft
 
-- Queue the last aircraft that was built. Defaults to `Ctrl` + `V`.
+- Queue the last aircraft that was built. Defaults to `<none>`.
 
 ### `[ ]` Jump Camera West
 
