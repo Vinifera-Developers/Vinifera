@@ -59,12 +59,9 @@ GateDownSound=<VocType>  ; Sound effect to play when the gate is lowering.
 
 ### ProduceCash
 
-- Vinifera implements the Produce Cash logic from Red Alert 2.
-
-- The system works exactly as it does in Red Alert 2, but with the following differences;
-
-- Ability to set a total budget available to the building.
-- The logic is sensitive to Powered=yes, meaning it will stop when the house has low power.
+- Vinifera implements the Produce Cash logic from Red Alert 2. The system works exactly as it does in Red Alert 2, but with the following differences:
+    - Ability to set a total budget available to the building.
+    - The logic is sensitive to `Powered=yes`, meaning it will stop when the house has low power.
 
 In `RULES.INI`:
 ```ini
