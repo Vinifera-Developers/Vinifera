@@ -81,12 +81,16 @@ Attached is a set of the original loading screens with a minor edit and saved as
 
 ## Sidebar / Battle UI
 
+### Super Weapon Timers
+
 - Super Weapon timers, similar to those found in Red Alert 2, can now be displayed on the tactical view. This is disabled by default and each relevant SuperWeaponType must have it enabled. Superweapons that are offline due to low power or are disabled via other purposes will not show.
 In `RULES.INI`:
 ```ini
 [SuperWeaponType]
 ShowTimer=<boolean>  ; When this superweapon is active, does its recharge timer display on the tactical view? Defaults to no.
 ```
+
+### Chat Improvements
 
 - Vinifera adds a background behind the user typed messages that appear in-game to provide better readability.
 - Additionally, Vinifera implements the system to echo the user's sent messages back to them in-game as a confirmation they were sent. This is an enhancement from Red Alert 2.
@@ -99,6 +103,8 @@ In `UI.INI`:
 TextLabelOutline=<boolean>  ; Should the text be drawn with a black outline? Defaults to yes.
 TextLabelBackgroundTransparency=<unsigned integer>  ; The transparency of the text background fill. Ranged between 0 and 100. Defaults to 50.
 ```
+
+### Unit Health Bar
 
 - Vinifera allows customizing the position of the heath bar.
 
