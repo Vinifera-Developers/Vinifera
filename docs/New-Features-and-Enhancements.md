@@ -259,6 +259,16 @@ In `RULES.INI`:
 ImmuneToEMP=<boolean>  ; Is this Techno immune to EMP effects? Defaults to no.
 ```
 
+### Custom Special Pip
+
+- TechnoTypes can have a custom pip be drawn in the same place as the medic pip using. Its location is the same as the medic pip's.
+
+In `RULES.INI`:
+```ini
+[TechnoType]
+SpecialPipIndex=<integer>  ; Index of the pip to draw in place of the medic pip. Defaults to -1 (none).
+```
+
 ## Terrain
 
 ### Light Sources
@@ -387,10 +397,33 @@ The random map generator does not currently support new theater types.
 ## Themes
 
 - `RequiredAddon` can be set to be limit new and existing themes to a specific addon (i. e., Firestorm).
+
 In `THEME.INI`:
 ```ini
 [ThemeType]
 RequiredAddon=<AddonType>  ; The addon required to be active for this theme to be available. Currently, only 1 (Firestorm) is supported. Defaults to 0 (none).
+```
+
+## Tiberiums
+
+### Pips
+
+- Vinifera allows customizing the pips used for Tiberiums in unit storage, as well as their draw order.
+
+In `RULES.INI`:
+```ini
+[Tiberium]
+PipIndex=<integer>  ; Pip index to use. Defaults to 1 for Tiberium 0, 5 for others
+PipDrawOrder=<integer>  ; The order the pips are drawn in. Less is earlier. Defaults to 1 for Tiberium 0, 0 for others.
+```
+
+- Additionally, buildings now show their storage with the proper pips, instead of showing pip 1 for all tiberiums
+- The pip used to diplay weeds can now also be customized.
+
+In `RULES.INI`:
+```ini
+[AudioVisual]
+WeedPipIndex=<integer>  ;  The pip index used for Weeds. Defaults to 1.
 ```
 
 ## Vehicles
