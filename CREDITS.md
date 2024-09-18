@@ -139,4 +139,5 @@ This page lists all the individual contributions to the project by their author.
   - Technos can have a custom pip be drawn in the same place as the medic pip using `[TechnoType]->SpecialPipIndex`.
   - The location of the control group number and veterancy pips can now be customized in `UI.ini`.
   - MaxPips can now we customized.
+  - Allow adding new Tiberiums and customizing their Image.
 

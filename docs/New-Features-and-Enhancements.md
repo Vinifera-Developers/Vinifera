@@ -406,6 +406,41 @@ RequiredAddon=0  ; AddonType, the addon required to be active for this theme to 
 
 ## Tiberiums
 
+### New Tiberiums
+
+- Vinifera allows mods to create new Tiberiums beyond the vanilla 4.
+
+- A Tiberium's Image can be customized manually.
+
+In `RULES.INI`:
+```ini
+[SOMETIBERIUM]   ; Tiberium
+Overlay=         ; OverlayType, the first overlay that the Tiberium uses, defaults to the value usually used by the Image=, or overlay at index 102 if not specified
+UseSlopes=false  ; boolean, does this Tiberium have graphics for slopes?
+```
+
+```{note}
+The new graphics keys override defaults set according to Image=, please refer to [ModEnc](https://modenc.renegadeprojects.com/Image) about its vanilla behavior. It is not required to set Image= if you specify the graphics using new keys.
+```
+
+```{note}
+`OverlayIndex` specifies the index of the first overlay the Tiberium uses. There must be 12 overlays, located one after another sequentially. Additionally, is `UseSlopes` is set to yes, another 8 overlays are required after the previous 12.
+```
+
+```{warning}
+All `OverlayTypes` used by a `Tiberium` must have `Tiberium=yes`, and no other `OverlayTypes` may have `Tiberium=yes`, or this will lead to severe lags/crashes.
+```
+
+### Tiberium Damage to Infantry
+
+- The damage Tiberium deals to infantry is now customizable separately from Power.
+
+In `RULES.INI`:
+```ini
+[SOMETIBERIUM]     ; Tiberium
+DamageToInfantry=  ; integer, the damage to infantry per tick, defaults to Power / 10
+```
+
 ### Pips
 
 - Vinifera allows customizing the pips used for Tiberiums in unit storage, as well as their draw order.
