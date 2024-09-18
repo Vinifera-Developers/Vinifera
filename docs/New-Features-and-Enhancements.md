@@ -37,8 +37,8 @@ HideIfNoTiberium=<boolean>  ; Should this animation be hidden if the holding cel
 ForceBigCraters=<boolean>  ; Are the craters spawned by this animation when it ends much larger than normal? Defaults to no.
 ZAdjust=<integer>  ; Fudge to this animations Z-axis (depth). Positive values move the animation "away from the screen"/"closer to the ground", negative values do the opposite. Defaults to 0.
 Layer=<LayerType>  ; The map layer this animation is in when attached to an object. Defaults to <none>.
-                   ;Available Options: underground, surface, ground, air, and top.
-                   ;NOTE: This will override the value of Surface= which forces a layer of ground.
+                   ; Available Options: underground, surface, ground, air, and top.
+                   ; NOTE: This will override the value of Surface= which forces a layer of ground.
 SpawnsParticle=<ParticleType>  ; The particle to spawn at the mid-point of this animation. Defaults to <none>.
                                ; This accepts any entry from the [Particles] list from RULES.INI.
 NumParticles=<integer>  ; The number of particles to spawn (as defined by SpawnsParticle=). Defaults to 0.
