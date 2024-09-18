@@ -1,0 +1,42 @@
+# Bugfixes
+
+This page lists all vanilla bugs fixed by Vinifera.
+
+- Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively.
+- Fix a bug where VQA files could not be loaded from the root directory or local search paths.
+- Fix a bug where the player could issue a harvester to begin harvesting Tiberium that is below a bridge while the mouse is over the bridge itself.
+- Fix a bug where the values of `RandomRate` were not stored correctly. In addition to this, negative values will also be converted to absolute numbers.
+- Fix a bug where the `FSMENU` theme would incorrectly play instead of the `INTRO` theme when in Tiberian Sun mode after returning to the main menu.
+- Fix a bug where the game would crash when a trigger with the action "Wakeup group..." is executed and the requested Group was not found.
+- Fix a bug where animations with a `DetailLevel` value greater than 2 would not show in-game.
+- Fix a bug where `EngineerDamage` was incorrectly loaded with `EngineerCaptureLevel`.
+- Fix a bug where `EngineerDamage` was not used to calculate the engineer damage.
+- Fix a bug where `EngineerCaptureLevel` was not considered when checking the target building.
+- Fix a bug where air transports are unable to land when given a move order.
+- Fix the position of the health bar graphic on unit selection boxes.
+- Fix a bug where the agme would crash when attempting to generate a random map if the `Neutral` or `Special` HouseTypes are not found.
+- Fix a bug where the agme would crash when attempting to generate a random map if there are fewer than 4 HouseTypes defined.
+- Fix a limitation where the game could only choose between the first two HouseTypes for the AI players. Now, all HouseTypes with `Multiplay=yes` will be considered.
+- Fix a bug where the `Cloakable=yes` had no effect on AircraftTypes. 
+- Fix a bug where `CloakStop` had no effect on the cloaking behaviour.
+- Fix a bug where pre-placed crates and crates spawned by a destroyed truck will trigger a respawn when they are picked up.
+- Increase the string buffer size from 128 to 2048 characters for when reading and writing Owners from INI.
+- Fix bugs where the Jumpjet uses the wrong animation sequence when firing and in the air.
+- Fix a bug where the wrong palette is used to draw the cameo above an enemy spied factory building.
+- Fix the animation speed of Waypoint and Rally Point lines so they are normalised and no longer subjected to the game speed setting.
+- Fix a limitation where returning to the Skirmish dialog after a game clamps the chosen side between 0 (GDI) and 1 (Nod).
+- Fix a bug where the user is able to place a building anywhere on the map by taking advantage of the sidebar.
+- Fix division by zero crashes when ShakeScreen is set to 0.
+- Increase the IsoMapPack5 buffer size when decoding a map.
+- Fix a bug where looping animations incorrectly use the unsynchronized RNG, which would cause the game to randomly crash during online games.
+- Fix a bug where `IsTrainable` is not checked when an object picks up a veteracy crate.
+- Fix a bug where `IsInsignificant` was not checked when a unit dies.
+- Fix the incorrect (RA legacy) cell calculation for the "move to cell" team script.
+- Fix a bug where the sidebar mouse wheel scrolling "error" sound can be heard at the main menu.
+- Fix a bug with TriggerTypes not setting difficulty flags correctly when reading from INI.
+- Fix a bug with triggers enabled via other triggers ignoring difficulty settings.
+- Fix MultiMission `MaxPlayers` incorrectly loaded with `MinPlayers`.
+- Fix to maintain aspect ratio when scaling movies/videos.
+- Fix incorrect spelling of "Loser" on the multiplayer score screen debug output.
+- Fix incorrect stretching of the main menu transition movies.
+- Fix mouse cursor not being displayed in the Dropship Loadout menu.

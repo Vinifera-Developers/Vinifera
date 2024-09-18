@@ -3,7 +3,129 @@
 This page lists all the individual contributions to the project by their author.
 
 - **Belonit (Gluk-v48)**:
-  - Check for Changelog/Documentation/Credits in Pull Requests
-  - Docs dark theme switcher
+  - Check for Changelog/Documentation/Credits in Pull Requests.
+  - Docs dark theme switcher.
+- **CCHyper/tomsons26**:
+  - Vinifera foundations: TS++, game.exe hooker, extension system and other core features
+  - Implement `CurleyShuffle` for AircraftTypes
+  - Implement `ReloadRate` for AircraftTypes
+  - Implement `AILegalTarget` for TechnoTypes
+  - Add support for up to 32767 waypoints to be used in scenarios.
+  - Implement the loading of Tutorial messages from scenarios.
+  - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively.
+  - Fix a bug where VQA files could not be loaded from the root directory or local search paths.
+  - Allow the remap color of `Neutral` and `Special` houses to be overridden in multiplayer games.
+  - Add RequiredAddon to Theme control types.
+  - Implement `IntroMovie` for Campaigns.
+  - Fix a bug where the player could issue a harvester to begin harvesting Tiberium that is below a bridge while the mouse is over the bridge itself.
+  - Fix a bug where the values of `RandomRate` were not stored correctly.
+  - Implement `DebugOnly` for Campaigns.
+  - Fix a bug where the `FSMENU` theme would incorrectly play instead of the `INTRO` theme when in Tiberian Sun mode after returning to the main menu.
+  - Implement developer commands for instant superweapon recharge.
+  - Add support for PNG images as an alternative to PCX images.
+  - Implement option to display the super weapon recharge timer on the tactical view.
+  - Implement `CanPassiveAcquire` for TechnoTypes.
+  - Implement `CanRetaliate` for TechnoTypes.
+  - Fix a bug where the game would crash when a trigger with the action "Wakeup group..." is executed and the requested Group was not found.
+  - Add loading of `MPLAYER.INI` and `MPLAYERFS.INI` to override Rules data for multiplayer games.
+  - Allow the game's Window title, Cursor and Icon to be overridden.
+  - Implement `IdleRate`, `StartIdleFrame` and `IdleFrames` for TechnoTypes.
+  - Add loading of `GENERIC.MIX` and `ISOGEN.MIX` mixfiles.
+  - The game will no longer fail to start if the startup mix files are not found.
+  - Implement support for new custom theater types.
+  - Add loading of `ELOCAL(00-99).MIX` expansion mixfiles.
+  - Fix a bug where animations with a `DetailLevel` value greater than 2 would not show in-game.
+  - Add Rules INI selection dialog for Developer Mode.
+  - Implement the "Build Off Ally" feature from Red Alert 2.
+  - Adds background fill behind in-game user typed messages.
+  - Fix a bug where `EngineerDamage` was incorrectly loaded with `EngineerCaptureLevel`.
+  - Fix a bug where `EngineerDamage` was not used to calculate the engineer damage.
+  - Fix a bug where `EngineerCaptureLevel` was not considered when checking the target building.
+  - Fix a number of issues related to the "multi-engineer" logic.
+  - Implement JumpCamera (North, South, East and West) commands.
+  - Implement `EnterTransportSound` and `LeaveTransportSound` for TechnoTypes.
+  - Fix a bug where air transports are unable to land when given a move order.
+  - Hardcode shroud and fog graphics to circumvent cheating in multiplayer games.
+  - Implement `Mechanic` and `OmniHealer` for InfantryTypes.
+  - Add support for 8-bit PCX and PNG cameos.
+  - Implement `Soylent` for TechnoTypes.
+  - Implement `SpawnDelay` for BulletTypes.
+  - Implements `Suicide` and `DeleteOnSuicide` for WeaponTypes.
+  - Implement`VoiceHarvest`, `VoiceDeploy`, `VoiceEnter`, and `VoiceCapture` for TechnoTypes.
+  - Implement various Red Alert 2 AnimType features.
+  - Add game options to allow MCV's to auto-deploy on game start and to pre-place construction yards instead of spawning an MCV.
+  - Add developer commands for placing and removing Tiberium from a cell.
+  - Implement Electric Bolts for WeaponTypes.
+  - Fix the position of the health bar graphic on unit selection boxes.
+  - Make the position of the health bar graphic on unit selection boxes customizable.
+  - Output screenshots to their own sub-directory.
+  - Echo the user's sent messages back to them as confirmation they were sent.
+  - Reimplement the command line argument `-CD` from Red Alert to allow file search path override logic.
+  - Allow the score screen to be skipped at the end of a multiplayer game.
+  - Add warning notification if a NULL house instance is detected during the game loading screen.
+  - Implement light sources for TerrainTypes.
+  - Fix a bug where the agme would crash when attempting to generate a random map if the `Neutral` or `Special` HouseTypes are not found.
+  - Fix a bug where the agme would crash when attempting to generate a random map if there are fewer than 4 HouseTypes defined.
+  - Fix a limitation where the game could only choose between the first two HouseTypes for the AI players.
+  - Add command line options to skip to specific game modes and to skip startup movies.
+  - Implement diagonal scroll commands.
+  - Fix a bug where the `Cloakable=yes` had no effect on AircraftTypes. 
+  - Add keyboard commands for playing previous and next music tracks in the jukebox.
+  - Implement CloakSound and UncloakSound for TechnoTypes.
+  - Restore the screen shake when a strong unit or building is destroyed.
+  - Implement various Red Alert 2 WarheadType features.
+  - Add reading of Weapons list from RULES.INI.\
+  - Allow WalkRate to be optionally loaded from ART.INI image entries.
+  - Fix a bug where `CloakStop` had no effect on the cloaking behaviour.
+  - Add gate rising and lowering sound overrides for buildings.
+  - Add UnitType flag to prevent a vehicle from being picked up by a Carryall.
+  - Add support for a custom unloading class when a harvester is unloading at a refinery.
+  - Implement ToggleAIControlCommandClass.
+  - Add support for more graphic facings for UnitTypes and various associated items.
+  - Implement ToggleFrameStepCommandClass.
+  - Fix a bug where pre-placed crates and crates spawned by a destroyed truck will trigger a respawn when they are picked up.
+  - Increase the string buffer size from 128 to 2048 characters for when reading and writing Owners from INI.
+  - Thicken the waypoint and rally point lines and adds stroke/outline to the waypoint number. 
+  - Fix bugs where the Jumpjet uses the wrong animation sequence when firing and in the air.
+  - Fix a bug where the wrong palette is used to draw the cameo above an enemy spied factory building.
+  - Fix the animation speed of Waypoint and Rally Point lines so they are normalised and no longer subjected to the game speed setting.
+  - Fix a limitation where returning to the Skirmish dialog after a game clamps the chosen side between 0 (GDI) and 1 (Nod).
+  - Fix a bug where the user is able to place a building anywhere on the map by taking advantage of the sidebar.
+  - Implement hotkey command to enter the manual placement mode.
+  - Allow harvesters to be considered when executing the "Guard" command.
+  - Fix division by zero crashes when ShakeScreen is set to 0.
+  - Increase the IsoMapPack5 buffer size when decoding a map.
+  - Fix a bug where looping animations incorrectly use the unsynchronized RNG.
+  - Fix a bug where `IsTrainable` is not checked when an object picks up a veteracy crate.
+  - Harvesters now auto harvest when built from the war factory.
+  - Patch to allow Skirmish games to be started with no AI house(s).
+  - Fix a bug where `IsInsignificant` was not checked when a unit dies.
+  - Implement the Produce Cash logic for BuildingTypes.
+  - Fix the incorrect (RA legacy) cell calculation for the "move to cell" team script.
+  - Fix a bug where the sidebar mouse wheel scrolling "error" sound can be heard at the main menu.
+  - Fix a bug with TriggerTypes not setting difficulty flags correctly when reading from INI.
+  - Fix a bug with triggers enabled via other triggers ignoring difficulty settings.
+  - Fix MultiMission `MaxPlayers` incorrectly loaded with `MinPlayers`.
+  - Fix to maintain aspect ratio when scaling movies/videos.
+  - Fix incorrect spelling of "Loser" on the multiplayer score screen debug output.
+  - Fix incorrect stretching of the main menu transition movies.
+  - Bugfixes and improvements for the Dropship Loadout menu.
+  - Add various developer mode hotkey commands.
+  - Add a "Load Game" button to the retry dialog on mission failure.
+  - Save screenshots as a PNG file instead of PCX file.
+  - Add support for playing the renamed intro movies from The First Decade and Freeware TS installations.
+  - Implement the Blowfish algorithm and removes the requirement for BLOWFISH.DLL.
+  - Allow the game to continue if the side specific mix files are not found.
+  - Change the default value of AllowHiResModes to true.
+  - Implement CnCNet4 support.
+  - Implement CnCNet5 support.
 - **Kerbiter (Metadorius)**:
-  - Initial doc setup
+  - Initial documentation setup.
+- **Rampastring**:
+  - Add `IceStrength` to Rules, and `IceDestructionEnabled` scenario option.
+  - Add `ImmuneToEMP` to TechnoTypes.
+- **secsome**:
+  - Add support for up to 32767 waypoints to be used in scenarios.
+- **ZivDero**:
+  - Filling the documentation for previously implemented features.
+  - Add support for up to 32767 waypoints to be used in scenarios.

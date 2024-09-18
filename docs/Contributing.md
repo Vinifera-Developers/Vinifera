@@ -4,13 +4,13 @@ This page describes ways to help or contribute to Vinifera and lists the contrib
 
 ## Guidelines for contributors
 
-### Project structure
+% ### Project structure
 
-TODO
+% TODO
 
-### Code styleguide
+% ### Code styleguide
 
-TODO
+% TODO
 
 ### Git branching model
 
