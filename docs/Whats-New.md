@@ -116,6 +116,7 @@ New:
 - Change the default value of AllowHiResModes to true (by CCHyper/tomsons26)
 - Implement CnCNet4 support (by CCHyper/tomsons26)
 - Implement CnCNet5 support (by CCHyper/tomsons26)
+- Adds keyboard commands to reproduce the last items that were built (by CCHyper/tomsons26)
 
 Vanilla fixes:
 - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively (by CCHyper/tomsons26)
