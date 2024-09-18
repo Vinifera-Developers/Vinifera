@@ -150,6 +150,8 @@ DECLARE_PATCH(_Fill_In_Data_Home_Cell_Patch)
  */
 const char* _Waypoint_To_Name(int wp)
 {
+    enum { CHAR_COUNT = 26 };
+
     static char buffer[8]{ '\0' };
 
     if (wp < 0)
@@ -161,10 +163,10 @@ const char* _Waypoint_To_Name(int wp)
     while (wp > 0)
     {
         --pos;
-        char m = wp % 26;
-        if (m == 0) m = 26;
+        char m = wp % CHAR_COUNT;
+        if (m == 0) m = CHAR_COUNT;
         buffer[pos] = m + '@'; // '@' = 'A' - 1
-        wp = (wp - m) / 26;
+        wp = (wp - m) / CHAR_COUNT;
     }
 
     return buffer + pos;
@@ -180,19 +182,21 @@ const char* _Waypoint_To_Name(int wp)
  */
 int _Waypoint_From_Name(char* wp)
 {
+    enum { CHAR_COUNT = 26 };
+
     int n = 0;
     int len = strlen(wp);
 
-    for (int i = len - 1, j = 1; i >= 0; i--, j *= 26)
+    for (int i = len - 1, j = 1; i >= 0; i--, j *= CHAR_COUNT)
     {
         int c = toupper(wp[i]);
         if (c < 'A' || c > 'Z')
             return WAYPOINT_NONE;
 
-        n += (c - 64) * j;
+        n += (c - '@') * j; // '@' = 'A' - 1
     }
 
-    return (n - 1);
+    return n - 1;
 }
 
 
