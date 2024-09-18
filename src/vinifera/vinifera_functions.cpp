@@ -648,7 +648,6 @@ bool Vinifera_Shutdown()
     /**
      *  Cleanup global heaps/vectors.
      */
-    EBoltClass::Clear_All();
     TheaterTypes.Clear();
 
     /**

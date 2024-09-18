@@ -48,6 +48,7 @@
 #include "hooker_macros.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "ebolt.h"
 
 
 /**
@@ -72,6 +73,10 @@ static void _Detach_This_From_All_Intercept(TARGET target, bool all)
  */
 static void _Free_Heaps_Intercept()
 {
+    /**
+     *  Cleanup global heaps/vectors.
+     */
+    EBoltClass::Clear_All();
     Extension::Free_Heaps();
 
     Free_Heaps();

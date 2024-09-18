@@ -512,10 +512,6 @@ EBoltColor2=82,81,255    ; RGB color.
 EBoltColor3=82,81,255    ; RGB color.
 ```
 
-```{warning}
-Electric bolts are currently known to potentially cause issues on save/load.
-```
-
 ![GIF 08-09-2021 19-17-13](https://user-images.githubusercontent.com/73803386/132563132-7ebb771f-8acf-4ee2-ba4b-8dfa8a01de8f.gif)
 
 ### Suicide
