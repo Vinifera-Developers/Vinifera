@@ -66,9 +66,10 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
         bool CombatDamage(CCINIClass &ini);
         bool Weapons(CCINIClass &ini);
 
+        void Fixups(CCINIClass &ini);
+
     private:
         void Check();
-        void Fixups(CCINIClass &ini);
 
     public:
         /**
