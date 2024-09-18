@@ -439,27 +439,27 @@ bool ManualPlaceCommandClass::Process()
  * 
  *  @author: CCHyper (based on research by dkeeton)
  */
-const char *JustBuiltBuildingCommandClass::Get_Name() const
+const char *RepeatLastBuildingCommandClass::Get_Name() const
 {
-    return "JustBuiltBuilding";
+    return "RepeatLastBuilding";
 }
 
-const char *JustBuiltBuildingCommandClass::Get_UI_Name() const
+const char *RepeatLastBuildingCommandClass::Get_UI_Name() const
 {
-    return "Reproduce Last Building";
+    return "Repeat Last Building";
 }
 
-const char *JustBuiltBuildingCommandClass::Get_Category() const
+const char *RepeatLastBuildingCommandClass::Get_Category() const
 {
     return Text_String(TXT_INTERFACE);
 }
 
-const char *JustBuiltBuildingCommandClass::Get_Description() const
+const char *RepeatLastBuildingCommandClass::Get_Description() const
 {
-    return "Reproduce the last structure that was built.";
+    return "Queue the last structure that was built.";
 }
 
-bool JustBuiltBuildingCommandClass::Process()
+bool RepeatLastBuildingCommandClass::Process()
 {
     if (!PlayerPtr) {
         return false;
@@ -470,7 +470,7 @@ bool JustBuiltBuildingCommandClass::Process()
      *  done to make sure the house still has a factory.
      */
     if (!PlayerPtr->Factory_Count(RTTI_BUILDING)) {
-        DEV_DEBUG_WARNING("JustBuiltBuildingCommandClass - Unable to fetch primary factory!\n");
+        DEV_DEBUG_WARNING("RepeatLastBuildingCommandClass - Unable to fetch primary factory!\n");
         return false;
     }
     
@@ -501,9 +501,9 @@ bool JustBuiltBuildingCommandClass::Process()
         return false;
     }
 
-    DEBUG_INFO("JustBuiltBuildingCommandClass - \"%s\"\n", buildingtype->Full_Name());
+    DEBUG_INFO("RepeatLastBuildingCommandClass - \"%s\"\n", buildingtype->Full_Name());
 
-    OutList.Add(EventClass(PlayerPtr->ID, EventType::PRODUCE, RTTI_BUILDINGTYPE, building));
+    OutList.Add(EventClass(PlayerPtr->ID, EVENT_PRODUCE, RTTI_BUILDINGTYPE, building));
 
     return true;
 }
@@ -516,27 +516,27 @@ bool JustBuiltBuildingCommandClass::Process()
  * 
  *  @author: CCHyper (based on research by dkeeton)
  */
-const char *JustBuiltInfantryCommandClass::Get_Name() const
+const char *RepeatLastInfantryCommandClass::Get_Name() const
 {
-    return "JustBuiltInfantry";
+    return "RepeatLastInfantry";
 }
 
-const char *JustBuiltInfantryCommandClass::Get_UI_Name() const
+const char *RepeatLastInfantryCommandClass::Get_UI_Name() const
 {
-    return "Reproduce Last Infantry";
+    return "Repeat Last Infantry";
 }
 
-const char *JustBuiltInfantryCommandClass::Get_Category() const
+const char *RepeatLastInfantryCommandClass::Get_Category() const
 {
     return Text_String(TXT_INTERFACE);
 }
 
-const char *JustBuiltInfantryCommandClass::Get_Description() const
+const char *RepeatLastInfantryCommandClass::Get_Description() const
 {
-    return "Reproduce the last infantry that was built.";
+    return "Queue the last infantry that was built.";
 }
 
-bool JustBuiltInfantryCommandClass::Process()
+bool RepeatLastInfantryCommandClass::Process()
 {
     if (!PlayerPtr) {
         return false;
@@ -547,7 +547,7 @@ bool JustBuiltInfantryCommandClass::Process()
      *  done to make sure the house still has a factory.
      */
     if (!PlayerPtr->Factory_Count(RTTI_INFANTRY)) {
-        DEV_DEBUG_WARNING("JustBuiltInfantryCommandClass - Unable to fetch primary factory!\n");
+        DEV_DEBUG_WARNING("RepeatLastInfantryCommandClass - Unable to fetch primary factory!\n");
         return false;
     }
     
@@ -578,9 +578,9 @@ bool JustBuiltInfantryCommandClass::Process()
         return false;
     }
 
-    DEBUG_INFO("JustBuiltInfantryCommandClass - \"%s\"\n", infantrytype->Full_Name());
+    DEBUG_INFO("RepeatLastInfantryCommandClass - \"%s\"\n", infantrytype->Full_Name());
 
-    OutList.Add(EventClass(PlayerPtr->ID, EventType::PRODUCE, RTTI_INFANTRYTYPE, infantry));
+    OutList.Add(EventClass(PlayerPtr->ID, EVENT_PRODUCE, RTTI_INFANTRYTYPE, infantry));
 
     return true;
 }
@@ -593,27 +593,27 @@ bool JustBuiltInfantryCommandClass::Process()
  * 
  *  @author: CCHyper (based on research by dkeeton)
  */
-const char *JustBuiltUnitCommandClass::Get_Name() const
+const char *RepeatLastUnitCommandClass::Get_Name() const
 {
-    return "JustBuiltUnit";
+    return "RepeatLastUnit";
 }
 
-const char *JustBuiltUnitCommandClass::Get_UI_Name() const
+const char *RepeatLastUnitCommandClass::Get_UI_Name() const
 {
-    return "Reproduce Last Vehicle";
+    return "Repeat Last Vehicle";
 }
 
-const char *JustBuiltUnitCommandClass::Get_Category() const
+const char *RepeatLastUnitCommandClass::Get_Category() const
 {
     return Text_String(TXT_INTERFACE);
 }
 
-const char *JustBuiltUnitCommandClass::Get_Description() const
+const char *RepeatLastUnitCommandClass::Get_Description() const
 {
-    return "Reproduce the last vehicle that was built.";
+    return "Queue the last vehicle that was built.";
 }
 
-bool JustBuiltUnitCommandClass::Process()
+bool RepeatLastUnitCommandClass::Process()
 {
     if (!PlayerPtr) {
         return false;
@@ -624,7 +624,7 @@ bool JustBuiltUnitCommandClass::Process()
      *  done to make sure the house still has a factory.
      */
     if (!PlayerPtr->Factory_Count(RTTI_UNIT)) {
-        DEV_DEBUG_WARNING("JustBuiltUnitCommandClass - Unable to fetch primary factory!\n");
+        DEV_DEBUG_WARNING("RepeatLastUnitCommandClass - Unable to fetch primary factory!\n");
         return false;
     }
     
@@ -655,9 +655,9 @@ bool JustBuiltUnitCommandClass::Process()
         return false;
     }
 
-    DEBUG_INFO("JustBuiltUnitCommandClass - \"%s\"\n", unittype->Full_Name());
+    DEBUG_INFO("RepeatLastUnitCommandClass - \"%s\"\n", unittype->Full_Name());
 
-    OutList.Add(EventClass(PlayerPtr->ID, EventType::PRODUCE, RTTI_UNITTYPE, unit));
+    OutList.Add(EventClass(PlayerPtr->ID, EVENT_PRODUCE, RTTI_UNITTYPE, unit));
 
     return true;
 }
@@ -670,27 +670,27 @@ bool JustBuiltUnitCommandClass::Process()
  * 
  *  @author: CCHyper (based on research by dkeeton)
  */
-const char *JustBuiltAircraftCommandClass::Get_Name() const
+const char *RepeatLastAircraftCommandClass::Get_Name() const
 {
-    return "JustBuiltAircraft";
+    return "RepeatLastAircraft";
 }
 
-const char *JustBuiltAircraftCommandClass::Get_UI_Name() const
+const char *RepeatLastAircraftCommandClass::Get_UI_Name() const
 {
-    return "Reproduce Last Aircraft";
+    return "Repeat Last Aircraft";
 }
 
-const char *JustBuiltAircraftCommandClass::Get_Category() const
+const char *RepeatLastAircraftCommandClass::Get_Category() const
 {
     return Text_String(TXT_INTERFACE);
 }
 
-const char *JustBuiltAircraftCommandClass::Get_Description() const
+const char *RepeatLastAircraftCommandClass::Get_Description() const
 {
-    return "Reproduce the last aircraft that was built.";
+    return "Queue the last aircraft that was built.";
 }
 
-bool JustBuiltAircraftCommandClass::Process()
+bool RepeatLastAircraftCommandClass::Process()
 {
     if (!PlayerPtr) {
         return false;
@@ -701,7 +701,7 @@ bool JustBuiltAircraftCommandClass::Process()
      *  done to make sure the house still has a factory.
      */
     if (!PlayerPtr->Factory_Count(RTTI_AIRCRAFT)) {
-        DEV_DEBUG_WARNING("JustBuiltAircraftCommand - Unable to fetch primary factory!\n");
+        DEV_DEBUG_WARNING("RepeatLastAircraftCommandClass - Unable to fetch primary factory!\n");
         return false;
     }
     
@@ -732,9 +732,9 @@ bool JustBuiltAircraftCommandClass::Process()
         return false;
     }
 
-    DEBUG_INFO("JustBuiltAircraftCommand - \"%s\"\n", aircrafttype->Full_Name());
+    DEBUG_INFO("RepeatLastAircraftCommandClass - \"%s\"\n", aircrafttype->Full_Name());
 
-    OutList.Add(EventClass(PlayerPtr->ID, EventType::PRODUCE, RTTI_AIRCRAFTTYPE, aircraft));
+    OutList.Add(EventClass(PlayerPtr->ID, EVENT_PRODUCE, RTTI_AIRCRAFTTYPE, aircraft));
 
     return true;
 }

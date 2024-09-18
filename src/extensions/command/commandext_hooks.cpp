@@ -213,16 +213,16 @@ void Init_Vinifera_Commands()
     cmdptr = new ManualPlaceCommandClass;
     Commands.Add(cmdptr);
 
-    cmdptr = new JustBuiltBuildingCommandClass;
+    cmdptr = new RepeatLastBuildingCommandClass;
     Commands.Add(cmdptr);
 
-    cmdptr = new JustBuiltInfantryCommandClass;
+    cmdptr = new RepeatLastInfantryCommandClass;
     Commands.Add(cmdptr);
 
-    cmdptr = new JustBuiltUnitCommandClass;
+    cmdptr = new RepeatLastUnitCommandClass;
     Commands.Add(cmdptr);
 
-    cmdptr = new JustBuiltAircraftCommandClass;
+    cmdptr = new RepeatLastAircraftCommandClass;
     Commands.Add(cmdptr);
 
     cmdptr = new PrevThemeCommandClass;
@@ -460,32 +460,32 @@ static void Process_Vinifera_Hotkeys()
     }
 #endif
 
-    if (!ini.Is_Present("Hotkey", "JustBuiltBuilding")) {
-        cmdptr = CommandClass::From_Name("JustBuiltBuilding");
+    if (!ini.Is_Present("Hotkey", "RepeatLastBuilding")) {
+        cmdptr = CommandClass::From_Name("RepeatLastBuilding");
         if (cmdptr) {
             key = reinterpret_cast<ViniferaCommandClass *>(cmdptr)->Default_Key();
             HotkeyIndex.Add_Index(key, cmdptr);
         }
     }
 
-    if (!ini.Is_Present("Hotkey", "JustBuiltInfantry")) {
-        cmdptr = CommandClass::From_Name("JustBuiltInfantry");
+    if (!ini.Is_Present("Hotkey", "RepeatLastInfantry")) {
+        cmdptr = CommandClass::From_Name("RepeatLastInfantry");
         if (cmdptr) {
             key = reinterpret_cast<ViniferaCommandClass *>(cmdptr)->Default_Key();
             HotkeyIndex.Add_Index(key, cmdptr);
         }
     }
 
-    if (!ini.Is_Present("Hotkey", "JustBuiltUnit")) {
-        cmdptr = CommandClass::From_Name("JustBuiltUnit");
+    if (!ini.Is_Present("Hotkey", "RepeatLastUnit")) {
+        cmdptr = CommandClass::From_Name("RepeatLastUnit");
         if (cmdptr) {
             key = reinterpret_cast<ViniferaCommandClass *>(cmdptr)->Default_Key();
             HotkeyIndex.Add_Index(key, cmdptr);
         }
     }
 
-    if (!ini.Is_Present("Hotkey", "JustBuiltInfantry")) {
-        cmdptr = CommandClass::From_Name("JustBuiltInfantry");
+    if (!ini.Is_Present("Hotkey", "RepeatLastAircraft")) {
+        cmdptr = CommandClass::From_Name("RepeatLastAircraft");
         if (cmdptr) {
             key = reinterpret_cast<ViniferaCommandClass *>(cmdptr)->Default_Key();
             HotkeyIndex.Add_Index(key, cmdptr);

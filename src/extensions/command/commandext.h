@@ -104,11 +104,11 @@ class ManualPlaceCommandClass : public ViniferaCommandClass
 /**
  *  Reproduces the last structure that was built.
  */
-class JustBuiltBuildingCommandClass : public ViniferaCommandClass
+class RepeatLastBuildingCommandClass : public ViniferaCommandClass
 {
     public:
-        JustBuiltBuildingCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
-        virtual ~JustBuiltBuildingCommandClass() {}
+        RepeatLastBuildingCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        virtual ~RepeatLastBuildingCommandClass() {}
 
         virtual const char *Get_Name() const override;
         virtual const char *Get_UI_Name() const override;
@@ -123,11 +123,11 @@ class JustBuiltBuildingCommandClass : public ViniferaCommandClass
 /**
  *  Reproduces the last infantry that was built.
  */
-class JustBuiltInfantryCommandClass : public ViniferaCommandClass
+class RepeatLastInfantryCommandClass : public ViniferaCommandClass
 {
     public:
-        JustBuiltInfantryCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
-        virtual ~JustBuiltInfantryCommandClass() {}
+        RepeatLastInfantryCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        virtual ~RepeatLastInfantryCommandClass() {}
 
         virtual const char *Get_Name() const override;
         virtual const char *Get_UI_Name() const override;
@@ -142,11 +142,11 @@ class JustBuiltInfantryCommandClass : public ViniferaCommandClass
 /**
  *  Reproduces the last unit that was built.
  */
-class JustBuiltUnitCommandClass : public ViniferaCommandClass
+class RepeatLastUnitCommandClass : public ViniferaCommandClass
 {
     public:
-        JustBuiltUnitCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
-        virtual ~JustBuiltUnitCommandClass() {}
+        RepeatLastUnitCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        virtual ~RepeatLastUnitCommandClass() {}
 
         virtual const char *Get_Name() const override;
         virtual const char *Get_UI_Name() const override;
@@ -161,11 +161,11 @@ class JustBuiltUnitCommandClass : public ViniferaCommandClass
 /**
  *  Reproduces the last aircraft that was built.
  */
-class JustBuiltAircraftCommandClass : public ViniferaCommandClass
+class RepeatLastAircraftCommandClass : public ViniferaCommandClass
 {
     public:
-        JustBuiltAircraftCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
-        virtual ~JustBuiltAircraftCommandClass() {}
+        RepeatLastAircraftCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        virtual ~RepeatLastAircraftCommandClass() {}
 
         virtual const char *Get_Name() const override;
         virtual const char *Get_UI_Name() const override;
