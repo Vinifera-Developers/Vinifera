@@ -11,10 +11,6 @@ There are going to be three main types of Vinifera builds:
 
 So far the development is at the stage when only nightly builds are produced.
 
-## Saved games filtering
-
-TODO 
-
 ## Compatibility
 
 Vinifera is designed to be used alongside [CnCNet TS patches and spawner](https://github.com/CnCNet/ts-patches) and eventually it's supposed to supersede them.
