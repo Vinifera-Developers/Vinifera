@@ -117,6 +117,8 @@ This page lists all the individual contributions to the project by their author.
   - Implement the Blowfish algorithm and removes the requirement for BLOWFISH.DLL.
   - Allow the game to continue if the side specific mix files are not found.
   - Change the default value of AllowHiResModes to true.
+  - Implement CnCNet4 support.
+  - Implement CnCNet5 support.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Rampastring**:
