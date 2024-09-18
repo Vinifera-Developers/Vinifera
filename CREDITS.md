@@ -3,8 +3,8 @@
 This page lists all the individual contributions to the project by their author.
 
 - **Belonit (Gluk-v48)**:
-  - Check for Changelog/Documentation/Credits in Pull Requests
-  - Docs dark theme switcher
+  - Check for Changelog/Documentation/Credits in Pull Requests.
+  - Docs dark theme switcher.
 - **CCHyper/tomsons26**:
   - Vinifera foundations: TS++, game.exe hooker, extension system and other core features
   - Implement `CurleyShuffle` for AircraftTypes
@@ -18,7 +18,7 @@ This page lists all the individual contributions to the project by their author.
   - Add RequiredAddon to Theme control types.
   - Implement `IntroMovie` for Campaigns.
   - Fix a bug where the player could issue a harvester to begin harvesting Tiberium that is below a bridge while the mouse is over the bridge itself.
-  - Fixes a bug where the values of `RandomRate` were not stored correctly.
+  - Fix a bug where the values of `RandomRate` were not stored correctly.
   - Implement `DebugOnly` for Campaigns.
   - Fix a bug where the `FSMENU` theme would incorrectly play instead of the `INTRO` theme when in Tiberian Sun mode after returning to the main menu.
   - Implement developer commands for instant superweapon recharge.
@@ -118,12 +118,12 @@ This page lists all the individual contributions to the project by their author.
   - Allow the game to continue if the side specific mix files are not found.
   - Change the default value of AllowHiResModes to true.
 - **Kerbiter (Metadorius)**:
-  - Initial doc setup
+  - Initial documentation setup.
 - **Rampastring**:
   - Add `IceStrength` to Rules, and `IceDestructionEnabled` scenario option.
   - Add `ImmuneToEMP` to TechnoTypes.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **ZivDero**:
-  - Filling the docs for previously implemented features
+  - Filling the documentation for previously implemented features.
   - Add support for up to 32767 waypoints to be used in scenarios.
