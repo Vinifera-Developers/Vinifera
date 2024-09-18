@@ -2,7 +2,7 @@
 
 This page lists all user interface additions, changes, fixes that are implemented in Vinifera.
 
-## Miscellanous
+## Miscellaneous
 
 - Vinifera adds support for 8-bit (paletted and non-paletted) PCX and 8-bit PNG cameos. This system auto-detects and prioritises the PNG or PCX file if found, no additional settings are required.
 - Vinifera thickens the waypoint and rally point lines and adds stroke/outline to the waypoint number.
@@ -184,5 +184,5 @@ MaxPips=5,5,5,10,8  ; list of integers - Ammo, Tiberium, Passengers, Power, Char
 
 ## Tooltips
 
-## Miscellanous
+## Miscellaneous
 

@@ -18,7 +18,7 @@ This page lists the history of changes across stable Vinifera releases and also 
 
 % ### New user settings in `SUN.ini`
 % 
-% - These are new user setting keys added by various features in Vinifera. Most of them can be found in either in [user inteface](User-Interface.md) or [miscellaneous](Miscellanous.md) sections. Search functionality can be used to find them quickly if % needed.
+% - These are new user setting keys added by various features in Vinifera. Most of them can be found in either in [user inteface](User-Interface.md) or [miscellaneous](Miscellaneous.md) sections. Search functionality can be used to find them quickly if % needed.
 % 
 % ```ini
 % 
