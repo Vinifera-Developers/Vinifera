@@ -32,5 +32,5 @@ public:
     static int WorstMaxAhead;
 
     static void Send_ResponseTime2();
-    static void HandleResponseTime2(ViniferaEventClass* event);
+    static void Handle_ResponseTime2(ViniferaEventClass* event);
 };

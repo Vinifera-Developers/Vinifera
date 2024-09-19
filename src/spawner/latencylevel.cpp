@@ -50,11 +50,11 @@ void LatencyLevel::Apply(LatencyLevelEnum new_latency_level)
     CurentLatencyLevel = new_latency_level;
     NewFrameSendRate = static_cast<unsigned char>(new_latency_level);
     Session.PrecalcDesiredFrameRate = 60;
-    Session.PrecalcMaxAhead = GetMaxAhead(new_latency_level);
-    Session.Messages.Add_Message(nullptr, 0, GetLatencyMessage(new_latency_level), COLORSCHEME_WHITE, TPF_USE_GRAD_PAL | TPF_FULLSHADOW | TPF_6PT_GRAD, 270);
+    Session.PrecalcMaxAhead = Get_MaxAhead(new_latency_level);
+    Session.Messages.Add_Message(nullptr, 0, Get_Latency_Message(new_latency_level), COLORSCHEME_WHITE, TPF_USE_GRAD_PAL | TPF_FULLSHADOW | TPF_6PT_GRAD, 270);
 }
 
-int LatencyLevel::GetMaxAhead(LatencyLevelEnum latencyLevel)
+int LatencyLevel::Get_MaxAhead(LatencyLevelEnum latencyLevel)
 {
     const int maxAhead[] =
     {
@@ -74,7 +74,7 @@ int LatencyLevel::GetMaxAhead(LatencyLevelEnum latencyLevel)
     return maxAhead[(int)latencyLevel];
 }
 
-const char* LatencyLevel::GetLatencyMessage(LatencyLevelEnum latencyLevel)
+const char* LatencyLevel::Get_Latency_Message(LatencyLevelEnum latencyLevel)
 {
     const char* message[] =
     {
@@ -94,11 +94,11 @@ const char* LatencyLevel::GetLatencyMessage(LatencyLevelEnum latencyLevel)
     return message[(int)latencyLevel];
 }
 
-LatencyLevelEnum LatencyLevel::FromResponseTime(unsigned char rspTime)
+LatencyLevelEnum LatencyLevel::From_Response_Time(unsigned char rspTime)
 {
     for (char i = LATENCY_LEVEL_1; i < LATENCY_LEVEL_MAX; i++)
     {
-        if (rspTime <= GetMaxAhead(static_cast<LatencyLevelEnum>(i)))
+        if (rspTime <= Get_MaxAhead(static_cast<LatencyLevelEnum>(i)))
             return static_cast<LatencyLevelEnum>(i);
     }
 

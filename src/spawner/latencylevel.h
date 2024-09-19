@@ -49,7 +49,7 @@ public:
         Apply(static_cast<LatencyLevelEnum>(newLatencyLevel));
     }
 
-    static int GetMaxAhead(LatencyLevelEnum latencyLevel);
-    static const char* GetLatencyMessage(LatencyLevelEnum latencyLevel);
-    static LatencyLevelEnum FromResponseTime(uint8_t rspTime);
+    static int Get_MaxAhead(LatencyLevelEnum latencyLevel);
+    static const char* Get_Latency_Message(LatencyLevelEnum latencyLevel);
+    static LatencyLevelEnum From_Response_Time(uint8_t rspTime);
 };

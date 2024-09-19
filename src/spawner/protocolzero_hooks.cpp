@@ -17,82 +17,61 @@
 *  along with this program.If not, see <http://www.gnu.org/licenses/>.
 */
 
-//#include "ProtocolZero.h"
-//#include "ProtocolZero.LatencyLevel.h"
-//#include "Spawner.h"
-//
-//#include <Ext/Event/Body.h>
-//#include <Helpers/Macro.h>
-//#include <Utilities/Debug.h>
-//#include <Unsorted.h>
-//#include <EventClass.h>
-
-//
-//DEFINE_HOOK(0x4C8011, EventClassExecute__ProtocolZero, 0x8)
-//{
-//	if (ProtocolZero::Enable)
-//		return 0x4C8024;
-//
-//	return 0;
-//}
-//
-//DEFINE_HOOK(0x64C598, ExecuteDoList__ProtocolZero, 0x6)
-//{
-//	if (ProtocolZero::Enable)
-//	{
-//		auto dl = (uint8_t)R->DL();
-//
-//		if (dl == (uint8_t)EventType::EMPTY)
-//			return 0x64C63D;
-//
-//		if (dl == (uint8_t)EventType::PROCESS_TIME)
-//			return 0x64C63D;
-//
-//		if (dl == (uint8_t)EventTypeExt::ResponseTime2)
-//			return 0x64C63D;
-//	}
-//
-//	return 0;
-//}
-//
-//DEFINE_HOOK_AGAIN(0x64771D, QueueAIMultiplayer__ProtocolZero_SetTiming, 0x5)
-//DEFINE_HOOK(0x647E6B, QueueAIMultiplayer__ProtocolZero_SetTiming, 0x5)
-//{
-//	if (ProtocolZero::Enable)
-//	{
-//		GET(int, NewRetryDelta, EBP);
-//		GET(int, NewRetryTimeout, EAX);
-//
-//		Debug::Log("[Spawner] NewRetryDelta = %d, NewRetryTimeout = %d, FrameSendRate = %d, CurentLatencyLevel = %d\n"
-//			, NewRetryDelta
-//			, NewRetryTimeout
-//			, (int)Game::Network::FrameSendRate
-//			, (int)LatencyLevel::CurentLatencyLevel
-//		);
-//	}
-//
-//	return 0;
-//}
-//
-//DEFINE_HOOK_AGAIN(0x6476CB, QueueAIMultiplayer__ProtocolZero_ResponseTime, 0x5)
-//DEFINE_HOOK(0x647CC5, QueueAIMultiplayer__ProtocolZero_ResponseTime, 0x5)
-//{
-//	if (ProtocolZero::Enable)
-//	{
-//		R->EAX(ProtocolZero::WorstMaxAhead);
-//		return R->Origin() + 0x5;
-//	}
-//
-//	return 0;
-//}
-
-
 #include "hooker.h"
 #include "hooker_macros.h"
 #include "latencylevel.h"
 #include "protocolzero.h"
 #include "tibsun_globals.h"
 #include "session.h"
+#include "viniferaevent/viniferaevent.h"
+#include "ipxmgr.h"
+
+/**
+  *  A fake class for implementing new member functions which allow
+  *  access to the "this" pointer of the intended class.
+  *
+  *  @note: This must not contain a constructor or destructor.
+  *
+  *  @note: All functions must not be virtual and must also be prefixed
+  *         with "_" to prevent accidental virtualization.
+  */
+class IPXManagerClassExt : public IPXManagerClass
+{
+public:
+    void _Set_Timing(unsigned long retrydelta, unsigned long maxretries,
+        unsigned long timeout, bool bool1 = true);
+
+    unsigned long _Response_Time();
+};
+
+
+void IPXManagerClassExt::_Set_Timing(unsigned long retrydelta, unsigned long maxretries,
+    unsigned long timeout, bool bool1)
+{
+    if (ProtocolZero::Enable)
+    {
+        DEBUG_INFO("[Spawner] NewRetryDelta = %d, NewRetryTimeout = %d, FrameSendRate = %d, CurentLatencyLevel = %d\n"
+            , retrydelta
+            , maxretries
+            , Session.FrameSendRate
+            , LatencyLevel::CurentLatencyLevel
+        );
+    }
+
+    return IPXManagerClass::Set_Timing(retrydelta, maxretries, timeout, bool1);
+}
+
+
+unsigned long IPXManagerClassExt::_Response_Time()
+{
+    if (ProtocolZero::Enable)
+    {
+        return ProtocolZero::WorstMaxAhead;
+    }
+
+    return IPXManagerClass::Response_Time();
+}
+
 
 DECLARE_PATCH(_ProtocolZero_Main_Loop)
 {
@@ -103,6 +82,7 @@ DECLARE_PATCH(_ProtocolZero_Main_Loop)
     Session.Messages.Manage();
     JMP_REG(ecx, 0x005091AA);
 }
+
 
 static short& MySent = Make_Global<short>(0x008099F0);
 DECLARE_PATCH(_ProtocolZero_Queue_AI_Multiplayer_1)
@@ -115,41 +95,100 @@ DECLARE_PATCH(_ProtocolZero_Queue_AI_Multiplayer_1)
     JMP(0x005B1C4C);
 }
 
+
 DECLARE_PATCH(_ProtocolZero_Queue_AI_Multiplayer_2)
 {
-    GET_REGISTER_STATIC(char, precalc_desired_frame_rate, eax)
+    GET_REGISTER_STATIC(unsigned char, precalc_desired_frame_rate, al)
 
     if (ProtocolZero::Enable)
     {
         precalc_desired_frame_rate = LatencyLevel::NewFrameSendRate;
+        _asm mov al, precalc_desired_frame_rate
+        JMP_REG(ecx, 0x005B1C2D);
     }
 
     // Stolen instructions
-    _asm mov [esp+0x36], precalc_desired_frame_rate
-    JMP(0x005B1C3B);
+    _asm
+    {
+        mov al, precalc_desired_frame_rate
+        and al, 5
+        push ecx
+        add al, 5
+    }
+
+    JMP_REG(ecx, 0x005B1C2D);
 }
 
 
 DECLARE_PATCH(_ProtocolZero_Queue_AI_Multiplayer_3)
 {
-    static int max_ahead;
+    static unsigned int max_ahead;
 
     if (ProtocolZero::Enable)
     {
         max_ahead = Session.MaxAhead & 0xFFFF;
         _asm mov edx, max_ahead;
-        _asm mov ecx, & OutList;
-        JMP(0x005B1BA9);
     }
 
-    _asm mov ecx, &OutList;
-    JMP(0x005B1BA6);
+    // Stolen instructions
+    _asm mov [esp+0x34], dx
+    JMP(0x005B1BB4);
 }
+
+
+DECLARE_PATCH(_ProtocolZero_EventClass_Execute)
+{
+    // Don't subtract 10 from MaxAhead
+	if (ProtocolZero::Enable)
+	{
+        JMP(0x0049502B);
+	}
+
+    // Stolen instructions
+	_asm
+    {
+        mov eax, [edx]
+        and eax, 0x800
+    }
+
+    JMP_REG(ecx, 0x00495020);
+}
+
+
+DECLARE_PATCH(_ProtocolZero_ExecuteDoList)
+{
+    GET_REGISTER_STATIC(EventClass*, event, esi)
+
+    if (ProtocolZero::Enable)
+    {
+        if (event->Type == (uint8_t)EVENT_EMPTY)
+            goto continue_execution;
+
+        if (event->Type == (uint8_t)EVENT_PROCESS_TIME)
+            goto continue_execution;
+
+        if (event->Type == (uint8_t)VINIFERA_EVENT_RESPONSETIME2)
+            goto continue_execution;
+    }
+
+    _asm mov eax, [0x007E2458] // Session
+    JMP_REG(ecx, 0x005B4EAA);
+
+    continue_execution:
+    JMP(0x005B4EB7);
+}
+
 
 void ProtocolZero_Patches()
 {
     Patch_Jump(0x005091A0, &_ProtocolZero_Main_Loop);
     Patch_Jump(0x005B1A2D, &_ProtocolZero_Queue_AI_Multiplayer_1);
-    Patch_Jump(0x005B1C37, &_ProtocolZero_Queue_AI_Multiplayer_2);
-    Patch_Jump(0x005B1BA1, &_ProtocolZero_Queue_AI_Multiplayer_3);
+    Patch_Jump(0x005B1C28, &_ProtocolZero_Queue_AI_Multiplayer_2);
+    Patch_Jump(0x005B1BAF, &_ProtocolZero_Queue_AI_Multiplayer_3);
+    Patch_Jump(0x00495019, &_ProtocolZero_EventClass_Execute);
+    Patch_Jump(0x005B4EA5, &_ProtocolZero_ExecuteDoList);
+    Patch_Call(0x005B1BEA, &IPXManagerClassExt::_Set_Timing);
+    Patch_Call(0x005B16D4, &IPXManagerClassExt::_Set_Timing);
+    Patch_Call(0x005B1683, &IPXManagerClassExt::_Response_Time);
+    Patch_Call(0x005B1AC3, &IPXManagerClassExt::_Response_Time);
 }
