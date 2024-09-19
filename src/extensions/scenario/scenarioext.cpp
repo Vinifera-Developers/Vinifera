@@ -836,7 +836,6 @@ void ScenarioClassExtension::Assign_Houses()
                 continue;
 
             const auto house_config = &Spawner::GetConfig()->Houses[i];
-            //const int spawn_loc = house_config->SpawnLocation;
 
             // Set Alliances
             for (char j = 0; j < (char)std::size(house_config->Alliances); ++j)
@@ -866,33 +865,18 @@ void ScenarioClassExtension::Assign_Houses()
                 }
             }
 
-            // Set SpawnLocations // This needs to happen later, in Create_Units
-            //const bool is_observer = housep->IsHuman &&
-            //    (house_config->IsSpectator
-            //        || spawn_loc == -1
-            //        || spawn_loc == 90);
-            //if (!is_observer)
-            //{
-            //    house->StartingPoint = (spawn_loc_count != -2)
-            //        ? std::clamp(spawn_loc_count, 0, 7)
-            //        : spawn_loc_count;
-            //}
-            //else
-            //{
-            //    if (house->MakeObserver())
-            //        TabClass::Instance->ThumbActive = false;
+            // Set Spectators
+            const int spawn_loc = house_config->SpawnLocation;
+            const bool is_spectator = housep->IsHuman &&
+                (house_config->IsSpectator
+                    || spawn_loc == -1
+                    || spawn_loc == 90);
 
-            //    { // Remove SpawnLocations for Observer
-            //        ScenarioClass* pScenarioClass = ScenarioClass::Instance;
-            //        for (char i = 0; i < (char)std::size(pScenarioClass->HouseIndices); ++i)
-            //        {
-            //            if (house->ArrayIndex == pScenarioClass->HouseIndices[i])
-            //                pScenarioClass->HouseIndices[i] = -1;
-            //        }
-
-            //        house->StartingPoint = -1;
-            //    }
-            //}
+            // Spectators are considered defeated
+            if (is_spectator)
+            {
+                housep->IsDefeated;
+            }
         }
     }
 
@@ -1256,9 +1240,18 @@ static DynamicVectorClass<Cell> Build_Starting_Waypoint_List(bool official)
      *  if there are 4 or fewer players. Unofficial maps will pick from all the
      *  available waypoints.
      */
-    int look_for = std::max(min_waypts, Session.Players.Count()+Session.Options.AIPlayers);
+    int look_for = std::max(min_waypts, Session.Players.Count() + Session.Options.AIPlayers);
     if (!official) {
         look_for = MAX_PLAYERS;
+    }
+
+    if (Spawner::Active)
+    {
+        for (int i = 0; i < Session.Players.Count() + Session.Options.AIPlayers; i++)
+        {
+            if (Spawner::GetConfig()->Houses[i].IsSpectator)
+                look_for--;
+        }
     }
 
     for (int waycount = 0; waycount < look_for; ++waycount) {
@@ -1377,6 +1370,11 @@ void ScenarioClassExtension::Create_Units(bool official)
         HouseClass *hptr = Houses[house];
         if (hptr == nullptr) {
             DEV_DEBUG_INFO("Invalid house %d!\n", house);
+            continue;
+        }
+
+        if (Spawner::Active && hptr->IsDefeated) {
+            DEV_DEBUG_INFO("House %d is a spectator, skipping.\n", house);
             continue;
         }
 

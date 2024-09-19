@@ -34,7 +34,6 @@ class SpawnerConfig
         int Color;
         int House;
         int Difficulty;
-        bool IsObserver;
         char Ip[0x20];
         int Port;
 
@@ -44,7 +43,6 @@ class SpawnerConfig
             , Color { -1 }
             , House { -1 }
             , Difficulty { -1 }
-            , IsObserver { false }
             , Ip { "0.0.0.0" }
             , Port { -1 }
         { }

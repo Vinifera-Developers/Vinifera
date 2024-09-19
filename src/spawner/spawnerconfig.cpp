@@ -154,9 +154,8 @@ void SpawnerConfig::PlayerConfig::Read_INI(CCINIClass& spawn_ini, int index)
 
         spawn_ini.Get_String(SECTION, "Name", this->Name, this->Name, sizeof(this->Name));
 
-        this->Color      = spawn_ini.Get_Int(SECTION, "Color", this->Color);
-        this->House      = spawn_ini.Get_Int(SECTION, "Side", this->House);
-        this->IsObserver = spawn_ini.Get_Bool(SECTION, "IsSpectator", this->IsObserver);
+        this->Color       = spawn_ini.Get_Int(SECTION, "Color", this->Color);
+        this->House       = spawn_ini.Get_Int(SECTION, "Side", this->House);
 
         spawn_ini.Get_String(SECTION, "Ip", this->Ip, this->Ip, sizeof(this->Ip));
         this->Port       = spawn_ini.Get_Int(SECTION, "Port", this->Port);
