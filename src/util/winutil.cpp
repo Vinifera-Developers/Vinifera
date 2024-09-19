@@ -38,8 +38,12 @@
 
 const char *Get_Module_File_Name()
 {
-    static char outbuff[PATH_MAX] = "";
+    static char outbuff[PATH_MAX] = { '\0' };
     char buffer[PATH_MAX];
+
+    if (outbuff[0] != '\0') {
+        return outbuff;
+    }
 
     /**
      *  Get the fully-qualified path of the executable.
@@ -63,6 +67,41 @@ const char *Get_Module_File_Name()
     *(PathFindExtension(out)) = '\0';
 
     std::strcpy(outbuff, out);
+
+    return outbuff;
+}
+
+
+const char *Get_Module_Directory()
+{
+    static char outbuff[PATH_MAX] = { '\0' };
+    char buffer[PATH_MAX];
+
+    if (outbuff[0] != '\0') {
+        return outbuff;
+    }
+
+    /**
+     *  Get the fully-qualified path of the executable.
+     *  Output = "c:\folder\executable.exe"
+     */
+    if (GetModuleFileName(nullptr, buffer, sizeof(buffer)) == sizeof(buffer)) {
+        DEBUG_ERROR("Error with GetModuleFileName in Get_Module_Directory()!");
+        return nullptr;
+    }
+
+    /**
+     *  Go to the beginning of the file name.
+     *  Output = "executable.exe"
+     */
+    char *out = PathFindFileName(buffer);
+
+    /*
+     *  Insert a null character at the module name.
+     */
+    *(out) = '\0';
+
+    std::strcpy(outbuff, buffer);
 
     return outbuff;
 }
