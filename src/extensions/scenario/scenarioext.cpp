@@ -47,6 +47,7 @@
 #include "vinifera_saveload.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "spawner.h"
 
 
 /**
@@ -813,6 +814,74 @@ void ScenarioClassExtension::Assign_Houses()
         housep->RemapColor = remap_color;
 
         housep->Init_Remap_Color();
+    }
+
+    if (Spawner::Active)
+    {
+        const int house_count = std::min(Houses.Count(), (int)std::size(Spawner::GetConfig()->Houses));
+        for (int i = 0; i < house_count; i++)
+        {
+            housep = Houses[i];
+
+            if (housep->Class->IsMultiplayPassive)
+                continue;
+
+            const auto house_config = &Spawner::GetConfig()->Houses[i];
+            const int spawn_loc_count = house_config->SpawnLocations;
+            const bool is_observer = housep->IsHuman &&
+                                    (house_config->IsSpectator
+                                     || spawn_loc_count == -1
+                                     || spawn_loc_count == 90);
+
+            // Set Alliances
+            for (char j = 0; j < (char)std::size(house_config->Alliances); ++j)
+            {
+                const int ally_index = house_config->Alliances[j];
+                if (ally_index != -1)
+                    housep->Allies &= 1 << ally_index;
+            }
+
+            constexpr char* AINamesByDifficultyArray[5] = {
+                "Hard AI",
+                "Medium AI",
+                "Easy AI",
+                "Brutal AI",
+                "Ultimate AI"
+            };
+
+            // Set AI UIName
+            if (Spawner::GetConfig()->AINamesByDifficulty && !housep->IsHuman)
+            {
+                const auto ai_config = &Spawner::GetConfig()->Players[i];
+
+                if (ai_config->Difficulty >= 0 && ai_config->Difficulty < std::size(AINamesByDifficultyArray))
+                    std::strcpy(housep->IniName, AINamesByDifficultyArray[ai_config->Difficulty]);
+            }
+
+            // Set SpawnLocations // This needs to happen later, in Create_Units
+            //if (!is_observer)
+            //{
+            //    house->StartingPoint = (spawn_loc_count != -2)
+            //        ? std::clamp(spawn_loc_count, 0, 7)
+            //        : spawn_loc_count;
+            //}
+            //else
+            //{
+            //    if (house->MakeObserver())
+            //        TabClass::Instance->ThumbActive = false;
+
+            //    { // Remove SpawnLocations for Observer
+            //        ScenarioClass* pScenarioClass = ScenarioClass::Instance;
+            //        for (char i = 0; i < (char)std::size(pScenarioClass->HouseIndices); ++i)
+            //        {
+            //            if (house->ArrayIndex == pScenarioClass->HouseIndices[i])
+            //                pScenarioClass->HouseIndices[i] = -1;
+            //        }
+
+            //        house->StartingPoint = -1;
+            //    }
+            //}
+        }
     }
 
     DEBUG_INFO("Assign_Houses(exit)\n");
