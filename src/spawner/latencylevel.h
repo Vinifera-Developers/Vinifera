@@ -20,7 +20,7 @@
 #pragma once
 #include <stdint.h>
 
-enum class LatencyLevelEnum : uint8_t
+enum LatencyLevelEnum : uint8_t
 {
     LATENCY_LEVEL_INITIAL = 0,
 

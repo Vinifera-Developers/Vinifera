@@ -25,7 +25,7 @@ void ViniferaEventClass::Execute_This()
 	switch (Type)
 	{
 	case VINIFERA_EVENT_RESPONSETIME2:
-		ProtocolZero::HandleResponseTime2(this);
+		ProtocolZero::Handle_ResponseTime2(this);
 		break;
 
 	default:

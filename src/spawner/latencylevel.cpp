@@ -25,13 +25,13 @@
 #include "session.h"
 #include "colorscheme.h"
 
-LatencyLevelEnum LatencyLevel::CurentLatencyLevel = LatencyLevelEnum::LATENCY_LEVEL_INITIAL;
+LatencyLevelEnum LatencyLevel::CurentLatencyLevel = LATENCY_LEVEL_INITIAL;
 unsigned char LatencyLevel::NewFrameSendRate = 3;
 
 void LatencyLevel::Apply(LatencyLevelEnum new_latency_level)
 {
-    if (new_latency_level > LatencyLevelEnum::LATENCY_LEVEL_MAX)
-        new_latency_level = LatencyLevelEnum::LATENCY_LEVEL_MAX;
+    if (new_latency_level > LATENCY_LEVEL_MAX)
+        new_latency_level = LATENCY_LEVEL_MAX;
 
     auto max_latency_level = static_cast<LatencyLevelEnum>(ProtocolZero::MaxLatencyLevel);
     if (new_latency_level > max_latency_level)
@@ -96,11 +96,11 @@ const char* LatencyLevel::GetLatencyMessage(LatencyLevelEnum latencyLevel)
 
 LatencyLevelEnum LatencyLevel::FromResponseTime(unsigned char rspTime)
 {
-    for (auto i = LatencyLevelEnum::LATENCY_LEVEL_1; i < LatencyLevelEnum::LATENCY_LEVEL_MAX; i = static_cast<LatencyLevelEnum>(1 + static_cast<char>(i)))
+    for (char i = LATENCY_LEVEL_1; i < LATENCY_LEVEL_MAX; i++)
     {
-        if (rspTime <= GetMaxAhead(i))
+        if (rspTime <= GetMaxAhead(static_cast<LatencyLevelEnum>(i)))
             return static_cast<LatencyLevelEnum>(i);
     }
 
-    return LatencyLevelEnum::LATENCY_LEVEL_MAX;
+    return LATENCY_LEVEL_MAX;
 }
