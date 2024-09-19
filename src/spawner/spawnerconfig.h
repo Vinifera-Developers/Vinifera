@@ -71,7 +71,6 @@ class SpawnerConfig
 
 public:
 	// Game Mode Options
-	int  MPModeIndex;
 	bool Bases;
 	int  Credits;
 	bool BridgeDestroy;
@@ -127,19 +126,17 @@ public:
 	HouseConfig Houses[8];
 
 	// Extended Options
-	bool Ra2Mode;
+	bool Firestorm;
 	bool QuickMatch;
 	bool SkipScoreScreen;
 	bool WriteStatistics;
 	bool AINamesByDifficulty;
 	bool ContinueWithoutHumans;
 	bool DefeatedBecomesObserver;
-	bool Observer_ShowAIOnSidebar;
 
 	SpawnerConfig() // default values
 		// Game Mode Options
-		: MPModeIndex { 1 }
-		, Bases { true }
+		: Bases { true }
 		, Credits { 10000 }
 		, BridgeDestroy { true }
 		, Crates { false }
@@ -214,14 +211,13 @@ public:
 		}
 
 		// Extended Options
-		, Ra2Mode { false }
+		, Firestorm { true }
 		, QuickMatch { false }
-		, SkipScoreScreen { false /*Main::GetConfig()->SkipScoreScreen*/ }
+		, SkipScoreScreen { false }
 		, WriteStatistics { false }
 		, AINamesByDifficulty { false }
 		, ContinueWithoutHumans { false }
 		, DefeatedBecomesObserver { false }
-		, Observer_ShowAIOnSidebar { false }
 	{ }
 
 	void Read_INI(CCINIClass& spawn_ini);

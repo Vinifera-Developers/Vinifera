@@ -86,14 +86,13 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
 	}
 
 	// Extended Options
-	Ra2Mode                  = spawn_ini.Get_Bool(SETTINGS, "Ra2Mode", Ra2Mode);
+	Firestorm                = spawn_ini.Get_Bool(SETTINGS, "Firestorm", Firestorm);
 	QuickMatch               = spawn_ini.Get_Bool(SETTINGS, "QuickMatch", QuickMatch);
 	SkipScoreScreen          = spawn_ini.Get_Bool(SETTINGS, "SkipScoreScreen", SkipScoreScreen);
 	WriteStatistics          = spawn_ini.Get_Bool(SETTINGS, "WriteStatistics", WriteStatistics);
 	AINamesByDifficulty      = spawn_ini.Get_Bool(SETTINGS, "AINamesByDifficulty", AINamesByDifficulty);
 	ContinueWithoutHumans    = spawn_ini.Get_Bool(SETTINGS, "ContinueWithoutHumans", ContinueWithoutHumans);
 	DefeatedBecomesObserver  = spawn_ini.Get_Bool(SETTINGS, "DefeatedBecomesObserver", DefeatedBecomesObserver);
-	Observer_ShowAIOnSidebar = spawn_ini.Get_Bool(SETTINGS, "Observer.ShowAIOnSidebar", Observer_ShowAIOnSidebar);
 }
 
 constexpr char* PlayerSectionArray[8] = {
@@ -156,7 +155,7 @@ void SpawnerConfig::PlayerConfig::Read_INI(CCINIClass& spawn_ini, int index)
 		spawn_ini.Get_String(SECTION, "Name", this->Name, this->Name, sizeof(this->Name));
 
 		this->Color      = spawn_ini.Get_Int(SECTION, "Color", this->Color);
-		this->House    = spawn_ini.Get_Int(SECTION, "Side", this->House);
+		this->House      = spawn_ini.Get_Int(SECTION, "Side", this->House);
 		this->IsObserver = spawn_ini.Get_Bool(SECTION, "IsSpectator", this->IsObserver);
 
 		spawn_ini.Get_String(SECTION, "Ip", this->Ip, this->Ip, sizeof(this->Ip));
@@ -165,7 +164,7 @@ void SpawnerConfig::PlayerConfig::Read_INI(CCINIClass& spawn_ini, int index)
 	else if (!IsHuman)
 	{
 		this->Color       = spawn_ini.Get_Int("HouseColors", MULTI_TAG, this->Color);
-		this->House     = spawn_ini.Get_Int("HouseCountries", MULTI_TAG, this->House);
+		this->House       = spawn_ini.Get_Int("HouseCountries", MULTI_TAG, this->House);
 		this->Difficulty  = spawn_ini.Get_Int("HouseHandicaps", MULTI_TAG, this->Difficulty);
 	}
 }

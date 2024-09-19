@@ -39,6 +39,7 @@ public:
 	static void Init();
 	static bool Start_Game();
 
+	static void Init_UI();
 	static void Prepare_Screen();
 
 private:

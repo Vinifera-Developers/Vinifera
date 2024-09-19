@@ -28,6 +28,8 @@
 #include "loadoptions.h"
 #include "scenario.h"
 #include <ctime>
+
+#include "addon.h"
 #include "wspudp.h"
 #include "wwmouse.h"
 #include "ccini.h"
@@ -36,6 +38,7 @@
 #include "gscreen.h"
 #include "language.h"
 #include "mouse.h"
+#include "ownrdraw.h"
 #include "tab.h"
 #include "WinUser.h"
 #include "sessionext.h"
@@ -70,7 +73,7 @@ bool Spawner::Start_Game()
 
 	Active = true;
 	GameActive = true;
-	//Game::InitUIStuff(); ???
+	Init_UI();
 
 	char* scen_name = Config->ScenarioName;
 
@@ -103,6 +106,19 @@ bool Spawner::Start_Game()
 }
 
 
+void Spawner::Init_UI()
+{
+	OwnerDraw::Init_UI_Color_Stuff_58F060();
+
+	if (!OwnerDraw::UIInitialized)
+	{
+		OwnerDraw::Init_Glow_Colors();
+		OwnerDraw::Load_Graphics();
+		OwnerDraw::UIInitialized = true;
+	}
+}
+
+
 void Spawner::Prepare_Screen()
 {
 	WWMouse->Hide_Mouse();
@@ -130,14 +146,15 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
 		return false;
 	}
 
+	Addon_4071C0(ADDON_ANY);
+
+	if (Config->Firestorm)
+		Addon_407190(ADDON_FIRESTORM);
+
+	Set_Required_Addon(Config->Firestorm ? ADDON_FIRESTORM : ADDON_NONE);
+
 	strcpy_s(Session.ScenarioFileName, 0x200, scenario_name);
 	Session.Read_Scenario_Descriptions();
-
-	//{ // Set MPGameMode
-	//	pSession->MPGameMode = MPGameModeClass::Get(Config->MPModeIndex);
-	//	if (!pSession->MPGameMode)
-	//		pSession->MPGameMode = MPGameModeClass::Get(1);
-	//}
 
 	{ // Set Options
 		//Session.Options.ScenarioIndex
@@ -186,36 +203,24 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
 		const char max_players = Config->IsCampaign ? 1 : (char)std::size(Config->Players);
 		for (char player_index = 0; player_index < max_players; player_index++)
 		{
-			const auto pPlayer = &Config->Players[player_index];
-			if (!pPlayer->IsHuman)
+			const auto player = &Config->Players[player_index];
+			if (!player->IsHuman)
 				continue;
 
 			const auto nodename = new NodeNameType();
 			Session.Players.Add(nodename);
 
-			std::strcpy(nodename->Name, pPlayer->Name);
-			nodename->Player.House = (HousesType)pPlayer->House;
-			nodename->Player.Color = (PlayerColorType)pPlayer->Color;
+			std::strcpy(nodename->Name, player->Name);
+			nodename->Player.House = (HousesType)player->House;
+			nodename->Player.Color = (PlayerColorType)player->Color;
 			nodename->Player.ProcessTime = -1;
-
-			// Observer stuff needs to be redone
-			//if (pPlayer->IsObserver && !Config->IsCampaign)
-			//{
-			//	if (nodename->Player.House < 0)
-			//		nodename->Player.House = -3;
-
-			//	nodename->SpectatorFlag = 0xFFFFFFFF;
-
-			//	if (player_index == 0)
-			//		IsObserver = true;
-			//}
 
 			if (player_index > 0)
 			{
 				nodename->Address.NodeAddress[0] = player_index;
 
-				const auto ip = inet_addr(pPlayer->Ip);
-				const auto port = htons((u_short)pPlayer->Port);
+				const auto ip = inet_addr(player->Ip);
+				const auto port = htons((u_short)player->Port);
 				ListAddress::Array[player_index - 1].Ip = ip;
 				ListAddress::Array[player_index - 1].Port = port;
 				if (port != (u_short)Config->ListenPort)
@@ -255,18 +260,6 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
 
 		Session.Type = GAME_IPX;
 		Session.Create_Connections();
-
-		//if (Main::GetConfig()->AllowChat == false)
-		//{
-		//	Game::ChatMask[0] = false;
-		//	Game::ChatMask[1] = false;
-		//	Game::ChatMask[2] = false;
-		//	Game::ChatMask[3] = false;
-		//	Game::ChatMask[4] = false;
-		//	Game::ChatMask[5] = false;
-		//	Game::ChatMask[6] = false;
-		//	Game::ChatMask[7] = false;
-		//}
 
 		return true;
 	}
