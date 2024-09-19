@@ -1,22 +1,22 @@
-///**
-//*  yrpp-spawner
-//*
-//*  Copyright(C) 2023-present CnCNet
-//*
-//*  This program is free software: you can redistribute it and/or modify
-//*  it under the terms of the GNU General Public License as published by
-//*  the Free Software Foundation, either version 3 of the License, or
-//*  (at your option) any later version.
-//*
-//*  This program is distributed in the hope that it will be useful,
-//*  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
-//*  GNU General Public License for more details.
-//*
-//*  You should have received a copy of the GNU General Public License
-//*  along with this program.If not, see <http://www.gnu.org/licenses/>.
-//*/
-//
+/**
+*  yrpp-spawner
+*
+*  Copyright(C) 2023-present CnCNet
+*
+*  This program is free software: you can redistribute it and/or modify
+*  it under the terms of the GNU General Public License as published by
+*  the Free Software Foundation, either version 3 of the License, or
+*  (at your option) any later version.
+*
+*  This program is distributed in the hope that it will be useful,
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
+*  GNU General Public License for more details.
+*
+*  You should have received a copy of the GNU General Public License
+*  along with this program.If not, see <http://www.gnu.org/licenses/>.
+*/
+
 //#include "ProtocolZero.h"
 //#include "ProtocolZero.LatencyLevel.h"
 //#include "Spawner.h"
@@ -26,49 +26,7 @@
 //#include <Utilities/Debug.h>
 //#include <Unsorted.h>
 //#include <EventClass.h>
-//
-//DEFINE_HOOK(0x55DDA0, MainLoop_AfterRender__ProtocolZero, 0x5)
-//{
-//	if (ProtocolZero::Enable)
-//		ProtocolZero::SendResponseTime2();
-//
-//	return 0;
-//}
-//
-//DEFINE_HOOK(0x647BEB, QueueAIMultiplayer__ProtocolZero1, 0x9)
-//{
-//	if (ProtocolZero::Enable)
-//		return 0x647BF4;
-//
-//	return (R->ESI() >= 5)
-//		? 0x647BF4
-//		: 0x647F36;
-//}
-//
-//DEFINE_HOOK(0x647EB4, QueueAIMultiplayer__ProtocolZero2, 0x8)
-//{
-//	if (ProtocolZero::Enable)
-//	{
-//		R->AL(LatencyLevel::NewFrameSendRate);
-//		R->ECX((DWORD)Unsorted::CurrentFrame);
-//
-//		return 0x647EBE;
-//	}
-//
-//	return 0;
-//}
-//
-//DEFINE_HOOK(0x647DF2, QueueAIMultiplayer__ProtocolZero3, 0x5)
-//{
-//	if (ProtocolZero::Enable)
-//	{
-//		R->EDX((DWORD)Game::Network::MaxAhead & 0xffff);
-//
-//		return 0x647DF2 + 0x5;
-//	}
-//
-//	return 0;
-//}
+
 //
 //DEFINE_HOOK(0x4C8011, EventClassExecute__ProtocolZero, 0x8)
 //{
@@ -127,3 +85,71 @@
 //
 //	return 0;
 //}
+
+
+#include "hooker.h"
+#include "hooker_macros.h"
+#include "latencylevel.h"
+#include "protocolzero.h"
+#include "tibsun_globals.h"
+#include "session.h"
+
+DECLARE_PATCH(_ProtocolZero_Main_Loop)
+{
+    if (ProtocolZero::Enable)
+        ProtocolZero::Send_ResponseTime2();
+
+    // Stolen instructions
+    Session.Messages.Manage();
+    JMP_REG(ecx, 0x005091AA);
+}
+
+static short& MySent = Make_Global<short>(0x008099F0);
+DECLARE_PATCH(_ProtocolZero_Queue_AI_Multiplayer_1)
+{
+    if (ProtocolZero::Enable || MySent >= 5)
+    {
+        JMP(0x005B1A3B);
+    }
+
+    JMP(0x005B1C4C);
+}
+
+DECLARE_PATCH(_ProtocolZero_Queue_AI_Multiplayer_2)
+{
+    GET_REGISTER_STATIC(char, precalc_desired_frame_rate, eax)
+
+    if (ProtocolZero::Enable)
+    {
+        precalc_desired_frame_rate = LatencyLevel::NewFrameSendRate;
+    }
+
+    // Stolen instructions
+    _asm mov [esp+0x36], precalc_desired_frame_rate
+    JMP(0x005B1C3B);
+}
+
+
+DECLARE_PATCH(_ProtocolZero_Queue_AI_Multiplayer_3)
+{
+    static int max_ahead;
+
+    if (ProtocolZero::Enable)
+    {
+        max_ahead = Session.MaxAhead & 0xFFFF;
+        _asm mov edx, max_ahead;
+        _asm mov ecx, & OutList;
+        JMP(0x005B1BA9);
+    }
+
+    _asm mov ecx, &OutList;
+    JMP(0x005B1BA6);
+}
+
+void ProtocolZero_Patches()
+{
+    Patch_Jump(0x005091A0, &_ProtocolZero_Main_Loop);
+    Patch_Jump(0x005B1A2D, &_ProtocolZero_Queue_AI_Multiplayer_1);
+    Patch_Jump(0x005B1C37, &_ProtocolZero_Queue_AI_Multiplayer_2);
+    Patch_Jump(0x005B1BA1, &_ProtocolZero_Queue_AI_Multiplayer_3);
+}

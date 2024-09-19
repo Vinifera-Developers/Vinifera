@@ -24,28 +24,28 @@
 class Spawner
 {
 public:
-	static bool Enabled;
-	static bool Active;
+    static bool Enabled;
+    static bool Active;
 
 private:
-	static std::unique_ptr<SpawnerConfig> Config;
+    static std::unique_ptr<SpawnerConfig> Config;
 
 public:
-	static SpawnerConfig* GetConfig()
-	{
-		return Config.get();
-	}
+    static SpawnerConfig* GetConfig()
+    {
+        return Config.get();
+    }
 
-	static void Init();
-	static bool Start_Game();
+    static void Init();
+    static bool Start_Game();
 
-	static void Init_UI();
-	static void Prepare_Screen();
+    static void Init_UI();
+    static void Prepare_Screen();
 
 private:
-	static bool Start_New_Scenario(const char* scenarioName);
-	static bool Load_Saved_Game(const char* scenarioName);
+    static bool Start_New_Scenario(const char* scenarioName);
+    static bool Load_Saved_Game(const char* scenarioName);
 
-	static void Init_Network();
-	static void Load_Sides_Stuff();
+    static void Init_Network();
+    static void Load_Sides_Stuff();
 };

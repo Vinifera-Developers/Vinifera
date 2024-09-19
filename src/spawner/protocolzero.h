@@ -24,13 +24,13 @@ class ViniferaEventClass;
 class ProtocolZero
 {
 private:
-	static constexpr int SendResponseTimeInterval = 30;
+    static constexpr int SendResponseTimeInterval = 30;
 
 public:
-	static bool Enable;
-	static unsigned char MaxLatencyLevel;
-	static int WorstMaxAhead;
+    static bool Enable;
+    static unsigned char MaxLatencyLevel;
+    static int WorstMaxAhead;
 
-	static void Send_ResponseTime2();
-	static void HandleResponseTime2(ViniferaEventClass* event);
+    static void Send_ResponseTime2();
+    static void HandleResponseTime2(ViniferaEventClass* event);
 };
