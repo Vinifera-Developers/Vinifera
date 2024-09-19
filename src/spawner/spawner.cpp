@@ -39,6 +39,7 @@
 #include "language.h"
 #include "mouse.h"
 #include "ownrdraw.h"
+#include "saveload.h"
 #include "tab.h"
 #include "WinUser.h"
 #include "sessionext.h"
@@ -93,9 +94,7 @@ bool Spawner::Start_Game()
 
     Load_Sides_Stuff();
 
-    bool result = Config->LoadSaveGame
-        ? Load_Saved_Game(Config->SaveGameName)
-        : Start_New_Scenario(scen_name);
+    bool result = Start_New_Scenario(scen_name);
 
     //if (Main::GetConfig()->DumpTypes)
     //	DumperTypes::Dump();
@@ -246,16 +245,31 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
     if (Session.Type == GAME_NORMAL)
     {
         Session.Options.Goodies = true;
-        return Start_Scenario(scenario_name, true, CAMPAIGN_FIRST); // set the campaign number properly here?
+        if (!Start_Scenario(scenario_name, false, CAMPAIGN_NONE)) // set the campaign number properly here?
+            return false;
+
+        if (Config->LoadSaveGame && !Load_Saved_Game(Config->SaveGameName))
+            return false;
+
+        return true;
     }
     else if (Session.Type == GAME_SKIRMISH)
     {
-        return Start_Scenario(scenario_name, false, CAMPAIGN_NONE);
+        if (!Start_Scenario(scenario_name, false, CAMPAIGN_NONE))
+            return false;
+
+        if (Config->LoadSaveGame && !Load_Saved_Game(Config->SaveGameName))
+            return false;
+
+        return true;
     }
     else
     {
         Init_Network();
         if (!Start_Scenario(scenario_name, false, CAMPAIGN_NONE))
+            return false;
+
+        if (Config->LoadSaveGame && !Load_Saved_Game(Config->SaveGameName))
             return false;
 
         Session.Type = GAME_IPX;
@@ -267,7 +281,7 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
 
 bool Spawner::Load_Saved_Game(const char* save_game_name)
 {
-    if (!save_game_name[0] || !LoadOptionsClass().Load_File(save_game_name))
+    if (!save_game_name[0] || !Load_Game(save_game_name))
     {
         DEBUG_INFO("[Spawner] Failed to Load Savegame [%s]\n", save_game_name);
         MessageBox(MainWindow, Text_String(TXT_ERROR_LOADING_GAME), "Vinifera", MB_OK);
