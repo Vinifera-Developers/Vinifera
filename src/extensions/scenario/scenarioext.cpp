@@ -1449,66 +1449,99 @@ void ScenarioClassExtension::Create_Units(bool official)
             }
         }
 
-        /**
-         *  Pick the starting location for this house. The first house just picks
-         *  one of the valid locations at random. The other houses pick the furthest
-         *  waypoint from the existing houses.
-         */        
-        if (numtaken == 0) {
-            int pick = Random_Pick(0, waypts.Count()-1);
-            centroid = waypts[pick];
-            taken[pick] = true;
-            numtaken++;
+        bool pick_random = true;
+        if (Spawner::Active)
+        {
+            enum
+            {
+                SPAWN_RANDOM = -2,
+                SPAWN_OBSERVER = -1,
+                SPAWN_OBSERVER2 = 90
+            };
 
-        } else {
+            int chosen_spawn = Spawner::GetConfig()->Houses[hptr->Class->ID].SpawnLocation;
 
+            // Spectators need to be handled at some point?
+            if (chosen_spawn != SPAWN_RANDOM)
+            {
+                if (!taken[chosen_spawn])
+                {
+                    centroid = waypts[chosen_spawn];
+                    taken[chosen_spawn] = true;
+                    pick_random = false;
+                }
+            }
+        }
+
+
+        if (pick_random)
+        {
             /**
-             *  Set all waypoints to have a score of zero in preparation for giving
-             *  a distance score to all waypoints.
+             *  Pick the starting location for this house. The first house just picks
+             *  one of the valid locations at random. The other houses pick the furthest
+             *  waypoint from the existing houses.
              */
-            int score[MAX_STORED_WAYPOINTS];
-            std::memset(score, '\0', sizeof(score));
+            if (numtaken == 0) {
+                int pick = Random_Pick(0, waypts.Count() - 1);
+                centroid = waypts[pick];
+                taken[pick] = true;
+                numtaken++;
 
-            /**
-             *  Scan through all waypoints and give a score as a value of the sum
-             *  of the distances from this waypoint to all taken waypoints.
-             */
-            for (int index = 0; index < waypts.Count(); index++) {
+            }
+            else {
 
                 /**
-                 *  If this waypoint has not already been taken, then accumulate the
-                 *  sum of the distance between this waypoint and all other taken
-                 *  waypoints.
+                 *  Set all waypoints to have a score of zero in preparation for giving
+                 *  a distance score to all waypoints.
                  */
-                if (!taken[index]) {
-                    for (int trypoint = 0; trypoint < waypts.Count(); trypoint++) {
+                int score[MAX_STORED_WAYPOINTS];
+                std::memset(score, '\0', sizeof(score));
 
-                        if (taken[trypoint]) {
-                            score[index] += Distance(waypts[index], waypts[trypoint]);
+                /**
+                 *  Scan through all waypoints and give a score as a value of the sum
+                 *  of the distances from this waypoint to all taken waypoints.
+                 */
+                for (int index = 0; index < waypts.Count(); index++) {
+
+                    /**
+                     *  If this waypoint has not already been taken, then accumulate the
+                     *  sum of the distance between this waypoint and all other taken
+                     *  waypoints.
+                     */
+                    if (!taken[index]) {
+                        for (int trypoint = 0; trypoint < waypts.Count(); trypoint++) {
+
+                            if (taken[trypoint]) {
+                                score[index] += Distance(waypts[index], waypts[trypoint]);
+                            }
                         }
                     }
                 }
-            }
 
-            /**
-             *  Now find the waypoint with the largest score. This waypoint is the one
-             *  that is furthest from all other taken waypoints.
-             */
-            int best = 0;
-            int bestvalue = 0;
-            for (int searchindex = 0; searchindex < waypts.Count(); searchindex++) {
-                if (score[searchindex] > bestvalue || bestvalue == 0) {
-                    bestvalue = score[searchindex];
-                    best = searchindex;
+                /**
+                 *  Now find the waypoint with the largest score. This waypoint is the one
+                 *  that is furthest from all other taken waypoints.
+                 */
+                int best = 0;
+                int bestvalue = 0;
+                for (int searchindex = 0; searchindex < waypts.Count(); searchindex++) {
+                    if (score[searchindex] > bestvalue || bestvalue == 0) {
+                        bestvalue = score[searchindex];
+                        best = searchindex;
+                    }
                 }
-            }
 
-            /**
-             *  Assign this best position to the house.
-             */
-            centroid = waypts[best];
-            taken[best] = true;
-            numtaken++;
+                /**
+                 *  Assign this best position to the house.
+                 */
+                centroid = waypts[best];
+                taken[best] = true;
+                numtaken++;
+            }
+        }
+        else
+        {
+            centroid = waypts[Spawner::GetConfig()->Houses[hptr->Class->ID].SpawnLocation];
         }
 
         /**
