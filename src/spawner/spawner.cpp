@@ -182,20 +182,6 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
         Options.GameSpeed = Config->GameSpeed;
     }
 
-    //{ // Added AI Players
-    //	const auto pAISlots = &Session.Options.AISlots;
-    //	for (char slotIndex = 0; slotIndex < (char)std::size(pAISlots->Allies); ++slotIndex)
-    //	{
-    //		const auto pPlayerConfig = &Config->Players[slotIndex];
-    //		if (pPlayerConfig->IsHuman)
-    //			continue;
-
-    //		pAISlots->Difficulties[slotIndex] = pPlayerConfig->Difficulty;
-    //		pAISlots->Countries[slotIndex]    = pPlayerConfig->House;
-    //		pAISlots->Colors[slotIndex]       = pPlayerConfig->Color;
-    //		pAISlots->Allies[slotIndex]       = -1;
-    //	}
-    //}
 
     { // Added Human Players
         NetHack::PortHack = true;
