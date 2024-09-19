@@ -214,12 +214,12 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
 			{
 				nodename->Address.NodeAddress[0] = player_index;
 
-				//const auto Ip = inet_addr(pPlayer->Ip);
-				//const auto Port = htons((u_short)pPlayer->Port);
-				//ListAddress::Array[player_index - 1].Ip = Ip;
-				//ListAddress::Array[player_index - 1].Port = Port;
-				//if (Port != (u_short)Config->ListenPort)
-				//	NetHack::PortHack = false;
+				const auto ip = inet_addr(pPlayer->Ip);
+				const auto port = htons((u_short)pPlayer->Port);
+				ListAddress::Array[player_index - 1].Ip = ip;
+				ListAddress::Array[player_index - 1].Port = port;
+				if (port != (u_short)Config->ListenPort)
+					NetHack::PortHack = false;
 			}
 		}
 
@@ -289,11 +289,11 @@ void Spawner::Init_Network()
 {
 	const auto spawner_config = GetConfig();
 
-	//Tunnel::Id = htons((u_short)spawner_config->TunnelId);
-	//Tunnel::Ip = inet_addr(spawner_config->TunnelIp);
-	//Tunnel::Port = htons((u_short)spawner_config->TunnelPort);
+	Tunnel::Id = htons((u_short)spawner_config->TunnelId);
+	Tunnel::Ip = inet_addr(spawner_config->TunnelIp);
+	Tunnel::Port = htons((u_short)spawner_config->TunnelPort);
 
-	//PlanetWestwoodPortNumber = Tunnel::Port ? 0 : (u_short)spawner_config->ListenPort;
+	PlanetWestwoodPortNumber = Tunnel::Port ? 0 : (u_short)spawner_config->ListenPort;
 
 	PacketTransport = new UDPInterfaceClass();
 	PacketTransport->Init();
@@ -304,7 +304,8 @@ void Spawner::Init_Network()
 	Ipx->Set_Timing(60, -1, 600, true);
 
 	PlanetWestwoodStartTime = time(nullptr);
-	//Game::Network::GameStockKeepingUnit = 0x2901;
+	GameFSSKU = 0x1C00;
+	GameSKU = 0x1D00;
 
 	ProtocolZero::Enable = (spawner_config->Protocol == 0);
 	if (ProtocolZero::Enable)
@@ -332,7 +333,7 @@ void Spawner::Init_Network()
 	Session.DesiredFrameRate = 60;
 	TournamentGameType = (WOL::Tournament)spawner_config->Tournament;
 	PlanetWestwoodGameID = spawner_config->WOLGameID;
-	// Session.ReconnectTimeout = spawner_config->ReconnectTimeout; // WTF?
+	FrameSyncSettings[GAME_IPX].Timeout = spawner_config->ReconnectTimeout;
 
 	if (spawner_config->QuickMatch)
 	{
