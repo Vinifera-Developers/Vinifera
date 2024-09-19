@@ -178,7 +178,7 @@ void SpawnerConfig::HouseConfig::Read_INI(CCINIClass& spawn_ini, int index)
     const char* MULTI_TAG = MultiTagArray[index];
 
     this->IsSpectator     = spawn_ini.Get_Bool("IsSpectator", MULTI_TAG, this->IsSpectator);
-    this->SpawnLocations = spawn_ini.Get_Int("SpawnLocations", MULTI_TAG, SpawnLocations);
+    this->SpawnLocation   = spawn_ini.Get_Int("SpawnLocations", MULTI_TAG, SpawnLocation);
 
     if (spawn_ini.Is_Present(ALLIANCES))
     {

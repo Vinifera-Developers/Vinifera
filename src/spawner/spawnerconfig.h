@@ -57,12 +57,12 @@ class SpawnerConfig
     struct HouseConfig
     {
         bool IsSpectator;
-        int SpawnLocations;
+        int SpawnLocation;
         int Alliances[8];
 
         HouseConfig()
             : IsSpectator { false }
-            , SpawnLocations { -2 }
+            , SpawnLocation { -2 }
             , Alliances { -1, -1, -1, -1, -1, -1, -1, -1 }
         { }
 

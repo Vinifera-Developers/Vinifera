@@ -827,11 +827,7 @@ void ScenarioClassExtension::Assign_Houses()
                 continue;
 
             const auto house_config = &Spawner::GetConfig()->Houses[i];
-            const int spawn_loc_count = house_config->SpawnLocations;
-            const bool is_observer = housep->IsHuman &&
-                                    (house_config->IsSpectator
-                                     || spawn_loc_count == -1
-                                     || spawn_loc_count == 90);
+            const int spawn_loc = house_config->SpawnLocation;
 
             // Set Alliances
             for (char j = 0; j < (char)std::size(house_config->Alliances); ++j)
@@ -859,6 +855,10 @@ void ScenarioClassExtension::Assign_Houses()
             }
 
             // Set SpawnLocations // This needs to happen later, in Create_Units
+            //const bool is_observer = housep->IsHuman &&
+            //    (house_config->IsSpectator
+            //        || spawn_loc == -1
+            //        || spawn_loc == 90);
             //if (!is_observer)
             //{
             //    house->StartingPoint = (spawn_loc_count != -2)
