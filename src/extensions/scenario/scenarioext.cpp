@@ -691,40 +691,49 @@ void ScenarioClassExtension::Assign_Houses()
      */
     for (int i = Session.Players.Count(); i < Session.Players.Count() + Session.Options.AIPlayers; ++i) {
 
+        if (!Spawner::Active)
+        {
 #if 0
-        if (Percent_Chance(50)) {
-            pref_house = HOUSE_GDI;
-        } else {
-            pref_house = HOUSE_NOD;
-        }
+            if (Percent_Chance(50)) {
+                pref_house = HOUSE_GDI;
+            }
+            else {
+                pref_house = HOUSE_NOD;
+    }
 #endif
 
-        /**
-         *  #issue-7
-         * 
-         *  Replaces code from above.
-         * 
-         *  Fixes a limitation where the AI would only be able to choose
-         *  between the houses GDI (0) and NOD (1). Now, all houses that
-         *  have "IsMultiplay" true will be considered for sellection.
-         */
-        while (true) {
-            pref_house = (HousesType)Random_Pick(0, HouseTypes.Count()-1);
-            if (HouseTypes[pref_house]->IsMultiplay) {
-                break;
+            /**
+             *  #issue-7
+             *
+             *  Replaces code from above.
+             *
+             *  Fixes a limitation where the AI would only be able to choose
+             *  between the houses GDI (0) and NOD (1). Now, all houses that
+             *  have "IsMultiplay" true will be considered for sellection.
+             */
+            while (true) {
+                pref_house = (HousesType)Random_Pick(0, HouseTypes.Count() - 1);
+                if (HouseTypes[pref_house]->IsMultiplay) {
+                    break;
+                }
             }
-        }
 
-        /**
-         *  Pick a color for this house; keep looping until we find one.
-         */
-        while (true) {
-            color = Random_Pick(0, (MAX_PLAYERS-1));
-            if (color_used[color] == false) {
-                break;
+            /**
+             *  Pick a color for this house; keep looping until we find one.
+             */
+            while (true) {
+                color = Random_Pick(0, (MAX_PLAYERS - 1));
+                if (color_used[color] == false) {
+                    break;
+                }
             }
+            color_used[color] = true;
         }
-        color_used[color] = true;
+        else
+        {
+            color = Spawner::GetConfig()->Players[i].Color;
+            pref_house = (HousesType)Spawner::GetConfig()->Players[i].House;
+        }
 
         housep = new HouseClass(HouseTypes[pref_house]);
 
@@ -827,7 +836,7 @@ void ScenarioClassExtension::Assign_Houses()
                 continue;
 
             const auto house_config = &Spawner::GetConfig()->Houses[i];
-            const int spawn_loc = house_config->SpawnLocation;
+            //const int spawn_loc = house_config->SpawnLocation;
 
             // Set Alliances
             for (char j = 0; j < (char)std::size(house_config->Alliances); ++j)
@@ -845,13 +854,16 @@ void ScenarioClassExtension::Assign_Houses()
                 "Ultimate AI"
             };
 
-            // Set AI UIName
-            if (Spawner::GetConfig()->AINamesByDifficulty && !housep->IsHuman)
+            // Set Handicap and Names for AI
             {
-                const auto ai_config = &Spawner::GetConfig()->Players[i];
+                const auto player_config = &Spawner::GetConfig()->Players[i];
+                housep->Assign_Handicap((DiffType)player_config->Difficulty);
 
-                if (ai_config->Difficulty >= 0 && ai_config->Difficulty < std::size(AINamesByDifficultyArray))
-                    std::strcpy(housep->IniName, AINamesByDifficultyArray[ai_config->Difficulty]);
+                if (Spawner::GetConfig()->AINamesByDifficulty && !housep->IsHuman)
+                {
+                    if (player_config->Difficulty >= 0 && player_config->Difficulty < std::size(AINamesByDifficultyArray))
+                        std::strcpy(housep->IniName, AINamesByDifficultyArray[player_config->Difficulty]);
+                }
             }
 
             // Set SpawnLocations // This needs to happen later, in Create_Units
