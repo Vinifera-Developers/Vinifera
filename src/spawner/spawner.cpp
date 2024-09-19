@@ -251,7 +251,7 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
     }
     else
     {
-        Init_Network();
+        Spawner_Init_Network();
         if (!Start_Scenario(scenario_name, false, CAMPAIGN_NONE))
             return false;
 
@@ -278,7 +278,7 @@ bool Spawner::Load_Saved_Game(const char* save_game_name)
     return true;
 }
 
-void Spawner::Init_Network()
+void Spawner::Spawner_Init_Network()
 {
     const auto spawner_config = GetConfig();
 

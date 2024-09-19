@@ -46,6 +46,6 @@ private:
     static bool Start_New_Scenario(const char* scenarioName);
     static bool Load_Saved_Game(const char* scenarioName);
 
-    static void Init_Network();
+    static void Spawner_Init_Network();
     static void Load_Sides_Stuff();
 };
