@@ -28,9 +28,88 @@
 
 #include "autosurrender_hooks.h"
 
+#include "hooker.h"
+#include "hooker_macros.h"
+#include "spawner.h"
+#include "session.h"
+#include "tibsun_globals.h"
+
+
+static bool PlayerHasSurrendered = false;
+
+// Force surrender on abort
+DECLARE_PATCH(_Standard_Options_Dialog_HANDLER_AutoSurrender)
+{
+    if (Spawner::Active)
+    {
+        if (Session.Type == GAME_IPX && !PlayerHasSurrendered)
+        {
+            SpecialDialog = SDLG_SURRENDER;
+            JMP(0x004B6D2A);
+        }
+    }
+
+    // Stolen bytes
+    if (Session.Type != GAME_INTERNET)
+    {
+        JMP(0x004B6D20);
+    }
+
+    JMP(0x004B6D0D);
+}
+
+
+// Force surrender on disconnection
+DECLARE_PATCH(_EventClass_Execute_REMOVE_PLAYER_AutoSurrender)
+{
+    if (Spawner::Active)
+    {
+        if (Session.Type == GAME_IPX && Spawner::GetConfig()->AutoSurrender)
+        {
+            JMP(0x00494F16);
+        }
+    }
+
+    // Stolen bytes
+    if (Session.Type != GAME_INTERNET)
+    {
+        JMP(0x00494F28);
+    }
+
+    JMP(0x00494F0D);
+}
+
+
+// If I understand correctly what is happening in the 2 hacks below, when we the player opens a surrender dialog,
+// we default to considering him having surrendered, but if he aborts it, then we flag it accordingly
+DECLARE_PATCH(_Special_Dialog_Surrender1)
+{
+    PlayerHasSurrendered = true;
+    _asm mov eax, PlayerPtr
+    JMP_REG(ecx, 0x004627F8);
+}
+
+
+DECLARE_PATCH(_Special_Dialog_Surrender2)
+{
+    GET_REGISTER_STATIC(bool, has_surrendered, al);
+
+    PlayerHasSurrendered = has_surrendered;
+
+    // Stolen bytes
+    if (has_surrendered)
+    {
+        JMP(0x00462842);
+    }
+
+    JMP(0x004628E3)
+}
 
 
 void AutoSurrender_Hooks()
 {
-    
+    Patch_Jump(0x004B6D04, &_Standard_Options_Dialog_HANDLER_AutoSurrender);
+    Patch_Jump(0x00494F08, &_EventClass_Execute_REMOVE_PLAYER_AutoSurrender);
+    Patch_Jump(0x004627F3, &_Special_Dialog_Surrender1);
+    Patch_Jump(0x0046283A, &_Special_Dialog_Surrender2);
 }

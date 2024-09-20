@@ -138,8 +138,8 @@ public:
     bool SkipScoreScreen;
     bool WriteStatistics;
     bool AINamesByDifficulty;
-    bool ContinueWithoutHumans;
-    bool DefeatedBecomesObserver;
+    bool CoachMode;
+    bool AutoSurrender;
 
     SpawnerConfig() // default values
         // Game Mode Options
@@ -223,8 +223,8 @@ public:
         , SkipScoreScreen { false }
         , WriteStatistics { false }
         , AINamesByDifficulty { false }
-        , ContinueWithoutHumans { false }
-        , DefeatedBecomesObserver { false }
+        , CoachMode { false }
+        , AutoSurrender { true }
     { }
 
     void Read_INI(CCINIClass& spawn_ini);

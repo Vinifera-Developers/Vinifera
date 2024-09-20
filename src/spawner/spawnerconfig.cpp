@@ -96,8 +96,8 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
     SkipScoreScreen          = spawn_ini.Get_Bool(SETTINGS, "SkipScoreScreen", SkipScoreScreen);
     WriteStatistics          = spawn_ini.Get_Bool(SETTINGS, "WriteStatistics", WriteStatistics);
     AINamesByDifficulty      = spawn_ini.Get_Bool(SETTINGS, "AINamesByDifficulty", AINamesByDifficulty);
-    ContinueWithoutHumans    = spawn_ini.Get_Bool(SETTINGS, "ContinueWithoutHumans", ContinueWithoutHumans);
-    DefeatedBecomesObserver  = spawn_ini.Get_Bool(SETTINGS, "DefeatedBecomesObserver", DefeatedBecomesObserver);
+    CoachMode                = spawn_ini.Get_Bool(SETTINGS, "CoachMode", CoachMode);
+    AutoSurrender            = spawn_ini.Get_Bool(SETTINGS, "AutoSurrender", AutoSurrender);
 }
 
 constexpr char* PlayerSectionArray[8] = {

@@ -180,7 +180,7 @@ DECLARE_PATCH(_ProtocolZero_ExecuteDoList)
             goto continue_execution;
     }
 
-    _asm mov eax, [0x007E2458] // Session
+    _asm mov eax, Session
     JMP_REG(ecx, 0x005B4EAA);
 
     continue_execution:
