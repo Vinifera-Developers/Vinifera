@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          SPAWNER.H
+ *  @file          PROTOCOLZERO.H
  *
  *  @author        Belonit, ZivDero
  *
- *  @brief         Multiplayer spawner class.
+ *  @brief         Protocol zero.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -27,34 +27,18 @@
  ******************************************************************************/
 #pragma once
 
-#include "spawnerconfig.h"
-#include <memory>
+class ViniferaEventClass;
 
-class Spawner
+class ProtocolZero
 {
-public:
-    static bool Enabled;
-    static bool Active;
-
 private:
-    static std::unique_ptr<SpawnerConfig> Config;
+    static constexpr int SendResponseTimeInterval = 30;
 
 public:
-    static SpawnerConfig* GetConfig()
-    {
-        return Config.get();
-    }
+    static bool Enable;
+    static unsigned char MaxLatencyLevel;
+    static int WorstMaxAhead;
 
-    static void Init();
-    static bool Start_Game();
-
-    static void Init_UI();
-    static void Prepare_Screen();
-
-private:
-    static bool Start_New_Scenario(const char* scenarioName);
-    static bool Load_Saved_Game(const char* scenarioName);
-
-    static void Spawner_Init_Network();
-    static void Load_Sides_Stuff();
+    static void Send_ResponseTime2();
+    static void Handle_ResponseTime2(ViniferaEventClass* event);
 };

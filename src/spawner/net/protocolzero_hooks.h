@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          SPAWNER.H
+ *  @file          PROTOCOLZERO_HOOKS.H
  *
- *  @author        Belonit, ZivDero
+ *  @author        ZivDero
  *
- *  @brief         Multiplayer spawner class.
+ *  @brief         Contains the hooks for protocol zero.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -27,34 +27,5 @@
  ******************************************************************************/
 #pragma once
 
-#include "spawnerconfig.h"
-#include <memory>
 
-class Spawner
-{
-public:
-    static bool Enabled;
-    static bool Active;
-
-private:
-    static std::unique_ptr<SpawnerConfig> Config;
-
-public:
-    static SpawnerConfig* GetConfig()
-    {
-        return Config.get();
-    }
-
-    static void Init();
-    static bool Start_Game();
-
-    static void Init_UI();
-    static void Prepare_Screen();
-
-private:
-    static bool Start_New_Scenario(const char* scenarioName);
-    static bool Load_Saved_Game(const char* scenarioName);
-
-    static void Spawner_Init_Network();
-    static void Load_Sides_Stuff();
-};
+void ProtocolZero_Hooks();

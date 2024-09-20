@@ -4,11 +4,11 @@
  *
  *  @project       TS++
  *
- *  @file          SPECTATOR.CPP
+ *  @file          SPECTATOR_HOOKS.CPP
  *
  *  @authors       ZivDero
  *
- *  @brief         Contains all the hooks for spectator mode.
+ *  @brief         Contains the hooks for spectator mode.
  *
  *  @license       TS++ is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -26,6 +26,7 @@
  *
  ******************************************************************************/
 
+#include "spectator_hooks.h"
 
 #include "display.h"
 #include "hooker.h"
@@ -164,7 +165,7 @@ DECLARE_PATCH(_HouseClass_Radar_Outage_Spectators)
 }
 
 
-void Spectator_Spawner_Patches()
+void Spectator_Hooks()
 {
     Patch_Call(0x00506D7B, &DisplayClassExt::_Encroach_Shadow_Spectator);
     Patch_Call(0x00507291, &DisplayClassExt::_Encroach_Shadow_Spectator);

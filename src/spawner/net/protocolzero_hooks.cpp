@@ -1,21 +1,32 @@
-/**
-*  yrpp-spawner
-*
-*  Copyright(C) 2023-present CnCNet
-*
-*  This program is free software: you can redistribute it and/or modify
-*  it under the terms of the GNU General Public License as published by
-*  the Free Software Foundation, either version 3 of the License, or
-*  (at your option) any later version.
-*
-*  This program is distributed in the hope that it will be useful,
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
-*  GNU General Public License for more details.
-*
-*  You should have received a copy of the GNU General Public License
-*  along with this program.If not, see <http://www.gnu.org/licenses/>.
-*/
+/*******************************************************************************
+/*                 O P E N  S O U R C E  --  V I N I F E R A                  **
+/*******************************************************************************
+ *
+ *  @project       Vinifera
+ *
+ *  @file          PROTOCOLZERO_HOOKS.CPP
+ *
+ *  @author        ZivDero
+ *
+ *  @brief         Contains the hooks for protocol zero.
+ *
+ *  @license       Vinifera is free software: you can redistribute it and/or
+ *                 modify it under the terms of the GNU General Public License
+ *                 as published by the Free Software Foundation, either version
+ *                 3 of the License, or (at your option) any later version.
+ *
+ *                 Vinifera is distributed in the hope that it will be
+ *                 useful, but WITHOUT ANY WARRANTY; without even the implied
+ *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ *                 PURPOSE. See the GNU General Public License for more details.
+ *
+ *                 You should have received a copy of the GNU General Public
+ *                 License along with this program.
+ *                 If not, see <http://www.gnu.org/licenses/>.
+ *
+ ******************************************************************************/
+
+#include "protocolzero_hooks.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -177,7 +188,7 @@ DECLARE_PATCH(_ProtocolZero_ExecuteDoList)
 }
 
 
-void ProtocolZero_Patches()
+void ProtocolZero_Hooks()
 {
     Patch_Jump(0x005091A0, &_ProtocolZero_Main_Loop);
     Patch_Jump(0x005B1A2D, &_ProtocolZero_Queue_AI_Multiplayer_1);

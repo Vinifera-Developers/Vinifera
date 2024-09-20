@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          SPAWNER.H
+ *  @file          LATENCYLEVEL.H
  *
  *  @author        Belonit, ZivDero
  *
- *  @brief         Multiplayer spawner class.
+ *  @brief         Protocol zero latency level class.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -27,34 +27,38 @@
  ******************************************************************************/
 #pragma once
 
-#include "spawnerconfig.h"
-#include <memory>
+#include <cstdint>
 
-class Spawner
+enum LatencyLevelEnum : uint8_t
+{
+    LATENCY_LEVEL_INITIAL = 0,
+
+    LATENCY_LEVEL_1 = 1,
+    LATENCY_LEVEL_2 = 2,
+    LATENCY_LEVEL_3 = 3,
+    LATENCY_LEVEL_4 = 4,
+    LATENCY_LEVEL_5 = 5,
+    LATENCY_LEVEL_6 = 6,
+    LATENCY_LEVEL_7 = 7,
+    LATENCY_LEVEL_8 = 8,
+    LATENCY_LEVEL_9 = 9,
+
+    LATENCY_LEVEL_MAX = LATENCY_LEVEL_9,
+    LATENCY_SIZE = 1 + LATENCY_LEVEL_MAX
+};
+class LatencyLevel
 {
 public:
-    static bool Enabled;
-    static bool Active;
+    static LatencyLevelEnum CurentLatencyLevel;
+    static uint8_t NewFrameSendRate;
 
-private:
-    static std::unique_ptr<SpawnerConfig> Config;
-
-public:
-    static SpawnerConfig* GetConfig()
+    static void Apply(LatencyLevelEnum new_latency_level);
+    static void __forceinline Apply(uint8_t newLatencyLevel)
     {
-        return Config.get();
+        Apply(static_cast<LatencyLevelEnum>(newLatencyLevel));
     }
 
-    static void Init();
-    static bool Start_Game();
-
-    static void Init_UI();
-    static void Prepare_Screen();
-
-private:
-    static bool Start_New_Scenario(const char* scenarioName);
-    static bool Load_Saved_Game(const char* scenarioName);
-
-    static void Spawner_Init_Network();
-    static void Load_Sides_Stuff();
+    static int Get_MaxAhead(LatencyLevelEnum latencyLevel);
+    static const char* Get_Latency_Message(LatencyLevelEnum latencyLevel);
+    static LatencyLevelEnum From_Response_Time(uint8_t rspTime);
 };

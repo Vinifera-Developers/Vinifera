@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          SPAWNER.H
+ *  @file          AUTOSURRENDER_HOOKS.H
  *
- *  @author        Belonit, ZivDero
+ *  @author        ZivDero
  *
- *  @brief         Multiplayer spawner class.
+ *  @brief         Contains the hooks for auto-surrender in multiplayer.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -25,36 +25,12 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#pragma once
 
-#include "spawnerconfig.h"
-#include <memory>
+#include "autosurrender_hooks.h"
 
-class Spawner
+
+
+void AutoSurrender_Hooks()
 {
-public:
-    static bool Enabled;
-    static bool Active;
-
-private:
-    static std::unique_ptr<SpawnerConfig> Config;
-
-public:
-    static SpawnerConfig* GetConfig()
-    {
-        return Config.get();
-    }
-
-    static void Init();
-    static bool Start_Game();
-
-    static void Init_UI();
-    static void Prepare_Screen();
-
-private:
-    static bool Start_New_Scenario(const char* scenarioName);
-    static bool Load_Saved_Game(const char* scenarioName);
-
-    static void Spawner_Init_Network();
-    static void Load_Sides_Stuff();
-};
+    
+}
