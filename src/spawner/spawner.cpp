@@ -291,7 +291,7 @@ bool Spawner::Load_Saved_Game(const char* save_game_name)
 
 void Spawner::Spawner_Init_Network()
 {
-    const auto spawner_config = GetConfig();
+    const auto spawner_config = Get_Config();
 
     Tunnel::Id = htons((u_short)spawner_config->TunnelId);
     Tunnel::Ip = inet_addr(spawner_config->TunnelIp);

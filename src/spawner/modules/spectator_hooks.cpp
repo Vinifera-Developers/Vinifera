@@ -50,8 +50,10 @@ class HouseClassExt : public HouseClass
 {
 public:
     bool _Is_Spectator() const;
-    bool _Is_Ally(const HouseClassExt* house) const;
+    bool _Is_Coach() const;
+    bool _Is_Ally_Or_Spectator(const HouseClassExt* house) const;
     void _Update_Radars();
+    bool _Has_Player_Allies() const;
 };
 
 
@@ -59,16 +61,59 @@ bool HouseClassExt::_Is_Spectator() const
 {
     if (Spawner::Active)
     {
-        return Spawner::GetConfig()->Houses[Get_Heap_ID()].IsSpectator;
+        return Spawner::Get_Config()->Houses[Get_Heap_ID()].IsSpectator;
     }
 
     return false;
 }
 
 
-bool HouseClassExt::_Is_Ally(const HouseClassExt* house) const
+bool HouseClassExt::_Is_Coach() const
 {
-    return HouseClass::Is_Ally(house) || (Spawner::Active && (_Is_Spectator() || house->_Is_Spectator()));
+    if (Spawner::Active)
+    {
+        if (Spawner::Get_Config()->CoachMode)
+        {
+            return _Is_Spectator() && _Has_Player_Allies();
+        }
+    }
+
+    return false;
+}
+
+
+bool HouseClassExt::_Is_Ally_Or_Spectator(const HouseClassExt* house) const
+{
+    bool is_ally = HouseClass::Is_Ally(house);
+
+    if (Spawner::Active)
+    {
+        if (is_ally)
+            return is_ally;
+
+        if (Spawner::Get_Config()->CoachMode)
+        {
+            return _Is_Coach() || house->_Is_Coach();
+        }
+
+        return _Is_Spectator() || house->_Is_Spectator();
+    }
+
+    return is_ally;
+}
+
+
+bool HouseClassExt::_Has_Player_Allies() const
+{
+    const char* SPECIAL = "Special";
+
+    unsigned int allies = Allies;
+
+    // Special is allied to everyone, so we need to exclude it from the allies list to get the real picture
+    int special_house_id = As_Pointer(HouseTypeClass::From_Name(SPECIAL))->Get_Heap_ID();
+    allies &= ~(1 << special_house_id);
+
+    return allies != 0;
 }
 
 
@@ -109,7 +154,7 @@ public:
 
 void DisplayClassExt::_Encroach_Shadow_Spectator()
 {
-    if (Spawner::Active && ((HouseClassExt*)PlayerPtr)->_Is_Spectator())
+    if (Spawner::Active && ((HouseClassExt*)PlayerPtr)->_Is_Spectator() && !((HouseClassExt*)PlayerPtr)->_Is_Coach())
     {
         return;
     }
@@ -120,7 +165,7 @@ void DisplayClassExt::_Encroach_Shadow_Spectator()
 
 void DisplayClassExt::_Encroach_Fog_Spectator()
 {
-    if (Spawner::Active && ((HouseClassExt*)PlayerPtr)->_Is_Spectator())
+    if (Spawner::Active && ((HouseClassExt*)PlayerPtr)->_Is_Spectator() && !((HouseClassExt*)PlayerPtr)->_Is_Coach())
     {
         return;
     }
@@ -165,6 +210,33 @@ DECLARE_PATCH(_HouseClass_Radar_Outage_Spectators)
 }
 
 
+/**
+  *  A fake class for implementing new member functions which allow
+  *  access to the "this" pointer of the intended class.
+  *
+  *  @note: This must not contain a constructor or destructor.
+  *
+  *  @note: All functions must not be virtual and must also be prefixed
+  *         with "_" to prevent accidental virtualization.
+  */
+class MapClassExt : public MapClass
+{
+public:
+    void _Reveal_The_Map();
+};
+
+
+void MapClassExt::_Reveal_The_Map()
+{
+    if (Spawner::Active && Spawner::Get_Config()->CoachMode && ((HouseClassExt*)PlayerPtr)->_Is_Coach())
+    {
+        return;
+    }
+
+    MapClass::Reveal_The_Map();
+}
+
+
 void Spectator_Hooks()
 {
     Patch_Call(0x00506D7B, &DisplayClassExt::_Encroach_Shadow_Spectator);
@@ -175,12 +247,13 @@ void Spectator_Hooks()
     Patch_Call(0x00507309, &DisplayClassExt::_Encroach_Fog_Spectator);
     Patch_Jump(0x004BF71B, &_HouseClass_MPlayer_Defeated_Dont_Count_Spectators);
     Patch_Jump(0x004C9684, &_HouseClass_Radar_Outage_Spectators);
-    Patch_Call(0x0043852B, &HouseClassExt::_Is_Ally);
-    Patch_Call(0x00438540, &HouseClassExt::_Is_Ally);
-    Patch_Call(0x00633E85, &HouseClassExt::_Is_Ally);
-    Patch_Call(0x00633E9F, &HouseClassExt::_Is_Ally);
-    Patch_Call(0x0062C6CE, &HouseClassExt::_Is_Ally);
-    Patch_Call(0x0062CA26, &HouseClassExt::_Is_Ally);
-    Patch_Call(0x00428A23, &HouseClassExt::_Is_Ally);
+    Patch_Call(0x0043852B, &HouseClassExt::_Is_Ally_Or_Spectator);
+    Patch_Call(0x00438540, &HouseClassExt::_Is_Ally_Or_Spectator);
+    Patch_Call(0x00633E85, &HouseClassExt::_Is_Ally_Or_Spectator);
+    Patch_Call(0x00633E9F, &HouseClassExt::_Is_Ally_Or_Spectator);
+    Patch_Call(0x0062C6CE, &HouseClassExt::_Is_Ally_Or_Spectator);
+    Patch_Call(0x0062CA26, &HouseClassExt::_Is_Ally_Or_Spectator);
+    Patch_Call(0x00428A23, &HouseClassExt::_Is_Ally_Or_Spectator);
     Patch_Call(0x004BC608, &HouseClassExt::_Update_Radars);
+    Patch_Call(0x004BF5D6, &MapClassExt::_Reveal_The_Map);
 }

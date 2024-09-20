@@ -64,7 +64,7 @@ DECLARE_PATCH(_EventClass_Execute_REMOVE_PLAYER_AutoSurrender)
 {
     if (Spawner::Active)
     {
-        if (Session.Type == GAME_IPX && Spawner::GetConfig()->AutoSurrender)
+        if (Session.Type == GAME_IPX && Spawner::Get_Config()->AutoSurrender)
         {
             JMP(0x00494F16);
         }

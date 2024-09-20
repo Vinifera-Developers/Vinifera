@@ -56,7 +56,7 @@ public:
 
 char* IPXManagerClassExt::_Connection_Name(int id)
 {
-    if (Spawner::Active && Spawner::GetConfig()->QuickMatch)
+    if (Spawner::Active && Spawner::Get_Config()->QuickMatch)
     {
         return (char*)PLAYER;
     }
@@ -69,7 +69,7 @@ char* IPXManagerClassExt::_Connection_Name(int id)
 
 static int sprintf_RadarClass_Draw_Names_Wrapper(char* buffer, const char* format, char* str)
 {
-    if (Spawner::Active && Spawner::GetConfig()->QuickMatch)
+    if (Spawner::Active && Spawner::Get_Config()->QuickMatch)
     {
         return std::sprintf(buffer, "%s", PLAYER);
     }
@@ -82,7 +82,7 @@ static int sprintf_RadarClass_Draw_Names_Wrapper(char* buffer, const char* forma
 
 static Point2D Fancy_Text_Print_ProgressScreenClass_Draw_Graphics_Wrapper(const char* text, XSurface* surface, Rect* rect, Point2D* xy, ColorScheme* fore, unsigned back = COLOR_TBLACK, TextPrintType flag = TPF_8POINT | TPF_DROPSHADOW)
 {
-    if (Spawner::Active && Spawner::GetConfig()->QuickMatch)
+    if (Spawner::Active && Spawner::Get_Config()->QuickMatch)
     {
         return Fancy_Text_Print(PLAYER, surface, rect, xy, fore, back, flag);
     }
@@ -95,7 +95,7 @@ static Point2D Fancy_Text_Print_ProgressScreenClass_Draw_Graphics_Wrapper(const 
 
 static LRESULT SendMessageA_Kick_Player_Dialog_Wrapper(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
-    if (Spawner::Active && Spawner::GetConfig()->QuickMatch)
+    if (Spawner::Active && Spawner::Get_Config()->QuickMatch)
     {
         return SendMessageA(hWnd, Msg, wParam, (LPARAM)PLAYER);
     }

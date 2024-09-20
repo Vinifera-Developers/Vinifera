@@ -208,7 +208,7 @@ void BuildingClassExt::_Draw_Overlays(Point2D& coord, Rect& rect)
             }
         }
 
-        if (SpiedBy & (1 << (PlayerPtr->Class->House)) || (Spawner::Active && Spawner::GetConfig()->Houses[PlayerPtr->Get_Heap_ID()].IsSpectator))
+        if (SpiedBy & (1 << (PlayerPtr->Class->House)) || (Spawner::Active && Spawner::Get_Config()->Houses[PlayerPtr->Get_Heap_ID()].IsSpectator))
         {
             if (IsSelected)
             {

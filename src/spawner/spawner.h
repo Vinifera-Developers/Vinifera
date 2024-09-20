@@ -40,7 +40,7 @@ private:
     static std::unique_ptr<SpawnerConfig> Config;
 
 public:
-    static SpawnerConfig* GetConfig()
+    static SpawnerConfig* Get_Config()
     {
         return Config.get();
     }

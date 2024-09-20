@@ -731,8 +731,8 @@ void ScenarioClassExtension::Assign_Houses()
         }
         else
         {
-            color = Spawner::GetConfig()->Players[i].Color;
-            pref_house = (HousesType)Spawner::GetConfig()->Players[i].House;
+            color = Spawner::Get_Config()->Players[i].Color;
+            pref_house = (HousesType)Spawner::Get_Config()->Players[i].House;
         }
 
         housep = new HouseClass(HouseTypes[pref_house]);
@@ -827,7 +827,7 @@ void ScenarioClassExtension::Assign_Houses()
 
     if (Spawner::Active)
     {
-        const int house_count = std::min(Houses.Count(), (int)std::size(Spawner::GetConfig()->Houses));
+        const int house_count = std::min(Houses.Count(), (int)std::size(Spawner::Get_Config()->Houses));
         for (int i = 0; i < house_count; i++)
         {
             housep = Houses[i];
@@ -835,7 +835,7 @@ void ScenarioClassExtension::Assign_Houses()
             if (housep->Class->IsMultiplayPassive)
                 continue;
 
-            const auto house_config = &Spawner::GetConfig()->Houses[i];
+            const auto house_config = &Spawner::Get_Config()->Houses[i];
 
             // Set Alliances
             for (char j = 0; j < (char)std::size(house_config->Alliances); ++j)
@@ -855,10 +855,10 @@ void ScenarioClassExtension::Assign_Houses()
 
             // Set Handicap and Names for AI
             {
-                const auto player_config = &Spawner::GetConfig()->Players[i];
+                const auto player_config = &Spawner::Get_Config()->Players[i];
                 housep->Assign_Handicap((DiffType)player_config->Difficulty);
 
-                if (Spawner::GetConfig()->AINamesByDifficulty && !housep->IsHuman)
+                if (Spawner::Get_Config()->AINamesByDifficulty && !housep->IsHuman)
                 {
                     if (player_config->Difficulty >= 0 && player_config->Difficulty < std::size(AINamesByDifficultyArray))
                         std::strcpy(housep->IniName, AINamesByDifficultyArray[player_config->Difficulty]);
@@ -1249,7 +1249,7 @@ static DynamicVectorClass<Cell> Build_Starting_Waypoint_List(bool official)
     {
         for (int i = 0; i < Session.Players.Count() + Session.Options.AIPlayers; i++)
         {
-            if (Spawner::GetConfig()->Houses[i].IsSpectator)
+            if (Spawner::Get_Config()->Houses[i].IsSpectator)
                 look_for--;
         }
     }
@@ -1457,7 +1457,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                 SPAWN_OBSERVER2 = 90
             };
 
-            int chosen_spawn = Spawner::GetConfig()->Houses[hptr->Class->ID].SpawnLocation;
+            int chosen_spawn = Spawner::Get_Config()->Houses[hptr->Class->ID].SpawnLocation;
 
             // Spectators need to be handled at some point?
             if (chosen_spawn != SPAWN_RANDOM)
