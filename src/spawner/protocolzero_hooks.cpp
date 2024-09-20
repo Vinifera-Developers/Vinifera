@@ -38,9 +38,7 @@
 class IPXManagerClassExt : public IPXManagerClass
 {
 public:
-    void _Set_Timing(unsigned long retrydelta, unsigned long maxretries,
-        unsigned long timeout, bool bool1 = true);
-
+    void _Set_Timing(unsigned long retrydelta, unsigned long maxretries, unsigned long timeout, bool bool1 = true);
     unsigned long _Response_Time();
 };
 

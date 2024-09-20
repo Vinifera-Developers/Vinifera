@@ -25,64 +25,60 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
 {
     static char const* const SETTINGS = "Settings";
 
-    { // Game Mode Options
-        Bases          = spawn_ini.Get_Bool(SETTINGS, "Bases", Bases);
-        Credits        = spawn_ini.Get_Int(SETTINGS, "Credits", Credits);
-        BridgeDestroy  = spawn_ini.Get_Bool(SETTINGS, "BridgeDestroy", BridgeDestroy);
-        Crates         = spawn_ini.Get_Bool(SETTINGS, "Crates", Crates);
-        ShortGame      = spawn_ini.Get_Bool(SETTINGS, "ShortGame", ShortGame);
-        BuildOffAlly   = spawn_ini.Get_Bool(SETTINGS, "BuildOffAlly", BuildOffAlly);
-        GameSpeed      = spawn_ini.Get_Int(SETTINGS, "GameSpeed", GameSpeed);
-        MultiEngineer  = spawn_ini.Get_Bool(SETTINGS, "MultiEngineer", MultiEngineer);
-        UnitCount      = spawn_ini.Get_Int(SETTINGS, "UnitCount", UnitCount);
-        AIPlayers      = spawn_ini.Get_Int(SETTINGS, "AIPlayers", AIPlayers);
-        AIDifficulty   = spawn_ini.Get_Int(SETTINGS, "AIDifficulty", AIDifficulty);
-        AlliesAllowed  = spawn_ini.Get_Bool(SETTINGS, "AlliesAllowed", AlliesAllowed);
-        HarvesterTruce = spawn_ini.Get_Bool(SETTINGS, "HarvesterTruce", HarvesterTruce);
-        FogOfWar       = spawn_ini.Get_Bool(SETTINGS, "FogOfWar", FogOfWar);
-        MCVRedeploy    = spawn_ini.Get_Bool(SETTINGS, "MCVRedeploy", MCVRedeploy);
-        spawn_ini.Get_String(SETTINGS, "UIGameMode", UIGameMode, UIGameMode, sizeof(UIGameMode));
-    }
+    // Game Mode Options
+    Bases          = spawn_ini.Get_Bool(SETTINGS, "Bases", Bases);
+    Credits        = spawn_ini.Get_Int(SETTINGS, "Credits", Credits);
+    BridgeDestroy  = spawn_ini.Get_Bool(SETTINGS, "BridgeDestroy", BridgeDestroy);
+    Crates         = spawn_ini.Get_Bool(SETTINGS, "Crates", Crates);
+    ShortGame      = spawn_ini.Get_Bool(SETTINGS, "ShortGame", ShortGame);
+    BuildOffAlly   = spawn_ini.Get_Bool(SETTINGS, "BuildOffAlly", BuildOffAlly);
+    GameSpeed      = spawn_ini.Get_Int(SETTINGS, "GameSpeed", GameSpeed);
+    MultiEngineer  = spawn_ini.Get_Bool(SETTINGS, "MultiEngineer", MultiEngineer);
+    UnitCount      = spawn_ini.Get_Int(SETTINGS, "UnitCount", UnitCount);
+    AIPlayers      = spawn_ini.Get_Int(SETTINGS, "AIPlayers", AIPlayers);
+    AIDifficulty   = spawn_ini.Get_Int(SETTINGS, "AIDifficulty", AIDifficulty);
+    AlliesAllowed  = spawn_ini.Get_Bool(SETTINGS, "AlliesAllowed", AlliesAllowed);
+    HarvesterTruce = spawn_ini.Get_Bool(SETTINGS, "HarvesterTruce", HarvesterTruce);
+    FogOfWar       = spawn_ini.Get_Bool(SETTINGS, "FogOfWar", FogOfWar);
+    MCVRedeploy    = spawn_ini.Get_Bool(SETTINGS, "MCVRedeploy", MCVRedeploy);
+                     spawn_ini.Get_String(SETTINGS, "UIGameMode", UIGameMode, UIGameMode, sizeof(UIGameMode));
 
     // SaveGame Options
     LoadSaveGame     = spawn_ini.Get_Bool(SETTINGS, "LoadSaveGame", LoadSaveGame);
     /* SavedGameDir */ spawn_ini.Get_String(SETTINGS, "SavedGameDir", SavedGameDir, SavedGameDir, sizeof(SavedGameDir));
     /* SaveGameName */ spawn_ini.Get_String(SETTINGS, "SaveGameName", SaveGameName, SaveGameName, sizeof(SaveGameName));
 
-    { // Scenario Options
-        Seed             = spawn_ini.Get_Int(SETTINGS, "Seed", Seed);
-        TechLevel        = spawn_ini.Get_Int(SETTINGS, "TechLevel", TechLevel);
-        IsCampaign       = spawn_ini.Get_Bool(SETTINGS, "IsSinglePlayer", IsCampaign);
-        Tournament       = spawn_ini.Get_Int(SETTINGS, "Tournament", Tournament);
-        WOLGameID        = spawn_ini.Get_Int(SETTINGS, "GameID", WOLGameID);
-        /* ScenarioName */ spawn_ini.Get_String(SETTINGS, "Scenario", ScenarioName, ScenarioName, sizeof(ScenarioName));
-        /* MapHash      */ spawn_ini.Get_String(SETTINGS, "MapHash", MapHash, MapHash, sizeof(MapHash));
-        spawn_ini.Get_String(SETTINGS, "UIMapName", UIMapName, UIMapName, sizeof(UIMapName));
-    }
+    // Scenario Options
+    Seed             = spawn_ini.Get_Int(SETTINGS, "Seed", Seed);
+    TechLevel        = spawn_ini.Get_Int(SETTINGS, "TechLevel", TechLevel);
+    IsCampaign       = spawn_ini.Get_Bool(SETTINGS, "IsSinglePlayer", IsCampaign);
+    Tournament       = spawn_ini.Get_Int(SETTINGS, "Tournament", Tournament);
+    WOLGameID        = spawn_ini.Get_Int(SETTINGS, "GameID", WOLGameID);
+    /* ScenarioName */ spawn_ini.Get_String(SETTINGS, "Scenario", ScenarioName, ScenarioName, sizeof(ScenarioName));
+    /* MapHash      */ spawn_ini.Get_String(SETTINGS, "MapHash", MapHash, MapHash, sizeof(MapHash));
+    spawn_ini.Get_String(SETTINGS, "UIMapName", UIMapName, UIMapName, sizeof(UIMapName));
 
-    { // Network Options
-        Protocol         = spawn_ini.Get_Int(SETTINGS, "Protocol", Protocol);
-        FrameSendRate    = spawn_ini.Get_Int(SETTINGS, "FrameSendRate", FrameSendRate);
-        ReconnectTimeout = spawn_ini.Get_Int(SETTINGS, "ReconnectTimeout", ReconnectTimeout);
-        ConnTimeout      = spawn_ini.Get_Int(SETTINGS, "ConnTimeout", ConnTimeout);
-        MaxAhead         = spawn_ini.Get_Int(SETTINGS, "MaxAhead", MaxAhead);
-        PreCalcMaxAhead  = spawn_ini.Get_Int(SETTINGS, "PreCalcMaxAhead", PreCalcMaxAhead);
-        MaxLatencyLevel  = (byte)spawn_ini.Get_Int(SETTINGS, "MaxLatencyLevel", (int)MaxLatencyLevel);
-    }
+    // Network Options
+    Protocol         = spawn_ini.Get_Int(SETTINGS, "Protocol", Protocol);
+    FrameSendRate    = spawn_ini.Get_Int(SETTINGS, "FrameSendRate", FrameSendRate);
+    ReconnectTimeout = spawn_ini.Get_Int(SETTINGS, "ReconnectTimeout", ReconnectTimeout);
+    ConnTimeout      = spawn_ini.Get_Int(SETTINGS, "ConnTimeout", ConnTimeout);
+    MaxAhead         = spawn_ini.Get_Int(SETTINGS, "MaxAhead", MaxAhead);
+    PreCalcMaxAhead  = spawn_ini.Get_Int(SETTINGS, "PreCalcMaxAhead", PreCalcMaxAhead);
+    MaxLatencyLevel  = (byte)spawn_ini.Get_Int(SETTINGS, "MaxLatencyLevel", (int)MaxLatencyLevel);
 
-    { // Tunnel Options
-        TunnelId   = spawn_ini.Get_Int(SETTINGS, "Port", TunnelId);
-        ListenPort = spawn_ini.Get_Int(SETTINGS, "Port", ListenPort);
+    // Tunnel Options
+    TunnelId   = spawn_ini.Get_Int(SETTINGS, "Port", TunnelId);
+    ListenPort = spawn_ini.Get_Int(SETTINGS, "Port", ListenPort);
 
-        static char const* const TUNNEL = "Tunnel";
-        TunnelPort = spawn_ini.Get_Int(TUNNEL, "Port", TunnelPort);
-    }
+    static char const* const TUNNEL = "Tunnel";
+    TunnelPort = spawn_ini.Get_Int(TUNNEL, "Port", TunnelPort);
 
     // Players Options
-    for (char i = 0; i < (char)std::size(Players); ++i)
+    for (int i = 0; i < std::size(Players); ++i)
     {
-        (&Players[i])->Read_INI(spawn_ini, i);
-        (&Houses[i])->Read_INI(spawn_ini, i);
+        Players[i].Read_INI(spawn_ini, i);
+        Houses[i].Read_INI(spawn_ini, i);
     }
 
     // Extended Options
@@ -158,7 +154,7 @@ void SpawnerConfig::PlayerConfig::Read_INI(CCINIClass& spawn_ini, int index)
         this->House       = spawn_ini.Get_Int(SECTION, "Side", this->House);
 
         spawn_ini.Get_String(SECTION, "Ip", this->Ip, this->Ip, sizeof(this->Ip));
-        this->Port       = spawn_ini.Get_Int(SECTION, "Port", this->Port);
+        this->Port        = spawn_ini.Get_Int(SECTION, "Port", this->Port);
     }
     else if (!IsHuman)
     {

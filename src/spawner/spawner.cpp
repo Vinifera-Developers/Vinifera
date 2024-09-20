@@ -155,7 +155,8 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
     strcpy_s(Session.ScenarioFileName, 0x200, scenario_name);
     Session.Read_Scenario_Descriptions();
 
-    { // Set Options
+    // Set Options
+    {
         //Session.Options.ScenarioIndex
         Session.Options.Bases						= Config->Bases;
         Session.Options.Credits						= Config->Credits;
@@ -182,8 +183,8 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
         Options.GameSpeed = Config->GameSpeed;
     }
 
-
-    { // Added Human Players
+    // Configure Human Players
+    { 
         NetHack::PortHack = true;
         const char max_players = Config->IsCampaign ? 1 : (char)std::size(Config->Players);
         for (char player_index = 0; player_index < max_players; player_index++)
@@ -216,7 +217,8 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
         Session.NumPlayers = Session.Players.Count();
     }
 
-    { // Set SessionType
+    // Set GameType
+    { 
         if (Config->IsCampaign)
             Session.Type = GAME_NORMAL;
         else if (Session.NumPlayers > 1)

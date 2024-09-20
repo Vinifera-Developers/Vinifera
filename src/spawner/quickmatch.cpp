@@ -1,64 +1,104 @@
-///**
-//*  yrpp-spawner
-//*
-//*  Copyright(C) 2023-present CnCNet
-//*
-//*  This program is free software: you can redistribute it and/or modify
-//*  it under the terms of the GNU General Public License as published by
-//*  the Free Software Foundation, either version 3 of the License, or
-//*  (at your option) any later version.
-//*
-//*  This program is distributed in the hope that it will be useful,
-//*  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
-//*  GNU General Public License for more details.
-//*
-//*  You should have received a copy of the GNU General Public License
-//*  along with this program.If not, see <http://www.gnu.org/licenses/>.
-//*/
-//
-//#include "Spawner.h"
-//#include <Utilities/Macro.h>
-//
-//namespace QuickMatch
-//{
-//    const wchar_t* PlayerString = L"Player";
-//}
-//
-//DEFINE_HOOK(0x643AA5, ProgressScreenClass_643720_HideName, 0x8)
-//{
-//    if ((Spawner::Enabled && Spawner::GetConfig()->QuickMatch) == false)
-//        return 0;
-//
-//    REF_STACK(wchar_t*, pPlayerName, STACK_OFFSET(0x5C, 8));
-//    pPlayerName = const_cast<wchar_t*>(QuickMatch::PlayerString);
-//
-//    return 0;
-//}
-//
-//DEFINE_HOOK(0x65837A, RadarClass_658330_HideName, 0x6)
-//{
-//    if ((Spawner::Enabled && Spawner::GetConfig()->QuickMatch) == false)
-//        return 0;
-//
-//    R->ECX(QuickMatch::PlayerString);
-//    return 0x65837A + 0x6;
-//}
-//
-//DEFINE_HOOK(0x64B156, ModeLessDialog_64AE50_HideName, 0x9)
-//{
-//    if ((Spawner::Enabled && Spawner::GetConfig()->QuickMatch) == false)
-//        return 0;
-//
-//    R->EDX(QuickMatch::PlayerString);
-//    return 0x64B156 + 0x9;
-//}
-//
-//DEFINE_HOOK(0x648EA8, WaitForPlayers_HideName, 0x6)
-//{
-//    if ((Spawner::Enabled && Spawner::GetConfig()->QuickMatch) == false)
-//        return 0;
-//
-//    R->EAX(QuickMatch::PlayerString);
-//    return 0x648EB3;
-//}
+/**
+*  yrpp-spawner
+*
+*  Copyright(C) 2023-present CnCNet
+*
+*  This program is free software: you can redistribute it and/or modify
+*  it under the terms of the GNU General Public License as published by
+*  the Free Software Foundation, either version 3 of the License, or
+*  (at your option) any later version.
+*
+*  This program is distributed in the hope that it will be useful,
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
+*  GNU General Public License for more details.
+*
+*  You should have received a copy of the GNU General Public License
+*  along with this program.If not, see <http://www.gnu.org/licenses/>.
+*/
+
+#include "hooker.h"
+#include "spawner.h"
+#include "house.h"
+#include "textprint.h"
+#include "ipxmgr.h"
+
+#include "hooker_macros.h"
+
+static const char* PLAYER = "Player";
+
+/**
+  *  A fake class for implementing new member functions which allow
+  *  access to the "this" pointer of the intended class.
+  *
+  *  @note: This must not contain a constructor or destructor.
+  *
+  *  @note: All functions must not be virtual and must also be prefixed
+  *         with "_" to prevent accidental virtualization.
+  */
+class IPXManagerClassExt : public IPXManagerClass
+{
+public:
+    char* _Connection_Name(int id);
+};
+
+
+char* IPXManagerClassExt::_Connection_Name(int id)
+{
+    if (Spawner::Active && Spawner::GetConfig()->QuickMatch)
+    {
+        return (char*)PLAYER;
+    }
+    else
+    {
+        return IPXManagerClass::Connection_Name(id);
+    }
+}
+
+
+static int sprintf_RadarClass_Draw_Names_Wrapper(char* buffer, const char* format, char* str)
+{
+    if (Spawner::Active && Spawner::GetConfig()->QuickMatch)
+    {
+        return std::sprintf(buffer, "%s", PLAYER);
+    }
+    else
+    {
+        return std::sprintf(buffer, format, str);
+    }
+}
+
+
+static Point2D Fancy_Text_Print_ProgressScreenClass_Draw_Graphics_Wrapper(const char* text, XSurface* surface, Rect* rect, Point2D* xy, ColorScheme* fore, unsigned back = COLOR_TBLACK, TextPrintType flag = TPF_8POINT | TPF_DROPSHADOW)
+{
+    if (Spawner::Active && Spawner::GetConfig()->QuickMatch)
+    {
+        return Fancy_Text_Print(PLAYER, surface, rect, xy, fore, back, flag);
+    }
+    else
+    {
+        return Fancy_Text_Print(text, surface, rect, xy, fore, back, flag);
+    }
+}
+
+
+static LRESULT SendMessageA_Kick_Player_Dialog_Wrapper(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
+{
+    if (Spawner::Active && Spawner::GetConfig()->QuickMatch)
+    {
+        return SendMessageA(hWnd, Msg, wParam, (LPARAM)PLAYER);
+    }
+    else
+    {
+        return SendMessageA(hWnd, Msg, wParam, lParam);
+    }
+}
+
+
+void QuickMatch_Spawner_Patches()
+{
+    Patch_Call(0x005B980E, &sprintf_RadarClass_Draw_Names_Wrapper);
+    Patch_Call(0x005ADC8F, &Fancy_Text_Print_ProgressScreenClass_Draw_Graphics_Wrapper);
+    Patch_Call(0x005B4032, &SendMessageA_Kick_Player_Dialog_Wrapper);
+    Patch_Call(0x00648EAE, &IPXManagerClassExt::_Connection_Name);
+}
