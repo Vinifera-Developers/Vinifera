@@ -875,7 +875,7 @@ void ScenarioClassExtension::Assign_Houses()
             // Spectators are considered defeated
             if (is_spectator)
             {
-                housep->IsDefeated;
+                housep->IsDefeated = true;
             }
         }
     }

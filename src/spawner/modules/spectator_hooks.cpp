@@ -237,6 +237,30 @@ void MapClassExt::_Reveal_The_Map()
 }
 
 
+DECLARE_PATCH(_RadarClass_Compute_Radar_Image)
+{
+    if (Spawner::Active)
+    {
+        spectator_radar_enabled = false;
+        if (((HouseClassExt*)PlayerPtr)->_Is_Spectator() && !((HouseClassExt*)PlayerPtr)->_Is_Coach() && PlayerPtr->IsDefeated)
+        {
+            Session.ObiWan = true;
+            Map.Reveal_The_Map();
+        }
+    }
+
+    // Function epilogue
+    _asm
+    {
+        pop edi
+        pop esi
+        pop ebp
+        add esp, 0x14
+        ret
+    }
+}
+
+
 void Spectator_Hooks()
 {
     Patch_Call(0x00506D7B, &DisplayClassExt::_Encroach_Shadow_Spectator);
@@ -256,4 +280,5 @@ void Spectator_Hooks()
     Patch_Call(0x00428A23, &HouseClassExt::_Is_Ally_Or_Spectator);
     Patch_Call(0x004BC608, &HouseClassExt::_Update_Radars);
     Patch_Call(0x004BF5D6, &MapClassExt::_Reveal_The_Map);
+    Patch_Jump(0x005B9CFE, &_RadarClass_Compute_Radar_Image);
 }
