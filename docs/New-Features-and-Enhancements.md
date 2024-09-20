@@ -412,7 +412,7 @@ RequiredAddon=0  ; AddonType, the addon required to be active for this theme to 
 
 In `RULES.INI`:
 ```ini
-[Tiberium]
+[SOMETIBERIUM]  ; Tiberium
 PipIndex=1      ; integer, pip index to use.
 PipDrawOrder=1  ; integer, the order the pips are drawn in. Less is earlier.
 ```
