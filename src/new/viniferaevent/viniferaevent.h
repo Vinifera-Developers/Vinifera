@@ -64,7 +64,7 @@ public:
 
 	} Data;
 
-	void Execute_This();
+	void Execute();
 	EventClass& As_Event() { return *reinterpret_cast<EventClass*>(this); }
 
 	static unsigned char Event_Length(ViniferaEventType type);

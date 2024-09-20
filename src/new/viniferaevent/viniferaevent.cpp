@@ -31,7 +31,7 @@
 
 #include "protocolzero.h"
 
-void ViniferaEventClass::Execute_This()
+void ViniferaEventClass::Execute()
 {
 	switch (Type)
 	{
