@@ -4,12 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          VINIFERAEVENT.CPP
+ *  @file          VINIFERAEVENT_HOOKS.CPP
  *
- *  @author        ZivDero, Belonit
+ *  @author        ZivDero
  *
- *  @brief         Class that mimics vanilla EventClass to allow the creation
- *				   of new events in Vinifera.
+ *  @brief         Contains the hooks for the Vinifera event class.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -26,39 +25,7 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+#pragma once
 
-#include "viniferaevent.h"
 
-#include "protocolzero.h"
-
-void ViniferaEventClass::Execute()
-{
-	switch (Type)
-	{
-	case VINIFERA_EVENT_RESPONSETIME2:
-		ProtocolZero::Handle_ResponseTime2(this);
-		break;
-
-	default:
-		break;
-	}
-}
-
-unsigned char ViniferaEventClass::Event_Length(ViniferaEventType type)
-{
-	switch (type)
-	{
-	case VINIFERA_EVENT_RESPONSETIME2:
-		return sizeof(Data.ResponseTime2);
-
-	default:
-		break;
-	}
-
-	return 0;
-}
-
-bool ViniferaEventClass::Is_Vinifera_Event(ViniferaEventType type)
-{
-	return (type >= VINIFERA_EVENT_FIRST && type < VINIFERA_EVENT_COUNT);
-}
+void ViniferaEvent_Hooks();
