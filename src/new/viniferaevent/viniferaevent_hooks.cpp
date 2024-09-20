@@ -28,70 +28,107 @@
 
 #include "viniferaevent_hooks.h"
 
+#include "hooker.h"
+#include "hooker_macros.h"
+#include "viniferaevent.h"
 
- //DEFINE_HOOK(0x4C6CC8, Networking_RespondToEvent, 0x5)
- //{
- //	GET(EventExt*, pEvent, ESI);
- //	if (EventExt::IsValidType(pEvent->Type))
- //	{
- //		pEvent->RespondEvent();
- //	}
- //
- //	return 0;
- //}
- //
- //DEFINE_HOOK(0x64B6FE, sub_64B660_GetEventSize, 0x6)
- //{
- //	const auto eventType = static_cast<ViniferaEventType>(R->EDI() & 0xFF);
- //
- //	if (EventExt::IsValidType(eventType))
- //	{
- //		const size_t eventSize = EventExt::GetDataSize(eventType);
- //
- //		R->EDX(eventSize);
- //		R->EBP(eventSize);
- //		return 0x64B71D;
- //	}
- //
- //	return 0;
- //}
- //
- //DEFINE_HOOK(0x64BE7D, sub_64BDD0_GetEventSize1, 0x6)
- //{
- //	const auto eventType = static_cast<ViniferaEventType>(R->EDI() & 0xFF);
- //
- //	if (EventExt::IsValidType(eventType))
- //	{
- //		const size_t eventSize = EventExt::GetDataSize(eventType);
- //
- //		REF_STACK(size_t, eventSizeInStack, STACK_OFFSET(0xAC, -0x8C));
- //		eventSizeInStack = eventSize;
- //		R->ECX(eventSize);
- //		R->EBP(eventSize);
- //		return 0x64BE97;
- //	}
- //
- //	return 0;
- //}
- //
- //DEFINE_HOOK(0x64C30E, sub_64BDD0_GetEventSize2, 0x6)
- //{
- //	const auto eventType = static_cast<ViniferaEventType>(R->ESI() & 0xFF);
- //
- //	if (EventExt::IsValidType(eventType))
- //	{
- //		const size_t eventSize = EventExt::GetDataSize(eventType);
- //
- //		R->ECX(eventSize);
- //		R->EBP(eventSize);
- //		return 0x64C321;
- //	}
- //
- //	return 0;
- //}
+
+DECLARE_PATCH(_EventClass_Execute_ViniferaEvent)
+{
+    GET_REGISTER_STATIC(ViniferaEventClass*, vevent, esi);
+    static EventType eventtype;
+    static int id;
+
+    if (ViniferaEventClass::Is_Vinifera_Event(vevent->Type))
+    {
+        vevent->Execute();
+        JMP(0x00495110); // return from function
+    }
+
+    eventtype = (EventType)vevent->Type;
+    id = vevent->ID;
+
+    // Stolen instructions
+    _asm mov al, eventtype
+    _asm mov edi, id
+    JMP_REG(ebx, 0x00494299);
+}
+
+
+DECLARE_PATCH(_Add_Compressed_Events_ViniferaEvent_Length)
+{
+    GET_REGISTER_STATIC(unsigned int, eventtype, esi);
+    static unsigned char eventlength;
+
+    _asm pushad
+
+    if (ViniferaEventClass::Is_Vinifera_Event((ViniferaEventType)eventtype))
+    {
+        eventlength = ViniferaEventClass::Event_Length((ViniferaEventType)eventtype);
+    }
+    else
+    {
+        eventlength = EventClass::Event_Length((EventType)eventtype);
+    }
+
+    _asm mov bl, eventlength
+    _asm popad
+
+    JMP_REG(esi, 0x005B45E8);
+}
+
+
+DECLARE_PATCH(_Extract_Compressed_Events_ViniferaEvent_Length1)
+{
+    GET_REGISTER_STATIC(unsigned int, eventtype, ecx);
+    static unsigned char eventlength;
+
+    _asm pushad
+
+    if (ViniferaEventClass::Is_Vinifera_Event((ViniferaEventType)eventtype))
+    {
+        eventlength = ViniferaEventClass::Event_Length((ViniferaEventType)eventtype);
+    }
+    else
+    {
+        eventlength = EventClass::Event_Length((EventType)eventtype);
+    }
+
+    _asm mov bl, eventlength
+    _asm popad
+
+    JMP_REG(esi, 0x005B4AF3);
+}
+
+
+DECLARE_PATCH(_Extract_Compressed_Events_ViniferaEvent_Length2)
+{
+    GET_REGISTER_STATIC(unsigned int, eventtype, ecx);
+    static unsigned char eventlength;
+
+    _asm pushad
+
+    if (ViniferaEventClass::Is_Vinifera_Event((ViniferaEventType)eventtype))
+    {
+        eventlength = ViniferaEventClass::Event_Length((ViniferaEventType)eventtype);
+    }
+    else
+    {
+        eventlength = EventClass::Event_Length((EventType)eventtype);
+    }
+
+    _asm mov bl, eventlength
+    _asm popad
+
+    JMP_REG(esi, 0x005B4CFE);
+}
+
 
 
 void ViniferaEvent_Hooks()
 {
-    
+    Patch_Jump(0x00494294, &_EventClass_Execute_ViniferaEvent);
+    Patch_Jump(0x005B45E2, &_Add_Compressed_Events_ViniferaEvent_Length);
+    Patch_Jump(0x005B4AED, &_Extract_Compressed_Events_ViniferaEvent_Length1);
+    Patch_Jump(0x005B4CF8, &_Extract_Compressed_Events_ViniferaEvent_Length2);
 }
