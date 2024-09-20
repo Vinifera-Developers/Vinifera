@@ -134,7 +134,6 @@ void HouseClassExt::_Update_Radars()
 }
 
 
-
 /**
   *  A fake class for implementing new member functions which allow
   *  access to the "this" pointer of the intended class.
@@ -154,7 +153,7 @@ public:
 
 void DisplayClassExt::_Encroach_Shadow_Spectator()
 {
-    if (Spawner::Active && ((HouseClassExt*)PlayerPtr)->_Is_Spectator() && !((HouseClassExt*)PlayerPtr)->_Is_Coach())
+    if (Spawner::Active && reinterpret_cast<HouseClassExt*>(PlayerPtr)->_Is_Spectator() && !reinterpret_cast<HouseClassExt*>(PlayerPtr)->_Is_Coach())
     {
         return;
     }
@@ -165,12 +164,39 @@ void DisplayClassExt::_Encroach_Shadow_Spectator()
 
 void DisplayClassExt::_Encroach_Fog_Spectator()
 {
-    if (Spawner::Active && ((HouseClassExt*)PlayerPtr)->_Is_Spectator() && !((HouseClassExt*)PlayerPtr)->_Is_Coach())
+    if (Spawner::Active && reinterpret_cast<HouseClassExt*>(PlayerPtr)->_Is_Spectator() && !reinterpret_cast<HouseClassExt*>(PlayerPtr)->_Is_Coach())
     {
         return;
     }
 
     DisplayClass::Encroach_Fog();
+}
+
+
+/**
+  *  A fake class for implementing new member functions which allow
+  *  access to the "this" pointer of the intended class.
+  *
+  *  @note: This must not contain a constructor or destructor.
+  *
+  *  @note: All functions must not be virtual and must also be prefixed
+  *         with "_" to prevent accidental virtualization.
+  */
+class MapClassExt : public MapClass
+{
+public:
+    void _Reveal_The_Map();
+};
+
+
+void MapClassExt::_Reveal_The_Map()
+{
+    if (Spawner::Active && Spawner::Get_Config()->CoachMode && reinterpret_cast<HouseClassExt*>(PlayerPtr)->_Is_Coach())
+    {
+        return;
+    }
+
+    MapClass::Reveal_The_Map();
 }
 
 
@@ -183,7 +209,7 @@ DECLARE_PATCH(_HouseClass_MPlayer_Defeated_Dont_Count_Spectators)
         JMP(0x004BF74A);
     }
 
-    vanilla_code:
+vanilla_code:
     if (hptr->IsDefeated)
     {
         _asm mov eax, hptr
@@ -210,39 +236,12 @@ DECLARE_PATCH(_HouseClass_Radar_Outage_Spectators)
 }
 
 
-/**
-  *  A fake class for implementing new member functions which allow
-  *  access to the "this" pointer of the intended class.
-  *
-  *  @note: This must not contain a constructor or destructor.
-  *
-  *  @note: All functions must not be virtual and must also be prefixed
-  *         with "_" to prevent accidental virtualization.
-  */
-class MapClassExt : public MapClass
-{
-public:
-    void _Reveal_The_Map();
-};
-
-
-void MapClassExt::_Reveal_The_Map()
-{
-    if (Spawner::Active && Spawner::Get_Config()->CoachMode && ((HouseClassExt*)PlayerPtr)->_Is_Coach())
-    {
-        return;
-    }
-
-    MapClass::Reveal_The_Map();
-}
-
-
 DECLARE_PATCH(_RadarClass_Compute_Radar_Image)
 {
     if (Spawner::Active)
     {
         spectator_radar_enabled = false;
-        if (((HouseClassExt*)PlayerPtr)->_Is_Spectator() && !((HouseClassExt*)PlayerPtr)->_Is_Coach() && PlayerPtr->IsDefeated)
+        if (reinterpret_cast<HouseClassExt*>(PlayerPtr)->_Is_Spectator() && !reinterpret_cast<HouseClassExt*>(PlayerPtr)->_Is_Coach() && PlayerPtr->IsDefeated)
         {
             Session.ObiWan = true;
             Map.Reveal_The_Map();

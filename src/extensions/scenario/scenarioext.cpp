@@ -866,11 +866,17 @@ void ScenarioClassExtension::Assign_Houses()
             }
 
             // Set Spectators
+            enum
+            {
+                SPAWN_OBSERVER = -1,
+                SPAWN_OBSERVER2 = 90
+            };
+
             const int spawn_loc = house_config->SpawnLocation;
             const bool is_spectator = housep->IsHuman &&
-                (house_config->IsSpectator
-                    || spawn_loc == -1
-                    || spawn_loc == 90);
+                                     (house_config->IsSpectator
+                                   || spawn_loc == SPAWN_OBSERVER
+                                   || spawn_loc == SPAWN_OBSERVER2);
 
             // Spectators are considered defeated
             if (is_spectator)
@@ -1452,9 +1458,7 @@ void ScenarioClassExtension::Create_Units(bool official)
         {
             enum
             {
-                SPAWN_RANDOM = -2,
-                SPAWN_OBSERVER = -1,
-                SPAWN_OBSERVER2 = 90
+                SPAWN_RANDOM = -2
             };
 
             int chosen_spawn = Spawner::Get_Config()->Houses[hptr->Class->ID].SpawnLocation;

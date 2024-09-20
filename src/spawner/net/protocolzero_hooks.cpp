@@ -170,13 +170,13 @@ DECLARE_PATCH(_ProtocolZero_ExecuteDoList)
 
     if (ProtocolZero::Enable)
     {
-        if (event->Type == (uint8_t)EVENT_EMPTY)
+        if (event->Type == EVENT_EMPTY)
             goto continue_execution;
 
-        if (event->Type == (uint8_t)EVENT_PROCESS_TIME)
+        if (event->Type == EVENT_PROCESS_TIME)
             goto continue_execution;
 
-        if (event->Type == (uint8_t)VINIFERA_EVENT_RESPONSETIME2)
+        if (event->Type == VINIFERA_EVENT_RESPONSETIME2)
             goto continue_execution;
     }
 
