@@ -53,6 +53,7 @@
 #include "WinUser.h"
 #include "sessionext.h"
 #include "tibsun_functions.h"
+#include "rules.h"
 
 bool Spawner::Enabled = false;
 bool Spawner::Active = false;
@@ -347,14 +348,13 @@ void Spawner::Spawner_Init_Network()
     Init_Network();
 }
 
+
+// I don't think this is actually necessary?
 void Spawner::Load_Sides_Stuff()
 {
-    //RulesClass* pRules = RulesClass::Instance;
-    //CCINIClass* pINI = CCINIClass::INI_Rules;
+    Rule->Houses(*RuleINI);
+    Rule->Sides(*RuleINI);
 
-    //pRules->Read_Countries(pINI);
-    //pRules->Read_Sides(pINI);
-
-    //for (auto const& pItem : *HouseTypeClass::Array)
-    //	pItem->LoadFromINI(pINI);
+    for (int i = 0; i < Houses.Count(); i++)
+        Houses[i]->Read_INI(*RuleINI);
 }

@@ -1468,6 +1468,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                     centroid = waypts[chosen_spawn];
                     taken[chosen_spawn] = true;
                     pick_random = false;
+                    numtaken++;
                 }
             }
         }
