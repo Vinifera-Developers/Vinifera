@@ -55,6 +55,8 @@
 #include <string>
 
 #include "setup_hooks.h"
+#include "spawner.h"
+#include "spawner_hooks.h"
 
 
 static DynamicVectorClass<Wstring> ViniferaSearchPaths;
@@ -285,6 +287,16 @@ bool Vinifera_Parse_Command_Line(int argc, char *argv[])
         if (stricmp(string, "-DEVELOPER") == 0) {
             DEBUG_INFO("  - Developer mode enabled.\n");
             Vinifera_DeveloperMode = true;
+            continue;
+        }
+
+        /**
+         *  Start in spawner mode.
+         */
+        if (stricmp(string, "-SPAWN") == 0) {
+            DEBUG_INFO("  - Spawner enabled.\n");
+            Spawner::Init();
+            Spawner_Hooks();
             continue;
         }
 

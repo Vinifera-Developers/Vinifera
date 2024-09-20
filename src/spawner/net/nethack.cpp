@@ -8,7 +8,7 @@
  *
  *  @author        Toni Spets
  *
- *  @brief         Nethack.
+ *  @brief         NetHack.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License

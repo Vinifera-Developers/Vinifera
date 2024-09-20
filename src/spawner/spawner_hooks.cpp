@@ -28,117 +28,60 @@
 
 #include "spawner_hooks.h"
 
-//#include "Spawner.h"
-//#include "NetHack.h"
-//
-//#include <HouseClass.h>
-//#include <SessionClass.h>
-//#include <Utilities/Debug.h>
-//#include <Utilities/Macro.h>
-//
-//DEFINE_HOOK(0x6BD7C5, WinMain_SpawnerInit, 0x6)
-//{
-//    if (Spawner::Enabled)
-//    {
-//        Spawner::Init();
-//
-//
-//        Patch::Apply_CALL(0x48CDD3, Spawner::StartGame); // Main_Game
-//        Patch::Apply_CALL(0x48CFAA, Spawner::StartGame); // Main_Game
-//
-//        { // HousesStuff
-//            Patch::Apply_CALL(0x68745E, Spawner::AssignHouses); // Read_Scenario_INI
-//            Patch::Apply_CALL(0x68ACFF, Spawner::AssignHouses); // ScenarioClass::Read_INI
-//
-//            Patch::Apply_LJMP(0x5D74A0, 0x5D7570); // MPGameModeClass_AllyTeams
-//            Patch::Apply_LJMP(0x501721, 0x501736); // HouseClass_ComputerParanoid
-//            Patch::Apply_LJMP(0x686A9E, 0x686AC6); // RemoveAIPlayers
-//        }
-//
-//        { // NetHack
-//            Patch::Apply_CALL(0x7B3D75, NetHack::SendTo);   // UDPInterfaceClass::Message_Handler
-//            Patch::Apply_CALL(0x7B3EEC, NetHack::RecvFrom); // UDPInterfaceClass::Message_Handler
-//        }
-//
-//        { // Skip Intro, EA_WWLOGO and LoadScreen
-//            Patch::Apply_LJMP(0x52CB50, 0x52CB6E); // InitIntro_Skip
-//            Patch::Apply_LJMP(0x52C5E0, 0x52C5F8); // InitGame_SkipLogoAndLoadScreen
-//        }
-//
-//        { // Cooperative
-//            Patch::Apply_LJMP(0x553321, 0x5533C5); // LoadProgressMgr_Draw_CooperativeDescription
-//            Patch::Apply_LJMP(0x55D0DF, 0x55D0E8); // AuxLoop_Cooperative_EndgameCrashFix
-//        }
-//
-//        // Set ConnTimeout
-//        Patch::Apply_TYPED<int>(0x6843C7, { Spawner::GetConfig()->ConnTimeout }); //  Scenario_Load_Wait
-//
-//        // Show GameMode in DiplomacyDialog in Skirmish
-//        Patch::Apply_LJMP(0x658117, 0x658126); // RadarClass_DiplomacyDialog
-//
-//        // Leaves bottom bar closed for losing players during last game frames
-//        Patch::Apply_LJMP(0x6D1639, 0x6D1640); // TabClass_6D1610
-//    }
-//
-//    return 0;
-//}
-//
-//// Display UIGameMode if is set
-//// Otherwise use mode name from MPModesMD.ini
-//DEFINE_HOOK(0x65812E, RadarClass__DiplomacyDialog_UIGameMode, 0x6)
-//{
-//    enum { Show = 0x65813E, DontShow = 0x65814D };
-//
-//    if (Spawner::Enabled && Spawner::GetConfig()->UIGameMode[0])
-//    {
-//        R->EBX(R->EAX());
-//        R->EAX(Spawner::GetConfig()->UIGameMode);
-//        return Show;
-//    }
-//
-//    if (!SessionClass::Instance->MPGameMode)
-//        return DontShow;
-//
-//    return 0;
-//}
-//
-//// Clear UIGameMode on game load
-//DEFINE_HOOK(0x689669, ScenarioClass_Load_Suffix, 0x6)
-//{
-//    if (Spawner::Enabled)
-//        Spawner::GetConfig()->UIGameMode[0] = 0;
-//
-//    return 0;
-//}
-//
-//#pragma region MPlayerDefeated
-//namespace MPlayerDefeated
-//{
-//    HouseClass* pThis = nullptr;
-//}
-//
-//DEFINE_HOOK(0x4FC0B6, HouseClass__MPlayerDefeated_SaveArgument, 0x5)
-//{
-//    MPlayerDefeated::pThis = (Spawner::Enabled && !SessionClass::IsCampaign())
-//        ? R->ECX<HouseClass*>()
-//        : nullptr;
-//
-//    return 0;
-//}
-//
-//// Skip match-end logic if MPlayerDefeated called for observer
-//DEFINE_HOOK_AGAIN(0x4FC332, HouseClass__MPlayerDefeated_SkipObserver, 0x5)
-//DEFINE_HOOK(0x4FC262, HouseClass__MPlayerDefeated_SkipObserver, 0x6)
-//{
-//    enum { ProcEpilogue = 0x4FC6BC };
-//
-//    if (!MPlayerDefeated::pThis)
-//        return 0;
-//
-//    return MPlayerDefeated::pThis->IsObserver()
-//        ? ProcEpilogue
-//        : 0;
-//}
+#include "autosurrender_hooks.h"
+#include "hooker.h"
+#include "hooker_macros.h"
+#include "nethack.h"
+#include "session.h"
+#include "spawner.h"
+#include "house.h"
+#include "housetype.h"
+#include "protocolzero_hooks.h"
+#include "quickmatch_hooks.h"
+#include "spectator_hooks.h"
+#include "vinifera_globals.h"
+
+
+/**
+  *  A fake class for implementing new member functions which allow
+  *  access to the "this" pointer of the intended class.
+  *
+  *  @note: This must not contain a constructor or destructor.
+  *
+  *  @note: All functions must not be virtual and must also be prefixed
+  *         with "_" to prevent accidental virtualization.
+  */
+class SessionClassExt : public SessionClass
+{
+public:
+    void _Read_Scenario_Descriptions();
+};
+
+
+void SessionClassExt::_Read_Scenario_Descriptions()
+{
+    if (Spawner::Active)
+        return;
+
+    SessionClass::Read_Scenario_Descriptions();
+}
+
+
+/**
+  *  A fake class for implementing new member functions which allow
+  *  access to the "this" pointer of the intended class.
+  *
+  *  @note: This must not contain a constructor or destructor.
+  *
+  *  @note: All functions must not be virtual and must also be prefixed
+  *         with "_" to prevent accidental virtualization.
+  */
+class HouseClassExt : public HouseClass
+{
+public:
+    void _Computer_Paranoid() {}
+};
+
 //
 //DEFINE_HOOK(0x4FC551, HouseClass__MPlayerDefeated_NoEnemies, 0x5)
 //{
@@ -191,7 +134,46 @@
 //
 //#pragma endregion MPlayerDefeated
 
+DECLARE_PATCH(_HouseClass_Expert_AI_Check_Allies)
+{
+    GET_REGISTER_STATIC(HouseClass*, this_ptr, edi);
+    GET_REGISTER_STATIC(HouseClass*, house, esi);
+
+    if (house != this_ptr && !house->Class->IsMultiplayPassive && !house->IsDefeated && this_ptr->Is_Ally(house))
+    {
+        JMP(0x004C06F7);
+    }
+
+    JMP(0x004C0777);
+}
+
+
 void Spawner_Hooks()
 {
-    
+    Patch_Call(0x004629D1, &Spawner::Start_Game);   // Main_Game
+    Patch_Call(0x00462B8B, &Spawner::Start_Game);   // Main_Game
+    Patch_Call(0x006A2525, &NetHack::SendTo);       // NetHack
+    Patch_Call(0x006A25F9, &NetHack::RecvFrom);     // NetHack
+
+    Vinifera_SkipLogoMovies = true;
+    Vinifera_SkipStartupMovies = true;
+
+    Patch_Dword(0x005DB794 + 1, Spawner::Get_Config()->ConnTimeout); // Set ConnTimeout
+
+    // Inside HouseClass::MPlayer_Defeated skip some checks to make the game continue
+    // even if there are only allied AI players left in Skirmish
+    Patch_Jump(0x004BF7B6, 0x004BF7BF);
+    Patch_Jump(0x004BF7F0, 0x004BF7F9);
+
+    Patch_Call(0x005ED477, &SessionClassExt::_Read_Scenario_Descriptions); // Skip loading scenario descriptions when the spawner is active
+
+    Patch_Jump(0x004C06EF, &_HouseClass_Expert_AI_Check_Allies);
+    Patch_Jump(0x004C3630, &HouseClassExt::_Computer_Paranoid);  // Disable paranoid computer behavior
+
+    Patch_Jump(0x0046353C, 0x0063542); // Skip check if `Session.Type == GAME_INTERNET` when writing MP stats
+
+    ProtocolZero_Hooks();
+    Spectator_Hooks();
+    QuickMatch_Hooks();
+    AutoSurrender_Hooks();
 }
