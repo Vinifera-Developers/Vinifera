@@ -36,6 +36,7 @@
 #include "spawner.h"
 #include "house.h"
 #include "housetype.h"
+#include "multiscore.h"
 #include "protocolzero_hooks.h"
 #include "quickmatch_hooks.h"
 #include "spectator_hooks.h"
@@ -97,6 +98,13 @@ DECLARE_PATCH(_HouseClass_Expert_AI_Check_Allies)
 }
 
 
+static void MultiScore_Wrapper()
+{
+    if (!Spawner::Get_Config()->SkipScoreScreen)
+        MultiScore::Presentation();
+}
+
+
 void Spawner_Hooks()
 {
     Patch_Call(0x004629D1, &Spawner::Start_Game);   // Main_Game
@@ -120,6 +128,10 @@ void Spawner_Hooks()
     Patch_Jump(0x004C3630, &HouseClassExt::_Computer_Paranoid);  // Disable paranoid computer behavior
 
     //Patch_Jump(0x0046353C, 0x0063542); // Skip check if `Session.Type == GAME_INTERNET` when writing MP stats
+
+    // SkipScoreScreen feature
+    Patch_Call(0x005DC9DA, &MultiScore_Wrapper);
+    Patch_Call(0x005DCD98, &MultiScore_Wrapper);
 
     ProtocolZero_Hooks();
     Spectator_Hooks();
