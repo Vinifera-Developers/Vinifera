@@ -67,7 +67,9 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     VoiceHarvest(),
     SpecialPipIndex(-1),
     IdleRate(0),
-    CameoImageSurface(nullptr)
+    CameoImageSurface(nullptr),
+    InitPassengers(),
+    InitPassengerNums()
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -113,6 +115,13 @@ HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
         return E_FAIL;
     }
 
+    InitPassengers.Clear();
+    InitPassengerNums.Clear();
+
+
+    InitPassengers.Load(pStm);
+    InitPassengerNums.Load(pStm);
+
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(UnloadingClass, "UnloadingClass");
 
     /**
@@ -156,6 +165,9 @@ HRESULT TechnoTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
     if (FAILED(hr)) {
         return hr;
     }
+
+    InitPassengers.Save(pStm);
+    InitPassengerNums.Save(pStm);
 
     return hr;
 }
@@ -211,6 +223,8 @@ void TechnoTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
     crc(ShakePixelXLo);
     crc(SoylentValue);
     crc(IsLegalTargetComputer);
+    crc(InitPassengers.Count());
+    crc(InitPassengerNums.Count());
 }
 
 
@@ -267,6 +281,12 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
 
     IdleRate = ini.Get_Int(ini_name, "IdleRate", IdleRate);
     IdleRate = ArtINI.Get_Int(graphic_name, "IdleRate", IdleRate);
+
+    /**
+     * Fetch initial passenger data.
+     */
+    InitPassengers = ini.Get_TechnoTypes(ini_name, "InitPassengers", InitPassengers);
+    InitPassengerNums = ini.Get_Integers(ini_name, "InitPassengersNum", InitPassengerNums);
 
     /**
      *  Fetch the cameo image surface if it exists.

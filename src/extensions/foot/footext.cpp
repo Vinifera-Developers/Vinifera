@@ -28,7 +28,64 @@
 #pragma once
 
 #include "footext.h"
+#include "technotypeext.h"
+#include "debughandler.h"
+#include "extension.h"
 
+ /*
+ * The Foot object initializes the passenger.
+ *
+ * Injection objective function: FootClass::Unlimbo
+ *
+ * @author: RossinCarlinx
+ */
+void __stdcall FootClassExtension::InitialPassenger() {
+    FootClass* const pFoot = this->This();
+    TechnoTypeClassExtension* technotypeext = Extension::Fetch<TechnoTypeClassExtension>(pFoot->Techno_Type_Class());
+    int const Count = technotypeext->InitPassengers.Count();
+    // Check if the initial number of passenger types is greater than 0.
+    if (Count > 0) {
+
+        HouseClass* const house = pFoot->House;
+        // Iterates through objects in InitPassenger, adding them if they are infantry or units.
+        for (int i = 0;
+            i < Count;
+            i++) {
+            TechnoTypeClass* const technotype = technotypeext->InitPassengers[i];
+            RTTIType const rtti = technotype->Kind_Of();
+
+            if (rtti != RTTI_INFANTRYTYPE &&
+                rtti != RTTI_UNITTYPE) {
+                continue;
+            }
+
+            int num = (technotypeext->InitPassengerNums.Count() > i) ?
+                technotypeext->InitPassengerNums[i] :
+                1;
+
+            // A loop that creates objects and puts them into the position of passengers.
+            do {
+                ObjectClass* const object = technotype->Create_One_Of(house);
+                FootClass* const passenger = object->As_Foot();
+                if (!passenger) {
+                    Fatal("*Error* Object creation failed.\n\tWhere the error occurred: \n\FootClass_Initialize_Passengers\n");
+                }
+
+                // Prevent the generation of initial occupants indefinitely.
+                if (passenger->Class_Of() == pFoot->Class_Of()) {
+                    Extension::Fetch<TechnoClassExtension>(passenger)->IsInitialized = true;
+                }
+
+                passenger->Set_Coord(pFoot->Get_Coord());
+                passenger->Limbo();
+                pFoot->Cargo.Attach(passenger);
+#ifndef NDEBUG
+                DEBUG_INFO("this_ptr->Cargo.Attach();");
+#endif
+            } while (--num > 0);
+        }
+    }
+}
 
 /**
  *  Class constructor.
