@@ -39,14 +39,19 @@ DECLARE_PATCH(_EventClass_Execute_ViniferaEvent)
     static EventType eventtype;
     static int id;
 
+    _asm pushad
+
     if (ViniferaEventClass::Is_Vinifera_Event(vevent->Type))
     {
         vevent->Execute();
+        _asm popad
         JMP(0x00495110); // return from function
     }
 
     eventtype = static_cast<EventType>(vevent->Type);
     id = vevent->ID;
+
+    _asm popad
 
     // Stolen instructions
     _asm mov al, eventtype
@@ -71,8 +76,8 @@ DECLARE_PATCH(_Add_Compressed_Events_ViniferaEvent_Length)
         eventlength = EventClass::Event_Length(static_cast<EventType>(eventtype));
     }
 
-    _asm mov bl, eventlength
     _asm popad
+    _asm mov bl, eventlength
 
     JMP_REG(esi, 0x005B45E8);
 }
@@ -94,8 +99,8 @@ DECLARE_PATCH(_Extract_Compressed_Events_ViniferaEvent_Length1)
         eventlength = EventClass::Event_Length(static_cast<EventType>(eventtype));
     }
 
-    _asm mov bl, eventlength
     _asm popad
+    _asm mov bl, eventlength
 
     JMP_REG(esi, 0x005B4AF3);
 }
@@ -117,8 +122,8 @@ DECLARE_PATCH(_Extract_Compressed_Events_ViniferaEvent_Length2)
         eventlength = EventClass::Event_Length(static_cast<EventType>(eventtype));
     }
 
-    _asm mov bl, eventlength
     _asm popad
+    _asm mov bl, eventlength
 
     JMP_REG(esi, 0x005B4CFE);
 }
