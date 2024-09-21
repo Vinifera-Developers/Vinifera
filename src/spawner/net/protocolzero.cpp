@@ -51,7 +51,7 @@ void ProtocolZero::Send_ResponseTime2()
     if (NextSendFrame >= Frame)
         return;
 
-    const int ipxResponseTime = Ipx->Response_Time();
+    const int ipxResponseTime = Ipx.Response_Time();
     if (ipxResponseTime <= -1)
         return;
 

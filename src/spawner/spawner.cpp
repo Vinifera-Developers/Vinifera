@@ -239,7 +239,7 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
         else if (Session.NumPlayers > 1)
             Session.Type = GAME_INTERNET; // HACK: will be set to GAME_IPX later
         else
-            Session.Type = GAME_SKIRMISH;
+            Session.Type = GAME_INTERNET;//GAME_SKIRMISH;
     }
 
     Init_Random();
@@ -297,13 +297,11 @@ bool Spawner::Load_Saved_Game(const char* save_game_name)
 
 void Spawner::Spawner_Init_Network()
 {
-    const auto spawner_config = Get_Config();
+    Tunnel::Id = htons(Config->TunnelId);
+    Tunnel::Ip = inet_addr(Config->TunnelIp);
+    Tunnel::Port = htons(Config->TunnelPort);
 
-    Tunnel::Id = htons((u_short)spawner_config->TunnelId);
-    Tunnel::Ip = inet_addr(spawner_config->TunnelIp);
-    Tunnel::Port = htons((u_short)spawner_config->TunnelPort);
-
-    PlanetWestwoodPortNumber = Tunnel::Port ? 0 : (u_short)spawner_config->ListenPort;
+    PlanetWestwoodPortNumber = Tunnel::Port ? 0 : Config->ListenPort;
 
     PacketTransport = new UDPInterfaceClass();
     PacketTransport->Init();
@@ -311,41 +309,41 @@ void Spawner::Spawner_Init_Network()
     PacketTransport->Start_Listening();
     PacketTransport->Discard_In_Buffers();
     PacketTransport->Discard_Out_Buffers();
-    Ipx->Set_Timing(60, -1, 600, true);
+    Ipx.Set_Timing(60, -1, 600, true);
 
     PlanetWestwoodStartTime = time(nullptr);
     GameFSSKU = 0x1C00;
     GameSKU = 0x1D00;
 
-    ProtocolZero::Enable = (spawner_config->Protocol == 0);
+    ProtocolZero::Enable = (Config->Protocol == 0);
     if (ProtocolZero::Enable)
     {
         Session.FrameSendRate = 2;
-        Session.PrecalcMaxAhead = spawner_config->PreCalcMaxAhead;
+        Session.PrecalcMaxAhead = Config->PreCalcMaxAhead;
         ProtocolZero::MaxLatencyLevel = std::clamp(
-            spawner_config->MaxLatencyLevel,
+            Config->MaxLatencyLevel,
             (byte)LATENCY_LEVEL_1,
             (byte)LATENCY_LEVEL_MAX
         );
     }
     else
     {
-        Session.FrameSendRate = spawner_config->FrameSendRate;
+        Session.FrameSendRate = Config->FrameSendRate;
     }
 
-    Session.MaxAhead = spawner_config->MaxAhead == -1
+    Session.MaxAhead = Config->MaxAhead == -1
         ? Session.FrameSendRate * 6
-        : spawner_config->MaxAhead;
+        : Config->MaxAhead;
 
-    Session.MaxMaxAhead      = 0;
-    Session.CommProtocol     = 2;
-    Session.LatencyFudge     = 0;
-    Session.DesiredFrameRate = 60;
-    TournamentGameType = (WOL::Tournament)spawner_config->Tournament;
-    PlanetWestwoodGameID = spawner_config->WOLGameID;
-    FrameSyncSettings[GAME_IPX].Timeout = spawner_config->ReconnectTimeout;
+    Session.MaxMaxAhead                 = 0;
+    Session.CommProtocol                = 2;
+    Session.LatencyFudge                = 0;
+    Session.DesiredFrameRate            = 60;
+    TournamentGameType                  = static_cast<WOL::Tournament>(Config->Tournament);
+    PlanetWestwoodGameID                = Config->WOLGameID;
+    FrameSyncSettings[GAME_IPX].Timeout = Config->ReconnectTimeout;
 
-    if (spawner_config->QuickMatch)
+    if (Config->QuickMatch)
     {
         Session.MPlayerDebug = false;
     }

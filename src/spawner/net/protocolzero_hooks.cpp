@@ -36,6 +36,7 @@
 #include "session.h"
 #include "viniferaevent/viniferaevent.h"
 #include "ipxmgr.h"
+#include "spawner.h"
 
 /**
   *  A fake class for implementing new member functions which allow
@@ -49,16 +50,15 @@
 class IPXManagerClassExt : public IPXManagerClass
 {
 public:
-    void _Set_Timing(unsigned long retrydelta, unsigned long maxretries, unsigned long timeout, bool bool1 = true);
+    void _Set_Timing(unsigned long retrydelta, unsigned long maxretries, unsigned long timeout, bool global = true);
     unsigned long _Response_Time();
 };
 
 
 void IPXManagerClassExt::_Set_Timing(unsigned long retrydelta, unsigned long maxretries,
-    unsigned long timeout, bool bool1)
+    unsigned long timeout, bool global)
 {
-    if (ProtocolZero::Enable)
-    {
+    if (ProtocolZero::Enable) {
         DEBUG_INFO("[Spawner] NewRetryDelta = %d, NewRetryTimeout = %d, FrameSendRate = %d, CurentLatencyLevel = %d\n"
             , retrydelta
             , maxretries
@@ -67,18 +67,40 @@ void IPXManagerClassExt::_Set_Timing(unsigned long retrydelta, unsigned long max
         );
     }
 
-    return IPXManagerClass::Set_Timing(retrydelta, maxretries, timeout, bool1);
+    // Vanilla function
+    RetryDelta = retrydelta;
+    MaxRetries = maxretries;
+    Timeout = timeout;
+
+    if (global) {
+        Set_External_Timing(RetryDelta, MaxRetries, Timeout);
+    }
+
+    for (int i = 0; i < NumConnections; i++) {
+        Connection[i]->Set_Retry_Delta(RetryDelta);
+        Connection[i]->Set_Max_Retries(MaxRetries);
+        Connection[i]->Set_TimeOut(Timeout);
+    }
 }
 
 
 unsigned long IPXManagerClassExt::_Response_Time()
 {
-    if (ProtocolZero::Enable)
-    {
+    if (ProtocolZero::Enable) {
         return ProtocolZero::WorstMaxAhead;
     }
 
-    return IPXManagerClass::Response_Time();
+    // Vanilla function
+    unsigned long maxresp = 0;
+
+    for (int i = 0; i < NumConnections; i++) {
+        unsigned long resp = Connection[i]->Queue->Avg_Response_Time();
+        if (resp > maxresp) {
+            maxresp = resp;
+        }
+    }
+
+    return maxresp;
 }
 
 
@@ -196,8 +218,6 @@ void ProtocolZero_Hooks()
     Patch_Jump(0x005B1BAF, &_ProtocolZero_Queue_AI_Multiplayer_3);
     Patch_Jump(0x00495019, &_ProtocolZero_EventClass_Execute);
     Patch_Jump(0x005B4EA5, &_ProtocolZero_ExecuteDoList);
-    Patch_Call(0x005B1BEA, &IPXManagerClassExt::_Set_Timing);
-    Patch_Call(0x005B16D4, &IPXManagerClassExt::_Set_Timing);
-    Patch_Call(0x005B1683, &IPXManagerClassExt::_Response_Time);
-    Patch_Call(0x005B1AC3, &IPXManagerClassExt::_Response_Time);
+    Patch_Jump(0x004F05B0, &IPXManagerClassExt::_Set_Timing);
+    Patch_Jump(0x004F0F00, &IPXManagerClassExt::_Response_Time);
 }
