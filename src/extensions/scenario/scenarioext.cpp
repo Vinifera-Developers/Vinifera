@@ -848,20 +848,22 @@ void ScenarioClassExtension::Assign_Houses()
             constexpr char* AINamesByDifficultyArray[5] = {
                 "Hard AI",
                 "Medium AI",
-                "Easy AI",
-                "Brutal AI",
-                "Ultimate AI"
+                "Easy AI"//,
+                //"Brutal AI",
+                //"Ultimate AI"
             };
 
             // Set Handicap and Names for AI
             {
                 const auto player_config = &Spawner::Get_Config()->Players[i];
-                housep->Assign_Handicap((DiffType)player_config->Difficulty);
 
-                if (Spawner::Get_Config()->AINamesByDifficulty && !housep->IsHuman)
+                if (player_config->Difficulty >= 0 && player_config->Difficulty < std::size(AINamesByDifficultyArray))
                 {
-                    if (player_config->Difficulty >= 0 && player_config->Difficulty < std::size(AINamesByDifficultyArray))
+                    housep->Assign_Handicap((DiffType)player_config->Difficulty);
+                    if (Spawner::Get_Config()->AINamesByDifficulty && !housep->IsHuman)
+                    {
                         std::strcpy(housep->IniName, AINamesByDifficultyArray[player_config->Difficulty]);
+                    }
                 }
             }
 
@@ -869,14 +871,14 @@ void ScenarioClassExtension::Assign_Houses()
             enum
             {
                 SPAWN_OBSERVER = -1,
-                SPAWN_OBSERVER2 = 90
+                SPAWN_OBSERVER_ALT = 90
             };
 
             const int spawn_loc = house_config->SpawnLocation;
             const bool is_spectator = housep->IsHuman &&
                                      (house_config->IsSpectator
                                    || spawn_loc == SPAWN_OBSERVER
-                                   || spawn_loc == SPAWN_OBSERVER2);
+                                   || spawn_loc == SPAWN_OBSERVER_ALT);
 
             // Spectators are considered defeated
             if (is_spectator)

@@ -180,7 +180,6 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
         Session.Options.UnitCount					= Config->UnitCount;
         Session.Options.AIPlayers					= Config->AIPlayers;
         Session.Options.AIDifficulty				= Config->AIDifficulty;
-        // Session.Options.AISlots
         Session.Options.AlliesAllowed				= Config->AlliesAllowed;
         Session.Options.HarvesterTruce				= Config->HarvesterTruce;
         // Session.Options.CaptureTheFlag
