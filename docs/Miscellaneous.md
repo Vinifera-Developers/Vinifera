@@ -14,6 +14,13 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 - Vinifera changes the default value of `IsScoreShuffle` to true. 
 - Vinifera changes the default value of `AllowHiResModes` to true. 
 
+### Starting Unit Placement
+
+- Vinifera changes starting units to be placed in the same way as they are in Red Alert 2.
+- The starting unit placement in Tiberian Sun is awkward and requires the player to micro-manage their units before they can deploy the MCV. Now, with this change, the starting units are placed exactly like Red Alert 2, allowing the player _(and the AI)_ to instantly deploy the MCV at the starting spawn location;
+
+![image](https://user-images.githubusercontent.com/73803386/123679907-f501b080-d83f-11eb-8de8-a790fc2f6815.png)
+
 ### MCV Auto-deploy
 
 - Vinifera allow you to start the game with the MCV deployed, or have the MCV auto-deploy on start.
