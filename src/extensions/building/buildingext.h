@@ -66,6 +66,7 @@ BuildingClassExtension final : public TechnoClassExtension
         virtual RTTIType What_Am_I() const override { return RTTI_BUILDING; }
 
         void Produce_Cash_AI();
+        Coordinate Docking_Coord() const;
 
     public:
         /**
