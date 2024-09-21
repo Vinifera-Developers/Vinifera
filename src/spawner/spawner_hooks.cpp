@@ -40,6 +40,7 @@
 #include "protocolzero_hooks.h"
 #include "quickmatch_hooks.h"
 #include "spectator_hooks.h"
+#include "statistics_hooks.h"
 #include "vinifera_globals.h"
 
 
@@ -127,8 +128,6 @@ void Spawner_Hooks()
     Patch_Jump(0x004C06EF, &_HouseClass_Expert_AI_Check_Allies);
     Patch_Jump(0x004C3630, &HouseClassExt::_Computer_Paranoid);  // Disable paranoid computer behavior
 
-    //Patch_Jump(0x0046353C, 0x0063542); // Skip check if `Session.Type == GAME_INTERNET` when writing MP stats
-
     // SkipScoreScreen feature
     Patch_Call(0x005DC9DA, &MultiScore_Wrapper);
     Patch_Call(0x005DCD98, &MultiScore_Wrapper);
@@ -137,4 +136,5 @@ void Spawner_Hooks()
     Spectator_Hooks();
     QuickMatch_Hooks();
     AutoSurrender_Hooks();
+    Statistics_Hooks();
 }
