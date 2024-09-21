@@ -120,6 +120,7 @@ This page lists all the individual contributions to the project by their author.
   - Implement CnCNet4 support.
   - Implement CnCNet5 support.
   - Adds keyboard commands to reproduce the last items that were built.
+  - Change starting unit placement to be the same as Red Alert 2.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Rampastring**:
