@@ -45,6 +45,7 @@
 #include "debughandler.h"
 #include "extension_globals.h"
 #include "gscreen.h"
+#include "housetype.h"
 #include "language.h"
 #include "mouse.h"
 #include "ownrdraw.h"
@@ -192,6 +193,11 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
         Session.ColorIdx = (PlayerColorType)Config->Players[0].Color;
         Options.GameSpeed = Config->GameSpeed;
     }
+
+    // Inverted for now as the sidebar hack until we reimplement loading
+    //Session.IsGDI = HouseTypes[Config->Players[0].House]->Get_Heap_ID();
+    Session.IsGDI = HouseTypes[Config->Players[0].House]->Get_Heap_ID() != 1;
+    DEBUG_INFO("[Spawner] Session.IsGDI = %d", Session.IsGDI);
 
     // Configure Human Players
     { 
