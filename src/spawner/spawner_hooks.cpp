@@ -170,7 +170,7 @@ void Spawner_Hooks()
     Patch_Jump(0x004C06EF, &_HouseClass_Expert_AI_Check_Allies);
     Patch_Jump(0x004C3630, &HouseClassExt::_Computer_Paranoid);  // Disable paranoid computer behavior
 
-    Patch_Jump(0x0046353C, 0x0063542); // Skip check if `Session.Type == GAME_INTERNET` when writing MP stats
+    //Patch_Jump(0x0046353C, 0x0063542); // Skip check if `Session.Type == GAME_INTERNET` when writing MP stats
 
     ProtocolZero_Hooks();
     Spectator_Hooks();

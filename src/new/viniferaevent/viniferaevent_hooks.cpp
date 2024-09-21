@@ -45,7 +45,7 @@ DECLARE_PATCH(_EventClass_Execute_ViniferaEvent)
         JMP(0x00495110); // return from function
     }
 
-    eventtype = (EventType)vevent->Type;
+    eventtype = static_cast<EventType>(vevent->Type);
     id = vevent->ID;
 
     // Stolen instructions
@@ -62,13 +62,13 @@ DECLARE_PATCH(_Add_Compressed_Events_ViniferaEvent_Length)
 
     _asm pushad
 
-    if (ViniferaEventClass::Is_Vinifera_Event((ViniferaEventType)eventtype))
+    if (ViniferaEventClass::Is_Vinifera_Event(static_cast<ViniferaEventType>(eventtype)))
     {
-        eventlength = ViniferaEventClass::Event_Length((ViniferaEventType)eventtype);
+        eventlength = ViniferaEventClass::Event_Length(static_cast<ViniferaEventType>(eventtype));
     }
     else
     {
-        eventlength = EventClass::Event_Length((EventType)eventtype);
+        eventlength = EventClass::Event_Length(static_cast<EventType>(eventtype));
     }
 
     _asm mov bl, eventlength
@@ -85,13 +85,13 @@ DECLARE_PATCH(_Extract_Compressed_Events_ViniferaEvent_Length1)
 
     _asm pushad
 
-    if (ViniferaEventClass::Is_Vinifera_Event((ViniferaEventType)eventtype))
+    if (ViniferaEventClass::Is_Vinifera_Event(static_cast<ViniferaEventType>(eventtype)))
     {
-        eventlength = ViniferaEventClass::Event_Length((ViniferaEventType)eventtype);
+        eventlength = ViniferaEventClass::Event_Length(static_cast<ViniferaEventType>(eventtype));
     }
     else
     {
-        eventlength = EventClass::Event_Length((EventType)eventtype);
+        eventlength = EventClass::Event_Length(static_cast<EventType>(eventtype));
     }
 
     _asm mov bl, eventlength
@@ -108,13 +108,13 @@ DECLARE_PATCH(_Extract_Compressed_Events_ViniferaEvent_Length2)
 
     _asm pushad
 
-    if (ViniferaEventClass::Is_Vinifera_Event((ViniferaEventType)eventtype))
+    if (ViniferaEventClass::Is_Vinifera_Event(static_cast<ViniferaEventType>(eventtype)))
     {
-        eventlength = ViniferaEventClass::Event_Length((ViniferaEventType)eventtype);
+        eventlength = ViniferaEventClass::Event_Length(static_cast<ViniferaEventType>(eventtype));
     }
     else
     {
-        eventlength = EventClass::Event_Length((EventType)eventtype);
+        eventlength = EventClass::Event_Length(static_cast<EventType>(eventtype));
     }
 
     _asm mov bl, eventlength
