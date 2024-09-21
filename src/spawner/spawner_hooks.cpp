@@ -82,57 +82,6 @@ public:
     void _Computer_Paranoid() {}
 };
 
-//
-//DEFINE_HOOK(0x4FC551, HouseClass__MPlayerDefeated_NoEnemies, 0x5)
-//{
-//    enum { ProcEpilogue = 0x4FC6BC };
-//
-//    if (!MPlayerDefeated::pThis)
-//        return 0;
-//
-//    for (const auto pHouse : *HouseClass::Array)
-//    {
-//        if (pHouse->Defeated || pHouse == MPlayerDefeated::pThis || pHouse->Type->MultiplayPassive)
-//            continue;
-//
-//        if ((pHouse->IsHumanPlayer || Spawner::GetConfig()->ContinueWithoutHumans) && pHouse->IsMutualAllie(MPlayerDefeated::pThis))
-//        {
-//            Debug::Log("[Spawner] MPlayer_Defeated() - Defeated player has a living ally");
-//            if (Spawner::GetConfig()->DefeatedBecomesObserver)
-//                MPlayerDefeated::pThis->MakeObserver();
-//
-//            return ProcEpilogue;
-//        }
-//    }
-//
-//    return 0;
-//}
-//
-//DEFINE_HOOK(0x4FC57C, HouseClass__MPlayerDefeated_CheckAliveAndHumans, 0x7)
-//{
-//    enum { ProcEpilogue = 0x4FC6BC, FinishMatch = 0x4FC591 };
-//
-//    if (!MPlayerDefeated::pThis)
-//        return 0;
-//
-//    GET_STACK(int, numHumans, STACK_OFFSET(0xC0, -0xA8));
-//    GET_STACK(int, numAlive, STACK_OFFSET(0xC0, -0xAC));
-//
-//    bool continueWithoutHumans = Spawner::GetConfig()->ContinueWithoutHumans ||
-//        (SessionClass::IsSkirmish() && HouseClass::CurrentPlayer->IsInitiallyObserver());
-//
-//    if (numAlive > 1 && (numHumans != 0 || continueWithoutHumans))
-//    {
-//        if (Spawner::GetConfig()->DefeatedBecomesObserver)
-//            MPlayerDefeated::pThis->MakeObserver();
-//
-//        return ProcEpilogue;
-//    }
-//
-//    return FinishMatch;
-//}
-//
-//#pragma endregion MPlayerDefeated
 
 DECLARE_PATCH(_HouseClass_Expert_AI_Check_Allies)
 {
