@@ -1463,7 +1463,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                 SPAWN_RANDOM = -2
             };
 
-            int chosen_spawn = Spawner::Get_Config()->Houses[hptr->Class->ID].SpawnLocation;
+            int chosen_spawn = Spawner::Get_Config()->Houses[hptr->Get_Heap_ID()].SpawnLocation;
 
             // Spectators need to be handled at some point?
             if (chosen_spawn != SPAWN_RANDOM)
@@ -1492,6 +1492,9 @@ void ScenarioClassExtension::Create_Units(bool official)
                 centroid = waypts[pick];
                 taken[pick] = true;
                 numtaken++;
+
+                if (Spawner::Active)
+                    Spawner::Get_Config()->Houses[hptr->Class->ID].SpawnLocation = pick;
 
             }
             else {
@@ -1543,6 +1546,9 @@ void ScenarioClassExtension::Create_Units(bool official)
                 centroid = waypts[best];
                 taken[best] = true;
                 numtaken++;
+
+                if (Spawner::Active)
+                    Spawner::Get_Config()->Houses[hptr->Class->ID].SpawnLocation = best;
             }
         }
 

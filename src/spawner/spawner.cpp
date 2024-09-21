@@ -168,7 +168,7 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
 
     // Set Options
     {
-        //Session.Options.ScenarioIndex
+        Session.Options.ScenarioIndex               = -1;
         Session.Options.Bases						= Config->Bases;
         Session.Options.Credits						= Config->Credits;
         Session.Options.BridgeDestruction			= Config->BridgeDestroy;
@@ -196,7 +196,7 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
     // Inverted for now as the sidebar hack until we reimplement loading
     //Session.IsGDI = HouseTypes[Config->Players[0].House]->Get_Heap_ID();
     Session.IsGDI = HouseTypes[Config->Players[0].House]->Get_Heap_ID() != 1;
-    DEBUG_INFO("[Spawner] Session.IsGDI = %d", Session.IsGDI);
+    DEBUG_INFO("[Spawner] Session.IsGDI = %d\n", Session.IsGDI);
 
     // Configure Human Players
     { 

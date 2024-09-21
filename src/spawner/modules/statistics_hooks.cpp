@@ -206,10 +206,10 @@ DECLARE_PATCH(_HouseClass_Tracking_Add_SendStatistics3)
 {
     if (Is_Statistics_Enabled())
     {
-        JMP(0x004C22EE);
+        JMP(0x004C22A8);
     }
 
-    JMP(0x004C22A8);
+    JMP(0x004C22FA);
 }
 
 
