@@ -127,27 +127,33 @@ DECLARE_PATCH(_ProtocolZero_Queue_AI_Multiplayer_1)
 }
 
 
-DECLARE_PATCH(_ProtocolZero_Queue_AI_Multiplayer_2)
+static void Add_Timing_Event()
 {
-    GET_REGISTER_STATIC(unsigned char, precalc_desired_frame_rate, al)
+    DEBUG_INFO("[Spawner] Sending precalculated network timings on frame %d\n", Frame);
 
+    EventClass ev;
+    ev.Type = EVENT_TIMING;
+    ev.Data.Timing.DesiredFrameRate = Session.PrecalcDesiredFrameRate;
+    ev.Data.Timing.MaxAhead = Session.PrecalcMaxAhead;
     if (ProtocolZero::Enable)
     {
-        precalc_desired_frame_rate = LatencyLevel::NewFrameSendRate;
-        _asm mov al, precalc_desired_frame_rate
-        JMP_REG(ecx, 0x005B1C2D);
+        ev.Data.Timing.FrameSendRate = LatencyLevel::NewFrameSendRate;
     }
-
-    // Stolen instructions
-    _asm
+    else
     {
-        mov al, precalc_desired_frame_rate
-        and al, 5
-        push ecx
-        add al, 5
+        ev.Data.Timing.FrameSendRate = Session.PrecalcDesiredFrameRate > 30 ? 10 : 5;
     }
 
-    JMP_REG(ecx, 0x005B1C2D);
+    OutList.Add(ev);
+    Session.PrecalcMaxAhead = 0;
+    Session.PrecalcDesiredFrameRate = 0;
+}
+
+
+DECLARE_PATCH(_ProtocolZero_Queue_AI_Multiplayer_2)
+{
+    Add_Timing_Event();
+    JMP(0x005B1C4C);
 }
 
 
@@ -214,7 +220,7 @@ void ProtocolZero_Hooks()
 {
     Patch_Jump(0x005091A0, &_ProtocolZero_Main_Loop);
     Patch_Jump(0x005B1A2D, &_ProtocolZero_Queue_AI_Multiplayer_1);
-    Patch_Jump(0x005B1C28, &_ProtocolZero_Queue_AI_Multiplayer_2);
+    Patch_Jump(0x005B1BF1, &_ProtocolZero_Queue_AI_Multiplayer_2);
     Patch_Jump(0x005B1BAF, &_ProtocolZero_Queue_AI_Multiplayer_3);
     Patch_Jump(0x00495019, &_ProtocolZero_EventClass_Execute);
     Patch_Jump(0x005B4EA5, &_ProtocolZero_ExecuteDoList);
