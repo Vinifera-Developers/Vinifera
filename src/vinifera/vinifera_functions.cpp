@@ -504,38 +504,10 @@ bool Vinifera_Startup()
     ViniferaSearchPaths.Add("TS3");
 #endif
 
-    /**
-     *  #issue-514:
-     * 
-     *  Adds various search paths for loading files locally for the TS-Client builds only.
-     * 
-     *  #NOTE: REMOVED: Additional paths must now be set via SearchPaths in VINIFERA.INI!
-     * 
-     *  @author: CCHyper
-     */
-#if 0 // #if defined(TS_CLIENT)
-
-    // Only required for the TS Client builds as most projects will
-    // put VINIFERA.INI in this directory.
-    ViniferaSearchPaths.Add("INI");
-
-    // Required for startup mix files to be found.
-    ViniferaSearchPaths.Add("MIX");
-#endif
-
 #if !defined(TS_CLIENT)
     // Required for startup movies to be found.
     ViniferaSearchPaths.Add("MOVIES");
 #endif
-
-    // REMOVED: Paths are now set via SearchPaths in VINIFERA.INI
-//#if defined(TS_CLIENT)
-//    ViniferaSearchPaths.Add("MUSIC");
-//    ViniferaSearchPaths.Add("SOUNDS");
-//    ViniferaSearchPaths.Add("MAPS");
-//    ViniferaSearchPaths.Add("MAPS\\MULTIPLAYER");
-//    ViniferaSearchPaths.Add("MAPS\\MISSION");
-//#endif
 
     /**
      *  Load Vinifera settings and overrides.
@@ -719,14 +691,6 @@ int Vinifera_Pre_Init_Game(int argc, char *argv[])
     } else {
         DEV_DEBUG_WARNING("UI.INI not found!\n");
     }
-
-#if defined(TS_CLIENT)
-    /**
-     *  The TS Client allows player to jump right into a game, so no need to
-     *  show the startup movies for these builds.
-     */
-    Vinifera_SkipStartupMovies = true;
-#endif
 
     return EXIT_SUCCESS;
 }

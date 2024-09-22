@@ -113,6 +113,10 @@ void Spawner_Hooks()
     Patch_Call(0x006A2525, &NetHack::SendTo);       // NetHack
     Patch_Call(0x006A25F9, &NetHack::RecvFrom);     // NetHack
 
+    /**
+     *  The spawner allows player to jump right into a game, so no need to
+     *  show the startup movies.
+     */
     Vinifera_SkipLogoMovies = true;
     Vinifera_SkipStartupMovies = true;
 
