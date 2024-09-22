@@ -41,7 +41,7 @@ bool ProtocolZero::Enable = false;
 int ProtocolZero::WorstMaxAhead = 24;
 unsigned char ProtocolZero::MaxLatencyLevel = 0xff;
 
-void ProtocolZero::Send_ResponseTime2()
+void ProtocolZero::Send_Response_Time()
 {
     if (Session.Type == GAME_NORMAL)
         return;
@@ -56,7 +56,7 @@ void ProtocolZero::Send_ResponseTime2()
         return;
 
     ViniferaEventClass event;
-    event.Type = VINIFERA_EVENT_RESPONSETIME2;
+    event.Type = VINIFERA_EVENT_RESPONSE_TIME;
     event.ID = PlayerPtr->Get_Heap_ID();
     event.Frame = Frame + Session.MaxAhead;
     event.Data.ResponseTime2.MaxAhead = (char)ipxResponseTime + 1;
@@ -78,7 +78,7 @@ void ProtocolZero::Send_ResponseTime2()
     }
 }
 
-void ProtocolZero::Handle_ResponseTime2(ViniferaEventClass* event)
+void ProtocolZero::Handle_Response_Time(ViniferaEventClass* event)
 {
     if (Enable == false || Session.Type == GAME_NORMAL)
         return;

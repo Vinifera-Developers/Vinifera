@@ -39,6 +39,6 @@ public:
     static unsigned char MaxLatencyLevel;
     static int WorstMaxAhead;
 
-    static void Send_ResponseTime2();
-    static void Handle_ResponseTime2(ViniferaEventClass* event);
+    static void Send_Response_Time();
+    static void Handle_Response_Time(ViniferaEventClass* event);
 };

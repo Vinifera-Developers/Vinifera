@@ -35,8 +35,8 @@ void ViniferaEventClass::Execute()
 {
 	switch (Type)
 	{
-	case VINIFERA_EVENT_RESPONSETIME2:
-		ProtocolZero::Handle_ResponseTime2(this);
+	case VINIFERA_EVENT_RESPONSE_TIME:
+		ProtocolZero::Handle_Response_Time(this);
 		break;
 
 	default:
@@ -48,7 +48,7 @@ unsigned char ViniferaEventClass::Event_Length(ViniferaEventType type)
 {
 	switch (type)
 	{
-	case VINIFERA_EVENT_RESPONSETIME2:
+	case VINIFERA_EVENT_RESPONSE_TIME:
 		return sizeof(Data.ResponseTime2);
 
 	default:

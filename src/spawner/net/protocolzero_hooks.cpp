@@ -107,7 +107,7 @@ unsigned long IPXManagerClassExt::_Response_Time()
 DECLARE_PATCH(_ProtocolZero_Main_Loop)
 {
     if (ProtocolZero::Enable)
-        ProtocolZero::Send_ResponseTime2();
+        ProtocolZero::Send_Response_Time();
 
     // Stolen instructions
     Session.Messages.Manage();
@@ -204,7 +204,7 @@ DECLARE_PATCH(_ProtocolZero_ExecuteDoList)
         if (event->Type == EVENT_PROCESS_TIME)
             goto continue_execution;
 
-        if (event->Type == VINIFERA_EVENT_RESPONSETIME2)
+        if (event->Type == VINIFERA_EVENT_RESPONSE_TIME)
             goto continue_execution;
     }
 
