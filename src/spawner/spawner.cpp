@@ -157,10 +157,10 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
         return false;
     }
 
-    Addon_4071C0(ADDON_ANY);
-
-    if (Config->Firestorm)
-        Addon_407190(ADDON_FIRESTORM);
+    // Normally vanilla would look for EXPAND01.MIX to see if Firestorm is installed,
+    // so we have to set the flags manually
+    //Detect_Addons();
+    InstalledMode = 1 << ADDON_NONE | 1 << ADDON_FIRESTORM;
 
     Set_Required_Addon(Config->Firestorm ? ADDON_FIRESTORM : ADDON_NONE);
 
@@ -168,7 +168,7 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
     Session.Read_Scenario_Descriptions();
 
     // Set Options
-    Session.Options.ScenarioIndex               = -1;
+    // Session.Options.ScenarioIndex               = -1;
     Session.Options.Bases						= Config->Bases;
     Session.Options.Credits						= Config->Credits;
     Session.Options.BridgeDestruction			= Config->BridgeDestroy;
