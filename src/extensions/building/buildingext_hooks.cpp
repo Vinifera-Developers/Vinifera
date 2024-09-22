@@ -164,9 +164,18 @@ void BuildingClassExt::_Update_Buildables()
 
 
 void BuildingClassExt::_Draw_Overlays(Point2D& coord, Rect& rect)
+/**
+ *  Reimplements the BuildingClass::Draw_Overlays function.
+ *
+ *  @author: ZivDero
+ */
+void BuildingClassFake::_Draw_Overlays(Point2D& coord, Rect& rect)
 {
-    if (BState)
+    if (BState != BSTATE_CONSTRUCTION)
     {
+        /**
+         *  Draw the repair animation.
+         */
         if (IsRepairing)
         {
             if (!Map.Is_Shrouded(Center_Coord()) && !(Scen->SpecialFlags.IsFogOfWar || IsFogged) && Visual_Character() != VISUAL_HIDDEN)
@@ -183,6 +192,9 @@ void BuildingClassExt::_Draw_Overlays(Point2D& coord, Rect& rect)
             }
         }
 
+        /**
+         *  Draw the power off animation.
+         */
         if (!IsPowerOn && House->Is_Player_Control())
         {
             if (!Map.Is_Shrouded(Center_Coord()) && !(Scen->SpecialFlags.IsFogOfWar || IsFogged))
@@ -201,16 +213,19 @@ void BuildingClassExt::_Draw_Overlays(Point2D& coord, Rect& rect)
 
         if (IsSelected)
         {
+            /**
+             *  Draw the primary factory pip.
+             */
             if (House->Is_Ally(PlayerPtr) || SpiedBy & (1 << (PlayerPtr->Class->House)) || (Spawner::Active && Spawner::Get_Config()->Houses[PlayerPtr->Get_Heap_ID()].IsSpectator))
             {
                 Point2D xy(coord.X - 10, coord.Y + 10);
                 entry_338(xy, coord, rect);
             }
-        }
 
-        if (SpiedBy & (1 << (PlayerPtr->Class->House)) || (Spawner::Active && Spawner::Get_Config()->Houses[PlayerPtr->Get_Heap_ID()].IsSpectator))
-        {
-            if (IsSelected)
+            /**
+             *  If this is a factory, and the player has spied its owner, draw the cameo of what it's currently producing.
+             */
+            if (SpiedBy & (1 << (PlayerPtr->Class->House)) || (Spawner::Active && Spawner::Get_Config()->Houses[PlayerPtr->Get_Heap_ID()].IsSpectator))
             {
                 FactoryClass* factory = House->Is_Human_Control() ? House->Fetch_Factory(Class->ToBuild) : Factory;
                 if (factory != nullptr)
