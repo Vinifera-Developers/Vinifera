@@ -201,7 +201,7 @@ void BuildingClassExt::_Draw_Overlays(Point2D& coord, Rect& rect)
 
         if (IsSelected)
         {
-            if (House->Is_Ally(PlayerPtr) || SpiedBy & (1 << (PlayerPtr->Class->House)))
+            if (House->Is_Ally(PlayerPtr) || SpiedBy & (1 << (PlayerPtr->Class->House)) || (Spawner::Active && Spawner::Get_Config()->Houses[PlayerPtr->Get_Heap_ID()].IsSpectator))
             {
                 Point2D xy(coord.X - 10, coord.Y + 10);
                 entry_338(xy, coord, rect);
