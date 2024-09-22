@@ -157,11 +157,6 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
         return false;
     }
 
-    // Normally vanilla would look for EXPAND01.MIX to see if Firestorm is installed,
-    // so we have to set the flags manually
-    //Detect_Addons();
-    InstalledMode = 1 << ADDON_NONE | 1 << ADDON_FIRESTORM;
-
     Set_Required_Addon(Config->Firestorm ? ADDON_FIRESTORM : ADDON_NONE);
 
     strcpy_s(Session.ScenarioFileName, 0x200, scenario_name);
