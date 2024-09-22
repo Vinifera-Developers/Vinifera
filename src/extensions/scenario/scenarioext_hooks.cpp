@@ -240,7 +240,7 @@ DECLARE_PATCH(_Read_Scenario_INI_MPlayer_INI_Patch)
          *  Process the multiplayer ini overrides.
          */
         Rule_Addition("MPLAYER.INI");
-        if (Addon_Enabled(ADDON_FIRESTORM)) { 
+        if (Is_Addon_Enabled(ADDON_FIRESTORM)) { 
             Rule_Addition("MPLAYERFS.INI");
         }
 

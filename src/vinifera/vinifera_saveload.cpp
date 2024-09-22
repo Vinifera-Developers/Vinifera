@@ -519,17 +519,17 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
         }
     }
 
-    Addon_4071C0(ADDON_NONE);
+    Disable_Addon(ADDON_NONE);
 
     DEBUG_INFO("Setting required addon to '%d'\n", Scen->RequiredAddOn);
     Set_Required_Addon(Scen->RequiredAddOn);
 
-    if (!Addon_Installed(Scen->RequiredAddOn)) {
+    if (!Is_Addon_Available(Scen->RequiredAddOn)) {
         DEBUG_ERROR("Addon '%d' is not installed!\n", Scen->RequiredAddOn);
         return false;
     }
 
-    Addon_407190(Scen->RequiredAddOn);
+    Enable_Addon(Scen->RequiredAddOn);
 
     DEBUG_INFO("About to call Prep_For_Side()...\n");
     if (!Prep_For_Side(Scen->IsGDI ? SIDE_GDI : SIDE_NOD)) {
@@ -557,7 +557,7 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
     DEBUG_INFO("About to call Load_Art_INI()...\n");
     RulesClass::Load_Art_INI();
 
-    if (Addon_Enabled(ADDON_FIRESTORM)) {
+    if (Is_Addon_Enabled(ADDON_FIRESTORM)) {
         DEBUG_INFO("About to call Load_ArtFS_INI()...\n");
         RulesClass::Load_ArtFS_INI();
     }

@@ -249,7 +249,7 @@ failed:
  * 
  *  @author: CCHyper
  */
-static bool Vinifera_Addon_Present()
+static bool Vinifera_Detect_Addons()
 {
     /**
      *  Tiberian Sun is installed and enabled.
@@ -521,7 +521,7 @@ bool Vinifera_Prep_For_Side(SideType side)
         SideMixFiles.Delete(i);
     }
 
-    if (Addon_Enabled(ADDON_ANY) == ADDON_FIRESTORM) {
+    if (Is_Addon_Enabled(ADDON_ANY) == ADDON_FIRESTORM) {
 
         for (int i = 99; i >= 0; --i) {
             std::snprintf(buffer, sizeof(buffer), "E%02dSC%02d.MIX", i, sidenum);
@@ -570,7 +570,7 @@ bool Vinifera_Prep_For_Side(SideType side)
     }
 
     if (Session.Type == GAME_NORMAL) {
-        if (Addon_Enabled(ADDON_ANY) == ADDON_FIRESTORM) {
+        if (Is_Addon_Enabled(ADDON_ANY) == ADDON_FIRESTORM) {
             std::snprintf(buffer, sizeof(buffer), "E%02dSCD%02d.MIX", Get_Required_Addon(), sidenum);
         } else {
             std::snprintf(buffer, sizeof(buffer), "SIDECD%02d.MIX", sidenum);
@@ -711,7 +711,7 @@ bool Vinifera_Init_Secondary_Mixfiles()
         DEBUG_INFO(" MULTI.MIX\n", buffer);
     }
 
-    if (Addon_Installed(ADDON_FIRESTORM)) {
+    if (Is_Addon_Available(ADDON_FIRESTORM)) {
         if (CCFileClass("SOUNDS01.MIX").Is_Available()) {
             FSSoundsMix = new MFCC("SOUNDS01.MIX", &FastKey);
             ASSERT(FSSoundsMix);
@@ -932,7 +932,7 @@ bool Vinifera_Init_Bootstrap_Mixfiles()
 
     Vinifera_Init_Expansion_Mixfiles();
 
-    Addon_Present();
+    Detect_Addons();
 
     TibSunMix = new MFCC("TIBSUN.MIX", &FastKey);
     ASSERT(TibSunMix);
@@ -1011,12 +1011,12 @@ void GameInit_Hooks()
      *  This was a because the game was checking if the Firestorm addon was
      *  installed rather than if it was the currently active game mode.
      */
-    Patch_Call(0x004E1F70, &Addon_Enabled);
-    Patch_Call(0x004E25A6, &Addon_Enabled);
-    Patch_Call(0x004E2890, &Addon_Enabled);
-    Patch_Call(0x004E2991, &Addon_Enabled);
-    Patch_Call(0x004E86F5, &Addon_Enabled);
-    Patch_Call(0x004E8735, &Addon_Enabled);
+    Patch_Call(0x004E1F70, &Is_Addon_Enabled);
+    Patch_Call(0x004E25A6, &Is_Addon_Enabled);
+    Patch_Call(0x004E2890, &Is_Addon_Enabled);
+    Patch_Call(0x004E2991, &Is_Addon_Enabled);
+    Patch_Call(0x004E86F5, &Is_Addon_Enabled);
+    Patch_Call(0x004E8735, &Is_Addon_Enabled);
 
     Patch_Jump(0x00685F69, &_Main_Window_Procedure_Scroll_Sidebar_Check_Patch);
 
@@ -1029,6 +1029,6 @@ void GameInit_Hooks()
     /**
      *  TS Client file structure assumes Firestorm is always installed and enabled.
      */
-    //Patch_Jump(0x00407050, &Vinifera_Addon_Present);
+    //Patch_Jump(0x00407050, &Vinifera_Detect_Addons);
 #endif
 }

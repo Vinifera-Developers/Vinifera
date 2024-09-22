@@ -97,7 +97,7 @@ bool ThemeClassExt::_Is_Allowed(ThemeType index) const
      */
     ThemeControlExtension *themectrlext = Extension::List::Fetch<ThemeClass::ThemeControl, ThemeControlExtension>(Themes[index], ThemeControlExtensions);
     if (themectrlext->RequiredAddon != ADDON_NONE) {
-        if (!Addon_Enabled(themectrlext->RequiredAddon)) {
+        if (!Is_Addon_Enabled(themectrlext->RequiredAddon)) {
             return false;
         }
     }

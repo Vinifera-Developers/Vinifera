@@ -602,7 +602,7 @@ void RulesClassExtension::Fixups(CCINIClass &ini)
     DEV_DEBUG_INFO("Rules: RuleINI CRC = %lX\n", rule_crc);
 
     int fsrule_crc = FSRuleINI.Get_Unique_ID();
-    if (Addon_Installed(ADDON_FIRESTORM)) {
+    if (Is_Addon_Available(ADDON_FIRESTORM)) {
         DEV_DEBUG_INFO("Rules: FSRuleINI CRC = %lX\n", fsrule_crc);
     }
 
@@ -615,7 +615,7 @@ void RulesClassExtension::Fixups(CCINIClass &ini)
         rule_unmodified = true;
     }
     bool fsrule_unmodified = false;
-    if (Addon_Installed(ADDON_FIRESTORM)) {
+    if (Is_Addon_Available(ADDON_FIRESTORM)) {
         if (fsrule_crc == Unmodified_FSRuleINI_CRC) {
             DEBUG_INFO("Rules: FSRuleINI is unmodified (version 2.03).\n");
             fsrule_unmodified = true;
@@ -631,7 +631,7 @@ void RulesClassExtension::Fixups(CCINIClass &ini)
         is_ruleini = true;
     }
     bool is_fsruleini = false;
-    if (Addon_Installed(ADDON_FIRESTORM) && ini.Get_Unique_ID() == Unmodified_FSRuleINI_CRC) {
+    if (Is_Addon_Available(ADDON_FIRESTORM) && ini.Get_Unique_ID() == Unmodified_FSRuleINI_CRC) {
         DEV_DEBUG_INFO("Rules: Current INI is FSRuleINI.\n");
         is_fsruleini = true;
     }
