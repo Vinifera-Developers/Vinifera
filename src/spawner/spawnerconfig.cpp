@@ -62,6 +62,7 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
     Seed             = spawn_ini.Get_Int(SETTINGS, "Seed", Seed);
     TechLevel        = spawn_ini.Get_Int(SETTINGS, "TechLevel", TechLevel);
     IsCampaign       = spawn_ini.Get_Bool(SETTINGS, "IsSinglePlayer", IsCampaign);
+    CampaignID       = spawn_ini.Get_Int(SETTINGS, "CampaignID", CampaignID);
     Tournament       = spawn_ini.Get_Int(SETTINGS, "Tournament", Tournament);
     WOLGameID        = spawn_ini.Get_Int(SETTINGS, "GameID", WOLGameID);
     /* ScenarioName */ spawn_ini.Get_String(SETTINGS, "Scenario", ScenarioName, ScenarioName, sizeof(ScenarioName));

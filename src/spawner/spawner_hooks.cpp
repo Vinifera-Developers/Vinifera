@@ -132,8 +132,7 @@ void Spawner_Hooks()
     /**
      *  Remove calls to SessionClass::Read_Scenario_Descriptions() when the
      *  spawner is active. This will speed up the initialisation and loading
-     *  process, as the reason of PKT and MPR files are not required when using
-     *  the spawner.
+     *  process, as PKT and MPR files are not required when using the spawner.
      */
     Patch_Call(0x004E8910, &SessionClassExt::_Read_Scenario_Descriptions); // New_Main_Menu
     Patch_Call(0x00564BAE, &SessionClassExt::_Read_Scenario_Descriptions); // Select_MPlayer_Game

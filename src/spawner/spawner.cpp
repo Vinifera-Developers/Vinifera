@@ -242,7 +242,7 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
     if (Session.Type == GAME_NORMAL)
     {
         Session.Options.Goodies = true;
-        if (!Start_Scenario(scenario_name, false, CAMPAIGN_NONE)) // set the campaign number properly here?
+        if (!Start_Scenario(scenario_name, false, static_cast<CampaignType>(Config->CampaignID)))
             return false;
 
         if (Config->LoadSaveGame && !Load_Saved_Game(Config->SaveGameName))

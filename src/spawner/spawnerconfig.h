@@ -105,6 +105,7 @@ public:
     int  Seed;
     int  TechLevel;
     bool IsCampaign;
+    int CampaignID;
     int  Tournament;
     DWORD WOLGameID;
     char ScenarioName[260];
@@ -170,6 +171,7 @@ public:
         , Seed { 0 }
         , TechLevel { 10 }
         , IsCampaign { false }
+        , CampaignID{ -1 }
         , Tournament { 0 }
         , WOLGameID { 0xDEADBEEF }
         , ScenarioName { "spawnmap.ini" }
