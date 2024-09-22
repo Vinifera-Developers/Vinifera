@@ -7,6 +7,7 @@ This page lists all the individual contributions to the project by their author.
 - **Belonit (Gluk-v48)**:
   - Check for Changelog/Documentation/Credits in Pull Requests.
   - Docs dark theme switcher.
+  - Porting the YR MP spawner from C to C++ and YR++, used as a base for the Vinifera spawner.
 - **CCHyper/tomsons26**:
   - Vinifera foundations: TS++, game.exe hooker, extension system and other core features
   - Implement `CurleyShuffle` for AircraftTypes
@@ -154,4 +155,5 @@ This page lists all the individual contributions to the project by their author.
   - Implement the support for new ArmorTypes and allow forbidding force-fire, passive-acquire and retaliation versus specific armor types.
   - Fix a bug where the objects would sometimes receive a minimum of 1 damage even if MinDamage was set to 0.
   - Add a developer command to dump all heaps to the log.
+  - Implement the multiplayer spawner.
 
