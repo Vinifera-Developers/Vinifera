@@ -168,31 +168,30 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
     Session.Read_Scenario_Descriptions();
 
     // Set Options
-    {
-        Session.Options.ScenarioIndex               = -1;
-        Session.Options.Bases						= Config->Bases;
-        Session.Options.Credits						= Config->Credits;
-        Session.Options.BridgeDestruction			= Config->BridgeDestroy;
-        Session.Options.Goodies						= Config->Crates;
-        Session.Options.ShortGame					= Config->ShortGame;
-        SessionExtension->ExtOptions.IsBuildOffAlly = Config->BuildOffAlly;
-        Session.Options.GameSpeed					= Config->GameSpeed;
-        Session.Options.CrapEngineers				= Config->MultiEngineer;
-        Session.Options.UnitCount					= Config->UnitCount;
-        Session.Options.AIPlayers					= Config->AIPlayers;
-        Session.Options.AIDifficulty				= Config->AIDifficulty;
-        Session.Options.AlliesAllowed				= Config->AlliesAllowed;
-        Session.Options.HarvesterTruce				= Config->HarvesterTruce;
-        // Session.Options.CaptureTheFlag
-        Session.Options.FogOfWar					= Config->FogOfWar;
-        Session.Options.RedeployMCV					= Config->MCVRedeploy;
-        std::strcpy(Session.Options.ScenarioDescription, Config->UIMapName);
+    Session.Options.ScenarioIndex               = -1;
+    Session.Options.Bases						= Config->Bases;
+    Session.Options.Credits						= Config->Credits;
+    Session.Options.BridgeDestruction			= Config->BridgeDestroy;
+    Session.Options.Goodies						= Config->Crates;
+    Session.Options.ShortGame					= Config->ShortGame;
+    SessionExtension->ExtOptions.IsBuildOffAlly = Config->BuildOffAlly;
+    Session.Options.GameSpeed					= Config->GameSpeed;
+    Session.Options.CrapEngineers				= Config->MultiEngineer;
+    Session.Options.UnitCount					= Config->UnitCount;
+    Session.Options.AIPlayers					= Config->AIPlayers;
+    Session.Options.AIDifficulty				= Config->AIDifficulty;
+    Session.Options.AlliesAllowed				= Config->AlliesAllowed;
+    Session.Options.HarvesterTruce				= Config->HarvesterTruce;
+    // Session.Options.CaptureTheFlag
+    Session.Options.FogOfWar					= Config->FogOfWar;
+    Session.Options.RedeployMCV					= Config->MCVRedeploy;
+    std::strcpy(Session.Options.ScenarioDescription, Config->UIMapName);
 
-        Seed = Config->Seed;
-        BuildLevel = Config->TechLevel;
-        Session.ColorIdx = (PlayerColorType)Config->Players[0].Color;
-        Options.GameSpeed = Config->GameSpeed;
-    }
+    Seed = Config->Seed;
+    BuildLevel = Config->TechLevel;
+    Session.ColorIdx = (PlayerColorType)Config->Players[0].Color;
+    Options.GameSpeed = Config->GameSpeed;
+    
 
     // Inverted for now as the sidebar hack until we reimplement loading
     //Session.IsGDI = HouseTypes[Config->Players[0].House]->Get_Heap_ID();
@@ -200,49 +199,47 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
     DEBUG_INFO("[Spawner] Session.IsGDI = %d\n", Session.IsGDI);
 
     // Configure Human Players
-    { 
-        NetHack::PortHack = true;
-        const char max_players = Config->IsCampaign ? 1 : (char)std::size(Config->Players);
-        for (char player_index = 0; player_index < max_players; player_index++)
+    NetHack::PortHack = true;
+    const char max_players = Config->IsCampaign ? 1 : (char)std::size(Config->Players);
+    for (char player_index = 0; player_index < max_players; player_index++)
+    {
+        const auto player = &Config->Players[player_index];
+        if (!player->IsHuman)
+            continue;
+
+        const auto nodename = new NodeNameType();
+        Session.Players.Add(nodename);
+
+        std::strcpy(nodename->Name, player->Name);
+        nodename->Player.House          = (HousesType)player->House;
+        nodename->Player.Color          = (PlayerColorType)player->Color;
+        nodename->Player.ProcessTime    = -1;
+        nodename->Game.LastTime         = 1;
+
+        if (player_index > 0)
         {
-            const auto player = &Config->Players[player_index];
-            if (!player->IsHuman)
-                continue;
+            nodename->Address.NodeAddress[0] = player_index;
 
-            const auto nodename = new NodeNameType();
-            Session.Players.Add(nodename);
-
-            std::strcpy(nodename->Name, player->Name);
-            nodename->Player.House          = (HousesType)player->House;
-            nodename->Player.Color          = (PlayerColorType)player->Color;
-            nodename->Player.ProcessTime    = -1;
-            nodename->Game.LastTime         = 1;
-
-            if (player_index > 0)
-            {
-                nodename->Address.NodeAddress[0] = player_index;
-
-                const auto ip = inet_addr(player->Ip);
-                const auto port = htons(player->Port);
-                ListAddress::Array[player_index - 1].Ip = ip;
-                ListAddress::Array[player_index - 1].Port = port;
-                if (port != Config->ListenPort)
-                    NetHack::PortHack = false;
-            }
+            const auto ip = inet_addr(player->Ip);
+            const auto port = htons(player->Port);
+            ListAddress::Array[player_index - 1].Ip = ip;
+            ListAddress::Array[player_index - 1].Port = port;
+            if (port != Config->ListenPort)
+                NetHack::PortHack = false;
         }
-
-        Session.NumPlayers = Session.Players.Count();
     }
+
+    Session.NumPlayers = Session.Players.Count();
+    
 
     // Set GameType
-    { 
-        if (Config->IsCampaign)
-            Session.Type = GAME_NORMAL;
-        else if (Session.NumPlayers > 1)
-            Session.Type = GAME_INTERNET; // HACK: will be set to GAME_IPX later
-        else
-            Session.Type = GAME_SKIRMISH;
-    }
+    if (Config->IsCampaign)
+        Session.Type = GAME_NORMAL;
+    else if (Session.NumPlayers > 1)
+        Session.Type = GAME_INTERNET; // HACK: will be set to GAME_IPX later
+    else
+        Session.Type = GAME_SKIRMISH;
+    
 
     Init_Random();
 

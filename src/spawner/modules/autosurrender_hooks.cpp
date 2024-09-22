@@ -86,6 +86,7 @@ DECLARE_PATCH(_Special_Dialog_Surrender1)
 {
     PlayerHasSurrendered = true;
     _asm mov eax, PlayerPtr
+    _asm mov eax, [eax]
     JMP_REG(ecx, 0x004627F8);
 }
 

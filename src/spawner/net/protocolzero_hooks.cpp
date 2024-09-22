@@ -209,6 +209,7 @@ DECLARE_PATCH(_ProtocolZero_ExecuteDoList)
     }
 
     _asm mov eax, Session
+    _asm mov eax, [eax]
     JMP_REG(ecx, 0x005B4EAA);
 
     continue_execution:

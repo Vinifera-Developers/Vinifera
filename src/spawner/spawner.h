@@ -52,8 +52,8 @@ public:
     static void Prepare_Screen();
 
 private:
-    static bool Start_New_Scenario(const char* scenarioName);
-    static bool Load_Saved_Game(const char* scenarioName);
+    static bool Start_New_Scenario(const char* scenario_name);
+    static bool Load_Saved_Game(const char* save_game_name);
 
     static void Spawner_Init_Network();
     static void Load_Sides_Stuff();

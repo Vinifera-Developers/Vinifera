@@ -33,6 +33,7 @@
 void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
 {
     static char const* const SETTINGS = "Settings";
+    static char const* const TUNNEL = "Tunnel";
 
     // Game Mode Options
     Bases          = spawn_ini.Get_Bool(SETTINGS, "Bases", Bases);
@@ -74,14 +75,13 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
     ConnTimeout      = spawn_ini.Get_Int(SETTINGS, "ConnTimeout", ConnTimeout);
     MaxAhead         = spawn_ini.Get_Int(SETTINGS, "MaxAhead", MaxAhead);
     PreCalcMaxAhead  = spawn_ini.Get_Int(SETTINGS, "PreCalcMaxAhead", PreCalcMaxAhead);
-    MaxLatencyLevel  = (byte)spawn_ini.Get_Int(SETTINGS, "MaxLatencyLevel", (int)MaxLatencyLevel);
+    MaxLatencyLevel  = (byte)spawn_ini.Get_Int(SETTINGS, "MaxLatencyLevel", MaxLatencyLevel);
 
     // Tunnel Options
-    TunnelId   = spawn_ini.Get_Int(SETTINGS, "Port", TunnelId);
-    ListenPort = spawn_ini.Get_Int(SETTINGS, "Port", ListenPort);
-
-    static char const* const TUNNEL = "Tunnel";
-    TunnelPort = spawn_ini.Get_Int(TUNNEL, "Port", TunnelPort);
+    TunnelId     = spawn_ini.Get_Int(SETTINGS, "Port", TunnelId);
+    ListenPort   = spawn_ini.Get_Int(SETTINGS, "Port", ListenPort);
+    /* TunnelIp */ spawn_ini.Get_String(TUNNEL, "Ip", TunnelIp, TunnelIp, sizeof(TunnelIp));
+    TunnelPort   = spawn_ini.Get_Int(TUNNEL, "Port", TunnelPort);
 
     // Players Options
     for (int i = 0; i < std::size(Players); ++i)
