@@ -62,7 +62,7 @@ DECLARE_PATCH(_EventClass_Execute_ViniferaEvent)
 
 DECLARE_PATCH(_Add_Compressed_Events_ViniferaEvent_Length)
 {
-    GET_REGISTER_STATIC(unsigned int, eventtype, esi);
+    GET_REGISTER_STATIC(unsigned char, eventtype, cl);
     static unsigned char eventlength;
 
     _asm pushad
@@ -76,10 +76,18 @@ DECLARE_PATCH(_Add_Compressed_Events_ViniferaEvent_Length)
         eventlength = EventClass::Event_Length(static_cast<EventType>(eventtype));
     }
 
-    _asm popad
-    _asm mov bl, eventlength
-
-    JMP_REG(esi, 0x005B45E8);
+    if (eventtype == EVENT_ADDPLAYER)
+    {
+        _asm popad
+        _asm mov bl, eventlength
+        JMP_REG(esi, 0x005B45EA);
+    }
+    else
+    {
+        _asm popad
+        _asm mov bl, eventlength
+        JMP_REG(esi, 0x005B45F3);
+    }
 }
 
 
@@ -133,7 +141,7 @@ DECLARE_PATCH(_Extract_Compressed_Events_ViniferaEvent_Length2)
 void ViniferaEvent_Hooks()
 {
     Patch_Jump(0x00494294, &_EventClass_Execute_ViniferaEvent);
-    Patch_Jump(0x005B45E2, &_Add_Compressed_Events_ViniferaEvent_Length);
+    Patch_Jump(0x005B45D5, &_Add_Compressed_Events_ViniferaEvent_Length);
     Patch_Jump(0x005B4AED, &_Extract_Compressed_Events_ViniferaEvent_Length1);
     Patch_Jump(0x005B4CF8, &_Extract_Compressed_Events_ViniferaEvent_Length2);
 }

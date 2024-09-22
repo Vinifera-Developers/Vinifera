@@ -203,23 +203,22 @@ void MapClassExt::_Reveal_The_Map()
 DECLARE_PATCH(_HouseClass_MPlayer_Defeated_Dont_Count_Spectators)
 {
     GET_REGISTER_STATIC(HouseClassExt*, hptr, eax);
-    _asm push edx
+    _asm pushad
 
     if (Spawner::Active && hptr != PlayerPtr && Session.Type != GAME_SKIRMISH && hptr->_Is_Spectator())
     {
-        _asm pop edx
+        _asm popad
         JMP(0x004BF74A);
     }
 
     // Vanilla code
     if (!hptr->IsDefeated && !hptr->Class->IsMultiplayPassive)
     {
-        _asm mov eax, hptr
-        _asm pop edx
+        _asm popad
         JMP_REG(ebp, 0x004BF730);
     }
 
-    _asm pop edx
+    _asm popad
     JMP_REG(ebp, 0x004BF75D)
 }
 

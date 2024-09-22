@@ -56,5 +56,5 @@ private:
     static bool Load_Saved_Game(const char* save_game_name);
 
     static void Spawner_Init_Network();
-    static void Load_Sides_Stuff();
+    static void Read_Houses_And_Sides();
 };

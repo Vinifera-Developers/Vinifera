@@ -103,47 +103,13 @@ bool Spawner::Start_Game()
     //	return false;
     //}
 
-    Load_Sides_Stuff();
+    Read_Houses_And_Sides();
 
     bool result = Start_New_Scenario(scen_name);
-
-    //if (Main::GetConfig()->DumpTypes)
-    //	DumperTypes::Dump();
 
     Prepare_Screen();
 
     return result;
-}
-
-
-void Spawner::Init_UI()
-{
-    OwnerDraw::Init_UI_Color_Stuff_58F060();
-
-    if (!OwnerDraw::UIInitialized)
-    {
-        OwnerDraw::Init_Glow_Colors();
-        OwnerDraw::Load_Graphics();
-        OwnerDraw::UIInitialized = true;
-    }
-}
-
-
-void Spawner::Prepare_Screen()
-{
-    WWMouse->Hide_Mouse();
-
-    HiddenSurface->Fill(TBLACK);
-    GScreenClass::Blit(true, HiddenSurface);
-    LogicSurface = HiddenSurface;
-
-    WWMouse->Show_Mouse();
-
-    Map.MouseClass::Set_Default_Mouse(MOUSE_NO_MOVE, false);
-    Map.MouseClass::Revert_Mouse_Shape();
-
-    Map.TabClass::Activate(1);
-    Map.SidebarClass::Flag_To_Redraw();
 }
 
 
@@ -346,7 +312,38 @@ void Spawner::Spawner_Init_Network()
 }
 
 
-void Spawner::Load_Sides_Stuff()
+void Spawner::Init_UI()
+{
+    OwnerDraw::Init_UI_Color_Stuff_58F060();
+
+    if (!OwnerDraw::UIInitialized)
+    {
+        OwnerDraw::Init_Glow_Colors();
+        OwnerDraw::Load_Graphics();
+        OwnerDraw::UIInitialized = true;
+    }
+}
+
+
+void Spawner::Prepare_Screen()
+{
+    WWMouse->Hide_Mouse();
+
+    HiddenSurface->Fill(TBLACK);
+    GScreenClass::Blit(true, HiddenSurface);
+    LogicSurface = HiddenSurface;
+
+    WWMouse->Show_Mouse();
+
+    Map.MouseClass::Set_Default_Mouse(MOUSE_NO_MOVE, false);
+    Map.MouseClass::Revert_Mouse_Shape();
+
+    Map.TabClass::Activate(1);
+    Map.SidebarClass::Flag_To_Redraw();
+}
+
+
+void Spawner::Read_Houses_And_Sides()
 {
     Rule->Houses(*RuleINI);
     Rule->Sides(*RuleINI);
