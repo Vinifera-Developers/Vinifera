@@ -146,11 +146,12 @@ void Spawner::Prepare_Screen()
     Map.SidebarClass::Flag_To_Redraw();
 }
 
+
 bool Spawner::Start_New_Scenario(const char* scenario_name)
 {
     if (scenario_name[0] == 0)
     {
-        DEBUG_INFO("[Spawner] Failed Read Scenario [%s]\n", scenario_name);
+        DEBUG_INFO("[Spawner] Failed to read scenario [%s]\n", scenario_name);
         MessageBox(MainWindow, Text_String(TXT_UNABLE_READ_SCENARIO), "Vinifera", MB_OK);
 
         return false;
@@ -212,19 +213,20 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
             Session.Players.Add(nodename);
 
             std::strcpy(nodename->Name, player->Name);
-            nodename->Player.House = (HousesType)player->House;
-            nodename->Player.Color = (PlayerColorType)player->Color;
-            nodename->Player.ProcessTime = -1;
+            nodename->Player.House          = (HousesType)player->House;
+            nodename->Player.Color          = (PlayerColorType)player->Color;
+            nodename->Player.ProcessTime    = -1;
+            nodename->Game.LastTime         = 1;
 
             if (player_index > 0)
             {
                 nodename->Address.NodeAddress[0] = player_index;
 
                 const auto ip = inet_addr(player->Ip);
-                const auto port = htons((u_short)player->Port);
+                const auto port = htons(player->Port);
                 ListAddress::Array[player_index - 1].Ip = ip;
                 ListAddress::Array[player_index - 1].Port = port;
-                if (port != (u_short)Config->ListenPort)
+                if (port != Config->ListenPort)
                     NetHack::PortHack = false;
             }
         }
@@ -239,7 +241,7 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
         else if (Session.NumPlayers > 1)
             Session.Type = GAME_INTERNET; // HACK: will be set to GAME_IPX later
         else
-            Session.Type = GAME_INTERNET;//GAME_SKIRMISH;
+            Session.Type = GAME_SKIRMISH;
     }
 
     Init_Random();
