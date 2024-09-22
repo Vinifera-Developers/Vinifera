@@ -122,12 +122,24 @@ void Spawner_Hooks()
 
     Patch_Dword(0x005DB794 + 1, Spawner::Get_Config()->ConnTimeout); // Set ConnTimeout
 
-    // Inside HouseClass::MPlayer_Defeated skip some checks to make the game continue
-    // even if there are only allied AI players left in Skirmish
+    /**
+     *  Skip some checks inside HouseClass::MPlayer_Defeated to make the game continue
+     *  seven if there are only allied AI players left in Skirmish.
+     */
     Patch_Jump(0x004BF7B6, 0x004BF7BF);
     Patch_Jump(0x004BF7F0, 0x004BF7F9);
 
-    Patch_Call(0x005ED477, &SessionClassExt::_Read_Scenario_Descriptions); // Skip loading scenario descriptions when the spawner is active
+    /**
+     *  Remove calls to SessionClass::Read_Scenario_Descriptions() when the
+     *  spawner is active. This will speed up the initialisation and loading
+     *  process, as the reason of PKT and MPR files are not required when using
+     *  the spawner.
+     */
+    Patch_Call(0x004E8910, &SessionClassExt::_Read_Scenario_Descriptions); // New_Main_Menu
+    Patch_Call(0x00564BAE, &SessionClassExt::_Read_Scenario_Descriptions); // Select_MPlayer_Game
+    Patch_Call(0x0057FE2A, &SessionClassExt::_Read_Scenario_Descriptions); // NewMenuClass::Process_Game_Select
+    Patch_Call(0x0058037C, &SessionClassExt::_Read_Scenario_Descriptions); // NewMenuClass::
+    Patch_Call(0x005ED477, &SessionClassExt::_Read_Scenario_Descriptions); // SessionClass::One_Time
 
     Patch_Jump(0x004C06EF, &_HouseClass_Expert_AI_Check_Allies);
     Patch_Jump(0x004C3630, &HouseClassExt::_Computer_Paranoid);  // Disable paranoid computer behavior
