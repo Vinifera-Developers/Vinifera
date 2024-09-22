@@ -163,7 +163,7 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
     Session.Read_Scenario_Descriptions();
 
     // Set Options
-    // Session.Options.ScenarioIndex               = -1;
+    Session.Options.ScenarioIndex               = -1;
     Session.Options.Bases						= Config->Bases;
     Session.Options.Credits						= Config->Credits;
     Session.Options.BridgeDestruction			= Config->BridgeDestroy;
