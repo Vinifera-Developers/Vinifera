@@ -223,7 +223,7 @@ vanilla_code:
 
 DECLARE_PATCH(_HouseClass_Radar_Outage_Spectators)
 {
-    GET_REGISTER_STATIC(BOOL, tactical_availability, edx);
+    GET_STACK_STATIC8(bool, tactical_availability, esp, 0x4);
     GET_REGISTER_STATIC(HouseClassExt*, house, esi);
 
     if (!Spawner::Active || (house == PlayerPtr && !house->_Is_Spectator()))
