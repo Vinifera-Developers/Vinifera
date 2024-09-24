@@ -56,7 +56,7 @@ void ProtocolZero::Send_Response_Time()
         return;
 
     ViniferaEventClass event;
-    event.Type = VINIFERA_EVENT_RESPONSE_TIME;
+    event.Type = VEVENT_RESPONSE_TIME;
     event.ID = PlayerPtr->Get_Heap_ID();
     event.Frame = Frame + Session.MaxAhead;
     event.Data.ResponseTime2.MaxAhead = (char)ipxResponseTime + 1;

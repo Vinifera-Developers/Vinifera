@@ -36,10 +36,10 @@
 
 enum ViniferaEventType : unsigned char
 {
-	VINIFERA_EVENT_RESPONSE_TIME = EVENT_COUNT, // Start after the last vanilla event
+	VEVENT_RESPONSE_TIME = EVENT_COUNT, // Start after the last vanilla event
 
-	VINIFERA_EVENT_COUNT,
-	VINIFERA_EVENT_FIRST = VINIFERA_EVENT_RESPONSE_TIME
+	VEVENT_COUNT,
+	VEVENT_FIRST = VEVENT_RESPONSE_TIME
 };
 
 

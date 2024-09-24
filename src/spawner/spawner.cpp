@@ -126,7 +126,6 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
     Set_Required_Addon(Config->Firestorm ? ADDON_FIRESTORM : ADDON_NONE);
 
     strcpy_s(Session.ScenarioFileName, 0x200, scenario_name);
-    Session.Read_Scenario_Descriptions();
 
     // Set Options
     Session.Options.ScenarioIndex               = -1;

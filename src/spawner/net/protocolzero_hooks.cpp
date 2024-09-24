@@ -204,7 +204,7 @@ DECLARE_PATCH(_ProtocolZero_ExecuteDoList)
         if (event->Type == EVENT_PROCESS_TIME)
             goto continue_execution;
 
-        if (event->Type == VINIFERA_EVENT_RESPONSE_TIME)
+        if (event->Type == VEVENT_RESPONSE_TIME)
             goto continue_execution;
     }
 
