@@ -174,6 +174,7 @@ Vanilla fixes:
 - Fix incorrect stretching of the main menu transition movies (by CCHyper/tomsons26)
 - Bugfixes and improvements for the Dropship Loadout menu (by CCHyper/tomsons26)
 - Fix an issue where losers were not marked as defeated in multiplayer when using TACTION_WIN or TACTION_LOSE to end the game (by Rampastring)
+- Fix a bug where under some circumstances, the player could hear "New Construction Options", even though no new construction options were available (by ZivDero)
 
 </details>
 

@@ -29,6 +29,7 @@
 
 #include "command.h"
 #include "tibsun_defines.h"
+#include "vinifera_globals.h"
 
 
 class BuildingClass;
@@ -97,7 +98,7 @@ class ManualPlaceCommandClass : public ViniferaCommandClass
         virtual const char *Get_Description() const override;
         virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_Z); }
+        virtual KeyNumType Default_Key() const override { return Vinifera_NewSidebar ? KeyNumType(KN_NONE) : KeyNumType(KN_Z); }
 };
 
 
@@ -401,7 +402,7 @@ public:
     virtual const char* Get_Description() const override;
     virtual bool Process() override;
 
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_Q); }
+    virtual KeyNumType Default_Key() const override { return Vinifera_NewSidebar ? KeyNumType(KN_Q) : KeyNumType(KN_NONE); }
 };
 
 
@@ -420,7 +421,7 @@ public:
     virtual const char* Get_Description() const override;
     virtual bool Process() override;
 
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_W); }
+    virtual KeyNumType Default_Key() const override { return Vinifera_NewSidebar ? KeyNumType(KN_W) : KeyNumType(KN_NONE); }
 };
 
 
@@ -439,7 +440,7 @@ public:
     virtual const char* Get_Description() const override;
     virtual bool Process() override;
 
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_E); }
+    virtual KeyNumType Default_Key() const override { return Vinifera_NewSidebar ? KeyNumType(KN_E) : KeyNumType(KN_NONE); }
 };
 
 
@@ -458,7 +459,7 @@ public:
     virtual const char* Get_Description() const override;
     virtual bool Process() override;
 
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_R); }
+    virtual KeyNumType Default_Key() const override { return Vinifera_NewSidebar ? KeyNumType(KN_R) : KeyNumType(KN_NONE); }
 };
 
 

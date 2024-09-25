@@ -34,6 +34,7 @@
 #include "rawfile.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "vinifera_globals.h"
 
 
 /**
@@ -182,8 +183,8 @@ void OptionsClassExtension::Load_Settings()
         Options.KeyForceAttack2 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "ForceAttack", VK_CONTROL);
         Options.KeySelect1 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "Select", VK_SHIFT);
         Options.KeySelect2 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "Select", VK_SHIFT);
-        Options.KeyQueueMove1 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "QueueMove", KN_Z);
-        Options.KeyQueueMove2 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "QueueMove", KN_Z);
+        Options.KeyQueueMove1 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "QueueMove", Vinifera_NewSidebar ? KN_Z : KN_Q);
+        Options.KeyQueueMove2 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "QueueMove", Vinifera_NewSidebar ? KN_Z : KN_Q);
     }
 }
 
