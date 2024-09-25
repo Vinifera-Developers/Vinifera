@@ -55,15 +55,7 @@ SidebarClassExtension::SidebarClassExtension(const SidebarClass *this_ptr) :
 {
     //if (this_ptr) EXT_DEBUG_TRACE("SidebarClassExtension::SidebarClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
-    int max_visible = Max_Visible(true);
-
-    for (int i = 0; i < SIDEBAR_TAB_COUNT; i++)
-    {
-        new (&Column[i]) SidebarClass::StripClass(NoInitClass());
-        Column[i].X = COLUMN_ONE_X;
-        Column[i].Y = COLUMN_Y;
-        Column[i].Size = Rect(COLUMN_ONE_X, COLUMN_Y, SidebarClass::StripClass::OBJECT_WIDTH, SidebarClass::StripClass::OBJECT_HEIGHT * max_visible);
-    }
+    Init_Strips();
 }
 
 
