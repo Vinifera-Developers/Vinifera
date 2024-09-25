@@ -114,11 +114,27 @@
 #include "weapontype.h"
 
 
+#include "scenario.h"
+#include "endgame.h"
+#include "rules.h"
+#include "iomap.h"
+#include "logic.h"
+#include "tactical.h"
+#include "session.h"
+#include "addon.h"
+#include "ccini.h"
+#include "cstream.h"
+#include <atlbase.h>
+#include <atlcom.h>
+
+#include "savever.h"
+
+
 /**
  *  Constant of the current build version number. This number should be
  *  a sum of all the extended class sizes plus the build date.
  */
-unsigned ViniferaSaveGameVersion = 0x0;
+unsigned ViniferaGameVersion = 0x0;
 
 
 /**
@@ -132,25 +148,38 @@ typedef struct ViniferaSaveFileHeaderStruct
     // Git commit hash.
     char CommitHash[40];
 
+    struct GameInfo
+    {
+        char ScenarioDescription[128];
+        char PlayerHouse[64];
+        int Campaign;
+        int ScenarioNumber;
+        char PlayerName[64];
+        FILETIME StartTime;
+        FILETIME PlayTime;
+        FILETIME LastSaveTime;
+        GameEnum GameType;
+    } GameInfo;
+
     // Constant header marker to check for.
     static const char * Marker_String() { return "VINIFERA_SAVE_FILE"; }
 
 private:
     char _padding[1024
                   - sizeof(Marker)
-                  - sizeof(CommitHash)];
+                  - sizeof(CommitHash)
+                  - sizeof(GameInfo)];
 };
 static_assert(sizeof(ViniferaSaveFileHeaderStruct), "ViniferaSaveFileHeaderStruct must be 1024 bytes in size!");
 
 static ViniferaSaveFileHeaderStruct ViniferaSaveFileHeader; 
-
 
 /**
  *  Saves the header marker for validating data on load.
  * 
  *  @author: CCHyper
  */
-static bool Vinifera_Save_Header(IStream *pStm)
+static bool Vinifera_Save_Header(IStream *pStm, const char* descr)
 {
     if (!pStm) {
         return false;
@@ -163,6 +192,17 @@ static bool Vinifera_Save_Header(IStream *pStm)
 
     strncpy(ViniferaSaveFileHeader.Marker, ViniferaSaveFileHeaderStruct::Marker_String(), sizeof(ViniferaSaveFileHeader.Marker));
     strncpy(ViniferaSaveFileHeader.CommitHash, Vinifera_Git_Hash(), sizeof(ViniferaSaveFileHeader.CommitHash));
+
+    strncpy(ViniferaSaveFileHeader.GameInfo.ScenarioDescription, descr, sizeof(ViniferaSaveFileHeader.GameInfo.ScenarioDescription));
+    strncpy(ViniferaSaveFileHeader.GameInfo.PlayerHouse, PlayerPtr->Class->Full_Name(), sizeof(ViniferaSaveFileHeader.GameInfo.PlayerHouse));
+    ViniferaSaveFileHeader.GameInfo.Campaign = Scen->CampaignID;
+    ViniferaSaveFileHeader.GameInfo.ScenarioNumber = Scen->Scenario;
+    ViniferaSaveFileHeader.GameInfo.ScenarioNumber = Scen->Scenario;
+    FILETIME ft;
+    CoFileTimeNow(&ft);
+    ViniferaSaveFileHeader.GameInfo.LastSaveTime = ft;
+    ViniferaSaveFileHeader.GameInfo.StartTime = ft;
+    ViniferaSaveFileHeader.GameInfo.PlayTime = ft;
 
     HRESULT hr = pStm->Write(&ViniferaSaveFileHeader, sizeof(ViniferaSaveFileHeader), nullptr);
     if (FAILED(hr)) {
@@ -336,7 +376,7 @@ bool Vinifera_Put_All(IStream *pStm, bool save_net)
      *  the state of the data to follow on load.
      */
     DEBUG_INFO("Saving Vinifera header\n");
-    if (!Vinifera_Save_Header(pStm)) {
+    if (!Vinifera_Save_Header(pStm, "")) {
         DEBUG_ERROR("\t***** FAILED!\n");
         return false;
     }
@@ -769,3 +809,267 @@ void Vinifera_Remap_Storage_Pointers()
         Extension::Fetch<HouseClassExtension>(house)->Put_Storage_Pointers();
     }
 }
+
+
+namespace SavedGames
+{
+    static char Buffer[PATH_MAX];
+    static const char* SavesGamesDir = "Saved Games";
+
+    /**
+     *  Make sure the subdirectory exists, and create it if not
+     *
+     *  @author: ZivDero
+     */
+    bool Ensure_Folder_Exists(const char* path)
+    {
+        const DWORD attributes = GetFileAttributes(path);
+
+        // If path doesn't exist or isn't a directory, try creating it
+        if (attributes == INVALID_FILE_ATTRIBUTES || !(attributes & FILE_ATTRIBUTE_DIRECTORY))
+        {
+            // Directory created or already exists
+            if (CreateDirectory(path, nullptr) || GetLastError() == ERROR_ALREADY_EXISTS)
+                return true;
+
+            DEBUG_ERROR("Error: Could not create directory \"%s\". Error code: %d\n", path, GetLastError());
+            return false;
+        }
+
+        // Directory already exists
+        return true;
+    }
+
+
+    /**
+     *  Format the path to contain the subdirectory.
+     *
+     *  @author: Belonit
+     */
+    inline void Format_Path(char* buffer, size_t buffer_size, const char* filename)
+    {
+        std::snprintf(buffer, buffer_size, "%s\\%s", SavesGamesDir, filename);
+    }
+
+    /**
+     *  Format the path to contain the subdirectory, if it doesn't already.
+     *
+     *  @author: ZivDero
+     */
+    inline void Check_And_Format_Path(char* buffer, size_t buffer_size, const char* filename)
+    {
+        std::strstr(filename, SavesGamesDir) ? std::snprintf(buffer, buffer_size, "%s", filename) : Format_Path(buffer, buffer_size, filename);
+    }
+}
+
+
+
+bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
+{
+    WCHAR wide_file_name[64];
+
+#ifdef TS_CLIENT
+    SavedGames::Check_And_Format_Path(SavedGames::Buffer, std::size(SavedGames::Buffer), file_name);
+#else
+    std::strncpy(SavedGames::Buffer, file_name, std::size(SavedGames::Buffer));
+#endif
+
+    DEBUG_INFO("SAVING GAME [%s - %s]\n", SavedGames::Buffer, descr);
+
+    // Convert the file name to a wide string.
+    MultiByteToWideChar(CP_ACP, 0, SavedGames::Buffer, -1, wide_file_name, std::size(wide_file_name));
+
+    // Create the compound file.
+    DEBUG_INFO("Creating DocFile\n");
+    CComPtr<IStorage> storage;
+    HRESULT hr = StgCreateDocfile(wide_file_name, STGM_CREATE | STGM_READWRITE | STGM_SHARE_EXCLUSIVE, 0, &storage);
+    if (FAILED(hr)) {
+        DEBUG_FATAL("Failed to create storage.\n");
+        return false;
+    }
+
+    SaveVersionInfo versioninfo;
+    versioninfo.Set_Internal_Version(GameVersion);
+    versioninfo.Set_Scenario_Description(descr);
+    versioninfo.Set_Version(1);
+    versioninfo.Set_Player_House(PlayerPtr->Class->Full_Name());
+    versioninfo.Set_Campaign_Number(Scen->CampaignID);
+    versioninfo.Set_Scenario_Number(Scen->Scenario);
+    versioninfo.Set_Executable_Name(VINIFERA_DLL);
+    versioninfo.Set_Game_Type(Session.Type);
+
+    FILETIME filetime;
+    CoFileTimeNow(&filetime);
+    versioninfo.Set_Last_Time(filetime);
+    versioninfo.Set_Start_Time(filetime);
+    versioninfo.Set_Play_Time(filetime);
+
+    DEBUG_INFO("Saving version information\n");
+    if (FAILED(versioninfo.Save(storage))) {
+        DEBUG_FATAL("Failed to write version information.\n");
+        return false;
+    }
+
+    // Create the content stream.
+    DEBUG_INFO("Creating content stream.\n");
+    CComPtr<IStream> docfile;
+    hr = storage->CreateStream(L"CONTENTS", STGM_CREATE | STGM_WRITE | STGM_SHARE_EXCLUSIVE, 0, 0, &docfile);
+    if (FAILED(hr)) {
+        DEBUG_FATAL("Failed to create content stream.\n");
+        return false;
+    }
+
+    // Compressing the stream
+    DEBUG_INFO("Linking content stream to compressor.\n");
+    IUnknown* pUnknown = nullptr;
+    CComPtr<ILinkStream> linkstream;
+    hr = CoCreateInstance(__uuidof(CStreamClass), nullptr, CLSCTX_INPROC_SERVER | CLSCTX_INPROC_HANDLER | CLSCTX_LOCAL_SERVER, IID_IUnknown, (void**)&pUnknown);
+    if (SUCCEEDED(hr)) {
+        hr = OleRun(pUnknown);
+        if (SUCCEEDED(hr)) {
+            pUnknown->QueryInterface(__uuidof(ILinkStream), (void**)&linkstream);
+        }
+        pUnknown->Release();
+    }
+
+    hr = linkstream->Link_Stream(docfile);
+    if (FAILED(hr)) {
+        DEBUG_FATAL("Failed to link stream to compressor.\n");
+        return false;
+    }
+
+    CComPtr<IStream> stream;
+    linkstream->QueryInterface(__uuidof(IStream), (void**)&stream);
+
+    DEBUG_INFO("Calling Vinifera_Put_All().\n");
+    bool result = Vinifera_Put_All(stream, false);
+
+    // Unlinking the content stream from the compressor.
+    DEBUG_INFO("Unlinking content stream from compressor.\n");
+    hr = linkstream->Unlink_Stream(nullptr);
+    if (FAILED(hr)) {
+        DEBUG_FATAL("Failed to link unstream from compressor.\n");
+        return false;
+    }
+
+    // Release the content stream.
+    DEBUG_INFO("Releasing content stream.\n");
+    docfile.Release();
+
+    // Commit the changes to the storage.
+    DEBUG_INFO("Closing DocFile.\n");
+    hr = storage->Commit(STGC_DEFAULT);
+    if (FAILED(hr)) {
+        DEBUG_FATAL("Failed to commit storage.\n");
+        return false;
+    }
+
+    DEBUG_INFO("SAVING GAME [%s] - Complete.\n", file_name);
+    
+    return result;
+}
+
+
+bool Vinifera_Load_Game(const char* file_name)
+{
+    WCHAR wide_file_name[64];
+
+#ifdef TS_CLIENT
+    SavedGames::Check_And_Format_Path(SavedGames::Buffer, std::size(SavedGames::Buffer), file_name);
+#else
+    std::strncpy(SavedGames::Buffer, file_name, std::size(SavedGames::Buffer));
+#endif
+
+    DEBUG_INFO("LOADING GAME [%s]\n", SavedGames::Buffer);
+
+    // Convert the file name to a wide string
+    MultiByteToWideChar(CP_ACP, 0, SavedGames::Buffer, -1, wide_file_name, std::size(wide_file_name));
+
+    // Open the compound file
+    DEBUG_INFO("Opening DocFile\n");
+    CComPtr<IStorage> storage;
+    HRESULT hr = StgOpenStorage(wide_file_name, nullptr, STGM_READWRITE | STGM_SHARE_EXCLUSIVE, nullptr, 0, &storage);
+    if (FAILED(hr)) {
+        DEBUG_FATAL("Failed to open storage.\n");
+        return false;
+    }
+
+    SaveVersionInfo saveversion;
+    hr = saveversion.Load(storage);
+    if (FAILED(hr)) {
+        DEBUG_FATAL("Failed to read version information.\n");
+        return false;
+    }
+
+    storage.Release();
+    Session.Type = static_cast<GameEnum>(saveversion.Get_Game_Type());
+    SwizzleManager.Reset();
+
+    // Open the compound file
+    DEBUG_INFO("Opening DocFile\n");
+    hr = StgOpenStorage(wide_file_name, nullptr, STGM_SHARE_DENY_WRITE, nullptr, 0, &storage);
+    if (FAILED(hr)) {
+        DEBUG_FATAL("Failed to open storage.\n");
+        return false;
+    }
+
+    // Open the content stream
+    DEBUG_INFO("Opening content stream.\n");
+    CComPtr<IStream> docfile;
+    hr = storage->OpenStream(L"CONTENTS", nullptr, STGM_READ | STGM_SHARE_EXCLUSIVE, 0, &docfile);
+    if (FAILED(hr)) {
+        DEBUG_FATAL("Failed to open content stream.\n");
+        return false;
+    }
+
+    // Decompressing the stream
+    DEBUG_INFO("Linking content stream to decompressor.\n");
+    IUnknown* pUnknown = nullptr;
+    CComPtr<ILinkStream> linkstream;
+    hr = CoCreateInstance(__uuidof(CStreamClass), nullptr, CLSCTX_INPROC_SERVER | CLSCTX_INPROC_HANDLER | CLSCTX_LOCAL_SERVER, IID_IUnknown, (void**)&pUnknown);
+    if (SUCCEEDED(hr)) {
+        hr = OleRun(pUnknown);
+        if (SUCCEEDED(hr)) {
+            pUnknown->QueryInterface(__uuidof(ILinkStream), (void**)&linkstream);
+        }
+        pUnknown->Release();
+    }
+
+    hr = linkstream->Link_Stream(docfile);
+    if (FAILED(hr)) {
+        DEBUG_FATAL("Failed to link stream to decompressor.\n");
+        return false;
+    }
+
+    // Get IStream interface from pLinkStream
+    CComPtr<IStream> stream;
+    linkstream->QueryInterface(__uuidof(IStream), (void**)&stream);
+
+    // Load the game state
+    DEBUG_INFO("Calling Vinifera_Get_All().\n");
+    if (!Vinifera_Get_All(stream)) {
+        DEBUG_FATAL("Error loading save game \"%s\"!\n", SavedGames::Buffer);
+        return false;
+    }
+
+    // Unlink the content stream from the decompressor
+    DEBUG_INFO("Unlinking content stream from decompressor.\n");
+    linkstream->Unlink_Stream(nullptr);
+
+    SwizzleManager.Reset();
+    Post_Load_Game();
+    Vinifera_Remap_Storage_Pointers();
+    Map.Init_IO();
+    Map.Activate(1);
+    Map.Set_Dimensions();
+    TiberiumClass::Growth_Init_Clear();
+    TiberiumClass::Init_Cells();
+    Map.Total_Radar_Refresh();
+    bool_007E48FC = true;
+    bool_007E4040 = true;
+
+    DEBUG_INFO("LOADING GAME [%s] - Complete\n", file_name);
+
+    return true;
+}
+

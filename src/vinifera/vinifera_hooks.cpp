@@ -430,54 +430,6 @@ DECLARE_PATCH(_Save_Game_Put_Game_Version)
 
 
 /**
- *  Sanity check on the return value of Load_All().
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_Load_Game_Check_Return_Value)
-{
-    GET_REGISTER_STATIC(const char *, filename, esi);
-    GET_STACK_STATIC(IStream *, pStm, esp, 0x20);
-
-    /**
-     *  Replace this with a direct call to the Vinifera Get_All, otherwise we
-     *  get stuck in an infinite loop.
-     */
-#if 0
-    _asm { mov ecx, [esp+0x20] }
-    _asm { xor dl, dl }
-    _asm { mov eax, 0x005D6BE0 }
-    _asm { call eax } // Load_All
-
-    _asm { test al, al }
-    _asm { jz failure }
-#endif
-
-    if (!Vinifera_Get_All(pStm)) {
-        goto failure;
-    }
-
-    DEBUG_INFO("Loading of save game \"%s\" complete.\n", filename);
-    JMP(0x005D6B1C);
-
-failure:
-    DEBUG_ERROR("Error loading save game \"%s\"!\n", filename);
-    JMP(0x005D6A65);
-}
-
-
-DECLARE_PATCH(_Load_Game_Remap_Storage_Pointers)
-{
-    Vinifera_Remap_Storage_Pointers();
-
-    // Stolen instructions
-    Map.Init_IO();
-
-    JMP(0x005D6B52);
-}
-
-
-/**
  *  Do not allow save games below our the base level Vinifera version. This patch
  *  will remove any support for save games made with vanilla Tiberian Sun 2.03!
  * 
@@ -494,10 +446,10 @@ DECLARE_PATCH(_LoadOptionsClass_Read_File_Check_Game_Version)
      *  If the version in the save file does not match our build
      *  version exactly, then don't add this file to the listing.
      */
-    if (file_version != ViniferaSaveGameVersion) {
-        DEBUG_WARNING("Save file \"%s\" is incompatible! File version 0x%X, Expected version 0x%X.\n", wfd->cFileName, file_version, ViniferaSaveGameVersion);
-        JMP(0x00505AAD);
-    }
+    //if (file_version != ViniferaSaveGameVersion) {
+    //    DEBUG_WARNING("Save file \"%s\" is incompatible! File version 0x%X, Expected version 0x%X.\n", wfd->cFileName, file_version, ViniferaSaveGameVersion);
+    //    JMP(0x00505AAD);
+    //}
 
     DEV_DEBUG_INFO("Save file \"%s\" is compatible.\n", wfd->cFileName);
 
@@ -505,20 +457,6 @@ DECLARE_PATCH(_LoadOptionsClass_Read_File_Check_Game_Version)
 }
 
 
-/**
- *  Change the saved module filename to the DLL name. 
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_Save_Game_Change_Module_Filename)
-{
-    static const char *DLL_NAME = VINIFERA_DLL;
-    _asm { push DLL_NAME }
-
-    JMP(0x005D50E2);
-}
-
-       
 /**
  *  Removes the code which prefixed older save files with "*".
  * 
@@ -852,17 +790,6 @@ void Vinifera_Hooks()
      */
     Patch_Jump(0x005D505E, &_Save_Game_Put_Game_Version);
 
-    /**
-     *  Check the return value of Load_Game to ensure no false game starts.
-     */
-    Patch_Jump(0x005D6B11, &_Load_Game_Check_Return_Value);
-
-    Patch_Jump(0x005D6B48, &_Load_Game_Remap_Storage_Pointers);
-
-    /**
-     *  Change SUN.EXE to our DLL name.
-     */
-    Patch_Jump(0x005D50DD, &_Save_Game_Change_Module_Filename);
 
     /**
      *  Handle save files in the dialogs.
@@ -878,14 +805,14 @@ void Vinifera_Hooks()
     /**
      *  Patch in the new save and load system functions.
      */
-    Patch_Call(0x005D5307, &Vinifera_Put_All);
-    Patch_Call(0x005D6B17, &Vinifera_Get_All);
+    Patch_Jump(0x005D4FE0, &Vinifera_Save_Game);
+    Patch_Jump(0x005D6910, &Vinifera_Load_Game);
 
     /**
      *  Set the save game version.
      */
-    ViniferaSaveGameVersion = Extension::Get_Save_Version_Number();
-    DEBUG_INFO("Save game version number: 0x%X\n", ViniferaSaveGameVersion);
+    ViniferaGameVersion = Extension::Get_Save_Version_Number();
+    DEBUG_INFO("Save game version number: 0x%X\n", ViniferaGameVersion);
 
     Patch_Jump(0x005DCDFD, &_Do_Lose_Create_Lose_WWMessageBox);
 
