@@ -60,9 +60,9 @@ SidebarClassExtension::SidebarClassExtension(const SidebarClass *this_ptr) :
     for (int i = 0; i < SIDEBAR_TAB_COUNT; i++)
     {
         new (&Column[i]) SidebarClass::StripClass(NoInitClass());
-        Column[i].X = SidebarClass::COLUMN_ONE_X;
+        Column[i].X = COLUMN_ONE_X;
         Column[i].Y = COLUMN_Y;
-        Column[i].Size = Rect(SidebarClass::COLUMN_ONE_X, SidebarClass::COLUMN_ONE_Y, SidebarClass::StripClass::OBJECT_WIDTH, SidebarClass::StripClass::OBJECT_HEIGHT * max_visible);
+        Column[i].Size = Rect(COLUMN_ONE_X, COLUMN_Y, SidebarClass::StripClass::OBJECT_WIDTH, SidebarClass::StripClass::OBJECT_HEIGHT * max_visible);
     }
 }
 
@@ -195,9 +195,9 @@ void SidebarClassExtension::Init_Strips()
     for (int i = 0; i < SIDEBAR_TAB_COUNT; i++)
     {
         new (&Column[i]) SidebarClass::StripClass(NoInitClass());
-        Column[i].X = SidebarClass::COLUMN_ONE_X;
+        Column[i].X = COLUMN_ONE_X;
         Column[i].Y = COLUMN_Y;
-        Column[i].Size = Rect(SidebarClass::COLUMN_ONE_X, SidebarClass::COLUMN_ONE_Y, SidebarClass::StripClass::OBJECT_WIDTH, SidebarClass::StripClass::OBJECT_HEIGHT * max_visible);
+        Column[i].Size = Rect(COLUMN_ONE_X, COLUMN_Y, SidebarClass::StripClass::OBJECT_WIDTH * 2, SidebarClass::StripClass::OBJECT_HEIGHT * max_visible);
     }
 }
 

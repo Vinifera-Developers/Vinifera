@@ -51,6 +51,8 @@ public:
     enum SidebarExtGeneralEnums
     {
         COLUMN_Y = 54,
+        COLUMN_ONE_X = 23,
+        COLUMN_TWO_X = 91,
         BUTTON_REPAIR_X_OFFSET = 36,
         UP_X_OFFSET = 1,				                            // Scroll up arrow coordinates.
         UP_Y_OFFSET = COLUMN_Y - 1,

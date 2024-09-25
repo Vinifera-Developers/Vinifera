@@ -1005,10 +1005,10 @@ void SidebarClassExt::_Set_Dimensions()
 
         int max_visible = SidebarClassExtension::Max_Visible();
 
-        StripClass::UpButton[0].Set_Position(SidebarRect.X + COLUMN_ONE_X + SidebarClassExtension::UP_X_OFFSET, SidebarRect.Y + StripClass::OBJECT_HEIGHT * max_visible / 2 + SidebarClassExtension::UP_Y_OFFSET);
+        StripClass::UpButton[0].Set_Position(SidebarRect.X + SidebarClassExtension::COLUMN_ONE_X + SidebarClassExtension::UP_X_OFFSET, SidebarRect.Y + StripClass::OBJECT_HEIGHT * max_visible / 2 + SidebarClassExtension::UP_Y_OFFSET);
         StripClass::UpButton[0].Flag_To_Redraw();
         StripClass::UpButton[0].DrawX = -SidebarRect.X;
-        StripClass::DownButton[0].Set_Position(SidebarRect.X + COLUMN_TWO_X + SidebarClassExtension::DOWN_X_OFFSET, SidebarRect.Y + StripClass::OBJECT_HEIGHT * max_visible / 2 + SidebarClassExtension::DOWN_Y_OFFSET);
+        StripClass::DownButton[0].Set_Position(SidebarRect.X + SidebarClassExtension::COLUMN_TWO_X + SidebarClassExtension::DOWN_X_OFFSET, SidebarRect.Y + StripClass::OBJECT_HEIGHT * max_visible / 2 + SidebarClassExtension::DOWN_Y_OFFSET);
         StripClass::DownButton[0].Flag_To_Redraw();
         StripClass::DownButton[0].DrawX = -SidebarRect.X;
 
@@ -1016,7 +1016,7 @@ void SidebarClassExt::_Set_Dimensions()
         {
             for (int i = 0; i < max_visible; i++)
             {
-                const int x = SidebarRect.X + ((i % 2 == 0) ? COLUMN_ONE_X : COLUMN_TWO_X);
+                const int x = SidebarRect.X + ((i % 2 == 0) ? SidebarClassExtension::COLUMN_ONE_X : SidebarClassExtension::COLUMN_TWO_X);
                 const int y = SidebarRect.Y + SidebarClassExtension::COLUMN_Y + ((i / 2) * StripClass::OBJECT_HEIGHT);
                 SidebarExtension->SelectButton[tab][i].Set_Position(x, y);
             }
@@ -1146,7 +1146,7 @@ void StripClassExt::_Init_IO(int id)
     {
         SelectClass& g = SidebarExtension->SelectButton[ID][index];
         g.ID = BUTTON_SELECT;
-        g.X = SidebarRect.X + ((index % 2 == 0) ? SidebarClass::COLUMN_ONE_X : SidebarClass::COLUMN_TWO_X);
+        g.X = SidebarRect.X + ((index % 2 == 0) ? SidebarClassExtension::COLUMN_ONE_X : SidebarClassExtension::COLUMN_TWO_X);
         g.Y = SidebarRect.Y + SidebarClassExtension::COLUMN_Y + ((index / 2) * OBJECT_HEIGHT);
         g.Width = OBJECT_WIDTH;
         g.Height = OBJECT_HEIGHT;
@@ -1537,7 +1537,7 @@ void StripClassExt::_Draw_It(bool complete)
             BSurface* image_surface = nullptr;
             FactoryClass* factory = nullptr;
             int index = i + TopIndex;
-            int x = i % 2 == 0 ? SidebarClass::COLUMN_ONE_X : SidebarClass::COLUMN_TWO_X;
+            int x = i % 2 == 0 ? SidebarClassExtension::COLUMN_ONE_X : SidebarClassExtension::COLUMN_TWO_X;
             int y = SidebarClassExtension::COLUMN_Y + ((i / 2) * OBJECT_HEIGHT);
 
             bool isready = false;
