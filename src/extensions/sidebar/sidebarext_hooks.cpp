@@ -468,6 +468,18 @@ int __cdecl BuildType_Comparison(const void* p1, const void* p2)
         }
 
         /**
+         *  If both are Units, non-naval units come first
+         */
+        //if (bt1->BuildableType == RTTI_UNITTYPE)
+        //{
+        //    const auto ext1 = Extension::Fetch<UnitTypeClassExtension>(t1);
+        //    const auto ext2 = Extension::Fetch<UnitTypeClassExtension>(t2);
+
+        //    if (ext1->IsNaval != ext2->IsNaval)
+        //        return (int)ext1->IsNaval - (int)ext2->IsNaval;
+        //}
+
+        /**
          *  If your side owns one of the objects, but not another, yours comes first
          */
         const int owns1 = isSideOwner(PlayerPtr, t1->Get_Ownable()),
@@ -487,18 +499,6 @@ int __cdecl BuildType_Comparison(const void* p1, const void* p2)
             if (side1 != side2)
                 return side1 - side2;
         }
-
-        /**
-         *  If both are Units, non-naval units come first
-         */
-        //if (bt1->BuildableType == RTTI_UNITTYPE)
-        //{
-        //    const auto ext1 = Extension::Fetch<UnitTypeClassExtension>(t1);
-        //    const auto ext2 = Extension::Fetch<UnitTypeClassExtension>(t2);
-
-        //    if (ext1->IsNaval != ext2->IsNaval)
-        //        return (int)ext1->IsNaval - (int)ext2->IsNaval;
-        //}
 
         return bt1->BuildableID - bt2->BuildableID;
     }
