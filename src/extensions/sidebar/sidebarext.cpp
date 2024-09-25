@@ -123,7 +123,7 @@ HRESULT SidebarClassExtension::Load(IStream *pStm)
      */
 
     Init_IO();
-    entry_84();
+    Set_Dimensions();
     Init_For_House();
     
     return hr;
@@ -248,7 +248,7 @@ void SidebarClassExtension::Init_IO()
  *
  *  @author: ZivDero
  */
-void SidebarClassExtension::entry_84()
+void SidebarClassExtension::Set_Dimensions()
 {
     TabButtons[0].Set_Position(SidebarRect.X + TAB_ONE_X_OFFSET, SidebarRect.Y + TAB_Y_OFFSET);
     TabButtons[0].Flag_To_Redraw();

@@ -53,6 +53,8 @@
 #include "asserthandler.h"
 #include <string>
 
+#include "setup_hooks.h"
+
 
 static DynamicVectorClass<Wstring> ViniferaSearchPaths;
 
@@ -127,6 +129,8 @@ bool Vinifera_Load_INI()
         return false;
 #endif
     }
+
+    Vinifera_NewSidebar = ini.Get_Bool("Features", "NewSidebar", false);
 
     return true;
 }
@@ -536,6 +540,9 @@ bool Vinifera_Startup()
         return false;
 #endif
     }
+
+    DEBUG_INFO("Setting up conditional hooks.\n");
+    Setup_Conditional_Hooks();
 
     /**
      *  Current path (perhaps set set with -CD) should go next.

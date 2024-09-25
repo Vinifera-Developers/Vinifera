@@ -111,6 +111,9 @@ extern bool Vinifera_SkipToInternet;
 extern bool Vinifera_ExitAfterSkip;
 
 
+extern bool Vinifera_NewSidebar;
+
+
 /**
  *  Definition for the exception database struct. If you update this
  *  struct, make sure you check if you need to update the exception handler.

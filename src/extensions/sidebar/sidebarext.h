@@ -168,7 +168,7 @@ public:
         void Init_Strips();
         void Init_IO();
         void Init_For_House();
-        void entry_84();
+        void Set_Dimensions();
         bool Change_Tab(SidebarTabType index);
 
         SidebarClass::StripClass& Current_Tab() { return Column[TabIndex];}

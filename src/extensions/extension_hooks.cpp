@@ -245,7 +245,6 @@ void Extension_Hooks()
     ThemeClassExtension_Hooks();
 
     DisplayClassExtension_Hooks();
-    SidebarClassExtension_Hooks();
 
     /**
      *  Various modules and functions.

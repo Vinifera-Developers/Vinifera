@@ -26,25 +26,48 @@
  *
  ******************************************************************************/
 #include "sidebarext_hooks.h"
-#include "tibsun_globals.h"
+
+#include "bsurface.h"
+#include "buildingtype.h"
+#include "convert.h"
+#include "drawshape.h"
+#include "event.h"
+#include "extension.h"
+#include "factory.h"
+#include "fetchres.h"
+#include "house.h"
+#include "housetype.h"
+#include "language.h"
+#include "mouse.h"
+#include "playmovie.h"
+#include "rules.h"
+#include "scenarioext.h"
+#include "session.h"
 #include "sidebar.h"
-#include "technotype.h"
-#include "technotypeext.h"
+#include "sidebarext.h"
+#include "spritecollection.h"
+#include "super.h"
 #include "supertype.h"
 #include "supertypeext.h"
-#include "spritecollection.h"
-#include "bsurface.h"
-#include "drawshape.h"
-#include "extension.h"
+#include "techno.h"
+#include "technotype.h"
+#include "technotypeext.h"
+#include "textprint.h"
+#include "tibsun_functions.h"
+#include "tibsun_globals.h"
+#include "tooltip.h"
+#include "unittypeext.h"
+#include "voc.h"
+#include "vox.h"
+#include "wwmouse.h"
+
+#include "debughandler.h"
 #include "fatal.h"
 #include "asserthandler.h"
-#include "debughandler.h"
-
 #include "hooker.h"
 #include "hooker_macros.h"
-#include "language.h"
-#include "sidebarext.h"
-#include "tooltip.h"
+#include "optionsext.h"
+#include "vinifera_globals.h"
 
 
 /**
@@ -468,14 +491,14 @@ int __cdecl BuildType_Comparison(const void* p1, const void* p2)
         /**
          *  If both are Units, non-naval units come first
          */
-        if (bt1->BuildableType == RTTI_UNITTYPE)
-        {
-            const auto ext1 = Extension::Fetch<UnitTypeClassExtension>(t1);
-            const auto ext2 = Extension::Fetch<UnitTypeClassExtension>(t2);
+        //if (bt1->BuildableType == RTTI_UNITTYPE)
+        //{
+        //    const auto ext1 = Extension::Fetch<UnitTypeClassExtension>(t1);
+        //    const auto ext2 = Extension::Fetch<UnitTypeClassExtension>(t2);
 
-            if (ext1->IsNaval != ext2->IsNaval)
-                return (int)ext1->IsNaval - (int)ext2->IsNaval;
-        }
+        //    if (ext1->IsNaval != ext2->IsNaval)
+        //        return (int)ext1->IsNaval - (int)ext2->IsNaval;
+        //}
 
         return bt1->BuildableID - bt2->BuildableID;
     }
@@ -792,8 +815,8 @@ void SidebarClassExt::_Draw_It(bool complete)
     Map.field_1214 = Rect();
     PowerClass::Draw_It(complete);
 
-    DSurface* oldsurface = TempSurface;
-    TempSurface = SidebarSurface;
+    DSurface* oldsurface = LogicSurface;
+    LogicSurface = SidebarSurface;
 
     Rect rect(0, 0, SidebarSurface->Get_Width(), SidebarSurface->Get_Height());
 
@@ -883,7 +906,7 @@ void SidebarClassExt::_Draw_It(bool complete)
     IsToRedraw = false;
     IsToFullRedraw = false;
     Blit_Sidebar(complete);
-    TempSurface = oldsurface;
+    LogicSurface = oldsurface;
 }
 
 
@@ -1456,19 +1479,19 @@ const char* StripClassExt::_Help_Text(int gadget_id)
              *
              *  @author: Rampastring
              */
-            const TechnoTypeClassExtension* technotypeext = Extension::Fetch<TechnoTypeClassExtension>(ttype);
-            const char* description = technotypeext->Description;
+            //const TechnoTypeClassExtension* technotypeext = Extension::Fetch<TechnoTypeClassExtension>(ttype);
+            //const char* description = technotypeext->Description;
 
-            if (description[0] == '\0')
-            {
+            //if (description[0] == '\0')
+            //{
                 // If there is no extended description, then simply show the name and price.
                 std::snprintf(_buffer, sizeof(_buffer), "%s@$%d", ttype->Full_Name(), ttype->Cost_Of(PlayerPtr));
-            }
-            else
-            {
-                // If there is an extended description, then show the name, price, and the description.
-                std::snprintf(_buffer, sizeof(_buffer), "%s@$%d@@%s", ttype->Full_Name(), ttype->Cost_Of(PlayerPtr), technotypeext->Description);
-            }
+            //}
+            //else
+            //{
+            //    // If there is an extended description, then show the name, price, and the description.
+            //    std::snprintf(_buffer, sizeof(_buffer), "%s@$%d@@%s", ttype->Full_Name(), ttype->Cost_Of(PlayerPtr), technotypeext->Description);
+            //}
 
             return _buffer;
         }
@@ -1662,12 +1685,12 @@ void StripClassExt::_Draw_It(bool complete)
                 if (overbutton && !Scen->UserInputLocked && !darken)
                 {
                     Rect cameo_hover_rect(x, SidebarRect.Y + y, OBJECT_WIDTH, OBJECT_HEIGHT - 3);
-                    if (ScenExtension->CachedToolTipColorSchemeIndex > -1)
-                    {
-                        RGBClass rgb = ColorSchemes[ScenExtension->CachedToolTipColorSchemeIndex]->field_308.operator RGBClass();
-                        SidebarSurface->Draw_Rect(cameo_hover_rect, DSurface::RGB_To_Pixel(rgb));
-                    }
-                    else
+                    //if (ScenExtension->CachedToolTipColorSchemeIndex > -1)
+                    //{
+                    //    RGBClass rgb = ColorSchemes[ScenExtension->CachedToolTipColorSchemeIndex]->field_308.operator RGBClass();
+                    //    SidebarSurface->Draw_Rect(cameo_hover_rect, DSurface::RGB_To_Pixel(rgb));
+                    //}
+                    //else
                     {
                         SidebarSurface->Draw_Rect(cameo_hover_rect, 0);
                     }
@@ -2100,55 +2123,57 @@ void SidebarClassExtension_Hooks()
     Patch_Jump(0x005F23AC, &_SidebarClass_Constructor_Patch);
     Patch_Jump(0x005B8B7D, &_SidebarClass_Destructor_Patch);
 
-    Patch_Jump(0x005F2610, &SidebarClassExt::_One_Time);
-    Patch_Jump(0x005F2660, &SidebarClassExt::_Init_Clear);
-    Patch_Jump(0x005F2720, &SidebarClassExt::_Init_IO);
-    Patch_Jump(0x005F2900, &SidebarClassExt::_Init_For_House);
-    Patch_Jump(0x005F2B00, &SidebarClassExt::_Init_Strips);
-    Patch_Jump(0x005F2C30, &SidebarClassExtension::Which_Tab);
-    Patch_Jump(0x005F2C50, &SidebarClassExt::_Factory_Link);
-    Patch_Jump(0x005F2E20, &SidebarClassExt::_Add);
-    Patch_Jump(0x005F2E90, &SidebarClassExt::_Scroll);
-    Patch_Jump(0x005F30F0, &SidebarClassExt::_Scroll_Page);
-    Patch_Jump(0x005F3560, &SidebarClassExt::_Draw_It);
-    Patch_Jump(0x005F3C70, &SidebarClassExt::_AI);
-    Patch_Jump(0x005F3E20, &SidebarClassExt::_Recalc);
-    Patch_Jump(0x005F3E60, &SidebarClassExt::_Activate);
-    Patch_Jump(0x005F5F70, &SidebarClassExt::_Abandon_Production);
-    Patch_Jump(0x005F6080, &SidebarClassExt::_Set_Dimensions);
-    Patch_Jump(0x005F6620, &SidebarClassExt::_Help_Text);
-    Patch_Jump(0x005F6670, &SidebarClassExt::_Max_Visible);
+    if (Vinifera_NewSidebar)
+    {
+        Patch_Jump(0x005F2610, &SidebarClassExt::_One_Time);
+        Patch_Jump(0x005F2660, &SidebarClassExt::_Init_Clear);
+        Patch_Jump(0x005F2720, &SidebarClassExt::_Init_IO);
+        Patch_Jump(0x005F2900, &SidebarClassExt::_Init_For_House);
+        Patch_Jump(0x005F2B00, &SidebarClassExt::_Init_Strips);
+        Patch_Jump(0x005F2C30, &SidebarClassExtension::Which_Tab);
+        Patch_Jump(0x005F2C50, &SidebarClassExt::_Factory_Link);
+        Patch_Jump(0x005F2E20, &SidebarClassExt::_Add);
+        Patch_Jump(0x005F2E90, &SidebarClassExt::_Scroll);
+        Patch_Jump(0x005F30F0, &SidebarClassExt::_Scroll_Page);
+        Patch_Jump(0x005F3560, &SidebarClassExt::_Draw_It);
+        Patch_Jump(0x005F3C70, &SidebarClassExt::_AI);
+        Patch_Jump(0x005F3E20, &SidebarClassExt::_Recalc);
+        Patch_Jump(0x005F3E60, &SidebarClassExt::_Activate);
+        Patch_Jump(0x005F5F70, &SidebarClassExt::_Abandon_Production);
+        Patch_Jump(0x005F6080, &SidebarClassExt::_Set_Dimensions);
+        Patch_Jump(0x005F6620, &SidebarClassExt::_Help_Text);
+        Patch_Jump(0x005F6670, &SidebarClassExt::_Max_Visible);
 
-    Patch_Jump(0x005F4210, &StripClassExt::_One_Time);
-    Patch_Jump(0x005F42A0, &StripClassExt::_Init_IO);
-    Patch_Jump(0x005F4450, &StripClassExt::_Activate);
-    Patch_Jump(0x005F4560, &StripClassExt::_Deactivate);
-    Patch_Jump(0x005F46B0, &StripClassExt::_Scroll);
-    Patch_Jump(0x005F4760, &StripClassExt::_Scroll_Page);
-    Patch_Jump(0x005F4910, &StripClassExt::_AI);
-    Patch_Jump(0x005F4E40, &StripClassExt::_Help_Text);
-    Patch_Jump(0x005F4F10, &StripClassExt::_Draw_It);
-    Patch_Jump(0x005F5F10, &StripClassExt::_Factory_Link);
+        Patch_Jump(0x005F4210, &StripClassExt::_One_Time);
+        Patch_Jump(0x005F42A0, &StripClassExt::_Init_IO);
+        Patch_Jump(0x005F4450, &StripClassExt::_Activate);
+        Patch_Jump(0x005F4560, &StripClassExt::_Deactivate);
+        Patch_Jump(0x005F46B0, &StripClassExt::_Scroll);
+        Patch_Jump(0x005F4760, &StripClassExt::_Scroll_Page);
+        Patch_Jump(0x005F4910, &StripClassExt::_AI);
+        Patch_Jump(0x005F4E40, &StripClassExt::_Help_Text);
+        Patch_Jump(0x005F4F10, &StripClassExt::_Draw_It);
+        Patch_Jump(0x005F5F10, &StripClassExt::_Factory_Link);
 
-    Patch_Jump(0x004A9F0F, _GadgetClass_Input_Mouse_Enter_Leave);
-    Patch_Jump(0x005AB4CF, _PowerClass_Draw_It_Move_Power_Bar);
-    Patch_Jump(0x005F5C01, _SelectClass_Action_Redraw_Column);
+        Patch_Jump(0x004A9F0F, _GadgetClass_Input_Mouse_Enter_Leave);
+        Patch_Jump(0x005AB4CF, _PowerClass_Draw_It_Move_Power_Bar);
+        Patch_Jump(0x005F5C01, _SelectClass_Action_Redraw_Column);
 
-    // There are a bunch of calls to vanilla strips to redraw them.
-    // We patch them to either redraw the supers' strip or the current strip
-    Patch_Call(0x00458ADB, &StripClassExt::_Fake_Flag_To_Redraw_Special);
-    Patch_Call(0x004BD32D, &StripClassExt::_Fake_Flag_To_Redraw_Special);
-    Patch_Call(0x004CB585, &StripClassExt::_Fake_Flag_To_Redraw_Special);
-    Patch_Call(0x004CB6F8, &StripClassExt::_Fake_Flag_To_Redraw_Special);
-    Patch_Call(0x00619F9A, &StripClassExt::_Fake_Flag_To_Redraw_Special);
-    Patch_Call(0x0061C09C, &StripClassExt::_Fake_Flag_To_Redraw_Special);
-    Patch_Call(0x0061C0FD, &StripClassExt::_Fake_Flag_To_Redraw_Special);
+        // There are a bunch of calls to vanilla strips to redraw them.
+        // We patch them to either redraw the supers' strip or the current strip
+        Patch_Call(0x00458ADB, &StripClassExt::_Fake_Flag_To_Redraw_Special);
+        Patch_Call(0x004BD32D, &StripClassExt::_Fake_Flag_To_Redraw_Special);
+        Patch_Call(0x004CB585, &StripClassExt::_Fake_Flag_To_Redraw_Special);
+        Patch_Call(0x004CB6F8, &StripClassExt::_Fake_Flag_To_Redraw_Special);
+        Patch_Call(0x00619F9A, &StripClassExt::_Fake_Flag_To_Redraw_Special);
+        Patch_Call(0x0061C09C, &StripClassExt::_Fake_Flag_To_Redraw_Special);
+        Patch_Call(0x0061C0FD, &StripClassExt::_Fake_Flag_To_Redraw_Special);
 
-    Patch_Call(0x004BD1E0, &StripClassExt::_Fake_Flag_To_Redraw_Current);
-    Patch_Call(0x004BD1EA, &StripClassExt::_Fake_Flag_To_Redraw_Current);
-    Patch_Call(0x004C9859, &StripClassExt::_Fake_Flag_To_Redraw_Current);
-    Patch_Call(0x004C9863, &StripClassExt::_Fake_Flag_To_Redraw_Current);
-
+        Patch_Call(0x004BD1E0, &StripClassExt::_Fake_Flag_To_Redraw_Current);
+        Patch_Call(0x004BD1EA, &StripClassExt::_Fake_Flag_To_Redraw_Current);
+        Patch_Call(0x004C9859, &StripClassExt::_Fake_Flag_To_Redraw_Current);
+        Patch_Call(0x004C9863, &StripClassExt::_Fake_Flag_To_Redraw_Current);
+    }
 
     /**
      *  Legacy patches for the old sidebar.
