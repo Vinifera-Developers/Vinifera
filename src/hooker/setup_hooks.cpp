@@ -60,5 +60,5 @@ void Setup_Hooks()
  */
 void Setup_Conditional_Hooks()
 {
-    SidebarClassExtension_Hooks();
+    SidebarClassExtension_Conditional_Hooks();
 }

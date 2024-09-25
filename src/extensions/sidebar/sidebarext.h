@@ -29,7 +29,9 @@
 
 #include "always.h"
 #include "extension.h"
+#include "mouse.h"
 #include "sidebar.h"
+#include "vinifera_globals.h"
 
 
 class SidebarClassExtension final : public GlobalExtensionClass<SidebarClass>
@@ -181,6 +183,14 @@ public:
         {
             const int column = Which_Tab(type);
             return Column[column].Is_On_Sidebar(type, id);
+        }
+
+        void Flag_Strip_To_Redraw(RTTIType type)
+        {
+            if (Vinifera_NewSidebar)
+                Get_Tab(type).Flag_To_Redraw();
+            else
+                Map.Column[Map.Which_Column(type)].Flag_To_Redraw();
         }
 
         static int Max_Visible(bool one_strip = false)

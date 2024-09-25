@@ -39,6 +39,8 @@
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "extension_globals.h"
+#include "sidebarext.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -137,7 +139,7 @@ ProdFailType HouseClassExt::_Begin_Production(RTTIType type, int id, bool resume
         }
         else
         {
-            SidebarExtension->Get_Tab(type).Flag_To_Redraw();
+            SidebarExtension->Flag_Strip_To_Redraw(type);
             return PROD_OK;
         }
     }
@@ -195,7 +197,7 @@ ProdFailType HouseClassExt::_Abandon_Production(RTTIType type, int id)
         const TechnoTypeClass* technotype = Fetch_Techno_Type(type, id);
         if (fptr->Remove_From_Queue(*technotype))
         {
-            SidebarExtension->Current_Tab().Flag_To_Redraw();
+            SidebarExtension->Flag_Strip_To_Redraw(type);
             return PROD_OK;
         }
     }

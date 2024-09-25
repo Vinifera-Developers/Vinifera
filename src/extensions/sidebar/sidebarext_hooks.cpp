@@ -1479,19 +1479,19 @@ const char* StripClassExt::_Help_Text(int gadget_id)
              *
              *  @author: Rampastring
              */
-            //const TechnoTypeClassExtension* technotypeext = Extension::Fetch<TechnoTypeClassExtension>(ttype);
-            //const char* description = technotypeext->Description;
+            const TechnoTypeClassExtension* technotypeext = Extension::Fetch<TechnoTypeClassExtension>(ttype);
+            const char* description = technotypeext->Description;
 
-            //if (description[0] == '\0')
-            //{
+            if (description[0] == '\0')
+            {
                 // If there is no extended description, then simply show the name and price.
                 std::snprintf(_buffer, sizeof(_buffer), "%s@$%d", ttype->Full_Name(), ttype->Cost_Of(PlayerPtr));
-            //}
-            //else
-            //{
-            //    // If there is an extended description, then show the name, price, and the description.
-            //    std::snprintf(_buffer, sizeof(_buffer), "%s@$%d@@%s", ttype->Full_Name(), ttype->Cost_Of(PlayerPtr), technotypeext->Description);
-            //}
+            }
+            else
+            {
+                // If there is an extended description, then show the name, price, and the description.
+                std::snprintf(_buffer, sizeof(_buffer), "%s@$%d@@%s", ttype->Full_Name(), ttype->Cost_Of(PlayerPtr), technotypeext->Description);
+            }
 
             return _buffer;
         }
@@ -1685,15 +1685,7 @@ void StripClassExt::_Draw_It(bool complete)
                 if (overbutton && !Scen->UserInputLocked && !darken)
                 {
                     Rect cameo_hover_rect(x, SidebarRect.Y + y, OBJECT_WIDTH, OBJECT_HEIGHT - 3);
-                    //if (ScenExtension->CachedToolTipColorSchemeIndex > -1)
-                    //{
-                    //    RGBClass rgb = ColorSchemes[ScenExtension->CachedToolTipColorSchemeIndex]->field_308.operator RGBClass();
-                    //    SidebarSurface->Draw_Rect(cameo_hover_rect, DSurface::RGB_To_Pixel(rgb));
-                    //}
-                    //else
-                    {
-                        SidebarSurface->Draw_Rect(cameo_hover_rect, 0);
-                    }
+                    SidebarSurface->Draw_Rect(cameo_hover_rect, DSurface::RGB_To_Pixel(ColorSchemes[0]->HSV.operator RGBClass()));
                 }
 
 
@@ -2123,6 +2115,25 @@ void SidebarClassExtension_Hooks()
     Patch_Jump(0x005F23AC, &_SidebarClass_Constructor_Patch);
     Patch_Jump(0x005B8B7D, &_SidebarClass_Destructor_Patch);
 
+    /**
+     *  This patch is compatible with the vanilla sidebar.
+     */
+    Patch_Jump(0x005F4E40, &StripClassExt::_Help_Text);
+
+    /**
+     *  Legacy patches for the old sidebar.
+     */
+    Patch_Jump(0x005F5188, &_SidebarClass_StripClass_ObjectTypeClass_Custom_Cameo_Image_Patch);
+    Patch_Jump(0x005F5216, &_SidebarClass_StripClass_SuperWeaponType_Custom_Cameo_Image_Patch);
+    Patch_Jump(0x005F52AF, &_SidebarClass_StripClass_Custom_Cameo_Image_Patch);
+}
+
+
+/**
+ *  Function for patching the hooks that require use to read VINIFERA.INI first.
+ */
+void SidebarClassExtension_Conditional_Hooks()
+{
     if (Vinifera_NewSidebar)
     {
         Patch_Jump(0x005F2610, &SidebarClassExt::_One_Time);
@@ -2151,7 +2162,6 @@ void SidebarClassExtension_Hooks()
         Patch_Jump(0x005F46B0, &StripClassExt::_Scroll);
         Patch_Jump(0x005F4760, &StripClassExt::_Scroll_Page);
         Patch_Jump(0x005F4910, &StripClassExt::_AI);
-        Patch_Jump(0x005F4E40, &StripClassExt::_Help_Text);
         Patch_Jump(0x005F4F10, &StripClassExt::_Draw_It);
         Patch_Jump(0x005F5F10, &StripClassExt::_Factory_Link);
 
@@ -2174,11 +2184,4 @@ void SidebarClassExtension_Hooks()
         Patch_Call(0x004C9859, &StripClassExt::_Fake_Flag_To_Redraw_Current);
         Patch_Call(0x004C9863, &StripClassExt::_Fake_Flag_To_Redraw_Current);
     }
-
-    /**
-     *  Legacy patches for the old sidebar.
-     */
-    Patch_Jump(0x005F5188, &_SidebarClass_StripClass_ObjectTypeClass_Custom_Cameo_Image_Patch);
-    Patch_Jump(0x005F5216, &_SidebarClass_StripClass_SuperWeaponType_Custom_Cameo_Image_Patch);
-    Patch_Jump(0x005F52AF, &_SidebarClass_StripClass_Custom_Cameo_Image_Patch);
 }

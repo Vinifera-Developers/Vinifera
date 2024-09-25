@@ -577,15 +577,7 @@ bool SidebarClassExtension::TabButtonClass::Draw_Me(bool forced)
     if (MousedOver && !Scen->UserInputLocked && !IsDisabled && !IsSelected)
     {
         Rect hover_rect(X + DrawX, Y + DrawY, Width - 1, Height - 1);
-
-        if (ScenExtension->CachedToolTipColorSchemeIndex > -1) {
-            RGBClass rgb = ColorSchemes[ScenExtension->CachedToolTipColorSchemeIndex]->field_308.operator RGBClass();
-            SidebarSurface->Draw_Rect(hover_rect, DSurface::RGB_To_Pixel(rgb));
-        }
-        else
-        {
-            SidebarSurface->Draw_Rect(hover_rect, 0);
-        }
+        SidebarSurface->Draw_Rect(hover_rect, DSurface::RGB_To_Pixel(ColorSchemes[0]->HSV.operator RGBClass()));
     }
 
     IsDrawn = true;
