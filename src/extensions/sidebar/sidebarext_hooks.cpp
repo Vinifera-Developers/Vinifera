@@ -71,7 +71,7 @@ public:
     void _AI(KeyNumType& input, Point2D& xy);
     void _Recalc();
     bool _Abandon_Production(RTTIType type, FactoryClass* factory);
-    void _entry_84();
+    void _Set_Dimensions();
     const char* _Help_Text(int gadget_id);
     int _Max_Visible();
 };
@@ -283,7 +283,7 @@ void SidebarClassExt::_Init_IO()
         for (int i = 0; i < SidebarClassExtension::SIDEBAR_TAB_COUNT; i++)
             SidebarExtension->Column[i].Init_IO(i);
 
-        entry_84();
+        Set_Dimensions();
 
         /*
         ** If a game was loaded & the sidebar was enabled, pop it up now.
@@ -574,7 +574,7 @@ bool SidebarClassExt::_Activate(int control)
         */
         if (IsSidebarActive)
         {
-            entry_84();
+            Set_Dimensions();
             IsToRedraw = true;
             Repair.Zap();
             Add_A_Button(Repair);
@@ -918,11 +918,11 @@ bool SidebarClassExt::_Abandon_Production(RTTIType type, FactoryClass* factory)
 
 
 /**
- *  Reimplements the entire SidebarClass::entry_84 function.
+ *  Reimplements the entire SidebarClass::Set_Dimensions function.
  *
  *  @author: ZivDero
  */
-void SidebarClassExt::_entry_84()
+void SidebarClassExt::_Set_Dimensions()
 {
     /*
     **  Position the sidebar itself.
@@ -933,7 +933,7 @@ void SidebarClassExt::_entry_84()
     SidebarRect.Width = 168;
     SidebarRect.Height = TacticalRect.Y + TacticalRect.Height - 148;
 
-    PowerClass::entry_84();
+    PowerClass::Set_Dimensions();
 
     if (!SidebarShape)
     {
@@ -965,7 +965,7 @@ void SidebarClassExt::_entry_84()
     Waypoint.Flag_To_Redraw();
     Waypoint.DrawX = -SidebarRect.X;
 
-    SidebarExtension->entry_84();
+    SidebarExtension->Set_Dimensions();
 
     /*
     **  Create the tooltips for the sidebar.
@@ -2115,7 +2115,7 @@ void SidebarClassExtension_Hooks()
     Patch_Jump(0x005F3E20, &SidebarClassExt::_Recalc);
     Patch_Jump(0x005F3E60, &SidebarClassExt::_Activate);
     Patch_Jump(0x005F5F70, &SidebarClassExt::_Abandon_Production);
-    Patch_Jump(0x005F6080, &SidebarClassExt::_entry_84);
+    Patch_Jump(0x005F6080, &SidebarClassExt::_Set_Dimensions);
     Patch_Jump(0x005F6620, &SidebarClassExt::_Help_Text);
     Patch_Jump(0x005F6670, &SidebarClassExt::_Max_Visible);
 
