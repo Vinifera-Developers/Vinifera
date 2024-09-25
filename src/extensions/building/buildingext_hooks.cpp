@@ -49,6 +49,8 @@
 #include "dsurface.h"
 #include "convert.h"
 #include "drawshape.h"
+#include "infantrytype.h"
+#include "unittype.h"
 #include "rules.h"
 #include "voc.h"
 #include "iomap.h"
@@ -73,6 +75,7 @@ static class BuildingClassExt final : public BuildingClass
 {
 public:
     bool _Can_Have_Rally_Point();
+    void _Update_Buildables();
 };
 
 
@@ -93,6 +96,67 @@ bool BuildingClassExt::_Can_Have_Rally_Point()
         return true;
 
     return false;
+}
+
+
+/**
+ *  Makes the game check whether you can actually build the object before adding it to the sidebar,
+ *  preventing grayed out cameos (except for build limited types)
+ *
+ *  This reimplements the entire BuildingClass::Update_Buildables() function
+ *
+ *  @author: ZivDero
+ */
+void BuildingClassFake::_Update_Buildables()
+{
+    if (House == PlayerPtr && !IsInLimbo && IsDiscoveredByPlayer && IsPowerOn)
+    {
+        switch (Class->ToBuild)
+        {
+        case RTTI_AIRCRAFTTYPE:
+            for (int i = 0; i < AircraftTypes.Count(); i++)
+            {
+                if (PlayerPtr->Can_Build(AircraftTypes[i], false, true) && AircraftTypes[i]->Who_Can_Build_Me(true, true, true, PlayerPtr) != nullptr)
+                {
+                    Map.Add(RTTI_AIRCRAFTTYPE, i);
+                }
+            }
+            break;
+
+        case RTTI_BUILDINGTYPE:
+            for (int i = 0; i < BuildingTypes.Count(); i++)
+            {
+                if (PlayerPtr->Can_Build(BuildingTypes[i], false, true) && BuildingTypes[i]->Who_Can_Build_Me(true, true, true, PlayerPtr) != nullptr)
+                {
+                    Map.Add(RTTI_BUILDINGTYPE, i);
+                }
+            }
+            break;
+
+        case RTTI_INFANTRYTYPE:
+            for (int i = 0; i < InfantryTypes.Count(); i++)
+            {
+                if (PlayerPtr->Can_Build(InfantryTypes[i], false, true) && InfantryTypes[i]->Who_Can_Build_Me(true, true, true, PlayerPtr) != nullptr)
+                {
+                    Map.Add(RTTI_INFANTRYTYPE, i);
+                }
+            }
+            break;
+
+        case RTTI_UNITTYPE:
+            for (int i = 0; i < UnitTypes.Count(); i++)
+            {
+                if (PlayerPtr->Can_Build(UnitTypes[i], false, true) && UnitTypes[i]->Who_Can_Build_Me(true, true, true, PlayerPtr) != nullptr)
+                {
+                    Map.Add(RTTI_UNITTYPE, i);
+                }
+            }
+            break;
+
+        default:
+            break;
+        }
+    }
 }
 
 
@@ -671,4 +735,5 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x00432184, &_BuildingClass_Mission_Repair_Assign_Rally_Destination_When_No_Repair_Needed);
     Patch_Jump(0x00431DAB, &_BuildingClass_Mission_Repair_Assign_Rally_Destination_After_Repair_Complete);
     Patch_Jump(0x00439D10, &BuildingClassExt::_Can_Have_Rally_Point);
+    Patch_Jump(0x0042D9A0, &BuildingClassFake::_Update_Buildables);
 }

@@ -64,4 +64,9 @@ class OptionsClassExtension final : public GlobalExtensionClass<OptionsClass>
         void Set();
 
     public:
+
+        /**
+         *  Should cameos of defenses (including walls and gates) be sorted to the bottom of the sidebar?
+         */
+        bool SortDefensesAsLast;
 };

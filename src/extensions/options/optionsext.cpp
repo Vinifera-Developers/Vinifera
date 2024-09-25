@@ -42,7 +42,8 @@
  *  @author: CCHyper
  */
 OptionsClassExtension::OptionsClassExtension(const OptionsClass *this_ptr) :
-    GlobalExtensionClass(this_ptr)
+    GlobalExtensionClass(this_ptr),
+    SortDefensesAsLast(true)
 {
     //EXT_DEBUG_TRACE("OptionsClassExtension::OptionsClassExtension - 0x%08X\n", (uintptr_t)(This()));
 }
@@ -154,6 +155,36 @@ void OptionsClassExtension::Load_Settings()
     //EXT_DEBUG_TRACE("OptionsClassExtension::Load_Settings - 0x%08X\n", (uintptr_t)(This()));
     
     RawFileClass file("SUN.INI");
+    CCINIClass sun_ini;
+
+    if (file.Is_Available()) {
+
+        sun_ini.Load(file, false);
+
+        SortDefensesAsLast = sun_ini.Get_Bool("Options", "SortDefensesAsLast", SortDefensesAsLast);
+    }
+
+    /**
+     *  Read hardcoded modifier keys from Keyboard.ini.
+     *
+     *  @author: ZivDero
+     */
+    RawFileClass keyboard_file("Keyboard.ini");
+    CCINIClass keyboard_ini;
+
+    if (keyboard_file.Is_Available()) {
+
+        keyboard_ini.Load(keyboard_file, false);
+
+        Options.KeyForceMove1 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "ForceMove", VK_MENU);
+        Options.KeyForceMove2 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "ForceMove", VK_MENU);
+        Options.KeyForceAttack1 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "ForceAttack", VK_CONTROL);
+        Options.KeyForceAttack2 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "ForceAttack", VK_CONTROL);
+        Options.KeySelect1 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "Select", VK_SHIFT);
+        Options.KeySelect2 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "Select", VK_SHIFT);
+        Options.KeyQueueMove1 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "QueueMove", KN_Z);
+        Options.KeyQueueMove2 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "QueueMove", KN_Z);
+    }
 }
 
 
@@ -180,6 +211,26 @@ void OptionsClassExtension::Save_Settings()
     //EXT_DEBUG_TRACE("OptionsClassExtension::Save_Settings - 0x%08X\n", (uintptr_t)(This()));
     
     RawFileClass file("SUN.INI");
+
+    /**
+     *  Save hardcoded modifier keys to Keyboard.ini.
+     *
+     *  @author: ZivDero
+     */
+    RawFileClass keyboard_file("Keyboard.ini");
+    CCINIClass keyboard_ini;
+
+    if (keyboard_file.Is_Available()) {
+
+        keyboard_ini.Load(keyboard_file, false);
+
+        keyboard_ini.Put_Int("Hotkey", "ForceMove", Options.KeyForceMove1);
+        keyboard_ini.Put_Int("Hotkey", "ForceAttack", Options.KeyForceAttack1);
+        keyboard_ini.Put_Int("Hotkey", "Select", Options.KeySelect1);
+        keyboard_ini.Put_Int("Hotkey", "QueueMove", Options.KeyQueueMove1);
+
+        keyboard_ini.Save(keyboard_file, false);
+    }
 }
 
 

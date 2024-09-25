@@ -61,6 +61,7 @@
 #include "combat.h"
 #include "scenarioini.h"
 #include "scenario.h"
+#include "sidebarext.h"
 #include "vox.h"
 #include "event.h"
 #include "queue.h"
@@ -1132,6 +1133,187 @@ bool ToggleSuperTimersCommandClass::Process()
     Vinifera_ShowSuperWeaponTimers = !Vinifera_ShowSuperWeaponTimers;
 
     return true;
+}
+
+
+/**
+ *  Switches the sidebar to the Building Tab.
+ *
+ *  @author: ZivDero
+ */
+const char* SetStructureTabCommandClass::Get_Name() const
+{
+    return "StructureTab";
+}
+
+const char* SetStructureTabCommandClass::Get_UI_Name() const
+{
+    return "Select Building Tab";
+}
+
+const char* SetStructureTabCommandClass::Get_Category() const
+{
+    return Text_String(TXT_INTERFACE);
+}
+
+const char* SetStructureTabCommandClass::Get_Description() const
+{
+    return "Switch the command bar to the Building Tab and select the completed building if any.";
+}
+
+bool SetStructureTabCommandClass::Process()
+{
+    const SidebarClassExtension::SidebarTabType newtab = SidebarClassExtension::SIDEBAR_TAB_STRUCTURE;
+    bool result = SidebarExtension->Change_Tab(newtab);
+
+    /**
+     *  Enter the manual placement mode when a building is complete
+     *  and pending placement on the sidebar.
+     *
+     *  @author: CCHyper (based on research by dkeeton)
+     */
+    if (PlayerPtr)
+    {
+        /**
+         *  Fetch the houses factory associated with producing buildings.
+         */
+        FactoryClass* factory = PlayerPtr->Fetch_Factory(RTTI_BUILDING);
+        if (!factory)
+            return result;
+
+        /**
+         *  If this object is still being built, then bail.
+         */
+        if (!factory->Has_Completed()) {
+            return result;
+        }
+
+        TechnoClass* pending = factory->Get_Object();
+
+        /**
+         *  If by some rare chance the product is not a building, then bail.
+         */
+        if (pending->What_Am_I() != RTTI_BUILDING)
+            return result;
+
+        BuildingClass* pending_bptr = reinterpret_cast<BuildingClass*>(pending);
+
+        /**
+         *  Are we already trying to place this building? No need to re-enter placement mode...
+         */
+        if (Map.PendingObjectPtr == pending_bptr)
+            return result;
+
+        /**
+         *  Fetch the factory building that can build this object.
+         */
+        BuildingClass* builder = pending_bptr->Who_Can_Build_Me();
+        if (!builder)
+            return result;
+
+        /**
+         *  Go into placement mode.
+         */
+        PlayerPtr->Manual_Place(builder, pending_bptr);
+    }
+
+    return result;
+}
+
+
+/**
+ *  Switches the sidebar to the Infantry Tab.
+ *
+ *  @author: ZivDero
+ */
+const char* SetInfantryTabCommandClass::Get_Name() const
+{
+    return "InfantryTab";
+}
+
+const char* SetInfantryTabCommandClass::Get_UI_Name() const
+{
+    return "Select Infantry Tab";
+}
+
+const char* SetInfantryTabCommandClass::Get_Category() const
+{
+    return Text_String(TXT_INTERFACE);
+}
+
+const char* SetInfantryTabCommandClass::Get_Description() const
+{
+    return "Switch the command bar to the Infantry Tab.";
+}
+
+bool SetInfantryTabCommandClass::Process()
+{
+    const SidebarClassExtension::SidebarTabType newtab = SidebarClassExtension::SIDEBAR_TAB_INFANTRY;
+    return SidebarExtension->Change_Tab(newtab);
+}
+
+
+/**
+ *  Switches the sidebar to the Vehicle Tab.
+ *
+ *  @author: ZivDero
+ */
+const char* SetUnitTabCommandClass::Get_Name() const
+{
+    return "UnitTab";
+}
+
+const char* SetUnitTabCommandClass::Get_UI_Name() const
+{
+    return "Select Vehicles Tab";
+}
+
+const char* SetUnitTabCommandClass::Get_Category() const
+{
+    return Text_String(TXT_INTERFACE);
+}
+
+const char* SetUnitTabCommandClass::Get_Description() const
+{
+    return "Switch the command bar to the Vehicle Tab.";
+}
+
+bool SetUnitTabCommandClass::Process()
+{
+    const SidebarClassExtension::SidebarTabType newtab = SidebarClassExtension::SIDEBAR_TAB_UNIT;
+    return SidebarExtension->Change_Tab(newtab);
+}
+
+
+/**
+ *  Switches the sidebar to the Special Tab.
+ *
+ *  @author: ZivDero
+ */
+const char* SetSpecialTabCommandClass::Get_Name() const
+{
+    return "SpecialTab";
+}
+
+const char* SetSpecialTabCommandClass::Get_UI_Name() const
+{
+    return "Select Specials Tab";
+}
+
+const char* SetSpecialTabCommandClass::Get_Category() const
+{
+    return Text_String(TXT_INTERFACE);
+}
+
+const char* SetSpecialTabCommandClass::Get_Description() const
+{
+    return "Switch the command bar to the Special Tab.";
+}
+
+bool SetSpecialTabCommandClass::Process()
+{
+    const SidebarClassExtension::SidebarTabType newtab = SidebarClassExtension::SIDEBAR_TAB_SPECIAL;
+    return SidebarExtension->Change_Tab(newtab);
 }
 
 

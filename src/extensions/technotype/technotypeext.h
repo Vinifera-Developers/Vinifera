@@ -163,4 +163,9 @@ class TechnoTypeClassExtension : public ObjectTypeClassExtension
          *  Pointer to the cameo image surface.
          */
         BSurface *CameoImageSurface;
+
+        /**
+         *  Should this be considered a base defense when sorting cameos on the sidebar?
+         */
+        bool SortCameoAsBaseDefense;
 };
