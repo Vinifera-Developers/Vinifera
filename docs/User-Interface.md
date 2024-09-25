@@ -20,6 +20,27 @@ NewSidebar=no       ; boolean, whether the game should use the new sidebar.
 
 - Sample graphics for the new sidebar can be found [here](https://github.com/Vinifera-Developers/Vinifera-Files/tree/master/files).
 
+### Cameo Sorting
+
+- Vinifera will sort the cameos that appear on the sidebar.
+- Cameos are sorted by side (items owned by the player's house always go first, then in the order of sides), then by type.
+- Additionally, walls are always sorted after normal buildings, gates are always sorted after walls, and base defenses are sorted after gates. This is done to make it easier for the player to find base defenses on the sidebar, in the absence of a Defense tab.
+- When all else is equal, cameos are sorted by their index in their appropriate list.
+
+In `RULES.INI`:
+```ini
+[SOMEBUILDING]             ; BuildingType
+SortCameoAsBaseDefense=no  ; boolean, is this building considered a base defense for the purposes of sorting
+```
+
+- This feature can be turned off in `SUN.INI`.
+
+In `SUN.INI`:
+```ini
+[Options]
+SortDefensesAsLast=yes  ; boolean, are base defenses sorted to the end of the sidebar by default.
+```
+
 ### Desciptions
 
 - Tooltips displayed when hovering over icons on the sidebar have been extended.
