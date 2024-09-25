@@ -64,13 +64,13 @@
 #include "hooker_macros.h"
 
 
-/**
- *  A fake class for implementing new member functions which allow
- *  access to the "this" pointer of the intended class.
- *
- *  @note: This must not contain a constructor or deconstructor!
- *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
- */
+ /**
+  *  A fake class for implementing new member functions which allow
+  *  access to the "this" pointer of the intended class.
+  *
+  *  @note: This must not contain a constructor or deconstructor!
+  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+  */
 static class BuildingClassExt final : public BuildingClass
 {
 public:
@@ -107,7 +107,7 @@ bool BuildingClassExt::_Can_Have_Rally_Point()
  *
  *  @author: ZivDero
  */
-void BuildingClassFake::_Update_Buildables()
+void BuildingClassExt::_Update_Buildables()
 {
     if (House == PlayerPtr && !IsInLimbo && IsDiscoveredByPlayer && IsPowerOn)
     {

@@ -50,7 +50,7 @@
   *  @note: This must not contain a constructor or deconstructor!
   *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
   */
-static class FactoryClassFake final : public FactoryClass
+static class FactoryClassExt final : public FactoryClass
 {
 public:
     void _Sanitize_Queue();
@@ -65,7 +65,7 @@ public:
  *
  *  @author: ZivDero
  */
-void FactoryClassFake::_Sanitize_Queue()
+void FactoryClassExt::_Sanitize_Queue()
 {
     const TechnoClass* producing_object = Get_Object();
 
@@ -123,7 +123,7 @@ void FactoryClassFake::_Sanitize_Queue()
  *
  *  @author: ZivDero
  */
-bool FactoryClassFake::_Start(bool suspend)
+bool FactoryClassExt::_Start(bool suspend)
 {
     if ((Object || SpecialItem) && IsSuspended && !Has_Completed())
     {
@@ -153,7 +153,7 @@ bool FactoryClassFake::_Start(bool suspend)
  *
  *  @author: ZivDero
  */
-void FactoryClassFake::_AI()
+void FactoryClassExt::_AI()
 {
     //_Sanitize_Queue();
 
@@ -239,6 +239,6 @@ void FactoryClassFake::_AI()
  */
 void FactoryClassExtension_Hooks()
 {
-    Patch_Jump(0x00496EA0, &FactoryClassFake::_AI);
-    Patch_Jump(0x004971E0, &FactoryClassFake::_Start);
+    Patch_Jump(0x00496EA0, &FactoryClassExt::_AI);
+    Patch_Jump(0x004971E0, &FactoryClassExt::_Start);
 }

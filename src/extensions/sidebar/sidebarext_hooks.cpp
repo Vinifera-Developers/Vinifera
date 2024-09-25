@@ -54,7 +54,7 @@
   *  @note: This must not contain a constructor or deconstructor!
   *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
   */
-static class SidebarClassFake final : public SidebarClass
+static class SidebarClassExt final : public SidebarClass
 {
 public:
     void _One_Time();
@@ -84,7 +84,7 @@ public:
  *  @note: This must not contain a constructor or deconstructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-static class StripClassFake final : public SidebarClass::StripClass
+static class StripClassExt final : public SidebarClass::StripClass
 {
 public:
     void _One_Time(int id);
@@ -171,7 +171,7 @@ DECLARE_PATCH(_SidebarClass_Destructor_Patch)
  *
  *  @author: ZivDero
  */
-void SidebarClassFake::_One_Time()
+void SidebarClassExt::_One_Time()
 {
     PowerClass::One_Time();
 
@@ -191,7 +191,7 @@ void SidebarClassFake::_One_Time()
  *
  *  @author: ZivDero
  */
-void SidebarClassFake::_Init_Clear()
+void SidebarClassExt::_Init_Clear()
 {
     PowerClass::Init_Clear();
 
@@ -214,7 +214,7 @@ void SidebarClassFake::_Init_Clear()
  *
  *  @author: ZivDero
  */
-void SidebarClassFake::_Init_IO()
+void SidebarClassExt::_Init_IO()
 {
     PowerClass::Init_IO();
 
@@ -302,7 +302,7 @@ void SidebarClassFake::_Init_IO()
  *
  *  @author: ZivDero
  */
-void SidebarClassFake::_Init_For_House()
+void SidebarClassExt::_Init_For_House()
 {
     PowerClass::Init_For_House();
 
@@ -331,7 +331,7 @@ void SidebarClassFake::_Init_For_House()
     SidebarExtension->Init_For_House();
 
     for (int i = 0; i < SidebarClassExtension::SIDEBAR_TAB_COUNT; ++i)
-        static_cast<StripClassFake*>(&SidebarExtension->Column[i])->_Init_For_House(i);
+        static_cast<StripClassExt*>(&SidebarExtension->Column[i])->_Init_For_House(i);
 }
 
 
@@ -340,7 +340,7 @@ void SidebarClassFake::_Init_For_House()
  *
  *  @author: ZivDero
  */
-void SidebarClassFake::_Init_Strips()
+void SidebarClassExt::_Init_Strips()
 {
     SidebarExtension->Init_Strips();
 }
@@ -351,7 +351,7 @@ void SidebarClassFake::_Init_Strips()
  *
  *  @author: ZivDero
  */
-bool SidebarClassFake::_Factory_Link(FactoryClass* factory, RTTIType type, int id)
+bool SidebarClassExt::_Factory_Link(FactoryClass* factory, RTTIType type, int id)
 {
     return SidebarExtension->Get_Tab(type).Factory_Link(factory, type, id);
 }
@@ -513,7 +513,7 @@ int __cdecl BuildType_Comparison(const void* p1, const void* p2)
  *
  *  @author: ZivDero
  */
-bool SidebarClassFake::_Add(RTTIType type, int id)
+bool SidebarClassExt::_Add(RTTIType type, int id)
 {
     if (!Debug_Map)
     {
@@ -536,7 +536,7 @@ bool SidebarClassFake::_Add(RTTIType type, int id)
  *
  *  @author: ZivDero
  */
-bool SidebarClassFake::_Activate(int control)
+bool SidebarClassExt::_Activate(int control)
 {
     bool old = IsSidebarActive;
 
@@ -627,7 +627,7 @@ bool SidebarClassFake::_Activate(int control)
  *
  *  @author: ZivDero
  */
-bool SidebarClassFake::_Scroll(bool up, int column)
+bool SidebarClassExt::_Scroll(bool up, int column)
 {
     if (*reinterpret_cast<int*>(0x007E492C))
         return false;
@@ -651,7 +651,7 @@ bool SidebarClassFake::_Scroll(bool up, int column)
  *
  *  @author: ZivDero
  */
-bool SidebarClassFake::_Scroll_Page(bool up, int column)
+bool SidebarClassExt::_Scroll_Page(bool up, int column)
 {
     bool scr = SidebarExtension->Current_Tab().Scroll_Page(up);
 
@@ -672,7 +672,7 @@ bool SidebarClassFake::_Scroll_Page(bool up, int column)
  *
  *  @author: ZivDero
  */
-void SidebarClassFake::_AI(KeyNumType& input, Point2D& xy)
+void SidebarClassExt::_AI(KeyNumType& input, Point2D& xy)
 {
     if (!Debug_Map)
     {
@@ -786,7 +786,7 @@ void SidebarClassFake::_AI(KeyNumType& input, Point2D& xy)
  *
  *  @author: ZivDero
  */
-void SidebarClassFake::_Draw_It(bool complete)
+void SidebarClassExt::_Draw_It(bool complete)
 {
     complete |= IsToFullRedraw;
     Map.field_1214 = Rect();
@@ -892,7 +892,7 @@ void SidebarClassFake::_Draw_It(bool complete)
  *
  *  @author: ZivDero
  */
-void SidebarClassFake::_Recalc()
+void SidebarClassExt::_Recalc()
 {
     bool redraw = false;
     for (int i = 0; i < SidebarClassExtension::SIDEBAR_TAB_COUNT; i++)
@@ -911,7 +911,7 @@ void SidebarClassFake::_Recalc()
  *
  *  @author: ZivDero
  */
-bool SidebarClassFake::_Abandon_Production(RTTIType type, FactoryClass* factory)
+bool SidebarClassExt::_Abandon_Production(RTTIType type, FactoryClass* factory)
 {
     return SidebarExtension->Get_Tab(type).Abandon_Production(factory);
 }
@@ -922,7 +922,7 @@ bool SidebarClassFake::_Abandon_Production(RTTIType type, FactoryClass* factory)
  *
  *  @author: ZivDero
  */
-void SidebarClassFake::_entry_84()
+void SidebarClassExt::_entry_84()
 {
     /*
     **  Position the sidebar itself.
@@ -1042,7 +1042,7 @@ void SidebarClassFake::_entry_84()
  *
  *  @author: ZivDero
  */
-const char* SidebarClassFake::_Help_Text(int gadget_id)
+const char* SidebarClassExt::_Help_Text(int gadget_id)
 {
     const char* text = PowerClass::Help_Text(gadget_id);
     if (text == nullptr)
@@ -1080,7 +1080,7 @@ const char* SidebarClassFake::_Help_Text(int gadget_id)
  *
  *  @author: ZivDero
  */
-int SidebarClassFake::_Max_Visible()
+int SidebarClassExt::_Max_Visible()
 {
     return SidebarClassExtension::Max_Visible(true);
 }
@@ -1091,7 +1091,7 @@ int SidebarClassFake::_Max_Visible()
  *
  *  @author: ZivDero
  */
-void StripClassFake::_One_Time(int id)
+void StripClassExt::_One_Time(int id)
 {
     DarkenShape = MFCC::RetrieveT<ShapeFileStruct>("DARKEN.SHP");
 }
@@ -1102,7 +1102,7 @@ void StripClassFake::_One_Time(int id)
  *
  *  @author: ZivDero
  */
-void StripClassFake::_Init_IO(int id)
+void StripClassExt::_Init_IO(int id)
 {
     ID = id;
 
@@ -1137,7 +1137,7 @@ void StripClassFake::_Init_IO(int id)
  *
  *  @author: ZivDero
  */
-void StripClassFake::_Init_For_House(int id)
+void StripClassExt::_Init_For_House(int id)
 {
     UpButton[0].Set_Shape(MFCC::RetrieveT<ShapeFileStruct>("R-UP.SHP"));
     UpButton[0].ShapeDrawer = SidebarDrawer;
@@ -1152,7 +1152,7 @@ void StripClassFake::_Init_For_House(int id)
  *
  *  @author: ZivDero
  */
-void StripClassFake::_Activate()
+void StripClassExt::_Activate()
 {
     UpButton[0].Zap();
     Map.Add_A_Button(UpButton[0]);
@@ -1174,7 +1174,7 @@ void StripClassFake::_Activate()
  *
  *  @author: ZivDero
  */
-void StripClassFake::_Deactivate()
+void StripClassExt::_Deactivate()
 {
     Map.Remove_A_Button(UpButton[0]);
     Map.Remove_A_Button(DownButton[0]);
@@ -1192,7 +1192,7 @@ void StripClassFake::_Deactivate()
  *
  *  @author: ZivDero
  */
-bool StripClassFake::_Scroll(bool up)
+bool StripClassExt::_Scroll(bool up)
 {
     if (up)
     {
@@ -1216,7 +1216,7 @@ bool StripClassFake::_Scroll(bool up)
  *
  *  @author: ZivDero
  */
-bool StripClassFake::_Scroll_Page(bool up)
+bool StripClassExt::_Scroll_Page(bool up)
 {
     if (up)
     {
@@ -1239,7 +1239,7 @@ bool StripClassFake::_Scroll_Page(bool up)
  *
  *  @author: ZivDero
  */
-bool StripClassFake::_AI(KeyNumType& input, Point2D&)
+bool StripClassExt::_AI(KeyNumType& input, Point2D&)
 {
     bool redraw = false;
 
@@ -1432,7 +1432,7 @@ bool StripClassFake::_AI(KeyNumType& input, Point2D&)
  *
  *  @author: ZivDero
  */
-const char* StripClassFake::_Help_Text(int gadget_id)
+const char* StripClassExt::_Help_Text(int gadget_id)
 {
     static char _buffer[512];
 
@@ -1483,7 +1483,7 @@ const char* StripClassFake::_Help_Text(int gadget_id)
  *
  *  @author: ZivDero
  */
-void StripClassFake::_Draw_It(bool complete)
+void StripClassExt::_Draw_It(bool complete)
 {
     if (IsToRedraw || complete)
     {
@@ -1792,7 +1792,7 @@ void StripClassFake::_Draw_It(bool complete)
  *
  *  @author: ZivDero
  */
-bool StripClassFake::_Factory_Link(FactoryClass* factory, RTTIType type, int id)
+bool StripClassExt::_Factory_Link(FactoryClass* factory, RTTIType type, int id)
 {
     for (int i = 0; i < BuildableCount; i++)
     {
@@ -1818,7 +1818,7 @@ bool StripClassFake::_Factory_Link(FactoryClass* factory, RTTIType type, int id)
  *
  *  @author: ZivDero
  */
-void StripClassFake::_Tab_Button_AI()
+void StripClassExt::_Tab_Button_AI()
 {
     if (BuildableCount > 0)
     {
@@ -1869,7 +1869,7 @@ void StripClassFake::_Tab_Button_AI()
  *
  *  @author: ZivDero
  */
-void StripClassFake::_Fake_Flag_To_Redraw_Special()
+void StripClassExt::_Fake_Flag_To_Redraw_Special()
 {
     SidebarExtension->Get_Tab(RTTI_SPECIAL).Flag_To_Redraw();
 }
@@ -1880,7 +1880,7 @@ void StripClassFake::_Fake_Flag_To_Redraw_Special()
  *
  *  @author: ZivDero
  */
-void StripClassFake::_Fake_Flag_To_Redraw_Current()
+void StripClassExt::_Fake_Flag_To_Redraw_Current()
 {
     SidebarExtension->Current_Tab().Flag_To_Redraw();
 }
@@ -2100,35 +2100,35 @@ void SidebarClassExtension_Hooks()
     Patch_Jump(0x005F23AC, &_SidebarClass_Constructor_Patch);
     Patch_Jump(0x005B8B7D, &_SidebarClass_Destructor_Patch);
 
-    Patch_Jump(0x005F2610, &SidebarClassFake::_One_Time);
-    Patch_Jump(0x005F2660, &SidebarClassFake::_Init_Clear);
-    Patch_Jump(0x005F2720, &SidebarClassFake::_Init_IO);
-    Patch_Jump(0x005F2900, &SidebarClassFake::_Init_For_House);
-    Patch_Jump(0x005F2B00, &SidebarClassFake::_Init_Strips);
+    Patch_Jump(0x005F2610, &SidebarClassExt::_One_Time);
+    Patch_Jump(0x005F2660, &SidebarClassExt::_Init_Clear);
+    Patch_Jump(0x005F2720, &SidebarClassExt::_Init_IO);
+    Patch_Jump(0x005F2900, &SidebarClassExt::_Init_For_House);
+    Patch_Jump(0x005F2B00, &SidebarClassExt::_Init_Strips);
     Patch_Jump(0x005F2C30, &SidebarClassExtension::Which_Tab);
-    Patch_Jump(0x005F2C50, &SidebarClassFake::_Factory_Link);
-    Patch_Jump(0x005F2E20, &SidebarClassFake::_Add);
-    Patch_Jump(0x005F2E90, &SidebarClassFake::_Scroll);
-    Patch_Jump(0x005F30F0, &SidebarClassFake::_Scroll_Page);
-    Patch_Jump(0x005F3560, &SidebarClassFake::_Draw_It);
-    Patch_Jump(0x005F3C70, &SidebarClassFake::_AI);
-    Patch_Jump(0x005F3E20, &SidebarClassFake::_Recalc);
-    Patch_Jump(0x005F3E60, &SidebarClassFake::_Activate);
-    Patch_Jump(0x005F5F70, &SidebarClassFake::_Abandon_Production);
-    Patch_Jump(0x005F6080, &SidebarClassFake::_entry_84);
-    Patch_Jump(0x005F6620, &SidebarClassFake::_Help_Text);
-    Patch_Jump(0x005F6670, &SidebarClassFake::_Max_Visible);
+    Patch_Jump(0x005F2C50, &SidebarClassExt::_Factory_Link);
+    Patch_Jump(0x005F2E20, &SidebarClassExt::_Add);
+    Patch_Jump(0x005F2E90, &SidebarClassExt::_Scroll);
+    Patch_Jump(0x005F30F0, &SidebarClassExt::_Scroll_Page);
+    Patch_Jump(0x005F3560, &SidebarClassExt::_Draw_It);
+    Patch_Jump(0x005F3C70, &SidebarClassExt::_AI);
+    Patch_Jump(0x005F3E20, &SidebarClassExt::_Recalc);
+    Patch_Jump(0x005F3E60, &SidebarClassExt::_Activate);
+    Patch_Jump(0x005F5F70, &SidebarClassExt::_Abandon_Production);
+    Patch_Jump(0x005F6080, &SidebarClassExt::_entry_84);
+    Patch_Jump(0x005F6620, &SidebarClassExt::_Help_Text);
+    Patch_Jump(0x005F6670, &SidebarClassExt::_Max_Visible);
 
-    Patch_Jump(0x005F4210, &StripClassFake::_One_Time);
-    Patch_Jump(0x005F42A0, &StripClassFake::_Init_IO);
-    Patch_Jump(0x005F4450, &StripClassFake::_Activate);
-    Patch_Jump(0x005F4560, &StripClassFake::_Deactivate);
-    Patch_Jump(0x005F46B0, &StripClassFake::_Scroll);
-    Patch_Jump(0x005F4760, &StripClassFake::_Scroll_Page);
-    Patch_Jump(0x005F4910, &StripClassFake::_AI);
-    Patch_Jump(0x005F4E40, &StripClassFake::_Help_Text);
-    Patch_Jump(0x005F4F10, &StripClassFake::_Draw_It);
-    Patch_Jump(0x005F5F10, &StripClassFake::_Factory_Link);
+    Patch_Jump(0x005F4210, &StripClassExt::_One_Time);
+    Patch_Jump(0x005F42A0, &StripClassExt::_Init_IO);
+    Patch_Jump(0x005F4450, &StripClassExt::_Activate);
+    Patch_Jump(0x005F4560, &StripClassExt::_Deactivate);
+    Patch_Jump(0x005F46B0, &StripClassExt::_Scroll);
+    Patch_Jump(0x005F4760, &StripClassExt::_Scroll_Page);
+    Patch_Jump(0x005F4910, &StripClassExt::_AI);
+    Patch_Jump(0x005F4E40, &StripClassExt::_Help_Text);
+    Patch_Jump(0x005F4F10, &StripClassExt::_Draw_It);
+    Patch_Jump(0x005F5F10, &StripClassExt::_Factory_Link);
 
     Patch_Jump(0x004A9F0F, _GadgetClass_Input_Mouse_Enter_Leave);
     Patch_Jump(0x005AB4CF, _PowerClass_Draw_It_Move_Power_Bar);
@@ -2136,18 +2136,18 @@ void SidebarClassExtension_Hooks()
 
     // There are a bunch of calls to vanilla strips to redraw them.
     // We patch them to either redraw the supers' strip or the current strip
-    Patch_Call(0x00458ADB, &StripClassFake::_Fake_Flag_To_Redraw_Special);
-    Patch_Call(0x004BD32D, &StripClassFake::_Fake_Flag_To_Redraw_Special);
-    Patch_Call(0x004CB585, &StripClassFake::_Fake_Flag_To_Redraw_Special);
-    Patch_Call(0x004CB6F8, &StripClassFake::_Fake_Flag_To_Redraw_Special);
-    Patch_Call(0x00619F9A, &StripClassFake::_Fake_Flag_To_Redraw_Special);
-    Patch_Call(0x0061C09C, &StripClassFake::_Fake_Flag_To_Redraw_Special);
-    Patch_Call(0x0061C0FD, &StripClassFake::_Fake_Flag_To_Redraw_Special);
+    Patch_Call(0x00458ADB, &StripClassExt::_Fake_Flag_To_Redraw_Special);
+    Patch_Call(0x004BD32D, &StripClassExt::_Fake_Flag_To_Redraw_Special);
+    Patch_Call(0x004CB585, &StripClassExt::_Fake_Flag_To_Redraw_Special);
+    Patch_Call(0x004CB6F8, &StripClassExt::_Fake_Flag_To_Redraw_Special);
+    Patch_Call(0x00619F9A, &StripClassExt::_Fake_Flag_To_Redraw_Special);
+    Patch_Call(0x0061C09C, &StripClassExt::_Fake_Flag_To_Redraw_Special);
+    Patch_Call(0x0061C0FD, &StripClassExt::_Fake_Flag_To_Redraw_Special);
 
-    Patch_Call(0x004BD1E0, &StripClassFake::_Fake_Flag_To_Redraw_Current);
-    Patch_Call(0x004BD1EA, &StripClassFake::_Fake_Flag_To_Redraw_Current);
-    Patch_Call(0x004C9859, &StripClassFake::_Fake_Flag_To_Redraw_Current);
-    Patch_Call(0x004C9863, &StripClassFake::_Fake_Flag_To_Redraw_Current);
+    Patch_Call(0x004BD1E0, &StripClassExt::_Fake_Flag_To_Redraw_Current);
+    Patch_Call(0x004BD1EA, &StripClassExt::_Fake_Flag_To_Redraw_Current);
+    Patch_Call(0x004C9859, &StripClassExt::_Fake_Flag_To_Redraw_Current);
+    Patch_Call(0x004C9863, &StripClassExt::_Fake_Flag_To_Redraw_Current);
 
 
     /**

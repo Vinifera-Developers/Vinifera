@@ -52,7 +52,7 @@
   *  @note: This must not contain a constructor or deconstructor!
   *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
   */
-static class HouseClassFake final : public HouseClass
+static class HouseClassExt final : public HouseClass
 {
 public:
     ProdFailType _Begin_Production(RTTIType type, int id, bool resume);
@@ -65,7 +65,7 @@ public:
  *
  *  @author: ZivDero
  */
-ProdFailType HouseClassFake::_Begin_Production(RTTIType type, int id, bool resume)
+ProdFailType HouseClassExt::_Begin_Production(RTTIType type, int id, bool resume)
 {
     bool has_suspended = false;
     bool suspend = false;
@@ -177,7 +177,7 @@ ProdFailType HouseClassFake::_Begin_Production(RTTIType type, int id, bool resum
  *
  *  @author: ZivDero
  */
-ProdFailType HouseClassFake::_Abandon_Production(RTTIType type, int id)
+ProdFailType HouseClassExt::_Abandon_Production(RTTIType type, int id)
 {
     FactoryClass* fptr = Fetch_Factory(type);
 
@@ -369,6 +369,6 @@ void HouseClassExtension_Hooks()
     Patch_Jump(0x004BBD26, &_HouseClass_Can_Build_BuildCheat_Patch);
     Patch_Jump(0x004BD30B, &_HouseClass_Super_Weapon_Handler_InstantRecharge_Patch);
 
-    Patch_Jump(0x004BE200, &HouseClassFake::_Begin_Production);
-    Patch_Jump(0x004BE6A0, &HouseClassFake::_Abandon_Production);
+    Patch_Jump(0x004BE200, &HouseClassExt::_Begin_Production);
+    Patch_Jump(0x004BE6A0, &HouseClassExt::_Abandon_Production);
 }
