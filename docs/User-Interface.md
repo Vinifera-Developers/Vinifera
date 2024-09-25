@@ -15,7 +15,7 @@ This page lists all user interface additions, changes, fixes that are implemente
 In `VINIFERA.INI`:
 ```ini
 [Features]
-NewSidebar=no       ; boolean, whether the game should use the new sidebar.
+NewSidebar=no  ; boolean, whether the game should use the new sidebar.
 ```
 
 - Sample graphics for the new sidebar can be found [here](https://github.com/Vinifera-Developers/Vinifera-Files/tree/master/files).
