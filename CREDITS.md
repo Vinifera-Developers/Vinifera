@@ -123,6 +123,8 @@ This page lists all the individual contributions to the project by their author.
   - Change starting unit placement to be the same as Red Alert 2.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
+- **MarkJFox**:
+  - Graphics for the new sidebar fitting vanilla sidebar.
 - **Rampastring**:
   - Add `IceStrength` to Rules, and `IceDestructionEnabled` scenario option.
   - Add `ImmuneToEMP` to TechnoTypes.
