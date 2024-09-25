@@ -2227,5 +2227,10 @@ void SidebarClassExtension_Conditional_Hooks()
         Patch_Call(0x004BD1EA, &StripClassExt::_Fake_Flag_To_Redraw_Current);
         Patch_Call(0x004C9859, &StripClassExt::_Fake_Flag_To_Redraw_Current);
         Patch_Call(0x004C9863, &StripClassExt::_Fake_Flag_To_Redraw_Current);
+
+        Patch_Jump(0x004E5C70, 0x004E5D4A); // Don't add LSidebarUpCommandClass and RSidebarUpCommandClass
+        Patch_Jump(0x004E5DB7, 0x004E5E91); // Don't add LSidebarDownCommandClass and RSidebarDownCommandClass
+        Patch_Jump(0x004E5EFE, 0x004E5FD8); // Don't add LSidebarPageUpCommandClass and RSidebarPageUpCommandClass
+        Patch_Jump(0x004E6045, 0x004E611F); // Don't add LSidebarPageDownCommandClass and RSidebarPageDownCommandClass
     }
 }
