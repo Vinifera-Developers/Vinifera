@@ -2108,6 +2108,39 @@ draw_darken_shape:
 
 
 /**
+ *  Adds support for extended sidebar tooltips.
+ *
+ *  @author: Rampastring
+ */
+static char extended_description[512];
+DECLARE_PATCH(_SidebarClass_StripClass_Help_Text_Extended_Tooltip_Patch)
+{
+    GET_REGISTER_STATIC(int, cost, eax);
+    GET_REGISTER_STATIC(TechnoTypeClass*, technotype, esi);
+
+    static TechnoTypeClassExtension* technotypeext;
+    static char* description;
+    technotypeext = Extension::Fetch<TechnoTypeClassExtension>(technotype);
+    description = technotypeext->Description;
+
+    // Using sprintf below will affect the stack, but the compiler should also clean it up,
+    // so there should be no issue.
+    if (description[0] == '\0') {
+        // If there is no extended description, then simply show the name and price.
+        sprintf(extended_description, "%s@$%d", technotype->FullName, cost);
+    }
+    else {
+        // If there is an extended description, then show the name, price, and the description.
+        sprintf(extended_description, "%s@$%d@@%s", technotype->FullName, cost, technotypeext->Description);
+    }
+
+    // Set up return value
+    _asm { mov  eax, offset ds : extended_description }
+    JMP_REG(ecx, 0x005F4EFF);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void SidebarClassExtension_Hooks()
@@ -2120,12 +2153,22 @@ void SidebarClassExtension_Hooks()
      */
     Patch_Jump(0x005F4E40, &StripClassExt::_Help_Text);
 
+    // NOP away tooltip length check for formatting
+    Patch_Byte(0x0044E486, 0x90);
+    Patch_Byte(0x0044E486 + 1, 0x90);
+
+    // Change jle to jl to allow rendering tooltips that are exactly as wide as the sidebar
+    Patch_Byte(0x0044E605 + 1, 0x8C);
+
     /**
      *  Legacy patches for the old sidebar.
      */
     Patch_Jump(0x005F5188, &_SidebarClass_StripClass_ObjectTypeClass_Custom_Cameo_Image_Patch);
     Patch_Jump(0x005F5216, &_SidebarClass_StripClass_SuperWeaponType_Custom_Cameo_Image_Patch);
     Patch_Jump(0x005F52AF, &_SidebarClass_StripClass_Custom_Cameo_Image_Patch);
+
+    Patch_Jump(0x005F4EDD, &_SidebarClass_StripClass_Help_Text_Extended_Tooltip_Patch);
+    Patch_Byte(0x005F4EF7 + 2, 0x14); // Pop one more argument passed to sprintf
 }
 
 
