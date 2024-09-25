@@ -91,7 +91,7 @@ Description=  ; string, an extended description of the techno. Up to 200 charact
 
 ### `[ ]` Select Specials Tab
 
-- Switch the command bar to the Special Tab. Defaults to `E` if the new sidebar is enabled, otherwise to `<none>`.
+- Switch the command bar to the Special Tab. Defaults to `R` if the new sidebar is enabled, otherwise to `<none>`.
 
 ### `[ ]` Jump Camera West
 
