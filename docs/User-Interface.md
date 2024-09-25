@@ -6,11 +6,10 @@ This page lists all user interface additions, changes, fixes that are implemente
 
 ### Tabs
 
-- Vinifera reimplements the sidebar in Tiberian Sun to include tabs similar to those in Red Alert 2.
-- There are 4 tabs, just like in Red Alert 2, however, due to the lack of a defense queue, the second tab, "Defenses", has been replaced by a new "Special" tab, containing Superweapons, as well as aircraft.
-- Vinifera also adds new hotkeys to switch to each of the tabs, as well as place the currently ready building (in the case of the Structure tab).
-
-- The new sidebar must be enabled in `VINIFERA.INI`.
+- Vinifera enhances the Tiberian Sun sidebar by introducing tabs similar to those found in Red Alert 2.
+- There are four tabs, just like in Red Alert 2; however, due to the absence of a defense queue, the "Defenses" tab has been replaced by a new "Special" tab. This tab contains Superweapons and aircraft.
+- Vinifera also introduces new hotkeys for quick tab switching and placing the currently available building (in the case of the Structure tab).
+- The new sidebar feature must be enabled in `VINIFERA.INI`.
 
 In `VINIFERA.INI`:
 ```ini
@@ -18,14 +17,14 @@ In `VINIFERA.INI`:
 NewSidebar=no  ; boolean, whether the game should use the new sidebar.
 ```
 
-- Sample graphics for the new sidebar can be found [here](https://github.com/Vinifera-Developers/Vinifera-Files/tree/master/files).
+- Sample graphics for the new sidebar are available [here](https://github.com/Vinifera-Developers/Vinifera-Files/tree/master/files).
 
 ### Cameo Sorting
 
-- Vinifera will sort the cameos that appear on the sidebar.
-- Cameos are sorted by side (items owned by the player's house always go first, then in the order of sides), then by type.
-- Additionally, walls are always sorted after normal buildings, gates are always sorted after walls, and base defenses are sorted after gates. This is done to make it easier for the player to find base defenses on the sidebar, in the absence of a Defense tab.
-- When all else is equal, cameos are sorted by their index in their appropriate list.
+- Vinifera introduces automatic sorting for cameos that appear on the sidebar.
+- Cameos are sorted by side (player's side items appear first, followed by others in side order) and then by type.
+- Walls are always sorted after regular buildings, gates after walls, and base defenses after gates. This organization is designed to help players locate base defenses on the sidebar in the absence of a dedicated Defense tab.
+- When other factors are equal, cameos are sorted by their index in their respective list.
 
 In `RULES.INI`:
 ```ini
@@ -33,7 +32,7 @@ In `RULES.INI`:
 SortCameoAsBaseDefense=no  ; boolean, is this building considered a base defense for the purposes of sorting
 ```
 
-- This feature can be turned off in `SUN.INI`.
+- This sorting feature can be turned off in `SUN.INI`.
 
 In `SUN.INI`:
 ```ini
@@ -43,8 +42,8 @@ SortDefensesAsLast=yes  ; boolean, are base defenses sorted to the end of the si
 
 ### Desciptions
 
-- Tooltips displayed when hovering over icons on the sidebar have been extended.
-- By default, when hovering over an icon, the name of the object, as well as its price will be displayed. Additionally, a description, displayed after the price, may be specified.
+- Tooltips displayed when hovering over icons on the sidebar have been expanded.
+- By default, hovering over an icon will display the object's name and price. Additionally, a description can be specified, which will appear after the price.
 
 In `RULES.INI`:
 ```ini
