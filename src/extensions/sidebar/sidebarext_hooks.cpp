@@ -1359,8 +1359,9 @@ bool StripClassExt::_AI(KeyNumType& input, Point2D&)
             */
             if (Scroller < 0)
             {
-                if (!TopIndex)
+                if (TopIndex <= 0)
                 {
+                    TopIndex = 0;
                     Scroller = 0;
                 }
                 else
