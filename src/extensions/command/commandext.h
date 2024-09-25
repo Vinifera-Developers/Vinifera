@@ -117,7 +117,7 @@ class RepeatLastBuildingCommandClass : public ViniferaCommandClass
         virtual const char *Get_Description() const override;
         virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_Z|KN_CTRL_BIT); }
+        virtual KeyNumType Default_Key() const override { return Vinifera_NewSidebar ? KeyNumType(KN_Q|KN_CTRL_BIT) : KeyNumType(KN_Z|KN_CTRL_BIT); }
 };
 
 

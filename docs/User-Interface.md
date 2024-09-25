@@ -6,11 +6,30 @@ This page lists all user interface additions, changes, fixes that are implemente
 
 ### Tabs
 
-- The sidebar now has tabs. Description here later.
+- Vinifera reimplements the sidebar in Tiberian Sun to include tabs similar to those in Red Alert 2.
+- There are 4 tabs, just like in Red Alert 2, however, due to the lack of a defense queue, the second tab, "Defenses", has been replaced by a new "Special" tab, containing Superweapons, as well as aircraft.
+- Vinifera also adds new hotkeys to switch to each of the tabs, as well as place the currently ready building (in the case of the Structure tab).
+
+- The new sidebar must be enabled in `VINIFERA.INI`.
+
+In `VINIFERA.INI`:
+```ini
+[Features]
+NewSidebar=no       ; boolean, whether the game should use the new sidebar.
+```
+
+- Sample graphics for the new sidebar can be found [here](https://github.com/Vinifera-Developers/Vinifera-Files/tree/master/files).
 
 ### Desciptions
 
-- Lala.
+- Tooltips displayed when hovering over icons on the sidebar have been extended.
+- By default, when hovering over an icon, the name of the object, as well as its price will be displayed. Additionally, a description, displayed after the price, may be specified.
+
+In `RULES.INI`:
+```ini
+[SOMETECHNO]  ; TechnoType
+Description=  ; string, an extended description of the techno. Up to 200 characters in length.
+```
 
 ## Hotkey Commands
 
@@ -24,7 +43,7 @@ This page lists all user interface additions, changes, fixes that are implemente
 
 ### `[ ]` Repeat Last Building
 
-- Queue the last structure that was built. Defaults to `Ctrl` + `Z`.
+- Queue the last structure that was built. Defaults to `Ctrl` + `Q` if the new sidebar is enabled, otherwise to `Ctrl` + `Z`.
 
 ### `[ ]` Repeat Last Infantry
 
@@ -37,6 +56,22 @@ This page lists all user interface additions, changes, fixes that are implemente
 ### `[ ]` Repeat Last Aircraft
 
 - Queue the last aircraft that was built. Defaults to `<none>`.
+
+### `[ ]` Select Building Tab
+
+- Switch the command bar to the Building Tab and select the completed building if any. Defaults to `Q` if the new sidebar is enabled, otherwise to `<none>`.
+
+### `[ ]` Select Infantry Tab
+
+- Switch the command bar to the Infantry Tab. Defaults to `W` if the new sidebar is enabled, otherwise to `<none>`.
+
+### `[ ]` Select Vehicles Tab
+
+- Switch the command bar to the Vehicle Tab. Defaults to `E` if the new sidebar is enabled, otherwise to `<none>`.
+
+### `[ ]` Select Specials Tab
+
+- Switch the command bar to the Special Tab. Defaults to `E` if the new sidebar is enabled, otherwise to `<none>`.
 
 ### `[ ]` Jump Camera West
 
@@ -80,6 +115,22 @@ This page lists all user interface additions, changes, fixes that are implemente
 
 ![image](https://user-images.githubusercontent.com/73803386/123566309-4ade4600-d7b7-11eb-9b77-5c9de7959822.png)
 
+### Customizable Vanilla Modifier Keys
+
+- Vinifera allows the player to customize the keys used for Force Move, Force Attack, Select and Queued Move.
+```{note}
+Due to engine limitations, these keys will not appear in the options menu and must be customized in KEYBOARD.INI
+```
+
+In `KEYBOARD.INI`:
+```ini
+[Hotkey]
+ForceMove=18    ; key number, ALT
+ForceAttack=17  ; key number, CONTROL
+Select=16       ; key number, SHIFT
+QueueMove=81    ; key number, Q if the new sidebar is off, otherwise Z
+```
+
 ## Dropship Loadout
 
 - The Tiberian Sun Map theme is now played on the Dropship Loadout screen (`DSHPLOAD` can be defined in THEME.INI to customise this.)
@@ -101,6 +152,7 @@ Attached is a set of the original loading screens with a minor edit and saved as
 ### Super Weapon Timers
 
 - Super Weapon timers, similar to those found in Red Alert 2, can now be displayed on the tactical view. This is disabled by default and each relevant SuperWeaponType must have it enabled. Superweapons that are offline due to low power or are disabled via other purposes will not show.
+
 In `RULES.INI`:
 ```ini
 [SOMESUPERWEAPON]  ; SuperWeaponType
