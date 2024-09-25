@@ -126,6 +126,7 @@ This page lists all the individual contributions to the project by their author.
 - **Rampastring**:
   - Add `IceStrength` to Rules, and `IceDestructionEnabled` scenario option.
   - Add `ImmuneToEMP` to TechnoTypes.
+  - Make it possible to assign rally points to service depots.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **ZivDero**:

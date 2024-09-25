@@ -74,6 +74,10 @@ ProduceCashResetOnCapture=no  ; boolean, reset the buildings available budget wh
 ProduceCashStartupOneTime=no  ; boolean, is the bonus on capture a "one one" special (further captures will not get the bonus)?
 ```
 
+### Rally Points for Service Depots
+
+- Vinifera makes it possible for the player to assign a rally point for their service depot, just like has been possible with factories.
+
 ## Ice
 
 - Ice strength can now be customized.

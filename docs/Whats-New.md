@@ -43,6 +43,7 @@ This page lists the history of changes across stable Vinifera releases and also 
   <summary>Click to show</summary>
 
 New:
+- Make it possible to assign rally points to service depots (by Rampastring)
 - Implement `CurleyShuffle` for AircraftTypes (by CCHyper/tomsons26)
 - Implement `ReloadRate` for AircraftTypes (by CCHyper/tomsons26)
 - Implement `AILegalTarget` for TechnoTypes (by CCHyper/tomsons26)
