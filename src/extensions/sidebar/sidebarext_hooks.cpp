@@ -1858,7 +1858,7 @@ void StripClassExt::_Tab_Button_AI()
             for (int i = 0; i < PlayerPtr->SuperWeapon.Count(); i++)
             {
                 SuperClass* sw = PlayerPtr->SuperWeapon[i];
-                if (sw->Is_Ready())
+                if (sw->Is_Ready() && !sw->Class->IsUseChargeDrain) // Firestorm is always "ready", so don't flash for it.
                 {
                     ready_sw = true;
                     break;
