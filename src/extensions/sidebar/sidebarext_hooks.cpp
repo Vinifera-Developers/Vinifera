@@ -1737,7 +1737,7 @@ void StripClassExt::_Draw_It(bool complete)
             {
                 if (state != nullptr)
                 {
-                    Point2D drawpoint(x + TEXT_X_OFFSET + 3, y + TEXT_Y_OFFSET);
+                    Point2D drawpoint(x + TEXT_X_OFFSET, y + TEXT_Y_OFFSET);
                     Fancy_Text_Print(state, SidebarSurface, &rect, &drawpoint, ColorScheme::As_Pointer("LightBlue", 1), COLOR_TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_8POINT);
                 }
 
