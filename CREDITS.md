@@ -128,6 +128,7 @@ This page lists all the individual contributions to the project by their author.
   - Add `ImmuneToEMP` to TechnoTypes.
   - Make it possible to assign rally points to service depots.
   - Fix an issue where losers were not marked as defeated in multiplayer when using TACTION_WIN or TACTION_LOSE to end the game (by Rampastring)
+  - Add extended descriptions in tooltips for objects on the sidebar.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **ZivDero**:
@@ -140,4 +141,5 @@ This page lists all the individual contributions to the project by their author.
   - The location of the control group number and veterancy pips can now be customized in `UI.ini`.
   - MaxPips can now we customized.
   - Allow adding new Tiberiums and customizing their Image.
+  - Reimplement the sidebar to have tabs.
 

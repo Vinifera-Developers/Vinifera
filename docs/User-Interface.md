@@ -2,14 +2,15 @@
 
 This page lists all user interface additions, changes, fixes that are implemented in Vinifera.
 
-## Miscellaneous
+## Sidebar
 
-- Vinifera adds support for 8-bit (paletted and non-paletted) PCX and 8-bit PNG cameos. This system auto-detects and prioritises the PNG or PCX file if found, no additional settings are required.
-- Vinifera thickens the waypoint and rally point lines and adds stroke/outline to the waypoint number.
-- Vinifera adds a "Load Game" button to the retry dialog shown after a failed mission.
-- Vinifera changes the game to save screenshots as a PNG file instead of PCX file. In addition to this, it also changes the filename format to be unique. Instead of writing `SCRN[0000-9999].PNG`, the game now writes `SCRN_[date-time].PNG` (example, `SCRN_02-06-2021_12-51-40.PNG`).
+### Tabs
 
-## Audio
+- The sidebar now has tabs. Description here later.
+
+### Desciptions
+
+- Lala.
 
 ## Hotkey Commands
 
@@ -185,4 +186,9 @@ MaxPips=5,5,5,10,8  ; list of integers - Ammo, Tiberium, Passengers, Power, Char
 ## Tooltips
 
 ## Miscellaneous
+
+- Vinifera adds support for 8-bit (paletted and non-paletted) PCX and 8-bit PNG cameos. This system auto-detects and prioritises the PNG or PCX file if found, no additional settings are required.
+- Vinifera thickens the waypoint and rally point lines and adds stroke/outline to the waypoint number.
+- Vinifera adds a "Load Game" button to the retry dialog shown after a failed mission.
+- Vinifera changes the game to save screenshots as a PNG file instead of PCX file. In addition to this, it also changes the filename format to be unique. Instead of writing `SCRN[0000-9999].PNG`, the game now writes `SCRN_[date-time].PNG` (example, `SCRN_02-06-2021_12-51-40.PNG`).
 

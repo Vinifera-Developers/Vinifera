@@ -131,6 +131,8 @@ New:
 - Change starting unit placement to be the same as Red Alert 2 (by CCHyper/tomsons26)
 - Make it possible to assign rally points to service depots (by Rampastring)
 - Allow adding new Tiberiums and customizing their Image (by ZivDero)
+- Tooltips for objects on the sidebar will now show their name, as well as a custom description (by Rampastring)
+- Implement a new sidebar with tabs (by ZivDero)
 
 Vanilla fixes:
 - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively (by CCHyper/tomsons26)
