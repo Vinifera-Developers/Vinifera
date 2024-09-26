@@ -44,6 +44,8 @@
 #include "options.h"
 #include "rules.h"
 #include "wwkeyboard.h"
+#include "tiberium.h"
+#include "tiberiumext.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
@@ -525,6 +527,24 @@ DECLARE_PATCH(_InfantryClass_Firing_AI_JumpJet_In_Air_Patch)
 
 
 /**
+ *  Uses a new extension value as the damage Tiberium deals to infantry.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_InfantryClass_Per_Cell_Process_Tiberium_Damage_Patch)
+{
+    GET_REGISTER_STATIC(int, tib_id, eax);
+    
+    static int damage;
+    damage = Extension::Fetch<TiberiumClassExtension>(Tiberiums[tib_id])->DamageToInfantry;
+
+    _asm mov edx, damage;
+
+    JMP(0x004D3F7D);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void InfantryClassExtension_Hooks()
@@ -543,6 +563,7 @@ void InfantryClassExtension_Hooks()
     Patch_Jump(0x004D87E9, &_InfantryClass_Firing_AI_Mechanic_Patch);
     Patch_Jump(0x004D3A7B, &_InfantryClass_Per_Cell_Process_Transport_Attach_Sound_Patch);
     Patch_Jump(0x004D35F9, &_InfantryClass_Per_Cell_Process_Engineer_Capture_Damage_Patch);
+    Patch_Jump(0x004D3F5D, &_InfantryClass_Per_Cell_Process_Tiberium_Damage_Patch);
 
     /**
      *  ACTION_DAMAGE no longer a case in DisplayClass::Left_Mouse_Up to show the

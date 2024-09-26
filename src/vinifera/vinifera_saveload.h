@@ -92,3 +92,61 @@ extern unsigned ViniferaSaveGameVersion;
 bool Vinifera_Put_All(IStream *pStm, bool save_net = false);
 bool Vinifera_Get_All(IStream *pStm, bool load_net = false);
 bool Vinifera_Remap_Extension_Pointers();
+void Vinifera_Remap_Storage_Pointers();
+
+
+template<class T>
+HRESULT Save_Primitive_Vector(LPSTREAM& pStm, VectorClass<T>& list)
+{
+    int count = list.Length();
+    HRESULT hr = pStm->Write(&count, sizeof(count), nullptr);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    if (count <= 0) {
+        return hr;
+    }
+
+    for (int index = 0; index < count; ++index) {
+
+        HRESULT hr = pStm->Write(&list[index], sizeof(list[index]), nullptr);
+        if (FAILED(hr)) {
+            return hr;
+        }
+
+    }
+
+    return hr;
+}
+
+
+template<class T>
+HRESULT Load_Primitive_Vector(LPSTREAM& pStm, VectorClass<T>& list)
+{
+    int count = 0;
+    HRESULT hr = pStm->Read(&count, sizeof(count), nullptr);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    new (&list) VectorClass<T>(count);
+
+    if (count <= 0) {
+        return hr;
+    }
+
+    for (int index = 0; index < count; ++index) {
+
+        T obj;
+        HRESULT hr = pStm->Read(&obj, sizeof(obj), nullptr);
+        if (FAILED(hr)) {
+            return hr;
+        }
+        list[index] = obj;
+
+    }
+
+    return hr;
+}
+

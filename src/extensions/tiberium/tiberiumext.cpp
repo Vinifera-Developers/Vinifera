@@ -31,6 +31,9 @@
 #include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "overlaytype.h"
+#include "tibsun_globals.h"
+#include "vinifera_saveload.h"
 
 
 /**
@@ -203,6 +206,21 @@ bool TiberiumClassExtension::Read_INI(CCINIClass &ini)
 
     PipIndex = ini.Get_Int(ini_name, "PipIndex", PipIndex);
     PipDrawOrder = ini.Get_Int(ini_name, "PipDrawOrder", PipDrawOrder);
+
+    // Default values set from the TiberiumType
+    OverlayTypeClass* overlay = This()->Image;
+    bool useSlopes = This()->NumSlopeFacings > 0;
+    DamageToInfantry = This()->Power / 10;
+
+    overlay = (OverlayTypeClass*)ini.Get_Overlay(ini_name, "Overlay", overlay);
+    useSlopes = ini.Get_Bool(ini_name, "UseSlopes", useSlopes);
+
+    This()->Image = overlay;
+    This()->NumFrames = 12;
+    This()->NumImages = 12;
+    This()->NumSlopeFacings = useSlopes ? 8 : 0;
+
+    DamageToInfantry = ini.Get_Int(ini_name, "DamageToInfantry", DamageToInfantry);
     
     return true;
 }

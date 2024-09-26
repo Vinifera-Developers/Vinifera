@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          TIBERIUMEXT_HOOKS.CPP
+ *  @file          STORAGEEXT_HOOKS.CPP
  *
- *  @author        CCHyper
+ *  @author        ZivDero
  *
- *  @brief         Contains the hooks for the extended TiberiumClass.
+ *  @brief         Contains the hooks for the extended StorageClass.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -25,48 +25,34 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "tiberiumext_hooks.h"
-#include "tiberiumext_init.h"
-#include "tiberiumext.h"
-#include "tiberium.h"
-#include "overlaytype.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
-#include "cell.h"
+#include "storageext_hooks.h"
 #include "extension.h"
+#include "fatal.h"
+#include "asserthandler.h"
+#include "debughandler.h"
+
 #include "hooker.h"
 #include "hooker_macros.h"
-#include "debughandler.h"
-
-
-/**
- *  For some reason, the WW call to DebugString here causes a crash
- *  under some circumstances, and is otherwise buggy.
- *  This replaces it with a Vinifera equivalent
- *
- *  @author: ZivDero
- */
-DECLARE_PATCH(_Get_Tiberium_Type_Debug_Info_Patch)
-{
-    GET_REGISTER_STATIC(OverlayTypeClass*, overlaytype, eax);
-
-    DEBUG_FATAL("Overlay %s [%d] is not really Tiberium!\nAll overlays with Tiberium=yes must be used by a Tiberium!\n", overlaytype->Full_Name(), overlaytype->Get_Heap_ID());
-
-    JMP(0x0058C951);
-}
+#include "storageext.h"
 
 
 /**
  *  Main function for patching the hooks.
  */
-void TiberiumClassExtension_Hooks()
+void StorageClassExtension_Hooks()
 {
     /**
-     *  Initialises the extended class.
+     *  Patch all the methods of StorageClass to our new extension class.
+     *  Operators '+' and '-' are not patched because they are not used in the game,
+     *  and require us to instantiate a new class, which we cannot do
+     *  (because we now store the amounts in a DVC that belongs to the owner class)
      */
-    TiberiumClassExtension_Init();
-
-    Patch_Jump(0x00644DB8, 0x00644DD4); // De-hardcode Power for Tiberium Vinifera
-    Patch_Jump(0x0058C934, _Get_Tiberium_Type_Debug_Info_Patch);
+    Patch_Jump(0x0060AD80, &StorageClassExt::Get_Total_Value);
+    Patch_Jump(0x0060ADB0, &StorageClassExt::Get_Total_Amount);
+    Patch_Jump(0x0060ADD0, &StorageClassExt::Get_Amount);
+    Patch_Jump(0x0060ADE0, &StorageClassExt::Increase_Amount);
+    Patch_Jump(0x0060AE00, &StorageClassExt::Decrease_Amount);
+    Patch_Jump(0x0060AFA0, &StorageClassExt::First_Used_Slot);
+    Patch_Jump(0x0060AE90, &StorageClassExt::operator+=);
+    Patch_Jump(0x0060AF50, &StorageClassExt::operator-=);
 }

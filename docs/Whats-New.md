@@ -8,13 +8,16 @@ This page lists the history of changes across stable Vinifera releases and also 
 % You can use the migration utility (can be found on [Vinifera supplementaries repo](https://github.com/Vinifera-Developers/ViniferaSupplementaries)) to apply most of the changes automatically using a corresponding sed script file.
 % ```
 
-% ### From vanilla
+### From vanilla
+
+- Tiberium `[Vinifera]->Power`, previously hardcoded to `17`, has been de-hardcoded. As such, a proper value needs to be set in `RULES.INI`.
 
 % ### When updating Vinifera
 
 ### From TS Patches
 
-- [place_building_hotkey.c](https://github.com/CnCNet/ts-patches/blob/master/src/place_building_hotkey.c) and [repeat_last_building_hotkey.c](https://github.com/CnCNet/ts-patches/blob/master/src/repeat_last_building_hotkey.c) should be disabled to avoid conflict with the analogous Vinifera keyboard commands.
+- [place_building_hotkey](https://github.com/CnCNet/ts-patches/blob/master/src/place_building_hotkey.c) and [repeat_last_building_hotkey](https://github.com/CnCNet/ts-patches/blob/master/src/repeat_last_building_hotkey.c) should be disabled to avoid conflict with the analogous Vinifera keyboard commands.
+- Removal of ts-patches [tiberium_stuff](https://github.com/CnCNet/ts-patches/blob/master/src/tiberium_stuff.asm) and [tiberium_damage](https://github.com/CnCNet/ts-patches/blob/master/src/tiberium_damage.asm) is required for this to work properly. Please keep in mind that Power once again behaves like in vanilla in regards to chain explosions and should be set to reasonable values, while `DamageToInfantry` should be used to customize Tiberium's damage to infantry.
 
 % ### New user settings in `SUN.ini`
 % 
@@ -127,6 +130,7 @@ New:
 - MaxPips can now we customized (by ZivDero)
 - Change starting unit placement to be the same as Red Alert 2 (by CCHyper/tomsons26)
 - Make it possible to assign rally points to service depots (by Rampastring)
+- Allow adding new Tiberiums and customizing their Image (by ZivDero)
 
 Vanilla fixes:
 - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively (by CCHyper/tomsons26)

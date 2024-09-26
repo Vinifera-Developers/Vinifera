@@ -38,6 +38,9 @@
 #include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "saveload.h"
+#include "vinifera_saveload.h"
+#include "storage/storageext.h"
 
 
 /**
@@ -47,9 +50,20 @@
  */
 TechnoClassExtension::TechnoClassExtension(const TechnoClass *this_ptr) :
     RadioClassExtension(this_ptr),
-    ElectricBolt(nullptr)
+    ElectricBolt(nullptr),
+    Storage(Tiberiums.Count())
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoClassExtension::TechnoClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    for (int i = 0; i < Tiberiums.Count(); i++)
+    {
+        Storage[i] = 0;
+    }
+
+    if (this_ptr)
+    {
+        new ((StorageClassExt*)&(this_ptr->Storage)) StorageClassExt(&Storage);
+    }
 }
 
 
@@ -59,7 +73,8 @@ TechnoClassExtension::TechnoClassExtension(const TechnoClass *this_ptr) :
  *  @author: CCHyper
  */
 TechnoClassExtension::TechnoClassExtension(const NoInitClass &noinit) :
-    RadioClassExtension(noinit)
+    RadioClassExtension(noinit),
+    Storage(noinit)
 {
     //EXT_DEBUG_TRACE("TechnoClassExtension::TechnoClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -92,6 +107,8 @@ HRESULT TechnoClassExtension::Load(IStream *pStm)
         return E_FAIL;
     }
 
+    Load_Primitive_Vector(pStm, Storage);
+
     ElectricBolt = nullptr;
     
     return hr;
@@ -112,6 +129,7 @@ HRESULT TechnoClassExtension::Save(IStream *pStm, BOOL fClearDirty)
         return hr;
     }
 
+    Save_Primitive_Vector(pStm, Storage);
     ElectricBolt = nullptr;
 
     return hr;
@@ -375,6 +393,12 @@ bool TechnoClassExtension::Can_Passive_Acquire() const
      *  IsCanPassiveAcquire defaults to true to copy original behaviour, so all units can passive acquire unless told otherwise.
      */
     return Techno_Type_Class_Ext()->IsCanPassiveAcquire;
+}
+
+
+void TechnoClassExtension::Put_Storage_Pointers()
+{
+    new ((StorageClassExt*)&(This()->Storage)) StorageClassExt(&Storage);
 }
 
 

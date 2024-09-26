@@ -31,6 +31,9 @@
 #include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "saveload.h"
+#include "vinifera_saveload.h"
+#include "storage/storageext.h"
 
 
 /**
@@ -39,9 +42,23 @@
  *  @author: CCHyper
  */
 HouseClassExtension::HouseClassExtension(const HouseClass *this_ptr) :
-    AbstractClassExtension(this_ptr)
+    AbstractClassExtension(this_ptr),
+    TiberiumStorage(Tiberiums.Count()),
+    WeedStorage(Tiberiums.Count())
 {
     //if (this_ptr) EXT_DEBUG_TRACE("HouseClassExtension::HouseClassExtension - 0x%08X\n", (uintptr_t)(This()));
+
+    for (int i = 0; i < Tiberiums.Count(); i++)
+    {
+        TiberiumStorage[i] = 0;
+        WeedStorage[i] = 0;
+    }
+
+    if (this_ptr)
+    {
+        new ((StorageClassExt*)&(this_ptr->Tiberium)) StorageClassExt(&TiberiumStorage);
+        new ((StorageClassExt*)&(this_ptr->Weed)) StorageClassExt(&WeedStorage);
+    }
 
     HouseExtensions.Add(this);
 }
@@ -53,7 +70,9 @@ HouseClassExtension::HouseClassExtension(const HouseClass *this_ptr) :
  *  @author: CCHyper
  */
 HouseClassExtension::HouseClassExtension(const NoInitClass &noinit) :
-    AbstractClassExtension(noinit)
+    AbstractClassExtension(noinit),
+    TiberiumStorage(noinit),
+    WeedStorage(noinit)
 {
     //EXT_DEBUG_TRACE("HouseClassExtension::HouseClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -105,6 +124,9 @@ HRESULT HouseClassExtension::Load(IStream *pStm)
         return E_FAIL;
     }
 
+    Load_Primitive_Vector(pStm, TiberiumStorage);
+    Load_Primitive_Vector(pStm, WeedStorage);
+
     new (this) HouseClassExtension(NoInitClass());
     
     return hr;
@@ -124,6 +146,9 @@ HRESULT HouseClassExtension::Save(IStream *pStm, BOOL fClearDirty)
     if (FAILED(hr)) {
         return hr;
     }
+
+    Save_Primitive_Vector(pStm, TiberiumStorage);
+    Save_Primitive_Vector(pStm, WeedStorage);
 
     return hr;
 }
@@ -161,4 +186,10 @@ void HouseClassExtension::Detach(TARGET target, bool all)
 void HouseClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
     //EXT_DEBUG_TRACE("HouseClassExtension::Compute_CRC - 0x%08X\n", (uintptr_t)(This()));
+}
+
+void HouseClassExtension::Put_Storage_Pointers()
+{
+    new ((StorageClassExt*)&(This()->Tiberium)) StorageClassExt(&TiberiumStorage);
+    new ((StorageClassExt*)&(This()->Weed)) StorageClassExt(&WeedStorage);
 }

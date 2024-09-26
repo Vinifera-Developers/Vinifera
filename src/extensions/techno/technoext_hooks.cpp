@@ -58,6 +58,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "storageext.h"
 #include "textprint.h"
 #include "tiberiumext.h"
 #include "unittype.h"
@@ -166,7 +167,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
                     **  Add the pips to draw to a vector.
                     */
                     for (int i = 0; i < pips; i++)
-                        pips_to_draw.push_back(RuleExtension->WeedPipIndex);
+                        pips_to_draw.emplace_back(RuleExtension->WeedPipIndex);
                 }
                 else
                 {
@@ -179,7 +180,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
                     **  Add all the Tiberiums and sort.
                     */
                     for (int i = 0; i < Tiberiums.Count(); i++)
-                        tibtypes.push_back(std::make_tuple(Extension::Fetch<TiberiumClassExtension>(Tiberiums[i])->PipDrawOrder, i));
+                        tibtypes.emplace_back(Extension::Fetch<TiberiumClassExtension>(Tiberiums[i])->PipDrawOrder, i);
 
                     std::stable_sort(tibtypes.begin(), tibtypes.end());
 

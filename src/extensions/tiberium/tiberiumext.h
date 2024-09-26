@@ -71,4 +71,9 @@ TiberiumClassExtension final : public AbstractTypeClassExtension
          *  The order in which this Tiberium appears when pips are drawn.
          */
         int PipDrawOrder;
+
+        /**
+         *  The damage this Tiberium does to infantry.
+         */
+        int DamageToInfantry;
 };
