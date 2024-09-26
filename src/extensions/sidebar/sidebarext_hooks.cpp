@@ -1981,18 +1981,6 @@ DECLARE_PATCH(_PowerClass_Draw_It_Move_Power_Bar)
 }
 
 
-/**
- *  Patch SelectClass to redraw the new strips.
- *
- *  @author: ZivDero
- */
-DECLARE_PATCH(_SelectClass_Action_Redraw_Column)
-{
-    SidebarExtension->Current_Tab().IsToRedraw = true;
-    JMP(0x005F5C95);
-}
-
-
 static const ObjectTypeClass *_SidebarClass_StripClass_obj = nullptr;
 static const SuperWeaponTypeClass *_SidebarClass_StripClass_spc = nullptr;
 static BSurface *_SidebarClass_StripClass_CustomImage = nullptr;
@@ -2211,7 +2199,6 @@ void SidebarClassExtension_Conditional_Hooks()
 
         Patch_Jump(0x004A9F0F, _GadgetClass_Input_Mouse_Enter_Leave);
         Patch_Jump(0x005AB4CF, _PowerClass_Draw_It_Move_Power_Bar);
-        Patch_Jump(0x005F5C01, _SelectClass_Action_Redraw_Column);
 
         // There are a bunch of calls to vanilla strips to redraw them.
         // We patch them to either redraw the supers' strip or the current strip
