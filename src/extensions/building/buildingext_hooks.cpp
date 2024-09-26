@@ -735,5 +735,5 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x00432184, &_BuildingClass_Mission_Repair_Assign_Rally_Destination_When_No_Repair_Needed);
     Patch_Jump(0x00431DAB, &_BuildingClass_Mission_Repair_Assign_Rally_Destination_After_Repair_Complete);
     Patch_Jump(0x00439D10, &BuildingClassExt::_Can_Have_Rally_Point);
-    Patch_Jump(0x0042D9A0, &BuildingClassFake::_Update_Buildables);
+    Patch_Jump(0x0042D9A0, &BuildingClassExt::_Update_Buildables);
 }
