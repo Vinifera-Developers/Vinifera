@@ -6,6 +6,7 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 - Vinifera redirects saved screenshots using the keyboard command to a new sub-directory in the games folders, `Screenshots`.
 - Vinifera allows Skirmish games to be started with no AI house(s).
 - Vinifera implements the Blowfish algorithm into the Vinifera DLL itself, removing the requirement for the external BLOWFISH.DLL library. As a result, this allows the game will run without BLOWFISH.DLL registered on the target system or present in the installation directory. The game can still load encrypted mix files to be loaded without any issues.
+- Vinifera allows players to set a rally point for their service depot, similar to the functionality already available for factories.
 
 ## Quality of Life
 
