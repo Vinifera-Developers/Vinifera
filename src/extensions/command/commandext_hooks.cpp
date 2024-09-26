@@ -259,6 +259,24 @@ void Init_Vinifera_Commands()
     Commands.Add(cmdptr);
 
     /**
+     *  Hotkeys for the sidebar tabs.
+     */
+    if (Vinifera_NewSidebar) {
+
+        cmdptr = new SetStructureTabCommandClass;
+        Commands.Add(cmdptr);
+
+        cmdptr = new SetInfantryTabCommandClass;
+        Commands.Add(cmdptr);
+
+        cmdptr = new SetUnitTabCommandClass;
+        Commands.Add(cmdptr);
+
+        cmdptr = new SetSpecialTabCommandClass;
+        Commands.Add(cmdptr);
+    }
+
+    /**
      *  Next, initialised any new commands here if the developer mode is enabled.
      */
     if (Vinifera_DeveloperMode) {
@@ -440,25 +458,52 @@ static void Process_Vinifera_Hotkeys()
 
     ini.Load(file, false);
 
-    /**
-     *  For compatibility with existing patches.
-     */
-#if defined(TS_CLIENT)
-    KeyNumType altkey = (KeyNumType)ini.Get_Int("Hotkey", "PlaceBuilding", KN_NONE);
-    if (altkey != KN_NONE) {
-        HotkeyIndex.Add_Index(altkey, cmdptr);
+    if (Vinifera_NewSidebar) {
+
+        /**
+         *  If we're using the new sidebar, set the default hotkeys for tabs.
+         */
+        if (!ini.Is_Present("Hotkey", "SetStructureTabCommandClass")) {
+            cmdptr = CommandClass::From_Name("SetStructureTabCommandClass");
+            if (cmdptr) {
+                key = reinterpret_cast<ViniferaCommandClass*>(cmdptr)->Default_Key();
+                HotkeyIndex.Add_Index(key, cmdptr);
+            }
+        }
+
+        if (!ini.Is_Present("Hotkey", "SetInfantryTabCommandClass")) {
+            cmdptr = CommandClass::From_Name("SetInfantryTabCommandClass");
+            if (cmdptr) {
+                key = reinterpret_cast<ViniferaCommandClass*>(cmdptr)->Default_Key();
+                HotkeyIndex.Add_Index(key, cmdptr);
+            }
+        }
+
+        if (!ini.Is_Present("Hotkey", "SetUnitTabCommandClass")) {
+            cmdptr = CommandClass::From_Name("SetUnitTabCommandClass");
+            if (cmdptr) {
+                key = reinterpret_cast<ViniferaCommandClass*>(cmdptr)->Default_Key();
+                HotkeyIndex.Add_Index(key, cmdptr);
+            }
+        }
+
+        if (!ini.Is_Present("Hotkey", "SetSpecialTabCommandClass")) {
+            cmdptr = CommandClass::From_Name("SetSpecialTabCommandClass");
+            if (cmdptr) {
+                key = reinterpret_cast<ViniferaCommandClass*>(cmdptr)->Default_Key();
+                HotkeyIndex.Add_Index(key, cmdptr);
+            }
+        }
     } else {
-#endif
-    if (!ini.Is_Present("Hotkey", "ManualPlace")) {
-        cmdptr = CommandClass::From_Name("ManualPlace");
-        if (cmdptr) {
-            key = reinterpret_cast<ViniferaCommandClass *>(cmdptr)->Default_Key();
-            HotkeyIndex.Add_Index(key, cmdptr);
+
+        if (!ini.Is_Present("Hotkey", "ManualPlace")) {
+            cmdptr = CommandClass::From_Name("ManualPlace");
+            if (cmdptr) {
+                key = reinterpret_cast<ViniferaCommandClass*>(cmdptr)->Default_Key();
+                HotkeyIndex.Add_Index(key, cmdptr);
+            }
         }
     }
-#if defined(TS_CLIENT)
-    }
-#endif
 
     if (!ini.Is_Present("Hotkey", "RepeatLastBuilding")) {
         cmdptr = CommandClass::From_Name("RepeatLastBuilding");

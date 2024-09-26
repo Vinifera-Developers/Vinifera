@@ -123,11 +123,14 @@ This page lists all the individual contributions to the project by their author.
   - Change starting unit placement to be the same as Red Alert 2.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
+- **MarkJFox**:
+  - Graphics for the new sidebar fitting vanilla sidebar.
 - **Rampastring**:
   - Add `IceStrength` to Rules, and `IceDestructionEnabled` scenario option.
   - Add `ImmuneToEMP` to TechnoTypes.
   - Make it possible to assign rally points to service depots.
   - Fix an issue where losers were not marked as defeated in multiplayer when using TACTION_WIN or TACTION_LOSE to end the game (by Rampastring)
+  - Add extended descriptions in tooltips for objects on the sidebar.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **ZivDero**:
@@ -140,4 +143,8 @@ This page lists all the individual contributions to the project by their author.
   - The location of the control group number and veterancy pips can now be customized in `UI.ini`.
   - MaxPips can now we customized.
   - Allow adding new Tiberiums and customizing their Image.
+  - Reimplement the sidebar to have tabs.
+  - Fix a bug where under some circumstances, the player could hear "New Construction Options", even though no new construction options were available.
+  - Add the ability to queue/dequeue 5 units at a time, or dequeue all units instantly.
+  - Fix a bug where attempting to start construction when low funds would put the queue on hold.
 

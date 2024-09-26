@@ -2,14 +2,64 @@
 
 This page lists all user interface additions, changes, fixes that are implemented in Vinifera.
 
-## Miscellaneous
+## Sidebar
 
-- Vinifera adds support for 8-bit (paletted and non-paletted) PCX and 8-bit PNG cameos. This system auto-detects and prioritises the PNG or PCX file if found, no additional settings are required.
-- Vinifera thickens the waypoint and rally point lines and adds stroke/outline to the waypoint number.
-- Vinifera adds a "Load Game" button to the retry dialog shown after a failed mission.
-- Vinifera changes the game to save screenshots as a PNG file instead of PCX file. In addition to this, it also changes the filename format to be unique. Instead of writing `SCRN[0000-9999].PNG`, the game now writes `SCRN_[date-time].PNG` (example, `SCRN_02-06-2021_12-51-40.PNG`).
+### Tabs
 
-## Audio
+- Vinifera enhances the Tiberian Sun sidebar by introducing tabs similar to those found in Red Alert 2.
+- There are four tabs, just like in Red Alert 2; however, due to the absence of a defense queue, the "Defenses" tab has been replaced by a new "Special" tab. This tab contains Superweapons and aircraft.
+- Vinifera also introduces new hotkeys for quick tab switching and placing the currently available building (in the case of the Structure tab).
+- The new sidebar feature must be enabled in `VINIFERA.INI`.
+
+In `VINIFERA.INI`:
+```ini
+[Features]
+NewSidebar=no  ; boolean, whether the game should use the new sidebar.
+```
+
+- Sample graphics for the new sidebar are available [here](https://github.com/Vinifera-Developers/Vinifera-Files/tree/master/files).
+
+### Cameo Sorting
+
+- Vinifera introduces automatic sorting for cameos that appear on the sidebar.
+- Cameos are sorted by side (player's side items appear first, followed by others in side order) and then by type.
+- Walls are always sorted after regular buildings, gates after walls, and base defenses after gates. This organization is designed to help players locate base defenses on the sidebar in the absence of a dedicated Defense tab.
+- When other factors are equal, cameos are sorted by their index in their respective list.
+
+In `RULES.INI`:
+```ini
+[SOMEBUILDING]             ; BuildingType
+SortCameoAsBaseDefense=no  ; boolean, is this building considered a base defense for the purposes of sorting
+```
+
+- This sorting feature can be turned off in `SUN.INI`.
+
+In `SUN.INI`:
+```ini
+[Options]
+SortDefensesAsLast=yes  ; boolean, are base defenses sorted to the end of the sidebar by default.
+```
+
+### Desciptions
+
+- Tooltips displayed when hovering over icons on the sidebar have been expanded.
+- By default, hovering over an icon will display the object's name and price. Additionally, a description can be specified, which will appear after the price.
+
+In `RULES.INI`:
+```ini
+[SOMETECHNO]  ; TechnoType
+Description=  ; string, an extended description of the techno. Up to 200 characters in length.
+```
+
+### Queues
+
+- Vinifera allows the players to batch queue/dequeue units.
+- You can hold `SHIFT` while queueing to queue 5 units at a time.
+- You can hold `CONTROL` while dequeueing to dequeue 5 units at a time, or `SHIFT` to dequeue all units of that type.
+
+```{warning}
+Due to implementation details, it is recommended that you do not make the queue longer than 50 units. Dequeueing more than 63 units at a time could potentially result in other actions being done by the player on the same frame being ignored by the game.
+```
 
 ## Hotkey Commands
 
@@ -23,7 +73,7 @@ This page lists all user interface additions, changes, fixes that are implemente
 
 ### `[ ]` Repeat Last Building
 
-- Queue the last structure that was built. Defaults to `Ctrl` + `Z`.
+- Queue the last structure that was built. Defaults to `Ctrl` + `Q` if the new sidebar is enabled, otherwise to `Ctrl` + `Z`.
 
 ### `[ ]` Repeat Last Infantry
 
@@ -36,6 +86,22 @@ This page lists all user interface additions, changes, fixes that are implemente
 ### `[ ]` Repeat Last Aircraft
 
 - Queue the last aircraft that was built. Defaults to `<none>`.
+
+### `[ ]` Select Building Tab
+
+- Switch the command bar to the Building Tab and select the completed building if any. Defaults to `Q` if the new sidebar is enabled, otherwise to `<none>`.
+
+### `[ ]` Select Infantry Tab
+
+- Switch the command bar to the Infantry Tab. Defaults to `W` if the new sidebar is enabled, otherwise to `<none>`.
+
+### `[ ]` Select Vehicles Tab
+
+- Switch the command bar to the Vehicle Tab. Defaults to `E` if the new sidebar is enabled, otherwise to `<none>`.
+
+### `[ ]` Select Specials Tab
+
+- Switch the command bar to the Special Tab. Defaults to `R` if the new sidebar is enabled, otherwise to `<none>`.
 
 ### `[ ]` Jump Camera West
 
@@ -79,6 +145,22 @@ This page lists all user interface additions, changes, fixes that are implemente
 
 ![image](https://user-images.githubusercontent.com/73803386/123566309-4ade4600-d7b7-11eb-9b77-5c9de7959822.png)
 
+### Customizable Vanilla Modifier Keys
+
+- Vinifera allows the player to customize the keys used for Force Move, Force Attack, Select and Queued Move.
+```{note}
+Due to engine limitations, these keys will not appear in the options menu and must be customized in KEYBOARD.INI
+```
+
+In `KEYBOARD.INI`:
+```ini
+[Hotkey]
+ForceMove=18    ; key number, ALT
+ForceAttack=17  ; key number, CONTROL
+Select=16       ; key number, SHIFT
+QueueMove=81    ; key number, Q if the new sidebar is off, otherwise Z
+```
+
 ## Dropship Loadout
 
 - The Tiberian Sun Map theme is now played on the Dropship Loadout screen (`DSHPLOAD` can be defined in THEME.INI to customise this.)
@@ -100,6 +182,7 @@ Attached is a set of the original loading screens with a minor edit and saved as
 ### Super Weapon Timers
 
 - Super Weapon timers, similar to those found in Red Alert 2, can now be displayed on the tactical view. This is disabled by default and each relevant SuperWeaponType must have it enabled. Superweapons that are offline due to low power or are disabled via other purposes will not show.
+
 In `RULES.INI`:
 ```ini
 [SOMESUPERWEAPON]  ; SuperWeaponType
@@ -185,4 +268,9 @@ MaxPips=5,5,5,10,8  ; list of integers - Ammo, Tiberium, Passengers, Power, Char
 ## Tooltips
 
 ## Miscellaneous
+
+- Vinifera adds support for 8-bit (paletted and non-paletted) PCX and 8-bit PNG cameos. This system auto-detects and prioritises the PNG or PCX file if found, no additional settings are required.
+- Vinifera thickens the waypoint and rally point lines and adds stroke/outline to the waypoint number.
+- Vinifera adds a "Load Game" button to the retry dialog shown after a failed mission.
+- Vinifera changes the game to save screenshots as a PNG file instead of PCX file. In addition to this, it also changes the filename format to be unique. Instead of writing `SCRN[0000-9999].PNG`, the game now writes `SCRN_[date-time].PNG` (example, `SCRN_02-06-2021_12-51-40.PNG`).
 

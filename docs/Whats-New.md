@@ -131,6 +131,9 @@ New:
 - Change starting unit placement to be the same as Red Alert 2 (by CCHyper/tomsons26)
 - Make it possible to assign rally points to service depots (by Rampastring)
 - Allow adding new Tiberiums and customizing their Image (by ZivDero)
+- Tooltips for objects on the sidebar will now show their name, as well as a custom description (by Rampastring)
+- Implement a new sidebar with tabs (by ZivDero)
+- Add the ability to queue/dequeue 5 units at a time, or dequeue all units instantly (by ZivDero)
 
 Vanilla fixes:
 - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively (by CCHyper/tomsons26)
@@ -172,6 +175,8 @@ Vanilla fixes:
 - Fix incorrect stretching of the main menu transition movies (by CCHyper/tomsons26)
 - Bugfixes and improvements for the Dropship Loadout menu (by CCHyper/tomsons26)
 - Fix an issue where losers were not marked as defeated in multiplayer when using TACTION_WIN or TACTION_LOSE to end the game (by Rampastring)
+- Fix a bug where under some circumstances, the player could hear "New Construction Options", even though no new construction options were available (by ZivDero)
+- Fix a bug where attempting to start construction when low funds would put the queue on hold (by ZivDero)
 
 </details>
 
