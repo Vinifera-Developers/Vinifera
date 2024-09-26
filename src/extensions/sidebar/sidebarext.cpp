@@ -818,10 +818,12 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
                         Speak(VOX_CANCELED);
 
                         int count_to_abandon = 1;
+                        const int queued_count = factory->Queued_Object_Count() + factory->Get_Object() != nullptr ? 1 : 0;
+
                         if (WWKeyboard->Down(VK_SHIFT))
-                            count_to_abandon = factory->Queued_Object_Count() + int(factory->Get_Object() != nullptr);
+                            count_to_abandon = queued_count;
                         else if (WWKeyboard->Down(VK_CONTROL))
-                            count_to_abandon = 5;
+                            count_to_abandon = std::clamp(5, 0, queued_count);
 
                         for (int i = 0; i < count_to_abandon; i++)
                             OutList.Add(EventClass(PlayerPtr->Get_Heap_ID(), EVENT_ABANDON, otype, oid));

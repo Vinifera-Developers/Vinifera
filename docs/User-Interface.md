@@ -51,6 +51,16 @@ In `RULES.INI`:
 Description=  ; string, an extended description of the techno. Up to 200 characters in length.
 ```
 
+### Queues
+
+- Vinifera allows the players to batch queue/dequeue units.
+- You can hold `SHIFT` while queueing to queue 5 units at a time.
+- You can hold `CONTROL` while dequeueing to dequeue 5 units at a time, or `SHIFT` to dequeue all units of that type.
+
+```{warning}
+Due to implementation details, it is recommended that you do not make the queue longer than 50 units. Dequeueing more than 63 units at a time could potentially result in other actions being done by the player on the same frame being ignored by the game.
+```
+
 ## Hotkey Commands
 
 ### `[ ]` Place Building
