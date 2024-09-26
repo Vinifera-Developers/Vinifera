@@ -40,7 +40,15 @@
 #include "language.h"
 #include "tooltip.h"
 #include "mouse.h"
+#include "house.h"
+#include "super.h"
+#include "event.h"
+#include "object.h"
+#include "factory.h"
+#include "tibsun_functions.h"
+#include "vox.h"
 #include "wwmouse.h"
+#include "techno.h"
 
 
 GadgetClass* SidebarClassExtension::LastHovered;
@@ -676,6 +684,284 @@ void SidebarClassExtension::TabButtonClass::Select()
 void SidebarClassExtension::TabButtonClass::Deselect()
 {
     IsSelected = false;
+}
+
+
+/**
+ *  This function is called when the buildable icon (cameo) is clicked on. It handles
+ *  starting and stopping production as indicated.
+ *
+ *  @author: ZivDero
+ */
+bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumType& key)
+{
+    if (!Strip)
+        return true;
+
+    int index = Strip->TopIndex + Index;
+    RTTIType otype = Strip->Buildables[index].BuildableType;
+    int oid = Strip->Buildables[index].BuildableID;
+
+    TechnoTypeClass const* choice = nullptr;
+    SpecialWeaponType spc = SPECIAL_NONE;
+
+    /*
+    **	Determine the factory number that would apply to objects of the type
+    **	the mouse is currently addressing. This doesn't mean that the factory number
+    **	fetched is actually producing the indicated object, merely that that particular
+    **	kind of factory is specified by the "genfactory" value. This can be used to see
+    **	if the factory type is currently busy or not.
+    */
+    FactoryClass* factory = Strip->Buildables[index].Factory;
+
+    Map.Override_Mouse_Shape(MOUSE_NORMAL);
+
+    if (index < Strip->BuildableCount)
+    {
+        if (otype != RTTI_SPECIAL)
+        {
+            choice = Fetch_Techno_Type(otype, oid);
+        }
+        else
+        {
+            spc = (SpecialWeaponType)oid;
+        }
+    }
+
+    if (spc != SPECIAL_NONE)
+    {
+        /*
+        **	Display the help text if the mouse is over the button.
+        */
+        if (flags & LEFTUP)
+        {
+            flags &= ~LEFTUP;
+        }
+
+        /*
+        **	A right mouse button signals "cancel".  If we are in targeting
+        ** mode then we don't want to be any more.
+        */
+        if (flags & RIGHTPRESS)
+        {
+            Map.TargettingType = SPECIAL_NONE;
+        }
+
+        /*
+        **	A left mouse press signal "activate".  If our weapon type is
+        ** available then we should activate it.
+        */
+        if (flags & LEFTPRESS) {
+
+            if (spc < PlayerPtr->SuperWeapon.Count())
+            {
+                if (PlayerPtr->SuperWeapon[spc]->Is_Ready())
+                {
+                    if (PlayerPtr->SuperWeapon[spc]->Class->Action == ACTION_NONE)
+                    {
+                        Map.TargettingType = spc;
+                        Unselect_All();
+                        Speak(VOX_SELECT_TARGET);
+                    }
+                    else
+                    {
+                        OutList.Add(EventClass(PlayerPtr->Get_Heap_ID(), EVENT_SPECIAL_PLACE, PlayerPtr->SuperWeapon[spc]->Class->Type, &INVALID_CELL));
+                    }
+                }
+                else
+                {
+                    PlayerPtr->SuperWeapon[spc]->Impatient_Click();
+                }
+            }
+        }
+
+    }
+    else
+    {
+        if (choice != nullptr)
+        {
+            /*
+            **	Display the help text if the mouse is over the button.
+            */
+            if (flags & LEFTUP)
+            {
+                flags &= ~LEFTUP;
+            }
+
+            /*
+            **	A right mouse button signals "cancel".
+            */
+            if (flags & RIGHTPRESS)
+            {
+                /*
+                **	If production is in progress, put it on hold. If production is already
+                **	on hold, then abandon it. Money will be refunded, the factory
+                **	manager deleted, and the object under construction is returned to
+                **	the free pool.
+                */
+                if (factory != nullptr)
+                {
+                    /*
+                    **	Cancels placement mode if the sidebar factory is abandoned or
+                    **	suspended.
+                    */
+                    if (Map.PendingObjectPtr && Map.PendingObjectPtr->Is_Techno())
+                    {
+                        Map.PendingObjectPtr = nullptr;
+                        Map.PendingObject = nullptr;
+                        Map.PendingHouse = HOUSE_NONE;
+                        Map.Set_Cursor_Shape(nullptr);
+                    }
+
+                    if (!factory->Is_Building())
+                    {
+                        Speak(VOX_CANCELED);
+
+                        int count_to_abandon = 1;
+                        if (WWKeyboard->Down(VK_SHIFT))
+                            count_to_abandon = factory->Queued_Object_Count() + int(factory->Get_Object() != nullptr);
+                        else if (WWKeyboard->Down(VK_CONTROL))
+                            count_to_abandon = 5;
+
+                        for (int i = 0; i < count_to_abandon; i++)
+                            OutList.Add(EventClass(PlayerPtr->Get_Heap_ID(), EVENT_ABANDON, otype, oid));
+                    }
+                    else
+                    {
+                        Speak(VOX_SUSPENDED);
+                        OutList.Add(EventClass(PlayerPtr->Get_Heap_ID(), EVENT_SUSPEND, otype, oid));
+#if 0
+                        Map.Column[0].IsToRedraw = true;
+                        Map.Column[1].IsToRedraw = true;
+#endif
+                        SidebarExtension->Flag_Strip_To_Redraw(otype);
+                        
+                    }
+                }
+                else
+                {
+                    factory = PlayerPtr->Fetch_Factory(otype);
+                    if (factory)
+                    {
+                        if (factory->Is_Queued(*choice))
+                        {
+                            OutList.Add(EventClass(PlayerPtr->Get_Heap_ID(), EVENT_ABANDON, otype, oid));
+                        }
+                    }
+                }
+            }
+
+            if (flags & LEFTPRESS)
+            {
+                /*
+                **	If this object is currently being built, then give a scold sound and text and then
+                **	bail.
+                */
+                if (factory != nullptr && !factory->Is_Building())
+                {
+                    /*
+                    **	If production has completed, then attempt to have the object exit
+                    **	the factory or go into placement mode.
+                    */
+                    if (factory->Has_Completed())
+                    {
+
+                        TechnoClass* pending = factory->Get_Object();
+                        if (!pending && factory->Get_Special_Item())
+                        {
+                            Map.TargettingType = SPECIAL_ANY;
+                        }
+                        else
+                        {
+                            BuildingClass* builder = pending->Who_Can_Build_Me(false, false);
+                            if (!builder)
+                            {
+                                OutList.Add(EventClass(PlayerPtr->Get_Heap_ID(), EVENT_ABANDON, otype, oid));
+                                Speak(VOX_NO_FACTORY);
+                            }
+                            else
+                            {
+                                /*
+                                **	If the completed object is a building, then change the
+                                **	game state into building placement mode. This fact is
+                                **	not transmitted to any linked computers until the moment
+                                **	the building is actually placed down.
+                                */
+                                if (pending->What_Am_I() == RTTI_BUILDING)
+                                {
+                                    PlayerPtr->Manual_Place(builder, (BuildingClass*)pending);
+                                }
+                                else
+                                {
+                                    /*
+                                    **	For objects that can leave the factory under their own
+                                    **	power, queue this event and process through normal house
+                                    **	production channels.
+                                    */
+                                    OutList.Add(EventClass(pending->Owner(), EVENT_PLACE, otype, &INVALID_CELL));
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        /*
+                        **	The factory must have been in a suspended state. Resume construction
+                        **	normally.
+                        */
+                        if (otype == RTTI_INFANTRYTYPE)
+                        {
+                            Speak(VOX_TRAINING);
+                        }
+                        else
+                        {
+                            Speak(VOX_BUILDING);
+                        }
+                        OutList.Add(EventClass(PlayerPtr->Get_Heap_ID(), EVENT_PRODUCE, Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID));
+                    }
+                }
+                else
+                {
+                    /*
+                    **	If there is already a factory attached to this strip but the player didn't click
+                    **	on the icon that has the attached factory, then say that the factory is busy and
+                    **	ignore the click.
+                    */
+                    factory = PlayerPtr->Fetch_Factory(otype);
+                    if (factory != nullptr && (factory->Is_Building() || factory->Get_Object() || factory->Queued_Object_Count() > 0) && otype == RTTI_BUILDINGTYPE)
+                    {
+                        Speak(VOX_NO_FACTORY);
+                    }
+                    else
+                    {
+                        /*
+                        **	If this side strip is already busy with production, then ignore the
+                        **	input and announce this fact.
+                        */
+                        if (otype == RTTI_INFANTRYTYPE)
+                        {
+                            Speak(VOX_TRAINING);
+                        }
+                        else
+                        {
+                            Speak(VOX_BUILDING);
+                        }
+
+                        const int count_to_produce = WWKeyboard->Down(VK_SHIFT) ? 5 : 1;
+                        for (int i = 0; i < count_to_produce; i++)
+                            OutList.Add(EventClass(PlayerPtr->Get_Heap_ID(), EVENT_PRODUCE, Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID));
+                    }
+                }
+            }
+        }
+        else
+        {
+            flags = 0;
+        }
+    }
+
+    ControlClass::Action(flags, key);
+    return true;
 }
 
 

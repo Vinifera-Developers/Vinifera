@@ -146,6 +146,7 @@ public:
         ViniferaSelectClass() = default;
         ViniferaSelectClass(const NoInitClass& x) : SelectClass(x) {}
 
+        virtual bool Action(unsigned flags, KeyNumType& key) override;
         virtual void On_Mouse_Enter();
         virtual void On_Mouse_Leave();
 
