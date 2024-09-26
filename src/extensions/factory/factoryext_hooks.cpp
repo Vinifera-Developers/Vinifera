@@ -34,6 +34,7 @@
 #include "debughandler.h"
 #include "asserthandler.h"
 #include "extension_globals.h"
+#include "factoryext_init.h"
 #include "technotype.h"
 
 #include "hooker.h"
@@ -239,6 +240,11 @@ void FactoryClassExt::_AI()
  */
 void FactoryClassExtension_Hooks()
 {
+    /**
+     *  Initialises the extended class.
+     */
+    FactoryClassExtension_Init();
+
     Patch_Jump(0x00496EA0, &FactoryClassExt::_AI);
     Patch_Jump(0x004971E0, &FactoryClassExt::_Start);
 }
