@@ -28,6 +28,7 @@
 
 #include "latencylevel.h"
 
+#include "colorscheme.h"
 #include "protocolzero.h"
 #include "debughandler.h"
 #include "house.h"
@@ -59,7 +60,7 @@ void LatencyLevel::Apply(LatencyLevelEnum new_latency_level)
     NewFrameSendRate = static_cast<unsigned char>(new_latency_level);
     Session.PrecalcDesiredFrameRate = 60;
     Session.PrecalcMaxAhead = Get_MaxAhead(new_latency_level);
-    Session.Messages.Add_Message(nullptr, 0, Get_Latency_Message(new_latency_level), COLORSCHEME_WHITE, TPF_USE_GRAD_PAL | TPF_FULLSHADOW | TPF_6PT_GRAD, 270);
+    Session.Messages.Add_Message(nullptr, 0, Get_Latency_Message(new_latency_level), ColorScheme::From_Name("White"), TPF_USE_GRAD_PAL | TPF_FULLSHADOW | TPF_6PT_GRAD, 270);
 }
 
 int LatencyLevel::Get_MaxAhead(LatencyLevelEnum latencyLevel)

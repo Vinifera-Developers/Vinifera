@@ -163,13 +163,12 @@ void BuildingClassExt::_Update_Buildables()
 }
 
 
-void BuildingClassExt::_Draw_Overlays(Point2D& coord, Rect& rect)
 /**
  *  Reimplements the BuildingClass::Draw_Overlays function.
  *
  *  @author: ZivDero
  */
-void BuildingClassFake::_Draw_Overlays(Point2D& coord, Rect& rect)
+void BuildingClassExt::_Draw_Overlays(Point2D& coord, Rect& rect)
 {
     if (BState != BSTATE_CONSTRUCTION)
     {
