@@ -201,18 +201,22 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
      */
     TPoint2D<int> random_rate = ini.Get_Point(ini_name, "RandomRate", TPoint2D<int>(-1, -1));
     if (random_rate.X != -1) {
-        if (random_rate.X <= 0) {
-            random_rate.X = 0;
-            DEV_DEBUG_WARNING("Animation \"%s\" has a zero or negative random rate 'Low' value!\n", This()->Name());
+        if (random_rate.X == 0) {
+            DEV_DEBUG_WARNING("Animation \"%s\" has a zero random rate 'Low' value!\n", This()->Name());
         } else {
+            if (random_rate.X < 0) {
+                DEV_DEBUG_WARNING("Animation \"%s\" has a negative random rate 'Low' value!\n", This()->Name());
+            }
             random_rate.X = TICKS_PER_MINUTE / std::abs(random_rate.X);
         }
     }
     if (random_rate.Y != -1) {
-        if (random_rate.Y <= 0) {
-            random_rate.Y = 0;
-            DEV_DEBUG_WARNING("Animation \"%s\" has a zero or negative random rate 'High' value!\n", This()->Name());
+        if (random_rate.Y == 0) {
+            DEV_DEBUG_WARNING("Animation \"%s\" has a zero random rate 'High' value!\n", This()->Name());
         } else {
+            if (random_rate.Y < 0) {
+                DEV_DEBUG_WARNING("Animation \"%s\" has a negative random rate 'High' value!\n", This()->Name());
+            }
             random_rate.Y = TICKS_PER_MINUTE / std::abs(random_rate.Y);
         }
     }
