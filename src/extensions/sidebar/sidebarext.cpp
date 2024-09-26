@@ -832,11 +832,7 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
                     {
                         Speak(VOX_SUSPENDED);
                         OutList.Add(EventClass(PlayerPtr->Get_Heap_ID(), EVENT_SUSPEND, otype, oid));
-#if 0
-                        Map.Column[0].IsToRedraw = true;
-                        Map.Column[1].IsToRedraw = true;
-#endif
-                        SidebarExtension->Flag_Strip_To_Redraw(otype);
+                        SidebarExtension->Get_Tab(otype).Flag_To_Redraw();
                         
                     }
                 }
