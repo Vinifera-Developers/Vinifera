@@ -146,4 +146,5 @@ This page lists all the individual contributions to the project by their author.
   - Reimplement the sidebar to have tabs.
   - Fix a bug where under some circumstances, the player could hear "New Construction Options", even though no new construction options were available.
   - Add the ability to queue/dequeue 5 units at a time, or dequeue all units instantly.
+  - Fix a bug where attempting to start construction when low funds would put the queue on hold.
 
