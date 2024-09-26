@@ -144,5 +144,6 @@ void TiberiumClassExtension_Init()
 {
     Patch_Jump(0x00644A20, &_TiberiumClass_Constructor_Patch);
     Patch_Jump(0x00644A93, &_TiberiumClass_Destructor_Patch);
+    Patch_Jump(0x00644E13, &_TiberiumClass_Read_INI_Patch);
     Patch_Jump(0x00644E74, &_TiberiumClass_Read_INI_Patch);
 }
