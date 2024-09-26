@@ -757,7 +757,7 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
             {
                 if (PlayerPtr->SuperWeapon[spc]->Is_Ready())
                 {
-                    if (PlayerPtr->SuperWeapon[spc]->Class->Action == ACTION_NONE)
+                    if (PlayerPtr->SuperWeapon[spc]->Class->Action != ACTION_NONE)
                     {
                         Map.TargettingType = spc;
                         Unselect_All();
