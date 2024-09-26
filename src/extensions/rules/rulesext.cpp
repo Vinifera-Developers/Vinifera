@@ -138,7 +138,7 @@ HRESULT RulesClassExtension::Load(IStream *pStm)
         return E_FAIL;
     }
 
-    MaxPips.Clear();
+    new (&MaxPips) TypeList<int>;
     MaxPips.Load(pStm);
 
     new (this) RulesClassExtension(NoInitClass());
