@@ -67,6 +67,15 @@ void TiberiumClassExtension_Hooks()
      */
     TiberiumClassExtension_Init();
 
-    Patch_Jump(0x00644DB8, 0x00644DD4); // De-hardcode Power for Tiberium Vinifera
+    /**
+     *  De-hardcode Power for Tiberium Vinifera.
+     */
+    Patch_Jump(0x00644DB8, 0x00644DD4); // 
+
+    /**
+     *  OverlayTypes indexes 27 to 38 (fourth Tiberium images) are hardcoded to be
+     *  impassable by infantry. This hack removes this.
+     */
+    Patch_Jump(0x004D54E7, 0x004D5507);
     Patch_Jump(0x0058C934, _Get_Tiberium_Type_Debug_Info_Patch);
 }

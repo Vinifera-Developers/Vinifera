@@ -2,6 +2,8 @@
 
 This page lists all the individual contributions to the project by their author.
 
+- **AlexB**:
+  - Make OverlayTypes 27 to 38 (fourth Tiberium images) passable by infantry (by AlexB)
 - **Belonit (Gluk-v48)**:
   - Check for Changelog/Documentation/Credits in Pull Requests.
   - Docs dark theme switcher.

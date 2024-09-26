@@ -134,6 +134,7 @@ New:
 - Tooltips for objects on the sidebar will now show their name, as well as a custom description (by Rampastring)
 - Implement a new sidebar with tabs (by ZivDero)
 - Add the ability to queue/dequeue 5 units at a time, or dequeue all units instantly (by ZivDero)
+- Make OverlayTypes 27 to 38 (fourth Tiberium images) passable by infantry (by AlexB)
 
 Vanilla fixes:
 - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively (by CCHyper/tomsons26)
