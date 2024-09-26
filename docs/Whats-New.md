@@ -43,7 +43,6 @@ This page lists the history of changes across stable Vinifera releases and also 
   <summary>Click to show</summary>
 
 New:
-- Make it possible to assign rally points to service depots (by Rampastring)
 - Implement `CurleyShuffle` for AircraftTypes (by CCHyper/tomsons26)
 - Implement `ReloadRate` for AircraftTypes (by CCHyper/tomsons26)
 - Implement `AILegalTarget` for TechnoTypes (by CCHyper/tomsons26)
@@ -127,6 +126,7 @@ New:
 - The location of the control group number and veterancy pips can now be customized in `UI.ini` (by ZivDero)
 - MaxPips can now we customized (by ZivDero)
 - Change starting unit placement to be the same as Red Alert 2 (by CCHyper/tomsons26)
+- Make it possible to assign rally points to service depots (by Rampastring)
 
 Vanilla fixes:
 - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively (by CCHyper/tomsons26)
