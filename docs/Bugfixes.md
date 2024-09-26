@@ -40,3 +40,4 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix incorrect spelling of "Loser" on the multiplayer score screen debug output.
 - Fix incorrect stretching of the main menu transition movies.
 - Fix mouse cursor not being displayed in the Dropship Loadout menu.
+- Fix an issue where losers were not marked as defeated in multiplayer when using TACTION_WIN or TACTION_LOSE to end the game.

@@ -37,6 +37,9 @@
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "house.h"
+#include "housetype.h"
+#include "session.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -132,7 +135,7 @@ return_true:
 DECLARE_PATCH(_TActionClass_Operator_Enable_Trigger_For_Difficulty_Patch)
 {
     GET_REGISTER_STATIC(int, trigger_index, edi);
-    static TriggerClass *trigger;
+    static TriggerClass* trigger;
 
     /**
      *  This is direct port of the code from Red Alert 2, which looks to fix this issue.
@@ -150,8 +153,8 @@ DECLARE_PATCH(_TActionClass_Operator_Enable_Trigger_For_Difficulty_Patch)
          *  for this current mission difficulty.
          */
         if (Scen->Difficulty == DIFF_EASY && !trigger->Class->Easy
-         || Scen->Difficulty == DIFF_NORMAL && !trigger->Class->Normal
-         || Scen->Difficulty == DIFF_HARD && !trigger->Class->Hard) {
+            || Scen->Difficulty == DIFF_NORMAL && !trigger->Class->Normal
+            || Scen->Difficulty == DIFF_HARD && !trigger->Class->Hard) {
 
             trigger->Disable();
 
@@ -162,6 +165,130 @@ DECLARE_PATCH(_TActionClass_Operator_Enable_Trigger_For_Difficulty_Patch)
     }
 
     JMP(0x0061A611);
+}
+
+/**
+ *  Helper function. Flags all houses aside from the winner
+ *  as defeated.
+ *
+ *  @author: Rampastring
+ */
+void TAction_Win_Flag_Houses(HousesType winner)
+{
+    /**
+     *  Flag the player as won or lost, like in the original code.
+     */
+    if (PlayerPtr->Class->House == winner) {
+        PlayerPtr->Flag_To_Win(false);
+    } else {
+        PlayerPtr->Flag_To_Lose(false);
+    }
+
+    /**
+     *  Mark all other houses than the winner as defeated.
+     */
+    for (int i = 0; i < Houses.Count(); i++) {
+        HouseClass *house = Houses[i];
+
+        if (house->Class->House != winner) {
+            house->IsDefeated = true;
+        }
+    }
+}
+
+
+/**
+ *  #issue-965
+ *
+ *  Makes the "Winner is" trigger action set the IsDefeated flag on losing
+ *  houses in multiplayer.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_TAction_Win_FlagLosersAsDefeatedInMultiplayer)
+{
+    GET_STACK_STATIC(HousesType, housestype, esi, 0x40);
+
+    if (Session.Type == GAME_NORMAL) {
+        goto original_code;
+    }
+
+    TAction_Win_Flag_Houses(housestype);
+
+    /**
+     *  The action has done its job, return true.
+     */
+return_true:
+    JMP_REG(ebx, 0x00619FF6);
+
+original_code:
+    /**
+     *  Stolen bytes / code.
+     */
+    _asm { mov ecx, [PlayerPtr] }
+    JMP(0x00619FE1);
+}
+
+
+/**
+ *  Helper function. Flags the losers as defeated.
+ *
+ *  @author: Rampastring
+ */
+void TAction_Lose_Flag_Houses(HousesType loser)
+{
+    /**
+     *  Flag the player as won or lost, like in the original code.
+     */
+    if (PlayerPtr->Class->House == loser) {
+        PlayerPtr->Flag_To_Lose(false);
+    } else {
+        PlayerPtr->Flag_To_Win(false);
+    }
+
+    /**
+     *  Mark all losers as defeated.
+     */
+    for (int i = 0; i < Houses.Count(); i++) {
+        HouseClass* house = Houses[i];
+
+        if (house->Class->House == loser) {
+            house->IsDefeated = true;
+        }
+    }
+}
+
+
+/**
+ *  #issue-965
+ *
+ *  Makes the "Loser is" trigger action set the IsDefeated flag on the
+ *  losing house in multiplayer.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_TAction_Lose_FlagLoserAsLostInMultiplayer)
+{
+    GET_STACK_STATIC(HousesType, housestype, esi, 0x40);
+
+    if (Session.Type == GAME_NORMAL) {
+        goto original_code;
+    }
+
+    TAction_Lose_Flag_Houses(housestype);
+
+    /**
+     *  The action has done its job, return true.
+     */
+return_true:
+    JMP_REG(ebx, 0x0061A020);
+
+original_code:
+    /**
+     *  Stolen bytes / code.
+     */
+    _asm { mov ecx, [PlayerPtr] }
+    JMP(0x0061A00B);
 }
 
 
@@ -194,4 +321,7 @@ void TActionClassExtension_Hooks()
      */
     Patch_Jump(0x0061BF50, &TActionClassExt::_Play_Sound_At_Random_Waypoint);
     Patch_Jump(0x00619E42, &_TActionClass_Operator_Play_Sound_At_Random_Waypoint_Remove_Inline_Patch);
+
+    Patch_Jump(0x00619FDB, &_TAction_Win_FlagLosersAsDefeatedInMultiplayer);
+    Patch_Jump(0x0061A005, &_TAction_Lose_FlagLoserAsLostInMultiplayer);
 }

@@ -127,6 +127,7 @@ This page lists all the individual contributions to the project by their author.
   - Add `IceStrength` to Rules, and `IceDestructionEnabled` scenario option.
   - Add `ImmuneToEMP` to TechnoTypes.
   - Make it possible to assign rally points to service depots.
+  - Fix an issue where losers were not marked as defeated in multiplayer when using TACTION_WIN or TACTION_LOSE to end the game (by Rampastring)
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **ZivDero**:
