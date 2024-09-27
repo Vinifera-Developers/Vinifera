@@ -221,6 +221,12 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
         char *aval = std::strtok(buffer, ",");
         for (int armor = 0; armor < ArmorTypes.Count(); ++armor) {
 
+            // Fix: if there are not enough verses specified, default to 100%
+            if (aval == nullptr) {
+                Modifier[armor] = 1.0;
+                continue;
+            }
+
             if (std::strchr(aval, '%')) {
                 Modifier[armor] = std::atoi(aval) * 0.01;
             } else {

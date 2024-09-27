@@ -26,6 +26,7 @@
  *
  ******************************************************************************/
 #include "armortype.h"
+#include "ccini.h"
 #include "vinifera_globals.h"
 #include "tibsun_globals.h"
 #include "tibsun_functions.h"
@@ -129,6 +130,26 @@ const ArmorTypeClass *ArmorTypeClass::Find_Or_Make(const char *name)
 
 
 /**
+ *  Reads armor object data from an INI file.
+ *
+ *  @author: ZivDero
+ */
+bool ArmorTypeClass::Read_INI(CCINIClass& ini)
+{
+    if (!ini.Is_Present(Name)) {
+        return false;
+    }
+
+    //CanForceFire = ini.Get_Bool(Name, "CanForceFire", CanForceFire);
+    //CanRetaliate = ini.Get_Bool(Name, "CanRetaliate", CanRetaliate);
+    //CanPassiveAcquire = ini.Get_Bool(Name, "CanPassiveAcquire", CanPassiveAcquire);
+    IsZeroDamageAllowed = ini.Get_Bool(Name, "IsZeroDamageAllowed", IsZeroDamageAllowed);
+
+    return true;
+}
+
+
+/**
  *  Performs one time initialization of the armor type class.
  *
  *  @warning: Do not change this function, otherwise it will break support
@@ -176,9 +197,8 @@ const char *ArmorTypeClass::Get_Modifier_Default_String()
 
     for (ArmorType index = ARMOR_FIRST; index < ArmorTypes.Count(); index++) {
         std::strcat(_buffer, "100%%");
-        if (index >= ArmorTypes.Count()-1) {
+        if (index < ArmorTypes.Count() - 1) {
             std::strcat(_buffer, ",");
-            break;
         }
     }
 

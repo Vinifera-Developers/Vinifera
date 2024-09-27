@@ -238,6 +238,8 @@ void RulesClassExtension::Process(CCINIClass &ini)
      */
     Weapons(ini);
 
+    Armors(ini);
+
     This()->SuperWeapons(ini);
     This()->Warheads(ini);
     This()->Smudges(ini);
@@ -417,6 +419,11 @@ bool RulesClassExtension::Objects(CCINIClass &ini)
     DEBUG_INFO("Rules: Processing VoxelAnimTypeExtensions (Count: %d)...\n", VoxelAnimTypeExtensions.Count());
     for (int index = 0; index < VoxelAnimTypeExtensions.Count(); ++index) {
         VoxelAnimTypeExtensions[index]->Read_INI(ini);
+    }
+    
+    DEBUG_INFO("Rules: Processing ArmorTypes (Count: %d)...\n", ArmorTypes.Count());
+    for (int index = 0; index < ArmorTypes.Count(); ++index) {
+        ArmorTypes[index]->Read_INI(ini);
     }
 
     return true;

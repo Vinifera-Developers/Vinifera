@@ -47,7 +47,6 @@ class ArmorTypeClass
         bool Read_INI(CCINIClass &ini);
 
         bool Is_Allowed_Zero_Damage() const { return IsZeroDamageAllowed; }
-        double Get_Value() const { return Value; }
 
         static bool One_Time();
 
@@ -65,30 +64,21 @@ class ArmorTypeClass
         Wstring Name;
 
     public:
-        /**
-         *  
-         */
-        double Value; // TODO rename?
 
-        // ; NOTE: (Double Note, a float math bug caused 2 % to be used when 1 % broke down. Fixing the bug is why I made 2 %)
-        //     ; A 0 % means no force fire, no retaliate, no passive acquire
-        //     ; A 1 % means no retaliate, no passive acquire
-        //     ; A 2 % means no passive acquire
+        ///**
+        // *  Can the order the unit to force fire on the target?
+        // */
+        //bool CanForceFire;
 
-        /**
-         *  Can the order the unit to force fire on the target?
-         */
-        bool IsForceFire;
+        ///**
+        // *  Can the unit retaliate against this target?
+        // */
+        //bool CanRetaliate;
 
-        /**
-         *  Can the unit retaliate against this target?
-         */
-        bool IsRetaliate;
-
-        /**
-         *  Can the unit passively acquire this target?
-         */
-        bool IsPassiveAcquire;
+        ///**
+        // *  Can the unit passively acquire this target?
+        // */
+        //bool CanPassiveAcquire;
 
         /**
          *  Is this armor allowed to have zero damage dealt upon it?
