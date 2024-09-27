@@ -513,7 +513,7 @@ In `RULES.INI`:
 [SOMEWARHEAD]             ; WarheadType
 WallAbsoluteDestroyer=no  ; boolean, does this warhead instantly destroy walls regardless of the warhead damage value?
 AffectsAllies=yes         ; boolean, can this warhead damage friendly units?
-CombatLightSize=0         ; boolean, this is used to override the size of the combat light flash at the point of impact for Warheads with Bright=yes set (Bright=yes must also be set on the Weapon using this warhead).
+CombatLightSize=0         ; integer, this is used to override the size of the combat light flash at the point of impact for Warheads with Bright=yes set (Bright=yes must also be set on the Weapon using this warhead).
 ```
 
 - Shake Screen Controls
