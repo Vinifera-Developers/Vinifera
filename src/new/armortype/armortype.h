@@ -70,10 +70,10 @@ class ArmorTypeClass
          */
         double Value; // TODO rename?
 
-        // ; NOTE: (Double Note, a float math bug caused 2 % to be used when 1 % broke down.Fixing the bug is why I made 2 %)
-        //     ; A 0 % means no force fire, no retaliate, no passive aquire
-        //     ; A 1 % means no retaliate, no passive aquire
-        //     ; A 2 % means no passive aquire
+        // ; NOTE: (Double Note, a float math bug caused 2 % to be used when 1 % broke down. Fixing the bug is why I made 2 %)
+        //     ; A 0 % means no force fire, no retaliate, no passive acquire
+        //     ; A 1 % means no retaliate, no passive acquire
+        //     ; A 2 % means no passive acquire
 
         /**
          *  Can the order the unit to force fire on the target?
@@ -81,17 +81,17 @@ class ArmorTypeClass
         bool IsForceFire;
 
         /**
-         *  x
+         *  Can the unit retaliate against this target?
          */
         bool IsRetaliate;
 
         /**
-         *  Can the unit pic
+         *  Can the unit passively acquire this target?
          */
         bool IsPassiveAcquire;
 
         /**
-         *  Is this armor allowed to have zero damage delt upon it?
+         *  Is this armor allowed to have zero damage dealt upon it?
          */
         bool IsZeroDamageAllowed;
 };

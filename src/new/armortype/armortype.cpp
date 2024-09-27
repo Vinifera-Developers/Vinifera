@@ -78,12 +78,8 @@ ArmorType ArmorTypeClass::From_Name(const char *name)
     Wstring _name = name;
     _name.To_Lower();
 
-    if (_name == "<none>" || _name == "none") {
-        return ARMOR_NONE;
-    }
-
     if (_name.Is_Not_Empty()) {
-        for (ArmorType armor = ARMOR_FIRST; armor < ArmorTypes.Count(); ++armor) {
+        for (ArmorType armor = ARMOR_FIRST; armor < ArmorTypes.Count(); armor++) {
             if (ArmorTypes[armor]->Name == _name) {
                 return armor;
             }
@@ -119,10 +115,6 @@ const ArmorTypeClass *ArmorTypeClass::Find_Or_Make(const char *name)
      */
     Wstring _name = name;
     _name.To_Lower();
-
-    if (_name == "<none>" || _name == "none") {
-        return nullptr;
-    }
 
     for (ArmorType armor = ARMOR_FIRST; armor < ArmorTypes.Count(); ++armor) {
         if (ArmorTypes[armor]->Name == _name) {
@@ -182,7 +174,7 @@ const char *ArmorTypeClass::Get_Modifier_Default_String()
 
     std::memset(_buffer, 0, sizeof(_buffer));
 
-    for (ArmorType index = ARMOR_FIRST; index < ArmorTypes.Count(); ++index) {
+    for (ArmorType index = ARMOR_FIRST; index < ArmorTypes.Count(); index++) {
         std::strcat(_buffer, "100%%");
         if (index >= ArmorTypes.Count()-1) {
             std::strcat(_buffer, ",");
