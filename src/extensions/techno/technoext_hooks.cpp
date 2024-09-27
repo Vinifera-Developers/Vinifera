@@ -411,6 +411,22 @@ WeaponSlotType TechnoClassExt::_What_Weapon_Should_I_Use(TARGET target) const
 bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeClass const* warhead) const
 {
     /**
+     *  #issue-594
+     *
+     *  Implements IsCanRetaliate for TechnoTypes.
+     *
+     *  @author: CCHyper
+     */
+
+    const TechnoTypeClass* ttype = Techno_Type_Class();
+
+    /**
+     *  If this unit is flagged as not being allowed to retaliate to attacks, return false.
+     */
+    if (!Extension::Fetch<TechnoTypeClassExtension>(ttype)->IsCanRetaliate)
+        return false;
+
+    /**
      * 	Human-controlled units that have a target don't retaliate.
      */
     if (House->Is_Human_Control() && this->TarCom)
@@ -449,7 +465,6 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
      * 	If this is not equipped with a weapon that can attack the molester, then
      *  don't allow retaliation.
      */
-    const TechnoTypeClass* ttype = Techno_Type_Class();
     const WeaponInfoStruct* weapon_info = Get_Weapon(What_Weapon_Should_I_Use(source));
     if (weapon_info->Weapon->WarheadPtr != nullptr &&
         Extension::Fetch<WarheadTypeClassExtension>(weapon_info->Weapon->WarheadPtr)->Modifier[source->Techno_Type_Class()->Armor] == 0)
@@ -516,20 +531,6 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
         if (source_val < current_val)
             return false;
     }
-
-    /**
-     *  #issue-594
-     *
-     *  Implements IsCanRetaliate for TechnoTypes.
-     *
-     *  @author: CCHyper
-     */
-
-    /**
-     *  If this unit is flagged as not being allowed to retaliate to attacks, return false.
-     */
-    if (!Extension::Fetch<TechnoTypeClassExtension>(ttype)->IsCanRetaliate)
-        return false;
 
     /**
      * 	All checks passed, so return that retaliation is allowed.
