@@ -533,8 +533,13 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
 
     Enable_Addon(Scen->RequiredAddOn);
 
+    SideType side = Scen->IsGDI ? SIDE_GDI : SIDE_NOD;
+#if defined(TS_CLIENT)
+    side = static_cast<SideType>(Scen->IsGDI);
+#endif
+
     DEBUG_INFO("About to call Prep_For_Side()...\n");
-    if (!Prep_For_Side(Scen->IsGDI ? SIDE_GDI : SIDE_NOD)) {
+    if (!Prep_For_Side(side)) {
         DEBUG_ERROR("Prep_For_Side() failed!\n");
         return false;
     }
@@ -568,7 +573,7 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
     Rule->Load(pStm);
 
     DEBUG_INFO("About to call Prep_Speech_For_Side()...\n");
-    if (!Prep_Speech_For_Side(Scen->IsGDI ? SIDE_GDI : SIDE_NOD)) {
+    if (!Prep_Speech_For_Side(side)) {
         DEBUG_ERROR("Prep_Speech_For_Side() failed!\n");
         return false;
     }
