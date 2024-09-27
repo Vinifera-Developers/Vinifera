@@ -44,59 +44,8 @@
 #include "hooker_macros.h"
 
 
-//#define GET_VERSES(reg_wh, reg_armor) \
-//    GET(WarheadTypeClass *, WH, reg_wh); \
-//    GET(int, Armor, reg_armor); \
-//    WarheadTypeExt::ExtData *pData = WarheadTypeExt::ExtMap.Find(WH); \
-//    WarheadTypeExt::VersesData *vsData = &pData->Verses[Armor];
-
-//#define FLD_VERSES(reg_wh, reg_armor) \
-//    GET_VERSES(reg_wh, reg_armor) \
-//    double VS = vsData->Verses; \
-//    __asm{ fld VS }; \
-//    return R->Origin() + 7;
-
-//#define FMUL_VERSES(reg_wh, reg_armor) \
-//    GET_VERSES(reg_wh, reg_armor) \
-//    double VS = vsData->Verses; \
-//    __asm{ fmul VS }; \
-//    return R->Origin() + 7;
 
 
-
-
-/**
- *  x
- *
- *  @author: CCHyper
- */
-//DECLARE_PATCH(_TechnoClass_Is_Allowed_To_Retaliate_Ext_Verses_Patch)
-//{
-//    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
-//    GET_REGISTER_STATIC(WeaponTypeClass *, weapon, edi);
-//    static ArmorTypeClass *atype;
-//
-//    /**
-//     *  
-//     */
-//    //atype = Get_ArmorType(this_ptr, weapon->WarheadPtr);
-//    if (!atype->Is_Allowed_To_Retaliate()) {
-//        goto not_allowed;
-//    }
-//
-//    JMP(0x00637019);
-//
-//not_allowed:
-//    JMP(0x006371E7);
-//}
-//DEFINE_HOOK(708AF7, Verses_fld_2, 0) // TechnoClass::Is_Allowed_To_Retaliate TS 00636FFC
-//{
-//    GET_VERSES(ECX, EAX);
-//    return vsData->Retaliate
-//        ? 0x708B0B
-//        : 0x708B17
-//        ;
-//}
 
 
 //DECLARE_PATCH()
@@ -125,33 +74,6 @@
 //}
 
 
-//DECLARE_PATCH()
-//{
-//}
-//DEFINE_HOOK(70CEB2, Verses_fmul_0, 7) // TechnoClass__Coefficient_stuff_70CD10
-//{
-//    FMUL_VERSES(EAX, ECX);
-//}
-
-
-//DECLARE_PATCH()
-//{
-//}
-//DEFINE_HOOK(70CEC7, Verses_fmul_1, 7) // TechnoClass__Coefficient_stuff_70CD10
-//{
-//    FMUL_VERSES(EAX, EDX);
-//}
-
-
-//DECLARE_PATCH()
-//{
-//}
-//DEFINE_HOOK(70CF49, Verses_fmul_2, 7) // TechnoClass__Coefficient_stuff_70CD10
-//{
-//    FMUL_VERSES(ECX, EAX);
-//}
-
-
 
 //DEFINE_HOOK(48923D, Verses_fmul_3, 7) // Modify_Damage end TS 0045EBA7
 //{
@@ -167,5 +89,5 @@
  */
 void ArmorTypeClassExtension_Hooks()
 {
-    //Patch_Jump(0x00636FF1, &_TechnoClass_Is_Allowed_To_Retaliate_Ext_Verses_Patch);
+
 }

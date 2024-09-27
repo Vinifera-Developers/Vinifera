@@ -416,10 +416,13 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
     if (House->Is_Human_Control() && this->TarCom)
         return false;
 
+    /**
+     * 	If the source of the damage is a Veinhole, retaliate, unless this is a player-controlled
+     * 	ground unit and it's moving somewhere.
+     */
     if (warhead != nullptr && warhead->IsVeinhole)
     {
-        bool foot_has_navcom = Is_Foot() && reinterpret_cast<FootClass const*>(this)->NavCom;
-        if (!(foot_has_navcom && House->Is_Human_Control()))
+        if (!(Is_Foot() && reinterpret_cast<FootClass const*>(this)->NavCom && House->Is_Human_Control()))
             return true;
     }
 
@@ -460,8 +463,8 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
     if (source->What_Am_I() == RTTI_AIRCRAFT && !weapon_info->Weapon->Bullet->IsAntiAircraft) return(false);
 
     /**
-     *	Tanya is not allowed to retaliate against buildings in the normal sense while in guard mode. That
-     *	is, unless it is owned by the computer. Normally, Tanya can't do anything substantial to a building
+     *	Unity with C4 are not allowed to retaliate against buildings in the normal sense while in guard mode. That
+     *	is, unless it is owned by the computer. Normally, units with C4 can't do anything substantial to a building
      *	except to blow it up.
      */
     if (House->Is_Human_Control() && source->What_Am_I() == RTTI_BUILDING)
@@ -469,14 +472,11 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
         if (What_Am_I() == RTTI_INFANTRY && static_cast<InfantryTypeClass const*>(ttype)->IsBomber)
             return false;
 
-        if (Veterancy.Is_Veteran() || Veterancy.Is_Elite())
-        {
-            if (Veterancy.Is_Veteran() && ttype->VeteranAbilities[ABILITY_C4])
-                return false;
-
-            if (Veterancy.Is_Elite() && (ttype->VeteranAbilities[ABILITY_C4] || ttype->EliteAbilities[ABILITY_C4]))
-                return false;
-        }
+        if (Veterancy.Is_Veteran() && ttype->VeteranAbilities[ABILITY_C4])
+            return false;
+        
+        if (Veterancy.Is_Elite() && (ttype->VeteranAbilities[ABILITY_C4] || ttype->EliteAbilities[ABILITY_C4]))
+            return false;
     }
 
     /**
@@ -526,7 +526,7 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
      */
 
     /**
-     *  If this unit is flagged as no being allowed to retaliate to attacks, return false.
+     *  If this unit is flagged as not being allowed to retaliate to attacks, return false.
      */
     if (!Extension::Fetch<TechnoTypeClassExtension>(ttype)->IsCanRetaliate)
         return false;
@@ -588,27 +588,18 @@ return_false:
 }
 
 
-// TS 006371D9, YR 00708AF7
+// TS 006371D9, YR 00708AF7 // 1% thing
 
-// TS 0062A16F, YR 
-
-// TS 00636C21, YR 
-
-// TS 00637004, YR 
-
+// TS 00636C21, YR // TechnoClass::Base_Is_Attacked
 // TS 006369D3, YR 
 
-// TS 0062A1E6, YR 
-
-// TS 006399A6, YR 
-
-// TS 00443E03, YR 
-
-// TS 006399B5, YR 
-
+// TS 006399A6, YR // Target_Threat
+// TS 006399B5, YR
 // TS 00639A2B, YR 
 
-// TS 006382B0, YR 
+// TS 00443E03, YR // BuildingTypeClass::Set_Base_Defense_Values
+
+// TS 006382B0, YR // TechnoClass::Anti_Infantry
 
 
 /**
