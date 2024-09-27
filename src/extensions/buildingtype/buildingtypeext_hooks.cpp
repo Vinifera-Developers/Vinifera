@@ -86,6 +86,11 @@ void BuildingTypeClassExt::_Free_Buildup_Image()
 }
 
 
+/**
+ *  Reimplementation of BuildingClass::Set_Base_Defense_Values.
+ *
+ *  @author: ZivDero
+ */
 void BuildingTypeClassExt::_Set_Base_Defense_Values()
 {
     if (this->IsBaseDefense)

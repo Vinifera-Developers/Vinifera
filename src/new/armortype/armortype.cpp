@@ -6,9 +6,9 @@
  *
  *  @file          ARMORTYPE.CPP
  *
- *  @authors       CCHyper
+ *  @authors       CCHyper, ZivDero
  *
- *  @brief         x
+ *  @brief         New ArmorType class.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License

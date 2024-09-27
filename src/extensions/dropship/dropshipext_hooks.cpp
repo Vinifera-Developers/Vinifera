@@ -47,7 +47,7 @@
 /**
  *  #issue-107
  * 
- *  x
+ *  Patches the Dropship screen to display new armor types' names.
  * 
  *  @author: CCHyper
  */

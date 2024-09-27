@@ -6,9 +6,9 @@
  *
  *  @file          ARMORTYPE.H
  *
- *  @authors       CCHyper
+ *  @authors       CCHyper, ZivDero
  *
- *  @brief         x
+ *  @brief         New ArmorType class.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -31,11 +31,7 @@
 #include "tibsun_defines.h"
 #include "wstring.h"
 
-
 class CCINIClass;
-
-// [ArmorTypes]
-// NewArm
 
 
 class ArmorTypeClass
