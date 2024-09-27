@@ -55,6 +55,7 @@
 #include "buildingext.h"
 #include "debughandler.h"
 #include "drawshape.h"
+#include "cell.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -77,6 +78,7 @@ class TechnoClassExt : public TechnoClass
 {
 public:
     void _Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect& rect) const;
+    WeaponSlotType _What_Weapon_Should_I_Use(TARGET target) const;
 };
 
 
@@ -300,6 +302,94 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
             CC_Draw_Shape(LogicSurface, NormalDrawer, pips1, veterancy_shape, &drawpoint, &rect, SHAPE_WIN_REL | SHAPE_CENTER);
         }
     }
+}
+
+
+/**
+ *  This routine will compare the weapons this object is equipped with verses the
+ *  candidate target object. The best weapon to use against the target will be returned.
+ *  Special emphasis is given to weapons that can fire on the target without requiring
+ *  this object to move within range.
+ *
+ *  @author: 08/12/1996 JLB : Created.
+ *           ZivDero - Adjustments for Tiberian Sun.
+ */
+WeaponSlotType TechnoClassExt::_What_Weapon_Should_I_Use(TARGET target) const
+{
+    if (!Target_Legal(target))
+        return WEAPON_SLOT_PRIMARY;
+
+    bool webby_primary = false;
+    bool webby_secondary = false;
+
+    /*
+    **	Fetch the armor of the candidate target object. Presume that if the target
+    **	is not an object, then its armor is equivalent to wood. Who knows why?
+    */
+    ArmorType armor = ARMOR_WOOD;
+    if (Is_Target_Object(target)) {
+        armor = static_cast<ObjectClass*>(target)->Class_Of()->Armor;
+    }
+
+    /*
+    **	Get the value of the primary weapon verses the candidate target. Increase the
+    **	value of the weapon if it happens to be in range.
+    */
+    int w1 = 0;
+    WeaponTypeClass const* wptr = Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon;
+    if (wptr != nullptr && wptr->WarheadPtr != nullptr) {
+        webby_primary = wptr->WarheadPtr->IsWebby;
+        w1 = Extension::Fetch<WarheadTypeClassExtension>(wptr->WarheadPtr)->Modifier[armor] * 1000;
+    }
+    if (In_Range_Of(target, WEAPON_SLOT_PRIMARY)) w1 *= 2;
+    FireErrorType ok = Can_Fire(target, WEAPON_SLOT_PRIMARY);
+    if (ok == FIRE_CANT || ok == FIRE_ILLEGAL || ok == FIRE_REARM) w1 = 0;
+
+    /*
+    **	Calculate a similar value for the secondary weapon.
+    */
+    int w2 = 0;
+    wptr = Get_Weapon(WEAPON_SLOT_SECONDARY)->Weapon;
+    if (wptr != nullptr && wptr->WarheadPtr != nullptr) {
+        webby_secondary = wptr->WarheadPtr->IsWebby;
+        w2 = Extension::Fetch<WarheadTypeClassExtension>(wptr->WarheadPtr)->Modifier[armor] * 1000;
+    }
+    if (In_Range_Of(target, WEAPON_SLOT_SECONDARY)) w2 *= 2;
+    ok = Can_Fire(target, WEAPON_SLOT_SECONDARY);
+    if (ok == FIRE_CANT || ok == FIRE_ILLEGAL || ok == FIRE_REARM) w2 = 0;
+
+    /*
+    **	Return with the weapon identifier that should be used to fire upon the
+    **	candidate target.
+    */
+    if (!webby_primary && !webby_secondary) {
+        return w2 > w1 ? WEAPON_SLOT_SECONDARY : WEAPON_SLOT_PRIMARY;
+    }
+
+    bool immobilize = false;
+    if (Is_Target_Object(target)) {
+        ObjectClass* obj = static_cast<ObjectClass*>(target);
+        if (obj->Is_Infantry()) {
+            InfantryClass* inf = static_cast<InfantryClass*>(target);
+            if (!inf->Is_Immobilized() && !inf->Class->IsWebImmune) {
+                immobilize = true;
+            }
+        } else if (!obj->Is_Foot()) {
+            immobilize = obj->What_Am_I() == RTTI_ISOTILE;
+        }
+    } else if (target->What_Am_I() == RTTI_CELL) {
+        CellClass* cell = static_cast<CellClass*>(target);
+        IsometricTileType tile = cell->Tile;
+        if (tile != DestroyableCliff && tile != BlackTile && !cell->Bit2_16) {
+            if (cell->Overlay < 0x4A || cell->Overlay > 0x63) { // Bridges
+                immobilize = true;
+            }
+        }
+    } else {
+        immobilize = false;
+    }
+
+    return immobilize == webby_secondary ? WEAPON_SLOT_SECONDARY : WEAPON_SLOT_PRIMARY;
 }
 
 
@@ -1031,4 +1121,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x00636F09, &_TechnoClass_Is_Allowed_To_Retaliate_Can_Retaliate_Patch);
     Patch_Jump(0x0062D4CA, &_TechnoClass_Evaluate_Object_Is_Legal_Target_Patch);
     Patch_Jump(0x00637540, &TechnoClassExt::_Draw_Pips);
+    Patch_Jump(0x0062A0D0, &TechnoClassExt::_What_Weapon_Should_I_Use);
 }

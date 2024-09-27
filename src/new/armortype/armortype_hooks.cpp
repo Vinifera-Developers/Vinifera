@@ -63,6 +63,7 @@
 //    return R->Origin() + 7;
 
 
+
 //DECLARE_PATCH()
 //{
 //}
@@ -94,25 +95,25 @@
  *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_TechnoClass_Is_Allowed_To_Retaliate_Ext_Verses_Patch)
-{
-    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(WeaponTypeClass *, weapon, edi);
-    static ArmorTypeClass *atype;
-
-    /**
-     *  
-     */
-    //atype = Get_ArmorType(this_ptr, weapon->WarheadPtr);
-    if (!atype->Is_Allowed_To_Retaliate()) {
-        goto not_allowed;
-    }
-
-    JMP(0x00637019);
-
-not_allowed:
-    JMP(0x006371E7);
-}
+//DECLARE_PATCH(_TechnoClass_Is_Allowed_To_Retaliate_Ext_Verses_Patch)
+//{
+//    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
+//    GET_REGISTER_STATIC(WeaponTypeClass *, weapon, edi);
+//    static ArmorTypeClass *atype;
+//
+//    /**
+//     *  
+//     */
+//    //atype = Get_ArmorType(this_ptr, weapon->WarheadPtr);
+//    if (!atype->Is_Allowed_To_Retaliate()) {
+//        goto not_allowed;
+//    }
+//
+//    JMP(0x00637019);
+//
+//not_allowed:
+//    JMP(0x006371E7);
+//}
 //DEFINE_HOOK(708AF7, Verses_fld_2, 0) // TechnoClass::Is_Allowed_To_Retaliate TS 00636FFC
 //{
 //    GET_VERSES(ECX, EAX);
@@ -191,5 +192,5 @@ not_allowed:
  */
 void ArmorTypeClassExtension_Hooks()
 {
-    Patch_Jump(0x00636FF1, &_TechnoClass_Is_Allowed_To_Retaliate_Ext_Verses_Patch);
+    //Patch_Jump(0x00636FF1, &_TechnoClass_Is_Allowed_To_Retaliate_Ext_Verses_Patch);
 }
