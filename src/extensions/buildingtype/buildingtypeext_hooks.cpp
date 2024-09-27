@@ -26,22 +26,23 @@
  *
  ******************************************************************************/
 #include "buildingtypeext_hooks.h"
+
 #include "buildingtypeext_init.h"
 #include "buildingtypeext.h"
 #include "buildingtype.h"
+#include "bullettype.h"
+#include "warheadtype.h"
+#include "weapontype.h"
+#include "rules.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "extension.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
-
-
-// TS 00443D7D, YR 
-
-// TS 00443DCB, YR 
-
-// TS 00443E03, YR 
+#include "tibsun_globals.h"
+#include "warheadtypeext.h"
 
 
 /**
@@ -55,6 +56,7 @@ class BuildingTypeClassExt final : public BuildingTypeClass
 {
     public:
         void _Free_Buildup_Image();
+        void _Set_Base_Defense_Values();
 };
 
 
@@ -80,6 +82,40 @@ void BuildingTypeClassExt::_Free_Buildup_Image()
         //delete BuildupData;
 
         BuildupData = nullptr;
+    }
+}
+
+
+void BuildingTypeClassExt::_Set_Base_Defense_Values()
+{
+    if (this->IsBaseDefense)
+    {
+        const WeaponTypeClass* weapon = Fetch_Weapon_Info(WEAPON_SLOT_PRIMARY).Weapon;
+        if (weapon != nullptr)
+        {
+            int damage = weapon->Attack / (weapon->ROF * 0.025);
+
+            if (weapon->Bullet->IsAntiAircraft)
+            {
+                int anti_air_value = damage * Extension::Fetch<WarheadTypeClassExtension>(weapon->WarheadPtr)->Modifier[ARMOR_STEEL];
+                if (anti_air_value >= Rule->MaximumBaseDefenseValue)
+                    anti_air_value = Rule->MaximumBaseDefenseValue;
+                AntiAirValue = anti_air_value;
+            }
+
+            if (weapon->Bullet->IsAntiGround)
+            {
+                int anti_armor_value = damage * Extension::Fetch<WarheadTypeClassExtension>(weapon->WarheadPtr)->Modifier[ARMOR_STEEL];
+                if (anti_armor_value >= Rule->MaximumBaseDefenseValue)
+                    anti_armor_value = Rule->MaximumBaseDefenseValue;
+                AntiArmorValue = anti_armor_value;
+
+                int anti_ground_value = damage * Extension::Fetch<WarheadTypeClassExtension>(weapon->WarheadPtr)->Modifier[ARMOR_NONE];
+                if (anti_ground_value >= Rule->MaximumBaseDefenseValue)
+                    anti_ground_value = Rule->MaximumBaseDefenseValue;
+                AntiArmorValue = anti_ground_value;
+            }
+        }
     }
 }
 
@@ -204,6 +240,7 @@ void BuildingTypeClassExtension_Hooks()
     //Patch_Jump(0x00440365, &_BuildingTypeClass_Get_Image_Data_Assertion_Patch);
 
     Patch_Jump(0x00443CF0, &BuildingTypeClassExt::_Free_Buildup_Image);
+    Patch_Jump(0x00443D20, &BuildingTypeClassExt::_Set_Base_Defense_Values);
 
     Patch_Jump(0x0044403B, &_BuildingTypeClass_SDDTOR_Free_Image_Patch);
     Patch_Jump(0x0043FD83, &_BuildingTypeClass_Init_Free_Image_Patch);

@@ -85,6 +85,8 @@ public:
     void _Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect& rect) const;
     WeaponSlotType _What_Weapon_Should_I_Use(TARGET target) const;
     bool _Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeClass const* warhead) const;
+    double _Target_Threat(TechnoClass* target, Coordinate& firing_coord) const;
+    int _Anti_Infantry() const;
 };
 
 
@@ -328,19 +330,19 @@ WeaponSlotType TechnoClassExt::_What_Weapon_Should_I_Use(TARGET target) const
     bool webby_primary = false;
     bool webby_secondary = false;
 
-    /*
-    **	Fetch the armor of the candidate target object. Presume that if the target
-    **	is not an object, then its armor is equivalent to wood. Who knows why?
-    */
+    /**
+     *	Fetch the armor of the candidate target object. Presume that if the target
+     *	is not an object, then its armor is equivalent to wood. Who knows why?
+     */
     ArmorType armor = ARMOR_WOOD;
     if (Is_Target_Object(target)) {
         armor = static_cast<ObjectClass*>(target)->Class_Of()->Armor;
     }
 
-    /*
-    **	Get the value of the primary weapon verses the candidate target. Increase the
-    **	value of the weapon if it happens to be in range.
-    */
+    /**
+     *	Get the value of the primary weapon verses the candidate target. Increase the
+     *	value of the weapon if it happens to be in range.
+     */
     int w1 = 0;
     WeaponTypeClass const* wptr = Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon;
     if (wptr != nullptr && wptr->WarheadPtr != nullptr) {
@@ -351,9 +353,9 @@ WeaponSlotType TechnoClassExt::_What_Weapon_Should_I_Use(TARGET target) const
     FireErrorType ok = Can_Fire(target, WEAPON_SLOT_PRIMARY);
     if (ok == FIRE_CANT || ok == FIRE_ILLEGAL || ok == FIRE_REARM) w1 = 0;
 
-    /*
-    **	Calculate a similar value for the secondary weapon.
-    */
+    /**
+     *	Calculate a similar value for the secondary weapon.
+     */
     int w2 = 0;
     wptr = Get_Weapon(WEAPON_SLOT_SECONDARY)->Weapon;
     if (wptr != nullptr && wptr->WarheadPtr != nullptr) {
@@ -364,13 +366,23 @@ WeaponSlotType TechnoClassExt::_What_Weapon_Should_I_Use(TARGET target) const
     ok = Can_Fire(target, WEAPON_SLOT_SECONDARY);
     if (ok == FIRE_CANT || ok == FIRE_ILLEGAL || ok == FIRE_REARM) w2 = 0;
 
-    /*
-    **	Return with the weapon identifier that should be used to fire upon the
-    **	candidate target.
-    */
+    /**
+     *	Return with the weapon identifier that should be used to fire upon the
+     *	candidate target.
+     */
     if (!webby_primary && !webby_secondary) {
         return w2 > w1 ? WEAPON_SLOT_SECONDARY : WEAPON_SLOT_PRIMARY;
     }
+
+    /**
+     *	Determine if the target can be immobilized by the web weapon.
+     *  Valid targets are infantry and the ground, except for destroyable cliffs and bridges.
+     */
+    enum
+    {
+        OVERLAY_LOBRDG01 = 0x4A,
+        OVERLAY_LOBRDG26 = 0x63
+    };
 
     bool immobilize = false;
     if (Is_Target_Object(target)) {
@@ -387,7 +399,7 @@ WeaponSlotType TechnoClassExt::_What_Weapon_Should_I_Use(TARGET target) const
         CellClass* cell = static_cast<CellClass*>(target);
         IsometricTileType tile = cell->Tile;
         if (tile != DestroyableCliff && tile != BlackTile && !cell->Bit2_16) {
-            if (cell->Overlay < 0x4A || cell->Overlay > 0x63) { // Bridges
+            if (cell->Overlay < OVERLAY_LOBRDG01 || cell->Overlay > OVERLAY_LOBRDG26) { 
                 immobilize = true;
             }
         }
@@ -399,15 +411,15 @@ WeaponSlotType TechnoClassExt::_What_Weapon_Should_I_Use(TARGET target) const
 }
 
 
- /**
-  *  Checks object to see if it can retaliate.
-  *  
-  * This routine is called when this object has suffered some damage and it needs to know
-  * if it should fight back. The object that caused the damage is specified as a parameter.
-  *
-  *  @author: 10/19/1996 JLB : Created. 
-  *           ZivDero - Adjustments for Tiberian Sun.
-  */
+/**
+ *  Checks object to see if it can retaliate.
+ *  
+ *  This routine is called when this object has suffered some damage and it needs to know
+ *  if it should fight back. The object that caused the damage is specified as a parameter.
+ *
+ *  @author: 10/19/1996 JLB : Created. 
+ *           ZivDero - Adjustments for Tiberian Sun.
+ */
 bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeClass const* warhead) const
 {
     /**
@@ -478,7 +490,7 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
     if (source->What_Am_I() == RTTI_AIRCRAFT && !weapon_info->Weapon->Bullet->IsAntiAircraft) return(false);
 
     /**
-     *	Unity with C4 are not allowed to retaliate against buildings in the normal sense while in guard mode. That
+     *	Units with C4 are not allowed to retaliate against buildings in the normal sense while in guard mode. That
      *	is, unless it is owned by the computer. Normally, units with C4 can't do anything substantial to a building
      *	except to blow it up.
      */
@@ -533,19 +545,148 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
     }
 
     /**
+     *	1% means the unit can't retaliate.
+     *	Ported from YR.
+     */
+    if (weapon_info->Weapon->WarheadPtr != nullptr &&
+        Extension::Fetch<WarheadTypeClassExtension>(weapon_info->Weapon->WarheadPtr)->Modifier[source->Techno_Type_Class()->Armor] <= 0.01)
+    {
+        return false;
+    }
+
+    /**
      * 	All checks passed, so return that retaliation is allowed.
      */
     return true;
 }
 
 
- /**
-  *  #issue-977
-  *
-  *  Adds check for IsLegalTargetComputer when evaluating a target for attacking.
-  *
-  *  @author: CCHyper
-  */
+/**
+ *  Calculates the threat the target object poses.
+ *
+ *  @author: ZivDero
+ */
+double TechnoClassExt::_Target_Threat(TechnoClass* target, Coordinate& firing_coord) const
+{
+    double target_effectiveness_coefficient;
+    double target_special_threat_coefficient;
+    double my_effectiveness_coefficient;
+    double target_strength_coefficient;
+    double target_distance_coefficient;
+
+    const TechnoTypeClass* ttype = Techno_Type_Class();
+
+    /**
+     * 	Nothing is not a threat.
+     */
+    if (target->Class_Of() == nullptr)
+        return 0;
+    
+    if (House->IsThreatRatingNodeActive)
+    {
+        my_effectiveness_coefficient = ttype->MyEffectivenessCoefficient;
+        target_effectiveness_coefficient = ttype->TargetEffectivenessCoefficient;
+        target_special_threat_coefficient = ttype->TargetSpecialThreatCoefficient;
+        target_strength_coefficient = ttype->TargetStrengthCoefficient;
+        target_distance_coefficient = ttype->TargetDistanceCoefficient;
+    }
+    else
+    {
+        my_effectiveness_coefficient = Rule->DumbMyEffectivenessCoefficient;
+        target_effectiveness_coefficient = Rule->DumbTargetEffectivenessCoefficient;
+        target_special_threat_coefficient = Rule->DumbTargetSpecialThreatCoefficient;
+        target_strength_coefficient = Rule->DumbTargetStrengthCoefficient;
+        target_distance_coefficient = Rule->DumbTargetDistanceCoefficient;
+    }
+
+    double threat = 0.0;
+    const RTTIType target_rtti = static_cast<RTTIType>(target->What_Am_I());
+
+    if (target_rtti == RTTI_BUILDING || target_rtti == RTTI_INFANTRY || target_rtti == RTTI_UNIT || target_rtti == RTTI_AIRCRAFT)
+    {
+        if (target != nullptr)
+        {
+            const WeaponTypeClass* target_weapon = target->Get_Weapon(target->What_Weapon_Should_I_Use(target))->Weapon;
+            if (target_weapon != nullptr && target_weapon->WarheadPtr != nullptr)
+            {
+                if (target->TarCom == this)
+                {
+                    threat = -(target_effectiveness_coefficient * Extension::Fetch<WarheadTypeClassExtension>(target_weapon->WarheadPtr)->Modifier[ttype->Armor]);
+                }
+                else
+                {
+                    threat = target_effectiveness_coefficient * Extension::Fetch<WarheadTypeClassExtension>(target_weapon->WarheadPtr)->Modifier[ttype->Armor];
+                }
+            }
+
+            threat += target_special_threat_coefficient * target->Techno_Type_Class()->SpecialThreatValue;
+            if (House->Enemy != -1 && House->Enemy == target->House->Get_Heap_ID())
+                threat += Rule->EnemyHouseThreatBonus;
+        }
+    }
+
+    const WeaponTypeClass* weapon = Get_Weapon(What_Weapon_Should_I_Use(target))->Weapon;
+    if (weapon != nullptr && weapon->WarheadPtr != nullptr)
+        threat += my_effectiveness_coefficient * Extension::Fetch<WarheadTypeClassExtension>(weapon->WarheadPtr)->Modifier[target->Class_Of()->Armor];
+
+    threat += target->Health_Ratio() * target_strength_coefficient + threat;
+
+    const LEPTON threat_range = weapon != nullptr ? weapon->Range : Techno_Type_Class()->ThreatRange;
+
+    LEPTON dist;
+    if (firing_coord.X == Coordinate().X && firing_coord.Y == Coordinate().Y && firing_coord.Z == Coordinate().Z)
+        dist = (Center_Coord() - target->Center_Coord()).Length() / 256;
+    else
+        dist = (firing_coord - target->Center_Coord()).Length() / 256;
+
+    if (dist > threat_range)
+        threat += (dist - threat_range) * target_distance_coefficient;
+
+    return threat + 100000;
+}
+
+
+/**
+ *  Calculates the anti-infantry strength of this object.
+ *
+ *  This routine is used to determine the anti-infantry strength of this object.
+ *  The typical user of this routine is the expert system base defense AI.              
+ *
+ *  @author: 10/02/1995 JLB : Created.
+ *           ZivDero - Adjustments for Tiberian Sun.
+ */
+int TechnoClassExt::_Anti_Infantry() const
+{
+    if (Is_Weapon_Equipped())
+    {
+        if (Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon->Bullet->IsAntiGround)
+            return 0;
+
+        WeaponTypeClass const* weapon = Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon;
+        BulletTypeClass const* bullet = weapon->Bullet;
+        const int mrange = std::min(static_cast<int>(weapon->Range), 0x0400);
+
+        int value = ((weapon->Attack * Extension::Fetch<WarheadTypeClassExtension>(weapon->WarheadPtr)->Modifier[ARMOR_NONE]) * mrange * weapon->WarheadPtr->SpreadFactor) / weapon->ROF;
+        if (Techno_Type_Class()->Is_Two_Shooter())
+            value *= 2;
+        
+        if (bullet->IsInaccurate)
+            value /= 2;
+        
+        return value / 50;
+    }
+
+    return 0;
+}
+
+
+/**
+ *  #issue-977
+ *
+ *  Adds check for IsLegalTargetComputer when evaluating a target for attacking.
+ *
+ *  @author: CCHyper
+ */
 DECLARE_PATCH(_TechnoClass_Evaluate_Object_Is_Legal_Target_Patch)
 {
     GET_REGISTER_STATIC(TechnoClass *, this_ptr, edi);
@@ -589,18 +730,42 @@ return_false:
 }
 
 
-// TS 006371D9, YR 00708AF7 // 1% thing
+/**
+ *  Replaces Verses (Modifier) of the Warhead with the one from the extension.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_TechnoClass_Base_Is_Attacked_Armor1)
+{
+    GET_STACK_STATIC(TechnoClass*, enemy, esp, 0x84);
+    GET_REGISTER_STATIC(UnitClass*, unit, esi);
 
-// TS 00636C21, YR // TechnoClass::Base_Is_Attacked
-// TS 006369D3, YR 
+    if (Extension::Fetch<WarheadTypeClassExtension>(unit->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon->WarheadPtr)->Modifier != 0)
+    {
+        JMP(0x00636C36);
+    }
 
-// TS 006399A6, YR // Target_Threat
-// TS 006399B5, YR
-// TS 00639A2B, YR 
+    JMP(0x00636D60);
+}
 
-// TS 00443E03, YR // BuildingTypeClass::Set_Base_Defense_Values
 
-// TS 006382B0, YR // TechnoClass::Anti_Infantry
+/**
+ *  Replaces Verses (Modifier) of the Warhead with the one from the extension.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_TechnoClass_Base_Is_Attacked_Armor2)
+{
+    GET_STACK_STATIC(TechnoClass*, enemy, esp, 0x84);
+    GET_REGISTER_STATIC(InfantryClass*, unit, esi);
+
+    if (Extension::Fetch<WarheadTypeClassExtension>(unit->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon->WarheadPtr)->Modifier != 0)
+    {
+        JMP(0x006369E8);
+    }
+
+    JMP(0x00636B14);
+}
 
 
 /**
@@ -1221,4 +1386,8 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x00637540, &TechnoClassExt::_Draw_Pips);
     Patch_Jump(0x0062A0D0, &TechnoClassExt::_What_Weapon_Should_I_Use);
     Patch_Jump(0x00636F00, &TechnoClassExt::_Is_Allowed_To_Retaliate);
+    Patch_Jump(0x00639810, &TechnoClassExt::_Target_Threat);
+    Patch_Jump(0x00638240, &TechnoClassExt::_Anti_Infantry);
+    Patch_Jump(0x00636BFE, &_TechnoClass_Base_Is_Attacked_Armor1);
+    Patch_Jump(0x006369B0, &_TechnoClass_Base_Is_Attacked_Armor2);
 }
