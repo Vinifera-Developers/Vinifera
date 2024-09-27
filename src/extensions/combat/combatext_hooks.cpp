@@ -77,7 +77,7 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ArmorType armo
         return 0;
     }
 
-    damage *= warhead->Modifier[armor];
+    damage *= Extension::Fetch<WarheadTypeClassExtension>(warhead)->Modifier[armor];
 
     /**
      *	Vanilla used to enforce a minimum of 1 damage here.

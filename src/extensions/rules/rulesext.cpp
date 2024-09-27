@@ -579,19 +579,19 @@ bool RulesClassExtension::Armors(CCINIClass &ini)
 {
     //EXT_DEBUG_TRACE("RulesClassExtension::Armors - 0x%08X\n", (uintptr_t)(This()));
 
-    static const char *const ARMORS = "Armors";
+    static const char *const ARMORTYPES = "ArmorTypes";
 
     char buf[128];
     const ArmorTypeClass *armortype;
 
-    int counter = ini.Entry_Count(ARMORS);
+    int counter = ini.Entry_Count(ARMORTYPES);
     for (int index = 0; index < counter; ++index) {
-        const char *entry = ini.Get_Entry(ARMORS, index);
+        const char *entry = ini.Get_Entry(ARMORTYPES, index);
 
         /**
          *  Get a weapon entry.
          */
-        if (ini.Get_String(ARMORS, entry, buf, sizeof(buf))) {
+        if (ini.Get_String(ARMORTYPES, entry, buf, sizeof(buf))) {
 
             /**
              *  Find or create a weapon of the name specified.
