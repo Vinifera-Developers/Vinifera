@@ -32,6 +32,7 @@
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "hooker.h"
 
 
 /**
@@ -43,4 +44,9 @@ void WarheadTypeClassExtension_Hooks()
      *  Initialises the extended class.
      */
     WarheadTypeClassExtension_Init();
+
+    /**
+     *  Skip reading verses in the vanilla function to prevent crashes when there are not enough specified.
+     */
+    Patch_Jump(0x0066F3F4, 0x0066F4A4);
 }
