@@ -98,22 +98,16 @@ void BuildingTypeClassExt::_Set_Base_Defense_Values()
             if (weapon->Bullet->IsAntiAircraft)
             {
                 int anti_air_value = damage * Extension::Fetch<WarheadTypeClassExtension>(weapon->WarheadPtr)->Modifier[ARMOR_STEEL];
-                if (anti_air_value >= Rule->MaximumBaseDefenseValue)
-                    anti_air_value = Rule->MaximumBaseDefenseValue;
-                AntiAirValue = anti_air_value;
+                AntiAirValue = std::min(anti_air_value, Rule->MaximumBaseDefenseValue);
             }
 
             if (weapon->Bullet->IsAntiGround)
             {
                 int anti_armor_value = damage * Extension::Fetch<WarheadTypeClassExtension>(weapon->WarheadPtr)->Modifier[ARMOR_STEEL];
-                if (anti_armor_value >= Rule->MaximumBaseDefenseValue)
-                    anti_armor_value = Rule->MaximumBaseDefenseValue;
-                AntiArmorValue = anti_armor_value;
+                AntiArmorValue = std::min(anti_armor_value, Rule->MaximumBaseDefenseValue);
 
                 int anti_ground_value = damage * Extension::Fetch<WarheadTypeClassExtension>(weapon->WarheadPtr)->Modifier[ARMOR_NONE];
-                if (anti_ground_value >= Rule->MaximumBaseDefenseValue)
-                    anti_ground_value = Rule->MaximumBaseDefenseValue;
-                AntiArmorValue = anti_ground_value;
+                AntiArmorValue = std::min(anti_ground_value, Rule->MaximumBaseDefenseValue);
             }
         }
     }

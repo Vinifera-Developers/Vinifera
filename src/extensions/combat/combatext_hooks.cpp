@@ -47,46 +47,70 @@
 
 
 /**
- *  Calculate the damage to apply based on the warhead and target armor.
+ *  Adjusts damage to reflect the nature of the target.
  *
- *  @author: CCHyper
+ *  @author: 04/16/1994 JLB : Created.                                                 
+ *           04/17/1994 JLB : Always does a minimum of damage.                         
+ *           01/01/1995 JLB : Takes into account distance from damage source.          
+ *           04/11/1996 JLB : Changed damage fall-off formula for less damage fall-off.
+ *           ZivDero : Adjustments for Tiberian Sun
  */
-static int Modifier_Damage_Value(WarheadTypeClass *warhead, ArmorType armor, int damage)
+int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ArmorType armor, int distance)
 {
-    WarheadTypeClassExtension *warheadext = Extension::Fetch<WarheadTypeClassExtension>(warhead);
-    return (damage * warheadext->Modifier[armor]);
-}
+    /*
+    **	If there is no raw damage value to start with, then
+    **	there can be no modified damage either.
+    */
+    
+    if (!damage || Scen->SpecialFlags.IsInert || warhead == nullptr)
+        return 0;
 
+    /*
+    **	Negative damage (i.e., heal) is always applied full strength, but only if the heal
+    **	effect is close enough.
+    */
+    if (damage < 0)
+    {
+        if (distance < 0x008 && armor == ARMOR_NONE)
+            return damage;
 
-/**
- *  x
- *
- *  @author: CCHyper
- */
-DECLARE_PATCH(_Modify_Damage_Ext_Verses_Patch)
-{
-    GET_REGISTER_STATIC(WarheadTypeClass *, warhead, edi);
-    GET_STACK_STATIC(ArmorType, armor, esp, 0x0C);
-    GET_STACK_STATIC(const int, damage, esp, 0x4);
-    static ArmorTypeClass *atype;
-    static int damage_value;
+        return 0;
+    }
 
-    atype = ArmorTypes[armor];
-
-    /**
-     *  Get the modified damage to apply.
-     */
-    damage_value = Modifier_Damage_Value(warhead, armor, damage);
+    damage = damage * warhead->Modifier[armor];
 
     /**
      *  Always apply at least one damage point, unless this target armor has a special flag.
      */
-    if (damage_value <= 0 && !atype->Is_Allowed_Zero_Damage()) {
-        damage_value = 1;
+    if (damage <= 0 && !ArmorTypes[armor]->Is_Allowed_Zero_Damage())
+        damage = 1;
+
+    /*
+    **	Reduce damage according to the distance from the impact point.
+    */
+    if (damage)
+    {
+        if (!warhead->SpreadFactor)
+            distance /= PIXEL_LEPTON_W / 4;
+        else
+            distance /= warhead->SpreadFactor * (PIXEL_LEPTON_W / 2 + 1);
+
+        distance = std::clamp(distance, 0, 16);
+
+        if (distance)
+            damage = damage / distance;
+
+        /*
+        **	Allow damage to drop to zero only if the distance would have
+        **	reduced damage to less than 1/4 full damage. Otherwise, ensure
+        **	that at least one damage point is done.
+        */
+        if (distance < 4)
+            damage = std::max(damage, Rule->MinDamage);
     }
 
-    _asm { mov esi, damage_value }
-    JMP(0x0045EBBB);
+    damage = std::min(damage, Rule->MaxDamage);
+    return damage;
 }
 
 
@@ -260,5 +284,5 @@ void CombatExtension_Hooks()
     Patch_Jump(0x0045FAA0, &_Explosion_Damage_IsWallAbsoluteDestroyer_Patch);
     Patch_Jump(0x00460244, &_Explosion_Damage_IsIceDestruction_Patch);
     Patch_Jump(0x00460477, &_Do_Flash_CombatLightSize_Patch);
-    Patch_Jump(0x0045EB9E, &_Modify_Damage_Ext_Verses_Patch);
+    Patch_Jump(0x0045EB60, &Vinifera_Modify_Damage);
 }
