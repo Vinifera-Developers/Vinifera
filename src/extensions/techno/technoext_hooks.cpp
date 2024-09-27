@@ -740,7 +740,7 @@ DECLARE_PATCH(_TechnoClass_Base_Is_Attacked_Armor1)
     GET_STACK_STATIC(TechnoClass*, enemy, esp, 0x84);
     GET_REGISTER_STATIC(UnitClass*, unit, esi);
 
-    if (Extension::Fetch<WarheadTypeClassExtension>(unit->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon->WarheadPtr)->Modifier != 0)
+    if (Extension::Fetch<WarheadTypeClassExtension>(unit->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon->WarheadPtr)->Modifier[enemy->Techno_Type_Class()->Armor] != 0)
     {
         JMP(0x00636C36);
     }
@@ -759,7 +759,7 @@ DECLARE_PATCH(_TechnoClass_Base_Is_Attacked_Armor2)
     GET_STACK_STATIC(TechnoClass*, enemy, esp, 0x84);
     GET_REGISTER_STATIC(InfantryClass*, unit, esi);
 
-    if (Extension::Fetch<WarheadTypeClassExtension>(unit->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon->WarheadPtr)->Modifier != 0)
+    if (Extension::Fetch<WarheadTypeClassExtension>(unit->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon->WarheadPtr)->Modifier[enemy->Techno_Type_Class()->Armor] != 0)
     {
         JMP(0x006369E8);
     }
