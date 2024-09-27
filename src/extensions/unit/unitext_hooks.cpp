@@ -703,7 +703,7 @@ DECLARE_PATCH(_UnitClass_Jellyfish_AI_Armor_Patch)
         mov ebx, warhead
     }
 
-    JMP_REG(ecx, 0x004F2DF);
+    JMP_REG(ecx, 0x0064F2DF);
 }
 
 
