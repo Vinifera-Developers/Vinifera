@@ -44,6 +44,7 @@ WeaponTypeClassExtension::WeaponTypeClassExtension(const WeaponTypeClass *this_p
     AbstractTypeClassExtension(this_ptr),
     IsSuicide(false),
     IsDeleteOnSuicide(false),
+    IsOmniFire(true),
     IsElectricBolt(false),
     ElectricBoltColor1(EBOLT_DEFAULT_COLOR_1),
     ElectricBoltColor2(EBOLT_DEFAULT_COLOR_2),
@@ -173,6 +174,7 @@ void WeaponTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
     //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
+    crc(IsOmniFire);
     crc(IsElectricBolt);
 }
 
@@ -194,6 +196,7 @@ bool WeaponTypeClassExtension::Read_INI(CCINIClass &ini)
     
     IsSuicide = ini.Get_Bool(ini_name, "Suicide", IsSuicide);
     IsDeleteOnSuicide = ini.Get_Bool(ini_name, "DeleteOnSuicide", IsDeleteOnSuicide);
+    IsOmniFire = ini.Get_Bool(ini_name, "OmniFire", IsOmniFire);
 
     IsElectricBolt = ini.Get_Bool(ini_name, "IsElectricBolt", IsElectricBolt);
     ElectricBoltColor1 = ini.Get_RGB(ini_name, "EBoltColor1", ElectricBoltColor1);
