@@ -239,5 +239,10 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
         }
     }
 
+    /**
+     *  Allow overriding IsOrganic.
+     */
+    This()->IsOrganic = ini.Get_Bool(ini_name, "Organic", This()->IsOrganic);
+
     return true;
 }
