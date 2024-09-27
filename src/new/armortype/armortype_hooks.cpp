@@ -64,31 +64,6 @@
 
 
 
-//DECLARE_PATCH()
-//{
-//}
-//DEFINE_HOOK(6F36FE, Verses_fld_0, 0) // TechnoClass::What_Weapon_Should_I_Use
-//{
-//    GET_VERSES(EAX, ECX);
-//    return vsData->Verses == 0.0 // vsData->ForceFire - taking this out because it has nothing to do with _forcing_ fire
-//        ? 0x6F37AD
-//        : 0x6F3716
-//        ;
-//}
-
-
-//DECLARE_PATCH()
-//{
-//}
-//DEFINE_HOOK(6F3731, Verses_fld_1, 0) // TechnoClass::What_Weapon_Should_I_Use
-//{
-//    GET_VERSES(EDX, EAX);
-//    return vsData->Verses == 0.0
-//        ? 0x6F3745
-//        : 0x6F3754
-//        ;
-//}
-
 
 /**
  *  x

@@ -29,10 +29,15 @@
 
 #include <vector>
 
+#include "unit.h"
+#include "unittype.h"
+#include "bullettype.h"
 #include "technoext.h"
 #include "techno.h"
 #include "technotype.h"
 #include "technotypeext.h"
+#include "teamtype.h"
+#include "team.h"
 #include "tibsun_inline.h"
 #include "weapontype.h"
 #include "weapontypeext.h"
@@ -79,6 +84,7 @@ class TechnoClassExt : public TechnoClass
 public:
     void _Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect& rect) const;
     WeaponSlotType _What_Weapon_Should_I_Use(TARGET target) const;
+    bool _Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeClass const* warhead) const;
 };
 
 
@@ -393,6 +399,144 @@ WeaponSlotType TechnoClassExt::_What_Weapon_Should_I_Use(TARGET target) const
 }
 
 
+ /**
+  *  Checks object to see if it can retaliate.
+  *  
+  * This routine is called when this object has suffered some damage and it needs to know
+  * if it should fight back. The object that caused the damage is specified as a parameter.
+  *
+  *  @author: 10/19/1996 JLB : Created. 
+  *           ZivDero - Adjustments for Tiberian Sun.
+  */
+bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeClass const* warhead) const
+{
+    /**
+     * 	Human-controlled units that have a target don't retaliate.
+     */
+    if (House->Is_Human_Control() && this->TarCom)
+        return false;
+
+    if (warhead != nullptr && warhead->IsVeinhole)
+    {
+        bool foot_has_navcom = Is_Foot() && reinterpret_cast<FootClass const*>(this)->NavCom;
+        if (!(foot_has_navcom && House->Is_Human_Control()))
+            return true;
+    }
+
+    /**
+     * 	If there is no source of the damage, then retaliation cannot occur.
+     */
+    if (source == nullptr)
+        return false;
+
+    /**
+     * 	If the source of the damage is an ally, then retaliation shouldn't
+     *  occur either.
+     */
+    if (House->Is_Ally(source))
+        return false;
+
+    /**
+     * 	Only objects that have a damaging weapon are allowed to retaliate.
+     */
+    if (Combat_Damage() <= 0 || !Is_Weapon_Equipped())
+        return false;
+
+    /**
+     * 	If this is not equipped with a weapon that can attack the molester, then
+     *  don't allow retaliation.
+     */
+    const TechnoTypeClass* ttype = Techno_Type_Class();
+    const WeaponInfoStruct* weapon_info = Get_Weapon(What_Weapon_Should_I_Use(source));
+    if (weapon_info->Weapon->WarheadPtr != nullptr &&
+        Extension::Fetch<WarheadTypeClassExtension>(weapon_info->Weapon->WarheadPtr)->Modifier[source->Techno_Type_Class()->Armor] == 0)
+    {
+        return false;
+    }
+
+    /**
+     * 	Don't allow retaliation if it isn't equipped with a weapon that can deal with the threat.
+     */
+    if (source->What_Am_I() == RTTI_AIRCRAFT && !weapon_info->Weapon->Bullet->IsAntiAircraft) return(false);
+
+    /**
+     *	Tanya is not allowed to retaliate against buildings in the normal sense while in guard mode. That
+     *	is, unless it is owned by the computer. Normally, Tanya can't do anything substantial to a building
+     *	except to blow it up.
+     */
+    if (House->Is_Human_Control() && source->What_Am_I() == RTTI_BUILDING)
+    {
+        if (What_Am_I() == RTTI_INFANTRY && static_cast<InfantryTypeClass const*>(ttype)->IsBomber)
+            return false;
+
+        if (Veterancy.Is_Veteran() || Veterancy.Is_Elite())
+        {
+            if (Veterancy.Is_Veteran() && ttype->VeteranAbilities[ABILITY_C4])
+                return false;
+
+            if (Veterancy.Is_Elite() && (ttype->VeteranAbilities[ABILITY_C4] || ttype->EliteAbilities[ABILITY_C4]))
+                return false;
+        }
+    }
+
+    /**
+     * 	Artillery that need to deploy to fire don't retaliate.
+     */
+    if (House->Is_Human_Control() && What_Am_I() == RTTI_UNIT)
+    {
+        BuildingTypeClass* deploys_into = reinterpret_cast<UnitClass const*>(this)->Class->DeploysInto;
+        if (deploys_into != nullptr && deploys_into->IsArtillary)
+            return false;
+    }
+
+    /**
+     * 	If a human house is not allowed to retaliate automatically, then don't
+     */
+    if (House->Is_Human_Control() && !Rule->IsSmartDefense && What_Am_I() != RTTI_BUILDING)
+    {
+        if (Mission != MISSION_GUARD_AREA && Mission != MISSION_GUARD && Mission != MISSION_PATROL)
+            return false;
+    }
+
+    /**
+     * 	If this object is part of a team that prevents retaliation then don't allow retaliation.
+     */
+    if (Is_Foot() && reinterpret_cast<FootClass const*>(this)->Team != nullptr && reinterpret_cast<FootClass const*>(this)->Team->Class->IsSuicide)
+        return false;
+
+    /**
+     *	Compare potential threat of the current target and the potential new target. Don't retaliate
+     *	if it is currently attacking the greater threat.
+     */
+    if (!House->Is_Human_Control() && TarCom != nullptr && Is_Target_Object(TarCom))
+    {
+        float current_val = Target_Threat(static_cast<TechnoClass*>(TarCom), Coordinate());
+        float source_val = Target_Threat(source, Coordinate());
+
+        if (source_val < current_val)
+            return false;
+    }
+
+    /**
+     *  #issue-594
+     *
+     *  Implements IsCanRetaliate for TechnoTypes.
+     *
+     *  @author: CCHyper
+     */
+
+    /**
+     *  If this unit is flagged as no being allowed to retaliate to attacks, return false.
+     */
+    if (!Extension::Fetch<TechnoTypeClassExtension>(ttype)->IsCanRetaliate)
+        return false;
+
+    /**
+     * 	All checks passed, so return that retaliation is allowed.
+     */
+    return true;
+}
+
 
  /**
   *  #issue-977
@@ -465,43 +609,6 @@ return_false:
 // TS 00639A2B, YR 
 
 // TS 006382B0, YR 
-
-
-
-/**
- *  #issue-594
- * 
- *  Implements IsCanRetaliate for TechnoTypes.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_TechnoClass_Is_Allowed_To_Retaliate_Can_Retaliate_Patch)
-{
-    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
-    static TechnoTypeClassExtension *technotypeext;
-
-    technotypeext = Extension::Fetch<TechnoTypeClassExtension>(this_ptr->Techno_Type_Class());
-
-    /**
-     *  If this unit is flagged as no being allowed to retaliate to attacks, return false.
-     */
-    if (!technotypeext->IsCanRetaliate) {
-        goto return_FALSE;
-    }
-
-    /**
-     *  Stolen bytes/code.
-     */
-    if (this_ptr->House->Is_Human_Control() && this_ptr->TarCom) {
-        goto return_FALSE;
-    }
-
-continue_checks:
-    JMP(0x00636F26);
-
-return_FALSE:
-    JMP(0x006371E7);
-}
 
 
 /**
@@ -1118,8 +1225,8 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x00631661, &_TechnoClass_Player_Assign_Mission_Response_Patch);
     Patch_Jump(0x00630390, &_TechnoClass_Fire_At_Suicide_Patch);
     Patch_Jump(0x00631223, &_TechnoClass_Fire_At_Electric_Bolt_Patch);
-    Patch_Jump(0x00636F09, &_TechnoClass_Is_Allowed_To_Retaliate_Can_Retaliate_Patch);
     Patch_Jump(0x0062D4CA, &_TechnoClass_Evaluate_Object_Is_Legal_Target_Patch);
     Patch_Jump(0x00637540, &TechnoClassExt::_Draw_Pips);
     Patch_Jump(0x0062A0D0, &TechnoClassExt::_What_Weapon_Should_I_Use);
+    Patch_Jump(0x00636F00, &TechnoClassExt::_Is_Allowed_To_Retaliate);
 }
