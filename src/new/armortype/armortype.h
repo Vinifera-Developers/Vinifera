@@ -42,8 +42,6 @@ class ArmorTypeClass
 
         bool Read_INI(CCINIClass &ini);
 
-        bool Is_Allowed_Zero_Damage() const { return IsZeroDamageAllowed; }
-
         static bool One_Time();
 
         static const char *Get_Modifier_Default_String();
@@ -58,26 +56,4 @@ class ArmorTypeClass
          *  The name of this armor type, used for identification purposes.
          */
         Wstring Name;
-
-    public:
-
-        ///**
-        // *  Can the order the unit to force fire on the target?
-        // */
-        //bool CanForceFire;
-
-        ///**
-        // *  Can the unit retaliate against this target?
-        // */
-        //bool CanRetaliate;
-
-        ///**
-        // *  Can the unit passively acquire this target?
-        // */
-        //bool CanPassiveAcquire;
-
-        /**
-         *  Is this armor allowed to have zero damage dealt upon it?
-         */
-        bool IsZeroDamageAllowed;
 };

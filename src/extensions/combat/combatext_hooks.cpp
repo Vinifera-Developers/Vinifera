@@ -57,18 +57,18 @@
  */
 int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ArmorType armor, int distance)
 {
-    /*
-    **	If there is no raw damage value to start with, then
-    **	there can be no modified damage either.
-    */
+    /**
+     *	If there is no raw damage value to start with, then
+     *	there can be no modified damage either.
+     */
     
     if (!damage || Scen->SpecialFlags.IsInert || warhead == nullptr)
         return 0;
 
-    /*
-    **	Negative damage (i.e., heal) is always applied full strength, but only if the heal
-    **	effect is close enough.
-    */
+    /**
+     *	Negative damage (i.e., heal) is always applied full strength, but only if the heal
+     *	effect is close enough.
+     */
     if (damage < 0)
     {
         if (distance < 0x008 && armor == ARMOR_NONE)
@@ -77,34 +77,36 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ArmorType armo
         return 0;
     }
 
-    damage = damage * warhead->Modifier[armor];
+    damage *= warhead->Modifier[armor];
 
     /**
-     *  Always apply at least one damage point, unless this target armor has a special flag.
+     *	Vanilla used to enforce a minimum of 1 damage here.
      */
-    if (damage <= 0 && !ArmorTypes[armor]->Is_Allowed_Zero_Damage())
+#if 0
+    if (damage <= 0)
         damage = 1;
+#endif
 
-    /*
-    **	Reduce damage according to the distance from the impact point.
-    */
+    /**
+     *	Reduce damage according to the distance from the impact point.
+     */
     if (damage)
     {
         if (!warhead->SpreadFactor)
-            distance /= PIXEL_LEPTON_W / 4;
+            distance /= PIXEL_LEPTON_W / 2;
         else
             distance /= warhead->SpreadFactor * (PIXEL_LEPTON_W / 2 + 1);
 
         distance = std::clamp(distance, 0, 16);
 
         if (distance)
-            damage = damage / distance;
+            damage /= distance;
 
-        /*
-        **	Allow damage to drop to zero only if the distance would have
-        **	reduced damage to less than 1/4 full damage. Otherwise, ensure
-        **	that at least one damage point is done.
-        */
+        /**
+         *	Allow damage to drop to zero only if the distance would have
+         *	reduced damage to less than 1/4 full damage. Otherwise, ensure
+         *	that at least one damage point is done.
+         */
         if (distance < 4)
             damage = std::max(damage, Rule->MinDamage);
     }

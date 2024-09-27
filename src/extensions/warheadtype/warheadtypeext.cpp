@@ -233,8 +233,6 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
                 Modifier[armor] = std::atof(aval);
             }
 
-            //Modifier[armor] = Percent_String_To_Float(aval);
-
             aval = std::strtok(nullptr, ",");
         }
     }

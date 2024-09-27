@@ -98,7 +98,9 @@ ArmorType ArmorTypeClass::From_Name(const char *name)
  */
 const char *ArmorTypeClass::Name_From(ArmorType type)
 {
-    return (type != ARMOR_NONE && type < ArmorTypes.Count() ? ArmorTypes[type]->Name.Peek_Buffer() : "<none>");
+    ASSERT(type >= ARMOR_FIRST && type < ArmorTypes.Count());
+
+    return ArmorTypes[type]->Name.Peek_Buffer();
 }
 
 
@@ -139,11 +141,6 @@ bool ArmorTypeClass::Read_INI(CCINIClass& ini)
     if (!ini.Is_Present(Name)) {
         return false;
     }
-
-    //CanForceFire = ini.Get_Bool(Name, "CanForceFire", CanForceFire);
-    //CanRetaliate = ini.Get_Bool(Name, "CanRetaliate", CanRetaliate);
-    //CanPassiveAcquire = ini.Get_Bool(Name, "CanPassiveAcquire", CanPassiveAcquire);
-    IsZeroDamageAllowed = ini.Get_Bool(Name, "IsZeroDamageAllowed", IsZeroDamageAllowed);
 
     return true;
 }

@@ -176,6 +176,7 @@ static int Building_Radio_Reload_Rate(BuildingClass *this_ptr)
     return radio_class_ext->ReloadRate * TICKS_PER_MINUTE;
 }
 
+
 DECLARE_PATCH(_BuildingClass_Mission_Repair_ReloadRate_Patch)
 {
     GET_REGISTER_STATIC(BuildingClass*, this_ptr, ebp);
