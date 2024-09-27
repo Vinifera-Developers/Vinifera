@@ -114,6 +114,7 @@ public:
     void _Init_IO(int id);
     void _Init_For_House(int id);
     void _Activate();
+    bool _Add(RTTIType type, int id);
     void _Deactivate();
     bool _Scroll(bool up);
     bool _Scroll_Page(bool up);
@@ -381,157 +382,6 @@ bool SidebarClassExt::_Factory_Link(FactoryClass* factory, RTTIType type, int id
 
 
 /**
- *  Comparison function for sorting sidebar icons (BuildTypes)
- *
- *  @author: Rampastring, ZivDero
- */
-int __cdecl BuildType_Comparison(const void* p1, const void* p2)
-{
-    auto firstSide = [](unsigned owners) -> int
-        {
-            int side = INT_MAX;
-
-            for (int i = 0; i < HouseTypes.Count(); i++)
-            {
-                if (owners & (1 << i))
-                {
-                    if (HouseTypes[i]->Side < side)
-                        side = HouseTypes[i]->Side;
-                }
-            }
-
-            return side != INT_MAX ? side : SIDE_NONE;
-        };
-
-    auto isSideOwner = [](const HouseClass* house, unsigned owners) -> int
-        {
-            // The house owns the object directly
-            if (owners & 1 << house->ActLike)
-                return true;
-
-            const SideType side = house->Class->Side;
-            for (int i = 0; i < HouseTypes.Count(); i++)
-            {
-                if ((owners & 1 << i) && HouseTypes[i]->Side == side)
-                    return true;
-            }
-
-            return false;
-        };
-
-
-    const auto bt1 = static_cast<const SidebarClass::StripClass::BuildType*>(p1);
-    const auto bt2 = static_cast<const SidebarClass::StripClass::BuildType*>(p2);
-
-    if (bt1->BuildableType == bt2->BuildableType)
-    {
-        /**
-         *  If both are SWs, the one that recharges quicker goes first,
-         *  otherwise sort by ID.
-         */
-        if (bt1->BuildableType == RTTI_SPECIAL || bt1->BuildableType == RTTI_SUPERWEAPONTYPE)
-        {
-            if (SuperWeaponTypes[bt1->BuildableID]->RechargeTime != SuperWeaponTypes[bt2->BuildableID]->RechargeTime)
-                return SuperWeaponTypes[bt1->BuildableID]->RechargeTime - SuperWeaponTypes[bt2->BuildableID]->RechargeTime;
-
-            return bt1->BuildableID - bt2->BuildableID;
-        }
-
-
-        const TechnoTypeClass* t1 = Fetch_Techno_Type(bt1->BuildableType, bt1->BuildableID);
-        const TechnoTypeClass* t2 = Fetch_Techno_Type(bt2->BuildableType, bt2->BuildableID);
-
-        /**
-         *  If both are Buildings, non-defenses come first, then walls, then gates, then base defenses
-         */
-        if (bt1->BuildableType == RTTI_BUILDINGTYPE && OptionsExtension->SortDefensesAsLast)
-        {
-            const auto b1 = static_cast<const BuildingTypeClass*>(t1), b2 = static_cast<const BuildingTypeClass*>(t2);
-
-            const auto ext1 = Extension::Fetch<TechnoTypeClassExtension>(t1);
-            const auto ext2 = Extension::Fetch<TechnoTypeClassExtension>(t2);
-
-            enum
-            {
-                BCAT_NORMAL,
-                BCAT_WALL,
-                BCAT_GATE,
-                BCAT_DEFENSE
-            };
-
-            int building_category1 = (b1->IsWall || b1->IsFirestormWall || b1->IsLaserFencePost || b1->IsLaserFence) ? BCAT_WALL : (b1->IsGate ? BCAT_GATE : (ext1->SortCameoAsBaseDefense ? BCAT_DEFENSE : BCAT_NORMAL));
-            int building_category2 = (b2->IsWall || b2->IsFirestormWall || b2->IsLaserFencePost || b2->IsLaserFence) ? BCAT_WALL : (b2->IsGate ? BCAT_GATE : (ext2->SortCameoAsBaseDefense ? BCAT_DEFENSE : BCAT_NORMAL));
-
-            // Compare based on category priority
-            if (building_category1 != building_category2)
-                return building_category1 - building_category2;
-        }
-
-        /**
-         *  If both are Units, non-naval units come first
-         */
-        //if (bt1->BuildableType == RTTI_UNITTYPE)
-        //{
-        //    const auto ext1 = Extension::Fetch<UnitTypeClassExtension>(t1);
-        //    const auto ext2 = Extension::Fetch<UnitTypeClassExtension>(t2);
-
-        //    if (ext1->IsNaval != ext2->IsNaval)
-        //        return (int)ext1->IsNaval - (int)ext2->IsNaval;
-        //}
-
-        /**
-         *  If your side owns one of the objects, but not another, yours comes first
-         */
-        const int owns1 = isSideOwner(PlayerPtr, t1->Get_Ownable()),
-            owns2 = isSideOwner(PlayerPtr, t2->Get_Ownable());
-
-        if (owns1 != owns2)
-            return owns2 - owns1;
-
-        /**
-         *  If you don't own either of the objects, then sort by side index
-         */
-        if (!owns1 && !owns2)
-        {
-            const int side1 = firstSide(t1->Get_Ownable()),
-                side2 = firstSide(t2->Get_Ownable());
-
-            if (side1 != side2)
-                return side1 - side2;
-        }
-
-        return bt1->BuildableID - bt2->BuildableID;
-    }
-
-    if (bt1->BuildableType == RTTI_SPECIAL || bt1->BuildableType == RTTI_SUPERWEAPONTYPE)
-        return -1;
-
-    if (bt2->BuildableType == RTTI_SPECIAL || bt2->BuildableType == RTTI_SUPERWEAPONTYPE)
-        return 1;
-
-    if (bt1->BuildableType == RTTI_INFANTRYTYPE)
-        return -1;
-
-    if (bt2->BuildableType == RTTI_INFANTRYTYPE)
-        return 1;
-
-    if (bt1->BuildableType == RTTI_UNITTYPE)
-        return -1;
-
-    if (bt2->BuildableType == RTTI_UNITTYPE)
-        return 1;
-
-    if (bt1->BuildableType == RTTI_AIRCRAFTTYPE)
-        return -1;
-
-    if (bt2->BuildableType == RTTI_AIRCRAFTTYPE)
-        return 1;
-
-    return bt1->BuildableID - bt2->BuildableID;
-}
-
-
-/**
  *  Reimplements the entire SidebarClass::Add function.
  *
  *  @author: ZivDero
@@ -545,7 +395,6 @@ bool SidebarClassExt::_Add(RTTIType type, int id)
             Activate(1);
             IsToRedraw = true;
             Flag_To_Redraw(false);
-            qsort(&SidebarExtension->Get_Tab(type).Buildables, SidebarExtension->Get_Tab(type).BuildableCount, sizeof(StripClass::BuildType), &BuildType_Comparison);
             return true;
         }
     }
@@ -1189,6 +1038,188 @@ void StripClassExt::_Activate()
         SidebarExtension->SelectButton[ID][index].Zap();
         Map.Add_A_Button(SidebarExtension->SelectButton[ID][index]);
     }
+}
+
+
+/**
+ *  Comparison function for sorting sidebar icons (BuildTypes)
+ *
+ *  @author: Rampastring, ZivDero
+ */
+static int __cdecl BuildType_Comparison(const void* p1, const void* p2)
+{
+    auto firstSide = [](unsigned owners) -> int
+        {
+            int side = INT_MAX;
+
+            for (int i = 0; i < HouseTypes.Count(); i++)
+            {
+                if (owners & (1 << i))
+                {
+                    if (HouseTypes[i]->Side < side)
+                        side = HouseTypes[i]->Side;
+                }
+            }
+
+            return side != INT_MAX ? side : SIDE_NONE;
+        };
+
+    auto isSideOwner = [](const HouseClass* house, unsigned owners) -> int
+        {
+            // The house owns the object directly
+            if (owners & 1 << house->ActLike)
+                return true;
+
+            const SideType side = house->Class->Side;
+            for (int i = 0; i < HouseTypes.Count(); i++)
+            {
+                if ((owners & 1 << i) && HouseTypes[i]->Side == side)
+                    return true;
+            }
+
+            return false;
+        };
+
+
+    const auto bt1 = static_cast<const SidebarClass::StripClass::BuildType*>(p1);
+    const auto bt2 = static_cast<const SidebarClass::StripClass::BuildType*>(p2);
+
+    if (bt1->BuildableType == bt2->BuildableType)
+    {
+        /**
+         *  If both are SWs, the one that recharges quicker goes first,
+         *  otherwise sort by ID.
+         */
+        if (bt1->BuildableType == RTTI_SPECIAL || bt1->BuildableType == RTTI_SUPERWEAPONTYPE)
+        {
+            if (SuperWeaponTypes[bt1->BuildableID]->RechargeTime != SuperWeaponTypes[bt2->BuildableID]->RechargeTime)
+                return SuperWeaponTypes[bt1->BuildableID]->RechargeTime - SuperWeaponTypes[bt2->BuildableID]->RechargeTime;
+
+            return bt1->BuildableID - bt2->BuildableID;
+        }
+
+
+        const TechnoTypeClass* t1 = Fetch_Techno_Type(bt1->BuildableType, bt1->BuildableID);
+        const TechnoTypeClass* t2 = Fetch_Techno_Type(bt2->BuildableType, bt2->BuildableID);
+
+        /**
+         *  If both are Buildings, non-defenses come first, then walls, then gates, then base defenses
+         */
+        if (bt1->BuildableType == RTTI_BUILDINGTYPE && OptionsExtension->SortDefensesAsLast)
+        {
+            const auto b1 = static_cast<const BuildingTypeClass*>(t1), b2 = static_cast<const BuildingTypeClass*>(t2);
+
+            const auto ext1 = Extension::Fetch<TechnoTypeClassExtension>(t1);
+            const auto ext2 = Extension::Fetch<TechnoTypeClassExtension>(t2);
+
+            enum
+            {
+                BCAT_NORMAL,
+                BCAT_WALL,
+                BCAT_GATE,
+                BCAT_DEFENSE
+            };
+
+            int building_category1 = (b1->IsWall || b1->IsFirestormWall || b1->IsLaserFencePost || b1->IsLaserFence) ? BCAT_WALL : (b1->IsGate ? BCAT_GATE : (ext1->SortCameoAsBaseDefense ? BCAT_DEFENSE : BCAT_NORMAL));
+            int building_category2 = (b2->IsWall || b2->IsFirestormWall || b2->IsLaserFencePost || b2->IsLaserFence) ? BCAT_WALL : (b2->IsGate ? BCAT_GATE : (ext2->SortCameoAsBaseDefense ? BCAT_DEFENSE : BCAT_NORMAL));
+
+            // Compare based on category priority
+            if (building_category1 != building_category2)
+                return building_category1 - building_category2;
+        }
+
+        /**
+         *  If both are Units, non-naval units come first
+         */
+         //if (bt1->BuildableType == RTTI_UNITTYPE)
+         //{
+         //    const auto ext1 = Extension::Fetch<UnitTypeClassExtension>(t1);
+         //    const auto ext2 = Extension::Fetch<UnitTypeClassExtension>(t2);
+
+         //    if (ext1->IsNaval != ext2->IsNaval)
+         //        return (int)ext1->IsNaval - (int)ext2->IsNaval;
+         //}
+
+         /**
+          *  If your side owns one of the objects, but not another, yours comes first
+          */
+        const int owns1 = isSideOwner(PlayerPtr, t1->Get_Ownable()),
+            owns2 = isSideOwner(PlayerPtr, t2->Get_Ownable());
+
+        if (owns1 != owns2)
+            return owns2 - owns1;
+
+        /**
+         *  If you don't own either of the objects, then sort by side index
+         */
+        if (!owns1 && !owns2)
+        {
+            const int side1 = firstSide(t1->Get_Ownable()),
+                side2 = firstSide(t2->Get_Ownable());
+
+            if (side1 != side2)
+                return side1 - side2;
+        }
+
+        return bt1->BuildableID - bt2->BuildableID;
+    }
+
+    if (bt1->BuildableType == RTTI_SPECIAL || bt1->BuildableType == RTTI_SUPERWEAPONTYPE)
+        return -1;
+
+    if (bt2->BuildableType == RTTI_SPECIAL || bt2->BuildableType == RTTI_SUPERWEAPONTYPE)
+        return 1;
+
+    if (bt1->BuildableType == RTTI_INFANTRYTYPE)
+        return -1;
+
+    if (bt2->BuildableType == RTTI_INFANTRYTYPE)
+        return 1;
+
+    if (bt1->BuildableType == RTTI_UNITTYPE)
+        return -1;
+
+    if (bt2->BuildableType == RTTI_UNITTYPE)
+        return 1;
+
+    if (bt1->BuildableType == RTTI_AIRCRAFTTYPE)
+        return -1;
+
+    if (bt2->BuildableType == RTTI_AIRCRAFTTYPE)
+        return 1;
+
+    return bt1->BuildableID - bt2->BuildableID;
+}
+
+
+/**
+ *  Reimplements the entire SidebarClass::StripClass::Add function.
+ *
+ *  @author: ZivDero
+ */
+bool StripClassExt::_Add(RTTIType type, int id)
+{
+    if (BuildableCount < MAX_BUILDABLES)
+    {
+        for (int index = 0; index < BuildableCount; index++)
+        {
+            if (Buildables[index].BuildableType == type && Buildables[index].BuildableID == id)
+                return false;
+        }
+
+        if (!ScenarioInit && type != RTTI_SPECIAL)
+            Speak(VOX_NEW_CONSTRUCT);
+
+        Buildables[BuildableCount].BuildableType = type;
+        Buildables[BuildableCount].BuildableID = id;
+        BuildableCount++;
+        IsToRedraw = true;
+        qsort(&Buildables, BuildableCount, sizeof(BuildType), &BuildType_Comparison);
+
+        return true;
+    }
+
+    return false;
 }
 
 
@@ -2138,9 +2169,10 @@ void SidebarClassExtension_Hooks()
     Patch_Jump(0x005B8B7D, &_SidebarClass_Destructor_Patch);
 
     /**
-     *  This patch is compatible with the vanilla sidebar.
+     *  These patches are compatible with the vanilla sidebar.
      */
     Patch_Jump(0x005F4E40, &StripClassExt::_Help_Text);
+    Patch_Jump(0x005F4630, &StripClassExt::_Add);
 
     // NOP away tooltip length check for formatting
     Patch_Byte(0x0044E486, 0x90);
