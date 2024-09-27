@@ -124,7 +124,7 @@ void Spawner_Hooks()
 
     /**
      *  Skip some checks inside HouseClass::MPlayer_Defeated to make the game continue
-     *  seven if there are only allied AI players left in Skirmish.
+     *  even if there are only allied AI players left in Skirmish.
      */
     Patch_Jump(0x004BF7B6, 0x004BF7BF);
     Patch_Jump(0x004BF7F0, 0x004BF7F9);
