@@ -150,9 +150,9 @@ In `RULES.INI`:
 ```ini
 [SOMEWARHEAD]                           ; WarheadType
 Verses=100%,100%,100%,100%,100%,100%    ; list of % or floats, the damage multiplier against a specific armor types. 1 entry per ArmorType.
-ForceFire=yes,yes,yes,yes,yes,yes       ; list of % or booleans, whether this warhead can be use to force-fire at a specific armor types. 1 entry per ArmorType.
-Retaliate=yes,yes,yes,yes,yes,yes       ; list of % or booleans, whether this warhead can be use to retaliate against a specific armor types. 1 entry per ArmorType.
-PassiveAcquire=yes,yes,yes,yes,yes,yes  ; list of % or booleans, whether this warhead can be use to passive acquire a specific armor types. 1 entry per ArmorType.
+ForceFire=yes,yes,yes,yes,yes,yes       ; list of booleans, whether this warhead can be use to force-fire at a specific armor types. 1 entry per ArmorType.
+Retaliate=yes,yes,yes,yes,yes,yes       ; list of booleans, whether this warhead can be use to retaliate against a specific armor types. 1 entry per ArmorType.
+PassiveAcquire=yes,yes,yes,yes,yes,yes  ; list of booleans, whether this warhead can be use to passive acquire a specific armor types. 1 entry per ArmorType.
 Organic=no                              ; boolean, whether an infantry using this warhead can passively acquire or retaliate against vehicles, aircraft or buildings. This overrides the RA/TS 0% behavior.
 ```
 
