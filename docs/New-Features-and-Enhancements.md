@@ -120,6 +120,42 @@ SpawnDelay=3  ; unsigned integer, the number of frames between each of the spawn
 
 ## Technos
 
+### New ArmorTypes
+
+- Vinifera allows adding new armor types, as well as customizing the ability of warheads to target them.
+
+In `RULES.INI`:
+```ini
+[ArmorTypes]
+5=myarmor
+```
+
+```{note}
+Vanilla ArmorTypes are present implicitly, redeclaring them has no effect.
+```
+
+- The new armor can be assigned to a techno normally.
+
+In `RULES.INI`:
+```ini
+[SOMETECHNO]   ; TechnoType
+Armor=myarmor  ; ArmorType
+```
+
+- Verses for the new armor are appended to the end of the vanilla Verses key.
+- Additionally, it is possible to customize whether a unit using a certain warhead can force-fire, retaliate or passively acquire units with a certain armor type. This mimics the special behavior of RA2's 0% and 1%, as well as Ares's 2%.
+- It is also possible to override the game's default harcoded behavior for infantry using warheads with 0% verses against armor "steel".
+
+In `RULES.INI`:
+```ini
+[SOMEWARHEAD]                           ; WarheadType
+Verses=100%,100%,100%,100%,100%,100%    ; list of % or floats, the damage multiplier against a specific armor types. 1 entry per ArmorType, defaults to 100% if not enough entries are present.
+ForceFire=yes,yes,yes,yes,yes,yes       ; list of % or booleans, whether this warhead can be use to force-fire at a specific armor types. 1 entry per ArmorType, defaults to yes if not enough entries are present.
+Retaliate=yes,yes,yes,yes,yes,yes       ; list of % or booleans, whether this warhead can be use to retaliate against a specific armor types. 1 entry per ArmorType, defaults to yes if not enough entries are present.
+PassiveAcquire=yes,yes,yes,yes,yes,yes  ; list of % or booleans, whether this warhead can be use to passive acquire a specific armor types. 1 entry per ArmorType, defaults to yes if not enough entries are present.
+Organic=no                              ; boolean, whether an infantry using this warhead can passively acquire or retaliate against vehicles, aircraft or buildings. This overrides the RA/TS 0% behavior.
+```
+
 ### AILegalTarget
 
 - `AILegalTarget` can be used with TechnoTypes to forbid the AI from performing a targeting evaluation on this object. It is subject to LegalTarget=yes.

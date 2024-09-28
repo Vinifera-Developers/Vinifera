@@ -123,6 +123,7 @@ This page lists all the individual contributions to the project by their author.
   - Implement CnCNet5 support.
   - Adds keyboard commands to reproduce the last items that were built.
   - Change starting unit placement to be the same as Red Alert 2.
+  - Add the framework for new ArmorTypes.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **MarkJFox**:
@@ -150,4 +151,5 @@ This page lists all the individual contributions to the project by their author.
   - Add the ability to queue/dequeue 5 units at a time, or dequeue all units instantly.
   - Fix a bug where attempting to start construction when low funds would put the queue on hold.
   - Port the fix for the (Whiteboy bug)[https://modenc.renegadeprojects.com/Whiteboy-Bug].
+  - Implement the support for new ArmorTypes and allow forbidding force-fire, passive-acquire and retaliation versus specific armor types.
 
