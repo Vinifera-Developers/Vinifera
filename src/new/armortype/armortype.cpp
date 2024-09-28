@@ -132,21 +132,6 @@ const ArmorTypeClass *ArmorTypeClass::Find_Or_Make(const char *name)
 
 
 /**
- *  Reads armor object data from an INI file.
- *
- *  @author: ZivDero
- */
-bool ArmorTypeClass::Read_INI(CCINIClass& ini)
-{
-    if (!ini.Is_Present(Name)) {
-        return false;
-    }
-
-    return true;
-}
-
-
-/**
  *  Performs one time initialization of the armor type class.
  *
  *  @warning: Do not change this function, otherwise it will break support
@@ -182,7 +167,7 @@ bool ArmorTypeClass::One_Time()
 
 
 /**
- *  Build the default value string representing all the available ArmorTypes.
+ *  Build the default Verses value string representing all the available ArmorTypes.
  *
  *  @author: CCHyper
  */
@@ -194,6 +179,28 @@ const char *ArmorTypeClass::Get_Modifier_Default_String()
 
     for (ArmorType index = ARMOR_FIRST; index < ArmorTypes.Count(); index++) {
         std::strcat(_buffer, "100%%");
+        if (index < ArmorTypes.Count() - 1) {
+            std::strcat(_buffer, ",");
+        }
+    }
+
+    return _buffer;
+}
+
+
+/**
+ *  Build the default boolean flag value string representing all the available ArmorTypes.
+ *
+ *  @author: ZivDero
+ */
+const char* ArmorTypeClass::Get_Boolean_Default_String()
+{
+    static char _buffer[1024];
+
+    std::memset(_buffer, 0, sizeof(_buffer));
+
+    for (ArmorType index = ARMOR_FIRST; index < ArmorTypes.Count(); index++) {
+        std::strcat(_buffer, "yes");
         if (index < ArmorTypes.Count() - 1) {
             std::strcat(_buffer, ",");
         }

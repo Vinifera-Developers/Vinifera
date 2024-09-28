@@ -545,11 +545,10 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
     }
 
     /**
-     *	1% means the unit can't retaliate.
-     *	Ported from YR.
+     *	The warhead may forbid the unit from retaliating against targets with some armor types.
      */
     if (weapon_info->Weapon->WarheadPtr != nullptr &&
-        Extension::Fetch<WarheadTypeClassExtension>(weapon_info->Weapon->WarheadPtr)->Modifier[source->Techno_Type_Class()->Armor] <= 0.01)
+        !Extension::Fetch<WarheadTypeClassExtension>(weapon_info->Weapon->WarheadPtr)->Retaliate[source->Techno_Type_Class()->Armor])
     {
         return false;
     }
@@ -731,11 +730,85 @@ return_false:
 
 
 /**
+ *  Adds check for if the warhead forbids passively acquiring this unit.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_TechnoClass_Evaluate_Object_PassiveAcquire_Armor_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass*, this_ptr, edi);
+    GET_REGISTER_STATIC(TechnoClass*, object, esi);
+
+    static WeaponTypeClass* weapon;
+
+    /**
+     *  Determine if the target object has an armor type that this warhead is not allowed to passive acquire.
+     */
+    weapon = const_cast<WeaponTypeClass*>(this_ptr->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon);
+    if (weapon != nullptr && weapon->WarheadPtr != nullptr &&
+        !Extension::Fetch<WarheadTypeClassExtension>(weapon->WarheadPtr)->PassiveAcquire[object->Techno_Type_Class()->Armor])
+    {
+        goto return_false;
+    }
+
+    /**
+     *  An object with no health shouldn't be targeted.
+     */
+    if (!object->Strength)
+    {
+        goto return_false;
+    }
+
+continue_checks:
+    JMP(0x0062D129);
+
+return_false:
+    JMP(0x0062D8C0);
+}
+
+
+/**
+ *  Adds check for if the warhead forbids force-firing at this unit.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_TechnoClass_Can_Fire_ForceFire_Armor_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass*, this_ptr, esi);
+    GET_REGISTER_STATIC(TechnoClass*, target, ebp);
+    GET_REGISTER_STATIC(WeaponSlotType, which, ebx);
+
+    /**
+     *  If the object is further away than allowed, bail.
+     */
+    if (!this_ptr->In_Range_Of(target, which))
+    {
+        // return FIRE_RANGE;
+        JMP(0x0062FC90);
+    }
+
+    /**
+     *  If the object has an armor type that this unit's warhead is forbidden to fire at, bail.
+     */
+    if (Is_Target_Techno(target))
+    {
+        if (!Extension::Fetch<WarheadTypeClassExtension>(this_ptr->Get_Weapon(which)->Weapon->WarheadPtr)->ForceFire[target->Techno_Type_Class()->Armor])
+        {
+            // return FIRE_ILLEGAL;
+            JMP(0x0062F991);
+        }
+    }
+
+    JMP(0x0062FC9F);
+}
+
+
+/**
  *  Replaces Verses (Modifier) of the Warhead with the one from the extension.
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_TechnoClass_Base_Is_Attacked_Armor1)
+DECLARE_PATCH(_TechnoClass_Base_Is_Attacked_Armor1_Patch)
 {
     GET_STACK_STATIC(TechnoClass*, enemy, esp, 0x84);
     GET_REGISTER_STATIC(UnitClass*, unit, esi);
@@ -754,7 +827,7 @@ DECLARE_PATCH(_TechnoClass_Base_Is_Attacked_Armor1)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_TechnoClass_Base_Is_Attacked_Armor2)
+DECLARE_PATCH(_TechnoClass_Base_Is_Attacked_Armor2_Patch)
 {
     GET_STACK_STATIC(TechnoClass*, enemy, esp, 0x84);
     GET_REGISTER_STATIC(InfantryClass*, unit, esi);
@@ -1388,6 +1461,8 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x00636F00, &TechnoClassExt::_Is_Allowed_To_Retaliate);
     Patch_Jump(0x00639810, &TechnoClassExt::_Target_Threat);
     Patch_Jump(0x00638240, &TechnoClassExt::_Anti_Infantry);
-    Patch_Jump(0x00636BFE, &_TechnoClass_Base_Is_Attacked_Armor1);
-    Patch_Jump(0x006369B0, &_TechnoClass_Base_Is_Attacked_Armor2);
+    Patch_Jump(0x00636BFE, &_TechnoClass_Base_Is_Attacked_Armor1_Patch);
+    Patch_Jump(0x006369B0, &_TechnoClass_Base_Is_Attacked_Armor2_Patch);
+    Patch_Jump(0x0062D11E, &_TechnoClass_Evaluate_Object_PassiveAcquire_Armor_Patch);
+    Patch_Jump(0x0062FC80, &_TechnoClass_Can_Fire_ForceFire_Armor_Patch);
 }

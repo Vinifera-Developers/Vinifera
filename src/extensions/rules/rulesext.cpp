@@ -420,11 +420,6 @@ bool RulesClassExtension::Objects(CCINIClass &ini)
     for (int index = 0; index < VoxelAnimTypeExtensions.Count(); ++index) {
         VoxelAnimTypeExtensions[index]->Read_INI(ini);
     }
-    
-    DEBUG_INFO("Rules: Processing ArmorTypes (Count: %d)...\n", ArmorTypes.Count());
-    for (int index = 0; index < ArmorTypes.Count(); ++index) {
-        ArmorTypes[index]->Read_INI(ini);
-    }
 
     return true;
 }

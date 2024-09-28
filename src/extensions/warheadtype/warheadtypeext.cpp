@@ -52,12 +52,18 @@ WarheadTypeClassExtension::WarheadTypeClassExtension(const WarheadTypeClass *thi
     ShakePixelYLo(0),
     ShakePixelXHi(0),
     ShakePixelXLo(0),
-    Modifier()
+    Modifier(),
+    ForceFire(),
+    PassiveAcquire(),
+    Retaliate()
 {
     //if (this_ptr) EXT_DEBUG_TRACE("WarheadTypeClassExtension::WarheadTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    for (int armor = 0; armor < ArmorTypes.Count(); ++armor) {
-        Modifier.Add(1.0f);
+    for (int armor = ARMOR_FIRST; armor < ArmorTypes.Count(); ++armor) {
+        Modifier.Add(1.0);
+        ForceFire.Add(true);
+        PassiveAcquire.Add(true);
+        Retaliate.Add(true);
     }
 
     WarheadTypeExtensions.Add(this);
@@ -70,7 +76,11 @@ WarheadTypeClassExtension::WarheadTypeClassExtension(const WarheadTypeClass *thi
  *  @author: CCHyper
  */
 WarheadTypeClassExtension::WarheadTypeClassExtension(const NoInitClass &noinit) :
-    AbstractTypeClassExtension(noinit)
+    AbstractTypeClassExtension(noinit),
+    Modifier(noinit),
+    ForceFire(noinit),
+    PassiveAcquire(noinit),
+    Retaliate(noinit)
 {
     //EXT_DEBUG_TRACE("WarheadTypeClassExtension::WarheadTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -186,13 +196,25 @@ void WarheadTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
     crc(ShakePixelYLo);
     crc(ShakePixelXHi);
     crc(ShakePixelXLo);
+
+    for (int i = 0; i < Modifier.Count(); i++)
+        crc(Modifier[i]);
+
+    for (int i = 0; i < ForceFire.Count(); i++)
+        crc(ForceFire[i]);
+
+    for (int i = 0; i < PassiveAcquire.Count(); i++)
+        crc(PassiveAcquire[i]);
+
+    for (int i = 0; i < Retaliate.Count(); i++)
+        crc(Retaliate[i]);
 }
 
 
 /**
  *  Fetches the extension data from the INI database.  
  *  
- *  @author: CCHyper
+ *  @author: CCHyper, ZivDero
  */
 bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
 {
@@ -241,6 +263,46 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
      *  Allow overriding IsOrganic.
      */
     This()->IsOrganic = ini.Get_Bool(ini_name, "Organic", Modifier[ARMOR_STEEL] == 0);
+
+    /**
+     *  Read ForceFire, PassiveAcquire, Retaliate.
+     */
+    auto parse_bool = [](const char* value, bool defval) -> bool {
+        switch (toupper(value[0])) {
+        case '0':
+        case 'F':
+        case 'N':
+            return false;
+        case '1':
+        case 'T':
+        case 'Y':
+            return true;
+        default:
+            return defval;
+        }
+        };
+
+    auto read_bools = [&](DynamicVectorClass<bool>& vector, const char* key_name) {
+        if (ini.Get_String(ini_name, key_name, ArmorTypeClass::Get_Boolean_Default_String(), buffer, sizeof(buffer)) > 0) {
+            char* aval = std::strtok(buffer, ",");
+            for (int armor = 0; armor < ArmorTypes.Count(); ++armor) {
+
+                // If there are not enough values, default to true
+                if (aval == nullptr) {
+                    vector[armor] = true;
+                    continue;
+                }
+
+                vector[armor] = parse_bool(aval, true);
+
+                aval = std::strtok(nullptr, ",");
+            }
+        }
+        };
+
+    read_bools(ForceFire, "ForceFire");
+    read_bools(PassiveAcquire, "PassiveAcquire");
+    read_bools(Retaliate, "Retaliate");
 
     return true;
 }

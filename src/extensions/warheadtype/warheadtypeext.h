@@ -90,4 +90,12 @@ WarheadTypeClassExtension final : public AbstractTypeClassExtension
          *  defender has. This table is what gives weapons their "character".
          */
         DynamicVectorClass<double> Modifier;
+
+        /**
+         *  The warhead may be forbidden from targeting the defender depending the
+         *  type of armor it has.
+         */
+        DynamicVectorClass<bool> ForceFire;
+        DynamicVectorClass<bool> PassiveAcquire;
+        DynamicVectorClass<bool> Retaliate;
 };
