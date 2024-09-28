@@ -127,14 +127,20 @@ SpawnDelay=3  ; unsigned integer, the number of frames between each of the spawn
 In `RULES.INI`:
 ```ini
 [ArmorTypes]
-5=myarmor,100%,yes,yes,yes  ; name (string), Verses (float or %), ForceFire (boolean), Retaliate (boolean), PassiveAcquire (boolean)
+5=myarmor  ; string, armor name, recommended to be lowercase
+
+[myarmor]
+Modifier=100%       ; % or float, default Verses value for this armor.
+ForceFire=yes       ; boolean, whether warheads can by default force-fire at this armor type.
+Retaliate=yes       ; boolean, whether warheads can by default retaliate against this armor type.
+PassiveAcquire=yes  ; boolean, whether warheads can by default passive acquire this armor type.
 ```
 
 ```{note}
 Vanilla ArmorTypes are present implicitly, redeclaring them has no effect.
 ```
 
-- The new armor can be assigned to a techno normally.
+- The new armor can be assigned to a Techno normally.
 
 In `RULES.INI`:
 ```ini

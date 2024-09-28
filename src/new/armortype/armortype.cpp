@@ -136,6 +136,26 @@ const ArmorTypeClass *ArmorTypeClass::Find_Or_Make(const char *name)
 
 
 /**
+ *  Reads armor object data from an INI file.
+ *
+ *  @author: ZivDero
+ */
+bool ArmorTypeClass::Read_INI(CCINIClass& ini)
+{
+    if (!ini.Is_Present(Name)) {
+        return false;
+    }
+
+    Modifier = ini.Get_Double(Name, "Modifier", 1.0);
+    ForceFire = ini.Get_Bool(Name, "ForceFire", true);
+    PassiveAcquire = ini.Get_Bool(Name, "PassiveAcquire", true);
+    Retaliate = ini.Get_Bool(Name, "Retaliate", true);
+
+    return true;
+}
+
+
+/**
  *  Performs one time initialization of the armor type class.
  *
  *  @warning: Do not change this function, otherwise it will break support
