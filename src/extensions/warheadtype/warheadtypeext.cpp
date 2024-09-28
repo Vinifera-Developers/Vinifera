@@ -293,27 +293,27 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
         }
         };
 
-    auto read_bools = [&](DynamicVectorClass<bool>& vector, const char* key_name) {
+    auto read_bools = [&](DynamicVectorClass<bool>& vector, const char* key_name, bool defval) {
         if (ini.Get_String(ini_name, key_name, ArmorTypeClass::Get_Boolean_Default_String(), buffer, sizeof(buffer)) > 0) {
             char* aval = std::strtok(buffer, ",");
             for (int armor = 0; armor < ArmorTypes.Count(); ++armor) {
 
-                // If there are not enough values, default to true
+                // If there are not enough values, use the default
                 if (aval == nullptr) {
-                    vector[armor] = true;
+                    vector[armor] = defval;
                     continue;
                 }
 
-                vector[armor] = parse_bool(aval, true);
+                vector[armor] = parse_bool(aval, defval);
 
                 aval = std::strtok(nullptr, ",");
             }
         }
         };
 
-    read_bools(ForceFire, "ForceFire");
-    read_bools(PassiveAcquire, "PassiveAcquire");
-    read_bools(Retaliate, "Retaliate");
+    read_bools(ForceFire, "ForceFire", true);
+    read_bools(PassiveAcquire, "PassiveAcquire", true);
+    read_bools(Retaliate, "Retaliate", true);
 
     return true;
 }
