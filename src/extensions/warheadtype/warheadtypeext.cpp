@@ -293,8 +293,7 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
         }
         };
 
-    enum
-    {
+    enum {
         FORCEFIRE,
         PASSIVEACQUIRE,
         RETALIATE
@@ -305,8 +304,7 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
             char* aval = std::strtok(buffer, ",");
             for (int armor = 0; armor < ArmorTypes.Count(); ++armor) {
 
-                switch (type)
-                {
+                switch (type) {
                     case FORCEFIRE:
                         vector[armor] = ArmorTypes[armor]->ForceFire;
                         break;

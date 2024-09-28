@@ -137,7 +137,7 @@ PassiveAcquire=yes  ; boolean, whether warheads can by default passive acquire t
 ```
 
 ```{note}
-Vanilla ArmorTypes are present implicitly, redeclaring them has no effect.
+Vanilla ArmorTypes are present implicitly, redeclaring them has no effect. However, it is possible to override default values for them in their respective sections.
 ```
 
 - The new armor can be assigned to a Techno normally.
@@ -155,10 +155,10 @@ Armor=myarmor  ; ArmorType
 In `RULES.INI`:
 ```ini
 [SOMEWARHEAD]                           ; WarheadType
-Verses=100%,100%,100%,100%,100%,100%    ; list of % or floats, the damage multiplier against a specific armor types. 1 entry per ArmorType.
-ForceFire=yes,yes,yes,yes,yes,yes       ; list of booleans, whether this warhead can be use to force-fire at a specific armor types. 1 entry per ArmorType.
-Retaliate=yes,yes,yes,yes,yes,yes       ; list of booleans, whether this warhead can be use to retaliate against a specific armor types. 1 entry per ArmorType.
-PassiveAcquire=yes,yes,yes,yes,yes,yes  ; list of booleans, whether this warhead can be use to passive acquire a specific armor types. 1 entry per ArmorType.
+Verses=100%,100%,100%,100%,100%,100%    ; list of % or floats, the damage multiplier against a specific armor type. 1 entry per ArmorType.
+ForceFire=yes,yes,yes,yes,yes,yes       ; list of booleans, whether this warhead can be used to force-fire at a specific armor type. 1 entry per ArmorType.
+Retaliate=yes,yes,yes,yes,yes,yes       ; list of booleans, whether this warhead can be used to retaliate against a specific armor type. 1 entry per ArmorType.
+PassiveAcquire=yes,yes,yes,yes,yes,yes  ; list of booleans, whether this warhead can be used to passive acquire a specific armor type. 1 entry per ArmorType.
 Organic=no                              ; boolean, whether an infantry using this warhead can passively acquire or retaliate against vehicles, aircraft or buildings. This overrides the RA/TS 0% behavior.
 ```
 
