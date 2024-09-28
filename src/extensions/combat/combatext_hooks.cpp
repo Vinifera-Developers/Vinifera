@@ -49,10 +49,10 @@
 /**
  *  Adjusts damage to reflect the nature of the target.
  *
- *  @author: 04/16/1994 JLB : Created.                                                 
- *           04/17/1994 JLB : Always does a minimum of damage.                         
- *           01/01/1995 JLB : Takes into account distance from damage source.          
- *           04/11/1996 JLB : Changed damage fall-off formula for less damage fall-off.
+ *  @author: 04/16/1994 JLB - Created.                                                 
+ *           04/17/1994 JLB - Always does a minimum of damage.                         
+ *           01/01/1995 JLB - Takes into account distance from damage source.          
+ *           04/11/1996 JLB - Changed damage fall-off formula for less damage fall-off.
  *           ZivDero : Adjustments for Tiberian Sun
  */
 int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ArmorType armor, int distance)
@@ -61,7 +61,6 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ArmorType armo
      *	If there is no raw damage value to start with, then
      *	there can be no modified damage either.
      */
-    
     if (!damage || Scen->SpecialFlags.IsInert || warhead == nullptr)
         return 0;
 

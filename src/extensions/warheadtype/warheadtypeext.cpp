@@ -36,6 +36,7 @@
 #include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "vinifera_saveload.h"
 
 
 /**
@@ -132,6 +133,11 @@ HRESULT WarheadTypeClassExtension::Load(IStream *pStm)
         return hr;
     }
 
+    Load_Primitive_Vector(pStm, Modifier);
+    Load_Primitive_Vector(pStm, ForceFire);
+    Load_Primitive_Vector(pStm, PassiveAcquire);
+    Load_Primitive_Vector(pStm, Retaliate);
+
     new (this) WarheadTypeClassExtension(NoInitClass());
     
     return hr;
@@ -151,6 +157,11 @@ HRESULT WarheadTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
     if (FAILED(hr)) {
         return hr;
     }
+
+    Save_Primitive_Vector(pStm, Modifier);
+    Save_Primitive_Vector(pStm, ForceFire);
+    Save_Primitive_Vector(pStm, PassiveAcquire);
+    Save_Primitive_Vector(pStm, Retaliate);
 
     return hr;
 }

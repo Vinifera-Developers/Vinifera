@@ -319,7 +319,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
  *  Special emphasis is given to weapons that can fire on the target without requiring
  *  this object to move within range.
  *
- *  @author: 08/12/1996 JLB : Created.
+ *  @author: 08/12/1996 JLB - Created.
  *           ZivDero - Adjustments for Tiberian Sun.
  */
 WeaponSlotType TechnoClassExt::_What_Weapon_Should_I_Use(TARGET target) const
@@ -417,7 +417,7 @@ WeaponSlotType TechnoClassExt::_What_Weapon_Should_I_Use(TARGET target) const
  *  This routine is called when this object has suffered some damage and it needs to know
  *  if it should fight back. The object that caused the damage is specified as a parameter.
  *
- *  @author: 10/19/1996 JLB : Created. 
+ *  @author: 10/19/1996 JLB - Created. 
  *           ZivDero - Adjustments for Tiberian Sun.
  */
 bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeClass const* warhead) const
@@ -651,7 +651,7 @@ double TechnoClassExt::_Target_Threat(TechnoClass* target, Coordinate& firing_co
  *  This routine is used to determine the anti-infantry strength of this object.
  *  The typical user of this routine is the expert system base defense AI.              
  *
- *  @author: 10/02/1995 JLB : Created.
+ *  @author: 10/02/1995 JLB - Created.
  *           ZivDero - Adjustments for Tiberian Sun.
  */
 int TechnoClassExt::_Anti_Infantry() const
