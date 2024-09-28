@@ -633,7 +633,7 @@ double TechnoClassExt::_Target_Threat(TechnoClass* target, Coordinate& firing_co
     const LEPTON threat_range = weapon != nullptr ? weapon->Range : Techno_Type_Class()->ThreatRange;
 
     LEPTON dist;
-    if (firing_coord.X == Coordinate().X && firing_coord.Y == Coordinate().Y && firing_coord.Z == Coordinate().Z)
+    if (firing_coord == Coordinate())
         dist = (Center_Coord() - target->Center_Coord()).Length() / 256;
     else
         dist = (firing_coord - target->Center_Coord()).Length() / 256;
