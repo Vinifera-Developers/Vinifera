@@ -238,6 +238,11 @@ void RulesClassExtension::Process(CCINIClass &ini)
      */
     Weapons(ini);
 
+    /**
+     *  Read the new ArmorTypes. This needs to happen before Technos and Warheads are read.
+     *
+     *  @author: ZivDero
+     */
     Armors(ini);
 
     This()->SuperWeapons(ini);
