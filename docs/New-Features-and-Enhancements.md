@@ -127,8 +127,7 @@ SpawnDelay=3  ; unsigned integer, the number of frames between each of the spawn
 In `RULES.INI`:
 ```ini
 [ArmorTypes]
-5=myarmor,100%,yes,yes,yes  ; string, float or %, boolean, boolean, boolean, the name of the new armor and its default values
-                            ; Verses, ForceFire, Retaliate, PassiveAcquire
+5=myarmor,100%,yes,yes,yes  ; name (string), Verses (float or %), ForceFire (boolean), Retaliate (boolean), PassiveAcquire (boolean)
 ```
 
 ```{note}
