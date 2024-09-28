@@ -582,7 +582,7 @@ bool RulesClassExtension::Armors(CCINIClass &ini)
     static const char *const ARMORTYPES = "ArmorTypes";
 
     char buf[128];
-    const ArmorTypeClass *armortype;
+    ArmorTypeClass *armortype;
 
     int counter = ini.Entry_Count(ARMORTYPES);
     for (int index = 0; index < counter; ++index) {
@@ -593,16 +593,73 @@ bool RulesClassExtension::Armors(CCINIClass &ini)
          */
         if (ini.Get_String(ARMORTYPES, entry, buf, sizeof(buf))) {
 
+            char* token = strtok(buf, ",");
+
             /**
              *  Find or create a weapon of the name specified.
              */
-            armortype = ArmorTypeClass::Find_Or_Make(buf);
+            armortype = const_cast<ArmorTypeClass*>(ArmorTypeClass::Find_Or_Make(token));
             if (armortype) {
-                DEV_DEBUG_INFO("Rules: Found ArmorType \"%s\".\n", buf);
+                DEV_DEBUG_INFO("Rules: Found ArmorType \"%s\".\n", token);
             } else {
-                DEV_DEBUG_WARNING("Rules: Error processing ArmorType \"%s\"!\n", buf);
+                DEV_DEBUG_WARNING("Rules: Error processing ArmorType \"%s\"!\n", token);
             }
 
+            /**
+             *  Read the default modifier and targeting options for this armor.
+             */
+
+            double modifier = 1.0;
+            bool forcefire = true, passiveacquire = true, retaliate = true;
+
+            token = strtok(buf, ",");
+            if (token != nullptr) {
+                if (std::strchr(token, '%')) {
+                    modifier = std::atoi(token) * 0.01;
+                }
+                else {
+                    modifier = std::atof(token);
+                }
+            }
+
+            auto parse_bool = [](const char* value, bool defval) -> bool {
+                switch (toupper(value[0])) {
+                case '0':
+                case 'F':
+                case 'N':
+                    return false;
+                case '1':
+                case 'T':
+                case 'Y':
+                    return true;
+                default:
+                    return defval;
+                }
+                };
+
+            token = strtok(buf, ",");
+            if (token != nullptr) {
+                forcefire = parse_bool(token, true);
+            }
+
+            token = strtok(buf, ",");
+            if (token != nullptr) {
+                passiveacquire = parse_bool(token, true);
+            }
+
+            token = strtok(buf, ",");
+            if (token != nullptr) {
+                retaliate = parse_bool(token, true);
+            }
+
+            /**
+             *  Assign the default values.
+             */
+
+            armortype->Modifier = modifier;
+            armortype->ForceFire = forcefire;
+            armortype->PassiveAcquire = passiveacquire;
+            armortype->Retaliate = retaliate;
         }
 
     }

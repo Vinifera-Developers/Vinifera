@@ -256,7 +256,7 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
 
             // Fix: if there are not enough verses specified, default to 100%
             if (aval == nullptr) {
-                Modifier[armor] = 1.0;
+                Modifier[armor] = ArmorTypes[armor]->Modifier;
                 continue;
             }
 
@@ -293,27 +293,46 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
         }
         };
 
-    auto read_bools = [&](DynamicVectorClass<bool>& vector, const char* key_name, bool defval) {
+    enum
+    {
+        FORCEFIRE,
+        PASSIVEACQUIRE,
+        RETALIATE
+    };
+
+    auto read_bools = [&](DynamicVectorClass<bool>& vector, const char* key_name, int type) {
         if (ini.Get_String(ini_name, key_name, ArmorTypeClass::Get_Boolean_Default_String(), buffer, sizeof(buffer)) > 0) {
             char* aval = std::strtok(buffer, ",");
             for (int armor = 0; armor < ArmorTypes.Count(); ++armor) {
 
+                switch (type)
+                {
+                    case FORCEFIRE:
+                        vector[armor] = ArmorTypes[armor]->ForceFire;
+                        break;
+                    case PASSIVEACQUIRE:
+                        vector[armor] = ArmorTypes[armor]->PassiveAcquire;
+                        break;
+                    case RETALIATE:
+                        vector[armor] = ArmorTypes[armor]->Retaliate;
+                        break;
+                }
+
                 // If there are not enough values, use the default
                 if (aval == nullptr) {
-                    vector[armor] = defval;
                     continue;
                 }
 
-                vector[armor] = parse_bool(aval, defval);
+                vector[armor] = parse_bool(aval, vector[armor]);
 
                 aval = std::strtok(nullptr, ",");
             }
         }
         };
 
-    read_bools(ForceFire, "ForceFire", true);
-    read_bools(PassiveAcquire, "PassiveAcquire", true);
-    read_bools(Retaliate, "Retaliate", true);
+    read_bools(ForceFire, "ForceFire", FORCEFIRE);
+    read_bools(PassiveAcquire, "PassiveAcquire", PASSIVEACQUIRE);
+    read_bools(Retaliate, "Retaliate", RETALIATE);
 
     return true;
 }

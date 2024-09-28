@@ -36,7 +36,7 @@ class CCINIClass;
 
 class ArmorTypeClass
 {
-    public:
+public:
         ArmorTypeClass(const char *name);
         virtual ~ArmorTypeClass();
 
@@ -50,9 +50,24 @@ class ArmorTypeClass
 
         static const ArmorTypeClass *Find_Or_Make(const char *name);
 
-    private:
+private:
         /**
          *  The name of this armor type, used for identification purposes.
          */
         Wstring Name;
+
+public:
+        /**
+         *  The warhead damage is reduced depending on the the type of armor the
+         *  defender has. This is the default value for this armor.
+         */
+        double Modifier;
+
+        /**
+         *  The warhead may be forbidden from targeting the defender depending the
+         *  type of armor it has. This is the default value for this armor.
+         */
+        bool ForceFire;
+        bool PassiveAcquire;
+        bool Retaliate;
 };

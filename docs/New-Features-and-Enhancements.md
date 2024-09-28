@@ -127,7 +127,8 @@ SpawnDelay=3  ; unsigned integer, the number of frames between each of the spawn
 In `RULES.INI`:
 ```ini
 [ArmorTypes]
-5=myarmor
+5=myarmor,100%,yes,yes,yes  ; string, float or %, boolean, boolean, boolean, the name of the new armor and its default values
+                            ; Verses, ForceFire, Retaliate, PassiveAcquire
 ```
 
 ```{note}
@@ -149,10 +150,10 @@ Armor=myarmor  ; ArmorType
 In `RULES.INI`:
 ```ini
 [SOMEWARHEAD]                           ; WarheadType
-Verses=100%,100%,100%,100%,100%,100%    ; list of % or floats, the damage multiplier against a specific armor types. 1 entry per ArmorType, defaults to 100% if not enough entries are present.
-ForceFire=yes,yes,yes,yes,yes,yes       ; list of % or booleans, whether this warhead can be use to force-fire at a specific armor types. 1 entry per ArmorType, defaults to yes if not enough entries are present.
-Retaliate=yes,yes,yes,yes,yes,yes       ; list of % or booleans, whether this warhead can be use to retaliate against a specific armor types. 1 entry per ArmorType, defaults to yes if not enough entries are present.
-PassiveAcquire=yes,yes,yes,yes,yes,yes  ; list of % or booleans, whether this warhead can be use to passive acquire a specific armor types. 1 entry per ArmorType, defaults to yes if not enough entries are present.
+Verses=100%,100%,100%,100%,100%,100%    ; list of % or floats, the damage multiplier against a specific armor types. 1 entry per ArmorType.
+ForceFire=yes,yes,yes,yes,yes,yes       ; list of % or booleans, whether this warhead can be use to force-fire at a specific armor types. 1 entry per ArmorType.
+Retaliate=yes,yes,yes,yes,yes,yes       ; list of % or booleans, whether this warhead can be use to retaliate against a specific armor types. 1 entry per ArmorType.
+PassiveAcquire=yes,yes,yes,yes,yes,yes  ; list of % or booleans, whether this warhead can be use to passive acquire a specific armor types. 1 entry per ArmorType.
 Organic=no                              ; boolean, whether an infantry using this warhead can passively acquire or retaliate against vehicles, aircraft or buildings. This overrides the RA/TS 0% behavior.
 ```
 

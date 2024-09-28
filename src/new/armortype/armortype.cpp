@@ -39,7 +39,11 @@
  *  @author: CCHyper
  */
 ArmorTypeClass::ArmorTypeClass(const char *name) :
-    Name(nullptr)
+    Name(nullptr),
+    Modifier(1.0),
+    ForceFire(true),
+    PassiveAcquire(true),
+    Retaliate(true)
 {
     ASSERT_FATAL_PRINT(name != nullptr, "Invalid name for ArmorType!");
 
