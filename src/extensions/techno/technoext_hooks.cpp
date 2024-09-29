@@ -278,7 +278,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
         }
 
         /*
-        **	Display whether this unit is a leader unit or not.
+        **  Display whether this unit is a leader unit or not.
         */
         if (What_Am_I() != RTTI_BUILDING)
         {
@@ -332,8 +332,8 @@ WeaponSlotType TechnoClassExt::_What_Weapon_Should_I_Use(TARGET target) const
     bool webby_secondary = false;
 
     /**
-     *	Fetch the armor of the candidate target object. Presume that if the target
-     *	is not an object, then its armor is equivalent to wood. Who knows why?
+     *  Fetch the armor of the candidate target object. Presume that if the target
+     *  is not an object, then its armor is equivalent to wood. Who knows why?
      */
     ArmorType armor = ARMOR_WOOD;
     if (Is_Target_Object(target)) {
@@ -341,8 +341,8 @@ WeaponSlotType TechnoClassExt::_What_Weapon_Should_I_Use(TARGET target) const
     }
 
     /**
-     *	Get the value of the primary weapon verses the candidate target. Increase the
-     *	value of the weapon if it happens to be in range.
+     *  Get the value of the primary weapon verses the candidate target. Increase the
+     *  value of the weapon if it happens to be in range.
      */
     int w1 = 0;
     WeaponTypeClass const* wptr = Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon;
@@ -355,7 +355,7 @@ WeaponSlotType TechnoClassExt::_What_Weapon_Should_I_Use(TARGET target) const
     if (ok == FIRE_CANT || ok == FIRE_ILLEGAL || ok == FIRE_REARM) w1 = 0;
 
     /**
-     *	Calculate a similar value for the secondary weapon.
+     *  Calculate a similar value for the secondary weapon.
      */
     int w2 = 0;
     wptr = Get_Weapon(WEAPON_SLOT_SECONDARY)->Weapon;
@@ -368,15 +368,15 @@ WeaponSlotType TechnoClassExt::_What_Weapon_Should_I_Use(TARGET target) const
     if (ok == FIRE_CANT || ok == FIRE_ILLEGAL || ok == FIRE_REARM) w2 = 0;
 
     /**
-     *	Return with the weapon identifier that should be used to fire upon the
-     *	candidate target.
+     *  Return with the weapon identifier that should be used to fire upon the
+     *  candidate target.
      */
     if (!webby_primary && !webby_secondary) {
         return w2 > w1 ? WEAPON_SLOT_SECONDARY : WEAPON_SLOT_PRIMARY;
     }
 
     /**
-     *	Determine if the target can be immobilized by the web weapon.
+     *  Determine if the target can be immobilized by the web weapon.
      *  Valid targets are infantry and the ground, except for destroyable cliffs and bridges.
      */
     enum
@@ -440,14 +440,14 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
         return false;
 
     /**
-     * 	Human-controlled units that have a target don't retaliate.
+     *   Human-controlled units that have a target don't retaliate.
      */
     if (House->Is_Human_Control() && this->TarCom)
         return false;
 
     /**
-     * 	If the source of the damage is a Veinhole, retaliate, unless this is a player-controlled
-     * 	ground unit and it's moving somewhere.
+     *   If the source of the damage is a Veinhole, retaliate, unless this is a player-controlled
+     *   ground unit and it's moving somewhere.
      */
     if (warhead != nullptr && warhead->IsVeinhole)
     {
@@ -456,26 +456,26 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
     }
 
     /**
-     * 	If there is no source of the damage, then retaliation cannot occur.
+     *   If there is no source of the damage, then retaliation cannot occur.
      */
     if (source == nullptr)
         return false;
 
     /**
-     * 	If the source of the damage is an ally, then retaliation shouldn't
+     *   If the source of the damage is an ally, then retaliation shouldn't
      *  occur either.
      */
     if (House->Is_Ally(source))
         return false;
 
     /**
-     * 	Only objects that have a damaging weapon are allowed to retaliate.
+     *   Only objects that have a damaging weapon are allowed to retaliate.
      */
     if (Combat_Damage() <= 0 || !Is_Weapon_Equipped())
         return false;
 
     /**
-     * 	If this is not equipped with a weapon that can attack the molester, then
+     *   If this is not equipped with a weapon that can attack the molester, then
      *  don't allow retaliation.
      */
     const WeaponInfoStruct* weapon_info = Get_Weapon(What_Weapon_Should_I_Use(source));
@@ -486,14 +486,14 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
     }
 
     /**
-     * 	Don't allow retaliation if it isn't equipped with a weapon that can deal with the threat.
+     *   Don't allow retaliation if it isn't equipped with a weapon that can deal with the threat.
      */
     if (source->What_Am_I() == RTTI_AIRCRAFT && !weapon_info->Weapon->Bullet->IsAntiAircraft) return(false);
 
     /**
-     *	Units with C4 are not allowed to retaliate against buildings in the normal sense while in guard mode. That
-     *	is, unless it is owned by the computer. Normally, units with C4 can't do anything substantial to a building
-     *	except to blow it up.
+     *  Units with C4 are not allowed to retaliate against buildings in the normal sense while in guard mode. That
+     *  is, unless it is owned by the computer. Normally, units with C4 can't do anything substantial to a building
+     *  except to blow it up.
      */
     if (House->Is_Human_Control() && source->What_Am_I() == RTTI_BUILDING)
     {
@@ -508,7 +508,7 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
     }
 
     /**
-     * 	Artillery that need to deploy to fire don't retaliate.
+     *   Artillery that need to deploy to fire don't retaliate.
      */
     if (House->Is_Human_Control() && What_Am_I() == RTTI_UNIT)
     {
@@ -518,7 +518,7 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
     }
 
     /**
-     * 	If a human house is not allowed to retaliate automatically, then don't
+     *   If a human house is not allowed to retaliate automatically, then don't
      */
     if (House->Is_Human_Control() && !Rule->IsSmartDefense && What_Am_I() != RTTI_BUILDING)
     {
@@ -527,14 +527,14 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
     }
 
     /**
-     * 	If this object is part of a team that prevents retaliation then don't allow retaliation.
+     *   If this object is part of a team that prevents retaliation then don't allow retaliation.
      */
     if (Is_Foot() && reinterpret_cast<FootClass const*>(this)->Team != nullptr && reinterpret_cast<FootClass const*>(this)->Team->Class->IsSuicide)
         return false;
 
     /**
-     *	Compare potential threat of the current target and the potential new target. Don't retaliate
-     *	if it is currently attacking the greater threat.
+     *  Compare potential threat of the current target and the potential new target. Don't retaliate
+     *  if it is currently attacking the greater threat.
      */
     if (!House->Is_Human_Control() && TarCom != nullptr && Is_Target_Object(TarCom))
     {
@@ -546,7 +546,7 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
     }
 
     /**
-     *	The warhead may forbid the unit from retaliating against targets with some armor types.
+     *  The warhead may forbid the unit from retaliating against targets with some armor types.
      */
     if (weapon_info->Weapon->WarheadPtr != nullptr &&
         !Verses::Get_Retaliate(source->Techno_Type_Class()->Armor, weapon_info->Weapon->WarheadPtr))
@@ -555,7 +555,7 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
     }
 
     /**
-     * 	All checks passed, so return that retaliation is allowed.
+     *  All checks passed, so return that retaliation is allowed.
      */
     return true;
 }
@@ -577,7 +577,7 @@ double TechnoClassExt::_Target_Threat(TechnoClass* target, Coordinate& firing_co
     const TechnoTypeClass* ttype = Techno_Type_Class();
 
     /**
-     * 	Nothing is not a threat.
+     *  Nothing is not a threat.
      */
     if (target->Class_Of() == nullptr)
         return 0;
