@@ -819,9 +819,11 @@ DECLARE_PATCH(_TechnoClass_Base_Is_Attacked_Armor1_Patch)
 
     if (Verses::Get_Modifier(enemy->Techno_Type_Class()->Armor, unit->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon->WarheadPtr) != 0)
     {
+        _asm mov esi, unit
         JMP(0x00636C36);
     }
 
+    _asm mov esi, unit
     JMP(0x00636D60);
 }
 
@@ -838,9 +840,11 @@ DECLARE_PATCH(_TechnoClass_Base_Is_Attacked_Armor2_Patch)
 
     if (Verses::Get_Modifier(enemy->Techno_Type_Class()->Armor, unit->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon->WarheadPtr) != 0)
     {
+        _asm mov esi, unit
         JMP(0x006369E8);
     }
 
+    _asm mov esi, unit
     JMP(0x00636B14);
 }
 
