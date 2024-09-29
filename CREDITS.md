@@ -152,4 +152,4 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where attempting to start construction when low funds would put the queue on hold.
   - Port the fix for the (Whiteboy bug)[https://modenc.renegadeprojects.com/Whiteboy-Bug].
   - Implement the support for new ArmorTypes and allow forbidding force-fire, passive-acquire and retaliation versus specific armor types.
-
+  - Fix a bug where the objects would sometimes receive a minimum of 1 damage even if MinDamage was set to 0.
