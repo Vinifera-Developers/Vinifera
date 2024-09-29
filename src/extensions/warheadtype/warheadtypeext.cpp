@@ -279,6 +279,10 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
      *  Read ForceFire, PassiveAcquire, Retaliate.
      */
     auto parse_bool = [](const char* value, bool defval) -> bool {
+        while (*value == ' ') {
+            value++;
+        }
+
         switch (toupper(value[0])) {
         case '0':
         case 'F':
