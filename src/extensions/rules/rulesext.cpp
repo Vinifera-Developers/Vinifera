@@ -346,6 +346,11 @@ bool RulesClassExtension::Objects(CCINIClass &ini)
      *  Fetch the game object (extension) values from the rules file.
      */
 
+    DEBUG_INFO("Rules: Processing ArmorTypes (Count: %d)...\n", ArmorTypes.Count());
+    for (int index = 0; index < ArmorTypes.Count(); ++index) {
+        ArmorTypes[index]->Read_INI(ini);
+    }
+
     DEBUG_INFO("Rules: Processing HouseTypeExtensions (Count: %d)...\n", HouseTypeExtensions.Count());
     for (int index = 0; index < HouseTypeExtensions.Count(); ++index) {
         HouseTypeExtensions[index]->Read_INI(ini);
@@ -424,11 +429,6 @@ bool RulesClassExtension::Objects(CCINIClass &ini)
     DEBUG_INFO("Rules: Processing VoxelAnimTypeExtensions (Count: %d)...\n", VoxelAnimTypeExtensions.Count());
     for (int index = 0; index < VoxelAnimTypeExtensions.Count(); ++index) {
         VoxelAnimTypeExtensions[index]->Read_INI(ini);
-    }
-
-    DEBUG_INFO("Rules: Processing ArmorTypes (Count: %d)...\n", ArmorTypes.Count());
-    for (int index = 0; index < ArmorTypes.Count(); ++index) {
-        ArmorTypes[index]->Read_INI(ini);
     }
 
     return true;
