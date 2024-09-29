@@ -26,6 +26,8 @@
  *
  ******************************************************************************/
 #include "vinifera_hooks.h"
+
+#include "armortype.h"
 #include "tibsun_globals.h"
 #include "tibsun_functions.h"
 #include "vinifera_globals.h"
@@ -49,6 +51,7 @@
 #include "debughandler.h"
 #include "asserthandler.h"
 #include "ebolt.h"
+#include "verses.h"
 
 
 /**
@@ -77,6 +80,8 @@ static void _Free_Heaps_Intercept()
      *  Cleanup global heaps/vectors.
      */
     EBoltClass::Clear_All();
+    ArmorTypeClass::Clear_All();
+    Verses::Clear_All();
     Extension::Free_Heaps();
 
     Free_Heaps();

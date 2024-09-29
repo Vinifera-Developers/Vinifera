@@ -175,6 +175,21 @@ bool ArmorTypeClass::One_Time()
 
 
 /**
+ *  Clears the ArmorTypes vector.
+ *
+ *  @author: ZivDero
+ */
+void ArmorTypeClass::Clear_All()
+{
+    for (int i = 0; i < ArmorTypes.Count(); i++) {
+        delete ArmorTypes[i];
+    }
+
+    ArmorTypes.Clear();
+}
+
+
+/**
  *  Build the default Verses value string representing all the available ArmorTypes.
  *
  *  @author: CCHyper
