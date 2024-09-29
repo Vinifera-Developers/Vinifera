@@ -76,7 +76,6 @@ private:
     static HRESULT Load_2D_Vector(IStream* pStm, std::vector<std::vector<T>>& vector);
 
 private:
-
     /**
      *  The warhead damage is reduced depending on the the type of armor the
      *  defender has. This table is what gives weapons their "character".

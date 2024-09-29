@@ -39,6 +39,12 @@ std::vector<std::vector<unsigned char>> Verses::ForceFire;
 std::vector<std::vector<unsigned char>> Verses::PassiveAcquire;
 std::vector<std::vector<unsigned char>> Verses::Retaliate;
 
+
+/**
+ *  Saves all the Verses arrays to the stream.
+ *
+ *  @author: ZivDero
+ */
 HRESULT Verses::Save(IStream* pStm)
 {
     HRESULT hr = Save_2D_Vector(pStm, Modifier);
@@ -58,6 +64,11 @@ HRESULT Verses::Save(IStream* pStm)
 }
 
 
+/**
+ *  Loads all the Verses arrays from the stream.
+ *
+ *  @author: ZivDero
+ */
 HRESULT Verses::Load(IStream* pStm)
 {
     HRESULT hr = Load_2D_Vector(pStm, Modifier);
@@ -77,6 +88,11 @@ HRESULT Verses::Load(IStream* pStm)
 }
 
 
+/**
+ *  Resizes the Verses arrays to match the armor and warhead counts.
+ *
+ *  @author: ZivDero
+ */
 void Verses::Resize()
 {
     const int old_armor_count = Modifier.size();
@@ -107,6 +123,11 @@ void Verses::Resize()
 }
 
 
+/**
+ *  Sets the Verses modifier for an armor and warhead combination.
+ *
+ *  @author: ZivDero
+ */
 void Verses::Set_Modifier(ArmorType armor, WarheadType warhead, double value)
 {
     ASSERT(armor >= ARMOR_FIRST && armor < ArmorTypes.Count());
@@ -116,6 +137,11 @@ void Verses::Set_Modifier(ArmorType armor, WarheadType warhead, double value)
 }
 
 
+/**
+ *  Gets the Verses modifier for an armor and warhead combination.
+ *
+ *  @author: ZivDero
+ */
 double Verses::Get_Modifier(ArmorType armor, WarheadType warhead)
 {
     ASSERT(armor >= ARMOR_FIRST && armor < ArmorTypes.Count());
@@ -128,6 +154,11 @@ double Verses::Get_Modifier(ArmorType armor, WarheadType warhead)
 }
 
 
+/**
+ *  Sets the Verses force-fire flag for an armor and warhead combination.
+ *
+ *  @author: ZivDero
+ */
 void Verses::Set_ForceFire(ArmorType armor, WarheadType warhead, bool value)
 {
     ASSERT(armor >= ARMOR_FIRST && armor < ArmorTypes.Count());
@@ -137,6 +168,11 @@ void Verses::Set_ForceFire(ArmorType armor, WarheadType warhead, bool value)
 }
 
 
+/**
+ *  Gets the Verses force-fire flag for an armor and warhead combination.
+ *
+ *  @author: ZivDero
+ */
 bool Verses::Get_ForceFire(ArmorType armor, WarheadType warhead)
 {
     ASSERT(armor >= ARMOR_FIRST && armor < ArmorTypes.Count());
@@ -149,6 +185,11 @@ bool Verses::Get_ForceFire(ArmorType armor, WarheadType warhead)
 }
 
 
+/**
+ *  Sets the Verses passive acquire flag for an armor and warhead combination.
+ *
+ *  @author: ZivDero
+ */
 void Verses::Set_PassiveAcquire(ArmorType armor, WarheadType warhead, bool value)
 {
     ASSERT(armor >= ARMOR_FIRST && armor < ArmorTypes.Count());
@@ -158,6 +199,11 @@ void Verses::Set_PassiveAcquire(ArmorType armor, WarheadType warhead, bool value
 }
 
 
+/**
+ *  Gets the Verses passive acquire flag for an armor and warhead combination.
+ *
+ *  @author: ZivDero
+ */
 bool Verses::Get_PassiveAcquire(ArmorType armor, WarheadType warhead)
 {
     ASSERT(armor >= ARMOR_FIRST && armor < ArmorTypes.Count());
@@ -170,6 +216,11 @@ bool Verses::Get_PassiveAcquire(ArmorType armor, WarheadType warhead)
 }
 
 
+/**
+ *  Sets the Verses retaliate flag for an armor and warhead combination.
+ *
+ *  @author: ZivDero
+ */
 void Verses::Set_Retaliate(ArmorType armor, WarheadType warhead, bool value)
 {
     ASSERT(armor >= ARMOR_FIRST && armor < ArmorTypes.Count());
@@ -179,6 +230,11 @@ void Verses::Set_Retaliate(ArmorType armor, WarheadType warhead, bool value)
 }
 
 
+/**
+ *  Gets the Verses retaliate flag for an armor and warhead combination.
+ *
+ *  @author: ZivDero
+ */
 bool Verses::Get_Retaliate(ArmorType armor, WarheadType warhead)
 {
     ASSERT(armor >= ARMOR_FIRST && armor < ArmorTypes.Count());
@@ -190,6 +246,12 @@ bool Verses::Get_Retaliate(ArmorType armor, WarheadType warhead)
     return static_cast<bool>(Retaliate[armor][warhead]);
 }
 
+
+/**
+ *  Saves a 2D std::vector to the stream
+ *
+ *  @author: ZivDero
+ */
 template <typename T>
 HRESULT Verses::Save_2D_Vector(IStream* pStm, std::vector<std::vector<T>>& vector)
 {
@@ -211,6 +273,12 @@ HRESULT Verses::Save_2D_Vector(IStream* pStm, std::vector<std::vector<T>>& vecto
     return hr;
 }
 
+
+/**
+ *  Loads a 2D std::vector from the stream
+ *
+ *  @author: ZivDero
+ */
 template <typename T>
 HRESULT Verses::Load_2D_Vector(IStream* pStm, std::vector<std::vector<T>>& vector)
 {
