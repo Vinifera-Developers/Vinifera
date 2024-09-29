@@ -43,7 +43,6 @@ public:
         bool Read_INI(CCINIClass& ini);
 
         static bool One_Time();
-        static void Clear_All();
 
         static const char *Get_Modifier_Default_String();
         static const char *Get_Boolean_Default_String();

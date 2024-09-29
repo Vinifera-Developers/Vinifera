@@ -124,20 +124,6 @@ void Verses::Resize()
 
 
 /**
- *  Clears all Verses vectors.
- *
- *  @author: ZivDero
- */
-void Verses::Clear_All()
-{
-    Modifier.clear();
-    ForceFire.clear();
-    PassiveAcquire.clear();
-    Retaliate.clear();
-}
-
-
-/**
  *  Sets the Verses modifier for an armor and warhead combination.
  *
  *  @author: ZivDero
