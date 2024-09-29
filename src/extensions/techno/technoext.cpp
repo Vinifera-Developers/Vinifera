@@ -107,7 +107,7 @@ HRESULT TechnoClassExtension::Load(IStream *pStm)
         return E_FAIL;
     }
 
-    Load_Primitive_Vector(pStm, Storage);
+    Load_Primitive_Vector(pStm, Storage, "Storage");
 
     ElectricBolt = nullptr;
     
@@ -129,7 +129,7 @@ HRESULT TechnoClassExtension::Save(IStream *pStm, BOOL fClearDirty)
         return hr;
     }
 
-    Save_Primitive_Vector(pStm, Storage);
+    Save_Primitive_Vector(pStm, Storage, "Storage");
     ElectricBolt = nullptr;
 
     return hr;

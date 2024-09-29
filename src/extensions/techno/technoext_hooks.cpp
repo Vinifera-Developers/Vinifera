@@ -68,6 +68,7 @@
 #include "textprint.h"
 #include "tiberiumext.h"
 #include "unittype.h"
+#include "verses.h"
 
 
 /**
@@ -347,7 +348,7 @@ WeaponSlotType TechnoClassExt::_What_Weapon_Should_I_Use(TARGET target) const
     WeaponTypeClass const* wptr = Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon;
     if (wptr != nullptr && wptr->WarheadPtr != nullptr) {
         webby_primary = wptr->WarheadPtr->IsWebby;
-        w1 = Extension::Fetch<WarheadTypeClassExtension>(wptr->WarheadPtr)->Modifier[armor] * 1000;
+        w1 = Verses::Get_Modifier(armor, wptr->WarheadPtr) * 1000;
     }
     if (In_Range_Of(target, WEAPON_SLOT_PRIMARY)) w1 *= 2;
     FireErrorType ok = Can_Fire(target, WEAPON_SLOT_PRIMARY);
@@ -360,7 +361,7 @@ WeaponSlotType TechnoClassExt::_What_Weapon_Should_I_Use(TARGET target) const
     wptr = Get_Weapon(WEAPON_SLOT_SECONDARY)->Weapon;
     if (wptr != nullptr && wptr->WarheadPtr != nullptr) {
         webby_secondary = wptr->WarheadPtr->IsWebby;
-        w2 = Extension::Fetch<WarheadTypeClassExtension>(wptr->WarheadPtr)->Modifier[armor] * 1000;
+        w2 = Verses::Get_Modifier(armor, wptr->WarheadPtr) * 1000;
     }
     if (In_Range_Of(target, WEAPON_SLOT_SECONDARY)) w2 *= 2;
     ok = Can_Fire(target, WEAPON_SLOT_SECONDARY);
@@ -479,7 +480,7 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
      */
     const WeaponInfoStruct* weapon_info = Get_Weapon(What_Weapon_Should_I_Use(source));
     if (weapon_info->Weapon->WarheadPtr != nullptr &&
-        Extension::Fetch<WarheadTypeClassExtension>(weapon_info->Weapon->WarheadPtr)->Modifier[source->Techno_Type_Class()->Armor] == 0)
+        Verses::Get_Modifier(source->Techno_Type_Class()->Armor, weapon_info->Weapon->WarheadPtr) == 0)
     {
         return false;
     }
@@ -548,7 +549,7 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
      *	The warhead may forbid the unit from retaliating against targets with some armor types.
      */
     if (weapon_info->Weapon->WarheadPtr != nullptr &&
-        !Extension::Fetch<WarheadTypeClassExtension>(weapon_info->Weapon->WarheadPtr)->Retaliate[source->Techno_Type_Class()->Armor])
+        !Verses::Get_Retaliate(source->Techno_Type_Class()->Armor, weapon_info->Weapon->WarheadPtr))
     {
         return false;
     }
@@ -610,11 +611,11 @@ double TechnoClassExt::_Target_Threat(TechnoClass* target, Coordinate& firing_co
             {
                 if (target->TarCom == this)
                 {
-                    threat = -(target_effectiveness_coefficient * Extension::Fetch<WarheadTypeClassExtension>(target_weapon->WarheadPtr)->Modifier[ttype->Armor]);
+                    threat = -(target_effectiveness_coefficient * Verses::Get_Modifier(ttype->Armor, target_weapon->WarheadPtr));
                 }
                 else
                 {
-                    threat = target_effectiveness_coefficient * Extension::Fetch<WarheadTypeClassExtension>(target_weapon->WarheadPtr)->Modifier[ttype->Armor];
+                    threat = target_effectiveness_coefficient * Verses::Get_Modifier(ttype->Armor, target_weapon->WarheadPtr);
                 }
             }
 
@@ -626,7 +627,7 @@ double TechnoClassExt::_Target_Threat(TechnoClass* target, Coordinate& firing_co
 
     const WeaponTypeClass* weapon = Get_Weapon(What_Weapon_Should_I_Use(target))->Weapon;
     if (weapon != nullptr && weapon->WarheadPtr != nullptr)
-        threat += my_effectiveness_coefficient * Extension::Fetch<WarheadTypeClassExtension>(weapon->WarheadPtr)->Modifier[target->Class_Of()->Armor];
+        threat += my_effectiveness_coefficient * Verses::Get_Modifier(target->Class_Of()->Armor, weapon->WarheadPtr);
 
     threat += target->Health_Ratio() * target_strength_coefficient + threat;
 
@@ -665,7 +666,7 @@ int TechnoClassExt::_Anti_Infantry() const
         BulletTypeClass const* bullet = weapon->Bullet;
         const int mrange = std::min(static_cast<int>(weapon->Range), 0x0400);
 
-        int value = ((weapon->Attack * Extension::Fetch<WarheadTypeClassExtension>(weapon->WarheadPtr)->Modifier[ARMOR_NONE]) * mrange * weapon->WarheadPtr->SpreadFactor) / weapon->ROF;
+        int value = ((weapon->Attack * Verses::Get_Modifier(ARMOR_NONE, weapon->WarheadPtr)) * mrange * weapon->WarheadPtr->SpreadFactor) / weapon->ROF;
         if (Techno_Type_Class()->Is_Two_Shooter())
             value *= 2;
         
@@ -746,7 +747,7 @@ DECLARE_PATCH(_TechnoClass_Evaluate_Object_PassiveAcquire_Armor_Patch)
      */
     weapon = const_cast<WeaponTypeClass*>(this_ptr->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon);
     if (weapon != nullptr && weapon->WarheadPtr != nullptr &&
-        !Extension::Fetch<WarheadTypeClassExtension>(weapon->WarheadPtr)->PassiveAcquire[object->Techno_Type_Class()->Armor])
+        !Verses::Get_PassiveAcquire(object->Techno_Type_Class()->Armor, weapon->WarheadPtr))
     {
         goto return_false;
     }
@@ -783,6 +784,7 @@ DECLARE_PATCH(_TechnoClass_Can_Fire_ForceFire_Armor_Patch)
      */
     if (!this_ptr->In_Range_Of(target, which))
     {
+        _asm mov esi, this_ptr
         // return FIRE_RANGE;
         JMP(0x0062FC90);
     }
@@ -792,13 +794,15 @@ DECLARE_PATCH(_TechnoClass_Can_Fire_ForceFire_Armor_Patch)
      */
     if (Is_Target_Techno(target))
     {
-        if (!Extension::Fetch<WarheadTypeClassExtension>(this_ptr->Get_Weapon(which)->Weapon->WarheadPtr)->ForceFire[target->Techno_Type_Class()->Armor])
+        if (!Verses::Get_ForceFire(target->Techno_Type_Class()->Armor, this_ptr->Get_Weapon(which)->Weapon->WarheadPtr))
         {
+            _asm mov esi, this_ptr
             // return FIRE_ILLEGAL;
             JMP(0x0062F991);
         }
     }
 
+    _asm mov esi, this_ptr
     JMP(0x0062FC9F);
 }
 
@@ -813,7 +817,7 @@ DECLARE_PATCH(_TechnoClass_Base_Is_Attacked_Armor1_Patch)
     GET_STACK_STATIC(TechnoClass*, enemy, esp, 0x84);
     GET_REGISTER_STATIC(UnitClass*, unit, esi);
 
-    if (Extension::Fetch<WarheadTypeClassExtension>(unit->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon->WarheadPtr)->Modifier[enemy->Techno_Type_Class()->Armor] != 0)
+    if (Verses::Get_Modifier(enemy->Techno_Type_Class()->Armor, unit->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon->WarheadPtr) != 0)
     {
         JMP(0x00636C36);
     }
@@ -832,7 +836,7 @@ DECLARE_PATCH(_TechnoClass_Base_Is_Attacked_Armor2_Patch)
     GET_STACK_STATIC(TechnoClass*, enemy, esp, 0x84);
     GET_REGISTER_STATIC(InfantryClass*, unit, esi);
 
-    if (Extension::Fetch<WarheadTypeClassExtension>(unit->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon->WarheadPtr)->Modifier[enemy->Techno_Type_Class()->Armor] != 0)
+    if (Verses::Get_Modifier(enemy->Techno_Type_Class()->Armor, unit->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon->WarheadPtr) != 0)
     {
         JMP(0x006369E8);
     }

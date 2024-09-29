@@ -42,6 +42,7 @@
 #include "hooker.h"
 #include "hooker_macros.h"
 #include "tibsun_globals.h"
+#include "verses.h"
 #include "warheadtypeext.h"
 
 
@@ -102,16 +103,16 @@ void BuildingTypeClassExt::_Set_Base_Defense_Values()
 
             if (weapon->Bullet->IsAntiAircraft)
             {
-                int anti_air_value = damage * Extension::Fetch<WarheadTypeClassExtension>(weapon->WarheadPtr)->Modifier[ARMOR_STEEL];
+                int anti_air_value = damage * Verses::Get_Modifier(ARMOR_STEEL, weapon->WarheadPtr);
                 AntiAirValue = std::min(anti_air_value, Rule->MaximumBaseDefenseValue);
             }
 
             if (weapon->Bullet->IsAntiGround)
             {
-                int anti_armor_value = damage * Extension::Fetch<WarheadTypeClassExtension>(weapon->WarheadPtr)->Modifier[ARMOR_STEEL];
+                int anti_armor_value = damage * Verses::Get_Modifier(ARMOR_STEEL, weapon->WarheadPtr);
                 AntiArmorValue = std::min(anti_armor_value, Rule->MaximumBaseDefenseValue);
 
-                int anti_ground_value = damage * Extension::Fetch<WarheadTypeClassExtension>(weapon->WarheadPtr)->Modifier[ARMOR_NONE];
+                int anti_ground_value = damage * Verses::Get_Modifier(ARMOR_NONE, weapon->WarheadPtr);
                 AntiArmorValue = std::min(anti_ground_value, Rule->MaximumBaseDefenseValue);
             }
         }

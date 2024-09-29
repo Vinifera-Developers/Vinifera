@@ -44,6 +44,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "verses.h"
 
 
 /**
@@ -76,7 +77,7 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ArmorType armo
         return 0;
     }
 
-    damage *= Extension::Fetch<WarheadTypeClassExtension>(warhead)->Modifier[armor];
+    damage *= Verses::Get_Modifier(armor, warhead);
 
     /**
      *	Vanilla used to enforce a minimum of 1 damage here.

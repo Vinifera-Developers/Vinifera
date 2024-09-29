@@ -62,6 +62,7 @@
 
 #include "extension.h"
 #include "extension_globals.h"
+#include "verses.h"
 
 
 /**
@@ -285,6 +286,12 @@ void RulesClassExtension::Process(CCINIClass &ini)
             btype->IsNewTheater = true;
         }
     }
+
+    /**
+     *  Now that we know how many armors and warheads we have, resize the Verses arrays accordingly
+     *  before reading the actual values.
+     */
+    Verses::Resize();
 
     This()->Objects(ini);
     This()->Difficulty(ini);

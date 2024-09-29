@@ -48,6 +48,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "verses.h"
 #include "warheadtypeext.h"
 #include "weapontype.h"
 
@@ -695,7 +696,7 @@ DECLARE_PATCH(_UnitClass_Jellyfish_AI_Armor_Patch)
     GET_STACK_STATIC(WarheadTypeClass*, warhead, esp, 0x14);
 
     static int damage;
-    damage = weapon->Attack * Extension::Fetch<WarheadTypeClassExtension>(warhead)->Modifier[target->Techno_Type_Class()->Armor];
+    damage = weapon->Attack * Verses::Get_Modifier(target->Techno_Type_Class()->Armor, warhead);
 
     _asm
     {

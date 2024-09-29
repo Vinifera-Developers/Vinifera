@@ -56,7 +56,7 @@ private:
         /**
          *  The name of this armor type, used for identification purposes.
          */
-        Wstring Name;
+        char Name[256];
 
 public:
         /**

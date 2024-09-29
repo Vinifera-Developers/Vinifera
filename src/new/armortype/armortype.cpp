@@ -39,7 +39,7 @@
  *  @author: CCHyper
  */
 ArmorTypeClass::ArmorTypeClass(const char *name) :
-    Name(nullptr),
+    Name(""),
     Modifier(1.0),
     ForceFire(true),
     PassiveAcquire(true),
@@ -47,11 +47,7 @@ ArmorTypeClass::ArmorTypeClass(const char *name) :
 {
     ASSERT_FATAL_PRINT(name != nullptr, "Invalid name for ArmorType!");
 
-    /**
-     *  Force armor types to be lower case to retain original armor name formatting.
-     */
-    Name = name;
-    Name.To_Lower();
+    std::strncpy(Name, name, sizeof(Name));
 
     ArmorTypes.Add(this);
 }
@@ -77,15 +73,9 @@ ArmorType ArmorTypeClass::From_Name(const char *name)
 {
     ASSERT(name != nullptr);
 
-    /**
-     *  Force armor types to be lower case to retain original armor name formatting.
-     */
-    Wstring _name = name;
-    _name.To_Lower();
-
-    if (_name.Is_Not_Empty()) {
+    if (name != nullptr) {
         for (ArmorType armor = ARMOR_FIRST; armor < ArmorTypes.Count(); armor++) {
-            if (ArmorTypes[armor]->Name == _name) {
+            if (std::strncmp(ArmorTypes[armor]->Name, name, sizeof(Name)) == 0) {
                 return armor;
             }
         }
@@ -104,7 +94,7 @@ const char *ArmorTypeClass::Name_From(ArmorType type)
 {
     ASSERT(type >= ARMOR_FIRST && type < ArmorTypes.Count());
 
-    return ArmorTypes[type]->Name.Peek_Buffer();
+    return ArmorTypes[type]->Name;
 }
 
 
@@ -117,14 +107,8 @@ const ArmorTypeClass *ArmorTypeClass::Find_Or_Make(const char *name)
 {
     ASSERT(name != nullptr);
 
-    /**
-     *  Force armor types to be lower case to retain original armor name formatting.
-     */
-    Wstring _name = name;
-    _name.To_Lower();
-
     for (ArmorType armor = ARMOR_FIRST; armor < ArmorTypes.Count(); ++armor) {
-        if (ArmorTypes[armor]->Name == _name) {
+        if (std::strncmp(ArmorTypes[armor]->Name, name, sizeof(Name)) == 0) {
             return ArmorTypes[armor];
         }
     }
