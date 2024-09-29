@@ -211,6 +211,8 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
     ShakePixelXHi = ini.Get_Int(ini_name, "ShakeXhi", ShakePixelXHi);
     ShakePixelXLo = ini.Get_Int(ini_name, "ShakeXlo", ShakePixelXLo);
 
+    WarheadType warheadtype = static_cast<WarheadType>(WarheadTypes.ID(This()));
+
     /**
      *  Reload the Verses entry into the new Modifier array.
      */
@@ -221,15 +223,15 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
         char *aval = std::strtok(buffer, ",");
         for (int armor = 0; armor < ArmorTypes.Count(); ++armor) {
 
-            // Fix: if there are not enough verses specified, use the default
+            // Fix: if there are not enough verses specified, use the defaults
             if (aval == nullptr) {
                 break;
             }
 
             if (std::strchr(aval, '%')) {
-                Verses::Set_Modifier(static_cast<ArmorType>(armor), This(), std::atoi(aval) * 0.01);
+                Verses::Set_Modifier(static_cast<ArmorType>(armor), warheadtype, std::atoi(aval) * 0.01);
             } else {
-                Verses::Set_Modifier(static_cast<ArmorType>(armor), This(), std::atof(aval));
+                Verses::Set_Modifier(static_cast<ArmorType>(armor), warheadtype, std::atof(aval));
             }
 
             aval = std::strtok(nullptr, ",");
@@ -247,22 +249,22 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
         ArmorType armor = static_cast<ArmorType>(i);
 
         std::snprintf(key_name, sizeof(key_name), "Versus.%s", armor_name);
-        Verses::Set_Modifier(armor, This(), ini.Get_Double(ini_name, key_name, Verses::Get_Modifier(armor, This())));
+        Verses::Set_Modifier(armor, warheadtype, ini.Get_Double(ini_name, key_name, Verses::Get_Modifier(armor, warheadtype)));
 
         std::snprintf(key_name, sizeof(key_name), "ForceFire.%s", armor_name);
-        Verses::Set_ForceFire(armor, This(), ini.Get_Bool(ini_name, key_name, Verses::Get_ForceFire(armor, This())));
+        Verses::Set_ForceFire(armor, warheadtype, ini.Get_Bool(ini_name, key_name, Verses::Get_ForceFire(armor, warheadtype)));
 
         std::snprintf(key_name, sizeof(key_name), "PassiveAcquire.%s", armor_name);
-        Verses::Set_PassiveAcquire(armor, This(), ini.Get_Bool(ini_name, key_name, Verses::Get_PassiveAcquire(armor, This())));
+        Verses::Set_PassiveAcquire(armor, warheadtype, ini.Get_Bool(ini_name, key_name, Verses::Get_PassiveAcquire(armor, warheadtype)));
 
         std::snprintf(key_name, sizeof(key_name), "Retaliate.%s", armor_name);
-        Verses::Set_Retaliate(armor, This(), ini.Get_Bool(ini_name, key_name, Verses::Get_Retaliate(armor, This())));
+        Verses::Set_Retaliate(armor, warheadtype, ini.Get_Bool(ini_name, key_name, Verses::Get_Retaliate(armor, warheadtype)));
     }
 
     /**
      *  Allow overriding IsOrganic.
      */
-    This()->IsOrganic = ini.Get_Bool(ini_name, "Organic", Verses::Get_Modifier(ARMOR_STEEL, This()) == 0);
+    This()->IsOrganic = ini.Get_Bool(ini_name, "Organic", Verses::Get_Modifier(ARMOR_STEEL, warheadtype) == 0);
 
     return true;
 }
