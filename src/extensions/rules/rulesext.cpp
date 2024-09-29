@@ -62,6 +62,7 @@
 
 #include "extension.h"
 #include "extension_globals.h"
+#include "mission.h"
 #include "verses.h"
 
 
@@ -293,7 +294,12 @@ void RulesClassExtension::Process(CCINIClass &ini)
      */
     Verses::Resize();
 
-    This()->Objects(ini);
+    /**
+     *  Process the objects (extension classes).
+     *  This includes all vanilla objects.
+     */
+    Objects(ini);
+
     This()->Difficulty(ini);
     This()->CrateRules(ini);
     This()->CombatDamage(ini);
@@ -310,11 +316,6 @@ void RulesClassExtension::Process(CCINIClass &ini)
     MPlayer(ini);
     AudioVisual(ini);
     CombatDamage(ini);
-
-    /**
-     *  Process the objects (extension classes).
-     */
-    Objects(ini);
 
     /**
      *  Run some checks to ensure certain values are as expected.
@@ -358,19 +359,39 @@ bool RulesClassExtension::Objects(CCINIClass &ini)
         ArmorTypes[index]->Read_INI(ini);
     }
 
+    DEBUG_INFO("Rules: Processing HouseTypes (Count: %d)...\n", HouseTypes.Count());
+    for (int index = 0; index < HouseTypes.Count(); ++index) {
+        HouseTypes[index]->Read_INI(ini);
+    }
+
     DEBUG_INFO("Rules: Processing HouseTypeExtensions (Count: %d)...\n", HouseTypeExtensions.Count());
     for (int index = 0; index < HouseTypeExtensions.Count(); ++index) {
         HouseTypeExtensions[index]->Read_INI(ini);
     }
-    
+
+    DEBUG_INFO("Rules: Processing SuperWeaponTypes (Count: %d)...\n", SuperWeaponTypes.Count());
+    for (int index = 0; index < SuperWeaponTypes.Count(); ++index) {
+        SuperWeaponTypes[index]->Read_INI(ini);
+    }
+
     DEBUG_INFO("Rules: Processing SuperWeaponTypeExtensions (Count: %d)...\n", SuperWeaponTypeExtensions.Count());
     for (int index = 0; index < SuperWeaponTypeExtensions.Count(); ++index) {
         SuperWeaponTypeExtensions[index]->Read_INI(ini);
     }
     
+    DEBUG_INFO("Rules: Processing AnimTypes (Count: %d)...\n", AnimTypes.Count());
+    for (int index = 0; index < AnimTypes.Count(); ++index) {
+        AnimTypes[index]->Read_INI(ArtINI); // Animations are loaded explicitly from ArtINI.
+    }
+    
     DEBUG_INFO("Rules: Processing AnimTypeExtensions (Count: %d)...\n", AnimTypeExtensions.Count());
     for (int index = 0; index < AnimTypeExtensions.Count(); ++index) {
-        AnimTypeExtensions[index]->Read_INI(ArtINI); // Animations are loaded explicitly from the ArtINI.
+        AnimTypeExtensions[index]->Read_INI(ArtINI); // Animations are loaded explicitly from ArtINI.
+    }
+    
+    DEBUG_INFO("Rules: Processing BuildingTypes (Count: %d)...\n", BuildingTypes.Count());
+    for (int index = 0; index < BuildingTypes.Count(); ++index) {
+        BuildingTypes[index]->Read_INI(ini);
     }
     
     DEBUG_INFO("Rules: Processing BuildingTypeExtensions (Count: %d)...\n", BuildingTypeExtensions.Count());
@@ -378,9 +399,19 @@ bool RulesClassExtension::Objects(CCINIClass &ini)
         BuildingTypeExtensions[index]->Read_INI(ini);
     }
     
+    DEBUG_INFO("Rules: Processing AircraftTypes (Count: %d)...\n", AircraftTypes.Count());
+    for (int index = 0; index < AircraftTypes.Count(); ++index) {
+        AircraftTypes[index]->Read_INI(ini);
+    }
+    
     DEBUG_INFO("Rules: Processing AircraftTypeExtensions (Count: %d)...\n", AircraftTypeExtensions.Count());
     for (int index = 0; index < AircraftTypeExtensions.Count(); ++index) {
         AircraftTypeExtensions[index]->Read_INI(ini);
+    }
+    
+    DEBUG_INFO("Rules: Processing UnitTypes (Count: %d)...\n", UnitTypes.Count());
+    for (int index = 0; index < UnitTypes.Count(); ++index) {
+        UnitTypes[index]->Read_INI(ini);
     }
     
     DEBUG_INFO("Rules: Processing UnitTypeExtensions (Count: %d)...\n", UnitTypeExtensions.Count());
@@ -388,24 +419,59 @@ bool RulesClassExtension::Objects(CCINIClass &ini)
         UnitTypeExtensions[index]->Read_INI(ini);
     }
     
+    DEBUG_INFO("Rules: Processing InfantryTypes (Count: %d)...\n", InfantryTypes.Count());
+    for (int index = 0; index < InfantryTypes.Count(); ++index) {
+        InfantryTypes[index]->Read_INI(ini);
+    }
+    
     DEBUG_INFO("Rules: Processing InfantryTypeExtensions (Count: %d)...\n", InfantryTypeExtensions.Count());
     for (int index = 0; index < InfantryTypeExtensions.Count(); ++index) {
         InfantryTypeExtensions[index]->Read_INI(ini);
     }
     
+    DEBUG_INFO("Rules: Processing WeaponTypes (Count: %d)...\n", WeaponTypes.Count());
+    for (int index = 0; index < WeaponTypes.Count(); ++index) {
+        WeaponTypes[index]->Read_INI(ini);
+    }
+
     DEBUG_INFO("Rules: Processing WeaponTypeExtensions (Count: %d)...\n", WeaponTypeExtensions.Count());
     for (int index = 0; index < WeaponTypeExtensions.Count(); ++index) {
         WeaponTypeExtensions[index]->Read_INI(ini);
     }
     
+    DEBUG_INFO("Rules: Processing BulletTypes (Count: %d)...\n", BulletTypes.Count());
+    for (int index = 0; index < BulletTypes.Count(); ++index) {
+        BulletTypes[index]->Read_INI(ini);
+    }
+
     DEBUG_INFO("Rules: Processing BulletTypeExtensions (Count: %d)...\n", BulletTypeExtensions.Count());
     for (int index = 0; index < BulletTypeExtensions.Count(); ++index) {
         BulletTypeExtensions[index]->Read_INI(ini);
     }
     
+    DEBUG_INFO("Rules: Processing WarheadTypes (Count: %d)...\n", WarheadTypes.Count());
+    for (int index = 0; index < WarheadTypes.Count(); ++index) {
+        WarheadTypes[index]->Read_INI(ini);
+    }
+    
     DEBUG_INFO("Rules: Processing WarheadTypeExtensions (Count: %d)...\n", WarheadTypeExtensions.Count());
     for (int index = 0; index < WarheadTypeExtensions.Count(); ++index) {
         WarheadTypeExtensions[index]->Read_INI(ini);
+    }
+
+    DEBUG_INFO("Rules: Calling WeaponTypeClass::Set_Speed (Count: %d)...\n", WeaponTypes.Count());
+    for (int index = 0; index < WeaponTypes.Count(); ++index) {
+        WeaponTypes[index]->Set_Speed();
+    }
+
+    DEBUG_INFO("Rules: Calling BuildingTypeClass::Set_Base_Defense_Values (Count: %d)...\n", BuildingTypes.Count());
+    for (int index = 0; index < BuildingTypes.Count(); ++index) {
+        BuildingTypes[index]->Set_Base_Defense_Values();
+    }
+    
+    DEBUG_INFO("Rules: Processing TerrainTypes (Count: %d)...\n", TerrainTypes.Count());
+    for (int index = 0; index < TerrainTypes.Count(); ++index) {
+        TerrainTypes[index]->Read_INI(ini);
     }
     
     DEBUG_INFO("Rules: Processing TerrainTypeExtensions (Count: %d)...\n", TerrainTypeExtensions.Count());
@@ -413,9 +479,19 @@ bool RulesClassExtension::Objects(CCINIClass &ini)
         TerrainTypeExtensions[index]->Read_INI(ini);
     }
     
+    DEBUG_INFO("Rules: Processing SmudgeTypes (Count: %d)...\n", SmudgeTypes.Count());
+    for (int index = 0; index < SmudgeTypes.Count(); ++index) {
+        SmudgeTypes[index]->Read_INI(ini);
+    }
+    
     DEBUG_INFO("Rules: Processing SmudgeTypeExtensions (Count: %d)...\n", SmudgeTypeExtensions.Count());
     for (int index = 0; index < SmudgeTypeExtensions.Count(); ++index) {
         SmudgeTypeExtensions[index]->Read_INI(ini);
+    }
+    
+    DEBUG_INFO("Rules: Processing OverlayTypes (Count: %d)...\n", OverlayTypes.Count());
+    for (int index = 0; index < OverlayTypes.Count(); ++index) {
+        OverlayTypes[index]->Read_INI(ini);
     }
     
     DEBUG_INFO("Rules: Processing OverlayTypeExtensions (Count: %d)...\n", OverlayTypeExtensions.Count());
@@ -423,19 +499,40 @@ bool RulesClassExtension::Objects(CCINIClass &ini)
         OverlayTypeExtensions[index]->Read_INI(ini);
     }
     
+    DEBUG_INFO("Rules: Processing ParticleTypes (Count: %d)...\n", ParticleTypes.Count());
+    for (int index = 0; index < ParticleTypes.Count(); ++index) {
+        ParticleTypes[index]->Read_INI(ini);
+    }
+
     DEBUG_INFO("Rules: Processing ParticleTypeExtensions (Count: %d)...\n", ParticleTypeExtensions.Count());
     for (int index = 0; index < ParticleTypeExtensions.Count(); ++index) {
         ParticleTypeExtensions[index]->Read_INI(ini);
     }
     
+    DEBUG_INFO("Rules: Processing ParticleSystemTypes (Count: %d)...\n", ParticleSystemTypes.Count());
+    for (int index = 0; index < ParticleSystemTypes.Count(); ++index) {
+        ParticleSystemTypes[index]->Read_INI(ini);
+    }
+
     DEBUG_INFO("Rules: Processing ParticleSystemTypeExtensions (Count: %d)...\n", ParticleSystemTypeExtensions.Count());
     for (int index = 0; index < ParticleSystemTypeExtensions.Count(); ++index) {
         ParticleSystemTypeExtensions[index]->Read_INI(ini);
     }
     
+    DEBUG_INFO("Rules: Processing VoxelAnimTypes (Count: %d)...\n", VoxelAnimTypes.Count());
+    for (int index = 0; index < VoxelAnimTypes.Count(); ++index) {
+        VoxelAnimTypes[index]->Read_INI(ini);
+    }
+
     DEBUG_INFO("Rules: Processing VoxelAnimTypeExtensions (Count: %d)...\n", VoxelAnimTypeExtensions.Count());
     for (int index = 0; index < VoxelAnimTypeExtensions.Count(); ++index) {
         VoxelAnimTypeExtensions[index]->Read_INI(ini);
+    }
+
+    DEBUG_INFO("Rules: Processing MissionControlClasses (Count: %d)...\n", MISSION_COUNT);
+    for (int mission = 0; mission < MISSION_COUNT; mission++) {
+        MissionControl[mission].Mission = static_cast<MissionType>(mission);
+        MissionControl[mission].Read_INI(ini);
     }
 
     return true;

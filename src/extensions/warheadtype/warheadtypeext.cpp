@@ -217,7 +217,7 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
      *  Reload the Verses entry into the new Modifier array.
      */
     if (ini.Is_Present(ini_name, "Verses"))
-        DEBUG_WARNING("Warhead %s has a Verses key specified! The usage of Verses is deprecated. Use Versus.armorname instead.", ini_name);
+        DEBUG_WARNING("Warhead %s has a Verses key specified! The usage of Verses is deprecated. Use Versus.armorname instead.\n", ini_name);
 
     if (ini.Get_String(ini_name, "Verses", ArmorTypeClass::Get_Modifier_Default_String(), buffer, sizeof(buffer)) > 0) {
         char *aval = std::strtok(buffer, ",");
