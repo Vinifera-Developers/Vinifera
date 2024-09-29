@@ -53,18 +53,18 @@ WarheadTypeClassExtension::WarheadTypeClassExtension(const WarheadTypeClass *thi
     ShakePixelYLo(0),
     ShakePixelXHi(0),
     ShakePixelXLo(0),
-    Modifier(),
-    ForceFire(),
-    PassiveAcquire(),
-    Retaliate()
+    Modifier(ArmorTypes.Count()),
+    ForceFire(ArmorTypes.Count()),
+    PassiveAcquire(ArmorTypes.Count()),
+    Retaliate(ArmorTypes.Count())
 {
     //if (this_ptr) EXT_DEBUG_TRACE("WarheadTypeClassExtension::WarheadTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    for (int armor = ARMOR_FIRST; armor < ArmorTypes.Count(); ++armor) {
-        Modifier.Add(1.0);
-        ForceFire.Add(true);
-        PassiveAcquire.Add(true);
-        Retaliate.Add(true);
+    for (int armor = ARMOR_FIRST; armor < ArmorTypes.Count(); armor++) {
+        Modifier[armor] = 1.0;
+        ForceFire[armor] = true;
+        PassiveAcquire[armor] = true;
+        Retaliate[armor] = true;
     }
 
     WarheadTypeExtensions.Add(this);
@@ -208,16 +208,16 @@ void WarheadTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
     crc(ShakePixelXHi);
     crc(ShakePixelXLo);
 
-    for (int i = 0; i < Modifier.Count(); i++)
+    for (int i = 0; i < Modifier.Length(); i++)
         crc(Modifier[i]);
 
-    for (int i = 0; i < ForceFire.Count(); i++)
+    for (int i = 0; i < ForceFire.Length(); i++)
         crc(ForceFire[i]);
 
-    for (int i = 0; i < PassiveAcquire.Count(); i++)
+    for (int i = 0; i < PassiveAcquire.Length(); i++)
         crc(PassiveAcquire[i]);
 
-    for (int i = 0; i < Retaliate.Count(); i++)
+    for (int i = 0; i < Retaliate.Length(); i++)
         crc(Retaliate[i]);
 }
 
@@ -246,6 +246,13 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
     ShakePixelYLo = ini.Get_Int(ini_name, "ShakeYlo", ShakePixelYLo);
     ShakePixelXHi = ini.Get_Int(ini_name, "ShakeXhi", ShakePixelXHi);
     ShakePixelXLo = ini.Get_Int(ini_name, "ShakeXlo", ShakePixelXLo);
+
+    if (Modifier.Length() < ArmorTypes.Count()) {
+        Modifier.Resize(ArmorTypes.Count());
+        ForceFire.Resize(ArmorTypes.Count());
+        PassiveAcquire.Resize(ArmorTypes.Count());
+        Retaliate.Resize(ArmorTypes.Count());
+    }
 
     /**
      *  Reload the Verses entry into the new Modifier array.
@@ -303,7 +310,7 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
         RETALIATE
     };
 
-    auto read_bools = [&](DynamicVectorClass<bool>& vector, const char* key_name, int type) {
+    auto read_bools = [&](VectorClass<bool>& vector, const char* key_name, int type) {
         if (ini.Get_String(ini_name, key_name, ArmorTypeClass::Get_Boolean_Default_String(), buffer, sizeof(buffer)) > 0) {
             char* aval = std::strtok(buffer, ",");
             for (int armor = 0; armor < ArmorTypes.Count(); ++armor) {

@@ -89,13 +89,13 @@ WarheadTypeClassExtension final : public AbstractTypeClassExtension
          *  The warhead damage is reduced depending on the the type of armor the
          *  defender has. This table is what gives weapons their "character".
          */
-        DynamicVectorClass<double> Modifier;
+        VectorClass<double> Modifier;
 
         /**
          *  The warhead may be forbidden from targeting the defender depending the
          *  type of armor it has.
          */
-        DynamicVectorClass<bool> ForceFire;
-        DynamicVectorClass<bool> PassiveAcquire;
-        DynamicVectorClass<bool> Retaliate;
+        VectorClass<bool> ForceFire;
+        VectorClass<bool> PassiveAcquire;
+        VectorClass<bool> Retaliate;
 };
