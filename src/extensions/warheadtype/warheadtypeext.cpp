@@ -234,11 +234,6 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
     }
 
     /**
-     *  Allow overriding IsOrganic.
-     */
-    This()->IsOrganic = ini.Get_Bool(ini_name, "Organic", Verses::Get_Modifier(ARMOR_STEEL, This()) == 0);
-
-    /**
      *  Read the new Versus, ForceFire, PassiveAcquire, Retaliate per-armor keys.
      */
     for (int i = ARMOR_FIRST; i < ArmorTypes.Count(); i++)
@@ -260,6 +255,11 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
         std::snprintf(key_name, sizeof(key_name), "Retaliate.%s", armor_name);
         Verses::Set_Retaliate(armor, This(), ini.Get_Bool(ini_name, key_name, Verses::Get_Retaliate(armor, This())));
     }
+
+    /**
+     *  Allow overriding IsOrganic.
+     */
+    This()->IsOrganic = ini.Get_Bool(ini_name, "Organic", Verses::Get_Modifier(ARMOR_STEEL, This()) == 0);
 
     return true;
 }
