@@ -142,6 +142,10 @@ Vanilla ArmorTypes are present implicitly, redeclaring them has no effect. Howev
 
 - The new armor can be assigned to a Techno normally.
 
+```{note}
+Armor names are case-sensitive, including when part of `INI` keys.
+```
+
 In `RULES.INI`:
 ```ini
 [SOMETECHNO]   ; TechnoType
@@ -160,6 +164,10 @@ ForceFire.myarmor=yes       ; boolean, whether this warhead can be used to force
 Retaliate.myarmor=yes       ; boolean, whether this warhead can be used to retaliate against a this armor type.
 PassiveAcquire.myarmor=yes  ; boolean, whether this warhead can be used to passive acquire a this armor type.
 Organic=no                  ; boolean, whether an infantry using this warhead can passively acquire or retaliate against vehicles, aircraft or buildings. This overrides the RA/TS 0% behavior.
+```
+
+```{warning}
+It is recommended to set both `Retaliate.X` and `PassiveAcquire.X` to `no` if `ForceFire.X` is disabled. Otherwise, units may lock onto targets they are not permitted to fire at, potentially causing them to remain in an unresponsive state.
 ```
 
 ### AILegalTarget
