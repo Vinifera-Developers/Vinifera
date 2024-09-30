@@ -70,6 +70,7 @@
 #include "tiberiumext.h"
 #include "unittype.h"
 #include "verses.h"
+#include "session.h"
 
 
 /**
@@ -1471,6 +1472,47 @@ DECLARE_PATCH(_TechnoClass_Null_House_Warning_Patch)
 
 
 /**
+ *  A patch that makes Technos abandon their current target if they can't fire at it.
+ *
+ *  @note: This is inside `if (TarCom != nullptr)`.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_TechnoClass_AI_Abandon_Invalid_Target_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
+
+    static FireErrorType fire;
+
+    /**
+     *  Vanilla code.
+     *  Don't let medics heal non-friendlies.
+     */
+    if (Session.Type != GAME_NORMAL)
+    {
+        if (this_ptr->House->IsHuman && this_ptr->Combat_Damage(WEAPON_NONE) < 0 && !this_ptr->House->Is_Ally(this_ptr->TarCom))
+        {
+            this_ptr->Assign_Target(nullptr);
+        }
+    }
+
+    if (Frame % 16 == 0)
+    {
+        if (this_ptr->Mission != MISSION_CAPTURE && this_ptr->Mission != MISSION_SABOTAGE)
+        {
+            fire = this_ptr->Can_Fire(this_ptr->TarCom, this_ptr->What_Weapon_Should_I_Use(this_ptr->TarCom));
+            if (fire == FIRE_ILLEGAL || fire == FIRE_CANT)
+            {
+                this_ptr->Assign_Target(nullptr);
+            }
+        }
+    }
+
+    JMP(0x0062EB6F);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void TechnoClassExtension_Hooks()
@@ -1500,4 +1542,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x0062FC80, &_TechnoClass_Can_Fire_ForceFire_Armor_Patch);
     Patch_Call(0x0042EC25, &TechnoClassExt::_What_Action);
     Patch_Call(0x004A8532, &TechnoClassExt::_What_Action);
+    Patch_Jump(0x0062EB27, &_TechnoClass_AI_Abandon_Invalid_Target_Patch);
 }
