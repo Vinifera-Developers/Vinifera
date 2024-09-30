@@ -344,7 +344,7 @@ void RulesClassExtension::Initialize(CCINIClass &ini)
 /**
  *  Fetch all the object characteristic values.
  *  
- *  @author: CCHyper
+ *  @author: CCHyper, ZivDero
  */
 bool RulesClassExtension::Objects(CCINIClass &ini)
 {

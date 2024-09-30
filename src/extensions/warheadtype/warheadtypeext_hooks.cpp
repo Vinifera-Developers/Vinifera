@@ -73,7 +73,7 @@ void WarheadTypeClassExtension_Hooks()
     Patch_Jump(0x0066F3F4, 0x0066F4A4);
 
     /**
-     * Patch calls to WarheadTypeClass::Find_Or_Make to ensure our Verses vectors ar resized properly.
+     * Patch calls to WarheadTypeClass::Find_Or_Make to ensure our Verses vectors are resized properly.
      */
     Patch_Call(0x00419526, &_Find_Or_Make);
     Patch_Call(0x005AF345, &_Find_Or_Make);
