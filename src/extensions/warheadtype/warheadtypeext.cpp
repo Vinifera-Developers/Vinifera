@@ -214,11 +214,8 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
     WarheadType warheadtype = static_cast<WarheadType>(WarheadTypes.ID(This()));
 
     /**
-     *  Reload the Verses entry into the new Modifier array.
+     *  Reload the legacy version Verses, ForceFire, PassiveAcquire, Retaliate entries into the new Modifier array.
      */
-    if (ini.Is_Present(ini_name, "Verses"))
-        DEBUG_WARNING("Warhead %s has a Verses key specified! The usage of Verses is deprecated. Use Versus.armorname instead.\n", ini_name);
-
     if (ini.Get_String(ini_name, "Verses", ArmorTypeClass::Get_Modifier_Default_String(), buffer, sizeof(buffer)) > 0) {
         char *aval = std::strtok(buffer, ",");
         for (int armor = 0; armor < ArmorTypes.Count(); ++armor) {
@@ -237,6 +234,64 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
             aval = std::strtok(nullptr, ",");
         }
     }
+
+    auto parse_bool = [](const char* value, bool defval) -> bool {
+        while (*value == ' ') {
+            value++;
+        }
+
+        switch (toupper(value[0])) {
+        case '0':
+        case 'F':
+        case 'N':
+            return false;
+        case '1':
+        case 'T':
+        case 'Y':
+            return true;
+        default:
+            return defval;
+        }
+        };
+
+    enum {
+        FORCEFIRE,
+        PASSIVEACQUIRE,
+        RETALIATE
+    };
+
+    auto read_bools = [&](const char* key_name, int type) {
+        if (ini.Get_String(ini_name, key_name, ArmorTypeClass::Get_Boolean_Default_String(), buffer, sizeof(buffer)) > 0) {
+            char* aval = std::strtok(buffer, ",");
+            for (int armor = 0; armor < ArmorTypes.Count(); ++armor) {
+
+                // If there are not enough values, use the defaults
+                if (aval == nullptr) {
+                    break;
+                }
+
+                switch (type) {
+                case FORCEFIRE:
+                    Verses::Set_ForceFire(static_cast<ArmorType>(armor), warheadtype, parse_bool(aval, Verses::Get_ForceFire(static_cast<ArmorType>(armor), warheadtype)));
+                    break;
+                case PASSIVEACQUIRE:
+                    Verses::Set_PassiveAcquire(static_cast<ArmorType>(armor), warheadtype, parse_bool(aval, Verses::Get_PassiveAcquire(static_cast<ArmorType>(armor), warheadtype)));
+                    break;
+                case RETALIATE:
+                    Verses::Set_Retaliate(static_cast<ArmorType>(armor), warheadtype, parse_bool(aval, Verses::Get_Retaliate(static_cast<ArmorType>(armor), warheadtype)));
+                    break;
+                default:
+                    break;
+                }
+
+                aval = std::strtok(nullptr, ",");
+            }
+        }
+        };
+
+    read_bools("ForceFire", FORCEFIRE);
+    read_bools("PassiveAcquire", PASSIVEACQUIRE);
+    read_bools("Retaliate", RETALIATE);
 
     /**
      *  Read the new Versus, ForceFire, PassiveAcquire, Retaliate per-armor keys.
