@@ -135,12 +135,13 @@ New:
 - Implement a new sidebar with tabs (by ZivDero)
 - Add the ability to queue/dequeue 5 units at a time, or dequeue all units instantly (by ZivDero)
 - Make OverlayTypes 27 to 38 (fourth Tiberium images) passable by infantry (by AlexB)
+- Implement the support for new ArmorTypes and allow forbidding force-fire, passive-acquire and retaliation versus specific armor types (by ZivDero/CCHyper)
 
 Vanilla fixes:
 - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively (by CCHyper/tomsons26)
 - Fix a bug where VQA files could not be loaded from the root directory or local search paths (by CCHyper/tomsons26)
 - Fix a bug where the player could issue a harvester to begin harvesting Tiberium that is below a bridge while the mouse is over the bridge itself (by CCHyper/tomsons26)
-- Fixes a bug where the values of `RandomRate` were not stored correctly (by CCHyper/tomsons26)
+- Fix a bug where the values of `RandomRate` were not stored correctly (by CCHyper/tomsons26)
 - Fix a bug where the `FSMENU` theme would incorrectly play instead of the `INTRO` theme when in Tiberian Sun mode after returning to the main menu (by CCHyper/tomsons26)
 - Fix a bug where the game would crash when a trigger with the action "Wakeup group..." is executed and the requested Group was not found (by CCHyper/tomsons26)
 - Fix a bug where animations with a `DetailLevel` value greater than 2 would not show in-game (by CCHyper/tomsons26)
@@ -179,6 +180,7 @@ Vanilla fixes:
 - Fix a bug where under some circumstances, the player could hear "New Construction Options", even though no new construction options were available (by ZivDero)
 - Fix a bug where attempting to start construction when low funds would put the queue on hold (by ZivDero)
 - Port the fix for the (Whiteboy bug)[https://modenc.renegadeprojects.com/Whiteboy-Bug] (by ZivDero)
+- Fix a bug where the objects would sometimes receive a minimum of 1 damage even if MinDamage was set to 0 (by ZivDero)
 
 </details>
 

@@ -124,8 +124,8 @@ HRESULT HouseClassExtension::Load(IStream *pStm)
         return E_FAIL;
     }
 
-    Load_Primitive_Vector(pStm, TiberiumStorage);
-    Load_Primitive_Vector(pStm, WeedStorage);
+    Load_Primitive_Vector(pStm, TiberiumStorage, "TiberiumStorage");
+    Load_Primitive_Vector(pStm, WeedStorage, "WeedStorage");
 
     new (this) HouseClassExtension(NoInitClass());
     
@@ -147,8 +147,8 @@ HRESULT HouseClassExtension::Save(IStream *pStm, BOOL fClearDirty)
         return hr;
     }
 
-    Save_Primitive_Vector(pStm, TiberiumStorage);
-    Save_Primitive_Vector(pStm, WeedStorage);
+    Save_Primitive_Vector(pStm, TiberiumStorage, "TiberiumStorage");
+    Save_Primitive_Vector(pStm, WeedStorage, "WeedStorage");
 
     return hr;
 }

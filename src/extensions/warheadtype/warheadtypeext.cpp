@@ -27,11 +27,17 @@
  ******************************************************************************/
 #include "warheadtypeext.h"
 #include "warheadtype.h"
+#include "vinifera_globals.h"
+#include "tibsun_globals.h"
+#include "armortype.h"
+#include "rules.h"
 #include "ccini.h"
 #include "wwcrc.h"
 #include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "verses.h"
+#include "vinifera_saveload.h"
 
 
 /**
@@ -183,7 +189,7 @@ void WarheadTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 /**
  *  Fetches the extension data from the INI database.  
  *  
- *  @author: CCHyper
+ *  @author: CCHyper, ZivDero
  */
 bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
 {
@@ -192,6 +198,8 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
     if (!AbstractTypeClassExtension::Read_INI(ini)) {
         return false;
     }
+
+    char buffer[256];
 
     const char *ini_name = Name();
 
@@ -202,6 +210,116 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
     ShakePixelYLo = ini.Get_Int(ini_name, "ShakeYlo", ShakePixelYLo);
     ShakePixelXHi = ini.Get_Int(ini_name, "ShakeXhi", ShakePixelXHi);
     ShakePixelXLo = ini.Get_Int(ini_name, "ShakeXlo", ShakePixelXLo);
+
+    WarheadType warheadtype = static_cast<WarheadType>(WarheadTypes.ID(This()));
+
+    /**
+     *  Reload the legacy version Verses, ForceFire, PassiveAcquire, Retaliate entries into the new Modifier array.
+     */
+    if (ini.Get_String(ini_name, "Verses", nullptr, buffer, sizeof(buffer)) > 0) {
+        char *token = std::strtok(buffer, ",");
+        for (int armor = 0; armor < ArmorTypes.Count(); ++armor) {
+
+            // Fix: if there are not enough verses specified, use the defaults
+            if (token == nullptr) {
+                break;
+            }
+
+            if (std::strchr(token, '%')) {
+                Verses::Set_Modifier(static_cast<ArmorType>(armor), warheadtype, std::atoi(token) * 0.01);
+            } else {
+                Verses::Set_Modifier(static_cast<ArmorType>(armor), warheadtype, std::atof(token));
+            }
+
+            token = std::strtok(nullptr, ",");
+        }
+    }
+
+    auto parse_bool = [](const char* value, bool defval) -> bool {
+        while (*value == ' ') {
+            value++;
+        }
+
+        switch (toupper(value[0])) {
+        case '0':
+        case 'F':
+        case 'N':
+            return false;
+        case '1':
+        case 'T':
+        case 'Y':
+            return true;
+        default:
+            return defval;
+        }
+        };
+
+    enum {
+        FORCEFIRE,
+        PASSIVEACQUIRE,
+        RETALIATE
+    };
+
+    auto read_bools = [&](const char* key_name, int type) {
+        if (ini.Get_String(ini_name, key_name, nullptr, buffer, sizeof(buffer)) > 0) {
+            char* token = std::strtok(buffer, ",");
+            for (int armor = 0; armor < ArmorTypes.Count(); ++armor) {
+
+                // If there are not enough values, use the defaults
+                if (token == nullptr) {
+                    break;
+                }
+
+                switch (type) {
+                case FORCEFIRE:
+                    Verses::Set_ForceFire(static_cast<ArmorType>(armor), warheadtype, parse_bool(token, Verses::Get_ForceFire(static_cast<ArmorType>(armor), warheadtype)));
+                    break;
+                case PASSIVEACQUIRE:
+                    Verses::Set_PassiveAcquire(static_cast<ArmorType>(armor), warheadtype, parse_bool(token, Verses::Get_PassiveAcquire(static_cast<ArmorType>(armor), warheadtype)));
+                    break;
+                case RETALIATE:
+                    Verses::Set_Retaliate(static_cast<ArmorType>(armor), warheadtype, parse_bool(token, Verses::Get_Retaliate(static_cast<ArmorType>(armor), warheadtype)));
+                    break;
+                default:
+                    break;
+                }
+
+                token = std::strtok(nullptr, ",");
+            }
+        }
+        };
+
+    read_bools("ForceFire", FORCEFIRE);
+    read_bools("PassiveAcquire", PASSIVEACQUIRE);
+    read_bools("Retaliate", RETALIATE);
+
+    /**
+     *  Read the new Versus, ForceFire, PassiveAcquire, Retaliate per-armor keys.
+     */
+    for (int i = ARMOR_FIRST; i < ArmorTypes.Count(); i++)
+    {
+        static char key_name[256];
+
+        const char* armor_name = ArmorTypeClass::Name_From(static_cast<ArmorType>(i));
+        ArmorType armor = static_cast<ArmorType>(i);
+
+        std::snprintf(key_name, sizeof(key_name), "Versus.%s", armor_name);
+        Verses::Set_Modifier(armor, warheadtype, ini.Get_Double(ini_name, key_name, Verses::Get_Modifier(armor, warheadtype)));
+
+        std::snprintf(key_name, sizeof(key_name), "ForceFire.%s", armor_name);
+        Verses::Set_ForceFire(armor, warheadtype, ini.Get_Bool(ini_name, key_name, Verses::Get_ForceFire(armor, warheadtype)));
+
+        std::snprintf(key_name, sizeof(key_name), "PassiveAcquire.%s", armor_name);
+        Verses::Set_PassiveAcquire(armor, warheadtype, ini.Get_Bool(ini_name, key_name, Verses::Get_PassiveAcquire(armor, warheadtype)));
+
+        std::snprintf(key_name, sizeof(key_name), "Retaliate.%s", armor_name);
+        Verses::Set_Retaliate(armor, warheadtype, ini.Get_Bool(ini_name, key_name, Verses::Get_Retaliate(armor, warheadtype)));
+    }
+
+    /**
+     *  Allow overriding IsOrganic.
+     */
+    This()->IsOrganic = ini.Get_Bool(ini_name, "Organic", Verses::Get_Modifier(ARMOR_STEEL, warheadtype) == 0);
 
     return true;
 }

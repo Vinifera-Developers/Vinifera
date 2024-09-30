@@ -27,6 +27,8 @@
  ******************************************************************************/
 #include "tibsun_inline.h"
 #include "buildingext_hooks.h"
+#include "combatext_hooks.h"
+#include "vinifera_globals.h"
 #include "combat.h"
 #include "cell.h"
 #include "overlaytype.h"
@@ -34,6 +36,7 @@
 #include "scenarioext.h"
 #include "warheadtype.h"
 #include "warheadtypeext.h"
+#include "armortype.h"
 #include "extension.h"
 #include "fatal.h"
 #include "asserthandler.h"
@@ -41,6 +44,77 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "verses.h"
+
+
+/**
+ *  Adjusts damage to reflect the nature of the target.
+ *
+ *  @author: 04/16/1994 JLB - Created.                                                 
+ *           04/17/1994 JLB - Always does a minimum of damage.                         
+ *           01/01/1995 JLB - Takes into account distance from damage source.          
+ *           04/11/1996 JLB - Changed damage fall-off formula for less damage fall-off.
+ *           ZivDero : Adjustments for Tiberian Sun
+ */
+int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ArmorType armor, int distance)
+{
+    /**
+     *	If there is no raw damage value to start with, then
+     *	there can be no modified damage either.
+     */
+    if (!damage || Scen->SpecialFlags.IsInert || warhead == nullptr)
+        return 0;
+
+    /**
+     *	Negative damage (i.e., heal) is always applied full strength, but only if the heal
+     *	effect is close enough.
+     */
+    if (damage < 0)
+    {
+        enum { MAX_HEAL_DISTANCE = 8 };
+        if (distance < MAX_HEAL_DISTANCE)
+            return damage;
+
+        return 0;
+    }
+
+    damage *= Verses::Get_Modifier(armor, warhead);
+
+    /**
+     *	Vanilla used to enforce a minimum of 1 damage here.
+     */
+#if 0
+    if (damage <= 0)
+        damage = 1;
+#endif
+
+    /**
+     *	Reduce damage according to the distance from the impact point.
+     */
+    if (damage)
+    {
+        if (!warhead->SpreadFactor)
+            distance /= PIXEL_LEPTON_W / 2;
+        else
+            distance /= warhead->SpreadFactor * (PIXEL_LEPTON_W / 2 + 1);
+
+        distance = std::clamp(distance, 0, 16);
+
+        if (distance)
+            damage /= distance;
+
+        /**
+         *	Allow damage to drop to zero only if the distance would have
+         *	reduced damage to less than 1/4 full damage. Otherwise, ensure
+         *	that at least one damage point is done.
+         */
+        if (distance < 4)
+            damage = std::max(damage, Rule->MinDamage);
+    }
+
+    damage = std::min(damage, Rule->MaxDamage);
+    return damage;
+}
 
 
 /**
@@ -213,4 +287,5 @@ void CombatExtension_Hooks()
     Patch_Jump(0x0045FAA0, &_Explosion_Damage_IsWallAbsoluteDestroyer_Patch);
     Patch_Jump(0x00460244, &_Explosion_Damage_IsIceDestruction_Patch);
     Patch_Jump(0x00460477, &_Do_Flash_CombatLightSize_Patch);
+    Patch_Jump(0x0045EB60, &Vinifera_Modify_Damage);
 }

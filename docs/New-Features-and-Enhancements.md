@@ -120,6 +120,68 @@ SpawnDelay=3  ; unsigned integer, the number of frames between each of the spawn
 
 ## Technos
 
+### New ArmorTypes
+
+- Vinifera allows adding new armor types, as well as customizing the ability of warheads to target them.
+
+In `RULES.INI`:
+```ini
+[ArmorTypes]
+5=myarmor  ; string, armor name, recommended to be lowercase
+
+[myarmor]
+Modifier=100%       ; % or float, default Verses value for this armor.
+ForceFire=yes       ; boolean, whether warheads can by default force-fire at this armor type.
+Retaliate=yes       ; boolean, whether warheads can by default retaliate against this armor type.
+PassiveAcquire=yes  ; boolean, whether warheads can by default passive acquire this armor type.
+```
+
+```{note}
+Vanilla ArmorTypes are present implicitly, redeclaring them has no effect. However, it is possible to override default values for them in their respective sections.
+```
+
+- The new armor can be assigned to a Techno as any default armor.
+
+```{note}
+Armor names are case-sensitive, including when part of `INI` keys.
+```
+
+In `RULES.INI`:
+```ini
+[SOMETECHNO]   ; TechnoType
+Armor=myarmor  ; ArmorType
+```
+
+- Verses for the new armor are appended to the end of the vanilla Verses key.
+- Additionally, it is possible to customize whether a unit using a certain warhead can force-fire, retaliate or passively acquire units with a certain armor type. This mimics the special behavior of RA2's 0% and 1%, as well as Ares's 2%.
+- It is also possible to override the game's default hardcoded behavior for infantry using warheads with 0% verses against armor "heavy".
+
+In `RULES.INI`:
+```ini
+[SOMEWARHEAD]                           ; WarheadType
+Verses=100%,100%,100%,100%,100%,100%    ; list of % or floats, the damage multiplier against a specific armor type. 1 entry per ArmorType.
+ForceFire=yes,yes,yes,yes,yes,yes       ; list of booleans, whether this warhead can be used to force-fire at a specific armor type. 1 entry per ArmorType.
+Retaliate=yes,yes,yes,yes,yes,yes       ; list of booleans, whether this warhead can be used to retaliate against a specific armor type. 1 entry per ArmorType.
+PassiveAcquire=yes,yes,yes,yes,yes,yes  ; list of booleans, whether this warhead can be used to passive acquire a specific armor type. 1 entry per ArmorType.
+Organic=no                              ; boolean, whether an infantry using this warhead can passively acquire or retaliate against vehicles, aircraft or buildings. This overrides the RA/TS 0% behavior.
+```
+
+- Alternatively, separate keys may be used, achieving higher clarify and allowing for setting values out of order. These keys take priority over the list keys.
+
+In `RULES.INI`:
+```ini
+[SOMEWARHEAD]               ; WarheadType
+Versus.myarmor=100%         ; % or float, the damage multiplier against a this armor type.
+ForceFire.myarmor=yes       ; boolean, whether this warhead can be used to force-fire at a this armor type.
+Retaliate.myarmor=yes       ; boolean, whether this warhead can be used to retaliate against a this armor type.
+PassiveAcquire.myarmor=yes  ; boolean, whether this warhead can be used to passive acquire a this armor type.
+Organic=no                  ; boolean, whether an infantry using this warhead can passively acquire or retaliate against vehicles, aircraft or buildings. This overrides the RA/TS 0% behavior.
+```
+
+```{warning}
+It is recommended to set both `Retaliate.X` and `PassiveAcquire.X` to `no` if `ForceFire.X` is disabled. Otherwise, units may lock onto targets they are not permitted to fire at and continue to target them until they receive another order.
+```
+
 ### AILegalTarget
 
 - `AILegalTarget` can be used with TechnoTypes to forbid the AI from performing a targeting evaluation on this object. It is subject to LegalTarget=yes.
