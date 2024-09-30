@@ -61,7 +61,8 @@
 #include "debughandler.h"
 #include "drawshape.h"
 #include "cell.h"
-
+#include "wwkeyboard.h"
+#include "options.h"
 #include "hooker.h"
 #include "hooker_macros.h"
 #include "storageext.h"
@@ -88,6 +89,7 @@ public:
     bool _Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeClass const* warhead) const;
     double _Target_Threat(TechnoClass* target, Coordinate& firing_coord) const;
     int _Anti_Infantry() const;
+    ActionType _What_Action(ObjectClass* object, bool disallow_force);
 };
 
 
@@ -681,6 +683,29 @@ int TechnoClassExt::_Anti_Infantry() const
 
 
 /**
+ *  Wrapper to post-process the result of TechnoClass::What_Action
+ *
+ *  @author: ZivDero
+ */
+ActionType TechnoClassExt::_What_Action(ObjectClass* object, bool disallow_force)
+{
+    ActionType action = TechnoClass::What_Action(object, disallow_force);
+
+    if (action == ACTION_ATTACK)
+    {
+        const bool ctrldown = WWKeyboard->Down(Options.KeyForceAttack1) || WWKeyboard->Down(Options.KeyForceAttack2);
+        const FireErrorType error = Can_Fire(object, What_Weapon_Should_I_Use(object));
+
+        if (error == FIRE_ILLEGAL && !ctrldown)
+            return ACTION_NONE;
+    }
+
+    return action;
+}
+
+
+
+/**
  *  #issue-977
  *
  *  Adds check for IsLegalTargetComputer when evaluating a target for attacking.
@@ -780,16 +805,6 @@ DECLARE_PATCH(_TechnoClass_Can_Fire_ForceFire_Armor_Patch)
     GET_REGISTER_STATIC(WeaponSlotType, which, ebx);
 
     /**
-     *  If the object is further away than allowed, bail.
-     */
-    if (!this_ptr->In_Range_Of(target, which))
-    {
-        _asm mov esi, this_ptr
-        // return FIRE_RANGE;
-        JMP(0x0062FC90);
-    }
-
-    /**
      *  If the object has an armor type that this unit's warhead is forbidden to fire at, bail.
      */
     if (Is_Target_Techno(target))
@@ -800,6 +815,16 @@ DECLARE_PATCH(_TechnoClass_Can_Fire_ForceFire_Armor_Patch)
             // return FIRE_ILLEGAL;
             JMP(0x0062F991);
         }
+    }
+
+    /**
+     *  If the object is further away than allowed, bail.
+     */
+    if (!this_ptr->In_Range_Of(target, which))
+    {
+        _asm mov esi, this_ptr
+        // return FIRE_RANGE;
+        JMP(0x0062FC90);
     }
 
     _asm mov esi, this_ptr
@@ -1473,4 +1498,6 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x006369B0, &_TechnoClass_Base_Is_Attacked_Armor2_Patch);
     Patch_Jump(0x0062D11E, &_TechnoClass_Evaluate_Object_PassiveAcquire_Armor_Patch);
     Patch_Jump(0x0062FC80, &_TechnoClass_Can_Fire_ForceFire_Armor_Patch);
+    Patch_Call(0x0042EC25, &TechnoClassExt::_What_Action);
+    Patch_Call(0x004A8532, &TechnoClassExt::_What_Action);
 }
