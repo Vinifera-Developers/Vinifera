@@ -152,9 +152,21 @@ In `RULES.INI`:
 Armor=myarmor  ; ArmorType
 ```
 
-- Verses for the new armor can be appended to the end of the vanilla Verses key, or can be specified using a new separate key.
+- Verses for the new armor are appended to the end of the vanilla Verses key.
 - Additionally, it is possible to customize whether a unit using a certain warhead can force-fire, retaliate or passively acquire units with a certain armor type. This mimics the special behavior of RA2's 0% and 1%, as well as Ares's 2%.
 - It is also possible to override the game's default harcoded behavior for infantry using warheads with 0% verses against armor "steel".
+
+In `RULES.INI`:
+```ini
+[SOMEWARHEAD]                           ; WarheadType
+Verses=100%,100%,100%,100%,100%,100%    ; list of % or floats, the damage multiplier against a specific armor type. 1 entry per ArmorType.
+ForceFire=yes,yes,yes,yes,yes,yes       ; list of booleans, whether this warhead can be used to force-fire at a specific armor type. 1 entry per ArmorType.
+Retaliate=yes,yes,yes,yes,yes,yes       ; list of booleans, whether this warhead can be used to retaliate against a specific armor type. 1 entry per ArmorType.
+PassiveAcquire=yes,yes,yes,yes,yes,yes  ; list of booleans, whether this warhead can be used to passive acquire a specific armor type. 1 entry per ArmorType.
+Organic=no                              ; boolean, whether an infantry using this warhead can passively acquire or retaliate against vehicles, aircraft or buildings. This overrides the RA/TS 0% behavior.
+```
+
+- Alternatively, separate keys may be used, achieving higher clarify and allowing for setting values out of order. These keys take priority over the list keys.
 
 In `RULES.INI`:
 ```ini
