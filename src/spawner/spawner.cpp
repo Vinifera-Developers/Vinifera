@@ -90,17 +90,17 @@ bool Spawner::Start_Game()
     char* scen_name = Config->ScenarioName;
 
     //if (strstr(scen_name, "RA2->"))
-    //	scen_name += sizeof("RA2->") - 1;
+    //    scen_name += sizeof("RA2->") - 1;
 
     //if (strstr(scen_name, "PlayMovies->"))
     //{
-    //	scen_name += sizeof("PlayMovies->") - 1;
-    //	char* context = nullptr;
-    //	char* movieName = strtok_s(scen_name, Main::readDelims, &context);
-    //	for (; movieName; movieName = strtok_s(nullptr, Main::readDelims, &context))
-    //		Game::PlayMovie(movieName);
+    //    scen_name += sizeof("PlayMovies->") - 1;
+    //    char* context = nullptr;
+    //    char* movieName = strtok_s(scen_name, Main::readDelims, &context);
+    //    for (; movieName; movieName = strtok_s(nullptr, Main::readDelims, &context))
+    //        Game::PlayMovie(movieName);
 
-    //	return false;
+    //    return false;
     //}
 
     Read_Houses_And_Sides();
@@ -129,22 +129,22 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
 
     // Set Options
     Session.Options.ScenarioIndex               = -1;
-    Session.Options.Bases						= Config->Bases;
-    Session.Options.Credits						= Config->Credits;
-    Session.Options.BridgeDestruction			= Config->BridgeDestroy;
-    Session.Options.Goodies						= Config->Crates;
-    Session.Options.ShortGame					= Config->ShortGame;
+    Session.Options.Bases                       = Config->Bases;
+    Session.Options.Credits                     = Config->Credits;
+    Session.Options.BridgeDestruction           = Config->BridgeDestroy;
+    Session.Options.Goodies                     = Config->Crates;
+    Session.Options.ShortGame                   = Config->ShortGame;
     SessionExtension->ExtOptions.IsBuildOffAlly = Config->BuildOffAlly;
-    Session.Options.GameSpeed					= Config->GameSpeed;
-    Session.Options.CrapEngineers				= Config->MultiEngineer;
-    Session.Options.UnitCount					= Config->UnitCount;
-    Session.Options.AIPlayers					= Config->AIPlayers;
-    Session.Options.AIDifficulty				= Config->AIDifficulty;
-    Session.Options.AlliesAllowed				= Config->AlliesAllowed;
-    Session.Options.HarvesterTruce				= Config->HarvesterTruce;
+    Session.Options.GameSpeed                   = Config->GameSpeed;
+    Session.Options.CrapEngineers               = Config->MultiEngineer;
+    Session.Options.UnitCount                   = Config->UnitCount;
+    Session.Options.AIPlayers                   = Config->AIPlayers;
+    Session.Options.AIDifficulty                = Config->AIDifficulty;
+    Session.Options.AlliesAllowed               = Config->AlliesAllowed;
+    Session.Options.HarvesterTruce              = Config->HarvesterTruce;
     // Session.Options.CaptureTheFlag
-    Session.Options.FogOfWar					= Config->FogOfWar;
-    Session.Options.RedeployMCV					= Config->MCVRedeploy;
+    Session.Options.FogOfWar                    = Config->FogOfWar;
+    Session.Options.RedeployMCV                 = Config->MCVRedeploy;
     std::strcpy(Session.Options.ScenarioDescription, Config->UIMapName);
 
     Seed = Config->Seed;
