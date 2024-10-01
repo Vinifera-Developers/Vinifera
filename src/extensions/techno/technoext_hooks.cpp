@@ -170,6 +170,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
                 TechnoTypeClass* technotype = Techno_Type_Class();
 
                 std::vector<int> pips_to_draw;
+                pips_to_draw.reserve(Class_Of()->Max_Pips());
 
                 /*
                 **  Weeders/Waste Facilities draw all their contents with the Weed pip.
@@ -209,7 +210,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
 
                         int piptype = Extension::Fetch<TiberiumClassExtension>(Tiberiums[std::get<1>(tibtuple)])->PipIndex;
                         for (int i = 0; i < pip_count; i++)
-                            pips_to_draw.push_back(piptype);
+                            pips_to_draw.emplace_back(piptype);
                     }
                 }
 
