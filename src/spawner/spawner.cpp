@@ -262,7 +262,10 @@ void Spawner::Spawner_Init_Network()
 
         auto& nodename = *Session.Players[player_index];
 
-        reinterpret_cast<sockaddr_in*>(&nodename.Address)->sin_addr.s_addr = player_index;
+        std::memset(&nodename.Address, 0, sizeof(nodename.Address));
+        std::memcpy(&nodename.Address.NetworkNumber, &player_index, sizeof(player_index));
+        std::memcpy(&nodename.Address.NodeAddress, &player_index, sizeof(player_index));
+
         const auto ip = inet_addr(player->Ip);
         const auto port = htons(player->Port);
         udp_interface->AddressList[player_index - 1].IP = ip;
