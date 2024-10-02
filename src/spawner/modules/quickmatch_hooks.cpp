@@ -110,6 +110,6 @@ void QuickMatch_Hooks()
 {
     Patch_Call(0x005B980E, &sprintf_RadarClass_Draw_Names_Wrapper);
     Patch_Call(0x005ADC8F, &Fancy_Text_Print_ProgressScreenClass_Draw_Graphics_Wrapper);
-    Patch_Call(0x005B4032, &SendMessageA_Kick_Player_Dialog_Wrapper);
+    //Patch_Call(0x005B4032, &SendMessageA_Kick_Player_Dialog_Wrapper);
     Patch_Call(0x00648EAE, &IPXManagerClassExt::_Connection_Name);
 }

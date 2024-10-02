@@ -46,6 +46,9 @@ void ViniferaEventClass::Execute()
 
 unsigned char ViniferaEventClass::Event_Length(ViniferaEventType type)
 {
+	if (type >= 0 && type < EVENT_COUNT)
+		return EventClass::Event_Length(static_cast<EventType>(type));
+
 	switch (type)
 	{
 	case VEVENT_RESPONSE_TIME:

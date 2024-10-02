@@ -68,6 +68,7 @@ public:
 	EventClass& As_Event() { return *reinterpret_cast<EventClass*>(this); }
 
 	static unsigned char Event_Length(ViniferaEventType type);
+	static unsigned char Event_Length(EventType type) { return Event_Length(static_cast<ViniferaEventType>(type)); };
 	static bool Is_Vinifera_Event(ViniferaEventType type);
 #pragma pack(pop)
 };
