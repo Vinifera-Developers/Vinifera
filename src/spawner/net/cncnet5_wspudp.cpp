@@ -135,9 +135,9 @@ LRESULT CnCNet5UDPInterfaceClass::Message_Handler(HWND hWnd, UINT uMsg, UINT wPa
                  *  Create a new buffer and store this packet in it.
                  */
                 packet = Get_New_In_Buffer();
-                packet->BufferLen = rc - 4;
+                packet->BufferLen = rc - sizeof(packet->PacketData.CRC);
                 packet->PacketData.CRC = *reinterpret_cast<unsigned int*>(ReceiveBuffer);
-                std::memcpy(packet->PacketData.Buffer, ReceiveBuffer + 4, rc - 4);
+                std::memcpy(packet->PacketData.Buffer, ReceiveBuffer + sizeof(packet->PacketData.CRC), rc - sizeof(packet->PacketData.CRC));
                 if (!Passes_CRC_Check(packet)) {
                     DEBUG_INFO("CnCNet5: Throwing away malformed packet!\n");
                     Delete_In_Buffer(packet);
@@ -200,7 +200,7 @@ LRESULT CnCNet5UDPInterfaceClass::Message_Handler(HWND hWnd, UINT uMsg, UINT wPa
              *  at this time. In this case, we clear the socket error and just exit. Winsock will
              *  send us another WRITE message when it is ready to receive more data.
              */
-            rc = Send_To(Socket, (const char *)&packet->PacketData, packet->BufferLen + 4, 0, (PSOCKADDR_IN)&addr, sizeof(addr));
+            rc = Send_To(Socket, reinterpret_cast<const char*>(&packet->PacketData), packet->BufferLen + sizeof(packet->PacketData.CRC), 0, &addr, sizeof(addr));
             if (rc == SOCKET_ERROR) {
                 if (WSAGetLastError() != WSAEWOULDBLOCK) {
                     Clear_Socket_Error(Socket);
