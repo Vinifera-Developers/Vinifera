@@ -27,7 +27,6 @@
  ******************************************************************************/
 
 #include "spawner.h"
-#include "nethack.h"
 #include "protocolzero.h"
 #include "latencylevel.h"
 
