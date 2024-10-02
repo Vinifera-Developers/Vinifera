@@ -29,13 +29,25 @@
 
 #include "viniferaevent.h"
 
+#include "asserthandler.h"
 #include "protocolzero.h"
+
+unsigned char ViniferaEventLength[VEVENT_COUNT - EVENT_COUNT]
+{
+	sizeof(ViniferaEventClass::Data.ResponseTime2)
+};
+
+const char* ViniferaEventNames[VEVENT_COUNT - EVENT_COUNT]
+{
+	"RESPONSE_TIME_2"
+};
+
 
 void ViniferaEventClass::Execute()
 {
 	switch (Type)
 	{
-	case VEVENT_RESPONSE_TIME:
+	case VEVENT_RESPONSE_TIME_2:
 		ProtocolZero::Handle_Response_Time(this);
 		break;
 
@@ -46,19 +58,22 @@ void ViniferaEventClass::Execute()
 
 unsigned char ViniferaEventClass::Event_Length(ViniferaEventType type)
 {
-	if (type >= 0 && type < EVENT_COUNT)
+	ASSERT(type >= 0 && type < VEVENT_COUNT);
+
+	if (type < EVENT_COUNT)
 		return EventClass::Event_Length(static_cast<EventType>(type));
 
-	switch (type)
-	{
-	case VEVENT_RESPONSE_TIME:
-		return sizeof(Data.ResponseTime2);
+	return ViniferaEventLength[type - EVENT_COUNT];
+}
 
-	default:
-		break;
-	}
+const char* ViniferaEventClass::Event_Name(ViniferaEventType type)
+{
+	ASSERT(type >= 0 && type < VEVENT_COUNT);
 
-	return 0;
+	if (type < EVENT_COUNT)
+		return EventClass::Event_Name(static_cast<EventType>(type));
+
+	return ViniferaEventNames[type - EVENT_COUNT];
 }
 
 bool ViniferaEventClass::Is_Vinifera_Event(ViniferaEventType type)

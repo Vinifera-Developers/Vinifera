@@ -29,7 +29,7 @@
 
 #include <cstdint>
 
-enum LatencyLevelEnum : uint8_t
+enum LatencyLevelEnum : unsigned char
 {
     LATENCY_LEVEL_INITIAL = 0,
 
@@ -46,18 +46,17 @@ enum LatencyLevelEnum : uint8_t
     LATENCY_LEVEL_MAX = LATENCY_LEVEL_9,
     LATENCY_SIZE = 1 + LATENCY_LEVEL_MAX
 };
+
 class LatencyLevel
 {
 public:
+    LatencyLevel() = delete;
+
     static LatencyLevelEnum CurentLatencyLevel;
-    static uint8_t NewFrameSendRate;
+    static unsigned char NewFrameSendRate;
 
     static void Apply(LatencyLevelEnum new_latency_level);
-    static void __forceinline Apply(uint8_t newLatencyLevel)
-    {
-        Apply(static_cast<LatencyLevelEnum>(newLatencyLevel));
-    }
-
+    static void __forceinline Apply(unsigned char newLatencyLevel) { Apply(static_cast<LatencyLevelEnum>(newLatencyLevel)); }
     static int Get_MaxAhead(LatencyLevelEnum latencyLevel);
     static const char* Get_Latency_Message(LatencyLevelEnum latencyLevel);
     static LatencyLevelEnum From_Response_Time(uint8_t rspTime);

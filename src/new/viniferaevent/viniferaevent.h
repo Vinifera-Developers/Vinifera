@@ -36,12 +36,14 @@
 
 enum ViniferaEventType : unsigned char
 {
-	VEVENT_RESPONSE_TIME = EVENT_COUNT, // Start after the last vanilla event
+	VEVENT_RESPONSE_TIME_2 = EVENT_COUNT, // Start after the last vanilla event
 
 	VEVENT_COUNT,
-	VEVENT_FIRST = VEVENT_RESPONSE_TIME
+	VEVENT_FIRST = VEVENT_RESPONSE_TIME_2
 };
 
+extern unsigned char ViniferaEventLength[VEVENT_COUNT - EVENT_COUNT];
+extern const char* ViniferaEventNames[VEVENT_COUNT - EVENT_COUNT];
 
 class ViniferaEventClass 
 {
@@ -68,7 +70,11 @@ public:
 	EventClass& As_Event() { return *reinterpret_cast<EventClass*>(this); }
 
 	static unsigned char Event_Length(ViniferaEventType type);
-	static unsigned char Event_Length(EventType type) { return Event_Length(static_cast<ViniferaEventType>(type)); };
+	static unsigned char Event_Length(EventType type) { return Event_Length(static_cast<ViniferaEventType>(type)); }
+
+	static const char* Event_Name(ViniferaEventType type);
+	static const char* Event_Name(EventType type) { return Event_Name(static_cast<ViniferaEventType>(type)); }
+
 	static bool Is_Vinifera_Event(ViniferaEventType type);
 #pragma pack(pop)
 };

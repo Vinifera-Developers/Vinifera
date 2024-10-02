@@ -56,11 +56,11 @@ void ProtocolZero::Send_Response_Time()
         return;
 
     ViniferaEventClass event;
-    event.Type = VEVENT_RESPONSE_TIME;
+    event.Type = VEVENT_RESPONSE_TIME_2;
     event.ID = PlayerPtr->Get_Heap_ID();
     event.Frame = Frame + Session.MaxAhead;
-    event.Data.ResponseTime2.MaxAhead = (char)ipxResponseTime + 1;
-    event.Data.ResponseTime2.LatencyLevel = (char)LatencyLevel::From_Response_Time((char)ipxResponseTime);
+    event.Data.ResponseTime2.MaxAhead = static_cast<char>(ipxResponseTime) + 1;
+    event.Data.ResponseTime2.LatencyLevel = static_cast<char>(LatencyLevel::From_Response_Time(static_cast<char>(ipxResponseTime)));
 
     if (OutList.Add(event.As_Event()))
     {
@@ -89,16 +89,16 @@ void ProtocolZero::Handle_Response_Time(ViniferaEventClass* event)
         return;
     }
 
-    static int32_t PlayerMaxAheads[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-    static uint8_t PlayerLatencyMode[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-    static int32_t PlayerLastTimingFrame[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+    static int PlayerMaxAheads[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+    static unsigned char PlayerLatencyMode[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+    static int PlayerLastTimingFrame[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
-    int32_t house = event->ID;
-    PlayerMaxAheads[house] = (int32_t)event->Data.ResponseTime2.MaxAhead;
+    int house = event->ID;
+    PlayerMaxAheads[house] = event->Data.ResponseTime2.MaxAhead;
     PlayerLatencyMode[house] = event->Data.ResponseTime2.LatencyLevel;
     PlayerLastTimingFrame[house] = event->Frame;
 
-    uint8_t latency_mode = 0;
+    unsigned char latency_mode = 0;
     int max_max_aheads = 0;
 
     for (char i = 0; i < (char)std::size(PlayerMaxAheads); ++i)

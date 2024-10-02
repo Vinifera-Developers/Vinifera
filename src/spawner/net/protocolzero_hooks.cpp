@@ -36,17 +36,18 @@
 #include "session.h"
 #include "viniferaevent/viniferaevent.h"
 #include "ipxmgr.h"
+#include "scenario.h"
 #include "spawner.h"
 
 /**
-  *  A fake class for implementing new member functions which allow
-  *  access to the "this" pointer of the intended class.
-  *
-  *  @note: This must not contain a constructor or destructor.
-  *
-  *  @note: All functions must not be virtual and must also be prefixed
-  *         with "_" to prevent accidental virtualization.
-  */
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or destructor.
+ *
+ *  @note: All functions must not be virtual and must also be prefixed
+ *         with "_" to prevent accidental virtualization.
+ */
 class IPXManagerClassExt : public IPXManagerClass
 {
 public:
@@ -67,7 +68,12 @@ void IPXManagerClassExt::_Set_Timing(unsigned long retrydelta, unsigned long max
         );
     }
 
-    // Vanilla function
+    /**
+     *  Vanilla function.
+     */
+    DEBUG_INFO("IPX Manager: RetryDelta = %d\n", retrydelta);
+    DEBUG_INFO("MaxAhead is %d\n", Session.MaxAhead);
+
     RetryDelta = retrydelta;
     MaxRetries = maxretries;
     Timeout = timeout;
@@ -104,15 +110,70 @@ unsigned long IPXManagerClassExt::_Response_Time()
 }
 
 
-DECLARE_PATCH(_ProtocolZero_Main_Loop)
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or destructor.
+ *
+ *  @note: All functions must not be virtual and must also be prefixed
+ *         with "_" to prevent accidental virtualization.
+ */
+class MessageListClassExt : public MessageListClass
+{
+public:
+    bool _Manage();
+};
+
+
+bool MessageListClassExt::_Manage()
 {
     if (ProtocolZero::Enable)
         ProtocolZero::Send_Response_Time();
 
-    // Stolen instructions
-    Session.Messages.Manage();
-    JMP_REG(ecx, 0x005091AA);
+    return MessageListClass::Manage();
 }
+
+
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or destructor.
+ *
+ *  @note: All functions must not be virtual and must also be prefixed
+ *         with "_" to prevent accidental virtualization.
+ */
+class EventClassExt : public EventClass
+{
+public:
+    void _Execute_Timing();
+};
+
+
+void EventClassExt::_Execute_Timing()
+{
+    if (!ProtocolZero::Enable)
+        Data.Timing.MaxAhead -= Scen->SpecialFlags.IsFogOfWar ? 10 : 0;
+
+    if (Data.Timing.MaxAhead > Session.MaxAhead || Data.Timing.FrameSendRate > Session.FrameSendRate)
+    {
+        NewMaxAheadFrame1 = Frame;
+        NewMaxAheadFrame2 = Data.Timing.FrameSendRate * ((Data.Timing.FrameSendRate + Data.Timing.MaxAhead + Frame - 1) / Data.Timing.FrameSendRate);
+    }
+    else
+    {
+        NewMaxAheadFrame1 = 0;
+        NewMaxAheadFrame2 = 0;
+    }
+
+    Session.DesiredFrameRate = Data.Timing.DesiredFrameRate;
+    Session.MaxAhead = Data.Timing.MaxAhead;
+    if (Session.MaxAhead > Session.MaxMaxAhead)
+        Session.MaxMaxAhead = Session.MaxAhead;
+    Session.FrameSendRate = Data.Timing.FrameSendRate;
+}
+
 
 
 static short& MySent = Make_Global<short>(0x008099F0);
@@ -135,14 +196,8 @@ static void Add_Timing_Event()
     ev.Type = EVENT_TIMING;
     ev.Data.Timing.DesiredFrameRate = Session.PrecalcDesiredFrameRate;
     ev.Data.Timing.MaxAhead = Session.PrecalcMaxAhead;
-    if (ProtocolZero::Enable)
-    {
-        ev.Data.Timing.FrameSendRate = LatencyLevel::NewFrameSendRate;
-    }
-    else
-    {
-        ev.Data.Timing.FrameSendRate = Session.PrecalcDesiredFrameRate > 30 ? 10 : 5;
-    }
+    ev.Data.Timing.FrameSendRate = ProtocolZero::Enable ? LatencyLevel::NewFrameSendRate :
+        Session.PrecalcDesiredFrameRate > 30 ? 10 : 5;
 
     OutList.Add(ev);
     Session.PrecalcMaxAhead = 0;
@@ -157,38 +212,37 @@ DECLARE_PATCH(_ProtocolZero_Queue_AI_Multiplayer_2)
 }
 
 
+static void Add_Timing_Event_2(int max_ahead)
+{
+    EventClass ev;
+    ev.Type = EVENT_TIMING;
+    ev.Data.Timing.DesiredFrameRate = Session.DesiredFrameRate;
+    ev.Data.Timing.MaxAhead = ProtocolZero::Enable ? (Session.MaxAhead & 0xFFFF) : (max_ahead + Scen->SpecialFlags.IsFogOfWar ? 10 : 0);
+    ev.Data.Timing.FrameSendRate = Session.FrameSendRate;
+
+    OutList.Add(ev);
+}
+
+
 DECLARE_PATCH(_ProtocolZero_Queue_AI_Multiplayer_3)
 {
-    static unsigned int max_ahead;
+    GET_REGISTER_STATIC(int, max_ahead, edi);
+    _asm push esi
 
-    if (ProtocolZero::Enable)
-    {
-        max_ahead = Session.MaxAhead & 0xFFFF;
-        _asm mov edx, max_ahead;
-    }
+    Add_Timing_Event_2(max_ahead);
 
-    // Stolen instructions
-    _asm mov [esp+0x34], dx
-    JMP(0x005B1BB4);
+    _asm pop esi
+    JMP(0x005B1BB9);
 }
 
 
 DECLARE_PATCH(_ProtocolZero_EventClass_Execute)
 {
-    // Don't subtract 10 from MaxAhead
-	if (ProtocolZero::Enable)
-	{
-        JMP(0x0049502B);
-	}
+    GET_REGISTER_STATIC(EventClassExt*, e, esi);
 
-    // Stolen instructions
-	_asm
-    {
-        mov eax, [edx]
-        and eax, 0x800
-    }
+    e->_Execute_Timing();
 
-    JMP_REG(ecx, 0x00495020);
+    JMP(0x004950AD);
 }
 
 
@@ -204,7 +258,7 @@ DECLARE_PATCH(_ProtocolZero_ExecuteDoList)
         if (event->Type == EVENT_PROCESS_TIME)
             goto continue_execution;
 
-        if (event->Type == VEVENT_RESPONSE_TIME)
+        if (event->Type == VEVENT_RESPONSE_TIME_2)
             goto continue_execution;
     }
 
@@ -219,11 +273,11 @@ DECLARE_PATCH(_ProtocolZero_ExecuteDoList)
 
 void ProtocolZero_Hooks()
 {
-    Patch_Jump(0x005091A0, &_ProtocolZero_Main_Loop);
+    Patch_Call(0x005091A5, &MessageListClassExt::_Manage);
     Patch_Jump(0x005B1A2D, &_ProtocolZero_Queue_AI_Multiplayer_1);
     Patch_Jump(0x005B1BF1, &_ProtocolZero_Queue_AI_Multiplayer_2);
-    Patch_Jump(0x005B1BAF, &_ProtocolZero_Queue_AI_Multiplayer_3);
-    Patch_Jump(0x00495019, &_ProtocolZero_EventClass_Execute);
+    Patch_Jump(0x005B1B7A, &_ProtocolZero_Queue_AI_Multiplayer_3);
+    Patch_Jump(0x00495013, &_ProtocolZero_EventClass_Execute);
     Patch_Jump(0x005B4EA5, &_ProtocolZero_ExecuteDoList);
     Patch_Jump(0x004F05B0, &IPXManagerClassExt::_Set_Timing);
     Patch_Jump(0x004F0F00, &IPXManagerClassExt::_Response_Time);
