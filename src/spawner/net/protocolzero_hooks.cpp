@@ -56,8 +56,7 @@ public:
 };
 
 
-void IPXManagerClassExt::_Set_Timing(unsigned long retrydelta, unsigned long maxretries,
-    unsigned long timeout, bool global)
+void IPXManagerClassExt::_Set_Timing(unsigned long retrydelta, unsigned long maxretries, unsigned long timeout, bool global)
 {
     if (ProtocolZero::Enable) {
         DEBUG_INFO("[Spawner] NewRetryDelta = %d, NewRetryTimeout = %d, FrameSendRate = %d, CurentLatencyLevel = %d\n"
@@ -175,6 +174,15 @@ void EventClassExt::_Execute_Timing()
 }
 
 
+DECLARE_PATCH(_ProtocolZero_EventClass_Execute)
+{
+    GET_REGISTER_STATIC(EventClassExt*, e, esi);
+
+    e->_Execute_Timing();
+
+    JMP(0x004950AD);
+}
+
 
 static short& MySent = Make_Global<short>(0x008099F0);
 DECLARE_PATCH(_ProtocolZero_Queue_AI_Multiplayer_1)
@@ -217,7 +225,7 @@ static void Add_Timing_Event_2(int max_ahead)
     EventClass ev;
     ev.Type = EVENT_TIMING;
     ev.Data.Timing.DesiredFrameRate = Session.DesiredFrameRate;
-    ev.Data.Timing.MaxAhead = ProtocolZero::Enable ? (Session.MaxAhead & 0xFFFF) : (max_ahead + Scen->SpecialFlags.IsFogOfWar ? 10 : 0);
+    ev.Data.Timing.MaxAhead = ProtocolZero::Enable ? Session.MaxAhead : (max_ahead + Scen->SpecialFlags.IsFogOfWar ? 10 : 0);
     ev.Data.Timing.FrameSendRate = Session.FrameSendRate;
 
     OutList.Add(ev);
@@ -233,16 +241,6 @@ DECLARE_PATCH(_ProtocolZero_Queue_AI_Multiplayer_3)
 
     _asm pop esi
     JMP(0x005B1BB9);
-}
-
-
-DECLARE_PATCH(_ProtocolZero_EventClass_Execute)
-{
-    GET_REGISTER_STATIC(EventClassExt*, e, esi);
-
-    e->_Execute_Timing();
-
-    JMP(0x004950AD);
 }
 
 
@@ -281,4 +279,9 @@ void ProtocolZero_Hooks()
     Patch_Jump(0x005B4EA5, &_ProtocolZero_ExecuteDoList);
     Patch_Jump(0x004F05B0, &IPXManagerClassExt::_Set_Timing);
     Patch_Jump(0x004F0F00, &IPXManagerClassExt::_Response_Time);
+
+    // Use compressed packets for all protocols
+    Patch_Byte_Range(0x00508B0C, 0x90, 0xD);
+    Patch_Byte_Range(0x005B3751, 0x90, 0x2);
+    Patch_Byte_Range(0x005B3313, 0x90, 0x6);
 }

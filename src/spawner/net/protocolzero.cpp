@@ -38,7 +38,7 @@
 #include "debughandler.h"
 
 bool ProtocolZero::Enable = false;
-int ProtocolZero::WorstMaxAhead = 24;
+unsigned int ProtocolZero::WorstMaxAhead = 24;
 unsigned char ProtocolZero::MaxLatencyLevel = 0xff;
 
 void ProtocolZero::Send_Response_Time()
@@ -48,24 +48,22 @@ void ProtocolZero::Send_Response_Time()
 
     static int NextSendFrame = 6 * SendResponseTimeInterval;
 
-    if (NextSendFrame >= Frame)
+    if (Frame <= NextSendFrame)
         return;
 
-    const int ipxResponseTime = Ipx.Response_Time();
-    if (ipxResponseTime <= -1)
-        return;
+    const unsigned int ipxResponseTime = Ipx.Response_Time();
 
     ViniferaEventClass event;
     event.Type = VEVENT_RESPONSE_TIME_2;
     event.ID = PlayerPtr->Get_Heap_ID();
     event.Frame = Frame + Session.MaxAhead;
-    event.Data.ResponseTime2.MaxAhead = static_cast<char>(ipxResponseTime) + 1;
-    event.Data.ResponseTime2.LatencyLevel = static_cast<char>(LatencyLevel::From_Response_Time(static_cast<char>(ipxResponseTime)));
+    event.Data.ResponseTime2.MaxAhead = static_cast<unsigned char>(ipxResponseTime + 1);
+    event.Data.ResponseTime2.LatencyLevel = LatencyLevel::From_Response_Time(ipxResponseTime);
 
     if (OutList.Add(event.As_Event()))
     {
         NextSendFrame = Frame + SendResponseTimeInterval;
-        DEBUG_INFO("[Spawner] Player %d sending response time of %d, LatencyMode = %d, Frame = %d\n"
+        DEBUG_INFO("[Spawner] Player %d sending response time of %u, LatencyMode = %d, Frame = %d\n"
             , event.ID
             , event.Data.ResponseTime2.MaxAhead
             , event.Data.ResponseTime2.LatencyLevel
@@ -74,7 +72,7 @@ void ProtocolZero::Send_Response_Time()
     }
     else
     {
-        ++NextSendFrame;
+        NextSendFrame++;
     }
 }
 
@@ -89,33 +87,32 @@ void ProtocolZero::Handle_Response_Time(ViniferaEventClass* event)
         return;
     }
 
-    static int PlayerMaxAheads[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+    static unsigned int PlayerMaxAheads[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
     static unsigned char PlayerLatencyMode[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-    static int PlayerLastTimingFrame[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+    static unsigned int PlayerLastTimingFrame[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
-    int house = event->ID;
-    PlayerMaxAheads[house] = event->Data.ResponseTime2.MaxAhead;
-    PlayerLatencyMode[house] = event->Data.ResponseTime2.LatencyLevel;
-    PlayerLastTimingFrame[house] = event->Frame;
+    PlayerMaxAheads[event->ID] = event->Data.ResponseTime2.MaxAhead;
+    PlayerLatencyMode[event->ID] = event->Data.ResponseTime2.LatencyLevel;
+    PlayerLastTimingFrame[event->ID] = event->Frame;
 
     unsigned char latency_mode = 0;
-    int max_max_aheads = 0;
+    unsigned int max_ahead = 0;
 
-    for (char i = 0; i < (char)std::size(PlayerMaxAheads); ++i)
+    for (size_t i = 0; i < std::size(PlayerMaxAheads); i++)
     {
-        if (Frame >= (PlayerLastTimingFrame[i] + (SendResponseTimeInterval * 4)))
+        if (PlayerLastTimingFrame[i] + SendResponseTimeInterval * 4 < Frame)
         {
             PlayerMaxAheads[i] = 0;
             PlayerLatencyMode[i] = 0;
         }
         else
         {
-            max_max_aheads = PlayerMaxAheads[i] > max_max_aheads ? PlayerMaxAheads[i] : max_max_aheads;
+            max_ahead = PlayerMaxAheads[i] > max_ahead ? PlayerMaxAheads[i] : max_ahead;
             if (PlayerLatencyMode[i] > latency_mode)
                 latency_mode = PlayerLatencyMode[i];
         }
     }
 
-    WorstMaxAhead = max_max_aheads;
+    WorstMaxAhead = max_ahead;
     LatencyLevel::Apply(latency_mode);
 }

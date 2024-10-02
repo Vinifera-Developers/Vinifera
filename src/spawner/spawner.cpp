@@ -292,8 +292,8 @@ void Spawner::Spawner_Init_Network()
         Session.PrecalcMaxAhead = Config->PreCalcMaxAhead;
         ProtocolZero::MaxLatencyLevel = std::clamp(
             Config->MaxLatencyLevel,
-            (byte)LATENCY_LEVEL_1,
-            (byte)LATENCY_LEVEL_MAX
+            static_cast<unsigned char>(LATENCY_LEVEL_1),
+            static_cast<unsigned char>(LATENCY_LEVEL_MAX)
         );
     }
     else

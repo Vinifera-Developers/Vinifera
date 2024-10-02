@@ -32,6 +32,7 @@
 #include <stdint.h>
 
 #include "event.h"
+#include "latencylevel.h"
 #include "tibsun_defines.h"
 
 enum ViniferaEventType : unsigned char
@@ -60,8 +61,8 @@ public:
 
 		struct ResponseTime2
 		{
-			char MaxAhead;
-			uint8_t LatencyLevel;
+			unsigned char MaxAhead;
+			LatencyLevelEnum LatencyLevel;
 		} ResponseTime2;
 
 	} Data;

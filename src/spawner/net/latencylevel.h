@@ -56,8 +56,8 @@ public:
     static unsigned char NewFrameSendRate;
 
     static void Apply(LatencyLevelEnum new_latency_level);
-    static void __forceinline Apply(unsigned char newLatencyLevel) { Apply(static_cast<LatencyLevelEnum>(newLatencyLevel)); }
-    static int Get_MaxAhead(LatencyLevelEnum latencyLevel);
-    static const char* Get_Latency_Message(LatencyLevelEnum latencyLevel);
-    static LatencyLevelEnum From_Response_Time(uint8_t rspTime);
+    static void Apply(unsigned char new_latency_level) { Apply(static_cast<LatencyLevelEnum>(new_latency_level)); }
+    static unsigned int Get_Max_Ahead(LatencyLevelEnum latency_level);
+    static const char* Get_Latency_Message(LatencyLevelEnum latency_level);
+    static LatencyLevelEnum From_Response_Time(unsigned int response_time);
 };

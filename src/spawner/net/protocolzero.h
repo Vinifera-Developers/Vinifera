@@ -37,7 +37,7 @@ private:
 public:
     static bool Enable;
     static unsigned char MaxLatencyLevel;
-    static int WorstMaxAhead;
+    static unsigned int WorstMaxAhead;
 
     static void Send_Response_Time();
     static void Handle_Response_Time(ViniferaEventClass* event);

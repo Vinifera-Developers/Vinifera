@@ -33,6 +33,7 @@
 #include "debughandler.h"
 #include "house.h"
 #include "session.h"
+#include "rules.h"
 
 LatencyLevelEnum LatencyLevel::CurentLatencyLevel = LATENCY_LEVEL_INITIAL;
 unsigned char LatencyLevel::NewFrameSendRate = 3;
@@ -49,7 +50,7 @@ void LatencyLevel::Apply(LatencyLevelEnum new_latency_level)
     if (new_latency_level <= CurentLatencyLevel)
         return;
 
-    DEBUG_INFO("[Spawner] Player %ls, Loss mode (%d, %d) Frame = %d\n"
+    DEBUG_INFO("[Spawner] Player %ls, LatencyMode (%d, %d) Frame = %d\n"
         , PlayerPtr->IniName
         , new_latency_level
         , CurentLatencyLevel
@@ -59,55 +60,55 @@ void LatencyLevel::Apply(LatencyLevelEnum new_latency_level)
     CurentLatencyLevel = new_latency_level;
     NewFrameSendRate = static_cast<unsigned char>(new_latency_level);
     Session.PrecalcDesiredFrameRate = 60;
-    Session.PrecalcMaxAhead = Get_MaxAhead(new_latency_level);
-    Session.Messages.Add_Message(nullptr, 0, Get_Latency_Message(new_latency_level), ColorScheme::From_Name("White"), TPF_USE_GRAD_PAL | TPF_FULLSHADOW | TPF_6PT_GRAD, 270);
+    Session.PrecalcMaxAhead = Get_Max_Ahead(new_latency_level);
+    Session.Messages.Add_Message(nullptr, 0, Get_Latency_Message(new_latency_level), ColorScheme::From_Name("White"), TPF_USE_GRAD_PAL | TPF_FULLSHADOW | TPF_6PT_GRAD, static_cast<int>(Rule->MessageDelay * TICKS_PER_MINUTE / 2));
 }
 
-int LatencyLevel::Get_MaxAhead(LatencyLevelEnum latencyLevel)
+unsigned int LatencyLevel::Get_Max_Ahead(LatencyLevelEnum latency_level)
 {
     const int maxAhead[] =
     {
-        /* 0 */ 1
+        /* 0 */ 1,
 
-        /* 1 */ ,4
-        /* 2 */ ,6
-        /* 3 */ ,12
-        /* 4 */ ,16
-        /* 5 */ ,20
-        /* 6 */ ,24
-        /* 7 */ ,28
-        /* 8 */ ,32
-        /* 9 */ ,36
+        /* 1 */ 4,
+        /* 2 */ 6,
+        /* 3 */ 12,
+        /* 4 */ 16,
+        /* 5 */ 20,
+        /* 6 */ 24,
+        /* 7 */ 28,
+        /* 8 */ 32,
+        /* 9 */ 36
     };
 
-    return maxAhead[(int)latencyLevel];
+    return maxAhead[latency_level];
 }
 
-const char* LatencyLevel::Get_Latency_Message(LatencyLevelEnum latencyLevel)
+const char* LatencyLevel::Get_Latency_Message(LatencyLevelEnum latency_level)
 {
     const char* message[] =
     {
-        /* 0 */ "CnCNet: Latency mode set to: 0 - Initial" // Players should never see this, if they do, then it's a bug
+        /* 0 */ "CnCNet: Latency mode set to: 0 - Initial", // Players should never see this, if they do, then it's a bug
 
-        /* 1 */ ,"CnCNet: Latency mode set to: 1 - Best"
-        /* 2 */ ,"CnCNet: Latency mode set to: 2 - Super"
-        /* 3 */ ,"CnCNet: Latency mode set to: 3 - Excellent"
-        /* 4 */ ,"CnCNet: Latency mode set to: 4 - Very Good"
-        /* 5 */ ,"CnCNet: Latency mode set to: 5 - Good"
-        /* 6 */ ,"CnCNet: Latency mode set to: 6 - Good"
-        /* 7 */ ,"CnCNet: Latency mode set to: 7 - Default"
-        /* 8 */ ,"CnCNet: Latency mode set to: 8 - Default"
-        /* 9 */ ,"CnCNet: Latency mode set to: 9 - Default"
+        /* 1 */ "CnCNet: Latency mode set to: 1 - Best",
+        /* 2 */ "CnCNet: Latency mode set to: 2 - Super",
+        /* 3 */ "CnCNet: Latency mode set to: 3 - Excellent",
+        /* 4 */ "CnCNet: Latency mode set to: 4 - Very Good",
+        /* 5 */ "CnCNet: Latency mode set to: 5 - Good",
+        /* 6 */ "CnCNet: Latency mode set to: 6 - Good",
+        /* 7 */ "CnCNet: Latency mode set to: 7 - Default",
+        /* 8 */ "CnCNet: Latency mode set to: 8 - Default",
+        /* 9 */ "CnCNet: Latency mode set to: 9 - Default",
     };
 
-    return message[(int)latencyLevel];
+    return message[latency_level];
 }
 
-LatencyLevelEnum LatencyLevel::From_Response_Time(unsigned char rspTime)
+LatencyLevelEnum LatencyLevel::From_Response_Time(unsigned int response_time)
 {
     for (char i = LATENCY_LEVEL_1; i < LATENCY_LEVEL_MAX; i++)
     {
-        if (rspTime <= Get_MaxAhead(static_cast<LatencyLevelEnum>(i)))
+        if (response_time <= Get_Max_Ahead(static_cast<LatencyLevelEnum>(i)))
             return static_cast<LatencyLevelEnum>(i);
     }
 
