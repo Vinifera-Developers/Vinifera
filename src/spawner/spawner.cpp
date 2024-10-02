@@ -154,8 +154,8 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
     
 
     // Inverted for now as the sidebar hack until we reimplement loading
-    //Session.IsGDI = HouseTypes[Config->Players[0].House]->Get_Heap_ID();
-    Session.IsGDI = HouseTypes[Config->Players[0].House]->Side != SIDE_NOD;
+    Session.IsGDI = true;// HouseTypes[Config->Players[0].House]->Get_Heap_ID();
+    //Session.IsGDI = HouseTypes[Config->Players[0].House]->Side != SIDE_NOD;
     DEBUG_INFO("[Spawner] Session.IsGDI = %d\n", Session.IsGDI);
 
     // Configure Human Players

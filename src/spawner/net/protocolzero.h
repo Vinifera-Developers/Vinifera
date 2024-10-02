@@ -36,6 +36,7 @@ private:
 
 public:
     static bool Enable;
+    static bool GetRealMaxAhead;
     static unsigned char MaxLatencyLevel;
     static unsigned int WorstMaxAhead;
 

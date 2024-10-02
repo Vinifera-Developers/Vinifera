@@ -91,7 +91,7 @@ void IPXManagerClassExt::_Set_Timing(unsigned long retrydelta, unsigned long max
 
 unsigned long IPXManagerClassExt::_Response_Time()
 {
-    if (ProtocolZero::Enable) {
+    if (ProtocolZero::Enable && !ProtocolZero::GetRealMaxAhead) {
         return ProtocolZero::WorstMaxAhead;
     }
 
@@ -279,9 +279,4 @@ void ProtocolZero_Hooks()
     Patch_Jump(0x005B4EA5, &_ProtocolZero_ExecuteDoList);
     Patch_Jump(0x004F05B0, &IPXManagerClassExt::_Set_Timing);
     Patch_Jump(0x004F0F00, &IPXManagerClassExt::_Response_Time);
-
-    // Use compressed packets for all protocols
-    Patch_Byte_Range(0x00508B0C, 0x90, 0xD);
-    Patch_Byte_Range(0x005B3751, 0x90, 0x2);
-    Patch_Byte_Range(0x005B3313, 0x90, 0x6);
 }

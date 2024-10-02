@@ -38,6 +38,7 @@
 #include "debughandler.h"
 
 bool ProtocolZero::Enable = false;
+bool ProtocolZero::GetRealMaxAhead = false;
 unsigned int ProtocolZero::WorstMaxAhead = 24;
 unsigned char ProtocolZero::MaxLatencyLevel = 0xff;
 
@@ -51,7 +52,9 @@ void ProtocolZero::Send_Response_Time()
     if (Frame <= NextSendFrame)
         return;
 
+    GetRealMaxAhead = true;
     const unsigned int ipxResponseTime = Ipx.Response_Time();
+    GetRealMaxAhead = false;
 
     ViniferaEventClass event;
     event.Type = VEVENT_RESPONSE_TIME_2;
