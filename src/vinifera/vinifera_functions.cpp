@@ -29,9 +29,6 @@
 #include "vinifera_globals.h"
 #include "vinifera_newdel.h"
 #include "tibsun_globals.h"
-#include "cncnet4.h"
-#include "cncnet4_globals.h"
-#include "cncnet5_globals.h"
 #include "rulesext.h"
 #include "ccfile.h"
 #include "ccini.h"
@@ -588,30 +585,6 @@ bool Vinifera_Startup()
         MessageBox(MainWindow, "Failed to load the exception database, please reinstall Vinifera.", "Vinifera", MB_OK);
         return false;
     }
-
-#if !defined(TS_CLIENT)
-    /**
-     *  Initialise the CnCNet4 system.
-     */
-    if (!CnCNet4::Init()) {
-        CnCNet4::IsEnabled = false;
-        DEBUG_WARNING("Failed to initialise CnCNet4, continuing without CnCNet4 support!\n");
-    }
-
-    /**
-     *  Disable CnCNet4 if CnCNet5 is active, they can not co-exist.
-     */
-    if (CnCNet4::IsEnabled && CnCNet5::IsActive) {
-        CnCNet4::Shutdown();
-        CnCNet4::IsEnabled = false;
-    }
-#else
-    /**
-     *  Client builds can only use CnCNet5.
-     */
-    CnCNet4::IsEnabled = false;
-    //CnCNet5::IsActive = true; // Enable when new Client system is implemented.
-#endif
 
     return true;
 }

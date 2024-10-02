@@ -42,6 +42,7 @@
 #include "wspudp.h"
 #include "wwmouse.h"
 #include "ccini.h"
+#include "cncnet5_wspudp.h"
 #include "debughandler.h"
 #include "extension_globals.h"
 #include "gscreen.h"
@@ -159,9 +160,8 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
     DEBUG_INFO("[Spawner] Session.IsGDI = %d\n", Session.IsGDI);
 
     // Configure Human Players
-    NetHack::PortHack = true;
-    const char max_players = Config->IsCampaign ? 1 : (char)std::size(Config->Players);
-    for (char player_index = 0; player_index < max_players; player_index++)
+    const int max_players = Config->IsCampaign ? 1 : std::size(Config->Players);
+    for (int player_index = 0; player_index < max_players; player_index++)
     {
         const auto player = &Config->Players[player_index];
         if (!player->IsHuman)
@@ -175,18 +175,6 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
         nodename->Player.Color          = (PlayerColorType)player->Color;
         nodename->Player.ProcessTime    = -1;
         nodename->Game.LastTime         = 1;
-
-        if (player_index > 0)
-        {
-            nodename->Address.NodeAddress[0] = player_index;
-
-            const auto ip = inet_addr(player->Ip);
-            const auto port = htons(player->Port);
-            ListAddress::Array[player_index - 1].Ip = ip;
-            ListAddress::Array[player_index - 1].Port = port;
-            if (port != Config->ListenPort)
-                NetHack::PortHack = false;
-        }
     }
 
     Session.NumPlayers = Session.Players.Count();
@@ -256,13 +244,34 @@ bool Spawner::Load_Saved_Game(const char* save_game_name)
 
 void Spawner::Spawner_Init_Network()
 {
-    Tunnel::Id = htons(Config->TunnelId);
-    Tunnel::Ip = inet_addr(Config->TunnelIp);
-    Tunnel::Port = htons(Config->TunnelPort);
+    unsigned short id = htons(Config->TunnelId);
+    unsigned long ip = inet_addr(Config->TunnelIp);
+    unsigned short port = htons(Config->TunnelPort);
 
-    PlanetWestwoodPortNumber = Tunnel::Port ? 0 : Config->ListenPort;
+    const auto udp_interface = new CnCNet5UDPInterfaceClass(id, ip, port, true);
+    PacketTransport = udp_interface;
 
-    PacketTransport = new UDPInterfaceClass();
+    PlanetWestwoodPortNumber = port ? 0 : Config->ListenPort;
+
+    const char max_players = std::size(Config->Players);
+
+    for (char player_index = 1; player_index < max_players; player_index++)
+    {
+        const auto player = &Config->Players[player_index];
+        if (!player->IsHuman)
+            continue;
+
+        auto& nodename = *Session.Players[player_index];
+
+        reinterpret_cast<sockaddr_in*>(&nodename.Address)->sin_addr.s_addr = player_index;
+        const auto ip = inet_addr(player->Ip);
+        const auto port = htons(player->Port);
+        udp_interface->AddressList[player_index - 1].IP = ip;
+        udp_interface->AddressList[player_index - 1].Port = port;
+        if (port != Config->ListenPort)
+            udp_interface->PortHack = false;
+    }
+
     PacketTransport->Init();
     PacketTransport->Open_Socket(0);
     PacketTransport->Start_Listening();

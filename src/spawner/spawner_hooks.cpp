@@ -110,8 +110,8 @@ void Spawner_Hooks()
 {
     Patch_Call(0x004629D1, &Spawner::Start_Game);   // Main_Game
     Patch_Call(0x00462B8B, &Spawner::Start_Game);   // Main_Game
-    Patch_Call(0x006A2525, &NetHack::SendTo);       // NetHack
-    Patch_Call(0x006A25F9, &NetHack::RecvFrom);     // NetHack
+    //Patch_Call(0x006A2525, &NetHack::SendTo);       // NetHack
+    //Patch_Call(0x006A25F9, &NetHack::RecvFrom);     // NetHack
 
     /**
      *  The spawner allows player to jump right into a game, so no need to
