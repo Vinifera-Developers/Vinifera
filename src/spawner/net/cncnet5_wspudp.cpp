@@ -240,7 +240,7 @@ int CnCNet5UDPInterfaceClass::Send_To(SOCKET s, const char *buf, int len, int fl
     }
 
 #ifndef NDEBUG
-    DEV_DEBUG_INFO("CnCNet5: sendto(s=%d, buf=%p, len=%d, flags=%08X, to=%p, addrlen=%d)\n", s, buf, len, flags, dest_addr, addrlen);
+    //DEV_DEBUG_INFO("CnCNet5: sendto(s=%d, buf=%p, len=%d, flags=%08X, to=%p, addrlen=%d)\n", s, buf, len, flags, dest_addr, addrlen);
 #endif
 
     /**
@@ -281,7 +281,7 @@ int CnCNet5UDPInterfaceClass::Receive_From(SOCKET s, char *buf, int len, int fla
     }
 
 #ifndef NDEBUG
-    DEV_DEBUG_INFO("CnCNet5: recvfrom(s=%d, buf=%p, len=%d, flags=%08X, from=%p, addrlen=%p (%d))\n", s, buf, len, flags, src_addr, addrlen, *addrlen);
+    //DEV_DEBUG_INFO("CnCNet5: recvfrom(s=%d, buf=%p, len=%d, flags=%08X, from=%p, addrlen=%p (%d))\n", s, buf, len, flags, src_addr, addrlen, *addrlen);
 #endif
 
     /**
