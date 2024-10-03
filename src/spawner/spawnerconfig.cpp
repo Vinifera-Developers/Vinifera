@@ -54,9 +54,9 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
                      spawn_ini.Get_String(SETTINGS, "UIGameMode", UIGameMode, UIGameMode, sizeof(UIGameMode));
 
     // SaveGame Options
-    LoadSaveGame     = spawn_ini.Get_Bool(SETTINGS, "LoadSaveGame", LoadSaveGame);
+    LoadSaveGame      = spawn_ini.Get_Bool(SETTINGS, "LoadSaveGame", LoadSaveGame);
     /* SavedGamesDir */ spawn_ini.Get_String(SETTINGS, "SavedGamesDir", SavedGamesDir, SavedGamesDir, sizeof(SavedGamesDir));
-    /* SaveGameName */ spawn_ini.Get_String(SETTINGS, "SaveGameName", SaveGameName, SaveGameName, sizeof(SaveGameName));
+    /* SaveGameName */  spawn_ini.Get_String(SETTINGS, "SaveGameName", SaveGameName, SaveGameName, sizeof(SaveGameName));
 
     // Scenario Options
     Seed             = spawn_ini.Get_Int(SETTINGS, "Seed", Seed);
@@ -67,7 +67,7 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
     WOLGameID        = spawn_ini.Get_Int(SETTINGS, "GameID", WOLGameID);
     /* ScenarioName */ spawn_ini.Get_String(SETTINGS, "Scenario", ScenarioName, ScenarioName, sizeof(ScenarioName));
     /* MapHash      */ spawn_ini.Get_String(SETTINGS, "MapHash", MapHash, MapHash, sizeof(MapHash));
-    spawn_ini.Get_String(SETTINGS, "UIMapName", UIMapName, UIMapName, sizeof(UIMapName));
+                       spawn_ini.Get_String(SETTINGS, "UIMapName", UIMapName, UIMapName, sizeof(UIMapName));
 
     // Network Options
     Protocol         = spawn_ini.Get_Int(SETTINGS, "Protocol", Protocol);

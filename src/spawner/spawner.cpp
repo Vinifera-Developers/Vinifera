@@ -223,11 +223,11 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
     }
 }
 
-bool Spawner::Load_Saved_Game(const char* save_game_name)
+bool Spawner::Load_Saved_Game(const char* file_name)
 {
-    if (!save_game_name[0] || !Load_Game(save_game_name))
+    if (!file_name[0] || !Load_Game(file_name))
     {
-        DEBUG_INFO("[Spawner] Failed to Load Savegame [%s]\n", save_game_name);
+        DEBUG_INFO("[Spawner] Failed to load savegame [%s]\n", file_name);
         MessageBox(MainWindow, Text_String(TXT_ERROR_LOADING_GAME), "Vinifera", MB_OK);
 
         return false;
