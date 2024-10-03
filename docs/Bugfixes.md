@@ -44,3 +44,4 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where under some circumstances, the player could hear "New Construction Options", even though no new construction options were available.
 - Fix a bug where attempting to start construction when low funds would put the queue on hold.
 - Fix a bug where having 75 cameos in a single sidebar strip would crash the game.
+- Fix a bug where the objects would sometimes receive a minimum of 1 damage even if MinDamage was set to 0.

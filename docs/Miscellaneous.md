@@ -168,41 +168,73 @@ This option tells the game to exit when you press Cancel or Back from the dialog
 
 ### Developer Commands
 
+#### `[ ]` Memory Dump
+
+- Produces a mini-dump of the memory for analysis.
+
+#### `[ ]` Dump Heap CRCs
+
+- Dumps all the current game objects as CRCs to the log output.
+
+#### `[ ]` Instant Build (Player)
+
+- Toggles the instant build cheat for the player.
+
+#### `[ ]` Instant Build (AI)
+
+- Toggles the instant build cheat for the AI.
+
 #### `[ ]` Instant Special Recharge (Player)
 
-- Toggles the instant recharge cheat for the player's superweapons.
+- Toggles the instant recharge cheat for the players super weapons.
 
 #### `[ ]` Instant Special Recharge (AI)
 
-- Toggles the instant recharge cheat for the AI player superweapons.
+- Toggles the instant recharge cheat for the AI player super weapons.
+
+#### `[ ]` Place Infantry
+
+- Places a random infantry at the mouse cell.
+
+#### `[ ]` Place Unit
+
+- Places a random unit at the mouse cell.
 
 #### `[ ]` Place Tiberium
 
-- Places Tiberium in a cell.
+- Places tiberium at the mouse cell.
 
 #### `[ ]` Reduce Tiberium
 
-- Removes Tiberium from a cell.
+- Reduces tiberium at the mouse cell.
+
+#### `[ ]` Place Fully Grown Tiberium
+
+- Places fully grown tiberium at the mouse cell.
+
+#### `[ ]` Remove Tiberium
+
+- Removes tiberium at the mouse cell.
 
 #### `[ ]` Toggle AI Control
 
-- Allows the user the toggle the player house between full control and automated AI control.
+- Toggles AI control of the player house.
 
 #### `[ ]` Toggle Frame Step
 
-- Allows the user to pause the game and to step frame-by-frame.
+- Toggle frame step mode to step through the game frame-by-frame (for inspection).
 
 #### `[ ]` Step 1 Frame
 
-- Steps the game 1 frame forward.
+- Frame Step Only: Step forward 1 frame.
 
 #### `[ ]` Step 5 Frame
 
-- Steps the game 5 frames forward.
+- Frame Step Only: Step forward 5 frames.
 
 #### `[ ]` Step 10 Frame
 
-- Steps the game 10 frames forward.
+- Frame Step Only: Step forward 10 frame.
 
 #### `[ ]` Build Cheat
 
@@ -226,7 +258,7 @@ This option tells the game to exit when you press Cancel or Back from the dialog
 
 #### `[ ]` Map Snapshot
 
-- Saves a snapshot of the current scenario state.
+- Saves a snapshot of the current scenario state (Saved as 'SCEN_<date-time>.MAP.).
 
 #### `[ ]` Ion Storm
 
@@ -234,10 +266,10 @@ This option tells the game to exit when you press Cancel or Back from the dialog
 
 #### `[ ]` Bail Out
 
-- Exits the game completely.
+- Exits the game to the desktop.
 
 ```{note}
-`ExplosionCommandClass` and `SuperExplosionCommandClass` are currently disabled due to possible engine bug.
+`Explosion` and `Super Explosion` are currently disabled due to a possible engine bug.
 ```
 
 #### `[ ]` Explosion
@@ -278,7 +310,7 @@ This option tells the game to exit when you press Cancel or Back from the dialog
 
 #### `[ ]` Force Die
 
-- Forces the player to blowup and lose the current game session.
+- Forces all of the player's units and structures to explode, losing the current game session.
 
 #### `[ ]` Instant Build
 
@@ -331,6 +363,10 @@ This option tells the game to exit when you press Cancel or Back from the dialog
 #### `[ ]` Cursor Position
 
 - Displays cell coordinates of the mouse cursor.
+
+#### `[ ]` Cycle Starting Waypoints
+
+- Cycle the camera between the starting waypoints on the map.
 
 ## INI
 

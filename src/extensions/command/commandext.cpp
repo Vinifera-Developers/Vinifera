@@ -1611,7 +1611,7 @@ bool ForceLoseCommandClass::Process()
 
 
 /**
- *  Forces the player to blowup and lose the current game session.
+ *  Forces all of the player's units and structures to explode, losing the current game session.
  * 
  *  @author: CCHyper
  */
@@ -1632,7 +1632,7 @@ const char *ForceDieCommandClass::Get_Category() const
 
 const char *ForceDieCommandClass::Get_Description() const
 {
-    return "Forces the player to blowup, loosing the current game session.";
+    return "Forces all of the player's units and structures to explode, losing the current game session.";
 }
 
 bool ForceDieCommandClass::Process()
@@ -2661,7 +2661,7 @@ const char *HealCommandClass::Get_Category() const
 
 const char *HealCommandClass::Get_Description() const
 {
-    return "Heal the selected objects.";
+    return "Heal the selected objects by 50 hit points.";
 }
 
 bool HealCommandClass::Process()
@@ -2685,7 +2685,7 @@ bool HealCommandClass::Process()
 
 
 /**
- *  Toggles if weapons do damage or not.
+ *  Toggles if weapons are inert or not.
  * 
  *  @author: CCHyper
  */
