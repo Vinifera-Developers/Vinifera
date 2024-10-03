@@ -62,6 +62,13 @@
 #include "scenarioini.h"
 #include "scenario.h"
 #include "sidebarext.h"
+#include "terraintype.h"
+#include "smudgetype.h"
+#include "overlaytype.h"
+#include "armortype.h"
+#include "voxelanimtype.h"
+#include "particletype.h"
+#include "particlesystype.h"
 #include "vox.h"
 #include "event.h"
 #include "queue.h"
@@ -76,6 +83,7 @@
 #include "miscutil.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "bullettype.h"
 
 
 /**
@@ -3935,6 +3943,89 @@ bool DumpNetworkCRCCommandClass::Process()
     Extension::Print_CRCs(fp, nullptr);
 
     std::fclose(fp);
+
+    return true;
+}
+
+/**
+ *  Dumps all the type heaps to an output log.
+ *
+ *  @author: ZivDero
+ */
+const char* DumpHeapsCommandClass::Get_Name() const
+{
+    return "DumpHeaps";
+}
+
+const char* DumpHeapsCommandClass::Get_UI_Name() const
+{
+    return "Dump Heaps";
+}
+
+const char* DumpHeapsCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char* DumpHeapsCommandClass::Get_Description() const
+{
+    return "Dumps all the type heaps to an output log.";
+}
+
+/**
+ *  Handy macro for defining the logging the heaps CRCs.
+ *
+ *  @author: ZivDero
+ */
+#define LOG_HEAP(class_name, heap_name) \
+    { \
+        DEBUG_INFO(#class_name ":\n"); \
+        if (!heap_name.Count()) { \
+            DEBUG_INFO("  EMPTY\n"); \
+        } else { \
+            for (unsigned i = 0; i < heap_name.Count(); ++i) { \
+                class_name *ptr = heap_name[i]; \
+                if (ptr != nullptr) { \
+                    DEBUG_INFO("  %04d=%s\n", i, ptr->Name()); \
+                } \
+            } \
+        } \
+        DEBUG_INFO("\n"); \
+    }
+
+bool DumpHeapsCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    DEBUG_INFO("\nAbout to dump heaps...\n\n");
+
+    LOG_HEAP(HouseTypeClass, HouseTypes);
+
+    LOG_HEAP(UnitTypeClass, UnitTypes);
+    LOG_HEAP(InfantryTypeClass, InfantryTypes);
+    LOG_HEAP(BuildingTypeClass, BuildingTypes);
+    LOG_HEAP(AircraftTypeClass, AircraftTypes);
+
+    LOG_HEAP(TerrainTypeClass, TerrainTypes);
+    LOG_HEAP(SmudgeTypeClass, SmudgeTypes);
+    LOG_HEAP(OverlayTypeClass, OverlayTypes);
+
+    LOG_HEAP(AnimTypeClass, AnimTypes);
+    LOG_HEAP(VoxelAnimTypeClass, VoxelAnimTypes);
+    LOG_HEAP(ParticleTypeClass, ParticleTypes);
+    LOG_HEAP(ParticleSystemTypeClass, ParticleSystemTypes);
+
+    LOG_HEAP(WeaponTypeClass, WeaponTypes);
+    LOG_HEAP(WarheadTypeClass, WarheadTypes);
+    LOG_HEAP(SuperWeaponTypeClass, SuperWeaponTypes);
+    LOG_HEAP(BulletTypeClass, BulletTypes);
+
+    LOG_HEAP(TiberiumClass, Tiberiums);
+    LOG_HEAP(ArmorTypeClass, ArmorTypes);
+
+    DEBUG_INFO("\nFinished!\n\n");
 
     return true;
 }

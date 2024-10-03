@@ -1378,14 +1378,20 @@ class DumpNetworkCRCCommandClass : public ViniferaCommandClass
 };
 
 
-#ifndef DEBUG
 /**
- *  Based class for all new developer/debug command classes.
+ *  Dumps all the type heaps to an output log.
  */
-class ViniferaDebugCommandClass : public ViniferaCommandClass
+class DumpHeapsCommandClass : public ViniferaCommandClass
 {
-    public:
-        ViniferaDebugCommandClass() : ViniferaCommandClass() {}
-        virtual ~ViniferaDebugCommandClass() {}
+public:
+    DumpHeapsCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~DumpHeapsCommandClass() {}
+
+    virtual const char* Get_Name() const override;
+    virtual const char* Get_UI_Name() const override;
+    virtual const char* Get_Category() const override;
+    virtual const char* Get_Description() const override;
+    virtual bool Process() override;
+
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
-#endif

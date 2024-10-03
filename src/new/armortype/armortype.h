@@ -40,6 +40,7 @@ public:
         ArmorTypeClass(const char *name);
         virtual ~ArmorTypeClass();
 
+        char const* Name() const { return IniName; }
         bool Read_INI(CCINIClass& ini);
 
         static bool One_Time();
@@ -53,7 +54,7 @@ private:
         /**
          *  The name of this armor type, used for identification purposes.
          */
-        char Name[256];
+        char IniName[256];
 
 public:
         /**
