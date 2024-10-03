@@ -176,6 +176,10 @@ This option tells the game to exit when you press Cancel or Back from the dialog
 
 - Dumps all the current game objects as CRCs to the log output.
 
+#### `[ ]` Dump Heaps
+
+- Dumps all the type heaps to an output log.
+
 #### `[ ]` Instant Build (Player)
 
 - Toggles the instant build cheat for the player.

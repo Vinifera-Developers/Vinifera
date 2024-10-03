@@ -425,15 +425,10 @@ void Init_Vinifera_Commands()
 
         cmdptr = new DumpNetworkCRCCommandClass;
         Commands.Add(cmdptr);
+
+        cmdptr = new DumpHeapsCommandClass;
+        Commands.Add(cmdptr);
     }
-
-#ifndef NDEBUG
-    /**
-     *  Initialises debug commands, these must be last!
-     */
-    //DEBUG_INFO("Initialising debug commands.\n");
-
-#endif
 
     /**
      *  Create any supporting directories.

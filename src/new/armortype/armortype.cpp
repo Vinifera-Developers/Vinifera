@@ -39,7 +39,7 @@
  *  @author: CCHyper
  */
 ArmorTypeClass::ArmorTypeClass(const char *name) :
-    Name(""),
+    IniName(""),
     Modifier(1.0),
     ForceFire(true),
     PassiveAcquire(true),
@@ -47,7 +47,7 @@ ArmorTypeClass::ArmorTypeClass(const char *name) :
 {
     ASSERT_FATAL_PRINT(name != nullptr, "Invalid name for ArmorType!");
 
-    std::strncpy(Name, name, sizeof(Name));
+    std::strncpy(IniName, name, sizeof(IniName));
 
     ArmorTypes.Add(this);
 }
@@ -75,7 +75,7 @@ ArmorType ArmorTypeClass::From_Name(const char *name)
 
     if (name != nullptr) {
         for (ArmorType armor = ARMOR_FIRST; armor < ArmorTypes.Count(); armor++) {
-            if (std::strncmp(ArmorTypes[armor]->Name, name, sizeof(Name)) == 0) {
+            if (std::strncmp(ArmorTypes[armor]->IniName, name, sizeof(IniName)) == 0) {
                 return armor;
             }
         }
@@ -94,7 +94,7 @@ const char *ArmorTypeClass::Name_From(ArmorType type)
 {
     ASSERT(type >= ARMOR_FIRST && type < ArmorTypes.Count());
 
-    return ArmorTypes[type]->Name;
+    return ArmorTypes[type]->IniName;
 }
 
 
@@ -108,7 +108,7 @@ const ArmorTypeClass *ArmorTypeClass::Find_Or_Make(const char *name)
     ASSERT(name != nullptr);
 
     for (ArmorType armor = ARMOR_FIRST; armor < ArmorTypes.Count(); ++armor) {
-        if (std::strncmp(ArmorTypes[armor]->Name, name, sizeof(Name)) == 0) {
+        if (std::strncmp(ArmorTypes[armor]->IniName, name, sizeof(IniName)) == 0) {
             return ArmorTypes[armor];
         }
     }
@@ -126,14 +126,14 @@ const ArmorTypeClass *ArmorTypeClass::Find_Or_Make(const char *name)
  */
 bool ArmorTypeClass::Read_INI(CCINIClass& ini)
 {
-    if (!ini.Is_Present(Name)) {
+    if (!ini.Is_Present(IniName)) {
         return false;
     }
 
-    Modifier = ini.Get_Double(Name, "Modifier", Modifier);
-    ForceFire = ini.Get_Bool(Name, "ForceFire", ForceFire);
-    PassiveAcquire = ini.Get_Bool(Name, "PassiveAcquire", PassiveAcquire);
-    Retaliate = ini.Get_Bool(Name, "Retaliate", Retaliate);
+    Modifier = ini.Get_Double(IniName, "Modifier", Modifier);
+    ForceFire = ini.Get_Bool(IniName, "ForceFire", ForceFire);
+    PassiveAcquire = ini.Get_Bool(IniName, "PassiveAcquire", PassiveAcquire);
+    Retaliate = ini.Get_Bool(IniName, "Retaliate", Retaliate);
 
     return true;
 }
