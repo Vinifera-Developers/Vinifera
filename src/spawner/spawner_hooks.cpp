@@ -110,7 +110,7 @@ void Spawner_Hooks()
 {
     Patch_Call(0x004629D1, &Spawner::Start_Game);   // Main_Game
     Patch_Call(0x00462B8B, &Spawner::Start_Game);   // Main_Game
-
+    
     /**
      *  The spawner allows player to jump right into a game, so no need to
      *  show the startup movies.

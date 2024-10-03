@@ -87,25 +87,9 @@ bool Spawner::Start_Game()
     GameActive = true;
     Init_UI();
 
-    char* scen_name = Config->ScenarioName;
-
-    //if (strstr(scen_name, "RA2->"))
-    //    scen_name += sizeof("RA2->") - 1;
-
-    //if (strstr(scen_name, "PlayMovies->"))
-    //{
-    //    scen_name += sizeof("PlayMovies->") - 1;
-    //    char* context = nullptr;
-    //    char* movieName = strtok_s(scen_name, Main::readDelims, &context);
-    //    for (; movieName; movieName = strtok_s(nullptr, Main::readDelims, &context))
-    //        Game::PlayMovie(movieName);
-
-    //    return false;
-    //}
-
     Read_Houses_And_Sides();
 
-    bool result = Start_New_Scenario(scen_name);
+    const bool result = Start_New_Scenario(Config->ScenarioName);
 
     Prepare_Screen();
 
@@ -123,7 +107,12 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
         return false;
     }
 
-    Set_Required_Addon(Config->Firestorm ? ADDON_FIRESTORM : ADDON_NONE);
+    Disable_Addon(ADDON_ANY);
+    if (Config->Firestorm)
+    {
+        Enable_Addon(ADDON_FIRESTORM);
+        Set_Required_Addon(ADDON_FIRESTORM);
+    }
 
     strcpy_s(Session.ScenarioFileName, 0x200, scenario_name);
 
@@ -149,7 +138,7 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
 
     Seed = Config->Seed;
     BuildLevel = Config->TechLevel;
-    Session.ColorIdx = (PlayerColorType)Config->Players[0].Color;
+    Session.ColorIdx = static_cast<PlayerColorType>(Config->Players[0].Color);
     Options.GameSpeed = Config->GameSpeed;
     
 
@@ -170,8 +159,8 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
         Session.Players.Add(nodename);
 
         std::strcpy(nodename->Name, player->Name);
-        nodename->Player.House          = (HousesType)player->House;
-        nodename->Player.Color          = (PlayerColorType)player->Color;
+        nodename->Player.House          = static_cast<HousesType>(player->House);
+        nodename->Player.Color          = static_cast<PlayerColorType>(player->Color);
         nodename->Player.ProcessTime    = -1;
         nodename->Game.LastTime         = 1;
     }
@@ -238,14 +227,14 @@ bool Spawner::Load_Saved_Game(const char* file_name)
 
 void Spawner::Spawner_Init_Network()
 {
-    unsigned short id = htons(Config->TunnelId);
-    unsigned long ip = inet_addr(Config->TunnelIp);
-    unsigned short port = htons(Config->TunnelPort);
+    const unsigned short tunnel_id = htons(Config->TunnelId);
+    const unsigned long tunnel_ip = inet_addr(Config->TunnelIp);
+    const unsigned short tunnel_port = htons(Config->TunnelPort);
 
-    const auto udp_interface = new CnCNet5UDPInterfaceClass(id, ip, port, true);
+    const auto udp_interface = new CnCNet5UDPInterfaceClass(tunnel_id, tunnel_ip, tunnel_port, true);
     PacketTransport = udp_interface;
 
-    PlanetWestwoodPortNumber = port ? 0 : Config->ListenPort;
+    PlanetWestwoodPortNumber = tunnel_port ? 0 : Config->ListenPort;
 
     const char max_players = std::size(Config->Players);
 
