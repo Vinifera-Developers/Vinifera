@@ -55,6 +55,11 @@ static void __cdecl Debug_Print(const char *fmt, ...)
     char buffer[4096];
     vsprintf(buffer, tmp.Peek_Buffer(), args);
 
+    /**
+     *  Re-escape any % signs.
+     */
+    Vinifera_Escape_Percent_Sign(buffer, sizeof(buffer));
+
     DEBUG_GAME(buffer);
 
     va_end(args);
@@ -75,6 +80,11 @@ static void __cdecl Debug_Print_Line(const char *fmt, ...)
 
     char buffer[4096];
     vsprintf(buffer, tmp.Peek_Buffer(), args);
+
+    /**
+     *  Re-escape any % signs.
+     */
+    Vinifera_Escape_Percent_Sign(buffer, sizeof(buffer));
 
     DEBUG_GAME_LINE(buffer);
 
@@ -97,6 +107,11 @@ static void __cdecl Debug_Print_Warning(const char *fmt, ...)
     char buffer[4096];
     vsprintf(buffer, tmp.Peek_Buffer(), args);
 
+    /**
+     *  Re-escape any % signs.
+     */
+    Vinifera_Escape_Percent_Sign(buffer, sizeof(buffer));
+
     DEBUG_WARNING(buffer);
 
     va_end(args);
@@ -117,6 +132,11 @@ static void __cdecl Debug_Print_Error(const char *fmt, ...)
 
     char buffer[4096];
     vsprintf(buffer, tmp.Peek_Buffer(), args);
+
+    /**
+     *  Re-escape any % signs.
+     */
+    Vinifera_Escape_Percent_Sign(buffer, sizeof(buffer));
 
     DEBUG_ERROR(buffer);
 

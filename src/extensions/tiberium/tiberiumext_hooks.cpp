@@ -41,9 +41,7 @@
 
 
 /**
- *  For some reason, the WW call to DebugString here causes a crash
- *  under some circumstances, and is otherwise buggy.
- *  This replaces it with a Vinifera equivalent
+ *  Replace the log comment with a more descriptive one.
  *
  *  @author: ZivDero
  */
