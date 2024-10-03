@@ -70,7 +70,7 @@ void IPXManagerClassExt::_Set_Timing(unsigned long retrydelta, unsigned long max
     /**
      *  Vanilla function.
      */
-    DEBUG_INFO("IPX Manager: RetryDelta = %d\n", retrydelta);
+    DEBUG_INFO("RetryDelta = %d\n", retrydelta);
     DEBUG_INFO("MaxAhead is %d\n", Session.MaxAhead);
 
     RetryDelta = retrydelta;

@@ -55,7 +55,7 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
 
     // SaveGame Options
     LoadSaveGame     = spawn_ini.Get_Bool(SETTINGS, "LoadSaveGame", LoadSaveGame);
-    /* SavedGameDir */ spawn_ini.Get_String(SETTINGS, "SavedGameDir", SavedGameDir, SavedGameDir, sizeof(SavedGameDir));
+    /* SavedGamesDir */ spawn_ini.Get_String(SETTINGS, "SavedGamesDir", SavedGamesDir, SavedGamesDir, sizeof(SavedGamesDir));
     /* SaveGameName */ spawn_ini.Get_String(SETTINGS, "SaveGameName", SaveGameName, SaveGameName, sizeof(SaveGameName));
 
     // Scenario Options
@@ -76,7 +76,7 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
     ConnTimeout      = spawn_ini.Get_Int(SETTINGS, "ConnTimeout", ConnTimeout);
     MaxAhead         = spawn_ini.Get_Int(SETTINGS, "MaxAhead", MaxAhead);
     PreCalcMaxAhead  = spawn_ini.Get_Int(SETTINGS, "PreCalcMaxAhead", PreCalcMaxAhead);
-    MaxLatencyLevel  = (byte)spawn_ini.Get_Int(SETTINGS, "MaxLatencyLevel", MaxLatencyLevel);
+    MaxLatencyLevel  = spawn_ini.Get_Int(SETTINGS, "MaxLatencyLevel", MaxLatencyLevel);
 
     // Tunnel Options
     TunnelId     = spawn_ini.Get_Int(SETTINGS, "Port", TunnelId);

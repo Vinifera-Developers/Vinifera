@@ -98,7 +98,7 @@ public:
 
     // SaveGame Options
     bool LoadSaveGame;
-    char SavedGameDir[MAX_PATH]; // Nested paths are also supported, e.g. "Saved Games\\Yuri's Revenge"
+    char SavedGamesDir[MAX_PATH]; // Nested paths are also supported, e.g. "Saved Games\\Tiberian Sun"
     char SaveGameName[60];
 
     // Scenario Options
@@ -107,7 +107,7 @@ public:
     bool IsCampaign;
     int CampaignID;
     int  Tournament;
-    DWORD WOLGameID;
+    unsigned int WOLGameID;
     char ScenarioName[260];
     char MapHash[0xff];
     char UIMapName[44];
@@ -119,7 +119,7 @@ public:
     int ConnTimeout;
     int MaxAhead;
     int PreCalcMaxAhead;
-    byte MaxLatencyLevel;
+    unsigned char MaxLatencyLevel;
 
     // Tunnel Options
     int  TunnelId;
@@ -164,7 +164,7 @@ public:
 
         // SaveGame
         , LoadSaveGame { false }
-        , SavedGameDir { "Saved Games" }
+        , SavedGamesDir { "Saved Games" }
         , SaveGameName { "" }
 
         // Scenario Options

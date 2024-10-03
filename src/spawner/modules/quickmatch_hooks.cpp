@@ -68,7 +68,7 @@ char* IPXManagerClassExt::_Connection_Name(int id)
 }
 
 
-static int sprintf_RadarClass_Draw_Names_Wrapper(char* buffer, const char* format, char* str)
+static int __cdecl sprintf_RadarClass_Draw_Names_Wrapper(char* buffer, const char* format, char* str)
 {
     if (Spawner::Active && Spawner::Get_Config()->QuickMatch)
     {

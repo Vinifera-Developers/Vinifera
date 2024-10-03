@@ -194,37 +194,32 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
     if (Session.Type == GAME_NORMAL)
     {
         Session.Options.Goodies = true;
-        if (!Start_Scenario(scenario_name, false, static_cast<CampaignType>(Config->CampaignID)))
-            return false;
 
-        if (Config->LoadSaveGame && !Load_Saved_Game(Config->SaveGameName))
-            return false;
+        bool result = Config->LoadSaveGame ?
+            Load_Saved_Game(Config->SaveGameName) : Start_Scenario(scenario_name, false, static_cast<CampaignType>(Config->CampaignID));
 
-        return true;
+        return result;
     }
     else if (Session.Type == GAME_SKIRMISH)
     {
-        if (!Start_Scenario(scenario_name, false, CAMPAIGN_NONE))
-            return false;
+        bool result = Config->LoadSaveGame ?
+            Load_Saved_Game(Config->SaveGameName) : Start_Scenario(scenario_name, false, CAMPAIGN_NONE);
 
-        if (Config->LoadSaveGame && !Load_Saved_Game(Config->SaveGameName))
-            return false;
-
-        return true;
+        return result;
     }
     else
     {
         Spawner_Init_Network();
-        if (!Start_Scenario(scenario_name, false, CAMPAIGN_NONE))
-            return false;
+        bool result = Config->LoadSaveGame ?
+            Load_Saved_Game(Config->SaveGameName) : Start_Scenario(scenario_name, false, CAMPAIGN_NONE);
 
-        if (Config->LoadSaveGame && !Load_Saved_Game(Config->SaveGameName))
+        if (!result)
             return false;
 
         Session.Type = GAME_IPX;
-        Session.Create_Connections();
+        result = Session.Create_Connections();
 
-        return true;
+        return result;
     }
 }
 
