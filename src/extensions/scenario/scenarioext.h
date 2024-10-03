@@ -78,14 +78,14 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
 
     public:
         /**
-         *  This is an array of waypoints; each waypoint corresponds to a letter of
+         *  This is an vector of waypoints; each waypoint corresponds to a letter of
          *  the alphabet, and points to a cell position.
          * 
          *  The CellClass has a bit that tells if that cell has a waypoint attached to
          *  it; the only way to find which waypoint it is, is to scan this array. This
          *  shouldn't be needed often; usually, you know the waypoint & you want the "Cell".
          */
-        Cell Waypoint[NEW_WAYPOINT_COUNT];
+        VectorClass<Cell> Waypoint;
 
         /**
          *  Can ice get destroyed when hit by certain weapons?

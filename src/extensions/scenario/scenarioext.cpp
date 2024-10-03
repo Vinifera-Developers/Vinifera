@@ -56,6 +56,7 @@
  */
 ScenarioClassExtension::ScenarioClassExtension(const ScenarioClass *this_ptr) :
     GlobalExtensionClass(this_ptr),
+    Waypoint(NEW_WAYPOINT_COUNT),
     IsIceDestruction(true)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("ScenarioClassExtension::ScenarioClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
@@ -73,7 +74,8 @@ ScenarioClassExtension::ScenarioClassExtension(const ScenarioClass *this_ptr) :
  *  @author: CCHyper
  */
 ScenarioClassExtension::ScenarioClassExtension(const NoInitClass &noinit) :
-    GlobalExtensionClass(noinit)
+    GlobalExtensionClass(noinit),
+    Waypoint(noinit)
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::ScenarioClassExtension(NoInitClass) - 0x%08X\n", (uintptr_t)(ThisPtr));
 }
@@ -87,6 +89,11 @@ ScenarioClassExtension::ScenarioClassExtension(const NoInitClass &noinit) :
 ScenarioClassExtension::~ScenarioClassExtension()
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::~ScenarioClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
+
+    /**
+     *  Free up the cell array.
+     */
+    Waypoint.Clear();
 }
 
 
@@ -105,6 +112,8 @@ HRESULT ScenarioClassExtension::Load(IStream *pStm)
     }
 
     new (this) ScenarioClassExtension(NoInitClass());
+
+    Load_Primitive_Vector(pStm, Waypoint, "ScenarioClassExtension::Waypoint");
     
     return hr;
 }
@@ -123,6 +132,8 @@ HRESULT ScenarioClassExtension::Save(IStream *pStm, BOOL fClearDirty)
     if (FAILED(hr)) {
         return hr;
     }
+
+    Save_Primitive_Vector(pStm, Waypoint, "ScenarioClassExtension::Waypoint");
 
     return hr;
 }
@@ -292,7 +303,7 @@ bool ScenarioClassExtension::Read_Tutorial_INI(CCINIClass &ini, bool log)
 Cell ScenarioClassExtension::Get_Waypoint_Cell(WaypointType wp) const
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Get_Waypoint_Cell - 0x%08X\n", (uintptr_t)(This()));
-    ASSERT_FATAL(wp < NEW_WAYPOINT_COUNT);
+    ASSERT_FATAL(wp < Waypoint.Length());
 
     return Waypoint[wp];
 }
@@ -306,7 +317,7 @@ Cell ScenarioClassExtension::Get_Waypoint_Cell(WaypointType wp) const
 CellClass *ScenarioClassExtension::Get_Waypoint_CellPtr(WaypointType wp) const
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Get_Waypoint_CellPtr - 0x%08X\n", (uintptr_t)(This()));
-    ASSERT_FATAL(wp < NEW_WAYPOINT_COUNT);
+    ASSERT_FATAL(wp < Waypoint.Length());
 
     return &Map[Waypoint[wp]];
 }
@@ -320,7 +331,7 @@ CellClass *ScenarioClassExtension::Get_Waypoint_CellPtr(WaypointType wp) const
 Coordinate ScenarioClassExtension::Get_Waypoint_Coord(WaypointType wp) const
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Get_Waypoint_Coord - 0x%08X\n", (uintptr_t)(This()));
-    ASSERT_FATAL(wp < NEW_WAYPOINT_COUNT);
+    ASSERT_FATAL(wp < Waypoint.Length());
 
     CellClass *cell = &Map[Waypoint[wp]];
     Coordinate coord = cell->Center_Coord();
@@ -338,7 +349,7 @@ Coordinate ScenarioClassExtension::Get_Waypoint_Coord(WaypointType wp) const
 Coordinate ScenarioClassExtension::Get_Waypoint_Coord_Height(WaypointType wp) const
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Get_Waypoint_Coord_Height - 0x%08X\n", (uintptr_t)(This()));
-    ASSERT_FATAL(wp < NEW_WAYPOINT_COUNT);
+    ASSERT_FATAL(wp < Waypoint.Length());
 
     CellClass *cell = &Map[Waypoint[wp]];
     Coordinate coord = cell->Center_Coord();
@@ -359,7 +370,7 @@ Coordinate ScenarioClassExtension::Get_Waypoint_Coord_Height(WaypointType wp) co
 void ScenarioClassExtension::Set_Waypoint_Cell(WaypointType wp, Cell &cell)
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Get_Waypoint_Cell - 0x%08X\n", (uintptr_t)(This()));
-    ASSERT_FATAL(wp < NEW_WAYPOINT_COUNT);
+    ASSERT_FATAL(wp < Waypoint.Length());
 
     Waypoint[wp] = cell;
 }
@@ -386,9 +397,9 @@ void ScenarioClassExtension::Set_Waypoint_Coord(WaypointType wp, Coordinate &coo
 bool ScenarioClassExtension::Is_Valid_Waypoint(WaypointType wp) const
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Is_Valid_Waypoint - 0x%08X\n", (uintptr_t)(This()));
-    ASSERT_FATAL(wp < NEW_WAYPOINT_COUNT);
+    ASSERT_FATAL(wp < Waypoint.Length());
 
-    return (wp >= WAYPOINT_FIRST && wp < NEW_WAYPOINT_COUNT) ? Waypoint[wp] : false;
+    return (wp >= WAYPOINT_FIRST && wp < Waypoint.Length()) ? Waypoint[wp] : false;
 }
 
 
@@ -400,14 +411,14 @@ bool ScenarioClassExtension::Is_Valid_Waypoint(WaypointType wp) const
 void ScenarioClassExtension::Clear_Waypoint(WaypointType wp)
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Clear_Waypoint - 0x%08X\n", (uintptr_t)(This()));
-    ASSERT_FATAL(wp < NEW_WAYPOINT_COUNT);
+    ASSERT_FATAL(wp < Waypoint.Length());
 
     Waypoint[wp] = Cell();
 }
 
 
 /**
- *  Clear all the waypoints, emptying the array.
+ *  Clear all the waypoints, emptying the list.
  *
  *  @author: CCHyper
  */
@@ -415,9 +426,12 @@ void ScenarioClassExtension::Clear_All_Waypoints()
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Clear_All_Waypoints - 0x%08X\n", (uintptr_t)(This()));
 
-    for (int i = WAYPOINT_FIRST; i < NEW_WAYPOINT_COUNT; i++) {
-        Waypoint[i] = Cell();
-    }
+    /**
+     *  Assume that whatever the contents of the VectorClass are is garbage
+     *  (it may have been loaded from a save-game file), so zero it out first.
+     */
+    new (&Waypoint) VectorClass<Cell>;
+    Waypoint.Resize(NEW_WAYPOINT_COUNT);
 }
 
 
@@ -438,7 +452,7 @@ void ScenarioClassExtension::Read_Waypoint_INI(CCINIClass &ini)
     /**
      *  Read the Waypoint entries.
      */
-    for (WaypointType wp = WAYPOINT_FIRST; wp < NEW_WAYPOINT_COUNT; ++wp) {
+    for (WaypointType wp = WAYPOINT_FIRST; wp < Waypoint.Length(); ++wp) {
 
         /**
          *  Get a waypoint entry.
@@ -531,7 +545,7 @@ void ScenarioClassExtension::Write_Waypoint_INI(CCINIClass &ini)
     /**
      * Save the Waypoint entries.
      */
-    for (WaypointType wp = WAYPOINT_FIRST; wp < NEW_WAYPOINT_COUNT; ++wp) {
+    for (WaypointType wp = WAYPOINT_FIRST; wp < Waypoint.Length(); ++wp) {
         if (Is_Valid_Waypoint(wp)) {
             std::snprintf(entry, sizeof(entry), "%d", wp);
             int value = Waypoint[wp].X + 1000 * Waypoint[wp].Y;
@@ -553,7 +567,7 @@ const char * ScenarioClassExtension::Waypoint_As_String(WaypointType wp) const
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Waypoint_As_String - 0x%08X\n", (uintptr_t)(This()));
 
-    for (WaypointType wp = WAYPOINT_FIRST; wp < NEW_WAYPOINT_COUNT; ++wp) {
+    for (WaypointType wp = WAYPOINT_FIRST; wp < Waypoint.Length(); ++wp) {
         if (Is_Valid_Waypoint(wp)) {
             return ::Waypoint_As_String(wp);
         }
