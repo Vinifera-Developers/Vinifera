@@ -40,6 +40,7 @@
 #include "aircrafttype.h"
 #include "anim.h"
 #include "animtype.h"
+#include "armortype.h"
 #include "building.h"
 #include "buildingtype.h"
 #include "buildinglight.h"
@@ -378,11 +379,12 @@ bool Vinifera_Put_All(IStream *pStm, bool save_net)
         if (FAILED(OleSaveToStream(TacticalMap, pStm))) { return false; }
     }
 
+    if (FAILED(Verses::Save(pStm))) { return false; }
+
     /**
      *  Save all game objects. This code saves every object that's stored in a DynamicVector class.
      */
-    if (FAILED(Save_Primitive_Vector(pStm, ArmorTypes, "ArmorTypes"))) { return false; }
-    if (FAILED(Verses::Save(pStm))) { return false; }
+    if (FAILED(Vinifera_Save_Vector(pStm, ArmorTypes, "ArmorTypes"))) { return false; }
     if (FAILED(Vinifera_Save_Vector(pStm, HouseTypes, "HouseTypes"))) { return false; }
     if (FAILED(Vinifera_Save_Vector(pStm, Houses, "Houses"))) { return false; }
     if (FAILED(Vinifera_Save_Vector(pStm, Units, "Units"))) { return false; }
@@ -483,6 +485,11 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
      */
     DEBUG_INFO("About to call Clear_Scenario()...\n");
     Clear_Scenario();
+
+    /**
+     *  Clear the ArmorTypes heap.
+     */
+    ArmorTypes.Clear();
 
     /**
      *  Now the scenario data has been cleaned up, we can now tell the extension
@@ -613,11 +620,12 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
         if (FAILED(OleLoadFromStream(pStm, __uuidof(IUnknown), (LPVOID *)&spUnk))) { return false; }
     }
 
+    if (FAILED(Verses::Load(pStm))) { return false; }
+
     /**
      *  Load all game objects. This code loads every object that's stored in a DynamicVector class.
      */
-    if (FAILED(Load_Primitive_Vector(pStm, ArmorTypes, "ArmorTypes"))) { return false; }
-    if (FAILED(Verses::Load(pStm))) { return false; }
+    if (FAILED(Vinifera_Load_Vector(pStm, ArmorTypes, "ArmorTypes"))) { return false; }
     if (FAILED(Vinifera_Load_Vector(pStm, HouseTypes, "HouseTypes"))) { return false; }
     if (FAILED(Vinifera_Load_Vector(pStm, Houses, "Houses"))) { return false; }
     if (FAILED(Vinifera_Load_Vector(pStm, Units, "Units"))) { return false; }

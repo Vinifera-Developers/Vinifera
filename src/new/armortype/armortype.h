@@ -29,45 +29,69 @@
 
 #include "always.h"
 #include "tibsun_defines.h"
+#include "vinifera_defines.h"
+#include "verses.h"
 #include "wstring.h"
 
 class CCINIClass;
 
 
-class ArmorTypeClass
+class DECLSPEC_UUID(UUID_ARMORTYPE)
+ArmorTypeClass final : IPersistStream
 {
 public:
-        ArmorTypeClass(const char *name);
-        virtual ~ArmorTypeClass();
+    /**
+     *  IUnknown
+     */
+    IFACEMETHOD(QueryInterface)(REFIID riid, LPVOID* ppvObj);
+    IFACEMETHOD_(ULONG, AddRef)();
+    IFACEMETHOD_(ULONG, Release)();
 
-        char const* Name() const { return IniName; }
-        bool Read_INI(CCINIClass& ini);
+    /**
+     *  IPersist
+     */
+    IFACEMETHOD(GetClassID)(CLSID* pClassID);
 
-        static bool One_Time();
+    /**
+     *  IPersistStream
+     */
+    IFACEMETHOD(IsDirty)();
+    IFACEMETHOD(Load)(IStream* pStm);
+    IFACEMETHOD(Save)(IStream* pStm, BOOL fClearDirty);
+    IFACEMETHOD_(LONG, GetSizeMax)(ULARGE_INTEGER* pcbSize);
 
-        static ArmorType From_Name(const char *name);
-        static const char *Name_From(ArmorType type);
+    ArmorTypeClass();
+    ArmorTypeClass(const char *name);
+    virtual ~ArmorTypeClass();
 
-        static const ArmorTypeClass *Find_Or_Make(const char *name);
+    char const* Name() const { return IniName; }
+    bool Read_INI(CCINIClass& ini);
+
+    static bool One_Time();
+
+    static ArmorType From_Name(const char *name);
+    static const char *Name_From(ArmorType type);
+
+    static const ArmorTypeClass *Find_Or_Make(const char *name);
 
 private:
-        /**
-         *  The name of this armor type, used for identification purposes.
-         */
-        char IniName[256];
+    /**
+     *  The name of this armor type, used for identification purposes.
+     */
+    char IniName[256];
 
 public:
-        /**
-         *  The warhead damage is reduced depending on the the type of armor the
-         *  defender has. This is the default value for this armor.
-         */
-        double Modifier;
+    /**
+     *  The warhead damage is reduced depending on the the type of armor the
+     *  defender has. This is the default value for this armor.
+     */
+    double Modifier;
 
-        /**
-         *  The warhead may be forbidden from targeting the defender depending the
-         *  type of armor it has. This is the default value for this armor.
-         */
-        bool ForceFire;
-        bool PassiveAcquire;
-        bool Retaliate;
+    /**
+     *  The warhead may be forbidden from targeting the defender depending the
+     *  type of armor it has. This is the default value for this armor.
+     */
+    bool ForceFire;
+    bool PassiveAcquire;
+    bool Retaliate;
 };

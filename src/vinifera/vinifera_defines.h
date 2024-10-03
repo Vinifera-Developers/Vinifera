@@ -130,6 +130,12 @@
 
 
 /**
+ *  UUID's for all other new classes.
+ */
+#define UUID_ARMORTYPE                      "EE8D505F-12BB-4313-AEDC-4AEA30A5BA03"
+
+
+/**
  *  The maximum amount of waypoints available for a scenario to use.
  */
 #define NEW_WAYPOINT_COUNT         SHRT_MAX      // "AVLG"

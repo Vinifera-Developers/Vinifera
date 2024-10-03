@@ -762,6 +762,7 @@ bool Vinifera_Register_Com_Objects()
 
     //DEBUG_INFO("  TestLocomotionClass\n");
     REGISTER_CLASS(TestLocomotionClass);
+    REGISTER_CLASS(ArmorTypeClass);
     
     //DEBUG_INFO("  Extension classes\n");
     Extension::Register_Class_Factories();

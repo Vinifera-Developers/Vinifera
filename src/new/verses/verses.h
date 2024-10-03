@@ -70,10 +70,10 @@ public:
 
 private:
     template <typename T>
-    static HRESULT Save_2D_Vector(IStream* pStm, std::vector<std::vector<T>>& vector);
+    static HRESULT Save_2D_Vector(IStream* pStm, std::vector<std::vector<T>>& vector, const char* heap_name);
 
     template <typename T>
-    static HRESULT Load_2D_Vector(IStream* pStm, std::vector<std::vector<T>>& vector);
+    static HRESULT Load_2D_Vector(IStream* pStm, std::vector<std::vector<T>>& vector, const char* heap_name);
 
 private:
     /**
