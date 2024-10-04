@@ -58,7 +58,6 @@
 
 
 bool Spawner::Active = false;
-bool Spawner::LoadMPSave = false;
 std::unique_ptr<SpawnerConfig> Spawner::Config = nullptr;
 
 
@@ -228,8 +227,13 @@ bool Spawner::Start_Scenario(const char* scenario_name)
 
         Session.Type = GAME_IPX;
 
-        result = Session.Create_Connections();
-        return result;
+        if (Config->LoadSaveGame && !Reconcile_Players())
+            return false;
+
+        if (!Session.Create_Connections())
+            return false;
+
+        return true;
     }
 }
 
@@ -360,13 +364,113 @@ void Spawner::Init_Network()
         Session.MPlayerDebug = false;
     }
 
-    /**
-     *  If we're loading an MP save, we need to call Reconcile_Players
-     *  after loading the save to match Players and Houses.
-     */
-    LoadMPSave = Config->LoadSaveGame;
-
     ::Init_Network();
+}
+
+
+/**
+ *  Reconciles loaded data with the "Players" vector.
+ *
+ *  This function is for supporting loading a saved multiplayer game.
+ *  When the game is loaded, we have to figure out which house goes with
+ *  which entry in the Players vector. We also have to figure out if
+ *  everyone who was originally in the game is still with us, and if not,
+ *  turn their stuff over to the computer.
+ */
+bool Spawner::Reconcile_Players()
+{
+    int i;
+    bool found;
+    int house;
+    HouseClass* housep;
+
+    /**
+     *  If there are no players, there's nothing to do.
+     */
+    if (Session.Players.Count() == 0)
+        return true;
+
+    /**
+     *  Make sure every name we're connected to can be found in a House.
+     */
+    for (i = 0; i < Session.Players.Count(); i++) {
+        found = false;
+        for (house = 0; house < Session.Players.Count(); house++) {
+            housep = Houses[house];
+            if (!housep) {
+                continue;
+            }
+
+            if (!stricmp(Session.Players[i]->Name, housep->IniName)) {
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+            return false;
+    }
+
+    /**
+     *  Loop through all Houses; if we find a human-owned house that we're
+     *  not connected to, turn it over to the computer.
+     */
+    for (house = 0; house < Session.Players.Count(); house++) {
+        housep = Houses[house];
+        if (!housep) {
+            continue;
+        }
+
+        /**
+         *  Skip this house if it wasn't human to start with.
+         */
+        if (!housep->IsHuman) {
+            continue;
+        }
+
+        /**
+         *  Try to find this name in the Players vector; if it's found, set
+         *  its ID to this house.
+         */
+        found = false;
+        for (i = 0; i < Session.Players.Count(); i++) {
+            if (!stricmp(Session.Players[i]->Name, housep->IniName)) {
+                found = true;
+                Session.Players[i]->Player.ID = static_cast<HousesType>(house);
+                break;
+            }
+        }
+
+        /**
+         *  If this name wasn't found, remove it
+         */
+        if (!found) {
+
+            /**
+             *  Turn the player's house over to the computer's AI
+             */
+            housep->IsHuman = false;
+            housep->IsStarted = true;
+            housep->IQ = Rule->MaxIQ;
+
+            static char buffer[HOUSE_NAME_MAX + 1];
+            std::snprintf(buffer, sizeof(buffer), "%s (AI)", housep->IniName);
+            std::strncpy(housep->IniName, buffer, sizeof(housep->IniName));
+            //strcpy(housep->IniName, Fetch_String(TXT_COMPUTER));
+
+            Session.NumPlayers--;
+        }
+    }
+
+    /**
+     *  If all went well, our Session.NumPlayers value should now equal the value
+     *  from the saved game, minus any players we removed.
+     */
+    if (Session.NumPlayers == Session.Players.Count()) {
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
 

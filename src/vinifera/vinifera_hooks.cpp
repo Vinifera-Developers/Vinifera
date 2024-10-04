@@ -462,15 +462,6 @@ DECLARE_PATCH(_Load_Game_Post_Swizzle)
      */
     Vinifera_Remap_Storage_Pointers();
 
-    /**
-     *  Load class extensions here.
-     */
-    if (Spawner::Active && Spawner::LoadMPSave) {
-        if (!Reconcile_Players()) {
-            goto failure;
-        }
-    }
-
     // Stolen instructions
     Map.Init_IO();
 

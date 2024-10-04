@@ -36,7 +36,6 @@ public:
     Spawner() = delete;
 
     static bool Active;
-    static bool LoadMPSave;
 
 private:
     static std::unique_ptr<SpawnerConfig> Config;
@@ -52,6 +51,8 @@ private:
     static bool Load_Game(const char* file_name);
 
     static void Init_Network();
+    static bool Reconcile_Players();
+
     static void Init_UI();
     static void Prepare_Screen();
     static void Read_Houses_And_Sides();
