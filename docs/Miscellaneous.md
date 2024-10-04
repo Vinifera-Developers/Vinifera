@@ -8,7 +8,117 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 - Vinifera implements the Blowfish algorithm into the Vinifera DLL itself, removing the requirement for the external BLOWFISH.DLL library. As a result, this allows the game will run without BLOWFISH.DLL registered on the target system or present in the installation directory. The game can still load encrypted mix files to be loaded without any issues.
 - Vinifera allows players to set a rally point for their service depot, similar to the functionality already available for factories.
 - OverlayTypes 27 to 38 (fourth Tiberium images) were hardcoded to be impassable by infantry. This limitation is removed.
-- Spawner (temporary mention)
+
+## Spawner
+
+- Vinifera implements its own spawner, capable of starting a new singleplayer, skirmish or multiplayer game, as well as loading saved games.
+- To start the game in spawner mode, the `-SPAWN` command line argument must be specified.
+- The spawner's options can be configures in `SPAWN.INI`.
+
+In `SPAWN.INI`:
+```ini
+[Settings]
+; Game Mode Options
+Bases=yes                   ; boolean, do players start with MCVs/Construction Yards?
+Credits=10000               ; integer, starting amount of credits for the players.
+BridgeDestroy=yes           ; boolean, can bridges be destroyed?
+Crates=no                   ; boolean, are crates enabled?
+ShortGame=no                ; boolean, is short game enabled?
+BuildOffAlly=no             ; boolean, is building off ally bases allowed?
+GameSpeed=0                 ; integer, starting game speed.
+MultiEngineer=no            ; boolean, is multi-engineer enabled?
+UnitCount=0                 ; integer, starting unit count.
+AIPlayers=0                 ; integer, number of AI players.
+AIDifficulty=1              ; integer, AI difficulty.
+AlliesAllowed=no            ; boolean, can players form and break alliances in-game?
+HarvesterTruce=no           ; boolean, are harvesters invulnerable?
+FogOfWar=no                 ; boolean, is fog of war enabled?
+MCVRedeploy=yes             ; boolean, can MCVs be redeployed?
+
+; Savegame Options
+LoadSaveGame=no             ; boolean, should the spawner load a saved game, as opposed to starting a new scenario?
+SavedGamesDir=Saved Games   ; string, name (path) of the subfolder containing saved games. Supports nesting, e. g. Saved Games\Tiberian Sun.
+SaveGameName=               ; string, name of the saved game to load.
+
+; Scenario Options
+Seed=0                      ; integer, random seed.
+TechLevel=10                ; integer, maximum tech level.
+IsCampaign=no               ; boolean, is the game that is about to start campaign, as opposed to skirmish?
+CampaignID=-1               ; integer, ID of the campaign (from BATTLE.INI) to start
+Tournament=0                ; integer, WOL Tournament Type
+WOLGameID=3735928559        ; unsigned integer, WOL Game ID
+ScenarioName=spawnmap.ini   ; string, name of the scenario (map) to load.
+MapHash=                    ; string, map hash, only used in statistics collection.
+UIMapName=                  ; string, name of the map, only used in statistics collection.
+
+; Network Options
+Protocol=2                  ; integer, network protocol to use.
+FrameSendRate=4             ; integer, starting FrameSendRate value.
+ReconnectTimeout=2400       ; integer, player reconnection timeout.
+ConnTimeout=3600            ; integer, player connection timeout.
+MaxAhead=-1                 ; integer, starting MaxHead value.
+PreCalcMaxAhead=0           ; integer, starting PrecalcMaxHead value.
+MaxLatencyLevel=255         ; unsigned byte, maximum allowed Protocol 0 latency level.
+
+; Tunnel Options
+TunnelId=0                  ; integer, tunnel ID.
+TunnelIp=0.0.0.0            ; string, tunnel IP.
+TunnelPort=0                ; integer, tunnel port.
+ListenPort=1234             ; integer, listen port.
+
+; Extra Options
+Firestorm=yes               ; boolean, should the game start with Firestorm enabled?
+QuickMatch=no               ; boolean, should the game start in Quick Match mode?
+SkipScoreScreen=no          ; boolean, should the score screen be skipped once the game is over?
+WriteStatistics=no          ; boolean, should statistics be sent?
+AINamesByDifficulty=no      ; boolean, should AI players have their difficulty in their name?
+CoachMode=no                ; boolean, should defeated players that have allies not have the entire map revealed to them upon death?
+AutoSurrender=yes           ; boolean, should players surrender on disconnection, as opposed to turning their base over to the AI?
+```
+
+- Information about the local player is read from the `Settings` section, for all other players - from `OtherX` sections, where `X` ranges from `1` to `7`.
+
+In `SPAWN.INI`:
+```ini
+[PLAYERSECTION]
+IsHuman=no                  ; boolean, is this a human player?
+Name=                       ; string, the player's name.
+Color=-1                    ; integer, the player's color.
+House=-1                    ; integer, the player's house.
+Difficulty=-1               ; integer, the player's difficulty.
+Ip=0.0.0.0                  ; string, the player's IP address.
+Port=-1                     ; integer, the player's port.
+```
+
+- Additionally, AI players (always come after human players) have these options parsed from sections of the format `MultiX`, where `X` ranges from `1` to `8`.
+
+In `SPAWN.INI`:
+```ini
+[MULTISECTION]
+Color=-1                    ; integer, the player's color.
+House=-1                    ; integer, the player's house.
+Difficulty=-1               ; integer, the player's difficulty.
+```
+
+- Additionally, the spawner reads configuration for each house. Player houses come first, in the order of their color (increasing), then AI houses.
+- Alliances are read from sections of the format `MultiX_Alliances`, where `X` ranges from `1` to `8`.
+
+In `SPAWN.INI`:
+```ini
+[MULTISECTION]
+IsSpectator=no              ; boolean, is this house a spectator (observer)?
+SpawnLocations=-2           ; integer, spawn location of this house. 90 and -1 mean spectator, -2 means random.
+
+[ALLIANCESSECTION]
+HouseAllyOne=-1             ; integer, index of the house this house is allied to, -1 means none.
+HouseAllyTwo=-1             ; integer, index of the house this house is allied to, -1 means none.
+HouseAllyThree=-1           ; integer, index of the house this house is allied to, -1 means none.
+HouseAllyFour=-1            ; integer, index of the house this house is allied to, -1 means none.
+HouseAllyFive=-1            ; integer, index of the house this house is allied to, -1 means none.
+HouseAllySix=-1             ; integer, index of the house this house is allied to, -1 means none.
+HouseAllySeven=-1           ; integer, index of the house this house is allied to, -1 means none.
+HouseAllyEight=-1           ; integer, index of the house this house is allied to, -1 means none.
+```
 
 ## Quality of Life
 
@@ -139,7 +249,10 @@ Due to the nature of its use, this feature is only available when Vinifera is ru
 
 ### Command Line Options
 
-- Vinifera adds a number of command-line arguments allowing the user to skip the startup movies, or skip directly to a specific game mode and/or dialog.
+- Vinifera adds a number of command-line arguments.
+
+- `-SPAWN`
+Launch the game in spawner mode.
 
 - `-NO_STARTUP_VIDEO`
 Skips all startup movies.

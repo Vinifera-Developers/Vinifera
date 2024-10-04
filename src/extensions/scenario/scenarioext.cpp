@@ -732,20 +732,19 @@ void ScenarioClassExtension::Assign_Houses()
         else
         {
             color = Spawner::Get_Config()->Players[i].Color;
-            pref_house = (HousesType)Spawner::Get_Config()->Players[i].House;
+            pref_house = static_cast<HousesType>(Spawner::Get_Config()->Players[i].House);
         }
 
         housep = new HouseClass(HouseTypes[pref_house]);
 
         /**
-         *  Set the house's IsHuman, Credits, ActLike, and RemapTable.
+         *  Set the house's IsHuman, Credits, ActLike, and RemapColor.
          */
         housep->IsHuman = false;
-        //housep->IsStarted = true;
 
         housep->Control.TechLevel = BuildLevel;
-        housep->Init_Data((PlayerColorType)color, pref_house, Session.Options.Credits);
-        housep->RemapColor = Session.Player_Color_To_Scheme_Color((PlayerColorType)color);
+        housep->Init_Data(static_cast<PlayerColorType>(color), pref_house, Session.Options.Credits);
+        housep->RemapColor = Session.Player_Color_To_Scheme_Color(static_cast<PlayerColorType>(color));
         housep->Init_Remap_Color();
 
         std::strcpy(housep->IniName, Text_String(TXT_COMPUTER));
@@ -757,7 +756,7 @@ void ScenarioClassExtension::Assign_Houses()
         DiffType difficulty = Scen->CDifficulty;
 
         if (Session.Players.Count() > 1 && Rule->IsCompEasyBonus && difficulty > DIFF_EASY) {
-            difficulty = (DiffType)(difficulty - 1);
+            difficulty = static_cast<DiffType>(difficulty - 1);
         }
         housep->Assign_Handicap(difficulty);
 
@@ -859,7 +858,7 @@ void ScenarioClassExtension::Assign_Houses()
 
                 if (player_config->Difficulty >= 0 && player_config->Difficulty < std::size(AINamesByDifficultyArray))
                 {
-                    housep->Assign_Handicap((DiffType)player_config->Difficulty);
+                    housep->Assign_Handicap(static_cast<DiffType>(player_config->Difficulty));
                     if (Spawner::Get_Config()->AINamesByDifficulty && !housep->IsHuman)
                     {
                         std::strcpy(housep->IniName, AINamesByDifficultyArray[player_config->Difficulty]);

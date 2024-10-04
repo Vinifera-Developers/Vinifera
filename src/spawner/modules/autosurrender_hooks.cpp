@@ -40,7 +40,7 @@ static bool PlayerHasSurrendered = false;
 // Force surrender on abort
 DECLARE_PATCH(_Standard_Options_Dialog_HANDLER_AutoSurrender)
 {
-    if (Spawner::Active)
+    if (Spawner::Active && Spawner::Get_Config()->AutoSurrender)
     {
         if (Session.Type == GAME_IPX && !PlayerHasSurrendered)
         {
@@ -62,7 +62,7 @@ DECLARE_PATCH(_Standard_Options_Dialog_HANDLER_AutoSurrender)
 // Force surrender on disconnection
 DECLARE_PATCH(_EventClass_Execute_REMOVE_PLAYER_AutoSurrender)
 {
-    if (Spawner::Active)
+    if (Spawner::Active && Spawner::Get_Config()->AutoSurrender)
     {
         if (Session.Type == GAME_IPX && Spawner::Get_Config()->AutoSurrender)
         {

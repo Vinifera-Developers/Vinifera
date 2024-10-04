@@ -33,9 +33,10 @@ class CCINIClass;
 
 class SpawnerConfig
 {
-
-    // Used to create NodeNameType
-    // The order of entries may differ from HouseConfig
+    /**
+     *  Used to create NodeNameType
+     *  The order of entries may differ from HouseConfig
+     */
     struct PlayerConfig
     {
         bool IsHuman;
@@ -59,8 +60,10 @@ class SpawnerConfig
         void Read_INI(CCINIClass& spawn_ini, int index);
     };
 
-    // Used to augment the generated HouseClass
-    // The order of entries may differ from PlayerConfig
+    /**
+     *  Used to configure the generated HouseClass
+     *  Must be sorted by respective player color
+     */
     struct HouseConfig
     {
         bool IsSpectator;
@@ -77,13 +80,14 @@ class SpawnerConfig
     };
 
 public:
-    // Game Mode Options
+    /**
+     *  Game Mode Options
+     */
     bool Bases;
     int  Credits;
     bool BridgeDestroy;
     bool Crates;
     bool ShortGame;
-    bool SuperWeapons;
     bool BuildOffAlly;
     int  GameSpeed;
     bool MultiEngineer;
@@ -94,14 +98,17 @@ public:
     bool HarvesterTruce;
     bool FogOfWar;
     bool MCVRedeploy;
-    char UIGameMode[60];
 
-    // SaveGame Options
+    /**
+     *  Savegame Options
+     */
     bool LoadSaveGame;
     char SavedGamesDir[MAX_PATH]; // Nested paths are also supported, e.g. "Saved Games\\Tiberian Sun"
     char SaveGameName[60];
 
-    // Scenario Options
+    /**
+     *  Scenario Options
+     */
     int  Seed;
     int  TechLevel;
     bool IsCampaign;
@@ -112,7 +119,9 @@ public:
     char MapHash[0xff];
     char UIMapName[44];
 
-    // Network Options
+    /**
+     *  Network Options
+     */
     int Protocol;
     int FrameSendRate;
     int ReconnectTimeout;
@@ -121,20 +130,28 @@ public:
     int PreCalcMaxAhead;
     unsigned char MaxLatencyLevel;
 
-    // Tunnel Options
+    /**
+     *  Tunnel Options
+     */
     int  TunnelId;
     char TunnelIp[0x20];
     int  TunnelPort;
     int  ListenPort;
 
-    // Players Options
+    /**
+     *  Player Options
+     */
     PlayerConfig Players[8];
     int HumanPlayers;
 
-    // Houses Options
+    /**
+     *  House Options
+     */
     HouseConfig Houses[8];
 
-    // Extended Options
+    /**
+     *  Extended Options
+     */
     bool Firestorm;
     bool QuickMatch;
     bool SkipScoreScreen;
@@ -143,14 +160,12 @@ public:
     bool CoachMode;
     bool AutoSurrender;
 
-    SpawnerConfig() // default values
-        // Game Mode Options
+    SpawnerConfig()
         : Bases { true }
         , Credits { 10000 }
         , BridgeDestroy { true }
         , Crates { false }
         , ShortGame { false }
-        , SuperWeapons { true }
         , BuildOffAlly { false }
         , GameSpeed { 0 }
         , MultiEngineer { false }
@@ -161,25 +176,21 @@ public:
         , HarvesterTruce { false }
         , FogOfWar { false }
         , MCVRedeploy { true }
-        , UIGameMode { "" }
 
-        // SaveGame
         , LoadSaveGame { false }
         , SavedGamesDir { "Saved Games" }
         , SaveGameName { "" }
 
-        // Scenario Options
         , Seed { 0 }
         , TechLevel { 10 }
         , IsCampaign { false }
-        , CampaignID{ -1 }
+        , CampaignID { -1 }
         , Tournament { 0 }
         , WOLGameID { 0xDEADBEEF }
         , ScenarioName { "spawnmap.ini" }
         , MapHash { "" }
         , UIMapName { "" }
 
-        // Network Options
         , Protocol { 2 }
         , FrameSendRate { 4 }
         , ReconnectTimeout { 2400 }
@@ -188,13 +199,11 @@ public:
         , PreCalcMaxAhead { 0 }
         , MaxLatencyLevel { 0xFF }
 
-        // Tunnel Options
         , TunnelId { 0 }
         , TunnelIp { "0.0.0.0" }
         , TunnelPort { 0 }
         , ListenPort { 1234 }
 
-        // Players Options
         , Players {
             PlayerConfig(),
             PlayerConfig(),
@@ -208,7 +217,6 @@ public:
         }
         , HumanPlayers(0)
 
-        // Houses Options
         , Houses {
             HouseConfig(),
             HouseConfig(),
@@ -221,7 +229,6 @@ public:
             HouseConfig()
         }
 
-        // Extended Options
         , Firestorm { true }
         , QuickMatch { false }
         , SkipScoreScreen { false }

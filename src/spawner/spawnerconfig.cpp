@@ -51,7 +51,6 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
     HarvesterTruce = spawn_ini.Get_Bool(SETTINGS, "HarvesterTruce", HarvesterTruce);
     FogOfWar       = spawn_ini.Get_Bool(SETTINGS, "FogOfWar", FogOfWar);
     MCVRedeploy    = spawn_ini.Get_Bool(SETTINGS, "MCVRedeploy", MCVRedeploy);
-                     spawn_ini.Get_String(SETTINGS, "UIGameMode", UIGameMode, UIGameMode, sizeof(UIGameMode));
 
     // SaveGame Options
     LoadSaveGame      = spawn_ini.Get_Bool(SETTINGS, "LoadSaveGame", LoadSaveGame);
@@ -150,7 +149,7 @@ constexpr char* AlliancesTagArray[8] = {
 
 void SpawnerConfig::PlayerConfig::Read_INI(CCINIClass& spawn_ini, int index)
 {
-    if (index >= 8)
+    if (index >= MAX_PLAYERS)
         return;
 
     const char* SECTION = PlayerSectionArray[index];
@@ -179,7 +178,7 @@ void SpawnerConfig::PlayerConfig::Read_INI(CCINIClass& spawn_ini, int index)
 
 void SpawnerConfig::HouseConfig::Read_INI(CCINIClass& spawn_ini, int index)
 {
-    if (index >= 8)
+    if (index >= MAX_PLAYERS)
         return;
 
     const char* ALLIANCES = AlliancesSectionArray[index];
