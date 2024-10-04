@@ -129,6 +129,7 @@ public:
 
     // Players Options
     PlayerConfig Players[8];
+    int HumanPlayers;
 
     // Houses Options
     HouseConfig Houses[8];
@@ -205,6 +206,7 @@ public:
             PlayerConfig(),
             PlayerConfig()
         }
+        , HumanPlayers(0)
 
         // Houses Options
         , Houses {

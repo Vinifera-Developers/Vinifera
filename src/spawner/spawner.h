@@ -54,6 +54,7 @@ public:
 private:
     static bool Start_New_Scenario(const char* scenario_name);
     static bool Load_Saved_Game(const char* file_name);
+    static void Assign_House_IDs();
 
     static void Spawner_Init_Network();
     static void Read_Houses_And_Sides();

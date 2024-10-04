@@ -60,6 +60,12 @@ bool Spawner::Enabled = false;
 bool Spawner::Active = false;
 std::unique_ptr<SpawnerConfig> Spawner::Config = nullptr;
 
+
+/**
+ *  Initializes the Spawner.
+ *
+ *  @author: ZivDero
+ */
 void Spawner::Init()
 {
     Config = std::make_unique<SpawnerConfig>();
@@ -78,6 +84,12 @@ void Spawner::Init()
     }
 }
 
+
+/**
+ *  Starts the game.
+ *
+ *  @author: ZivDero
+ */
 bool Spawner::Start_Game()
 {
     if (Active)
@@ -97,8 +109,16 @@ bool Spawner::Start_Game()
 }
 
 
+/**
+ *  Starts a new scenario.
+ *
+ *  @author: ZivDero
+ */
 bool Spawner::Start_New_Scenario(const char* scenario_name)
 {
+    /**
+     *  Can't read an unnamed file, bail.
+     */
     if (scenario_name[0] == 0)
     {
         DEBUG_INFO("[Spawner] Failed to read scenario [%s]\n", scenario_name);
@@ -107,6 +127,9 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
         return false;
     }
 
+    /**
+     *  Turn Firestorm on, if requested.
+     */
     Disable_Addon(ADDON_ANY);
     if (Config->Firestorm)
     {
@@ -114,9 +137,10 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
         Set_Required_Addon(ADDON_FIRESTORM);
     }
 
+    /**
+     *  Configure session options.
+     */
     strcpy_s(Session.ScenarioFileName, 0x200, scenario_name);
-
-    // Set Options
     Session.Options.ScenarioIndex               = -1;
     Session.Options.Bases                       = Config->Bases;
     Session.Options.Credits                     = Config->Credits;
@@ -135,40 +159,33 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
     Session.Options.FogOfWar                    = Config->FogOfWar;
     Session.Options.RedeployMCV                 = Config->MCVRedeploy;
     std::strcpy(Session.Options.ScenarioDescription, Config->UIMapName);
+    Session.ColorIdx = static_cast<PlayerColorType>(Config->Players[0].Color);
+    Session.NumPlayers = Config->HumanPlayers;
 
     Seed = Config->Seed;
     BuildLevel = Config->TechLevel;
-    Session.ColorIdx = static_cast<PlayerColorType>(Config->Players[0].Color);
     Options.GameSpeed = Config->GameSpeed;
-    
 
     // Inverted for now as the sidebar hack until we reimplement loading
     Session.IsGDI = true;// HouseTypes[Config->Players[0].House]->Get_Heap_ID();
     //Session.IsGDI = HouseTypes[Config->Players[0].House]->Side != SIDE_NOD;
     DEBUG_INFO("[Spawner] Session.IsGDI = %d\n", Session.IsGDI);
 
-    // Configure Human Players
-    const int max_players = Config->IsCampaign ? 1 : std::size(Config->Players);
-    for (int player_index = 0; player_index < max_players; player_index++)
-    {
-        const auto player = &Config->Players[player_index];
-        if (!player->IsHuman)
-            continue;
+    /**
+     *  Create the player node for the local player.
+     */
+    const auto nodename = new NodeNameType();
+    Session.Players.Add(nodename);
 
-        const auto nodename = new NodeNameType();
-        Session.Players.Add(nodename);
+    std::strcpy(nodename->Name, Config->Players[0].Name);
+    nodename->Player.House = static_cast<HousesType>(Config->Players[0].House);
+    nodename->Player.Color = static_cast<PlayerColorType>(Config->Players[0].Color);
+    nodename->Player.ProcessTime = -1;
+    nodename->Game.LastTime = 1;
 
-        std::strcpy(nodename->Name, player->Name);
-        nodename->Player.House          = static_cast<HousesType>(player->House);
-        nodename->Player.Color          = static_cast<PlayerColorType>(player->Color);
-        nodename->Player.ProcessTime    = -1;
-        nodename->Game.LastTime         = 1;
-    }
-
-    Session.NumPlayers = Session.Players.Count();
-    
-
-    // Set GameType
+    /**
+     *  Set session type.
+     */
     if (Config->IsCampaign)
         Session.Type = GAME_NORMAL;
     else if (Session.NumPlayers > 1)
@@ -179,7 +196,9 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
 
     Init_Random();
 
-    // Start the scenario
+    /**
+     *  Start the scenario.
+     */
     if (Session.Type == GAME_NORMAL)
     {
         Session.Options.Goodies = true;
@@ -199,6 +218,8 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
     else
     {
         Spawner_Init_Network();
+        Session.NumPlayers = Session.Players.Count();
+
         bool result = Config->LoadSaveGame ?
             Load_Saved_Game(Config->SaveGameName) : Start_Scenario(scenario_name, false, CAMPAIGN_NONE);
 
@@ -212,6 +233,12 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
     }
 }
 
+
+/**
+ *  Loads a saved game.
+ *
+ *  @author: ZivDero
+ */
 bool Spawner::Load_Saved_Game(const char* file_name)
 {
     if (!file_name[0] || !Load_Game(file_name))
@@ -225,30 +252,106 @@ bool Spawner::Load_Saved_Game(const char* file_name)
     return true;
 }
 
+
+/**
+ *  Sets up House IDs in player nodes the same way Assign_Houses would do it for MP saves to work.
+ *
+ *  @author: ZivDero
+ */
+void Spawner::Assign_House_IDs()
+{
+    bool assigned[MAX_PLAYERS];     // true = this house slot is in use.
+    bool color_used[MAX_PLAYERS];   // true = this color is in use.
+
+    int lowest_color;
+    int index;
+
+    /**
+     *  Initialize
+     */
+    std::memset(assigned, 0, MAX_PLAYERS * sizeof(bool));
+    std::memset(color_used, 0, MAX_PLAYERS * sizeof(bool));
+
+    for (int i = 0; i < Session.Players.Count(); i++) {
+
+        /**
+         *  Find the player with the lowest color index.
+         */
+        index = 0;
+        lowest_color = -1;
+        for (int j = 0; j < Session.Players.Count(); j++) {
+
+            /**
+             *  If we've already assigned this house, skip it.
+             */
+            if (assigned[j]) {
+                continue;
+            }
+            if (lowest_color == -1 || Session.Players[j]->Player.Color < lowest_color) {
+                lowest_color = Session.Players[j]->Player.Color;
+                index = j;
+            }
+        }
+
+        NodeNameTag& node = *Session.Players[index];
+
+        /**
+         *  Mark this player as having been assigned.
+         */
+        assigned[index] = true;
+        color_used[node.Player.Color] = true;
+
+        /**
+         *  Record where we placed this player.
+         */
+        node.Player.ID = static_cast<HousesType>(i);
+    }
+}
+
+
+/**
+ *  Initializes everything necessary for an MP game.
+ *
+ *  @author: ZivDero
+ */
 void Spawner::Spawner_Init_Network()
 {
     const unsigned short tunnel_id = htons(Config->TunnelId);
     const unsigned long tunnel_ip = inet_addr(Config->TunnelIp);
     const unsigned short tunnel_port = htons(Config->TunnelPort);
 
+    /**
+     *  Create the UDP interface.
+     *  This needs to happen before we set up player nodes,
+     *  because it contains player connection data.
+     */
     const auto udp_interface = new CnCNet5UDPInterfaceClass(tunnel_id, tunnel_ip, tunnel_port, true);
     PacketTransport = udp_interface;
 
     PlanetWestwoodPortNumber = tunnel_port ? 0 : Config->ListenPort;
 
+    /**
+     *  Set up the player nodes.
+     */
     const char max_players = std::size(Config->Players);
-
     for (char player_index = 1; player_index < max_players; player_index++)
     {
         const auto player = &Config->Players[player_index];
         if (!player->IsHuman)
             continue;
 
-        auto& nodename = *Session.Players[player_index];
+        const auto nodename = new NodeNameType();
+        Session.Players.Add(nodename);
 
-        std::memset(&nodename.Address, 0, sizeof(nodename.Address));
-        std::memcpy(&nodename.Address.NetworkNumber, &player_index, sizeof(player_index));
-        std::memcpy(&nodename.Address.NodeAddress, &player_index, sizeof(player_index));
+        std::strcpy(nodename->Name, player->Name);
+        nodename->Player.House = static_cast<HousesType>(player->House);
+        nodename->Player.Color = static_cast<PlayerColorType>(player->Color);
+        nodename->Player.ProcessTime = -1;
+        nodename->Game.LastTime = 1;
+
+        std::memset(&nodename->Address, 0, sizeof(nodename->Address));
+        std::memcpy(&nodename->Address.NetworkNumber, &player_index, sizeof(player_index));
+        std::memcpy(&nodename->Address.NodeAddress, &player_index, sizeof(player_index));
 
         const auto ip = inet_addr(player->Ip);
         const auto port = htons(player->Port);
@@ -258,6 +361,16 @@ void Spawner::Spawner_Init_Network()
             udp_interface->PortHack = false;
     }
 
+    /**
+     *  If we're loading a saved game, we need to assign House IDs to the players
+     *  in the same way Assign_Houses would do it for Create_Connections to work.
+     */
+    if (Config->LoadSaveGame)
+        Assign_House_IDs();
+
+    /**
+     *  Now set up the rest of the network stuff.
+     */
     PacketTransport->Init();
     PacketTransport->Open_Socket(0);
     PacketTransport->Start_Listening();
@@ -269,6 +382,9 @@ void Spawner::Spawner_Init_Network()
     GameFSSKU = 0x1C00;
     GameSKU = 0x1D00;
 
+    /**
+     *  Set up protocol stuff.
+     */
     ProtocolZero::Enable = (Config->Protocol == 0);
     if (ProtocolZero::Enable)
     {
@@ -277,8 +393,7 @@ void Spawner::Spawner_Init_Network()
         ProtocolZero::MaxLatencyLevel = std::clamp(
             Config->MaxLatencyLevel,
             static_cast<unsigned char>(LATENCY_LEVEL_1),
-            static_cast<unsigned char>(LATENCY_LEVEL_MAX)
-        );
+            static_cast<unsigned char>(LATENCY_LEVEL_MAX));
     }
     else
     {
@@ -289,6 +404,9 @@ void Spawner::Spawner_Init_Network()
         ? Session.FrameSendRate * 6
         : Config->MaxAhead;
 
+    /**
+     *  Miscellaneous network settings.
+     */
     Session.MaxMaxAhead                 = 0;
     Session.CommProtocol                = 2;
     Session.LatencyFudge                = 0;
@@ -297,6 +415,9 @@ void Spawner::Spawner_Init_Network()
     PlanetWestwoodGameID                = Config->WOLGameID;
     FrameSyncSettings[GAME_IPX].Timeout = Config->ReconnectTimeout;
 
+    /**
+     *  For Quick Match, make sure MPDebug is off so that players can't cheat with it.
+     */
     if (Config->QuickMatch)
     {
         Session.MPlayerDebug = false;
@@ -306,6 +427,11 @@ void Spawner::Spawner_Init_Network()
 }
 
 
+/**
+ *  Initializes some things for OwnerDraw UI.
+ *
+ *  @author: ZivDero
+ */
 void Spawner::Init_UI()
 {
     OwnerDraw::Init_UI_Color_Stuff_58F060();
@@ -319,6 +445,11 @@ void Spawner::Init_UI()
 }
 
 
+/**
+ *  Prepares the screen.
+ *
+ *  @author: ZivDero
+ */
 void Spawner::Prepare_Screen()
 {
     WWMouse->Hide_Mouse();
@@ -337,6 +468,11 @@ void Spawner::Prepare_Screen()
 }
 
 
+/**
+ *  Reads Houses and Sides to Rules so that we can use them to choose a loading screen.
+ *
+ *  @author: ZivDero
+ */
 void Spawner::Read_Houses_And_Sides()
 {
     Rule->Houses(*RuleINI);

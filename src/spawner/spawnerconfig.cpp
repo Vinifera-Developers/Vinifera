@@ -88,6 +88,9 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
     for (int i = 0; i < std::size(Players); ++i)
     {
         Players[i].Read_INI(spawn_ini, i);
+        if (Players[i].IsHuman)
+            HumanPlayers++;
+
         Houses[i].Read_INI(spawn_ini, i);
     }
 
