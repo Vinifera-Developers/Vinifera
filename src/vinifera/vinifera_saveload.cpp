@@ -770,7 +770,7 @@ bool Reconcile_Players()
      */
     for (i = 0; i < Session.Players.Count(); i++) {
         found = false;
-        for (house = 0; house < Session.MaxPlayers && house < Houses.Count(); house++) {
+        for (house = 0; house < Session.Players.Count(); house++) {
             housep = Houses[house];
             if (!housep) {
                 continue;
@@ -789,7 +789,7 @@ bool Reconcile_Players()
      *  Loop through all Houses; if we find a human-owned house that we're
      *  not connected to, turn it over to the computer.
      */
-    for (house = 0; house < Session.MaxPlayers && house < Houses.Count(); house++) {
+    for (house = 0; house < Session.Players.Count(); house++) {
         housep = Houses[house];
         if (!housep) {
             continue;
