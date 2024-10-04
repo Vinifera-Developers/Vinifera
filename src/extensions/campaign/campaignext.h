@@ -71,4 +71,9 @@ CampaignClassExtension final : public AbstractTypeClassExtension
          *  The movie to play at start of this campaign.
          */
         char IntroMovie[64];
+
+        /**
+         *  The HOUSE (not side!) this campaign is played as.
+         */
+        HousesType House;
 };

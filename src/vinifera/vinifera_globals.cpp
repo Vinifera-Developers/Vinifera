@@ -70,13 +70,20 @@ bool Vinifera_NoTacticalVersionString = false;
 
 bool Vinifera_ShowSuperWeaponTimers = true;
 
-/**
- *  The total play time from all previous sessions of the current game.
- */
-unsigned Vinifera_TotalPlayTime = 0;
-
 DynamicVectorClass<MFCD *> ViniferaMapsMixes;
-DynamicVectorClass<MFCD *> ViniferaMoviesMixes;
+DynamicVectorClass<MFCD*> ViniferaMoviesMixes;
+
+SpawnerConfig* Vinifera_SpawnerConfig = nullptr;
+bool Vinifera_SpawnerActive = false;
+
+HouseClass* Vinifera_ObserverPtr = nullptr;
+
+bool Vinifera_DoSave = false;
+int Vinifera_NextAutoSaveFrame = -1;
+int Vinifera_NextAutoSaveNumber = 0;
+
+unsigned Vinifera_TotalPlayTime = 0;
+unsigned Vinifera_PlaythroughID = 0;
 
 DynamicVectorClass<EBoltClass *> EBolts;
 DynamicVectorClass<TheaterTypeClass *> TheaterTypes;

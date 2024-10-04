@@ -67,7 +67,8 @@ HouseClassExtension::HouseClassExtension(const HouseClass *this_ptr) :
     NavalFactories(0),
     NavalFactory(nullptr),
     BuildNavalUnit(UNIT_NONE),
-    SpawnWaypoint(WAYPOINT_NONE)
+    SpawnWaypoint(WAYPOINT_NONE),
+    IsObserver(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("HouseClassExtension::HouseClassExtension - 0x%08X\n", (uintptr_t)(This()));
 
@@ -81,6 +82,17 @@ HouseClassExtension::HouseClassExtension(const HouseClass *this_ptr) :
     {
         new ((StorageClassExt*)&this_ptr->Tiberium) StorageClassExt(&TiberiumStorage);
         new ((StorageClassExt*)&this_ptr->Weed) StorageClassExt(&WeedStorage);
+
+        /**
+         *  Vanilla hardcoded the ActLike default, unhardcode that.
+         *  Uuuhh... the fact that this is const is annoying, but for now while
+         *  this is not a massive issue, just const_cast it.
+         */
+        if (Wstring(this_ptr->IniName) != "Neutral" && Wstring(this_ptr->IniName) != "Special")
+            const_cast<HouseClass*>(this_ptr)->ActLike = this_ptr->Class->House;
+        else
+            const_cast<HouseClass*>(this_ptr)->ActLike = HOUSE_NONE;
+        
     }
 
     HouseExtensions.Add(this);
@@ -1285,12 +1297,18 @@ HouseClass* HouseClassExtension::House_From_HousesType(HousesType house)
      */
     if (Session.Type != GAME_NORMAL) {
         if (house >= 50 && house <= 57) {
-            return House_At_Spawn_Point(static_cast<WAYPOINT>(house - 50));
+            return House_At_Spawn_Point(house - 50);
         }
     }
 
     /**
      *  Otherwise, just perform the normal logic to fetch the house.
      */
-    return ::House_From_HousesType(house);
+    for (int index = 0; index < Houses.Count(); index++) {
+        HouseClass* housep = Houses[index];
+        if (housep->Class->House == house) {
+            return housep;
+        }
+    }
+    return nullptr;
 }

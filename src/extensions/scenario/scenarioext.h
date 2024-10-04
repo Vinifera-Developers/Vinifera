@@ -30,6 +30,7 @@
 #include "always.h"
 #include "extension.h"
 #include "scenario.h"
+#include "wstring.h"
 
 
 class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
@@ -93,12 +94,19 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
 
         static std::string Substitute_Variable_Placeholders(std::string input);
 
+        static bool Start_Scenario(char* name, bool briefing, CampaignType campaignid);
+        static bool Read_Scenario_INI(const char* root, bool);
+        static bool Load_Scenario(CCINIClass& ini, bool random = false);
+        static void Init_Forced_Alliances();
+
+        void Assign_Starting_Positions(bool official);
         static void Assign_Houses();
         static void Create_Units(bool official);
+        bool Read_Loading_Screen_INI(const char* filename);
 
     public:
         /**
-         *  This is an vector of waypoints; each waypoint corresponds to a letter of
+         *  This is a vector of waypoints; each waypoint corresponds to a letter of
          *  the alphabet, and points to a cell position.
          * 
          *  The CellClass has a bit that tells if that cell has a waypoint attached to
@@ -121,6 +129,27 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
         };
         ScenarioFlagExtType GlobalFlags[500];
         ScenarioFlagExtType LocalFlags[500];
+
+        /**
+         *  The side to use for the sidebar assets (singleplayer only).
+         */
+        SideType SidebarSide;
+
+        /**
+         *  Scenarios can override the loading screen with a custom variant, these
+         *  define the filename to load and position overrides.
+         */
+        struct LoadingScreenData {
+            Wstring Filename;
+            TPoint2D<int> Position;
+        };
+
+        LoadingScreenData LoadingScreens[3];
+
+        /**
+         *  Should the AI use base nodes outside of campaign, instead of skirmish AI base building logic.
+         */
+        bool IsUseMPAIBaseNodes;
 };
 
 int Vinifera_Scan_Place_Object(ObjectClass* obj, Cell cell, int min_dist, int max_dist, bool no_scatter);

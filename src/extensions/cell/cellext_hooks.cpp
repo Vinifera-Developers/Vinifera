@@ -34,13 +34,21 @@
 #include "session.h"
 #include "rules.h"
 #include "iomap.h"
+#include "rulesext.h"
+#include "foot.h"
+#include "unit.h"
+#include "unittype.h"
 #include "techno.h"
 #include "technotype.h"
+#include "house.h"
+#include "session.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 #include "building.h"
 #include "extension.h"
+#include "buildingtype.h"
+#include "vinifera_globals.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -143,6 +151,143 @@ bool CellClassExt::_Can_Place_Veins() const
         }
     }
     return false;
+}
+
+
+/**
+ *  #issue-177
+ * 
+ *  Patches the check for if you own base units before giving you a crate MCV to use the new BaseUnit vector.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_CellClass_Goodie_Check_BaseUnit_Quantity_Patch)
+{
+    GET_REGISTER_STATIC(FootClass *, object, ebx);
+    static UnitTypeClass *unittype;
+    static HouseClass *objhouse;
+    static UnitType unit;
+    static int count;
+
+    objhouse = object->House;
+
+    /**
+     *  Fetch the first buildable base unit from the new base unit entry
+     *  and get the current count of that unit that this house owns.
+     */
+    unittype = objhouse->Get_First_Ownable(RuleExtension->BaseUnit);
+    if (unittype) {
+        unit = unittype->HeapID;
+        count = objhouse->UQuantity.Value(unit);
+    }
+
+    /**
+     *  If no ownable base units were found, continue the force mcv check.
+     */
+    if (!count) {
+        goto continue_check;
+    }
+
+    /**
+     *  Skip the check.
+     */
+skip_check:
+    JMP_REG(eax, 0x00457DCF);
+
+    /**
+     *  Continue check for setting "force mcv".
+     */
+continue_check:
+    JMP_REG(edi, 0x00457DB8);
+}
+
+
+/**
+ *  #issue-177
+ * 
+ *  Patches crates to give you a base unit from the new BaseUnit vector.
+ * 
+ *  @author: CCHyper, ZivDero
+ */
+DECLARE_PATCH(_CellClass_Goodie_Check_CRATE_UNIT_BaseUnit_Patch)
+{
+    GET_REGISTER_STATIC(FootClass *, object, ebx);
+    static UnitTypeClass *unittype;
+    static HouseClass *objhouse;
+    static UnitType unit;
+
+    objhouse = object->House;
+
+    /**
+     *  Fetch the first buildable base unit from the new base unit entry.
+     */
+    unittype = objhouse->Get_First_Ownable(RuleExtension->BaseUnit);
+
+    if (unittype)
+    {
+        _asm mov eax, Rule
+        _asm mov eax, [eax]
+        _asm mov edi, unittype
+        JMP_REG(edx, 0x004581AA);
+    }
+
+    _asm mov eax, Rule
+    _asm mov eax, [eax]
+    _asm mov edi, unittype
+    JMP_REG(edx, 0x00458148);
+}
+
+
+/**
+ *  #issue-177
+ *
+ *  Patches crates to check if you have refineries and harvesters using the entire lists.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_CellClass_Goodie_Check_CRATE_UNIT_BuildRefinery_HarvesterUnit_Patch)
+{
+    GET_REGISTER_STATIC(FootClass*, object, ebx);
+    GET_REGISTER_STATIC(UnitTypeClass*, unittype, edi);
+    HouseClass* owner_house;
+
+    owner_house = object->House;
+
+    if (owner_house->Count_Owned(Rule->BuildRefinery) > 0 && owner_house->Count_Owned(Rule->HarvesterUnit) == 0)
+    {
+        // We can grant a harvester
+        unittype = owner_house->Get_First_Ownable(Rule->HarvesterUnit);
+    }
+
+    _asm mov eax, Rule
+    _asm mov eax, [eax]
+    _asm mov edi, unittype
+    JMP_REG(edx, 0x004581AA);
+}
+
+
+/**
+ *  #issue-177
+ *
+ *  Patches crates to check if a unit is a BaseUnit using the new list.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_CellClass_Goodie_Check_No_Buildings_Force_MCV_BaseUnit_Patch)
+{
+    GET_REGISTER_STATIC(UnitTypeClass *, unittype, edi);
+    static int i;
+
+    /**
+     *  Check if this is a BaseUnit.
+     *  If so, continue the loop.
+     */
+    if (RuleExtension->BaseUnit.Is_Present(unittype))
+    {
+        JMP(0x004581BA);
+    }
+
+    JMP(0x0045821B);
 }
 
 
@@ -367,4 +512,13 @@ void CellClassExtension_Hooks()
     Patch_Jump(0x004596C0, &CellClassExt::_Can_Tiberium_Germinate);
     Patch_Jump(0x0045B0D0, &CellClassExt::_Can_Place_Veins);
     Patch_Jump(0x004531E4, &_CellClass_Update_Wall_Owner_Skip_Buildings_That_Cannot_Own_Walls_Patch);
+    Patch_Jump(0x00457D90, &_CellClass_Goodie_Check_BaseUnit_Quantity_Patch);
+    Patch_Jump(0x0045813E, &_CellClass_Goodie_Check_CRATE_UNIT_BaseUnit_Patch);
+    Patch_Jump(0x0045820E, &_CellClass_Goodie_Check_No_Buildings_Force_MCV_BaseUnit_Patch);
+    Patch_Jump(0x00458148, &_CellClass_Goodie_Check_CRATE_UNIT_BuildRefinery_HarvesterUnit_Patch);
+
+    /**
+     *  Patch away a check for GAME_INTERNET to enable statistics collection.
+     */
+    Patch_Jump(0x00457E7A, 0x00457E83); // CellClass::Goodie_Check
 }

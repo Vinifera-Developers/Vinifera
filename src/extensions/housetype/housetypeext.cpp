@@ -39,7 +39,8 @@
  *  @author: CCHyper
  */
 HouseTypeClassExtension::HouseTypeClassExtension(const HouseTypeClass *this_ptr) :
-    AbstractTypeClassExtension(this_ptr)
+    AbstractTypeClassExtension(this_ptr),
+    LoadingScreens { }
 {
     //if (this_ptr) EXT_DEBUG_TRACE("HouseTypeClassExtension::HouseTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -53,7 +54,8 @@ HouseTypeClassExtension::HouseTypeClassExtension(const HouseTypeClass *this_ptr)
  *  @author: CCHyper
  */
 HouseTypeClassExtension::HouseTypeClassExtension(const NoInitClass &noinit) :
-    AbstractTypeClassExtension(noinit)
+    AbstractTypeClassExtension(noinit),
+    LoadingScreens { }
 {
     //EXT_DEBUG_TRACE("HouseTypeClassExtension::HouseTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -100,12 +102,23 @@ HRESULT HouseTypeClassExtension::Load(IStream *pStm)
 {
     //EXT_DEBUG_TRACE("HouseTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
+    LoadingScreens[0].Clear();
+    LoadingScreens[1].Clear();
+    LoadingScreens[2].Clear();
+
     HRESULT hr = AbstractTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
 
     new (this) HouseTypeClassExtension(NoInitClass());
+
+    /**
+     *  We don't need loading screens during the game so we don't bother saving and loading them.
+     */
+    new (&LoadingScreens[0]) DynamicVectorClass<Wstring>();
+    new (&LoadingScreens[1]) DynamicVectorClass<Wstring>();
+    new (&LoadingScreens[2]) DynamicVectorClass<Wstring>();
     
     return hr;
 }
@@ -173,15 +186,53 @@ bool HouseTypeClassExtension::Read_INI(CCINIClass &ini)
 {
     //EXT_DEBUG_TRACE("HouseTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
+    const char* ini_name = Name();
+
+    if (!IsInitialized) {
+
+        char buffer[12];
+
+        LoadingScreens[0].Clear();
+        LoadingScreens[1].Clear();
+        LoadingScreens[2].Clear();
+
+        for (int i = 0; i < 2; i++)
+        {
+            const char letter_count = 26;
+            char letter;
+
+            if (This()->House == HOUSE_GDI) {
+                letter = 'C' + i;
+            }
+            else if (This()->House == HOUSE_NOD) {
+                letter = 'A' + i;
+            }
+            else {
+                letter = 'A' + ((static_cast<char>(This()->House) * 2) % letter_count) + i;
+            }
+
+            std::sprintf(buffer, "LOAD400%c", letter);
+            LoadingScreens[0].Add(buffer);
+
+            std::sprintf(buffer, "LOAD480%c", letter);
+            LoadingScreens[1].Add(buffer);
+
+            std::sprintf(buffer, "LOAD600%c", letter);
+            LoadingScreens[2].Add(buffer);
+        }
+    }
+
     if (!AbstractTypeClassExtension::Read_INI(ini)) {
         return false;
     }
 
-    const char *ini_name = Name();
-
     if (!ini.Is_Present(ini_name)) {
         return false;
     }
+
+    LoadingScreens[0] = ini.Get_Strings(ini_name, "LoadingScreens400", LoadingScreens[0]);
+    LoadingScreens[1] = ini.Get_Strings(ini_name, "LoadingScreens480", LoadingScreens[1]);
+    LoadingScreens[2] = ini.Get_Strings(ini_name, "LoadingScreens600", LoadingScreens[2]);
 
     IsInitialized = true;
     

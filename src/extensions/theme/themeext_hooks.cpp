@@ -95,7 +95,7 @@ bool ThemeClassExt::_Is_Allowed(ThemeType index) const
      * 
      *  @author: CCHyper
      */
-    ThemeControlExtension *themectrlext = Extension::List::Fetch<ThemeClass::ThemeControl, ThemeControlExtension>(Themes[index], ThemeControlExtensions);
+    ThemeControlExtension *themectrlext = Extension::List::Fetch(Themes[index], ThemeControlExtensions);
     if (themectrlext->RequiredAddon != ADDON_NONE) {
         if (!Is_Addon_Enabled(themectrlext->RequiredAddon)) {
             return false;

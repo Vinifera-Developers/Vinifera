@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          CNCNET4_GLOBALS.CPP
+ *  @file          SPAWNER.H
  *
- *  @author        CCHyper
+ *  @author        Belonit, ZivDero
  *
- *  @brief         CnCNet4 global values.
+ *  @brief         Multiplayer spawner class.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -25,31 +25,31 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "cncnet4_globals.h"
-#include "cncnet4.h"
+#pragma once
+
+
+#include "spawnerconfig.h"
+#include "vinifera_globals.h"
 
 
 /**
- *  Is the CnCNet4 interface active?
+ *  This class contains all logic for spawning players in-game (usually via the client).
  */
-bool CnCNet4::IsEnabled = false;
+class Spawner
+{
+public:
+    Spawner() = delete;
 
-/**
- *  The host name (Must be running a instance of the dedicated server).
- */
-char CnCNet4::Host[256] = { "server.cncnet.org" };
-unsigned CnCNet4::Port = 9001;
+    static void Init();
+    static bool Start_Game();
 
-/**
- *  Clients connect to each other rather than the server?
- */
-bool CnCNet4::Peer2Peer = false;
+private:
+    static bool Start_Scenario(char* scenario_name);
+    static bool Load_Game(const char* file_name);
 
-bool CnCNet4::IsDedicated = false;
+    static void Init_Network();
+    static bool Reconcile_Players();
 
-/**
- *  Use the UDP interface instead of IPX?
- */
-bool CnCNet4::UseUDP = true;
-
-struct sockaddr_in CnCNet4::Server;
+    static void Init_UI();
+    static void Prepare_Screen();
+};

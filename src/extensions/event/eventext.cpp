@@ -30,6 +30,13 @@
 #include "asserthandler.h"
 #include "debughandler.h"
 #include "houseext.h"
+#include "mouse.h"
+#include "protocolzero.h"
+#include "session.h"
+#include "spawnerconfig.h"
+#include "spawnmanager.h"
+#include "unit.h"
+#include "vinifera_globals.h"
 
 
 /***************************************************************************
@@ -73,6 +80,7 @@ unsigned char EventClassExt::EventLength[EXT_EVENT_COUNT] = {
     0,                                          // PAGEUSER
     sizeof(EventClass::Data.General),           // REMOVEPLAYER
     sizeof(EventClass::Data.General),           // LATENCYFUDGE
+    sizeof(EventClassExt::Data.ResponseTime2)   // RESPONSE_TIME2
 };
 
 
@@ -113,6 +121,7 @@ char const* EventClassExt::EventNames[EXT_EVENT_COUNT] = {
     "PAGEUSER",
     "REMOVEPLAYER",
     "LATENCYFUDGE",
+    "RESPONSE_TIME_2",
 };
 
 
@@ -167,22 +176,52 @@ EventClassExt::EventClassExt(int index, EventType type, RTTIType object, Cell co
 
 
 /**
+ *  EventClassExt constructor for the RESPONSE_TIME2 event.
+ *
+ *  @author: ZivDero
+ */
+EventClassExt::EventClassExt(int index, unsigned char max_ahead, LatencyLevelEnum latency_level)
+{
+    DEBUG_INFO("Adding event RESPONSE_TIME2\n");
+
+    if (index >= 0) {
+        ID = index;
+        Type = static_cast<EventType>(EXT_EVENT_RESPONSE_TIME2);
+        Data.ResponseTime2.MaxAhead = max_ahead;
+        Data.ResponseTime2.LatencyLevel = latency_level;
+        Frame = ::Frame + Session.MaxAhead;
+    } else {
+        ID = -1;
+        Type = EVENT_EMPTY;
+        Frame = ::Frame + Session.MaxAhead;
+    }
+}
+
+
+/**
  *  Should this event be handled by our event handler?
  *
  *  @author: ZivDero
  */
 bool EventClassExt::Is_Vinifera_Event(EventType type)
 {
+    if (type >= EXT_EVENT_FIRST && type < EXT_EVENT_COUNT) {
+        return true; // This is a Vinifera event
+    }
+
     // We have re-implemented these events, let's handle them ourselves
     switch (type) {
+    case EVENT_IDLE:
     case EVENT_PLACE:
     case EVENT_PRODUCE:
     case EVENT_SUSPEND:
     case EVENT_ABANDON:
+    case EVENT_SAVEGAME:
+    case EVENT_ARCHIVE:
+    case EVENT_TIMING:
+    case EVENT_REMOVEPLAYER:
         return true;
     }
-
-    // add a check for new events here later
 
     return false;
 }
@@ -206,10 +245,18 @@ bool EventClassExt::Is_Vinifera_Event() const
  */
 void EventClassExt::Execute()
 {
+    TechnoClass* techno;
     HouseClass* house = Houses[ID];
     HouseClassExtension* house_ext = Extension::Fetch(house);
 
     switch (Type) {
+
+         /*
+         **  Request that the unit/infantry/aircraft go into idle mode.
+         */
+    case EVENT_IDLE:
+        Do_IDLE();
+        break;
 
         /*
         **  This event will place the specified object at the specified location.
@@ -245,5 +292,129 @@ void EventClassExt::Execute()
     case EVENT_ABANDON:
         house_ext->Abandon_Production(Data.Production.Type, Data.Production.ID, Data.Production.Flags);
         break;
+
+        /*
+        **  Save a multiplayer game (this event is only generated in multiplayer mode).
+        */
+    case EVENT_SAVEGAME:
+        Vinifera_DoSave = true;
+        break;
+
+        /*
+        **  Update the archive target for this building.
+        */
+    case EVENT_ARCHIVE:
+        techno = Data.NavCom.Whom.As_Techno();
+        if (techno && techno->IsActive && techno->Mission != MISSION_DECONSTRUCTION) {
+            techno->ArchiveTarget = Data.NavCom.Where.As_Abstract();
+        }
+        break;
+
+        /*
+        **  This event tells all systems to use new timing values. It's like
+        **  RESPONSE_TIME, only it works. It's only used with the
+        **  COMM_MULTI_E_COMP protocol.
+        */
+    case EVENT_TIMING:
+        Do_TIMING();
+        break;
+
+        /*
+        **  Removes a player from the game (for any reason).
+        */
+    case EVENT_REMOVEPLAYER:
+        Do_REMOVEPLAYER();
+        break;
+
+        /*
+        **  New timing event for the spawner.
+        */
+    case EXT_EVENT_RESPONSE_TIME2:
+        ProtocolZero::Handle_Response_Time(*this);
+        break;
+    }
+}
+
+
+void EventClassExt::Do_IDLE()
+{
+    TechnoClass* techno = Data.Target.Whom.As_Techno();
+
+    if (techno != nullptr && techno->IsActive && !techno->IsInLimbo && !techno->IsTethered && techno->Mission != MISSION_CONSTRUCTION && techno->Mission != MISSION_DECONSTRUCTION) {
+        if (techno->IsOnBridge || Map[techno->Get_Coord()].Ramp != RAMP_NONE || !techno->Is_On_Elevation()) {
+            if (techno->Is_Foot()) {
+                FootClass* foot = static_cast<FootClass*>(techno);
+                foot->NavQueue.Clear();
+                foot->Clear_Navigation_List();
+                foot->field_220 = -1;
+                foot->field_33E = 0;
+                foot->field_224 = Cell();
+                foot->field_228 = Cell();
+            }
+
+            techno->Transmit_Message(RADIO_OVER_OUT);
+            techno->Assign_Destination(nullptr);
+            techno->Assign_Target(nullptr);
+
+            const auto extension = Extension::Fetch(techno);
+            if (extension->SpawnManager) extension->SpawnManager->Abandon_Target();
+
+            if (techno->RTTI == RTTI_UNIT && (static_cast<UnitClass*>(techno)->Class->IsToHarvest || static_cast<UnitClass*>(techno)->Class->IsToVeinHarvest)) {
+                if (techno->Mission == MISSION_HARVEST || techno->Mission == MISSION_RETURN) {
+                    techno->Assign_Mission(MISSION_GUARD);
+                    techno->Commence();
+                }
+            }
+        }
+    }
+}
+
+
+void EventClassExt::Do_TIMING()
+{
+    if (!Vinifera_SpawnerActive || !ProtocolZero::Enable) {
+        if (Scen->Special.IsFogOfWar) {
+            Data.Timing.MaxAhead -= 10;
+        }
+    }
+
+    /**
+     *  If MaxAhead is about to increase, we're vulnerable to a Packet-
+     *  Received-Too-Late error, if any system generates an event after
+     *  this TIMING event, but before it executes.  So, record the
+     *  period of vulnerability's frame start & end values, so we
+     *  can reschedule these events to execute after it's over.
+     */
+    if (Data.Timing.MaxAhead > Session.MaxAhead || Data.Timing.FrameSendRate > Session.FrameSendRate) {
+        NewMaxAheadFrame1 = Frame;
+        NewMaxAheadFrame2 = Data.Timing.FrameSendRate * ((Data.Timing.FrameSendRate + Data.Timing.MaxAhead + Frame - 1) / Data.Timing.FrameSendRate);
+    } else {
+        NewMaxAheadFrame1 = 0;
+        NewMaxAheadFrame2 = 0;
+    }
+
+    Session.DesiredFrameRate = Data.Timing.DesiredFrameRate;
+    Session.MaxAhead = Data.Timing.MaxAhead;
+    Session.MaxMaxAhead = std::max(Session.MaxMaxAhead, Session.MaxAhead);
+    Session.FrameSendRate = Data.Timing.FrameSendRate;
+}
+
+
+void EventClassExt::Do_REMOVEPLAYER()
+{
+    DEBUG_INFO("Executing REMOVEPLAYER event. Frame is %d\n", Frame);
+    HouseClass* house = Houses[Data.General.Value];
+
+    /**
+     *  Turn off autosaves when a player disconnects.
+     */
+    if (Vinifera_SpawnerActive) {
+        Vinifera_SpawnerConfig->AutoSaveInterval = 0;
+    }
+
+    if ((Session.Type == GAME_INTERNET && PlanetWestwoodTournament) || (Vinifera_SpawnerActive && Session.Type == GAME_IPX && Vinifera_SpawnerConfig->AutoSurrender)) {
+        house->Flag_To_Die();
+    } else if (house->Is_Human_Player()) {
+        house->AI_Takeover();
     }
 }

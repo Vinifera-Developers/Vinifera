@@ -952,7 +952,7 @@ bool JumpCameraWestCommandClass::Process()
     /**
      *  Find the largest distance on the map.
      */
-    int dist = Cell_To_Lepton(Map.MapSize.Width <= Map.MapSize.Height ? Map.MapSize.Height : Map.MapSize.Width);
+    int dist = Cell_To_Lepton(Map.PlayRect.Width <= Map.PlayRect.Height ? Map.PlayRect.Height : Map.PlayRect.Width);
 
     Map.Scroll_Map(FACING_W, dist);
 
@@ -990,7 +990,7 @@ bool JumpCameraEastCommandClass::Process()
     /**
      *  Find the largest distance on the map.
      */
-    int dist = Cell_To_Lepton(Map.MapSize.Width <= Map.MapSize.Height ? Map.MapSize.Height : Map.MapSize.Width);
+    int dist = Cell_To_Lepton(Map.PlayRect.Width <= Map.PlayRect.Height ? Map.PlayRect.Height : Map.PlayRect.Width);
 
     Map.Scroll_Map(FACING_E, dist);
 
@@ -1028,7 +1028,7 @@ bool JumpCameraNorthCommandClass::Process()
     /**
      *  Find the largest distance on the map.
      */
-    int dist = Cell_To_Lepton(Map.MapSize.Width <= Map.MapSize.Height ? Map.MapSize.Height : Map.MapSize.Width);
+    int dist = Cell_To_Lepton(Map.PlayRect.Width <= Map.PlayRect.Height ? Map.PlayRect.Height : Map.PlayRect.Width);
 
     Map.Scroll_Map(FACING_N, dist);
 
@@ -1066,7 +1066,7 @@ bool JumpCameraSouthCommandClass::Process()
     /**
      *  Find the largest distance on the map.
      */
-    int dist = Cell_To_Lepton(Map.MapSize.Width <= Map.MapSize.Height ? Map.MapSize.Height : Map.MapSize.Width);
+    int dist = Cell_To_Lepton(Map.PlayRect.Width <= Map.PlayRect.Height ? Map.PlayRect.Height : Map.PlayRect.Width);
 
     Map.Scroll_Map(FACING_S, dist);
 
@@ -2768,10 +2768,10 @@ bool SpawnAllCommandClass::Try_Unlimbo(TechnoClass *techno, Cell &cell)
 {
     if (techno) {
 
-        int map_cell_x = Map.MapCellX;
-        int map_cell_y = Map.MapCellY;
-        int map_cell_right = map_cell_x + Map.MapCellWidth;
-        int map_cell_bottom = map_cell_y + Map.MapCellHeight;
+        int map_cell_x = Map.MapRect.X;
+        int map_cell_y = Map.MapRect.Y;
+        int map_cell_right = map_cell_x + Map.MapRect.Width;
+        int map_cell_bottom = map_cell_y + Map.MapRect.Height;
 
         /**
          *  Generally try to prevent the objects from spawning off the right of the screen.
@@ -2817,12 +2817,12 @@ bool SpawnAllCommandClass::Process()
     /**
      *  Dont spawn anything lower than this row.
      */
-    int map_cell_bottom = Map.MapCellY + Map.MapCellHeight;
+    int map_cell_bottom = Map.MapRect.Y + Map.MapRect.Height;
 
     /**
      *  Default spawn location (top left of map).
      */
-    Cell origin(Map.MapCellX + 2, Map.MapCellY + 2);
+    Cell origin(Map.MapRect.X + 2, Map.MapRect.Y + 2);
 
     /**
      *  If mouse position is valid, convert to world coordinates and update
@@ -3959,7 +3959,7 @@ bool StartingWaypointsCommandClass::Process()
     if (Map.PendingObject) {
         Map.Set_Cursor_Pos(Cell(0,0));
     }
-    Map.Follow_This(nullptr);
+    Map.Set_To_Follow(nullptr);
 
     Map.Flag_To_Redraw(true);
 

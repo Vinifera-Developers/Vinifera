@@ -9,6 +9,7 @@ This page lists all the individual contributions to the project by their author.
   - Check for Changelog/Documentation/Credits in Pull Requests.
   - Docs dark theme switcher.
   - Fix the map glitching around when scrolling if the map is not large enough to fill the entire screen.
+  - Porting the YR MP spawner from C to C++ and YR++, used as a base for the Vinifera spawner.
 - **CCHyper/tomsons26**:
   - Vinifera foundations: TS++, game.exe hooker, extension system and other core features.
   - Implement `CurleyShuffle` for AircraftTypes.
@@ -141,6 +142,9 @@ This page lists all the individual contributions to the project by their author.
   - Implement 'OmniFire' for WeaponTypes.
   - Implement MeteorShowerCommandClass and MeteorImpactCommandClass.
   - Add the "Underground" layer to the tactical display Next and Prev search.
+  - Extend `BaseUnit` to accept a list of vehicles.
+- **CnCNet Contributors**:
+  - Tiberian Sun TS-patches spawner, Yuri's Revenge CnCNet spawner that served as a base for Vinifera spawner.
 - **hacklex**:
   - Add Veterancy and Health Filter hotkeys.
 - **Kerbiter (Metadorius)**:
@@ -190,6 +194,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a buffer overflow crash in MapClass::Place_Down.
   - Allow pre-placed units to have missions in multiplayer.
   - Original implementations of actions in ts-patches.
+  - Add support for more than 2 sides' loading screens, sidebars and speeches.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:
@@ -274,3 +279,16 @@ This page lists all the individual contributions to the project by their author.
   - Increase the local/global variable cap to 500.
   - Implement integer varialbes, and trigger actiosn and events to operate on them.
   - Add unit promotion sounds, EVA and flashing.
+  - Implement the multiplayer spawner.
+  - Extend `BaseUnit` to accept a list of vehicles.
+  - Allow `BuildConst`, `BuildRefinery`, `BuildWeapons` and `HarvesterUnit` to properly have multiple entries.
+  - Port Rampastring's trigger actions from TS-Patches.
+  - Allow manually aiming AA buildings.
+  - Add support for more than 2 sides' loading screens, sidebars and speeches.
+  - Disallow loading campaign saves from other playthoughs, as well as from skirmish.
+  - Allow customizing the options color per side.
+  - Fix a bug where units could gain veterancy by killing allies.
+  - Fix a bug where a trigger could delete itself, leading to a crash.
+  - Fix a bug where AI Triggers' `MultiSide` wouldn't correctly consider all houses.
+  - Fix a bug where newly created objects wouldn't reveal shroud for allies with `AllyReveal=yes`.
+  - Fix a bug where mission `Ambush` wouldn't work correctly.

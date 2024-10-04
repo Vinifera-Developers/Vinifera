@@ -96,7 +96,7 @@
 #include "tacticalext_hooks.h"
 #include "superext_hooks.h"
 //#include "aitriggerext_hooks.h"
-//#include "aitriggertypeext_hooks.h"
+#include "aitriggertypeext_hooks.h"
 //#include "neuronext_hooks.h"
 //#include "foggedobjectext_hooks.h"
 //#include "alphashapeext_hooks.h"
@@ -243,7 +243,7 @@ void Extension_Hooks()
     TacticalExtension_Hooks();
     SuperClassExtension_Hooks();
     //AITriggerClassExtension_Hooks();                      // Not yet implemented
-    //AITriggerTypeClassExtension_Hooks();                  // Not yet implemented
+    AITriggerTypeClassExtension_Hooks();
     //NeuronClassExtension_Hooks();                         // Not yet implemented
     //FoggedObjectClassExtension_Hooks();                   // Not yet implemented
     //AlphaShapeClassExtension_Hooks();                     // Not yet implemented

@@ -121,4 +121,9 @@ public:
      *  The waypoint at which this house was spawned.
      */
     WAYPOINT SpawnWaypoint;
+
+    /**
+     *  Is this house an observer?
+     */
+    bool IsObserver;
 };

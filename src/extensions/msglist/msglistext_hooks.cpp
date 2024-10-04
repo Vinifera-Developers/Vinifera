@@ -72,7 +72,7 @@ DECLARE_PATCH(_MessageListClass_Echo_Sent_Messages_Patch)
      */
     std::snprintf(echobuff, sizeof(echobuff), TEXT_S_S, PlayerPtr->IniName, Session.LastMessage);
   	Session.Messages.Add_Message(
-        nullptr, 0, echobuff, PlayerPtr->RemapColor,
+        nullptr, 0, echobuff, PlayerPtr->Scheme,
         TPF_6PT_GRAD|TPF_USE_GRAD_PAL|TPF_FULLSHADOW,
         Get_Message_Delay());
 

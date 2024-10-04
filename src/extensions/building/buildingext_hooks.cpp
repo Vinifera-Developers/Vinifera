@@ -39,6 +39,7 @@
 #include "buildingtypeext.h"
 #include "unit.h"
 #include "unitext.h"
+#include "factory.h"
 #include "technotype.h"
 #include "technotypeext.h"
 #include "aircraft.h"
@@ -75,6 +76,9 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "rulesext.h"
+#include "spawner.h"
+#include "vinifera_globals.h"
 #include "houseext.h"
 #include "jumpjetlocomotion.h"
 #include "rulesext.h"
@@ -113,6 +117,7 @@ public:
     SuperWeaponType _Fetch_Super_Weapon2() const;
     void _Swizzle_Light_Source();
     RadioMessageType _Receive_Message(RadioClass * from, RadioMessageType message, long& param);
+    void _Draw_Overlays(const Point2D & coord, const Rect & rect);
 };
 
 
@@ -1000,6 +1005,103 @@ DECLARE_PATCH(_BuildingClass_Detach_Detach_Anim_Patch)
 
 
 /**
+ *  Reimplements the BuildingClass::Draw_Overlays function.
+ *
+ *  @author: ZivDero
+ */
+void BuildingClassExt::_Draw_Overlays(const Point2D& coord, const Rect& rect)
+{
+    if (BState != BSTATE_CONSTRUCTION) {
+
+        /**
+         *  Draw the repair animation.
+         */
+        if (IsRepairing) {
+            if (!Map.Is_Shrouded(Center_Coord()) && !(Scen->Special.IsFogOfWar || IsFogged) && Visual_Character() != VISUAL_HIDDEN) {
+                Point2D xy = coord;
+                if (!IsOn) xy -= Point2D(5, 5);
+
+                int delay = Options.Normalize_Delay(14) / 4;
+                delay = std::max(delay, 2);
+
+                Draw_Shape(*LogicSurface, *MouseDrawer, WrenchShape, 6 * (Frame % delay) / (delay - 1), xy, rect, SHAPE_ALPHA | SHAPE_WIN_REL | SHAPE_CENTER);
+            }
+        }
+
+        /**
+         *  Draw the power off animation.
+         */
+        if (!IsOn && House->Is_Player_Control()) {
+            if (!Map.Is_Shrouded(Center_Coord()) && !(Scen->Special.IsFogOfWar || IsFogged)) {
+                Point2D xy = coord;
+                if (IsRepairing) xy += Point2D(10, 10);
+
+                int delay = Options.Normalize_Delay(14) / 4;
+                delay = std::max(delay, 2);
+
+                Draw_Shape(*LogicSurface, *MouseDrawer, PowerOffShape, 6 * (Frame % delay) / (delay - 1), xy, rect, SHAPE_ALPHA | SHAPE_WIN_REL | SHAPE_CENTER);
+            }
+        }
+
+        if (IsSelected) {
+
+            /**
+             *  Draw the primary factory pip.
+             */
+            if (House->Is_Ally(PlayerPtr) || SpiedBy & (1 << (PlayerPtr->Class->House)) || (PlayerPtr == Vinifera_ObserverPtr)) {
+                Point2D xy(coord.X - 10, coord.Y + 10);
+                Draw_Text_Overlay(xy, coord, rect);
+            }
+
+            /**
+             *  If this is a factory, and the player has spied its owner, draw the cameo of what it's currently producing.
+             */
+            if (SpiedBy & (1 << (PlayerPtr->Class->House)) || (PlayerPtr == Vinifera_ObserverPtr)) {
+                FactoryClass* factory = House->Is_Human_Player() ? House->Fetch_Factory(Class->ToBuild) : Factory;
+                if (factory != nullptr) {
+                    ObjectClass* obj = factory->Get_Object();
+                    if (obj != nullptr) {
+
+                        /**
+                         *  #issue-487
+                         *
+                         *  Adds support for PCX/PNG cameo icons.
+                         *
+                         *  @author: CCHyper
+                         */
+                        const auto technotypeext = Extension::Fetch(obj->Techno_Type_Class());
+                        if (technotypeext->CameoImageSurface) {
+
+                            /**
+                             *  Draw the cameo pcx image.
+                             */
+                            Rect pcxrect;
+                            pcxrect.X = rect.X + coord.X;
+                            pcxrect.Y = rect.Y + coord.Y;
+                            pcxrect.Width = technotypeext->CameoImageSurface->Get_Width();
+                            pcxrect.Height = technotypeext->CameoImageSurface->Get_Height();
+
+                            SpriteCollection.Draw(pcxrect, *LogicSurface, *technotypeext->CameoImageSurface);
+                        } else {
+                            const ShapeSet* shape = obj->TClass->Get_Cameo_Data();
+
+                            /**
+                             *  Draw the cameo shape.
+                             *
+                             *  Original code used NormalDrawer, which is the old Red Alert shape
+                             *  drawer, so we need to use CameoDrawer here for the correct palette.
+                             */
+                            Draw_Shape(*LogicSurface, *CameoDrawer, shape, 0, coord, rect, SHAPE_ALPHA | SHAPE_WIN_REL | SHAPE_CENTER);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+/**
  *  #issue-204
  * 
  *  Implements ReloadRate for AircraftTypes, allowing each aircraft to have
@@ -1493,65 +1595,6 @@ continue_function:
 
     JMP_REG(edx, 0x0042B27F);
 }
-
-
-/**
- *  #issue-72
- * 
- *  Fixes the bug where the wrong palette used to draw the cameo of the object
- *  being produced above a enemy spied factory building.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_BuildingClass_Draw_Spied_Cameo_Palette_Patch)
-{
-    GET_REGISTER_STATIC(TechnoClass *, factory_obj, eax);
-    GET_REGISTER_STATIC(Point2D *, pos_xy, edi);
-    GET_REGISTER_STATIC(Rect *, window_rect, ebp);
-    static const TechnoTypeClass *technotype;
-    static TechnoTypeClassExtension *technotypeext;
-    static const ShapeSet *cameo_shape;
-    static Surface *pcx_image;
-    static Rect pcxrect;
-
-    technotype = factory_obj->TClass;
-
-    /**
-     *  #issue-487
-     * 
-     *  Adds support for PCX/PNG cameo icons.
-     * 
-     *  @author: CCHyper
-     */
-    technotypeext = Extension::Fetch(technotype);
-    if (technotypeext->CameoImageSurface) {
-
-        /**
-         *  Draw the cameo pcx image.
-         */
-        pcxrect.X = window_rect->X + pos_xy->X;
-        pcxrect.Y = window_rect->Y + pos_xy->Y;
-        pcxrect.Width = technotypeext->CameoImageSurface->Get_Width();
-        pcxrect.Height = technotypeext->CameoImageSurface->Get_Height();
-
-        SpriteCollection.Draw(pcxrect, *LogicSurface, *technotypeext->CameoImageSurface);
-
-    } else {
-
-        cameo_shape = technotype->Get_Cameo_Data();
-
-        /**
-         *  Draw the cameo shape.
-         * 
-         *  Original code used NormalDrawer, which is the old Red Alert shape
-         *  drawer, so we need to use CameoDrawer here for the correct palette.
-         */
-        Draw_Shape(*LogicSurface, *CameoDrawer, cameo_shape, 0, *pos_xy, *window_rect, SHAPE_CENTER|SHAPE_WIN_REL|SHAPE_ALPHA|SHAPE_NORMAL);
-    }
-
-    JMP(0x00428B13);
-}
-
 
 /**
  *  #issue-1049
@@ -2366,6 +2409,86 @@ DECLARE_PATCH(_BuildingClass_Load_SwizzleLightSource_Patch)
 
 
 /**
+ *  #issue-177
+ *
+ *  Patches the check for if a building is a Construction Yard to check the entire BuildConst list.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_BuildingClass_Unlimbo_BuildConst_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+
+    if (Rule->BuildConst.Is_Present(this_ptr->Class))
+    {
+        JMP(0x0042AA8B);
+    }
+
+    JMP(0x0042AACF);
+}
+
+
+/**
+ *  #issue-177
+ *
+ *  Patches the check for if a building is a Construction Yard to check the entire BuildConst list.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_BuildingClass_Captured_BuildConst_Patch1)
+{
+    GET_REGISTER_STATIC(BuildingTypeClass*, buildingtype, ecx);
+
+    if (Rule->BuildConst.Is_Present(buildingtype))
+    {
+        JMP(0x0042F968);
+    }
+
+    JMP(0x0042F9A2);
+}
+
+
+/**
+ *  #issue-177
+ *
+ *  Patches the check for if you have a Construction Yard to check the entire BuildConst list.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_BuildingClass_Captured_BuildConst_Patch2)
+{
+    GET_REGISTER_STATIC(HouseClass*, house, ebx);
+
+    if (house->Count_Owned(Rule->BuildConst))
+    {
+        JMP(0x0042FAEF);
+    }
+
+    JMP(0x0042FB10);
+}
+
+
+/**
+ *  #issue-177
+ *
+ *  Patches the check for if a building is a Construction Yard to check the entire BuildConst list.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_BuildingClass_Captured_BuildConst_Patch3)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+
+    if (Rule->BuildConst.Is_Present(this_ptr->Class))
+    {
+        JMP(0x0042FCB6);
+    }
+
+    JMP(0x0042FCF8);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void BuildingClassExtension_Hooks()
@@ -2375,7 +2498,6 @@ void BuildingClassExtension_Hooks()
      */
     BuildingClassExtension_Init();
 
-    Patch_Jump(0x00428AD3, &_BuildingClass_Draw_Spied_Cameo_Palette_Patch);
     Patch_Jump(0x0042B250, &_BuildingClass_Explode_ShakeScreen_Division_BugFix_Patch);
     Patch_Jump(0x00433BB5, &_BuildingClass_Mission_Open_Gate_Open_Sound_Patch);
     Patch_Jump(0x00433C6F, &_BuildingClass_Mission_Open_Gate_Close_Sound_Patch);
@@ -2394,7 +2516,6 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x00430CC2, &_BuildingClass_Mission_Deconstruction_ConYard_Survivors_Patch);
     Patch_Jump(0x00430A01, &_BuildingClass_Mission_Deconstruction_ConYard_Unlimbo_Patch);
     Patch_Jump(0x00430F2B, &_BuildingClass_Mission_Deconstruction_Double_Survivors_Patch);
-    Patch_Jump(0x0049436A, &_EventClass_Execute_Archive_Selling_Patch);
     Patch_Jump(0x0042F799, &_BuildingClass_Captured_DontScore_Patch);
     Patch_Jump(0x0042E5F5, &_BuildingClass_Grand_Opening_Assign_FreeUnit_LastDockedBuilding_Patch);
     //Patch_Jump(0x00429220, &BuildingClassExt::_Shape_Number);
@@ -2421,4 +2542,9 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x0043AFC0, &BuildingClassExt::_Fetch_Super_Weapon2);
     Patch_Jump(0x004381F8, &_BuildingClass_Load_SwizzleLightSource_Patch);
     Patch_Jump(0x004268C0, &BuildingClassExt::_Receive_Message);
+    Patch_Jump(0x00428810, &BuildingClassExt::_Draw_Overlays);
+    Patch_Jump(0x0042AA76, &_BuildingClass_Unlimbo_BuildConst_Patch);
+    Patch_Jump(0x0042F958, &_BuildingClass_Captured_BuildConst_Patch1);
+    Patch_Jump(0x0042FACC, &_BuildingClass_Captured_BuildConst_Patch2);
+    Patch_Jump(0x0042FCA1, &_BuildingClass_Captured_BuildConst_Patch3);
 }

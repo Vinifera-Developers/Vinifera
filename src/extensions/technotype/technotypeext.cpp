@@ -38,9 +38,11 @@
 #include "spritecollection.h"
 #include "vinifera_saveload.h"
 #include "asserthandler.h"
+#include "animtype.h"
 #include "debughandler.h"
 #include "findmake.h"
 #include "rules.h"
+#include "spawner.h"
 
 
 /**
@@ -104,7 +106,8 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     IsNaval(false),
     BuiltAt(),
     BuildTimeMultiplier(1.0f),
-    IsOpportunityFire(false)
+    IsOpportunityFire(false),
+    ScrapExplosion()
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -121,7 +124,8 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const NoInitClass &noinit) :
     VoiceEnter(noinit),
     VoiceDeploy(noinit),
     VoiceHarvest(noinit),
-    BuiltAt(noinit)
+    BuiltAt(noinit),
+    ScrapExplosion(noinit)
 {
     //EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -155,6 +159,7 @@ HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
     VoiceDeploy.Clear();
     VoiceHarvest.Clear();
     BuiltAt.Clear();
+    ScrapExplosion.Clear();
 
     HRESULT hr = ObjectTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
@@ -166,11 +171,13 @@ HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
     VoiceDeploy.Load(pStm);
     VoiceHarvest.Load(pStm);
     BuiltAt.Load(pStm);
+    ScrapExplosion.Load(pStm);
 
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(UnloadingClass, "UnloadingClass");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Spawns, "Spawns");
 
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(BuiltAt, "BuiltAt");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(ScrapExplosion, "ScrapExplosion");
 
     /**
      *  We need to reload the "Cameo" key because TechnoTypeClass does
@@ -219,6 +226,7 @@ HRESULT TechnoTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
     VoiceDeploy.Save(pStm);
     VoiceHarvest.Save(pStm);
     BuiltAt.Save(pStm);
+    ScrapExplosion.Save(pStm);
 
     return hr;
 }
@@ -404,7 +412,7 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     SpawnLogicRate = ini.Get_Int(ini_name, "SpawnLogicRate", SpawnLogicRate);
     SpawnsNumber = ini.Get_Int(ini_name, "SpawnsNumber", SpawnsNumber);
     SecondSpawnOffset = ArtINI.Get_Point(graphic_name, "SecondSpawnOffset", SecondSpawnOffset);
-    MaxRandomSpawnOffset = ini.Get_Int(graphic_name, "MaxRandomSpawnOffset", MaxRandomSpawnOffset);
+    MaxRandomSpawnOffset = ini.Get_Int(ini_name, "MaxRandomSpawnOffset", MaxRandomSpawnOffset);
 
     IsDontScore = ini.Get_Bool(ini_name, "DontScore", IsDontScore);
     IsSpawned = ini.Get_Bool(ini_name, "Spawned", IsSpawned);
@@ -429,6 +437,15 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
 
     BuiltAt = TGet_TypeList(ini, ini_name, "BuiltAt", BuiltAt);
     IsOpportunityFire = ini.Get_Bool(ini_name, "OpportunityFire", IsOpportunityFire);
+
+    ScrapExplosion = TGet_TypeList(ini, ini_name, "ScrapExplosion", ScrapExplosion);
+
+    /**
+     *  If the spawner requested scrap explosions, replace the game's explosion vector with ours.
+     */
+    if (Vinifera_SpawnerActive && Vinifera_SpawnerConfig->ScrapMetal) {
+        This()->Explosion = ScrapExplosion;
+    }
 
     return true;
 }

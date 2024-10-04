@@ -32,6 +32,7 @@
 #include "rules.h"
 #include "extension.h"
 #include "point.h"
+#include "typelist.h"
 
 
 class CCINIClass;
@@ -71,11 +72,12 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
         bool Tiberiums(CCINIClass &ini);
         bool PrerequisiteGroups(CCINIClass &ini);
 
+        void Fixups(CCINIClass &ini);
+        
         static bool Set_Voxel_Light_Angle(float azimuth, float elevation, float offset);
 
     private:
         void Check();
-        void Fixups(CCINIClass &ini);
 
     public:
         /**
@@ -184,4 +186,9 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
          *  The number of frames that a newly elite unit will flash for.
          */
         int EliteFlashTimer;
+    
+        /**
+         *  List of units to consider "home".
+         */
+        TypeList<UnitTypeClass *> BaseUnit;
 };

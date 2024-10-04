@@ -365,4 +365,9 @@ public:
      *  Can this object pick up targets within its range automatically (opportunity fire)?
      */
     bool IsOpportunityFire;
+    
+    /**
+     *  List of animations to be used as the explosion when scrap explosions are turned on.
+     */
+    TypeList<AnimTypeClass*> ScrapExplosion;
 };

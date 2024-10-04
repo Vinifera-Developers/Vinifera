@@ -30,6 +30,7 @@
 #include "footext.h"
 #include "aircraft.h"
 #include "event.h"
+#include "latencylevel.h"
 
 
 /**
@@ -43,6 +44,7 @@ public:
     EventClassExt() { Type = EVENT_EMPTY; }
     EventClassExt(int index, EventType type, RTTIType object, int id, ProductionFlags flags);
     EventClassExt(int index, EventType type, RTTIType object, Cell const& cell, ProductionFlags flags);
+    EventClassExt(int id, unsigned char max_ahead, LatencyLevelEnum latency_level);
 
     int operator==(const EventClassExt& q) const { return std::memcmp(this, &q, sizeof(q)) == 0; }
     int operator!=(const EventClassExt& q) const { return std::memcmp(this, &q, sizeof(q)) != 0; }
@@ -54,6 +56,10 @@ public:
     bool Is_Vinifera_Event() const;
 
     void Execute();
+
+    void Do_IDLE();
+    void Do_TIMING();
+    void Do_REMOVEPLAYER();
 
     static const char* Event_Name(EventType event) { return event >= EVENT_EMPTY && event < EXT_EVENT_COUNT ? EventNames[event] : ""; }
     static unsigned char Event_Length(EventType event) { return event >= EVENT_EMPTY && event < EXT_EVENT_COUNT ? EventLength[event] : 0; }
@@ -67,6 +73,25 @@ public:
 
     union {
         struct {
+            int Value;
+        } General;
+
+        struct {
+            xTargetClass Whom;
+        } Target;
+
+        struct {
+            xTargetClass Whom;
+            xTargetClass Where;
+        } NavCom;
+
+        struct {
+            unsigned short DesiredFrameRate;
+            unsigned short MaxAhead;
+            unsigned char FrameSendRate;
+        } Timing;
+
+        struct {
             RTTIType        Type;
             int             ID;
             ProductionFlags Flags;
@@ -77,6 +102,11 @@ public:
             xCell           Where;
             ProductionFlags Flags;
         } NewPlace;
+
+		struct ResponseTime2 {
+            unsigned char MaxAhead;
+            LatencyLevelEnum LatencyLevel;
+        } ResponseTime2;
 
         char Padding[sizeof(EventClass::Data)];
     } Data;

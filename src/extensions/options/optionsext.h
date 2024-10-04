@@ -37,14 +37,14 @@ class CCINIClass;
 
 class OptionsClassExtension final : public GlobalExtensionClass<OptionsClass>
 {
-    public:
-        IFACEMETHOD(Load)(IStream *pStm);
-        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+public:
+    IFACEMETHOD(Load)(IStream *pStm);
+    IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
 
-    public:
-        OptionsClassExtension(const OptionsClass *this_ptr);
-        OptionsClassExtension(const NoInitClass &noinit);
-        virtual ~OptionsClassExtension();
+public:
+    OptionsClassExtension(const OptionsClass *this_ptr);
+    OptionsClassExtension(const NoInitClass &noinit);
+    virtual ~OptionsClassExtension();
 
         /**
          *  OptionsClass extension does not require these to be used, but we
@@ -54,24 +54,34 @@ class OptionsClassExtension final : public GlobalExtensionClass<OptionsClass>
         virtual void Detach(AbstractClass * target, bool all = true) override;
         virtual void Object_CRC(CRCEngine &crc) const override;
 
-        virtual const char *Name() const override { return "Options"; }
-        virtual const char *Full_Name() const override { return "Options"; }
+    virtual const char *Name() const override { return "Options"; }
+    virtual const char *Full_Name() const override { return "Options"; }
 
-        void Load_Settings();
-        void Load_Init_Settings();
-        void Save_Settings();
+    void Load_Settings();
+    void Load_Init_Settings();
+    void Save_Settings();
 
-        void Set();
+    void Set();
 
-    public:
+public:
 
-        /**
-         *  Should cameos of defenses (including walls and gates) be sorted to the bottom of the sidebar?
-         */
-        bool SortDefensesAsLast;
+    /**
+     *  Should cameos of defenses (including walls and gates) be sorted to the bottom of the sidebar?
+     */
+    bool SortDefensesAsLast;
 
-        /**
-         *  Are harvesters and MCVs excluded from a band-box selection that includes combat units?
-         */
-        bool FilterBandBoxSelection;
+    /**
+     *  Are harvesters and MCVs excluded from a band-box selection that includes combat units?
+     */
+    bool FilterBandBoxSelection;
+
+    /**
+     *  Number of autosaves to make in skirmish.
+     */
+    int AutoSaveCount;
+
+    /**
+     *  The delay between autosaves in skirmish in frames.
+     */
+    int AutoSaveInterval;
 };

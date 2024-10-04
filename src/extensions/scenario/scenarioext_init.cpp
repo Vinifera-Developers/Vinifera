@@ -29,6 +29,7 @@
 #include "scenarioext.h"
 #include "scenario.h"
 #include "tibsun_globals.h"
+#include "session.h"
 #include "vinifera_util.h"
 #include "extension.h"
 #include "extension_globals.h"
@@ -136,30 +137,6 @@ original_code:
 
 
 /**
- *  Patch for reading the extended class members from the ini instance.
- *
- *  @warning: Do not touch this unless you know what you are doing!
- *
- *  @author: CCHyper
- */
-DECLARE_PATCH(_ScenarioClass_Read_INI_Patch)
-{
-    GET_REGISTER_STATIC(CCINIClass *, ini, ebp);
-    static bool retval;
-
-    /**
-     *  Stolen bytes/code.
-     */
-    retval |= Scen->Read_INI(*ini);
-
-    retval |= ScenExtension->Read_INI(*ini);
-
-    _asm { mov al, retval }
-    JMP_REG(ecx, 0x005DD947);
-}
-
-
-/**
  *  Main function for patching the hooks.
  */
 void ScenarioClassExtension_Init()
@@ -167,5 +144,4 @@ void ScenarioClassExtension_Init()
     Patch_Jump(0x005DADDE, &_ScenarioClass_Constructor_Patch);
     Patch_Jump(0x006023CC, &_ScenarioClass_Destructor_Patch); // Inlined in game shutdown.
     Patch_Jump(0x005DB166, &_ScenarioClass_Init_Clear_Patch);
-    Patch_Jump(0x005DD93B, &_ScenarioClass_Read_INI_Patch);
 }

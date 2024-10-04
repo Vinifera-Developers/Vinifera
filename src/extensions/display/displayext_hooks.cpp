@@ -46,6 +46,7 @@
 #include "mousetype.h"
 #include "actiontype.h"
 #include "extension.h"
+#include "tactical.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
@@ -66,6 +67,7 @@ class DisplayClassExt final : public DisplayClass
     public:
         ObjectClass * _Next_Object(ObjectClass * object) const;
         ObjectClass * _Prev_Object(ObjectClass * object) const;
+        void _Compute_Start_Pos();
 };
 
 
@@ -161,6 +163,53 @@ ObjectClass * DisplayClassExt::_Prev_Object(ObjectClass * object)  const
         }
     }
     return firstobj;
+}
+
+
+/**
+ *  Computes player's start pos from unit coords.
+ *
+ *  @author: 02/28/1995 JLB - Red Alert Source COde
+ *           29/10/2024 ZivDero - Adjustments for Tiberian Sun
+ */
+void DisplayClassExt::_Compute_Start_Pos()
+{
+    /**
+     *  Find the summation coordinate for all the player's units, infantry,
+     *  and buildings.
+     */
+    Coord coord(0, 0, 0);
+    long num = 0;
+
+    for (int i = 0; i < Technos.Count(); i++) {
+        TechnoClass* technop = Technos[i];
+        if (!technop->IsInLimbo && technop->IsOwnedByPlayer) {
+            coord += technop->Get_Coord();
+            num++;
+        }
+    }
+
+    /**
+     *  Divide the coordinate by 'num' to compute the average value.
+     */
+    coord.Z = 0;
+    if (num != 0) {
+        coord /= num;
+    }
+
+    /**
+     *  If the player has no units (i. e. is an observer), use their house's center cell.
+     */
+    else {
+        coord = PlayerPtr->Center;
+    }
+
+    Scen->Views[0] = Scen->Views[1] = Scen->Views[2] = Scen->Views[3] = Cell(coord);
+    Scen->AltHome = Scen->Home;
+
+    if (TacticalMap != nullptr) {
+        TacticalMap->Set_Tactical_Position(coord);
+    }
 }
 
 
@@ -492,4 +541,5 @@ void DisplayClassExtension_Hooks()
 
     Patch_Jump(0x00477390, &DisplayClassExt::_Next_Object);
     Patch_Jump(0x00477430, &DisplayClassExt::_Prev_Object);
+    Patch_Jump(0x004793A0, &DisplayClassExt::_Compute_Start_Pos);
 }

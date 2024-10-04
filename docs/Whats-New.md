@@ -234,7 +234,11 @@ New:
 - Allow customizing which Tiberiums can grow on a tile (by ZivDero)
 - Allow customizing which Smudges can appear on a tile (by ZivDero)
 - Allow customizing if Veins can grow on a tile (by ZivDero)
-
+- Implemented the multiplayer spawner (by ZivDero)
+- Extend `BaseUnit` to accept a list of vehicles (by ZivDero/CCHyper)
+- Allow `BuildConst`, `BuildRefinery`, `BuildWeapons` and `HarvesterUnit` to properly have multiple entries (by ZivDero)
+- Add support for more than 2 sides' loading screens, sidebars and speeches (by CCHyper/tomsons26, ZivDero)
+- Disallow loading campaign saves from other playthoughs, as well as from skirmish (by ZivDero)
 
 Vanilla fixes:
 - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively (by CCHyper/tomsons26)
@@ -313,6 +317,9 @@ Vanilla fixes:
 - Factories now hold their object if there is no war factory available for the unit to exit from instead of refuding construction (by ZivDero)
 - Fix building light sources no longer being attached to the building after loading the game (by ZivDero)
 - Fix shroud looking bugged if you attempt to reveal too many cells at once (by ZivDero)
+- Fix a bug where AI Triggers' `MultiSide` wouldn't correctly consider all houses (by ZivDero)
+- Fix a bug where newly created objects wouldn't reveal shroud for allies with `AllyReveal=yes` (by ZivDero)
+- Fix a bug where mission `Ambush` wouldn't work correctly (by ZivDero)
 
 :::
 

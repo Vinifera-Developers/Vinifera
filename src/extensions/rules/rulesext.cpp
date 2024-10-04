@@ -65,6 +65,7 @@
 
 #include "extension.h"
 #include "extension_globals.h"
+#include "findmake.h"
 #include "mission.h"
 #include "prerequisitegroup.h"
 #include "verses.h"
@@ -97,7 +98,8 @@ RulesClassExtension::RulesClassExtension(const RulesClass *this_ptr) :
     UpgradeVeteranSound(VOC_NONE),
     UpgradeEliteSound(VOC_NONE),
     VoxUnitPromoted(VOX_NONE),
-    EliteFlashTimer(0)
+    EliteFlashTimer(0),
+    BaseUnit()
 {
     //if (this_ptr) EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
@@ -129,7 +131,8 @@ RulesClassExtension::RulesClassExtension(const RulesClass *this_ptr) :
  */
 RulesClassExtension::RulesClassExtension(const NoInitClass &noinit) :
     GlobalExtensionClass(noinit),
-    MaxPips(noinit)
+    MaxPips(noinit),
+    BaseUnit(noinit)
 {
     //EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension(NoInitClass) - 0x%08X\n", (uintptr_t)(ThisPtr));
 }
@@ -156,6 +159,7 @@ HRESULT RulesClassExtension::Load(IStream *pStm)
     //EXT_DEBUG_TRACE("RulesClassExtension::Load - 0x%08X\n", (uintptr_t)(This()));
 
     MaxPips.Clear();
+    BaseUnit.Clear();
 
     HRESULT hr = GlobalExtensionClass::Load(pStm);
     if (FAILED(hr)) {
@@ -165,6 +169,9 @@ HRESULT RulesClassExtension::Load(IStream *pStm)
     new (this) RulesClassExtension(NoInitClass());
 
     MaxPips.Load(pStm);
+    BaseUnit.Load(pStm);
+
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(BaseUnit, "BaseUnit");
     
     return hr;
 }
@@ -185,6 +192,7 @@ HRESULT RulesClassExtension::Save(IStream *pStm, BOOL fClearDirty)
     }
 
     MaxPips.Save(pStm);
+    BaseUnit.Save(pStm);
 
     return hr;
 }
@@ -211,6 +219,10 @@ int RulesClassExtension::Get_Object_Size() const
 void RulesClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("RulesClassExtension::Detach - 0x%08X\n", (uintptr_t)(This()));
+
+    if (target->What_Am_I() == RTTI_UNITTYPE) {
+        BaseUnit.Delete(reinterpret_cast<UnitTypeClass *>(target));
+    }
 }
 
 
@@ -232,6 +244,7 @@ void RulesClassExtension::Object_CRC(CRCEngine &crc) const
     crc(IsRecheckPrerequisites);
     crc(IsMultiMCV);
     crc(AINavalYardAdjacency);
+    crc(BaseUnit.Count());
 }
 
 
@@ -662,6 +675,13 @@ bool RulesClassExtension::General(CCINIClass &ini)
     MultipleFactoryCap = ini.Get_Int(GENERAL, "MultipleFactoryCap", MultipleFactoryCap);
     IsTiberiumStorage = ini.Get_Bool(GENERAL, "TiberiumStorage", IsTiberiumStorage);
 
+    /**
+     *  Reload the BaseUnit entry and store the value in the new class extension.
+     *  This allows us to expand the original BaseUnit logic without impacting
+     *  the original behaviour of BaseUnit.
+     */
+    BaseUnit = TGet_TypeList(ini, GENERAL, "BaseUnit", BaseUnit);
+
     return true;
 }
 
@@ -1091,9 +1111,9 @@ void RulesClassExtension::Fixups(CCINIClass &ini)
      *  Workaround because NOD has Side=GDI and Prefix=B in unmodded Tiberian Sun.
      *
      *  Match criteria;
-     *   - Are we currently processing RuleINI?
+     *   - Are we currently processing one of the unmodified rule INI's?
      */
-    if (is_ruleini) {
+    if (rule_unmodified || fsrule_unmodified) {
 
         /**
          *  Ensure at least two HouseTypes are defined before performing this fixup case.

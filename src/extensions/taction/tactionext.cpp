@@ -45,6 +45,7 @@
 #include "tibsun_inline.h"
 #include "trigger.h"
 #include "triggertype.h"
+#include "vinifera_globals.h"
 #include "voc.h"
 
 
@@ -151,9 +152,19 @@ bool TActionClassExtension::Execute(TActionClass& taction, HouseClass* house, Ob
          */
         DISPATCH(WIN);
         DISPATCH(LOSE);
+        DISPATCH(BEGIN_PRODUCTION);
+        DISPATCH(ALL_HUNT);
+        DISPATCH(FIRE_SALE);
         DISPATCH(TEXT_TRIGGER);
         DISPATCH(DESTROY_TRIGGER);
+        DISPATCH(AUTOCREATE);
+        DISPATCH(CHANGE_HOUSE);
+        DISPATCH(ALL_CHANGE_HOUSE);
+        DISPATCH(MAKE_ALLY);
+        DISPATCH(MAKE_ENEMY);
         DISPATCH(ENABLE_TRIGGER);
+        DISPATCH(BEGIN_AI_TRIGGERS);
+        DISPATCH(STOP_AI_TRIGGERS);
         DISPATCH(PLAY_SOUND_RANDOM);
 
         /**
@@ -237,9 +248,19 @@ bool TActionClassExtension::Is_Vinifera_TAction(TActionType type)
     switch (type) {
     case TACTION_WIN:
     case TACTION_LOSE:
+    case TACTION_BEGIN_PRODUCTION:
+    case TACTION_ALL_HUNT:
+    case TACTION_FIRE_SALE:
     case TACTION_TEXT_TRIGGER:
     case TACTION_DESTROY_TRIGGER:
+    case TACTION_AUTOCREATE:
+    case TACTION_CHANGE_HOUSE:
+    case TACTION_ALL_CHANGE_HOUSE:
+    case TACTION_MAKE_ALLY:
+    case TACTION_MAKE_ENEMY:
     case TACTION_ENABLE_TRIGGER:
+    case TACTION_BEGIN_AI_TRIGGERS:
+    case TACTION_STOP_AI_TRIGGERS:
     case TACTION_PLAY_SOUND_RANDOM:
         return true;
 
@@ -360,6 +381,57 @@ bool TActionClassExtension::Do_LOSE(TActionClass& taction, HouseClass* house, Ob
 
 
 /**
+ *  Replacement of Do_BEGIN_PRODUCTION to handle the case when the target house does not exist.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_BEGIN_PRODUCTION(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    if (taction.Data.House != HOUSE_NONE) {
+        HouseClass* hptr = House_From_HousesType(taction.Data.House);
+        if (hptr != nullptr) {
+            hptr->Begin_Production();
+        }
+    }
+    return true;
+}
+
+
+/**
+ *  Replacement of Do_ALL_HUNT to handle the case when the target house does not exist.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_ALL_HUNT(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    if (taction.Data.House != HOUSE_NONE) {
+        HouseClass* hptr = House_From_HousesType(taction.Data.House);
+        if (hptr != nullptr) {
+            hptr->All_To_Hunt();
+        }
+    }
+    return true;
+}
+
+
+/**
+ *  Replacement of Do_FIRE_SALE to handle the case when the target house does not exist.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_FIRE_SALE(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    if (taction.Data.House != HOUSE_NONE) {
+        HouseClass* hptr = House_From_HousesType(taction.Data.House);
+        if (hptr != nullptr) {
+            hptr->State = STATE_ENDGAME;
+        }
+    }
+    return true;
+}
+
+
+/**
  *  An enhanced text trigger action.
  *
  *  @author: ZivDero
@@ -389,7 +461,7 @@ bool TActionClassExtension::Do_TEXT_TRIGGER(TActionClass& taction, HouseClass* h
 
     ColorSchemeType color = static_cast<ColorSchemeType>(taction.TriggerRect.X) * 2;
     if (color < COLORSCHEME_FIRST || color >= ColorSchemes.Count()) {
-        color = PlayerPtr->RemapColor;
+        color = PlayerPtr->Scheme;
     }
 
     /**
@@ -416,6 +488,110 @@ bool TActionClassExtension::Do_DESTROY_TRIGGER(TActionClass& taction, HouseClass
         for (int index = count - 1; index >= 0; index--) {
             if (Triggers[index]->Class == taction.Trigger) {
                 Triggers[index]->Mark_To_Die();
+            }
+        }
+    }
+    return true;
+}
+
+
+/**
+ *  Replacement of Do_AUTOCREATE to handle the case when the target house does not exist.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_AUTOCREATE(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    if (taction.Data.House != HOUSE_NONE) {
+        HouseClass* hptr = House_From_HousesType(taction.Data.House);
+        if (hptr != nullptr) {
+            hptr->IsAlerted = true;
+        }
+    }
+    return true;
+}
+
+
+/**
+ *  Replacement of Do_CHANGE_HOUSE to handle the case when the target house does not exist.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_CHANGE_HOUSE(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    bool success = false;
+    HouseClass* hptr = House_From_HousesType(taction.Data.House);
+
+    if (hptr != nullptr) {
+        for (int index = 0; index < Technos.Count(); index++) {
+            TechnoClass* techno = Technos[index];
+            if (techno->IsActive && techno->IsDown && !techno->IsInLimbo && techno->Tag != nullptr && techno->Tag->Is_Trigger_Attached(trig)) {
+
+                techno->Captured(hptr);
+                success = true;
+            }
+        }
+    }
+    return success;
+}
+
+
+/**
+ *  Replacement of Do_ALL_CHANGE_HOUSE to handle the case when the target house does not exist.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_ALL_CHANGE_HOUSE(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    bool retval = false;
+
+    HouseClass* hptr = House_From_HousesType(taction.Data.House);
+
+    if (hptr != nullptr) {
+        for (int index = 0; index < Technos.Count(); index++) {
+            if (Technos[index]->House == house) {
+                Technos[index]->Captured(hptr);
+                retval = true;
+            }
+        }
+    }
+    return retval;
+}
+
+
+/**
+ *  Replacement of Do_MAKE_ALLY to handle the case when the target house does not exist.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_MAKE_ALLY(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    if (house != nullptr) {
+        if (taction.Data.House != HOUSE_NONE) {
+            HouseClass* house2 = House_From_HousesType(taction.Data.House);
+            if (house2 != nullptr) {
+                house->Make_Ally(house2);
+                house2->Make_Ally(house);
+            }
+        }
+    }
+    return true;
+}
+
+
+/**
+ *  Replacement of Do_MAKE_ENEMY to handle the case when the target house does not exist.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_MAKE_ENEMY(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    if (house != nullptr) {
+        if (taction.Data.House != HOUSE_NONE) {
+            HouseClass* house2 = House_From_HousesType(taction.Data.House);
+            if (house2 != nullptr) {
+                house->Make_Enemy(house2);
+                house2->Make_Enemy(house);
             }
         }
     }
@@ -459,6 +635,40 @@ bool TActionClassExtension::Do_ENABLE_TRIGGER(TActionClass& taction, HouseClass*
                     Triggers[index]->Enable();
                 }
             }
+        }
+    }
+    return true;
+}
+
+
+/**
+ *  Replacement of Do_BEGIN_AI_TRIGGERS to handle the case when the target house does not exist.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_BEGIN_AI_TRIGGERS(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    if (taction.Data.House != HOUSE_NONE) {
+        HouseClass* hptr = House_From_HousesType(taction.Data.House);
+        if (hptr != nullptr) {
+            hptr->IsAITriggersOn = true;
+        }
+    }
+    return true;
+}
+
+
+/**
+ *  Replacement of Do_STOP_AI_TRIGGERS to handle the case when the target house does not exist.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_STOP_AI_TRIGGERS(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    if (taction.Data.House != HOUSE_NONE) {
+        HouseClass* hptr = House_From_HousesType(taction.Data.House);
+        if (hptr != nullptr) {
+            hptr->IsAITriggersOn = false;
         }
     }
     return true;
@@ -621,12 +831,16 @@ bool TActionClassExtension::Do_DISABLE_ALLYREVEAL(TActionClass& taction, HouseCl
 /**
  *  Schedules the creation of an autosave the next frame.
  *
- *  @author: ZivDero
+ *  @author: ZivDero, Rampastring
  */
 bool TActionClassExtension::Do_CREATE_AUTOSAVE(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
-    DEBUG_ERROR("EXT_TACTION_CREATE_AUTOSAVE is not yet implemented, but has been executed!");
-    return false;
+    /**
+     *  Schedule a save.
+     */
+    Vinifera_DoSave = true;
+
+    return true;
 }
 
 

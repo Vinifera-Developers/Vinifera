@@ -101,7 +101,7 @@ DECLARE_PATCH(_ThemeClass_ThemeControl_Read_INI_Patch)
     /**
      *  Find the extension instance.
      */
-    exttype_ptr = Extension::List::Fetch<ThemeClass::ThemeControl, ThemeControlExtension>(this_ptr, ThemeControlExtensions);
+    exttype_ptr = Extension::List::Fetch(this_ptr, ThemeControlExtensions);
 
     /**
      *  Read type class ini.

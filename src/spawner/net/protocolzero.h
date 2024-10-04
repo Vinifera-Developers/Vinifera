@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          CNCNET4.H
+ *  @file          PROTOCOLZERO.H
  *
- *  @author        CCHyper
+ *  @author        Belonit, ZivDero
  *
- *  @brief         CnCNet4 replacements for low level networking API.
+ *  @brief         Protocol zero.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -27,22 +27,25 @@
  ******************************************************************************/
 #pragma once
 
-#include <winsock2.h>
-#include <windows.h>
+class EventClassExt;
 
 
-namespace CnCNet4 {
+/**
+ *  ProtocolZero
+ *
+ *  This class is contains methods and the state of Protocol 0.
+ */
+class ProtocolZero
+{
+private:
+    static constexpr int SendResponseTimeInterval = 30;
 
-bool __stdcall Init();
-void __stdcall Shutdown();
+public:
+    static bool Enable;
+    static bool GetRealMaxAhead;
+    static unsigned char MaxLatencyLevel;
+    static unsigned int WorstMaxAhead;
 
-int __stdcall bind(SOCKET s, const struct sockaddr *name, int namelen);
-SOCKET __stdcall socket(int af, int type, int protocol);
-int __stdcall recvfrom(SOCKET s, char *buf, int len, int flags, struct sockaddr *from, int *fromlen);
-int __stdcall sendto(SOCKET s, const char *buf, int len, int flags, const struct sockaddr *to, int tolen);
-int __stdcall getsockopt(SOCKET s, int level, int optname, char *optval, int *optlen);
-int __stdcall setsockopt(SOCKET s, int level, int optname, const char *optval, int optlen);
-int __stdcall closesocket(SOCKET s);
-int __stdcall getsockname(SOCKET s, struct sockaddr *name, int *namelen);
-
-}; // namespace CnCNet4
+    static void Send_Response_Time();
+    static void Handle_Response_Time(EventClassExt& event);
+};

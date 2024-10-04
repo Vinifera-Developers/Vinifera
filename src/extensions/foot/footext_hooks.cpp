@@ -791,6 +791,25 @@ bool FootClassExt::_Limbo()
 }
 
 
+/**
+ *  #issue-177
+ *
+ *  Patches the harvester counting to count all units listed under HarvesterUnit.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_FootClass_Search_For_Tiberium_Weighted_HarvesterUnit_Patch)
+{
+    GET_REGISTER_STATIC(FootClass *, this_ptr, edi);
+
+    static int count;
+
+    count = this_ptr->House->Count_Owned(Rule->HarvesterUnit);
+
+    _asm mov eax, count
+    JMP_REG(esi, 0x004A7A65);
+}
+
 
 /**
  *  Main function for patching the hooks.
@@ -807,4 +826,5 @@ void FootClassExtension_Hooks()
     Patch_Jump(0x004A76F0, &FootClassExt::_Search_For_Tiberium);
     Patch_Jump(0x004A2C70, &FootClassExt::_Unlimbo);
     Patch_Jump(0x004A5E80, &FootClassExt::_Limbo);
+    Patch_Jump(0x004A7A3F, &_FootClass_Search_For_Tiberium_Weighted_HarvesterUnit_Patch);
 }

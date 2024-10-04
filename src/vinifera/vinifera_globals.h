@@ -35,6 +35,7 @@
 
 
 class PrerequisiteGroupClass;
+class HouseClass;
 class KamikazeTrackerClass;
 class AircraftTrackerClass;
 class SpawnManagerClass;
@@ -44,7 +45,7 @@ class ArmorTypeClass;
 class RocketTypeClass;
 class MouseTypeClass;
 class ActionTypeClass;
-class PrerequisiteGroupClass;
+class SpawnerConfig;
 
 
 extern bool Vinifera_DeveloperMode;
@@ -98,8 +99,6 @@ extern bool Vinifera_NoTacticalVersionString;
 
 extern bool Vinifera_ShowSuperWeaponTimers;
 
-extern unsigned Vinifera_TotalPlayTime;
-
 extern DynamicVectorClass<MFCD *> ViniferaMapsMixes;
 extern DynamicVectorClass<MFCD *> ViniferaMoviesMixes;
 
@@ -111,6 +110,27 @@ extern KamikazeTrackerClass *KamikazeTracker;
 extern AircraftTrackerClass *AircraftTracker;
 
 extern int EnvironmentGlobals[std::size(ScenExtension->GlobalFlags)];
+
+/**
+ *  Spawner-related globals.
+ */
+extern SpawnerConfig* Vinifera_SpawnerConfig;
+extern bool Vinifera_SpawnerActive;
+
+/**
+ *  This is the pointer to the local observer player.
+ *  #NOTE: This pointer is only set if the player is a REAL
+ *  observer, i.e. has been an observer since the start,
+ *  or "Coach Mode" is off.
+ */
+extern HouseClass* Vinifera_ObserverPtr;
+
+extern bool Vinifera_DoSave;
+extern int Vinifera_NextAutoSaveFrame;
+extern int Vinifera_NextAutoSaveNumber;
+
+extern unsigned Vinifera_TotalPlayTime;
+extern unsigned Vinifera_PlaythroughID;
 
 
 /**
