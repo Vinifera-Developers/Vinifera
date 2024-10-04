@@ -1029,6 +1029,6 @@ void GameInit_Hooks()
     /**
      *  TS Client file structure assumes Firestorm is always installed and enabled.
      */
-    //Patch_Jump(0x00407050, &Vinifera_Detect_Addons);
+    Patch_Jump(0x00407050, &Vinifera_Detect_Addons);
 #endif
 }
