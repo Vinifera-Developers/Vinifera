@@ -826,7 +826,11 @@ bool Reconcile_Players()
             housep->IsHuman = false;
             housep->IsStarted = true;
             housep->IQ = Rule->MaxIQ;
-            strcpy(housep->IniName, Fetch_String(TXT_COMPUTER));
+
+            static char buffer[HOUSE_NAME_MAX + 1];
+            std::snprintf(buffer, sizeof(buffer), "%s (AI)", housep->IniName);
+            std::strncpy(housep->IniName, buffer, sizeof(housep->IniName));
+            //strcpy(housep->IniName, Fetch_String(TXT_COMPUTER));
 
             Session.NumPlayers--;
         }

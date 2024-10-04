@@ -59,7 +59,7 @@ char* IPXManagerClassExt::_Connection_Name(int id)
 {
     if (Spawner::Active && Spawner::Get_Config()->QuickMatch)
     {
-        return (char*)PLAYER;
+        return const_cast<char*>(PLAYER);
     }
     else
     {
@@ -81,7 +81,7 @@ static int __cdecl sprintf_RadarClass_Draw_Names_Wrapper(char* buffer, const cha
 }
 
 
-static Point2D Fancy_Text_Print_ProgressScreenClass_Draw_Graphics_Wrapper(const char* text, XSurface* surface, Rect* rect, Point2D* xy, ColorScheme* fore, unsigned back = COLOR_TBLACK, TextPrintType flag = TPF_8POINT | TPF_DROPSHADOW)
+static Point2D Fancy_Text_Print_ProgressScreenClass_Draw_Graphics_Wrapper(const char* text, XSurface* surface, Rect* rect, Point2D* xy, ColorScheme* fore, unsigned back, TextPrintType flag)
 {
     if (Spawner::Active && Spawner::Get_Config()->QuickMatch)
     {
