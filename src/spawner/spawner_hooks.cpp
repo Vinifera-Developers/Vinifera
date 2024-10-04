@@ -45,14 +45,14 @@
 
 
 /**
-  *  A fake class for implementing new member functions which allow
-  *  access to the "this" pointer of the intended class.
-  *
-  *  @note: This must not contain a constructor or destructor.
-  *
-  *  @note: All functions must not be virtual and must also be prefixed
-  *         with "_" to prevent accidental virtualization.
-  */
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or destructor.
+ *
+ *  @note: All functions must not be virtual and must also be prefixed
+ *         with "_" to prevent accidental virtualization.
+ */
 class SessionClassExt : public SessionClass
 {
 public:
@@ -159,10 +159,15 @@ void Spawner_Hooks()
     Patch_Jump(0x004C06EF, &_HouseClass_Expert_AI_Check_Allies);
     Patch_Jump(0x004C3630, &HouseClassExt::_Computer_Paranoid);  // Disable paranoid computer behavior
 
-    // SkipScoreScreen feature
+    /**
+     *  SkipScoreScreen feature.
+     */
     Patch_Call(0x005DC9DA, &MultiScore_Wrapper);
     Patch_Call(0x005DCD98, &MultiScore_Wrapper);
 
+    /**
+     *  Hooks for various sub-modules.
+     */
     ProtocolZero_Hooks();
     Spectator_Hooks();
     QuickMatch_Hooks();

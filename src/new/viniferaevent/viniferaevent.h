@@ -43,8 +43,10 @@ enum ViniferaEventType : unsigned char
 	VEVENT_FIRST = VEVENT_RESPONSE_TIME_2
 };
 
+
 extern unsigned char ViniferaEventLength[VEVENT_COUNT - EVENT_COUNT];
 extern const char* ViniferaEventNames[VEVENT_COUNT - EVENT_COUNT];
+
 
 class ViniferaEventClass 
 {
@@ -79,6 +81,7 @@ public:
 	static bool Is_Vinifera_Event(ViniferaEventType type);
 #pragma pack(pop)
 };
+
 
 static_assert(sizeof(ViniferaEventClass) == sizeof(EventClass), "ViniferaEventClass doesn't match EventClass in size!");
 static_assert(sizeof(ViniferaEventClass::Data) == sizeof(EventClass::Data), "ViniferaEventClass::Data doesn't match EventClass::Data in size!");

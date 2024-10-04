@@ -53,15 +53,15 @@ static bool Is_Statistics_Enabled()
 }
 
 
- /**
-   *  A fake class for implementing new member functions which allow
-   *  access to the "this" pointer of the intended class.
-   *
-   *  @note: This must not contain a constructor or destructor.
-   *
-   *  @note: All functions must not be virtual and must also be prefixed
-   *         with "_" to prevent accidental virtualization.
-   */
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or destructor.
+ *
+ *  @note: All functions must not be virtual and must also be prefixed
+ *         with "_" to prevent accidental virtualization.
+ */
 class PacketClassExt : public PacketClass
 {
 public:
@@ -130,8 +130,8 @@ void PacketClassExt::_Add_Field_Player_Data(FieldClass* field)
 {
     // This is the global string "NAM?"
     // The game replaces "?" with the player's ID before this call,
-    // so we can grab it from there
-    // it should be also be the house ID
+    // so we can grab it from there.
+    // It should be also be the house ID.
     static char*& field_player_handle = Make_Global<char*>(0x0070FCF4);
 
     if (Is_Statistics_Enabled())

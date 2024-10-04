@@ -32,9 +32,9 @@
 #include "asserthandler.h"
 #include "protocolzero.h"
 
- /**
-  *  Arrays with new event lengths and names.
-  */
+/**
+ *  Arrays with new event lengths and names.
+ */
 unsigned char ViniferaEventLength[VEVENT_COUNT - EVENT_COUNT]
 {
 	sizeof(ViniferaEventClass::Data.ResponseTime2)

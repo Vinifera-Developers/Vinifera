@@ -33,11 +33,11 @@
 #include "viniferaevent.h"
 
 
- /**
-  *  Patch EventClass::Execute to execute our new events.
-  *
-  *  @author: ZivDero
-  */
+/**
+ *  Patch EventClass::Execute to execute our new events.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_EventClass_Execute_ViniferaEvent)
 {
     GET_REGISTER_STATIC(ViniferaEventClass*, vevent, esi);

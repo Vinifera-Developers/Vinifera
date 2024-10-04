@@ -1252,10 +1252,8 @@ static DynamicVectorClass<Cell> Build_Starting_Waypoint_List(bool official)
         look_for = MAX_PLAYERS;
     }
 
-    if (Spawner::Active)
-    {
-        for (int i = 0; i < Session.Players.Count() + Session.Options.AIPlayers; i++)
-        {
+    if (Spawner::Active) {
+        for (int i = 0; i < Session.Players.Count() + Session.Options.AIPlayers; i++) {
             if (Spawner::Get_Config()->Houses[i].IsSpectator)
                 look_for--;
         }
@@ -1455,21 +1453,16 @@ void ScenarioClassExtension::Create_Units(bool official)
         }
 
         bool pick_random = true;
-        if (Spawner::Active)
-        {
-            enum
-            {
+        if (Spawner::Active) {
+            enum {
                 SPAWN_RANDOM = -2
             };
 
             int chosen_spawn = Spawner::Get_Config()->Houses[hptr->Get_Heap_ID()].SpawnLocation;
 
-            // Spectators need to be handled at some point?
-            if (chosen_spawn != SPAWN_RANDOM)
-            {
+            if (chosen_spawn != SPAWN_RANDOM) {
                 chosen_spawn = std::clamp(chosen_spawn, 0, 7);
-                if (!taken[chosen_spawn])
-                {
+                if (!taken[chosen_spawn]) {
                     centroid = waypts[chosen_spawn];
                     taken[chosen_spawn] = true;
                     pick_random = false;
@@ -1479,8 +1472,8 @@ void ScenarioClassExtension::Create_Units(bool official)
         }
 
 
-        if (pick_random)
-        {
+        if (pick_random) {
+
             /**
              *  Pick the starting location for this house. The first house just picks
              *  one of the valid locations at random. The other houses pick the furthest
@@ -1492,8 +1485,9 @@ void ScenarioClassExtension::Create_Units(bool official)
                 taken[pick] = true;
                 numtaken++;
 
-                if (Spawner::Active)
+                if (Spawner::Active) {
                     Spawner::Get_Config()->Houses[hptr->Class->ID].SpawnLocation = pick;
+                }
 
             }
             else {
