@@ -98,11 +98,11 @@ bool Spawner::Start_Game()
 
     Active = true;
     GameActive = true;
-    Init_UI();
 
+    Init_UI();
     Read_Houses_And_Sides();
 
-    const bool result = Start_New_Scenario(Config->ScenarioName);
+    const bool result = Start_Scenario(Config->ScenarioName);
 
     Prepare_Screen();
 
@@ -115,12 +115,12 @@ bool Spawner::Start_Game()
  *
  *  @author: ZivDero
  */
-bool Spawner::Start_New_Scenario(const char* scenario_name)
+bool Spawner::Start_Scenario(const char* scenario_name)
 {
     /**
      *  Can't read an unnamed file, bail.
      */
-    if (scenario_name[0] == 0)
+    if (scenario_name[0] == 0 && !Config->LoadSaveGame)
     {
         DEBUG_INFO("[Spawner] Failed to read scenario [%s]\n", scenario_name);
         MessageBox(MainWindow, Text_String(TXT_UNABLE_READ_SCENARIO), "Vinifera", MB_OK);
@@ -204,32 +204,31 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
     {
         Session.Options.Goodies = true;
 
-        bool result = Config->LoadSaveGame ?
-            Load_Saved_Game(Config->SaveGameName) : Start_Scenario(scenario_name, false, static_cast<CampaignType>(Config->CampaignID));
+        const bool result = Config->LoadSaveGame ?
+            Load_Game(Config->SaveGameName) : ::Start_Scenario(scenario_name, false, static_cast<CampaignType>(Config->CampaignID));
 
         return result;
     }
     else if (Session.Type == GAME_SKIRMISH)
     {
-        bool result = Config->LoadSaveGame ?
-            Load_Saved_Game(Config->SaveGameName) : Start_Scenario(scenario_name, false, CAMPAIGN_NONE);
+        const bool result = Config->LoadSaveGame ?
+            Load_Game(Config->SaveGameName) : ::Start_Scenario(scenario_name, false, CAMPAIGN_NONE);
 
         return result;
     }
     else
     {
-        Spawner_Init_Network();
-        Session.NumPlayers = Session.Players.Count();
+        Init_Network();
 
         bool result = Config->LoadSaveGame ?
-            Load_Saved_Game(Config->SaveGameName) : Start_Scenario(scenario_name, false, CAMPAIGN_NONE);
+            Load_Game(Config->SaveGameName) : ::Start_Scenario(scenario_name, false, CAMPAIGN_NONE);
 
         if (!result)
             return false;
 
         Session.Type = GAME_IPX;
-        result = Session.Create_Connections();
 
+        result = Session.Create_Connections();
         return result;
     }
 }
@@ -240,9 +239,9 @@ bool Spawner::Start_New_Scenario(const char* scenario_name)
  *
  *  @author: ZivDero
  */
-bool Spawner::Load_Saved_Game(const char* file_name)
+bool Spawner::Load_Game(const char* file_name)
 {
-    if (!file_name[0] || !Load_Game(file_name))
+    if (!file_name[0] || !::Load_Game(file_name))
     {
         DEBUG_INFO("[Spawner] Failed to load savegame [%s]\n", file_name);
         MessageBox(MainWindow, Text_String(TXT_ERROR_LOADING_GAME), "Vinifera", MB_OK);
@@ -259,7 +258,7 @@ bool Spawner::Load_Saved_Game(const char* file_name)
  *
  *  @author: ZivDero
  */
-void Spawner::Spawner_Init_Network()
+void Spawner::Init_Network()
 {
     const unsigned short tunnel_id = htons(Config->TunnelId);
     const unsigned long tunnel_ip = inet_addr(Config->TunnelIp);
@@ -367,7 +366,7 @@ void Spawner::Spawner_Init_Network()
      */
     LoadMPSave = Config->LoadSaveGame;
 
-    Init_Network();
+    ::Init_Network();
 }
 
 

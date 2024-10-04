@@ -33,6 +33,8 @@
 class Spawner
 {
 public:
+    Spawner() = delete;
+
     static bool Active;
     static bool LoadMPSave;
 
@@ -40,21 +42,17 @@ private:
     static std::unique_ptr<SpawnerConfig> Config;
 
 public:
-    static SpawnerConfig* Get_Config()
-    {
-        return Config.get();
-    }
+    static SpawnerConfig* Get_Config() { return Config.get(); }
 
     static void Init();
     static bool Start_Game();
 
+private:
+    static bool Start_Scenario(const char* scenario_name);
+    static bool Load_Game(const char* file_name);
+
+    static void Init_Network();
     static void Init_UI();
     static void Prepare_Screen();
-
-private:
-    static bool Start_New_Scenario(const char* scenario_name);
-    static bool Load_Saved_Game(const char* file_name);
-
-    static void Spawner_Init_Network();
     static void Read_Houses_And_Sides();
 };
