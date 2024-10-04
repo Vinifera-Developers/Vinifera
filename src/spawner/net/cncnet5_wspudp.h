@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          CNCNET_GLOBALS.H
+ *  @file          CNCNET_WSPUDP.H
  *
  *  @author        CCHyper
  *
- *  @brief         Global values and types used for the CnCNet5 system. 
+ *  @brief         Variation of the UDP Winsock interface for CnCNet5.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -27,37 +27,42 @@
  ******************************************************************************/
 #pragma once
 
-#include <always.h>
+#include "wspudp.h"
+#include "tibsun_defines.h"
 
 
-namespace CnCNet5
+struct TunnelAddress
 {
-
-typedef struct TunnelInfoStruct
-{
-    unsigned long ID;
     unsigned long IP;
     unsigned short Port;
-    bool PortHack;
-
-    bool Is_Valid() const { return !(ID == -1 || IP == -1 || Port == -1); }
-
-} TunnelInfoStruct;
+};
 
 
 /**
- *  Has the CnCNet5 system been activated?
+ *  CnCNet5UDPInterfaceClass
+ *  
+ *  This class is a variation of the UDP Winsock interface to be used for
+ *  accessing the CnCNet5 tunnels. It should not be enabled unless the client
+ *  front end has also been activated.
  */
-extern bool IsActive;
+class CnCNet5UDPInterfaceClass : public UDPInterfaceClass
+{
+    public:
+        CnCNet5UDPInterfaceClass(unsigned short id, unsigned long ip, unsigned short port, bool port_hack = false);
+        virtual ~CnCNet5UDPInterfaceClass() override = default;
 
-/**
- *  Is the tunnel system active (set when tunnel information has been provided)?
- */
-extern bool IsTunnelActive;
+        virtual LRESULT Message_Handler(HWND hWnd, UINT uMsg, UINT wParam, LONG lParam) override;
 
-/**
- *  CnCNet5 UDP Tunnel info.
- */
-extern TunnelInfoStruct TunnelInfo;
+    private:
+        int Send_To(SOCKET s, const char *buf, int len, int flags, sockaddr_in *dest_addr, int addrlen);
+        int Receive_From(SOCKET s, char *buf, int len, int flags, sockaddr_in *src_addr, int *addrlen);
 
+    public:
+        TunnelAddress AddressList[MAX_PLAYERS];
+
+        unsigned short TunnelID;
+        unsigned long TunnelIP;
+        unsigned short TunnelPort;
+
+        bool PortHack;
 };

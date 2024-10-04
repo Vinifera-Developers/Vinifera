@@ -163,6 +163,7 @@ New:
 - Implement customizable mouse cursors and actions (by CCHyper/tomsons26, ZivDero)
 - Implement support for a Saved Games subdirectory (by ZivDero)
 
+- Implemented the multiplayer spawner (by ZivDero)
 
 Vanilla fixes:
 - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively (by CCHyper/tomsons26)

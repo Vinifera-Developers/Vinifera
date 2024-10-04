@@ -7,6 +7,7 @@ This page lists all the individual contributions to the project by their author.
 - **Belonit (Gluk-v48)**:
   - Check for Changelog/Documentation/Credits in Pull Requests.
   - Docs dark theme switcher.
+  - Porting the YR MP spawner from C to C++ and YR++, used as a base for the Vinifera spawner.
 - **CCHyper/tomsons26**:
   - Vinifera foundations: TS++, game.exe hooker, extension system and other core features
   - Implement `CurleyShuffle` for AircraftTypes
@@ -130,6 +131,8 @@ This page lists all the individual contributions to the project by their author.
   - Implement various controls to customise target lasers line.
   - Implement various controls to show and customise NavCom queue lines.
   - Implement customizable mouse cursors and actions.
+- **CnCNet Contributors**:
+  - Tiberian Sun TS-patches spawner, Yuri's Revenge CnCNet spawner that served as a base for Vinifera spawner.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **MarkJFox**:
@@ -200,4 +203,5 @@ This page lists all the individual contributions to the project by their author.
   - Update and finalize custom mouse cursors and actions, add customizable weapon & EMP cursors.
   - Implement support for a Saved Games subdirectory.
   - Fix a bug where if the player loaded a saved game, the score screen timer would report the time since the saved game was loaded, instead of since when the scenario was first started.
+  - Implement the multiplayer spawner.
 

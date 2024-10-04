@@ -134,6 +134,10 @@
 #include "savever.h"
 #include "vinifera_savever.h"
 #include "windialog.h"
+#include "fetchres.h"
+#include "spawner.h"
+#include "technoext.h"
+#include "verses.h"
 
 
 /**
