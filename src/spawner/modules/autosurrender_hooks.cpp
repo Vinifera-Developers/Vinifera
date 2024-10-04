@@ -37,7 +37,12 @@
 
 static bool PlayerHasSurrendered = false;
 
-// Force surrender on abort
+
+/**
+ *  Force surrender on abort.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_Standard_Options_Dialog_HANDLER_AutoSurrender)
 {
     if (Spawner::Active && Spawner::Get_Config()->AutoSurrender)
@@ -59,7 +64,11 @@ DECLARE_PATCH(_Standard_Options_Dialog_HANDLER_AutoSurrender)
 }
 
 
-// Force surrender on disconnection
+/**
+ *  Force surrender on disconnection.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_EventClass_Execute_REMOVE_PLAYER_AutoSurrender)
 {
     if (Spawner::Active && Spawner::Get_Config()->AutoSurrender)
@@ -80,8 +89,11 @@ DECLARE_PATCH(_EventClass_Execute_REMOVE_PLAYER_AutoSurrender)
 }
 
 
-// If I understand correctly what is happening in the 2 hacks below, when we the player opens a surrender dialog,
-// we default to considering him having surrendered, but if he aborts it, then we flag it accordingly
+/**
+ *  Two patches to save whether the player has surrendered.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_Special_Dialog_Surrender1)
 {
     PlayerHasSurrendered = true;
@@ -107,6 +119,9 @@ DECLARE_PATCH(_Special_Dialog_Surrender2)
 }
 
 
+/**
+ *  Main function for patching the hooks.
+ */
 void AutoSurrender_Hooks()
 {
     Patch_Jump(0x004B6D04, &_Standard_Options_Dialog_HANDLER_AutoSurrender);

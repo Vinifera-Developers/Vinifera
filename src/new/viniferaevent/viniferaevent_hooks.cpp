@@ -33,6 +33,11 @@
 #include "viniferaevent.h"
 
 
+ /**
+  *  Patch EventClass::Execute to execute our new events.
+  *
+  *  @author: ZivDero
+  */
 DECLARE_PATCH(_EventClass_Execute_ViniferaEvent)
 {
     GET_REGISTER_STATIC(ViniferaEventClass*, vevent, esi);
@@ -60,6 +65,11 @@ DECLARE_PATCH(_EventClass_Execute_ViniferaEvent)
 }
 
 
+/**
+ *  Patch event length in Add_Compressed_Events.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_Add_Compressed_Events_ViniferaEvent_Length)
 {
     GET_REGISTER_STATIC(unsigned char, eventtype, cl);
@@ -268,7 +278,9 @@ static int Vinifera_Extract_Compressed_Events(void* buf, int bufsize)
 }
 
 
-
+/**
+ *  Main function for patching the hooks.
+ */
 void ViniferaEvent_Hooks()
 {
     Patch_Jump(0x00494294, &_EventClass_Execute_ViniferaEvent);

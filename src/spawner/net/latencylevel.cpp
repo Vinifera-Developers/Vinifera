@@ -35,9 +35,16 @@
 #include "session.h"
 #include "rules.h"
 
+
 LatencyLevelEnum LatencyLevel::CurentLatencyLevel = LATENCY_LEVEL_INITIAL;
 unsigned char LatencyLevel::NewFrameSendRate = 3;
 
+
+/**
+ *  Sets the desired latency level.
+ *
+ *  @author: Belonit
+ */
 void LatencyLevel::Apply(LatencyLevelEnum new_latency_level)
 {
     if (new_latency_level > LATENCY_LEVEL_MAX)
@@ -64,6 +71,12 @@ void LatencyLevel::Apply(LatencyLevelEnum new_latency_level)
     Session.Messages.Add_Message(nullptr, 0, Get_Latency_Message(new_latency_level), ColorScheme::From_Name("White"), TPF_USE_GRAD_PAL | TPF_FULLSHADOW | TPF_6PT_GRAD, static_cast<int>(Rule->MessageDelay * TICKS_PER_MINUTE / 2));
 }
 
+
+/**
+ *  Gets the max ahead for the given latency level.
+ *
+ *  @author: Belonit
+ */
 unsigned int LatencyLevel::Get_Max_Ahead(LatencyLevelEnum latency_level)
 {
     const int maxAhead[] =
@@ -84,6 +97,12 @@ unsigned int LatencyLevel::Get_Max_Ahead(LatencyLevelEnum latency_level)
     return maxAhead[latency_level];
 }
 
+
+/**
+ *  Gets the chat message for the given latency level.
+ *
+ *  @author: Belonit
+ */
 const char* LatencyLevel::Get_Latency_Message(LatencyLevelEnum latency_level)
 {
     const char* message[] =
@@ -104,6 +123,12 @@ const char* LatencyLevel::Get_Latency_Message(LatencyLevelEnum latency_level)
     return message[latency_level];
 }
 
+
+/**
+ *  Gets the latency level for the given response time.
+ *
+ *  @author: Belonit
+ */
 LatencyLevelEnum LatencyLevel::From_Response_Time(unsigned int response_time)
 {
     for (char i = LATENCY_LEVEL_1; i < LATENCY_LEVEL_MAX; i++)

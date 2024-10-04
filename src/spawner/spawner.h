@@ -30,6 +30,10 @@
 #include "spawnerconfig.h"
 #include <memory>
 
+
+/**
+ *  This class contains all logic for spawning players in-game (usually via the client).
+ */
 class Spawner
 {
 public:

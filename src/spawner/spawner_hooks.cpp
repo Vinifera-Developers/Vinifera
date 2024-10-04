@@ -60,6 +60,11 @@ public:
 };
 
 
+/**
+ *  Patches Read_Scenario_Descriptions to do nothing when the spawner is active.
+ *
+ *  @author: ZivDero
+ */
 void SessionClassExt::_Read_Scenario_Descriptions()
 {
     if (Spawner::Active)
@@ -85,6 +90,11 @@ public:
 };
 
 
+/**
+ *  Patches Expert AI not the consider allies as enemies.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_HouseClass_Expert_AI_Check_Allies)
 {
     GET_REGISTER_STATIC(HouseClass*, this_ptr, edi);
@@ -99,6 +109,11 @@ DECLARE_PATCH(_HouseClass_Expert_AI_Check_Allies)
 }
 
 
+/**
+ *  Patches the score screen to be skipped if SkipScoreScreen is set.
+ *
+ *  @author: ZivDero
+ */
 static void MultiScore_Wrapper()
 {
     if (!Spawner::Get_Config()->SkipScoreScreen)
@@ -106,6 +121,9 @@ static void MultiScore_Wrapper()
 }
 
 
+/**
+ *  Main function for patching the hooks.
+ */
 void Spawner_Hooks()
 {
     Patch_Call(0x004629D1, &Spawner::Start_Game);   // Main_Game

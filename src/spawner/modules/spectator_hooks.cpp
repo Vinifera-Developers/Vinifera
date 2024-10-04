@@ -57,6 +57,11 @@ public:
 };
 
 
+/**
+ *  Helper function that returns if the house is a spectator.
+ *
+ *  @author: ZivDero
+ */
 bool HouseClassExt::_Is_Spectator() const
 {
     if (Spawner::Active)
@@ -68,6 +73,11 @@ bool HouseClassExt::_Is_Spectator() const
 }
 
 
+/**
+ *  Helper function that returns if the house is a coach.
+ *
+ *  @author: ZivDero
+ */
 bool HouseClassExt::_Is_Coach() const
 {
     if (Spawner::Active)
@@ -82,6 +92,11 @@ bool HouseClassExt::_Is_Coach() const
 }
 
 
+/**
+ *  Helper function that returns if the house is allied to the other house, or is a spectator.
+ *
+ *  @author: ZivDero
+ */
 bool HouseClassExt::_Is_Ally_Or_Spectator(const HouseClassExt* house) const
 {
     bool is_ally = HouseClass::Is_Ally(house);
@@ -103,6 +118,11 @@ bool HouseClassExt::_Is_Ally_Or_Spectator(const HouseClassExt* house) const
 }
 
 
+/**
+ *  Helper function that returns if the player has any allies.
+ *
+ *  @author: ZivDero
+ */
 bool HouseClassExt::_Has_Player_Allies() const
 {
     const char* SPECIAL = "Special";
@@ -117,6 +137,11 @@ bool HouseClassExt::_Has_Player_Allies() const
 }
 
 
+/**
+ *  Enable the radar for spectators.
+ *
+ *  @author: ZivDero
+ */
 static bool spectator_radar_enabled = false;
 void HouseClassExt::_Update_Radars()
 {
@@ -151,6 +176,11 @@ public:
 };
 
 
+/**
+ *  Don't encroach shadow for spectators.
+ *
+ *  @author: ZivDero
+ */
 void DisplayClassExt::_Encroach_Shadow_Spectator()
 {
     if (Spawner::Active && reinterpret_cast<HouseClassExt*>(PlayerPtr)->_Is_Spectator() && !reinterpret_cast<HouseClassExt*>(PlayerPtr)->_Is_Coach())
@@ -162,6 +192,11 @@ void DisplayClassExt::_Encroach_Shadow_Spectator()
 }
 
 
+/**
+ *  Don't encroach fog for spectators.
+ *
+ *  @author: ZivDero
+ */
 void DisplayClassExt::_Encroach_Fog_Spectator()
 {
     if (Spawner::Active && reinterpret_cast<HouseClassExt*>(PlayerPtr)->_Is_Spectator() && !reinterpret_cast<HouseClassExt*>(PlayerPtr)->_Is_Coach())
@@ -189,6 +224,11 @@ public:
 };
 
 
+/**
+ *  Don't reveal the map in coach mode.
+ *
+ *  @author: ZivDero
+ */
 void MapClassExt::_Reveal_The_Map()
 {
     if (Spawner::Active && Spawner::Get_Config()->CoachMode && reinterpret_cast<HouseClassExt*>(PlayerPtr)->_Is_Coach())
@@ -200,6 +240,11 @@ void MapClassExt::_Reveal_The_Map()
 }
 
 
+/**
+ *  Don't count spectators as defeated players.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_HouseClass_MPlayer_Defeated_Dont_Count_Spectators)
 {
     GET_REGISTER_STATIC(HouseClassExt*, hptr, eax);
@@ -223,6 +268,11 @@ DECLARE_PATCH(_HouseClass_MPlayer_Defeated_Dont_Count_Spectators)
 }
 
 
+/**
+ *  Don't process the radar for spectators.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_HouseClass_Radar_Outage_Spectators)
 {
     GET_STACK_STATIC8(bool, tactical_availability, esp, 0x4);
@@ -238,6 +288,11 @@ DECLARE_PATCH(_HouseClass_Radar_Outage_Spectators)
 }
 
 
+/**
+ *  Reveal the map for spectators.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_RadarClass_Compute_Radar_Image)
 {
     if (Spawner::Active)
@@ -262,6 +317,9 @@ DECLARE_PATCH(_RadarClass_Compute_Radar_Image)
 }
 
 
+/**
+ *  Main function for patching the hooks.
+ */
 void Spectator_Hooks()
 {
     Patch_Call(0x00506D7B, &DisplayClassExt::_Encroach_Shadow_Spectator);

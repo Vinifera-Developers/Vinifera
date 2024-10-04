@@ -37,25 +37,42 @@
 
 #include "debughandler.h"
 
+
 bool ProtocolZero::Enable = false;
 bool ProtocolZero::GetRealMaxAhead = false;
 unsigned int ProtocolZero::WorstMaxAhead = 24;
 unsigned char ProtocolZero::MaxLatencyLevel = 0xff;
 
+
+/**
+ *  Sends a Response Time event.
+ *
+ *  @author: Belonit
+ */
 void ProtocolZero::Send_Response_Time()
 {
-    if (Session.Type == GAME_NORMAL)
+    if (Enable == false || Session.Singleplayer_Game())
         return;
 
     static int NextSendFrame = 6 * SendResponseTimeInterval;
 
+    /**
+     *  It is not yet time to send a Response Time event.
+     */
     if (Frame <= NextSendFrame)
         return;
 
+    /**
+     *  IPXManagerClass::Response_Time is patched to return ProtocolZero::MaxAhead,
+     *  so to get the real MaxAhead we set this bool to true just for this call.
+     */
     GetRealMaxAhead = true;
     const unsigned int ipxResponseTime = Ipx.Response_Time();
     GetRealMaxAhead = false;
 
+    /**
+     *  Create the event.
+     */
     ViniferaEventClass event;
     event.Type = VEVENT_RESPONSE_TIME_2;
     event.ID = PlayerPtr->Get_Heap_ID();
@@ -63,6 +80,9 @@ void ProtocolZero::Send_Response_Time()
     event.Data.ResponseTime2.MaxAhead = static_cast<unsigned char>(ipxResponseTime + 1);
     event.Data.ResponseTime2.LatencyLevel = LatencyLevel::From_Response_Time(ipxResponseTime);
 
+    /**
+     *  Send it!
+     */
     if (OutList.Add(event.As_Event()))
     {
         NextSendFrame = Frame + SendResponseTimeInterval;
@@ -79,9 +99,15 @@ void ProtocolZero::Send_Response_Time()
     }
 }
 
+
+/**
+ *  Executes a Response Time event.
+ *
+ *  @author: Belonit
+ */
 void ProtocolZero::Handle_Response_Time(ViniferaEventClass* event)
 {
-    if (Enable == false || Session.Type == GAME_NORMAL)
+    if (Enable == false || Session.Singleplayer_Game())
         return;
 
     if (event->Data.ResponseTime2.MaxAhead == 0)
@@ -94,10 +120,16 @@ void ProtocolZero::Handle_Response_Time(ViniferaEventClass* event)
     static unsigned char PlayerLatencyMode[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
     static unsigned int PlayerLastTimingFrame[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
+    /**
+     *  Save the info we got from the event.
+     */
     PlayerMaxAheads[event->ID] = event->Data.ResponseTime2.MaxAhead;
     PlayerLatencyMode[event->ID] = event->Data.ResponseTime2.LatencyLevel;
     PlayerLastTimingFrame[event->ID] = event->Frame;
 
+    /**
+     *  Now loop all the players and find the worst one latency-wise.
+     */
     unsigned char latency_mode = 0;
     unsigned int max_ahead = 0;
 
@@ -116,6 +148,9 @@ void ProtocolZero::Handle_Response_Time(ViniferaEventClass* event)
         }
     }
 
+    /**
+     *  The worst determines the settings for all the players.
+     */
     WorstMaxAhead = max_ahead;
     LatencyLevel::Apply(latency_mode);
 }

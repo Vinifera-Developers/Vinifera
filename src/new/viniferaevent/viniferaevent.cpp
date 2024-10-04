@@ -32,6 +32,9 @@
 #include "asserthandler.h"
 #include "protocolzero.h"
 
+ /**
+  *  Arrays with new event lengths and names.
+  */
 unsigned char ViniferaEventLength[VEVENT_COUNT - EVENT_COUNT]
 {
 	sizeof(ViniferaEventClass::Data.ResponseTime2)
@@ -43,6 +46,11 @@ const char* ViniferaEventNames[VEVENT_COUNT - EVENT_COUNT]
 };
 
 
+/**
+ *  Execute our new event.
+ *
+ *  @author: ZivDero
+ */
 void ViniferaEventClass::Execute()
 {
 	switch (Type)
@@ -56,6 +64,12 @@ void ViniferaEventClass::Execute()
 	}
 }
 
+
+/**
+ *  Get the length of this event.
+ *
+ *  @author: ZivDero
+ */
 unsigned char ViniferaEventClass::Event_Length(ViniferaEventType type)
 {
 	ASSERT(type >= 0 && type < VEVENT_COUNT);
@@ -66,6 +80,12 @@ unsigned char ViniferaEventClass::Event_Length(ViniferaEventType type)
 	return ViniferaEventLength[type - EVENT_COUNT];
 }
 
+
+/**
+ *  Get the name of this event.
+ *
+ *  @author: ZivDero
+ */
 const char* ViniferaEventClass::Event_Name(ViniferaEventType type)
 {
 	ASSERT(type >= 0 && type < VEVENT_COUNT);
@@ -76,6 +96,12 @@ const char* ViniferaEventClass::Event_Name(ViniferaEventType type)
 	return ViniferaEventNames[type - EVENT_COUNT];
 }
 
+
+/**
+ *  Check if this event was added by Vinifera.
+ *
+ *  @author: ZivDero
+ */
 bool ViniferaEventClass::Is_Vinifera_Event(ViniferaEventType type)
 {
 	return (type >= VEVENT_FIRST && type < VEVENT_COUNT);

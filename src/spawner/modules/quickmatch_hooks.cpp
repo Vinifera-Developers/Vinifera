@@ -37,7 +37,9 @@
 
 #include "hooker_macros.h"
 
+
 static const char* PLAYER = "Player";
+
 
 /**
   *  A fake class for implementing new member functions which allow
@@ -55,6 +57,11 @@ public:
 };
 
 
+/**
+ *  Hide the player names when the IPX manager is asked for it.
+ *
+ *  @author: ZivDero
+ */
 char* IPXManagerClassExt::_Connection_Name(int id)
 {
     if (Spawner::Active && Spawner::Get_Config()->QuickMatch)
@@ -68,6 +75,11 @@ char* IPXManagerClassExt::_Connection_Name(int id)
 }
 
 
+/**
+ *  Hide the player names in the in the radar.
+ *
+ *  @author: ZivDero
+ */
 static int __cdecl sprintf_RadarClass_Draw_Names_Wrapper(char* buffer, const char* format, char* str)
 {
     if (Spawner::Active && Spawner::Get_Config()->QuickMatch)
@@ -81,6 +93,11 @@ static int __cdecl sprintf_RadarClass_Draw_Names_Wrapper(char* buffer, const cha
 }
 
 
+/**
+ *  Hide the player names in the on the progress screen.
+ *
+ *  @author: ZivDero
+ */
 static Point2D Fancy_Text_Print_ProgressScreenClass_Draw_Graphics_Wrapper(const char* text, XSurface* surface, Rect* rect, Point2D* xy, ColorScheme* fore, unsigned back, TextPrintType flag)
 {
     if (Spawner::Active && Spawner::Get_Config()->QuickMatch)
@@ -94,6 +111,11 @@ static Point2D Fancy_Text_Print_ProgressScreenClass_Draw_Graphics_Wrapper(const 
 }
 
 
+/**
+ *  Hide the player anmes in the Kick Player dialog.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_Kick_Player_Dialog_SendMessage_Hide_Name)
 {
     GET_REGISTER_STATIC(HWND, hWnd, ebp);
@@ -116,6 +138,9 @@ DECLARE_PATCH(_Kick_Player_Dialog_SendMessage_Hide_Name)
 }
 
 
+/**
+ *  Main function for patching the hooks.
+ */
 void QuickMatch_Hooks()
 {
     Patch_Call(0x005B980E, &sprintf_RadarClass_Draw_Names_Wrapper);

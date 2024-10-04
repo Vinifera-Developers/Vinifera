@@ -27,7 +27,6 @@
  ******************************************************************************/
 #pragma once
 
-#include <cstdint>
 
 enum LatencyLevelEnum : unsigned char
 {
@@ -47,6 +46,12 @@ enum LatencyLevelEnum : unsigned char
     LATENCY_SIZE = 1 + LATENCY_LEVEL_MAX
 };
 
+
+/**
+ *  LatencyLevel
+ *
+ *  This class is contains methods for working with Protocol 0 latency levels.
+ */
 class LatencyLevel
 {
 public:

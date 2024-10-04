@@ -29,6 +29,12 @@
 
 class ViniferaEventClass;
 
+
+/**
+ *  ProtocolZero
+ *
+ *  This class is contains methods and the state of Protocol 0.
+ */
 class ProtocolZero
 {
 private:

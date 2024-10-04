@@ -31,6 +31,10 @@
 
 class CCINIClass;
 
+
+/**
+ *  This class contains all the configuration for the spawner, usually read from SPAWN.INI.
+ */
 class SpawnerConfig
 {
     /**

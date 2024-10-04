@@ -42,6 +42,11 @@ namespace SavedGames
 {
     static char Buffer[PATH_MAX];
 
+    /**
+     *  Make sure the subdirectory exists, and create it if not
+     *
+     *  @author: ZivDero
+     */
     bool Ensure_Folder_Exists(const char* path)
     {
         const DWORD attributes = GetFileAttributes(path);
@@ -61,12 +66,23 @@ namespace SavedGames
         return true; 
     }
 
+
+    /**
+     *  Format the path to contain the subdirectory.
+     *
+     *  @author: Belonit
+     */
     inline void Format_Path(char* buffer, size_t buffer_size, const char* filename)
     {
         std::snprintf(buffer, buffer_size, "%s\\%s", Spawner::Get_Config()->SavedGamesDir, filename);
     }
 
-    void Check_And_Format_Path(char* buffer, size_t buffer_size, const char* filename)
+    /**
+     *  Format the path to contain the subdirectory, if it doesn't already.
+     *
+     *  @author: ZivDero
+     */
+    inline void Check_And_Format_Path(char* buffer, size_t buffer_size, const char* filename)
     {
         std::strstr(filename, Spawner::Get_Config()->SavedGamesDir) ? std::snprintf(buffer, buffer_size, "%s", filename) : Format_Path(buffer, buffer_size, filename);
     }
@@ -89,6 +105,11 @@ public:
 };
 
 
+/**
+ *  Make sure the file name contains the subdirectory when deleting games.
+ *
+ *  @author: ZivDero
+ */
 bool LoadOptionsClassExt::_Delete_File(const char* filename)
 {
     SavedGames::Check_And_Format_Path(SavedGames::Buffer, std::size(SavedGames::Buffer), filename);
@@ -96,6 +117,11 @@ bool LoadOptionsClassExt::_Delete_File(const char* filename)
 }
 
 
+/**
+ *  Make sure the file name contains the subdirectory in LoadOptionsClass.
+ *
+ *  @author: ZivDero
+ */
 int __cdecl sprintf_LoadOptionsClass_Wrapper1(char* buffer, const char*, int number, char* str)
 {
     // First create the format string itself, using our custom folder, e. g. "Saved Games\SAVE%04lX.%3s"
@@ -106,6 +132,11 @@ int __cdecl sprintf_LoadOptionsClass_Wrapper1(char* buffer, const char*, int num
 }
 
 
+/**
+ *  Make sure the file name contains the subdirectory in LoadOptionsClass.
+ *
+ *  @author: ZivDero
+ */
 int __cdecl sprintf_LoadOptionsClass_Wrapper2(char* buffer, const char*, char* str)
 {
     // First create the format string itself, using our custom folder, e. g. "Saved Games\*.%3s"
@@ -116,6 +147,11 @@ int __cdecl sprintf_LoadOptionsClass_Wrapper2(char* buffer, const char*, char* s
 }
 
 
+/**
+ *  Make sure the file name contains the subdirectory when saving the game.
+ *
+ *  @author: ZivDero
+ */
 void __cdecl DebugString_Save_Game_Wrapper(const char* format, char* file_name, const char* descr)
 {
     // Print the string it was going to print
@@ -132,6 +168,11 @@ void __cdecl DebugString_Save_Game_Wrapper(const char* format, char* file_name, 
 }
 
 
+/**
+ *  Make sure the file name contains the subdirectory when loading the game.
+ *
+ *  @author: ZivDero
+ */
 void __cdecl DebugString_Load_Game_Wrapper(const char* format, char* file_name)
 {
     // Print the string it was going to print
@@ -145,6 +186,11 @@ void __cdecl DebugString_Load_Game_Wrapper(const char* format, char* file_name)
 }
 
 
+/**
+ *  Make sure the file name contains the subdirectory when reading savefile readers.
+ *
+ *  @author: ZivDero
+ */
 bool Get_Savefile_Info_Wrapper(char* file_name, void* wwsaveload)
 {
     SavedGames::Check_And_Format_Path(SavedGames::Buffer, std::size(SavedGames::Buffer), file_name);
@@ -156,6 +202,9 @@ bool Get_Savefile_Info_Wrapper(char* file_name, void* wwsaveload)
 }
 
 
+/**
+ *  Main function for patching the hooks.
+ */
 void SavedGamesDir_Hooks()
 {
     Patch_Call(0x00505001, &sprintf_LoadOptionsClass_Wrapper1);

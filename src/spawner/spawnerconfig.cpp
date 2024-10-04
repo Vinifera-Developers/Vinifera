@@ -30,12 +30,20 @@
 
 #include "ccini.h"
 
+
+/**
+ *  Reads spawner config from the INI.
+ *
+ *  @author: Belonit, ZivDero
+ */
 void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
 {
     static char const* const SETTINGS = "Settings";
     static char const* const TUNNEL = "Tunnel";
 
-    // Game Mode Options
+    /**
+     *  Game Mode Options
+     */
     Bases          = spawn_ini.Get_Bool(SETTINGS, "Bases", Bases);
     Credits        = spawn_ini.Get_Int(SETTINGS, "Credits", Credits);
     BridgeDestroy  = spawn_ini.Get_Bool(SETTINGS, "BridgeDestroy", BridgeDestroy);
@@ -52,12 +60,16 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
     FogOfWar       = spawn_ini.Get_Bool(SETTINGS, "FogOfWar", FogOfWar);
     MCVRedeploy    = spawn_ini.Get_Bool(SETTINGS, "MCVRedeploy", MCVRedeploy);
 
-    // SaveGame Options
+    /**
+     *  Savegame Options
+     */
     LoadSaveGame      = spawn_ini.Get_Bool(SETTINGS, "LoadSaveGame", LoadSaveGame);
     /* SavedGamesDir */ spawn_ini.Get_String(SETTINGS, "SavedGamesDir", SavedGamesDir, SavedGamesDir, sizeof(SavedGamesDir));
     /* SaveGameName */  spawn_ini.Get_String(SETTINGS, "SaveGameName", SaveGameName, SaveGameName, sizeof(SaveGameName));
 
-    // Scenario Options
+    /**
+     *  Scenario Options
+     */
     Seed             = spawn_ini.Get_Int(SETTINGS, "Seed", Seed);
     TechLevel        = spawn_ini.Get_Int(SETTINGS, "TechLevel", TechLevel);
     IsCampaign       = spawn_ini.Get_Bool(SETTINGS, "IsSinglePlayer", IsCampaign);
@@ -68,7 +80,9 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
     /* MapHash      */ spawn_ini.Get_String(SETTINGS, "MapHash", MapHash, MapHash, sizeof(MapHash));
                        spawn_ini.Get_String(SETTINGS, "UIMapName", UIMapName, UIMapName, sizeof(UIMapName));
 
-    // Network Options
+    /**
+     *  Network Options
+     */
     Protocol         = spawn_ini.Get_Int(SETTINGS, "Protocol", Protocol);
     FrameSendRate    = spawn_ini.Get_Int(SETTINGS, "FrameSendRate", FrameSendRate);
     ReconnectTimeout = spawn_ini.Get_Int(SETTINGS, "ReconnectTimeout", ReconnectTimeout);
@@ -77,13 +91,17 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
     PreCalcMaxAhead  = spawn_ini.Get_Int(SETTINGS, "PreCalcMaxAhead", PreCalcMaxAhead);
     MaxLatencyLevel  = spawn_ini.Get_Int(SETTINGS, "MaxLatencyLevel", MaxLatencyLevel);
 
-    // Tunnel Options
+    /**
+     *  Tunnel Options
+     */
     TunnelId     = spawn_ini.Get_Int(SETTINGS, "Port", TunnelId);
     ListenPort   = spawn_ini.Get_Int(SETTINGS, "Port", ListenPort);
     /* TunnelIp */ spawn_ini.Get_String(TUNNEL, "Ip", TunnelIp, TunnelIp, sizeof(TunnelIp));
     TunnelPort   = spawn_ini.Get_Int(TUNNEL, "Port", TunnelPort);
 
-    // Players Options
+    /**
+     *  Player and House Options
+     */
     for (int i = 0; i < std::size(Players); ++i)
     {
         Players[i].Read_INI(spawn_ini, i);
@@ -93,7 +111,9 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
         Houses[i].Read_INI(spawn_ini, i);
     }
 
-    // Extended Options
+    /**
+     *  Extended Options
+     */
     Firestorm                = spawn_ini.Get_Bool(SETTINGS, "Firestorm", Firestorm);
     QuickMatch               = spawn_ini.Get_Bool(SETTINGS, "QuickMatch", QuickMatch);
     SkipScoreScreen          = spawn_ini.Get_Bool(SETTINGS, "SkipScoreScreen", SkipScoreScreen);
@@ -103,7 +123,8 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
     AutoSurrender            = spawn_ini.Get_Bool(SETTINGS, "AutoSurrender", AutoSurrender);
 }
 
-constexpr char* PlayerSectionArray[8] = {
+
+static constexpr char* PlayerSectionArray[8] = {
     "Settings",
     "Other1",
     "Other2",
@@ -114,7 +135,8 @@ constexpr char* PlayerSectionArray[8] = {
     "Other7"
 };
 
-constexpr char* MultiTagArray[8] = {
+
+static constexpr char* MultiTagArray[8] = {
     "Multi1",
     "Multi2",
     "Multi3",
@@ -125,7 +147,8 @@ constexpr char* MultiTagArray[8] = {
     "Multi8"
 };
 
-constexpr char* AlliancesSectionArray[8] = {
+
+static constexpr char* AlliancesSectionArray[8] = {
     "Multi1_Alliances",
     "Multi2_Alliances",
     "Multi3_Alliances",
@@ -136,7 +159,8 @@ constexpr char* AlliancesSectionArray[8] = {
     "Multi8_Alliances"
 };
 
-constexpr char* AlliancesTagArray[8] = {
+
+static constexpr char* AlliancesTagArray[8] = {
     "HouseAllyOne",
     "HouseAllyTwo",
     "HouseAllyThree",
@@ -147,6 +171,12 @@ constexpr char* AlliancesTagArray[8] = {
     "HouseAllyEight"
 };
 
+
+/**
+ *  Reads player's config from the INI.
+ *
+ *  @author: Belonit, ZivDero
+ */
 void SpawnerConfig::PlayerConfig::Read_INI(CCINIClass& spawn_ini, int index)
 {
     if (index >= MAX_PLAYERS)
@@ -176,6 +206,12 @@ void SpawnerConfig::PlayerConfig::Read_INI(CCINIClass& spawn_ini, int index)
     }
 }
 
+
+/**
+ *  Reads house's config from the INI.
+ *
+ *  @author: Belonit, ZivDero
+ */
 void SpawnerConfig::HouseConfig::Read_INI(CCINIClass& spawn_ini, int index)
 {
     if (index >= MAX_PLAYERS)

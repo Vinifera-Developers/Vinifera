@@ -56,6 +56,11 @@ public:
 };
 
 
+/**
+ *  Patch to log network parameters.
+ *
+ *  @author: ZivDero
+ */
 void IPXManagerClassExt::_Set_Timing(unsigned long retrydelta, unsigned long maxretries, unsigned long timeout, bool global)
 {
     if (ProtocolZero::Enable) {
@@ -89,6 +94,11 @@ void IPXManagerClassExt::_Set_Timing(unsigned long retrydelta, unsigned long max
 }
 
 
+/**
+ *  Patch IPXManagerClass to return our MaxAhead when Protocol 0 is active.
+ *
+ *  @author: ZivDero
+ */
 unsigned long IPXManagerClassExt::_Response_Time()
 {
     if (ProtocolZero::Enable && !ProtocolZero::GetRealMaxAhead) {
@@ -125,6 +135,11 @@ public:
 };
 
 
+/**
+ *  Convenient patch in Main_Loop to send a Response Time event.
+ *
+ *  @author: ZivDero
+ */
 bool MessageListClassExt::_Manage()
 {
     if (ProtocolZero::Enable)
@@ -150,6 +165,11 @@ public:
 };
 
 
+/**
+ *  Executes the adjusted Timing event.
+ *
+ *  @author: ZivDero
+ */
 void EventClassExt::_Execute_Timing()
 {
     if (!ProtocolZero::Enable)
@@ -174,6 +194,11 @@ void EventClassExt::_Execute_Timing()
 }
 
 
+/**
+ *  Patch executing the Timing event, taking Protocol 0 into consideration.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_ProtocolZero_EventClass_Execute)
 {
     GET_REGISTER_STATIC(EventClassExt*, e, esi);
@@ -184,6 +209,11 @@ DECLARE_PATCH(_ProtocolZero_EventClass_Execute)
 }
 
 
+/**
+ *  Skip checking MySent, if Protocol 0 is active.
+ *
+ *  @author: ZivDero
+ */
 static short& MySent = Make_Global<short>(0x008099F0);
 DECLARE_PATCH(_ProtocolZero_Queue_AI_Multiplayer_1)
 {
@@ -196,6 +226,11 @@ DECLARE_PATCH(_ProtocolZero_Queue_AI_Multiplayer_1)
 }
 
 
+/**
+ *  Adds the adjusted Timing event.
+ *
+ *  @author: ZivDero
+ */
 static void Add_Timing_Event()
 {
     DEBUG_INFO("[Spawner] Sending precalculated network timings on frame %d\n", Frame);
@@ -213,6 +248,11 @@ static void Add_Timing_Event()
 }
 
 
+/**
+ *  Patch adding the Timing event, taking Protocol 0 into consideration.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_ProtocolZero_Queue_AI_Multiplayer_2)
 {
     Add_Timing_Event();
@@ -220,6 +260,11 @@ DECLARE_PATCH(_ProtocolZero_Queue_AI_Multiplayer_2)
 }
 
 
+/**
+ *  Adds the adjusted Timing event.
+ *
+ *  @author: ZivDero
+ */
 static void Add_Timing_Event_2(int max_ahead)
 {
     EventClass ev;
@@ -232,6 +277,11 @@ static void Add_Timing_Event_2(int max_ahead)
 }
 
 
+/**
+ *  Patch adding the Timing event, taking Protocol 0 into consideration.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_ProtocolZero_Queue_AI_Multiplayer_3)
 {
     GET_REGISTER_STATIC(int, max_ahead, edi);
@@ -244,6 +294,11 @@ DECLARE_PATCH(_ProtocolZero_Queue_AI_Multiplayer_3)
 }
 
 
+/**
+ *  If Protocol 0 is enabled, allow some types of packets to come in late.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_ProtocolZero_ExecuteDoList)
 {
     GET_REGISTER_STATIC(EventClass*, event, esi)
@@ -269,6 +324,9 @@ DECLARE_PATCH(_ProtocolZero_ExecuteDoList)
 }
 
 
+/**
+ *  Main function for patching the hooks.
+ */
 void ProtocolZero_Hooks()
 {
     Patch_Call(0x005091A5, &MessageListClassExt::_Manage);

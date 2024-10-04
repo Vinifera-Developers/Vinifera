@@ -71,6 +71,11 @@ public:
 };
 
 
+/**
+ *  Write statistics to a file for the client.
+ *
+ *  @author: ZivDero
+ */
 char* PacketClassExt::_Create_Comms_Packet(int& size)
 {
     char* result = Create_Comms_Packet(size);
@@ -91,6 +96,11 @@ char* PacketClassExt::_Create_Comms_Packet(int& size)
 }
 
 
+/**
+ *  Add some scenario-related fields to the statistics packet.
+ *
+ *  @author: ZivDero
+ */
 void PacketClassExt::_Add_Field_SCEN_ACCN_HASH(FieldClass* field)
 {
     if (Is_Statistics_Enabled())
@@ -111,6 +121,11 @@ void PacketClassExt::_Add_Field_SCEN_ACCN_HASH(FieldClass* field)
 }
 
 
+/**
+ *  Add some player-related fields to the statistics packet.
+ *
+ *  @author: ZivDero
+ */
 void PacketClassExt::_Add_Field_Player_Data(FieldClass* field)
 {
     // This is the global string "NAM?"
@@ -157,7 +172,11 @@ void PacketClassExt::_Add_Field_Player_Data(FieldClass* field)
 }
 
 
-
+/**
+ *  Numerous patches to enable statistics collection.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_BuildingClass_Captured_SendStatistics)
 {
     if (Is_Statistics_Enabled())
@@ -367,6 +386,11 @@ DECLARE_PATCH(_Main_Game_Start_Timer)
 }
 
 
+/**
+ *  Don't send statistics for observers.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_Send_Statistics_Packet_Send_AI_Dont_Send_Observers)
 {
     GET_REGISTER_STATIC(HouseClass*, house, eax);
@@ -394,6 +418,9 @@ DECLARE_PATCH(_Send_Statistics_Packet_Send_AI_Dont_Send_Observers)
 }
 
 
+/**
+ *  Main function for patching the hooks.
+ */
 void Statistics_Hooks()
 {
     Patch_Call(0x0060A797, &PacketClassExt::_Create_Comms_Packet);
