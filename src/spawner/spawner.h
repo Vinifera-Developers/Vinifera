@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          CNCNET4_GLOBALS.H
+ *  @file          SPAWNER.H
  *
- *  @author        CCHyper
+ *  @author        Belonit, ZivDero
  *
- *  @brief         CnCNet4 global values.
+ *  @brief         Multiplayer spawner class.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -27,30 +27,37 @@
  ******************************************************************************/
 #pragma once
 
-#include <winsock2.h>
-#include <windows.h>
+#include "spawnerconfig.h"
+#include <memory>
 
 
-namespace CnCNet4 {
+/**
+ *  This class contains all logic for spawning players in-game (usually via the client).
+ */
+class Spawner
+{
+public:
+    Spawner() = delete;
 
-extern bool IsEnabled;
+    static bool Active;
 
-extern char Host[256];
-extern unsigned Port;
-extern bool Peer2Peer;
-extern bool IsDedicated;
-extern bool UseUDP;
+private:
+    static std::unique_ptr<SpawnerConfig> Config;
 
-extern struct sockaddr_in Server;
+public:
+    static SpawnerConfig* Get_Config() { return Config.get(); }
 
-}; // namespace CnCNet4
+    static void Init();
+    static bool Start_Game();
 
+private:
+    static bool Start_Scenario(const char* scenario_name);
+    static bool Load_Game(const char* file_name);
 
-int __stdcall bind_intercept(SOCKET s, const struct sockaddr *name, int namelen);
-int __stdcall closesocket_intercept(SOCKET s);
-int __stdcall getsockname_intercept(SOCKET s, struct sockaddr *name, int *namelen);
-int __stdcall getsockopt_intercept(SOCKET s, int level, int optname, char *optval, int *optlen);
-int __stdcall recvfrom_intercept(SOCKET s, char *buf, int len, int flags, struct sockaddr *from, int *fromlen);
-int __stdcall sendto_intercept(SOCKET s, const char *buf, int len, int flags, const struct sockaddr *to, int tolen);
-int __stdcall setsockopt_intercept(SOCKET s, int level, int optname, const char *optval, int optlen);
-SOCKET __stdcall socket_intercept(int af, int type, int protocol);
+    static void Init_Network();
+    static bool Reconcile_Players();
+
+    static void Init_UI();
+    static void Prepare_Screen();
+    static void Read_Houses_And_Sides();
+};

@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          SETUP_HOOKS.CPP
+ *  @file          PROTOCOLZERO.H
  *
- *  @author        CCHyper
+ *  @author        Belonit, ZivDero
  *
- *  @brief         Contains the main function that sets up all hooks.
+ *  @brief         Protocol zero.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -25,35 +25,27 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "setup_hooks.h"
+#pragma once
+
+class ViniferaEventClass;
+
 
 /**
- *  Include the hook headers here.
+ *  ProtocolZero
+ *
+ *  This class is contains methods and the state of Protocol 0.
  */
-#include "vinifera_newdel.h"
-#include "crt_hooks.h"
-#include "debug_hooks.h"
-#include "vinifera_hooks.h"
-#include "newswizzle_hooks.h"
-#include "extension_hooks.h"
-#include "sidebarext_hooks.h"
-
-
-void Setup_Hooks()
+class ProtocolZero
 {
-    Vinifera_Memory_Hooks();
+private:
+    static constexpr int SendResponseTimeInterval = 30;
 
-    CRT_Hooks();
-    Debug_Hooks();
-    Vinifera_Hooks();
-    NewSwizzle_Hooks();
-    Extension_Hooks();
-}
+public:
+    static bool Enable;
+    static bool GetRealMaxAhead;
+    static unsigned char MaxLatencyLevel;
+    static unsigned int WorstMaxAhead;
 
-/**
- *  Contains hooks that need to be set after we load VINIFERA.INI.
- */
-void Setup_Conditional_Hooks()
-{
-    SidebarClassExtension_Conditional_Hooks();
-}
+    static void Send_Response_Time();
+    static void Handle_Response_Time(ViniferaEventClass* event);
+};

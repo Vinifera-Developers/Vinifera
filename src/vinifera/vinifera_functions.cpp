@@ -29,9 +29,6 @@
 #include "vinifera_globals.h"
 #include "vinifera_newdel.h"
 #include "tibsun_globals.h"
-#include "cncnet4.h"
-#include "cncnet4_globals.h"
-#include "cncnet5_globals.h"
 #include "rulesext.h"
 #include "ccfile.h"
 #include "ccini.h"
@@ -60,6 +57,8 @@
 
 #include "rocketlocomotion.h"
 #include "setup_hooks.h"
+#include "spawner.h"
+#include "spawner_hooks.h"
 
 
 static DynamicVectorClass<Wstring> ViniferaSearchPaths;
@@ -298,6 +297,16 @@ bool Vinifera_Parse_Command_Line(int argc, char *argv[])
         }
 
         /**
+         *  Start in spawner mode.
+         */
+        if (stricmp(string, "-SPAWN") == 0) {
+            DEBUG_INFO("  - Spawner enabled.\n");
+            Spawner::Init();
+            Spawner_Hooks();
+            continue;
+        }
+
+        /**
          *  Skip the startup videos.
          */
         if (stricmp(string, "-NO_STARTUP_VIDEO") == 0) {
@@ -501,38 +510,10 @@ bool Vinifera_Startup()
     ViniferaSearchPaths.Add("TS3");
 #endif
 
-    /**
-     *  #issue-514:
-     * 
-     *  Adds various search paths for loading files locally for the TS-Client builds only.
-     * 
-     *  #NOTE: REMOVED: Additional paths must now be set via SearchPaths in VINIFERA.INI!
-     * 
-     *  @author: CCHyper
-     */
-#if 0 // #if defined(TS_CLIENT)
-
-    // Only required for the TS Client builds as most projects will
-    // put VINIFERA.INI in this directory.
-    ViniferaSearchPaths.Add("INI");
-
-    // Required for startup mix files to be found.
-    ViniferaSearchPaths.Add("MIX");
-#endif
-
 #if !defined(TS_CLIENT)
     // Required for startup movies to be found.
     ViniferaSearchPaths.Add("MOVIES");
 #endif
-
-    // REMOVED: Paths are now set via SearchPaths in VINIFERA.INI
-//#if defined(TS_CLIENT)
-//    ViniferaSearchPaths.Add("MUSIC");
-//    ViniferaSearchPaths.Add("SOUNDS");
-//    ViniferaSearchPaths.Add("MAPS");
-//    ViniferaSearchPaths.Add("MAPS\\MULTIPLAYER");
-//    ViniferaSearchPaths.Add("MAPS\\MISSION");
-//#endif
 
     /**
      *  Load Vinifera settings and overrides.
@@ -614,32 +595,8 @@ bool Vinifera_Startup()
         return false;
     }
 
-#if !defined(TS_CLIENT)
-    /**
-     *  Initialise the CnCNet4 system.
-     */
-    if (!CnCNet4::Init()) {
-        CnCNet4::IsEnabled = false;
-        DEBUG_WARNING("Failed to initialise CnCNet4, continuing without CnCNet4 support!\n");
-    }
-
-    /**
-     *  Disable CnCNet4 if CnCNet5 is active, they can not co-exist.
-     */
-    if (CnCNet4::IsEnabled && CnCNet5::IsActive) {
-        CnCNet4::Shutdown();
-        CnCNet4::IsEnabled = false;
-    }
-#else
-    /**
-     *  Client builds can only use CnCNet5.
-     */
-    CnCNet4::IsEnabled = false;
-    //CnCNet5::IsActive = true; // Enable when new Client system is implemented.
-#endif
-
     KamikazeTracker = new KamikazeTrackerClass;
-
+    
     return true;
 }
 
@@ -721,13 +678,6 @@ int Vinifera_Pre_Init_Game(int argc, char *argv[])
         DEV_DEBUG_WARNING("UI.INI not found!\n");
     }
 
-#if defined(TS_CLIENT)
-    /**
-     *  The TS Client allows player to jump right into a game, so no need to
-     *  show the startup movies for these builds.
-     */
-    Vinifera_SkipStartupMovies = true;
-#endif
 
     /**
      *  Read the mouse controls and overrides.
