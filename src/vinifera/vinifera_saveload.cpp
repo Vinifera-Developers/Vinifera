@@ -109,6 +109,9 @@
 #include "session.h"
 #include "addon.h"
 #include "ccini.h"
+#include "fetchres.h"
+#include "language.h"
+#include "spawner.h"
 #include "technoext.h"
 #include "verses.h"
 
@@ -737,5 +740,106 @@ void Vinifera_Remap_Storage_Pointers()
     {
         const HouseClass* house = Houses[i];
         Extension::Fetch<HouseClassExtension>(house)->Put_Storage_Pointers();
+    }
+}
+
+/**
+ *  Reconciles loaded data with the "Players" vector.
+ *
+ *  This function is for supporting loading a saved multiplayer game.
+ *  When the game is loaded, we have to figure out which house goes with
+ *  which entry in the Players vector. We also have to figure out if
+ *  everyone who was originally in the game is still with us, and if not,
+ *  turn their stuff over to the computer.
+ */
+bool Reconcile_Players()
+{
+    int i;
+    bool found;
+    int house;
+    HouseClass* housep;
+
+    /**
+     *  If there are no players, there's nothing to do.
+     */
+    if (Session.Players.Count() == 0)
+        return true;
+
+    /**
+     *  Make sure every name we're connected to can be found in a House.
+     */
+    for (i = 0; i < Session.Players.Count(); i++) {
+        found = false;
+        for (house = 0; house < Session.MaxPlayers && house < Houses.Count(); house++) {
+            housep = Houses[house];
+            if (!housep) {
+                continue;
+            }
+
+            if (!stricmp(Session.Players[i]->Name, housep->IniName)) {
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+            return false;
+    }
+
+    /**
+     *  Loop through all Houses; if we find a human-owned house that we're
+     *  not connected to, turn it over to the computer.
+     */
+    for (house = 0; house < Session.MaxPlayers && house < Houses.Count(); house++) {
+        housep = Houses[house];
+        if (!housep) {
+            continue;
+        }
+
+        /**
+         *  Skip this house if it wasn't human to start with.
+         */
+        if (!housep->IsHuman) {
+            continue;
+        }
+
+        /**
+         *  Try to find this name in the Players vector; if it's found, set
+         *  its ID to this house.
+         */
+        found = false;
+        for (i = 0; i < Session.Players.Count(); i++) {
+            if (!stricmp(Session.Players[i]->Name, housep->IniName)) {
+                found = true;
+                Session.Players[i]->Player.ID = static_cast<HousesType>(house);
+                break;
+            }
+        }
+
+        /**
+         *  If this name wasn't found, remove it
+         */
+        if (!found) {
+
+            /**
+             *  Turn the player's house over to the computer's AI
+             */
+            housep->IsHuman = false;
+            housep->IsStarted = true;
+            housep->IQ = Rule->MaxIQ;
+            strcpy(housep->IniName, Fetch_String(TXT_COMPUTER));
+
+            Session.NumPlayers--;
+        }
+    }
+
+    /**
+     *  If all went well, our Session.NumPlayers value should now equal the value
+     *  from the saved game, minus any players we removed.
+     */
+    if (Session.NumPlayers == Session.Players.Count()) {
+        return true;
+    }
+    else {
+        return false;
     }
 }

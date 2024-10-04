@@ -649,8 +649,8 @@ void ScenarioClassExtension::Assign_Houses()
          */
         housep = new HouseClass(HouseTypes[node.Player.House]);
 
-        std::memset((char *)housep->IniName, 0, MPLAYER_NAME_MAX);
-        std::strncpy((char *)housep->IniName, node.Name, MPLAYER_NAME_MAX-1);
+        std::memset(housep->IniName, 0, MPLAYER_NAME_MAX);
+        std::strncpy(housep->IniName, node.Name, MPLAYER_NAME_MAX-1);
 
         /**
          *  Set the house's IsHuman, Credits, ActLike, and RemapTable.

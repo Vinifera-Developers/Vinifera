@@ -49,6 +49,7 @@
 #include "debughandler.h"
 #include "asserthandler.h"
 #include "ebolt.h"
+#include "spawner.h"
 
 
 /**
@@ -444,7 +445,6 @@ DECLARE_PATCH(_Load_Game_Check_Return_Value)
         goto failure;
     }
 
-    DEBUG_INFO("Loading of save game \"%s\" complete.\n", filename);
     JMP(0x005D6B1C);
 
 failure:
@@ -453,14 +453,32 @@ failure:
 }
 
 
-DECLARE_PATCH(_Load_Game_Remap_Storage_Pointers)
+DECLARE_PATCH(_Load_Game_Post_Swizzle)
 {
+    GET_REGISTER_STATIC(const char*, filename, esi);
+
+    /**
+     *  Restore pointers to new starage vectors in objects.
+     */
     Vinifera_Remap_Storage_Pointers();
+
+    /**
+     *  Load class extensions here.
+     */
+    if (Spawner::Active && Spawner::LoadMPSave) {
+        if (!Reconcile_Players()) {
+            goto failure;
+        }
+    }
 
     // Stolen instructions
     Map.Init_IO();
 
     JMP(0x005D6B52);
+
+failure:
+    DEBUG_ERROR("Error loading save game \"%s\"!\n", filename);
+    JMP(0x005D6A65);
 }
 
 
@@ -844,7 +862,7 @@ void Vinifera_Hooks()
      */
     Patch_Jump(0x005D6B11, &_Load_Game_Check_Return_Value);
 
-    Patch_Jump(0x005D6B48, &_Load_Game_Remap_Storage_Pointers);
+    Patch_Jump(0x005D6B48, &_Load_Game_Post_Swizzle);
 
     /**
      *  Change SUN.EXE to our DLL name.

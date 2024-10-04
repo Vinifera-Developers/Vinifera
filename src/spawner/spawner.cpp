@@ -56,8 +56,9 @@
 #include "tibsun_functions.h"
 #include "rules.h"
 
-bool Spawner::Enabled = false;
+
 bool Spawner::Active = false;
+bool Spawner::LoadMPSave = false;
 std::unique_ptr<SpawnerConfig> Spawner::Config = nullptr;
 
 
@@ -254,62 +255,6 @@ bool Spawner::Load_Saved_Game(const char* file_name)
 
 
 /**
- *  Sets up House IDs in player nodes the same way Assign_Houses would do it for MP saves to work.
- *
- *  @author: ZivDero
- */
-void Spawner::Assign_House_IDs()
-{
-    bool assigned[MAX_PLAYERS];     // true = this house slot is in use.
-    bool color_used[MAX_PLAYERS];   // true = this color is in use.
-
-    int lowest_color;
-    int index;
-
-    /**
-     *  Initialize
-     */
-    std::memset(assigned, 0, MAX_PLAYERS * sizeof(bool));
-    std::memset(color_used, 0, MAX_PLAYERS * sizeof(bool));
-
-    for (int i = 0; i < Session.Players.Count(); i++) {
-
-        /**
-         *  Find the player with the lowest color index.
-         */
-        index = 0;
-        lowest_color = -1;
-        for (int j = 0; j < Session.Players.Count(); j++) {
-
-            /**
-             *  If we've already assigned this house, skip it.
-             */
-            if (assigned[j]) {
-                continue;
-            }
-            if (lowest_color == -1 || Session.Players[j]->Player.Color < lowest_color) {
-                lowest_color = Session.Players[j]->Player.Color;
-                index = j;
-            }
-        }
-
-        NodeNameTag& node = *Session.Players[index];
-
-        /**
-         *  Mark this player as having been assigned.
-         */
-        assigned[index] = true;
-        color_used[node.Player.Color] = true;
-
-        /**
-         *  Record where we placed this player.
-         */
-        node.Player.ID = static_cast<HousesType>(i);
-    }
-}
-
-
-/**
  *  Initializes everything necessary for an MP game.
  *
  *  @author: ZivDero
@@ -360,13 +305,6 @@ void Spawner::Spawner_Init_Network()
         if (port != Config->ListenPort)
             udp_interface->PortHack = false;
     }
-
-    /**
-     *  If we're loading a saved game, we need to assign House IDs to the players
-     *  in the same way Assign_Houses would do it for Create_Connections to work.
-     */
-    if (Config->LoadSaveGame)
-        Assign_House_IDs();
 
     /**
      *  Now set up the rest of the network stuff.
@@ -422,6 +360,12 @@ void Spawner::Spawner_Init_Network()
     {
         Session.MPlayerDebug = false;
     }
+
+    /**
+     *  If we're loading an MP save, we need to call Reconcile_Players
+     *  after loading the save to match Players and Houses.
+     */
+    LoadMPSave = Config->LoadSaveGame;
 
     Init_Network();
 }
