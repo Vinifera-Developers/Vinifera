@@ -36,7 +36,6 @@
  */
 CnCNet5UDPInterfaceClass::CnCNet5UDPInterfaceClass(unsigned short id, unsigned long ip, unsigned short port, bool port_hack) :
     UDPInterfaceClass(),
-    IsEnabled(false),
     AddressList(),
     TunnelID(id),
     TunnelIP(ip),
@@ -55,14 +54,7 @@ CnCNet5UDPInterfaceClass::CnCNet5UDPInterfaceClass(unsigned short id, unsigned l
  */
 LRESULT CnCNet5UDPInterfaceClass::Message_Handler(HWND hWnd, UINT uMsg, UINT wParam, LONG lParam)
 {
-    /**
-     *  If the CnCNet interface has not been enabled, just use the standard UDP interface.
-     */
-    if (!IsEnabled) {
-        return UDPInterfaceClass::Message_Handler(hWnd, uMsg, wParam, lParam);
-    }
-
-    struct sockaddr_in addr;
+    sockaddr_in addr;
     int rc;
     int addr_len;
     WinsockBufferType *packet;
@@ -94,9 +86,9 @@ LRESULT CnCNet5UDPInterfaceClass::Message_Handler(HWND hWnd, UINT uMsg, UINT wPa
              *  Call the CnCNet tunnel Receive_From function to get the outstanding packet.
              */
             addr_len = sizeof(addr);
-            rc = CnCNet5UDPInterfaceClass::Receive_From(Socket, (char*)ReceiveBuffer, sizeof(ReceiveBuffer), 0, (PSOCKADDR_IN)&addr, &addr_len);
+            rc = Receive_From(Socket, reinterpret_cast<char*>(ReceiveBuffer), sizeof(ReceiveBuffer), 0, &addr, &addr_len);
             if (rc == SOCKET_ERROR) {
-                DEBUG_WARNING("CnCNet5: Send_To returned %d!\n", WSAGetLastError());
+                DEBUG_WARNING("CnCNet5: Receive_From returned %d!\n", WSAGetLastError());
                 Clear_Socket_Error(Socket);
                 return 0;
             }
@@ -104,7 +96,7 @@ LRESULT CnCNet5UDPInterfaceClass::Message_Handler(HWND hWnd, UINT uMsg, UINT wPa
             /**
              *  (CnCNet) Now, we need to map addr ip/port to index by reversing the search!
              */
-            for (int i = 0; i < ARRAY_SIZE(AddressList); i++) {
+            for (int i = 0; i < std::size(AddressList); i++) {
 
                 /**
                  *  Compare ip.
@@ -143,15 +135,16 @@ LRESULT CnCNet5UDPInterfaceClass::Message_Handler(HWND hWnd, UINT uMsg, UINT wPa
                  *  Create a new buffer and store this packet in it.
                  */
                 packet = Get_New_In_Buffer();
-                packet->BufferLen = rc;
-                std::memcpy(packet->PacketData.Buffer, ReceiveBuffer, rc);
+                packet->BufferLen = rc - sizeof(packet->PacketData.CRC);
+                packet->PacketData.CRC = *reinterpret_cast<unsigned int*>(ReceiveBuffer);
+                std::memcpy(packet->PacketData.Buffer, ReceiveBuffer + sizeof(packet->PacketData.CRC), rc - sizeof(packet->PacketData.CRC));
                 if (!Passes_CRC_Check(packet)) {
                     DEBUG_INFO("CnCNet5: Throwing away malformed packet!\n");
                     Delete_In_Buffer(packet);
                     return 0;
                 }
                 std::memset(packet->Address, 0, sizeof (packet->Address));
-                std::memcpy(packet->Address+4, &addr.sin_addr.s_addr, 4);
+                std::memcpy(packet->Address + 4, &addr.sin_addr.s_addr, 4);
                 InBuffers.Add(packet);
             }
             return 0;
@@ -185,12 +178,12 @@ LRESULT CnCNet5UDPInterfaceClass::Message_Handler(HWND hWnd, UINT uMsg, UINT wPa
             /**
              *  (CnCNet) pull index.
              */
-            int i = addr.sin_addr.s_addr - 1;
+            const int i = *reinterpret_cast<int*>(packet->Address + 4) - 1;
 
             /**
              *  (CnCNet) validate index.
              */
-            if (i >= ARRAY_SIZE(AddressList) || i < 0) {
+            if (i >= std::size(AddressList) || i < 0) {
                 return -1;
             }
 
@@ -207,8 +200,8 @@ LRESULT CnCNet5UDPInterfaceClass::Message_Handler(HWND hWnd, UINT uMsg, UINT wPa
              *  at this time. In this case, we clear the socket error and just exit. Winsock will
              *  send us another WRITE message when it is ready to receive more data.
              */
-            rc = CnCNet5UDPInterfaceClass::Send_To(Socket, (const char *)&packet->PacketData, packet->BufferLen, 0, (PSOCKADDR_IN)&addr, sizeof (addr));
-            if (rc == SOCKET_ERROR){
+            rc = Send_To(Socket, reinterpret_cast<const char*>(&packet->PacketData), packet->BufferLen + sizeof(packet->PacketData.CRC), 0, &addr, sizeof(addr));
+            if (rc == SOCKET_ERROR) {
                 if (WSAGetLastError() != WSAEWOULDBLOCK) {
                     Clear_Socket_Error(Socket);
                     return 0;
@@ -241,7 +234,7 @@ int CnCNet5UDPInterfaceClass::Send_To(SOCKET s, const char *buf, int len, int fl
     /**
      *  No processing if no tunnel.
      */
-    if (TunnelPort == -1) {
+    if (TunnelPort == 0) {
         DEBUG_WARNING("CnCNet5: TunnelPort is invalid in Send_To!\n");
         return sendto(s, buf, len, flags, (const sockaddr *)dest_addr, addrlen);
     }
@@ -282,9 +275,9 @@ int CnCNet5UDPInterfaceClass::Receive_From(SOCKET s, char *buf, int len, int fla
     /**
      *  No processing if no tunnel.
      */
-    if (TunnelPort == -1) {
+    if (TunnelPort == 0) {
         DEBUG_WARNING("CnCNet5: TunnelPort is invalid in Recieve_From!\n");
-        return recvfrom(s, buf, len, flags, (sockaddr *)src_addr, addrlen);
+        return recvfrom(s, buf, len, flags, reinterpret_cast<sockaddr*>(src_addr), addrlen);
     }
 
 #ifndef NDEBUG
@@ -294,7 +287,7 @@ int CnCNet5UDPInterfaceClass::Receive_From(SOCKET s, char *buf, int len, int fla
     /**
      *  Call recvfrom first to get the packet.
      */
-    int ret = recvfrom(s, tempbuf, sizeof tempbuf, flags, (sockaddr *)src_addr, addrlen);
+    int ret = recvfrom(s, tempbuf, sizeof(tempbuf), flags, reinterpret_cast<sockaddr*>(src_addr), addrlen);
 
     /**
      *  No processing if returning error or less than 5 bytes of data.

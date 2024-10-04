@@ -139,6 +139,7 @@
 #include "warheadtypeext.h"
 #include "waveext.h"
 #include "weapontypeext.h"
+#include "viniferaevent.h"
 
 #include "rulesext.h"
 #include "scenarioext.h"
@@ -1140,8 +1141,8 @@ static bool Print_Event_List(FILE *fp, QueueClass<T, I> &list)
         if (ev) {
             char ev_byte_format[4];
             Wstring ev_data_buffer;
-            int ev_size = EventClass::Event_Length(ev->Type);
-            const char *ev_name = EventClass::Event_Name(ev->Type);
+            int ev_size = ViniferaEventClass::Event_Length(ev->Type);
+            const char *ev_name = ViniferaEventClass::Event_Name(ev->Type);
             for (int i = 0; i < ev_size; ++i) {
                 std::snprintf(ev_byte_format, sizeof(ev_byte_format), "%02X", (unsigned char)ev->Data.Array.Byte[i]); // We use this union member so we can do array access.
                 ev_data_buffer += ev_byte_format;

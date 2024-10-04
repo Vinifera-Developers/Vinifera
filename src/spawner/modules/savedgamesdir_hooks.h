@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          CNCNET4_HOOKS.H
+ *  @file          SAVEDGAMESDIR_HOOKS.H
  *
- *  @author        CCHyper
+ *  @author        ZivDero
  *
- *  @brief         Contains the hooks for the CnCNet4 system.
+ *  @brief         Contains the hooks for "Saved Games" directory customization.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -28,4 +28,4 @@
 #pragma once
 
 
-void CnCNet4_Hooks();
+void SavedGamesDir_Hooks();

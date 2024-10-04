@@ -308,11 +308,6 @@ void ScenarioClassExtension_Hooks()
     ScenarioClassExtension_Init();
 
     /**
-     *  For compatibility with the TS Client we need to remove
-     *  these two reimplementations as they conflict with the spawner.
-     */
-#if !defined(TS_CLIENT)
-    /**
      *  Hooks in the new Assign_Houses() function.
      * 
      *  @author: CCHyper
@@ -327,7 +322,6 @@ void ScenarioClassExtension_Hooks()
      *  @author: CCHyper
      */
     Patch_Call(0x005DD320, &ScenarioClassExtension::Create_Units);
-#endif
 
     Patch_Jump(0x005DC9D4, &_Do_Win_Skip_MPlayer_Score_Screen_Patch);
     Patch_Jump(0x005DCD92, &_Do_Lose_Skip_MPlayer_Score_Screen_Patch);

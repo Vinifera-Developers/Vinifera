@@ -47,6 +47,7 @@
 #include "vinifera_saveload.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "spawner.h"
 
 
 /**
@@ -648,8 +649,8 @@ void ScenarioClassExtension::Assign_Houses()
          */
         housep = new HouseClass(HouseTypes[node.Player.House]);
 
-        std::memset((char *)housep->IniName, 0, MPLAYER_NAME_MAX);
-        std::strncpy((char *)housep->IniName, node.Name, MPLAYER_NAME_MAX-1);
+        std::memset(housep->IniName, 0, MPLAYER_NAME_MAX);
+        std::strncpy(housep->IniName, node.Name, MPLAYER_NAME_MAX-1);
 
         /**
          *  Set the house's IsHuman, Credits, ActLike, and RemapTable.
@@ -690,52 +691,60 @@ void ScenarioClassExtension::Assign_Houses()
      */
     for (int i = Session.Players.Count(); i < Session.Players.Count() + Session.Options.AIPlayers; ++i) {
 
+        if (!Spawner::Active)
+        {
 #if 0
-        if (Percent_Chance(50)) {
-            pref_house = HOUSE_GDI;
-        } else {
-            pref_house = HOUSE_NOD;
-        }
+            if (Percent_Chance(50)) {
+                pref_house = HOUSE_GDI;
+            }
+            else {
+                pref_house = HOUSE_NOD;
+    }
 #endif
 
-        /**
-         *  #issue-7
-         * 
-         *  Replaces code from above.
-         * 
-         *  Fixes a limitation where the AI would only be able to choose
-         *  between the houses GDI (0) and NOD (1). Now, all houses that
-         *  have "IsMultiplay" true will be considered for sellection.
-         */
-        while (true) {
-            pref_house = (HousesType)Random_Pick(0, HouseTypes.Count()-1);
-            if (HouseTypes[pref_house]->IsMultiplay) {
-                break;
+            /**
+             *  #issue-7
+             *
+             *  Replaces code from above.
+             *
+             *  Fixes a limitation where the AI would only be able to choose
+             *  between the houses GDI (0) and NOD (1). Now, all houses that
+             *  have "IsMultiplay" true will be considered for sellection.
+             */
+            while (true) {
+                pref_house = (HousesType)Random_Pick(0, HouseTypes.Count() - 1);
+                if (HouseTypes[pref_house]->IsMultiplay) {
+                    break;
+                }
             }
-        }
 
-        /**
-         *  Pick a color for this house; keep looping until we find one.
-         */
-        while (true) {
-            color = Random_Pick(0, (MAX_PLAYERS-1));
-            if (color_used[color] == false) {
-                break;
+            /**
+             *  Pick a color for this house; keep looping until we find one.
+             */
+            while (true) {
+                color = Random_Pick(0, (MAX_PLAYERS - 1));
+                if (color_used[color] == false) {
+                    break;
+                }
             }
+            color_used[color] = true;
         }
-        color_used[color] = true;
+        else
+        {
+            color = Spawner::Get_Config()->Players[i].Color;
+            pref_house = static_cast<HousesType>(Spawner::Get_Config()->Players[i].House);
+        }
 
         housep = new HouseClass(HouseTypes[pref_house]);
 
         /**
-         *  Set the house's IsHuman, Credits, ActLike, and RemapTable.
+         *  Set the house's IsHuman, Credits, ActLike, and RemapColor.
          */
         housep->IsHuman = false;
-        //housep->IsStarted = true;
 
         housep->Control.TechLevel = BuildLevel;
-        housep->Init_Data((PlayerColorType)color, pref_house, Session.Options.Credits);
-        housep->RemapColor = Session.Player_Color_To_Scheme_Color((PlayerColorType)color);
+        housep->Init_Data(static_cast<PlayerColorType>(color), pref_house, Session.Options.Credits);
+        housep->RemapColor = Session.Player_Color_To_Scheme_Color(static_cast<PlayerColorType>(color));
         housep->Init_Remap_Color();
 
         std::strcpy(housep->IniName, Text_String(TXT_COMPUTER));
@@ -747,7 +756,7 @@ void ScenarioClassExtension::Assign_Houses()
         DiffType difficulty = Scen->CDifficulty;
 
         if (Session.Players.Count() > 1 && Rule->IsCompEasyBonus && difficulty > DIFF_EASY) {
-            difficulty = (DiffType)(difficulty - 1);
+            difficulty = static_cast<DiffType>(difficulty - 1);
         }
         housep->Assign_Handicap(difficulty);
 
@@ -813,6 +822,69 @@ void ScenarioClassExtension::Assign_Houses()
         housep->RemapColor = remap_color;
 
         housep->Init_Remap_Color();
+    }
+
+    if (Spawner::Active)
+    {
+        const int house_count = std::min(Houses.Count(), (int)std::size(Spawner::Get_Config()->Houses));
+        for (int i = 0; i < house_count; i++)
+        {
+            housep = Houses[i];
+
+            if (housep->Class->IsMultiplayPassive)
+                continue;
+
+            const auto house_config = &Spawner::Get_Config()->Houses[i];
+
+            // Set Alliances
+            for (char j = 0; j < (char)std::size(house_config->Alliances); ++j)
+            {
+                const int ally_index = house_config->Alliances[j];
+                if (ally_index != -1)
+                    housep->Allies &= 1 << ally_index;
+            }
+
+            constexpr char* AINamesByDifficultyArray[5] = {
+                "Hard AI",
+                "Medium AI",
+                "Easy AI"//,
+                //"Brutal AI",
+                //"Ultimate AI"
+            };
+
+            // Set Handicap and Names for AI
+            {
+                const auto player_config = &Spawner::Get_Config()->Players[i];
+
+                if (player_config->Difficulty >= 0 && player_config->Difficulty < std::size(AINamesByDifficultyArray))
+                {
+                    housep->Assign_Handicap(static_cast<DiffType>(player_config->Difficulty));
+                    if (Spawner::Get_Config()->AINamesByDifficulty && !housep->IsHuman)
+                    {
+                        std::strcpy(housep->IniName, AINamesByDifficultyArray[player_config->Difficulty]);
+                    }
+                }
+            }
+
+            // Set Spectators
+            enum
+            {
+                SPAWN_OBSERVER = -1,
+                SPAWN_OBSERVER_ALT = 90
+            };
+
+            const int spawn_loc = house_config->SpawnLocation;
+            const bool is_spectator = housep->IsHuman &&
+                                     (house_config->IsSpectator
+                                   || spawn_loc == SPAWN_OBSERVER
+                                   || spawn_loc == SPAWN_OBSERVER_ALT);
+
+            // Spectators are considered defeated
+            if (is_spectator)
+            {
+                housep->IsDefeated = true;
+            }
+        }
     }
 
     DEBUG_INFO("Assign_Houses(exit)\n");
@@ -1175,9 +1247,16 @@ static DynamicVectorClass<Cell> Build_Starting_Waypoint_List(bool official)
      *  if there are 4 or fewer players. Unofficial maps will pick from all the
      *  available waypoints.
      */
-    int look_for = std::max(min_waypts, Session.Players.Count()+Session.Options.AIPlayers);
+    int look_for = std::max(min_waypts, Session.Players.Count() + Session.Options.AIPlayers);
     if (!official) {
         look_for = MAX_PLAYERS;
+    }
+
+    if (Spawner::Active) {
+        for (int i = 0; i < Session.Players.Count() + Session.Options.AIPlayers; i++) {
+            if (Spawner::Get_Config()->Houses[i].IsSpectator)
+                look_for--;
+        }
     }
 
     for (int waycount = 0; waycount < look_for; ++waycount) {
@@ -1299,6 +1378,11 @@ void ScenarioClassExtension::Create_Units(bool official)
             continue;
         }
 
+        if (Spawner::Active && hptr->IsDefeated) {
+            DEV_DEBUG_INFO("House %d is a spectator, skipping.\n", house);
+            continue;
+        }
+
         DynamicVectorClass<InfantryTypeClass *> available_infantry;
         DynamicVectorClass<UnitTypeClass *> available_units;
 
@@ -1368,66 +1452,97 @@ void ScenarioClassExtension::Create_Units(bool official)
             }
         }
 
-        /**
-         *  Pick the starting location for this house. The first house just picks
-         *  one of the valid locations at random. The other houses pick the furthest
-         *  waypoint from the existing houses.
-         */        
-        if (numtaken == 0) {
-            int pick = Random_Pick(0, waypts.Count()-1);
-            centroid = waypts[pick];
-            taken[pick] = true;
-            numtaken++;
+        bool pick_random = true;
+        if (Spawner::Active) {
+            enum {
+                SPAWN_RANDOM = -2
+            };
 
-        } else {
+            int chosen_spawn = Spawner::Get_Config()->Houses[hptr->Get_Heap_ID()].SpawnLocation;
+
+            if (chosen_spawn != SPAWN_RANDOM) {
+                chosen_spawn = std::clamp(chosen_spawn, 0, 7);
+                if (!taken[chosen_spawn]) {
+                    centroid = waypts[chosen_spawn];
+                    taken[chosen_spawn] = true;
+                    pick_random = false;
+                    numtaken++;
+                }
+            }
+        }
+
+
+        if (pick_random) {
 
             /**
-             *  Set all waypoints to have a score of zero in preparation for giving
-             *  a distance score to all waypoints.
+             *  Pick the starting location for this house. The first house just picks
+             *  one of the valid locations at random. The other houses pick the furthest
+             *  waypoint from the existing houses.
              */
-            int score[MAX_STORED_WAYPOINTS];
-            std::memset(score, '\0', sizeof(score));
+            if (numtaken == 0) {
+                int pick = Random_Pick(0, waypts.Count() - 1);
+                centroid = waypts[pick];
+                taken[pick] = true;
+                numtaken++;
 
-            /**
-             *  Scan through all waypoints and give a score as a value of the sum
-             *  of the distances from this waypoint to all taken waypoints.
-             */
-            for (int index = 0; index < waypts.Count(); index++) {
+                if (Spawner::Active) {
+                    Spawner::Get_Config()->Houses[hptr->Class->ID].SpawnLocation = pick;
+                }
+
+            }
+            else {
 
                 /**
-                 *  If this waypoint has not already been taken, then accumulate the
-                 *  sum of the distance between this waypoint and all other taken
-                 *  waypoints.
+                 *  Set all waypoints to have a score of zero in preparation for giving
+                 *  a distance score to all waypoints.
                  */
-                if (!taken[index]) {
-                    for (int trypoint = 0; trypoint < waypts.Count(); trypoint++) {
+                int score[MAX_STORED_WAYPOINTS];
+                std::memset(score, '\0', sizeof(score));
 
-                        if (taken[trypoint]) {
-                            score[index] += Distance(waypts[index], waypts[trypoint]);
+                /**
+                 *  Scan through all waypoints and give a score as a value of the sum
+                 *  of the distances from this waypoint to all taken waypoints.
+                 */
+                for (int index = 0; index < waypts.Count(); index++) {
+
+                    /**
+                     *  If this waypoint has not already been taken, then accumulate the
+                     *  sum of the distance between this waypoint and all other taken
+                     *  waypoints.
+                     */
+                    if (!taken[index]) {
+                        for (int trypoint = 0; trypoint < waypts.Count(); trypoint++) {
+
+                            if (taken[trypoint]) {
+                                score[index] += Distance(waypts[index], waypts[trypoint]);
+                            }
                         }
                     }
                 }
-            }
 
-            /**
-             *  Now find the waypoint with the largest score. This waypoint is the one
-             *  that is furthest from all other taken waypoints.
-             */
-            int best = 0;
-            int bestvalue = 0;
-            for (int searchindex = 0; searchindex < waypts.Count(); searchindex++) {
-                if (score[searchindex] > bestvalue || bestvalue == 0) {
-                    bestvalue = score[searchindex];
-                    best = searchindex;
+                /**
+                 *  Now find the waypoint with the largest score. This waypoint is the one
+                 *  that is furthest from all other taken waypoints.
+                 */
+                int best = 0;
+                int bestvalue = 0;
+                for (int searchindex = 0; searchindex < waypts.Count(); searchindex++) {
+                    if (score[searchindex] > bestvalue || bestvalue == 0) {
+                        bestvalue = score[searchindex];
+                        best = searchindex;
+                    }
                 }
-            }
 
-            /**
-             *  Assign this best position to the house.
-             */
-            centroid = waypts[best];
-            taken[best] = true;
-            numtaken++;
+                /**
+                 *  Assign this best position to the house.
+                 */
+                centroid = waypts[best];
+                taken[best] = true;
+                numtaken++;
+
+                if (Spawner::Active)
+                    Spawner::Get_Config()->Houses[hptr->Class->ID].SpawnLocation = best;
+            }
         }
 
         /**

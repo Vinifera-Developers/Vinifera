@@ -109,6 +109,9 @@
 #include "session.h"
 #include "addon.h"
 #include "ccini.h"
+#include "fetchres.h"
+#include "language.h"
+#include "spawner.h"
 #include "technoext.h"
 #include "verses.h"
 

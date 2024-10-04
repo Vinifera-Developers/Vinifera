@@ -49,6 +49,7 @@
 #include "debughandler.h"
 #include "asserthandler.h"
 #include "ebolt.h"
+#include "spawner.h"
 
 
 /**
@@ -444,7 +445,6 @@ DECLARE_PATCH(_Load_Game_Check_Return_Value)
         goto failure;
     }
 
-    DEBUG_INFO("Loading of save game \"%s\" complete.\n", filename);
     JMP(0x005D6B1C);
 
 failure:
@@ -453,14 +453,23 @@ failure:
 }
 
 
-DECLARE_PATCH(_Load_Game_Remap_Storage_Pointers)
+DECLARE_PATCH(_Load_Game_Post_Swizzle)
 {
+    GET_REGISTER_STATIC(const char*, filename, esi);
+
+    /**
+     *  Restore pointers to new starage vectors in objects.
+     */
     Vinifera_Remap_Storage_Pointers();
 
     // Stolen instructions
     Map.Init_IO();
 
     JMP(0x005D6B52);
+
+failure:
+    DEBUG_ERROR("Error loading save game \"%s\"!\n", filename);
+    JMP(0x005D6A65);
 }
 
 
@@ -844,7 +853,7 @@ void Vinifera_Hooks()
      */
     Patch_Jump(0x005D6B11, &_Load_Game_Check_Return_Value);
 
-    Patch_Jump(0x005D6B48, &_Load_Game_Remap_Storage_Pointers);
+    Patch_Jump(0x005D6B48, &_Load_Game_Post_Swizzle);
 
     /**
      *  Change SUN.EXE to our DLL name.
@@ -893,20 +902,6 @@ void Vinifera_Hooks()
     unsigned char num = (std::rand() % 10)+48;
     Patch_Byte(0x0070EEAB, num);
     Patch_Byte(0x0070EF0F, num);
-
-#if defined(TS_CLIENT)
-    /**
-     *  Remove calls to SessionClass::Read_Scenario_Descriptions() in TS Client
-     *  compatable builds. This will speed up the initialisation and loading
-     *  process, as the reason of PKT and MPR files are not required when using
-     *  the Client.
-     */
-    Patch_Byte_Range(0x004E8901, 0x90, 5); // NewMenu::Process
-    Patch_Byte_Range(0x004E8910, 0x90, 5); // ^
-    Patch_Byte_Range(0x00564BA9, 0x90, 10); // Select_MPlayer_Game
-    Patch_Byte_Range(0x0057FE2A, 0x90, 10); // NewMenuClass::Process_Game_Select
-    Patch_Byte_Range(0x00580377, 0x90, 10); // NewMenuClass::Process_Game_Select
-#endif
 
     /**
      *  Various patches to intercept the games object tracking and heap processing.

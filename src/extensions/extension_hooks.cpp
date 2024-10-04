@@ -147,6 +147,7 @@
 #include "hooker.h"
 #include "hooker_macros.h"
 #include "storage/storageext_hooks.h"
+#include "viniferaevent_hooks.h"
 
 
 void Extension_Hooks()
@@ -271,6 +272,7 @@ void Extension_Hooks()
     MapSeedClassExtension_Hooks();
     MultiScoreExtension_Hooks();
     MultiMissionExtension_Hooks();
+    ViniferaEvent_Hooks();
 
     /**
      *  Dialogs and associated code.
