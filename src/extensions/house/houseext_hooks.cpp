@@ -39,9 +39,12 @@
 #include "unittype.h"
 #include "rules.h"
 #include "rulesext.h"
+#include "unit.h"
+#include "session.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "buildingext.h"
 #include "extension_globals.h"
 #include "sidebarext.h"
 
@@ -51,17 +54,19 @@
 
 
 /**
-  *  A fake class for implementing new member functions which allow
-  *  access to the "this" pointer of the intended class.
-  *
-  *  @note: This must not contain a constructor or deconstructor!
-  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
-  */
-static class HouseClassExt final : public HouseClass
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or deconstructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+class HouseClassExt final : public HouseClass
 {
 public:
     ProdFailType _Begin_Production(RTTIType type, int id, bool resume);
     ProdFailType _Abandon_Production(RTTIType type, int id);
+    bool _Can_Make_Money();
+    UrgencyType _Check_Raise_Money();
 };
 
 
@@ -248,6 +253,199 @@ ProdFailType HouseClassExt::_Abandon_Production(RTTIType type, int id)
 }
 
 
+static int Count_All_Owned_Buildings(HouseClass* house, TypeList<BuildingTypeClass*>& list)
+{
+    int count = 0;
+    for (int i = 0; i < list.Count(); i++) {
+        count += house->BQuantity.Count_Of(static_cast<BuildingType>(list[i]->Get_Heap_ID()));
+    }
+    return count;
+}
+
+
+static int Count_All_Owned_Units(HouseClass* house, TypeList<UnitTypeClass*>& list)
+{
+    int count = 0;
+    for (int i = 0; i < list.Count(); i++) {
+        count += house->UQuantity.Count_Of(static_cast<UnitType>(list[i]->Get_Heap_ID()));
+    }
+    return count;
+}
+
+
+/**
+ *  Checks if the AI house needs and can afford to build at least one
+ *  refinery and harvester.
+ *
+ *  @author: ZivDero
+ */
+bool HouseClassExt::_Can_Make_Money()
+{
+    const int credits = Available_Money();
+    const int ref_cost = Get_First_Ownable(Rule->BuildRefinery)->Cost_Of(this);
+    const int harv_cost = Get_First_Ownable(Rule->HarvesterUnit)->Cost_Of(this);
+
+    const int ref_count = Count_All_Owned_Buildings(this, Rule->BuildRefinery);
+    const int harv_count = Count_All_Owned_Units(this, Rule->HarvesterUnit);
+
+    /**
+     *  If we don't have any refineries, building one is a priority.
+     */
+    if (ref_count == 0)
+        return credits > ref_cost;
+
+    /**
+     *  If we have a refinery and a harvester, all's well.
+     */
+    if (harv_count)
+        return true;
+
+    const bool has_factory = Count_All_Owned_Buildings(this, Rule->BuildWeapons) > 0;
+    const int factory_cost = Get_First_Ownable(Rule->BuildWeapons)->Cost_Of(this);
+
+    /**
+     *  If we have a refinery, but not a harvester, see if
+     *  we can build one if we have a factory.
+     */
+    if (has_factory && credits >= harv_cost)
+        return true;
+
+    /**
+     *  And if we don't have a factory, see if we can build one.
+     */
+    if (credits >= harv_cost + factory_cost)
+        return true;
+
+    /**
+     *  Worst case, see if we can build a new refinery to get a free harvester.
+     */
+    if (credits >= ref_cost)
+        return true;
+
+    return false;
+}
+
+
+UrgencyType HouseClassExt::_Check_Raise_Money()
+{
+    UrgencyType urgency = URGENCY_NONE;
+
+    /**
+     *  Human players don't need AI to raise money for them.
+     */
+    const bool human = Session.Type == GAME_NORMAL ? Is_Player_Control() : IsHuman;
+    if (human)
+        return urgency;
+
+    /**
+     *  If we can afford to have a harvester and a refinery, all is well.
+     */
+    if (Can_Make_Money())
+        return urgency;
+
+    /**
+     *  See if we have a refinery.
+     */
+    if (Count_All_Owned_Buildings(this, Rule->BuildRefinery))
+    {
+        /**
+         *  Iterate all the buildings and check if we have a refinery under construction.
+         *  If so, we don't need raise money, since we'll get a free harvester.
+         */
+        for (int i = 0; i < Buildings.Count(); i++)
+        {
+            BuildingClass* building = Buildings[i];
+            if (building->House == this)
+            {
+                if (Rule->BuildRefinery.ID(building->Class) != -1 && building->Get_Mission() == MISSION_CONSTRUCTION)
+                    return urgency;
+
+                urgency = URGENCY_NONE;
+            }
+        }
+
+        /**
+         *  Check if what we're currently building is a harvester.
+         *  If it's not and we don't have enough money to build one,
+         *  we've got minor issues.
+         */
+        const UnitTypeClass* harvester = Get_First_Ownable(Rule->HarvesterUnit);
+        if (BuildUnit != harvester->Type)
+        {
+            if (Available_Money() < harvester->Cost_Of(this))
+                urgency++;
+
+            return urgency;
+        }
+
+        /**
+         *  Check all the factories and find which is building our harvester.
+         *  If we haven't got enough money to complete contruction, we've got issues.
+         */
+        for (int i = 0; i < Factories.Count(); i++)
+        {
+            const FactoryClass* factory = Factories[i];
+            if (factory && factory->House == this)
+            {
+                ObjectClass* obj = factory->Get_Object();
+                if (obj && obj->What_Am_I() == RTTI_UNIT
+                    && Rule->HarvesterUnit.ID(static_cast<UnitTypeClass*>(obj->Techno_Type_Class())) != -1)
+                {
+                    if (Available_Money() < factory->Balance)
+                        urgency++;
+
+                    return urgency;
+
+                }
+            }
+        }
+    }
+    else
+    {
+        /**
+         *  Check if what we're currently building is a refinery.
+         *  If it's not and we don't have enough money to build one,
+         *  we've got minor issues.
+         */
+        const BuildingTypeClass* refinery = Get_First_Ownable(Rule->BuildRefinery);
+        if (BuildStructure != refinery->Type)
+        {
+            if (Available_Money() < refinery->Cost_Of(this))
+                urgency++;
+
+            return urgency;
+        }
+
+        /**
+         *  Check all the factories and find which is building our refinery.
+         *  If we haven't got enough money to complete contruction, we've got issues.
+         */
+        for (int i = 0; i < Factories.Count(); i++)
+        {
+            const FactoryClass* factory = Factories[i];
+            if (factory && factory->House == this)
+            {
+                ObjectClass* obj = factory->Get_Object();
+                if (obj && obj->What_Am_I() == RTTI_BUILDING
+                    && Rule->BuildRefinery.ID(static_cast<BuildingTypeClass*>(obj->Techno_Type_Class())) != -1)
+                {
+                    if (Available_Money() < factory->Balance)
+                        urgency++;
+
+                    return urgency;
+                }
+            }
+        }
+    }
+
+    /**
+     *  Something weird has happened, it's surely not good.
+     */
+    urgency++;
+    return urgency;
+}
+
+
 /**
  *  #issue-177
  * 
@@ -256,7 +454,7 @@ ProdFailType HouseClassExt::_Abandon_Production(RTTIType type, int id)
  *  #NOTE: The code before this patch already checks if the house has
  *         any buildings first.
  * 
- *  @author: CCHyper
+ *  @author: CCHyper, ZivDero
  */
 DECLARE_PATCH(_HouseClass_AI_Short_Game_BaseUnit_Patch)
 {
@@ -266,40 +464,15 @@ DECLARE_PATCH(_HouseClass_AI_Short_Game_BaseUnit_Patch)
     static int count;
 
     /**
-     *  Fetch the extended rules class instance and make sure value entries
-     *  have been loaded.
+     *  Count all MCVs we own to see if the player should explode.
      */
-    if (RuleExtension && RuleExtension->BaseUnit.Count() > 0) {
+    count = Count_All_Owned_Units(this_ptr, RuleExtension->BaseUnit);
 
-        /**
-         *  Fetch the first buildable base unit from the new base unit entry
-         *  and get the current count of that unit that this house owns.
-         */
-        unittype = this_ptr->Get_First_Ownable(RuleExtension->BaseUnit);
-        if (unittype) {
-            unit = (UnitType)unittype->Get_Heap_ID();
-            count = this_ptr->UQuantity.Count_Of(unit);
-        }
-
-    /**
-     *  Fallback to the original code.
-     */
-    } else {
-
-        /**
-         *  Get the current count of the base unit that this house owns.
-         */
-        unit = (UnitType)Rule->BaseUnit->Get_Heap_ID();
-        count = this_ptr->UQuantity.Count_Of(unit);
-
+    if (count) {
+        goto continue_function;
     }
 
-    /**
-     *  If no ownable base units were found, blow up the house.
-     */
-    if (!count) {
-        goto blowup_house;
-    }
+    goto blowup_house;
 
     /**
      *  
@@ -428,6 +601,225 @@ return_true:
 }
 
 
+DECLARE_PATCH(_HouseClass_AI_BuildConst_Patch)
+{
+    GET_REGISTER_STATIC(HouseClass*, this_ptr, esi);
+
+    if (Count_All_Owned_Buildings(this_ptr, Rule->BuildConst) > 0)
+    {
+        JMP(0x004BCD85);
+    }
+
+    JMP(0x004BCE0B);
+}
+
+
+DECLARE_PATCH(_HouseClass_AI_Count_HarvesterUnit_Patch)
+{
+    GET_REGISTER_STATIC(HouseClass*, this_ptr, esi);
+    static int harv_count;
+
+    harv_count = Count_All_Owned_Units(this_ptr, Rule->HarvesterUnit);
+
+    _asm mov eax, harv_count
+    JMP_REG(ecx, 0x004BCF5A);
+}
+
+
+DECLARE_PATCH(_HouseClass_AI_Is_Building_Harvester_Unit_Patch)
+{
+    GET_REGISTER_STATIC(HouseClass*, this_ptr, esi);
+
+    if (this_ptr->BuildUnit != -1 && Rule->HarvesterUnit.ID(UnitTypes[this_ptr->BuildUnit]) != -1)
+    {
+        JMP(0x004BD0E5);
+    }
+
+    JMP(0x004BD0D7);
+}
+
+
+DECLARE_PATCH(_HouseClass_AI_Raise_Money_HarvRef1)
+{
+    GET_REGISTER_STATIC(HouseClass*, this_ptr, esi);
+
+    static bool build_harv;
+    static int object_cost;
+
+    /**
+     *  If we have a refinery and a weapons factory, build a harvester, otherwise - a refinery.
+     */
+    if (Count_All_Owned_Buildings(this_ptr, Rule->BuildRefinery) > 0
+        && Count_All_Owned_Buildings(this_ptr, Rule->BuildWeapons) > 0)
+    {
+        build_harv = true;
+        object_cost = this_ptr->Get_First_Ownable(Rule->HarvesterUnit)->Cost_Of(this_ptr);
+    }
+    else
+    {
+        build_harv = false;
+        object_cost = this_ptr->Get_First_Ownable(Rule->BuildRefinery)->Cost_Of(this_ptr);
+    }
+
+    _asm mov al, build_harv
+    _asm mov [esp+0x13], al
+    _asm mov eax, object_cost
+
+    JMP_REG(ebx, 0x004C0D94);
+}
+
+
+DECLARE_PATCH(_HouseClass_AI_Raise_Money_HarvRef2)
+{
+    GET_REGISTER_STATIC(HouseClass*, this_ptr, esi);
+
+    UnitType harv;
+    harv = this_ptr->Get_First_Ownable(Rule->HarvesterUnit)->Type;
+
+    _asm mov eax, harv
+    JMP_REG(ecx, 0x004C0F72);
+}
+
+
+DECLARE_PATCH(_HouseClass_AI_Raise_Money_HarvRef3)
+{
+    GET_REGISTER_STATIC(HouseClass*, this_ptr, esi);
+
+    BuildingTypeClass* refinery_ptr;
+    BuildingTypeClass** refinery_ptr_ptr;
+    refinery_ptr = this_ptr->Get_First_Ownable(Rule->BuildRefinery);
+    refinery_ptr_ptr = &refinery_ptr;
+
+    // The instructions here are messy, so we hijack when the game
+    // is accessing the vector and substitute our pointer
+    _asm mov edx, refinery_ptr_ptr
+    JMP(0x004C0FBB);
+}
+
+
+DECLARE_PATCH(_HouseClass_AI_Raise_Money_HarvRef4)
+{
+    GET_REGISTER_STATIC(HouseClass*, this_ptr, esi);
+    BuildingTypeClass* refinery;
+
+    refinery = this_ptr->Get_First_Ownable(Rule->BuildRefinery);
+
+    _asm mov eax, refinery
+    JMP_REG(ecx, 0x004C105E);
+}
+
+
+DECLARE_PATCH(_HouseClass_AI_Building_HarvRef)
+{
+    GET_REGISTER_STATIC(BuildingTypeClass*, building, eax);
+
+    if (Rule->BuildConst.ID(building) != -1)
+    {
+        JMP_REG(esi, 0x004C1554);
+    }
+
+    JMP_REG(esi, 0x004C12D5);
+}
+
+
+DECLARE_PATCH(_HouseClass_AI_Unit_HarvRef1)
+{
+    GET_REGISTER_STATIC(HouseClass*, this_ptr, ebp);
+    static int harv_count, ref_count;
+
+    harv_count = Count_All_Owned_Units(this_ptr, Rule->HarvesterUnit);
+    ref_count = Count_All_Owned_Buildings(this_ptr, Rule->BuildRefinery);
+
+    _asm mov esi, harv_count
+    _asm mov eax, ref_count
+    JMP_REG(ecx, 0x004C16AE);
+}
+
+
+DECLARE_PATCH(_HouseClass_AI_Unit_HarvRef2)
+{
+    GET_REGISTER_STATIC(HouseClass*, this_ptr, ebp);
+    static UnitTypeClass* harvester;
+
+    harvester = this_ptr->Get_First_Ownable(Rule->HarvesterUnit);
+
+    _asm mov eax, harvester
+    JMP_REG(edx, 0x004C1718);
+}
+
+
+DECLARE_PATCH(_HouseClass_Has_Prerequisites_BuildConst)
+{
+    GET_REGISTER_STATIC(BuildingTypeClass*, building, ecx);
+
+    if (Rule->BuildConst.ID(building) != -1)
+    {
+        JMP(0x004C5B62);
+    }
+
+    JMP(0x004C5985);
+}
+
+
+DECLARE_PATCH(_HouseClass_GenerateAIBuildList_4C5BB0_BuildConst)
+{
+    GET_STACK_STATIC(HouseClass*, this_ptr, esp, 0x14);
+    BuildingTypeClass* conyard;
+
+    conyard = this_ptr->Get_First_Ownable(Rule->BuildConst);
+
+    _asm mov esi, conyard;
+    JMP(0x004C5E28);
+}
+
+
+DECLARE_PATCH(_HouseClass_AI_Use_Super_Ion_Cannon_BuildConst)
+{
+    GET_REGISTER_STATIC(UnitTypeClass*, unittype, ecx);
+    _asm push eax
+
+    if (Rule->BuildConst.ID(unittype->DeploysInto) != -1)
+    {
+        _asm pop eax
+        JMP_REG(ecx, 0x004CA232);
+    }
+
+    _asm pop eax
+    JMP_REG(edx, 0x004CA240);
+}
+
+
+DECLARE_PATCH(_HouseClass_AI_Takeover_BuildConst)
+{
+    GET_REGISTER_STATIC(BuildingTypeClass*, buildingtype, ecx);
+    _asm push eax
+
+    if (Rule->BuildConst.ID(buildingtype) != -1)
+    {
+        _asm pop eax
+        JMP_REG(edi, 0x004CA9A9);
+    }
+
+    _asm pop eax
+    JMP_REG(edi, 0x004CA9B7)
+}
+
+
+DECLARE_PATCH(_InfantryClass_What_Action_Harvester_Thief)
+{
+    GET_REGISTER_STATIC(UnitClass*, target, esi);
+
+    if (target->What_Am_I() == RTTI_UNIT && Rule->HarvesterUnit.ID(target->Class) != -1)
+    {
+        // return ACTION_SELECT;
+        JMP(0x004D7258);
+    }
+
+    // return ACTION_CAPTURE;
+    JMP(0x004D72A8);
+}
+
+
 /**
  *  Main function for patching the hooks.
  */
@@ -441,8 +833,26 @@ void HouseClassExtension_Hooks()
     Patch_Jump(0x004BBD26, &_HouseClass_Can_Build_BuildCheat_Patch);
     Patch_Jump(0x004BD30B, &_HouseClass_Super_Weapon_Handler_InstantRecharge_Patch);
     Patch_Jump(0x004BBD26, &_HouseClass_Can_Build_BuildCheat_Patch);
+
+    Patch_Jump(0x004BCD5D, &_HouseClass_AI_BuildConst_Patch);
     Patch_Jump(0x004BCEE7, &_HouseClass_AI_Short_Game_BaseUnit_Patch);
+    Patch_Jump(0x004BCF3A, &_HouseClass_AI_Count_HarvesterUnit_Patch);
+    Patch_Jump(0x004BD0BC, &_HouseClass_AI_Is_Building_Harvester_Unit_Patch);
+    Patch_Jump(0x004C0D0C, &_HouseClass_AI_Raise_Money_HarvRef1);
+    Patch_Jump(0x004C0F5F, &_HouseClass_AI_Raise_Money_HarvRef2);
+    Patch_Jump(0x004C0FAB, &_HouseClass_AI_Raise_Money_HarvRef3);
+    Patch_Jump(0x004C1051, &_HouseClass_AI_Raise_Money_HarvRef4);
+    Patch_Jump(0x004C12C1, &_HouseClass_AI_Building_HarvRef);
+    Patch_Jump(0x004C166D, &_HouseClass_AI_Unit_HarvRef1);
+    Patch_Jump(0x004C1710, &_HouseClass_AI_Unit_HarvRef2);
+    Patch_Jump(0x004C5977, &_HouseClass_Has_Prerequisites_BuildConst);
+    Patch_Jump(0x004C5E20, &_HouseClass_GenerateAIBuildList_4C5BB0_BuildConst);
+    Patch_Jump(0x004CA222, &_HouseClass_AI_Use_Super_Ion_Cannon_BuildConst);
+    Patch_Jump(0x004CA9A1, &_HouseClass_AI_Takeover_BuildConst);
+    Patch_Jump(0x004D7284, &_InfantryClass_What_Action_Harvester_Thief);
 
     Patch_Jump(0x004BE200, &HouseClassExt::_Begin_Production);
     Patch_Jump(0x004BE6A0, &HouseClassExt::_Abandon_Production);
+    Patch_Jump(0x004BAED0, &HouseClassExt::_Can_Make_Money);
+    Patch_Jump(0x004C0A40, &HouseClassExt::_Check_Raise_Money);
 }

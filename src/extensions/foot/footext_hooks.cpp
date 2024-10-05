@@ -30,6 +30,8 @@
 #include "technoext.h"
 #include "technotype.h"
 #include "technotypeext.h"
+#include "unittype.h"
+#include "house.h"
 #include "extension.h"
 #include "fatal.h"
 #include "asserthandler.h"
@@ -37,6 +39,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "rules.h"
 
 
 /**
@@ -272,6 +275,29 @@ function_return:
 }
 
 
+static int Count_All_Owned_Units(HouseClass* house, TypeList<UnitTypeClass*>& list)
+{
+    int count = 0;
+    for (int i = 0; i < list.Count(); i++) {
+        count += house->UQuantity.Count_Of(static_cast<UnitType>(list[i]->Get_Heap_ID()));
+    }
+    return count;
+}
+
+
+DECLARE_PATCH(_FootClass_Search_For_Tiberium_Weighted_HarvesterUnit_Patch)
+{
+    GET_REGISTER_STATIC(FootClass *, this_ptr, edi);
+
+    static int count;
+
+    count = Count_All_Owned_Units(this_ptr->House, Rule->HarvesterUnit);
+
+    _asm mov eax, count
+    JMP_REG(esi, 0x004A7A65);
+}
+
+
 /**
  *  Main function for patching the hooks.
  */
@@ -283,4 +309,5 @@ void FootClassExtension_Hooks()
     Patch_Jump(0x004A2BE7, &_FootClass_Mission_Guard_Area_Can_Passive_Acquire_Patch);
     Patch_Jump(0x004A1AAE, &_FootClass_Mission_Guard_Can_Passive_Acquire_Patch);
     Patch_Jump(0x004A102F, &_FootClass_Mission_Move_Can_Passive_Acquire_Patch);
+    Patch_Jump(0x004A7A3F, &_FootClass_Search_For_Tiberium_Weighted_HarvesterUnit_Patch);
 }

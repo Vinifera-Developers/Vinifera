@@ -34,6 +34,7 @@
 #include "unittype.h"
 #include "buildingtype.h"
 #include "infantrytype.h"
+#include "rulesext.h"
 #include "house.h"
 #include "housetype.h"
 #include "rules.h"
@@ -1331,7 +1332,7 @@ void ScenarioClassExtension::Create_Units(bool official)
     for (int i = 0; i < UnitTypes.Count(); ++i) {
         UnitTypeClass *unittype = UnitTypes[i];
         if (unittype && unittype->IsAllowedToStartInMultiplayer) {
-            if (Rule->BaseUnit->Fetch_ID() != unittype->Fetch_ID()) {
+            if (RuleExtension->BaseUnit.ID(unittype) == -1) {
                 ++tot_unit_count;
             }
         }
@@ -1418,8 +1419,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                  *  Check tech level and ownership.
                  */
                 if (unittype->TechLevel <= hptr->Control.TechLevel && (owner_id & unittype->Ownable) != 0) {
-
-                    if (Rule->BaseUnit->Fetch_ID() != unittype->Fetch_ID()) {
+                    if (RuleExtension->BaseUnit.ID(unittype) == -1) {
                         DEBUG_INFO("    Added %s\n", unittype->Name());
                         available_units.Add(unittype);
                     }
@@ -1569,7 +1569,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                 /**
                  *  Create a construction yard (decided from the base unit).
                  */
-                obj = new BuildingClass(Rule->BaseUnit->DeploysInto, hptr);
+                obj = new BuildingClass(hptr->Get_First_Ownable(RuleExtension->BaseUnit)->DeploysInto, hptr);
                 if (obj->Unlimbo(Cell_Coord(centroid, true), DIR_N) || Scan_Place_Object(obj, centroid)) {
                     if (obj != nullptr) {
                         DEBUG_INFO("  Construction yard %s placed at %d,%d.\n",
@@ -1624,7 +1624,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                  *    - Create an MCV
                  *    - Attach a flag to it for capture-the-flag mode.
                  */
-                obj = new UnitClass(Rule->BaseUnit, hptr);
+                obj = new UnitClass(hptr->Get_First_Ownable(RuleExtension->BaseUnit), hptr);
                 if (obj->Unlimbo(Cell_Coord(centroid, true), DIR_N) || Scan_Place_Object(obj, centroid)) {
                     if (obj != nullptr) {
                         DEBUG_INFO("  Base unit %s placed at %d,%d.\n",

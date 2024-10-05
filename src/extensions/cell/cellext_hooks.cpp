@@ -42,16 +42,37 @@
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "buildingtype.h"
 #include "vinifera_globals.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
 
 
+static int Count_All_Owned_Buildings(HouseClass* house, TypeList<BuildingTypeClass*>& list)
+{
+    int count = 0;
+    for (int i = 0; i < list.Count(); i++) {
+        count += house->BQuantity.Count_Of(static_cast<BuildingType>(list[i]->Get_Heap_ID()));
+    }
+    return count;
+}
+
+
+static int Count_All_Owned_Units(HouseClass* house, TypeList<UnitTypeClass*>& list)
+{
+    int count = 0;
+    for (int i = 0; i < list.Count(); i++) {
+        count += house->UQuantity.Count_Of(static_cast<UnitType>(list[i]->Get_Heap_ID()));
+    }
+    return count;
+}
+
+
 /**
  *  #issue-177
  * 
- *  
+ *  Patches the check for if you own base units before giving you a crate MCV to use the new BaseUnit vector.
  * 
  *  @author: CCHyper
  */
@@ -66,30 +87,12 @@ DECLARE_PATCH(_CellClass_Goodie_Check_BaseUnit_Quantity_Patch)
     objhouse = object->House;
 
     /**
-     *  Fetch the extended rules class instance and make sure value entries
-     *  have been loaded.
+     *  Fetch the first buildable base unit from the new base unit entry
+     *  and get the current count of that unit that this house owns.
      */
-    if (RuleExtension && RuleExtension->BaseUnit.Count() > 0) {
-
-        /**
-         *  Fetch the first buildable base unit from the new base unit entry
-         *  and get the current count of that unit that this house owns.
-         */
-        unittype = objhouse->Get_First_Ownable(RuleExtension->BaseUnit);
-        if (unittype) {
-            unit = (UnitType)unittype->Get_Heap_ID();
-            count = objhouse->UQuantity.Count_Of(unit);
-        }
-
-    /**
-     *  Fallback to the original code.
-     */
-    } else {
-
-        /**
-         *  Get the current count of the base unit that this house owns.
-         */
-        unit = (UnitType)Rule->BaseUnit->Get_Heap_ID();
+    unittype = objhouse->Get_First_Ownable(RuleExtension->BaseUnit);
+    if (unittype) {
+        unit = static_cast<UnitType>(unittype->Get_Heap_ID());
         count = objhouse->UQuantity.Count_Of(unit);
     }
 
@@ -119,7 +122,7 @@ continue_check:
  * 
  *  
  * 
- *  @author: CCHyper
+ *  @author: CCHyper, ZivDero
  */
 DECLARE_PATCH(_CellClass_Goodie_Check_CRATE_UNIT_BaseUnit_Patch)
 {
@@ -131,32 +134,53 @@ DECLARE_PATCH(_CellClass_Goodie_Check_CRATE_UNIT_BaseUnit_Patch)
     objhouse = object->House;
 
     /**
-     *  Fetch the extended rules class instance and make sure value entries
-     *  have been loaded.
+     *  Fetch the first buildable base unit from the new base unit entry.
      */
-    if (RuleExtension && RuleExtension->BaseUnit.Count() > 0) {
+    unittype = objhouse->Get_First_Ownable(RuleExtension->BaseUnit);
 
-        /**
-         *  Fetch the first buildable base unit from the new base unit entry.
-         */
-        unittype = objhouse->Get_First_Ownable(RuleExtension->BaseUnit);
-
-    /**
-     *  Fallback to the original code.
-     */
-    } else {
-        unittype = Rule->BaseUnit;
+    if (unittype)
+    {
+        _asm mov eax, Rule
+        _asm mov eax, [eax]
+        _asm mov edi, unittype
+        JMP_REG(edx, 0x004581AA);
     }
 
-label_1:
-    _asm { mov eax, [0x0074C488] } // Rule
+    _asm mov eax, Rule
+    _asm mov eax, [eax]
+    _asm mov edi, unittype
     JMP_REG(edx, 0x00458148);
-
-label_2:
-    _asm { mov eax, [0x0074C488] } // Rule
-    _asm { mov edi, unittype }
-    JMP(0x004581A5);
 }
+
+
+/**
+ *  #issue-177
+ *
+ *
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_CellClass_Goodie_Check_CRATE_UNIT_BuildRefinery_HarvesterUnit_Patch)
+{
+    GET_REGISTER_STATIC(FootClass*, object, ebx);
+    GET_REGISTER_STATIC(UnitTypeClass*, unittype, edi);
+    HouseClass* owner_house;
+
+    owner_house = object->House;
+
+    if (Count_All_Owned_Buildings(owner_house, Rule->BuildRefinery) > 0 && Count_All_Owned_Units(owner_house, Rule->HarvesterUnit) == 0)
+    {
+        // We can grant a harvester
+        unittype = owner_house->Get_First_Ownable(Rule->HarvesterUnit);
+    }
+
+    _asm mov eax, Rule
+    _asm mov eax, [eax]
+    _asm mov edi, unittype
+    JMP_REG(edx, 0x004581AA);
+}
+
+//458148
 
 
 /**
@@ -164,7 +188,7 @@ label_2:
  * 
  *  
  * 
- *  @author: CCHyper
+ *  @author: ZivDero
  */
 DECLARE_PATCH(_CellClass_Goodie_Check_No_Buildings_Force_MCV_BaseUnit_Patch)
 {
@@ -172,36 +196,15 @@ DECLARE_PATCH(_CellClass_Goodie_Check_No_Buildings_Force_MCV_BaseUnit_Patch)
     static int i;
 
     /**
-     *  Fetch the extended rules class instance and make sure value entries
-     *  have been loaded.
+     *  Check if this is a BaseUnit.
+     *  If so, continue the loop.
      */
-    if (RuleExtension && RuleExtension->BaseUnit.Count() > 0) {
-
-        /**
-         *  Iterate over all defined BaseUnits, if any match, then this
-		 *  will take priority over the goodie crate unit chosen prior to
-		 *  this case.
-         */
-		for (i = 0; i < RuleExtension->BaseUnit.Count(); ++i) {
-			if (RuleExtension->BaseUnit[i] == unittype) {
-				goto found_unit;
-			}
-		}
-
-    /**
-     *  Fallback to the original code.
-     */
-    } else {
-        unittype = Rule->BaseUnit;
+    if (RuleExtension->BaseUnit.ID(unittype) != -1)
+    {
+        JMP(0x004581BA);
     }
 
-found_unit:
-    _asm { mov edi, unittype }
     JMP(0x0045821B);
-
-continue_loop:
-    _asm { mov edi, unittype }
-	JMP(0x004581BA);
 }
 
 
@@ -214,41 +217,41 @@ continue_loop:
  */
 DECLARE_PATCH(_CellClass_Draw_Shroud_Fog_Patch)
 {
-	static bool _shroud_one_time = false;
-	static const ShapeFileStruct *_shroud_shape;
-	static const ShapeFileStruct *_fog_shape;
+    static bool _shroud_one_time = false;
+    static const ShapeFileStruct *_shroud_shape;
+    static const ShapeFileStruct *_fog_shape;
 
-	/**
-	 *  Stolen bytes/code.
-	 */
-	_asm { sub esp, 0x34 }
+    /**
+     *  Stolen bytes/code.
+     */
+    _asm { sub esp, 0x34 }
 
-	/**
-	 *  Perform a one-time load of the shroud and fog shape data.
-	 */
-	if (!_shroud_one_time) {
-		_shroud_shape = (const ShapeFileStruct *)MFCC::Retrieve("SHROUD.SHP");
-		_fog_shape = (const ShapeFileStruct *)MFCC::Retrieve("FOG.SHP");
-		_shroud_one_time = true;
-	}
+    /**
+     *  Perform a one-time load of the shroud and fog shape data.
+     */
+    if (!_shroud_one_time) {
+        _shroud_shape = (const ShapeFileStruct *)MFCC::Retrieve("SHROUD.SHP");
+        _fog_shape = (const ShapeFileStruct *)MFCC::Retrieve("FOG.SHP");
+        _shroud_one_time = true;
+    }
 
-	/**
-	 *  If we are playing a multiplayer game, use the hardcoded shape data.
-	 */
-	if (!Session.Singleplayer_Game()) {
-		Cell_ShroudShape = (const ShapeFileStruct *)&ShroudShapeBinary;
-		Cell_FogShape = (const ShapeFileStruct *)&FogShapeBinary;
+    /**
+     *  If we are playing a multiplayer game, use the hardcoded shape data.
+     */
+    if (!Session.Singleplayer_Game()) {
+        Cell_ShroudShape = (const ShapeFileStruct *)&ShroudShapeBinary;
+        Cell_FogShape = (const ShapeFileStruct *)&FogShapeBinary;
 
-	} else {
-		Cell_ShroudShape = _shroud_shape;
-		Cell_FogShape = _fog_shape;
-	}
+    } else {
+        Cell_ShroudShape = _shroud_shape;
+        Cell_FogShape = _fog_shape;
+    }
 
-	/**
-	 *  Continues function flow.
-	 */
+    /**
+     *  Continues function flow.
+     */
 continue_function:
-	JMP(0x00454E91);
+    JMP(0x00454E91);
 }
 
 
@@ -261,39 +264,39 @@ continue_function:
  */
 DECLARE_PATCH(_CellClass_Draw_Fog_Patch)
 {
-	static bool _fog_one_time = false;
-	static const ShapeFileStruct *_fog_shape;
-	
-	/**
-	 *  Stolen bytes/code.
-	 */
-	_asm { sub esp, 0x2C }
-	
-	/**
-	 *  Perform a one-time load of the fog shape data.
-	 */
-	if (!_fog_one_time) {
-		_fog_shape = (const ShapeFileStruct *)MFCC::Retrieve("FOG.SHP");
-		_fog_one_time = true;
-	}
+    static bool _fog_one_time = false;
+    static const ShapeFileStruct *_fog_shape;
+    
+    /**
+     *  Stolen bytes/code.
+     */
+    _asm { sub esp, 0x2C }
+    
+    /**
+     *  Perform a one-time load of the fog shape data.
+     */
+    if (!_fog_one_time) {
+        _fog_shape = (const ShapeFileStruct *)MFCC::Retrieve("FOG.SHP");
+        _fog_one_time = true;
+    }
 
-	/**
-	 *  If we are playing a multiplayer game, use the hardcoded shape data.
-	 */
-	if (!Session.Singleplayer_Game()) {
-		Cell_FixupFogShape = (const ShapeFileStruct *)&FogShapeBinary;
+    /**
+     *  If we are playing a multiplayer game, use the hardcoded shape data.
+     */
+    if (!Session.Singleplayer_Game()) {
+        Cell_FixupFogShape = (const ShapeFileStruct *)&FogShapeBinary;
 
-	} else {
-		Cell_FixupFogShape = _fog_shape;
-	}
+    } else {
+        Cell_FixupFogShape = _fog_shape;
+    }
 
-	/**
-	 *  Continues function flow.
-	 */
+    /**
+     *  Continues function flow.
+     */
 continue_function:
-	_asm { mov eax, Cell_FixupFogShape }
-	_asm { mov eax, [eax] }
-	JMP_REG(ecx, 0x00455159);
+    _asm { mov eax, Cell_FixupFogShape }
+    _asm { mov eax, [eax] }
+    JMP_REG(ecx, 0x00455159);
 }
 
 
@@ -308,26 +311,26 @@ continue_function:
  */
 DECLARE_PATCH(_CellClass_Goodie_Check_Crates_Disabled_Respawn_BugFix_Patch)
 {
-	/**
-	 *  Random crates are only thing in multiplayer.
-	 */
-	if (Session.Type != GAME_NORMAL) {
+    /**
+     *  Random crates are only thing in multiplayer.
+     */
+    if (Session.Type != GAME_NORMAL) {
 
-		/**
-		 *  Check to make sure crates are enabled for this game session.
-		 * 
-		 *  The original code was missing the Session "Goodies" check.
-		 */
-		if (Rule->IsMPCrates && Session.Options.Goodies) {
-			Map.Place_Random_Crate();
-		}
-	}
+        /**
+         *  Check to make sure crates are enabled for this game session.
+         * 
+         *  The original code was missing the Session "Goodies" check.
+         */
+        if (Rule->IsMPCrates && Session.Options.Goodies) {
+            Map.Place_Random_Crate();
+        }
+    }
 
-	/**
-	 *  Continues function flow.
-	 */
+    /**
+     *  Continues function flow.
+     */
 continue_function:
-	JMP_REG(ecx, 0x00457ECE);
+    JMP_REG(ecx, 0x00457ECE);
 }
 
 
@@ -341,36 +344,36 @@ continue_function:
  */
 DECLARE_PATCH(_CellClass_Goodie_Check_Veterency_Trainable_BugFix_Patch)
 {
-	GET_REGISTER_STATIC(ObjectClass *, object, ecx);
-	static TechnoClass *techno;
-	static TechnoTypeClass *technotype;
+    GET_REGISTER_STATIC(ObjectClass *, object, ecx);
+    static TechnoClass *techno;
+    static TechnoTypeClass *technotype;
 
-	/**
-	 *  Make sure the ground layer object is a techno.
-	 */
-	if (!object->Is_Techno()) {
-		goto continue_loop;
-	}
+    /**
+     *  Make sure the ground layer object is a techno.
+     */
+    if (!object->Is_Techno()) {
+        goto continue_loop;
+    }
 
-	/**
-	 *  Is this object trainable? If so, grant it the bonus.
-	 */
-	techno = reinterpret_cast<TechnoClass *>(object);
-	if (techno->Techno_Type_Class()->IsTrainable) {
-		goto passes_check;
-	}
+    /**
+     *  Is this object trainable? If so, grant it the bonus.
+     */
+    techno = reinterpret_cast<TechnoClass *>(object);
+    if (techno->Techno_Type_Class()->IsTrainable) {
+        goto passes_check;
+    }
 
-	/**
-	 *  Continues the loop over the ground layer objects.
-	 */
+    /**
+     *  Continues the loop over the ground layer objects.
+     */
 continue_loop:
-	JMP(0x0045894E);
+    JMP(0x0045894E);
 
-	/**
-	 *  Continue to grant the veterancy bonus.
-	 */
+    /**
+     *  Continue to grant the veterancy bonus.
+     */
 passes_check:
-	JMP(0x00458839);
+    JMP(0x00458839);
 }
 
 
@@ -379,11 +382,12 @@ passes_check:
  */
 void CellClassExtension_Hooks()
 {
-	Patch_Jump(0x0045882C, &_CellClass_Goodie_Check_Veterency_Trainable_BugFix_Patch);
-	Patch_Jump(0x00457EAB, &_CellClass_Goodie_Check_Crates_Disabled_Respawn_BugFix_Patch);
-	Patch_Jump(0x00454E60, &_CellClass_Draw_Shroud_Fog_Patch);
-	Patch_Jump(0x00455130, &_CellClass_Draw_Fog_Patch);
+    Patch_Jump(0x0045882C, &_CellClass_Goodie_Check_Veterency_Trainable_BugFix_Patch);
+    Patch_Jump(0x00457EAB, &_CellClass_Goodie_Check_Crates_Disabled_Respawn_BugFix_Patch);
+    Patch_Jump(0x00454E60, &_CellClass_Draw_Shroud_Fog_Patch);
+    Patch_Jump(0x00455130, &_CellClass_Draw_Fog_Patch);
     Patch_Jump(0x00457D90, &_CellClass_Goodie_Check_BaseUnit_Quantity_Patch);
     Patch_Jump(0x0045813E, &_CellClass_Goodie_Check_CRATE_UNIT_BaseUnit_Patch);
     Patch_Jump(0x0045820E, &_CellClass_Goodie_Check_No_Buildings_Force_MCV_BaseUnit_Patch);
+    Patch_Jump(0x00458148, &_CellClass_Goodie_Check_CRATE_UNIT_BuildRefinery_HarvesterUnit_Patch);
 }

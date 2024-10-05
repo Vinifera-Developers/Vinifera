@@ -41,9 +41,88 @@
 #include "buildingtype.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "display.h"
+#include "mouse.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "house.h"
+#include "tactical.h"
+
+
+/**
+  *  A fake class for implementing new member functions which allow
+  *  access to the "this" pointer of the intended class.
+  *
+  *  @note: This must not contain a constructor or deconstructor!
+  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+  */
+class CenterBaseCommandClassExt final : public CommandClass
+{
+public:
+    bool _Process();
+    
+};
+
+
+bool CenterBaseCommandClassExt::_Process()
+{
+    Coordinate conyard_coord = Coordinate(), anybuilding_coord = Coordinate();
+
+    if (PlayerPtr->CurBuildings)
+    {
+        for (int i = 0; i < Buildings.Count(); i++)
+        {
+            BuildingClass* building = Buildings[i];
+            if (building && !building->IsInLimbo && building->House->Is_Player_Control())
+            {
+                if (Rule->BuildConst.ID(building->Class) != -1)
+                {
+                    conyard_coord = building->Center_Coord();
+                    if (building->IsLeader)
+                        break;
+                }
+                else if (!anybuilding_coord)
+                {
+                    anybuilding_coord = building->Center_Coord();
+                }
+            }
+        }
+    }
+
+    if (!conyard_coord)
+        TacticalMap->Set_Tactical_Position(conyard_coord);
+
+    if (PlayerPtr->CurUnits)
+    {
+        for (int i = 0; i < Units.Count(); i++)
+        {
+            UnitClass* unit = Units[i];
+            if (unit && !unit->IsInLimbo && unit->House->Is_Player_Control())
+            {
+                conyard_coord = unit->Center_Coord();
+                if (RuleExtension->BaseUnit.ID(unit->Class) != -1)
+                    break;
+            }
+            
+        }
+    }
+
+    if (!conyard_coord)
+        TacticalMap->Set_Tactical_Position(conyard_coord);
+
+    if (!anybuilding_coord)
+        TacticalMap->Set_Tactical_Position(anybuilding_coord);
+
+    if (Map.PendingObject)
+        Map.Set_Cursor_Pos();
+    
+    Map.Follow_This(nullptr);
+    Map.Flag_To_Redraw(1);
+
+    return true;
+}
+
 
 
 /**
@@ -688,8 +767,10 @@ void CommandExtension_Hooks()
     Hook_Virtual(0x004EAB00, PNGScreenCaptureCommandClass::Process);
 
     Patch_Jump(0x004E95C2, &_GuardCommandClass_Process_Harvesters_Set_Mission_Patch);
-    Patch_Jump(0x004E985F, &_CenterBaseCommandClass_Process_Check_BaseUnit_Patch);
-    Patch_Jump(0x004E9988, &_CenterBaseCommandClass_Process_Find_BaseUnit_Patch);
+    //Patch_Jump(0x004E985F, &_CenterBaseCommandClass_Process_Check_BaseUnit_Patch);
+    //Patch_Jump(0x004E9988, &_CenterBaseCommandClass_Process_Find_BaseUnit_Patch);
+
+    Patch_Jump(0x004E97E0, &CenterBaseCommandClassExt::_Process);
 
     /**
      *  This can not be in client compatabile builds currently as the additional
