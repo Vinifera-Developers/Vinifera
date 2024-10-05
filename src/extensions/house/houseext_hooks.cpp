@@ -818,12 +818,15 @@ DECLARE_PATCH(_HouseClass_AI_Unit_HarvRef2)
 DECLARE_PATCH(_HouseClass_Has_Prerequisites_BuildConst)
 {
     GET_REGISTER_STATIC(BuildingTypeClass*, building, ecx);
+    _asm pushad
 
-    if (Rule->BuildConst.ID(building) != -1)
+    if (Rule->BuildConst.ID(building) == -1)
     {
+        _asm popad
         JMP(0x004C5985);
     }
 
+    _asm popad
     JMP(0x004C5B62);
 }
 
