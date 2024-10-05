@@ -97,7 +97,7 @@ int StorageClassExt::Increase_Amount(int amount, int index)
  */
 int StorageClassExt::Decrease_Amount(int amount, int index)
 {
-    if (amount < (*Types)[index])
+    if (amount > (*Types)[index])
         amount = (*Types)[index];
 
     (*Types)[index] -= amount;
