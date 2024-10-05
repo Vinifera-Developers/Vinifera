@@ -55,10 +55,12 @@ DECLARE_PATCH(_Dropship_Draw_Info_Text_ArmorName_Patch)
 {
     GET_REGISTER_STATIC(ArmorType, armor, edx);
     static const char* armor_name;
+    _asm push ecx
 
     armor_name = ArmorTypeClass::Name_From(armor);
-    _asm { mov eax, armor_name }
 
+    _asm mov eax, armor_name
+    _asm pop ecx
     JMP_REG(edx, 0x00487071);
 }
 
