@@ -778,15 +778,15 @@ DECLARE_PATCH(_UnitClass_AI_BuildConst_Patch)
 DECLARE_PATCH(_UnitClass_What_Action_BuildConst)
 {
     GET_REGISTER_STATIC(BuildingTypeClass*, buildingtype, ebp);
-    _asm push eax
+    _asm pushad
 
     if (Rule->BuildConst.ID(buildingtype) != -1)
     {
-        _asm pop eax
+        _asm popad
         JMP_REG(edx, 0x00656084);
     }
 
-    _asm pop eax
+    _asm popad
     JMP_REG(edi, 0x006560A3);
 }
 
