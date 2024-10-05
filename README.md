@@ -36,7 +36,7 @@ You can discuss the development and progress of this project on the **C&C Moddin
 Every day, an automated build of the `develop` branch is uploaded. These builds contain all the latest merged features, but are not yet considered stable for release. These builds are to help provide an insight to what the next release will contain and should only be used for active playtesting purposes **only**.
 
 There are two version of the Nightly builds available; **"Standard"** and **"Comptability"**. The **Standard** build is _as-is_, where as the **Comptability** build has modifications to ensure compatability _(where possible)_ with existing community patches. If you are unsure which version is best for you, you can ask a developer on the **Discord** server.
-You can find the latest Nightly builds [here](<https://nightly.link/Vinifera-Developers/Vinifera/blob/develop/.github/workflows/nightly.yml>).
+You can find the latest Nightly builds [here](<https://nightly.link/Vinifera-Developers/Vinifera/blob/develop/.github/workflows/nightly.yml>). Alternatively, you can find the latest build from the most recent commit [here](https://nightly.link/Vinifera-Developers/Vinifera/blob/develop/.github/workflows/push.yml).
 
 ### Release
 All release builds are made from the `master` branch. Vinifera is currently working towards its first release so there are no releases available yet, but they will be uploaded to [here](<https://github.com/Vinifera-Developers/Vinifera/releases>).
