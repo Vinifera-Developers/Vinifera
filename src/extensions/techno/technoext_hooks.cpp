@@ -1474,6 +1474,8 @@ DECLARE_PATCH(_TechnoClass_AI_Abandon_Invalid_Target_Patch)
     GET_REGISTER_STATIC(TechnoClass*, this_ptr, esi);
 
     static FireErrorType fire;
+    static WeaponSlotType which;
+    static WeaponTypeClass* weapon;
 
     /**
      *  Vanilla code.
@@ -1491,10 +1493,20 @@ DECLARE_PATCH(_TechnoClass_AI_Abandon_Invalid_Target_Patch)
     {
         if (this_ptr->Mission != MISSION_CAPTURE && this_ptr->Mission != MISSION_SABOTAGE)
         {
-            fire = this_ptr->Can_Fire(this_ptr->TarCom, this_ptr->What_Weapon_Should_I_Use(this_ptr->TarCom));
-            if (fire == FIRE_ILLEGAL || fire == FIRE_CANT)
+            which = this_ptr->What_Weapon_Should_I_Use(this_ptr->TarCom);
+            weapon = const_cast<WeaponTypeClass*>(this_ptr->Get_Weapon(which)->Weapon);
+
+            if (weapon
+                && !(weapon->IsSonic && this_ptr->Wave)
+                && !(weapon->IsRailgun && this_ptr->ParticleSystems[4])
+                && !(weapon->IsUseFireParticles && this_ptr->ParticleSystems[0])
+                && !(weapon->IsUseSparkParticles && this_ptr->ParticleSystems[1]))
             {
-                this_ptr->Assign_Target(nullptr);
+                fire = this_ptr->Can_Fire(this_ptr->TarCom, which);
+                if (fire == FIRE_ILLEGAL || fire == FIRE_CANT)
+                {
+                    this_ptr->Assign_Target(nullptr);
+                }
             }
         }
     }
