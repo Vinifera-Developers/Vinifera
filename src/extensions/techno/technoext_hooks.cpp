@@ -350,26 +350,26 @@ WeaponSlotType TechnoClassExt::_What_Weapon_Should_I_Use(TARGET target) const
      */
     int w1 = 0;
     WeaponTypeClass const* wptr = Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon;
-    if (wptr != nullptr && wptr->WarheadPtr != nullptr) {
+    if (wptr && wptr->WarheadPtr) {
         webby_primary = wptr->WarheadPtr->IsWebby;
         w1 = Verses::Get_Modifier(armor, wptr->WarheadPtr) * 1000;
     }
     if (In_Range_Of(target, WEAPON_SLOT_PRIMARY)) w1 *= 2;
     FireErrorType ok = Can_Fire(target, WEAPON_SLOT_PRIMARY);
-    if (ok == FIRE_CANT || ok == FIRE_ILLEGAL || ok == FIRE_REARM) w1 = 0;
+    if (ok == FIRE_CANT || ok == FIRE_ILLEGAL/* || ok == FIRE_REARM*/) w1 = 0;
 
     /**
      *  Calculate a similar value for the secondary weapon.
      */
     int w2 = 0;
     wptr = Get_Weapon(WEAPON_SLOT_SECONDARY)->Weapon;
-    if (wptr != nullptr && wptr->WarheadPtr != nullptr) {
+    if (wptr && wptr->WarheadPtr) {
         webby_secondary = wptr->WarheadPtr->IsWebby;
         w2 = Verses::Get_Modifier(armor, wptr->WarheadPtr) * 1000;
     }
     if (In_Range_Of(target, WEAPON_SLOT_SECONDARY)) w2 *= 2;
     ok = Can_Fire(target, WEAPON_SLOT_SECONDARY);
-    if (ok == FIRE_CANT || ok == FIRE_ILLEGAL || ok == FIRE_REARM) w2 = 0;
+    if (ok == FIRE_CANT || ok == FIRE_ILLEGAL/* || ok == FIRE_REARM*/) w2 = 0;
 
     /**
      *  Return with the weapon identifier that should be used to fire upon the
