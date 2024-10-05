@@ -692,19 +692,15 @@ continue_check_scatter:
 DECLARE_PATCH(_UnitClass_Jellyfish_AI_Armor_Patch)
 {
     GET_REGISTER_STATIC(TechnoClass*, target, esi);
+    GET_REGISTER_STATIC(UnitClass*, this_ptr, ebp);
     GET_STACK_STATIC(WeaponTypeClass*, weapon, esp, 0x20);
     GET_STACK_STATIC(WarheadTypeClass*, warhead, esp, 0x14);
 
     static int damage;
     damage = weapon->Attack * Verses::Get_Modifier(target->Techno_Type_Class()->Armor, warhead);
+    target->Take_Damage(damage, 0, warhead, this_ptr, false, false);
 
-    _asm
-    {
-        mov eax, damage
-        mov ebx, warhead
-    }
-
-    JMP_REG(ecx, 0x0064F2DF);
+    JMP(0x0064F2FA);
 }
 
 
@@ -727,7 +723,7 @@ void UnitClassExtension_Hooks()
     Patch_Jump(0x00653114, &_UnitClass_Draw_Shape_IdleRate_Patch);
     Patch_Jump(0x00656623, &_UnitClass_What_Action_ACTION_HARVEST_Block_On_Bridge_Patch); // IsToHarvest
     Patch_Jump(0x0065665D, &_UnitClass_What_Action_ACTION_HARVEST_Block_On_Bridge_Patch); // IsToVeinHarvest
-    Patch_Jump(0x0064F2D6, &_UnitClass_Jellyfish_AI_Armor_Patch);
+    Patch_Jump(0x0064F2BE, &_UnitClass_Jellyfish_AI_Armor_Patch);
     //Patch_Jump(0x0065054F, &_UnitClass_Enter_Idle_Mode_Block_Harvesting_On_Bridge_Patch); // Removed, keeping code for reference.
     //Patch_Jump(0x00654AB0, &_UnitClass_Mission_Harvest_Block_Harvesting_On_Bridge_Patch); // Removed, keeping code for reference.
 }
