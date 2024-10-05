@@ -8,6 +8,8 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 - Vinifera implements the Blowfish algorithm into the Vinifera DLL itself, removing the requirement for the external BLOWFISH.DLL library. As a result, this allows the game will run without BLOWFISH.DLL registered on the target system or present in the installation directory. The game can still load encrypted mix files to be loaded without any issues.
 - Vinifera allows players to set a rally point for their service depot, similar to the functionality already available for factories.
 - OverlayTypes 27 to 38 (fourth Tiberium images) were hardcoded to be impassable by infantry. This limitation is removed.
+- BaseUnit now accepts a list units. Players will be granted the first unit in the list that has their house listed under `Owners=`.
+- The AI now correctly considers all entries of `BuildConst`, `BuildRefinery`, `BuildWeapons` and `HarvesterUnit`.
 
 ## Spawner
 
