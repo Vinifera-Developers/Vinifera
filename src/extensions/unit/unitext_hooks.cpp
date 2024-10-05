@@ -68,6 +68,13 @@ public:
 };
 
 
+/**
+ *  #issue-177
+ *
+ *  Reaplces UnitClass::MissionHunt to consider the entire BuildConst vector.
+ *
+ *  @author: ZivDero
+ */
 int UnitClassExt::_Mission_Hunt()
 {
     if (Class->DeploysInto && (Rule->BuildConst.ID(Class->DeploysInto) != -1 || TarCom || House->Is_Human_Control()))
@@ -741,6 +748,13 @@ DECLARE_PATCH(_UnitClass_Jellyfish_AI_Armor_Patch)
 }
 
 
+/**
+ *  #issue-177
+ *
+ *  Patches the AI to correctly consider all Construction Yards from the list.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_UnitClass_AI_BuildConst_Patch)
 {
     GET_REGISTER_STATIC(UnitTypeClass*, unittype, edx);
@@ -754,6 +768,13 @@ DECLARE_PATCH(_UnitClass_AI_BuildConst_Patch)
 }
 
 
+/**
+ *  #issue-177
+ *
+ *  Patches the AI to correctly consider all Construction Yards from the list.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_UnitClass_What_Action_BuildConst)
 {
     GET_REGISTER_STATIC(BuildingTypeClass*, buildingtype, ebp);
@@ -770,6 +791,13 @@ DECLARE_PATCH(_UnitClass_What_Action_BuildConst)
 }
 
 
+/**
+ *  #issue-177
+ *
+ *  Patches the AI to correctly consider all Construction Yards from the list.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_UnitClass_Mission_Guard_BuildConst)
 {
     GET_REGISTER_STATIC(UnitClass*, unit, esi);

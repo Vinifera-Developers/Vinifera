@@ -65,6 +65,14 @@ public:
 };
 
 
+/**
+ *  #issue-177
+ *
+ *  Replaces CenterBaseCommandClass::Process to use the entire BuildConst list,
+ *  as well as the new BaseUnit list.
+ *
+ *  @author: ZivDero
+ */
 bool CenterBaseCommandClassExt::_Process()
 {
     Coordinate conyard_coord = Coordinate(), anybuilding_coord = Coordinate();
@@ -90,29 +98,32 @@ bool CenterBaseCommandClassExt::_Process()
         }
     }
 
-    if (!conyard_coord)
-        TacticalMap->Set_Tactical_Position(conyard_coord);
-
-    if (PlayerPtr->CurUnits)
+    if (conyard_coord)
     {
-        for (int i = 0; i < Units.Count(); i++)
-        {
-            UnitClass* unit = Units[i];
-            if (unit && !unit->IsInLimbo && unit->House->Is_Player_Control())
-            {
-                conyard_coord = unit->Center_Coord();
-                if (RuleExtension->BaseUnit.ID(unit->Class) != -1)
-                    break;
-            }
-            
-        }
-    }
-
-    if (!conyard_coord)
         TacticalMap->Set_Tactical_Position(conyard_coord);
+    }
+    else
+    {
+        if (PlayerPtr->CurUnits)
+        {
+            for (int i = 0; i < Units.Count(); i++)
+            {
+                UnitClass* unit = Units[i];
+                if (unit && !unit->IsInLimbo && unit->House->Is_Player_Control())
+                {
+                    conyard_coord = unit->Center_Coord();
+                    if (RuleExtension->BaseUnit.ID(unit->Class) != -1)
+                        break;
+                }
 
-    if (!anybuilding_coord)
-        TacticalMap->Set_Tactical_Position(anybuilding_coord);
+            }
+        }
+
+        if (conyard_coord)
+            TacticalMap->Set_Tactical_Position(conyard_coord);
+        else if (anybuilding_coord)
+            TacticalMap->Set_Tactical_Position(anybuilding_coord);
+    }
 
     if (Map.PendingObject)
         Map.Set_Cursor_Pos();
@@ -188,93 +199,6 @@ DECLARE_PATCH(_OptionsClass_Keyboard_Options_Dialog_Populate_Intercept_Patch)
     Populate_Command_Categories(hWnd, category);
 
     JMP(0x0058A79C);
-}
-
-
-/**
- *  #issue-177
- * 
- *  This patch replaces the check on the current building to see if it
- *  undeploys into the BaseUnit (checking the first entry only). Now, it
- *  considers the first building that is a construction yard (must be IsLeader/Primary)
- *  and has player control (checked before this patch) when searching for the
- *  base center.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_CenterBaseCommandClass_Process_Check_BaseUnit_Patch)
-{
-    GET_REGISTER_STATIC(BuildingClass *, building, esi);
-
-    /**
-     *  Is this building a construction yard?
-     */
-    if (!building->Class->IsConstructionYard) {
-        goto not_conyard;
-    }
-
-    /**
-     *  Found the primary construction yard.
-     */
-continue_conyard:
-    _asm { mov esi, building }
-    JMP(0x004E9879);
-
-    /**
-     *  No suitable construction yard found, center on the first found
-     *  player owned building.
-     */
-not_conyard:
-    JMP(0x004E98A5);
-}
-
-
-/**
- *  #issue-177
- * 
- *  Add support for more than one entry defined on BaseUnit when searching
- *  for suitable base unit to center the tactical screen on.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_CenterBaseCommandClass_Process_Find_BaseUnit_Patch)
-{
-    GET_REGISTER_STATIC(UnitClass *, unit, esi);
-    static UnitTypeClass *unittype;
-    static int i;
-
-    unittype = nullptr;
-
-    /**
-     *  Fetch the extended rules class instance and make sure value
-     *  entries have been loaded.
-     */
-    if (RuleExtension && RuleExtension->BaseUnit.Count() > 0) {
-
-        /**
-         *  Iterate over all defined BaseUnits, if any match the unit
-         *  we are currently processing break out of the loop. The code
-         *  before this patch already checks if we can control of the unit
-         *  so we don't need to do any checks of that type.
-         */
-        for (i = 0; i < RuleExtension->BaseUnit.Count(); ++i) {
-            if (RuleExtension->BaseUnit[i] == unit->Class) {
-                goto match;
-            }
-        }
-
-    /**
-     *  Fallback to the original code.
-     */
-    } else if (Rule->BaseUnit == unit->Class) {
-        goto match;
-    }
-
-continue_loop:
-    JMP(0x004E999C);
-
-match:
-    JMP_REG(edx, 0x004E99A8);
 }
 
 
@@ -767,8 +691,6 @@ void CommandExtension_Hooks()
     Hook_Virtual(0x004EAB00, PNGScreenCaptureCommandClass::Process);
 
     Patch_Jump(0x004E95C2, &_GuardCommandClass_Process_Harvesters_Set_Mission_Patch);
-    //Patch_Jump(0x004E985F, &_CenterBaseCommandClass_Process_Check_BaseUnit_Patch);
-    //Patch_Jump(0x004E9988, &_CenterBaseCommandClass_Process_Find_BaseUnit_Patch);
 
     Patch_Jump(0x004E97E0, &CenterBaseCommandClassExt::_Process);
 

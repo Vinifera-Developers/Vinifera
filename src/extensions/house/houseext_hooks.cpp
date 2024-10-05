@@ -254,8 +254,10 @@ ProdFailType HouseClassExt::_Abandon_Production(RTTIType type, int id)
 
 
 /**
- *  Checks if the AI house needs and can afford to build at least one
- *  refinery and harvester.
+ *  #issue-177
+ *
+ *  Checks if the AI house has the capability to make money. Adjusted to
+ *  use the entire Build* and HarvesterUnit lists.
  *
  *  @author: ZivDero
  */
@@ -306,6 +308,14 @@ bool HouseClassExt::_Can_Make_Money()
 }
 
 
+/**
+ *  #issue-177
+ *
+ *  Checks if the AI needs to urgently raise more money.
+ *  Adjusted to use the entire Build* and HarvesterUnit lists.
+ *
+ *  @author: ZivDero
+ */
 UrgencyType HouseClassExt::_Check_Raise_Money()
 {
     UrgencyType urgency = URGENCY_NONE;
@@ -581,6 +591,13 @@ return_true:
 }
 
 
+/**
+ *  #issue-177
+ *
+ *  Patches the check for if a house owns a Construction Yard to check the entire BuildConst list.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_HouseClass_AI_BuildConst_Patch)
 {
     GET_REGISTER_STATIC(HouseClass*, this_ptr, esi);
@@ -594,6 +611,13 @@ DECLARE_PATCH(_HouseClass_AI_BuildConst_Patch)
 }
 
 
+/**
+ *  #issue-177
+ *
+ *  Patches the check for if a house owns a harvester to check the entire HarvesterUnit list.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_HouseClass_AI_Count_HarvesterUnit_Patch)
 {
     GET_REGISTER_STATIC(HouseClass*, this_ptr, esi);
@@ -606,6 +630,13 @@ DECLARE_PATCH(_HouseClass_AI_Count_HarvesterUnit_Patch)
 }
 
 
+/**
+ *  #issue-177
+ *
+ *  Patches the check for if a house is building a harvester to check the entire HarvesterUnit list.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_HouseClass_AI_Is_Building_Harvester_Unit_Patch)
 {
     GET_REGISTER_STATIC(HouseClass*, this_ptr, esi);
@@ -619,6 +650,13 @@ DECLARE_PATCH(_HouseClass_AI_Is_Building_Harvester_Unit_Patch)
 }
 
 
+/**
+ *  #issue-177
+ *
+ *  Patches the AI to correctly consider all refineries, weapons factories and harvesters.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_HouseClass_AI_Raise_Money_HarvRef1)
 {
     GET_REGISTER_STATIC(HouseClass*, this_ptr, esi);
@@ -649,6 +687,13 @@ DECLARE_PATCH(_HouseClass_AI_Raise_Money_HarvRef1)
 }
 
 
+/**
+ *  #issue-177
+ *
+ *  Patches the AI to correctly construct its own faction's harvester.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_HouseClass_AI_Raise_Money_HarvRef2)
 {
     GET_REGISTER_STATIC(HouseClass*, this_ptr, esi);
@@ -661,6 +706,13 @@ DECLARE_PATCH(_HouseClass_AI_Raise_Money_HarvRef2)
 }
 
 
+/**
+ *  #issue-177
+ *
+ *  Patches the AI to correctly construct its own faction's refinery.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_HouseClass_AI_Raise_Money_HarvRef3)
 {
     GET_REGISTER_STATIC(HouseClass*, this_ptr, esi);
@@ -677,6 +729,13 @@ DECLARE_PATCH(_HouseClass_AI_Raise_Money_HarvRef3)
 }
 
 
+/**
+ *  #issue-177
+ *
+ *  Patches the AI to correctly construct its own faction's refinery.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_HouseClass_AI_Raise_Money_HarvRef4)
 {
     GET_REGISTER_STATIC(HouseClass*, this_ptr, esi);
@@ -689,6 +748,13 @@ DECLARE_PATCH(_HouseClass_AI_Raise_Money_HarvRef4)
 }
 
 
+/**
+ *  #issue-177
+ *
+ *  Patches the AI to correctly consider all Construction Yards in the BuildConst list.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_HouseClass_AI_Building_HarvRef)
 {
     GET_REGISTER_STATIC(BuildingTypeClass*, building, eax);
@@ -702,6 +768,13 @@ DECLARE_PATCH(_HouseClass_AI_Building_HarvRef)
 }
 
 
+/**
+ *  #issue-177
+ *
+ *  Patches the AI to correctly count all harvesters and refineries.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_HouseClass_AI_Unit_HarvRef1)
 {
     GET_REGISTER_STATIC(HouseClass*, this_ptr, ebp);
@@ -716,6 +789,13 @@ DECLARE_PATCH(_HouseClass_AI_Unit_HarvRef1)
 }
 
 
+/**
+ *  #issue-177
+ *
+ *  Patches the AI to correctly building its own faction's harvester.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_HouseClass_AI_Unit_HarvRef2)
 {
     GET_REGISTER_STATIC(HouseClass*, this_ptr, ebp);
@@ -728,6 +808,13 @@ DECLARE_PATCH(_HouseClass_AI_Unit_HarvRef2)
 }
 
 
+/**
+ *  #issue-177
+ *
+ *  Patches the AI to correctly consider all Construction Yards from the list in prerequisite checks.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_HouseClass_Has_Prerequisites_BuildConst)
 {
     GET_REGISTER_STATIC(BuildingTypeClass*, building, ecx);
@@ -741,6 +828,13 @@ DECLARE_PATCH(_HouseClass_Has_Prerequisites_BuildConst)
 }
 
 
+/**
+ *  #issue-177
+ *
+ *  Patches the AI to correctly consider all Construction Yards from the list.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_HouseClass_GenerateAIBuildList_4C5BB0_BuildConst)
 {
     GET_STACK_STATIC(HouseClass*, this_ptr, esp, 0x14);
@@ -753,6 +847,13 @@ DECLARE_PATCH(_HouseClass_GenerateAIBuildList_4C5BB0_BuildConst)
 }
 
 
+/**
+ *  #issue-177
+ *
+ *  Patches the AI to correctly consider all Construction Yards from the list as targets for the Ion Cannon.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_HouseClass_AI_Use_Super_Ion_Cannon_BuildConst)
 {
     GET_REGISTER_STATIC(UnitTypeClass*, unittype, ecx);
@@ -769,6 +870,13 @@ DECLARE_PATCH(_HouseClass_AI_Use_Super_Ion_Cannon_BuildConst)
 }
 
 
+/**
+ *  #issue-177
+ *
+ *  Patches the AI to correctly consider all Construction Yards from the list when the AI takes over a player's house.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_HouseClass_AI_Takeover_BuildConst)
 {
     GET_REGISTER_STATIC(BuildingTypeClass*, buildingtype, ecx);
@@ -785,6 +893,13 @@ DECLARE_PATCH(_HouseClass_AI_Takeover_BuildConst)
 }
 
 
+/**
+ *  #issue-177
+ *
+ *  Fix a vanilla bug where vehicles thieves were able to target harvesters even when HarvesterTruce was on.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_InfantryClass_What_Action_Harvester_Thief)
 {
     GET_REGISTER_STATIC(UnitClass*, target, esi);

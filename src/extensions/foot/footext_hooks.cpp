@@ -275,6 +275,13 @@ function_return:
 }
 
 
+/**
+ *  #issue-177
+ *
+ *  Patches the harvester counting to count all units listed under HarvesterUnit.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_FootClass_Search_For_Tiberium_Weighted_HarvesterUnit_Patch)
 {
     GET_REGISTER_STATIC(FootClass *, this_ptr, edi);

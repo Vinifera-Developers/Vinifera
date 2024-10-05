@@ -100,7 +100,7 @@ continue_check:
 /**
  *  #issue-177
  * 
- *  
+ *  Patches crates to give you a base unit from the new BaseUnit vector.
  * 
  *  @author: CCHyper, ZivDero
  */
@@ -136,7 +136,7 @@ DECLARE_PATCH(_CellClass_Goodie_Check_CRATE_UNIT_BaseUnit_Patch)
 /**
  *  #issue-177
  *
- *
+ *  Patches crates to check if you have refineries and harvesters using the entire lists.
  *
  *  @author: ZivDero
  */
@@ -160,14 +160,12 @@ DECLARE_PATCH(_CellClass_Goodie_Check_CRATE_UNIT_BuildRefinery_HarvesterUnit_Pat
     JMP_REG(edx, 0x004581AA);
 }
 
-//458148
-
 
 /**
  *  #issue-177
- * 
- *  
- * 
+ *
+ *  Patches crates to check if a unit is a BaseUnit using the new list.
+ *
  *  @author: ZivDero
  */
 DECLARE_PATCH(_CellClass_Goodie_Check_No_Buildings_Force_MCV_BaseUnit_Patch)

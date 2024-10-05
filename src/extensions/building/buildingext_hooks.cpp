@@ -771,6 +771,13 @@ continue_function:
 }
 
 
+/**
+ *  #issue-177
+ *
+ *  Patches the check for if a building is a Construction Yard to check the entire BuildConst list.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_BuildingClass_Unlimbo_BuildConst_Patch)
 {
     GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
@@ -784,6 +791,13 @@ DECLARE_PATCH(_BuildingClass_Unlimbo_BuildConst_Patch)
 }
 
 
+/**
+ *  #issue-177
+ *
+ *  Patches the check for if a building is a Construction Yard to check the entire BuildConst list.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_BuildingClass_Captured_BuildConst_Patch1)
 {
     GET_REGISTER_STATIC(BuildingTypeClass*, buildingtype, ecx);
@@ -797,6 +811,13 @@ DECLARE_PATCH(_BuildingClass_Captured_BuildConst_Patch1)
 }
 
 
+/**
+ *  #issue-177
+ *
+ *  Patches the check for if you have a Construction Yard to check the entire BuildConst list.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_BuildingClass_Captured_BuildConst_Patch2)
 {
     GET_REGISTER_STATIC(HouseClass*, house, ebx);
@@ -810,6 +831,13 @@ DECLARE_PATCH(_BuildingClass_Captured_BuildConst_Patch2)
 }
 
 
+/**
+ *  #issue-177
+ *
+ *  Patches the check for if a building is a Construction Yard to check the entire BuildConst list.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_BuildingClass_Captured_BuildConst_Patch3)
 {
     GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
