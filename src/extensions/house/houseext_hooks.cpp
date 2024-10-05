@@ -754,10 +754,10 @@ DECLARE_PATCH(_HouseClass_Has_Prerequisites_BuildConst)
 
     if (Rule->BuildConst.ID(building) != -1)
     {
-        JMP(0x004C5B62);
+        JMP(0x004C5985);
     }
 
-    JMP(0x004C5985);
+    JMP(0x004C5B62);
 }
 
 
