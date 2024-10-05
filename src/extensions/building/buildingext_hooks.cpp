@@ -116,7 +116,7 @@ void BuildingClassExt::_Update_Buildables()
         case RTTI_AIRCRAFTTYPE:
             for (int i = 0; i < AircraftTypes.Count(); i++)
             {
-                if (PlayerPtr->Can_Build(AircraftTypes[i], false, true) && AircraftTypes[i]->Who_Can_Build_Me(true, true, true, PlayerPtr) != nullptr)
+                if (PlayerPtr->Can_Build(AircraftTypes[i], false, true) && AircraftTypes[i]->Who_Can_Build_Me(true, false, false, PlayerPtr) != nullptr)
                 {
                     Map.Add(RTTI_AIRCRAFTTYPE, i);
                 }
@@ -126,7 +126,7 @@ void BuildingClassExt::_Update_Buildables()
         case RTTI_BUILDINGTYPE:
             for (int i = 0; i < BuildingTypes.Count(); i++)
             {
-                if (PlayerPtr->Can_Build(BuildingTypes[i], false, true) && BuildingTypes[i]->Who_Can_Build_Me(true, true, true, PlayerPtr) != nullptr)
+                if (PlayerPtr->Can_Build(BuildingTypes[i], false, true) && BuildingTypes[i]->Who_Can_Build_Me(true, false, false, PlayerPtr) != nullptr)
                 {
                     Map.Add(RTTI_BUILDINGTYPE, i);
                 }
@@ -136,7 +136,7 @@ void BuildingClassExt::_Update_Buildables()
         case RTTI_INFANTRYTYPE:
             for (int i = 0; i < InfantryTypes.Count(); i++)
             {
-                if (PlayerPtr->Can_Build(InfantryTypes[i], false, true) && InfantryTypes[i]->Who_Can_Build_Me(true, true, true, PlayerPtr) != nullptr)
+                if (PlayerPtr->Can_Build(InfantryTypes[i], false, true) && InfantryTypes[i]->Who_Can_Build_Me(true, false, false, PlayerPtr) != nullptr)
                 {
                     Map.Add(RTTI_INFANTRYTYPE, i);
                 }
@@ -146,7 +146,7 @@ void BuildingClassExt::_Update_Buildables()
         case RTTI_UNITTYPE:
             for (int i = 0; i < UnitTypes.Count(); i++)
             {
-                if (PlayerPtr->Can_Build(UnitTypes[i], false, true) && UnitTypes[i]->Who_Can_Build_Me(true, true, true, PlayerPtr) != nullptr)
+                if (PlayerPtr->Can_Build(UnitTypes[i], false, true) && UnitTypes[i]->Who_Can_Build_Me(true, false, false, PlayerPtr) != nullptr)
                 {
                     Map.Add(RTTI_UNITTYPE, i);
                 }
