@@ -253,26 +253,6 @@ ProdFailType HouseClassExt::_Abandon_Production(RTTIType type, int id)
 }
 
 
-static int Count_All_Owned_Buildings(HouseClass* house, TypeList<BuildingTypeClass*>& list)
-{
-    int count = 0;
-    for (int i = 0; i < list.Count(); i++) {
-        count += house->BQuantity.Count_Of(static_cast<BuildingType>(list[i]->Get_Heap_ID()));
-    }
-    return count;
-}
-
-
-static int Count_All_Owned_Units(HouseClass* house, TypeList<UnitTypeClass*>& list)
-{
-    int count = 0;
-    for (int i = 0; i < list.Count(); i++) {
-        count += house->UQuantity.Count_Of(static_cast<UnitType>(list[i]->Get_Heap_ID()));
-    }
-    return count;
-}
-
-
 /**
  *  Checks if the AI house needs and can afford to build at least one
  *  refinery and harvester.
@@ -285,8 +265,8 @@ bool HouseClassExt::_Can_Make_Money()
     const int ref_cost = Get_First_Ownable(Rule->BuildRefinery)->Cost_Of(this);
     const int harv_cost = Get_First_Ownable(Rule->HarvesterUnit)->Cost_Of(this);
 
-    const int ref_count = Count_All_Owned_Buildings(this, Rule->BuildRefinery);
-    const int harv_count = Count_All_Owned_Units(this, Rule->HarvesterUnit);
+    const int ref_count = Count_Owned(Rule->BuildRefinery);
+    const int harv_count = Count_Owned(Rule->HarvesterUnit);
 
     /**
      *  If we don't have any refineries, building one is a priority.
@@ -300,7 +280,7 @@ bool HouseClassExt::_Can_Make_Money()
     if (harv_count)
         return true;
 
-    const bool has_factory = Count_All_Owned_Buildings(this, Rule->BuildWeapons) > 0;
+    const bool has_factory = Count_Owned(Rule->BuildWeapons) > 0;
     const int factory_cost = Get_First_Ownable(Rule->BuildWeapons)->Cost_Of(this);
 
     /**
@@ -346,7 +326,7 @@ UrgencyType HouseClassExt::_Check_Raise_Money()
     /**
      *  See if we have a refinery.
      */
-    if (Count_All_Owned_Buildings(this, Rule->BuildRefinery))
+    if (Count_Owned(Rule->BuildRefinery))
     {
         /**
          *  Iterate all the buildings and check if we have a refinery under construction.
@@ -466,7 +446,7 @@ DECLARE_PATCH(_HouseClass_AI_Short_Game_BaseUnit_Patch)
     /**
      *  Count all MCVs we own to see if the player should explode.
      */
-    count = Count_All_Owned_Units(this_ptr, RuleExtension->BaseUnit);
+    count = this_ptr->Count_Owned(RuleExtension->BaseUnit);
 
     if (count) {
         goto continue_function;
@@ -605,7 +585,7 @@ DECLARE_PATCH(_HouseClass_AI_BuildConst_Patch)
 {
     GET_REGISTER_STATIC(HouseClass*, this_ptr, esi);
 
-    if (Count_All_Owned_Buildings(this_ptr, Rule->BuildConst) > 0)
+    if (this_ptr->Count_Owned(Rule->BuildConst) > 0)
     {
         JMP(0x004BCD85);
     }
@@ -619,7 +599,7 @@ DECLARE_PATCH(_HouseClass_AI_Count_HarvesterUnit_Patch)
     GET_REGISTER_STATIC(HouseClass*, this_ptr, esi);
     static int harv_count;
 
-    harv_count = Count_All_Owned_Units(this_ptr, Rule->HarvesterUnit);
+    harv_count = this_ptr->Count_Owned(Rule->HarvesterUnit);
 
     _asm mov eax, harv_count
     JMP_REG(ecx, 0x004BCF5A);
@@ -649,8 +629,8 @@ DECLARE_PATCH(_HouseClass_AI_Raise_Money_HarvRef1)
     /**
      *  If we have a refinery and a weapons factory, build a harvester, otherwise - a refinery.
      */
-    if (Count_All_Owned_Buildings(this_ptr, Rule->BuildRefinery) > 0
-        && Count_All_Owned_Buildings(this_ptr, Rule->BuildWeapons) > 0)
+    if (this_ptr->Count_Owned(Rule->BuildRefinery) > 0
+        && this_ptr->Count_Owned(Rule->BuildWeapons) > 0)
     {
         build_harv = true;
         object_cost = this_ptr->Get_First_Ownable(Rule->HarvesterUnit)->Cost_Of(this_ptr);
@@ -727,8 +707,8 @@ DECLARE_PATCH(_HouseClass_AI_Unit_HarvRef1)
     GET_REGISTER_STATIC(HouseClass*, this_ptr, ebp);
     static int harv_count, ref_count;
 
-    harv_count = Count_All_Owned_Units(this_ptr, Rule->HarvesterUnit);
-    ref_count = Count_All_Owned_Buildings(this_ptr, Rule->BuildRefinery);
+    harv_count = this_ptr->Count_Owned(Rule->HarvesterUnit);
+    ref_count = this_ptr->Count_Owned(Rule->BuildRefinery);
 
     _asm mov esi, harv_count
     _asm mov eax, ref_count

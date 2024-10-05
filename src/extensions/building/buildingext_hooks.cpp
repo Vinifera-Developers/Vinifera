@@ -771,16 +771,6 @@ continue_function:
 }
 
 
-static int Count_All_Owned_Buildings(HouseClass* house, TypeList<BuildingTypeClass*>& list)
-{
-    int count = 0;
-    for (int i = 0; i < list.Count(); i++) {
-        count += house->BQuantity.Count_Of(static_cast<BuildingType>(list[i]->Get_Heap_ID()));
-    }
-    return count;
-}
-
-
 DECLARE_PATCH(_BuildingClass_Unlimbo_BuildConst_Patch)
 {
     GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
@@ -811,7 +801,7 @@ DECLARE_PATCH(_BuildingClass_Captured_BuildConst_Patch2)
 {
     GET_REGISTER_STATIC(HouseClass*, house, ebx);
 
-    if (Count_All_Owned_Buildings(house, Rule->BuildConst))
+    if (house->Count_Owned(Rule->BuildConst))
     {
         JMP(0x0042FAEF);
     }

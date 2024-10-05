@@ -49,26 +49,6 @@
 #include "hooker_macros.h"
 
 
-static int Count_All_Owned_Buildings(HouseClass* house, TypeList<BuildingTypeClass*>& list)
-{
-    int count = 0;
-    for (int i = 0; i < list.Count(); i++) {
-        count += house->BQuantity.Count_Of(static_cast<BuildingType>(list[i]->Get_Heap_ID()));
-    }
-    return count;
-}
-
-
-static int Count_All_Owned_Units(HouseClass* house, TypeList<UnitTypeClass*>& list)
-{
-    int count = 0;
-    for (int i = 0; i < list.Count(); i++) {
-        count += house->UQuantity.Count_Of(static_cast<UnitType>(list[i]->Get_Heap_ID()));
-    }
-    return count;
-}
-
-
 /**
  *  #issue-177
  * 
@@ -168,7 +148,7 @@ DECLARE_PATCH(_CellClass_Goodie_Check_CRATE_UNIT_BuildRefinery_HarvesterUnit_Pat
 
     owner_house = object->House;
 
-    if (Count_All_Owned_Buildings(owner_house, Rule->BuildRefinery) > 0 && Count_All_Owned_Units(owner_house, Rule->HarvesterUnit) == 0)
+    if (owner_house->Count_Owned(Rule->BuildRefinery) > 0 && owner_house->Count_Owned(Rule->HarvesterUnit) == 0)
     {
         // We can grant a harvester
         unittype = owner_house->Get_First_Ownable(Rule->HarvesterUnit);

@@ -275,23 +275,13 @@ function_return:
 }
 
 
-static int Count_All_Owned_Units(HouseClass* house, TypeList<UnitTypeClass*>& list)
-{
-    int count = 0;
-    for (int i = 0; i < list.Count(); i++) {
-        count += house->UQuantity.Count_Of(static_cast<UnitType>(list[i]->Get_Heap_ID()));
-    }
-    return count;
-}
-
-
 DECLARE_PATCH(_FootClass_Search_For_Tiberium_Weighted_HarvesterUnit_Patch)
 {
     GET_REGISTER_STATIC(FootClass *, this_ptr, edi);
 
     static int count;
 
-    count = Count_All_Owned_Units(this_ptr->House, Rule->HarvesterUnit);
+    count = this_ptr->House->Count_Owned(Rule->HarvesterUnit);
 
     _asm mov eax, count
     JMP_REG(esi, 0x004A7A65);
