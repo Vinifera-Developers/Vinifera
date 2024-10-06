@@ -164,6 +164,8 @@ New:
 - Implement support for a Saved Games subdirectory (by ZivDero)
 
 - Implemented the multiplayer spawner (by ZivDero)
+- Extend `BaseUnit` to accept a list of vehicles (by ZivDero/CCHyper)
+- Allow `BuildConst`, `BuildRefinery`, `BuildWeapons` and `HarvesterUnit` to properly have multiple entries (by ZivDero)
 
 Vanilla fixes:
 - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively (by CCHyper/tomsons26)
