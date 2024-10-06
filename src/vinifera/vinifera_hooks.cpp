@@ -709,7 +709,7 @@ retry_dialog:
 
         case 2: // User pressed "Load Game"
         {
-#if !defined(RELEASE) && defined(NDEBUG)
+#if 0 //!defined(RELEASE) && defined(NDEBUG)
             /**
              *  We disable loading in non-release.
              */
