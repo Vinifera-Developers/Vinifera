@@ -258,6 +258,9 @@ void Init_Vinifera_Commands()
     cmdptr = new ToggleSuperTimersCommandClass;
     Commands.Add(cmdptr);
 
+    cmdptr = new HoldPositionCommandClass;
+    Commands.Add(cmdptr);
+
     /**
      *  Hotkeys for the sidebar tabs.
      */

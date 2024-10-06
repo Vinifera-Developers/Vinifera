@@ -1713,6 +1713,52 @@ bool CaptureObjectCommandClass::Process()
 }
 
 
+const char* HoldPositionCommandClass::Get_Name() const
+{
+    return "HoldPosition";
+}
+
+const char* HoldPositionCommandClass::Get_UI_Name() const
+{
+    return "Hold Position";
+}
+
+const char* HoldPositionCommandClass::Get_Category() const
+{
+    return "Control";
+}
+
+const char* HoldPositionCommandClass::Get_Description() const
+{
+    return "Force unit to stop and only attack those already in range";
+}
+
+bool HoldPositionCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+     
+    /**
+     *  Iterate over all currently selected objects force them to hold position
+     */
+    for (int i = 0; i < CurrentObjects.Count(); ++i) {
+        ObjectClass* object = CurrentObjects[i];
+        if (!object || !object->Is_Techno()) {
+            continue;
+        }
+        if (object->Owning_House() == PlayerPtr && object->Can_Player_Move()) {
+            TechnoClass* techno = dynamic_cast<TechnoClass*>(object);
+            techno->Assign_Mission(MISSION_STICKY);
+            techno->Response_Select();
+        }        
+    }
+
+    Map.Recalc();
+
+    return true;
+}
+
 /**
  *  Grants all available special weapons to the player.
  * 
