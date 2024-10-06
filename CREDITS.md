@@ -154,4 +154,5 @@ This page lists all the individual contributions to the project by their author.
   - Implement the support for new ArmorTypes and allow forbidding force-fire, passive-acquire and retaliation versus specific armor types.
   - Fix a bug where the objects would sometimes receive a minimum of 1 damage even if MinDamage was set to 0.
   - Add a developer command to dump all heaps to the log.
+  - Make harvesters drop the Tiberium type they're carrying on death, instead of Tiberium Riparius.
 
