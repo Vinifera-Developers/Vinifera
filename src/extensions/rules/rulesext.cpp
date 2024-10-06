@@ -259,6 +259,14 @@ void RulesClassExtension::Process(CCINIClass &ini)
     This()->VoxelAnims(ini);
     This()->Particles(ini);
     This()->ParticleSystems(ini);
+
+    /**
+     *  Read Tiberiums like all other types, instead of handling them separately.
+     *
+     *  @author: ZivDero
+     */
+    Tiberiums(ini);
+
     This()->JumpjetControls(ini);
     This()->MPlayer(ini);
     This()->AI(ini);
@@ -305,7 +313,7 @@ void RulesClassExtension::Process(CCINIClass &ini)
     This()->CombatDamage(ini);
     This()->AudioVisual(ini);
     This()->SpecialWeapons(ini);
-    TiberiumClass::Process(ini);
+    //TiberiumClass::Process(ini);
 
     /**
      *  Process the rules extension.
@@ -518,6 +526,11 @@ bool RulesClassExtension::Objects(CCINIClass &ini)
     for (int index = 0; index < ParticleSystemTypeExtensions.Count(); ++index) {
         ParticleSystemTypeExtensions[index]->Read_INI(ini);
     }
+
+    DEBUG_INFO("Rules: Processing Tiberiums (Count: %d)...\n", ::Tiberiums.Count());
+    for (int index = 0; index < ::Tiberiums.Count(); ++index) {
+        ::Tiberiums[index]->Read_INI(ini);
+    }
     
     DEBUG_INFO("Rules: Processing VoxelAnimTypes (Count: %d)...\n", VoxelAnimTypes.Count());
     for (int index = 0; index < VoxelAnimTypes.Count(); ++index) {
@@ -712,6 +725,48 @@ bool RulesClassExtension::Armors(CCINIClass &ini)
                 DEV_DEBUG_WARNING("Rules: Error processing ArmorType \"%s\"!\n", buf);
             }
         }
+    }
+
+    return counter > 0;
+}
+
+
+/**
+ *  Reimplemented function to read Tiberiums like all other types,
+ *  instead of handling them in a special way.
+ *
+ *  @author: ZivDero
+ */
+bool RulesClassExtension::Tiberiums(CCINIClass &ini)
+{
+    //EXT_DEBUG_TRACE("RulesClassExtension::Tiberiums - 0x%08X\n", (uintptr_t)(This()));
+
+    static const char * const TIBERIUMS = "Tiberiums";
+
+    char buf[128];
+    const TiberiumClass* tiberium;
+
+    int counter = ini.Entry_Count(TIBERIUMS);
+    for (int index = 0; index < counter; ++index) {
+        const char *entry = ini.Get_Entry(TIBERIUMS, index);
+
+        /**
+         *  Get a Tiberium entry.
+         */
+        if (ini.Get_String(TIBERIUMS, entry, buf, sizeof(buf))) {
+
+            /**
+             *  Find or create a weapon of the name specified.
+             */
+            tiberium = TiberiumClass::Find_Or_Make(buf);
+            if (tiberium) {
+                DEV_DEBUG_INFO("Rules: Found Tiberium \"%s\".\n", buf);
+            } else {
+                DEV_DEBUG_WARNING("Rules: Error processing Tiberium \"%s\"!\n", buf);
+            }
+
+        }
+
     }
 
     return counter > 0;
