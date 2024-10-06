@@ -82,7 +82,8 @@ RulesClassExtension::RulesClassExtension(const RulesClass *this_ptr) :
     IsShowSuperWeaponTimers(true),
     IceStrength(0),
     WeedPipIndex(1),
-    MaxFreeRefineryDistanceBias(16)
+    MaxFreeRefineryDistanceBias(16),
+    BaseUnit()
 {
     //if (this_ptr) EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
@@ -114,7 +115,8 @@ RulesClassExtension::RulesClassExtension(const RulesClass *this_ptr) :
  */
 RulesClassExtension::RulesClassExtension(const NoInitClass &noinit) :
     GlobalExtensionClass(noinit),
-    MaxPips(noinit)
+    MaxPips(noinit),
+    BaseUnit(noinit)
 {
     //EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension(NoInitClass) - 0x%08X\n", (uintptr_t)(ThisPtr));
 }
@@ -141,6 +143,7 @@ HRESULT RulesClassExtension::Load(IStream *pStm)
     //EXT_DEBUG_TRACE("RulesClassExtension::Load - 0x%08X\n", (uintptr_t)(This()));
 
     MaxPips.Clear();
+    BaseUnit.Clear();
 
     HRESULT hr = GlobalExtensionClass::Load(pStm);
     if (FAILED(hr)) {
@@ -150,6 +153,9 @@ HRESULT RulesClassExtension::Load(IStream *pStm)
     new (this) RulesClassExtension(NoInitClass());
 
     MaxPips.Load(pStm);
+    BaseUnit.Load(pStm);
+
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(BaseUnit, "BaseUnit");
     
     return hr;
 }
@@ -170,6 +176,7 @@ HRESULT RulesClassExtension::Save(IStream *pStm, BOOL fClearDirty)
     }
 
     MaxPips.Save(pStm);
+    BaseUnit.Save(pStm);
 
     return hr;
 }
@@ -196,6 +203,10 @@ int RulesClassExtension::Size_Of() const
 void RulesClassExtension::Detach(TARGET target, bool all)
 {
     //EXT_DEBUG_TRACE("RulesClassExtension::Detach - 0x%08X\n", (uintptr_t)(This()));
+
+    if (target->What_Am_I() == RTTI_UNITTYPE) {
+        BaseUnit.Delete(reinterpret_cast<UnitTypeClass *>(target));
+    }
 }
 
 
@@ -214,6 +225,7 @@ void RulesClassExtension::Compute_CRC(WWCRCEngine &crc) const
     crc(IsShowSuperWeaponTimers);
     crc(IceStrength);
     crc(MaxFreeRefineryDistanceBias);
+    crc(BaseUnit.Count());
 }
 
 
@@ -611,6 +623,13 @@ bool RulesClassExtension::General(CCINIClass &ini)
      */
     This()->EngineerDamage = ini.Get_Float(GENERAL, "EngineerDamage", This()->EngineerDamage);
     MaxFreeRefineryDistanceBias = ini.Get_Int(GENERAL, "MaxFreeRefineryDistanceBias", MaxFreeRefineryDistanceBias);
+
+    /**
+     *  Reload the BaseUnit entry and store the value in the new class extension.
+     *  This allows us to expand the original BaseUnit logic without impacting
+     *  the original behaviour of BaseUnit.
+     */
+    BaseUnit = ini.Get_Units(GENERAL, "BaseUnit", BaseUnit);
 
     return true;
 }

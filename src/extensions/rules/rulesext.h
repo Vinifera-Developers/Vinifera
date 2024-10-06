@@ -32,6 +32,7 @@
 #include "rules.h"
 #include "extension.h"
 #include "tpoint.h"
+#include "typelist.h"
 
 
 class CCINIClass;
@@ -117,4 +118,9 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
          *  difference in cells is less than this.
          */
         int MaxFreeRefineryDistanceBias;
+        
+        /**
+         *  List of units to consider "home".
+         */
+        TypeList<UnitTypeClass *> BaseUnit;
 };
