@@ -25,6 +25,7 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+#include "spawnmanager.h"
 #include "technoext_hooks.h"
 
 #include <vector>
@@ -53,6 +54,7 @@
 #include "infantrytype.h"
 #include "infantrytypeext.h"
 #include "voc.h"
+#include "mouse.h"
 #include "vinifera_util.h"
 #include "extension.h"
 #include "fatal.h"
@@ -73,6 +75,7 @@
 #include "verses.h"
 #include "session.h"
 #include "mouse.h"
+#include "tag.h"
 
 
 /**
@@ -95,6 +98,10 @@ public:
     ActionType _What_Action(ObjectClass* object, bool disallow_force);
     void _Drop_Tiberium();
     int _Cell_Distance_Squared(const AbstractClass* object) const;
+    void _Init();
+    bool _Fire_At_Spawner(TARGET target, WeaponTypeClass* weapon);
+    bool _Target_Something_Nearby(Coordinate& coord, ThreatType threat);
+
 };
 
 
@@ -435,6 +442,102 @@ WeaponSlotType TechnoClassExt::_What_Weapon_Should_I_Use(TARGET target) const
 
     return immobilize == webby_secondary ? WEAPON_SLOT_SECONDARY : WEAPON_SLOT_PRIMARY;
 }
+
+void TechnoClassExt::_Init()
+{
+    // Original function code
+    if (House != nullptr)
+        IsOwnedByPlayer = House == PlayerPtr;
+
+    // Spawner
+    TechnoTypeClass const* techno_type = Techno_Type_Class();
+    if (techno_type != nullptr)
+    {
+        auto type_extension = Extension::Fetch<TechnoTypeClassExtension>(techno_type);
+        auto extension = Extension::Fetch<TechnoClassExtension>(this);
+
+        extension->SpawnManager = new SpawnManagerClass(this, type_extension->Spawns, type_extension->SpawnsNumber, type_extension->SpawnRegenRate, type_extension->SpawnReloadRate);
+    }
+}
+
+
+bool TechnoClassExt::_Fire_At_Spawner(TARGET target, WeaponTypeClass* weapon)
+{
+    auto weapon_ext = Extension::Fetch<WeaponTypeClassExtension>(weapon);
+
+    if (weapon_ext->IsSpawner)
+    {
+        auto techno_ext = Extension::Fetch<TechnoClassExtension>(this);
+        techno_ext->SpawnManager->Assign_Target(target);
+        if (IsOwnedByPlayer || IsDiscoveredByPlayer)
+        {
+            if (!Map.Is_Shrouded(Center_Coord()) && !Map.Is_Fogged(Center_Coord()))
+                return true;
+
+            if (What_Am_I() == RTTI_AIRCRAFT && IsOwnedByPlayer)
+                return true;
+        }
+
+        HouseClass* target_house = target->Owning_House();
+        if (target_house && target_house->Is_Player_Control())
+        {
+            if (weapon_ext->IsRevealOnFire)
+            {
+                Map.Sight_From(Center_Coord(), 3, target_house);
+            }
+        }
+
+        // MapClass_visibility_567DA0(&Map.sc.t.sb.p.r.d, v15, &v149, 0, 4);
+        return true;
+    }
+
+    return false;
+}
+
+
+bool TechnoClassExt::_Target_Something_Nearby(Coordinate& coord, ThreatType threat)
+{
+    /**
+     *  Determine that if there is an existing target it is still legal
+     *  and within range.
+     */
+    if (Target_Legal(TarCom))
+    {
+        // This bit is roughly ported from YR but is missing `ShouldLoseTargetNow`
+        if (threat & THREAT_RANGE)
+        {
+            WeaponSlotType primary = What_Weapon_Should_I_Use(TarCom);
+            FireErrorType fire = Can_Fire(TarCom, primary);
+
+            if (fire == FIRE_CANT)
+            {
+                SpawnManagerClass* spawn_manager = Extension::Fetch<TechnoClassExtension>(this)->SpawnManager;
+                if (spawn_manager)
+                    spawn_manager->Kamikaze_AI();
+
+                Assign_Target(nullptr);
+            }
+            else if (fire == FIRE_ILLEGAL || fire == FIRE_RANGE)
+            {
+                Assign_Target(nullptr);
+            }
+        }
+    }
+
+    /**
+     *  If there is no target, then try to find one and assign it as
+     *  the target for this unit.
+     */
+    if (!Target_Legal(TarCom)) {
+        Assign_Target(Greatest_Threat(threat & (THREAT_RANGE | THREAT_AREA), coord));
+    }
+
+    /**
+     *  Return with answer to question: Does this unit now have a target?
+     */
+    return Target_Legal(TarCom);
+}
+
 
 
 /**
@@ -1593,17 +1696,10 @@ DECLARE_PATCH(_TechnoClass_AI_Abandon_Invalid_Target_Patch)
             which = this_ptr->What_Weapon_Should_I_Use(this_ptr->TarCom);
             weapon = const_cast<WeaponTypeClass*>(this_ptr->Get_Weapon(which)->Weapon);
 
-            if (weapon
-                && !(weapon->IsSonic && this_ptr->Wave)
-                && !(weapon->IsRailgun && this_ptr->ParticleSystems[4])
-                && !(weapon->IsUseFireParticles && this_ptr->ParticleSystems[0])
-                && !(weapon->IsUseSparkParticles && this_ptr->ParticleSystems[1]))
+            fire = this_ptr->Can_Fire(this_ptr->TarCom, which);
+            if (fire == FIRE_ILLEGAL || fire == FIRE_CANT)
             {
-                fire = this_ptr->Can_Fire(this_ptr->TarCom, which);
-                if (fire == FIRE_ILLEGAL || fire == FIRE_CANT)
-                {
-                    this_ptr->Assign_Target(nullptr);
-                }
+                this_ptr->Assign_Target(nullptr);
             }
         }
     }
@@ -1625,6 +1721,149 @@ DECLARE_PATCH(_TechnoClass_Take_Damage_Drop_Tiberium_Type_Patch)
 
     // Return from the function
     JMP(0x00633073);
+}
+
+
+DECLARE_PATCH(_TechnoClass_AI_Spawn_Manager_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass*, this_ptr, esi);
+    static TechnoClassExtension* extension;
+
+    extension = Extension::Fetch<TechnoClassExtension>(this_ptr);
+
+    if (extension->SpawnManager)
+        extension->SpawnManager->AI();
+
+    if (this_ptr->IsActive)
+    {
+        JMP(0x0062E9E1);
+    }
+
+    JMP(0x0062EA30);
+
+}
+
+
+DECLARE_PATCH(_TechnoClass_Stun_Spawn_Manager_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass*, this_ptr, esi);
+    static TechnoClassExtension* extension;
+
+    extension = Extension::Fetch<TechnoClassExtension>(this_ptr);
+
+    if (extension->SpawnManager)
+    {
+        extension->SpawnManager->Manage();
+        extension->SpawnManager->Kamikaze_AI();
+    }
+
+    // Restored function calls
+    this_ptr->Detach_All(true);
+    this_ptr->Unselect();
+
+    // Jump to return
+    JMP(0x0062FD64);
+}
+
+
+DECLARE_PATCH(_TechnoClass_Captured_Spawn_Manager_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass*, this_ptr, esi);
+    static TechnoClassExtension* extension;
+
+    extension = Extension::Fetch<TechnoClassExtension>(this_ptr);
+
+    if (extension->SpawnManager)
+        extension->SpawnManager->Manage();
+
+    // Stolen instructions
+    if (this_ptr->Tag)
+        this_ptr->Tag->Spring(TEVENT_PLAYER_ENTERED, this_ptr);
+
+    JMP(0x00632518);
+}
+
+
+DECLARE_PATCH(_TechnoClass_Assign_Target_Spawn_Manager_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass*, this_ptr, esi);
+    static TechnoClassExtension* extension;
+
+    extension = Extension::Fetch<TechnoClassExtension>(this_ptr);
+
+    if (extension->SpawnManager)
+        extension->SpawnManager->Assign_Target(nullptr);
+
+    // Stolen instructions
+    this_ptr->CurrentBurstIndex = 0;
+
+    JMP(0x0062FDE8);
+}
+
+
+DECLARE_PATCH(_TechnoClass_Fire_At_Spawn_Manager_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClassExt*, this_ptr, esi);
+    GET_REGISTER_STATIC(WeaponTypeClass*, weapon, ebx);
+    GET_REGISTER_STATIC(TARGET, target, edi);
+
+    // Stolen instructions
+    if (((weapon->IsSonic && this_ptr->Wave)
+      || (weapon->IsRailgun && this_ptr->ParticleSystems[4])
+      || (weapon->IsUseFireParticles && this_ptr->ParticleSystems[0])
+      || (weapon->IsUseSparkParticles && this_ptr->ParticleSystems[1])))
+    {
+        // return FIRE_OK;
+        JMP(0x006304D2);
+    }
+
+    if (this_ptr->_Fire_At_Spawner(target, weapon))
+    {
+        // return FIRE_OK;
+        JMP(0x006304D2);
+    }
+
+    // Continue checks
+    JMP(0x0063052D);
+}
+
+
+DECLARE_PATCH(_TechnoClass_Can_Fire_Spawn_Manager_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass*, this_ptr, esi);
+    GET_REGISTER_STATIC(WeaponTypeClass*, weapon, eax);
+    static TechnoClassExtension* techno_ext;
+    static WeaponTypeClassExtension* weapon_ext;
+
+    weapon_ext = Extension::Fetch<WeaponTypeClassExtension>(weapon);
+    if (weapon_ext->IsSpawner)
+    {
+        if (this_ptr->Is_Z_Fudge_Bridge() || this_ptr->Is_Immobilized())
+        {
+            // return FIRE_CANT;
+            JMP(0x0062FD07);
+        }
+
+        techno_ext = Extension::Fetch<TechnoClassExtension>(this_ptr);
+        if (techno_ext->SpawnManager->Active_Count() == 0)
+        {
+            // return FIRE_REARM;
+            JMP(0x0062FBE5);
+        }
+    }
+
+    // Fix from YR so that units with these weapons don't stop attacking their target immediately
+    if (weapon
+        && ((weapon->IsSonic && this_ptr->Wave)
+        || (weapon->IsRailgun && this_ptr->ParticleSystems[4])
+        || (weapon->IsUseFireParticles && this_ptr->ParticleSystems[0])
+        || (weapon->IsUseSparkParticles && this_ptr->ParticleSystems[1])))
+    {
+        // return FIRE_REARM;
+        JMP(0x0062FBE5);
+    }
+
+    JMP(0x0062FB1B);
 }
 
 
@@ -1737,4 +1976,12 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x006320C2, &_TechnoClass_2A0_Is_Allowed_To_Deploy_Unit_Transform_Patch);
     Patch_Call(0x00637FF5, &TechnoClassExt::_Cell_Distance_Squared); // Patch Find_Docking_Bay to call our own distance function that avoids overflows
     Patch_Jump(0x006396D1, &_TechnoClass_Railgun_Damage_Apply_Damage_Modifier_Patch);
+    Patch_Jump(0x0062E9D6, &_TechnoClass_AI_Spawn_Manager_Patch);
+    Patch_Jump(0x0062FD4E, &_TechnoClass_Stun_Spawn_Manager_Patch);
+    Patch_Jump(0x006324FF, &_TechnoClass_Captured_Spawn_Manager_Patch);
+    Patch_Jump(0x0062FDE2, &_TechnoClass_Assign_Target_Spawn_Manager_Patch);
+    Patch_Jump(0x006304DD, &_TechnoClass_Fire_At_Spawn_Manager_Patch);
+    Patch_Jump(0x0062FAB7, &_TechnoClass_Can_Fire_Spawn_Manager_Patch);
+    Patch_Jump(0x0062A7C0, &TechnoClassExt::_Init);
+    Patch_Jump(0x00637450, &TechnoClassExt::_Target_Something_Nearby);
 }

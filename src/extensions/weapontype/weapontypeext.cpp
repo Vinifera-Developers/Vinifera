@@ -51,7 +51,8 @@ WeaponTypeClassExtension::WeaponTypeClassExtension(const WeaponTypeClass *this_p
     ElectricBoltSegmentCount(EBOLT_DEFAULT_LINE_SEGEMENTS),
     ElectricBoltLifetime(EBOLT_DEFAULT_LIFETIME),
     ElectricBoltIterationCount(EBOLT_DEFAULT_INTERATIONS),
-    ElectricBoltDeviation(EBOLT_DEFAULT_DEVIATION)
+    ElectricBoltDeviation(EBOLT_DEFAULT_DEVIATION),
+    IsSpawner(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("WeaponTypeClassExtension::WeaponTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -203,6 +204,8 @@ bool WeaponTypeClassExtension::Read_INI(CCINIClass &ini)
     ElectricBoltLifetime = ini.Get_Int(ini_name, "EBoltLifetime", ElectricBoltLifetime);
     ElectricBoltIterationCount = ini.Get_Int(ini_name, "EBoltIterations", ElectricBoltIterationCount);
     ElectricBoltDeviation = ini.Get_Float(ini_name, "EBoltDeviation", ElectricBoltDeviation);
+    IsSpawner = ini.Get_Bool(ini_name, "Spawner", IsSpawner);
+    IsRevealOnFire = ini.Get_Bool(ini_name, "RevealOnFire", IsRevealOnFire);
     //ElectricBoltSourceBoltParticleSys = ini.Get_ParticleSys(ini_name, "EBoltSourceParticleSys", ElectricBoltSourceBoltParticleSys);
     //ElectricBoltTargetBoltParticleSys = ini.Get_ParticleSys(ini_name, "EBoltTargetBoltParticleSys", ElectricBoltTargetBoltParticleSys);
     

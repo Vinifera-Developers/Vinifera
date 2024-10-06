@@ -33,6 +33,7 @@
 #include "tibsun_defines.h"
 
 
+class AircraftTypeClass;
 class BSurface;
 
 
@@ -178,4 +179,17 @@ class TechnoTypeClassExtension : public ObjectTypeClassExtension
          *  Description for the extended sidebar tooltip.
          */
         char Description[200];
+
+        /**
+         *  This field shares two functions. For spawner units, it designates if it spawns missiles
+         *  (although this appears unused in RA2). For spawned units, it designates if it should be
+         *  treated like a missile.
+         */
+        bool IsMissileSpawn;
+
+
+        const AircraftTypeClass* Spawns;
+        int SpawnReloadRate;
+        int SpawnRegenRate;
+        int SpawnsNumber;
 };

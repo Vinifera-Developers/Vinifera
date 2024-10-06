@@ -31,6 +31,7 @@
 #include "techno.h"
 
 
+class SpawnManagerClass;
 class EBoltClass;
 class TechnoTypeClass;
 class TechnoTypeClassExtension;
@@ -80,4 +81,9 @@ class TechnoClassExtension : public RadioClassExtension
          *  Replacement Tiberium storage.
          */
         VectorClass<int> Storage;
+
+        /**
+         *  The spawn manager of this unit.
+         */
+        SpawnManagerClass* SpawnManager;
 };

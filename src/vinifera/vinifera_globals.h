@@ -32,6 +32,8 @@
 #include "ccfile.h"
 
 
+class KamikazeTrackerClass;
+class SpawnManagerClass;
 class EBoltClass;
 class TheaterTypeClass;
 class ArmorTypeClass;
@@ -92,6 +94,8 @@ extern DynamicVectorClass<MFCC *> ViniferaMoviesMixes;
 extern MFCC *GenericMix;
 extern MFCC *IsoGenericMix;
 
+extern KamikazeTrackerClass *KamikazeTracker;
+
 
 /**
  *  Global vectors and heaps.
@@ -99,6 +103,7 @@ extern MFCC *IsoGenericMix;
 extern DynamicVectorClass<EBoltClass *> EBolts;
 extern DynamicVectorClass<TheaterTypeClass *> TheaterTypes;
 extern DynamicVectorClass<ArmorTypeClass *> ArmorTypes;
+extern DynamicVectorClass<SpawnManagerClass *> SpawnManagers;
 
 
 /**

@@ -41,6 +41,7 @@
 #include "saveload.h"
 #include "vinifera_saveload.h"
 #include "storage/storageext.h"
+#include "spawnmanager.h"
 
 
 /**
@@ -110,6 +111,8 @@ HRESULT TechnoClassExtension::Load(IStream *pStm)
     Load_Primitive_Vector(pStm, Storage, "Storage");
 
     ElectricBolt = nullptr;
+
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(SpawnManager, "SpawnManager");
     
     return hr;
 }
@@ -130,7 +133,6 @@ HRESULT TechnoClassExtension::Save(IStream *pStm, BOOL fClearDirty)
     }
 
     Save_Primitive_Vector(pStm, Storage, "Storage");
-    ElectricBolt = nullptr;
 
     return hr;
 }
@@ -146,6 +148,9 @@ void TechnoClassExtension::Detach(TARGET target, bool all)
     //EXT_DEBUG_TRACE("TechnoClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     RadioClassExtension::Detach(target, all);
+
+    if (SpawnManager)
+        SpawnManager->Detach2(target);
 }
 
 

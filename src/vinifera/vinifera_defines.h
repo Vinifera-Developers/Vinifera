@@ -62,6 +62,12 @@
 
 
 /**
+ *  CLSID's for new classes.
+ */
+#define		CLSID_SPAWN_MANAGER_CLASS	"157ADEE5-D344-48B9-811B-3FA01EF3CCD4"
+
+
+/**
  *  UUID's for all extension classes.
  */
 #define UUID_UNIT_EXTENSION                 "17621513-3BDA-4FBD-A591-1A0B6DA0F4B9"

@@ -31,6 +31,7 @@
 #include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "vinifera_saveload.h"
 
 
 /**
@@ -39,7 +40,8 @@
  *  @author: CCHyper
  */
 AircraftClassExtension::AircraftClassExtension(const AircraftClass *this_ptr) :
-    FootClassExtension(this_ptr)
+    FootClassExtension(this_ptr),
+    Spawner(nullptr)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("AircraftClassExtension::AircraftClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -104,6 +106,8 @@ HRESULT AircraftClassExtension::Load(IStream *pStm)
     if (FAILED(hr)) {
         return E_FAIL;
     }
+
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Spawner, "Spawner");
 
     new (this) AircraftClassExtension(NoInitClass());
     

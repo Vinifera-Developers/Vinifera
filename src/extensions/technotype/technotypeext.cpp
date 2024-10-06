@@ -68,6 +68,7 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     SpecialPipIndex(-1),
     PipWrap(0),
     IdleRate(0),
+    IsMissileSpawn(false),
     CameoImageSurface(nullptr),
     SortCameoAsBaseDefense(false),
     Description("")
@@ -117,6 +118,7 @@ HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
     }
 
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(UnloadingClass, "UnloadingClass");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Spawns, "Spawns");
 
     /**
      *  We need to reload the "Cameo" key because TechnoTypeClass does
@@ -214,6 +216,10 @@ void TechnoTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
     crc(ShakePixelXLo);
     crc(SoylentValue);
     crc(IsLegalTargetComputer);
+    crc(Spawns != nullptr);
+    crc(SpawnRegenRate);
+    crc(SpawnReloadRate);
+    crc(SpawnsNumber);
 }
 
 
@@ -274,6 +280,12 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
 
     IdleRate = ini.Get_Int(ini_name, "IdleRate", IdleRate);
     IdleRate = ArtINI.Get_Int(graphic_name, "IdleRate", IdleRate);
+
+    Spawns = ini.Get_Aircraft(ini_name, "Spawns", nullptr);
+    SpawnReloadRate = ini.Get_Bool(ini_name, "SpawnReloadRate", SpawnReloadRate);
+    SpawnRegenRate = ini.Get_Bool(ini_name, "SpawnRegenRate", SpawnRegenRate);
+    SpawnsNumber = ini.Get_Bool(ini_name, "SpawnsNumber", SpawnsNumber);
+    IsMissileSpawn = ini.Get_Bool(ini_name, "MissileSpawn", IsMissileSpawn);
 
     /**
      *  Fetch the cameo image surface if it exists.
