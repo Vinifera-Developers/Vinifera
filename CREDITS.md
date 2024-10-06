@@ -131,6 +131,7 @@ This page lists all the individual contributions to the project by their author.
   - Implement various controls to customise target lasers line.
   - Implement various controls to show and customise NavCom queue lines.
   - Implement customizable mouse cursors and actions.
+  - Extend `BaseUnit` to accept a list of vehicles.
 - **CnCNet Contributors**:
   - Tiberian Sun TS-patches spawner, Yuri's Revenge CnCNet spawner that served as a base for Vinifera spawner.
 - **Kerbiter (Metadorius)**:
@@ -204,4 +205,6 @@ This page lists all the individual contributions to the project by their author.
   - Implement support for a Saved Games subdirectory.
   - Fix a bug where if the player loaded a saved game, the score screen timer would report the time since the saved game was loaded, instead of since when the scenario was first started.
   - Implement the multiplayer spawner.
+  - Extend `BaseUnit` to accept a list of vehicles.
+  - Allow `BuildConst`, `BuildRefinery`, `BuildWeapons` and `HarvesterUnit` to properly have multiple entries.
 

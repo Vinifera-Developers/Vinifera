@@ -68,6 +68,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "rulesext.h"
 #include "spawner.h"
 
 
@@ -273,7 +274,8 @@ int BuildingClassExt::_Shape_Number() const
             shapenum += largest;
         }
     }
-    }
+
+    return shapenum;
 }
 
 
@@ -332,7 +334,7 @@ void BuildingClassExt::_Draw_Overlays(Point2D& coord, Rect& rect)
             if (House->Is_Ally(PlayerPtr) || SpiedBy & (1 << (PlayerPtr->Class->House)) || (Spawner::Active && Spawner::Get_Config()->Houses[PlayerPtr->Get_Heap_ID()].IsSpectator))
             {
                 Point2D xy(coord.X - 10, coord.Y + 10);
-                entry_338(xy, coord, rect);
+                Draw_Text_Overlay(xy, coord, rect);
             }
 
             /**
@@ -384,9 +386,6 @@ void BuildingClassExt::_Draw_Overlays(Point2D& coord, Rect& rect)
             }
         }
     }
-}
-
-    return shapenum;
 }
 
 
@@ -1110,6 +1109,86 @@ DECLARE_PATCH(_BuildingClass_Grand_Opening_Assign_FreeUnit_LastDockedBuilding_Pa
 
 
 /**
+ *  #issue-177
+ *
+ *  Patches the check for if a building is a Construction Yard to check the entire BuildConst list.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_BuildingClass_Unlimbo_BuildConst_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+
+    if (Rule->BuildConst.Is_Present(this_ptr->Class))
+    {
+        JMP(0x0042AA8B);
+    }
+
+    JMP(0x0042AACF);
+}
+
+
+/**
+ *  #issue-177
+ *
+ *  Patches the check for if a building is a Construction Yard to check the entire BuildConst list.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_BuildingClass_Captured_BuildConst_Patch1)
+{
+    GET_REGISTER_STATIC(BuildingTypeClass*, buildingtype, ecx);
+
+    if (Rule->BuildConst.Is_Present(buildingtype))
+    {
+        JMP(0x0042F968);
+    }
+
+    JMP(0x0042F9A2);
+}
+
+
+/**
+ *  #issue-177
+ *
+ *  Patches the check for if you have a Construction Yard to check the entire BuildConst list.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_BuildingClass_Captured_BuildConst_Patch2)
+{
+    GET_REGISTER_STATIC(HouseClass*, house, ebx);
+
+    if (house->Count_Owned(Rule->BuildConst))
+    {
+        JMP(0x0042FAEF);
+    }
+
+    JMP(0x0042FB10);
+}
+
+
+/**
+ *  #issue-177
+ *
+ *  Patches the check for if a building is a Construction Yard to check the entire BuildConst list.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_BuildingClass_Captured_BuildConst_Patch3)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+
+    if (Rule->BuildConst.Is_Present(this_ptr->Class))
+    {
+        JMP(0x0042FCB6);
+    }
+
+    JMP(0x0042FCF8);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void BuildingClassExtension_Hooks()
@@ -1143,4 +1222,8 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x0042E5F5, &_BuildingClass_Grand_Opening_Assign_FreeUnit_LastDockedBuilding_Patch);
     //Patch_Jump(0x00429220, &BuildingClassExt::_Shape_Number); // It's identical to vanilla, leaving it in in case it's ever needed
     Patch_Jump(0x00428810, &BuildingClassExt::_Draw_Overlays);
+    Patch_Jump(0x0042AA76, &_BuildingClass_Unlimbo_BuildConst_Patch);
+    Patch_Jump(0x0042F958, &_BuildingClass_Captured_BuildConst_Patch1);
+    Patch_Jump(0x0042FACC, &_BuildingClass_Captured_BuildConst_Patch2);
+    Patch_Jump(0x0042FCA1, &_BuildingClass_Captured_BuildConst_Patch3);
 }

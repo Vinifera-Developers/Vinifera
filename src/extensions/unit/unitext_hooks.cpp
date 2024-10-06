@@ -34,6 +34,7 @@
 #include "tag.h"
 #include "technotype.h"
 #include "technotypeext.h"
+#include "house.h"
 #include "warheadtype.h"
 #include "unit.h"
 #include "unitext.h"
@@ -74,6 +75,7 @@ class UnitClassExt : public UnitClass
 public:
     void _Firing_AI();
     void _Draw_Voxel(unsigned int frame, int key, Rect& rect, Point2D& point, const Matrix3D& other_matrix, int color, int flags);
+    int _Mission_Hunt();
 
 };
 
@@ -253,6 +255,35 @@ DECLARE_PATCH(_UnitClass_Draw_Voxel_Patch)
     _asm mov ebx, color
 
     JMP(0x006528E9);
+}
+
+
+/**
+ *  #issue-177
+ *
+ *  Reaplces UnitClass::MissionHunt to consider the entire BuildConst vector.
+ *
+ *  @author: ZivDero
+ */
+int UnitClassExt::_Mission_Hunt()
+{
+    if (Class->DeploysInto && (Rule->BuildConst.Is_Present(Class->DeploysInto) || TarCom || House->Is_Human_Control()))
+    {
+        if (Status)
+        {
+            if (Status == 1 && !IsDeploying)
+                Status = 0;
+        }
+        else if (Goto_Clear_Spot())
+        {
+            if (Try_To_Deploy())
+                Status = 1;
+        }
+
+        return Get_Current_Mission_Control().Rate * TICKS_PER_MINUTE + Random_Pick(0, 2);
+    }
+
+    return FootClass::Mission_Hunt();
 }
 
 
@@ -1338,6 +1369,68 @@ set_mission_delay_and_return:
 
 
 /**
+ *  #issue-177
+ *
+ *  Patches the AI to correctly consider all Construction Yards from the list.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_UnitClass_AI_BuildConst_Patch)
+{
+    GET_REGISTER_STATIC(UnitTypeClass*, unittype, edx);
+
+    if (Rule->BuildConst.Is_Present(unittype->DeploysInto))
+    {
+        JMP_REG(ecx, 0x0064E0EC);
+    }
+
+    JMP_REG(eax, 0x0064E134);
+}
+
+
+/**
+ *  #issue-177
+ *
+ *  Patches the AI to correctly consider all Construction Yards from the list.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_UnitClass_What_Action_BuildConst)
+{
+    GET_REGISTER_STATIC(BuildingTypeClass*, buildingtype, ebp);
+    _asm pushad
+
+    if (Rule->BuildConst.Is_Present(buildingtype))
+    {
+        _asm popad
+        JMP_REG(edx, 0x00656084);
+    }
+
+    _asm popad
+    JMP_REG(edi, 0x006560A3);
+}
+
+
+/**
+ *  #issue-177
+ *
+ *  Patches the AI to correctly consider all Construction Yards from the list.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_UnitClass_Mission_Guard_BuildConst)
+{
+    GET_REGISTER_STATIC(UnitClass*, unit, esi);
+
+    if (Rule->BuildConst.Is_Present(unit->Class->DeploysInto))
+    {
+        JMP(0x00656770);
+    }
+
+    JMP(0x006567FD);
+}
+
+/**
  *  Main function for patching the hooks.
  */
 void UnitClassExtension_Hooks()
@@ -1363,6 +1456,10 @@ void UnitClassExtension_Hooks()
     Patch_Jump(0x0064E920, &UnitClassExt::_Firing_AI);
     Patch_Jump(0x006527B1, &_UnitClass_Draw_Voxel_Patch);
     Patch_Jump(0x00654EEE, &_UnitClass_Mission_Harvest_FINDHOME_Find_Nearest_Refinery_Patch);
+    Patch_Jump(0x0064E0D7, &_UnitClass_AI_BuildConst_Patch);
+    Patch_Jump(0x00655270, &UnitClassExt::_Mission_Hunt);
+    Patch_Jump(0x00656074, &_UnitClass_What_Action_BuildConst);
+    Patch_Jump(0x00656751, &_UnitClass_Mission_Guard_BuildConst);
     //Patch_Jump(0x0065054F, &_UnitClass_Enter_Idle_Mode_Block_Harvesting_On_Bridge_Patch); // Removed, keeping code for reference.
     //Patch_Jump(0x00654AB0, &_UnitClass_Mission_Harvest_Block_Harvesting_On_Bridge_Patch); // Removed, keeping code for reference.
 }
