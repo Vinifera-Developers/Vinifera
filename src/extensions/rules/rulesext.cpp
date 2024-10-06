@@ -59,6 +59,7 @@
 #include "particletypeext.h"
 #include "particlesystypeext.h"
 #include "voxelanimtypeext.h"
+#include "tiberiumext.h"
 
 #include "extension.h"
 #include "extension_globals.h"
@@ -530,6 +531,11 @@ bool RulesClassExtension::Objects(CCINIClass &ini)
     DEBUG_INFO("Rules: Processing Tiberiums (Count: %d)...\n", ::Tiberiums.Count());
     for (int index = 0; index < ::Tiberiums.Count(); ++index) {
         ::Tiberiums[index]->Read_INI(ini);
+    }
+
+    DEBUG_INFO("Rules: Processing TiberiumExtensions (Count: %d)...\n", TiberiumExtensions.Count());
+    for (int index = 0; index < TiberiumExtensions.Count(); ++index) {
+        TiberiumExtensions[index]->Read_INI(ini);
     }
     
     DEBUG_INFO("Rules: Processing VoxelAnimTypes (Count: %d)...\n", VoxelAnimTypes.Count());

@@ -103,47 +103,10 @@ original_code:
 
 
 /**
- *  Patch for reading the extended class members from the ini instance.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_TiberiumClass_Read_INI_Patch)
-{
-    GET_REGISTER_STATIC(TiberiumClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(CCINIClass *, ini, ebx);
-    static TiberiumClassExtension *exttype_ptr;
-
-    /**
-     *  Fetch the extension instance.
-     */
-    exttype_ptr = Extension::Fetch<TiberiumClassExtension>(this_ptr);
-
-    /**
-     *  Read type class ini.
-     */
-    exttype_ptr->Read_INI(*ini);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { mov al, 1 }
-    _asm { pop esi }
-    _asm { pop ebx }
-    _asm { add esp, 0x0BC }
-    _asm { ret 4 }
-}
-
-
-/**
  *  Main function for patching the hooks.
  */
 void TiberiumClassExtension_Init()
 {
     Patch_Jump(0x00644A20, &_TiberiumClass_Constructor_Patch);
     Patch_Jump(0x00644A93, &_TiberiumClass_Destructor_Patch);
-    Patch_Jump(0x00644E13, &_TiberiumClass_Read_INI_Patch);
-    Patch_Jump(0x00644E74, &_TiberiumClass_Read_INI_Patch);
 }
