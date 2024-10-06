@@ -71,6 +71,7 @@
 #include "unittype.h"
 #include "verses.h"
 #include "session.h"
+#include "mouse.h"
 
 
 /**
@@ -91,6 +92,7 @@ public:
     double _Target_Threat(TechnoClass* target, Coordinate& firing_coord) const;
     int _Anti_Infantry() const;
     ActionType _What_Action(ObjectClass* object, bool disallow_force);
+    void _Drop_Tiberium();
 };
 
 
@@ -700,6 +702,42 @@ ActionType TechnoClassExt::_What_Action(ObjectClass* object, bool disallow_force
     return action;
 }
 
+
+/**
+ *  Reimplements part of TechnoClass::Take_Damage that is responsible for dropping Tiberium
+ *  from a unit's storage to drop the Tiberium that the unit contains, and not always Riparius.
+ *
+ *  @author: ZivDero
+ */
+void TechnoClassExt::_Drop_Tiberium()
+{
+    static FacingType drop_facings[9] = { FACING_NONE, FACING_E, FACING_NW, FACING_NE, FACING_S, FACING_SE, FACING_N, FACING_SW, FACING_W };
+
+    if (Storage.Get_Total_Amount() > 0 && What_Am_I() != RTTI_BUILDING && !Scen->SpecialFlags.IsHarvesterImmune)
+    {
+        TiberiumType droplist[9] = { TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE };
+        int dropcount = 0;
+
+        for (int i = 0; i < Tiberiums.Count(); i++)
+        {
+            double amount = Storage.Get_Amount(static_cast<TiberiumType>(i));
+            amount = amount / Techno_Type_Class()->Storage * std::size(drop_facings);
+            for (int j = 0; j < amount && dropcount < std::size(droplist); j++)
+                droplist[dropcount++] = static_cast<TiberiumType>(i);
+        }
+
+        const Cell center_cell = Coord_Cell(Center_Coord());
+
+        for (int i = 0; i < std::size(drop_facings) && i < dropcount; i++)
+        {
+            Cell adjacent_cell = Adjacent_Cell(center_cell, drop_facings[i]);
+            CellClass& cell = Map[adjacent_cell];
+
+            const int tib_frame = Random_Pick(0, 2);
+            cell.Place_Tiberium(droplist[i], tib_frame);
+        }
+    }
+}
 
 
 /**
@@ -1516,6 +1554,24 @@ DECLARE_PATCH(_TechnoClass_AI_Abandon_Invalid_Target_Patch)
 
 
 /**
+ *  A patch that makes Technos abandon their current target if they can't fire at it.
+ *
+ *  @note: This is inside `if (TarCom != nullptr)`.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_TechnoClass_Take_Damage_Drop_Tiberium_Type_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClassExt*, this_ptr, esi);
+
+    this_ptr->_Drop_Tiberium();
+
+    // Return from the function
+    JMP(0x00633073);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void TechnoClassExtension_Hooks()
@@ -1546,4 +1602,5 @@ void TechnoClassExtension_Hooks()
     Patch_Call(0x0042EC25, &TechnoClassExt::_What_Action);
     Patch_Call(0x004A8532, &TechnoClassExt::_What_Action);
     Patch_Jump(0x0062EB27, &_TechnoClass_AI_Abandon_Invalid_Target_Patch);
+    Patch_Jump(0x00632F4C, &_TechnoClass_Take_Damage_Drop_Tiberium_Type_Patch);
 }
