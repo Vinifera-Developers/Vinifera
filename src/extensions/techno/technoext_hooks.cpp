@@ -711,6 +711,9 @@ ActionType TechnoClassExt::_What_Action(ObjectClass* object, bool disallow_force
  */
 void TechnoClassExt::_Drop_Tiberium()
 {
+    /**
+     *  Vanilla drops Tiberium in a specific order of directions, we replicate that.
+     */
     static FacingType drop_facings[9] = { FACING_NONE, FACING_E, FACING_NW, FACING_NE, FACING_S, FACING_SE, FACING_N, FACING_SW, FACING_W };
 
     if (Storage.Get_Total_Amount() > 0 && What_Am_I() != RTTI_BUILDING && !Scen->SpecialFlags.IsHarvesterImmune)
@@ -718,6 +721,9 @@ void TechnoClassExt::_Drop_Tiberium()
         TiberiumType droplist[9] = { TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE };
         int dropcount = 0;
 
+        /**
+         *  Calculate how many cells of Tiberium we want to drop per type.
+         */
         for (int i = 0; i < Tiberiums.Count(); i++)
         {
             double amount = Storage.Get_Amount(static_cast<TiberiumType>(i));
@@ -728,6 +734,9 @@ void TechnoClassExt::_Drop_Tiberium()
 
         const Cell center_cell = Coord_Cell(Center_Coord());
 
+        /**
+         *  Drop Tiberium around the harvester.
+         */
         for (int i = 0; i < std::size(drop_facings) && i < dropcount; i++)
         {
             Cell adjacent_cell = Adjacent_Cell(center_cell, drop_facings[i]);
@@ -1554,9 +1563,7 @@ DECLARE_PATCH(_TechnoClass_AI_Abandon_Invalid_Target_Patch)
 
 
 /**
- *  A patch that makes Technos abandon their current target if they can't fire at it.
- *
- *  @note: This is inside `if (TarCom != nullptr)`.
+ *  A patch that replaces the Tiberium dropping logic on harvester death.
  *
  *  @author: ZivDero
  */
