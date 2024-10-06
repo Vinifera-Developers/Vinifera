@@ -347,7 +347,7 @@ UrgencyType HouseClassExt::_Check_Raise_Money()
             BuildingClass* building = Buildings[i];
             if (building->House == this)
             {
-                if (Rule->BuildRefinery.ID(building->Class) != -1 && building->Get_Mission() == MISSION_CONSTRUCTION)
+                if (Rule->BuildRefinery.Is_Present(building->Class) && building->Get_Mission() == MISSION_CONSTRUCTION)
                     return urgency;
 
                 urgency = URGENCY_NONE;
@@ -379,7 +379,7 @@ UrgencyType HouseClassExt::_Check_Raise_Money()
             {
                 ObjectClass* obj = factory->Get_Object();
                 if (obj && obj->What_Am_I() == RTTI_UNIT
-                    && Rule->HarvesterUnit.ID(static_cast<UnitTypeClass*>(obj->Techno_Type_Class())) != -1)
+                    && Rule->HarvesterUnit.Is_Present(static_cast<UnitTypeClass*>(obj->Techno_Type_Class())))
                 {
                     if (Available_Money() < factory->Balance)
                         urgency++;
@@ -417,7 +417,7 @@ UrgencyType HouseClassExt::_Check_Raise_Money()
             {
                 ObjectClass* obj = factory->Get_Object();
                 if (obj && obj->What_Am_I() == RTTI_BUILDING
-                    && Rule->BuildRefinery.ID(static_cast<BuildingTypeClass*>(obj->Techno_Type_Class())) != -1)
+                    && Rule->BuildRefinery.Is_Present(static_cast<BuildingTypeClass*>(obj->Techno_Type_Class())))
                 {
                     if (Available_Money() < factory->Balance)
                         urgency++;
@@ -641,7 +641,7 @@ DECLARE_PATCH(_HouseClass_AI_Is_Building_Harvester_Unit_Patch)
 {
     GET_REGISTER_STATIC(HouseClass*, this_ptr, esi);
 
-    if (this_ptr->BuildUnit != -1 && Rule->HarvesterUnit.ID(UnitTypes[this_ptr->BuildUnit]) != -1)
+    if (this_ptr->BuildUnit != -1 && Rule->HarvesterUnit.Is_Present(UnitTypes[this_ptr->BuildUnit]))
     {
         JMP(0x004BD0E5);
     }
@@ -759,7 +759,7 @@ DECLARE_PATCH(_HouseClass_AI_Building_HarvRef)
 {
     GET_REGISTER_STATIC(BuildingTypeClass*, building, eax);
 
-    if (Rule->BuildConst.ID(building) != -1)
+    if (Rule->BuildConst.Is_Present(building))
     {
         JMP_REG(esi, 0x004C1554);
     }
@@ -820,7 +820,7 @@ DECLARE_PATCH(_HouseClass_Has_Prerequisites_BuildConst)
     GET_REGISTER_STATIC(BuildingTypeClass*, building, ecx);
     _asm pushad
 
-    if (Rule->BuildConst.ID(building) == -1)
+    if (!Rule->BuildConst.Is_Present(building))
     {
         _asm popad
         JMP(0x004C5985);
@@ -862,7 +862,7 @@ DECLARE_PATCH(_HouseClass_AI_Use_Super_Ion_Cannon_BuildConst)
     GET_REGISTER_STATIC(UnitTypeClass*, unittype, ecx);
     _asm push eax
 
-    if (Rule->BuildConst.ID(unittype->DeploysInto) != -1)
+    if (Rule->BuildConst.Is_Present(unittype->DeploysInto))
     {
         _asm pop eax
         JMP_REG(ecx, 0x004CA232);
@@ -885,7 +885,7 @@ DECLARE_PATCH(_HouseClass_AI_Takeover_BuildConst)
     GET_REGISTER_STATIC(BuildingTypeClass*, buildingtype, ecx);
     _asm push eax
 
-    if (Rule->BuildConst.ID(buildingtype) != -1)
+    if (Rule->BuildConst.Is_Present(buildingtype))
     {
         _asm pop eax
         JMP_REG(edi, 0x004CA9A9);
@@ -907,7 +907,7 @@ DECLARE_PATCH(_InfantryClass_What_Action_Harvester_Thief)
 {
     GET_REGISTER_STATIC(UnitClass*, target, esi);
 
-    if (target->What_Am_I() == RTTI_UNIT && Rule->HarvesterUnit.ID(target->Class) != -1)
+    if (target->What_Am_I() == RTTI_UNIT && Rule->HarvesterUnit.Is_Present(target->Class))
     {
         // return ACTION_SELECT;
         JMP(0x004D7258);

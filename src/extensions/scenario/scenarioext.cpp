@@ -1332,7 +1332,7 @@ void ScenarioClassExtension::Create_Units(bool official)
     for (int i = 0; i < UnitTypes.Count(); ++i) {
         UnitTypeClass *unittype = UnitTypes[i];
         if (unittype && unittype->IsAllowedToStartInMultiplayer) {
-            if (RuleExtension->BaseUnit.ID(unittype) == -1) {
+            if (!RuleExtension->BaseUnit.Is_Present(unittype)) {
                 ++tot_unit_count;
             }
         }
@@ -1419,7 +1419,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                  *  Check tech level and ownership.
                  */
                 if (unittype->TechLevel <= hptr->Control.TechLevel && (owner_id & unittype->Ownable) != 0) {
-                    if (RuleExtension->BaseUnit.ID(unittype) == -1) {
+                    if (!RuleExtension->BaseUnit.Is_Present(unittype)) {
                         DEBUG_INFO("    Added %s\n", unittype->Name());
                         available_units.Add(unittype);
                     }

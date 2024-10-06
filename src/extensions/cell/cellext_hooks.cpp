@@ -177,7 +177,7 @@ DECLARE_PATCH(_CellClass_Goodie_Check_No_Buildings_Force_MCV_BaseUnit_Patch)
      *  Check if this is a BaseUnit.
      *  If so, continue the loop.
      */
-    if (RuleExtension->BaseUnit.ID(unittype) != -1)
+    if (RuleExtension->BaseUnit.Is_Present(unittype))
     {
         JMP(0x004581BA);
     }

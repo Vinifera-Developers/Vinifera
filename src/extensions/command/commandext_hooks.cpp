@@ -84,7 +84,7 @@ bool CenterBaseCommandClassExt::_Process()
             BuildingClass* building = Buildings[i];
             if (building && !building->IsInLimbo && building->House->Is_Player_Control())
             {
-                if (Rule->BuildConst.ID(building->Class) != -1)
+                if (Rule->BuildConst.Is_Present(building->Class))
                 {
                     conyard_coord = building->Center_Coord();
                     if (building->IsLeader)
@@ -112,7 +112,7 @@ bool CenterBaseCommandClassExt::_Process()
                 if (unit && !unit->IsInLimbo && unit->House->Is_Player_Control())
                 {
                     conyard_coord = unit->Center_Coord();
-                    if (RuleExtension->BaseUnit.ID(unit->Class) != -1)
+                    if (RuleExtension->BaseUnit.Is_Present(unit->Class))
                         break;
                 }
 

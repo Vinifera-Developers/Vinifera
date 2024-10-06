@@ -77,7 +77,7 @@ public:
  */
 int UnitClassExt::_Mission_Hunt()
 {
-    if (Class->DeploysInto && (Rule->BuildConst.ID(Class->DeploysInto) != -1 || TarCom || House->Is_Human_Control()))
+    if (Class->DeploysInto && (Rule->BuildConst.Is_Present(Class->DeploysInto) || TarCom || House->Is_Human_Control()))
     {
         if (Status)
         {
@@ -759,7 +759,7 @@ DECLARE_PATCH(_UnitClass_AI_BuildConst_Patch)
 {
     GET_REGISTER_STATIC(UnitTypeClass*, unittype, edx);
 
-    if (Rule->BuildConst.ID(unittype->DeploysInto) != -1)
+    if (Rule->BuildConst.Is_Present(unittype->DeploysInto))
     {
         JMP_REG(ecx, 0x0064E0EC);
     }
@@ -780,7 +780,7 @@ DECLARE_PATCH(_UnitClass_What_Action_BuildConst)
     GET_REGISTER_STATIC(BuildingTypeClass*, buildingtype, ebp);
     _asm pushad
 
-    if (Rule->BuildConst.ID(buildingtype) != -1)
+    if (Rule->BuildConst.Is_Present(buildingtype))
     {
         _asm popad
         JMP_REG(edx, 0x00656084);
@@ -802,7 +802,7 @@ DECLARE_PATCH(_UnitClass_Mission_Guard_BuildConst)
 {
     GET_REGISTER_STATIC(UnitClass*, unit, esi);
 
-    if (Rule->BuildConst.ID(unit->Class->DeploysInto) != -1)
+    if (Rule->BuildConst.Is_Present(unit->Class->DeploysInto))
     {
         JMP(0x00656770);
     }
