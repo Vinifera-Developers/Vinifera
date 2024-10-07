@@ -26,6 +26,8 @@
  *
  ******************************************************************************/
 #include "technotypeext.h"
+
+#include "aircrafttype.h"
 #include "technotype.h"
 #include "ccini.h"
 #include "filepng.h"
@@ -216,7 +218,7 @@ void TechnoTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
     crc(ShakePixelXLo);
     crc(SoylentValue);
     crc(IsLegalTargetComputer);
-    crc(Spawns != nullptr);
+    crc(Spawns->Get_Heap_ID());
     crc(SpawnRegenRate);
     crc(SpawnReloadRate);
     crc(SpawnsNumber);

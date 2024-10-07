@@ -136,6 +136,8 @@ SpawnManagerClass::~SpawnManagerClass()
         if (SpawnControls[i] != nullptr)
             delete SpawnControls[i];
     }
+
+    SpawnManagers.Delete(this);
 }
 
 RTTIType SpawnManagerClass::Kind_Of() const
