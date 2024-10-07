@@ -272,7 +272,7 @@ void SpawnManagerClass::AI()
         case SpawnControlStatus::Takeoff:
             {
                 if (SpawnTimer.Expired())
-                    Detach2(spawnee);
+                    Detach(spawnee);
                 break;
             }
 
@@ -302,7 +302,7 @@ void SpawnManagerClass::AI()
         case SpawnControlStatus::Attacking:
             {
                 Suspend_Target();
-                if (spawnee->Ammo > 0 && SuspendedTarget != nullptr)
+                if (spawnee->Ammo > 0 && SuspendedTarget)
                 {
                     spawnee->Assign_Target(SuspendedTarget);
                     spawnee->Assign_Mission(MISSION_ATTACK);
@@ -320,7 +320,7 @@ void SpawnManagerClass::AI()
         case SpawnControlStatus::Returning:
             {
                 Suspend_Target();
-                if (spawnee->Ammo > 0 && SuspendedTarget != nullptr)
+                if (spawnee->Ammo > 0 && SuspendedTarget)
                 {
                     control->Status = SpawnControlStatus::Attacking;
                     spawnee->Assign_Target(SuspendedTarget);
@@ -431,7 +431,7 @@ void SpawnManagerClass::AI()
                         }
                         else
                         {
-                            Detach2(spawnee);
+                            Detach(spawnee);
                         }
                     }
                     else
@@ -520,7 +520,7 @@ void SpawnManagerClass::Kamikaze_AI()
             {
                 KamikazeTracker->Add(control->Spawnee, SuspendedTarget);
                 KamikazeTracker->UpdateTimer = 2;
-                Detach2(control->Spawnee);
+                Detach(control->Spawnee);
             }
         }
     }
@@ -540,46 +540,42 @@ bool SpawnManagerClass::Suspend_Target()
     return true;
 }
 
-void SpawnManagerClass::Detach2(TARGET target)
+void SpawnManagerClass::Detach(TARGET target)
 {
-    if (target == SuspendedTarget)
+    if (SuspendedTarget == target)
     {
         SuspendedTarget = nullptr;
-        if (Target != nullptr)
-            Kamikaze_AI();
-        return;
-    }
 
-    if (target == Target)
+        if (Target)
+            Kamikaze_AI();
+    }
+    else if (Target == target)
     {
         Target = nullptr;
-        return;
     }
-
-    SpawnControl* control = nullptr;
-    for (int i = SpawnControls.Count(); i >= 0; i--)
+    else
     {
-        if (SpawnControls[i]->Spawnee == target)
+        for (int i = 0; i < SpawnControls.Count(); i++)
         {
-            control = SpawnControls[i];
-            break;
-        }
-    }
+            auto control = SpawnControls[i];
+            if (control->Spawnee == target)
+            {
+                if (control->Spawnee->Strength <= 0 || control->Spawnee->IsKamikaze || control->IsSpawnedMissile)
+                {
+                    control->Spawnee = nullptr;
+                    control->Status = SpawnControlStatus::Dead;
+                    control->ReloadTimer = RegenRate;
+                }
 
-    if (control != nullptr)
-    {
-        if (control->Spawnee->Strength <= 0 || control->Spawnee->IsKamikaze || control->IsSpawnedMissile)
+                break;
+            }
+        }
+
+        if (Owner == target)
         {
-            control->Spawnee = nullptr;
-            control->Status = SpawnControlStatus::Dead;
-            control->ReloadTimer = RegenRate;
+            Manage();
+            Kamikaze_AI();
         }
-    }
-
-    if (target == Owner)
-    {
-        Manage();
-        Kamikaze_AI();
     }
 }
 

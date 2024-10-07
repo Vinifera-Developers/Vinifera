@@ -96,7 +96,7 @@ public:
 	void Assign_Target(TARGET target);
 	void Kamikaze_AI();
 	bool Suspend_Target();
-	void Detach2(TARGET target);
+	void Detach(TARGET target);
 	int Active_Count();
 	int Docked_Count();
 	int Missile_Count();

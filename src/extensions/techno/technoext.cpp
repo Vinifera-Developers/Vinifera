@@ -52,7 +52,8 @@
 TechnoClassExtension::TechnoClassExtension(const TechnoClass *this_ptr) :
     RadioClassExtension(this_ptr),
     ElectricBolt(nullptr),
-    Storage(Tiberiums.Count())
+    Storage(Tiberiums.Count()),
+    SpawnManager(nullptr)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoClassExtension::TechnoClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -94,7 +95,17 @@ TechnoClassExtension::~TechnoClassExtension()
 {
     //EXT_DEBUG_TRACE("TechnoClassExtension::~TechnoClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    ElectricBolt = nullptr;
+    if (ElectricBolt)
+    {
+        //delete ElectricBolt;
+        ElectricBolt = nullptr;
+    }
+
+    if (SpawnManager)
+    {
+        delete SpawnManager;
+        SpawnManager = nullptr;
+    }
 }
 
 
@@ -154,7 +165,7 @@ void TechnoClassExtension::Detach(TARGET target, bool all)
     RadioClassExtension::Detach(target, all);
 
     if (SpawnManager)
-        SpawnManager->Detach2(target);
+        SpawnManager->Detach(target);
 }
 
 

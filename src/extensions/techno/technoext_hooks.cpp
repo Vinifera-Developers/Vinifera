@@ -103,6 +103,7 @@ public:
     bool _Fire_At_Spawner(TARGET target, WeaponTypeClass* weapon);
     bool _Target_Something_Nearby(Coordinate& coord, ThreatType threat);
     void _Stun();
+    void _Mission_AI();
 
 };
 
@@ -546,6 +547,16 @@ void TechnoClassExt::_Stun()
     Unselect();
 }
 
+
+void TechnoClassExt::_Mission_AI()
+{
+    MissionClass::AI();
+
+    const auto extension = Extension::Fetch<TechnoClassExtension>(this);
+
+    if (extension && extension->SpawnManager)
+        extension->SpawnManager->AI();
+}
 
 
 
@@ -1733,26 +1744,6 @@ DECLARE_PATCH(_TechnoClass_Take_Damage_Drop_Tiberium_Type_Patch)
 }
 
 
-DECLARE_PATCH(_TechnoClass_AI_Spawn_Manager_Patch)
-{
-    GET_REGISTER_STATIC(TechnoClass*, this_ptr, esi);
-    static TechnoClassExtension* extension;
-
-    extension = Extension::Fetch<TechnoClassExtension>(this_ptr);
-
-    if (extension && extension->SpawnManager)
-        extension->SpawnManager->AI();
-
-    if (this_ptr->IsActive)
-    {
-        JMP(0x0062E9E1);
-    }
-
-    JMP(0x0062EA30);
-
-}
-
-
 DECLARE_PATCH(_TechnoClass_Captured_Spawn_Manager_Patch)
 {
     GET_REGISTER_STATIC(TechnoClass*, this_ptr, esi);
@@ -1969,4 +1960,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x0062FAB7, &_TechnoClass_Can_Fire_Spawn_Manager_Patch);
     Patch_Jump(0x00637450, &TechnoClassExt::_Target_Something_Nearby);
     Patch_Jump(0x0062FD20, &TechnoClassExt::_Stun);
+    Patch_Call(0x0062E9D1, &TechnoClassExt::_Mission_AI);
 }
