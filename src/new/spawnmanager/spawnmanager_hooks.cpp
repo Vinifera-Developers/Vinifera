@@ -37,27 +37,21 @@
 
 DECLARE_PATCH(_EventClass_Execute_Spawn_Manager_Patch)
 {
-    enum
-    {
-        RET_NO = 0x00495110,
-        RET_CONTINUE = 0x00494AC5
-    };
-
     GET_REGISTER_STATIC(TechnoClass*, techno, esi);
     static TechnoClassExtension* extension;
 
     extension = Extension::Fetch<TechnoClassExtension>(techno);
-    if (extension->SpawnManager != nullptr)
+    if (extension && extension->SpawnManager)
         extension->SpawnManager->Kamikaze_AI();
 
     static RTTIType rtti = techno->Kind_Of();
     if (rtti == RTTI_UNIT)
     {
-        JMP(RET_CONTINUE);
+        JMP(0x00494AC5);
     }
     else
     {
-        JMP(RET_NO);
+        JMP(0x00495110);
     }
 
 }

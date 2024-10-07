@@ -36,6 +36,7 @@
 #include "animtype.h"
 #include "cell.h"
 #include "extension.h"
+#include "ionstorm.h"
 #include "kamikazetracker/kamikazetracker.h"
 #include "tibsun_inline.h"
 #include "tibsun_globals.h"
@@ -47,7 +48,7 @@
  /**
   *  Retrieves the class identifier (CLSID) of the object.
   *
-  *  @author: CCHyper
+  *  @author: ZivDero
   */
 IFACEMETHODIMP SpawnManagerClass::GetClassID(CLSID* pClassID)
 {
@@ -64,19 +65,10 @@ IFACEMETHODIMP SpawnManagerClass::GetClassID(CLSID* pClassID)
  *  Initializes an object from the stream where it was saved previously.
  *
  *  @author: ZivDero
- *
- *  @param      pStm           An IStream pointer to the stream from which the object should be loaded.
  */
 IFACEMETHODIMP SpawnManagerClass::Load(IStream* pStm)
 {
-    return 0;
-
-    //HRESULT hr = LocomotionClass::Locomotion_Load(pStm);
-    //if (SUCCEEDED(hr)) {
-    //    // Insert any data to be loaded here.
-    //}
-
-    //return hr;
+    return Abstract_Load(pStm);
 }
 
 
@@ -84,21 +76,10 @@ IFACEMETHODIMP SpawnManagerClass::Load(IStream* pStm)
  *  Saves an object to the specified stream.
  *
  *  @author: ZivDero
- *
- *  @param      pStm           An IStream pointer to the stream into which the object should be saved.
- *
- *  @param      fClearDirty    Indicates whether to clear the dirty flag after the save is complete.
  */
 IFACEMETHODIMP SpawnManagerClass::Save(IStream* pStm, BOOL fClearDirty)
 {
-    return 0;
-
-    //HRESULT hr = LocomotionClass::Save(pStm, fClearDirty);
-    //if (SUCCEEDED(hr)) {
-    //    // Insert any data to be saved here.
-    //}
-
-    //return hr;
+    return Abstract_Save(pStm, fClearDirty);
 }
 
 SpawnManagerClass::SpawnManagerClass() :
@@ -133,11 +114,10 @@ SpawnManagerClass::SpawnManagerClass(TechnoClass* owner, const AircraftTypeClass
 
         if (spawnee != nullptr)
         {
-            control->IsSpawnMissile = false; // TODO Implement missile check here SpawnType == Rule->V3Rocket.Type || SpawnType == Rule->DMisl.Type || SpawnType == Rule->CMisl.Type;
+            control->IsSpawnedMissile = false; // TODO Implement missile check here SpawnType == Rule->V3Rocket.Type || SpawnType == Rule->DMisl.Type || SpawnType == Rule->CMisl.Type;
             control->Spawnee->Limbo();
             Extension::Fetch<AircraftClassExtension>(control->Spawnee)->Spawner = Owner;
             control->Status = SpawnControlStatus::Idle;
-            control->ReloadTimer.Start();
             control->ReloadTimer = 0;
             SpawnControls.Add(control);
         }
@@ -173,13 +153,13 @@ void SpawnManagerClass::Compute_CRC(WWCRCEngine& crc) const
 {
     AbstractClass::Compute_CRC(crc);
 
-    crc((int)Status);
+    crc(static_cast<int>(Status));
 
     if (Target != nullptr)
-        crc(Target->Fetch_ID());
+        crc(Target->Get_Heap_ID());
 
     if (SuspendedTarget != nullptr)
-        crc(SuspendedTarget->Fetch_ID());
+        crc(SuspendedTarget->Get_Heap_ID());
 
     crc(SpawnTimer.Value());
     crc(LogicTimer.Value());
@@ -187,10 +167,10 @@ void SpawnManagerClass::Compute_CRC(WWCRCEngine& crc) const
     crc(SpawnCount);
 
     if (SpawnType != nullptr)
-        crc(SpawnType->Fetch_ID());
+        crc(SpawnType->Get_Heap_ID());
 
     if (Owner != nullptr)
-        crc(Owner->Fetch_ID());
+        crc(Owner->Get_Heap_ID());
 }
 
 void SpawnManagerClass::AI()
@@ -198,13 +178,13 @@ void SpawnManagerClass::AI()
     if (!LogicTimer.Expired())
         return;
 
-    LogicTimer.Start();
     LogicTimer = 10;
 
     for (int i = 0; i < SpawnControls.Count(); i++)
     {
         SpawnControl* control = SpawnControls[i];
         AircraftClass* spawnee = control->Spawnee;
+        TechnoTypeClassExtension* owner_class_ext = Extension::Fetch<TechnoTypeClassExtension>(Owner->Techno_Type_Class());
 
         switch (control->Status)
         {
@@ -216,14 +196,13 @@ void SpawnManagerClass::AI()
                 if (!SpawnTimer.Expired())
                     break;
 
-                // Don't ask me why, just leaving this here for legacy reasons for now
-                if (control->Status == SpawnControlStatus::Preparing || false /*IonStormClass_53A130()*/)
+                if (Status == SpawnManagerStatus::Cooldown || IonStorm_Is_Active())
                     break;
 
-                if (control->IsSpawnMissile)
+                if (control->IsSpawnedMissile)
                 {
                     if (static_cast<FootClass*>(Owner)->Locomotion->Is_Moving() || static_cast<FootClass*>(Owner)->Locomotion->Is_Moving_Now())
-                        break;
+                        continue;
                 }
 
                 ASSERT(Owner);
@@ -231,12 +210,11 @@ void SpawnManagerClass::AI()
                 ASSERT(Owner->Is_Foot());
 
                 // Maybe should check the missile instead, huh?
-                SpawnTimer.Start();
-                SpawnTimer = Extension::Fetch<TechnoTypeClassExtension>(Owner->Techno_Type_Class())->IsMissileSpawn ? 9 : 20;
+                SpawnTimer = owner_class_ext->IsMissileSpawn ? 9 : 20;
 
                 bool burst = false;
                 Coordinate fire_coord;
-                if (control->IsSpawnMissile &&
+                if (control->IsSpawnedMissile &&
                     Owner->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon->Burst > 1)
                 {
                     burst = true;
@@ -274,7 +252,7 @@ void SpawnManagerClass::AI()
                 if (burst)
                     Owner->CurrentBurstIndex = 0;
 
-                if (control->IsSpawnMissile)
+                if (control->IsSpawnedMissile)
                 {
                     Suspend_Target();
                     spawnee->Assign_Destination(SuspendedTarget);
@@ -300,7 +278,7 @@ void SpawnManagerClass::AI()
 
         case SpawnControlStatus::Preparing:
             {
-                if (control->IsSpawnMissile)
+                if (control->IsSpawnedMissile)
                     break;
 
                 Suspend_Target();
@@ -357,7 +335,6 @@ void SpawnManagerClass::AI()
                 {
                     spawnee->Limbo();
                     control->Status = SpawnControlStatus::Reloading;
-                    control->ReloadTimer.Start();
                     control->ReloadTimer = ReloadRate;
                 }
                 else
@@ -386,8 +363,8 @@ void SpawnManagerClass::AI()
                 if (!control->ReloadTimer.Expired())
                     break;
 
-                control->Spawnee = (AircraftClass*)SpawnType->Create_One_Of(Owner->Owning_House());
-                control->IsSpawnMissile = false; // TODO Implement missile check here
+                control->Spawnee = static_cast<AircraftClass*>(SpawnType->Create_One_Of(Owner->Owning_House()));
+                control->IsSpawnedMissile = false; // TODO Implement missile check here
                 control->Spawnee->Limbo();
                 Extension::Fetch<AircraftClassExtension>(control->Spawnee)->Spawner = Owner;
                 control->Status = SpawnControlStatus::Idle;
@@ -402,7 +379,7 @@ void SpawnManagerClass::AI()
         if (SuspendedTarget != nullptr)
         {
             WeaponSlotType weapon = Owner->What_Weapon_Should_I_Use(SuspendedTarget);
-            if (Owner->In_Range_Of((ObjectClass*)SuspendedTarget, weapon)) // it should accept an AbstractClass*, I believe, not ObjectClass*
+            if (Owner->In_Range_Of(SuspendedTarget, weapon))
                 Status = SpawnManagerStatus::Launching;
             else
                 Kamikaze_AI();
@@ -436,10 +413,9 @@ void SpawnManagerClass::AI()
                     {
                         ismissile = true;
                         KamikazeTracker->Add(spawnee, SuspendedTarget);
-                        KamikazeTracker->UpdateTimer.Start();
                         KamikazeTracker->UpdateTimer = 2;
 
-                        if (control->IsSpawnMissile)
+                        if (control->IsSpawnedMissile)
                         {
                             control->Status = SpawnControlStatus::Takeoff;
                             int delay = 0;
@@ -451,7 +427,6 @@ void SpawnManagerClass::AI()
                             {
                                 delay = Rule->DMisl.PauseFrames + Rule->DMisl.TiltFrames;
                             }*/
-                            control->ReloadTimer.Start();
                             control->ReloadTimer = delay;
                         }
                         else
@@ -523,7 +498,6 @@ void SpawnManagerClass::Manage()
         }
 
         control->Spawnee = nullptr;
-        control->ReloadTimer.Start();
         control->ReloadTimer = regen_rate;
     }
 }
@@ -545,7 +519,6 @@ void SpawnManagerClass::Kamikaze_AI()
             if (extension->IsMissileSpawn)
             {
                 KamikazeTracker->Add(control->Spawnee, SuspendedTarget);
-                KamikazeTracker->UpdateTimer.Start();
                 KamikazeTracker->UpdateTimer = 2;
                 Detach2(control->Spawnee);
             }
@@ -595,11 +568,10 @@ void SpawnManagerClass::Detach2(TARGET target)
 
     if (control != nullptr)
     {
-        if (control->Spawnee->Strength <= 0 || control->Spawnee->IsKamikaze || control->IsSpawnMissile)
+        if (control->Spawnee->Strength <= 0 || control->Spawnee->IsKamikaze || control->IsSpawnedMissile)
         {
             control->Spawnee = nullptr;
             control->Status = SpawnControlStatus::Dead;
-            control->ReloadTimer.Start();
             control->ReloadTimer = RegenRate;
         }
     }

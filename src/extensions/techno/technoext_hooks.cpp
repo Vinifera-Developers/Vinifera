@@ -443,23 +443,6 @@ WeaponSlotType TechnoClassExt::_What_Weapon_Should_I_Use(TARGET target) const
     return immobilize == webby_secondary ? WEAPON_SLOT_SECONDARY : WEAPON_SLOT_PRIMARY;
 }
 
-void TechnoClassExt::_Init()
-{
-    // Original function code
-    if (House != nullptr)
-        IsOwnedByPlayer = House == PlayerPtr;
-
-    // Spawner
-    TechnoTypeClass const* techno_type = Techno_Type_Class();
-    if (techno_type != nullptr)
-    {
-        auto type_extension = Extension::Fetch<TechnoTypeClassExtension>(techno_type);
-        auto extension = Extension::Fetch<TechnoClassExtension>(this);
-
-        extension->SpawnManager = new SpawnManagerClass(this, type_extension->Spawns, type_extension->SpawnsNumber, type_extension->SpawnRegenRate, type_extension->SpawnReloadRate);
-    }
-}
-
 
 bool TechnoClassExt::_Fire_At_Spawner(TARGET target, WeaponTypeClass* weapon)
 {
@@ -1835,8 +1818,7 @@ DECLARE_PATCH(_TechnoClass_Can_Fire_Spawn_Manager_Patch)
     static TechnoClassExtension* techno_ext;
     static WeaponTypeClassExtension* weapon_ext;
 
-    weapon_ext = Extension::Fetch<WeaponTypeClassExtension>(weapon);
-    if (weapon_ext->IsSpawner)
+    if (weapon && Extension::Fetch<WeaponTypeClassExtension>(weapon)->IsSpawner)
     {
         if (this_ptr->Is_Z_Fudge_Bridge() || this_ptr->Is_Immobilized())
         {
@@ -1982,6 +1964,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x0062FDE2, &_TechnoClass_Assign_Target_Spawn_Manager_Patch);
     Patch_Jump(0x006304DD, &_TechnoClass_Fire_At_Spawn_Manager_Patch);
     Patch_Jump(0x0062FAB7, &_TechnoClass_Can_Fire_Spawn_Manager_Patch);
-    Patch_Jump(0x0062A7C0, &TechnoClassExt::_Init);
     Patch_Jump(0x00637450, &TechnoClassExt::_Target_Something_Nearby);
 }

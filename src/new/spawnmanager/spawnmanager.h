@@ -64,7 +64,7 @@ public:
 		AircraftClass* Spawnee;
 		SpawnControlStatus Status;
 		CDTimerClass<FrameTimerClass> ReloadTimer;
-		bool IsSpawnMissile;
+		bool IsSpawnedMissile;
 	};
 
 	/**

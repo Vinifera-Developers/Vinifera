@@ -282,9 +282,9 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     IdleRate = ArtINI.Get_Int(graphic_name, "IdleRate", IdleRate);
 
     Spawns = ini.Get_Aircraft(ini_name, "Spawns", nullptr);
-    SpawnReloadRate = ini.Get_Bool(ini_name, "SpawnReloadRate", SpawnReloadRate);
-    SpawnRegenRate = ini.Get_Bool(ini_name, "SpawnRegenRate", SpawnRegenRate);
-    SpawnsNumber = ini.Get_Bool(ini_name, "SpawnsNumber", SpawnsNumber);
+    SpawnReloadRate = ini.Get_Int(ini_name, "SpawnReloadRate", SpawnReloadRate);
+    SpawnRegenRate = ini.Get_Int(ini_name, "SpawnRegenRate", SpawnRegenRate);
+    SpawnsNumber = ini.Get_Int(ini_name, "SpawnsNumber", SpawnsNumber);
     IsMissileSpawn = ini.Get_Bool(ini_name, "MissileSpawn", IsMissileSpawn);
 
     /**
