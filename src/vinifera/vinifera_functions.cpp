@@ -56,6 +56,7 @@
 #include "asserthandler.h"
 #include <string>
 
+#include "rocketlocomotion.h"
 #include "setup_hooks.h"
 
 
@@ -769,11 +770,23 @@ bool Vinifera_Register_Com_Objects()
 {
     DEBUG_INFO("Registering new com objects...\n");
 
-    //DEBUG_INFO("  TestLocomotionClass\n");
+    /**
+     *  New locomotors.
+     */
     REGISTER_CLASS(TestLocomotionClass);
+    REGISTER_CLASS(RocketLocomotionClass);
+
+    /**
+     *  New types.
+     */
     REGISTER_CLASS(ArmorTypeClass);
+    REGISTER_CLASS(RocketTypeClass);
+
+    /**
+     *  Other new entities.
+     */
+    REGISTER_CLASS(SwizzleManagerClass);
     
-    //DEBUG_INFO("  Extension classes\n");
     Extension::Register_Class_Factories();
 
     DEBUG_INFO("  ...OK!\n");
