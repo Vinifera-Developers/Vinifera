@@ -28,7 +28,9 @@
 #include "unitext.h"
 #include "unit.h"
 #include "wwcrc.h"
+#include "swizzle.h"
 #include "extension.h"
+#include "vinifera_saveload.h"
 #include "asserthandler.h"
 #include "debughandler.h"
 
@@ -39,7 +41,8 @@
  *  @author: CCHyper
  */
 UnitClassExtension::UnitClassExtension(const UnitClass *this_ptr) :
-    FootClassExtension(this_ptr)
+    FootClassExtension(this_ptr),
+    OriginalClass(nullptr)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("UnitClassExtension::UnitClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -106,6 +109,8 @@ HRESULT UnitClassExtension::Load(IStream *pStm)
     }
 
     new (this) UnitClassExtension(NoInitClass());
+
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(OriginalClass, "OriginalClass");
     
     return hr;
 }
