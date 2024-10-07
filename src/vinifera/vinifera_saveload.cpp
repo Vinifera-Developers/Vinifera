@@ -385,6 +385,7 @@ bool Vinifera_Put_All(IStream *pStm, bool save_net)
      *  Save all game objects. This code saves every object that's stored in a DynamicVector class.
      */
     if (FAILED(Vinifera_Save_Vector(pStm, ArmorTypes, "ArmorTypes"))) { return false; }
+    if (FAILED(Vinifera_Save_Vector(pStm, RocketTypes, "RocketTypes"))) { return false; }
     if (FAILED(Vinifera_Save_Vector(pStm, HouseTypes, "HouseTypes"))) { return false; }
     if (FAILED(Vinifera_Save_Vector(pStm, Houses, "Houses"))) { return false; }
     if (FAILED(Vinifera_Save_Vector(pStm, Units, "Units"))) { return false; }
@@ -626,6 +627,7 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
      *  Load all game objects. This code loads every object that's stored in a DynamicVector class.
      */
     if (FAILED(Vinifera_Load_Vector(pStm, ArmorTypes, "ArmorTypes"))) { return false; }
+    if (FAILED(Vinifera_Load_Vector(pStm, RocketTypes, "RocketTypes"))) { return false; }
     if (FAILED(Vinifera_Load_Vector(pStm, HouseTypes, "HouseTypes"))) { return false; }
     if (FAILED(Vinifera_Load_Vector(pStm, Houses, "Houses"))) { return false; }
     if (FAILED(Vinifera_Load_Vector(pStm, Units, "Units"))) { return false; }

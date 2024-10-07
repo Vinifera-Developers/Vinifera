@@ -72,8 +72,9 @@ DynamicVectorClass<EBoltClass *> EBolts;
 DynamicVectorClass<TheaterTypeClass *> TheaterTypes;
 DynamicVectorClass<ArmorTypeClass *> ArmorTypes;
 DynamicVectorClass<SpawnManagerClass *> SpawnManagers;
+DynamicVectorClass<RocketTypeClass*> RocketTypes;
 
-extern KamikazeTrackerClass* KamikazeTracker = nullptr;
+KamikazeTrackerClass* KamikazeTracker = nullptr;
 
 MFCC *GenericMix = nullptr;
 MFCC *IsoGenericMix = nullptr;

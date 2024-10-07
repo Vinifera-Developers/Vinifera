@@ -662,6 +662,7 @@ bool Vinifera_Shutdown()
      */
     TheaterTypes.Clear();
     ArmorTypes.Clear();
+    RocketTypes.Clear();
     SpawnManagerClass::Clear_All();
 
     /**

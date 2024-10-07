@@ -37,6 +37,7 @@ class SpawnManagerClass;
 class EBoltClass;
 class TheaterTypeClass;
 class ArmorTypeClass;
+class RocketTypeClass;
 
 
 extern bool Vinifera_DeveloperMode;
@@ -104,6 +105,7 @@ extern DynamicVectorClass<EBoltClass *> EBolts;
 extern DynamicVectorClass<TheaterTypeClass *> TheaterTypes;
 extern DynamicVectorClass<ArmorTypeClass *> ArmorTypes;
 extern DynamicVectorClass<SpawnManagerClass *> SpawnManagers;
+extern DynamicVectorClass<RocketTypeClass *> RocketTypes;
 
 
 /**

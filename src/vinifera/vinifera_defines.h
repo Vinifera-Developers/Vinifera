@@ -139,6 +139,7 @@
  *  UUID's for all other new classes.
  */
 #define UUID_ARMORTYPE                      "EE8D505F-12BB-4313-AEDC-4AEA30A5BA03"
+#define UUID_ROCKETTYPE                      "FAE72300-A93C-476C-A6DB-CB2B62ADCECD"
 
 
 /**
