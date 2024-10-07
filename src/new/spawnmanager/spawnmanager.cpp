@@ -133,8 +133,8 @@ SpawnManagerClass::~SpawnManagerClass()
 
     for (int i = SpawnControls.Count() - 1; i >= 0; i--)
     {
-        if (this->SpawnControls[i] != nullptr)
-            delete this->SpawnControls[i];
+        if (SpawnControls[i] != nullptr)
+            delete SpawnControls[i];
     }
 }
 
@@ -237,7 +237,7 @@ void SpawnManagerClass::AI()
 
                 Coordinate spawn_coord = Coordinate(fire_coord.X, fire_coord.Y, fire_coord.Z + 10);
 
-                /*if (this->SpawnType == Rule->CMisl.Type)
+                /*if (SpawnType == Rule->CMisl.Type)
                 {
                     spawn_coord.X -= 40;
                     spawn_coord.Y -= 40;
@@ -246,7 +246,7 @@ void SpawnManagerClass::AI()
                 DirStruct dir = Owner->PrimaryFacing.Current();
                 spawnee->Unlimbo(spawn_coord, dir.Get_Dir());
 
-                /*if (this->SpawnType == Rule->CMisl.Type)
+                /*if (SpawnType == Rule->CMisl.Type)
                     new AnimClass(AnimTypes[AnimTypeClass::From_Name("V3TAKOFF")], spawnee->Coord, 2, 1, 0x600, -10);*/
 
                 if (burst)
@@ -284,7 +284,7 @@ void SpawnManagerClass::AI()
                 Suspend_Target();
                 if (SuspendedTarget != nullptr)
                 {
-                    spawnee->Assign_Destination(this->Owner);
+                    spawnee->Assign_Destination(Owner);
                     spawnee->Assign_Target(nullptr);
                     spawnee->Assign_Mission(MISSION_MOVE);
                     spawnee->Commence();
@@ -309,7 +309,7 @@ void SpawnManagerClass::AI()
                 }
                 else
                 {
-                    spawnee->Assign_Destination(this->Owner);
+                    spawnee->Assign_Destination(Owner);
                     spawnee->Assign_Target(nullptr);
                     spawnee->Assign_Mission(MISSION_MOVE);
                     control->Status = SpawnControlStatus::Returning;
@@ -339,7 +339,7 @@ void SpawnManagerClass::AI()
                 }
                 else
                 {
-                    spawnee->Assign_Destination(this->Owner);
+                    spawnee->Assign_Destination(Owner);
                     spawnee->Assign_Target(nullptr);
                     spawnee->Assign_Mission(MISSION_MOVE);
                 }
@@ -505,14 +505,14 @@ void SpawnManagerClass::Manage()
 void SpawnManagerClass::Assign_Target(TARGET target)
 {
     if (target != SuspendedTarget)
-        this->Target = target;
+        Target = target;
 }
 
 void SpawnManagerClass::Kamikaze_AI()
 {
-    for (int i = 0; i < this->SpawnControls.Count(); ++i)
+    for (int i = 0; i < SpawnControls.Count(); ++i)
     {
-        SpawnControl* control = this->SpawnControls[i];
+        SpawnControl* control = SpawnControls[i];
         if (control->Status == SpawnControlStatus::Preparing)
         {
             AircraftTypeClassExtension* extension = Extension::Fetch<AircraftTypeClassExtension>(control->Spawnee->Techno_Type_Class());
@@ -525,9 +525,9 @@ void SpawnManagerClass::Kamikaze_AI()
         }
     }
 
-    this->Status = SpawnManagerStatus::Idle;
-    this->Target = nullptr;
-    this->SuspendedTarget = nullptr;
+    Status = SpawnManagerStatus::Idle;
+    Target = nullptr;
+    SuspendedTarget = nullptr;
 }
 
 bool SpawnManagerClass::Suspend_Target()

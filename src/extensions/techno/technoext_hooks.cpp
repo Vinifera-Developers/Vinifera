@@ -76,6 +76,7 @@
 #include "session.h"
 #include "mouse.h"
 #include "tag.h"
+#include "tibsun_functions.h"
 
 
 /**
@@ -101,6 +102,7 @@ public:
     void _Init();
     bool _Fire_At_Spawner(TARGET target, WeaponTypeClass* weapon);
     bool _Target_Something_Nearby(Coordinate& coord, ThreatType threat);
+    void _Stun();
 
 };
 
@@ -520,6 +522,30 @@ bool TechnoClassExt::_Target_Something_Nearby(Coordinate& coord, ThreatType thre
      */
     return Target_Legal(TarCom);
 }
+
+
+
+void TechnoClassExt::_Stun()
+{
+    Assign_Target(nullptr);
+    Assign_Destination(nullptr);
+    Transmit_Message(RADIO_OVER_OUT);
+
+    // Not foot? Weird
+    //if (!Is_Foot())
+    //{
+        const auto extension = Extension::Fetch<TechnoClassExtension>(this);
+        if (extension && extension->SpawnManager)
+        {
+            extension->SpawnManager->Manage();
+            extension->SpawnManager->Kamikaze_AI();
+        }
+    //}
+
+    Detach_All(true);
+    Unselect();
+}
+
 
 
 
@@ -1714,7 +1740,7 @@ DECLARE_PATCH(_TechnoClass_AI_Spawn_Manager_Patch)
 
     extension = Extension::Fetch<TechnoClassExtension>(this_ptr);
 
-    if (extension->SpawnManager)
+    if (extension && extension->SpawnManager)
         extension->SpawnManager->AI();
 
     if (this_ptr->IsActive)
@@ -1724,28 +1750,6 @@ DECLARE_PATCH(_TechnoClass_AI_Spawn_Manager_Patch)
 
     JMP(0x0062EA30);
 
-}
-
-
-DECLARE_PATCH(_TechnoClass_Stun_Spawn_Manager_Patch)
-{
-    GET_REGISTER_STATIC(TechnoClass*, this_ptr, esi);
-    static TechnoClassExtension* extension;
-
-    extension = Extension::Fetch<TechnoClassExtension>(this_ptr);
-
-    if (extension->SpawnManager)
-    {
-        extension->SpawnManager->Manage();
-        extension->SpawnManager->Kamikaze_AI();
-    }
-
-    // Restored function calls
-    this_ptr->Detach_All(true);
-    this_ptr->Unselect();
-
-    // Jump to return
-    JMP(0x0062FD64);
 }
 
 
@@ -1959,10 +1963,10 @@ void TechnoClassExtension_Hooks()
     Patch_Call(0x00637FF5, &TechnoClassExt::_Cell_Distance_Squared); // Patch Find_Docking_Bay to call our own distance function that avoids overflows
     Patch_Jump(0x006396D1, &_TechnoClass_Railgun_Damage_Apply_Damage_Modifier_Patch);
     Patch_Jump(0x0062E9D6, &_TechnoClass_AI_Spawn_Manager_Patch);
-    Patch_Jump(0x0062FD4E, &_TechnoClass_Stun_Spawn_Manager_Patch);
     Patch_Jump(0x006324FF, &_TechnoClass_Captured_Spawn_Manager_Patch);
     Patch_Jump(0x0062FDE2, &_TechnoClass_Assign_Target_Spawn_Manager_Patch);
     Patch_Jump(0x006304DD, &_TechnoClass_Fire_At_Spawn_Manager_Patch);
     Patch_Jump(0x0062FAB7, &_TechnoClass_Can_Fire_Spawn_Manager_Patch);
     Patch_Jump(0x00637450, &TechnoClassExt::_Target_Something_Nearby);
+    Patch_Jump(0x0062FD20, &TechnoClassExt::_Stun);
 }
