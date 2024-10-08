@@ -137,6 +137,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where players were only able to queue up to `(BuildLimit - 1)` objects when an object has `BuildLimit > 0`. (Fix ported from Ares)
   - Fix an issue where losers were not marked as defeated in multiplayer when using `TACTION_WIN` or `TACTION_LOSE` to end the game.
   - Fix a bug where the game could read Infantry DoControls out of bounds, potentially causing a desync error in multiplayer.
+  - Fix a bug where pre-placed powered-down superweapon buildings had their superweapons enabled on scenario start.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **ZivDero**:

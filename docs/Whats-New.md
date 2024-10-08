@@ -142,6 +142,7 @@ New:
 - Add `TransformsInto` and `TransformRequiresFullCharge` to UnitTypes (by Rampastring)
 - Fix a bug where players were only able to queue up to `(BuildLimit - 1)` objects when an object has `BuildLimit > 0` (by Rampastring)
 - Fix a bug where the game could read Infantry DoControls out of bounds, potentially causing a desync error in multiplayer (by Rampastring)
+- Fix a bug where pre-placed powered-down superweapon buildings had their superweapons enabled on scenario start (by Rampastring)
 
 Vanilla fixes:
 - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively (by CCHyper/tomsons26)
