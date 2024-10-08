@@ -85,6 +85,14 @@ IceStrength=0   ; integer, the strength of ice. Higher values make ice less like
                 ; 0 makes ice break from any shot.
 ```
 
+- Ice destruction can now be enabled or disabled per-scenario.
+
+In the map file:
+```ini
+[Basic]
+IceDestructionEnabled=no
+```
+
 ## Infantry
 
 ### Mechanic and OmniHealer
