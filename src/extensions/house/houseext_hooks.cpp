@@ -29,6 +29,7 @@
 #include "houseext_init.h"
 #include "vinifera_globals.h"
 #include "tibsun_globals.h"
+#include "building.h"
 #include "house.h"
 #include "housetype.h"
 #include "technotype.h"
@@ -486,6 +487,47 @@ continue_function:
 
 
 /**
+ *  #issue-994
+ *
+ *  Fixes a bug where a superweapon was enabled in non-suspended mode
+ *  when the scenario was started with a pre-placed powered-down superweapon
+ *  building on the map.
+ *
+ *  Author: Rampastring
+ */
+DECLARE_PATCH(_HouseClass_Enable_SWs_Check_For_Building_Power)
+{
+    GET_REGISTER_STATIC(int, quiet, eax);
+    GET_REGISTER_STATIC(BuildingClass*, building, esi);
+
+    if (!building->IsPowerOn)
+    {
+        /**
+         *  Enable the superweapon in suspended mode.
+         */
+        _asm { mov eax, 1 }
+    }
+    else
+    {
+        /**
+         *  Enable the superweapon in non-suspended mode.
+         */
+        _asm {xor eax, eax }
+    }
+
+    /**
+     *  Stolen bytes/code.
+     */
+    _asm { mov  esi, [PlayerPtr] }
+
+    /**
+     *  Continue the SW enablement process.
+     */
+    JMP_REG(ecx, 0x004CB6C7);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void HouseClassExtension_Hooks()
@@ -503,4 +545,6 @@ void HouseClassExtension_Hooks()
 
     Patch_Jump(0x004CB777, &_HouseClass_ShouldDisableCameo_BuildLimit_Fix);
     Patch_Jump(0x004BC187, &_HouseClass_Can_Build_BuildLimit_Handle_Vehicle_Transform);
+
+    Patch_Jump(0x004CB6C1, &_HouseClass_Enable_SWs_Check_For_Building_Power);
 }

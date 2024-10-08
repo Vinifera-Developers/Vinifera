@@ -47,3 +47,4 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where the objects would sometimes receive a minimum of 1 damage even if MinDamage was set to 0.
 - Fix a bug where players were only able to queue up to `(BuildLimit - 1)` objects when an object has `BuildLimit > 0`.
 - Fix a bug where the game could read Infantry DoControls out of bounds, potentially causing a desync error in multiplayer.
+- Fix a bug where pre-placed powered-down superweapon buildings had their superweapons enabled on scenario start.
