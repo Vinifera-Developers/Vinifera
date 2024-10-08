@@ -45,3 +45,4 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where attempting to start construction when low funds would put the queue on hold.
 - Fix a bug where having 75 cameos in a single sidebar strip would crash the game.
 - Fix a bug where the objects would sometimes receive a minimum of 1 damage even if MinDamage was set to 0.
+- Fix a bug where players were only able to queue up to `(BuildLimit - 1)` objects when an object has `BuildLimit > 0`.
