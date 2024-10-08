@@ -433,12 +433,12 @@ RocketLocomotionClass::RocketMotionStruct RocketLocomotionClass::Get_Motion(int 
 {
     RocketMotionStruct motion;
 
-    motion.VerticalSpeed = static_cast<int>(FastMath::Sin(CurrentPitch) * static_cast<double>(speed) + Linked_To()->Coord.Z);
-    motion.HorizontalSpeed = static_cast<int>(FastMath::Cos(CurrentPitch) * static_cast<double>(speed));
+    const int horizontal_speed = static_cast<int>(FastMath::Cos(CurrentPitch) * static_cast<double>(speed));
+    const double horizontal_angle = BAU_TO_RAD(Linked_To()->PrimaryFacing.Current().Get_Raw() + DEG_TO_BAU(90));
 
-    const int facing_angle = BAU_TO_RAD(Linked_To()->PrimaryFacing.Current().Get_Raw() + DEG_TO_BAU(90));
-    motion.X = static_cast<int>(Linked_To()->Coord.X + FastMath::Cos(facing_angle) * static_cast<double>(motion.HorizontalSpeed));
-    motion.Y = static_cast<int>(Linked_To()->Coord.Y - FastMath::Sin(facing_angle) * static_cast<double>(motion.HorizontalSpeed));
+    motion.X = static_cast<int>(Linked_To()->Coord.X + FastMath::Cos(horizontal_angle) * static_cast<double>(horizontal_speed));
+    motion.Y = static_cast<int>(Linked_To()->Coord.Y - FastMath::Sin(horizontal_angle) * static_cast<double>(horizontal_speed));
+    motion.Z = static_cast<int>(Linked_To()->Coord.Z + FastMath::Sin(CurrentPitch) * static_cast<double>(speed));
 
     return motion;
 }
@@ -447,7 +447,8 @@ RocketLocomotionClass::RocketMotionStruct RocketLocomotionClass::Get_Motion(int 
 Coordinate RocketLocomotionClass::Get_Next_Position(int speed)
 {
     RocketMotionStruct motion = Get_Motion(speed);
-    return Coordinate(motion.X, motion.Y, motion.VerticalSpeed);
+
+    return Coordinate(motion.X, motion.Y, motion.Z);
 }
 
 
@@ -512,10 +513,10 @@ bool RocketLocomotionClass::Time_To_Explode(const RocketTypeClass* rocket)
     /**
      *  Check if we're there yet.
      */
-    if (motion.VerticalSpeed > DestinationCoord.Z)
+    if (motion.Z > DestinationCoord.Z)
     {
         CellClass* rocket_cell = Linked_To()->Get_Cell_Ptr();
-        if (!rocket_cell || !rocket_cell->Bit2_16 /*might be Bit2_8*/ || DestinationCoord.Z != rocket_cell->Center_Coord().Z || motion.VerticalSpeed > DestinationCoord.Z + ROCKET_SPEED)
+        if (!rocket_cell || !rocket_cell->Bit2_16 /*might be Bit2_8*/ || DestinationCoord.Z != rocket_cell->Center_Coord().Z || motion.Z > DestinationCoord.Z + ROCKET_SPEED)
         {
             /**
              *  Nope, too early.

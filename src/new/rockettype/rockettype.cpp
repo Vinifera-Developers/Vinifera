@@ -391,7 +391,7 @@ bool RocketTypeClass::Read_INI(CCINIClass& ini)
     EliteWarhead = ini.Get_Warhead(IniName, "EliteWarhead", EliteWarhead);
     TakeoffAnim = ini.Get_Anim(IniName, "TakeoffAnim", TakeoffAnim);
     TrailAnim = ini.Get_Anim(IniName, "TrailAnim", TrailAnim);
-    IsCruiseMissile = ini.Get_Bool(IniName, "IsCruiseMissile", IsCruiseMissile);
+    IsCruiseMissile = ini.Get_Bool(IniName, "CruiseMissile", IsCruiseMissile);
 
     return true;
 }

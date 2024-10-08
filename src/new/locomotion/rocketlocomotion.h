@@ -54,10 +54,9 @@ RocketLocomotionClass : public LocomotionClass
 public:
     struct RocketMotionStruct
     {
-        int VerticalSpeed;
-        int HorizontalSpeed;
         int X;
         int Y;
+        int Z;
     };
 
 public:
