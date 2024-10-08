@@ -173,4 +173,5 @@ This page lists all the individual contributions to the project by their author.
   - Make harvesters drop the Tiberium type they're carrying on death, instead of Tiberium Riparius.
   - Make it so that it is no longer required to list all Tiberiums in a map to override some Tiberium's properties.
   - Add `PipWrap`.
+  - Reimplement aircraft carriers and missile launchers from Red Alert 2.
 

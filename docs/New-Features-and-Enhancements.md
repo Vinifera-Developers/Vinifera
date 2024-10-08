@@ -1,5 +1,7 @@
 # New Features and Enhancements
 
+stub
+
 This page describes all the engine features that are either new and introduced by Vinifera or are otherwise enhanced.
 
 ## Aircraft
