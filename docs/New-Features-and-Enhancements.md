@@ -525,6 +525,18 @@ WeedPipIndex=1  ; integer, the pip index used for Weeds.
 
 ## Vehicles
 
+### Unit Transform
+
+- Vinifera adds a new flag that allows a unit to transform into another type of unit upon deploying instead of transforming into a building.
+
+In `RULES.INI`:
+```ini
+[SOMEUNIT]
+TransformsInto=OTHERUNIT
+```
+
+- Additionally, the unit can be configured to require full charge to be able to transform, reusing the charge mechanic from the vanilla Mobile EMP Cannon. To do this, give the unit `TransformRequiresFullCharge=yes`.
+
 ### Totable
 
 - Vinifera adds a new flag which can prevent a vehicle from being picked up by a Carryall.

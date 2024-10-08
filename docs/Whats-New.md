@@ -139,6 +139,7 @@ New:
 - Add a developer command to dump all heaps to the log (by ZivDero)
 - Make harvesters drop the Tiberium type they're carrying on death, instead of Tiberium Riparius (by ZivDero)
 - Make it so that it is no longer required to list all Tiberiums in a map to override some Tiberium's properties (by ZivDero)
+- Add `TransformsInto` and `TransformRequiresFullCharge` to UnitTypes (by Rampastring)
 
 Vanilla fixes:
 - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively (by CCHyper/tomsons26)

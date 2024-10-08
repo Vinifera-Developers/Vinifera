@@ -131,8 +131,9 @@ This page lists all the individual contributions to the project by their author.
 - **Rampastring**:
   - Add `IceStrength` to Rules, and `IceDestructionEnabled` scenario option.
   - Add `ImmuneToEMP` to TechnoTypes.
+  - Add `TransformsInto` and `TransformRequiresFullCharge` to UnitTypes.
   - Make it possible to assign rally points to service depots.
-  - Fix an issue where losers were not marked as defeated in multiplayer when using TACTION_WIN or TACTION_LOSE to end the game (by Rampastring)
+  - Fix an issue where losers were not marked as defeated in multiplayer when using TACTION_WIN or TACTION_LOSE to end the game
   - Add extended descriptions in tooltips for objects on the sidebar.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.

@@ -86,4 +86,14 @@ UnitTypeClassExtension final : public TechnoTypeClassExtension
          *  The number of image frames for each of the idle animation sequences.
          */
         unsigned IdleFrames;
+
+        /**
+         *  The unit type that this unit type transforms into upon deploying, if any.
+         */
+        const UnitTypeClass* TransformsInto;
+
+        /**
+         *  If set, transforming to another unit will require this unit to have full charge.
+         */
+        bool IsTransformRequiresFullCharge;
 };
