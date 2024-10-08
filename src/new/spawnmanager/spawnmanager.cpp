@@ -250,7 +250,7 @@ void SpawnManagerClass::AI()
                 DirStruct dir = Owner->PrimaryFacing.Current();
                 spawnee->Unlimbo(spawn_coord, dir.Get_Dir());
 
-                if (rocket && rocket->IsCruiseMissile)
+                if (rocket && rocket->IsCruiseMissile && rocket->TakeoffAnim)
                     new AnimClass(rocket->TakeoffAnim, spawnee->Coord, 2, 1, SHAPE_WIN_REL | SHAPE_CENTER, -10);
 
                 if (burst)

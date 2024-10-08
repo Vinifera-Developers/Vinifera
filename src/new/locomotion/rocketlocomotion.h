@@ -115,5 +115,5 @@ protected:
     bool NeedToSubmit;
     bool IsSpawnerElite;
     double CurrentPitch;
-    int PreviousLeftDistance;
+    int ApogeeDistance;
 };

@@ -93,7 +93,7 @@ RocketLocomotionClass::RocketLocomotionClass() :
     NeedToSubmit(true),
     IsSpawnerElite(false),
     CurrentPitch(0.0),
-    PreviousLeftDistance(0)
+    ApogeeDistance(0)
 {
 }
 
@@ -130,7 +130,7 @@ IFACEMETHODIMP_(Matrix3D) RocketLocomotionClass::Draw_Matrix(int *key)
     Matrix3D matrix;
     matrix.Make_Identity();
 
-    const float z_angle = (Dir_To_32(Linked_To()->PrimaryFacing.Current()) - 8) * -WWMATH_P16;
+    const float z_angle = (Dir_To_32(Linked_To()->PrimaryFacing.Current()) - 12) * -WWMATH_P16; // YR has -8, somehow the facing is wrong??? I'm not convinced this is THE fix, since the facing isn't always correct like this either.
     matrix.Rotate_Z(z_angle);
 
     if (CurrentPitch != 0.0)
@@ -186,7 +186,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
 
             if (rocket->IsCruiseMissile)
             {
-                if (TrailerTimer.Expired())
+                if (TrailerTimer.Expired() && rocket->TakeoffAnim)
                 {
                     new AnimClass(rocket->TakeoffAnim, Linked_To()->Coord, 2, 1, SHAPE_WIN_REL | SHAPE_CENTER, -10);
                     TrailerTimer = 24;
@@ -223,7 +223,8 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
             {
                 CurrentPitch = rocket->PitchFinal * DEG_TO_RAD(90);
                 MissionState = RocketMissionState::GainingAltitude;
-                new AnimClass(rocket->TakeoffAnim, Linked_To()->Coord, 2, 1, SHAPE_WIN_REL | SHAPE_CENTER, -10);
+                if (rocket->TakeoffAnim)
+                    new AnimClass(rocket->TakeoffAnim, Linked_To()->Coord, 2, 1, SHAPE_WIN_REL | SHAPE_CENTER, -10);
             }
             else
             {
@@ -251,7 +252,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
             {
                 MissionState = RocketMissionState::Flight;
                 Coordinate center_coord = Linked_To()->Center_Coord();
-                PreviousLeftDistance = Vector2(center_coord.X - DestinationCoord.X, center_coord.Y - DestinationCoord.Y).Length();
+                ApogeeDistance = static_cast<int>(Vector2(center_coord.X - DestinationCoord.X, center_coord.Y - DestinationCoord.Y).Length());
             }
             break;
         }
@@ -263,14 +264,14 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
                 CurrentSpeed += rocket->Acceleration;
                 CurrentSpeed = std::min(CurrentSpeed, static_cast<double>(Linked_To()->Techno_Type_Class()->MaxSpeed));
 
-                if (rocket->LazyCurve && PreviousLeftDistance)
+                if (rocket->LazyCurve && ApogeeDistance)
                 {
                     if (Time_To_Explode(rocket))
                         return false;
 
                     Coordinate center_coord = Linked_To()->Center_Coord();
-                    int dist = Vector2(center_coord.X - DestinationCoord.X, center_coord.Y - DestinationCoord.Y).Length();
-                    double ratio = dist / PreviousLeftDistance;
+                    const double dist = Vector2(center_coord.X - DestinationCoord.X, center_coord.Y - DestinationCoord.Y).Length();
+                    const double ratio = dist / ApogeeDistance;
 
                     CurrentPitch = rocket->PitchFinal * ratio * DEG_TO_RAD(90) + Calculate_Pitch() * (1 - ratio);
                 }
@@ -289,7 +290,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
                 }
 
                 Coordinate center_coord = Linked_To()->Center_Coord();
-                double atan2 = FastMath::Atan2(center_coord.Y - DestinationCoord.Y, center_coord.X - DestinationCoord.X) - DEG_TO_RAD(90);
+                double atan2 = FastMath::Atan2(center_coord.Y - DestinationCoord.Y, DestinationCoord.X - center_coord.X) - DEG_TO_RAD(90);
                 Linked_To()->PrimaryFacing.Set_Desired(DirStruct(RAD_TO_BAU(atan2)));
             }
             else
@@ -321,8 +322,11 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
 
             if (TrailerTimer.Expired())
             {
-                new AnimClass(rocket->TakeoffAnim, Linked_To()->Coord, 2, 1, SHAPE_WIN_REL | SHAPE_CENTER, -10);
-                TrailerTimer = 24;
+                if (rocket->TakeoffAnim)
+                {
+                    new AnimClass(rocket->TakeoffAnim, Linked_To()->Coord, 2, 1, SHAPE_WIN_REL | SHAPE_CENTER, -10);
+                    TrailerTimer = 24;
+                }
             }
 
             if (MissionTimer.Expired())
@@ -341,7 +345,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
         break;
     }
 
-    if (Is_Moving_Now() && TrailerTimer.Expired())
+    if (Is_Moving_Now() && TrailerTimer.Expired() && rocket->TrailAnim)
     {
         new AnimClass(rocket->TrailAnim, Linked_To()->Coord, 2, 1, SHAPE_WIN_REL | SHAPE_CENTER);
         TrailerTimer = 3;
@@ -484,16 +488,17 @@ void RocketLocomotionClass::Explode()
     Cell cell = Coord_Cell(coord);
 
     /**
-     *  The rocket uses it's spawner's elite status to determine if it should deal elite damage.
+     *  The rocket uses its spawner's elite status to determine if it should deal elite damage.
      */
     int damage = IsSpawnerElite ? rocket->EliteDamage : rocket->Damage;
 
     /**
      *  KABOOM!!!
      */
-    constexpr int zadjust = -15; // Combat_ZAdjust
-    new AnimClass(Combat_Anim(damage, warhead, Map[cell].Land_Type(), &coord), coord, 0, 1, SHAPE_WIN_REL | SHAPE_CENTER | SHAPE_FLAT, zadjust);
-    Do_Flash(damage, const_cast<WarheadTypeClass*>(warhead), coord);
+    const auto animtype = Combat_Anim(damage, warhead, Map[cell].Land_Type(), &coord);
+    if (animtype)
+        new AnimClass(animtype, coord, 0, 1, SHAPE_WIN_REL | SHAPE_CENTER | SHAPE_FLAT, -15);
+    Do_Flash(damage, warhead, coord);
     Explosion_Damage(&coord, damage, Linked_To(), warhead, true);
     delete Linked_To();
 }
