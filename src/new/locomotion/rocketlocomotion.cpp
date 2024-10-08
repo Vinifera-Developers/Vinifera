@@ -29,55 +29,19 @@
 #include "tibsun_inline.h"
 #include "tibsun_globals.h"
 #include "iomap.h"
+#include "aircraftext.h"
+#include "aircraft.h"
+#include "aircrafttype.h"
 #include "cell.h"
+#include "anim.h"
+#include "combat.h"
 #include "foot.h"
 #include "tactical.h"
 #include "wwmath.h"
 #include "debughandler.h"
-
-
-/**
- *  Retrieves pointers to the supported interfaces on an object.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP RocketLocomotionClass::QueryInterface(REFIID riid, LPVOID *ppvObj)
-{
-    return LocomotionClass::QueryInterface(riid, ppvObj);
-}
-
-
-/**
- *  Increments the reference count for an interface pointer to a COM object.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(ULONG) RocketLocomotionClass::AddRef()
-{
-    return LocomotionClass::AddRef();
-}
-
-
-/**
- *  Decrements the reference count for an interface on a COM object.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(ULONG) RocketLocomotionClass::Release()
-{
-    return LocomotionClass::Release();
-}
-
-
-/**
- *  Determines whether an object has changed since it was last saved to its stream.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(LONG) RocketLocomotionClass::IsDirty()
-{
-    return LocomotionClass::IsDirty();
-}
+#include "extension.h"
+#include "fastmath.h"
+#include "vector2.h"
 
 
 /**
@@ -101,8 +65,6 @@ IFACEMETHODIMP RocketLocomotionClass::GetClassID(CLSID *pClassID)
  *  Initializes an object from the stream where it was saved previously.
  * 
  *  @author: CCHyper
- * 
- *  @param      pStm           An IStream pointer to the stream from which the object should be loaded.
  */
 IFACEMETHODIMP RocketLocomotionClass::Load(IStream *pStm)
 {
@@ -116,292 +78,149 @@ IFACEMETHODIMP RocketLocomotionClass::Load(IStream *pStm)
 
 
 /**
- *  Saves an object to the specified stream.
- * 
- *  @author: CCHyper
- * 
- *  @param      pStm           An IStream pointer to the stream into which the object should be saved.
- * 
- *  @param      fClearDirty    Indicates whether to clear the dirty flag after the save is complete.
- */
-IFACEMETHODIMP RocketLocomotionClass::Save(IStream *pStm, BOOL fClearDirty)
-{
-    HRESULT hr = LocomotionClass::Save(pStm, fClearDirty);
-    if (SUCCEEDED(hr)) {
-        // Insert any data to be saved here.
-    }
-
-    return hr;
-}
-
-
-/**
- *  Retrieves the size of the stream needed to save the object.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(LONG) RocketLocomotionClass::GetSizeMax(ULARGE_INTEGER *pcbSize)
-{
-    if (pcbSize == nullptr) {
-        return E_POINTER;
-    }
-
-    HRESULT hr = LocomotionClass::GetSizeMax(pcbSize);
-
-    return S_OK;
-}
-
-
-/**
  *  Class default constructor.
  * 
- *  @author: CCHyper
+ *  @author: ZivDero
  */
 RocketLocomotionClass::RocketLocomotionClass() :
     LocomotionClass(),
     DestinationCoord(),
-    HeadToCoord(),
-    CenterCoord(),
-    Angle(0),
-    IsMoving(false)
+    MissionTimer(),
+    TrailerTimer(),
+    MissionState(RocketMissionState::State_0),
+    CurrentSpeed(0),
+    unknown_bool_4C(true),
+    IsSpawnerElite(false),
+    CurrentPitch(0.0),
+    unknown_58(0),
+    unknown_5C(0)
 {
-}
-
-
-/**
- *  Class destructor.
- * 
- *  @author: CCHyper
- */
-RocketLocomotionClass::~RocketLocomotionClass()
-{
-}
-
-
-/**
- *  Links object to locomotor.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP RocketLocomotionClass::Link_To_Object(void *object)
-{
-    HRESULT hr = LocomotionClass::Link_To_Object(object);
-
-    if (SUCCEEDED(hr)) {
-        DEBUG_INFO("RocketLocomotionClass - Sucessfully linked to \"%s\"\n", LinkedTo->Name());
-    }
-
-    return hr;
 }
 
 
 /**
  *  Sees if object is moving.
- * 
- *  @author: CCHyper
+ *
+ *  @author: ZivDero
  */
 IFACEMETHODIMP_(bool) RocketLocomotionClass::Is_Moving()
 {
-    return IsMoving;
+    return DestinationCoord != Coordinate();
 }
 
 
 /**
  *  Fetches destination coordinate.
- * 
- *  @author: CCHyper
+ *
+ *  @author: ZivDero
  */
 IFACEMETHODIMP_(Coordinate) RocketLocomotionClass::Destination()
 {
-    if (IsMoving) {
-        return DestinationCoord;
-    }
-
-    return Coordinate(0, 0, 0);
-}
-
-
-/**
- *  Fetches immediate (next cell) destination coordinate.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(Coordinate) RocketLocomotionClass::Head_To_Coord()
-{
-    /**
-     *  If currently moving, return the immediate coordinate.
-     */
-    if (IsMoving) {
-        return HeadToCoord;
-    }
-
-    /**
-     *  Return the current coordinate.
-     */
-    return Linked_To()->Get_Coord();
-}
-
-
-/**
- *  Determine if specific cell can be entered.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(MoveType) RocketLocomotionClass::Can_Enter_Cell(Cell cell)
-{
-    /**
-     *  Query the linked object to determine if the cell can be entered.
-     */
-    return Linked_To()->Can_Enter_Cell(&Map[cell]);
-}
-
-
-/**
- *  Should object cast a shadow?
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(bool) RocketLocomotionClass::Is_To_Have_Shadow()
-{
-    return LocomotionClass::Is_To_Have_Shadow();
+    return DestinationCoord;
 }
 
 
 /**
  *  Fetch voxel draw matrix.
  * 
- *  @author: CCHyper
+ *  @author: ZivDero
  */
 IFACEMETHODIMP_(Matrix3D) RocketLocomotionClass::Draw_Matrix(int *key)
 {
-    return LocomotionClass::Draw_Matrix(key);
-}
+    Matrix3D matrix;
+    matrix.Make_Identity();
 
+    const float z_angle = (Dir_To_32(LinkedTo->PrimaryFacing.Current()) - 8) * -WWMATH_P16;
+    matrix.Rotate_Z(z_angle);
 
-/**
- *  Fetch shadow draw matrix.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(Matrix3D) RocketLocomotionClass::Shadow_Matrix(int *key)
-{
-    return LocomotionClass::Shadow_Matrix(key);
-}
+    if (CurrentPitch != 0.0)
+    {
+        matrix.Rotate_Y(-CurrentPitch);
 
+        /**
+         *  Get this rocket's type.
+         */
+        const auto atype = reinterpret_cast<AircraftClass*>(Linked_To())->Class;
+        const RocketTypeClass* rocket = RocketTypeClass::From_AircraftType(atype);
 
-/**
- *  Draw point center location.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(Point2D) RocketLocomotionClass::Draw_Point()
-{
-    return LocomotionClass::Draw_Point();
-}
+        if (key)
+        {
+            if (CurrentPitch == rocket->PitchInitial * DEG_TO_RAD(90))
+                *key |= 0x20;
+            else if (CurrentPitch == rocket->PitchFinal * DEG_TO_RAD(90))
+                *key |= 0x40;
+            else
+                *key = -1;
+        }
+    }
 
-
-/**
- *  Shadow draw point center location.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(Point2D) RocketLocomotionClass::Shadow_Point()
-{
-    return LocomotionClass::Shadow_Point();
-}
-
-
-/**
- *  Visual character for drawing.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(VisualType) RocketLocomotionClass::Visual_Character(bool flag)
-{
-    return VISUAL_NORMAL;
-}
-
-
-/**
- *  Z adjust control value.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(int) RocketLocomotionClass::Z_Adjust()
-{
-    return 0;
-}
-
-
-/**
- *  Z gradient control value.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(ZGradientType) RocketLocomotionClass::Z_Gradient()
-{
-    return ZGRAD_90DEG;
+    if (key)
+    {
+        *key |= Dir_To_32(LinkedTo->PrimaryFacing.Current());
+        return matrix;
+    }
 }
 
 
 /**
  *  Process movement of object.
  * 
- *  @author: CCHyper
+ *  @author: ZivDero
  */
 IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
 {
-    if (IsMoving) {
+    /**
+     *  Get this rocket's type.
+     */
+    const auto atype = reinterpret_cast<AircraftClass*>(Linked_To())->Class;
+    const RocketTypeClass* rocket = RocketTypeClass::From_AircraftType(atype);
 
-        Coordinate coord = DestinationCoord;
+    TechnoClass* spawn_owner = Extension::Fetch<AircraftClassExtension>(LinkedTo)->Spawner;
 
-        /**
-         *  Rotate the object around the center coord..
-         */
-        int radius = CELL_LEPTON_W*2;
-        coord.X += radius * WWMath::Sin(Angle);
-        coord.Y += radius * WWMath::Cos(Angle);
-        //coord.Z // No need to adjust the height of the object.
+    switch (MissionState)
+    {
+    case RocketMissionState::Pause:
+        CurrentSpeed = 0;
+        IsSpawnerElite = spawn_owner && spawn_owner->Veterancy.Is_Elite();
 
-        /**
-         *  Pickup the object the game world before we set the new coord.
-         */
-        Linked_To()->Mark(MARK_UP);
-        if (Can_Enter_Cell(Coord_Cell(coord)) == MOVE_OK) {
-            Linked_To()->Set_Coord(coord);
-
-            /**
-             *  Increase the angle, wrapping if full circle is complete.
-             */
-            double scale = 360.0;
-            Angle += DEG_TO_RAD(360.0) / scale;
-            if (Angle > 360.0) {
-                Angle = 0;
-            }
+        // if ( rocket->Type != Rule->CMisl.Type )
+        unknown_bool_4C = true;
+        if (MissionTimer.Get_Rate())
+        {
+            MissionTimer = 
         }
-        Linked_To()->Mark(MARK_DOWN);
-    }
 
-    return Is_Moving();
+    }
 }
 
 
 /**
  *  Instruct to move to location specified.
  * 
- *  @author: CCHyper
+ *  @author: ZivDero
  */
 IFACEMETHODIMP_(void) RocketLocomotionClass::Move_To(Coordinate to)
 {
-    DestinationCoord = to;
+    const auto atype = reinterpret_cast<AircraftClass*>(Linked_To())->Class;
+    const RocketTypeClass* rocket = RocketTypeClass::From_AircraftType(atype);
 
-    if (!DestinationCoord) {
-        if (!HeadToCoord) {
-            IsMoving = false;
+    if (!DestinationCoord)
+    {
+        int timer_delay;
+        if (rocket->PauseFrames)
+        {
+            MissionState = RocketMissionState::Pause;
+            timer_delay = rocket->PauseFrames;
+        }
+        else
+        {
+            MissionState = RocketMissionState::Tilt;
+            timer_delay = rocket->TiltFrames;
         }
 
-    } else {
-        IsMoving = true;
+        MissionTimer = timer_delay;
+        CurrentPitch = rocket->PitchInitial * DEG_TO_RAD(90);
+        DestinationCoord = to;
     }
 }
 
@@ -409,126 +228,9 @@ IFACEMETHODIMP_(void) RocketLocomotionClass::Move_To(Coordinate to)
 /**
  *  Stop moving at first opportunity.
  * 
- *  @author: CCHyper
+ *  @author: ZivDero
  */
 IFACEMETHODIMP_(void) RocketLocomotionClass::Stop_Moving()
-{
-    HeadToCoord = 0;
-    DestinationCoord = 0;
-
-    Angle = 0;
-
-    IsMoving = false;
-}
-
-
-/**
- *  Try to face direction specified.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(void) RocketLocomotionClass::Do_Turn(DirStruct coord)
-{
-    Linked_To()->PrimaryFacing.Set(coord);
-}
-
-
-/**
- *  Object is appearing in the world.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(void) RocketLocomotionClass::Unlimbo()
-{
-    /**
-     *  Set the objects ramp for redraw.
-     */
-    Force_New_Slope(Linked_To()->Get_Cell_Ptr()->Ramp);
-}
-
-
-/**
- *  Special tilting AI function.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(void) RocketLocomotionClass::Tilt_Pitch_AI()
-{
-}
-
-
-/**
- *  Locomotor becomes powered.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(bool) RocketLocomotionClass::Power_On()
-{
-    return LocomotionClass::Power_On();
-}
-
-
-/**
- *  Locomotor loses power.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(bool) RocketLocomotionClass::Power_Off()
-{
-    return LocomotionClass::Power_Off();
-}
-
-
-/**
- *  Is locomotor powered?
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(bool) RocketLocomotionClass::Is_Powered()
-{
-    return LocomotionClass::Is_Powered();
-}
-
-
-/**
- *  Is locomotor sensitive to ion storms?
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(bool) RocketLocomotionClass::Is_Ion_Sensitive()
-{
-    return false;
-}
-
-
-/**
- *  Push object in direction specified.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(bool) RocketLocomotionClass::Push(DirStruct dir)
-{
-    return false;
-}
-
-
-/**
- *  Shove object (with spin) in direction specified.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(bool) RocketLocomotionClass::Shove(DirStruct dir)
-{
-    return false;
-}
-
-
-/**
- *  Force drive track -- special case only.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(void) RocketLocomotionClass::Force_Track(int track, Coordinate coord)
 {
 }
 
@@ -536,227 +238,124 @@ IFACEMETHODIMP_(void) RocketLocomotionClass::Force_Track(int track, Coordinate c
 /**
  *  What display layer is it located in.
  * 
- *  @author: CCHyper
+ *  @author: ZivDero
  */
 IFACEMETHODIMP_(LayerType) RocketLocomotionClass::In_Which_Layer()
 {
-    return LAYER_GROUND;
-}
-
-
-/**
- *  Force object to destination (no processing).
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(void) RocketLocomotionClass::Force_Immediate_Destination(Coordinate coord)
-{
-    DestinationCoord = coord;
-}
-
-
-/**
- *  Force a voxel unit to a given slope. Used in cratering.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(void) RocketLocomotionClass::Force_New_Slope(int ramp)
-{
+    return LAYER_AIR;
 }
 
 
 /**
  *  Is it actually moving across the ground this very second?
  * 
- *  @author: CCHyper
+ *  @author: ZivDero
  */
 IFACEMETHODIMP_(bool) RocketLocomotionClass::Is_Moving_Now()
 {
-    if (Linked_To()->PrimaryFacing.Is_Rotating()) {
-        return true;
+    return MissionState >= RocketMissionState::State_3 && MissionState <= RocketMissionState::State_5;
+}
+
+
+RocketLocomotionClass::RocketMotionStruct RocketLocomotionClass::Get_Motion(int rocket_length)
+{
+    RocketMotionStruct motion;
+
+    motion.VerticalSpeed = static_cast<int>(FastMath::Sin(CurrentPitch) * static_cast<double>(rocket_length) + LinkedTo->Coord.Z);
+    motion.HorizontalSpeed = static_cast<int>(FastMath::Cos(CurrentPitch) * static_cast<double>(rocket_length));
+
+    const int facing_angle = BAU_TO_RAD(LinkedTo->PrimaryFacing.Current().Get_Raw() + DEG_TO_BAU(90));
+    motion.X = static_cast<int>(LinkedTo->Coord.X + FastMath::Cos(facing_angle) * static_cast<double>(motion.HorizontalSpeed));
+    motion.Y = static_cast<int>(LinkedTo->Coord.Y - FastMath::Sin(facing_angle) * static_cast<double>(motion.HorizontalSpeed));
+
+    return motion;
+}
+
+
+
+Coordinate RocketLocomotionClass::Get_Next_Position(int rocket_length)
+{
+    RocketMotionStruct motion = Get_Motion(rocket_length);
+    return Coordinate(motion.X, motion.Y, motion.VerticalSpeed);
+}
+
+
+double RocketLocomotionClass::Calculate_Pitch()
+{
+    /**
+     *  Calculate how much is there left to go.
+     */
+    Coordinate left_to_go = DestinationCoord - LinkedTo->Coord;
+    double length = Vector2(left_to_go.X, left_to_go.Y).Length();
+
+    /**
+     *  If we're still not there, calculate the pitch at which we should go.
+     */
+    if (length > 0)
+        return FastMath::Atan(left_to_go.Z / length);
+
+    /**
+     *  Otherwise it's time to go straight down.
+     */
+    return -DEG_TO_RAD(90);
+}
+
+
+void RocketLocomotionClass::Explode()
+{
+    /**
+     *  Get the warhead this rocket carries.
+     */
+    const auto atype = reinterpret_cast<AircraftClass*>(Linked_To())->Class;
+    const RocketTypeClass* rocket = RocketTypeClass::From_AircraftType(atype);
+    const WarheadTypeClass* warhead = IsSpawnerElite ? rocket->EliteWarhead : rocket->Warhead;
+
+    /**
+     *  Calculate where it's moving right now.
+     */
+    Coordinate coord = Get_Next_Position(rocket->BodyLength);
+    Cell cell = Coord_Cell(coord);
+
+    /**
+     *  The rocket uses it's spawner's elite status to determine if it should deal elite damage.
+     */
+    int damage = IsSpawnerElite ? rocket->EliteDamage : rocket->Damage;
+
+    /**
+     *  KABOOM!!!
+     */
+    constexpr int zadjust = -15; // Combat_ZAdjust
+    AnimClass anim(Combat_Anim(damage, warhead, Map[cell].Land_Type(), &coord), coord, 0, 1, SHAPE_WIN_REL | SHAPE_CENTER | SHAPE_FLAT, zadjust);
+    Do_Flash(damage, const_cast<WarheadTypeClass*>(warhead), coord);
+    Explosion_Damage(&coord, damage, LinkedTo, warhead, true);
+    delete LinkedTo;
+}
+
+
+
+bool RocketLocomotionClass::Time_To_Explode(const RocketTypeClass* rocket)
+{
+    RocketMotionStruct motion = Get_Motion(rocket->BodyLength);
+
+    /**
+     *  Check if we're there yet.
+     */
+    if (motion.VerticalSpeed > DestinationCoord.Z)
+    {
+        CellClass* rocket_cell = LinkedTo->Get_Cell_Ptr();
+        if (!rocket_cell || !rocket_cell->Bit2_16 /*might be Bit2_8*/ || DestinationCoord.Z != rocket_cell->Center_Coord().Z || motion.VerticalSpeed > DestinationCoord.Z + ROCKET_SPEED)
+        {
+            /**
+             *  Nope, too early.
+             */
+            if (LinkedTo->Get_Height() > 0)
+                return false;
+        }
     }
 
-    if (Is_Moving()) {
-        return HeadToCoord && Apparent_Speed() > 0;
-    }
-
-    return false;
-}
-
-
-/**
- *  Actual current speed of object expressed as leptons per game frame.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(int) RocketLocomotionClass::Apparent_Speed()
-{
-    return Linked_To()->Current_Speed();
-}
-
-
-/**
- *  Special drawing feedback code (locomotor specific meaning).
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(int) RocketLocomotionClass::Drawing_Code()
-{
-    return 0;
-}
-
-
-/**
- *  Queries if any locomotor specific state prevents the object from firing.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(FireErrorType) RocketLocomotionClass::Can_Fire()
-{
-    return FIRE_OK;
-}
-
-
-/**
- *  Queries the general state of the locomotor.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(int) RocketLocomotionClass::Get_Status()
-{
-    return 0;
-}
-
-
-/**
- *  Forces a hunter seeker droid to find a target.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(void) RocketLocomotionClass::Acquire_Hunter_Seeker_Target()
-{
-}
-
-
-/**
- *  Is this object surfacing?
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(bool) RocketLocomotionClass::Is_Surfacing()
-{
-    return false;
-}
-
-
-/**
- *  Lifts all occupation bits associated with the object off the map.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(void) RocketLocomotionClass::Mark_All_Occupation_Bits(int mark)
-{
-    Coordinate headto = Head_To_Coord();
-    if (mark != 0) {
-        Linked_To()->Set_Occupy_Bit(headto);
-    } else {
-        Linked_To()->Clear_Occupy_Bit(headto);
-    }
-}
-
-
-/**
- *  Is this object in the process of moving into this coord.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(bool) RocketLocomotionClass::Is_Moving_Here(Coordinate to)
-{
-    Coordinate headto_cell = Coord_Cell(Head_To_Coord());
-    return Coord_Cell(headto_cell) == Coord_Cell(to) && std::abs(headto_cell.Z - to.Z) <= CellHeight;
-}
-
-
-/**
- *  Will this object jump tracks?
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(bool) RocketLocomotionClass::Will_Jump_Tracks()
-{
-    return false;
-}
-
-
-/**
- *  Infantry moving query function.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(bool) RocketLocomotionClass::Is_Really_Moving_Now()
-{
-    return IsMoving;
-}
-
-
-/**
- *  Falsifies the IsReallyMoving flag in WalkLocomotionClass.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(void) RocketLocomotionClass::Stop_Movement_Animation()
-{
-}
-
-
-/**
- *  Locks the locomotor from being deleted.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(void) RocketLocomotionClass::Lock()
-{
-}
-
-
-/**
- *  Unlocks the locomotor from being deleted.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(void) RocketLocomotionClass::Unlock()
-{
-}
-
-
-/**
- *  Queries internal variables.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(int) RocketLocomotionClass::Get_Track_Number()
-{
-    return -1;
-}
-
-
-/**
- *  Queries internal variables.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(int) RocketLocomotionClass::Get_Track_Index()
-{
-    return -1;
-}
-
-
-/**
- *  Queries internal variables.
- * 
- *  @author: CCHyper
- */
-IFACEMETHODIMP_(int) RocketLocomotionClass::Get_Speed_Accum()
-{
-    return -1;
+    /**
+     *  KABOOM!!!
+     */
+    Explode();
+    return true;
 }

@@ -41,6 +41,7 @@ enum RocketType
     ROCKET_FIRST = 0,
     ROCKET_NONE = -1
 };
+DEFINE_ENUMERATION_OPERATORS(RocketType);
 
 
 class DECLSPEC_UUID(UUID_ROCKETTYPE)
@@ -79,6 +80,7 @@ public:
     static RocketType From_Name(const char *name);
     static const char *Name_From(RocketType type);
 
+    static const RocketTypeClass *From_AircraftType(const AircraftTypeClass *type);
     static const RocketTypeClass *Find_Or_Make(const char *name);
 
 private:
@@ -101,4 +103,7 @@ public:
     int BodyLength;
     bool LazyCurve;
     const AircraftTypeClass* Type;
+    const WarheadTypeClass* Warhead;
+    const WarheadTypeClass* EliteWarhead;
+    bool IsCruiseMissile;
 };

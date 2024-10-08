@@ -64,7 +64,9 @@ RocketTypeClass::RocketTypeClass(const char* name) :
     EliteDamage(0),
     BodyLength(0),
     LazyCurve(false),
-    Type(nullptr)
+    Type(nullptr),
+    Warhead(nullptr),
+    EliteWarhead(nullptr)
 {
     ASSERT_FATAL_PRINT(name != nullptr, "Invalid name for RocketType!");
 
@@ -220,6 +222,8 @@ HRESULT RocketTypeClass::Load(IStream* pStm)
     }
 
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Type, "Type");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Warhead, "Warhead");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(EliteWarhead, "EliteWarhead");
 
     return hr;
 }
@@ -317,6 +321,26 @@ const char *RocketTypeClass::Name_From(RocketType type)
 
 
 /**
+ *  Find the rocket that has this aircraft as its type.
+ *
+ *  @author: ZivDero
+ */
+const RocketTypeClass* RocketTypeClass::From_AircraftType(const AircraftTypeClass* type)
+{
+    if (!type)
+        return nullptr;
+
+    for (RocketType rocket = ROCKET_FIRST; rocket < RocketTypes.Count(); rocket++) {
+        if (RocketTypes[rocket]->Type == type) {
+            return RocketTypes[rocket];
+        }
+    }
+
+    return nullptr;
+}
+
+
+/**
  *  Find or create a Rocket of the type specified.
  *
  *  @author: ZivDero
@@ -325,9 +349,9 @@ const RocketTypeClass *RocketTypeClass::Find_Or_Make(const char *name)
 {
     ASSERT(name != nullptr);
 
-    for (RocketType Rocket = ROCKET_FIRST; Rocket < RocketTypes.Count(); ++Rocket) {
-        if (std::strncmp(RocketTypes[Rocket]->IniName, name, sizeof(IniName)) == 0) {
-            return RocketTypes[Rocket];
+    for (RocketType rocket = ROCKET_FIRST; rocket < RocketTypes.Count(); rocket++) {
+        if (std::strncmp(RocketTypes[rocket]->IniName, name, sizeof(IniName)) == 0) {
+            return RocketTypes[rocket];
         }
     }
 
@@ -361,6 +385,8 @@ bool RocketTypeClass::Read_INI(CCINIClass& ini)
     BodyLength = ini.Get_Int(IniName, "BodyLength", BodyLength);
     LazyCurve = ini.Get_Bool(IniName, "LazyCurve", LazyCurve);
     Type = ini.Get_Aircraft(IniName, "Type", Type);
+    Warhead = ini.Get_Warhead(IniName, "Warhead", Warhead);
+    EliteWarhead = ini.Get_Warhead(IniName, "EliteWarhead", EliteWarhead);
 
     return true;
 }

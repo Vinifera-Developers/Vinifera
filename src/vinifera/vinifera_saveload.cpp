@@ -48,6 +48,7 @@
 #include "bullettype.h"
 #include "campaign.h"
 #include "empulse.h"
+#include "rockettype.h"
 #include "factory.h"
 #include "foggedobject.h"
 #include "side.h"

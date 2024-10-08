@@ -785,7 +785,7 @@ bool Vinifera_Register_Com_Objects()
     /**
      *  Other new entities.
      */
-    REGISTER_CLASS(SwizzleManagerClass);
+    REGISTER_CLASS(SpawnManagerClass);
     
     Extension::Register_Class_Factories();
 

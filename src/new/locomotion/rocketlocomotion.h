@@ -29,117 +29,92 @@
 
 #include "always.h"
 #include "locomotion.h"
+#include "rockettype.h"
 #include "vinifera_defines.h"
 
+
+enum class RocketMissionState
+{
+    State_0 = 0,
+    Pause = 1,
+    Tilt = 2,
+    State_3 = 3,
+    State_4 = 4,
+    State_5 = 5,
+};
+
+#define ROCKET_SPEED 416
+
+struct RocketMotionStruct;
 
 class DECLSPEC_UUID(CLSID_ROCKET_LOCOMOTOR)
 RocketLocomotionClass : public LocomotionClass
 {
-    public:
-        /**
-         *  IUnknown
-         */
-        IFACEMETHOD(QueryInterface)(REFIID riid, LPVOID *ppvObj);
-        IFACEMETHOD_(ULONG, AddRef)();
-        IFACEMETHOD_(ULONG, Release)();
+public:
+    struct RocketMotionStruct
+    {
+        int VerticalSpeed;
+        int HorizontalSpeed;
+        int X;
+        int Y;
+    };
 
-        /**
-         *  IPersist
-         */
-        IFACEMETHOD(GetClassID)(CLSID *pClassID);
-        
-        /**
-         *  IPersistStream
-         */
-        IFACEMETHOD_(LONG, IsDirty)();
-        IFACEMETHOD(Load)(IStream *pStm);
-        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
-        IFACEMETHOD_(LONG, GetSizeMax)(ULARGE_INTEGER *pcbSize);
+public:
+    /**
+     *  IPersist
+     */
+    IFACEMETHOD(GetClassID)(CLSID* pClassID);
 
-        /**
-         *  ILocomotion
-         */
-        IFACEMETHOD(Link_To_Object)(void *object);
-        IFACEMETHOD_(bool, Is_Moving)();
-        IFACEMETHOD_(Coordinate, Destination)();
-        IFACEMETHOD_(Coordinate, Head_To_Coord)();
-        IFACEMETHOD_(MoveType, Can_Enter_Cell)(Cell cell);
-        IFACEMETHOD_(bool, Is_To_Have_Shadow)();
-        IFACEMETHOD_(Matrix3D, Draw_Matrix)(int *key);
-        IFACEMETHOD_(Matrix3D, Shadow_Matrix)(int *key);
-        IFACEMETHOD_(Point2D, Draw_Point)();
-        IFACEMETHOD_(Point2D, Shadow_Point)();
-        IFACEMETHOD_(VisualType, Visual_Character)(bool flag);
-        IFACEMETHOD_(int, Z_Adjust)();
-        IFACEMETHOD_(ZGradientType, Z_Gradient)();
-        IFACEMETHOD_(bool, Process)();
-        IFACEMETHOD_(void, Move_To)(Coordinate to);
-        IFACEMETHOD_(void, Stop_Moving)();
-        IFACEMETHOD_(void, Do_Turn)(DirStruct coord);
-        IFACEMETHOD_(void, Unlimbo)();
-        IFACEMETHOD_(void, Tilt_Pitch_AI)();
-        IFACEMETHOD_(bool, Power_On)();
-        IFACEMETHOD_(bool, Power_Off)();
-        IFACEMETHOD_(bool, Is_Powered)();
-        IFACEMETHOD_(bool, Is_Ion_Sensitive)();
-        IFACEMETHOD_(bool, Push)(DirStruct dir);
-        IFACEMETHOD_(bool, Shove)(DirStruct dir);
-        IFACEMETHOD_(void, Force_Track)(int track, Coordinate coord);
-        IFACEMETHOD_(LayerType, In_Which_Layer)();
-        IFACEMETHOD_(void, Force_Immediate_Destination)(Coordinate coord);
-        IFACEMETHOD_(void, Force_New_Slope)(int ramp);
-        IFACEMETHOD_(bool, Is_Moving_Now)();
-        IFACEMETHOD_(int, Apparent_Speed)();
-        IFACEMETHOD_(int, Drawing_Code)();
-        IFACEMETHOD_(FireErrorType, Can_Fire)();
-        IFACEMETHOD_(int, Get_Status)();
-        IFACEMETHOD_(void, Acquire_Hunter_Seeker_Target)();
-        IFACEMETHOD_(bool, Is_Surfacing)();
-        IFACEMETHOD_(void, Mark_All_Occupation_Bits)(int mark);
-        IFACEMETHOD_(bool, Is_Moving_Here)(Coordinate to);
-        IFACEMETHOD_(bool, Will_Jump_Tracks)();
-        IFACEMETHOD_(bool, Is_Really_Moving_Now)();
-        IFACEMETHOD_(void, Stop_Movement_Animation)();
-        IFACEMETHOD_(void, Lock)();
-        IFACEMETHOD_(void, Unlock)();
-        IFACEMETHOD_(int, Get_Track_Number)();
-        IFACEMETHOD_(int, Get_Track_Index)();
-        IFACEMETHOD_(int, Get_Speed_Accum)();
+    /**
+     *  IPersistStream
+     */
+    IFACEMETHOD(Load)(IStream* pStm);
 
-    public:
-        virtual int Size_Of(bool firestorm = false) const override { return sizeof(*this); }
+    /**
+     *  ILocomotion
+     */
+    IFACEMETHOD_(bool, Is_Moving)();
+    IFACEMETHOD_(Coordinate, Destination)();
+    IFACEMETHOD_(Matrix3D, Draw_Matrix)(int *key);
+    IFACEMETHOD_(bool, Process)();
+    IFACEMETHOD_(void, Move_To)(Coordinate to);
+    IFACEMETHOD_(void, Stop_Moving)();
+    IFACEMETHOD_(LayerType, In_Which_Layer)();
+    IFACEMETHOD_(bool, Is_Moving_Now)();
 
-    public:
-        RocketLocomotionClass();
-        ~RocketLocomotionClass();
-        
-    protected:
-        /**
-         *  This is the desired destination coordinate of the object.
-         */
-        Coordinate DestinationCoord;
+    /**
+     *  LocomotionClass
+     */
+    virtual int Size_Of(bool firestorm = false) const override { return sizeof(*this); }
 
-        /**
-         *  This is the coordinate that the unit is heading to as an immediate
-         *  destination. This coordinate is never further than once cell (or track)
-         *  from the unit's location. When this coordinate is reached, then the
-         *  next location in the path list becomes the next HeadTo coordinate.
-         */
-        Coordinate HeadToCoord;
+private:
+    /**
+     *  RocketLocomotionClass
+     */
+    Coordinate Get_Next_Position(int rocket_length);
+    double Calculate_Pitch();
+    void Explode();
+    bool Time_To_Explode(const RocketTypeClass* rocket);
+    RocketMotionStruct Get_Motion(int rocket_length);
 
-        /**
-         *  This is the logical coordinate for the object. It is the center of
-         *  the circle when calculating the rotation.
-         */
-        Coordinate CenterCoord;
+public:
+    RocketLocomotionClass();
+    ~RocketLocomotionClass() = default;
+    
+protected:
+    /**
+     *  This is the desired destination coordinate of the rocket.
+     */
+    Coordinate DestinationCoord;
 
-        /**
-         *  The current rotation angle.
-         */
-        double Angle;
-
-        /**
-         *  If this object is moving, then this flag will be true.
-         */
-        bool IsMoving;
+    CDRateTimerClass<FrameTimerClass> MissionTimer;
+    CDTimerClass<FrameTimerClass> TrailerTimer;
+    RocketMissionState MissionState;
+    DWORD unknown_44;
+    double CurrentSpeed;
+    bool unknown_bool_4C;
+    bool IsSpawnerElite;
+    double CurrentPitch;
+    DWORD unknown_58;
+    DWORD unknown_5C;
 };
