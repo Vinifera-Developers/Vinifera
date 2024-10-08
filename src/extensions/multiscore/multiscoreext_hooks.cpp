@@ -62,7 +62,6 @@ static void _MultiScore_Tally_Score_Get_Largest_CreditsSpent_Score()
  */
 DECLARE_PATCH(_MultiScore_Tally_Score_Fetch_Largest_CreditsSpent_Score)
 {
-    // static const void *address = (void*)0x007E1568;
     _MultiScore_Tally_Score_Get_Largest_CreditsSpent_Score();
 
     /**
@@ -87,13 +86,18 @@ DECLARE_PATCH(_MultiScore_Tally_Score_Calculate_Economy_Score)
     GET_REGISTER_STATIC(HouseClass *, house, ebx);
     static int economy_score;
 
-    // Calculate a percentage of how much Tiberium this house has
-    // harvested compared to the house that harvested the largest
-    // amount of credits during the match.
+    /*
+     * Calculate a percentage of how many credits this house has
+     * spent compared to the house that spent the highest
+     * amount of credits during the match.
+     */
     if (MostCreditsSpent > 0) {
         if (house->CreditsSpent >= MostCreditsSpent) {
-            // For some reason the score screen presentation seems to
-            // lower this by some 1-2%, so we take that into account.
+            /**
+             *  For some reason the score screen presentation seems to
+             *  lower this by some 1-2%, so we take that into account.
+             *  TODO investigate and fix
+             */
             economy_score = 102;
         }
         else {

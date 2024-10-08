@@ -134,6 +134,7 @@ This page lists all the individual contributions to the project by their author.
   - Add `TransformsInto` and `TransformRequiresFullCharge` to UnitTypes.
   - Add extended descriptions in tooltips for objects on the sidebar.
   - Make it possible to assign rally points to service depots.
+  - Fix the economy score in the score screen. Dead players also have a score and the score is a percentage of the credits spent by the player who spent the most credits.
   - Fix a bug where players were only able to queue up to `(BuildLimit - 1)` objects when an object has `BuildLimit > 0`. (Fix ported from Ares)
   - Fix an issue where losers were not marked as defeated in multiplayer when using `TACTION_WIN` or `TACTION_LOSE` to end the game.
   - Fix a bug where the game could read Infantry DoControls out of bounds, potentially causing a desync error in multiplayer.
