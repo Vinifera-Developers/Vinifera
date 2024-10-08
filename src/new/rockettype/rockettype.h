@@ -105,5 +105,7 @@ public:
     const AircraftTypeClass* Type;
     const WarheadTypeClass* Warhead;
     const WarheadTypeClass* EliteWarhead;
+    const AnimTypeClass* TakeoffAnim;
+    const AnimTypeClass* TrailAnim;
     bool IsCruiseMissile;
 };

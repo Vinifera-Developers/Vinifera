@@ -43,6 +43,7 @@
 #include "vinifera_globals.h"
 #include "weapontype.h"
 #include "weapontypeext.h"
+#include "rockettype.h"
 
 
  /**
@@ -105,18 +106,18 @@ SpawnManagerClass::SpawnManagerClass(TechnoClass* owner, const AircraftTypeClass
 {
     for (int i = 0; i < SpawnCount; i++)
     {
-        SpawnControl* control = new SpawnControl();
+        auto control = new SpawnControl();
         if (control == nullptr)
             break;
 
-        AircraftClass* spawnee = (AircraftClass*)SpawnType->Create_One_Of(owner->Owning_House());
+        auto spawnee = static_cast<AircraftClass*>(SpawnType->Create_One_Of(owner->Owning_House()));
         control->Spawnee = spawnee;
 
         if (spawnee != nullptr)
         {
-            control->IsSpawnedMissile = false; // TODO Implement missile check here SpawnType == Rule->V3Rocket.Type || SpawnType == Rule->DMisl.Type || SpawnType == Rule->CMisl.Type;
+            control->IsSpawnedMissile = RocketTypeClass::From_AircraftType(SpawnType) != nullptr;
             control->Spawnee->Limbo();
-            Extension::Fetch<AircraftClassExtension>(control->Spawnee)->Spawner = Owner;
+            Extension::Fetch<AircraftClassExtension>(control->Spawnee)->SpawnOwner = Owner;
             control->Status = SpawnControlStatus::Idle;
             control->ReloadTimer = 0;
             SpawnControls.Add(control);
@@ -239,17 +240,18 @@ void SpawnManagerClass::AI()
 
                 Coordinate spawn_coord = Coordinate(fire_coord.X, fire_coord.Y, fire_coord.Z + 10);
 
-                /*if (SpawnType == Rule->CMisl.Type)
+                const auto rocket = RocketTypeClass::From_AircraftType(SpawnType);
+                if (rocket && rocket->IsCruiseMissile)
                 {
                     spawn_coord.X -= 40;
                     spawn_coord.Y -= 40;
-                }*/
+                }
 
                 DirStruct dir = Owner->PrimaryFacing.Current();
                 spawnee->Unlimbo(spawn_coord, dir.Get_Dir());
 
-                /*if (SpawnType == Rule->CMisl.Type)
-                    new AnimClass(AnimTypes[AnimTypeClass::From_Name("V3TAKOFF")], spawnee->Coord, 2, 1, 0x600, -10);*/
+                if (rocket && rocket->IsCruiseMissile)
+                    new AnimClass(rocket->TakeoffAnim, spawnee->Coord, 2, 1, SHAPE_WIN_REL | SHAPE_CENTER, -10);
 
                 if (burst)
                     Owner->CurrentBurstIndex = 0;
@@ -366,9 +368,9 @@ void SpawnManagerClass::AI()
                     break;
 
                 control->Spawnee = static_cast<AircraftClass*>(SpawnType->Create_One_Of(Owner->Owning_House()));
-                control->IsSpawnedMissile = false; // TODO Implement missile check here
+                control->IsSpawnedMissile = RocketTypeClass::From_AircraftType(SpawnType) != nullptr;
                 control->Spawnee->Limbo();
-                Extension::Fetch<AircraftClassExtension>(control->Spawnee)->Spawner = Owner;
+                Extension::Fetch<AircraftClassExtension>(control->Spawnee)->SpawnOwner = Owner;
                 control->Status = SpawnControlStatus::Idle;
                 break;
             }
@@ -420,16 +422,9 @@ void SpawnManagerClass::AI()
                         if (control->IsSpawnedMissile)
                         {
                             control->Status = SpawnControlStatus::Takeoff;
-                            int delay = 0;
-                            /*if (SpawnType == Rule->V3Rocket.Type)
-                            {
-                                delay = Rule->V3Rocket.PauseFrames + Rule->V3Rocket.TiltFrames;
-                            }
-                            else
-                            {
-                                delay = Rule->DMisl.PauseFrames + Rule->DMisl.TiltFrames;
-                            }*/
-                            control->ReloadTimer = delay;
+                            const auto atype = control->Spawnee->Class;
+                            const RocketTypeClass* rocket = RocketTypeClass::From_AircraftType(atype);
+                            control->ReloadTimer = rocket->IsCruiseMissile ? 0 : rocket->PauseFrames + rocket->TiltFrames;
                         }
                         else
                         {

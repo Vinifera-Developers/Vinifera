@@ -35,12 +35,13 @@
 
 enum class RocketMissionState
 {
-    State_0 = 0,
+    None = 0,
     Pause = 1,
     Tilt = 2,
-    State_3 = 3,
-    State_4 = 4,
-    State_5 = 5,
+    GainingAltitude = 3,
+    Flight = 4,
+    ClosingIn = 5,
+    VerticalTakeOff = 6,
 };
 
 #define ROCKET_SPEED 416
@@ -91,11 +92,11 @@ private:
     /**
      *  RocketLocomotionClass
      */
-    Coordinate Get_Next_Position(int rocket_length);
+    Coordinate Get_Next_Position(int speed);
     double Calculate_Pitch();
     void Explode();
     bool Time_To_Explode(const RocketTypeClass* rocket);
-    RocketMotionStruct Get_Motion(int rocket_length);
+    RocketMotionStruct Get_Motion(int speed);
 
 public:
     RocketLocomotionClass();
@@ -110,11 +111,9 @@ protected:
     CDRateTimerClass<FrameTimerClass> MissionTimer;
     CDTimerClass<FrameTimerClass> TrailerTimer;
     RocketMissionState MissionState;
-    DWORD unknown_44;
     double CurrentSpeed;
-    bool unknown_bool_4C;
+    bool NeedToSubmit;
     bool IsSpawnerElite;
     double CurrentPitch;
-    DWORD unknown_58;
-    DWORD unknown_5C;
+    int PreviousLeftDistance;
 };

@@ -224,6 +224,8 @@ HRESULT RocketTypeClass::Load(IStream* pStm)
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Type, "Type");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Warhead, "Warhead");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(EliteWarhead, "EliteWarhead");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(TakeoffAnim, "TakeoffAnim");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(TrailAnim, "TrailAnim");
 
     return hr;
 }
@@ -387,6 +389,9 @@ bool RocketTypeClass::Read_INI(CCINIClass& ini)
     Type = ini.Get_Aircraft(IniName, "Type", Type);
     Warhead = ini.Get_Warhead(IniName, "Warhead", Warhead);
     EliteWarhead = ini.Get_Warhead(IniName, "EliteWarhead", EliteWarhead);
+    TakeoffAnim = ini.Get_Anim(IniName, "TakeoffAnim", TakeoffAnim);
+    TrailAnim = ini.Get_Anim(IniName, "TrailAnim", TrailAnim);
+    IsCruiseMissile = ini.Get_Bool(IniName, "IsCruiseMissile", IsCruiseMissile);
 
     return true;
 }

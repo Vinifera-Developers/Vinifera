@@ -68,5 +68,5 @@ AircraftClassExtension final : public FootClassExtension
         /**
          *  The object that spawned this aircraft.
          */
-        TechnoClass* Spawner;
+        TechnoClass* SpawnOwner;
 };
