@@ -55,6 +55,7 @@ static class ObjectTypeClassExt final : public ObjectTypeClass
     public:
         void _Assign_Theater_Name(char *buffer, TheaterType theater);
         const ShapeFileStruct * _Get_Image_Data() const;
+        void _Fetch_Voxel_Image();
 };
 
 
@@ -153,6 +154,95 @@ const ShapeFileStruct * ObjectTypeClassExt::_Get_Image_Data() const
 }
 
 
+static bool Init_Voxel(VoxelStruct& voxel, const char *graphic_name, bool required = false)
+{
+    char buffer[260];
+    bool failed = false;
+
+    _makepath(buffer, nullptr, nullptr, graphic_name, ".VXL");
+    CCFileClass bodyvxl(buffer);
+
+    if (bodyvxl.Is_Available())
+    {
+        delete voxel.VoxelLibrary;
+        voxel.VoxelLibrary = new VoxelLibraryClass(bodyvxl);
+
+        if (!voxel.VoxelLibrary || voxel.VoxelLibrary->FailedToLoad)
+            failed = true;
+
+        _makepath(buffer, nullptr, nullptr, graphic_name, ".HVA");
+        CCFileClass bodyhva(buffer);
+
+        delete voxel.MotionLibrary;
+        voxel.MotionLibrary = new MotionLibraryClass(bodyhva);
+
+        if (!voxel.MotionLibrary || voxel.MotionLibrary->FailedToLoad)
+            failed = true;
+        else
+            voxel.MotionLibrary->Scale(voxel.VoxelLibrary->Get_Tailer(0)->HvaMatrixScale);
+    }
+    else if (required)
+    {
+        failed = true;
+    }
+
+    return !failed;
+}
+
+
+void ObjectTypeClassExt::_Fetch_Voxel_Image()
+{
+    char buffer[260];
+    bool success = true;
+
+    Init_Voxel(BodyVoxel, Graphic_Name(), true);
+
+    if (What_Am_I() != RTTI_UNIT || reinterpret_cast<UnitTypeClass*>(this)->IsTurretEquipped)
+    {
+        std::snprintf(buffer, sizeof(buffer), "%sTUR", Graphic_Name());
+        success &= Init_Voxel(TurretVoxel, buffer);
+
+        std::snprintf(buffer, sizeof(buffer), "%sBARL", Graphic_Name());
+        success &= Init_Voxel(BarrelVoxel, buffer);
+    }
+
+    // Should be moved to a separate location
+    if (!strcmpi(IniName, "APC"))
+    {
+        std::snprintf(buffer, sizeof(buffer), "%sW", Graphic_Name());
+        success &= Init_Voxel(TurretVoxel, buffer);
+    }
+
+    if (success)
+    {
+        char max_dimension = BodyVoxel.VoxelLibrary->Get_Tailer(0)->SizeX;
+        for (int i = 0; i < BodyVoxel.VoxelLibrary->HeaderCount; i++)
+        {
+            max_dimension = std::max(max_dimension, BodyVoxel.VoxelLibrary->Get_Tailer(i)->SizeX);
+            max_dimension = std::max(max_dimension, BodyVoxel.VoxelLibrary->Get_Tailer(i)->SizeY);
+            max_dimension = std::max(max_dimension, BodyVoxel.VoxelLibrary->Get_Tailer(i)->SizeZ);
+        }
+
+        max_dimension = std::max(max_dimension, static_cast<char>(8));
+        MaxDimension = max_dimension;
+
+        VoxelCache1.Clear();
+        VoxelCache2.Clear();
+        VoxelCache3.Clear();
+        VoxelCache4.Clear();
+    }
+    else
+    {
+        delete BodyVoxel.VoxelLibrary;
+        delete BodyVoxel.MotionLibrary;
+        delete TurretVoxel.VoxelLibrary;
+        delete TurretVoxel.MotionLibrary;
+        delete BarrelVoxel.VoxelLibrary;
+        delete BarrelVoxel.MotionLibrary;
+    }
+}
+
+
 /**
  *  Main function for patching the hooks.
  */
@@ -161,4 +251,5 @@ void ObjectTypeClassExtension_Hooks()
     //Patch_Jump(0x004101A0, &ObjectTypeClassExt::_Get_Image_Data);
     Patch_Jump(0x00588D00, &ObjectTypeClassExt::_Assign_Theater_Name);
     Patch_Jump(0x0058891D, &_ObjectTypeClass_Load_Theater_Art_Assign_Theater_Name_Theater_Patch);
+    Patch_Jump(0x00587C80, &ObjectTypeClassExt::_Fetch_Voxel_Image);
 }
