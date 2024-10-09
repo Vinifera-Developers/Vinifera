@@ -225,6 +225,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
                 MissionState = RocketMissionState::GainingAltitude;
                 if (rocket->TakeoffAnim)
                     new AnimClass(rocket->TakeoffAnim, Linked_To()->Coord, 2, 1, SHAPE_WIN_REL | SHAPE_CENTER, -10);
+                Sound_Effect(Linked_To()->Techno_Type_Class()->AuxSound1, Linked_To()->Coord);
             }
             else
             {
@@ -332,11 +333,17 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
             if (MissionTimer.Expired())
             {
                 CurrentPitch = rocket->PitchFinal * DEG_TO_RAD(90);
-                if (Linked_To()->Coord)
-                    Sound_Effect(Linked_To()->Techno_Type_Class()->AuxSound1, Linked_To()->Coord);
+                Sound_Effect(Linked_To()->Techno_Type_Class()->AuxSound1, Linked_To()->Coord);
 
                 TrailerTimer = 0;
                 MissionState = RocketMissionState::GainingAltitude;
+            }
+            else
+            {
+                Coordinate coord = Linked_To()->Coord;
+                coord.Z += rocket->RaiseRate;
+                if (Map.In_Radar(Coord_Cell(coord)))
+                    Linked_To()->Set_Coord(coord);
             }
         }
         break;

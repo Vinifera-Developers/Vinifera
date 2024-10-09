@@ -70,7 +70,7 @@ class UnitClassExt : public UnitClass
 {
 public:
     void _Firing_AI();
-    void _Draw_Voxel(unsigned int frame, int key, Rect* rect, Point2D* point, Matrix3D* other_matrix, int color, int flags);
+    void _Draw_Voxel(unsigned int frame, int key, Rect& rect, Point2D& point, const Matrix3D& other_matrix, int color, int flags);
 
 };
 
@@ -190,10 +190,10 @@ void UnitClassExt::_Firing_AI()
 }
 
 
-void UnitClassExt::_Draw_Voxel(unsigned int frame, int key, Rect* rect, Point2D* point, Matrix3D* other_matrix, int color, int flags)
+void UnitClassExt::_Draw_Voxel(unsigned int frame, int key, Rect& rect, Point2D& point, const Matrix3D& other_matrix, int color, int flags)
 {
     Matrix3D matrix;
-    Matrix3D::Multiply(Get_Voxel_Draw_Matrix(), *other_matrix, &matrix);
+    Matrix3D::Multiply(Get_Voxel_Draw_Matrix(), other_matrix, &matrix);
     const auto typeext = Extension::Fetch<UnitTypeClassExtension>(Class);
     const auto ext = Extension::Fetch<UnitClassExtension>(this);
 
@@ -220,7 +220,7 @@ void UnitClassExt::_Draw_Voxel(unsigned int frame, int key, Rect* rect, Point2D*
         cache = &Class->VoxelIndex;
     }
 
-    Draw_Voxel(*voxel, frame, key, *cache, *rect, *point, matrix, color, flags);
+    Draw_Voxel(*voxel, frame, key, *cache, rect, point, matrix, color, flags);
 }
 
 
@@ -235,7 +235,7 @@ DECLARE_PATCH(_UnitClass_Draw_Voxel_Patch)
     GET_STACK_STATIC(int, flags, esp, 0x4C);
     GET_REGISTER_STATIC(UnitClassExt*, this_ptr, ebp);
 
-    this_ptr->_Draw_Voxel(frame, key, rect, point, matrix, color, flags);
+    this_ptr->_Draw_Voxel(frame, key, *rect, *point, *matrix, color, flags);
 
     _asm mov ebx, color
 
