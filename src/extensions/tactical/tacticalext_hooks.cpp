@@ -29,6 +29,7 @@
 #include "tacticalext_init.h"
 #include "tacticalext.h"
 #include "tactical.h"
+#include "mouse.h"
 #include "voc.h"
 #include "laserdraw.h"
 #include "ebolt.h"
@@ -381,6 +382,29 @@ draw_rally_point:
 
 
 /**
+ *  #issue-1050
+ *
+ *  Fixes a bug where the camera keeps following a followed object
+ *  when a trigger or script tells it to center on a waypoint
+ *  or a team.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_Tactical_Center_On_Location_Unfollow_Object_Patch)
+{
+    Map.Follow_This(nullptr);
+
+    // Rebuild function epilogue
+    _asm { pop  edi }
+    _asm { pop  esi }
+    _asm { pop  ebp }
+    _asm { pop  ebx }
+    _asm { add  esp, 8 }
+    _asm { retn 8 }
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void TacticalExtension_Hooks()
@@ -398,6 +422,8 @@ void TacticalExtension_Hooks()
     Patch_Jump(0x00617327, &_Tactical_Draw_Waypoint_Paths_DrawNormalLine_Patch);
 
     Patch_Jump(0x00616D0F, &_Tactical_Draw_Rally_Points_Draw_For_Service_Depots);
+
+    Patch_Jump(0x0060F953, &_Tactical_Center_On_Location_Unfollow_Object_Patch);
 
     /**
      *  #issue-351
