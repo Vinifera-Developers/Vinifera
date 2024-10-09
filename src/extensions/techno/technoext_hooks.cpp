@@ -94,6 +94,7 @@ public:
     int _Anti_Infantry() const;
     ActionType _What_Action(ObjectClass* object, bool disallow_force);
     void _Drop_Tiberium();
+    int _Cell_Distance_Squared(const AbstractClass* object) const;
 };
 
 
@@ -747,6 +748,38 @@ void TechnoClassExt::_Drop_Tiberium()
             cell.Place_Tiberium(droplist[i], tib_frame);
         }
     }
+}
+
+
+/**
+ *  #issue-1087
+ *
+ *  Calculates the cell-based distance between this object and another object.
+ *  Cell-based distance does not take leptons into account, only cell coordinates.
+ *
+ *  The original game's distance functions, such as Distance_Squared, also take leptons into
+ *  account, which can lead into overflows that have bad consequences.
+ *  For example, a harvester looking for a refinery on a big 256x256 sized map can believe
+ *  that a refinery on the other side of the map would be next to it.
+ *
+ *  @author: Rampastring
+ */
+int TechnoClassExt::_Cell_Distance_Squared(const AbstractClass* object) const
+{
+    if (!object)
+        return 0;
+
+    Coordinate our_coord = Center_Coord();
+    Coordinate their_coord = object->Center_Coord();
+
+    int our_cell_x = our_coord.X / CELL_LEPTON_W;
+    int their_cell_x = their_coord.X / CELL_LEPTON_W;
+    int our_cell_y = our_coord.Y / CELL_LEPTON_H;
+    int their_cell_y = their_coord.Y / CELL_LEPTON_H;
+
+    int x_distance = our_cell_x - their_cell_x;
+    int y_distance = our_cell_y - their_cell_y;
+    return x_distance * x_distance + y_distance * y_distance;
 }
 
 
@@ -1664,4 +1697,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x0062EB27, &_TechnoClass_AI_Abandon_Invalid_Target_Patch);
     Patch_Jump(0x00632F4C, &_TechnoClass_Take_Damage_Drop_Tiberium_Type_Patch);
     Patch_Jump(0x006320C2, &_TechnoClass_2A0_Is_Allowed_To_Deploy_Unit_Transform_Patch);
+    Patch_Call(0x00637FF5, &TechnoClassExt::_Cell_Distance_Squared); // Patch Find_Docking_Bay to call our own distance function that avoids overflows
 }
