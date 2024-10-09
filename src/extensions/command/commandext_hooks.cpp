@@ -288,6 +288,9 @@ void Init_Vinifera_Commands()
         cmdptr = new DumpHeapCRCCommandClass;
         Commands.Add(cmdptr);
 
+        cmdptr = new DumpTriggersCommandClass;
+        Commands.Add(cmdptr);
+
         cmdptr = new InstantBuildCommandClass;
         Commands.Add(cmdptr);
 

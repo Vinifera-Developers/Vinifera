@@ -133,6 +133,7 @@ This page lists all the individual contributions to the project by their author.
   - Add `ImmuneToEMP` to TechnoTypes.
   - Add `TransformsInto` and `TransformRequiresFullCharge` to UnitTypes.
   - Add extended descriptions in tooltips for objects on the sidebar.
+  - Add developer command to dump all existing triggers, tags, and local and global variables to the log output.
   - Make it possible to assign rally points to service depots.
   - Fix the economy score in the score screen. Dead players also have a score and the score is a percentage of the credits spent by the player who spent the most credits.
   - Fix a bug where players were only able to queue up to `(BuildLimit - 1)` objects when an object has `BuildLimit > 0`. (Fix ported from Ares)

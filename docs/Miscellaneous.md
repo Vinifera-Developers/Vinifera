@@ -182,6 +182,10 @@ This option tells the game to exit when you press Cancel or Back from the dialog
 
 - Dumps all the type heaps to an output log.
 
+#### `[ ]` Dump Trigger Info
+
+- Dumps all existing triggers, tags, and local and global variables to the log output.
+
 #### `[ ]` Instant Build (Player)
 
 - Toggles the instant build cheat for the player.
