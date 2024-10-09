@@ -249,6 +249,15 @@ void Init_Vinifera_Commands()
     cmdptr = new HoldPositionCommandClass;
     Commands.Add(cmdptr);
 
+    cmdptr = new VeterancyPromoteCommandClass;
+    Commands.Add(cmdptr);
+
+    cmdptr = new VeterancyFilterCommandClass;
+    Commands.Add(cmdptr);
+
+    cmdptr = new VeterancyFilterAddLowerCommandClass;
+    Commands.Add(cmdptr);
+
     /**
      *  Next, initialised any new commands here if the developer mode is enabled.
      */

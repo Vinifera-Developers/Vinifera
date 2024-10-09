@@ -1256,7 +1256,7 @@ bool HoldPositionCommandClass::Process()
         }
     }
 
-    MissionType targetMissionType = areAllAlreadySticky ? MISSION_MOVE : MISSION_STICKY;
+    MissionType targetMissionType = areAllAlreadySticky ? MISSION_STOP : MISSION_STICKY;
 
     /**
      *  Iterate over all currently selected objects force them to hold position
@@ -1270,10 +1270,23 @@ bool HoldPositionCommandClass::Process()
             UnitClass* unit = dynamic_cast<UnitClass*>(object);
             bool skipThis = unit == NULL || unit->Class->DeploysInto != NULL;
             if (!skipThis) {                
+                //printf current mission
+                printf("HOLD: Current mission: %d\n", unit->Mission);
+                printf("HOLD: Target mission: %d\n", targetMissionType);
                 // if we don't skip deployable units like this, MCVs will be rendered unusable.
-                OutList.Add(EventClass(unit->Owning_House()->ID, object, targetMissionType, TARGET_NONE, TARGET_NONE));
-                //    techno->Assign_Mission(targetMissionType);
-                if (targetMissionType == MISSION_STICKY) {
+                auto currentUnitCell = unit->Get_Cell();
+
+                OutList.Add(EventClass(unit->Owning_House()->ID_Number(), unit, targetMissionType, TARGET_NONE, currentUnitCell));
+                auto myEvent = EventClass(unit->Owning_House()->ID_Number(), unit, targetMissionType, TARGET_NONE, currentUnitCell);
+                myEvent.Execute();
+                //OutList.Add(EventClass((unsigned long)(unit->Owning_House()->ID_Number()), (TargetClass)object, targetMissionType));
+                //unit->Mission = MISSION_SLEEP;
+                 
+                //OutList.Add(EventClass(unit->Owning_House()->ID, object, targetMissionType, TARGET_NONE, TARGET_NONE));
+                //unit->Assign_Mission(targetMissionType);
+                printf("HOLD: After hold mission: %d\n", unit->Mission);
+                 
+                if (targetMissionType == MISSION_STICKY) {                    
                     unit->Response_Select();
                 }
                 else {
@@ -1287,6 +1300,299 @@ bool HoldPositionCommandClass::Process()
 
     return true;
 }
+
+int ClassifyVeterancy(TechnoClass* techno)
+{
+    if (techno->Veterancy.Is_Elite()) {
+        return 0;
+    }
+    else if (techno->Veterancy.Is_Veteran()) {
+        return 1;
+    }
+    else {
+        return 2;
+    }
+}
+
+/**
+ *  Promote selected units to higher veterancy level
+ *
+ *  @author: hacklex
+ */
+const char* VeterancyPromoteCommandClass::Get_Name() const
+{
+    return "PromoteSelected";
+}
+
+const char* VeterancyPromoteCommandClass::Get_UI_Name() const
+{
+    return "Promote Selected";
+}
+
+const char* VeterancyPromoteCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char* VeterancyPromoteCommandClass::Get_Description() const
+{
+    return "Promote selected units to higher veterancy level";
+}
+
+bool VeterancyPromoteCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    /**
+     *  Iterate over all currently selected objects force them to hold position
+     */
+    for (int i = 0; i < CurrentObjects.Count(); ++i) {
+        ObjectClass* object = CurrentObjects[i];
+        if (!object || !object->Is_Techno()) {
+            continue;
+        }
+        if (object->Owning_House() == PlayerPtr) {
+            TechnoClass* techno = dynamic_cast<TechnoClass*>(object);
+            if(ClassifyVeterancy(techno) == 2) {
+                techno->Veterancy.Set_Veteran(true);
+            }
+            else if(ClassifyVeterancy(techno) == 1) {
+                techno->Veterancy.Set_Elite(true);
+            }
+        }
+    }
+
+    Map.Recalc();
+
+    return true;
+}
+
+bool SetEquals(DynamicVectorClass<TechnoClass*>& a, DynamicVectorClass<TechnoClass*>& b)
+{
+    if (a.Count() != b.Count()) {
+        return false;
+    }
+    for (int i = 0; i < a.Count(); ++i) {
+        if (!a.Is_Present(b[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool EqualsUnionOfTwoOtherSets(DynamicVectorClass<TechnoClass*>& current, DynamicVectorClass<TechnoClass*>& a, DynamicVectorClass<TechnoClass*>& b)
+{
+    if (current.Count() != a.Count() + b.Count()) {
+        return false;
+    }
+    for (int i = 0; i < current.Count(); ++i) {
+        if (!a.Is_Present(current[i]) && !b.Is_Present(current[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool EqualsUnionOfThreeOtherSets(DynamicVectorClass<TechnoClass*>& current, DynamicVectorClass<TechnoClass*>& a, DynamicVectorClass<TechnoClass*>& b, DynamicVectorClass<TechnoClass*>& c)
+{
+    if (current.Count() != a.Count() + b.Count() + c.Count()) {
+        return false;
+    }
+    for (int i = 0; i < current.Count(); ++i) {
+        if (!a.Is_Present(current[i]) && !b.Is_Present(current[i]) && !c.Is_Present(current[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+int GetThirdVeterancy(int first, int second)
+{
+    if (first == 0 && second == 1) {
+        return 2;
+    }
+    if (first == 0 && second == 2) {
+        return 1;
+    }
+    if (first == 1 && second == 2) {
+        return 0;
+    }
+    return -1;
+}
+
+bool ProcessVeterancyFilter(bool isShiftPressed)
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    static DynamicVectorClass<TechnoClass*> lastSelection[3];
+    static DynamicVectorClass<TechnoClass*> lastFullSelection;
+    bool isHeterogenous = false;
+    DynamicVectorClass<TechnoClass*> currentSelection[3];
+
+    currentSelection[0].Clear();
+    currentSelection[1].Clear();
+    currentSelection[2].Clear();
+
+    DynamicVectorClass<TechnoClass*> currentTechnos;
+
+    int highestSelectedVeterancy = 3;
+    int lowestSelectedVeterancy = -1;
+
+    for (int i = 0; i < CurrentObjects.Count(); ++i) {
+        ObjectClass* object = CurrentObjects[i];
+        if (!object || object->Owning_House() != PlayerPtr || !object->Is_Techno()) {
+            return true;
+        }
+        TechnoClass* techno = dynamic_cast<TechnoClass*>(object);
+        currentTechnos.Add(techno);
+        int veterancy = ClassifyVeterancy(techno);
+        if (veterancy < highestSelectedVeterancy) {
+            highestSelectedVeterancy = veterancy;
+        }
+        if (veterancy > lowestSelectedVeterancy) {
+            lowestSelectedVeterancy = veterancy;
+        }
+        if (veterancy >= 0 && veterancy < 3)
+            currentSelection[veterancy].Add(techno);
+    }
+
+    if (!SetEquals(currentTechnos, lastFullSelection) &&
+        !SetEquals(currentTechnos, lastSelection[0]) &&
+        !SetEquals(currentTechnos, lastSelection[1]) &&
+        !SetEquals(currentTechnos, lastSelection[2]) && 
+        !EqualsUnionOfTwoOtherSets(currentTechnos, lastSelection[0], lastSelection[1]) &&
+        !EqualsUnionOfTwoOtherSets(currentTechnos, lastSelection[0], lastSelection[2]) &&
+        !EqualsUnionOfTwoOtherSets(currentTechnos, lastSelection[1], lastSelection[2])) {
+        if (isShiftPressed || highestSelectedVeterancy == lowestSelectedVeterancy) {
+            return true; // can't add anything if we haven't filtered yet or the new selection is already of same rank
+        }
+        lastFullSelection.Clear();
+        lastSelection[0].Clear();
+        lastSelection[1].Clear();
+        lastSelection[2].Clear();
+        for (int i = 0; i < currentTechnos.Count(); ++i) {
+            lastFullSelection.Add(currentTechnos[i]);     
+            lastSelection[ClassifyVeterancy(currentTechnos[i])].Add(currentTechnos[i]);
+        }
+        for (int i = highestSelectedVeterancy+1; i < 3; ++i) {
+            for (int k = 0; k < currentSelection[i].Count(); ++k) {
+                currentSelection[i][k]->Unselect();
+            }
+        }   
+        if (highestSelectedVeterancy >= 0 && highestSelectedVeterancy < 3) {
+            for (int k = 0; k < currentSelection[highestSelectedVeterancy].Count(); ++k) {
+                currentSelection[highestSelectedVeterancy][k]->Response_Select();
+            }
+        }
+    }
+    else {
+        int nextTierVeterancy = lowestSelectedVeterancy;
+        int loopBreaker = 3;
+        if (highestSelectedVeterancy != lowestSelectedVeterancy) {
+            if (SetEquals(currentTechnos, lastFullSelection)) {
+                nextTierVeterancy = highestSelectedVeterancy;
+            }
+            else {
+                nextTierVeterancy = GetThirdVeterancy(highestSelectedVeterancy, lowestSelectedVeterancy);
+            }
+        }
+        else {
+            do {
+                loopBreaker--;
+                nextTierVeterancy = (nextTierVeterancy + 1) % 3;
+            } while (lastSelection[nextTierVeterancy].Count() == 0 && loopBreaker > 0);
+        }
+        if (nextTierVeterancy == -1) {
+            if (isShiftPressed) {
+                return true;
+            }
+            else {
+                nextTierVeterancy = highestSelectedVeterancy;
+            }
+        }
+        if (nextTierVeterancy >= 0 && nextTierVeterancy < 3 && lastSelection[nextTierVeterancy].Count() > 0) {
+            if (!isShiftPressed) {
+                for (int i = 0; i < currentTechnos.Count(); ++i) {
+                    currentTechnos[i]->Unselect();
+                }
+            }
+            for (int i = 0; i < lastSelection[nextTierVeterancy].Count(); ++i) {
+                lastSelection[nextTierVeterancy][i]->Select();
+            }
+        }
+    } 
+
+    Map.Recalc();
+
+    return true;
+}
+
+
+/**
+ *  Cycle through elite/veteran/green units among the last heterogenous selection.
+ *
+ *  @author: hacklex
+ */
+const char* VeterancyFilterCommandClass::Get_Name() const
+{
+    return "VeterancyFilter";
+}
+
+const char* VeterancyFilterCommandClass::Get_UI_Name() const
+{
+    return "Veterancy Filter";
+}
+
+const char* VeterancyFilterCommandClass::Get_Category() const
+{
+    return "Selection";
+}
+
+const char* VeterancyFilterCommandClass::Get_Description() const
+{
+    return "Filter out elites/veterans/green units among the last mixed selection";
+}
+
+bool VeterancyFilterCommandClass::Process()
+{
+    return ProcessVeterancyFilter(false);
+}
+
+
+/**
+ *  Cycle through elite/veteran/green units among the last heterogenous selection.
+ *
+ *  @author: hacklex
+ */
+const char* VeterancyFilterAddLowerCommandClass::Get_Name() const
+{
+    return "VeterancyFilterAddLower";
+}
+
+const char* VeterancyFilterAddLowerCommandClass::Get_UI_Name() const
+{
+    return "Veterancy Filter/Add Lower";
+}
+
+const char* VeterancyFilterAddLowerCommandClass::Get_Category() const
+{
+    return "Selection";
+}
+
+const char* VeterancyFilterAddLowerCommandClass::Get_Description() const
+{
+    return "Add units of lower veterancy to the already filtered subset";
+}
+
+bool VeterancyFilterAddLowerCommandClass::Process()
+{
+    return ProcessVeterancyFilter(true);
+}
+
 
 /**
  *  Grants all available special weapons to the player.
