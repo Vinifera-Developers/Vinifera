@@ -58,8 +58,8 @@ bool Vinifera_Developer_FrameStep = false;
 int Vinifera_Developer_FrameStepCount = 0;
 bool Vinifera_Developer_AIControl = false;
 
-bool Vinifera_SkipLogoMovies = false;
-bool Vinifera_SkipStartupMovies = false;
+bool Vinifera_SkipLogoMovies = true;
+bool Vinifera_SkipStartupMovies = true;
 
 bool Vinifera_NoTacticalVersionString = false;
 
