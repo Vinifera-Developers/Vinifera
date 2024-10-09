@@ -44,9 +44,10 @@
 #include "weapontype.h"
 #include "weapontypeext.h"
 #include "rockettype.h"
+#include "vinifera_saveload.h"
 
 
- /**
+/**
   *  Retrieves the class identifier (CLSID) of the object.
   *
   *  @author: ZivDero
@@ -69,7 +70,45 @@ IFACEMETHODIMP SpawnManagerClass::GetClassID(CLSID* pClassID)
  */
 IFACEMETHODIMP SpawnManagerClass::Load(IStream* pStm)
 {
-    return Abstract_Load(pStm);
+    HRESULT hr = Abstract_Load(pStm);
+    if (FAILED(hr))
+        return hr;
+
+    new (this) SpawnManagerClass(NoInitClass());
+
+    /**
+     *  Read the count of active spawn controls.
+     */
+    hr = pStm->Read(&SpawnCount, sizeof(SpawnCount), nullptr);
+    if (FAILED(hr))
+        return hr;
+
+    new (&SpawnControls) DynamicVectorClass<SpawnControl*>();
+
+    if (SpawnCount <= 0)
+        return hr;
+
+    /**
+     *  Read each of the controls as a binary blob.
+     */
+    for (int index = 0; index < SpawnCount; ++index)
+    {
+        const auto control = new SpawnControl;
+        hr = pStm->Read(control, sizeof(SpawnControl), nullptr);
+        if (FAILED(hr))
+            return hr;
+        SpawnControls.Add(control);
+    }
+
+    for (int i = 0; i < SpawnCount; i++)
+        VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(SpawnControls[i]->Spawnee, "Spawnee");
+
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Owner, "Owner");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(SpawnType, "SpawnType");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(SuspendedTarget, "SuspendedTarget");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Target, "Target");
+
+    return hr;
 }
 
 
@@ -80,9 +119,39 @@ IFACEMETHODIMP SpawnManagerClass::Load(IStream* pStm)
  */
 IFACEMETHODIMP SpawnManagerClass::Save(IStream* pStm, BOOL fClearDirty)
 {
-    return Abstract_Save(pStm, fClearDirty);
+    HRESULT hr = Abstract_Save(pStm, fClearDirty);
+    if (FAILED(hr))
+        return hr;
+
+    /**
+     *  Write the count of active spawn controls.
+     */
+    hr = pStm->Write(&SpawnCount, sizeof(SpawnCount), nullptr);
+    if (FAILED(hr))
+        return hr;
+
+    if (SpawnCount <= 0)
+        return hr;
+
+    /**
+     *  Write each of the controls as a binary blob.
+     */
+    for (int index = 0; index < SpawnCount; ++index)
+    {
+        hr = pStm->Write(SpawnControls[index], sizeof(SpawnControl), nullptr);
+        if (FAILED(hr))
+            return hr;
+    }
+
+    return hr;
 }
 
+
+/**
+ *  Basic constructor for the SpawnManagerClass.
+ *
+ *  @author: ZivDero
+ */
 SpawnManagerClass::SpawnManagerClass() :
     Owner(nullptr),
     SpawnType(nullptr),
@@ -94,6 +163,12 @@ SpawnManagerClass::SpawnManagerClass() :
     SpawnManagers.Add(this);
 }
 
+
+/**
+ *  Basic constructor for the SpawnManagerClass.
+ *
+ *  @author: ZivDero
+ */
 SpawnManagerClass::SpawnManagerClass(TechnoClass* owner, const AircraftTypeClass* spawns, int spawn_count, int regen_rate, int reload_rate) :
     Owner(owner),
     SpawnType(spawns),
@@ -127,10 +202,16 @@ SpawnManagerClass::SpawnManagerClass(TechnoClass* owner, const AircraftTypeClass
     SpawnManagers.Add(this);
 }
 
+
+/**
+ *  Basic destructor for the SpawnManagerClass.
+ *
+ *  @author: ZivDero
+ */
 SpawnManagerClass::~SpawnManagerClass()
 {
     if (GameActive)
-        Manage();
+        Detach_Spawns();
 
     for (int i = SpawnControls.Count() - 1; i >= 0; i--)
     {
@@ -141,17 +222,34 @@ SpawnManagerClass::~SpawnManagerClass()
     SpawnManagers.Delete(this);
 }
 
+
+/**
+ *  Returns the RTTI type of the object.
+ *
+ *  @author: ZivDero
+ */
 RTTIType SpawnManagerClass::Kind_Of() const
 {
-    return (RTTIType)65;
+    return static_cast<RTTIType>(RTTI_SPAWN_MANAGER);
 }
 
 
+/**
+ *  Returns the size of the object.
+ *
+ *  @author: ZivDero
+ */
 int SpawnManagerClass::Size_Of(bool firestorm) const
 {
     return sizeof(*this);
 }
 
+
+/**
+ *  Computes the CRC of the object.
+ *
+ *  @author: ZivDero
+ */
 void SpawnManagerClass::Compute_CRC(WWCRCEngine& crc) const
 {
     AbstractClass::Compute_CRC(crc);
@@ -176,6 +274,12 @@ void SpawnManagerClass::Compute_CRC(WWCRCEngine& crc) const
         crc(Owner->Get_Heap_ID());
 }
 
+
+/**
+ *  Performs all the main SpawnManager logic.
+ *
+ *  @author: ZivDero
+ */
 void SpawnManagerClass::AI()
 {
     if (!LogicTimer.Expired())
@@ -207,10 +311,6 @@ void SpawnManagerClass::AI()
                     if (static_cast<FootClass*>(Owner)->Locomotion->Is_Moving() || static_cast<FootClass*>(Owner)->Locomotion->Is_Moving_Now())
                         continue;
                 }
-
-                ASSERT(Owner);
-                // Replaces AbstractFlags check
-                ASSERT(Owner->Is_Foot());
 
                 // Maybe should check the missile instead, huh?
                 SpawnTimer = owner_class_ext->IsMissileSpawn ? 9 : 20;
@@ -275,7 +375,7 @@ void SpawnManagerClass::AI()
 
         case SpawnControlStatus::Takeoff:
             {
-                if (SpawnTimer.Expired())
+                if (control->ReloadTimer.Expired())
                     Detach(spawnee);
                 break;
             }
@@ -386,63 +486,60 @@ void SpawnManagerClass::AI()
             if (Owner->In_Range_Of(SuspendedTarget, weapon))
                 Status = SpawnManagerStatus::Launching;
             else
-                Kamikaze_AI();
+                Abandon_Target();
         }
     }
     else if (Status == SpawnManagerStatus::Launching)
     {
         if (SuspendedTarget == nullptr)
         {
-            Kamikaze_AI();
+            Abandon_Target();
             return;
         }
 
         for (int i = 0; i < SpawnControls.Count(); i++)
         {
-            SpawnControl* control = SpawnControls[i];
-            if (!(control->Status == SpawnControlStatus::Preparing || control->Status == SpawnControlStatus::Dead))
+            const SpawnControl* control = SpawnControls[i];
+            if (control->Status != SpawnControlStatus::Preparing && control->Status != SpawnControlStatus::Dead)
                 return;
         }
 
-        if (SpawnControls.Count() > 0)
+        bool has_missiles = false;
+        for (int i = 0; i < SpawnControls.Count(); i++)
         {
-            bool ismissile = false;
-            for (int i = 0; i < SpawnControls.Count(); i++)
+            SpawnControl* control = SpawnControls[i];
+            AircraftClass* spawnee = control->Spawnee;
+            if (control->Status == SpawnControlStatus::Preparing)
             {
-                SpawnControl* control = SpawnControls[i];
-                AircraftClass* spawnee = control->Spawnee;
-                if (control->Status == SpawnControlStatus::Preparing)
+                if (Extension::Fetch<AircraftTypeClassExtension>(spawnee->Techno_Type_Class())->IsMissileSpawn)
                 {
-                    if (Extension::Fetch<AircraftTypeClassExtension>(spawnee->Techno_Type_Class())->IsMissileSpawn)
-                    {
-                        ismissile = true;
-                        KamikazeTracker->Add(spawnee, SuspendedTarget);
-                        KamikazeTracker->UpdateTimer = 2;
+                    has_missiles = true;
+                    KamikazeTracker->Add(spawnee, SuspendedTarget);
+                    KamikazeTracker->UpdateTimer = 2;
 
-                        if (control->IsSpawnedMissile)
-                        {
-                            control->Status = SpawnControlStatus::Takeoff;
-                            const auto atype = control->Spawnee->Class;
-                            const RocketTypeClass* rocket = RocketTypeClass::From_AircraftType(atype);
-                            control->ReloadTimer = rocket->IsCruiseMissile ? 0 : rocket->PauseFrames + rocket->TiltFrames;
-                        }
-                        else
-                        {
-                            Detach(spawnee);
-                        }
+                    if (control->IsSpawnedMissile)
+                    {
+                        control->Status = SpawnControlStatus::Takeoff;
+                        const auto atype = control->Spawnee->Class;
+                        const RocketTypeClass* rocket = RocketTypeClass::From_AircraftType(atype);
+                        control->ReloadTimer = rocket->IsCruiseMissile ? 0 : rocket->PauseFrames + rocket->TiltFrames;
                     }
                     else
                     {
-                        control->Status = SpawnControlStatus::Attacking;
-                        spawnee->Assign_Target(SuspendedTarget);
-                        spawnee->Assign_Mission(MISSION_ATTACK);
+                        Detach(spawnee);
                     }
                 }
+                else
+                {
+                    control->Status = SpawnControlStatus::Attacking;
+                    spawnee->Assign_Target(SuspendedTarget);
+                    spawnee->Assign_Mission(MISSION_ATTACK);
+                }
             }
-
-            if (ismissile)
-                Kamikaze_AI();
         }
+
+        if (has_missiles)
+            Abandon_Target();
 
         Status = SpawnManagerStatus::Cooldown;
     }
@@ -464,11 +561,17 @@ void SpawnManagerClass::AI()
     }
 }
 
-void SpawnManagerClass::Manage()
+
+/**
+ *  Removes any spawns that are not currently in flight, and sends the rest into kamikaze mode.
+ *
+ *  @author: ZivDero
+ */
+void SpawnManagerClass::Detach_Spawns()
 {
     int regen_rate = Owner->Strength > 0 && Owner->IsActive ? 0 : RegenRate;
 
-    for (int i = SpawnControls.Count() - 1; i >= 0; i--)
+    for (int i = 0; i < SpawnControls.Count(); i++)
     {
         SpawnControl* control = SpawnControls[i];
         if (control->Status == SpawnControlStatus::Dead)
@@ -477,7 +580,7 @@ void SpawnManagerClass::Manage()
         if (control->Status == SpawnControlStatus::Idle || control->Status == SpawnControlStatus::Reloading)
         {
             control->Status = SpawnControlStatus::Dead;
-            control->Spawnee->entry_E4();
+            control->Spawnee->Remove_This();
         }
         else
         {
@@ -485,7 +588,7 @@ void SpawnManagerClass::Manage()
             {
                 KamikazeTracker->Detach(control->Spawnee);
                 control->Status = SpawnControlStatus::Dead;
-                control->Spawnee->entry_E4();
+                control->Spawnee->Remove_This();
             }
             else
             {
@@ -499,13 +602,25 @@ void SpawnManagerClass::Manage()
     }
 }
 
+
+/**
+ *  Assigns a new target.
+ *
+ *  @author: ZivDero
+ */
 void SpawnManagerClass::Assign_Target(TARGET target)
 {
     if (target != SuspendedTarget)
         Target = target;
 }
 
-void SpawnManagerClass::Kamikaze_AI()
+
+/**
+ *  Managers the kamikaze spawns.
+ *
+ *  @author: ZivDero
+ */
+void SpawnManagerClass::Abandon_Target()
 {
     for (int i = 0; i < SpawnControls.Count(); ++i)
     {
@@ -527,6 +642,12 @@ void SpawnManagerClass::Kamikaze_AI()
     SuspendedTarget = nullptr;
 }
 
+
+/**
+ *  Suspends the current target.
+ *
+ *  @author: ZivDero
+ */
 bool SpawnManagerClass::Suspend_Target()
 {
     if (Target == nullptr)
@@ -537,14 +658,20 @@ bool SpawnManagerClass::Suspend_Target()
     return true;
 }
 
+
+/**
+ *  Detaches an object from the SpawnManager.
+ *
+ *  @author: ZivDero
+ */
 void SpawnManagerClass::Detach(TARGET target)
 {
     if (SuspendedTarget == target)
     {
         SuspendedTarget = nullptr;
 
-        if (Target)
-            Kamikaze_AI();
+        if (!Target)
+            Abandon_Target();
     }
     else if (Target == target)
     {
@@ -554,7 +681,7 @@ void SpawnManagerClass::Detach(TARGET target)
     {
         for (int i = 0; i < SpawnControls.Count(); i++)
         {
-            auto control = SpawnControls[i];
+            const auto control = SpawnControls[i];
             if (control->Spawnee == target)
             {
                 if (control->Spawnee->Strength <= 0 || control->Spawnee->IsKamikaze || control->IsSpawnedMissile)
@@ -570,12 +697,18 @@ void SpawnManagerClass::Detach(TARGET target)
 
         if (Owner == target)
         {
-            Manage();
-            Kamikaze_AI();
+            Detach_Spawns();
+            Abandon_Target();
         }
     }
 }
 
+
+/**
+ *  Returns the count of currently active spawns.
+ *
+ *  @author: ZivDero
+ */
 int SpawnManagerClass::Active_Count()
 {
     int count = 0;
@@ -587,6 +720,12 @@ int SpawnManagerClass::Active_Count()
     return count;
 }
 
+
+/**
+ *  Returns the count of currently docked spawns.
+ *
+ *  @author: ZivDero
+ */
 int SpawnManagerClass::Docked_Count()
 {
     int count = 0;
@@ -599,7 +738,13 @@ int SpawnManagerClass::Docked_Count()
     return count;
 }
 
-int SpawnManagerClass::Missile_Count()
+
+/**
+ *  Returns the count of spawns currently preparing to take off.
+ *
+ *  @author: ZivDero
+ */
+int SpawnManagerClass::Preparing_Count()
 {
     int count = 0;
     for (int i = 0; i < SpawnControls.Count(); i++)
@@ -609,10 +754,9 @@ int SpawnManagerClass::Missile_Count()
 
         if (SpawnControls[i]->Status == SpawnControlStatus::Preparing)
         {
-            AircraftClass* spawnee = SpawnControls[i]->Spawnee;
-            if (spawnee != nullptr &&
-                !spawnee->IsInLimbo &&
-                Extension::Fetch<AircraftTypeClassExtension>(spawnee->Techno_Type_Class())->IsMissileSpawn)
+            const AircraftClass* spawnee = SpawnControls[i]->Spawnee;
+            if (spawnee && !spawnee->IsInLimbo
+                && Extension::Fetch<AircraftTypeClassExtension>(spawnee->Techno_Type_Class())->IsMissileSpawn)
             {
                 count++;
             }
@@ -622,7 +766,7 @@ int SpawnManagerClass::Missile_Count()
 }
 
 /**
- *  Removes all spawn managers from the game world.
+ *  Removes all SpawnManagers from the game world.
  *
  *  @author: ZivDero
  */

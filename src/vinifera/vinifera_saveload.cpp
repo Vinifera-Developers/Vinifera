@@ -97,6 +97,7 @@
 #include "tube.h"
 #include "waypointpath.h"
 #include "alphashape.h"
+#include "kamikazetracker.h"
 
 #include "houseext.h"
 #include "scenarioext.h"
@@ -110,6 +111,7 @@
 #include "session.h"
 #include "addon.h"
 #include "ccini.h"
+#include "spawnmanager.h"
 #include "technoext.h"
 #include "verses.h"
 
@@ -387,6 +389,7 @@ bool Vinifera_Put_All(IStream *pStm, bool save_net)
      */
     if (FAILED(Vinifera_Save_Vector(pStm, ArmorTypes, "ArmorTypes"))) { return false; }
     if (FAILED(Vinifera_Save_Vector(pStm, RocketTypes, "RocketTypes"))) { return false; }
+    if (FAILED(Vinifera_Save_Vector(pStm, SpawnManagers, "SpawnManagers"))) { return false; }
     if (FAILED(Vinifera_Save_Vector(pStm, HouseTypes, "HouseTypes"))) { return false; }
     if (FAILED(Vinifera_Save_Vector(pStm, Houses, "Houses"))) { return false; }
     if (FAILED(Vinifera_Save_Vector(pStm, Units, "Units"))) { return false; }
@@ -438,6 +441,11 @@ bool Vinifera_Put_All(IStream *pStm, bool save_net)
     if (FAILED(Vinifera_Save_Vector(pStm, Waves, "Waves"))) { return false; }
     { DEBUG_INFO("Saving VeinholeMonsters...\n"); if (FAILED(VeinholeMonsterClass::Save_All(pStm))) { DEBUG_ERROR("\t***** FAILED!\n"); return false; } }
     { DEBUG_INFO("Saving RadarEvents...\n"); if (!RadarEventClass::Save_All(pStm)) { DEBUG_ERROR("\t***** FAILED!\n"); return false; } }
+
+    /**
+     *  Save new global class instances.
+     */
+    KamikazeTracker->Save(pStm, false);
 
     /**
      *  Save skirmish values.
@@ -629,6 +637,7 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
      */
     if (FAILED(Vinifera_Load_Vector(pStm, ArmorTypes, "ArmorTypes"))) { return false; }
     if (FAILED(Vinifera_Load_Vector(pStm, RocketTypes, "RocketTypes"))) { return false; }
+    if (FAILED(Vinifera_Load_Vector(pStm, SpawnManagers, "SpawnManagers"))) { return false; }
     if (FAILED(Vinifera_Load_Vector(pStm, HouseTypes, "HouseTypes"))) { return false; }
     if (FAILED(Vinifera_Load_Vector(pStm, Houses, "Houses"))) { return false; }
     if (FAILED(Vinifera_Load_Vector(pStm, Units, "Units"))) { return false; }
@@ -680,6 +689,12 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
     if (FAILED(Vinifera_Load_Vector(pStm, Waves, "Waves"))) { return false; }
     { DEBUG_INFO("Loading VeinholeMonsters...\n"); if (FAILED(VeinholeMonsterClass::Load_All(pStm))) { DEBUG_ERROR("\t***** FAILED!\n"); return false; } }
     { DEBUG_INFO("Loading RadarEvents...\n"); if (!RadarEventClass::Load_All(pStm)) { DEBUG_ERROR("\t***** FAILED!\n");  return false; } }
+
+    /**
+     *  Load new global class instances.
+     */
+    KamikazeTracker->Clear();
+    KamikazeTracker->Load(pStm);
 
     /**
      *  Load skirmish values.

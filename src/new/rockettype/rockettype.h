@@ -8,7 +8,7 @@
  *
  *  @authors       ZivDero
  *
- *  @brief         Class containing condiguration for AircraftType rockets.
+ *  @brief         Class containing condiguration for spawned rockets.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -90,22 +90,81 @@ private:
     char IniName[256];
 
 public:
+    /**
+     *  How many frames the rocket pauses on the launcher before tilting?
+     */
     int PauseFrames;
+
+    /**
+     *  How many frames it takes for the rocket to tilt to firing position?
+     */
     int TiltFrames;
+
+    /**
+     *  Starting pitch of the rocket before tilting up (0 = horizontal, 1 = vertical).
+     */
     double PitchInitial;
+
+    /**
+     *  Ending pitch of the rocket after tilting up, now it fires.
+     */
     double PitchFinal;
+
+    /**
+     *  Pitch maneuverability of rocket in air.
+     */
     double TurnRate;
-    int RaiseRate;
+
+    /**
+     *  How much the missile will raise each turn on the launcher (for Cruise Missile only)
+     */
+    LEPTON RaiseRate;
+
+    /**
+     *  This much is added to the rocket's velocity each frame during launch.
+     */
     double Acceleration;
+
+    /**
+     *  Cruising altitude in leptons: at this height rocket BEGINS leveling off.
+     */
     int Altitude;
+
+    /**
+     *  The rocket does this much damage when it explodes.
+     */
     int Damage;
     int EliteDamage;
-    int BodyLength;
-    bool LazyCurve;
+
+    /**
+     *  The body of the rocket is this many leptons long.
+     */
+    LEPTON BodyLength;
+
+    /**
+     *  The rocket's path is a big, lazy curve, like the V3 in Red Alert 2.
+     */
+    bool IsLazyCurve;
+
+    /**
+     *  The rocket is a cruise missile and instead of tilting, rises a bit before shooting off vertically, like the Boomer sub missiles in Red Alert 2.
+     */
+    bool IsCruiseMissile;
+
+    /**
+     *  The AircraftType of this rocket.
+     */
     const AircraftTypeClass* Type;
+
+    /**
+     *  The warhead used when this rocket explodes.
+     */
     const WarheadTypeClass* Warhead;
     const WarheadTypeClass* EliteWarhead;
+
+    /**
+     *  Takeoff and trail animations that this rocket uses.
+     */
     const AnimTypeClass* TakeoffAnim;
     const AnimTypeClass* TrailAnim;
-    bool IsCruiseMissile;
 };

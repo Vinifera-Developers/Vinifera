@@ -87,7 +87,7 @@ RocketLocomotionClass::RocketLocomotionClass() :
     LocomotionClass(),
     DestinationCoord(),
     MissionTimer(),
-    TrailerTimer(),
+    TrailTimer(),
     MissionState(RocketMissionState::None),
     CurrentSpeed(0),
     NeedToSubmit(true),
@@ -130,7 +130,12 @@ IFACEMETHODIMP_(Matrix3D) RocketLocomotionClass::Draw_Matrix(int *key)
     Matrix3D matrix;
     matrix.Make_Identity();
 
-    const float z_angle = (Dir_To_32(Linked_To()->PrimaryFacing.Current()) - 12) * -WWMATH_P16; // YR has -8, somehow the facing is wrong??? I'm not convinced this is THE fix, since the facing isn't always correct like this either.
+    /**
+     *  Rotate the rocket to its current facing.
+     *  YR subtracts 8 from the facing, equivalent to 90 degrees, but for some reason
+     *  it's necessary to subtract 12 (135 degrees) in YR to achieve the same result.
+     */
+    const float z_angle = (Dir_To_32(Linked_To()->PrimaryFacing.Current()) - 12) * -WWMATH_P16;
     matrix.Rotate_Z(z_angle);
 
     if (CurrentPitch != 0.0)
@@ -179,17 +184,23 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
 
     switch (MissionState)
     {
+        /**
+         *  The rocket is currently waiting to be launched.
+         */
     case RocketMissionState::Pause:
         {
             CurrentSpeed = 0;
             IsSpawnerElite = spawn_owner && spawn_owner->Veterancy.Is_Elite();
 
+            /**
+             *  Cruise missiles spawn a "taking off" animation in this state.
+             */
             if (rocket->IsCruiseMissile)
             {
-                if (TrailerTimer.Expired() && rocket->TakeoffAnim)
+                if (TrailTimer.Expired() && rocket->TakeoffAnim)
                 {
                     new AnimClass(rocket->TakeoffAnim, Linked_To()->Coord, 2, 1, SHAPE_WIN_REL | SHAPE_CENTER, -10);
-                    TrailerTimer = 24;
+                    TrailTimer = 24;
                 }
 
                 if (NeedToSubmit)
@@ -205,6 +216,10 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
                 NeedToSubmit = true;
             }
 
+            /**
+             *  If we're done waiting, proceed to take off.
+             *  Cruise missiles take off vertically, while regular rockets tilt up first.
+             */
             if (MissionTimer.Expired())
             {
                 MissionState = rocket->IsCruiseMissile ? RocketMissionState::VerticalTakeOff : RocketMissionState::GainingAltitude;
@@ -214,11 +229,17 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
         }
         break;
 
+        /**
+         *  The rocket is currently tilting up to its firing position.
+         */
     case RocketMissionState::Tilt:
         {
             CurrentSpeed = 0;
             IsSpawnerElite = spawn_owner && spawn_owner->Veterancy.Is_Elite();
 
+            /**
+             *  If the rocket is done tilting, play a sound and animation, and proceed to take off.
+             */
             if (MissionTimer.Expired())
             {
                 CurrentPitch = rocket->PitchFinal * DEG_TO_RAD(90);
@@ -227,6 +248,9 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
                     new AnimClass(rocket->TakeoffAnim, Linked_To()->Coord, 2, 1, SHAPE_WIN_REL | SHAPE_CENTER, -10);
                 Sound_Effect(Linked_To()->Techno_Type_Class()->AuxSound1, Linked_To()->Coord);
             }
+            /**
+             *  Otherwise, keep tilting.
+             */
             else
             {
                 const double pitch_initial = rocket->PitchInitial * DEG_TO_RAD(90);
@@ -236,6 +260,9 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
             break;
         }
 
+        /**
+         *  The rocket is currently gaining altitude.
+         */
     case RocketMissionState::GainingAltitude:
         {
             if (!NeedToSubmit)
@@ -246,9 +273,16 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
                 Linked_To()->Mark(MARK_DOWN);
             }
 
+            /**
+             *  Accelerate towards the maximum speed.
+             */
             CurrentSpeed += rocket->Acceleration;
             CurrentSpeed = std::min(CurrentSpeed, static_cast<double>(Linked_To()->Techno_Type_Class()->MaxSpeed));
 
+            /**
+             *  If the rocket has reached its cruising altitude, proceed to flight.
+             *  Save the distance to the destination for lazy curve rockets.
+             */
             if (Linked_To()->Get_Height() >= rocket->Altitude)
             {
                 MissionState = RocketMissionState::Flight;
@@ -258,44 +292,76 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
             break;
         }
 
+        /**
+         *  The rocket is currently in flight.
+         */
     case RocketMissionState::Flight:
         {
+            /**
+             *  Check if we're still above ground. If not, explode.
+             */
             if (Linked_To()->Get_Height() > 0)
             {
+                /**
+                 *  Keep accelerating towards the maximum speed.
+                 */
                 CurrentSpeed += rocket->Acceleration;
                 CurrentSpeed = std::min(CurrentSpeed, static_cast<double>(Linked_To()->Techno_Type_Class()->MaxSpeed));
 
-                if (rocket->LazyCurve && ApogeeDistance)
+                /**
+                 *  Lazy curve rockets curve towards the destination.
+                 */
+                if (rocket->IsLazyCurve && ApogeeDistance)
                 {
+                    /**
+                     *  Since the rocket doesn't dip towards the ground explicitly,
+                     *  we need to check if it's time to explode.
+                     */
                     if (Time_To_Explode(rocket))
                         return false;
 
-                    Coordinate center_coord = Linked_To()->Center_Coord();
+                    /**
+                     *  Calculate how much to tilt the rocket based on the distance to the destination
+                     *  compared to how far it was when it reached its cruising altitude.
+                     */
+                    const Coordinate center_coord = Linked_To()->Center_Coord();
                     const double dist = Vector2(static_cast<float>(center_coord.X - DestinationCoord.X), static_cast<float>(center_coord.Y - DestinationCoord.Y)).Length();
                     const double ratio = dist / ApogeeDistance;
 
-                    CurrentPitch = rocket->PitchFinal * ratio * DEG_TO_RAD(90) + Calculate_Pitch() * (1 - ratio);
+                    CurrentPitch = rocket->PitchFinal * ratio * DEG_TO_RAD(90) + Get_Next_Pitch() * (1 - ratio);
                 }
                 else
                 {
+                    /**
+                     *  Level off the rocket, slowly.
+                     */
                     if (CurrentPitch > 0.0)
                     {
                         CurrentPitch -= rocket->TurnRate;
                         CurrentPitch = std::max(CurrentPitch, 0.0);
                     }
 
-                    Coordinate center_coord = Linked_To()->Center_Coord();
-                    Coordinate coord(center_coord.X - DestinationCoord.X, center_coord.Y - DestinationCoord.Y, center_coord.Z - Linked_To()->Coord.Z);
+                    /**
+                     *  If we're there, proceed to closing in.
+                     */
+                    const Coordinate center_coord = Linked_To()->Center_Coord();
+                    const Coordinate coord(center_coord.X - DestinationCoord.X, center_coord.Y - DestinationCoord.Y, center_coord.Z - Linked_To()->Coord.Z);
                     if (coord.Length() <= Linked_To()->Coord.Z - DestinationCoord.Z)
                         MissionState = RocketMissionState::ClosingIn;
                 }
 
-                Coordinate center_coord = Linked_To()->Center_Coord();
+                /**
+                 *  Orient the rocket towards the destination.
+                 */
+                const Coordinate center_coord = Linked_To()->Center_Coord();
                 double atan2 = FastMath::Atan2(center_coord.Y - DestinationCoord.Y, DestinationCoord.X - center_coord.X) - DEG_TO_RAD(90);
                 Linked_To()->PrimaryFacing.Set_Desired(DirStruct(RAD_TO_BAU(atan2)));
             }
             else
             {
+                /**
+                 *  KABOOM!!!
+                 */
                 Explode();
                 return false;
             }
@@ -304,10 +370,16 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
 
     case RocketMissionState::ClosingIn:
         {
+            /**
+             *  Check if it's time to explode.
+             */
             if (Time_To_Explode(rocket))
                 return false;
 
-            const double pitch = Calculate_Pitch() - CurrentPitch;
+            /**
+             *  Pitch towards the destination.
+             */
+            const double pitch = Get_Next_Pitch() - CurrentPitch;
 
             if (std::abs(pitch) > rocket->TurnRate)
                 CurrentPitch = pitch < 0 ? CurrentPitch - rocket->TurnRate : CurrentPitch + rocket->TurnRate;
@@ -317,27 +389,39 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
             break;
         }
 
+        /**
+         *  Cruise missiles take off vertically.
+         */
     case RocketMissionState::VerticalTakeOff:
         {
             IsSpawnerElite = spawn_owner && spawn_owner->Veterancy.Is_Elite();
 
-            if (TrailerTimer.Expired())
+            /**
+             *  Spawn the trail animation, as if the rocket is doing its best to lift off.
+             */
+            if (TrailTimer.Expired())
             {
                 if (rocket->TakeoffAnim)
                 {
                     new AnimClass(rocket->TakeoffAnim, Linked_To()->Coord, 2, 1, SHAPE_WIN_REL | SHAPE_CENTER, -10);
-                    TrailerTimer = 24;
+                    TrailTimer = 24;
                 }
             }
 
+            /**
+             *  If we're done taking off, play a sound and proceed to flight.
+             */
             if (MissionTimer.Expired())
             {
                 CurrentPitch = rocket->PitchFinal * DEG_TO_RAD(90);
                 Sound_Effect(Linked_To()->Techno_Type_Class()->AuxSound1, Linked_To()->Coord);
 
-                TrailerTimer = 0;
+                TrailTimer = 0;
                 MissionState = RocketMissionState::GainingAltitude;
             }
+            /**
+             *  Otherwise, slowly nudge the rocket upwards to simulate taking off.
+             */
             else
             {
                 Coordinate coord = Linked_To()->Coord;
@@ -352,12 +436,18 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
         break;
     }
 
-    if (Is_Moving_Now() && TrailerTimer.Expired() && rocket->TrailAnim)
+    /**
+     *  Spawn the rocket's trail.
+     */
+    if (Is_Moving_Now() && TrailTimer.Expired() && rocket->TrailAnim)
     {
         new AnimClass(rocket->TrailAnim, Linked_To()->Coord, 2, 1, SHAPE_WIN_REL | SHAPE_CENTER);
-        TrailerTimer = 3;
+        TrailTimer = 3;
     }
 
+    /**
+     *  Move the rocket.
+     */
     if (CurrentSpeed > 0.0)
     {
         Coordinate coord = Get_Next_Position(static_cast<int>(CurrentSpeed));
@@ -383,6 +473,9 @@ IFACEMETHODIMP_(void) RocketLocomotionClass::Move_To(Coordinate to)
     const auto atype = reinterpret_cast<AircraftClass*>(Linked_To())->Class;
     const RocketTypeClass* rocket = RocketTypeClass::From_AircraftType(atype);
 
+    /**
+     *  Rockets only accept a destination once.
+     */
     if (!DestinationCoord)
     {
         int timer_delay;
@@ -436,29 +529,32 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Is_Moving_Now()
 }
 
 
-RocketLocomotionClass::RocketMotionStruct RocketLocomotionClass::Get_Motion(double speed) const
+/**
+ *  Calculates the next position of the rocket along its current trajectory.
+ *
+ *  @author: ZivDero
+ */
+Coordinate RocketLocomotionClass::Get_Next_Position(double speed) const
 {
-    RocketMotionStruct motion;
+    Coordinate coord;
 
     const double horizontal_speed = FastMath::Cos(CurrentPitch) * speed;
     const double horizontal_angle = BAU_TO_RAD(Linked_To()->PrimaryFacing.Current().Get_Raw() + DEG_TO_BAU(90));
 
-    motion.X = static_cast<int>(Linked_To()->Coord.X + FastMath::Cos(horizontal_angle) * horizontal_speed);
-    motion.Y = static_cast<int>(Linked_To()->Coord.Y - FastMath::Sin(horizontal_angle) * horizontal_speed);
-    motion.Z = static_cast<int>(Linked_To()->Coord.Z + FastMath::Sin(CurrentPitch) * speed);
+    coord.X = static_cast<int>(Linked_To()->Coord.X + FastMath::Cos(horizontal_angle) * horizontal_speed);
+    coord.Y = static_cast<int>(Linked_To()->Coord.Y - FastMath::Sin(horizontal_angle) * horizontal_speed);
+    coord.Z = static_cast<int>(Linked_To()->Coord.Z + FastMath::Sin(CurrentPitch) * speed);
 
-    return motion;
+    return coord;
 }
 
 
-Coordinate RocketLocomotionClass::Get_Next_Position(double speed) const
-{
-    RocketMotionStruct motion = Get_Motion(speed);
-    return { motion.X, motion.Y, motion.Z };
-}
-
-
-double RocketLocomotionClass::Calculate_Pitch() const
+/**
+ *  Calculates the next pitch of the rocket along its current trajectory.
+ *
+ *  @author: ZivDero
+ */
+double RocketLocomotionClass::Get_Next_Pitch() const
 {
     /**
      *  Calculate how much is there left to go.
@@ -507,22 +603,22 @@ void RocketLocomotionClass::Explode()
         new AnimClass(animtype, coord, 0, 1, SHAPE_WIN_REL | SHAPE_CENTER | SHAPE_FLAT, -15);
     Do_Flash(damage, warhead, coord);
     Explosion_Damage(&coord, damage, Linked_To(), warhead, true);
-    delete Linked_To();
+    Linked_To()->Remove_This();
 }
 
 
 
 bool RocketLocomotionClass::Time_To_Explode(const RocketTypeClass* rocket)
 {
-    RocketMotionStruct motion = Get_Motion(rocket->BodyLength);
+    Coordinate coord = Get_Next_Position(rocket->BodyLength);
 
     /**
      *  Check if we're there yet.
      */
-    if (motion.Z > DestinationCoord.Z)
+    if (coord.Z > DestinationCoord.Z)
     {
-        CellClass* rocket_cell = Linked_To()->Get_Cell_Ptr();
-        if (!rocket_cell || !rocket_cell->Bit2_16 /*might be Bit2_8*/ || DestinationCoord.Z != rocket_cell->Center_Coord().Z || motion.Z > DestinationCoord.Z + ROCKET_SPEED)
+        const CellClass* rocket_cell = Linked_To()->Get_Cell_Ptr();
+        if (!rocket_cell || !rocket_cell->Bit2_16 || DestinationCoord.Z != rocket_cell->Center_Coord().Z || coord.Z > DestinationCoord.Z + ROCKET_SPEED)
         {
             /**
              *  Nope, too early.

@@ -36,8 +36,14 @@
 #include "tibsun_globals.h"
 #include "mouse.h"
 #include "vinifera_globals.h"
+#include "vinifera_saveload.h"
 
 
+/**
+ *  Basic constructor for the KamikazeTrackerClass.
+ *
+ *  @author: ZivDero
+ */
 KamikazeTrackerClass::~KamikazeTrackerClass()
 {
     for (int i = Controls.Count() - 1; i >= 0; i--)
@@ -48,6 +54,142 @@ KamikazeTrackerClass::~KamikazeTrackerClass()
 }
 
 
+/**
+ *  Loads the object from the stream and requests a new pointer to
+ *  the class we extended post-load.
+ *
+ *  @author: ZivDero
+ */
+HRESULT KamikazeTrackerClass::Load(IStream* pStm)
+{
+    //EXT_DEBUG_TRACE("KamikazeTrackerClass::Load - 0x%08X\n", (uintptr_t)(this));
+
+    if (!pStm) {
+        return E_POINTER;
+    }
+
+    /**
+     *  Load the unique id for this class.
+     */
+    LONG id = 0;
+    HRESULT hr = pStm->Read(&id, sizeof(LONG), nullptr);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    /**
+     *  Register this instance to be available for remapping references to.
+     */
+    VINIFERA_SWIZZLE_REGISTER_POINTER(id, this, "KamikazeTracker");
+
+    /**
+     *  Read this class's binary blob data directly into this instance.
+     */
+    hr = pStm->Read(this, sizeof(*this), nullptr);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    /**
+     *  Read the count of active kamikaze controls.
+     */
+    int count;
+
+    hr = pStm->Read(&count, sizeof(count), nullptr);
+    if (FAILED(hr))
+        return hr;
+
+    new (&Controls) DynamicVectorClass<KamikazeControl*>();
+
+    if (count <= 0)
+        return hr;
+
+    /**
+     *  Read each of the controls as a binary blob.
+     */
+    for (int index = 0; index < count; ++index)
+    {
+        const auto control = new KamikazeControl;
+        hr = pStm->Read(control, sizeof(KamikazeControl), nullptr);
+        if (FAILED(hr))
+            return hr;
+        Controls.Add(control);
+    }
+
+    for (int i = 0; i < count; i++)
+    {
+        VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Controls[i]->Aircraft, "Aircraft");
+        VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Controls[i]->Cell, "Cell");
+    }
+
+    return hr;
+}
+
+
+/**
+ *  Saves the object to the stream.
+ *
+ *  @author: ZivDero
+ */
+HRESULT KamikazeTrackerClass::Save(IStream* pStm, BOOL fClearDirty)
+{
+    //EXT_DEBUG_TRACE("KamikazeTrackerClass::Save - 0x%08X\n", (uintptr_t)(this));
+
+    if (!pStm) {
+        return E_POINTER;
+    }
+
+    /**
+     *  Fetch the save id for this instance.
+     */
+    const LONG id = reinterpret_cast<LONG>(this);
+
+    //DEV_DEBUG_INFO("Writing id = 0x%08X.\n", id);
+
+    HRESULT hr = pStm->Write(&id, sizeof(id), nullptr);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    /**
+     *  Write this class instance as a binary blob.
+     */
+    hr = pStm->Write(this, sizeof(*this), nullptr);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    /**
+     *  Write the count of active kamikaze controls.
+     */
+    int count = Controls.Count();
+
+    hr = pStm->Write(&count, sizeof(count), nullptr);
+    if (FAILED(hr))
+        return hr;
+
+    if (count <= 0)
+        return hr;
+
+    /**
+     *  Write each of the controls as a binary blob.
+     */
+    for (int index = 0; index < count; ++index)
+    {
+        HRESULT hr = pStm->Write(Controls[index], sizeof(KamikazeControl), nullptr);
+        if (FAILED(hr))
+            return hr;
+    }
+
+    return hr;
+}
+
+
+/**
+ *  Adds a new aircraft to the tracker.
+ *
+ *  @author: ZivDero
+ */
 void KamikazeTrackerClass::Add(AircraftClass* aircraft, TARGET target)
 {
     if (!Extension::Fetch<AircraftTypeClassExtension>(aircraft->Techno_Type_Class())->IsMissileSpawn)
@@ -67,6 +209,12 @@ void KamikazeTrackerClass::Add(AircraftClass* aircraft, TARGET target)
 
 }
 
+
+/**
+ *  Processes the kamikaze tracker logic.
+ *
+ *  @author: ZivDero
+ */
 void KamikazeTrackerClass::AI()
 {
     if (!UpdateTimer.Expired())
@@ -90,28 +238,33 @@ void KamikazeTrackerClass::AI()
         aircraft->Assign_Mission(MISSION_ATTACK);
     }
 }
+
+
+/**
+ *  Removes an aircraft from the tracker.
+ *
+ *  @author: ZivDero
+ */
 void KamikazeTrackerClass::Detach(AircraftClass const* aircraft)
 {
-    KamikazeControl* control = nullptr;
-    for (int i = Controls.Count() - 1; i >= 0; i--)
+    for (int i = 0; i < Controls.Count(); i++)
     {
-        control = Controls[i];
+        const auto control = Controls[i];
         if (control->Aircraft == aircraft)
         {
-            CellClass* cell = &Map[Coord_Cell(aircraft->Center_Coord())];
-            control->Aircraft->Assign_Target(cell);
-            control->Aircraft->Assign_Mission(MISSION_ATTACK);
-            control->Cell = cell;
+            delete control;
+            Controls.Delete(control);
             return;
         }
     }
-
-    if (control != nullptr)
-    {
-        delete control;
-        Controls.Delete(control);
-    }
 }
+
+
+/**
+ *  Clears the tracker.
+ *
+ *  @author: ZivDero
+ */
 void KamikazeTrackerClass::Clear()
 {
     for (int i = Controls.Count() - 1; i >= 0; i--)

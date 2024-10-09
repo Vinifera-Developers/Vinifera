@@ -92,14 +92,14 @@ public:
 	virtual void Compute_CRC(WWCRCEngine& crc) const override;
 	virtual void AI() override;
 
-	void Manage();
+	void Detach_Spawns();
 	void Assign_Target(TARGET target);
-	void Kamikaze_AI();
+	void Abandon_Target();
 	bool Suspend_Target();
 	void Detach(TARGET target);
 	int Active_Count();
 	int Docked_Count();
-	int Missile_Count();
+	int Preparing_Count();
 
 	static void Clear_All();
 
@@ -107,15 +107,58 @@ public:
 	SpawnManagerClass& operator= (const SpawnManagerClass&) = delete;
 
 public:
+	/**
+     *  The Techno that owns this SpawnManager.
+     */
 	TechnoClass* Owner;
+
+	/**
+	 *  The AircraftType that this SpawnManager spawns.
+	 */
 	const AircraftTypeClass* SpawnType;
+
+	/**
+	 *  How many spawns this SpawnManager can have.
+	 */
 	int SpawnCount;
+
+	/**
+	 *  How long it takes for a spawn to regenerate.
+	 */
 	int RegenRate;
+
+	/**
+	 *  How long it takes for a spawn to reload.
+	 */
 	int ReloadRate;
+
+	/**
+	 *  This vector holds the SpawnControls.
+	 */
 	DynamicVectorClass<SpawnControl*> SpawnControls;
+
+	/**
+	 *  The timer that controls how often the SpawnManager should execute its AI function.
+	 */
 	CDTimerClass<FrameTimerClass> LogicTimer;
+
+	/**
+	 *  The timer that controls how often the SpawnManager should spawn a new spawn.
+	 */
 	CDTimerClass<FrameTimerClass> SpawnTimer;
+
+	/**
+	 *  The SpawnManager's suspended target.
+	 */
 	AbstractClass* SuspendedTarget;
+
+	/**
+	 *  The target that the SpawnManager is currently attacking.
+	 */
 	AbstractClass* Target;
+
+	/**
+	 *  The current status of the SpawnManager.
+	 */
 	SpawnManagerStatus Status;
 };

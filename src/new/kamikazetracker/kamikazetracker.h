@@ -47,18 +47,25 @@ public:
 	KamikazeTrackerClass() noexcept : UpdateTimer(100), Controls() { }
 	~KamikazeTrackerClass();
 
+	HRESULT STDMETHODCALLTYPE Load(IStream* pStm);
+	HRESULT STDMETHODCALLTYPE Save(IStream* pStm, BOOL fClearDirty);
+
 	void Add(AircraftClass* aircraft, TARGET target);
 	void AI();
 	void Detach(AircraftClass const* aircraft);
 	void Clear();
 
-	HRESULT STDMETHODCALLTYPE Load(IStream* pStm) { return 0; }
-	HRESULT STDMETHODCALLTYPE Save(IStream* pStm, BOOL fClearDirty) { return 0; }
-
 	KamikazeTrackerClass(const KamikazeTrackerClass&) = delete;
 	KamikazeTrackerClass& operator= (const KamikazeTrackerClass&) = delete;
 
 public:
+	/**
+     *  The timer that controls how often the tracker should perform its AI function.
+     */
 	CDTimerClass<FrameTimerClass> UpdateTimer;
+
+	/**
+	 *  The vector that contains all kamikaze controls.
+	 */
 	DynamicVectorClass<KamikazeControl*> Controls;
 };

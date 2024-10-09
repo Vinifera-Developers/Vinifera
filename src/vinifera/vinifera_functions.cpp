@@ -632,7 +632,7 @@ bool Vinifera_Startup()
     //CnCNet5::IsActive = true; // Enable when new Client system is implemented.
 #endif
 
-    KamikazeTracker = new KamikazeTrackerClass();
+    KamikazeTracker = new KamikazeTrackerClass;
 
     return true;
 }

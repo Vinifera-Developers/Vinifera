@@ -35,6 +35,7 @@
 #include "techno.h"
 #include "technoext.h"
 
+
 DECLARE_PATCH(_EventClass_Execute_Spawn_Manager_Patch)
 {
     GET_REGISTER_STATIC(TechnoClass*, techno, esi);
@@ -42,7 +43,7 @@ DECLARE_PATCH(_EventClass_Execute_Spawn_Manager_Patch)
 
     extension = Extension::Fetch<TechnoClassExtension>(techno);
     if (extension && extension->SpawnManager)
-        extension->SpawnManager->Kamikaze_AI();
+        extension->SpawnManager->Abandon_Target();
 
     static RTTIType rtti = techno->Kind_Of();
     if (rtti == RTTI_UNIT)
@@ -57,10 +58,39 @@ DECLARE_PATCH(_EventClass_Execute_Spawn_Manager_Patch)
 }
 
 
+DECLARE_PATCH(_DriveLocomotionClass_Start_Of_Move_Spawn_Manager_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass*, linked_to, eax);
+    static TechnoClassExtension* extension;
+
+    _asm pushad
+
+    if (linked_to->EMPFramesRemaining > 0)
+    {
+        _asm popad
+        // return 1;
+        JMP(0x0047FE39);
+    }
+
+    extension = Extension::Fetch<TechnoClassExtension>(linked_to);
+    if (extension->SpawnManager && extension->SpawnManager->Preparing_Count())
+    {
+        _asm popad
+        // return 1;
+        JMP(0x0047FE39);
+    }
+
+    // Continue execution
+    _asm popad
+    JMP_REG(edx, 0x0047FE45);
+}
+
+
 /**
  *  Main function for patching the hooks.
  */
 void SpawnManager_Hooks()
 {
     Patch_Jump(0x00494AB5, &_EventClass_Execute_Spawn_Manager_Patch);
+    Patch_Jump(0x0047FE2F, &_DriveLocomotionClass_Start_Of_Move_Spawn_Manager_Patch);
 }

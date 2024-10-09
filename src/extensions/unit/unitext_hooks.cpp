@@ -168,7 +168,7 @@ void UnitClassExt::_Firing_AI()
         case FIRE_CANT:
             ext = Extension::Fetch<UnitClassExtension>(this);
             if (ext && ext->SpawnManager)
-                ext->SpawnManager->Kamikaze_AI();
+                ext->SpawnManager->Abandon_Target();
             break;
             
 

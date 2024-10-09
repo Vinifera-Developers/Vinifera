@@ -147,3 +147,12 @@
  *  The maximum amount of waypoints available for a scenario to use.
  */
 #define NEW_WAYPOINT_COUNT         SHRT_MAX      // "AVLG"
+
+
+typedef enum ViniferaRTTIType
+{
+    RTTI_SPAWN_MANAGER = RTTI_COUNT,
+
+    VINIFERA_RTTI_COUNT
+};
+DEFINE_ENUMERATION_OPERATORS(ViniferaRTTIType);

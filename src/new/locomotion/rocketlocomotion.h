@@ -46,19 +46,9 @@ enum class RocketMissionState
 
 #define ROCKET_SPEED 416
 
-struct RocketMotionStruct;
-
 class DECLSPEC_UUID(CLSID_ROCKET_LOCOMOTOR)
 RocketLocomotionClass : public LocomotionClass
 {
-public:
-    struct RocketMotionStruct
-    {
-        int X;
-        int Y;
-        int Z;
-    };
-
 public:
     /**
      *  IPersist
@@ -92,10 +82,9 @@ private:
      *  RocketLocomotionClass
      */
     Coordinate Get_Next_Position(double speed) const;
-    double Calculate_Pitch() const;
+    double Get_Next_Pitch() const;
     void Explode();
     bool Time_To_Explode(const RocketTypeClass* rocket);
-    RocketMotionStruct Get_Motion(double speed) const;
 
 public:
     RocketLocomotionClass();
@@ -107,12 +96,43 @@ protected:
      */
     Coordinate DestinationCoord;
 
+    /**
+     *  This is the timer used by various mission states of the rocket.
+     */
     CDRateTimerClass<FrameTimerClass> MissionTimer;
-    CDTimerClass<FrameTimerClass> TrailerTimer;
+
+    /**
+     *  This is the timer used for timing the trail animation.
+     */
+    CDTimerClass<FrameTimerClass> TrailTimer;
+
+    /**
+     *  The current state of the rocket.
+     */
     RocketMissionState MissionState;
+
+    /**
+     *  The current speed of the rocket.
+     */
     double CurrentSpeed;
+
+    /**
+     *  This boolean gets used to determine if the rocket needs to be submit to DisplayClass.
+     */
     bool NeedToSubmit;
+
+    /**
+     *  Is this rocket's spawner elite?
+     */
     bool IsSpawnerElite;
+
+    /**
+     *  The current pitch of the rocket.
+     */
     double CurrentPitch;
+
+    /**
+     *  The distance to the destination from when the rocket has reached its desired altitude.
+     */
     int ApogeeDistance;
 };
