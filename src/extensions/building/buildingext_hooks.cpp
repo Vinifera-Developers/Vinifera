@@ -715,6 +715,45 @@ DECLARE_PATCH(_BuildingClass_Draw_Spied_Cameo_Palette_Patch)
 
 
 /**
+ *  #issue-1049
+ *
+ *  The AI undeploys deployed Tick Tanks, Artillery and Juggernauts that get attacked by something
+ *  that is out of their range. This is done by assigning MISSION_DECONSTRUCTION, which is used for both
+ *  undeploying and selling.
+ *
+ *  The AI does not check whether the building actually has UndeploysInto= specified as something
+ *  non-null, meaning if the building has UndeploysInto as null, the AI ends up selling the
+ *  buildings.
+ *
+ *  This patch fixes the bug by denying the AI from assigning MISSION_DECONSTRUCTION
+ *  when the building has UndeploysInto as null.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_BuildingClass_Assign_Target_No_Deconstruction_With_Null_UndeploysInto)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    static BuildingTypeClass* buildingtype;
+
+    if (this_ptr->Class->UndeploysInto == nullptr) {
+
+        /**
+         *  This building cannot undeploy. Exit the function.
+         */
+        JMP(0x0042C58C);
+    }
+
+    /**
+     *  Stolen bytes / code.
+     *  Assign MISSION_DECONSTRUCTION and exit.
+     */
+    this_ptr->Assign_Mission(MISSION_DECONSTRUCTION);
+    this_ptr->Commence();
+    JMP(0x0042C63A);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void BuildingClassExtension_Hooks()
@@ -735,6 +774,7 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x0043266C, &_BuildingClass_Mission_Repair_ReloadRate_Patch);
     Patch_Jump(0x00432184, &_BuildingClass_Mission_Repair_Assign_Rally_Destination_When_No_Repair_Needed);
     Patch_Jump(0x00431DAB, &_BuildingClass_Mission_Repair_Assign_Rally_Destination_After_Repair_Complete);
+    Patch_Jump(0x0042C624, &_BuildingClass_Assign_Target_No_Deconstruction_With_Null_UndeploysInto);
     Patch_Jump(0x00439D10, &BuildingClassExt::_Can_Have_Rally_Point);
     Patch_Jump(0x0042D9A0, &BuildingClassExt::_Update_Buildables);
 }
