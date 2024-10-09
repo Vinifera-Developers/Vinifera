@@ -62,7 +62,11 @@
 #include "scenarioini.h"
 #include "scenario.h"
 #include "sidebarext.h"
+#include "tag.h"
+#include "tagtype.h"
 #include "terraintype.h"
+#include "trigger.h"
+#include "triggertype.h"
 #include "smudgetype.h"
 #include "overlaytype.h"
 #include "armortype.h"
@@ -1460,6 +1464,80 @@ bool DumpHeapCRCCommandClass::Process()
         DEBUG_INFO("\n");
     }
     
+    DEBUG_INFO("\nFinished!\n\n");
+
+    return true;
+}
+
+
+/**
+ *  Produces a log dump of active trigger instances.
+ *
+ *  @author: Rampastring
+ */
+const char* DumpTriggersCommandClass::Get_Name() const
+{
+    return "DumpTriggers";
+}
+
+const char* DumpTriggersCommandClass::Get_UI_Name() const
+{
+    return "Dump Trigger Info";
+}
+
+const char* DumpTriggersCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char* DumpTriggersCommandClass::Get_Description() const
+{
+    return "Dumps all existing triggers, tags, and local and global variables to the log output.";
+}
+
+bool DumpTriggersCommandClass::Process()
+{
+    DEBUG_INFO("\nAbout to dump trigger information...\n\n");
+
+    for (int i = 0; i < Triggers.Count(); i++)
+    {
+        TriggerClass* trigger = Triggers[i];
+
+        DEBUG_INFO("Trigger %d: %s\n", i, trigger->Class->FullName);
+        DEBUG_INFO("    IsDestroyed: %d\n", trigger->IsDestroyed);
+        DEBUG_INFO("    IsTripped: %d\n", trigger->IsTripped);
+        DEBUG_INFO("    IsEnabled: %d\n", trigger->IsEnabled);
+
+        while (trigger->Next != nullptr) {
+            trigger = trigger->Next;
+
+            DEBUG_INFO("    Next: %s\n", trigger->Class->FullName);
+            DEBUG_INFO("        IsDestroyed: %d\n", trigger->IsDestroyed);
+            DEBUG_INFO("        IsTripped: %d\n", trigger->IsTripped);
+            DEBUG_INFO("        IsEnabled: %d\n", trigger->IsEnabled);
+        }
+    }
+
+    DEBUG_INFO("\n\nAbout to dump tag information...\n\n");
+
+    for (int i = 0; i < Tags.Count(); i++)
+    {
+        TagClass* tag = Tags[i];
+
+        DEBUG_INFO("Tag %d: %s\n", i, tag->Class->FullName);
+        DEBUG_INFO("    AttachCount: %d\n", tag->AttachCount);
+        DEBUG_INFO("    Location: %d,%d\n", tag->Location.X, tag->Location.Y);
+        DEBUG_INFO("    IsDestroyed: %d\n", tag->IsDestroyed);
+        DEBUG_INFO("    IsSprung: %d\n", tag->IsSprung);
+    }
+
+    DEBUG_INFO("\n\nAbout to dump local variable information...\n\n");
+
+    for (int i = 0; i < ARRAY_SIZE(Scen->LocalFlags); i++)
+    {
+        DEBUG_INFO("LocalFlag %d: %s, enabled: %d\n", i, Scen->LocalFlags[i].Name, Scen->LocalFlags[i].Value);
+    }
+
     DEBUG_INFO("\nFinished!\n\n");
 
     return true;
