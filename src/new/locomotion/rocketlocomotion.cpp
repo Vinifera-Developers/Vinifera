@@ -228,8 +228,8 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
             }
             else
             {
-                double pitch_initial = rocket->PitchInitial * DEG_TO_RAD(90);
-                double pitch_final = rocket->PitchFinal * DEG_TO_RAD(90);
+                const double pitch_initial = rocket->PitchInitial * DEG_TO_RAD(90);
+                const double pitch_final = rocket->PitchFinal * DEG_TO_RAD(90);
                 CurrentPitch = (pitch_final - pitch_initial) * MissionTimer.Percent_Expired() + pitch_initial;
             }
             break;
@@ -252,7 +252,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
             {
                 MissionState = RocketMissionState::Flight;
                 Coordinate center_coord = Linked_To()->Center_Coord();
-                ApogeeDistance = static_cast<int>(Vector2(center_coord.X - DestinationCoord.X, center_coord.Y - DestinationCoord.Y).Length());
+                ApogeeDistance = static_cast<int>(Vector2(static_cast<float>(center_coord.X - DestinationCoord.X), static_cast<float>(center_coord.Y - DestinationCoord.Y)).Length());
             }
             break;
         }
@@ -270,7 +270,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
                         return false;
 
                     Coordinate center_coord = Linked_To()->Center_Coord();
-                    const double dist = Vector2(center_coord.X - DestinationCoord.X, center_coord.Y - DestinationCoord.Y).Length();
+                    const double dist = Vector2(static_cast<float>(center_coord.X - DestinationCoord.X), static_cast<float>(center_coord.Y - DestinationCoord.Y)).Length();
                     const double ratio = dist / ApogeeDistance;
 
                     CurrentPitch = rocket->PitchFinal * ratio * DEG_TO_RAD(90) + Calculate_Pitch() * (1 - ratio);
@@ -353,7 +353,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
 
     if (CurrentSpeed > 0.0)
     {
-        Coordinate coord = Get_Next_Position(CurrentSpeed);
+        Coordinate coord = Get_Next_Position(static_cast<int>(CurrentSpeed));
 
         if (Map.In_Radar(Coord_Cell(coord)))
             Linked_To()->Set_Coord(coord);
@@ -429,36 +429,35 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Is_Moving_Now()
 }
 
 
-RocketLocomotionClass::RocketMotionStruct RocketLocomotionClass::Get_Motion(int speed)
+RocketLocomotionClass::RocketMotionStruct RocketLocomotionClass::Get_Motion(double speed) const
 {
     RocketMotionStruct motion;
 
-    const int horizontal_speed = static_cast<int>(FastMath::Cos(CurrentPitch) * static_cast<double>(speed));
+    const double horizontal_speed = FastMath::Cos(CurrentPitch) * speed;
     const double horizontal_angle = BAU_TO_RAD(Linked_To()->PrimaryFacing.Current().Get_Raw() + DEG_TO_BAU(90));
 
-    motion.X = static_cast<int>(Linked_To()->Coord.X + FastMath::Cos(horizontal_angle) * static_cast<double>(horizontal_speed));
-    motion.Y = static_cast<int>(Linked_To()->Coord.Y - FastMath::Sin(horizontal_angle) * static_cast<double>(horizontal_speed));
-    motion.Z = static_cast<int>(Linked_To()->Coord.Z + FastMath::Sin(CurrentPitch) * static_cast<double>(speed));
+    motion.X = static_cast<int>(Linked_To()->Coord.X + FastMath::Cos(horizontal_angle) * horizontal_speed);
+    motion.Y = static_cast<int>(Linked_To()->Coord.Y - FastMath::Sin(horizontal_angle) * horizontal_speed);
+    motion.Z = static_cast<int>(Linked_To()->Coord.Z + FastMath::Sin(CurrentPitch) * speed);
 
     return motion;
 }
 
 
-Coordinate RocketLocomotionClass::Get_Next_Position(int speed)
+Coordinate RocketLocomotionClass::Get_Next_Position(double speed) const
 {
     RocketMotionStruct motion = Get_Motion(speed);
-
-    return Coordinate(motion.X, motion.Y, motion.Z);
+    return { motion.X, motion.Y, motion.Z };
 }
 
 
-double RocketLocomotionClass::Calculate_Pitch()
+double RocketLocomotionClass::Calculate_Pitch() const
 {
     /**
      *  Calculate how much is there left to go.
      */
-    Coordinate left_to_go = DestinationCoord - Linked_To()->Coord;
-    double length = Vector2(left_to_go.X, left_to_go.Y).Length();
+    const Coordinate left_to_go = DestinationCoord - Linked_To()->Coord;
+    const double length = Vector2(static_cast<float>(left_to_go.X), static_cast<float>(left_to_go.Y)).Length();
 
     /**
      *  If we're still not there, calculate the pitch at which we should go.

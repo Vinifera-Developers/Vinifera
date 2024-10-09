@@ -91,11 +91,11 @@ private:
     /**
      *  RocketLocomotionClass
      */
-    Coordinate Get_Next_Position(int speed);
-    double Calculate_Pitch();
+    Coordinate Get_Next_Position(double speed) const;
+    double Calculate_Pitch() const;
     void Explode();
     bool Time_To_Explode(const RocketTypeClass* rocket);
-    RocketMotionStruct Get_Motion(int speed);
+    RocketMotionStruct Get_Motion(double speed) const;
 
 public:
     RocketLocomotionClass();

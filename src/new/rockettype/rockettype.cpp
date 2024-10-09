@@ -193,7 +193,7 @@ HRESULT RocketTypeClass::IsDirty()
  */
 HRESULT RocketTypeClass::Load(IStream* pStm)
 {
-    //EXT_DEBUG_TRACE("RocketTypeClass::Internal_Load - 0x%08X\n", (uintptr_t)(this));
+    //EXT_DEBUG_TRACE("RocketTypeClass::Load - 0x%08X\n", (uintptr_t)(this));
 
     if (!pStm) {
         return E_POINTER;
@@ -214,7 +214,7 @@ HRESULT RocketTypeClass::Load(IStream* pStm)
     VINIFERA_SWIZZLE_REGISTER_POINTER(id, this, IniName);
 
     /**
-     *  Read this classes binary blob data directly into this instance.
+     *  Read this class's binary blob data directly into this instance.
      */
     hr = pStm->Read(this, sizeof(*this), nullptr);
     if (FAILED(hr)) {
