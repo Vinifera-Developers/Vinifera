@@ -192,8 +192,6 @@ void UnitClassExt::_Firing_AI()
 
 void UnitClassExt::_Draw_Voxel(unsigned int frame, int key, Rect* rect, Point2D* point, Matrix3D* other_matrix, int color, int flags)
 {
-    static const int& lepton_level = Make_Global<int>(0x0080F9D8);
-
     Matrix3D matrix;
     Matrix3D::Multiply(Get_Voxel_Draw_Matrix(), *other_matrix, &matrix);
     const auto typeext = Extension::Fetch<UnitTypeClassExtension>(Class);
@@ -205,7 +203,7 @@ void UnitClassExt::_Draw_Voxel(unsigned int frame, int key, Rect* rect, Point2D*
     if (!std::strcmp(Class->IniName, "APC")
         && Map[Get_Coord()].Land_Type() == LAND_WATER
         && !IsOnBridge
-        && Get_Height() < lepton_level)
+        && Get_Height() < CELL_HEIGHT(1))
     {
         voxel = &Class->AuxVoxel;
         cache = nullptr;
