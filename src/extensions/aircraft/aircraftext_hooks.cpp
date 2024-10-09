@@ -333,4 +333,14 @@ void AircraftClassExtension_Hooks()
     Patch_Jump(0x0040C054, &_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_Fire_FIRE_OK_Patch);
     Patch_Jump(0x0040BF9D, &_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_Fire_FIRE_FACING_Patch);
     Patch_Jump(0x0040C0AC, &_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_Fire_DEFAULT_Patch);
+
+    /**
+     *  #issue-1091
+     *
+     *  Fix bug where aircraft are unable to attack shrouded targets in campaign games and instead get stuck in mid-air.
+     *
+     *  Author: Rampastring
+     */
+    Patch_Jump(0x0040D0C5, (uintptr_t)0x0040D0EA);
+
 }
