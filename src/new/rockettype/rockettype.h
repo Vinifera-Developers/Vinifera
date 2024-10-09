@@ -95,7 +95,7 @@ public:
     double PitchInitial;
     double PitchFinal;
     double TurnRate;
-    double RaiseRate;
+    int RaiseRate;
     double Acceleration;
     int Altitude;
     int Damage;

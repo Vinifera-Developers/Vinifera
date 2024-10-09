@@ -379,7 +379,7 @@ bool RocketTypeClass::Read_INI(CCINIClass& ini)
     PitchInitial = ini.Get_Double(IniName, "PitchInitial", PitchInitial);
     PitchFinal = ini.Get_Double(IniName, "PitchFinal", PitchFinal);
     TurnRate = ini.Get_Double(IniName, "TurnRate", TurnRate);
-    RaiseRate = ini.Get_Double(IniName, "RaiseRate", RaiseRate);
+    RaiseRate = ini.Get_Int(IniName, "RaiseRate", RaiseRate);
     Acceleration = ini.Get_Double(IniName, "Acceleration", Acceleration);
     Altitude = ini.Get_Int(IniName, "Altitude", Altitude);
     Damage = ini.Get_Int(IniName, "Damage", Damage);
