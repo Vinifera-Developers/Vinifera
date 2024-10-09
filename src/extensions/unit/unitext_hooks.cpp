@@ -70,7 +70,7 @@ class UnitClassExt : public UnitClass
 {
 public:
     void _Firing_AI();
-    void _Draw_Voxel(int frame, int key, Rect* rect, Point2D* point, Matrix3D* other_matrix, int color, int flags);
+    void _Draw_Voxel(unsigned int frame, int key, Rect* rect, Point2D* point, Matrix3D* other_matrix, int color, int flags);
 
 };
 
@@ -190,7 +190,7 @@ void UnitClassExt::_Firing_AI()
 }
 
 
-void UnitClassExt::_Draw_Voxel(int frame, int key, Rect* rect, Point2D* point, Matrix3D* other_matrix, int color, int flags)
+void UnitClassExt::_Draw_Voxel(unsigned int frame, int key, Rect* rect, Point2D* point, Matrix3D* other_matrix, int color, int flags)
 {
     static const int& lepton_level = Make_Global<int>(0x0080F9D8);
 
@@ -199,36 +199,36 @@ void UnitClassExt::_Draw_Voxel(int frame, int key, Rect* rect, Point2D* point, M
     const auto typeext = Extension::Fetch<UnitTypeClassExtension>(Class);
     const auto ext = Extension::Fetch<UnitClassExtension>(this);
 
-    VoxelStruct* voxel = nullptr;
-    IndexClass<int, int>* cache = nullptr;
+    VoxelObject* voxel = nullptr;
+    VoxelIndexClass* cache = nullptr;
 
     if (!std::strcmp(Class->IniName, "APC")
         && Map[Get_Coord()].Land_Type() == LAND_WATER
         && !IsOnBridge
         && Get_Height() < lepton_level)
     {
-        voxel = &Class->TurretVoxel;
+        voxel = &Class->AuxVoxel;
         cache = nullptr;
         key = -1;
     }
     else if (typeext->NoSpawnAlt && ext->SpawnManager && !ext->SpawnManager->Docked_Count())
     {
         voxel = &typeext->AltVoxel;
-        cache = &typeext->AltVoxelCache;
+        cache = &typeext->AltVoxelIndex;
     }
     else
     {
-        voxel = &Class->BodyVoxel;
-        cache = &Class->VoxelCache1;
+        voxel = &Class->Voxel;
+        cache = &Class->VoxelIndex;
     }
 
-    Draw_Voxel(voxel, frame, key, cache, rect, point, &matrix, color, flags);
+    Draw_Voxel(*voxel, frame, key, *cache, *rect, *point, matrix, color, flags);
 }
 
 
 DECLARE_PATCH(_UnitClass_Draw_Voxel_Patch)
 {
-    GET_STACK_STATIC(int, frame, esp, 0x58);
+    GET_STACK_STATIC(unsigned int, frame, esp, 0x58);
     GET_STACK_STATIC(int, key, esp, 0x40);
     LEA_STACK_STATIC(Rect*, rect, esp, 0x68);
     LEA_STACK_STATIC(Point2D*, point, esp, 0x50);

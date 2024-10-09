@@ -39,9 +39,12 @@
 #include "debughandler.h"
 #include "asserthandler.h"
 #include "extension.h"
+#include "voxellib.h"
+#include "motionlib.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "miscutil.h"
 
 
 /**
@@ -155,91 +158,55 @@ const ShapeFileStruct * ObjectTypeClassExt::_Get_Image_Data() const
 }
 
 
-static bool Init_Voxel(VoxelStruct& voxel, const char *graphic_name, bool required = false)
-{
-    char buffer[260];
-    bool failed = false;
-
-    _makepath(buffer, nullptr, nullptr, graphic_name, ".VXL");
-    CCFileClass bodyvxl(buffer);
-
-    if (bodyvxl.Is_Available())
-    {
-        delete voxel.VoxelLibrary;
-        voxel.VoxelLibrary = new VoxelLibraryClass(bodyvxl);
-
-        if (!voxel.VoxelLibrary || voxel.VoxelLibrary->FailedToLoad)
-            failed = true;
-
-        _makepath(buffer, nullptr, nullptr, graphic_name, ".HVA");
-        CCFileClass bodyhva(buffer);
-
-        delete voxel.MotionLibrary;
-        voxel.MotionLibrary = new MotionLibraryClass(bodyhva);
-
-        if (!voxel.MotionLibrary || voxel.MotionLibrary->FailedToLoad)
-            failed = true;
-        else
-            voxel.MotionLibrary->Scale(voxel.VoxelLibrary->Get_Tailer(0)->HvaMatrixScale);
-    }
-    else if (required)
-    {
-        failed = true;
-    }
-
-    return !failed;
-}
-
-
 void ObjectTypeClassExt::_Fetch_Voxel_Image()
 {
     char buffer[260];
     bool success = true;
 
-    Init_Voxel(BodyVoxel, Graphic_Name(), true);
+    Load_Voxel(Voxel, Graphic_Name(), true);
 
     if (What_Am_I() != RTTI_UNIT || reinterpret_cast<UnitTypeClass*>(this)->IsTurretEquipped)
     {
         std::snprintf(buffer, sizeof(buffer), "%sTUR", Graphic_Name());
-        success &= Init_Voxel(TurretVoxel, buffer);
+        success &= Load_Voxel(AuxVoxel, buffer);
 
         std::snprintf(buffer, sizeof(buffer), "%sBARL", Graphic_Name());
-        success &= Init_Voxel(BarrelVoxel, buffer);
+        success &= Load_Voxel(AuxVoxel2, buffer);
     }
 
     // Should be moved to a separate location
     if (!strcmpi(IniName, "APC"))
     {
         std::snprintf(buffer, sizeof(buffer), "%sW", Graphic_Name());
-        success &= Init_Voxel(TurretVoxel, buffer);
+        success &= Load_Voxel(AuxVoxel, buffer);
     }
 
     if (success)
     {
-        char max_dimension = BodyVoxel.VoxelLibrary->Get_Tailer(0)->SizeX;
-        for (int i = 0; i < BodyVoxel.VoxelLibrary->HeaderCount; i++)
+        unsigned char max_dimension = Voxel.VoxelLibrary->Get_Layer_Info(0, 0)->XSize;
+        for (int i = 0; i < Voxel.VoxelLibrary->Get_Layer_Count(); i++)
         {
-            max_dimension = std::max(max_dimension, BodyVoxel.VoxelLibrary->Get_Tailer(i)->SizeX);
-            max_dimension = std::max(max_dimension, BodyVoxel.VoxelLibrary->Get_Tailer(i)->SizeY);
-            max_dimension = std::max(max_dimension, BodyVoxel.VoxelLibrary->Get_Tailer(i)->SizeZ);
+            max_dimension = std::max(max_dimension, Voxel.VoxelLibrary->Get_Layer_Info(i, 0)->XSize);
+            max_dimension = std::max(max_dimension, Voxel.VoxelLibrary->Get_Layer_Info(i, 0)->YSize);
+            max_dimension = std::max(max_dimension, Voxel.VoxelLibrary->Get_Layer_Info(i, 0)->ZSize);
         }
 
-        max_dimension = std::max(max_dimension, static_cast<char>(8));
+        max_dimension = std::max(max_dimension, static_cast<unsigned char>(8));
         MaxDimension = max_dimension;
 
-        VoxelCache1.Clear();
-        VoxelCache2.Clear();
-        VoxelCache3.Clear();
-        VoxelCache4.Clear();
+        VoxelIndex.Clear();
+        AuxVoxelIndex.Clear();
+        ShadowVoxelIndex.Clear();
+        AuxVoxel2Index.Clear();
     }
     else
     {
-        delete BodyVoxel.VoxelLibrary;
-        delete BodyVoxel.MotionLibrary;
-        delete TurretVoxel.VoxelLibrary;
-        delete TurretVoxel.MotionLibrary;
-        delete BarrelVoxel.VoxelLibrary;
-        delete BarrelVoxel.MotionLibrary;
+        delete Voxel.VoxelLibrary;
+        delete Voxel.MotionLibrary;
+        delete AuxVoxel.VoxelLibrary;
+        delete AuxVoxel.MotionLibrary;
+        delete AuxVoxel2.VoxelLibrary;
+        delete AuxVoxel2.MotionLibrary;
     }
 }
 

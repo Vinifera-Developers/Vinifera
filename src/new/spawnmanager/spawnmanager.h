@@ -38,20 +38,20 @@ class FrameTimerClass;
 class AircraftClass;
 
 enum class SpawnManagerStatus {
-	Idle = 0, // no target or out of range
-	Launching = 1, // one launch in progress
-	Cooldown = 2 // waiting for launch to complete
+	Idle = 0,		// no target or out of range
+	Launching = 1,	// one launch in progress
+	Cooldown = 2	// waiting for launch to complete
 };
 
 enum class SpawnControlStatus {
-	Idle = 0, // docked, waiting for target
-	Takeoff = 1, // missile tilting and launch
-	Preparing = 2, // gathering, waiting
-	Attacking = 3, // attacking until no ammo
-	Returning = 4, // return to carrier
-	//Unused_5, // not used
-	Reloading = 6, // docked, reloading ammo and health
-	Dead = 7 // respawning
+	Idle = 0,		// docked, waiting for target
+	Takeoff = 1,	// missile tilting and launch
+	Preparing = 2,	// gathering, waiting
+	Attacking = 3,	// attacking until no ammo
+	Returning = 4,	// return to carrier
+	//Unused_5,		// not used
+	Reloading = 6,	// docked, reloading ammo and health
+	Dead = 7		// respawning
 };
 
 

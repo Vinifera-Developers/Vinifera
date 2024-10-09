@@ -71,6 +71,6 @@ class ObjectTypeClassExtension : public AbstractTypeClassExtension
     public:
 
         bool NoSpawnAlt;
-        VoxelStruct AltVoxel;
-        IndexClass<int, int> AltVoxelCache;
+        VoxelObject AltVoxel;
+        VoxelIndexClass AltVoxelIndex;
 };

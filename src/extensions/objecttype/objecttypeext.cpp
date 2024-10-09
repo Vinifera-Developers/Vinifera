@@ -31,6 +31,7 @@
 #include "asserthandler.h"
 #include "ccfile.h"
 #include "debughandler.h"
+#include "miscutil.h"
 
 
 /**
@@ -165,42 +166,6 @@ bool ObjectTypeClassExtension::Read_INI(CCINIClass &ini)
 }
 
 
-static bool Init_Voxel(VoxelStruct& voxel, const char* graphic_name, bool required = false)
-{
-    char buffer[260];
-    bool failed = false;
-
-    _makepath(buffer, nullptr, nullptr, graphic_name, ".VXL");
-    CCFileClass bodyvxl(buffer);
-
-    if (bodyvxl.Is_Available())
-    {
-        delete voxel.VoxelLibrary;
-        voxel.VoxelLibrary = new VoxelLibraryClass(bodyvxl);
-
-        if (!voxel.VoxelLibrary || voxel.VoxelLibrary->FailedToLoad)
-            failed = true;
-
-        _makepath(buffer, nullptr, nullptr, graphic_name, ".HVA");
-        CCFileClass bodyhva(buffer);
-
-        delete voxel.MotionLibrary;
-        voxel.MotionLibrary = new MotionLibraryClass(bodyhva);
-
-        if (!voxel.MotionLibrary || voxel.MotionLibrary->FailedToLoad)
-            failed = true;
-        else
-            voxel.MotionLibrary->Scale(voxel.VoxelLibrary->Get_Tailer(0)->HvaMatrixScale);
-    }
-    else if (required)
-    {
-        failed = true;
-    }
-
-    return !failed;
-}
-
-
 void ObjectTypeClassExtension::Fetch_Voxel_Image()
 {
     char buffer[260];
@@ -209,12 +174,12 @@ void ObjectTypeClassExtension::Fetch_Voxel_Image()
     if (NoSpawnAlt)
     {
         std::snprintf(buffer, sizeof(buffer), "%sWO", Graphic_Name());
-        success &= Init_Voxel(AltVoxel, buffer);
+        success &= Load_Voxel(AltVoxel, buffer);
     }
 
     if (success)
     {
-        AltVoxelCache.Clear();
+        AltVoxelIndex.Clear();
     }
     else
     {
