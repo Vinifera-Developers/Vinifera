@@ -143,6 +143,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where the AI would sell off buildings with `Artillary=yes`, `TickTank=yes` or `IsJuggernaut=yes` that had `UndeploysInto=none` when they were fired at by something outside of their weapon range.
   - Fix a bug where harvesters on large maps could prefer unloading at refineries that were the longest distance away from the harvesters.
   - Fix a bug where the camera kept following a followed object when a trigger or script told it to center on a waypoint or team.
+  - Fix a bug where aircraft are unable to attack shrouded targets in campaign games and instead get stuck in mid-air.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **ZivDero**:

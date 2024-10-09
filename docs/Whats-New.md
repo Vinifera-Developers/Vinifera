@@ -148,6 +148,7 @@ New:
 - Fix a bug where harvesters on large maps could prefer unloading at refineries that were the longest distance away from the harvesters (by Rampastring)
 - Fix a bug where the camera kept following a followed object when a trigger or script told it to center on a waypoint or team (by Rampastring)
 - Add developer command to dump all existing triggers, tags, and local and global variables to the log output (by Rampastring)
+- Fix a bug where aircraft are unable to attack shrouded targets in campaign games and instead get stuck in mid-air (by Rampastring)
 
 Vanilla fixes:
 - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively (by CCHyper/tomsons26)
