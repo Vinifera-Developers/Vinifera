@@ -1665,6 +1665,28 @@ has_deploy_ability:
 
 
 /**
+ *  #issue-1033
+ *
+ *  Fixes a bug where AmbientDamage does not take FirepowerBias into account.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_TechnoClass_Railgun_Damage_Apply_Damage_Modifier_Patch)
+{
+    GET_REGISTER_STATIC(int, damage, ecx);
+    GET_STACK_STATIC(TechnoClass*, this_ptr, esp, 0x74);
+
+    damage = damage * (this_ptr->FirepowerBias * this_ptr->House->FirepowerBias);
+    _asm { mov  ecx, dword ptr ds : damage }
+    _asm { mov[esp + 0x4C], ecx }
+
+    // Restore code that we destroyed by jumping to our code and continue damage applying logic
+    _asm { mov  edx, [esp + 0x14] }
+    JMP(0x006396D9);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void TechnoClassExtension_Hooks()
@@ -1698,4 +1720,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x00632F4C, &_TechnoClass_Take_Damage_Drop_Tiberium_Type_Patch);
     Patch_Jump(0x006320C2, &_TechnoClass_2A0_Is_Allowed_To_Deploy_Unit_Transform_Patch);
     Patch_Call(0x00637FF5, &TechnoClassExt::_Cell_Distance_Squared); // Patch Find_Docking_Bay to call our own distance function that avoids overflows
+    Patch_Jump(0x006396D1, &_TechnoClass_Railgun_Damage_Apply_Damage_Modifier_Patch);
 }

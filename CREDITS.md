@@ -147,6 +147,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where the player was able to input keyboard commands while input was locked through a trigger action.
   - Fix a bug where a vehicle transport could end up attached to its own cargo, causing the transport to disappear upon unloading.
   - Fix a bug where a harvester could be ordered to dock with a refinery that wasn't listed in the harvester's `Dock=` key.
+  - Fix a bug where house firepower bonus, veterancy and crate upgrade damage modifiers were not applied to railgun `AmbientDamage=`.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **ZivDero**:

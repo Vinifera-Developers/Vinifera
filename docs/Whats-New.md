@@ -152,6 +152,7 @@ New:
 - Fix a bug where the player was able to input keyboard commands while input was locked through a trigger action (by Rampastring)
 - Fix a bug where a vehicle transport could end up attached to its own cargo, causing the transport to disappear upon unloading (by Rampastring)
 - Fix a bug where a harvester could be ordered to dock with a refinery that wasn't listed in the harvester's `Dock=` key (by Rampastring)
+- Fix a bug where house firepower bonus, veterancy and crate upgrade damage modifiers were not applied to railgun `AmbientDamage=` (by Rampastring)
 
 Vanilla fixes:
 - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively (by CCHyper/tomsons26)
