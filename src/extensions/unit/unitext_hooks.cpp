@@ -70,6 +70,7 @@ class UnitClassExt : public UnitClass
 {
 public:
     void _Firing_AI();
+    void _Draw_Voxel(int frame, int key, Rect* rect, Point2D* point, Matrix3D* other_matrix, int color, int flags);
 
 };
 
@@ -186,6 +187,61 @@ void UnitClassExt::_Firing_AI()
             return;
         }
     }
+}
+
+
+void UnitClassExt::_Draw_Voxel(int frame, int key, Rect* rect, Point2D* point, Matrix3D* other_matrix, int color, int flags)
+{
+    static const int& lepton_level = Make_Global<int>(0x0080F9D8);
+
+    Matrix3D matrix;
+    Matrix3D::Multiply(Get_Voxel_Draw_Matrix(), *other_matrix, &matrix);
+    const auto typeext = Extension::Fetch<UnitTypeClassExtension>(Class);
+    const auto ext = Extension::Fetch<UnitClassExtension>(this);
+
+    VoxelStruct* voxel = nullptr;
+    IndexClass<int, int>* cache = nullptr;
+
+    if (!std::strcmp(Class->IniName, "APC")
+        && Map[Get_Coord()].Land_Type() == LAND_WATER
+        && !IsOnBridge
+        && Get_Height() < lepton_level)
+    {
+        voxel = &Class->TurretVoxel;
+        cache = nullptr;
+        key = -1;
+    }
+    else if (typeext->NoSpawnAlt && ext->SpawnManager && !ext->SpawnManager->Docked_Count())
+    {
+        voxel = &typeext->AltVoxel;
+        cache = &typeext->AltVoxelCache;
+    }
+    else
+    {
+        voxel = &Class->BodyVoxel;
+        cache = &Class->VoxelCache1;
+    }
+
+    Draw_Voxel(voxel, frame, key, cache, rect, point, &matrix, color, flags);
+}
+
+
+DECLARE_PATCH(_UnitClass_Draw_Voxel_Patch)
+{
+    GET_STACK_STATIC(int, frame, esp, 0x58);
+    GET_STACK_STATIC(int, key, esp, 0x40);
+    LEA_STACK_STATIC(Rect*, rect, esp, 0x68);
+    LEA_STACK_STATIC(Point2D*, point, esp, 0x50);
+    LEA_STACK_STATIC(Matrix3D*, matrix, esp, 0x90);
+    GET_STACK_STATIC(int, color, esp, 0x17C);
+    GET_STACK_STATIC(int, flags, esp, 0x4C);
+    GET_REGISTER_STATIC(UnitClassExt*, this_ptr, ebp);
+
+    this_ptr->_Draw_Voxel(frame, key, rect, point, matrix, color, flags);
+
+    _asm mov ebx, color
+
+    JMP(0x006528E9);
 }
 
 
@@ -1127,6 +1183,7 @@ void UnitClassExtension_Hooks()
     Patch_Jump(0x00656017, &_UnitClass_What_Action_Self_Check_For_Vehicle_Transform_Patch);
     Patch_Jump(0x006543DB, &_UnitClass_Mission_Unload_Transform_To_Vehicle_Patch);
     Patch_Jump(0x0064E920, &UnitClassExt::_Firing_AI);
+    Patch_Jump(0x006527B1, &_UnitClass_Draw_Voxel_Patch);
     //Patch_Jump(0x0065054F, &_UnitClass_Enter_Idle_Mode_Block_Harvesting_On_Bridge_Patch); // Removed, keeping code for reference.
     //Patch_Jump(0x00654AB0, &_UnitClass_Mission_Harvest_Block_Harvesting_On_Bridge_Patch); // Removed, keeping code for reference.
 }

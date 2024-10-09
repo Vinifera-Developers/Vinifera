@@ -59,6 +59,8 @@ class ObjectTypeClassExtension : public AbstractTypeClassExtension
 
         virtual bool Read_INI(CCINIClass &ini) override;
 
+        void Fetch_Voxel_Image();
+
     protected:
         /**
          *  These are only to be accessed for save and load operations!
@@ -67,4 +69,8 @@ class ObjectTypeClassExtension : public AbstractTypeClassExtension
         char AlphaGraphicName[24 + 1];
 
     public:
+
+        bool NoSpawnAlt;
+        VoxelStruct AltVoxel;
+        IndexClass<int, int> AltVoxelCache;
 };

@@ -29,6 +29,7 @@
 #include "objecttype.h"
 #include "ccini.h"
 #include "asserthandler.h"
+#include "ccfile.h"
 #include "debughandler.h"
 
 
@@ -40,7 +41,8 @@
 ObjectTypeClassExtension::ObjectTypeClassExtension(const ObjectTypeClass *this_ptr) :
     AbstractTypeClassExtension(this_ptr),
     GraphicName(),
-    AlphaGraphicName()
+    AlphaGraphicName(),
+    NoSpawnAlt(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("ObjectTypeClassExtension::ObjectTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -151,6 +153,73 @@ bool ObjectTypeClassExtension::Read_INI(CCINIClass &ini)
     if (!ini.Is_Present(ini_name)) {
         return false;
     }
+
+    NoSpawnAlt = ini.Get_Bool(ini_name, "NoSpawnAlt", NoSpawnAlt);
+
+    if (This()->IsVoxel)
+    {
+        Fetch_Voxel_Image();
+    }
     
     return true;
 }
+
+
+static bool Init_Voxel(VoxelStruct& voxel, const char* graphic_name, bool required = false)
+{
+    char buffer[260];
+    bool failed = false;
+
+    _makepath(buffer, nullptr, nullptr, graphic_name, ".VXL");
+    CCFileClass bodyvxl(buffer);
+
+    if (bodyvxl.Is_Available())
+    {
+        delete voxel.VoxelLibrary;
+        voxel.VoxelLibrary = new VoxelLibraryClass(bodyvxl);
+
+        if (!voxel.VoxelLibrary || voxel.VoxelLibrary->FailedToLoad)
+            failed = true;
+
+        _makepath(buffer, nullptr, nullptr, graphic_name, ".HVA");
+        CCFileClass bodyhva(buffer);
+
+        delete voxel.MotionLibrary;
+        voxel.MotionLibrary = new MotionLibraryClass(bodyhva);
+
+        if (!voxel.MotionLibrary || voxel.MotionLibrary->FailedToLoad)
+            failed = true;
+        else
+            voxel.MotionLibrary->Scale(voxel.VoxelLibrary->Get_Tailer(0)->HvaMatrixScale);
+    }
+    else if (required)
+    {
+        failed = true;
+    }
+
+    return !failed;
+}
+
+
+void ObjectTypeClassExtension::Fetch_Voxel_Image()
+{
+    char buffer[260];
+    bool success = true;
+
+    if (NoSpawnAlt)
+    {
+        std::snprintf(buffer, sizeof(buffer), "%sWO", Graphic_Name());
+        success &= Init_Voxel(AltVoxel, buffer);
+    }
+
+    if (success)
+    {
+        AltVoxelCache.Clear();
+    }
+    else
+    {
+        delete AltVoxel.VoxelLibrary;
+        delete AltVoxel.MotionLibrary;
+    }
+}
+

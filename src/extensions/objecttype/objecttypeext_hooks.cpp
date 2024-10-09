@@ -38,6 +38,7 @@
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "extension.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
