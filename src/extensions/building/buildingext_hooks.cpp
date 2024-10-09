@@ -50,6 +50,7 @@
 #include "convert.h"
 #include "drawshape.h"
 #include "infantrytype.h"
+#include "unit.h"
 #include "unittype.h"
 #include "rules.h"
 #include "voc.h"
@@ -753,6 +754,47 @@ DECLARE_PATCH(_BuildingClass_Assign_Target_No_Deconstruction_With_Null_Undeploys
 }
 
 
+bool Is_Allowed_Harvester(BuildingClass* building, UnitClass* harvester)
+{
+    int dockcount = harvester->Class->Dock.Count();
+
+    for (int i = 0; i < dockcount; i++) {
+        if (harvester->Class->Dock[i] == building->Class) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
+/**
+ *  #issue-129
+ *
+ *  Fixes a bug where a harvester is able to dock to a refinery that is not
+ *  listed in the value of the harvester's Dock= key.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_BuildingClass_Receive_Message_Only_Allow_Dockable_Harvester_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    GET_REGISTER_STATIC(UnitClass*, unit, edi);
+
+    if (!Is_Allowed_Harvester(this_ptr, unit)) {
+        JMP(0x0042696C); // Return RADIO_NEGATIVE
+    }
+
+    // Stolen bytes / code
+    if (!this_ptr->Cargo.Is_Something_Attached()) {
+        JMP(0x0042707B); // Return RADIO_ROGER
+    }
+
+    // Continue function execution beyond harvester-to-dock check
+    JMP(0x00426A8C);
+}
+
+
 /**
  *  Main function for patching the hooks.
  */
@@ -775,6 +817,7 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x00432184, &_BuildingClass_Mission_Repair_Assign_Rally_Destination_When_No_Repair_Needed);
     Patch_Jump(0x00431DAB, &_BuildingClass_Mission_Repair_Assign_Rally_Destination_After_Repair_Complete);
     Patch_Jump(0x0042C624, &_BuildingClass_Assign_Target_No_Deconstruction_With_Null_UndeploysInto);
+    Patch_Jump(0x00426A7E, &_BuildingClass_Receive_Message_Only_Allow_Dockable_Harvester_Patch);
     Patch_Jump(0x00439D10, &BuildingClassExt::_Can_Have_Rally_Point);
     Patch_Jump(0x0042D9A0, &BuildingClassExt::_Update_Buildables);
 }
