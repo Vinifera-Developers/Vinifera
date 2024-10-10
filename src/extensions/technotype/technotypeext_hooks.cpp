@@ -61,9 +61,7 @@ int TechnoTypeClassExt::_Max_Pips() const
 {
     int max_pips = 0;
     if (PipScale - 1 < RuleExtension->MaxPips.Count())
-    {
-        max_pips = RuleExtension->MaxPips[PIP_AMMO - 1];
-    }
+        max_pips = RuleExtension->MaxPips[PipScale - 1];
 
     // Negative values are not allowed
     if (max_pips < 0)
