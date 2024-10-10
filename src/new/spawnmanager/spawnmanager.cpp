@@ -105,8 +105,8 @@ IFACEMETHODIMP SpawnManagerClass::Load(IStream* pStm)
 
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Owner, "Owner");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(SpawnType, "SpawnType");
-    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(SuspendedTarget, "SuspendedTarget");
-    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Target, "Target");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Target, "SuspendedTarget");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(QueuedTarget, "Target");
 
     return hr;
 }
@@ -156,8 +156,8 @@ SpawnManagerClass::SpawnManagerClass() :
     Owner(nullptr),
     SpawnType(nullptr),
     SpawnCount(0),
-    SuspendedTarget(nullptr),
     Target(nullptr),
+    QueuedTarget(nullptr),
     Status(SpawnManagerStatus::Idle)
 {
     SpawnManagers.Add(this);
@@ -175,8 +175,8 @@ SpawnManagerClass::SpawnManagerClass(TechnoClass* owner, const AircraftTypeClass
     SpawnCount(spawn_count),
     RegenRate(regen_rate),
     ReloadRate(reload_rate),
-    SuspendedTarget(nullptr),
     Target(nullptr),
+    QueuedTarget(nullptr),
     Status(SpawnManagerStatus::Idle)
 {
     for (int i = 0; i < SpawnCount; i++)
@@ -256,11 +256,11 @@ void SpawnManagerClass::Compute_CRC(WWCRCEngine& crc) const
 
     crc(static_cast<int>(Status));
 
+    if (QueuedTarget != nullptr)
+        crc(QueuedTarget->Get_Heap_ID());
+
     if (Target != nullptr)
         crc(Target->Get_Heap_ID());
-
-    if (SuspendedTarget != nullptr)
-        crc(SuspendedTarget->Get_Heap_ID());
 
     crc(SpawnTimer.Value());
     crc(LogicTimer.Value());
@@ -282,11 +282,17 @@ void SpawnManagerClass::Compute_CRC(WWCRCEngine& crc) const
  */
 void SpawnManagerClass::AI()
 {
+    /**
+     *  The spawner only does logic every 10 frames.
+     */
     if (!LogicTimer.Expired())
         return;
 
     LogicTimer = 10;
 
+    /**
+     *  Iterate all the controls.
+     */
     for (int i = 0; i < SpawnControls.Count(); i++)
     {
         SpawnControl* control = SpawnControls[i];
@@ -296,26 +302,53 @@ void SpawnManagerClass::AI()
 
         switch (control->Status)
         {
+            /**
+             *  The spawn is currently idle.
+             */
         case SpawnControlStatus::Idle:
             {
-                if (!SuspendedTarget)
-                    break;
+                /**
+                 *  If we don't have a target, no need to do anything about it.
+                 */
+                if (!Target)
+                    continue;
 
+                /**
+                 *  If it's not yet time to respawn, skip.
+                 */
                 if (!SpawnTimer.Expired())
-                    break;
+                    continue;
 
-                if (Status == SpawnManagerStatus::Cooldown || IonStorm_Is_Active())
-                    break;
+                /**
+                 *  If we're on cooldown.
+                 */
+                if (Status == SpawnManagerStatus::Cooldown)
+                    continue;
 
+                /**
+                 *  No spawning during an Ion Storm.
+                 */
+                if (IonStorm_Is_Active())
+                    continue;
+
+                /**
+                 *  If the spawner can move (i. e. is not a building), don't allow spawning while it's on the move.
+                 */
                 if (control->IsSpawnedMissile && Owner->Is_Foot())
                 {
                     if (static_cast<FootClass*>(Owner)->Locomotion->Is_Moving() || static_cast<FootClass*>(Owner)->Locomotion->Is_Moving_Now())
                         continue;
                 }
 
-                // Maybe should check the missile instead, huh?
+                /**
+                 *  Not quite sure what's up here.
+                 *  Maybe should check the missile instead, huh?
+                 */
                 SpawnTimer = owner_type_ext->IsMissileSpawn ? 9 : 20;
 
+                /**
+                 *  We can spawn 2 missiles using the burst logic.
+                 */
                 bool burst = false;
                 Coordinate fire_coord;
                 if (control->IsSpawnedMissile &&
@@ -325,11 +358,16 @@ void SpawnManagerClass::AI()
                     Owner->CurrentBurstIndex = i % 2;
                 }
 
+                /**
+                 *  Update our status.
+                 */
                 control->Status = SpawnControlStatus::Preparing;
 
                 WeaponSlotType weapon_slot = Extension::Fetch<WeaponTypeClassExtension>(Owner->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon)->IsSpawner ? WEAPON_SLOT_PRIMARY : WEAPON_SLOT_SECONDARY;
 
-                // In the "yes" case should apply second spawn offset, not implemented
+                /**
+                 *  Apply SecondSpawnOffset if this is the second missile in a burst.
+                 */
                 if (Owner->CurrentBurstIndex > 0)
                     fire_coord = Owner->Fire_Coord(weapon_slot);
                 else
@@ -344,21 +382,36 @@ void SpawnManagerClass::AI()
                     spawn_coord.Y -= 40;
                 }
 
+                /**
+                 *  Place the spawn in the world.
+                 */
                 DirStruct dir = Owner->PrimaryFacing.Current();
                 spawnee->Unlimbo(spawn_coord, dir.Get_Dir());
 
+                /**
+                 *  Cruise missiles spawn their takeoff animation.
+                 */
                 if (rocket && rocket->IsCruiseMissile && rocket->TakeoffAnim)
                     new AnimClass(rocket->TakeoffAnim, spawnee->Coord, 2, 1, SHAPE_WIN_REL | SHAPE_CENTER, -10);
 
+                /**
+                 *  Reset burst since we've just spawned the second missile.
+                 */
                 if (burst)
                     Owner->CurrentBurstIndex = 0;
 
+                /**
+                 *  Missiles only take a destination once, so they go straight to the target.
+                 */
                 if (control->IsSpawnedMissile)
                 {
-                    Suspend_Target();
-                    spawnee->Assign_Destination(SuspendedTarget);
+                    Next_Target();
+                    spawnee->Assign_Destination(Target);
                     spawnee->Assign_Mission(MISSION_MOVE);
                 }
+                /**
+                 *  Aircraft first "organize" next to the spawner.
+                 */
                 else
                 {
                     CellClass* owner_cell = Owner->Get_Cell_Ptr();
@@ -370,6 +423,9 @@ void SpawnManagerClass::AI()
                 break;
             }
 
+            /**
+             *  The rocket is taking off (handled by the locomotor), so wait until it's done, then let it go.
+             */
         case SpawnControlStatus::Takeoff:
             {
                 if (control->ReloadTimer.Expired())
@@ -377,13 +433,22 @@ void SpawnManagerClass::AI()
                 break;
             }
 
+            /**
+             *  The aircraft is preparing to attack.
+             */
         case SpawnControlStatus::Preparing:
             {
+                /**
+                 *  Missiles don't do this.
+                 */
                 if (control->IsSpawnedMissile)
                     break;
 
-                Suspend_Target();
-                if (SuspendedTarget != nullptr)
+                /**
+                 *  If there's not target, return to base.
+                 */
+                Next_Target();
+                if (Target != nullptr)
                 {
                     spawnee->Assign_Destination(Owner);
                     spawnee->Assign_Target(nullptr);
@@ -393,6 +458,9 @@ void SpawnManagerClass::AI()
                     break;
                 }
 
+                /**
+                 *  Send the aircraft to attack.
+                 */
                 CellClass* owner_cell = Owner->Get_Cell_Ptr();
                 CellClass* adjacent_cell = &owner_cell->Adjacent_Cell(FACING_S);
                 spawnee->Assign_Destination(adjacent_cell);
@@ -400,14 +468,23 @@ void SpawnManagerClass::AI()
                 break;
             }
 
+            /**
+             *  The aircraft is currently attacking.
+             */
         case SpawnControlStatus::Attacking:
             {
-                Suspend_Target();
-                if (spawnee->Ammo > 0 && SuspendedTarget)
+                /**
+                 *  If there's still ammo and a target, attack.
+                 */
+                Next_Target();
+                if (spawnee->Ammo > 0 && Target)
                 {
-                    spawnee->Assign_Target(SuspendedTarget);
+                    spawnee->Assign_Target(Target);
                     spawnee->Assign_Mission(MISSION_ATTACK);
                 }
+                /**
+                 *  Otherwise, return to base.
+                 */
                 else
                 {
                     spawnee->Assign_Destination(Owner);
@@ -418,17 +495,28 @@ void SpawnManagerClass::AI()
                 break;
             }
 
+            /**
+             *  The aircraft is retuning back to the spawner.
+             */
         case SpawnControlStatus::Returning:
             {
-                Suspend_Target();
-                if (spawnee->Ammo > 0 && SuspendedTarget)
+                /**
+                 *  Check if we've got ammo and there's a target now.
+                 *  If so, attack it.
+                 */
+                Next_Target();
+                if (spawnee->Ammo > 0 && Target)
                 {
                     control->Status = SpawnControlStatus::Attacking;
-                    spawnee->Assign_Target(SuspendedTarget);
+                    spawnee->Assign_Target(Target);
                     spawnee->Assign_Mission(MISSION_ATTACK);
                     break;
                 }
 
+                /**
+                 *  If we've arrived at the spawner, "land" (despawn).
+                 *  Otherwise, keep going towards the spawner.
+                 */
                 Cell owner_coord = Owner->Get_Cell();
                 Cell spawnee_coord = spawnee->Get_Cell();
 
@@ -448,22 +536,40 @@ void SpawnManagerClass::AI()
                 break;
             }
 
+            /**
+             *  The aircraft has expended its ammo and is reloading.
+             */
         case SpawnControlStatus::Reloading:
             {
+                /**
+                 *  Wait until the reload timer expires.
+                 */
                 if (!control->ReloadTimer.Expired())
                     break;
 
+                /**
+                 *  Then reset the spawn to max ammo and health.
+                 */
                 control->Status = SpawnControlStatus::Idle;
                 spawnee->Ammo = spawnee->Class->MaxAmmo;
                 spawnee->Strength = spawnee->Class->MaxStrength;
                 break;
             }
 
+            /**
+             *  The spawn has been destroyed and is respawning.
+             */
         case SpawnControlStatus::Dead:
             {
+                /**
+                 *  Wait until the reload timer expires.
+                 */
                 if (!control->ReloadTimer.Expired())
                     break;
 
+                /**
+                 *  Create a new spawn and set it to idle.
+                 */
                 control->Spawnee = static_cast<AircraftClass*>(SpawnType->Create_One_Of(Owner->Owning_House()));
                 control->IsSpawnedMissile = RocketTypeClass::From_AircraftType(SpawnType) != nullptr;
                 control->Spawnee->Limbo();
@@ -474,13 +580,17 @@ void SpawnManagerClass::AI()
         }
     }
 
+    /**
+     *  If the spawner is currently idling, check if there's a target.
+     *  If there is one, and it's in range, attack it.
+     */
     if (Status == SpawnManagerStatus::Idle)
     {
-        Suspend_Target();
-        if (SuspendedTarget != nullptr)
+        Next_Target();
+        if (Target)
         {
-            WeaponSlotType weapon = Owner->What_Weapon_Should_I_Use(SuspendedTarget);
-            if (Owner->In_Range_Of(SuspendedTarget, weapon))
+            WeaponSlotType weapon = Owner->What_Weapon_Should_I_Use(Target);
+            if (Owner->In_Range_Of(Target, weapon))
                 Status = SpawnManagerStatus::Launching;
             else
                 Abandon_Target();
@@ -488,12 +598,19 @@ void SpawnManagerClass::AI()
     }
     else if (Status == SpawnManagerStatus::Launching)
     {
-        if (SuspendedTarget == nullptr)
+        /**
+         *  If we're launching spawns, but there isn't a target anymore, stop it.
+         */
+        if (Target == nullptr)
         {
             Abandon_Target();
             return;
         }
 
+        /**
+         *  Check to make sure all of our spawns are currently preparing to launch.
+         *  This should only happen when the spawns are missiles, I believe.
+         */
         for (int i = 0; i < SpawnControls.Count(); i++)
         {
             const SpawnControl* control = SpawnControls[i];
@@ -501,17 +618,28 @@ void SpawnManagerClass::AI()
                 return;
         }
 
-        bool has_missiles = false;
+        /**
+         *  Process all our missiles.
+         */
+        bool is_missile_launcher = false;
         for (int i = 0; i < SpawnControls.Count(); i++)
         {
             SpawnControl* control = SpawnControls[i];
             AircraftClass* spawnee = control->Spawnee;
+
+            /**
+             *  Don't process dead spawns.
+             */
             if (control->Status == SpawnControlStatus::Preparing)
             {
+                /**
+                 *  If the spawn is a missile, add it to the kamikaze tracker and set it to take off.
+                 *  Also set the reload timer to the missile's takeoff time.
+                 */
                 if (Extension::Fetch<AircraftTypeClassExtension>(spawnee->Techno_Type_Class())->IsMissileSpawn)
                 {
-                    has_missiles = true;
-                    KamikazeTracker->Add(spawnee, SuspendedTarget);
+                    is_missile_launcher = true;
+                    KamikazeTracker->Add(spawnee, Target);
                     KamikazeTracker->UpdateTimer = 2;
 
                     if (control->IsSpawnedMissile)
@@ -526,20 +654,34 @@ void SpawnManagerClass::AI()
                         Detach(spawnee);
                     }
                 }
+                /**
+                 *  On the off chance it's not a missile, just set it to attack.
+                 */
                 else
                 {
                     control->Status = SpawnControlStatus::Attacking;
-                    spawnee->Assign_Target(SuspendedTarget);
+                    spawnee->Assign_Target(Target);
                     spawnee->Assign_Mission(MISSION_ATTACK);
                 }
             }
         }
 
-        if (has_missiles)
+        /**
+         *  If this is a missile launcher,
+         *  abandon the target.
+         */
+        if (is_missile_launcher)
             Abandon_Target();
 
+        /**
+         *  Phew, time to go on cooldown.
+         */
         Status = SpawnManagerStatus::Cooldown;
     }
+    /**
+     *  If we're on cooldown, check if any of the spawns are currently attacking or returning.
+     *  If they are, change the status to idle instead.
+     */
     else if (Status == SpawnManagerStatus::Cooldown)
     {
         bool is_idle = true;
@@ -568,12 +710,21 @@ void SpawnManagerClass::Detach_Spawns()
 {
     int regen_rate = Owner->Strength > 0 && Owner->IsActive ? 0 : RegenRate;
 
+    /**
+     *  Iterate all the spawns.
+     */
     for (int i = 0; i < SpawnControls.Count(); i++)
     {
+        /**
+         *  Don't need to do anything about dead spawns.
+         */
         SpawnControl* control = SpawnControls[i];
         if (control->Status == SpawnControlStatus::Dead)
             continue;
 
+        /**
+         *  If it's currently docked, just kill it off. It's already limboed.
+         */
         if (control->Status == SpawnControlStatus::Idle || control->Status == SpawnControlStatus::Reloading)
         {
             control->Status = SpawnControlStatus::Dead;
@@ -581,19 +732,28 @@ void SpawnManagerClass::Detach_Spawns()
         }
         else
         {
+            /**
+             *  If it's a rocket taking off, detach it and remove it from the world.
+             */
             if (control->Status == SpawnControlStatus::Takeoff)
             {
                 KamikazeTracker->Detach(control->Spawnee);
                 control->Status = SpawnControlStatus::Dead;
                 control->Spawnee->Remove_This();
             }
+            /**
+             *  Otherwise it's probably currently in flight, so just detach it.
+             */
             else
             {
                 control->Status = SpawnControlStatus::Dead;
-                KamikazeTracker->Add(control->Spawnee, SuspendedTarget);
+                KamikazeTracker->Add(control->Spawnee, Target);
             }
         }
 
+        /**
+         *  Set the spawn to regenerate.
+         */
         control->Spawnee = nullptr;
         control->ReloadTimer = regen_rate;
     }
@@ -605,10 +765,10 @@ void SpawnManagerClass::Detach_Spawns()
  *
  *  @author: ZivDero
  */
-void SpawnManagerClass::Assign_Target(TARGET target)
+void SpawnManagerClass::Queue_Target(TARGET target)
 {
-    if (target != SuspendedTarget)
-        Target = target;
+    if (target != Target)
+        QueuedTarget = target;
 }
 
 
@@ -619,24 +779,30 @@ void SpawnManagerClass::Assign_Target(TARGET target)
  */
 void SpawnManagerClass::Abandon_Target()
 {
+    /**
+     *  Loop all the spawns. If any of them are currently preparing to attack, drop them.
+     */
     for (int i = 0; i < SpawnControls.Count(); ++i)
     {
         SpawnControl* control = SpawnControls[i];
         if (control->Status == SpawnControlStatus::Preparing)
         {
-            AircraftTypeClassExtension* extension = Extension::Fetch<AircraftTypeClassExtension>(control->Spawnee->Techno_Type_Class());
+            const auto extension = Extension::Fetch<AircraftTypeClassExtension>(control->Spawnee->Techno_Type_Class());
             if (extension->IsMissileSpawn)
             {
-                KamikazeTracker->Add(control->Spawnee, SuspendedTarget);
+                KamikazeTracker->Add(control->Spawnee, Target);
                 KamikazeTracker->UpdateTimer = 2;
                 Detach(control->Spawnee);
             }
         }
     }
 
+    /**
+     *  Set the status to idle and remove any targets.
+     */
     Status = SpawnManagerStatus::Idle;
+    QueuedTarget = nullptr;
     Target = nullptr;
-    SuspendedTarget = nullptr;
 }
 
 
@@ -645,13 +811,13 @@ void SpawnManagerClass::Abandon_Target()
  *
  *  @author: ZivDero
  */
-bool SpawnManagerClass::Suspend_Target()
+bool SpawnManagerClass::Next_Target()
 {
-    if (Target == nullptr)
+    if (QueuedTarget == nullptr)
         return false;
 
-    SuspendedTarget = Target;
-    Target = nullptr;
+    Target = QueuedTarget;
+    QueuedTarget = nullptr;
     return true;
 }
 
@@ -663,19 +829,29 @@ bool SpawnManagerClass::Suspend_Target()
  */
 void SpawnManagerClass::Detach(TARGET target)
 {
-    if (SuspendedTarget == target)
-    {
-        SuspendedTarget = nullptr;
-
-        if (!Target)
-            Abandon_Target();
-    }
-    else if (Target == target)
+    /**
+     *  If it's the suspended target, remove it.
+     *  If we don't have any more targets, stop attacking.
+     */
+    if (Target == target)
     {
         Target = nullptr;
+
+        if (!QueuedTarget)
+            Abandon_Target();
+    }
+    /**
+     *  If it's the current target, remove it.
+     */
+    else if (QueuedTarget == target)
+    {
+        QueuedTarget = nullptr;
     }
     else
     {
+        /**
+         *  Check if it's one of the spawns. If so, remove it.
+         */
         for (int i = 0; i < SpawnControls.Count(); i++)
         {
             const auto control = SpawnControls[i];
@@ -692,6 +868,9 @@ void SpawnManagerClass::Detach(TARGET target)
             }
         }
 
+        /**
+         *  lastly, check if it's maybe the owner of the spawner itself.
+         */
         if (Owner == target)
         {
             Detach_Spawns();

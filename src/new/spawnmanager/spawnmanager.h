@@ -39,7 +39,7 @@ class AircraftClass;
 
 enum class SpawnManagerStatus {
 	Idle = 0,		// no target or out of range
-	Launching = 1,	// one launch in progress
+	Launching = 1,	// a launch in progress
 	Cooldown = 2	// waiting for launch to complete
 };
 
@@ -93,9 +93,9 @@ public:
 	virtual void AI() override;
 
 	void Detach_Spawns();
-	void Assign_Target(TARGET target);
+	void Queue_Target(TARGET target);
 	void Abandon_Target();
-	bool Suspend_Target();
+	bool Next_Target();
 	void Detach(TARGET target);
 	int Active_Count();
 	int Docked_Count();
@@ -108,17 +108,17 @@ public:
 
 public:
 	/**
-     *  The Techno that owns this SpawnManager.
+     *  The Techno that owns this spawn manager.
      */
 	TechnoClass* Owner;
 
 	/**
-	 *  The AircraftType that this SpawnManager spawns.
+	 *  The AircraftType that this spawn manager spawns.
 	 */
 	const AircraftTypeClass* SpawnType;
 
 	/**
-	 *  How many spawns this SpawnManager can have.
+	 *  How many spawns this spawn manager can have.
 	 */
 	int SpawnCount;
 
@@ -133,32 +133,32 @@ public:
 	int ReloadRate;
 
 	/**
-	 *  This vector holds the SpawnControls.
+	 *  This vector holds the spawn manager.
 	 */
 	DynamicVectorClass<SpawnControl*> SpawnControls;
 
 	/**
-	 *  The timer that controls how often the SpawnManager should execute its AI function.
+	 *  The timer that controls how often the spawn manager should execute its AI function.
 	 */
 	CDTimerClass<FrameTimerClass> LogicTimer;
 
 	/**
-	 *  The timer that controls how often the SpawnManager should spawn a new spawn.
+	 *  The timer that controls how often the spawn manager should spawn a new spawn.
 	 */
 	CDTimerClass<FrameTimerClass> SpawnTimer;
 
 	/**
-	 *  The SpawnManager's suspended target.
+	 *  The spawn manager's target.
 	 */
-	AbstractClass* SuspendedTarget;
+	TARGET Target;
 
 	/**
-	 *  The target that the SpawnManager is currently attacking.
+	 *  The next target the spawn manager should attack.
 	 */
-	AbstractClass* Target;
+	TARGET QueuedTarget;
 
 	/**
-	 *  The current status of the SpawnManager.
+	 *  The current status of the spawn manager.
 	 */
 	SpawnManagerStatus Status;
 };

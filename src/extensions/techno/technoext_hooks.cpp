@@ -466,7 +466,7 @@ bool TechnoClassExt::_Fire_At_Spawner(TARGET target, WeaponTypeClass* weapon)
     if (weapon_ext->IsSpawner)
     {
         auto techno_ext = Extension::Fetch<TechnoClassExtension>(this);
-        techno_ext->SpawnManager->Assign_Target(target);
+        techno_ext->SpawnManager->Queue_Target(target);
         if (IsOwnedByPlayer || IsDiscoveredByPlayer)
         {
             if (!Map.Is_Shrouded(Center_Coord()) && !Map.Is_Fogged(Center_Coord()))
@@ -1943,7 +1943,7 @@ DECLARE_PATCH(_TechnoClass_Assign_Target_Spawn_Manager_Patch)
     extension = Extension::Fetch<TechnoClassExtension>(this_ptr);
 
     if (extension->SpawnManager)
-        extension->SpawnManager->Assign_Target(nullptr);
+        extension->SpawnManager->Queue_Target(nullptr);
 
     // Stolen instructions
     this_ptr->CurrentBurstIndex = 0;
