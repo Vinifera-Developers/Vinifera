@@ -169,7 +169,7 @@ DECLARE_PATCH(_TerrainClass_Take_Damage_LightSource_Patch)
      *  Stolen bytes/code
      */
     this_ptr->Detach_All(true);
-    this_ptr->entry_E4();
+    this_ptr->Remove_This();
 
     /**
      *  Function return.

@@ -1024,7 +1024,7 @@ DECLARE_PATCH(_TechnoClass_Fire_At_Suicide_Patch)
          */
         if (weapontypeext->IsSuicide && weapontypeext->IsDeleteOnSuicide) {
             DEV_DEBUG_INFO("Deleted: %s\n", this_ptr->Name());
-            this_ptr->entry_E4();
+            this_ptr->Remove_This();
 
         /**
          *  Deal full damage to the firing unit. The removal of the unit will
