@@ -59,7 +59,7 @@ class ObjectTypeClassExtension : public AbstractTypeClassExtension
 
         virtual bool Read_INI(CCINIClass &ini) override;
 
-        void Fetch_Voxel_Image();
+        void Fetch_Voxel_Image(const char* graphic_name);
 
     protected:
         /**

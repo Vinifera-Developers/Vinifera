@@ -164,7 +164,7 @@ void ObjectTypeClassExt::_Fetch_Voxel_Image()
     char buffer[260];
     bool success = true;
 
-    Load_Voxel(Voxel, Graphic_Name(), true);
+    success &= Load_Voxel(Voxel, Graphic_Name(), true);
 
     if (What_Am_I() != RTTI_UNIT || reinterpret_cast<UnitTypeClass*>(this)->IsTurretEquipped)
     {
@@ -204,10 +204,18 @@ void ObjectTypeClassExt::_Fetch_Voxel_Image()
     {
         delete Voxel.VoxelLibrary;
         delete Voxel.MotionLibrary;
+        Voxel.VoxelLibrary = nullptr;
+        Voxel.MotionLibrary = nullptr;
+
         delete AuxVoxel.VoxelLibrary;
         delete AuxVoxel.MotionLibrary;
+        AuxVoxel.VoxelLibrary = nullptr;
+        AuxVoxel.MotionLibrary = nullptr;
+
         delete AuxVoxel2.VoxelLibrary;
         delete AuxVoxel2.MotionLibrary;
+        AuxVoxel2.VoxelLibrary = nullptr;
+        AuxVoxel2.MotionLibrary = nullptr;
     }
 }
 

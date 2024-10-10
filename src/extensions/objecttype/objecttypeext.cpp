@@ -81,12 +81,24 @@ ObjectTypeClassExtension::~ObjectTypeClassExtension()
  */
 HRESULT ObjectTypeClassExtension::Load(IStream *pStm)
 {
+    AltVoxelIndex.Clear();
+    delete AltVoxel.VoxelLibrary;
+    delete AltVoxel.MotionLibrary;
+    AltVoxel.VoxelLibrary = nullptr;
+    AltVoxel.MotionLibrary = nullptr;
+
     //EXT_DEBUG_TRACE("ObjectTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     HRESULT hr = AbstractTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
+
+    AltVoxelIndex.Clear();
+    AltVoxel.VoxelLibrary = nullptr;
+    AltVoxel.MotionLibrary = nullptr;
+
+    Fetch_Voxel_Image(GraphicName);
     
     return hr;
 }
@@ -161,21 +173,21 @@ bool ObjectTypeClassExtension::Read_INI(CCINIClass &ini)
 
     if (This()->IsVoxel)
     {
-        Fetch_Voxel_Image();
+        Fetch_Voxel_Image(Graphic_Name());
     }
     
     return true;
 }
 
 
-void ObjectTypeClassExtension::Fetch_Voxel_Image()
+void ObjectTypeClassExtension::Fetch_Voxel_Image(const char* graphic_name)
 {
     char buffer[260];
     bool success = true;
 
     if (NoSpawnAlt)
     {
-        std::snprintf(buffer, sizeof(buffer), "%sWO", Graphic_Name());
+        std::snprintf(buffer, sizeof(buffer), "%sWO", graphic_name);
         success &= Load_Voxel(AltVoxel, buffer);
     }
 
