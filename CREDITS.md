@@ -128,6 +128,8 @@ This page lists all the individual contributions to the project by their author.
   - Initial documentation setup.
 - **MarkJFox**:
   - Graphics for the new sidebar fitting vanilla sidebar.
+- **[Phobos Contributors](https://github.com/Phobos-developers/Phobos/blob/develop/CREDITS.md)**:
+  - DirStruct implementation.
 - **Rampastring**:
   - Add `IceStrength` to Rules, and `IceDestructionEnabled` scenario option.
   - Add `ImmuneToEMP` to TechnoTypes.

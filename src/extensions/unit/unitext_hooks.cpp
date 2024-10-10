@@ -392,19 +392,19 @@ static int Facing_To_Frame_Number(FacingClass &facing, int facings_count)
     switch (facings_count) {
 
         case 8:
-            shape_number = Dir_To_8(facing.Current());
+            shape_number = facing.Current().Get_Facing<8>();
             break;
 
         case 16:
-            shape_number = Dir_To_16(facing.Current());
+            shape_number = facing.Current().Get_Facing<16>();
             break;
 
         case 32:
-            shape_number = Dir_To_32(facing.Current());
+            shape_number = facing.Current().Get_Facing<32>();
             break;
 
         case 64:
-            shape_number = Dir_To_64(facing.Current());
+            shape_number = facing.Current().Get_Facing<64>();
             break;
 
         default:
