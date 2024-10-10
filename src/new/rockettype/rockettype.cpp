@@ -189,7 +189,7 @@ HRESULT RocketTypeClass::IsDirty()
  *  Loads the object from the stream and requests a new pointer to
  *  the class we extended post-load.
  *
- *  @author: CCHyper, tomsons26
+ *  @author: ZivDero, CCHyper, tomsons26
  */
 HRESULT RocketTypeClass::Load(IStream* pStm)
 {
@@ -392,21 +392,6 @@ bool RocketTypeClass::Read_INI(CCINIClass& ini)
     EliteWarhead = ini.Get_Warhead(IniName, "EliteWarhead", EliteWarhead);
     TakeoffAnim = ini.Get_Anim(IniName, "TakeoffAnim", TakeoffAnim);
     TrailAnim = ini.Get_Anim(IniName, "TrailAnim", TrailAnim);
-
-    return true;
-}
-
-
-/**
- *  Performs one time initialization of the Rocket type class.
- *
- *  @warning: Do not change this function, otherwise it will break support
- *            with the original game!
- *
- *  @author: CCHyper
- */
-bool RocketTypeClass::One_Time()
-{
 
     return true;
 }

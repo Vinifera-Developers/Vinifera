@@ -769,12 +769,12 @@ bool RulesClassExtension::Rockets(CCINIClass &ini)
         const char *entry = ini.Get_Entry(ROCKETTYPES, index);
 
         /**
-         *  Get a weapon entry.
+         *  Get a rocket entry.
          */
         if (ini.Get_String(ROCKETTYPES, entry, buf, sizeof(buf))) {
 
             /**
-             *  Find or create a weapon of the name specified.
+             *  Find or create a rocket of the name specified.
              */
             rockettype = RocketTypeClass::Find_Or_Make(buf);
             if (rockettype) {

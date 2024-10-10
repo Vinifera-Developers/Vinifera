@@ -60,6 +60,7 @@ static class ObjectTypeClassExt final : public ObjectTypeClass
         void _Assign_Theater_Name(char *buffer, TheaterType theater);
         const ShapeFileStruct * _Get_Image_Data() const;
         void _Fetch_Voxel_Image();
+        static void _Clear_Voxel_Indexes();
 };
 
 
@@ -211,6 +212,25 @@ void ObjectTypeClassExt::_Fetch_Voxel_Image()
 }
 
 
+void ObjectTypeClassExt::_Clear_Voxel_Indexes()
+{
+    for (int i = 0; i < ObjectTypes.Count(); i++)
+    {
+        const auto otype = ObjectTypes[i];
+        otype->VoxelIndex.Clear();
+        otype->AuxVoxelIndex.Clear();
+        otype->ShadowVoxelIndex.Clear();
+        otype->AuxVoxel2Index.Clear();
+
+        const auto otype_ext = Extension::Fetch<ObjectTypeClassExt>(otype);
+        otype_ext->AuxVoxel2Index.Clear();
+    }
+
+    StaticBuffer.CurrentBufferPtr = StaticBuffer.BufferPtr;
+}
+
+
+
 /**
  *  Main function for patching the hooks.
  */
@@ -220,4 +240,5 @@ void ObjectTypeClassExtension_Hooks()
     Patch_Jump(0x00588D00, &ObjectTypeClassExt::_Assign_Theater_Name);
     Patch_Jump(0x0058891D, &_ObjectTypeClass_Load_Theater_Art_Assign_Theater_Name_Theater_Patch);
     Patch_Jump(0x00587C80, &ObjectTypeClassExt::_Fetch_Voxel_Image);
+    Patch_Jump(0x00589030, &ObjectTypeClassExt::_Clear_Voxel_Indexes);
 }

@@ -31,6 +31,8 @@
 #include "asserthandler.h"
 #include "ccfile.h"
 #include "debughandler.h"
+#include "voxellib.h"
+#include "motionlib.h"
 #include "miscutil.h"
 
 

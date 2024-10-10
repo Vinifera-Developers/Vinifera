@@ -39,33 +39,33 @@ class KamikazeTrackerClass;
 
 class KamikazeTrackerClass {
 public:
-	struct KamikazeControl {
-		AircraftClass* Aircraft;
-		CellClass* Cell;
-	};
+    struct KamikazeControl {
+        AircraftClass* Aircraft;
+        CellClass* Cell;
+    };
 
-	KamikazeTrackerClass() noexcept : UpdateTimer(100), Controls() { }
-	~KamikazeTrackerClass();
+    KamikazeTrackerClass() noexcept : UpdateTimer(100), Controls() { }
+    ~KamikazeTrackerClass();
 
-	HRESULT STDMETHODCALLTYPE Load(IStream* pStm);
-	HRESULT STDMETHODCALLTYPE Save(IStream* pStm, BOOL fClearDirty);
+    HRESULT STDMETHODCALLTYPE Load(IStream* pStm);
+    HRESULT STDMETHODCALLTYPE Save(IStream* pStm, BOOL fClearDirty);
 
-	void Add(AircraftClass* aircraft, TARGET target);
-	void AI();
-	void Detach(AircraftClass const* aircraft);
-	void Clear();
+    void Add(AircraftClass* aircraft, TARGET target);
+    void AI();
+    void Detach(AircraftClass const* aircraft);
+    void Clear();
 
-	KamikazeTrackerClass(const KamikazeTrackerClass&) = delete;
-	KamikazeTrackerClass& operator= (const KamikazeTrackerClass&) = delete;
+    KamikazeTrackerClass(const KamikazeTrackerClass&) = delete;
+    KamikazeTrackerClass& operator= (const KamikazeTrackerClass&) = delete;
 
 public:
-	/**
+    /**
      *  The timer that controls how often the tracker should perform its AI function.
      */
-	CDTimerClass<FrameTimerClass> UpdateTimer;
+    CDTimerClass<FrameTimerClass> UpdateTimer;
 
-	/**
-	 *  The vector that contains all kamikaze controls.
-	 */
-	DynamicVectorClass<KamikazeControl*> Controls;
+    /**
+     *  The vector that contains all kamikaze controls.
+     */
+    DynamicVectorClass<KamikazeControl*> Controls;
 };

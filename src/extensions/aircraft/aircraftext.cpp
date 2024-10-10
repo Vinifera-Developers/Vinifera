@@ -107,9 +107,9 @@ HRESULT AircraftClassExtension::Load(IStream *pStm)
         return E_FAIL;
     }
 
-    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(SpawnOwner, "Spawner");
-
     new (this) AircraftClassExtension(NoInitClass());
+
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(SpawnOwner, "SpawnOwner");
     
     return hr;
 }
@@ -156,6 +156,10 @@ void AircraftClassExtension::Detach(TARGET target, bool all)
     //EXT_DEBUG_TRACE("AircraftClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     FootClassExtension::Detach(target, all);
+
+    if (target == SpawnOwner) {
+        SpawnOwner = nullptr;
+    }
 }
 
 
@@ -167,4 +171,7 @@ void AircraftClassExtension::Detach(TARGET target, bool all)
 void AircraftClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
     //EXT_DEBUG_TRACE("AircraftClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    if (SpawnOwner)
+        crc(SpawnOwner->Get_Heap_ID());
 }

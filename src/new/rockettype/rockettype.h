@@ -75,8 +75,6 @@ public:
     char const* Name() const { return IniName; }
     bool Read_INI(CCINIClass& ini);
 
-    static bool One_Time();
-
     static RocketType From_Name(const char *name);
     static const char *Name_From(RocketType type);
 

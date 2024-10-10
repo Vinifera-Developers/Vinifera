@@ -52,7 +52,8 @@ WeaponTypeClassExtension::WeaponTypeClassExtension(const WeaponTypeClass *this_p
     ElectricBoltLifetime(EBOLT_DEFAULT_LIFETIME),
     ElectricBoltIterationCount(EBOLT_DEFAULT_INTERATIONS),
     ElectricBoltDeviation(EBOLT_DEFAULT_DEVIATION),
-    IsSpawner(false)
+    IsSpawner(false),
+    IsRevealOnFire(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("WeaponTypeClassExtension::WeaponTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -175,6 +176,8 @@ void WeaponTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
     //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     crc(IsElectricBolt);
+    crc(IsSpawner);
+    crc(IsRevealOnFire);
 }
 
 
