@@ -291,7 +291,8 @@ void SpawnManagerClass::AI()
     {
         SpawnControl* control = SpawnControls[i];
         AircraftClass* spawnee = control->Spawnee;
-        TechnoTypeClassExtension* owner_class_ext = Extension::Fetch<TechnoTypeClassExtension>(Owner->Techno_Type_Class());
+        const auto owner_ext = Extension::Fetch<TechnoClassExtension>(Owner);
+        const auto owner_type_ext = Extension::Fetch<TechnoTypeClassExtension>(Owner->Techno_Type_Class());
 
         switch (control->Status)
         {
@@ -306,14 +307,14 @@ void SpawnManagerClass::AI()
                 if (Status == SpawnManagerStatus::Cooldown || IonStorm_Is_Active())
                     break;
 
-                if (control->IsSpawnedMissile)
+                if (control->IsSpawnedMissile && Owner->Is_Foot())
                 {
                     if (static_cast<FootClass*>(Owner)->Locomotion->Is_Moving() || static_cast<FootClass*>(Owner)->Locomotion->Is_Moving_Now())
                         continue;
                 }
 
                 // Maybe should check the missile instead, huh?
-                SpawnTimer = owner_class_ext->IsMissileSpawn ? 9 : 20;
+                SpawnTimer = owner_type_ext->IsMissileSpawn ? 9 : 20;
 
                 bool burst = false;
                 Coordinate fire_coord;
@@ -330,13 +331,9 @@ void SpawnManagerClass::AI()
 
                 // In the "yes" case should apply second spawn offset, not implemented
                 if (Owner->CurrentBurstIndex > 0)
-                {
                     fire_coord = Owner->Fire_Coord(weapon_slot);
-                }
                 else
-                {
-                    fire_coord = Owner->Fire_Coord(weapon_slot);
-                }
+                    fire_coord = owner_ext->Fire_Coord(weapon_slot, owner_type_ext->SecondSpawnOffset);
 
                 Coordinate spawn_coord = Coordinate(fire_coord.X, fire_coord.Y, fire_coord.Z + 10);
 

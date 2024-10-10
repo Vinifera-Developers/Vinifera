@@ -64,6 +64,7 @@ class TechnoClassExtension : public RadioClassExtension
         virtual void Response_Deploy();
         virtual void Response_Harvest();
         virtual bool Can_Passive_Acquire() const;
+        virtual Coordinate Fire_Coord(WeaponSlotType which, TPoint3D<int> offset = TPoint3D<int>()) const;
 
         void Put_Storage_Pointers();
 

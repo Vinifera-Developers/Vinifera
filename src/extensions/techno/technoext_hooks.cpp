@@ -106,6 +106,7 @@ public:
     void _Mission_AI();
     FireErrorType _Can_Fire(TARGET target, WeaponSlotType which = WEAPON_SLOT_PRIMARY);
     bool _Can_Player_Move() const;
+    Coordinate _Fire_Coord(WeaponSlotType which) const;
 
 };
 
@@ -762,6 +763,12 @@ bool TechnoClassExt::_Can_Player_Move() const
     }
 
     return true;
+}
+
+
+Coordinate TechnoClassExt::_Fire_Coord(WeaponSlotType which) const
+{
+    return Extension::Fetch<TechnoClassExtension>(this)->Fire_Coord(which, TPoint3D<int>());
 }
 
 
@@ -2088,4 +2095,5 @@ void TechnoClassExtension_Hooks()
     Patch_Call(0x0062E9D1, &TechnoClassExt::_Mission_AI);
     Patch_Jump(0x0062F980, &TechnoClassExt::_Can_Fire);
     Patch_Jump(0x00631FF0, &TechnoClassExt::_Can_Player_Move);
+    //Patch_Jump(0x0062A3D0, &TechnoClassExt::_Fire_Coord); // Disabled because it's functionally identical to the vanilla function when there's no secondary coordinate
 }

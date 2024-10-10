@@ -187,9 +187,28 @@ class TechnoTypeClassExtension : public ObjectTypeClassExtension
          */
         bool IsMissileSpawn;
 
-
+        /**
+         *  If this is a spawner (rocket launcher or aircraft carrier), this is the type of object it spawns.
+         */
         const AircraftTypeClass* Spawns;
+
+        /**
+         *  The rate at which this spawner's spawned object reload (how much time it takes before they can attack again).
+         */
         int SpawnReloadRate;
+
+        /**
+         *  The rate at which the spawner replenished its destroyed spawned objects.
+         */
         int SpawnRegenRate;
+
+        /**
+         *  How many objects can this spawner spawn?
+         */
         int SpawnsNumber;
+
+        /**
+         *  If it can spawn two missiles at once (like the Boomer submarine), this is an extra offset of the second spawn relative to the first.
+         */
+        TPoint3D<int> SecondSpawnOffset;
 };

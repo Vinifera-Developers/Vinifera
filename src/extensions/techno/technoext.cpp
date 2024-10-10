@@ -40,8 +40,9 @@
 #include "debughandler.h"
 #include "saveload.h"
 #include "vinifera_saveload.h"
-#include "storage/storageext.h"
+#include "storageext.h"
 #include "spawnmanager.h"
+#include "weapontype.h"
 
 
 /**
@@ -413,6 +414,36 @@ bool TechnoClassExtension::Can_Passive_Acquire() const
      *  IsCanPassiveAcquire defaults to true to copy original behaviour, so all units can passive acquire unless told otherwise.
      */
     return Techno_Type_Class_Ext()->IsCanPassiveAcquire;
+}
+
+
+Coordinate TechnoClassExtension::Fire_Coord(WeaponSlotType which, TPoint3D<int> offset) const
+{
+    TechnoTypeClass *ttype = This()->Techno_Type_Class();
+    const auto weaponinfo = This()->Get_Weapon(which);
+
+    Matrix3D matrix;
+    matrix.Make_Identity();
+
+    float theta = This()->Turret_Facing().Get_Radian<32>();
+    matrix.Rotate_Z(theta);
+
+    const TPoint3D<int> flh = weaponinfo->FireFLH + offset;
+
+    const float trans_x = static_cast<float>(flh.X + This()->CurrentBurstIndex % 2 != 0 ? -1 : 1);
+    const float trans_y = static_cast<float>(flh.Y + ttype->TurretOffset);
+    const float trans_z = static_cast<float>(flh.Z + weaponinfo->BarrelThickness);
+    matrix.Translate(trans_x, trans_y, trans_z);
+
+    theta = -This()->BarrelFacing.Current().Get_Radian<32>();
+    matrix.Rotate_Y(theta);
+
+    matrix.Translate(static_cast<float>(weaponinfo->BarrelLength), 0, 0);
+
+    const Vector3 fire_coord = matrix * Vector3(0, 0, 0);
+    Coordinate render_coord = This()->Render_Coord();
+
+    return { render_coord.X + static_cast<int>(fire_coord.X), render_coord.Y - static_cast<int>(fire_coord.Y), render_coord.Z + static_cast<int>(fire_coord.Z) };
 }
 
 
