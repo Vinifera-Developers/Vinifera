@@ -135,7 +135,7 @@ IFACEMETHODIMP_(Matrix3D) RocketLocomotionClass::Draw_Matrix(int *key)
      *  YR subtracts 8 from the facing, equivalent to 90 degrees, but for some reason
      *  it's necessary to subtract 12 (135 degrees) in YR to achieve the same result.
      */
-    const float z_angle = (Dir_To_32(Linked_To()->PrimaryFacing.Current()) - 12) * -WWMATH_P16;
+    const float z_angle = Linked_To()->PrimaryFacing.Current().Get_Radian<32>();
     matrix.Rotate_Z(z_angle);
 
     if (CurrentPitch != 0.0)
@@ -161,7 +161,7 @@ IFACEMETHODIMP_(Matrix3D) RocketLocomotionClass::Draw_Matrix(int *key)
 
     if (key)
     {
-        *key |= Dir_To_32(Linked_To()->PrimaryFacing.Current());
+        *key |= Linked_To()->PrimaryFacing.Current().Get_Facing<32>();
         return matrix;
     }
 }
@@ -354,8 +354,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
                  *  Orient the rocket towards the destination.
                  */
                 const Coordinate center_coord = Linked_To()->Center_Coord();
-                double atan2 = FastMath::Atan2(center_coord.Y - DestinationCoord.Y, DestinationCoord.X - center_coord.X) - DEG_TO_RAD(90);
-                Linked_To()->PrimaryFacing.Set_Desired(DirStruct(RAD_TO_BAU(atan2)));
+                Linked_To()->PrimaryFacing.Set_Desired(Desired_Facing(center_coord.X, DestinationCoord.Y, DestinationCoord.X, center_coord.Y));
             }
             else
             {
@@ -539,7 +538,7 @@ Coordinate RocketLocomotionClass::Get_Next_Position(double speed) const
     Coordinate coord;
 
     const double horizontal_speed = FastMath::Cos(CurrentPitch) * speed;
-    const double horizontal_angle = BAU_TO_RAD(Linked_To()->PrimaryFacing.Current().Get_Raw() + DEG_TO_BAU(90));
+    const double horizontal_angle = Linked_To()->PrimaryFacing.Current().Get_Radian<65536>();
 
     coord.X = static_cast<int>(Linked_To()->Coord.X + FastMath::Cos(horizontal_angle) * horizontal_speed);
     coord.Y = static_cast<int>(Linked_To()->Coord.Y - FastMath::Sin(horizontal_angle) * horizontal_speed);
