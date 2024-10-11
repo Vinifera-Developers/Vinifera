@@ -100,7 +100,7 @@ public:
     ActionType _What_Action(ObjectClass* object, bool disallow_force);
     void _Drop_Tiberium();
     int _Cell_Distance_Squared(const AbstractClass* object) const;
-    bool _Fire_At_Spawner(TARGET target, WeaponTypeClass* weapon);
+    bool _Spawner_Fire_At(TARGET target, WeaponTypeClass* weapon);
     bool _Target_Something_Nearby(Coordinate& coord, ThreatType threat);
     void _Stun();
     void _Mission_AI();
@@ -459,7 +459,13 @@ WeaponSlotType TechnoClassExt::_What_Weapon_Should_I_Use(TARGET target) const
 }
 
 
-bool TechnoClassExt::_Fire_At_Spawner(TARGET target, WeaponTypeClass* weapon)
+/**
+ *  Patch in TechnoClass::Fire_At to order the spawner to fire at the target,
+ *  as well as reveal it if the weapon is RevealOnFire.
+ *
+ *  @author: ZivDero
+ */
+bool TechnoClassExt::_Spawner_Fire_At(TARGET target, WeaponTypeClass* weapon)
 {
     auto weapon_ext = Extension::Fetch<WeaponTypeClassExtension>(weapon);
 
@@ -485,7 +491,6 @@ bool TechnoClassExt::_Fire_At_Spawner(TARGET target, WeaponTypeClass* weapon)
             }
         }
 
-        // MapClass_visibility_567DA0(&Map.sc.t.sb.p.r.d, v15, &v149, 0, 4);
         return true;
     }
 
@@ -493,6 +498,12 @@ bool TechnoClassExt::_Fire_At_Spawner(TARGET target, WeaponTypeClass* weapon)
 }
 
 
+/**
+ *  Reimplementation of TechnoClass::Target_Something_Nearby with adjustments
+ *  for the spawner.
+ *
+ *  @author: ZivDero
+ */
 bool TechnoClassExt::_Target_Something_Nearby(Coordinate& coord, ThreatType threat)
 {
     /**
@@ -537,29 +548,35 @@ bool TechnoClassExt::_Target_Something_Nearby(Coordinate& coord, ThreatType thre
 }
 
 
-
+/**
+ *  Reimplementation of TechnoClass::Stun with adjustments for the spawner.
+ *
+ *  @author: ZivDero
+ */
 void TechnoClassExt::_Stun()
 {
     Assign_Target(nullptr);
     Assign_Destination(nullptr);
     Transmit_Message(RADIO_OVER_OUT);
 
-    // Not foot? Weird
-    //if (!Is_Foot())
-    //{
-        const auto extension = Extension::Fetch<TechnoClassExtension>(this);
-        if (extension && extension->SpawnManager)
-        {
-            extension->SpawnManager->Detach_Spawns();
-            extension->SpawnManager->Abandon_Target();
-        }
-    //}
+    const auto extension = Extension::Fetch<TechnoClassExtension>(this);
+    if (extension && extension->SpawnManager)
+    {
+        extension->SpawnManager->Detach_Spawns();
+        extension->SpawnManager->Abandon_Target();
+    }
 
     Detach_All(true);
     Unselect();
 }
 
 
+/**
+ *  Wrapper function to patch the call in TechnoClass::AI to call
+ *  SpawnManagerClass::AI.
+ *
+ *  @author: ZivDero
+ */
 void TechnoClassExt::_Mission_AI()
 {
     MissionClass::AI();
@@ -766,6 +783,9 @@ bool TechnoClassExt::_Can_Player_Move() const
 }
 
 
+/**
+ *  Wrapper for TechnoClassExtension::Fire_Coord.
+ */
 Coordinate TechnoClassExt::_Fire_Coord(WeaponSlotType which) const
 {
     return Extension::Fetch<TechnoClassExtension>(this)->Fire_Coord(which, TPoint3D<int>());
@@ -1917,6 +1937,11 @@ DECLARE_PATCH(_TechnoClass_Take_Damage_Drop_Tiberium_Type_Patch)
 }
 
 
+/**
+ *  Patch to update the spawn manager when its owner is captured.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_TechnoClass_Captured_Spawn_Manager_Patch)
 {
     GET_REGISTER_STATIC(TechnoClass*, this_ptr, esi);
@@ -1935,6 +1960,11 @@ DECLARE_PATCH(_TechnoClass_Captured_Spawn_Manager_Patch)
 }
 
 
+/**
+ *  Patch to assign the target to the spawner.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_TechnoClass_Assign_Target_Spawn_Manager_Patch)
 {
     GET_REGISTER_STATIC(TechnoClass*, this_ptr, esi);
@@ -1952,6 +1982,11 @@ DECLARE_PATCH(_TechnoClass_Assign_Target_Spawn_Manager_Patch)
 }
 
 
+/**
+ *  Patch to pass the fire command to the spawner.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_TechnoClass_Fire_At_Spawn_Manager_Patch)
 {
     GET_REGISTER_STATIC(TechnoClassExt*, this_ptr, esi);
@@ -1968,7 +2003,7 @@ DECLARE_PATCH(_TechnoClass_Fire_At_Spawn_Manager_Patch)
         JMP(0x006304D2);
     }
 
-    if (this_ptr->_Fire_At_Spawner(target, weapon))
+    if (this_ptr->_Spawner_Fire_At(target, weapon))
     {
         // return FIRE_OK;
         JMP(0x006304D2);

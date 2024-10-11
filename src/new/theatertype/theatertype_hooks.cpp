@@ -44,8 +44,6 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
-#include "kamikazetracker.h"
-#include "veinholemonster.h"
 
 
 /**
@@ -794,17 +792,6 @@ skip_ice_update:
 }
 
 
-DECLARE_PATCH(_LogicClass_AI_Kamikaze_AI_Patch)
-{
-    // Stolen instrution
-    VeinholeMonsterClass::Update_All();
-
-    KamikazeTracker->AI();
-
-    JMP(0x00507005);
-}
-
-
 /**
  *  Patch to add support for new theaters when fixing up ice tilesets on theater control load.
  * 
@@ -1043,7 +1030,6 @@ void TheaterTypeClassExtension_Hooks()
 
     Patch_Jump(0x00507320, &_LogicClass_Old_AI_Ice_Timer_Theater_Patch);
     Patch_Jump(0x00506F47, &_LogicClass_AI_Ice_Timer_Theater_Patch);
-    Patch_Jump(0x00507000, &_LogicClass_AI_Kamikaze_AI_Patch);
 
     Patch_Jump(0x00451EC4, &_CellClass_Cell_Color_Theater_Patch_1);
     Patch_Jump(0x00451EF5, &_CellClass_Cell_Color_Theater_Patch_2);

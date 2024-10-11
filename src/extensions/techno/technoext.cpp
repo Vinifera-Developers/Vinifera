@@ -417,6 +417,13 @@ bool TechnoClassExtension::Can_Passive_Acquire() const
 }
 
 
+/**
+ *  Determines the coordinate where bullets appear.
+ *  Contains an additional argument to add an offset to the firing coordinate,
+ *  used by the spawn manager.
+ *
+ *  @author: ZivDero
+ */
 Coordinate TechnoClassExtension::Fire_Coord(WeaponSlotType which, TPoint3D<int> offset) const
 {
     TechnoTypeClass *ttype = This()->Techno_Type_Class();

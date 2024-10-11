@@ -159,6 +159,11 @@ const ShapeFileStruct * ObjectTypeClassExt::_Get_Image_Data() const
 }
 
 
+/**
+ *  Fetches voxel model data from files.
+ *
+ *  @author: ZivDero
+ */
 void ObjectTypeClassExt::_Fetch_Voxel_Image()
 {
     char buffer[260];
@@ -220,6 +225,11 @@ void ObjectTypeClassExt::_Fetch_Voxel_Image()
 }
 
 
+/**
+ *  Clears voxel caches.
+ *
+ *  @author: ZivDero
+ */
 void ObjectTypeClassExt::_Clear_Voxel_Indexes()
 {
     for (int i = 0; i < ObjectTypes.Count(); i++)
@@ -236,7 +246,6 @@ void ObjectTypeClassExt::_Clear_Voxel_Indexes()
 
     StaticBuffer.CurrentBufferPtr = StaticBuffer.BufferPtr;
 }
-
 
 
 /**

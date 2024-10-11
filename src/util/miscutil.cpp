@@ -571,6 +571,11 @@ const char *Filename_From_Path(const char *filename)
 }
 
 
+/**
+ *  Loads a voxel object from files.
+ *
+ *  @author: ZivDero
+ */
 bool Load_Voxel(VoxelObject& voxel, const char* graphic_name, bool required)
 {
     char buffer[260];

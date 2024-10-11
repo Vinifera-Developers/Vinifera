@@ -58,14 +58,14 @@
 
 
 /**
-  *  A fake class for implementing new member functions which allow
-  *  access to the "this" pointer of the intended class.
-  *
-  *  @note: This must not contain a constructor or destructor.
-  *
-  *  @note: All functions must not be virtual and must also be prefixed
-  *         with "_" to prevent accidental virtualization.
-  */
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or destructor.
+ *
+ *  @note: All functions must not be virtual and must also be prefixed
+ *         with "_" to prevent accidental virtualization.
+ */
 class UnitClassExt : public UnitClass
 {
 public:
@@ -76,11 +76,11 @@ public:
 
 
 /**
-  *  Handles firing logic for this unit.
-  *
-  *  @author: 07/30/1996 JLB - Created
-  *           ZivDero - Adjustments for Tiberian Sun
-  */
+ *  Handles firing logic for this unit.
+ *
+ *  @author: 07/30/1996 JLB - Created
+ *           ZivDero - Adjustments for Tiberian Sun
+ */
 void UnitClassExt::_Firing_AI()
 {
     if (Target_Legal(TarCom) && Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon)
@@ -167,7 +167,7 @@ void UnitClassExt::_Firing_AI()
 
         case FIRE_CANT:
             ext = Extension::Fetch<UnitClassExtension>(this);
-            if (ext && ext->SpawnManager)
+            if (ext->SpawnManager)
                 ext->SpawnManager->Abandon_Target();
             break;
             
@@ -190,6 +190,11 @@ void UnitClassExt::_Firing_AI()
 }
 
 
+/**
+ *  Draws the voxel model for this unit.
+ *
+ *  @author: ZivDero
+ */
 void UnitClassExt::_Draw_Voxel(unsigned int frame, int key, Rect& rect, Point2D& point, const Matrix3D& other_matrix, int color, int flags)
 {
     Matrix3D matrix;
@@ -224,6 +229,12 @@ void UnitClassExt::_Draw_Voxel(unsigned int frame, int key, Rect& rect, Point2D&
 }
 
 
+/**
+ *  Patch that replaces the call to draw the voxel model to allow us to
+ *  chose which voxel to draw.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_UnitClass_Draw_Voxel_Patch)
 {
     GET_STACK_STATIC(unsigned int, frame, esp, 0x58);

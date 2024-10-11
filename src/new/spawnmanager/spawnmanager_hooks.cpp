@@ -8,7 +8,8 @@
  *
  *  @author        CCHyper
  *
- *  @brief         Contains the hooks for SpawnManagerClass.
+ *  @brief         Contains the hooks for SpawnManagerClass
+ *                 and KamikazeTrackerClass.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -34,15 +35,23 @@
 #include "spawnmanager.h"
 #include "techno.h"
 #include "technoext.h"
+#include "kamikazetracker.h"
+#include "veinholemonster.h"
+#include "vinifera_globals.h"
 
 
-DECLARE_PATCH(_EventClass_Execute_Spawn_Manager_Patch)
+/**
+ *  Patch to make the spawn manager abandon its target when ordered to idle.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_EventClass_Execute_IDLE_Spawn_Manager_Patch)
 {
     GET_REGISTER_STATIC(TechnoClass*, techno, esi);
     static TechnoClassExtension* extension;
 
     extension = Extension::Fetch<TechnoClassExtension>(techno);
-    if (extension && extension->SpawnManager)
+    if (extension->SpawnManager)
         extension->SpawnManager->Abandon_Target();
 
     static RTTIType rtti = techno->Kind_Of();
@@ -58,6 +67,11 @@ DECLARE_PATCH(_EventClass_Execute_Spawn_Manager_Patch)
 }
 
 
+/**
+ *  Patch to block vehicles from moving if they're currently preparing to spawn.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_DriveLocomotionClass_Start_Of_Move_Spawn_Manager_Patch)
 {
     GET_REGISTER_STATIC(TechnoClass*, linked_to, eax);
@@ -87,10 +101,27 @@ DECLARE_PATCH(_DriveLocomotionClass_Start_Of_Move_Spawn_Manager_Patch)
 
 
 /**
+ *  Patch to perform kamikaze AI.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_LogicClass_AI_Kamikaze_AI_Patch)
+{
+    // Stolen instrution
+    VeinholeMonsterClass::Update_All();
+
+    KamikazeTracker->AI();
+
+    JMP(0x00507005);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void SpawnManager_Hooks()
 {
-    Patch_Jump(0x00494AB5, &_EventClass_Execute_Spawn_Manager_Patch);
+    Patch_Jump(0x00494AB5, &_EventClass_Execute_IDLE_Spawn_Manager_Patch);
     Patch_Jump(0x0047FE2F, &_DriveLocomotionClass_Start_Of_Move_Spawn_Manager_Patch);
+    Patch_Jump(0x00507000, &_LogicClass_AI_Kamikaze_AI_Patch);
 }

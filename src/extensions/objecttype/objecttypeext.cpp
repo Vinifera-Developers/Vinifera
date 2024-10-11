@@ -180,6 +180,11 @@ bool ObjectTypeClassExtension::Read_INI(CCINIClass &ini)
 }
 
 
+/**
+ *  Fetches new voxel model data from files.
+ *
+ *  @author: ZivDero
+ */
 void ObjectTypeClassExtension::Fetch_Voxel_Image(const char* graphic_name)
 {
     char buffer[260];

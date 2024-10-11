@@ -70,7 +70,14 @@ class ObjectTypeClassExtension : public AbstractTypeClassExtension
 
     public:
 
+        /**
+         *  Should the object use a different voxel model when it has no spawn?
+         */
         bool NoSpawnAlt;
+
+        /**
+         *  The voxel model to use when the object has no spawn, and its cache.
+         */
         VoxelObject AltVoxel;
         VoxelIndexClass AltVoxelIndex;
 };
