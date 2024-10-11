@@ -818,7 +818,7 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
                         Speak(VOX_CANCELED);
 
                         int count_to_abandon = 1;
-                        const int queued_count = factory->Queued_Object_Count() + factory->Get_Object() != nullptr ? 1 : 0;
+                        const int queued_count = factory->Queued_Object_Count() + (factory->Get_Object() != nullptr ? 1 : 0);
 
                         if (WWKeyboard->Down(VK_SHIFT))
                             count_to_abandon = queued_count;
