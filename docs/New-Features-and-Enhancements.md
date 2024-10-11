@@ -200,12 +200,12 @@ TrailAnim=              ; AnimType, the trail animation used by this rocket.
 The rocket object is an AircraftType, like in Red Alert 2. When determining its characteristics, the rocket will use the first RocketType whose `Type=` is equal to the type of the rocket itself.
 ```
 
-- Additionally, for rocket launchers that launch two rockets at a time, a second spawn offset can de defined.
+- Additionally, for rocket launchers that launch more than one rocket at a time, a second spawn offset can de defined.
 
 In `ART.INI`:
 ```ini
 [SOMETECHNO]             ; TechnoType
-SecondSpawnOffset=0,0,0  ; 3 integers, an offset to be added to the firing FLH for the second missile's location.
+SecondSpawnOffset=0,0,0  ; 3 integers, an offset to be added to the firing FLH for the every second missile's location.
 ```
 
 ### New ArmorTypes
