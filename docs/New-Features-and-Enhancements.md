@@ -351,7 +351,7 @@ PipWrap=0           ; integer, the number of ammo pips to draw using pip wrap.
 ```
 
 ```{note}
-For `PipWrap` to function, new pips need to be added to `pips2.shp`. The pip at index 7 (0-based) is still used by ammo when `PipWrap=0`, pips starting from index 8 are used by `PipWrap`.
+For `PipWrap` to function, new pips need to be added to `pips2.shp`. The pip at index 7 (1-based) is still used by ammo when `PipWrap=0`, pips starting from index 8 are used by `PipWrap`.
 ```
 
 ## Terrain
