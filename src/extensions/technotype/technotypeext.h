@@ -155,6 +155,11 @@ class TechnoTypeClassExtension : public ObjectTypeClassExtension
         int SpecialPipIndex;
 
         /**
+         *  If set to a value greater than 0, this many ammo pips will be drawn, wrapping around incrementing the frame index each time.
+         */
+        int PipWrap;
+
+        /**
          *  The rate at which this unit animates when it is standing idle (not moving).
          */
         unsigned IdleRate;

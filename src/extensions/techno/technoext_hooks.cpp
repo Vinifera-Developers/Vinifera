@@ -117,6 +117,9 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
     const ShapeFileStruct* pips1 = Class_Of()->PipShapes;
     const ShapeFileStruct* pips2 = Class_Of()->Pip2Shapes;
 
+    const auto ttype = Techno_Type_Class();
+    const auto ttype_ext = Extension::Fetch<TechnoTypeClassExtension>(ttype);
+
     if (What_Am_I() != RTTI_BUILDING)
     {
         drawx = bottomleft.X - 5;
@@ -171,7 +174,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
             */
             if ((What_Am_I() == RTTI_UNIT || What_Am_I() == RTTI_BUILDING) && Techno_Type_Class()->PipScale == PIP_TIBERIUM)
             {
-                TechnoTypeClass* technotype = Techno_Type_Class();
+                
 
                 std::vector<int> pips_to_draw;
                 pips_to_draw.reserve(Class_Of()->Max_Pips());
@@ -179,8 +182,8 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
                 /*
                 **  Weeders/Waste Facilities draw all their contents with the Weed pip.
                 */
-                if ((technotype->What_Am_I() == RTTI_UNITTYPE && ((UnitTypeClass*)technotype)->IsToVeinHarvest) ||
-                    (technotype->What_Am_I() == RTTI_BUILDINGTYPE && ((BuildingTypeClass*)technotype)->IsWeeder))
+                if ((ttype->What_Am_I() == RTTI_UNITTYPE && ((UnitTypeClass*)ttype)->IsToVeinHarvest) ||
+                    (ttype->What_Am_I() == RTTI_BUILDINGTYPE && ((BuildingTypeClass*)ttype)->IsWeeder))
                 {
                     /*
                     **  Add the pips to draw to a vector.
@@ -209,8 +212,8 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
                     for (auto& tibtuple : tibtypes)
                     {
                         const double amount = Storage.Get_Amount((TiberiumType)std::get<1>(tibtuple));
-                        const double fraction = amount / technotype->Storage;
-                        const int pip_count = technotype->Max_Pips() * fraction + 0.5;
+                        const double fraction = amount / ttype->Storage;
+                        const int pip_count = ttype->Max_Pips() * fraction + 0.5;
 
                         int piptype = Extension::Fetch<TiberiumClassExtension>(Tiberiums[std::get<1>(tibtuple)])->PipIndex;
                         for (int i = 0; i < pip_count; i++)
@@ -230,10 +233,26 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
             }
             else if (Techno_Type_Class()->PipScale == PIP_AMMO)
             {
-                for (int index = 0; index < Class_Of()->Max_Pips() && pips > 0; index++, pips--)
+                if (ttype_ext->PipWrap > 0)
                 {
-                    CC_Draw_Shape(LogicSurface, NormalDrawer, pips2, 6, &Point2D(drawx + dx * index, drawy + dy * index - 3), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
+                    enum { PIP_AMMO_WRAP_FIRST = 7 };
+
+                    const int full_wrap_amount = pips / ttype_ext->PipWrap;
+                    pips -= full_wrap_amount * ttype_ext->PipWrap;
+
+                    for (int index = 0; index < ttype_ext->PipWrap; index++)
+                    {
+                        CC_Draw_Shape(LogicSurface, NormalDrawer, pips2, PIP_AMMO_WRAP_FIRST + full_wrap_amount + (index < pips), &Point2D(drawx + dx * index, drawy + dy * index - 3), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
+                    }
                 }
+                else
+                {
+                    for (int index = 0; index < Class_Of()->Max_Pips() && pips > 0; index++, pips--)
+                    {
+                        CC_Draw_Shape(LogicSurface, NormalDrawer, pips2, 6, &Point2D(drawx + dx * index, drawy + dy * index - 3), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
+                    }
+                }
+                
             }
             else if (Techno_Type_Class()->PipScale == PIP_CHARGE)
             {

@@ -339,6 +339,21 @@ In `RULES.INI`:
 SpecialPipIndex=-1  ; integer, index of the pip to draw in place of the medic pip.
 ```
 
+### PipWrap
+
+- Vinifera ports PipWrap from Red Alert 2. If PipWrap is set to a positive integer greater than 0, that number of ammo pips will be rendered, incrementing the frame number for each time the pip count overflows PipWrap.
+- For usage notes, please see [the ModEnc article](https://modenc.renegadeprojects.com/PipWrap).
+
+In `RULES.INI`:
+```ini
+[SOMETECHNO]        ; TechnoType
+PipWrap=0           ; integer, the number of ammo pips to draw using pip wrap.
+```
+
+```{note}
+For `PipWrap` to function, new pips need to be added to `pips2.shp`. The pip at index 7 (1-based) is still used by ammo when `PipWrap=0`, pips starting from index 8 are used by `PipWrap`.
+```
+
 ## Terrain
 
 ### Light Sources

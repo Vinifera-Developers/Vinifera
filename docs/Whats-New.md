@@ -140,19 +140,9 @@ New:
 - Make harvesters drop the Tiberium type they're carrying on death, instead of Tiberium Riparius (by ZivDero)
 - Make it so that it is no longer required to list all Tiberiums in a map to override some Tiberium's properties (by ZivDero)
 - Add `TransformsInto` and `TransformRequiresFullCharge` to UnitTypes (by Rampastring)
-- Fix a bug where players were only able to queue up to `(BuildLimit - 1)` objects when an object has `BuildLimit > 0` (by Rampastring)
-- Fix a bug where the game could read Infantry DoControls out of bounds, potentially causing a desync error in multiplayer (by Rampastring)
-- Fix a bug where pre-placed powered-down superweapon buildings had their superweapons enabled on scenario start (by Rampastring)
-- Fix the economy score in the score screen. Dead players also have a score and the score is a percentage of the credits spent by the player who spent the most credits (by Rampastring)
-- Fix a bug where the AI would sell off buildings with `Artillary=yes`, `TickTank=yes` or `IsJuggernaut=yes` that had `UndeploysInto=none` when they were fired at by something outside of their weapon range (by Rampastring)
-- Fix a bug where harvesters on large maps could prefer unloading at refineries that were the longest distance away from the harvesters (by Rampastring)
-- Fix a bug where the camera kept following a followed object when a trigger or script told it to center on a waypoint or team (by Rampastring)
 - Add developer command to dump all existing triggers, tags, and local and global variables to the log output (by Rampastring)
-- Fix a bug where aircraft are unable to attack shrouded targets in campaign games and instead get stuck in mid-air (by Rampastring)
-- Fix a bug where the player was able to input keyboard commands while input was locked through a trigger action (by Rampastring)
-- Fix a bug where a vehicle transport could end up attached to its own cargo, causing the transport to disappear upon unloading (by Rampastring)
-- Fix a bug where a harvester could be ordered to dock with a refinery that wasn't listed in the harvester's `Dock=` key (by Rampastring)
-- Fix a bug where house firepower bonus, veterancy and crate upgrade damage modifiers were not applied to railgun `AmbientDamage=` (by Rampastring)
+- Add `PipWrap` (by ZivDero)
+
 
 Vanilla fixes:
 - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively (by CCHyper/tomsons26)
@@ -198,6 +188,18 @@ Vanilla fixes:
 - Fix a bug where attempting to start construction when low funds would put the queue on hold (by ZivDero)
 - Port the fix for the (Whiteboy bug)[https://modenc.renegadeprojects.com/Whiteboy-Bug] (by ZivDero)
 - Fix a bug where the objects would sometimes receive a minimum of 1 damage even if MinDamage was set to 0 (by ZivDero)
+- Fix a bug where aircraft are unable to attack shrouded targets in campaign games and instead get stuck in mid-air (by Rampastring)
+- Fix a bug where the player was able to input keyboard commands while input was locked through a trigger action (by Rampastring)
+- Fix a bug where a vehicle transport could end up attached to its own cargo, causing the transport to disappear upon unloading (by Rampastring)
+- Fix a bug where a harvester could be ordered to dock with a refinery that wasn't listed in the harvester's `Dock=` key (by Rampastring)
+- Fix a bug where house firepower bonus, veterancy and crate upgrade damage modifiers were not applied to railgun `AmbientDamage=` (by Rampastring)
+- Fix a bug where players were only able to queue up to `(BuildLimit - 1)` objects when an object has `BuildLimit > 0` (by Rampastring)
+- Fix a bug where the game could read Infantry DoControls out of bounds, potentially causing a desync error in multiplayer (by Rampastring)
+- Fix a bug where pre-placed powered-down superweapon buildings had their superweapons enabled on scenario start (by Rampastring)
+- Fix the economy score in the score screen. Dead players also have a score and the score is a percentage of the credits spent by the player who spent the most credits (by Rampastring)
+- Fix a bug where the AI would sell off buildings with `Artillary=yes`, `TickTank=yes` or `IsJuggernaut=yes` that had `UndeploysInto=none` when they were fired at by something outside of their weapon range (by Rampastring)
+- Fix a bug where harvesters on large maps could prefer unloading at refineries that were the longest distance away from the harvesters (by Rampastring)
+- Fix a bug where the camera kept following a followed object when a trigger or script told it to center on a waypoint or team (by Rampastring)
 
 </details>
 
