@@ -382,35 +382,35 @@ DECLARE_PATCH(_UnitClass_Draw_It_Unloading_Harvester_Patch)
  * 
  *  @author: CCHyper
  */
-static int Facing_To_Frame_Number(FacingClass &facing, int facings_count)
+static int Facing_To_Frame_Number(FacingClass &facing, int facing_count)
 {
     int shape_number = 0;
 
     /**
      *  Fetch the current facing value in the required units.
      */
-    switch (facings_count) {
+    switch (facing_count) {
 
-        case 8:
-            shape_number = facing.Current().Get_Facing<8>();
-            break;
+    case 8:
+        shape_number = (facing.Current().Get_Facing<8>() + 1) % 8;
+        break;
 
-        case 16:
-            shape_number = facing.Current().Get_Facing<16>();
-            break;
+    case 16:
+        shape_number = (facing.Current().Get_Facing<16>() + 2) % 16;
+        break;
 
-        case 32:
-            shape_number = facing.Current().Get_Facing<32>();
-            break;
+    case 32:
+        shape_number = (facing.Current().Get_Facing<32>() + 4) % 32;
+        break;
 
-        case 64:
-            shape_number = facing.Current().Get_Facing<64>();
-            break;
+    case 64:
+        shape_number = (facing.Current().Get_Facing<64>() + 8) % 64;
+        break;
 
-        default:
-            shape_number = 0;
-            break;
-    };
+    default:
+        shape_number = 0;
+        break;
+    }
 
     return shape_number;
 }

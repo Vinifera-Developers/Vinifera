@@ -1399,22 +1399,22 @@ static AnimTypeClass *Techno_Get_Firing_Anim(TechnoClass *this_ptr, WeaponTypeCl
 
     if (anim_count == 8) {
 
-        index = dir.Get_Facing<8>();
+        index = dir.Get_Facing<8>() + 1;
         anim = weapon->Anim[index % FACING_COUNT];
 
     } else if (anim_count == 16) {
 
-        index = dir.Get_Facing<16>();
+        index = dir.Get_Facing<16>() + 1;
         anim = weapon->Anim[index % 16];
 
     } else if (anim_count == 32) {
 
-        index = dir.Get_Facing<32>();
+        index = dir.Get_Facing<32>() + 1;
         anim = weapon->Anim[index % 32];
 
     } else if (anim_count == 64) {
 
-        index = dir.Get_Facing<64>();
+        index = dir.Get_Facing<64>() + 1;
         anim = weapon->Anim[index % 64];
 
     } else if (anim_count > 0) {
@@ -1426,7 +1426,6 @@ static AnimTypeClass *Techno_Get_Firing_Anim(TechnoClass *this_ptr, WeaponTypeCl
 
         index = 0;
         anim = nullptr;
-
     }
 
     return anim;
