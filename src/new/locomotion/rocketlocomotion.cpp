@@ -162,8 +162,20 @@ IFACEMETHODIMP_(Matrix3D) RocketLocomotionClass::Draw_Matrix(int *key)
     if (key)
     {
         *key |= Linked_To()->PrimaryFacing.Current().Get_Facing<32>();
-        return matrix;
     }
+
+    return matrix;
+}
+
+
+/**
+ *  Shadow draw point center location.
+ *
+ *  @author: ZivDero
+ */
+IFACEMETHODIMP_(Point2D) RocketLocomotionClass::Shadow_Point()
+{
+    return { 0, 0 };
 }
 
 

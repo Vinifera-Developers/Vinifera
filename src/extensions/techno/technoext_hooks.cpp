@@ -131,8 +131,8 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
     const ShapeFileStruct* pips2 = Class_Of()->Pip2Shapes;
 
     const auto ttype = Techno_Type_Class();
-    const auto typeext = Extension::Fetch<TechnoTypeClassExtension>(ttype);
     const auto ttype_ext = Extension::Fetch<TechnoTypeClassExtension>(ttype);
+    const auto ext = Extension::Fetch<TechnoClassExtension>(this);
 
     if (What_Am_I() != RTTI_BUILDING)
     {

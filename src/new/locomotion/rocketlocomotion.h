@@ -66,6 +66,7 @@ public:
     IFACEMETHOD_(bool, Is_Moving)();
     IFACEMETHOD_(Coordinate, Destination)();
     IFACEMETHOD_(Matrix3D, Draw_Matrix)(int *key);
+    IFACEMETHOD_(Point2D, Shadow_Point)();
     IFACEMETHOD_(bool, Process)();
     IFACEMETHOD_(void, Move_To)(Coordinate to);
     IFACEMETHOD_(void, Stop_Moving)();
