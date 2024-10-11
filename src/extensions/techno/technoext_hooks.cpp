@@ -560,7 +560,7 @@ void TechnoClassExt::_Stun()
     Transmit_Message(RADIO_OVER_OUT);
 
     const auto extension = Extension::Fetch<TechnoClassExtension>(this);
-    if (extension && extension->SpawnManager)
+    if (extension->SpawnManager)
     {
         extension->SpawnManager->Detach_Spawns();
         extension->SpawnManager->Abandon_Target();
@@ -583,7 +583,7 @@ void TechnoClassExt::_Mission_AI()
 
     const auto extension = Extension::Fetch<TechnoClassExtension>(this);
 
-    if (extension && extension->SpawnManager)
+    if (extension->SpawnManager)
         extension->SpawnManager->AI();
 }
 
