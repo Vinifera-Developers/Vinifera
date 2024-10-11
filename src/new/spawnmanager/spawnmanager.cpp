@@ -349,14 +349,11 @@ void SpawnManagerClass::AI()
                 /**
                  *  We can spawn 2 missiles using the burst logic.
                  */
-                bool burst = false;
-                Coordinate fire_coord;
-                if (control->IsSpawnedMissile &&
-                    Owner->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon->Burst > 1)
-                {
-                    burst = true;
-                    Owner->CurrentBurstIndex = i % 2;
-                }
+                const auto weapon = Owner->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon;
+                if (control->IsSpawnedMissile && weapon->Burst > 1 && i < weapon->Burst)
+                    Owner->CurrentBurstIndex = i;
+                else
+                    Owner->CurrentBurstIndex = 0;
 
                 /**
                  *  Update our status.
@@ -368,8 +365,9 @@ void SpawnManagerClass::AI()
                 /**
                  *  Apply SecondSpawnOffset if this is the second missile in a burst.
                  */
-                if (Owner->CurrentBurstIndex > 0)
-                    fire_coord = Owner->Fire_Coord(weapon_slot);
+                Coordinate fire_coord;
+                if (Owner->CurrentBurstIndex % 2 == 0)
+                    fire_coord = owner_ext->Fire_Coord(weapon_slot);
                 else
                     fire_coord = owner_ext->Fire_Coord(weapon_slot, owner_type_ext->SecondSpawnOffset);
 
@@ -395,9 +393,9 @@ void SpawnManagerClass::AI()
                     new AnimClass(rocket->TakeoffAnim, spawnee->Coord, 2, 1, SHAPE_WIN_REL | SHAPE_CENTER, -10);
 
                 /**
-                 *  Reset burst since we've just spawned the second missile.
+                 *  Reset burst since if we're done with this volley.
                  */
-                if (burst)
+                if (i == SpawnControls.Count() - 1)
                     Owner->CurrentBurstIndex = 0;
 
                 /**
