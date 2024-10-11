@@ -223,7 +223,7 @@ static void Extension_Clear_Abstract_Pointer(const AbstractClass *abstract)
  */
 static bool Extension_Is_Valid_Pointer(const AbstractClassExtension *abstract_extension)
 {
-    return ((uintptr_t)abstract_extension) >= 0x00870000 && ((uintptr_t)abstract_extension) < 0x20000000;
+    return ((uintptr_t)abstract_extension) >= 0x00870000 && ((uintptr_t)abstract_extension) < 0x30000000;
 }
 
 
