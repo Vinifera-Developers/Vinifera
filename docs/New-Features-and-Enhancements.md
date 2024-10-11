@@ -1,7 +1,5 @@
 # New Features and Enhancements
 
-stub
-
 This page describes all the engine features that are either new and introduced by Vinifera or are otherwise enhanced.
 
 ## Aircraft
@@ -129,6 +127,77 @@ SpawnDelay=3  ; unsigned integer, the number of frames between each of the spawn
 ```
 
 ## Technos
+
+### Spawns
+
+- Vinifera ports the spawn manager, responsible for AircraftType missiles and aircraft carries from Red Alert 2.
+
+In `RULES.INI`:
+```ini
+[SOMETECHNO]        ; TechnoType
+Spawns=             ; AircraftType, the type that this Techno spawns.
+SpawnsNumber=0      ; integer, the number of aircraft that this Techno spawns.
+SpawnRegenRate=0    ; integer, the time it takes for a spawn to regenerate after death.
+SpawnReloadRate=0   ; integer, the time it takes for a spawn to reload its ammo and restore its strength.
+```
+
+- Additionally, it's possible to specify an alternative voxel model to use when the spawner has no spawns docked.
+
+In `RULES.INI`:
+```ini
+[SOMETECHNO]        ; TechnoType
+NoSpawnAlt=no       ; boolean, should this Techno use an alternate voxel model when it's out of spawns?
+```
+
+```{note}
+`NoSpawnAlt` is only available for Technos that use voxel models.
+```
+
+```{note}
+Unlike in Red Alert 2, the voxel model used by `NoSpawnAlt` is loaded into a separate area of memory from the turet model. This means that Technos that have `NoSpawnAlt=yes` set **can** have turrets.
+```
+
+- For the unit to create spawns upon attack, a flag needs to be set on its weapon.
+
+In `RULES.INI`:
+```ini
+[SOMEWEAPON]  ; WeaponType
+Spawner=no    ; boolean, does this weapon spawn aircraft when firing?
+```
+
+#### Rockets
+
+- For rocket launchers to function, RocketTypes need to be defined.
+
+In `RULES.INI`:
+```ini
+[RocketTypes]
+0=SOMEROCKET
+
+[SOMEROCKET]            ; RocketType
+PauseFrames=0           ; integer, how many frames the rocket pauses on the launcher before tilting.
+TiltFrames=60           ; integer, how many frames it takes for the rocket to tilt to firing position.
+PitchInitial=0.21       ; float, starting pitch of the rocket before tilting up (0 = horizontal, 1 = vertical).
+PitchFinal=0.5          ; float, ending pitch of the rocket after tilting up before it fires.
+TurnRate=0.05           ; float, pitch maneuverability of rocket in air.
+RaiseRate=1             ; integer, how much the missile will raise each turn on the launcher (for Cruise Missiles only).
+Acceleration=0.4        ; float, this much is added to the rocket's velocity each frame during launch.
+Altitude=768            ; integer, cruising altitude in leptons (1/256 of a cell): at this height rocket begins leveling off.
+Damage=200              ; integer, the rocker does this much damage when it explodes.
+EliteDamage=400         ; integer, the rocker does this much damage when it explodes when the spawner is elite.
+BodyLength=256          ; integer, the length of  thebody of the rocket in leptons (1/256 of a cell).
+LazyCurve=yes           ; boolean, is the rocket's path a big, lazy curve, like the V3 is Red Alert 2.
+CruiseMissile=no        ; boolean, is this rocket a Cruise Missile, like Boomer missiles in Yuri's Revenge.
+Type=V3ROCKET           ; AircraftType, the type this rocket is associated with.
+Warhead=V3WH            ; WarheadType, the warhead that this rocket's explosion uses.
+EliteWarhead=V3EWH      ; WarheadType, the warhead that this rocket's explosion uses when the spawner is elite.
+TakeoffAnim=V3TAKOFF    ; AnimType, the takeoff animation used by this rocket.
+TrailAnim=V3TRAIL       ; AnimType, the trail animation used by this rocket.
+```
+
+```{note}
+The rocket object is an AircraftType, like in Red Alert 2. When determining its characteristics, the rocket will use the first RocketType whose `Type=` is equal to the type of the rocket itself.
+```
 
 ### New ArmorTypes
 

@@ -208,7 +208,7 @@ bool WeaponTypeClassExtension::Read_INI(CCINIClass &ini)
     ElectricBoltIterationCount = ini.Get_Int(ini_name, "EBoltIterations", ElectricBoltIterationCount);
     ElectricBoltDeviation = ini.Get_Float(ini_name, "EBoltDeviation", ElectricBoltDeviation);
     IsSpawner = ini.Get_Bool(ini_name, "Spawner", IsSpawner);
-    IsRevealOnFire = ini.Get_Bool(ini_name, "RevealOnFire", IsRevealOnFire);
+    //IsRevealOnFire = ini.Get_Bool(ini_name, "RevealOnFire", IsRevealOnFire); // Disabled until it's implemented in all the places it should take effect.
     //ElectricBoltSourceBoltParticleSys = ini.Get_ParticleSys(ini_name, "EBoltSourceParticleSys", ElectricBoltSourceBoltParticleSys);
     //ElectricBoltTargetBoltParticleSys = ini.Get_ParticleSys(ini_name, "EBoltTargetBoltParticleSys", ElectricBoltTargetBoltParticleSys);
     

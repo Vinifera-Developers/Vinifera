@@ -70,10 +70,15 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     SpecialPipIndex(-1),
     PipWrap(0),
     IdleRate(0),
-    IsMissileSpawn(false),
     CameoImageSurface(nullptr),
     SortCameoAsBaseDefense(false),
-    Description("")
+    Description(""),
+    IsMissileSpawn(false),
+    Spawns(nullptr),
+    SpawnReloadRate(0),
+    SpawnRegenRate(0),
+    SpawnsNumber(0),
+    SecondSpawnOffset(0, 0, 0)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
