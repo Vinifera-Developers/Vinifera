@@ -199,6 +199,14 @@ TrailAnim=V3TRAIL       ; AnimType, the trail animation used by this rocket.
 The rocket object is an AircraftType, like in Red Alert 2. When determining its characteristics, the rocket will use the first RocketType whose `Type=` is equal to the type of the rocket itself.
 ```
 
+- Additionally, for rocket launchers that launch two rockets at a time, a second spawn offset can de defined.
+
+In `ART.INI`:
+```ini
+[SOMETECHNO]             ; TechnoType
+SecondSpawnOffset=0,0,0  ; 3 integers, an offset to be added to the firing FLH for the second missile's location.
+```
+
 ### New ArmorTypes
 
 - Vinifera allows adding new armor types, as well as customizing the ability of warheads to target them.
