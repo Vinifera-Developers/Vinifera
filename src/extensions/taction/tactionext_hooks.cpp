@@ -77,7 +77,7 @@ bool TActionClassExt::_Play_Sound_At_Random_Waypoint(HouseClass *house, ObjectCl
     for (WaypointType wp = WAYPOINT_FIRST; wp < NEW_WAYPOINT_COUNT; ++wp) {
         if (ScenExtension->Is_Valid_Waypoint(wp)) {
             cell_list[cell_list_count++] = ScenExtension->Get_Waypoint_Cell(wp);
-            if (cell_list_count >= ARRAY_SIZE(cell_list)) {
+            if (cell_list_count >= std::size(cell_list)) {
                 break;
             }
         }
@@ -86,7 +86,7 @@ bool TActionClassExt::_Play_Sound_At_Random_Waypoint(HouseClass *house, ObjectCl
     /**
      *  Pick a random cell from the valid waypoint list and play the desired sound.
      */
-    Cell rnd_cell = cell_list[Random_Pick<unsigned int>(0, ARRAY_SIZE(cell_list) - 1)];
+    Cell rnd_cell = cell_list[Random_Pick<unsigned int>(0, std::size(cell_list) - 1)];
 
     Sound_Effect(Data.Sound, Cell_Coord(rnd_cell, true));
 

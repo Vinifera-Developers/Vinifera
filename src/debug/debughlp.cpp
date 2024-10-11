@@ -100,7 +100,7 @@ static void Init_DbgHelp()
     HMODULE dll_handle = LoadLibraryA("dbghelp.dll");
 
     if (dll_handle != nullptr) {
-        for (int i = 0; i < ARRAY_SIZE(_sym_pointers); ++i) {
+        for (int i = 0; i < std::size(_sym_pointers); ++i) {
             *_sym_pointers[i] = GetProcAddress(dll_handle, _sym_functions[i]);
 
             if (*_sym_pointers[i] == nullptr) {

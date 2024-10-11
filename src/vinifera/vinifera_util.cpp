@@ -631,7 +631,7 @@ const char *Vinifera_Fetch_String(HMODULE handle, ULONG id)
 
     int next_index = ++_used;
 
-    for (int i = 0; i < ARRAY_SIZE(_string_cache); ++i) {
+    for (int i = 0; i < std::size(_string_cache); ++i) {
         StringCache &s = _string_cache[i];
         if (s.ID == id) {
             s.Index = next_index;
@@ -642,7 +642,7 @@ const char *Vinifera_Fetch_String(HMODULE handle, ULONG id)
     int free_index = -1;
 
     int last_index = -1;
-    for (int i = 0; i < ARRAY_SIZE(_string_cache); ++i) {
+    for (int i = 0; i < std::size(_string_cache); ++i) {
 
         StringCache &s = _string_cache[i];
         if (free_index == -1 || last_index > s.Index) {

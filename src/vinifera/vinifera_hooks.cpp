@@ -763,8 +763,8 @@ static void Decrypt_Serial(char *buffer)
      */
     if (!_done) {
         std::srand(timeGetTime());
-        for (int i = 0; i < ARRAY_SIZE(_buf); ++i) {
-            _buf[i] = _alphanum[std::rand() % (ARRAY_SIZE(_alphanum)-1)];
+        for (int i = 0; i < std::size(_buf); ++i) {
+            _buf[i] = _alphanum[std::rand() % (std::size(_alphanum)-1)];
         }
         _done = true;
     }

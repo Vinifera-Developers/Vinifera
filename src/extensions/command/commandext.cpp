@@ -1533,7 +1533,7 @@ bool DumpTriggersCommandClass::Process()
 
     DEBUG_INFO("\n\nAbout to dump local variable information...\n\n");
 
-    for (int i = 0; i < ARRAY_SIZE(Scen->LocalFlags); i++)
+    for (int i = 0; i < std::size(Scen->LocalFlags); i++)
     {
         DEBUG_INFO("LocalFlag %d: %s, enabled: %d\n", i, Scen->LocalFlags[i].Name, Scen->LocalFlags[i].Value);
     }

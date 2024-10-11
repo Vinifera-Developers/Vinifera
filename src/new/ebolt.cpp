@@ -358,7 +358,7 @@ void EBoltClass::Plot_Bolt(Coordinate &start, Coordinate &end)
                  */
                 if (init_deviation_values) {
 
-                    for (int i = 0; i < ARRAY_SIZE(deviation_values); ++i) {
+                    for (int i = 0; i < std::size(deviation_values); ++i) {
                         deviation_values[i] = (WWMath::Sin((double)Sim_Random_Pick(0, 256) * WWMATH_PI / (double)(i + 7)) * (double)line_deviation);
                     }
 

@@ -268,7 +268,7 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     SpecialPipIndex = ini.Get_Int(ini_name, "SpecialPipIndex", SpecialPipIndex);
 
     if (ini.Is_Present(ini_name, "Description"))
-        ini.Get_String(ini_name, "Description", Description, ARRAY_SIZE(Description));
+        ini.Get_String(ini_name, "Description", Description, std::size(Description));
 
     IdleRate = ini.Get_Int(ini_name, "IdleRate", IdleRate);
     IdleRate = ArtINI.Get_Int(graphic_name, "IdleRate", IdleRate);
