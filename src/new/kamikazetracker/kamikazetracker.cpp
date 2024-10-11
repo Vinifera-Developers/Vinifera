@@ -46,11 +46,8 @@
  */
 KamikazeTrackerClass::~KamikazeTrackerClass()
 {
-    for (int i = Controls.Count() - 1; i >= 0; i--)
-    {
-        if (this->Controls[i] != nullptr)
-            delete this->Controls[i];
-    }
+    for (int i = 0; i < Controls.Count(); i++)
+        delete Controls[i];
 }
 
 
@@ -116,10 +113,10 @@ HRESULT KamikazeTrackerClass::Load(IStream* pStm)
         Controls.Add(control);
     }
 
-    for (int i = 0; i < count; i++)
+    for (int index = 0; index < count; index++)
     {
-        VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Controls[i]->Aircraft, "Aircraft");
-        VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Controls[i]->Cell, "Cell");
+        VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Controls[index]->Aircraft, "Aircraft");
+        VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Controls[index]->Cell, "Cell");
     }
 
     return hr;
@@ -162,7 +159,7 @@ HRESULT KamikazeTrackerClass::Save(IStream* pStm, BOOL fClearDirty)
     /**
      *  Write the count of active kamikaze controls.
      */
-    int count = Controls.Count();
+    const int count = Controls.Count();
 
     hr = pStm->Write(&count, sizeof(count), nullptr);
     if (FAILED(hr))
@@ -176,7 +173,7 @@ HRESULT KamikazeTrackerClass::Save(IStream* pStm, BOOL fClearDirty)
      */
     for (int index = 0; index < count; ++index)
     {
-        HRESULT hr = pStm->Write(Controls[index], sizeof(KamikazeControl), nullptr);
+        hr = pStm->Write(Controls[index], sizeof(KamikazeControl), nullptr);
         if (FAILED(hr))
             return hr;
     }
@@ -198,7 +195,7 @@ void KamikazeTrackerClass::Add(AircraftClass* aircraft, TARGET target)
         return;
     }
 
-    KamikazeControl* control = new KamikazeControl();
+    const auto control = new KamikazeControl();
     control->Aircraft = aircraft;
     control->Cell = target == nullptr ?
         &aircraft->Get_Cell_Ptr()->Adjacent_Cell(Dir_Facing(aircraft->PrimaryFacing.Current().Get_Dir())) :
@@ -206,7 +203,6 @@ void KamikazeTrackerClass::Add(AircraftClass* aircraft, TARGET target)
     aircraft->IsKamikaze = true;
     aircraft->Ammo = 1;
     Controls.Add(control);
-
 }
 
 
@@ -225,12 +221,12 @@ void KamikazeTrackerClass::AI()
 
     for (int i = 0; i < Controls.Count(); i++)
     {
-        KamikazeControl* control = Controls[i];
+        const auto control = Controls[i];
         CellClass* cell = control->Cell;
         AircraftClass* aircraft = control->Aircraft;
 
         aircraft->Ammo = 1;
-        if (cell != nullptr)
+        if (cell)
             aircraft->Assign_Target(cell);
         else
             aircraft->Assign_Target(&aircraft->Get_Cell_Ptr()->Adjacent_Cell(Dir_Facing(aircraft->PrimaryFacing.Current().Get_Dir())));
@@ -267,8 +263,8 @@ void KamikazeTrackerClass::Detach(AircraftClass const* aircraft)
  */
 void KamikazeTrackerClass::Clear()
 {
-    for (int i = Controls.Count() - 1; i >= 0; i--)
-        delete this->Controls[i];
+    for (int i = 0; i  < Controls.Count(); i++)
+        delete Controls[i];
 
     Controls.Clear();
     UpdateTimer.Start();

@@ -368,18 +368,8 @@ bool RulesClassExtension::Objects(CCINIClass &ini)
     //EXT_DEBUG_TRACE("RulesClassExtension::Objects - 0x%08X\n", (uintptr_t)(This()));
 
     /**
-     *  Fetch the game object (extension) values from the rules file.
+     *  Fetch the game object and extension values from the rules file.
      */
-
-    DEBUG_INFO("Rules: Processing ArmorTypes (Count: %d)...\n", ArmorTypes.Count());
-    for (int index = 0; index < ArmorTypes.Count(); ++index) {
-        ArmorTypes[index]->Read_INI(ini);
-    }
-
-    DEBUG_INFO("Rules: Processing RocketTypes (Count: %d)...\n", RocketTypes.Count());
-    for (int index = 0; index < RocketTypes.Count(); ++index) {
-        RocketTypes[index]->Read_INI(ini);
-    }
 
     DEBUG_INFO("Rules: Processing HouseTypes (Count: %d)...\n", HouseTypes.Count());
     for (int index = 0; index < HouseTypes.Count(); ++index) {
@@ -565,6 +555,20 @@ bool RulesClassExtension::Objects(CCINIClass &ini)
     for (int mission = 0; mission < MISSION_COUNT; mission++) {
         MissionControl[mission].Mission = static_cast<MissionType>(mission);
         MissionControl[mission].Read_INI(ini);
+    }
+
+    /**
+     *  Fetch new Vinifera object values from the rules file.
+     */
+
+    DEBUG_INFO("Rules: Processing ArmorTypes (Count: %d)...\n", ArmorTypes.Count());
+    for (int index = 0; index < ArmorTypes.Count(); ++index) {
+        ArmorTypes[index]->Read_INI(ini);
+    }
+
+    DEBUG_INFO("Rules: Processing RocketTypes (Count: %d)...\n", RocketTypes.Count());
+    for (int index = 0; index < RocketTypes.Count(); ++index) {
+        RocketTypes[index]->Read_INI(ini);
     }
 
     return true;

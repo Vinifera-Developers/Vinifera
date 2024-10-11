@@ -73,6 +73,9 @@ public:
     IFACEMETHOD_(LayerType, In_Which_Layer)();
     IFACEMETHOD_(bool, Is_Moving_Now)();
 
+    RocketLocomotionClass();
+    ~RocketLocomotionClass() override = default;
+
     /**
      *  LocomotionClass
      */
@@ -88,8 +91,8 @@ private:
     bool Time_To_Explode(const RocketTypeClass* rocket);
 
 public:
-    RocketLocomotionClass();
-    ~RocketLocomotionClass() = default;
+    RocketLocomotionClass(const RocketLocomotionClass&) = delete;
+    RocketLocomotionClass& operator=(const RocketLocomotionClass&) = delete;
     
 protected:
     /**
