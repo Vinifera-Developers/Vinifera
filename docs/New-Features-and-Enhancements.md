@@ -147,6 +147,7 @@ In `RULES.INI`:
 ```ini
 [SOMETECHNO]        ; TechnoType
 NoSpawnAlt=no       ; boolean, should this Techno use an alternate voxel model when it's out of spawns?
+                    ; When true, the model named SOMETECHNOWO will be used when it's out of spawns.
 ```
 
 ```{note}
@@ -188,11 +189,11 @@ EliteDamage=400         ; integer, the rocker does this much damage when it expl
 BodyLength=256          ; integer, the length of  thebody of the rocket in leptons (1/256 of a cell).
 LazyCurve=yes           ; boolean, is the rocket's path a big, lazy curve, like the V3 is Red Alert 2.
 CruiseMissile=no        ; boolean, is this rocket a Cruise Missile, like Boomer missiles in Yuri's Revenge.
-Type=V3ROCKET           ; AircraftType, the type this rocket is associated with.
-Warhead=V3WH            ; WarheadType, the warhead that this rocket's explosion uses.
-EliteWarhead=V3EWH      ; WarheadType, the warhead that this rocket's explosion uses when the spawner is elite.
-TakeoffAnim=V3TAKOFF    ; AnimType, the takeoff animation used by this rocket.
-TrailAnim=V3TRAIL       ; AnimType, the trail animation used by this rocket.
+Type=                   ; AircraftType, the type this rocket is associated with.
+Warhead=                ; WarheadType, the warhead that this rocket's explosion uses.
+EliteWarhead=           ; WarheadType, the warhead that this rocket's explosion uses when the spawner is elite.
+TakeoffAnim=            ; AnimType, the takeoff animation used by this rocket.
+TrailAnim=              ; AnimType, the trail animation used by this rocket.
 ```
 
 ```{note}
