@@ -266,6 +266,7 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     VoiceDeploy = ini.Get_VocTypes(ini_name, "VoiceDeploy", VoiceDeploy);
     VoiceHarvest = ini.Get_VocTypes(ini_name, "VoiceHarvest", VoiceHarvest);
     SpecialPipIndex = ini.Get_Int(ini_name, "SpecialPipIndex", SpecialPipIndex);
+    PipWrap = ini.Get_Int(ini_name, "PipWrap", PipWrap);
 
     if (ini.Is_Present(ini_name, "Description"))
         ini.Get_String(ini_name, "Description", Description, std::size(Description));
