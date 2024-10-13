@@ -2023,7 +2023,7 @@ bool ExplosionCommandClass::Process()
 
     new AnimClass(cellanim, mouse_coord);
 
-    Explosion_Damage(&mouse_coord, damage, nullptr, warheadtypeptr);
+    Explosion_Damage(mouse_coord, damage, nullptr, warheadtypeptr);
 
     return true;
 }
@@ -2091,7 +2091,7 @@ bool SuperExplosionCommandClass::Process()
 
     new AnimClass(cellanim, mouse_coord);
 
-    Explosion_Damage(&mouse_coord, damage, nullptr, warheadtypeptr);
+    Explosion_Damage(mouse_coord, damage, nullptr, warheadtypeptr);
 
     return true;
 }
