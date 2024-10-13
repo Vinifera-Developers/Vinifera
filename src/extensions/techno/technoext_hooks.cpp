@@ -358,9 +358,9 @@ WeaponSlotType TechnoClassExt::_What_Weapon_Should_I_Use(TARGET target) const
 
     /**
      *  Fetch the armor of the candidate target object. Presume that if the target
-     *  is not an object, then its armor is equivalent to wood. Who knows why?
+     *  is not an object, then its armor is equivalent to none. Who knows why?
      */
-    ArmorType armor = ARMOR_WOOD;
+    ArmorType armor = ARMOR_NONE;
     if (Is_Target_Object(target)) {
         armor = static_cast<ObjectClass*>(target)->Class_Of()->Armor;
     }
