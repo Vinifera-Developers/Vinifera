@@ -40,6 +40,11 @@
 #include <locale>
 #include <codecvt>
 
+#include "ccfile.h"
+#include "objectext.h"
+#include "motionlib.h"
+#include "voxellib.h"
+
 
 const char *Get_Text_Time()
 {
@@ -563,4 +568,45 @@ const char *Filename_From_Path(const char *filename)
     _makepath(path, nullptr, nullptr, name, ext);
 
     return path;
+}
+
+
+/**
+ *  Loads a voxel object from files.
+ *
+ *  @author: ZivDero
+ */
+bool Load_Voxel(VoxelObject& voxel, const char* graphic_name, bool required)
+{
+    char buffer[260];
+    bool failed = false;
+
+    _makepath(buffer, nullptr, nullptr, graphic_name, ".VXL");
+    CCFileClass bodyvxl(buffer);
+
+    if (bodyvxl.Is_Available())
+    {
+        delete voxel.VoxelLibrary;
+        voxel.VoxelLibrary = new VoxelLibraryClass(&bodyvxl);
+
+        if (!voxel.VoxelLibrary || voxel.VoxelLibrary->Load_Failed())
+            failed = true;
+
+        _makepath(buffer, nullptr, nullptr, graphic_name, ".HVA");
+        CCFileClass bodyhva(buffer);
+
+        delete voxel.MotionLibrary;
+        voxel.MotionLibrary = new MotionLibraryClass(&bodyhva);
+
+        if (!voxel.MotionLibrary || voxel.MotionLibrary->Load_Failed())
+            failed = true;
+        else
+            voxel.MotionLibrary->Scale(voxel.VoxelLibrary->Get_Layer_Info(0, 0)->Scale);
+    }
+    else if (required)
+    {
+        failed = true;
+    }
+
+    return !failed;
 }

@@ -149,6 +149,7 @@
 #include "hooker.h"
 #include "hooker_macros.h"
 #include "storage/storageext_hooks.h"
+#include "spawnmanager_hooks.h"
 
 
 void Extension_Hooks()
@@ -291,4 +292,5 @@ void Extension_Hooks()
      *  New classes and interfaces.
      */
     TheaterTypeClassExtension_Hooks();
+    SpawnManager_Hooks();
 }

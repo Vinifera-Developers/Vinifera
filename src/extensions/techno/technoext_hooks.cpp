@@ -25,6 +25,7 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+#include "spawnmanager.h"
 #include "technoext_hooks.h"
 
 #include <vector>
@@ -53,6 +54,7 @@
 #include "infantrytype.h"
 #include "infantrytypeext.h"
 #include "voc.h"
+#include "mouse.h"
 #include "vinifera_util.h"
 #include "extension.h"
 #include "fatal.h"
@@ -65,6 +67,7 @@
 #include "options.h"
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "ionstorm.h"
 #include "storageext.h"
 #include "textprint.h"
 #include "tiberiumext.h"
@@ -73,6 +76,8 @@
 #include "verses.h"
 #include "session.h"
 #include "mouse.h"
+#include "tag.h"
+#include "tibsun_functions.h"
 
 
 /**
@@ -95,6 +100,14 @@ public:
     ActionType _What_Action(ObjectClass* object, bool disallow_force);
     void _Drop_Tiberium();
     int _Cell_Distance_Squared(const AbstractClass* object) const;
+    bool _Spawner_Fire_At(TARGET target, WeaponTypeClass* weapon);
+    bool _Target_Something_Nearby(Coordinate& coord, ThreatType threat);
+    void _Stun();
+    void _Mission_AI();
+    FireErrorType _Can_Fire(TARGET target, WeaponSlotType which = WEAPON_SLOT_PRIMARY);
+    bool _Can_Player_Move() const;
+    Coordinate _Fire_Coord(WeaponSlotType which) const;
+
 };
 
 
@@ -119,6 +132,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
 
     const auto ttype = Techno_Type_Class();
     const auto ttype_ext = Extension::Fetch<TechnoTypeClassExtension>(ttype);
+    const auto ext = Extension::Fetch<TechnoClassExtension>(this);
 
     if (What_Am_I() != RTTI_BUILDING)
     {
@@ -227,6 +241,14 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
                         shape = pips_to_draw[index];
                     }
                     CC_Draw_Shape(LogicSurface, NormalDrawer, pip_shapes, shape, &Point2D(drawx + dx * index, drawy + dy * index), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
+                }
+            }
+            else if (ext->SpawnManager && ext->SpawnManager->SpawnCount > 0)
+            {
+                for (int index = 0; index < ext->SpawnManager->SpawnCount; index++)
+                {
+                    const int pip = index < ext->SpawnManager->Docked_Count() ? 1 : 0;
+                    CC_Draw_Shape(LogicSurface, NormalDrawer, pip_shapes, pip, &Point2D(drawx + dx * index, drawy + dy * index), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
                 }
             }
             else if (Techno_Type_Class()->PipScale == PIP_AMMO)
@@ -426,6 +448,339 @@ WeaponSlotType TechnoClassExt::_What_Weapon_Should_I_Use(TARGET target) const
     }
 
     return immobilize == webby_secondary ? WEAPON_SLOT_SECONDARY : WEAPON_SLOT_PRIMARY;
+}
+
+
+/**
+ *  Patch in TechnoClass::Fire_At to order the spawner to fire at the target,
+ *  as well as reveal it if the weapon is RevealOnFire.
+ *
+ *  @author: ZivDero
+ */
+bool TechnoClassExt::_Spawner_Fire_At(TARGET target, WeaponTypeClass* weapon)
+{
+    auto weapon_ext = Extension::Fetch<WeaponTypeClassExtension>(weapon);
+
+    if (weapon_ext->IsSpawner)
+    {
+        auto techno_ext = Extension::Fetch<TechnoClassExtension>(this);
+        techno_ext->SpawnManager->Queue_Target(target);
+        if (IsOwnedByPlayer || IsDiscoveredByPlayer)
+        {
+            if (!Map.Is_Shrouded(Center_Coord()) && !Map.Is_Fogged(Center_Coord()))
+                return true;
+
+            if (What_Am_I() == RTTI_AIRCRAFT && IsOwnedByPlayer)
+                return true;
+        }
+
+        HouseClass* target_house = target->Owning_House();
+        if (target_house && target_house->Is_Player_Control())
+        {
+            if (weapon_ext->IsRevealOnFire)
+            {
+                Map.Sight_From(Center_Coord(), 3, target_house);
+            }
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+
+/**
+ *  Reimplementation of TechnoClass::Target_Something_Nearby with adjustments
+ *  for the spawner.
+ *
+ *  @author: ZivDero
+ */
+bool TechnoClassExt::_Target_Something_Nearby(Coordinate& coord, ThreatType threat)
+{
+    /**
+     *  Determine that if there is an existing target it is still legal
+     *  and within range.
+     */
+    if (Target_Legal(TarCom))
+    {
+        // This bit is roughly ported from YR but is missing `ShouldLoseTargetNow`
+        if (threat & THREAT_RANGE)
+        {
+            WeaponSlotType primary = What_Weapon_Should_I_Use(TarCom);
+            FireErrorType fire = Can_Fire(TarCom, primary);
+
+            if (fire == FIRE_CANT)
+            {
+                SpawnManagerClass* spawn_manager = Extension::Fetch<TechnoClassExtension>(this)->SpawnManager;
+                if (spawn_manager)
+                    spawn_manager->Abandon_Target();
+
+                Assign_Target(nullptr);
+            }
+            else if (fire == FIRE_ILLEGAL || fire == FIRE_RANGE)
+            {
+                Assign_Target(nullptr);
+            }
+        }
+    }
+
+    /**
+     *  If there is no target, then try to find one and assign it as
+     *  the target for this unit.
+     */
+    if (!Target_Legal(TarCom)) {
+        Assign_Target(Greatest_Threat(threat & (THREAT_RANGE | THREAT_AREA), coord));
+    }
+
+    /**
+     *  Return with answer to question: Does this unit now have a target?
+     */
+    return Target_Legal(TarCom);
+}
+
+
+/**
+ *  Reimplementation of TechnoClass::Stun with adjustments for the spawner.
+ *
+ *  @author: ZivDero
+ */
+void TechnoClassExt::_Stun()
+{
+    Assign_Target(nullptr);
+    Assign_Destination(nullptr);
+    Transmit_Message(RADIO_OVER_OUT);
+
+    const auto extension = Extension::Fetch<TechnoClassExtension>(this);
+    if (extension->SpawnManager)
+    {
+        extension->SpawnManager->Detach_Spawns();
+        extension->SpawnManager->Abandon_Target();
+    }
+
+    Detach_All(true);
+    Unselect();
+}
+
+
+/**
+ *  Wrapper function to patch the call in TechnoClass::AI to call
+ *  SpawnManagerClass::AI.
+ *
+ *  @author: ZivDero
+ */
+void TechnoClassExt::_Mission_AI()
+{
+    MissionClass::AI();
+
+    const auto extension = Extension::Fetch<TechnoClassExtension>(this);
+
+    if (extension->SpawnManager)
+        extension->SpawnManager->AI();
+}
+
+
+/**
+ *  Determines if this techno object can fire.
+ *
+ *  @author: 12/23/1994 JLB - Created.
+ *           ZivDero - Adjustments for Tiberian Sun.
+ */
+FireErrorType TechnoClassExt::_Can_Fire(TARGET target, WeaponSlotType which)
+{
+    /**
+     *  Don't allow firing if the target is illegal.
+     */
+    if (!Target_Legal(target))
+        return FIRE_ILLEGAL;
+
+    const auto ext = Extension::Fetch<TechnoClassExtension>(this);
+
+    /**
+     *  If this unit is a spawner, don't let it fire if it's currently in the process of spawning.
+     */
+    if (ext->SpawnManager && ext->SpawnManager->Preparing_Count())
+        return FIRE_BUSY;
+
+    ObjectClass* object = Target_As_Techno(target);
+
+    /**
+     *  If the object is completely cloaked, then you can't fire on it.
+     */
+    if (object && object->Visual_Character(true, House) == VISUAL_HIDDEN
+        && !Map[target->Center_Coord()].Sensed_By(static_cast<HousesType>(House->Get_Heap_ID()))
+        && object->Owning_House() != House
+        && (Combat_Damage() > 0 || !object->Owning_House()->Is_Ally(House)))
+    {
+        return FIRE_CANT;
+    }
+
+    /**
+     *  A falling object is too busy falling to fire.
+     */
+    if (IsFalling)
+        return FIRE_CANT;
+
+    /**
+     *  An immobilized object can't fire, unless it's a visceroid.
+     */
+    if (Is_Immobilized())
+    {
+        if (What_Am_I() != RTTI_UNIT
+            || !(reinterpret_cast<UnitClass*>(this)->Class->IsLargeVisceroid
+            || reinterpret_cast<UnitClass*>(this)->Class->IsSmallVisceroid))
+        {
+            return FIRE_CANT;
+        }
+    }
+
+    /**
+     *  If there is no weapon, then firing is not allowed.
+     */
+    WeaponTypeClass const* weapon = Get_Weapon(which)->Weapon;
+    if (!weapon)
+        return FIRE_CANT;
+
+    /**
+     *  If the weapon is ion sensitive and there's an active Ion Storm,
+     *  then firing is not allowed.
+     */
+    if (weapon->IsIonSensitive && IonStorm_Is_Active())
+        return FIRE_CANT;
+
+    /**
+     *  If the weapon is a spawner, it needs to have an object ready to spawn.
+     */
+    if (weapon && Extension::Fetch<WeaponTypeClassExtension>(weapon)->IsSpawner)
+    {
+        const auto techno_ext = Extension::Fetch<TechnoClassExtension>(this);
+        if (techno_ext->SpawnManager->Active_Count() == 0)
+            return FIRE_REARM;
+    }
+
+    /**
+     *  If we're firing our primary particle-based/wave/railgun weapon, then
+     *  we can't fire our secondary weapon of the same kind.
+     */
+    WeaponTypeClass const* other_weapon = Get_Weapon(which == WEAPON_SLOT_PRIMARY ? WEAPON_SLOT_SECONDARY : WEAPON_SLOT_PRIMARY)->Weapon;
+    
+    if (other_weapon)
+    {
+        if ((other_weapon->IsSonic && Wave)
+            || (other_weapon->IsRailgun && ParticleSystems[4])
+            || (other_weapon->IsUseFireParticles && ParticleSystems[0])
+            || (other_weapon->IsUseSparkParticles && ParticleSystems[1]))
+        {
+            return FIRE_CANT;
+        }
+    }
+
+    /**
+     *  Can only fire anti-aircraft weapons against aircraft unless the aircraft is
+     *  sitting on the ground. If the object is on the ground,
+     *  then don't allow firing if it can't fire upon ground objects.
+     */
+    if (target->In_Air() && !weapon->Bullet->IsAntiAircraft ||
+        target->On_Ground() && !weapon->Bullet->IsAntiGround)
+    {
+        return FIRE_CANT;
+    }
+
+    /**
+     *  Check if the unit has synchronized shooting.
+     */
+    bool check_rearm = true;
+    if (which != WEAPON_SLOT_NONE && What_Am_I() == RTTI_UNIT)
+    {
+        const auto unit = reinterpret_cast<UnitClass*>(this);
+        const int burst = CurrentBurstIndex % weapon->Burst;
+        if (burst < 2)
+        {
+            if (unit->Class->FiringSyncFrame[burst] != -1
+                && unit->FiringSyncDelay != -1)
+            {
+                if (unit->Class->FiringSyncFrame[burst] != unit->FiringSyncDelay)
+                    return FIRE_REARM;
+                
+                check_rearm = false;
+            }
+        }
+    }
+
+    /**
+     *  Don't allow firing if still rearming.
+     */
+    if (check_rearm && Arm != 0)
+        return FIRE_REARM;
+
+    /**
+     *  The target must be within range in order to allow firing.
+     */
+    if (!In_Range_Of(target, which))
+        return FIRE_RANGE;
+
+    /**
+     *  If the object has an armor type that this unit's warhead is forbidden to fire at, bail.
+     */
+    if (object && !Verses::Get_ForceFire(object->Techno_Type_Class()->Armor, weapon->WarheadPtr))
+    {
+        return FIRE_ILLEGAL;
+    }
+
+    /**
+     *  If there is no ammo left, then it can't fire.
+     */
+    if (!Ammo)
+        return FIRE_AMMO;
+
+    /**
+     *  If cloaked, then firing is disabled.
+     */
+    if (Cloak != UNCLOAKED && (What_Am_I() != RTTI_AIRCRAFT || Cloak == CLOAKED))
+        return FIRE_CLOAKED;
+
+    /**
+     *  Hunter seekers can't fire since they need to kamikaze into the target.
+     */
+    if (Techno_Type_Class()->IsHunterSeeker)
+        return FIRE_RANGE;
+
+    return FIRE_OK;
+}
+
+
+/**
+ *  Determines if the object can move be moved by player.
+ *
+ *  @author: 01/19/1995 JLB - Created.
+ *           ZivDero - Adjustments for Tiberian Sun.
+ */
+bool TechnoClassExt::_Can_Player_Move() const
+{
+    if (!House->Is_Player_Control())
+        return false;
+
+    if (Is_Immobilized())
+        return false;
+
+    const auto ext = Extension::Fetch<TechnoClassExtension>(this);
+    if (ext->SpawnManager)
+    {
+        const auto typeext = Extension::Fetch<TechnoTypeClassExtension>(Techno_Type_Class());
+        if (ext->SpawnManager->Preparing_Count() > 0 && ext->SpawnManager->Preparing_Count() < typeext->SpawnsNumber)
+            return false;
+    }
+
+    return true;
+}
+
+
+/**
+ *  Wrapper for TechnoClassExtension::Fire_Coord.
+ */
+Coordinate TechnoClassExt::_Fire_Coord(WeaponSlotType which) const
+{
+    return Extension::Fetch<TechnoClassExtension>(this)->Fire_Coord(which, TPoint3D<int>());
 }
 
 
@@ -872,45 +1227,6 @@ continue_checks:
 
 return_false:
     JMP(0x0062D8C0);
-}
-
-
-/**
- *  Adds check for if the warhead forbids force-firing at this unit.
- *
- *  @author: ZivDero
- */
-DECLARE_PATCH(_TechnoClass_Can_Fire_ForceFire_Armor_Patch)
-{
-    GET_REGISTER_STATIC(TechnoClass*, this_ptr, esi);
-    GET_REGISTER_STATIC(TechnoClass*, target, ebp);
-    GET_REGISTER_STATIC(WeaponSlotType, which, ebx);
-
-    /**
-     *  If the object has an armor type that this unit's warhead is forbidden to fire at, bail.
-     */
-    if (Is_Target_Techno(target))
-    {
-        if (!Verses::Get_ForceFire(target->Techno_Type_Class()->Armor, this_ptr->Get_Weapon(which)->Weapon->WarheadPtr))
-        {
-            _asm mov esi, this_ptr
-            // return FIRE_ILLEGAL;
-            JMP(0x0062F991);
-        }
-    }
-
-    /**
-     *  If the object is further away than allowed, bail.
-     */
-    if (!this_ptr->In_Range_Of(target, which))
-    {
-        _asm mov esi, this_ptr
-        // return FIRE_RANGE;
-        JMP(0x0062FC90);
-    }
-
-    _asm mov esi, this_ptr
-    JMP(0x0062FC9F);
 }
 
 
@@ -1585,17 +1901,10 @@ DECLARE_PATCH(_TechnoClass_AI_Abandon_Invalid_Target_Patch)
             which = this_ptr->What_Weapon_Should_I_Use(this_ptr->TarCom);
             weapon = const_cast<WeaponTypeClass*>(this_ptr->Get_Weapon(which)->Weapon);
 
-            if (weapon
-                && !(weapon->IsSonic && this_ptr->Wave)
-                && !(weapon->IsRailgun && this_ptr->ParticleSystems[4])
-                && !(weapon->IsUseFireParticles && this_ptr->ParticleSystems[0])
-                && !(weapon->IsUseSparkParticles && this_ptr->ParticleSystems[1]))
+            fire = this_ptr->Can_Fire(this_ptr->TarCom, which);
+            if (fire == FIRE_ILLEGAL || fire == FIRE_CANT)
             {
-                fire = this_ptr->Can_Fire(this_ptr->TarCom, which);
-                if (fire == FIRE_ILLEGAL || fire == FIRE_CANT)
-                {
-                    this_ptr->Assign_Target(nullptr);
-                }
+                this_ptr->Assign_Target(nullptr);
             }
         }
     }
@@ -1617,6 +1926,83 @@ DECLARE_PATCH(_TechnoClass_Take_Damage_Drop_Tiberium_Type_Patch)
 
     // Return from the function
     JMP(0x00633073);
+}
+
+
+/**
+ *  Patch to update the spawn manager when its owner is captured.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_TechnoClass_Captured_Spawn_Manager_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass*, this_ptr, esi);
+    static TechnoClassExtension* extension;
+
+    extension = Extension::Fetch<TechnoClassExtension>(this_ptr);
+
+    if (extension->SpawnManager)
+        extension->SpawnManager->Detach_Spawns();
+
+    // Stolen instructions
+    if (this_ptr->Tag)
+        this_ptr->Tag->Spring(TEVENT_PLAYER_ENTERED, this_ptr);
+
+    JMP(0x00632518);
+}
+
+
+/**
+ *  Patch to assign the target to the spawner.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_TechnoClass_Assign_Target_Spawn_Manager_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass*, this_ptr, esi);
+    static TechnoClassExtension* extension;
+
+    extension = Extension::Fetch<TechnoClassExtension>(this_ptr);
+
+    if (extension->SpawnManager)
+        extension->SpawnManager->Queue_Target(nullptr);
+
+    // Stolen instructions
+    this_ptr->CurrentBurstIndex = 0;
+
+    JMP(0x0062FDE8);
+}
+
+
+/**
+ *  Patch to pass the fire command to the spawner.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_TechnoClass_Fire_At_Spawn_Manager_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClassExt*, this_ptr, esi);
+    GET_REGISTER_STATIC(WeaponTypeClass*, weapon, ebx);
+    GET_REGISTER_STATIC(TARGET, target, edi);
+
+    // Stolen instructions
+    if (((weapon->IsSonic && this_ptr->Wave)
+      || (weapon->IsRailgun && this_ptr->ParticleSystems[4])
+      || (weapon->IsUseFireParticles && this_ptr->ParticleSystems[0])
+      || (weapon->IsUseSparkParticles && this_ptr->ParticleSystems[1])))
+    {
+        // return FIRE_OK;
+        JMP(0x006304D2);
+    }
+
+    if (this_ptr->_Spawner_Fire_At(target, weapon))
+    {
+        // return FIRE_OK;
+        JMP(0x006304D2);
+    }
+
+    // Continue checks
+    JMP(0x0063052D);
 }
 
 
@@ -1721,7 +2107,6 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x00636BFE, &_TechnoClass_Base_Is_Attacked_Armor1_Patch);
     Patch_Jump(0x006369B0, &_TechnoClass_Base_Is_Attacked_Armor2_Patch);
     Patch_Jump(0x0062D11E, &_TechnoClass_Evaluate_Object_PassiveAcquire_Armor_Patch);
-    Patch_Jump(0x0062FC80, &_TechnoClass_Can_Fire_ForceFire_Armor_Patch);
     Patch_Call(0x0042EC25, &TechnoClassExt::_What_Action);
     Patch_Call(0x004A8532, &TechnoClassExt::_What_Action);
     Patch_Jump(0x0062EB27, &_TechnoClass_AI_Abandon_Invalid_Target_Patch);
@@ -1729,4 +2114,13 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x006320C2, &_TechnoClass_2A0_Is_Allowed_To_Deploy_Unit_Transform_Patch);
     Patch_Call(0x00637FF5, &TechnoClassExt::_Cell_Distance_Squared); // Patch Find_Docking_Bay to call our own distance function that avoids overflows
     Patch_Jump(0x006396D1, &_TechnoClass_Railgun_Damage_Apply_Damage_Modifier_Patch);
+    Patch_Jump(0x006324FF, &_TechnoClass_Captured_Spawn_Manager_Patch);
+    Patch_Jump(0x0062FDE2, &_TechnoClass_Assign_Target_Spawn_Manager_Patch);
+    Patch_Jump(0x006304DD, &_TechnoClass_Fire_At_Spawn_Manager_Patch);
+    Patch_Jump(0x00637450, &TechnoClassExt::_Target_Something_Nearby);
+    Patch_Jump(0x0062FD20, &TechnoClassExt::_Stun);
+    Patch_Call(0x0062E9D1, &TechnoClassExt::_Mission_AI);
+    Patch_Jump(0x0062F980, &TechnoClassExt::_Can_Fire);
+    Patch_Jump(0x00631FF0, &TechnoClassExt::_Can_Player_Move);
+    //Patch_Jump(0x0062A3D0, &TechnoClassExt::_Fire_Coord); // Disabled because it's functionally identical to the vanilla function when there's no secondary coordinate
 }

@@ -49,6 +49,7 @@
 #include "debughandler.h"
 #include "asserthandler.h"
 #include "ebolt.h"
+#include "kamikazetracker.h"
 
 
 /**
@@ -60,6 +61,9 @@
 static void _Detach_This_From_All_Intercept(TARGET target, bool all)
 {
     Extension::Detach_This_From_All(target, all);
+
+    if (target->What_Am_I() == RTTI_AIRCRAFT)
+        KamikazeTracker->Detach(reinterpret_cast<AircraftClass const*>(target));
 
     Detach_This_From_All(target, all);
 }

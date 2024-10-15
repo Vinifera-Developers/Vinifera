@@ -142,6 +142,7 @@ New:
 - Add `TransformsInto` and `TransformRequiresFullCharge` to UnitTypes (by Rampastring)
 - Add developer command to dump all existing triggers, tags, and local and global variables to the log output (by Rampastring)
 - Add `PipWrap` (by ZivDero)
+- Reimplement aircraft carriers and missile launchers from Red Alert 2 (by ZivDero)
 
 
 Vanilla fixes:

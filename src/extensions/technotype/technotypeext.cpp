@@ -26,6 +26,8 @@
  *
  ******************************************************************************/
 #include "technotypeext.h"
+
+#include "aircrafttype.h"
 #include "technotype.h"
 #include "ccini.h"
 #include "filepng.h"
@@ -70,7 +72,13 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     IdleRate(0),
     CameoImageSurface(nullptr),
     SortCameoAsBaseDefense(false),
-    Description("")
+    Description(""),
+    IsMissileSpawn(false),
+    Spawns(nullptr),
+    SpawnReloadRate(0),
+    SpawnRegenRate(0),
+    SpawnsNumber(0),
+    SecondSpawnOffset(0, 0, 0)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -117,6 +125,7 @@ HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
     }
 
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(UnloadingClass, "UnloadingClass");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Spawns, "Spawns");
 
     /**
      *  We need to reload the "Cameo" key because TechnoTypeClass does
@@ -214,6 +223,10 @@ void TechnoTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
     crc(ShakePixelXLo);
     crc(SoylentValue);
     crc(IsLegalTargetComputer);
+    crc(Spawns->Get_Heap_ID());
+    crc(SpawnRegenRate);
+    crc(SpawnReloadRate);
+    crc(SpawnsNumber);
 }
 
 
@@ -274,6 +287,13 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
 
     IdleRate = ini.Get_Int(ini_name, "IdleRate", IdleRate);
     IdleRate = ArtINI.Get_Int(graphic_name, "IdleRate", IdleRate);
+
+    IsMissileSpawn = ini.Get_Bool(ini_name, "MissileSpawn", IsMissileSpawn);
+    Spawns = ini.Get_Aircraft(ini_name, "Spawns", nullptr);
+    SpawnReloadRate = ini.Get_Int(ini_name, "SpawnReloadRate", SpawnReloadRate);
+    SpawnRegenRate = ini.Get_Int(ini_name, "SpawnRegenRate", SpawnRegenRate);
+    SpawnsNumber = ini.Get_Int(ini_name, "SpawnsNumber", SpawnsNumber);
+    SecondSpawnOffset = ArtINI.Get_Point(graphic_name, "SecondSpawnOffset", SecondSpawnOffset);
 
     /**
      *  Fetch the cameo image surface if it exists.

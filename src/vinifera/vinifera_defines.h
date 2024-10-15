@@ -56,13 +56,20 @@
 
 
 /**
- *  CLSID's for all new locomotors.
+ *  CLSIDs for all new locomotors.
  */
 #define		CLSID_TEST_LOCOMOTOR	"501DEF92-C7ED-448E-8FEB-7908DCE73377"
+#define		CLSID_ROCKET_LOCOMOTOR	"B7B49766-E576-11d3-9BD9-00104B972FE8"
 
 
 /**
- *  UUID's for all extension classes.
+ *  CLSIDs for new classes.
+ */
+#define		CLSID_SPAWN_MANAGER_CLASS	"157ADEE5-D344-48B9-811B-3FA01EF3CCD4"
+
+
+/**
+ *  UUIDs for all extension classes.
  */
 #define UUID_UNIT_EXTENSION                 "17621513-3BDA-4FBD-A591-1A0B6DA0F4B9"
 #define UUID_AIRCRAFT_EXTENSION             "04B6C8D5-6D12-41C3-BF4B-B52F25928CF3"
@@ -130,12 +137,22 @@
 
 
 /**
- *  UUID's for all other new classes.
+ *  UUIDs for all other new classes.
  */
 #define UUID_ARMORTYPE                      "EE8D505F-12BB-4313-AEDC-4AEA30A5BA03"
+#define UUID_ROCKETTYPE                      "FAE72300-A93C-476C-A6DB-CB2B62ADCECD"
 
 
 /**
  *  The maximum amount of waypoints available for a scenario to use.
  */
 #define NEW_WAYPOINT_COUNT         SHRT_MAX      // "AVLG"
+
+
+typedef enum ViniferaRTTIType
+{
+    RTTI_SPAWN_MANAGER = RTTI_COUNT,
+
+    VINIFERA_RTTI_COUNT
+};
+DEFINE_ENUMERATION_OPERATORS(ViniferaRTTIType);

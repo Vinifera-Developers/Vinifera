@@ -44,7 +44,9 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "kamikazetracker.h"
 #include "mouse.h"
+#include "vinifera_globals.h"
 
 
 /**
@@ -80,11 +82,11 @@ class ScenarioClassExt final : public ScenarioClass
 /**
  *  #issue-71
  * 
- *  Clear all waypoints in preperation for loading the scenario data.
+ *  Clear things in preparation for loading the scenario data.
  *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Clear_Scenario_Clear_Waypoints_Patch)
+DECLARE_PATCH(_Clear_Scenario_Patch)
 {
     /**
      *  Stolen bytes/code.
@@ -93,6 +95,8 @@ DECLARE_PATCH(_Clear_Scenario_Clear_Waypoints_Patch)
 
     //DEBUG_INFO("Clearing waypoints...\n");
     ScenExtension->Clear_All_Waypoints();
+
+    KamikazeTracker->Clear();
 
     JMP(0x005DC872);
 }
@@ -351,7 +355,7 @@ void ScenarioClassExtension_Hooks()
     Patch_Jump(0x005E16E0, &ScenarioClassExt::_Set_Waypoint_Cell);
     Patch_Jump(0x005E1700, &ScenarioClassExt::_Get_Waypoint_CellPtr);
     Patch_Jump(0x005E1720, &ScenarioClassExt::_Waypoint_As_String);
-    Patch_Jump(0x005DC852, &_Clear_Scenario_Clear_Waypoints_Patch);
+    Patch_Jump(0x005DC852, &_Clear_Scenario_Patch);
     Patch_Jump(0x005DC0A0, &_Fill_In_Data_Home_Cell_Patch);
     Patch_Jump(0x00673330, &_Waypoint_From_Name);
     Patch_Jump(0x006732B0, &_Waypoint_To_Name);

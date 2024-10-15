@@ -150,6 +150,8 @@ int InfantryClassExtension::Size_Of() const
 void InfantryClassExtension::Detach(TARGET target, bool all)
 {
     //EXT_DEBUG_TRACE("InfantryClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    FootClassExtension::Detach(target, all);
 }
 
 

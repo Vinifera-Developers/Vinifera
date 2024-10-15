@@ -64,4 +64,9 @@ AircraftClassExtension final : public FootClassExtension
         virtual RTTIType What_Am_I() const override { return RTTI_AIRCRAFT; }
 
     public:
+
+        /**
+         *  The object that spawned this aircraft.
+         */
+        TechnoClass* SpawnOwner;
 };

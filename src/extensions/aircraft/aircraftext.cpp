@@ -31,6 +31,7 @@
 #include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "vinifera_saveload.h"
 
 
 /**
@@ -39,7 +40,8 @@
  *  @author: CCHyper
  */
 AircraftClassExtension::AircraftClassExtension(const AircraftClass *this_ptr) :
-    FootClassExtension(this_ptr)
+    FootClassExtension(this_ptr),
+    SpawnOwner(nullptr)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("AircraftClassExtension::AircraftClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -106,6 +108,8 @@ HRESULT AircraftClassExtension::Load(IStream *pStm)
     }
 
     new (this) AircraftClassExtension(NoInitClass());
+
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(SpawnOwner, "SpawnOwner");
     
     return hr;
 }
@@ -150,6 +154,12 @@ int AircraftClassExtension::Size_Of() const
 void AircraftClassExtension::Detach(TARGET target, bool all)
 {
     //EXT_DEBUG_TRACE("AircraftClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    FootClassExtension::Detach(target, all);
+
+    if (target == SpawnOwner) {
+        SpawnOwner = nullptr;
+    }
 }
 
 
@@ -161,4 +171,7 @@ void AircraftClassExtension::Detach(TARGET target, bool all)
 void AircraftClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
     //EXT_DEBUG_TRACE("AircraftClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    if (SpawnOwner)
+        crc(SpawnOwner->Get_Heap_ID());
 }
