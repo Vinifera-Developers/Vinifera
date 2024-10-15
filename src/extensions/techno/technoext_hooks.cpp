@@ -129,16 +129,16 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
         pip_shapes = pips2;
     }
 
-    /*
-    **  Because of ts-patches we have to check if the object is selected,
-    **  or we'll draw pips for unselected objects
-    */
+    /**
+     *  Because of ts-patches we have to check if the object is selected,
+     *  or we'll draw pips for unselected objects
+     */
     if (IsSelected)
     {
-        /*
-        **  Transporter type objects have a different graphic representation for the pips. The
-        **  pip color represents the type of occupant.
-        */
+        /**
+         *  Transporter type objects have a different graphic representation for the pips. The
+         *  pip color represents the type of occupant.
+         */
         const bool carrying_passengers = Techno_Type_Class()->Max_Passengers() > 0;
         if (carrying_passengers)
         {
@@ -162,51 +162,51 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
         }
         else
         {
-            /*
-            **  Display number of how many attached objects there are. This is also used
-            **  to display the fullness rating for a harvester.
-            */
+            /**
+             *  Display number of how many attached objects there are. This is also used
+             *  to display the fullness rating for a harvester.
+             */
             int pips = Pip_Count();
 
-            /*
-            **  Check if it contains Tiberium to show the right type of pips for the
-            **  various minerals it could have stored.
-            */
+            /**
+             *  Check if it contains Tiberium to show the right type of pips for the
+             *  various minerals it could have stored.
+             */
             if ((What_Am_I() == RTTI_UNIT || What_Am_I() == RTTI_BUILDING) && Techno_Type_Class()->PipScale == PIP_TIBERIUM)
             {
                 std::vector<int> pips_to_draw;
                 pips_to_draw.reserve(Class_Of()->Max_Pips());
 
-                /*
-                **  Weeders/Waste Facilities draw all their contents with the Weed pip.
-                */
+                /**
+                 *  Weeders/Waste Facilities draw all their contents with the Weed pip.
+                 */
                 if ((ttype->What_Am_I() == RTTI_UNITTYPE && ((UnitTypeClass*)ttype)->IsToVeinHarvest) ||
                     (ttype->What_Am_I() == RTTI_BUILDINGTYPE && ((BuildingTypeClass*)ttype)->IsWeeder))
                 {
-                    /*
-                    **  Add the pips to draw to a vector.
-                    */
+                    /**
+                     *  Add the pips to draw to a vector.
+                     */
                     for (int i = 0; i < pips; i++)
                         pips_to_draw.emplace_back(RuleExtension->WeedPipIndex);
                 }
                 else
                 {
-                    /*
-                    **  The first element is the sorting order, second element is the Tiberium ID.
-                    */
+                    /**
+                     *  The first element is the sorting order, second element is the Tiberium ID.
+                     */
                     std::vector<std::tuple<int, int>> tibtypes;
 
-                    /*
-                    **  Add all the Tiberiums and sort.
-                    */
+                    /**
+                     *  Add all the Tiberiums and sort.
+                     */
                     for (int i = 0; i < Tiberiums.Count(); i++)
                         tibtypes.emplace_back(Extension::Fetch<TiberiumClassExtension>(Tiberiums[i])->PipDrawOrder, i);
 
                     std::stable_sort(tibtypes.begin(), tibtypes.end());
 
-                    /*
-                    **  Add all the pips to draw to a vector.
-                    */
+                    /**
+                     *  Add all the pips to draw to a vector.
+                     */
                     for (auto& tibtuple : tibtypes)
                     {
                         const double amount = Storage.Get_Amount((TiberiumType)std::get<1>(tibtuple));
@@ -261,10 +261,10 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
             }
         }
 
-        /*
-        **  Display what group this unit belongs to. This corresponds to the team
-        **  number assigned with the <CTRL> key.
-        */
+        /**
+         *  Display what group this unit belongs to. This corresponds to the team
+         *  number assigned with the <CTRL> key.
+         */
         if (Group < 10)
         {
             char buffer[12];
@@ -282,16 +282,16 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
         }
     }
 
-    /*
-    **  Because of ts-patches we have to check if the object is discovered by the player,
-    **  or we'll draw pips for shrouded objects
-    */
+    /**
+     *  Because of ts-patches we have to check if the object is discovered by the player,
+     *  or we'll draw pips for shrouded objects
+     */
     if (IsDiscoveredByPlayer)
     {
-        /*
-        **  Special hack to display a red pip on the medic,
-        **  or a custom pip.
-        */
+        /**
+         *  Special hack to display a red pip on the medic,
+         *  or a custom pip.
+         */
         const int specialpip = Extension::Fetch<TechnoTypeClassExtension>(Techno_Type_Class())->SpecialPipIndex;
         if (specialpip >= 0)
         {
@@ -302,32 +302,24 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
             CC_Draw_Shape(LogicSurface, NormalDrawer, pips1, 6, &(Point2D(drawx, drawy) + UIControls->Get_Special_Pip_Offset((RTTIType)What_Am_I())), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
         }
 
-        /*
-        **  Display whether this unit is a leader unit or not.
-        */
+        /**
+         *  Display whether this unit is a leader unit or not.
+         */
         if (What_Am_I() != RTTI_BUILDING)
-        {
-            this->entry_338(Point2D(bottomleft.X - 10, bottomleft.Y + 10), bottomleft, rect);
-        }
+            Draw_Leader(Point2D(bottomleft.X - 10, bottomleft.Y + 10), bottomleft, rect);
 
-        /*
-        **  Display a veterancy pip is the unit is promoted.
-        */
+        /**
+         *  Display a veterancy pip is the unit is promoted.
+         */
         int veterancy_shape = -1;
         if (Veterancy.Is_Veteran())
-        {
             veterancy_shape = 7;
-        }
 
         if (Veterancy.Is_Elite())
-        {
             veterancy_shape = 8;
-        }
 
         if (Veterancy.Is_Dumbass())
-        {
             veterancy_shape = 12;
-        }
 
         if (veterancy_shape != -1)
         {
