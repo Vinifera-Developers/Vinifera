@@ -235,12 +235,12 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
                 {
                     enum { PIP_AMMO_WRAP_FIRST = 7 };
 
-                    const int full_wrap_amount = pips / ttype_ext->PipWrap;
-                    pips -= full_wrap_amount * ttype_ext->PipWrap;
+                    const int wrap_count = Ammo / ttype_ext->PipWrap;
+                    const int leftover = Ammo % ttype_ext->PipWrap;
 
                     for (int index = 0; index < ttype_ext->PipWrap; index++)
                     {
-                        CC_Draw_Shape(LogicSurface, NormalDrawer, pips2, PIP_AMMO_WRAP_FIRST + full_wrap_amount + (index < pips), &Point2D(drawx + dx * index, drawy + dy * index - 3), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
+                        CC_Draw_Shape(LogicSurface, NormalDrawer, pips2, PIP_AMMO_WRAP_FIRST + wrap_count + (index < leftover), &Point2D(drawx + dx * index, drawy + dy * index - 3), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
                     }
                 }
                 else
