@@ -53,6 +53,8 @@
 #include "infantrytype.h"
 #include "infantrytypeext.h"
 #include "voc.h"
+#include "tactical.h"
+#include "clipline.h"
 #include "vinifera_util.h"
 #include "extension.h"
 #include "fatal.h"
@@ -95,6 +97,7 @@ public:
     ActionType _What_Action(ObjectClass* object, bool disallow_force);
     void _Drop_Tiberium();
     int _Cell_Distance_Squared(const AbstractClass* object) const;
+    void _Draw_Target_Laser() const;
 };
 
 
@@ -789,6 +792,194 @@ int TechnoClassExt::_Cell_Distance_Squared(const AbstractClass* object) const
     int x_distance = our_cell_x - their_cell_x;
     int y_distance = our_cell_y - their_cell_y;
     return x_distance * x_distance + y_distance * y_distance;
+}
+
+
+/**
+ *  Reimplementation of TechnoClass::Draw_Target_Laser().
+ * 
+ *  @author: CCHyper
+ */
+void TechnoClassExt::_Draw_Target_Laser() const
+{
+    if (!TarCom) {
+        return;
+    }
+
+    /**
+     *  Fetch the line properties.
+     */
+    const bool is_dashed = TarCom ? UIControls->IsTargetLaserDashed : UIControls->IsMovementLineDashed;
+    const bool is_thick = TarCom ? UIControls->IsTargetLaserThick : UIControls->IsMovementLineThick;
+    const bool is_dropshadow = TarCom ? UIControls->IsTargetLaserDropShadow : UIControls->IsMovementLineDropShadow;
+
+    const unsigned tarcom_color = DSurface::RGB_To_Pixel(
+        UIControls->TargetLaserColor.R,
+        UIControls->TargetLaserColor.G,
+        UIControls->TargetLaserColor.B);
+
+    const unsigned tarcom_drop_color = DSurface::RGB_To_Pixel(
+        UIControls->TargetLaserDropShadowColor.R,
+        UIControls->TargetLaserDropShadowColor.G,
+        UIControls->TargetLaserDropShadowColor.B);
+
+    const unsigned navcom_color = DSurface::RGB_To_Pixel(
+        UIControls->MovementLineColor.R,
+        UIControls->MovementLineColor.G,
+        UIControls->MovementLineColor.B);
+
+    const unsigned navcom_drop_color = DSurface::RGB_To_Pixel(
+        UIControls->MovementLineDropShadowColor.R,
+        UIControls->MovementLineDropShadowColor.G,
+        UIControls->MovementLineDropShadowColor.B);
+
+    const unsigned line_color = TarCom ? tarcom_color : navcom_color;
+    const unsigned drop_color = TarCom ? tarcom_drop_color : navcom_drop_color;
+
+    int point_size = 2;
+    Point2D point_offset(-1, -1);
+
+    if (is_thick) {
+        point_size = 4;
+        point_offset = Point2D(-2, -2);
+    }
+
+    /**
+     *  Fetch the target laser line start and end coord.
+     */
+    Coordinate start_coord = entry_28C();
+    Coordinate end_coord = func_638AF0();
+
+    /**
+     *  Convert the world coord to screen pixel.
+     */
+    Point2D start_point;
+    Point2D end_point;
+    TacticalMap->Coord_To_Pixel(start_coord, start_point);
+    TacticalMap->Coord_To_Pixel(end_coord, end_point);
+
+    /**
+     *  Offset pixel position relative to tactical viewport.
+     */
+    start_point += Point2D(TacticalRect.X, TacticalRect.Y);
+    end_point += Point2D(TacticalRect.X, TacticalRect.Y);
+
+    /**
+     *  Draw the target laser line.
+     */
+    if (Clip_Line(&start_point, &end_point, &TacticalRect)) {
+
+        Point2D drop_start_point = start_point;
+        Point2D drop_end_point = end_point;
+
+        drop_start_point.Y += 1;
+        drop_end_point.Y += 1;
+
+        if (is_dashed) {
+
+            /**
+             *  1 pixel on, 1 off, 1 on, 1 off...
+             */
+            static bool _pattern[] = { true, false, true, false, true, false, true, false, true, false, true, false, true, false, true, false };
+
+            /**
+             *  Adjust the offset of the line pattern.
+             */
+            int offset = 7 * Frame % 16;
+
+            /**
+             *  Draw the drop shadow line.
+             */
+            if (is_dropshadow) {
+
+                if (is_thick) {
+                    drop_start_point.Y += 1;
+                    drop_end_point.Y += 1;
+                }
+
+                CompositeSurface->Draw_Dashed_Line(drop_start_point, drop_end_point, drop_color, _pattern, offset);
+
+                if (is_thick) {
+                    drop_start_point.Y += 1;
+                    drop_end_point.Y += 1;
+                    CompositeSurface->Draw_Dashed_Line(drop_start_point, drop_end_point, drop_color, _pattern, offset);
+                }
+
+            }
+
+            /**
+             *  Draw the dashed target laser line.
+             */
+            CompositeSurface->Draw_Dashed_Line(start_point, end_point, line_color, _pattern, offset);
+
+            if (is_thick) {
+                start_point.Y += 1;
+                end_point.Y += 1;
+                CompositeSurface->Draw_Dashed_Line(start_point, end_point, line_color, _pattern, offset);
+            }
+
+        }
+        else {
+
+            /**
+             *  Draw the drop shadow line.
+             */
+            if (is_dropshadow) {
+
+                if (is_thick) {
+                    drop_start_point.Y += 1;
+                    drop_end_point.Y += 1;
+                }
+
+                CompositeSurface->Draw_Line(drop_start_point, drop_end_point, drop_color);
+
+                if (is_thick) {
+                    drop_start_point.Y += 1;
+                    drop_end_point.Y += 1;
+                    CompositeSurface->Draw_Line(drop_start_point, drop_end_point, drop_color);
+                }
+
+            }
+
+            /**
+             *  Draw the target laser line.
+             */
+            CompositeSurface->Draw_Line(start_point, end_point, line_color);
+
+            if (is_thick) {
+                start_point.Y += 1;
+                end_point.Y += 1;
+                CompositeSurface->Draw_Line(start_point, end_point, line_color);
+            }
+
+        }
+
+    }
+
+    /**
+     *  Draw the target laser line start and end squares.
+     */
+    if (is_dropshadow) {
+
+        int drop_point_size = is_thick ? (point_size + 3) : (point_size + 2);
+        Point2D drop_point_offset = is_thick ? (point_offset + Point2D(-2, -2)) : (point_offset + Point2D(-1, -1));
+
+        if (is_thick) {
+            point_size -= 1;
+        }
+
+        Rect drop_start_point_rect = TacticalRect.Intersect_With(Rect(start_point + drop_point_offset, drop_point_size, drop_point_size));
+        CompositeSurface->Fill_Rect(drop_start_point_rect, drop_color);
+
+        Rect drop_end_point_rect = TacticalRect.Intersect_With(Rect(end_point + drop_point_offset, drop_point_size, drop_point_size));
+        CompositeSurface->Fill_Rect(drop_end_point_rect, drop_color);
+    }
+
+    Rect start_point_rect = TacticalRect.Intersect_With(Rect(start_point + point_offset, point_size, point_size));
+    CompositeSurface->Fill_Rect(start_point_rect, line_color);
+
+    Rect end_point_rect = TacticalRect.Intersect_With(Rect(end_point + point_offset, point_size, point_size));
+    CompositeSurface->Fill_Rect(end_point_rect, line_color);
 }
 
 
@@ -1729,4 +1920,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x006320C2, &_TechnoClass_2A0_Is_Allowed_To_Deploy_Unit_Transform_Patch);
     Patch_Call(0x00637FF5, &TechnoClassExt::_Cell_Distance_Squared); // Patch Find_Docking_Bay to call our own distance function that avoids overflows
     Patch_Jump(0x006396D1, &_TechnoClass_Railgun_Damage_Apply_Damage_Modifier_Patch);
+    Patch_Call(0x00653ECD, &TechnoClassExt::_Draw_Target_Laser);
 }
