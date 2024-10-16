@@ -126,7 +126,7 @@ It is not recommended that you modify or remove any of the original mix files, t
 - The name shown in the dialog is the value of the `Name=` _(with a limit of 128 characters)_ entry under `[General]` in the Rule INI. If the user presses Cancel on the dialog, the game will load the standard `RULES.INI` file.
 
 ```{note}
-Due to the nature of its use, this feature is only available when Vinifera is running in Developer Mode
+Due to the nature of its use, this feature is only available when Vinifera is running in Developer Mode.
 ```
 
 ![image](https://user-images.githubusercontent.com/73803386/137135038-0a1e983f-d295-4723-86fb-1ab94ba8948b.png)
@@ -185,6 +185,14 @@ This option tells the game to exit when you press Cancel or Back from the dialog
 #### `[ ]` Dump Trigger Info
 
 - Dumps all existing triggers, tags, and local and global variables to the log output.
+
+#### `[ ]` Reload Rules
+
+- Reloads the Rules and Art INI files.
+
+```{warning}
+This could very well crash the game, please use it with caution and make small incremental changes only!
+```
 
 #### `[ ]` Instant Build (Player)
 

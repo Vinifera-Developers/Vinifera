@@ -4119,7 +4119,7 @@ const char *ReloadRulesCommandClass::Get_Name() const
     return "ReloadRules";
 }
 
-const char * ReloadRulesCommandClass::Get_UI_Name() const
+const char *ReloadRulesCommandClass::Get_UI_Name() const
 {
     return "Reload Rules";
 }
