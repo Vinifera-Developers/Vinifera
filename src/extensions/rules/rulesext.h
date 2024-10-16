@@ -73,6 +73,109 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
         void Fixups(CCINIClass &ini);
 
     public:
+        typedef struct UIControlsStruct
+        {
+            /**
+             *  Health bar draw positions.
+             */
+            TPoint2D<int> UnitHealthBarDrawPos;
+            TPoint2D<int> InfantryHealthBarDrawPos;
+
+            /**
+             *  Should the text label be drawn with an outline?
+             */
+            bool IsTextLabelOutline;
+
+            /**
+             *  Transparency of the text background.
+             */
+            unsigned TextLabelBackgroundTransparency;
+
+            /**
+             *  Should the tactical rubber band box be drawn with a drop shadow?
+             */
+            bool IsBandBoxDropShadow;
+
+            /**
+             *  
+             */
+            bool IsBandBoxThick;
+
+            /**
+             *  
+             */
+            RGBStruct BandBoxColor;
+
+            /**
+             *  
+             */
+            RGBStruct BandBoxDropShadowColor;
+
+            /**
+             *  Transparency of the tactical rubber band.
+             */
+            unsigned BandBoxTintTransparency;
+
+            /**
+             *  
+             */
+            TypeList<RGBStruct> BandBoxTintColors;
+
+            /**
+             *  
+             */
+            bool IsMovementLineDashed;
+
+            /**
+             *  
+             */
+            bool IsMovementLineDropShadow;
+
+            /**
+             *  
+             */
+            bool IsMovementLineThick;
+
+            /**
+             *  
+             */
+            RGBStruct MovementLineColor;
+
+            /**
+             *  
+             */
+            RGBStruct MovementLineDropShadowColor;
+
+            /**
+             *  
+             */
+            bool IsTargetLineDashed;
+
+            /**
+             *  
+             */
+            bool IsTargetLineDropShadow;
+
+            /**
+             *  
+             */
+            bool IsTargetLineThick;
+
+            /**
+             *  
+             */
+            RGBStruct TargetLineColor;
+
+            /**
+             *  
+             */
+            RGBStruct TargetLineDropShadowColor;
+
+        } UIControlsStruct;
+
+        static UIControlsStruct UIControls;
+
+    public:
         /**
          *  Should the MCV unit auto deploy on game start?
          */
