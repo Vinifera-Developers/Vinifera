@@ -142,6 +142,7 @@ New:
 - Add `TransformsInto` and `TransformRequiresFullCharge` to UnitTypes (by Rampastring)
 - Add developer command to dump all existing triggers, tags, and local and global variables to the log output (by Rampastring)
 - Add `PipWrap` (by ZivDero)
+- Implement developer mode command to reload Rules and Art files (by CCHyper)
 
 
 Vanilla fixes:

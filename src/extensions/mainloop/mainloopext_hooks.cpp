@@ -30,9 +30,14 @@
 #include "tibsun_globals.h"
 #include "tibsun_functions.h"
 #include "command.h"
+#include "uicontrol.h"
+#include "rules.h"
 #include "iomap.h"
 #include "tactical.h"
 #include "house.h"
+#include "ccfile.h"
+#include "addon.h"
+#include "ccini.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"6
@@ -77,6 +82,106 @@ static void Before_Main_Loop()
 
 static void After_Main_Loop()
 {
+    /**
+     *  Has we been flagged to reload the rules data?
+     */
+    if (Vinifera_Developer_IsToReloadRules) {
+
+        /**
+         *  Reinitalise the Rule instance to the defaults.
+         */
+        Rule->~RulesClass();
+        new (Rule) RulesClass();
+
+        /**
+         *  Clear the current ini databases.
+         */
+        ArtINI.Clear();
+        RuleINI->Clear();
+        FSRuleINI.Clear();
+
+        /**
+         *  Reload RULES.INI and FIRESTRM.INI.
+         */
+        {
+            CCFileClass rulefile("RULES.INI");
+            RuleINI->Load(rulefile, false);
+            ASSERT_FATAL(rulefile.Is_Available());
+
+            if (Is_Addon_Available(ADDON_FIRESTORM) && Is_Addon_Enabled(ADDON_FIRESTORM)) {
+                rulefile.Set_Name("FIRESTRM.INI");
+                ASSERT_FATAL(rulefile.Is_Available());
+                FSRuleINI.Load(rulefile, false);
+            }
+        }
+
+        /**
+         *  Reload ART.INI and ARTFS.INI.
+         */
+        {
+            CCFileClass artfile("ART.INI");
+
+            DEBUG_INFO("Loading ART.INI.\n");
+            ArtINI.Load(artfile, false);
+            ASSERT_FATAL(artfile.Is_Available());
+            DEBUG_INFO("Finished loading ART.INI.\n");
+
+            if (Is_Addon_Available(ADDON_FIRESTORM) && Is_Addon_Enabled(ADDON_FIRESTORM)) {
+                DEBUG_INFO("Loading ARTFS.INI.\n");
+                artfile.Set_Name("ARTFS.INI");
+                ASSERT_FATAL(artfile.Is_Available());
+                ArtINI.Load(artfile, false);
+                DEBUG_INFO("Finished loading ARTFS.INI.\n");
+            }
+        }
+
+        /**
+         *  Process rule INIs.
+         */
+        DEBUG_INFO("Calling Rule->Process(*RuleINI).\n");
+        Rule->Process(*RuleINI);
+        DEBUG_INFO("Finished Rule->Process(*RuleINI).\n");
+
+        DEBUG_INFO("Calling Rule->Addition(FSRuleINI).\n");
+        Rule->Addition(FSRuleINI);
+        DEBUG_INFO("Finished Rule->Addition(FSRuleINI).\n");
+
+        /**
+         *  Process scenario rule overrides.
+         */
+        {
+            CCFileClass scenfile(Scen->ScenarioName);
+            ASSERT_FATAL(scenfile.Is_Available());
+
+            CCINIClass scenini;
+
+            scenini.Load(scenfile, false);
+
+            DEBUG_INFO("Calling Rule->Addition() with scenario overrides.\n");
+            Rule->Addition(scenini);
+            DEBUG_INFO("Finished Rule->Addition() with scenario overrides.\n");
+        }
+
+        /**
+         *  Finally, reload miscellaneous classes.
+         */
+        {
+            CCFileClass workingfile;
+            CCINIClass workingini;
+
+            DEBUG_INFO("Calling UIControls->Read_INI().\n");
+            workingfile.Set_Name("UI.INI");
+            workingini.Clear();
+            workingini.Load(workingfile, false);
+            UIControls->Read_INI(workingini);
+            DEBUG_INFO("Finished UIControls->Read_INI().\n");
+        }
+
+        /**
+         *  All done!
+         */
+        Vinifera_Developer_IsToReloadRules = false;
+    }
 }
 
 
