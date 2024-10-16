@@ -961,8 +961,8 @@ void TechnoClassExt::_Draw_Target_Laser() const
      */
     if (is_dropshadow) {
 
-        int drop_point_size = is_thick ? (point_size + 3) : (point_size + 2);
-        Point2D drop_point_offset = is_thick ? (point_offset + Point2D(-2, -2)) : (point_offset + Point2D(-1, -1));
+        const int drop_point_size = is_thick ? (point_size + 3) : (point_size + 2);
+        const Point2D drop_point_offset = is_thick ? (point_offset + Point2D(-2, -2)) : (point_offset + Point2D(-1, -1));
 
         if (is_thick) {
             point_size -= 1;

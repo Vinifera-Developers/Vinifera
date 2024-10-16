@@ -89,7 +89,13 @@ UIControlsClass::UIControlsClass() :
     IsTargetLaserThick(false),
     TargetLaserColor{ 173, 0, 0 }, // COLOR_RED
     TargetLaserDropShadowColor{ 0, 0, 0 },
-    TargetLaserTime(15)
+    TargetLaserTime(15),
+    IsShowNavComQueueLines(false),
+    IsNavComQueueLineDashed(false),
+    IsNavComQueueLineDropShadow(false),
+    IsNavComQueueLineThick(false),
+    NavComQueueLineColor{ 173, 0, 0 }, // COLOR_LTBLUE
+    NavComQueueLineDropShadowColor{ 0, 0, 0 }
 {
     BandBoxTintColors.Add(RGBStruct{ 0, 0, 0 });
     BandBoxTintColors.Add(RGBStruct{ 255, 255, 255 });
@@ -177,6 +183,13 @@ bool UIControlsClass::Read_INI(CCINIClass &ini)
     TargetLaserColor = ini.Get_RGB(INGAME, "TargetLaserColor", TargetLaserColor);
     TargetLaserDropShadowColor = ini.Get_RGB(INGAME, "TargetLaserDropShadowColor", TargetLaserDropShadowColor);
     TargetLaserTime = ini.Get_Int(INGAME, "TargetLaserTime", TargetLaserTime);
+
+    IsShowNavComQueueLines = ini.Get_Bool(INGAME, "ShowNavComQueueLines", IsShowNavComQueueLines);
+    IsNavComQueueLineDashed = ini.Get_Bool(INGAME, "NavComQueueLineDashed", IsNavComQueueLineDashed);
+    IsNavComQueueLineDropShadow = ini.Get_Bool(INGAME, "NavComQueueLineDropShadow", IsNavComQueueLineDropShadow);
+    IsNavComQueueLineThick = ini.Get_Bool(INGAME, "NavComQueueLineThick", IsNavComQueueLineThick);
+    NavComQueueLineColor = ini.Get_RGB(INGAME, "NavComQueueLineColor", NavComQueueLineColor);
+    NavComQueueLineDropShadowColor = ini.Get_RGB(INGAME, "NavComQueueLineDropShadowColor", NavComQueueLineDropShadowColor);
 
     return true;
 }

@@ -274,6 +274,36 @@ class UIControlsClass
          *  Time in frames the target laser should be drawn for when the unit fires.
          */
         unsigned TargetLaserTime;
+
+        /**
+         *  Should NavCom queue lines be displayed?
+         */
+        bool IsShowNavComQueueLines;
+
+        /**
+         *  Should NavCom queue lines be drawn with dashes?
+         */
+        bool IsNavComQueueLineDashed;
+
+        /**
+         *  Should NavCom queue lines be drawn with a drop shadow?
+         */
+        bool IsNavComQueueLineDropShadow;
+
+        /**
+         *  Should NavCom queue lines be drawn with a thick line?
+         */
+        bool IsNavComQueueLineThick;
+
+        /**
+         *  Color to draw the NavCom queue lines with.
+         */
+        RGBStruct NavComQueueLineColor;
+
+        /**
+         *  Color to draw the NavCom queue lines' drop shadow with.
+         */
+        RGBStruct NavComQueueLineDropShadowColor;
 };
 
 extern UIControlsClass *UIControls;
