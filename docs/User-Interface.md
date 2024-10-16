@@ -291,17 +291,17 @@ BandBoxTintColors=0,0,0,255,255,255  ; two RGB colors, "dark" and "light" tint c
 In `UI.INI`:
 ```ini
 [Ingame]
-IsMovementLineDashed=no                ; boolean, should movement lines be drawn with dashes?
-IsMovementLineDropShadow=no            ; boolean, should movement lines be drawn with a drop shadow?
-IsMovementLineThick=no                 ; boolean, should movement lines be drawn with a thick line?
-MovementLineColor=0,170,0              ; RGB color, color to draw movement lines with.
-MovementLineDropShadowColor=0,0,0      ; RGB color, color to draw movement lines' drop shadow with.
+MovementLineDashed=no              ; boolean, should movement lines be drawn with dashes?
+MovementLineDropShadow=no          ; boolean, should movement lines be drawn with a drop shadow?
+MovementLineThick=no               ; boolean, should movement lines be drawn with a thick line?
+MovementLineColor=0,170,0          ; RGB color, color to draw movement lines with.
+MovementLineDropShadowColor=0,0,0  ; RGB color, color to draw movement lines' drop shadow with.
 
-IsTargetLineDashed=no                  ; boolean, should target lines be drawn with dashes?
-IsTargetLineDropShadow=no              ; boolean, should target lines be drawn with a drop shadow?
-IsTargetLineThick=no                   ; boolean, should target lines be drawn with a thick line?
-TargetLineColor=173,0,0                ; RGB color, color to target movement lines with.
-TargetLineDropShadowColor=0,0,0        ; RGB color, color to draw target lines' drop shadow with.
+TargetLineDashed=no                ; boolean, should target lines be drawn with dashes?
+TargetLineDropShadow=no            ; boolean, should target lines be drawn with a drop shadow?
+TargetLineThick=no                 ; boolean, should target lines be drawn with a thick line?
+TargetLineColor=173,0,0            ; RGB color, color to target movement lines with.
+TargetLineDropShadowColor=0,0,0    ; RGB color, color to draw target lines' drop shadow with.
 ```
 
 ## Miscellaneous
