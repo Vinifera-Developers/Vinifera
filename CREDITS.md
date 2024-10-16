@@ -127,6 +127,7 @@ This page lists all the individual contributions to the project by their author.
   - Implement developer mode command to reload Rules and Art files.
   - Implement various controls to customise the band box selection.
   - Implement various controls to customise action lines.
+  - Implement various controls to customise target lasers line.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **MarkJFox**:

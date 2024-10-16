@@ -145,6 +145,7 @@ New:
 - Implement developer mode command to reload Rules and Art files (by CCHyper/tomsons26)
 - Implement various controls to customise the band box selection (by CCHyper/tomsons26)
 - Implement various controls to customise action lines (by CCHyper/tomsons26)
+- Implement various controls to customise target lasers line (by CCHyper/tomsons26)
 
 
 Vanilla fixes:
