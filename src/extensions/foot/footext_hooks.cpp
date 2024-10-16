@@ -74,7 +74,7 @@ void FootClassExt::_Draw_Action_Line() const
         return;
     }
 
-    if (ActionLineTimer.Expired()) {
+    if (!UIControls->IsAlwaysShowActionLines && ActionLineTimer.Expired()) {
         return;
     }
 

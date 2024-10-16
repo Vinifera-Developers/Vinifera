@@ -191,6 +191,11 @@ class UIControlsClass
         TypeList<RGBStruct> BandBoxTintColors;
 
         /**
+         *  Should action lines remain visible continuously, instead of disappearing after some time?
+         */
+        bool IsAlwaysShowActionLines;
+
+        /**
          *  Should movement lines be drawn with dashes?
          */
         bool IsMovementLineDashed;

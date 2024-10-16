@@ -291,6 +291,8 @@ BandBoxTintColors=0,0,0,255,255,255  ; two RGB colors, "dark" and "light" tint c
 In `UI.INI`:
 ```ini
 [Ingame]
+AlwaysShowActionLines=no           ; boolean, should action lines remain visible continuously, instead of disappearing after some time?
+
 MovementLineDashed=no              ; boolean, should movement lines be drawn with dashes?
 MovementLineDropShadow=no          ; boolean, should movement lines be drawn with a drop shadow?
 MovementLineThick=no               ; boolean, should movement lines be drawn with a thick line?

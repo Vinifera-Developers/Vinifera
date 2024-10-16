@@ -73,6 +73,7 @@ UIControlsClass::UIControlsClass() :
     BandBoxDropShadowColor{ 0, 0, 0 },
     BandBoxTintTransparency(0),
     BandBoxTintColors(),
+    IsAlwaysShowActionLines(false),
     IsMovementLineDashed(false),
     IsMovementLineDropShadow(false),
     IsMovementLineThick(false),
@@ -151,6 +152,7 @@ bool UIControlsClass::Read_INI(CCINIClass &ini)
 
     ASSERT_PRINT(BandBoxTintColors.Count() == 2, "BandBoxTintColors must contain two valid entries!");
 
+    IsAlwaysShowActionLines = ini.Get_Bool(INGAME, "AlwaysShowActionLines", IsAlwaysShowActionLines);
     IsMovementLineDashed = ini.Get_Bool(INGAME, "MovementLineDashed", IsMovementLineDashed);
     IsMovementLineDropShadow = ini.Get_Bool(INGAME, "MovementLineDropShadow", IsMovementLineDropShadow);
     IsMovementLineThick = ini.Get_Bool(INGAME, "MovementLineThick", IsMovementLineThick);
