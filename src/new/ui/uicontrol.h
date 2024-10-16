@@ -166,17 +166,17 @@ class UIControlsClass
         bool IsBandBoxDropShadow;
 
         /**
-         *
+         *  Should the tactical rubber band box be drawn thick?
          */
         bool IsBandBoxThick;
 
         /**
-         *
+         *  Color to draw the tactical rubber band box with.
          */
         RGBStruct BandBoxColor;
 
         /**
-         *
+         *  Color to draw the tactical rubber band box's shadow with.
          */
         RGBStruct BandBoxDropShadowColor;
 
@@ -186,7 +186,7 @@ class UIControlsClass
         unsigned BandBoxTintTransparency;
 
         /**
-         *
+         *  Two tint colors, interpolated between based on the current ambient light level.
          */
         TypeList<RGBStruct> BandBoxTintColors;
 };

@@ -52,120 +52,136 @@
 #include "uicontrol.h"
 
 
-static bool Tactical_Draw_Band(int band_x, int band_y, int band_w, int band_h)
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or destructor.
+ *
+ *  @note: All functions must not be virtual and must also be prefixed
+ *         with "_" to prevent accidental virtualization.
+ */
+class TacticalExt : public Tactical
 {
-    Rect band_rect(band_x, band_y, band_w+1, band_h+1);
+public:
+    void _Draw_Band_Box();
+};
 
-    /**
-     *  Is the map ambient dark? If so, we adjust the colour slightly.
-     */
-    if (UIControls->BandBoxTintTransparency > 0) {
 
-        Rect tint_rect = band_rect;
-        const unsigned trans = UIControls->BandBoxTintTransparency;
+/**
+ *  Reimplements Tactical::Draw_Band_Box.
+ *  
+ *  @author: CCHyper, ZivDero
+ */
+void TacticalExt::_Draw_Band_Box()
+{
+    if (Band.X || Band.Y)
+    {
+        int x = Band.X;
+        int y = Band.Y;
+        int width = Band.Width;
+        int height = Band.Height;
 
-        /**
-         *  Draw the rubber band tint rect.
-         * 
-         *  Fill_Rect_Trans() doesnt not take a relative rect, so we need
-         *  to need to adjust it with the TacticalRect manually.
-         */
-        tint_rect.Move(TacticalRect.X, TacticalRect.Y);
+        if (width < x) {
+            std::swap(width, x);
+        }
 
-        RGBClass tint_dark = UIControls->BandBoxTintColors[0];
-        RGBClass tint_light = UIControls->BandBoxTintColors[1];
+        if (height < y) {
+            std::swap(height, y);
+        }
 
-        /**
-         *  Interpolate between the two colors to find the correct tint
-         *  for the current map ambient level.
-         */
-        const float adjust = static_cast<float>(Scen->AmbientCurrent) / 100.0f;
-        const RGBClass tint_color = RGBClass::Interpolate(tint_dark, tint_light, adjust);
-
-        LogicSurface->Fill_Rect_Trans(tint_rect, tint_color, trans);
-    }
-
-    /**
-     *  Draw the drop shadow.
-     */
-    if (UIControls->IsBandBoxDropShadow) {
-
-        Rect drop_rect = band_rect;
-        drop_rect.X += 1;
-        drop_rect.Y += 1;
-
-        const unsigned drop_color = DSurface::RGB_To_Pixel(
-                                    UIControls->BandBoxDropShadowColor.R,
-                                    UIControls->BandBoxDropShadowColor.G,
-                                    UIControls->BandBoxDropShadowColor.B);
+        Rect band_rect(x, y, width - x + 1, height - y + 1);
 
         /**
-         *  
+         *  Is the map ambient dark? If so, we adjust the colour slightly.
          */
-        if (UIControls->IsBandBoxThick) {
+        if (UIControls->BandBoxTintTransparency > 0) {
 
+            Rect tint_rect = band_rect;
+            const unsigned trans = UIControls->BandBoxTintTransparency;
+
+            /**
+             *  Draw the rubber band tint rect.
+             *
+             *  Fill_Rect_Trans() doesn't not take a relative rect, so we need
+             *  to need to align it with the TacticalRect manually.
+             */
+            tint_rect.Move(TacticalRect.X, TacticalRect.Y);
+
+            RGBClass tint_dark = UIControls->BandBoxTintColors[0];
+            RGBClass tint_light = UIControls->BandBoxTintColors[1];
+
+            /**
+             *  Interpolate between the two colors to find the correct tint
+             *  for the current map ambient level.
+             */
+            const float adjust = static_cast<float>(Scen->AmbientCurrent) / 100.0f;
+            const RGBClass tint_color = RGBClass::Interpolate(tint_dark, tint_light, adjust);
+
+            LogicSurface->Fill_Rect_Trans(tint_rect, tint_color, trans);
+        }
+
+        /**
+         *  Draw the drop shadow.
+         */
+        if (UIControls->IsBandBoxDropShadow) {
+
+            Rect drop_rect = band_rect;
             drop_rect.X += 1;
             drop_rect.Y += 1;
 
-            LogicSurface->Draw_Rect(TacticalRect, drop_rect, drop_color);
+            const unsigned drop_color = DSurface::RGB_To_Pixel(
+                UIControls->BandBoxDropShadowColor.R,
+                UIControls->BandBoxDropShadowColor.G,
+                UIControls->BandBoxDropShadowColor.B);
 
-            Rect thick_rect = drop_rect;
+            /**
+             *  Draw the band box.
+             */
+            if (UIControls->IsBandBoxThick) {
+
+                drop_rect.X += 1;
+                drop_rect.Y += 1;
+
+                LogicSurface->Draw_Rect(TacticalRect, drop_rect, drop_color);
+
+                Rect thick_rect = drop_rect;
+                thick_rect.X += 1;
+                thick_rect.Y += 1;
+                thick_rect.Width -= 2;
+                thick_rect.Height -= 2;
+
+                LogicSurface->Draw_Rect(TacticalRect, thick_rect, drop_color);
+
+            }
+            else {
+                LogicSurface->Draw_Rect(TacticalRect, drop_rect, drop_color);
+            }
+
+        }
+
+        /**
+         *  Draw the custom rubber band rect.
+         */
+        const unsigned band_color = DSurface::RGB_To_Pixel(
+            UIControls->BandBoxColor.R,
+            UIControls->BandBoxColor.G,
+            UIControls->BandBoxColor.B);
+
+        LogicSurface->Draw_Rect(TacticalRect, band_rect, band_color);
+
+        /**
+         *  If the band box is thick, draw an extra outline.
+         */
+        if (UIControls->IsBandBoxThick) {
+            Rect thick_rect = band_rect;
             thick_rect.X += 1;
             thick_rect.Y += 1;
             thick_rect.Width -= 2;
             thick_rect.Height -= 2;
-
-            LogicSurface->Draw_Rect(TacticalRect, thick_rect, drop_color);
-
-        } else {
-            LogicSurface->Draw_Rect(TacticalRect, drop_rect, drop_color);
+            LogicSurface->Draw_Rect(TacticalRect, thick_rect, band_color);
         }
-
     }
-    
-    /**
-     *  Draw the custom rubber band rect.
-     */
-    const unsigned band_color = DSurface::RGB_To_Pixel(
-                                UIControls->BandBoxColor.R,
-                                UIControls->BandBoxColor.G,
-                                UIControls->BandBoxColor.B);
-
-    LogicSurface->Draw_Rect(TacticalRect, band_rect, band_color);
-
-    /**
-     *  
-     */
-    if (UIControls->IsBandBoxThick) {
-        Rect thick_rect = band_rect;
-        thick_rect.X += 1;
-        thick_rect.Y += 1;
-        thick_rect.Width -= 2;
-        thick_rect.Height -= 2;
-        LogicSurface->Draw_Rect(TacticalRect, thick_rect, band_color);
-    }
-
-    return true;
-}
-
-
-/**
- *  f
- * 
- *  
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_Tactical_Draw_Band_Tint_Patch)
-{
-    GET_REGISTER_STATIC(int, band_rect_x, edx);
-    GET_REGISTER_STATIC(int, band_rect_y, esi);
-    GET_REGISTER_STATIC(int, band_rect_w, eax);
-    GET_REGISTER_STATIC(int, band_rect_h, ebp);
-
-    Tactical_Draw_Band(band_rect_x, band_rect_y, band_rect_w, band_rect_h);
-
-    JMP(0x00616601);
 }
 
 
@@ -557,6 +573,5 @@ void TacticalExtension_Hooks()
      */
     Patch_Dword(0x006171C8+1, (TPF_CENTER|TPF_EFNT|TPF_FULLSHADOW));
     Patch_Jump(0x00616FDA, &_Tactical_Draw_Waypoint_Paths_Text_Color_Patch);
-
-    Patch_Jump(0x006165B2, &_Tactical_Draw_Band_Tint_Patch);
+    Patch_Jump(0x00616560, &TacticalExt::_Draw_Band_Box);
 }
