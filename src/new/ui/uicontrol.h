@@ -30,6 +30,7 @@
 #include "always.h"
 #include "tibsun_defines.h"
 #include "tpoint.h"
+#include "typelist.h"
 
 
 struct IStream;
@@ -158,6 +159,36 @@ class UIControlsClass
         TPoint2D<int> InfantrySpecialPipOffset;
         TPoint2D<int> BuildingSpecialPipOffset;
         TPoint2D<int> AircraftSpecialPipOffset;
+
+        /**
+         *  Should the tactical rubber band box be drawn with a drop shadow?
+         */
+        bool IsBandBoxDropShadow;
+
+        /**
+         *
+         */
+        bool IsBandBoxThick;
+
+        /**
+         *
+         */
+        RGBStruct BandBoxColor;
+
+        /**
+         *
+         */
+        RGBStruct BandBoxDropShadowColor;
+
+        /**
+         *  Transparency of the tactical rubber band.
+         */
+        unsigned BandBoxTintTransparency;
+
+        /**
+         *
+         */
+        TypeList<RGBStruct> BandBoxTintColors;
 };
 
 extern UIControlsClass *UIControls;
