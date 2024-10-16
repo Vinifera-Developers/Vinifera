@@ -88,7 +88,8 @@ UIControlsClass::UIControlsClass() :
     IsTargetLaserDropShadow(false),
     IsTargetLaserThick(false),
     TargetLaserColor{ 173, 0, 0 }, // COLOR_RED
-    TargetLaserDropShadowColor{ 0, 0, 0 }
+    TargetLaserDropShadowColor{ 0, 0, 0 },
+    TargetLaserTime(15)
 {
     BandBoxTintColors.Add(RGBStruct{ 0, 0, 0 });
     BandBoxTintColors.Add(RGBStruct{ 255, 255, 255 });
@@ -163,16 +164,19 @@ bool UIControlsClass::Read_INI(CCINIClass &ini)
     IsMovementLineThick = ini.Get_Bool(INGAME, "MovementLineThick", IsMovementLineThick);
     MovementLineColor = ini.Get_RGB(INGAME, "MovementLineColor", MovementLineColor);
     MovementLineDropShadowColor = ini.Get_RGB(INGAME, "MovementLineDropShadowColor", MovementLineDropShadowColor);
+
     IsTargetLineDashed = ini.Get_Bool(INGAME, "TargetLineDashed", IsTargetLineDashed);
     IsTargetLineDropShadow = ini.Get_Bool(INGAME, "TargetLineDropShadow", IsTargetLineDropShadow);
     IsTargetLineThick = ini.Get_Bool(INGAME, "TargetLineThick", IsTargetLineThick);
     TargetLineColor = ini.Get_RGB(INGAME, "TargetLineColor", TargetLineColor);
     TargetLineDropShadowColor = ini.Get_RGB(INGAME, "TargetLineDropShadowColor", TargetLineDropShadowColor);
+
     IsTargetLaserDashed = ini.Get_Bool(INGAME, "TargetLaserDashed", IsTargetLaserDashed);
     IsTargetLaserDropShadow = ini.Get_Bool(INGAME, "TargetLaserDropShadow", IsTargetLaserDropShadow);
     IsTargetLaserThick = ini.Get_Bool(INGAME, "TargetLaserThick", IsTargetLaserThick);
     TargetLaserColor = ini.Get_RGB(INGAME, "TargetLaserColor", TargetLaserColor);
     TargetLaserDropShadowColor = ini.Get_RGB(INGAME, "TargetLaserDropShadowColor", TargetLaserDropShadowColor);
+    TargetLaserTime = ini.Get_Int(INGAME, "TargetLaserTime", TargetLaserTime);
 
     return true;
 }

@@ -269,6 +269,11 @@ class UIControlsClass
          *  Color to draw the target laser's drop shadow with.
          */
         RGBStruct TargetLaserDropShadowColor;
+
+        /**
+         *  Time in frames the target laser should be drawn for when the unit fires.
+         */
+        unsigned TargetLaserTime;
 };
 
 extern UIControlsClass *UIControls;

@@ -1886,6 +1886,21 @@ DECLARE_PATCH(_TechnoClass_Railgun_Damage_Apply_Damage_Modifier_Patch)
 
 
 /**
+ *  Patch that sets a custom duration for the target laser.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_TechnoClass_Fire_At_TargetLaserTimer_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass*, this_ptr, esi);
+
+    this_ptr->TargetingLaserTimer = UIControls->TargetLaserTime;
+
+    JMP(0x00631223);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void TechnoClassExtension_Hooks()
@@ -1921,4 +1936,5 @@ void TechnoClassExtension_Hooks()
     Patch_Call(0x00637FF5, &TechnoClassExt::_Cell_Distance_Squared); // Patch Find_Docking_Bay to call our own distance function that avoids overflows
     Patch_Jump(0x006396D1, &_TechnoClass_Railgun_Damage_Apply_Damage_Modifier_Patch);
     Patch_Jump(0x006313D0, &TechnoClassExt::_Draw_Target_Laser);
+    Patch_Jump(0x00631207, &_TechnoClass_Fire_At_TargetLaserTimer_Patch);
 }
