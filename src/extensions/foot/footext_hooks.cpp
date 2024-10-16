@@ -61,13 +61,165 @@ class FootClassExt final : public FootClass
 public:
     void _Draw_Action_Line() const;
     void _Draw_NavComQueue_Lines() const;
+
+private:
+    void _Draw_Line(Coordinate& start_coord, Coordinate& end_coord, bool is_dashed, bool is_thick, bool is_dropshadow, unsigned line_color, unsigned drop_color, int rate) const;
 };
+
+
+/**
+ *  Draws an action line with the given parameters.
+ *
+ *  @author: CCHyper, ZivDero
+ */
+void FootClassExt::_Draw_Line(Coordinate& start_coord, Coordinate& end_coord, bool is_dashed, bool is_thick, bool is_dropshadow, unsigned line_color, unsigned drop_color, int rate) const
+{
+    int point_size = 3;
+    Point2D point_offset(-1, -1);
+
+    if (is_thick) {
+        point_size = 4;
+        point_offset = Point2D(-2, -2);
+    }
+
+    /**
+     *  Convert the world coord to screen pixel.
+     */
+    Point2D start_point;
+    Point2D end_point;
+    TacticalMap->Coord_To_Pixel(start_coord, start_point);
+    TacticalMap->Coord_To_Pixel(end_coord, end_point);
+
+    /**
+     *  Offset pixel position relative to tactical viewport.
+     */
+    start_point += Point2D(TacticalRect.X, TacticalRect.Y);
+    end_point += Point2D(TacticalRect.X, TacticalRect.Y);
+
+    /**
+     *  Draw the queue line.
+     */
+    if (Clip_Line(&start_point, &end_point, &TacticalRect)) {
+
+        Point2D drop_start_point = start_point;
+        Point2D drop_end_point = end_point;
+
+        drop_start_point.Y += 1;
+        drop_end_point.Y += 1;
+
+        if (is_dashed) {
+
+            /**
+             *  4 pixels on, 4 off, 4 pixels on, 4 off.
+             */
+            static bool _pattern[] = { true, true, true, true, false, false, false, false, true, true, true, true, false, false, false, false };
+
+            /**
+             *  Adjust the offset of the line pattern.
+             */
+            int time = timeGetTime();
+            int offset = (-time / rate) & (std::size(_pattern) - 1);
+
+            /**
+             *  Draw the drop shadow line.
+             */
+            if (is_dropshadow) {
+
+                if (is_thick) {
+                    drop_start_point.Y += 1;
+                    drop_end_point.Y += 1;
+                }
+
+                CompositeSurface->Draw_Dashed_Line(drop_start_point, drop_end_point, drop_color, _pattern, offset);
+
+                if (is_thick) {
+                    drop_start_point.Y += 1;
+                    drop_end_point.Y += 1;
+                    CompositeSurface->Draw_Dashed_Line(drop_start_point, drop_end_point, drop_color, _pattern, offset);
+                }
+
+            }
+
+            /**
+             *  Draw the dashed queue line.
+             */
+            CompositeSurface->Draw_Dashed_Line(start_point, end_point, line_color, _pattern, offset);
+
+            if (is_thick) {
+                start_point.Y += 1;
+                end_point.Y += 1;
+                CompositeSurface->Draw_Dashed_Line(start_point, end_point, line_color, _pattern, offset);
+            }
+
+        }
+        else {
+
+            /**
+             *  Draw the drop shadow line.
+             */
+            if (is_dropshadow) {
+
+                if (is_thick) {
+                    drop_start_point.Y += 1;
+                    drop_end_point.Y += 1;
+                }
+
+                CompositeSurface->Draw_Line(drop_start_point, drop_end_point, drop_color);
+
+                if (is_thick) {
+                    drop_start_point.Y += 1;
+                    drop_end_point.Y += 1;
+                    CompositeSurface->Draw_Line(drop_start_point, drop_end_point, drop_color);
+                }
+
+            }
+
+            /**
+             *  Draw the queue line.
+             */
+            CompositeSurface->Draw_Line(start_point, end_point, line_color);
+
+            if (is_thick) {
+                start_point.Y += 1;
+                end_point.Y += 1;
+                CompositeSurface->Draw_Line(start_point, end_point, line_color);
+            }
+
+        }
+
+    }
+
+    /**
+     *  Draw the queue line start and end squares.
+     */
+    if (is_dropshadow) {
+
+        const int drop_point_size = is_thick ? (point_size + 3) : (point_size + 2);
+        const Point2D drop_point_offset = is_thick ? (point_offset + Point2D(-2, -2)) : (point_offset + Point2D(-1, -1));
+
+        if (is_thick) {
+            point_size -= 1;
+        }
+
+        Rect drop_start_point_rect = TacticalRect.Intersect_With(Rect(start_point + drop_point_offset, drop_point_size, drop_point_size));
+        CompositeSurface->Fill_Rect(drop_start_point_rect, drop_color);
+
+        Rect drop_end_point_rect = TacticalRect.Intersect_With(Rect(end_point + drop_point_offset, drop_point_size, drop_point_size));
+        CompositeSurface->Fill_Rect(drop_end_point_rect, drop_color);
+    }
+
+    Rect start_point_rect = TacticalRect.Intersect_With(Rect(start_point + point_offset, point_size, point_size));
+    CompositeSurface->Fill_Rect(start_point_rect, line_color);
+
+    Rect end_point_rect = TacticalRect.Intersect_With(Rect(end_point + point_offset, point_size, point_size));
+    CompositeSurface->Fill_Rect(end_point_rect, line_color);
+}
 
 
 /**
  *  Draws a line for the current NavCom queue.
  * 
- *  @author: CCHyper
+ *  @author: CCHyper, ZivDero
  */
 void FootClassExt::_Draw_NavComQueue_Lines() const
 {
@@ -92,19 +244,6 @@ void FootClassExt::_Draw_NavComQueue_Lines() const
         UIControls->NavComQueueLineDropShadowColor.G,
         UIControls->NavComQueueLineDropShadowColor.B);
 
-    int point_size = 3;
-    Point2D point_offset(-1, -1);
-
-    if (is_thick) {
-        point_size = 4;
-        point_offset = Point2D(-2, -2);
-    }
-
-    /**
-     *  Line animation rate.
-     */
-    const int rate = 128;
-
     /**
      *  Fetch the queue line start and end coord.
      */
@@ -117,150 +256,18 @@ void FootClassExt::_Draw_NavComQueue_Lines() const
     for (int i = 0; i < NavQueue.Count(); i++) {
 
         start_coord = start->Center_Coord();
-        Cell target_cell = Coord_Cell(start_coord);
 
-        if (Map.In_Radar(target_cell) && Map[start_coord].Bit2_16) {
+        if (Map.In_Radar(Coord_Cell(start_coord)) && Map[start_coord].Bit2_16) {
             start_coord.Z = BRIDGE_HEIGHT + Map.Get_Cell_Height(start_coord);
         }
 
         end_coord = end->Center_Coord();
-        target_cell = Coord_Cell(end_coord);
 
-        if (Map.In_Radar(target_cell) && Map[end_coord].Bit2_16) {
+        if (Map.In_Radar(Coord_Cell(end_coord)) && Map[end_coord].Bit2_16) {
             end_coord.Z = BRIDGE_HEIGHT + Map.Get_Cell_Height(end_coord);
         }
 
-        /**
-         *  Convert the world coord to screen pixel.
-         */
-        Point2D start_point;
-        Point2D end_point;
-        TacticalMap->Coord_To_Pixel(start_coord, start_point);
-        TacticalMap->Coord_To_Pixel(end_coord, end_point);
-
-        /**
-         *  Offset pixel position relative to tactical viewport.
-         */
-        start_point += Point2D(TacticalRect.X, TacticalRect.Y);
-        end_point += Point2D(TacticalRect.X, TacticalRect.Y);
-
-        /**
-         *  Draw the queue line.
-         */
-        if (Clip_Line(&start_point, &end_point, &TacticalRect)) {
-
-            Point2D drop_start_point = start_point;
-            Point2D drop_end_point = end_point;
-
-            drop_start_point.Y += 1;
-            drop_end_point.Y += 1;
-
-            if (is_dashed) {
-
-                /**
-                 *  4 pixels on, 4 off, 4 pixels on, 4 off.
-                 */
-                static bool _pattern[] = { true, true, true, true, false, false, false, false, true, true, true, true, false, false, false, false };
-
-                /**
-                 *  Adjust the offset of the line pattern.
-                 */
-                int time = timeGetTime();
-                int offset = (-time / rate) & (std::size(_pattern) - 1);
-
-                /**
-                 *  Draw the drop shadow line.
-                 */
-                if (is_dropshadow) {
-
-                    if (is_thick) {
-                        drop_start_point.Y += 1;
-                        drop_end_point.Y += 1;
-                    }
-
-                    CompositeSurface->Draw_Dashed_Line(drop_start_point, drop_end_point, drop_color, _pattern, offset);
-
-                    if (is_thick) {
-                        drop_start_point.Y += 1;
-                        drop_end_point.Y += 1;
-                        CompositeSurface->Draw_Dashed_Line(drop_start_point, drop_end_point, drop_color, _pattern, offset);
-                    }
-
-                }
-
-                /**
-                 *  Draw the dashed queue line.
-                 */
-                CompositeSurface->Draw_Dashed_Line(start_point, end_point, line_color, _pattern, offset);
-
-                if (is_thick) {
-                    start_point.Y += 1;
-                    end_point.Y += 1;
-                    CompositeSurface->Draw_Dashed_Line(start_point, end_point, line_color, _pattern, offset);
-                }
-
-            }
-            else {
-
-                /**
-                 *  Draw the drop shadow line.
-                 */
-                if (is_dropshadow) {
-
-                    if (is_thick) {
-                        drop_start_point.Y += 1;
-                        drop_end_point.Y += 1;
-                    }
-
-                    CompositeSurface->Draw_Line(drop_start_point, drop_end_point, drop_color);
-
-                    if (is_thick) {
-                        drop_start_point.Y += 1;
-                        drop_end_point.Y += 1;
-                        CompositeSurface->Draw_Line(drop_start_point, drop_end_point, drop_color);
-                    }
-
-                }
-
-                /**
-                 *  Draw the queue line.
-                 */
-                CompositeSurface->Draw_Line(start_point, end_point, line_color);
-
-                if (is_thick) {
-                    start_point.Y += 1;
-                    end_point.Y += 1;
-                    CompositeSurface->Draw_Line(start_point, end_point, line_color);
-                }
-
-            }
-
-        }
-
-        /**
-         *  Draw the queue line start and end squares.
-         */
-        if (is_dropshadow) {
-
-            const int drop_point_size = is_thick ? (point_size + 3) : (point_size + 2);
-            const Point2D drop_point_offset = is_thick ? (point_offset + Point2D(-2, -2)) : (point_offset + Point2D(-1, -1));
-
-            if (is_thick) {
-                point_size -= 1;
-            }
-
-            Rect drop_start_point_rect = TacticalRect.Intersect_With(Rect(start_point + drop_point_offset, drop_point_size, drop_point_size));
-            CompositeSurface->Fill_Rect(drop_start_point_rect, drop_color);
-
-            Rect drop_end_point_rect = TacticalRect.Intersect_With(Rect(end_point + drop_point_offset, drop_point_size, drop_point_size));
-            CompositeSurface->Fill_Rect(drop_end_point_rect, drop_color);
-        }
-
-        Rect start_point_rect = TacticalRect.Intersect_With(Rect(start_point + point_offset, point_size, point_size));
-        CompositeSurface->Fill_Rect(start_point_rect, line_color);
-
-        Rect end_point_rect = TacticalRect.Intersect_With(Rect(end_point + point_offset, point_size, point_size));
-        CompositeSurface->Fill_Rect(end_point_rect, line_color);
+        _Draw_Line(start_coord, end_coord, is_dashed, is_thick, is_dropshadow, line_color, drop_color, 128);
 
         start = NavQueue[i];
         end = NavQueue[i + 1];
@@ -271,7 +278,7 @@ void FootClassExt::_Draw_NavComQueue_Lines() const
 /**
  *  Reimplementation of FootClass::Draw_Action_Line().
  * 
- *  @author: CCHyper
+ *  @author: CCHyper, ZivDero
  */
 void FootClassExt::_Draw_Action_Line() const
 {
@@ -286,9 +293,13 @@ void FootClassExt::_Draw_Action_Line() const
     /**
      *  Fetch the line properties.
      */
-    const bool is_dashed = TarCom ? UIControls->IsTargetLineDashed : UIControls->IsMovementLineDashed;
-    const bool is_thick = TarCom ? UIControls->IsTargetLineThick : UIControls->IsMovementLineThick;
-    const bool is_dropshadow = TarCom ? UIControls->IsTargetLineDropShadow : UIControls->IsMovementLineDropShadow;
+    const bool tarcom_is_dashed = UIControls->IsTargetLineDashed;
+    const bool tarcom_is_thick = UIControls->IsTargetLineThick;
+    const bool tarcom_is_dropshadow = UIControls->IsTargetLineDropShadow;
+
+    const bool navcom_is_dashed = UIControls->IsMovementLineDashed;
+    const bool navcom_is_thick = UIControls->IsMovementLineThick;
+    const bool navcom_is_dropshadow = UIControls->IsMovementLineDropShadow;
 
     const unsigned tarcom_color = DSurface::RGB_To_Pixel(
         UIControls->TargetLineColor.R,
@@ -310,22 +321,6 @@ void FootClassExt::_Draw_Action_Line() const
         UIControls->MovementLineDropShadowColor.G,
         UIControls->MovementLineDropShadowColor.B);
 
-    const unsigned line_color = TarCom ? tarcom_color : navcom_color;
-    const unsigned drop_color = TarCom ? tarcom_drop_color : navcom_drop_color;
-
-    int point_size = 4;
-    Point2D point_offset(-2, -2);
-
-    if (is_thick) {
-        point_size = 5;
-        point_offset = Point2D(-3, -3);
-    }
-
-    /**
-     *  Line animation rate.
-     */
-    int rate = 128;
-
     /**
      *  Fetch the action line start and end coord.
      */
@@ -337,9 +332,11 @@ void FootClassExt::_Draw_Action_Line() const
         start_coord = entry_28C();
         end_coord = func_638AF0();
 
-        rate = 64;
+        _Draw_Line(start_coord, end_coord, tarcom_is_dashed, tarcom_is_thick, tarcom_is_dropshadow, tarcom_color, tarcom_drop_color, 64);
 
-    } else {
+    }
+
+    if (NavCom) {
 
         start_coord = Get_Coord();
 
@@ -351,142 +348,13 @@ void FootClassExt::_Draw_Action_Line() const
             end_coord.Z = BRIDGE_HEIGHT + Map.Get_Cell_Height(end_coord);
         }
 
+        _Draw_Line(start_coord, end_coord, navcom_is_dashed, navcom_is_thick, navcom_is_dropshadow, navcom_color, navcom_drop_color, 128);
+
         if (UIControls->IsShowNavComQueueLines) {
             _Draw_NavComQueue_Lines();
         }
 
     }
-
-    /**
-     *  Convert the world coord to screen pixel.
-     */
-    Point2D start_point;
-    Point2D end_point;
-    TacticalMap->Coord_To_Pixel(start_coord, start_point);
-    TacticalMap->Coord_To_Pixel(end_coord, end_point);
-
-    /**
-     *  Offset pixel position relative to tactical viewport.
-     */
-    start_point += Point2D(TacticalRect.X, TacticalRect.Y);
-    end_point += Point2D(TacticalRect.X, TacticalRect.Y);
-
-    /**
-     *  Draw the action line.
-     */
-    if (Clip_Line(&start_point, &end_point, &TacticalRect)) {
-
-        Point2D drop_start_point = start_point;
-        Point2D drop_end_point = end_point;
-
-        drop_start_point.Y += 1;
-        drop_end_point.Y += 1;
-
-        if (is_dashed) {
-
-            /**
-             *  4 pixels on, 4 off, 4 pixels on, 4 off.
-             */
-            static bool _pattern[] = { true, true, true, true, false, false, false, false, true, true, true, true, false, false, false, false };
-
-            /**
-             *  Adjust the offset of the line pattern.
-             */
-            const int time = timeGetTime();
-            const int offset = (-time / rate) & (std::size(_pattern) - 1);
-
-            /**
-             *  Draw the drop shadow line.
-             */
-            if (is_dropshadow) {
-
-                if (is_thick) {
-                    drop_start_point.Y += 1;
-                    drop_end_point.Y += 1;
-                }
-
-                CompositeSurface->Draw_Dashed_Line(drop_start_point, drop_end_point, drop_color, _pattern, offset);
-
-                if (is_thick) {
-                    drop_start_point.Y += 1;
-                    drop_end_point.Y += 1;
-                    CompositeSurface->Draw_Dashed_Line(drop_start_point, drop_end_point, drop_color, _pattern, offset);
-                }
-
-            }
-
-            /**
-             *  Draw the dashed action line.
-             */
-            CompositeSurface->Draw_Dashed_Line(start_point, end_point, line_color, _pattern, offset);
-
-            if (is_thick) {
-                start_point.Y += 1;
-                end_point.Y += 1;
-                CompositeSurface->Draw_Dashed_Line(start_point, end_point, line_color, _pattern, offset);
-            }
-
-        } else {
-
-            /**
-             *  Draw the drop shadow line.
-             */
-            if (is_dropshadow) {
-
-                if (is_thick) {
-                    drop_start_point.Y += 1;
-                    drop_end_point.Y += 1;
-                }
-
-                CompositeSurface->Draw_Line(drop_start_point, drop_end_point, drop_color);
-
-                if (is_thick) {
-                    drop_start_point.Y += 1;
-                    drop_end_point.Y += 1;
-                    CompositeSurface->Draw_Line(drop_start_point, drop_end_point, drop_color);
-                }
-
-            }
-
-            /**
-             *  Draw the action line.
-             */
-            CompositeSurface->Draw_Line(start_point, end_point, line_color);
-
-            if (is_thick) {
-                start_point.Y += 1;
-                end_point.Y += 1;
-                CompositeSurface->Draw_Line(start_point, end_point, line_color);
-            }
-
-        }
-
-    }
-
-    /**
-     *  Draw the action line start and end squares.
-     */
-    if (is_dropshadow) {
-
-        const int drop_point_size = is_thick ? (point_size + 3) : (point_size + 2);
-        const Point2D drop_point_offset = is_thick ? (point_offset + Point2D(-2, -2)) : (point_offset + Point2D(-1, -1));
-
-        if (is_thick) {
-            point_size -= 1;
-        }
-
-        Rect drop_start_point_rect = TacticalRect.Intersect_With(Rect(start_point + drop_point_offset, drop_point_size, drop_point_size));
-        CompositeSurface->Fill_Rect(drop_start_point_rect, drop_color);
-
-        Rect drop_end_point_rect = TacticalRect.Intersect_With(Rect(end_point + drop_point_offset, drop_point_size, drop_point_size));
-        CompositeSurface->Fill_Rect(drop_end_point_rect, drop_color);
-    }
-
-    Rect start_point_rect = TacticalRect.Intersect_With(Rect(start_point + point_offset, point_size, point_size));
-    CompositeSurface->Fill_Rect(start_point_rect, line_color);
-
-    Rect end_point_rect = TacticalRect.Intersect_With(Rect(end_point + point_offset, point_size, point_size));
-    CompositeSurface->Fill_Rect(end_point_rect, line_color);
 }
 
 
