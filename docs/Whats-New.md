@@ -143,6 +143,7 @@ New:
 - Add developer command to dump all existing triggers, tags, and local and global variables to the log output (by Rampastring)
 - Add `PipWrap` (by ZivDero)
 - Implement developer mode command to reload Rules and Art files (by CCHyper)
+- Implement various controls to customise the band box selection (by CCHyper)
 
 
 Vanilla fixes:

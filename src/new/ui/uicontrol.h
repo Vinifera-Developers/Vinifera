@@ -166,7 +166,7 @@ class UIControlsClass
         bool IsBandBoxDropShadow;
 
         /**
-         *  Should the tactical rubber band box be drawn thick?
+         *  Should the tactical rubber band box be drawn with a thick border?
          */
         bool IsBandBoxThick;
 

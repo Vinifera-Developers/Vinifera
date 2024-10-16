@@ -74,8 +74,8 @@ UIControlsClass::UIControlsClass() :
     BandBoxTintTransparency(0),
     BandBoxTintColors()
 {
-    BandBoxTintColors.Add(RGBStruct{ 0,0,0 });
-    BandBoxTintColors.Add(RGBStruct{ 255,255,255 });
+    BandBoxTintColors.Add(RGBStruct{ 0, 0, 0 });
+    BandBoxTintColors.Add(RGBStruct{ 255, 255, 255 });
 }
 
 

@@ -40,7 +40,7 @@ In `SUN.INI`:
 SortDefensesAsLast=yes  ; boolean, are base defenses sorted to the end of the sidebar by default.
 ```
 
-### Desciptions
+### Descriptions
 
 - Tooltips displayed when hovering over icons on the sidebar have been expanded.
 - By default, hovering over an icon will display the object's name and price. Additionally, a description can be specified for TechnoTypes, which will appear after the price.
@@ -183,7 +183,7 @@ This system only supports 8-bit PNG. All other formats such as Greyscale, Palett
 Attached is a set of the original loading screens with a minor edit and saved as PNG for testing;
 [PNG_Loading_Screens.zip](https://github.com/Vinifera-Developers/Vinifera/files/7392707/PNG_Loading_Screens.zip)
 
-## Sidebar / Battle UI
+## Tactical UI
 
 ### Super Weapon Timers
 
@@ -271,7 +271,20 @@ In `RULES.INI`:
 MaxPips=5,5,5,10,8  ; list of integers - Ammo, Tiberium, Passengers, Power, Charge.
 ```
 
-## Tooltips
+### Selection Band Box
+
+- Vinifera allows customizing some properties of the abnd box used for unit drag-selection.
+
+In `UI.INI`:
+```ini
+[Ingame]
+BandBoxDropShadow=no                 ; boolean, should the tactical rubber band box be drawn with a drop shadow?
+BandBoxThick=no                      ; boolean, should the tactical rubber band box be drawn with a thick border?
+BandBoxColor=255,255,255             ; RGB color, color draw the tactical rubber band box with.
+BandBoxDropShadowColor=0,0,0         ; RGB color, color to draw the tactical rubber band box's shadow with.
+BandBoxTintTransparency=0            ; integer, transparency of the tactical rubber band.
+BandBoxTintColors=0,0,0,255,255,255  ; two RGB colors, "dark" and "light" tint colors, interpolated based on the map's ambient light level.
+```
 
 ## Miscellaneous
 

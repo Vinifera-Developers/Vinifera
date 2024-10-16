@@ -125,6 +125,7 @@ This page lists all the individual contributions to the project by their author.
   - Change starting unit placement to be the same as Red Alert 2.
   - Add the framework for new ArmorTypes.
   - Implement developer mode command to reload Rules and Art files.
+  - Implement various controls to customise the band box selection.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **MarkJFox**:
