@@ -189,6 +189,56 @@ class UIControlsClass
          *  Two tint colors, interpolated between based on the current ambient light level.
          */
         TypeList<RGBStruct> BandBoxTintColors;
+
+        /**
+         *  Should movement lines be drawn with dashes?
+         */
+        bool IsMovementLineDashed;
+
+        /**
+         *  Should movement lines be drawn with a drop shadow?
+         */
+        bool IsMovementLineDropShadow;
+
+        /**
+         *  Should movement lines be drawn with a thick line?
+         */
+        bool IsMovementLineThick;
+
+        /**
+         *  Color to draw movement lines with.
+         */
+        RGBStruct MovementLineColor;
+
+        /**
+         *  Color to draw movement lines' drop shadow with.
+         */
+        RGBStruct MovementLineDropShadowColor;
+
+        /**
+         *  Should target lines be drawn with dashes?
+         */
+        bool IsTargetLineDashed;
+
+        /**
+         *  Should target lines be drawn with a drop shadow?
+         */
+        bool IsTargetLineDropShadow;
+
+        /**
+         *  Should target lines be drawn with a thick line?
+         */
+        bool IsTargetLineThick;
+
+        /**
+         *  Color to target movement lines with.
+         */
+        RGBStruct TargetLineColor;
+
+        /**
+         *  Color to draw target lines' drop shadow with.
+         */
+        RGBStruct TargetLineDropShadowColor;
 };
 
 extern UIControlsClass *UIControls;

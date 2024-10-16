@@ -734,20 +734,6 @@ bool RulesClassExtension::Armors(CCINIClass &ini)
     }
 
     return counter > 0;
-    ASSERT_PRINT(UIControls.BandBoxTintColors.Count() == 2, "BandBoxTintColors must contain two valid entries!");
-
-    UIControls.IsMovementLineDashed = ini.Get_Bool(INGAME, "MovementLineDashed", UIControls.IsMovementLineDashed);
-    UIControls.IsMovementLineDropShadow = ini.Get_Bool(INGAME, "MovementLineDropShadow", UIControls.IsMovementLineDropShadow);
-    UIControls.IsMovementLineThick = ini.Get_Bool(INGAME, "MovementLineThick", UIControls.IsMovementLineThick);
-    UIControls.MovementLineColor = ini.Get_RGB(INGAME, "MovementLineColor", UIControls.MovementLineColor);
-    UIControls.MovementLineDropShadowColor = ini.Get_RGB(INGAME, "MovementLineDropShadowColor", UIControls.MovementLineDropShadowColor);
-    UIControls.IsTargetLineDashed = ini.Get_Bool(INGAME, "TargetLineDashed", UIControls.IsTargetLineDashed);
-    UIControls.IsTargetLineDropShadow = ini.Get_Bool(INGAME, "TargetLineDropShadow", UIControls.IsTargetLineDropShadow);
-    UIControls.IsTargetLineThick = ini.Get_Bool(INGAME, "TargetLineThick", UIControls.IsTargetLineThick);
-    UIControls.TargetLineColor = ini.Get_RGB(INGAME, "TargetLineColor", UIControls.TargetLineColor);
-    UIControls.TargetLineDropShadowColor = ini.Get_RGB(INGAME, "TargetLineDropShadowColor", UIControls.TargetLineDropShadowColor);
-
-    return true;
 }
 
 
@@ -790,18 +776,6 @@ bool RulesClassExtension::Tiberiums(CCINIClass &ini)
     }
 
     return counter > 0;
-    UIControls.IsMovementLineDashed = false;
-    UIControls.IsMovementLineDropShadow = false;
-    UIControls.IsMovementLineThick = false;
-    UIControls.MovementLineColor = RGBStruct{0,170,0}; // COLOR_GREEN
-    UIControls.MovementLineDropShadowColor = RGBStruct{0,0,0};
-    UIControls.IsTargetLineDashed = false;
-    UIControls.IsTargetLineDropShadow = false;
-    UIControls.IsTargetLineThick = false;
-    UIControls.TargetLineColor = RGBStruct{173,0,0}; // COLOR_RED
-    UIControls.TargetLineDropShadowColor = RGBStruct{0,0,0};
-
-    return false;
 }
 
 

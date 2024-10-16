@@ -46,6 +46,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "uicontrol.h"
 
 
 /**
@@ -73,36 +74,36 @@ void FootClassExt::_Draw_Action_Line() const
         return;
     }
 
-    //if (ActionLineTimer.Expired()) {
-    //    return;
-    //}
+    if (ActionLineTimer.Expired()) {
+        return;
+    }
 
     /**
      *  Fetch the line properties.
      */
-    bool is_dashed = TarCom ? RulesClassExtension::UIControls.IsTargetLineDashed : RulesClassExtension::UIControls.IsMovementLineDashed;
-    bool is_thick = TarCom ? RulesClassExtension::UIControls.IsTargetLineThick : RulesClassExtension::UIControls.IsMovementLineThick;
-    bool is_dropshadow = TarCom ? RulesClassExtension::UIControls.IsTargetLineDropShadow : RulesClassExtension::UIControls.IsMovementLineDropShadow;
+    const bool is_dashed = TarCom ? UIControls->IsTargetLineDashed : UIControls->IsMovementLineDashed;
+    const bool is_thick = TarCom ? UIControls->IsTargetLineThick : UIControls->IsMovementLineThick;
+    const bool is_dropshadow = TarCom ? UIControls->IsTargetLineDropShadow : UIControls->IsMovementLineDropShadow;
 
     unsigned tarcom_color = DSurface::RGB_To_Pixel(
-                                        RulesClassExtension::UIControls.TargetLineColor.R,
-                                        RulesClassExtension::UIControls.TargetLineColor.G,
-                                        RulesClassExtension::UIControls.TargetLineColor.B);
+        UIControls->TargetLineColor.R,
+        UIControls->TargetLineColor.G,
+        UIControls->TargetLineColor.B);
 
     unsigned tarcom_drop_color = DSurface::RGB_To_Pixel(
-                                        RulesClassExtension::UIControls.TargetLineDropShadowColor.R,
-                                        RulesClassExtension::UIControls.TargetLineDropShadowColor.G,
-                                        RulesClassExtension::UIControls.TargetLineDropShadowColor.B);
+        UIControls->TargetLineDropShadowColor.R,
+        UIControls->TargetLineDropShadowColor.G,
+        UIControls->TargetLineDropShadowColor.B);
 
     unsigned navcom_color = DSurface::RGB_To_Pixel(
-                                        RulesClassExtension::UIControls.MovementLineColor.R,
-                                        RulesClassExtension::UIControls.MovementLineColor.G,
-                                        RulesClassExtension::UIControls.MovementLineColor.B);
+        UIControls->MovementLineColor.R,
+        UIControls->MovementLineColor.G,
+        UIControls->MovementLineColor.B);
 
     unsigned navcom_drop_color = DSurface::RGB_To_Pixel(
-                                        RulesClassExtension::UIControls.MovementLineDropShadowColor.R,
-                                        RulesClassExtension::UIControls.MovementLineDropShadowColor.G,
-                                        RulesClassExtension::UIControls.MovementLineDropShadowColor.B);
+        UIControls->MovementLineDropShadowColor.R,
+        UIControls->MovementLineDropShadowColor.G,
+        UIControls->MovementLineDropShadowColor.B);
 
     unsigned line_color = TarCom ? tarcom_color : navcom_color;
     unsigned drop_color = TarCom ? tarcom_drop_color : navcom_drop_color;
@@ -141,10 +142,9 @@ void FootClassExt::_Draw_Action_Line() const
         end_coord = navtarget->Center_Coord();
         Cell target_cell = Coord_Cell(end_coord);
 
-        if (Map.In_Radar(end_coord) && Map[end_coord].Bit2_16) {
+        if (Map.In_Radar(target_cell) && Map[end_coord].Bit2_16) {
             end_coord.Z = BRIDGE_HEIGHT + Map.Get_Cell_Height(end_coord);
         }
-
     }
 
     /**
@@ -182,8 +182,8 @@ void FootClassExt::_Draw_Action_Line() const
             /**
              *  Adjust the offset of the line pattern.
              */
-            int time = timeGetTime();
-            int offset = (-time / rate) & (ARRAYSIZE(_pattern)-1);
+            const int time = timeGetTime();
+            const int offset = (-time / rate) & (std::size(_pattern) - 1);
 
             /**
              *  Draw the drop shadow line.
@@ -204,7 +204,7 @@ void FootClassExt::_Draw_Action_Line() const
                 }
 
             }
-            
+
             /**
              *  Draw the dashed action line.
              */
@@ -257,9 +257,9 @@ void FootClassExt::_Draw_Action_Line() const
      *  Draw the action line start and end squares.
      */
     if (is_dropshadow) {
-    
-        int drop_point_size = is_thick ? (point_size + 3) : (point_size + 2);
-        Point2D drop_point_offset = is_thick ? (point_offset + Point2D(-2,-2)) : (point_offset + Point2D(-1,-1));
+
+        const int drop_point_size = is_thick ? (point_size + 3) : (point_size + 2);
+        const Point2D drop_point_offset = is_thick ? (point_offset + Point2D(-2, -2)) : (point_offset + Point2D(-1, -1));
 
         if (is_thick) {
             point_size -= 1;
@@ -271,7 +271,7 @@ void FootClassExt::_Draw_Action_Line() const
         Rect drop_end_point_rect = TacticalRect.Intersect_With(Rect(end_point + drop_point_offset, drop_point_size, drop_point_size));
         CompositeSurface->Fill_Rect(drop_end_point_rect, drop_color);
     }
-    
+
     Rect start_point_rect = TacticalRect.Intersect_With(Rect(start_point + point_offset, point_size, point_size));
     CompositeSurface->Fill_Rect(start_point_rect, line_color);
 
@@ -524,9 +524,5 @@ void FootClassExtension_Hooks()
     Patch_Jump(0x004A2BE7, &_FootClass_Mission_Guard_Area_Can_Passive_Acquire_Patch);
     Patch_Jump(0x004A1AAE, &_FootClass_Mission_Guard_Can_Passive_Acquire_Patch);
     Patch_Jump(0x004A102F, &_FootClass_Mission_Move_Can_Passive_Acquire_Patch);
-
-    Change_Virtual_Address(0x006CB11C, Get_Func_Address(&FootClassExt::_Draw_Action_Line)); // AircraftClass
-    Change_Virtual_Address(0x006D06FC, Get_Func_Address(&FootClassExt::_Draw_Action_Line)); // FootClass
-    Change_Virtual_Address(0x006D2440, Get_Func_Address(&FootClassExt::_Draw_Action_Line)); // InfantryClass
-    Change_Virtual_Address(0x006D8E90, Get_Func_Address(&FootClassExt::_Draw_Action_Line)); // UnitClass
+    Patch_Jump(0x004A6A40, &FootClassExt::_Draw_Action_Line);
 }

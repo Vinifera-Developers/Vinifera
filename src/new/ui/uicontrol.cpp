@@ -72,7 +72,17 @@ UIControlsClass::UIControlsClass() :
     BandBoxColor{ 255, 255, 255 },
     BandBoxDropShadowColor{ 0, 0, 0 },
     BandBoxTintTransparency(0),
-    BandBoxTintColors()
+    BandBoxTintColors(),
+    IsMovementLineDashed(false),
+    IsMovementLineDropShadow(false),
+    IsMovementLineThick(false),
+    MovementLineColor{ 0, 170, 0 }, // COLOR_GREEN
+    MovementLineDropShadowColor{ 0, 0, 0 },
+    IsTargetLineDashed(false),
+    IsTargetLineDropShadow(false),
+    IsTargetLineThick(false),
+    TargetLineColor{ 173, 0, 0 }, // COLOR_RED
+    TargetLineDropShadowColor{ 0, 0, 0 }
 {
     BandBoxTintColors.Add(RGBStruct{ 0, 0, 0 });
     BandBoxTintColors.Add(RGBStruct{ 255, 255, 255 });
@@ -140,6 +150,17 @@ bool UIControlsClass::Read_INI(CCINIClass &ini)
     BandBoxTintColors = ini.Get_RGBs(INGAME, "BandBoxTintColors", BandBoxTintColors);
 
     ASSERT_PRINT(BandBoxTintColors.Count() == 2, "BandBoxTintColors must contain two valid entries!");
+
+    IsMovementLineDashed = ini.Get_Bool(INGAME, "MovementLineDashed", IsMovementLineDashed);
+    IsMovementLineDropShadow = ini.Get_Bool(INGAME, "MovementLineDropShadow", IsMovementLineDropShadow);
+    IsMovementLineThick = ini.Get_Bool(INGAME, "MovementLineThick", IsMovementLineThick);
+    MovementLineColor = ini.Get_RGB(INGAME, "MovementLineColor", MovementLineColor);
+    MovementLineDropShadowColor = ini.Get_RGB(INGAME, "MovementLineDropShadowColor", MovementLineDropShadowColor);
+    IsTargetLineDashed = ini.Get_Bool(INGAME, "TargetLineDashed", IsTargetLineDashed);
+    IsTargetLineDropShadow = ini.Get_Bool(INGAME, "TargetLineDropShadow", IsTargetLineDropShadow);
+    IsTargetLineThick = ini.Get_Bool(INGAME, "TargetLineThick", IsTargetLineThick);
+    TargetLineColor = ini.Get_RGB(INGAME, "TargetLineColor", TargetLineColor);
+    TargetLineDropShadowColor = ini.Get_RGB(INGAME, "TargetLineDropShadowColor", TargetLineDropShadowColor);
 
     return true;
 }
