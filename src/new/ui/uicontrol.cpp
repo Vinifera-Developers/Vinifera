@@ -66,8 +66,16 @@ UIControlsClass::UIControlsClass() :
     UnitSpecialPipOffset(0, -8),
     InfantrySpecialPipOffset(0, -8),
     BuildingSpecialPipOffset(0, -8),
-    AircraftSpecialPipOffset(0, -8)
+    AircraftSpecialPipOffset(0, -8),
+    IsBandBoxDropShadow(false),
+    IsBandBoxThick(false),
+    BandBoxColor{ 255, 255, 255 },
+    BandBoxDropShadowColor{ 0, 0, 0 },
+    BandBoxTintTransparency(0),
+    BandBoxTintColors()
 {
+    BandBoxTintColors.Add(RGBStruct{ 0, 0, 0 });
+    BandBoxTintColors.Add(RGBStruct{ 255, 255, 255 });
 }
 
 
@@ -76,7 +84,8 @@ UIControlsClass::UIControlsClass() :
  *  
  *  @author: CCHyper
  */
-UIControlsClass::UIControlsClass(const NoInitClass &noinit)
+UIControlsClass::UIControlsClass(const NoInitClass &noinit) :
+    BandBoxTintColors(noinit)
 {
 }
 
@@ -122,6 +131,15 @@ bool UIControlsClass::Read_INI(CCINIClass &ini)
     InfantrySpecialPipOffset = ini.Get_Point(INGAME, "InfantrySpecialPipOffset", InfantrySpecialPipOffset);
     BuildingSpecialPipOffset = ini.Get_Point(INGAME, "BuildingSpecialPipOffset", BuildingSpecialPipOffset);
     AircraftSpecialPipOffset = ini.Get_Point(INGAME, "AircraftSpecialPipOffset", AircraftSpecialPipOffset);
+
+    IsBandBoxDropShadow = ini.Get_Bool(INGAME, "BandBoxDropShadow", IsBandBoxDropShadow);
+    IsBandBoxThick = ini.Get_Bool(INGAME, "BandBoxThick", IsBandBoxThick);
+    BandBoxColor = ini.Get_RGB(INGAME, "BandBoxColor", BandBoxColor);
+    BandBoxDropShadowColor = ini.Get_RGB(INGAME, "BandBoxDropShadowColor", BandBoxDropShadowColor);
+    BandBoxTintTransparency = ini.Get_Int_Clamp(INGAME, "BandBoxTintTransparency", 0, 100, BandBoxTintTransparency);
+    BandBoxTintColors = ini.Get_RGBs(INGAME, "BandBoxTintColors", BandBoxTintColors);
+
+    ASSERT_PRINT(BandBoxTintColors.Count() == 2, "BandBoxTintColors must contain two valid entries!");
 
     return true;
 }
