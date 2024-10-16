@@ -1920,5 +1920,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x006320C2, &_TechnoClass_2A0_Is_Allowed_To_Deploy_Unit_Transform_Patch);
     Patch_Call(0x00637FF5, &TechnoClassExt::_Cell_Distance_Squared); // Patch Find_Docking_Bay to call our own distance function that avoids overflows
     Patch_Jump(0x006396D1, &_TechnoClass_Railgun_Damage_Apply_Damage_Modifier_Patch);
-    Patch_Call(0x00653ECD, &TechnoClassExt::_Draw_Target_Laser);
+    Patch_Jump(0x006313D0, &TechnoClassExt::_Draw_Target_Laser);
 }
