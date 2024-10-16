@@ -244,6 +244,36 @@ class UIControlsClass
          *  Color to draw target lines' drop shadow with.
          */
         RGBStruct TargetLineDropShadowColor;
+
+        /**
+         *  Should target laser be drawn with dashes?
+         */
+        bool IsTargetLaserDashed;
+
+        /**
+         *  Should target laser be drawn with a drop shadow?
+         */
+        bool IsTargetLaserDropShadow;
+
+        /**
+         *  Should target laser be drawn with a thick line?
+         */
+        bool IsTargetLaserThick;
+
+        /**
+         *  Color to draw the target laser with.
+         */
+        RGBStruct TargetLaserColor;
+
+        /**
+         *  Color to draw the target laser's drop shadow with.
+         */
+        RGBStruct TargetLaserDropShadowColor;
+
+        /**
+         *  Time in frames the target laser should be drawn for when the unit fires.
+         */
+        unsigned TargetLaserTime;
 };
 
 extern UIControlsClass *UIControls;

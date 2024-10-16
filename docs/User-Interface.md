@@ -286,7 +286,7 @@ BandBoxTintTransparency=0            ; integer, transparency of the tactical rub
 BandBoxTintColors=0,0,0,255,255,255  ; two RGB colors, "dark" and "light" tint colors, interpolated based on the map's ambient light level.
 ```
 
-- Vinifera allows customizing some properties of the movement and target lines.
+- Vinifera allows customizing some properties of the movement, target and target laser lines.
 
 In `UI.INI`:
 ```ini
@@ -304,6 +304,13 @@ TargetLineDropShadow=no            ; boolean, should target lines be drawn with 
 TargetLineThick=no                 ; boolean, should target lines be drawn with a thick line?
 TargetLineColor=173,0,0            ; RGB color, color to target movement lines with.
 TargetLineDropShadowColor=0,0,0    ; RGB color, color to draw target lines' drop shadow with.
+
+TargetLaserDashed=no               ; boolean, should target lasers be drawn with dashes?
+TargetLaserDropShadow=no           ; boolean, should target lasers be drawn with a drop shadow?
+TargetLaserThick=no                ; boolean, should target lasers be drawn with a thick line?
+TargetLaserColor=173,0,0           ; RGB color, color to draw the target lasers with.
+TargetLaserDropShadowColor=0,0,0   ; RGB color, color to draw target lasers' drop shadow with.
+TargetLaserTime=15                 ; integer, time in frames the target laser should be drawn for when the unit fires.
 ```
 
 ## Miscellaneous
