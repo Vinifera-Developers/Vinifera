@@ -278,12 +278,12 @@ MaxPips=5,5,5,10,8  ; list of integers - Ammo, Tiberium, Passengers, Power, Char
 In `UI.INI`:
 ```ini
 [Ingame]
-BandBoxDropShadow=no                 ; boolean, should the tactical rubber band box be drawn with a drop shadow?
-BandBoxThick=no                      ; boolean, should the tactical rubber band box be drawn with a thick border?
-BandBoxColor=255,255,255             ; RGB color, color draw the tactical rubber band box with.
-BandBoxDropShadowColor=0,0,0         ; RGB color, color to draw the tactical rubber band box's shadow with.
-BandBoxTintTransparency=0            ; integer, transparency of the tactical rubber band.
-BandBoxTintColors=0,0,0,255,255,255  ; two RGB colors, "dark" and "light" tint colors, interpolated based on the map's ambient light level.
+BandBoxDropShadow=no                     ; boolean, should the tactical rubber band box be drawn with a drop shadow?
+BandBoxThick=no                          ; boolean, should the tactical rubber band box be drawn with a thick border?
+BandBoxColor=255,255,255                 ; RGB color, color draw the tactical rubber band box with.
+BandBoxDropShadowColor=0,0,0             ; RGB color, color to draw the tactical rubber band box's shadow with.
+BandBoxTintTransparency=0                ; integer, transparency of the tactical rubber band.
+BandBoxTintColors=(0,0,0),(255,255,255)  ; two RGB colors, "dark" and "light" tint colors, interpolated based on the map's ambient light level.
 ```
 
 - Vinifera allows customizing some properties of the movement, target and target laser lines.
@@ -311,6 +311,19 @@ TargetLaserThick=no                ; boolean, should target lasers be drawn with
 TargetLaserColor=173,0,0           ; RGB color, color to draw the target lasers with.
 TargetLaserDropShadowColor=0,0,0   ; RGB color, color to draw target lasers' drop shadow with.
 TargetLaserTime=15                 ; integer, time in frames the target laser should be drawn for when the unit fires.
+```
+
+- Additionally, you can also enable lines to be drawn indicating the unit's current navigation queue.
+
+In `UI.INI`:
+```ini
+[Ingame]
+ShowNavComQueueLines=no               ; boolean, should NavCom queue lines be displayed?
+NavComQueueLineDashed=no              ; boolean, should NavCom queue lines be drawn with dashes?
+NavComQueueLineDropShadow=no          ; boolean, should NavCom queue lines be drawn with a drop shadow?
+NavComQueueLineThick=no               ; boolean, should NavCom queue lines be drawn with a thick line?
+NavComQueueLineColor=173,0,0          ; RGB color, color to draw the NavCom queue lines with.
+NavComQueueLineDropShadowColor=0,0,0  ; RGB color, color to draw the NavCom queue lines' drop shadow with.
 ```
 
 ## Miscellaneous
