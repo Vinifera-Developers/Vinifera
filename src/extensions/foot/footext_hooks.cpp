@@ -30,6 +30,15 @@
 #include "technoext.h"
 #include "technotype.h"
 #include "technotypeext.h"
+#include "tibsun_inline.h"
+#include "tibsun_globals.h"
+#include "tactical.h"
+#include "textprint.h"
+#include "clipline.h"
+#include "convert.h"
+#include "iomap.h"
+#include "rules.h"
+#include "rulesext.h"
 #include "extension.h"
 #include "fatal.h"
 #include "asserthandler.h"
@@ -37,6 +46,238 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "uicontrol.h"
+
+
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ * 
+ *  @note: This must not contain a constructor or destructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+class FootClassExt final : public FootClass
+{
+    public:
+        void _Draw_Action_Line() const;
+};
+
+
+/**
+ *  Reimplementation of FootClass::Draw_Action_Line().
+ * 
+ *  @author: CCHyper
+ */
+void FootClassExt::_Draw_Action_Line() const
+{
+    if (!TarCom && !NavCom) {
+        return;
+    }
+
+    if (!UIControls->IsAlwaysShowActionLines && ActionLineTimer.Expired()) {
+        return;
+    }
+
+    /**
+     *  Fetch the line properties.
+     */
+    const bool is_dashed = TarCom ? UIControls->IsTargetLineDashed : UIControls->IsMovementLineDashed;
+    const bool is_thick = TarCom ? UIControls->IsTargetLineThick : UIControls->IsMovementLineThick;
+    const bool is_dropshadow = TarCom ? UIControls->IsTargetLineDropShadow : UIControls->IsMovementLineDropShadow;
+
+    unsigned tarcom_color = DSurface::RGB_To_Pixel(
+        UIControls->TargetLineColor.R,
+        UIControls->TargetLineColor.G,
+        UIControls->TargetLineColor.B);
+
+    unsigned tarcom_drop_color = DSurface::RGB_To_Pixel(
+        UIControls->TargetLineDropShadowColor.R,
+        UIControls->TargetLineDropShadowColor.G,
+        UIControls->TargetLineDropShadowColor.B);
+
+    unsigned navcom_color = DSurface::RGB_To_Pixel(
+        UIControls->MovementLineColor.R,
+        UIControls->MovementLineColor.G,
+        UIControls->MovementLineColor.B);
+
+    unsigned navcom_drop_color = DSurface::RGB_To_Pixel(
+        UIControls->MovementLineDropShadowColor.R,
+        UIControls->MovementLineDropShadowColor.G,
+        UIControls->MovementLineDropShadowColor.B);
+
+    unsigned line_color = TarCom ? tarcom_color : navcom_color;
+    unsigned drop_color = TarCom ? tarcom_drop_color : navcom_drop_color;
+
+    int point_size = 4;
+    Point2D point_offset(-2, -2);
+
+    if (is_thick) {
+        point_size = 5;
+        point_offset = Point2D(-3, -3);
+    }
+
+    /**
+     *  Line animation rate.
+     */
+    int rate = 128;
+
+    /**
+     *  Fetch the action line start and end coord.
+     */
+    Coordinate start_coord;
+    Coordinate end_coord;
+
+    if (TarCom) {
+
+        start_coord = entry_28C();
+        end_coord = func_638AF0();
+
+        rate = 64;
+
+    } else {
+
+        start_coord = Get_Coord();
+
+        TARGET navtarget = field_260.Count() ? field_260.Fetch_Tail() : NavCom;
+        end_coord = navtarget->Center_Coord();
+        Cell target_cell = Coord_Cell(end_coord);
+
+        if (Map.In_Radar(target_cell) && Map[end_coord].Bit2_16) {
+            end_coord.Z = BRIDGE_HEIGHT + Map.Get_Cell_Height(end_coord);
+        }
+    }
+
+    /**
+     *  Convert the world coord to screen pixel.
+     */
+    Point2D start_point;
+    Point2D end_point;
+    TacticalMap->Coord_To_Pixel(start_coord, start_point);
+    TacticalMap->Coord_To_Pixel(end_coord, end_point);
+
+    /**
+     *  Offset pixel position relative to tactical viewport.
+     */
+    start_point += Point2D(TacticalRect.X, TacticalRect.Y);
+    end_point += Point2D(TacticalRect.X, TacticalRect.Y);
+
+    /**
+     *  Draw the action line.
+     */
+    if (Clip_Line(&start_point, &end_point, &TacticalRect)) {
+
+        Point2D drop_start_point = start_point;
+        Point2D drop_end_point = end_point;
+
+        drop_start_point.Y += 1;
+        drop_end_point.Y += 1;
+
+        if (is_dashed) {
+
+            /**
+             *  4 pixels on, 4 off, 4 pixels on, 4 off.
+             */
+            static bool _pattern[] = { true, true, true, true, false, false, false, false, true, true, true, true, false, false, false, false };
+
+            /**
+             *  Adjust the offset of the line pattern.
+             */
+            const int time = timeGetTime();
+            const int offset = (-time / rate) & (std::size(_pattern) - 1);
+
+            /**
+             *  Draw the drop shadow line.
+             */
+            if (is_dropshadow) {
+
+                if (is_thick) {
+                    drop_start_point.Y += 1;
+                    drop_end_point.Y += 1;
+                }
+
+                CompositeSurface->Draw_Dashed_Line(drop_start_point, drop_end_point, drop_color, _pattern, offset);
+
+                if (is_thick) {
+                    drop_start_point.Y += 1;
+                    drop_end_point.Y += 1;
+                    CompositeSurface->Draw_Dashed_Line(drop_start_point, drop_end_point, drop_color, _pattern, offset);
+                }
+
+            }
+
+            /**
+             *  Draw the dashed action line.
+             */
+            CompositeSurface->Draw_Dashed_Line(start_point, end_point, line_color, _pattern, offset);
+
+            if (is_thick) {
+                start_point.Y += 1;
+                end_point.Y += 1;
+                CompositeSurface->Draw_Dashed_Line(start_point, end_point, line_color, _pattern, offset);
+            }
+
+        } else {
+
+            /**
+             *  Draw the drop shadow line.
+             */
+            if (is_dropshadow) {
+
+                if (is_thick) {
+                    drop_start_point.Y += 1;
+                    drop_end_point.Y += 1;
+                }
+
+                CompositeSurface->Draw_Line(drop_start_point, drop_end_point, drop_color);
+
+                if (is_thick) {
+                    drop_start_point.Y += 1;
+                    drop_end_point.Y += 1;
+                    CompositeSurface->Draw_Line(drop_start_point, drop_end_point, drop_color);
+                }
+
+            }
+
+            /**
+             *  Draw the action line.
+             */
+            CompositeSurface->Draw_Line(start_point, end_point, line_color);
+
+            if (is_thick) {
+                start_point.Y += 1;
+                end_point.Y += 1;
+                CompositeSurface->Draw_Line(start_point, end_point, line_color);
+            }
+
+        }
+
+    }
+
+    /**
+     *  Draw the action line start and end squares.
+     */
+    if (is_dropshadow) {
+
+        const int drop_point_size = is_thick ? (point_size + 3) : (point_size + 2);
+        const Point2D drop_point_offset = is_thick ? (point_offset + Point2D(-2, -2)) : (point_offset + Point2D(-1, -1));
+
+        if (is_thick) {
+            point_size -= 1;
+        }
+
+        Rect drop_start_point_rect = TacticalRect.Intersect_With(Rect(start_point + drop_point_offset, drop_point_size, drop_point_size));
+        CompositeSurface->Fill_Rect(drop_start_point_rect, drop_color);
+
+        Rect drop_end_point_rect = TacticalRect.Intersect_With(Rect(end_point + drop_point_offset, drop_point_size, drop_point_size));
+        CompositeSurface->Fill_Rect(drop_end_point_rect, drop_color);
+    }
+
+    Rect start_point_rect = TacticalRect.Intersect_With(Rect(start_point + point_offset, point_size, point_size));
+    CompositeSurface->Fill_Rect(start_point_rect, line_color);
+
+    Rect end_point_rect = TacticalRect.Intersect_With(Rect(end_point + point_offset, point_size, point_size));
+    CompositeSurface->Fill_Rect(end_point_rect, line_color);
+}
 
 
 /**
@@ -283,4 +524,5 @@ void FootClassExtension_Hooks()
     Patch_Jump(0x004A2BE7, &_FootClass_Mission_Guard_Area_Can_Passive_Acquire_Patch);
     Patch_Jump(0x004A1AAE, &_FootClass_Mission_Guard_Can_Passive_Acquire_Patch);
     Patch_Jump(0x004A102F, &_FootClass_Mission_Move_Can_Passive_Acquire_Patch);
+    Patch_Jump(0x004A6A40, &FootClassExt::_Draw_Action_Line);
 }

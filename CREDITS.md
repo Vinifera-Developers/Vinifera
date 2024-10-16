@@ -126,6 +126,7 @@ This page lists all the individual contributions to the project by their author.
   - Add the framework for new ArmorTypes.
   - Implement developer mode command to reload Rules and Art files.
   - Implement various controls to customise the band box selection.
+  - Implement various controls to customise action lines.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **MarkJFox**:

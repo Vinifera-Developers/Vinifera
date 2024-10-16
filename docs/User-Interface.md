@@ -273,7 +273,7 @@ MaxPips=5,5,5,10,8  ; list of integers - Ammo, Tiberium, Passengers, Power, Char
 
 ### Selection Band Box
 
-- Vinifera allows customizing some properties of the abnd box used for unit drag-selection.
+- Vinifera allows customizing some properties of the band box used for unit drag-selection.
 
 In `UI.INI`:
 ```ini
@@ -284,6 +284,26 @@ BandBoxColor=255,255,255             ; RGB color, color draw the tactical rubber
 BandBoxDropShadowColor=0,0,0         ; RGB color, color to draw the tactical rubber band box's shadow with.
 BandBoxTintTransparency=0            ; integer, transparency of the tactical rubber band.
 BandBoxTintColors=0,0,0,255,255,255  ; two RGB colors, "dark" and "light" tint colors, interpolated based on the map's ambient light level.
+```
+
+- Vinifera allows customizing some properties of the movement and target lines.
+
+In `UI.INI`:
+```ini
+[Ingame]
+AlwaysShowActionLines=no           ; boolean, should action lines remain visible continuously, instead of disappearing after some time?
+
+MovementLineDashed=no              ; boolean, should movement lines be drawn with dashes?
+MovementLineDropShadow=no          ; boolean, should movement lines be drawn with a drop shadow?
+MovementLineThick=no               ; boolean, should movement lines be drawn with a thick line?
+MovementLineColor=0,170,0          ; RGB color, color to draw movement lines with.
+MovementLineDropShadowColor=0,0,0  ; RGB color, color to draw movement lines' drop shadow with.
+
+TargetLineDashed=no                ; boolean, should target lines be drawn with dashes?
+TargetLineDropShadow=no            ; boolean, should target lines be drawn with a drop shadow?
+TargetLineThick=no                 ; boolean, should target lines be drawn with a thick line?
+TargetLineColor=173,0,0            ; RGB color, color to target movement lines with.
+TargetLineDropShadowColor=0,0,0    ; RGB color, color to draw target lines' drop shadow with.
 ```
 
 ## Miscellaneous
