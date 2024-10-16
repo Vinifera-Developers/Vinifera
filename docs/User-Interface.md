@@ -322,7 +322,7 @@ ShowNavComQueueLines=no               ; boolean, should NavCom queue lines be di
 NavComQueueLineDashed=no              ; boolean, should NavCom queue lines be drawn with dashes?
 NavComQueueLineDropShadow=no          ; boolean, should NavCom queue lines be drawn with a drop shadow?
 NavComQueueLineThick=no               ; boolean, should NavCom queue lines be drawn with a thick line?
-NavComQueueLineColor=173,0,0          ; RGB color, color to draw the NavCom queue lines with.
+NavComQueueLineColor=74,77,255        ; RGB color, color to draw the NavCom queue lines with.
 NavComQueueLineDropShadowColor=0,0,0  ; RGB color, color to draw the NavCom queue lines' drop shadow with.
 ```
 

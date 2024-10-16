@@ -94,7 +94,7 @@ UIControlsClass::UIControlsClass() :
     IsNavComQueueLineDashed(false),
     IsNavComQueueLineDropShadow(false),
     IsNavComQueueLineThick(false),
-    NavComQueueLineColor{ 173, 0, 0 }, // COLOR_LTBLUE
+    NavComQueueLineColor{ 74, 77, 255 }, // COLOR_LTBLUE
     NavComQueueLineDropShadowColor{ 0, 0, 0 }
 {
     BandBoxTintColors.Add(RGBStruct{ 0, 0, 0 });
