@@ -88,8 +88,7 @@ UIControlsClass::UIControlsClass() :
     IsTargetLaserDropShadow(false),
     IsTargetLaserThick(false),
     TargetLaserColor{ 173, 0, 0 }, // COLOR_RED
-    TargetLaserDropShadowColor{ 0, 0, 0 },
-    TargetLaserTime(15)
+    TargetLaserDropShadowColor{ 0, 0, 0 }
 {
     BandBoxTintColors.Add(RGBStruct{ 0, 0, 0 });
     BandBoxTintColors.Add(RGBStruct{ 255, 255, 255 });
@@ -174,7 +173,6 @@ bool UIControlsClass::Read_INI(CCINIClass &ini)
     IsTargetLaserThick = ini.Get_Bool(INGAME, "TargetLaserThick", IsTargetLaserThick);
     TargetLaserColor = ini.Get_RGB(INGAME, "TargetLaserColor", TargetLaserColor);
     TargetLaserDropShadowColor = ini.Get_RGB(INGAME, "TargetLaserDropShadowColor", TargetLaserDropShadowColor);
-    TargetLaserTime = ini.Get_Int(INGAME, "TargetLaserTime", TargetLaserTime);
 
     return true;
 }

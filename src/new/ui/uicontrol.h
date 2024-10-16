@@ -269,11 +269,6 @@ class UIControlsClass
          *  Color to draw the target laser's drop shadow with.
          */
         RGBStruct TargetLaserDropShadowColor;
-
-        /**
-         *
-         */
-        unsigned TargetLaserTime;
 };
 
 extern UIControlsClass *UIControls;
