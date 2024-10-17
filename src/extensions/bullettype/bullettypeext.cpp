@@ -194,6 +194,8 @@ bool BulletTypeClassExtension::Read_INI(CCINIClass &ini)
      *  The following keys are loaded from the ArtINI database.
      */
     SpawnDelay = ArtINI.Get_Int(graphic_name, "SpawnDelay", SpawnDelay);
+
+    IsInitialized = true;
     
     return true;
 }

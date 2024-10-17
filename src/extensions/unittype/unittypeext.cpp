@@ -211,5 +211,7 @@ bool UnitTypeClassExtension::Read_INI(CCINIClass &ini)
     StartIdleFrame = ArtINI.Get_Int(graphic_name, "StartIdleFrame", StartIdleFrame);
     IdleFrames = ArtINI.Get_Int(graphic_name, "IdleFrames", IdleFrames);
 
+    IsInitialized = true;
+
     return true;
 }

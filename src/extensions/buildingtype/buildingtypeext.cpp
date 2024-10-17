@@ -192,6 +192,10 @@ bool BuildingTypeClassExtension::Read_INI(CCINIClass &ini)
 
     const char *ini_name = Name();
 
+    if (!IsInitialized) {
+        IsEligibleForAllyBuilding = This()->IsConstructionYard;
+    }
+
     GateUpSound = ini.Get_VocType(ini_name, "GateUpSound", GateUpSound);
     GateDownSound = ini.Get_VocType(ini_name, "GateDownSound", GateDownSound);
 
@@ -202,8 +206,9 @@ bool BuildingTypeClassExtension::Read_INI(CCINIClass &ini)
     IsStartupCashOneTime = ini.Get_Int(ini_name, "ProduceCashStartupOneTime", IsStartupCashOneTime);
     IsResetBudgetOnCapture = ini.Get_Bool(ini_name, "ProduceCashResetOnCapture", IsResetBudgetOnCapture);
 
-    IsEligibleForAllyBuilding = ini.Get_Bool(ini_name, "EligibleForAllyBuilding",
-                                                    This()->IsConstructionYard ? true : IsEligibleForAllyBuilding);
-    
+    IsEligibleForAllyBuilding = ini.Get_Bool(ini_name, "EligibleForAllyBuilding", IsEligibleForAllyBuilding);
+
+    IsInitialized = true;
+
     return true;
 }

@@ -209,6 +209,8 @@ bool SuperWeaponTypeClassExtension::Read_INI(CCINIClass &ini)
     if (imagesurface) {
         CameoImageSurface = imagesurface;
     }
+
+    IsInitialized = true;
     
     return true;
 }

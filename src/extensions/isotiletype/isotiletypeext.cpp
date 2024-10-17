@@ -186,6 +186,8 @@ bool IsometricTileTypeClassExtension::Read_INI(CCINIClass &ini)
     if (!ini.Is_Present(ini_name)) {
         return false;
     }
+
+    IsInitialized = true;
     
     return true;
 }

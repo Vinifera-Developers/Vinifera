@@ -60,6 +60,13 @@ class AbstractTypeClassExtension : public AbstractClassExtension
         char IniName[24 + 1];
         char FullName[48 + 1];
 
+        /**
+         *  Has this extension already executed Read_INI?
+         *  Set this to true at the end of Read_INI of the last extension
+         *  in the inheritance hierarchy.
+         */
+        bool IsInitialized;
+
     public:
 
     private:

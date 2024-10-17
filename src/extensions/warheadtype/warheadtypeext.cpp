@@ -316,10 +316,16 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
         Verses::Set_Retaliate(armor, warheadtype, ini.Get_Bool(ini_name, key_name, Verses::Get_Retaliate(armor, warheadtype)));
     }
 
+    if (!IsInitialized) {
+        This()->IsOrganic = Verses::Get_Modifier(ARMOR_STEEL, warheadtype) == 0.0;
+    }
+
     /**
      *  Allow overriding IsOrganic.
      */
-    This()->IsOrganic = ini.Get_Bool(ini_name, "Organic", Verses::Get_Modifier(ARMOR_STEEL, warheadtype) == 0);
+    This()->IsOrganic = ini.Get_Bool(ini_name, "Organic", This()->IsOrganic);
+
+    IsInitialized = true;
 
     return true;
 }

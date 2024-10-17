@@ -190,5 +190,7 @@ bool AircraftTypeClassExtension::Read_INI(CCINIClass &ini)
     IsCurleyShuffle = ini.Get_Bool(ini_name, "CurleyShuffle", Rule->IsCurleyShuffle);
     ReloadRate = ini.Get_Float(ini_name, "ReloadRate", Rule->ReloadRate);
 
+    IsInitialized = true;
+
     return true;
 }

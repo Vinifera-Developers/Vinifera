@@ -194,6 +194,8 @@ bool TerrainTypeClassExtension::Read_INI(CCINIClass &ini)
     LightRedTint = ini.Get_Double(ini_name, "LightRedTint", (LightRedTint / 1000)) * 1000.0 + 0.1;
     LightGreenTint = ini.Get_Double(ini_name, "LightGreenTint", (LightGreenTint / 1000)) * 1000.0 + 0.1;
     LightBlueTint = ini.Get_Double(ini_name, "LightBlueTint", (LightBlueTint / 1000)) * 1000.0 + 0.1;
+
+    IsInitialized = true;
     
     return true;
 }

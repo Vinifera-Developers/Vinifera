@@ -241,6 +241,8 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     AttachLayer = ini.Get_LayerType(ini_name, "Layer", AttachLayer);
     ParticleToSpawn = ini.Get_ParticleType(ini_name, "SpawnsParticle", ParticleToSpawn);
     NumberOfParticles = ini.Get_Int(ini_name, "NumParticles", NumberOfParticles);
-    
+
+    IsInitialized = true;
+
     return true;
 }
