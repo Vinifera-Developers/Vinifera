@@ -354,6 +354,27 @@ PipWrap=0           ; integer, the number of ammo pips to draw using pip wrap.
 For `PipWrap` to function, new pips need to be added to `pips2.shp`. The pip at index 7 (1-based) is still used by ammo when `PipWrap=0`, pips starting from index 8 are used by `PipWrap`.
 ```
 
+### IsSelectableCombatant
+
+- Vinifera adds the ability to exclude some TechnoTypes from band selection.
+
+In `RULES.INI`:
+```ini
+[SOMETECHNO]               ; TechnoType
+IsSelectableCombatant=yes  ; boolean, should this Techno be considered a combatant for the purposes of selection?
+```
+
+- Technos with `IsSelectableCombatant=no` will only be selected if the current selection contains any units with `IsSelectableCombatant=no`, or the player is making a new selection and only Technos with `IsSelectableCombatant=no` are in the selection box.
+- By holding `ALT` it is possible to temporarily ignore this logic and select all types of objects.
+
+- It is also possible to disable this behavior in `SUN.INI`.
+
+In `SUN.INI`:
+```ini
+[Options]
+FilterBandBoxSelection=yes  ; boolean, should the banding box selection be filtered?
+```
+
 ## Terrain
 
 ### Light Sources

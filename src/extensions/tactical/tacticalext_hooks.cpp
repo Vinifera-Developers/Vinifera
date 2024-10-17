@@ -400,7 +400,7 @@ static void Vinifera_Bandbox_Select(ObjectClass* obj)
      if (techno && OptionsExtension->FilterBandBoxSelection)
      {
          const auto ext = Extension::Fetch<TechnoTypeClassExtension>(techno->Techno_Type_Class());
-         if (!ext->IsSelectableCombatant && TacticalExt::SelectedCount > 0 && !TacticalExt::SelectionContainsNonCombatants)
+         if (!ext->IsSelectableCombatant && TacticalExt::SelectedCount > 0 && !TacticalExt::SelectionContainsNonCombatants && !WWKeyboard->Down(VK_ALT))
          {
              return;
          }
@@ -413,7 +413,7 @@ static void Vinifera_Bandbox_Select(ObjectClass* obj)
         /**
          *  If this is a new selection, filter it at the end.
          */
-        if (TacticalExt::SelectedCount == 0)
+        if (TacticalExt::SelectedCount == 0 && !WWKeyboard->Down(VK_ALT))
             TacticalExt::FilterSelection = true;
     }
 }

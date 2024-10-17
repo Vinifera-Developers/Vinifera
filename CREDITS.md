@@ -155,6 +155,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where a vehicle transport could end up attached to its own cargo, causing the transport to disappear upon unloading.
   - Fix a bug where a harvester could be ordered to dock with a refinery that wasn't listed in the harvester's `Dock=` key.
   - Fix a bug where house firepower bonus, veterancy and crate upgrade damage modifiers were not applied to railgun `AmbientDamage=`.
+  - Implement `IsSelectableCombatant`.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **ZivDero**:
@@ -179,4 +180,5 @@ This page lists all the individual contributions to the project by their author.
   - Make it so that it is no longer required to list all Tiberiums in a map to override some Tiberium's properties.
   - Add `PipWrap`.
   - Adjustments to the band box, action line, target laser and NavCom queue line customization features.
+  - Implement `IsSelectableCombatant`.
 
