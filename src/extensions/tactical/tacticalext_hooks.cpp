@@ -45,10 +45,18 @@
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "optionsext.h"
+#include "object.h"
+#include "house.h"
+#include "technotype.h"
+#include "building.h"
+#include "buildingtype.h"
+
 #include <timeapi.h>
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "technotypeext.h"
 #include "uicontrol.h"
 
 
@@ -65,7 +73,22 @@ class TacticalExt : public Tactical
 {
 public:
     void _Draw_Band_Box();
+    void _Select_These(Rect& rect, void (*Selection_Func)(ObjectClass* obj));
+
+public:
+
+    /**
+     *  Static variables for selection filtering, need to be static
+     *  so that the selection predicate can use them.
+     */
+    static bool SelectionContainsNonCombatants;
+    static int SelectedCount;
+    static bool FilterSelection;
 };
+
+bool TacticalExt::SelectionContainsNonCombatants = false;
+int TacticalExt::SelectedCount = 0;
+bool TacticalExt::FilterSelection = false;
 
 
 /**
@@ -181,6 +204,217 @@ void TacticalExt::_Draw_Band_Box()
             thick_rect.Height -= 2;
             LogicSurface->Draw_Rect(TacticalRect, thick_rect, band_color);
         }
+    }
+}
+
+
+/**
+ *  Helper function.
+ *  Checks whether a specific object should be filtered
+ *  out from selection if the selection includes combatants.
+ */
+static bool Should_Exclude_From_Selection(ObjectClass* obj)
+{
+    /**
+     *  Don't exclude objects that we don't own.
+     */
+    if (obj->Owning_House() != nullptr && !obj->Owning_House()->IsPlayerControl) {
+        return false;
+    }
+
+    /**
+     *  Exclude objects that aren't a selectable combatant per rules.
+     */
+    if (obj->Is_Techno()) {
+        return !Extension::Fetch<TechnoTypeClassExtension>(obj->Techno_Type_Class())->IsSelectableCombatant;
+    }
+
+    return false;
+}
+
+
+/**
+ *  Filters the selection from any non-combatants.
+ *  
+ *  @author: Petroglyph (Remaster), Rampastring, ZivDero
+ */
+static void Filter_Selection()
+{
+    if (!OptionsExtension->FilterBandBoxSelection) {
+        return;
+    }
+
+    bool any_to_exclude = false;
+    bool all_to_exclude = true;
+
+    for (int i = 0; i < CurrentObjects.Count(); i++) {
+        const bool exclude = Should_Exclude_From_Selection(CurrentObjects[i]);
+        any_to_exclude |= exclude;
+        all_to_exclude &= exclude;
+    }
+
+    if (any_to_exclude && !all_to_exclude) {
+        for (int i = 0; i < CurrentObjects.Count(); i++) {
+            if (Should_Exclude_From_Selection(CurrentObjects[i])) {
+
+                const int count_before = CurrentObjects.Count();
+                CurrentObjects[i]->Unselect();
+                const int count_after = CurrentObjects.Count();
+                if (count_after < count_before) {
+                    i--;
+                }
+            }
+        }
+    }
+}
+
+
+/**
+ *  Checks if the player has currently any non-combatants selected.
+ *
+ *  @author: ZivDero
+ */
+static bool Has_NonCombatants_Selected()
+{
+    for (int i = 0; i < CurrentObjects.Count(); i++)
+    {
+        if (CurrentObjects[i]->Is_Techno() && !Extension::Fetch<TechnoTypeClassExtension>(CurrentObjects[i]->Techno_Type_Class())->IsSelectableCombatant)
+            return true;
+    }
+
+    return false;
+}
+
+
+/**
+ *  Reimplements Tactical::Select_These to filter non-combatants.
+ *
+ *  @author: ZivDero
+ */
+void TacticalExt::_Select_These(Rect& rect, void (*Selection_Func)(ObjectClass* obj))
+{
+    SelectionContainsNonCombatants = Has_NonCombatants_Selected();
+    SelectedCount = CurrentObjects.Count();
+    FilterSelection = false;
+
+    AllowVoice = true;
+
+    if (rect.Width > 0 && rect.Height > 0 && DirtyObjectCount > 0)
+    {
+        for (int i = 0; i < DirtyObjectCount; i++)
+        {
+            const auto dirty = DirtyObjects[i];
+            if (dirty.Object && dirty.Object->IsActive)
+            {
+                Point2D position = dirty.Position - field_5C;
+                if (rect.Is_Within(position))
+                {
+                    if (Selection_Func)
+                    {
+                        Selection_Func(dirty.Object);
+                    }
+                    else
+                    {
+                        bool is_selectable_building = false;
+                        if (dirty.Object->What_Am_I() == RTTI_BUILDING)
+                        {
+                            const auto bclass = static_cast<BuildingClass*>(dirty.Object)->Class;
+                            if (bclass->UndeploysInto && !bclass->IsConstructionYard && !bclass->IsMobileWar)
+                            {
+                                is_selectable_building = true;
+                            }
+                        }
+
+                        HouseClass* owner = dirty.Object->Owning_House();
+                        if (owner && owner->Is_Player_Control())
+                        {
+                            if (dirty.Object->Class_Of()->IsSelectable)
+                            {
+                                if (dirty.Object->What_Am_I() != RTTI_BUILDING || is_selectable_building)
+                                {
+                                    if (dirty.Object->Select())
+                                        AllowVoice = false;
+                                }
+                                
+                            }
+                        
+                        }
+                    }
+                }
+            }
+        }
+    
+    }
+
+    /**
+     *  If player-controlled units are non-additively selected,
+     *  remove non-combatans if they aren't the only types of units selected
+     */
+    if (FilterSelection)
+        Filter_Selection();
+
+    AllowVoice = true;
+}
+
+
+/**
+ *  Band box selection predicate replacement.
+ *
+ *  @author: ZivDero
+ */
+static void Vinifera_Bandbox_Select(ObjectClass* obj)
+{
+    HouseClass* house = obj->Owning_House();
+    BuildingClass* building = Target_As_Building(obj);
+
+    /**
+     *  Don't select objects that we don't own.
+     */
+    if (!house || !house->Is_Player_Control())
+        return;
+
+    /**
+     *  Don't select objects that aren't selectable.
+     */
+    if (!obj->Class_Of()->IsSelectable)
+        return;
+
+    /**
+     *  Don't select buildings, unless it undeploys into something other than
+     *  a construction yard or a war factory (for example, a mobile EMP).
+     */
+    if (building && (!building->Class->UndeploysInto || building->Class->IsConstructionYard || building->Class->IsMobileWar))
+        return;
+
+    /**
+     *  Don't select limboed objects.
+     */
+    if (obj->IsInLimbo)
+        return;
+
+    /**
+     *  If this is a Techno that's not a combatant, and the selection isn't new and doesn't
+     *  already contain non-combatants, don't select it.
+     */
+     TechnoClass* techno = Target_As_Techno(obj);
+     if (techno && OptionsExtension->FilterBandBoxSelection)
+     {
+         const auto ext = Extension::Fetch<TechnoTypeClassExtension>(techno->Techno_Type_Class());
+         if (!ext->IsSelectableCombatant && TacticalExt::SelectedCount > 0 && !TacticalExt::SelectionContainsNonCombatants)
+         {
+             return;
+         }
+     }
+
+    if (obj->Select())
+    {
+        AllowVoice = false;
+
+        /**
+         *  If this is a new selection, filter it at the end.
+         */
+        if (TacticalExt::SelectedCount == 0)
+            TacticalExt::FilterSelection = true;
     }
 }
 
@@ -572,6 +806,10 @@ void TacticalExtension_Hooks()
      *  @authors: CCHyper
      */
     Patch_Dword(0x006171C8+1, (TPF_CENTER|TPF_EFNT|TPF_FULLSHADOW));
+
     Patch_Jump(0x00616FDA, &_Tactical_Draw_Waypoint_Paths_Text_Color_Patch);
     Patch_Jump(0x00616560, &TacticalExt::_Draw_Band_Box);
+
+    Patch_Jump(0x00616940, &TacticalExt::_Select_These);
+    Patch_Jump(0x00479150, &Vinifera_Bandbox_Select);
 }

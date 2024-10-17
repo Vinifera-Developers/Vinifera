@@ -172,10 +172,16 @@ class TechnoTypeClassExtension : public ObjectTypeClassExtension
         /**
          *  Should this be considered a base defense when sorting cameos on the sidebar?
          */
-        bool SortCameoAsBaseDefense;
+        bool IsSortCameoAsBaseDefense;
 
         /**
          *  Description for the extended sidebar tooltip.
          */
         char Description[200];
+
+        /**
+         *  If this property is set to false, this object will not be selected when band box selecting
+         *  if any objects in the selection have it set to true (e. g., harvesters and MCVs won't be selected with tanks).
+         */
+        bool IsSelectableCombatant;
 };

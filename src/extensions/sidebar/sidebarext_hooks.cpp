@@ -1120,8 +1120,8 @@ static int __cdecl BuildType_Comparison(const void* p1, const void* p2)
                 BCAT_DEFENSE
             };
 
-            int building_category1 = (b1->IsWall || b1->IsFirestormWall || b1->IsLaserFencePost || b1->IsLaserFence) ? BCAT_WALL : (b1->IsGate ? BCAT_GATE : (ext1->SortCameoAsBaseDefense ? BCAT_DEFENSE : BCAT_NORMAL));
-            int building_category2 = (b2->IsWall || b2->IsFirestormWall || b2->IsLaserFencePost || b2->IsLaserFence) ? BCAT_WALL : (b2->IsGate ? BCAT_GATE : (ext2->SortCameoAsBaseDefense ? BCAT_DEFENSE : BCAT_NORMAL));
+            int building_category1 = (b1->IsWall || b1->IsFirestormWall || b1->IsLaserFencePost || b1->IsLaserFence) ? BCAT_WALL : (b1->IsGate ? BCAT_GATE : (ext1->IsSortCameoAsBaseDefense ? BCAT_DEFENSE : BCAT_NORMAL));
+            int building_category2 = (b2->IsWall || b2->IsFirestormWall || b2->IsLaserFencePost || b2->IsLaserFence) ? BCAT_WALL : (b2->IsGate ? BCAT_GATE : (ext2->IsSortCameoAsBaseDefense ? BCAT_DEFENSE : BCAT_NORMAL));
 
             // Compare based on category priority
             if (building_category1 != building_category2)

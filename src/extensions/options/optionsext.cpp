@@ -44,7 +44,8 @@
  */
 OptionsClassExtension::OptionsClassExtension(const OptionsClass *this_ptr) :
     GlobalExtensionClass(this_ptr),
-    SortDefensesAsLast(true)
+    SortDefensesAsLast(true),
+    FilterBandBoxSelection(true)
 {
     //EXT_DEBUG_TRACE("OptionsClassExtension::OptionsClassExtension - 0x%08X\n", (uintptr_t)(This()));
 }
@@ -163,6 +164,7 @@ void OptionsClassExtension::Load_Settings()
         sun_ini.Load(file, false);
 
         SortDefensesAsLast = sun_ini.Get_Bool("Options", "SortDefensesAsLast", SortDefensesAsLast);
+        FilterBandBoxSelection = sun_ini.Get_Bool("Options", "FilterBandBoxSelection", FilterBandBoxSelection);
     }
 
     /**
