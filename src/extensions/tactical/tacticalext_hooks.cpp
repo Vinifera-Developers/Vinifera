@@ -226,7 +226,7 @@ static bool Should_Exclude_From_Selection(ObjectClass* obj)
      *  Exclude objects that aren't a selectable combatant per rules.
      */
     if (obj->Is_Techno()) {
-        return !Extension::Fetch<TechnoTypeClassExtension>(obj->Techno_Type_Class())->IsSelectableCombatant;
+        return !Extension::Fetch<TechnoTypeClassExtension>(obj->Techno_Type_Class())->IsCombatant;
     }
 
     return false;
@@ -278,7 +278,7 @@ static bool Has_NonCombatants_Selected()
 {
     for (int i = 0; i < CurrentObjects.Count(); i++)
     {
-        if (CurrentObjects[i]->Is_Techno() && !Extension::Fetch<TechnoTypeClassExtension>(CurrentObjects[i]->Techno_Type_Class())->IsSelectableCombatant)
+        if (CurrentObjects[i]->Is_Techno() && !Extension::Fetch<TechnoTypeClassExtension>(CurrentObjects[i]->Techno_Type_Class())->IsCombatant)
             return true;
     }
 
@@ -381,7 +381,7 @@ static void Vinifera_Bandbox_Select(ObjectClass* obj)
 
     /**
      *  Don't select buildings, unless it undeploys into something other than
-     *  a construction yard or a war factory (for example, a mobile EMP).
+     *  a construction yard or a war factory (for example, a deploying artillery).
      */
     if (building && (!building->Class->UndeploysInto || building->Class->IsConstructionYard || building->Class->IsMobileWar))
         return;
@@ -396,14 +396,14 @@ static void Vinifera_Bandbox_Select(ObjectClass* obj)
      *  If this is a Techno that's not a combatant, and the selection isn't new and doesn't
      *  already contain non-combatants, don't select it.
      */
-     TechnoClass* techno = Target_As_Techno(obj);
-     if (techno && OptionsExtension->FilterBandBoxSelection)
+     const TechnoClass* techno = Target_As_Techno(obj);
+     if (techno && OptionsExtension->FilterBandBoxSelection
+         && TacticalExt::SelectedCount > 0 && !TacticalExt::SelectionContainsNonCombatants
+         && !WWKeyboard->Down(VK_ALT))
      {
          const auto ext = Extension::Fetch<TechnoTypeClassExtension>(techno->Techno_Type_Class());
-         if (!ext->IsSelectableCombatant && TacticalExt::SelectedCount > 0 && !TacticalExt::SelectionContainsNonCombatants && !WWKeyboard->Down(VK_ALT))
-         {
+         if (!ext->IsCombatant)
              return;
-         }
      }
 
     if (obj->Select())

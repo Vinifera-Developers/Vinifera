@@ -71,7 +71,7 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     CameoImageSurface(nullptr),
     IsSortCameoAsBaseDefense(false),
     Description(""),
-    IsSelectableCombatant(true)
+    IsCombatant(true)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -285,7 +285,7 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     }
 
     IsSortCameoAsBaseDefense = ini.Get_Bool(ini_name, "SortCameoAsBaseDefense", IsSortCameoAsBaseDefense);
-    IsSelectableCombatant = ini.Get_Bool(ini_name, "IsSelectableCombatant", IsSelectableCombatant);
+    IsCombatant = ini.Get_Bool(ini_name, "IsCombatant", IsCombatant);
 
     return true;
 }
