@@ -348,7 +348,7 @@ void TacticalExt::_Select_These(Rect& rect, void (*selection_func)(ObjectClass* 
 
     /**
      *  If player-controlled units are non-additively selected,
-     *  remove non-combatans if they aren't the only types of units selected
+     *  remove non-combatants if they aren't the only types of units selected
      */
     if (FilterSelection)
         Filter_Selection();
