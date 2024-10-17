@@ -360,7 +360,7 @@ For `PipWrap` to function, new pips need to be added to `pips2.shp`. The pip at 
 
 In `RULES.INI`:
 ```ini
-[SOMETECHNO]               ; TechnoType
+[SOMETECHNO]     ; TechnoType
 IsCombatant=yes  ; boolean, should this Techno be considered a combatant for the purposes of selection?
 ```
 
