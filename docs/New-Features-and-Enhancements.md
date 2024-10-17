@@ -360,11 +360,11 @@ For `PipWrap` to function, new pips need to be added to `pips2.shp`. The pip at 
 
 In `RULES.INI`:
 ```ini
-[SOMETECHNO]     ; TechnoType
-IsCombatant=yes  ; boolean, should this Techno be considered a combatant for the purposes of selection?
+[SOMETECHNO]                    ; TechnoType
+FilterFromBandBoxSelection=yes  ; boolean, should this Techno be considered a combatant for the purposes of selection?
 ```
 
-- Technos with `IsCombatant=no` will only be selected if the current selection contains any units with `IsCombatant=no`, or the player is making a new selection and only Technos with `IsCombatant=no` are in the selection box.
+- Technos with `FilterFromBandBoxSelection=no` will only be selected if the current selection contains any units with `FilterFromBandBoxSelection=no`, or the player is making a new selection and only Technos with `FilterFromBandBoxSelection=no` are in the selection box.
 - By holding `ALT` it is possible to temporarily ignore this logic and select all types of objects.
 
 - It is also possible to disable this behavior in `SUN.INI`.
