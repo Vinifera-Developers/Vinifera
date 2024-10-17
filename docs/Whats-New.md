@@ -147,6 +147,7 @@ New:
 - Implement various controls to customise action lines (by CCHyper/tomsons26)
 - Implement various controls to customise target lasers line (by CCHyper/tomsons26)
 - Implement various controls to show and customise NavCom queue lines (by CCHyper/tomsons26)
+- Implement `FilterFromBandBoxSelection` (by ZivDero/Rampastring)
 
 
 Vanilla fixes:

@@ -69,4 +69,9 @@ class OptionsClassExtension final : public GlobalExtensionClass<OptionsClass>
          *  Should cameos of defenses (including walls and gates) be sorted to the bottom of the sidebar?
          */
         bool SortDefensesAsLast;
+
+        /**
+         *  Are harvesters and MCVs excluded from a band-box selection that includes combat units?
+         */
+        bool FilterBandBoxSelection;
 };
