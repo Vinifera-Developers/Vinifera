@@ -73,7 +73,7 @@ class TacticalExt : public Tactical
 {
 public:
     void _Draw_Band_Box();
-    void _Select_These(Rect& rect, void (*Selection_Func)(ObjectClass* obj));
+    void _Select_These(Rect& rect, void (*selection_func)(ObjectClass* obj));
 
 public:
 
@@ -291,7 +291,7 @@ static bool Has_NonCombatants_Selected()
  *
  *  @author: ZivDero
  */
-void TacticalExt::_Select_These(Rect& rect, void (*Selection_Func)(ObjectClass* obj))
+void TacticalExt::_Select_These(Rect& rect, void (*selection_func)(ObjectClass* obj))
 {
     SelectionContainsNonCombatants = Has_NonCombatants_Selected();
     SelectedCount = CurrentObjects.Count();
@@ -309,9 +309,9 @@ void TacticalExt::_Select_These(Rect& rect, void (*Selection_Func)(ObjectClass* 
                 Point2D position = dirty.Position - field_5C;
                 if (rect.Is_Within(position))
                 {
-                    if (Selection_Func)
+                    if (selection_func)
                     {
-                        Selection_Func(dirty.Object);
+                        selection_func(dirty.Object);
                     }
                     else
                     {
