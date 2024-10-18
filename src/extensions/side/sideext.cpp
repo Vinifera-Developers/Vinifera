@@ -45,7 +45,12 @@
 SideClassExtension::SideClassExtension(const SideClass *this_ptr) :
     AbstractTypeClassExtension(this_ptr),
     UIColor(COLORSCHEME_NONE),
-    ToolTipColor(COLORSCHEME_NONE)
+    ToolTipColor(COLORSCHEME_NONE),
+    Crew(nullptr),
+    Engineer(nullptr),
+    Technician(nullptr),
+    Disguise(nullptr),
+    SurvivorDivisor(100)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("SideClassExtension::SideClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -201,6 +206,7 @@ bool SideClassExtension::Read_INI(CCINIClass &ini)
         Crew = Rule->Crew;
         Engineer = Rule->Engineer;
         Technician = Rule->Technician;
+        Disguise = Rule->Disguise;
         SurvivorDivisor = Rule->SurvivorDivisor;
     }
 
