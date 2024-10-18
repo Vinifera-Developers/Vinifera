@@ -102,6 +102,8 @@ public:
     int _Cell_Distance_Squared(const AbstractClass* object) const;
     void _Draw_Target_Laser() const;
     void _Draw_Text_Overlay(Point2D& point1, Point2D& point2, Rect& rect) const;
+    const InfantryTypeClass* _Crew_Type() const;
+    int _How_Many_Survivors() const;
 };
 
 
@@ -1015,6 +1017,59 @@ void TechnoClassExt::_Draw_Text_Overlay(Point2D& point1, Point2D& point2, Rect& 
         const int text = What_Am_I() == RTTI_BUILDING && reinterpret_cast<const BuildingClass*>(this)->Class->Width() == 1 ? TXT_PRI : TXT_PRIMARY;
         Plain_Text_Print(text, LogicSurface, &rect, &point2, COLOR_WHITE, COLOR_TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_EFNT, colorschemetype, 1);
     }
+}
+
+
+/**
+ *  Fetches the kind of crew this object contains.
+ *
+ *  @author:  07/29/1995 JLB - Created
+ *            ZivDero - Adjustments for Tiberian Sun
+ */
+const InfantryTypeClass* TechnoClassExt::_Crew_Type() const
+{
+    /**
+     *  If this object contains no crew, then there can be no
+     *  crew inside, duh... return this news.
+     */
+    if (!Techno_Type_Class()->IsCrew) {
+        return nullptr;
+    }
+
+    /**
+     *  If we don't know what side this belongs to, have a technician exit it.
+     */
+    if (House->Class->Side == SIDE_NONE) {
+        return Rule->Technician;
+    }
+
+    /**
+     *  If it's armed, it could also have a technician exit it.
+     */
+    if (Is_Weapon_Equipped() && Random_Pick(0, 99) < 15) {
+        return SideClassExtension::Get_Technician(House);
+    }
+
+    /**
+     *  The normal infantry survivor is this side's standard issue infantry.
+     */
+    return SideClassExtension::Get_Crew(House);
+}
+
+
+/**
+ *  Determine the number of survivors to escape.
+ *
+ *  @author: 08/04/1996 JLB - Created
+ *           ZivDero - Adjustments for Tiberian Sun
+ */
+int TechnoClassExt::_How_Many_Survivors() const
+{
+    if (Techno_Type_Class()->IsCrew) {
+        return Extension::Fetch<TechnoTypeClassExtension>(Techno_Type_Class())->CrewCount;
+    }
+
+    return 0;
 }
 
 
@@ -1973,4 +2028,6 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x006313D0, &TechnoClassExt::_Draw_Target_Laser);
     Patch_Jump(0x00631207, &_TechnoClass_Fire_At_TargetLaserTimer_Patch);
     Patch_Jump(0x00637D60, &TechnoClassExt::_Draw_Text_Overlay);
+    Patch_Jump(0x006364A0, &TechnoClassExt::_Crew_Type);
+    Patch_Jump(0x0062A300, &TechnoClassExt::_How_Many_Survivors);
 }

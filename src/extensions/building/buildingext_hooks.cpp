@@ -57,6 +57,7 @@
 #include "iomap.h"
 #include "spritecollection.h"
 #include "extension.h"
+#include "sideext.h"
 #include "fatal.h"
 #include "asserthandler.h"
 #include "debughandler.h"
@@ -77,6 +78,8 @@ static class BuildingClassExt final : public BuildingClass
 public:
     bool _Can_Have_Rally_Point();
     void _Update_Buildables();
+    const InfantryTypeClass* _Crew_Type() const;
+    int _How_Many_Survivors() const;
 };
 
 
@@ -158,6 +161,49 @@ void BuildingClassExt::_Update_Buildables()
             break;
         }
     }
+}
+
+
+/**
+ *  Fetches the kind of crew this object contains.
+ *
+ *  @author: ZivDero
+ */
+const InfantryTypeClass* BuildingClassExt::_Crew_Type() const
+{
+    /**
+     *  Construction yards can sometimes have an engineer exit them.
+     */
+    const int engineer_chance = Extension::Fetch<BuildingTypeClassExtension>(Class)->EngineerChance;
+    if (!IsCaptured && Random_Pick(0, 99) < engineer_chance && Class->ToBuild == RTTI_BUILDINGTYPE)
+    {
+        return SideClassExtension::Get_Engineer(House);
+    }
+
+    return TechnoClass::Crew_Type();
+}
+
+
+/**
+ *  This determines the maximum number of survivors.
+ *
+ *  @author: 08/04/1996 JLB - Created
+ *           ZivDero - Adjustments for Tiberian Sun
+ */
+int BuildingClassExt::_How_Many_Survivors() const
+{
+    if (IsSurvivorless || !Class->IsCrew)
+        return 0;
+
+    int divisor = SideClassExtension::Get_Survivor_Divisor(House);
+    if (divisor == 0)
+        return 0;
+
+    if (IsCaptured)
+        divisor *= 2;
+
+    const int count = (Class->Cost_Of(House) * Rule->SurvivorFraction) / divisor;
+    return std::clamp(count, 1, 5);
 }
 
 
@@ -820,4 +866,6 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x00426A7E, &_BuildingClass_Receive_Message_Only_Allow_Dockable_Harvester_Patch);
     Patch_Jump(0x00439D10, &BuildingClassExt::_Can_Have_Rally_Point);
     Patch_Jump(0x0042D9A0, &BuildingClassExt::_Update_Buildables);
+    Patch_Jump(0x00433FB0, &BuildingClassExt::_Crew_Type);
+    Patch_Jump(0x00435DA0, &BuildingClassExt::_How_Many_Survivors);
 }

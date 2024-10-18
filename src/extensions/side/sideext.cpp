@@ -31,7 +31,9 @@
 #include "extension.h"
 #include "asserthandler.h"
 #include "colorscheme.h"
+#include "rules.h"
 #include "debughandler.h"
+#include "tibsun_globals.h"
 
 
 /**
@@ -190,12 +192,55 @@ bool SideClassExtension::Read_INI(CCINIClass &ini)
 
         UIColor = ColorScheme::From_Name("LightGold");
         ToolTipColor = ColorScheme::From_Name("Green");
+        Crew = Rule->Crew;
+        Engineer = Rule->Engineer;
+        Technician = Rule->Technician;
+        SurvivorDivisor = Rule->SurvivorDivisor;
     }
 
     UIColor = ini.Get_ColorSchemeType(ini_name, "UIColor", UIColor);
     ToolTipColor = ini.Get_ColorSchemeType(ini_name, "ToolTipColor", ToolTipColor);
+    Crew = ini.Get_Infantry(ini_name, "Crew", Crew);
+    Engineer = ini.Get_Infantry(ini_name, "Engineer", Engineer);
+    Technician = ini.Get_Infantry(ini_name, "Technician", Technician);
+    SurvivorDivisor = ini.Get_Int(ini_name, "SurvivorDivisor", SurvivorDivisor);
 
     IsInitialized = true;
 
     return true;
+}
+
+const InfantryTypeClass* SideClassExtension::Get_Crew(SideType side)
+{
+    if (side == SIDE_NONE)
+        return Rule->Crew;
+
+    return Extension::Fetch<SideClassExtension>(Sides[side])->Crew;
+}
+
+
+const InfantryTypeClass* SideClassExtension::Get_Engineer(SideType side)
+{
+    if (side == SIDE_NONE)
+        return Rule->Engineer;
+
+    return Extension::Fetch<SideClassExtension>(Sides[side])->Engineer;
+}
+
+
+const InfantryTypeClass* SideClassExtension::Get_Technician(SideType side)
+{
+    if (side == SIDE_NONE)
+        return Rule->Technician;
+
+    return Extension::Fetch<SideClassExtension>(Sides[side])->Technician;
+}
+
+
+int SideClassExtension::Get_Survivor_Divisor(SideType side)
+{
+    if (side == SIDE_NONE)
+        return Rule->SurvivorDivisor;
+
+    return Extension::Fetch<SideClassExtension>(Sides[side])->SurvivorDivisor;
 }

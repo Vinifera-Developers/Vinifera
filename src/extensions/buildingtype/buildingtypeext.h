@@ -106,4 +106,9 @@ BuildingTypeClassExtension final : public TechnoTypeClassExtension
          *  Is this building eligible for proximity checks by players who are its owner's allies?
          */
         bool IsEligibleForAllyBuilding;
+
+        /**
+         *  The percent chance for an engineer to exit this building as its crew.
+         */
+        int EngineerChance;
 };
