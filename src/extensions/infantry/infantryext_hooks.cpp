@@ -26,6 +26,8 @@
  *
  ******************************************************************************/
 #include "infantryext_hooks.h"
+
+#include "animtype.h"
 #include "infantryext_init.h"
 #include "infantry.h"
 #include "infantrytype.h"
@@ -53,6 +55,49 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "sideext.h"
+
+
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or deconstructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+static class InfantryClassExt final : public InfantryClass
+{
+public:
+    const ShapeFileStruct* _Get_Image_Data() const;
+};
+
+
+/**
+ *  Fetches the image data for this infantry unit.
+ *
+ *  The image data for the infantry differs from normal if this is a spy. A spy always
+ *  appears like a regular infantry to the non-owning players.
+ *
+ *  Infantry currently in webs also display a different image.
+ *
+ *  @author: ZivDero
+ */
+const ShapeFileStruct* InfantryClassExt::_Get_Image_Data() const
+{
+    if (Doing == DO_STRUGGLE && Rule->WebbedInfantry) {
+        return Rule->WebbedInfantry->Get_Image_Data();
+    }
+
+    if (!IsOwnedByPlayer && Class->IsDisguised) {
+
+        const auto disguise = SideClassExtension::Get_Disguise(House);
+        if (disguise) {
+            return disguise->Image;
+        }
+    }
+
+    return ObjectClass::Get_Image_Data();
+};
 
 
 /**
@@ -607,4 +652,6 @@ void InfantryClassExtension_Hooks()
      *  to make sure the mouse shows the correct visual cursor.
      */
     Patch_Byte(0x004D7124+1, ACTION_CAPTURE);
+
+    Patch_Jump(0x004D90B0, &InfantryClassExt::_Get_Image_Data);
 }

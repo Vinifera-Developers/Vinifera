@@ -148,6 +148,7 @@ In `RULES.INI`:
 Crew=             ; InfantryType, this side's crew. Defaults to `[General]->Crew`
 Engineer=         ; InfantryType, this side's engineer. Defaults to `[General]->Engineer`
 Technician=       ; InfantryType, this side's technician. Defaults to `[General]->Technician`
+Disguise=         ; InfantryType, the type this side will see other players' spies as. Defaults to `[General]->Disguise`
 SurvivorDivisor=  ; integer, this side's survivor divisor. Defaults to `[General]->SurvivorDivisor`
 ```
 
@@ -230,7 +231,7 @@ It is recommended to set both `Retaliate.X` and `PassiveAcquire.X` to `no` if `F
 
 ### Crew
 
-- Vinifera allows customizing how many crew will exit a unit upon its death. Crew will only exit if `Crewed=yes`, even if `CrewCount` is set to a number grater than 0.
+- Vinifera allows customizing how many crew will exit a unit upon its death. Crew will only exit if `Crewed=yes`, even if `CrewCount` is set to a number greater than 0.
 
 In `RULES.INI`:
 ```ini

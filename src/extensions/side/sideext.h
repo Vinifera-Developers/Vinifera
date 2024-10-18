@@ -69,11 +69,13 @@ SideClassExtension final : public AbstractTypeClassExtension
         static const InfantryTypeClass* Get_Crew(SideType side);
         static const InfantryTypeClass* Get_Engineer(SideType side);
         static const InfantryTypeClass* Get_Technician(SideType side);
+        static const InfantryTypeClass* Get_Disguise(SideType side);
         static int Get_Survivor_Divisor(SideType side);
 
         inline static const InfantryTypeClass* Get_Crew(const HouseClass* house) { return Get_Crew(house->Class->Side); }
         inline static const InfantryTypeClass* Get_Engineer(const HouseClass* house) { return Get_Engineer(house->Class->Side); }
         inline static const InfantryTypeClass* Get_Technician(const HouseClass* house) { return Get_Technician(house->Class->Side); }
+        inline static const InfantryTypeClass* Get_Disguise(const HouseClass* house) { return Get_Disguise(house->Class->Side); }
         inline static int Get_Survivor_Divisor(const HouseClass* house) { return Get_Survivor_Divisor(house->Class->Side); }
 
     public:
@@ -102,6 +104,11 @@ SideClassExtension final : public AbstractTypeClassExtension
          *  InfantryType used as this Side's technician.
          */
         const InfantryTypeClass* Technician;
+
+        /**
+         *  InfantryType used as this Side's disguise.
+         */
+        const InfantryTypeClass* Disguise;
 
         /**
          *  The number of survivors is divided by this much when calculating a building's number of survivors.

@@ -116,6 +116,7 @@ HRESULT SideClassExtension::Load(IStream *pStm)
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Crew, "Crew");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Engineer, "Engineer");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Technician, "Technician");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Disguise, "Disguise");
     
     return hr;
 }
@@ -208,6 +209,7 @@ bool SideClassExtension::Read_INI(CCINIClass &ini)
     Crew = ini.Get_Infantry(ini_name, "Crew", Crew);
     Engineer = ini.Get_Infantry(ini_name, "Engineer", Engineer);
     Technician = ini.Get_Infantry(ini_name, "Technician", Technician);
+    Disguise = ini.Get_Infantry(ini_name, "Disguise", Disguise);
     SurvivorDivisor = ini.Get_Int(ini_name, "SurvivorDivisor", SurvivorDivisor);
 
     IsInitialized = true;
@@ -215,6 +217,12 @@ bool SideClassExtension::Read_INI(CCINIClass &ini)
     return true;
 }
 
+
+/**
+ *  Returns the crew type for the given side.
+ *
+ *  @author: ZivDero
+ */
 const InfantryTypeClass* SideClassExtension::Get_Crew(SideType side)
 {
     if (side == SIDE_NONE)
@@ -224,6 +232,11 @@ const InfantryTypeClass* SideClassExtension::Get_Crew(SideType side)
 }
 
 
+/**
+ *  Returns the engineer type for the given side.
+ *
+ *  @author: ZivDero
+ */
 const InfantryTypeClass* SideClassExtension::Get_Engineer(SideType side)
 {
     if (side == SIDE_NONE)
@@ -233,6 +246,11 @@ const InfantryTypeClass* SideClassExtension::Get_Engineer(SideType side)
 }
 
 
+/**
+ *  Returns the technician type for the given side.
+ *
+ *  @author: ZivDero
+ */
 const InfantryTypeClass* SideClassExtension::Get_Technician(SideType side)
 {
     if (side == SIDE_NONE)
@@ -242,6 +260,25 @@ const InfantryTypeClass* SideClassExtension::Get_Technician(SideType side)
 }
 
 
+/**
+ *  Returns the disguise type for the given side.
+ *
+ *  @author: ZivDero
+ */
+const InfantryTypeClass* SideClassExtension::Get_Disguise(SideType side)
+{
+    if (side == SIDE_NONE)
+        return Rule->Disguise;
+
+    return Extension::Fetch<SideClassExtension>(Sides[side])->Disguise;
+}
+
+
+/**
+ *  Returns the survivor divisor for the given side.
+ *
+ *  @author: ZivDero
+ */
 int SideClassExtension::Get_Survivor_Divisor(SideType side)
 {
     if (side == SIDE_NONE)

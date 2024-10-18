@@ -176,9 +176,7 @@ const InfantryTypeClass* BuildingClassExt::_Crew_Type() const
      */
     const int engineer_chance = Extension::Fetch<BuildingTypeClassExtension>(Class)->EngineerChance;
     if (!IsCaptured && Random_Pick(0, 99) < engineer_chance && Class->ToBuild == RTTI_BUILDINGTYPE)
-    {
         return SideClassExtension::Get_Engineer(House);
-    }
 
     return TechnoClass::Crew_Type();
 }
