@@ -330,6 +330,19 @@ NavComQueueLineDropShadowColor=0,0,0  ; RGB color, color to draw the NavCom queu
 
 ![drag-and-move](https://github.com/user-attachments/assets/b17163e7-81f3-4132-983f-e33809cd8d1b)
 
+## Customizable Colors
+
+- Vinifera adds the option to customize what colors are used in the user interface per-side.
+
+In `RULES.INI`:
+```ini
+[SOMESIDE]          ; SideType
+UIColor=LightGold   ; ColorScheme, the color to be used when drawing UI elements.
+ToolTipColor=Green  ; ColorScheme, the color to be used when drawing tooltips.
+```
+
+![image](https://github.com/user-attachments/assets/f4219655-2d28-49d2-9537-25f2fe4ae102)
+
 ## Miscellaneous
 
 - Vinifera adds support for 8-bit (paletted and non-paletted) PCX and 8-bit PNG cameos. This system auto-detects and prioritises the PNG or PCX file if found, no additional settings are required.

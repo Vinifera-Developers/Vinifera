@@ -148,6 +148,7 @@ New:
 - Implement various controls to customise target lasers line (by CCHyper/tomsons26)
 - Implement various controls to show and customise NavCom queue lines (by CCHyper/tomsons26)
 - Implement `FilterFromBandBoxSelection` (by ZivDero/Rampastring)
+- Add the possibility to customize the UI and Tooltip colors per-side (by Rampastring/ZivDero)
 
 
 Vanilla fixes:

@@ -156,6 +156,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where a harvester could be ordered to dock with a refinery that wasn't listed in the harvester's `Dock=` key.
   - Fix a bug where house firepower bonus, veterancy and crate upgrade damage modifiers were not applied to railgun `AmbientDamage=`.
   - Implement `FilterFromBandBoxSelection`.
+  - Add the possibility to customize the UI and Tooltip colors per-side.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **ZivDero**:
@@ -181,4 +182,5 @@ This page lists all the individual contributions to the project by their author.
   - Add `PipWrap`.
   - Adjustments to the band box, action line, target laser and NavCom queue line customization features.
   - Implement `FilterFromBandBoxSelection`.
+  - Add the possibility to customize the UI and Tooltip colors per-side.
 

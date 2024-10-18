@@ -62,4 +62,14 @@ SideClassExtension final : public AbstractTypeClassExtension
         virtual bool Read_INI(CCINIClass &ini) override;
 
     public:
+
+        /**
+         *  Color scheme to be used in the UI of this side.
+         */
+        ColorSchemeType UIColor;
+
+        /**
+         *  Color scheme to be used for the tooltips of this side.
+         */
+        ColorSchemeType ToolTipColor;
 };

@@ -60,6 +60,7 @@
 #include "particlesystypeext.h"
 #include "voxelanimtypeext.h"
 #include "tiberiumext.h"
+#include "sideext.h"
 
 #include "extension.h"
 #include "extension_globals.h"
@@ -552,6 +553,11 @@ bool RulesClassExtension::Objects(CCINIClass &ini)
     for (int mission = 0; mission < MISSION_COUNT; mission++) {
         MissionControl[mission].Mission = static_cast<MissionType>(mission);
         MissionControl[mission].Read_INI(ini);
+    }
+
+    DEBUG_INFO("Rules: Processing SideExtensions (Count: %d)...\n", SideExtensions.Count());
+    for (int index = 0; index < SideExtensions.Count(); ++index) {
+        SideExtensions[index]->Read_INI(ini);
     }
 
     return true;

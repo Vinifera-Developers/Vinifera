@@ -48,6 +48,7 @@
 #include "campaignext_hooks.h"
 #include "cargoext_hooks.h"
 #include "cellext_hooks.h"
+#include "creditext_hooks.h"
 #include "factoryext_hooks.h"
 #include "houseext_hooks.h"
 #include "housetypeext_hooks.h"
@@ -138,6 +139,7 @@
 #include "fetchres_hooks.h"
 
 #include "theatertype_hooks.h"
+#include "storageext_hooks.h"
 
 #include "vinifera_globals.h"
 #include "tibsun_functions.h"
@@ -148,7 +150,6 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
-#include "storage/storageext_hooks.h"
 
 
 void Extension_Hooks()
@@ -184,6 +185,7 @@ void Extension_Hooks()
     CampaignClassExtension_Hooks();
     CargoClassExtension_Hooks();
     CellClassExtension_Hooks();
+    CreditClassExtension_Hooks();
     FactoryClassExtension_Hooks();
     HouseClassExtension_Hooks();
     HouseTypeClassExtension_Hooks();
