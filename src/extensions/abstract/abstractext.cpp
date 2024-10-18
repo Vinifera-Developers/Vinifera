@@ -184,7 +184,7 @@ HRESULT AbstractClassExtension::Internal_Load(IStream *pStm)
     VINIFERA_SWIZZLE_REGISTER_POINTER(id, this, this_name.Peek_Buffer());
 
     /**
-     *  Read this classes binary blob data directly into this instance.
+     *  Read this class's binary blob data directly into this instance.
      */
     hr = pStm->Read(this, Size_Of(), nullptr);
     if (FAILED(hr)) {

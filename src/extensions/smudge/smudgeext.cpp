@@ -152,6 +152,8 @@ int SmudgeClassExtension::Size_Of() const
 void SmudgeClassExtension::Detach(TARGET target, bool all)
 {
     //EXT_DEBUG_TRACE("SmudgeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    ObjectClassExtension::Detach(target, all);
 }
 
 

@@ -154,6 +154,8 @@ int IsometricTileTypeClassExtension::Size_Of() const
 void IsometricTileTypeClassExtension::Detach(TARGET target, bool all)
 {
     //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    ObjectTypeClassExtension::Detach(target, all);
 }
 
 

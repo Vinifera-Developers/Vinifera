@@ -418,7 +418,7 @@ HRESULT GlobalExtensionClass<T>::Load(IStream *pStm)
     HRESULT hr;
 
     /**
-     *  Read this classes binary blob data directly into this instance.
+     *  Read this class's binary blob data directly into this instance.
      */
     hr = pStm->Read(this, Size_Of(), nullptr);
     if (FAILED(hr)) {

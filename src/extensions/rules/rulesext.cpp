@@ -34,6 +34,7 @@
 #include "housetype.h"
 #include "side.h"
 #include "armortype.h"
+#include "rockettype.h"
 #include "wstring.h"
 #include "wwcrc.h"
 #include "noinit.h"
@@ -249,6 +250,13 @@ void RulesClassExtension::Process(CCINIClass &ini)
      */
     Armors(ini);
 
+    /**
+     *  Read the new RocketTypes.
+     *
+     *  @author: ZivDero
+     */
+    Rockets(ini);
+
     This()->SuperWeapons(ini);
     This()->Warheads(ini);
     This()->Smudges(ini);
@@ -361,13 +369,8 @@ bool RulesClassExtension::Objects(CCINIClass &ini)
     //EXT_DEBUG_TRACE("RulesClassExtension::Objects - 0x%08X\n", (uintptr_t)(This()));
 
     /**
-     *  Fetch the game object (extension) values from the rules file.
+     *  Fetch the game object and extension values from the rules file.
      */
-
-    DEBUG_INFO("Rules: Processing ArmorTypes (Count: %d)...\n", ArmorTypes.Count());
-    for (int index = 0; index < ArmorTypes.Count(); ++index) {
-        ArmorTypes[index]->Read_INI(ini);
-    }
 
     DEBUG_INFO("Rules: Processing HouseTypes (Count: %d)...\n", HouseTypes.Count());
     for (int index = 0; index < HouseTypes.Count(); ++index) {
@@ -560,6 +563,20 @@ bool RulesClassExtension::Objects(CCINIClass &ini)
         SideExtensions[index]->Read_INI(ini);
     }
 
+    /**
+     *  Fetch new Vinifera object values from the rules file.
+     */
+
+    DEBUG_INFO("Rules: Processing ArmorTypes (Count: %d)...\n", ArmorTypes.Count());
+    for (int index = 0; index < ArmorTypes.Count(); ++index) {
+        ArmorTypes[index]->Read_INI(ini);
+    }
+
+    DEBUG_INFO("Rules: Processing RocketTypes (Count: %d)...\n", RocketTypes.Count());
+    for (int index = 0; index < RocketTypes.Count(); ++index) {
+        RocketTypes[index]->Read_INI(ini);
+    }
+
     return true;
 }
 
@@ -735,6 +752,45 @@ bool RulesClassExtension::Armors(CCINIClass &ini)
                 DEV_DEBUG_INFO("Rules: Found ArmorType \"%s\".\n", buf);
             } else {
                 DEV_DEBUG_WARNING("Rules: Error processing ArmorType \"%s\"!\n", buf);
+            }
+        }
+    }
+
+    return counter > 0;
+}
+
+
+/**
+ *  Fetch all the Rocket characteristic values.
+ *
+ *  @author: ZivDero
+ */
+bool RulesClassExtension::Rockets(CCINIClass &ini)
+{
+    //EXT_DEBUG_TRACE("RulesClassExtension::Rockets - 0x%08X\n", (uintptr_t)(This()));
+
+    static const char *const ROCKETTYPES = "RocketTypes";
+
+    char buf[128];
+    const RocketTypeClass *rockettype;
+
+    int counter = ini.Entry_Count(ROCKETTYPES);
+    for (int index = 0; index < counter; ++index) {
+        const char *entry = ini.Get_Entry(ROCKETTYPES, index);
+
+        /**
+         *  Get a rocket entry.
+         */
+        if (ini.Get_String(ROCKETTYPES, entry, buf, sizeof(buf))) {
+
+            /**
+             *  Find or create a rocket of the name specified.
+             */
+            rockettype = RocketTypeClass::Find_Or_Make(buf);
+            if (rockettype) {
+                DEV_DEBUG_INFO("Rules: Found RocketType \"%s\".\n", buf);
+            } else {
+                DEV_DEBUG_WARNING("Rules: Error processing RocketType \"%s\"!\n", buf);
             }
         }
     }

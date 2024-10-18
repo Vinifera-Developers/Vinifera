@@ -33,6 +33,7 @@
 #include "tibsun_defines.h"
 
 
+class AircraftTypeClass;
 class BSurface;
 
 
@@ -189,4 +190,46 @@ class TechnoTypeClassExtension : public ObjectTypeClassExtension
          *  How many crew members should exit this object when it is destroyed?
          */
         int CrewCount;
+
+        /**
+         *  This field shares two functions. For spawner units, it designates if it spawns missiles
+         *  (although this appears unused in RA2). For spawned units, it designates if it should be
+         *  treated like a missile.
+         */
+        bool IsMissileSpawn;
+
+        /**
+         *  If this is a spawner (rocket launcher or aircraft carrier), this is the type of object it spawns.
+         */
+        const AircraftTypeClass* Spawns;
+
+        /**
+         *  The rate at which this spawner's spawned object reload (how much time it takes before they can attack again).
+         */
+        int SpawnReloadRate;
+
+        /**
+         *  The rate at which the spawner replenished its destroyed spawned objects.
+         */
+        int SpawnRegenRate;
+
+        /**
+         *  How many objects can this spawner spawn?
+         */
+        int SpawnsNumber;
+
+        /**
+         *  If it can spawn two missiles at once (like the Boomer submarine), this is an extra offset of the second spawn relative to the first.
+         */
+        TPoint3D<int> SecondSpawnOffset;
+
+        /**
+         *  If it can spawn two missiles at once (like the Boomer submarine), this is an extra offset of the second spawn relative to the first.
+         */
+        bool IsDontScore;
+
+        /**
+         *  Is this meant to be spawned by something else (a spawner, or perhaps, off-map like a paradrop plane)?
+         */
+        bool IsSpawned;
 };
