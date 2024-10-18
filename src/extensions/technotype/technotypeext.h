@@ -184,4 +184,9 @@ class TechnoTypeClassExtension : public ObjectTypeClassExtension
          *  if any objects in the selection have it set to false (e. g., harvesters and MCVs won't be selected with tanks).
          */
         bool IsFilterFromBandBoxSelection;
+
+        /**
+         *  How many crew members should exit this object when it is destroyed?
+         */
+        int CrewCount;
 };

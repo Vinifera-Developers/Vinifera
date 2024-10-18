@@ -31,7 +31,10 @@
 #include "extension.h"
 #include "asserthandler.h"
 #include "colorscheme.h"
+#include "rules.h"
 #include "debughandler.h"
+#include "tibsun_globals.h"
+#include "vinifera_saveload.h"
 
 
 /**
@@ -42,7 +45,12 @@
 SideClassExtension::SideClassExtension(const SideClass *this_ptr) :
     AbstractTypeClassExtension(this_ptr),
     UIColor(COLORSCHEME_NONE),
-    ToolTipColor(COLORSCHEME_NONE)
+    ToolTipColor(COLORSCHEME_NONE),
+    Crew(nullptr),
+    Engineer(nullptr),
+    Technician(nullptr),
+    Disguise(nullptr),
+    SurvivorDivisor(100)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("SideClassExtension::SideClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -109,6 +117,11 @@ HRESULT SideClassExtension::Load(IStream *pStm)
     }
 
     new (this) SideClassExtension(NoInitClass());
+
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Crew, "Crew");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Engineer, "Engineer");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Technician, "Technician");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Disguise, "Disguise");
     
     return hr;
 }
@@ -190,12 +203,92 @@ bool SideClassExtension::Read_INI(CCINIClass &ini)
 
         UIColor = ColorScheme::From_Name("LightGold");
         ToolTipColor = ColorScheme::From_Name("Green");
+        Crew = Rule->Crew;
+        Engineer = Rule->Engineer;
+        Technician = Rule->Technician;
+        Disguise = Rule->Disguise;
+        SurvivorDivisor = Rule->SurvivorDivisor;
     }
 
     UIColor = ini.Get_ColorSchemeType(ini_name, "UIColor", UIColor);
     ToolTipColor = ini.Get_ColorSchemeType(ini_name, "ToolTipColor", ToolTipColor);
+    Crew = ini.Get_Infantry(ini_name, "Crew", Crew);
+    Engineer = ini.Get_Infantry(ini_name, "Engineer", Engineer);
+    Technician = ini.Get_Infantry(ini_name, "Technician", Technician);
+    Disguise = ini.Get_Infantry(ini_name, "Disguise", Disguise);
+    SurvivorDivisor = ini.Get_Int(ini_name, "SurvivorDivisor", SurvivorDivisor);
 
     IsInitialized = true;
 
     return true;
+}
+
+
+/**
+ *  Returns the crew type for the given side.
+ *
+ *  @author: ZivDero
+ */
+const InfantryTypeClass* SideClassExtension::Get_Crew(SideType side)
+{
+    if (side == SIDE_NONE)
+        return Rule->Crew;
+
+    return Extension::Fetch<SideClassExtension>(Sides[side])->Crew;
+}
+
+
+/**
+ *  Returns the engineer type for the given side.
+ *
+ *  @author: ZivDero
+ */
+const InfantryTypeClass* SideClassExtension::Get_Engineer(SideType side)
+{
+    if (side == SIDE_NONE)
+        return Rule->Engineer;
+
+    return Extension::Fetch<SideClassExtension>(Sides[side])->Engineer;
+}
+
+
+/**
+ *  Returns the technician type for the given side.
+ *
+ *  @author: ZivDero
+ */
+const InfantryTypeClass* SideClassExtension::Get_Technician(SideType side)
+{
+    if (side == SIDE_NONE)
+        return Rule->Technician;
+
+    return Extension::Fetch<SideClassExtension>(Sides[side])->Technician;
+}
+
+
+/**
+ *  Returns the disguise type for the given side.
+ *
+ *  @author: ZivDero
+ */
+const InfantryTypeClass* SideClassExtension::Get_Disguise(SideType side)
+{
+    if (side == SIDE_NONE)
+        return Rule->Disguise;
+
+    return Extension::Fetch<SideClassExtension>(Sides[side])->Disguise;
+}
+
+
+/**
+ *  Returns the survivor divisor for the given side.
+ *
+ *  @author: ZivDero
+ */
+int SideClassExtension::Get_Survivor_Divisor(SideType side)
+{
+    if (side == SIDE_NONE)
+        return Rule->SurvivorDivisor;
+
+    return Extension::Fetch<SideClassExtension>(Sides[side])->SurvivorDivisor;
 }

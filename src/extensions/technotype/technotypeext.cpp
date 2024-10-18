@@ -71,7 +71,8 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     CameoImageSurface(nullptr),
     IsSortCameoAsBaseDefense(false),
     Description(""),
-    IsFilterFromBandBoxSelection(false)
+    IsFilterFromBandBoxSelection(false),
+    CrewCount(1)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -286,6 +287,7 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
 
     IsSortCameoAsBaseDefense = ini.Get_Bool(ini_name, "SortCameoAsBaseDefense", IsSortCameoAsBaseDefense);
     IsFilterFromBandBoxSelection = ini.Get_Bool(ini_name, "FilterFromBandBoxSelection", IsFilterFromBandBoxSelection);
+    CrewCount = ini.Get_Int(ini_name, "CrewCount", CrewCount);
 
     return true;
 }

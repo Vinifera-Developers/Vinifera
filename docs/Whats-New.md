@@ -149,6 +149,7 @@ New:
 - Implement various controls to show and customise NavCom queue lines (by CCHyper/tomsons26)
 - Implement `FilterFromBandBoxSelection` (by ZivDero/Rampastring)
 - Add the possibility to customize the UI and Tooltip colors per-side (by Rampastring/ZivDero)
+- Add per-side crew customization (by ZivDero)
 
 
 Vanilla fixes:
@@ -207,6 +208,8 @@ Vanilla fixes:
 - Fix a bug where the AI would sell off buildings with `Artillary=yes`, `TickTank=yes` or `IsJuggernaut=yes` that had `UndeploysInto=none` when they were fired at by something outside of their weapon range (by Rampastring)
 - Fix a bug where harvesters on large maps could prefer unloading at refineries that were the longest distance away from the harvesters (by Rampastring)
 - Fix a bug where the camera kept following a followed object when a trigger or script told it to center on a waypoint or team (by Rampastring)
+- Fix a bug where crew wouldn't exit from construction yards when they were sold or destroyed (by ZivDero)
+- Fix a bug where you could sometimes get extra crew to exit a building that was being sold and was destroying/undeploying (by ZivDero)
 
 </details>
 
