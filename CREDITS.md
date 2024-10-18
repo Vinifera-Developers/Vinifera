@@ -183,4 +183,5 @@ This page lists all the individual contributions to the project by their author.
   - Adjustments to the band box, action line, target laser and NavCom queue line customization features.
   - Implement `FilterFromBandBoxSelection`.
   - Add the possibility to customize the UI and Tooltip colors per-side.
+  - Add per-side crew customization.
 

@@ -74,6 +74,16 @@ ProduceCashResetOnCapture=no  ; boolean, reset the buildings available budget wh
 ProduceCashStartupOneTime=no  ; boolean, is the bonus on capture a "one one" special (further captures will not get the bonus)?
 ```
 
+### Crew
+
+- Vinifera allows customizing the chance that an engineer will exit a building upon its deconstruction.
+
+In `RULES.INI`:
+```ini
+[SOMEBUILDING]    ; BuildingType
+EngineerChance=0  ; integer (%), what is the chance that an engineer will exit this building as its crew. Defaults to 25 for `Factory=BuildingType`, 0 otherwise.
+```
+
 ## Ice
 
 - Ice strength can now be customized.
@@ -125,6 +135,34 @@ In `RULES.INI`:
 [SOMEBULLET]  ; BulletType
 SpawnDelay=3  ; unsigned integer, the number of frames between each of the spawned trailer animations.
 ```
+
+## Sides
+
+## Crew
+
+- Vinifera adds the option to customize the crew a side uses.
+
+In `RULES.INI`:
+```ini
+[SOMESIDE]        ; Side
+Crew=             ; InfantryType, this side's crew. Defaults to `[General]->Crew`
+Engineer=         ; InfantryType, this side's engineer. Defaults to `[General]->Engineer`
+Technician=       ; InfantryType, this side's technician. Defaults to `[General]->Technician`
+SurvivorDivisor=  ; integer, this side's survivor divisor. Defaults to `[General]->SurvivorDivisor`
+```
+
+## Colors
+
+- Vinifera adds the option to customize what colors are used in the user interface per-side.
+
+In `RULES.INI`:
+```ini
+[SOMESIDE]          ; SideT
+UIColor=LightGold   ; ColorScheme, the color to be used when drawing UI elements.
+ToolTipColor=Green  ; ColorScheme, the color to be used when drawing tooltips.
+```
+
+![image](https://github.com/user-attachments/assets/f4219655-2d28-49d2-9537-25f2fe4ae102)
 
 ## Technos
 
@@ -188,6 +226,20 @@ Organic=no                  ; boolean, whether an infantry using this warhead ca
 
 ```{warning}
 It is recommended to set both `Retaliate.X` and `PassiveAcquire.X` to `no` if `ForceFire.X` is disabled. Otherwise, units may lock onto targets they are not permitted to fire at and continue to target them until they receive another order.
+```
+
+### Crew
+
+- Vinifera allows customizing how many crew will exit a unit upon its death. Crew will only exit if `Crewed=yes`, even if `CrewCount` is set to a number grater than 0.
+
+In `RULES.INI`:
+```ini
+[SOMETECHNO]  ; TechnoType
+CrewCount=1   ; integer, how many crew will exit this unit.
+```
+
+```{note}
+This tag does not apply to buildings.
 ```
 
 ### AILegalTarget
