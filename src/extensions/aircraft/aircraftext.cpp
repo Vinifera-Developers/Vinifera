@@ -31,6 +31,7 @@
 #include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "vinifera_saveload.h"
 
 
 /**
@@ -150,6 +151,8 @@ int AircraftClassExtension::Size_Of() const
 void AircraftClassExtension::Detach(TARGET target, bool all)
 {
     //EXT_DEBUG_TRACE("AircraftClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    FootClassExtension::Detach(target, all);
 }
 
 

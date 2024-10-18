@@ -150,6 +150,8 @@ int WaveClassExtension::Size_Of() const
 void WaveClassExtension::Detach(TARGET target, bool all)
 {
     //EXT_DEBUG_TRACE("WaveClassExtension::Detach - 0x%08X\n", (uintptr_t)(This()));
+
+    ObjectClassExtension::Detach(target, all);
 }
 
 

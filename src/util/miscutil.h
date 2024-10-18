@@ -32,6 +32,7 @@
 #include <time.h>
 
 
+struct VoxelObject;
 typedef int clockid_t;
 
 
@@ -71,3 +72,5 @@ bool Is_Full_Path(const char *path);
 const char *Get_User_Documents_Path();
 
 const char *Filename_From_Path(const char *filename);
+
+bool Load_Voxel(VoxelObject& voxel, const char* graphic_name, bool required = false);

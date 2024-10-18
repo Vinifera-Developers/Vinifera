@@ -72,6 +72,10 @@ DynamicVectorClass<MFCC *> ViniferaMoviesMixes;
 DynamicVectorClass<EBoltClass *> EBolts;
 DynamicVectorClass<TheaterTypeClass *> TheaterTypes;
 DynamicVectorClass<ArmorTypeClass *> ArmorTypes;
+DynamicVectorClass<SpawnManagerClass *> SpawnManagers;
+DynamicVectorClass<RocketTypeClass*> RocketTypes;
+
+KamikazeTrackerClass* KamikazeTracker = nullptr;
 
 MFCC *GenericMix = nullptr;
 MFCC *IsoGenericMix = nullptr;

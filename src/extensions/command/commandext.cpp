@@ -73,6 +73,7 @@
 #include "voxelanimtype.h"
 #include "particletype.h"
 #include "particlesystype.h"
+#include "rockettype.h"
 #include "vox.h"
 #include "event.h"
 #include "queue.h"
@@ -4102,6 +4103,7 @@ bool DumpHeapsCommandClass::Process()
 
     LOG_HEAP(TiberiumClass, Tiberiums);
     LOG_HEAP(ArmorTypeClass, ArmorTypes);
+    LOG_HEAP(RocketTypeClass, RocketTypes);
 
     DEBUG_INFO("\nFinished!\n\n");
 

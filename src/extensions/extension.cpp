@@ -152,6 +152,11 @@
 
 #include <iostream>
 
+#include "armortype.h"
+#include "kamikazetracker.h"
+#include "rockettype.h"
+#include "spawnmanager.h"
+
 
 extern int Execute_Day;
 extern int Execute_Month;
@@ -2052,6 +2057,10 @@ unsigned Extension::Get_Save_Version_Number()
      *  All other classes.
      */
     version += sizeof(ThemeControlExtension);
+    version += sizeof(ArmorTypeClass);
+    version += sizeof(RocketTypeClass);
+    version += sizeof(SpawnManagerClass);
+    version += sizeof(KamikazeTrackerClass);
 
     return version;
 }

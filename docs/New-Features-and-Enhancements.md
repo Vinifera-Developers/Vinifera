@@ -212,6 +212,103 @@ HunterSeeker=  ; UnitType, the unit that is this side's Hunter-Seeker.
 
 ## Technos
 
+### Spawns
+
+- Vinifera ports the spawn manager, responsible for AircraftType missiles and aircraft carries from Red Alert 2.
+
+In `RULES.INI`:
+```ini
+[SOMETECHNO]        ; TechnoType
+Spawns=             ; AircraftType, the type that this Techno spawns.
+SpawnsNumber=0      ; integer, the number of aircraft that this Techno spawns.
+SpawnRegenRate=0    ; integer, the time it takes for a spawn to regenerate after death.
+SpawnReloadRate=0   ; integer, the time it takes for a spawn to reload its ammo and restore its strength.
+```
+
+- Additionally, it's possible to specify an alternative voxel model to use when the spawner has no spawns docked.
+
+In `RULES.INI`:
+```ini
+[SOMETECHNO]        ; TechnoType
+NoSpawnAlt=no       ; boolean, should this Techno use an alternate voxel model when it's out of spawns?
+                    ; When true, the model named SOMETECHNOWO will be used when it's out of spawns.
+```
+
+```{note}
+`NoSpawnAlt` is only available for Technos that use voxel models.
+```
+
+```{note}
+Unlike in Red Alert 2, the voxel model used by `NoSpawnAlt` is loaded into a separate area of memory from the turet model. This means that Technos that have `NoSpawnAlt=yes` set **can** have turrets.
+```
+
+- For the unit to create spawns upon attack, a flag needs to be set on its weapon.
+
+In `RULES.INI`:
+```ini
+[SOMEWEAPON]  ; WeaponType
+Spawner=no    ; boolean, does this weapon spawn aircraft when firing?
+```
+
+- Additionally, spawned objects should have `Spawned=yes` to prevent the announcement of their death by EVA.
+
+In `RULES.INI`:
+```ini
+[SOMETECHNO]  ; TechnoType
+Spawned=no    ; boolean, is this object meant to be spawned, either by a spawner, or off-map?
+```
+
+#### Rockets
+
+- For rocket launchers to function, RocketTypes need to be defined.
+
+In `RULES.INI`:
+```ini
+[RocketTypes]
+0=SOMEROCKET
+
+[SOMEROCKET]            ; RocketType
+PauseFrames=0           ; integer, how many frames the rocket pauses on the launcher before tilting.
+TiltFrames=60           ; integer, how many frames it takes for the rocket to tilt to firing position.
+PitchInitial=0.21       ; float, starting pitch of the rocket before tilting up (0 = horizontal, 1 = vertical).
+PitchFinal=0.5          ; float, ending pitch of the rocket after tilting up before it fires.
+TurnRate=0.05           ; float, pitch maneuverability of rocket in air.
+RaiseRate=1             ; integer, how much the missile will raise each turn on the launcher (for Cruise Missiles only).
+Acceleration=0.4        ; float, this much is added to the rocket's velocity each frame during launch.
+Altitude=768            ; integer, cruising altitude in leptons (1/256 of a cell): at this height rocket begins leveling off.
+Damage=200              ; integer, the rocker does this much damage when it explodes.
+EliteDamage=400         ; integer, the rocker does this much damage when it explodes when the spawner is elite.
+BodyLength=256          ; integer, the length of  thebody of the rocket in leptons (1/256 of a cell).
+LazyCurve=yes           ; boolean, is the rocket's path a big, lazy curve, like the V3 is Red Alert 2.
+CruiseMissile=no        ; boolean, is this rocket a Cruise Missile, like Boomer missiles in Yuri's Revenge.
+Type=                   ; AircraftType, the type this rocket is associated with.
+Warhead=                ; WarheadType, the warhead that this rocket's explosion uses.
+EliteWarhead=           ; WarheadType, the warhead that this rocket's explosion uses when the spawner is elite.
+TakeoffAnim=            ; AnimType, the takeoff animation used by this rocket.
+TrailAnim=              ; AnimType, the trail animation used by this rocket.
+```
+
+```{note}
+The rocket object is an AircraftType, like in Red Alert 2. When determining its characteristics, the rocket will use the first RocketType whose `Type=` is equal to the type of the rocket itself.
+```
+
+- If `SpawnsNumber > 1`, missiles can be made to spawn at alternating offsets. For this, `Burst` on the `Weapon` needs to be set to a value greater than `1`. Up to `Burst` missiles will use alternating spawn offsets, and the rest will use the the odd missiles' spawn offset.
+- Additionally, an additional offset for missiles spawned at even numbers can be defined.
+
+In `ART.INI`:
+```ini
+[SOMETECHNO]             ; TechnoType
+SecondSpawnOffset=0,0,0  ; 3 integers, an offset to be added to the firing FLH for the every second spawn's location.
+```
+
+- Additionally, missile aircraft should have `MissileSpawn=yes` for some missile logics to be considered correctly.
+
+In `RULES.INI`:
+```ini
+[SOMETECHNO]     ; TechnoType
+MissileSpawn=no  ; boolean, is this object a missile meant to be spawned?
+```
+
 ### New ArmorTypes
 
 - Vinifera allows adding new armor types, as well as customizing the ability of warheads to target them.
@@ -471,6 +568,16 @@ In `SUN.INI`:
 ```ini
 [Options]
 FilterBandBoxSelection=yes  ; boolean, should the band box selection be filtered?
+```
+
+### DontScore
+
+- Vinifera ports the `DontScore` key from Red Alert 2. When `DontScore=yes` is set, killing the unit won't grant the killer experience, or give score to it's owner's house. It will, however, count towards your lost unit count.
+
+In `RULES.INI`:
+```ini
+[SOMETECHNO]  ; TechnoType
+DontScore=no  ; boolean, should this Techno not count towards promotion and multiplayer score?
 ```
 
 ## Terrain

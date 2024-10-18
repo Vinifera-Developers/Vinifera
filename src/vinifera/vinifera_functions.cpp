@@ -46,6 +46,8 @@
 #include "tacticalext.h"
 #include "tclassfactory.h"
 #include "testlocomotion.h"
+#include "kamikazetracker.h"
+#include "spawnmanager.h"
 #include "extension.h"
 #include "theatertype.h"
 #include "armortype.h"
@@ -54,6 +56,7 @@
 #include "asserthandler.h"
 #include <string>
 
+#include "rocketlocomotion.h"
 #include "setup_hooks.h"
 
 
@@ -629,6 +632,8 @@ bool Vinifera_Startup()
     //CnCNet5::IsActive = true; // Enable when new Client system is implemented.
 #endif
 
+    KamikazeTracker = new KamikazeTrackerClass;
+
     return true;
 }
 
@@ -658,6 +663,8 @@ bool Vinifera_Shutdown()
      */
     TheaterTypes.Clear();
     ArmorTypes.Clear();
+    RocketTypes.Clear();
+    SpawnManagerClass::Clear_All();
 
     /**
      *  Cleanup global extension instances.
@@ -672,6 +679,9 @@ bool Vinifera_Shutdown()
      *  Cleanup additional extension instances.
      */
     ThemeControlExtensions.Clear();
+
+    delete KamikazeTracker;
+    KamikazeTracker = nullptr;
 
     DEV_DEBUG_INFO("Shutdown - New Count: %d, Delete Count: %d\n", Vinifera_New_Count, Vinifera_Delete_Count);
 
@@ -760,11 +770,23 @@ bool Vinifera_Register_Com_Objects()
 {
     DEBUG_INFO("Registering new com objects...\n");
 
-    //DEBUG_INFO("  TestLocomotionClass\n");
+    /**
+     *  New locomotors.
+     */
     REGISTER_CLASS(TestLocomotionClass);
+    REGISTER_CLASS(RocketLocomotionClass);
+
+    /**
+     *  New types.
+     */
     REGISTER_CLASS(ArmorTypeClass);
+    REGISTER_CLASS(RocketTypeClass);
+
+    /**
+     *  Other new entities.
+     */
+    REGISTER_CLASS(SpawnManagerClass);
     
-    //DEBUG_INFO("  Extension classes\n");
     Extension::Register_Class_Factories();
 
     DEBUG_INFO("  ...OK!\n");

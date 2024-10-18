@@ -150,6 +150,8 @@ int VoxelAnimTypeClassExtension::Size_Of() const
 void VoxelAnimTypeClassExtension::Detach(TARGET target, bool all)
 {
     //EXT_DEBUG_TRACE("VoxelAnimTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    ObjectTypeClassExtension::Detach(target, all);
 }
 
 

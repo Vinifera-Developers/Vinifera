@@ -36,81 +36,82 @@
 #include "extension.h"
 #include "debughandler.h"
 
+#include "addon.h"
 #include "aircraft.h"
 #include "aircrafttype.h"
+#include "aitrigtype.h"
+#include "alphashape.h"
 #include "anim.h"
 #include "animtype.h"
 #include "armortype.h"
 #include "building.h"
-#include "buildingtype.h"
 #include "buildinglight.h"
+#include "buildingtype.h"
 #include "bullet.h"
 #include "bullettype.h"
 #include "campaign.h"
+#include "ccini.h"
 #include "empulse.h"
+#include "endgame.h"
 #include "factory.h"
 #include "foggedobject.h"
-#include "side.h"
 #include "house.h"
+#include "houseext.h"
 #include "housetype.h"
 #include "infantry.h"
 #include "infantrytype.h"
+#include "iomap.h"
 #include "isotile.h"
 #include "isotiletype.h"
+#include "kamikazetracker.h"
 #include "lightsource.h"
+#include "logic.h"
 #include "objecttype.h"
 #include "overlay.h"
 #include "overlaytype.h"
 #include "particle.h"
-#include "particletype.h"
 #include "particlesys.h"
 #include "particlesystype.h"
+#include "particletype.h"
 #include "radarevent.h"
+#include "rockettype.h"
+#include "rules.h"
+#include "scenario.h"
+#include "scenarioext.h"
 #include "script.h"
 #include "scripttype.h"
+#include "session.h"
+#include "side.h"
 #include "smudge.h"
 #include "smudgetype.h"
+#include "spawnmanager.h"
 #include "super.h"
 #include "supertype.h"
-#include "taskforce.h"
+#include "tactical.h"
+#include "taction.h"
 #include "tag.h"
 #include "tagtype.h"
+#include "taskforce.h"
 #include "team.h"
 #include "teamtype.h"
-#include "trigger.h"
-#include "triggertype.h"
-#include "aitrigtype.h"
+#include "technoext.h"
 #include "terrain.h"
 #include "terraintype.h"
+#include "tevent.h"
 #include "tiberium.h"
+#include "trigger.h"
+#include "triggertype.h"
+#include "tube.h"
 #include "unit.h"
 #include "unittype.h"
+#include "veinholemonster.h"
+#include "verses.h"
 #include "voxelanim.h"
 #include "voxelanimtype.h"
 #include "warheadtype.h"
 #include "wave.h"
-#include "weapontype.h"
-#include "veinholemonster.h"
-#include "taction.h"
-#include "tevent.h"
-#include "tube.h"
 #include "waypointpath.h"
-#include "alphashape.h"
-
-#include "houseext.h"
-#include "scenarioext.h"
-
-#include "scenario.h"
-#include "endgame.h"
-#include "rules.h"
-#include "iomap.h"
-#include "logic.h"
-#include "tactical.h"
-#include "session.h"
-#include "addon.h"
-#include "ccini.h"
-#include "technoext.h"
-#include "verses.h"
+#include "weapontype.h"
 
 
 /**
@@ -379,12 +380,9 @@ bool Vinifera_Put_All(IStream *pStm, bool save_net)
         if (FAILED(OleSaveToStream(TacticalMap, pStm))) { return false; }
     }
 
-    if (FAILED(Verses::Save(pStm))) { return false; }
-
     /**
      *  Save all game objects. This code saves every object that's stored in a DynamicVector class.
      */
-    if (FAILED(Vinifera_Save_Vector(pStm, ArmorTypes, "ArmorTypes"))) { return false; }
     if (FAILED(Vinifera_Save_Vector(pStm, HouseTypes, "HouseTypes"))) { return false; }
     if (FAILED(Vinifera_Save_Vector(pStm, Houses, "Houses"))) { return false; }
     if (FAILED(Vinifera_Save_Vector(pStm, Units, "Units"))) { return false; }
@@ -436,6 +434,23 @@ bool Vinifera_Put_All(IStream *pStm, bool save_net)
     if (FAILED(Vinifera_Save_Vector(pStm, Waves, "Waves"))) { return false; }
     { DEBUG_INFO("Saving VeinholeMonsters...\n"); if (FAILED(VeinholeMonsterClass::Save_All(pStm))) { DEBUG_ERROR("\t***** FAILED!\n"); return false; } }
     { DEBUG_INFO("Saving RadarEvents...\n"); if (!RadarEventClass::Save_All(pStm)) { DEBUG_ERROR("\t***** FAILED!\n"); return false; } }
+
+    /**
+     *  Save new Vinifera objects stored in vectors.
+     */
+    if (FAILED(Vinifera_Save_Vector(pStm, ArmorTypes, "ArmorTypes"))) { return false; }
+    if (FAILED(Vinifera_Save_Vector(pStm, RocketTypes, "RocketTypes"))) { return false; }
+    if (FAILED(Vinifera_Save_Vector(pStm, SpawnManagers, "SpawnManagers"))) { return false; }
+
+    /**
+     *  Save new Verses.
+     */
+    if (FAILED(Verses::Save(pStm))) { return false; }
+
+    /**
+     *  Save new global class instances.
+     */
+    KamikazeTracker->Save(pStm, false);
 
     /**
      *  Save skirmish values.
@@ -620,12 +635,9 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
         if (FAILED(OleLoadFromStream(pStm, __uuidof(IUnknown), (LPVOID *)&spUnk))) { return false; }
     }
 
-    if (FAILED(Verses::Load(pStm))) { return false; }
-
     /**
      *  Load all game objects. This code loads every object that's stored in a DynamicVector class.
      */
-    if (FAILED(Vinifera_Load_Vector(pStm, ArmorTypes, "ArmorTypes"))) { return false; }
     if (FAILED(Vinifera_Load_Vector(pStm, HouseTypes, "HouseTypes"))) { return false; }
     if (FAILED(Vinifera_Load_Vector(pStm, Houses, "Houses"))) { return false; }
     if (FAILED(Vinifera_Load_Vector(pStm, Units, "Units"))) { return false; }
@@ -677,6 +689,24 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
     if (FAILED(Vinifera_Load_Vector(pStm, Waves, "Waves"))) { return false; }
     { DEBUG_INFO("Loading VeinholeMonsters...\n"); if (FAILED(VeinholeMonsterClass::Load_All(pStm))) { DEBUG_ERROR("\t***** FAILED!\n"); return false; } }
     { DEBUG_INFO("Loading RadarEvents...\n"); if (!RadarEventClass::Load_All(pStm)) { DEBUG_ERROR("\t***** FAILED!\n");  return false; } }
+
+    /**
+     *  Save new Vinifera objects stored in vectors.
+     */
+    if (FAILED(Vinifera_Load_Vector(pStm, ArmorTypes, "ArmorTypes"))) { return false; }
+    if (FAILED(Vinifera_Load_Vector(pStm, RocketTypes, "RocketTypes"))) { return false; }
+    if (FAILED(Vinifera_Load_Vector(pStm, SpawnManagers, "SpawnManagers"))) { return false; }
+
+    /**
+     *  Save new Verses.
+     */
+    if (FAILED(Verses::Load(pStm))) { return false; }
+
+    /**
+     *  Load new global class instances.
+     */
+    KamikazeTracker->Clear();
+    KamikazeTracker->Load(pStm);
 
     /**
      *  Load skirmish values.
