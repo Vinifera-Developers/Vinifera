@@ -1046,7 +1046,7 @@ const InfantryTypeClass* TechnoClassExt::_Crew_Type() const
     /**
      *  If it's armed, it could also have a technician exit it.
      */
-    if (Is_Weapon_Equipped() && Random_Pick(0, 99) < 15) {
+    if (Is_Weapon_Equipped() && Percent_Chance(15)) {
         return SideClassExtension::Get_Technician(House);
     }
 
