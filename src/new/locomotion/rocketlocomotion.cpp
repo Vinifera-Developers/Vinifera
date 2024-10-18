@@ -299,7 +299,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
             {
                 MissionState = RocketMissionState::Flight;
                 Coordinate center_coord = Linked_To()->Center_Coord();
-                ApogeeDistance = static_cast<int>(Vector2(static_cast<float>(center_coord.X - DestinationCoord.X), static_cast<float>(center_coord.Y - DestinationCoord.Y)).Length());
+                ApogeeDistance = (center_coord.As_Cell() - DestinationCoord.As_Cell()).Length();
             }
             break;
         }
@@ -337,7 +337,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
                      *  compared to how far it was when it reached its cruising altitude.
                      */
                     const Coordinate center_coord = Linked_To()->Center_Coord();
-                    const double dist = Vector2(static_cast<float>(center_coord.X - DestinationCoord.X), static_cast<float>(center_coord.Y - DestinationCoord.Y)).Length();
+                    const double dist = (center_coord.As_Cell() - DestinationCoord.As_Cell()).Length();
                     const double ratio = dist / ApogeeDistance;
 
                     CurrentPitch = rocket->PitchFinal * ratio * DEG_TO_RAD(90) + Get_Next_Pitch() * (1 - ratio);

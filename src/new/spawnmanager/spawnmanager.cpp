@@ -518,7 +518,7 @@ void SpawnManagerClass::AI()
                 Cell owner_coord = Owner->Get_Cell();
                 Cell spawnee_coord = spawnee->Get_Cell();
 
-                if (owner_coord == spawnee_coord && spawnee->Coord.Z - Owner->Coord.Z < 20)
+                if (owner_coord == spawnee_coord && std::abs(spawnee->Coord.Z - Owner->Coord.Z) < 20)
                 {
                     spawnee->Limbo();
                     control->Status = SpawnControlStatus::Reloading;

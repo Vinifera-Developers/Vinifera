@@ -28,6 +28,7 @@
 #include "aircraftext_hooks.h"
 #include "aircraftext_init.h"
 #include "aircraft.h"
+#include "aircraftext.h"
 #include "aircrafttype.h"
 #include "aircrafttypeext.h"
 #include "object.h"
@@ -37,15 +38,253 @@
 #include "unittypeext.h"
 #include "technotype.h"
 #include "technotypeext.h"
+#include "weapontype.h"
 #include "extension.h"
 #include "voc.h"
 #include "mouse.h"
+#include "team.h"
+#include "building.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "house.h"
+
+
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or deconstructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+static class AircraftClassExt final : public AircraftClass
+{
+public:
+    bool _Unlimbo(Coordinate& coord, DirType dir);
+    bool _Enter_Idle_Mode(bool initial, bool a2);
+};
+
+
+/**
+ *  Removes an aircraft from the limbo state.
+ *
+ *  @author: 07/26/1994 JLB - Created.
+ *           ZivDero - Adjustments for Tiberian Sun.
+ */
+bool AircraftClassExt::_Unlimbo(Coordinate& coord, DirType dir)
+{
+    Coordinate adjusted_coord = coord;
+
+    const auto class_ext = Extension::Fetch<AircraftTypeClassExtension>(Class);
+    const auto ext = Extension::Fetch<AircraftClassExtension>(this);
+
+    /**
+     *  Rockets and other spawned aircraft don't have to spawn on the ground.
+     */
+    if (!class_ext->IsMissileSpawn && !ext->SpawnOwner)
+    {
+        if (IsALoaner || !Map.In_Local_Radar(coord)) {
+            adjusted_coord.Z = Class->Flight_Level() + Map.Get_Cell_Height(coord);
+        } else {
+            adjusted_coord.Z = Map.Get_Cell_Height(coord);
+        }
+    }
+
+    if (FootClass::Unlimbo(adjusted_coord, dir)) {
+
+        if (!Class->IsSelectable || !Class->IsLandable || (Class->Fetch_Weapon_Info(WEAPON_SLOT_PRIMARY).Weapon && Class->Fetch_Weapon_Info(WEAPON_SLOT_PRIMARY).Weapon->IsCamera)) {
+            IsALoaner = true;
+        }
+
+        /**
+         *  Hack it so that aircraft that are both passenger and cargo carrying
+         *  will carry passengers at the expense of ammo.
+         */
+        if (Cargo.Is_Something_Attached()) {
+            Ammo = 0;
+            Passenger = true;
+        }
+
+        /**
+         *  Forces the body of the helicopter to face the correct direction.
+         */
+        SecondaryFacing.Set(DirStruct(dir));
+
+        /**
+         *  Start rotor animation.
+         */
+        Set_Rate(1);
+        Set_Stage(0);
+
+        /**
+         *  When starting at flight level, then give it speed. When landed
+         *  then it must be stationary.
+         */
+        if (Get_Height() == Class->Flight_Level()) {
+            Set_Speed(1.0);
+        }
+        else {
+            Set_Speed(0.0);
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+
+/**
+ *  Gives the aircraft an appropriate mission.
+ *
+ *  @author: 06/05/1995 JLB - Created.
+ *           ZivDero - Adjustments for Tiberian Sun.
+ */
+bool AircraftClassExt::_Enter_Idle_Mode(bool initial, bool a2)
+{
+    if (Has_Suspended_Mission()) {
+
+        Restore_Mission();
+        if (Mission == MISSION_PATROL) {
+            Status = 0;
+            IsLocked = false;
+        }
+
+        return false;
+    }
+
+    const bool result = FootClass::Enter_Idle_Mode(initial, a2);
+
+    MissionType mission = House->Is_Human_Control() || Team || !Is_Weapon_Equipped() ? MISSION_GUARD : MISSION_GUARD_AREA;
+
+    if (In_Which_Layer() != LAYER_GROUND && Get_Height() > Landing_Altitude() && !Extension::Fetch<AircraftTypeClassExtension>(Class)->IsMissileSpawn) {
+
+        if (Cargo.Is_Something_Attached()) {
+            if (IsALoaner) {
+                if (Team) {
+                    mission = MISSION_GUARD;
+                }
+                else {
+                    mission = MISSION_UNLOAD;
+                    Assign_Destination(Good_LZ());
+                }
+            }
+            else {
+                Assign_Destination(Good_LZ());
+                mission = MISSION_MOVE;
+            }
+        }
+        else {
+
+            /**
+             *  If this transport is a loaner and part of a team, then remove it from
+             *  the team it is attached to.
+             */
+            if ((IsALoaner && House->Is_Human_Control()) || (!House->Is_Human_Control() && !Class->MaxAmmo)) {
+                if (Team && Team->Has_Entered_Map()) {
+                    Team->Remove(this);
+                }
+            }
+
+            if (Get_Weapon()->Weapon) {
+
+                /**
+                 *  Weapon equipped helicopters that run out of ammo and were
+                 *  brought in as reinforcements will leave the map.
+                 */
+                if (IsALoaner) {
+
+                    /**
+                     *  If it has no ammo, then break off of the team and leave the map.
+                     *  If it can fight, then give it fighting orders.
+                     */
+                    if (Ammo == 0) {
+                        if (Team) Team->Remove(this);
+                        mission = MISSION_RETREAT;
+                    }
+                    else {
+                        if (!Team) {
+                            mission = MISSION_HUNT;
+                        }
+                    }
+
+                }
+                else if (Ammo && Target_Legal(TarCom) && Get_Mission() == MISSION_ATTACK || MissionQueue == MISSION_ATTACK) {
+                    mission = MISSION_ATTACK;
+                }
+                else if (In_Air()) {
+                    if (Target_Legal(NavCom) && Mission != MISSION_MOVE && Mission != MISSION_ENTER) {
+                        if (Class->Dock.Count() > 0 && (IsLocked || !Team)) {
+
+                            /**
+                             *  Normal aircraft try to find a good landing spot to rest.
+                             */
+                            BuildingClass* building = nullptr;
+                            for (int i = 0; i < Class->Dock.Count(); i++) {
+                                building = Find_Docking_Bay(Class->Dock[i], false);
+                                if (building) break;
+                            }
+
+                            Assign_Destination(nullptr);
+                            if (building && Transmit_Message(RADIO_HELLO, building) == RADIO_ROGER) {
+                                Assign_Destination(building);
+                                mission = MISSION_ENTER;
+                            }
+                        }
+                    }
+                }
+            }
+            else {
+                if (Team) return false;
+
+                Assign_Destination(Good_LZ());
+                mission = MISSION_MOVE;
+            }
+        }
+    }
+    else {
+        if (IsALoaner) {
+            if (Cargo.Is_Something_Attached()) {
+
+                /**
+                 *  In the case of a computer controlled helicopter that hold passengers,
+                 *  don't unload when landing. Wait for specific instructions from the
+                 *  controlling team.
+                 */
+                if (Team) {
+                    mission = MISSION_GUARD;
+                }
+                else {
+                    mission = MISSION_UNLOAD;
+                }
+            }
+            else if (!Team) {
+                mission = MISSION_RETREAT;
+            }
+        }
+        else {
+            Assign_Destination(nullptr);
+            Assign_Target(nullptr);
+
+            if (!House->Is_Human_Control() && !Team && Is_Weapon_Equipped()) {
+                mission = MISSION_GUARD_AREA;
+            } else {
+                mission = MISSION_GUARD;
+            }
+        }
+    } 
+
+    Assign_Mission(mission);
+    if (Ready_To_Commence()) {
+        Commence();
+    }
+
+    return result;
+}
+
 
 
 /**
@@ -317,35 +556,6 @@ DECLARE_PATCH(_AircraftClass_Init_IsCloakable_BugFix_Patch)
 
 
 /**
- *  Patch that makes the game not stick rockets on the ground
- *  when unlimboing them.
- *
- *  @author: ZivDero
- */
-DECLARE_PATCH(_AircraftClass_Unlimbo_MissileSpawn_Patch)
-{
-    GET_REGISTER_STATIC(AircraftClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(Coordinate *, coord, ebp);
-    static AircraftTypeClassExtension* class_ext;
-
-    class_ext = Extension::Fetch<AircraftTypeClassExtension>(this_ptr->Class);
-    if (!class_ext->IsMissileSpawn)
-    {
-        if (this_ptr->IsALoaner || !Map.In_Local_Radar(*coord))
-        {
-            JMP(0x0040898D);
-        }
-        else
-        {
-            JMP(0x000897C);
-        }
-    }
-
-    JMP(0x004089B0);
-}
-
-
-/**
  *  Main function for patching the hooks.
  */
 void AircraftClassExtension_Hooks()
@@ -373,5 +583,6 @@ void AircraftClassExtension_Hooks()
      */
     Patch_Jump(0x0040D0C5, (uintptr_t)0x0040D0EA);
 
-    Patch_Jump(0x00408963, &_AircraftClass_Unlimbo_MissileSpawn_Patch);
+    Patch_Jump(0x00408940, &AircraftClassExt::_Unlimbo);
+    Patch_Jump(0x0040B310, &AircraftClassExt::_Enter_Idle_Mode);
 }
