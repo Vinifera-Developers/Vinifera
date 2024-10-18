@@ -72,7 +72,7 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     IsSortCameoAsBaseDefense(false),
     Description(""),
     IsFilterFromBandBoxSelection(false),
-    CrewCount(0)
+    CrewCount(1)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -283,10 +283,6 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     BSurface *imagesurface = Vinifera_Get_Image_Surface(This()->CameoFilename);
     if (imagesurface) {
         CameoImageSurface = imagesurface;
-    }
-
-    if (!IsInitialized) {
-        CrewCount = This()->IsCrew ? 1 : 0;
     }
 
     IsSortCameoAsBaseDefense = ini.Get_Bool(ini_name, "SortCameoAsBaseDefense", IsSortCameoAsBaseDefense);
