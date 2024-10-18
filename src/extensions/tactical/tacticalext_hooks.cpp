@@ -226,7 +226,7 @@ static bool Should_Exclude_From_Selection(ObjectClass* obj)
      *  Exclude objects that aren't a selectable combatant per rules.
      */
     if (obj->Is_Techno()) {
-        return Extension::Fetch<TechnoTypeClassExtension>(obj->Techno_Type_Class())->FilterFromBandBoxSelection;
+        return Extension::Fetch<TechnoTypeClassExtension>(obj->Techno_Type_Class())->IsFilterFromBandBoxSelection;
     }
 
     return false;
@@ -278,7 +278,7 @@ static bool Has_NonCombatants_Selected()
 {
     for (int i = 0; i < CurrentObjects.Count(); i++)
     {
-        if (CurrentObjects[i]->Is_Techno() && Extension::Fetch<TechnoTypeClassExtension>(CurrentObjects[i]->Techno_Type_Class())->FilterFromBandBoxSelection)
+        if (CurrentObjects[i]->Is_Techno() && Extension::Fetch<TechnoTypeClassExtension>(CurrentObjects[i]->Techno_Type_Class())->IsFilterFromBandBoxSelection)
             return true;
     }
 
@@ -377,7 +377,7 @@ static void Vinifera_Bandbox_Select(ObjectClass* obj)
         return;
 
     /**
-     *  Don't select buildings, unless it undeploys into something other than
+     *  Don't select buildings, unless it undeploys and is something other than
      *  a construction yard or a war factory (for example, a deploying artillery).
      */
     if (building && (!building->Class->UndeploysInto || building->Class->IsConstructionYard || building->Class->IsMobileWar))
@@ -399,7 +399,7 @@ static void Vinifera_Bandbox_Select(ObjectClass* obj)
          && !WWKeyboard->Down(VK_ALT))
      {
          const auto ext = Extension::Fetch<TechnoTypeClassExtension>(techno->Techno_Type_Class());
-         if (ext->FilterFromBandBoxSelection)
+         if (ext->IsFilterFromBandBoxSelection)
              return;
      }
 

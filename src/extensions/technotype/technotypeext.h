@@ -183,5 +183,5 @@ class TechnoTypeClassExtension : public ObjectTypeClassExtension
          *  If this property is set to true, this object will not be selected when band box selecting
          *  if any objects in the selection have it set to false (e. g., harvesters and MCVs won't be selected with tanks).
          */
-        bool FilterFromBandBoxSelection;
+        bool IsFilterFromBandBoxSelection;
 };

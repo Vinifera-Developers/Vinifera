@@ -60,6 +60,7 @@
 #include "voc.h"
 #include "vox.h"
 #include "wwmouse.h"
+#include "sideext.h"
 
 #include "debughandler.h"
 #include "fatal.h"
@@ -1717,7 +1718,8 @@ void StripClassExt::_Draw_It(bool complete)
                 if (overbutton && !Scen->UserInputLocked && !darken)
                 {
                     Rect cameo_hover_rect(x, SidebarRect.Y + y, OBJECT_WIDTH, OBJECT_HEIGHT - 3);
-                    SidebarSurface->Draw_Rect(cameo_hover_rect, DSurface::RGB_To_Pixel(ColorSchemes[0]->HSV.operator RGBClass()));
+                    const ColorSchemeType colorschemetype = Extension::Fetch<SideClassExtension>(Sides[PlayerPtr->Class->Side])->UIColor;
+                    SidebarSurface->Draw_Rect(cameo_hover_rect, DSurface::RGB_To_Pixel(ColorSchemes[colorschemetype]->HSV.operator RGBClass()));
                 }
 
 

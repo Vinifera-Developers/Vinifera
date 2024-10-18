@@ -49,6 +49,8 @@
 #include "vox.h"
 #include "wwmouse.h"
 #include "techno.h"
+#include "sideext.h"
+#include "housetype.h"
 
 
 GadgetClass* SidebarClassExtension::LastHovered;
@@ -577,7 +579,8 @@ bool SidebarClassExtension::TabButtonClass::Draw_Me(bool forced)
     if (MousedOver && !Scen->UserInputLocked && !IsDisabled && !IsSelected)
     {
         Rect hover_rect(X + DrawX, Y + DrawY, Width - 1, Height - 1);
-        SidebarSurface->Draw_Rect(hover_rect, DSurface::RGB_To_Pixel(ColorSchemes[0]->HSV.operator RGBClass()));
+        const ColorSchemeType colorschemetype = Extension::Fetch<SideClassExtension>(Sides[PlayerPtr->Class->Side])->UIColor;
+        SidebarSurface->Draw_Rect(hover_rect, DSurface::RGB_To_Pixel(ColorSchemes[colorschemetype]->HSV.operator RGBClass()));
     }
 
     IsDrawn = true;

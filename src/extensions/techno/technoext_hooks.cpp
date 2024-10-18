@@ -63,10 +63,12 @@
 #include "debughandler.h"
 #include "drawshape.h"
 #include "cell.h"
+#include "fetchres.h"
 #include "wwkeyboard.h"
 #include "options.h"
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "language.h"
 #include "storageext.h"
 #include "textprint.h"
 #include "tiberiumext.h"
@@ -75,6 +77,7 @@
 #include "verses.h"
 #include "session.h"
 #include "mouse.h"
+#include "sideext.h"
 
 
 /**
@@ -98,6 +101,7 @@ public:
     void _Drop_Tiberium();
     int _Cell_Distance_Squared(const AbstractClass* object) const;
     void _Draw_Target_Laser() const;
+    void _Draw_Text_Overlay(Point2D& point1, Point2D& point2, Rect& rect) const;
 };
 
 
@@ -309,7 +313,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
          *  Display whether this unit is a leader unit or not.
          */
         if (What_Am_I() != RTTI_BUILDING)
-            Draw_Leader(Point2D(bottomleft.X - 10, bottomleft.Y + 10), bottomleft, rect);
+            Draw_Text_Overlay(Point2D(bottomleft.X - 10, bottomleft.Y + 10), bottomleft, rect);
 
         /**
          *  Display a veterancy pip is the unit is promoted.
@@ -981,6 +985,38 @@ void TechnoClassExt::_Draw_Target_Laser() const
     Rect end_point_rect = TacticalRect.Intersect_With(Rect(end_point + point_offset, point_size, point_size));
     CompositeSurface->Fill_Rect(end_point_rect, line_color);
 }
+
+
+/**
+ *  Reimplements TechnoClass::Draw_Text_Overlay
+ *
+ *  @author: ZivDero
+ */
+void TechnoClassExt::_Draw_Text_Overlay(Point2D& point1, Point2D& point2, Rect& rect) const
+{
+    static char buffer[128];
+    const ColorSchemeType colorschemetype = Extension::Fetch<SideClassExtension>(Sides[PlayerPtr->Class->Side])->UIColor;
+
+    /**
+     *  Print the Power/Drain text on power plants.
+     */
+    if (What_Am_I() == RTTI_BUILDING && reinterpret_cast<const BuildingClass*>(this)->Class->Power > 0)
+    {
+        const auto owner = Owning_House();
+        std::sprintf(buffer, Fetch_String(TXT_POWER_DRAIN), owner->Power_Output(), owner->Power_Drain());
+        Plain_Text_Print(buffer, LogicSurface, &rect, &point2, COLOR_WHITE, COLOR_TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_EFNT, colorschemetype, 1);
+    }
+
+    /**
+     *  Print the "Primary" text.
+     */
+    if (IsLeader)
+    {
+        const int text = What_Am_I() == RTTI_BUILDING && reinterpret_cast<const BuildingClass*>(this)->Class->Width() == 1 ? TXT_PRI : TXT_PRIMARY;
+        Plain_Text_Print(text, LogicSurface, &rect, &point2, COLOR_WHITE, COLOR_TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_EFNT, colorschemetype, 1);
+    }
+}
+
 
 
 /**
@@ -1937,4 +1973,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x006396D1, &_TechnoClass_Railgun_Damage_Apply_Damage_Modifier_Patch);
     Patch_Jump(0x006313D0, &TechnoClassExt::_Draw_Target_Laser);
     Patch_Jump(0x00631207, &_TechnoClass_Fire_At_TargetLaserTimer_Patch);
+    Patch_Jump(0x00637D60, &TechnoClassExt::_Draw_Text_Overlay);
 }

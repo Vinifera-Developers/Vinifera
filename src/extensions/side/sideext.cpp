@@ -30,6 +30,7 @@
 #include "ccini.h"
 #include "extension.h"
 #include "asserthandler.h"
+#include "colorscheme.h"
 #include "debughandler.h"
 
 
@@ -39,7 +40,9 @@
  *  @author: CCHyper
  */
 SideClassExtension::SideClassExtension(const SideClass *this_ptr) :
-    AbstractTypeClassExtension(this_ptr)
+    AbstractTypeClassExtension(this_ptr),
+    UIColor(COLORSCHEME_NONE),
+    ToolTipColor(COLORSCHEME_NONE)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("SideClassExtension::SideClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -182,6 +185,17 @@ bool SideClassExtension::Read_INI(CCINIClass &ini)
     if (!ini.Is_Present(ini_name)) {
         return false;
     }
-    
+
+    if (!IsInitialized) {
+
+        UIColor = ColorScheme::From_Name("LightGold");
+        ToolTipColor = ColorScheme::From_Name("Green");
+    }
+
+    UIColor = ini.Get_ColorSchemeType(ini_name, "UIColor", UIColor);
+    ToolTipColor = ini.Get_ColorSchemeType(ini_name, "ToolTipColor", ToolTipColor);
+
+    IsInitialized = true;
+
     return true;
 }
