@@ -41,17 +41,217 @@
 #include "target.h"
 #include "rules.h"
 #include "iomap.h"
+#include "infantry.h"
 #include "voc.h"
 #include "extension.h"
+#include "unitext.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "spawnmanager.h"
 #include "verses.h"
 #include "warheadtypeext.h"
 #include "weapontype.h"
+
+
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or destructor.
+ *
+ *  @note: All functions must not be virtual and must also be prefixed
+ *         with "_" to prevent accidental virtualization.
+ */
+class UnitClassExt : public UnitClass
+{
+public:
+    void _Firing_AI();
+    void _Draw_Voxel(unsigned int frame, int key, Rect& rect, Point2D& point, const Matrix3D& other_matrix, int color, int flags);
+
+};
+
+
+/**
+ *  Handles firing logic for this unit.
+ *
+ *  @author: 07/30/1996 JLB - Created
+ *           ZivDero - Adjustments for Tiberian Sun
+ */
+void UnitClassExt::_Firing_AI()
+{
+    if (Target_Legal(TarCom) && Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon)
+    {
+        /**
+         *  Determine which weapon can fire. First check for the primary weapon. If that weapon
+         *  cannot fire, then check any secondary weapon. If neither weapon can fire, then the
+         *  failure code returned is that from the primary weapon.
+         */
+        WeaponSlotType primary = What_Weapon_Should_I_Use(TarCom);
+        FireErrorType ok = Can_Fire(TarCom, primary);
+        const WeaponTypeClass* weapon = Get_Weapon(primary)->Weapon;
+
+        if (weapon && weapon->WarheadPtr && weapon->WarheadPtr->IsWebby && TarCom->What_Am_I() == RTTI_INFANTRY)
+        {
+            InfantryClass* inf = reinterpret_cast<InfantryClass*>(TarCom);
+            if (inf->ProneStruggleTimer.Value() > weapon->WarheadPtr->WebDuration / 4)
+            {
+                Assign_Target(nullptr);
+                Assign_Mission(MISSION_GUARD);
+                ok = FIRE_CANT;
+            }
+        }
+
+        if ((ok == FIRE_OK || ok == FIRE_FACING) && Deploy_To_Fire())
+        {
+            Assign_Mission(MISSION_UNLOAD);
+            return;
+        }
+
+        static int visceroid_stages[8] = { 0x64, 0x69, 0x6E, 0x73, 0x78, 0x7D, 0x5A, 0x5F };
+        UnitClassExtension* ext;
+
+        switch (ok)
+        {
+        case FIRE_OK:
+            if (!Class->IsFireAnim)
+                IsFiring = false;
+
+            if (Class->IsLargeVisceroid || Class->IsSmallVisceroid)
+            {
+                Set_Stage(visceroid_stages[Dir_Facing(Direction(TarCom).Get_Dir())]);
+                Set_Rate(5);
+            }
+
+            if (primary != WEAPON_SLOT_SECONDARY && weapon)
+            {
+                const int firing_sync = CurrentBurstIndex % weapon->Burst;
+                if (firing_sync < 2 && Class->FiringSyncFrame[firing_sync] != -1)
+                {
+                    if (FiringSyncDelay == -1)
+                        FiringSyncDelay = 2 * Class->FiringFrames - 1;
+                    else if (FiringSyncDelay != Class->FiringSyncFrame[firing_sync])
+                        return;
+                }
+            }
+
+            Fire_At(TarCom, primary);
+            break;
+
+        case FIRE_FACING:
+            if (Class->IsLockTurret || !Class->IsTurretEquipped)
+            {
+                if (!Target_Legal(NavCom) && !Locomotion->Is_Moving()) {
+                    PrimaryFacing.Set_Desired(Direction(TarCom));
+                    SecondaryFacing.Set_Desired(PrimaryFacing.Desired());
+                }
+            }
+            else
+            {
+                SecondaryFacing.Set_Desired(Direction(TarCom));
+            }
+            break;
+
+        case FIRE_ILLEGAL:
+            if (Combat_Damage(primary) < 0)
+            {
+                if (!Is_Object(TarCom) || TarCom->What_Am_I() != RTTI_UNIT || static_cast<ObjectClass*>(TarCom)->Health_Ratio() >= Rule->ConditionGreen)
+                {
+                    Assign_Target(nullptr);
+                }
+            }
+            break;
+
+        case FIRE_CANT:
+            ext = Extension::Fetch<UnitClassExtension>(this);
+            if (ext->SpawnManager)
+                ext->SpawnManager->Abandon_Target();
+            break;
+            
+
+        case FIRE_RANGE:
+        case FIRE_MUST_DEPLOY:
+            IsFiring = false;
+            Approach_Target();
+            break;
+
+        case FIRE_CLOAKED:
+            IsFiring = false;
+            Do_Uncloak();
+            break;
+
+        default:
+            return;
+        }
+    }
+}
+
+
+/**
+ *  Draws the voxel model for this unit.
+ *
+ *  @author: ZivDero
+ */
+void UnitClassExt::_Draw_Voxel(unsigned int frame, int key, Rect& rect, Point2D& point, const Matrix3D& other_matrix, int color, int flags)
+{
+    Matrix3D matrix;
+    Matrix3D::Multiply(Get_Voxel_Draw_Matrix(), other_matrix, &matrix);
+    const auto typeext = Extension::Fetch<UnitTypeClassExtension>(Class);
+    const auto ext = Extension::Fetch<UnitClassExtension>(this);
+
+    VoxelObject* voxel = nullptr;
+    VoxelIndexClass* cache = nullptr;
+
+    if (!std::strcmp(Class->IniName, "APC")
+        && Map[Get_Coord()].Land_Type() == LAND_WATER
+        && !IsOnBridge
+        && Get_Height() < CELL_HEIGHT(1))
+    {
+        voxel = &Class->AuxVoxel;
+        cache = nullptr;
+        key = -1;
+    }
+    else if (typeext->NoSpawnAlt && ext->SpawnManager && !ext->SpawnManager->Docked_Count())
+    {
+        voxel = &typeext->AltVoxel;
+        cache = &typeext->AltVoxelIndex;
+    }
+    else
+    {
+        voxel = &Class->Voxel;
+        cache = &Class->VoxelIndex;
+    }
+
+    Draw_Voxel(*voxel, frame, key, *cache, rect, point, matrix, color, flags);
+}
+
+
+/**
+ *  Patch that replaces the call to draw the voxel model to allow us to
+ *  chose which voxel to draw.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_UnitClass_Draw_Voxel_Patch)
+{
+    GET_STACK_STATIC(unsigned int, frame, esp, 0x58);
+    GET_STACK_STATIC(int, key, esp, 0x40);
+    LEA_STACK_STATIC(Rect*, rect, esp, 0x68);
+    LEA_STACK_STATIC(Point2D*, point, esp, 0x50);
+    LEA_STACK_STATIC(Matrix3D*, matrix, esp, 0x90);
+    GET_STACK_STATIC(int, color, esp, 0x17C);
+    GET_STACK_STATIC(int, flags, esp, 0x4C);
+    GET_REGISTER_STATIC(UnitClassExt*, this_ptr, ebp);
+
+    this_ptr->_Draw_Voxel(frame, key, *rect, *point, *matrix, color, flags);
+
+    _asm mov ebx, color
+
+    JMP(0x006528E9);
+}
 
 
 #if 0
@@ -991,6 +1191,8 @@ void UnitClassExtension_Hooks()
     Patch_Jump(0x00650BAE, &_UnitClass_Try_To_Deploy_Transform_To_Vehicle_Patch);
     Patch_Jump(0x00656017, &_UnitClass_What_Action_Self_Check_For_Vehicle_Transform_Patch);
     Patch_Jump(0x006543DB, &_UnitClass_Mission_Unload_Transform_To_Vehicle_Patch);
+    Patch_Jump(0x0064E920, &UnitClassExt::_Firing_AI);
+    Patch_Jump(0x006527B1, &_UnitClass_Draw_Voxel_Patch);
     //Patch_Jump(0x0065054F, &_UnitClass_Enter_Idle_Mode_Block_Harvesting_On_Bridge_Patch); // Removed, keeping code for reference.
     //Patch_Jump(0x00654AB0, &_UnitClass_Mission_Harvest_Block_Harvesting_On_Bridge_Patch); // Removed, keeping code for reference.
 }

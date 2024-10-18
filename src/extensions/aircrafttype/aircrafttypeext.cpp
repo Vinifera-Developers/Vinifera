@@ -154,6 +154,8 @@ int AircraftTypeClassExtension::Size_Of() const
 void AircraftTypeClassExtension::Detach(TARGET target, bool all)
 {
     //EXT_DEBUG_TRACE("AircraftTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    TechnoTypeClassExtension::Detach(target, all);
 }
 
 

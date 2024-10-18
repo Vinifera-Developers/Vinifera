@@ -39,6 +39,7 @@
 #include "technotypeext.h"
 #include "extension.h"
 #include "voc.h"
+#include "mouse.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
@@ -316,6 +317,35 @@ DECLARE_PATCH(_AircraftClass_Init_IsCloakable_BugFix_Patch)
 
 
 /**
+ *  Patch that makes the game not stick rockets on the ground
+ *  when unlimboing them.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_AircraftClass_Unlimbo_MissileSpawn_Patch)
+{
+    GET_REGISTER_STATIC(AircraftClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(Coordinate *, coord, ebp);
+    static AircraftTypeClassExtension* class_ext;
+
+    class_ext = Extension::Fetch<AircraftTypeClassExtension>(this_ptr->Class);
+    if (!class_ext->IsMissileSpawn)
+    {
+        if (this_ptr->IsALoaner || !Map.In_Local_Radar(*coord))
+        {
+            JMP(0x0040898D);
+        }
+        else
+        {
+            JMP(0x000897C);
+        }
+    }
+
+    JMP(0x004089B0);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void AircraftClassExtension_Hooks()
@@ -343,4 +373,5 @@ void AircraftClassExtension_Hooks()
      */
     Patch_Jump(0x0040D0C5, (uintptr_t)0x0040D0EA);
 
+    Patch_Jump(0x00408963, &_AircraftClass_Unlimbo_MissileSpawn_Patch);
 }

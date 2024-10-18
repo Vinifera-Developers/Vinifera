@@ -38,9 +38,13 @@
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "extension.h"
+#include "voxellib.h"
+#include "motionlib.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "miscutil.h"
 
 
 /**
@@ -55,6 +59,8 @@ static class ObjectTypeClassExt final : public ObjectTypeClass
     public:
         void _Assign_Theater_Name(char *buffer, TheaterType theater);
         const ShapeFileStruct * _Get_Image_Data() const;
+        void _Fetch_Voxel_Image();
+        static void _Clear_Voxel_Indexes();
 };
 
 
@@ -154,6 +160,95 @@ const ShapeFileStruct * ObjectTypeClassExt::_Get_Image_Data() const
 
 
 /**
+ *  Fetches voxel model data from files.
+ *
+ *  @author: ZivDero
+ */
+void ObjectTypeClassExt::_Fetch_Voxel_Image()
+{
+    char buffer[260];
+    bool success = true;
+
+    success &= Load_Voxel(Voxel, Graphic_Name(), true);
+
+    if (What_Am_I() != RTTI_UNIT || reinterpret_cast<UnitTypeClass*>(this)->IsTurretEquipped)
+    {
+        std::snprintf(buffer, sizeof(buffer), "%sTUR", Graphic_Name());
+        success &= Load_Voxel(AuxVoxel, buffer);
+
+        std::snprintf(buffer, sizeof(buffer), "%sBARL", Graphic_Name());
+        success &= Load_Voxel(AuxVoxel2, buffer);
+    }
+
+    // Should be moved to a separate location
+    if (!strcmpi(IniName, "APC"))
+    {
+        std::snprintf(buffer, sizeof(buffer), "%sW", Graphic_Name());
+        success &= Load_Voxel(AuxVoxel, buffer);
+    }
+
+    if (success)
+    {
+        unsigned char max_dimension = Voxel.VoxelLibrary->Get_Layer_Info(0, 0)->XSize;
+        for (int i = 0; i < Voxel.VoxelLibrary->Get_Layer_Count(); i++)
+        {
+            max_dimension = std::max(max_dimension, Voxel.VoxelLibrary->Get_Layer_Info(i, 0)->XSize);
+            max_dimension = std::max(max_dimension, Voxel.VoxelLibrary->Get_Layer_Info(i, 0)->YSize);
+            max_dimension = std::max(max_dimension, Voxel.VoxelLibrary->Get_Layer_Info(i, 0)->ZSize);
+        }
+
+        max_dimension = std::max(max_dimension, static_cast<unsigned char>(8));
+        MaxDimension = max_dimension;
+
+        VoxelIndex.Clear();
+        AuxVoxelIndex.Clear();
+        ShadowVoxelIndex.Clear();
+        AuxVoxel2Index.Clear();
+    }
+    else
+    {
+        delete Voxel.VoxelLibrary;
+        delete Voxel.MotionLibrary;
+        Voxel.VoxelLibrary = nullptr;
+        Voxel.MotionLibrary = nullptr;
+
+        delete AuxVoxel.VoxelLibrary;
+        delete AuxVoxel.MotionLibrary;
+        AuxVoxel.VoxelLibrary = nullptr;
+        AuxVoxel.MotionLibrary = nullptr;
+
+        delete AuxVoxel2.VoxelLibrary;
+        delete AuxVoxel2.MotionLibrary;
+        AuxVoxel2.VoxelLibrary = nullptr;
+        AuxVoxel2.MotionLibrary = nullptr;
+    }
+}
+
+
+/**
+ *  Clears voxel caches.
+ *
+ *  @author: ZivDero
+ */
+void ObjectTypeClassExt::_Clear_Voxel_Indexes()
+{
+    for (int i = 0; i < ObjectTypes.Count(); i++)
+    {
+        const auto otype = ObjectTypes[i];
+        otype->VoxelIndex.Clear();
+        otype->AuxVoxelIndex.Clear();
+        otype->ShadowVoxelIndex.Clear();
+        otype->AuxVoxel2Index.Clear();
+
+        const auto otype_ext = Extension::Fetch<ObjectTypeClassExt>(otype);
+        otype_ext->AuxVoxel2Index.Clear();
+    }
+
+    StaticBuffer.CurrentBufferPtr = StaticBuffer.BufferPtr;
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void ObjectTypeClassExtension_Hooks()
@@ -161,4 +256,6 @@ void ObjectTypeClassExtension_Hooks()
     //Patch_Jump(0x004101A0, &ObjectTypeClassExt::_Get_Image_Data);
     Patch_Jump(0x00588D00, &ObjectTypeClassExt::_Assign_Theater_Name);
     Patch_Jump(0x0058891D, &_ObjectTypeClass_Load_Theater_Art_Assign_Theater_Name_Theater_Patch);
+    Patch_Jump(0x00587C80, &ObjectTypeClassExt::_Fetch_Voxel_Image);
+    Patch_Jump(0x00589030, &ObjectTypeClassExt::_Clear_Voxel_Indexes);
 }

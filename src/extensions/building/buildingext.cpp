@@ -158,6 +158,8 @@ int BuildingClassExtension::Size_Of() const
 void BuildingClassExtension::Detach(TARGET target, bool all)
 {
     //EXT_DEBUG_TRACE("BuildingClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    TechnoClassExtension::Detach(target, all);
 }
 
 

@@ -203,7 +203,7 @@ HRESULT ArmorTypeClass::Load(IStream* pStm)
     VINIFERA_SWIZZLE_REGISTER_POINTER(id, this, IniName);
 
     /**
-     *  Read this classes binary blob data directly into this instance.
+     *  Read this class's binary blob data directly into this instance.
      */
     hr = pStm->Read(this, sizeof(*this), nullptr);
     if (FAILED(hr)) {

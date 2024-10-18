@@ -31,6 +31,7 @@
 #include "techno.h"
 
 
+class SpawnManagerClass;
 class EBoltClass;
 class TechnoTypeClass;
 class TechnoTypeClassExtension;
@@ -63,6 +64,7 @@ class TechnoClassExtension : public RadioClassExtension
         virtual void Response_Deploy();
         virtual void Response_Harvest();
         virtual bool Can_Passive_Acquire() const;
+        virtual Coordinate Fire_Coord(WeaponSlotType which, TPoint3D<int> offset = TPoint3D<int>()) const;
 
         void Put_Storage_Pointers();
 
@@ -80,4 +82,14 @@ class TechnoClassExtension : public RadioClassExtension
          *  Replacement Tiberium storage.
          */
         VectorClass<int> Storage;
+
+        /**
+         *  The spawn manager of this unit.
+         */
+        SpawnManagerClass* SpawnManager;
+
+        /**
+         *  The object that spawned this object.
+         */
+        TechnoClass* SpawnOwner;
 };

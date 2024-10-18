@@ -152,6 +152,8 @@ int BulletTypeClassExtension::Size_Of() const
 void BulletTypeClassExtension::Detach(TARGET target, bool all)
 {
     //EXT_DEBUG_TRACE("BulletTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    ObjectTypeClassExtension::Detach(target, all);
 }
 
 

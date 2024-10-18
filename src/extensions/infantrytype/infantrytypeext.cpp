@@ -153,6 +153,8 @@ int InfantryTypeClassExtension::Size_Of() const
 void InfantryTypeClassExtension::Detach(TARGET target, bool all)
 {
     //EXT_DEBUG_TRACE("InfantryTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    TechnoTypeClassExtension::Detach(target, all);
 }
 
 
