@@ -34,6 +34,7 @@
 #include "rules.h"
 #include "debughandler.h"
 #include "tibsun_globals.h"
+#include "vinifera_saveload.h"
 
 
 /**
@@ -111,6 +112,10 @@ HRESULT SideClassExtension::Load(IStream *pStm)
     }
 
     new (this) SideClassExtension(NoInitClass());
+
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Crew, "Crew");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Engineer, "Engineer");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Technician, "Technician");
     
     return hr;
 }
