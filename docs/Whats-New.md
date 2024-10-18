@@ -209,6 +209,7 @@ Vanilla fixes:
 - Fix a bug where harvesters on large maps could prefer unloading at refineries that were the longest distance away from the harvesters (by Rampastring)
 - Fix a bug where the camera kept following a followed object when a trigger or script told it to center on a waypoint or team (by Rampastring)
 - Fix a bug where crew wouldn't exit from construction yards when they were sold or destroyed (by ZivDero)
+- Fix a bug where you could sometimes get extra crew to exit a building that was being sold and was destroying/undeploying (by ZivDero)
 
 </details>
 

@@ -864,6 +864,77 @@ DECLARE_PATCH(_BuildingClass_Mission_Deconstruction_ConYard_Survivors_Patch)
 
 
 /**
+ *  Fixes a bug where if when undeploying a construction yard an
+ *  MCV couldn't be placed, it would stay limboed.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_BuildingClass_Mission_Deconstruction_ConYard_Unlimbo_Patch)
+{
+    GET_REGISTER_STATIC(UnitClass*, mcv, ebp);
+    LEA_STACK_STATIC(Coordinate*, coords, esp, 0x40);
+    GET_REGISTER_STATIC(DirType, dir, eax);
+
+    static bool result;
+
+    ScenarioInit++;
+    result = mcv->Unlimbo(*coords, dir);
+    ScenarioInit--;
+
+    if (result)
+    {
+        JMP(0x00430A1A);
+    }
+    else
+    {
+        delete mcv;
+        JMP(0x00430B37);
+    }
+}
+
+
+/**
+ *  Fixes a bug where you could receive double the amount of survivors
+ *  if a building that was being sold got destroyed,
+ *  or free survivors by undeploying a building that was being sold.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_BuildingClass_Mission_Deconstruction_Double_Survivors_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+
+    // We've already ejected the survivors, don't eject them any more.
+    this_ptr->IsSurvivorless = true;
+
+    // Stolen instructions
+    this_ptr->Status = 2;
+    this_ptr->Begin_Mode(BSTATE_CONSTRUCTION);
+
+    JMP(0x00430F3B);
+}
+
+
+/**
+ *  Patch to not assign archive targets to buildings currently being sold.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_EventClass_Execute_Archive_Selling_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass*, techno, edi);
+    GET_REGISTER_STATIC(TARGET, target, eax);
+
+    // Don't assign an archive target if currently selling
+    if (techno->Mission != MISSION_DECONSTRUCTION) {
+        techno->Assign_Archive_Target(target);
+    }
+
+    JMP(0x00494372);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void BuildingClassExtension_Hooks()
@@ -891,4 +962,7 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x00433FB0, &BuildingClassExt::_Crew_Type);
     Patch_Jump(0x00435DA0, &BuildingClassExt::_How_Many_Survivors);
     Patch_Jump(0x00430CC2, &_BuildingClass_Mission_Deconstruction_ConYard_Survivors_Patch);
+    Patch_Jump(0x00430A01, &_BuildingClass_Mission_Deconstruction_ConYard_Unlimbo_Patch);
+    Patch_Jump(0x00430F2B, &_BuildingClass_Mission_Deconstruction_Double_Survivors_Patch);
+    Patch_Jump(0x0049436A, &_EventClass_Execute_Archive_Selling_Patch);
 }

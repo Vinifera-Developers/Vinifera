@@ -58,3 +58,4 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where a harvester could be ordered to dock with a refinery that wasn't listed in the harvester's `Dock=` key.
 - Fix a bug where house firepower bonus, veterancy and crate upgrade damage modifiers were not applied to railgun `AmbientDamage=`.
 - Fix a bug where crew wouldn't exit from construction yards when they were sold or destroyed.
+- Fix a bug where you could sometimes get extra crew to exit a building that was being sold and was destroying/undeploying.

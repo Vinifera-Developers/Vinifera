@@ -185,4 +185,5 @@ This page lists all the individual contributions to the project by their author.
   - Add the possibility to customize the UI and Tooltip colors per-side.
   - Add per-side crew customization.
   - Fix a bug where crew wouldn't exit from construction yards when they were sold or destroyed.
+  - Fix a bug where you could sometimes get extra crew to exit a building that was being sold and was destroying/undeploying.
 
