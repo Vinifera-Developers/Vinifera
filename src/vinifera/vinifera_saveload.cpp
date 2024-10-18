@@ -691,14 +691,14 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
     { DEBUG_INFO("Loading RadarEvents...\n"); if (!RadarEventClass::Load_All(pStm)) { DEBUG_ERROR("\t***** FAILED!\n");  return false; } }
 
     /**
-     *  Save new Vinifera objects stored in vectors.
+     *  Load new Vinifera objects stored in vectors.
      */
     if (FAILED(Vinifera_Load_Vector(pStm, ArmorTypes, "ArmorTypes"))) { return false; }
     if (FAILED(Vinifera_Load_Vector(pStm, RocketTypes, "RocketTypes"))) { return false; }
     if (FAILED(Vinifera_Load_Vector(pStm, SpawnManagers, "SpawnManagers"))) { return false; }
 
     /**
-     *  Save new Verses.
+     *  Load new Verses.
      */
     if (FAILED(Verses::Load(pStm))) { return false; }
 
