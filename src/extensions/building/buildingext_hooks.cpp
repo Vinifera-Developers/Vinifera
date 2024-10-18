@@ -175,7 +175,7 @@ const InfantryTypeClass* BuildingClassExt::_Crew_Type() const
      *  Construction yards can sometimes have an engineer exit them.
      */
     const int engineer_chance = Extension::Fetch<BuildingTypeClassExtension>(Class)->EngineerChance;
-    if (!IsCaptured && Random_Pick(0, 99) < engineer_chance && Class->ToBuild == RTTI_BUILDINGTYPE)
+    if (!IsCaptured && Percent_Chance(engineer_chance))
         return SideClassExtension::Get_Engineer(House);
 
     return TechnoClass::Crew_Type();
@@ -840,6 +840,30 @@ DECLARE_PATCH(_BuildingClass_Receive_Message_Only_Allow_Dockable_Harvester_Patch
 
 
 /**
+ *  #issue-445
+ *
+ *  Fixes a bug where crew wouldn't come out of sold/destroyed construction yards
+ *  (or buildings that undeploy, to be more specific).
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_BuildingClass_Mission_Deconstruction_ConYard_Survivors_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+
+    // This used to be || in RA and is || in YR, but is && in TS, for some reason
+    if (!Target_Legal(this_ptr->ArchiveTarget) || !this_ptr->Class->UndeploysInto)
+    {
+        // Process crew
+        JMP(0x00430CE4);
+    }
+
+    // Don't process crew
+    JMP(0x00430EEA);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void BuildingClassExtension_Hooks()
@@ -866,4 +890,5 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x0042D9A0, &BuildingClassExt::_Update_Buildables);
     Patch_Jump(0x00433FB0, &BuildingClassExt::_Crew_Type);
     Patch_Jump(0x00435DA0, &BuildingClassExt::_How_Many_Survivors);
+    Patch_Jump(0x00430CC2, &_BuildingClass_Mission_Deconstruction_ConYard_Survivors_Patch);
 }

@@ -84,6 +84,10 @@ In `RULES.INI`:
 EngineerChance=0  ; integer (%), what is the chance that an engineer will exit this building as its crew. Defaults to 25 for `Factory=BuildingType`, 0 otherwise.
 ```
 
+```{warning}
+It is not recommended to set `EngineerChance=100`, as this may put the game into an infinite loop when it insists an infantry other than an engineer exits the building.
+```
+
 ## Ice
 
 - Ice strength can now be customized.

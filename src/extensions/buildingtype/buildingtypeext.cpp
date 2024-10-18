@@ -195,7 +195,7 @@ bool BuildingTypeClassExtension::Read_INI(CCINIClass &ini)
 
     if (!IsInitialized) {
         IsEligibleForAllyBuilding = This()->IsConstructionYard;
-        EngineerChance = This()->ToBuild == RTTI_BUILDINGTYPE;
+        EngineerChance = This()->ToBuild == RTTI_BUILDINGTYPE ? 25 : 0;
     }
 
     GateUpSound = ini.Get_VocType(ini_name, "GateUpSound", GateUpSound);

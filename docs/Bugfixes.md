@@ -57,3 +57,4 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where a vehicle transport could end up attached to its own cargo, causing the transport to disappear upon unloading.
 - Fix a bug where a harvester could be ordered to dock with a refinery that wasn't listed in the harvester's `Dock=` key.
 - Fix a bug where house firepower bonus, veterancy and crate upgrade damage modifiers were not applied to railgun `AmbientDamage=`.
+- Fix a bug where crew wouldn't exit from construction yards when they were sold or destroyed.
