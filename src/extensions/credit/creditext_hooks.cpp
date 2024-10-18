@@ -48,6 +48,8 @@
 
 /**
  *  Modifies the color of the "Options" text based on the player's side.
+ *
+ *  @author: Rampastring, ZivDero
  */
 DECLARE_PATCH(_TabClass_Draw_It_Faction_Specific_Options_Button_Color_Scheme_Patch)
 {
@@ -66,6 +68,8 @@ DECLARE_PATCH(_TabClass_Draw_It_Faction_Specific_Options_Button_Color_Scheme_Pat
 
 /**
  *  Modifies the color of the credits display based on the player's side.
+ *
+ *  @author: Rampastring, ZivDero
  */
 DECLARE_PATCH(_CreditClass_Graphic_Logic_Faction_Specific_Color_Scheme_Patch)
 {
@@ -84,6 +88,11 @@ DECLARE_PATCH(_CreditClass_Graphic_Logic_Faction_Specific_Color_Scheme_Patch)
 }
 
 
+/**
+ *  Draws the tooltip rectangle using a color based on the player's side.
+ *
+ *  @author: Rampastring, ZivDero
+ */
 void Draw_Tooltip_Rectangle(DSurface* surface, Rect& drawrect)
 {
     surface->Fill_Rect(drawrect, 0);
@@ -96,6 +105,11 @@ void Draw_Tooltip_Rectangle(DSurface* surface, Rect& drawrect)
 }
 
 
+/**
+ *  Patch to replace the call to draw the tooptip rectangle.
+ *
+ *  @author: Rampastring
+ */
 DECLARE_PATCH(_CCToolTip_Draw_Faction_Specific_Color_Scheme_Rect_Patch)
 {
     GET_REGISTER_STATIC(DSurface*, surface, esi);
@@ -107,6 +121,11 @@ DECLARE_PATCH(_CCToolTip_Draw_Faction_Specific_Color_Scheme_Rect_Patch)
 }
 
 
+/**
+ *  Modifies the color of the tooltip text color based on the player's side.
+ *
+ *  @author: Rampastring, ZivDero
+ */
 DECLARE_PATCH(_CCToolTip_Draw_Faction_Specific_Color_Scheme_Text_Patch)
 {
     static ColorSchemeType colorschemetype;

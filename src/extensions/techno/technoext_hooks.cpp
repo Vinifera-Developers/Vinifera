@@ -1018,7 +1018,6 @@ void TechnoClassExt::_Draw_Text_Overlay(Point2D& point1, Point2D& point2, Rect& 
 }
 
 
-
 /**
  *  #issue-977
  *
