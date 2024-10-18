@@ -337,9 +337,11 @@ NavComQueueLineDropShadowColor=0,0,0  ; RGB color, color to draw the NavCom queu
 In `RULES.INI`:
 ```ini
 [SOMESIDE]          ; SideType
-UIColor=LightGold   ; ColorScheme, the color to be used when drawing some UI elements.
+UIColor=LightGold   ; ColorScheme, the color to be used when drawing UI elements.
 ToolTipColor=Green  ; ColorScheme, the color to be used when drawing tooltips.
 ```
+
+![image](https://github.com/user-attachments/assets/f4219655-2d28-49d2-9537-25f2fe4ae102)
 
 ## Miscellaneous
 
