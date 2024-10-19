@@ -50,7 +50,8 @@ SideClassExtension::SideClassExtension(const SideClass *this_ptr) :
     Engineer(nullptr),
     Technician(nullptr),
     Disguise(nullptr),
-    SurvivorDivisor(100)
+    SurvivorDivisor(100),
+    HunterSeeker(nullptr)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("SideClassExtension::SideClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -122,6 +123,7 @@ HRESULT SideClassExtension::Load(IStream *pStm)
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Engineer, "Engineer");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Technician, "Technician");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Disguise, "Disguise");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(HunterSeeker, "HunterSeeker");
     
     return hr;
 }
@@ -203,20 +205,30 @@ bool SideClassExtension::Read_INI(CCINIClass &ini)
 
         UIColor = ColorScheme::From_Name("LightGold");
         ToolTipColor = ColorScheme::From_Name("Green");
+
         Crew = Rule->Crew;
         Engineer = Rule->Engineer;
         Technician = Rule->Technician;
         Disguise = Rule->Disguise;
         SurvivorDivisor = Rule->SurvivorDivisor;
+
+        if (std::strstr(ini_name, "GDI")) {
+            HunterSeeker = Rule->GDIHunterSeeker;
+        } else {
+            HunterSeeker = Rule->NodHunterSeeker;
+        }
     }
 
     UIColor = ini.Get_ColorSchemeType(ini_name, "UIColor", UIColor);
     ToolTipColor = ini.Get_ColorSchemeType(ini_name, "ToolTipColor", ToolTipColor);
+
     Crew = ini.Get_Infantry(ini_name, "Crew", Crew);
     Engineer = ini.Get_Infantry(ini_name, "Engineer", Engineer);
     Technician = ini.Get_Infantry(ini_name, "Technician", Technician);
     Disguise = ini.Get_Infantry(ini_name, "Disguise", Disguise);
     SurvivorDivisor = ini.Get_Int(ini_name, "SurvivorDivisor", SurvivorDivisor);
+
+    HunterSeeker = ini.Get_Unit(ini_name, "HunterSeeker", HunterSeeker);
 
     IsInitialized = true;
 
