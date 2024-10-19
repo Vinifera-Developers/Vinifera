@@ -181,7 +181,7 @@ AdvancedPowerPlant=  ; BuildingType, the regular power plant this side uses.
 PowerTurbine=        ; BuildingType, the power turbine this side uses.
 ```
 
-- The AI will first attempt to fill its existing regular power plants with turbines, then, if possible, construct additional advanced power plants, otherwise build new regular power plants.
+- The AI will prioritize upgrading its existing regular power plants with turbines. If possible, it will then construct advanced power plants; otherwise, it will build additional regular power plants.
 - If the side's name contains `GDI`, the defaults are as follows:
 ```ini
 RegularPowerPlant=[General]->GDIPowerPlant
@@ -191,18 +191,18 @@ PowerTurbine=[General]->GDIPowerTurbine
 - Otherwise, the defaults are as follows:
 ```ini
 RegularPowerPlant=[General]->NodRegularPower
-AdvancedPowerPlant=NodAdvancedPower
+AdvancedPowerPlant=[General]->NodAdvancedPower
 PowerTurbine=<none>
 ```
 
 ```{note}
-If you wish to reset a key compared to its default, you can specify `<none>` as its value.
+If you want to remove a key's default value, you can set its value to `<none>`.
 ```
 
 ### Hunter-Seeker
 
 - Vinifera adds the option to customize what unit serves as the Hunter-Seeker per side.
-- The default Hunter-Seeker is `[General]->GDIHunterSeeker` if the side's name contains `GDI`, otherwise `[General]->NodHunterSeeker`.
+- The default Hunter-Seeker is `[General]->GDIHunterSeeker` if the side's name contains `GDI`; otherwise, it defaults to `[General]->NodHunterSeeker`.
 
 In `RULES.INI`:
 ```ini
