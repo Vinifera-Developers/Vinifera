@@ -1429,14 +1429,14 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         HouseClass *housep = Houses[house];
         if (housep) {
             //const char *a = HouseTypes[housep->ID]->Name();
-            //const char *b = housep->ActLike != SIDE_NONE ? Sides[housep->ActLike]->Name() : "<none>";
+            //const char *b = housep->ActLike != HOUSE_NONE ? HouseTypes[housep->ActLike]->Name() : "<none>";
             std::fprintf(fp, "%s: IsHuman:%d  Color:%s  ID:%d  HouseType:%s  ActLike:%s\n",
                 housep->IniName,
                 housep->IsHuman,
                 ColorSchemes[housep->RemapColor]->Name,
                 housep->ID,
                 housep->Class->Name(),
-                housep->ActLike != SIDE_NONE ? Sides[housep->ActLike]->Name() : "<none>");
+                housep->ActLike != HOUSE_NONE ? HouseTypes[housep->ActLike]->Name() : "<none>");
             Add_CRC(&GameCRC, (int)housep->Credits + (int)housep->Power + (int)housep->Drain);
             EXT_DEBUG_INFO("House %s:%x\n", housep->Class->Name(), GameCRC);
         }
