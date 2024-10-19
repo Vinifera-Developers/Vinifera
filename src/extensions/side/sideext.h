@@ -114,4 +114,9 @@ SideClassExtension final : public AbstractTypeClassExtension
          *  The number of survivors is divided by this much when calculating a building's number of survivors.
          */
         int SurvivorDivisor;
+
+        /**
+         *  UnitType used as this Side's Hunter-Seeker.
+         */
+        const UnitTypeClass* HunterSeeker;
 };

@@ -142,7 +142,7 @@ SpawnDelay=3  ; unsigned integer, the number of frames between each of the spawn
 
 ## Sides
 
-## Crew
+### Crew
 
 - Vinifera adds the option to customize the crew a side uses.
 
@@ -156,18 +156,28 @@ Disguise=         ; InfantryType, the type this side will see other players' spi
 SurvivorDivisor=  ; integer, this side's survivor divisor. Defaults to `[General]->SurvivorDivisor`
 ```
 
-## Colors
+### Colors
 
 - Vinifera adds the option to customize what colors are used in the user interface per-side.
 
 In `RULES.INI`:
 ```ini
-[SOMESIDE]          ; SideT
+[SOMESIDE]          ; Side
 UIColor=LightGold   ; ColorScheme, the color to be used when drawing UI elements.
 ToolTipColor=Green  ; ColorScheme, the color to be used when drawing tooltips.
 ```
 
 ![image](https://github.com/user-attachments/assets/f4219655-2d28-49d2-9537-25f2fe4ae102)
+
+### Hunter-Seeker
+
+- Vinifera adds the option to customize what unit serves as the Hunter-Seeker per side. The default Hunter-Seeker is `[General]->GDIHunterSeeker` if the side's name contains `GDI`, otherwise `[General]->NodHunterSeeker`.
+
+In `RULES.INI`:
+```ini
+[SOMESIDE]     ; Side
+HunterSeeker=  ; UnitType, the unit that is this side's Hunter-Seeker.
+```
 
 ## Technos
 
