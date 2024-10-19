@@ -261,6 +261,12 @@ ProdFailType HouseClassExt::_Abandon_Production(RTTIType type, int id)
  */
 int HouseClassExt::_AI_Building()
 {
+    enum {
+        BASE_WALL = -3,
+        BASE_UNKNOWN = -2,
+        BASE_DEFENSE = -1
+    };
+
     /**
      *  Unfortunately, ts-patches spawner has a hack here.
      *  Until we reimplement the spawner in Vinifera, this will have to do.
@@ -291,19 +297,20 @@ int HouseClassExt::_AI_Building()
 
     if (!node) return TICKS_PER_SECOND;
 
-    if (node->Type == -3) {
-        /**
-         *  Build some walls.
-         */
+    /**
+     *  Build some walls.
+     */
+    if (node->Type == BASE_WALL) {
         Base.Nodes.Delete(Base.Nodes.ID(node));
         AI_Build_Wall();
         return 1;
     }
 
-    if (node->Type == -1 || BuildingTypes[node->Type] == Rule->WallTower && node->Where.X != 0 && node->Where.Y != 0) {
-        /**
-         *  Build some defenses.
-         */
+    /**
+     *  Build some defenses.
+     */
+    if (node->Type == BASE_DEFENSE || BuildingTypes[node->Type] == Rule->WallTower && node->Where.X != 0 && node->Where.Y != 0) {
+
         const int nodeid = Base.Nodes.ID(node);
         if (!AI_Build_Defense(nodeid, Base.field_38.Count() > 0 ? &Base.field_38 : nullptr)) {
 
@@ -325,11 +332,11 @@ int HouseClassExt::_AI_Building()
         node = Base.Next_Buildable();
     }
 
-    if (!node || node->Type == -2) return TICKS_PER_SECOND;
+    if (!node || node->Type == BASE_UNKNOWN) return TICKS_PER_SECOND;
 
     /**
      *  In campaigns, or if we have enough power, or if we're trying to building a construction yard,
-     *  just proceed to build the next base node.
+     *  just proceed with building the base node.
      */
     BuildingTypeClass* b = BuildingTypes[node->Type];
     if (Session.Type == GAME_NORMAL || spawner_hack_mpnodes || b->Drain + Drain <= Power - PowerSurplus || Rule->BuildConst.Is_Present(b) || b->Drain <= 0) {
