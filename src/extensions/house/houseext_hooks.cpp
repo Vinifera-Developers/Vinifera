@@ -44,6 +44,10 @@
 #include "asserthandler.h"
 #include "extension_globals.h"
 #include "sidebarext.h"
+#include "rules.h"
+#include "session.h"
+#include "ccini.h"
+#include "sideext.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -62,6 +66,7 @@ static class HouseClassExt final : public HouseClass
 public:
     ProdFailType _Begin_Production(RTTIType type, int id, bool resume);
     ProdFailType _Abandon_Production(RTTIType type, int id);
+    int _AI_Building();
 };
 
 
@@ -245,6 +250,178 @@ ProdFailType HouseClassExt::_Abandon_Production(RTTIType type, int id)
     delete fptr;
 
     return PROD_OK;
+}
+
+
+/**
+ *  Determines what building to build.
+ *
+ *  @author: 09/29/1995 JLB - Created.
+ *           ZivDero - Adjustments for Tiberian Sun
+ */
+int HouseClassExt::_AI_Building()
+{
+    enum {
+        BASE_WALL = -3,
+        BASE_UNKNOWN = -2,
+        BASE_DEFENSE = -1
+    };
+
+    /**
+     *  Unfortunately, ts-patches spawner has a hack here.
+     *  Until we reimplement the spawner in Vinifera, this will have to do.
+     */
+    static bool spawner_hack_init = false;
+    static bool spawner_hack_mpnodes = false;
+
+    if (!spawner_hack_init)
+    {
+        RawFileClass file("SPAWN.INI");
+        CCINIClass spawn_ini;
+
+        if (file.Is_Available()) {
+
+            spawn_ini.Load(file, false);
+            spawner_hack_mpnodes = spawn_ini.Get_Bool("Settings", "UseMPAIBaseNodes", spawner_hack_mpnodes);
+        }
+
+        spawner_hack_init = true;
+    }
+
+
+    if (BuildStructure != BUILDING_NONE) return TICKS_PER_SECOND;
+
+    if (ConstructionYards.Count() == 0) return TICKS_PER_SECOND;
+
+    BaseNodeClass* node = Base.Next_Buildable();
+
+    if (!node) return TICKS_PER_SECOND;
+
+    /**
+     *  Build some walls.
+     */
+    if (node->Type == BASE_WALL) {
+        Base.Nodes.Delete(Base.Nodes.ID(node));
+        AI_Build_Wall();
+        return 1;
+    }
+
+    /**
+     *  Build some defenses.
+     */
+    if (node->Type == BASE_DEFENSE || BuildingTypes[node->Type] == Rule->WallTower && node->Where.X != 0 && node->Where.Y != 0) {
+
+        const int nodeid = Base.Nodes.ID(node);
+        if (!AI_Build_Defense(nodeid, Base.field_38.Count() > 0 ? &Base.field_38 : nullptr)) {
+
+            /**
+             *  If it's a wall tower, delete it twice?
+             *  Perhaps it's assumed that the wall tower is followed by its upgrade?
+             */
+            if (node->Type == Rule->WallTower->Get_Heap_ID()) {
+                Base.Nodes.Delete(nodeid);
+            }
+
+            /**
+             *  Remove the node from the list.
+             */
+            Base.Nodes.Delete(nodeid);
+            return 1;
+        }
+
+        node = Base.Next_Buildable();
+    }
+
+    if (!node || node->Type == BASE_UNKNOWN) return TICKS_PER_SECOND;
+
+    /**
+     *  In campaigns, or if we have enough power, or if we're trying to building a construction yard,
+     *  just proceed with building the base node.
+     */
+    BuildingTypeClass* b = BuildingTypes[node->Type];
+    if (Session.Type == GAME_NORMAL || spawner_hack_mpnodes || b->Drain + Drain <= Power - PowerSurplus || Rule->BuildConst.Is_Present(b) || b->Drain <= 0) {
+
+        /**
+         *  Check if this is a building upgrade if we can actually place the upgrade where it's scheduled to be placed.
+         */
+        if (b->PowersUpToLevel == -1 && !node->Where) {
+            if (b->PowersUpBuilding[0]) {
+
+                BuildingClass* existing_b = Map[node->Where].Cell_Building();
+                BuildingTypeClass* desired_b = BuildingTypes[BuildingTypeClass::From_Name(b->PowersUpBuilding)];
+
+                if (!existing_b || existing_b->Class != desired_b
+                    || existing_b->Class->PowersUpToLevel == -1 && existing_b->UpgradeLevel >= existing_b->Class->Upgrades
+                    || existing_b->Class->PowersUpToLevel == 0 && existing_b->UpgradeLevel > 0) {
+
+                    node->Where = Cell();
+                }
+            }
+        }
+
+        BuildStructure = node->Type;
+        return TICKS_PER_SECOND;
+    }
+
+    /**
+     *  In skirmish, try to build a power plant if there is insufficient power.
+     */
+    const BuildingTypeClass* choice = nullptr;
+    const auto side_ext = Extension::Fetch<SideClassExtension>(Sides[Class->Side]);
+
+    /**
+     *  First let's see if we can upgrade a power plant with a turbine (like GDI).
+     */
+    if (side_ext->PowerTurbine) {
+
+        bool can_build_turbine = false;
+        for (int i = 0; i < Buildings.Count(); i++) {
+
+            BuildingClass* owned_b = Buildings[i];
+            if (owned_b->Owning_House() == this) {
+                if (owned_b->Class == side_ext->RegularPowerPlant && owned_b->UpgradeLevel < owned_b->Class->Upgrades) {
+                    can_build_turbine = true;
+                    break;
+                }
+            }
+        }
+
+        if (can_build_turbine && Probability_Of2(Rule->AIUseTurbineUpgradeProbability)) {
+            choice = side_ext->PowerTurbine;
+        }
+    }
+
+    /**
+     *  If we can't build a turbine, try to build an advanced power plant (like Nod).
+     */
+    if (!choice && side_ext->AdvancedPowerPlant) {
+        DynamicVectorClass<BuildingTypeClass*> owned_buildings;
+
+        for (int i = 0; i < Buildings.Count(); i++) {
+            BuildingClass* b2 = Buildings[i];
+            if (b2->Owning_House() == this) {
+                owned_buildings.Add(b2->Class);
+            }
+        }
+
+        if (Has_Prerequisites(side_ext->AdvancedPowerPlant, owned_buildings, owned_buildings.Count())) {
+            choice = side_ext->AdvancedPowerPlant;
+        }
+    }
+
+    /**
+     *  If neither worked out, just build a normal power plant.
+     */
+    if (!choice) {
+        choice = side_ext->RegularPowerPlant;
+    }
+
+    /**
+     *  Build our chosen power structure before building whatever else we're trying to build.
+     */
+    Base.Nodes.Insert(Base.Nodes.ID(node), BaseNodeClass(choice->Type, Cell()));
+
+    return 1;
 }
 
 
@@ -547,4 +724,6 @@ void HouseClassExtension_Hooks()
     Patch_Jump(0x004BC187, &_HouseClass_Can_Build_BuildLimit_Handle_Vehicle_Transform);
 
     Patch_Jump(0x004CB6C1, &_HouseClass_Enable_SWs_Check_For_Building_Power);
+
+    Patch_Jump(0x004C10E0, &HouseClassExt::_AI_Building);
 }

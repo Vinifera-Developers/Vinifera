@@ -51,6 +51,9 @@ SideClassExtension::SideClassExtension(const SideClass *this_ptr) :
     Technician(nullptr),
     Disguise(nullptr),
     SurvivorDivisor(100),
+    RegularPowerPlant(nullptr),
+    AdvancedPowerPlant(nullptr),
+    PowerTurbine(nullptr),
     HunterSeeker(nullptr)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("SideClassExtension::SideClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
@@ -123,6 +126,9 @@ HRESULT SideClassExtension::Load(IStream *pStm)
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Engineer, "Engineer");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Technician, "Technician");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Disguise, "Disguise");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(RegularPowerPlant, "RegularPowerPlant");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(AdvancedPowerPlant, "AdvancedPowerPlant");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(PowerTurbine, "PowerTurbine");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(HunterSeeker, "HunterSeeker");
     
     return hr;
@@ -213,8 +219,15 @@ bool SideClassExtension::Read_INI(CCINIClass &ini)
         SurvivorDivisor = Rule->SurvivorDivisor;
 
         if (std::strstr(ini_name, "GDI")) {
+            RegularPowerPlant = Rule->GDIPowerPlant;
+            AdvancedPowerPlant = nullptr;
+            PowerTurbine = Rule->GDIPowerTurbine;
             HunterSeeker = Rule->GDIHunterSeeker;
+
         } else {
+            RegularPowerPlant = Rule->NodRegularPower;
+            AdvancedPowerPlant = Rule->NodAdvancedPower;
+            PowerTurbine = nullptr;
             HunterSeeker = Rule->NodHunterSeeker;
         }
     }
@@ -227,6 +240,10 @@ bool SideClassExtension::Read_INI(CCINIClass &ini)
     Technician = ini.Get_Infantry(ini_name, "Technician", Technician);
     Disguise = ini.Get_Infantry(ini_name, "Disguise", Disguise);
     SurvivorDivisor = ini.Get_Int(ini_name, "SurvivorDivisor", SurvivorDivisor);
+
+    RegularPowerPlant = ini.Get_Building(ini_name, "RegularPowerPlant", RegularPowerPlant);
+    AdvancedPowerPlant = ini.Get_Building(ini_name, "AdvancedPowerPlant", AdvancedPowerPlant);
+    PowerTurbine = ini.Get_Building(ini_name, "PowerTurbine", PowerTurbine);
 
     HunterSeeker = ini.Get_Unit(ini_name, "HunterSeeker", HunterSeeker);
 

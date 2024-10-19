@@ -116,6 +116,21 @@ SideClassExtension final : public AbstractTypeClassExtension
         int SurvivorDivisor;
 
         /**
+         *  BuildingType used as this Side's regular power plant.
+         */
+        const BuildingTypeClass* RegularPowerPlant;
+
+        /**
+         *  BuildingType used as this Side's advanced power plant.
+         */
+        const BuildingTypeClass* AdvancedPowerPlant;
+
+        /**
+         *  BuildingType used as this Side's power turbine.
+         */
+        const BuildingTypeClass* PowerTurbine;
+
+        /**
          *  UnitType used as this Side's Hunter-Seeker.
          */
         const UnitTypeClass* HunterSeeker;

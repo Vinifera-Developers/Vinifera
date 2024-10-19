@@ -169,9 +169,40 @@ ToolTipColor=Green  ; ColorScheme, the color to be used when drawing tooltips.
 
 ![image](https://github.com/user-attachments/assets/f4219655-2d28-49d2-9537-25f2fe4ae102)
 
+### Power Plants
+
+- Vinifera allows customizing what power plants the AI will build per side.
+
+In `RULES.INI`:
+```ini
+[SOMESIDE]           ; Side
+RegularPowerPlant=   ; BuildingType, the advanced power plant this side uses.
+AdvancedPowerPlant=  ; BuildingType, the regular power plant this side uses.
+PowerTurbine=        ; BuildingType, the power turbine this side uses.
+```
+
+- The AI will prioritize upgrading its existing regular power plants with turbines. If possible, it will then construct advanced power plants; otherwise, it will build additional regular power plants.
+- If the side's name contains `GDI`, the defaults are as follows:
+```ini
+RegularPowerPlant=[General]->GDIPowerPlant
+AdvancedPowerPlant=<none>
+PowerTurbine=[General]->GDIPowerTurbine
+```
+- Otherwise, the defaults are as follows:
+```ini
+RegularPowerPlant=[General]->NodRegularPower
+AdvancedPowerPlant=[General]->NodAdvancedPower
+PowerTurbine=<none>
+```
+
+```{note}
+If you want to remove a key's default value, you can set its value to `<none>`.
+```
+
 ### Hunter-Seeker
 
-- Vinifera adds the option to customize what unit serves as the Hunter-Seeker per side. The default Hunter-Seeker is `[General]->GDIHunterSeeker` if the side's name contains `GDI`, otherwise `[General]->NodHunterSeeker`.
+- Vinifera adds the option to customize what unit serves as the Hunter-Seeker per side.
+- The default Hunter-Seeker is `[General]->GDIHunterSeeker` if the side's name contains `GDI`; otherwise, it defaults to `[General]->NodHunterSeeker`.
 
 In `RULES.INI`:
 ```ini

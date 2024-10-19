@@ -211,6 +211,7 @@ Vanilla fixes:
 - Fix a bug where crew wouldn't exit from construction yards when they were sold or destroyed (by ZivDero)
 - Fix a bug where you could sometimes get extra crew to exit a building that was being sold and was destroying/undeploying (by ZivDero)
 - Allow customizing the hunter-seeker unit type per side (by ZivDero)
+- Allow customizing power plants per side (by ZivDero)
 
 </details>
 
