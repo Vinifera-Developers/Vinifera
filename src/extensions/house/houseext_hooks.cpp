@@ -47,6 +47,7 @@
 #include "rules.h"
 #include "session.h"
 #include "ccini.h"
+#include "sideext.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -262,7 +263,7 @@ int HouseClassExt::_AI_Building()
 {
     /**
      *  Unfortunately, ts-patches spawner has a hack here.
-     *  Until we reimplement the spawner in Vinifer, this will have to do.
+     *  Until we reimplement the spawner in Vinifera, this will have to do.
      */
     static bool spawner_hack_init = false;
     static bool spawner_hack_mpnodes = false;
@@ -359,14 +360,19 @@ int HouseClassExt::_AI_Building()
      *  In skirmish, try to build a power plant if there is insufficient power.
      */
     const BuildingTypeClass* choice = nullptr;
-    if (!std::strcmp(Class->IniName, "GDI")) {
+    const auto side_ext = Extension::Fetch<SideClassExtension>(Sides[Class->Side]);
+
+    /**
+     *  First let's see if we can upgrade a power plant with a turbine (like GDI).
+     */
+    if (side_ext->PowerTurbine) {
 
         bool can_build_turbine = false;
-        for (int i = 0; i < Buildings.Count(); i++)
-        {
-            BuildingClass* b2 = Buildings[i];
-            if (b2->Owning_House() == this) {
-                if (b2->Class == Rule->GDIPowerPlant && b2->UpgradeLevel < b2->Class->Upgrades) {
+        for (int i = 0; i < Buildings.Count(); i++) {
+
+            BuildingClass* owned_b = Buildings[i];
+            if (owned_b->Owning_House() == this) {
+                if (owned_b->Class == side_ext->RegularPowerPlant && owned_b->UpgradeLevel < owned_b->Class->Upgrades) {
                     can_build_turbine = true;
                     break;
                 }
@@ -374,32 +380,33 @@ int HouseClassExt::_AI_Building()
         }
 
         if (can_build_turbine && Probability_Of2(Rule->AIUseTurbineUpgradeProbability)) {
-            choice = Rule->GDIPowerTurbine;
-        }
-        else {
-            choice = Rule->GDIPowerPlant;
+            choice = side_ext->PowerTurbine;
         }
     }
-    else
-    {
+
+    /**
+     *  If we can't build a turbine, try to build an advanced power plant (like Nod).
+     */
+    if (!choice && side_ext->AdvancedPowerPlant) {
         DynamicVectorClass<BuildingTypeClass*> owned_buildings;
 
-        for (int i = 0; i < Buildings.Count(); i++)
-        {
+        for (int i = 0; i < Buildings.Count(); i++) {
             BuildingClass* b2 = Buildings[i];
             if (b2->Owning_House() == this) {
                 owned_buildings.Add(b2->Class);
             }
         }
 
-        if (Has_Prerequisites(Rule->NodAdvancedPower, owned_buildings, owned_buildings.Count()))
-        {
-            choice = Rule->NodAdvancedPower;
+        if (Has_Prerequisites(side_ext->AdvancedPowerPlant, owned_buildings, owned_buildings.Count())) {
+            choice = side_ext->AdvancedPowerPlant;
         }
-        else
-        {
-            choice = Rule->NodRegularPower;
-        }
+    }
+
+    /**
+     *  If neither worked out, just build a normal power plant.
+     */
+    if (!choice) {
+        choice = side_ext->RegularPowerPlant;
     }
 
     /**
