@@ -525,7 +525,7 @@ IFACEMETHODIMP_(void) RocketLocomotionClass::Stop_Moving()
  */
 IFACEMETHODIMP_(LayerType) RocketLocomotionClass::In_Which_Layer()
 {
-    return LAYER_AIR;
+    return LAYER_TOP;
 }
 
 
