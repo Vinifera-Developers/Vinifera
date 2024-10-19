@@ -216,7 +216,7 @@ bool AircraftClassExt::_Enter_Idle_Mode(bool initial, bool a2)
                     mission = MISSION_ATTACK;
                 }
                 else if (In_Air()) {
-                    if (Target_Legal(NavCom) && Mission != MISSION_MOVE && Mission != MISSION_ENTER) {
+                    if (!Target_Legal(NavCom) || (Mission != MISSION_MOVE && Mission != MISSION_ENTER)) {
                         if (Class->Dock.Count() > 0 && (IsLocked || !Team)) {
 
                             /**
