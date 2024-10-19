@@ -126,6 +126,9 @@ HRESULT SideClassExtension::Load(IStream *pStm)
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Engineer, "Engineer");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Technician, "Technician");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Disguise, "Disguise");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(RegularPowerPlant, "RegularPowerPlant");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(AdvancedPowerPlant, "AdvancedPowerPlant");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(PowerTurbine, "PowerTurbine");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(HunterSeeker, "HunterSeeker");
     
     return hr;
