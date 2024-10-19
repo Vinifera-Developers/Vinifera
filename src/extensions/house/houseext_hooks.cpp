@@ -300,7 +300,7 @@ int HouseClassExt::_AI_Building()
         return 1;
     }
 
-    if (node->Type == -1 || BuildingTypes[node->Type] == Rule->WallTower && node->Where != Cell()) {
+    if (node->Type == -1 || BuildingTypes[node->Type] == Rule->WallTower && node->Where.X != 0 && node->Where.Y != 0) {
         /**
          *  Build some defenses.
          */
