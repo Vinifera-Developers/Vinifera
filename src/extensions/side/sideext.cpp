@@ -197,15 +197,7 @@ bool SideClassExtension::Read_INI(CCINIClass &ini)
 {
     DEV_DEBUG_WARNING("SideClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    if (!AbstractTypeClassExtension::Read_INI(ini)) {
-        return false;
-    }
-
-    const char *ini_name = Name();
-
-    if (!ini.Is_Present(ini_name)) {
-        return false;
-    }
+    const char* ini_name = Name();
 
     if (!IsInitialized) {
 
@@ -224,12 +216,21 @@ bool SideClassExtension::Read_INI(CCINIClass &ini)
             PowerTurbine = Rule->GDIPowerTurbine;
             HunterSeeker = Rule->GDIHunterSeeker;
 
-        } else {
+        }
+        else {
             RegularPowerPlant = Rule->NodRegularPower;
             AdvancedPowerPlant = Rule->NodAdvancedPower;
             PowerTurbine = nullptr;
             HunterSeeker = Rule->NodHunterSeeker;
         }
+    }
+
+    if (!AbstractTypeClassExtension::Read_INI(ini)) {
+        return false;
+    }
+
+    if (!ini.Is_Present(ini_name)) {
+        return false;
     }
 
     UIColor = ini.Get_ColorSchemeType(ini_name, "UIColor", UIColor);

@@ -189,16 +189,16 @@ bool BuildingTypeClassExtension::Read_INI(CCINIClass &ini)
 {
     //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
+    if (!IsInitialized) {
+        IsEligibleForAllyBuilding = This()->IsConstructionYard;
+        EngineerChance = This()->ToBuild == RTTI_BUILDINGTYPE ? 25 : 0;
+    }
+
     if (!TechnoTypeClassExtension::Read_INI(ini)) {
         return false;
     }
 
     const char *ini_name = Name();
-
-    if (!IsInitialized) {
-        IsEligibleForAllyBuilding = This()->IsConstructionYard;
-        EngineerChance = This()->ToBuild == RTTI_BUILDINGTYPE ? 25 : 0;
-    }
 
     GateUpSound = ini.Get_VocType(ini_name, "GateUpSound", GateUpSound);
     GateDownSound = ini.Get_VocType(ini_name, "GateDownSound", GateDownSound);
