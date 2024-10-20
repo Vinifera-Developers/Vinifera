@@ -157,6 +157,8 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where house firepower bonus, veterancy and crate upgrade damage modifiers were not applied to railgun `AmbientDamage=`.
   - Implement `FilterFromBandBoxSelection`.
   - Add the possibility to customize the UI and Tooltip colors per-side.
+  - Harvesters' refinery-seeking algorithm now considers both free and occupied refineries when figuring out which refinery to unload at (by Rampastring)
+  - Harvesters now consider distance to refinery when moving from one Tiberium patch to another (by Rampastring)
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **ZivDero**:

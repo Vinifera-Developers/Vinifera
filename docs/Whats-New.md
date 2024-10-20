@@ -152,6 +152,8 @@ New:
 - Add per-side crew customization (by ZivDero)
 - Reimplement aircraft carriers and missile launchers from Red Alert 2 (by ZivDero)
 - Implement `DontScore` (by ZivDero)
+- Harvesters' refinery-seeking algorithm now considers both free and occupied refineries when figuring out which refinery to unload at (by Rampastring)
+- Harvesters now consider distance to refinery when moving from one Tiberium patch to another (by Rampastring)
 
 
 Vanilla fixes:

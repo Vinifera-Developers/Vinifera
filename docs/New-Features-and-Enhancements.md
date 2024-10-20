@@ -88,6 +88,19 @@ EngineerChance=0  ; integer (%), what is the chance that an engineer will exit t
 It is not recommended to set `EngineerChance=100`, as this may put the game into an infinite loop when it insists an infantry other than an engineer exits the building.
 ```
 
+## Harvesters
+
+- In the original game, harvesters always prefer free refineries over occupied ones, even if the free refinery was much farther away than the occupied refinery. Vinifera fixes this so that harvesters now prefer queueing to occupied refineries if they are much closer than free refineries. The distance for this preference is customizable.
+
+In `RULES.INI`:
+```
+[General]
+; When looking for refineries, harvesters will prefer a distant free
+; refinery over a closer occupied refinery if the refineries' distance
+; difference in cells is less than this.
+MaxFreeRefineryDistanceBias=16
+```
+
 ## Ice
 
 - Ice strength can now be customized.
