@@ -703,7 +703,7 @@ FireErrorType TechnoClassExt::_Can_Fire(TARGET target, WeaponSlotType which)
      *  Check if the unit has synchronized shooting.
      */
     bool check_rearm = true;
-    if (which != WEAPON_SLOT_NONE && What_Am_I() == RTTI_UNIT)
+    if (which != WEAPON_SLOT_SECONDARY && What_Am_I() == RTTI_UNIT)
     {
         const auto unit = reinterpret_cast<UnitClass*>(this);
         const int burst = CurrentBurstIndex % weapon->Burst;
