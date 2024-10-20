@@ -52,8 +52,7 @@ KamikazeTrackerClass::~KamikazeTrackerClass()
 
 
 /**
- *  Loads the object from the stream and requests a new pointer to
- *  the class we extended post-load.
+ *  Loads the object from the stream.
  *
  *  @author: ZivDero
  */
@@ -216,7 +215,6 @@ void KamikazeTrackerClass::AI()
     if (!UpdateTimer.Expired())
         return;
 
-    UpdateTimer.Start();
     UpdateTimer = 30;
 
     for (int i = 0; i < Controls.Count(); i++)
