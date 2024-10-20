@@ -79,15 +79,8 @@ DECLARE_PATCH(_DriveLocomotionClass_Start_Of_Move_Spawn_Manager_Patch)
 
     _asm pushad
 
-    if (linked_to->EMPFramesRemaining > 0)
-    {
-        _asm popad
-        // return 1;
-        JMP(0x0047FE39);
-    }
-
     extension = Extension::Fetch<TechnoClassExtension>(linked_to);
-    if (extension->SpawnManager && extension->SpawnManager->Preparing_Count())
+    if (linked_to->EMPFramesRemaining > 0 || extension->SpawnManager && extension->SpawnManager->Preparing_Count())
     {
         _asm popad
         // return 1;
@@ -107,7 +100,7 @@ DECLARE_PATCH(_DriveLocomotionClass_Start_Of_Move_Spawn_Manager_Patch)
  */
 DECLARE_PATCH(_LogicClass_AI_Kamikaze_AI_Patch)
 {
-    // Stolen instrution
+    // Stolen instruction
     VeinholeMonsterClass::Update_All();
 
     KamikazeTracker->AI();

@@ -443,7 +443,7 @@ void SpawnManagerClass::AI()
                     break;
 
                 /**
-                 *  If there's not target, return to base.
+                 *  If there's no target, return to base.
                  */
                 Next_Target();
                 if (Target != nullptr)

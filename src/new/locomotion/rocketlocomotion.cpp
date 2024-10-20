@@ -132,8 +132,6 @@ IFACEMETHODIMP_(Matrix3D) RocketLocomotionClass::Draw_Matrix(int *key)
 
     /**
      *  Rotate the rocket to its current facing.
-     *  YR subtracts 8 from the facing, equivalent to 90 degrees, but for some reason
-     *  it's necessary to subtract 12 (135 degrees) in YR to achieve the same result.
      */
     const float z_angle = Linked_To()->PrimaryFacing.Current().Get_Radian<32>();
     matrix.Rotate_Z(z_angle);

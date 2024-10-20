@@ -95,7 +95,8 @@ bool AircraftClassExt::_Unlimbo(Coordinate& coord, DirType dir)
 
     if (FootClass::Unlimbo(adjusted_coord, dir)) {
 
-        if (!Class->IsSelectable || !Class->IsLandable || (Class->Fetch_Weapon_Info(WEAPON_SLOT_PRIMARY).Weapon && Class->Fetch_Weapon_Info(WEAPON_SLOT_PRIMARY).Weapon->IsCamera)) {
+        const auto weapon = Class->Fetch_Weapon_Info(WEAPON_SLOT_PRIMARY).Weapon;
+        if (!Class->IsSelectable || !Class->IsLandable || (weapon && weapon->IsCamera)) {
             IsALoaner = true;
         }
 

@@ -936,7 +936,7 @@ DECLARE_PATCH(_EventClass_Execute_Archive_Selling_Patch)
 
 
 /**
- *  Patch in BuildingClass::Captured to not score captured DoneScore buildings.
+ *  Patch in BuildingClass::Captured to not score captured DontScore buildings.
  *
  *  @author: ZivDero
  */
@@ -948,7 +948,7 @@ DECLARE_PATCH(_BuildingClass_Captured_IncrementUnitTracker_Patch)
     ext = Extension::Fetch<BuildingTypeClassExtension>(this_ptr->Class);
     if ((Session.Type == GAME_INTERNET || Session.Type == GAME_IPX) && !ext->IsDontScore)
     {
-        JMP(0x00448541);
+        JMP(0x0042F7A3);
     }
 
     JMP(0x0042F7BB);
