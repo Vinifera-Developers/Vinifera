@@ -1173,12 +1173,12 @@ void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
         const auto source_typeext = Extension::Fetch<TechnoTypeClassExtension>(source->Techno_Type_Class());
 
         if (source->Techno_Type_Class()->IsTrainable) {
-            source->Veterancy.Gain_Experience(Techno_Type_Class()->Cost_Of(House), points);
+            source->Veterancy.Gain_Experience(source->Techno_Type_Class()->Cost_Of(House), points);
 
         } else if (source_typeext->IsMissileSpawn) {
 
             if (source_ext->SpawnOwner && source_ext->SpawnOwner->Techno_Type_Class()->IsTrainable) {
-                source_ext->SpawnOwner->Veterancy.Gain_Experience(Techno_Type_Class()->Cost_Of(House), points);
+                source_ext->SpawnOwner->Veterancy.Gain_Experience(source->Techno_Type_Class()->Cost_Of(House), points);
             }
         }
 
