@@ -176,8 +176,8 @@ ToolTipColor=Green  ; ColorScheme, the color to be used when drawing tooltips.
 In `RULES.INI`:
 ```ini
 [SOMESIDE]           ; Side
-RegularPowerPlant=   ; BuildingType, the advanced power plant this side uses.
-AdvancedPowerPlant=  ; BuildingType, the regular power plant this side uses.
+RegularPowerPlant=   ; BuildingType, the regular power plant this side uses.
+AdvancedPowerPlant=  ; BuildingType, the advanced power plant this side uses.
 PowerTurbine=        ; BuildingType, the power turbine this side uses.
 ```
 
