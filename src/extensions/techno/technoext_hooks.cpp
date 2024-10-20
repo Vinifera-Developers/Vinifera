@@ -403,8 +403,8 @@ WeaponSlotType TechnoClassExt::_What_Weapon_Should_I_Use(TARGET target) const
         w1 = Verses::Get_Modifier(armor, wptr->WarheadPtr) * 1000;
     }
     if (In_Range_Of(target, WEAPON_SLOT_PRIMARY)) w1 *= 2;
-    FireErrorType ok = Can_Fire(target, WEAPON_SLOT_PRIMARY);
-    if (ok == FIRE_CANT || ok == FIRE_ILLEGAL/* || ok == FIRE_REARM*/) w1 = 0;
+    FireErrorType ok1 = Can_Fire(target, WEAPON_SLOT_PRIMARY);
+    if (ok1 == FIRE_CANT || ok1 == FIRE_ILLEGAL || ok1 == FIRE_REARM) w1 = 0;
 
     /**
      *  Calculate a similar value for the secondary weapon.
@@ -416,14 +416,27 @@ WeaponSlotType TechnoClassExt::_What_Weapon_Should_I_Use(TARGET target) const
         w2 = Verses::Get_Modifier(armor, wptr->WarheadPtr) * 1000;
     }
     if (In_Range_Of(target, WEAPON_SLOT_SECONDARY)) w2 *= 2;
-    ok = Can_Fire(target, WEAPON_SLOT_SECONDARY);
-    if (ok == FIRE_CANT || ok == FIRE_ILLEGAL/* || ok == FIRE_REARM*/) w2 = 0;
+    FireErrorType ok2 = Can_Fire(target, WEAPON_SLOT_SECONDARY);
+    if (ok2 == FIRE_CANT || ok2 == FIRE_ILLEGAL || ok2 == FIRE_REARM) w2 = 0;
 
     /**
      *  Return with the weapon identifier that should be used to fire upon the
      *  candidate target.
      */
     if (!webby_primary && !webby_secondary) {
+
+        /**
+         *  If neither weapon can shoot, but one can't because it's rearming, use the one that's rearming.
+         */
+        if (w1 == w2)  {
+            if (ok1 == FIRE_REARM && (ok2 == FIRE_CANT || ok2 == FIRE_ILLEGAL)) {
+                return WEAPON_SLOT_PRIMARY;
+            }
+            else if (ok2 == FIRE_REARM && (ok1 == FIRE_CANT || ok1 == FIRE_ILLEGAL)) {
+                return WEAPON_SLOT_SECONDARY;
+            }
+        }
+
         return w2 > w1 ? WEAPON_SLOT_SECONDARY : WEAPON_SLOT_PRIMARY;
     }
 
