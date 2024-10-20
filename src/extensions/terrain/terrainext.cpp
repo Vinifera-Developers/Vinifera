@@ -160,6 +160,8 @@ int TerrainClassExtension::Size_Of() const
 void TerrainClassExtension::Detach(TARGET target, bool all)
 {
     //EXT_DEBUG_TRACE("TerrainClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    ObjectClassExtension::Detach(target, all);
 }
 
 

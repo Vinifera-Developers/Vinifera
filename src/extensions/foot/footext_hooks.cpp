@@ -46,7 +46,9 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "radarevent.h"
 #include "uicontrol.h"
+#include "vox.h"
 
 
 /**
@@ -61,6 +63,7 @@ class FootClassExt final : public FootClass
 public:
     void _Draw_Action_Line() const;
     void _Draw_NavComQueue_Lines() const;
+    void _Death_Announcement(TechnoClass* source) const;
 
 private:
     void _Draw_Line(Coordinate& start_coord, Coordinate& end_coord, bool is_dashed, bool is_thick, bool is_dropshadow, unsigned line_color, unsigned drop_color, int rate) const;
@@ -544,50 +547,22 @@ return_false:
 
 
 /**
- *  #issue-192
- * 
- *  IsInsignificant is not checked on FootClass objects.
- * 
- *  @author: CCHyper
+ *  Announces the death of a unit.
+ *
+ *  @author: 07/01/1995 JLB - Created.
+ *           ZivDero - Adjustments for Tiberian Sun
  */
-DECLARE_PATCH(_FootClass_Death_Announcement_IsInsignifcant_Patch)
+void FootClassExt::_Death_Announcement(TechnoClass* source) const
 {
-    GET_REGISTER_STATIC(FootClass *, this_ptr, ecx);
-    static const TechnoTypeClass *technotype;
+    if (IsOwnedByPlayer) {
 
-    /**
-     *  Stolen bytes/code here.
-     */
-    _asm { sub esp, 0x10 }
+        const auto is_spawned = Extension::Fetch<TechnoTypeClassExtension>(Techno_Type_Class())->IsSpawned;
+        if (!Techno_Type_Class()->IsInsignificant && !is_spawned) {
 
-    /**
-     *  Don't announce the death of objects we don't own.
-     */
-    if (!this_ptr->IsOwnedByPlayer) {
-        goto function_return;
+            RadarEventClass::LastEventCell = Coord_Cell(entry_50());
+            Speak(VOX_UNIT_LOST);
+        }
     }
-
-    /**
-     *  If this object is marked as "Insignificant", then the user
-     *  should not hear any EVA notification when it is killed.
-     */
-    technotype = this_ptr->Techno_Type_Class();
-    if (technotype->IsInsignificant) {
-        goto function_return;
-    }
-
-    /**
-     *  Continues to the Speak() call.
-     */
-continue_function:
-    _asm { mov ecx, this_ptr }
-    JMP(0x004A4D6D);
-
-    /**
-     *  Return from function.
-     */
-function_return:
-    JMP(0x004A4DB5);
 }
 
 
@@ -596,11 +571,11 @@ function_return:
  */
 void FootClassExtension_Hooks()
 {
-    Patch_Jump(0x004A4D60, &_FootClass_Death_Announcement_IsInsignifcant_Patch);
     Patch_Jump(0x004A6866, &_FootClass_Is_Allowed_To_Recloak_Cloak_Stop_BugFix_Patch);
     Patch_Jump(0x004A59E1, &_FootClass_AI_IdleRate_Patch);
     Patch_Jump(0x004A2BE7, &_FootClass_Mission_Guard_Area_Can_Passive_Acquire_Patch);
     Patch_Jump(0x004A1AAE, &_FootClass_Mission_Guard_Can_Passive_Acquire_Patch);
     Patch_Jump(0x004A102F, &_FootClass_Mission_Move_Can_Passive_Acquire_Patch);
     Patch_Jump(0x004A6A40, &FootClassExt::_Draw_Action_Line);
+    Patch_Jump(0x004A4D60, &FootClassExt::_Death_Announcement);
 }

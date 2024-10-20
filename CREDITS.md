@@ -188,4 +188,6 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where you could sometimes get extra crew to exit a building that was being sold and was destroying/undeploying.
   - Allow customizing the hunter-seeker unit type per side.
   - Allow customizing power plants per side.
+  - Reimplement aircraft carriers and missile launchers from Red Alert 2.
+  - Implement `DontScore`.
 

@@ -105,6 +105,16 @@ WeaponTypeClassExtension final : public AbstractTypeClassExtension
         float ElectricBoltDeviation;
 
         /**
+         *  Does this weapon spawn aircraft when fired?
+         */
+        bool IsSpawner;
+
+        /**
+         *  Should the firer of this weapon be revealed when firing?
+         */
+        bool IsRevealOnFire;
+
+        /**
          *  Particle systems to display.
          */
         //ParticleSystemClass *ElectricBoltSourceBoltParticleSys;

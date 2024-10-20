@@ -29,7 +29,11 @@
 #include "objecttype.h"
 #include "ccini.h"
 #include "asserthandler.h"
+#include "ccfile.h"
 #include "debughandler.h"
+#include "voxellib.h"
+#include "motionlib.h"
+#include "miscutil.h"
 
 
 /**
@@ -40,7 +44,8 @@
 ObjectTypeClassExtension::ObjectTypeClassExtension(const ObjectTypeClass *this_ptr) :
     AbstractTypeClassExtension(this_ptr),
     GraphicName(),
-    AlphaGraphicName()
+    AlphaGraphicName(),
+    NoSpawnAlt(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("ObjectTypeClassExtension::ObjectTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -76,12 +81,24 @@ ObjectTypeClassExtension::~ObjectTypeClassExtension()
  */
 HRESULT ObjectTypeClassExtension::Load(IStream *pStm)
 {
+    AltVoxelIndex.Clear();
+    delete AltVoxel.VoxelLibrary;
+    delete AltVoxel.MotionLibrary;
+    AltVoxel.VoxelLibrary = nullptr;
+    AltVoxel.MotionLibrary = nullptr;
+
     //EXT_DEBUG_TRACE("ObjectTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     HRESULT hr = AbstractTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
+
+    AltVoxelIndex.Clear();
+    AltVoxel.VoxelLibrary = nullptr;
+    AltVoxel.MotionLibrary = nullptr;
+
+    Fetch_Voxel_Image(GraphicName);
     
     return hr;
 }
@@ -151,6 +168,42 @@ bool ObjectTypeClassExtension::Read_INI(CCINIClass &ini)
     if (!ini.Is_Present(ini_name)) {
         return false;
     }
+
+    NoSpawnAlt = ini.Get_Bool(ini_name, "NoSpawnAlt", NoSpawnAlt);
+
+    if (This()->IsVoxel)
+    {
+        Fetch_Voxel_Image(Graphic_Name());
+    }
     
     return true;
 }
+
+
+/**
+ *  Fetches new voxel model data from files.
+ *
+ *  @author: ZivDero
+ */
+void ObjectTypeClassExtension::Fetch_Voxel_Image(const char* graphic_name)
+{
+    char buffer[260];
+    bool success = true;
+
+    if (NoSpawnAlt)
+    {
+        std::snprintf(buffer, sizeof(buffer), "%sWO", graphic_name);
+        success &= Load_Voxel(AltVoxel, buffer);
+    }
+
+    if (success)
+    {
+        AltVoxelIndex.Clear();
+    }
+    else
+    {
+        delete AltVoxel.VoxelLibrary;
+        delete AltVoxel.MotionLibrary;
+    }
+}
+

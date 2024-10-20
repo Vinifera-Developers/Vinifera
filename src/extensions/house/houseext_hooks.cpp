@@ -726,4 +726,6 @@ void HouseClassExtension_Hooks()
     Patch_Jump(0x004CB6C1, &_HouseClass_Enable_SWs_Check_For_Building_Power);
 
     Patch_Jump(0x004C10E0, &HouseClassExt::_AI_Building);
+
+    Patch_Jump(0x004BAC2C, 0x004BAC39); // Patch a jump in the constructor to always allocate unit trackers
 }

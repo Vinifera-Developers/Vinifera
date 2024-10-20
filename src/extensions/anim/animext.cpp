@@ -150,6 +150,8 @@ int AnimClassExtension::Size_Of() const
 void AnimClassExtension::Detach(TARGET target, bool all)
 {
     //EXT_DEBUG_TRACE("AnimClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    ObjectClassExtension::Detach(target, all);
 }
 
 

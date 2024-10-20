@@ -150,6 +150,8 @@ New:
 - Implement `FilterFromBandBoxSelection` (by ZivDero/Rampastring)
 - Add the possibility to customize the UI and Tooltip colors per-side (by Rampastring/ZivDero)
 - Add per-side crew customization (by ZivDero)
+- Reimplement aircraft carriers and missile launchers from Red Alert 2 (by ZivDero)
+- Implement `DontScore` (by ZivDero)
 
 
 Vanilla fixes:

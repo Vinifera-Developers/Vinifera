@@ -40,7 +40,9 @@
 #include "debughandler.h"
 #include "saveload.h"
 #include "vinifera_saveload.h"
-#include "storage/storageext.h"
+#include "storageext.h"
+#include "spawnmanager.h"
+#include "weapontype.h"
 
 
 /**
@@ -51,7 +53,9 @@
 TechnoClassExtension::TechnoClassExtension(const TechnoClass *this_ptr) :
     RadioClassExtension(this_ptr),
     ElectricBolt(nullptr),
-    Storage(Tiberiums.Count())
+    Storage(Tiberiums.Count()),
+    SpawnManager(nullptr),
+    SpawnOwner(nullptr)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoClassExtension::TechnoClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -63,6 +67,10 @@ TechnoClassExtension::TechnoClassExtension(const TechnoClass *this_ptr) :
     if (this_ptr)
     {
         new ((StorageClassExt*)&(this_ptr->Storage)) StorageClassExt(&Storage);
+
+        const auto ttypeext = Extension::Fetch<TechnoTypeClassExtension>(this_ptr->Techno_Type_Class());
+        if (ttypeext->Spawns)
+            SpawnManager = new SpawnManagerClass(const_cast<TechnoClass*>(this_ptr), ttypeext->Spawns, ttypeext->SpawnsNumber, ttypeext->SpawnRegenRate, ttypeext->SpawnReloadRate);
     }
 }
 
@@ -89,7 +97,17 @@ TechnoClassExtension::~TechnoClassExtension()
 {
     //EXT_DEBUG_TRACE("TechnoClassExtension::~TechnoClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    ElectricBolt = nullptr;
+    if (ElectricBolt)
+    {
+        //delete ElectricBolt;
+        ElectricBolt = nullptr;
+    }
+
+    if (SpawnManager)
+    {
+        delete SpawnManager;
+        SpawnManager = nullptr;
+    }
 }
 
 
@@ -110,6 +128,9 @@ HRESULT TechnoClassExtension::Load(IStream *pStm)
     Load_Primitive_Vector(pStm, Storage, "Storage");
 
     ElectricBolt = nullptr;
+
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(SpawnManager, "SpawnManager");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(SpawnOwner, "SpawnOwner");
     
     return hr;
 }
@@ -130,7 +151,6 @@ HRESULT TechnoClassExtension::Save(IStream *pStm, BOOL fClearDirty)
     }
 
     Save_Primitive_Vector(pStm, Storage, "Storage");
-    ElectricBolt = nullptr;
 
     return hr;
 }
@@ -146,6 +166,14 @@ void TechnoClassExtension::Detach(TARGET target, bool all)
     //EXT_DEBUG_TRACE("TechnoClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     RadioClassExtension::Detach(target, all);
+
+    if (SpawnManager) {
+        SpawnManager->Detach(target);
+    }
+
+    if (target == SpawnOwner) {
+        SpawnOwner = nullptr;
+    }
 }
 
 
@@ -159,6 +187,9 @@ void TechnoClassExtension::Compute_CRC(WWCRCEngine &crc) const
     //EXT_DEBUG_TRACE("TechnoClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     RadioClassExtension::Compute_CRC(crc);
+
+    if (SpawnOwner)
+        crc(SpawnOwner->Get_Heap_ID());
 }
 
 
@@ -393,6 +424,43 @@ bool TechnoClassExtension::Can_Passive_Acquire() const
      *  IsCanPassiveAcquire defaults to true to copy original behaviour, so all units can passive acquire unless told otherwise.
      */
     return Techno_Type_Class_Ext()->IsCanPassiveAcquire;
+}
+
+
+/**
+ *  Determines the coordinate where bullets appear.
+ *  Contains an additional argument to add an offset to the firing coordinate,
+ *  used by the spawn manager.
+ *
+ *  @author: ZivDero
+ */
+Coordinate TechnoClassExtension::Fire_Coord(WeaponSlotType which, TPoint3D<int> offset) const
+{
+    TechnoTypeClass *ttype = This()->Techno_Type_Class();
+    const auto weaponinfo = This()->Get_Weapon(which);
+
+    Matrix3D matrix;
+    matrix.Make_Identity();
+
+    float theta = This()->Turret_Facing().Get_Radian<32>();
+    matrix.Rotate_Z(theta);
+
+    const TPoint3D<int> flh = weaponinfo->FireFLH + offset;
+
+    const float trans_x = static_cast<float>(flh.X + ttype->TurretOffset);
+    const float trans_y = static_cast<float>(flh.Y * (This()->CurrentBurstIndex % 2 == 0 ? 1 : -1));
+    const float trans_z = static_cast<float>(flh.Z + weaponinfo->BarrelThickness);
+    matrix.Translate(trans_x, trans_y, trans_z);
+
+    theta = -This()->BarrelFacing.Current().Get_Radian<32>();
+    matrix.Rotate_Y(theta);
+
+    matrix.Translate(static_cast<float>(weaponinfo->BarrelLength), 0, 0);
+
+    const Vector3 fire_coord = matrix * Vector3(0, 0, 0);
+    Coordinate render_coord = This()->Render_Coord();
+
+    return { render_coord.X + static_cast<int>(fire_coord.X), render_coord.Y - static_cast<int>(fire_coord.Y), render_coord.Z + static_cast<int>(fire_coord.Z) };
 }
 
 

@@ -150,6 +150,8 @@ int OverlayTypeClassExtension::Size_Of() const
 void OverlayTypeClassExtension::Detach(TARGET target, bool all)
 {
     //EXT_DEBUG_TRACE("OverlayTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    ObjectTypeClassExtension::Detach(target, all);
 }
 
 
