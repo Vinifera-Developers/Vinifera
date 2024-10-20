@@ -224,7 +224,7 @@ class TechnoTypeClassExtension : public ObjectTypeClassExtension
         TPoint3D<int> SecondSpawnOffset;
 
         /**
-         *  If it can spawn two missiles at once (like the Boomer submarine), this is an extra offset of the second spawn relative to the first.
+         *  Should this unit not be scored, and its loss be counted in trackers?
          */
         bool IsDontScore;
 

@@ -40,7 +40,7 @@
 
 
 /**
- *  Basic constructor for the KamikazeTrackerClass.
+ *  Basic destructor for the KamikazeTrackerClass.
  *
  *  @author: ZivDero
  */
