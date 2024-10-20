@@ -1139,7 +1139,7 @@ void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
     int total_recorded = 0;
     const int points = Techno_Type_Class()->Cost_Of(House);
 
-    const auto text = Extension::Fetch<TechnoTypeClassExtension>(Techno_Type_Class());
+    const auto typeext = Extension::Fetch<TechnoTypeClassExtension>(Techno_Type_Class());
 
     /**
      *  Handle any trigger event associated with this object.
@@ -1154,7 +1154,7 @@ void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
 
     if (IsActive && What_Am_I() != RTTI_UNIT && Tag) Tag->Spring(TEVENT_FAKES_DESTROYED, this);
 
-    if (source && !text->IsDontScore) {
+    if (source && !typeext->IsDontScore) {
 
         const auto source_ext = Extension::Fetch<TechnoClassExtension>(source);
         const auto source_text = Extension::Fetch<TechnoTypeClassExtension>(source->Techno_Type_Class());
@@ -1188,7 +1188,7 @@ void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
         }
 
         if (source) {
-            if ((Session.Type == GAME_INTERNET || Session.Type == GAME_IPX) && !text->IsDontScore) {
+            if ((Session.Type == GAME_INTERNET || Session.Type == GAME_IPX) && !typeext->IsDontScore) {
                 source->House->DestroyedBuildings->Increment_Unit_Total(reinterpret_cast<BuildingClass*>(this)->Class->Type);
             }
             source->House->BuildingsKilled[Owner()]++;
@@ -1205,24 +1205,24 @@ void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
     break;
 
     case RTTI_AIRCRAFT:
-        if (source && (Session.Type == GAME_INTERNET || Session.Type == GAME_IPX) && !text->IsDontScore) {
+        if (source && (Session.Type == GAME_INTERNET || Session.Type == GAME_IPX) && !typeext->IsDontScore) {
             source->House->DestroyedAircraft->Increment_Unit_Total(reinterpret_cast<AircraftClass*>(this)->Class->Type);
             total_recorded++;
         }
         // Fall through.....
     case RTTI_INFANTRY:
-        if (source && !total_recorded && (Session.Type == GAME_INTERNET || Session.Type == GAME_IPX) && !text->IsDontScore) {
+        if (source && !total_recorded && (Session.Type == GAME_INTERNET || Session.Type == GAME_IPX) && !typeext->IsDontScore) {
             source->House->DestroyedInfantry->Increment_Unit_Total(reinterpret_cast<InfantryClass*>(this)->Class->Type);
             total_recorded++;
         }
         // Fall through.....
     case RTTI_UNIT:
-        if (source && !total_recorded && (Session.Type == GAME_INTERNET || Session.Type == GAME_IPX) && !text->IsDontScore) {
+        if (source && !total_recorded && (Session.Type == GAME_INTERNET || Session.Type == GAME_IPX) && !typeext->IsDontScore) {
             source->House->DestroyedUnits->Increment_Unit_Total(reinterpret_cast<UnitClass*>(this)->Class->Type);
         }
 
         House->UnitsLost++;
-        if (source && !text->IsDontScore) source->House->UnitsKilled[Owner()]++;
+        if (source && !typeext->IsDontScore) source->House->UnitsKilled[Owner()]++;
 
         /**
          *  If the map is displaying the multiplayer player names & their

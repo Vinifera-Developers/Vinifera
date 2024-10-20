@@ -446,23 +446,23 @@ void SpawnManagerClass::AI()
                  *  If there's no target, return to base.
                  */
                 Next_Target();
-                if (Target != nullptr)
+                if (!Target)
                 {
                     spawnee->Assign_Destination(Owner);
                     spawnee->Assign_Target(nullptr);
                     spawnee->Assign_Mission(MISSION_MOVE);
                     spawnee->Commence();
                     control->Status = SpawnControlStatus::Returning;
-                    break;
                 }
-
                 /**
                  *  Send the aircraft to attack.
                  */
-                CellClass* owner_cell = Owner->Get_Cell_Ptr();
-                CellClass* adjacent_cell = &owner_cell->Adjacent_Cell(FACING_S);
-                spawnee->Assign_Destination(adjacent_cell);
-                spawnee->Assign_Mission(MISSION_MOVE);
+                else
+                {
+                    CellClass* adjacent_cell = &Owner->Get_Cell_Ptr()->Adjacent_Cell(FACING_S);
+                    spawnee->Assign_Destination(adjacent_cell);
+                    spawnee->Assign_Mission(MISSION_MOVE);
+                }
                 break;
             }
 

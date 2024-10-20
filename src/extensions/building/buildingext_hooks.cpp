@@ -936,11 +936,11 @@ DECLARE_PATCH(_EventClass_Execute_Archive_Selling_Patch)
 
 
 /**
- *  Patch in BuildingClass::Captured to not score captured DontScore buildings.
+ *  Patch in BuildingClass::Captured to not count captured DontScore buildings.
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_BuildingClass_Captured_IncrementUnitTracker_Patch)
+DECLARE_PATCH(_BuildingClass_Captured_DontScore_Patch)
 {
     GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
     static BuildingTypeClassExtension* ext;
@@ -986,5 +986,5 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x00430A01, &_BuildingClass_Mission_Deconstruction_ConYard_Unlimbo_Patch);
     Patch_Jump(0x00430F2B, &_BuildingClass_Mission_Deconstruction_Double_Survivors_Patch);
     Patch_Jump(0x0049436A, &_EventClass_Execute_Archive_Selling_Patch);
-    Patch_Jump(0x0042F799, &_BuildingClass_Captured_IncrementUnitTracker_Patch);
+    Patch_Jump(0x0042F799, &_BuildingClass_Captured_DontScore_Patch);
 }
