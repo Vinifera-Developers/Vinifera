@@ -243,7 +243,7 @@ NoSpawnAlt=no       ; boolean, should this Techno use an alternate voxel model w
 ```
 
 ```{note}
-Unlike in Red Alert 2, the voxel model used by `NoSpawnAlt` is loaded into a separate area of memory from the turet model. This means that Technos that have `NoSpawnAlt=yes` set **can** have turrets.
+Unlike in Red Alert 2, the voxel model used by `NoSpawnAlt` is loaded into a separate area of memory from the turret model. This means that Technos that have `NoSpawnAlt=yes` set **can** have turrets.
 ```
 
 - For the unit to create spawns upon attack, a flag needs to be set on its weapon.
