@@ -70,7 +70,7 @@ TechnoClassExtension::TechnoClassExtension(const TechnoClass *this_ptr) :
 
         const auto ttypeext = Extension::Fetch<TechnoTypeClassExtension>(this_ptr->Techno_Type_Class());
         if (ttypeext->Spawns)
-            SpawnManager = new SpawnManagerClass(const_cast<TechnoClass*>(this_ptr), ttypeext->Spawns, ttypeext->SpawnsNumber, ttypeext->SpawnRegenRate, ttypeext->SpawnReloadRate);
+            SpawnManager = new SpawnManagerClass(const_cast<TechnoClass*>(this_ptr), ttypeext->Spawns, ttypeext->SpawnsNumber, ttypeext->SpawnRegenRate, ttypeext->SpawnReloadRate, ttypeext->SpawnSpawnRate, ttypeext->SpawnLogicRate);
     }
 }
 

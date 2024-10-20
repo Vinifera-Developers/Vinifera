@@ -169,12 +169,14 @@ SpawnManagerClass::SpawnManagerClass() :
  *
  *  @author: ZivDero
  */
-SpawnManagerClass::SpawnManagerClass(TechnoClass* owner, const AircraftTypeClass* spawns, int spawn_count, int regen_rate, int reload_rate) :
+SpawnManagerClass::SpawnManagerClass(TechnoClass* owner, const AircraftTypeClass* spawns, int spawn_count, int regen_rate, int reload_rate, int spawn_rate, int logic_rate) :
     Owner(owner),
     SpawnType(spawns),
     SpawnCount(spawn_count),
     RegenRate(regen_rate),
     ReloadRate(reload_rate),
+    SpawnRate(spawn_rate),
+    LogicRate(logic_rate),
     Target(nullptr),
     QueuedTarget(nullptr),
     Status(SpawnManagerStatus::Idle)
@@ -288,7 +290,7 @@ void SpawnManagerClass::AI()
     if (!LogicTimer.Expired())
         return;
 
-    LogicTimer = 10;
+    LogicTimer = LogicRate;
 
     /**
      *  Iterate all the controls.
@@ -344,7 +346,7 @@ void SpawnManagerClass::AI()
                  *  Not quite sure what's up here.
                  *  Maybe should check the missile instead, huh?
                  */
-                SpawnTimer = owner_type_ext->IsMissileSpawn ? 9 : 20;
+                SpawnTimer = SpawnRate;
 
                 /**
                  *  We can spawn 2 missiles using the burst logic.
@@ -373,18 +375,19 @@ void SpawnManagerClass::AI()
 
                 Coordinate spawn_coord = Coordinate(fire_coord.X, fire_coord.Y, fire_coord.Z + 10);
 
-                const auto rocket = RocketTypeClass::From_AircraftType(SpawnType);
-                if (rocket && rocket->IsCruiseMissile)
-                {
-                    spawn_coord.X -= 40;
-                    spawn_coord.Y -= 40;
-                }
+                /**
+                 *  Randomize the horizontal position a bit if requested.
+                 */
+                if (owner_type_ext->RandomizeSpawnOffset)
+                    spawn_coord += Coordinate(Random_Pick(0, owner_type_ext->RandomSpawnDelta), Random_Pick(0, owner_type_ext->RandomSpawnDelta), 0);
 
                 /**
                  *  Place the spawn in the world.
                  */
                 DirStruct dir = Owner->PrimaryFacing.Current();
                 spawnee->Unlimbo(spawn_coord, dir.Get_Dir());
+
+                const auto rocket = RocketTypeClass::From_AircraftType(SpawnType);
 
                 /**
                  *  Cruise missiles spawn their takeoff animation.

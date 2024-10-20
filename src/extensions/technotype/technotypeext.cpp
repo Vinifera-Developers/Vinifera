@@ -79,8 +79,12 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     Spawns(nullptr),
     SpawnReloadRate(0),
     SpawnRegenRate(0),
+    SpawnSpawnRate(20),
+    SpawnLogicRate(10),
     SpawnsNumber(0),
     SecondSpawnOffset(0, 0, 0),
+    RandomizeSpawnOffset(false),
+    RandomSpawnDelta(0),
     IsDontScore(false),
     IsSpawned(false)
 {
@@ -308,8 +312,12 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     Spawns = ini.Get_Aircraft(ini_name, "Spawns", nullptr);
     SpawnReloadRate = ini.Get_Int(ini_name, "SpawnReloadRate", SpawnReloadRate);
     SpawnRegenRate = ini.Get_Int(ini_name, "SpawnRegenRate", SpawnRegenRate);
+    SpawnSpawnRate = ini.Get_Int(ini_name, "SpawnSpawnRate", SpawnSpawnRate);
+    SpawnLogicRate = ini.Get_Int(ini_name, "SpawnLogicRate", SpawnLogicRate);
     SpawnsNumber = ini.Get_Int(ini_name, "SpawnsNumber", SpawnsNumber);
     SecondSpawnOffset = ArtINI.Get_Point(graphic_name, "SecondSpawnOffset", SecondSpawnOffset);
+    RandomizeSpawnOffset = ini.Get_Bool(ini_name, "RandomizeSpawnOffset", RandomizeSpawnOffset);
+    RandomSpawnDelta = ini.Get_Int(graphic_name, "RandomSpawnDelta", RandomSpawnDelta);
 
     IsDontScore = ini.Get_Bool(ini_name, "DontScore", IsDontScore);
     IsSpawned = ini.Get_Bool(ini_name, "Spawned", IsSpawned);

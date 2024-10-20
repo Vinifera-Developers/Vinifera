@@ -192,9 +192,7 @@ class TechnoTypeClassExtension : public ObjectTypeClassExtension
         int CrewCount;
 
         /**
-         *  This field shares two functions. For spawner units, it designates if it spawns missiles
-         *  (although this appears unused in RA2). For spawned units, it designates if it should be
-         *  treated like a missile.
+         *  If this is a spawned unit, is it a missile?
          */
         bool IsMissileSpawn;
 
@@ -209,9 +207,19 @@ class TechnoTypeClassExtension : public ObjectTypeClassExtension
         int SpawnReloadRate;
 
         /**
-         *  The rate at which the spawner replenished its destroyed spawned objects.
+         *  The rate at which the spawner replenishes its destroyed spawned objects.
          */
         int SpawnRegenRate;
+
+        /**
+         *  The rate at which the spawner spawns objects.
+         */
+        int SpawnSpawnRate;
+
+        /**
+         *  The rate at which the spawner processes its logic.
+         */
+        int SpawnLogicRate;
 
         /**
          *  How many objects can this spawner spawn?
@@ -222,6 +230,16 @@ class TechnoTypeClassExtension : public ObjectTypeClassExtension
          *  If it can spawn two missiles at once (like the Boomer submarine), this is an extra offset of the second spawn relative to the first.
          */
         TPoint3D<int> SecondSpawnOffset;
+
+        /**
+         *  Should the spawn location be randomized slightly?
+         */
+        bool RandomizeSpawnOffset;
+
+        /**
+         *  If the spawn location is to be randomized, by how much?
+         */
+        int RandomSpawnDelta;
 
         /**
          *  Should this unit not be scored, and its loss be counted in trackers?

@@ -80,7 +80,7 @@ public:
 
 public:
     SpawnManagerClass();
-    SpawnManagerClass(TechnoClass* owner, const AircraftTypeClass* spawns, int spawn_count, int regen_rate, int reload_rate);
+    SpawnManagerClass(TechnoClass* owner, const AircraftTypeClass* spawns, int spawn_count, int regen_rate, int reload_rate, int spawn_rate, int logic_rate);
     SpawnManagerClass(const NoInitClass& noinit) : SpawnControls(noinit), LogicTimer(noinit), SpawnTimer(noinit) {}
     virtual ~SpawnManagerClass() override;
 
@@ -131,6 +131,16 @@ public:
      *  How long it takes for a spawn to reload.
      */
     int ReloadRate;
+
+    /**
+     *  How often does the spawn manager spawn a new spawn.
+     */
+    int SpawnRate;
+
+    /**
+     *  How often does the spawn manager process its logic.
+     */
+    int LogicRate;
 
     /**
      *  This vector holds the spawn manager.

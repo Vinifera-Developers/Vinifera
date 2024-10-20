@@ -235,11 +235,15 @@ Aircraft carriers (i. e. spawners that spawn non-rockets) are known to have issu
 
 In `RULES.INI`:
 ```ini
-[SOMETECHNO]        ; TechnoType
-Spawns=             ; AircraftType, the type that this Techno spawns.
-SpawnsNumber=0      ; integer, the number of aircraft that this Techno spawns.
-SpawnRegenRate=0    ; integer, the time it takes for a spawn to regenerate after death.
-SpawnReloadRate=0   ; integer, the time it takes for a spawn to reload its ammo and restore its strength.
+[SOMETECHNO]             ; TechnoType
+Spawns=                  ; AircraftType, the type that this Techno spawns.
+SpawnsNumber=0           ; integer, the number of aircraft that this Techno spawns.
+SpawnRegenRate=0         ; integer, the time it takes for a spawn to regenerate after death.
+SpawnReloadRate=0        ; integer, the time it takes for a spawn to reload its ammo and restore its strength.
+SpawnSpawnRate=20        ; integer, the time between two consecutive spawns being created.
+SpawnLogicRate=10        ; integer, the delay with which the spawn manager processes its logic.
+RandomizeSpawnOffset=no  ; boolean, should the spawn offset be randomized in the horizontal plane?
+RandomSpawnDelta=0       ; integer, the maximum random offset if spawn offsets are to be randomized.
 ```
 
 - Additionally, it's possible to specify an alternative voxel model to use when the spawner has no spawns docked.
@@ -298,6 +302,7 @@ EliteDamage=400         ; integer, the rocker does this much damage when it expl
 BodyLength=256          ; integer, the length of  thebody of the rocket in leptons (1/256 of a cell).
 LazyCurve=yes           ; boolean, is the rocket's path a big, lazy curve, like the V3 is Red Alert 2.
 CruiseMissile=no        ; boolean, is this rocket a Cruise Missile, like Boomer missiles in Yuri's Revenge.
+CloseEnoughFactor=1.0   ; float, LazyCurve=no rockets begin turning toward their target after flying parallel to the ground when their horizontal distance from the target is a specified multiple of their vertical distance.
 Type=                   ; AircraftType, the type this rocket is associated with.
 Warhead=                ; WarheadType, the warhead that this rocket's explosion uses.
 EliteWarhead=           ; WarheadType, the warhead that this rocket's explosion uses when the spawner is elite.

@@ -354,9 +354,9 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
                     /**
                      *  If we're there, proceed to closing in.
                      */
-                    const Coordinate center_coord = Linked_To()->Center_Coord();
-                    const Coordinate coord(center_coord.X - DestinationCoord.X, center_coord.Y - DestinationCoord.Y, center_coord.Z - Linked_To()->Coord.Z);
-                    if (coord.Length() <= Linked_To()->Coord.Z - DestinationCoord.Z)
+                    const int horizontal_distance = (Linked_To()->Center_Coord().As_Cell() - DestinationCoord.As_Cell()).Length();
+                    const int vertical_distance = Linked_To()->Center_Coord().Z - DestinationCoord.Z;
+                    if (horizontal_distance <= vertical_distance * rocket->CloseEnoughFactor)
                         MissionState = RocketMissionState::ClosingIn;
                 }
 
@@ -374,6 +374,13 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
                 Explode();
                 return false;
             }
+
+            /**
+             *  If the rocket has flown outisde the map's bounds, remove it so as to not lag the game.
+             */
+            if (!Map.In_Radar(Coord_Cell(Linked_To()->Center_Coord())))
+                Linked_To()->Remove_This();
+
             break;
         }
 

@@ -150,6 +150,11 @@ public:
     bool IsCruiseMissile;
 
     /**
+     *  LazyCurve=no rockets missiles begin turning toward their target after flying parallel to the ground when their horizontal distance from the target is a specified multiple of their vertical distance.
+     */
+    double CloseEnoughFactor;
+
+    /**
      *  The AircraftType of this rocket.
      */
     const AircraftTypeClass* Type;

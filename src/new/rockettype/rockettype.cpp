@@ -64,6 +64,8 @@ RocketTypeClass::RocketTypeClass(const char* name) :
     EliteDamage(0),
     BodyLength(0),
     IsLazyCurve(false),
+    IsCruiseMissile(false),
+    CloseEnoughFactor(1.0),
     Type(nullptr),
     Warhead(nullptr),
     EliteWarhead(nullptr)
@@ -387,6 +389,7 @@ bool RocketTypeClass::Read_INI(CCINIClass& ini)
     BodyLength = ini.Get_Int(IniName, "BodyLength", BodyLength);
     IsLazyCurve = ini.Get_Bool(IniName, "LazyCurve", IsLazyCurve);
     IsCruiseMissile = ini.Get_Bool(IniName, "CruiseMissile", IsCruiseMissile);
+    CloseEnoughFactor = ini.Get_Double(IniName, "CloseEnoughFactor", CloseEnoughFactor);
     Type = ini.Get_Aircraft(IniName, "Type", Type);
     Warhead = ini.Get_Warhead(IniName, "Warhead", Warhead);
     EliteWarhead = ini.Get_Warhead(IniName, "EliteWarhead", EliteWarhead);
