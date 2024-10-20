@@ -591,7 +591,7 @@ void RocketLocomotionClass::Explode()
      */
     const auto atype = reinterpret_cast<AircraftClass*>(Linked_To())->Class;
     const RocketTypeClass* rocket = RocketTypeClass::From_AircraftType(atype);
-    const WarheadTypeClass* warhead = IsSpawnerElite ? rocket->EliteWarhead : rocket->Warhead;
+    const WarheadTypeClass* warhead = (IsSpawnerElite && rocket->EliteWarhead) ? rocket->EliteWarhead : rocket->Warhead;
 
     /**
      *  Calculate where it's moving right now.
