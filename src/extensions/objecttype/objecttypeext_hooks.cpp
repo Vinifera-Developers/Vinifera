@@ -171,7 +171,7 @@ void ObjectTypeClassExt::_Fetch_Voxel_Image()
 
     success &= Load_Voxel(Voxel, Graphic_Name(), true);
 
-    if (What_Am_I() != RTTI_UNIT || reinterpret_cast<UnitTypeClass*>(this)->IsTurretEquipped)
+    if (What_Am_I() != RTTI_UNITTYPE || reinterpret_cast<UnitTypeClass*>(this)->IsTurretEquipped)
     {
         std::snprintf(buffer, sizeof(buffer), "%sTUR", Graphic_Name());
         success &= Load_Voxel(AuxVoxel, buffer);
