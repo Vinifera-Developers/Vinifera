@@ -385,7 +385,6 @@ Versus.myarmor=100%         ; % or float, the damage multiplier against a this a
 ForceFire.myarmor=yes       ; boolean, whether this warhead can be used to force-fire at a this armor type.
 Retaliate.myarmor=yes       ; boolean, whether this warhead can be used to retaliate against a this armor type.
 PassiveAcquire.myarmor=yes  ; boolean, whether this warhead can be used to passive acquire a this armor type.
-Organic=no                  ; boolean, whether an infantry using this warhead can passively acquire or retaliate against vehicles, aircraft or buildings. This overrides the RA/TS 0% behavior.
 ```
 
 ```{warning}
