@@ -147,7 +147,7 @@ When an infantry with `Mechanic=yes` and `OmniHealer=yes` is selected and the mo
 
 - Vinifera adds the `SpawnDelay` key from Red Alert 2.
 
-In `RULES.INI`:
+In `ART.INI`:
 ```ini
 [SOMEBULLET]  ; BulletType
 SpawnDelay=3  ; unsigned integer, the number of frames between each of the spawned trailer animations.
