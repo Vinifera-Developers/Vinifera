@@ -242,8 +242,7 @@ SpawnRegenRate=0         ; integer, the time it takes for a spawn to regenerate 
 SpawnReloadRate=0        ; integer, the time it takes for a spawn to reload its ammo and restore its strength.
 SpawnSpawnRate=20        ; integer, the time between two consecutive spawns being created.
 SpawnLogicRate=10        ; integer, the delay with which the spawn manager processes its logic.
-RandomizeSpawnOffset=no  ; boolean, should the spawn offset be randomized in the horizontal plane?
-RandomSpawnDelta=0       ; integer, the maximum random offset if spawn offsets are to be randomized.
+MaxRandomSpawnOffset=0   ; integer, if greater than 0, the spawn offset will be randomly shifted in the horizontal plane by up to this many leptons.
 ```
 
 - Additionally, it's possible to specify an alternative voxel model to use when the spawner has no spawns docked.

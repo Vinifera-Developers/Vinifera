@@ -376,7 +376,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
             }
 
             /**
-             *  If the rocket has flown outisde the map's bounds, remove it so as to not lag the game.
+             *  If the rocket has flown outside the map's bounds, remove it so as to not lag the game.
              */
             if (!Map.In_Radar(Coord_Cell(Linked_To()->Center_Coord())))
                 Linked_To()->Remove_This();

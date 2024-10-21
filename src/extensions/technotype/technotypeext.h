@@ -232,14 +232,9 @@ class TechnoTypeClassExtension : public ObjectTypeClassExtension
         TPoint3D<int> SecondSpawnOffset;
 
         /**
-         *  Should the spawn location be randomized slightly?
-         */
-        bool RandomizeSpawnOffset;
-
-        /**
          *  If the spawn location is to be randomized, by how much?
          */
-        int RandomSpawnDelta;
+        int MaxRandomSpawnOffset;
 
         /**
          *  Should this unit not be scored, and its loss be counted in trackers?

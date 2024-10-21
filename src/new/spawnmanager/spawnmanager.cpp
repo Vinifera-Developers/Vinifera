@@ -378,8 +378,8 @@ void SpawnManagerClass::AI()
                 /**
                  *  Randomize the horizontal position a bit if requested.
                  */
-                if (owner_type_ext->RandomizeSpawnOffset)
-                    spawn_coord += Coordinate(Random_Pick(0, owner_type_ext->RandomSpawnDelta), Random_Pick(0, owner_type_ext->RandomSpawnDelta), 0);
+                if (owner_type_ext->MaxRandomSpawnOffset > 0)
+                    spawn_coord += Coordinate(Random_Pick(0, owner_type_ext->MaxRandomSpawnOffset), Random_Pick(0, owner_type_ext->MaxRandomSpawnOffset), 0);
 
                 /**
                  *  Place the spawn in the world.
