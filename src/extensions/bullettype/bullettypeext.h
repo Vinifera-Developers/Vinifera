@@ -66,4 +66,9 @@ BulletTypeClassExtension final : public ObjectTypeClassExtension
          *  The number of frames between trailer anim spawns.
          */
         unsigned SpawnDelay;
+
+        /**
+         *  If set, this projectile can only be used against targets on water.
+         */
+        bool IsTorpedo;
 };

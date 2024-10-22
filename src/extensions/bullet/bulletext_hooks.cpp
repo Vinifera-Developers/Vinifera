@@ -29,6 +29,13 @@
 #include "bullettype.h"
 #include "bullettypeext.h"
 #include "bullet.h"
+#include "anim.h"
+#include "animtype.h"
+#include "building.h"
+#include "house.h"
+#include "infantry.h"
+#include "overlaytype.h"
+#include "techno.h"
 #include "warheadtype.h"
 #include "warheadtypeext.h"
 #include "iomap.h"
@@ -39,6 +46,97 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or deconstructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+static class BulletClassExt final : public BulletClass
+{
+public:
+    bool _Is_Forced_To_Explode(Coordinate& coord);
+};
+
+
+/**
+ *  #issue-444
+ *
+ *  Full replacement of BulletClass::Is_Forced_To_Explode.
+ *
+ *  @author: 10/10/1996 JLB : Created.
+ *           22/10/2024 Rampastring : Adjustments for Tiberian Sun.
+ */
+bool BulletClassExt::_Is_Forced_To_Explode(Coordinate& coord)
+{
+    coord = Coord;
+    CellClass* cellptr = &Map[Get_Coord()];
+
+    /*
+    **  Check for impact on a wall or other high obstacle.
+    */
+    if (!Class->IsHigh && cellptr->Overlay != OVERLAY_NONE && OverlayTypeClass::As_Reference(cellptr->Overlay).IsHigh) {
+
+        if (Get_Height() < 100) {
+            coord = Cell_Coord(Coord_Cell(coord));
+            return true;
+        }
+    }
+
+    /*
+    **  Check for impact on the ground.
+    */
+    if (Get_Height() < 0) {
+        return true;
+    }
+
+    /*
+    **  Check to make sure that underwater projectiles (torpedoes) will not
+    **  travel in anything but water.
+    */
+    const auto bullettypeext = Extension::Fetch<BulletTypeClassExtension>(Class);
+    if (bullettypeext->IsTorpedo)
+    {
+        int d = ::Distance(Coord_Fraction(coord), XY_Coord(CELL_LEPTON_W / 2, CELL_LEPTON_W / 2));
+
+        if (cellptr->Land_Type() != LAND_WATER ||
+            (d < CELL_LEPTON_W / 3 && cellptr->Cell_Techno() != nullptr &&
+                (Payback == nullptr || !Payback->House->Is_Ally(cellptr->Cell_Techno()))))
+        {
+            /*
+            **  Force explosion to be at center of techno object if one is present.
+            */
+            if (cellptr->Cell_Techno() != nullptr) {
+                coord = cellptr->Cell_Techno()->Target_Coord();
+            }
+
+            /*
+            **  However, if the torpedo was blocked by a bridge, then force the
+            **  torpedo to explode on top of that bridge cell.
+            */
+            if (cellptr->Is_Bridge_Here()) {
+                coord = Coord_Snap(coord);
+            }
+
+            return true;
+        }
+    }
+
+    /*
+    **  Bullets are generally more effective when they are fired at aircraft or flying jumpjets.
+    */
+    if (Class->IsAntiAircraft && Target_Legal(TarCom) &&
+        (TarCom->What_Am_I() == RTTI_AIRCRAFT || (TarCom->What_Am_I() == RTTI_INFANTRY && reinterpret_cast<InfantryClass*>(TarCom)->Is_Flying_JumpJet())) &&
+        Distance(TarCom) < 0x0080)
+    {
+        return true;
+    }
+
+    return false;
+}
 
 
 /**
@@ -121,6 +219,7 @@ DECLARE_PATCH(_BulletClass_Logic_ShakeScreen_Patch)
  */
 void BulletClassExtension_Hooks()
 {
+    Patch_Jump(0x004462C0, &BulletClassExt::_Is_Forced_To_Explode);
     Patch_Jump(0x00446652, &_BulletClass_Logic_ShakeScreen_Patch);
     Patch_Jump(0x004447BF, &_BulletClass_AI_SpawnDelay_Patch);
 }

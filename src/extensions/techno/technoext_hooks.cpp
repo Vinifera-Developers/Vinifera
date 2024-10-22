@@ -33,6 +33,7 @@
 #include "unit.h"
 #include "unittype.h"
 #include "bullettype.h"
+#include "bullettypeext.h"
 #include "technoext.h"
 #include "techno.h"
 #include "technotype.h"
@@ -612,6 +613,7 @@ void TechnoClassExt::_Mission_AI()
  *
  *  @author: 12/23/1994 JLB - Created.
  *           ZivDero - Adjustments for Tiberian Sun.
+ *           Rampastring - Added support for torpedoes.
  */
 FireErrorType TechnoClassExt::_Can_Fire(TARGET target, WeaponSlotType which)
 {
@@ -676,11 +678,31 @@ FireErrorType TechnoClassExt::_Can_Fire(TARGET target, WeaponSlotType which)
         return FIRE_CANT;
 
     /**
+     *  #issue-444
+     *
+     *  If the weapon fires torpedoes and the target is on land,
+     *  then firing is not allowed.
+     */
+    const auto bullettypeext = Extension::Fetch<BulletTypeClassExtension>(weapon->Bullet);
+    if (bullettypeext->IsTorpedo) {
+        if (Map[target->Center_Coord()].Land_Type() != LAND_WATER) {
+            return FIRE_CANT;
+        }
+    }
+
+    /**
      *  If the weapon is a spawner, it needs to have an object ready to spawn.
      */
     if (weapon && Extension::Fetch<WeaponTypeClassExtension>(weapon)->IsSpawner)
     {
         const auto techno_ext = Extension::Fetch<TechnoClassExtension>(this);
+
+        if (techno_ext->SpawnManager == nullptr)
+        {
+            Vinifera_DeveloperMode_Warning_WWMessageBox("[FATAL] You have a weapon that has Spawner=yes but you didn't define Spawns= in the techno.");
+            Fatal("[FATAL] You have a weapon that has Spawner=yes but you didn't define Spawns= in the techno.");
+        }
+
         if (techno_ext->SpawnManager->Active_Count() == 0)
             return FIRE_REARM;
     }
