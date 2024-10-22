@@ -153,6 +153,16 @@ In `ART.INI`:
 SpawnDelay=3  ; unsigned integer, the number of frames between each of the spawned trailer animations.
 ```
 
+### Torpedoes
+
+- Vinifera ports the Torpedo logic from Red Alert 1. Torpedoes can only be fired at targets on water. Additionally, torpedoes explode when they collide with land or an enemy unit.
+
+In `RULES.INI`:
+```ini
+[SOMEBULLET]
+Torpedo=yes   ; boolean, is this projectile considered a torpedo?
+```
+
 ## Sides
 
 ### Crew
