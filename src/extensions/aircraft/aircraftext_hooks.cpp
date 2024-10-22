@@ -65,6 +65,7 @@ static class AircraftClassExt final : public AircraftClass
 public:
     bool _Unlimbo(Coordinate& coord, DirType dir);
     bool _Enter_Idle_Mode(bool initial, bool a2);
+    bool _Cell_Seems_Ok(Cell& cell, bool strict) const;
 };
 
 
@@ -286,6 +287,58 @@ bool AircraftClassExt::_Enter_Idle_Mode(bool initial, bool a2)
     return result;
 }
 
+
+/**
+ *  Checks to see if a cell is good to enter.
+ *
+ *  @author: 06/19/1995 JLB - Created.
+ *           ZivDero - Adjustments for Tiberian Sun.
+ */
+bool AircraftClassExt::_Cell_Seems_Ok(Cell& cell, bool strict) const
+{
+    /**
+     *  If the cell is outisde the playable area, then it is not a valid cell to enter.
+     */
+    if (!Map.In_Local_Radar(cell)) {
+        return false;
+    }
+
+    /**
+     *  Spawners and spawned objects can co-exist in cells.
+     */
+    if (Extension::Fetch<AircraftTypeClassExtension>(Class)->IsSpawned) {
+        const TechnoClass* techno = Map[cell].Cell_Techno();
+        if (techno) {
+            if (Extension::Fetch<TechnoClassExtension>(techno)->SpawnManager
+                || Extension::Fetch<TechnoTypeClassExtension>(techno->Techno_Type_Class())->IsSpawned) {
+                return true;
+            }
+        }
+    }
+
+    /**
+     *  If we're a carryall, we can enter a potential totable unit's cell.
+     */
+    bool can_tote = false;
+    if (Class->IsCarryall && Target_Legal(NavCom) && NavCom->What_Am_I() == RTTI_UNIT)
+        can_tote = true;
+
+    /**
+     *  Make sure that no other aircraft are heading to the selected location. If they
+     *  are, then don't consider the location as valid.
+     */
+    TARGET astarget = &Map[cell];
+    for (int index = 0; index < Foots.Count(); index++) {
+        const FootClass* foot = Foots[index];
+        if (foot && (!can_tote || foot != NavCom) && (strict || foot != this) && !foot->IsInLimbo) {
+            if (foot->IsDown && (Coord_Cell(foot->Coord) == cell || foot->NavCom == astarget)) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
 
 
 /**
@@ -586,4 +639,5 @@ void AircraftClassExtension_Hooks()
 
     Patch_Jump(0x00408940, &AircraftClassExt::_Unlimbo);
     Patch_Jump(0x0040B310, &AircraftClassExt::_Enter_Idle_Mode);
+    Patch_Jump(0x0040D260, &AircraftClassExt::_Cell_Seems_Ok);
 }

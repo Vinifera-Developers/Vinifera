@@ -239,10 +239,6 @@ HunterSeeker=  ; UnitType, the unit that is this side's Hunter-Seeker.
 
 - Vinifera ports the spawn manager, responsible for AircraftType missiles and aircraft carries from Red Alert 2.
 
-```{warning}
-Aircraft carriers (i. e. spawners that spawn non-rockets) are known to have issues with Tiberian Sun aircraft, and as such may not function properly. This will be fixed in a future version of Vinifera.
-```
-
 In `RULES.INI`:
 ```ini
 [SOMETECHNO]             ; TechnoType
