@@ -1195,11 +1195,11 @@ void Extension::Print_CRCs(EventClass *ev)
      *  Create a unique filename for the sync log based on the time of execution and the player name.
      */
     char filename_buffer[512];
-    std::snprintf(filename_buffer, sizeof(filename_buffer), "%s\\SYNC_%s-%02d_%02u-%02u-%04u_%02u-%02u-%02u.LOG",
+    std::snprintf(filename_buffer, sizeof(filename_buffer), "%s\\SYNC_%s-%02d_%02u-%02u-%04u_%02u-%02u-%02u-%d.LOG",
         Vinifera_DebugDirectory,
         PlayerPtr->IniName,
         PlayerPtr->ID,
-        Execute_Day, Execute_Month, Execute_Year, Execute_Hour, Execute_Min, Execute_Sec);
+        Execute_Day, Execute_Month, Execute_Year, Execute_Hour, Execute_Min, Execute_Sec, Frame);
 
     /**
      *  Open the sync log.
@@ -1215,6 +1215,35 @@ void Extension::Print_CRCs(EventClass *ev)
     Extension::Print_CRCs(fp, ev);
 
     std::fclose(fp);
+}
+
+
+const char* Facing_To_String(FacingType facing) 
+{
+    if (facing == FACING_NONE) {
+        return "";
+    }
+
+    static const char* facing_names[8] = { "N", "NE", "E", "SE", "S", "SW", "W", "NW" };
+
+    return facing_names[(int)facing];
+}
+
+
+void Print_Path(FILE* fp, FootClass *foot)
+{
+    // Print path
+    FacingType facing = foot->Path[0];
+    int pathindex = 0;
+
+    while (facing != FACING_NONE) {
+        std::fprintf(fp, Facing_To_String(facing));
+        std::fprintf(fp, " ");
+        pathindex++;
+        facing = foot->Path[pathindex];
+    }
+
+    std::fprintf(fp, "\n");
 }
 
 
@@ -1438,11 +1467,14 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         if (housep) {
             //const char *a = HouseTypes[housep->ID]->Name();
             //const char *b = housep->ActLike != HOUSE_NONE ? HouseTypes[housep->ActLike]->Name() : "<none>";
-            std::fprintf(fp, "%s: IsHuman:%d  Color:%s  ID:%d  HouseType:%s  ActLike:%s\n",
+            std::fprintf(fp, "%s: IsHuman:%d  Color:%s  ID:%d  Credits:%d  Power:%d  Drain:%d  HouseType:%s  ActLike:%s\n",
                 housep->IniName,
                 housep->IsHuman,
                 ColorSchemes[housep->RemapColor]->Name,
                 housep->ID,
+                housep->Credits,
+                housep->Power,
+                housep->Drain,
                 housep->Class->Name(),
                 housep->ActLike != HOUSE_NONE ? HouseTypes[housep->ActLike]->Name() : "<none>");
             Add_CRC(&GameCRC, (int)housep->Credits + (int)housep->Power + (int)housep->Drain);
@@ -1480,13 +1512,16 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                         navcom_coord = ptr->NavCom->Center_Coord();
                     }
 
-                    std::fprintf(fp, "COORD:%d,%d,%d  Facing:%d  Mission:%s  Type:%s(%d)  Speed:%d  TarCom:%s(%d,%d,%d)  NavCom:%s(%d,%d,%d)\n",
+                    std::fprintf(fp, "COORD:%d,%d,%d  Facing:%d  Mission:%s  Type:%s(%d)  Speed:%d  TarCom:%s(%d,%d,%d)  NavCom:%s(%d,%d,%d)  Doing:%d  Path: ",
                                 ptr->Center_Coord().X, ptr->Center_Coord().Y, ptr->Center_Coord().Z,
                                 (int)ptr->PrimaryFacing.Current().Get_Dir(), MissionClass::Mission_Name(ptr->Get_Mission()),
                                 ptr->Class->Name(), ptr->Class->Type,
                                 (int)(ptr->Speed * 256.0),
                                 tarcom_name, tarcom_coord.X, tarcom_coord.Y, tarcom_coord.Z,
-                                navcom_name, navcom_coord.X, navcom_coord.Y, navcom_coord.Z);
+                                navcom_name, navcom_coord.X, navcom_coord.Y, navcom_coord.Z,
+                                ptr->Doing);
+
+                    Print_Path(fp, ptr);
                 }
             }
             EXT_DEBUG_INFO("%s %s:%x\n", housep->Class->Name(), Extension::Utility::Get_TypeID_Name<InfantryClassExtension>().c_str(), GameCRC);
@@ -1523,13 +1558,15 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                         navcom_coord = ptr->NavCom->Center_Coord();
                     }
 
-                    std::fprintf(fp, "COORD:%d,%d,%d  Facing:%d  Facing2:%d  Mission:%s  Type:%s(%d)  TarCom:%s(%d,%d,%d)  NavCom:%s(%d,%d,%d)  TrkNum:%d  TrkInd:%d  SpdAcc:%d\n",
+                    std::fprintf(fp, "COORD:%d,%d,%d  Facing:%d  Facing2:%d  Mission:%s  Type:%s(%d)  TarCom:%s(%d,%d,%d)  NavCom:%s(%d,%d,%d)  TrkNum:%d  TrkInd:%d  SpdAcc:%d  Path:",
                                 ptr->Center_Coord().X, ptr->Center_Coord().Y, ptr->Center_Coord().Z,
                                 (int)ptr->PrimaryFacing.Current().Get_Dir(), (int)ptr->SecondaryFacing.Current().Get_Dir(), MissionClass::Mission_Name(ptr->Get_Mission()),
                                 ptr->Class->Name(), ptr->Class->Type,
                                 tarcom_name, tarcom_coord.X, tarcom_coord.Y, tarcom_coord.Z,
                                 navcom_name, navcom_coord.X, navcom_coord.Y, navcom_coord.Z,
                                 ptr->Locomotor_Ptr()->Get_Track_Number(), ptr->Locomotor_Ptr()->Get_Track_Number(), ptr->Locomotor_Ptr()->Get_Speed_Accum());
+
+                    Print_Path(fp, ptr);
                 }
             }
             EXT_DEBUG_INFO("%s %s:%x\n", housep->Class->Name(), Extension::Utility::Get_TypeID_Name<UnitClass>().c_str(), GameCRC);
@@ -1571,7 +1608,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     }
 
     /**
-     *  Units
+     *  Aircraft
      */
     for (int house = 0; house < Houses.Count(); ++house) {
         HouseClass *housep = Houses[house];
@@ -1599,12 +1636,14 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                         navcom_coord = ptr->NavCom->Center_Coord();
                     }
 
-                    std::fprintf(fp, "COORD:%d,%d,%d  Facing:%d  Mission:%s  Type:%s(%d) TarCom:%s(%d,%d,%d)  NavCom:%s(%d,%d,%d)\n",
+                    std::fprintf(fp, "COORD:%d,%d,%d  Facing:%d  Mission:%s  Type:%s(%d) TarCom:%s(%d,%d,%d)  NavCom:%s(%d,%d,%d)  Path:",
                                 ptr->Center_Coord().X, ptr->Center_Coord().Y, ptr->Center_Coord().Z,
                                 (int)ptr->PrimaryFacing.Current().Get_Dir(), MissionClass::Mission_Name(ptr->Get_Mission()),
                                 ptr->Class->Name(), ptr->Class->Type,
                                 tarcom_name, tarcom_coord.X, tarcom_coord.Y, tarcom_coord.Z,
                                 navcom_name, navcom_coord.X, navcom_coord.Y, navcom_coord.Z);
+
+                    Print_Path(fp, ptr);
                 }
             }
             EXT_DEBUG_INFO("%s %s:%x\n", housep->Class->Name(), Extension::Utility::Get_TypeID_Name<AircraftClass>().c_str(), GameCRC);
@@ -1613,15 +1652,54 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     }
 
     /**
+     *  Projectiles
+     */
+    std::fprintf(fp, "-------------------- Projectiles / Bullets ------------------ - \n");
+    for (int index = 0; index < Bullets.Count(); ++index) {
+        BulletClass *bullet = Bullets[index];
+
+        const char *bullet_name = bullet->Full_Name();
+
+        const char* payback = "None";
+        const char* payback_owner = "None";
+        int owner_id = -1;
+
+        if (bullet->Payback) {
+            payback = bullet->Payback->Full_Name();
+
+            payback_owner = bullet->Payback->Owning_House()->IniName;
+            owner_id = bullet->Payback->Owner();
+        }
+
+        std::fprintf(fp, "Coord:%d,%d,%d  TargetCoord:(%d,%d,%d)  Payback:%s  Owner:%s  OwnerID:%d  Type:%s\n",
+            bullet->Center_Coord().X, bullet->Center_Coord().Y, bullet->Center_Coord().Z,
+            bullet->Target_Coord().X, bullet->Target_Coord().Y, bullet->Target_Coord().Z,
+            payback, payback_owner, owner_id, bullet_name);
+    }
+    std::fprintf(fp, "\n");
+
+    /**
      *  Animations
      */
     std::fprintf(fp, "-------------------- Animations -------------------\n");
     for (int index = 0; index < Anims.Count(); ++index) {
         AnimClass *animp = Anims[index];
-        std::fprintf(fp, "Target:%x OwnerHouse:%d Loops:%d\n",
-            (uintptr_t)animp->xObject,
+        const char *xobject_name = "None";
+        Coordinate xobject_coord;
+
+        if (animp->xObject) {
+            xobject_name = Name_From_RTTI((RTTIType)animp->xObject->What_Am_I());
+            xobject_coord = animp->xObject->Center_Coord();
+        }
+
+        const char *anim_name = animp->Full_Name();
+
+        std::fprintf(fp, "Coord:%d,%d,%d  Target:%s(%d,%d,%d)  OwnerHouse:%d  Loops:%d  Type:%s  \n",
+            animp->Center_Coord().X, animp->Center_Coord().Y, animp->Center_Coord().Z,
+            xobject_name, xobject_coord.X, xobject_coord.Y, xobject_coord.Z,
             animp->OwnerHouse,
-            animp->Loops);
+            animp->Loops,
+            anim_name);
     }
     std::fprintf(fp, "\n");
 
@@ -1662,6 +1740,9 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                     break;
                 case RTTI_UNIT:
                     std::fprintf(fp, "Unit      (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                    break;
+                case RTTI_PARTICLE:
+                    std::fprintf(fp, "Particle  (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
                     break;
             };
             HouseClass *housep = objp->Owning_House();
@@ -1713,6 +1794,9 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
             case RTTI_UNIT:
                 std::fprintf(fp, "Unit      (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
                 break;
+            case RTTI_PARTICLE:
+                std::fprintf(fp, "Particle  (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                break;
         };
         HouseClass *housep = objp->Owning_House();
         if (housep) {
@@ -1747,7 +1831,9 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
 
     /**
      *  Event queues.
+     *  Rampastring: printing these causes a crash atm
      */
+#if 0
     std::fprintf(fp, "-------------------- DoList Events -------------------\n");
     Print_Event_List(fp, DoList);
     std::fprintf(fp, "\n");
@@ -1755,6 +1841,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     std::fprintf(fp, "-------------------- OutList Events -------------------\n");
     Print_Event_List(fp, OutList);
     std::fprintf(fp, "\n");
+#endif
 
     /**
      *  Print heap CRC's.
