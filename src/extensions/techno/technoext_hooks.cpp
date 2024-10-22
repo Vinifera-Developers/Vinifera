@@ -863,7 +863,7 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
     /**
      *  Human-controlled units that have a target don't retaliate.
      */
-    if (House->Is_Human_Control() && this->TarCom)
+    if (House->Is_Human_Control() && Target_Legal(TarCom))
         return false;
 
     /**
@@ -872,7 +872,8 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
      */
     if (warhead != nullptr && warhead->IsVeinhole)
     {
-        if (!(Is_Foot() && reinterpret_cast<FootClass const*>(this)->NavCom && House->Is_Human_Control()))
+        const bool is_foot_with_nav = Is_Foot() && reinterpret_cast<FootClass const*>(this)->NavCom;
+        if (!is_foot_with_nav || !House->Is_Human_Control())
             return true;
     }
 
@@ -880,6 +881,12 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
      *  If there is no source of the damage, then retaliation cannot occur.
      */
     if (source == nullptr)
+        return false;
+
+    /**
+     *  If the current mission doesn't allow retaliation, return false;
+     */
+    if (!Get_Current_Mission_Control().IsRetaliate)
         return false;
 
     /**
@@ -900,8 +907,8 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
      *  don't allow retaliation.
      */
     const WeaponInfoStruct* weapon_info = Get_Weapon(What_Weapon_Should_I_Use(source));
-    if (weapon_info->Weapon->WarheadPtr != nullptr &&
-        Verses::Get_Modifier(source->Techno_Type_Class()->Armor, weapon_info->Weapon->WarheadPtr) == 0)
+    if (weapon_info->Weapon->WarheadPtr &&
+        Verses::Get_Modifier(source->Techno_Type_Class()->Armor, weapon_info->Weapon->WarheadPtr) == 0.0)
     {
         return false;
     }
@@ -909,7 +916,7 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
     /**
      *  Don't allow retaliation if it isn't equipped with a weapon that can deal with the threat.
      */
-    if (source->What_Am_I() == RTTI_AIRCRAFT && !weapon_info->Weapon->Bullet->IsAntiAircraft) return(false);
+    if (source->What_Am_I() == RTTI_AIRCRAFT && !weapon_info->Weapon->Bullet->IsAntiAircraft) return false;
 
     /**
      *  Units with C4 are not allowed to retaliate against buildings in the normal sense while in guard mode. That
@@ -933,8 +940,8 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
      */
     if (House->Is_Human_Control() && What_Am_I() == RTTI_UNIT)
     {
-        BuildingTypeClass* deploys_into = reinterpret_cast<UnitClass const*>(this)->Class->DeploysInto;
-        if (deploys_into != nullptr && deploys_into->IsArtillary)
+        const BuildingTypeClass* deploys_into = reinterpret_cast<UnitClass const*>(this)->Class->DeploysInto;
+        if (deploys_into && deploys_into->IsArtillary)
             return false;
     }
 
@@ -950,17 +957,17 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
     /**
      *  If this object is part of a team that prevents retaliation then don't allow retaliation.
      */
-    if (Is_Foot() && reinterpret_cast<FootClass const*>(this)->Team != nullptr && reinterpret_cast<FootClass const*>(this)->Team->Class->IsSuicide)
+    if (Is_Foot() && reinterpret_cast<FootClass const*>(this)->Team && reinterpret_cast<FootClass const*>(this)->Team->Class->IsSuicide)
         return false;
 
     /**
      *  Compare potential threat of the current target and the potential new target. Don't retaliate
      *  if it is currently attacking the greater threat.
      */
-    if (!House->Is_Human_Control() && TarCom != nullptr && Is_Target_Object(TarCom))
+    if (!House->Is_Human_Control() && Target_Legal(TarCom) && Is_Target_Object(TarCom))
     {
-        float current_val = Target_Threat(static_cast<TechnoClass*>(TarCom), Coordinate());
-        float source_val = Target_Threat(source, Coordinate());
+        const float current_val = Target_Threat(static_cast<TechnoClass*>(TarCom), Coordinate());
+        const float source_val = Target_Threat(source, Coordinate());
 
         if (source_val < current_val)
             return false;

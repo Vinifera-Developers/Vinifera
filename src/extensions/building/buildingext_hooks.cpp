@@ -83,6 +83,7 @@ public:
     void _Update_Buildables();
     const InfantryTypeClass* _Crew_Type() const;
     int _How_Many_Survivors() const;
+    int _Shape_Number() const;
 };
 
 
@@ -205,6 +206,72 @@ int BuildingClassExt::_How_Many_Survivors() const
 
     const int count = (Class->Cost_Of(House) * Rule->SurvivorFraction) / divisor;
     return std::clamp(count, 1, 5);
+}
+
+
+/**
+ *  Fetch the shape number for this building.
+ *
+ *  @author: 07/29/1996 JLB - Created
+ *           ZivDero - Adjustments for Tiberian Sun
+ */
+int BuildingClassExt::_Shape_Number() const
+{
+    /**
+     *  Laser fences and Firestorm walls have a precalculated frame to show.
+     */
+    if (Class->IsLaserFence) {
+        return LaserFenceFrame;
+    }
+
+    if (Class->IsFirestormWall) {
+        return FirestormWallFrame;
+    }
+
+    int shapenum = Fetch_Stage();
+
+    /**
+     *  The shape file to use for rendering depends on whether the building
+     *  is undergoing construction or not.
+     */
+    if (BState == BSTATE_CONSTRUCTION) {
+
+        /**
+         *  If the building is deconstructing, then the display frame progresses
+         *  from the end to the beginning. Reverse the shape number accordingly.
+         */
+        if (Mission == MISSION_DECONSTRUCTION) {
+            shapenum = (Class->Anims[BState].Start + Class->Anims[BState].Count - 1) - shapenum;
+        }
+
+    }
+    else if (Class->IsGate)
+    {
+        if (Health_Ratio() > Rule->ConditionYellow) {
+            return 0;
+        }
+        else {
+            return Class->GateStages + 1;
+        }
+    }
+    else {
+        /**
+         *  If below half strenth, then show the damage frames of the
+         *  building.
+         */
+        if (Health_Ratio() <= Rule->ConditionYellow) {
+            int last1 = Class->Anims[BSTATE_IDLE].Start + Class->Anims[BSTATE_IDLE].Count;
+            int last2 = Class->Anims[BSTATE_ACTIVE].Start + Class->Anims[BSTATE_ACTIVE].Count;
+            int largest = std::max(last1, last2);
+            last2 = Class->Anims[BSTATE_AUX1].Start + Class->Anims[BSTATE_AUX1].Count;
+            largest = std::max(largest, last2);
+            last2 = Class->Anims[BSTATE_AUX2].Start + Class->Anims[BSTATE_AUX2].Count;
+            largest = std::max(largest, last2);
+            shapenum += largest;
+        }
+    }
+
+    return shapenum;
 }
 
 
@@ -1016,4 +1083,5 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x0049436A, &_EventClass_Execute_Archive_Selling_Patch);
     Patch_Jump(0x0042F799, &_BuildingClass_Captured_DontScore_Patch);
     Patch_Jump(0x0042E5F5, &_BuildingClass_Grand_Opening_Assign_FreeUnit_LastDockedBuilding_Patch);
+    //Patch_Jump(0x00429220, &BuildingClassExt::_Shape_Number); // It's identical to vanilla, leaving it in in case it's ever needed
 }
