@@ -155,6 +155,7 @@ New:
 - Harvesters' refinery-seeking algorithm now considers both free and occupied refineries when figuring out which refinery to unload at (by Rampastring)
 - Harvesters now consider distance to refinery when moving from one Tiberium patch to another (by Rampastring)
 - Implement the Torpedo logic from Red Alert 1 for BulletTypes (by Rampastring)
+- Add `BuildTimeCost` (by Rampastring)
 
 
 Vanilla fixes:

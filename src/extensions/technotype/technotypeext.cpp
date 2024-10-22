@@ -85,7 +85,8 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     SecondSpawnOffset(0, 0, 0),
     MaxRandomSpawnOffset(0),
     IsDontScore(false),
-    IsSpawned(false)
+    IsSpawned(false),
+    BuildTimeCost(0)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -319,6 +320,7 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
 
     IsDontScore = ini.Get_Bool(ini_name, "DontScore", IsDontScore);
     IsSpawned = ini.Get_Bool(ini_name, "Spawned", IsSpawned);
+    BuildTimeCost = ini.Get_Int(ini_name, "BuildTimeCost", BuildTimeCost);
 
     return true;
 }

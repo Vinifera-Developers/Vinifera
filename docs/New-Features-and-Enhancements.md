@@ -606,6 +606,17 @@ In `RULES.INI`:
 DontScore=no  ; boolean, should this Techno not count towards promotion and multiplayer score?
 ```
 
+### Build Time
+
+- By default, the build time of an object is based on its cost. Vinifera allows customizing the build time of an object independently of its cost.
+
+In `RULES.INI`:
+```ini
+[SOMETECHNO]
+BuildTimeCost=300 ; integer, specifies the object's build time.
+                  ; for example, setting this to 300 makes the object build as fast as a 300-cost object, regardless of its actual cost.
+```
+
 ## Terrain
 
 ### Light Sources
