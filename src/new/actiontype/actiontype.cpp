@@ -126,7 +126,7 @@ ActionTypeClass ActionTypeClass::ActionControl[ACTION_COUNT] = {
     ActionTypeClass(ActionNames[ACTION_SPY_MISSION],          NO_MOUSE_SHAPE,             NO_MOUSE_SHAPE),            // ACTION_SPY_MISSION
     ActionTypeClass(ActionNames[ACTION_GUARD_AREA],           MOUSE_AREA_GUARD,           MOUSE_AREA_GUARD),          // ACTION_GUARD_AREA
     ActionTypeClass(ActionNames[ACTION_HEAL],                 MOUSE_HEAL,                 MOUSE_HEAL),                // ACTION_HEAL
-    ActionTypeClass(ActionNames[ACTION_DAMAGE],               NO_MOUSE_SHAPE,             NO_MOUSE_SHAPE),            // ACTION_DAMAGE
+    ActionTypeClass(ActionNames[ACTION_DAMAGE],               MOUSE_ENTER,                NO_MOUSE_SHAPE),            // ACTION_DAMAGE
     ActionTypeClass(ActionNames[ACTION_GREPAIR],              MOUSE_GREPAIR,              NO_MOUSE_SHAPE),            // ACTION_GREPAIR
     ActionTypeClass(ActionNames[ACTION_NO_DEPLOY],            MOUSE_NO_DEPLOY,            MOUSE_NO_DEPLOY),           // ACTION_NO_DEPLOY
     ActionTypeClass(ActionNames[ACTION_NO_ENTER],             MOUSE_NO_ENTER,             MOUSE_NO_ENTER),            // ACTION_NO_ENTER
@@ -151,7 +151,7 @@ ActionTypeClass ActionTypeClass::ActionControl[ACTION_COUNT] = {
     ActionTypeClass(ActionNames[ACTION_PATROL_WAYPOINT],      MOUSE_PATROL_WAYPOINT,      MOUSE_PATROL_WAYPOINT),     // ACTION_PATROL_WAYPOINT
     ActionTypeClass(ActionNames[ACTION_DROP_POD],             MOUSE_AIR_STRIKE,           MOUSE_AIR_STRIKE),          // ACTION_DROP_POD
     ActionTypeClass(ActionNames[ACTION_RALLY_TO_POINT],       NO_MOUSE_SHAPE,             NO_MOUSE_SHAPE),            // ACTION_RALLY_TO_POINT
-    ActionTypeClass( ActionNames[ACTION_ATTACK_SUPPORT],      NO_MOUSE_SHAPE,             NO_MOUSE_SHAPE)             // ACTION_ATTACK_SUPPORT
+    ActionTypeClass(ActionNames[ACTION_ATTACK_SUPPORT],       NO_MOUSE_SHAPE,             NO_MOUSE_SHAPE)             // ACTION_ATTACK_SUPPORT
 };
 
 
