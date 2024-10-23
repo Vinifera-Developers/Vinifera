@@ -134,7 +134,7 @@ void EBoltClass::Draw_It()
                 TacticalMap->Coord_To_Pixel(StartCoord, pixel_start);
                 TacticalMap->Coord_To_Pixel(EndCoord, pixel_end);
 
-                if (Clip_Line(&pixel_start, &pixel_end, &TacticalRect)) {
+                if (Clip_Line(pixel_start, pixel_end, TacticalRect)) {
                     Plot_Bolt(StartCoord, EndCoord);
                 }
             }

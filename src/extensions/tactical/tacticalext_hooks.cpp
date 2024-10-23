@@ -54,6 +54,7 @@
 
 #include <timeapi.h>
 
+#include "clipline.h"
 #include "hooker.h"
 #include "hooker_macros.h"
 #include "technotypeext.h"
@@ -74,6 +75,8 @@ class TacticalExt : public Tactical
 public:
     void _Draw_Band_Box();
     void _Select_These(Rect& rect, void (*selection_func)(ObjectClass* obj));
+    void _Draw_Rally_Points(bool blit);
+
 
 public:
 
@@ -417,6 +420,108 @@ static void Vinifera_Bandbox_Select(ObjectClass* obj)
 
 
 /**
+ *  Rally point line drawing routine replacement.
+ *
+ *  @author: ZivDero
+ */
+void TacticalExt::_Draw_Rally_Points(bool blit)
+{
+    /**
+     *  5 pixels on, 3 off, 5 pixels on, 3 off.
+     */
+    static bool _pattern[16] = { true, true, true, true, true, false, false, false, true, true, true, true, true, false, false, false };
+
+    /**
+     *  #issue-348
+     *
+     *  The animation speed of Rally Point lines is not normalised and subjective to
+     *  the game speed setting. This adjusts the animation using the system
+     *  timer and makes the animation speed consistent across all game speeds.
+     *
+     *  @authors: CCHyper
+     */
+    const int time = timeGetTime();
+    const int offset = (-time / 32) & (std::size(_pattern) - 1);
+
+    const unsigned color = DSurface::RGB_To_Pixel(0, 255, 0);
+    const unsigned color_black = DSurface::RGB_To_Pixel(0, 0, 0);
+
+    /**
+     *  Iterate all selected objects to see if we need to draw a rally point line for them.
+     */
+    for (int i = 0; i < CurrentObjects.Count(); i++)
+    {
+        const ObjectClass* obj = CurrentObjects[i];
+        if (obj->Kind_Of() == RTTI_BUILDING && obj->IsActive && obj->IsSelected && obj->Owning_House() == PlayerPtr)
+        {
+            const BuildingClass* bldg = static_cast<const BuildingClass*>(obj);
+            /**
+             *  We draw rally point for factories, as well as repair bays (Rampastring).
+             */
+            if (bldg->Class->ToBuild == RTTI_UNITTYPE || bldg->Class->ToBuild == RTTI_INFANTRYTYPE || bldg->Class->ToBuild == RTTI_AIRCRAFTTYPE || bldg->Class->CanUnitRepair)
+            {
+                /**
+                 *  ArchiveTarget contains the rally point cell, so it needs to be set.
+                 */
+                if (Target_Legal(bldg->ArchiveTarget) && bldg->Get_Mission() != MISSION_DECONSTRUCTION)
+                {
+                    /**
+                     *  The start of the line is just at the building's center.
+                     */
+                    Coordinate center_coord = bldg->Center_Coord();
+                    Point2D start_pos = func_60F150(center_coord);
+                    start_pos += Point2D(TacticalRect.X, TacticalRect.Y) - field_5C;
+
+                    /**
+                     *  Get the coordinate of the rally point and adjust it for cell height.
+                     */
+                    Coordinate rally_coord = bldg->ArchiveTarget->Center_Coord();
+
+                    rally_coord.Z = Map.Get_Cell_Height(rally_coord);
+                    if (Map[rally_coord].Bit2_16)
+                        rally_coord.Z += BridgeCellHeight;
+
+                    Point2D end_pos = func_60F0F0(Point2D(rally_coord.X, rally_coord.Y)) / 256;
+                    end_pos.Y -= Z_Lepton_To_Pixel(rally_coord.Z);
+                    end_pos += Point2D(TacticalRect.X, TacticalRect.Y) - field_5C;
+
+                    /**
+                     *  #issue-351
+                     *
+                     *  Thicken the rally point lines so they are easier to see in contrast to the terrain.
+                     *
+                     *  @authors: CCHyper
+                     */
+                    if (Clip_Line(start_pos, end_pos, TacticalRect))
+                    {
+                        /**
+                         *  Draw the drop shadow line.
+                         */
+                        start_pos.Y += 2;
+                        end_pos.Y += 2;
+                        LogicSurface->entry_48(start_pos, end_pos, color_black, _pattern, offset, blit);
+
+                        /**
+                         *  Draw two lines, offset by one pixel from each other, giving the
+                         *  impression that it is double the thickness.
+                         */
+                        --start_pos.Y;
+                        --end_pos.Y;
+                        LogicSurface->entry_48(start_pos, end_pos, color, _pattern, offset, blit);
+
+                        --start_pos.Y;
+                        --end_pos.Y;
+                        LogicSurface->entry_48(start_pos, end_pos, color, _pattern, offset, blit);
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+/**
  *  #issue-315
  * 
  *  Set the waypoint number text for all theaters to be "White" (14).
@@ -431,77 +536,6 @@ DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_Text_Color_Patch)
     JMP_REG(ecx, 0x00616FEB);
 }
 
-
-/**
- *  #issue-348
- * 
- *  The animation speed of Waypoint lines is not normalised and subjective to
- *  the game speed setting. This patch adjusts the animation using the system
- *  timer and makes the animation speed consistent across all game speeds.
- * 
- *  @authors: CCHyper
- */
-DECLARE_PATCH(_Tactical_Draw_Rally_Points_NormaliseLineAnimation_Patch)
-{
-    GET_STACK_STATIC8(bool, blit, esp, 0x70);
-    LEA_STACK_STATIC(Point2D *, start_pos, esp, 0x1C);
-    LEA_STACK_STATIC(Point2D *, end_pos, esp, 0x14);
-
-    /**
-     *  5 pixels on, 3 off, 5 pixels on, 3 off.
-     */
-    static bool _pattern[16] = { true, true, true, true, true, false, false, false, true, true, true, true, true, false, false, false };
-    
-    static int time;
-    static int offset;
-    static unsigned color;
-    static unsigned color_black;
-
-    /**
-     *  Adjust the offset of the line pattern.
-     */
-    time = timeGetTime();
-    offset = (-time / 32) & (ARRAYSIZE(_pattern)-1);
-
-    color = DSurface::RGB_To_Pixel(0,255,0);
-    color_black = DSurface::RGB_To_Pixel(0,0,0);
-
-#if 0
-    /**
-     *  Draw the line line with the desired pattern.
-     */
-    LogicSurface->entry_48(*start_pos, *end_pos, color, _pattern, offset, blit);
-#endif
-
-    /**
-     *  #issue-351
-     * 
-     *  Thicken the rally point lines so they are easier to see in contrast to the terrain.
-     * 
-     *  @authors: CCHyper
-     */
-
-    /**
-     *  Draw the drop shadow line.
-     */
-    start_pos->Y += 2;
-    end_pos->Y += 2;
-    LogicSurface->entry_48(*start_pos, *end_pos, color_black, _pattern, offset, blit);
-
-    /**
-     *  Draw two lines, offset by one pixel from each other, giving the
-     *  impression that it is double the thickness.
-     */
-    --start_pos->Y;
-    --end_pos->Y;
-    LogicSurface->entry_48(*start_pos, *end_pos, color, _pattern, offset, blit);
-
-    --start_pos->Y;
-    --end_pos->Y;
-    LogicSurface->entry_48(*start_pos, *end_pos, color, _pattern, offset, blit);
-
-    JMP(0x00616EFD);
-}
 
 
 /**
@@ -720,38 +754,6 @@ original_code:
 
 
 /**
- *  Enables drawing of rally points for Service Depots.
- *
- *  @author: Rampastring
- */
-DECLARE_PATCH(_Tactical_Draw_Rally_Points_Draw_For_Service_Depots)
-{
-    GET_REGISTER_STATIC(BuildingTypeClass*, buildingtype, ecx);
-    static RTTIType tobuild;
-
-    tobuild = buildingtype->ToBuild;
-    if (tobuild == RTTI_UNITTYPE || tobuild == RTTI_INFANTRYTYPE || tobuild == RTTI_AIRCRAFTTYPE)
-        goto draw_rally_point;
-
-    if (buildingtype->CanUnitRepair)
-        goto draw_rally_point;
-
-    /**
-     *  This building is not eligible for having a rally point,
-     *  skip the drawing process.
-     */
-no_rally_point:
-    JMP(0x00616EFD);
-
-    /**
-     *  Draw the potential rally point of the building.
-     */
-draw_rally_point:
-    JMP(0x00616D28);
-}
-
-
-/**
  *  #issue-1050
  *
  *  Fixes a bug where the camera keeps following a followed object
@@ -787,11 +789,10 @@ void TacticalExtension_Hooks()
     Patch_Jump(0x00611AF9, &_Tactical_Render_Post_Effects_Patch);
     Patch_Jump(0x00611BCB, &_Tactical_Render_Overlay_Patch);
 
-    Patch_Jump(0x00616E9A, &_Tactical_Draw_Rally_Points_NormaliseLineAnimation_Patch);
+    Patch_Jump(0x00616C90, &TacticalExt::_Draw_Rally_Points);
+
     Patch_Jump(0x006172DB, &_Tactical_Draw_Waypoint_Paths_NormaliseLineAnimation_Patch);
     Patch_Jump(0x00617327, &_Tactical_Draw_Waypoint_Paths_DrawNormalLine_Patch);
-
-    Patch_Jump(0x00616D0F, &_Tactical_Draw_Rally_Points_Draw_For_Service_Depots);
 
     Patch_Jump(0x0060F953, &_Tactical_Center_On_Location_Unfollow_Object_Patch);
 

@@ -108,7 +108,7 @@ void FootClassExt::_Draw_Line(Coordinate& start_coord, Coordinate& end_coord, bo
     /**
      *  Draw the queue line.
      */
-    if (Clip_Line(&start_point, &end_point, &TacticalRect)) {
+    if (Clip_Line(start_point, end_point, TacticalRect)) {
 
         Point2D drop_start_point = start_point;
         Point2D drop_end_point = end_point;
