@@ -2374,6 +2374,7 @@ DECLARE_PATCH(_TechnoClass_Take_Damage_Drop_Tiberium_Type_Patch)
  *
  *  @author: ZivDero
  */
+static void _Tag_Spring_Entered(TechnoClass* this_ptr) { this_ptr->Tag->Spring(TEVENT_PLAYER_ENTERED, this_ptr); }
 DECLARE_PATCH(_TechnoClass_Captured_Spawn_Manager_Patch)
 {
     GET_REGISTER_STATIC(TechnoClass*, this_ptr, esi);
@@ -2386,7 +2387,7 @@ DECLARE_PATCH(_TechnoClass_Captured_Spawn_Manager_Patch)
 
     // Stolen instructions
     if (this_ptr->Tag)
-        this_ptr->Tag->Spring(TEVENT_PLAYER_ENTERED, this_ptr);
+        _Tag_Spring_Entered(this_ptr);
 
     JMP(0x00632518);
 }
