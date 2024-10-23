@@ -91,12 +91,12 @@ static void Display_Set_Mouse_Cursor(ActionType action, bool shadow, bool wsmall
 
 DECLARE_PATCH(_DisplayClass_Mouse_Left_Up_Set_Mouse)
 {
-    _asm { pop ebp }
-
     GET_REGISTER_STATIC(ActionType, action, ebx);
     GET_STACK_STATIC8(bool, shadow, esp, 0x20);
-    GET_STACK_STATIC(CellClass *, cellptr, esp, 0xC);
-    GET_STACK_STATIC8(bool, wsmall, esp, 0x28);
+    GET_STACK_STATIC(CellClass *, cellptr, esp, 0x10);
+    GET_STACK_STATIC8(bool, wsmall, esp, 0x2C);
+
+    _asm { pop ebp }
 
     Display_Set_Mouse_Cursor(action, shadow, wsmall, cellptr);
 
