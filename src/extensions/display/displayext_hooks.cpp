@@ -61,13 +61,12 @@ static void Display_Set_Mouse_Cursor(ActionType action, bool shadow, bool wsmall
         
         mouse = ActionTypeClass::As_Reference(action).Get_Shadow_Mouse();
 
-        if (action == ActionTypeClass::NoMoveAction) {
-            if (CurrentObjects.Count() == 0 ||
-                (!CurrentObjects[0]->Is_Techno() || !CurrentObjects[0]->Techno_Type_Class()->MoveToShroud)) {
+        if (action == ACTION_NOMOVE) {
+            if (CurrentObjects.Count() &&
+                CurrentObjects[0]->Is_Techno()
+                && CurrentObjects[0]->Techno_Type_Class()->MoveToShroud) {
 
-                mouse = MouseTypeClass::NoMoveMouse;
-            } else {
-                mouse = MouseTypeClass::CanMoveMouse;
+                mouse = ActionTypeClass::As_Reference(ACTION_MOVE).Get_Shadow_Mouse();
             }
         }
 
@@ -75,14 +74,13 @@ static void Display_Set_Mouse_Cursor(ActionType action, bool shadow, bool wsmall
         
         mouse = ActionTypeClass::As_Reference(action).Get_Mouse();
 
-        if (action == ActionTypeClass::CanAttackAction) {
-            if (!cellptr ||
-                CurrentObjects.Count() != 1 ||
-                (!CurrentObjects[0]->Is_Techno() || ((TechnoClass *)!CurrentObjects[0])->In_Range_Of((ObjectClass *)cellptr))) {
+        if (action == ACTION_ATTACK) {
+            if (cellptr
+                && CurrentObjects.Count() == 1
+                && CurrentObjects[0]->Is_Techno()
+                && static_cast<TechnoClass*>(CurrentObjects[0])->In_Range_Of(cellptr)) {
 
-                mouse = MouseTypeClass::CanAttackMouse;
-            } else {
-                mouse = MouseTypeClass::StayAttackMouse;
+                mouse = MOUSE_STAY_ATTACK;
             }
         }
 
