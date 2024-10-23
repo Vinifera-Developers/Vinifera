@@ -61,6 +61,26 @@
 #include "uicontrol.h"
 
 
+#if 0
+/**
+ *  #issue-x
+ * 
+ *  x
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_Tactical_Tactical_Draw_Waypoint_Paths_Mouse_Patch)
+{
+
+
+    _asm { mov esi, start_frame }
+    _asm { mov esi, start_frame }
+
+    JMP_REG(ecx, 0x00616FEB);
+}
+#endif
+
+
 /**
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
@@ -820,6 +840,8 @@ void TacticalExtension_Hooks()
     Patch_Jump(0x00617327, &_Tactical_Draw_Waypoint_Paths_DrawNormalLine_Patch);
 
     Patch_Jump(0x0060F953, &_Tactical_Center_On_Location_Unfollow_Object_Patch);
+
+    //Patch_Jump(0x00617327, &_Tactical_Tactical_Draw_Waypoint_Paths_Mouse_Patch);
 
     /**
      *  #issue-351

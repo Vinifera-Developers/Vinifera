@@ -52,6 +52,8 @@
 #include "theatertype.h"
 #include "armortype.h"
 #include "uicontrol.h"
+#include "mousetype.h"
+#include "actiontype.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 #include <string>
@@ -665,6 +667,7 @@ bool Vinifera_Shutdown()
     ArmorTypes.Clear();
     RocketTypes.Clear();
     SpawnManagerClass::Clear_All();
+    MouseTypes.Clear();
 
     /**
      *  Cleanup global extension instances.
@@ -725,6 +728,81 @@ int Vinifera_Pre_Init_Game(int argc, char *argv[])
      */
     Vinifera_SkipStartupMovies = true;
 #endif
+
+    /**
+     *  Read the mouse controls and overrides.
+     * 
+     *  This must be loaded before Init_Game as MouseClass::Override_Mouse_Shape
+     *  is called as part of the games initialisation.
+     */
+    MouseTypeClass::One_Time();
+
+#ifndef NDEBUG
+    /**
+     *  Write the default mouse control values to ini.
+     */
+    {
+        CCFileClass mouse_write_file("MOUSE.DBG");
+        CCINIClass mouse_write_ini;
+        mouse_write_file.Delete();
+        MouseTypeClass::Write_Default_INI(mouse_write_ini);
+        mouse_write_ini.Save(mouse_write_file, false);
+        mouse_write_file.Close();
+    }
+#endif
+
+    CCFileClass mouse_file("MOUSE.INI");
+
+    if (mouse_file.Is_Available()) {
+
+        CCINIClass mouse_ini;
+        mouse_ini.Load(mouse_file, false);
+
+        if (!MouseTypeClass::Read_INI(mouse_ini)) {
+            DEV_DEBUG_ERROR("Failed to read MOUSE.INI!\n");
+            return EXIT_FAILURE;
+        }
+
+    } else {
+        DEV_DEBUG_WARNING("MOUSE.INI not found!\n");
+    }
+
+    /**
+     *  Read the actions controls and overrides.
+     * 
+     *  This must be loaded after MouseTypeClass::One_Time as actions reference MouseTypes!
+     */
+    ActionTypeClass::One_Time();
+
+#ifndef NDEBUG
+    /**
+     *  Write the default mouse control values to ini.
+     */
+    {
+        CCFileClass action_write_file("ACTION.DBG");
+        CCINIClass action_write_ini;
+        action_write_file.Delete();
+        ActionTypeClass::Write_Default_INI(action_write_ini);
+        action_write_ini.Save(action_write_file, false);
+        action_write_file.Close();
+    }
+#endif
+
+    CCFileClass action_file("ACTION.INI");
+
+    if (action_file.Is_Available()) {
+
+        CCINIClass action_ini;
+        action_ini.Load(action_file, false);
+
+        if (!ActionTypeClass::Read_INI(action_ini)) {
+            DEV_DEBUG_ERROR("Failed to read ACTION.INI!\n");
+            return EXIT_FAILURE;
+        }
+
+    } else {
+        DEV_DEBUG_WARNING("MOUSE.INI not found!\n");
+    }
 
     return EXIT_SUCCESS;
 }

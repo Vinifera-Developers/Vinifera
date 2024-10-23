@@ -34,6 +34,7 @@
 #include "animtype.h"
 #include "theatertype.h"
 #include "armortype.h"
+#include "actiontype.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
@@ -62,6 +63,8 @@ static class CCINIClassExt final : public CCINIClass
 
         ArmorType _Get_ArmorType(const char *section, const char *entry, const ArmorType defvalue);
         bool _Put_ArmorType(const char *section, const char *entry, ArmorType value);
+
+        ActionType _Get_ActionType(const char *section, const char *entry, const ActionType defvalue);
 };
 
 
@@ -165,6 +168,23 @@ TheaterType CCINIClassExt::_Get_TheaterType(const char *section, const char *ent
 bool CCINIClassExt::_Put_TheaterType(const char *section, const char *entry, TheaterType value)
 {
     return CCINIClass::Put_String(section, entry, TheaterTypeClass::Name_From(value));
+}
+
+
+/**
+ *  Reimplementation of CCINIClass::Get_ActionType to support ActionTypeClass.
+ *  
+ *  @author: CCHyper
+ */
+ActionType CCINIClassExt::_Get_ActionType(const char *section, const char *entry, const ActionType defvalue)
+{
+    char buffer[2048];
+
+    if (CCINIClass::Get_String(section, entry, "", buffer, sizeof(buffer))) {
+        return ActionTypeClass::From_Name(buffer);
+    }
+
+    return defvalue;
 }
 
 
@@ -294,4 +314,6 @@ void CCINIClassExtension_Hooks()
 
     // Put this here as it was only called in INIClass::Get_ArmorType.
     Patch_Jump(0x00681320, &ArmorTypeClass::From_Name);
+
+    Patch_Jump(0x0044AC20, &CCINIClassExt::_Get_ActionType);
 }
