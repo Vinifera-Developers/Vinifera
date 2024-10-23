@@ -39,7 +39,7 @@ class MouseTypeClass;
 class ActionTypeClass
 {
     public:
-        ActionTypeClass(Wstring name, MouseType mouse = MOUSE_NORMAL, MouseType shadow_mouse = MOUSE_NORMAL);
+        ActionTypeClass(const char* name, MouseType mouse = MOUSE_NORMAL, MouseType shadow_mouse = MOUSE_NORMAL);
         ActionTypeClass(const NoInitClass &noinit);
         ~ActionTypeClass();
 

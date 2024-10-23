@@ -99,59 +99,59 @@ const char *ActionTypeClass::ActionNames[ACTION_COUNT] = {
  */
 #define NO_MOUSE_SHAPE MOUSE_NORMAL
 ActionTypeClass ActionTypeClass::ActionControl[ACTION_COUNT] = {
-    ActionTypeClass ( ActionNames[ACTION_NONE],                 MOUSE_NORMAL,               MOUSE_NORMAL ),              // ACTION_NONE
-    ActionTypeClass ( ActionNames[ACTION_MOVE],                 MOUSE_CAN_MOVE,             MOUSE_CAN_MOVE ),            // ACTION_MOVE
-    ActionTypeClass ( ActionNames[ACTION_NOMOVE],               MOUSE_NO_MOVE,              MOUSE_NO_MOVE ),             // ACTION_NOMOVE
-    ActionTypeClass ( ActionNames[ACTION_ENTER],                MOUSE_ENTER,                NO_MOUSE_SHAPE ),            // ACTION_ENTER
-    ActionTypeClass ( ActionNames[ACTION_SELF],                 MOUSE_DEPLOY,               NO_MOUSE_SHAPE ),            // ACTION_SELF
-    ActionTypeClass ( ActionNames[ACTION_ATTACK],               MOUSE_CAN_ATTACK,           MOUSE_CAN_MOVE ),            // ACTION_ATTACK
-    ActionTypeClass ( ActionNames[ACTION_HARVEST],              MOUSE_CAN_ATTACK,           NO_MOUSE_SHAPE ),            // ACTION_HARVEST
-    ActionTypeClass ( ActionNames[ACTION_SELECT],               MOUSE_CAN_SELECT,           NO_MOUSE_SHAPE ),            // ACTION_SELECT
-    ActionTypeClass ( ActionNames[ACTION_TOGGLE_SELECT],        MOUSE_CAN_SELECT,           NO_MOUSE_SHAPE ),            // ACTION_TOGGLE_SELECT
-    ActionTypeClass ( ActionNames[ACTION_CAPTURE],              MOUSE_ENTER,                NO_MOUSE_SHAPE ),            // ACTION_CAPTURE
-    ActionTypeClass ( ActionNames[ACTION_REPAIR],               MOUSE_REPAIR,               MOUSE_NO_REPAIR ),           // ACTION_REPAIR
-    ActionTypeClass ( ActionNames[ACTION_SELL],                 MOUSE_SELL_BACK,            MOUSE_NO_SELL_BACK ),        // ACTION_SELL
-    ActionTypeClass ( ActionNames[ACTION_SELL_UNIT],            MOUSE_SELL_UNIT,            MOUSE_NO_SELL_BACK ),        // ACTION_SELL_UNIT
-    ActionTypeClass ( ActionNames[ACTION_NO_SELL],              MOUSE_NO_SELL_BACK,         MOUSE_NO_SELL_BACK ),        // ACTION_NO_SELL
-    ActionTypeClass ( ActionNames[ACTION_NO_REPAIR],            MOUSE_NO_REPAIR,            MOUSE_NO_REPAIR ),           // ACTION_NO_REPAIR
-    ActionTypeClass ( ActionNames[ACTION_SABOTAGE],             MOUSE_DEMOLITIONS,          NO_MOUSE_SHAPE ),            // ACTION_SABOTAGE
-    ActionTypeClass ( ActionNames[ACTION_TOTE],                 MOUSE_TOTE,                 MOUSE_NO_TOTE ),             // ACTION_TOTE
-    ActionTypeClass ( ActionNames[ACTION_PARA_INFANTRY],        NO_MOUSE_SHAPE,             NO_MOUSE_SHAPE ),            // ACTION_PARA_INFANTRY
-    ActionTypeClass ( ActionNames[ACTION_PARA_SABOTEUR],        NO_MOUSE_SHAPE,             NO_MOUSE_SHAPE ),            // ACTION_PARA_SABOTEUR
-    ActionTypeClass ( ActionNames[ACTION_NUKE_BOMB],            MOUSE_NUCLEAR_BOMB,         MOUSE_NUCLEAR_BOMB ),        // ACTION_NUKE_BOMB
-    ActionTypeClass ( ActionNames[ACTION_AIR_STRIKE],           NO_MOUSE_SHAPE,             NO_MOUSE_SHAPE ),            // ACTION_AIR_STRIKE
-    ActionTypeClass ( ActionNames[ACTION_CHRONOSPHERE],         NO_MOUSE_SHAPE,             NO_MOUSE_SHAPE ),            // ACTION_CHRONOSPHERE
-    ActionTypeClass ( ActionNames[ACTION_CHRONO2],              NO_MOUSE_SHAPE,             NO_MOUSE_SHAPE ),            // ACTION_CHRONO2
-    ActionTypeClass ( ActionNames[ACTION_IRON_CURTAIN],         NO_MOUSE_SHAPE,             NO_MOUSE_SHAPE ),            // ACTION_IRON_CURTAIN
-    ActionTypeClass ( ActionNames[ACTION_SPY_MISSION],          NO_MOUSE_SHAPE,             NO_MOUSE_SHAPE ),            // ACTION_SPY_MISSION
-    ActionTypeClass ( ActionNames[ACTION_GUARD_AREA],           MOUSE_AREA_GUARD,           MOUSE_AREA_GUARD ),          // ACTION_GUARD_AREA
-    ActionTypeClass ( ActionNames[ACTION_HEAL],                 MOUSE_HEAL,                 MOUSE_HEAL ),                // ACTION_HEAL
-    ActionTypeClass ( ActionNames[ACTION_DAMAGE],               NO_MOUSE_SHAPE,             NO_MOUSE_SHAPE ),            // ACTION_DAMAGE
-    ActionTypeClass ( ActionNames[ACTION_GREPAIR],              MOUSE_GREPAIR,              NO_MOUSE_SHAPE ),            // ACTION_GREPAIR
-    ActionTypeClass ( ActionNames[ACTION_NO_DEPLOY],            MOUSE_NO_DEPLOY,            MOUSE_NO_DEPLOY ),           // ACTION_NO_DEPLOY
-    ActionTypeClass ( ActionNames[ACTION_NO_ENTER],             MOUSE_NO_ENTER,             MOUSE_NO_ENTER ),            // ACTION_NO_ENTER
-    ActionTypeClass ( ActionNames[ACTION_NO_GREPAIR],           MOUSE_NO_REPAIR,            MOUSE_NO_REPAIR ),           // ACTION_NO_GREPAIR
-    ActionTypeClass ( ActionNames[ACTION_TOGGLE_POWER],         MOUSE_TOGGLE_POWER,         MOUSE_NO_TOGGLE_POWER ),     // ACTION_TOGGLE_POWER
-    ActionTypeClass ( ActionNames[ACTION_NO_TOGGLE_POWER],      MOUSE_NO_TOGGLE_POWER,      MOUSE_NO_TOGGLE_POWER ),     // ACTION_NO_TOGGLE_POWER
-    ActionTypeClass ( ActionNames[ACTION_ENTER_TUNNEL],         MOUSE_ENTER,                NO_MOUSE_SHAPE ),            // ACTION_ENTER_TUNNEL
-    ActionTypeClass ( ActionNames[ACTION_NO_ENTER_TUNNEL],      NO_MOUSE_SHAPE,             MOUSE_NO_ENTER ),            // ACTION_NO_ENTER_TUNNEL
-    ActionTypeClass ( ActionNames[ACTION_EMPULSE],              MOUSE_EM_PULSE,             MOUSE_EM_PULSE ),            // ACTION_EMPULSE
-    ActionTypeClass ( ActionNames[ACTION_ION_CANNON],           MOUSE_AIR_STRIKE,           MOUSE_AIR_STRIKE ),          // ACTION_ION_CANNON
-    ActionTypeClass ( ActionNames[ACTION_EMPULSE_RANGE],        MOUSE_EM_PULSE_RANGE,       MOUSE_EM_PULSE_RANGE ),      // ACTION_EMPULSE_RANGE
-    ActionTypeClass ( ActionNames[ACTION_CHEM_BOMB],            MOUSE_CHEMBOMB,             MOUSE_CHEMBOMB ),            // ACTION_CHEM_BOMB
-    ActionTypeClass ( ActionNames[ACTION_PLACE_WAYPOINT],       MOUSE_PLACE_WAYPOINT,       MOUSE_PLACE_WAYPOINT ),      // ACTION_PLACE_WAYPOINT
-    ActionTypeClass ( ActionNames[ACTION_NO_PLACE_WAYPOINT],    MOUSE_NO_PLACE_WAYPOINT,    MOUSE_NO_PLACE_WAYPOINT ),   // ACTION_NO_PLACE_WAYPOINT
-    ActionTypeClass ( ActionNames[ACTION_ENTER_WAYPOINT_MODE],  MOUSE_ENTER_WAYPOINT_MODE,  MOUSE_ENTER_WAYPOINT_MODE ), // ACTION_ENTER_WAYPOINT_MODE
-    ActionTypeClass ( ActionNames[ACTION_FOLLOW_WAYPOINT],      MOUSE_FOLLOW_WAYPOINT,      MOUSE_FOLLOW_WAYPOINT ),     // ACTION_FOLLOW_WAYPOINT
-    ActionTypeClass ( ActionNames[ACTION_SELECT_WAYPOINT],      MOUSE_SELECT_WAYPOINT,      MOUSE_SELECT_WAYPOINT ),     // ACTION_SELECT_WAYPOINT
-    ActionTypeClass ( ActionNames[ACTION_LOOP_WAYPOINT_PATH],   MOUSE_LOOP_WAYPOINT_PATH,   MOUSE_LOOP_WAYPOINT_PATH ),  // ACTION_LOOP_WAYPOINT_PATH
-    ActionTypeClass ( ActionNames[ACTION_DRAG_WAYPOINT],        NO_MOUSE_SHAPE,             NO_MOUSE_SHAPE ),            // ACTION_DRAG_WAYPOINT
-    ActionTypeClass ( ActionNames[ACTION_ATTACK_WAYPOINT],      MOUSE_ATTACK_WAYPOINT,      MOUSE_ATTACK_WAYPOINT ),     // ACTION_ATTACK_WAYPOINT
-    ActionTypeClass ( ActionNames[ACTION_ENTER_WAYPOINT],       MOUSE_ENTER_WAYPOINT,       MOUSE_ENTER_WAYPOINT ),      // ACTION_ENTER_WAYPOINT
-    ActionTypeClass ( ActionNames[ACTION_PATROL_WAYPOINT],      MOUSE_PATROL_WAYPOINT,      MOUSE_PATROL_WAYPOINT ),     // ACTION_PATROL_WAYPOINT
-    ActionTypeClass ( ActionNames[ACTION_DROP_POD],             MOUSE_AIR_STRIKE,           MOUSE_AIR_STRIKE ),          // ACTION_DROP_POD
-    ActionTypeClass ( ActionNames[ACTION_RALLY_TO_POINT],       NO_MOUSE_SHAPE,             NO_MOUSE_SHAPE ),            // ACTION_RALLY_TO_POINT
-    ActionTypeClass ( ActionNames[ACTION_ATTACK_SUPPORT],       NO_MOUSE_SHAPE,             NO_MOUSE_SHAPE )             // ACTION_ATTACK_SUPPORT
+    ActionTypeClass(ActionNames[ACTION_NONE],                 MOUSE_NORMAL,               MOUSE_NORMAL),              // ACTION_NONE
+    ActionTypeClass(ActionNames[ACTION_MOVE],                 MOUSE_CAN_MOVE,             MOUSE_CAN_MOVE),            // ACTION_MOVE
+    ActionTypeClass(ActionNames[ACTION_NOMOVE],               MOUSE_NO_MOVE,              MOUSE_NO_MOVE),             // ACTION_NOMOVE
+    ActionTypeClass(ActionNames[ACTION_ENTER],                MOUSE_ENTER,                NO_MOUSE_SHAPE),            // ACTION_ENTER
+    ActionTypeClass(ActionNames[ACTION_SELF],                 MOUSE_DEPLOY,               NO_MOUSE_SHAPE),            // ACTION_SELF
+    ActionTypeClass(ActionNames[ACTION_ATTACK],               MOUSE_CAN_ATTACK,           MOUSE_CAN_MOVE),            // ACTION_ATTACK
+    ActionTypeClass(ActionNames[ACTION_HARVEST],              MOUSE_CAN_ATTACK,           NO_MOUSE_SHAPE),            // ACTION_HARVEST
+    ActionTypeClass(ActionNames[ACTION_SELECT],               MOUSE_CAN_SELECT,           NO_MOUSE_SHAPE),            // ACTION_SELECT
+    ActionTypeClass(ActionNames[ACTION_TOGGLE_SELECT],        MOUSE_CAN_SELECT,           NO_MOUSE_SHAPE),            // ACTION_TOGGLE_SELECT
+    ActionTypeClass(ActionNames[ACTION_CAPTURE],              MOUSE_ENTER,                NO_MOUSE_SHAPE),            // ACTION_CAPTURE
+    ActionTypeClass(ActionNames[ACTION_REPAIR],               MOUSE_REPAIR,               MOUSE_NO_REPAIR),           // ACTION_REPAIR
+    ActionTypeClass(ActionNames[ACTION_SELL],                 MOUSE_SELL_BACK,            MOUSE_NO_SELL_BACK),        // ACTION_SELL
+    ActionTypeClass(ActionNames[ACTION_SELL_UNIT],            MOUSE_SELL_UNIT,            MOUSE_NO_SELL_BACK),        // ACTION_SELL_UNIT
+    ActionTypeClass(ActionNames[ACTION_NO_SELL],              MOUSE_NO_SELL_BACK,         MOUSE_NO_SELL_BACK),        // ACTION_NO_SELL
+    ActionTypeClass(ActionNames[ACTION_NO_REPAIR],            MOUSE_NO_REPAIR,            MOUSE_NO_REPAIR),           // ACTION_NO_REPAIR
+    ActionTypeClass(ActionNames[ACTION_SABOTAGE],             MOUSE_DEMOLITIONS,          NO_MOUSE_SHAPE),            // ACTION_SABOTAGE
+    ActionTypeClass(ActionNames[ACTION_TOTE],                 MOUSE_TOTE,                 MOUSE_NO_TOTE),             // ACTION_TOTE
+    ActionTypeClass(ActionNames[ACTION_PARA_INFANTRY],        NO_MOUSE_SHAPE,             NO_MOUSE_SHAPE),            // ACTION_PARA_INFANTRY
+    ActionTypeClass(ActionNames[ACTION_PARA_SABOTEUR],        NO_MOUSE_SHAPE,             NO_MOUSE_SHAPE),            // ACTION_PARA_SABOTEUR
+    ActionTypeClass(ActionNames[ACTION_NUKE_BOMB],            MOUSE_NUCLEAR_BOMB,         MOUSE_NUCLEAR_BOMB),        // ACTION_NUKE_BOMB
+    ActionTypeClass(ActionNames[ACTION_AIR_STRIKE],           NO_MOUSE_SHAPE,             NO_MOUSE_SHAPE),            // ACTION_AIR_STRIKE
+    ActionTypeClass(ActionNames[ACTION_CHRONOSPHERE],         NO_MOUSE_SHAPE,             NO_MOUSE_SHAPE),            // ACTION_CHRONOSPHERE
+    ActionTypeClass(ActionNames[ACTION_CHRONO2],              NO_MOUSE_SHAPE,             NO_MOUSE_SHAPE),            // ACTION_CHRONO2
+    ActionTypeClass(ActionNames[ACTION_IRON_CURTAIN],         NO_MOUSE_SHAPE,             NO_MOUSE_SHAPE),            // ACTION_IRON_CURTAIN
+    ActionTypeClass(ActionNames[ACTION_SPY_MISSION],          NO_MOUSE_SHAPE,             NO_MOUSE_SHAPE),            // ACTION_SPY_MISSION
+    ActionTypeClass(ActionNames[ACTION_GUARD_AREA],           MOUSE_AREA_GUARD,           MOUSE_AREA_GUARD),          // ACTION_GUARD_AREA
+    ActionTypeClass(ActionNames[ACTION_HEAL],                 MOUSE_HEAL,                 MOUSE_HEAL),                // ACTION_HEAL
+    ActionTypeClass(ActionNames[ACTION_DAMAGE],               NO_MOUSE_SHAPE,             NO_MOUSE_SHAPE),            // ACTION_DAMAGE
+    ActionTypeClass(ActionNames[ACTION_GREPAIR],              MOUSE_GREPAIR,              NO_MOUSE_SHAPE),            // ACTION_GREPAIR
+    ActionTypeClass(ActionNames[ACTION_NO_DEPLOY],            MOUSE_NO_DEPLOY,            MOUSE_NO_DEPLOY),           // ACTION_NO_DEPLOY
+    ActionTypeClass(ActionNames[ACTION_NO_ENTER],             MOUSE_NO_ENTER,             MOUSE_NO_ENTER),            // ACTION_NO_ENTER
+    ActionTypeClass(ActionNames[ACTION_NO_GREPAIR],           MOUSE_NO_REPAIR,            MOUSE_NO_REPAIR),           // ACTION_NO_GREPAIR
+    ActionTypeClass(ActionNames[ACTION_TOGGLE_POWER],         MOUSE_TOGGLE_POWER,         MOUSE_NO_TOGGLE_POWER),     // ACTION_TOGGLE_POWER
+    ActionTypeClass(ActionNames[ACTION_NO_TOGGLE_POWER],      MOUSE_NO_TOGGLE_POWER,      MOUSE_NO_TOGGLE_POWER),     // ACTION_NO_TOGGLE_POWER
+    ActionTypeClass(ActionNames[ACTION_ENTER_TUNNEL],         MOUSE_ENTER,                NO_MOUSE_SHAPE),            // ACTION_ENTER_TUNNEL
+    ActionTypeClass(ActionNames[ACTION_NO_ENTER_TUNNEL],      NO_MOUSE_SHAPE,             MOUSE_NO_ENTER),            // ACTION_NO_ENTER_TUNNEL
+    ActionTypeClass(ActionNames[ACTION_EMPULSE],              MOUSE_EM_PULSE,             MOUSE_EM_PULSE),            // ACTION_EMPULSE
+    ActionTypeClass(ActionNames[ACTION_ION_CANNON],           MOUSE_AIR_STRIKE,           MOUSE_AIR_STRIKE),          // ACTION_ION_CANNON
+    ActionTypeClass(ActionNames[ACTION_EMPULSE_RANGE],        MOUSE_EM_PULSE_RANGE,       MOUSE_EM_PULSE_RANGE),      // ACTION_EMPULSE_RANGE
+    ActionTypeClass(ActionNames[ACTION_CHEM_BOMB],            MOUSE_CHEMBOMB,             MOUSE_CHEMBOMB),            // ACTION_CHEM_BOMB
+    ActionTypeClass(ActionNames[ACTION_PLACE_WAYPOINT],       MOUSE_PLACE_WAYPOINT,       MOUSE_PLACE_WAYPOINT),      // ACTION_PLACE_WAYPOINT
+    ActionTypeClass(ActionNames[ACTION_NO_PLACE_WAYPOINT],    MOUSE_NO_PLACE_WAYPOINT,    MOUSE_NO_PLACE_WAYPOINT),   // ACTION_NO_PLACE_WAYPOINT
+    ActionTypeClass(ActionNames[ACTION_ENTER_WAYPOINT_MODE],  MOUSE_ENTER_WAYPOINT_MODE,  MOUSE_ENTER_WAYPOINT_MODE), // ACTION_ENTER_WAYPOINT_MODE
+    ActionTypeClass(ActionNames[ACTION_FOLLOW_WAYPOINT],      MOUSE_FOLLOW_WAYPOINT,      MOUSE_FOLLOW_WAYPOINT),     // ACTION_FOLLOW_WAYPOINT
+    ActionTypeClass(ActionNames[ACTION_SELECT_WAYPOINT],      MOUSE_SELECT_WAYPOINT,      MOUSE_SELECT_WAYPOINT),     // ACTION_SELECT_WAYPOINT
+    ActionTypeClass(ActionNames[ACTION_LOOP_WAYPOINT_PATH],   MOUSE_LOOP_WAYPOINT_PATH,   MOUSE_LOOP_WAYPOINT_PATH),  // ACTION_LOOP_WAYPOINT_PATH
+    ActionTypeClass(ActionNames[ACTION_DRAG_WAYPOINT],        NO_MOUSE_SHAPE,             NO_MOUSE_SHAPE),            // ACTION_DRAG_WAYPOINT
+    ActionTypeClass(ActionNames[ACTION_ATTACK_WAYPOINT],      MOUSE_ATTACK_WAYPOINT,      MOUSE_ATTACK_WAYPOINT),     // ACTION_ATTACK_WAYPOINT
+    ActionTypeClass(ActionNames[ACTION_ENTER_WAYPOINT],       MOUSE_ENTER_WAYPOINT,       MOUSE_ENTER_WAYPOINT),      // ACTION_ENTER_WAYPOINT
+    ActionTypeClass(ActionNames[ACTION_PATROL_WAYPOINT],      MOUSE_PATROL_WAYPOINT,      MOUSE_PATROL_WAYPOINT),     // ACTION_PATROL_WAYPOINT
+    ActionTypeClass(ActionNames[ACTION_DROP_POD],             MOUSE_AIR_STRIKE,           MOUSE_AIR_STRIKE),          // ACTION_DROP_POD
+    ActionTypeClass(ActionNames[ACTION_RALLY_TO_POINT],       NO_MOUSE_SHAPE,             NO_MOUSE_SHAPE),            // ACTION_RALLY_TO_POINT
+    ActionTypeClass( ActionNames[ACTION_ATTACK_SUPPORT],      NO_MOUSE_SHAPE,             NO_MOUSE_SHAPE)             // ACTION_ATTACK_SUPPORT
 };
 
 
@@ -160,7 +160,7 @@ ActionTypeClass ActionTypeClass::ActionControl[ACTION_COUNT] = {
  *  
  *  @author: CCHyper
  */
-ActionTypeClass::ActionTypeClass(Wstring name, MouseType mouse, MouseType shadow_mouse) :
+ActionTypeClass::ActionTypeClass(const char* name, MouseType mouse, MouseType shadow_mouse) :
     Name(name),
     Mouse(mouse),
     ShadowMouse(shadow_mouse)
@@ -206,7 +206,7 @@ void ActionTypeClass::One_Time()
     for (ActionType action = ACTION_NONE; action < ACTION_COUNT; ++action) {
          
         ActionTypeClass *actiontype = new ActionTypeClass(
-            ActionControl[action].Name,
+            ActionControl[action].Name.Peek_Buffer(),
             ActionControl[action].Mouse,
             ActionControl[action].ShadowMouse);
 

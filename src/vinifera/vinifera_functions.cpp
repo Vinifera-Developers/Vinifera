@@ -758,13 +758,7 @@ int Vinifera_Pre_Init_Game(int argc, char *argv[])
         CCINIClass mouse_ini;
         mouse_ini.Load(mouse_file, false);
 
-        if (!MouseTypeClass::Read_INI(mouse_ini)) {
-            DEV_DEBUG_ERROR("Failed to read MOUSE.INI!\n");
-            return EXIT_FAILURE;
-        }
-
-    } else {
-        DEV_DEBUG_WARNING("MOUSE.INI not found!\n");
+        MouseTypeClass::Read_INI(mouse_ini);
     }
 
     /**
@@ -795,13 +789,7 @@ int Vinifera_Pre_Init_Game(int argc, char *argv[])
         CCINIClass action_ini;
         action_ini.Load(action_file, false);
 
-        if (!ActionTypeClass::Read_INI(action_ini)) {
-            DEV_DEBUG_ERROR("Failed to read ACTION.INI!\n");
-            return EXIT_FAILURE;
-        }
-
-    } else {
-        DEV_DEBUG_WARNING("MOUSE.INI not found!\n");
+        ActionTypeClass::Read_INI(action_ini);
     }
 
     return EXIT_SUCCESS;

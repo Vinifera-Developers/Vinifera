@@ -46,8 +46,8 @@ class MouseTypeClass
     friend class MouseClassExt;
 
     public:
-        MouseTypeClass(const char *name);
-        MouseTypeClass(int start_frame, int frame_count, int frame_rate, int small_frame, int small_frame_count, int small_frame_rate, Point2D hotspot, Point2D small_hotspot);
+        MouseTypeClass(const char* name);
+        MouseTypeClass(const char* name, int start_frame, int frame_count, int frame_rate, int small_frame, int small_frame_count, int small_frame_rate, Point2D hotspot, Point2D small_hotspot);
         MouseTypeClass(const NoInitClass &noinit);
         virtual ~MouseTypeClass();
 
@@ -116,10 +116,4 @@ class MouseTypeClass
     private:
         static MouseTypeClass MouseControl[MOUSE_COUNT];
         static const char *MouseTypeClass::MouseNames[MOUSE_COUNT];
-
-    public:
-        static MouseType CanMoveMouse;
-        static MouseType NoMoveMouse;
-        static MouseType CanAttackMouse;
-        static MouseType StayAttackMouse;
 };
