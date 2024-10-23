@@ -492,25 +492,32 @@ void TacticalExt::_Draw_Rally_Points(bool blit)
                      *
                      *  @authors: CCHyper
                      */
+
+                    /**
+                     *  Draw the drop shadow line.
+                     */
+                    start_pos.Y += 2;
+                    end_pos.Y += 2;
                     if (Clip_Line(start_pos, end_pos, TacticalRect))
                     {
-                        /**
-                         *  Draw the drop shadow line.
-                         */
-                        start_pos.Y += 2;
-                        end_pos.Y += 2;
                         LogicSurface->entry_48(start_pos, end_pos, color_black, _pattern, offset, blit);
+                    }
 
-                        /**
-                         *  Draw two lines, offset by one pixel from each other, giving the
-                         *  impression that it is double the thickness.
-                         */
-                        --start_pos.Y;
-                        --end_pos.Y;
+                    /**
+                     *  Draw two lines, offset by one pixel from each other, giving the
+                     *  impression that it is double the thickness.
+                     */
+                    --start_pos.Y;
+                    --end_pos.Y;
+                    if (Clip_Line(start_pos, end_pos, TacticalRect))
+                    {
                         LogicSurface->entry_48(start_pos, end_pos, color, _pattern, offset, blit);
+                    }
 
-                        --start_pos.Y;
-                        --end_pos.Y;
+                    --start_pos.Y;
+                    --end_pos.Y;
+                    if (Clip_Line(start_pos, end_pos, TacticalRect))
+                    {
                         LogicSurface->entry_48(start_pos, end_pos, color, _pattern, offset, blit);
                     }
                 }
@@ -591,7 +598,10 @@ DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_NormaliseLineAnimation_Patch)
      */
     start_pos->Y += 2;
     end_pos->Y += 2;
-    LogicSurface->entry_48(*start_pos, *end_pos, color_black, _pattern, offset, blit);
+    if (Clip_Line(*start_pos, *end_pos, TacticalRect))
+    {
+        LogicSurface->entry_48(*start_pos, *end_pos, color_black, _pattern, offset, blit);
+    }
 
     /**
      *  Draw two lines, offset by one pixel from each other, giving the
@@ -599,11 +609,17 @@ DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_NormaliseLineAnimation_Patch)
      */
     --start_pos->Y;
     --end_pos->Y;
-    LogicSurface->entry_48(*start_pos, *end_pos, color, _pattern, offset, blit);
+    if (Clip_Line(*start_pos, *end_pos, TacticalRect))
+    {
+        LogicSurface->entry_48(*start_pos, *end_pos, color, _pattern, offset, blit);
+    }
 
     --start_pos->Y;
     --end_pos->Y;
-    LogicSurface->entry_48(*start_pos, *end_pos, color, _pattern, offset, blit);
+    if (Clip_Line(*start_pos, *end_pos, TacticalRect))
+    {
+        LogicSurface->entry_48(*start_pos, *end_pos, color, _pattern, offset, blit);
+    }
 
     JMP(0x00617307);
 }
@@ -632,7 +648,10 @@ DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_DrawNormalLine_Patch)
      */
     start_pos->Y += 2;
     end_pos->Y += 2;
-    LogicSurface->entry_4C(*start_pos, *end_pos, color_black);
+    if (Clip_Line(*start_pos, *end_pos, TacticalRect))
+    {
+        LogicSurface->entry_4C(*start_pos, *end_pos, color_black);
+    }
 
     /**
      *  Draw two lines, offset by one pixel from each other, giving the
@@ -640,11 +659,17 @@ DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_DrawNormalLine_Patch)
      */
     --start_pos->Y;
     --end_pos->Y;
-    LogicSurface->entry_4C(*start_pos, *end_pos, color);
+    if (Clip_Line(*start_pos, *end_pos, TacticalRect))
+    {
+        LogicSurface->entry_4C(*start_pos, *end_pos, color);
+    }
 
     --start_pos->Y;
     --end_pos->Y;
-    LogicSurface->entry_4C(*start_pos, *end_pos, color);
+    if (Clip_Line(*start_pos, *end_pos, TacticalRect))
+    {
+        LogicSurface->entry_4C(*start_pos, *end_pos, color);
+    }
 
     JMP(0x00617307);
 }
