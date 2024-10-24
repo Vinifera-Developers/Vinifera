@@ -44,7 +44,8 @@ SuperWeaponTypeClassExtension::SuperWeaponTypeClassExtension(const SuperWeaponTy
     AbstractTypeClassExtension(this_ptr),
     SidebarImage(),
     IsShowTimer(false),
-    CameoImageSurface(nullptr)
+    CameoImageSurface(nullptr),
+    ActionRange(ACTION_EMPULSE_RANGE)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::SuperWeaponTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -209,6 +210,8 @@ bool SuperWeaponTypeClassExtension::Read_INI(CCINIClass &ini)
     if (imagesurface) {
         CameoImageSurface = imagesurface;
     }
+
+    ActionRange = ini.Get_ActionType(ini_name, "ActionRange", ActionRange);
 
     IsInitialized = true;
     

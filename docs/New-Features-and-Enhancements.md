@@ -233,6 +233,16 @@ In `RULES.INI`:
 HunterSeeker=  ; UnitType, the unit that is this side's Hunter-Seeker.
 ```
 
+## Super Weapons
+
+- Vinifera allows customizing the mouse cursor used for ranged super weapons (currently, the EMPulse Cannon).
+
+In `RULES.INI`:
+```ini
+[SOMESUPERWEAPON]         ; SuperWeaponType
+ActionRange=EMPulseRange  ; ActionType, the action used by this super weapon when it's out of range.
+```
+
 ## Mouse Cursors and Actions
 
 ### Mouse Cursors
