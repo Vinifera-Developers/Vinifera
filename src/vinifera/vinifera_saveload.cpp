@@ -790,6 +790,7 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
     versioninfo.Set_Vinifera_Commit_Hash(Vinifera_Git_Hash());
     versioninfo.Set_Session_ID(Session.UniqueID);
     versioninfo.Set_Difficulty(Scen->Difficulty);
+    versioninfo.Set_Cumulative_Play_Time(Vinifera_CumulativePlayTime + Scen->ElapsedTimer.Value());
 
     FILETIME filetime;
     CoFileTimeNow(&filetime);
@@ -905,6 +906,7 @@ bool Vinifera_Load_Game(const char* file_name)
 
     storage.Release();
     Session.Type = static_cast<GameEnum>(saveversion.Get_Game_Type());
+    Vinifera_CumulativePlayTime = saveversion.Get_Cumulative_Play_Time();
     SwizzleManager.Reset();
 
     DEBUG_INFO("Opening DocFile\n");

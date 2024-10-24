@@ -64,7 +64,7 @@ extern char Vinifera_CursorName[64];
 /**
  *  Defines and constants.
  */
-#define TEXT_S_S					"%s: %s"
+#define TEXT_S_S "%s: %s"
 
 
 /**
@@ -92,6 +92,8 @@ extern bool Vinifera_SkipStartupMovies;
 extern bool Vinifera_NoTacticalVersionString;
 
 extern bool Vinifera_ShowSuperWeaponTimers;
+
+extern unsigned Vinifera_CumulativePlayTime;
 
 extern DynamicVectorClass<MFCC *> ViniferaMapsMixes;
 extern DynamicVectorClass<MFCC *> ViniferaMoviesMixes;

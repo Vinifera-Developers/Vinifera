@@ -67,6 +67,11 @@ bool Vinifera_NoTacticalVersionString = false;
 
 bool Vinifera_ShowSuperWeaponTimers = true;
 
+/**
+ *  The cumulative play time from all previous sessions of the current game.
+ */
+unsigned Vinifera_CumulativePlayTime = 0;
+
 DynamicVectorClass<MFCC *> ViniferaMapsMixes;
 DynamicVectorClass<MFCC *> ViniferaMoviesMixes;
 

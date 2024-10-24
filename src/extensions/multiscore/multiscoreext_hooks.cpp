@@ -35,6 +35,8 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "scenario.h"
+#include "vinifera_globals.h"
 
 
 static int MostCreditsSpent;
@@ -115,6 +117,23 @@ DECLARE_PATCH(_MultiScore_Tally_Score_Calculate_Economy_Score)
     JMP_REG(ecx, 0x005689E0);
 }
 
+
+/**
+ *  Patches the score screen to show the total time since the scenario was started,
+ *  not since the last time the game was loaded.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_MultiScore_568BE0_ElapsedTime_Patch)
+{
+    static unsigned elapsed_time;
+    elapsed_time = Scen->ElapsedTimer.Value() + Vinifera_CumulativePlayTime;
+
+    _asm mov ebx, elapsed_time
+    JMP(0x00568D38);
+}
+
+
 /**
  *  Main function for patching the hooks.
  */
@@ -122,6 +141,7 @@ void MultiScoreExtension_Hooks()
 {
     Patch_Jump(0x005687A9, &_MultiScore_Tally_Score_Fetch_Largest_CreditsSpent_Score);
     Patch_Jump(0x005689D5, &_MultiScore_Tally_Score_Calculate_Economy_Score);
+    Patch_Jump(0x00568D10, &_MultiScore_568BE0_ElapsedTime_Patch);
 
     /**
      *  #issue-187
