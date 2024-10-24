@@ -161,6 +161,7 @@ New:
 - Allow customizing power plants per side (by ZivDero)
 - Implement `WaterAlt` (by ZivDero)
 - Implement customizable mouse cursors and actions (by CCHyper/tomsons26, ZivDero)
+- Implement support for a Saved Games subdirectory (by ZivDero)
 
 
 Vanilla fixes:

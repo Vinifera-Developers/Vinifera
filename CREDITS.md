@@ -198,4 +198,5 @@ This page lists all the individual contributions to the project by their author.
   - Implement `DontScore`.
   - Implement `WaterAlt`.
   - Update and finalize custom mouse cursors and actions, add customizable weapon & EMP cursors.
+  - Implement support for a Saved Games subdirectory.
 
