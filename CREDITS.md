@@ -195,4 +195,5 @@ This page lists all the individual contributions to the project by their author.
   - Allow customizing power plants per side.
   - Reimplement aircraft carriers and missile launchers from Red Alert 2.
   - Implement `DontScore`.
+  - Implement `WaterAlt`.
 

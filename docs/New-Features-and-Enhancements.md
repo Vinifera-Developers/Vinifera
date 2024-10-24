@@ -256,7 +256,7 @@ MaxRandomSpawnOffset=0   ; integer, if greater than 0, the spawn offset will be 
 In `RULES.INI`:
 ```ini
 [SOMETECHNO]        ; TechnoType
-NoSpawnAlt=no       ; boolean, should this Techno use an alternate voxel model when it's out of spawns?
+NoSpawnAlt=no       ; boolean, should this Techno use an alternative voxel model when it's out of spawns?
                     ; When true, the model named SOMETECHNOWO will be used when it's out of spawns.
 ```
 
@@ -409,6 +409,21 @@ CrewCount=1   ; integer, how many crew will exit this unit.
 
 ```{note}
 This tag does not apply to buildings.
+```
+
+### Alternative Water Image 
+
+- `WaterAlt` can now be used to control whether a voxel unit uses a different model when in water, similar to the APC in vanilla.
+
+In `RULES.INI`:
+```ini
+[SOMETECHNO]  ; TechnoType
+WaterAlt=no   ; boolean, should this Techno use a different voxel model when in water. Defaults to yes for `[APC]`, no for other Technos.
+              ; When true, the model named SOMETECHNOW will be used when it's in water.
+```
+
+```{note}
+Unlike the APC in vanilla, the alternative model is loaded into a separate area of memory from the turret model. This means that Technos that have `WaterAlt=yes` set **can** have turrets.
 ```
 
 ### AILegalTarget
