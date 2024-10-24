@@ -44,7 +44,9 @@ ViniferaSaveVersionInfo::ViniferaSaveVersionInfo() :
     UnknownString{ "" },
     PlayerName{ "" },
     ExecutableName{ "" },
-    GameType(0)
+    GameType(0),
+    ViniferaVersion(0),
+    SessionID(0)
 {
     StartTime.dwLowDateTime = 0;
     StartTime.dwHighDateTime = 0;
@@ -56,35 +58,30 @@ ViniferaSaveVersionInfo::ViniferaSaveVersionInfo() :
     LastSaveTime.dwHighDateTime = 0;
 }
 
+
 void ViniferaSaveVersionInfo::Set_Version(int num)
 {
     Version = num;
 }
+
 
 int ViniferaSaveVersionInfo::Get_Version() const
 {
     return Version;
 }
 
+
 void ViniferaSaveVersionInfo::Set_Internal_Version(int num)
 {
     InternalVersion = num;
 }
+
 
 int ViniferaSaveVersionInfo::Get_Internal_Version() const
 {
     return InternalVersion;
 }
 
-void ViniferaSaveVersionInfo::Set_Vinifera_Version(int num)
-{
-    ViniferaVersion = num;
-}
-
-int ViniferaSaveVersionInfo::Get_Vinifera_Version() const
-{
-    return ViniferaVersion;
-}
 
 void ViniferaSaveVersionInfo::Set_Scenario_Description(const char * desc)
 {
@@ -92,10 +89,12 @@ void ViniferaSaveVersionInfo::Set_Scenario_Description(const char * desc)
     strncpy(ScenarioDescription, desc, sizeof(ScenarioDescription) - 1);
 }
 
+
 const char * ViniferaSaveVersionInfo::Get_Scenario_Description() const
 {
     return ScenarioDescription;
 }
+
 
 void ViniferaSaveVersionInfo::Set_Player_House(const char * name)
 {
@@ -103,30 +102,36 @@ void ViniferaSaveVersionInfo::Set_Player_House(const char * name)
     strncpy(PlayerHouse, name, sizeof(PlayerHouse) - 1);
 }
 
+
 const char * ViniferaSaveVersionInfo::Get_Player_House() const
 {
     return PlayerHouse;
 }
+
 
 void ViniferaSaveVersionInfo::Set_Campaign_Number(int num)
 {
     CampaignNumber = num;
 }
 
+
 int ViniferaSaveVersionInfo::Get_Campaign_Number() const
 {
     return CampaignNumber;
 }
+
 
 void ViniferaSaveVersionInfo::Set_Scenario_Number(int num)
 {
     ScenarioNumber = num;
 }
 
+
 int ViniferaSaveVersionInfo::Get_Scenario_Number() const
 {
     return ScenarioNumber;
 }
+
 
 void ViniferaSaveVersionInfo::Set_Unknown_String(const char * str)
 {
@@ -134,10 +139,12 @@ void ViniferaSaveVersionInfo::Set_Unknown_String(const char * str)
     strncpy(UnknownString, str, sizeof(UnknownString) - 1);
 }
 
+
 const char * ViniferaSaveVersionInfo::Get_Unknown_String() const
 {
     return UnknownString;
 }
+
 
 void ViniferaSaveVersionInfo::Set_Player_Name(const char * name)
 {
@@ -145,10 +152,12 @@ void ViniferaSaveVersionInfo::Set_Player_Name(const char * name)
     strncpy(PlayerName, name, sizeof(PlayerName) - 1);
 }
 
+
 const char * ViniferaSaveVersionInfo::Get_Player_Name() const
 {
     return PlayerName;
 }
+
 
 void ViniferaSaveVersionInfo::Set_Executable_Name(const char * name)
 {
@@ -156,50 +165,84 @@ void ViniferaSaveVersionInfo::Set_Executable_Name(const char * name)
     strncpy(ExecutableName, name, sizeof(ExecutableName) - 1);
 }
 
+
 const char * ViniferaSaveVersionInfo::Get_Executable_Name() const
 {
     return ExecutableName;
 }
+
 
 void ViniferaSaveVersionInfo::Set_Start_Time(FILETIME &time)
 {
     StartTime = time;
 }
 
+
 FILETIME ViniferaSaveVersionInfo::Get_Start_Time() const
 {
     return StartTime;
 }
+
 
 void ViniferaSaveVersionInfo::Set_Play_Time(FILETIME &time)
 {
     PlayTime = time;
 }
 
+
 FILETIME ViniferaSaveVersionInfo::Get_Play_Time() const
 {
     return PlayTime;
 }
+
 
 void ViniferaSaveVersionInfo::Set_Last_Time(FILETIME &time)
 {
     LastSaveTime = time;
 }
 
+
 FILETIME ViniferaSaveVersionInfo::Get_Last_Time() const
 {
     return LastSaveTime;
 }
+
 
 void ViniferaSaveVersionInfo::Set_Game_Type(int type)
 {
     GameType = type;
 }
 
+
 int ViniferaSaveVersionInfo::Get_Game_Type() const
 {
     return GameType;
 }
+
+
+void ViniferaSaveVersionInfo::Set_Vinifera_Version(int num)
+{
+    ViniferaVersion = num;
+}
+
+
+int ViniferaSaveVersionInfo::Get_Vinifera_Version() const
+{
+    return ViniferaVersion;
+}
+
+
+void ViniferaSaveVersionInfo::Set_Session_ID(int num)
+{
+    SessionID = num;
+}
+
+
+int ViniferaSaveVersionInfo::Get_Session_ID() const
+{
+    return SessionID;
+}
+
 
 HRESULT ViniferaSaveVersionInfo::Save(IStorage *storage)
 {
@@ -284,10 +327,15 @@ HRESULT ViniferaSaveVersionInfo::Save(IStorage *storage)
         /**
          *  New Vinifera fields.
          */
-        //res = Save_Int_Set(storageset, ID_VINIFERA_VERSION, ViniferaVersion);
-        //if (FAILED(res)) {
-        //    return res;
-        //}
+        res = Save_Int_Set(storageset, ID_VINIFERA_VERSION, ViniferaVersion);
+        if (FAILED(res)) {
+            return res;
+        }
+
+        res = Save_Int_Set(storageset, ID_SESSION_ID, SessionID);
+        if (FAILED(res)) {
+            return res;
+        }
 
         //return S_OK;
     }
@@ -365,10 +413,15 @@ HRESULT ViniferaSaveVersionInfo::Save(IStorage *storage)
     /**
      *  New Vinifera fields.
      */
-    //res = Save_Int(storage, ID_VINIFERA_VERSION, ViniferaVersion);
-    //if (FAILED(res)) {
-    //    return res;
-    //}
+    res = Save_Int(storage, ID_VINIFERA_VERSION, ViniferaVersion);
+    if (FAILED(res)) {
+        return res;
+    }
+
+    res = Save_Int(storage, ID_SESSION_ID, SessionID);
+    if (FAILED(res)) {
+        return res;
+    }
 
     return S_OK;
 }
@@ -462,10 +515,15 @@ HRESULT ViniferaSaveVersionInfo::Load(IStorage *storage)
         /**
          *  New Vinifera fields.
          */
-        //res = Load_Int_Set(storageset, ID_VINIFERA_VERSION, &ViniferaVersion);
-        //if (FAILED(res)) {
-        //    return res;
-        //}
+        res = Load_Int_Set(storageset, ID_VINIFERA_VERSION, &ViniferaVersion);
+        if (FAILED(res)) {
+            return res;
+        }
+
+        res = Load_Int_Set(storageset, ID_SESSION_ID, &SessionID);
+        if (FAILED(res)) {
+            return res;
+        }
 
         //return S_OK;
     }
@@ -533,7 +591,7 @@ HRESULT ViniferaSaveVersionInfo::Load(IStorage *storage)
         return res;
     }
 
-    res = Load_Int(storage, ID_SCENARIO_DESCRIPTION, &CampaignNumber);
+    res = Load_Int(storage, ID_CAMPAIGN, &CampaignNumber);
     if (FAILED(res)) {
         return res;
     }
@@ -546,11 +604,15 @@ HRESULT ViniferaSaveVersionInfo::Load(IStorage *storage)
     /**
      *  New Vinifera fields.
      */
+    res = Load_Int(storage, ID_VINIFERA_VERSION, &ViniferaVersion);
+    if (FAILED(res)) {
+        return res;
+    }
 
-    //res = Load_Int(storage, ID_VINIFERA_VERSION, &ViniferaVersion);
-    //if (FAILED(res)) {
-    //    return res;
-    //}
+    res = Load_Int(storage, ID_SESSION_ID, &SessionID);
+    if (FAILED(res)) {
+        return res;
+    }
 
     return S_OK;
 }
@@ -881,21 +943,21 @@ const WCHAR *Vinifera_Stream_Name_From_ID(int id)
     };
 
     static StreamID _ids[] = {
-        {ViniferaSaveVersionInfo::ID_SCENARIO_DESCRIPTION, L"Scenario Description"},
-        {ViniferaSaveVersionInfo::ID_PLAYER_HOUSE, L"Player House"},
-        {ViniferaSaveVersionInfo::ID_VERSION, L"Version"},
-        {ViniferaSaveVersionInfo::ID_INTERNAL_VERSION, L"Internal Version"},
-        {ViniferaSaveVersionInfo::ID_START_TIME, L"Start Time"},
-        {ViniferaSaveVersionInfo::ID_LAST_SAVE_TIME, L"Last Save Time"},
-        {ViniferaSaveVersionInfo::ID_PLAY_TIME, L"Play Time"},
-        {ViniferaSaveVersionInfo::ID_EXECUTABLE_NAME, L"Executable Name"},
-        {ViniferaSaveVersionInfo::ID_PLAYER_NAME, L"Player Name"},
-        {ViniferaSaveVersionInfo::ID_PLAYER_NAME2, L"Player Name2"},
-        {ViniferaSaveVersionInfo::ID_SCENARIO_NUMBER, L"Scenario Number"},
-        {ViniferaSaveVersionInfo::ID_CAMPAIGN, L"Campaign"},
-        {ViniferaSaveVersionInfo::ID_GAMETYPE, L"GameType"},
+        { ViniferaSaveVersionInfo::ID_SCENARIO_DESCRIPTION,  L"Scenario Description" },
+        { ViniferaSaveVersionInfo::ID_PLAYER_HOUSE,          L"Player House" },
+        { ViniferaSaveVersionInfo::ID_VERSION,               L"Version" },
+        { ViniferaSaveVersionInfo::ID_INTERNAL_VERSION,      L"Internal Version" },
+        { ViniferaSaveVersionInfo::ID_START_TIME,            L"Start Time" },
+        { ViniferaSaveVersionInfo::ID_LAST_SAVE_TIME,        L"Last Save Time" },
+        { ViniferaSaveVersionInfo::ID_PLAY_TIME,             L"Play Time" },
+        { ViniferaSaveVersionInfo::ID_EXECUTABLE_NAME,       L"Executable Name" },
+        { ViniferaSaveVersionInfo::ID_PLAYER_NAME,           L"Player Name" },
+        { ViniferaSaveVersionInfo::ID_PLAYER_NAME2,          L"Player Name2" },
+        { ViniferaSaveVersionInfo::ID_SCENARIO_NUMBER,       L"Scenario Number" },
+        { ViniferaSaveVersionInfo::ID_CAMPAIGN,              L"Campaign" },
+        { ViniferaSaveVersionInfo::ID_GAMETYPE,              L"GameType" },
 
-        {ViniferaSaveVersionInfo::ID_VINIFERA_VERSION, L"ViniferaVersion"},
+        { ViniferaSaveVersionInfo::ID_VINIFERA_VERSION,      L"ViniferaVersion" },
     };
 
     for (int i = 0; i < std::size(_ids); i++) {

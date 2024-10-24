@@ -898,7 +898,6 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
 
     ViniferaSaveVersionInfo versioninfo;
     versioninfo.Set_Internal_Version(GameVersion);
-    versioninfo.Set_Vinifera_Version(ViniferaGameVersion);
     versioninfo.Set_Scenario_Description(descr);
     versioninfo.Set_Version(1);
     versioninfo.Set_Player_House(PlayerPtr->Class->Full_Name());
@@ -906,6 +905,9 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
     versioninfo.Set_Scenario_Number(Scen->Scenario);
     versioninfo.Set_Executable_Name(VINIFERA_DLL);
     versioninfo.Set_Game_Type(Session.Type);
+
+    versioninfo.Set_Vinifera_Version(ViniferaGameVersion);
+    versioninfo.Set_Session_ID(Session.UniqueID);
 
     FILETIME filetime;
     CoFileTimeNow(&filetime);
@@ -1181,15 +1183,15 @@ bool LoadOptionsClassExt::_Read_File(FileEntryClass* file, WIN32_FIND_DATA* file
 
             unsigned game_version = saveversion.Get_Internal_Version();
             if (game_version != GameVersion) {
-                DEBUG_WARNING("Save file \"%s\" is incompatible! Tiberian Sun: File version 0x%X, Expected version 0x%X.\n", SavedGames::Buffer, game_version, ViniferaGameVersion);
+                DEBUG_WARNING("Save file \"%s\" is incompatible! Tiberian Sun: File version 0x%X, Expected version 0x%X.\n", SavedGames::Buffer, game_version, GameVersion);
                 return false;
             }
 
-            //unsigned vinifera_version = saveversion.Get_Vinifera_Version();
-            //if (vinifera_version != ViniferaGameVersion) {
-            //    DEBUG_WARNING("Save file \"%s\" is incompatible! Vinifera: File version 0x%X, Expected version 0x%X.\n", SavedGames::Buffer, vinifera_version, ViniferaGameVersion);
-            //    return false;
-            //}
+            unsigned vinifera_version = saveversion.Get_Vinifera_Version();
+            if (vinifera_version != ViniferaGameVersion) {
+                DEBUG_WARNING("Save file \"%s\" is incompatible! Vinifera: File version 0x%X, Expected version 0x%X.\n", SavedGames::Buffer, vinifera_version, ViniferaGameVersion);
+                return false;
+            }
 
             wsprintfA(file->Descr, "%s", saveversion.Get_Scenario_Description());
             file->Old = false;

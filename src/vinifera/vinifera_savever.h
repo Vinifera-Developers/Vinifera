@@ -48,7 +48,8 @@ public:
         ID_CAMPAIGN = 101,
         ID_GAMETYPE = 102,
 
-        ID_VINIFERA_VERSION = 500
+        ID_VINIFERA_VERSION = 105,
+        ID_SESSION_ID = 106,
     };
 
 public:
@@ -96,6 +97,9 @@ public:
     void Set_Game_Type(int id);
     int Get_Game_Type() const;
 
+    void Set_Session_ID(int num);
+    int Get_Session_ID() const;
+
     HRESULT Save(IStorage *storage);
     HRESULT Load(IStorage *storage);
 
@@ -137,6 +141,7 @@ private:
      *  New Vinifera fields.
      */
     int ViniferaVersion;
+    int SessionID;
 };
 
 const WCHAR* Vinifera_Stream_Name_From_ID(int id);
