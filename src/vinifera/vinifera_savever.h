@@ -49,7 +49,8 @@ public:
         ID_GAMETYPE = 102,
 
         ID_VINIFERA_VERSION = 105,
-        ID_SESSION_ID = 106,
+        ID_VINIFERA_COMMIT_HASH = 106,
+        ID_SESSION_ID = 107,
     };
 
 public:
@@ -60,9 +61,6 @@ public:
 
     void Set_Internal_Version(int num);
     int Get_Internal_Version() const;
-
-    void Set_Vinifera_Version(int num);
-    int Get_Vinifera_Version() const;
 
     void Set_Scenario_Description(const char * desc);
     const char * Get_Scenario_Description() const;
@@ -96,6 +94,12 @@ public:
 
     void Set_Game_Type(int id);
     int Get_Game_Type() const;
+
+    void Set_Vinifera_Version(int num);
+    int Get_Vinifera_Version() const;
+
+    void Set_Vinifera_Commit_Hash(const char* hash);
+    const char* Get_Vinifera_Commit_Hash() const;
 
     void Set_Session_ID(int num);
     int Get_Session_ID() const;
@@ -141,6 +145,7 @@ private:
      *  New Vinifera fields.
      */
     int ViniferaVersion;
+    char ViniferaCommitHash[40];
     int SessionID;
 };
 

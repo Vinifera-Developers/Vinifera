@@ -46,6 +46,7 @@ ViniferaSaveVersionInfo::ViniferaSaveVersionInfo() :
     ExecutableName{ "" },
     GameType(0),
     ViniferaVersion(0),
+    ViniferaCommitHash{ "" },
     SessionID(0)
 {
     StartTime.dwLowDateTime = 0;
@@ -232,6 +233,19 @@ int ViniferaSaveVersionInfo::Get_Vinifera_Version() const
 }
 
 
+void ViniferaSaveVersionInfo::Set_Vinifera_Commit_Hash(const char* hash)
+{
+    ViniferaCommitHash[sizeof(ViniferaCommitHash) - 1] = 0;
+    strncpy(ViniferaCommitHash, hash, sizeof(ViniferaCommitHash) - 1);
+}
+
+
+const char* ViniferaSaveVersionInfo::Get_Vinifera_Commit_Hash() const
+{
+    return ViniferaCommitHash;
+}
+
+
 void ViniferaSaveVersionInfo::Set_Session_ID(int num)
 {
     SessionID = num;
@@ -332,6 +346,11 @@ HRESULT ViniferaSaveVersionInfo::Save(IStorage *storage)
             return res;
         }
 
+        res = Save_String_Set(storageset, ID_VINIFERA_COMMIT_HASH, ViniferaCommitHash);
+        if (FAILED(res)) {
+            return res;
+        }
+
         res = Save_Int_Set(storageset, ID_SESSION_ID, SessionID);
         if (FAILED(res)) {
             return res;
@@ -414,6 +433,11 @@ HRESULT ViniferaSaveVersionInfo::Save(IStorage *storage)
      *  New Vinifera fields.
      */
     res = Save_Int(storage, ID_VINIFERA_VERSION, ViniferaVersion);
+    if (FAILED(res)) {
+        return res;
+    }
+
+    res = Save_String(storage, ID_VINIFERA_COMMIT_HASH, ViniferaCommitHash);
     if (FAILED(res)) {
         return res;
     }
@@ -520,6 +544,13 @@ HRESULT ViniferaSaveVersionInfo::Load(IStorage *storage)
             return res;
         }
 
+        res = Load_String_Set(storageset, ID_VINIFERA_COMMIT_HASH, buffer);
+        if (FAILED(res)) {
+            return res;
+        }
+
+        strcpy(ViniferaCommitHash, buffer);
+
         res = Load_Int_Set(storageset, ID_SESSION_ID, &SessionID);
         if (FAILED(res)) {
             return res;
@@ -608,6 +639,13 @@ HRESULT ViniferaSaveVersionInfo::Load(IStorage *storage)
     if (FAILED(res)) {
         return res;
     }
+
+    res = Load_String(storage, ID_VINIFERA_COMMIT_HASH, buffer);
+    if (FAILED(res)) {
+        return res;
+    }
+
+    strcpy(ViniferaCommitHash, buffer);
 
     res = Load_Int(storage, ID_SESSION_ID, &SessionID);
     if (FAILED(res)) {
@@ -958,6 +996,8 @@ const WCHAR *Vinifera_Stream_Name_From_ID(int id)
         { ViniferaSaveVersionInfo::ID_GAMETYPE,              L"GameType" },
 
         { ViniferaSaveVersionInfo::ID_VINIFERA_VERSION,      L"ViniferaVersion" },
+        { ViniferaSaveVersionInfo::ID_VINIFERA_COMMIT_HASH,  L"ViniferaCommitHash" },
+        { ViniferaSaveVersionInfo::ID_SESSION_ID,            L"SessionID" },
     };
 
     for (int i = 0; i < std::size(_ids); i++) {

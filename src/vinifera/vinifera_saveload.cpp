@@ -143,122 +143,6 @@ unsigned ViniferaGameVersion = 0x0;
 
 
 /**
- *  Save file header.
- */
-typedef struct ViniferaSaveFileHeaderStruct
-{
-    // Header marker.
-    char Marker[20];
-
-    // Git commit hash.
-    char CommitHash[40];
-
-    struct GameInfo
-    {
-        char ScenarioDescription[128];
-        char PlayerHouse[64];
-        int Campaign;
-        int ScenarioNumber;
-        char PlayerName[64];
-        FILETIME StartTime;
-        FILETIME PlayTime;
-        FILETIME LastSaveTime;
-        GameEnum GameType;
-    } GameInfo;
-
-    // Constant header marker to check for.
-    static const char * Marker_String() { return "VINIFERA_SAVE_FILE"; }
-
-private:
-    char _padding[1024
-                  - sizeof(Marker)
-                  - sizeof(CommitHash)
-                  - sizeof(GameInfo)];
-};
-static_assert(sizeof(ViniferaSaveFileHeaderStruct), "ViniferaSaveFileHeaderStruct must be 1024 bytes in size!");
-
-static ViniferaSaveFileHeaderStruct ViniferaSaveFileHeader; 
-
-/**
- *  Saves the header marker for validating data on load.
- * 
- *  @author: CCHyper
- */
-static bool Vinifera_Save_Header(IStream *pStm, const char* descr)
-{
-    if (!pStm) {
-        return false;
-    }
-
-    /**
-     *  Save the new header.
-     */
-    std::memset(&ViniferaSaveFileHeader, 0, sizeof(ViniferaSaveFileHeader));
-
-    strncpy(ViniferaSaveFileHeader.Marker, ViniferaSaveFileHeaderStruct::Marker_String(), sizeof(ViniferaSaveFileHeader.Marker));
-    strncpy(ViniferaSaveFileHeader.CommitHash, Vinifera_Git_Hash(), sizeof(ViniferaSaveFileHeader.CommitHash));
-
-    strncpy(ViniferaSaveFileHeader.GameInfo.ScenarioDescription, descr, sizeof(ViniferaSaveFileHeader.GameInfo.ScenarioDescription));
-    strncpy(ViniferaSaveFileHeader.GameInfo.PlayerHouse, PlayerPtr->Class->Full_Name(), sizeof(ViniferaSaveFileHeader.GameInfo.PlayerHouse));
-    ViniferaSaveFileHeader.GameInfo.Campaign = Scen->CampaignID;
-    ViniferaSaveFileHeader.GameInfo.ScenarioNumber = Scen->Scenario;
-    ViniferaSaveFileHeader.GameInfo.ScenarioNumber = Scen->Scenario;
-    FILETIME ft;
-    CoFileTimeNow(&ft);
-    ViniferaSaveFileHeader.GameInfo.LastSaveTime = ft;
-    ViniferaSaveFileHeader.GameInfo.StartTime = ft;
-    ViniferaSaveFileHeader.GameInfo.PlayTime = ft;
-
-    HRESULT hr = pStm->Write(&ViniferaSaveFileHeader, sizeof(ViniferaSaveFileHeader), nullptr);
-    if (FAILED(hr)) {
-        return false;
-    }
-
-    return true;
-}
-
-
-/**
- *  Loads the save data header marker.
- * 
- *  @author: CCHyper
- */
-static bool Vinifera_Load_Header(IStream *pStm)
-{
-    if (!pStm) {
-        return false;
-    }
-
-    HRESULT hr;
-
-    /**
-     *  Load the new header.
-     */
-    std::memset(&ViniferaSaveFileHeader, 0, sizeof(ViniferaSaveFileHeader));
-
-    hr = pStm->Read(&ViniferaSaveFileHeader, sizeof(ViniferaSaveFileHeader), nullptr);
-    if (FAILED(hr)) {
-        return false;
-    }
-
-    if (std::strncmp(ViniferaSaveFileHeader.Marker, ViniferaSaveFileHeaderStruct::Marker_String(), sizeof(ViniferaSaveFileHeader.Marker)) != 0) {
-        DEBUG_WARNING("Invalid header in save file!\n");
-        return false;
-    }
-
-    //if (std::strncmp(ViniferaSaveFileHeader.CommitHash, Vinifera_Git_Hash(), sizeof(ViniferaSaveFileHeader.CommitHash)) != 0) {
-    //    DEV_DEBUG_INFO("Git hash mismatch in save file.\n");
-    //    DEV_DEBUG_INFO("  Expected: %s\n", Vinifera_Git_Hash());
-    //    DEV_DEBUG_INFO("  Save file: %s\n", ViniferaSaveFileHeader.CommitHash);
-    //    //return false;
-    //}
-    DEV_DEBUG_INFO("Save file commit hash: %s\n", ViniferaSaveFileHeader.CommitHash);
-
-    return true;
-}
-
-
-/**
  *  Saves all active objects to the data stream.
  *
  *  @author: CCHyper
@@ -376,16 +260,6 @@ static bool Vinifera_Load_Vector(IStream *pStm, DynamicVectorClass<T> &list, con
  */
 bool Vinifera_Put_All(IStream *pStm, bool save_net)
 {
-    /**
-     *  Save the Vinifera data marker which can be used to verify
-     *  the state of the data to follow on load.
-     */
-    DEBUG_INFO("Saving Vinifera header\n");
-    if (!Vinifera_Save_Header(pStm, "")) {
-        DEBUG_ERROR("\t***** FAILED!\n");
-        return false;
-    }
-
     /**
      *  Save the scenario global information.
      */
@@ -526,20 +400,6 @@ bool Vinifera_Put_All(IStream *pStm, bool save_net)
  */
 bool Vinifera_Get_All(IStream *pStm, bool load_net)
 {
-    /**
-     *  Load the Vinifera data marker which can be used to verify
-     *  the state of the data to follow.
-     */
-    DEBUG_INFO("Loading Vinifera header\n");
-    if (!Vinifera_Load_Header(pStm)) {
-        DEBUG_ERROR("\t***** FAILED!\n");
-        ShowCursor(TRUE);
-        MessageBoxA(MainWindow, "Failed to load Vinifera save-file header!\n", "Vinifera", MB_OK|MB_ICONEXCLAMATION);
-        Vinifera_Generate_Mini_Dump();
-        Fatal("Failed to load Vinifera save-file header!\n");
-        return false;
-    }
-
     /**
      *  Clear the existing scenario data, ready for loading.
      */
@@ -907,6 +767,7 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
     versioninfo.Set_Game_Type(Session.Type);
 
     versioninfo.Set_Vinifera_Version(ViniferaGameVersion);
+    versioninfo.Set_Vinifera_Commit_Hash(Vinifera_Git_Hash());
     versioninfo.Set_Session_ID(Session.UniqueID);
 
     FILETIME filetime;
