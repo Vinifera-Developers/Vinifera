@@ -233,8 +233,9 @@ void ObjectTypeClassExt::_Clear_Voxel_Indexes()
         otype->ShadowVoxelIndex.Clear();
         otype->AuxVoxel2Index.Clear();
 
-        const auto otype_ext = Extension::Fetch<ObjectTypeClassExt>(otype);
-        otype_ext->AuxVoxel2Index.Clear();
+        const auto otype_ext = Extension::Fetch<ObjectTypeClassExtension>(otype);
+        otype_ext->NoSpawnVoxelIndex.Clear();
+        otype_ext->WaterVoxelIndex.Clear();
     }
 
     StaticBuffer.CurrentBufferPtr = StaticBuffer.BufferPtr;
