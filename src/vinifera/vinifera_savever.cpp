@@ -1024,7 +1024,7 @@ HRESULT ViniferaSaveVersionInfo::Save_String(IStorage *storage, int id, char *st
     if (FAILED(res)) {
         return res;
     }
-    res = stm->Commit(0);
+    res = stm->Commit(STGC_DEFAULT);
     if (FAILED(res)) {
         return res;
     }
@@ -1090,7 +1090,7 @@ HRESULT ViniferaSaveVersionInfo::Save_Int(IStorage *storage, int id, int integer
     if (FAILED(res)) {
         return res;
     }
-    res = stm->Commit(0);
+    res = stm->Commit(STGC_DEFAULT);
     if (FAILED(res)) {
         return res;
     }
@@ -1216,7 +1216,7 @@ HRESULT ViniferaSaveVersionInfo::Save_Time(IStorage *storage, int id, FILETIME *
     if (FAILED(res)) {
         return res;
     }
-    res = stm->Commit(0);
+    res = stm->Commit(STGC_DEFAULT);
     if (FAILED(res)) {
         return res;
     }
