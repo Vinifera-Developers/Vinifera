@@ -83,7 +83,7 @@ DECLARE_PATCH(_Main_Window_Procedure_Scroll_Sidebar_Check_Patch)
     /**
      *  We are not currently playing a scenario, no need to execute this command.
      */
-    if (!bool_007E4040 && !bool_007E48FC) {
+    if (!ScenarioStarted && !TacticalViewActive) {
         goto message_handler;
     }
 
