@@ -43,6 +43,7 @@
 #include "debughandler.h"
 #include <resource.h>
 
+#include "armortype.h"
 #include "hooker.h"
 #include "hooker_macros.h"
 
@@ -59,8 +60,9 @@ extern HMODULE DLLInstance;
  */
 class RulesClassExt final : public RulesClass
 {
-    public:
-        void _Process(CCINIClass &ini);
+public:
+    void _Process(CCINIClass &ini);
+    void _Initialize(CCINIClass& ini);
 };
 
 
@@ -77,6 +79,19 @@ void RulesClassExt::_Process(CCINIClass &ini)
      *  #NOTE: This must be last!
      */
     RuleExtension->Process(ini);
+}
+
+
+/**
+ *  Intercepts the rules initialization.
+ *
+ *  @author: ZivDero
+ */
+void RulesClassExt::_Initialize(CCINIClass& ini)
+{
+    ArmorTypeClass::One_Time();
+
+    RulesClass::Initialize(ini);
 }
 
 
@@ -215,6 +230,8 @@ void RulesClassExtension_Hooks()
     RulesClassExtension_Init();
 
     Patch_Jump(0x005C6710, &RulesClassExt::_Process);
+    Patch_Call(0x0053E408, &RulesClassExt::_Initialize);
+    Patch_Call(0x005DD7D0, &RulesClassExt::_Initialize);
 
     Patch_Jump(0x004E138B, &_Init_Rules_Extended_Class_Patch);
     Patch_Jump(0x004E12EB, &_Init_Rules_Show_Rules_Select_Dialog_Patch);

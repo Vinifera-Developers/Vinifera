@@ -805,7 +805,6 @@ int Vinifera_Pre_Init_Game(int argc, char *argv[])
 int Vinifera_Post_Init_Game(int argc, char *argv[])
 {
     TheaterTypeClass::One_Time();
-    ArmorTypeClass::One_Time();
 
     CCFileClass theater_file("THEATERS.INI");
     CCINIClass theater_ini;

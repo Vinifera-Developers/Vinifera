@@ -50,6 +50,7 @@
 #include "asserthandler.h"
 #include "ebolt.h"
 #include "kamikazetracker.h"
+#include "spawnmanager.h"
 
 
 /**
@@ -80,8 +81,16 @@ static void _Free_Heaps_Intercept()
     /**
      *  Cleanup global heaps/vectors.
      */
+    ++ScenarioInit;
+
     EBoltClass::Clear_All();
+    ArmorTypes.Clear();
+    RocketTypes.Clear();
+    SpawnManagerClass::Clear_All();
+
     Extension::Free_Heaps();
+
+    --ScenarioInit;
 
     Free_Heaps();
 }
