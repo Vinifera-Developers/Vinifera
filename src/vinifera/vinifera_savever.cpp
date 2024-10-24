@@ -34,6 +34,11 @@
 #include "debughandler.h"
 
 
+/**
+ *  Basic constructor for ViniferaSaveVersionInfo.
+ *
+ *  @author: tomsons26
+ */
 ViniferaSaveVersionInfo::ViniferaSaveVersionInfo() :
     InternalVersion(0),
     Version(0),
@@ -60,30 +65,55 @@ ViniferaSaveVersionInfo::ViniferaSaveVersionInfo() :
 }
 
 
+/**
+ *  Sets the save version field.
+ *
+ *  @author: tomsons26
+ */
 void ViniferaSaveVersionInfo::Set_Version(int num)
 {
     Version = num;
 }
 
 
+/**
+ *  Gets the save version field.
+ *
+ *  @author: tomsons26
+ */
 int ViniferaSaveVersionInfo::Get_Version() const
 {
     return Version;
 }
 
 
+/**
+ *  Sets the game version field.
+ *
+ *  @author: tomsons26
+ */
 void ViniferaSaveVersionInfo::Set_Internal_Version(int num)
 {
     InternalVersion = num;
 }
 
 
+/**
+ *  Gets the game version field.
+ *
+ *  @author: tomsons26
+ */
 int ViniferaSaveVersionInfo::Get_Internal_Version() const
 {
     return InternalVersion;
 }
 
 
+/**
+ *  Sets the scenario description field.
+ *
+ *  @author: tomsons26
+ */
 void ViniferaSaveVersionInfo::Set_Scenario_Description(const char * desc)
 {
     ScenarioDescription[sizeof(ScenarioDescription) - 1] = 0;
@@ -91,12 +121,22 @@ void ViniferaSaveVersionInfo::Set_Scenario_Description(const char * desc)
 }
 
 
+/**
+ *  Gets the scenario description field.
+ *
+ *  @author: tomsons26
+ */
 const char * ViniferaSaveVersionInfo::Get_Scenario_Description() const
 {
     return ScenarioDescription;
 }
 
 
+/**
+ *  Sets the player house name field.
+ *
+ *  @author: tomsons26
+ */
 void ViniferaSaveVersionInfo::Set_Player_House(const char * name)
 {
     PlayerHouse[sizeof(PlayerHouse) - 1] = 0;
@@ -104,36 +144,66 @@ void ViniferaSaveVersionInfo::Set_Player_House(const char * name)
 }
 
 
+/**
+ *  Gets the player house name field.
+ *
+ *  @author: tomsons26
+ */
 const char * ViniferaSaveVersionInfo::Get_Player_House() const
 {
     return PlayerHouse;
 }
 
 
+/**
+ *  Sets the campaign number field.
+ *
+ *  @author: tomsons26
+ */
 void ViniferaSaveVersionInfo::Set_Campaign_Number(int num)
 {
     CampaignNumber = num;
 }
 
 
+/**
+ *  Gets the campaign number field.
+ *
+ *  @author: tomsons26
+ */
 int ViniferaSaveVersionInfo::Get_Campaign_Number() const
 {
     return CampaignNumber;
 }
 
 
+/**
+ *  Sets the scenario number field.
+ *
+ *  @author: tomsons26
+ */
 void ViniferaSaveVersionInfo::Set_Scenario_Number(int num)
 {
     ScenarioNumber = num;
 }
 
 
+/**
+ *  Gets the scenario number field.
+ *
+ *  @author: tomsons26
+ */
 int ViniferaSaveVersionInfo::Get_Scenario_Number() const
 {
     return ScenarioNumber;
 }
 
 
+/**
+ *  Sets the unknown field.
+ *
+ *  @author: tomsons26
+ */
 void ViniferaSaveVersionInfo::Set_Unknown_String(const char * str)
 {
     UnknownString[sizeof(UnknownString) - 1] = 0;
@@ -141,12 +211,22 @@ void ViniferaSaveVersionInfo::Set_Unknown_String(const char * str)
 }
 
 
+/**
+ *  Gets the unknown field.
+ *
+ *  @author: tomsons26
+ */
 const char * ViniferaSaveVersionInfo::Get_Unknown_String() const
 {
     return UnknownString;
 }
 
 
+/**
+ *  Sets the player name field.
+ *
+ *  @author: tomsons26
+ */
 void ViniferaSaveVersionInfo::Set_Player_Name(const char * name)
 {
     PlayerName[sizeof(PlayerName) - 1] = 0;
@@ -154,12 +234,22 @@ void ViniferaSaveVersionInfo::Set_Player_Name(const char * name)
 }
 
 
+/**
+ *  Gets the player name field.
+ *
+ *  @author: tomsons26
+ */
 const char * ViniferaSaveVersionInfo::Get_Player_Name() const
 {
     return PlayerName;
 }
 
 
+/**
+ *  Sets the executable name field.
+ *
+ *  @author: tomsons26
+ */
 void ViniferaSaveVersionInfo::Set_Executable_Name(const char * name)
 {
     ExecutableName[sizeof(ExecutableName) - 1] = 0;
@@ -167,72 +257,132 @@ void ViniferaSaveVersionInfo::Set_Executable_Name(const char * name)
 }
 
 
+/**
+ *  Gets the executable name field.
+ *
+ *  @author: tomsons26
+ */
 const char * ViniferaSaveVersionInfo::Get_Executable_Name() const
 {
     return ExecutableName;
 }
 
 
+/**
+ *  Sets the start time field.
+ *
+ *  @author: tomsons26
+ */
 void ViniferaSaveVersionInfo::Set_Start_Time(FILETIME &time)
 {
     StartTime = time;
 }
 
 
+/**
+ *  Gets the start time field.
+ *
+ *  @author: tomsons26
+ */
 FILETIME ViniferaSaveVersionInfo::Get_Start_Time() const
 {
     return StartTime;
 }
 
 
+/**
+ *  Sets the play time field.
+ *
+ *  @author: tomsons26
+ */
 void ViniferaSaveVersionInfo::Set_Play_Time(FILETIME &time)
 {
     PlayTime = time;
 }
 
 
+/**
+ *  Gets the play time field.
+ *
+ *  @author: tomsons26
+ */
 FILETIME ViniferaSaveVersionInfo::Get_Play_Time() const
 {
     return PlayTime;
 }
 
 
+/**
+ *  Sets the last save time field.
+ *
+ *  @author: tomsons26
+ */
 void ViniferaSaveVersionInfo::Set_Last_Time(FILETIME &time)
 {
     LastSaveTime = time;
 }
 
 
+/**
+ *  Gets the last save time field.
+ *
+ *  @author: tomsons26
+ */
 FILETIME ViniferaSaveVersionInfo::Get_Last_Time() const
 {
     return LastSaveTime;
 }
 
 
+/**
+ *  Sets the session type field.
+ *
+ *  @author: tomsons26
+ */
 void ViniferaSaveVersionInfo::Set_Game_Type(int type)
 {
     GameType = type;
 }
 
 
+/**
+ *  Gets the session type field.
+ *
+ *  @author: tomsons26
+ */
 int ViniferaSaveVersionInfo::Get_Game_Type() const
 {
     return GameType;
 }
 
 
+/**
+ *  Sets the Vinifera version field.
+ *
+ *  @author: ZivDero
+ */
 void ViniferaSaveVersionInfo::Set_Vinifera_Version(int num)
 {
     ViniferaVersion = num;
 }
 
 
+/**
+ *  Gets the Vinifera version field.
+ *
+ *  @author: ZivDero
+ */
 int ViniferaSaveVersionInfo::Get_Vinifera_Version() const
 {
     return ViniferaVersion;
 }
 
 
+/**
+ *  Sets the Vinifera commit hash field.
+ *
+ *  @author: ZivDero
+ */
 void ViniferaSaveVersionInfo::Set_Vinifera_Commit_Hash(const char* hash)
 {
     ViniferaCommitHash[sizeof(ViniferaCommitHash) - 1] = 0;
@@ -240,24 +390,44 @@ void ViniferaSaveVersionInfo::Set_Vinifera_Commit_Hash(const char* hash)
 }
 
 
+/**
+ *  Gets the Vinifera commit hash field.
+ *
+ *  @author: ZivDero
+ */
 const char* ViniferaSaveVersionInfo::Get_Vinifera_Commit_Hash() const
 {
     return ViniferaCommitHash;
 }
 
 
+/**
+ *  Sets the unique sesssion ID field.
+ *
+ *  @author: ZivDero
+ */
 void ViniferaSaveVersionInfo::Set_Session_ID(int num)
 {
     SessionID = num;
 }
 
 
+/**
+ *  Gets the unique sesssion ID field.
+ *
+ *  @author: ZivDero
+ */
 int ViniferaSaveVersionInfo::Get_Session_ID() const
 {
     return SessionID;
 }
 
 
+/**
+ *  Saves the version information to the storage.
+ *
+ *  @author: tomsons26, ZivDero
+ */
 HRESULT ViniferaSaveVersionInfo::Save(IStorage *storage)
 {
     if (storage == nullptr) {
@@ -451,6 +621,11 @@ HRESULT ViniferaSaveVersionInfo::Save(IStorage *storage)
 }
 
 
+/**
+ *  Loads the version information from the storage.
+ *
+ *  @author: tomsons26, ZivDero
+ */
 HRESULT ViniferaSaveVersionInfo::Load(IStorage *storage)
 {
     char buffer[256];
@@ -656,6 +831,11 @@ HRESULT ViniferaSaveVersionInfo::Load(IStorage *storage)
 }
 
 
+/**
+ *  Loads a string from the storage.
+ *
+ *  @author: tomsons26, ZivDero
+ */
 HRESULT ViniferaSaveVersionInfo::Load_String(IStorage *storage, int id, char *string)
 {
     HRESULT res;
@@ -669,22 +849,26 @@ HRESULT ViniferaSaveVersionInfo::Load_String(IStorage *storage, int id, char *st
     }
 
     int i = 0;
-    while(true) {
-        WCHAR buffer[128];
+    WCHAR buffer[128];
+
+    do {
         res = stm->Read(&buffer[i], sizeof(buffer[i]), nullptr);
         if (FAILED(res)) {
             return res;
         }
-        if (buffer[i] == '\x0') {
-            WideCharToMultiByte(CP_ACP, 0, buffer, -1, string, std::size(buffer) - 1, nullptr, nullptr);
-            return res;
-        }
-        i++;
-    }
 
-    return S_OK;
+    } while (buffer[i++]);
+
+    WideCharToMultiByte(CP_ACP, 0, buffer, -1, string, std::size(buffer) - 1, nullptr, nullptr);
+    return res;
 }
 
+
+/**
+ *  Loads a string from the storage set.
+ *
+ *  @author: tomsons26
+ */
 HRESULT ViniferaSaveVersionInfo::Load_String_Set(IPropertySetStorage *storageset, int id, char *string)
 {
     HRESULT res;
@@ -714,6 +898,12 @@ HRESULT ViniferaSaveVersionInfo::Load_String_Set(IPropertySetStorage *storageset
     return res;
 }
 
+
+/**
+ *  Loads an integer from the storage.
+ *
+ *  @author: tomsons26
+ */
 HRESULT ViniferaSaveVersionInfo::Load_Int(IStorage *storage, int id, int *integer)
 {
     HRESULT res;
@@ -734,6 +924,12 @@ HRESULT ViniferaSaveVersionInfo::Load_Int(IStorage *storage, int id, int *intege
     return res;
 }
 
+
+/**
+ *  Loads an integer from the storage set.
+ *
+ *  @author: tomsons26
+ */
 HRESULT ViniferaSaveVersionInfo::Load_Int_Set(IPropertySetStorage *storageset, int id, int *integer)
 {
     HRESULT res;
@@ -763,6 +959,12 @@ HRESULT ViniferaSaveVersionInfo::Load_Int_Set(IPropertySetStorage *storageset, i
     return res;
 }
 
+
+/**
+ *  Saves a string to the storage.
+ *
+ *  @author: tomsons26
+ */
 HRESULT ViniferaSaveVersionInfo::Save_String(IStorage *storage, int id, char *string)
 {
     WCHAR buffer[128];
@@ -788,6 +990,12 @@ HRESULT ViniferaSaveVersionInfo::Save_String(IStorage *storage, int id, char *st
     return res;
 }
 
+
+/**
+ *  Saves a string to the storage set.
+ *
+ *  @author: tomsons26
+ */
 HRESULT ViniferaSaveVersionInfo::Save_String_Set(IPropertySetStorage *storageset, int id, const char *string)
 {
     WCHAR buffer[128];
@@ -821,6 +1029,12 @@ HRESULT ViniferaSaveVersionInfo::Save_String_Set(IPropertySetStorage *storageset
     return res;
 }
 
+
+/**
+ *  Saves an integer to the storage.
+ *
+ *  @author: tomsons26
+ */
 HRESULT ViniferaSaveVersionInfo::Save_Int(IStorage *storage, int id, int integer)
 {
     IStreamPtr stm(nullptr);
@@ -842,6 +1056,12 @@ HRESULT ViniferaSaveVersionInfo::Save_Int(IStorage *storage, int id, int integer
     return res;
 }
 
+
+/**
+ *  Saves an integer to the storage set.
+ *
+ *  @author: tomsons26
+ */
 HRESULT ViniferaSaveVersionInfo::Save_Int_Set(IPropertySetStorage *storageset, int id, int integer)
 {
     HRESULT res;
@@ -871,6 +1091,12 @@ HRESULT ViniferaSaveVersionInfo::Save_Int_Set(IPropertySetStorage *storageset, i
     return res;
 }
 
+
+/**
+ *  Load a FILETIME from the storage.
+ *
+ *  @author: tomsons26
+ */
 HRESULT ViniferaSaveVersionInfo::Load_Time(IStorage *storage, int id, FILETIME *time)
 {
     HRESULT res;
@@ -892,6 +1118,12 @@ HRESULT ViniferaSaveVersionInfo::Load_Time(IStorage *storage, int id, FILETIME *
     return res;
 }
 
+
+/**
+ *  Load a FILETIME from the storage set.
+ *
+ *  @author: tomsons26
+ */
 HRESULT ViniferaSaveVersionInfo::Load_Time_Set(IPropertySetStorage *storageset, int id, FILETIME *time)
 {
     HRESULT res;
@@ -923,6 +1155,12 @@ HRESULT ViniferaSaveVersionInfo::Load_Time_Set(IPropertySetStorage *storageset, 
     return res;
 }
 
+
+/**
+ *  Save a FILETIME to the storage.
+ *
+ *  @author: tomsons26
+ */
 HRESULT ViniferaSaveVersionInfo::Save_Time(IStorage *storage, int id, FILETIME *time)
 {
     IStreamPtr stm(nullptr);
@@ -944,6 +1182,12 @@ HRESULT ViniferaSaveVersionInfo::Save_Time(IStorage *storage, int id, FILETIME *
     return res;
 }
 
+
+/**
+ *  Save a FILETIME to the storage set.
+ *
+ *  @author: tomsons26
+ */
 HRESULT ViniferaSaveVersionInfo::Save_Time_Set(IPropertySetStorage *storageset, int id, FILETIME *time)
 {
     HRESULT res;
@@ -973,6 +1217,12 @@ HRESULT ViniferaSaveVersionInfo::Save_Time_Set(IPropertySetStorage *storageset, 
     return res;
 }
 
+
+/**
+ *  Get the name of the stream from the ID.
+ *
+ *  @author: tomsons26, ZivDero
+ */
 const WCHAR *Vinifera_Stream_Name_From_ID(int id)
 {
     struct StreamID {
@@ -1009,6 +1259,12 @@ const WCHAR *Vinifera_Stream_Name_From_ID(int id)
     return nullptr;
 }
 
+
+/**
+ *  Read the save version info from a save file.
+ *
+ *  @author: tomsons26
+ */
 bool Vinifera_Get_Savefile_Info(char const* name, ViniferaSaveVersionInfo& info)
 {
     IStoragePtr storage;
