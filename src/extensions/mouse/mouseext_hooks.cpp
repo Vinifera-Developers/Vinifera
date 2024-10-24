@@ -97,7 +97,7 @@ void MouseClassExt::_Mouse_Small(bool wsmall)
  */
 bool MouseClassExt::_Override_Mouse_Shape(MouseType mouse, bool wsmall)
 {
-    ASSERT((unsigned)mouse < MOUSE_COUNT);
+    ASSERT((unsigned)mouse < MouseTypes.Count());
 
     //MouseStruct const * control = &MouseControl[mouse];
     MouseTypeClass const * control = MouseTypeClass::As_Pointer(mouse);
