@@ -744,10 +744,22 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
 
     DEBUG_INFO("SAVING GAME [%s - %s]\n", SavedGames::Buffer, descr);
 
-    // Convert the file name to a wide string.
+    /**
+     *  Format the save game path here just in case to make sure it contains the subdirectory.
+     *  In the future, it should be the call sites of Save_Game that are patched so that we can still
+     *  save  to an arbitrary location, but until the TS-Patches spawner is ported, this needs to happen.
+     */
+#ifdef TS_CLIENT
+    SavedGames::Check_And_Format_Path(SavedGames::Buffer, std::size(SavedGames::Buffer), file_name);
+#else
+    std::strncpy(SavedGames::Buffer, file_name, std::size(SavedGames::Buffer));
+#endif
+
+    /**
+     *  Convert the file name to a wide string.
+     */
     MultiByteToWideChar(CP_ACP, 0, SavedGames::Buffer, -1, wide_file_name, std::size(wide_file_name));
 
-    // Create the compound file.
     DEBUG_INFO("Creating DocFile\n");
     CComPtr<IStorage> storage;
     HRESULT hr = StgCreateDocfile(wide_file_name, STGM_CREATE | STGM_READWRITE | STGM_SHARE_EXCLUSIVE, 0, &storage);
@@ -756,6 +768,9 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
         return false;
     }
 
+    /**
+     *  Write the save file header.
+     */
     ViniferaSaveVersionInfo versioninfo;
     versioninfo.Set_Internal_Version(GameVersion);
     versioninfo.Set_Scenario_Description(descr);
@@ -782,7 +797,6 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
         return false;
     }
 
-    // Create the content stream.
     DEBUG_INFO("Creating content stream.\n");
     CComPtr<IStream> docfile;
     hr = storage->CreateStream(L"CONTENTS", STGM_CREATE | STGM_WRITE | STGM_SHARE_EXCLUSIVE, 0, 0, &docfile);
@@ -791,7 +805,6 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
         return false;
     }
 
-    // Compressing the stream
     DEBUG_INFO("Linking content stream to compressor.\n");
     IUnknown* pUnknown = nullptr;
     CComPtr<ILinkStream> linkstream;
@@ -816,7 +829,6 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
     DEBUG_INFO("Calling Vinifera_Put_All().\n");
     bool result = Vinifera_Put_All(stream, false);
 
-    // Unlinking the content stream from the compressor.
     DEBUG_INFO("Unlinking content stream from compressor.\n");
     hr = linkstream->Unlink_Stream(nullptr);
     if (FAILED(hr)) {
@@ -824,11 +836,9 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
         return false;
     }
 
-    // Release the content stream.
     DEBUG_INFO("Releasing content stream.\n");
     docfile.Release();
 
-    // Commit the changes to the storage.
     DEBUG_INFO("Closing DocFile.\n");
     hr = storage->Commit(STGC_DEFAULT);
     if (FAILED(hr)) {
@@ -836,7 +846,7 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
         return false;
     }
 
-    DEBUG_INFO("SAVING GAME [%s] - Complete.\n", file_name);
+    DEBUG_INFO("SAVING GAME [%s] - Complete.\n", SavedGames::Buffer);
     
     return result;
 }
@@ -853,10 +863,22 @@ bool Vinifera_Load_Game(const char* file_name)
 
     DEBUG_INFO("LOADING GAME [%s]\n", SavedGames::Buffer);
 
-    // Convert the file name to a wide string
+    /**
+     *  Format the save game path here just in case to make sure it contains the subdirectory.
+     *  In the future, it should be the call sites of Load_Game that are patched so that we can still
+     *  load an arbitrary save, but until the TS-Patches spawner is ported, this needs to happen.
+     */
+#ifdef TS_CLIENT
+    SavedGames::Check_And_Format_Path(SavedGames::Buffer, std::size(SavedGames::Buffer), file_name);
+#else
+    std::strncpy(SavedGames::Buffer, file_name, std::size(SavedGames::Buffer));
+#endif
+
+    /**
+     *  Convert the file name to a wide string.
+     */
     MultiByteToWideChar(CP_ACP, 0, SavedGames::Buffer, -1, wide_file_name, std::size(wide_file_name));
 
-    // Open the compound file
     DEBUG_INFO("Opening DocFile\n");
     CComPtr<IStorage> storage;
     HRESULT hr = StgOpenStorage(wide_file_name, nullptr, STGM_READWRITE | STGM_SHARE_EXCLUSIVE, nullptr, 0, &storage);
@@ -865,6 +887,9 @@ bool Vinifera_Load_Game(const char* file_name)
         return false;
     }
 
+    /**
+     *  Read the save file header.
+     */
     ViniferaSaveVersionInfo saveversion;
     hr = saveversion.Load(storage);
     if (FAILED(hr)) {
@@ -876,7 +901,6 @@ bool Vinifera_Load_Game(const char* file_name)
     Session.Type = static_cast<GameEnum>(saveversion.Get_Game_Type());
     SwizzleManager.Reset();
 
-    // Open the compound file
     DEBUG_INFO("Opening DocFile\n");
     hr = StgOpenStorage(wide_file_name, nullptr, STGM_SHARE_DENY_WRITE, nullptr, 0, &storage);
     if (FAILED(hr)) {
@@ -884,7 +908,6 @@ bool Vinifera_Load_Game(const char* file_name)
         return false;
     }
 
-    // Open the content stream
     DEBUG_INFO("Opening content stream.\n");
     CComPtr<IStream> docfile;
     hr = storage->OpenStream(L"CONTENTS", nullptr, STGM_READ | STGM_SHARE_EXCLUSIVE, 0, &docfile);
@@ -893,7 +916,6 @@ bool Vinifera_Load_Game(const char* file_name)
         return false;
     }
 
-    // Decompressing the stream
     DEBUG_INFO("Linking content stream to decompressor.\n");
     IUnknown* pUnknown = nullptr;
     CComPtr<ILinkStream> linkstream;
@@ -912,18 +934,15 @@ bool Vinifera_Load_Game(const char* file_name)
         return false;
     }
 
-    // Get IStream interface from pLinkStream
     CComPtr<IStream> stream;
     linkstream->QueryInterface(__uuidof(IStream), (void**)&stream);
 
-    // Load the game state
     DEBUG_INFO("Calling Vinifera_Get_All().\n");
     if (!Vinifera_Get_All(stream)) {
         DEBUG_FATAL("Error loading save game \"%s\"!\n", SavedGames::Buffer);
         return false;
     }
 
-    // Unlink the content stream from the decompressor
     DEBUG_INFO("Unlinking content stream from decompressor.\n");
     linkstream->Unlink_Stream(nullptr);
 
@@ -936,10 +955,10 @@ bool Vinifera_Load_Game(const char* file_name)
     TiberiumClass::Growth_Init_Clear();
     TiberiumClass::Init_Cells();
     Map.Total_Radar_Refresh();
-    bool_007E48FC = true;
-    bool_007E4040 = true;
+    TacticalViewActive = true;
+    ScenarioStarted = true;
 
-    DEBUG_INFO("LOADING GAME [%s] - Complete\n", file_name);
+    DEBUG_INFO("LOADING GAME [%s] - Complete\n", SavedGames::Buffer);
 
     return true;
 }
@@ -976,8 +995,8 @@ bool LoadOptionsClassExt::_Load_File(const char* filename)
         WinDialogClass::Display_Dialog(handle);
     }
 
-    bool_007E48FC = false;
-    bool_007E4040 = false;
+    TacticalViewActive = false;
+    ScenarioStarted = false;
 
     SavedGames::Check_And_Format_Path(SavedGames::Buffer, std::size(SavedGames::Buffer), filename);
     const bool result = Load_Game(SavedGames::Buffer);
