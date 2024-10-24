@@ -665,7 +665,7 @@ void Vinifera_Hooks()
     /**
      *  Hooks related to saving/loading games.
      */
-    SavedGamesDirectory_Hooks();
+    SaveGame_Hooks();
 
     /**
      *  Set the save game version.

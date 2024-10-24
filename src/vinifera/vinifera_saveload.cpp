@@ -1132,7 +1132,7 @@ int __cdecl sprintf_LoadOptionsClass_Wrapper2(char* buffer, const char*, char* s
 /**
  *  Main function for patching the hooks.
  */
-void SavedGamesDirectory_Hooks()
+void SaveGame_Hooks()
 {
     Patch_Call(0x00505001, &sprintf_LoadOptionsClass_Wrapper1);
     Patch_Call(0x00505294, &sprintf_LoadOptionsClass_Wrapper1);
