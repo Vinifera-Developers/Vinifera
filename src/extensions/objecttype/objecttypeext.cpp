@@ -203,31 +203,17 @@ bool ObjectTypeClassExtension::Read_INI(CCINIClass &ini)
 void ObjectTypeClassExtension::Fetch_Voxel_Image(const char* graphic_name)
 {
     char buffer[260];
-    bool success = true;
 
     if (NoSpawnAlt)
     {
         std::snprintf(buffer, sizeof(buffer), "%sWO", graphic_name);
-        success &= Load_Voxel(NoSpawnVoxel, buffer);
+        Load_Voxel(NoSpawnVoxel, NoSpawnVoxelIndex, buffer);
     }
 
     if (WaterAlt)
     {
         std::snprintf(buffer, sizeof(buffer), "%sW", graphic_name);
-        success &= Load_Voxel(WaterVoxel, buffer);
-    }
-
-    if (success)
-    {
-        NoSpawnVoxelIndex.Clear();
-        WaterVoxelIndex.Clear();
-    }
-    else
-    {
-        delete NoSpawnVoxel.VoxelLibrary;
-        delete NoSpawnVoxel.MotionLibrary;
-        delete WaterVoxel.VoxelLibrary;
-        delete WaterVoxel.MotionLibrary;
+        Load_Voxel(WaterVoxel, WaterVoxelIndex, buffer);
     }
 }
 

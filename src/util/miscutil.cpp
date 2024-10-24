@@ -576,37 +576,49 @@ const char *Filename_From_Path(const char *filename)
  *
  *  @author: ZivDero
  */
-bool Load_Voxel(VoxelObject& voxel, const char* graphic_name, bool required)
+bool Load_Voxel(VoxelObject& voxel, VoxelIndexClass& index, const char* graphic_name, bool required)
 {
     char buffer[260];
-    bool failed = false;
+    bool success = true;
 
     _makepath(buffer, nullptr, nullptr, graphic_name, ".VXL");
-    CCFileClass bodyvxl(buffer);
+    CCFileClass vxl(buffer);
 
-    if (bodyvxl.Is_Available())
+    if (vxl.Is_Available())
     {
         delete voxel.VoxelLibrary;
-        voxel.VoxelLibrary = new VoxelLibraryClass(&bodyvxl);
+        voxel.VoxelLibrary = new VoxelLibraryClass(&vxl);
 
         if (!voxel.VoxelLibrary || voxel.VoxelLibrary->Load_Failed())
-            failed = true;
+            success = false;
 
         _makepath(buffer, nullptr, nullptr, graphic_name, ".HVA");
-        CCFileClass bodyhva(buffer);
+        CCFileClass hva(buffer);
 
         delete voxel.MotionLibrary;
-        voxel.MotionLibrary = new MotionLibraryClass(&bodyhva);
+        voxel.MotionLibrary = new MotionLibraryClass(&hva);
 
         if (!voxel.MotionLibrary || voxel.MotionLibrary->Load_Failed())
-            failed = true;
+            success = false;
         else
             voxel.MotionLibrary->Scale(voxel.VoxelLibrary->Get_Layer_Info(0, 0)->Scale);
     }
-    else if (required)
+    else
     {
-        failed = true;
+        success = false;
     }
 
-    return !failed;
+    if (success)
+    {
+        index.Clear();
+    }
+    else
+    {
+        delete voxel.VoxelLibrary;
+        delete voxel.MotionLibrary;
+        voxel.VoxelLibrary = nullptr;
+        voxel.MotionLibrary = nullptr;
+    }
+
+    return success;
 }

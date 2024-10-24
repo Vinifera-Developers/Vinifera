@@ -167,53 +167,33 @@ const ShapeFileStruct * ObjectTypeClassExt::_Get_Image_Data() const
 void ObjectTypeClassExt::_Fetch_Voxel_Image()
 {
     char buffer[260];
-    bool success = true;
 
-    success &= Load_Voxel(Voxel, Graphic_Name(), true);
+    if (IsVoxel)
+    {
+        if (Load_Voxel(Voxel, VoxelIndex, Graphic_Name()))
+        {
+            unsigned char max_dimension = Voxel.VoxelLibrary->Get_Layer_Info(0, 0)->XSize;
+            for (int i = 0; i < Voxel.VoxelLibrary->Get_Layer_Count(); i++)
+            {
+                max_dimension = std::max(max_dimension, Voxel.VoxelLibrary->Get_Layer_Info(i, 0)->XSize);
+                max_dimension = std::max(max_dimension, Voxel.VoxelLibrary->Get_Layer_Info(i, 0)->YSize);
+                max_dimension = std::max(max_dimension, Voxel.VoxelLibrary->Get_Layer_Info(i, 0)->ZSize);
+            }
+
+            max_dimension = std::max(max_dimension, static_cast<unsigned char>(8));
+            MaxDimension = max_dimension;
+
+            ShadowVoxelIndex.Clear();
+        }
+    }
 
     if (What_Am_I() != RTTI_UNITTYPE || reinterpret_cast<UnitTypeClass*>(this)->IsTurretEquipped)
     {
         std::snprintf(buffer, sizeof(buffer), "%sTUR", Graphic_Name());
-        success &= Load_Voxel(AuxVoxel, buffer);
+        Load_Voxel(AuxVoxel, AuxVoxelIndex, buffer);
 
         std::snprintf(buffer, sizeof(buffer), "%sBARL", Graphic_Name());
-        success &= Load_Voxel(AuxVoxel2, buffer);
-    }
-
-    if (success)
-    {
-        unsigned char max_dimension = Voxel.VoxelLibrary->Get_Layer_Info(0, 0)->XSize;
-        for (int i = 0; i < Voxel.VoxelLibrary->Get_Layer_Count(); i++)
-        {
-            max_dimension = std::max(max_dimension, Voxel.VoxelLibrary->Get_Layer_Info(i, 0)->XSize);
-            max_dimension = std::max(max_dimension, Voxel.VoxelLibrary->Get_Layer_Info(i, 0)->YSize);
-            max_dimension = std::max(max_dimension, Voxel.VoxelLibrary->Get_Layer_Info(i, 0)->ZSize);
-        }
-
-        max_dimension = std::max(max_dimension, static_cast<unsigned char>(8));
-        MaxDimension = max_dimension;
-
-        VoxelIndex.Clear();
-        AuxVoxelIndex.Clear();
-        ShadowVoxelIndex.Clear();
-        AuxVoxel2Index.Clear();
-    }
-    else
-    {
-        delete Voxel.VoxelLibrary;
-        delete Voxel.MotionLibrary;
-        Voxel.VoxelLibrary = nullptr;
-        Voxel.MotionLibrary = nullptr;
-
-        delete AuxVoxel.VoxelLibrary;
-        delete AuxVoxel.MotionLibrary;
-        AuxVoxel.VoxelLibrary = nullptr;
-        AuxVoxel.MotionLibrary = nullptr;
-
-        delete AuxVoxel2.VoxelLibrary;
-        delete AuxVoxel2.MotionLibrary;
-        AuxVoxel2.VoxelLibrary = nullptr;
-        AuxVoxel2.MotionLibrary = nullptr;
+        Load_Voxel(AuxVoxel2, AuxVoxel2Index, buffer);
     }
 }
 
