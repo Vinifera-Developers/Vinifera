@@ -188,8 +188,14 @@ void HouseClassExtension::Compute_CRC(WWCRCEngine &crc) const
     //EXT_DEBUG_TRACE("HouseClassExtension::Compute_CRC - 0x%08X\n", (uintptr_t)(This()));
 }
 
+
+/**
+ *  Puts pointers to the storage extension into the storage class.
+ *
+ *  @author: ZivDero
+ */
 void HouseClassExtension::Put_Storage_Pointers()
 {
-    new ((StorageClassExt*)&(This()->Tiberium)) StorageClassExt(&TiberiumStorage);
-    new ((StorageClassExt*)&(This()->Weed)) StorageClassExt(&WeedStorage);
+    new (reinterpret_cast<StorageClassExt*>(&This()->Tiberium)) StorageClassExt(&TiberiumStorage);
+    new (reinterpret_cast<StorageClassExt*>(&This()->Weed)) StorageClassExt(&WeedStorage);
 }

@@ -666,7 +666,7 @@ bool Vinifera_Remap_Extension_Pointers()
  *
  *  @author: ZivDero
  */
-void Vinifera_Remap_Storage_Pointers()
+void Vinifera_Put_Storage_Pointers()
 {
     for (int i = 0; i < Technos.Count(); i++)
     {
@@ -687,7 +687,7 @@ namespace SavedGames
     static char Buffer[PATH_MAX];
 
     /**
-     *  Make sure the subdirectory exists, and create it if not
+     *  Make sure the subdirectory exists, and create it if not.
      *
      *  @author: ZivDero
      */
@@ -763,7 +763,7 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
 #endif
 
     /**
-     *  Make sure our saves games folder exists.
+     *  Make sure our saved games folder exists.
      */
     SavedGames::Ensure_Folder_Exists(Vinifera_SavedGamesDirectory);
 
@@ -963,7 +963,7 @@ bool Vinifera_Load_Game(const char* file_name)
 
     SwizzleManager.Reset();
     Post_Load_Game();
-    Vinifera_Remap_Storage_Pointers();
+    Vinifera_Put_Storage_Pointers();
     Map.Init_IO();
     Map.Activate(1);
     Map.Set_Dimensions();
