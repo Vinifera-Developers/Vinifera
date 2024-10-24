@@ -490,87 +490,6 @@ DECLARE_PATCH(_NewMenuClass_Process_Disable_Load_Button_TiberianSun)
 
 
 /**
- *  Patch in the Vinifera data to be saved in the stream.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_Put_All_Vinifera_Data)
-{
-    GET_REGISTER_STATIC(IStream *, pStm, esi);
-
-    /**
-     *  Call to the Vinifera data stream saver.
-     */
-    if (!Vinifera_Put_All(pStm)) {
-        goto failed;
-    }
-
-    /**
-     *  Stolen bytes/code.
-     */
-original_code:
-    _asm { mov al, 1 }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { pop ebx }
-    _asm { add esp, 0x8 }
-    _asm { ret }
-
-failed:
-    _asm { xor al, al }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { pop ebx }
-    _asm { add esp, 0x8 }
-    _asm { ret }
-}
-
-
-/**
- *  Patch in the Vinifera data to be loaded in the stream.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_Load_All_Vinifera_Data)
-{
-    GET_REGISTER_STATIC(IStream *, pStm, esi);
-
-    /**
-     *  Call to the Vinifera data stream loader.
-     */
-    if (!Vinifera_Get_All(pStm)) {
-        goto failed;
-    }
-
-    /**
-     *  Stolen bytes/code.
-     */
-original_code:
-
-    Map.Flag_To_Redraw(2);
-
-    _asm { mov al, 1 }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { pop ebx }
-    _asm { add esp, 0xB0 }
-    _asm { ret }
-
-failed:
-    _asm { xor al, al }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { pop ebx }
-    _asm { add esp, 0xB0 }
-    _asm { ret }
-}
-
-
-/**
  *  #issue-269
  * 
  *  Adds a "Load Game" button to the dialog shown on mission lose.
@@ -743,6 +662,9 @@ void Vinifera_Hooks()
     Patch_Jump(0x005D4FE0, &Vinifera_Save_Game);
     Patch_Jump(0x005D6910, &Vinifera_Load_Game);
 
+    /**
+     *  Hooks related to saving/loading games.
+     */
     SavedGamesDirectory_Hooks();
 
     /**
