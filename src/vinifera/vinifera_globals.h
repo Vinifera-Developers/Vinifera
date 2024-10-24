@@ -93,7 +93,7 @@ extern bool Vinifera_NoTacticalVersionString;
 
 extern bool Vinifera_ShowSuperWeaponTimers;
 
-extern unsigned Vinifera_CumulativePlayTime;
+extern unsigned Vinifera_TotalPlayTime;
 
 extern DynamicVectorClass<MFCC *> ViniferaMapsMixes;
 extern DynamicVectorClass<MFCC *> ViniferaMoviesMixes;

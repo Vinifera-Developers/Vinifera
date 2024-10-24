@@ -446,24 +446,24 @@ int ViniferaSaveVersionInfo::Get_Difficulty() const
 
 
 /**
- *  Sets the cumulative play time field.
+ *  Sets the total play time field.
  *
  *  @author: ZivDero
  */
-void ViniferaSaveVersionInfo::Set_Cumulative_Play_Time(int num)
+void ViniferaSaveVersionInfo::Set_Total_Play_Time(int num)
 {
-    CumulativePlayTime = num;
+    TotalPlayTime = num;
 }
 
 
 /**
- *  Gets the cumulative play time field.
+ *  Gets the total play time field.
  *
  *  @author: ZivDero
  */
-int ViniferaSaveVersionInfo::Get_Cumulative_Play_Time() const
+int ViniferaSaveVersionInfo::Get_Total_Play_Time() const
 {
-    return CumulativePlayTime;
+    return TotalPlayTime;
 }
 
 
@@ -575,7 +575,7 @@ HRESULT ViniferaSaveVersionInfo::Save(IStorage *storage)
             return res;
         }
 
-        res = Save_Int_Set(storageset, ID_CUMULATIVE_PLAY_TIME, CumulativePlayTime);
+        res = Save_Int_Set(storageset, ID_TOTAL_PLAY_TIME, TotalPlayTime);
         if (FAILED(res)) {
             return res;
         }
@@ -676,7 +676,7 @@ HRESULT ViniferaSaveVersionInfo::Save(IStorage *storage)
         return res;
     }
 
-    res = Save_Int(storage, ID_CUMULATIVE_PLAY_TIME, CumulativePlayTime);
+    res = Save_Int(storage, ID_TOTAL_PLAY_TIME, TotalPlayTime);
     if (FAILED(res)) {
         return res;
     }
@@ -800,7 +800,7 @@ HRESULT ViniferaSaveVersionInfo::Load(IStorage *storage)
             return res;
         }
 
-        res = Load_Int_Set(storageset, ID_CUMULATIVE_PLAY_TIME, &CumulativePlayTime);
+        res = Load_Int_Set(storageset, ID_TOTAL_PLAY_TIME, &TotalPlayTime);
         if (FAILED(res)) {
             return res;
         }
@@ -906,7 +906,7 @@ HRESULT ViniferaSaveVersionInfo::Load(IStorage *storage)
         return res;
     }
 
-    res = Load_Int(storage, ID_CUMULATIVE_PLAY_TIME, &CumulativePlayTime);
+    res = Load_Int(storage, ID_TOTAL_PLAY_TIME, &TotalPlayTime);
     if (FAILED(res)) {
         return res;
     }
@@ -1333,7 +1333,7 @@ const WCHAR *Vinifera_Stream_Name_From_ID(int id)
         { ViniferaSaveVersionInfo::ID_VINIFERA_COMMIT_HASH,  L"Vinifera Commit Hash" },
         { ViniferaSaveVersionInfo::ID_SESSION_ID,            L"Session ID" },
         { ViniferaSaveVersionInfo::ID_DIFFICULTY,            L"Difficulty" },
-        { ViniferaSaveVersionInfo::ID_CUMULATIVE_PLAY_TIME,  L"Cumulative Play Time" },
+        { ViniferaSaveVersionInfo::ID_TOTAL_PLAY_TIME,       L"Total Play Time" },
     };
 
     for (int i = 0; i < std::size(_ids); i++) {

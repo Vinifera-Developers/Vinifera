@@ -405,7 +405,7 @@ DECLARE_PATCH(_Select_Game_Clear_Globals_Patch)
      *  Reset any globals.
      */
     Vinifera_ShowSuperWeaponTimers = true;
-    Vinifera_CumulativePlayTime = 0;
+    Vinifera_TotalPlayTime = 0;
 
     /**
      *  Stolen bytes/code.

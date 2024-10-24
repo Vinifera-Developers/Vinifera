@@ -127,7 +127,7 @@ DECLARE_PATCH(_MultiScore_Tally_Score_Calculate_Economy_Score)
 DECLARE_PATCH(_MultiScore_568BE0_ElapsedTime_Patch)
 {
     static unsigned elapsed_time;
-    elapsed_time = Scen->ElapsedTimer.Value() + Vinifera_CumulativePlayTime;
+    elapsed_time = Scen->ElapsedTimer.Value() + Vinifera_TotalPlayTime;
 
     _asm mov ebx, elapsed_time
     JMP(0x00568D38);
