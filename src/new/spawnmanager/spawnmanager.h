@@ -55,7 +55,7 @@ enum class SpawnControlStatus {
 };
 
 
-class DECLSPEC_UUID(CLSID_SPAWN_MANAGER_CLASS)
+class DECLSPEC_UUID(UUID_SPAWN_MANAGER)
     SpawnManagerClass : public AbstractClass
 {
 public:

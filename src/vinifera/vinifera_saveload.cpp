@@ -745,6 +745,13 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
     DEBUG_INFO("SAVING GAME [%s - %s]\n", SavedGames::Buffer, descr);
 
     /**
+     *  This is required for compatibility with TS Client's sidebar hack.
+     */
+#if defined(TS_CLIENT)
+    Scen->IsGDI = Session.IsGDI;
+#endif
+
+    /**
      *  Format the save game path here just in case to make sure it contains the subdirectory.
      *  In the future, it should be the call sites of Save_Game that are patched so that we can still
      *  save  to an arbitrary location, but until the TS-Patches spawner is ported, this needs to happen.

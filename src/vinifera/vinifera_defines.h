@@ -58,14 +58,16 @@
 /**
  *  CLSIDs for all new locomotors.
  */
-#define		CLSID_TEST_LOCOMOTOR	"501DEF92-C7ED-448E-8FEB-7908DCE73377"
-#define		CLSID_ROCKET_LOCOMOTOR	"B7B49766-E576-11d3-9BD9-00104B972FE8"
+#define CLSID_TEST_LOCOMOTOR                "501DEF92-C7ED-448E-8FEB-7908DCE73377"
+#define CLSID_ROCKET_LOCOMOTOR              "B7B49766-E576-11d3-9BD9-00104B972FE8"
 
 
 /**
  *  CLSIDs for new classes.
  */
-#define		CLSID_SPAWN_MANAGER_CLASS	"157ADEE5-D344-48B9-811B-3FA01EF3CCD4"
+#define UUID_ARMORTYPE                      "EE8D505F-12BB-4313-AEDC-4AEA30A5BA03"
+#define UUID_ROCKETTYPE                     "FAE72300-A93C-476C-A6DB-CB2B62ADCECD"
+#define UUID_SPAWN_MANAGER                  "157ADEE5-D344-48B9-811B-3FA01EF3CCD4"
 
 
 /**
@@ -137,16 +139,9 @@
 
 
 /**
- *  UUIDs for all other new classes.
- */
-#define UUID_ARMORTYPE                      "EE8D505F-12BB-4313-AEDC-4AEA30A5BA03"
-#define UUID_ROCKETTYPE                      "FAE72300-A93C-476C-A6DB-CB2B62ADCECD"
-
-
-/**
  *  The maximum amount of waypoints available for a scenario to use.
  */
-#define NEW_WAYPOINT_COUNT         SHRT_MAX      // "AVLG"
+#define NEW_WAYPOINT_COUNT SHRT_MAX // "AVLG"
 
 
 typedef enum ViniferaRTTIType
