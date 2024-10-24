@@ -118,6 +118,10 @@ WeaponTypeClassExtension final : public AbstractTypeClassExtension
          *  The action type used for this weapon's attack cursor.
          */
         ActionType AttackCursor;
+
+        /**
+         *  The action type used for this weapon's attack cursor when hovering over shroud.
+         */
         ActionType StayAttackCursor;
 
         /**
