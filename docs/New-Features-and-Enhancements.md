@@ -456,7 +456,7 @@ Vanilla actions are always present implicitly, but their properties **can** be o
 
 ### Spawners
 
-- Vinifera ports the spawn manager, responsible for AircraftType missiles and aircraft carries from Red Alert 2.
+- Vinifera ports the spawn manager, responsible for AircraftType missiles and aircraft carriers from Red Alert 2.
 
 In `RULES.INI`:
 ```ini
