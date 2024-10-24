@@ -118,6 +118,7 @@ WeaponTypeClassExtension final : public AbstractTypeClassExtension
          *  The action type used for this weapon's attack cursor.
          */
         ActionType AttackCursor;
+        ActionType StayAttackCursor;
 
         /**
          *  Particle systems to display.

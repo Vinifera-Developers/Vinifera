@@ -1120,8 +1120,17 @@ ShakeXlo=0      ; unsigned integer, the minimum pixel X value.
 
 In `RULES.INI`:
 ```ini
-[SOMEWEAPON]         ; WeaponType
-AttackCursor=Attack  ; ActionType, the action whose cursor properties will be used for this weapon's attack cursor.
+[SOMEWEAPON]             ; WeaponType
+AttackCursor=Attack      ; ActionType, the action whose cursor properties will be used for this weapon's attack cursor when the unit is not in range of the target.
+StayAttackCursor=Attack  ; ActionType, the action whose cursor properties will be used for this weapon's attack cursor when the unit is in range of the target.
+```
+
+```{note}
+While there is no vanilla action for `StayAttack`, when `StayAttackCursor=Attack`, the `StayAttack` mouse cursor will be used.
+```
+
+```{note}
+Both `AttackCursor` and `StayAttackCursor` are only used when not hovering over shroud.
 ```
 
 ### Electric Bolts
