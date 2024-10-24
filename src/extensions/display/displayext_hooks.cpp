@@ -53,6 +53,11 @@
 #include "hooker_macros.h"
 
 
+/**
+ *  Sets the mouse cursor based on the action.
+ *
+ *  @author: CCHyper, ZivDero
+ */
 static void Display_Set_Mouse_Cursor(ActionType action, bool shadow, bool wsmall, CellClass *cellptr)
 {
     MouseType mouse = MOUSE_NORMAL;
@@ -89,6 +94,12 @@ static void Display_Set_Mouse_Cursor(ActionType action, bool shadow, bool wsmall
     Map.Set_Default_Mouse(mouse, wsmall);
 }
 
+
+/**
+ *  Patch to set the mouse cursor based on the action.
+ *
+ *  @author: CCHyper, ZivDero
+ */
 DECLARE_PATCH(_DisplayClass_Mouse_Left_Up_Set_Mouse)
 {
     GET_REGISTER_STATIC(ActionType, action, ebx);
