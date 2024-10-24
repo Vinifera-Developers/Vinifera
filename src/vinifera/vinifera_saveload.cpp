@@ -756,6 +756,11 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
 #endif
 
     /**
+     *  Make sure our saves games folder exists.
+     */
+    SavedGames::Ensure_Folder_Exists(Vinifera_SavedGamesDirectory);
+
+    /**
      *  Convert the file name to a wide string.
      */
     MultiByteToWideChar(CP_ACP, 0, SavedGames::Buffer, -1, wide_file_name, std::size(wide_file_name));
