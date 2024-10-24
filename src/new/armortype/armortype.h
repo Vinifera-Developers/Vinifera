@@ -61,6 +61,7 @@ public:
     IFACEMETHOD_(LONG, GetSizeMax)(ULARGE_INTEGER* pcbSize);
 
     ArmorTypeClass();
+    ArmorTypeClass(const NoInitClass& noinit) {}
     ArmorTypeClass(const char *name);
     virtual ~ArmorTypeClass();
 

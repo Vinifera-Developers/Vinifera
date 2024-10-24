@@ -86,6 +86,8 @@ HRESULT KamikazeTrackerClass::Load(IStream* pStm)
         return hr;
     }
 
+    new (this) KamikazeTrackerClass(NoInitClass());
+
     /**
      *  Read the count of active kamikaze controls.
      */

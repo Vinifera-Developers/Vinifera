@@ -210,6 +210,8 @@ HRESULT ArmorTypeClass::Load(IStream* pStm)
         return hr;
     }
 
+    new (this) ArmorTypeClass(NoInitClass());
+
     return hr;
 }
 

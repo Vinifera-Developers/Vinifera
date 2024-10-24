@@ -69,6 +69,7 @@ public:
     IFACEMETHOD_(LONG, GetSizeMax)(ULARGE_INTEGER* pcbSize);
 
     RocketTypeClass();
+    RocketTypeClass(const NoInitClass& noinit) {}
     RocketTypeClass(const char *name);
     virtual ~RocketTypeClass();
 

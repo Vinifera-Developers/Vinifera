@@ -223,6 +223,8 @@ HRESULT RocketTypeClass::Load(IStream* pStm)
         return hr;
     }
 
+    new (this) RocketTypeClass(NoInitClass());
+
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Type, "Type");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Warhead, "Warhead");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(EliteWarhead, "EliteWarhead");

@@ -44,7 +44,8 @@ public:
         CellClass* Cell;
     };
 
-    KamikazeTrackerClass() noexcept : UpdateTimer(100), Controls() { }
+    KamikazeTrackerClass() : UpdateTimer(100), Controls() { }
+    KamikazeTrackerClass(const NoInitClass& noinit) : UpdateTimer(noinit), Controls(noinit) { }
     ~KamikazeTrackerClass();
 
     HRESULT STDMETHODCALLTYPE Load(IStream* pStm);
