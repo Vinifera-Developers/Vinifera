@@ -115,6 +115,11 @@ WeaponTypeClassExtension final : public AbstractTypeClassExtension
         bool IsRevealOnFire;
 
         /**
+         *  The action type used for this weapon's attack cursor.
+         */
+        ActionType AttackCursor;
+
+        /**
          *  Particle systems to display.
          */
         //ParticleSystemClass *ElectricBoltSourceBoltParticleSys;

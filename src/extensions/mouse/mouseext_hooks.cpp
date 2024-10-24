@@ -32,9 +32,14 @@
 #include "wwmouse.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "extension.h"
+#include "weapontype.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "techno.h"
+#include "tibsun_functions.h"
+#include "weapontypeext.h"
 
 
 /**
@@ -251,6 +256,62 @@ int MouseClassExt::_Get_Mouse_Frame_Count(MouseType mouse) const
 }
 
 
+/**
+ *  Gets the action type for the the given object.
+ *
+ *  @author: ZivDero
+ */
+static ActionType Get_Action(ObjectClass* obj, Cell& cellnum, bool check_fog)
+{
+    ActionType action;
+    TechnoClass* selected = Best_Selected_Object();
+
+    if (obj) {
+        action = selected->What_Action(obj, false);
+    }
+    else {
+        action = selected->What_Action(cellnum, check_fog, false);
+    }
+
+    /**
+     *  For ACTION_ATTACK, we fetch a different action from the weapon for the visuals.
+     */
+    if (action == ACTION_ATTACK) {
+        const auto weapon = selected->Get_Weapon(selected->What_Weapon_Should_I_Use(obj));
+
+        if (weapon->Weapon) {
+            const auto weapon_ext = Extension::Fetch<WeaponTypeClassExtension>(weapon->Weapon);
+            return weapon_ext->AttackCursor;
+        }
+    }
+
+    return action;
+}
+
+
+/**
+ *  Patch that replaces the action type for the attack cursor.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_ScrollClass_What_Action_Attack_Cursor_Patch)
+{
+    GET_STACK_STATIC(Cell*, cellnum, esp, 0x18);
+    GET_STACK_STATIC(ObjectClass*, obj, esp, 0x1C);
+    GET_STACK_STATIC8(bool, check_fog, esp, 0x20);
+
+    static ActionType action;
+    action = Get_Action(obj, *cellnum, check_fog);
+
+    // return action;
+    _asm mov eax, action
+    JMP_REG(esi, 0x005E8936);
+}
+
+
+/**
+ *  Main function for patching the hooks.
+ */
 void MouseClassExtension_Hooks()
 {
     Patch_Jump(0x00562200, &MouseClassExt::_Mouse_Small);
@@ -260,4 +321,6 @@ void MouseClassExtension_Hooks()
     Patch_Jump(0x005624D0, &MouseClassExt::_AI);
     Patch_Jump(0x00563220, &MouseClassExt::_Get_Mouse_Start_Frame);
     Patch_Jump(0x00563240, &MouseClassExt::_Get_Mouse_Frame_Count);
+
+    Patch_Jump(0x005E8920, &_ScrollClass_What_Action_Attack_Cursor_Patch);
 }
