@@ -1136,11 +1136,11 @@ CursorStayAttack=Attack  ; ActionType, the action whose cursor properties will b
 ```
 
 ```{note}
-While there is no vanilla action for `StayAttack`, when `StayAttackCursor=Attack`, the `StayAttack` mouse cursor will be used.
+While there is no vanilla action for `StayAttack`, when `CursorStayAttack=Attack`, the `StayAttack` mouse cursor will be used.
 ```
 
 ```{note}
-Both `AttackCursor` and `StayAttackCursor` are only used when not hovering over shroud.
+Both `CursorAttack` and `CursorStayAttack` are only used when not hovering over shroud.
 ```
 
 ### Electric Bolts
