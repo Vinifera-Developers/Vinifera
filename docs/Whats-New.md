@@ -157,7 +157,10 @@ New:
 - Implement the Torpedo logic from Red Alert 1 for BulletTypes (by Rampastring)
 - Add `BuildTimeCost` (by Rampastring)
 - Allow scenarios to have custom score screen bar colors (by Rampastring)
+- Allow customizing the hunter-seeker unit type per side (by ZivDero)
+- Allow customizing power plants per side (by ZivDero)
 - Implement `WaterAlt` (by ZivDero)
+- Implement customizable mouse cursors and actions (by CCHyper/tomsons26, ZivDero)
 
 
 Vanilla fixes:
@@ -218,8 +221,6 @@ Vanilla fixes:
 - Fix a bug where the camera kept following a followed object when a trigger or script told it to center on a waypoint or team (by Rampastring)
 - Fix a bug where crew wouldn't exit from construction yards when they were sold or destroyed (by ZivDero)
 - Fix a bug where you could sometimes get extra crew to exit a building that was being sold and was destroying/undeploying (by ZivDero)
-- Allow customizing the hunter-seeker unit type per side (by ZivDero)
-- Allow customizing power plants per side (by ZivDero)
 
 </details>
 

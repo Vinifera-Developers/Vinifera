@@ -233,6 +233,215 @@ In `RULES.INI`:
 HunterSeeker=  ; UnitType, the unit that is this side's Hunter-Seeker.
 ```
 
+## Mouse Cursors and Actions
+
+### Mouse Cursors
+
+- Vinifera implements a new system to customize mouse cursor type properties, as well as add new mouse cursors.
+- Mouse cursors are specified in a new `INI` file, `MOUSE.INI`. If the `INI` is not present, the game will default to the normal hardcoded mouse type properties.
+
+```{note}
+Vanilla cursors are always present implicitly, but their properties **can** be overridden in `MOUSE.INI`.
+```
+
+- <details>
+    <summary>Basic `MOUSE.INI`</summary>
+
+    ```ini
+    ;============================================================================
+    ; MOUSE.INI
+    ;
+    ; This control file is used to control the frames and rates of the various
+    ; mouse pointers.
+    ;
+    ; $Author: $
+    ; $Archive: $
+    ; $Modtime: $
+    ; $Revision: $
+    ;============================================================================
+
+
+    ; ******* Mouse List *******
+    ; Lists the mouse types in this control file. Each mouse pointer is given a
+    ; unique (internal only) identifier name, these can not be renamed or removed!
+    ;
+    ; FORMAT;
+    ;   <StartFrame>,<FrameCount>,<FrameRate>,<SmallFrame>,<SmallFrameCount>,<SmallFrameRate>,<HotspotX>,<HotspotY>
+    ;
+    ;   A hotspot value can either be an integer value (ranged between the negative value of the width/height
+    ;   of the shape frame, and the positive value of the width/height of the shape frame), or one of the
+    ;   following hotspot types;
+    ;      HotspotX = left, center, right
+    ;      HotspotY = top, middle, bottom
+    ;
+    ; NOTE: 
+    ;   A SmallFrame value of "-1" means it will use the normal pointer when
+    ;   the mouse is over the radar panel.
+
+    [MouseTypes]
+    Normal=0,1,0,1,1,0,left,top
+    ScrollN=2,1,0,-1,1,0,center,top
+    ScrollNE=3,1,0,-1,1,0,right,top
+    ScrollE=4,1,0,-1,1,0,right,middle
+    ScrollSE=5,1,0,-1,1,0,right,bottom
+    ScrollS=6,1,0,-1,1,0,center,bottom
+    ScrollSW=7,1,0,-1,1,0,left,bottom
+    ScrollW=8,1,0,-1,1,0,left,middle
+    ScrollNW=9,1,0,-1,1,0,left,top
+    NoScrollN=10,1,0,-1,1,0,center,top
+    NoScrollNE=11,1,0,-1,1,0,right,top
+    NoScrollE=12,1,0,-1,1,0,right,middle
+    NoScrollSE=13,1,0,-1,1,0,right,bottom
+    NoScrollS=14,1,0,-1,1,0,center,bottom
+    NoScrollSW=15,1,0,-1,1,0,left,bottom
+    NoScrollW=16,1,0,-1,1,0,left,middle
+    NoScrollNW=17,1,0,-1,1,0,left,top
+    CanSelect=18,13,4,-1,13,4,center,middle
+    CanMove=31,10,4,42,10,4,center,middle
+    NoMove=41,1,0,52,1,0,center,middle
+    StayAttack=53,5,4,63,5,4,center,middle
+    CanAttack=58,5,4,63,5,4,center,middle
+    AreaGuard=68,5,4,73,5,4,center,middle
+    Tote=78,10,4,-1,10,4,center,middle
+    NoTote=88,1,0,-1,1,0,center,middle
+    Enter=89,10,4,100,10,4,center,middle
+    NoEnter=99,1,0,63,1,0,center,middle
+    Deploy=110,9,4,-1,9,4,center,middle
+    NoDeploy=119,1,0,-1,1,0,center,middle
+    Undeploy=120,9,4,-1,9,4,center,middle
+    Sell=129,10,4,-1,10,4,center,middle
+    SellUnit=139,10,4,-1,10,4,center,middle
+    NoSell=149,1,0,-1,1,0,center,middle
+    GRepair=150,20,4,-1,20,4,center,middle
+    Repair=170,20,4,-1,20,4,center,middle
+    NoRepair=190,1,0,-1,1,0,center,middle
+    Waypoint=191,10,4,-1,10,4,center,middle
+    PlaceWaypoint=201,10,4,-1,10,4,center,middle
+    NoPlaceWaypoint=211,1,0,-1,1,0,center,middle
+    SelectWaypoint=212,7,4,-1,7,4,center,middle
+    EnterWaypointMode=219,10,4,-1,10,4,center,middle
+    FollowWaypoint=229,10,4,-1,10,4,center,middle
+    ToteWaypoint=239,10,4,-1,10,4,center,middle
+    RepairWaypoint=249,10,4,-1,10,4,center,middle
+    AttackWaypoint=259,10,4,-1,10,4,center,middle
+    EnterWaypoint=269,10,4,-1,10,4,center,middle
+    LoopWaypointPath=356,1,0,-1,1,0,center,middle
+    AirStrike=279,20,4,-1,20,4,center,middle               ; Ion Cannon
+    ChemBomb=299,10,4,-1,10,4,center,middle
+    Demolitions=309,10,4,-1,10,4,center,middle
+    NuclearBomb=319,10,4,-1,10,4,center,middle
+    TogglePower=329,16,2,-1,16,2,center,middle
+    NoTogglePower=345,1,0,-1,1,0,center,middle
+    Heal=346,10,4,42,10,4,center,middle
+    EMPulse=357,20,3,-1,20,3,center,middle
+    EMPulseRange=377,1,0,-1,1,0,center,middle
+    ScrollCoast=378,1,0,-1,1,0,center,middle
+    ScrollCoastN=379,1,0,-1,1,0,center,middle
+    ScrollCoastNE=380,1,0,-1,1,0,center,middle
+    ScrollCoastE=381,1,0,-1,1,0,center,middle
+    ScrollCoastSE=382,1,0,-1,1,0,center,middle
+    ScrollCoastS=383,1,0,-1,1,0,center,middle
+    ScrollCoastSW=384,1,0,-1,1,0,center,middle
+    ScrollCoastW=385,1,0,-1,1,0,center,middle
+    ScrollCoastNW=386,1,0,-1,1,0,center,middle
+    PatrolWaypoint=387,10,4,-1,10,4,center,middle
+
+    ```
+   </details>
+
+### Actions
+
+- Vinifera also implements a new system to customize action type properties, as well as add action types cursors.
+- Actions are specified in a new `INI` file, `ACTION.INI`. If the `INI` is not present, the game will default to the normal hardcoded action type properties.
+
+```{note}
+Vanilla actions are always present implicitly, but their properties **can** be overridden in `ACTION.INI`.
+```
+
+- <details>
+    <summary>Basic `ACTION.INI`</summary>
+    
+    ```ini
+    ;============================================================================
+    ; ACTION.INI
+    ;
+    ; This control file is used to control the mouse pointers used for various actions.
+    ;
+    ; $Author: $
+    ; $Archive: $
+    ; $Modtime: $
+    ; $Revision: $
+    ;============================================================================
+
+
+    ; ******* Action List *******
+    ; Lists the action types in this control file. Each action is given a
+    ; unique (internal only) identifier name, these can not be renamed or removed!
+    ;
+    ; FORMAT;
+    ;   <Mouse>,<ShadowMouse>
+    ;
+    ;   Mouse and ShadowMouse must be names of mouse types, listed in MOUSE.INI.
+    ;   ShadowMouse is shown when the mouse pointer is over shroud, Mouse is shown otherwise.
+
+    [ActionTypes]
+    None=Normal,Normal
+    Move=CanMove,CanMove
+    NoMove=NoMove,NoMove
+    Enter=Enter,Normal
+    Self=Deploy,Normal
+    Attack=CanAttack,CanMove
+    Harvest=CanAttack,Normal
+    Select=CanSelect,Normal
+    ToggleSelect=CanSelect,Normal
+    Capture=Enter,Normal
+    Repair=Repair,NoRepair
+    Sell=Sell,NoSell
+    SellUnit=SellUnit,NoSell
+    NoSell=NoSell,NoSell
+    NoRepair=NoRepair,NoRepair
+    Sabotage=Demolitions,Normal
+    Tote=Tote,NoTote
+    DontUse2=Normal,Normal
+    DontUse3=Normal,Normal
+    Nuke=NuclearBomb,NuclearBomb
+    DontUse4=Normal,Normal
+    DontUse5=Normal,Normal
+    DontUse6=Normal,Normal
+    DontUse7=Normal,Normal
+    DontUse8=Normal,Normal
+    GuardArea=AreaGuard,AreaGuard
+    Heal=Heal,Heal
+    Damage=Enter,Normal
+    GRepair=GRepair,Normal
+    NoDeploy=NoDeploy,NoDeploy
+    NoEnter=NoEnter,NoEnter
+    NoGRepair=NoRepair,NoRepair
+    TogglePower=TogglePower,NoTogglePower
+    NoTogglePower=NoTogglePower,NoTogglePower
+    EnterTunnel=Enter,Normal
+    NoEnterTunnel=Normal,NoEnter
+    EMPulse=EMPulse,EMPulse
+    IonCannon=AirStrike,AirStrike
+    EMPulseRange=EMPulseRange,EMPulseRange
+    ChemBomb=ChemBomb,ChemBomb
+    PlaceWaypoint=PlaceWaypoint,PlaceWaypoint
+    NoPlaceWaypoint=NoPlaceWaypoint,NoPlaceWaypoint
+    EnterWaypointMode=EnterWaypointMode,EnterWaypointMode
+    FollowWaypoint=FollowWaypoint,FollowWaypoint
+    SelectWaypoint=SelectWaypoint,SelectWaypoint
+    LoopWaypointPath=LoopWaypointPath,LoopWaypointPath
+    DragWaypoint=Normal,Normal
+    AttackWaypoint=AttackWaypoint,AttackWaypoint
+    EnterWaypoint=EnterWaypoint,EnterWaypoint
+    PatrolWaypoint=PatrolWaypoint,PatrolWaypoint
+    DropPod=AirStrike,AirStrike
+    RallyToPoint=Normal,Normal
+    AttackSupport=Normal,Normal
+
+    ```
+   </details>
+
 ## Technos
 
 ### Spawners
@@ -727,6 +936,7 @@ The random map generator does not currently support new theater types.
     IsGenerateVeinholesInRMG=true
     LowRadarBrightness=0.8
     HighRadarBrightness=1.1
+
     ```
    </details>
 
@@ -903,6 +1113,16 @@ ShakeXlo=0      ; unsigned integer, the minimum pixel X value.
 ```
 
 ## Weapons
+
+### Custom Attack Cursor
+
+- Vinifera allows setting a custom attack cursor used by a weapon.
+
+In `RULES.INI`:
+```ini
+[SOMEWEAPON]         ; WeaponType
+AttackCursor=Attack  ; ActionType, the action whose cursor properties will be used for this weapon's attack cursor.
+```
 
 ### Electric Bolts
 

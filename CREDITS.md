@@ -129,6 +129,7 @@ This page lists all the individual contributions to the project by their author.
   - Implement various controls to customise action lines.
   - Implement various controls to customise target lasers line.
   - Implement various controls to show and customise NavCom queue lines.
+  - Implement customizable mouse cursors and actions.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **MarkJFox**:
@@ -196,4 +197,5 @@ This page lists all the individual contributions to the project by their author.
   - Reimplement aircraft carriers and missile launchers from Red Alert 2.
   - Implement `DontScore`.
   - Implement `WaterAlt`.
+  - Update and finalize custom mouse cursors and actions, add customizable weapon cursors.
 
