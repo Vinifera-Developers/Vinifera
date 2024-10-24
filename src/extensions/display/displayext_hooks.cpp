@@ -67,8 +67,8 @@ static void Display_Set_Mouse_Cursor(ActionType action, bool shadow, bool wsmall
         mouse = ActionTypeClass::As_Reference(action).Get_Shadow_Mouse();
 
         if (action == ACTION_NOMOVE) {
-            if (CurrentObjects.Count() &&
-                CurrentObjects[0]->Is_Techno()
+            if (CurrentObjects.Count()
+                && CurrentObjects[0]->Is_Techno()
                 && CurrentObjects[0]->Techno_Type_Class()->MoveToShroud) {
 
                 mouse = ActionTypeClass::As_Reference(ACTION_MOVE).Get_Shadow_Mouse();

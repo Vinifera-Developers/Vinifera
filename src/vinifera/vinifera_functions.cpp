@@ -737,7 +737,7 @@ int Vinifera_Pre_Init_Game(int argc, char *argv[])
      */
     MouseTypeClass::One_Time();
 
-#ifndef NDEBUG
+#if 0 //#ifndef NDEBUG
     /**
      *  Write the default mouse control values to ini.
      */
@@ -768,7 +768,7 @@ int Vinifera_Pre_Init_Game(int argc, char *argv[])
      */
     ActionTypeClass::One_Time();
 
-#ifndef NDEBUG
+#if 0 //#ifndef NDEBUG
     /**
      *  Write the default mouse control values to ini.
      */
