@@ -288,10 +288,10 @@ static ActionType Get_Action(ObjectClass* obj, Cell& cellnum, bool check_fog)
                 && CurrentObjects[0]->Is_Techno()
                 && static_cast<TechnoClass*>(CurrentObjects[0])->In_Range_Of(&Map[cellnum])) {
 
-                return weapon_ext->StayAttackCursor;
+                return weapon_ext->CursorStayAttack;
             }
 
-            return weapon_ext->AttackCursor;
+            return weapon_ext->CursorAttack;
         }
     }
 

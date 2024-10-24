@@ -239,8 +239,8 @@ HunterSeeker=  ; UnitType, the unit that is this side's Hunter-Seeker.
 
 In `RULES.INI`:
 ```ini
-[SOMESUPERWEAPON]         ; SuperWeaponType
-ActionRange=EMPulseRange  ; ActionType, the action used by this super weapon when it's out of range.
+[SOMESUPERWEAPON]              ; SuperWeaponType
+ActionOutOfRange=EMPulseRange  ; ActionType, the action used by this super weapon when it's out of range.
 ```
 
 ## Mouse Cursors and Actions
@@ -1131,8 +1131,8 @@ ShakeXlo=0      ; unsigned integer, the minimum pixel X value.
 In `RULES.INI`:
 ```ini
 [SOMEWEAPON]             ; WeaponType
-AttackCursor=Attack      ; ActionType, the action whose cursor properties will be used for this weapon's attack cursor when the unit is not in range of the target.
-StayAttackCursor=Attack  ; ActionType, the action whose cursor properties will be used for this weapon's attack cursor when the unit is in range of the target.
+CursorAttack=Attack      ; ActionType, the action whose cursor properties will be used for this weapon's attack cursor when the unit is not in range of the target.
+CursorStayAttack=Attack  ; ActionType, the action whose cursor properties will be used for this weapon's attack cursor when the unit is in range of the target.
 ```
 
 ```{note}

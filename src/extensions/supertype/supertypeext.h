@@ -85,5 +85,5 @@ SuperWeaponTypeClassExtension final : public AbstractTypeClassExtension
         /**
          *  Action type used for the cursor when the SW is out of range to fire.
          */
-        ActionType ActionRange;
+        ActionType ActionOutOfRange;
 };

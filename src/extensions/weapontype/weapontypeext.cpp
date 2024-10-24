@@ -54,8 +54,8 @@ WeaponTypeClassExtension::WeaponTypeClassExtension(const WeaponTypeClass *this_p
     ElectricBoltDeviation(EBOLT_DEFAULT_DEVIATION),
     IsSpawner(false),
     IsRevealOnFire(false),
-    AttackCursor(ACTION_ATTACK),
-    StayAttackCursor(ACTION_ATTACK)
+    CursorAttack(ACTION_ATTACK),
+    CursorStayAttack(ACTION_ATTACK)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("WeaponTypeClassExtension::WeaponTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -211,8 +211,8 @@ bool WeaponTypeClassExtension::Read_INI(CCINIClass &ini)
     ElectricBoltDeviation = ini.Get_Float(ini_name, "EBoltDeviation", ElectricBoltDeviation);
     IsSpawner = ini.Get_Bool(ini_name, "Spawner", IsSpawner);
     //IsRevealOnFire = ini.Get_Bool(ini_name, "RevealOnFire", IsRevealOnFire); // Disabled until it's implemented in all the places it should take effect.
-    AttackCursor = ini.Get_ActionType(ini_name, "AttackCursor", AttackCursor);
-    StayAttackCursor = ini.Get_ActionType(ini_name, "StayAttackCursor", StayAttackCursor);
+    CursorAttack = ini.Get_ActionType(ini_name, "CursorAttack", CursorAttack);
+    CursorStayAttack = ini.Get_ActionType(ini_name, "CursorStayAttack", CursorStayAttack);
     //ElectricBoltSourceBoltParticleSys = ini.Get_ParticleSys(ini_name, "EBoltSourceParticleSys", ElectricBoltSourceBoltParticleSys);
     //ElectricBoltTargetBoltParticleSys = ini.Get_ParticleSys(ini_name, "EBoltTargetBoltParticleSys", ElectricBoltTargetBoltParticleSys);
 

@@ -98,12 +98,12 @@ ActionType SuperWeaponTypeClassExt::_What_Action(Cell& cell, ObjectClass* object
         }
 
         if (!closest_cannon)
-            return swtype_ext->ActionRange;
+            return swtype_ext->ActionOutOfRange;
 
         int range = closest_cannon->Get_Weapon()->Weapon->Range / 256;
         Cell cannon_cell = closest_cannon->Get_Cell();
 
-        return (target_cell - cannon_cell).Length2() > range * range ? swtype_ext->ActionRange : Action;
+        return (target_cell - cannon_cell).Length2() > range * range ? swtype_ext->ActionOutOfRange : Action;
     }
 
     return Action;
