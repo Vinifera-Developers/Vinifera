@@ -53,6 +53,7 @@ extern bool Vinifera_AssertFileErrors;
 extern char Vinifera_ExceptionDatabaseFilename[PATH_MAX];
 extern char Vinifera_DebugDirectory[PATH_MAX];
 extern char Vinifera_ScreenshotDirectory[PATH_MAX];
+extern char Vinifera_SavedGamesDirectory[PATH_MAX];
 
 extern char Vinifera_ProjectName[64];
 extern char Vinifera_ProjectVersion[64];

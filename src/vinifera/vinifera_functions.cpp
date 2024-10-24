@@ -137,6 +137,7 @@ bool Vinifera_Load_INI()
     }
 
     Vinifera_NewSidebar = ini.Get_Bool("Features", "NewSidebar", false);
+    ini.Get_String("General", "SavedGamesDirectory", Vinifera_SavedGamesDirectory, std::size(Vinifera_SavedGamesDirectory));
 
     return true;
 }

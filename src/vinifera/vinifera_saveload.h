@@ -98,6 +98,7 @@ bool Vinifera_Remap_Extension_Pointers();
 void Vinifera_Remap_Storage_Pointers();
 bool Vinifera_Save_Game(const char* file_name, const char* descr, bool);
 bool Vinifera_Load_Game(const char* file_name);
+void SavedGamesDirectory_Hooks();
 
 
 template<class T>

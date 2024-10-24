@@ -41,6 +41,7 @@ bool Vinifera_AssertFileErrors = false;
 char Vinifera_ExceptionDatabaseFilename[PATH_MAX] = { "GAME.EDB" };
 char Vinifera_DebugDirectory[PATH_MAX] = { "Debug" };
 char Vinifera_ScreenshotDirectory[PATH_MAX] = { "Screenshots" };
+char Vinifera_SavedGamesDirectory[PATH_MAX] = { "Saved Games" };
 
 char Vinifera_ProjectName[64] = { '\0' };
 char Vinifera_ProjectVersion[64] = { '\0' };

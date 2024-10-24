@@ -127,7 +127,11 @@
 #include <atlbase.h>
 #include <atlcom.h>
 
+#include "hooker.h"
+#include "language.h"
+#include "loadoptions.h"
 #include "savever.h"
+#include "windialog.h"
 
 
 /**
@@ -795,6 +799,12 @@ bool Vinifera_Remap_Extension_Pointers()
     return true;
 }
 
+
+/**
+ *  Restores pointers to storage vectors in vanilla classes.
+ *
+ *  @author: ZivDero
+ */
 void Vinifera_Remap_Storage_Pointers()
 {
     for (int i = 0; i < Technos.Count(); i++)
@@ -814,7 +824,6 @@ void Vinifera_Remap_Storage_Pointers()
 namespace SavedGames
 {
     static char Buffer[PATH_MAX];
-    static const char* SavesGamesDir = "Saved Games";
 
     /**
      *  Make sure the subdirectory exists, and create it if not
@@ -848,7 +857,7 @@ namespace SavedGames
      */
     inline void Format_Path(char* buffer, size_t buffer_size, const char* filename)
     {
-        std::snprintf(buffer, buffer_size, "%s\\%s", SavesGamesDir, filename);
+        std::snprintf(buffer, buffer_size, "%s\\%s", Vinifera_SavedGamesDirectory, filename);
     }
 
     /**
@@ -858,21 +867,19 @@ namespace SavedGames
      */
     inline void Check_And_Format_Path(char* buffer, size_t buffer_size, const char* filename)
     {
-        std::strstr(filename, SavesGamesDir) ? std::snprintf(buffer, buffer_size, "%s", filename) : Format_Path(buffer, buffer_size, filename);
+        std::strstr(filename, Vinifera_SavedGamesDirectory) ? std::snprintf(buffer, buffer_size, "%s", filename) : Format_Path(buffer, buffer_size, filename);
     }
 }
 
 
-
+/**
+ *  Saves the game to a file on the disk.
+ *
+ *  @author: ZivDero
+ */
 bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
 {
-    WCHAR wide_file_name[64];
-
-#ifdef TS_CLIENT
-    SavedGames::Check_And_Format_Path(SavedGames::Buffer, std::size(SavedGames::Buffer), file_name);
-#else
-    std::strncpy(SavedGames::Buffer, file_name, std::size(SavedGames::Buffer));
-#endif
+    WCHAR wide_file_name[PATH_MAX];
 
     DEBUG_INFO("SAVING GAME [%s - %s]\n", SavedGames::Buffer, descr);
 
@@ -889,7 +896,7 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
     }
 
     SaveVersionInfo versioninfo;
-    versioninfo.Set_Internal_Version(GameVersion);
+    versioninfo.Set_Internal_Version(ViniferaGameVersion);
     versioninfo.Set_Scenario_Description(descr);
     versioninfo.Set_Version(1);
     versioninfo.Set_Player_House(PlayerPtr->Class->Full_Name());
@@ -970,15 +977,14 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
 }
 
 
+/**
+ *  Load the game from a file on the disk.
+ *
+ *  @author: ZivDero
+ */
 bool Vinifera_Load_Game(const char* file_name)
 {
-    WCHAR wide_file_name[64];
-
-#ifdef TS_CLIENT
-    SavedGames::Check_And_Format_Path(SavedGames::Buffer, std::size(SavedGames::Buffer), file_name);
-#else
-    std::strncpy(SavedGames::Buffer, file_name, std::size(SavedGames::Buffer));
-#endif
+    WCHAR wide_file_name[PATH_MAX];
 
     DEBUG_INFO("LOADING GAME [%s]\n", SavedGames::Buffer);
 
@@ -1073,3 +1079,171 @@ bool Vinifera_Load_Game(const char* file_name)
     return true;
 }
 
+
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or destructor.
+ *
+ *  @note: All functions must not be virtual and must also be prefixed
+ *         with "_" to prevent accidental virtualization.
+ */
+class LoadOptionsClassExt : public LoadOptionsClass
+{
+public:
+    bool _Load_File(const char* filename);
+    bool _Save_File(const char* filename, const char* description);
+    bool _Delete_File(const char* filename);
+    bool _Read_File(FileEntryClass* file, WIN32_FIND_DATA* filename);
+};
+
+
+/**
+ *  Opens the "Loading..." window and loads a saved game from the selected file.
+ *
+ *  @author: ZivDero
+ */
+bool LoadOptionsClassExt::_Load_File(const char* filename)
+{
+    HWND handle = WinDialogClass::Do_Message_Box(Fetch_String(TXT_LOADING), nullptr, nullptr);
+    if (handle) {
+        WinDialogClass::Display_Dialog(handle);
+    }
+
+    bool_007E48FC = false;
+    bool_007E4040 = false;
+
+    SavedGames::Check_And_Format_Path(SavedGames::Buffer, std::size(SavedGames::Buffer), filename);
+    const bool result = Load_Game(SavedGames::Buffer);
+
+    if (handle) {
+        WinDialogClass::End_Dialog(handle);
+    }
+
+    return result;
+}
+
+
+/**
+ *  Opens the "Saving..." window and saves the game to the selected file.
+ *
+ *  @author: ZivDero
+ */
+bool LoadOptionsClassExt::_Save_File(const char* filename, const char* description)
+{
+    HWND handle = WinDialogClass::Do_Message_Box(Fetch_String(TXT_SAVING_GAME), nullptr, nullptr);
+    if (handle) {
+        WinDialogClass::Display_Dialog(handle);
+    }
+
+    SavedGames::Check_And_Format_Path(SavedGames::Buffer, std::size(SavedGames::Buffer), filename);
+    const bool result = Save_Game(SavedGames::Buffer, description, false);
+
+    if (handle) {
+        WinDialogClass::End_Dialog(handle);
+    }
+
+    return result;
+}
+
+
+/**
+ *  Deletes the selected saved game.
+ *
+ *  @author: ZivDero
+ */
+bool LoadOptionsClassExt::_Delete_File(const char* filename)
+{
+    SavedGames::Check_And_Format_Path(SavedGames::Buffer, std::size(SavedGames::Buffer), filename);
+    return DeleteFileA(SavedGames::Buffer);
+}
+
+
+/**
+ *  Reads the header from the selected save game file.
+ *
+ *  @author: ZivDero
+ */
+bool LoadOptionsClassExt::_Read_File(FileEntryClass* file, WIN32_FIND_DATA* filename)
+{
+    if (!file && !filename)
+        return false;
+
+    if (std::strcmp(filename->cFileName, NET_SAVE_FILE_NAME) != 0) {
+
+        SaveVersionInfo saveversion;
+        if (Get_Savefile_Info(filename->cFileName, saveversion)) {
+
+            unsigned game_version = saveversion.Get_Internal_Version();
+            if (game_version != ViniferaGameVersion) {
+                DEBUG_WARNING("Save file \"%s\" is incompatible! File version 0x%X, Expected version 0x%X.\n", filename->cFileName, game_version, ViniferaGameVersion);
+                return false;
+            }
+
+            wsprintfA(file->Descr, "%s", saveversion.Get_Scenario_Description());
+            file->Old = false;
+            file->Valid = true;
+            file->Scenario = saveversion.Get_Scenario_Number();
+            file->Campaign = saveversion.Get_Campaign_Number();
+            file->Session = static_cast<GameEnum>(saveversion.Get_Game_Type());
+            std::strncpy(file->Filename, filename->cFileName, std::size(file->Filename));
+            std::strncpy(file->Handle, saveversion.Get_Player_House(), std::size(file->Handle));
+            if (std::strlen(file->Filename) == 0) {
+                std::strncpy(file->Filename, filename->cAlternateFileName, std::size(file->Filename));
+            }
+            file->DateTime = filename->ftLastWriteTime;
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
+/**
+ *  Make sure the file name contains the subdirectory in various LoadOptionsClass functions
+ *  by patching print calls.
+ *
+ *  @author: ZivDero
+ */
+int __cdecl sprintf_LoadOptionsClass_Wrapper1(char* buffer, const char*, int number, char* str)
+{
+    // First create the format string itself, using our custom folder, e. g. "Saved Games\SAVE%04lX.%3s"
+    SavedGames::Format_Path(SavedGames::Buffer, std::size(SavedGames::Buffer), "SAVE%04lX.%3s");
+
+    // Now actually format the path
+    return std::sprintf(buffer, SavedGames::Buffer, number, str);
+}
+
+
+/**
+ *  Make sure the file name contains the subdirectory in various LoadOptionsClass functions
+ *  by patching print calls.
+ *
+ *  @author: ZivDero
+ */
+int __cdecl sprintf_LoadOptionsClass_Wrapper2(char* buffer, const char*, char* str)
+{
+    // First create the format string itself, using our custom folder, e. g. "Saved Games\*.%3s"
+    SavedGames::Format_Path(SavedGames::Buffer, std::size(SavedGames::Buffer), "*.%3s");
+
+    // Now actually format the path
+    return std::sprintf(buffer, SavedGames::Buffer, str);
+}
+
+/**
+ *  Main function for patching the hooks.
+ */
+void SavedGamesDirectory_Hooks()
+{
+    Patch_Call(0x00505001, &sprintf_LoadOptionsClass_Wrapper1);
+    Patch_Call(0x00505294, &sprintf_LoadOptionsClass_Wrapper1);
+    Patch_Call(0x00505509, &sprintf_LoadOptionsClass_Wrapper2);
+    Patch_Call(0x00505863, &sprintf_LoadOptionsClass_Wrapper2);
+    Patch_Jump(0x00505980, &LoadOptionsClassExt::_Load_File);
+    Patch_Jump(0x005059D0, &LoadOptionsClassExt::_Save_File);
+    Patch_Jump(0x00505A20, &LoadOptionsClassExt::_Delete_File);
+    Patch_Jump(0x00505A40, &LoadOptionsClassExt::_Read_File);
+}

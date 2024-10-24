@@ -416,59 +416,6 @@ DECLARE_PATCH(_Select_Game_Clear_Globals_Patch)
 
 
 /**
- *  When writing save game info, write the base level Vinifera version. This patch
- *  will block vanilla Tiberian Sun from loading any Vinifera save files.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_Save_Game_Put_Game_Version)
-{
-    _asm { mov edx, ViniferaSaveGameVersion };
-
-    JMP(0x005D5064);
-}
-
-
-/**
- *  Do not allow save games below our the base level Vinifera version. This patch
- *  will remove any support for save games made with vanilla Tiberian Sun 2.03!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_LoadOptionsClass_Read_File_Check_Game_Version)
-{
-    GET_REGISTER_STATIC(FileEntryClass *, file, ebp);
-    GET_REGISTER_STATIC(int, file_version, eax);
-    GET_REGISTER_OFFSET_STATIC(WIN32_FIND_DATA *, wfd, esp, 0x348);
-    //GET_REGISTER_OFFSET_STATIC(WWSaveLoadClass *, saveload, esp, 0x0C);
-
-    /**
-     *  If the version in the save file does not match our build
-     *  version exactly, then don't add this file to the listing.
-     */
-    //if (file_version != ViniferaSaveGameVersion) {
-    //    DEBUG_WARNING("Save file \"%s\" is incompatible! File version 0x%X, Expected version 0x%X.\n", wfd->cFileName, file_version, ViniferaSaveGameVersion);
-    //    JMP(0x00505AAD);
-    //}
-
-    DEV_DEBUG_INFO("Save file \"%s\" is compatible.\n", wfd->cFileName);
-
-    JMP(0x00505ABB);
-}
-
-
-/**
- *  Removes the code which prefixed older save files with "*".
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_LoadOptionsClass_Read_File_Remove_Older_Prefixing)
-{
-    JMP(0x00505AE9);
-}
-
-
-/**
  *  Replaces the division-by-zero crash in SwizzleManagerClass::Process_Tables() with
  *  a readable error, produces a crash dump and then exit.
  * 
@@ -786,18 +733,6 @@ void Vinifera_Hooks()
 #endif
 
     /**
-     *  Write Vinifera save files with the new base version number.
-     */
-    Patch_Jump(0x005D505E, &_Save_Game_Put_Game_Version);
-
-
-    /**
-     *  Handle save files in the dialogs.
-     */
-    Patch_Jump(0x00505A9E, &_LoadOptionsClass_Read_File_Check_Game_Version);
-    Patch_Jump(0x00505ABB, &_LoadOptionsClass_Read_File_Remove_Older_Prefixing);
-
-    /**
      *  Fire an assert on save/load fail, rather than hard crash.
      */
     Patch_Jump(0x0060DBFF, &_SwizzleManagerClass_Process_Tables_Remap_Failed_Error);
@@ -807,6 +742,8 @@ void Vinifera_Hooks()
      */
     Patch_Jump(0x005D4FE0, &Vinifera_Save_Game);
     Patch_Jump(0x005D6910, &Vinifera_Load_Game);
+
+    SavedGamesDirectory_Hooks();
 
     /**
      *  Set the save game version.
