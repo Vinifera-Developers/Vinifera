@@ -115,6 +115,16 @@ WeaponTypeClassExtension final : public AbstractTypeClassExtension
         bool IsRevealOnFire;
 
         /**
+         *  The action type used for this weapon's attack cursor.
+         */
+        ActionType CursorAttack;
+
+        /**
+         *  The action type used for this weapon's attack cursor when hovering over shroud.
+         */
+        ActionType CursorStayAttack;
+
+        /**
          *  Particle systems to display.
          */
         //ParticleSystemClass *ElectricBoltSourceBoltParticleSys;

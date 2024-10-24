@@ -81,4 +81,9 @@ SuperWeaponTypeClassExtension final : public AbstractTypeClassExtension
          *  Pointer to the cameo image surface.
          */
         BSurface *CameoImageSurface;
+
+        /**
+         *  Action type used for the cursor when the SW is out of range to fire.
+         */
+        ActionType ActionOutOfRange;
 };

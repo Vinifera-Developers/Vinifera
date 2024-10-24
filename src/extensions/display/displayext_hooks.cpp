@@ -35,11 +35,15 @@
 #include "building.h"
 #include "buildingtype.h"
 #include "buildingtypeext.h"
+#include "techno.h"
+#include "technotype.h"
 #include "house.h"
 #include "housetype.h"
 #include "session.h"
 #include "sessionext.h"
 #include "wwmouse.h"
+#include "mousetype.h"
+#include "actiontype.h"
 #include "extension.h"
 #include "fatal.h"
 #include "debughandler.h"
@@ -47,6 +51,69 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  Sets the mouse cursor based on the action.
+ *
+ *  @author: CCHyper, ZivDero
+ */
+static void Display_Set_Mouse_Cursor(ActionType action, bool shadow, bool wsmall, CellClass *cellptr)
+{
+    MouseType mouse = MOUSE_NORMAL;
+
+    if (shadow) {
+        
+        mouse = ActionTypeClass::As_Reference(action).Get_Shadow_Mouse();
+
+        if (action == ACTION_NOMOVE) {
+            if (CurrentObjects.Count()
+                && CurrentObjects[0]->Is_Techno()
+                && CurrentObjects[0]->Techno_Type_Class()->MoveToShroud) {
+
+                mouse = ActionTypeClass::As_Reference(ACTION_MOVE).Get_Shadow_Mouse();
+            }
+        }
+
+    } else {
+        
+        mouse = ActionTypeClass::As_Reference(action).Get_Mouse();
+
+        if (action == ACTION_ATTACK) {
+            if (cellptr
+                && CurrentObjects.Count() == 1
+                && CurrentObjects[0]->Is_Techno()
+                && static_cast<TechnoClass*>(CurrentObjects[0])->In_Range_Of(cellptr)) {
+
+                mouse = MOUSE_STAY_ATTACK;
+            }
+        }
+
+    }
+
+    Map.Set_Default_Mouse(mouse, wsmall);
+}
+
+
+/**
+ *  Patch to set the mouse cursor based on the action.
+ *
+ *  @author: CCHyper, ZivDero
+ */
+DECLARE_PATCH(_DisplayClass_Mouse_Left_Up_Set_Mouse)
+{
+    GET_REGISTER_STATIC(ActionType, action, ebx);
+    GET_STACK_STATIC8(bool, shadow, esp, 0x20);
+    GET_STACK_STATIC(CellClass *, cellptr, esp, 0x10);
+    GET_STACK_STATIC8(bool, wsmall, esp, 0x2C);
+
+    _asm { pop ebp }
+
+    Display_Set_Mouse_Cursor(action, shadow, wsmall, cellptr);
+
+    //return
+    JMP(0x004786C5);
+}
 
 
 /**
@@ -273,6 +340,8 @@ void DisplayClassExtension_Hooks()
     Patch_Jump(0x0047AFA6, &_DisplayClass_Help_Text_GetCursorPosition_Patch);
     Patch_Jump(0x00478974, &_DisplayClass_Mouse_Left_Release_PlaceAnywhere_BugFix_Patch);
     Patch_Jump(0x004762E4, &_DisplayClass_Passes_Proximity_Passes_Check_Patch);
+    
+    Patch_Jump(0x004782CA, &_DisplayClass_Mouse_Left_Up_Set_Mouse);
 
     /**
      *  #issue-76

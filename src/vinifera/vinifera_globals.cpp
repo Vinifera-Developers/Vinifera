@@ -74,6 +74,8 @@ DynamicVectorClass<TheaterTypeClass *> TheaterTypes;
 DynamicVectorClass<ArmorTypeClass *> ArmorTypes;
 DynamicVectorClass<SpawnManagerClass *> SpawnManagers;
 DynamicVectorClass<RocketTypeClass*> RocketTypes;
+DynamicVectorClass<MouseTypeClass *> MouseTypes;
+DynamicVectorClass<ActionTypeClass *> ActionTypes;
 
 KamikazeTrackerClass* KamikazeTracker = nullptr;
 

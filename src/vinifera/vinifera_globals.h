@@ -38,6 +38,8 @@ class EBoltClass;
 class TheaterTypeClass;
 class ArmorTypeClass;
 class RocketTypeClass;
+class MouseTypeClass;
+class ActionTypeClass;
 
 
 extern bool Vinifera_DeveloperMode;
@@ -107,6 +109,8 @@ extern DynamicVectorClass<TheaterTypeClass *> TheaterTypes;
 extern DynamicVectorClass<ArmorTypeClass *> ArmorTypes;
 extern DynamicVectorClass<SpawnManagerClass *> SpawnManagers;
 extern DynamicVectorClass<RocketTypeClass *> RocketTypes;
+extern DynamicVectorClass<MouseTypeClass *> MouseTypes;
+extern DynamicVectorClass<ActionTypeClass *> ActionTypes;
 
 
 /**

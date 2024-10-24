@@ -644,14 +644,5 @@ void InfantryClassExtension_Hooks()
     Patch_Jump(0x004D3F5D, &_InfantryClass_Per_Cell_Process_Tiberium_Damage_Patch);
     Patch_Jump(0x004D8BE4, &_InfantryClass_Doing_AI_Fix_Invalid_Facing_Set);
 
-    /**
-     *  ACTION_DAMAGE no longer a case in DisplayClass::Left_Mouse_Up to show the
-     *  correct mouse cursor for the multi-engineer damage (MOUSE.SHP also does not
-     *  contain any artwork for this), so with the multi-engineer fixes above it shows
-     *  the default arrow cursor. We fix this by making it use ACTION_CAPTURE still
-     *  to make sure the mouse shows the correct visual cursor.
-     */
-    Patch_Byte(0x004D7124+1, ACTION_CAPTURE);
-
     Patch_Jump(0x004D90B0, &InfantryClassExt::_Get_Image_Data);
 }
