@@ -157,6 +157,7 @@ New:
 - Implement the Torpedo logic from Red Alert 1 for BulletTypes (by Rampastring)
 - Add `BuildTimeCost` (by Rampastring)
 - Allow scenarios to have custom score screen bar colors (by Rampastring)
+- Implement `WaterAlt` (by ZivDero)
 
 
 Vanilla fixes:

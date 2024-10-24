@@ -180,13 +180,6 @@ void ObjectTypeClassExt::_Fetch_Voxel_Image()
         success &= Load_Voxel(AuxVoxel2, buffer);
     }
 
-    // Should be moved to a separate location
-    if (!strcmpi(IniName, "APC"))
-    {
-        std::snprintf(buffer, sizeof(buffer), "%sW", Graphic_Name());
-        success &= Load_Voxel(AuxVoxel, buffer);
-    }
-
     if (success)
     {
         unsigned char max_dimension = Voxel.VoxelLibrary->Get_Layer_Info(0, 0)->XSize;

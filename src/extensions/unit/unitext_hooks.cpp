@@ -208,19 +208,18 @@ void UnitClassExt::_Draw_Voxel(unsigned int frame, int key, Rect& rect, Point2D&
     VoxelObject* voxel = nullptr;
     VoxelIndexClass* cache = nullptr;
 
-    if (!std::strcmp(Class->IniName, "APC")
+    if (typeext->WaterAlt
         && Map[Get_Coord()].Land_Type() == LAND_WATER
         && !IsOnBridge
         && Get_Height() < CELL_HEIGHT(1))
     {
-        voxel = &Class->AuxVoxel;
-        cache = nullptr;
-        key = -1;
+        voxel = &typeext->WaterVoxel;
+        cache = &typeext->WaterVoxelIndex;
     }
     else if (typeext->NoSpawnAlt && ext->SpawnManager && !ext->SpawnManager->Docked_Count())
     {
-        voxel = &typeext->AltVoxel;
-        cache = &typeext->AltVoxelIndex;
+        voxel = &typeext->NoSpawnVoxel;
+        cache = &typeext->NoSpawnVoxelIndex;
     }
     else
     {

@@ -411,6 +411,20 @@ CrewCount=1   ; integer, how many crew will exit this unit.
 This tag does not apply to buildings.
 ```
 
+### Alternative Water Image 
+
+- `WaterAlt` can now be used to control whether a voxel unit uses a different model when in water, similar to the APC in vanilla.
+
+In `RULES.INI`:
+```ini
+[SOMETECHNO]  ; TechnoType
+WaterAlt=no   ; boolean, does this Techno use a different voxel model when in water. Defaults to yes for `[APC]`, no for other Technos.
+```
+
+```{note}
+Unlike the APC in vanilla, the alternative model is loaded into a separate area of memory from the turret model. This means that Technos that have `WaterAlt=yes` set **can** have turrets.
+```
+
 ### AILegalTarget
 
 - `AILegalTarget` can be used with TechnoTypes to forbid the AI from performing a targeting evaluation on this object. It is subject to LegalTarget=yes.

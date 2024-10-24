@@ -81,11 +81,17 @@ ObjectTypeClassExtension::~ObjectTypeClassExtension()
  */
 HRESULT ObjectTypeClassExtension::Load(IStream *pStm)
 {
-    AltVoxelIndex.Clear();
-    delete AltVoxel.VoxelLibrary;
-    delete AltVoxel.MotionLibrary;
-    AltVoxel.VoxelLibrary = nullptr;
-    AltVoxel.MotionLibrary = nullptr;
+    NoSpawnVoxelIndex.Clear();
+    delete NoSpawnVoxel.VoxelLibrary;
+    delete NoSpawnVoxel.MotionLibrary;
+    NoSpawnVoxel.VoxelLibrary = nullptr;
+    NoSpawnVoxel.MotionLibrary = nullptr;
+
+    WaterVoxelIndex.Clear();
+    delete WaterVoxel.VoxelLibrary;
+    delete WaterVoxel.MotionLibrary;
+    WaterVoxel.VoxelLibrary = nullptr;
+    WaterVoxel.MotionLibrary = nullptr;
 
     //EXT_DEBUG_TRACE("ObjectTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -94,9 +100,13 @@ HRESULT ObjectTypeClassExtension::Load(IStream *pStm)
         return E_FAIL;
     }
 
-    AltVoxelIndex.Clear();
-    AltVoxel.VoxelLibrary = nullptr;
-    AltVoxel.MotionLibrary = nullptr;
+    NoSpawnVoxelIndex.Clear();
+    NoSpawnVoxel.VoxelLibrary = nullptr;
+    NoSpawnVoxel.MotionLibrary = nullptr;
+
+    WaterVoxelIndex.Clear();
+    WaterVoxel.VoxelLibrary = nullptr;
+    WaterVoxel.MotionLibrary = nullptr;
 
     Fetch_Voxel_Image(GraphicName);
     
@@ -159,17 +169,22 @@ bool ObjectTypeClassExtension::Read_INI(CCINIClass &ini)
 {
     //EXT_DEBUG_TRACE("ObjectTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
+    const char* ini_name = Name();
+
+    if (!IsInitialized) {
+        WaterAlt = strcmpi(This()->IniName, "APC") == 0;
+    }
+
     if (!AbstractTypeClassExtension::Read_INI(ini)) {
         return false;
     }
-
-    const char *ini_name = Name();
 
     if (!ini.Is_Present(ini_name)) {
         return false;
     }
 
     NoSpawnAlt = ini.Get_Bool(ini_name, "NoSpawnAlt", NoSpawnAlt);
+    WaterAlt = ini.Get_Bool(ini_name, "WaterAlt", WaterAlt);
 
     if (This()->IsVoxel)
     {
@@ -193,17 +208,26 @@ void ObjectTypeClassExtension::Fetch_Voxel_Image(const char* graphic_name)
     if (NoSpawnAlt)
     {
         std::snprintf(buffer, sizeof(buffer), "%sWO", graphic_name);
-        success &= Load_Voxel(AltVoxel, buffer);
+        success &= Load_Voxel(NoSpawnVoxel, buffer);
+    }
+
+    if (WaterAlt)
+    {
+        std::snprintf(buffer, sizeof(buffer), "%sW", graphic_name);
+        success &= Load_Voxel(WaterVoxel, buffer);
     }
 
     if (success)
     {
-        AltVoxelIndex.Clear();
+        NoSpawnVoxelIndex.Clear();
+        WaterVoxelIndex.Clear();
     }
     else
     {
-        delete AltVoxel.VoxelLibrary;
-        delete AltVoxel.MotionLibrary;
+        delete NoSpawnVoxel.VoxelLibrary;
+        delete NoSpawnVoxel.MotionLibrary;
+        delete WaterVoxel.VoxelLibrary;
+        delete WaterVoxel.MotionLibrary;
     }
 }
 
