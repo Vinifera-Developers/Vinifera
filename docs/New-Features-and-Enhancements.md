@@ -256,7 +256,7 @@ MaxRandomSpawnOffset=0   ; integer, if greater than 0, the spawn offset will be 
 In `RULES.INI`:
 ```ini
 [SOMETECHNO]        ; TechnoType
-NoSpawnAlt=no       ; boolean, should this Techno use an alternate voxel model when it's out of spawns?
+NoSpawnAlt=no       ; boolean, should this Techno use an alternative voxel model when it's out of spawns?
                     ; When true, the model named SOMETECHNOWO will be used when it's out of spawns.
 ```
 
@@ -418,7 +418,8 @@ This tag does not apply to buildings.
 In `RULES.INI`:
 ```ini
 [SOMETECHNO]  ; TechnoType
-WaterAlt=no   ; boolean, does this Techno use a different voxel model when in water. Defaults to yes for `[APC]`, no for other Technos.
+WaterAlt=no   ; boolean, should this Techno use a different voxel model when in water. Defaults to yes for `[APC]`, no for other Technos.
+              ; When true, the model named SOMETECHNOW will be used when it's in water.
 ```
 
 ```{note}
