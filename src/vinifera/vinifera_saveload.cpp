@@ -784,6 +784,7 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
     versioninfo.Set_Vinifera_Version(ViniferaGameVersion);
     versioninfo.Set_Vinifera_Commit_Hash(Vinifera_Git_Hash());
     versioninfo.Set_Session_ID(Session.UniqueID);
+    versioninfo.Set_Difficulty(Scen->Difficulty);
 
     FILETIME filetime;
     CoFileTimeNow(&filetime);

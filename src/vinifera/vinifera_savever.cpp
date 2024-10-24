@@ -424,6 +424,28 @@ int ViniferaSaveVersionInfo::Get_Session_ID() const
 
 
 /**
+ *  Sets the difficulty field.
+ *
+ *  @author: ZivDero
+ */
+void ViniferaSaveVersionInfo::Set_Difficulty(int num)
+{
+    Difficulty = num;
+}
+
+
+/**
+ *  Gets the difficulty field.
+ *
+ *  @author: ZivDero
+ */
+int ViniferaSaveVersionInfo::Get_Difficulty() const
+{
+    return Difficulty;
+}
+
+
+/**
  *  Saves the version information to the storage.
  *
  *  @author: tomsons26, ZivDero
@@ -526,6 +548,11 @@ HRESULT ViniferaSaveVersionInfo::Save(IStorage *storage)
             return res;
         }
 
+        res = Save_Int_Set(storageset, ID_DIFFICULTY, Difficulty);
+        if (FAILED(res)) {
+            return res;
+        }
+
         //return S_OK;
     }
     else {
@@ -613,6 +640,11 @@ HRESULT ViniferaSaveVersionInfo::Save(IStorage *storage)
     }
 
     res = Save_Int(storage, ID_SESSION_ID, SessionID);
+    if (FAILED(res)) {
+        return res;
+    }
+
+    res = Save_Int(storage, ID_DIFFICULTY, Difficulty);
     if (FAILED(res)) {
         return res;
     }
@@ -731,6 +763,11 @@ HRESULT ViniferaSaveVersionInfo::Load(IStorage *storage)
             return res;
         }
 
+        res = Load_Int_Set(storageset, ID_DIFFICULTY, &Difficulty);
+        if (FAILED(res)) {
+            return res;
+        }
+
         //return S_OK;
     }
     else {
@@ -823,6 +860,11 @@ HRESULT ViniferaSaveVersionInfo::Load(IStorage *storage)
     strcpy(ViniferaCommitHash, buffer);
 
     res = Load_Int(storage, ID_SESSION_ID, &SessionID);
+    if (FAILED(res)) {
+        return res;
+    }
+
+    res = Load_Int(storage, ID_DIFFICULTY, &Difficulty);
     if (FAILED(res)) {
         return res;
     }
@@ -1248,6 +1290,7 @@ const WCHAR *Vinifera_Stream_Name_From_ID(int id)
         { ViniferaSaveVersionInfo::ID_VINIFERA_VERSION,      L"ViniferaVersion" },
         { ViniferaSaveVersionInfo::ID_VINIFERA_COMMIT_HASH,  L"ViniferaCommitHash" },
         { ViniferaSaveVersionInfo::ID_SESSION_ID,            L"SessionID" },
+        { ViniferaSaveVersionInfo::ID_DIFFICULTY,            L"Difficulty" },
     };
 
     for (int i = 0; i < std::size(_ids); i++) {

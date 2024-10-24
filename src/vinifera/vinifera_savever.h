@@ -51,6 +51,7 @@ public:
         ID_VINIFERA_VERSION = 105,
         ID_VINIFERA_COMMIT_HASH = 106,
         ID_SESSION_ID = 107,
+        ID_DIFFICULTY = 108,
     };
 
 public:
@@ -104,6 +105,9 @@ public:
     void Set_Session_ID(int num);
     int Get_Session_ID() const;
 
+    void Set_Difficulty(int num);
+    int Get_Difficulty() const;
+
     HRESULT Save(IStorage *storage);
     HRESULT Load(IStorage *storage);
 
@@ -147,6 +151,7 @@ private:
     int ViniferaVersion;
     char ViniferaCommitHash[40];
     int SessionID;
+    int Difficulty;
 };
 
 const WCHAR* Vinifera_Stream_Name_From_ID(int id);
