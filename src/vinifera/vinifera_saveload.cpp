@@ -131,6 +131,7 @@
 #include "language.h"
 #include "loadoptions.h"
 #include "savever.h"
+#include "vinifera_savever.h"
 #include "windialog.h"
 
 
@@ -895,8 +896,9 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
         return false;
     }
 
-    SaveVersionInfo versioninfo;
-    versioninfo.Set_Internal_Version(ViniferaGameVersion);
+    ViniferaSaveVersionInfo versioninfo;
+    versioninfo.Set_Internal_Version(GameVersion);
+    versioninfo.Set_Vinifera_Version(ViniferaGameVersion);
     versioninfo.Set_Scenario_Description(descr);
     versioninfo.Set_Version(1);
     versioninfo.Set_Player_House(PlayerPtr->Class->Full_Name());
@@ -1000,7 +1002,7 @@ bool Vinifera_Load_Game(const char* file_name)
         return false;
     }
 
-    SaveVersionInfo saveversion;
+    ViniferaSaveVersionInfo saveversion;
     hr = saveversion.Load(storage);
     if (FAILED(hr)) {
         DEBUG_FATAL("Failed to read version information.\n");
@@ -1172,14 +1174,22 @@ bool LoadOptionsClassExt::_Read_File(FileEntryClass* file, WIN32_FIND_DATA* file
 
     if (std::strcmp(filename->cFileName, NET_SAVE_FILE_NAME) != 0) {
 
-        SaveVersionInfo saveversion;
-        if (Get_Savefile_Info(filename->cFileName, saveversion)) {
+        SavedGames::Check_And_Format_Path(SavedGames::Buffer, std::size(SavedGames::Buffer), filename->cFileName);
+
+        ViniferaSaveVersionInfo saveversion;
+        if (Vinifera_Get_Savefile_Info(SavedGames::Buffer, saveversion)) {
 
             unsigned game_version = saveversion.Get_Internal_Version();
-            if (game_version != ViniferaGameVersion) {
-                DEBUG_WARNING("Save file \"%s\" is incompatible! File version 0x%X, Expected version 0x%X.\n", filename->cFileName, game_version, ViniferaGameVersion);
+            if (game_version != GameVersion) {
+                DEBUG_WARNING("Save file \"%s\" is incompatible! Tiberian Sun: File version 0x%X, Expected version 0x%X.\n", SavedGames::Buffer, game_version, ViniferaGameVersion);
                 return false;
             }
+
+            //unsigned vinifera_version = saveversion.Get_Vinifera_Version();
+            //if (vinifera_version != ViniferaGameVersion) {
+            //    DEBUG_WARNING("Save file \"%s\" is incompatible! Vinifera: File version 0x%X, Expected version 0x%X.\n", SavedGames::Buffer, vinifera_version, ViniferaGameVersion);
+            //    return false;
+            //}
 
             wsprintfA(file->Descr, "%s", saveversion.Get_Scenario_Description());
             file->Old = false;
@@ -1187,7 +1197,7 @@ bool LoadOptionsClassExt::_Read_File(FileEntryClass* file, WIN32_FIND_DATA* file
             file->Scenario = saveversion.Get_Scenario_Number();
             file->Campaign = saveversion.Get_Campaign_Number();
             file->Session = static_cast<GameEnum>(saveversion.Get_Game_Type());
-            std::strncpy(file->Filename, filename->cFileName, std::size(file->Filename));
+            std::strncpy(file->Filename, SavedGames::Buffer, std::size(file->Filename));
             std::strncpy(file->Handle, saveversion.Get_Player_House(), std::size(file->Handle));
             if (std::strlen(file->Filename) == 0) {
                 std::strncpy(file->Filename, filename->cAlternateFileName, std::size(file->Filename));
@@ -1195,6 +1205,9 @@ bool LoadOptionsClassExt::_Read_File(FileEntryClass* file, WIN32_FIND_DATA* file
             file->DateTime = filename->ftLastWriteTime;
 
             return true;
+        }
+        else {
+            DEBUG_WARNING("Failed to read save file \"%s\"!\n", SavedGames::Buffer);
         }
     }
 
