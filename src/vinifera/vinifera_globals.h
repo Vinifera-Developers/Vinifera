@@ -53,6 +53,7 @@ extern bool Vinifera_AssertFileErrors;
 extern char Vinifera_ExceptionDatabaseFilename[PATH_MAX];
 extern char Vinifera_DebugDirectory[PATH_MAX];
 extern char Vinifera_ScreenshotDirectory[PATH_MAX];
+extern char Vinifera_SavedGamesDirectory[PATH_MAX];
 
 extern char Vinifera_ProjectName[64];
 extern char Vinifera_ProjectVersion[64];
@@ -63,7 +64,7 @@ extern char Vinifera_CursorName[64];
 /**
  *  Defines and constants.
  */
-#define TEXT_S_S					"%s: %s"
+#define TEXT_S_S "%s: %s"
 
 
 /**
@@ -91,6 +92,8 @@ extern bool Vinifera_SkipStartupMovies;
 extern bool Vinifera_NoTacticalVersionString;
 
 extern bool Vinifera_ShowSuperWeaponTimers;
+
+extern unsigned Vinifera_TotalPlayTime;
 
 extern DynamicVectorClass<MFCC *> ViniferaMapsMixes;
 extern DynamicVectorClass<MFCC *> ViniferaMoviesMixes;
