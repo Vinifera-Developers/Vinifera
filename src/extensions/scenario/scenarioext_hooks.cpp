@@ -211,66 +211,6 @@ int _Waypoint_From_Name(char* wp)
 
 
 /**
- *  Process additions to the Rules data from the input file.
- * 
- *  @author: CCHyper
- */
-static bool Rule_Addition(const char *fname, bool with_digest = false)
-{
-    CCFileClass file(fname);
-    if (!file.Is_Available()) {
-        return false;
-    }
-
-    CCINIClass ini;
-    if (!ini.Load(file, with_digest)) {
-        return false;
-    }
-
-    DEBUG_INFO("Calling Rule->Addition() with \"%s\" overrides.\n", fname);
-
-    Rule->Addition(ini);
-
-    return true;
-}
-
-
-/**
- *  #issue-#671
- * 
- *  Add loading of MPLAYER.INI to override Rules data for multiplayer games.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_Read_Scenario_INI_MPlayer_INI_Patch)
-{
-    if (Session.Type != GAME_NORMAL && Session.Type != GAME_WDT) {
-
-        /**
-         *  Process the multiplayer ini overrides.
-         */
-        Rule_Addition("MPLAYER.INI");
-        if (Is_Addon_Enabled(ADDON_FIRESTORM)) { 
-            Rule_Addition("MPLAYERFS.INI");
-        }
-
-    }
-
-    /**
-     *  Update the progress screen bars.
-     */
-    Session.Loading_Callback(42);
-
-    /**
-     *  Stolen bytes/code.
-     */
-    Call_Back();
-
-    JMP(0x005DD8DA);
-}
-
-
-/**
  *  #issue-522
  * 
  *  These patches make the multiplayer score screen to honour the value of
@@ -291,6 +231,7 @@ DECLARE_PATCH(_Do_Win_Skip_MPlayer_Score_Screen_Patch)
 
     JMP(0x005DC9DF);
 }
+
 
 DECLARE_PATCH(_Do_Lose_Skip_MPlayer_Score_Screen_Patch)
 {
@@ -318,24 +259,17 @@ void ScenarioClassExtension_Hooks()
     ScenarioClassExtension_Init();
 
     /**
-     *  Hooks in the new Assign_Houses() function.
-     * 
-     *  @author: CCHyper
+     *  Hooks for new scanario-related functions.
+     *
+     *  @author: CCHyper, ZivDero
      */
-    Patch_Call(0x005E08E3, &ScenarioClassExtension::Assign_Houses);
-
-    /**
-     *  #issue-338
-     * 
-     *  Hooks in the new Create_Units() function.
-     * 
-     *  @author: CCHyper
-     */
-    Patch_Call(0x005DD320, &ScenarioClassExtension::Create_Units);
+    Patch_Jump(0x005DD100, &ScenarioClassExtension::Read_Scenario_INI);
+    Patch_Jump(0x005DD4C0, &ScenarioClassExtension::Load_Scenario);
+    Patch_Jump(0x005DE210, &ScenarioClassExtension::Assign_Houses);
+    Patch_Jump(0x005DE580, &ScenarioClassExtension::Create_Units);
 
     Patch_Jump(0x005DC9D4, &_Do_Win_Skip_MPlayer_Score_Screen_Patch);
     Patch_Jump(0x005DCD92, &_Do_Lose_Skip_MPlayer_Score_Screen_Patch);
-    Patch_Jump(0x005DD8D5, &_Read_Scenario_INI_MPlayer_INI_Patch);
 
     /**
      *  #issue-71
