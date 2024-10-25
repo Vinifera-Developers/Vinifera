@@ -130,6 +130,7 @@
 #include "hooker.h"
 #include "language.h"
 #include "loadoptions.h"
+#include "miscutil.h"
 #include "savever.h"
 #include "vinifera_savever.h"
 #include "windialog.h"
@@ -682,57 +683,6 @@ void Vinifera_Put_Storage_Pointers()
 }
 
 
-namespace SavedGames
-{
-    static char Buffer[PATH_MAX];
-
-    /**
-     *  Make sure the subdirectory exists, and create it if not.
-     *
-     *  @author: ZivDero
-     */
-    bool Ensure_Folder_Exists(const char* path)
-    {
-        const DWORD attributes = GetFileAttributes(path);
-
-        // If path doesn't exist or isn't a directory, try creating it
-        if (attributes == INVALID_FILE_ATTRIBUTES || !(attributes & FILE_ATTRIBUTE_DIRECTORY))
-        {
-            // Directory created or already exists
-            if (CreateDirectory(path, nullptr) || GetLastError() == ERROR_ALREADY_EXISTS)
-                return true;
-
-            DEBUG_ERROR("Error: Could not create directory \"%s\". Error code: %d\n", path, GetLastError());
-            return false;
-        }
-
-        // Directory already exists
-        return true;
-    }
-
-
-    /**
-     *  Format the path to contain the subdirectory.
-     *
-     *  @author: Belonit
-     */
-    inline void Format_Path(char* buffer, size_t buffer_size, const char* filename)
-    {
-        std::snprintf(buffer, buffer_size, "%s\\%s", Vinifera_SavedGamesDirectory, filename);
-    }
-
-    /**
-     *  Format the path to contain the subdirectory, if it doesn't already.
-     *
-     *  @author: ZivDero
-     */
-    inline void Check_And_Format_Path(char* buffer, size_t buffer_size, const char* filename)
-    {
-        std::strstr(filename, Vinifera_SavedGamesDirectory) ? std::snprintf(buffer, buffer_size, "%s", filename) : Format_Path(buffer, buffer_size, filename);
-    }
-}
-
-
 /**
  *  Saves the game to a file on the disk.
  *
@@ -741,8 +691,16 @@ namespace SavedGames
 bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
 {
     WCHAR wide_file_name[PATH_MAX];
+    char formatted_file_name[PATH_MAX];
 
-    DEBUG_INFO("SAVING GAME [%s - %s]\n", SavedGames::Buffer, descr);
+    /**
+     *  Format the save game path here just in case to make sure it contains the subdirectory.
+     *  In the future, it should be the call sites of Save_Game that are patched so that we can still
+     *  save to an arbitrary location, but until the TS-Patches spawner is ported, this needs to happen.
+     */
+    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, Filename_From_Path(file_name), nullptr);
+
+    DEBUG_INFO("SAVING GAME [%s - %s]\n", formatted_file_name, descr);
 
     /**
      *  This is required for compatibility with TS Client's sidebar hack.
@@ -752,25 +710,16 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
 #endif
 
     /**
-     *  Format the save game path here just in case to make sure it contains the subdirectory.
-     *  In the future, it should be the call sites of Save_Game that are patched so that we can still
-     *  save  to an arbitrary location, but until the TS-Patches spawner is ported, this needs to happen.
-     */
-#ifdef TS_CLIENT
-    SavedGames::Check_And_Format_Path(SavedGames::Buffer, std::size(SavedGames::Buffer), file_name);
-#else
-    std::strncpy(SavedGames::Buffer, file_name, std::size(SavedGames::Buffer));
-#endif
-
-    /**
      *  Make sure our saved games folder exists.
      */
-    SavedGames::Ensure_Folder_Exists(Vinifera_SavedGamesDirectory);
+    if (!Directory_Exists(Vinifera_SavedGamesDirectory)) {
+        Create_Directory(Vinifera_SavedGamesDirectory);
+    }
 
     /**
      *  Convert the file name to a wide string.
      */
-    MultiByteToWideChar(CP_ACP, 0, SavedGames::Buffer, -1, wide_file_name, std::size(wide_file_name));
+    MultiByteToWideChar(CP_ACP, 0, formatted_file_name, -1, wide_file_name, std::size(wide_file_name));
 
     DEBUG_INFO("Creating DocFile\n");
     CComPtr<IStorage> storage;
@@ -860,7 +809,7 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
         return false;
     }
 
-    DEBUG_INFO("SAVING GAME [%s] - Complete.\n", SavedGames::Buffer);
+    DEBUG_INFO("SAVING GAME [%s] - Complete.\n", formatted_file_name);
     
     return result;
 }
@@ -874,24 +823,21 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
 bool Vinifera_Load_Game(const char* file_name)
 {
     WCHAR wide_file_name[PATH_MAX];
-
-    DEBUG_INFO("LOADING GAME [%s]\n", SavedGames::Buffer);
+    char formatted_file_name[PATH_MAX];
 
     /**
      *  Format the save game path here just in case to make sure it contains the subdirectory.
      *  In the future, it should be the call sites of Load_Game that are patched so that we can still
-     *  load an arbitrary save, but until the TS-Patches spawner is ported, this needs to happen.
+     *  save to an arbitrary location, but until the TS-Patches spawner is ported, this needs to happen.
      */
-#ifdef TS_CLIENT
-    SavedGames::Check_And_Format_Path(SavedGames::Buffer, std::size(SavedGames::Buffer), file_name);
-#else
-    std::strncpy(SavedGames::Buffer, file_name, std::size(SavedGames::Buffer));
-#endif
+    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, Filename_From_Path(file_name), nullptr);
+
+    DEBUG_INFO("LOADING GAME [%s]\n", formatted_file_name);
 
     /**
      *  Convert the file name to a wide string.
      */
-    MultiByteToWideChar(CP_ACP, 0, SavedGames::Buffer, -1, wide_file_name, std::size(wide_file_name));
+    MultiByteToWideChar(CP_ACP, 0, formatted_file_name, -1, wide_file_name, std::size(wide_file_name));
 
     DEBUG_INFO("Opening DocFile\n");
     CComPtr<IStorage> storage;
@@ -954,7 +900,7 @@ bool Vinifera_Load_Game(const char* file_name)
 
     DEBUG_INFO("Calling Vinifera_Get_All().\n");
     if (!Vinifera_Get_All(stream)) {
-        DEBUG_FATAL("Error loading save game \"%s\"!\n", SavedGames::Buffer);
+        DEBUG_FATAL("Error loading save game \"%s\"!\n", formatted_file_name);
         return false;
     }
 
@@ -973,7 +919,7 @@ bool Vinifera_Load_Game(const char* file_name)
     TacticalViewActive = true;
     ScenarioStarted = true;
 
-    DEBUG_INFO("LOADING GAME [%s] - Complete\n", SavedGames::Buffer);
+    DEBUG_INFO("LOADING GAME [%s] - Complete\n", formatted_file_name);
 
     return true;
 }
@@ -1005,6 +951,8 @@ public:
  */
 bool LoadOptionsClassExt::_Load_File(const char* filename)
 {
+    char formatted_file_name[PATH_MAX];
+
     HWND handle = WinDialogClass::Do_Message_Box(Fetch_String(TXT_LOADING), nullptr, nullptr);
     if (handle) {
         WinDialogClass::Display_Dialog(handle);
@@ -1013,8 +961,8 @@ bool LoadOptionsClassExt::_Load_File(const char* filename)
     TacticalViewActive = false;
     ScenarioStarted = false;
 
-    SavedGames::Check_And_Format_Path(SavedGames::Buffer, std::size(SavedGames::Buffer), filename);
-    const bool result = Load_Game(SavedGames::Buffer);
+    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, Filename_From_Path(filename), nullptr);
+    const bool result = Load_Game(formatted_file_name);
 
     if (handle) {
         WinDialogClass::End_Dialog(handle);
@@ -1031,13 +979,15 @@ bool LoadOptionsClassExt::_Load_File(const char* filename)
  */
 bool LoadOptionsClassExt::_Save_File(const char* filename, const char* description)
 {
+    char formatted_file_name[PATH_MAX];
+
     HWND handle = WinDialogClass::Do_Message_Box(Fetch_String(TXT_SAVING_GAME), nullptr, nullptr);
     if (handle) {
         WinDialogClass::Display_Dialog(handle);
     }
 
-    SavedGames::Check_And_Format_Path(SavedGames::Buffer, std::size(SavedGames::Buffer), filename);
-    const bool result = Save_Game(SavedGames::Buffer, description, false);
+    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, Filename_From_Path(filename), nullptr);
+    const bool result = Save_Game(formatted_file_name, description, false);
 
     if (handle) {
         WinDialogClass::End_Dialog(handle);
@@ -1054,8 +1004,10 @@ bool LoadOptionsClassExt::_Save_File(const char* filename, const char* descripti
  */
 bool LoadOptionsClassExt::_Delete_File(const char* filename)
 {
-    SavedGames::Check_And_Format_Path(SavedGames::Buffer, std::size(SavedGames::Buffer), filename);
-    return DeleteFileA(SavedGames::Buffer);
+    char formatted_file_name[PATH_MAX];
+
+    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, Filename_From_Path(filename), nullptr);
+    return DeleteFileA(formatted_file_name);
 }
 
 
@@ -1066,25 +1018,27 @@ bool LoadOptionsClassExt::_Delete_File(const char* filename)
  */
 bool LoadOptionsClassExt::_Read_File(FileEntryClass* file, WIN32_FIND_DATA* filename)
 {
+    char formatted_file_name[PATH_MAX];
+
     if (!file && !filename)
         return false;
 
     if (std::strcmp(filename->cFileName, NET_SAVE_FILE_NAME) != 0) {
 
-        SavedGames::Check_And_Format_Path(SavedGames::Buffer, std::size(SavedGames::Buffer), filename->cFileName);
+        _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, Filename_From_Path(filename->cFileName), nullptr);
 
         ViniferaSaveVersionInfo saveversion;
-        if (Vinifera_Get_Savefile_Info(SavedGames::Buffer, saveversion)) {
+        if (Vinifera_Get_Savefile_Info(formatted_file_name, saveversion)) {
 
             unsigned game_version = saveversion.Get_Internal_Version();
             if (game_version != GameVersion) {
-                DEBUG_WARNING("Save file \"%s\" is incompatible! Tiberian Sun: File version 0x%X, Expected version 0x%X.\n", SavedGames::Buffer, game_version, GameVersion);
+                DEBUG_WARNING("Save file \"%s\" is incompatible! Tiberian Sun: File version 0x%X, Expected version 0x%X.\n", formatted_file_name, game_version, GameVersion);
                 return false;
             }
 
             unsigned vinifera_version = saveversion.Get_Vinifera_Version();
             if (vinifera_version != ViniferaGameVersion) {
-                DEBUG_WARNING("Save file \"%s\" is incompatible! Vinifera: File version 0x%X, Expected version 0x%X.\n", SavedGames::Buffer, vinifera_version, ViniferaGameVersion);
+                DEBUG_WARNING("Save file \"%s\" is incompatible! Vinifera: File version 0x%X, Expected version 0x%X.\n", formatted_file_name, vinifera_version, ViniferaGameVersion);
                 return false;
             }
 
@@ -1094,7 +1048,7 @@ bool LoadOptionsClassExt::_Read_File(FileEntryClass* file, WIN32_FIND_DATA* file
             file->Scenario = saveversion.Get_Scenario_Number();
             file->Campaign = saveversion.Get_Campaign_Number();
             file->Session = static_cast<GameEnum>(saveversion.Get_Game_Type());
-            std::strncpy(file->Filename, SavedGames::Buffer, std::size(file->Filename));
+            std::strncpy(file->Filename, formatted_file_name, std::size(file->Filename));
             std::strncpy(file->Handle, saveversion.Get_Player_House(), std::size(file->Handle));
             if (std::strlen(file->Filename) == 0) {
                 std::strncpy(file->Filename, filename->cAlternateFileName, std::size(file->Filename));
@@ -1104,7 +1058,7 @@ bool LoadOptionsClassExt::_Read_File(FileEntryClass* file, WIN32_FIND_DATA* file
             return true;
         }
         else {
-            DEBUG_WARNING("Failed to read save file \"%s\"!\n", SavedGames::Buffer);
+            DEBUG_WARNING("Failed to read save file \"%s\"!\n", formatted_file_name);
         }
     }
 
@@ -1120,11 +1074,13 @@ bool LoadOptionsClassExt::_Read_File(FileEntryClass* file, WIN32_FIND_DATA* file
  */
 int __cdecl sprintf_LoadOptionsClass_Wrapper1(char* buffer, const char*, int number, char* str)
 {
+    char formatted_file_name[PATH_MAX];
+
     // First create the format string itself, using our custom folder, e. g. "Saved Games\SAVE%04lX.%3s"
-    SavedGames::Format_Path(SavedGames::Buffer, std::size(SavedGames::Buffer), "SAVE%04lX.%3s");
+    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, "SAVE%04lX.%3s", nullptr);
 
     // Now actually format the path
-    return std::sprintf(buffer, SavedGames::Buffer, number, str);
+    return std::sprintf(buffer, formatted_file_name, number, str);
 }
 
 
@@ -1136,12 +1092,15 @@ int __cdecl sprintf_LoadOptionsClass_Wrapper1(char* buffer, const char*, int num
  */
 int __cdecl sprintf_LoadOptionsClass_Wrapper2(char* buffer, const char*, char* str)
 {
+    char formatted_file_name[PATH_MAX];
+
     // First create the format string itself, using our custom folder, e. g. "Saved Games\*.%3s"
-    SavedGames::Format_Path(SavedGames::Buffer, std::size(SavedGames::Buffer), "*.%3s");
+    _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, "*.%3s", nullptr);
 
     // Now actually format the path
-    return std::sprintf(buffer, SavedGames::Buffer, str);
+    return std::sprintf(buffer, formatted_file_name, str);
 }
+
 
 /**
  *  Main function for patching the hooks.
