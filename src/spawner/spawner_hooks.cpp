@@ -38,7 +38,6 @@
 #include "multiscore.h"
 #include "protocolzero_hooks.h"
 #include "quickmatch_hooks.h"
-#include "savedgamesdir_hooks.h"
 #include "spectator_hooks.h"
 #include "statistics_hooks.h"
 #include "vinifera_globals.h"
@@ -173,5 +172,4 @@ void Spawner_Hooks()
     QuickMatch_Hooks();
     AutoSurrender_Hooks();
     Statistics_Hooks();
-    SavedGamesDir_Hooks();
 }
