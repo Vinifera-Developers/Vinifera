@@ -163,6 +163,7 @@ public:
     bool AINamesByDifficulty;
     bool CoachMode;
     bool AutoSurrender;
+    bool UseMPAIBaseNodes;
 
     SpawnerConfig()
         : Bases { true }
@@ -240,6 +241,7 @@ public:
         , AINamesByDifficulty { false }
         , CoachMode { false }
         , AutoSurrender { true }
+        , UseMPAIBaseNodes { false }
     { }
 
     void Read_INI(CCINIClass& spawn_ini);

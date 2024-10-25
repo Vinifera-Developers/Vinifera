@@ -35,6 +35,7 @@
 #include "spawner.h"
 #include "house.h"
 #include "housetype.h"
+#include "mpaibasenodes_hooks.h"
 #include "multiscore.h"
 #include "protocolzero_hooks.h"
 #include "quickmatch_hooks.h"
@@ -172,4 +173,5 @@ void Spawner_Hooks()
     QuickMatch_Hooks();
     AutoSurrender_Hooks();
     Statistics_Hooks();
+    MPAIBaseNodes_Hooks();
 }
