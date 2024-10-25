@@ -75,7 +75,7 @@ EligibleForAllyBuilding=<boolean>  ; Is this building eligible for proximity che
                                    ; For buildings with `ConstructionYard=yes` this defaults to yes, otherwise it defaults to no.
 ```
 
-## Window title, Cursor and Icon
+## Window Title, Cursor and Icon
 
 - The game's Window title, Cursor and Icon can be overridden. These controls are loaded from a new INI file, `VINIFERA.INI`.
 ```{note}
@@ -85,13 +85,28 @@ While this is INI file is optional, it is recommended the `ProjectName` and `Pro
 In `VINIFERA.INI`:
 ```ini
 [General]
-ProjectName=<string>     ; The project's title name string. Limited to 64 characters.
-ProjectVersion=<string>  ; The project's version string. Limited to 64 characters.
-IconFile=<string>        ; The name of the icon file (including the .ICO extension) to use for the games window. Limited to 64 characters.
-CursorFile=<string>      ; The name of the cursor file (including the .CUR extension) to use for the game's cursor. Limited to 64 characters.
+ProjectName=     ; string, the project's title name string. Limited to 64 characters.
+ProjectVersion=  ; string, the project's version string. Limited to 64 characters.
+IconFile=        ; string, the name of the icon file (including the .ICO extension) to use for the games window. Limited to 64 characters.
+CursorFile=      ; string, the name of the cursor file (including the .CUR extension) to use for the game's cursor. Limited to 64 characters.
 ```
+
 ```{note}
 The filenames also support subdirectories.
+```
+
+## Custom Saved Games Directory
+
+- By default Vinifera changes the game to save games into a subdirectly called `Saved Games`. This can be customized.
+
+In `VINIFERA.INI`:
+```ini
+[General]
+SavedGamesDirectory=Saved Games  ; string, the name of the directory in which to save games.
+```
+
+```{note}
+Subdirectories are also supported, e. g. `Tiberian Sun\Saved Games`.
 ```
 
 ## File System

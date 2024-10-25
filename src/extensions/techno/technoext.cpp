@@ -464,9 +464,14 @@ Coordinate TechnoClassExtension::Fire_Coord(WeaponSlotType which, TPoint3D<int> 
 }
 
 
+/**
+ *  Puts pointers to the storage extension into the storage class.
+ *
+ *  @author: ZivDero
+ */
 void TechnoClassExtension::Put_Storage_Pointers()
 {
-    new ((StorageClassExt*)&(This()->Storage)) StorageClassExt(&Storage);
+    new (reinterpret_cast<StorageClassExt*>(&This()->Storage)) StorageClassExt(&Storage);
 }
 
 
