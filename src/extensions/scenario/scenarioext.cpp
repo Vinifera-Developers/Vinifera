@@ -234,6 +234,14 @@ void ScenarioClassExtension::Init_Clear()
      *  Clear all waypoint values, preparing for scenario loading.
      */
     Clear_All_Waypoints();
+
+    enum { START_RANDOM = -2 };
+
+    for (int i = 0; i < MAX_PLAYERS; i++) {
+
+        StartingPositions[i] = START_RANDOM;
+        StartingPositions[i] = Cell();
+    }
 }
 
 
@@ -856,7 +864,21 @@ bool ScenarioClassExtension::Load_Scenario(CCINIClass& ini, bool random)
                 Session.Loading_Callback(58);
 
                 /**
-                 *  In skirmish and multiplayer, whether the buildings are destructible can be controlled.
+                 *  Usually this happens in Map.Read_INI(), but we need to read waypoints earlier to assign them to players.
+                 */
+                Scen->Read_Waypoint_INI(ini);
+
+                /**
+                 *  Outside of campaign, assign houses their starting positions.
+                 *  This used to happen in Create_Units(), but needs to happen earlier
+                 *  so that we can handle Spawn houses.
+                 */
+                if (Session.Type != GAME_NORMAL) {
+                    ScenExtension->Assign_Starting_Positions(official);
+                }
+
+                /**
+                 *  Outside of campaign, whether the buildings are destructible can be controlled.
                  */
                 if (Session.Type != GAME_NORMAL) {
                     Special.IsDestroyableBridges = Session.Options.BridgeDestruction;
@@ -1165,6 +1187,233 @@ bool ScenarioClassExtension::Load_Scenario(CCINIClass& ini, bool random)
      */
     ScenarioInit--;
     return false;
+}
+
+
+/**
+ *  Build a list of valid multiplayer starting waypoints.
+ *
+ *  @author: CCHyper
+ */
+static DynamicVectorClass<Cell> Build_Starting_Waypoint_List(bool official)
+{
+    DynamicVectorClass<Cell> waypts;
+
+    /**
+     *  Find first valid player spawn waypoint.
+     */
+    int min_waypts = 0;
+    for (int i = 0; i < 8; i++) {
+        if (!Scen->Is_Valid_Waypoint(i)) {
+            break;
+        }
+        min_waypts++;
+    }
+
+    /**
+     *  Calculate the number of waypoints (as a minimum) that will be lifted from the
+     *  mission file. Bias this number so that only the first 4 waypoints are used
+     *  if there are 4 or fewer players. Unofficial maps will pick from all the
+     *  available waypoints.
+     */
+    int look_for = std::max(min_waypts, Session.Players.Count() + Session.Options.AIPlayers);
+    if (!official) {
+        look_for = MAX_PLAYERS;
+    }
+
+    if (Spawner::Active) {
+        for (int i = 0; i < Session.Players.Count() + Session.Options.AIPlayers; i++) {
+            if (Spawner::Get_Config()->Houses[i].IsSpectator)
+                look_for--;
+        }
+    }
+
+    for (int waycount = 0; waycount < look_for; ++waycount) {
+        if (Scen->Is_Valid_Waypoint(waycount)) {
+            Cell waycell = Scen->Get_Waypoint_Location(waycount);
+            waypts.Add(waycell);
+            DEBUG_INFO("Multiplayer start waypoint found at cell %d,%d.\n", waycell.X, waycell.Y);
+        }
+    }
+
+    /**
+     *  If there are insufficient waypoints to account for all players, then randomly
+     *  assign starting points until there is enough.
+     */
+    int deficiency = look_for - waypts.Count();
+    if (deficiency > 0) {
+        DEBUG_WARNING("Multiplayer start waypoint deficiency - looking for more start positions.\n");
+        for (int index = 0; index < deficiency; ++index) {
+
+            Cell trycell = XY_Cell(Map.MapCellX + Random_Pick(10, Map.MapCellWidth - 10),
+                Map.MapCellY + Random_Pick(0, Map.MapCellHeight - 10) + 10);
+
+            trycell = Map.Nearby_Location(trycell, SPEED_TRACK, -1, MZONE_NORMAL, false, 8, 8);
+            if (trycell) {
+                waypts.Add(trycell);
+                DEBUG_INFO("Random multiplayer start waypoint added at cell %d,%d.\n", trycell.X, trycell.Y);
+            }
+        }
+    }
+
+    return waypts;
+}
+
+
+/**
+ *  Assigns starting positions to multiplayer houses.
+ *  Split from Create_Units().
+ *
+ *  @author: ZivDero, CCHyper
+ */
+void ScenarioClassExtension::Assign_Starting_Positions(bool official)
+{
+    Cell centroid;          // centroid of this house's stuff.
+    int numtaken = 0;
+
+    /**
+     *  Build a list of the valid waypoints. This normally shouldn't be
+     *  necessary because the scenario level designer should have assigned
+     *  valid locations to the first N waypoints, but just in case, this
+     *  loop verifies that.
+     */
+    const unsigned int MAX_STORED_WAYPOINTS = 26;
+
+    bool taken[MAX_STORED_WAYPOINTS];
+    std::memset(taken, '\0', sizeof(taken));
+
+    DynamicVectorClass<Cell> waypts;
+    waypts = Build_Starting_Waypoint_List(official);
+
+    DEV_DEBUG_INFO("Assigning starting positions to houses.\n");
+
+    /**
+     *  If the spawner is active, assign the received starting positions to the houses.
+     */
+    if (Spawner::Active) {
+        for (int house = 0; house < Session.Players.Count() + Session.Options.AIPlayers; house++) {
+            StartingPositions[house] = Spawner::Get_Config()->Houses[house].SpawnLocation;
+        }
+    }
+
+    for (int house = HOUSE_FIRST; house < Houses.Count(); house++)
+    {
+        /**
+         *  Get a pointer to this house; if there is none, go to the next house.
+         */
+        HouseClass* hptr = Houses[house];
+        if (hptr == nullptr) {
+            DEV_DEBUG_INFO("Invalid house %d!\n", house);
+            continue;
+        }
+
+        if (Spawner::Active && hptr->IsDefeated) {
+            DEV_DEBUG_INFO("House %d is a spectator, skipping.\n", house);
+            continue;
+        }
+
+        /**
+         *  Skip passive houses.
+         */
+        if (hptr->Class->IsMultiplayPassive) {
+            DEV_DEBUG_INFO("House %d (%s - \"%s\") is passive, skipping.\n", house, hptr->Class->Name(), hptr->IniName);
+            continue;
+        }
+
+        bool pick_random = true;
+        if (Spawner::Active) {
+            enum {
+                SPAWN_RANDOM = -2
+            };
+
+            int chosen_spawn = StartingPositions[house];
+
+            if (chosen_spawn != SPAWN_RANDOM) {
+                chosen_spawn = std::clamp(chosen_spawn, 0, 7);
+                if (!taken[chosen_spawn]) {
+                    centroid = waypts[chosen_spawn];
+                    taken[chosen_spawn] = true;
+                    pick_random = false;
+                    numtaken++;
+                }
+            }
+        }
+
+        if (pick_random) {
+
+            /**
+             *  Pick the starting location for this house. The first house just picks
+             *  one of the valid locations at random. The other houses pick the furthest
+             *  waypoint from the existing houses.
+             */
+            if (numtaken == 0) {
+                int pick = Random_Pick(0, waypts.Count() - 1);
+                centroid = waypts[pick];
+                taken[pick] = true;
+                numtaken++;
+                StartingPositions[house] = pick;
+
+            }
+            else {
+
+                /**
+                 *  Set all waypoints to have a score of zero in preparation for giving
+                 *  a distance score to all waypoints.
+                 */
+                int score[MAX_STORED_WAYPOINTS];
+                std::memset(score, '\0', sizeof(score));
+
+                /**
+                 *  Scan through all waypoints and give a score as a value of the sum
+                 *  of the distances from this waypoint to all taken waypoints.
+                 */
+                for (int index = 0; index < waypts.Count(); index++) {
+
+                    /**
+                     *  If this waypoint has not already been taken, then accumulate the
+                     *  sum of the distance between this waypoint and all other taken
+                     *  waypoints.
+                     */
+                    if (!taken[index]) {
+                        for (int trypoint = 0; trypoint < waypts.Count(); trypoint++) {
+
+                            if (taken[trypoint]) {
+                                score[index] += Distance(waypts[index], waypts[trypoint]);
+                            }
+                        }
+                    }
+                }
+
+                /**
+                 *  Now find the waypoint with the largest score. This waypoint is the one
+                 *  that is furthest from all other taken waypoints.
+                 */
+                int best = 0;
+                int bestvalue = 0;
+                for (int searchindex = 0; searchindex < waypts.Count(); searchindex++) {
+                    if (score[searchindex] > bestvalue || bestvalue == 0) {
+                        bestvalue = score[searchindex];
+                        best = searchindex;
+                    }
+                }
+
+                /**
+                 *  Assign this best position to the house.
+                 */
+                centroid = waypts[best];
+                taken[best] = true;
+                numtaken++;
+                StartingPositions[house] = best;
+            }
+        }
+
+        /**
+         *  Assign the center of this house to the waypoint location.
+         */
+        hptr->Center = Cell_Coord(centroid, true);
+        StartingPositionCells[house] = centroid;
+        DEBUG_INFO("  Setting house center to %d,%d\n", centroid.X, centroid.Y);
+    }
 }
 
 
@@ -1813,76 +2062,6 @@ static bool Place_Object(ObjectClass *obj, Cell cell, FacingType facing, int dis
 
 
 /**
- *  Build a list of valid multiplayer starting waypoints.
- * 
- *  @author: CCHyper
- */
-static DynamicVectorClass<Cell> Build_Starting_Waypoint_List(bool official)
-{
-    DynamicVectorClass<Cell> waypts;
-
-    /**
-     *  Find first valid player spawn waypoint.
-     */
-    int min_waypts = 0;
-    for (int i = 0; i < 8; i++) {
-        if (!Scen->Is_Valid_Waypoint(i)) {
-            break;
-        }
-        min_waypts++;
-    }
-
-    /**
-     *  Calculate the number of waypoints (as a minimum) that will be lifted from the
-     *  mission file. Bias this number so that only the first 4 waypoints are used
-     *  if there are 4 or fewer players. Unofficial maps will pick from all the
-     *  available waypoints.
-     */
-    int look_for = std::max(min_waypts, Session.Players.Count() + Session.Options.AIPlayers);
-    if (!official) {
-        look_for = MAX_PLAYERS;
-    }
-
-    if (Spawner::Active) {
-        for (int i = 0; i < Session.Players.Count() + Session.Options.AIPlayers; i++) {
-            if (Spawner::Get_Config()->Houses[i].IsSpectator)
-                look_for--;
-        }
-    }
-
-    for (int waycount = 0; waycount < look_for; ++waycount) {
-        if (Scen->Is_Valid_Waypoint(waycount)) {
-            Cell waycell = Scen->Get_Waypoint_Location(waycount);
-            waypts.Add(waycell);
-            DEBUG_INFO("Multiplayer start waypoint found at cell %d,%d.\n", waycell.X, waycell.Y);
-        }
-    }
-
-    /**
-     *  If there are insufficient waypoints to account for all players, then randomly
-     *  assign starting points until there is enough.
-     */
-    int deficiency = look_for - waypts.Count();
-    if (deficiency > 0) {
-        DEBUG_WARNING("Multiplayer start waypoint deficiency - looking for more start positions.\n");
-        for (int index = 0; index < deficiency; ++index) {
-
-            Cell trycell = XY_Cell(Map.MapCellX + Random_Pick(10, Map.MapCellWidth-10),
-                                   Map.MapCellY + Random_Pick(0, Map.MapCellHeight-10) + 10);
-
-            trycell = Map.Nearby_Location(trycell, SPEED_TRACK, -1, MZONE_NORMAL, false, 8, 8);
-            if (trycell) {
-                waypts.Add(trycell);
-                DEBUG_INFO("Random multiplayer start waypoint added at cell %d,%d.\n", trycell.X, trycell.Y);
-            }
-        }
-    }
-
-    return waypts;
-}
-
-
-/**
  *  New implementation of Create_Units()
  * 
  *  @author: CCHyper (assistance from tomsons26).
@@ -1940,24 +2119,9 @@ void ScenarioClassExtension::Create_Units(bool official)
     }
 
     /**
-     *  Build a list of the valid waypoints. This normally shouldn't be
-     *  necessary because the scenario level designer should have assigned
-     *  valid locations to the first N waypoints, but just in case, this
-     *  loop verifies that.
-     */
-    const unsigned int MAX_STORED_WAYPOINTS = 26;
-
-    bool taken[MAX_STORED_WAYPOINTS];
-    std::memset(taken, '\0', sizeof(taken));
-
-    DynamicVectorClass<Cell> waypts;
-    waypts = Build_Starting_Waypoint_List(official);
-
-    /**
      *  Loop through all houses.  Computer-controlled houses, with Session.Options.Bases
      *  ON, are treated as though bases are OFF (since we have no base-building AI logic.)
      */
-    int numtaken = 0;
     for (HousesType house = HOUSE_FIRST; house < Houses.Count(); ++house) {
 
         /**
@@ -1984,6 +2148,11 @@ void ScenarioClassExtension::Create_Units(bool official)
             DEV_DEBUG_INFO("House %d (%s - \"%s\") is passive, skipping.\n", house, hptr->Class->Name(), hptr->IniName);
             continue;
         }
+
+        /**
+         *  Fetch the center cell for this house that we assigned earlier in Assign_Starting_Positions().
+         */
+        centroid = ScenExtension->StartingPositionCells[house];
 
         int owner_id = 1 << hptr->Class->ID;
 
@@ -2041,105 +2210,6 @@ void ScenarioClassExtension::Create_Units(bool official)
                 }
             }
         }
-
-        bool pick_random = true;
-        if (Spawner::Active) {
-            enum {
-                SPAWN_RANDOM = -2
-            };
-
-            int chosen_spawn = Spawner::Get_Config()->Houses[hptr->Get_Heap_ID()].SpawnLocation;
-
-            if (chosen_spawn != SPAWN_RANDOM) {
-                chosen_spawn = std::clamp(chosen_spawn, 0, 7);
-                if (!taken[chosen_spawn]) {
-                    centroid = waypts[chosen_spawn];
-                    taken[chosen_spawn] = true;
-                    pick_random = false;
-                    numtaken++;
-                }
-            }
-        }
-
-
-        if (pick_random) {
-
-            /**
-             *  Pick the starting location for this house. The first house just picks
-             *  one of the valid locations at random. The other houses pick the furthest
-             *  waypoint from the existing houses.
-             */
-            if (numtaken == 0) {
-                int pick = Random_Pick(0, waypts.Count() - 1);
-                centroid = waypts[pick];
-                taken[pick] = true;
-                numtaken++;
-
-                if (Spawner::Active) {
-                    Spawner::Get_Config()->Houses[hptr->Class->ID].SpawnLocation = pick;
-                }
-
-            }
-            else {
-
-                /**
-                 *  Set all waypoints to have a score of zero in preparation for giving
-                 *  a distance score to all waypoints.
-                 */
-                int score[MAX_STORED_WAYPOINTS];
-                std::memset(score, '\0', sizeof(score));
-
-                /**
-                 *  Scan through all waypoints and give a score as a value of the sum
-                 *  of the distances from this waypoint to all taken waypoints.
-                 */
-                for (int index = 0; index < waypts.Count(); index++) {
-
-                    /**
-                     *  If this waypoint has not already been taken, then accumulate the
-                     *  sum of the distance between this waypoint and all other taken
-                     *  waypoints.
-                     */
-                    if (!taken[index]) {
-                        for (int trypoint = 0; trypoint < waypts.Count(); trypoint++) {
-
-                            if (taken[trypoint]) {
-                                score[index] += Distance(waypts[index], waypts[trypoint]);
-                            }
-                        }
-                    }
-                }
-
-                /**
-                 *  Now find the waypoint with the largest score. This waypoint is the one
-                 *  that is furthest from all other taken waypoints.
-                 */
-                int best = 0;
-                int bestvalue = 0;
-                for (int searchindex = 0; searchindex < waypts.Count(); searchindex++) {
-                    if (score[searchindex] > bestvalue || bestvalue == 0) {
-                        bestvalue = score[searchindex];
-                        best = searchindex;
-                    }
-                }
-
-                /**
-                 *  Assign this best position to the house.
-                 */
-                centroid = waypts[best];
-                taken[best] = true;
-                numtaken++;
-
-                if (Spawner::Active)
-                    Spawner::Get_Config()->Houses[hptr->Class->ID].SpawnLocation = best;
-            }
-        }
-
-        /**
-         *  Assign the center of this house to the waypoint location.
-         */
-        hptr->Center = Cell_Coord(centroid, true);
-        DEBUG_INFO("  Setting house center to %d,%d\n", centroid.X, centroid.Y);
 
         /**
          *  If Bases are ON, place a base unit (MCV).

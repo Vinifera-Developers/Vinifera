@@ -76,12 +76,13 @@ public:
     static bool Read_Scenario_INI(const char* root, bool);
     static bool Load_Scenario(CCINIClass& ini, bool random = false);
 
+    void Assign_Starting_Positions(bool official);
     static void Assign_Houses();
     static void Create_Units(bool official);
 
 public:
     /**
-     *  This is an vector of waypoints; each waypoint corresponds to a letter of
+     *  This is a vector of waypoints; each waypoint corresponds to a letter of
      *  the alphabet, and points to a cell position.
      * 
      *  The CellClass has a bit that tells if that cell has a waypoint attached to
@@ -97,4 +98,10 @@ public:
 
     RGBStruct ScorePlayerColor;
     RGBStruct ScoreEnemyColor;
+
+    /**
+     *  The starting positions of the players.
+     */
+    int StartingPositions[MAX_PLAYERS];
+    Cell StartingPositionCells[MAX_PLAYERS];
 };
