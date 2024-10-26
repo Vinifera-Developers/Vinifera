@@ -43,6 +43,8 @@
 #include "teamtype.h"
 
 
+#define SPAWN_HOUSE_OFFSET 50
+
 /**
  *  Returns a house from a spawn house name.
  *
@@ -68,18 +70,23 @@ HousesType Spawn_House_From_Name(const char* name)
              *  If it is, that's our desired house.
              */
             if (ScenExtension->StartingPositions[i] == spawn_number - 1) {
-                return static_cast<HousesType>(i);
+                return static_cast<HousesType>(i + SPAWN_HOUSE_OFFSET);
             }
         }
 
     }
 
     /**
-     *  Return that this isn't a spawn house present on this map.
+     *  Fetch the house the normal way.
      */
-    return HOUSE_NONE;
+    return HouseTypeClass::From_Name(name);
 }
 
+
+bool Is_Spawn_House(HousesType house)
+{
+    return house >= SPAWN_HOUSE_OFFSET && house < SPAWN_HOUSE_OFFSET + MAX_PLAYERS;
+}
 
 /**
  *  Returns a house from a spawn house name or a normal house name.
@@ -99,27 +106,6 @@ HousesType House_Or_Spawn_House_From_Name(const char* name)
      *  In skirmish/multiplayer, try to fetch a spawn house instead.
      */
     return Spawn_House_From_Name(name);
-}
-
-
-/**
- *  Returns a house pointer from a house type.
- *
- *  @author: ZivDero
- */
-HouseClass* House_As_Pointer(HousesType house)
-{
-    /**
-     *  In campaigns, proceed as usual.
-     */
-    if (Session.Type == GAME_NORMAL) {
-        return HouseClass::As_Pointer(house);
-    }
-
-    /**
-     *  In skirmish/multiplayer, what we get as input is a house index, so just return the house at that index.
-     */
-    return Houses[house];
 }
 
 
@@ -150,6 +136,27 @@ HousesType House_Or_Spawn_House_From_Name_Unit(const char* name)
     }
 
     return house;
+}
+
+
+/**
+ *  Returns a house pointer from a house type.
+ *
+ *  @author: ZivDero
+ */
+HouseClass* House_As_Pointer(HousesType house)
+{
+    /**
+     *  In campaigns, proceed as usual.
+     */
+    if (Session.Type == GAME_NORMAL || !Is_Spawn_House(house)) {
+        return HouseClass::As_Pointer(house);
+    }
+
+    /**
+     *  In skirmish/multiplayer, what we get as input is a house index, so just return the house at that index.
+     */
+    return Houses[house - SPAWN_HOUSE_OFFSET];
 }
 
 
@@ -208,7 +215,7 @@ static void Link_Units(DynamicVectorClass<int>& link_vector)
     }
 
     /**
-     *  We need to removes the null pointers we added from the unit vector.
+     *  We need to remove the null pointers we added from the unit vector.
      */
     for (int i = 0; i < Units.Count(); i++) {
         if (!Units[i]) {
@@ -263,10 +270,11 @@ HousesType CCINIClassExt::_Get_HousesType(const char* section, const char* entry
         return Get_HousesType(section, entry, defvalue);
     }
 
-    /**
-     *  Fetch the spawn house's index.
-     */
     Get_String(section, entry, "", buffer, sizeof(buffer));
+
+    /**
+     *  Try to fetch the spawn houses's index.
+     */
     return Spawn_House_From_Name(buffer);
 }
 
