@@ -41,9 +41,14 @@
 #include "housetype.h"
 #include "session.h"
 #include "object.h"
+#include "tagtype.h"
+#include "rules.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "options.h"
+#include "tag.h"
+#include "techno.h"
 
 
 /**
@@ -56,11 +61,51 @@
 class TActionClassExt final : public TActionClass
 {
 public:
+    enum {   
+        TACTION_GIVE_CREDITS = TACTION_COUNT,
+        TACTION_ENABLE_SHORT_GAME,
+        TACTION_DISABLE_SHORT_GAME,
+        TACTION_PRINT_DIFFICULTY,
+        TACTION_BLOWUP_HOUSE,
+        TACTION_MAKE_ELITE,
+        TACTION_ENABLE_ALLYREVEAL,
+        TACTION_DISABLE_ALLYREVEAL,
+        TACTION_CREATE_AUTOSAVE,
+        TACTION_DELETE_OBJECT,
+        TACTION_ALL_ASSIGN_MISSION,
+
+        TACTION_NEW_COUNT
+    };
+
+public:
     bool _Function_Call_Operator(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
+
     bool _TAction_Play_Sound_At_Random_Waypoint(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
     bool _TAction_Enable_Trigger(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
     bool _TAction_Win(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
     bool _TAction_Lose(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
+    bool _TAction_Change_House(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
+    bool _TAction_All_Change_House(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
+    bool _TAction_Make_Ally(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
+    bool _TAction_Make_Enemy(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
+    bool _TAction_Begin_Production(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
+    bool _TAction_Fire_Sale(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
+    bool _TAction_Begin_Autocreate(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
+    bool _TAction_All_Hunt(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
+    bool _TAction_Set_AI_Triggers_Begin(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
+    bool _TAction_Set_AI_Triggers_End(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
+
+    bool _TAction_Give_Credits(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
+    bool _TAction_Enable_Short_Game(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
+    bool _TAction_Disable_Short_Game(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
+    bool _TAction_Print_Difficulty(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
+    bool _TAction_Blowup_House(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
+    bool _TAction_Make_Elite(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
+    bool _TAction_Enable_AllyReveal(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
+    bool _TAction_Disable_AllyReveal(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
+    bool _TAction_Create_Autosave(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
+    bool _TAction_Delete_Object(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
+    bool _TAction_All_Assign_Mission(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
 };
 
 
@@ -680,6 +725,57 @@ bool TActionClassExt::_Function_Call_Operator(HouseClass* house, ObjectClass* ob
         break;
 
         /**
+         *
+         *  New Vinifera actions.
+         *
+         */
+
+    case TACTION_GIVE_CREDITS:
+        success = _TAction_Give_Credits(house, object, trig, cell);
+        break;
+
+
+    case TACTION_ENABLE_SHORT_GAME:
+        success = _TAction_Enable_Short_Game(house, object, trig, cell);
+        break;
+
+    case TACTION_DISABLE_SHORT_GAME:
+        success = _TAction_Disable_Short_Game(house, object, trig, cell);
+        break;
+
+    case TACTION_PRINT_DIFFICULTY:
+        success = _TAction_Print_Difficulty(house, object, trig, cell);
+        break;
+
+    case TACTION_BLOWUP_HOUSE:
+        success = _TAction_Blowup_House(house, object, trig, cell);
+        break;
+
+    case TACTION_MAKE_ELITE:
+        success = _TAction_Make_Elite(house, object, trig, cell);
+        break;
+
+    case TACTION_ENABLE_ALLYREVEAL:
+        success = _TAction_Enable_AllyReveal(house, object, trig, cell);
+        break;
+
+    case TACTION_DISABLE_ALLYREVEAL:
+        success = _TAction_Disable_AllyReveal(house, object, trig, cell);
+        break;
+
+    case TACTION_CREATE_AUTOSAVE:
+        success = _TAction_Create_Autosave(house, object, trig, cell);
+        break;
+
+    case TACTION_DELETE_OBJECT:
+        success = _TAction_Delete_Object(house, object, trig, cell);
+        break;
+
+    case TACTION_ALL_ASSIGN_MISSION:
+        success = _TAction_All_Assign_Mission(house, object, trig, cell);
+        break;
+
+        /**
          *  Do no action at all.
          */
     case TACTION_NONE:
@@ -838,6 +934,433 @@ bool TActionClassExt::_TAction_Lose(HouseClass* house, ObjectClass* object, Trig
 
 
 /**
+ *  Replacement of TAction_Change_House to handle the case when the target house does not exist.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExt::_TAction_Change_House(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+{
+    bool success = false;
+
+    HouseClass* newhouse = HouseClass::As_Pointer(Data.House);
+
+    /**
+     *  Fix: check if the house exists, since a spawn house might not.
+     */
+    if (newhouse) {
+        for (int i = 0; i < Technos.Count(); i++) {
+            TechnoClass* techno = Technos[i];
+
+            if (techno->IsActive && techno->IsDown && !techno->IsInLimbo) {
+                if (techno->Tag && techno->Tag->Is_Trigger_Attached(trigger)) {
+
+                    techno->Captured(newhouse);
+                    success = true;
+                }
+            }
+        }
+    }
+
+    return success;
+}
+
+
+/**
+ *  Replacement of TAction_All_Change_House to handle the case when the target house does not exist.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExt::_TAction_All_Change_House(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+{
+    bool success = false;
+
+    HouseClass* newhouse = HouseClass::As_Pointer(Data.House);
+
+    /**
+     *  Fix: check if the house exists, since a spawn house might not.
+     */
+    if (newhouse) {
+        for (int i = 0; i < Technos.Count(); i++) {
+            TechnoClass* techno = Technos[i];
+
+            if (techno->Owning_House() == house) {
+                techno->Captured(newhouse);
+                success = true;
+            }
+        }
+    }
+
+    return success;
+}
+
+
+/**
+ *  Replacement of TAction_Make_Ally to handle the case when the target house does not exist.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExt::_TAction_Make_Ally(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+{
+    HouseClass* other = HouseClass::As_Pointer(Data.House);
+
+    /**
+     *  Fix: check if the house exists, since a spawn house might not.
+     */
+    if (other) {
+        house->Make_Ally(other);
+        other->Make_Ally(house);
+    }
+
+    return true;
+}
+
+
+/**
+ *  Replacement of TAction_Make_Enemy to handle the case when the target house does not exist.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExt::_TAction_Make_Enemy(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+{
+    HouseClass* other = HouseClass::As_Pointer(Data.House);
+
+    /**
+     *  Fix: check if the house exists, since a spawn house might not.
+     */
+    if (other) {
+        house->Make_Enemy(other);
+        other->Make_Enemy(house);
+    }
+
+    return true;
+}
+
+
+/**
+ *  Replacement of TAction_Begin_Production to handle the case when the target house does not exist.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExt::_TAction_Begin_Production(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+{
+    HouseClass* other = HouseClass::As_Pointer(Data.House);
+
+    /**
+     *  Fix: check if the house exists, since a spawn house might not.
+     */
+    if (other) {
+        other->IsStarted = true;
+    }
+
+    return true;
+}
+
+
+/**
+ *  Replacement of TAction_Fire_Sale to handle the case when the target house does not exist.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExt::_TAction_Fire_Sale(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+{
+    HouseClass* other = HouseClass::As_Pointer(Data.House);
+
+    /**
+     *  Fix: check if the house exists, since a spawn house might not.
+     */
+    if (other) {
+        other->State = STATE_ENDGAME;
+    }
+
+    return true;
+}
+
+
+/**
+ *  Replacement of TAction_Begin_Autocreate to handle the case when the target house does not exist.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExt::_TAction_Begin_Autocreate(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+{
+    HouseClass* other = HouseClass::As_Pointer(Data.House);
+
+    /**
+     *  Fix: check if the house exists, since a spawn house might not.
+     */
+    if (other) {
+        other->IsAlerted = true;
+    }
+
+    return true;
+}
+
+
+/**
+ *  Replacement of TAction_All_Hunt to handle the case when the target house does not exist.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExt::_TAction_All_Hunt(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+{
+    HouseClass* other = HouseClass::As_Pointer(Data.House);
+
+    /**
+     *  Fix: check if the house exists, since a spawn house might not.
+     */
+    if (other) {
+        other->All_To_Hunt();
+    }
+
+    return true;
+}
+
+
+/**
+ *  Replacement of TAction_Set_AI_Triggers_Begin to handle the case when the target house does not exist.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExt::_TAction_Set_AI_Triggers_Begin(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+{
+    HouseClass* other = HouseClass::As_Pointer(Data.House);
+
+    /**
+     *  Fix: check if the house exists, since a spawn house might not.
+     */
+    if (other) {
+        other->IsAITriggersOn = true;
+    }
+
+    return true;
+}
+
+
+/**
+ *  Replacement of TAction_Set_AI_Triggers_End to handle the case when the target house does not exist.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExt::_TAction_Set_AI_Triggers_End(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+{
+    HouseClass* other = HouseClass::As_Pointer(Data.House);
+
+    /**
+     *  Fix: check if the house exists, since a spawn house might not.
+     */
+    if (other) {
+        other->IsAITriggersOn = false;
+    }
+
+    return true;
+}
+
+
+/**
+ *  Gives credits to the house specified as the argument.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExt::_TAction_Give_Credits(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+{
+    HouseClass* other = HouseClass::As_Pointer(Data.House);
+
+    /**
+     *  Give credits to the house.
+     */
+    if (other) {
+        other->Refund_Money(Data.Value);
+    }
+
+    return true;
+}
+
+
+/**
+ *  Enables short game.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExt::_TAction_Enable_Short_Game(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+{    
+    Session.Options.ShortGame = true;
+
+    return true;
+}
+
+
+/**
+ *  Disables short game.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExt::_TAction_Disable_Short_Game(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+{    
+    Session.Options.ShortGame = false;
+
+    return true;
+}
+
+
+/**
+ *  Prints a message with the current difficulty level.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExt::_TAction_Print_Difficulty(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+{
+    /**
+     *  Calculate the message delay.
+     */
+    const int message_delay = Rule->MessageDelay * TICKS_PER_MINUTE;
+
+    constexpr char difficulty_names[3][20] = {
+        "Difficulty: Easy",
+        "Difficulty: Medium",
+        "Difficulty: Hard",
+    };
+
+    /**
+     *  Send the message.
+     */
+    Session.Messages.Add_Message(nullptr, 0, difficulty_names[Options.Difficulty], static_cast<ColorSchemeType>(4), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, message_delay);
+
+    return true;
+}
+
+
+/**
+ *  Blows up the specified house.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExt::_TAction_Blowup_House(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+{
+    HouseClass* other = HouseClass::As_Pointer(Data.House);
+
+    /**
+     *  Blow the house up and mark the player as defeated.
+     */
+    if (other) {
+        other->Blowup_All();
+        other->MPlayer_Defeated();
+    }
+
+    return true;
+}
+
+
+/**
+ *  Makes all objects attached to the trigger elite.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExt::_TAction_Make_Elite(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+{
+    /**
+     *  Iterate all technos, and if their tag is attached to this trigger, make them elite.
+     */
+    for (int i = 0; i < Technos.Count(); i++) {
+        TechnoClass* techno = Technos[i];
+
+        if (techno->IsActive && techno->IsDown && !techno->IsInLimbo) {
+            if (techno->Tag && techno->Tag->Is_Trigger_Attached(trigger)) {
+                techno->Veterancy.Set_Elite(true);
+            }
+        }
+    }
+
+    return true;
+}
+
+
+/**
+ *  Enables ally reveal
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExt::_TAction_Enable_AllyReveal(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+{
+    Rule->IsAllyReveal = true;
+
+    return true;
+}
+
+
+/**
+ *  Disables ally reveal.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExt::_TAction_Disable_AllyReveal(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+{    
+    Rule->IsAllyReveal = false;
+
+    return true;
+}
+
+
+/**
+ *  Creates an autosave
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExt::_TAction_Create_Autosave(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+{
+    // Stub
+    return true;
+}
+
+
+/**
+ *  Silently deletes all objects attached to this trigger from the map.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExt::_TAction_Delete_Object(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+{
+    /**
+     *  Iterate all technos, and if their tag is attached to this trigger, flag them for deletion.
+     */
+    for (int i = 0; i < Technos.Count(); i++) {
+        TechnoClass* techno = Technos[i];
+
+        if (techno->IsActive && techno->IsDown && !techno->IsInLimbo) {
+            if (techno->Tag && techno->Tag->Is_Trigger_Attached(trigger)) {
+                techno->Remove_This();
+            }
+        }
+    }
+
+    return true;
+}
+
+
+/**
+ *  Assigns a mission to all units owned by the trigger owner.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExt::_TAction_All_Assign_Mission(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+{
+    /**
+     *  Iterate all units, and if they are owned by the trigger owner, assign the mission.
+     */
+    for (int i = 0; i < Technos.Count(); i++) {
+        TechnoClass* techno = Technos[i];
+
+        if (techno->IsActive && techno->IsDown && !techno->IsInLimbo) {
+            if (techno->Owning_House() == house) {
+                techno->Assign_Mission(static_cast<MissionType>(Data.Value));
+            }
+        }
+    }
+
+    return true;
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void TActionClassExtension_Hooks()
@@ -867,4 +1390,14 @@ void TActionClassExtension_Hooks()
     Patch_Jump(0x0061CDA0, &TActionClassExt::_TAction_Enable_Trigger);
     Patch_Jump(0x0061C200, &TActionClassExt::_TAction_Win);
     Patch_Jump(0x0061C230, &TActionClassExt::_TAction_Lose);
+    Patch_Jump(0x0061B630, &TActionClassExt::_TAction_Change_House);
+    Patch_Jump(0x0061B6E0, &TActionClassExt::_TAction_All_Change_House);
+    Patch_Jump(0x0061B820, &TActionClassExt::_TAction_Make_Ally);
+    Patch_Jump(0x0061B860, &TActionClassExt::_TAction_Make_Enemy);
+    Patch_Jump(0x0061C260, &TActionClassExt::_TAction_Begin_Production);
+    Patch_Jump(0x0061C280, &TActionClassExt::_TAction_Fire_Sale);
+    Patch_Jump(0x0061C2A0, &TActionClassExt::_TAction_Begin_Autocreate);
+    Patch_Jump(0x0061C3D0, &TActionClassExt::_TAction_All_Hunt);
+    Patch_Jump(0x0061D0E0, &TActionClassExt::_TAction_Set_AI_Triggers_Begin);
+    Patch_Jump(0x0061D100, &TActionClassExt::_TAction_Set_AI_Triggers_End);
 }
