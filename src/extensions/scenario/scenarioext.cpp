@@ -773,8 +773,7 @@ bool ScenarioClassExtension::Load_Scenario(CCINIClass& ini, bool random)
      *  Init side-specific data.
      */
     DEBUG_INFO("Calling Prep_For_Side()\n");
-    if (Prep_For_Side(Scen->IsGDI ? SIDE_GDI : SIDE_NOD))
-    {
+    if (Prep_For_Side(Scen->IsGDI ? SIDE_GDI : SIDE_NOD)) {
         ArmorTypeClass::One_Time();
 
         /**
@@ -797,8 +796,7 @@ bool ScenarioClassExtension::Load_Scenario(CCINIClass& ini, bool random)
          *  Init the speech for the side.
          */
         DEBUG_INFO("Calling Prep_Speech_For_Side()\n");
-        if (Prep_Speech_For_Side(Scen->SpeechSide))
-        {
+        if (Prep_Speech_For_Side(Scen->SpeechSide)) {
             /**
              *  Read the rules into ScenarioClass.
              */
@@ -845,13 +843,34 @@ bool ScenarioClassExtension::Load_Scenario(CCINIClass& ini, bool random)
             ScenarioCRC = 0;
 
             /**
-             *  Read in the specific information for each of the house types.  This creates
+             *  Read in the specific information for each of the house types. This creates
              *  the houses of different types.
              */
-            if (Session.Type == GAME_NORMAL)
-            {
+            if (Session.Type == GAME_NORMAL) {
                 DEBUG_INFO("Reading in scenario house types\n");
                 HouseClass::Read_Scenario_INI(ini);
+            }
+
+            /**
+             *  Outside of campaign, the spawner may request that we read base nodes for
+             *  Spawn houses. Do that if necessary.
+             */
+            if (Session.Type != GAME_NORMAL && Spawner::Active && Spawner::Get_Config()->UseMPAIBaseNodes) {
+                for (int i = 0; i < Session.Players.Count() + Session.Options.AIPlayers; i++) {
+
+                    /**
+                     *  Skip observers, they don't need base nodes.
+                     */
+                    if (Houses[i]->IsDefeated) {
+                        continue;
+                    }
+
+                    /**
+                     *  Read base nodes for this house.
+                     */
+                    std::snprintf(buffer, std::size(buffer), "Spawn%d", ScenExtension->StartingPositions[i]);
+                    Houses[i]->Base.Read_INI(ini, buffer);
+                }
             }
 
             Session.Loading_Callback(50);
@@ -859,8 +878,8 @@ bool ScenarioClassExtension::Load_Scenario(CCINIClass& ini, bool random)
             /**
              *  Read scneario data from the scenario INI.
              */
-            if (Scen->Read_INI(ini))
-            {
+            if (Scen->Read_INI(ini)) {
+
                 Session.Loading_Callback(58);
 
                 /**
@@ -1091,12 +1110,12 @@ bool ScenarioClassExtension::Load_Scenario(CCINIClass& ini, bool random)
                 /**
                  *  WW's "TheTeam" cheat.
                  */
-                if (Session.Type == GAME_SKIRMISH && Cheat_TheTeam)
-                {
+                if (Session.Type == GAME_SKIRMISH && Cheat_TheTeam) {
+
                     temp_file.Close();
                     temp_file.Set_Name("TMCJ4F.INI");
-                    if (temp_file.Is_Available(false))
-                    {
+
+                    if (temp_file.Is_Available(false)) {
                         temp_ini.Load(temp_file, false, false);
                         Rule->Addition(temp_ini);
                     }

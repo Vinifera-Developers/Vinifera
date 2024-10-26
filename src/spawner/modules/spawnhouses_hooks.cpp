@@ -28,6 +28,7 @@
 
 #include "spawnhouses_hooks.h"
 
+#include "ccini.h"
 #include "extension_globals.h"
 #include "hooker.h"
 #include "session.h"
@@ -36,9 +37,10 @@
 #include "hooker_macros.h"
 #include "house.h"
 #include "housetype.h"
+#include "reinf.h"
 #include "scenarioext.h"
 #include "unit.h"
-#include "spawner.h"
+#include "teamtype.h"
 
 
 /**
@@ -143,9 +145,9 @@ HousesType House_Or_Spawn_House_From_Name_Unit(const char* name)
      *  at the end.
      */
     HousesType house = Spawn_House_From_Name(name);
-    //if (house == HOUSE_NONE) {
-    //    Units.Add(nullptr);
-    //}
+    if (house == HOUSE_NONE) {
+        Units.Add(nullptr);
+    }
 
     return house;
 }
@@ -232,6 +234,62 @@ DECLARE_PATCH(_UnitClass_Read_INI_Link_Units)
 
 
 /**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or destructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+static class CCINIClassExt final : public CCINIClass
+{
+public:
+    HousesType _Get_HousesType(const char* section, const char* entry, const HousesType defvalue);
+};
+
+
+/**
+ *  A wrapper for CCINIClass::Get_HousesType that returns our spawn house's index.
+ *
+ *  @author: ZivDero
+ */
+HousesType CCINIClassExt::_Get_HousesType(const char* section, const char* entry, const HousesType defvalue)
+{
+    char buffer[128];
+
+    /**
+     *  In campaigns, proceed as usual.
+     */
+    if (Session.Type == GAME_NORMAL) {
+        return Get_HousesType(section, entry, defvalue);
+    }
+
+    /**
+     *  Fetch the spawn house's index.
+     */
+    Get_String(section, entry, "", buffer, sizeof(buffer));
+    return Spawn_House_From_Name(buffer);
+}
+
+
+/**
+ *  A wrapper for Do_Reinforcements that checks if the team has a house.
+ *
+ *  @author: ZivDero
+ */
+bool Do_Reinforcements_Wrapper(const TeamTypeClass* team, WaypointType wp = WAYPOINT_NONE)
+{
+    /**
+     *  Since not all spawn houses are present, some teams may have null houses. Don't spawn these teams.
+     */
+    if (team->House) {
+        return Do_Reinforcements(team, wp);
+    }
+
+    return false;
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void SpawnHouses_Hooks()
@@ -248,4 +306,12 @@ void SpawnHouses_Hooks()
     Patch_Jump(0x006589C8, &_UnitClass_Read_INI_Link_Units); // We need units the units to their followers ourselves because of the null pointers we've added, and then remove those null pointers
 
     Patch_Jump(0x0043485F, 0x00434874); // Jump past check in BuildingClass::Read_INI() preventing multiplayer building spawning for players
+
+    Patch_Call(0x00628600, &CCINIClassExt::_Get_HousesType); // TeamTypeClass
+    Patch_Call(0x0062860C, &House_As_Pointer); // TeamTypeClass
+
+    Patch_Call(0x0061A0FE, &Do_Reinforcements_Wrapper);
+    Patch_Call(0x0061A127, &Do_Reinforcements_Wrapper);
+    Patch_Call(0x0061C39A, &Do_Reinforcements_Wrapper);
+    Patch_Call(0x0061C3C1, &Do_Reinforcements_Wrapper);
 }
