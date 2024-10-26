@@ -79,6 +79,7 @@ WriteStatistics=no          ; boolean, should statistics be sent?
 AINamesByDifficulty=no      ; boolean, should AI players have their difficulty in their name?
 CoachMode=no                ; boolean, should defeated players that have allies not have the entire map revealed to them upon death?
 AutoSurrender=yes           ; boolean, should players surrender on disconnection, as opposed to turning their base over to the AI?
+UseMPAIBaseNodes=no         ; boolean, should the AI use base nodes for base construction, like in campaign?
 ```
 
 - Information about the local player is read from the `Settings` section, for all other players - from `OtherX` sections, where `X` ranges from `1` to `7`.
