@@ -40,6 +40,7 @@
 #include "house.h"
 #include "housetype.h"
 #include "session.h"
+#include "object.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -54,9 +55,640 @@
  */
 class TActionClassExt final : public TActionClass
 {
-    public:
-        bool _Play_Sound_At_Random_Waypoint(HouseClass *house, ObjectClass *object, TriggerClass *trigger, Cell &cell);
+public:
+    bool _Function_Call_Operator(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
+    bool _TAction_Play_Sound_At_Random_Waypoint(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
+    bool _TAction_Enable_Trigger(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
+    bool _TAction_Win(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
+    bool _TAction_Lose(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
 };
+
+
+bool TActionClassExt::_Function_Call_Operator(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell)
+{
+    /**
+     *  Take an appropriate action.
+     */
+    bool success = true;
+
+    /**
+     *  Ensure that the specified object is not actually dead. A dead object could
+     *  be passed to this routine in the case of a multiple event trigger that
+     *  had the first event kill the object.
+     */
+    if (object && !object->IsActive) {
+        object = nullptr;
+    }
+
+    switch (Action) {
+
+        /**
+         *  Flag the house specified as the winner. Really the house value
+         *  is only used to determine if it is the player or the computer.
+         */
+    case TACTION_WIN:
+        success = TAction_Win(house, object, trig, cell);
+        break;
+
+        /**
+         *  Flag the house specified as the loser. The house parameter is only
+         *  used to determine if it refers to the player or the computer.
+         */
+    case TACTION_LOSE:
+        success = TAction_Lose(house, object, trig, cell);
+        break;
+
+        /**
+         *  This will enable production to begin for the house specified.
+         */
+    case TACTION_BEGIN_PRODUCTION:
+        success = TAction_Begin_Production(house, object, trig, cell);
+        break;
+
+        /**
+         *  Manually create the team specified.
+         */
+    case TACTION_CREATE_TEAM:
+        success = TAction_Create_Team(house, object, trig, cell);
+        break;
+
+        /**
+         *  Destroy all teams of the type specified.
+         */
+    case TACTION_DESTROY_TEAM:
+        success = TAction_Destroy_Team(house, object, trig, cell);
+        break;
+
+        /**
+         *  Force all units of the house specified to go into
+         *  hunt mode.
+         */
+    case TACTION_ALL_HUNT:
+        success = TAction_All_Hunt(house, object, trig, cell);
+        break;
+
+        /**
+         *  Create a reinforcement of the team specified.
+         */
+    case TACTION_REINFORCEMENTS:
+        success = TAction_Reinforcements(house, object, trig, cell);
+        break;
+
+        /**
+         *  Place a smoke marker at the waypoint specified.
+         */
+    case TACTION_DZ:
+        success = TAction_Drop_Zone_Flare(house, object, trig, cell);
+        break;
+
+        /**
+         *  Cause all buildings to be sold and all units to go into
+         *  hunt mode.
+         */
+    case TACTION_FIRE_SALE:
+        success = TAction_Fire_Sale(house, object, trig, cell);
+        break;
+
+        /**
+         *  Play a movie immediately. The game is temporarily
+         *  suspended while the movie plays.
+         */
+    case TACTION_PLAY_MOVIE:
+        success = TAction_Play_Movie(house, object, trig, cell);
+        break;
+
+        /**
+         *  Display a text message overlayed onto the tactical map.
+         */
+    case TACTION_TEXT_TRIGGER:
+        success = TAction_Text_Trigger(house, object, trig, cell);
+        break;
+
+        /**
+         *  Destroying a trigger means that all triggers of that type will be destroyed.
+         */
+    case TACTION_DESTROY_TRIGGER:
+        success = TAction_Destroy_Trigger(house, object, trig, cell);
+        break;
+
+        /**
+         *  Begin the team autocreate logic for the house specified.
+         */
+    case TACTION_AUTOCREATE:
+        success = TAction_Begin_Autocreate(house, object, trig, cell);;
+        break;
+
+        /**
+         *  Change the house of the attached object.
+         */
+    case TACTION_CHANGE_HOUSE:
+        success = TAction_Change_House(house, object, trig, cell);
+        break;
+
+        /**
+         *  Reveal the entire map.
+         */
+    case TACTION_REVEAL_ALL:
+        success = TAction_Reveal_Map(house, object, trig, cell);
+        break;
+
+        /**
+         *  Reveal the map around the area specified.
+         */
+    case TACTION_REVEAL_SOME:
+        success = TAction_Reveal_Area(house, object, trig, cell);
+        break;
+
+        /**
+         *  Reveal all cells of the zone that the specified waypoint is located
+         *  in. This can be used to reveal whole islands or bodies of water
+         */
+    case TACTION_REVEAL_ZONE:
+        success = TAction_Reveal_Zone(house, object, trig, cell);
+        break;
+
+        /**
+         *  Play a sound effect.
+         */
+    case TACTION_PLAY_SOUND:
+        success = TAction_Play_Sound(house, object, trig, cell);
+        break;
+
+        /**
+         *  Play a musical theme.
+         */
+    case TACTION_PLAY_MUSIC:
+        success = TAction_Play_Music(house, object, trig, cell);
+        break;
+
+        /**
+         *  Play the speech data specified.
+         */
+    case TACTION_PLAY_SPEECH:
+        success = TAction_Play_Speech(house, object, trig, cell);
+        break;
+
+        /**
+         *  A forced trigger will force an existing trigger of that type or
+         *  will create a trigger of that type and then force it to be sprung.
+         */
+    case TACTION_FORCE_TRIGGER:
+        success = TAction_Force_Trigger(house, object, trig, cell);
+        break;
+
+        /**
+         *  Star the mission timer.
+         */
+    case TACTION_START_TIMER:
+        success = TAction_Start_Timer(house, object, trig, cell);
+        break;
+
+        /**
+         *  Stop the mission timer. This will really just
+         *  suspend the timer.
+         */
+    case TACTION_STOP_TIMER:
+        success = TAction_Stop_Timer(house, object, trig, cell);
+        break;
+
+        /**
+         *  Add time to the mission timer.
+         */
+    case TACTION_ADD_TIMER:
+        success = TAction_Add_Timer(house, object, trig, cell);
+        break;
+
+        /**
+         *  Remove time from the mission timer.
+         */
+    case TACTION_SUB_TIMER:
+        success = TAction_Sub_Timer(house, object, trig, cell);
+        break;
+
+        /**
+         *  Set the mission timer to the value specified.
+         */
+    case TACTION_SET_TIMER:
+        success = TAction_Set_Timer(house, object, trig, cell);
+        break;
+
+        /**
+         *  Set a scenario global.
+         */
+    case TACTION_SET_GLOBAL:
+        success = TAction_Global_Set(house, object, trig, cell);
+        break;
+
+        /**
+         *  Clear a scenario global.
+         */
+    case TACTION_GLOBAL_CLEAR:
+        success = TAction_Global_Clear(house, object, trig, cell);
+        break;
+
+        /**
+         *  Initiate (or disable) the computer AI. When active, the computer will
+         *  build bases and units.
+         */
+    case TACTION_BASE_BUILDING:
+        success = TAction_Base_Building(house, object, trig, cell);
+        break;
+
+        /**
+         *  Cause the shadow to creep back one step.
+         */
+    case TACTION_CREEP_SHADOW:
+        success = TAction_Creep_Shadow(house, object, trig, cell);
+        break;
+
+        /**
+          *  This will destroy all objects that this trigger is
+          *  attached to.
+          */
+    case TACTION_DESTROY_OBJECT:
+        success = TAction_Destroy_Object(house, object, trig, cell);
+        break;
+
+        /**
+         *  Give a one-time special weapon to the house.
+         */
+    case TACTION_1_SPECIAL:
+        success = TAction_One_Time_Special(house, object, trig, cell);
+        break;
+
+        /**
+         *  Give the special weapon to the house.
+         */
+    case TACTION_FULL_SPECIAL:
+        success = TAction_Full_Special(house, object, trig, cell);
+        break;
+
+        /**
+         *  Set the preferred target for the house.
+         */
+    case TACTION_PREFERRED_TARGET:
+        success = TAction_Preferred_Target(house, object, trig, cell);
+        break;
+
+    case TACTION_ALL_CHANGE_HOUSE:
+        success = TAction_All_Change_House(house, object, trig, cell);
+        break;
+
+
+    case TACTION_MAKE_ALLY:
+        success = TAction_Make_Ally(house, object, trig, cell);
+        break;
+
+
+    case TACTION_MAKE_ENEMY:
+        success = TAction_Make_Enemy(house, object, trig, cell);
+        break;
+
+
+    case TACTION_CHANGE_ZOOM_LEVEL:
+        success = TAction_Change_Zoom_Level(house, object, trig, cell);
+        break;
+
+
+    case TACTION_RESIZE_VIEW:
+        success = TAction_Resize_Player_View(house, object, trig, cell);
+        break;
+
+
+    case TACTION_PLAY_ANIM:
+        success = TAction_Play_Anim_At(house, object, trig, cell);
+        break;
+
+
+    case TACTION_EXPLOSION:
+        success = TAction_Do_Explosion_At(house, object, trig, cell);
+        break;
+
+
+    case TACTION_METEOR_IMPACT:
+        success = TAction_Meteor_Impact_At(house, object, trig, cell);
+        break;
+
+
+    case TACTION_ION_STORM_START:
+        success = TAction_Ion_Storm_Start(house, object, trig, cell);
+        break;
+
+
+    case TACTION_ION_STORM_STOP:
+        success = TAction_Ion_Storm_End(house, object, trig, cell);
+        break;
+
+
+    case TACTION_LOCK_INPUT:
+        success = TAction_Lock_Input(house, object, trig, cell);
+        break;
+
+
+    case TACTION_UNLOCK_INPUT:
+        success = TAction_Unlock_Input(house, object, trig, cell);
+        break;
+
+
+    case TACTION_CENTER_CAMERA:
+        success = TAction_Center_Camera_At(house, object, trig, cell);
+        break;
+
+
+    case TACTION_ZOOM_IN:
+        success = TAction_Zoom_In(house, object, trig, cell);
+        break;
+
+
+    case TACTION_ZOOM_OUT:
+        success = TAction_Zoom_Out(house, object, trig, cell);
+        break;
+
+
+    case TACTION_RESHROUD_MAP:
+        success = TAction_Reshroud_Map(house, object, trig, cell);
+        break;
+
+
+    case TACTION_CHANGE_SPOTLIGHT_BEHAVIOR:
+        success = TAction_Change_Spotlight_Behavior(house, object, trig, cell);
+        break;
+
+
+    case TACTION_ENABLE_TRIGGER:
+        success = TAction_Enable_Trigger(house, object, trig, cell);
+        break;
+
+
+    case TACTION_DISABLE_TRIGGER:
+        success = TAction_Disable_Trigger(house, object, trig, cell);
+        break;
+
+
+    case TACTION_CREATE_RADAR_EVENT:
+        success = TAction_Create_Radar_Event(house, object, trig, cell);
+        break;
+
+
+    case TACTION_LOCAL_SET:
+        success = TAction_Local_Set(house, object, trig, cell);
+        break;
+
+
+    case TACTION_LOCAL_CLEAR:
+        success = TAction_Local_Clear(house, object, trig, cell);
+        break;
+
+
+    case TACTION_METEOR_SHOWER:
+        success = TAction_Meteor_Shower_At(house, object, trig, cell);
+        break;
+
+
+    case TACTION_REDUCE_TIBERIUM:
+        success = TAction_Reduce_Tiberium_At(house, object, trig, cell);
+        break;
+
+
+    case TACTION_SELL_BUILDING:
+        success = TAction_Sell_Building(house, object, trig, cell);
+        break;
+
+
+    case TACTION_TURN_OFF_BUILDING:
+        success = TAction_Turn_Off_Building(house, object, trig, cell);
+        break;
+
+
+    case TACTION_TURN_ON_BUILDING:
+        success = TAction_Turn_On_Building(house, object, trig, cell);
+        break;
+
+
+    case TACTION_APPLY_100_DAMAGE:
+        success = TAction_Apply_100_Damage(house, object, trig, cell);
+        break;
+
+
+    case TACTION_LIGHT_FLASH_SMALL:
+        success = TAction_Small_Light_Flash_At(house, object, trig, cell);
+        break;
+
+
+    case TACTION_LIGHT_FLASH_MEDIUM:
+        success = TAction_Medium_Light_Flash_At(house, object, trig, cell);
+        break;
+
+
+    case TACTION_LIGHT_FLASH_LARGE:
+        success = TAction_Large_Light_Flash_At(house, object, trig, cell);
+        break;
+
+
+    case TACTION_ANNOUNCE_WIN:
+        success = TAction_Annouce_Win(house, object, trig, cell);
+        break;
+
+
+    case TACTION_ANNOUNCE_LOSE:
+        success = TAction_Annouce_Lose(house, object, trig, cell);
+        break;
+
+
+    case TACTION_FORCE_END:
+        success = TAction_Force_End(house, object, trig, cell);
+        break;
+
+
+    case TACTION_DESTROY_TAG:
+        success = TAction_Destroy_Tag(house, object, trig, cell);
+        break;
+
+
+    case TACTION_SET_AMBIENT_STEP:
+        success = TAction_Set_Ambient_Step(house, object, trig, cell);
+        break;
+
+
+    case TACTION_SET_AMBIENT_RATE:
+        success = TAction_Set_Ambient_Rate(house, object, trig, cell);
+        break;
+
+
+    case TACTION_SET_AMBIENT_LIGHT:
+        success = TAction_Set_Ambient_Light(house, object, trig, cell);
+        break;
+
+
+    case TACTION_AI_TRIGGERS_BEGIN:
+        success = TAction_Set_AI_Triggers_Begin(house, object, trig, cell);
+        break;
+
+
+    case TACTION_AI_TRIGGERS_END:
+        success = TAction_Set_AI_Triggers_End(house, object, trig, cell);
+        break;
+
+
+    case TACTION_RATIO_AI_TRIGGER_TEAMS:
+        success = TAction_Set_Ratio_Of_AI_Trigger_Teams(house, object, trig, cell);
+        break;
+
+
+    case TACTION_SET_TEAM_AIRCRAFT_RATIO:
+        success = TAction_Set_Ratio_Of_Team_Aircraft(house, object, trig, cell);
+        break;
+
+
+    case TACTION_SET_TEAM_INFANTRY_RATIO:
+        success = TAction_Set_Ratio_Of_Team_Infantry(house, object, trig, cell);
+        break;
+
+
+    case TACTION_SET_TEAM_UNIT_RATIO:
+        success = TAction_Set_Ratio_Of_Team_Units(house, object, trig, cell);
+        break;
+
+
+    case TACTION_REINFORCEMENTS_AT:
+        success = TAction_Reinforcement_At(house, object, trig, cell);
+        break;
+
+
+    case TACTION_WAKEUP_SELF:
+        success = TAction_Wakeup_Self(house, object, trig, cell);
+        break;
+
+
+    case TACTION_WAKEUP_ALL_SLEEPERS:
+        success = TAction_Wakeup_Sleepers(house, object, trig, cell);
+        break;
+
+
+    case TACTION_WAKEUP_ALL_HARMLESS:
+        success = TAction_Wakeup_Harmless(house, object, trig, cell);
+        break;
+
+
+    case TACTION_WAKEUP_GROUP:
+        success = TAction_Wakeup_Group(house, object, trig, cell);
+        break;
+
+
+    case TACTION_VEIN_GROWTH:
+        success = TAction_Vein_Growth(house, object, trig, cell);
+        break;
+
+
+    case TACTION_TIBERIUM_GROWTH:
+        success = TAction_Tiberium_Growth(house, object, trig, cell);
+        break;
+
+
+    case TACTION_ICE_GROWTH:
+        success = TAction_Ice_Growth(house, object, trig, cell);
+        break;
+
+
+    case TACTION_PARTICLE_ANIM_AT:
+        success = TAction_Particle_Anim_At(house, object, trig, cell);
+        break;
+
+
+    case TACTION_REMOVE_PARTICLE_AT:
+        success = TAction_Remove_Particle_Anim_At(house, object, trig, cell);
+        break;
+
+
+    case TACTION_LIGHTENING_STRIKE:
+        success = TAction_Lightning_Strike_At(house, object, trig, cell);
+        break;
+
+
+    case TACTION_GO_BERZERK:
+        success = TAction_Go_Bezerk(house, object, trig, cell);
+        break;
+
+
+    case TACTION_ACTIVATE_FIRESTORM:
+        success = TAction_Activate_Firestorm_Defense(house, object, trig, cell);
+        break;
+
+
+    case TACTION_DEACTIVATE_FIRESTORM:
+        success = TAction_Deactivate_Firestorm_Defense(house, object, trig, cell);
+        break;
+
+
+    case TACTION_ION_CANNON_STRIKE:
+        success = TAction_Ion_Cannon_Strike(house, object, trig, cell);
+        break;
+
+
+    case TACTION_NUKE_STRIKE:
+        success = TAction_Nuke_Strike(house, object, trig, cell);
+        break;
+
+
+    case TACTION_CHEM_MISSILE_STRIKE:
+        success = TAction_Chemical_Missile_Strike(house, object, trig, cell);
+        break;
+
+
+    case TACTION_TOGGLE_TRAIN_CARGO:
+        success = TAction_Toggle_Train_Cargo(house, object, trig, cell);
+        break;
+
+
+    case TACTION_PLAY_RANDOM_SOUND_EFFECT:
+        success = TAction_Play_Sound_At_Random_Waypoint(house, object, trig, cell);
+        break;
+
+
+    case TACTION_PLAY_SOUND_EFFECT_AT:
+        success = TAction_Play_Sound_At(house, object, trig, cell);
+        break;
+
+
+    case TACTION_PLAY_INGAME_MOVIE:
+        success = TAction_Play_Ingame_Movie(house, object, trig, cell);
+        break;
+
+
+    case TACTION_FLASH_TEAM:
+        success = TAction_Flash_Team(house, object, trig, cell);
+        break;
+
+
+    case TACTION_DISABLE_SPEECH:
+        success = TAction_Disable_Speech(house, object, trig, cell);
+        break;
+
+
+    case TACTION_ENABLE_SPEECH:
+        success = TAction_Enable_Speech(house, object, trig, cell);
+        break;
+
+
+    case TACTION_SET_GROUP_ID:
+        success = TAction_Set_Group_ID(house, object, trig, cell);
+        break;
+
+
+    case TACTION_TALK_BUBBLE:
+        success = TAction_Talk_Bubble(house, object, trig, cell);
+        break;
+
+        /**
+         *  Do no action at all.
+         */
+    case TACTION_NONE:
+    default:
+        break;
+    }
+
+    return success;
+}
 
 
 /**
@@ -66,7 +698,7 @@ class TActionClassExt final : public TActionClass
  *
  *  @author: CCHyper
  */
-bool TActionClassExt::_Play_Sound_At_Random_Waypoint(HouseClass *house, ObjectClass *object, TriggerClass *trigger, Cell &cell)
+bool TActionClassExt::_TAction_Play_Sound_At_Random_Waypoint(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
 {
     Cell cell_list[NEW_WAYPOINT_COUNT];
     int cell_list_count = 0;
@@ -95,105 +727,37 @@ bool TActionClassExt::_Play_Sound_At_Random_Waypoint(HouseClass *house, ObjectCl
 
 
 /**
- *  #issue-71
- *
- *  Replace inlined instance of Play_Sound_At_Random_Waypoint.
- *
- *  @author: CCHyper
- */
-DECLARE_PATCH(_TActionClass_Operator_Play_Sound_At_Random_Waypoint_Remove_Inline_Patch)
-{
-    GET_REGISTER_STATIC(TActionClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(ObjectClass *, object, ecx);
-    GET_STACK_STATIC(Cell *, cell, esp, 0x1D0);
-    GET_STACK_STATIC(TriggerClass *, trigger, esp, 0x1CC);
-    //GET_STACK_STATIC(ObjectClass *, object, esp, 0x1C8); // Use ECX instead.
-    GET_STACK_STATIC(HouseClass *, house, esp, 0x1C4);
-    static bool retval;
-
-    retval = this_ptr->TAction_Play_Sound_At_Random_Waypoint(house, object, trigger, *cell);
-
-    /**
-     *  Function return.
-     */
-return_true:
-    _asm { mov al, retval }
-    JMP_REG(ecx, 0x0061A9C5);
-}
-
-
-/**
  *  #issue-299
- * 
+ *
  *  Fixes the issue with the current difficulty not being checked
  *  when enabling triggers.
- * 
+ *
  *  @see: TriggerClass and TriggerTypeClass for the other parts of this fix.
- * 
+ *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_TActionClass_Operator_Enable_Trigger_For_Difficulty_Patch)
+bool TActionClassExt::_TAction_Enable_Trigger(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
 {
-    GET_REGISTER_STATIC(int, trigger_index, edi);
-    static TriggerClass* trigger;
+    if (Trigger) {
+        for (int i = 0; i < Triggers.Count(); i++) {
+            auto trigger = Triggers[i];
 
-    /**
-     *  This is direct port of the code from Red Alert 2, which looks to fix this issue.
-     */
+            if (trigger->Class == Trigger) {
 
-    /**
-     *  We need to re-fetch the trigger from the vector as the
-     *  register is reused by this point.
-     */
-    trigger = Triggers[trigger_index];
-    if (trigger) {
+                /**
+                 *  Only enable the trigger if it's marked as enabled for this difficulty.
+                 */
+                if (Scen->Difficulty == DIFF_EASY && trigger->Class->Easy
+                    || Scen->Difficulty == DIFF_NORMAL && trigger->Class->Normal
+                    || Scen->Difficulty == DIFF_HARD && trigger->Class->Hard) {
 
-        /**
-         *  Set this trigger to be disabled if it is marked as disabled
-         *  for this current mission difficulty.
-         */
-        if (Scen->Difficulty == DIFF_EASY && !trigger->Class->Easy
-            || Scen->Difficulty == DIFF_NORMAL && !trigger->Class->Normal
-            || Scen->Difficulty == DIFF_HARD && !trigger->Class->Hard) {
-
-            trigger->Disable();
-
-        } else {
-
-            trigger->Enable();
+                    trigger->Enable();
+                }
+            }
         }
     }
 
-    JMP(0x0061A611);
-}
-
-/**
- *  Helper function. Flags all houses aside from the winner
- *  as defeated.
- *
- *  @author: Rampastring
- */
-void TAction_Win_Flag_Houses(HousesType winner)
-{
-    /**
-     *  Flag the player as won or lost, like in the original code.
-     */
-    if (PlayerPtr->Class->House == winner) {
-        PlayerPtr->Flag_To_Win(false);
-    } else {
-        PlayerPtr->Flag_To_Lose(false);
-    }
-
-    /**
-     *  Mark all other houses than the winner as defeated.
-     */
-    for (int i = 0; i < Houses.Count(); i++) {
-        HouseClass *house = Houses[i];
-
-        if (house->Class->House != winner) {
-            house->IsDefeated = true;
-        }
-    }
+    return true;
 }
 
 
@@ -205,58 +769,33 @@ void TAction_Win_Flag_Houses(HousesType winner)
  *
  *  @author: Rampastring
  */
-DECLARE_PATCH(_TAction_Win_FlagLosersAsDefeatedInMultiplayer)
-{
-    GET_STACK_STATIC(HousesType, housestype, esi, 0x40);
-
-    if (Session.Type == GAME_NORMAL) {
-        goto original_code;
-    }
-
-    TAction_Win_Flag_Houses(housestype);
-
-    /**
-     *  The action has done its job, return true.
-     */
-return_true:
-    JMP_REG(ebx, 0x00619FF6);
-
-original_code:
-    /**
-     *  Stolen bytes / code.
-     */
-    _asm { mov ecx, PlayerPtr }
-    _asm { mov ecx, [ecx] }
-    JMP(0x00619FE1);
-}
-
-
-/**
- *  Helper function. Flags the losers as defeated.
- *
- *  @author: Rampastring
- */
-void TAction_Lose_Flag_Houses(HousesType loser)
+bool TActionClassExt::_TAction_Win(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
 {
     /**
-     *  Flag the player as won or lost, like in the original code.
+     *  Flag the house specified as the loser. The house parameter is only
+     *  used to determine if it refers to the player or the computer.
      */
-    if (PlayerPtr->Class->House == loser) {
+    if (Data.House == PlayerPtr->Class->House) {
         PlayerPtr->Flag_To_Lose(false);
-    } else {
+    }
+    else {
         PlayerPtr->Flag_To_Win(false);
     }
 
     /**
-     *  Mark all losers as defeated.
+     *  Outside of campaign, mark all losers as defeated.
      */
-    for (int i = 0; i < Houses.Count(); i++) {
-        HouseClass* house = Houses[i];
+    if (Session.Type != GAME_NORMAL) {
+        for (int i = 0; i < Houses.Count(); i++) {
+            HouseClass* house = Houses[i];
 
-        if (house->Class->House == loser) {
-            house->IsDefeated = true;
+            if (house->Class->House == Data.House) {
+                house->IsDefeated = true;
+            }
         }
     }
+
+    return true;
 }
 
 
@@ -268,29 +807,33 @@ void TAction_Lose_Flag_Houses(HousesType loser)
  *
  *  @author: Rampastring
  */
-DECLARE_PATCH(_TAction_Lose_FlagLoserAsLostInMultiplayer)
+bool TActionClassExt::_TAction_Lose(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
 {
-    GET_STACK_STATIC(HousesType, housestype, esi, 0x40);
-
-    if (Session.Type == GAME_NORMAL) {
-        goto original_code;
+    /**
+     *  Flag the house specified as the winner. Really the house value
+     *  is only used to determine if it is the player or the computer.
+     */
+    if (Data.House == PlayerPtr->Class->House) {
+        PlayerPtr->Flag_To_Win(false);
+    }
+    else {
+        PlayerPtr->Flag_To_Lose(false);
     }
 
-    TAction_Lose_Flag_Houses(housestype);
-
     /**
-     *  The action has done its job, return true.
+     *  Outside of campaign, mark all houses other than the winner as defeated.
      */
-return_true:
-    JMP_REG(ebx, 0x0061A020);
+    if (Session.Type != GAME_NORMAL) {
+        for (int i = 0; i < Houses.Count(); i++) {
+            HouseClass* house = Houses[i];
 
-original_code:
-    /**
-     *  Stolen bytes / code.
-     */
-    _asm { mov ecx, PlayerPtr }
-    _asm { mov ecx, [ecx] }
-    JMP(0x0061A00B);
+            if (house->Class->House != Data.House) {
+                house->IsDefeated = true;
+            }
+        }
+    }
+
+    return true;
 }
 
 
@@ -300,30 +843,28 @@ original_code:
 void TActionClassExtension_Hooks()
 {
     /**
+     *  Replacement of TActionClass::operator().
+     */
+    Patch_Jump(0x00619110, &TActionClassExt::_Function_Call_Operator);
+
+    /**
      *  #issue-674
-     * 
+     *
      *  Fixes a bug where the game would crash when TACTION_WAKEUP_GROUP was
      *  executed but the game was not able to match the Group to the triggers
      *  group. This was because the game was searching the Foots vector with
      *  the count of the Technos vector, and in cases where the Group did
      *  not match, the game would crash trying to search out of bounds.
-     * 
+     *
      *  @author: CCHyper
      */
-    Patch_Dword(0x00619552+2, (0x007E4820+4)); // Foot vector to Technos vector.
-
-    Patch_Jump(0x0061A60C, &_TActionClass_Operator_Enable_Trigger_For_Difficulty_Patch);
+    Patch_Dword(0x0061AFB0 + 2, 0x007E4820 + 4); // Foot vector to Technos vector.
 
     /**
-     *  #issue-71
-     *
-     *  Increases the amount of available waypoints (see ScenarioClassExtension for implementation).
-     *
-     *  @author: CCHyper
+     *  Replacement of various vanilla actions.
      */
-    Patch_Jump(0x0061BF50, &TActionClassExt::_Play_Sound_At_Random_Waypoint);
-    Patch_Jump(0x00619E42, &_TActionClass_Operator_Play_Sound_At_Random_Waypoint_Remove_Inline_Patch);
-
-    Patch_Jump(0x00619FDB, &_TAction_Win_FlagLosersAsDefeatedInMultiplayer);
-    Patch_Jump(0x0061A005, &_TAction_Lose_FlagLoserAsLostInMultiplayer);
+    Patch_Jump(0x0061BF50, &TActionClassExt::_TAction_Play_Sound_At_Random_Waypoint);
+    Patch_Jump(0x0061CDA0, &TActionClassExt::_TAction_Enable_Trigger);
+    Patch_Jump(0x0061C200, &TActionClassExt::_TAction_Win);
+    Patch_Jump(0x0061C230, &TActionClassExt::_TAction_Lose);
 }

@@ -338,8 +338,6 @@ void SpawnHouses_Hooks()
     /**
      *  Skip doing reinforcements if their receiver is non-existent.
      */
-    Patch_Call(0x0061A0FE, &Do_Reinforcements_Wrapper);
-    Patch_Call(0x0061A127, &Do_Reinforcements_Wrapper);
     Patch_Call(0x0061C39A, &Do_Reinforcements_Wrapper);
     Patch_Call(0x0061C3C1, &Do_Reinforcements_Wrapper);
 }
