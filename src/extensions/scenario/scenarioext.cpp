@@ -240,7 +240,7 @@ void ScenarioClassExtension::Init_Clear()
     for (int i = 0; i < MAX_PLAYERS; i++) {
 
         StartingPositions[i] = START_RANDOM;
-        StartingPositions[i] = Cell();
+        StartingPositionCells[i] = Cell();
     }
 }
 
