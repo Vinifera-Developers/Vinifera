@@ -62,18 +62,9 @@ HousesType Spawn_House_From_Name(const char* name)
     if (std::sscanf(name, "Spawn%d", &spawn_number) == 1) {
 
         /**
-         *  If we're successful, iterate all assigned starting positions and check if the one we want is present.
+         *  If we're successful, return a spawn house number.
          */
-        for (int i = 0; i < Session.Players.Count() + Session.Options.AIPlayers; i++) {
-
-            /**
-             *  If it is, that's our desired house.
-             */
-            if (ScenExtension->StartingPositions[i] == spawn_number - 1) {
-                return static_cast<HousesType>(i + SPAWN_HOUSE_OFFSET);
-            }
-        }
-
+        return static_cast<HousesType>(spawn_number - 1 + SPAWN_HOUSE_OFFSET);
     }
 
     /**
@@ -144,19 +135,36 @@ HousesType House_Or_Spawn_House_From_Name_Unit(const char* name)
  *
  *  @author: ZivDero
  */
-HouseClass* House_As_Pointer(HousesType house)
+HouseClass* HouseClass_As_Pointer(HousesType house)
 {
     /**
-     *  In campaigns, proceed as usual.
+     *  In campaigns, or if this isn't a spawn house, proceed as usual.
      */
     if (Session.Type == GAME_NORMAL || !Is_Spawn_House(house)) {
-        return HouseClass::As_Pointer(house);
+        
+        for (int i = 0; i < Houses.Count(); i++) {
+            if (Houses[i]->Class->House == house) {
+                return Houses[i];
+            }
+        }
+
+        return nullptr;
     }
 
     /**
-     *  In skirmish/multiplayer, what we get as input is a house index, so just return the house at that index.
+     *  For spawn houses, iterate all assigned starting positions and check if the one we want is present.
      */
-    return Houses[house - SPAWN_HOUSE_OFFSET];
+    for (int i = 0; i < Session.Players.Count() + Session.Options.AIPlayers; i++) {
+
+        /**
+         *  If it is, that's our desired house.
+         */
+        if (ScenExtension->StartingPositions[i] == house - SPAWN_HOUSE_OFFSET) {
+            return Houses[i];
+        }
+    }
+
+    return nullptr;
 }
 
 
@@ -176,7 +184,7 @@ DECLARE_PATCH(_InfantryClass_Read_INI_SpawnHouses_Patch)
 
     if (house != HOUSE_NONE)
     {
-        hptr = House_As_Pointer(house);
+        hptr = HouseClass_As_Pointer(house);
 
         _asm mov edi, hptr
         JMP(0x004D7BD5);
@@ -226,7 +234,7 @@ static void Link_Units(DynamicVectorClass<int>& link_vector)
 
 
 /**
- *  Patch to remove null pointers from the unit vector.
+ *  Patch to link follower and followed units.
  *
  *  @author: ZivDero
  */
@@ -255,7 +263,7 @@ public:
 
 
 /**
- *  A wrapper for CCINIClass::Get_HousesType that returns our spawn house's index.
+ *  A wrapper for CCINIClass::Get_HousesType to read SpawnX houses.
  *
  *  @author: ZivDero
  */
@@ -302,22 +310,34 @@ bool Do_Reinforcements_Wrapper(const TeamTypeClass* team, WaypointType wp = WAYP
  */
 void SpawnHouses_Hooks()
 {
+    /**
+     *  Patch HouseClass::As_Pointer to return houses based on spawn positions for IDs 50-57.
+     */
+    Patch_Jump(0x004C4730, &HouseClass_As_Pointer);
+
+    /**
+     *  Patch Unit, Building, Aircraft, Infatry and Team creation from the map to
+     *  fetch Spawn houses by names correctly.
+     */
     Patch_Call(0x00658658, &House_Or_Spawn_House_From_Name_Unit); // UnitClass
     Patch_Call(0x00434843, &House_Or_Spawn_House_From_Name); // BuildingClass
     Patch_Call(0x0040E806, &House_Or_Spawn_House_From_Name); // AircraftClass
-
-    Patch_Call(0x00658681, &House_As_Pointer); // UnitClass
-    Patch_Call(0x0043484C, &House_As_Pointer); // BuildingClass
-    Patch_Call(0x0040E839, &House_As_Pointer); // AircraftClass
-
     Patch_Jump(0x004D7B98, &_InfantryClass_Read_INI_SpawnHouses_Patch); // InfantryClass has As_Pointer inlined, so we have to do this instead
-    Patch_Jump(0x006589C8, &_UnitClass_Read_INI_Link_Units); // We need units the units to their followers ourselves because of the null pointers we've added, and then remove those null pointers
-
-    Patch_Jump(0x0043485F, 0x00434874); // Jump past check in BuildingClass::Read_INI() preventing multiplayer building spawning for players
-
     Patch_Call(0x00628600, &CCINIClassExt::_Get_HousesType); // TeamTypeClass
-    Patch_Call(0x0062860C, &House_As_Pointer); // TeamTypeClass
 
+    /**
+     *  Units have the followed mechanic, so we need to fix that up to account for potentially missing units.
+     */
+    Patch_Jump(0x006589C8, &_UnitClass_Read_INI_Link_Units);
+
+    /**
+     *  Jump past check in BuildingClass::Read_INI() preventing multiplayer building spawning for players.
+     */
+    Patch_Jump(0x0043485F, 0x00434874);
+
+    /**
+     *  Skip doing reinforcements if their receiver is non-existent.
+     */
     Patch_Call(0x0061A0FE, &Do_Reinforcements_Wrapper);
     Patch_Call(0x0061A127, &Do_Reinforcements_Wrapper);
     Patch_Call(0x0061C39A, &Do_Reinforcements_Wrapper);

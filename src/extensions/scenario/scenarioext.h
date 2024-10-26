@@ -100,7 +100,8 @@ public:
     RGBStruct ScoreEnemyColor;
 
     /**
-     *  The starting positions of the players.
+     *  The starting positions of the houses.
+     *  StartingPositions[HousesType] = 0 .. 7
      */
     int StartingPositions[MAX_PLAYERS];
     Cell StartingPositionCells[MAX_PLAYERS];
