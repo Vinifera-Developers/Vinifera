@@ -107,8 +107,8 @@ public:
      *  Savegame Options
      */
     bool LoadSaveGame;
-    char SavedGamesDir[MAX_PATH]; // Nested paths are also supported, e.g. "Saved Games\\Tiberian Sun"
     char SaveGameName[60];
+    int AutoSaveInterval;
 
     /**
      *  Scenario Options
@@ -183,8 +183,8 @@ public:
         , MCVRedeploy { true }
 
         , LoadSaveGame { false }
-        , SavedGamesDir { "Saved Games" }
         , SaveGameName { "" }
+        , AutoSaveInterval { 0 }
 
         , Seed { 0 }
         , TechLevel { 10 }

@@ -40,10 +40,16 @@
 #include "ccini.h"
 #include "fatal.h"
 #include "debughandler.h"
-#include "asserthandler.h"6
+#include "asserthandler.h"
+#include "extension_globals.h"
+#include "session.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "optionsext.h"
+#include "saveload.h"
+#include "spawner.h"
+#include "textprint.h"
 
 
 /**
@@ -77,6 +83,25 @@ create_event:
 
 static void Before_Main_Loop()
 {
+}
+
+
+/**
+ *  Prints a message that there's an autosave happening.
+ *
+ *  @author: ZivDero
+ */
+void Print_Saving_Game_Message()
+{
+    /**
+     *  Calculate the message delay.
+     */
+    const int message_delay = Rule->MessageDelay * TICKS_PER_MINUTE;
+
+    /**
+     *  Send the message.
+     */
+    Session.Messages.Add_Message(nullptr, 0, "Saving game...", static_cast<ColorSchemeType>(4), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, message_delay);
 }
 
 
@@ -181,6 +206,95 @@ static void After_Main_Loop()
          *  All done!
          */
         Vinifera_Developer_IsToReloadRules = false;
+    }
+
+    static char save_filename[32];
+    static char save_description[32];
+
+    /**
+     *  Campaign autosave.
+     */
+    if (Session.Type == GAME_NORMAL) {
+        if (OptionsExtension->AutoSaveCount > 0) {
+
+            /**
+             *  If we're saving on the next frame, then print the message about it now so that it gets rendered.
+             */
+            if (Frame == Vinifera_NextAutosaveFrame - 1) {
+                Print_Saving_Game_Message();
+            }
+
+            if (Frame >= Vinifera_NextAutosaveFrame) {
+
+                /**
+                 *  Prepare the save name and description.
+                 */
+                std::sprintf(save_filename, "AUTOSAVE%d.SAV", Vinifera_NextAutosaveNumber);
+                std::sprintf(save_description, "Mission Auto-Save (Slot %d)", Vinifera_NextAutosaveNumber);
+
+                /**
+                 *  Pause the mission timer.
+                 */
+                Pause_Scenario_Timer();
+                Call_Back();
+                
+                /**
+                 *  Save!
+                 */
+                Save_Game(save_filename, save_description);
+
+                /**
+                 *  Unpause the mission timer.
+                 */
+                Resume_Scenario_Timer();
+
+                /**
+                 *  Increment the autosave number.
+                 */
+                Vinifera_NextAutosaveNumber++;
+                if (Vinifera_NextAutosaveNumber > OptionsExtension->AutoSaveCount) {
+                    Vinifera_NextAutosaveNumber = 1;
+                }
+
+                /**
+                 *  Schedule the next autosave.
+                 */
+                Vinifera_NextAutosaveFrame = Frame + OptionsExtension->AutoSaveInterval;
+            }
+        }
+    }
+    /**
+     *  Auto-save for multiplayer
+     */
+    else if (Spawner::Active && Session.Type == GAME_IPX && Spawner::Get_Config()->AutoSaveInterval > 0) {
+
+        /**
+         *  We do it by ourselves here instead of letting original Westwood code save when
+         *  the event is executed, because saving mid-frame before Remove_All_Inactive()
+         *  has been called can lead to save corruption
+         *  In other words, by doing it here we fix a Westwood bug/oversight
+         */
+
+         /**
+          *  If we're saving on the next frame, then print the message about it now so that it gets rendered.
+          */
+        if (Frame == Vinifera_NextAutosaveFrame - 1) {
+            Print_Saving_Game_Message();
+        }
+
+        if (Frame >= Vinifera_NextAutosaveFrame) {
+
+            /**
+             *  Save!
+             */
+            Save_Game("SAVEGAME.NET", "Multiplayer Game");
+
+            /**
+             *  Schedule the next autosave.
+             */
+            Vinifera_NextAutosaveFrame = Frame + Spawner::Get_Config()->AutoSaveInterval;
+
+        }
     }
 }
 

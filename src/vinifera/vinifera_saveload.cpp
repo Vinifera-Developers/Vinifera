@@ -135,6 +135,7 @@
 #include "vinifera_savever.h"
 #include "windialog.h"
 #include "fetchres.h"
+#include "optionsext.h"
 #include "spawner.h"
 #include "technoext.h"
 #include "verses.h"
@@ -917,6 +918,12 @@ bool Vinifera_Load_Game(const char* file_name)
     Map.Total_Radar_Refresh();
     TacticalViewActive = true;
     ScenarioStarted = true;
+
+    /**
+     *  Schedule the next autosave.
+     */
+    Vinifera_NextAutosaveFrame = Frame;
+    Vinifera_NextAutosaveFrame += Spawner::Active ? Spawner::Get_Config()->AutoSaveInterval : OptionsExtension->AutoSaveInterval;
 
     DEBUG_INFO("LOADING GAME [%s] - Complete\n", formatted_file_name);
 

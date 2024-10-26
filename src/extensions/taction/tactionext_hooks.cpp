@@ -49,6 +49,7 @@
 #include "options.h"
 #include "tag.h"
 #include "techno.h"
+#include "vinifera_globals.h"
 
 
 /**
@@ -103,7 +104,7 @@ public:
     bool _TAction_Make_Elite(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
     bool _TAction_Enable_AllyReveal(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
     bool _TAction_Disable_AllyReveal(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
-    bool _TAction_Create_Autosave(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
+    bool _TAction_Create_AutoSave(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
     bool _TAction_Delete_Object(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
     bool _TAction_All_Assign_Mission(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
 };
@@ -764,7 +765,7 @@ bool TActionClassExt::_Function_Call_Operator(HouseClass* house, ObjectClass* ob
         break;
 
     case TACTION_CREATE_AUTOSAVE:
-        success = _TAction_Create_Autosave(house, object, trig, cell);
+        success = _TAction_Create_AutoSave(house, object, trig, cell);
         break;
 
     case TACTION_DELETE_OBJECT:
@@ -1301,13 +1302,17 @@ bool TActionClassExt::_TAction_Disable_AllyReveal(HouseClass* house, ObjectClass
 
 
 /**
- *  Creates an autosave
+ *  Schedules the creation of an autosave the next frame.
  *
  *  @author: ZivDero
  */
-bool TActionClassExt::_TAction_Create_Autosave(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+bool TActionClassExt::_TAction_Create_AutoSave(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
 {
-    // Stub
+    /**
+     *  Save on the NEXT frame so that players see the message before the save.
+     */
+    Vinifera_NextAutosaveFrame = Frame + 1;
+
     return true;
 }
 

@@ -73,6 +73,7 @@
 #include "triggertype.h"
 #include "tube.h"
 #include "veinholemonster.h"
+#include "optionsext.h"
 
 
 /**
@@ -1192,6 +1193,13 @@ bool ScenarioClassExtension::Load_Scenario(CCINIClass& ini, bool random)
                  */
                 RadarEventClass::Clear_All();
                 Map.Total_Radar_Refresh();
+
+                /**
+                 *  Schedule the next autosave.
+                 *  In campaign, save right away to provide a convenient save at the start of the game.
+                 */
+                Vinifera_NextAutosaveFrame = Frame;
+                Vinifera_NextAutosaveFrame += (Spawner::Active && Session.Type == GAME_IPX) ? Spawner::Get_Config()->AutoSaveInterval : 0;
 
                 /**
                  *  Return with flag saying that the scenario file was read.

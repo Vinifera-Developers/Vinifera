@@ -67,6 +67,9 @@ bool Vinifera_NoTacticalVersionString = false;
 
 bool Vinifera_ShowSuperWeaponTimers = true;
 
+int Vinifera_NextAutosaveFrame;
+int Vinifera_NextAutosaveNumber = 1;
+
 /**
  *  The total play time from all previous sessions of the current game.
  */
