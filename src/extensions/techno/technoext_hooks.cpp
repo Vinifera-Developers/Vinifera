@@ -121,7 +121,6 @@ public:
     bool _Can_Player_Move() const;
     Coordinate _Fire_Coord(WeaponSlotType which) const;
     void _Record_The_Kill(TechnoClass* source);
-
 };
 
 
@@ -1008,7 +1007,7 @@ double TechnoClassExt::_Target_Threat(TechnoClass* target, Coordinate& firing_co
      *  Nothing is not a threat.
      */
     if (!target->Class_Of())
-        return 0;
+        return 0.0;
     
     if (House->IsThreatRatingNodeActive)
     {
@@ -1028,43 +1027,58 @@ double TechnoClassExt::_Target_Threat(TechnoClass* target, Coordinate& firing_co
     }
 
     double threat = 0.0;
-    const RTTIType target_rtti = static_cast<RTTIType>(target->What_Am_I());
 
-    if (target_rtti == RTTI_BUILDING || target_rtti == RTTI_INFANTRY || target_rtti == RTTI_UNIT || target_rtti == RTTI_AIRCRAFT)
+    if (Target_As_Techno(target, false))
     {
-        if (target)
+        /**
+         *  Determine how good is the target at shooting at us.
+         */
+        const WeaponTypeClass* target_weapon = target->Get_Weapon(target->What_Weapon_Should_I_Use((TARGET)this))->Weapon;
+        if (target_weapon && target_weapon->WarheadPtr)
         {
-            const WeaponTypeClass* target_weapon = target->Get_Weapon(target->What_Weapon_Should_I_Use(target))->Weapon;
-            if (target_weapon && target_weapon->WarheadPtr)
-            {
-                const int sign = target->TarCom == this ? -1 : 1;
-                threat = sign * target_effectiveness_coefficient * Verses::Get_Modifier(ttype->Armor, target_weapon->WarheadPtr);
-            }
-
-            threat += target_special_threat_coefficient * target->Techno_Type_Class()->SpecialThreatValue;
-            if (House->Enemy != -1 && House->Enemy == target->House->Get_Heap_ID())
-                threat += Rule->EnemyHouseThreatBonus;
+            if (target->TarCom == this)
+                threat = -(target_effectiveness_coefficient * Verses::Get_Modifier(ttype->Armor, target_weapon->WarheadPtr));
+            else
+                threat = target_effectiveness_coefficient * Verses::Get_Modifier(ttype->Armor, target_weapon->WarheadPtr);
         }
+
+        /**
+         *  Add the special threat value.
+         */
+        threat += target_special_threat_coefficient * target->Techno_Type_Class()->SpecialThreatValue;
+
+        /**
+         *  The enemy house extra gets priority.
+         */
+        if (House->Enemy != HOUSE_NONE && House->Enemy == target->House->Get_Heap_ID())
+            threat += Rule->EnemyHouseThreatBonus;
     }
 
+    /**
+     *  Determine how effective our shooting at the target would be.
+     */
     const WeaponTypeClass* weapon = Get_Weapon(What_Weapon_Should_I_Use(target))->Weapon;
     if (weapon && weapon->WarheadPtr)
         threat += my_effectiveness_coefficient * Verses::Get_Modifier(target->Class_Of()->Armor, weapon->WarheadPtr);
 
-    threat += target->Health_Ratio() * target_strength_coefficient + threat;
+    /**
+     *  Adjust threat based on how healthy the target is.
+     */
+    threat += target->Health_Ratio() * target_strength_coefficient;
 
-    const LEPTON threat_range = weapon ? weapon->Range : Techno_Type_Class()->ThreatRange;
-
-    LEPTON dist;
+    /**
+     *  Adjust threat if the target is outside our threat range.
+     */
+    int dist;
     if (firing_coord == Coordinate())
-        firing_coord = Center_Coord();
+        dist = (Center_Coord() - target->Center_Coord()).Length() / 256;
+    else
+        dist = (firing_coord - target->Center_Coord()).Length();
 
-    dist = (firing_coord - target->Center_Coord()).Length() / 256;
+    const int threat_range = (weapon ? weapon->Range : Techno_Type_Class()->ThreatRange) / 256;
+    threat += std::max(0, dist - threat_range) * target_distance_coefficient;
 
-    if (dist > threat_range)
-        threat += (dist - threat_range) * target_distance_coefficient;
-
-    return threat + 100000;
+    return threat + 100000.0;
 }
 
 
