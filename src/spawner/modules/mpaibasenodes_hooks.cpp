@@ -116,7 +116,7 @@ DECLARE_PATCH(_HouseClass_Expert_AI_MP_AI_BaseNodes_Patch)
 {
     _asm push eax
 
-    if (Session.Type == GAME_NORMAL || !Spawner::Active && Spawner::Get_Config()->UseMPAIBaseNodes)
+    if (Session.Type == GAME_NORMAL || Spawner::Active && Spawner::Get_Config()->UseMPAIBaseNodes)
     {
         /**
          *  Skip trying to raise money.
