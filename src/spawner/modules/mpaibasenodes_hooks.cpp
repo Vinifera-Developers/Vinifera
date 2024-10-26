@@ -116,18 +116,22 @@ DECLARE_PATCH(_HouseClass_Expert_AI_MP_AI_BaseNodes_Patch)
 {
     _asm push eax
 
-    if (Session.Type == GAME_NORMAL && !(Spawner::Active && Spawner::Get_Config()->UseMPAIBaseNodes))
+    if (Session.Type == GAME_NORMAL || !Spawner::Active && Spawner::Get_Config()->UseMPAIBaseNodes)
     {
-        // Potentially try to raise money
+        /**
+         *  Skip trying to raise money.
+         */
         _asm pop eax
-        JMP_REG(ecx, 0x004C08D1);
+        JMP_REG(ecx, 0x004C09AF);
+
+        
     }
 
     /**
-     *  Skip trying to raise money.
+     *  Potentially try to raise money
      */
     _asm pop eax
-    JMP_REG(ecx, 0x004C09AF);
+    JMP_REG(ecx, 0x004C08D1);
 }
 
 
