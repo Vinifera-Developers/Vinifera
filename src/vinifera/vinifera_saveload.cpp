@@ -408,11 +408,6 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
     Clear_Scenario();
 
     /**
-     *  Clear the ArmorTypes heap.
-     */
-    ArmorTypes.Clear();
-
-    /**
      *  Now the scenario data has been cleaned up, we can now tell the extension
      *  hooks that we will be creating the extension classes via the class factories.
      * 

@@ -668,10 +668,6 @@ bool Vinifera_Shutdown()
      *  Cleanup global heaps/vectors.
      */
     TheaterTypes.Clear();
-    ArmorTypes.Clear();
-    RocketTypes.Clear();
-    SpawnManagerClass::Clear_All();
-    MouseTypes.Clear();
 
     /**
      *  Cleanup global extension instances.

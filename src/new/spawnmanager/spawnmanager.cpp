@@ -941,16 +941,3 @@ int SpawnManagerClass::Preparing_Count()
     }
     return count;
 }
-
-/**
- *  Removes all SpawnManagers from the game world.
- *
- *  @author: ZivDero
- */
-void SpawnManagerClass::Clear_All()
-{
-    for (int i = 0; i < SpawnManagers.Count(); ++i)
-        delete SpawnManagers[i];
-    
-    SpawnManagers.Clear();
-}

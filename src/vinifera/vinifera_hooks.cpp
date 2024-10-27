@@ -51,6 +51,8 @@
 #include "ebolt.h"
 #include "kamikazetracker.h"
 #include "spawnmanager.h"
+#include "armortype.h"
+#include "rockettype.h"
 
 
 /**
@@ -78,21 +80,33 @@ static void _Detach_This_From_All_Intercept(TARGET target, bool all)
  */
 static void _Free_Heaps_Intercept()
 {
+    Free_Heaps();
+
     /**
      *  Cleanup global heaps/vectors.
      */
     ++ScenarioInit;
 
+    while (ArmorTypes.Count()) {
+        delete ArmorTypes[0];
+    }
+    Remove_All_Inactive();
+
+    while (RocketTypes.Count()) {
+        delete RocketTypes[0];
+    }
+    Remove_All_Inactive();
+
+    while (SpawnManagers.Count()) {
+        delete SpawnManagers[0];
+    }
+    Remove_All_Inactive();
+
     EBoltClass::Clear_All();
-    ArmorTypes.Clear();
-    RocketTypes.Clear();
-    SpawnManagerClass::Clear_All();
 
     Extension::Free_Heaps();
 
     --ScenarioInit;
-
-    Free_Heaps();
 }
 
 

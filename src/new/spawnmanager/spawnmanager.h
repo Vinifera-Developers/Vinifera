@@ -101,8 +101,6 @@ public:
     int Docked_Count();
     int Preparing_Count();
 
-    static void Clear_All();
-
     SpawnManagerClass(const SpawnManagerClass&) = delete;
     SpawnManagerClass& operator= (const SpawnManagerClass&) = delete;
 
