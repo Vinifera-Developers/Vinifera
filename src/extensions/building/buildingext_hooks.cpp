@@ -1044,25 +1044,6 @@ DECLARE_PATCH(_BuildingClass_Mission_Deconstruction_Double_Survivors_Patch)
 
 
 /**
- *  Patch to not assign archive targets to buildings currently being sold.
- *
- *  @author: ZivDero
- */
-DECLARE_PATCH(_EventClass_Execute_Archive_Selling_Patch)
-{
-    GET_REGISTER_STATIC(TechnoClass*, techno, edi);
-    GET_REGISTER_STATIC(TARGET, target, eax);
-
-    // Don't assign an archive target if currently selling
-    if (techno->Mission != MISSION_DECONSTRUCTION) {
-        techno->Assign_Archive_Target(target);
-    }
-
-    JMP(0x00494372);
-}
-
-
-/**
  *  Patch in BuildingClass::Captured to not count captured DontScore buildings.
  *
  *  @author: ZivDero
@@ -1217,7 +1198,6 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x00430CC2, &_BuildingClass_Mission_Deconstruction_ConYard_Survivors_Patch);
     Patch_Jump(0x00430A01, &_BuildingClass_Mission_Deconstruction_ConYard_Unlimbo_Patch);
     Patch_Jump(0x00430F2B, &_BuildingClass_Mission_Deconstruction_Double_Survivors_Patch);
-    Patch_Jump(0x0049436A, &_EventClass_Execute_Archive_Selling_Patch);
     Patch_Jump(0x0042F799, &_BuildingClass_Captured_DontScore_Patch);
     Patch_Jump(0x0042E5F5, &_BuildingClass_Grand_Opening_Assign_FreeUnit_LastDockedBuilding_Patch);
     //Patch_Jump(0x00429220, &BuildingClassExt::_Shape_Number); // It's identical to vanilla, leaving it in in case it's ever needed

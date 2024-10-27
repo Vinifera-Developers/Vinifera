@@ -93,6 +93,10 @@ extern bool Vinifera_NoTacticalVersionString;
 
 extern bool Vinifera_ShowSuperWeaponTimers;
 
+extern bool Vinifera_DoSave;
+extern int Vinifera_NextAutosaveFrame;
+extern int Vinifera_NextAutoSaveNumber;
+
 extern unsigned Vinifera_TotalPlayTime;
 
 extern DynamicVectorClass<MFCC *> ViniferaMapsMixes;
