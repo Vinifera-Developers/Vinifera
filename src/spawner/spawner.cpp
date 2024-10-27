@@ -55,6 +55,7 @@
 #include "sessionext.h"
 #include "tibsun_functions.h"
 #include "rules.h"
+#include "vinifera_globals.h"
 
 
 bool Spawner::Active = false;
@@ -170,6 +171,8 @@ bool Spawner::Start_Scenario(const char* scenario_name)
     Session.IsGDI = true;// HouseTypes[Config->Players[0].House]->Get_Heap_ID();
     //Session.IsGDI = HouseTypes[Config->Players[0].House]->Side != SIDE_NOD;
     DEBUG_INFO("[Spawner] Session.IsGDI = %d\n", Session.IsGDI);
+
+    Vinifera_NextAutoSaveNumber = Config->NextAutoSaveNumber;
 
     /**
      *  Create the player node for the local player.

@@ -1309,9 +1309,9 @@ bool TActionClassExt::_TAction_Disable_AllyReveal(HouseClass* house, ObjectClass
 bool TActionClassExt::_TAction_Create_AutoSave(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
 {
     /**
-     *  Save on the NEXT frame so that players see the message before the save.
+     *  Schedule a save.
      */
-    Vinifera_NextAutosaveFrame = Frame + 1;
+    Vinifera_DoSave = true;
 
     return true;
 }

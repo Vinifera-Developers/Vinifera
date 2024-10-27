@@ -109,6 +109,7 @@ public:
     bool LoadSaveGame;
     char SaveGameName[60];
     int AutoSaveInterval;
+    int NextAutoSaveNumber;
 
     /**
      *  Scenario Options
@@ -184,7 +185,8 @@ public:
 
         , LoadSaveGame { false }
         , SaveGameName { "" }
-        , AutoSaveInterval { 0 }
+        , AutoSaveInterval { 1 }
+        , NextAutoSaveNumber { 0 }
 
         , Seed { 0 }
         , TechLevel { 10 }

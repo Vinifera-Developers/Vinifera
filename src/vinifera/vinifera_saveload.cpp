@@ -923,7 +923,7 @@ bool Vinifera_Load_Game(const char* file_name)
      *  Schedule the next autosave.
      */
     Vinifera_NextAutosaveFrame = Frame;
-    Vinifera_NextAutosaveFrame += Spawner::Active ? Spawner::Get_Config()->AutoSaveInterval : OptionsExtension->AutoSaveInterval;
+    Vinifera_NextAutosaveFrame += Spawner::Active && Session.Type == GAME_IPX ? Spawner::Get_Config()->AutoSaveInterval : OptionsExtension->AutoSaveInterval;
 
     DEBUG_INFO("LOADING GAME [%s] - Complete\n", formatted_file_name);
 

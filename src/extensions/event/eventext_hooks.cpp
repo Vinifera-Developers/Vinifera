@@ -49,6 +49,7 @@
 #include "technoext.h"
 #include "spawnmanager.h"
 #include "tibsun_functions.h"
+#include "vinifera_globals.h"
 
 
 /**
@@ -462,7 +463,10 @@ void EventClassExt::_Event_Response_Time()
 
 void EventClassExt::_Event_SaveGame()
 {
-
+    /**
+     *  Save on the NEXT frame so that players see the message before the save.
+     */
+    Vinifera_DoSave = Frame + 1;
 }
 
 
