@@ -118,11 +118,14 @@ public:
     int  TechLevel;
     bool IsCampaign;
     int CampaignID;
-    int  Tournament;
+    int CampaignDifficulty;
+    int CampaignCDifficulty;
+    int Tournament;
     unsigned int WOLGameID;
     char ScenarioName[260];
     char MapHash[0xff];
     char UIMapName[44];
+    bool PlayMoviesInMultiplayer;
 
     /**
      *  Network Options
@@ -165,6 +168,8 @@ public:
     bool CoachMode;
     bool AutoSurrender;
     bool UseMPAIBaseNodes;
+    bool AttackNeutralUnits;
+    bool ScrapMetal;
 
     SpawnerConfig()
         : Bases { true }
@@ -192,11 +197,14 @@ public:
         , TechLevel { 10 }
         , IsCampaign { false }
         , CampaignID { -1 }
+        , CampaignDifficulty { 1 }
+        , CampaignCDifficulty { 1 }
         , Tournament { 0 }
         , WOLGameID { 0xDEADBEEF }
         , ScenarioName { "spawnmap.ini" }
         , MapHash { "" }
         , UIMapName { "" }
+        , PlayMoviesInMultiplayer { false }
 
         , Protocol { 2 }
         , FrameSendRate { 4 }
@@ -244,6 +252,8 @@ public:
         , CoachMode { false }
         , AutoSurrender { true }
         , UseMPAIBaseNodes { false }
+        , AttackNeutralUnits{ false }
+        , ScrapMetal { false }
     { }
 
     void Read_INI(CCINIClass& spawn_ini);

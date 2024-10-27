@@ -52,7 +52,7 @@ ViniferaSaveVersionInfo::ViniferaSaveVersionInfo() :
     GameType(0),
     ViniferaVersion(0),
     ViniferaCommitHash{ "" },
-    SessionID(0)
+    PlaythroughID(0)
 {
     StartTime.dwLowDateTime = 0;
     StartTime.dwHighDateTime = 0;
@@ -406,9 +406,9 @@ const char* ViniferaSaveVersionInfo::Get_Vinifera_Commit_Hash() const
  *
  *  @author: ZivDero
  */
-void ViniferaSaveVersionInfo::Set_Session_ID(int num)
+void ViniferaSaveVersionInfo::Set_Playthrough_ID(int num)
 {
-    SessionID = num;
+    PlaythroughID = num;
 }
 
 
@@ -417,9 +417,9 @@ void ViniferaSaveVersionInfo::Set_Session_ID(int num)
  *
  *  @author: ZivDero
  */
-int ViniferaSaveVersionInfo::Get_Session_ID() const
+int ViniferaSaveVersionInfo::Get_Playthrough_ID() const
 {
-    return SessionID;
+    return PlaythroughID;
 }
 
 
@@ -565,7 +565,7 @@ HRESULT ViniferaSaveVersionInfo::Save(IStorage *storage)
             return res;
         }
 
-        res = Save_Int_Set(storageset, ID_SESSION_ID, SessionID);
+        res = Save_Int_Set(storageset, ID_PLAYTHROUGH_ID, PlaythroughID);
         if (FAILED(res)) {
             return res;
         }
@@ -666,7 +666,7 @@ HRESULT ViniferaSaveVersionInfo::Save(IStorage *storage)
         return res;
     }
 
-    res = Save_Int(storage, ID_SESSION_ID, SessionID);
+    res = Save_Int(storage, ID_PLAYTHROUGH_ID, PlaythroughID);
     if (FAILED(res)) {
         return res;
     }
@@ -790,7 +790,7 @@ HRESULT ViniferaSaveVersionInfo::Load(IStorage *storage)
 
         strcpy(ViniferaCommitHash, buffer);
 
-        res = Load_Int_Set(storageset, ID_SESSION_ID, &SessionID);
+        res = Load_Int_Set(storageset, ID_PLAYTHROUGH_ID, &PlaythroughID);
         if (FAILED(res)) {
             return res;
         }
@@ -896,7 +896,7 @@ HRESULT ViniferaSaveVersionInfo::Load(IStorage *storage)
 
     strcpy(ViniferaCommitHash, buffer);
 
-    res = Load_Int(storage, ID_SESSION_ID, &SessionID);
+    res = Load_Int(storage, ID_PLAYTHROUGH_ID, &PlaythroughID);
     if (FAILED(res)) {
         return res;
     }
@@ -1331,7 +1331,7 @@ const WCHAR *Vinifera_Stream_Name_From_ID(int id)
 
         { ViniferaSaveVersionInfo::ID_VINIFERA_VERSION,      L"Vinifera Version" },
         { ViniferaSaveVersionInfo::ID_VINIFERA_COMMIT_HASH,  L"Vinifera Commit Hash" },
-        { ViniferaSaveVersionInfo::ID_SESSION_ID,            L"Session ID" },
+        { ViniferaSaveVersionInfo::ID_PLAYTHROUGH_ID,        L"Playthrough ID" },
         { ViniferaSaveVersionInfo::ID_DIFFICULTY,            L"Difficulty" },
         { ViniferaSaveVersionInfo::ID_TOTAL_PLAY_TIME,       L"Total Play Time" },
     };

@@ -750,7 +750,7 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
 
     versioninfo.Set_Vinifera_Version(ViniferaGameVersion);
     versioninfo.Set_Vinifera_Commit_Hash(Vinifera_Git_Hash());
-    versioninfo.Set_Session_ID(Session.UniqueID);
+    versioninfo.Set_Playthrough_ID(Vinifera_PlaythroughID);
     versioninfo.Set_Difficulty(Scen->Difficulty);
     versioninfo.Set_Total_Play_Time(Vinifera_TotalPlayTime + Scen->ElapsedTimer.Value());
 
@@ -860,6 +860,7 @@ bool Vinifera_Load_Game(const char* file_name)
     storage.Release();
     Session.Type = static_cast<GameEnum>(saveversion.Get_Game_Type());
     Vinifera_TotalPlayTime = saveversion.Get_Total_Play_Time();
+    Vinifera_PlaythroughID = saveversion.Get_Playthrough_ID();
     SwizzleManager.Reset();
 
     DEBUG_INFO("Opening DocFile\n");
@@ -1045,6 +1046,11 @@ bool LoadOptionsClassExt::_Read_File(FileEntryClass* file, WIN32_FIND_DATA* file
             unsigned vinifera_version = saveversion.Get_Vinifera_Version();
             if (vinifera_version != ViniferaGameVersion) {
                 DEBUG_WARNING("Save file \"%s\" is incompatible! Vinifera: File version 0x%X, Expected version 0x%X.\n", formatted_file_name, vinifera_version, ViniferaGameVersion);
+                return false;
+            }
+
+            if (GameActive && Session.Type == GAME_NORMAL && saveversion.Get_Playthrough_ID() != Vinifera_PlaythroughID) {
+                DEBUG_INFO("Save file \"%s\" belongs to a different playthough, skipping.\n", formatted_file_name);
                 return false;
             }
 

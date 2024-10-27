@@ -250,4 +250,9 @@ class TechnoTypeClassExtension : public ObjectTypeClassExtension
          *  Optional override for the cost that is used for determining the techno's build time.
          */
         int BuildTimeCost;
+
+        /**
+         *  List of animations to be used as the explosion when scrap explosions are turned on.
+         */
+        TypeList<AnimTypeClass*> ScrapExplosion;
 };

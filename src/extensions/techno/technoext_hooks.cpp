@@ -86,7 +86,7 @@
 #include "tibsun_functions.h"
 #include "utracker.h"
 #include "aircraft.h"
-
+#include "spawner.h"
 
 
 /**
@@ -1685,6 +1685,38 @@ return_false:
 
 
 /**
+ *  Patch to allow units to target neutral units if the spawner requests it.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_TechnoClass_Evaluate_Object_AttackNeutralUnits_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass*, target, esi);
+
+    if (Session.Type != GAME_NORMAL && target->Owning_House()->Class->IsMultiplayPassive)
+    {
+        static bool attack_neutrals;
+        static bool unarmed_building;
+
+        attack_neutrals = Spawner::Active && Spawner::Get_Config()->AttackNeutralUnits;
+        unarmed_building = target->What_Am_I() == RTTI_BUILDING && (!target->Is_Weapon_Equipped() || target->Get_Weapon()->Weapon->Range == 0);
+
+        /**
+         *  Allow attacking neutrals, but if it's a building, it must be armed.
+         */
+        if (!attack_neutrals || unarmed_building)
+        {
+            // return false;
+            JMP(0x0062D8C0);
+        }
+    }
+
+    // Continue normally.
+    JMP(0x0062D4BA);
+}
+
+
+/**
  *  Replaces Verses (Modifier) of the Warhead with the one from the extension.
  *
  *  @author: ZivDero
@@ -2599,4 +2631,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x00631FF0, &TechnoClassExt::_Can_Player_Move);
     Patch_Jump(0x006336F0, &TechnoClassExt::_Record_The_Kill);
     //Patch_Jump(0x0062A3D0, &TechnoClassExt::_Fire_Coord); // Disabled because it's functionally identical to the vanilla function when there's no secondary coordinate
+    Patch_Jump(0x0062D49A, &_TechnoClass_Evaluate_Object_AttackNeutralUnits_Patch);
 }

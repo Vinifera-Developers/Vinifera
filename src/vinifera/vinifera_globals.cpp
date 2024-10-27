@@ -71,10 +71,8 @@ bool Vinifera_DoSave = false;
 int Vinifera_NextAutosaveFrame = -1;
 int Vinifera_NextAutoSaveNumber = 0;
 
-/**
- *  The total play time from all previous sessions of the current game.
- */
 unsigned Vinifera_TotalPlayTime = 0;
+unsigned Vinifera_PlaythroughID = 0;
 
 DynamicVectorClass<MFCC *> ViniferaMapsMixes;
 DynamicVectorClass<MFCC *> ViniferaMoviesMixes;

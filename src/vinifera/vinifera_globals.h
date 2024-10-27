@@ -98,6 +98,7 @@ extern int Vinifera_NextAutosaveFrame;
 extern int Vinifera_NextAutoSaveNumber;
 
 extern unsigned Vinifera_TotalPlayTime;
+extern unsigned Vinifera_PlaythroughID;
 
 extern DynamicVectorClass<MFCC *> ViniferaMapsMixes;
 extern DynamicVectorClass<MFCC *> ViniferaMoviesMixes;

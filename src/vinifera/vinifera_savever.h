@@ -51,7 +51,7 @@ public:
 
         ID_VINIFERA_VERSION = 105,
         ID_VINIFERA_COMMIT_HASH = 106,
-        ID_SESSION_ID = 107,
+        ID_PLAYTHROUGH_ID = 107,
         ID_DIFFICULTY = 108,
         ID_TOTAL_PLAY_TIME = 109,
     };
@@ -104,8 +104,8 @@ public:
     void Set_Vinifera_Commit_Hash(const char* hash);
     const char* Get_Vinifera_Commit_Hash() const;
 
-    void Set_Session_ID(int num);
-    int Get_Session_ID() const;
+    void Set_Playthrough_ID(int num);
+    int Get_Playthrough_ID() const;
 
     void Set_Difficulty(int num);
     int Get_Difficulty() const;
@@ -155,7 +155,7 @@ private:
      */
     int ViniferaVersion;
     char ViniferaCommitHash[40];
-    int SessionID;
+    int PlaythroughID;
     int Difficulty;
     int TotalPlayTime;
 };

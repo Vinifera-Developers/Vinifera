@@ -42,6 +42,7 @@
 #include "spawnhouses_hooks.h"
 #include "spectator_hooks.h"
 #include "statistics_hooks.h"
+#include "tibsun_functions.h"
 #include "vinifera_globals.h"
 
 
@@ -123,6 +124,64 @@ static void MultiScore_Wrapper()
 
 
 /**
+ *  Players skipping movies in multiplayer leads to disconnects.
+ *  Prevent players from skipping movies in MP.
+ *
+ *  @author: ZivDero, Rampastring
+ */
+DECLARE_PATCH(_Play_VQA_Forbid_Skipping_In_MP_Patch)
+{
+    GET_STACK_STATIC8(bool, cant_break_out, esp, 0x40);
+    cant_break_out |= (Session.Type != GAME_NORMAL && Session.Type != GAME_SKIRMISH);
+
+    /**
+     *  Don't skip the movie.
+     */
+    if (cant_break_out)
+    {
+        JMP(0x0066BA30);
+    }
+
+    /**
+     *  Check if we want to skip the movie.
+     */
+    JMP(0x0066BB61);
+}
+
+
+/**
+ *  Hack VQA playback loop to do some network communication in MP
+ *  so the tunnel server doesn't forget about us.
+ *
+ *  @author: ZivDero, Rampastring
+ */
+DECLARE_PATCH(_Play_VQA_Network_Callback_Patch)
+{
+    if (Session.Type != GAME_NORMAL && Session.Type != GAME_SKIRMISH) {
+        static unsigned NextNetworkRefreshTime = UINT_MAX;
+
+        if (timeGetTime() >= NextNetworkRefreshTime) {
+            Session.Loading_Callback(100);
+            Call_Back();
+        }
+
+        NextNetworkRefreshTime = timeGetTime() + 1000;
+    }
+
+    // Stolen instructions
+    _asm
+    {
+        push ebx
+        push ebx
+        push ebx
+        lea  edx, [esp + 0x28]
+    }
+
+    JMP(0x0066BA5D);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void Spawner_Hooks()
@@ -165,6 +224,12 @@ void Spawner_Hooks()
      */
     Patch_Call(0x005DC9DA, &MultiScore_Wrapper);
     Patch_Call(0x005DCD98, &MultiScore_Wrapper);
+
+    /**
+     *  PlayMoviesInMultiplayer feature.
+     */
+    Patch_Jump(0x0066BB57, &_Play_VQA_Forbid_Skipping_In_MP_Patch);
+    Patch_Jump(0x0066BA56, &_Play_VQA_Network_Callback_Patch);
 
     /**
      *  Hooks for various sub-modules.

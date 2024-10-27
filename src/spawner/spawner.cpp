@@ -207,7 +207,7 @@ bool Spawner::Start_Scenario(const char* scenario_name)
         Session.Options.Goodies = true;
 
         const bool result = Config->LoadSaveGame ?
-            Load_Game(Config->SaveGameName) : ::Start_Scenario(scenario_name, false, static_cast<CampaignType>(Config->CampaignID));
+            Load_Game(Config->SaveGameName) : ::Start_Scenario(scenario_name, Config->PlayMoviesInMultiplayer, static_cast<CampaignType>(Config->CampaignID));
 
         return result;
     }
