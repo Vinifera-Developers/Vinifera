@@ -76,7 +76,19 @@ AnimTypeClassExtension::AnimTypeClassExtension(const AnimTypeClass *this_ptr) :
  *  @author: CCHyper
  */
 AnimTypeClassExtension::AnimTypeClassExtension(const NoInitClass &noinit) :
-    ObjectTypeClassExtension(noinit)
+    ObjectTypeClassExtension(noinit),
+    StartAnims(noinit),
+    StartAnimsCount(noinit),
+    StartAnimsMinimum(noinit),
+    StartAnimsMaximum(noinit),
+    MiddleAnims(noinit),
+    MiddleAnimsCount(noinit),
+    MiddleAnimsMinimum(noinit),
+    MiddleAnimsMaximum(noinit),
+    EndAnims(noinit),
+    EndAnimsCount(noinit),
+    EndAnimsMinimum(noinit),
+    EndAnimsMaximum(noinit)
 {
     //EXT_DEBUG_TRACE("AnimTypeClassExtension::AnimTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -123,11 +135,6 @@ HRESULT AnimTypeClassExtension::Load(IStream *pStm)
 {
     //EXT_DEBUG_TRACE("AnimTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    HRESULT hr = ObjectTypeClassExtension::Load(pStm);
-    if (FAILED(hr)) {
-        return E_FAIL;
-    }
-
     StartAnims.Clear();
     StartAnimsCount.Clear();
     StartAnimsMinimum.Clear();
@@ -140,6 +147,11 @@ HRESULT AnimTypeClassExtension::Load(IStream *pStm)
     EndAnimsCount.Clear();
     EndAnimsMinimum.Clear();
     EndAnimsMaximum.Clear();
+
+    HRESULT hr = ObjectTypeClassExtension::Load(pStm);
+    if (FAILED(hr)) {
+        return E_FAIL;
+    }
 
     new (this) AnimTypeClassExtension(NoInitClass());
 
