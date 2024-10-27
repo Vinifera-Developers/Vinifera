@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          VINIFERAEVENT_HOOKS.CPP
+ *  @file          EVENTEXT_HOOKS.H
  *
  *  @author        ZivDero
  *
- *  @brief         Contains the hooks for the Vinifera event class.
+ *  @brief         Contains the hooks for the extended EventClass.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -28,4 +28,4 @@
 #pragma once
 
 
-void ViniferaEvent_Hooks();
+void EventClassExtension_Hooks();

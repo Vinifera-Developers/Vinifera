@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          VINIFERAEVENT_HOOKS.H
+ *  @file          EVENTEXT_HOOKS.CPP
  *
  *  @author        ZivDero
  *
- *  @brief         Contains the hooks for the Vinifera event class.
+ *  @brief         Contains the hooks for the extended EventClass.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -26,7 +26,7 @@
  *
  ******************************************************************************/
 
-#include "viniferaevent_hooks.h"
+#include "eventext_hooks.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -281,7 +281,7 @@ static int Vinifera_Extract_Compressed_Events(void* buf, int bufsize)
 /**
  *  Main function for patching the hooks.
  */
-void ViniferaEvent_Hooks()
+void EventClassExtension_Hooks()
 {
     Patch_Jump(0x00494294, &_EventClass_Execute_ViniferaEvent);
     Patch_Jump(0x005B45D5, &_Add_Compressed_Events_ViniferaEvent_Length);
