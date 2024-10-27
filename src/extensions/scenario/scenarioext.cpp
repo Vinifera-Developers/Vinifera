@@ -1496,7 +1496,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                                     building->House->Base.field_50 = cell;
 
                                     building->House->IsStarted = true;
-                                    building->House->field_C8 = true;
+                                    building->House->IsAITriggersOn = true;
                                     building->House->IsBaseBuilding = true;
                                 }
                             }
