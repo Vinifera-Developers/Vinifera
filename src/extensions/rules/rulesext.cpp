@@ -140,15 +140,16 @@ HRESULT RulesClassExtension::Load(IStream *pStm)
 {
     //EXT_DEBUG_TRACE("RulesClassExtension::Load - 0x%08X\n", (uintptr_t)(This()));
 
+    MaxPips.Clear();
+
     HRESULT hr = GlobalExtensionClass::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
 
-    new (&MaxPips) TypeList<int>;
-    MaxPips.Load(pStm);
-
     new (this) RulesClassExtension(NoInitClass());
+
+    MaxPips.Load(pStm);
     
     return hr;
 }
