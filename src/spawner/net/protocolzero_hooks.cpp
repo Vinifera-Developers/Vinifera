@@ -166,50 +166,6 @@ public:
 
 
 /**
- *  Executes the adjusted Timing event.
- *
- *  @author: ZivDero
- */
-void EventClassExt::_Execute_Timing()
-{
-    if (!ProtocolZero::Enable)
-        Data.Timing.MaxAhead -= Scen->SpecialFlags.IsFogOfWar ? 10 : 0;
-
-    if (Data.Timing.MaxAhead > Session.MaxAhead || Data.Timing.FrameSendRate > Session.FrameSendRate)
-    {
-        NewMaxAheadFrame1 = Frame;
-        NewMaxAheadFrame2 = Data.Timing.FrameSendRate * ((Data.Timing.FrameSendRate + Data.Timing.MaxAhead + Frame - 1) / Data.Timing.FrameSendRate);
-    }
-    else
-    {
-        NewMaxAheadFrame1 = 0;
-        NewMaxAheadFrame2 = 0;
-    }
-
-    Session.DesiredFrameRate = Data.Timing.DesiredFrameRate;
-    Session.MaxAhead = Data.Timing.MaxAhead;
-    if (Session.MaxAhead > Session.MaxMaxAhead)
-        Session.MaxMaxAhead = Session.MaxAhead;
-    Session.FrameSendRate = Data.Timing.FrameSendRate;
-}
-
-
-/**
- *  Patch executing the Timing event, taking Protocol 0 into consideration.
- *
- *  @author: ZivDero
- */
-DECLARE_PATCH(_ProtocolZero_EventClass_Execute)
-{
-    GET_REGISTER_STATIC(EventClassExt*, e, esi);
-
-    e->_Execute_Timing();
-
-    JMP(0x004950AD);
-}
-
-
-/**
  *  Skip checking MySent, if Protocol 0 is active.
  *
  *  @author: ZivDero
@@ -333,7 +289,6 @@ void ProtocolZero_Hooks()
     Patch_Jump(0x005B1A2D, &_ProtocolZero_Queue_AI_Multiplayer_1);
     Patch_Jump(0x005B1BF1, &_ProtocolZero_Queue_AI_Multiplayer_2);
     Patch_Jump(0x005B1B7A, &_ProtocolZero_Queue_AI_Multiplayer_3);
-    Patch_Jump(0x00495013, &_ProtocolZero_EventClass_Execute);
     Patch_Jump(0x005B4EA5, &_ProtocolZero_ExecuteDoList);
     Patch_Jump(0x004F05B0, &IPXManagerClassExt::_Set_Timing);
     Patch_Jump(0x004F0F00, &IPXManagerClassExt::_Response_Time);

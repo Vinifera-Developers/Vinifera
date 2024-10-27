@@ -63,9 +63,10 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
     /**
      *  Savegame Options
      */
-    LoadSaveGame      = spawn_ini.Get_Bool(SETTINGS, "LoadSaveGame", LoadSaveGame);
-    /* SavedGamesDir */ spawn_ini.Get_String(SETTINGS, "SavedGamesDir", SavedGamesDir, SavedGamesDir, sizeof(SavedGamesDir));
-    /* SaveGameName */  spawn_ini.Get_String(SETTINGS, "SaveGameName", SaveGameName, SaveGameName, sizeof(SaveGameName));
+    LoadSaveGame       = spawn_ini.Get_Bool(SETTINGS, "LoadSaveGame", LoadSaveGame);
+    /* SaveGameName */   spawn_ini.Get_String(SETTINGS, "SaveGameName", SaveGameName, SaveGameName, sizeof(SaveGameName));
+    AutoSaveInterval   = spawn_ini.Get_Int(SETTINGS, "AutoSaveGame", AutoSaveInterval);
+    NextAutoSaveNumber = spawn_ini.Get_Int(SETTINGS, "NextSPAutoSaveId", NextAutoSaveNumber + 1) - 1; // Subtract 1 since our autosaves are 0-based internally
 
     /**
      *  Scenario Options

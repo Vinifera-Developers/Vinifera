@@ -153,7 +153,7 @@
 #include "hooker.h"
 #include "hooker_macros.h"
 #include "spawnmanager_hooks.h"
-#include "viniferaevent_hooks.h"
+#include "eventext_hooks.h"
 
 
 void Extension_Hooks()
@@ -283,7 +283,7 @@ void Extension_Hooks()
     MultiScoreExtension_Hooks();
     ScoreClassExtension_Hooks();
     MultiMissionExtension_Hooks();
-    ViniferaEvent_Hooks();
+    EventClassExtension_Hooks();
 
     /**
      *  Dialogs and associated code.
