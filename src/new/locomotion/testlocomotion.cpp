@@ -413,8 +413,8 @@ IFACEMETHODIMP_(void) TestLocomotionClass::Move_To(Coordinate to)
  */
 IFACEMETHODIMP_(void) TestLocomotionClass::Stop_Moving()
 {
-    HeadToCoord = 0;
-    DestinationCoord = 0;
+    HeadToCoord = Coordinate();
+    DestinationCoord = Coordinate();
 
     Angle = 0;
 
@@ -672,8 +672,7 @@ IFACEMETHODIMP_(void) TestLocomotionClass::Mark_All_Occupation_Bits(int mark)
  */
 IFACEMETHODIMP_(bool) TestLocomotionClass::Is_Moving_Here(Coordinate to)
 {
-    Coordinate headto_cell = Coord_Cell(Head_To_Coord());
-    return Coord_Cell(headto_cell) == Coord_Cell(to) && std::abs(headto_cell.Z - to.Z) <= CellHeight;
+    return Coord_Cell(Head_To_Coord()) == Coord_Cell(to) && std::abs(Head_To_Coord().Z - to.Z) <= CellHeight;
 }
 
 
