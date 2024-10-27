@@ -65,31 +65,6 @@ DECLARE_PATCH(_Standard_Options_Dialog_HANDLER_AutoSurrender)
 
 
 /**
- *  Force surrender on disconnection.
- *
- *  @author: ZivDero
- */
-DECLARE_PATCH(_EventClass_Execute_REMOVE_PLAYER_AutoSurrender)
-{
-    if (Spawner::Active && Spawner::Get_Config()->AutoSurrender)
-    {
-        if (Session.Type == GAME_IPX && Spawner::Get_Config()->AutoSurrender)
-        {
-            JMP(0x00494F16);
-        }
-    }
-
-    // Stolen bytes
-    if (Session.Type != GAME_INTERNET)
-    {
-        JMP(0x00494F28);
-    }
-
-    JMP(0x00494F0D);
-}
-
-
-/**
  *  Two patches to save whether the player has surrendered.
  *
  *  @author: ZivDero
@@ -125,7 +100,6 @@ DECLARE_PATCH(_Special_Dialog_Surrender2)
 void AutoSurrender_Hooks()
 {
     Patch_Jump(0x004B6D04, &_Standard_Options_Dialog_HANDLER_AutoSurrender);
-    Patch_Jump(0x00494F08, &_EventClass_Execute_REMOVE_PLAYER_AutoSurrender);
     Patch_Jump(0x004627F3, &_Special_Dialog_Surrender1);
     Patch_Jump(0x0046283A, &_Special_Dialog_Surrender2);
 }
