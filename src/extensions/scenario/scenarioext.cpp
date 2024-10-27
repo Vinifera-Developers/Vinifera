@@ -702,8 +702,14 @@ bool ScenarioClassExtension::Load_Scenario(CCINIClass& ini, bool random)
      *  Set up difficulty and fog of war settings.
      */
     if (Session.Type == GAME_NORMAL) {
-        Scen->Difficulty = static_cast<DiffType>(Session.Options.AIDifficulty);
-        Scen->CDifficulty = static_cast<DiffType>(2 - Scen->Difficulty);
+        if (Spawner::Active) {
+            Scen->Difficulty = static_cast<DiffType>(Spawner::Get_Config()->CampaignDifficulty);
+            Scen->CDifficulty = static_cast<DiffType>(Spawner::Get_Config()->CampaignCDifficulty);
+        }
+        else {
+            Scen->Difficulty = static_cast<DiffType>(Options.Difficulty);
+            Scen->CDifficulty = static_cast<DiffType>(2 - Options.Difficulty);
+        }
         Scen->SpecialFlags.IsFogOfWar = false;
         Special.IsFogOfWar = false;
     }
@@ -716,6 +722,12 @@ bool ScenarioClassExtension::Load_Scenario(CCINIClass& ini, bool random)
 
     Scen->InitTime = ini.Get_Int(BASIC, "InitTime", 10000);
     const bool official = ini.Get_Bool(BASIC, "Official", false);
+
+    /**
+     *  Set the unique playthrough ID.
+     */
+    Vinifera_PlaythroughID = std::time(nullptr);
+    DEBUG_INFO("[Vinifera] Starting new scenario. Playthrough ID: %u.\n", Vinifera_PlaythroughID);
 
     /**
      *  Make sure we have, and then enable the required addon.

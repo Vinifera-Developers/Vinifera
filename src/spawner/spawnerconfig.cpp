@@ -71,15 +71,18 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
     /**
      *  Scenario Options
      */
-    Seed             = spawn_ini.Get_Int(SETTINGS, "Seed", Seed);
-    TechLevel        = spawn_ini.Get_Int(SETTINGS, "TechLevel", TechLevel);
-    IsCampaign       = spawn_ini.Get_Bool(SETTINGS, "IsSinglePlayer", IsCampaign);
-    CampaignID       = spawn_ini.Get_Int(SETTINGS, "CampaignID", CampaignID);
-    Tournament       = spawn_ini.Get_Int(SETTINGS, "Tournament", Tournament);
-    WOLGameID        = spawn_ini.Get_Int(SETTINGS, "GameID", WOLGameID);
-    /* ScenarioName */ spawn_ini.Get_String(SETTINGS, "Scenario", ScenarioName, ScenarioName, sizeof(ScenarioName));
-    /* MapHash      */ spawn_ini.Get_String(SETTINGS, "MapHash", MapHash, MapHash, sizeof(MapHash));
-                       spawn_ini.Get_String(SETTINGS, "UIMapName", UIMapName, UIMapName, sizeof(UIMapName));
+    Seed                    = spawn_ini.Get_Int(SETTINGS, "Seed", Seed);
+    TechLevel               = spawn_ini.Get_Int(SETTINGS, "TechLevel", TechLevel);
+    IsCampaign              = spawn_ini.Get_Bool(SETTINGS, "IsSinglePlayer", IsCampaign);
+    CampaignID              = spawn_ini.Get_Int(SETTINGS, "CampaignID", CampaignID);
+    CampaignDifficulty      = spawn_ini.Get_Int(SETTINGS, "DifficultyModeHuman", CampaignDifficulty);
+    CampaignCDifficulty     = spawn_ini.Get_Int(SETTINGS, "DifficultyModeComputer", CampaignCDifficulty);
+    Tournament              = spawn_ini.Get_Int(SETTINGS, "Tournament", Tournament);
+    WOLGameID               = spawn_ini.Get_Int(SETTINGS, "GameID", WOLGameID);
+    /* ScenarioName      */   spawn_ini.Get_String(SETTINGS, "Scenario", ScenarioName, ScenarioName, sizeof(ScenarioName));
+    /* MapHash           */   spawn_ini.Get_String(SETTINGS, "MapHash", MapHash, MapHash, sizeof(MapHash));
+    /* UIMapName         */   spawn_ini.Get_String(SETTINGS, "UIMapName", UIMapName, UIMapName, sizeof(UIMapName));
+    PlayMoviesInMultiplayer = spawn_ini.Get_Bool(SETTINGS, "PlayMoviesInMultiplayer", PlayMoviesInMultiplayer);
 
     /**
      *  Network Options
@@ -123,6 +126,8 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
     CoachMode                = spawn_ini.Get_Bool(SETTINGS, "CoachMode", CoachMode);
     AutoSurrender            = spawn_ini.Get_Bool(SETTINGS, "AutoSurrender", AutoSurrender);
     UseMPAIBaseNodes         = spawn_ini.Get_Bool(SETTINGS, "UseMPAIBaseNodes", UseMPAIBaseNodes);
+    AttackNeutralUnits       = spawn_ini.Get_Bool(SETTINGS, "AttackNeutralUnits", AttackNeutralUnits);
+    ScrapMetal               = spawn_ini.Get_Bool(SETTINGS, "ScrapMetal", ScrapMetal);
 }
 
 

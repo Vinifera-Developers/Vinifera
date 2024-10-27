@@ -1206,4 +1206,6 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x0042F958, &_BuildingClass_Captured_BuildConst_Patch1);
     Patch_Jump(0x0042FACC, &_BuildingClass_Captured_BuildConst_Patch2);
     Patch_Jump(0x0042FCA1, &_BuildingClass_Captured_BuildConst_Patch3);
+
+    Patch_Jump(0x0042ED3C, 0x0042ED46); // Allow manually aiming buildings whose weapons are not anti-ground.
 }
