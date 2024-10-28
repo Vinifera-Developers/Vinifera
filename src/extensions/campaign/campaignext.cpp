@@ -41,7 +41,8 @@
 CampaignClassExtension::CampaignClassExtension(const CampaignClass *this_ptr) :
     AbstractTypeClassExtension(this_ptr),
     IsDebugOnly(false),
-    IntroMovie()
+    IntroMovie(),
+    House(HOUSE_GDI)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("CampaignClassExtension::CampaignClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -173,13 +174,30 @@ void CampaignClassExtension::Compute_CRC(WWCRCEngine &crc) const
  */
 bool CampaignClassExtension::Read_INI(CCINIClass &ini)
 {
+    const char* ini_name = Name();
+
+    if (!IsInitialized) {
+
+        /**
+         *  Select vanilla campaigns's house based on their name
+         */
+        HousesType side = HOUSE_GDI;
+
+        if (std::strstr(This()->Scenario, "GDI")) {
+            side = HOUSE_GDI;
+        }
+        else if (std::strstr(This()->Scenario, "NOD")) {
+            side = HOUSE_NOD;
+        }
+
+        House = side;
+    }
+
     //EXT_DEBUG_TRACE("CampaignClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     if (!AbstractTypeClassExtension::Read_INI(ini)) {
         return false;
     }
-
-    const char *ini_name = Name();
 
     IsDebugOnly = ini.Get_Bool(ini_name, "DebugOnly", IsDebugOnly);
 
@@ -193,6 +211,10 @@ bool CampaignClassExtension::Read_INI(CCINIClass &ini)
     }
     
     ini.Get_String(ini_name, "IntroMovie", IntroMovie, sizeof(IntroMovie));
+
+    House = static_cast<HousesType>(ini.Get_Int(ini_name, "Side", House));
+
+    IsInitialized = true;
 
     return true;
 }

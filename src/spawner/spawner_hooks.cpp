@@ -112,18 +112,6 @@ DECLARE_PATCH(_HouseClass_Expert_AI_Check_Allies)
 
 
 /**
- *  Patches the score screen to be skipped if SkipScoreScreen is set.
- *
- *  @author: ZivDero
- */
-static void MultiScore_Wrapper()
-{
-    if (!Spawner::Get_Config()->SkipScoreScreen)
-        MultiScore::Presentation();
-}
-
-
-/**
  *  Players skipping movies in multiplayer leads to disconnects.
  *  Prevent players from skipping movies in MP.
  *
@@ -218,12 +206,6 @@ void Spawner_Hooks()
 
     Patch_Jump(0x004C06EF, &_HouseClass_Expert_AI_Check_Allies);
     Patch_Jump(0x004C3630, &HouseClassExt::_Computer_Paranoid);  // Disable paranoid computer behavior
-
-    /**
-     *  SkipScoreScreen feature.
-     */
-    Patch_Call(0x005DC9DA, &MultiScore_Wrapper);
-    Patch_Call(0x005DCD98, &MultiScore_Wrapper);
 
     /**
      *  PlayMoviesInMultiplayer feature.

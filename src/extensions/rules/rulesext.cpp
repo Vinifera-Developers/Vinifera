@@ -968,9 +968,9 @@ void RulesClassExtension::Fixups(CCINIClass &ini)
      *  Workaround because NOD has Side=GDI and Prefix=B in unmodded Tiberian Sun.
      *
      *  Match criteria;
-     *   - Are we currently processing RuleINI?
+     *   - Are we currently processing one of the unmodified rule INI's?
      */
-    if (is_ruleini) {
+    if (rule_unmodified || fsrule_unmodified) {
 
         /**
          *  Ensure at least two HouseTypes are defined before performing this fixup case.

@@ -93,12 +93,37 @@ It is not recommended to set `EngineerChance=100`, as this may put the game into
 - In the original game, harvesters always prefer free refineries over occupied ones, even if the free refinery was much farther away than the occupied refinery. Vinifera fixes this so that harvesters now prefer queueing to occupied refineries if they are much closer than free refineries. The distance for this preference is customizable.
 
 In `RULES.INI`:
-```
+```ini
 [General]
 ; When looking for refineries, harvesters will prefer a distant free
 ; refinery over a closer occupied refinery if the refineries' distance
 ; difference in cells is less than this.
 MaxFreeRefineryDistanceBias=16
+```
+
+## Houses
+
+- Loading screens can now be customized per house.
+
+In `RULES.INI`:
+```ini
+[SOMEHOUSE]         ; HouseType
+LoadingScreens400=  ; list of strings, loading screens to be used by this house with a screen resolution of at least 400x600.
+LoadingScreens480=  ; list of strings, loading screens to be used by this house with a screen resolution of at least 480x600.
+LoadingScreens600=  ; list of strings, loading screens to be used by this house with a screen resolution of at least 600x800.
+```
+
+- The defaults for loading screens are as follows:
+```ini
+LoadingScreens000=LOAD000C,LOAD000D ; House 0 - GDI
+LoadingScreens000=LOAD000A,LOAD000B ; House 1 - Nod
+LoadingScreens000=LOAD000E,LOAD000F ; House 2
+```
+
+- `000` is replaced with the loading screen's height, starting from house 2 letters are incremented (so house 2 uses `E` and `F`, house 3 uses letters `G` and `H`, etc.). After house 12 the letters loop around to `A` and `B`.
+
+```{note}
+Loading screen names should not contain the `.PCX` extension.
 ```
 
 ## Ice

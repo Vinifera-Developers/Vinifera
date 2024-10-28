@@ -59,5 +59,4 @@ private:
 
     static void Init_UI();
     static void Prepare_Screen();
-    static void Read_Houses_And_Sides();
 };

@@ -1170,7 +1170,7 @@ bool TActionClassExt::_TAction_Give_Credits(HouseClass* house, ObjectClass* obje
      *  Give credits to the house.
      */
     if (other) {
-        other->Refund_Money(Data.Value);
+        other->Refund_Money(Bounds.X); // Don't know, maybe it could be refactored somehow? This is where P3 should end up.
     }
 
     return true;

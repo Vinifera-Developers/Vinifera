@@ -140,6 +140,8 @@
 #include "technoext.h"
 #include "verses.h"
 
+#include "scenarioext.h"
+
 
 /**
  *  Constant of the current build version number. This number should be
@@ -464,17 +466,6 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
 
     Enable_Addon(Scen->RequiredAddOn);
 
-    SideType side = Scen->IsGDI ? SIDE_GDI : SIDE_NOD;
-#if defined(TS_CLIENT)
-    side = static_cast<SideType>(Scen->IsGDI);
-#endif
-
-    DEBUG_INFO("About to call Prep_For_Side()...\n");
-    if (!Prep_For_Side(side)) {
-        DEBUG_ERROR("Prep_For_Side() failed!\n");
-        return false;
-    }
-
     {
     Rect tactical_rect = Get_Tactical_Rect();
     Rect composite_rect(0, 0, tactical_rect.Width, ScreenRect.Height);
@@ -502,12 +493,6 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
 
     DEBUG_INFO("Loading Rule...\n");
     Rule->Load(pStm);
-
-    DEBUG_INFO("About to call Prep_Speech_For_Side()...\n");
-    if (!Prep_Speech_For_Side(side)) {
-        DEBUG_ERROR("Prep_Speech_For_Side() failed!\n");
-        return false;
-    }
 
     if (FAILED(Vinifera_Load_Vector(pStm, AnimTypes, "AnimTypes"))) { return false; }
 
@@ -629,6 +614,51 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
     if (!Extension::Load(pStm)) {
         DEBUG_ERROR("\t***** FAILED!\n");
         return false;
+    }
+
+    /**
+     *  #issue-218
+     *
+     *  We now abuse ScenarioClass::IsGDI to store the player house so it can be used to
+     *  fetch the SideType from it for loading the assets. This also means this
+     *  bugfix works without extending any of the games classes, but this does mean we
+     *  are limited to 255 unique houses!
+     */
+    const HousesType house = static_cast<HousesType>(Scen->IsGDI);
+    ASSERT_FATAL(house != HOUSE_NONE & house < HouseTypes.Count());
+    const HouseTypeClass* housetype = HouseTypes[house];
+    ASSERT_FATAL(housetype != nullptr);
+
+    /**
+     *  Fetch the houses side type and use this to decide which assets to load.
+     */
+    DEBUG_INFO("About to call Prep_For_Side()...\n");
+    if (!Prep_For_Side(ScenExtension->SidebarSide)) {
+        DEBUG_WARNING("Prep_For_Side(%d) failed! Trying with side 0...\n", housetype->Side);
+
+        /**
+         *  Try once again but with the Side 0 (GDI) assets.
+         */
+        if (!Prep_For_Side(SIDE_GDI)) {
+            DEBUG_ERROR("Prep_For_Side() failed!\n");
+            return false;
+        }
+    }
+
+    /**
+     *  Fetch the houses side type and use this to decide which speech assets to load.
+     */
+    DEBUG_INFO("About to call Prep_Speech_For_Side()...\n");
+    if (!Prep_Speech_For_Side(housetype->Side)) {
+        DEBUG_WARNING("Prep_Speech_For_Side(%d) failed! Trying with side 0...\n", housetype->Side);
+
+        /**
+         *  Try once again but with the Side 0 (GDI) assets.
+         */
+        if (!Prep_Speech_For_Side(SIDE_GDI)) {
+            DEBUG_ERROR("Prep_Speech_For_Side() failed!\n");
+            return false;
+        }
     }
 
     Map.Flag_To_Redraw(2);
@@ -1049,9 +1079,21 @@ bool LoadOptionsClassExt::_Read_File(FileEntryClass* file, WIN32_FIND_DATA* file
                 return false;
             }
 
-            if (GameActive && Session.Type == GAME_NORMAL && saveversion.Get_Playthrough_ID() != Vinifera_PlaythroughID) {
-                DEBUG_INFO("Save file \"%s\" belongs to a different playthough, skipping.\n", formatted_file_name);
-                return false;
+            /**
+             *  Don't allow loading saves from other campaign playthroughs, or campaign saves in general if we're not in campaign
+             *  (to facilitate the client's playthrough tracking).
+             */
+            if (GameActive) {
+
+                if (Session.Type == GAME_NORMAL && saveversion.Get_Playthrough_ID() != Vinifera_PlaythroughID) {
+                    DEBUG_INFO("Save file \"%s\" belongs to a different playthough, skipping.\n", formatted_file_name);
+                    return false;
+                }
+
+                if (Session.Type != GAME_NORMAL && saveversion.Get_Game_Type() == GAME_NORMAL) {
+                    DEBUG_INFO("Save file \"%s\" is a campaign save and the player is currently not in campaign, skipping.\n", formatted_file_name);
+                    return false;
+                }
             }
 
             wsprintfA(file->Descr, "%s", saveversion.Get_Scenario_Description());

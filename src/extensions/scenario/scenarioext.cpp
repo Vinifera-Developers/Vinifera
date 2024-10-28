@@ -84,7 +84,9 @@
 ScenarioClassExtension::ScenarioClassExtension(const ScenarioClass *this_ptr) :
     GlobalExtensionClass(this_ptr),
     Waypoint(NEW_WAYPOINT_COUNT),
-    IsIceDestruction(true)
+    IsIceDestruction(true),
+    SidebarSide(SIDE_NONE),
+    LoadingScreens{ { "", {} }, { "", {} } , { "", {} } }
 {
     //if (this_ptr) EXT_DEBUG_TRACE("ScenarioClassExtension::ScenarioClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
@@ -216,6 +218,13 @@ void ScenarioClassExtension::Init_Clear()
 
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Init_Clear - 0x%08X\n", (uintptr_t)(This()));
 
+    LoadingScreens[0].Filename = "";
+    LoadingScreens[1].Filename = "";
+    LoadingScreens[2].Filename = "";
+    LoadingScreens[0].Position = TPoint2D<int>(0,0);
+    LoadingScreens[1].Position = TPoint2D<int>(0,0);
+    LoadingScreens[2].Position = TPoint2D<int>(0,0);
+
     {
         /**
          *  Clear the any previously loaded tutorial messages in preperation for
@@ -267,6 +276,46 @@ bool ScenarioClassExtension::Read_INI(CCINIClass &ini)
      *  Fetch additional tutorial message data (if present) from the scenario.
      */
     Read_Tutorial_INI(ini, true);
+
+    return true;
+}
+
+
+/**
+ *  Read the loading screen overrides from the scenario INI.
+ *
+ *  @author: CCHyper
+ */
+bool ScenarioClassExtension::Read_Loading_Screen_INI(const char *filename)
+{
+    //EXT_DEBUG_TRACE("ScenarioClassExtension::Read_Loading_Screen_INI - 0x%08X\n", (uintptr_t)(This()));
+
+    static const char * const BASIC = "Basic";
+
+    CCFileClass file(filename);
+    CCINIClass ini(file);
+
+    if (!ini.Is_Loaded()) {
+        return false;
+    }
+
+    if (Session.Type == GAME_NORMAL) {
+
+        char buffer[MAX_PATH];
+
+        ini.Get_String(BASIC, "LoadingScreen400", buffer, sizeof(buffer));
+        ScenExtension->LoadingScreens[0].Filename = buffer;
+
+        ini.Get_String(BASIC, "LoadingScreen480", buffer, sizeof(buffer));
+        ScenExtension->LoadingScreens[1].Filename = buffer;
+
+        ini.Get_String(BASIC, "LoadingScreen600", buffer, sizeof(buffer));
+        ScenExtension->LoadingScreens[2].Filename = buffer;
+
+        ScenExtension->LoadingScreens[0].Position = ini.Get_Point(BASIC, "LoadingScreen400TextPos", ScenExtension->LoadingScreens[0].Position);
+        ScenExtension->LoadingScreens[1].Position = ini.Get_Point(BASIC, "LoadingScreen460TextPos", ScenExtension->LoadingScreens[1].Position);
+        ScenExtension->LoadingScreens[2].Position = ini.Get_Point(BASIC, "LoadingScreen600TextPos", ScenExtension->LoadingScreens[2].Position);
+    }
 
     return true;
 }
@@ -767,138 +816,169 @@ bool ScenarioClassExtension::Load_Scenario(CCINIClass& ini, bool random)
      */
     Scen->Theater = ini.Get_TheaterType(MAP, "Theater", THEATER_FIRST);
     Init_Theater(Scen->Theater);
+    Session.Loading_Callback(8);
+
+    /**
+     *  Load the main rules file.
+     */
+    DEBUG_INFO("Initializing Rules\n");
+    RuleExtension->Initialize(*RuleINI);
+    Rule->Initialize(*RuleINI);
+
+    Session.Loading_Callback(15);
+    Call_Back();
+
+    /**
+     *  Read the rules into ScenarioClass.
+     */
+    DEBUG_INFO("Calling Scen->Read_Global_INI(*RuleINI);\n");
+    Scen->Read_Global_INI(*RuleINI);
+
+    Call_Back();
+
+    /**
+     *  #issue-#671
+     *
+     *  Add loading of MPLAYER.INI to override Rules data for multiplayer games.
+     *
+     *  @author: CCHyper
+     */
+    if (Session.Type != GAME_NORMAL && Session.Type != GAME_WDT) {
+
+        /**
+         *  Process the multiplayer ini overrides.
+         */
+        Rule_Addition("MPLAYER.INI");
+        if (Is_Addon_Enabled(ADDON_FIRESTORM)) {
+            Rule_Addition("MPLAYERFS.INI");
+        }
+
+    }
+
     Session.Loading_Callback(30);
 
+    Call_Back();
+
     /**
-     *  Determine the player's side.
+     *  Read scenario overrides into our Rules.
+     */
+    DEBUG_INFO("Calling Rule->Addition() with scenario overrides\n");
+    Rule->Addition(ini);
+    DEBUG_INFO("Finished Rule->Addition() with scenario overrides\n");
+
+    Session.Loading_Callback(45);
+
+    /**
+     *  Init the Scenario CRC value
+     */
+    ScenarioCRC = 0;
+
+    /**
+     *  Read in the specific information for each of the house types. This creates
+     *  the houses of different types.
      */
     if (Session.Type == GAME_NORMAL) {
-        ini.Get_String(BASIC, "Player", "GDI", buffer, 32);
-        Scen->IsGDI = std::strcmp(buffer, "GDI") == 0;
-        Scen->SpeechSide = Scen->IsGDI ? SIDE_GDI : SIDE_NOD;
-    }
-    else {
-        Scen->IsGDI = Session.IsGDI;
-        Scen->SpeechSide = Session.IsGDI ? SIDE_GDI : SIDE_NOD;
+        DEBUG_INFO("Reading in scenario house types\n");
+        HouseClass::Read_Scenario_INI(ini);
     }
 
     /**
-     *  Init side-specific data.
+     *  Outside of campaign, the spawner may request that we read base nodes for
+     *  Spawn houses. Do that if necessary.
      */
-    DEBUG_INFO("Calling Prep_For_Side()\n");
-    if (Prep_For_Side(Scen->IsGDI ? SIDE_GDI : SIDE_NOD)) {
-        ArmorTypeClass::One_Time();
+    if (Session.Type != GAME_NORMAL && Spawner::Active && Spawner::Get_Config()->UseMPAIBaseNodes) {
+        for (int i = 0; i < Session.Players.Count() + Session.Options.AIPlayers; i++) {
+
+            /**
+             *  Skip observers, they don't need base nodes.
+             */
+            if (Houses[i]->IsDefeated) {
+                continue;
+            }
+
+            /**
+             *  Read base nodes for this house.
+             */
+            std::snprintf(buffer, std::size(buffer), "Spawn%d", ScenExtension->StartingPositions[i]);
+            Houses[i]->Base.Read_INI(ini, buffer);
+        }
+    }
+
+    Session.Loading_Callback(50);
+
+    /**
+     *  Read scenario data from the scenario INI.
+     */
+    if (Scen->Read_INI(ini)) {
 
         /**
-         *  Load the main rules file.
-         */
-        DEBUG_INFO("Initializing Rules\n");
-        Rule->Initialize(*RuleINI);
-
-        Session.Loading_Callback(35);
-        Call_Back();
-
-        /**
-         *  In single player, the speech side can be overridden by the scenario.
+         *  Determine the player's side.
          */
         if (Session.Type == GAME_NORMAL) {
-            Scen->SpeechSide = ini.Get_SideType("Basic", "SpeechSide", Scen->SpeechSide);
+            ini.Get_String(BASIC, "Player", "GDI", buffer, 32);
+            /**
+             *  Fetch the house's side and use this to decide which assets to load.
+             */
+            const auto housetype = HouseTypeClass::As_Pointer(buffer);
+
+            Scen->IsGDI = static_cast<unsigned char>(housetype->Side & 0xFF);
+            Scen->SpeechSide = housetype->Side;
+            ScenExtension->SidebarSide = housetype->Side;
+        }
+        else {
+            Scen->IsGDI = static_cast<unsigned char>(Session.IsGDI);
+            Scen->SpeechSide = static_cast<SideType>(Session.IsGDI);
+            ScenExtension->SidebarSide = static_cast<SideType>(Session.IsGDI);
         }
 
         /**
-         *  Init the speech for the side.
+         *  Init side-specific data.
          */
-        DEBUG_INFO("Calling Prep_Speech_For_Side()\n");
-        if (Prep_Speech_For_Side(Scen->SpeechSide)) {
-            /**
-             *  Read the rules into ScenarioClass.
-             */
-            DEBUG_INFO("Calling Scen->Read_Global_INI(*RuleINI);\n");
-            Scen->Read_Global_INI(*RuleINI);
+        DEBUG_INFO("Calling Prep_For_Side()\n");
+        if (Prep_For_Side(ScenExtension->SidebarSide)) {
 
             Call_Back();
 
             /**
-             *  #issue-#671
-             *
-             *  Add loading of MPLAYER.INI to override Rules data for multiplayer games.
-             *
-             *  @author: CCHyper
+             *  Unfortunately, since we now load rules before prepping for side,
+             *  we have to reload cameos for Technos, as they can be side-specific.
              */
-            if (Session.Type != GAME_NORMAL && Session.Type != GAME_WDT) {
 
-                /**
-                 *  Process the multiplayer ini overrides.
-                 */
-                Rule_Addition("MPLAYER.INI");
-                if (Is_Addon_Enabled(ADDON_FIRESTORM)) {
-                    Rule_Addition("MPLAYERFS.INI");
+            for (int index = 0; index < TechnoTypes.Count(); ++index) {
+
+                TechnoTypeClass* ttype = TechnoTypes[index];
+                std::snprintf(buffer, sizeof(buffer), "%s.SHP", ttype->CameoFilename);
+
+                const ShapeFileStruct* cameodata = MFCC::RetrieveT<const ShapeFileStruct>(buffer);
+
+                if (cameodata != nullptr) {
+                    ttype->CameoData = cameodata;
                 }
-
             }
-
-            Session.Loading_Callback(42);
 
             Call_Back();
 
             /**
-             *  Read scenario overrides into our Rules.
+             *  In single player, the speech and sidebar side can be overridden by the scenario.
              */
-            DEBUG_INFO("Calling Rule->Addition() with scenario overrides\n");
-            Rule->Addition(ini);
-            DEBUG_INFO("Finished Rule->Addition() with scenario overrides\n");
-
-            Session.Loading_Callback(45);
-
-            /**
-             *  Init the Scenario CRC value
-             */
-            ScenarioCRC = 0;
-
-            /**
-             *  Read in the specific information for each of the house types. This creates
-             *  the houses of different types.
-             */
-            if (Session.Type == GAME_NORMAL) {
-                DEBUG_INFO("Reading in scenario house types\n");
-                HouseClass::Read_Scenario_INI(ini);
+            if (Session.Type == GAME_NORMAL)  {
+                Scen->SpeechSide = ini.Get_SideType("Basic", "SpeechSide", Scen->SpeechSide);
+                ScenExtension->SidebarSide = ini.Get_SideType("Basic", "SidebarSide", ScenExtension->SidebarSide);
             }
 
             /**
-             *  Outside of campaign, the spawner may request that we read base nodes for
-             *  Spawn houses. Do that if necessary.
+             *  Init the speech for the side.
              */
-            if (Session.Type != GAME_NORMAL && Spawner::Active && Spawner::Get_Config()->UseMPAIBaseNodes) {
-                for (int i = 0; i < Session.Players.Count() + Session.Options.AIPlayers; i++) {
-
-                    /**
-                     *  Skip observers, they don't need base nodes.
-                     */
-                    if (Houses[i]->IsDefeated) {
-                        continue;
-                    }
-
-                    /**
-                     *  Read base nodes for this house.
-                     */
-                    std::snprintf(buffer, std::size(buffer), "Spawn%d", ScenExtension->StartingPositions[i]);
-                    Houses[i]->Base.Read_INI(ini, buffer);
-                }
-            }
-
-            Session.Loading_Callback(50);
-
-            /**
-             *  Read scneario data from the scenario INI.
-             */
-            if (Scen->Read_INI(ini)) {
+            DEBUG_INFO("Calling Prep_Speech_For_Side()\n");
+            if (Prep_Speech_For_Side(Scen->SpeechSide)) {
 
                 Session.Loading_Callback(58);
 
                 /**
-                 *  Usually this happens in Map.Read_INI(), but we need to read waypoints earlier to assign them to players.
+                 *  Read in the map control values. This includes dimensions
+                 *  as well as theater information.
                  */
-                Scen->Read_Waypoint_INI(ini);
+                Map.Read_INI(ini);
 
                 /**
                  *  Outside of campaign, assign houses their starting positions.
@@ -967,12 +1047,6 @@ bool ScenarioClassExtension::Load_Scenario(CCINIClass& ini, bool random)
                 AITriggerTypeClass::Read_Scenario_INI(ini, 0);
 
                 Session.Loading_Callback(60);
-
-                /**
-                 *  Read in the map control values. This includes dimensions
-                 *  as well as theater information.
-                 */
-                Map.Read_INI(ini);
 
                 Call_Back();
 
@@ -1211,6 +1285,13 @@ bool ScenarioClassExtension::Load_Scenario(CCINIClass& ini, bool random)
                  */
                 Vinifera_NextAutosaveFrame = Frame;
                 Vinifera_NextAutosaveFrame += Spawner::Active && Session.Type == GAME_IPX ? Spawner::Get_Config()->AutoSaveInterval : OptionsExtension->AutoSaveInterval;
+
+                /**
+                 *  Set the skip score bool.
+                 */
+                if (Spawner::Active) {
+                    Scen->IsSkipScore = Spawner::Get_Config()->SkipScoreScreen;
+                }
 
                 /**
                  *  Return with flag saying that the scenario file was read.
@@ -1536,9 +1617,8 @@ void ScenarioClassExtension::Assign_Houses()
         housep->IsHuman = true;
 
         housep->Control.TechLevel = BuildLevel;
-        housep->Init_Data((PlayerColorType)node.Player.Color,
-            node.Player.House, Session.Options.Credits);
-        housep->RemapColor = Session.Player_Color_To_Scheme_Color((PlayerColorType)node.Player.Color);
+        housep->Init_Data(node.Player.Color, node.Player.House, Session.Options.Credits);
+        housep->RemapColor = Session.Player_Color_To_Scheme_Color(node.Player.Color);
         housep->Init_Remap_Color();
 
         /**
@@ -1571,22 +1651,11 @@ void ScenarioClassExtension::Assign_Houses()
 
         if (!Spawner::Active)
         {
-#if 0
-            if (Percent_Chance(50)) {
-                pref_house = HOUSE_GDI;
-            }
-            else {
-                pref_house = HOUSE_NOD;
-    }
-#endif
-
             /**
              *  #issue-7
              *
-             *  Replaces code from above.
-             *
              *  Fixes a limitation where the AI would only be able to choose
-             *  between the houses GDI (0) and NOD (1). Now, all houses that
+             *  between the houses GDI (0) and Nod (1). Now, all houses that
              *  have "IsMultiplay" true will be considered for sellection.
              */
             while (true) {

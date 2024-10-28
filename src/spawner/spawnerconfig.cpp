@@ -128,6 +128,8 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
     UseMPAIBaseNodes         = spawn_ini.Get_Bool(SETTINGS, "UseMPAIBaseNodes", UseMPAIBaseNodes);
     AttackNeutralUnits       = spawn_ini.Get_Bool(SETTINGS, "AttackNeutralUnits", AttackNeutralUnits);
     ScrapMetal               = spawn_ini.Get_Bool(SETTINGS, "ScrapMetal", ScrapMetal);
+    /* CustomLoadScreen   */   spawn_ini.Get_String(SETTINGS, "CustomLoadScreen", CustomLoadScreen, sizeof(CustomLoadScreen));
+    CustomLoadScreenPos      = spawn_ini.Get_Point(SETTINGS, "CustomLoadScreenPos", CustomLoadScreenPos);
 }
 
 

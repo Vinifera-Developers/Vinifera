@@ -30,6 +30,7 @@
 #include "always.h"
 #include "extension.h"
 #include "scenario.h"
+#include "wstring.h"
 
 
 class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
@@ -79,6 +80,7 @@ public:
     void Assign_Starting_Positions(bool official);
     static void Assign_Houses();
     static void Create_Units(bool official);
+    bool Read_Loading_Screen_INI(const char* filename);
 
 public:
     /**
@@ -105,4 +107,20 @@ public:
      */
     int StartingPositions[MAX_PLAYERS];
     Cell StartingPositionCells[MAX_PLAYERS];
+
+    /**
+     *  The side to use for the sidebar assets (singleplayer only).
+     */
+    SideType SidebarSide;
+
+    /**
+     *  Scenarios can override the loading screen with a custom variant, these
+     *  define the filename to load and position overrides.
+     */
+    struct LoadingScreenData {
+        Wstring Filename;
+        TPoint2D<int> Position;
+    };
+
+    LoadingScreenData LoadingScreens[3];
 };
