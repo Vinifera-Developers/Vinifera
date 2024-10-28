@@ -1079,9 +1079,21 @@ bool LoadOptionsClassExt::_Read_File(FileEntryClass* file, WIN32_FIND_DATA* file
                 return false;
             }
 
-            if (GameActive && Session.Type == GAME_NORMAL && saveversion.Get_Playthrough_ID() != Vinifera_PlaythroughID) {
-                DEBUG_INFO("Save file \"%s\" belongs to a different playthough, skipping.\n", formatted_file_name);
-                return false;
+            /**
+             *  Don't allow loading saves from other campaign playthroughs, or campaign saves in general if we're not in campaign
+             *  (to facilitate the client's playthrough tracking).
+             */
+            if (GameActive) {
+
+                if (Session.Type == GAME_NORMAL && saveversion.Get_Playthrough_ID() != Vinifera_PlaythroughID) {
+                    DEBUG_INFO("Save file \"%s\" belongs to a different playthough, skipping.\n", formatted_file_name);
+                    return false;
+                }
+
+                if (Session.Type != GAME_NORMAL && saveversion.Get_Game_Type() == GAME_NORMAL) {
+                    DEBUG_INFO("Save file \"%s\" is a campaign save and the player is currently not in campaign, skipping.\n", formatted_file_name);
+                    return false;
+                }
             }
 
             wsprintfA(file->Descr, "%s", saveversion.Get_Scenario_Description());
