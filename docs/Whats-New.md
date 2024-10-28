@@ -209,7 +209,7 @@ Vanilla fixes:
 - Fix an issue where losers were not marked as defeated in multiplayer when using TACTION_WIN or TACTION_LOSE to end the game (by Rampastring)
 - Fix a bug where under some circumstances, the player could hear "New Construction Options", even though no new construction options were available (by ZivDero)
 - Fix a bug where attempting to start construction when low funds would put the queue on hold (by ZivDero)
-- Port the fix for the (Whiteboy bug)[https://modenc.renegadeprojects.com/Whiteboy-Bug] (by ZivDero)
+- Port the fix for the [Whiteboy bug](https://modenc.renegadeprojects.com/Whiteboy-Bug) (by ZivDero)
 - Fix a bug where the objects would sometimes receive a minimum of 1 damage even if MinDamage was set to 0 (by ZivDero)
 - Fix a bug where aircraft are unable to attack shrouded targets in campaign games and instead get stuck in mid-air (by Rampastring)
 - Fix a bug where the player was able to input keyboard commands while input was locked through a trigger action (by Rampastring)
@@ -226,6 +226,10 @@ Vanilla fixes:
 - Fix a bug where crew wouldn't exit from construction yards when they were sold or destroyed (by ZivDero)
 - Fix a bug where you could sometimes get extra crew to exit a building that was being sold and was destroying/undeploying (by ZivDero)
 - Fix a bug where if the player loaded a saved game, the score screen timer would report the time since the saved game was loaded, instead of since when the scenario was first started (by ZivDero)
+- Port trigger actions from TS-Patches (by ZivDero, Rampastring)
+- Allow manually aiming AA buildings (by ZivDero)
+- Add support for more than 2 sides' loading screens, sidebars and speeches (by CCHyper/tomsons26, ZivDero)
+- Disallow loading campaign saves from other playthoughs, as well as from skirmish (by ZivDero)
 
 </details>
 

@@ -408,7 +408,7 @@ static void Init_Loading_Screen(const char* filename)
     char gamenamebuffer[128];
     const char* gamename = nullptr;
 
-    if (Session.Type == GAME_INTERNET && TournamentGameType == WOL::TOURNAMENT_0) {
+    if (Session.Type == GAME_INTERNET && PlanetWestwoodTournament == WOL::TOURNAMENT_0) {
         std::snprintf(gamenamebuffer, sizeof(gamenamebuffer), Text_String(TXT_GAME_ID), PlanetWestwoodGameID);
         gamename = gamenamebuffer;
     }

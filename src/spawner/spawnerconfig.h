@@ -257,7 +257,7 @@ public:
         , AttackNeutralUnits{ false }
         , ScrapMetal { false }
         , CustomLoadScreen { "" }
-        , CustomLoadScreenPos {}
+        , CustomLoadScreenPos { }
     { }
 
     void Read_INI(CCINIClass& spawn_ini);

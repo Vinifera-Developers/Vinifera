@@ -167,6 +167,7 @@ This page lists all the individual contributions to the project by their author.
   - Implement the Torpedo logic from Red Alert 1 for BulletTypes.
   - Add `BuildTimeCost`.
   - Allow scenarios to have custom score screen bar colors.
+  - Add support for more than 2 sides' loading screens, sidebars and speeches.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **ZivDero**:
@@ -207,4 +208,7 @@ This page lists all the individual contributions to the project by their author.
   - Implement the multiplayer spawner.
   - Extend `BaseUnit` to accept a list of vehicles.
   - Allow `BuildConst`, `BuildRefinery`, `BuildWeapons` and `HarvesterUnit` to properly have multiple entries.
-
+  - Port Rampastring's trigger actions from TS-Patches.
+  - Allow manually aiming AA buildings.
+  - Add support for more than 2 sides' loading screens, sidebars and speeches.
+  - Disallow loading campaign saves from other playthoughs, as well as from skirmish.

@@ -301,7 +301,7 @@ bool ScenarioClassExtension::Read_Loading_Screen_INI(const char *filename)
 
     if (Session.Type == GAME_NORMAL) {
 
-        char buffer[32];
+        char buffer[MAX_PATH];
 
         ini.Get_String(BASIC, "LoadingScreen400", buffer, sizeof(buffer));
         ScenExtension->LoadingScreens[0].Filename = buffer;
@@ -907,7 +907,7 @@ bool ScenarioClassExtension::Load_Scenario(CCINIClass& ini, bool random)
     Session.Loading_Callback(50);
 
     /**
-     *  Read scneario data from the scenario INI.
+     *  Read scenario data from the scenario INI.
      */
     if (Scen->Read_INI(ini)) {
 
@@ -1617,9 +1617,8 @@ void ScenarioClassExtension::Assign_Houses()
         housep->IsHuman = true;
 
         housep->Control.TechLevel = BuildLevel;
-        housep->Init_Data((PlayerColorType)node.Player.Color,
-            node.Player.House, Session.Options.Credits);
-        housep->RemapColor = Session.Player_Color_To_Scheme_Color((PlayerColorType)node.Player.Color);
+        housep->Init_Data(node.Player.Color, node.Player.House, Session.Options.Credits);
+        housep->RemapColor = Session.Player_Color_To_Scheme_Color(node.Player.Color);
         housep->Init_Remap_Color();
 
         /**
@@ -1652,22 +1651,11 @@ void ScenarioClassExtension::Assign_Houses()
 
         if (!Spawner::Active)
         {
-#if 0
-            if (Percent_Chance(50)) {
-                pref_house = HOUSE_GDI;
-            }
-            else {
-                pref_house = HOUSE_NOD;
-    }
-#endif
-
             /**
              *  #issue-7
              *
-             *  Replaces code from above.
-             *
              *  Fixes a limitation where the AI would only be able to choose
-             *  between the houses GDI (0) and NOD (1). Now, all houses that
+             *  between the houses GDI (0) and Nod (1). Now, all houses that
              *  have "IsMultiplay" true will be considered for sellection.
              */
             while (true) {

@@ -153,6 +153,18 @@ PrePlacedConYards=no  ; boolean, should pre-place construction yards instead of 
                       ; NOTE: This option has priority over AutoDeployMCV.
 ```
 
+## Auto-Saves
+
+- When playing campaigns, Vinifera will now make auto-saves for the player at equal intervals. The number of auto-saves to keep, as well as the interval, can be customized.
+
+In `SUN.INI`:
+```ini
+[Options]
+AutoSaveCount=5        ; integer, the number of auto-saves to keep simultaneously. Setting to 0 will disable auto-saves.
+AutoSaveInterval=7200  ; integer, the interval between auto-saves, in frames.
+```
+
+
 ## Multi-Engineer
 
 - Vinifera fixes `EngineerDamage` and `EngineerCaptureLevel` to be considered by the game, like they were in Tiberian Dawn and Red Alert.

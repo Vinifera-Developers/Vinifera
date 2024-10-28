@@ -350,7 +350,7 @@ void Spawner::Init_Network()
     Session.CommProtocol                = 2;
     Session.LatencyFudge                = 0;
     Session.DesiredFrameRate            = 60;
-    TournamentGameType                  = static_cast<WOL::Tournament>(Config->Tournament);
+    PlanetWestwoodTournament            = static_cast<WOL::Tournament>(Config->Tournament);
     PlanetWestwoodGameID                = Config->WOLGameID;
     FrameSyncSettings[GAME_IPX].Timeout = Config->ReconnectTimeout;
 
