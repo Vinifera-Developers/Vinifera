@@ -1685,6 +1685,18 @@ return_false:
 
 
 /**
+ *  Wrapper for the patch blow because going this messes with the stack.
+ */
+static bool Can_Attack_Neutrals(TechnoClass* target)
+{
+    bool attack_neutrals = Vinifera_SpawnerActive && Vinifera_SpawnerConfig->AttackNeutralUnits;
+    bool unarmed_building = target->What_Am_I() == RTTI_BUILDING && (!target->Is_Weapon_Equipped() || target->Get_Weapon()->Weapon->Range == 0);
+
+    return attack_neutrals && !unarmed_building;
+};
+
+
+/**
  *  Patch to allow units to target neutral units if the spawner requests it.
  *
  *  @author: ZivDero
@@ -1695,16 +1707,10 @@ DECLARE_PATCH(_TechnoClass_Evaluate_Object_AttackNeutralUnits_Patch)
 
     if (Session.Type != GAME_NORMAL && target->Owning_House()->Class->IsMultiplayPassive)
     {
-        static bool attack_neutrals;
-        static bool unarmed_building;
-
-        attack_neutrals = Spawner::Active && Spawner::Get_Config()->AttackNeutralUnits;
-        unarmed_building = target->What_Am_I() == RTTI_BUILDING && (!target->Is_Weapon_Equipped() || target->Get_Weapon()->Weapon->Range == 0);
-
         /**
          *  Allow attacking neutrals, but if it's a building, it must be armed.
          */
-        if (!attack_neutrals || unarmed_building)
+        if (!Can_Attack_Neutrals(target))
         {
             // return false;
             JMP(0x0062D8C0);

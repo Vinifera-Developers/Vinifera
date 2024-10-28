@@ -70,12 +70,12 @@ class SpawnerConfig
      */
     struct HouseConfig
     {
-        bool IsSpectator;
+        bool IsObserver;
         int SpawnLocation;
         int Alliances[8];
 
         HouseConfig()
-            : IsSpectator { false }
+            : IsObserver { false }
             , SpawnLocation { -2 }
             , Alliances { -1, -1, -1, -1, -1, -1, -1, -1 }
         { }
@@ -172,6 +172,7 @@ public:
     bool ScrapMetal;
     char CustomLoadScreen[PATH_MAX];
     TPoint2D<int> CustomLoadScreenPos;
+    bool ContinueWithoutHumans;
 
     SpawnerConfig()
         : Bases { true }
@@ -258,6 +259,7 @@ public:
         , ScrapMetal { false }
         , CustomLoadScreen { "" }
         , CustomLoadScreenPos { }
+        , ContinueWithoutHumans { false }
     { }
 
     void Read_INI(CCINIClass& spawn_ini);

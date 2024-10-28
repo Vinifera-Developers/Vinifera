@@ -40,7 +40,7 @@
 #include "protocolzero_hooks.h"
 #include "quickmatch_hooks.h"
 #include "spawnhouses_hooks.h"
-#include "spectator_hooks.h"
+#include "observer_hooks.h"
 #include "statistics_hooks.h"
 #include "tibsun_functions.h"
 #include "vinifera_globals.h"
@@ -69,27 +69,11 @@ public:
  */
 void SessionClassExt::_Read_Scenario_Descriptions()
 {
-    if (Spawner::Active)
+    if (Vinifera_SpawnerActive)
         return;
 
     SessionClass::Read_Scenario_Descriptions();
 }
-
-
-/**
-  *  A fake class for implementing new member functions which allow
-  *  access to the "this" pointer of the intended class.
-  *
-  *  @note: This must not contain a constructor or destructor.
-  *
-  *  @note: All functions must not be virtual and must also be prefixed
-  *         with "_" to prevent accidental virtualization.
-  */
-class HouseClassExt : public HouseClass
-{
-public:
-    void _Computer_Paranoid() {}
-};
 
 
 /**
@@ -184,14 +168,7 @@ void Spawner_Hooks()
     Vinifera_SkipLogoMovies = true;
     Vinifera_SkipStartupMovies = true;
 
-    Patch_Dword(0x005DB794 + 1, Spawner::Get_Config()->ConnTimeout); // Set ConnTimeout
-
-    /**
-     *  Skip some checks inside HouseClass::MPlayer_Defeated to make the game continue
-     *  even if there are only allied AI players left in Skirmish.
-     */
-    Patch_Jump(0x004BF7B6, 0x004BF7BF);
-    Patch_Jump(0x004BF7F0, 0x004BF7F9);
+    Patch_Dword(0x005DB794 + 1, Vinifera_SpawnerConfig->ConnTimeout); // Set ConnTimeout
 
     /**
      *  Remove calls to SessionClass::Read_Scenario_Descriptions() when the
@@ -205,7 +182,6 @@ void Spawner_Hooks()
     Patch_Call(0x005ED477, &SessionClassExt::_Read_Scenario_Descriptions); // SessionClass::One_Time
 
     Patch_Jump(0x004C06EF, &_HouseClass_Expert_AI_Check_Allies);
-    Patch_Jump(0x004C3630, &HouseClassExt::_Computer_Paranoid);  // Disable paranoid computer behavior
 
     /**
      *  PlayMoviesInMultiplayer feature.
@@ -217,7 +193,7 @@ void Spawner_Hooks()
      *  Hooks for various sub-modules.
      */
     ProtocolZero_Hooks();
-    Spectator_Hooks();
+    Observer_Hooks();
     QuickMatch_Hooks();
     AutoSurrender_Hooks();
     Statistics_Hooks();

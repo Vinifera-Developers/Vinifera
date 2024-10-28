@@ -44,7 +44,8 @@
 HouseClassExtension::HouseClassExtension(const HouseClass *this_ptr) :
     AbstractClassExtension(this_ptr),
     TiberiumStorage(Tiberiums.Count()),
-    WeedStorage(Tiberiums.Count())
+    WeedStorage(Tiberiums.Count()),
+    IsObserver(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("HouseClassExtension::HouseClassExtension - 0x%08X\n", (uintptr_t)(This()));
 
@@ -56,8 +57,19 @@ HouseClassExtension::HouseClassExtension(const HouseClass *this_ptr) :
 
     if (this_ptr)
     {
-        new ((StorageClassExt*)&(this_ptr->Tiberium)) StorageClassExt(&TiberiumStorage);
-        new ((StorageClassExt*)&(this_ptr->Weed)) StorageClassExt(&WeedStorage);
+        new ((StorageClassExt*)&this_ptr->Tiberium) StorageClassExt(&TiberiumStorage);
+        new ((StorageClassExt*)&this_ptr->Weed) StorageClassExt(&WeedStorage);
+
+        /**
+         *  Vanilla hardcoded the ActLike default, unhardcode that.
+         *  Uuuhh... the fact that this is const is annoying, but for now while
+         *  this is not a massive issue, just const_cast it.
+         */
+        if (Wstring(this_ptr->IniName) != "Neutral" && Wstring(this_ptr->IniName) != "Special")
+            const_cast<HouseClass*>(this_ptr)->ActLike = this_ptr->Class->House;
+        else
+            const_cast<HouseClass*>(this_ptr)->ActLike = HOUSE_NONE;
+        
     }
 
     HouseExtensions.Add(this);

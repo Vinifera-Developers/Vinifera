@@ -54,6 +54,7 @@
 #include "asserthandler.h"
 #include "cd.h"
 #include "debughandler.h"
+#include "houseext.h"
 #include "infantry.h"
 #include "lightsource.h"
 #include "overlay.h"
@@ -751,9 +752,9 @@ bool ScenarioClassExtension::Load_Scenario(CCINIClass& ini, bool random)
      *  Set up difficulty and fog of war settings.
      */
     if (Session.Type == GAME_NORMAL) {
-        if (Spawner::Active) {
-            Scen->Difficulty = static_cast<DiffType>(Spawner::Get_Config()->CampaignDifficulty);
-            Scen->CDifficulty = static_cast<DiffType>(Spawner::Get_Config()->CampaignCDifficulty);
+        if (Vinifera_SpawnerActive) {
+            Scen->Difficulty = static_cast<DiffType>(Vinifera_SpawnerConfig->CampaignDifficulty);
+            Scen->CDifficulty = static_cast<DiffType>(Vinifera_SpawnerConfig->CampaignCDifficulty);
         }
         else {
             Scen->Difficulty = static_cast<DiffType>(Options.Difficulty);
@@ -869,47 +870,16 @@ bool ScenarioClassExtension::Load_Scenario(CCINIClass& ini, bool random)
     Session.Loading_Callback(45);
 
     /**
-     *  Init the Scenario CRC value
-     */
-    ScenarioCRC = 0;
-
-    /**
-     *  Read in the specific information for each of the house types. This creates
-     *  the houses of different types.
-     */
-    if (Session.Type == GAME_NORMAL) {
-        DEBUG_INFO("Reading in scenario house types\n");
-        HouseClass::Read_Scenario_INI(ini);
-    }
-
-    /**
-     *  Outside of campaign, the spawner may request that we read base nodes for
-     *  Spawn houses. Do that if necessary.
-     */
-    if (Session.Type != GAME_NORMAL && Spawner::Active && Spawner::Get_Config()->UseMPAIBaseNodes) {
-        for (int i = 0; i < Session.Players.Count() + Session.Options.AIPlayers; i++) {
-
-            /**
-             *  Skip observers, they don't need base nodes.
-             */
-            if (Houses[i]->IsDefeated) {
-                continue;
-            }
-
-            /**
-             *  Read base nodes for this house.
-             */
-            std::snprintf(buffer, std::size(buffer), "Spawn%d", ScenExtension->StartingPositions[i]);
-            Houses[i]->Base.Read_INI(ini, buffer);
-        }
-    }
-
-    Session.Loading_Callback(50);
-
-    /**
      *  Read scenario data from the scenario INI.
      */
     if (Scen->Read_INI(ini)) {
+
+        /**
+         *  Init the Scenario CRC value
+         */
+        ScenarioCRC = 0;
+
+        Session.Loading_Callback(50);
 
         /**
          *  Determine the player's side.
@@ -997,6 +967,38 @@ bool ScenarioClassExtension::Load_Scenario(CCINIClass& ini, bool random)
                 }
 
                 Call_Back();
+
+                /**
+                 *  Read in the specific information for each of the house types. This creates
+                 *  the houses of different types.
+                 */
+                if (Session.Type == GAME_NORMAL) {
+                    DEBUG_INFO("Reading in scenario house types\n");
+                    HouseClass::Read_Scenario_INI(ini);
+                }
+
+                /**
+                 *  Outside of campaign, the spawner may request that we read base nodes for
+                 *  Spawn houses. Do that if necessary.
+                 */
+                if (Session.Type != GAME_NORMAL && Vinifera_SpawnerActive && Vinifera_SpawnerConfig->UseMPAIBaseNodes) {
+                    for (int i = 0; i < Session.Players.Count() + Session.Options.AIPlayers; i++) {
+
+                        /**
+                         *  Skip observers, they don't need base nodes.
+                         */
+                        const auto houseext = Extension::Fetch<HouseClassExtension>(Houses[i]);
+                        if (houseext->IsObserver) {
+                            continue;
+                        }
+
+                        /**
+                         *  Read base nodes for this house.
+                         */
+                        std::snprintf(buffer, std::size(buffer), "Spawn%d", ScenExtension->StartingPositions[i]);
+                        Houses[i]->Base.Read_INI(ini, buffer);
+                    }
+                }
 
                 /**
                  *  Read in the team type data. The team types must be created before any
@@ -1284,13 +1286,13 @@ bool ScenarioClassExtension::Load_Scenario(CCINIClass& ini, bool random)
                  *  Schedule the next autosave.
                  */
                 Vinifera_NextAutosaveFrame = Frame;
-                Vinifera_NextAutosaveFrame += Spawner::Active && Session.Type == GAME_IPX ? Spawner::Get_Config()->AutoSaveInterval : OptionsExtension->AutoSaveInterval;
+                Vinifera_NextAutosaveFrame += Vinifera_SpawnerActive && Session.Type == GAME_IPX ? Vinifera_SpawnerConfig->AutoSaveInterval : OptionsExtension->AutoSaveInterval;
 
                 /**
                  *  Set the skip score bool.
                  */
-                if (Spawner::Active) {
-                    Scen->IsSkipScore = Spawner::Get_Config()->SkipScoreScreen;
+                if (Vinifera_SpawnerActive) {
+                    Scen->IsSkipScore = Vinifera_SpawnerConfig->SkipScoreScreen;
                 }
 
                 /**
@@ -1340,9 +1342,9 @@ static DynamicVectorClass<Cell> Build_Starting_Waypoint_List(bool official)
         look_for = MAX_PLAYERS;
     }
 
-    if (Spawner::Active) {
+    if (Vinifera_SpawnerActive) {
         for (int i = 0; i < Session.Players.Count() + Session.Options.AIPlayers; i++) {
-            if (Spawner::Get_Config()->Houses[i].IsSpectator)
+            if (Vinifera_SpawnerConfig->Houses[i].IsObserver)
                 look_for--;
         }
     }
@@ -1409,9 +1411,9 @@ void ScenarioClassExtension::Assign_Starting_Positions(bool official)
     /**
      *  If the spawner is active, assign the received starting positions to the houses.
      */
-    if (Spawner::Active) {
+    if (Vinifera_SpawnerActive) {
         for (int house = 0; house < Session.Players.Count() + Session.Options.AIPlayers; house++) {
-            StartingPositions[house] = Spawner::Get_Config()->Houses[house].SpawnLocation;
+            StartingPositions[house] = Vinifera_SpawnerConfig->Houses[house].SpawnLocation;
         }
     }
 
@@ -1426,11 +1428,6 @@ void ScenarioClassExtension::Assign_Starting_Positions(bool official)
             continue;
         }
 
-        if (Spawner::Active && hptr->IsDefeated) {
-            DEV_DEBUG_INFO("House %d is a spectator, skipping.\n", house);
-            continue;
-        }
-
         /**
          *  Skip passive houses.
          */
@@ -1440,21 +1437,34 @@ void ScenarioClassExtension::Assign_Starting_Positions(bool official)
         }
 
         bool pick_random = true;
-        if (Spawner::Active) {
-            enum {
-                SPAWN_RANDOM = -2
-            };
+        if (Vinifera_SpawnerActive) {
 
-            int chosen_spawn = StartingPositions[house];
+            const auto& houseconfig = Vinifera_SpawnerConfig->Houses[house];
+            if (houseconfig.IsObserver) {
+                
+                /**
+                 *  Compute our x & y limits
+                 */
+                const int xmin = Map.MapCellX;
+                const int xmax = xmin + Map.MapCellWidth - 1;
+                const int ymin = Map.MapCellY;
+                const int ymax = ymin + Map.MapCellHeight - 1;
 
-            if (chosen_spawn != SPAWN_RANDOM) {
-                chosen_spawn = std::clamp(chosen_spawn, 0, 7);
-                if (!taken[chosen_spawn]) {
-                    centroid = waypts[chosen_spawn];
-                    taken[chosen_spawn] = true;
-                    pick_random = false;
-                    numtaken++;
-                }
+                centroid = Cell(Random_Pick(xmin, xmax), Random_Pick(ymin, ymax));
+                hptr->Center = Cell_Coord(centroid, true);
+                StartingPositionCells[house] = centroid;
+                StartingPositions[house] = -1;
+
+                DEBUG_INFO("  House %d (%s) observing at random cell (%d,%d)\n", house, hptr->IniName, StartingPositions[house], centroid.X, centroid.Y);
+                continue;
+            }
+
+            const int chosen_spawn = StartingPositions[house];
+            if (chosen_spawn >= 0 && chosen_spawn < MAX_PLAYERS && !taken[chosen_spawn]) {
+                centroid = waypts[chosen_spawn];
+                taken[chosen_spawn] = true;
+                pick_random = false;
+                numtaken++;
             }
         }
 
@@ -1531,7 +1541,7 @@ void ScenarioClassExtension::Assign_Starting_Positions(bool official)
          */
         hptr->Center = Cell_Coord(centroid, true);
         StartingPositionCells[house] = centroid;
-        DEBUG_INFO("  Setting house center to %d,%d\n", centroid.X, centroid.Y);
+        DEBUG_INFO("  House %d (%s) starting at waypoint %d (%d,%d)\n", house, hptr->IniName, StartingPositions[house], centroid.X, centroid.Y);
     }
 }
 
@@ -1549,6 +1559,7 @@ void ScenarioClassExtension::Assign_Houses()
     bool color_used[MAX_PLAYERS];   // true = this color is in use.
 
     HouseClass *housep;
+    HouseClassExtension* houseext;
     HouseTypeClass *housetype;
     HousesType house;
     int lowest_color;
@@ -1607,6 +1618,7 @@ void ScenarioClassExtension::Assign_Houses()
          *  in the HouseClass array.
          */
         housep = new HouseClass(HouseTypes[node.Player.House]);
+        houseext = Extension::Fetch<HouseClassExtension>(housep);
 
         std::memset(housep->IniName, 0, MPLAYER_NAME_MAX);
         std::strncpy(housep->IniName, node.Name, MPLAYER_NAME_MAX-1);
@@ -1632,6 +1644,30 @@ void ScenarioClassExtension::Assign_Houses()
         housep->Assign_Handicap(DIFF_NORMAL);
 
         /**
+         *  Process spawner overrides.
+         */
+        if (Vinifera_SpawnerActive) {
+            int house_index = Houses.Count() - 1;
+            const auto& houseconfig = Vinifera_SpawnerConfig->Houses[house_index];
+
+            /**
+             *  Mark an observer accordingly.
+             */
+            if (houseconfig.IsObserver) {
+
+                houseext->IsObserver = true;
+
+                /**
+                 *  If this ID is for myself, set up ObserverPtr.
+                 */
+                if (index == 0) {
+                    Vinifera_ObserverPtr = housep;
+                }
+            }
+
+        }
+
+        /**
          *  Record where we placed this player.
          */
         node.Player.ID = HousesType(housep->ID);
@@ -1649,7 +1685,7 @@ void ScenarioClassExtension::Assign_Houses()
      */
     for (int i = Session.Players.Count(); i < Session.Players.Count() + Session.Options.AIPlayers; ++i) {
 
-        if (!Spawner::Active)
+        if (!Vinifera_SpawnerActive)
         {
             /**
              *  #issue-7
@@ -1678,11 +1714,12 @@ void ScenarioClassExtension::Assign_Houses()
         }
         else
         {
-            color = Spawner::Get_Config()->Players[i].Color;
-            pref_house = static_cast<HousesType>(Spawner::Get_Config()->Players[i].House);
+            color = Vinifera_SpawnerConfig->Players[i].Color;
+            pref_house = static_cast<HousesType>(Vinifera_SpawnerConfig->Players[i].House);
         }
 
         housep = new HouseClass(HouseTypes[pref_house]);
+        houseext = Extension::Fetch<HouseClassExtension>(housep);
 
         /**
          *  Set the house's IsHuman, Credits, ActLike, and RemapColor.
@@ -1706,6 +1743,32 @@ void ScenarioClassExtension::Assign_Houses()
             difficulty = static_cast<DiffType>(difficulty - 1);
         }
         housep->Assign_Handicap(difficulty);
+
+        /**
+         *  Process spawner overrides.
+         */
+        if (Vinifera_SpawnerActive)
+        {
+            constexpr char* AINamesByDifficultyArray[5] = {
+                "Hard AI",
+                "Medium AI",
+                "Easy AI"//,
+                //"Brutal AI",
+                //"Ultimate AI"
+            };
+
+            const auto player_config = &Vinifera_SpawnerConfig->Players[i];
+
+            /**
+             *  Set the difficulty and name for the AI (for AIs, player index == house index)
+             */
+            if (player_config->Difficulty >= 0 && player_config->Difficulty < std::size(AINamesByDifficultyArray)) {
+                housep->Assign_Handicap(static_cast<DiffType>(player_config->Difficulty));
+                if (Vinifera_SpawnerConfig->AINamesByDifficulty && !housep->IsHuman) {
+                    std::strcpy(housep->IniName, AINamesByDifficultyArray[player_config->Difficulty]);
+                }
+            }
+        }
 
         DEBUG_INFO("    Assigned computer house \"%s\" (ID: %d, Color: \"%s\") to slot %d.\n",
             housep->Class->Name(), housep->ID, ColorSchemes[housep->RemapColor]->Name, i);
@@ -1771,19 +1834,22 @@ void ScenarioClassExtension::Assign_Houses()
         housep->Init_Remap_Color();
     }
 
-    if (Spawner::Active)
+    /**
+     *  Process the spawner's forced alliances.
+     */
+    if (Vinifera_SpawnerActive)
     {
-        const int house_count = std::min(Houses.Count(), (int)std::size(Spawner::Get_Config()->Houses));
-        for (int i = 0; i < house_count; i++)
+        for (int i = 0; i < Session.Players.Count() + Session.Options.AIPlayers; i++)
         {
             housep = Houses[i];
 
+            /**
+             *  Multiplay passive houses don't get allies.
+             */
             if (housep->Class->IsMultiplayPassive)
                 continue;
 
-            const auto house_config = &Spawner::Get_Config()->Houses[i];
-
-            // Set Alliances
+            const auto house_config = &Vinifera_SpawnerConfig->Houses[i];
             for (char j = 0; j < (char)std::size(house_config->Alliances); ++j)
             {
                 const int ally_index = house_config->Alliances[j];
@@ -1791,46 +1857,6 @@ void ScenarioClassExtension::Assign_Houses()
                     housep->Allies &= 1 << ally_index;
             }
 
-            constexpr char* AINamesByDifficultyArray[5] = {
-                "Hard AI",
-                "Medium AI",
-                "Easy AI"//,
-                //"Brutal AI",
-                //"Ultimate AI"
-            };
-
-            // Set Handicap and Names for AI
-            {
-                const auto player_config = &Spawner::Get_Config()->Players[i];
-
-                if (player_config->Difficulty >= 0 && player_config->Difficulty < std::size(AINamesByDifficultyArray))
-                {
-                    housep->Assign_Handicap(static_cast<DiffType>(player_config->Difficulty));
-                    if (Spawner::Get_Config()->AINamesByDifficulty && !housep->IsHuman)
-                    {
-                        std::strcpy(housep->IniName, AINamesByDifficultyArray[player_config->Difficulty]);
-                    }
-                }
-            }
-
-            // Set Spectators
-            enum
-            {
-                SPAWN_OBSERVER = -1,
-                SPAWN_OBSERVER_ALT = 90
-            };
-
-            const int spawn_loc = house_config->SpawnLocation;
-            const bool is_spectator = housep->IsHuman &&
-                                     (house_config->IsSpectator
-                                   || spawn_loc == SPAWN_OBSERVER
-                                   || spawn_loc == SPAWN_OBSERVER_ALT);
-
-            // Spectators are considered defeated
-            if (is_spectator)
-            {
-                housep->IsDefeated = true;
-            }
         }
     }
 
@@ -2240,8 +2266,8 @@ void ScenarioClassExtension::Create_Units(bool official)
             continue;
         }
 
-        if (Spawner::Active && hptr->IsDefeated) {
-            DEV_DEBUG_INFO("House %d is a spectator, skipping.\n", house);
+        if (Vinifera_SpawnerActive && Vinifera_SpawnerConfig->Houses[house].IsObserver) {
+            DEV_DEBUG_INFO("House %d is an Observer, skipping.\n", house);
             continue;
         }
 

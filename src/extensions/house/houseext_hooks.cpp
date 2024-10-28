@@ -53,11 +53,16 @@
 #include "rules.h"
 #include "session.h"
 #include "ccini.h"
+#include "fetchres.h"
 #include "sideext.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "houseext.h"
+#include "language.h"
+#include "spawner.h"
 #include "tibsun_functions.h"
+#include "vox.h"
 
 
 /**
@@ -75,6 +80,7 @@ public:
     bool _Can_Make_Money();
     UrgencyType _Check_Raise_Money();
     int _AI_Building();
+    void _MPlayer_Defeated();
 };
 
 
@@ -275,28 +281,6 @@ int HouseClassExt::_AI_Building()
         BASE_DEFENSE = -1
     };
 
-    /**
-     *  Unfortunately, ts-patches spawner has a hack here.
-     *  Until we reimplement the spawner in Vinifera, this will have to do.
-     */
-    static bool spawner_hack_init = false;
-    static bool spawner_hack_mpnodes = false;
-
-    if (!spawner_hack_init)
-    {
-        RawFileClass file("SPAWN.INI");
-        CCINIClass spawn_ini;
-
-        if (file.Is_Available()) {
-
-            spawn_ini.Load(file, false);
-            spawner_hack_mpnodes = spawn_ini.Get_Bool("Settings", "UseMPAIBaseNodes", spawner_hack_mpnodes);
-        }
-
-        spawner_hack_init = true;
-    }
-
-
     if (BuildStructure != BUILDING_NONE) return TICKS_PER_SECOND;
 
     if (ConstructionYards.Count() == 0) return TICKS_PER_SECOND;
@@ -347,7 +331,7 @@ int HouseClassExt::_AI_Building()
      *  just proceed with building the base node.
      */
     BuildingTypeClass* b = BuildingTypes[node->Type];
-    if (Session.Type == GAME_NORMAL || spawner_hack_mpnodes || b->Drain + Drain <= Power - PowerSurplus || Rule->BuildConst.Is_Present(b) || b->Drain <= 0) {
+    if (Session.Type == GAME_NORMAL || (Vinifera_SpawnerActive && Vinifera_SpawnerConfig->UseMPAIBaseNodes) || b->Drain + Drain <= Power - PowerSurplus || Rule->BuildConst.Is_Present(b) || b->Drain <= 0) {
 
         /**
          *  Check if this is a building upgrade if we can actually place the upgrade where it's scheduled to be placed.
@@ -614,6 +598,191 @@ UrgencyType HouseClassExt::_Check_Raise_Money()
     urgency++;
     return urgency;
 }
+
+
+/**
+ *  A house is defeated in multiplayer.
+ *
+ *  @author: 05/25/1995 BRR - Created
+ *           29/10/2024 ZivDero - Adjustments for Tiberian Sun
+ */
+void HouseClassExt::_MPlayer_Defeated()
+{
+    char txt[80];
+    int i, j;
+    unsigned char id;
+    HouseClass* hptr;
+    HouseClass* hptr2;
+    int num_alive;
+    int num_humans;
+    bool all_allies;
+
+    /**
+     *  Set the defeat flag for this house
+     */
+    IsDefeated = true;
+
+    /**
+     *  If this is a computer controlled house, then all computer controlled
+     *  houses become paranoid.
+     */
+    if (IQ == Rule->MaxIQ && !(IsHuman || Session.Type == GAME_NORMAL && IsPlayerControl) && Rule->IsComputerParanoid) {
+        Computer_Paranoid();
+    }
+
+    /**
+     *  Remove this house's flag & flag home cell
+     */
+    if (Special.IsCaptureTheFlag) {
+        if (FlagLocation) {
+            Flag_Remove(FlagLocation, true);
+        }
+        else {
+            if (FlagHome != 0) {
+                Flag_Remove(&Map[FlagHome], true);
+            }
+        }
+    }
+
+    /**
+     *  If harvester truce is on, remove all of this player's harvesters.
+     */
+    if (Session.Type != GAME_NORMAL && Scen->SpecialFlags.IsHarvesterImmune) {
+        for (int i = 0; i < Units.Count(); i++) {
+            if (Units[i]->Owning_House() == this && Units[i]->IsActive) {
+                Units[i]->Remove_This();
+            }
+        }
+    }
+
+    /**
+     *  If this is me:
+     *  - Set MPlayerObiWan, so I can only send messages to all players, and
+     *    not just one (so I can't be obnoxiously omnipotent)
+     *  - Reveal the map
+     *  - Add my defeat message
+     */
+    if (PlayerPtr == this) {
+        Session.ObiWan = true;
+        Map.Reveal_The_Map();
+        HiddenSurface->Fill(0);
+
+        if (Vinifera_ObserverPtr != this) {
+            /**
+             *  Pop up a message showing that I was defeated
+             */
+            std::snprintf(txt, std::size(txt), Fetch_String(TXT_PLAYER_DEFEATED), IniName);
+            Session.Messages.Add_Message(nullptr, 0, txt, static_cast<ColorSchemeType>(Session.ColorIdx), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
+            Speak(VOX_YOU_HAVE_LOST);
+        }
+
+        Map.Flag_To_Redraw(0);
+        DEBUG_INFO("MPlayer_Defeated() - Player %s has been defeated (OBIWAN MODE)\n", IniName);
+
+    }
+    else {
+
+        /**
+         *  If it wasn't me, find out who was defeated
+         */
+        if (!Class->IsMultiplayPassive) {
+            if (Vinifera_ObserverPtr != this) {
+                std::snprintf(txt, std::size(txt), Fetch_String(TXT_PLAYER_DEFEATED), IniName);
+                Session.Messages.Add_Message(nullptr, 0, txt, RemapColor, TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
+                Speak(VOX_PLAYER_DEFEATED);
+                
+            }
+
+            Map.Flag_To_Redraw(0);
+            DEBUG_INFO("MPlayer_Defeated() - Opponent %s has been defeated\n", IniName);
+        }
+    }
+
+    /**
+     *  Find out how many players are left alive.
+     */
+    num_alive = 0;
+    num_humans = 0;
+    for (i = 0; i < Houses.Count(); i++) {
+        hptr = Houses[i];
+        if (hptr && !hptr->IsDefeated && !hptr->Class->IsMultiplayPassive) {
+            if (hptr->IsHuman || (Session.Type == GAME_NORMAL && hptr->IsPlayerControl)) {
+                num_humans++;
+            }
+            num_alive++;
+        }
+    }
+    DEBUG_INFO("MPlayer_Defeated() - Alive = %d, Humans = %d\n", num_alive, num_humans);
+
+    /**
+     *  If all the houses left alive are allied with each other, then in reality
+     *  there's only one player left:
+     */
+    all_allies = true;
+    for (i = 0; i < Houses.Count(); i++) {
+
+        /**
+         *  Get a pointer to this house
+         */
+        hptr = Houses[i];
+        if (!hptr || hptr->IsDefeated || hptr->Class->IsMultiplayPassive)
+            continue;
+
+        /**
+         *  Loop through all houses; if there's one left alive that this house
+         *  isn't allied with, then all_allies will be false
+         */
+        for (j = 0; j < Houses.Count(); j++) {
+            hptr2 = Houses[j];
+            if (!hptr2) {
+                continue;
+            }
+
+            if (!hptr2->IsDefeated && !hptr2->Class->IsMultiplayPassive && hptr != hptr2 && !hptr->Is_Ally(hptr2)) {
+                all_allies = false;
+                break;
+            }
+        }
+        if (!all_allies) {
+            break;
+        }
+    }
+
+    /**
+     *  If all houses left are allies, set 'num_alive' to 1; game over.
+     */
+    if (all_allies) {
+
+        Session.SawCompletion = true;
+        DEBUG_INFO("Saw game completion due to player defeat\n");
+        DEBUG_INFO("MPlayer_Defeated() - All remaining players are allied\n");
+        num_alive = 1;
+    }
+
+    /**
+     *  If there's only one human player left or no humans left, the game is over:
+     *  - Determine whether this player wins or loses, based on the state of the
+     *    player's IsDefeated flag
+     */
+    HouseClassExtension* houseext = Extension::Fetch<HouseClassExtension>(this);
+    if (!houseext->IsObserver) {
+        if (num_alive == 1 || (num_humans == 0 && !(Vinifera_SpawnerActive && Vinifera_SpawnerConfig->ContinueWithoutHumans))) {
+            IsToDie = false;
+
+            if (PlayerPtr->IsDefeated) {
+                DEBUG_INFO("MPlayer_Defeated() - Flag_To_Lose\n");
+                Flag_To_Lose(false);
+            }
+            else {
+                DEBUG_INFO("MPlayer_Defeated() - Flag_To_Win\n");
+                Flag_To_Win(false);
+            }
+        }
+    }
+
+    
+}
+
 
 
 /**
@@ -1097,26 +1266,6 @@ DECLARE_PATCH(_HouseClass_AI_Raise_Money_HarvRef4)
 /**
  *  #issue-177
  *
- *  Patches the AI to correctly consider all Construction Yards in the BuildConst list.
- *
- *  @author: ZivDero
- */
-DECLARE_PATCH(_HouseClass_AI_Building_HarvRef)
-{
-    GET_REGISTER_STATIC(BuildingTypeClass*, building, eax);
-
-    if (Rule->BuildConst.Is_Present(building))
-    {
-        JMP_REG(esi, 0x004C1554);
-    }
-
-    JMP_REG(esi, 0x004C12D5);
-}
-
-
-/**
- *  #issue-177
- *
  *  Patches the AI to correctly count all harvesters and refineries.
  *
  *  @author: ZivDero
@@ -1286,7 +1435,6 @@ void HouseClassExtension_Hooks()
     Patch_Jump(0x004C0F5F, &_HouseClass_AI_Raise_Money_HarvRef2);
     Patch_Jump(0x004C0FAB, &_HouseClass_AI_Raise_Money_HarvRef3);
     Patch_Jump(0x004C1051, &_HouseClass_AI_Raise_Money_HarvRef4);
-    Patch_Jump(0x004C12C1, &_HouseClass_AI_Building_HarvRef);
     Patch_Jump(0x004C166D, &_HouseClass_AI_Unit_HarvRef1);
     Patch_Jump(0x004C1710, &_HouseClass_AI_Unit_HarvRef2);
     Patch_Jump(0x004C5977, &_HouseClass_Has_Prerequisites_BuildConst);
@@ -1308,4 +1456,7 @@ void HouseClassExtension_Hooks()
     Patch_Jump(0x004C10E0, &HouseClassExt::_AI_Building);
 
     Patch_Jump(0x004BAC2C, 0x004BAC39); // Patch a jump in the constructor to always allocate unit trackers
+    Patch_Jump(0x004BC077, 0x004BC082); // HouseClass::Can_Build, always check for ConYard of required Owner
+
+    Patch_Jump(0x004BF4C0, &HouseClassExt::_MPlayer_Defeated);
 }

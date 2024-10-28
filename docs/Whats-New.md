@@ -162,10 +162,13 @@ New:
 - Implement `WaterAlt` (by ZivDero)
 - Implement customizable mouse cursors and actions (by CCHyper/tomsons26, ZivDero)
 - Implement support for a Saved Games subdirectory (by ZivDero)
-
 - Implemented the multiplayer spawner (by ZivDero)
 - Extend `BaseUnit` to accept a list of vehicles (by ZivDero/CCHyper)
 - Allow `BuildConst`, `BuildRefinery`, `BuildWeapons` and `HarvesterUnit` to properly have multiple entries (by ZivDero)
+- Port trigger actions from TS-Patches (by ZivDero, Rampastring)
+- Allow manually aiming AA buildings (by ZivDero)
+- Add support for more than 2 sides' loading screens, sidebars and speeches (by CCHyper/tomsons26, ZivDero)
+- Disallow loading campaign saves from other playthoughs, as well as from skirmish (by ZivDero)
 
 Vanilla fixes:
 - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively (by CCHyper/tomsons26)
@@ -227,10 +230,8 @@ Vanilla fixes:
 - Fix a bug where you could sometimes get extra crew to exit a building that was being sold and was destroying/undeploying (by ZivDero)
 - Fix a bug where if the player loaded a saved game, the score screen timer would report the time since the saved game was loaded, instead of since when the scenario was first started (by ZivDero)
 - Fix a bug where units could gain veterancy by killing allies (by ZivDero)
-- Port trigger actions from TS-Patches (by ZivDero, Rampastring)
-- Allow manually aiming AA buildings (by ZivDero)
-- Add support for more than 2 sides' loading screens, sidebars and speeches (by CCHyper/tomsons26, ZivDero)
-- Disallow loading campaign saves from other playthoughs, as well as from skirmish (by ZivDero)
+- Fix a bug where a trigger could delete itself, leading to a crash (by ZivDero)
+- Fix a bug where AI Triggers' MultiSide wouldn't correctly consider all houses (by ZivDero)
 
 </details>
 

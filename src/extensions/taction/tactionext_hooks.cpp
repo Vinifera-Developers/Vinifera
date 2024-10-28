@@ -53,6 +53,40 @@
 
 
 /**
+ *  Helper info for writing new actions.
+ * 
+ *  TActionClass::Data                  = First Param (PARAM1)
+ *  TActionClass::Bounds.X              = Second Param (PARAM2)
+ *  TActionClass::Bounds.Y              = Third Param (PARAM3)
+ *  TActionClass::Bounds.W              = Fourth Param (PARAM4)
+ *  TActionClass::Bounds.H              = Fifth Param (PARAM5)
+ * 
+ *  (PARAM6) (OPTIONAL)
+ *  if TActionFormatType == 4
+ *    TActionClass::Data (overwrites PARAM1)
+ *  else
+ *    TActionClass::Location
+ * 
+ *  
+ *  Example action line from a scenario file;
+ * 
+ *  [Actions]
+ *  NAME = [Action Count], [TActionType], [TActionFormatType], [PARAM1], [PARAM2], [PARAM3], [PARAM4], [PARAM5], [PARAM6:OPTIONAL]
+ *  
+ *  To allow the use of TActionClass::Data (PARAM1), you must have the TActionFormatType set
+ *  to "0", otherwise this param is ignored!
+ * 
+ * 
+ *  For producing FinalSun [Action] entries;
+ *  NOTE: For available ParamTypes, see the [ParamTypes] section in FSData.INI.
+ *  NOTE: "DEF_PARAM1_VALUE" if negative (-ve), PARAM1 will be set to the absolute value of this number (filled in).
+ * 
+ *  [Actions]
+ *  TActionType = [Name], [DEF_PARAM1_VALUE], [PARAM1_TYPE], [PARAM2_TYPE], [PARAM3_TYPE], [PARAM4_TYPE], [PARAM5_TYPE], [PARAM6_TYPE], [USE_WP], [USE_TAG], [Description], 1, 0, [TActionType]
+ */
+
+
+/**
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
  *
@@ -79,34 +113,35 @@ public:
     };
 
 public:
-    bool _Function_Call_Operator(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
+    bool _Function_Call_Operator(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell);
 
-    bool _TAction_Play_Sound_At_Random_Waypoint(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
-    bool _TAction_Enable_Trigger(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
-    bool _TAction_Win(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
-    bool _TAction_Lose(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
-    bool _TAction_Change_House(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
-    bool _TAction_All_Change_House(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
-    bool _TAction_Make_Ally(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
-    bool _TAction_Make_Enemy(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
-    bool _TAction_Begin_Production(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
-    bool _TAction_Fire_Sale(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
-    bool _TAction_Begin_Autocreate(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
-    bool _TAction_All_Hunt(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
-    bool _TAction_Set_AI_Triggers_Begin(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
-    bool _TAction_Set_AI_Triggers_End(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
+    bool _TAction_Play_Sound_At_Random_Waypoint(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell);
+    bool _TAction_Destroy_Trigger(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell);
+    bool _TAction_Enable_Trigger(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell);
+    bool _TAction_Win(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell);
+    bool _TAction_Lose(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell);
+    bool _TAction_Change_House(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell);
+    bool _TAction_All_Change_House(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell);
+    bool _TAction_Make_Ally(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell);
+    bool _TAction_Make_Enemy(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell);
+    bool _TAction_Begin_Production(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell);
+    bool _TAction_Fire_Sale(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell);
+    bool _TAction_Begin_Autocreate(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell);
+    bool _TAction_All_Hunt(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell);
+    bool _TAction_Set_AI_Triggers_Begin(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell);
+    bool _TAction_Set_AI_Triggers_End(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell);
 
-    bool _TAction_Give_Credits(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
-    bool _TAction_Enable_Short_Game(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
-    bool _TAction_Disable_Short_Game(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
-    bool _TAction_Print_Difficulty(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
-    bool _TAction_Blowup_House(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
-    bool _TAction_Make_Elite(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
-    bool _TAction_Enable_AllyReveal(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
-    bool _TAction_Disable_AllyReveal(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
-    bool _TAction_Create_AutoSave(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
-    bool _TAction_Delete_Object(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
-    bool _TAction_All_Assign_Mission(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell);
+    bool _TAction_Give_Credits(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell);
+    bool _TAction_Enable_Short_Game(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell);
+    bool _TAction_Disable_Short_Game(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell);
+    bool _TAction_Print_Difficulty(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell);
+    bool _TAction_Blowup_House(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell);
+    bool _TAction_Make_Elite(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell);
+    bool _TAction_Enable_AllyReveal(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell);
+    bool _TAction_Disable_AllyReveal(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell);
+    bool _TAction_Create_AutoSave(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell);
+    bool _TAction_Delete_Object(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell);
+    bool _TAction_All_Assign_Mission(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell);
 };
 
 
@@ -795,7 +830,7 @@ bool TActionClassExt::_Function_Call_Operator(HouseClass* house, ObjectClass* ob
  *
  *  @author: CCHyper
  */
-bool TActionClassExt::_TAction_Play_Sound_At_Random_Waypoint(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+bool TActionClassExt::_TAction_Play_Sound_At_Random_Waypoint(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell)
 {
     Cell cell_list[NEW_WAYPOINT_COUNT];
     int cell_list_count = 0;
@@ -824,6 +859,32 @@ bool TActionClassExt::_TAction_Play_Sound_At_Random_Waypoint(HouseClass* house, 
 
 
 /**
+ *  Fixes a crash when a trigger deleted itself.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExt::_TAction_Destroy_Trigger(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell)
+{
+    if (Trigger) {
+        for (int i = 0; i < Triggers.Count(); i++) {
+            auto trigger = Triggers[i];
+
+            /**
+             *  Don't allow deleting itself.
+             */
+            if (trigger && trigger != trig && trigger->Class == Trigger) {
+
+                delete trigger;
+                i--;
+            }
+        }
+    }
+
+    return true;
+}
+
+
+/**
  *  #issue-299
  *
  *  Fixes the issue with the current difficulty not being checked
@@ -833,7 +894,7 @@ bool TActionClassExt::_TAction_Play_Sound_At_Random_Waypoint(HouseClass* house, 
  *
  *  @author: CCHyper
  */
-bool TActionClassExt::_TAction_Enable_Trigger(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+bool TActionClassExt::_TAction_Enable_Trigger(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell)
 {
     if (Trigger) {
         for (int i = 0; i < Triggers.Count(); i++) {
@@ -866,7 +927,7 @@ bool TActionClassExt::_TAction_Enable_Trigger(HouseClass* house, ObjectClass* ob
  *
  *  @author: Rampastring
  */
-bool TActionClassExt::_TAction_Win(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+bool TActionClassExt::_TAction_Win(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell)
 {
     /**
      *  Flag the house specified as the loser. The house parameter is only
@@ -904,7 +965,7 @@ bool TActionClassExt::_TAction_Win(HouseClass* house, ObjectClass* object, Trigg
  *
  *  @author: Rampastring
  */
-bool TActionClassExt::_TAction_Lose(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+bool TActionClassExt::_TAction_Lose(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell)
 {
     /**
      *  Flag the house specified as the winner. Really the house value
@@ -939,7 +1000,7 @@ bool TActionClassExt::_TAction_Lose(HouseClass* house, ObjectClass* object, Trig
  *
  *  @author: ZivDero
  */
-bool TActionClassExt::_TAction_Change_House(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+bool TActionClassExt::_TAction_Change_House(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell)
 {
     bool success = false;
 
@@ -953,7 +1014,7 @@ bool TActionClassExt::_TAction_Change_House(HouseClass* house, ObjectClass* obje
             TechnoClass* techno = Technos[i];
 
             if (techno->IsActive && techno->IsDown && !techno->IsInLimbo) {
-                if (techno->Tag && techno->Tag->Is_Trigger_Attached(trigger)) {
+                if (techno->Tag && techno->Tag->Is_Trigger_Attached(trig)) {
 
                     techno->Captured(newhouse);
                     success = true;
@@ -971,7 +1032,7 @@ bool TActionClassExt::_TAction_Change_House(HouseClass* house, ObjectClass* obje
  *
  *  @author: ZivDero
  */
-bool TActionClassExt::_TAction_All_Change_House(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+bool TActionClassExt::_TAction_All_Change_House(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell)
 {
     bool success = false;
 
@@ -1000,7 +1061,7 @@ bool TActionClassExt::_TAction_All_Change_House(HouseClass* house, ObjectClass* 
  *
  *  @author: ZivDero
  */
-bool TActionClassExt::_TAction_Make_Ally(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+bool TActionClassExt::_TAction_Make_Ally(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell)
 {
     HouseClass* other = HouseClass::As_Pointer(Data.House);
 
@@ -1021,7 +1082,7 @@ bool TActionClassExt::_TAction_Make_Ally(HouseClass* house, ObjectClass* object,
  *
  *  @author: ZivDero
  */
-bool TActionClassExt::_TAction_Make_Enemy(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+bool TActionClassExt::_TAction_Make_Enemy(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell)
 {
     HouseClass* other = HouseClass::As_Pointer(Data.House);
 
@@ -1042,7 +1103,7 @@ bool TActionClassExt::_TAction_Make_Enemy(HouseClass* house, ObjectClass* object
  *
  *  @author: ZivDero
  */
-bool TActionClassExt::_TAction_Begin_Production(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+bool TActionClassExt::_TAction_Begin_Production(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell)
 {
     HouseClass* other = HouseClass::As_Pointer(Data.House);
 
@@ -1062,7 +1123,7 @@ bool TActionClassExt::_TAction_Begin_Production(HouseClass* house, ObjectClass* 
  *
  *  @author: ZivDero
  */
-bool TActionClassExt::_TAction_Fire_Sale(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+bool TActionClassExt::_TAction_Fire_Sale(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell)
 {
     HouseClass* other = HouseClass::As_Pointer(Data.House);
 
@@ -1082,7 +1143,7 @@ bool TActionClassExt::_TAction_Fire_Sale(HouseClass* house, ObjectClass* object,
  *
  *  @author: ZivDero
  */
-bool TActionClassExt::_TAction_Begin_Autocreate(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+bool TActionClassExt::_TAction_Begin_Autocreate(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell)
 {
     HouseClass* other = HouseClass::As_Pointer(Data.House);
 
@@ -1102,7 +1163,7 @@ bool TActionClassExt::_TAction_Begin_Autocreate(HouseClass* house, ObjectClass* 
  *
  *  @author: ZivDero
  */
-bool TActionClassExt::_TAction_All_Hunt(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+bool TActionClassExt::_TAction_All_Hunt(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell)
 {
     HouseClass* other = HouseClass::As_Pointer(Data.House);
 
@@ -1122,7 +1183,7 @@ bool TActionClassExt::_TAction_All_Hunt(HouseClass* house, ObjectClass* object, 
  *
  *  @author: ZivDero
  */
-bool TActionClassExt::_TAction_Set_AI_Triggers_Begin(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+bool TActionClassExt::_TAction_Set_AI_Triggers_Begin(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell)
 {
     HouseClass* other = HouseClass::As_Pointer(Data.House);
 
@@ -1142,7 +1203,7 @@ bool TActionClassExt::_TAction_Set_AI_Triggers_Begin(HouseClass* house, ObjectCl
  *
  *  @author: ZivDero
  */
-bool TActionClassExt::_TAction_Set_AI_Triggers_End(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+bool TActionClassExt::_TAction_Set_AI_Triggers_End(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell)
 {
     HouseClass* other = HouseClass::As_Pointer(Data.House);
 
@@ -1160,9 +1221,9 @@ bool TActionClassExt::_TAction_Set_AI_Triggers_End(HouseClass* house, ObjectClas
 /**
  *  Gives credits to the house specified as the argument.
  *
- *  @author: ZivDero
+ *  @author: ZivDero, Rampastring
  */
-bool TActionClassExt::_TAction_Give_Credits(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+bool TActionClassExt::_TAction_Give_Credits(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell)
 {
     HouseClass* other = HouseClass::As_Pointer(Data.House);
 
@@ -1170,7 +1231,14 @@ bool TActionClassExt::_TAction_Give_Credits(HouseClass* house, ObjectClass* obje
      *  Give credits to the house.
      */
     if (other) {
-        other->Refund_Money(Bounds.X); // Don't know, maybe it could be refactored somehow? This is where P3 should end up.
+
+        const int amount = Bounds.X;
+        if (amount >= 0) {
+            other->Refund_Money(amount);
+        }
+        else {
+            other->Spend_Money(-amount);
+        }
     }
 
     return true;
@@ -1180,9 +1248,9 @@ bool TActionClassExt::_TAction_Give_Credits(HouseClass* house, ObjectClass* obje
 /**
  *  Enables short game.
  *
- *  @author: ZivDero
+ *  @author: ZivDero, Rampastring
  */
-bool TActionClassExt::_TAction_Enable_Short_Game(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+bool TActionClassExt::_TAction_Enable_Short_Game(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell)
 {    
     Session.Options.ShortGame = true;
 
@@ -1193,9 +1261,9 @@ bool TActionClassExt::_TAction_Enable_Short_Game(HouseClass* house, ObjectClass*
 /**
  *  Disables short game.
  *
- *  @author: ZivDero
+ *  @author: ZivDero, Rampastring
  */
-bool TActionClassExt::_TAction_Disable_Short_Game(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+bool TActionClassExt::_TAction_Disable_Short_Game(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell)
 {    
     Session.Options.ShortGame = false;
 
@@ -1206,9 +1274,9 @@ bool TActionClassExt::_TAction_Disable_Short_Game(HouseClass* house, ObjectClass
 /**
  *  Prints a message with the current difficulty level.
  *
- *  @author: ZivDero
+ *  @author: ZivDero, Rampastring
  */
-bool TActionClassExt::_TAction_Print_Difficulty(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+bool TActionClassExt::_TAction_Print_Difficulty(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell)
 {
     /**
      *  Calculate the message delay.
@@ -1233,9 +1301,9 @@ bool TActionClassExt::_TAction_Print_Difficulty(HouseClass* house, ObjectClass* 
 /**
  *  Blows up the specified house.
  *
- *  @author: ZivDero
+ *  @author: ZivDero, Rampastring
  */
-bool TActionClassExt::_TAction_Blowup_House(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+bool TActionClassExt::_TAction_Blowup_House(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell)
 {
     HouseClass* other = HouseClass::As_Pointer(Data.House);
 
@@ -1254,9 +1322,9 @@ bool TActionClassExt::_TAction_Blowup_House(HouseClass* house, ObjectClass* obje
 /**
  *  Makes all objects attached to the trigger elite.
  *
- *  @author: ZivDero
+ *  @author: ZivDero, Rampastring
  */
-bool TActionClassExt::_TAction_Make_Elite(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+bool TActionClassExt::_TAction_Make_Elite(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell)
 {
     /**
      *  Iterate all technos, and if their tag is attached to this trigger, make them elite.
@@ -1265,7 +1333,7 @@ bool TActionClassExt::_TAction_Make_Elite(HouseClass* house, ObjectClass* object
         TechnoClass* techno = Technos[i];
 
         if (techno->IsActive && techno->IsDown && !techno->IsInLimbo) {
-            if (techno->Tag && techno->Tag->Is_Trigger_Attached(trigger)) {
+            if (techno->Tag && techno->Tag->Is_Trigger_Attached(trig)) {
                 techno->Veterancy.Set_Elite(true);
             }
         }
@@ -1278,9 +1346,9 @@ bool TActionClassExt::_TAction_Make_Elite(HouseClass* house, ObjectClass* object
 /**
  *  Enables ally reveal
  *
- *  @author: ZivDero
+ *  @author: ZivDero, Rampastring
  */
-bool TActionClassExt::_TAction_Enable_AllyReveal(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+bool TActionClassExt::_TAction_Enable_AllyReveal(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell)
 {
     Rule->IsAllyReveal = true;
 
@@ -1291,9 +1359,9 @@ bool TActionClassExt::_TAction_Enable_AllyReveal(HouseClass* house, ObjectClass*
 /**
  *  Disables ally reveal.
  *
- *  @author: ZivDero
+ *  @author: ZivDero, Rampastring
  */
-bool TActionClassExt::_TAction_Disable_AllyReveal(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+bool TActionClassExt::_TAction_Disable_AllyReveal(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell)
 {    
     Rule->IsAllyReveal = false;
 
@@ -1304,9 +1372,9 @@ bool TActionClassExt::_TAction_Disable_AllyReveal(HouseClass* house, ObjectClass
 /**
  *  Schedules the creation of an autosave the next frame.
  *
- *  @author: ZivDero
+ *  @author: ZivDero, Rampastring
  */
-bool TActionClassExt::_TAction_Create_AutoSave(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+bool TActionClassExt::_TAction_Create_AutoSave(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell)
 {
     /**
      *  Schedule a save.
@@ -1320,9 +1388,9 @@ bool TActionClassExt::_TAction_Create_AutoSave(HouseClass* house, ObjectClass* o
 /**
  *  Silently deletes all objects attached to this trigger from the map.
  *
- *  @author: ZivDero
+ *  @author: ZivDero, Rampastring
  */
-bool TActionClassExt::_TAction_Delete_Object(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+bool TActionClassExt::_TAction_Delete_Object(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell)
 {
     /**
      *  Iterate all technos, and if their tag is attached to this trigger, flag them for deletion.
@@ -1331,7 +1399,7 @@ bool TActionClassExt::_TAction_Delete_Object(HouseClass* house, ObjectClass* obj
         TechnoClass* techno = Technos[i];
 
         if (techno->IsActive && techno->IsDown && !techno->IsInLimbo) {
-            if (techno->Tag && techno->Tag->Is_Trigger_Attached(trigger)) {
+            if (techno->Tag && techno->Tag->Is_Trigger_Attached(trig)) {
                 techno->Remove_This();
             }
         }
@@ -1344,9 +1412,9 @@ bool TActionClassExt::_TAction_Delete_Object(HouseClass* house, ObjectClass* obj
 /**
  *  Assigns a mission to all units owned by the trigger owner.
  *
- *  @author: ZivDero
+ *  @author: ZivDero, Rampastring
  */
-bool TActionClassExt::_TAction_All_Assign_Mission(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell& cell)
+bool TActionClassExt::_TAction_All_Assign_Mission(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell)
 {
     /**
      *  Iterate all units, and if they are owned by the trigger owner, assign the mission.
@@ -1393,6 +1461,7 @@ void TActionClassExtension_Hooks()
      */
     Patch_Jump(0x0061BF50, &TActionClassExt::_TAction_Play_Sound_At_Random_Waypoint);
     Patch_Jump(0x0061CDA0, &TActionClassExt::_TAction_Enable_Trigger);
+    Patch_Jump(0x0061CCB0, &TActionClassExt::_TAction_Destroy_Trigger);
     Patch_Jump(0x0061C200, &TActionClassExt::_TAction_Win);
     Patch_Jump(0x0061C230, &TActionClassExt::_TAction_Lose);
     Patch_Jump(0x0061B630, &TActionClassExt::_TAction_Change_House);

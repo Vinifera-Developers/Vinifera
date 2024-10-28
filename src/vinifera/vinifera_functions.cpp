@@ -59,6 +59,7 @@
 #include "setup_hooks.h"
 #include "spawner.h"
 #include "spawner_hooks.h"
+#include "spawnerconfig.h"
 
 
 static DynamicVectorClass<Wstring> ViniferaSearchPaths;
@@ -642,6 +643,9 @@ bool Vinifera_Shutdown()
 
     delete KamikazeTracker;
     KamikazeTracker = nullptr;
+
+    delete Vinifera_SpawnerConfig;
+    Vinifera_SpawnerConfig = nullptr;
 
     DEV_DEBUG_INFO("Shutdown - New Count: %d, Delete Count: %d\n", Vinifera_New_Count, Vinifera_Delete_Count);
 

@@ -50,11 +50,14 @@ Seed=0                      ; integer, random seed.
 TechLevel=10                ; integer, maximum tech level.
 IsCampaign=no               ; boolean, is the game that is about to start campaign, as opposed to skirmish?
 CampaignID=-1               ; integer, ID of the campaign (from BATTLE.INI) to start
+CampaignModeHuman=1         ; DiffType, difficulty used by the human player in Campaign.
+CompaignModeComputer=1      ; DiffType, difficulty used by the AI players in Campaign.
 Tournament=0                ; integer, WOL Tournament Type
 WOLGameID=3735928559        ; unsigned integer, WOL Game ID
 ScenarioName=spawnmap.ini   ; string, name of the scenario (map) to load.
 MapHash=                    ; string, map hash, only used in statistics collection.
 UIMapName=                  ; string, name of the map, only used in statistics collection.
+PlayMoviesInMultiplayer=no  ; boolean, should movies be played in multiplayer.
 
 ; Network Options
 Protocol=2                  ; integer, network protocol to use.
@@ -80,6 +83,9 @@ AINamesByDifficulty=no      ; boolean, should AI players have their difficulty i
 CoachMode=no                ; boolean, should defeated players that have allies not have the entire map revealed to them upon death?
 AutoSurrender=yes           ; boolean, should players surrender on disconnection, as opposed to turning their base over to the AI?
 UseMPAIBaseNodes=no         ; boolean, should the AI use base nodes for base construction, like in campaign?
+AttackNeutralUnits=no       ; boolean, should neutral units be targeted by the player's army automatically?
+ScrapMetal=no               ; boolean, should explosions use alternative animations from the `ScrapExplosion=` list?
+ContinueWithoutHumans=yes   ; boolean, should the game not end even if the only players left alive are AI?
 ```
 
 - Information about the local player is read from the `Settings` section, for all other players - from `OtherX` sections, where `X` ranges from `1` to `7`.

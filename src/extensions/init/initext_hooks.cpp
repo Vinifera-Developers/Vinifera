@@ -77,7 +77,7 @@ extern HMODULE DLLInstance;
  *)
  *  @author: CCHyper
  */
-static void Set_Session_House() { Session.IsGDI = (unsigned char)Session.Players.Fetch_Head()->Player.House & 0xFF; }
+static void Set_Session_House() { reinterpret_cast<unsigned char&>(Session.IsGDI) = static_cast<unsigned char>(Session.Players.Fetch_Head()->Player.House) & 0xFF; }
 DECLARE_PATCH(_Select_Game_PreStart_SetPlayerHouse_Patch)
 {
     /**

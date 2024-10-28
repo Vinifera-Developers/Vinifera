@@ -214,8 +214,8 @@ static void After_Main_Loop()
         Vinifera_Developer_IsToReloadRules = false;
     }
 
-    const bool do_campaign_autosaves = Session.Type == GAME_NORMAL && OptionsExtension->AutoSaveCount > 0;
-    const bool do_mp_autosaves = Spawner::Active && Session.Type == GAME_IPX && Spawner::Get_Config()->AutoSaveInterval > 0;
+    const bool do_campaign_autosaves = Session.Type == GAME_NORMAL && OptionsExtension->AutoSaveCount > 0 && OptionsExtension->AutoSaveInterval > 0;
+    const bool do_mp_autosaves = Vinifera_SpawnerActive && Session.Type == GAME_IPX && Vinifera_SpawnerConfig->AutoSaveInterval > 0;
 
     /**
      *  Schedule to make a save if it's time to autosave.
@@ -287,7 +287,7 @@ static void After_Main_Loop()
             /**
              *  Schedule the next autosave.
              */
-            Vinifera_NextAutosaveFrame = Frame + Spawner::Get_Config()->AutoSaveInterval;
+            Vinifera_NextAutosaveFrame = Frame + Vinifera_SpawnerConfig->AutoSaveInterval;
         }
 
         Vinifera_DoSave = false;

@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          SPAWNER.H
+ *  @file          OBSERVER_HOOKS.H
  *
- *  @author        Belonit, ZivDero
+ *  @author        ZivDero
  *
- *  @brief         Multiplayer spawner class.
+ *  @brief         Contains the hooks for observer mode.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -28,28 +28,4 @@
 #pragma once
 
 
-#include "spawnerconfig.h"
-#include "vinifera_globals.h"
-
-
-/**
- *  This class contains all logic for spawning players in-game (usually via the client).
- */
-class Spawner
-{
-public:
-    Spawner() = delete;
-
-    static void Init();
-    static bool Start_Game();
-
-private:
-    static bool Start_Scenario(const char* scenario_name);
-    static bool Load_Game(const char* file_name);
-
-    static void Init_Network();
-    static bool Reconcile_Players();
-
-    static void Init_UI();
-    static void Prepare_Screen();
-};
+void Observer_Hooks();

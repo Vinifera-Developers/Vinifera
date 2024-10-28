@@ -32,6 +32,7 @@
 #include "ccfile.h"
 
 
+class HouseClass;
 class KamikazeTrackerClass;
 class SpawnManagerClass;
 class EBoltClass;
@@ -40,6 +41,7 @@ class ArmorTypeClass;
 class RocketTypeClass;
 class MouseTypeClass;
 class ActionTypeClass;
+class SpawnerConfig;
 
 
 extern bool Vinifera_DeveloperMode;
@@ -92,6 +94,11 @@ extern bool Vinifera_SkipStartupMovies;
 extern bool Vinifera_NoTacticalVersionString;
 
 extern bool Vinifera_ShowSuperWeaponTimers;
+
+extern SpawnerConfig* Vinifera_SpawnerConfig;
+extern bool Vinifera_SpawnerActive;
+
+extern HouseClass* Vinifera_ObserverPtr;
 
 extern bool Vinifera_DoSave;
 extern int Vinifera_NextAutosaveFrame;

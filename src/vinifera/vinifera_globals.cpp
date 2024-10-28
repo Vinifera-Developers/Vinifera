@@ -67,6 +67,11 @@ bool Vinifera_NoTacticalVersionString = false;
 
 bool Vinifera_ShowSuperWeaponTimers = true;
 
+SpawnerConfig* Vinifera_SpawnerConfig = nullptr;
+bool Vinifera_SpawnerActive = false;
+
+HouseClass* Vinifera_ObserverPtr = nullptr;
+
 bool Vinifera_DoSave = false;
 int Vinifera_NextAutosaveFrame = -1;
 int Vinifera_NextAutoSaveNumber = 0;

@@ -296,6 +296,8 @@ bool Vinifera_Put_All(IStream *pStm, bool save_net)
     DEBUG_INFO("Saving Misc. Values...\n");
     if (FAILED(Save_Misc_Values(pStm))) { return false; }
 
+    pStm->Write(&Vinifera_ObserverPtr, sizeof(Vinifera_ObserverPtr), nullptr);
+
     /**
      *  Save the Logic & Map layers.
      */
@@ -303,9 +305,7 @@ bool Vinifera_Put_All(IStream *pStm, bool save_net)
     if (FAILED(Logic.Save(pStm))) { return false; }
 
     DEBUG_INFO("Saving TacticalMap...\n");
-    {
-        if (FAILED(OleSaveToStream(TacticalMap, pStm))) { return false; }
-    }
+    if (FAILED(OleSaveToStream(TacticalMap, pStm))) { return false; }
 
     /**
      *  Save all game objects. This code saves every object that's stored in a DynamicVector class.
@@ -509,6 +509,9 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
      */
     DEBUG_INFO("Loading Misc. Values...\n");
     if (FAILED(Load_Misc_Values(pStm))) { return false; }
+
+    pStm->Read(&Vinifera_ObserverPtr, sizeof(Vinifera_ObserverPtr), nullptr);
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Vinifera_ObserverPtr, "Vinifera_ObserverPtr");
 
     DEBUG_INFO("About to call Map.Clear_SubZones()...\n");
     Map.Clear_SubZones();
@@ -954,7 +957,7 @@ bool Vinifera_Load_Game(const char* file_name)
      *  Schedule the next autosave.
      */
     Vinifera_NextAutosaveFrame = Frame;
-    Vinifera_NextAutosaveFrame += Spawner::Active && Session.Type == GAME_IPX ? Spawner::Get_Config()->AutoSaveInterval : OptionsExtension->AutoSaveInterval;
+    Vinifera_NextAutosaveFrame += Vinifera_SpawnerActive && Session.Type == GAME_IPX ? Vinifera_SpawnerConfig->AutoSaveInterval : OptionsExtension->AutoSaveInterval;
 
     DEBUG_INFO("LOADING GAME [%s] - Complete\n", formatted_file_name);
 
@@ -997,6 +1000,11 @@ bool LoadOptionsClassExt::_Load_File(const char* filename)
 
     TacticalViewActive = false;
     ScenarioStarted = false;
+
+    /**
+     *  If the user has manually loaded a save game, the spawner isn't responsible for anything anymore.
+     */
+    Vinifera_SpawnerActive = false;
 
     _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, Filename_From_Path(filename), nullptr);
     const bool result = Load_Game(formatted_file_name);

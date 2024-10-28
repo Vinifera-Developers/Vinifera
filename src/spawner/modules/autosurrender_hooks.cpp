@@ -45,7 +45,7 @@ static bool PlayerHasSurrendered = false;
  */
 DECLARE_PATCH(_Standard_Options_Dialog_HANDLER_AutoSurrender)
 {
-    if (Spawner::Active && Spawner::Get_Config()->AutoSurrender)
+    if (Vinifera_SpawnerActive && Vinifera_SpawnerConfig->AutoSurrender)
     {
         if (Session.Type == GAME_IPX && !PlayerHasSurrendered)
         {

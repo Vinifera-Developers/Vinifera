@@ -28,6 +28,7 @@
 
 #include "statistics_hooks.h"
 
+#include "extension.h"
 #include "hooker.h"
 #include "hooker_macros.h"
 #include "packet.h"
@@ -36,20 +37,27 @@
 #include "spawner.h"
 #include "field.h"
 #include "house.h"
+#include "houseext.h"
 #include "housetype.h"
+#include "scenarioext.h"
 #include "tibsun_globals.h"
+
+
+static bool Is_Spawner_Write_Statistics()
+{
+    if (Vinifera_SpawnerActive)
+    {
+        return Vinifera_SpawnerConfig->WriteStatistics
+            && Session.Type == GAME_IPX;
+    }
+
+    return false;
+}
 
 
 static bool Is_Statistics_Enabled()
 {
-    if (Spawner::Active)
-    {
-        return Spawner::Get_Config()->WriteStatistics
-            && Session.Type == GAME_IPX;
-    }
-
-    // Vanilla condition
-    return Session.Type == GAME_INTERNET;
+    return Is_Spawner_Write_Statistics() || Session.Type == GAME_INTERNET;
 }
 
 
@@ -80,7 +88,7 @@ char* PacketClassExt::_Create_Comms_Packet(int& size)
 {
     char* result = Create_Comms_Packet(size);
 
-    if (Is_Statistics_Enabled())
+    if (Is_Spawner_Write_Statistics())
     {
         CCFileClass stats_file("stats.dmp");
         if (stats_file.Open(FILE_ACCESS_WRITE))
@@ -103,16 +111,11 @@ char* PacketClassExt::_Create_Comms_Packet(int& size)
  */
 void PacketClassExt::_Add_Field_SCEN_ACCN_HASH(FieldClass* field)
 {
-    if (Is_Statistics_Enabled())
+    if (Is_Spawner_Write_Statistics())
     {
-        FieldClass scen("SCEN", Spawner::Get_Config()->UIMapName);
-        PacketClass::Add_Field(&scen);
-
-        FieldClass accn("ACCN", PlayerPtr->IniName);
-        PacketClass::Add_Field(&accn);
-
-        FieldClass hash("HASH", Spawner::Get_Config()->MapHash);
-        PacketClass::Add_Field(&hash);
+        PacketClass::Add_Field(new FieldClass("SCEN", Vinifera_SpawnerConfig->UIMapName));
+        PacketClass::Add_Field(new FieldClass("ACCN", PlayerPtr->IniName));
+        PacketClass::Add_Field(new FieldClass("HASH", Vinifera_SpawnerConfig->MapHash));
 
         return;
     }
@@ -132,40 +135,33 @@ void PacketClassExt::_Add_Field_Player_Data(FieldClass* field)
     // The game replaces "?" with the player's ID before this call,
     // so we can grab it from there.
     // It should be also be the house ID.
-    static char*& field_player_handle = Make_Global<char*>(0x0070FCF4);
+    static auto& field_player_handle = Make_Global<char[5]>(0x0070FCF4);
 
-    if (Is_Statistics_Enabled())
+    if (Is_Spawner_Write_Statistics())
     {
         const char id = field_player_handle[3] - '0';
 
-        HouseClass* house = Houses[id];
+        const HouseClass* house = Houses[id];
+        const HouseClassExtension* house_ext = Extension::Fetch<HouseClassExtension>(house);
 
         if (house == PlayerPtr)
         {
-            FieldClass myid("MYID", static_cast<unsigned long>(id));
-            PacketClass::Add_Field(&myid);
-
-            FieldClass nkey("NKEY", static_cast<unsigned long>(0));
-            PacketClass::Add_Field(&nkey);
-
-            FieldClass skey("SKEY", static_cast<unsigned long>(0));
-            PacketClass::Add_Field(&skey);
+            PacketClass::Add_Field(new FieldClass("MYID", static_cast<unsigned long>(id)));
+            PacketClass::Add_Field(new FieldClass("NKEY", static_cast<unsigned long>(0)));
+            PacketClass::Add_Field(new FieldClass("SKEY", static_cast<unsigned long>(0)));
         }
 
         static char field_player_allies[] = "ALY?";
         field_player_allies[3] = id;
-        FieldClass aly (field_player_allies, static_cast<unsigned long>(house->Allies));
-        PacketClass::Add_Field(&aly );
+        PacketClass::Add_Field(new FieldClass(field_player_allies, static_cast<unsigned long>(house->Allies)));
 
         static char field_player_spawn[] = "BSP?";
         field_player_spawn[3] = id;
-        FieldClass bsp(field_player_spawn, static_cast<unsigned long>(Spawner::Get_Config()->Houses[id].SpawnLocation));
-        PacketClass::Add_Field(&bsp);
+        PacketClass::Add_Field(new FieldClass(field_player_spawn, static_cast<unsigned long>(ScenExtension->StartingPositions[id])));
 
-        static char field_player_spectator[] = "SPC?";
-        field_player_spectator[3] = id;
-        FieldClass spc(field_player_spectator, static_cast<unsigned long>(Spawner::Get_Config()->Houses[id].IsSpectator));
-        PacketClass::Add_Field(&spc);
+        static char field_player_observer[] = "SPC?";
+        field_player_observer[3] = id;
+        PacketClass::Add_Field(new FieldClass(field_player_observer, static_cast<unsigned long>(house_ext->IsObserver)));
     }
 
     PacketClass::Add_Field(field);
@@ -177,16 +173,6 @@ void PacketClassExt::_Add_Field_Player_Data(FieldClass* field)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_BuildingClass_Captured_SendStatistics)
-{
-    if (Is_Statistics_Enabled())
-    {
-        JMP(0x0042F7A3);
-    }
-
-    JMP(0x0042F7BB);
-}
-
 
 DECLARE_PATCH(_CellClass_Goodie_Check_SendStatistics)
 {
@@ -243,50 +229,6 @@ DECLARE_PATCH(_HouseClass_Tracking_Add_SendStatistics4)
 }
 
 
-DECLARE_PATCH(_TechnoClass_Record_The_Kill_SendStatistics1)
-{
-    if (Is_Statistics_Enabled())
-    {
-        JMP(0x00633893);
-    }
-
-    JMP(0x006338B1);
-}
-
-
-DECLARE_PATCH(_TechnoClass_Record_The_Kill_SendStatistics2)
-{
-    if (Is_Statistics_Enabled())
-    {
-        JMP(0x006338FD);
-    }
-
-    JMP(0x00633920);
-}
-
-
-DECLARE_PATCH(_TechnoClass_Record_The_Kill_SendStatistics3)
-{
-    if (Is_Statistics_Enabled())
-    {
-        JMP(0x00633965);
-    }
-
-    JMP(0x00633983);
-}
-
-
-DECLARE_PATCH(_TechnoClass_Record_The_Kill_SendStatistics4)
-{
-    if (Is_Statistics_Enabled())
-    {
-        JMP(0x00633931);
-    }
-
-    JMP(0x00633954);
-}
-
-
 DECLARE_PATCH(_Print_MP_Stats_Check)
 {
     if (Is_Statistics_Enabled())
@@ -295,17 +237,6 @@ DECLARE_PATCH(_Print_MP_Stats_Check)
     }
 
     JMP(0x0046371F);
-}
-
-
-DECLARE_PATCH(_HouseClass_HouseClass_Create_Unit_Trackers)
-{
-    if (Is_Statistics_Enabled())
-    {
-        JMP(0x004BAC39);
-    }
-
-    JMP(0x004BADB0);
 }
 
 
@@ -393,12 +324,15 @@ DECLARE_PATCH(_Main_Game_Start_Timer)
  */
 DECLARE_PATCH(_Send_Statistics_Packet_Send_AI_Dont_Send_Observers)
 {
-    GET_REGISTER_STATIC(HouseClass*, house, eax);
+    GET_REGISTER_STATIC(HouseClass**, house, edx);
+    static HouseClassExtension* house_ext;
+
     _asm pushad
 
-    if (Spawner::Active && Is_Statistics_Enabled())
+    if (Is_Spawner_Write_Statistics())
     {
-        if (house->Class->IsMultiplayPassive || Spawner::Get_Config()->Houses[house->Get_Heap_ID()].IsSpectator)
+        house_ext = Extension::Fetch<HouseClassExtension>(*house);
+        if ((*house)->Class->IsMultiplayPassive || house_ext->IsObserver)
         {
             _asm popad
             JMP_REG(ecx, 0x006098EC);
@@ -406,7 +340,7 @@ DECLARE_PATCH(_Send_Statistics_Packet_Send_AI_Dont_Send_Observers)
     }
     else // Vanilla condition
     {
-        if (!house->IsHuman)
+        if (!(*house)->IsHuman)
         {
             _asm popad
             JMP_REG(ecx, 0x006098EC);
@@ -424,18 +358,12 @@ DECLARE_PATCH(_Send_Statistics_Packet_Send_AI_Dont_Send_Observers)
 void Statistics_Hooks()
 {
     Patch_Call(0x0060A797, &PacketClassExt::_Create_Comms_Packet);
-    Patch_Jump(0x0042F799, &_BuildingClass_Captured_SendStatistics);
     Patch_Jump(0x00457E7A, &_CellClass_Goodie_Check_SendStatistics);
     Patch_Jump(0x004C220B, &_HouseClass_Tracking_Add_SendStatistics1);
     Patch_Jump(0x004C2255, &_HouseClass_Tracking_Add_SendStatistics2);
     Patch_Jump(0x004C229F, &_HouseClass_Tracking_Add_SendStatistics3);
     Patch_Jump(0x004C22E5, &_HouseClass_Tracking_Add_SendStatistics4);
-    Patch_Jump(0x0063388A, &_TechnoClass_Record_The_Kill_SendStatistics1);
-    Patch_Jump(0x006338F4, &_TechnoClass_Record_The_Kill_SendStatistics2);
-    Patch_Jump(0x0063395C, &_TechnoClass_Record_The_Kill_SendStatistics3);
-    Patch_Jump(0x00633928, &_TechnoClass_Record_The_Kill_SendStatistics4);
     Patch_Jump(0x0046353C, &_Print_MP_Stats_Check);
-    Patch_Jump(0x004BAC2C, &_HouseClass_HouseClass_Create_Unit_Trackers);
     Patch_Jump(0x005B4333, &_Kick_Player_Now_SendStatistics);
     Patch_Jump(0x005B1E94, &_Queue_AI_Multiplayer_SendStatistics);
     Patch_Jump(0x00509220, &_Main_Loop_SendStatistics1);
@@ -445,5 +373,6 @@ void Statistics_Hooks()
     Patch_Jump(0x00462A26, &_Main_Game_Start_Timer);
     Patch_Call(0x0060982A, &PacketClassExt::_Add_Field_SCEN_ACCN_HASH);
     Patch_Call(0x00609DA6, &PacketClassExt::_Add_Field_Player_Data);
-    Patch_Jump(0x006098DC, &_Send_Statistics_Packet_Send_AI_Dont_Send_Observers);
+    //Patch_Jump(0x006098DA, &_Send_Statistics_Packet_Send_AI_Dont_Send_Observers); // Crashes. We write whether the player is the observer in the statistics anyway
+    Patch_Jump(0x0060A79C, 0x0060A7C6); // Skip call to some WOL utility to send the packet
 }

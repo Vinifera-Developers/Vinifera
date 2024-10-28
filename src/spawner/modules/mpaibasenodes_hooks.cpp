@@ -55,9 +55,9 @@ DECLARE_PATCH(_HouseClass_AI_Building_MP_AI_BaseNodes_Patch)
     }
 
     /**
-     *  Also use base nodes if it was requiested by the client.
+     *  Also use base nodes if it was requested by the client.
      */
-    if (Spawner::Active && Spawner::Get_Config()->UseMPAIBaseNodes)
+    if (Vinifera_SpawnerActive && Vinifera_SpawnerConfig->UseMPAIBaseNodes)
     {
         _asm popad
         JMP_REG(ecx, 0x004C1554);
@@ -92,9 +92,9 @@ DECLARE_PATCH(_HouseClass_Can_Build_Here_MP_AI_BaseNodes_Patch)
     }
 
     /**
-     *  Also ignore AIBaseSpacing if it was requiested by the client.
+     *  Also ignore AIBaseSpacing if it was requested by the client.
      */
-    if (Spawner::Active && Spawner::Get_Config()->UseMPAIBaseNodes)
+    if (Vinifera_SpawnerActive && Vinifera_SpawnerConfig->UseMPAIBaseNodes)
     {
         // return 1;
         JMP(0x004CB9D2);
@@ -116,7 +116,7 @@ DECLARE_PATCH(_HouseClass_Expert_AI_MP_AI_BaseNodes_Patch)
 {
     _asm push eax
 
-    if (Session.Type == GAME_NORMAL || Spawner::Active && Spawner::Get_Config()->UseMPAIBaseNodes)
+    if (Session.Type == GAME_NORMAL || Vinifera_SpawnerActive && Vinifera_SpawnerConfig->UseMPAIBaseNodes)
     {
         /**
          *  Skip trying to raise money.

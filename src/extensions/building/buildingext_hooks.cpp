@@ -70,6 +70,7 @@
 #include "hooker_macros.h"
 #include "rulesext.h"
 #include "spawner.h"
+#include "vinifera_globals.h"
 
 
 /**
@@ -331,7 +332,7 @@ void BuildingClassExt::_Draw_Overlays(Point2D& coord, Rect& rect)
             /**
              *  Draw the primary factory pip.
              */
-            if (House->Is_Ally(PlayerPtr) || SpiedBy & (1 << (PlayerPtr->Class->House)) || (Spawner::Active && Spawner::Get_Config()->Houses[PlayerPtr->Get_Heap_ID()].IsSpectator))
+            if (House->Is_Ally(PlayerPtr) || SpiedBy & (1 << (PlayerPtr->Class->House)) || (PlayerPtr == Vinifera_ObserverPtr))
             {
                 Point2D xy(coord.X - 10, coord.Y + 10);
                 Draw_Text_Overlay(xy, coord, rect);
@@ -340,7 +341,7 @@ void BuildingClassExt::_Draw_Overlays(Point2D& coord, Rect& rect)
             /**
              *  If this is a factory, and the player has spied its owner, draw the cameo of what it's currently producing.
              */
-            if (SpiedBy & (1 << (PlayerPtr->Class->House)) || (Spawner::Active && Spawner::Get_Config()->Houses[PlayerPtr->Get_Heap_ID()].IsSpectator))
+            if (SpiedBy & (1 << (PlayerPtr->Class->House)) || (PlayerPtr == Vinifera_ObserverPtr))
             {
                 FactoryClass* factory = House->Is_Human_Control() ? House->Fetch_Factory(Class->ToBuild) : Factory;
                 if (factory != nullptr)

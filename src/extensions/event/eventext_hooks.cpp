@@ -489,7 +489,7 @@ void EventClassExt::_Event_AddPlayer()
 
 void EventClassExt::_Event_Timing()
 {
-    if (Spawner::Active && !ProtocolZero::Enable)
+    if (Vinifera_SpawnerActive && !ProtocolZero::Enable)
         Data.Timing.MaxAhead -= Scen->SpecialFlags.IsFogOfWar ? 10 : 0;
 
     /**
@@ -539,7 +539,7 @@ void EventClassExt::_Event_RemovePlayer()
     DEBUG_INFO("Executing REMOVEPLAYER event. Frame is %d\n", Frame);
     HouseClass* house = Houses[Data.General.Value];
 
-    if ((Session.Type == GAME_INTERNET && PlanetWestwoodTournament) || (Spawner::Active && Session.Type == GAME_IPX && Spawner::Get_Config()->AutoSurrender)) {
+    if ((Session.Type == GAME_INTERNET && PlanetWestwoodTournament) || (Vinifera_SpawnerActive && Session.Type == GAME_IPX && Vinifera_SpawnerConfig->AutoSurrender)) {
         house->Flag_To_Die();
     }
     else if (house->Is_Human_Control()) {

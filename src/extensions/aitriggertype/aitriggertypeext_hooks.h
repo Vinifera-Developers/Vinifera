@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          SPECTATOR_HOOKS.H
+ *  @file          AITRIGGERTYPEEXT_HOOKS.H
  *
  *  @author        ZivDero
  *
- *  @brief         Contains the hooks for spectator mode.
+ *  @brief         Contains the hooks for the extended AITriggerType class.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -28,4 +28,4 @@
 #pragma once
 
 
-void Spectator_Hooks();
+void AITriggerTypeClassExtension_Hooks();

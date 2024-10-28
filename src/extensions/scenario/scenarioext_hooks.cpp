@@ -120,6 +120,8 @@ DECLARE_PATCH(_Clear_Scenario_Patch)
 
     KamikazeTracker->Clear();
 
+    Vinifera_ObserverPtr = nullptr;
+
     JMP(0x005DC872);
 }
 
@@ -315,13 +317,13 @@ static void Init_Loading_Screen(const char* filename)
             const auto campaign_ext = Extension::Fetch<CampaignClassExtension>(Campaigns[Scen->CampaignID]);
             house = campaign_ext->House;
         }
+    }
+    else {
 
         /**
          *  The first player in the player array is always the local player, so
          *  fetch our player info and the house we are assigned as.
          */
-    }
-    else {
 
         HouseTypeClass* housetype = HouseTypes[Session.Players.Fetch_Head()->Player.House];
         house = housetype->House;
@@ -330,7 +332,7 @@ static void Init_Loading_Screen(const char* filename)
          *  Set the player's side. This would happen in Select_Game, but we
          *  do it here for the spawner, and to take advantage of fixups.
          */
-        Session.IsGDI = static_cast<unsigned char>(housetype->Side) & 0xFF;
+        reinterpret_cast<unsigned char&>(Session.IsGDI) = static_cast<unsigned char>(housetype->Side) & 0xFF;
     }
 
     /**
@@ -388,14 +390,13 @@ static void Init_Loading_Screen(const char* filename)
     /**
      *  The spawner can forcibly override the loading screen, and it already includes .PCX.
      */
-    if (Spawner::Active) {
-        const auto& spawnerconfig = Spawner::Get_Config();
+    if (Vinifera_SpawnerActive) {
 
-        if (Wstring(spawnerconfig->CustomLoadScreen).Is_Not_Empty()) {
-            std::snprintf(loadfilename, sizeof(loadfilename), "%s", spawnerconfig->CustomLoadScreen);
+        if (Wstring(Vinifera_SpawnerConfig->CustomLoadScreen).Is_Not_Empty()) {
+            std::snprintf(loadfilename, sizeof(loadfilename), "%s", Vinifera_SpawnerConfig->CustomLoadScreen);
 
-            if (spawnerconfig->CustomLoadScreenPos.Is_Valid()) {
-                textpos = spawnerconfig->CustomLoadScreenPos;
+            if (Vinifera_SpawnerConfig->CustomLoadScreenPos.Is_Valid()) {
+                textpos = Vinifera_SpawnerConfig->CustomLoadScreenPos;
             }
         }
     }

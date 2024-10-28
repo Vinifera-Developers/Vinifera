@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          SPAWNER.H
+ *  @file          AITRIGGERTYPEEXT_HOOKS.H
  *
- *  @author        Belonit, ZivDero
+ *  @author        ZivDero
  *
- *  @brief         Multiplayer spawner class.
+ *  @brief         Contains the hooks for the extended AITriggerType class.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -25,31 +25,46 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#pragma once
+#include "aitriggertypeext_hooks.h"
 
+#include "aitrigtype.h"
+#include "debughandler.h"
+#include "asserthandler.h"
 
-#include "spawnerconfig.h"
+#include "tibsun_globals.h"
+#include "house.h"
+#include "vector.h";
+
+#include "hooker.h"
+#include "hooker_macros.h"
+#include "scenario.h"
 #include "vinifera_globals.h"
 
 
 /**
- *  This class contains all logic for spawning players in-game (usually via the client).
+ *  Patch that AITriggerTypes no longer assume that not-GDI means Nod and vice versa.
+ *
+ *  @author: ZivDero
  */
-class Spawner
+DECLARE_PATCH(_AITriggerTypeClass_Process_MultiSide_Patch)
 {
-public:
-    Spawner() = delete;
+    GET_REGISTER_STATIC(AITriggerTypeClass*, trigtype, esi);
+    GET_REGISTER_STATIC(HouseClass*, house, ebp);
 
-    static void Init();
-    static bool Start_Game();
+    if (trigtype->MultiSide != 0 && trigtype->MultiSide != house->ActLike + 1)
+    {
+        // return 0;
+        JMP(0x00410A00);
+    }
 
-private:
-    static bool Start_Scenario(const char* scenario_name);
-    static bool Load_Game(const char* file_name);
+    JMP(0x00410A1F);
+}
 
-    static void Init_Network();
-    static bool Reconcile_Players();
 
-    static void Init_UI();
-    static void Prepare_Screen();
-};
+/**
+ *  Main function for patching the hooks.
+ */
+void AITriggerTypeClassExtension_Hooks()
+{
+    Patch_Jump(0x004109EF, &_AITriggerTypeClass_Process_MultiSide_Patch);
+}

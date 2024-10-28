@@ -130,6 +130,7 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
     ScrapMetal               = spawn_ini.Get_Bool(SETTINGS, "ScrapMetal", ScrapMetal);
     /* CustomLoadScreen   */   spawn_ini.Get_String(SETTINGS, "CustomLoadScreen", CustomLoadScreen, sizeof(CustomLoadScreen));
     CustomLoadScreenPos      = spawn_ini.Get_Point(SETTINGS, "CustomLoadScreenPos", CustomLoadScreenPos);
+    ContinueWithoutHumans    = spawn_ini.Get_Bool(SETTINGS, "ContinueWithoutHumans", ContinueWithoutHumans);
 }
 
 
@@ -196,22 +197,22 @@ void SpawnerConfig::PlayerConfig::Read_INI(CCINIClass& spawn_ini, int index)
 
     if (spawn_ini.Is_Present(SECTION))
     {
-        this->IsHuman = true;
-        this->Difficulty = -1;
+        IsHuman = true;
+        Difficulty = -1;
 
-        spawn_ini.Get_String(SECTION, "Name", this->Name, this->Name, sizeof(this->Name));
+        spawn_ini.Get_String(SECTION, "Name", Name, Name, sizeof(Name));
 
-        this->Color       = spawn_ini.Get_Int(SECTION, "Color", this->Color);
-        this->House       = spawn_ini.Get_Int(SECTION, "Side", this->House);
+        Color       = spawn_ini.Get_Int(SECTION, "Color", Color);
+        House       = spawn_ini.Get_Int(SECTION, "Side", House);
 
-        spawn_ini.Get_String(SECTION, "Ip", this->Ip, this->Ip, sizeof(this->Ip));
-        this->Port        = spawn_ini.Get_Int(SECTION, "Port", this->Port);
+        spawn_ini.Get_String(SECTION, "Ip", Ip, Ip, sizeof(Ip));
+        Port        = spawn_ini.Get_Int(SECTION, "Port", Port);
     }
     else if (!IsHuman)
     {
-        this->Color       = spawn_ini.Get_Int("HouseColors", MULTI_TAG, this->Color);
-        this->House       = spawn_ini.Get_Int("HouseCountries", MULTI_TAG, this->House);
-        this->Difficulty  = spawn_ini.Get_Int("HouseHandicaps", MULTI_TAG, this->Difficulty);
+        Color       = spawn_ini.Get_Int("HouseColors", MULTI_TAG, Color);
+        House       = spawn_ini.Get_Int("HouseCountries", MULTI_TAG, House);
+        Difficulty  = spawn_ini.Get_Int("HouseHandicaps", MULTI_TAG, Difficulty);
     }
 }
 
@@ -229,12 +230,27 @@ void SpawnerConfig::HouseConfig::Read_INI(CCINIClass& spawn_ini, int index)
     const char* ALLIANCES = AlliancesSectionArray[index];
     const char* MULTI_TAG = MultiTagArray[index];
 
-    this->IsSpectator     = spawn_ini.Get_Bool("IsSpectator", MULTI_TAG, this->IsSpectator);
-    this->SpawnLocation   = spawn_ini.Get_Int("SpawnLocations", MULTI_TAG, SpawnLocation);
+    IsObserver      = spawn_ini.Get_Bool("IsSpectator", MULTI_TAG, IsObserver);
+    SpawnLocation   = spawn_ini.Get_Int("SpawnLocations", MULTI_TAG, SpawnLocation);
+
+    /**
+     *  The client might pass these to indicate that this is an observer.
+     */
+    if (SpawnLocation == -1 || SpawnLocation == 90)
+    {
+        IsObserver = true;
+        SpawnLocation = -1;
+    }
+
+    /**
+     *  Reset any weird values we might receive as input.
+     */
+    if (SpawnLocation < 0 || SpawnLocation > MAX_PLAYERS - 1)
+        SpawnLocation = -1;
 
     if (spawn_ini.Is_Present(ALLIANCES))
     {
         for(int i = 0; i < 8; i++)
-            this->Alliances[i] = spawn_ini.Get_Int(ALLIANCES, AlliancesTagArray[i], this->Alliances[i]);
+            Alliances[i] = spawn_ini.Get_Int(ALLIANCES, AlliancesTagArray[i], Alliances[i]);
     }
 }

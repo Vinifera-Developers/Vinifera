@@ -140,7 +140,7 @@ DECLARE_PATCH(_MultiScore_568BE0_ElapsedTime_Patch)
 void MultiScoreExtension_Hooks()
 {
     Patch_Jump(0x005687A9, &_MultiScore_Tally_Score_Fetch_Largest_CreditsSpent_Score);
-    Patch_Jump(0x005689D5, &_MultiScore_Tally_Score_Calculate_Economy_Score);
+    //Patch_Jump(0x005689D5, &_MultiScore_Tally_Score_Calculate_Economy_Score); // temporarily disabled, causes assertion
     Patch_Jump(0x00568D10, &_MultiScore_568BE0_ElapsedTime_Patch);
 
     /**
