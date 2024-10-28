@@ -185,6 +185,8 @@ HRESULT TechnoTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
         return hr;
     }
 
+    ScrapExplosion.Save(pStm);
+
     return hr;
 }
 

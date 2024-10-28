@@ -70,10 +70,10 @@ public:
     bool Rockets(CCINIClass &ini);
     bool Tiberiums(CCINIClass &ini);
 
-        void Fixups(CCINIClass &ini);
+    void Fixups(CCINIClass &ini);
 
-    private:
-        void Check();
+private:
+    void Check();
 
 public:
     /**

@@ -29,37 +29,40 @@
 
 #include "abstracttypeext.h"
 #include "housetype.h"
+#include "wstring.h"
 
 
 class DECLSPEC_UUID(UUID_HOUSETYPE_EXTENSION)
 HouseTypeClassExtension final : public AbstractTypeClassExtension
 {
-    public:
-        /**
-         *  IPersist
-         */
-        IFACEMETHOD(GetClassID)(CLSID *pClassID);
+public:
+    /**
+     *  IPersist
+     */
+    IFACEMETHOD(GetClassID)(CLSID *pClassID);
 
-        /**
-         *  IPersistStream
-         */
-        IFACEMETHOD(Load)(IStream *pStm);
-        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+    /**
+     *  IPersistStream
+     */
+    IFACEMETHOD(Load)(IStream *pStm);
+    IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
 
-    public:
-        HouseTypeClassExtension(const HouseTypeClass *this_ptr = nullptr);
-        HouseTypeClassExtension(const NoInitClass &noinit);
-        virtual ~HouseTypeClassExtension();
+public:
+    HouseTypeClassExtension(const HouseTypeClass *this_ptr = nullptr);
+    HouseTypeClassExtension(const NoInitClass &noinit);
+    virtual ~HouseTypeClassExtension();
 
-        virtual int Size_Of() const override;
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
-        
-        virtual HouseTypeClass *This() const override { return reinterpret_cast<HouseTypeClass *>(AbstractTypeClassExtension::This()); }
-        virtual const HouseTypeClass *This_Const() const override { return reinterpret_cast<const HouseTypeClass *>(AbstractTypeClassExtension::This_Const()); }
-        virtual RTTIType What_Am_I() const override { return RTTI_HOUSETYPE; }
+    virtual int Size_Of() const override;
+    virtual void Detach(TARGET target, bool all = true) override;
+    virtual void Compute_CRC(WWCRCEngine &crc) const override;
+    
+    virtual HouseTypeClass *This() const override { return reinterpret_cast<HouseTypeClass *>(AbstractTypeClassExtension::This()); }
+    virtual const HouseTypeClass *This_Const() const override { return reinterpret_cast<const HouseTypeClass *>(AbstractTypeClassExtension::This_Const()); }
+    virtual RTTIType What_Am_I() const override { return RTTI_HOUSETYPE; }
 
-        virtual bool Read_INI(CCINIClass &ini) override;
+    virtual bool Read_INI(CCINIClass &ini) override;
 
-    public:
+public:
+
+    DynamicVectorClass<Wstring> LoadingScreens[3];
 };

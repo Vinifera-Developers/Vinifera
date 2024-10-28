@@ -47,6 +47,7 @@
 #include "gscreen.h"
 #include "housetype.h"
 #include "language.h"
+#include "housetypeext.h"
 #include "mouse.h"
 #include "ownrdraw.h"
 #include "saveload.h"
@@ -100,7 +101,6 @@ bool Spawner::Start_Game()
     GameActive = true;
 
     Init_UI();
-    Read_Houses_And_Sides();
 
     const bool result = Start_Scenario(Config->ScenarioName);
 
@@ -166,11 +166,6 @@ bool Spawner::Start_Scenario(const char* scenario_name)
     Seed = Config->Seed;
     BuildLevel = Config->TechLevel;
     Options.GameSpeed = Config->GameSpeed;
-
-    // Inverted for now as the sidebar hack until we reimplement loading
-    Session.IsGDI = true;// HouseTypes[Config->Players[0].House]->Get_Heap_ID();
-    //Session.IsGDI = HouseTypes[Config->Players[0].House]->Side != SIDE_NOD;
-    DEBUG_INFO("[Spawner] Session.IsGDI = %d\n", Session.IsGDI);
 
     Vinifera_NextAutoSaveNumber = Config->NextAutoSaveNumber;
 
@@ -515,19 +510,4 @@ void Spawner::Prepare_Screen()
 
     Map.TabClass::Activate(1);
     Map.SidebarClass::Flag_To_Redraw();
-}
-
-
-/**
- *  Reads Houses and Sides to Rules so that we can use them to choose a loading screen.
- *
- *  @author: ZivDero
- */
-void Spawner::Read_Houses_And_Sides()
-{
-    Rule->Houses(*RuleINI);
-    Rule->Sides(*RuleINI);
-
-    for (int i = 0; i < Houses.Count(); i++)
-        Houses[i]->Read_INI(*RuleINI);
 }

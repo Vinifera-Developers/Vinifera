@@ -48,27 +48,26 @@
 #include "ccini.h"
 #include "endgame.h"
 #include "addon.h"
-#include "house.h"
-#include "housetype.h"
 #include "side.h"
 #include "infantrytype.h"
-#include "unittype.h"
 #include "aircrafttype.h"
 #include "buildingtype.h"
 #include "progressscreen.h"
 #include "language.h"
 #include "wsproto.h"
-#include "rulesext.h"
 #include "ownrdraw.h"
 #include "spritecollection.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "campaignext.h"
+#include "housetypeext.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
 #include "kamikazetracker.h"
 #include "mouse.h"
+#include "spawner.h"
 #include "vinifera_globals.h"
 
 
@@ -227,24 +226,75 @@ int _Waypoint_From_Name(char* wp)
 }
 
 
+enum {
+    LS_400,
+    LS_480,
+    LS_600,
+    LS_SIZE_COUNT,
+    LS_SIZE_FIRST = LS_400
+};
+
+
+struct LoadingScreenConfig
+{
+    int SizeIndex;
+    TPoint2D<int> Size;
+    TPoint2D<int> SPPosition;
+    TPoint2D<int> MPPosition;
+};
+
+
+/**
+ *  This array contains the loading screen properties for different screen sizes.
+ */
+static LoadingScreenConfig LoadingScreenConfigs[]
+{
+    { LS_400, { 640, 400 }, { 436, 155 }, { 566, 152 } },
+    { LS_480, { 640, 480 }, { 436, 186 }, { 566, 177 } },
+    { LS_600, { 800, 600 }, { 546, 233 }, { 711, 227 } }
+};
+
+
+/**
+ *  Gets the loading screen roperties for the user's screen size.
+ *
+ *  @author: ZivDero
+ */
+static LoadingScreenConfig& Get_Loading_Screen_Config()
+{
+    for (int i = LS_SIZE_COUNT - 1; i > LS_SIZE_FIRST; i--) {
+        if (ScreenRect.Width >= LoadingScreenConfigs[i].Size.X && ScreenRect.Height >= LoadingScreenConfigs[i].Size.Y) {
+            return LoadingScreenConfigs[i];
+        }
+    }
+
+    return LoadingScreenConfigs[LS_SIZE_FIRST];
+}
+
+
 /**
  *  Reimplements the loading screen setup routine.
  * 
- *  @author: CCHyper
+ *  @author: CCHyper, ZivDero
  */
-static void Init_Loading_Screen(const char *filename)
+static void Init_Loading_Screen(const char* filename)
 {
-    int image_width = 640;
-    int image_height = 400;
-    int load_filename_height = 400;
-    char prefix = 'A';
+    /**
+     *  We need to read sides and houses now, because we need them to determine the player's
+     *  side and loading screens.
+     */
+    Rule->Sides(*RuleINI);
+    Rule->Houses(*RuleINI);
 
-    bool solo = Session.Singleplayer_Game();
-    int player_count = solo ? 1 : Session.Players.Count();
+    for (int i = 0; i < HouseTypes.Count(); i++)
+        HouseTypes[i]->Read_INI(*RuleINI);
+
+    for (int i = 0; i < HouseTypeExtensions.Count(); i++)
+        HouseTypeExtensions[i]->Read_INI(*RuleINI);
 
     /**
      *  #EDGE-CASE/#BUGFIX:
-     * 
+     *
      *  We need to do the fixup even earlier now as we need to use the Side
      *  value from the players HouseType.
      */
@@ -258,298 +308,116 @@ static void Init_Loading_Screen(const char *filename)
      *  For the campaign, we check to see if the scenario name contains either
      *  "GDI" or "NOD", and then set the side to those respectively.
      */
-    SideType side = SIDE_GDI;
+    HousesType house = HOUSE_GDI;
     if (Session.Type == GAME_NORMAL) {
-
         if (Scen->CampaignID != CAMPAIGN_NONE) {
 
-            const char *scen_name = Campaigns[Scen->CampaignID]->Scenario;
-
-            if (std::strstr(scen_name, "GDI")) {
-                side = SIDE_GDI;
-
-            } else if (std::strstr(scen_name, "NOD")) {
-                side = SIDE_NOD;
-            }
-
+            const auto campaign_ext = Extension::Fetch<CampaignClassExtension>(Campaigns[Scen->CampaignID]);
+            house = campaign_ext->House;
         }
 
-    /**
-     *  The first player in the player array is always the local player, so
-     *  fetch our player info and the house we are assigned as.
-     */
-    } else {
-        HousesType house = Session.Players.Fetch_Head()->Player.House;
-        HouseTypeClass *housetype = HouseTypes[house];
+        /**
+         *  The first player in the player array is always the local player, so
+         *  fetch our player info and the house we are assigned as.
+         */
+    }
+    else {
 
-        side = housetype->Side;
+        HouseTypeClass* housetype = HouseTypes[Session.Players.Fetch_Head()->Player.House];
+        house = housetype->House;
+
+        /**
+         *  Set the player's side. This would happen in Select_Game, but we
+         *  do it here for the spawner, and to take advantage of fixups.
+         */
+        Session.IsGDI = static_cast<unsigned char>(housetype->Side) & 0xFF;
     }
 
     /**
      *  Sanity check the side type.
      */
-    if (side == SIDE_NONE || side >= Sides.Count()) {
-        side = SIDE_GDI;
+    if (house == HOUSE_NONE || house >= HouseTypes.Count()) {
+        house = HOUSE_GDI;
+    }
+
+    const char* loadname;
+    TPoint2D<int> textpos;
+
+    /**
+     *  Fetch the loading screen properties for the user's screen size.
+     */
+    LoadingScreenConfig& ls_config = Get_Loading_Screen_Config();
+
+    /**
+     *  Fetch the according loading screen from the user's house's data.
+     */
+    const auto housetype_ext = Extension::Fetch<HouseTypeClassExtension>(HouseTypes[house]);
+    const auto& house_ls = housetype_ext->LoadingScreens[ls_config.SizeIndex];
+
+    loadname = house_ls[Sim_Random_Pick(0, house_ls.Count() - 1)].Peek_Buffer();
+    textpos = Session.Singleplayer_Game() ? ls_config.SPPosition : ls_config.MPPosition;
+
+    /**
+     *  Adjust the text position for Nod.
+     */
+    if (house == HOUSE_NOD) {
+        textpos.Y += 7;
     }
 
     /**
-     *  Get the loading screen variation prefix.
-     * 
-     *  #NOTE: Why does this use network random?
+     *  Fetch the loading screen override from the scenario.
      */
-    if (side == SIDE_GDI) {
-        prefix = Percent_Chance(50) ? 'C' : 'D';
+    const auto& ls_override = ScenExtension->LoadingScreens[ls_config.SizeIndex];
+    if (ls_override.Filename.Is_Not_Empty()) {
+        loadname = ls_override.Filename.Peek_Buffer();
 
-    } else if (side == SIDE_NOD) {
-        prefix = Percent_Chance(50) ? 'A' : 'B';
-
-    /**
-     *  #issue-665
-     *
-     *  The remaining characters can be used in standard order for new sides.
-     *  This gives us support for 11 new sides before this system breaks.
-     */
-    } else {
-        prefix = Percent_Chance(50) ? 'A' : 'B';
-        prefix += char(2*side); // Offset the character based on the side index.
-        if (prefix > 'Z') {
-            prefix = 'Z';
+        if (ls_override.Position.Is_Valid()) {
+            textpos = ls_override.Position;
         }
     }
 
-    Point2D textpos(0,0);
+    /**
+     *  Adjust the position of the text so it is correct for widescreen resolutions.
+     */
+    textpos.X += (ScreenRect.Width - ls_config.Size.X) / 2;
+    textpos.Y += (ScreenRect.Height - ls_config.Size.Y) / 2;
 
-    bool is_400 = ScreenRect.Width >= 640 && ScreenRect.Height == 400;
-    bool is_480 = ScreenRect.Width >= 640 && ScreenRect.Height == 480;
-    bool is_600 = ScreenRect.Width >= 800 && ScreenRect.Height >= 600; // (or higher).
+    char loadfilename[PATH_MAX];
+    std::snprintf(loadfilename, sizeof(loadfilename), "%s.PCX", loadname);
 
     /**
-     *  #issue-922
-     * 
-     *  Adds support for overriding the scenario loading screen.
-     * 
-     *  @author: CCHyper
+     *  The spawner can forcibly override the loading screen, and it already includes .PCX.
      */
-    const char *override_filename = nullptr;
-    Point2D override_loc = Point2D(0,0);
+    if (Spawner::Active) {
+        const auto& spawnerconfig = Spawner::Get_Config();
 
-    if (is_400 && std::strlen(ScenExtension->LoadingScreen400BackgroundName) > 0) {
-        override_filename = ScenExtension->LoadingScreen400BackgroundName;
+        if (Wstring(spawnerconfig->CustomLoadScreen).Is_Not_Empty()) {
+            std::snprintf(loadfilename, sizeof(loadfilename), "%s", spawnerconfig->CustomLoadScreen);
 
-    } else if (is_480 && std::strlen(ScenExtension->LoadingScreen480BackgroundName) > 0) {
-        override_filename = ScenExtension->LoadingScreen480BackgroundName;
-
-    } else if (is_600 && std::strlen(ScenExtension->LoadingScreen600BackgroundName) > 0) {
-        override_filename = ScenExtension->LoadingScreen600BackgroundName;
-    }
-    if (is_400 && ScenExtension->LoadingScreen400Loc.Is_Valid()) {
-        override_loc = ScenExtension->LoadingScreen400Loc;
-
-    } else if (is_480 && ScenExtension->LoadingScreen480Loc.Is_Valid()) {
-        override_loc = ScenExtension->LoadingScreen480Loc;
-
-    } else if (is_600 && ScenExtension->LoadingScreen600Loc.Is_Valid()) {
-        override_loc = ScenExtension->LoadingScreen600Loc;
-    }
-
-    if (!override_loc.Is_Valid()) {
-
-        /**
-         *  Set the progress text draw positions (resolves #issue-294).
-         */
-        if (is_400) {
-
-            /**
-             *  #issue-294
-             * 
-             *  Centralises the position of the loading screen text.
-             * 
-             *  Original code retained below.
-             */
-#if 0
-            if (solo) {
-                textpos.X = 440;
-                textpos.Y = 158;
-            } else {
-                textpos.X = 570;
-                textpos.Y = 155;
+            if (spawnerconfig->CustomLoadScreenPos.Is_Valid()) {
+                textpos = spawnerconfig->CustomLoadScreenPos;
             }
-#endif
-
-            /**
-             *  The text box is in slightly different positions between GDI and NOD.
-             */
-            if (side == SIDE_GDI) {
-                textpos.X = solo ? 435 : 435;
-                textpos.Y = solo ? 157 : 157;
-
-            } else if (side == SIDE_NOD) {
-                textpos.X = solo ? 436 : 436;
-                textpos.Y = solo ? 161 : 161;
-
-            /**
-             *  All other sides (uses the GDI offsets).
-             */
-            } else {
-                textpos.X = solo ? 435 : 435;
-                textpos.Y = solo ? 157 : 157;
-            }
-
-            image_width = 640;
-            image_height = 400;
-
-            load_filename_height = 400;
-
-        } else if (is_480) {
-
-            /**
-             *  #issue-294
-             *
-             *  Centralises the position of the loading screen text.
-             *
-             *  Original code retained below.
-             */
-#if 0
-            if (solo) {
-                textpos.X = 440;
-                textpos.Y = 189;
-            } else {
-                textpos.X = 570;
-                textpos.Y = 180;
-            }
-#endif
-
-            /**
-             *  The text box is in slightly different positions between GDI and NOD.
-             */
-            if (side == SIDE_GDI) {
-                textpos.X = solo ? 435 : 435;
-                textpos.Y = solo ? 195 : 195;
-
-            } else if (side == SIDE_NOD) {
-                textpos.X = solo ? 436 : 436;
-                textpos.Y = solo ? 200 : 200;
-
-            /**
-             *  All other sides (uses the GDI offsets).
-             */
-            } else {
-                textpos.X = solo ? 435 : 435;
-                textpos.Y = solo ? 195 : 195;
-            }
-
-            image_width = 640;
-            image_height = 480;
-
-            load_filename_height = 480;
-
-        } else if (is_600) {
-
-            /**
-             *  #issue-294
-             *
-             *  Centralises the position of the loading screen text.
-             *
-             *  Original code retained below.
-             */
-#if 0
-            if (solo) {
-                textpos.X = 550;
-                textpos.Y = 236;
-            } else {
-                textpos.X = 715;
-                textpos.Y = 230;
-            }
-#endif
-
-            /**
-             *  The text box is in slightly different positions between GDI and NOD.
-             */
-            if (side == SIDE_GDI) {
-                textpos.X = solo ? 563 : 563;
-                textpos.Y = solo ? 252 : 252;
-
-            } else if (side == SIDE_NOD) {
-                textpos.X = solo ? 565 : 565;
-                textpos.Y = solo ? 258 : 258;
-
-            /**
-             *  All other sides (uses the GDI offsets).
-             */
-            } else {
-                textpos.X = solo ? 563 : 563;
-                textpos.Y = solo ? 252 : 252;
-            }
-
-            image_width = 800;
-            image_height = 600;
-
-            load_filename_height = 600;
         }
-
-        /**
-         *  Adjust the position of the text so it is correct for widescreen resolutions.
-         */
-        textpos.X += (ScreenRect.Width - image_width) / 2;
-        textpos.Y += (ScreenRect.Height - image_height) / 2;
-
-        /**
-         *  Adjust the text positions for the Nod side graphics.
-         */
-        textpos.X -= 4;
-        if (side == SIDE_NOD) {
-            textpos.Y += 10;
-        } else {
-            textpos.Y += 3;
-        }
-
-    } else {
-
-        /**
-         *  A loading screen override has been found for this scenario, use its custom text position.
-         */
-        textpos = override_loc;
-
     }
 
-    /**
-     *  Build the loading screen filename.
-     *  Standard Format (if no override is present):
-     *    "LOAD[screen width][side char].PCX"
-     */
-    char loadname[32];
-    if (override_filename != nullptr) {
-        std::strncpy(loadname, override_filename, sizeof(loadname));
-    } else {
-        std::snprintf(loadname, sizeof(loadname), "LOAD%d%c.PCX", load_filename_height, prefix);
-    }
-
-    /**
-     *  Check to make sure the loading screen file can be found, if not, then
-     *  default to the GDI loading screen image set.
-     */
-    if (!CCFileClass(loadname).Is_Available()) {
-        DEV_DEBUG_INFO("Failed to find loading screen \"%s\"!\n", loadname);
-        std::snprintf(loadname, sizeof(loadname), "LOAD%d%c.PCX", load_filename_height, Sim_Percent_Chance(50) ? 'C' : 'D');
-    }
-
-    DEV_DEBUG_INFO("Loading Screen: \"%s\"\n", loadname);
+    DEV_DEBUG_INFO("Loading Screen: \"%s\"\n", loadfilename);
 
     /**
      *  If this is a tournament game, format the game id.
      */
     char gamenamebuffer[128];
-    const char *gamename = nullptr;
+    const char* gamename = nullptr;
 
     if (Session.Type == GAME_INTERNET && TournamentGameType == WOL::TOURNAMENT_0) {
-        std::snprintf(gamenamebuffer, sizeof(gamenamebuffer), Text_String(TXT_GAME_ID), GameID);
+        std::snprintf(gamenamebuffer, sizeof(gamenamebuffer), Text_String(TXT_GAME_ID), PlanetWestwoodGameID);
         gamename = gamenamebuffer;
     }
 
     /**
      *  Select the progress bar graphic depending on the game mode.
      */
-    const char *progress_name = player_count <= 1 ? "PROGBAR.SHP" : "PROGBARM.SHP";
+    const int player_count = Session.Singleplayer_Game() ? 1 : Session.Players.Count();
+    const char* progress_name = player_count <= 1 ? "PROGBAR.SHP" : "PROGBARM.SHP";
 
     /**
      *  Initialise the loading screen.
@@ -559,7 +427,7 @@ static void Init_Loading_Screen(const char *filename)
     /**
      *  Forces the initial draw, Call_Back calls will update the redraw from here on.
      */
-    ProgressScreen.Draw_Graphics(progress_name, loadname, gamename, textpos.X, textpos.Y);
+    ProgressScreen.Draw_Graphics(progress_name, loadfilename, gamename, textpos.X, textpos.Y);
     ProgressScreen.Draw_Bars_And_Text();
 }
 
@@ -581,374 +449,6 @@ DECLARE_PATCH(_Read_Scenario_Loading_Screen_Patch)
      *  Jump to setting broadcast addresses.
      */
     JMP(0x005DBD4A);
-}
-
-
-/**
- *  This is a real kludge to work around the fact that in Tiberian Sun, each
- *  of the side asset mix files contain their own versions of cameo artwork
- *  for the opposing side.
- * 
- *  We call Call_Back() after each iteration to ensure the network connection
- *  does not drop between clients in multiplayer games.
- * 
- *  @author: CCHyper
- */
-static bool Read_Scenario_INI_Reload_Cameo_For_Side()
-{
-    char buffer[32];
-
-    DEBUG_INFO("Reloading TechnoType cameos.\n");
-
-    Call_Back();
-
-    for (int index = 0; index < TechnoTypes.Count(); ++index) {
-
-        TechnoTypeClass *ttype = TechnoTypes[index];
-        std::snprintf(buffer, sizeof(buffer), "%s.SHP", ttype->CameoFilename);
-
-        const ShapeFileStruct *cameodata = MFCC::RetrieveT<const ShapeFileStruct>(buffer);
-
-        if (cameodata == nullptr) continue;
-
-        if (ttype->CameoData != nullptr && cameodata == ttype->CameoData) continue;
-
-        DEBUG_INFO("  Reloaded cameo for %s \"%s\" (%s).\n", Name_From_RTTI(RTTIType(ttype->What_Am_I())), ttype->Name(), buffer);
-        ttype->CameoData = cameodata;
-    }
-
-    DEBUG_INFO("Finished reloading TechnoType cameos.\n");
-
-    Call_Back();
-
-    return true;
-}
-
-
-/**
- *  Process the rules and scenario rules overrides.
- *
- *  @author: CCHyper
- */
-static bool Read_Scenario_INI_Rules_Process(CCINIClass &ini)
-{
-    /**
-     *  Initialise and process rules.
-     */
-    DEBUG_INFO("Initializeing Rules\n");
-    Rule->Initialize(*RuleINI);
-
-    Session.Loading_Callback(35);
-
-    Call_Back();
-
-    /**
-     *  Read global variables from rules.
-     */
-    DEBUG_INFO("Calling Scen->Read_Global_INI(*RuleINI)...\n");
-    Scen->Read_Global_INI(*RuleINI);
-
-    Call_Back();
-
-    /**
-     *  Process rules scenario overrides.
-     */
-    DEBUG_INFO("Calling Rule->Addition() with scenario overrides.\n");
-    Rule->Addition(ini);
-    DEBUG_INFO("Finished Rule->Addition() with scenario overrides.\n");
-
-    Session.Loading_Callback(45);
-
-    /**
-     *  Read in scenario house types.
-     */
-    if (Session.Type == GAME_NORMAL) {
-        DEBUG_INFO("Calling HouseClass::Read_Scenario_INI()...\n");
-        HouseClass::Read_Scenario_INI(ini);
-    }
-
-    Session.Loading_Callback(50);
-
-    /**
-     *  Read scenario basic.
-     */
-    DEBUG_INFO("Calling Scen->Read_INI()...\n");
-    if (!Scen->Read_INI(ini)) {
-        return false;
-    }
-
-    return true;
-}
-
-
-/**
- *  Initialise the player value which is later used to load the side assets.
- *
- *  @author: CCHyper
- */
-static bool Read_Scenario_INI_Init_Side(CCINIClass &ini)
-{
-    HouseTypeClass *housetype = nullptr;
-
-    /**
-     *  If this is a campaign session, load the house from the "Player" value.
-     */
-    if (Session.Type == GAME_NORMAL) {
-
-        char buffer[32];
-        ini.Get_String("Basic", "Player", "GDI", buffer, sizeof(buffer));
-
-#if 0
-        /**
-         *  Original game code.
-         */
-        bool is_gdi = strcmpi(buffer, "GDI") == 0;
-        Scen->IsGDI = is_gdi;
-        Scen->SpeechSide = is_gdi ? SIDE_GDI : SIDE_NOD;
-#endif
-
-        /**
-         *  Fetch the houses side type and use this to decide which assets to load.
-         */
-        housetype = (HouseTypeClass *)HouseTypeClass::As_Pointer(buffer);
-
-        Scen->IsGDI = (unsigned char)housetype->Side & 0xFF;
-        Scen->SpeechSide = housetype->Side;
-
-        ASSERT_FATAL_PRINT(housetype != nullptr, "Invalid \"Player\" value in [Basic] section!");
-
-        /**
-         *  Read speech side override.
-         */
-        Scen->SpeechSide = ini.Get_SideType("Basic", "SpeechSide", Scen->SpeechSide);
-
-        ASSERT_FATAL_PRINT(Scen->SpeechSide != SIDE_NONE && Scen->SpeechSide < Sides.Count(), "Invalid \"SpeechSide\" value in [Basic] section!");
-
-        /**
-         *  #issue-309
-         * 
-         *  Read sidebar side override.
-         */
-        ScenExtension->SidebarSide = ini.Get_SideType("Basic", "SidebarSide", housetype->Side);
-
-        ASSERT_FATAL_PRINT(ScenExtension->SidebarSide != SIDE_NONE && ScenExtension->SidebarSide < Sides.Count(), "Invalid \"SidebarSide\" value in [Basic] section!");
-
-    } else {
-
-#if 0
-        /**
-         *  Original game code.
-         */
-        Scen->IsGDI = Session.IsGDI;
-        Scen->SpeechSide = Session.IsGDI ? SIDE_GDI : SIDE_NOD;
-#endif
-
-        /**
-         *  Fetch the houses side type and use this to decide which assets to load.
-         */
-        housetype = (HouseTypeClass *)HouseTypeClass::As_Pointer(HousesType(PlayerPtr->Class->House));
-        ASSERT_FATAL_PRINT(housetype != nullptr, "Invalid multiplayer house!");
-
-        Scen->IsGDI = (unsigned char)housetype->Side & 0xFF;
-        Scen->SpeechSide = housetype->Side;
-        ScenExtension->SidebarSide = housetype->Side;
-
-    }
-
-    return true;
-}
-
-
-/**
- *  Initialise the player side assets (sidebar, speech, etc).
- *
- *  @author: CCHyper
- */
-static bool Read_Scenario_INI_Prep_For_Side()
-{
-    /**
-     *  Fetch the houses side type and use this to decide which assets to load.
-     */
-    HouseTypeClass *housetype = (HouseTypeClass *)HouseTypeClass::As_Pointer(HousesType(Scen->IsGDI));
-
-#ifndef NDEBUG
-    DEV_DEBUG_INFO("About to prepare for...\n");
-    DEV_DEBUG_INFO("  House \"%s\" (%d) with Side \"%s\" (%d)\n",
-        housetype->Name(), housetype->Get_Heap_ID(),
-        Sides[housetype->Side]->Name(), Sides[housetype->Side]->Get_Heap_ID());
-
-    DEV_DEBUG_INFO("Side info:\n");
-    for (int i = 0; i < Sides.Count(); ++i) {
-        SideClass *side = Sides[i];
-        DEV_DEBUG_INFO("  Side \"%s\" (%d), Houses.Count %d\n", side->IniName, i, side->Houses.Count());
-        for (int i = 0; i < side->Houses.Count(); ++i) {
-            DEV_DEBUG_INFO("    Houses %d = %s (%d)\n", i, HouseTypes[side->Houses[i]]->Name(), side->Houses[i]);
-        }
-    }
-#endif
-
-    DEBUG_INFO("Calling Prep_For_Side()...\n");
-    if (!Prep_For_Side(ScenExtension->SidebarSide)) {
-
-        DEBUG_WARNING("Prep_For_Side(%d) failed! Trying with side 0...\n", ScenExtension->SidebarSide);
-
-        /**
-         *  Try once again but with the Side 0 (GDI) assets.
-         */
-        if (!Prep_For_Side(SIDE_GDI)) {
-            DEBUG_ERROR("Prep_For_Side() failed!\n");
-            return false;
-        }
-    }
-
-    DEBUG_INFO("Calling Prep_Speech_For_Side()...\n");
-    if (!Prep_Speech_For_Side(Scen->SpeechSide)) {
-
-        DEBUG_WARNING("Prep_Speech_For_Side(%d) failed! Trying with side 0...\n", Scen->SpeechSide);
-
-        /**
-         *  Try once again but with the Side 0 (GDI) assets.
-         */
-        if (!Prep_Speech_For_Side(SIDE_GDI)) {
-            DEBUG_ERROR("Prep_Speech_For_Side() failed!\n");
-            return false;
-        }
-    }
-
-    Call_Back();
-
-    /**
-     *  #issue-913
-     * 
-     *  Clear the sprite collection database and reload the owner draw graphics.
-     * 
-     *  #NOTE: This is really, really bad voodoo, but we don't have any easy
-     *         way to clean a Dictionary class yet, so this will have to do.
-     */
-    {
-    SpriteCollection.SpriteCollectionClass::~SpriteCollectionClass();
-    SpriteCollection.SpriteCollectionClass::SpriteCollectionClass();
-    OwnerDraw::Load_Graphics();
-    }
-
-    Call_Back();
-
-    return true;
-}
-
-
-/**
- *  #issue-218
- *
- *  This patch replaces a fairly large chunk of code in Read_Scenario_INI that
- *  read/initialised the player house, loaded the side assets, then processed the
- *  rules data and scenario overrides.
- * 
- *  Because we now abuse ScenarioClass::IsGDI and SessionClass::IsGDI to store
- *  the player house, we need to reorder this chunk of code to we are reading
- *  the house types before we load the side assets, this allows us to use the
- *  Side member of HouseTypeClass to pick the correct assets.
- * 
- *  There is an additional chunk of code that has been added to reload the object
- *  cameos a second time, this is because the loading of the side assets is now
- *  before the rules initialisation, and as a result, the rules data is being
- *  processed before the side assets are declared to the mix file system.
- */
-DECLARE_PATCH(_Read_Scenario_INI_Init_Side_Patch)
-{
-    GET_REGISTER_STATIC(CCINIClass *, ini, ebp);
-
-    /**
-     *  The original code flow was;
-     *    Read [Basic] -> Player=
-     *    Prep_For_Side
-     *    Process Rules.
-     * 
-     *  To support assets for new sides, be now need to move
-     *  the rules processing to before the side and asset loading.
-     */
-
-    if (!Read_Scenario_INI_Rules_Process(*ini)) {
-        goto return_false;
-    }
-
-    if (!Read_Scenario_INI_Init_Side(*ini)) {
-        goto return_false;
-    }
-
-    if (!Read_Scenario_INI_Prep_For_Side()) {
-        goto return_false;
-    }
-
-    if (!Read_Scenario_INI_Reload_Cameo_For_Side()) {
-        goto return_false;
-    }
-
-    JMP(0x005DD956);
-
-return_false:
-    _asm{ xor al, al }
-    JMP_REG(ecx, 0x005DD7AB);
-}
-
-
-/**
- *  Process additions to the Rules data from the input file.
- * 
- *  @author: CCHyper
- */
-static bool Rule_Addition(const char *fname, bool with_digest = false)
-{
-    CCFileClass file(fname);
-    if (!file.Is_Available()) {
-        return false;
-    }
-
-    CCINIClass ini;
-    if (!ini.Load(file, with_digest)) {
-        return false;
-    }
-
-    DEBUG_INFO("Calling Rule->Addition() with \"%s\" overrides.\n", fname);
-
-    Rule->Addition(ini);
-
-    return true;
-}
-
-
-/**
- *  #issue-#671
- * 
- *  Add loading of MPLAYER.INI to override Rules data for multiplayer games.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_Read_Scenario_INI_MPlayer_INI_Patch)
-{
-    if (Session.Type != GAME_NORMAL && Session.Type != GAME_WDT) {
-
-        /**
-         *  Process the multiplayer ini overrides.
-         */
-        Rule_Addition("MPLAYER.INI");
-        if (Addon_Enabled(ADDON_FIRESTORM)) { 
-            Rule_Addition("MPLAYERFS.INI");
-        }
-
-    }
-
-    /**
-     *  Update the progress screen bars.
-     */
-    Session.Loading_Callback(42);
-
-    /**
-     *  Stolen bytes/code.
-     */
-    Call_Back();
-
-    JMP(0x005DD8DA);
 }
 
 
@@ -1044,7 +544,6 @@ void ScenarioClassExtension_Hooks()
      *  because we now use it as a HouseType index, and need it to default to the first index.
      */
     Patch_Byte(0x005DAFD0+6, 0x00); // +6 skips the opcode.
-    Patch_Jump(0x005DD6FB, &_Read_Scenario_INI_Init_Side_Patch);
 
     Patch_Jump(0x005DBA8B, &_Read_Scenario_Loading_Screen_Patch);
 }

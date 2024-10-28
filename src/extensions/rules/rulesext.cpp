@@ -371,6 +371,7 @@ void RulesClassExtension::Initialize(CCINIClass &ini)
 {
     //EXT_DEBUG_TRACE("RulesClassExtension::Initialize - 0x%08X\n", (uintptr_t)(This()));
 
+    ArmorTypeClass::One_Time();
 }
 
 

@@ -624,9 +624,9 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
      *  bugfix works without extending any of the games classes, but this does mean we
      *  are limited to 255 unique houses!
      */
-    HousesType house = HousesType(Scen->IsGDI);
+    const HousesType house = static_cast<HousesType>(Scen->IsGDI);
     ASSERT_FATAL(house != HOUSE_NONE & house < HouseTypes.Count());
-    HouseTypeClass* housetype = HouseTypes[house];
+    const HouseTypeClass* housetype = HouseTypes[house];
     ASSERT_FATAL(housetype != nullptr);
 
     /**

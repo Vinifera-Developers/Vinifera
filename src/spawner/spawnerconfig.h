@@ -170,6 +170,8 @@ public:
     bool UseMPAIBaseNodes;
     bool AttackNeutralUnits;
     bool ScrapMetal;
+    char CustomLoadScreen[PATH_MAX];
+    TPoint2D<int> CustomLoadScreenPos;
 
     SpawnerConfig()
         : Bases { true }
@@ -254,6 +256,8 @@ public:
         , UseMPAIBaseNodes { false }
         , AttackNeutralUnits{ false }
         , ScrapMetal { false }
+        , CustomLoadScreen { "" }
+        , CustomLoadScreenPos {}
     { }
 
     void Read_INI(CCINIClass& spawn_ini);
