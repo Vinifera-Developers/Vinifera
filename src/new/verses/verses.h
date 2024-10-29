@@ -43,6 +43,7 @@ public:
     static HRESULT Load(IStream* pStm);
 
     static void Resize();
+    static void Clear();
 
     static void Set_Modifier(ArmorType armor, WarheadType warhead, double value);
     static double Get_Modifier(ArmorType armor, WarheadType warhead);

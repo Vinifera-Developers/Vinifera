@@ -89,8 +89,7 @@ void RulesClassExt::_Process(CCINIClass &ini)
  */
 void RulesClassExt::_Initialize(CCINIClass& ini)
 {
-    ArmorTypeClass::One_Time();
-
+    RuleExtension->Initialize(ini);
     RulesClass::Initialize(ini);
 }
 
