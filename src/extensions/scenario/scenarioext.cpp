@@ -1455,7 +1455,7 @@ void ScenarioClassExtension::Assign_Starting_Positions(bool official)
                 StartingPositionCells[house] = centroid;
                 StartingPositions[house] = -1;
 
-                DEBUG_INFO("  House %d (%s) observing at random cell (%d,%d)\n", house, hptr->IniName, StartingPositions[house], centroid.X, centroid.Y);
+                DEBUG_INFO("  House %d (%s) observing at random cell (%d,%d)\n", house, hptr->IniName, centroid.X, centroid.Y);
                 continue;
             }
 
