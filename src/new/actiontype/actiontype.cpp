@@ -150,7 +150,7 @@ ActionTypeClass ActionTypeClass::ActionControl[ACTION_COUNT] = {
     ActionTypeClass(ActionNames[ACTION_ENTER_WAYPOINT],       MOUSE_ENTER_WAYPOINT,       MOUSE_ENTER_WAYPOINT),      // ACTION_ENTER_WAYPOINT
     ActionTypeClass(ActionNames[ACTION_PATROL_WAYPOINT],      MOUSE_PATROL_WAYPOINT,      MOUSE_PATROL_WAYPOINT),     // ACTION_PATROL_WAYPOINT
     ActionTypeClass(ActionNames[ACTION_DROP_POD],             MOUSE_AIR_STRIKE,           MOUSE_AIR_STRIKE),          // ACTION_DROP_POD
-    ActionTypeClass(ActionNames[ACTION_RALLY_TO_POINT],       NO_MOUSE_SHAPE,             NO_MOUSE_SHAPE),            // ACTION_RALLY_TO_POINT
+    ActionTypeClass(ActionNames[ACTION_RALLY_TO_POINT],       MOUSE_CAN_MOVE,             NO_MOUSE_SHAPE),            // ACTION_RALLY_TO_POINT
     ActionTypeClass(ActionNames[ACTION_ATTACK_SUPPORT],       NO_MOUSE_SHAPE,             NO_MOUSE_SHAPE)             // ACTION_ATTACK_SUPPORT
 };
 

@@ -446,7 +446,7 @@ Vanilla actions are always present implicitly, but their properties **can** be o
     EnterWaypoint=EnterWaypoint,EnterWaypoint
     PatrolWaypoint=PatrolWaypoint,PatrolWaypoint
     DropPod=AirStrike,AirStrike
-    RallyToPoint=Normal,Normal
+    RallyToPoint=CanMove,Normal
     AttackSupport=Normal,Normal
 
     ```
