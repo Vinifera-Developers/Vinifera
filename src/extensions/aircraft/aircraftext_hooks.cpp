@@ -102,11 +102,9 @@ bool AircraftClassExt::_Unlimbo(Coordinate& coord, DirType dir)
         }
 
         /**
-         *  Hack it so that aircraft that are both passenger and cargo carrying
-         *  will carry passengers at the expense of ammo.
+         *  If this aicraft has passangers, mark it accordingly.
          */
         if (Cargo.Is_Something_Attached()) {
-            Ammo = 0;
             Passenger = true;
         }
 
