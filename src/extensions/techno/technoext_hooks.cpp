@@ -1211,7 +1211,7 @@ void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
 
     if (IsActive && What_Am_I() != RTTI_UNIT && Tag) Tag->Spring(TEVENT_FAKES_DESTROYED, this);
 
-    if (source && !typeext->IsDontScore) {
+    if (source && !typeext->IsDontScore && !House->Is_Ally(source)) {
 
         const auto source_ext = Extension::Fetch<TechnoClassExtension>(source);
         const auto source_typeext = Extension::Fetch<TechnoTypeClassExtension>(source->Techno_Type_Class());
