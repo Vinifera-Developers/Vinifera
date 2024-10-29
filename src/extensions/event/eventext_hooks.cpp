@@ -464,9 +464,9 @@ void EventClassExt::_Event_Response_Time()
 void EventClassExt::_Event_SaveGame()
 {
     /**
-     *  Save on the NEXT frame so that players see the message before the save.
+     *  Mark that we'd like to save the game.
      */
-    Vinifera_DoSave = Frame + 1;
+    Vinifera_DoSave = true;
 }
 
 

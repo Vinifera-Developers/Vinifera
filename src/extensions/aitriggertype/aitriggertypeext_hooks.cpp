@@ -51,12 +51,16 @@ DECLARE_PATCH(_AITriggerTypeClass_Process_MultiSide_Patch)
     GET_REGISTER_STATIC(AITriggerTypeClass*, trigtype, esi);
     GET_REGISTER_STATIC(HouseClass*, house, ebp);
 
+    _asm push ecx
+
     if (trigtype->MultiSide != 0 && trigtype->MultiSide != house->ActLike + 1)
     {
         // return 0;
+        _asm pop ecx
         JMP(0x00410A00);
     }
 
+    _asm pop ecx
     JMP(0x00410A1F);
 }
 

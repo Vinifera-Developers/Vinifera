@@ -51,7 +51,6 @@
 class HouseClassExt : public HouseClass
 {
 public:
-    bool _Is_Observer() const;
     bool _Is_Ally_Or_Observer(const HouseClassExt* house) const;
     void _Update_Radars();
     bool _Has_Player_Allies() const;
@@ -59,25 +58,13 @@ public:
 
 
 /**
- *  Helper function that returns if the house is a observer.
- *
- *  @author: ZivDero
- */
-bool HouseClassExt::_Is_Observer() const
-{
-    HouseClassExtension* ext = Extension::Fetch<HouseClassExtension>(this);
-    return ext->IsObserver;
-}
-
-
-/**
- *  Helper function that returns if the house is allied to the other house, or is a observer.
+ *  Helper function that returns if the house is allied to the other house, or if the player's house is the observer.
  *
  *  @author: ZivDero
  */
 bool HouseClassExt::_Is_Ally_Or_Observer(const HouseClassExt* house) const
 {
-    return Is_Ally(house) || _Is_Observer() || house->_Is_Observer();
+    return Is_Ally(house) || PlayerPtr == Vinifera_ObserverPtr;
 }
 
 
@@ -227,14 +214,13 @@ void Observer_Hooks()
     Patch_Call(0x00506DFC, &DisplayClassExt::_Encroach_Fog_Observer);
     Patch_Call(0x00507309, &DisplayClassExt::_Encroach_Fog_Observer);
     Patch_Jump(0x004C9684, &_HouseClass_Radar_Outage_Observers);
-    Patch_Call(0x0043852B, &HouseClassExt::_Is_Ally_Or_Observer);
-    Patch_Call(0x00438540, &HouseClassExt::_Is_Ally_Or_Observer);
-    Patch_Call(0x00633E85, &HouseClassExt::_Is_Ally_Or_Observer);
-    Patch_Call(0x00633E9F, &HouseClassExt::_Is_Ally_Or_Observer);
-    Patch_Call(0x0062C6CE, &HouseClassExt::_Is_Ally_Or_Observer);
-    Patch_Call(0x0062CA26, &HouseClassExt::_Is_Ally_Or_Observer);
-    Patch_Call(0x00428A23, &HouseClassExt::_Is_Ally_Or_Observer);
-    Patch_Call(0x0047B0BB, &HouseClassExt::_Is_Ally_Or_Observer);
+    Patch_Call(0x0043852B, &HouseClassExt::_Is_Ally_Or_Observer);  // BuildingClass::Visual_Character
+    Patch_Call(0x00438540, &HouseClassExt::_Is_Ally_Or_Observer);  // BuildingClass::Visual_Character
+    Patch_Call(0x00633E85, &HouseClassExt::_Is_Ally_Or_Observer);  // TechnoClass::Visual_Character
+    Patch_Call(0x00633E9F, &HouseClassExt::_Is_Ally_Or_Observer);  // TechnoClass::Visual_Character
+    Patch_Call(0x0062C6CE, &HouseClassExt::_Is_Ally_Or_Observer);  // TechnoClass::Draw_Health_Bar
+    Patch_Call(0x0062CA26, &HouseClassExt::_Is_Ally_Or_Observer);  // TechnoClass::Draw_Health_Bar
+    Patch_Call(0x0047B0BB, &HouseClassExt::_Is_Ally_Or_Observer);  // DisplayClass::ToolTip_Text
     Patch_Call(0x004BC608, &HouseClassExt::_Update_Radars);
     Patch_Call(0x004BF5D6, &MapClassExt::_Reveal_The_Map);
 }

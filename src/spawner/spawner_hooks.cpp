@@ -28,7 +28,6 @@
 
 #include "spawner_hooks.h"
 
-#include "autosurrender_hooks.h"
 #include "hooker.h"
 #include "hooker_macros.h"
 #include "session.h"
@@ -104,12 +103,11 @@ DECLARE_PATCH(_HouseClass_Expert_AI_Check_Allies)
 DECLARE_PATCH(_Play_VQA_Forbid_Skipping_In_MP_Patch)
 {
     GET_STACK_STATIC8(bool, cant_break_out, esp, 0x40);
-    cant_break_out |= (Session.Type != GAME_NORMAL && Session.Type != GAME_SKIRMISH);
 
     /**
      *  Don't skip the movie.
      */
-    if (cant_break_out)
+    if (cant_break_out || (Session.Type != GAME_NORMAL && Session.Type != GAME_SKIRMISH))
     {
         JMP(0x0066BA30);
     }
@@ -154,6 +152,28 @@ DECLARE_PATCH(_Play_VQA_Network_Callback_Patch)
 
 
 /**
+ *  Prevents AI Takeover if autosurrender is turned on.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_Destroy_Connection_AutoSurrender_Patch)
+{
+    GET_REGISTER_STATIC(HouseClass*, hptr, ebp);
+
+    if ((Session.Type == GAME_INTERNET && PlanetWestwoodTournament) || (Vinifera_SpawnerActive && Vinifera_SpawnerConfig->AutoSurrender))
+    {
+        hptr->Flag_To_Die();
+    }
+    else
+    {
+        hptr->AI_Takeover();
+    }
+
+    JMP(0x0057526B);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void Spawner_Hooks()
@@ -190,12 +210,16 @@ void Spawner_Hooks()
     Patch_Jump(0x0066BA56, &_Play_VQA_Network_Callback_Patch);
 
     /**
+     *  AutoSurrender feature.
+     */
+    Patch_Jump(0x0057524A, &_Destroy_Connection_AutoSurrender_Patch);
+
+    /**
      *  Hooks for various sub-modules.
      */
     ProtocolZero_Hooks();
     Observer_Hooks();
     QuickMatch_Hooks();
-    AutoSurrender_Hooks();
     Statistics_Hooks();
     MPAIBaseNodes_Hooks();
     SpawnHouses_Hooks();

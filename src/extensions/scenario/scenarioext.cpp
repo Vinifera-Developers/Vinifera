@@ -870,14 +870,23 @@ bool ScenarioClassExtension::Load_Scenario(CCINIClass& ini, bool random)
     Session.Loading_Callback(45);
 
     /**
+     *  Read in the specific information for each of the house types. This creates
+     *  the houses of different types.
+     */
+    if (Session.Type == GAME_NORMAL) {
+        DEBUG_INFO("Reading in scenario house types\n");
+        HouseClass::Read_Scenario_INI(ini);
+    }
+
+    /**
+     *  Init the Scenario CRC value
+     */
+    ScenarioCRC = 0;
+
+    /**
      *  Read scenario data from the scenario INI.
      */
     if (Scen->Read_INI(ini)) {
-
-        /**
-         *  Init the Scenario CRC value
-         */
-        ScenarioCRC = 0;
 
         Session.Loading_Callback(50);
 
@@ -967,15 +976,6 @@ bool ScenarioClassExtension::Load_Scenario(CCINIClass& ini, bool random)
                 }
 
                 Call_Back();
-
-                /**
-                 *  Read in the specific information for each of the house types. This creates
-                 *  the houses of different types.
-                 */
-                if (Session.Type == GAME_NORMAL) {
-                    DEBUG_INFO("Reading in scenario house types\n");
-                    HouseClass::Read_Scenario_INI(ini);
-                }
 
                 /**
                  *  Outside of campaign, the spawner may request that we read base nodes for
