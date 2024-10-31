@@ -271,7 +271,7 @@ void EventClassExt::_Event_Idle()
             if (extension->SpawnManager)
                 extension->SpawnManager->Abandon_Target();
 
-            if (techno->What_Am_I() == RTTI_UNIT && static_cast<UnitClass*>(techno)->Class->IsToHarvest &&
+            if (techno->What_Am_I() == RTTI_UNIT && (static_cast<UnitClass*>(techno)->Class->IsToHarvest || static_cast<UnitClass*>(techno)->Class->IsToVeinHarvest) &&
                 (techno->Get_Mission() == MISSION_HARVEST || techno->Get_Mission() == MISSION_RETURN)) {
                 techno->Assign_Mission(MISSION_GUARD);
                 techno->Commence();
