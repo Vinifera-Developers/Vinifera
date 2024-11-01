@@ -506,6 +506,7 @@ void ScenarioClassExtension_Hooks()
      *
      *  @author: CCHyper, ZivDero
      */
+    Patch_Jump(0x005DB170, &ScenarioClassExtension::Start_Scenario);
     //Patch_Jump(0x005DD100, &ScenarioClassExtension::Read_Scenario_INI); // Identical to vanilla for now, but missing a timer
     Patch_Jump(0x005DD4C0, &ScenarioClassExtension::Load_Scenario);
     Patch_Jump(0x005DE210, &ScenarioClassExtension::Assign_Houses);

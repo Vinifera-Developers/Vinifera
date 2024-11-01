@@ -155,115 +155,6 @@ DECLARE_PATCH(_Play_Movie_Scale_By_Ratio_Patch)
 /**
  *  #issue-95
  * 
- *  Patch for handling the campaign intro movies
- *  for "The First Decade" and "Freeware TS" installations.
- * 
- *  @author: CCHyper
- */
-static bool Play_Intro_Movie(CampaignType campaign_id)
-{
-    /**
-     *  Catch any cases where we might be starting a non-campaign scenario.
-     */
-    if (campaign_id == CAMPAIGN_NONE) {
-        return false;
-    }
-
-    if (Scen->Scenario != 1) {
-        return false;
-    }
-
-    char movie_filename[32];
-    VQType intro_vq = VQ_NONE;
-
-    /**
-     *  Fetch the campaign disk id.
-     */
-    CampaignClass *campaign = Campaigns[campaign_id];
-    DiskID cd_num = campaign->WhichCD;
-
-    /**
-     *  Check if the current campaign is an original GDI or NOD campaign.
-     */
-    bool is_original_gdi = (cd_num == DISK_GDI && (Wstring(campaign->IniName) == "GDI1" || Wstring(campaign->IniName) == "GDI1A") && Wstring(campaign->Scenario) == "GDI1A.MAP");
-    bool is_original_nod = (cd_num == DISK_NOD && (Wstring(campaign->IniName) == "NOD1" || Wstring(campaign->IniName) == "NOD1A") && Wstring(campaign->Scenario) == "NOD1A.MAP");
-
-    /**
-     *  #issue-762
-     * 
-     *  Fetch the campaign extension (if available) and get the custom intro movie.
-     * 
-     *  @author: CCHyper
-     */
-    CampaignClassExtension *campaignext = Extension::Fetch<CampaignClassExtension>(campaign);
-    if (campaignext->IntroMovie[0] != '\0') {
-        std::snprintf(movie_filename, sizeof(movie_filename), "%s.VQA", campaignext->IntroMovie);
-        DEBUG_INFO("About to play \"%s\".\n", movie_filename);
-        Play_Movie(movie_filename);
-
-    /**
-     *  If this is an original Tiberian Sun campaign, play the respective intro movie.
-     */
-    } else if (is_original_gdi || is_original_nod) {
-
-        /**
-         *  "The First Decade" and "Freeware TS" installations reshuffle
-         *  the movie files due to all mix files being local now and a
-         *  primitive "no-cd" added;
-         *  
-         *  MOVIES01.MIX -> INTRO.VQA (GDI) is now INTR0.VQA
-         *  MOVIES02.MIX -> INTRO.VQA (NOD) is now INTR1.VQA
-         * 
-         *  Build the movie filename based on the current campaigns desired CD (see DiskID enum). 
-         */
-        std::snprintf(movie_filename, sizeof(movie_filename), "INTR%d.VQA", cd_num);
-
-        /**
-         *  Now play the movie if it is found, falling back to original behavior otherwise.
-         */
-        if (CCFileClass(movie_filename).Is_Available()) {
-            DEBUG_INFO("About to play \"%s\".\n", movie_filename);
-            Play_Movie(movie_filename);
-
-        } else if (CCFileClass("INTRO.VQA").Is_Available()) {
-            DEBUG_INFO("About to play \"INTRO.VQA\".\n");
-            Play_Movie("INTRO.VQA");
-
-        } else {
-            DEBUG_WARNING("Failed to find Intro movie!\n");
-            return false;
-        }
-
-    } else {
-        DEBUG_WARNING("No campaign intro movie defined.\n");
-    }
-
-    return true;
-}
-
-DECLARE_PATCH(_Start_Scenario_Intro_Movie_Patch)
-{
-    GET_REGISTER_STATIC(CampaignType, campaign_id, ebx);
-    GET_REGISTER_STATIC(char *, name, ebp);
-
-    Play_Intro_Movie(campaign_id);
-
-read_scenario:
-    //JMP(0x005DB319);
-
-    /**
-     *  The First Decade" and "Freeware TS" EXE's actually have patched code at
-     *  the address 0x005DB319, so lets handle the debug log print ourself and
-     *  jump back at a safe location.
-     */
-    DEBUG_GAME("Reading scenario: %s\n", name);
-    JMP(0x005DB327);
-}
-
-
-/**
- *  #issue-95
- * 
  *  Patch for handling the campaign intro movies for "The First Decade"
  *  and "Freeware TS" installations when selecting "Intro / Sneak Peak" on
  *  the main menu.
@@ -347,7 +238,6 @@ DECLARE_PATCH(_Select_Game_Intro_SneakPeak_Movies_Patch)
  */
 void PlayMovieExtension_Hooks()
 {
-    Patch_Jump(0x005DB2DE, &_Start_Scenario_Intro_Movie_Patch);
     Patch_Jump(0x004E2796, &_Select_Game_Intro_SneakPeak_Movies_Patch);
 
     /**

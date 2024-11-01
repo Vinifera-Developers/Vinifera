@@ -44,7 +44,7 @@ public:
     static bool Start_Game();
 
 private:
-    static bool Start_Scenario(const char* scenario_name);
+    static bool Start_Scenario(char* scenario_name);
     static bool Load_Game(const char* file_name);
 
     static void Init_Network();

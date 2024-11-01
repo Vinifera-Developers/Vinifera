@@ -1278,11 +1278,6 @@ bool TActionClassExt::_TAction_Disable_Short_Game(HouseClass* house, ObjectClass
  */
 bool TActionClassExt::_TAction_Print_Difficulty(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell)
 {
-    /**
-     *  Calculate the message delay.
-     */
-    const int message_delay = Rule->MessageDelay * TICKS_PER_MINUTE;
-
     constexpr char difficulty_names[3][20] = {
         "Difficulty: Easy",
         "Difficulty: Medium",
@@ -1292,7 +1287,7 @@ bool TActionClassExt::_TAction_Print_Difficulty(HouseClass* house, ObjectClass* 
     /**
      *  Send the message.
      */
-    Session.Messages.Add_Message(nullptr, 0, difficulty_names[Options.Difficulty], static_cast<ColorSchemeType>(4), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, message_delay);
+    Session.Messages.Add_Message(nullptr, 0, difficulty_names[Options.Difficulty], static_cast<ColorSchemeType>(4), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
 
     return true;
 }

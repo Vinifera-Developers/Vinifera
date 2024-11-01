@@ -111,7 +111,7 @@ bool Spawner::Start_Game()
  *
  *  @author: ZivDero
  */
-bool Spawner::Start_Scenario(const char* scenario_name)
+bool Spawner::Start_Scenario(char* scenario_name)
 {
     /**
      *  Can't read an unnamed file, bail.

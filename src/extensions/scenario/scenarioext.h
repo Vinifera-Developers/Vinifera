@@ -74,6 +74,7 @@ public:
 
     const char *Waypoint_As_String(WaypointType wp) const;
 
+    static bool Start_Scenario(char* name, bool briefing, CampaignType campaignid);
     static bool Read_Scenario_INI(const char* root, bool);
     static bool Load_Scenario(CCINIClass& ini, bool random = false);
 

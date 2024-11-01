@@ -52,6 +52,7 @@
 #include "swizzle.h"
 #include "vinifera_saveload.h"
 #include "asserthandler.h"
+#include "campaign.h"
 #include "cd.h"
 #include "debughandler.h"
 #include "houseext.h"
@@ -75,6 +76,12 @@
 #include "tube.h"
 #include "veinholemonster.h"
 #include "optionsext.h"
+#include "theme.h"
+#include "multimiss.h"
+#include "playmovie.h"
+#include "restate.h"
+#include "wwmouse.h"
+#include "campaignext.h"
 
 
 /**
@@ -664,6 +671,268 @@ const char * ScenarioClassExtension::Waypoint_As_String(WaypointType wp) const
 
     return "";
 }
+
+
+/**
+ *  Starts the scenario.
+ *
+ *  @author: 07/04/1995 JLB : Red Alert Source Code
+ *           01/11/2024 ZivDero : Adjustments for Tiberian Sun
+ */
+bool ScenarioClassExtension::Start_Scenario(char* name, bool briefing, CampaignType campaignid)
+{
+    /**
+     *  If there is no scenario name supplied, but we got a campaign id, fetch the scenario name from the campaign.
+     */
+    if ((name == nullptr || std::strlen(name) == 0) && campaignid != CAMPAIGN_NONE) {
+        name = Campaigns[campaignid]->Scenario;
+    }
+
+    /**
+     *  Set the current campaign ID.
+     */
+    Scen->CampaignID = campaignid;
+
+    DEBUG_INFO("\n----- Starting scnenario: %s -----\n", name);
+    DEBUG_INFO("Player Count: %d\n", Session.Players.Count());
+
+    /**
+     *  Set the scenario name.
+     */
+    std::strcpy(Scen->ScenarioName, name);
+    _strupr(Scen->ScenarioName);
+
+    Theme.Stop();
+
+    /**
+     *  Play the winning movie and then start the next scenario.
+     */
+    CD::Set_Required_CD(DISK_ANY);
+
+    if (Session.Type == GAME_NORMAL) {
+        if (Scen->CampaignID != CAMPAIGN_NONE) {
+            DiskID disk = Campaigns[Scen->CampaignID]->WhichCD;
+            CD::Set_Required_CD(disk);
+        }
+    }
+    else if (Session.Options.ScenarioIndex != -1) {
+        MultiMission* mission = Session.Scenarios[Session.Options.ScenarioIndex];
+        DiskID CurrentDisk = CD::Get_Volume_Index();
+        if (!mission->Is_Available(CurrentDisk)) {
+            DiskID disk = mission->Get_Disk();
+            CD::Set_Required_CD(disk);
+        }
+    }
+
+    Session.Suspended++;
+    if (CD().Is_Available(CD::RequiredCD)) {
+
+        Session.Suspended--;
+        if (briefing && campaignid != CAMPAIGN_NONE && Scen->Scenario == 1) {
+
+            /**
+             *  #issue-95
+             *
+             *  Patch for handling the campaign intro movies
+             *  for "The First Decade" and "Freeware TS" installations.
+             *
+             *  @author: CCHyper
+             */
+            char movie_filename[32];
+
+            /**
+             *  Fetch the campaign disk id.
+             */
+            CampaignClass* campaign = Campaigns[campaignid];
+            DiskID cd_num = campaign->WhichCD;
+
+            /**
+             *  Check if the current campaign is an original GDI or NOD campaign.
+             */
+            bool is_original_gdi = (cd_num == DISK_GDI && (Wstring(campaign->IniName) == "GDI1" || Wstring(campaign->IniName) == "GDI1A") && Wstring(campaign->Scenario) == "GDI1A.MAP");
+            bool is_original_nod = (cd_num == DISK_NOD && (Wstring(campaign->IniName) == "NOD1" || Wstring(campaign->IniName) == "NOD1A") && Wstring(campaign->Scenario) == "NOD1A.MAP");
+
+            /**
+             *  #issue-762
+             *
+             *  Fetch the campaign extension (if available) and get the custom intro movie.
+             *
+             *  @author: CCHyper
+             */
+            CampaignClassExtension* campaignext = Extension::Fetch<CampaignClassExtension>(campaign);
+            if (campaignext->IntroMovie[0] != '\0') {
+                std::snprintf(movie_filename, sizeof(movie_filename), "%s.VQA", campaignext->IntroMovie);
+                DEBUG_INFO("About to play \"%s\".\n", movie_filename);
+                Play_Movie(movie_filename);
+            }
+            /**
+             *  If this is an original Tiberian Sun campaign, play the respective intro movie.
+             */
+            else if (is_original_gdi || is_original_nod) {
+
+                /**
+                 *  "The First Decade" and "Freeware TS" installations reshuffle
+                 *  the movie files due to all mix files being local now and a
+                 *  primitive "no-cd" added;
+                 *
+                 *  MOVIES01.MIX -> INTRO.VQA (GDI) is now INTR0.VQA
+                 *  MOVIES02.MIX -> INTRO.VQA (NOD) is now INTR1.VQA
+                 *
+                 *  Build the movie filename based on the current campaign's desired CD (see DiskID enum).
+                 */
+                std::snprintf(movie_filename, sizeof(movie_filename), "INTR%d.VQA", cd_num);
+
+                /**
+                 *  Now play the movie if it is found, falling back to original behavior otherwise.
+                 */
+                if (CCFileClass(movie_filename).Is_Available()) {
+                    DEBUG_INFO("About to play \"%s\".\n", movie_filename);
+                    Play_Movie(movie_filename);
+
+                }
+                else if (CCFileClass("INTRO.VQA").Is_Available()) {
+                    DEBUG_INFO("About to play \"INTRO.VQA\".\n");
+                    Play_Movie("INTRO.VQA");
+
+                }
+                else {
+                    DEBUG_WARNING("Failed to find Intro movie!\n");
+                    return false;
+                }
+
+            }
+            else {
+                DEBUG_WARNING("No campaign intro movie defined.\n");
+            }
+        }
+
+        if (!Read_Scenario(name)) {
+            return false;
+        }
+
+        Theme.Stop();
+
+        if (briefing) {
+            Play_Movie(Scen->IntroMovie, THEME_NONE);
+            Play_Movie(Scen->BriefMovie, THEME_NONE);
+        }
+
+        /**
+         *  If there's no briefing movie, restate the mission at the beginning.
+         */
+        char buffer[32];
+        if (Scen->BriefMovie != VQ_NONE) {
+            std::snprintf(buffer, std::size(buffer), "%s.VQA", Movies[Scen->BriefMovie]);
+        }
+
+        if (Session.Type == GAME_NORMAL && (Scen->BriefMovie == VQ_NONE || !CCFileClass(buffer).Is_Available())) {
+
+            /**
+             *  Make sure the mouse is visible before showing the restatement.
+             */
+            WWMouse->Release_Mouse();
+            WWMouse->Show_Mouse();
+
+            Restate_Mission(Scen);
+
+            WWMouse->Hide_Mouse();
+            WWMouse->Capture_Mouse();
+        }
+
+        /**
+         *  Show the dropship loadout screen if this mission has a dropship.
+         */
+        if (Scen->StartingDropships > 0) {
+
+            /**
+             *  issue-284
+             *
+             *  Play a background theme during the loadout menu.
+             *
+             *  @author: CCHyper
+             */
+            if (!Theme.Still_Playing()) {
+
+                /**
+                 *  If DSHPLOAD is defined in THEME.INI, play that, otherwise default
+                 *  to playing the TS Maps theme.
+                 */
+                ThemeType theme = Theme.From_Name("DSHPLOAD");
+                if (theme == THEME_NONE) {
+                    theme = Theme.From_Name("MAPS");
+                }
+
+                Theme.Play_Song(theme);
+            }
+
+            WWMouse->Release_Mouse();
+            WWMouse->Show_Mouse();
+
+            Dropship_Loadout();
+
+            WWMouse->Hide_Mouse();
+            WWMouse->Capture_Mouse();
+
+            if (Theme.Still_Playing()) {
+                Theme.Stop(true); // Smoothly fade out the track.
+            }
+        }
+
+        if (briefing) {
+            Play_Movie(Scen->ActionMovie, Scen->TransitTheme);
+        }
+
+        if (Scen->ActionMovie != VQ_NONE || Scen->TransitTheme == THEME_NONE) {
+            Theme.Queue_Song(THEME_PICK_ANOTHER);
+        }
+        else {
+            Theme.Queue_Song(Scen->TransitTheme);
+        }
+
+        /**
+         *  Set the options values, since the palette has been initialized by Read_Scenario.
+         */
+        Options.Set();
+
+        /**
+         *  Black out the screen.
+         */
+        HiddenSurface->Fill(0);
+        GScreenClass::Blit(true, HiddenSurface, 0);
+
+        /**
+         *  Toggle the display mode if mode toggling is allowed.
+         */
+        if (Debug_AllowModeToggle && (ScreenRect.Width != Options.ScreenWidth || ScreenRect.Height != Options.ScreenHeight)) {
+            DEBUG_INFO("Toggle display mode to %d X %d\n", Options.ScreenWidth, Options.ScreenHeight);
+            Change_Video_Mode(Options.ScreenWidth, Options.ScreenHeight);
+        }
+
+        /**
+         *  Print a message stating the current difficulty level.
+         */
+        constexpr char difficulty_names[3][20] = {
+            "Difficulty: Hard",
+            "Difficulty: Medium",
+            "Difficulty: Easy",
+        };
+
+        Session.Messages.Add_Message(nullptr, 0, difficulty_names[Scen->CDifficulty], static_cast<ColorSchemeType>(4), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
+
+        /**
+         *  Mark the game as having started.
+         */
+        Scen->ElapsedTimer.Start();
+        TacticalViewActive = true;
+        ScenarioStarted = true;
+
+        return true;
+    }
+
+    Session.Suspended--;
+    return false;
+}
+
 
 
 /**
