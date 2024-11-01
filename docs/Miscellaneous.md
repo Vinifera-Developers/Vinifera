@@ -82,7 +82,6 @@ WriteStatistics=no          ; boolean, should statistics be sent?
 AINamesByDifficulty=no      ; boolean, should AI players have their difficulty in their name?
 CoachMode=no                ; boolean, should defeated players that have allies not have the entire map revealed to them upon death?
 AutoSurrender=yes           ; boolean, should players surrender on disconnection, as opposed to turning their base over to the AI?
-UseMPAIBaseNodes=no         ; boolean, should the AI use base nodes for base construction, like in campaign?
 AttackNeutralUnits=no       ; boolean, should neutral units be targeted by the player's army automatically?
 ScrapMetal=no               ; boolean, should explosions use alternative animations from the `ScrapExplosion=` list?
 ContinueWithoutHumans=yes   ; boolean, should the game not end even if the only players left alive are AI?
@@ -170,6 +169,32 @@ AutoSaveCount=5        ; integer, the number of auto-saves to keep simultaneousl
 AutoSaveInterval=7200  ; integer, the interval between auto-saves, in frames.
 ```
 
+## Human Difficultiy
+
+- Vinifera adds to possibility to optionally use a different diffiulty level for the human player when their difficulty is set to `Normal`. The new difficulty must have its values be provided in the same manner as vanilla difficulties in a new section, `HumanNormal`.
+
+In `VINIFERA.INI`:
+```ini
+[Features]
+HumanNormalDifficulty=no  ; boolean, should the human player use a separate difficulty when on normal difficulty?
+```
+
+- Additionally, difficulty names can be customized.
+
+In `VINIFERA.INI`:
+```ini
+[Language]
+DifficultyEasy=Easy
+DifficultyNormal=Normal
+DifficultyHard=Hard
+DifficultyVeryEasy=Very Easy            ; 2 extra difficulties used by the XNA Client (CnCNet)
+DifficultyExtremelyEasy=Extremely Easy
+DifficultyAIEasy=Hard    
+DifficultyAINormal=Normal
+DifficultyAIHard=Easy
+DifficultyAIVeryEasy=Brutal             ; 2 extra difficulties used by the XNA Client (CnCNet)
+DifficultyAIExtremelyEasy=Ultimate
+```
 
 ## Multi-Engineer
 

@@ -101,11 +101,15 @@ extern bool Vinifera_SpawnerActive;
 extern HouseClass* Vinifera_ObserverPtr;
 
 extern bool Vinifera_DoSave;
-extern int Vinifera_NextAutosaveFrame;
+extern int Vinifera_NextAutoSaveFrame;
 extern int Vinifera_NextAutoSaveNumber;
 
 extern unsigned Vinifera_TotalPlayTime;
 extern unsigned Vinifera_PlaythroughID;
+
+extern bool Vinifera_HumanNormalDifficulty;
+extern Wstring Vinifera_DifficultyNames[5];
+extern Wstring Vinifera_AIDifficultyNames[5];
 
 extern DynamicVectorClass<MFCC *> ViniferaMapsMixes;
 extern DynamicVectorClass<MFCC *> ViniferaMoviesMixes;

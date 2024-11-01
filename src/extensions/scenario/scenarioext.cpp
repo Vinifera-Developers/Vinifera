@@ -913,13 +913,14 @@ bool ScenarioClassExtension::Start_Scenario(char* name, bool briefing, CampaignT
         /**
          *  Print a message stating the current difficulty level.
          */
-        constexpr char difficulty_names[3][20] = {
-            "Difficulty: Hard",
-            "Difficulty: Medium",
-            "Difficulty: Easy",
-        };
+        char diff_name[128];
+        std::snprintf(diff_name, std::size(diff_name), "Difficulty: %s", Vinifera_AIDifficultyNames[Scen->CDifficulty].Peek_Buffer());
 
-        Session.Messages.Add_Message(nullptr, 0, difficulty_names[Scen->CDifficulty], static_cast<ColorSchemeType>(4), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
+        if (Vinifera_SpawnerActive && std::strlen(Vinifera_SpawnerConfig->DifficultyName)) {
+            std::snprintf(diff_name, std::size(diff_name), "Difficulty: %s", Vinifera_SpawnerConfig->DifficultyName);
+        }
+
+        Session.Messages.Add_Message(nullptr, 0, diff_name, static_cast<ColorSchemeType>(4), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
 
         /**
          *  Mark the game as having started.
@@ -1029,14 +1030,14 @@ bool ScenarioClassExtension::Load_Scenario(CCINIClass& ini, bool random)
         }
         else {
             Scen->Difficulty = static_cast<DiffType>(Options.Difficulty);
-            Scen->CDifficulty = static_cast<DiffType>(2 - Options.Difficulty);
+            Scen->CDifficulty = static_cast<DiffType>(DIFF_COUNT - Options.Difficulty - 1);
         }
         Scen->SpecialFlags.IsFogOfWar = false;
         Special.IsFogOfWar = false;
     }
     else {
         Scen->Difficulty = static_cast<DiffType>(Session.Options.AIDifficulty);
-        Scen->CDifficulty = static_cast<DiffType>(2 - Scen->Difficulty);
+        Scen->CDifficulty = static_cast<DiffType>(DIFF_COUNT - Scen->Difficulty - 1);
         Scen->SpecialFlags.IsFogOfWar = Session.Options.FogOfWar;
         Special.IsFogOfWar = Session.Options.FogOfWar;
     }
@@ -1556,8 +1557,8 @@ bool ScenarioClassExtension::Load_Scenario(CCINIClass& ini, bool random)
                 /**
                  *  Schedule the next autosave.
                  */
-                Vinifera_NextAutosaveFrame = Frame;
-                Vinifera_NextAutosaveFrame += Vinifera_SpawnerActive && Session.Type == GAME_IPX ? Vinifera_SpawnerConfig->AutoSaveInterval : OptionsExtension->AutoSaveInterval;
+                Vinifera_NextAutoSaveFrame = Frame;
+                Vinifera_NextAutoSaveFrame += Vinifera_SpawnerActive && Session.Type == GAME_IPX ? Vinifera_SpawnerConfig->AutoSaveInterval : OptionsExtension->AutoSaveInterval;
 
                 /**
                  *  Set the skip score bool.
@@ -2020,23 +2021,15 @@ void ScenarioClassExtension::Assign_Houses()
          */
         if (Vinifera_SpawnerActive)
         {
-            constexpr char* AINamesByDifficultyArray[5] = {
-                "Hard AI",
-                "Medium AI",
-                "Easy AI"//,
-                //"Brutal AI",
-                //"Ultimate AI"
-            };
-
             const auto player_config = &Vinifera_SpawnerConfig->Players[i];
 
             /**
              *  Set the difficulty and name for the AI (for AIs, player index == house index)
              */
-            if (player_config->Difficulty >= 0 && player_config->Difficulty < std::size(AINamesByDifficultyArray)) {
+            if (player_config->Difficulty >= DIFF_FIRST && player_config->Difficulty < VINIFERA_DIFF_COUNT) {
                 housep->Assign_Handicap(static_cast<DiffType>(player_config->Difficulty));
                 if (Vinifera_SpawnerConfig->AINamesByDifficulty && !housep->IsHuman) {
-                    std::strcpy(housep->IniName, AINamesByDifficultyArray[player_config->Difficulty]);
+                    std::snprintf(housep->IniName, std::size(housep->IniName), "%s AI", Vinifera_AIDifficultyNames[player_config->Difficulty].Peek_Buffer());
                 }
             }
         }
@@ -2121,7 +2114,7 @@ void ScenarioClassExtension::Assign_Houses()
                 continue;
 
             const auto house_config = &Vinifera_SpawnerConfig->Houses[i];
-            for (int j = 0; j < std::size(house_config->Alliances); ++j)
+            for (int j = 0; j < std::size(house_config->Alliances); j++)
             {
                 const int ally_index = house_config->Alliances[j];
                 if (ally_index != -1)

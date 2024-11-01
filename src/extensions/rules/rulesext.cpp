@@ -333,7 +333,8 @@ void RulesClassExtension::Process(CCINIClass &ini)
      */
     Objects(ini);
 
-    This()->Difficulty(ini);
+    //This()->Difficulty(ini);
+    Difficulty(ini);
     This()->CrateRules(ini);
     This()->CombatDamage(ini);
     This()->AudioVisual(ini);
@@ -863,6 +864,24 @@ bool RulesClassExtension::Tiberiums(CCINIClass &ini)
     }
 
     return counter > 0;
+}
+
+
+/**
+ *  Reads the difficulty settings from the INI file.
+ *
+ *  @author: ZivDero
+ */
+bool RulesClassExtension::Difficulty(CCINIClass& ini)
+{
+    Difficulty_Get(ini, Diff[DIFF_EASY], "Easy");
+    Difficulty_Get(ini, Diff[DIFF_NORMAL], "Normal");
+    Difficulty_Get(ini, Diff[DIFF_HARD], "Difficult");
+    Difficulty_Get(ini, Diff[DIFF_VERY_EASY], "VeryEasy");
+    Difficulty_Get(ini, Diff[DIFF_EXTREMELY_EASY], "ExtremelyEasy");
+    Difficulty_Get(ini, DiffHuman, "HumanNormal");
+
+    return true;
 }
 
 

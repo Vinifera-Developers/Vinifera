@@ -422,7 +422,7 @@ DECLARE_PATCH(_Select_Game_Clear_Globals_Patch)
     Vinifera_ShowSuperWeaponTimers = true;
     Vinifera_TotalPlayTime = 0;
     Vinifera_DoSave = false;
-    Vinifera_NextAutosaveFrame = -1;
+    Vinifera_NextAutoSaveFrame = -1;
     Vinifera_NextAutoSaveNumber = 0;
 
     /**

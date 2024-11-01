@@ -136,11 +136,25 @@ bool Vinifera_Load_INI()
 #endif
     }
 
-    Vinifera_NewSidebar = ini.Get_Bool("Features", "NewSidebar", false);
     ini.Get_String("General", "SavedGamesDirectory", buffer, std::size(buffer));
     if (std::strlen(buffer) > 0) {
         std::strncpy(Vinifera_SavedGamesDirectory, buffer, std::size(Vinifera_SavedGamesDirectory) - 1);
     }
+
+    Vinifera_NewSidebar = ini.Get_Bool("Features", "NewSidebar", Vinifera_NewSidebar);
+    Vinifera_HumanNormalDifficulty = ini.Get_Bool("Features", "HumanNormalDifficulty", Vinifera_HumanNormalDifficulty);
+
+    ini.Get_String("Language", "DifficultyEasy", "Easy", Vinifera_DifficultyNames[DIFF_EASY]);
+    ini.Get_String("Language", "DifficultyNormal", "Normal", Vinifera_DifficultyNames[DIFF_NORMAL]);
+    ini.Get_String("Language", "DifficultyHard", "Hard", Vinifera_DifficultyNames[DIFF_HARD]);
+    ini.Get_String("Language", "DifficultyVeryEasy", "Very Easy", Vinifera_DifficultyNames[DIFF_VERY_EASY]);
+    ini.Get_String("Language", "DifficultyExtremelyEasy", "Extremely Easy", Vinifera_DifficultyNames[DIFF_EXTREMELY_EASY]);
+
+    ini.Get_String("Language", "AIDifficultyEasy", "Hard", Vinifera_AIDifficultyNames[DIFF_EASY]);
+    ini.Get_String("Language", "AIDifficultyNormal", "Normal", Vinifera_AIDifficultyNames[DIFF_NORMAL]);
+    ini.Get_String("Language", "AIDifficultyHard", "Easy", Vinifera_AIDifficultyNames[DIFF_HARD]);
+    ini.Get_String("Language", "AIDifficultyVeryEasy", "Brutal", Vinifera_AIDifficultyNames[DIFF_VERY_EASY]);
+    ini.Get_String("Language", "AIDifficultyExtremelyEasy", "Ultimate", Vinifera_AIDifficultyNames[DIFF_EXTREMELY_EASY]);
 
     return true;
 }

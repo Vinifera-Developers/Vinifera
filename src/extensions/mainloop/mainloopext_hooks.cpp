@@ -221,7 +221,7 @@ static void After_Main_Loop()
      *  Schedule to make a save if it's time to autosave.
      */
     if (do_campaign_autosaves || do_mp_autosaves) {
-        if (Frame == Vinifera_NextAutosaveFrame) {
+        if (Frame == Vinifera_NextAutoSaveFrame) {
             Vinifera_DoSave = true;
         }
     }
@@ -268,7 +268,7 @@ static void After_Main_Loop()
             /**
              *  Schedule the next autosave.
              */
-            Vinifera_NextAutosaveFrame = Frame + OptionsExtension->AutoSaveInterval;
+            Vinifera_NextAutoSaveFrame = Frame + OptionsExtension->AutoSaveInterval;
         }
         else if (Session.Type == GAME_IPX) {
 
@@ -287,7 +287,7 @@ static void After_Main_Loop()
             /**
              *  Schedule the next autosave.
              */
-            Vinifera_NextAutosaveFrame = Frame + Vinifera_SpawnerConfig->AutoSaveInterval;
+            Vinifera_NextAutoSaveFrame = Frame + Vinifera_SpawnerConfig->AutoSaveInterval;
         }
 
         Vinifera_DoSave = false;

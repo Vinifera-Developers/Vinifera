@@ -82,6 +82,7 @@ public:
     UrgencyType _Check_Raise_Money();
     int _AI_Building();
     void _MPlayer_Defeated();
+    DiffType _Assign_Handicap(DiffType handicap);
 };
 
 
@@ -782,6 +783,53 @@ void HouseClassExt::_MPlayer_Defeated()
     }
 
     
+}
+
+
+/**
+ *  Assigns the specified handicap rating to the house.
+ *
+ *  @author: 07/09/1996 JLB - Created
+ *           29/10/2024 ZivDero - Adjustments for Tiberian Sun
+ */
+DiffType HouseClassExt::_Assign_Handicap(DiffType handicap)
+{
+    DiffType old = Difficulty;
+    Difficulty = handicap;
+
+    const DifficultyClass* diff = &RuleExtension->Diff[handicap];
+
+    if (Is_Human_Control() && handicap == DIFF_NORMAL && Vinifera_HumanNormalDifficulty) {
+        diff = &RuleExtension->DiffHuman;
+    }
+
+    if (Session.Type != GAME_NORMAL) {
+        HouseTypeClass const* hptr = Class;
+        FirepowerBias = hptr->FirepowerBias * diff->FirepowerBias;
+        GroundspeedBias = hptr->GroundspeedBias * diff->GroundspeedBias * Rule->GameSpeedBias;
+        AirspeedBias = hptr->AirspeedBias * diff->AirspeedBias * Rule->GameSpeedBias;
+        ArmorBias = hptr->ArmorBias * diff->ArmorBias;
+        ROFBias = hptr->ROFBias * diff->ROFBias;
+        CostBias = hptr->CostBias * diff->CostBias;
+        RepairDelay = diff->RepairDelay;
+        BuildDelay = diff->BuildDelay;
+        BuildSpeedBias = hptr->BuildSpeedBias * diff->BuildSpeedBias * Rule->GameSpeedBias;
+    }
+    else {
+        FirepowerBias = diff->FirepowerBias;
+        GroundspeedBias = diff->GroundspeedBias * Rule->GameSpeedBias;
+        AirspeedBias = diff->AirspeedBias * Rule->GameSpeedBias;
+        ArmorBias = diff->ArmorBias;
+        ROFBias = diff->ROFBias;
+        CostBias = diff->CostBias;
+        RepairDelay = diff->RepairDelay;
+        BuildDelay = diff->BuildDelay;
+        BuildSpeedBias = diff->BuildSpeedBias * Rule->GameSpeedBias;
+    }
+
+    TeamTime = 175 * ID + Rule->TeamDelays[handicap];
+
+    return old;
 }
 
 
@@ -1547,18 +1595,17 @@ void HouseClassExtension_Hooks()
     Patch_Jump(0x004BE6A0, &HouseClassExt::_Abandon_Production);
     Patch_Jump(0x004BAED0, &HouseClassExt::_Can_Make_Money);
     Patch_Jump(0x004C0A40, &HouseClassExt::_Check_Raise_Money);
+    Patch_Jump(0x004C10E0, &HouseClassExt::_AI_Building);
+    Patch_Jump(0x004BF4C0, &HouseClassExt::_MPlayer_Defeated);
+    Patch_Jump(0x004BB460, &HouseClassExt::_Assign_Handicap);
 
     Patch_Jump(0x004CB777, &_HouseClass_ShouldDisableCameo_BuildLimit_Fix);
     Patch_Jump(0x004BC187, &_HouseClass_Can_Build_BuildLimit_Handle_Vehicle_Transform);
 
     Patch_Jump(0x004CB6C1, &_HouseClass_Enable_SWs_Check_For_Building_Power);
 
-    Patch_Jump(0x004C10E0, &HouseClassExt::_AI_Building);
-
     Patch_Jump(0x004BAC2C, 0x004BAC39); // Patch a jump in the constructor to always allocate unit trackers
     Patch_Jump(0x004BC077, 0x004BC082); // HouseClass::Can_Build, always check for ConYard of required Owner
-
-    Patch_Jump(0x004BF4C0, &HouseClassExt::_MPlayer_Defeated);
 
     /**
      *  Patch away a few checks for GAME_INTERNET to enable statistics collection.

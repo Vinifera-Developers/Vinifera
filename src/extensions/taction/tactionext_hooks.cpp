@@ -100,7 +100,7 @@ public:
         TACTION_GIVE_CREDITS = TACTION_COUNT,
         TACTION_ENABLE_SHORT_GAME,
         TACTION_DISABLE_SHORT_GAME,
-        TACTION_PRINT_DIFFICULTY,
+        TACTION_UNUSED1,
         TACTION_BLOWUP_HOUSE,
         TACTION_MAKE_ELITE,
         TACTION_ENABLE_ALLYREVEAL,
@@ -134,7 +134,6 @@ public:
     bool _TAction_Give_Credits(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell);
     bool _TAction_Enable_Short_Game(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell);
     bool _TAction_Disable_Short_Game(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell);
-    bool _TAction_Print_Difficulty(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell);
     bool _TAction_Blowup_House(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell);
     bool _TAction_Make_Elite(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell);
     bool _TAction_Enable_AllyReveal(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell);
@@ -779,10 +778,6 @@ bool TActionClassExt::_Function_Call_Operator(HouseClass* house, ObjectClass* ob
         success = _TAction_Disable_Short_Game(house, object, trig, cell);
         break;
 
-    case TACTION_PRINT_DIFFICULTY:
-        success = _TAction_Print_Difficulty(house, object, trig, cell);
-        break;
-
     case TACTION_BLOWUP_HOUSE:
         success = _TAction_Blowup_House(house, object, trig, cell);
         break;
@@ -814,6 +809,7 @@ bool TActionClassExt::_Function_Call_Operator(HouseClass* house, ObjectClass* ob
         /**
          *  Do no action at all.
          */
+    case TACTION_UNUSED1:
     case TACTION_NONE:
     default:
         break;
@@ -1266,28 +1262,6 @@ bool TActionClassExt::_TAction_Enable_Short_Game(HouseClass* house, ObjectClass*
 bool TActionClassExt::_TAction_Disable_Short_Game(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell)
 {    
     Session.Options.ShortGame = false;
-
-    return true;
-}
-
-
-/**
- *  Prints a message with the current difficulty level.
- *
- *  @author: ZivDero, Rampastring
- */
-bool TActionClassExt::_TAction_Print_Difficulty(HouseClass* house, ObjectClass* object, TriggerClass* trig, Cell& cell)
-{
-    constexpr char difficulty_names[3][20] = {
-        "Difficulty: Easy",
-        "Difficulty: Medium",
-        "Difficulty: Hard",
-    };
-
-    /**
-     *  Send the message.
-     */
-    Session.Messages.Add_Message(nullptr, 0, difficulty_names[Options.Difficulty], static_cast<ColorSchemeType>(4), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
 
     return true;
 }

@@ -172,6 +172,7 @@ public:
     char CustomLoadScreen[PATH_MAX];
     TPoint2D<int> CustomLoadScreenPos;
     bool ContinueWithoutHumans;
+    char DifficultyName[32];
 
     SpawnerConfig()
         : Bases { true }
@@ -258,6 +259,7 @@ public:
         , CustomLoadScreen { "" }
         , CustomLoadScreenPos { }
         , ContinueWithoutHumans { false }
+        , DifficultyName { "" }
     { }
 
     void Read_INI(CCINIClass& spawn_ini);

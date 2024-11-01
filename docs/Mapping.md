@@ -52,6 +52,16 @@ For testing/debugging versions of the Tiberian Sun and Firestorm campaigns, down
 
 ## Scenario Settings
 
+### AI Base Nodes in Skirmish/Multiplayer
+
+- Vinifera allows enabling base nodes for the AI outside of campaigns.
+
+In a scenario file:
+```ini
+[Basic]
+UseMPAIBaseNodes=no         ; boolean, should the AI use base nodes for base construction, like in campaign?
+```
+
 ### Custom Loading Screen
 
 - The scenario file can now specify which loading screen to use.
@@ -106,34 +116,34 @@ ScoreEnemyColor=250,28,28    ; color in R,G,B, color of the enemy's score bars
 
 - Disable Short Game.
 
-### `106` Print Difficulty
+### `109` Reserved
 
-- Print the current difficulty level as a message.
+- Does nothing.
 
-### `106` Blow Up House
+### `110` Blow Up House
 
 - Blow up all units and structures of House `P2`.
 
-### `106` Make Elite
+### `111` Make Elite
 
 - Make all attached objects elite.
 
-### `106` Enable AllyReveal
+### `112` Enable AllyReveal
 
 - Enable `AllyReveal`.
 
-### `106` Disable AllyReveal
+### `113` Disable AllyReveal
 
 - Disable `AllyReveal`.
 
-### `106` Create Auto-Save
+### `114` Create Auto-Save
 
 - Schedule the creation of an auto-save at the end of this frame. Works in MP and SP.
 
-### `106` Delete Object
+### `115` Delete Object
 
 - Silently delete all attached objects from the map.
 
-### `106` Assign Mission to All
+### `116` Assign Mission to All
 
 - Assign Mission `P2` to all attached objects.

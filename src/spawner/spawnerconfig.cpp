@@ -130,6 +130,7 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
     /* CustomLoadScreen   */   spawn_ini.Get_String(SETTINGS, "CustomLoadScreen", CustomLoadScreen, sizeof(CustomLoadScreen));
     CustomLoadScreenPos      = spawn_ini.Get_Point(SETTINGS, "CustomLoadScreenPos", CustomLoadScreenPos);
     ContinueWithoutHumans    = spawn_ini.Get_Bool(SETTINGS, "ContinueWithoutHumans", ContinueWithoutHumans);
+    /* DifficultyName   */     spawn_ini.Get_String(SETTINGS, "DifficultyName", DifficultyName, sizeof(DifficultyName));
 }
 
 

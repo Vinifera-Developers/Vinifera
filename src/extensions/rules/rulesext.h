@@ -69,6 +69,7 @@ public:
     bool Armors(CCINIClass &ini);
     bool Rockets(CCINIClass &ini);
     bool Tiberiums(CCINIClass &ini);
+    bool Difficulty(CCINIClass &ini);
 
     void Fixups(CCINIClass &ini);
 
@@ -124,4 +125,16 @@ public:
      *  List of units to consider "home".
      */
     TypeList<UnitTypeClass *> BaseUnit;
+
+    /**
+     *  This array controls the difficulty affects on the game. There is one
+     *  difficulty class object for each difficulty level.
+     */
+    DifficultyClass Diff[VINIFERA_DIFF_COUNT];
+
+    /**
+     *  A separate difficulty used by the human player if so chosen by the mod author,
+     *  to allow customizing AI difficulties without affecting the human player.
+     */
+    DifficultyClass DiffHuman;
 };

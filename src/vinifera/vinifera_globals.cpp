@@ -73,11 +73,15 @@ bool Vinifera_SpawnerActive = false;
 HouseClass* Vinifera_ObserverPtr = nullptr;
 
 bool Vinifera_DoSave = false;
-int Vinifera_NextAutosaveFrame = -1;
+int Vinifera_NextAutoSaveFrame = -1;
 int Vinifera_NextAutoSaveNumber = 0;
 
 unsigned Vinifera_TotalPlayTime = 0;
 unsigned Vinifera_PlaythroughID = 0;
+
+bool Vinifera_HumanNormalDifficulty = false;
+Wstring Vinifera_DifficultyNames[5];
+Wstring Vinifera_AIDifficultyNames[5];
 
 DynamicVectorClass<MFCC *> ViniferaMapsMixes;
 DynamicVectorClass<MFCC *> ViniferaMoviesMixes;
