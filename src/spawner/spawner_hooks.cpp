@@ -34,11 +34,9 @@
 #include "spawner.h"
 #include "house.h"
 #include "housetype.h"
-#include "mpaibasenodes_hooks.h"
 #include "multiscore.h"
 #include "protocolzero_hooks.h"
 #include "quickmatch_hooks.h"
-#include "spawnhouses_hooks.h"
 #include "observer_hooks.h"
 #include "statistics_hooks.h"
 #include "tibsun_functions.h"
@@ -221,6 +219,4 @@ void Spawner_Hooks()
     Observer_Hooks();
     QuickMatch_Hooks();
     Statistics_Hooks();
-    MPAIBaseNodes_Hooks();
-    SpawnHouses_Hooks();
 }

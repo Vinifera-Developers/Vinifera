@@ -124,4 +124,9 @@ public:
     };
 
     LoadingScreenData LoadingScreens[3];
+
+    /**
+     *  Should the AI use base nodes outside of campaign, instead of skirmish AI base building logic.
+     */
+    bool IsUseMPAIBaseNodes;
 };

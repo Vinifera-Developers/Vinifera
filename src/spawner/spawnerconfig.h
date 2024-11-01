@@ -167,7 +167,6 @@ public:
     bool AINamesByDifficulty;
     bool CoachMode;
     bool AutoSurrender;
-    bool UseMPAIBaseNodes;
     bool AttackNeutralUnits;
     bool ScrapMetal;
     char CustomLoadScreen[PATH_MAX];
@@ -254,7 +253,6 @@ public:
         , AINamesByDifficulty { false }
         , CoachMode { false }
         , AutoSurrender { true }
-        , UseMPAIBaseNodes { false }
         , AttackNeutralUnits{ false }
         , ScrapMetal { false }
         , CustomLoadScreen { "" }

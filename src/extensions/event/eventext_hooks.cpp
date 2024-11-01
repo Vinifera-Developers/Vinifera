@@ -489,7 +489,7 @@ void EventClassExt::_Event_AddPlayer()
 
 void EventClassExt::_Event_Timing()
 {
-    if (Vinifera_SpawnerActive && !ProtocolZero::Enable)
+    if (!Vinifera_SpawnerActive || !ProtocolZero::Enable)
         Data.Timing.MaxAhead -= Scen->SpecialFlags.IsFogOfWar ? 10 : 0;
 
     /**

@@ -125,7 +125,6 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
     AINamesByDifficulty      = spawn_ini.Get_Bool(SETTINGS, "AINamesByDifficulty", AINamesByDifficulty);
     CoachMode                = spawn_ini.Get_Bool(SETTINGS, "CoachMode", CoachMode);
     AutoSurrender            = spawn_ini.Get_Bool(SETTINGS, "AutoSurrender", AutoSurrender);
-    UseMPAIBaseNodes         = spawn_ini.Get_Bool(SETTINGS, "UseMPAIBaseNodes", UseMPAIBaseNodes);
     AttackNeutralUnits       = spawn_ini.Get_Bool(SETTINGS, "AttackNeutralUnits", AttackNeutralUnits);
     ScrapMetal               = spawn_ini.Get_Bool(SETTINGS, "ScrapMetal", ScrapMetal);
     /* CustomLoadScreen   */   spawn_ini.Get_String(SETTINGS, "CustomLoadScreen", CustomLoadScreen, sizeof(CustomLoadScreen));

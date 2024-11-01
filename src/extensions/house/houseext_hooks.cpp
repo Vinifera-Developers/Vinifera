@@ -60,6 +60,7 @@
 #include "hooker_macros.h"
 #include "houseext.h"
 #include "language.h"
+#include "scenarioext.h"
 #include "spawner.h"
 #include "tibsun_functions.h"
 #include "vox.h"
@@ -331,7 +332,7 @@ int HouseClassExt::_AI_Building()
      *  just proceed with building the base node.
      */
     BuildingTypeClass* b = BuildingTypes[node->Type];
-    if (Session.Type == GAME_NORMAL || (Vinifera_SpawnerActive && Vinifera_SpawnerConfig->UseMPAIBaseNodes) || b->Drain + Drain <= Power - PowerSurplus || Rule->BuildConst.Is_Present(b) || b->Drain <= 0) {
+    if (Session.Type == GAME_NORMAL || ScenExtension->IsUseMPAIBaseNodes || b->Drain + Drain <= Power - PowerSurplus || Rule->BuildConst.Is_Present(b) || b->Drain <= 0) {
 
         /**
          *  Check if this is a building upgrade if we can actually place the upgrade where it's scheduled to be placed.
@@ -1414,6 +1415,105 @@ DECLARE_PATCH(_InfantryClass_What_Action_Harvester_Thief)
 
 
 /**
+ *  Patch to enable base nodes for the AI when UseMPAIBaseNodes=yes is set in the scenario.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_HouseClass_AI_Building_MP_AI_BaseNodes_Patch)
+{
+    _asm pushad
+
+    /**
+     *  Use base nodes in Campaign.
+     */
+    if (Session.Type == GAME_NORMAL)
+    {
+        _asm popad
+        JMP_REG(ecx, 0x004C1554);
+    }
+
+    /**
+     *  Also use base nodes if it was requested by the client.
+     */
+    if (Vinifera_SpawnerActive && ScenExtension->IsUseMPAIBaseNodes)
+    {
+        _asm popad
+        JMP_REG(ecx, 0x004C1554);
+    }
+
+    /**
+     *  Continue checks.
+     */
+    _asm popad
+    JMP_REG(ecx, 0x004C129D);
+}
+
+
+/**
+ *  Patch to enable base nodes for the AI when UseMPAIBaseNodes=yes is set in the scenario.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_HouseClass_Can_Build_Here_MP_AI_BaseNodes_Patch)
+{
+    // Stolen instructions
+    _asm push edi
+    _asm mov edi, ecx
+
+    /**
+     *  Ignore AIBaseSpacing in Campaign.
+     */
+    if (Session.Type == GAME_NORMAL)
+    {
+        // return 1;
+        JMP(0x004CB9D2);
+    }
+
+    /**
+     *  Also ignore AIBaseSpacing if it was requested by the client.
+     */
+    if (ScenExtension->IsUseMPAIBaseNodes)
+    {
+        // return 1;
+        JMP(0x004CB9D2);
+    }
+
+    /**
+     *  Continue with AIBaseSpacing.
+     */
+    JMP_REG(ecx, 0x004CB9DE);
+}
+
+
+/**
+ *  Patch to enable base nodes for the AI when UseMPAIBaseNodes=yes is set in the scenario.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_HouseClass_Expert_AI_MP_AI_BaseNodes_Patch)
+{
+    _asm push eax
+
+    if (Session.Type == GAME_NORMAL || ScenExtension->IsUseMPAIBaseNodes)
+    {
+        /**
+         *  Skip trying to raise money.
+         */
+        _asm pop eax
+        JMP_REG(ecx, 0x004C09AF);
+
+
+    }
+
+    /**
+     *  Potentially try to raise money
+     */
+    _asm pop eax
+    JMP_REG(ecx, 0x004C08D1);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void HouseClassExtension_Hooks()
@@ -1467,4 +1567,8 @@ void HouseClassExtension_Hooks()
     Patch_Jump(0x004C2255, 0x004C2262); // HouseClass::Add_Tracking
     Patch_Jump(0x004C229F, 0x004C22A8); // HouseClass::Add_Tracking
     Patch_Jump(0x004C22E5, 0x004C22EE); // HouseClass::Add_Tracking
+
+    Patch_Jump(0x004C128F, &_HouseClass_AI_Building_MP_AI_BaseNodes_Patch);
+    Patch_Jump(0x004CB9CD, &_HouseClass_Can_Build_Here_MP_AI_BaseNodes_Patch);
+    Patch_Jump(0x004C08C5, &_HouseClass_Expert_AI_MP_AI_BaseNodes_Patch);
 }

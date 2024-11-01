@@ -94,6 +94,7 @@ ScenarioClassExtension::ScenarioClassExtension(const ScenarioClass *this_ptr) :
     Waypoint(NEW_WAYPOINT_COUNT),
     IsIceDestruction(true),
     SidebarSide(SIDE_NONE),
+    IsUseMPAIBaseNodes(false),
     LoadingScreens{ { "", {} }, { "", {} } , { "", {} } }
 {
     //if (this_ptr) EXT_DEBUG_TRACE("ScenarioClassExtension::ScenarioClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
@@ -277,6 +278,7 @@ bool ScenarioClassExtension::Read_INI(CCINIClass &ini)
     IsIceDestruction = ini.Get_Bool(BASIC, "IceDestructionEnabled", IsIceDestruction);
     ScorePlayerColor = ini.Get_RGB(BASIC, "ScorePlayerColor", ScorePlayerColor);
     ScoreEnemyColor = ini.Get_RGB(BASIC, "ScoreEnemyColor", ScoreEnemyColor);
+    IsUseMPAIBaseNodes = ini.Get_Bool(BASIC, "UseMPAIBaseNodes", IsUseMPAIBaseNodes);
 
     /**
      *  #issue-123
@@ -1155,7 +1157,7 @@ bool ScenarioClassExtension::Load_Scenario(CCINIClass& ini, bool random)
     /**
      *  Read scenario data from the scenario INI.
      */
-    if (Scen->Read_INI(ini)) {
+    if (Scen->Read_INI(ini) && ScenExtension->Read_INI(ini)) {
 
         Session.Loading_Callback(50);
 
@@ -1247,10 +1249,10 @@ bool ScenarioClassExtension::Load_Scenario(CCINIClass& ini, bool random)
                 Call_Back();
 
                 /**
-                 *  Outside of campaign, the spawner may request that we read base nodes for
+                 *  Outside of campaign, the scenario may request that we read base nodes for
                  *  Spawn houses. Do that if necessary.
                  */
-                if (Session.Type != GAME_NORMAL && Vinifera_SpawnerActive && Vinifera_SpawnerConfig->UseMPAIBaseNodes) {
+                if (Session.Type != GAME_NORMAL && ScenExtension->IsUseMPAIBaseNodes) {
                     for (int i = 0; i < Session.Players.Count() + Session.Options.AIPlayers; i++) {
 
                         /**
@@ -2119,7 +2121,7 @@ void ScenarioClassExtension::Assign_Houses()
                 continue;
 
             const auto house_config = &Vinifera_SpawnerConfig->Houses[i];
-            for (char j = 0; j < (char)std::size(house_config->Alliances); ++j)
+            for (int j = 0; j < std::size(house_config->Alliances); ++j)
             {
                 const int ally_index = house_config->Alliances[j];
                 if (ally_index != -1)
@@ -2535,7 +2537,8 @@ void ScenarioClassExtension::Create_Units(bool official)
             continue;
         }
 
-        if (Vinifera_SpawnerActive && Vinifera_SpawnerConfig->Houses[house].IsObserver) {
+        HouseClassExtension* hexptr = Extension::Fetch<HouseClassExtension>(hptr);
+        if (hexptr->IsObserver) {
             DEV_DEBUG_INFO("House %d is an Observer, skipping.\n", house);
             continue;
         }

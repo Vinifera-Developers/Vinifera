@@ -1685,7 +1685,7 @@ return_false:
 
 
 /**
- *  Wrapper for the patch blow because going this messes with the stack.
+ *  Wrapper for the patch below because doing this messes with the stack.
  */
 static bool Can_Attack_Neutrals(TechnoClass* target)
 {
