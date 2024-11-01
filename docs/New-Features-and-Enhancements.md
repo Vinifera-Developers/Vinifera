@@ -210,9 +210,10 @@ SurvivorDivisor=  ; integer, this side's survivor divisor. Defaults to `[General
 
 In `RULES.INI`:
 ```ini
-[SOMESIDE]          ; Side
-UIColor=LightGold   ; ColorScheme, the color to be used when drawing UI elements.
-ToolTipColor=Green  ; ColorScheme, the color to be used when drawing tooltips.
+[SOMESIDE]              ; Side
+UIColor=LightGold       ; ColorScheme, the color to be used when drawing UI elements.
+ToolTipColor=Green      ; ColorScheme, the color to be used when drawing tooltips.
+OptionsColor=112,255,0  ; RGB Color, the color to be used by the options menu.
 ```
 
 ![image](https://github.com/user-attachments/assets/f4219655-2d28-49d2-9537-25f2fe4ae102)

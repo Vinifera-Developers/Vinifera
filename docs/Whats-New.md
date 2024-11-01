@@ -169,6 +169,7 @@ New:
 - Allow manually aiming AA buildings (by ZivDero)
 - Add support for more than 2 sides' loading screens, sidebars and speeches (by CCHyper/tomsons26, ZivDero)
 - Disallow loading campaign saves from other playthoughs, as well as from skirmish (by ZivDero)
+- Allow customizing the options color per side (by ZivDero)
 
 Vanilla fixes:
 - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively (by CCHyper/tomsons26)

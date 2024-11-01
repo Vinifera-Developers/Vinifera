@@ -212,3 +212,4 @@ This page lists all the individual contributions to the project by their author.
   - Allow manually aiming AA buildings.
   - Add support for more than 2 sides' loading screens, sidebars and speeches.
   - Disallow loading campaign saves from other playthoughs, as well as from skirmish.
+  - Allow customizing the options color per side.

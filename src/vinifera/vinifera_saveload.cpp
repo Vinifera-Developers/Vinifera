@@ -139,7 +139,6 @@
 #include "spawner.h"
 #include "technoext.h"
 #include "verses.h"
-
 #include "scenarioext.h"
 
 
