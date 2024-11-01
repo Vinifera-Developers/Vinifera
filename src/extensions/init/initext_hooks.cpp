@@ -907,8 +907,8 @@ bool Vinifera_Init_Bootstrap_Mixfiles()
     bool ok;
     MFCC *mix;
 
-    int temp = CD::RequiredCD;
-    CD::Set_Required_CD(-2);
+    DiskID temp = CD::RequiredCD;
+    CD::Set_Required_CD(DISK_LOCAL);
 
     DEBUG_INFO("\n"); // Fixes missing new-line after "Bootstrap..." print.
     //DEBUG_INFO("Init bootstrap mixfiles...\n");
