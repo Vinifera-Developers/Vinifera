@@ -1055,7 +1055,7 @@ DECLARE_PATCH(_BuildingClass_Captured_DontScore_Patch)
     static BuildingTypeClassExtension* ext;
 
     ext = Extension::Fetch<BuildingTypeClassExtension>(this_ptr->Class);
-    if ((Session.Type == GAME_INTERNET || Session.Type == GAME_IPX) && !ext->IsDontScore)
+    if (!ext->IsDontScore)
     {
         JMP(0x0042F7A3);
     }

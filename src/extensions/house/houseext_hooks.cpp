@@ -1459,4 +1459,12 @@ void HouseClassExtension_Hooks()
     Patch_Jump(0x004BC077, 0x004BC082); // HouseClass::Can_Build, always check for ConYard of required Owner
 
     Patch_Jump(0x004BF4C0, &HouseClassExt::_MPlayer_Defeated);
+
+    /**
+     *  Patch away a few checks for GAME_INTERNET to enable statistics collection.
+     */
+    Patch_Jump(0x004C220B, 0x004C2218); // HouseClass::Add_Tracking
+    Patch_Jump(0x004C2255, 0x004C2262); // HouseClass::Add_Tracking
+    Patch_Jump(0x004C229F, 0x004C22A8); // HouseClass::Add_Tracking
+    Patch_Jump(0x004C22E5, 0x004C22EE); // HouseClass::Add_Tracking
 }

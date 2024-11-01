@@ -173,62 +173,6 @@ void PacketClassExt::_Add_Field_Player_Data(FieldClass* field)
  *
  *  @author: ZivDero
  */
-
-DECLARE_PATCH(_CellClass_Goodie_Check_SendStatistics)
-{
-    if (Is_Statistics_Enabled())
-    {
-        JMP(0x00457E83);
-    }
-
-    JMP(0x00457E95);
-}
-
-
-DECLARE_PATCH(_HouseClass_Tracking_Add_SendStatistics1)
-{
-    if (Is_Statistics_Enabled())
-    {
-        JMP(0x004C2218);
-    }
-
-    JMP(0x004C22FA);
-}
-
-
-DECLARE_PATCH(_HouseClass_Tracking_Add_SendStatistics2)
-{
-    if (Is_Statistics_Enabled())
-    {
-        JMP(0x004C2262);
-    }
-
-    JMP(0x004C22FA);
-}
-
-
-DECLARE_PATCH(_HouseClass_Tracking_Add_SendStatistics3)
-{
-    if (Is_Statistics_Enabled())
-    {
-        JMP(0x004C22A8);
-    }
-
-    JMP(0x004C22FA);
-}
-
-
-DECLARE_PATCH(_HouseClass_Tracking_Add_SendStatistics4)
-{
-    if (Is_Statistics_Enabled())
-    {
-        JMP(0x004C22EE);
-    }
-
-    JMP(0x004C22FA);
-}
-
-
 DECLARE_PATCH(_Print_MP_Stats_Check)
 {
     if (Is_Statistics_Enabled())
@@ -358,11 +302,6 @@ DECLARE_PATCH(_Send_Statistics_Packet_Send_AI_Dont_Send_Observers)
 void Statistics_Hooks()
 {
     Patch_Call(0x0060A797, &PacketClassExt::_Create_Comms_Packet);
-    Patch_Jump(0x00457E7A, &_CellClass_Goodie_Check_SendStatistics);
-    Patch_Jump(0x004C220B, &_HouseClass_Tracking_Add_SendStatistics1);
-    Patch_Jump(0x004C2255, &_HouseClass_Tracking_Add_SendStatistics2);
-    Patch_Jump(0x004C229F, &_HouseClass_Tracking_Add_SendStatistics3);
-    Patch_Jump(0x004C22E5, &_HouseClass_Tracking_Add_SendStatistics4);
     Patch_Jump(0x0046353C, &_Print_MP_Stats_Check);
     Patch_Jump(0x005B4333, &_Kick_Player_Now_SendStatistics);
     Patch_Jump(0x005B1E94, &_Queue_AI_Multiplayer_SendStatistics);

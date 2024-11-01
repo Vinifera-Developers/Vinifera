@@ -1245,7 +1245,7 @@ void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
         }
 
         if (source) {
-            if ((Session.Type == GAME_INTERNET || Session.Type == GAME_IPX) && !typeext->IsDontScore) {
+            if (!typeext->IsDontScore) {
                 source->House->DestroyedBuildings->Increment_Unit_Total(reinterpret_cast<BuildingClass*>(this)->Class->Type);
             }
             source->House->BuildingsKilled[Owner()]++;
@@ -1262,19 +1262,19 @@ void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
     break;
 
     case RTTI_AIRCRAFT:
-        if (source && (Session.Type == GAME_INTERNET || Session.Type == GAME_IPX) && !typeext->IsDontScore) {
+        if (source && !typeext->IsDontScore) {
             source->House->DestroyedAircraft->Increment_Unit_Total(reinterpret_cast<AircraftClass*>(this)->Class->Type);
             total_recorded++;
         }
         // Fall through.....
     case RTTI_INFANTRY:
-        if (source && !total_recorded && (Session.Type == GAME_INTERNET || Session.Type == GAME_IPX) && !typeext->IsDontScore) {
+        if (source && !total_recorded && !typeext->IsDontScore) {
             source->House->DestroyedInfantry->Increment_Unit_Total(reinterpret_cast<InfantryClass*>(this)->Class->Type);
             total_recorded++;
         }
         // Fall through.....
     case RTTI_UNIT:
-        if (source && !total_recorded && (Session.Type == GAME_INTERNET || Session.Type == GAME_IPX) && !typeext->IsDontScore) {
+        if (source && !total_recorded && !typeext->IsDontScore) {
             source->House->DestroyedUnits->Increment_Unit_Total(reinterpret_cast<UnitClass*>(this)->Class->Type);
         }
 

@@ -368,4 +368,9 @@ void CellClassExtension_Hooks()
     Patch_Jump(0x0045813E, &_CellClass_Goodie_Check_CRATE_UNIT_BaseUnit_Patch);
     Patch_Jump(0x0045820E, &_CellClass_Goodie_Check_No_Buildings_Force_MCV_BaseUnit_Patch);
     Patch_Jump(0x00458148, &_CellClass_Goodie_Check_CRATE_UNIT_BuildRefinery_HarvesterUnit_Patch);
+
+    /**
+     *  Patch away a check for GAME_INTERNET to enable statistics collection.
+     */
+    Patch_Jump(0x00457E7A, 0x00457E83); // CellClass::Goodie_Check
 }
