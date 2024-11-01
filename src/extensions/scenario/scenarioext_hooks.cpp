@@ -634,10 +634,13 @@ DECLARE_PATCH(_InfantryClass_Read_INI_SpawnHouses_Patch)
 
     if (house != HOUSE_NONE)
     {
-        hptr = HouseClass_As_Pointer(house);
+        hptr = HouseClass::As_Pointer(house);
 
-        _asm mov edi, hptr
-        JMP(0x004D7BD5);
+        if (hptr)
+        {
+            _asm mov edi, hptr
+            JMP(0x004D7BD5);
+        }
     }
 
     JMP(0x004D7F30);
