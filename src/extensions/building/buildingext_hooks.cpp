@@ -1084,4 +1084,5 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x0042F799, &_BuildingClass_Captured_DontScore_Patch);
     Patch_Jump(0x0042E5F5, &_BuildingClass_Grand_Opening_Assign_FreeUnit_LastDockedBuilding_Patch);
     //Patch_Jump(0x00429220, &BuildingClassExt::_Shape_Number); // It's identical to vanilla, leaving it in in case it's ever needed
+    Patch_Jump(0x0042E53C, 0x0042E56F); // Jump a check for the PurchasePrice of a building for spawning its FreeUnit in Grand_Opening
 }

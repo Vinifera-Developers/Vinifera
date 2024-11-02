@@ -10,7 +10,7 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 - OverlayTypes 27 to 38 (fourth Tiberium images) were hardcoded to be impassable by infantry. This limitation is removed.
 - Harvesters used to drop their cargo as Tiberium Riparius on death. They will now drop the Tiberium types they are carrying, instead.
 - It is no longer required to list all Tiberiums in a map to override some Tiberium's properties.
-- It was possible to make a building get built at a different speed than its cost implied by giving the building a `FreeUnit` or `PadAircraft` that was more expensive than the building itself. This functionality has been removed in preference of `BuildTimeCost`.
+- `FreeUnit` or `PadAircraft` would in some cases affect the cost of a building. This functionality has been removed.
 
 ## Quality of Life
 

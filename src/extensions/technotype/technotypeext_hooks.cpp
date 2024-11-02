@@ -98,23 +98,22 @@ int TechnoTypeClassExt::_Max_Pips() const
  */
 int TechnoTypeClassExt::_Time_To_Build()
 {
-    // TechnoClass::Time_To_Build calls TechnoTypeClass::Time_To_Build,
-    // so replacing TechnoTypeClass::Time_To_Build is enough for the desired functionality.
-
+    /**
+     *  TechnoClass::Time_To_Build calls TechnoTypeClass::Time_To_Build,
+     *  so replacing TechnoTypeClass::Time_To_Build is enough for the desired functionality.
+     */
     TechnoTypeClassExtension* technotypeext = Extension::Fetch<TechnoTypeClassExtension>(this);
 
     int cost;
 
-    if (technotypeext->BuildTimeCost != 0)
-    {
+    if (technotypeext->BuildTimeCost != 0) {
         cost = technotypeext->BuildTimeCost;
     }
-    else
-    {
+    else {
         cost = Cost;
     }
 
-    return (int)(cost * Rule->BuildSpeedBias * 0.9);
+    return static_cast<int>(cost * Rule->BuildSpeedBias * 0.9);
 }
 
 /**
