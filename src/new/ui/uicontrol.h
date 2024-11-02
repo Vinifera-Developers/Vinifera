@@ -304,6 +304,11 @@ class UIControlsClass
          *  Color to draw the NavCom queue lines' drop shadow with.
          */
         RGBStruct NavComQueueLineDropShadowColor;
+
+        /**
+         *  Should the sidebar repair, etc. buttons use the old X position, centered on the radar?
+         */
+        bool IsCenterSidebarButtonsOnRadar;
 };
 
 extern UIControlsClass *UIControls;

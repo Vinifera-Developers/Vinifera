@@ -14,7 +14,15 @@ This page lists all user interface additions, changes, fixes that are implemente
 In `VINIFERA.INI`:
 ```ini
 [Features]
-NewSidebar=no  ; boolean, whether the game should use the new sidebar.
+NewSidebar=no                   ; boolean, whether the game should use the new sidebar.
+```
+
+- Optionally, sidebar buttons like repair, etc. can be centered on the radar, like in vanilla, as opposed to being centered on the tab buttons.
+
+In `UI.INI`:
+```ini
+[Ingame]
+CenterSidebarButtonsOnRadar=no  ; boolean, should the repair, etc. buttons be centered to the radar, instead of the tab buttons/cameo strips?
 ```
 
 - Sample graphics for the new sidebar are available [here](https://github.com/Vinifera-Developers/Vinifera-Files/tree/master/files).

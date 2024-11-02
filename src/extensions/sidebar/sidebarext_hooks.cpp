@@ -68,6 +68,7 @@
 #include "hooker.h"
 #include "hooker_macros.h"
 #include "optionsext.h"
+#include "uicontrol.h"
 #include "vinifera_globals.h"
 
 
@@ -822,7 +823,7 @@ void SidebarClassExt::_Set_Dimensions()
     Background.Set_Position(SidebarRect.X + 16, TacticalRect.Y);
     Background.Flag_To_Redraw();
 
-    Repair.Set_Position(SidebarRect.X + SidebarClassExtension::BUTTON_REPAIR_X_OFFSET, SidebarRect.Y + BUTTON_REPAIR_Y_OFFSET);
+    Repair.Set_Position(SidebarRect.X + (UIControls->IsCenterSidebarButtonsOnRadar ? SidebarClass::BUTTON_REPAIR_X_OFFSET : SidebarClassExtension::BUTTON_REPAIR_X_OFFSET), SidebarRect.Y + BUTTON_REPAIR_Y_OFFSET);
     Repair.Flag_To_Redraw();
     Repair.DrawX = -SidebarRect.X;
 
