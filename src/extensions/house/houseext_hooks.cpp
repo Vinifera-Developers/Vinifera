@@ -60,6 +60,7 @@
 #include "hooker_macros.h"
 #include "houseext.h"
 #include "language.h"
+#include "logic.h"
 #include "scenarioext.h"
 #include "spawner.h"
 #include "tibsun_functions.h"
@@ -83,6 +84,7 @@ public:
     int _AI_Building();
     void _MPlayer_Defeated();
     DiffType _Assign_Handicap(DiffType handicap);
+    void _Make_Ally(HouseClass* house);
 };
 
 
@@ -830,6 +832,93 @@ DiffType HouseClassExt::_Assign_Handicap(DiffType handicap)
     TeamTime = 175 * ID + Rule->TeamDelays[handicap];
 
     return old;
+}
+
+
+/**
+ *  Make the specified house an ally.
+ *
+ *  @author: 05/08/1995 JLB - Created
+ *           29/10/2024 ZivDero - Adjustments for Tiberian Sun
+ */
+void HouseClassExt::_Make_Ally(HouseClass* house)
+{
+    if (Is_Allowed_To_Ally(house)) {
+
+        Allies |= (1L << house->ID);
+
+        /**
+         *  Don't consider the newfound ally to be an enemy -- of course.
+         */
+        Recalc_Threat_Regions();
+        Clear_Anger(house);
+        
+        if (Enemy == house->ID) {
+            Enemy = HOUSE_NONE;
+        }
+
+        if (ScenarioInit) {
+            Control.Allies |= (1L << house->ID);
+        }
+
+        if (Session.Type != GAME_NORMAL || !ScenarioInit) {
+
+            if (!ScenarioInit) {
+
+                /**
+                 *  An alliance with another human player will cause the computer
+                 *  players (if present) to become paranoid.
+                 */
+                if (Is_Human_Control() && Rule->IsComputerParanoid && !house->Class->IsMultiplayPassive) {
+                    Computer_Paranoid();
+                }
+
+                /**
+                 *  Sweep through all techno objects and perform a cheeseball tarcom clear to ensure
+                 *  that fighting will most likely stop when the cease fire begins.
+                 */
+                for (int index = 0; index < Logic.Count(); index++) {
+                    ObjectClass* object = Logic[index];
+
+                    if (object != NULL && object->As_Techno() && !object->IsInLimbo && object->Owner() == Class->ID) {
+                        TargetClass target = As_Target(static_cast<TechnoClass*>(object)->TarCom);
+                        if (target.Is_Valid() && target.As_Techno()) {
+                            if (Is_Ally(target.As_Techno())) {
+                                static_cast<TechnoClass*>(object)->Assign_Target(nullptr);
+                            }
+                        }
+                    }
+                }
+
+                if (Is_Human_Control() && Session.Type != GAME_NORMAL && !house->Class->IsMultiplayPassive) {
+
+                    char buffer[80];
+                    std::snprintf(buffer, std::size(buffer), Fetch_String(TXT_HAS_ALLIED), IniName, house->IniName);
+                    Session.Messages.Add_Message(nullptr, 0, buffer, RemapColor, TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, TICKS_PER_MINUTE * Rule->MessageDelay);
+                }
+
+                if (Is_Human_Control()) {
+                    Speak(VOX_ALLIANCE_FORMED);
+                }
+            }
+
+            /**
+             *  Cause all technos to be revealed to the house that has been
+             *  allied with.
+             */
+            if (Rule->IsAllyReveal && house == PlayerPtr) {
+                for (int index = 0; index < Technos.Count(); index++) {
+                    TechnoClass const* t = Technos[index];
+
+                    if (!t->IsInLimbo && t->House == this) {
+                        Map.Sight_From(t->Center_Coord(), t->Techno_Type_Class()->SightRange, PlayerPtr);
+                    }
+                }
+            }
+
+            Map.Flag_To_Redraw();
+        }
+    }
 }
 
 
@@ -1598,6 +1687,7 @@ void HouseClassExtension_Hooks()
     Patch_Jump(0x004C10E0, &HouseClassExt::_AI_Building);
     Patch_Jump(0x004BF4C0, &HouseClassExt::_MPlayer_Defeated);
     Patch_Jump(0x004BB460, &HouseClassExt::_Assign_Handicap);
+    Patch_Jump(0x004BDB50, &HouseClassExt::_Make_Ally);
 
     Patch_Jump(0x004CB777, &_HouseClass_ShouldDisableCameo_BuildLimit_Fix);
     Patch_Jump(0x004BC187, &_HouseClass_Can_Build_BuildLimit_Handle_Vehicle_Transform);
