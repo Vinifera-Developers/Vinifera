@@ -1503,6 +1503,10 @@ bool ScenarioClassExtension::Load_Scenario(CCINIClass& ini, bool random)
                     Scenario_MP_Fixups(official);
                 }
 
+                if (Session.Type != GAME_NORMAL) {
+                    Init_Forced_Alliances();
+                }
+
                 Call_Back();
 
                 /**
@@ -1580,6 +1584,38 @@ bool ScenarioClassExtension::Load_Scenario(CCINIClass& ini, bool random)
      */
     ScenarioInit--;
     return false;
+}
+
+
+/**
+ *  Creates alliances as dictated by the client.
+ *
+ *  @author: ZivDero
+ */
+void ScenarioClassExtension::Init_Forced_Alliances()
+{
+    /**
+     *  Process the clients's forced alliances.
+     */
+    if (Vinifera_SpawnerActive) {
+        for (int i = 0; i < Session.Players.Count() + Session.Options.AIPlayers; i++) {
+            HouseClass* housep = Houses[i];
+
+            /**
+             *  Multiplay passive houses don't get allies.
+             */
+            if (housep->Class->IsMultiplayPassive)
+                continue;
+
+            const auto house_config = &Vinifera_SpawnerConfig->Houses[i];
+            for (int j = 0; j < std::size(house_config->Alliances); j++)
+            {
+                const int ally_index = house_config->Alliances[j];
+                if (ally_index != -1)
+                    housep->Make_Ally(static_cast<HousesType>(ally_index));
+            }
+        }
+    }
 }
 
 
@@ -2096,32 +2132,6 @@ void ScenarioClassExtension::Assign_Houses()
         housep->RemapColor = remap_color;
 
         housep->Init_Remap_Color();
-    }
-
-    /**
-     *  Process the spawner's forced alliances.
-     */
-    if (Vinifera_SpawnerActive)
-    {
-        for (int i = 0; i < Session.Players.Count() + Session.Options.AIPlayers; i++)
-        {
-            housep = Houses[i];
-
-            /**
-             *  Multiplay passive houses don't get allies.
-             */
-            if (housep->Class->IsMultiplayPassive)
-                continue;
-
-            const auto house_config = &Vinifera_SpawnerConfig->Houses[i];
-            for (int j = 0; j < std::size(house_config->Alliances); j++)
-            {
-                const int ally_index = house_config->Alliances[j];
-                if (ally_index != -1)
-                    housep->Allies &= 1 << ally_index;
-            }
-
-        }
     }
 
     DEBUG_INFO("Assign_Houses(exit)\n");

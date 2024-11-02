@@ -77,6 +77,7 @@ public:
     static bool Start_Scenario(char* name, bool briefing, CampaignType campaignid);
     static bool Read_Scenario_INI(const char* root, bool);
     static bool Load_Scenario(CCINIClass& ini, bool random = false);
+    static void Init_Forced_Alliances();
 
     void Assign_Starting_Positions(bool official);
     static void Assign_Houses();
