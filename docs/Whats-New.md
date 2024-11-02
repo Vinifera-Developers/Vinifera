@@ -232,7 +232,9 @@ Vanilla fixes:
 - Fix a bug where if the player loaded a saved game, the score screen timer would report the time since the saved game was loaded, instead of since when the scenario was first started (by ZivDero)
 - Fix a bug where units could gain veterancy by killing allies (by ZivDero)
 - Fix a bug where a trigger could delete itself, leading to a crash (by ZivDero)
-- Fix a bug where AI Triggers' MultiSide wouldn't correctly consider all houses (by ZivDero)
+- Fix a bug where AI Triggers' `MultiSide` wouldn't correctly consider all houses (by ZivDero)
+- Fix a bug where newly created objects wouldn't reveal shroud for allies with `AllyReveal=yes` (by ZivDero)
+- Fix a bug where mission `Ambush` wouldn't work correctly (by ZivDero)
 
 </details>
 

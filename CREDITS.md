@@ -213,3 +213,8 @@ This page lists all the individual contributions to the project by their author.
   - Add support for more than 2 sides' loading screens, sidebars and speeches.
   - Disallow loading campaign saves from other playthoughs, as well as from skirmish.
   - Allow customizing the options color per side.
+  - Fix a bug where units could gain veterancy by killing allies.
+  - Fix a bug where a trigger could delete itself, leading to a crash.
+  - Fix a bug where AI Triggers' `MultiSide` wouldn't correctly consider all houses.
+  - Fix a bug where newly created objects wouldn't reveal shroud for allies with `AllyReveal=yes`.
+  - Fix a bug where mission `Ambush` wouldn't work correctly.

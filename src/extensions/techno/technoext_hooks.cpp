@@ -121,6 +121,7 @@ public:
     bool _Can_Player_Move() const;
     Coordinate _Fire_Coord(WeaponSlotType which) const;
     void _Record_The_Kill(TechnoClass* source);
+    bool _Revealed(HouseClass* house);
 };
 
 
@@ -1295,6 +1296,83 @@ void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
     }
 }
 
+
+/**
+ *  Handles revealing an object to the house specified.
+ *
+ *  @author:  06/02/1994 JLB - Created.
+ *            ZivDero - Adjustments for Tiberian Sun.
+ */
+bool TechnoClassExt::_Revealed(HouseClass* house)
+{
+    if (house == PlayerPtr && IsDiscoveredByPlayer) {
+        return false;
+    }
+
+    if (house != PlayerPtr) {
+        if (IsDiscoveredByComputer) return false;
+        IsDiscoveredByComputer = true;
+    }
+
+    if (house == nullptr) {
+        return false;
+    }
+
+    if (RadioClass::Revealed(house)) {
+
+        /*
+         *  An enemy object that is discovered will go into hunt mode if
+         *  its current mission is to ambush.
+         */
+        if (!House->Is_Human_Control() && Mission == MISSION_AMBUSH) {
+            Assign_Mission(MISSION_HUNT);
+        }
+
+        if (house == PlayerPtr) {
+
+            IsDiscoveredByPlayer = true;
+            House->field_56C = true;
+            House->field_56D = true;
+
+            if (!IsOwnedByPlayer) {
+
+                /**
+                 *  If there is a trigger event associated with this object, then process
+                 *  it for discovery purposes.
+                 */
+                if (!ScenarioInit && Tag) {
+                    Tag->Spring(TEVENT_DISCOVERED, this);
+                }
+
+                /**
+                 *  Alert the enemy house to presence of the friendly side.
+                 */
+                House->IsDiscovered = true;
+            }
+            else {
+
+                /**
+                 *  A newly revealed object will always perform a look operation.
+                 */
+                Look();
+            }
+
+            /**
+             *  Outside of campaign, reveal newly built allied objects with AllyReveal on.
+             */
+            if (Session.Type != GAME_NORMAL && Rule->IsAllyReveal && House->Is_Ally(house)) {
+                Look();
+            }
+        }
+        else {
+            IsDiscoveredByComputer = true;
+        }
+
+        return true;
+    }
+
+    return false;
+}
 
 
 /**
@@ -2638,4 +2716,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x006336F0, &TechnoClassExt::_Record_The_Kill);
     //Patch_Jump(0x0062A3D0, &TechnoClassExt::_Fire_Coord); // Disabled because it's functionally identical to the vanilla function when there's no secondary coordinate
     Patch_Jump(0x0062D49A, &_TechnoClass_Evaluate_Object_AttackNeutralUnits_Patch);
+    Patch_Jump(0x0062AAD0, &TechnoClassExt::_Revealed);
 }
