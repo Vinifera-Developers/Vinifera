@@ -235,6 +235,7 @@ Vanilla fixes:
 - Fix a bug where AI Triggers' `MultiSide` wouldn't correctly consider all houses (by ZivDero)
 - Fix a bug where newly created objects wouldn't reveal shroud for allies with `AllyReveal=yes` (by ZivDero)
 - Fix a bug where mission `Ambush` wouldn't work correctly (by ZivDero)
+- Add unit promotion sounds, EVA and flashing (by ZivDero)
 
 </details>
 

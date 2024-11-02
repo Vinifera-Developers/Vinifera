@@ -217,6 +217,19 @@ TextLabelOutline=yes                ; boolean, should the text be drawn with a b
 TextLabelBackgroundTransparency=50  ; unsigned integer, the transparency of the text background fill. Ranged between 0 and 100.
 ```
 
+### Unit Promotion Indicators
+
+- In Red Alert 2, unit promotion is indicated by sounds, flashing and an EVA voiceline. Vinifera ports this behavior to Tiberian Sun.
+
+In `RULES.INI`:
+```ini
+[AudioVisual]
+UpgradeVeteranSound=    ; VocType, the sound played when a unit is promoited to veteran status.
+UpgradeEliteSound=      ; VocType, the sound played when a unit is promoted to elite status.
+VoxUnitPromoted=        ; VoxType, the EVA line played when a unit is promoted.
+EliteFlashTimer=0       ; integer, the number of frames that a newly elite unit will flash for.
+```
+
 ### Unit Health Bar
 
 - Vinifera allows customizing the position of the heath bar.

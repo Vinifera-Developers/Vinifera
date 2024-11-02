@@ -218,3 +218,5 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where AI Triggers' `MultiSide` wouldn't correctly consider all houses.
   - Fix a bug where newly created objects wouldn't reveal shroud for allies with `AllyReveal=yes`.
   - Fix a bug where mission `Ambush` wouldn't work correctly.
+  - Add unit promotion sounds, EVA and flashing.
+  

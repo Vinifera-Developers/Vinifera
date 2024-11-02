@@ -83,7 +83,11 @@ RulesClassExtension::RulesClassExtension(const RulesClass *this_ptr) :
     IceStrength(0),
     WeedPipIndex(1),
     MaxFreeRefineryDistanceBias(16),
-    BaseUnit()
+    BaseUnit(),
+    UpgradeVeteranSound(VOC_NONE),
+    UpgradeEliteSound(VOC_NONE),
+    VoxUnitPromoted(VOX_NONE),
+    EliteFlashTimer(0)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
@@ -657,6 +661,11 @@ bool RulesClassExtension::AudioVisual(CCINIClass &ini)
 
     for (int i = 0; i < MaxPips.Count(); i++)
         DEBUG_INFO("%d", MaxPips[i]);
+
+    UpgradeVeteranSound = ini.Get_VocType(AUDIOVISUAL, "UpgradeVeteranSound", UpgradeVeteranSound);
+    UpgradeEliteSound = ini.Get_VocType(AUDIOVISUAL, "UpgradeEliteSound", UpgradeEliteSound);
+    VoxUnitPromoted = ini.Get_VoxType(AUDIOVISUAL, "VoxUnitPromoted", VoxUnitPromoted);
+    EliteFlashTimer = ini.Get_Int(AUDIOVISUAL, "EliteFlashTimer", EliteFlashTimer);
 
     return true;
 }

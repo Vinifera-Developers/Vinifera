@@ -92,4 +92,10 @@ class TechnoClassExtension : public RadioClassExtension
          *  The object that spawned this object.
          */
         TechnoClass* SpawnOwner;
+
+        /**
+         *  The veternacy rank of this unit last time it performed its AI() function.
+         *  Used to determine when a unit has ranked up.
+         */
+        VeterancyRankType LastVeterancy;
 };

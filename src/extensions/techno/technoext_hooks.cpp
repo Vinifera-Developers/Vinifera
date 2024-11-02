@@ -87,6 +87,7 @@
 #include "utracker.h"
 #include "aircraft.h"
 #include "spawner.h"
+#include "vox.h"
 
 
 /**
@@ -592,8 +593,7 @@ void TechnoClassExt::_Stun()
 
 
 /**
- *  Wrapper function to patch the call in TechnoClass::AI to call
- *  SpawnManagerClass::AI.
+ *  Wrapper function to insert new things into TechnoClass::AI.
  *
  *  @author: ZivDero
  */
@@ -603,8 +603,55 @@ void TechnoClassExt::_Mission_AI()
 
     const auto extension = Extension::Fetch<TechnoClassExtension>(this);
 
+    /**
+     *  Execute SpawnManager AI.
+     */
     if (extension->SpawnManager)
         extension->SpawnManager->AI();
+
+    /**
+     *  Check if the unit has been promoted.
+     */
+    if (extension->LastVeterancy != Veterancy.Get_Rank())
+    {
+        if (extension->LastVeterancy != VETERANCY_NONE)
+        {
+            if (Veterancy.Get_Rank() == RANK_ELITE)
+            {
+                /**
+                 *  Play the promotion sound and voice line.
+                 */
+                if (House->Is_Player_Control())
+                {
+                    Sound_Effect(RuleExtension->UpgradeEliteSound, Coord);
+                    Speak(RuleExtension->VoxUnitPromoted);
+                }
+
+                /**
+                 *  Elite units also flash for a while.
+                 */
+                FlashCount = RuleExtension->EliteFlashTimer;
+            }
+            else if (Veterancy.Get_Rank() == RANK_VETERAN)
+            {
+                /**
+                 *  Play the promotion sound and voice line.
+                 */
+                if (House->Is_Player_Control())
+                {
+                    Sound_Effect(RuleExtension->UpgradeVeteranSound, Coord);
+                    Speak(RuleExtension->VoxUnitPromoted);
+                }
+            }
+
+            /**
+             *  Force the unit to look in case its range has been upgraded.
+             */
+            Look();
+        }
+
+        extension->LastVeterancy = Veterancy.Get_Rank();
+    }
 }
 
 
