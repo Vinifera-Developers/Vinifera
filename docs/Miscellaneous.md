@@ -85,6 +85,7 @@ AutoSurrender=yes           ; boolean, should players surrender on disconnection
 AttackNeutralUnits=no       ; boolean, should neutral units be targeted by the player's army automatically?
 ScrapMetal=no               ; boolean, should explosions use alternative animations from the `ScrapExplosion=` list?
 ContinueWithoutHumans=yes   ; boolean, should the game not end even if the only players left alive are AI?
+DifficultyName=             ; string, and override for the difficulty name printed at the start of the scenario.
 ```
 
 - Information about the local player is read from the `Settings` section, for all other players - from `OtherX` sections, where `X` ranges from `1` to `7`.
