@@ -33,7 +33,8 @@
 #include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
-
+#include "fetchres.h"
+#include "language.h"
 
 /**
  *  Class constructor.
@@ -45,7 +46,11 @@ SuperWeaponTypeClassExtension::SuperWeaponTypeClassExtension(const SuperWeaponTy
     SidebarImage(),
     IsShowTimer(false),
     CameoImageSurface(nullptr),
-    ActionOutOfRange(ACTION_EMPULSE_RANGE)
+    ActionOutOfRange(ACTION_EMPULSE_RANGE),
+    Misc_ReadyString(),
+    Misc_SuspendString(),
+    Misc_ActiveString(),
+    Misc_ChargingString()
 {
     //if (this_ptr) EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::SuperWeaponTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -212,6 +217,13 @@ bool SuperWeaponTypeClassExtension::Read_INI(CCINIClass &ini)
     }
 
     ActionOutOfRange = ini.Get_ActionType(ini_name, "ActionOutOfRange", ActionOutOfRange);
+
+    // String
+    bool IsHS = This()->Type == SPECIAL_HUNTER_SEEKER;
+    ini.Get_String(ini_name, "ReadyString", Fetch_String(IsHS?TXT_RELEASE_THE_HOUNDS:TXT_READY), Misc_ReadyString, 0x10);
+    ini.Get_String(ini_name, "ActivedString", Fetch_String(TXT_FIRESTORM_ON), Misc_ActiveString, 0x10);
+    ini.Get_String(ini_name, "ChargingString", Fetch_String(TXT_CHARGING), Misc_ChargingString, 0x10);
+    ini.Get_String(ini_name, "SuspendString", Fetch_String(TXT_HOLD), Misc_SuspendString, 0x10);
 
     IsInitialized = true;
     

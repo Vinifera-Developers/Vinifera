@@ -29,10 +29,9 @@
 
 #include "abstracttypeext.h"
 #include "supertype.h"
-
+#include "wstring.h"
 
 class BSurface;
-
 
 class DECLSPEC_UUID(UUID_SUPERWEAPONTYPE_EXTENSION)
 SuperWeaponTypeClassExtension final : public AbstractTypeClassExtension
@@ -86,4 +85,24 @@ SuperWeaponTypeClassExtension final : public AbstractTypeClassExtension
          *  Action type used for the cursor when the SW is out of range to fire.
          */
         ActionType ActionOutOfRange;
+
+        /**
+         * The string that appears when it's ready.
+         */
+        char Misc_ReadyString[0x11];
+
+        /**
+         *  A string that is displayed when preparing a special weapon with a charge function.
+         */
+        char Misc_ChargingString[0x11];
+
+        /**
+         * A string when activating a special weapon using IsUseChargeDrain.
+         */
+        char Misc_ActiveString[0x11];
+
+        /**
+         * The string that appears when a special weapon is ready to be interrupted.
+         */
+        char Misc_SuspendString[0x11];
 };
