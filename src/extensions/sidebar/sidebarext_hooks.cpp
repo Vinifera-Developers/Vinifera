@@ -47,6 +47,7 @@
 #include "sidebarext.h"
 #include "spritecollection.h"
 #include "super.h"
+#include "superext.h"
 #include "supertype.h"
 #include "supertypeext.h"
 #include "techno.h"
@@ -1666,7 +1667,7 @@ void StripClassExt::_Draw_It(bool complete)
                     production = true;
                     completed = !PlayerPtr->SuperWeapon[spc]->Needs_Redraw();
                     isready = PlayerPtr->SuperWeapon[spc]->Is_Ready();
-                    state = PlayerPtr->SuperWeapon[spc]->Ready_String();
+                    state = Extension::Fetch<SuperClassExtension>(PlayerPtr->SuperWeapon[spc])->Ready_String();
                     stage = PlayerPtr->SuperWeapon[spc]->Anim_Stage();
                     darken = false;
 
