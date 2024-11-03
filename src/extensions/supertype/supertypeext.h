@@ -29,7 +29,6 @@
 
 #include "abstracttypeext.h"
 #include "supertype.h"
-#include "wstring.h"
 
 class BSurface;
 
