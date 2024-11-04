@@ -539,6 +539,13 @@ void EventClassExt::_Event_RemovePlayer()
     DEBUG_INFO("Executing REMOVEPLAYER event. Frame is %d\n", Frame);
     HouseClass* house = Houses[Data.General.Value];
 
+    /**
+     *  Turn off autosaves when a player disconnects.
+     */
+    if (Vinifera_SpawnerActive) {
+        Vinifera_SpawnerConfig->AutoSaveInterval = 0;
+    }
+
     if ((Session.Type == GAME_INTERNET && PlanetWestwoodTournament) || (Vinifera_SpawnerActive && Session.Type == GAME_IPX && Vinifera_SpawnerConfig->AutoSurrender)) {
         house->Flag_To_Die();
     }
