@@ -90,7 +90,7 @@ UIControlsClass::UIControlsClass() :
     TargetLaserColor{ 173, 0, 0 }, // COLOR_RED
     TargetLaserDropShadowColor{ 0, 0, 0 },
     TargetLaserTime(15),
-    IsShowNavComQueueLines(false),
+    IsShowNavComQueueLines(true),
     IsNavComQueueLineDashed(false),
     IsNavComQueueLineDropShadow(false),
     IsNavComQueueLineThick(false),

@@ -328,7 +328,7 @@ TargetLaserTime=15                 ; integer, time in frames the target laser sh
 In `UI.INI`:
 ```ini
 [Ingame]
-ShowNavComQueueLines=no               ; boolean, should NavCom queue lines be displayed?
+ShowNavComQueueLines=yes              ; boolean, should NavCom queue lines be displayed?
 NavComQueueLineDashed=no              ; boolean, should NavCom queue lines be drawn with dashes?
 NavComQueueLineDropShadow=no          ; boolean, should NavCom queue lines be drawn with a drop shadow?
 NavComQueueLineThick=no               ; boolean, should NavCom queue lines be drawn with a thick line?
