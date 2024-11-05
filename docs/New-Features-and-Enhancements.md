@@ -1097,7 +1097,7 @@ TurretFacings=32     ; integer, the turret facing count.
 ### `[Weapons]` Section
 
 - Vinifera implements the reading of a new `RULES.INI` section, `[Weapons]`, to allow the definition of WeaponTypes.
-This is to fix the issue known as the "Weed Guy" hack, and ensure all weapons are allocated in the WeaponsType heaps before any weapon lookup or loading is performed.
+This is to remove the need for the work-around known as the "Weed Guy" hack, and ensure all weapons are allocated in the WeaponsType heaps before any weapon lookup or loading is performed.
 
 ### Various Keys Ported from Red Alert 2
 
