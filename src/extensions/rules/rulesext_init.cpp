@@ -98,33 +98,6 @@ original_code:
 
 
 /**
- *  Patch for including the extended class members when initialsing rules data.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_RulesClass_Initialize_Patch)
-{
-    GET_STACK_STATIC(RulesClass *, this_ptr, esp, 0x10);
-    GET_STACK_STATIC(CCINIClass *, ini, esp, 0x44);
-
-    RuleExtension->Initialize(*ini);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { pop ebx }
-    _asm { add esp, 0x130 }
-    _asm { ret 4 }
-}
-
-
-/**
  *  Patch for including the extended class members when processing rules data.
  * 
  *  @warning: Do not touch this unless you know what you are doing!
@@ -183,7 +156,6 @@ void RulesClassExtension_Init()
 {
     Patch_Jump(0x005C59A1, &_RulesClass_Constructor_Patch);
     Patch_Jump(0x005C6120, &_RulesClass_Destructor_Patch);
-    Patch_Jump(0x005C66FF, &_RulesClass_Initialize_Patch);
     Patch_Jump(0x005C6A4D, &_RulesClass_Process_Patch);
     Patch_Jump(0x005CC3BF, &_RulesClass_MPlayer_Patch);
 }

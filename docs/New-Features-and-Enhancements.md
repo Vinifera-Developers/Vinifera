@@ -569,6 +569,11 @@ Modifier=100%       ; % or float, default Verses value for this armor.
 ForceFire=yes       ; boolean, whether warheads can by default force-fire at this armor type.
 Retaliate=yes       ; boolean, whether warheads can by default retaliate against this armor type.
 PassiveAcquire=yes  ; boolean, whether warheads can by default passive acquire this armor type.
+BaseArmor=          ; ArmorType, the armor that provides the default values for this armor
+```
+
+```{warning}
+Make sure not to specify `BaseArmor` recursively (in a loop).
 ```
 
 ```{note}
@@ -606,7 +611,7 @@ Organic=no                              ; boolean, whether an infantry using thi
 In `RULES.INI`:
 ```ini
 [SOMEWARHEAD]               ; WarheadType
-Versus.myarmor=100%         ; % or float, the damage multiplier against a this armor type.
+Modifier.myarmor=100%       ; % or float, the damage multiplier against a this armor type.
 ForceFire.myarmor=yes       ; boolean, whether this warhead can be used to force-fire at a this armor type.
 Retaliate.myarmor=yes       ; boolean, whether this warhead can be used to retaliate against a this armor type.
 PassiveAcquire.myarmor=yes  ; boolean, whether this warhead can be used to passive acquire a this armor type.

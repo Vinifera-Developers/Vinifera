@@ -55,7 +55,8 @@ ArmorTypeClass::ArmorTypeClass(const char* name) :
     Modifier(1.0),
     ForceFire(true),
     PassiveAcquire(true),
-    Retaliate(true)
+    Retaliate(true),
+    BaseArmor(ARMOR_NULL)
 {
     ASSERT_FATAL_PRINT(name != nullptr, "Invalid name for ArmorType!");
 
@@ -343,6 +344,7 @@ bool ArmorTypeClass::Read_INI(CCINIClass& ini)
     ForceFire = ini.Get_Bool(IniName, "ForceFire", ForceFire);
     PassiveAcquire = ini.Get_Bool(IniName, "PassiveAcquire", PassiveAcquire);
     Retaliate = ini.Get_Bool(IniName, "Retaliate", Retaliate);
+    BaseArmor = ini.Get_ArmorType(IniName, "BaseArmor", BaseArmor);
 
     return true;
 }

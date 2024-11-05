@@ -236,7 +236,7 @@ ArmorType CCINIClassExt::_Get_ArmorType(const char *section, const char *entry, 
 {
     char buffer[1024];
 
-    if (INIClass::Get_String(section, entry, ArmorTypeClass::Name_From(defvalue), buffer, sizeof(buffer)) > 0) {
+    if (INIClass::Get_String(section, entry, nullptr, buffer, sizeof(buffer)) > 0) {
         return ArmorTypeClass::From_Name(buffer);
     }
 

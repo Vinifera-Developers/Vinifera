@@ -34,16 +34,11 @@
 #include "vinifera_globals.h"
 #include "vinifera_saveload.h"
 
-#define MODIFIER_DEFAULT DBL_MAX
-#define FORCEFIRE_DEFAULT UCHAR_MAX
-#define PASSIVEACQUIRE_DEFAULT UCHAR_MAX
-#define RETALIATE_DEFAULT UCHAR_MAX
 
-
-std::vector<std::vector<double>> Verses::Modifier;
-std::vector<std::vector<unsigned char>> Verses::ForceFire;
-std::vector<std::vector<unsigned char>> Verses::PassiveAcquire;
-std::vector<std::vector<unsigned char>> Verses::Retaliate;
+std::vector<std::vector<Verses::VersesData<double>>> Verses::Modifier;
+std::vector<std::vector<Verses::VersesData<bool>>> Verses::ForceFire;
+std::vector<std::vector<Verses::VersesData<bool>>> Verses::PassiveAcquire;
+std::vector<std::vector<Verses::VersesData<bool>>> Verses::Retaliate;
 
 /**
  *  Saves all the Verses arrays to the stream.
@@ -111,19 +106,19 @@ void Verses::Resize()
     // Resize the old arrays for new warheads and set defaults
     for (int i = 0; i < old_armor_count; i++)
     {
-        Modifier[i].resize(WarheadTypes.Count(), MODIFIER_DEFAULT);
-        ForceFire[i].resize(WarheadTypes.Count(), FORCEFIRE_DEFAULT);
-        PassiveAcquire[i].resize(WarheadTypes.Count(), PASSIVEACQUIRE_DEFAULT);
-        Retaliate[i].resize(WarheadTypes.Count(), RETALIATE_DEFAULT);
+        Modifier[i].resize(WarheadTypes.Count());
+        ForceFire[i].resize(WarheadTypes.Count());
+        PassiveAcquire[i].resize(WarheadTypes.Count());
+        Retaliate[i].resize(WarheadTypes.Count());
     }
 
     // Create new arrays for new armors
     for (int i = old_armor_count; i < ArmorTypes.Count(); i++)
     {
-        Modifier[i] = std::vector<double>(WarheadTypes.Count(), MODIFIER_DEFAULT);
-        ForceFire[i] = std::vector<unsigned char>(WarheadTypes.Count(), FORCEFIRE_DEFAULT);
-        PassiveAcquire[i] = std::vector<unsigned char>(WarheadTypes.Count(), PASSIVEACQUIRE_DEFAULT);
-        Retaliate[i] = std::vector<unsigned char>(WarheadTypes.Count(), RETALIATE_DEFAULT);
+        Modifier[i] = std::vector<VersesData<double>>(WarheadTypes.Count());
+        ForceFire[i] = std::vector<VersesData<bool>>(WarheadTypes.Count());
+        PassiveAcquire[i] = std::vector<VersesData<bool>>(WarheadTypes.Count());
+        Retaliate[i] = std::vector<VersesData<bool>>(WarheadTypes.Count());
     }
 }
 
@@ -139,130 +134,6 @@ void Verses::Clear()
     ForceFire.clear();
     PassiveAcquire.clear();
     Retaliate.clear();
-}
-
-
-/**
- *  Sets the Verses modifier for an armor and warhead combination.
- *
- *  @author: ZivDero
- */
-void Verses::Set_Modifier(ArmorType armor, WarheadType warhead, double value)
-{
-    ASSERT(armor >= ARMOR_FIRST && armor < ArmorTypes.Count());
-    ASSERT(warhead >= WARHEAD_FIRST && warhead < WarheadTypes.Count());
-
-    Modifier[armor][warhead] = value;
-}
-
-
-/**
- *  Gets the Verses modifier for an armor and warhead combination.
- *
- *  @author: ZivDero
- */
-double Verses::Get_Modifier(ArmorType armor, WarheadType warhead)
-{
-    ASSERT(armor >= ARMOR_FIRST && armor < ArmorTypes.Count());
-    ASSERT(warhead >= WARHEAD_FIRST && warhead < WarheadTypes.Count());
-
-    if (Modifier[armor][warhead] == MODIFIER_DEFAULT)
-        return ArmorTypes[armor]->Modifier;
-
-    return Modifier[armor][warhead];
-}
-
-
-/**
- *  Sets the Verses force-fire flag for an armor and warhead combination.
- *
- *  @author: ZivDero
- */
-void Verses::Set_ForceFire(ArmorType armor, WarheadType warhead, bool value)
-{
-    ASSERT(armor >= ARMOR_FIRST && armor < ArmorTypes.Count());
-    ASSERT(warhead >= WARHEAD_FIRST && warhead < WarheadTypes.Count());
-
-    ForceFire[armor][warhead] = static_cast<unsigned char>(value);
-}
-
-
-/**
- *  Gets the Verses force-fire flag for an armor and warhead combination.
- *
- *  @author: ZivDero
- */
-bool Verses::Get_ForceFire(ArmorType armor, WarheadType warhead)
-{
-    ASSERT(armor >= ARMOR_FIRST && armor < ArmorTypes.Count());
-    ASSERT(warhead >= WARHEAD_FIRST && warhead < WarheadTypes.Count());
-
-    if (ForceFire[armor][warhead] == FORCEFIRE_DEFAULT)
-        return ArmorTypes[armor]->ForceFire;
-
-    return static_cast<bool>(ForceFire[armor][warhead]);
-}
-
-
-/**
- *  Sets the Verses passive acquire flag for an armor and warhead combination.
- *
- *  @author: ZivDero
- */
-void Verses::Set_PassiveAcquire(ArmorType armor, WarheadType warhead, bool value)
-{
-    ASSERT(armor >= ARMOR_FIRST && armor < ArmorTypes.Count());
-    ASSERT(warhead >= WARHEAD_FIRST && warhead < WarheadTypes.Count());
-
-    PassiveAcquire[armor][warhead] = static_cast<unsigned char>(value);
-}
-
-
-/**
- *  Gets the Verses passive acquire flag for an armor and warhead combination.
- *
- *  @author: ZivDero
- */
-bool Verses::Get_PassiveAcquire(ArmorType armor, WarheadType warhead)
-{
-    ASSERT(armor >= ARMOR_FIRST && armor < ArmorTypes.Count());
-    ASSERT(warhead >= WARHEAD_FIRST && warhead < WarheadTypes.Count());
-
-    if (PassiveAcquire[armor][warhead] == PASSIVEACQUIRE_DEFAULT)
-        return ArmorTypes[armor]->PassiveAcquire;
-
-    return static_cast<bool>(PassiveAcquire[armor][warhead]);
-}
-
-
-/**
- *  Sets the Verses retaliate flag for an armor and warhead combination.
- *
- *  @author: ZivDero
- */
-void Verses::Set_Retaliate(ArmorType armor, WarheadType warhead, bool value)
-{
-    ASSERT(armor >= ARMOR_FIRST && armor < ArmorTypes.Count());
-    ASSERT(warhead >= WARHEAD_FIRST && warhead < WarheadTypes.Count());
-
-    Retaliate[armor][warhead] = static_cast<unsigned char>(value);
-}
-
-
-/**
- *  Gets the Verses retaliate flag for an armor and warhead combination.
- *
- *  @author: ZivDero
- */
-bool Verses::Get_Retaliate(ArmorType armor, WarheadType warhead)
-{
-    ASSERT(armor >= ARMOR_FIRST && armor < ArmorTypes.Count());
-    ASSERT(warhead >= WARHEAD_FIRST && warhead < WarheadTypes.Count());
-
-    if (Retaliate[armor][warhead] == RETALIATE_DEFAULT)
-        return ArmorTypes[armor]->Retaliate;
-
-    return static_cast<bool>(Retaliate[armor][warhead]);
 }
 
 

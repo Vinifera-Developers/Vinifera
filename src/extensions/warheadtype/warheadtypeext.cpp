@@ -36,6 +36,7 @@
 #include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "miscutil.h"
 #include "verses.h"
 #include "vinifera_saveload.h"
 
@@ -218,83 +219,38 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
      */
     if (ini.Get_String(ini_name, "Verses", nullptr, buffer, sizeof(buffer)) > 0) {
         char *token = std::strtok(buffer, ",");
-        for (int armor = 0; armor < ArmorTypes.Count(); ++armor) {
-
-            // Fix: if there are not enough verses specified, use the defaults
-            if (token == nullptr) {
-                break;
-            }
-
+        for (int armor = 0; armor < ArmorTypes.Count() && token; armor++, token = std::strtok(nullptr, ",")) {
             if (std::strchr(token, '%')) {
                 Verses::Set_Modifier(static_cast<ArmorType>(armor), warheadtype, std::atoi(token) * 0.01);
             } else {
                 Verses::Set_Modifier(static_cast<ArmorType>(armor), warheadtype, std::atof(token));
             }
-
-            token = std::strtok(nullptr, ",");
         }
     }
 
-    auto parse_bool = [](const char* value, bool defval) -> bool {
-        while (*value == ' ') {
-            value++;
+    if (ini.Get_String(ini_name, "ForceFire", nullptr, buffer, sizeof(buffer)) > 0) {
+        char* token = std::strtok(buffer, ",");
+        for (int armor = 0; armor < ArmorTypes.Count() && token; armor++, token = std::strtok(nullptr, ",")) {
+            Verses::Set_ForceFire(static_cast<ArmorType>(armor), warheadtype, Parse_Boolean(token, Verses::Get_ForceFire(static_cast<ArmorType>(armor), warheadtype)));
         }
+    }
 
-        switch (toupper(value[0])) {
-        case '0':
-        case 'F':
-        case 'N':
-            return false;
-        case '1':
-        case 'T':
-        case 'Y':
-            return true;
-        default:
-            return defval;
+    if (ini.Get_String(ini_name, "PassiveAcquire", nullptr, buffer, sizeof(buffer)) > 0) {
+        char* token = std::strtok(buffer, ",");
+        for (int armor = 0; armor < ArmorTypes.Count() && token; armor++, token = std::strtok(nullptr, ",")) {
+            Verses::Set_PassiveAcquire(static_cast<ArmorType>(armor), warheadtype, Parse_Boolean(token, Verses::Get_PassiveAcquire(static_cast<ArmorType>(armor), warheadtype)));
         }
-        };
+    }
 
-    enum {
-        FORCEFIRE,
-        PASSIVEACQUIRE,
-        RETALIATE
-    };
-
-    auto read_bools = [&](const char* key_name, int type) {
-        if (ini.Get_String(ini_name, key_name, nullptr, buffer, sizeof(buffer)) > 0) {
-            char* token = std::strtok(buffer, ",");
-            for (int armor = 0; armor < ArmorTypes.Count(); ++armor) {
-
-                // If there are not enough values, use the defaults
-                if (token == nullptr) {
-                    break;
-                }
-
-                switch (type) {
-                case FORCEFIRE:
-                    Verses::Set_ForceFire(static_cast<ArmorType>(armor), warheadtype, parse_bool(token, Verses::Get_ForceFire(static_cast<ArmorType>(armor), warheadtype)));
-                    break;
-                case PASSIVEACQUIRE:
-                    Verses::Set_PassiveAcquire(static_cast<ArmorType>(armor), warheadtype, parse_bool(token, Verses::Get_PassiveAcquire(static_cast<ArmorType>(armor), warheadtype)));
-                    break;
-                case RETALIATE:
-                    Verses::Set_Retaliate(static_cast<ArmorType>(armor), warheadtype, parse_bool(token, Verses::Get_Retaliate(static_cast<ArmorType>(armor), warheadtype)));
-                    break;
-                default:
-                    break;
-                }
-
-                token = std::strtok(nullptr, ",");
-            }
+    if (ini.Get_String(ini_name, "Retaliate", nullptr, buffer, sizeof(buffer)) > 0) {
+        char* token = std::strtok(buffer, ",");
+        for (int armor = 0; armor < ArmorTypes.Count() && token; armor++, token = std::strtok(nullptr, ",")) {
+            Verses::Set_Retaliate(static_cast<ArmorType>(armor), warheadtype, Parse_Boolean(token, Verses::Get_Retaliate(static_cast<ArmorType>(armor), warheadtype)));
         }
-        };
-
-    read_bools("ForceFire", FORCEFIRE);
-    read_bools("PassiveAcquire", PASSIVEACQUIRE);
-    read_bools("Retaliate", RETALIATE);
+    }
 
     /**
-     *  Read the new Versus, ForceFire, PassiveAcquire, Retaliate per-armor keys.
+     *  Read the new Modifier, ForceFire, PassiveAcquire, Retaliate per-armor keys.
      */
     for (int i = ARMOR_FIRST; i < ArmorTypes.Count(); i++)
     {
@@ -303,17 +259,25 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
         const char* armor_name = ArmorTypeClass::Name_From(static_cast<ArmorType>(i));
         ArmorType armor = static_cast<ArmorType>(i);
 
-        std::snprintf(key_name, sizeof(key_name), "Versus.%s", armor_name);
-        Verses::Set_Modifier(armor, warheadtype, ini.Get_Double(ini_name, key_name, Verses::Get_Modifier(armor, warheadtype)));
+        std::snprintf(key_name, sizeof(key_name), "Modifier.%s", armor_name);
+        if (ini.Is_Present(ini_name, key_name)) {
+            Verses::Set_Modifier(armor, warheadtype, ini.Get_Double(ini_name, key_name, Verses::Get_Modifier(armor, warheadtype)));
+        }
 
         std::snprintf(key_name, sizeof(key_name), "ForceFire.%s", armor_name);
-        Verses::Set_ForceFire(armor, warheadtype, ini.Get_Bool(ini_name, key_name, Verses::Get_ForceFire(armor, warheadtype)));
+        if (ini.Is_Present(ini_name, key_name)) {
+            Verses::Set_ForceFire(armor, warheadtype, ini.Get_Bool(ini_name, key_name, Verses::Get_ForceFire(armor, warheadtype)));
+        }
 
         std::snprintf(key_name, sizeof(key_name), "PassiveAcquire.%s", armor_name);
-        Verses::Set_PassiveAcquire(armor, warheadtype, ini.Get_Bool(ini_name, key_name, Verses::Get_PassiveAcquire(armor, warheadtype)));
+        if (ini.Is_Present(ini_name, key_name)) {
+            Verses::Set_PassiveAcquire(armor, warheadtype, ini.Get_Bool(ini_name, key_name, Verses::Get_PassiveAcquire(armor, warheadtype)));
+        }
 
         std::snprintf(key_name, sizeof(key_name), "Retaliate.%s", armor_name);
-        Verses::Set_Retaliate(armor, warheadtype, ini.Get_Bool(ini_name, key_name, Verses::Get_Retaliate(armor, warheadtype)));
+        if (ini.Is_Present(ini_name, key_name)) {
+            Verses::Set_Retaliate(armor, warheadtype, ini.Get_Bool(ini_name, key_name, Verses::Get_Retaliate(armor, warheadtype)));
+        }
     }
 
     if (!IsInitialized) {

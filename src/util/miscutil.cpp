@@ -622,3 +622,24 @@ bool Load_Voxel(VoxelObject& voxel, VoxelIndexClass& index, const char* graphic_
 
     return success;
 }
+
+
+bool Parse_Boolean(const char* value, bool defval)
+{
+    while (*value == ' ') {
+        value++;
+    }
+
+    switch (toupper(value[0])) {
+    case '0':
+    case 'F':
+    case 'N':
+        return false;
+    case '1':
+    case 'T':
+    case 'Y':
+        return true;
+    default:
+        return defval;
+    }
+}

@@ -30,8 +30,9 @@
 #include "always.h"
 #include "tibsun_defines.h"
 #include "vinifera_defines.h"
-#include "verses.h"
 #include "wstring.h"
+#include "objidl.h"
+#include "noinit.h"
 
 class CCINIClass;
 
@@ -95,4 +96,9 @@ public:
     bool ForceFire;
     bool PassiveAcquire;
     bool Retaliate;
+
+    /**
+     *  The armor type that this armor is based on. Inherits its default values from this, if set.
+     */
+    ArmorType BaseArmor;
 };

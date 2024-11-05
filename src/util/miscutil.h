@@ -76,3 +76,5 @@ const char *Get_User_Documents_Path();
 const char *Filename_From_Path(const char *filename);
 
 bool Load_Voxel(VoxelObject& voxel, VoxelIndexClass& index, const char* graphic_name, bool required = false);
+
+bool Parse_Boolean(const char* value, bool defval);
