@@ -569,7 +569,7 @@ Modifier=100%       ; % or float, default Verses value for this armor.
 ForceFire=yes       ; boolean, whether warheads can by default force-fire at this armor type.
 Retaliate=yes       ; boolean, whether warheads can by default retaliate against this armor type.
 PassiveAcquire=yes  ; boolean, whether warheads can by default passive acquire this armor type.
-BaseArmor=          ; ArmorType, the armor that provides the default values for this armor
+BaseArmor=          ; ArmorType, the armor that provides the default values for this armor (this includes the `Verses=` or `Modifier.*=` values defined for the armor in every warhead's section).
 ```
 
 ```{warning}
