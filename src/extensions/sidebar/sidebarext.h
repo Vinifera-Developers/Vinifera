@@ -214,6 +214,15 @@ public:
             }
         }
 
+        bool Is_On_Sidebar(RTTIType type, int id)
+        {
+            if (!Vinifera_NewSidebar)
+                return Map.Is_On_Sidebar(type, id);
+
+            int tab = Which_Tab(type);
+            return Column[tab].Is_On_Sidebar(type, id);
+        }
+
     public:
         /**
          *  Index of the current sidebar tab.

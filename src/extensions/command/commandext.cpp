@@ -511,7 +511,7 @@ bool RepeatLastBuildingCommandClass::Process()
     /**
      *  Is the item currently available to build on the sidebar?
      */
-    if (!Map.Is_On_Sidebar(RTTI_BUILDINGTYPE, building)) {
+    if (!SidebarExtension->Is_On_Sidebar(RTTI_BUILDINGTYPE, building)) {
         return false;
     }
 
@@ -588,7 +588,7 @@ bool RepeatLastInfantryCommandClass::Process()
     /**
      *  Is the item currently available to build on the sidebar?
      */
-    if (!Map.Is_On_Sidebar(RTTI_INFANTRYTYPE, infantry)) {
+    if (!SidebarExtension->Is_On_Sidebar(RTTI_INFANTRYTYPE, infantry)) {
         return false;
     }
 
@@ -665,7 +665,7 @@ bool RepeatLastUnitCommandClass::Process()
     /**
      *  Is the item currently available to build on the sidebar?
      */
-    if (!Map.Is_On_Sidebar(RTTI_UNITTYPE, unit)) {
+    if (!SidebarExtension->Is_On_Sidebar(RTTI_UNITTYPE, unit)) {
         return false;
     }
 
@@ -742,7 +742,7 @@ bool RepeatLastAircraftCommandClass::Process()
     /**
      *  Is the item currently available to build on the sidebar?
      */
-    if (!Map.Is_On_Sidebar(RTTI_AIRCRAFTTYPE, aircraft)) {
+    if (!SidebarExtension->Is_On_Sidebar(RTTI_AIRCRAFTTYPE, aircraft)) {
         return false;
     }
 
