@@ -1094,8 +1094,8 @@ StartTurretFrame=-1  ; integer, the starting turret frame index, allowing them t
 TurretFacings=32     ; integer, the turret facing count.
 ```
 
-- Additionally, the `Anim=` INI key for WeaponTypes will now read the number of entries that matches the firing object's Facings= entry.
-- Because of the new extended facing support, it was observed that the buffer size was too small and has now been increased to allow a larger entry to accommodate a larger facing count.
+- Similarly, the `Anim=` INI key for WeaponTypes now also supports 16, 32 and 64 entries.
+- Because of the new extended facing support, it was observed that the buffer size was too small and has now been increased to allow a larger entry to accommodate a larger facing count. Mind that the maximum string length is 506 characters now, so be sure to use short names if you want to have 64 entries.
 
 ## Warheads
 
