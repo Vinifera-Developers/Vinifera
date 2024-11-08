@@ -217,21 +217,6 @@ static void Extension_Clear_Abstract_Pointer(const AbstractClass *abstract)
 
 
 /**
- *  Check if the extension pointer is a valid memory address.
- * 
- *  #WARNING: This is not guanteed to work, but it should capture the majority of possible bad pointers.
- * 
- *  0x00870000 -> End of GAME.EXE .data segment virtual address.
- * 
- *  @author: CCHyper
- */
-static bool Extension_Is_Valid_Pointer(const AbstractClassExtension *abstract_extension)
-{
-    return reinterpret_cast<uintptr_t>(abstract_extension) >= 0x00870000;
-}
-
-
-/**
  *  Creates and attach an instance of the extension class associated with the abstract class.
  * 
  *  @author: CCHyper
@@ -658,18 +643,10 @@ AbstractClassExtension *Extension::Private::Fetch_Internal(const AbstractClass *
     }
 
     /**
-     *  Check for a malformed extension pointer.
-     */
-    if (!Extension_Is_Valid_Pointer(ext_ptr)) {
-        DEBUG_ERROR("Extension::Fetch: Corrupt extension pointer for \"%s\"!\n", Extension::Utility::Get_TypeID_Name(abstract).c_str());
-        return nullptr;
-    }
-
-    /**
-     *  Its still possible the pointer could be invalid, so perform a final check.
+     *  Its possible the pointer could be invalid, so perform a check.
      */
     if (ext_ptr->What_Am_I() <= RTTI_NONE || ext_ptr->What_Am_I() >= RTTI_COUNT) {
-        DEBUG_ERROR("Extension::Fetch: Invalid extension rtti type for \"%s\"!\n", Extension::Utility::Get_TypeID_Name(abstract).c_str());
+        DEBUG_ERROR("Extension::Fetch: Invalid extension RTTI type for \"%s\"!\n", Extension::Utility::Get_TypeID_Name(abstract).c_str());
         return nullptr;
     }
 
