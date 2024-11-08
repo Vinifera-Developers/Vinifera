@@ -547,12 +547,13 @@ In `ART.INI`:
 SecondSpawnOffset=0,0,0  ; 3 integers, an offset to be added to the firing FLH for the every second spawn's location.
 ```
 
-- Additionally, missile aircraft should have `MissileSpawn=yes` for some missile logics to be considered correctly.
+- Additionally, missile aircraft should use rocket locomotion, as well as have `MissileSpawn=yes`.
 
 In `RULES.INI`:
 ```ini
 [SOMETECHNO]     ; TechnoType
-MissileSpawn=no  ; boolean, is this object a missile meant to be spawned?
+Locomotor={B7B49766-E576-11d3-9BD9-00104B972FE8}  ; Rocket locomotion
+MissileSpawn=no                                   ; boolean, is this object a missile meant to be spawned?
 ```
 
 ### New ArmorTypes
