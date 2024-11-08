@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          CNCNET_GLOBALS.H
+ *  @file          SPAWNER.H
  *
- *  @author        CCHyper
+ *  @author        Belonit, ZivDero
  *
- *  @brief         Global values and types used for the CnCNet5 system. 
+ *  @brief         Multiplayer spawner class.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -27,37 +27,29 @@
  ******************************************************************************/
 #pragma once
 
-#include <always.h>
+
+#include "spawnerconfig.h"
+#include "vinifera_globals.h"
 
 
-namespace CnCNet5
+/**
+ *  This class contains all logic for spawning players in-game (usually via the client).
+ */
+class Spawner
 {
+public:
+    Spawner() = delete;
 
-typedef struct TunnelInfoStruct
-{
-    unsigned long ID;
-    unsigned long IP;
-    unsigned short Port;
-    bool PortHack;
+    static void Init();
+    static bool Start_Game();
 
-    bool Is_Valid() const { return !(ID == -1 || IP == -1 || Port == -1); }
+private:
+    static bool Start_Scenario(char* scenario_name);
+    static bool Load_Game(const char* file_name);
 
-} TunnelInfoStruct;
+    static void Init_Network();
+    static bool Reconcile_Players();
 
-
-/**
- *  Has the CnCNet5 system been activated?
- */
-extern bool IsActive;
-
-/**
- *  Is the tunnel system active (set when tunnel information has been provided)?
- */
-extern bool IsTunnelActive;
-
-/**
- *  CnCNet5 UDP Tunnel info.
- */
-extern TunnelInfoStruct TunnelInfo;
-
+    static void Init_UI();
+    static void Prepare_Screen();
 };

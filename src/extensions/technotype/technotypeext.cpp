@@ -39,6 +39,7 @@
 #include "vinifera_saveload.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "spawner.h"
 
 
 /**
@@ -86,7 +87,8 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     MaxRandomSpawnOffset(0),
     IsDontScore(false),
     IsSpawned(false),
-    BuildTimeCost(0)
+    BuildTimeCost(0),
+    ScrapExplosion()
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -98,7 +100,8 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
  *  @author: CCHyper
  */
 TechnoTypeClassExtension::TechnoTypeClassExtension(const NoInitClass &noinit) :
-    ObjectTypeClassExtension(noinit)
+    ObjectTypeClassExtension(noinit),
+    ScrapExplosion(noinit)
 {
     //EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -127,11 +130,16 @@ HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
 {
     //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
+    ScrapExplosion.Clear();
+
     HRESULT hr = ObjectTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
 
+    ScrapExplosion.Load(pStm);
+
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(ScrapExplosion, "ScrapExplosion");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(UnloadingClass, "UnloadingClass");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Spawns, "Spawns");
 
@@ -176,6 +184,8 @@ HRESULT TechnoTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
     if (FAILED(hr)) {
         return hr;
     }
+
+    ScrapExplosion.Save(pStm);
 
     return hr;
 }
@@ -316,11 +326,20 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     SpawnLogicRate = ini.Get_Int(ini_name, "SpawnLogicRate", SpawnLogicRate);
     SpawnsNumber = ini.Get_Int(ini_name, "SpawnsNumber", SpawnsNumber);
     SecondSpawnOffset = ArtINI.Get_Point(graphic_name, "SecondSpawnOffset", SecondSpawnOffset);
-    MaxRandomSpawnOffset = ini.Get_Int(graphic_name, "MaxRandomSpawnOffset", MaxRandomSpawnOffset);
+    MaxRandomSpawnOffset = ini.Get_Int(ini_name, "MaxRandomSpawnOffset", MaxRandomSpawnOffset);
 
     IsDontScore = ini.Get_Bool(ini_name, "DontScore", IsDontScore);
     IsSpawned = ini.Get_Bool(ini_name, "Spawned", IsSpawned);
     BuildTimeCost = ini.Get_Int(ini_name, "BuildTimeCost", BuildTimeCost);
+
+    ScrapExplosion = ini.Get_Anims(ini_name, "ScrapExplosion", ScrapExplosion);
+
+    /**
+     *  If the spawner requested scrap explosions, replace the game's explosion vector with ours.
+     */
+    if (Vinifera_SpawnerActive && Vinifera_SpawnerConfig->ScrapMetal) {
+        This()->Explosion = ScrapExplosion;
+    }
 
     return true;
 }

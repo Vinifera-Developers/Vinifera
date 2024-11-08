@@ -32,6 +32,7 @@
 #include "rules.h"
 #include "extension.h"
 #include "tpoint.h"
+#include "typelist.h"
 
 
 class CCINIClass;
@@ -39,82 +40,117 @@ class CCINIClass;
 
 class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
 {
-    public:
-        IFACEMETHOD(Load)(IStream *pStm);
-        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+public:
+    IFACEMETHOD(Load)(IStream *pStm);
+    IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
 
-    public:
-        RulesClassExtension(const RulesClass *this_ptr);
-        RulesClassExtension(const NoInitClass &noinit);
-        virtual ~RulesClassExtension();
+public:
+    RulesClassExtension(const RulesClass *this_ptr);
+    RulesClassExtension(const NoInitClass &noinit);
+    virtual ~RulesClassExtension();
 
-        virtual int Size_Of() const override;
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+    virtual int Size_Of() const override;
+    virtual void Detach(TARGET target, bool all = true) override;
+    virtual void Compute_CRC(WWCRCEngine &crc) const override;
 
-        virtual const char *Name() const override { return "Rule"; }
-        virtual const char *Full_Name() const override { return "Rule"; }
+    virtual const char *Name() const override { return "Rule"; }
+    virtual const char *Full_Name() const override { return "Rule"; }
 
-        void Process(CCINIClass &ini);
-        void Initialize(CCINIClass &ini);
+    void Process(CCINIClass &ini);
+    void Initialize(CCINIClass &ini);
 
-        bool Objects(CCINIClass &ini);
+    bool Objects(CCINIClass &ini);
 
-        bool General(CCINIClass &ini);
-        bool MPlayer(CCINIClass &ini);
-        bool AudioVisual(CCINIClass &ini);
-        bool CombatDamage(CCINIClass &ini);
-        bool Weapons(CCINIClass &ini);
-        bool Armors(CCINIClass &ini);
-        bool Rockets(CCINIClass &ini);
-        bool Tiberiums(CCINIClass &ini);
+    bool General(CCINIClass &ini);
+    bool MPlayer(CCINIClass &ini);
+    bool AudioVisual(CCINIClass &ini);
+    bool CombatDamage(CCINIClass &ini);
+    bool Weapons(CCINIClass &ini);
+    bool Armors(CCINIClass &ini);
+    bool Rockets(CCINIClass &ini);
+    bool Tiberiums(CCINIClass &ini);
+    bool Difficulty(CCINIClass &ini);
 
-    private:
-        void Check();
-        void Fixups(CCINIClass &ini);
+    void Fixups(CCINIClass &ini);
 
-    public:
-        /**
-         *  Should the MCV unit auto deploy on game start?
-         */
-        bool IsMPAutoDeployMCV;
+private:
+    void Check();
 
-        /**
-         *  Are construction yards pre-placed on the map rather than a MCV given to the player?
-         */
-        bool IsMPPrePlacedConYards;
+public:
+    /**
+     *  Should the MCV unit auto deploy on game start?
+     */
+    bool IsMPAutoDeployMCV;
 
-        /**
-         *  Can players build their own structures adjacent to structures owned by their allies?
-         */
-        bool IsBuildOffAlly;
+    /**
+     *  Are construction yards pre-placed on the map rather than a MCV given to the player?
+     */
+    bool IsMPPrePlacedConYards;
 
-        /**
-         *  Should active super weapons show their recharge timer display
-         *  on the tactical view?
-         */
-        bool IsShowSuperWeaponTimers;
+    /**
+     *  Can players build their own structures adjacent to structures owned by their allies?
+     */
+    bool IsBuildOffAlly;
 
-        /**
-         *  Defines the strength of ice. Higher values make ice less likely
-         *  to break from a shot.
-         */
-        int IceStrength;
+    /**
+     *  Should active super weapons show their recharge timer display
+     *  on the tactical view?
+     */
+    bool IsShowSuperWeaponTimers;
 
-        /**
-         *  Storage pip used for weeds.
-         */
-        int WeedPipIndex;
+    /**
+     *  Defines the strength of ice. Higher values make ice less likely
+     *  to break from a shot.
+     */
+    int IceStrength;
 
-        /**
-         *  Customizable maximum counts for drawing different pips.
-         */
-        TypeList<int> MaxPips;
+    /**
+     *  Storage pip used for weeds.
+     */
+    int WeedPipIndex;
 
-        /**
-         *  When looking for refineries, harvesters will prefer a distant free
-         *  refinery over a closer occupied refinery if the refineries' distance
-         *  difference in cells is less than this.
-         */
-        int MaxFreeRefineryDistanceBias;
+    /**
+     *  Customizable maximum counts for drawing different pips.
+     */
+    TypeList<int> MaxPips;
+
+    /**
+     *  When looking for refineries, harvesters will prefer a distant free
+     *  refinery over a closer occupied refinery if the refineries' distance
+     *  difference in cells is less than this.
+     */
+    int MaxFreeRefineryDistanceBias;
+    
+    /**
+     *  List of units to consider "home".
+     */
+    TypeList<UnitTypeClass *> BaseUnit;
+
+    /**
+     *  This array controls the difficulty affects on the game. There is one
+     *  difficulty class object for each difficulty level.
+     */
+    DifficultyClass Diff[VINIFERA_DIFF_COUNT];
+
+    /**
+     *  A separate difficulty used by the human player if so chosen by the mod author,
+     *  to allow customizing AI difficulties without affecting the human player.
+     */
+    DifficultyClass DiffHuman;
+
+    /**
+     *  Sounds played when a unit is promoted.
+     */
+    VocType UpgradeVeteranSound;
+    VocType UpgradeEliteSound;
+
+    /**
+     *  EVA announcement when a unit is promoted.
+     */
+    VoxType VoxUnitPromoted;
+
+    /**
+     *  The number of frames that a newly elite unit will flash for.
+     */
+    int EliteFlashTimer;
 };

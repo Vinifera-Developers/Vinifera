@@ -682,6 +682,26 @@ void FootClassExt::_Death_Announcement(TechnoClass* source) const
 
 
 /**
+ *  #issue-177
+ *
+ *  Patches the harvester counting to count all units listed under HarvesterUnit.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_FootClass_Search_For_Tiberium_Weighted_HarvesterUnit_Patch)
+{
+    GET_REGISTER_STATIC(FootClass *, this_ptr, edi);
+
+    static int count;
+
+    count = this_ptr->House->Count_Owned(Rule->HarvesterUnit);
+
+    _asm mov eax, count
+    JMP_REG(esi, 0x004A7A65);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void FootClassExtension_Hooks()
@@ -694,4 +714,5 @@ void FootClassExtension_Hooks()
     Patch_Jump(0x004A6A40, &FootClassExt::_Draw_Action_Line);
     Patch_Jump(0x004A4D60, &FootClassExt::_Death_Announcement);
     Patch_Jump(0x004A76F0, &FootClassExt::_Search_For_Tiberium);
+    Patch_Jump(0x004A7A3F, &_FootClass_Search_For_Tiberium_Weighted_HarvesterUnit_Patch);
 }

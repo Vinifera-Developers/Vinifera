@@ -11,14 +11,32 @@ This page describes all mapping-related additions and changes introduced by Vini
 
 ## Campaign Settings
 
+### Campaign Side
+
+- `Side` can now be set for campaigns, allowing the customisation of which **HOUSE**'s loading screens this campaign should use.
+
+In `BATTLE.INI`:
+```ini
+[SOMECAMPAIGN]  ; Campaign
+Side=0          ; integer, the index of the house whose loading screens will be used for this campaign.
+```
+
+```{note}
+To preserve compatibility, the campaign's `Side` defaults to `0` if its scenario names contains `GDI`, to `1` if it contains `NOD`, and to 0 otherwise.
+```
+
+```{note}
+This setting only affects the loading screen graphics used.
+```
+
 ### Intro Movie
 
 - `IntroMovie` can now be set for campaigns, allowing the customisation of the intro movie that plays before the campaign path starts.
 
 In `BATTLE.INI`:
 ```ini
-[Campaign]
-IntroMovie=<none>  ; string, the intro movie name (without the .VQA extension) to play at the start of the campaign.
+[SOMECAMPAIGN]  ; Campaign
+IntroMovie=     ; string, the intro movie name (without the .VQA extension) to play at the start of the campaign.
 ```
 
 ### DebugOnly
@@ -27,12 +45,37 @@ IntroMovie=<none>  ; string, the intro movie name (without the .VQA extension) t
 
 In `BATTLE.INI`:
 ```ini
-[Campaign]
-DebugOnly=no  ; boolean, is this campaign only available in Developer mode?
+[SOMECAMPAIGN]  ; Campaign
+DebugOnly=no    ; boolean, is this campaign only available in Developer mode?
 ```
 For testing/debugging versions of the Tiberian Sun and Firestorm campaigns, download [BATTLE_DEBUG_CAMPAIGN.INI](https://github.com/Vinifera-Developers/Vinifera-Files/blob/master/files/BATTLE_DEBUG_CAMPAIGN.INI) and place it in your game install directory.
 
 ## Scenario Settings
+
+### AI Base Nodes in Skirmish/Multiplayer
+
+- Vinifera allows enabling base nodes for the AI outside of campaigns.
+
+In a scenario file:
+```ini
+[Basic]
+UseMPAIBaseNodes=no         ; boolean, should the AI use base nodes for base construction, like in campaign?
+```
+
+### Custom Loading Screen
+
+- The scenario file can now specify which loading screen to use.
+
+In a scenario file:
+```ini
+[Basic]
+LoadingScreen400=         ; string, the name of the loading screen to use with this resolution.
+LoadingScreen480=         ; string, the name of the loading screen to use with this resolution.
+LoadingScreen600=         ; string, the name of the loading screen to use with this resolution.
+LoadingScreen400TextPos=  ; Point2D, a custom offset for the loading screen text and bars. 
+LoadingScreen480TextPos=  ; Point2D, a custom offset for the loading screen text and bars. 
+LoadingScreen600TextPos=  ; Point2D, a custom offset for the loading screen text and bars. 
+```
 
 ### Ice Destruction
 
@@ -60,3 +103,47 @@ ScoreEnemyColor=250,28,28    ; color in R,G,B, color of the enemy's score bars
 ## Script Actions
 
 ## Trigger Actions
+
+### `106` Give Credits
+
+- Give `P3` credits to House `P2`.
+
+### `107` Enable Short Game
+
+- Enable Short Game.
+
+### `108` Disable Short Game
+
+- Disable Short Game.
+
+### `109` Reserved
+
+- Does nothing.
+
+### `110` Blow Up House
+
+- Blow up all units and structures of House `P2`.
+
+### `111` Make Elite
+
+- Make all attached objects elite.
+
+### `112` Enable AllyReveal
+
+- Enable `AllyReveal`.
+
+### `113` Disable AllyReveal
+
+- Disable `AllyReveal`.
+
+### `114` Create Auto-Save
+
+- Schedule the creation of an auto-save at the end of this frame. Works in MP and SP.
+
+### `115` Delete Object
+
+- Silently delete all attached objects from the map.
+
+### `116` Assign Mission to All
+
+- Assign Mission `P2` to all attached objects.

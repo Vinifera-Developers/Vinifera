@@ -94,7 +94,7 @@
 #include "tacticalext_hooks.h"
 #include "superext_hooks.h"
 //#include "aitriggerext_hooks.h"
-//#include "aitriggertypeext_hooks.h"
+#include "aitriggertypeext_hooks.h"
 //#include "neuronext_hooks.h"
 //#include "foggedobjectext_hooks.h"
 //#include "alphashapeext_hooks.h"
@@ -153,6 +153,7 @@
 #include "hooker.h"
 #include "hooker_macros.h"
 #include "spawnmanager_hooks.h"
+#include "eventext_hooks.h"
 
 
 void Extension_Hooks()
@@ -235,7 +236,7 @@ void Extension_Hooks()
     TacticalExtension_Hooks();
     SuperClassExtension_Hooks();
     //AITriggerClassExtension_Hooks();                      // Not yet implemented
-    //AITriggerTypeClassExtension_Hooks();                  // Not yet implemented
+    AITriggerTypeClassExtension_Hooks();
     //NeuronClassExtension_Hooks();                         // Not yet implemented
     //FoggedObjectClassExtension_Hooks();                   // Not yet implemented
     //AlphaShapeClassExtension_Hooks();                     // Not yet implemented
@@ -282,6 +283,7 @@ void Extension_Hooks()
     MultiScoreExtension_Hooks();
     ScoreClassExtension_Hooks();
     MultiMissionExtension_Hooks();
+    EventClassExtension_Hooks();
 
     /**
      *  Dialogs and associated code.

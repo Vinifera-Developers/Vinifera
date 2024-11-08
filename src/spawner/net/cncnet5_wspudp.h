@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          CNCNET4_GLOBALS.CPP
+ *  @file          CNCNET_WSPUDP.H
  *
  *  @author        CCHyper
  *
- *  @brief         CnCNet4 global values.
+ *  @brief         Variation of the UDP Winsock interface for CnCNet5.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -25,31 +25,44 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "cncnet4_globals.h"
-#include "cncnet4.h"
+#pragma once
+
+#include "wspudp.h"
+#include "tibsun_defines.h"
+
+
+struct TunnelAddress
+{
+    unsigned long IP;
+    unsigned short Port;
+};
 
 
 /**
- *  Is the CnCNet4 interface active?
+ *  CnCNet5UDPInterfaceClass
+ *  
+ *  This class is a variation of the UDP Winsock interface to be used for
+ *  accessing the CnCNet5 tunnels. It should not be enabled unless the client
+ *  front end has also been activated.
  */
-bool CnCNet4::IsEnabled = false;
+class CnCNet5UDPInterfaceClass : public UDPInterfaceClass
+{
+    public:
+        CnCNet5UDPInterfaceClass(unsigned short id, unsigned long ip, unsigned short port, bool port_hack = false);
+        virtual ~CnCNet5UDPInterfaceClass() override = default;
 
-/**
- *  The host name (Must be running a instance of the dedicated server).
- */
-char CnCNet4::Host[256] = { "server.cncnet.org" };
-unsigned CnCNet4::Port = 9001;
+        virtual LRESULT Message_Handler(HWND hWnd, UINT uMsg, UINT wParam, LONG lParam) override;
 
-/**
- *  Clients connect to each other rather than the server?
- */
-bool CnCNet4::Peer2Peer = false;
+    private:
+        int Send_To(SOCKET s, const char *buf, int len, int flags, sockaddr_in *dest_addr, int addrlen);
+        int Receive_From(SOCKET s, char *buf, int len, int flags, sockaddr_in *src_addr, int *addrlen);
 
-bool CnCNet4::IsDedicated = false;
+    public:
+        TunnelAddress AddressList[MAX_PLAYERS];
 
-/**
- *  Use the UDP interface instead of IPX?
- */
-bool CnCNet4::UseUDP = true;
+        unsigned short TunnelID;
+        unsigned long TunnelIP;
+        unsigned short TunnelPort;
 
-struct sockaddr_in CnCNet4::Server;
+        bool PortHack;
+};

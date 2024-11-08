@@ -46,6 +46,7 @@ SideClassExtension::SideClassExtension(const SideClass *this_ptr) :
     AbstractTypeClassExtension(this_ptr),
     UIColor(COLORSCHEME_NONE),
     ToolTipColor(COLORSCHEME_NONE),
+    OptionsColor{ 112, 255, 0 }, // 0x00FF70
     Crew(nullptr),
     Engineer(nullptr),
     Technician(nullptr),
@@ -235,6 +236,7 @@ bool SideClassExtension::Read_INI(CCINIClass &ini)
 
     UIColor = ini.Get_ColorSchemeType(ini_name, "UIColor", UIColor);
     ToolTipColor = ini.Get_ColorSchemeType(ini_name, "ToolTipColor", ToolTipColor);
+    OptionsColor = ini.Get_RGB(ini_name, "OptionsColor", OptionsColor);
 
     Crew = ini.Get_Infantry(ini_name, "Crew", Crew);
     Engineer = ini.Get_Infantry(ini_name, "Engineer", Engineer);

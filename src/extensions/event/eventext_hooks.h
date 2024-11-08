@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          CNCNET5_HOOKS.H
+ *  @file          EVENTEXT_HOOKS.H
  *
- *  @author        CCHyper
+ *  @author        ZivDero
  *
- *  @brief         Contains the hooks for implementing the CnCNet5 system.
+ *  @brief         Contains the hooks for the extended EventClass.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -28,4 +28,4 @@
 #pragma once
 
 
-void CnCNet5_Hooks();
+void EventClassExtension_Hooks();

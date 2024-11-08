@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          CNCNET_GLOBALS.CPP
+ *  @file          SPAWNER_HOOKS.CPP
  *
- *  @author        CCHyper
+ *  @author        ZivDero
  *
- *  @brief         Global values and types used for the CnCNet5 system. 
+ *  @brief         Contains the hooks for the multiplayer spawner class.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -25,20 +25,7 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "cncnet5_globals.h"
+#pragma once
 
 
-/**
- *  Has the CnCNet5 system been activated?
- */
-bool CnCNet5::IsActive = false;
-
-/**
- *  Is the tunnel system active (set when tunnel information has been provided)?
- */
-bool CnCNet5::IsTunnelActive = false;
-
-/**
- *  CnCNet5 UDP Tunnel info.
- */
-CnCNet5::TunnelInfoStruct CnCNet5::TunnelInfo { -1, -1, -1, false };
+void Spawner_Hooks();

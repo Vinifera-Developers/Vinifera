@@ -118,7 +118,7 @@ HRESULT Save_Primitive_Vector(LPSTREAM& pStm, VectorClass<T>& list, const char* 
 
     for (int index = 0; index < count; ++index) {
 
-        HRESULT hr = pStm->Write(&list[index], sizeof(list[index]), nullptr);
+        hr = pStm->Write(&list[index], sizeof(list[index]), nullptr);
         if (FAILED(hr)) {
             return hr;
         }
@@ -149,7 +149,7 @@ HRESULT Load_Primitive_Vector(LPSTREAM& pStm, VectorClass<T>& list, const char* 
     for (int index = 0; index < count; ++index) {
 
         T obj;
-        HRESULT hr = pStm->Read(&obj, sizeof(obj), nullptr);
+        hr = pStm->Read(&obj, sizeof(obj), nullptr);
         if (FAILED(hr)) {
             return hr;
         }
@@ -178,7 +178,7 @@ HRESULT Save_Primitive_Vector(LPSTREAM& pStm, DynamicVectorClass<T>& list, const
 
     for (int index = 0; index < count; ++index) {
 
-        HRESULT hr = pStm->Write(&list[index], sizeof(list[index]), nullptr);
+        hr = pStm->Write(&list[index], sizeof(list[index]), nullptr);
         if (FAILED(hr)) {
             return hr;
         }
@@ -209,7 +209,7 @@ HRESULT Load_Primitive_Vector(LPSTREAM& pStm, DynamicVectorClass<T>& list, const
     for (int index = 0; index < count; ++index) {
 
         T obj;
-        HRESULT hr = pStm->Read(&obj, sizeof(obj), nullptr);
+        hr = pStm->Read(&obj, sizeof(obj), nullptr);
         if (FAILED(hr)) {
             return hr;
         }
@@ -238,7 +238,7 @@ HRESULT Save_Primitive_Vector(LPSTREAM& pStm, std::vector<T>& list, const char* 
 
     for (int index = 0; index < count; ++index) {
 
-        HRESULT hr = pStm->Write(&list[index], sizeof(list[index]), nullptr);
+        hr = pStm->Write(&list[index], sizeof(list[index]), nullptr);
         if (FAILED(hr)) {
             return hr;
         }
@@ -269,7 +269,7 @@ HRESULT Load_Primitive_Vector(LPSTREAM& pStm, std::vector<T>& list, const char* 
     for (int index = 0; index < count; ++index) {
 
         T obj;
-        HRESULT hr = pStm->Read(&obj, sizeof(obj), nullptr);
+        hr = pStm->Read(&obj, sizeof(obj), nullptr);
         if (FAILED(hr)) {
             return hr;
         }

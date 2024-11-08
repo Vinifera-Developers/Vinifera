@@ -86,7 +86,8 @@
 #include "tibsun_functions.h"
 #include "utracker.h"
 #include "aircraft.h"
-
+#include "spawner.h"
+#include "vox.h"
 
 
 /**
@@ -121,6 +122,7 @@ public:
     bool _Can_Player_Move() const;
     Coordinate _Fire_Coord(WeaponSlotType which) const;
     void _Record_The_Kill(TechnoClass* source);
+    bool _Revealed(HouseClass* house);
 };
 
 
@@ -591,8 +593,7 @@ void TechnoClassExt::_Stun()
 
 
 /**
- *  Wrapper function to patch the call in TechnoClass::AI to call
- *  SpawnManagerClass::AI.
+ *  Wrapper function to insert new things into TechnoClass::AI.
  *
  *  @author: ZivDero
  */
@@ -602,8 +603,55 @@ void TechnoClassExt::_Mission_AI()
 
     const auto extension = Extension::Fetch<TechnoClassExtension>(this);
 
+    /**
+     *  Execute SpawnManager AI.
+     */
     if (extension->SpawnManager)
         extension->SpawnManager->AI();
+
+    /**
+     *  Check if the unit has been promoted.
+     */
+    if (extension->LastVeterancy != Veterancy.Get_Rank())
+    {
+        if (extension->LastVeterancy != VETERANCY_NONE)
+        {
+            if (Veterancy.Get_Rank() == RANK_ELITE)
+            {
+                /**
+                 *  Play the promotion sound and voice line.
+                 */
+                if (House->Is_Player_Control())
+                {
+                    Sound_Effect(RuleExtension->UpgradeEliteSound, Coord);
+                    Speak(RuleExtension->VoxUnitPromoted);
+                }
+
+                /**
+                 *  Elite units also flash for a while.
+                 */
+                FlashCount = RuleExtension->EliteFlashTimer;
+            }
+            else if (Veterancy.Get_Rank() == RANK_VETERAN)
+            {
+                /**
+                 *  Play the promotion sound and voice line.
+                 */
+                if (House->Is_Player_Control())
+                {
+                    Sound_Effect(RuleExtension->UpgradeVeteranSound, Coord);
+                    Speak(RuleExtension->VoxUnitPromoted);
+                }
+            }
+
+            /**
+             *  Force the unit to look in case its range has been upgraded.
+             */
+            Look();
+        }
+
+        extension->LastVeterancy = Veterancy.Get_Rank();
+    }
 }
 
 
@@ -1245,7 +1293,7 @@ void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
         }
 
         if (source) {
-            if ((Session.Type == GAME_INTERNET || Session.Type == GAME_IPX) && !typeext->IsDontScore) {
+            if (!typeext->IsDontScore) {
                 source->House->DestroyedBuildings->Increment_Unit_Total(reinterpret_cast<BuildingClass*>(this)->Class->Type);
             }
             source->House->BuildingsKilled[Owner()]++;
@@ -1262,19 +1310,19 @@ void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
     break;
 
     case RTTI_AIRCRAFT:
-        if (source && (Session.Type == GAME_INTERNET || Session.Type == GAME_IPX) && !typeext->IsDontScore) {
+        if (source && !typeext->IsDontScore) {
             source->House->DestroyedAircraft->Increment_Unit_Total(reinterpret_cast<AircraftClass*>(this)->Class->Type);
             total_recorded++;
         }
         // Fall through.....
     case RTTI_INFANTRY:
-        if (source && !total_recorded && (Session.Type == GAME_INTERNET || Session.Type == GAME_IPX) && !typeext->IsDontScore) {
+        if (source && !total_recorded && !typeext->IsDontScore) {
             source->House->DestroyedInfantry->Increment_Unit_Total(reinterpret_cast<InfantryClass*>(this)->Class->Type);
             total_recorded++;
         }
         // Fall through.....
     case RTTI_UNIT:
-        if (source && !total_recorded && (Session.Type == GAME_INTERNET || Session.Type == GAME_IPX) && !typeext->IsDontScore) {
+        if (source && !total_recorded && !typeext->IsDontScore) {
             source->House->DestroyedUnits->Increment_Unit_Total(reinterpret_cast<UnitClass*>(this)->Class->Type);
         }
 
@@ -1295,6 +1343,83 @@ void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
     }
 }
 
+
+/**
+ *  Handles revealing an object to the house specified.
+ *
+ *  @author:  06/02/1994 JLB - Created.
+ *            ZivDero - Adjustments for Tiberian Sun.
+ */
+bool TechnoClassExt::_Revealed(HouseClass* house)
+{
+    if (house == PlayerPtr && IsDiscoveredByPlayer) {
+        return false;
+    }
+
+    if (house != PlayerPtr) {
+        if (IsDiscoveredByComputer) return false;
+        IsDiscoveredByComputer = true;
+    }
+
+    if (house == nullptr) {
+        return false;
+    }
+
+    if (RadioClass::Revealed(house)) {
+
+        /*
+         *  An enemy object that is discovered will go into hunt mode if
+         *  its current mission is to ambush.
+         */
+        if (!House->Is_Human_Control() && Mission == MISSION_AMBUSH) {
+            Assign_Mission(MISSION_HUNT);
+        }
+
+        if (house == PlayerPtr) {
+
+            IsDiscoveredByPlayer = true;
+            House->field_56C = true;
+            House->field_56D = true;
+
+            if (!IsOwnedByPlayer) {
+
+                /**
+                 *  If there is a trigger event associated with this object, then process
+                 *  it for discovery purposes.
+                 */
+                if (!ScenarioInit && Tag) {
+                    Tag->Spring(TEVENT_DISCOVERED, this);
+                }
+
+                /**
+                 *  Alert the enemy house to presence of the friendly side.
+                 */
+                House->IsDiscovered = true;
+            }
+            else {
+
+                /**
+                 *  A newly revealed object will always perform a look operation.
+                 */
+                Look();
+            }
+
+            /**
+             *  Outside of campaign, reveal newly built allied objects with AllyReveal on.
+             */
+            if (Session.Type != GAME_NORMAL && Rule->IsAllyReveal && House->Is_Ally(house)) {
+                Look();
+            }
+        }
+        else {
+            IsDiscoveredByComputer = true;
+        }
+
+        return true;
+    }
+
+    return false;
+}
 
 
 /**
@@ -1681,6 +1806,44 @@ continue_checks:
 
 return_false:
     JMP(0x0062D8C0);
+}
+
+
+/**
+ *  Wrapper for the patch below because doing this messes with the stack.
+ */
+static bool Can_Attack_Neutrals(TechnoClass* target)
+{
+    bool attack_neutrals = Vinifera_SpawnerActive && Vinifera_SpawnerConfig->AttackNeutralUnits;
+    bool unarmed_building = target->What_Am_I() == RTTI_BUILDING && (!target->Is_Weapon_Equipped() || target->Get_Weapon()->Weapon->Range == 0);
+
+    return attack_neutrals && !unarmed_building;
+};
+
+
+/**
+ *  Patch to allow units to target neutral units if the spawner requests it.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_TechnoClass_Evaluate_Object_AttackNeutralUnits_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass*, target, esi);
+
+    if (Session.Type != GAME_NORMAL && target->Owning_House()->Class->IsMultiplayPassive)
+    {
+        /**
+         *  Allow attacking neutrals, but if it's a building, it must be armed.
+         */
+        if (!Can_Attack_Neutrals(target))
+        {
+            // return false;
+            JMP(0x0062D8C0);
+        }
+    }
+
+    // Continue normally.
+    JMP(0x0062D4BA);
 }
 
 
@@ -2599,4 +2762,6 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x00631FF0, &TechnoClassExt::_Can_Player_Move);
     Patch_Jump(0x006336F0, &TechnoClassExt::_Record_The_Kill);
     //Patch_Jump(0x0062A3D0, &TechnoClassExt::_Fire_Coord); // Disabled because it's functionally identical to the vanilla function when there's no secondary coordinate
+    Patch_Jump(0x0062D49A, &_TechnoClass_Evaluate_Object_AttackNeutralUnits_Patch);
+    Patch_Jump(0x0062AAD0, &TechnoClassExt::_Revealed);
 }

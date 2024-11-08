@@ -75,4 +75,9 @@ HouseClassExtension final : public AbstractClassExtension
          *  Replacement Weed storage.
          */
         VectorClass<int> WeedStorage;
+
+        /**
+         *  Is this house an observer?
+         */
+        bool IsObserver;
 };

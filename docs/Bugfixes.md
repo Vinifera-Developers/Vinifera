@@ -61,3 +61,7 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where you could sometimes get extra crew to exit a building that was being sold and was destroying/undeploying.
 - Fix a bug where if the player loaded a saved game, the score screen timer would report the time since the saved game was loaded, instead of since when the scenario was first started.
 - Fix a bug where units could gain veterancy by killing allies.
+- Fix a bug where a trigger could delete itself, leading to a crash.
+- Fix a bug where AI Triggers' `MultiSide` wouldn't correctly consider all houses.
+- Fix a bug where newly created objects wouldn't reveal shroud for allies with `AllyReveal=yes`.
+- Fix a bug where mission `Ambush` wouldn't work correctly.

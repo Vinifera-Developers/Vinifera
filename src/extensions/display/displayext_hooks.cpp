@@ -45,12 +45,78 @@
 #include "mousetype.h"
 #include "actiontype.h"
 #include "extension.h"
+#include "tactical.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or deconstructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+class DisplayClassExt final : public DisplayClass
+{
+public:
+    void _Compute_Start_Pos();
+};
+
+
+/**
+ *  Computes player's start pos from unit coords.
+ *
+ *  @author: 02/28/1995 JLB - Red Alert Source COde
+ *           29/10/2024 ZivDero - Adjustments for Tiberian Sun
+ */
+void DisplayClassExt::_Compute_Start_Pos()
+{
+    /**
+     *  Find the summation coordinate for all the player's units, infantry,
+     *  and buildings.
+     */
+    long num = 0;
+
+    Coordinate coord = Coordinate();
+
+    for (int i = 0; i < Technos.Count(); i++) {
+        TechnoClass* technop = Technos[i];
+        if (!technop->IsInLimbo && technop->IsOwnedByPlayer) {
+            coord += technop->Get_Coord();
+            num++;
+        }
+    }
+
+    /**
+     *  Divide the coordinate by 'num' to compute the average value.
+     */
+    coord.Z = 0;
+    if (num > 0) {
+        coord /= num;
+    }
+    /**
+     *  If the player has no units (i. e. is an observer), use their house's center cell.
+     */
+    else {
+        coord = PlayerPtr->Center;
+    }
+
+    Scen->Views[3] = Coord_Cell(coord);
+    Scen->Views[2] = Scen->Views[3];
+    Scen->Views[1] = Scen->Views[2];
+    Scen->Views[0] = Scen->Views[1];
+    Scen->AltHomeCell = Scen->HomeCell;
+
+    if (TacticalMap) {
+        TacticalMap->Set_Tactical_Position(coord);
+    }
+}
+
 
 
 /**
@@ -370,4 +436,6 @@ void DisplayClassExtension_Hooks()
      *  @author: ZivDero
      */
     Patch_Jump(0x0047A856, &_DisplayClass_47A790_Patch);
+
+    Patch_Jump(0x004793A0, &DisplayClassExt::_Compute_Start_Pos);
 }

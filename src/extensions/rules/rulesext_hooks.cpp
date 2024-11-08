@@ -230,7 +230,6 @@ void RulesClassExtension_Hooks()
 
     Patch_Jump(0x005C6710, &RulesClassExt::_Process);
     Patch_Call(0x0053E408, &RulesClassExt::_Initialize);
-    Patch_Call(0x005DD7D0, &RulesClassExt::_Initialize);
 
     Patch_Jump(0x004E138B, &_Init_Rules_Extended_Class_Patch);
     Patch_Jump(0x004E12EB, &_Init_Rules_Show_Rules_Select_Dialog_Patch);

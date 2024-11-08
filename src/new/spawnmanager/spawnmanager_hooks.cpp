@@ -41,33 +41,6 @@
 
 
 /**
- *  Patch to make the spawn manager abandon its target when ordered to idle.
- *
- *  @author: ZivDero
- */
-DECLARE_PATCH(_EventClass_Execute_IDLE_Spawn_Manager_Patch)
-{
-    GET_REGISTER_STATIC(TechnoClass*, techno, esi);
-    static TechnoClassExtension* extension;
-
-    extension = Extension::Fetch<TechnoClassExtension>(techno);
-    if (extension->SpawnManager)
-        extension->SpawnManager->Abandon_Target();
-
-    static RTTIType rtti = techno->Kind_Of();
-    if (rtti == RTTI_UNIT)
-    {
-        JMP(0x00494AC5);
-    }
-    else
-    {
-        JMP(0x00495110);
-    }
-
-}
-
-
-/**
  *  Patch to block vehicles from moving if they're currently preparing to spawn.
  *
  *  @author: ZivDero
@@ -114,7 +87,6 @@ DECLARE_PATCH(_LogicClass_AI_Kamikaze_AI_Patch)
  */
 void SpawnManager_Hooks()
 {
-    Patch_Jump(0x00494AB5, &_EventClass_Execute_IDLE_Spawn_Manager_Patch);
     Patch_Jump(0x0047FE2F, &_DriveLocomotionClass_Start_Of_Move_Spawn_Manager_Patch);
     Patch_Jump(0x00507000, &_LogicClass_AI_Kamikaze_AI_Patch);
 }

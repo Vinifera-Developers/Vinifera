@@ -11,6 +11,127 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 - Harvesters used to drop their cargo as Tiberium Riparius on death. They will now drop the Tiberium types they are carrying, instead.
 - It is no longer required to list all Tiberiums in a map to override some Tiberium's properties.
 - `FreeUnit` or `PadAircraft` would in some cases affect the cost of a building. This functionality has been removed.
+- `BaseUnit` now accepts a list of units. Players will be granted the first unit in the list that has their house listed under `Owners=`.
+- The AI now correctly considers all entries of `BuildConst`, `BuildRefinery`, `BuildWeapons` and `HarvesterUnit`.
+
+## Spawner
+
+- Vinifera implements its own spawner, capable of starting a new singleplayer, skirmish or multiplayer game, as well as loading saved games.
+- To start the game in spawner mode, the `-SPAWN` command line argument must be specified.
+- The spawner's options can be configures in `SPAWN.INI`.
+
+In `SPAWN.INI`:
+```ini
+[Settings]
+; Game Mode Options
+Bases=yes                   ; boolean, do players start with MCVs/Construction Yards?
+Credits=10000               ; integer, starting amount of credits for the players.
+BridgeDestroy=yes           ; boolean, can bridges be destroyed?
+Crates=no                   ; boolean, are crates enabled?
+ShortGame=no                ; boolean, is short game enabled?
+BuildOffAlly=no             ; boolean, is building off ally bases allowed?
+GameSpeed=0                 ; integer, starting game speed.
+MultiEngineer=no            ; boolean, is multi-engineer enabled?
+UnitCount=0                 ; integer, starting unit count.
+AIPlayers=0                 ; integer, number of AI players.
+AIDifficulty=1              ; integer, AI difficulty.
+AlliesAllowed=no            ; boolean, can players form and break alliances in-game?
+HarvesterTruce=no           ; boolean, are harvesters invulnerable?
+FogOfWar=no                 ; boolean, is fog of war enabled?
+MCVRedeploy=yes             ; boolean, can MCVs be redeployed?
+
+; Savegame Options
+LoadSaveGame=no             ; boolean, should the spawner load a saved game, as opposed to starting a new scenario?
+SaveGameName=               ; string, name of the saved game to load.
+AutoSaveInterval=7200       ; integer, interval in frames between auto-saves.
+NextAutoSaveNumber=1        ; integer, the number of the next campaign auto-save to make.
+
+; Scenario Options
+Seed=0                      ; integer, random seed.
+TechLevel=10                ; integer, maximum tech level.
+IsCampaign=no               ; boolean, is the game that is about to start campaign, as opposed to skirmish?
+CampaignID=-1               ; integer, ID of the campaign (from BATTLE.INI) to start
+CampaignModeHuman=1         ; DiffType, difficulty used by the human player in Campaign.
+CompaignModeComputer=1      ; DiffType, difficulty used by the AI players in Campaign.
+Tournament=0                ; integer, WOL Tournament Type
+WOLGameID=3735928559        ; unsigned integer, WOL Game ID
+ScenarioName=spawnmap.ini   ; string, name of the scenario (map) to load.
+MapHash=                    ; string, map hash, only used in statistics collection.
+UIMapName=                  ; string, name of the map, only used in statistics collection.
+PlayMoviesInMultiplayer=no  ; boolean, should movies be played in multiplayer.
+
+; Network Options
+Protocol=2                  ; integer, network protocol to use.
+FrameSendRate=4             ; integer, starting FrameSendRate value.
+ReconnectTimeout=2400       ; integer, player reconnection timeout.
+ConnTimeout=3600            ; integer, player connection timeout.
+MaxAhead=-1                 ; integer, starting MaxHead value.
+PreCalcMaxAhead=0           ; integer, starting PrecalcMaxHead value.
+MaxLatencyLevel=255         ; unsigned byte, maximum allowed Protocol 0 latency level.
+
+; Tunnel Options
+TunnelId=0                  ; integer, tunnel ID.
+TunnelIp=0.0.0.0            ; string, tunnel IP.
+TunnelPort=0                ; integer, tunnel port.
+ListenPort=1234             ; integer, listen port.
+
+; Extra Options
+Firestorm=yes               ; boolean, should the game start with Firestorm enabled?
+QuickMatch=no               ; boolean, should the game start in Quick Match mode?
+SkipScoreScreen=no          ; boolean, should the score screen be skipped once the game is over?
+WriteStatistics=no          ; boolean, should statistics be sent?
+AINamesByDifficulty=no      ; boolean, should AI players have their difficulty in their name?
+CoachMode=no                ; boolean, should defeated players that have allies not have the entire map revealed to them upon death?
+AutoSurrender=yes           ; boolean, should players surrender on disconnection, as opposed to turning their base over to the AI?
+AttackNeutralUnits=no       ; boolean, should neutral units be targeted by the player's army automatically?
+ScrapMetal=no               ; boolean, should explosions use alternative animations from the `ScrapExplosion=` list?
+ContinueWithoutHumans=yes   ; boolean, should the game not end even if the only players left alive are AI?
+DifficultyName=             ; string, and override for the difficulty name printed at the start of the scenario.
+```
+
+- Information about the local player is read from the `Settings` section, for all other players - from `OtherX` sections, where `X` ranges from `1` to `7`.
+
+In `SPAWN.INI`:
+```ini
+[PLAYERSECTION]
+IsHuman=no                  ; boolean, is this a human player?
+Name=                       ; string, the player's name.
+Color=-1                    ; integer, the player's color.
+House=-1                    ; integer, the player's house.
+Difficulty=-1               ; integer, the player's difficulty.
+Ip=0.0.0.0                  ; string, the player's IP address.
+Port=-1                     ; integer, the player's port.
+```
+
+- Additionally, AI players (always come after human players) have these options parsed from sections of the format `MultiX`, where `X` ranges from `1` to `8`.
+
+In `SPAWN.INI`:
+```ini
+[MULTISECTION]
+Color=-1                    ; integer, the player's color.
+House=-1                    ; integer, the player's house.
+Difficulty=-1               ; integer, the player's difficulty.
+```
+
+- Additionally, the spawner reads configuration for each house. Player houses come first, in the order of their color (increasing), then AI houses.
+- Alliances are read from sections of the format `MultiX_Alliances`, where `X` ranges from `1` to `8`.
+
+In `SPAWN.INI`:
+```ini
+[MULTISECTION]
+IsSpectator=no              ; boolean, is this house a spectator (observer)?
+SpawnLocations=-2           ; integer, spawn location of this house. 90 and -1 mean spectator, -2 means random.
+
+[ALLIANCESSECTION]
+HouseAllyOne=-1             ; integer, index of the house this house is allied to, -1 means none.
+HouseAllyTwo=-1             ; integer, index of the house this house is allied to, -1 means none.
+HouseAllyThree=-1           ; integer, index of the house this house is allied to, -1 means none.
+HouseAllyFour=-1            ; integer, index of the house this house is allied to, -1 means none.
+HouseAllyFive=-1            ; integer, index of the house this house is allied to, -1 means none.
+HouseAllySix=-1             ; integer, index of the house this house is allied to, -1 means none.
+HouseAllySeven=-1           ; integer, index of the house this house is allied to, -1 means none.
+HouseAllyEight=-1           ; integer, index of the house this house is allied to, -1 means none.
+```
 
 ## Quality of Life
 
@@ -37,6 +158,44 @@ AutoDeployMCV=no      ; boolean, should player MCV's auto-deploy on game start?
 PrePlacedConYards=no  ; boolean, should pre-place construction yards instead of spawning an MCV?
                       ; NOTE: This option only has an effect if the unit count is set to 1.
                       ; NOTE: This option has priority over AutoDeployMCV.
+```
+
+## Auto-Saves
+
+- When playing campaigns, Vinifera will now make auto-saves for the player at equal intervals. The number of auto-saves to keep, as well as the interval, can be customized.
+
+In `SUN.INI`:
+```ini
+[Options]
+AutoSaveCount=5        ; integer, the number of auto-saves to keep simultaneously. Setting to 0 will disable auto-saves.
+AutoSaveInterval=7200  ; integer, the interval between auto-saves, in frames.
+```
+
+## Human Difficultiy
+
+- Vinifera adds to possibility to optionally use a different diffiulty level for the human player when their difficulty is set to `Normal`. The new difficulty must have its values be provided in the same manner as vanilla difficulties in a new section, `HumanNormal`.
+
+In `VINIFERA.INI`:
+```ini
+[Features]
+HumanNormalDifficulty=no  ; boolean, should the human player use a separate difficulty when on normal difficulty?
+```
+
+- Additionally, difficulty names can be customized.
+
+In `VINIFERA.INI`:
+```ini
+[Language]
+DifficultyEasy=Easy
+DifficultyNormal=Normal
+DifficultyHard=Hard
+DifficultyVeryEasy=Very Easy            ; 2 extra difficulties used by the XNA Client (CnCNet)
+DifficultyExtremelyEasy=Extremely Easy
+DifficultyAIEasy=Hard    
+DifficultyAINormal=Normal
+DifficultyAIHard=Easy
+DifficultyAIVeryEasy=Brutal             ; 2 extra difficulties used by the XNA Client (CnCNet)
+DifficultyAIExtremelyEasy=Ultimate
 ```
 
 ## Multi-Engineer
@@ -156,7 +315,10 @@ Due to the nature of its use, this feature is only available when Vinifera is ru
 
 ### Command Line Options
 
-- Vinifera adds a number of command-line arguments allowing the user to skip the startup movies, or skip directly to a specific game mode and/or dialog.
+- Vinifera adds a number of command-line arguments.
+
+- `-SPAWN`
+Launch the game in spawner mode.
 
 - `-NO_STARTUP_VIDEO`
 Skips all startup movies.

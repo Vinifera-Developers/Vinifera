@@ -36,8 +36,6 @@
 #include "vinifera_hooks.h"
 #include "newswizzle_hooks.h"
 #include "extension_hooks.h"
-#include "cncnet4_hooks.h"
-#include "cncnet5_hooks.h"
 #include "sidebarext_hooks.h"
 
 
@@ -50,9 +48,6 @@ void Setup_Hooks()
     Vinifera_Hooks();
     NewSwizzle_Hooks();
     Extension_Hooks();
-
-    CnCNet4_Hooks();
-    CnCNet5_Hooks();
 }
 
 /**

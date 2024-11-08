@@ -151,3 +151,12 @@ typedef enum ViniferaRTTIType
     VINIFERA_RTTI_COUNT
 };
 DEFINE_ENUMERATION_OPERATORS(ViniferaRTTIType);
+
+
+typedef enum ViniferaDiffType : int
+{
+    DIFF_VERY_EASY = DIFF_COUNT,
+    DIFF_EXTREMELY_EASY,
+
+    VINIFERA_DIFF_COUNT
+};
