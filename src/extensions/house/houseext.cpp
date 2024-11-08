@@ -33,7 +33,8 @@
 #include "debughandler.h"
 #include "saveload.h"
 #include "vinifera_saveload.h"
-#include "storage/storageext.h"
+#include "storageext.h"
+#include "utracker.h"
 
 
 /**
@@ -198,4 +199,116 @@ void HouseClassExtension::Put_Storage_Pointers()
 {
     new (reinterpret_cast<StorageClassExt*>(&This()->Tiberium)) StorageClassExt(&TiberiumStorage);
     new (reinterpret_cast<StorageClassExt*>(&This()->Weed)) StorageClassExt(&WeedStorage);
+}
+
+
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or deconstructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+static class UnitTrackerClassExt final : public UnitTrackerClass
+{
+public:
+    HRESULT _Load(IStream* pStm);
+    HRESULT _Save(IStream* pStm);
+};
+
+
+/**
+ *  Saves a unit tracker's counts
+ *
+ *  @author: ZivDero
+ */
+HRESULT UnitTrackerClassExt::_Load(IStream* pStm)
+{
+    int count;
+    HRESULT hr = pStm->Read(&count, sizeof(count), nullptr);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    new (this) UnitTrackerClass(count);
+
+    for (int i = 0; i < UnitCount; i++) {
+        hr = pStm->Read(&UnitTotals[i], sizeof(UnitTotals[i]), nullptr);
+        if (FAILED(hr)) {
+            return hr;
+        }
+
+    }
+
+    return S_OK;
+}
+
+
+/**
+ *  Saves a unit tracker's counts.
+ *
+ *  @author: ZivDero
+ */
+HRESULT UnitTrackerClassExt::_Save(IStream* pStm)
+{
+    HRESULT hr = pStm->Write(&UnitCount, sizeof(UnitCount), nullptr);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    for (int i = 0; i < UnitCount; i++) {
+        HRESULT hr = pStm->Write(&UnitTotals[i], sizeof(UnitTotals[i]), nullptr);
+        if (FAILED(hr)) {
+            return hr;
+        }
+
+    }
+
+    return S_OK;
+}
+
+
+/**
+ *  Reads a house's unit trackers.
+ *
+ *  @author: ZivDero
+ */
+void HouseClassExtension::Load_Unit_Trackers(IStream* pStm)
+{
+    /**
+     *  Trackers store their counts in a dynamically allocated array (AARGH WW!).
+     *  Thus, we need to save/load them manually.
+     *  But we can't do this in the extension because ThisPtr isn't remapped yet.
+     */
+
+    reinterpret_cast<UnitTrackerClassExt*>(This()->AircraftTotals)->_Load(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(This()->InfantryTotals)->_Load(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(This()->UnitTotals)->_Load(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(This()->BuildingTotals)->_Load(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(This()->DestroyedAircraft)->_Load(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(This()->DestroyedInfantry)->_Load(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(This()->DestroyedUnits)->_Load(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(This()->DestroyedBuildings)->_Load(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(This()->CapturedBuildings)->_Load(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(This()->TotalCrates)->_Load(pStm);
+}
+
+
+/**
+ *  Saves a house's unit trackers.
+ *
+ *  @author: ZivDero
+ */
+void HouseClassExtension::Save_Unit_Trackers(IStream* pStm)
+{
+    reinterpret_cast<UnitTrackerClassExt*>(This()->AircraftTotals)->_Save(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(This()->InfantryTotals)->_Save(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(This()->UnitTotals)->_Save(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(This()->BuildingTotals)->_Save(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(This()->DestroyedAircraft)->_Save(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(This()->DestroyedInfantry)->_Save(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(This()->DestroyedUnits)->_Save(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(This()->DestroyedBuildings)->_Save(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(This()->CapturedBuildings)->_Save(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(This()->TotalCrates)->_Save(pStm);
 }

@@ -64,6 +64,8 @@ HouseClassExtension final : public AbstractClassExtension
         virtual RTTIType What_Am_I() const override { return RTTI_HOUSE; }
 
         void Put_Storage_Pointers();
+        void Load_Unit_Trackers(IStream* pStm);
+        void Save_Unit_Trackers(IStream* pStm);
 
     public:
         /**
