@@ -42,8 +42,9 @@ MCVRedeploy=yes             ; boolean, can MCVs be redeployed?
 
 ; Savegame Options
 LoadSaveGame=no             ; boolean, should the spawner load a saved game, as opposed to starting a new scenario?
-SavedGamesDir=Saved Games   ; string, name (path) of the subfolder containing saved games. Supports nesting, e. g. Saved Games\Tiberian Sun.
 SaveGameName=               ; string, name of the saved game to load.
+AutoSaveInterval=7200       ; integer, interval in frames between auto-saves.
+NextAutoSaveNumber=1        ; integer, the number of the next campaign auto-save to make.
 
 ; Scenario Options
 Seed=0                      ; integer, random seed.
