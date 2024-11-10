@@ -523,7 +523,7 @@ Acceleration=0.4        ; float, this much is added to the rocket's velocity eac
 Altitude=768            ; integer, cruising altitude in leptons (1/256 of a cell): at this height rocket begins leveling off.
 Damage=200              ; integer, the rocker does this much damage when it explodes.
 EliteDamage=400         ; integer, the rocker does this much damage when it explodes when the spawner is elite.
-BodyLength=256          ; integer, the length of  thebody of the rocket in leptons (1/256 of a cell).
+BodyLength=256          ; integer, the length of the body of the rocket in leptons (1/256 of a cell).
 LazyCurve=yes           ; boolean, is the rocket's path a big, lazy curve, like the V3 is Red Alert 2.
 CruiseMissile=no        ; boolean, is this rocket a Cruise Missile, like Boomer missiles in Yuri's Revenge.
 CloseEnoughFactor=1.0   ; float, LazyCurve=no rockets begin turning toward their target after flying parallel to the ground when their horizontal distance from the target is a specified multiple of their vertical distance.
