@@ -200,4 +200,5 @@ This page lists all the individual contributions to the project by their author.
   - Update and finalize custom mouse cursors and actions, add customizable weapon & EMP cursors.
   - Implement support for a Saved Games subdirectory.
   - Fix a bug where if the player loaded a saved game, the score screen timer would report the time since the saved game was loaded, instead of since when the scenario was first started.
+  - Fix a bug where AI players would send teams to attack their allies.
 

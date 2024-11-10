@@ -67,6 +67,7 @@ public:
     ProdFailType _Begin_Production(RTTIType type, int id, bool resume);
     ProdFailType _Abandon_Production(RTTIType type, int id);
     int _AI_Building();
+    int _Expert_AI();
 };
 
 
@@ -426,6 +427,161 @@ int HouseClassExt::_AI_Building()
 
 
 /**
+ *  Handles expert AI processing.
+ *
+ *  @author: 09/29/1995 JLB - Created.
+ *           10/11/2024 ZivDero - Adjustments for Tiberian Sun
+ */
+int HouseClassExt::_Expert_AI()
+{
+    /**
+     *  If there is no enemy assigned to this house, then assign one now. The
+     *  enemy that is closest is picked. However, don't pick an enemy if the
+     *  base has not been established yet.
+     */
+    if (ExpertAITimer.Expired()) {
+        if (Enemy == HOUSE_NONE && Session.Type != GAME_NORMAL && !Class->IsMultiplayPassive && Center) {
+            int close = INT_MAX;
+            HouseClass* enemy = nullptr;
+
+            for (int i = 0; i < Houses.Count(); i++) {
+                HouseClass* house = Houses[i];
+
+                if (house != this && !house->Class->IsMultiplayPassive && !house->IsDefeated && !Is_Ally(house)) {
+
+                    /**
+                     *  Determine a priority value based on distance to the center of the
+                     *  candidate base. The higher the value, the better the candidate house
+                     *  is to becoming the preferred enemy for this house.
+                     */
+                    const int value = Distance(Center, house->Center);
+
+                    /**
+                     *  Compare the calculated value for this candidate house and if it is
+                     *  greater than the previously recorded maximum, record this house as
+                     *  the prime candidate for enemy.
+                     */
+                    if (value < close) {
+                        close = value;
+                        enemy = house;
+                    }
+                }
+            }
+
+            /**
+             *  Record this closest enemy base as the first enemy to attack.
+             */
+            if (enemy) {
+                Add_Anger(1, enemy);
+            }
+        }
+    }
+
+    /**
+     *  If the current enemy no longer has a base or is defeated, then don't consider
+     *  that house a threat anymore. Clear out the enemy record and then try
+     *  to find a new enemy.
+     */
+    if (Enemy != HOUSE_NONE) {
+        HouseClass* h = Houses[Enemy];
+
+        if (h->IsDefeated || Is_Ally(h)) {
+            Clear_Anger(h);
+            Enemy = HOUSE_NONE;
+        }
+    }
+
+    /**
+     *  Use any ready super weapons.
+     */
+    if (Session.Type != GAME_NORMAL || IQ > Rule->IQSuperWeapons) {
+        AI_Super_Weapon_Handler();
+    }
+
+    /**
+     *  House state transition check occurs here. Transitions that occur here are ones
+     *  that relate to general base condition rather than specific combat events.
+     *  Typically, this is limited to transitions between normal buildup mode and
+     *  broke mode.
+     */
+    if (State == STATE_ENDGAME) {
+        Fire_Sale();
+        All_To_Hunt();
+    }
+    else {
+        if (State == STATE_BUILDUP) {
+            if (Available_Money() < 25) {
+                State = STATE_BROKE;
+            }
+        }
+        if (State == STATE_BROKE) {
+            if (Available_Money() >= 25) {
+                State = STATE_BUILDUP;
+            }
+        }
+        if (State == STATE_ATTACKED && LATime + TICKS_PER_MINUTE < Frame) {
+            State = STATE_BUILDUP;
+        }
+        if (State != STATE_ATTACKED && LATime + TICKS_PER_MINUTE > Frame) {
+            State = STATE_ATTACKED;
+        }
+    }
+
+    /**
+     *  Records the urgency of all actions possible.
+     */
+    UrgencyType urgency[STRATEGY_COUNT];
+    StrategyType strat;
+    for (strat = STRATEGY_FIRST; strat < STRATEGY_COUNT; strat++) {
+        urgency[strat] = URGENCY_NONE;
+
+        switch (strat) {
+        case STRATEGY_FIRE_SALE:
+            urgency[strat] = Check_Fire_Sale();
+            break;
+
+        case STRATEGY_RAISE_MONEY:
+            urgency[strat] = Check_Raise_Money();
+            break;
+
+        default:
+            urgency[strat] = URGENCY_NONE;
+            break;
+        }
+    }
+
+    /**
+     *  Performs the action required for each of the strategies that share
+     *  the most urgent category. Stop processing if any strategy at the
+     *  highest urgency performed any action. This is because higher urgency
+     *  actions tend to greatly affect the lower urgency actions.
+     */
+    for (UrgencyType u = URGENCY_CRITICAL; u >= URGENCY_LOW; u--) {
+        bool acted = false;
+
+        for (strat = STRATEGY_FIRST; strat < STRATEGY_COUNT; strat++) {
+            if (urgency[strat] == u) {
+                switch (strat) {
+                case STRATEGY_FIRE_SALE:
+                    acted |= AI_Fire_Sale(u);
+                    break;
+
+                case STRATEGY_RAISE_MONEY:
+                    acted |= AI_Raise_Money(u);
+                    break;
+
+                default:
+                    break;
+                }
+            }
+        }
+    }
+
+    return TICKS_PER_SECOND * 7 + Random_Pick(1, TICKS_PER_SECOND / 2);
+}
+
+
+/**
  *  Patch for InstantSuperRechargeCommandClass
  * 
  *  @author: CCHyper
@@ -726,6 +882,7 @@ void HouseClassExtension_Hooks()
     Patch_Jump(0x004CB6C1, &_HouseClass_Enable_SWs_Check_For_Building_Power);
 
     Patch_Jump(0x004C10E0, &HouseClassExt::_AI_Building);
+    Patch_Jump(0x004C0630, &HouseClassExt::_Expert_AI);
 
     Patch_Jump(0x004BAC2C, 0x004BAC39); // Patch a jump in the constructor to always allocate unit trackers
 }
