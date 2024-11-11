@@ -163,6 +163,7 @@ This page lists all the individual contributions to the project by their author.
   - Implement the Torpedo logic from Red Alert 1 for BulletTypes.
   - Add `BuildTimeCost`.
   - Allow scenarios to have custom score screen bar colors.
+  - Add `Inaccuracy` to RocketTypes.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **ZivDero**:

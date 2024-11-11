@@ -171,4 +171,9 @@ public:
      */
     const AnimTypeClass* TakeoffAnim;
     const AnimTypeClass* TrailAnim;
+
+    /**
+     *  The maximum number of leptons that this rocket is able to miss its target by.
+     */
+    int Inaccuracy;
 };

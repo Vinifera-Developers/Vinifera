@@ -532,6 +532,7 @@ Warhead=                ; WarheadType, the warhead that this rocket's explosion 
 EliteWarhead=           ; WarheadType, the warhead that this rocket's explosion uses when the spawner is elite.
 TakeoffAnim=            ; AnimType, the takeoff animation used by this rocket.
 TrailAnim=              ; AnimType, the trail animation used by this rocket.
+Inaccuracy=             ; integer, the maximum number of leptons that this rocket is able to miss its target by.
 ```
 
 ```{note}
