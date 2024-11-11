@@ -509,7 +509,9 @@ IFACEMETHODIMP_(void) RocketLocomotionClass::Move_To(Coordinate to)
         MissionTimer = timer_delay;
         CurrentPitch = rocket->PitchInitial * DEG_TO_RAD(90);
 
-        // Apply some inaccuracy to the coordinate if the rocket type specifies so.
+        /**
+         *  Apply some inaccuracy to the coordinate if the rocket type specifies so.
+         */
         if (rocket->Inaccuracy <= 0) {
             DestinationCoord = to;
         }
