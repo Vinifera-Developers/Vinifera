@@ -69,6 +69,10 @@ RocketTypeClass::RocketTypeClass(const char* name) :
     Type(nullptr),
     Warhead(nullptr),
     EliteWarhead(nullptr),
+    TakeoffAnim(nullptr),
+    TrailAnim(nullptr),
+    TrailSpawnDelay(3),
+    TrailAppearDelay(2),
     Inaccuracy(0)
 {
     ASSERT_FATAL_PRINT(name != nullptr, "Invalid name for RocketType!");
@@ -398,6 +402,8 @@ bool RocketTypeClass::Read_INI(CCINIClass& ini)
     EliteWarhead = ini.Get_Warhead(IniName, "EliteWarhead", EliteWarhead);
     TakeoffAnim = ini.Get_Anim(IniName, "TakeoffAnim", TakeoffAnim);
     TrailAnim = ini.Get_Anim(IniName, "TrailAnim", TrailAnim);
+    TrailSpawnDelay = ini.Get_Int(IniName, "TrailSpawnDelay", TrailSpawnDelay);
+    TrailAppearDelay = ini.Get_Int(IniName, "TrailAppearDelay", TrailAppearDelay);
     Inaccuracy = ini.Get_Int(IniName, "Inaccuracy", Inaccuracy);
 
     return true;

@@ -457,8 +457,8 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
      */
     if (Is_Moving_Now() && TrailTimer.Expired() && rocket->TrailAnim)
     {
-        new AnimClass(rocket->TrailAnim, Linked_To()->Coord, 2, 1, SHAPE_WIN_REL | SHAPE_CENTER);
-        TrailTimer = 3;
+        new AnimClass(rocket->TrailAnim, Linked_To()->Coord, rocket->TrailAppearDelay, 1, SHAPE_WIN_REL | SHAPE_CENTER);
+        TrailTimer = rocket->TrailSpawnDelay;
     }
 
     /**

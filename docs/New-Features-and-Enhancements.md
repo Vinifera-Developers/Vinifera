@@ -532,7 +532,9 @@ Warhead=                ; WarheadType, the warhead that this rocket's explosion 
 EliteWarhead=           ; WarheadType, the warhead that this rocket's explosion uses when the spawner is elite.
 TakeoffAnim=            ; AnimType, the takeoff animation used by this rocket.
 TrailAnim=              ; AnimType, the trail animation used by this rocket.
-Inaccuracy=             ; integer, the maximum number of leptons that this rocket is able to miss its target by.
+TrailSpawnDelay=3       ; integer, the delay after a trail anim is spawned until the next one spawns.
+TrailAppearDelay=2      ; integer, the delay before a newly spawned trail anim appears.
+Inaccuracy=0            ; integer, the maximum number of leptons that this rocket is able to miss its target by.
 ```
 
 ```{note}

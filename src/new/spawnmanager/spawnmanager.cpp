@@ -648,7 +648,7 @@ void SpawnManagerClass::AI()
                         control->Status = SpawnControlStatus::Takeoff;
                         const auto atype = control->Spawnee->Class;
                         const RocketTypeClass* rocket = RocketTypeClass::From_AircraftType(atype);
-                        control->ReloadTimer = rocket->IsCruiseMissile ? 0 : rocket->PauseFrames + rocket->TiltFrames;
+                        control->ReloadTimer = rocket->PauseFrames + rocket->TiltFrames;
                     }
                     else
                     {

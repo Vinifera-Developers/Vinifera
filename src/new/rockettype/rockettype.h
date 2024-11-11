@@ -173,6 +173,12 @@ public:
     const AnimTypeClass* TrailAnim;
 
     /**
+     *  The timing controls for this missile's trail.
+     */
+    int TrailSpawnDelay;
+    int TrailAppearDelay;
+
+    /**
      *  The maximum number of leptons that this rocket is able to miss its target by.
      */
     int Inaccuracy;
