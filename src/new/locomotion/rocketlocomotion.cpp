@@ -508,7 +508,16 @@ IFACEMETHODIMP_(void) RocketLocomotionClass::Move_To(Coordinate to)
 
         MissionTimer = timer_delay;
         CurrentPitch = rocket->PitchInitial * DEG_TO_RAD(90);
-        DestinationCoord = to;
+
+        // Apply some inaccuracy to the coordinate if the rocket type specifies so.
+        if (rocket->Inaccuracy <= 0) {
+            DestinationCoord = to;
+        }
+        else {
+            const int randomx = Random_Pick(-rocket->Inaccuracy, rocket->Inaccuracy);
+            const int randomy = Random_Pick(-rocket->Inaccuracy, rocket->Inaccuracy);
+            DestinationCoord = to + Coordinate(randomx, randomy, 0);
+        }
     }
 }
 
