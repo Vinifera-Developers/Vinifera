@@ -496,6 +496,13 @@ bool RepeatLastBuildingCommandClass::Process()
         return false;
     }
 
+    /**
+     *  Don't allow queuing of multiple structures.
+     */
+    if (PlayerPtr->Fetch_Factory(RTTI_BUILDING)->Get_Object()) {
+        return false;
+    }
+
     const BuildingTypeClass *buildingtype = BuildingTypeClass::As_Pointer(building);
     if (!buildingtype) {
         return false;
