@@ -273,7 +273,7 @@ HRESULT UnitTrackerClassExt::_Save(IStream* pStm)
  *
  *  @author: ZivDero
  */
-void HouseClassExtension::Load_Unit_Trackers(IStream* pStm)
+void HouseClassExtension::Load_Unit_Trackers(HouseClass* house, IStream* pStm)
 {
     /**
      *  Trackers store their counts in a dynamically allocated array (AARGH WW!).
@@ -281,16 +281,16 @@ void HouseClassExtension::Load_Unit_Trackers(IStream* pStm)
      *  But we can't do this in the extension because ThisPtr isn't remapped yet.
      */
 
-    reinterpret_cast<UnitTrackerClassExt*>(This()->AircraftTotals)->_Load(pStm);
-    reinterpret_cast<UnitTrackerClassExt*>(This()->InfantryTotals)->_Load(pStm);
-    reinterpret_cast<UnitTrackerClassExt*>(This()->UnitTotals)->_Load(pStm);
-    reinterpret_cast<UnitTrackerClassExt*>(This()->BuildingTotals)->_Load(pStm);
-    reinterpret_cast<UnitTrackerClassExt*>(This()->DestroyedAircraft)->_Load(pStm);
-    reinterpret_cast<UnitTrackerClassExt*>(This()->DestroyedInfantry)->_Load(pStm);
-    reinterpret_cast<UnitTrackerClassExt*>(This()->DestroyedUnits)->_Load(pStm);
-    reinterpret_cast<UnitTrackerClassExt*>(This()->DestroyedBuildings)->_Load(pStm);
-    reinterpret_cast<UnitTrackerClassExt*>(This()->CapturedBuildings)->_Load(pStm);
-    reinterpret_cast<UnitTrackerClassExt*>(This()->TotalCrates)->_Load(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(house->AircraftTotals)->_Load(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(house->InfantryTotals)->_Load(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(house->UnitTotals)->_Load(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(house->BuildingTotals)->_Load(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(house->DestroyedAircraft)->_Load(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(house->DestroyedInfantry)->_Load(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(house->DestroyedUnits)->_Load(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(house->DestroyedBuildings)->_Load(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(house->CapturedBuildings)->_Load(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(house->TotalCrates)->_Load(pStm);
 }
 
 
@@ -299,16 +299,16 @@ void HouseClassExtension::Load_Unit_Trackers(IStream* pStm)
  *
  *  @author: ZivDero
  */
-void HouseClassExtension::Save_Unit_Trackers(IStream* pStm)
+void HouseClassExtension::Save_Unit_Trackers(HouseClass* house, IStream* pStm)
 {
-    reinterpret_cast<UnitTrackerClassExt*>(This()->AircraftTotals)->_Save(pStm);
-    reinterpret_cast<UnitTrackerClassExt*>(This()->InfantryTotals)->_Save(pStm);
-    reinterpret_cast<UnitTrackerClassExt*>(This()->UnitTotals)->_Save(pStm);
-    reinterpret_cast<UnitTrackerClassExt*>(This()->BuildingTotals)->_Save(pStm);
-    reinterpret_cast<UnitTrackerClassExt*>(This()->DestroyedAircraft)->_Save(pStm);
-    reinterpret_cast<UnitTrackerClassExt*>(This()->DestroyedInfantry)->_Save(pStm);
-    reinterpret_cast<UnitTrackerClassExt*>(This()->DestroyedUnits)->_Save(pStm);
-    reinterpret_cast<UnitTrackerClassExt*>(This()->DestroyedBuildings)->_Save(pStm);
-    reinterpret_cast<UnitTrackerClassExt*>(This()->CapturedBuildings)->_Save(pStm);
-    reinterpret_cast<UnitTrackerClassExt*>(This()->TotalCrates)->_Save(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(house->AircraftTotals)->_Save(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(house->InfantryTotals)->_Save(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(house->UnitTotals)->_Save(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(house->BuildingTotals)->_Save(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(house->DestroyedAircraft)->_Save(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(house->DestroyedInfantry)->_Save(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(house->DestroyedUnits)->_Save(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(house->DestroyedBuildings)->_Save(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(house->CapturedBuildings)->_Save(pStm);
+    reinterpret_cast<UnitTrackerClassExt*>(house->TotalCrates)->_Save(pStm);
 }

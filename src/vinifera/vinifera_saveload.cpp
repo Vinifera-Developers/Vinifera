@@ -363,6 +363,13 @@ bool Vinifera_Put_All(IStream *pStm, bool save_net)
     if (FAILED(Vinifera_Save_Vector(pStm, SpawnManagers, "SpawnManagers"))) { return false; }
 
     /**
+     *  Save houses' unit tracker data.
+     */
+    for (int i = 0; i < Houses.Count(); i++) {
+        HouseClassExtension::Save_Unit_Trackers(Houses[i], pStm);
+    }
+
+    /**
      *  Save new Verses.
      */
     if (FAILED(Verses::Save(pStm))) { return false; }
@@ -599,6 +606,13 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
     if (FAILED(Vinifera_Load_Vector(pStm, SpawnManagers, "SpawnManagers"))) { return false; }
 
     /**
+     *  Load houses' unit tracker data.
+     */
+    for (int i = 0; i < Houses.Count(); i++) {
+        HouseClassExtension::Load_Unit_Trackers(Houses[i], pStm);
+    }
+
+    /**
      *  Load new Verses.
      */
     if (FAILED(Verses::Load(pStm))) { return false; }
@@ -672,32 +686,6 @@ void Put_Storage_Pointers()
     for (int i = 0; i < Houses.Count(); i++) {
         const HouseClass* house = Houses[i];
         Extension::Fetch<HouseClassExtension>(house)->Put_Storage_Pointers();
-    }
-}
-
-
-/**
- *  Saves unit trackers.
- *
- *  @author: ZivDero
- */
-void Load_Unit_Trackers(IStream* pStm)
-{
-    for (int i = 0; i < HouseExtensions.Count(); i++) {
-        HouseExtensions[i]->Load_Unit_Trackers(pStm);
-    }
-}
-
-
-/**
- *  Saves unit trackers.
- *
- *  @author: ZivDero
- */
-void Save_Unit_Trackers(IStream* pStm)
-{
-    for (int i = 0; i < HouseExtensions.Count(); i++) {
-        HouseExtensions[i]->Save_Unit_Trackers(pStm);
     }
 }
 
@@ -811,13 +799,6 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
     DEBUG_INFO("Calling Vinifera_Put_All().\n");
     bool result = Vinifera_Put_All(stream, false);
 
-    /**
-     *  Save unit trackers in houses.
-     *  This has to happen in the same order in which we load them,
-     *  and we have to do that after remapping pointers.
-     */
-    Save_Unit_Trackers(stream);
-
     DEBUG_INFO("Unlinking content stream from compressor.\n");
     hr = linkstream->Unlink_Stream(nullptr);
     if (FAILED(hr)) {
@@ -930,16 +911,10 @@ bool Vinifera_Load_Game(const char* file_name)
         return false;
     }
 
-    SwizzleManager.Reset();
-
-    /**
-     *  Load unit trackers in houses.
-     */
-    Load_Unit_Trackers(stream);
-
     DEBUG_INFO("Unlinking content stream from decompressor.\n");
     linkstream->Unlink_Stream(nullptr);
 
+    SwizzleManager.Reset();
     Post_Load_Game();
     Put_Storage_Pointers();
     Map.Init_IO();
