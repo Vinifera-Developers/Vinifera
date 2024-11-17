@@ -1030,7 +1030,7 @@ All `OverlayTypes` used by a `Tiberium` must have `Tiberium=yes`, and no other `
 In `RULES.INI`:
 ```ini
 [SOMETIBERIUM]     ; Tiberium
-DamageToInfantry=  ; integer, the damage to infantry per tick, defaults to Power / 10
+DamageToInfantry=  ; integer, the damage to infantry per tick, defaults to Power / 10, but a minimum of 1
 ```
 
 ### Pips

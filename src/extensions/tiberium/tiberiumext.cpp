@@ -194,33 +194,33 @@ bool TiberiumClassExtension::Read_INI(CCINIClass &ini)
 {
     //EXT_DEBUG_TRACE("TiberiumClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
+    const char* ini_name = Name();
+
+    if (!IsInitialized) {
+        This()->NumFrames = 12;
+        This()->NumImages = 12;
+        DamageToInfantry = std::max(1, This()->Power / 10);
+    }
+
     if (!AbstractTypeClassExtension::Read_INI(ini)) {
         return false;
     }
-
-    const char *ini_name = Name();
 
     if (!ini.Is_Present(ini_name)) {
         return false;
     }
 
+    This()->Image = const_cast<OverlayTypeClass*>(ini.Get_Overlay(ini_name, "Overlay", This()->Image));
+
+    const bool useSlopes = ini.Get_Bool(ini_name, "UseSlopes", This()->NumSlopeFacings > 0);
+    This()->NumSlopeFacings = useSlopes ? 8 : 0;
+
     PipIndex = ini.Get_Int(ini_name, "PipIndex", PipIndex);
     PipDrawOrder = ini.Get_Int(ini_name, "PipDrawOrder", PipDrawOrder);
 
-    // Default values set from the TiberiumType
-    OverlayTypeClass* overlay = This()->Image;
-    bool useSlopes = This()->NumSlopeFacings > 0;
-    DamageToInfantry = This()->Power / 10;
-
-    overlay = (OverlayTypeClass*)ini.Get_Overlay(ini_name, "Overlay", overlay);
-    useSlopes = ini.Get_Bool(ini_name, "UseSlopes", useSlopes);
-
-    This()->Image = overlay;
-    This()->NumFrames = 12;
-    This()->NumImages = 12;
-    This()->NumSlopeFacings = useSlopes ? 8 : 0;
-
     DamageToInfantry = ini.Get_Int(ini_name, "DamageToInfantry", DamageToInfantry);
+
+    IsInitialized = true;
     
     return true;
 }

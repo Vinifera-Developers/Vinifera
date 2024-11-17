@@ -584,9 +584,10 @@ DECLARE_PATCH(_InfantryClass_Per_Cell_Process_Tiberium_Damage_Patch)
     static int damage;
     damage = Extension::Fetch<TiberiumClassExtension>(Tiberiums[tib_id])->DamageToInfantry;
 
-    _asm mov edx, damage;
+    _asm mov eax, damage
+    _asm mov [esp + 0x10], eax
 
-    JMP(0x004D3F7D);
+    JMP(0x004D3F8E);
 }
 
 
