@@ -435,6 +435,27 @@ int HouseClassExt::_AI_Building()
 int HouseClassExt::_Expert_AI()
 {
     /**
+     *  Unfortunately, ts-patches spawner has a hack here.
+     *  Until we reimplement the spawner in Vinifera, this will have to do.
+     */
+    static bool spawner_hack_init = false;
+    static bool spawner_hack_mpnodes = false;
+
+    if (!spawner_hack_init)
+    {
+        RawFileClass file("SPAWN.INI");
+        CCINIClass spawn_ini;
+
+        if (file.Is_Available()) {
+
+            spawn_ini.Load(file, false);
+            spawner_hack_mpnodes = spawn_ini.Get_Bool("Settings", "UseMPAIBaseNodes", spawner_hack_mpnodes);
+        }
+
+        spawner_hack_init = true;
+    }
+
+    /**
      *  If there is no enemy assigned to this house, then assign one now. The
      *  enemy that is closest is picked. However, don't pick an enemy if the
      *  base has not been established yet.
@@ -527,51 +548,54 @@ int HouseClassExt::_Expert_AI()
         }
     }
 
-    /**
-     *  Records the urgency of all actions possible.
-     */
-    UrgencyType urgency[STRATEGY_COUNT];
-    StrategyType strat;
-    for (strat = STRATEGY_FIRST; strat < STRATEGY_COUNT; strat++) {
-        urgency[strat] = URGENCY_NONE;
+    if (Session.Type != GAME_NORMAL || spawner_hack_mpnodes) {
 
-        switch (strat) {
-        case STRATEGY_FIRE_SALE:
-            urgency[strat] = Check_Fire_Sale();
-            break;
-
-        case STRATEGY_RAISE_MONEY:
-            urgency[strat] = Check_Raise_Money();
-            break;
-
-        default:
-            urgency[strat] = URGENCY_NONE;
-            break;
-        }
-    }
-
-    /**
-     *  Performs the action required for each of the strategies that share
-     *  the most urgent category. Stop processing if any strategy at the
-     *  highest urgency performed any action. This is because higher urgency
-     *  actions tend to greatly affect the lower urgency actions.
-     */
-    for (UrgencyType u = URGENCY_CRITICAL; u >= URGENCY_LOW; u--) {
-        bool acted = false;
-
+        /**
+         *  Records the urgency of all actions possible.
+         */
+        UrgencyType urgency[STRATEGY_COUNT];
+        StrategyType strat;
         for (strat = STRATEGY_FIRST; strat < STRATEGY_COUNT; strat++) {
-            if (urgency[strat] == u) {
-                switch (strat) {
-                case STRATEGY_FIRE_SALE:
-                    acted |= AI_Fire_Sale(u);
-                    break;
+            urgency[strat] = URGENCY_NONE;
 
-                case STRATEGY_RAISE_MONEY:
-                    acted |= AI_Raise_Money(u);
-                    break;
+            switch (strat) {
+            case STRATEGY_FIRE_SALE:
+                urgency[strat] = Check_Fire_Sale();
+                break;
 
-                default:
-                    break;
+            case STRATEGY_RAISE_MONEY:
+                urgency[strat] = Check_Raise_Money();
+                break;
+
+            default:
+                urgency[strat] = URGENCY_NONE;
+                break;
+            }
+        }
+
+        /**
+         *  Performs the action required for each of the strategies that share
+         *  the most urgent category. Stop processing if any strategy at the
+         *  highest urgency performed any action. This is because higher urgency
+         *  actions tend to greatly affect the lower urgency actions.
+         */
+        for (UrgencyType u = URGENCY_CRITICAL; u >= URGENCY_LOW; u--) {
+            bool acted = false;
+
+            for (strat = STRATEGY_FIRST; strat < STRATEGY_COUNT; strat++) {
+                if (urgency[strat] == u) {
+                    switch (strat) {
+                    case STRATEGY_FIRE_SALE:
+                        acted |= AI_Fire_Sale(u);
+                        break;
+
+                    case STRATEGY_RAISE_MONEY:
+                        acted |= AI_Raise_Money(u);
+                        break;
+
+                    default:
+                        break;
+                    }
                 }
             }
         }
