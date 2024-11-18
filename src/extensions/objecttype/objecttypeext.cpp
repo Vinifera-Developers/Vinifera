@@ -82,12 +82,10 @@ ObjectTypeClassExtension::~ObjectTypeClassExtension()
 HRESULT ObjectTypeClassExtension::Load(IStream *pStm)
 {
     NoSpawnVoxelIndex.Clear();
-    NoSpawnVoxel.~VoxelObject();
-    NoSpawnVoxel.Clear();
-
     WaterVoxelIndex.Clear();
+
+    NoSpawnVoxel.~VoxelObject();
     WaterVoxel.~VoxelObject();
-    WaterVoxel.Clear();
 
     //EXT_DEBUG_TRACE("ObjectTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -97,9 +95,9 @@ HRESULT ObjectTypeClassExtension::Load(IStream *pStm)
     }
 
     NoSpawnVoxelIndex.Clear();
-    NoSpawnVoxel.Clear();
-
     WaterVoxelIndex.Clear();
+
+    NoSpawnVoxel.Clear();
     WaterVoxel.Clear();
 
     Fetch_Voxel_Image(GraphicName);
