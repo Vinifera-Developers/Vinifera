@@ -82,16 +82,12 @@ ObjectTypeClassExtension::~ObjectTypeClassExtension()
 HRESULT ObjectTypeClassExtension::Load(IStream *pStm)
 {
     NoSpawnVoxelIndex.Clear();
-    delete NoSpawnVoxel.VoxelLibrary;
-    delete NoSpawnVoxel.MotionLibrary;
-    NoSpawnVoxel.VoxelLibrary = nullptr;
-    NoSpawnVoxel.MotionLibrary = nullptr;
+    NoSpawnVoxel.~VoxelObject();
+    NoSpawnVoxel.Clear();
 
     WaterVoxelIndex.Clear();
-    delete WaterVoxel.VoxelLibrary;
-    delete WaterVoxel.MotionLibrary;
-    WaterVoxel.VoxelLibrary = nullptr;
-    WaterVoxel.MotionLibrary = nullptr;
+    WaterVoxel.~VoxelObject();
+    WaterVoxel.Clear();
 
     //EXT_DEBUG_TRACE("ObjectTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -101,12 +97,10 @@ HRESULT ObjectTypeClassExtension::Load(IStream *pStm)
     }
 
     NoSpawnVoxelIndex.Clear();
-    NoSpawnVoxel.VoxelLibrary = nullptr;
-    NoSpawnVoxel.MotionLibrary = nullptr;
+    NoSpawnVoxel.Clear();
 
     WaterVoxelIndex.Clear();
-    WaterVoxel.VoxelLibrary = nullptr;
-    WaterVoxel.MotionLibrary = nullptr;
+    WaterVoxel.Clear();
 
     Fetch_Voxel_Image(GraphicName);
     
@@ -207,13 +201,13 @@ void ObjectTypeClassExtension::Fetch_Voxel_Image(const char* graphic_name)
     if (NoSpawnAlt)
     {
         std::snprintf(buffer, sizeof(buffer), "%sWO", graphic_name);
-        Load_Voxel(NoSpawnVoxel, NoSpawnVoxelIndex, buffer);
+        NoSpawnVoxel.Load(NoSpawnVoxelIndex, buffer);
     }
 
     if (WaterAlt)
     {
         std::snprintf(buffer, sizeof(buffer), "%sW", graphic_name);
-        Load_Voxel(WaterVoxel, WaterVoxelIndex, buffer);
+        NoSpawnVoxel.Load(WaterVoxelIndex, buffer);
     }
 }
 

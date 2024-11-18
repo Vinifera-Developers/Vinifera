@@ -571,59 +571,6 @@ const char *Filename_From_Path(const char *filename)
 }
 
 
-/**
- *  Loads a voxel object from files.
- *
- *  @author: ZivDero
- */
-bool Load_Voxel(VoxelObject& voxel, VoxelIndexClass& index, const char* graphic_name, bool required)
-{
-    char buffer[260];
-    bool success = true;
-
-    _makepath(buffer, nullptr, nullptr, graphic_name, ".VXL");
-    CCFileClass vxl(buffer);
-
-    if (vxl.Is_Available())
-    {
-        delete voxel.VoxelLibrary;
-        voxel.VoxelLibrary = new VoxelLibraryClass(&vxl);
-
-        if (!voxel.VoxelLibrary || voxel.VoxelLibrary->Load_Failed())
-            success = false;
-
-        _makepath(buffer, nullptr, nullptr, graphic_name, ".HVA");
-        CCFileClass hva(buffer);
-
-        delete voxel.MotionLibrary;
-        voxel.MotionLibrary = new MotionLibraryClass(&hva);
-
-        if (!voxel.MotionLibrary || voxel.MotionLibrary->Load_Failed())
-            success = false;
-        else
-            voxel.MotionLibrary->Scale(voxel.VoxelLibrary->Get_Layer_Info(0, 0)->Scale);
-    }
-    else
-    {
-        success = false;
-    }
-
-    if (success)
-    {
-        index.Clear();
-    }
-    else
-    {
-        delete voxel.VoxelLibrary;
-        delete voxel.MotionLibrary;
-        voxel.VoxelLibrary = nullptr;
-        voxel.MotionLibrary = nullptr;
-    }
-
-    return success;
-}
-
-
 bool Parse_Boolean(const char* value, bool defval)
 {
     while (*value == ' ') {

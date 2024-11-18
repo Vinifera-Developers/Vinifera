@@ -281,6 +281,17 @@ void HouseClassExtension::Load_Unit_Trackers(HouseClass* house, IStream* pStm)
      *  But we can't do this in the extension because ThisPtr isn't remapped yet.
      */
 
+    house->AircraftTotals = new UnitTrackerClass(0);
+    house->InfantryTotals = new UnitTrackerClass(0);
+    house->UnitTotals = new UnitTrackerClass(0);
+    house->BuildingTotals = new UnitTrackerClass(0);
+    house->DestroyedAircraft = new UnitTrackerClass(0);
+    house->DestroyedInfantry = new UnitTrackerClass(0);
+    house->DestroyedUnits = new UnitTrackerClass(0);
+    house->DestroyedBuildings = new UnitTrackerClass(0);
+    house->CapturedBuildings = new UnitTrackerClass(0);
+    house->TotalCrates = new UnitTrackerClass(0);
+
     reinterpret_cast<UnitTrackerClassExt*>(house->AircraftTotals)->_Load(pStm);
     reinterpret_cast<UnitTrackerClassExt*>(house->InfantryTotals)->_Load(pStm);
     reinterpret_cast<UnitTrackerClassExt*>(house->UnitTotals)->_Load(pStm);

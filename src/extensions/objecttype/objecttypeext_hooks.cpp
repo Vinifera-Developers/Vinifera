@@ -170,7 +170,7 @@ void ObjectTypeClassExt::_Fetch_Voxel_Image()
 
     if (IsVoxel)
     {
-        if (Load_Voxel(Voxel, VoxelIndex, Graphic_Name()))
+        if (Voxel.Load(VoxelIndex, Graphic_Name()))
         {
             unsigned char max_dimension = Voxel.VoxelLibrary->Get_Layer_Info(0, 0)->XSize;
             for (int i = 0; i < Voxel.VoxelLibrary->Get_Layer_Count(); i++)
@@ -190,10 +190,10 @@ void ObjectTypeClassExt::_Fetch_Voxel_Image()
     if (What_Am_I() != RTTI_UNITTYPE || reinterpret_cast<UnitTypeClass*>(this)->IsTurretEquipped)
     {
         std::snprintf(buffer, sizeof(buffer), "%sTUR", Graphic_Name());
-        Load_Voxel(AuxVoxel, AuxVoxelIndex, buffer);
+        AuxVoxel.Load(AuxVoxelIndex, buffer);
 
         std::snprintf(buffer, sizeof(buffer), "%sBARL", Graphic_Name());
-        Load_Voxel(AuxVoxel2, AuxVoxel2Index, buffer);
+        AuxVoxel2.Load(AuxVoxel2Index, buffer);
     }
 }
 
