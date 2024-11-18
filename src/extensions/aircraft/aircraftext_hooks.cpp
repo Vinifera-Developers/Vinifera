@@ -103,9 +103,12 @@ bool AircraftClassExt::_Unlimbo(Coordinate& coord, DirType dir)
 
         /**
          *  If this aicraft has passangers, mark it accordingly.
+         *  Set Ammo to the number of passangers divided by 5 rounded up for
+         *  backwards compatibility with TS-Patches.
          */
         if (Cargo.Is_Something_Attached()) {
             Passenger = true;
+            Ammo = (Cargo.How_Many() + 4) / 5;
         }
 
         /**
