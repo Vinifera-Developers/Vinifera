@@ -161,23 +161,7 @@ bool AircraftClassExt::_Enter_Idle_Mode(bool initial, bool a2)
     MissionType mission = House->Is_Human_Control() || Team || !Is_Weapon_Equipped() ? MISSION_GUARD : MISSION_GUARD_AREA;
 
     if (In_Which_Layer() != LAYER_GROUND && Get_Height() > Landing_Altitude() && !Extension::Fetch<AircraftTypeClassExtension>(Class)->IsMissileSpawn) {
-
         if (Cargo.Is_Something_Attached()) {
-            if (IsALoaner) {
-                if (Team) {
-                    mission = MISSION_GUARD;
-                }
-                else {
-                    mission = MISSION_UNLOAD;
-                    Assign_Destination(Good_LZ());
-                }
-            }
-            else {
-                Assign_Destination(Good_LZ());
-                mission = MISSION_MOVE;
-            }
-        }
-        else {
 
             /**
              *  If this transport is a loaner and part of a team, then remove it from
@@ -239,7 +223,21 @@ bool AircraftClassExt::_Enter_Idle_Mode(bool initial, bool a2)
             }
             else {
                 if (Team) return false;
-
+                Assign_Destination(Good_LZ());
+                mission = MISSION_MOVE;
+            }
+        }
+        else {
+            if (IsALoaner) {
+                if (Team) {
+                    mission = MISSION_GUARD;
+                }
+                else {
+                    mission = MISSION_UNLOAD;
+                    Assign_Destination(Good_LZ());
+                }
+            }
+            else {
                 Assign_Destination(Good_LZ());
                 mission = MISSION_MOVE;
             }
