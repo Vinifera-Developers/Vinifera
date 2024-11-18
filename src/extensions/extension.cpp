@@ -1959,12 +1959,16 @@ void Extension::Detach_This_From_All(TARGET target, bool all)
     //DEV_DEBUG_INFO("Extension::Detach_This_From_All(enter)\n");
 
     /**
+     *  #NOTE: AnimClass and IsoTileTypeClass detach calls are disabled because they currently do nothing but take up a lot of performance.
+     */
+
+    /**
      *  #NOTE: The order of these calls must match the relevant RTTIType order!
      */
     Extension_Detach_This_From_All(UnitExtensions, target, all);
     Extension_Detach_This_From_All(AircraftExtensions, target, all);
     Extension_Detach_This_From_All(AircraftTypeExtensions, target, all);
-    Extension_Detach_This_From_All(AnimExtensions, target, all);
+    //Extension_Detach_This_From_All(AnimExtensions, target, all);
     Extension_Detach_This_From_All(AnimTypeExtensions, target, all);
     Extension_Detach_This_From_All(BuildingExtensions, target, all);
     Extension_Detach_This_From_All(BuildingTypeExtensions, target, all);
@@ -1978,7 +1982,7 @@ void Extension::Detach_This_From_All(TARGET target, bool all)
     Extension_Detach_This_From_All(InfantryExtensions, target, all);
     Extension_Detach_This_From_All(InfantryTypeExtensions, target, all);
     //Extension_Detach_This_From_All(IsometricTileExtensions, target, all);     // Not yet implemented
-    Extension_Detach_This_From_All(IsometricTileTypeExtensions, target, all);
+    //Extension_Detach_This_From_All(IsometricTileTypeExtensions, target, all);
     //Extension_Detach_This_From_All(BuildingLightExtensions, target, all);     // Not yet implemented
     Extension_Detach_This_From_All(OverlayExtensions, target, all);
     Extension_Detach_This_From_All(OverlayTypeExtensions, target, all);
