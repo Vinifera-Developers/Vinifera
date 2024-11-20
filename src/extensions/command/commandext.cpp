@@ -499,7 +499,7 @@ bool RepeatLastBuildingCommandClass::Process()
     /**
      *  Don't allow queuing of multiple structures.
      */
-    if (PlayerPtr->Fetch_Factory(RTTI_BUILDING)->Get_Object()) {
+    if (PlayerPtr->Fetch_Factory(RTTI_BUILDING) && PlayerPtr->Fetch_Factory(RTTI_BUILDING)->Get_Object()) {
         return false;
     }
 

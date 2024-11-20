@@ -194,246 +194,103 @@ continue_loop:
 /**
  *  Initialises the new hotkey commands.
  * 
- *  @author: CCHyper
+ *  @author: CCHyper, ZivDero
  */
 void Init_Vinifera_Commands()
 {
-    CommandClass *cmdptr = nullptr;
-
     DEBUG_INFO("Init_Vinifera_Commands(enter).\n");
 
     /**
-     *  Initialises any new commands here.
+     *  Initialize new commands.
      */
-    DEBUG_INFO("Initialising new commands.\n");
+    DEBUG_INFO("Initializing new commands.\n");
 
-    //cmdptr = new PNGScreenCaptureCommandClass;
-    //Commands.Add(cmdptr);
-
-    cmdptr = new ManualPlaceCommandClass;
-    Commands.Add(cmdptr);
-
-    cmdptr = new RepeatLastBuildingCommandClass;
-    Commands.Add(cmdptr);
-
-    cmdptr = new RepeatLastInfantryCommandClass;
-    Commands.Add(cmdptr);
-
-    cmdptr = new RepeatLastUnitCommandClass;
-    Commands.Add(cmdptr);
-
-    cmdptr = new RepeatLastAircraftCommandClass;
-    Commands.Add(cmdptr);
-
-    cmdptr = new PrevThemeCommandClass;
-    Commands.Add(cmdptr);
-
-    cmdptr = new NextThemeCommandClass;
-    Commands.Add(cmdptr);
-
-    cmdptr = new ScrollNECommandClass;
-    Commands.Add(cmdptr);
-
-    cmdptr = new ScrollSECommandClass;
-    Commands.Add(cmdptr);
-
-    cmdptr = new ScrollSWCommandClass;
-    Commands.Add(cmdptr);
-
-    cmdptr = new ScrollNWCommandClass;
-    Commands.Add(cmdptr);
-
-    cmdptr = new JumpCameraWestCommandClass;
-    Commands.Add(cmdptr);
-
-    cmdptr = new JumpCameraEastCommandClass;
-    Commands.Add(cmdptr);
-
-    cmdptr = new JumpCameraNorthCommandClass;
-    Commands.Add(cmdptr);
-
-    cmdptr = new JumpCameraSouthCommandClass;
-    Commands.Add(cmdptr);
-
-    cmdptr = new ToggleSuperTimersCommandClass;
-    Commands.Add(cmdptr);
+    Commands.Add(new ManualPlaceCommandClass);
+    Commands.Add(new RepeatLastBuildingCommandClass);
+    Commands.Add(new RepeatLastInfantryCommandClass);
+    Commands.Add(new RepeatLastUnitCommandClass);
+    Commands.Add(new RepeatLastAircraftCommandClass);
+    Commands.Add(new PrevThemeCommandClass);
+    Commands.Add(new NextThemeCommandClass);
+    Commands.Add(new ScrollNECommandClass);
+    Commands.Add(new ScrollSECommandClass);
+    Commands.Add(new ScrollSWCommandClass);
+    Commands.Add(new ScrollNWCommandClass);
+    Commands.Add(new JumpCameraWestCommandClass);
+    Commands.Add(new JumpCameraEastCommandClass);
+    Commands.Add(new JumpCameraNorthCommandClass);
+    Commands.Add(new JumpCameraSouthCommandClass);
+    Commands.Add(new ToggleSuperTimersCommandClass);
 
     /**
-     *  Hotkeys for the sidebar tabs.
+     *  Initialize hotkeys for the sidebar tabs, if sidebar tabs are enabled.
      */
     if (Vinifera_NewSidebar) {
+        DEBUG_INFO("Initializing sidebar tab commands.\n");
 
-        cmdptr = new SetStructureTabCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new SetInfantryTabCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new SetUnitTabCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new SetSpecialTabCommandClass;
-        Commands.Add(cmdptr);
+        Commands.Add(new SetStructureTabCommandClass);
+        Commands.Add(new SetInfantryTabCommandClass);
+        Commands.Add(new SetUnitTabCommandClass);
+        Commands.Add(new SetSpecialTabCommandClass);
     }
 
     /**
-     *  Next, initialised any new commands here if the developer mode is enabled.
+     *  Next, initialize any developer mode commands if developer mode is enabled.
      */
     if (Vinifera_DeveloperMode) {
-        DEBUG_INFO("Initialising developer commands.\n");
+        DEBUG_INFO("Initializing developer commands.\n");
 
-        cmdptr = new MemoryDumpCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new DumpHeapCRCCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new DumpTriggersCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new InstantBuildCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new AIInstantBuildCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new ForceWinCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new ForceLoseCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new ForceDieCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new CaptureObjectCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new SpecialWeaponsCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new FreeMoneyCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new LightningBoltCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new IonBlastCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new ExplosionCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new SuperExplosionCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new BailOutCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new IonStormCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new MapSnapshotCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new DeleteObjectCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new SpawnAllCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new DamageCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new ToggleEliteCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new BuildCheatCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new ToggleShroudCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new HealCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new ToggleInertCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new DumpAIBaseNodesCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new ToggleBerzerkCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new EncroachShadowCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new EncroachFogCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new ToggleAllianceCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new AddPowerCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new PlaceCrateCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new CursorPositionCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new ToggleFrameStepCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new Step1FrameCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new Step5FramesCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new Step10FramesCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new ToggleAIControlCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new StartingWaypointsCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new PlaceInfantryCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new PlaceUnitCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new PlaceTiberiumCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new ReduceTiberiumCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new PlaceFullTiberiumCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new RemoveTiberiumCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new InstantSuperRechargeCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new AIInstantSuperRechargeCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new DumpNetworkCRCCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new DumpHeapsCommandClass;
-        Commands.Add(cmdptr);
-
-        cmdptr = new ReloadRulesCommandClass;
-        Commands.Add(cmdptr);
+        Commands.Add(new MemoryDumpCommandClass);
+        Commands.Add(new DumpHeapCRCCommandClass);
+        Commands.Add(new DumpTriggersCommandClass);
+        Commands.Add(new InstantBuildCommandClass);
+        Commands.Add(new AIInstantBuildCommandClass);
+        Commands.Add(new ForceWinCommandClass);
+        Commands.Add(new ForceLoseCommandClass);
+        Commands.Add(new ForceDieCommandClass);
+        Commands.Add(new CaptureObjectCommandClass);
+        Commands.Add(new SpecialWeaponsCommandClass);
+        Commands.Add(new FreeMoneyCommandClass);
+        Commands.Add(new LightningBoltCommandClass);
+        Commands.Add(new IonBlastCommandClass);
+        Commands.Add(new ExplosionCommandClass);
+        Commands.Add(new SuperExplosionCommandClass);
+        Commands.Add(new BailOutCommandClass);
+        Commands.Add(new IonStormCommandClass);
+        Commands.Add(new MapSnapshotCommandClass);
+        Commands.Add(new DeleteObjectCommandClass);
+        Commands.Add(new SpawnAllCommandClass);
+        Commands.Add(new DamageCommandClass);
+        Commands.Add(new ToggleEliteCommandClass);
+        Commands.Add(new BuildCheatCommandClass);
+        Commands.Add(new ToggleShroudCommandClass);
+        Commands.Add(new HealCommandClass);
+        Commands.Add(new ToggleInertCommandClass);
+        Commands.Add(new DumpAIBaseNodesCommandClass);
+        Commands.Add(new ToggleBerzerkCommandClass);
+        Commands.Add(new EncroachShadowCommandClass);
+        Commands.Add(new EncroachFogCommandClass);
+        Commands.Add(new ToggleAllianceCommandClass);
+        Commands.Add(new AddPowerCommandClass);
+        Commands.Add(new PlaceCrateCommandClass);
+        Commands.Add(new CursorPositionCommandClass);
+        Commands.Add(new ToggleFrameStepCommandClass);
+        Commands.Add(new Step1FrameCommandClass);
+        Commands.Add(new Step5FramesCommandClass);
+        Commands.Add(new Step10FramesCommandClass);
+        Commands.Add(new ToggleAIControlCommandClass);
+        Commands.Add(new StartingWaypointsCommandClass);
+        Commands.Add(new PlaceInfantryCommandClass);
+        Commands.Add(new PlaceUnitCommandClass);
+        Commands.Add(new PlaceTiberiumCommandClass);
+        Commands.Add(new ReduceTiberiumCommandClass);
+        Commands.Add(new PlaceFullTiberiumCommandClass);
+        Commands.Add(new RemoveTiberiumCommandClass);
+        Commands.Add(new InstantSuperRechargeCommandClass);
+        Commands.Add(new AIInstantSuperRechargeCommandClass);
+        Commands.Add(new DumpNetworkCRCCommandClass);
+        Commands.Add(new DumpHeapsCommandClass);
+        Commands.Add(new ReloadRulesCommandClass);
     }
 
     /**
@@ -444,127 +301,29 @@ void Init_Vinifera_Commands()
     DEBUG_INFO("Init_Vinifera_Commands(exit).\n");
 }
 
+
 /**
  *  Set the default key assignments.
  * 
- *  @author: CCHyper
+ *  @author: ZivDero
  */
-static void Process_Vinifera_Hotkeys()
+static void Process_Vinifera_Hotkey_Defaults()
 {
-    CommandClass *cmdptr = nullptr;
-    KeyNumType key;
-
-    CCFileClass file("KEYBOARD.INI");
-    CCINIClass ini;
-
-    ini.Load(file, false);
-
-    if (Vinifera_NewSidebar) {
-
-        /**
-         *  If we're using the new sidebar, set the default hotkeys for tabs.
-         */
-        if (!ini.Is_Present("Hotkey", "SetStructureTabCommandClass")) {
-            cmdptr = CommandClass::From_Name("SetStructureTabCommandClass");
-            if (cmdptr) {
-                key = reinterpret_cast<ViniferaCommandClass*>(cmdptr)->Default_Key();
-                HotkeyIndex.Add_Index(key, cmdptr);
+    for (int i = 0; i < Commands.Count(); i++)
+    {
+        auto vcmd = dynamic_cast<ViniferaCommandClass*>(Commands[i]);
+        if (vcmd) {
+            KeyNumType key = vcmd->Default_Key();
+            if (key != KN_NONE && !HotkeyIndex.Is_Present(key) && HotkeyIndex.Fetch_ID_By_Data(vcmd) == -1) {
+                HotkeyIndex.Add_Index(key, vcmd);
             }
-        }
-
-        if (!ini.Is_Present("Hotkey", "SetInfantryTabCommandClass")) {
-            cmdptr = CommandClass::From_Name("SetInfantryTabCommandClass");
-            if (cmdptr) {
-                key = reinterpret_cast<ViniferaCommandClass*>(cmdptr)->Default_Key();
-                HotkeyIndex.Add_Index(key, cmdptr);
-            }
-        }
-
-        if (!ini.Is_Present("Hotkey", "SetUnitTabCommandClass")) {
-            cmdptr = CommandClass::From_Name("SetUnitTabCommandClass");
-            if (cmdptr) {
-                key = reinterpret_cast<ViniferaCommandClass*>(cmdptr)->Default_Key();
-                HotkeyIndex.Add_Index(key, cmdptr);
-            }
-        }
-
-        if (!ini.Is_Present("Hotkey", "SetSpecialTabCommandClass")) {
-            cmdptr = CommandClass::From_Name("SetSpecialTabCommandClass");
-            if (cmdptr) {
-                key = reinterpret_cast<ViniferaCommandClass*>(cmdptr)->Default_Key();
-                HotkeyIndex.Add_Index(key, cmdptr);
-            }
-        }
-    } else {
-
-        if (!ini.Is_Present("Hotkey", "ManualPlace")) {
-            cmdptr = CommandClass::From_Name("ManualPlace");
-            if (cmdptr) {
-                key = reinterpret_cast<ViniferaCommandClass*>(cmdptr)->Default_Key();
-                HotkeyIndex.Add_Index(key, cmdptr);
-            }
-        }
-    }
-
-    if (!ini.Is_Present("Hotkey", "RepeatLastBuilding")) {
-        cmdptr = CommandClass::From_Name("RepeatLastBuilding");
-        if (cmdptr) {
-            key = reinterpret_cast<ViniferaCommandClass *>(cmdptr)->Default_Key();
-            HotkeyIndex.Add_Index(key, cmdptr);
-        }
-    }
-
-    if (!ini.Is_Present("Hotkey", "PrevTheme")) {
-        cmdptr = CommandClass::From_Name("PrevTheme");
-        if (cmdptr) {
-            key = reinterpret_cast<ViniferaCommandClass *>(cmdptr)->Default_Key();
-            HotkeyIndex.Add_Index(key, cmdptr);
-        }
-    }
-
-    if (!ini.Is_Present("Hotkey", "NextTheme")) {
-        cmdptr = CommandClass::From_Name("NextTheme");
-        if (cmdptr) {
-            key = reinterpret_cast<ViniferaCommandClass *>(cmdptr)->Default_Key();
-            HotkeyIndex.Add_Index(key, cmdptr);
-        }
-    }
-
-    if (!ini.Is_Present("Hotkey", "JumpCameraWest")) {
-        cmdptr = CommandClass::From_Name("JumpCameraWest");
-        if (cmdptr) {
-            key = reinterpret_cast<ViniferaCommandClass *>(cmdptr)->Default_Key();
-            HotkeyIndex.Add_Index(key, cmdptr);
-        }
-    }
-
-    if (!ini.Is_Present("Hotkey", "JumpCameraEast")) {
-        cmdptr = CommandClass::From_Name("JumpCameraEast");
-        if (cmdptr) {
-            key = reinterpret_cast<ViniferaCommandClass *>(cmdptr)->Default_Key();
-            HotkeyIndex.Add_Index(key, cmdptr);
-        }
-    }
-
-    if (!ini.Is_Present("Hotkey", "JumpCameraNorth")) {
-        cmdptr = CommandClass::From_Name("JumpCameraNorth");
-        if (cmdptr) {
-            key = reinterpret_cast<ViniferaCommandClass *>(cmdptr)->Default_Key();
-            HotkeyIndex.Add_Index(key, cmdptr);
-        }
-    }
-
-    if (!ini.Is_Present("Hotkey", "JumpCameraSouth")) {
-        cmdptr = CommandClass::From_Name("JumpCameraSouth");
-        if (cmdptr) {
-            key = reinterpret_cast<ViniferaCommandClass *>(cmdptr)->Default_Key();
-            HotkeyIndex.Add_Index(key, cmdptr);
         }
     }
 }
 
+
 /**
- *  Patch for initialising the new hotkey commands.
+ *  Patch for initializing the new hotkey commands.
  * 
  *  @author: CCHyper
  */
@@ -575,10 +334,9 @@ DECLARE_PATCH(_Init_Commands_Patch)
     /**
      *  Stolen bytes/code here.
      */
-original_code:
     Load_Keyboard_Hotkeys();
 
-    Process_Vinifera_Hotkeys();
+    Process_Vinifera_Hotkey_Defaults();
 
     JMP(0x004E6FAE);
 }

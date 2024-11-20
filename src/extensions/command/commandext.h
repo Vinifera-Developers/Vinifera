@@ -32,53 +32,49 @@
 #include "vinifera_globals.h"
 
 
-class BuildingClass;
-class HouseClass;
-
-
 /**
- *  Based class for all new command classes.
+ *  Base class for all new command classes.
  */
 class ViniferaCommandClass : public CommandClass
 {
-    public:
-        ViniferaCommandClass() : CommandClass(), IsDeveloper(false), IsMultiplayerOnly(false) {}
-        virtual ~ViniferaCommandClass() {}
+public:
+    ViniferaCommandClass() : CommandClass(), IsDeveloper(false), IsMultiplayerOnly(false) {}
+    virtual ~ViniferaCommandClass() {}
 
-        virtual KeyNumType Default_Key() const = 0;
+    virtual KeyNumType Default_Key() const = 0;
 
-        bool Developer_Only() const { return IsDeveloper; }
-        bool Multiplayer_Only() const { return IsMultiplayerOnly; }
+    bool Developer_Only() const { return IsDeveloper; }
+    bool Multiplayer_Only() const { return IsMultiplayerOnly; }
 
-    public:
-        /**
-         *  Is this command only available in developer mode?
-         */
-        bool IsDeveloper;
+public:
+    /**
+     *  Is this command only available in developer mode?
+     */
+    bool IsDeveloper;
 
-        /**
-         *  Is this command only available in multiplayer games?
-         */
-        bool IsMultiplayerOnly;
+    /**
+     *  Is this command only available in multiplayer games?
+     */
+    bool IsMultiplayerOnly;
 };
 
 
 /**
- *  
+ *  Replacement for ScreenCaptureCommandClass.
  */
 class PNGScreenCaptureCommandClass : public ViniferaCommandClass
 {
-    public:
-        PNGScreenCaptureCommandClass() : ViniferaCommandClass() {}
-        virtual ~PNGScreenCaptureCommandClass() {}
+public:
+    PNGScreenCaptureCommandClass() : ViniferaCommandClass() {}
+    virtual ~PNGScreenCaptureCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -88,17 +84,17 @@ class PNGScreenCaptureCommandClass : public ViniferaCommandClass
  */
 class ManualPlaceCommandClass : public ViniferaCommandClass
 {
-    public:
-        ManualPlaceCommandClass() : ViniferaCommandClass() {}
-        virtual ~ManualPlaceCommandClass() {}
+public:
+    ManualPlaceCommandClass() : ViniferaCommandClass() {}
+    virtual ~ManualPlaceCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return Vinifera_NewSidebar ? KeyNumType(KN_NONE) : KeyNumType(KN_Z); }
+    virtual KeyNumType Default_Key() const override { return Vinifera_NewSidebar ? KeyNumType(KN_NONE) : KeyNumType(KN_Z); }
 };
 
 
@@ -107,17 +103,17 @@ class ManualPlaceCommandClass : public ViniferaCommandClass
  */
 class RepeatLastBuildingCommandClass : public ViniferaCommandClass
 {
-    public:
-        RepeatLastBuildingCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
-        virtual ~RepeatLastBuildingCommandClass() {}
+public:
+    RepeatLastBuildingCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+    virtual ~RepeatLastBuildingCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return Vinifera_NewSidebar ? KeyNumType(KN_Q|KN_CTRL_BIT) : KeyNumType(KN_Z|KN_CTRL_BIT); }
+    virtual KeyNumType Default_Key() const override { return Vinifera_NewSidebar ? KeyNumType(KN_Q|KN_CTRL_BIT) : KeyNumType(KN_Z|KN_CTRL_BIT); }
 };
 
 
@@ -126,17 +122,17 @@ class RepeatLastBuildingCommandClass : public ViniferaCommandClass
  */
 class RepeatLastInfantryCommandClass : public ViniferaCommandClass
 {
-    public:
-        RepeatLastInfantryCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
-        virtual ~RepeatLastInfantryCommandClass() {}
+public:
+    RepeatLastInfantryCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+    virtual ~RepeatLastInfantryCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -145,17 +141,17 @@ class RepeatLastInfantryCommandClass : public ViniferaCommandClass
  */
 class RepeatLastUnitCommandClass : public ViniferaCommandClass
 {
-    public:
-        RepeatLastUnitCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
-        virtual ~RepeatLastUnitCommandClass() {}
+public:
+    RepeatLastUnitCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+    virtual ~RepeatLastUnitCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -164,17 +160,17 @@ class RepeatLastUnitCommandClass : public ViniferaCommandClass
  */
 class RepeatLastAircraftCommandClass : public ViniferaCommandClass
 {
-    public:
-        RepeatLastAircraftCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
-        virtual ~RepeatLastAircraftCommandClass() {}
+public:
+    RepeatLastAircraftCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+    virtual ~RepeatLastAircraftCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -183,17 +179,17 @@ class RepeatLastAircraftCommandClass : public ViniferaCommandClass
  */
 class PrevThemeCommandClass : public ViniferaCommandClass
 {
-    public:
-        PrevThemeCommandClass() : ViniferaCommandClass() {}
-        virtual ~PrevThemeCommandClass() {}
+public:
+    PrevThemeCommandClass() : ViniferaCommandClass() {}
+    virtual ~PrevThemeCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_LBRACKET); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_LBRACKET); }
 };
 
 
@@ -202,17 +198,17 @@ class PrevThemeCommandClass : public ViniferaCommandClass
  */
 class NextThemeCommandClass : public ViniferaCommandClass
 {
-    public:
-        NextThemeCommandClass() : ViniferaCommandClass() {}
-        virtual ~NextThemeCommandClass() {}
+public:
+    NextThemeCommandClass() : ViniferaCommandClass() {}
+    virtual ~NextThemeCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_RBRACKET); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_RBRACKET); }
 };
 
 
@@ -221,17 +217,17 @@ class NextThemeCommandClass : public ViniferaCommandClass
  */
 class ScrollNECommandClass : public ViniferaCommandClass
 {
-    public:
-        ScrollNECommandClass() : ViniferaCommandClass() {}
-        virtual ~ScrollNECommandClass() {}
+public:
+    ScrollNECommandClass() : ViniferaCommandClass() {}
+    virtual ~ScrollNECommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -240,17 +236,17 @@ class ScrollNECommandClass : public ViniferaCommandClass
  */
 class ScrollSECommandClass : public ViniferaCommandClass
 {
-    public:
-        ScrollSECommandClass() : ViniferaCommandClass() {}
-        virtual ~ScrollSECommandClass() {}
+public:
+    ScrollSECommandClass() : ViniferaCommandClass() {}
+    virtual ~ScrollSECommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -259,17 +255,17 @@ class ScrollSECommandClass : public ViniferaCommandClass
  */
 class ScrollSWCommandClass : public ViniferaCommandClass
 {
-    public:
-        ScrollSWCommandClass() : ViniferaCommandClass() {}
-        virtual ~ScrollSWCommandClass() {}
+public:
+    ScrollSWCommandClass() : ViniferaCommandClass() {}
+    virtual ~ScrollSWCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -278,17 +274,17 @@ class ScrollSWCommandClass : public ViniferaCommandClass
  */
 class ScrollNWCommandClass : public ViniferaCommandClass
 {
-    public:
-        ScrollNWCommandClass() : ViniferaCommandClass() {}
-        virtual ~ScrollNWCommandClass() {}
+public:
+    ScrollNWCommandClass() : ViniferaCommandClass() {}
+    virtual ~ScrollNWCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -297,17 +293,17 @@ class ScrollNWCommandClass : public ViniferaCommandClass
  */
 class JumpCameraWestCommandClass : public ViniferaCommandClass
 {
-    public:
-        JumpCameraWestCommandClass() : ViniferaCommandClass() {}
-        virtual ~JumpCameraWestCommandClass() {}
+public:
+    JumpCameraWestCommandClass() : ViniferaCommandClass() {}
+    virtual ~JumpCameraWestCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_CTRL_BIT|KN_LEFT); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_CTRL_BIT|KN_LEFT); }
 };
 
 
@@ -316,17 +312,17 @@ class JumpCameraWestCommandClass : public ViniferaCommandClass
  */
 class JumpCameraEastCommandClass : public ViniferaCommandClass
 {
-    public:
-        JumpCameraEastCommandClass() : ViniferaCommandClass() {}
-        virtual ~JumpCameraEastCommandClass() {}
+public:
+    JumpCameraEastCommandClass() : ViniferaCommandClass() {}
+    virtual ~JumpCameraEastCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_CTRL_BIT|KN_RIGHT); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_CTRL_BIT|KN_RIGHT); }
 };
 
 
@@ -335,17 +331,17 @@ class JumpCameraEastCommandClass : public ViniferaCommandClass
  */
 class JumpCameraNorthCommandClass : public ViniferaCommandClass
 {
-    public:
-        JumpCameraNorthCommandClass() : ViniferaCommandClass() {}
-        virtual ~JumpCameraNorthCommandClass() {}
+public:
+    JumpCameraNorthCommandClass() : ViniferaCommandClass() {}
+    virtual ~JumpCameraNorthCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_CTRL_BIT|KN_UP); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_CTRL_BIT|KN_UP); }
 };
 
 
@@ -354,17 +350,17 @@ class JumpCameraNorthCommandClass : public ViniferaCommandClass
  */
 class JumpCameraSouthCommandClass : public ViniferaCommandClass
 {
-    public:
-        JumpCameraSouthCommandClass() : ViniferaCommandClass() {}
-        virtual ~JumpCameraSouthCommandClass() {}
+public:
+    JumpCameraSouthCommandClass() : ViniferaCommandClass() {}
+    virtual ~JumpCameraSouthCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_CTRL_BIT|KN_DOWN); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_CTRL_BIT|KN_DOWN); }
 };
 
 
@@ -373,17 +369,17 @@ class JumpCameraSouthCommandClass : public ViniferaCommandClass
  */
 class ToggleSuperTimersCommandClass : public ViniferaCommandClass
 {
-    public:
-        ToggleSuperTimersCommandClass() : ViniferaCommandClass() {}
-        virtual ~ToggleSuperTimersCommandClass() {}
+public:
+    ToggleSuperTimersCommandClass() : ViniferaCommandClass() {}
+    virtual ~ToggleSuperTimersCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -395,13 +391,13 @@ class SetStructureTabCommandClass : public ViniferaCommandClass
 public:
     SetStructureTabCommandClass() : ViniferaCommandClass() {}
     virtual ~SetStructureTabCommandClass() {}
-
+    
     virtual const char* Get_Name() const override;
     virtual const char* Get_UI_Name() const override;
     virtual const char* Get_Category() const override;
     virtual const char* Get_Description() const override;
     virtual bool Process() override;
-
+    
     virtual KeyNumType Default_Key() const override { return Vinifera_NewSidebar ? KeyNumType(KN_Q) : KeyNumType(KN_NONE); }
 };
 
@@ -414,13 +410,13 @@ class SetInfantryTabCommandClass : public ViniferaCommandClass
 public:
     SetInfantryTabCommandClass() : ViniferaCommandClass() {}
     virtual ~SetInfantryTabCommandClass() {}
-
+    
     virtual const char* Get_Name() const override;
     virtual const char* Get_UI_Name() const override;
     virtual const char* Get_Category() const override;
     virtual const char* Get_Description() const override;
     virtual bool Process() override;
-
+    
     virtual KeyNumType Default_Key() const override { return Vinifera_NewSidebar ? KeyNumType(KN_W) : KeyNumType(KN_NONE); }
 };
 
@@ -433,13 +429,13 @@ class SetUnitTabCommandClass : public ViniferaCommandClass
 public:
     SetUnitTabCommandClass() : ViniferaCommandClass() {}
     virtual ~SetUnitTabCommandClass() {}
-
+    
     virtual const char* Get_Name() const override;
     virtual const char* Get_UI_Name() const override;
     virtual const char* Get_Category() const override;
     virtual const char* Get_Description() const override;
     virtual bool Process() override;
-
+    
     virtual KeyNumType Default_Key() const override { return Vinifera_NewSidebar ? KeyNumType(KN_E) : KeyNumType(KN_NONE); }
 };
 
@@ -452,13 +448,13 @@ class SetSpecialTabCommandClass : public ViniferaCommandClass
 public:
     SetSpecialTabCommandClass() : ViniferaCommandClass() {}
     virtual ~SetSpecialTabCommandClass() {}
-
+    
     virtual const char* Get_Name() const override;
     virtual const char* Get_UI_Name() const override;
     virtual const char* Get_Category() const override;
     virtual const char* Get_Description() const override;
     virtual bool Process() override;
-
+    
     virtual KeyNumType Default_Key() const override { return Vinifera_NewSidebar ? KeyNumType(KN_R) : KeyNumType(KN_NONE); }
 };
 
@@ -468,17 +464,17 @@ public:
  */
 class MemoryDumpCommandClass : public ViniferaCommandClass
 {
-    public:
-        MemoryDumpCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~MemoryDumpCommandClass() {}
+public:
+    MemoryDumpCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~MemoryDumpCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -487,17 +483,17 @@ class MemoryDumpCommandClass : public ViniferaCommandClass
  */
 class DumpHeapCRCCommandClass : public ViniferaCommandClass
 {
-    public:
-        DumpHeapCRCCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~DumpHeapCRCCommandClass() {}
+public:
+    DumpHeapCRCCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~DumpHeapCRCCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -509,13 +505,13 @@ class DumpTriggersCommandClass : public ViniferaCommandClass
 public:
     DumpTriggersCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
     virtual ~DumpTriggersCommandClass() {}
-
+    
     virtual const char* Get_Name() const override;
     virtual const char* Get_UI_Name() const override;
     virtual const char* Get_Category() const override;
     virtual const char* Get_Description() const override;
     virtual bool Process() override;
-
+    
     virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
@@ -525,17 +521,17 @@ public:
  */
 class InstantBuildCommandClass : public ViniferaCommandClass
 {
-    public:
-        InstantBuildCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~InstantBuildCommandClass() {}
+public:
+    InstantBuildCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~InstantBuildCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -544,17 +540,17 @@ class InstantBuildCommandClass : public ViniferaCommandClass
  */
 class AIInstantBuildCommandClass : public ViniferaCommandClass
 {
-    public:
-        AIInstantBuildCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~AIInstantBuildCommandClass() {}
+public:
+    AIInstantBuildCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~AIInstantBuildCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -563,17 +559,17 @@ class AIInstantBuildCommandClass : public ViniferaCommandClass
  */
 class ForceWinCommandClass : public ViniferaCommandClass
 {
-    public:
-        ForceWinCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~ForceWinCommandClass() {}
+public:
+    ForceWinCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~ForceWinCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -582,17 +578,17 @@ class ForceWinCommandClass : public ViniferaCommandClass
  */
 class ForceLoseCommandClass : public ViniferaCommandClass
 {
-    public:
-        ForceLoseCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~ForceLoseCommandClass() {}
+public:
+    ForceLoseCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~ForceLoseCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -601,17 +597,17 @@ class ForceLoseCommandClass : public ViniferaCommandClass
  */
 class ForceDieCommandClass : public ViniferaCommandClass
 {
-    public:
-        ForceDieCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~ForceDieCommandClass() {}
+public:
+    ForceDieCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~ForceDieCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -620,17 +616,17 @@ class ForceDieCommandClass : public ViniferaCommandClass
  */
 class CaptureObjectCommandClass : public ViniferaCommandClass
 {
-    public:
-        CaptureObjectCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~CaptureObjectCommandClass() {}
+public:
+    CaptureObjectCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~CaptureObjectCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -639,17 +635,17 @@ class CaptureObjectCommandClass : public ViniferaCommandClass
  */
 class SpecialWeaponsCommandClass : public ViniferaCommandClass
 {
-    public:
-        SpecialWeaponsCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~SpecialWeaponsCommandClass() {}
+public:
+    SpecialWeaponsCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~SpecialWeaponsCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -658,17 +654,17 @@ class SpecialWeaponsCommandClass : public ViniferaCommandClass
  */
 class FreeMoneyCommandClass : public ViniferaCommandClass
 {
-    public:
-        FreeMoneyCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~FreeMoneyCommandClass() {}
+public:
+    FreeMoneyCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~FreeMoneyCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -677,17 +673,17 @@ class FreeMoneyCommandClass : public ViniferaCommandClass
  */
 class LightningBoltCommandClass : public ViniferaCommandClass
 {
-    public:
-        LightningBoltCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~LightningBoltCommandClass() {}
+public:
+    LightningBoltCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~LightningBoltCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -696,17 +692,17 @@ class LightningBoltCommandClass : public ViniferaCommandClass
  */
 class IonBlastCommandClass : public ViniferaCommandClass
 {
-    public:
-        IonBlastCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~IonBlastCommandClass() {}
+public:
+    IonBlastCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~IonBlastCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -715,17 +711,17 @@ class IonBlastCommandClass : public ViniferaCommandClass
  */
 class ExplosionCommandClass : public ViniferaCommandClass
 {
-    public:
-        ExplosionCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~ExplosionCommandClass() {}
+public:
+    ExplosionCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~ExplosionCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -734,17 +730,17 @@ class ExplosionCommandClass : public ViniferaCommandClass
  */
 class SuperExplosionCommandClass : public ViniferaCommandClass
 {
-    public:
-        SuperExplosionCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~SuperExplosionCommandClass() {}
+public:
+    SuperExplosionCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~SuperExplosionCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -753,17 +749,17 @@ class SuperExplosionCommandClass : public ViniferaCommandClass
  */
 class BailOutCommandClass : public ViniferaCommandClass
 {
-    public:
-        BailOutCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~BailOutCommandClass() {}
+public:
+    BailOutCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~BailOutCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -772,17 +768,17 @@ class BailOutCommandClass : public ViniferaCommandClass
  */
 class IonStormCommandClass : public ViniferaCommandClass
 {
-    public:
-        IonStormCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~IonStormCommandClass() {}
+public:
+    IonStormCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~IonStormCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -791,17 +787,17 @@ class IonStormCommandClass : public ViniferaCommandClass
  */
 class MapSnapshotCommandClass : public ViniferaCommandClass
 {
-    public:
-        MapSnapshotCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~MapSnapshotCommandClass() {}
+public:
+    MapSnapshotCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~MapSnapshotCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -810,17 +806,17 @@ class MapSnapshotCommandClass : public ViniferaCommandClass
  */
 class DeleteObjectCommandClass : public ViniferaCommandClass
 {
-    public:
-        DeleteObjectCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~DeleteObjectCommandClass() {}
+public:
+    DeleteObjectCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~DeleteObjectCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -829,20 +825,20 @@ class DeleteObjectCommandClass : public ViniferaCommandClass
  */
 class SpawnAllCommandClass : public ViniferaCommandClass
 {
-    public:
-        SpawnAllCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~SpawnAllCommandClass() {}
+public:
+    SpawnAllCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~SpawnAllCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 
-    private:
-        bool Try_Unlimbo(TechnoClass *techno, Cell &cell);
+private:
+    bool Try_Unlimbo(TechnoClass *techno, Cell &cell);
 };
 
 
@@ -851,17 +847,17 @@ class SpawnAllCommandClass : public ViniferaCommandClass
  */
 class DamageCommandClass : public ViniferaCommandClass
 {
-    public:
-        DamageCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~DamageCommandClass() {}
+public:
+    DamageCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~DamageCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -870,17 +866,17 @@ class DamageCommandClass : public ViniferaCommandClass
  */
 class ToggleEliteCommandClass : public ViniferaCommandClass
 {
-    public:
-        ToggleEliteCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~ToggleEliteCommandClass() {}
+public:
+    ToggleEliteCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~ToggleEliteCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -889,17 +885,17 @@ class ToggleEliteCommandClass : public ViniferaCommandClass
  */
 class BuildCheatCommandClass : public ViniferaCommandClass
 {
-    public:
-        BuildCheatCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~BuildCheatCommandClass() {}
+public:
+    BuildCheatCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~BuildCheatCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -908,17 +904,17 @@ class BuildCheatCommandClass : public ViniferaCommandClass
  */
 class ToggleShroudCommandClass : public ViniferaCommandClass
 {
-    public:
-        ToggleShroudCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~ToggleShroudCommandClass() {}
+public:
+    ToggleShroudCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~ToggleShroudCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -927,17 +923,17 @@ class ToggleShroudCommandClass : public ViniferaCommandClass
  */
 class HealCommandClass : public ViniferaCommandClass
 {
-    public:
-        HealCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~HealCommandClass() {}
+public:
+    HealCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~HealCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -946,17 +942,17 @@ class HealCommandClass : public ViniferaCommandClass
  */
 class ToggleInertCommandClass : public ViniferaCommandClass
 {
-    public:
-        ToggleInertCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~ToggleInertCommandClass() {}
+public:
+    ToggleInertCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~ToggleInertCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -965,17 +961,17 @@ class ToggleInertCommandClass : public ViniferaCommandClass
  */
 class DumpAIBaseNodesCommandClass : public ViniferaCommandClass
 {
-    public:
-        DumpAIBaseNodesCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~DumpAIBaseNodesCommandClass() {}
+public:
+    DumpAIBaseNodesCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~DumpAIBaseNodesCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -984,17 +980,17 @@ class DumpAIBaseNodesCommandClass : public ViniferaCommandClass
  */
 class ToggleBerzerkCommandClass : public ViniferaCommandClass
 {
-    public:
-        ToggleBerzerkCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~ToggleBerzerkCommandClass() {}
+public:
+    ToggleBerzerkCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~ToggleBerzerkCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1003,17 +999,17 @@ class ToggleBerzerkCommandClass : public ViniferaCommandClass
  */
 class EncroachShadowCommandClass : public ViniferaCommandClass
 {
-    public:
-        EncroachShadowCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~EncroachShadowCommandClass() {}
+public:
+    EncroachShadowCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~EncroachShadowCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1022,17 +1018,17 @@ class EncroachShadowCommandClass : public ViniferaCommandClass
  */
 class EncroachFogCommandClass : public ViniferaCommandClass
 {
-    public:
-        EncroachFogCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~EncroachFogCommandClass() {}
+public:
+    EncroachFogCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~EncroachFogCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1041,17 +1037,17 @@ class EncroachFogCommandClass : public ViniferaCommandClass
  */
 class ToggleAllianceCommandClass : public ViniferaCommandClass
 {
-    public:
-        ToggleAllianceCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~ToggleAllianceCommandClass() {}
+public:
+    ToggleAllianceCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~ToggleAllianceCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1060,17 +1056,17 @@ class ToggleAllianceCommandClass : public ViniferaCommandClass
  */
 class AddPowerCommandClass : public ViniferaCommandClass
 {
-    public:
-        AddPowerCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~AddPowerCommandClass() {}
+public:
+    AddPowerCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~AddPowerCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1079,17 +1075,17 @@ class AddPowerCommandClass : public ViniferaCommandClass
  */
 class PlaceCrateCommandClass : public ViniferaCommandClass
 {
-    public:
-        PlaceCrateCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~PlaceCrateCommandClass() {}
+public:
+    PlaceCrateCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~PlaceCrateCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1098,17 +1094,17 @@ class PlaceCrateCommandClass : public ViniferaCommandClass
  */
 class CursorPositionCommandClass : public ViniferaCommandClass
 {
-    public:
-        CursorPositionCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~CursorPositionCommandClass() {}
+public:
+    CursorPositionCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~CursorPositionCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1117,17 +1113,17 @@ class CursorPositionCommandClass : public ViniferaCommandClass
  */
 class ToggleFrameStepCommandClass : public ViniferaCommandClass
 {
-    public:
-        ToggleFrameStepCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~ToggleFrameStepCommandClass() {}
+public:
+    ToggleFrameStepCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~ToggleFrameStepCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1136,17 +1132,17 @@ class ToggleFrameStepCommandClass : public ViniferaCommandClass
  */
 class Step1FrameCommandClass : public ViniferaCommandClass
 {
-    public:
-        Step1FrameCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~Step1FrameCommandClass() {}
+public:
+    Step1FrameCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~Step1FrameCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1155,17 +1151,17 @@ class Step1FrameCommandClass : public ViniferaCommandClass
  */
 class Step5FramesCommandClass : public ViniferaCommandClass
 {
-    public:
-        Step5FramesCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~Step5FramesCommandClass() {}
+public:
+    Step5FramesCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~Step5FramesCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1174,17 +1170,17 @@ class Step5FramesCommandClass : public ViniferaCommandClass
  */
 class Step10FramesCommandClass : public ViniferaCommandClass
 {
-    public:
-        Step10FramesCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~Step10FramesCommandClass() {}
+public:
+    Step10FramesCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~Step10FramesCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1193,17 +1189,17 @@ class Step10FramesCommandClass : public ViniferaCommandClass
  */
 class ToggleAIControlCommandClass : public ViniferaCommandClass
 {
-    public:
-        ToggleAIControlCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~ToggleAIControlCommandClass() {}
+public:
+    ToggleAIControlCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~ToggleAIControlCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1212,17 +1208,17 @@ class ToggleAIControlCommandClass : public ViniferaCommandClass
  */
 class StartingWaypointsCommandClass : public ViniferaCommandClass
 {
-    public:
-        StartingWaypointsCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~StartingWaypointsCommandClass() {}
+public:
+    StartingWaypointsCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~StartingWaypointsCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1231,17 +1227,17 @@ class StartingWaypointsCommandClass : public ViniferaCommandClass
  */
 class PlaceInfantryCommandClass : public ViniferaCommandClass
 {
-    public:
-        PlaceInfantryCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~PlaceInfantryCommandClass() {}
+public:
+    PlaceInfantryCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~PlaceInfantryCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1250,17 +1246,17 @@ class PlaceInfantryCommandClass : public ViniferaCommandClass
  */
 class PlaceUnitCommandClass : public ViniferaCommandClass
 {
-    public:
-        PlaceUnitCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~PlaceUnitCommandClass() {}
+public:
+    PlaceUnitCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~PlaceUnitCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1269,17 +1265,17 @@ class PlaceUnitCommandClass : public ViniferaCommandClass
  */
 class PlaceTiberiumCommandClass : public ViniferaCommandClass
 {
-    public:
-        PlaceTiberiumCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~PlaceTiberiumCommandClass() {}
+public:
+    PlaceTiberiumCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~PlaceTiberiumCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1288,17 +1284,17 @@ class PlaceTiberiumCommandClass : public ViniferaCommandClass
  */
 class ReduceTiberiumCommandClass : public ViniferaCommandClass
 {
-    public:
-        ReduceTiberiumCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~ReduceTiberiumCommandClass() {}
+public:
+    ReduceTiberiumCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~ReduceTiberiumCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1307,17 +1303,17 @@ class ReduceTiberiumCommandClass : public ViniferaCommandClass
  */
 class PlaceFullTiberiumCommandClass : public ViniferaCommandClass
 {
-    public:
-        PlaceFullTiberiumCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~PlaceFullTiberiumCommandClass() {}
+public:
+    PlaceFullTiberiumCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~PlaceFullTiberiumCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1326,17 +1322,17 @@ class PlaceFullTiberiumCommandClass : public ViniferaCommandClass
  */
 class RemoveTiberiumCommandClass : public ViniferaCommandClass
 {
-    public:
-        RemoveTiberiumCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~RemoveTiberiumCommandClass() {}
+public:
+    RemoveTiberiumCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~RemoveTiberiumCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1345,17 +1341,17 @@ class RemoveTiberiumCommandClass : public ViniferaCommandClass
  */
 class InstantSuperRechargeCommandClass : public ViniferaCommandClass
 {
-    public:
-        InstantSuperRechargeCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~InstantSuperRechargeCommandClass() {}
+public:
+    InstantSuperRechargeCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~InstantSuperRechargeCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1364,17 +1360,17 @@ class InstantSuperRechargeCommandClass : public ViniferaCommandClass
  */
 class AIInstantSuperRechargeCommandClass : public ViniferaCommandClass
 {
-    public:
-        AIInstantSuperRechargeCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~AIInstantSuperRechargeCommandClass() {}
+public:
+    AIInstantSuperRechargeCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~AIInstantSuperRechargeCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1383,17 +1379,17 @@ class AIInstantSuperRechargeCommandClass : public ViniferaCommandClass
  */
 class DumpNetworkCRCCommandClass : public ViniferaCommandClass
 {
-    public:
-        DumpNetworkCRCCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~DumpNetworkCRCCommandClass() {}
+public:
+    DumpNetworkCRCCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~DumpNetworkCRCCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -1405,13 +1401,13 @@ class DumpHeapsCommandClass : public ViniferaCommandClass
 public:
     DumpHeapsCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
     virtual ~DumpHeapsCommandClass() {}
-
+    
     virtual const char* Get_Name() const override;
     virtual const char* Get_UI_Name() const override;
     virtual const char* Get_Category() const override;
     virtual const char* Get_Description() const override;
     virtual bool Process() override;
-
+    
     virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
@@ -1421,15 +1417,15 @@ public:
  */
 class ReloadRulesCommandClass : public ViniferaCommandClass
 {
-    public:
-        ReloadRulesCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
-        virtual ~ReloadRulesCommandClass() {}
+public:
+    ReloadRulesCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
+    virtual ~ReloadRulesCommandClass() {}
 
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
+    virtual const char *Get_Name() const override;
+    virtual const char *Get_UI_Name() const override;
+    virtual const char *Get_Category() const override;
+    virtual const char *Get_Description() const override;
+    virtual bool Process() override;
 
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
+    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
