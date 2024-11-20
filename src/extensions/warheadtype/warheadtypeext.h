@@ -84,4 +84,9 @@ WarheadTypeClassExtension final : public AbstractTypeClassExtension
         unsigned int ShakePixelYLo;
         unsigned int ShakePixelXHi;
         unsigned int ShakePixelXLo;
+
+        /**
+         *  The minimum damage something using this warhead can deal. Negative means to use Rule->MinDamage.
+         */
+        int MinDamage;
 };

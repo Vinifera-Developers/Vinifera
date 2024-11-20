@@ -54,7 +54,8 @@ WarheadTypeClassExtension::WarheadTypeClassExtension(const WarheadTypeClass *thi
     ShakePixelYHi(0),
     ShakePixelYLo(0),
     ShakePixelXHi(0),
-    ShakePixelXLo(0)
+    ShakePixelXLo(0),
+    MinDamage(-1)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("WarheadTypeClassExtension::WarheadTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -288,6 +289,8 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
      *  Allow overriding IsOrganic.
      */
     This()->IsOrganic = ini.Get_Bool(ini_name, "Organic", This()->IsOrganic);
+
+    MinDamage = ini.Get_Int(ini_name, "MinDamage", MinDamage);
 
     IsInitialized = true;
 

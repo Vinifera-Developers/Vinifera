@@ -162,6 +162,7 @@ New:
 - Implement `WaterAlt` (by ZivDero)
 - Implement customizable mouse cursors and actions (by CCHyper/tomsons26, ZivDero)
 - Implement support for a Saved Games subdirectory (by ZivDero)
+- Allow customizing minimum damage per warhead (by ZivDero)
 
 
 Vanilla fixes:
@@ -225,6 +226,7 @@ Vanilla fixes:
 - Fix a bug where if the player loaded a saved game, the score screen timer would report the time since the saved game was loaded, instead of since when the scenario was first started (by ZivDero)
 - Fix a bug where units could gain veterancy by killing allies (by ZivDero)
 - Fix a bug where AI players would send teams to attack their allies (by ZivDero)
+- `[CombatDamage]->MinDamage` now works as expected and damage is no long always a minimum of `1` (by ZivDero)
 
 </details>
 

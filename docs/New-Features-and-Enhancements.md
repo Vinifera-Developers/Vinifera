@@ -1103,10 +1103,15 @@ TurretFacings=32     ; integer, the turret facing count.
 
 ## Warheads
 
-### `[Weapons]` Section
+### MinDamage
 
-- Vinifera implements the reading of a new `RULES.INI` section, `[Weapons]`, to allow the definition of WeaponTypes.
-This is to remove the need for the work-around known as the "Weed Guy" hack, and ensure all weapons are allocated in the WeaponsType heaps before any weapon lookup or loading is performed.
+- Vinifera allows customizing the minimum damage dealt using a specific warhead.
+
+In `RULES.INI`:
+```ini
+[SOMEWARHEAD]  ; WarheadType
+MinDamage=-1   ; integer, the minimum damage dealt using the warhead. A negative value means to use [CombatDamage]->MinDamage.
+```
 
 ### Various Keys Ported from Red Alert 2
 
@@ -1132,6 +1137,11 @@ ShakeXlo=0      ; unsigned integer, the minimum pixel X value.
 ```
 
 ## Weapons
+
+### `[Weapons]` Section
+
+- Vinifera implements the reading of a new `RULES.INI` section, `[Weapons]`, to allow the definition of WeaponTypes.
+This is to remove the need for the work-around known as the "Weed Guy" hack, and ensure all weapons are allocated in the WeaponsType heaps before any weapon lookup or loading is performed.
 
 ### Custom Attack Cursor
 

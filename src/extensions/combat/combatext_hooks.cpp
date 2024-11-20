@@ -78,15 +78,14 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ArmorType armo
         return 0;
     }
 
-    damage *= Verses::Get_Modifier(armor, warhead);
+    const auto warhead_ext = Extension::Fetch<WarheadTypeClassExtension>(warhead);
+    const int min_damage = warhead_ext->MinDamage >= 0 ? warhead_ext->MinDamage : Rule->MinDamage;
 
     /**
-     *	Vanilla used to enforce a minimum of 1 damage here.
+     *  Apply the warhead's modifier to the damage and ensure it's at least MinDamage.
      */
-#if 0
-    if (damage <= 0)
-        damage = 1;
-#endif
+    damage *= Verses::Get_Modifier(armor, warhead);
+    damage = std::max(min_damage, damage);
 
     /**
      *	Reduce damage according to the distance from the impact point.
@@ -109,7 +108,7 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ArmorType armo
          *	that at least one damage point is done.
          */
         if (distance < 4)
-            damage = std::max(damage, Rule->MinDamage);
+            damage = std::max(damage, min_damage);
     }
 
     damage = std::min(damage, Rule->MaxDamage);
