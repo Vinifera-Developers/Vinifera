@@ -51,6 +51,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "rulesext.h"
 #include "tibsun_functions.h"
 
 
@@ -942,6 +943,27 @@ DECLARE_PATCH(_Can_Build_Required_Forbidden_Houses_Patch)
 
 
 /**
+ *  Allow to skip the check for the MCV's ActLike.
+ *
+ *  Author: ZivDero
+ */
+DECLARE_PATCH(_HouseClass_Can_Build_Multi_MCV_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, building, esi);
+
+    if (RuleExtension->IsMultiMCV) {
+        JMP(0x004BC102);
+    }
+
+    static HousesType act_like;
+    act_like = building->ActLike;
+
+    _asm mov ecx, act_like
+    JMP(0x004BC0BD);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void HouseClassExtension_Hooks()
@@ -959,7 +981,6 @@ void HouseClassExtension_Hooks()
 
     Patch_Jump(0x004CB777, &_HouseClass_ShouldDisableCameo_BuildLimit_Fix);
     Patch_Jump(0x004BC187, &_HouseClass_Can_Build_BuildLimit_Handle_Vehicle_Transform);
-
     Patch_Jump(0x004CB6C1, &_HouseClass_Enable_SWs_Check_For_Building_Power);
 
     Patch_Jump(0x004C10E0, &HouseClassExt::_AI_Building);
@@ -967,4 +988,5 @@ void HouseClassExtension_Hooks()
     Patch_Jump(0x004BBC74, &_Can_Build_Required_Forbidden_Houses_Patch);
 
     Patch_Jump(0x004BAC2C, 0x004BAC39); // Patch a jump in the constructor to always allocate unit trackers
+    Patch_Jump(0x004BC0B7, &_HouseClass_Can_Build_Multi_MCV_Patch);
 }

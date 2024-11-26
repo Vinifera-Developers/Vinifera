@@ -39,6 +39,28 @@ PrePlacedConYards=no  ; boolean, should pre-place construction yards instead of 
                       ; NOTE: This option has priority over AutoDeployMCV.
 ```
 
+## Prerequisites
+
+### Multi-MCV
+
+- Vinifera allows turning off the check for the house that built the MCV to allow giving each faction their own MCV (instead of a shared MCV).
+
+In `RULES.INI`:
+```ini
+[General]
+MultiMCV=no  ; boolean, should MCVs allow the construction of buildings of any house, not only the house that built them?
+```
+
+### Sticky Technologies
+
+- In vanilla, technologies are "sticky", that is, for example, if you lose a tech center, you will not lose access to objects that require a tech center until you lose all factories of the type. Vinifera allows turning off this behavior.
+
+In `RULES.INI`:
+```ini
+[General]
+RecheckPrerequisites=no  ; boolean, should prerequisites be rechecked, and unavailable items removed from the sidebar, when buildings are lost?
+```
+
 ## Multi-Engineer
 
 - Vinifera fixes `EngineerDamage` and `EngineerCaptureLevel` to be considered by the game, like they were in Tiberian Dawn and Red Alert.

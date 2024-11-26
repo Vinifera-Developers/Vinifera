@@ -35,13 +35,13 @@
 #include "asserthandler.h"
 #include "extension_globals.h"
 #include "factoryext_init.h"
+#include "techno.h"
 #include "technotype.h"
-
 #include "hooker.h"
 #include "hooker_macros.h"
 #include "mouse.h"
+#include "rulesext.h"
 #include "sidebarext.h"
-#include "techno.h"
 
 
  /**
@@ -70,8 +70,9 @@ void FactoryClassExt::_Sanitize_Queue()
 {
     const TechnoClass* producing_object = Get_Object();
 
-    if (producing_object == nullptr)
+    if (producing_object == nullptr) {
         return;
+    }
 
     const TechnoTypeClass* producing_type = producing_object->Techno_Type_Class();
     const RTTIType type = producing_type->Kind_Of();
@@ -80,14 +81,12 @@ void FactoryClassExt::_Sanitize_Queue()
     bool need_update = false;
 
     // Check the thing we're currently building
-    if (!House->Can_Build(producing_type, false, true))
-    {
+    if (!House->Can_Build(producing_type, false, true)) {
         Abandon();
         need_update = true;
 
         // Cancel map placement
-        if (is_building && House == PlayerPtr)
-        {
+        if (is_building && House == PlayerPtr) {
             Map.PendingObject = nullptr;
             Map.PendingObjectPtr = nullptr;
             Map.PendingHouse = HOUSE_NONE;
@@ -96,20 +95,18 @@ void FactoryClassExt::_Sanitize_Queue()
     }
 
     // Make sure there are no unavailable objects in the queue
-    for (int i = 0; i < QueuedObjects.Count(); i++)
-    {
-        if (!House->Can_Build(QueuedObjects[i], false, true))
-        {
+    for (int i = 0; i < QueuedObjects.Count(); i++) {
+        if (!House->Can_Build(QueuedObjects[i], false, true)) {
             Remove_From_Queue(*QueuedObjects[i]);
             need_update = true;
             i--;
         }
     }
 
-    if (need_update)
-    {
-        if (House == PlayerPtr)
-            SidebarExtension->Get_Tab(type).Flag_To_Redraw();
+    if (need_update) {
+        if (House == PlayerPtr) {
+            SidebarExtension->Flag_Strip_To_Redraw(type);
+        }
 
         House->Update_Factories(type);
         Resume_Queue();
@@ -126,8 +123,7 @@ void FactoryClassExt::_Sanitize_Queue()
  */
 bool FactoryClassExt::_Start(bool suspend)
 {
-    if ((Object || SpecialItem) && IsSuspended && !Has_Completed())
-    {
+    if ((Object || SpecialItem) && IsSuspended && !Has_Completed()) {
         const int time = Object ? Object->Time_To_Build() : 0;
         int rate = time / STEP_COUNT;
         rate = std::clamp(rate, 1, 255);
@@ -135,16 +131,16 @@ bool FactoryClassExt::_Start(bool suspend)
         Set_Rate(rate);
         IsSuspended = false;
 
-        if (House->Available_Money() >= Cost_Per_Tick())
-        {
+        if (House->Available_Money() >= Cost_Per_Tick()) {
             IsPlayerSuspended = true;
-
-            if (suspend)
+            if (suspend) {
                 Suspend(true);
+            }
 
             return true;
         }
     }
+
     return false;
 }
 
@@ -156,12 +152,15 @@ bool FactoryClassExt::_Start(bool suspend)
  */
 void FactoryClassExt::_AI()
 {
-    //_Sanitize_Queue();
+    /**
+     *  If sticky techs are disabled, clear anything that's no longer available from the build queue.
+     */
+    if (RuleExtension->IsRecheckPrerequisites) {
+        _Sanitize_Queue();
+    }
 
-    if (!IsSuspended && (Object != nullptr || SpecialItem))
-    {
-        if (!Has_Completed() && Graphic_Logic())
-        {
+    if (!IsSuspended && (Object != nullptr || SpecialItem)) {
+        if (!Has_Completed() && Graphic_Logic()) {
             IsDifferent = true;
 
             int cost = Cost_Per_Tick();
@@ -173,12 +172,10 @@ void FactoryClassExt::_AI()
             **	continue the countdown. The idea being that by the time the next
             **	production step occurs, there may be sufficient funds available.
             */
-            if (cost > House->Available_Money())
-            {
+            if (cost > House->Available_Money()) {
                 Set_Stage(Fetch_Stage() - 1);
             }
-            else
-            {
+            else {
                 House->Spend_Money(cost);
                 Balance -= cost;
             }
@@ -188,14 +185,12 @@ void FactoryClassExt::_AI()
              *
              *  @author: CCHyper
              */
-            if (Vinifera_DeveloperMode)
-            {
+            if (Vinifera_DeveloperMode) {
                 /*
                 **	If AIInstantBuild is toggled on, make sure this is a non-human AI house.
                 */
                 if (Vinifera_Developer_AIInstantBuild
-                    && !House->Is_Human_Control() && House != PlayerPtr)
-                {
+                    && !House->Is_Human_Control() && House != PlayerPtr) {
                     Set_Stage(STEP_COUNT);
                 }
 
@@ -203,8 +198,7 @@ void FactoryClassExt::_AI()
                 **	If InstantBuild is toggled on, make sure the local player is a human house.
                 */
                 if (Vinifera_Developer_InstantBuild
-                    && House->Is_Human_Control() && House == PlayerPtr)
-                {
+                    && House->Is_Human_Control() && House == PlayerPtr) {
                     Set_Stage(STEP_COUNT);
                 }
 
@@ -212,8 +206,7 @@ void FactoryClassExt::_AI()
                 **	If the AI has taken control of the player house, it needs a special
                 **	case to handle the "player" instant build mode.
                 */
-                if (Vinifera_Developer_InstantBuild)
-                {
+                if (Vinifera_Developer_InstantBuild) {
                     if (Vinifera_Developer_AIControl && House == PlayerPtr)
                         Set_Stage(STEP_COUNT);
                 }
@@ -223,8 +216,7 @@ void FactoryClassExt::_AI()
             /*
             **	If the production has completed, then suspend further production.
             */
-            if (Fetch_Stage() == STEP_COUNT)
-            {
+            if (Fetch_Stage() == STEP_COUNT) {
                 IsSuspended = true;
                 Set_Rate(0);
                 House->Spend_Money(Balance);

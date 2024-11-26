@@ -204,4 +204,6 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where AI players would send teams to attack their allies.
   - Allow customizing minimum damage per warhead.
   - Implement required and forbidden houses.
+  - Allow turning off "sticky" technologies.
+  - Allow disabling the ActLike check on construction yards to allow for faction-specific MCVs.
 

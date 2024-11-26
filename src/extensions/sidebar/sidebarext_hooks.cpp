@@ -65,9 +65,11 @@
 #include "debughandler.h"
 #include "fatal.h"
 #include "asserthandler.h"
+#include "building.h"
 #include "hooker.h"
 #include "hooker_macros.h"
 #include "optionsext.h"
+#include "rulesext.h"
 #include "uicontrol.h"
 #include "vinifera_globals.h"
 
@@ -2164,6 +2166,45 @@ DECLARE_PATCH(_SidebarClass_StripClass_Help_Text_Extended_Tooltip_Patch)
 
 
 /**
+ *  Makes the sidebar recheck prerequisites when doing a recalc.
+ *
+ *  @author: ZivDero
+ */
+static bool _Can_Build_Helper(BuildingClass* who, TechnoTypeClass* tech)
+{
+    return who->House->Can_Build(tech, !RuleExtension->IsRecheckPrerequisites, true);
+}
+
+DECLARE_PATCH(_StripClass_Recalc_Recheck_Prerequisites_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, who, eax);
+    GET_REGISTER_STATIC(TechnoTypeClass*, tech, ebp);
+
+    if (!_Can_Build_Helper(who, tech))
+    {
+        JMP(0x005F5799);
+    }
+
+    JMP(0x005F5852);
+}
+
+
+/**
+ *  Corrects the max visible buildables count for the new sidebar.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_StripClass_Recalc_MaxVisible_Patch)
+{
+    static int maxvisible;
+    maxvisible = SidebarClassExtension::Max_Visible(!Vinifera_NewSidebar);
+    _asm mov eax, maxvisible
+    _asm mov [esp+0x20], eax
+    JMP(0x005F569D);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void SidebarClassExtension_Hooks()
@@ -2183,6 +2224,9 @@ void SidebarClassExtension_Hooks()
 
     // Change jle to jl to allow rendering tooltips that are exactly as wide as the sidebar
     Patch_Byte(0x0044E605 + 1, 0x8C);
+
+    Patch_Jump(0x005F5759, &_StripClass_Recalc_Recheck_Prerequisites_Patch);
+    Patch_Jump(0x005F563D, &_StripClass_Recalc_MaxVisible_Patch);
 
     /**
      *  Legacy patches for the old sidebar.

@@ -82,7 +82,9 @@ RulesClassExtension::RulesClassExtension(const RulesClass *this_ptr) :
     IsShowSuperWeaponTimers(true),
     IceStrength(0),
     WeedPipIndex(1),
-    MaxFreeRefineryDistanceBias(16)
+    MaxFreeRefineryDistanceBias(16),
+    IsRecheckPrerequisites(false),
+    IsMultiMCV(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
@@ -214,6 +216,8 @@ void RulesClassExtension::Compute_CRC(WWCRCEngine &crc) const
     crc(IsShowSuperWeaponTimers);
     crc(IceStrength);
     crc(MaxFreeRefineryDistanceBias);
+    crc(IsRecheckPrerequisites);
+    crc(IsMultiMCV);
 }
 
 
@@ -605,12 +609,15 @@ bool RulesClassExtension::General(CCINIClass &ini)
      *  #issue-632
      *
      *  "EngineerDamage" was incorrectly loaded with "EngineerCaptureLevel", so
-     *  the value the value correctly.
+     *  load the value correctly.
      *
      *  @author: CCHyper
      */
     This()->EngineerDamage = ini.Get_Float(GENERAL, "EngineerDamage", This()->EngineerDamage);
+
     MaxFreeRefineryDistanceBias = ini.Get_Int(GENERAL, "MaxFreeRefineryDistanceBias", MaxFreeRefineryDistanceBias);
+    IsRecheckPrerequisites = ini.Get_Bool(GENERAL, "RecheckPrerequisites", IsRecheckPrerequisites);
+    IsMultiMCV = ini.Get_Bool(GENERAL, "MultiMCV", IsMultiMCV);
 
     return true;
 }

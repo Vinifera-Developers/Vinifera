@@ -45,6 +45,7 @@
 #include "hooker.h"
 #include "hooker_macros.h"
 #include "miscutil.h"
+#include "rulesext.h"
 
 
 /**
@@ -223,6 +224,22 @@ void ObjectTypeClassExt::_Clear_Voxel_Indexes()
 
 
 /**
+ *  Allow to skip the check for the MCV's ActLike.
+ *
+ *  Author: ZivDero
+ */
+DECLARE_PATCH(_ObjectTypeClass_Who_Can_Build_Me_Multi_MCV_Patch)
+{
+    if (RuleExtension->IsMultiMCV) {
+        JMP(0x00587C0B);
+    }
+
+    _asm mov ecx, [esi+0x9C]
+    JMP_REG(edx, 0x00587C00);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void ObjectTypeClassExtension_Hooks()
@@ -232,4 +249,5 @@ void ObjectTypeClassExtension_Hooks()
     Patch_Jump(0x0058891D, &_ObjectTypeClass_Load_Theater_Art_Assign_Theater_Name_Theater_Patch);
     Patch_Jump(0x00587C80, &ObjectTypeClassExt::_Fetch_Voxel_Image);
     Patch_Jump(0x00589030, &ObjectTypeClassExt::_Clear_Voxel_Indexes);
+    Patch_Jump(0x00587BFA, &_ObjectTypeClass_Who_Can_Build_Me_Multi_MCV_Patch);
 }

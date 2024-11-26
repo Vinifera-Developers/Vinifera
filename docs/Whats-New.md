@@ -164,6 +164,8 @@ New:
 - Implement support for a Saved Games subdirectory (by ZivDero)
 - Allow customizing minimum damage per warhead (by ZivDero)
 - Implement required and forbidden houses (by ZivDero)
+- Allow turning off "sticky" technologies (by ZivDero)
+- Allow disabling the ActLike check on construction yards to allow for faction-specific MCVs (by ZivDero)
 
 
 Vanilla fixes:

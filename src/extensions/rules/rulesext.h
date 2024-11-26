@@ -117,4 +117,14 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
          *  difference in cells is less than this.
          */
         int MaxFreeRefineryDistanceBias;
+
+        /**
+         *  Should prerequisites be rechecked when buildings are lost, making the player lose access to units/buildings?
+         */
+        bool IsRecheckPrerequisites;
+
+        /**
+         *  Should the game assume there is more than one MCV (that factions don't share their MCV?)
+         */
+        bool IsMultiMCV;
 };
