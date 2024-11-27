@@ -259,6 +259,14 @@ void AnimTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 
 
 /**
+ *  Helper macro to fill a list up to a certain count with a specific value.
+ */
+#define FILL_TYPELIST(list, count, value) \
+    { while (list.Count() < count) \
+        list.Add(value); }
+
+
+/**
  *  Fetches the extension data from the INI database.  
  *  
  *  @author: CCHyper
@@ -331,8 +339,8 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     StartAnimsMaximum = ini.Get_Integers(ini_name, "StartAnimsMaximum", StartAnimsMaximum);
 
     if (!StartAnimsCount.Count()) {
-        ASSERT_FATAL(StartAnims.Count() == StartAnimsMinimum.Count());
-        ASSERT_FATAL(StartAnims.Count() == StartAnimsMaximum.Count());
+        FILL_TYPELIST(StartAnimsMinimum, StartAnims.Count(), 1);
+        FILL_TYPELIST(StartAnimsMaximum, StartAnims.Count(), 1);
     }
 
     MiddleAnims = ini.Get_Anims(ini_name, "MiddleAnims", MiddleAnims);
@@ -341,8 +349,8 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     MiddleAnimsMaximum = ini.Get_Integers(ini_name, "MiddleAnimsMaximum", MiddleAnimsMaximum);
 
     if (!MiddleAnimsCount.Count()) {
-        ASSERT_FATAL(MiddleAnims.Count() == MiddleAnimsMinimum.Count());
-        ASSERT_FATAL(MiddleAnims.Count() == MiddleAnimsMaximum.Count());
+        FILL_TYPELIST(MiddleAnimsMinimum, MiddleAnims.Count(), 1);
+        FILL_TYPELIST(MiddleAnimsMaximum, MiddleAnims.Count(), 1);
     }
 
     EndAnims = ini.Get_Anims(ini_name, "EndAnims", EndAnims);
@@ -351,8 +359,8 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     EndAnimsMaximum = ini.Get_Integers(ini_name, "EndAnimsMaximum", EndAnimsMaximum);
 
     if (!EndAnimsCount.Count()) {
-        ASSERT_FATAL(EndAnims.Count() == EndAnimsMinimum.Count());
-        ASSERT_FATAL(EndAnims.Count() == EndAnimsMaximum.Count());
+        FILL_TYPELIST(EndAnimsMinimum, EndAnims.Count(), 1);
+        FILL_TYPELIST(EndAnimsMaximum, EndAnims.Count(), 1);
     }
 
     /**
