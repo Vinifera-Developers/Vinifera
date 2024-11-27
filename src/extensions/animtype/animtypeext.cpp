@@ -342,6 +342,9 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
         FILL_TYPELIST(StartAnimsMinimum, StartAnims.Count(), 1);
         FILL_TYPELIST(StartAnimsMaximum, StartAnims.Count(), 1);
     }
+    else {
+        FILL_TYPELIST(StartAnimsCount, StartAnims.Count(), 1);
+    }
 
     MiddleAnims = ini.Get_Anims(ini_name, "MiddleAnims", MiddleAnims);
     MiddleAnimsCount = ini.Get_Integers(ini_name, "MiddleAnimsCount", MiddleAnimsCount);
@@ -352,6 +355,9 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
         FILL_TYPELIST(MiddleAnimsMinimum, MiddleAnims.Count(), 1);
         FILL_TYPELIST(MiddleAnimsMaximum, MiddleAnims.Count(), 1);
     }
+    else {
+        FILL_TYPELIST(MiddleAnimsCount, MiddleAnims.Count(), 1);
+    }
 
     EndAnims = ini.Get_Anims(ini_name, "EndAnims", EndAnims);
     EndAnimsCount = ini.Get_Integers(ini_name, "EndAnimsCount", EndAnimsCount);
@@ -361,6 +367,9 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     if (!EndAnimsCount.Count()) {
         FILL_TYPELIST(EndAnimsMinimum, EndAnims.Count(), 1);
         FILL_TYPELIST(EndAnimsMaximum, EndAnims.Count(), 1);
+    }
+    else {
+        FILL_TYPELIST(EndAnimsCount, EndAnims.Count(), 1);
     }
 
     /**
