@@ -61,8 +61,7 @@ AnimTypeClassExtension::AnimTypeClassExtension(const AnimTypeClass *this_ptr) :
     EndAnimsCount(),
     EndAnimsMinimum(),
     EndAnimsMaximum(),
-    BiggestFrameWidth(0),
-    BiggestFrameHeight(0)
+    MiddleFrame(-2)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("AnimTypeClassExtension::AnimTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -370,27 +369,41 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
      *  A special value of "-1" will set the biggest frame to the actual middle frame
      *  of the shape file. This behavior was observed in Red Alert 2.
      */
-    if (This()->Image != nullptr && This()->Image->Get_Frame_Count() > 0) {
-        ShapeFileStruct *image = const_cast<ShapeFileStruct *>(This()->Image);
-
-        int biggest = ini.Get_Int_Clamp(ini_name, "MiddleFrame", -1, image->Get_Frame_Count()-1, This()->Biggest);
-
-        if (biggest == -1 && image->Get_Frame_Count() >= 2) {
-
-            This()->Biggest = image->Get_Frame_Count() / 2;
-            BiggestFrameWidth = image->Get_Frame_Data(This()->Biggest)->FrameWidth;
-            BiggestFrameHeight = image->Get_Frame_Data(This()->Biggest)->FrameHeight;
-
-        } else if (biggest != This()->Biggest) {
-
-            This()->Biggest = biggest;
-            BiggestFrameWidth = image->Get_Frame_Data(biggest)->FrameWidth;
-            BiggestFrameHeight = image->Get_Frame_Data(biggest)->FrameHeight;
-        }
+    if (This()->Image && This()->Image->Get_Frame_Count() > 0) {
+        MiddleFrame = ini.Get_Int_Clamp(ini_name, "MiddleFrame", -2, This()->Image->Get_Frame_Count() - 1, MiddleFrame);
     }
-    
 
     IsInitialized = true;
 
     return true;
 }
+
+
+/**
+ *  Sets the biggest frame of the AnimType with our override.
+ *
+ *  @author: ZivDero
+ */
+void AnimTypeClassExtension::Set_Biggest_Frame()
+{
+    if (MiddleFrame == -1 && This()->Image && This()->Image->Get_Frame_Count() >= 2) {
+        This()->Biggest = This()->Image->Get_Frame_Count() / 2;
+    }
+    else if (MiddleFrame != -2) {
+        This()->Biggest = MiddleFrame;
+    }
+}
+
+
+/**
+ *  Sets the biggest frame of the all AnimTypes with our override.
+ *
+ *  @author: ZivDero
+ */
+void AnimTypeClassExtension::All_Set_Biggest_Frame()
+{
+    for (int i = 0; i < AnimTypeExtensions.Count(); i++) {
+        AnimTypeExtensions[i]->Set_Biggest_Frame();
+    }
+}
+
