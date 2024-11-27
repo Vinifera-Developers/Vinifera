@@ -22,7 +22,7 @@ In `RULES.INI`:
 ```ini
 [SOMEAIRCRAFT]  ; AircraftType
 ReloadRate=     ; float, the rate that this aircraft will reload its ammo when docked with a helipad. Defaults to [General]->ReloadRate.
-
+```
 
 ## Animations
 
