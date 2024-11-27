@@ -111,6 +111,7 @@ AnimTypeClassExtension final : public ObjectTypeClassExtension
         TypeList<int> StartAnimsCount;
         TypeList<int> StartAnimsMinimum;
         TypeList<int> StartAnimsMaximum;
+        TypeList<int> StartAnimsDelay;
 
         /**
          *  List of animations to spawn at the logical middle of this animation.
@@ -119,6 +120,7 @@ AnimTypeClassExtension final : public ObjectTypeClassExtension
         TypeList<int> MiddleAnimsCount;
         TypeList<int> MiddleAnimsMinimum;
         TypeList<int> MiddleAnimsMaximum;
+        TypeList<int> MiddleAnimsDelay;
 
         /**
          *  List of animations to spawn at the logical end of this animation.
@@ -127,6 +129,7 @@ AnimTypeClassExtension final : public ObjectTypeClassExtension
         TypeList<int> EndAnimsCount;
         TypeList<int> EndAnimsMinimum;
         TypeList<int> EndAnimsMaximum;
+        TypeList<int> EndAnimsDelay;
 
         /**
          *  The middle (biggest) frame, if set by the user.

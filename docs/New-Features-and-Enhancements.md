@@ -45,6 +45,11 @@ In `RULES.INI`:
 <stage>AnimsMinimum=  ; list of integers, the minimum number of animations that can spawn when choosing the random amount for each of the respective entries on the animations list. This list must have the same number of entries as the animations list. Defaults to 1 for each entry.
 <stage>AnimsMaximum=  ; list of integers, the maximum number of animations that can spawn when choosing the random amount for each of the respective entries on the animations list. This list must have the same number of entries as the animations list. Defaults to 1 for each entry.
 <stage>AnimsCount=    ; list of integers, the number of animations to spawn for each of the respective entries on the animations list. This list must have the same number of entries as the animations list. Defaults to 1 for each entry, and takes priority over the Minimum and Maximum entries.
+<stage>AnimsDelay=    ; list of integers, the number of frames before the spawned animation appears for each of the respective entries on the animations list. This list must have the same number of entries as the animations list. Defaults to 0 for each entry.
+```
+
+```{note}
+If the animation moves, delayed animations that it spawns will appear where it was when they were spawned, not when their delay expired.
 ```
 
 - In addition to this new system, a new key for setting the logical middle frame (the frame in which the craters etc, are spawned) can now be set.

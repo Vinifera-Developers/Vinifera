@@ -53,14 +53,17 @@ AnimTypeClassExtension::AnimTypeClassExtension(const AnimTypeClass *this_ptr) :
     StartAnimsCount(),
     StartAnimsMinimum(),
     StartAnimsMaximum(),
+    StartAnimsDelay(),
     MiddleAnims(),
     MiddleAnimsCount(),
     MiddleAnimsMinimum(),
     MiddleAnimsMaximum(),
+    MiddleAnimsDelay(),
     EndAnims(),
     EndAnimsCount(),
     EndAnimsMinimum(),
     EndAnimsMaximum(),
+    EndAnimsDelay(),
     MiddleFrame(-2)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("AnimTypeClassExtension::AnimTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
@@ -80,14 +83,17 @@ AnimTypeClassExtension::AnimTypeClassExtension(const NoInitClass &noinit) :
     StartAnimsCount(noinit),
     StartAnimsMinimum(noinit),
     StartAnimsMaximum(noinit),
+    StartAnimsDelay(noinit),
     MiddleAnims(noinit),
     MiddleAnimsCount(noinit),
     MiddleAnimsMinimum(noinit),
     MiddleAnimsMaximum(noinit),
+    MiddleAnimsDelay(noinit),
     EndAnims(noinit),
     EndAnimsCount(noinit),
     EndAnimsMinimum(noinit),
-    EndAnimsMaximum(noinit)
+    EndAnimsMaximum(noinit),
+    EndAnimsDelay(noinit)
 {
     //EXT_DEBUG_TRACE("AnimTypeClassExtension::AnimTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -138,14 +144,17 @@ HRESULT AnimTypeClassExtension::Load(IStream *pStm)
     StartAnimsCount.Clear();
     StartAnimsMinimum.Clear();
     StartAnimsMaximum.Clear();
+    StartAnimsDelay.Clear();
     MiddleAnims.Clear();
     MiddleAnimsCount.Clear();
     MiddleAnimsMinimum.Clear();
     MiddleAnimsMaximum.Clear();
+    MiddleAnimsDelay.Clear();
     EndAnims.Clear();
     EndAnimsCount.Clear();
     EndAnimsMinimum.Clear();
     EndAnimsMaximum.Clear();
+    EndAnimsDelay.Clear();
 
     HRESULT hr = ObjectTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
@@ -158,14 +167,17 @@ HRESULT AnimTypeClassExtension::Load(IStream *pStm)
     StartAnimsCount.Load(pStm);
     StartAnimsMinimum.Load(pStm);
     StartAnimsMaximum.Load(pStm);
+    StartAnimsDelay.Load(pStm);
     MiddleAnims.Load(pStm);
     MiddleAnimsCount.Load(pStm);
     MiddleAnimsMinimum.Load(pStm);
     MiddleAnimsMaximum.Load(pStm);
+    MiddleAnimsDelay.Load(pStm);
     EndAnims.Load(pStm);
     EndAnimsCount.Load(pStm);
     EndAnimsMinimum.Load(pStm);
     EndAnimsMaximum.Load(pStm);
+    EndAnimsDelay.Load(pStm);
 
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(StartAnims, "StartAnims");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(MiddleAnims, "MiddleAnims");
@@ -193,14 +205,17 @@ HRESULT AnimTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
     StartAnimsCount.Save(pStm);
     StartAnimsMinimum.Save(pStm);
     StartAnimsMaximum.Save(pStm);
+    StartAnimsDelay.Save(pStm);
     MiddleAnims.Save(pStm);
     MiddleAnimsCount.Save(pStm);
     MiddleAnimsMinimum.Save(pStm);
     MiddleAnimsMaximum.Save(pStm);
+    MiddleAnimsDelay.Save(pStm);
     EndAnims.Save(pStm);
     EndAnimsCount.Save(pStm);
     EndAnimsMinimum.Save(pStm);
     EndAnimsMaximum.Save(pStm);
+    EndAnimsDelay.Save(pStm);
 
     return hr;
 }
@@ -247,14 +262,17 @@ void AnimTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
     crc(StartAnimsCount.Count());
     crc(StartAnimsMinimum.Count());
     crc(StartAnimsMaximum.Count());
+    crc(StartAnimsDelay.Count());
     crc(MiddleAnims.Count());
     crc(MiddleAnimsCount.Count());
     crc(MiddleAnimsMinimum.Count());
     crc(MiddleAnimsMaximum.Count());
+    crc(MiddleAnimsDelay.Count());
     crc(EndAnims.Count());
     crc(EndAnimsCount.Count());
     crc(EndAnimsMinimum.Count());
     crc(EndAnimsMaximum.Count());
+    crc(EndAnimsDelay.Count());
 }
 
 
@@ -337,6 +355,7 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     StartAnimsCount = ini.Get_Integers(ini_name, "StartAnimsCount", StartAnimsCount);
     StartAnimsMinimum = ini.Get_Integers(ini_name, "StartAnimsMinimum", StartAnimsMinimum);
     StartAnimsMaximum = ini.Get_Integers(ini_name, "StartAnimsMaximum", StartAnimsMaximum);
+    StartAnimsDelay = ini.Get_Integers(ini_name, "StartAnimsDelay", StartAnimsDelay);
 
     if (!StartAnimsCount.Count()) {
         FILL_TYPELIST(StartAnimsMinimum, StartAnims.Count(), 1);
@@ -346,10 +365,13 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
         FILL_TYPELIST(StartAnimsCount, StartAnims.Count(), 1);
     }
 
+    FILL_TYPELIST(StartAnimsDelay, StartAnims.Count(), 0);
+
     MiddleAnims = ini.Get_Anims(ini_name, "MiddleAnims", MiddleAnims);
     MiddleAnimsCount = ini.Get_Integers(ini_name, "MiddleAnimsCount", MiddleAnimsCount);
     MiddleAnimsMinimum = ini.Get_Integers(ini_name, "MiddleAnimsMinimum", MiddleAnimsMinimum);
     MiddleAnimsMaximum = ini.Get_Integers(ini_name, "MiddleAnimsMaximum", MiddleAnimsMaximum);
+    MiddleAnimsDelay = ini.Get_Integers(ini_name, "MiddleAnimsDelay", MiddleAnimsDelay);
 
     if (!MiddleAnimsCount.Count()) {
         FILL_TYPELIST(MiddleAnimsMinimum, MiddleAnims.Count(), 1);
@@ -359,10 +381,13 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
         FILL_TYPELIST(MiddleAnimsCount, MiddleAnims.Count(), 1);
     }
 
+    FILL_TYPELIST(MiddleAnimsDelay, MiddleAnims.Count(), 0);
+
     EndAnims = ini.Get_Anims(ini_name, "EndAnims", EndAnims);
     EndAnimsCount = ini.Get_Integers(ini_name, "EndAnimsCount", EndAnimsCount);
     EndAnimsMinimum = ini.Get_Integers(ini_name, "EndAnimsMinimum", EndAnimsMinimum);
     EndAnimsMaximum = ini.Get_Integers(ini_name, "EndAnimsMaximum", EndAnimsMaximum);
+    EndAnimsDelay = ini.Get_Integers(ini_name, "EndAnimsDelay", EndAnimsDelay);
 
     if (!EndAnimsCount.Count()) {
         FILL_TYPELIST(EndAnimsMinimum, EndAnims.Count(), 1);
@@ -371,6 +396,8 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     else {
         FILL_TYPELIST(EndAnimsCount, EndAnims.Count(), 1);
     }
+
+    FILL_TYPELIST(EndAnimsDelay, EndAnims.Count(), 0);
 
     /**
      *  #issue-883

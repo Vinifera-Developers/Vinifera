@@ -183,7 +183,7 @@ bool AnimClassExtension::Start()
      * 
      *  Spawns the start animations.
      */
-    Spawn_Animations(This()->Center_Coord(), animtypeext->StartAnims, animtypeext->StartAnimsCount, animtypeext->StartAnimsMinimum, animtypeext->StartAnimsMaximum);
+    Spawn_Animations(This()->Center_Coord(), animtypeext->StartAnims, animtypeext->StartAnimsCount, animtypeext->StartAnimsMinimum, animtypeext->StartAnimsMaximum, animtypeext->StartAnimsDelay);
     
     return true;
 }
@@ -203,7 +203,7 @@ bool AnimClassExtension::Middle()
      * 
      *  Spawns the middle animations.
      */
-    Spawn_Animations(This()->Center_Coord(), animtypeext->MiddleAnims, animtypeext->MiddleAnimsCount, animtypeext->MiddleAnimsMinimum, animtypeext->MiddleAnimsMaximum);
+    Spawn_Animations(This()->Center_Coord(), animtypeext->MiddleAnims, animtypeext->MiddleAnimsCount, animtypeext->MiddleAnimsMinimum, animtypeext->MiddleAnimsMaximum, animtypeext->MiddleAnimsDelay);
     
     return true;
 }
@@ -223,7 +223,7 @@ bool AnimClassExtension::End()
      * 
      *  Spawns the end animations.
      */
-    Spawn_Animations(This()->Center_Coord(), animtypeext->EndAnims, animtypeext->EndAnimsCount, animtypeext->EndAnimsMinimum, animtypeext->EndAnimsMaximum);
+    Spawn_Animations(This()->Center_Coord(), animtypeext->EndAnims, animtypeext->EndAnimsCount, animtypeext->EndAnimsMinimum, animtypeext->EndAnimsMaximum, animtypeext->EndAnimsDelay);
     
     return true;
 }
@@ -236,7 +236,7 @@ bool AnimClassExtension::End()
  *  
  *  @author: CCHyper
  */
-bool AnimClassExtension::Spawn_Animations(const Coordinate &coord, const TypeList<AnimTypeClass *> &animlist, const TypeList<int> &countlist, const TypeList<int> &minlist, const TypeList<int> &maxlist)
+bool AnimClassExtension::Spawn_Animations(const Coordinate &coord, const TypeList<AnimTypeClass *> &animlist, const TypeList<int> &countlist, const TypeList<int> &minlist, const TypeList<int> &maxlist, const TypeList<int>& delaylist)
 {
     if (!animlist.Count()) {
         return false;
@@ -282,7 +282,7 @@ bool AnimClassExtension::Spawn_Animations(const Coordinate &coord, const TypeLis
          *  Based on the count decided above, spawn the animation type.
          */
         for (int i = 0; i < count; ++i) {
-            AnimClass *anim = new AnimClass(animtype, (Coordinate &)coord);
+            AnimClass *anim = new AnimClass(animtype, (Coordinate &)coord, delaylist[index]);
             ASSERT(anim != nullptr);
         }
     }
