@@ -166,6 +166,7 @@ New:
 - Implement required and forbidden houses (by ZivDero)
 - Allow turning off "sticky" technologies (by ZivDero)
 - Allow disabling the ActLike check on construction yards to allow for faction-specific MCVs (by ZivDero)
+- Implement a feature for animations to spawn additional animations (by CCHyper/tomsons26, ZivDero)
 
 
 Vanilla fixes:

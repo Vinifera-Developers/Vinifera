@@ -130,6 +130,7 @@ This page lists all the individual contributions to the project by their author.
   - Implement various controls to customise target lasers line.
   - Implement various controls to show and customise NavCom queue lines.
   - Implement customizable mouse cursors and actions.
+  - Implement a feature for animations to spawn additional animations.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **MarkJFox**:
@@ -206,4 +207,5 @@ This page lists all the individual contributions to the project by their author.
   - Implement required and forbidden houses.
   - Allow turning off "sticky" technologies.
   - Allow disabling the ActLike check on construction yards to allow for faction-specific MCVs.
+  - Finalize the feature for animations to spawn additional animations.
 
