@@ -523,7 +523,7 @@ DECLARE_PATCH(_BuildingClass_Captured_ProduceCash_Patch)
      */
 original_code:
     if (this_ptr->Class->IsCloakGenerator) {
-        newowner->field_4F0 = true;
+        newowner->HasCloakGenerator = true;
     }
 
     JMP(0x0042F68E);

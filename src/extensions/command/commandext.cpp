@@ -2564,7 +2564,7 @@ bool ToggleEliteCommandClass::Process()
          *  Upgrade to rookie.
          */
         if (techno->Veterancy.Is_Dumbass()) {
-            techno->Veterancy.Set_Rookie(false);
+            techno->Veterancy.Set_Rookie(true);
             continue;
         }
 
@@ -2588,7 +2588,7 @@ bool ToggleEliteCommandClass::Process()
          *  Degrade elite back to dumbass.
          */
         if (techno->Veterancy.Is_Elite()) {
-            techno->Veterancy.Set_Rookie(true);
+            techno->Veterancy.Set_Dumbass(true);
             continue;
         }
     }
