@@ -33,6 +33,11 @@ ReloadRate=     ; float, the rate that this aircraft will reload its ammo when d
 ```{note}
 The `<stage>` keyword used below can be replaced with: `Start`, `Middle`, `End`.
 ```
+
+```{note}
+The `Start` and `End` animations are spawned once per an animation's lifetime, not on each loop iteration.
+```
+
 In `RULES.INI`:
 ```ini
 [AnimType]            ; AnimType
@@ -47,7 +52,11 @@ In `RULES.INI`:
 In `RULES.INI`:
 ```ini
 [AnimType]     ; AnimType
-MiddleFrame=   ; integer, the frame number in which the animation system will spawn various logics (e.g. craters, scorch marks, fires). Defaults to auto-detect based on the largest frame of the shape file. A special value of -1 can be used to tell the animation system to use the exact middle frame of the shape file (shape file has 30 frames, frame 15 will be used).
+MiddleFrame=   ; integer, the frame number in which the animation system will perform various logics (e.g. spawn craters, scorch marks, fires). Defaults to auto-detect based on the largest frame of the shape file. A special value of -1 can be used to tell the animation system to use the exact middle frame of the shape file (if shape file has 30 frames, frame 15 will be used).
+```
+
+```{note}
+`MiddleFrame=0` is reserved and will not cause `MiddleAnims` to be spawned on every loop, but rather once at the start of the animation (like with `StartAnims`). To repeatedly spawn animations at the start of the loop, use `MiddleFrame` values of `1` or higher.
 ```
 
 ### Various Keys Ported from Red Alert 2

@@ -138,7 +138,7 @@ static void Anim_Spawn_Particles(AnimClass *this_ptr)
 
 
 /**
- *  Calls the AnimClass extension middle event processor.
+ *  Calls the AnimClass extension start event processor.
  * 
  *  @author: CCHyper
  */
@@ -183,7 +183,7 @@ original_code:
 
 
 /**
- *  Calls the AnimClass extension middle event processor.
+ *  Calls the AnimClass extension end event processor.
  * 
  *  @author: CCHyper
  */
