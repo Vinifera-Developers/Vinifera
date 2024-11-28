@@ -33,6 +33,7 @@
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "extension.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -113,6 +114,26 @@ DECLARE_PATCH(_AnimTypeClass_Get_Image_Data_Assertion_Patch)
 
 
 /**
+ *  Sets the biggest frame with our override after Init because it reloads the image.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_AnimTypeClass_Init_MiddleFrame_Patch)
+{
+    AnimTypeClassExtension::All_Set_Biggest_Frame();
+
+    // Reconstruct the epilogue
+    _asm
+    {
+        pop esi
+        pop ebp
+        add esp, 0x204
+        retn
+    }
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void AnimTypeClassExtension_Hooks()
@@ -127,4 +148,6 @@ void AnimTypeClassExtension_Hooks()
     Patch_Jump(0x00419B40, &AnimTypeClassExt::_Free_Image);
     Patch_Jump(0x004187DB, &_AnimTypeClass_DTOR_Free_Image_Patch);
     Patch_Jump(0x00419C0B, &_AnimTypeClass_SDDTOR_Free_Image_Patch);
+    Patch_Jump(0x004188E6, &_AnimTypeClass_Init_MiddleFrame_Patch);
+    Patch_Jump(0x004189C9, &_AnimTypeClass_Init_MiddleFrame_Patch);
 }

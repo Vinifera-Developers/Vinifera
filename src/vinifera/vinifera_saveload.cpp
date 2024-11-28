@@ -127,6 +127,7 @@
 #include <atlbase.h>
 #include <atlcom.h>
 
+#include "animtypeext.h"
 #include "hooker.h"
 #include "language.h"
 #include "loadoptions.h"
@@ -917,6 +918,7 @@ bool Vinifera_Load_Game(const char* file_name)
     SwizzleManager.Reset();
     Post_Load_Game();
     Put_Storage_Pointers();
+    AnimTypeClassExtension::All_Set_Biggest_Frame();
     Map.Init_IO();
     Map.Activate(1);
     Map.Set_Dimensions();

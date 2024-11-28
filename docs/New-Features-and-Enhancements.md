@@ -26,6 +26,44 @@ ReloadRate=     ; float, the rate that this aircraft will reload its ammo when d
 
 ## Animations
 
+### Additional Animation Spawning
+
+- Vinifera implements a new system for AnimTypes, allowing them to spawn additional animations at the start, middle and end of their sequence stages. All animations spawned will be from the center coordinate of the animation spawning these additional animations.
+
+```{note}
+The `<stage>` keyword used below can be replaced with: `Start`, `Middle`, `End`.
+```
+
+```{note}
+The `Start` and `End` animations are spawned once per an animation's lifetime, not on each loop iteration.
+```
+
+In `RULES.INI`:
+```ini
+[AnimType]            ; AnimType
+<stage>Anims=         ; list of AnimTypes, list of animations to spawn at the designated stage of the animation sequence.
+<stage>AnimsMinimum=  ; list of integers, the minimum number of animations that can spawn when choosing the random amount for each of the respective entries on the animations list. This list must have the same number of entries as the animations list. Defaults to 1 for each entry.
+<stage>AnimsMaximum=  ; list of integers, the maximum number of animations that can spawn when choosing the random amount for each of the respective entries on the animations list. This list must have the same number of entries as the animations list. Defaults to 1 for each entry.
+<stage>AnimsCount=    ; list of integers, the number of animations to spawn for each of the respective entries on the animations list. This list must have the same number of entries as the animations list. Defaults to 1 for each entry, and takes priority over the Minimum and Maximum entries.
+<stage>AnimsDelay=    ; list of integers, the number of frames before the spawned animation appears for each of the respective entries on the animations list. This list must have the same number of entries as the animations list. Defaults to 0 for each entry.
+```
+
+```{note}
+If the animation moves, delayed animations that it spawns will appear where it was when they were spawned, not when their delay expired.
+```
+
+- In addition to this new system, a new key for setting the logical middle frame (the frame in which the craters etc, are spawned) can now be set.
+
+In `RULES.INI`:
+```ini
+[AnimType]     ; AnimType
+MiddleFrame=   ; integer, the frame number in which the animation system will perform various logics (e.g. spawn craters, scorch marks, fires). Defaults to auto-detect based on the largest frame of the shape file. A special value of -1 can be used to tell the animation system to use the exact middle frame of the shape file (if shape file has 30 frames, frame 15 will be used).
+```
+
+```{note}
+`MiddleFrame=0` is reserved and will not cause `MiddleAnims` to be spawned on every loop, but rather once at the start of the animation (like with `StartAnims`). To repeatedly spawn animations at the start of the loop, use `MiddleFrame` values of `1` or higher.
+```
+
 ### Various Keys Ported from Red Alert 2
 
 - Vinifera implements various AnimType keys from Red Alert 2.

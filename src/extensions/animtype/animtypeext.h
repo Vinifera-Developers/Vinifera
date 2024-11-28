@@ -29,6 +29,12 @@
 
 #include "objecttypeext.h"
 #include "animtype.h"
+#include "typelist.h"
+
+
+class AnimTypeClass;
+class CCINIClass;
+class ParticleTypeClass;
 
 
 class DECLSPEC_UUID(UUID_ANIMTYPE_EXTENSION)
@@ -60,6 +66,9 @@ AnimTypeClassExtension final : public ObjectTypeClassExtension
         virtual RTTIType What_Am_I() const override { return RTTI_ANIMTYPE; }
 
         virtual bool Read_INI(CCINIClass &ini) override;
+
+        void Set_Biggest_Frame();
+        static void All_Set_Biggest_Frame();
 
     public:
         /**
@@ -94,4 +103,36 @@ AnimTypeClassExtension final : public ObjectTypeClassExtension
          *  The number of the particle to spawn.
          */
         unsigned NumberOfParticles;
+
+        /**
+         *  List of animations to spawn at the logical start of this animation.
+         */
+        TypeList<AnimTypeClass *> StartAnims;
+        TypeList<int> StartAnimsCount;
+        TypeList<int> StartAnimsMinimum;
+        TypeList<int> StartAnimsMaximum;
+        TypeList<int> StartAnimsDelay;
+
+        /**
+         *  List of animations to spawn at the logical middle of this animation.
+         */
+        TypeList<AnimTypeClass *> MiddleAnims;
+        TypeList<int> MiddleAnimsCount;
+        TypeList<int> MiddleAnimsMinimum;
+        TypeList<int> MiddleAnimsMaximum;
+        TypeList<int> MiddleAnimsDelay;
+
+        /**
+         *  List of animations to spawn at the logical end of this animation.
+         */
+        TypeList<AnimTypeClass *> EndAnims;
+        TypeList<int> EndAnimsCount;
+        TypeList<int> EndAnimsMinimum;
+        TypeList<int> EndAnimsMaximum;
+        TypeList<int> EndAnimsDelay;
+
+        /**
+         *  The middle (biggest) frame, if set by the user.
+         */
+        int MiddleFrame;
 };

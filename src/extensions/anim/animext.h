@@ -29,6 +29,9 @@
 
 #include "objectext.h"
 #include "anim.h"
+#include "ttimer.h"
+#include "ftimer.h"
+#include "typelist.h"
 
 
 class AnimClass;
@@ -62,6 +65,13 @@ AnimClassExtension final : public ObjectClassExtension
         virtual AnimClass *This() const override { return reinterpret_cast<AnimClass *>(ObjectClassExtension::This()); }
         virtual const AnimClass *This_Const() const override { return reinterpret_cast<const AnimClass *>(ObjectClassExtension::This_Const()); }
         virtual RTTIType What_Am_I() const override { return RTTI_ANIM; }
+
+        bool Start();
+        bool Middle();
+        bool End();
+
+    private:
+        bool Spawn_Animations(const Coordinate &coord, const TypeList<AnimTypeClass *> &animlist, const TypeList<int> &countlist, const TypeList<int> &minlist, const TypeList<int> &maxlist, const TypeList<int>& delaylist);
 
     public:
 };
