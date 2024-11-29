@@ -34,6 +34,7 @@
 #include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "options.h"
 
 
 /**
@@ -282,7 +283,13 @@ bool AnimClassExtension::Spawn_Animations(const Coordinate &coord, const TypeLis
          *  Based on the count decided above, spawn the animation type.
          */
         for (int i = 0; i < count; ++i) {
-            AnimClass *anim = new AnimClass(animtype, (Coordinate &)coord, delaylist[index]);
+
+            /**
+             *  Adjust the delay for the animation's rate.
+             */
+            int delay = delaylist[index] * This()->Fetch_Rate();
+
+            AnimClass *anim = new AnimClass(animtype, (Coordinate &)coord, delay);
             ASSERT(anim != nullptr);
         }
     }
