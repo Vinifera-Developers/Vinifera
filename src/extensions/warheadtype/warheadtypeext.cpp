@@ -220,45 +220,43 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
      */
     if (ini.Get_String(ini_name, "Verses", nullptr, buffer, sizeof(buffer)) > 0) {
         char *token = std::strtok(buffer, ",");
-        for (int armor = 0; armor < ArmorTypes.Count() && token; armor++, token = std::strtok(nullptr, ",")) {
+        for (ArmorType armor = ARMOR_NONE; armor < ArmorTypes.Count() && token; armor++, token = std::strtok(nullptr, ",")) {
             if (std::strchr(token, '%')) {
-                Verses::Set_Modifier(static_cast<ArmorType>(armor), warheadtype, std::atoi(token) * 0.01);
+                Verses::Set_Modifier(armor, warheadtype, std::atoi(token) * 0.01);
             } else {
-                Verses::Set_Modifier(static_cast<ArmorType>(armor), warheadtype, std::atof(token));
+                Verses::Set_Modifier(armor, warheadtype, std::atof(token));
             }
         }
     }
 
     if (ini.Get_String(ini_name, "ForceFire", nullptr, buffer, sizeof(buffer)) > 0) {
         char* token = std::strtok(buffer, ",");
-        for (int armor = 0; armor < ArmorTypes.Count() && token; armor++, token = std::strtok(nullptr, ",")) {
-            Verses::Set_ForceFire(static_cast<ArmorType>(armor), warheadtype, Parse_Boolean(token, Verses::Get_ForceFire(static_cast<ArmorType>(armor), warheadtype)));
+        for (ArmorType armor = ARMOR_NONE; armor < ArmorTypes.Count() && token; armor++, token = std::strtok(nullptr, ",")) {
+            Verses::Set_ForceFire(armor, warheadtype, Parse_Boolean(token, Verses::Get_ForceFire(armor, warheadtype)));
         }
     }
 
     if (ini.Get_String(ini_name, "PassiveAcquire", nullptr, buffer, sizeof(buffer)) > 0) {
         char* token = std::strtok(buffer, ",");
-        for (int armor = 0; armor < ArmorTypes.Count() && token; armor++, token = std::strtok(nullptr, ",")) {
-            Verses::Set_PassiveAcquire(static_cast<ArmorType>(armor), warheadtype, Parse_Boolean(token, Verses::Get_PassiveAcquire(static_cast<ArmorType>(armor), warheadtype)));
+        for (ArmorType armor = ARMOR_NONE; armor < ArmorTypes.Count() && token; armor++, token = std::strtok(nullptr, ",")) {
+            Verses::Set_PassiveAcquire(armor, warheadtype, Parse_Boolean(token, Verses::Get_PassiveAcquire(armor, warheadtype)));
         }
     }
 
     if (ini.Get_String(ini_name, "Retaliate", nullptr, buffer, sizeof(buffer)) > 0) {
         char* token = std::strtok(buffer, ",");
-        for (int armor = 0; armor < ArmorTypes.Count() && token; armor++, token = std::strtok(nullptr, ",")) {
-            Verses::Set_Retaliate(static_cast<ArmorType>(armor), warheadtype, Parse_Boolean(token, Verses::Get_Retaliate(static_cast<ArmorType>(armor), warheadtype)));
+        for (ArmorType armor = ARMOR_NONE; armor < ArmorTypes.Count() && token; armor++, token = std::strtok(nullptr, ",")) {
+            Verses::Set_Retaliate(armor, warheadtype, Parse_Boolean(token, Verses::Get_Retaliate(armor, warheadtype)));
         }
     }
 
     /**
      *  Read the new Modifier, ForceFire, PassiveAcquire, Retaliate per-armor keys.
      */
-    for (int i = ARMOR_FIRST; i < ArmorTypes.Count(); i++)
+    for (ArmorType armor = ARMOR_FIRST; armor < ArmorTypes.Count(); armor++)
     {
         static char key_name[256];
-
-        const char* armor_name = ArmorTypeClass::Name_From(static_cast<ArmorType>(i));
-        ArmorType armor = static_cast<ArmorType>(i);
+        const char* armor_name = ArmorTypeClass::Name_From(armor);
 
         std::snprintf(key_name, sizeof(key_name), "Modifier.%s", armor_name);
         if (ini.Is_Present(ini_name, key_name)) {
