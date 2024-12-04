@@ -349,6 +349,14 @@ class GlobalExtensionClass
          */
         const T *ThisPtr;
 
+    protected:
+        /**
+         *  Has this extension already executed Read_INI?
+         *  Set this to true at the end of Read_INI of the last extension
+         *  in the inheritance hierarchy.
+         */
+        bool IsInitialized;
+
     private:
         GlobalExtensionClass(const GlobalExtensionClass &) = delete;
         void operator = (const GlobalExtensionClass &) = delete;
@@ -364,7 +372,8 @@ class GlobalExtensionClass
  */
 template<class T>
 GlobalExtensionClass<T>::GlobalExtensionClass(const T *this_ptr) :
-    ThisPtr(this_ptr)
+    ThisPtr(this_ptr),
+    IsInitialized(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("GlobalExtensionClass<%s>::GlobalExtensionClass - 0x%08X\n", typeid(T).name(), (uintptr_t)(ThisPtr));
     //ASSERT(ThisPtr != nullptr);      // NULL ThisPtr is valid when performing a Load state operation.

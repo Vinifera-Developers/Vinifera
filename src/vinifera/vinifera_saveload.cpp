@@ -361,6 +361,7 @@ bool Vinifera_Put_All(IStream *pStm, bool save_net)
      */
     if (FAILED(Vinifera_Save_Vector(pStm, ArmorTypes, "ArmorTypes"))) { return false; }
     if (FAILED(Vinifera_Save_Vector(pStm, RocketTypes, "RocketTypes"))) { return false; }
+    if (FAILED(Vinifera_Save_Vector(pStm, CrateTypes, "CrateTypes"))) { return false; }
     if (FAILED(Vinifera_Save_Vector(pStm, SpawnManagers, "SpawnManagers"))) { return false; }
 
     /**
@@ -604,6 +605,7 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
      */
     if (FAILED(Vinifera_Load_Vector(pStm, ArmorTypes, "ArmorTypes"))) { return false; }
     if (FAILED(Vinifera_Load_Vector(pStm, RocketTypes, "RocketTypes"))) { return false; }
+    if (FAILED(Vinifera_Load_Vector(pStm, CrateTypes, "CrateTypes"))) { return false; }
     if (FAILED(Vinifera_Load_Vector(pStm, SpawnManagers, "SpawnManagers"))) { return false; }
 
     /**

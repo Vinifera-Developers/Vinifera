@@ -97,6 +97,11 @@ static void _Free_Heaps_Intercept()
     }
     Remove_All_Inactive();
 
+    while (CrateTypes.Count()) {
+        delete CrateTypes[0];
+    }
+    Remove_All_Inactive();
+
     while (SpawnManagers.Count()) {
         delete SpawnManagers[0];
     }

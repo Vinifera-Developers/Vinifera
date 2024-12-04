@@ -846,6 +846,7 @@ bool Vinifera_Register_Com_Objects()
      */
     REGISTER_CLASS(ArmorTypeClass);
     REGISTER_CLASS(RocketTypeClass);
+    REGISTER_CLASS(CrateTypeClass);
 
     /**
      *  Other new entities.
