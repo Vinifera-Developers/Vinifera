@@ -451,7 +451,7 @@ static SwizzleInfoDatabaseEntry *Swizzle_Find_Database_Entry(uintptr_t retaddr)
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
  * 
- *  @note: This must not contain a constructor or deconstructor.
+ *  @note: This must not contain a constructor or destructor.
  * 
  *  @note: All functions must not be virtual and must also be prefixed
  *         with "_" to prevent accidental virtualization.

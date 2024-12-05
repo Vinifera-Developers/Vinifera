@@ -59,7 +59,7 @@
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
  *
- *  @note: This must not contain a constructor or deconstructor!
+ *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
 static class HouseClassExt final : public HouseClass
