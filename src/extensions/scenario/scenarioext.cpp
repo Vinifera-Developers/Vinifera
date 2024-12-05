@@ -358,7 +358,7 @@ Coordinate ScenarioClassExtension::Get_Waypoint_Coord_Height(WaypointType wp) co
     CellClass *cell = &Map[Waypoint[wp]];
     Coordinate coord = cell->Center_Coord();
 
-    if (cell->Bit2_16 && cell->Bit2_64) {
+    if (cell->IsBridge && cell->Bit2_64) {
         coord.Z += BridgeCellHeight;
     }
 

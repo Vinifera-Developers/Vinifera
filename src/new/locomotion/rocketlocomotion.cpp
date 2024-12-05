@@ -627,7 +627,7 @@ void RocketLocomotionClass::Explode()
      */
     const auto animtype = Combat_Anim(damage, warhead, Map[cell].Land_Type(), &coord);
     if (animtype)
-        new AnimClass(animtype, coord, 0, 1, SHAPE_WIN_REL | SHAPE_CENTER | SHAPE_FLAT, -15);
+        new AnimClass(animtype, coord, 0, 1, SHAPE_WIN_REL | SHAPE_CENTER | SHAPE_FLAT, Get_Explosion_Z(coord));
     Combat_Lighting(coord, damage, warhead);
     Explosion_Damage(coord, damage, Linked_To(), warhead, true);
     Linked_To()->Remove_This();
@@ -645,7 +645,7 @@ bool RocketLocomotionClass::Time_To_Explode(const RocketTypeClass* rocket)
     if (coord.Z > DestinationCoord.Z)
     {
         const CellClass* rocket_cell = Linked_To()->Get_Cell_Ptr();
-        if (!rocket_cell || !rocket_cell->Bit2_16 || DestinationCoord.Z != rocket_cell->Center_Coord().Z || coord.Z > DestinationCoord.Z + ROCKET_SPEED)
+        if (!rocket_cell || !rocket_cell->IsBridge || DestinationCoord.Z != rocket_cell->Center_Coord().Z || coord.Z > DestinationCoord.Z + ROCKET_SPEED)
         {
             /**
              *  Nope, too early.

@@ -266,13 +266,13 @@ void FootClassExt::_Draw_NavComQueue_Lines() const
 
         start_coord = start->Center_Coord();
 
-        if (Map.In_Radar(Coord_Cell(start_coord)) && Map[start_coord].Bit2_16) {
+        if (Map.In_Radar(Coord_Cell(start_coord)) && Map[start_coord].IsBridge) {
             start_coord.Z = BRIDGE_HEIGHT + Map.Get_Cell_Height(start_coord);
         }
 
         end_coord = end->Center_Coord();
 
-        if (Map.In_Radar(Coord_Cell(end_coord)) && Map[end_coord].Bit2_16) {
+        if (Map.In_Radar(Coord_Cell(end_coord)) && Map[end_coord].IsBridge) {
             end_coord.Z = BRIDGE_HEIGHT + Map.Get_Cell_Height(end_coord);
         }
 
@@ -353,7 +353,7 @@ void FootClassExt::_Draw_Action_Line() const
         end_coord = navtarget->Center_Coord();
         Cell target_cell = Coord_Cell(end_coord);
 
-        if (Map.In_Radar(target_cell) && Map[end_coord].Bit2_16) {
+        if (Map.In_Radar(target_cell) && Map[end_coord].IsBridge) {
             end_coord.Z = BRIDGE_HEIGHT + Map.Get_Cell_Height(end_coord);
         }
 
