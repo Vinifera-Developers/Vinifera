@@ -134,16 +134,45 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ArmorType armo
 }
 
 
-static bool Bridge_Helper1(CellClass& cellptr)
+static CellClass* Get_Bridge_Owner(CellClass& cellptr)
 {
     if (cellptr.IsBridge) {
-        CellClass& bridge_owner = Map[cellptr.IsBridgeOwner ? cellptr.Pos : cellptr.BridgeOwner->Pos];
-        if (bridge_owner.Overlay == OVERLAY_BRIDGE1 || bridge_owner.Overlay == OVERLAY_BRIDGE2) {
-            return true;
-        }
+        return &Map[cellptr.IsBridgeOwner ? cellptr.Pos : cellptr.BridgeOwner->Pos];
     }
 
-    return false;
+    return nullptr;
+}
+
+
+static bool Is_Bridge_Height(CellClass& cellptr, const Coordinate& coord)
+{
+    return cellptr.IsBridge && (coord.Z > BRIDGE_HEIGHT + CELL_HEIGHT(cellptr.Level + 1)) && (coord.Z <= BRIDGE_HEIGHT + CELL_HEIGHT(cellptr.Level - 2));
+}
+
+
+static bool Is_Tile_Bridge_Middle(IsometricTileType type)
+{
+    const IsometricTileType ttype = type - BridgeSet + 1;
+    return (ttype == BridgeMiddle1 + 0 || ttype == BridgeMiddle1 + 1 ||
+            ttype == BridgeMiddle1 + 2 || ttype == BridgeMiddle1 + 3 ||
+            ttype == BridgeMiddle2 + 0 || ttype == BridgeMiddle2 + 1 ||
+            ttype == BridgeMiddle2 + 2 || ttype == BridgeMiddle2 + 3);
+}
+
+
+static bool Is_Tile_Train_Bridge_Middle(IsometricTileType type)
+{
+    const IsometricTileType ttype = type - TrainBridgeSet + 1;
+    return (ttype == BridgeMiddle1 + 0 || ttype == BridgeMiddle1 + 1 ||
+            ttype == BridgeMiddle1 + 2 || ttype == BridgeMiddle1 + 3 ||
+            ttype == BridgeMiddle2 + 0 || ttype == BridgeMiddle2 + 1 ||
+            ttype == BridgeMiddle2 + 2 || ttype == BridgeMiddle2 + 3);
+}
+
+
+static bool Is_Not_On_Bridge(const Coordinate& coord)
+{
+    return !Map[coord].IsBridge || coord.Z < BRIDGE_HEIGHT + Map.Get_Cell_Height(coord);
 }
 
 
@@ -379,130 +408,114 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
         }
     }
 
-    bool remove_overlay = true;
+    /**
+     *  If there is a bridge at this location, then it may be destroyed by the
+     *  combat damage.
+     */
     if (Scen->SpecialFlags.IsDestroyableBridges && warhead->IsWallDestroyer) {
+        const CellClass* bridge_owner_cell = Get_Bridge_Owner(*cellptr);
 
-        if (Bridge_Helper1(*cellptr))
-        {
-            
-        }
-        else
-        {
-            IsometricTileType ttype = cellptr->Tile - BridgeSet + 1;
-            if (ttype == BridgeMiddle1 + 0 || ttype == BridgeMiddle1 + 1 ||
-                ttype == BridgeMiddle1 + 2 || ttype == BridgeMiddle1 + 3 ||
-                ttype == BridgeMiddle2 + 0 || ttype == BridgeMiddle2 + 1 ||
-                ttype == BridgeMiddle2 + 2 || ttype == BridgeMiddle2 + 3) {
-
-                if (!cellptr->IsBridge || (coord.Z <= BRIDGE_HEIGHT + CELL_HEIGHT(cellptr->Level + 1)) && coord.Z > BRIDGE_HEIGHT + CELL_HEIGHT(cellptr->Level - 2))
-                {
-                    if ((warhead->IsWallDestroyer && (warhead == Rule->IonCannonWarhead || Random_Pick(1, Rule->BridgeStrength) < strength))) {
-                        for (int i = 0; i < (warhead == Rule->IonCannonWarhead ? 4 : 1); i++) {
-                            if (Map.Destroy_Bridge_At(cell)) {
-                                TechnoClass::Update_Mission_Targets(cellptr);
-                                break;
-                            }
+        if (bridge_owner_cell && bridge_owner_cell->Is_Overlay_Bridge()
+            || Is_Tile_Bridge_Middle(cellptr->Tile)) {
+            if (!Is_Bridge_Height(*cellptr, coord)) {
+                if ((warhead->IsWallDestroyer && (warhead == Rule->IonCannonWarhead || Random_Pick(1, Rule->BridgeStrength) < strength))) {
+                    for (int i = 0; i < (warhead == Rule->IonCannonWarhead ? 4 : 1); i++) {
+                        if (Map.Destroy_Bridge_At(cell)) {
+                            TechnoClass::Update_Mission_Targets(cellptr);
+                            break;
                         }
-                        Point2D point;
-                        TacticalMap->Coord_To_Pixel(coord, point);
-                        TacticalMap->Register_Dirty_Area(Rect(point.X - 128, point.Y - 128, 256, 256), false);
                     }
+                    Point2D point;
+                    TacticalMap->Coord_To_Pixel(coord, point);
+                    TacticalMap->Register_Dirty_Area(Rect(point.X - 128, point.Y - 128, 256, 256), false);
                 }
-
-                
             }
         }
 
-        //if (cellptr->IsBridge)
-        //{
-        //    CellClass& bridge_owner = Map[cellptr->IsBridgeOwner ? cellptr->Pos : cellptr->BridgeOwner->Pos];
-        //    if (bridge_owner.Overlay == OVERLAY_BRIDGE1 || bridge_owner.Overlay == OVERLAY_BRIDGE2)
+        if (bridge_owner_cell && bridge_owner_cell->Is_Overlay_Rail_Bridge()
+            || Is_Tile_Train_Bridge_Middle(cellptr->Tile)) {
+            if (!Is_Bridge_Height(*cellptr, coord)) {
+                if ((warhead->IsWallDestroyer && (warhead == Rule->IonCannonWarhead || Random_Pick(1, Rule->BridgeStrength) < strength))) {
+                    for (int i = 0; i < (warhead == Rule->IonCannonWarhead ? 4 : 1); i++) {
+                        if (Map.Destroy_Bridge_At(cell)) {
+                            TechnoClass::Update_Mission_Targets(cellptr);
+                            break;
+                        }
+                    }
+                    Point2D point;
+                    TacticalMap->Coord_To_Pixel(coord, point);
+                    TacticalMap->Register_Dirty_Area(Rect(point.X - 96, point.Y - 96, 192, 192), false);
+                }
+            }
+        }
 
-        //    if (!cellptr->IsBridgeOwner)
-        //}
-
-        ///**
-        // *  If there is a bridge at this location, then it may be destroyed by the
-        // *  combat damage.
-        // */
-        //if (cellptr->TType == TEMPLATE_BRIDGE1 || cellptr->TType == TEMPLATE_BRIDGE2 ||
-        //    cellptr->TType == TEMPLATE_BRIDGE1H || cellptr->TType == TEMPLATE_BRIDGE2H ||
-        //    cellptr->TType == TEMPLATE_BRIDGE_1A || cellptr->TType == TEMPLATE_BRIDGE_1B ||
-        //    cellptr->TType == TEMPLATE_BRIDGE_2A || cellptr->TType == TEMPLATE_BRIDGE_2B ||
-        //    cellptr->TType == TEMPLATE_BRIDGE_3A || cellptr->TType == TEMPLATE_BRIDGE_3B) {
-
-        //    if ((warhead->IsWallDestroyer && (warhead == Rule->IonCannonWarhead || Random_Pick(1, Rule->BridgeStrength) < strength))) {
-        //        for (int i = 0; i < (warhead == Rule->IonCannonWarhead ? 4 : 1); i++) {
-        //            if (Map.Destroy_Bridge_At(cell)) {
-        //                TechnoClass::Update_Mission_Targets(cellptr);
-        //                break;
-        //            }
-        //        }
-        //        Point2D point;
-        //        TacticalMap->Coord_To_Pixel(coord, point);
-        //        TacticalMap->Register_Dirty_Area(Rect(point.X - 128, point.Y - 128, 256, 256), false);
-        //    }
-        //}
-
+        if (cellptr->Is_Overlay_Low_Bridge()) {
+            if (warhead == Rule->IonCannonWarhead || Random_Pick(1, Rule->BridgeStrength) < strength) {
+                bool destroyed = Map.Destroy_Low_Bridge_At(cell);
+                Map.Destroy_Low_Bridge_At(cell);
+                if (destroyed) {
+                    TechnoClass::Update_Mission_Targets(cellptr);
+                }
+            }
+        }
     }
 
-    if (remove_overlay) {
-        if (cellptr->Overlay != OVERLAY_NONE && OverlayTypeClass::As_Reference(cellptr->Overlay).IsExplodes) {
-            cellptr->Redraw_Overlay();
-            cellptr->Overlay = OVERLAY_NONE;
-            cellptr->Recalc_Attributes();
-            Map.Update_Cell_Zone(cellptr->Pos);
-            Map.Update_Cell_Subzones(cellptr->Pos);
-            TechnoClass::Update_Mission_Targets(cellptr);
+    if (cellptr->Overlay != OVERLAY_NONE && OverlayTypeClass::As_Reference(cellptr->Overlay).IsExplodes) {
+        cellptr->Redraw_Overlay();
+        cellptr->Overlay = OVERLAY_NONE;
+        cellptr->Recalc_Attributes();
+        Map.Update_Cell_Zone(cellptr->Pos);
+        Map.Update_Cell_Subzones(cellptr->Pos);
+        TechnoClass::Update_Mission_Targets(cellptr);
 
-            new AnimClass(Rule->BarrelExplode, coord);
-            Explosion_Damage(coord, Rule->AmmoCrateDamage, nullptr, Rule->C4Warhead, true);
-            for (int i = 0; i < Rule->BarrelDebris.Count(); i++) {
-                if (Percent_Chance(15)) {
-                    new VoxelAnimClass(Rule->BarrelDebris[i], coord);
-                }
-            }
-            if (Percent_Chance(25)) {
-                ParticleSystemClass* barrelps = new ParticleSystemClass(Rule->BarrelParticle, coord);
-                barrelps->Spawn_Held_Particle(coord, coord);
-            }
-
-            for (FacingType i = FACING_N; i < FACING_COUNT; i += 2) {
-                Coordinate adjacent = Adjacent_Coord_With_Height(coord, i);
-                if (Map[adjacent].Overlay != OVERLAY_NONE && OverlayTypeClass::As_Reference(Map[adjacent].Overlay).IsExplodes) {
-                    new AnimClass(AnimTypeClass::As_Pointer(AnimTypeClass::From_Name("FIRE3")), coord, Random_Pick(1, 3) + 3);
-                }
+        new AnimClass(Rule->BarrelExplode, coord);
+        Explosion_Damage(coord, Rule->AmmoCrateDamage, nullptr, Rule->C4Warhead, true);
+        for (int i = 0; i < Rule->BarrelDebris.Count(); i++) {
+            if (Percent_Chance(15)) {
+                new VoxelAnimClass(Rule->BarrelDebris[i], coord);
+                break;
             }
         }
-
-        if (strength > warhead->DeformThreshhold) {
-            const int chance = static_cast<double>(strength) * 0.01 * warhead->Deform * 100.0;
-            if (Percent_Chance(chance) && (!Map[coord].IsBridge) || coord.Z < BRIDGE_HEIGHT + Map.Get_Cell_Height(coord)) {
-                Map.Deform(Coord_Cell(coord), false);
-            }
+        if (Percent_Chance(25)) {
+            ParticleSystemClass* barrelps = new ParticleSystemClass(Rule->BarrelParticle, coord);
+            barrelps->Spawn_Held_Particle(coord, coord);
         }
 
-        if (cellptr->Is_Tile_Destroyable_Cliff()) {
-            if (Percent_Chance(Rule->CollapseChance)) {
-                Map.Collapse_Cliff(*cellptr);
+        for (FacingType i = FACING_N; i < FACING_COUNT; i += 2) {
+            Coordinate adjacent = Adjacent_Coord_With_Height(coord, i);
+            if (Map[adjacent].Overlay != OVERLAY_NONE && OverlayTypeClass::As_Reference(Map[adjacent].Overlay).IsExplodes) {
+                new AnimClass(AnimTypeClass::As_Pointer(AnimTypeClass::From_Name("FIRE3")), coord, Random_Pick(1, 3) + 3);
             }
         }
+    }
 
-        if (warhead->Particle) {
-            if (warhead->Particle->BehavesLike == BEHAVIOUR_SMOKE) {
-                MasterParticle->Spawn_Held_Particle(coord, coord);
-            }
-            else {
-                ParticleSystemClass* ps = new ParticleSystemClass(warhead->Particle, coord);
-                ps->Spawn_Held_Particle(coord, coord);
-            }
+    if (strength > warhead->DeformThreshhold) {
+        const int chance = static_cast<double>(strength) * 0.01 * warhead->Deform * 100.0;
+        if (Percent_Chance(chance) && Is_Not_On_Bridge(coord)) {
+            Map.Deform(Coord_Cell(coord), false);
         }
+    }
 
-        if ((warhead->IsWallDestroyer || warhead->IsFire) && (!Map[coord].IsBridge || coord.Z < BRIDGE_HEIGHT + Map.Get_Cell_Height(coord))) {
-            Map.field_DC.Clear();
-            if (Map.Crack_Ice(*cellptr, nullptr)) {
-                Map.Recalc_Ice();
-            }
+    if (cellptr->Is_Tile_Destroyable_Cliff()) {
+        if (Percent_Chance(Rule->CollapseChance)) {
+            Map.Collapse_Cliff(*cellptr);
+        }
+    }
+
+    if (warhead->Particle) {
+        if (warhead->Particle->BehavesLike == BEHAVIOUR_SMOKE) {
+            MasterParticle->Spawn_Held_Particle(coord, coord);
+        }
+        else {
+            ParticleSystemClass* ps = new ParticleSystemClass(warhead->Particle, coord);
+            ps->Spawn_Held_Particle(coord, coord);
+        }
+    }
+
+    if ((warhead->IsWallDestroyer || warhead->IsFire) && Is_Not_On_Bridge(coord)) {
+        Map.field_DC.Clear();
+        if (Map.Crack_Ice(*cellptr, nullptr)) {
+            Map.Recalc_Ice();
         }
     }
 }
@@ -679,4 +692,5 @@ void CombatExtension_Hooks()
     Patch_Jump(0x00460244, &_Explosion_Damage_IsIceDestruction_Patch);
     Patch_Jump(0x00460477, &_Do_Flash_CombatLightSize_Patch);
     Patch_Jump(0x0045EB60, &Vinifera_Modify_Damage);
+    Patch_Jump(0x0045EEB0, &Vinifera_Explosion_Damage);
 }
