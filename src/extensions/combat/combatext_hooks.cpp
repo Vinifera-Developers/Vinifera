@@ -399,7 +399,19 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
             }
         }
         if (optr->IsWall) {
-            if (warhead->IsWallDestroyer || (warhead->IsWoodDestroyer && optr->Armor == ARMOR_WOOD)) {
+
+            /**
+             *  #issue-410
+             *
+             *  Implements IsWallAbsoluteDestroyer for WarheadTypes.
+             *
+             *  @author: CCHyper
+             */
+            const auto warheadtypeext = Extension::Fetch<WarheadTypeClassExtension>(warhead);
+            if (warheadtypeext->IsWallAbsoluteDestroyer) {
+                Map[cell].Reduce_Wall(-1);
+            }
+            else if (warhead->IsWallDestroyer || (warhead->IsWoodDestroyer && optr->Armor == ARMOR_WOOD)) {
                 Map[cell].Reduce_Wall(strength);
             }
         }
@@ -512,7 +524,17 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
         }
     }
 
-    if ((warhead->IsWallDestroyer || warhead->IsFire) && Is_Not_On_Bridge(coord)) {
+    /**
+     *  #issue-897
+     *
+     *  Implements IsIceDestruction scenario option for preventing destruction of ice,
+     *  and IceStrength for configuring the chance for ice getting destroyed.
+     *
+     *  @author: Rampastring
+     */
+    if ((warhead->IsWallDestroyer || warhead->IsFire)
+        && (RuleExtension->IceStrength <= 0 || Random_Pick(0, RuleExtension->IceStrength) < strength)
+        && Is_Not_On_Bridge(coord)) {
         Map.field_DC.Clear();
         if (Map.Crack_Ice(*cellptr, nullptr)) {
             Map.Recalc_Ice();
@@ -530,92 +552,6 @@ static int Scale_Float_To_Int(float value, int scale)
 {
     value = std::clamp(value, 0.0f, 1.0f);
     return (value * scale);
-}
-
-
-/**
- *  #issue-410
- * 
- *  Implements IsWallAbsoluteDestroyer for WarheadTypes.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_Explosion_Damage_IsWallAbsoluteDestroyer_Patch)
-{
-    GET_REGISTER_STATIC(OverlayTypeClass *, overlay, esi);
-    GET_REGISTER_STATIC(const WarheadTypeClass *, warhead, ebx);
-    GET_REGISTER_STATIC(CellClass *, cellptr, edi);
-    GET_STACK_STATIC(int, strength, esp, 0x54);
-    static const WarheadTypeClassExtension *warheadtypeext;
-
-    /**
-     *  Check to make sure that the warhead is of the kind that can destroy walls.
-     */
-    if (overlay->IsWall) {
-
-        /**
-         *  Is this warhead capable of instantly destroying the wall regardless
-         *  of damage? If so, then pass -1 into Reduce_Wall to remove the wall
-         *  section from the cell.
-         */
-        warheadtypeext = Extension::Fetch<WarheadTypeClassExtension>(warhead);
-        if (warheadtypeext->IsWallAbsoluteDestroyer) {
-            cellptr->Reduce_Wall(-1);
-
-        /**
-         *  Original check.
-         */
-        } else if (warhead->IsWallDestroyer || warhead->IsWoodDestroyer || overlay->Armor == ARMOR_WOOD) {
-            cellptr->Reduce_Wall(strength);
-        }
-
-    }
-
-    JMP_REG(ecx, 0x0045FAD0);
-}
-
-
-/**
- *  #issue-897
- *
- *  Implements IsIceDestruction scenario option for preventing destruction of ice,
- *  and IceStrength for configuring the chance for ice getting destroyed.
- *
- *  @author: Rampastring
- */
-DECLARE_PATCH(_Explosion_Damage_IsIceDestruction_Patch)
-{
-    GET_REGISTER_STATIC(const WarheadTypeClass *, warhead, edi);
-    GET_STACK_STATIC(int, strength, esp, 0x54);
-
-    if (!ScenExtension->IsIceDestruction) {
-        goto no_ice_destruction;
-    }
-
-    /**
-     *  Stolen bytes/code here.
-     */
-    if (warhead->IsWallDestroyer || warhead->IsConventional) {
-
-        /**
-         *  Allow destroying ice if the strength of ice is 0 or the random number check allows it.
-         */
-        if (RuleExtension->IceStrength <= 0 || Random_Pick(0, RuleExtension->IceStrength) < strength) {
-            goto allow_ice_destruction;
-        }
-    }
-
-    /**
-     *  Don't allow destroying ice, continue execution after ice-destruction logic.
-     */
-no_ice_destruction:
-    JMP_REG(ecx, 0x004602DF);
-
-    /**
-     *  Allow destroying any potential ice on the cell.
-     */
-allow_ice_destruction:
-    JMP_REG(ecx, 0x0046025C);
 }
 
 
@@ -688,8 +624,6 @@ DECLARE_PATCH(_Do_Flash_CombatLightSize_Patch)
  */
 void CombatExtension_Hooks()
 {
-    Patch_Jump(0x0045FAA0, &_Explosion_Damage_IsWallAbsoluteDestroyer_Patch);
-    Patch_Jump(0x00460244, &_Explosion_Damage_IsIceDestruction_Patch);
     Patch_Jump(0x00460477, &_Do_Flash_CombatLightSize_Patch);
     Patch_Jump(0x0045EB60, &Vinifera_Modify_Damage);
     Patch_Jump(0x0045EEB0, &Vinifera_Explosion_Damage);
