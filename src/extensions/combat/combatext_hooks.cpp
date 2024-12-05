@@ -63,6 +63,7 @@
 #include "veinholemonster.h"
 #include "verses.h"
 #include "voxelanim.h"
+#include "jumpjetlocomotion.h"
 
 
 /**
@@ -261,7 +262,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
         for (int index = 0; index < Units.Count(); index++) {
             UnitClass* unit = Units[index];
 
-            if (unit->IsActive && unit->Class->IsJellyfish) {
+            if (unit->IsActive && (unit->Class->IsJellyfish || unit->Class->Locomotor == __uuidof(JumpjetLocomotionClass))) {
                 if (unit->IsDown && unit->Strength > 0) {
                     distance = Distance(coord, unit->Center_Coord());
                     if (distance < range) {
