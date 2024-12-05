@@ -28,6 +28,10 @@
 #include "tibsun_inline.h"
 #include "buildingext_hooks.h"
 #include "combatext_hooks.h"
+
+#include "aircraft.h"
+#include "anim.h"
+#include "animtype.h"
 #include "vinifera_globals.h"
 #include "combat.h"
 #include "cell.h"
@@ -40,11 +44,25 @@
 #include "extension.h"
 #include "fatal.h"
 #include "asserthandler.h"
+#include "building.h"
+#include "coord.h"
 #include "debughandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "infantry.h"
+#include "infantrytype.h"
+#include "mouse.h"
+#include "particlesys.h"
+#include "particlesystype.h"
+#include "tactical.h"
+#include "team.h"
+#include "teamtype.h"
+#include "unit.h"
+#include "unittype.h"
+#include "veinholemonster.h"
 #include "verses.h"
+#include "voxelanim.h"
 
 
 /**
@@ -113,6 +131,380 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ArmorType armo
 
     damage = std::min(damage, Rule->MaxDamage);
     return damage;
+}
+
+
+static bool Bridge_Helper1(CellClass& cellptr)
+{
+    if (cellptr.IsBridge) {
+        CellClass& bridge_owner = Map[cellptr.IsBridgeOwner ? cellptr.Pos : cellptr.BridgeOwner->Pos];
+        if (bridge_owner.Overlay == OVERLAY_BRIDGE1 || bridge_owner.Overlay == OVERLAY_BRIDGE2) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
+/***********************************************************************************************
+ * Explosion_Damage -- Inflict an explosion damage affect.                                     *
+ *                                                                                             *
+ *    Processes the collateral damage affects typically caused by an                           *
+ *    explosion.                                                                               *
+ *                                                                                             *
+ * INPUT:   coord    -- The coordinate of ground zero.                                         *
+ *                                                                                             *
+ *          strength -- Raw damage points at ground zero.                                      *
+ *                                                                                             *
+ *          source   -- Source of the explosion (who is responsible).                          *
+ *                                                                                             *
+ *          warhead  -- The kind of explosion to process.                                      *
+ *                                                                                             *
+ * OUTPUT:  none                                                                               *
+ *                                                                                             *
+ * WARNINGS:   This routine can consume some time and will affect the AI                       *
+ *             of nearby enemy units (possibly).                                               *
+ *                                                                                             *
+ * HISTORY:                                                                                    *
+ *   08/16/1991 JLB : Created.                                                                 *
+ *   11/30/1991 JLB : Uses coordinate system.                                                  *
+ *   12/27/1991 JLB : Radius of explosion damage effect.                                       *
+ *   04/13/1994 JLB : Streamlined.                                                             *
+ *   04/16/1994 JLB : Warhead damage type modifier.                                            *
+ *   04/17/1994 JLB : Cleaned up.                                                              *
+ *   06/20/1994 JLB : Uses object pointers to distribute damage.                               *
+ *   06/20/1994 JLB : Source is a pointer.                                                     *
+ *   06/18/1996 JLB : Strength could be negative for healing effects.                          *
+ *============================================================================================= */
+void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClass* source, const WarheadTypeClass* warhead, bool explode_tib)
+{
+    Cell cell;      // Cell number under explosion.
+    ObjectClass* object;      // Working object pointer.
+    DynamicVectorClass<ObjectClass*> objects;  // Maximum number of objects that can be damaged.
+    int distance;  // Distance to unit.
+    int range;    // Damage effect radius.
+    int range2;    // Damage effect radius.
+
+    if (Special.IsInert || !warhead) return;
+
+    if (!strength && !warhead->IsWebby) return;
+
+    range = CELL_LEPTON_W;
+    range2 = CELL_LEPTON_W + (CELL_LEPTON_W >> 1);
+    cell = Coord_Cell(coord);
+
+    CellClass* cellptr = &Map[cell];
+
+    /**
+     *  Fill the list of unit IDs that will have damage
+     *  assessed upon them. First pass over all objects that
+     *  could be in flight, because they are not present in cell data.
+     */
+    if (Map.Get_Cell_Height(Cell_Coord(cell)) < coord.Z) {
+
+        for (int index = 0; index < Aircrafts.Count(); index++) {
+            AircraftClass* aircraft = Aircrafts[index];
+
+            if (aircraft->IsActive) {
+                if (aircraft->IsDown && aircraft->Strength > 0) {
+                    distance = Distance(coord, aircraft->Center_Coord());
+                    if (distance < range) {
+                        objects.Add(aircraft);
+                    }
+                }
+            }
+        }
+
+        for (int index = 0; index < Infantry.Count(); index++) {
+            InfantryClass* infantry = Infantry[index];
+
+            if (infantry->IsActive && infantry->Class->IsJumpJet) {
+                if (infantry->IsDown && infantry->Strength > 0) {
+                    distance = Distance(coord, infantry->Center_Coord());
+                    if (distance < range) {
+                        objects.Add(infantry);
+                    }
+                }
+            }
+        }
+
+        for (int index = 0; index < Units.Count(); index++) {
+            UnitClass* unit = Units[index];
+
+            if (unit->IsActive && unit->Class->IsJellyfish) {
+                if (unit->IsDown && unit->Strength > 0) {
+                    distance = Distance(coord, unit->Center_Coord());
+                    if (distance < range) {
+                        objects.Add(unit);
+                    }
+                }
+            }
+        }
+    }
+
+    bool isbridge = cellptr->IsBridge && coord.Z > BRIDGE_HEIGHT / 2 + Map.Get_Cell_Height(coord);
+    ObjectClass* impacto = cellptr->Cell_Occupier(isbridge);
+
+    /**
+     *  Fill the list of unit IDs that will have damage
+     *  assessed upon them. The units can be lifted from
+     *  the cell data directly.
+     */
+    for (FacingType i = FACING_NONE; i < FACING_COUNT; i++) {
+
+        /**
+         *  Fetch a pointer to the cell to examine. This is either
+         *  an adjacent cell or the center cell. Damage never spills
+         *  further than one cell away.
+         */
+        if (i != FACING_NONE) {
+            cellptr = &Map[cell].Adjacent_Cell(i);
+        }
+
+        /**
+         *  Add all objects in this cell to the list of objects to possibly apply
+         *  damage to. Do not include overlapping objects; selection state can affect
+         *  the overlappers, and this causes multiplayer games to go out of sync.
+         */
+        object = cellptr->Cell_Occupier(isbridge);
+        while (object) {
+            if (object->Kind_Of() == RTTI_UNIT &&
+                Scen->SpecialFlags.IsHarvesterImmune &&
+                Rule->HarvesterUnit.Is_Present(static_cast<UnitTypeClass*>(object->Class_Of()))) {
+                continue;
+            }
+            objects.Add(object);
+            object = object->Next;
+        }
+
+        /**
+         *  If there is a veinhole monster, it may be destroyed.
+         */
+        if (cellptr->Overlay != OVERLAY_NONE) {
+            OverlayTypeClass const* optr = &OverlayTypeClass::As_Reference(cellptr->Overlay);
+
+            if (optr->IsVeinholeMonster) {
+                VeinholeMonsterClass* veinhole = VeinholeMonsterClass::Fetch_At(cell);
+                if (veinhole) {
+                    objects.Add(veinhole);
+                }
+            }
+        }
+    }
+
+    /**
+     *  Sweep through the units to be damaged and damage them. When damaging
+     *  buildings, consider a hit on any cell the building occupies as if it
+     *  were a direct hit on the building's center.
+     */
+    for (int index = 0; index < objects.Count(); index++) {
+        object = objects[index];
+
+        object->IsToDamage = false;
+        if (object->IsActive && !(object->Kind_Of() == RTTI_BUILDING && reinterpret_cast<BuildingClass*>(object)->Class->IsInvisibleInGame)) {
+            if (object->Kind_Of() == RTTI_BUILDING && impacto == object) {
+                distance = 0;
+            }
+            else {
+                distance = Distance_Level_Snap(coord, object->Target_Coord());
+                if (object->Kind_Of() == RTTI_AIRCRAFT) {
+                    distance /= 2;
+                }
+            }
+            if (object->Strength > 0 && object->IsDown && !object->IsInLimbo && distance < range2) {
+                int damage = strength;
+                if (warhead == Rule->IonStormWarhead &&
+                    object->Is_Foot() &&
+                    static_cast<FootClass*>(object)->Team &&
+                    !static_cast<FootClass*>(object)->Team->Class->IsIonImmune) {
+                    continue;
+                }
+                object->Take_Damage(damage, distance, warhead, source);
+            }
+        }
+    }
+
+    double rockerval = std::min(strength * 0.01, 4.0);
+    if (warhead->IsRocker) {
+        if (rockerval > 0.3) {
+            const int cell_radius = 3;
+            for (int x = -cell_radius; x <= cell_radius; x++) {
+                for (int y = -cell_radius; y <= cell_radius; y++) {
+                    int xpos = cell.X + x;
+                    int ypos = cell.Y + y;
+
+                    object = Map[Cell(xpos, ypos)].Cell_Occupier(isbridge);
+                    while (object) {
+                        TechnoClass* techno = object->As_Techno();
+                        if (techno) {
+                            if (xpos == cell.X && ypos == cell.Y && source) {
+                                Coordinate rockercoord = (source->Get_Coord() - techno->Get_Coord());
+                                TPoint3D<float> rockervec = TPoint3D<float>(rockercoord.X, rockercoord.Y, rockercoord.Z).Normalized() * 10.0f;
+                                techno->Rock(Coordinate(rockervec.X, rockervec.Y, rockervec.Z), rockerval);
+                            }
+                            else {
+                                techno->Rock(coord, rockerval);
+                            }
+                        }
+                        object = object->Next;
+                    }
+                }
+            }
+
+        }
+    }
+
+    /**
+     *  If there is a wall present at this location, it may be destroyed. Check to
+     *  make sure that the warhead is of the kind that can destroy walls.
+     */
+    cellptr = &Map[cell];
+    if (cellptr->Overlay != OVERLAY_NONE) {
+        OverlayTypeClass const* optr = &OverlayTypeClass::As_Reference(cellptr->Overlay);
+
+        if (optr->IsChainReaction) {
+            if ((!optr->IsTiberium || warhead->IsTiberiumDestroyer) && explode_tib) {
+                Chain_Reaction_Damage(cell);
+                cellptr->Reduce_Tiberium(strength / 10);
+            }
+        }
+        if (optr->IsWall) {
+            if (warhead->IsWallDestroyer || (warhead->IsWoodDestroyer && optr->Armor == ARMOR_WOOD)) {
+                Map[cell].Reduce_Wall(strength);
+            }
+        }
+        if (cellptr->Overlay == OVERLAY_NONE) {
+            TechnoClass::Update_Mission_Targets(cellptr);
+        }
+    }
+
+    bool remove_overlay = true;
+    if (Scen->SpecialFlags.IsDestroyableBridges && warhead->IsWallDestroyer) {
+
+        if (Bridge_Helper1(*cellptr))
+        {
+            
+        }
+        else
+        {
+            IsometricTileType ttype = cellptr->Tile - BridgeSet + 1;
+            if (ttype == BridgeMiddle1 + 0 || ttype == BridgeMiddle1 + 1 ||
+                ttype == BridgeMiddle1 + 2 || ttype == BridgeMiddle1 + 3 ||
+                ttype == BridgeMiddle2 + 0 || ttype == BridgeMiddle2 + 1 ||
+                ttype == BridgeMiddle2 + 2 || ttype == BridgeMiddle2 + 3) {
+
+                if (!cellptr->IsBridge || (coord.Z <= BRIDGE_HEIGHT + CELL_HEIGHT(cellptr->Level + 1)) && coord.Z > BRIDGE_HEIGHT + CELL_HEIGHT(cellptr->Level - 2))
+                {
+                    if ((warhead->IsWallDestroyer && (warhead == Rule->IonCannonWarhead || Random_Pick(1, Rule->BridgeStrength) < strength))) {
+                        for (int i = 0; i < (warhead == Rule->IonCannonWarhead ? 4 : 1); i++) {
+                            if (Map.Destroy_Bridge_At(cell)) {
+                                TechnoClass::Update_Mission_Targets(cellptr);
+                                break;
+                            }
+                        }
+                        Point2D point;
+                        TacticalMap->Coord_To_Pixel(coord, point);
+                        TacticalMap->Register_Dirty_Area(Rect(point.X - 128, point.Y - 128, 256, 256), false);
+                    }
+                }
+
+                
+            }
+        }
+
+        //if (cellptr->IsBridge)
+        //{
+        //    CellClass& bridge_owner = Map[cellptr->IsBridgeOwner ? cellptr->Pos : cellptr->BridgeOwner->Pos];
+        //    if (bridge_owner.Overlay == OVERLAY_BRIDGE1 || bridge_owner.Overlay == OVERLAY_BRIDGE2)
+
+        //    if (!cellptr->IsBridgeOwner)
+        //}
+
+        ///**
+        // *  If there is a bridge at this location, then it may be destroyed by the
+        // *  combat damage.
+        // */
+        //if (cellptr->TType == TEMPLATE_BRIDGE1 || cellptr->TType == TEMPLATE_BRIDGE2 ||
+        //    cellptr->TType == TEMPLATE_BRIDGE1H || cellptr->TType == TEMPLATE_BRIDGE2H ||
+        //    cellptr->TType == TEMPLATE_BRIDGE_1A || cellptr->TType == TEMPLATE_BRIDGE_1B ||
+        //    cellptr->TType == TEMPLATE_BRIDGE_2A || cellptr->TType == TEMPLATE_BRIDGE_2B ||
+        //    cellptr->TType == TEMPLATE_BRIDGE_3A || cellptr->TType == TEMPLATE_BRIDGE_3B) {
+
+        //    if ((warhead->IsWallDestroyer && (warhead == Rule->IonCannonWarhead || Random_Pick(1, Rule->BridgeStrength) < strength))) {
+        //        for (int i = 0; i < (warhead == Rule->IonCannonWarhead ? 4 : 1); i++) {
+        //            if (Map.Destroy_Bridge_At(cell)) {
+        //                TechnoClass::Update_Mission_Targets(cellptr);
+        //                break;
+        //            }
+        //        }
+        //        Point2D point;
+        //        TacticalMap->Coord_To_Pixel(coord, point);
+        //        TacticalMap->Register_Dirty_Area(Rect(point.X - 128, point.Y - 128, 256, 256), false);
+        //    }
+        //}
+
+    }
+
+    if (remove_overlay) {
+        if (cellptr->Overlay != OVERLAY_NONE && OverlayTypeClass::As_Reference(cellptr->Overlay).IsExplodes) {
+            cellptr->Redraw_Overlay();
+            cellptr->Overlay = OVERLAY_NONE;
+            cellptr->Recalc_Attributes();
+            Map.Update_Cell_Zone(cellptr->Pos);
+            Map.Update_Cell_Subzones(cellptr->Pos);
+            TechnoClass::Update_Mission_Targets(cellptr);
+
+            new AnimClass(Rule->BarrelExplode, coord);
+            Explosion_Damage(coord, Rule->AmmoCrateDamage, nullptr, Rule->C4Warhead, true);
+            for (int i = 0; i < Rule->BarrelDebris.Count(); i++) {
+                if (Percent_Chance(15)) {
+                    new VoxelAnimClass(Rule->BarrelDebris[i], coord);
+                }
+            }
+            if (Percent_Chance(25)) {
+                ParticleSystemClass* barrelps = new ParticleSystemClass(Rule->BarrelParticle, coord);
+                barrelps->Spawn_Held_Particle(coord, coord);
+            }
+
+            for (FacingType i = FACING_N; i < FACING_COUNT; i += 2) {
+                Coordinate adjacent = Adjacent_Coord_With_Height(coord, i);
+                if (Map[adjacent].Overlay != OVERLAY_NONE && OverlayTypeClass::As_Reference(Map[adjacent].Overlay).IsExplodes) {
+                    new AnimClass(AnimTypeClass::As_Pointer(AnimTypeClass::From_Name("FIRE3")), coord, Random_Pick(1, 3) + 3);
+                }
+            }
+        }
+
+        if (strength > warhead->DeformThreshhold) {
+            const int chance = static_cast<double>(strength) * 0.01 * warhead->Deform * 100.0;
+            if (Percent_Chance(chance) && (!Map[coord].IsBridge) || coord.Z < BRIDGE_HEIGHT + Map.Get_Cell_Height(coord)) {
+                Map.Deform(Coord_Cell(coord), false);
+            }
+        }
+
+        if (cellptr->Is_Tile_Destroyable_Cliff()) {
+            if (Percent_Chance(Rule->CollapseChance)) {
+                Map.Collapse_Cliff(*cellptr);
+            }
+        }
+
+        if (warhead->Particle) {
+            if (warhead->Particle->BehavesLike == BEHAVIOUR_SMOKE) {
+                MasterParticle->Spawn_Held_Particle(coord, coord);
+            }
+            else {
+                ParticleSystemClass* ps = new ParticleSystemClass(warhead->Particle, coord);
+                ps->Spawn_Held_Particle(coord, coord);
+            }
+        }
+
+        if ((warhead->IsWallDestroyer || warhead->IsFire) && (!Map[coord].IsBridge || coord.Z < BRIDGE_HEIGHT + Map.Get_Cell_Height(coord))) {
+            Map.field_DC.Clear();
+            if (Map.Crack_Ice(*cellptr, nullptr)) {
+                Map.Recalc_Ice();
+            }
+        }
+    }
 }
 
 
