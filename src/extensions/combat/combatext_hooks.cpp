@@ -144,9 +144,9 @@ static CellClass* Get_Bridge_Owner(CellClass& cellptr)
 }
 
 
-static bool Is_Bridge_Height(CellClass& cellptr, const Coordinate& coord)
+static bool Is_Bridge_Level(CellClass& cellptr, const Coordinate& coord)
 {
-    return cellptr.IsBridge && (coord.Z > BRIDGE_HEIGHT + CELL_HEIGHT(cellptr.Level + 1)) && (coord.Z <= BRIDGE_HEIGHT + CELL_HEIGHT(cellptr.Level - 2));
+    return !cellptr.IsBridge || coord.Z > BRIDGE_HEIGHT + CELL_HEIGHT(cellptr.Level - 2) && coord.Z <= BRIDGE_HEIGHT + CELL_HEIGHT(cellptr.Level + 1);
 }
 
 
@@ -206,7 +206,7 @@ static bool Is_Not_On_Bridge(const Coordinate& coord)
  *   06/20/1994 JLB : Source is a pointer.                                                     *
  *   06/18/1996 JLB : Strength could be negative for healing effects.                          *
  *============================================================================================= */
-void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClass* source, const WarheadTypeClass* warhead, bool explode_tib)
+void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClass* source, const WarheadTypeClass* warhead, bool do_chain_reaction)
 {
     Cell cell;      // Cell number under explosion.
     ObjectClass* object;      // Working object pointer.
@@ -272,8 +272,8 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
         }
     }
 
-    bool isbridge = cellptr->IsBridge && coord.Z > BRIDGE_HEIGHT / 2 + Map.Get_Cell_Height(coord);
-    ObjectClass* impacto = cellptr->Cell_Occupier(isbridge);
+    const bool isaltoccupier = cellptr->IsBridge && coord.Z > BRIDGE_HEIGHT / 2 + Map.Get_Cell_Height(coord);
+    ObjectClass* impacto = cellptr->Cell_Occupier(isaltoccupier);
 
     /**
      *  Fill the list of unit IDs that will have damage
@@ -296,7 +296,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
          *  damage to. Do not include overlapping objects; selection state can affect
          *  the overlappers, and this causes multiplayer games to go out of sync.
          */
-        object = cellptr->Cell_Occupier(isbridge);
+        object = cellptr->Cell_Occupier(isaltoccupier);
         while (object) {
             if (object->Kind_Of() == RTTI_UNIT &&
                 Scen->SpecialFlags.IsHarvesterImmune &&
@@ -354,7 +354,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
         }
     }
 
-    double rockerval = std::min(strength * 0.01, 4.0);
+    const double rockerval = std::min(strength * 0.01, 4.0);
     if (warhead->IsRocker) {
         if (rockerval > 0.3) {
             const int cell_radius = 3;
@@ -363,7 +363,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
                     int xpos = cell.X + x;
                     int ypos = cell.Y + y;
 
-                    object = Map[Cell(xpos, ypos)].Cell_Occupier(isbridge);
+                    object = Map[Cell(xpos, ypos)].Cell_Occupier(isaltoccupier);
                     while (object) {
                         TechnoClass* techno = object->As_Techno();
                         if (techno) {
@@ -393,7 +393,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
         OverlayTypeClass const* optr = &OverlayTypeClass::As_Reference(cellptr->Overlay);
 
         if (optr->IsChainReaction) {
-            if ((!optr->IsTiberium || warhead->IsTiberiumDestroyer) && explode_tib) {
+            if (!(optr->IsTiberium && !warhead->IsTiberiumDestroyer) && do_chain_reaction) {
                 Chain_Reaction_Damage(cell);
                 cellptr->Reduce_Tiberium(strength / 10);
             }
@@ -429,8 +429,8 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
 
         if (bridge_owner_cell && bridge_owner_cell->Is_Overlay_Bridge()
             || Is_Tile_Bridge_Middle(cellptr->Tile)) {
-            if (!Is_Bridge_Height(*cellptr, coord)) {
-                if ((warhead->IsWallDestroyer && (warhead == Rule->IonCannonWarhead || Random_Pick(1, Rule->BridgeStrength) < strength))) {
+            if (Is_Bridge_Level(*cellptr, coord)) {
+                if (warhead->IsWallDestroyer && (warhead == Rule->IonCannonWarhead || Random_Pick(1, Rule->BridgeStrength) < strength)) {
                     for (int i = 0; i < (warhead == Rule->IonCannonWarhead ? 4 : 1); i++) {
                         if (Map.Destroy_Bridge_At(cell)) {
                             TechnoClass::Update_Mission_Targets(cellptr);
@@ -446,8 +446,8 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
 
         if (bridge_owner_cell && bridge_owner_cell->Is_Overlay_Rail_Bridge()
             || Is_Tile_Train_Bridge_Middle(cellptr->Tile)) {
-            if (!Is_Bridge_Height(*cellptr, coord)) {
-                if ((warhead->IsWallDestroyer && (warhead == Rule->IonCannonWarhead || Random_Pick(1, Rule->BridgeStrength) < strength))) {
+            if (Is_Bridge_Level(*cellptr, coord)) {
+                if (warhead->IsWallDestroyer && (warhead == Rule->IonCannonWarhead || Random_Pick(1, Rule->BridgeStrength) < strength)) {
                     for (int i = 0; i < (warhead == Rule->IonCannonWarhead ? 4 : 1); i++) {
                         if (Map.Destroy_Bridge_At(cell)) {
                             TechnoClass::Update_Mission_Targets(cellptr);
@@ -463,7 +463,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
 
         if (cellptr->Is_Overlay_Low_Bridge()) {
             if (warhead == Rule->IonCannonWarhead || Random_Pick(1, Rule->BridgeStrength) < strength) {
-                bool destroyed = Map.Destroy_Low_Bridge_At(cell);
+                const bool destroyed = Map.Destroy_Low_Bridge_At(cell);
                 Map.Destroy_Low_Bridge_At(cell);
                 if (destroyed) {
                     TechnoClass::Update_Mission_Targets(cellptr);
@@ -489,8 +489,8 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
             }
         }
         if (Percent_Chance(25)) {
-            ParticleSystemClass* barrelps = new ParticleSystemClass(Rule->BarrelParticle, coord);
-            barrelps->Spawn_Held_Particle(coord, coord);
+            ParticleSystemClass* ps = new ParticleSystemClass(Rule->BarrelParticle, coord);
+            ps->Spawn_Held_Particle(coord, coord);
         }
 
         for (FacingType i = FACING_N; i < FACING_COUNT; i += 2) {
