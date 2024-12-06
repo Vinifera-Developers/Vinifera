@@ -338,7 +338,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
             }
             else {
                 distance = Distance_Level_Snap(coord, object->Target_Coord());
-                if (object->Kind_Of() == RTTI_AIRCRAFT) {
+                if (object->Kind_Of() == RTTI_AIRCRAFT && object->In_Air()) {
                     distance /= 2;
                 }
             }
