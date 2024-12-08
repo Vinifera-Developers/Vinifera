@@ -205,7 +205,7 @@ void ObjectTypeClassExtension::Fetch_Voxel_Image(const char* graphic_name)
     if (WaterAlt)
     {
         std::snprintf(buffer, sizeof(buffer), "%sW", graphic_name);
-        NoSpawnVoxel.Load(WaterVoxelIndex, buffer);
+        WaterVoxel.Load(WaterVoxelIndex, buffer);
     }
 }
 
