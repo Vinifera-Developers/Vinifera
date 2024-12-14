@@ -208,4 +208,5 @@ This page lists all the individual contributions to the project by their author.
   - Allow turning off "sticky" technologies.
   - Allow disabling the ActLike check on construction yards to allow for faction-specific MCVs.
   - Finalize the feature for animations to spawn additional animations.
+  - VehicleTypes with Jumpjet locomotion now take damage in flight.
 
