@@ -63,3 +63,4 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where units could gain veterancy by killing allies.
 - Fix a bug where AI players would send teams to attack their allies.
 - `[CombatDamage]->MinDamage` now works as expected and damage is no long always a minimum of `1`.
+- VehicleTypes with Jumpjet locomotion now take damage in flight.

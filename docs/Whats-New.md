@@ -231,6 +231,7 @@ Vanilla fixes:
 - Fix a bug where units could gain veterancy by killing allies (by ZivDero)
 - Fix a bug where AI players would send teams to attack their allies (by ZivDero)
 - `[CombatDamage]->MinDamage` now works as expected and damage is no long always a minimum of `1` (by ZivDero)
+- VehicleTypes with Jumpjet locomotion now take damage in flight (by ZivDero)
 
 </details>
 

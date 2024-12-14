@@ -28,6 +28,10 @@
 #include "tibsun_inline.h"
 #include "buildingext_hooks.h"
 #include "combatext_hooks.h"
+
+#include "aircraft.h"
+#include "anim.h"
+#include "animtype.h"
 #include "vinifera_globals.h"
 #include "combat.h"
 #include "cell.h"
@@ -40,11 +44,26 @@
 #include "extension.h"
 #include "fatal.h"
 #include "asserthandler.h"
+#include "building.h"
+#include "coord.h"
 #include "debughandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "infantry.h"
+#include "infantrytype.h"
+#include "mouse.h"
+#include "particlesys.h"
+#include "particlesystype.h"
+#include "tactical.h"
+#include "team.h"
+#include "teamtype.h"
+#include "unit.h"
+#include "unittype.h"
+#include "veinholemonster.h"
 #include "verses.h"
+#include "voxelanim.h"
+#include "jumpjetlocomotion.h"
 
 
 /**
@@ -116,6 +135,369 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ArmorType armo
 }
 
 
+static bool Is_Bridge_Level(CellClass& cellptr, const Coordinate& coord)
+{
+    return !cellptr.IsBridge || coord.Z > BRIDGE_HEIGHT + CELL_HEIGHT(cellptr.Level - 2) && coord.Z <= BRIDGE_HEIGHT + CELL_HEIGHT(cellptr.Level + 1);
+}
+
+
+static bool Is_Not_On_Bridge(const Coordinate& coord)
+{
+    return !Map[coord].IsBridge || coord.Z < BRIDGE_HEIGHT + Map.Get_Cell_Height(coord);
+}
+
+
+/**
+ *  Inflict an explosion damage affect.
+ *
+ *  @author: 08/16/1991 JLB : Created.                                       
+ *           11/30/1991 JLB : Uses coordinate system.                        
+ *           12/27/1991 JLB : Radius of explosion damage effect.             
+ *           04/13/1994 JLB : Streamlined.                                   
+ *           04/16/1994 JLB : Warhead damage type modifier.                  
+ *           04/17/1994 JLB : Cleaned up.                                    
+ *           06/20/1994 JLB : Uses object pointers to distribute damage.     
+ *           06/20/1994 JLB : Source is a pointer.                           
+ *           06/18/1996 JLB : Strength could be negative for healing effects.
+ *           12/14/2024 ZivDero : Adjustments for Tiberian Sun
+ */
+void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClass* source, const WarheadTypeClass* warhead, bool do_chain_reaction)
+{
+    Cell cell;      // Cell number under explosion.
+    ObjectClass* object;      // Working object pointer.
+    DynamicVectorClass<ObjectClass*> objects;  // Maximum number of objects that can be damaged.
+    int distance;  // Distance to unit.
+    int range;    // Damage effect radius.
+    int range2;    // Damage effect radius.
+
+    if (Special.IsInert || !warhead) return;
+
+    if (!strength && !warhead->IsWebby) return;
+
+    range = CELL_LEPTON_W;
+    range2 = CELL_LEPTON_W + (CELL_LEPTON_W >> 1);
+    cell = Coord_Cell(coord);
+
+    CellClass* cellptr = &Map[cell];
+
+    /**
+     *  Fill the list of unit IDs that will have damage
+     *  assessed upon them. First pass over all objects that
+     *  could be in flight, because they are not present in cell data.
+     */
+    if (Map.Get_Cell_Height(Cell_Coord(cell)) < coord.Z) {
+
+        for (int index = 0; index < Aircrafts.Count(); index++) {
+            AircraftClass* aircraft = Aircrafts[index];
+
+            if (aircraft->IsActive) {
+                if (aircraft->IsDown && aircraft->Strength > 0) {
+                    distance = Distance(coord, aircraft->Center_Coord());
+                    if (distance < range) {
+                        objects.Add(aircraft);
+                    }
+                }
+            }
+        }
+
+        for (int index = 0; index < Infantry.Count(); index++) {
+            InfantryClass* infantry = Infantry[index];
+
+            if (infantry->IsActive && infantry->Class->IsJumpJet) {
+                if (infantry->IsDown && infantry->Strength > 0) {
+                    distance = Distance(coord, infantry->Center_Coord());
+                    if (distance < range) {
+                        objects.Add(infantry);
+                    }
+                }
+            }
+        }
+
+        for (int index = 0; index < Units.Count(); index++) {
+            UnitClass* unit = Units[index];
+
+            if (unit->IsActive && (unit->Class->IsJellyfish || unit->Class->Locomotor == __uuidof(JumpjetLocomotionClass))) {
+                if (unit->IsDown && unit->Strength > 0) {
+                    distance = Distance(coord, unit->Center_Coord());
+                    if (distance < range) {
+                        objects.Add(unit);
+                    }
+                }
+            }
+        }
+    }
+
+    const bool isaltoccupier = cellptr->IsBridge && coord.Z > BRIDGE_HEIGHT / 2 + Map.Get_Cell_Height(coord);
+    ObjectClass* impacto = cellptr->Cell_Occupier(isaltoccupier);
+
+    /**
+     *  Fill the list of unit IDs that will have damage
+     *  assessed upon them. The units can be lifted from
+     *  the cell data directly.
+     */
+    for (FacingType i = FACING_NONE; i < FACING_COUNT; i++) {
+
+        /**
+         *  Fetch a pointer to the cell to examine. This is either
+         *  an adjacent cell or the center cell. Damage never spills
+         *  further than one cell away.
+         */
+        if (i != FACING_NONE) {
+            cellptr = &Map[cell].Adjacent_Cell(i);
+        }
+
+        /**
+         *  Add all objects in this cell to the list of objects to possibly apply
+         *  damage to. Do not include overlapping objects; selection state can affect
+         *  the overlappers, and this causes multiplayer games to go out of sync.
+         */
+        object = cellptr->Cell_Occupier(isaltoccupier);
+        while (object) {
+            if (object->Kind_Of() == RTTI_UNIT &&
+                Scen->SpecialFlags.IsHarvesterImmune &&
+                Rule->HarvesterUnit.Is_Present(static_cast<UnitTypeClass*>(object->Class_Of()))) {
+                continue;
+            }
+            objects.Add(object);
+            object = object->Next;
+        }
+
+        /**
+         *  If there is a veinhole monster, it may be destroyed.
+         */
+        if (cellptr->Overlay != OVERLAY_NONE) {
+            OverlayTypeClass const* optr = &OverlayTypeClass::As_Reference(cellptr->Overlay);
+
+            if (optr->IsVeinholeMonster) {
+                VeinholeMonsterClass* veinhole = VeinholeMonsterClass::Fetch_At(cell);
+                if (veinhole) {
+                    objects.Add(veinhole);
+                }
+            }
+        }
+    }
+
+    /**
+     *  Sweep through the units to be damaged and damage them. When damaging
+     *  buildings, consider a hit on any cell the building occupies as if it
+     *  were a direct hit on the building's center.
+     */
+    for (int index = 0; index < objects.Count(); index++) {
+        object = objects[index];
+
+        object->IsToDamage = false;
+        if (object->IsActive && !(object->Kind_Of() == RTTI_BUILDING && reinterpret_cast<BuildingClass*>(object)->Class->IsInvisibleInGame)) {
+            if (object->Kind_Of() == RTTI_BUILDING && impacto == object) {
+                distance = 0;
+            }
+            else {
+                distance = Distance_Level_Snap(coord, object->Target_Coord());
+                if (object->Kind_Of() == RTTI_AIRCRAFT && object->In_Air()) {
+                    distance /= 2;
+                }
+            }
+            if (object->Strength > 0 && object->IsDown && !object->IsInLimbo && distance < range2) {
+                int damage = strength;
+                if (warhead == Rule->IonStormWarhead &&
+                    object->Is_Foot() &&
+                    static_cast<FootClass*>(object)->Team &&
+                    !static_cast<FootClass*>(object)->Team->Class->IsIonImmune) {
+                    continue;
+                }
+                object->Take_Damage(damage, distance, warhead, source);
+            }
+        }
+    }
+
+    const double rockerval = std::min(strength * 0.01, 4.0);
+    if (warhead->IsRocker) {
+        if (rockerval > 0.3) {
+            const int cell_radius = 3;
+            for (int x = -cell_radius; x <= cell_radius; x++) {
+                for (int y = -cell_radius; y <= cell_radius; y++) {
+                    int xpos = cell.X + x;
+                    int ypos = cell.Y + y;
+
+                    object = Map[Cell(xpos, ypos)].Cell_Occupier(isaltoccupier);
+                    while (object) {
+                        TechnoClass* techno = object->As_Techno();
+                        if (techno) {
+                            if (xpos == cell.X && ypos == cell.Y && source) {
+                                Coordinate rockercoord = (source->Get_Coord() - techno->Get_Coord());
+                                TPoint3D<float> rockervec = TPoint3D<float>(rockercoord.X, rockercoord.Y, rockercoord.Z).Normalized() * 10.0f;
+                                techno->Rock(Coordinate(rockervec.X, rockervec.Y, rockervec.Z), rockerval);
+                            }
+                            else {
+                                techno->Rock(coord, rockerval);
+                            }
+                        }
+                        object = object->Next;
+                    }
+                }
+            }
+
+        }
+    }
+
+    /**
+     *  If there is a wall present at this location, it may be destroyed. Check to
+     *  make sure that the warhead is of the kind that can destroy walls.
+     */
+    cellptr = &Map[cell];
+    if (cellptr->Overlay != OVERLAY_NONE) {
+        OverlayTypeClass const* optr = &OverlayTypeClass::As_Reference(cellptr->Overlay);
+
+        if (optr->IsChainReaction) {
+            if (!(optr->IsTiberium && !warhead->IsTiberiumDestroyer) && do_chain_reaction) {
+                Chain_Reaction_Damage(cell);
+                cellptr->Reduce_Tiberium(strength / 10);
+            }
+        }
+        if (optr->IsWall) {
+
+            /**
+             *  #issue-410
+             *
+             *  Implements IsWallAbsoluteDestroyer for WarheadTypes.
+             *
+             *  @author: CCHyper
+             */
+            const auto warheadtypeext = Extension::Fetch<WarheadTypeClassExtension>(warhead);
+            if (warheadtypeext->IsWallAbsoluteDestroyer) {
+                Map[cell].Reduce_Wall(-1);
+            }
+            else if (warhead->IsWallDestroyer || (warhead->IsWoodDestroyer && optr->Armor == ARMOR_WOOD)) {
+                Map[cell].Reduce_Wall(strength);
+            }
+        }
+        if (cellptr->Overlay == OVERLAY_NONE) {
+            TechnoClass::Update_Mission_Targets(cellptr);
+        }
+    }
+
+    /**
+     *  If there is a bridge at this location, then it may be destroyed by the
+     *  combat damage.
+     */
+    if (Scen->SpecialFlags.IsDestroyableBridges && warhead->IsWallDestroyer) {
+        const CellClass* bridge_owner_cell = cellptr->Get_Bridge_Owner();
+
+        if (bridge_owner_cell && bridge_owner_cell->Is_Overlay_Bridge()
+            || cellptr->Is_Tile_Bridge_Middle()) {
+            if (Is_Bridge_Level(*cellptr, coord)) {
+                if (warhead->IsWallDestroyer && (warhead == Rule->IonCannonWarhead || Random_Pick(1, Rule->BridgeStrength) < strength)) {
+                    for (int i = 0; i < (warhead == Rule->IonCannonWarhead ? 4 : 1); i++) {
+                        if (Map.Destroy_Bridge_At(cell)) {
+                            TechnoClass::Update_Mission_Targets(cellptr);
+                            break;
+                        }
+                    }
+                    Point2D point;
+                    TacticalMap->Coord_To_Pixel(coord, point);
+                    TacticalMap->Register_Dirty_Area(Rect(point.X - 128, point.Y - 128, 256, 256), false);
+                }
+            }
+        }
+
+        if (bridge_owner_cell && bridge_owner_cell->Is_Overlay_Rail_Bridge()
+            || cellptr->Is_Tile_Train_Bridge_Middle()) {
+            if (Is_Bridge_Level(*cellptr, coord)) {
+                if (warhead->IsWallDestroyer && (warhead == Rule->IonCannonWarhead || Random_Pick(1, Rule->BridgeStrength) < strength)) {
+                    for (int i = 0; i < (warhead == Rule->IonCannonWarhead ? 4 : 1); i++) {
+                        if (Map.Destroy_Bridge_At(cell)) {
+                            TechnoClass::Update_Mission_Targets(cellptr);
+                            break;
+                        }
+                    }
+                    Point2D point;
+                    TacticalMap->Coord_To_Pixel(coord, point);
+                    TacticalMap->Register_Dirty_Area(Rect(point.X - 96, point.Y - 96, 192, 192), false);
+                }
+            }
+        }
+
+        if (cellptr->Is_Overlay_Low_Bridge()) {
+            if (warhead == Rule->IonCannonWarhead || Random_Pick(1, Rule->BridgeStrength) < strength) {
+                const bool destroyed = Map.Destroy_Low_Bridge_At(cell);
+                Map.Destroy_Low_Bridge_At(cell);
+                if (destroyed) {
+                    TechnoClass::Update_Mission_Targets(cellptr);
+                }
+            }
+        }
+    }
+
+    if (cellptr->Overlay != OVERLAY_NONE && OverlayTypeClass::As_Reference(cellptr->Overlay).IsExplodes) {
+        cellptr->Redraw_Overlay();
+        cellptr->Overlay = OVERLAY_NONE;
+        cellptr->Recalc_Attributes();
+        Map.Update_Cell_Zone(cellptr->Pos);
+        Map.Update_Cell_Subzones(cellptr->Pos);
+        TechnoClass::Update_Mission_Targets(cellptr);
+
+        new AnimClass(Rule->BarrelExplode, coord);
+        Explosion_Damage(coord, Rule->AmmoCrateDamage, nullptr, Rule->C4Warhead, true);
+        for (int i = 0; i < Rule->BarrelDebris.Count(); i++) {
+            if (Percent_Chance(15)) {
+                new VoxelAnimClass(Rule->BarrelDebris[i], coord);
+                break;
+            }
+        }
+        if (Percent_Chance(25)) {
+            ParticleSystemClass* ps = new ParticleSystemClass(Rule->BarrelParticle, coord);
+            ps->Spawn_Held_Particle(coord, coord);
+        }
+
+        for (FacingType i = FACING_N; i < FACING_COUNT; i += 2) {
+            Coordinate adjacent = Adjacent_Coord_With_Height(coord, i);
+            if (Map[adjacent].Overlay != OVERLAY_NONE && OverlayTypeClass::As_Reference(Map[adjacent].Overlay).IsExplodes) {
+                new AnimClass(AnimTypeClass::As_Pointer(AnimTypeClass::From_Name("FIRE3")), coord, Random_Pick(1, 3) + 3);
+            }
+        }
+    }
+
+    if (strength > warhead->DeformThreshhold) {
+        const int chance = static_cast<double>(strength) * 0.01 * warhead->Deform * 100.0;
+        if (Percent_Chance(chance) && Is_Not_On_Bridge(coord)) {
+            Map.Deform(Coord_Cell(coord), false);
+        }
+    }
+
+    if (cellptr->Is_Tile_Destroyable_Cliff()) {
+        if (Percent_Chance(Rule->CollapseChance)) {
+            Map.Collapse_Cliff(*cellptr);
+        }
+    }
+
+    if (warhead->Particle) {
+        if (warhead->Particle->BehavesLike == BEHAVIOUR_SMOKE) {
+            MasterParticle->Spawn_Held_Particle(coord, coord);
+        }
+        else {
+            ParticleSystemClass* ps = new ParticleSystemClass(warhead->Particle, coord);
+            ps->Spawn_Held_Particle(coord, coord);
+        }
+    }
+
+    /**
+     *  #issue-897
+     *
+     *  Implements IsIceDestruction scenario option for preventing destruction of ice,
+     *  and IceStrength for configuring the chance for ice getting destroyed.
+     *
+     *  @author: Rampastring
+     */
+    if ((warhead->IsWallDestroyer || warhead->IsFire)
+        && (RuleExtension->IceStrength <= 0 || Random_Pick(0, RuleExtension->IceStrength) < strength)
+        && Is_Not_On_Bridge(coord)) {
+        Map.field_DC.Clear();
+        if (Map.Crack_Ice(*cellptr, nullptr)) {
+            Map.Recalc_Ice();
+        }
+    }
+}
+
+
 /**
  *  convert a float to integer with the desired scale.
  * 
@@ -125,92 +507,6 @@ static int Scale_Float_To_Int(float value, int scale)
 {
     value = std::clamp(value, 0.0f, 1.0f);
     return (value * scale);
-}
-
-
-/**
- *  #issue-410
- * 
- *  Implements IsWallAbsoluteDestroyer for WarheadTypes.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_Explosion_Damage_IsWallAbsoluteDestroyer_Patch)
-{
-    GET_REGISTER_STATIC(OverlayTypeClass *, overlay, esi);
-    GET_REGISTER_STATIC(const WarheadTypeClass *, warhead, ebx);
-    GET_REGISTER_STATIC(CellClass *, cellptr, edi);
-    GET_STACK_STATIC(int, strength, esp, 0x54);
-    static const WarheadTypeClassExtension *warheadtypeext;
-
-    /**
-     *  Check to make sure that the warhead is of the kind that can destroy walls.
-     */
-    if (overlay->IsWall) {
-
-        /**
-         *  Is this warhead capable of instantly destroying the wall regardless
-         *  of damage? If so, then pass -1 into Reduce_Wall to remove the wall
-         *  section from the cell.
-         */
-        warheadtypeext = Extension::Fetch<WarheadTypeClassExtension>(warhead);
-        if (warheadtypeext->IsWallAbsoluteDestroyer) {
-            cellptr->Reduce_Wall(-1);
-
-        /**
-         *  Original check.
-         */
-        } else if (warhead->IsWallDestroyer || warhead->IsWoodDestroyer || overlay->Armor == ARMOR_WOOD) {
-            cellptr->Reduce_Wall(strength);
-        }
-
-    }
-
-    JMP_REG(ecx, 0x0045FAD0);
-}
-
-
-/**
- *  #issue-897
- *
- *  Implements IsIceDestruction scenario option for preventing destruction of ice,
- *  and IceStrength for configuring the chance for ice getting destroyed.
- *
- *  @author: Rampastring
- */
-DECLARE_PATCH(_Explosion_Damage_IsIceDestruction_Patch)
-{
-    GET_REGISTER_STATIC(const WarheadTypeClass *, warhead, edi);
-    GET_STACK_STATIC(int, strength, esp, 0x54);
-
-    if (!ScenExtension->IsIceDestruction) {
-        goto no_ice_destruction;
-    }
-
-    /**
-     *  Stolen bytes/code here.
-     */
-    if (warhead->IsWallDestroyer || warhead->IsConventional) {
-
-        /**
-         *  Allow destroying ice if the strength of ice is 0 or the random number check allows it.
-         */
-        if (RuleExtension->IceStrength <= 0 || Random_Pick(0, RuleExtension->IceStrength) < strength) {
-            goto allow_ice_destruction;
-        }
-    }
-
-    /**
-     *  Don't allow destroying ice, continue execution after ice-destruction logic.
-     */
-no_ice_destruction:
-    JMP_REG(ecx, 0x004602DF);
-
-    /**
-     *  Allow destroying any potential ice on the cell.
-     */
-allow_ice_destruction:
-    JMP_REG(ecx, 0x0046025C);
 }
 
 
@@ -283,8 +579,7 @@ DECLARE_PATCH(_Do_Flash_CombatLightSize_Patch)
  */
 void CombatExtension_Hooks()
 {
-    Patch_Jump(0x0045FAA0, &_Explosion_Damage_IsWallAbsoluteDestroyer_Patch);
-    Patch_Jump(0x00460244, &_Explosion_Damage_IsIceDestruction_Patch);
     Patch_Jump(0x00460477, &_Do_Flash_CombatLightSize_Patch);
     Patch_Jump(0x0045EB60, &Vinifera_Modify_Damage);
+    Patch_Jump(0x0045EEB0, &Vinifera_Explosion_Damage);
 }
