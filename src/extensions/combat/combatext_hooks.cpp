@@ -135,39 +135,9 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ArmorType armo
 }
 
 
-static CellClass* Get_Bridge_Owner(CellClass& cellptr)
-{
-    if (cellptr.IsBridge) {
-        return &Map[cellptr.IsBridgeOwner ? cellptr.Pos : cellptr.BridgeOwner->Pos];
-    }
-
-    return nullptr;
-}
-
-
 static bool Is_Bridge_Level(CellClass& cellptr, const Coordinate& coord)
 {
     return !cellptr.IsBridge || coord.Z > BRIDGE_HEIGHT + CELL_HEIGHT(cellptr.Level - 2) && coord.Z <= BRIDGE_HEIGHT + CELL_HEIGHT(cellptr.Level + 1);
-}
-
-
-static bool Is_Tile_Bridge_Middle(IsometricTileType type)
-{
-    const IsometricTileType ttype = type - BridgeSet + 1;
-    return (ttype == BridgeMiddle1 + 0 || ttype == BridgeMiddle1 + 1 ||
-            ttype == BridgeMiddle1 + 2 || ttype == BridgeMiddle1 + 3 ||
-            ttype == BridgeMiddle2 + 0 || ttype == BridgeMiddle2 + 1 ||
-            ttype == BridgeMiddle2 + 2 || ttype == BridgeMiddle2 + 3);
-}
-
-
-static bool Is_Tile_Train_Bridge_Middle(IsometricTileType type)
-{
-    const IsometricTileType ttype = type - TrainBridgeSet + 1;
-    return (ttype == BridgeMiddle1 + 0 || ttype == BridgeMiddle1 + 1 ||
-            ttype == BridgeMiddle1 + 2 || ttype == BridgeMiddle1 + 3 ||
-            ttype == BridgeMiddle2 + 0 || ttype == BridgeMiddle2 + 1 ||
-            ttype == BridgeMiddle2 + 2 || ttype == BridgeMiddle2 + 3);
 }
 
 
@@ -177,36 +147,20 @@ static bool Is_Not_On_Bridge(const Coordinate& coord)
 }
 
 
-/***********************************************************************************************
- * Explosion_Damage -- Inflict an explosion damage affect.                                     *
- *                                                                                             *
- *    Processes the collateral damage affects typically caused by an                           *
- *    explosion.                                                                               *
- *                                                                                             *
- * INPUT:   coord    -- The coordinate of ground zero.                                         *
- *                                                                                             *
- *          strength -- Raw damage points at ground zero.                                      *
- *                                                                                             *
- *          source   -- Source of the explosion (who is responsible).                          *
- *                                                                                             *
- *          warhead  -- The kind of explosion to process.                                      *
- *                                                                                             *
- * OUTPUT:  none                                                                               *
- *                                                                                             *
- * WARNINGS:   This routine can consume some time and will affect the AI                       *
- *             of nearby enemy units (possibly).                                               *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   08/16/1991 JLB : Created.                                                                 *
- *   11/30/1991 JLB : Uses coordinate system.                                                  *
- *   12/27/1991 JLB : Radius of explosion damage effect.                                       *
- *   04/13/1994 JLB : Streamlined.                                                             *
- *   04/16/1994 JLB : Warhead damage type modifier.                                            *
- *   04/17/1994 JLB : Cleaned up.                                                              *
- *   06/20/1994 JLB : Uses object pointers to distribute damage.                               *
- *   06/20/1994 JLB : Source is a pointer.                                                     *
- *   06/18/1996 JLB : Strength could be negative for healing effects.                          *
- *============================================================================================= */
+/**
+ *  Inflict an explosion damage affect.
+ *
+ *  @author: 08/16/1991 JLB : Created.                                       
+ *           11/30/1991 JLB : Uses coordinate system.                        
+ *           12/27/1991 JLB : Radius of explosion damage effect.             
+ *           04/13/1994 JLB : Streamlined.                                   
+ *           04/16/1994 JLB : Warhead damage type modifier.                  
+ *           04/17/1994 JLB : Cleaned up.                                    
+ *           06/20/1994 JLB : Uses object pointers to distribute damage.     
+ *           06/20/1994 JLB : Source is a pointer.                           
+ *           06/18/1996 JLB : Strength could be negative for healing effects.
+ *           12/14/2024 ZivDero : Adjustments for Tiberian Sun
+ */
 void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClass* source, const WarheadTypeClass* warhead, bool do_chain_reaction)
 {
     Cell cell;      // Cell number under explosion.
@@ -426,10 +380,10 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
      *  combat damage.
      */
     if (Scen->SpecialFlags.IsDestroyableBridges && warhead->IsWallDestroyer) {
-        const CellClass* bridge_owner_cell = Get_Bridge_Owner(*cellptr);
+        const CellClass* bridge_owner_cell = cellptr->Get_Bridge_Owner();
 
         if (bridge_owner_cell && bridge_owner_cell->Is_Overlay_Bridge()
-            || Is_Tile_Bridge_Middle(cellptr->Tile)) {
+            || cellptr->Is_Tile_Bridge_Middle()) {
             if (Is_Bridge_Level(*cellptr, coord)) {
                 if (warhead->IsWallDestroyer && (warhead == Rule->IonCannonWarhead || Random_Pick(1, Rule->BridgeStrength) < strength)) {
                     for (int i = 0; i < (warhead == Rule->IonCannonWarhead ? 4 : 1); i++) {
@@ -446,7 +400,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
         }
 
         if (bridge_owner_cell && bridge_owner_cell->Is_Overlay_Rail_Bridge()
-            || Is_Tile_Train_Bridge_Middle(cellptr->Tile)) {
+            || cellptr->Is_Tile_Train_Bridge_Middle()) {
             if (Is_Bridge_Level(*cellptr, coord)) {
                 if (warhead->IsWallDestroyer && (warhead == Rule->IonCannonWarhead || Random_Pick(1, Rule->BridgeStrength) < strength)) {
                     for (int i = 0; i < (warhead == Rule->IonCannonWarhead ? 4 : 1); i++) {
