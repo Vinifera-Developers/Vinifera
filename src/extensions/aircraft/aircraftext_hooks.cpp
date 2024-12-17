@@ -160,79 +160,44 @@ bool AircraftClassExt::_Enter_Idle_Mode(bool initial, bool a2)
     }
 
     const bool result = FootClass::Enter_Idle_Mode(initial, a2);
-
     MissionType mission = House->Is_Human_Control() || Team || !Is_Weapon_Equipped() ? MISSION_GUARD : MISSION_GUARD_AREA;
+    int landingalt = Landing_Altitude();
 
-    if (In_Which_Layer() != LAYER_GROUND && Get_Height() > Landing_Altitude() && !Extension::Fetch<AircraftTypeClassExtension>(Class)->IsMissileSpawn) {
-        if (!Cargo.Is_Something_Attached()) {
-
-            /**
-             *  If this transport is a loaner and part of a team, then remove it from
-             *  the team it is attached to.
-             */
-            if ((IsALoaner && House->Is_Human_Control()) || (!House->Is_Human_Control() && !Class->MaxAmmo)) {
-                if (Team && Team->Has_Entered_Map()) {
-                    Team->Remove(this);
-                }
-            }
-
-            if (Get_Weapon()->Weapon) {
+    if (In_Which_Layer() == LAYER_GROUND || Get_Height() <= landingalt || Extension::Fetch<AircraftTypeClassExtension>(Class)->IsMissileSpawn) {
+        if (IsALoaner) {
+            if (Cargo.Is_Something_Attached()) {
 
                 /**
-                 *  Weapon equipped helicopters that run out of ammo and were
-                 *  brought in as reinforcements will leave the map.
+                 *  In the case of a computer controlled helicopter that hold passengers,
+                 *  don't unload when landing. Wait for specific instructions from the
+                 *  controlling team.
                  */
-                if (IsALoaner) {
-
-                    /**
-                     *  If it has no ammo, then break off of the team and leave the map.
-                     *  If it can fight, then give it fighting orders.
-                     */
-                    if (Ammo == 0) {
-                        if (Team) Team->Remove(this);
-                        mission = MISSION_RETREAT;
-                    }
-                    else {
-                        if (!Team) {
-                            mission = MISSION_HUNT;
-                        }
-                    }
-
+                if (Team != nullptr) {
+                    mission = MISSION_GUARD;
                 }
-                else if (Ammo && Target_Legal(TarCom) && Get_Mission() == MISSION_ATTACK || MissionQueue == MISSION_ATTACK) {
-                    mission = MISSION_ATTACK;
-                }
-                else if (In_Air()) {
-                    if (!Target_Legal(NavCom) || (Mission != MISSION_MOVE && Mission != MISSION_ENTER)) {
-                        if (Class->Dock.Count() > 0 && (IsLocked || !Team)) {
-
-                            /**
-                             *  Normal aircraft try to find a good landing spot to rest.
-                             */
-                            BuildingClass* building = nullptr;
-                            for (int i = 0; i < Class->Dock.Count(); i++) {
-                                building = Find_Docking_Bay(Class->Dock[i], false);
-                                if (building) break;
-                            }
-
-                            Assign_Destination(nullptr);
-                            if (building && Transmit_Message(RADIO_HELLO, building) == RADIO_ROGER) {
-                                Assign_Destination(building);
-                                mission = MISSION_ENTER;
-                            }
-                        }
-                    }
+                else {
+                    mission = MISSION_UNLOAD;
                 }
             }
-            else {
-                if (Team) return false;
-                Assign_Destination(Good_LZ());
-                mission = MISSION_MOVE;
+            else if (Team == nullptr) {
+                mission = MISSION_RETREAT;
             }
         }
         else {
+            Assign_Destination(nullptr);
+            Assign_Target(nullptr);
+            if (!House->Is_Human_Control() && Team == nullptr && Is_Weapon_Equipped()) {
+                mission = MISSION_GUARD_AREA;
+            }
+            else {
+                mission = MISSION_GUARD;
+            }
+        }
+    }
+    else {
+        if (Cargo.Is_Something_Attached()) {
             if (IsALoaner) {
-                if (Team) {
+                if (Team != nullptr) {
                     mission = MISSION_GUARD;
                 }
                 else {
@@ -245,38 +210,77 @@ bool AircraftClassExt::_Enter_Idle_Mode(bool initial, bool a2)
                 mission = MISSION_MOVE;
             }
         }
-    }
-    else {
-        if (IsALoaner) {
-            if (Cargo.Is_Something_Attached()) {
+        else {
+
+            /**
+             *  If this transport is a loaner and part of a team, then remove it from
+             *  the team it is attached to.
+             */
+            if ((IsALoaner && House->Is_Human_Control()) || (!House->Is_Human_Control() && !Class->MaxAmmo)) {
+                if (Team != nullptr && Team->Has_Entered_Map()) {
+                    Team->Remove(this);
+                }
+            }
+
+            if (Get_Weapon()->Weapon != nullptr) {
 
                 /**
-                 *  In the case of a computer controlled helicopter that hold passengers,
-                 *  don't unload when landing. Wait for specific instructions from the
-                 *  controlling team.
+                 *  Weapon equipped helicopters that run out of ammo and were
+                 *  brought in as reinforcements will leave the map.
                  */
-                if (Team) {
-                    mission = MISSION_GUARD;
-                }
-                else {
-                    mission = MISSION_UNLOAD;
-                }
-            }
-            else if (!Team) {
-                mission = MISSION_RETREAT;
-            }
-        }
-        else {
-            Assign_Destination(nullptr);
-            Assign_Target(nullptr);
+                if (IsALoaner) {
 
-            if (!House->Is_Human_Control() && !Team && Is_Weapon_Equipped()) {
-                mission = MISSION_GUARD_AREA;
-            } else {
-                mission = MISSION_GUARD;
+                    /**
+                     *  If it has no ammo, then break off of the team and leave the map.
+                     *  If it can fight, then give it fighting orders.
+                     */
+                    if (Ammo == 0) {
+                        if (Team != nullptr) Team->Remove(this);
+                        mission = MISSION_RETREAT;
+                    }
+                    else {
+                        if (Team == nullptr) {
+                            mission = MISSION_HUNT;
+                        }
+                    }
+
+                }
+                else if (Ammo && TarCom != nullptr && Get_Mission() == MISSION_ATTACK || MissionQueue == MISSION_ATTACK) { // #BUG missing parentheses?
+                    mission = MISSION_ATTACK;
+                }
+                else if (In_Air()) {
+                    if (NavCom == nullptr || (Mission != MISSION_MOVE && Mission != MISSION_ENTER)) {
+                        if (Class->Dock.Count() > 0 && (IsLocked || Team == nullptr)) {
+
+                            /**
+                             *  Normal aircraft try to find a good landing spot to rest.
+                             */
+                            BuildingClass* building = nullptr;
+                            for (int i = 0; i < Class->Dock.Count(); i++) {
+                                building = Find_Docking_Bay(Class->Dock[i], false, false);
+                                if (building) break;
+                            }
+                            Assign_Destination(nullptr);
+                            if (building && Transmit_Message(RADIO_HELLO, building) == RADIO_ROGER) {
+                                Assign_Destination(building);
+                                mission = MISSION_ENTER;
+                            }
+                            else {
+                                Assign_Destination(Good_LZ());
+                                mission = MISSION_MOVE;
+                            }
+                        }
+                    }
+                }
+            }
+            else {
+                if (Team != nullptr) return false;
+
+                Assign_Destination(Good_LZ());
+                mission = MISSION_MOVE;
             }
         }
-    } 
+    }
 
     Assign_Mission(mission);
     if (Ready_To_Commence()) {
