@@ -253,11 +253,14 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
          */
         object = cellptr->Cell_Occupier(isaltoccupier);
         while (object) {
-            if (object->Kind_Of() == RTTI_UNIT &&
+            if (object->IsToDamage || object == source ||
+                (object->Kind_Of() == RTTI_UNIT &&
                 Scen->SpecialFlags.IsHarvesterImmune &&
-                Rule->HarvesterUnit.Is_Present(static_cast<UnitTypeClass*>(object->Class_Of()))) {
+                Rule->HarvesterUnit.Is_Present(static_cast<UnitTypeClass*>(object->Class_Of())))) {
                 continue;
             }
+
+            object->IsToDamage = true;
             objects.Add(object);
             object = object->Next;
         }
