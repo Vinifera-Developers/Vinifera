@@ -2551,6 +2551,99 @@ DECLARE_PATCH(_TechnoClass_Fire_At_TargetLaserTimer_Patch)
 
 
 /**
+ *  #issue-1161
+ *
+ *  Helper function. Checks whether a target is valid considering zone evaluation.
+ *
+ *  @author: Rampastring
+ */
+bool _TechnoClass_Evaluate_Object_Zone_Evaluation_Is_Valid_Target(TechnoClass* techno, TARGET target, int ourzone, int targetzone)
+{
+    auto technotype = techno->Techno_Type_Class();
+    auto technotypeext = Extension::Fetch<TechnoTypeClassExtension>(technotype);
+
+    if (technotypeext->TargetZoneScan == TZST_SAME) {
+        // Only allow targeting objects in the same zone.
+        return ourzone == targetzone;
+    }
+
+    if (technotypeext->TargetZoneScan == TZST_ANY) {
+        // Any zone is allowed.
+        return true;
+    }
+
+    if (technotypeext->TargetZoneScan == TZST_INRANGE) {
+        // If the zone is different, only allow targeting if we can reach the target from our zone.
+
+        if (ourzone == targetzone) {
+            return true;
+        }
+
+        Cell nearbycellcoords = Map.Nearby_Location(Coord_Cell(target->Center_Coord()),
+            technotype->Speed,
+            /*Phobos has -1 here*/ ourzone,
+            technotype->MZone,
+            false, 1, 1, true, false, false, technotype->Speed != SPEED_FLOAT, Cell());
+
+        const CellClass& cell = Map[nearbycellcoords];
+
+        if (&cell == nullptr) {
+            // We couldn't find a valid cell to reach the target from
+            return false;
+        }
+
+        int distance = ::Distance(nearbycellcoords, Coord_Cell(target->Center_Coord()));
+
+        WeaponSlotType weaponslot = techno->What_Weapon_Should_I_Use(target);
+        auto weaponinfo = techno->Get_Weapon(weaponslot);
+        if (weaponinfo->Weapon == nullptr) {
+            return false;
+        }
+
+        return (distance * CELL_LEPTON_W) < weaponinfo->Weapon->Range;
+    }
+
+    // For some reason the target zone scan type was invalid. Something is wrong.
+    Fatal("Invalid TargetZoneScanType for techno type %s", technotype->IniName);
+    return false;
+}
+
+
+/**
+ *  #issue-1161
+ *
+ *  Makes Technos consider their TargetZoneScan when potential targets are in a
+ *  different movement zone. Makes the AI smarter when targeting objects on different
+ *  movement zones (for example, ships targeting ground targets).
+ *  Implementation inspired by respective feature for the "Phobos" Yuri's Revenge engine extension.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_TechnoClass_Evaluate_Object_Zone_Evaluation_TargetZoneScanType_Patch)
+{
+    GET_REGISTER_STATIC(int, targetzone, eax);
+    GET_REGISTER_STATIC(int, ourzone, ebp);
+    GET_REGISTER_STATIC(TARGET, target, esi);
+    GET_REGISTER_STATIC(TechnoClass*, this_ptr, edi);
+
+    enum {
+        Continue = 0x0062D220,
+        InvalidTarget = 0x0062D8C0
+    };
+
+    if (targetzone == ourzone) {
+        JMP(Continue);
+    }
+
+    if (!_TechnoClass_Evaluate_Object_Zone_Evaluation_Is_Valid_Target(this_ptr, target, ourzone, targetzone)) {
+        JMP(InvalidTarget);
+    }
+
+    JMP(Continue);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void TechnoClassExtension_Hooks()
@@ -2599,4 +2692,6 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x00631FF0, &TechnoClassExt::_Can_Player_Move);
     Patch_Jump(0x006336F0, &TechnoClassExt::_Record_The_Kill);
     //Patch_Jump(0x0062A3D0, &TechnoClassExt::_Fire_Coord); // Disabled because it's functionally identical to the vanilla function when there's no secondary coordinate
+    Patch_Jump(0x00633745, (uintptr_t)0x00633762); // Do not trigger "Discovered by Player" when an object is destroyed
+    Patch_Jump(0x0062D218, &_TechnoClass_Evaluate_Object_Zone_Evaluation_TargetZoneScanType_Patch);
 }

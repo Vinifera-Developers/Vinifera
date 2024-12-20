@@ -88,7 +88,8 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     IsSpawned(false),
     BuildTimeCost(0),
     RequiredHouses(-1),
-    ForbiddenHouses(-1)
+    ForbiddenHouses(-1),
+    TargetZoneScan(TZST_SAME)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -237,6 +238,36 @@ void TechnoTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
     crc(SpawnRegenRate);
     crc(SpawnReloadRate);
     crc(SpawnsNumber);
+    crc(TargetZoneScan);
+}
+
+
+/**
+ *  #issue-1161
+ *
+ *  Fetches the target zone scan type from the INI database.
+ *
+ *  @author: Rampastring
+ */
+TargetZoneScanType _Get_TargetZoneScanType(CCINIClass& ini, const char* section, const char* entry, const TargetZoneScanType defvalue)
+{
+    char buffer[1024];
+
+    if (ini.Get_String(section, entry, nullptr, buffer, sizeof(buffer)) > 0) {
+        if (std::strncmp("Same", buffer, sizeof("Same")) == 0) {
+            return TZST_SAME;
+        }
+
+        if (std::strncmp("Any", buffer, sizeof("Any")) == 0) {
+            return TZST_ANY;
+        }
+
+        if (std::strncmp("InRange", buffer, sizeof("InRange")) == 0) {
+            return TZST_INRANGE;
+        }
+    }
+
+    return defvalue;
 }
 
 
@@ -326,6 +357,8 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
 
     RequiredHouses = ini.Get_Owners(ini_name, "RequiredHouses", RequiredHouses);
     ForbiddenHouses = ini.Get_Owners(ini_name, "ForbiddenHouses", ForbiddenHouses);
+
+    TargetZoneScan = _Get_TargetZoneScanType(ini, ini_name, "TargetZoneScan", TargetZoneScan);
 
     return true;
 }
