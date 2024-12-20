@@ -909,6 +909,22 @@ BuildTimeCost=300 ; integer, specifies the object's build time.
                   ; for example, setting this to 300 makes the object build as fast as a 300-cost object, regardless of its actual cost.
 ```
 
+### TargetZoneType
+
+In the original game, when AI units look for targets to attack through (team or individual unit) missions like Hunt or Attack Quarry, the AI only scans for targets within the unit's own movement zone.
+
+This makes the AI perform poorly in some scenarios, like when it tries to attack coastal targets with naval units. AI naval units can attack land targets if the ships end up idling within guard range of the land target, but if the naval units are farther away from the target than their guard range, they will ignore the land target - even if the naval units could just move closer and then attack the target from near the shoreline, like human players do.
+
+Vinifera allows customizing this behaviour per TechnoType. With `TargetZoneScan=InRange`, AI units of the type will scan targets outside of their movement zone. Any targets that the unit can reach from its movement zone, considering the unit's weapon range, will be considered valid targets. Note that this option is relatively expensive considering performance - it is recommended to only enable it for specially important long-ranged units.
+
+With `TargetZoneScan=Any`, the AI considers all targets valid, regardless of zone or movement range.
+
+In `RULES.INI`:
+```ini
+[SOMETECHNO]
+TargetZoneScan=InRange ; InRange, Any, or Same. Same - matches original game behaviour and is the default. InRange - considers targets in other movement zones that are within weapon range. Any - ignore zone checks altogether.
+```
+
 ## Terrain
 
 ### Light Sources

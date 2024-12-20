@@ -165,8 +165,11 @@ This page lists all the individual contributions to the project by their author.
   - Add `BuildTimeCost`.
   - Allow scenarios to have custom score screen bar colors.
   - Add `Inaccuracy` to RocketTypes.
+  - Add `TargetZoneScan` to TechnoTypes.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
+- **Starkku**:
+  - Add `TargetZoneScan` to TechnoTypes.
 - **ZivDero**:
   - Filling the documentation for previously implemented features.
   - Add support for up to 32767 waypoints to be used in scenarios.
