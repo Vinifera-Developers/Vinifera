@@ -334,6 +334,12 @@ void SpawnManagerClass::AI()
                     continue;
 
                 /**
+                 *  No spawning if the spawner is EMP'ed.
+                 */
+                if (Owner->EMPFramesRemaining)
+                    continue;
+
+                /**
                  *  If the spawner can move (i. e. is not a building), don't allow spawning while it's on the move.
                  */
                 if (control->IsSpawnedMissile && Owner->Is_Foot())
