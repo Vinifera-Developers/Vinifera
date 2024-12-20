@@ -262,4 +262,9 @@ class TechnoTypeClassExtension : public ObjectTypeClassExtension
          *  Optional override for the cost that is used for determining the techno's build time.
          */
         int BuildTimeCost;
+
+        /**
+         *  Defines how the techno treats targets outside of its zone when scanning for targets.
+         */
+        TargetZoneScanType TargetZoneScan;
 };

@@ -151,3 +151,11 @@ typedef enum ViniferaRTTIType
     VINIFERA_RTTI_COUNT
 };
 DEFINE_ENUMERATION_OPERATORS(ViniferaRTTIType);
+
+
+typedef enum TargetZoneScanType
+{
+    TZST_SAME,
+    TZST_ANY,
+    TZST_INRANGE
+} TargetZoneScanType;
