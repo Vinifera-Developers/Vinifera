@@ -293,6 +293,12 @@ void SpawnManagerClass::AI()
     LogicTimer = LogicRate;
 
     /**
+     *  No spawning if the spawner is EMP'ed.
+     */
+    if (Owner->EMPFramesRemaining)
+        Owner->Assign_Target(nullptr);
+
+    /**
      *  Iterate all the controls.
      */
     for (int i = 0; i < SpawnControls.Count(); i++)
