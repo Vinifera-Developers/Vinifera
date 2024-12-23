@@ -738,7 +738,7 @@ CanRetaliate=yes  ; boolean, can this unit retaliate (if general conditions are 
 
 ### Idle Animation Improvements
 
-- The `IdleRate` key has been backported from Red Alert 2. This allows units with shape graphics to animate with their walk frames while idle (standing still).
+- The `IdleRate` key has been backported from Red Alert 2. This allows units with shape or voxel graphics to animate with their walk frames while idle (standing still).
 ```{note}
 This key can be defined on either the `RULES.INI` section or the `ART.INI` image section, but the latter will take priority.
 ```
