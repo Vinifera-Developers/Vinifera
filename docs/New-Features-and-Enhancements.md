@@ -38,7 +38,7 @@ The `<stage>` keyword used below can be replaced with: `Start`, `Middle`, `End`.
 The `Start` and `End` animations are spawned once per an animation's lifetime, not on each loop iteration.
 ```
 
-In `RULES.INI`:
+In `ART.INI`:
 ```ini
 [AnimType]            ; AnimType
 <stage>Anims=         ; list of AnimTypes, list of animations to spawn at the designated stage of the animation sequence.
@@ -54,7 +54,7 @@ If the animation moves, delayed animations that it spawns will appear where it w
 
 - In addition to this new system, a new key for setting the logical middle frame (the frame in which the craters etc, are spawned) can now be set.
 
-In `RULES.INI`:
+In `ART.INI`:
 ```ini
 [AnimType]     ; AnimType
 MiddleFrame=   ; integer, the frame number in which the animation system will perform various logics (e.g. spawn craters, scorch marks, fires). Defaults to auto-detect based on the largest frame of the shape file. A special value of -1 can be used to tell the animation system to use the exact middle frame of the shape file (if shape file has 30 frames, frame 15 will be used).
