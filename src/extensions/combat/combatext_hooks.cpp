@@ -584,5 +584,5 @@ void CombatExtension_Hooks()
 {
     Patch_Jump(0x00460477, &_Do_Flash_CombatLightSize_Patch);
     Patch_Jump(0x0045EB60, &Vinifera_Modify_Damage);
-    Patch_Jump(0x0045EEB0, &Vinifera_Explosion_Damage);
+    //Patch_Jump(0x0045EEB0, &Vinifera_Explosion_Damage);
 }
