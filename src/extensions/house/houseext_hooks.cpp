@@ -550,7 +550,7 @@ int HouseClassExt::_Expert_AI()
         }
     }
 
-    if (Session.Type != GAME_NORMAL || spawner_hack_mpnodes) {
+    if (Session.Type != GAME_NORMAL && !spawner_hack_mpnodes) {
 
         /**
          *  Records the urgency of all actions possible.
