@@ -132,7 +132,7 @@ HRESULT Save_Primitive_Vector(LPSTREAM& pStm, VectorClass<T>& list, const char* 
 template<class T>
 HRESULT Load_Primitive_Vector(LPSTREAM& pStm, VectorClass<T>& list, const char* heap_name)
 {
-    DEBUG_INFO("Loading %s...\n", heap_name);
+    // DEBUG_INFO("Loading %s...\n", heap_name);
 
     int count = 0;
     HRESULT hr = pStm->Read(&count, sizeof(count), nullptr);

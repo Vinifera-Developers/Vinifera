@@ -376,4 +376,6 @@ void DisplayClassExtension_Hooks()
      *  @author: ZivDero
      */
     Patch_Jump(0x0047A856, &_DisplayClass_47A790_Patch);
+
+    Patch_Byte_Range(0x0047C0A2, 0x90, 13); // Patch out logging "Display: Abort_Drag_Select()"
 }
