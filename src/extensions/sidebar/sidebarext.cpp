@@ -822,12 +822,12 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
 
                         int count_to_abandon = 1;
                         const int queued_count = factory->Queued_Object_Count() + (factory->Get_Object() != nullptr ? 1 : 0);
-
+#if 0
                         if (WWKeyboard->Down(VK_SHIFT))
                             count_to_abandon = queued_count;
                         else if (WWKeyboard->Down(VK_CONTROL))
                             count_to_abandon = std::clamp(5, 0, queued_count);
-
+#endif
                         for (int i = 0; i < count_to_abandon; i++)
                             OutList.Add(EventClass(PlayerPtr->Get_Heap_ID(), EVENT_ABANDON, otype, oid));
                     }
@@ -947,8 +947,11 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
                         {
                             Speak(VOX_BUILDING);
                         }
-
+#if 0
                         const int count_to_produce = WWKeyboard->Down(VK_SHIFT) ? 5 : 1;
+#else
+                        const int count_to_produce = 1;
+#endif
                         for (int i = 0; i < count_to_produce; i++)
                             OutList.Add(EventClass(PlayerPtr->Get_Heap_ID(), EVENT_PRODUCE, Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID));
                     }
