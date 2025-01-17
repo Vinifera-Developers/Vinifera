@@ -1636,7 +1636,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     for (int index = 0; index < Bullets.Count(); ++index) {
         BulletClass *bullet = Bullets[index];
 
-        const char *bullet_name = bullet->Full_Name();
+        const char *bullet_name = bullet->Class_Of()->IniName;
 
         const char* payback = "None";
         const char* payback_owner = "None";
@@ -1721,6 +1721,9 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                     break;
                 case RTTI_PARTICLE:
                     std::fprintf(fp, "Particle  (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                    break;
+                default:
+                    std::fprintf(fp, "Other     (Type: %s (%d)) (RTTI: %d) ", objp->Name(), objp->Get_Heap_ID(), objp->What_Am_I());
                     break;
             };
             HouseClass *housep = objp->Owner_HouseClass();
