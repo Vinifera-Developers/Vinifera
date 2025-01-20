@@ -92,6 +92,7 @@ private:
 
 public:
     RocketLocomotionClass(const RocketLocomotionClass&) = delete;
+    RocketLocomotionClass(const NoInitClass& noinit);
     RocketLocomotionClass& operator=(const RocketLocomotionClass&) = delete;
     
 protected:

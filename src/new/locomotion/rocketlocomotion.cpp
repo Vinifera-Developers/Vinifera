@@ -70,9 +70,12 @@ IFACEMETHODIMP RocketLocomotionClass::GetClassID(CLSID *pClassID)
 IFACEMETHODIMP RocketLocomotionClass::Load(IStream *pStm)
 {
     HRESULT hr = LocomotionClass::Locomotion_Load(pStm);
-    if (SUCCEEDED(hr)) {
+    if (FAILED(hr)) {
+        return E_FAIL;
         // Insert any data to be loaded here.
     }
+
+    new (this) RocketLocomotionClass(NoInitClass());
 
     return hr;
 }
@@ -97,6 +100,8 @@ RocketLocomotionClass::RocketLocomotionClass() :
 {
 }
 
+
+RocketLocomotionClass::RocketLocomotionClass(const NoInitClass& noinit) : LocomotionClass(noinit) { }
 
 /**
  *  Sees if object is moving.
