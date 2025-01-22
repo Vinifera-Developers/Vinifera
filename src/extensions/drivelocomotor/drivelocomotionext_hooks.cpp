@@ -127,9 +127,9 @@ static void DriveLocomotionClass_Process_Create_WakeAnim(DriveLocomotionClass *t
  */
 DECLARE_PATCH(_DriveLocomotionClass_Process_WakeAnim_Patch)
 {
-    GET_REGISTER_STATIC(DriveLocomotionClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(ILocomotion *, this_ptr, esi);
 
-    DriveLocomotionClass_Process_Create_WakeAnim(this_ptr);
+    DriveLocomotionClass_Process_Create_WakeAnim(static_cast<DriveLocomotionClass*>(this_ptr));
 
     JMP(0x0047E05D);
 }
