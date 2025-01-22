@@ -402,7 +402,7 @@ int HouseClassExt::_AI_Building()
          *  Build our chosen power structure before building whatever else we're trying to build.
          */
         const int id = Base.Nodes.ID(node);
-        Base.Nodes.Insert(id - 1, BaseNodeClass(choice->Type, Cell(0, 0)));
+        Base.Nodes.Insert(id, BaseNodeClass(choice->Type, Cell(0, 0)));
 
         return 1;
 
