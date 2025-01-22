@@ -303,8 +303,7 @@ FetchContent_Declare(
 
 FetchContent_GetProperties(TSpp)
 if(NOT tspp_POPULATED)
-	FetchContent_Populate(TSpp)
-	add_subdirectory(${tspp_SOURCE_DIR} ${tspp_BINARY_DIR} EXCLUDE_FROM_ALL)
+	FetchContent_MakeAvailable(TSpp)
 endif()
 
 
