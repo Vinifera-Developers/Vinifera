@@ -312,7 +312,7 @@ int HouseClassExt::_AI_Building()
     /**
      *  Build some defenses.
      */
-    if (node->Type == BASE_DEFENSE || BuildingTypes[node->Type] == Rule->WallTower && node->Where.X != 0 && node->Where.Y != 0) {
+    if (node->Type == BASE_DEFENSE || BuildingTypes[node->Type] == Rule->WallTower && node->Where == Cell(0, 0)) {
 
         const int nodeid = Base.Nodes.ID(node);
         if (!AI_Build_Defense(nodeid, Base.field_38.Count() > 0 ? &Base.field_38 : nullptr)) {
@@ -321,7 +321,7 @@ int HouseClassExt::_AI_Building()
              *  If it's a wall tower, delete it twice?
              *  Perhaps it's assumed that the wall tower is followed by its upgrade?
              */
-            if (node->Type == Rule->WallTower->Get_Heap_ID()) {
+            if (node->Type == Rule->WallTower->Type) {
                 Base.Nodes.Delete(nodeid);
             }
 
@@ -342,89 +342,93 @@ int HouseClassExt::_AI_Building()
      *  just proceed with building the base node.
      */
     BuildingTypeClass* b = BuildingTypes[node->Type];
-    if (Session.Type == GAME_NORMAL || spawner_hack_mpnodes || b->Drain + Drain <= Power - PowerSurplus || Rule->BuildConst.Is_Present(b) || b->Drain <= 0) {
+
+    if (Session.Type != GAME_NORMAL && !spawner_hack_mpnodes && b->Drain + Drain > Power - PowerSurplus && b != Rule->BuildConst[0] && b->Drain > 0) {
 
         /**
-         *  Check if this is a building upgrade if we can actually place the upgrade where it's scheduled to be placed.
+         *  In skirmish, try to build a power plant if there is insufficient power.
          */
-        if (b->PowersUpToLevel == -1 && !node->Where) {
-            if (b->PowersUpBuilding[0]) {
+        const BuildingTypeClass* choice = nullptr;
+        const auto side_ext = Extension::Fetch<SideClassExtension>(Sides[Class->Side]);
 
-                BuildingClass* existing_b = Map[node->Where].Cell_Building();
-                BuildingTypeClass* desired_b = BuildingTypes[BuildingTypeClass::From_Name(b->PowersUpBuilding)];
+        /**
+         *  First let's see if we can upgrade a power plant with a turbine (like GDI).
+         */
+        if (side_ext->PowerTurbine) {
 
-                if (!existing_b || existing_b->Class != desired_b
-                    || existing_b->Class->PowersUpToLevel == -1 && existing_b->UpgradeLevel >= existing_b->Class->Upgrades
-                    || existing_b->Class->PowersUpToLevel == 0 && existing_b->UpgradeLevel > 0) {
+            bool can_build_turbine = false;
+            for (int i = 0; i < Buildings.Count(); i++) {
 
-                    node->Where = Cell();
+                BuildingClass* owned_b = Buildings[i];
+                if (owned_b->Owning_House() == this) {
+                    if (owned_b->Class == side_ext->RegularPowerPlant && owned_b->UpgradeLevel < owned_b->Class->Upgrades) {
+                        can_build_turbine = true;
+                        break;
+                    }
                 }
             }
+
+            if (can_build_turbine && Probability_Of2(Rule->AIUseTurbineUpgradeProbability)) {
+                choice = side_ext->PowerTurbine;
+            }
         }
 
-        BuildStructure = node->Type;
-        return TICKS_PER_SECOND;
-    }
+        /**
+         *  If we can't build a turbine, try to build an advanced power plant (like Nod).
+         */
+        if (!choice && side_ext->AdvancedPowerPlant) {
+            DynamicVectorClass<BuildingTypeClass*> owned_buildings;
 
-    /**
-     *  In skirmish, try to build a power plant if there is insufficient power.
-     */
-    const BuildingTypeClass* choice = nullptr;
-    const auto side_ext = Extension::Fetch<SideClassExtension>(Sides[Class->Side]);
-
-    /**
-     *  First let's see if we can upgrade a power plant with a turbine (like GDI).
-     */
-    if (side_ext->PowerTurbine) {
-
-        bool can_build_turbine = false;
-        for (int i = 0; i < Buildings.Count(); i++) {
-
-            BuildingClass* owned_b = Buildings[i];
-            if (owned_b->Owning_House() == this) {
-                if (owned_b->Class == side_ext->RegularPowerPlant && owned_b->UpgradeLevel < owned_b->Class->Upgrades) {
-                    can_build_turbine = true;
-                    break;
+            for (int i = 0; i < Buildings.Count(); i++) {
+                BuildingClass* b2 = Buildings[i];
+                if (b2->Owning_House() == this) {
+                    owned_buildings.Add(b2->Class);
                 }
             }
-        }
 
-        if (can_build_turbine && Probability_Of2(Rule->AIUseTurbineUpgradeProbability)) {
-            choice = side_ext->PowerTurbine;
-        }
-    }
-
-    /**
-     *  If we can't build a turbine, try to build an advanced power plant (like Nod).
-     */
-    if (!choice && side_ext->AdvancedPowerPlant) {
-        DynamicVectorClass<BuildingTypeClass*> owned_buildings;
-
-        for (int i = 0; i < Buildings.Count(); i++) {
-            BuildingClass* b2 = Buildings[i];
-            if (b2->Owning_House() == this) {
-                owned_buildings.Add(b2->Class);
+            if (Has_Prerequisites(side_ext->AdvancedPowerPlant, owned_buildings, owned_buildings.Count())) {
+                choice = side_ext->AdvancedPowerPlant;
             }
         }
 
-        if (Has_Prerequisites(side_ext->AdvancedPowerPlant, owned_buildings, owned_buildings.Count())) {
-            choice = side_ext->AdvancedPowerPlant;
+        /**
+         *  If neither worked out, just build a normal power plant.
+         */
+        if (!choice) {
+            choice = side_ext->RegularPowerPlant;
+        }
+
+        /**
+         *  Build our chosen power structure before building whatever else we're trying to build.
+         */
+        const int id = Base.Nodes.ID(node);
+        Base.Nodes.Insert(id - 1, BaseNodeClass(choice->Type, Cell(0, 0)));
+
+        return 1;
+
+    }
+
+    /**
+     *  Check if this is a building upgrade if we can actually place the upgrade where it's scheduled to be placed.
+     */
+    if (b->PowersUpToLevel == -1 && node->Where != Cell(0, 0) && b->PowersUpBuilding[0]) {
+
+        BuildingClass* existing_building = Map[node->Where].Cell_Building();
+        BuildingTypeClass* node_building = BuildingTypes[BuildingTypeClass::From_Name(b->PowersUpBuilding)];
+
+        if (existing_building == nullptr) {
+            node->Where = Cell(0, 0);
+        }
+        else if (existing_building->Class != node_building) {
+            node->Where = Cell(0, 0);
+        }
+        else if (existing_building->Class->PowersUpToLevel == -1 && existing_building->UpgradeLevel >= existing_building->Class->Upgrades || existing_building->Class->PowersUpToLevel > 0 && existing_building->UpgradeLevel > 0) {
+            node->Where = Cell(0, 0);
         }
     }
 
-    /**
-     *  If neither worked out, just build a normal power plant.
-     */
-    if (!choice) {
-        choice = side_ext->RegularPowerPlant;
-    }
-
-    /**
-     *  Build our chosen power structure before building whatever else we're trying to build.
-     */
-    Base.Nodes.Insert(Base.Nodes.ID(node), BaseNodeClass(choice->Type, Cell()));
-
-    return 1;
+    BuildStructure = node->Type;
+    return TICKS_PER_SECOND;
 }
 
 
