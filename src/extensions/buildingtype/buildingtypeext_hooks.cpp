@@ -95,26 +95,19 @@ void BuildingTypeClassExt::_Free_Buildup_Image()
  */
 void BuildingTypeClassExt::_Set_Base_Defense_Values()
 {
-    if (this->IsBaseDefense)
-    {
+    if (IsBaseDefense) {
         const WeaponTypeClass* weapon = Fetch_Weapon_Info(WEAPON_SLOT_PRIMARY).Weapon;
-        if (weapon != nullptr)
-        {
+
+        if (weapon != nullptr) {
             int damage = weapon->Attack / (weapon->ROF * 0.025);
 
-            if (weapon->Bullet->IsAntiAircraft)
-            {
-                int anti_air_value = damage * Verses::Get_Modifier(ARMOR_STEEL, weapon->WarheadPtr);
-                AntiAirValue = std::min(anti_air_value, Rule->MaximumBaseDefenseValue);
+            if (weapon->Bullet->IsAntiAircraft) {
+                AntiAirValue = std::min(static_cast<double>(Rule->MaximumBaseDefenseValue), damage * Verses::Get_Modifier(ARMOR_STEEL, weapon->WarheadPtr));
             }
 
-            if (weapon->Bullet->IsAntiGround)
-            {
-                int anti_armor_value = damage * Verses::Get_Modifier(ARMOR_STEEL, weapon->WarheadPtr);
-                AntiArmorValue = std::min(anti_armor_value, Rule->MaximumBaseDefenseValue);
-
-                int anti_ground_value = damage * Verses::Get_Modifier(ARMOR_NONE, weapon->WarheadPtr);
-                AntiArmorValue = std::min(anti_ground_value, Rule->MaximumBaseDefenseValue);
+            if (weapon->Bullet->IsAntiGround) {
+                AntiArmorValue = std::min(static_cast<double>(Rule->MaximumBaseDefenseValue), damage * Verses::Get_Modifier(ARMOR_STEEL, weapon->WarheadPtr));
+                AntiInfantryValue = std::min(static_cast<double>(Rule->MaximumBaseDefenseValue), damage * Verses::Get_Modifier(ARMOR_NONE, weapon->WarheadPtr));
             }
         }
     }
