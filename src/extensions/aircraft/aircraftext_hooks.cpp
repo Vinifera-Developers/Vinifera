@@ -64,7 +64,6 @@ static class AircraftClassExt final : public AircraftClass
 {
 public:
     bool _Unlimbo(Coordinate& coord, DirType dir);
-    bool _Enter_Idle_Mode(bool initial, bool a2);
     bool _Cell_Seems_Ok(Cell& cell, bool strict) const;
 };
 
@@ -137,157 +136,6 @@ bool AircraftClassExt::_Unlimbo(Coordinate& coord, DirType dir)
     }
 
     return false;
-}
-
-
-/**
- *  Gives the aircraft an appropriate mission.
- *
- *  @author: 06/05/1995 JLB - Created.
- *           ZivDero - Adjustments for Tiberian Sun.
- */
-bool AircraftClassExt::_Enter_Idle_Mode(bool initial, bool a2)
-{
-    if (Has_Suspended_Mission()) {
-
-        Restore_Mission();
-        if (Mission == MISSION_PATROL) {
-            Status = 0;
-            IsLocked = false;
-        }
-
-        return false;
-    }
-
-    const bool result = FootClass::Enter_Idle_Mode(initial, a2);
-    MissionType mission = House->Is_Human_Control() || Team || !Is_Weapon_Equipped() ? MISSION_GUARD : MISSION_GUARD_AREA;
-    int landingalt = Landing_Altitude();
-
-    if (In_Which_Layer() == LAYER_GROUND || Get_Height() <= landingalt || Extension::Fetch<AircraftTypeClassExtension>(Class)->IsMissileSpawn) {
-        if (IsALoaner) {
-            if (Cargo.Is_Something_Attached()) {
-
-                /**
-                 *  In the case of a computer controlled helicopter that hold passengers,
-                 *  don't unload when landing. Wait for specific instructions from the
-                 *  controlling team.
-                 */
-                if (Team != nullptr) {
-                    mission = MISSION_GUARD;
-                }
-                else {
-                    mission = MISSION_UNLOAD;
-                }
-            }
-            else if (Team == nullptr) {
-                mission = MISSION_RETREAT;
-            }
-        }
-        else {
-            Assign_Destination(nullptr);
-            Assign_Target(nullptr);
-            if (!House->Is_Human_Control() && Team == nullptr && Is_Weapon_Equipped()) {
-                mission = MISSION_GUARD_AREA;
-            }
-            else {
-                mission = MISSION_GUARD;
-            }
-        }
-    }
-    else {
-        if (Cargo.Is_Something_Attached()) {
-            if (IsALoaner) {
-                if (Team != nullptr) {
-                    mission = MISSION_GUARD;
-                }
-                else {
-                    mission = MISSION_UNLOAD;
-                    Assign_Destination(Good_LZ());
-                }
-            }
-            else {
-                Assign_Destination(Good_LZ());
-                mission = MISSION_MOVE;
-            }
-        }
-        else {
-
-            /**
-             *  If this transport is a loaner and part of a team, then remove it from
-             *  the team it is attached to.
-             */
-            if ((IsALoaner && House->Is_Human_Control()) || (!House->Is_Human_Control() && !Class->MaxAmmo)) {
-                if (Team != nullptr && Team->Has_Entered_Map()) {
-                    Team->Remove(this);
-                }
-            }
-
-            if (Get_Weapon()->Weapon != nullptr) {
-
-                /**
-                 *  Weapon equipped helicopters that run out of ammo and were
-                 *  brought in as reinforcements will leave the map.
-                 */
-                if (IsALoaner) {
-
-                    /**
-                     *  If it has no ammo, then break off of the team and leave the map.
-                     *  If it can fight, then give it fighting orders.
-                     */
-                    if (Ammo == 0) {
-                        if (Team != nullptr) Team->Remove(this);
-                        mission = MISSION_RETREAT;
-                    }
-                    else {
-                        if (Team == nullptr) {
-                            mission = MISSION_HUNT;
-                        }
-                    }
-
-                }
-                else if (Ammo && TarCom != nullptr && Get_Mission() == MISSION_ATTACK || MissionQueue == MISSION_ATTACK) { // #BUG missing parentheses?
-                    mission = MISSION_ATTACK;
-                }
-                else if (In_Air()) {
-                    if (NavCom == nullptr || (Mission != MISSION_MOVE && Mission != MISSION_ENTER)) {
-                        if (Class->Dock.Count() > 0 && (IsLocked || Team == nullptr)) {
-
-                            /**
-                             *  Normal aircraft try to find a good landing spot to rest.
-                             */
-                            BuildingClass* building = nullptr;
-                            for (int i = 0; i < Class->Dock.Count(); i++) {
-                                building = Find_Docking_Bay(Class->Dock[i], false, false);
-                                if (building) break;
-                            }
-                            Assign_Destination(nullptr);
-                            if (building && Transmit_Message(RADIO_HELLO, building) == RADIO_ROGER) {
-                                Assign_Destination(building);
-                                mission = MISSION_ENTER;
-                            }
-                            else {
-                                Assign_Destination(Good_LZ());
-                                mission = MISSION_MOVE;
-                            }
-                        }
-                    }
-                }
-            }
-            else {
-                if (Team != nullptr) return false;
-
-                Assign_Destination(Good_LZ());
-                mission = MISSION_MOVE;
-            }
-        }
-    }
-
-    Assign_Mission(mission);
-    if (Ready_To_Commence()) {
-        Commence();
-    }
-
-    return result;
 }
 
 
@@ -612,6 +460,23 @@ DECLARE_PATCH(_AircraftClass_Init_IsCloakable_BugFix_Patch)
 }
 
 
+bool Is_Missile_Spawn(AircraftClass* airc) { return Extension::Fetch<AircraftTypeClassExtension>(airc->Class)->IsMissileSpawn; }
+DECLARE_PATCH(_AircraftClass_Enter_Idle_Mode_Spawner_Patch)
+{
+    GET_REGISTER_STATIC(AircraftClass*, this_ptr, esi);
+    GET_REGISTER_STATIC(int, landing_altitude, eax);
+
+    if (this_ptr->In_Which_Layer() != LAYER_GROUND && this_ptr->Get_Height() > landing_altitude && !Is_Missile_Spawn(this_ptr))
+    {
+        JMP(0x0040B3C1);
+    }
+    else
+    {
+        JMP(0x0040B5DC);
+    }
+}
+
+
 /**
  *  Main function for patching the hooks.
  */
@@ -641,6 +506,6 @@ void AircraftClassExtension_Hooks()
     Patch_Jump(0x0040D0C5, (uintptr_t)0x0040D0EA);
 
     Patch_Jump(0x00408940, &AircraftClassExt::_Unlimbo);
-    Patch_Jump(0x0040B310, &AircraftClassExt::_Enter_Idle_Mode);
     Patch_Jump(0x0040D260, &AircraftClassExt::_Cell_Seems_Ok);
+    Patch_Jump(0x0040B3A6, &_AircraftClass_Enter_Idle_Mode_Spawner_Patch);
 }
