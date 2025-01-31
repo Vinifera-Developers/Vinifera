@@ -1227,6 +1227,20 @@ While there is no vanilla action for `StayAttack`, when `CursorStayAttack=Attack
 Both `CursorAttack` and `CursorStayAttack` are only used when not hovering over shroud.
 ```
 
+### Reveal on Fire
+
+- Vinifera allows for Technos with `Spawns=` set to be revealed to the house whose units they are firing at.
+
+In `RULES.INI`:
+```ini
+[SOMEWEAPON]             ; WeaponType
+RevealOnFire=no          ; boolean, does this weapon reveal its firer to the house fired at, provided the firer is a spawner?
+```
+
+```{note}
+Unlike in Red Alert 2, units are revealed permanently and do not get reshrouded after a period of time.
+```
+
 ### Electric Bolts
 
 - Vinifera implements the Electric Bolt (aka. "Tesla Bolts") weapon effect from Red Alert 2, with additional controls.

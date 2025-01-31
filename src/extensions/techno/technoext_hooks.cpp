@@ -506,7 +506,7 @@ bool TechnoClassExt::_Spawner_Fire_At(TARGET target, WeaponTypeClass* weapon)
         {
             if (weapon_ext->IsRevealOnFire)
             {
-                Map.Sight_From(Center_Coord(), 3, target_house);
+                Map.Sight_From(Center_Coord(), 2, target_house);
             }
         }
 
