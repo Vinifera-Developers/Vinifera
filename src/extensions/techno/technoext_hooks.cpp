@@ -1222,7 +1222,7 @@ void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
         } else if (source_typeext->IsMissileSpawn) {
 
             if (source_ext->SpawnOwner && source_ext->SpawnOwner->Techno_Type_Class()->IsTrainable) {
-                source_ext->SpawnOwner->Veterancy.Gain_Experience(source->Techno_Type_Class()->Cost_Of(House), points);
+                source_ext->SpawnOwner->Veterancy.Gain_Experience(source_ext->SpawnOwner->Techno_Type_Class()->Cost_Of(House), points);
             }
         }
 
