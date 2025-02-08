@@ -511,7 +511,7 @@ bool RepeatLastBuildingCommandClass::Process()
     /**
      *  Do an extra check to make sure we can produce this item.
      */
-    if (((1 << PlayerPtr->ID) & buildingtype->Ownable) == 0) {
+    if (((1 << PlayerPtr->ActLike) & buildingtype->Ownable) == 0) {
         return false;
     }
 
@@ -588,7 +588,7 @@ bool RepeatLastInfantryCommandClass::Process()
     /**
      *  Do an extra check to make sure we can produce this item.
      */
-    if (((1 << PlayerPtr->ID) & infantrytype->Ownable) == 0) {
+    if (((1 << PlayerPtr->ActLike) & infantrytype->Ownable) == 0) {
         return false;
     }
     
@@ -665,7 +665,7 @@ bool RepeatLastUnitCommandClass::Process()
     /**
      *  Do an extra check to make sure we can produce this item.
      */
-    if (((1 << PlayerPtr->ID) & unittype->Ownable) == 0) {
+    if (((1 << PlayerPtr->ActLike) & unittype->Ownable) == 0) {
         return false;
     }
     
@@ -742,7 +742,7 @@ bool RepeatLastAircraftCommandClass::Process()
     /**
      *  Do an extra check to make sure we can produce this item.
      */
-    if (((1 << PlayerPtr->ID) & aircrafttype->Ownable) == 0) {
+    if (((1 << PlayerPtr->ActLike) & aircrafttype->Ownable) == 0) {
         return false;
     }
     
