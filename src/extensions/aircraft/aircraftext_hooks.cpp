@@ -460,13 +460,16 @@ DECLARE_PATCH(_AircraftClass_Init_IsCloakable_BugFix_Patch)
 }
 
 
-bool Is_Missile_Spawn(AircraftClass* airc) { return Extension::Fetch<AircraftTypeClassExtension>(airc->Class)->IsMissileSpawn; }
 DECLARE_PATCH(_AircraftClass_Enter_Idle_Mode_Spawner_Patch)
 {
     GET_REGISTER_STATIC(AircraftClass*, this_ptr, esi);
-    GET_REGISTER_STATIC(int, landing_altitude, eax);
+    GET_REGISTER_STATIC(int, layer, eax);
+    GET_REGISTER_STATIC(int, landingaltitude, ebp);
+    static AircraftTypeClassExtension* aircrafttypeext;
 
-    if (this_ptr->In_Which_Layer() != LAYER_GROUND && this_ptr->Get_Height() > landing_altitude && !Is_Missile_Spawn(this_ptr))
+    aircrafttypeext = Extension::Fetch<AircraftTypeClassExtension>(this_ptr->Class);
+
+    if (layer != LAYER_GROUND && this_ptr->Get_Height() > landingaltitude && !aircrafttypeext->IsMissileSpawn)
     {
         JMP(0x0040B3C1);
     }
