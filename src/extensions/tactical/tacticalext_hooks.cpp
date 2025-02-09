@@ -102,11 +102,11 @@ bool TacticalExt::FilterSelection = false;
  */
 bool TacticalExt::_Clamp_To_Tactical_Rect(Point2D& pixel)
 {
-    int xmin = CELL_PIXEL_W * (Map.MapLocalSize.X - (Map.MapSize.Width / 2)) + (TacticalRect.Width / 2);
-    int xmax = std::max(CELL_PIXEL_W * Map.MapLocalSize.Width - TacticalRect.Width + xmin, xmin);
+    int xmin = TacticalRect.Width / 2 - (CELL_PIXEL_W >> 1) * (Map.MapSize.Width - 2 * Map.MapLocalSize.X);
+    int xmax = std::max(xmin + CELL_PIXEL_W * Map.MapLocalSize.Width - TacticalRect.Width, xmin);
 
-    int ymin = CELL_PIXEL_H * (Map.MapLocalSize.Y + (Map.MapSize.Width / 2)) + (TacticalRect.Height / 2) - int(2.5 * CELL_PIXEL_H);
-    int ymax = std::max(CELL_PIXEL_H * Map.MapLocalSize.Height - TacticalRect.Height + int(4.5 * CELL_PIXEL_H) + ymin, ymin);
+    int ymin = TacticalRect.Height / 2 + (CELL_PIXEL_H >> 1) * (Map.MapSize.Width + 2 * Map.MapLocalSize.Y - 5);
+    int ymax = std::max(ymin + CELL_PIXEL_H * (2 * Map.MapLocalSize.Height + 9) / 2 - TacticalRect.Height, ymin);
 
     bool clamped = false;
 
