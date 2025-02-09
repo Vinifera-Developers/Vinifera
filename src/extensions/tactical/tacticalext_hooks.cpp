@@ -76,7 +76,7 @@ public:
     void _Draw_Band_Box();
     void _Select_These(Rect& rect, void (*selection_func)(ObjectClass* obj));
     void _Draw_Rally_Points(bool blit);
-
+    bool _Clamp_To_Tactical_Rect(Point2D& pixel);
 
 public:
 
@@ -92,6 +92,44 @@ public:
 bool TacticalExt::SelectionContainsNonCombatants = false;
 int TacticalExt::SelectedCount = 0;
 bool TacticalExt::FilterSelection = false;
+
+
+/**
+ *  Changes the function that clamps a point to the tactical rect
+ *  to prevent jitter when the map is smaller than the screen.
+ *
+ *  @authors: Belonit, ZivDero
+ */
+bool TacticalExt::_Clamp_To_Tactical_Rect(Point2D& pixel)
+{
+    int xmin = CELL_PIXEL_W * (Map.MapLocalSize.X - (Map.MapSize.Width / 2)) + (TacticalRect.Width / 2);
+    int xmax = std::max(CELL_PIXEL_W * Map.MapLocalSize.Width - TacticalRect.Width + xmin, xmin);
+
+    int ymin = CELL_PIXEL_H * (Map.MapLocalSize.Y + (Map.MapSize.Width / 2)) + (TacticalRect.Height / 2) - int(2.5 * CELL_PIXEL_H);
+    int ymax = std::max(CELL_PIXEL_H * Map.MapLocalSize.Height - TacticalRect.Height + int(4.5 * CELL_PIXEL_H) + ymin, ymin);
+
+    bool clamped = false;
+
+    if (pixel.Y < ymin) {
+        pixel.Y = ymin;
+        clamped = true;
+    }
+    else if (pixel.Y > ymax) {
+        pixel.Y = ymax;
+        clamped = true;
+    }
+
+    if (pixel.X < xmin) {
+        pixel.X = xmin;
+        clamped = true;
+    }
+    else if (pixel.X > xmax) {
+        pixel.X = xmax;
+        clamped = true;
+    }
+
+    return(clamped);
+}
 
 
 /**
@@ -802,6 +840,46 @@ DECLARE_PATCH(_Tactical_Center_On_Location_Unfollow_Object_Patch)
 
 
 /**
+ *  Fills the remaining space of the Tactical screen with black.
+ *
+ *  @authors: Belonit, ZivDero
+ */
+static void _Fill_With_Black()
+{
+    const int max_width = TacticalRect.Width - Map.MapLocalSize.Width * CELL_PIXEL_W;
+    if (max_width > 0) {
+        Rect rect = {
+            TacticalRect.Width - max_width,
+            0,
+            max_width,
+            TacticalRect.Height };
+        CompositeSurface->Fill_Rect(rect, COLOR_TBLACK);
+    }
+
+    const int max_height = TacticalRect.Height - Map.MapLocalSize.Height * CELL_PIXEL_H - int(4.5 * CELL_PIXEL_H);
+    if (max_height > 0) {
+        Rect rect = {
+            0,
+            TacticalRect.Height - max_height,
+            TacticalRect.Width,
+            max_height };
+        CompositeSurface->Fill_Rect(rect, COLOR_TBLACK);
+    }
+}
+
+
+DECLARE_PATCH(_Tactical_Render_Fill_With_Black_Patch)
+{
+    _Fill_With_Black();
+
+    // Stolen instructions
+    _asm {mov eax, [esp+0x18]}
+    _asm {mov ecx, ebx}
+    JMP_REG(EDX, 0x00611BC1);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void TacticalExtension_Hooks()
@@ -835,4 +913,7 @@ void TacticalExtension_Hooks()
 
     Patch_Jump(0x00616940, &TacticalExt::_Select_These);
     Patch_Jump(0x00479150, &Vinifera_Bandbox_Select);
+
+    Patch_Jump(0x00614EC0, &TacticalExt::_Clamp_To_Tactical_Rect);
+    Patch_Jump(0x00611BBB, &_Tactical_Render_Fill_With_Black_Patch);
 }

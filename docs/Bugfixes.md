@@ -64,3 +64,4 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where AI players would send teams to attack their allies.
 - `[CombatDamage]->MinDamage` now works as expected and damage is no long always a minimum of `1`.
 - VehicleTypes with Jumpjet locomotion now take damage in flight.
+- Fix the map glitching around when scrolling if the map is not large enough to fill the entire screen.

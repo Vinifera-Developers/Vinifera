@@ -7,6 +7,7 @@ This page lists all the individual contributions to the project by their author.
 - **Belonit (Gluk-v48)**:
   - Check for Changelog/Documentation/Credits in Pull Requests.
   - Docs dark theme switcher.
+  - Fix the map glitching around when scrolling if the map is not large enough to fill the entire screen.
 - **CCHyper/tomsons26**:
   - Vinifera foundations: TS++, game.exe hooker, extension system and other core features
   - Implement `CurleyShuffle` for AircraftTypes
@@ -212,4 +213,5 @@ This page lists all the individual contributions to the project by their author.
   - Allow disabling the ActLike check on construction yards to allow for faction-specific MCVs.
   - Finalize the feature for animations to spawn additional animations.
   - VehicleTypes with Jumpjet locomotion now take damage in flight.
+  - Fix the map glitching around when scrolling if the map is not large enough to fill the entire screen.
 

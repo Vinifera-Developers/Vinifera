@@ -233,6 +233,7 @@ Vanilla fixes:
 - Fix a bug where AI players would send teams to attack their allies (by ZivDero)
 - `[CombatDamage]->MinDamage` now works as expected and damage is no long always a minimum of `1` (by ZivDero)
 - VehicleTypes with Jumpjet locomotion now take damage in flight (by ZivDero)
+- Fix the map glitching around when scrolling if the map is not large enough to fill the entire screen (by Belonit, ZivDero)
 
 </details>
 
