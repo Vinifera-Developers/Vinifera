@@ -185,6 +185,7 @@ This page lists all the individual contributions to the project by their author.
   - Allow deploying air transports with the "Deploy" keyboard command.
   - Add WallOwner to BuildingTypes.
   - Implement `Mechanic` for InfantryTypes.
+  - Fix a buffer overflow crash in MapClass::Place_Down.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:

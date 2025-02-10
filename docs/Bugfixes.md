@@ -79,3 +79,4 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix only the building specified under `[General]->RepairBay` being able to repair aircraft (port from ts-patches).
 - Fix the player being able to land an aircraft onto a helipad even if it's not listed as `Dock=` of this aircraft.
 - Fix a bug where the player couldn't repair aircraft on allied repair bays under some circumstances.
+- Fix a buffer overflow crash in MapClass::Place_Down.
