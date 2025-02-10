@@ -1475,10 +1475,10 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                     Add_CRC(&GameCRC, (int)((ptr->Get_Coord().X / 10) << 16) + (int)(ptr->Get_Coord().Y / 10) + (int)ptr->PrimaryFacing.Current().Get_Dir());
 
                     const char *tarcom_name = "None";
-                    Coordinate tarcom_coord;
+                    Coordinate tarcom_coord = Coordinate(0, 0, 0);
 
                     const char *navcom_name = "None";
-                    Coordinate navcom_coord;
+                    Coordinate navcom_coord = Coordinate(0, 0, 0);
 
                     if (ptr->TarCom) {
                         tarcom_name = Name_From_RTTI(ptr->TarCom->Fetch_RTTI());
@@ -1521,10 +1521,10 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                     Add_CRC(&GameCRC, (int)((ptr->Get_Coord().X / 10) << 16) + (int)(ptr->Get_Coord().Y / 10) + (int)ptr->PrimaryFacing.Current().Get_Dir());
 
                     const char *tarcom_name = "None";
-                    Coordinate tarcom_coord;
+                    Coordinate tarcom_coord = Coordinate(0, 0, 0);
 
                     const char *navcom_name = "None";
-                    Coordinate navcom_coord;
+                    Coordinate navcom_coord = Coordinate(0, 0, 0);
 
                     if (ptr->TarCom) {
                         tarcom_name = Name_From_RTTI(ptr->TarCom->Fetch_RTTI());
@@ -1566,7 +1566,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                     Add_CRC(&GameCRC, (int)((ptr->Get_Coord().X / 10) << 16) + (int)(ptr->Get_Coord().Y / 10) + (int)ptr->PrimaryFacing.Current().Get_Dir());
 
                     const char *tarcom_name = "None";
-                    Coordinate tarcom_coord;
+                    Coordinate tarcom_coord = Coordinate(0, 0, 0);;
 
                     if (ptr->TarCom) {
                         tarcom_name = Name_From_RTTI(ptr->TarCom->Fetch_RTTI());
@@ -1599,10 +1599,10 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                     Add_CRC(&GameCRC, (int)((ptr->Get_Coord().X / 10) << 16) + (int)(ptr->Get_Coord().Y / 10) + (int)ptr->PrimaryFacing.Current().Get_Dir());
 
                     const char *tarcom_name = "None";
-                    Coordinate tarcom_coord;
+                    Coordinate tarcom_coord = Coordinate(0, 0, 0);;
 
                     const char *navcom_name = "None";
-                    Coordinate navcom_coord;
+                    Coordinate navcom_coord = Coordinate(0, 0, 0);;
 
                     if (ptr->TarCom) {
                         tarcom_name = Name_From_RTTI(ptr->TarCom->Fetch_RTTI());
@@ -1663,7 +1663,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     for (int index = 0; index < Anims.Count(); ++index) {
         AnimClass *animp = Anims[index];
         const char *xobject_name = "None";
-        Coordinate xobject_coord;
+        Coordinate xobject_coord = Coordinate(0, 0, 0);;
 
         if (animp->xObject) {
             xobject_name = Name_From_RTTI(animp->xObject->Fetch_RTTI());
