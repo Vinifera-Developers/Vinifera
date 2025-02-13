@@ -922,8 +922,12 @@ DECLARE_PATCH(_BuildingClass_Mission_Deconstruction_ConYard_Survivors_Patch)
 {
     GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
 
-    // This used to be || in RA and is || in YR, but is && in TS, for some reason
-    if (!Target_Legal(this_ptr->ArchiveTarget) || !this_ptr->Class->UndeploysInto)
+    // Unfortunately, it seems like Mission_Deconstruction does not know if the building was sold or is undeploying
+    // So we're going to
+    // a) check if this building doesn't ever undeploy
+    // b) if it does undeploy, check that it has no archive target (the place you order them to move is set as the archive target, although rally points are also set as archive targets, so it may have side-effects)
+    // c) ensure that this isn't artillery/icbm/etc.
+    if ((this_ptr->ArchiveTarget == nullptr || this_ptr->Class->UndeploysInto == nullptr) && !this_ptr->Class->Is_Deployable())
     {
         // Process crew
         JMP(0x00430CE4);
