@@ -94,8 +94,8 @@ HRESULT ObjectTypeClassExtension::Load(IStream *pStm)
         return E_FAIL;
     }
 
-    NoSpawnVoxelIndex.Clear();
-    WaterVoxelIndex.Clear();
+    new (&NoSpawnVoxelIndex) VoxelIndexClass;
+    new (&WaterVoxelIndex) VoxelIndexClass;
 
     NoSpawnVoxel.Clear();
     WaterVoxel.Clear();
