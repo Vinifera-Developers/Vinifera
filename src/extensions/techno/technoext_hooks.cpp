@@ -630,15 +630,15 @@ FireErrorType TechnoClassExt::_Can_Fire(TARGET target, WeaponSlotType which)
     if (ext->SpawnManager && ext->SpawnManager->Preparing_Count())
         return FIRE_BUSY;
 
-    ObjectClass* object = Target_As_Techno(target);
+    TechnoClass* techno = Target_As_Techno(target);
+    CellClass* cptr = &Map[target->Center_Coord()];
 
     /**
      *  If the object is completely cloaked, then you can't fire on it.
      */
-    if (object && object->Visual_Character(true, House) == VISUAL_HIDDEN
-        && !Map[target->Center_Coord()].Sensed_By(static_cast<HousesType>(House->Get_Heap_ID()))
-        && object->Owning_House() != House
-        && (Combat_Damage() > 0 || !object->Owning_House()->Is_Ally(House)))
+    if (techno != NULL && techno->Visual_Character(true, House) == VISUAL_HIDDEN
+        && !cptr->Sensed_By((HousesType)House->ID) && techno->House != House
+        && (Combat_Damage() > 0 || !techno->House->Is_Ally(House)))
     {
         return FIRE_CANT;
     }
@@ -654,12 +654,10 @@ FireErrorType TechnoClassExt::_Can_Fire(TARGET target, WeaponSlotType which)
      */
     if (Is_Immobilized())
     {
-        if (What_Am_I() != RTTI_UNIT
-            || !(reinterpret_cast<UnitClass*>(this)->Class->IsLargeVisceroid
-            || reinterpret_cast<UnitClass*>(this)->Class->IsSmallVisceroid))
-        {
+        if (Kind_Of() != RTTI_UNIT)
             return FIRE_CANT;
-        }
+        if (!reinterpret_cast<UnitClass*>(this)->Class->IsLargeVisceroid && !reinterpret_cast<UnitClass*>(this)->Class->IsSmallVisceroid)
+            return FIRE_CANT;
     }
 
     /**
@@ -692,7 +690,7 @@ FireErrorType TechnoClassExt::_Can_Fire(TARGET target, WeaponSlotType which)
     /**
      *  If the weapon is a spawner, it needs to have an object ready to spawn.
      */
-    if (weapon && Extension::Fetch<WeaponTypeClassExtension>(weapon)->IsSpawner)
+    if (techno && weapon && Extension::Fetch<WeaponTypeClassExtension>(weapon)->IsSpawner)
     {
         const auto techno_ext = Extension::Fetch<TechnoClassExtension>(this);
 
@@ -738,7 +736,7 @@ FireErrorType TechnoClassExt::_Can_Fire(TARGET target, WeaponSlotType which)
      *  Check if the unit has synchronized shooting.
      */
     bool check_rearm = true;
-    if (which != WEAPON_SLOT_SECONDARY && What_Am_I() == RTTI_UNIT)
+    if (which != WEAPON_SLOT_SECONDARY && Kind_Of() == RTTI_UNIT)
     {
         const auto unit = reinterpret_cast<UnitClass*>(this);
         const int burst = CurrentBurstIndex % weapon->Burst;
@@ -747,7 +745,7 @@ FireErrorType TechnoClassExt::_Can_Fire(TARGET target, WeaponSlotType which)
             if (unit->Class->FiringSyncFrame[burst] != -1
                 && unit->FiringSyncDelay != -1)
             {
-                if (unit->Class->FiringSyncFrame[burst] != unit->FiringSyncDelay)
+                if (unit->FiringSyncDelay != unit->Class->FiringSyncFrame[burst])
                     return FIRE_REARM;
                 
                 check_rearm = false;
@@ -770,10 +768,8 @@ FireErrorType TechnoClassExt::_Can_Fire(TARGET target, WeaponSlotType which)
     /**
      *  If the object has an armor type that this unit's warhead is forbidden to fire at, bail.
      */
-    if (object && !Verses::Get_ForceFire(object->Techno_Type_Class()->Armor, weapon->WarheadPtr))
-    {
+    if (techno && !Verses::Get_ForceFire(techno->Techno_Type_Class()->Armor, weapon->WarheadPtr))
         return FIRE_ILLEGAL;
-    }
 
     /**
      *  If there is no ammo left, then it can't fire.
@@ -784,7 +780,7 @@ FireErrorType TechnoClassExt::_Can_Fire(TARGET target, WeaponSlotType which)
     /**
      *  If cloaked, then firing is disabled.
      */
-    if (Cloak != UNCLOAKED && (What_Am_I() != RTTI_AIRCRAFT || Cloak == CLOAKED))
+    if (Cloak != UNCLOAKED && (Kind_Of() != RTTI_AIRCRAFT || Cloak == CLOAKED))
         return FIRE_CLOAKED;
 
     /**
