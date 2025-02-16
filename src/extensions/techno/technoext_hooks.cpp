@@ -690,7 +690,7 @@ FireErrorType TechnoClassExt::_Can_Fire(TARGET target, WeaponSlotType which)
     /**
      *  If the weapon is a spawner, it needs to have an object ready to spawn.
      */
-    if (techno && weapon && Extension::Fetch<WeaponTypeClassExtension>(weapon)->IsSpawner)
+    if (weapon && Extension::Fetch<WeaponTypeClassExtension>(weapon)->IsSpawner)
     {
         const auto techno_ext = Extension::Fetch<TechnoClassExtension>(this);
 
