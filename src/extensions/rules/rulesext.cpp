@@ -330,6 +330,15 @@ void RulesClassExtension::Process(CCINIClass &ini)
     This()->CombatDamage(ini);
     This()->AudioVisual(ini);
     This()->SpecialWeapons(ini);
+
+    /**
+     *  Note: The game re-reads INI values for warheads at the end of
+     *  SpecialWeapons(), so we do the same here for our extensions.
+     */
+    for (int i = 0; i < WarheadTypeExtensions.Count(); i++) {
+        WarheadTypeExtensions[i]->Read_INI(ini);
+    }
+
     //TiberiumClass::Process(ini);
 
     /**
