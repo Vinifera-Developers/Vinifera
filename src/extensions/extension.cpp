@@ -1214,7 +1214,7 @@ void Print_Path(FILE* fp, FootClass *foot)
     FacingType facing = foot->Path[0];
     int pathindex = 0;
 
-    while (facing != FACING_NONE) {
+    while (facing != FACING_NONE && pathindex < std::size(foot->Path)) {
         std::fprintf(fp, Facing_To_String(facing));
         std::fprintf(fp, " ");
         pathindex++;
