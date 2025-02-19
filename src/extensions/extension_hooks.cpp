@@ -60,6 +60,7 @@
 #include "overlayext_hooks.h"
 #include "overlaytypeext_hooks.h"
 //#include "particleext_hooks.h"
+#include "particleext_hooks.h"
 #include "particletypeext_hooks.h"
 #include "particlesysext_hooks.h"
 #include "particlesystypeext_hooks.h"
@@ -108,6 +109,7 @@
 #include "themeext_hooks.h"
 
 #include "displayext_hooks.h"
+#include "scrollext_hooks.h"
 #include "sidebarext_hooks.h"
 #include "mouseext_hooks.h"
 
@@ -199,7 +201,7 @@ void Extension_Hooks()
     //BuildingLightExtension_Hooks();                       // Not yet implemented
     OverlayClassExtension_Hooks();
     OverlayTypeClassExtension_Hooks();
-    //ParticleClassExtension_Hooks();                       // Not yet implemented
+    ParticleClassExtension_Hooks();
     ParticleTypeClassExtension_Hooks();
     ParticleSystemClassExtension_Hooks();
     ParticleSystemTypeClassExtension_Hooks();
@@ -253,6 +255,7 @@ void Extension_Hooks()
     ThemeClassExtension_Hooks();
 
     DisplayClassExtension_Hooks();
+    ScrollClassExtension_Hooks();
     SidebarClassExtension_Hooks();
     MouseClassExtension_Hooks();
 
