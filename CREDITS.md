@@ -167,6 +167,7 @@ This page lists all the individual contributions to the project by their author.
   - Allow scenarios to have custom score screen bar colors.
   - Add `Inaccuracy` to RocketTypes.
   - Add `TargetZoneScan` to TechnoTypes.
+  - Fix a bug where a visceroid was spawned when poison gas destroyed a non-crewed vehicle, building, or terrain object.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:
