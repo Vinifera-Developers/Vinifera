@@ -600,6 +600,9 @@ void TechnoClassExt::_Mission_AI()
 {
     MissionClass::AI();
 
+    if (!IsActive)
+        return;
+
     const auto extension = Extension::Fetch<TechnoClassExtension>(this);
 
     if (extension->SpawnManager)
