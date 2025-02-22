@@ -726,49 +726,51 @@ void SpawnManagerClass::Detach_Spawns()
     /**
      *  Iterate all the spawns.
      */
-    for (int i = 0; i < SpawnControls.Count(); i++)
+    for (int i = SpawnControls.Count() - 1; i >= 0; i--)
     {
         /**
          *  Don't need to do anything about dead spawns.
          */
         SpawnControl* control = SpawnControls[i];
-        if (control->Status == SpawnControlStatus::Dead)
-            continue;
-
-        /**
-         *  If it's currently docked, just kill it off. It's already limboed.
-         */
-        if (control->Status == SpawnControlStatus::Idle || control->Status == SpawnControlStatus::Reloading)
-        {
-            control->Status = SpawnControlStatus::Dead;
-            control->Spawnee->Remove_This();
-        }
-        else
+        if (control->Status != SpawnControlStatus::Dead)
         {
             /**
-             *  If it's a rocket taking off, detach it and remove it from the world.
+             *  If it's currently docked, just kill it off. It's already limboed.
              */
-            if (control->Status == SpawnControlStatus::Takeoff)
+            if (control->Status != SpawnControlStatus::Idle && control->Status != SpawnControlStatus::Reloading)
             {
-                KamikazeTracker->Detach(control->Spawnee);
-                control->Status = SpawnControlStatus::Dead;
-                control->Spawnee->Remove_This();
+                /**
+                 *  If it's a rocket taking off, detach it and remove it from the world.
+                 */
+                if (control->Status == SpawnControlStatus::Takeoff)
+                {
+                    KamikazeTracker->Detach(control->Spawnee);
+                    control->Status = SpawnControlStatus::Dead;
+                    control->Spawnee->Remove_This();
+                }
+                /**
+                 *  Otherwise it's probably currently in flight, so just detach it.
+                 */
+                else
+                {
+                    control->Status = SpawnControlStatus::Dead;
+                    KamikazeTracker->Add(control->Spawnee, Target);
+                }
+
+                control->Spawnee = nullptr;
             }
-            /**
-             *  Otherwise it's probably currently in flight, so just detach it.
-             */
             else
             {
                 control->Status = SpawnControlStatus::Dead;
-                KamikazeTracker->Add(control->Spawnee, Target);
+                control->Spawnee->Remove_This();
+                control->Spawnee = nullptr;
             }
-        }
 
-        /**
-         *  Set the spawn to regenerate.
-         */
-        control->Spawnee = nullptr;
-        control->ReloadTimer = regen_rate;
+            /**
+             *  Set the spawn to regenerate.
+             */
+            control->ReloadTimer = regen_rate;
+        }
     }
 }
 
