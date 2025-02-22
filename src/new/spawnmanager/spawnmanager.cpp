@@ -192,10 +192,10 @@ SpawnManagerClass::SpawnManagerClass(TechnoClass* owner, const AircraftTypeClass
 
         if (spawnee != nullptr)
         {
+            control->Status = SpawnControlStatus::Idle;
             control->IsSpawnedMissile = RocketTypeClass::From_AircraftType(SpawnType) != nullptr;
             control->Spawnee->Limbo();
             Extension::Fetch<AircraftClassExtension>(control->Spawnee)->SpawnOwner = Owner;
-            control->Status = SpawnControlStatus::Idle;
             control->ReloadTimer = 0;
             SpawnControls.Add(control);
         }
@@ -535,9 +535,16 @@ void SpawnManagerClass::AI()
 
                 if (owner_coord == spawnee_coord && std::abs(spawnee->Coord.Z - Owner->Coord.Z) < 20)
                 {
-                    spawnee->Limbo();
+                    /**
+                     *  WARNING: Limbo() can destroy the unit in certain situations. If that happens, we
+                     *  don't want to set the status to Reloading, as that will cause a nullptr crash later
+                     *  when attempting to reload a non-existing spawnee
+                     *  (Detach picks up the destruction and sets the control status to Dead).
+                     *  Do not touch the order of the statements here or all hell breaks loose!
+                     */
                     control->Status = SpawnControlStatus::Reloading;
                     control->ReloadTimer = ReloadRate;
+                    spawnee->Limbo();
                 }
                 else
                 {
@@ -583,11 +590,11 @@ void SpawnManagerClass::AI()
                 /**
                  *  Create a new spawn and set it to idle.
                  */
+                control->Status = SpawnControlStatus::Idle;
                 control->Spawnee = static_cast<AircraftClass*>(SpawnType->Create_One_Of(Owner->Owning_House()));
                 control->IsSpawnedMissile = RocketTypeClass::From_AircraftType(SpawnType) != nullptr;
                 control->Spawnee->Limbo();
                 Extension::Fetch<AircraftClassExtension>(control->Spawnee)->SpawnOwner = Owner;
-                control->Status = SpawnControlStatus::Idle;
                 break;
             }
         }
@@ -872,6 +879,10 @@ void SpawnManagerClass::Detach(TARGET target)
             const auto control = SpawnControls[i];
             if (control->Spawnee == target)
             {
+                /**
+                 *  Only remove spawnees that are suicidal or have strength below zero.
+                 *  Otherwise, it is a spawnee that landed on us and was limbo'ed for reloading.
+                 */
                 if (control->Spawnee->Strength <= 0 || control->Spawnee->IsKamikaze || control->IsSpawnedMissile)
                 {
                     control->Spawnee = nullptr;
