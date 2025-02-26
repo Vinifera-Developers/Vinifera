@@ -172,7 +172,7 @@ void OptionsClassExtension::Load_Settings()
      *
      *  @author: ZivDero
      */
-    RawFileClass keyboard_file("Keyboard.ini");
+    CCFileClass keyboard_file("Keyboard.ini");
     CCINIClass keyboard_ini;
 
     if (keyboard_file.Is_Available()) {
