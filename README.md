@@ -98,7 +98,7 @@ Anti-virus software like Windows Defender could mark the binaries built from the
 
 
 # Legal
-This project is an unofficial open-source community collaboration project for preservation, modding and compatibility purposes. This project has no direct affiliation with Electronic Arts Inc. and/or Command & Conquer. Command & Conquer is an Electronic Arts Inc. brand. All Rights Reserved.
+This project is an unofficial open-source community collaboration project for preservation, modding and compatibility purposes. EA has not endorsed and does not support this product. Command & Conquer is an Electronic Arts Inc. brand. All Rights Reserved.
 
 No assets, texts, artwork or other media from the original game(s) is included in this repository. We do not condone piracy in any way, shape or form and encourgage users to legally own the original game(s). 
 
