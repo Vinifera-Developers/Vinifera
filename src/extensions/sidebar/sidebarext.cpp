@@ -821,12 +821,11 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
                         Speak(VOX_CANCELED);
 
                         int count_to_abandon = 1;
-                        const int queued_count = factory->Queued_Object_Count() + (factory->Get_Object() != nullptr ? 1 : 0);
 
                         if ((GetAsyncKeyState(VK_SHIFT) & 0x8000))
-                            count_to_abandon = queued_count;
+                            count_to_abandon = factory->Total_Queued(*choice);
                         else if ((GetAsyncKeyState(VK_CONTROL) & 0x8000))
-                            count_to_abandon = std::clamp(5, 0, queued_count);
+                            count_to_abandon = std::clamp(5, 0, factory->Total_Queued(*choice));
 
                         for (int i = 0; i < count_to_abandon; i++)
                             OutList.Add(EventClass(PlayerPtr->Get_Heap_ID(), EVENT_ABANDON, otype, oid));
@@ -842,12 +841,17 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
                 else
                 {
                     factory = PlayerPtr->Fetch_Factory(otype);
-                    if (factory)
+                    if (factory && factory->Is_Queued(*choice))
                     {
-                        if (factory->Is_Queued(*choice))
-                        {
+                        int count_to_abandon = 1;
+
+                        if ((GetAsyncKeyState(VK_SHIFT) & 0x8000))
+                            count_to_abandon = factory->Total_Queued(*choice);
+                        else if ((GetAsyncKeyState(VK_CONTROL) & 0x8000))
+                            count_to_abandon = std::clamp(5, 0, factory->Total_Queued(*choice));
+
+                        for (int i = 0; i < count_to_abandon; i++)
                             OutList.Add(EventClass(PlayerPtr->Get_Heap_ID(), EVENT_ABANDON, otype, oid));
-                        }
                     }
                 }
             }
