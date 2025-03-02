@@ -93,25 +93,21 @@ bool Vinifera_Load_INI()
     ini.Get_String("General", "CursorFile", Vinifera_CursorName, sizeof(Vinifera_CursorName));
 
 #if defined(TS_CLIENT)
-    {
     /**
      *  TS Client uses a seperate "version" file, so its best we fetch the current
      *  version from there rather than have the user update the INI file each time
      *  they update the project.
      */
     RawFileClass ver_file("version");
-    if (!ver_file.Is_Available()) {
-        DEBUG_ERROR("Failed to find TS Client version file!\n");
-        return false;
-    }
-
-    INIClass ver_ini;
-    ver_ini.Load(ver_file);
-
-    ver_ini.Get_String("DTA", "Version", Vinifera_ProjectVersion, sizeof(Vinifera_ProjectVersion));
+    if (ver_file.Is_Available()) {
+        INIClass ver_ini;
+        ver_ini.Load(ver_file);
+        ver_ini.Get_String("DTA", "Version", Vinifera_ProjectVersion, sizeof(Vinifera_ProjectVersion));
+    } else {
+        ini.Get_String("General", "ProjectVersion", Vinifera_ProjectVersion, sizeof(Vinifera_ProjectVersion));
     }
 #else
-    ini.Get_String("General", "ProjectVersion", "No version number set", Vinifera_ProjectVersion, sizeof(Vinifera_ProjectVersion));
+    ini.Get_String("General", "ProjectVersion", Vinifera_ProjectVersion, sizeof(Vinifera_ProjectVersion));
 #endif
 
     Vinifera_ProjectName[sizeof(Vinifera_ProjectName)-1] = '\0';
