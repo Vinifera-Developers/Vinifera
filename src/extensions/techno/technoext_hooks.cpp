@@ -147,7 +147,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
     const auto ttype_ext = Extension::Fetch<TechnoTypeClassExtension>(ttype);
     const auto ext = Extension::Fetch<TechnoClassExtension>(this);
 
-    if (What_Am_I() != RTTI_BUILDING)
+    if (Kind_Of() != RTTI_BUILDING)
     {
         drawx = bottomleft.X - 5;
         drawy = bottomleft.Y;
@@ -177,7 +177,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
                 if (object != nullptr)
                 {
                     pip = 1;
-                    if (object->What_Am_I() == RTTI_INFANTRY)
+                    if (object->Kind_Of() == RTTI_INFANTRY)
                     {
                         pip = ((InfantryClass*)object)->Class->Pip;
                     }
@@ -199,7 +199,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
              *  Check if it contains Tiberium to show the right type of pips for the
              *  various minerals it could have stored.
              */
-            if ((What_Am_I() == RTTI_UNIT || What_Am_I() == RTTI_BUILDING) && Techno_Type_Class()->PipScale == PIP_TIBERIUM)
+            if ((Kind_Of() == RTTI_UNIT || Kind_Of() == RTTI_BUILDING) && Techno_Type_Class()->PipScale == PIP_TIBERIUM)
             {
                 std::vector<int> pips_to_draw;
                 pips_to_draw.reserve(Class_Of()->Max_Pips());
@@ -207,8 +207,8 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
                 /**
                  *  Weeders/Waste Facilities draw all their contents with the Weed pip.
                  */
-                if ((ttype->What_Am_I() == RTTI_UNITTYPE && ((UnitTypeClass*)ttype)->IsToVeinHarvest) ||
-                    (ttype->What_Am_I() == RTTI_BUILDINGTYPE && ((BuildingTypeClass*)ttype)->IsWeeder))
+                if ((ttype->Kind_Of() == RTTI_UNITTYPE && ((UnitTypeClass*)ttype)->IsToVeinHarvest) ||
+                    (ttype->Kind_Of() == RTTI_BUILDINGTYPE && ((BuildingTypeClass*)ttype)->IsWeeder))
                 {
                     /**
                      *  Add the pips to draw to a vector.
@@ -305,7 +305,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
             char buffer[12];
 
             Point2D drawpoint = bottomleft;
-            drawpoint += UIControls->Get_Group_Number_Offset((RTTIType)What_Am_I(), Class_Of()->Max_Pips() > 0);
+            drawpoint += UIControls->Get_Group_Number_Offset((RTTIType)Kind_Of(), Class_Of()->Max_Pips() > 0);
 
             int group = Group + 1;
 
@@ -331,17 +331,17 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
         const int specialpip = Extension::Fetch<TechnoTypeClassExtension>(Techno_Type_Class())->SpecialPipIndex;
         if (specialpip >= 0)
         {
-            CC_Draw_Shape(LogicSurface, NormalDrawer, pips1, specialpip, &(Point2D(drawx, drawy) + UIControls->Get_Special_Pip_Offset((RTTIType)What_Am_I())), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
+            CC_Draw_Shape(LogicSurface, NormalDrawer, pips1, specialpip, &(Point2D(drawx, drawy) + UIControls->Get_Special_Pip_Offset((RTTIType)Kind_Of())), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
         }
-        else if (What_Am_I() == RTTI_INFANTRY && Combat_Damage() < 0)
+        else if (Kind_Of() == RTTI_INFANTRY && Combat_Damage() < 0)
         {
-            CC_Draw_Shape(LogicSurface, NormalDrawer, pips1, 6, &(Point2D(drawx, drawy) + UIControls->Get_Special_Pip_Offset((RTTIType)What_Am_I())), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
+            CC_Draw_Shape(LogicSurface, NormalDrawer, pips1, 6, &(Point2D(drawx, drawy) + UIControls->Get_Special_Pip_Offset((RTTIType)Kind_Of())), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
         }
 
         /**
          *  Display whether this unit is a leader unit or not.
          */
-        if (What_Am_I() != RTTI_BUILDING)
+        if (Kind_Of() != RTTI_BUILDING)
             Draw_Text_Overlay(Point2D(bottomleft.X - 10, bottomleft.Y + 10), bottomleft, rect);
 
         /**
@@ -360,7 +360,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
         if (veterancy_shape != -1)
         {
             Point2D drawpoint = center;
-            drawpoint += UIControls->Get_Veterancy_Pip_Offset((RTTIType)What_Am_I());
+            drawpoint += UIControls->Get_Veterancy_Pip_Offset((RTTIType)Kind_Of());
             CC_Draw_Shape(LogicSurface, NormalDrawer, pips1, veterancy_shape, &drawpoint, &rect, SHAPE_WIN_REL | SHAPE_CENTER);
         }
     }
@@ -460,9 +460,9 @@ WeaponSlotType TechnoClassExt::_What_Weapon_Should_I_Use(TARGET target) const
                 immobilize = true;
             }
         } else if (!obj->Is_Foot()) {
-            immobilize = obj->What_Am_I() == RTTI_ISOTILE;
+            immobilize = obj->Kind_Of() == RTTI_ISOTILE;
         }
-    } else if (target->What_Am_I() == RTTI_CELL) {
+    } else if (target->Kind_Of() == RTTI_CELL) {
         CellClass* cell = static_cast<CellClass*>(target);
         IsometricTileType tile = cell->Tile;
         if (tile != DestroyableCliff && tile != BlackTile && !cell->IsBridge) {
@@ -497,7 +497,7 @@ bool TechnoClassExt::_Spawner_Fire_At(TARGET target, WeaponTypeClass* weapon)
             if (!Map.Is_Shrouded(Center_Coord()) && !Map.Is_Fogged(Center_Coord()))
                 return true;
 
-            if (What_Am_I() == RTTI_AIRCRAFT && IsOwnedByPlayer)
+            if (Kind_Of() == RTTI_AIRCRAFT && IsOwnedByPlayer)
                 return true;
         }
 
@@ -911,16 +911,16 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
     /**
      *  Don't allow retaliation if it isn't equipped with a weapon that can deal with the threat.
      */
-    if (source->What_Am_I() == RTTI_AIRCRAFT && !weapon_info->Weapon->Bullet->IsAntiAircraft) return false;
+    if (source->Kind_Of() == RTTI_AIRCRAFT && !weapon_info->Weapon->Bullet->IsAntiAircraft) return false;
 
     /**
      *  Units with C4 are not allowed to retaliate against buildings in the normal sense while in guard mode. That
      *  is, unless it is owned by the computer. Normally, units with C4 can't do anything substantial to a building
      *  except to blow it up.
      */
-    if (House->Is_Human_Control() && source->What_Am_I() == RTTI_BUILDING)
+    if (House->Is_Human_Control() && source->Kind_Of() == RTTI_BUILDING)
     {
-        if (What_Am_I() == RTTI_INFANTRY && static_cast<InfantryTypeClass const*>(ttype)->IsBomber)
+        if (Kind_Of() == RTTI_INFANTRY && static_cast<InfantryTypeClass const*>(ttype)->IsBomber)
             return false;
 
         if (Veterancy.Is_Veteran() && ttype->VeteranAbilities[ABILITY_C4])
@@ -933,7 +933,7 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
     /**
      *  Artillery that need to deploy to fire don't retaliate.
      */
-    if (House->Is_Human_Control() && What_Am_I() == RTTI_UNIT)
+    if (House->Is_Human_Control() && Kind_Of() == RTTI_UNIT)
     {
         const BuildingTypeClass* deploys_into = reinterpret_cast<UnitClass const*>(this)->Class->DeploysInto;
         if (deploys_into && deploys_into->IsArtillary)
@@ -943,7 +943,7 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
     /**
      *  If a human house is not allowed to retaliate automatically, then don't
      */
-    if (House->Is_Human_Control() && !Rule->IsSmartDefense && What_Am_I() != RTTI_BUILDING)
+    if (House->Is_Human_Control() && !Rule->IsSmartDefense && Kind_Of() != RTTI_BUILDING)
     {
         if (Mission != MISSION_GUARD_AREA && Mission != MISSION_GUARD && Mission != MISSION_PATROL)
             return false;
@@ -1148,7 +1148,7 @@ void TechnoClassExt::_Drop_Tiberium()
      */
     static FacingType drop_facings[9] = { FACING_NONE, FACING_E, FACING_NW, FACING_NE, FACING_S, FACING_SE, FACING_N, FACING_SW, FACING_W };
 
-    if (Storage.Get_Total_Amount() > 0 && What_Am_I() != RTTI_BUILDING && !Scen->SpecialFlags.IsHarvesterImmune)
+    if (Storage.Get_Total_Amount() > 0 && Kind_Of() != RTTI_BUILDING && !Scen->SpecialFlags.IsHarvesterImmune)
     {
         TiberiumType droplist[9] = { TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE };
         int dropcount = 0;
@@ -1190,6 +1190,7 @@ void TechnoClassExt::_Drop_Tiberium()
 void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
 {
     int total_recorded = 0;
+
     const int points = Techno_Type_Class()->Cost_Of(House);
 
     const auto typeext = Extension::Fetch<TechnoTypeClassExtension>(Techno_Type_Class());
@@ -1201,11 +1202,14 @@ void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
 
     if (IsActive && Tag && source) Tag->Spring(TEVENT_DISCOVERED, this);
 
-    if (IsActive && What_Am_I() != RTTI_UNIT && Tag) Tag->Spring(TEVENT_DESTROYED, this);
+    if (IsActive && Kind_Of() != RTTI_UNIT) {
 
-    if (IsActive && What_Am_I() != RTTI_UNIT && Tag) Tag->Spring(TEVENT_DESTROYED_BY_ANYTHING, this);
+        if (IsActive && Tag && source) Tag->Spring(TEVENT_DESTROYED, this);
 
-    if (IsActive && What_Am_I() != RTTI_UNIT && Tag) Tag->Spring(TEVENT_FAKES_DESTROYED, this);
+        if (IsActive && Tag) Tag->Spring(TEVENT_DESTROYED_BY_ANYTHING, this);
+
+        if (IsActive && Tag) Tag->Spring(TEVENT_FAKES_DESTROYED, this);
+    }
 
     if (source && !typeext->IsDontScore && !House->Is_Ally(source) && !source->House->Is_Ally(this)) {
 
@@ -1230,29 +1234,29 @@ void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
         source->House->PointTotal += points;
     }
 
-    switch (What_Am_I()) {
+    switch (Kind_Of()) {
     case RTTI_BUILDING:
     {
         if (!Techno_Type_Class()->IsInsignificant) {
-
             if (reinterpret_cast<BuildingClass*>(this)->WhoLastHurtMe != HOUSE_NONE) {
                 House->BuildingsLost++;
             }
-        }
 
-        if (source) {
-            if ((Session.Type == GAME_INTERNET || Session.Type == GAME_IPX) && !typeext->IsDontScore) {
-                source->House->DestroyedBuildings->Increment_Unit_Total(reinterpret_cast<BuildingClass*>(this)->Class->Type);
+            if (source != NULL) {
+                if ((Session.Type == GAME_INTERNET || Session.Type == GAME_IPX) && !typeext->IsDontScore) {
+                    source->House->DestroyedBuildings->Increment_Unit_Total(reinterpret_cast<BuildingClass*>(this)->Class->Type);
+                }
+                source->House->BuildingsKilled[Owner()]++;
             }
-            source->House->BuildingsKilled[Owner()]++;
-        }
 
-        /**
-         *  If the map is displaying the multiplayer player names & their
-         *  # of kills, tell it to redraw.
-         */
-        if (Map.Is_Player_Names()) {
-            Map.Player_Names(false);
+            /**
+             *  If the map is displaying the multiplayer player names & their
+             *  # of kills, tell it to redraw.
+             */
+            if (Map.Is_Player_Names()) {
+                Map.Redraw_Radar(false);
+            }
+
         }
     }
     break;
@@ -1282,7 +1286,7 @@ void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
          *  # of kills, tell it to redraw.
          */
         if (Map.Is_Player_Names()) {
-            Map.Player_Names(false);
+            Map.Redraw_Radar(false);
         }
         break;
 
@@ -1526,7 +1530,7 @@ void TechnoClassExt::_Draw_Text_Overlay(Point2D& point1, Point2D& point2, Rect& 
     /**
      *  Print the Power/Drain text on power plants.
      */
-    if (What_Am_I() == RTTI_BUILDING && reinterpret_cast<const BuildingClass*>(this)->Class->Power > 0)
+    if (Kind_Of() == RTTI_BUILDING && reinterpret_cast<const BuildingClass*>(this)->Class->Power > 0)
     {
         const auto owner = Owning_House();
         std::sprintf(buffer, Fetch_String(TXT_POWER_DRAIN), owner->Power_Output(), owner->Power_Drain());
@@ -1538,7 +1542,7 @@ void TechnoClassExt::_Draw_Text_Overlay(Point2D& point1, Point2D& point2, Rect& 
      */
     if (IsLeader)
     {
-        const int text = What_Am_I() == RTTI_BUILDING && reinterpret_cast<const BuildingClass*>(this)->Class->Width() == 1 ? TXT_PRI : TXT_PRIMARY;
+        const int text = Kind_Of() == RTTI_BUILDING && reinterpret_cast<const BuildingClass*>(this)->Class->Width() == 1 ? TXT_PRI : TXT_PRIMARY;
         Plain_Text_Print(text, LogicSurface, &rect, &point2, COLOR_WHITE, COLOR_TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_EFNT, colorschemetype, 1);
     }
 }
@@ -1814,7 +1818,7 @@ DECLARE_PATCH(_TechnoClass_Fire_At_Suicide_Patch)
              *  
              *  This same crash happens in Red Alert 2 also, possible engine bug.
              */
-            if (this_ptr->What_Am_I() == RTTI_AIRCRAFT) {
+            if (this_ptr->Kind_Of() == RTTI_AIRCRAFT) {
                 goto limpet_check;
             }
 
