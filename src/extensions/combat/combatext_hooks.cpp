@@ -28,7 +28,6 @@
 #include "tibsun_inline.h"
 #include "buildingext_hooks.h"
 #include "combatext_hooks.h"
-
 #include "aircraft.h"
 #include "anim.h"
 #include "animtype.h"
@@ -47,7 +46,6 @@
 #include "building.h"
 #include "coord.h"
 #include "debughandler.h"
-
 #include "hooker.h"
 #include "hooker_macros.h"
 #include "infantry.h"
@@ -427,6 +425,16 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
                 distance = std::abs(coord.Z - object->Get_Z_Coord());
                 if (distance < LEVEL_LEPTON_H * 2) {
                     distance = 0;
+                }
+            } else if (object->RTTI == RTTI_BUILDING && warhead_ext->CellSpread >= 0) {
+                /**
+                 *  For buildings, let's consider their closest cell to the explosion.
+                 */
+                const Cell* list = object->Occupy_List();
+                distance = INT_MAX;
+                while (*list != REFRESH_EOL) {
+                    int trydist = Distance_Level_Snap(coord, Cell_Coord(*list++));
+                    distance = std::min(trydist, distance);
                 }
             } else {
                 distance = Distance_Level_Snap(coord, object->Target_Coord());
