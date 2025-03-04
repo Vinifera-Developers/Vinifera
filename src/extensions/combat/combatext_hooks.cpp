@@ -308,8 +308,12 @@ void Spawn_Flames_And_Smudges(const Cell & cell, const WarheadTypeClass * warhea
     else if (Probability_Of(warhead_ext->CraterChance)) {
         SmudgeTypeClass::Create_Crater(cell_coord, 100, 100, false);
     }
-    if (Probability_Of(warhead_ext->FireChance)) {
-        new AnimClass(Rule->OnFire[Random_Pick(0, Rule->OnFire.Count() - 1)], cell_coord);
+    if (Probability_Of(warhead_ext->CellAnimChance)) {
+        const TypeList<AnimTypeClass*>* anims = &warhead_ext->CellAnim;
+        if (anims->Count() == 0) {
+            anims = &Rule->OnFire;
+        }
+        new AnimClass((*anims)[Random_Pick(0, anims->Count() - 1)], cell_coord);
     }
 }
 

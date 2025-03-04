@@ -170,7 +170,7 @@ New:
 - Add `TargetZoneScan` to TechnoTypes (by Rampastring)
 - Implement `DecloakToFire` (by ZivDero)
 - Implement `CellSpread` and `PercentAtMax` (by ZivDero)
-- Implement `ScorchChance`, `CraterChance` and `FireChance` (by ZivDero)
+- Implement `ScorchChance`, `CraterChance` and `CellAnimChance` (by ZivDero)
 
 
 Vanilla fixes:

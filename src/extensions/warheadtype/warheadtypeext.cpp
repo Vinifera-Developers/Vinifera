@@ -60,7 +60,7 @@ WarheadTypeClassExtension::WarheadTypeClassExtension(const WarheadTypeClass *thi
     PercentAtMax(1.0f),
     ScorchChance(0.0f),
     CraterChance(0.0f),
-    FireChance(0.0f)
+    CellAnimChance(0.0f)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("WarheadTypeClassExtension::WarheadTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -121,12 +121,18 @@ HRESULT WarheadTypeClassExtension::Load(IStream *pStm)
 {
     //EXT_DEBUG_TRACE("WarheadTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
+    CellAnim.Clear();
+
     HRESULT hr = AbstractTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return hr;
     }
 
     new (this) WarheadTypeClassExtension(NoInitClass());
+
+    CellAnim.Load(pStm);
+
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(CellAnim, "CellAnim");
     
     return hr;
 }
@@ -145,6 +151,8 @@ HRESULT WarheadTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
     if (FAILED(hr)) {
         return hr;
     }
+
+    CellAnim.Save(pStm);
 
     return hr;
 }
@@ -304,8 +312,9 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
     ScorchChance = std::clamp(ScorchChance, 0.0f, 1.0f);
     CraterChance = ini.Get_Float(ini_name, "CraterChance", CraterChance);
     CraterChance = std::clamp(CraterChance, 0.0f, 1.0f);
-    FireChance = ini.Get_Float(ini_name, "FireChance", FireChance);
-    FireChance = std::clamp(FireChance, 0.0f, 1.0f);
+    CellAnimChance = ini.Get_Float(ini_name, "CellAnimChance", CellAnimChance);
+    CellAnimChance = std::clamp(CellAnimChance, 0.0f, 1.0f);
+    CellAnim = ini.Get_Anims(ini_name, "CellAnim", CellAnim);
 
     IsInitialized = true;
 

@@ -111,7 +111,12 @@ WarheadTypeClassExtension final : public AbstractTypeClassExtension
         float CraterChance;
 
         /**
-         *  The chance that a cell affected by this warhead will spawn a random fire.
+         *  The chance that a cell affected by this warhead will spawn a random anim from the list.
          */
-        float FireChance;
+        float CellAnimChance;
+
+        /**
+         *  The list of anims to pick from when CellAnimChance is triggered.
+         */
+        TypeList<AnimTypeClass*> CellAnim;
 };

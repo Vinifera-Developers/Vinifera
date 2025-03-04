@@ -1193,9 +1193,9 @@ PercentAtMax=100%  ; % or float, the fraction of the damage that is applied at t
 When `CellSpread` is negative, vanilla TS `Spread` logic is applied.
 ```
 
-### Smudges and Fires
+### Smudges and Animations
 
-- Vinifera allows weapons to spawn scorches, craters and fires on cells affected by explosions.
+- Vinifera allows weapons to spawn scorches, craters and animations on cells affected by explosions.
 
 ```{note}
 When using `Spread`, only the cell directly hit by the explosion will be considered. When using `CellSpread`, all affected cells are taken into account.
@@ -1203,10 +1203,11 @@ When using `Spread`, only the cell directly hit by the explosion will be conside
 
 In `RULES.INI`:
 ```ini
-[SOMEWARHEAD]    ; WarheadType
-ScorchChance=-1  ; % or float, the chance that an affected cell will contain a new scorch after the explosion.
-CraterChance=-1  ; % or float, the chance that an affected cell will contain a new crater after the explosion.
-FireChance=-1    ; % or float, the chance that an affected cell will contain a new fire animation after the explosion.
+[SOMEWARHEAD]     ; WarheadType
+ScorchChance=0    ; % or float, the chance that an affected cell will contain a new scorch after the explosion.
+CraterChance=0    ; % or float, the chance that an affected cell will contain a new crater after the explosion.
+CellAnimChance=0  ; % or float, the chance that an affected cell will contain a new animation after the explosion.
+CellAnim=         ; list of AnimTypes, the list of animation to pick from when a random animation is spawned. Defaults to `[AudioVisual]->OnFire`.
 ```
 
 ```{note}
