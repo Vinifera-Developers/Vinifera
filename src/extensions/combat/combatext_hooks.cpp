@@ -183,72 +183,11 @@ static bool Is_On_High_Bridge(const Coordinate& coord)
 
 
 /**
- *  Collects the targets to deal damage to in the legacy way.
- *
- *  @author: ZivDero
- */
-void Legacy_Get_Explosion_Targets(const Coordinate& coord, TechnoClass* source, DynamicVectorClass<ObjectClass*>& objects)
-{
-    Cell cell;      // Cell number under explosion.
-    ObjectClass* object; // Working object pointer
-
-    cell = Coord_Cell(coord);
-    CellClass* cellptr = &Map[cell];
-
-    const bool isbridge = cellptr->IsUnderBridge && coord.Z > BRIDGE_LEPTON_HEIGHT / 2 + Map.Get_Cell_Height(coord);
-
-    /**
-     *  Fill the list of unit IDs that will have damage
-     *  assessed upon them. The units can be lifted from
-     *  the cell data directly.
-     */
-    for (FacingType i = FACING_NONE; i < FACING_COUNT; i++) {
-
-        /**
-         *  Fetch a pointer to the cell to examine. This is either
-         *  an adjacent cell or the center cell. Damage never spills
-         *  further than one cell away.
-         */
-        if (i != FACING_NONE) {
-            cellptr = &Map[cell].Adjacent_Cell(i);
-        }
-
-        /**
-         *  Add all objects in this cell to the list of objects to possibly apply
-         *  damage to.
-         */
-        object = cellptr->Cell_Occupier(isbridge);
-        while (object) {
-            if (object != source) {
-                if (object->Kind_Of() != RTTI_UNIT || !Scen->SpecialFlags.IsHarvesterImmune || !Rule->HarvesterUnit.Is_Present(static_cast<UnitTypeClass*>(object->Class_Of()))) {
-                    objects.Delete(object);
-                    objects.Add(object);
-                }
-            }
-            object = object->Next;
-        }
-
-        /**
-         *  If there is a veinhole monster, it may be destroyed.
-         */
-        if (cellptr->Overlay != OVERLAY_NONE) {
-            if (OverlayTypes[cellptr->Overlay]->IsVeinholeMonster) {
-                VeinholeMonsterClass* veinhole = VeinholeMonsterClass::Fetch_At(cell);
-                if (veinhole) {
-                    objects.Add(veinhole);
-                }
-            }
-        }
-    }
-}
-
-
-/**
  *  Collects the targets to deal damage to in a certain range.
  *
  *  @author: ZivDero
  */
-void New_Get_Explosion_Targets(const Coordinate& coord, TechnoClass* source, int range, DynamicVectorClass<ObjectClass*>& objects)
+void Get_Explosion_Targets(const Coordinate& coord, TechnoClass* source, int range, DynamicVectorClass<ObjectClass*>& objects)
 {
     Cell cell;      // Cell number under explosion.
     ObjectClass* object; // Working object pointer
@@ -384,10 +323,14 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
     const auto warhead_ext = Extension::Fetch<WarheadTypeClassExtension>(warhead);
 
     if (warhead_ext->CellSpread < 0) {
-        Legacy_Get_Explosion_Targets(coord, source, objects);
+        /**
+         *  Collecting targets within a range of 1 cell is the same as sweeping through this cell,
+         *  as well as the surrounding cells.
+         */
+        Get_Explosion_Targets(coord, source, CELL_LEPTON_W, objects);
     } else {
         range = warhead_ext->CellSpread * CELL_LEPTON_W;
-        New_Get_Explosion_Targets(coord, source, range, objects);
+        Get_Explosion_Targets(coord, source, range, objects);
     }
 
     /**
