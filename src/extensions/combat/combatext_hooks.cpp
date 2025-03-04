@@ -391,8 +391,9 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
     }
 
     const auto warhead_ext = Extension::Fetch<WarheadTypeClassExtension>(warhead);
+    bool use_cell_spread = warhead_ext->CellSpread >= 0;
 
-    if (warhead_ext->CellSpread < 0) {
+    if (!use_cell_spread) {
         /**
          *  Collecting targets within a range of 1 cell is the same as sweeping through this cell,
          *  as well as the surrounding cells.
@@ -426,7 +427,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
                 if (distance < LEVEL_LEPTON_H * 2) {
                     distance = 0;
                 }
-            } else if (object->RTTI == RTTI_BUILDING && warhead_ext->CellSpread >= 0) {
+            } else if (object->RTTI == RTTI_BUILDING && use_cell_spread) {
                 /**
                  *  For buildings, let's consider their closest cell to the explosion.
                  */
@@ -485,7 +486,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
     cellptr = &Map[cell];
 
     if (close_to_ground) {
-        if (warhead_ext->CellSpread < 0) {
+        if (!use_cell_spread) {
             Damage_Overlay(cell, warhead, strength, do_chain_reaction);
             Spawn_Flames_And_Smudges(cell, warhead);
         }
