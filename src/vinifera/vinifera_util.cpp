@@ -224,6 +224,10 @@ void Vinifera_Draw_Version_Text(XSurface *surface, bool pre_init)
     if (!surface) {
         return;
     }
+
+    if (Vinifera_NoVersionString) {
+        return;
+    }
     
 #ifndef RELEASE
     static Point2D warning_pos;
