@@ -516,8 +516,8 @@ void TacticalExt::_Draw_Rally_Points(bool blit)
                     Coordinate rally_coord = bldg->ArchiveTarget->Center_Coord();
 
                     rally_coord.Z = Map.Get_Cell_Height(rally_coord);
-                    if (Map[rally_coord].IsBridge)
-                        rally_coord.Z += BridgeCellHeight;
+                    if (Map[rally_coord].IsUnderBridge)
+                        rally_coord.Z += BRIDGE_LEPTON_HEIGHT;
 
                     Point2D end_pos = func_60F0F0(Point2D(rally_coord.X, rally_coord.Y)) / 256;
                     end_pos.Y -= Z_Lepton_To_Pixel(rally_coord.Z);

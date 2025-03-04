@@ -672,7 +672,7 @@ IFACEMETHODIMP_(void) TestLocomotionClass::Mark_All_Occupation_Bits(int mark)
  */
 IFACEMETHODIMP_(bool) TestLocomotionClass::Is_Moving_Here(Coordinate to)
 {
-    return Coord_Cell(Head_To_Coord()) == Coord_Cell(to) && std::abs(Head_To_Coord().Z - to.Z) <= CellHeight;
+    return Coord_Cell(Head_To_Coord()) == Coord_Cell(to) && std::abs(Head_To_Coord().Z - to.Z) <= LEVEL_LEPTON_H;
 }
 
 

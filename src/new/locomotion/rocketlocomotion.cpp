@@ -650,7 +650,7 @@ bool RocketLocomotionClass::Time_To_Explode(const RocketTypeClass* rocket)
     if (coord.Z > DestinationCoord.Z)
     {
         const CellClass* rocket_cell = Linked_To()->Get_Cell_Ptr();
-        if (!rocket_cell || !rocket_cell->IsBridge || DestinationCoord.Z != rocket_cell->Center_Coord().Z || coord.Z > DestinationCoord.Z + ROCKET_SPEED)
+        if (!rocket_cell || !rocket_cell->IsUnderBridge || DestinationCoord.Z != rocket_cell->Center_Coord().Z || coord.Z > DestinationCoord.Z + ROCKET_SPEED)
         {
             /**
              *  Nope, too early.
