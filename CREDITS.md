@@ -217,3 +217,4 @@ This page lists all the individual contributions to the project by their author.
   - VehicleTypes with Jumpjet locomotion now take damage in flight.
   - Fix the map glitching around when scrolling if the map is not large enough to fill the entire screen.
   - Implement `DecloakToFire`.
+  - Implement `CellSpread` and `PercentAtMax`.

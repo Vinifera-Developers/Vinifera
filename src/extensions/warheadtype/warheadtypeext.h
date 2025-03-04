@@ -89,4 +89,14 @@ WarheadTypeClassExtension final : public AbstractTypeClassExtension
          *  The minimum damage something using this warhead can deal. Negative means to use Rule->MinDamage.
          */
         int MinDamage;
+
+        /**
+         *  The maximum range, in cells, at which a weapon using this warhead will damage objects.
+         */
+        float CellSpread;
+
+        /**
+         *  The fraction of the damage that is applied at this weapon's max range.
+         */
+        float PercentAtMax;
 };

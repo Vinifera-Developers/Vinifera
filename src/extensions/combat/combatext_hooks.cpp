@@ -101,33 +101,74 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ArmorType armo
     const int min_damage = warhead_ext->MinDamage >= 0 ? warhead_ext->MinDamage : Rule->MinDamage;
 
     /**
-     *  Apply the warhead's modifier to the damage and ensure it's at least MinDamage.
+     *  Apply TS Spread logic.
      */
-    damage *= Verses::Get_Modifier(armor, warhead);
-    damage = std::max(min_damage, damage);
-
-    /**
-     *	Reduce damage according to the distance from the impact point.
-     */
-    if (damage)
+    if (warhead_ext->CellSpread < 0.0)
     {
-        if (!warhead->SpreadFactor)
-            distance /= PIXEL_LEPTON_W / 2;
-        else
-            distance /= warhead->SpreadFactor * (PIXEL_LEPTON_W / 2 + 1);
-
-        distance = std::clamp(distance, 0, 16);
-
-        if (distance)
-            damage /= distance;
 
         /**
-         *	Allow damage to drop to zero only if the distance would have
-         *	reduced damage to less than 1/4 full damage. Otherwise, ensure
-         *	that at least one damage point is done.
+         *  Apply the warhead's modifier to the damage and ensure it's at least MinDamage.
          */
-        if (distance < 4)
-            damage = std::max(damage, min_damage);
+        damage *= Verses::Get_Modifier(armor, warhead);
+        damage = std::max(min_damage, damage);
+
+        /**
+         *	Reduce damage according to the distance from the impact point.
+         */
+        if (damage)
+        {
+            if (!warhead->SpreadFactor)
+                distance /= PIXEL_LEPTON_W / 2;
+            else
+                distance /= warhead->SpreadFactor * (PIXEL_LEPTON_W / 2 + 1);
+
+            distance = std::clamp(distance, 0, 16);
+
+            if (distance)
+                damage /= distance;
+
+            /**
+             *	Allow damage to drop to zero only if the distance would have
+             *	reduced damage to less than 1/4 full damage. Otherwise, ensure
+             *	that at least one damage point is done.
+             */
+            if (distance < 4)
+                damage = std::max(damage, min_damage);
+        }
+    }
+    /**
+     *  Apply RA2 CellSpread logic.
+     */
+    else
+    {
+        float fdamage = (float)damage;
+
+        /**
+         *  Calculate the damage at the furthest point.
+         */
+        float at_max = fdamage * warhead_ext->PercentAtMax;
+
+        /**
+         *  Calculate our range in leptons.
+         */
+        int cell_spread = warhead_ext->CellSpread * CELL_LEPTON_W;
+
+        /**
+         *  Reduce the damage based on the distance and the damage % at max distance.
+         */
+        if (at_max != fdamage && cell_spread != 0)
+            damage = ((fdamage - at_max) * (cell_spread - distance) / (warhead_ext->CellSpread * CELL_LEPTON_W) + at_max);
+
+        /**
+         *  Our damage was originally positive, don't allow it to go negative.
+         */
+        damage = std::max(0, damage);
+
+        /**
+         *  Apply the warhead's modifier to the damage and ensure it's at least MinDamage.
+         */
+        damage *= Verses::Get_Modifier(armor, warhead);
+        damage = std::max(min_damage, damage);
     }
 
     damage = std::min(damage, Rule->MaxDamage);
@@ -138,6 +179,123 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ArmorType armo
 static bool Is_On_High_Bridge(const Coordinate& coord)
 {
     return Map[coord].IsUnderBridge && coord.Z >= BRIDGE_LEPTON_HEIGHT + Map.Get_Cell_Height(coord);
+}
+
+
+void Legacy_Get_Explosion_Targets(const Coordinate& coord, TechnoClass* source, DynamicVectorClass<ObjectClass*>& objects)
+{
+    Cell cell;      // Cell number under explosion.
+    ObjectClass* object; // Working object pointer
+
+    cell = Coord_Cell(coord);
+    CellClass* cellptr = &Map[cell];
+
+    const bool isbridge = cellptr->IsUnderBridge && coord.Z > BRIDGE_LEPTON_HEIGHT / 2 + Map.Get_Cell_Height(coord);
+
+    /**
+     *  Fill the list of unit IDs that will have damage
+     *  assessed upon them. The units can be lifted from
+     *  the cell data directly.
+     */
+    for (FacingType i = FACING_NONE; i < FACING_COUNT; i++) {
+
+        /**
+         *  Fetch a pointer to the cell to examine. This is either
+         *  an adjacent cell or the center cell. Damage never spills
+         *  further than one cell away.
+         */
+        if (i != FACING_NONE) {
+            cellptr = &Map[cell].Adjacent_Cell(i);
+        }
+
+        /**
+         *  Add all objects in this cell to the list of objects to possibly apply
+         *  damage to. Do not include overlapping objects; selection state can affect
+         *  the overlappers, and this causes multiplayer games to go out of sync.
+         */
+        object = cellptr->Cell_Occupier(isbridge);
+        while (object) {
+            if (object != source) {
+                if (object->Kind_Of() != RTTI_UNIT || !Scen->SpecialFlags.IsHarvesterImmune || !Rule->HarvesterUnit.Is_Present(static_cast<UnitTypeClass*>(object->Class_Of()))) {
+                    objects.Delete(object);
+                    objects.Add(object);
+                }
+            }
+            object = object->Next;
+        }
+
+        /**
+         *  If there is a veinhole monster, it may be destroyed.
+         */
+        if (cellptr->Overlay != OVERLAY_NONE) {
+            if (OverlayTypes[cellptr->Overlay]->IsVeinholeMonster) {
+                VeinholeMonsterClass* veinhole = VeinholeMonsterClass::Fetch_At(cell);
+                if (veinhole) {
+                    objects.Add(veinhole);
+                }
+            }
+        }
+    }
+}
+
+
+void New_Get_Explosion_Targets(const Coordinate& coord, TechnoClass* source, int range, DynamicVectorClass<ObjectClass*>& objects)
+{
+    Cell cell;      // Cell number under explosion.
+    ObjectClass* object; // Working object pointer
+
+    cell = Coord_Cell(coord);
+    CellClass* cellptr = &Map[cell];
+
+    int cell_radius = (range + CELL_LEPTON_W - 1) / CELL_LEPTON_W;
+
+    const bool isbridge = cellptr->IsUnderBridge && coord.Z > BRIDGE_LEPTON_HEIGHT / 2 + Map.Get_Cell_Height(coord);
+
+    /**
+     *  Fill the list of unit IDs that will have damage
+     *  assessed upon them. The units can be lifted from
+     *  the cell data directly.
+     */
+    for (int x = -cell_radius; x <= cell_radius; x++) {
+        for (int y = -cell_radius; y <= cell_radius; y++) {
+
+            Cell newcell = cell + Cell(x, y);
+
+            /**
+             *  Fetch a pointer to the cell to examine.
+             */
+            cellptr = &Map[newcell];
+            
+
+            /**
+             *  Add all objects in this cell to the list of objects to possibly apply
+             *  damage to. Do not include overlapping objects; selection state can affect
+             *  the overlappers, and this causes multiplayer games to go out of sync.
+             */
+            object = cellptr->Cell_Occupier(isbridge);
+            while (object) {
+                if (object != source) {
+                    if (object->Kind_Of() != RTTI_UNIT || !Scen->SpecialFlags.IsHarvesterImmune || !Rule->HarvesterUnit.Is_Present(static_cast<UnitTypeClass*>(object->Class_Of()))) {
+                        objects.Delete(object);
+                        objects.Add(object);
+                    }
+                }
+                object = object->Next;
+            }
+
+            /**
+             *  If there is a veinhole monster, it may be destroyed.
+             */
+            if (cellptr->Overlay != OVERLAY_NONE) {
+                if (OverlayTypes[cellptr->Overlay]->IsVeinholeMonster) {
+                    VeinholeMonsterClass* veinhole = VeinholeMonsterClass::Fetch_At(cell);
+                    if (veinhole) {
+                        objects.Add(veinhole);
+                    }
+                }
+            }
+        }
+    }
 }
 
 
@@ -171,11 +329,12 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
     cell = Coord_Cell(coord);
 
     CellClass* cellptr = &Map[cell];
+    const bool isbridge = cellptr->IsUnderBridge && coord.Z > BRIDGE_LEPTON_HEIGHT / 2 + Map.Get_Cell_Height(coord);
+    ObjectClass* impacto = cellptr->Cell_Occupier(isbridge);
 
     /**
-     *  Fill the list of unit IDs that will have damage
-     *  assessed upon them. First pass over all objects that
-     *  could be in flight, because they are not present in cell data.
+     *  Fill the list with units that are in flight, because
+     *  they are not present in cell data.
      */
     if (Map.Get_Cell_Height(Cell_Coord(cell)) < coord.Z) {
 
@@ -222,52 +381,13 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
         }
     }
 
-    const bool isbridge = cellptr->IsUnderBridge && coord.Z > BRIDGE_LEPTON_HEIGHT / 2 + Map.Get_Cell_Height(coord);
-    ObjectClass* impacto = cellptr->Cell_Occupier(isbridge);
+    const auto warhead_ext = Extension::Fetch<WarheadTypeClassExtension>(warhead);
 
-    /**
-     *  Fill the list of unit IDs that will have damage
-     *  assessed upon them. The units can be lifted from
-     *  the cell data directly.
-     */
-    for (FacingType i = FACING_NONE; i < FACING_COUNT; i++) {
-
-        /**
-         *  Fetch a pointer to the cell to examine. This is either
-         *  an adjacent cell or the center cell. Damage never spills
-         *  further than one cell away.
-         */
-        if (i != FACING_NONE) {
-            cellptr = &Map[cell].Adjacent_Cell(i);
-        }
-
-        /**
-         *  Add all objects in this cell to the list of objects to possibly apply
-         *  damage to. Do not include overlapping objects; selection state can affect
-         *  the overlappers, and this causes multiplayer games to go out of sync.
-         */
-        object = cellptr->Cell_Occupier(isbridge);
-        while (object) {
-            if (object != source) {
-                if (object->Kind_Of() != RTTI_UNIT || !Scen->SpecialFlags.IsHarvesterImmune || !Rule->HarvesterUnit.Is_Present(static_cast<UnitTypeClass*>(object->Class_Of()))) {
-                    objects.Delete(object);
-                    objects.Add(object);
-                }
-            }
-            object = object->Next;
-        }
-
-        /**
-         *  If there is a veinhole monster, it may be destroyed.
-         */
-        if (cellptr->Overlay != OVERLAY_NONE) {
-            if (OverlayTypes[cellptr->Overlay]->IsVeinholeMonster) {
-                VeinholeMonsterClass* veinhole = VeinholeMonsterClass::Fetch_At(cell);
-                if (veinhole) {
-                    objects.Add(veinhole);
-                }
-            }
-        }
+    if (warhead_ext->CellSpread < 0) {
+        Legacy_Get_Explosion_Targets(coord, source, objects);
+    } else {
+        range = warhead_ext->CellSpread * CELL_LEPTON_W;
+        New_Get_Explosion_Targets(coord, source, range, objects);
     }
 
     /**
@@ -332,7 +452,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
      */
     cellptr = &Map[cell];
     if (cellptr->Overlay != OVERLAY_NONE) {
-        OverlayTypeClass const* optr = &OverlayTypeClass::As_Reference(cellptr->Overlay);
+        OverlayTypeClass const* optr = OverlayTypes[cellptr->Overlay];
 
         if (optr->IsChainReactive) {
             if (!(optr->IsTiberium && !warhead->IsTiberiumDestroyer) && do_chain_reaction) {
@@ -416,7 +536,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
         }
     }
 
-    if (cellptr->Overlay != OVERLAY_NONE && OverlayTypeClass::As_Reference(cellptr->Overlay).IsExplosive) {
+    if (cellptr->Overlay != OVERLAY_NONE && OverlayTypes[cellptr->Overlay]->IsExplosive) {
         cellptr->Redraw_Overlay();
         cellptr->Overlay = OVERLAY_NONE;
         cellptr->Recalc_Attributes();
@@ -441,7 +561,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
 
         for (int f = 0; f < 4; f++) {
             Coordinate adjacent = Adjacent_Coord_With_Height(coord, _part_facings[f]);
-            if (Map[adjacent].Overlay != OVERLAY_NONE && OverlayTypeClass::As_Reference(Map[adjacent].Overlay).IsExplosive) {
+            if (Map[adjacent].Overlay != OVERLAY_NONE && OverlayTypes[Map[adjacent].Overlay]->IsExplosive) {
                 new AnimClass(AnimTypeClass::As_Pointer(AnimTypeClass::From_Name("FIRE3")), coord, Random_Pick(1, 3) + 3);
             }
         }

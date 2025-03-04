@@ -1178,6 +1178,21 @@ TurretFacings=32     ; integer, the turret facing count.
 
 ## Warheads
 
+### Cell Spread
+
+- Vinifera ports the Cell Spread mechanic from Red Alert 2, allowing for more destructive and flexible weapons.
+
+In `RULES.INI`:
+```ini
+[SOMEWARHEAD]      ; WarheadType
+CellSpread=-1      ; float, the maximum range, in cells, at which a weapon using this warhead will damage objects.
+PercentAtMax=100%  ; % or float, the fraction of the damage that is applied at the weapon's max range.
+```
+
+```{note}
+When `CellSpread` is negative, vanilla TS `Spread` logic is applied.
+```
+
 ### MinDamage
 
 - Vinifera allows customizing the minimum damage dealt using a specific warhead.

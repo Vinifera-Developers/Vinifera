@@ -169,6 +169,7 @@ New:
 - Implement a feature for animations to spawn additional animations (by CCHyper/tomsons26, ZivDero)
 - Add `TargetZoneScan` to TechnoTypes (by Rampastring)
 - Implement `DecloakToFire` (by ZivDero)
+- Implement `CellSpread` and `PercentAtMax` (by ZivDero)
 
 
 Vanilla fixes:

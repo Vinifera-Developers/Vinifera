@@ -55,7 +55,9 @@ WarheadTypeClassExtension::WarheadTypeClassExtension(const WarheadTypeClass *thi
     ShakePixelYLo(0),
     ShakePixelXHi(0),
     ShakePixelXLo(0),
-    MinDamage(-1)
+    MinDamage(-1),
+    CellSpread(-1.0f),
+    PercentAtMax(1.0f)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("WarheadTypeClassExtension::WarheadTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -185,6 +187,8 @@ void WarheadTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
     crc(ShakePixelYLo);
     crc(ShakePixelXHi);
     crc(ShakePixelXLo);
+    crc(CellSpread);
+    crc(PercentAtMax);
 }
 
 
@@ -289,6 +293,9 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
     This()->IsOrganic = ini.Get_Bool(ini_name, "Organic", This()->IsOrganic);
 
     MinDamage = ini.Get_Int(ini_name, "MinDamage", MinDamage);
+
+    CellSpread = ini.Get_Float(ini_name, "CellSpread", CellSpread);
+    PercentAtMax = ini.Get_Float(ini_name, "PercentAtMax", PercentAtMax);
 
     IsInitialized = true;
 
