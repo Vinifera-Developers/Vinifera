@@ -1210,10 +1210,6 @@ CellAnimChance=0  ; % or float, the chance that an affected cell will contain a 
 CellAnim=         ; list of AnimTypes, the list of animation to pick from when a random animation is spawned. Defaults to `[AudioVisual]->OnFire`.
 ```
 
-```{note}
-Only one of these affects will be applied to the cell at a time.
-```
-
 ### MinDamage
 
 - Vinifera allows customizing the minimum damage dealt using a specific warhead.
