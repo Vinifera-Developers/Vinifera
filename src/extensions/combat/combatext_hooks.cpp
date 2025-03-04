@@ -64,6 +64,7 @@
 #include "verses.h"
 #include "voxelanim.h"
 #include "jumpjetlocomotion.h"
+#include "smudgetype.h"
 
 
 /**
@@ -246,10 +247,19 @@ void Get_Explosion_Targets(const Coordinate& coord, TechnoClass* source, int ran
 }
 
 
-void Damage_Overlay(Cell const & cell, const WarheadTypeClass * warhead, int strength, bool close_to_ground, bool do_chain_reaction)
+/**
+ *  Damages the overlay at this cell.
+ *
+ *  @author: ZivDero
+ */
+void Damage_Overlay(Cell const & cell, const WarheadTypeClass * warhead, int strength, bool do_chain_reaction)
 {
+    /**
+     *  If there is a wall present at this location, it may be destroyed. Check to
+     *  make sure that the warhead is of the kind that can destroy walls.
+     */
     CellClass * cellptr = &Map[cell];
-    if (cellptr->Overlay != OVERLAY_NONE && close_to_ground) {
+    if (cellptr->Overlay != OVERLAY_NONE) {
         OverlayTypeClass const* optr = OverlayTypes[cellptr->Overlay];
 
         if (optr->IsChainReactive) {
@@ -278,6 +288,30 @@ void Damage_Overlay(Cell const & cell, const WarheadTypeClass * warhead, int str
         if (cellptr->Overlay == OVERLAY_NONE) {
             TechnoClass::Update_Mission_Targets(cellptr);
         }
+    }
+}
+
+
+/**
+ *  Spawns random smudges and fires in the cell.
+ *
+ *  @author: ZivDero
+ */
+void Spawn_Flames_And_Smudges(const Cell & cell, const WarheadTypeClass * warhead)
+{
+    Coordinate cell_coord = Cell_Coord(cell);
+    cell_coord.Z = Map.Get_Cell_Height(cell_coord);
+
+    const auto warhead_ext = Extension::Fetch<WarheadTypeClassExtension>(warhead);
+
+    if (Probability_Of(warhead_ext->ScorchChance)) {
+        SmudgeTypeClass::Create_Scorch(cell_coord, 100, 100, false);
+    }
+    else if (Probability_Of(warhead_ext->CraterChance)) {
+        SmudgeTypeClass::Create_Scorch(cell_coord, 100, 100, false);
+    }
+    else if (Probability_Of(warhead_ext->FireChance)) {
+        new AnimClass(Rule->OnFire[Random_Pick(0, Rule->OnFire.Count() - 1)], cell_coord);
     }
 }
 
@@ -442,23 +476,25 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
 
     cellptr = &Map[cell];
 
-    /**
-     *  If there is a wall present at this location, it may be destroyed. Check to
-     *  make sure that the warhead is of the kind that can destroy walls.
-     */
-    if (warhead_ext->CellSpread < 0) {
-        Damage_Overlay(cell, warhead, strength, close_to_ground, do_chain_reaction);
-    } else {
-        int cell_radius = (range + CELL_LEPTON_W - 1) / CELL_LEPTON_W;
-        for (int x = -cell_radius; x <= cell_radius; x++) {
-            for (int y = -cell_radius; y <= cell_radius; y++) {
-                Cell newcell = cell + Cell(x, y);
-                if (Distance(Cell_Coord(newcell), Cell_Coord(cell)) <= range) {
-                    Damage_Overlay(cell + Cell(x, y), warhead, strength, close_to_ground, do_chain_reaction);
+    if (close_to_ground) {
+        if (warhead_ext->CellSpread < 0) {
+            Damage_Overlay(cell, warhead, strength, do_chain_reaction);
+            Spawn_Flames_And_Smudges(cell, warhead);
+        }
+        else {
+            int cell_radius = (range + CELL_LEPTON_W - 1) / CELL_LEPTON_W;
+            for (int x = -cell_radius; x <= cell_radius; x++) {
+                for (int y = -cell_radius; y <= cell_radius; y++) {
+                    Cell newcell = cell + Cell(x, y);
+                    if (Distance(Cell_Coord(newcell), Cell_Coord(cell)) <= range) {
+                        Damage_Overlay(newcell, warhead, strength, do_chain_reaction);
+                        Spawn_Flames_And_Smudges(newcell, warhead);
+                    }
                 }
             }
         }
     }
+
 
     /**
      *  If there is a bridge at this location, then it may be destroyed by the

@@ -1193,6 +1193,26 @@ PercentAtMax=100%  ; % or float, the fraction of the damage that is applied at t
 When `CellSpread` is negative, vanilla TS `Spread` logic is applied.
 ```
 
+### Smudges and Fires
+
+- Vinifera allows weapons to spawn scorches, craters and fires on cells affected by explosions.
+
+```{note}
+When using `Spread`, only the cell directly hit by the explosion will be considered. When using `CellSpread`, all affected cells are taken into account.
+```
+
+In `RULES.INI`:
+```ini
+[SOMEWARHEAD]    ; WarheadType
+ScorchChance=-1  ; % or float, the chance that an affected cell will contain a new scorch after the explosion.
+CraterChance=-1  ; % or float, the chance that an affected cell will contain a new crater after the explosion.
+FireChance=-1    ; % or float, the chance that an affected cell will contain a new fire animation after the explosion.
+```
+
+```{note}
+Only one of these affects will be applied to the cell at a time.
+```
+
 ### MinDamage
 
 - Vinifera allows customizing the minimum damage dealt using a specific warhead.

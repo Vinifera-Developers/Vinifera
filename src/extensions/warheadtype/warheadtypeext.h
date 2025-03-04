@@ -99,4 +99,19 @@ WarheadTypeClassExtension final : public AbstractTypeClassExtension
          *  The fraction of the damage that is applied at this weapon's max range.
          */
         float PercentAtMax;
+
+        /**
+         *  The chance that a cell affected by this warhead will spawn a random scorch.
+         */
+        float ScorchChance;
+
+        /**
+         *  The chance that a cell affected by this warhead will spawn a random crater.
+         */
+        float CraterChance;
+
+        /**
+         *  The chance that a cell affected by this warhead will spawn a random fire.
+         */
+        float FireChance;
 };

@@ -57,7 +57,10 @@ WarheadTypeClassExtension::WarheadTypeClassExtension(const WarheadTypeClass *thi
     ShakePixelXLo(0),
     MinDamage(-1),
     CellSpread(-1.0f),
-    PercentAtMax(1.0f)
+    PercentAtMax(1.0f),
+    ScorchChance(0.0f),
+    CraterChance(0.0f),
+    FireChance(0.0f)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("WarheadTypeClassExtension::WarheadTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -296,6 +299,13 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
 
     CellSpread = ini.Get_Float(ini_name, "CellSpread", CellSpread);
     PercentAtMax = ini.Get_Float(ini_name, "PercentAtMax", PercentAtMax);
+
+    ScorchChance = ini.Get_Float(ini_name, "ScorchChance", ScorchChance);
+    ScorchChance = std::clamp(ScorchChance, 0.0f, 1.0f);
+    CraterChance = ini.Get_Float(ini_name, "CraterChance", CraterChance);
+    CraterChance = std::clamp(CraterChance, 0.0f, 1.0f);
+    FireChance = ini.Get_Float(ini_name, "FireChance", FireChance);
+    FireChance = std::clamp(FireChance, 0.0f, 1.0f);
 
     IsInitialized = true;
 
