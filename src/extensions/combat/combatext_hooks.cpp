@@ -182,6 +182,11 @@ static bool Is_On_High_Bridge(const Coordinate& coord)
 }
 
 
+/**
+ *  Collects the targets to deal damage to in the legacy way.
+ *
+ *  @author: ZivDero
+ */
 void Legacy_Get_Explosion_Targets(const Coordinate& coord, TechnoClass* source, DynamicVectorClass<ObjectClass*>& objects)
 {
     Cell cell;      // Cell number under explosion.
@@ -239,6 +244,11 @@ void Legacy_Get_Explosion_Targets(const Coordinate& coord, TechnoClass* source, 
 }
 
 
+/**
+ *  Collects the targets to deal damage to in a certain range.
+ *
+ *  @author: ZivDero
+ */
 void New_Get_Explosion_Targets(const Coordinate& coord, TechnoClass* source, int range, DynamicVectorClass<ObjectClass*>& objects)
 {
     Cell cell;      // Cell number under explosion.
@@ -302,15 +312,7 @@ void New_Get_Explosion_Targets(const Coordinate& coord, TechnoClass* source, int
 /**
  *  Inflict an explosion damage affect.
  *
- *  @author: 08/16/1991 JLB : Created.                                       
- *           11/30/1991 JLB : Uses coordinate system.                        
- *           12/27/1991 JLB : Radius of explosion damage effect.             
- *           04/13/1994 JLB : Streamlined.                                   
- *           04/16/1994 JLB : Warhead damage type modifier.                  
- *           04/17/1994 JLB : Cleaned up.                                    
- *           06/20/1994 JLB : Uses object pointers to distribute damage.     
- *           06/20/1994 JLB : Source is a pointer.                           
- *           06/18/1996 JLB : Strength could be negative for healing effects.
+ *  @author: 08/16/1991 JLB : Created.
  *           12/14/2024 ZivDero : Adjustments for Tiberian Sun
  */
 void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClass* source, const WarheadTypeClass* warhead, bool do_chain_reaction)
