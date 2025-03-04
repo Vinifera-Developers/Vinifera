@@ -499,6 +499,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
             for (int x = -cell_radius; x <= cell_radius; x++) {
                 for (int y = -cell_radius; y <= cell_radius; y++) {
                     Cell newcell = cell + Cell(x, y);
+                    if (!Map.In_Radar(newcell)) continue;
                     if (Distance(Cell_Coord(newcell), Cell_Coord(cell)) <= range) {
                         Damage_Overlay(newcell, warhead, strength, do_chain_reaction);
                         Spawn_Flames_And_Smudges(newcell, warhead);
