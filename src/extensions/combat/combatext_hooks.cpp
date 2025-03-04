@@ -251,6 +251,8 @@ void Get_Explosion_Targets(const Coordinate& coord, TechnoClass* source, int ran
  *
  *  @author: 08/16/1991 JLB : Created.
  *           12/14/2024 ZivDero : Adjustments for Tiberian Sun
+ *           02/19/2025 Rampastring : Improved handling of explosion height level.
+ *           03/04/2025 ZivDero : Implement CellSpread.
  */
 void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClass* source, const WarheadTypeClass* warhead, bool do_chain_reaction)
 {
@@ -344,7 +346,18 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
         object->IsToDamage = false;
         if (object->IsActive && !(object->RTTI == RTTI_BUILDING && reinterpret_cast<BuildingClass*>(object)->Class->IsInvisibleInGame)) {
             if (object->RTTI == RTTI_BUILDING && impacto == object) {
-                distance = 0;
+#if 0
+                distance = 0
+#endif
+                /**
+                 *  #issue-1150
+                 *
+                 *  Take distance to ground level to account when damaging buildings.
+                 */
+                distance = std::abs(coord.Z - object->Get_Z_Coord());
+                if (distance < LEVEL_LEPTON_H * 2) {
+                    distance = 0;
+                }
             } else {
                 distance = Distance_Level_Snap(coord, object->Target_Coord());
                 if (object->RTTI == RTTI_AIRCRAFT && object->In_Air()) {
@@ -389,12 +402,14 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
         }
     }
 
+    const bool close_to_ground = std::abs(coord.Z - Map.Get_Cell_Height(coord)) < LEVEL_LEPTON_H * 2;
+
     /**
      *  If there is a wall present at this location, it may be destroyed. Check to
      *  make sure that the warhead is of the kind that can destroy walls.
      */
     cellptr = &Map[cell];
-    if (cellptr->Overlay != OVERLAY_NONE) {
+    if (cellptr->Overlay != OVERLAY_NONE && close_to_ground) {
         OverlayTypeClass const* optr = OverlayTypes[cellptr->Overlay];
 
         if (optr->IsChainReactive) {
@@ -468,7 +483,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
             }
         }
 
-        if (cellptr->Is_Overlay_Low_Bridge()) {
+        if (cellptr->Is_Overlay_Low_Bridge() && close_to_ground) {
             if (warhead == Rule->IonCannonWarhead || Random_Pick(1, Rule->BridgeStrength) < strength) {
                 const bool destroyed = Map.Destroy_Low_Bridge_At(cell);
                 Map.Destroy_Low_Bridge_At(cell);
@@ -479,46 +494,64 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
         }
     }
 
-    if (cellptr->Overlay != OVERLAY_NONE && OverlayTypes[cellptr->Overlay]->IsExplosive) {
-        cellptr->Redraw_Overlay();
-        cellptr->Overlay = OVERLAY_NONE;
-        cellptr->Recalc_Attributes();
-        Map.Update_Cell_Zone(cellptr->Pos);
-        Map.Update_Cell_Subzones(cellptr->Pos);
-        TechnoClass::Update_Mission_Targets(cellptr);
+    if (close_to_ground) {
+        if (cellptr->Overlay != OVERLAY_NONE && OverlayTypes[cellptr->Overlay]->IsExplosive) {
+            cellptr->Redraw_Overlay();
+            cellptr->Overlay = OVERLAY_NONE;
+            cellptr->Recalc_Attributes();
+            Map.Update_Cell_Zone(cellptr->Pos);
+            Map.Update_Cell_Subzones(cellptr->Pos);
+            TechnoClass::Update_Mission_Targets(cellptr);
 
-        new AnimClass(Rule->BarrelExplode, coord);
-        Explosion_Damage(coord, Rule->AmmoCrateDamage, nullptr, Rule->C4Warhead, true);
-        for (int i = 0; i < Rule->BarrelDebris.Count(); i++) {
-            if (Percent_Chance(15)) {
-                new VoxelAnimClass(Rule->BarrelDebris[i], coord);
-                break;
+            new AnimClass(Rule->BarrelExplode, coord);
+            Explosion_Damage(coord, Rule->AmmoCrateDamage, nullptr, Rule->C4Warhead, true);
+            for (int i = 0; i < Rule->BarrelDebris.Count(); i++) {
+                if (Percent_Chance(15)) {
+                    new VoxelAnimClass(Rule->BarrelDebris[i], coord);
+                    break;
+                }
+            }
+            if (Percent_Chance(25)) {
+                ParticleSystemClass* psys = new ParticleSystemClass(Rule->BarrelParticle, coord);
+                psys->Spawn_Held_Particle(coord, coord);
+            }
+
+            static FacingType _part_facings[] = { FACING_N, FACING_E, FACING_S, FACING_W };
+
+            for (int f = 0; f < 4; f++) {
+                Coordinate adjacent = Adjacent_Coord_With_Height(coord, _part_facings[f]);
+                if (Map[adjacent].Overlay != OVERLAY_NONE && OverlayTypes[Map[adjacent].Overlay]->IsExplosive) {
+                    new AnimClass(AnimTypes[AnimTypeClass::From_Name("FIRE3")], coord, Random_Pick(1, 3) + 3);
+                }
             }
         }
-        if (Percent_Chance(25)) {
-            ParticleSystemClass* psys = new ParticleSystemClass(Rule->BarrelParticle, coord);
-            psys->Spawn_Held_Particle(coord, coord);
-        }
 
-        static FacingType _part_facings[] = { FACING_N, FACING_E, FACING_S, FACING_W };
-
-        for (int f = 0; f < 4; f++) {
-            Coordinate adjacent = Adjacent_Coord_With_Height(coord, _part_facings[f]);
-            if (Map[adjacent].Overlay != OVERLAY_NONE && OverlayTypes[Map[adjacent].Overlay]->IsExplosive) {
-                new AnimClass(AnimTypes[AnimTypeClass::From_Name("FIRE3")], coord, Random_Pick(1, 3) + 3);
+        if (strength > warhead->DeformThreshhold) {
+            if (Percent_Chance(strength * 0.01 * warhead->Deform * 100.0) && !Is_On_High_Bridge(coord)) {
+                Map.Deform(Coord_Cell(coord), false);
             }
         }
-    }
 
-    if (strength > warhead->DeformThreshhold) {
-        if (Percent_Chance(strength * 0.01 * warhead->Deform * 100.0) && !Is_On_High_Bridge(coord)) {
-            Map.Deform(Coord_Cell(coord), false);
+        if (cellptr->Is_Tile_Destroyable_Cliff()) {
+            if (Percent_Chance(Rule->CollapseChance)) {
+                Map.Collapse_Cliff(*cellptr);
+            }
         }
-    }
 
-    if (cellptr->Is_Tile_Destroyable_Cliff()) {
-        if (Percent_Chance(Rule->CollapseChance)) {
-            Map.Collapse_Cliff(*cellptr);
+        /**
+         *  #issue-897
+         *
+         *  Implements IsIceDestruction scenario option for preventing destruction of ice,
+         *  and IceStrength for configuring the chance for ice getting destroyed.
+         *
+         *  @author: Rampastring
+         */
+        if ((warhead->IsWallDestroyer || warhead->IsFire) && !Is_On_High_Bridge(coord)
+            && (RuleExtension->IceStrength <= 0 || Random_Pick(0, RuleExtension->IceStrength) < strength)) {
+            Map.field_DC.Clear();
+            if (Map.Crack_Ice(*cellptr, nullptr)) {
+                Map.Recalc_Ice();
+            }
         }
     }
 
@@ -528,22 +561,6 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
         } else {
             ParticleSystemClass* psys = new ParticleSystemClass(warhead->Particle, coord);
             psys->Spawn_Held_Particle(coord, coord);
-        }
-    }
-
-    /**
-     *  #issue-897
-     *
-     *  Implements IsIceDestruction scenario option for preventing destruction of ice,
-     *  and IceStrength for configuring the chance for ice getting destroyed.
-     *
-     *  @author: Rampastring
-     */
-    if ((warhead->IsWallDestroyer || warhead->IsFire) && !Is_On_High_Bridge(coord)
-        && (RuleExtension->IceStrength <= 0 || Random_Pick(0, RuleExtension->IceStrength) < strength)) {
-        Map.field_DC.Clear();
-        if (Map.Crack_Ice(*cellptr, nullptr)) {
-            Map.Recalc_Ice();
         }
     }
 }
