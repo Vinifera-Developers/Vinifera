@@ -583,8 +583,8 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
         if (warhead->Particle->BehavesLike == 1) { // This is actually Gas behavior, there are 2 slightly different enums
             MasterParticle->Spawn_Held_Particle(coord, coord);
         } else {
-            ParticleSystemClass* ps = new ParticleSystemClass(warhead->Particle, coord);
-            ps->Spawn_Held_Particle(coord, coord);
+            ParticleSystemClass* psys = new ParticleSystemClass(warhead->Particle, coord);
+            psys->Spawn_Held_Particle(coord, coord);
         }
     }
 
