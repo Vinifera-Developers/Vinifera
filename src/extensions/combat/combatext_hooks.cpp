@@ -364,7 +364,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
                     distance /= 2;
                 }
             }
-            if (object->Strength > 0 && object->IsDown && !object->IsInLimbo && distance < range) {
+            if (object->Strength > 0 && object->IsDown && !object->IsInLimbo && distance <= range) {
                 int damage = strength;
                 if (warhead != Rule->IonStormWarhead || !object->Is_Foot() || static_cast<FootClass*>(object)->Team == nullptr || !static_cast<FootClass*>(object)->Team->Class->IsIonImmune) {
                     object->Take_Damage(damage, distance, warhead, source);
