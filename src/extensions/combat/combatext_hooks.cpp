@@ -246,6 +246,42 @@ void Get_Explosion_Targets(const Coordinate& coord, TechnoClass* source, int ran
 }
 
 
+void Damage_Overlay(Cell const & cell, const WarheadTypeClass * warhead, int strength, bool close_to_ground, bool do_chain_reaction)
+{
+    CellClass * cellptr = &Map[cell];
+    if (cellptr->Overlay != OVERLAY_NONE && close_to_ground) {
+        OverlayTypeClass const* optr = OverlayTypes[cellptr->Overlay];
+
+        if (optr->IsChainReactive) {
+            if (!(optr->IsTiberium && !warhead->IsTiberiumDestroyer) && do_chain_reaction) {
+                Chain_Reaction_Damage(cell);
+                cellptr->Reduce_Tiberium(strength / 10);
+            }
+        }
+        if (optr->IsWall) {
+
+            /**
+             *  #issue-410
+             *
+             *  Implements IsWallAbsoluteDestroyer for WarheadTypes.
+             *
+             *  @author: CCHyper
+             */
+            const auto warheadtypeext = Extension::Fetch<WarheadTypeClassExtension>(warhead);
+            if (warheadtypeext->IsWallAbsoluteDestroyer) {
+                Map[cell].Reduce_Wall(-1);
+            }
+            else if (warhead->IsWallDestroyer || (warhead->IsWoodDestroyer && optr->Armor == ARMOR_WOOD)) {
+                Map[cell].Reduce_Wall(strength);
+            }
+        }
+        if (cellptr->Overlay == OVERLAY_NONE) {
+            TechnoClass::Update_Mission_Targets(cellptr);
+        }
+    }
+}
+
+
 /**
  *  Inflict an explosion damage affect.
  *
@@ -404,39 +440,23 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
 
     const bool close_to_ground = std::abs(coord.Z - Map.Get_Cell_Height(coord)) < LEVEL_LEPTON_H * 2;
 
+    cellptr = &Map[cell];
+
     /**
      *  If there is a wall present at this location, it may be destroyed. Check to
      *  make sure that the warhead is of the kind that can destroy walls.
      */
-    cellptr = &Map[cell];
-    if (cellptr->Overlay != OVERLAY_NONE && close_to_ground) {
-        OverlayTypeClass const* optr = OverlayTypes[cellptr->Overlay];
-
-        if (optr->IsChainReactive) {
-            if (!(optr->IsTiberium && !warhead->IsTiberiumDestroyer) && do_chain_reaction) {
-                Chain_Reaction_Damage(cell);
-                cellptr->Reduce_Tiberium(strength / 10);
+    if (warhead_ext->CellSpread < 0) {
+        Damage_Overlay(cell, warhead, strength, close_to_ground, do_chain_reaction);
+    } else {
+        int cell_radius = (range + CELL_LEPTON_W - 1) / CELL_LEPTON_W;
+        for (int x = -cell_radius; x <= cell_radius; x++) {
+            for (int y = -cell_radius; y <= cell_radius; y++) {
+                Cell newcell = cell + Cell(x, y);
+                if (Distance(Cell_Coord(newcell), Cell_Coord(cell)) <= range) {
+                    Damage_Overlay(cell + Cell(x, y), warhead, strength, close_to_ground, do_chain_reaction);
+                }
             }
-        }
-        if (optr->IsWall) {
-
-            /**
-             *  #issue-410
-             *
-             *  Implements IsWallAbsoluteDestroyer for WarheadTypes.
-             *
-             *  @author: CCHyper
-             */
-            const auto warheadtypeext = Extension::Fetch<WarheadTypeClassExtension>(warhead);
-            if (warheadtypeext->IsWallAbsoluteDestroyer) {
-                Map[cell].Reduce_Wall(-1);
-            }
-            else if (warhead->IsWallDestroyer || (warhead->IsWoodDestroyer && optr->Armor == ARMOR_WOOD)) {
-                Map[cell].Reduce_Wall(strength);
-            }
-        }
-        if (cellptr->Overlay == OVERLAY_NONE) {
-            TechnoClass::Update_Mission_Targets(cellptr);
         }
     }
 
