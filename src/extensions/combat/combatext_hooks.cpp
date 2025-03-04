@@ -438,7 +438,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
                 const Cell* list = object->Occupy_List();
                 distance = INT_MAX;
                 while (*list != REFRESH_EOL) {
-                    int trydist = Distance_Level_Snap(coord, Cell_Coord(*list++));
+                    int trydist = Distance_Level_Snap(coord, object->Get_Coord() + Cell_Coord(*list++));
                     distance = std::min(trydist, distance);
                 }
             } else {
