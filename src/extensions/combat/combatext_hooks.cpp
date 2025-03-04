@@ -215,8 +215,7 @@ void Legacy_Get_Explosion_Targets(const Coordinate& coord, TechnoClass* source, 
 
         /**
          *  Add all objects in this cell to the list of objects to possibly apply
-         *  damage to. Do not include overlapping objects; selection state can affect
-         *  the overlappers, and this causes multiplayer games to go out of sync.
+         *  damage to.
          */
         object = cellptr->Cell_Occupier(isbridge);
         while (object) {
@@ -279,8 +278,7 @@ void New_Get_Explosion_Targets(const Coordinate& coord, TechnoClass* source, int
 
             /**
              *  Add all objects in this cell to the list of objects to possibly apply
-             *  damage to. Do not include overlapping objects; selection state can affect
-             *  the overlappers, and this causes multiplayer games to go out of sync.
+             *  damage to.
              */
             object = cellptr->Cell_Occupier(isbridge);
             while (object) {
