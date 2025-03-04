@@ -562,7 +562,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
         for (int f = 0; f < 4; f++) {
             Coordinate adjacent = Adjacent_Coord_With_Height(coord, _part_facings[f]);
             if (Map[adjacent].Overlay != OVERLAY_NONE && OverlayTypes[Map[adjacent].Overlay]->IsExplosive) {
-                new AnimClass(AnimTypeClass::As_Pointer(AnimTypeClass::From_Name("FIRE3")), coord, Random_Pick(1, 3) + 3);
+                new AnimClass(AnimTypes[AnimTypeClass::From_Name("FIRE3")], coord, Random_Pick(1, 3) + 3);
             }
         }
     }
