@@ -283,7 +283,7 @@ static ActionType Get_Action(ObjectClass* obj, Cell& cellnum, bool check_fog)
         if (weapon->Weapon) {
             const auto weapon_ext = Extension::Fetch<WeaponTypeClassExtension>(weapon->Weapon);
 
-            if (cellnum
+            if (cellnum != CELL_NONE
                 && CurrentObjects.Count() == 1
                 && CurrentObjects[0]->Is_Techno()
                 && static_cast<TechnoClass*>(CurrentObjects[0])->In_Range_Of(&Map[cellnum])) {

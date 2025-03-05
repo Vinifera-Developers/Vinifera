@@ -467,7 +467,7 @@ int HouseClassExt::_Expert_AI()
      *  base has not been established yet.
      */
     if (ExpertAITimer.Expired()) {
-        if (Enemy == HOUSE_NONE && Session.Type != GAME_NORMAL && !Class->IsMultiplayPassive && Center) {
+        if (Enemy == HOUSE_NONE && Session.Type != GAME_NORMAL && !Class->IsMultiplayPassive && Center != COORD_NONE) {
             int close = INT_MAX;
             HouseClass* enemy = nullptr;
 

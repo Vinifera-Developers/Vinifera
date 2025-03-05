@@ -403,7 +403,7 @@ bool ScenarioClassExtension::Is_Valid_Waypoint(WaypointType wp) const
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Is_Valid_Waypoint - 0x%08X\n", (uintptr_t)(This()));
     ASSERT_FATAL(wp < Waypoint.Length());
 
-    return (wp >= WAYPOINT_FIRST && wp < Waypoint.Length()) ? Waypoint[wp] : false;
+    return (wp >= WAYPOINT_FIRST && wp < Waypoint.Length()) ? (Waypoint[wp] != CELL_NONE) : false;
 }
 
 
@@ -514,7 +514,7 @@ void ScenarioClassExtension::Read_Waypoint_INI(CCINIClass &ini)
         /**
          *  If the cell location is valid, flag the cell on the map as a waypoint holder.
          */
-        if (wp_num >= 0 && cell) {
+        if (wp_num >= 0 && cell != CELL_NONE) {
 #ifndef NDEBUG
             //DEV_DEBUG_INFO("Scenario: Waypoint '%s', location '%d,%d' -> IsWaypoint = true.\n", ::Waypoint_As_String(cell), cell.X, cell.Y);
 #endif
@@ -1205,7 +1205,7 @@ static DynamicVectorClass<Cell> Build_Starting_Waypoint_List(bool official)
                                    Map.MapCellY + Random_Pick(0, Map.MapCellHeight-10) + 10);
 
             trycell = Map.Nearby_Location(trycell, SPEED_TRACK, -1, MZONE_NORMAL, false, 8, 8);
-            if (trycell) {
+            if (trycell != CELL_NONE) {
                 waypts.Add(trycell);
                 DEBUG_INFO("Random multiplayer start waypoint added at cell %d,%d.\n", trycell.X, trycell.Y);
             }

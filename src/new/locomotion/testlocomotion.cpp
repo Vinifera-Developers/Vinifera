@@ -395,8 +395,8 @@ IFACEMETHODIMP_(void) TestLocomotionClass::Move_To(Coordinate to)
 {
     DestinationCoord = to;
 
-    if (!DestinationCoord) {
-        if (!HeadToCoord) {
+    if (DestinationCoord == COORD_NONE) {
+        if (HeadToCoord == COORD_NONE) {
             IsMoving = false;
         }
 
@@ -577,7 +577,7 @@ IFACEMETHODIMP_(bool) TestLocomotionClass::Is_Moving_Now()
     }
 
     if (Is_Moving()) {
-        return HeadToCoord && Apparent_Speed() > 0;
+        return HeadToCoord != COORD_NONE && Apparent_Speed() > 0;
     }
 
     return false;

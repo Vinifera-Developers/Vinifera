@@ -254,7 +254,7 @@ void EBoltClass::Draw_All()
          *  Update the source coord.
          */
         Coordinate coord = ebolt->Source_Coord();
-        if (coord) {
+        if (coord != COORD_NONE) {
             ebolt->StartCoord = coord;
         }
 

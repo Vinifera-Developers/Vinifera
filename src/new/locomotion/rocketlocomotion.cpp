@@ -497,7 +497,7 @@ IFACEMETHODIMP_(void) RocketLocomotionClass::Move_To(Coordinate to)
     /**
      *  Rockets only accept a destination once.
      */
-    if (!DestinationCoord)
+    if (DestinationCoord == COORD_NONE)
     {
         int timer_delay;
         if (rocket->PauseFrames)

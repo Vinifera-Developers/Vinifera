@@ -3506,7 +3506,7 @@ bool StartingWaypointsCommandClass::Process()
      */
     static int _current_index = 0;
     Coordinate wp_coord = Scen->Get_Waypoint_Coord(_current_index++ % 8);
-    if (!wp_coord) {
+    if (wp_coord == COORD_NONE) {
         return false;
     }
 
