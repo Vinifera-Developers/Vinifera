@@ -60,7 +60,8 @@ WarheadTypeClassExtension::WarheadTypeClassExtension(const WarheadTypeClass *thi
     PercentAtMax(1.0f),
     ScorchChance(0.0f),
     CraterChance(0.0f),
-    CellAnimChance(0.0f)
+    CellAnimChance(0.0f),
+    CellAnim()
 {
     //if (this_ptr) EXT_DEBUG_TRACE("WarheadTypeClassExtension::WarheadTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -74,7 +75,8 @@ WarheadTypeClassExtension::WarheadTypeClassExtension(const WarheadTypeClass *thi
  *  @author: CCHyper
  */
 WarheadTypeClassExtension::WarheadTypeClassExtension(const NoInitClass &noinit) :
-    AbstractTypeClassExtension(noinit)
+    AbstractTypeClassExtension(noinit),
+    CellAnim(noinit)
 {
     //EXT_DEBUG_TRACE("WarheadTypeClassExtension::WarheadTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
