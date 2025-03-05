@@ -275,6 +275,8 @@ void AnimTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
     crc(EndAnimsMinimum.Count());
     crc(EndAnimsMaximum.Count());
     crc(EndAnimsDelay.Count());
+    crc(IsExplosive);
+    crc(ExplosionDamage);
 }
 
 
