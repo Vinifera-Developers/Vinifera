@@ -461,6 +461,17 @@ function_return:
 
 
 /**
+ *  A helper is required because of stack issues.
+ */
+static Coordinate & Center_Coord_Helper(ObjectClass * obj)
+{
+    static Coordinate coord;
+    coord = obj->Center_Coord();
+    return coord;
+}
+
+
+/**
  *  Allows the animation to explode
  *  when it has reached its largest stage.
  *
@@ -479,7 +490,7 @@ DECLARE_PATCH(_AnimClass_Middle_Explosion_Patch)
      */
     animtypeext = Extension::Fetch<AnimTypeClassExtension>(animtype);
     if (animtypeext->IsExplosive && animtype->Warhead) {
-        Explosion_Damage(this_ptr->Center_Coord(), animtypeext->ExplosionDamage, nullptr, animtype->Warhead, true);
+        Explosion_Damage(Center_Coord_Helper(this_ptr), animtypeext->ExplosionDamage, nullptr, animtype->Warhead, true);
     }
 
     /**
