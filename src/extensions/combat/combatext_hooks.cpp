@@ -121,19 +121,19 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ObjectClass * 
         switch (target->RTTI)
         {
         case RTTI_INFANTRY:
-            damage *= warhead_ext->InfantryMultiplier;
+            damage *= warhead_ext->InfantryModifier;
             break;
         case RTTI_UNIT:
-            damage *= warhead_ext->VehicleMultiplier;
+            damage *= warhead_ext->VehicleModifier;
             break;
         case RTTI_AIRCRAFT:
-            damage *= warhead_ext->AircraftMultiplier;
+            damage *= warhead_ext->AircraftModifier;
             break;
         case RTTI_BUILDING:
-            damage *= warhead_ext->BuildingMultiplier;
+            damage *= warhead_ext->BuildingModifier;
             break;
         case RTTI_TERRAIN:
-            damage *= warhead_ext->TerrainMultiplier;
+            damage *= warhead_ext->TerrainModifier;
             break;
         default:
             break;
@@ -207,19 +207,19 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ObjectClass * 
         switch (target->RTTI)
         {
         case RTTI_INFANTRY:
-            damage *= warhead_ext->InfantryMultiplier;
+            damage *= warhead_ext->InfantryModifier;
             break;
         case RTTI_UNIT:
-            damage *= warhead_ext->VehicleMultiplier;
+            damage *= warhead_ext->VehicleModifier;
             break;
         case RTTI_AIRCRAFT:
-            damage *= warhead_ext->AircraftMultiplier;
+            damage *= warhead_ext->AircraftModifier;
             break;
         case RTTI_BUILDING:
-            damage *= warhead_ext->BuildingMultiplier;
+            damage *= warhead_ext->BuildingModifier;
             break;
         case RTTI_TERRAIN:
-            damage *= warhead_ext->TerrainMultiplier;
+            damage *= warhead_ext->TerrainModifier;
             break;
         default:
             break;

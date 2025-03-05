@@ -62,11 +62,11 @@ WarheadTypeClassExtension::WarheadTypeClassExtension(const WarheadTypeClass *thi
     CraterChance(0.0f),
     CellAnimChance(0.0f),
     CellAnim(),
-    InfantryMultiplier(1.0f),
-    VehicleMultiplier(1.0f),
-    AircraftMultiplier(1.0f),
-    BuildingMultiplier(1.0f),
-    TerrainMultiplier(1.0f)
+    InfantryModifier(1.0f),
+    VehicleModifier(1.0f),
+    AircraftModifier(1.0f),
+    BuildingModifier(1.0f),
+    TerrainModifier(1.0f)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("WarheadTypeClassExtension::WarheadTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -211,11 +211,11 @@ void WarheadTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
     crc(CraterChance);
     crc(CellAnimChance);
     crc(CellAnim.Count());
-    crc(InfantryMultiplier);
-    crc(VehicleMultiplier);
-    crc(AircraftMultiplier);
-    crc(BuildingMultiplier);
-    crc(TerrainMultiplier);
+    crc(InfantryModifier);
+    crc(VehicleModifier);
+    crc(AircraftModifier);
+    crc(BuildingModifier);
+    crc(TerrainModifier);
 }
 
 
@@ -332,11 +332,11 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
     CellAnimChance = std::clamp(CellAnimChance, 0.0f, 1.0f);
     CellAnim = ini.Get_Anims(ini_name, "CellAnim", CellAnim);
 
-    InfantryMultiplier = ini.Get_Float(ini_name, "InfantryMultiplier", InfantryMultiplier);
-    VehicleMultiplier = ini.Get_Float(ini_name, "VehicleMultiplier", VehicleMultiplier);
-    AircraftMultiplier = ini.Get_Float(ini_name, "AircraftMultiplier", AircraftMultiplier);
-    BuildingMultiplier = ini.Get_Float(ini_name, "BuildingMultiplier", BuildingMultiplier);
-    TerrainMultiplier = ini.Get_Float(ini_name, "TerrainMultiplier", TerrainMultiplier);
+    InfantryModifier = ini.Get_Float(ini_name, "InfantryModifier", InfantryModifier);
+    VehicleModifier = ini.Get_Float(ini_name, "VehicleModifier", VehicleModifier);
+    AircraftModifier = ini.Get_Float(ini_name, "AircraftModifier", AircraftModifier);
+    BuildingModifier = ini.Get_Float(ini_name, "BuildingModifier", BuildingModifier);
+    TerrainModifier = ini.Get_Float(ini_name, "TerrainModifier", TerrainModifier);
 
     IsInitialized = true;
 

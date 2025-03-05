@@ -123,9 +123,9 @@ WarheadTypeClassExtension final : public AbstractTypeClassExtension
         /**
          *  Damage multipliers against various object types.
          */
-        float InfantryMultiplier;
-        float VehicleMultiplier;
-        float AircraftMultiplier;
-        float BuildingMultiplier;
-        float TerrainMultiplier;
+        float InfantryModifier;
+        float VehicleModifier;
+        float AircraftModifier;
+        float BuildingModifier;
+        float TerrainModifier;
 };
