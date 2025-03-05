@@ -64,7 +64,9 @@ AnimTypeClassExtension::AnimTypeClassExtension(const AnimTypeClass *this_ptr) :
     EndAnimsMinimum(),
     EndAnimsMaximum(),
     EndAnimsDelay(),
-    MiddleFrame(-1)
+    MiddleFrame(-1),
+    IsExplosive(false),
+    ExplosionDamage(0)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("AnimTypeClassExtension::AnimTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -416,6 +418,9 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     if (This()->Image && This()->Image->Get_Frame_Count() > 0) {
         MiddleFrame = ini.Get_Int_Clamp(ini_name, "MiddleFrame", -1, This()->Image->Get_Frame_Count() - 1, MiddleFrame);
     }
+
+    IsExplosive = ini.Get_Bool(ini_name, "Explosive", IsExplosive);
+    ExplosionDamage = ini.Get_Int(ini_name, "ExplosionDamage", ExplosionDamage);
 
     IsInitialized = true;
 

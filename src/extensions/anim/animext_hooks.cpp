@@ -45,6 +45,7 @@
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "combat.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -460,6 +461,40 @@ function_return:
 
 
 /**
+ *  Allows the animation to explode
+ *  when it has reached its largest stage.
+ *
+ *  @author: Rampastring, ZivDero
+ */
+DECLARE_PATCH(_AnimClass_Middle_Explosion_Patch)
+{
+    GET_REGISTER_STATIC(AnimClass*, this_ptr, esi);
+    static AnimTypeClass* animtype;
+    static AnimTypeClassExtension* animtypeext;
+
+    animtype = reinterpret_cast<AnimTypeClass*>(this_ptr->Class_Of());
+
+    /*
+     * If this animation is specified to do area damage, do the area damage effect now.
+     */
+    animtypeext = Extension::Fetch<AnimTypeClassExtension>(animtype);
+    if (animtypeext->IsExplosive && animtype->Warhead) {
+        Explosion_Damage(this_ptr->Center_Coord(), animtypeext->ExplosionDamage, nullptr, animtype->Warhead, true);
+    }
+
+    /**
+     *  Continue function execution.
+     */
+continue_function:
+    _asm { lea  ecx, [esp + 18h] }
+    _asm { mov  eax, [esi] }
+    _asm { push ecx }
+    JMP_REG(ecx, 0x00415F4F);
+}
+
+
+
+/**
  *  Main function for patching the hooks.
  */
 void AnimClassExtension_Hooks()
@@ -498,4 +533,5 @@ void AnimClassExtension_Hooks()
     Patch_Jump(0x0041606C, &_AnimClass_Middle_SpawnParticle_Patch);
     Patch_Jump(0x00415D30, &AnimClassExt::_In_Which_Layer);
     Patch_Jump(0x00413D3E, &_AnimClass_Constructor_Layer_Set_Z_Height_Patch);
+    Patch_Jump(0x00415F48, &_AnimClass_Middle_Explosion_Patch);
 }

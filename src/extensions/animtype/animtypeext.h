@@ -135,4 +135,14 @@ AnimTypeClassExtension final : public ObjectTypeClassExtension
          *  The middle (biggest) frame, if set by the user.
          */
         int MiddleFrame;
+
+        /**
+         *  Does this animation spawn an explosion at it's biggest frame?
+         */
+        bool IsExplosive;
+
+        /**
+         *  The  amount of damage dealt by this animation's explosion.
+         */
+        int ExplosionDamage;
 };

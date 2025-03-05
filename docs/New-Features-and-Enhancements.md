@@ -64,6 +64,17 @@ MiddleFrame=   ; integer, the frame number in which the animation system will pe
 `MiddleFrame=0` is reserved and will not cause `MiddleAnims` to be spawned on every loop, but rather once at the start of the animation (like with `StartAnims`). To repeatedly spawn animations at the start of the loop, use `MiddleFrame` values of `1` or higher.
 ```
 
+### Middle Frame Exlosion
+
+- Vinifera allows the animation to spawn an explosion on its biggest frame (also controlled by `MiddleFrame=`) using its `Warhead=`.
+
+In `ART.INI`:
+```ini
+[AnimType]         ; AnimType
+Explosive=no       ; boolean, should this aniamtino spawn an explosion on its biggest frame?
+ExplosionDamage=0  ; integer, the damage dealt by this animation's explosion.
+```
+
 ### Various Keys Ported from Red Alert 2
 
 - Vinifera implements various AnimType keys from Red Alert 2.
