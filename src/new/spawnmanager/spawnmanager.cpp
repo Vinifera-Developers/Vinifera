@@ -46,6 +46,7 @@
 #include "weapontypeext.h"
 #include "rockettype.h"
 #include "vinifera_saveload.h"
+#include "mouse.h"
 
 
 /**
@@ -531,21 +532,48 @@ void SpawnManagerClass::AI()
                  *  If we've arrived at the spawner, "land" (despawn).
                  *  Otherwise, keep going towards the spawner.
                  */
-                Cell owner_cell = Owner->Get_Cell();
-                Cell spawnee_cell = spawnee->Get_Cell();
-
-                if (owner_cell == spawnee_cell && (std::abs(spawnee->Coord.Z - Owner->Coord.Z) < 20 || (Owner->Is_Foot() && Owner->Techno_Type_Class()->Locomotor == __uuidof(HoverLocomotionClass) && spawnee->Coord.Z <= Owner->Coord.Z + 20)))
+                bool good_landing_cell = false;
+                if (Owner->RTTI == RTTI_BUILDING)
                 {
-                    /**
-                     *  WARNING: Limbo() can destroy the unit in certain situations. If that happens, we
-                     *  don't want to set the status to Reloading, as that will cause a nullptr crash later
-                     *  when attempting to reload a non-existing spawnee
-                     *  (Detach picks up the destruction and sets the control status to Dead).
-                     *  Do not touch the order of the statements here or all hell breaks loose!
-                     */
-                    control->Status = SpawnControlStatus::Reloading;
-                    control->ReloadTimer = ReloadRate;
-                    spawnee->Limbo();
+                    Cell owner_cell = Owner->Get_Cell();
+                    Cell spawnee_cell = spawnee->Get_Cell();
+
+                    const Cell* occupy = Owner->Occupy_List();
+                    while (*occupy != REFRESH_EOL)
+                    {
+                        if (spawnee_cell == owner_cell + *occupy++)
+                        {
+                            good_landing_cell = true;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    Cell owner_cell = Owner->Get_Cell();
+                    Cell spawnee_cell = spawnee->Get_Cell();
+                    good_landing_cell = (owner_cell == spawnee_cell);
+                }
+
+                if (good_landing_cell)
+                {
+                    bool good_landing_height = std::abs(spawnee->Coord.Z - Owner->Coord.Z) < 20;
+                    if (!good_landing_height && Owner->Is_Foot() && Owner->Techno_Type_Class()->Locomotor == __uuidof(HoverLocomotionClass))
+                        good_landing_height = (spawnee->Coord.Z <= Owner->Coord.Z + 20);
+
+                    if (good_landing_height)
+                    {
+                        /**
+                         *  WARNING: Limbo() can destroy the unit in certain situations. If that happens, we
+                         *  don't want to set the status to Reloading, as that will cause a nullptr crash later
+                         *  when attempting to reload a non-existing spawnee
+                         *  (Detach picks up the destruction and sets the control status to Dead).
+                         *  Do not touch the order of the statements here or all hell breaks loose!
+                         */
+                        control->Status = SpawnControlStatus::Reloading;
+                        control->ReloadTimer = ReloadRate;
+                        spawnee->Limbo();
+                    }
                 }
                 else
                 {
