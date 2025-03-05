@@ -61,7 +61,12 @@ WarheadTypeClassExtension::WarheadTypeClassExtension(const WarheadTypeClass *thi
     ScorchChance(0.0f),
     CraterChance(0.0f),
     CellAnimChance(0.0f),
-    CellAnim()
+    CellAnim(),
+    InfantryMultiplier(1.0f),
+    VehicleMultiplier(1.0f),
+    AircraftMultiplier(1.0f),
+    BuildingMultiplier(1.0f),
+    TerrainMultiplier(1.0f)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("WarheadTypeClassExtension::WarheadTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -202,6 +207,15 @@ void WarheadTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
     crc(ShakePixelXLo);
     crc(CellSpread);
     crc(PercentAtMax);
+    crc(ScorchChance);
+    crc(CraterChance);
+    crc(CellAnimChance);
+    crc(CellAnim.Count());
+    crc(InfantryMultiplier);
+    crc(VehicleMultiplier);
+    crc(AircraftMultiplier);
+    crc(BuildingMultiplier);
+    crc(TerrainMultiplier);
 }
 
 
@@ -317,6 +331,12 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
     CellAnimChance = ini.Get_Float(ini_name, "CellAnimChance", CellAnimChance);
     CellAnimChance = std::clamp(CellAnimChance, 0.0f, 1.0f);
     CellAnim = ini.Get_Anims(ini_name, "CellAnim", CellAnim);
+
+    InfantryMultiplier = ini.Get_Float(ini_name, "InfantryMultiplier", InfantryMultiplier);
+    VehicleMultiplier = ini.Get_Float(ini_name, "VehicleMultiplier", VehicleMultiplier);
+    AircraftMultiplier = ini.Get_Float(ini_name, "AircraftMultiplier", AircraftMultiplier);
+    BuildingMultiplier = ini.Get_Float(ini_name, "BuildingMultiplier", BuildingMultiplier);
+    TerrainMultiplier = ini.Get_Float(ini_name, "TerrainMultiplier", TerrainMultiplier);
 
     IsInitialized = true;
 

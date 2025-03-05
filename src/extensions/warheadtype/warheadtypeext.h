@@ -119,4 +119,13 @@ WarheadTypeClassExtension final : public AbstractTypeClassExtension
          *  The list of anims to pick from when CellAnimChance is triggered.
          */
         TypeList<AnimTypeClass*> CellAnim;
+
+        /**
+         *  Damage multipliers against various object types.
+         */
+        float InfantryMultiplier;
+        float VehicleMultiplier;
+        float AircraftMultiplier;
+        float BuildingMultiplier;
+        float TerrainMultiplier;
 };

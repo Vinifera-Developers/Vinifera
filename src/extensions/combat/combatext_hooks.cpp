@@ -73,8 +73,12 @@
  *           01/01/1995 JLB - Takes into account distance from damage source.          
  *           04/11/1996 JLB - Changed damage fall-off formula for less damage fall-off.
  *           ZivDero : Adjustments for Tiberian Sun
+ *
+ *  @note: Originally, the function took `ArmorType armor` instead of `ObjectClass * target`.
+ *  The single vanilla call site has been patched to take this into account.
+ * 
  */
-int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ArmorType armor, int distance)
+int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ObjectClass * target, int distance)
 {
     /**
      *	If there is no raw damage value to start with, then
@@ -82,6 +86,8 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ArmorType armo
      */
     if (!damage || Scen->SpecialFlags.IsInert || warhead == nullptr)
         return 0;
+
+    ArmorType armor = target->Class_Of()->Armor;
 
     /**
      *	Negative damage (i.e., heal) is always applied full strength, but only if the heal
@@ -104,15 +110,42 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ArmorType armo
      */
     if (warhead_ext->CellSpread < 0.0)
     {
-
         /**
-         *  Apply the warhead's modifier to the damage and ensure it's at least MinDamage.
+         *  Apply the warhead's modifier to the damage.
          */
         damage *= Verses::Get_Modifier(armor, warhead);
+
+        /**
+         *  Apply an extra modifier based on the object's type.
+         */
+        switch (target->RTTI)
+        {
+        case RTTI_INFANTRY:
+            damage *= warhead_ext->InfantryMultiplier;
+            break;
+        case RTTI_UNIT:
+            damage *= warhead_ext->VehicleMultiplier;
+            break;
+        case RTTI_AIRCRAFT:
+            damage *= warhead_ext->AircraftMultiplier;
+            break;
+        case RTTI_BUILDING:
+            damage *= warhead_ext->BuildingMultiplier;
+            break;
+        case RTTI_TERRAIN:
+            damage *= warhead_ext->TerrainMultiplier;
+            break;
+        default:
+            break;
+        }
+
+        /**
+         *  Ensure that the damage is at least MinDamage.
+         */
         damage = std::max(min_damage, damage);
 
         /**
-         *	Reduce damage according to the distance from the impact point.
+         *  Reduce damage according to the distance from the impact point.
          */
         if (damage)
         {
@@ -164,9 +197,37 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ArmorType armo
         damage = std::max(0, damage);
 
         /**
-         *  Apply the warhead's modifier to the damage and ensure it's at least MinDamage.
+         *  Apply the warhead's modifier to the damage.
          */
         damage *= Verses::Get_Modifier(armor, warhead);
+
+        /**
+         *  Apply an extra modifier based on the object's type.
+         */
+        switch (target->RTTI)
+        {
+        case RTTI_INFANTRY:
+            damage *= warhead_ext->InfantryMultiplier;
+            break;
+        case RTTI_UNIT:
+            damage *= warhead_ext->VehicleMultiplier;
+            break;
+        case RTTI_AIRCRAFT:
+            damage *= warhead_ext->AircraftMultiplier;
+            break;
+        case RTTI_BUILDING:
+            damage *= warhead_ext->BuildingMultiplier;
+            break;
+        case RTTI_TERRAIN:
+            damage *= warhead_ext->TerrainMultiplier;
+            break;
+        default:
+            break;
+        }
+
+        /**
+         *  Ensure that the damage is at least MinDamage.
+         */
         damage = std::max(min_damage, damage);
     }
 
@@ -717,6 +778,8 @@ DECLARE_PATCH(_Do_Flash_CombatLightSize_Patch)
  */
 void CombatExtension_Hooks()
 {
+    Patch_Byte(0x0058604A, 0x56); // push eax -> push esi; Modify_Damage originally takes ArmorType as its argument, we instead pass the target object
+
     Patch_Jump(0x00460477, &_Do_Flash_CombatLightSize_Patch);
     Patch_Jump(0x0045EB60, &Vinifera_Modify_Damage);
     Patch_Jump(0x0045EEB0, &Vinifera_Explosion_Damage);

@@ -1221,6 +1221,20 @@ CellAnimChance=0  ; % or float, the chance that an affected cell will contain a 
 CellAnim=         ; list of AnimTypes, the list of animation to pick from when a random animation is spawned. Defaults to `[AudioVisual]->OnFire`.
 ```
 
+### Damage Modifier against types of objects
+
+- Vinifera allows specified a broad multiplier to damage against infantry, vehicles, aircraft, buildings and terrain objects.
+
+In `RULES.INI`:
+```ini
+[SOMEWARHEAD]            ; WarheadType
+InfantryMultiplier=100%  ; % or float, modifier applied to damage dealt to infantry by this warhead.
+VehicleMultiplier=100%   ; % or float, modifier applied to damage dealt to vehicles by this warhead.
+AircraftMultiplier=100%  ; % or float, modifier applied to damage dealt to aircraft by this warhead.
+BuildingMultiplier=100%  ; % or float, modifier applied to damage dealt to buildings by this warhead.
+TerrainMultiplier=100%   ; % or float, modifier applied to damage dealt to terrain objects by this warhead.
+```
+
 ### MinDamage
 
 - Vinifera allows customizing the minimum damage dealt using a specific warhead.
