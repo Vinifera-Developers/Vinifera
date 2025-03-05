@@ -36,6 +36,7 @@
 #include "animtype.h"
 #include "cell.h"
 #include "extension.h"
+#include "hoverlocomotion.h"
 #include "ionstorm.h"
 #include "kamikazetracker/kamikazetracker.h"
 #include "tibsun_inline.h"
@@ -530,10 +531,10 @@ void SpawnManagerClass::AI()
                  *  If we've arrived at the spawner, "land" (despawn).
                  *  Otherwise, keep going towards the spawner.
                  */
-                Cell owner_coord = Owner->Get_Cell();
-                Cell spawnee_coord = spawnee->Get_Cell();
+                Cell owner_cell = Owner->Get_Cell();
+                Cell spawnee_cell = spawnee->Get_Cell();
 
-                if (owner_coord == spawnee_coord && std::abs(spawnee->Coord.Z - Owner->Coord.Z) < 20)
+                if (owner_cell == spawnee_cell && (std::abs(spawnee->Coord.Z - Owner->Coord.Z) < 20 || (Owner->Is_Foot() && Owner->Techno_Type_Class()->Locomotor == __uuidof(HoverLocomotionClass) && spawnee->Coord.Z <= Owner->Coord.Z + 20)))
                 {
                     /**
                      *  WARNING: Limbo() can destroy the unit in certain situations. If that happens, we
