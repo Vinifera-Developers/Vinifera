@@ -267,4 +267,19 @@ class TechnoTypeClassExtension : public ObjectTypeClassExtension
          *  Defines how the techno treats targets outside of its zone when scanning for targets.
          */
         TargetZoneScanType TargetZoneScan;
+
+        /**
+         *  The wake graphic to show as the object moves across water.
+         */
+        const AnimTypeClass *WakeAnim;
+
+        /**
+         *  The rate at which this object creates the wake animation while moving.
+         */
+        unsigned WakeAnimRate;
+
+        /**
+         *  The wake graphic to show as the object moves across water.
+         */
+        const AnimTypeClass *IdleWakeAnim;
 };

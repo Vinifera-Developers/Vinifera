@@ -35,6 +35,7 @@ class SpawnManagerClass;
 class EBoltClass;
 class TechnoTypeClass;
 class TechnoTypeClassExtension;
+class AnimClass;
 
 
 class TechnoClassExtension : public RadioClassExtension
@@ -92,4 +93,9 @@ class TechnoClassExtension : public RadioClassExtension
          *  The object that spawned this object.
          */
         TechnoClass* SpawnOwner;
+
+        /**
+         *  The idle wake animation attached to this object.
+         */
+        AnimClass *IdleWakeAnim;
 };
