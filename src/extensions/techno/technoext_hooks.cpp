@@ -623,6 +623,7 @@ FireErrorType TechnoClassExt::_Can_Fire(TARGET target, WeaponSlotType which)
         return FIRE_ILLEGAL;
 
     const auto ext = Extension::Fetch<TechnoClassExtension>(this);
+    const auto typeext = Extension::Fetch<TechnoTypeClassExtension>(Techno_Type_Class());
 
     /**
      *  If this unit is a spawner, don't let it fire if it's currently in the process of spawning.
@@ -692,15 +693,13 @@ FireErrorType TechnoClassExt::_Can_Fire(TARGET target, WeaponSlotType which)
      */
     if (weapon && Extension::Fetch<WeaponTypeClassExtension>(weapon)->IsSpawner)
     {
-        const auto techno_ext = Extension::Fetch<TechnoClassExtension>(this);
-
-        if (techno_ext->SpawnManager == nullptr)
+        if (ext->SpawnManager == nullptr)
         {
             Vinifera_DeveloperMode_Warning_WWMessageBox("[FATAL] You have a weapon that has Spawner=yes but you didn't define Spawns= in the techno.");
             Fatal("[FATAL] You have a weapon that has Spawner=yes but you didn't define Spawns= in the techno.");
         }
 
-        if (techno_ext->SpawnManager->Active_Count() == 0)
+        if (ext->SpawnManager->Active_Count() == 0)
             return FIRE_REARM;
     }
 
@@ -780,7 +779,7 @@ FireErrorType TechnoClassExt::_Can_Fire(TARGET target, WeaponSlotType which)
     /**
      *  If cloaked, then firing is disabled.
      */
-    if (Cloak != UNCLOAKED && (Kind_Of() != RTTI_AIRCRAFT || Cloak == CLOAKED))
+    if (typeext->IsDecloakToFire && Cloak != UNCLOAKED && (Kind_Of() != RTTI_AIRCRAFT || Cloak == CLOAKED))
         return FIRE_CLOAKED;
 
     /**

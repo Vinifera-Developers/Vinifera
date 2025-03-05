@@ -89,7 +89,8 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     BuildTimeCost(0),
     RequiredHouses(-1),
     ForbiddenHouses(-1),
-    TargetZoneScan(TZST_SAME)
+    TargetZoneScan(TZST_SAME),
+    IsDecloakToFire(true)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -239,6 +240,7 @@ void TechnoTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
     crc(SpawnReloadRate);
     crc(SpawnsNumber);
     crc(TargetZoneScan);
+    crc(IsDecloakToFire);
 }
 
 
@@ -359,6 +361,7 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     ForbiddenHouses = ini.Get_Owners(ini_name, "ForbiddenHouses", ForbiddenHouses);
 
     TargetZoneScan = _Get_TargetZoneScanType(ini, ini_name, "TargetZoneScan", TargetZoneScan);
+    IsDecloakToFire = ini.Get_Bool(ini_name, "DecloakToFire", IsDecloakToFire);
 
     return true;
 }

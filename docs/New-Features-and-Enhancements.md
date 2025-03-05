@@ -925,6 +925,16 @@ In `RULES.INI`:
 TargetZoneScan=InRange ; InRange, Any, or Same. Same - matches original game behaviour and is the default. InRange - considers targets in other movement zones that are within weapon range. Any - ignore zone checks altogether.
 ```
 
+### DecloakToFire
+
+- Vinifera ports the DecloakToFire key from Red Alert 2.
+
+In `RULES.INI`:
+```ini
+[SOMETECHNO]       ; TechnoType
+DecloakToFire=yes  ; boolean, does this Techno have to decloak before firing?
+```
+
 ## Terrain
 
 ### Light Sources

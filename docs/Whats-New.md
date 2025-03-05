@@ -168,6 +168,7 @@ New:
 - Allow disabling the ActLike check on construction yards to allow for faction-specific MCVs (by ZivDero)
 - Implement a feature for animations to spawn additional animations (by CCHyper/tomsons26, ZivDero)
 - Add `TargetZoneScan` to TechnoTypes (by Rampastring)
+- Implement `DecloakToFire` (by ZivDero)
 
 
 Vanilla fixes:

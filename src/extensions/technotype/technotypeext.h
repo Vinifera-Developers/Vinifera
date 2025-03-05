@@ -267,4 +267,9 @@ class TechnoTypeClassExtension : public ObjectTypeClassExtension
          *  Defines how the techno treats targets outside of its zone when scanning for targets.
          */
         TargetZoneScanType TargetZoneScan;
+
+        /**
+         *  Does this object need to decloak before firing?
+         */
+        bool IsDecloakToFire;
 };
