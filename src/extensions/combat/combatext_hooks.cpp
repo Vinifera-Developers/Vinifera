@@ -485,7 +485,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
         }
     }
 
-    const bool close_to_ground = std::abs(coord.Z - Map.Get_Cell_Height(coord)) < LEVEL_LEPTON_H * 2;
+    const bool close_to_ground = std::abs(coord.Z - Map.Get_Cell_Height(coord)) < LEVEL_LEPTON_H;
 
     cellptr = &Map[cell];
 
