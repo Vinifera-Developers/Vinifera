@@ -1204,6 +1204,20 @@ PercentAtMax=100%  ; % or float, the fraction of the damage that is applied at t
 When `CellSpread` is negative, vanilla TS `Spread` logic is applied.
 ```
 
+### Volumetric
+
+- By default, explosions located strictly on the ground do not deal damage against targets in air. You can change this on a per-warhead basis.
+
+In `RULES.INI`:
+```ini
+[SOMEWARHEAD]  ; WarheadType
+Volumetric=no  ; boolean, should objects in flight always be considered for damage by this warhead.
+```
+
+```{note}
+This tag may incur a small performance cost, as the game has to consider all units, infantry and aircraft on the map.
+```
+
 ### Smudges and Animations
 
 - Vinifera allows weapons to spawn scorches, craters and animations on cells affected by explosions.

@@ -128,4 +128,9 @@ WarheadTypeClassExtension final : public AbstractTypeClassExtension
         float AircraftModifier;
         float BuildingModifier;
         float TerrainModifier;
+
+        /**
+         *  Should this warhead always damage things in air, regardless of the explosion height?
+         */
+        bool IsVolumetric;
 };

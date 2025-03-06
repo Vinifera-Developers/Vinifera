@@ -415,7 +415,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
      *  Fill the list with units that are in flight, because
      *  they are not present in cell data.
      */
-    if (Map.Get_Cell_Height(Cell_Coord(cell)) < coord.Z) {
+    if (warhead_ext->IsVolumetric || Map.Get_Cell_Height(Cell_Coord(cell)) < coord.Z) {
 
         for (int index = 0; index < Aircrafts.Count(); index++) {
             AircraftClass* aircraft = Aircrafts[index];

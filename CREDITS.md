@@ -222,3 +222,4 @@ This page lists all the individual contributions to the project by their author.
   - Implement `ScorchChance`, `CraterChance` and `CellAnimChance`.
   - Implement `Explosive` for animations.
   - Implement `InfantryMultiplier`, `VehicleMultiplier`, `AircraftMultiplier`, `BuildingMultiplier`, `TerrainMultiplier`.
+  - Implement `Volumetric`.

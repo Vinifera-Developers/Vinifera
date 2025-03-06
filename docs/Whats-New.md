@@ -173,6 +173,7 @@ New:
 - Implement `ScorchChance`, `CraterChance` and `CellAnimChance` (by ZivDero)
 - Implement `Explosive` for animations (by ZivDero, Rampastring)
 - Implement `InfantryMultiplier`, `VehicleMultiplier`, `AircraftMultiplier`, `BuildingMultiplier`, `TerrainMultiplier` (by ZivDero)
+- Implement `Volumetric` (by ZivDero)
 
 
 Vanilla fixes:

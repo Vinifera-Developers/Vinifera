@@ -66,7 +66,8 @@ WarheadTypeClassExtension::WarheadTypeClassExtension(const WarheadTypeClass *thi
     VehicleModifier(1.0f),
     AircraftModifier(1.0f),
     BuildingModifier(1.0f),
-    TerrainModifier(1.0f)
+    TerrainModifier(1.0f),
+    IsVolumetric(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("WarheadTypeClassExtension::WarheadTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -337,6 +338,8 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
     AircraftModifier = ini.Get_Float(ini_name, "AircraftModifier", AircraftModifier);
     BuildingModifier = ini.Get_Float(ini_name, "BuildingModifier", BuildingModifier);
     TerrainModifier = ini.Get_Float(ini_name, "TerrainModifier", TerrainModifier);
+
+    IsVolumetric = ini.Get_Bool(ini_name, "Volumetric", IsVolumetric);
 
     IsInitialized = true;
 
