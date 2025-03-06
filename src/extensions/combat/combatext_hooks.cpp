@@ -25,9 +25,10 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+#include "combatext_hooks.h"
 #include "tibsun_inline.h"
 #include "buildingext_hooks.h"
-#include "combatext_hooks.h"
+#include <unordered_set>
 #include "aircraft.h"
 #include "aircrafttracker.h"
 #include "anim.h"
@@ -248,7 +249,7 @@ static bool Is_On_High_Bridge(const Coordinate& coord)
  *
  *  @author: ZivDero
  */
-void Get_Explosion_Targets(const Coordinate& coord, TechnoClass* source, int range, DynamicVectorClass<ObjectClass*>& objects)
+void Get_Explosion_Targets(const Coordinate& coord, TechnoClass* source, int range, std::unordered_set<ObjectClass*>& objects)
 {
     Cell cell;      // Cell number under explosion.
     ObjectClass* object; // Working object pointer
@@ -284,8 +285,7 @@ void Get_Explosion_Targets(const Coordinate& coord, TechnoClass* source, int ran
             while (object) {
                 if (object != source) {
                     if (object->Kind_Of() != RTTI_UNIT || !Scen->SpecialFlags.IsHarvesterImmune || !Rule->HarvesterUnit.Is_Present(static_cast<UnitTypeClass*>(object->Class_Of()))) {
-                        objects.Delete(object);
-                        objects.Add(object);
+                        objects.insert(object);
                     }
                 }
                 object = object->Next;
@@ -298,7 +298,7 @@ void Get_Explosion_Targets(const Coordinate& coord, TechnoClass* source, int ran
                 if (OverlayTypes[cellptr->Overlay]->IsVeinholeMonster) {
                     VeinholeMonsterClass* veinhole = VeinholeMonsterClass::Fetch_At(cell);
                     if (veinhole) {
-                        objects.Add(veinhole);
+                        objects.insert(veinhole);
                     }
                 }
             }
@@ -391,8 +391,7 @@ void Spawn_Flames_And_Smudges(const Cell & cell, const WarheadTypeClass * warhea
 void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClass* source, const WarheadTypeClass* warhead, bool do_chain_reaction)
 {
     Cell cell;      // Cell number under explosion.
-    ObjectClass* object;      // Working object pointer.
-    DynamicVectorClass<ObjectClass*> objects;  // Maximum number of objects that can be damaged.
+    std::unordered_set<ObjectClass*> objects;  // Maximum number of objects that can be damaged.
     int distance;  // Distance to unit.
     int range;    // Damage effect radius.
 
@@ -416,20 +415,13 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
      */
     if (warhead_ext->IsVolumetric || Map.Get_Cell_Height(Cell_Coord(cell)) < coord.Z) {
         int air_range = use_cell_spread ? static_cast<int>(warhead_ext->CellSpread + 0.99) : 1;
-        AircraftTracker->Fetch_Targets(&Map[cell], air_range / CELL_LEPTON_W);
+        AircraftTracker->Fetch_Targets(&Map[cell], air_range);
 
         FootClass* target = AircraftTracker->Get_Target();
         while (target != nullptr) {
             if (target->IsActive && target->IsDown && target->Strength > 0) {
-                if (use_cell_spread) {
-                    objects.Delete(target);
-                    objects.Add(target);
-                } else {
-                    distance = Distance(coord, target->Get_Coord());
-                    if (distance < CELL_LEPTON_W) {
-                        objects.Delete(target);
-                        objects.Add(target);
-                    }
+                if (use_cell_spread || Distance(coord, target->Get_Coord()) < CELL_LEPTON_W) {
+                    objects.insert(target);
                 }
             }
             target = AircraftTracker->Get_Target();
@@ -452,8 +444,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
      *  buildings, consider a hit on any cell the building occupies as if it
      *  were a direct hit on the building's center.
      */
-    for (int index = 0; index < objects.Count(); index++) {
-        object = objects[index];
+    for (ObjectClass* object : objects) {
 
         object->IsToDamage = false;
         if (object->IsActive && !(object->RTTI == RTTI_BUILDING && reinterpret_cast<BuildingClass*>(object)->Class->IsInvisibleInGame)) {
@@ -499,7 +490,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
     if (warhead->IsRocker && rocking_force > 0.3) {
         for (int x = cell.X - 3; x <= cell.X + 3; x++) {
             for (int y = cell.Y - 3; y <= cell.Y + 3; y++) {
-                object = isbridge ? Map[Cell(x, y)].Cell_Occupier(true) : Map[Cell(x, y)].Cell_Occupier(false);
+                ObjectClass* object = isbridge ? Map[Cell(x, y)].Cell_Occupier(true) : Map[Cell(x, y)].Cell_Occupier(false);
 
                 while (object) {
                     TechnoClass* techno = object->As_Techno();
