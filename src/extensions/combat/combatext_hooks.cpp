@@ -399,12 +399,17 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
 
     if (!strength && !warhead->IsWebby) return;
 
+    const auto warhead_ext = Extension::Fetch<WarheadTypeClassExtension>(warhead);
+    bool use_cell_spread = warhead_ext->CellSpread >= 0;
+
     range = CELL_LEPTON_W + (CELL_LEPTON_W >> 1);
     cell = Coord_Cell(coord);
 
     CellClass* cellptr = &Map[cell];
     const bool isbridge = cellptr->IsUnderBridge && coord.Z > BRIDGE_LEPTON_HEIGHT / 2 + Map.Get_Cell_Height(coord);
     ObjectClass* impacto = cellptr->Cell_Occupier(isbridge);
+
+    int air_range = use_cell_spread ? (static_cast<int>(warhead_ext->CellSpread * CELL_LEPTON_W) + (CELL_LEPTON_W - 1)) : (CELL_LEPTON_W - 1);
 
     /**
      *  Fill the list with units that are in flight, because
@@ -418,7 +423,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
             if (aircraft->IsActive) {
                 if (aircraft->IsDown && aircraft->Strength > 0) {
                     distance = Distance(coord, aircraft->Get_Coord());
-                    if (distance < CELL_LEPTON_W) {
+                    if (distance <= air_range) {
                         objects.Delete(aircraft);
                         objects.Add(aircraft);
                     }
@@ -432,7 +437,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
             if (infantry->IsActive && infantry->Class->IsJumpJet) {
                 if (infantry->IsDown && infantry->Strength > 0) {
                     distance = Distance(coord, infantry->Get_Coord());
-                    if (distance < CELL_LEPTON_W) {
+                    if (distance <= air_range) {
                         objects.Delete(infantry);
                         objects.Add(infantry);
                     }
@@ -446,7 +451,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
             if (unit->IsActive && (unit->Class->IsJellyfish || unit->Class->Locomotor == __uuidof(JumpjetLocomotionClass))) {
                 if (unit->IsDown && unit->Strength > 0) {
                     distance = Distance(coord, unit->Get_Coord());
-                    if (distance < CELL_LEPTON_W) {
+                    if (distance <= air_range) {
                         objects.Delete(unit);
                         objects.Add(unit);
                     }
@@ -454,9 +459,6 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
             }
         }
     }
-
-    const auto warhead_ext = Extension::Fetch<WarheadTypeClassExtension>(warhead);
-    bool use_cell_spread = warhead_ext->CellSpread >= 0;
 
     if (!use_cell_spread) {
         /**
