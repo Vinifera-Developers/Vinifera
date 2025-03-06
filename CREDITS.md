@@ -223,3 +223,4 @@ This page lists all the individual contributions to the project by their author.
   - Implement `Explosive` for animations.
   - Implement `InfantryMultiplier`, `VehicleMultiplier`, `AircraftMultiplier`, `BuildingMultiplier`, `TerrainMultiplier`.
   - Implement `Volumetric`.
+  - Animations now use their `Warhead` to deal damage, if one is specified.

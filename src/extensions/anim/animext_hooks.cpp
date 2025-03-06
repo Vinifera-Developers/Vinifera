@@ -483,7 +483,7 @@ DECLARE_PATCH(_AnimClass_Middle_Explosion_Patch)
     static AnimTypeClass* animtype;
     static AnimTypeClassExtension* animtypeext;
 
-    animtype = reinterpret_cast<AnimTypeClass*>(this_ptr->Class_Of());
+    animtype = this_ptr->Class;
 
     /*
      * If this animation is specified to do area damage, do the area damage effect now.
@@ -503,6 +503,43 @@ continue_function:
     JMP_REG(ecx, 0x00415F4F);
 }
 
+
+/**
+ *  Changes animations to use their Warhead= when dealing damage if one is specified
+ *
+ *  @author: ZivDero
+ */
+static void Do_Anim_Damage(AnimClass* anim, int damage)
+{
+    /*
+     *  INVISO is hardcoded to use C4Warhead, let's leave that just in case.
+     */
+    if (std::strcmp(anim->Class->IniName, "INVISO") == 0) {
+        Explosion_Damage(anim->Center_Coord(), damage, nullptr, Rule->C4Warhead);
+    }
+    /*
+     *  If a Warhead= is set, use that.
+     */
+    else if (anim->Class->Warhead != nullptr) {
+        Explosion_Damage(anim->Center_Coord(), damage, nullptr, anim->Class->Warhead);
+    }
+    /*
+     *  Otherwise, default to FlameDamage2, like in vanilla.
+     */
+    else {
+        Explosion_Damage(anim->Center_Coord(), damage, nullptr, Rule->FlameDamage2);
+    }
+}
+
+DECLARE_PATCH(_AnimClass_AI_Warhead_Patch)
+{
+    GET_REGISTER_STATIC(AnimClass*, this_ptr, esi);
+    GET_REGISTER_STATIC(int, damage, ebp);
+
+    Do_Anim_Damage(this_ptr, damage);
+
+    JMP(0x004159B2);
+}
 
 
 /**
@@ -545,4 +582,5 @@ void AnimClassExtension_Hooks()
     Patch_Jump(0x00415D30, &AnimClassExt::_In_Which_Layer);
     Patch_Jump(0x00413D3E, &_AnimClass_Constructor_Layer_Set_Z_Height_Patch);
     Patch_Jump(0x00415F48, &_AnimClass_Middle_Explosion_Patch);
+    Patch_Jump(0x00415947, &_AnimClass_AI_Warhead_Patch);
 }
