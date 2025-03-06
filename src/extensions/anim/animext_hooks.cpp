@@ -489,7 +489,7 @@ DECLARE_PATCH(_AnimClass_Middle_Explosion_Patch)
      * If this animation is specified to do area damage, do the area damage effect now.
      */
     animtypeext = Extension::Fetch<AnimTypeClassExtension>(animtype);
-    if (animtypeext->IsExplosive && animtype->Warhead) {
+    if (animtypeext->ExplosionDamage > 0 && animtype->Warhead) {
         Explosion_Damage(Center_Coord_Helper(this_ptr), animtypeext->ExplosionDamage, nullptr, animtype->Warhead, true);
     }
 

@@ -275,7 +275,6 @@ void AnimTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
     crc(EndAnimsMinimum.Count());
     crc(EndAnimsMaximum.Count());
     crc(EndAnimsDelay.Count());
-    crc(IsExplosive);
     crc(ExplosionDamage);
 }
 
@@ -421,7 +420,6 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
         MiddleFrame = ini.Get_Int_Clamp(ini_name, "MiddleFrame", -1, This()->Image->Get_Frame_Count() - 1, MiddleFrame);
     }
 
-    IsExplosive = ini.Get_Bool(ini_name, "Explosive", IsExplosive);
     ExplosionDamage = ini.Get_Int(ini_name, "ExplosionDamage", ExplosionDamage);
 
     IsInitialized = true;

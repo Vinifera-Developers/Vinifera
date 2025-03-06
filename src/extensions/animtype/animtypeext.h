@@ -137,12 +137,7 @@ AnimTypeClassExtension final : public ObjectTypeClassExtension
         int MiddleFrame;
 
         /**
-         *  Does this animation spawn an explosion at it's biggest frame?
-         */
-        bool IsExplosive;
-
-        /**
-         *  The  amount of damage dealt by this animation's explosion.
+         *  If positive, the animation will spawn an explosion during its biggest frame dealing this much damage.
          */
         int ExplosionDamage;
 };

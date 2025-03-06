@@ -71,8 +71,7 @@ MiddleFrame=   ; integer, the frame number in which the animation system will pe
 In `ART.INI`:
 ```ini
 [AnimType]         ; AnimType
-Explosive=no       ; boolean, should this animation spawn an explosion on its biggest frame?
-ExplosionDamage=0  ; integer, the damage dealt by this animation's explosion.
+ExplosionDamage=0  ; integer, if positive, the animation will spawn an explosion during its biggest frame dealing this much damage.
 ```
 
 ### Various Keys Ported from Red Alert 2

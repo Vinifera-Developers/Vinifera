@@ -171,7 +171,7 @@ New:
 - Implement `DecloakToFire` (by ZivDero)
 - Implement `CellSpread` and `PercentAtMax` (by ZivDero)
 - Implement `ScorchChance`, `CraterChance` and `CellAnimChance` (by ZivDero)
-- Implement `Explosive` for animations (by ZivDero, Rampastring)
+- Implement `ExplosionDamage` for animations (by ZivDero, Rampastring)
 - Implement `InfantryMultiplier`, `VehicleMultiplier`, `AircraftMultiplier`, `BuildingMultiplier`, `TerrainMultiplier` (by ZivDero)
 - Implement `Volumetric` (by ZivDero)
 
