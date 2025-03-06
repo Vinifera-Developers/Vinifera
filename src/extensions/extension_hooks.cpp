@@ -101,6 +101,7 @@
 //#include "alphashapeext_hooks.h"
 //#include "veinholemonsterext_hooks.h"
 
+#include "aircrafttracker_hooks.h"
 #include "rulesext_hooks.h"
 #include "scenarioext_hooks.h"
 #include "sessionext_hooks.h"
@@ -302,4 +303,5 @@ void Extension_Hooks()
      */
     TheaterTypeClassExtension_Hooks();
     SpawnManager_Hooks();
+    AircraftTracker_Hooks();
 }

@@ -29,6 +29,7 @@
 #include "buildingext_hooks.h"
 #include "combatext_hooks.h"
 #include "aircraft.h"
+#include "aircrafttracker.h"
 #include "anim.h"
 #include "animtype.h"
 #include "vinifera_globals.h"
@@ -409,54 +410,29 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
     const bool isbridge = cellptr->IsUnderBridge && coord.Z > BRIDGE_LEPTON_HEIGHT / 2 + Map.Get_Cell_Height(coord);
     ObjectClass* impacto = cellptr->Cell_Occupier(isbridge);
 
-    int air_range = use_cell_spread ? (static_cast<int>(warhead_ext->CellSpread * CELL_LEPTON_W) + (CELL_LEPTON_W - 1)) : (CELL_LEPTON_W - 1);
-
     /**
      *  Fill the list with units that are in flight, because
      *  they are not present in cell data.
      */
     if (warhead_ext->IsVolumetric || Map.Get_Cell_Height(Cell_Coord(cell)) < coord.Z) {
+        int air_range = use_cell_spread ? static_cast<int>(warhead_ext->CellSpread + 0.99) : 1;
+        AircraftTracker->Fetch_Targets(&Map[cell], air_range / CELL_LEPTON_W);
 
-        for (int index = 0; index < Aircrafts.Count(); index++) {
-            AircraftClass* aircraft = Aircrafts[index];
-
-            if (aircraft->IsActive) {
-                if (aircraft->IsDown && aircraft->Strength > 0) {
-                    distance = Distance(coord, aircraft->Get_Coord());
-                    if (distance <= air_range) {
-                        objects.Delete(aircraft);
-                        objects.Add(aircraft);
+        FootClass* target = AircraftTracker->Get_Target();
+        while (target != nullptr) {
+            if (target->IsActive && target->IsDown && target->Strength > 0) {
+                if (use_cell_spread) {
+                    objects.Delete(target);
+                    objects.Add(target);
+                } else {
+                    distance = Distance(coord, target->Get_Coord());
+                    if (distance < CELL_LEPTON_W) {
+                        objects.Delete(target);
+                        objects.Add(target);
                     }
                 }
             }
-        }
-
-        for (int index = 0; index < Infantry.Count(); index++) {
-            InfantryClass* infantry = Infantry[index];
-
-            if (infantry->IsActive && infantry->Class->IsJumpJet) {
-                if (infantry->IsDown && infantry->Strength > 0) {
-                    distance = Distance(coord, infantry->Get_Coord());
-                    if (distance <= air_range) {
-                        objects.Delete(infantry);
-                        objects.Add(infantry);
-                    }
-                }
-            }
-        }
-
-        for (int index = 0; index < Units.Count(); index++) {
-            UnitClass* unit = Units[index];
-
-            if (unit->IsActive && (unit->Class->IsJellyfish || unit->Class->Locomotor == __uuidof(JumpjetLocomotionClass))) {
-                if (unit->IsDown && unit->Strength > 0) {
-                    distance = Distance(coord, unit->Get_Coord());
-                    if (distance <= air_range) {
-                        objects.Delete(unit);
-                        objects.Add(unit);
-                    }
-                }
-            }
+            target = AircraftTracker->Get_Target();
         }
     }
 

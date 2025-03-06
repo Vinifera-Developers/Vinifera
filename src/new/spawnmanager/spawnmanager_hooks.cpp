@@ -6,7 +6,7 @@
  *
  *  @file          SPAWNMANAGER_HOOKS.CPP
  *
- *  @author        CCHyper
+ *  @author        ZivDero
  *
  *  @brief         Contains the hooks for SpawnManagerClass
  *                 and KamikazeTrackerClass.

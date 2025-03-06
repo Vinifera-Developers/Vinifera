@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          FOOTEXT.H
+ *  @file          AIRCRAFTTRACKER_HOOKS.H
  *
- *  @author        CCHyper
+ *  @author        ZivDero
  *
- *  @brief         Extended FootClass class.
+ *  @brief         Contains the hooks for AircraftTrackerClass.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -27,36 +27,4 @@
  ******************************************************************************/
 #pragma once
 
-#include "technoext.h"
-#include "foot.h"
-
-
-class FootClassExtension : public TechnoClassExtension
-{
-    public:
-        /**
-         *  IPersistStream
-         */
-        IFACEMETHOD(Load)(IStream *pStm);
-        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
-
-    public:
-        FootClassExtension(const FootClass *this_ptr);
-        FootClassExtension(const NoInitClass &noinit);
-        virtual ~FootClassExtension();
-
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
-
-        virtual FootClass *This() const override { return reinterpret_cast<FootClass *>(TechnoClassExtension::This()); }
-        virtual const FootClass *This_Const() const override { return reinterpret_cast<const FootClass *>(TechnoClassExtension::This_Const()); }
-
-        virtual void Set_Last_Flight_Cell(Cell cell);
-        virtual Cell Get_Last_Flight_Cell();
-
-    public:
-        /**
-         *  The last known flight cell of this object, used by the AircraftTracker.
-         */
-        Cell LastFlightCell;
-};
+void AircraftTracker_Hooks();

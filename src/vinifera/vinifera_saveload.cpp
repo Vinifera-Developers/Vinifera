@@ -127,6 +127,7 @@
 #include <atlbase.h>
 #include <atlcom.h>
 
+#include "aircrafttracker.h"
 #include "animtypeext.h"
 #include "hooker.h"
 #include "language.h"
@@ -379,6 +380,7 @@ bool Vinifera_Put_All(IStream *pStm, bool save_net)
      *  Save new global class instances.
      */
     KamikazeTracker->Save(pStm, false);
+    AircraftTracker->Save(pStm);
 
     /**
      *  Save skirmish values.
@@ -623,6 +625,9 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
      */
     KamikazeTracker->Clear();
     KamikazeTracker->Load(pStm);
+
+    AircraftTracker->Clear();
+    AircraftTracker->Load(pStm);
 
     /**
      *  Load skirmish values.

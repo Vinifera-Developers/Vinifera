@@ -6,9 +6,10 @@
  *
  *  @file          SPAWNMANAGER_HOOKS.H
  *
- *  @author        CCHyper
+ *  @author        ZivDero
  *
- *  @brief         Contains the hooks for SpawnManagerClass.
+ *  @brief         Contains the hooks for SpawnManagerClass
+ *                 and KamikazeTrackerClass.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License

@@ -29,6 +29,8 @@
 
 #include "vinifera_globals.h"
 
+#include "aircrafttracker.h"
+
 
 bool Vinifera_DeveloperMode = false;
 
@@ -84,6 +86,7 @@ DynamicVectorClass<MouseTypeClass *> MouseTypes;
 DynamicVectorClass<ActionTypeClass *> ActionTypes;
 
 KamikazeTrackerClass* KamikazeTracker = nullptr;
+AircraftTrackerClass* AircraftTracker = nullptr;
 
 MFCC *GenericMix = nullptr;
 MFCC *IsoGenericMix = nullptr;
