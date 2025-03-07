@@ -161,8 +161,8 @@ void AircraftTrackerClass::Untrack(FootClass* target)
  */
 HRESULT STDMETHODCALLTYPE AircraftTrackerClass::Load(IStream* stream)
 {
-    for (auto& Region : Regions) {
-        HRESULT result = Load_Primitive_Vector(stream, Region, "Regions");
+    for (auto& region : Regions) {
+        HRESULT result = Load_Primitive_Vector(stream, region, "Regions");
         if (FAILED(result)) {
             return result;
         }
@@ -215,8 +215,8 @@ void AircraftTrackerClass::Clear(void)
  */
 HRESULT STDMETHODCALLTYPE AircraftTrackerClass::Save(IStream* stream)
 {
-    for (auto& Region : Regions) {
-        HRESULT result = Save_Primitive_Vector(stream, Region, "Regions");
+    for (auto& region : Regions) {
+        HRESULT result = Save_Primitive_Vector(stream, region, "Regions");
         if (FAILED(result)) {
             return result;
         }
