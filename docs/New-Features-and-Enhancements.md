@@ -64,12 +64,12 @@ MiddleFrame=   ; integer, the frame number in which the animation system will pe
 `MiddleFrame=0` is reserved and will not cause `MiddleAnims` to be spawned on every loop, but rather once at the start of the animation (like with `StartAnims`). To repeatedly spawn animations at the start of the loop, use `MiddleFrame` values of `1` or higher.
 ```
 
-### Middle Frame Exlosion
+### Middle Frame Explosion
 
 - Vinifera allows the animation to spawn an explosion on its biggest frame (also controlled by `MiddleFrame=`) using its `Warhead=`.
 
 In `ART.INI`:
-```ini
+```iniwea
 [AnimType]         ; AnimType
 ExplosionDamage=0  ; integer, if positive, the animation will spawn an explosion during its biggest frame dealing this much damage.
 ```
