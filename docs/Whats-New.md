@@ -172,7 +172,7 @@ New:
 - Implement `CellSpread` and `PercentAtMax` (by ZivDero)
 - Implement `ScorchChance`, `CraterChance` and `CellAnimChance` (by ZivDero)
 - Implement `ExplosionDamage` for animations (by ZivDero, Rampastring)
-- Implement `InfantryMultiplier`, `VehicleMultiplier`, `AircraftMultiplier`, `BuildingMultiplier`, `TerrainMultiplier` (by ZivDero)
+- Implement `InfantryModifier`, `VehicleModifier`, `AircraftModifier`, `BuildingModifier`, `TerrainModifier` (by ZivDero)
 - Implement `Volumetric` (by ZivDero)
 
 

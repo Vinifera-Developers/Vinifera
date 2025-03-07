@@ -69,7 +69,7 @@ MiddleFrame=   ; integer, the frame number in which the animation system will pe
 - Vinifera allows the animation to spawn an explosion on its biggest frame (also controlled by `MiddleFrame=`) using its `Warhead=`.
 
 In `ART.INI`:
-```iniwea
+```ini
 [AnimType]         ; AnimType
 ExplosionDamage=0  ; integer, if positive, the animation will spawn an explosion during its biggest frame dealing this much damage.
 ```
