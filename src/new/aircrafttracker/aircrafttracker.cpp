@@ -64,21 +64,19 @@ int AircraftTrackerClass::Adjacent_Region(int region, int xoff, int yoff)
     int regx = region % 20;
     int regy = region / 20;
 
-    if (xoff + regx >= 0 && xoff + regx > (20 - 1)) {
+    if (xoff + regx > (20 - 1)) {
         regx = (20 - 1);
-    }
-    else {
+    } else {
         regx = xoff + regx < 0 ? 0 : xoff + regx;
     }
 
-    if (yoff + regy >= 0 && yoff + regy > (20 - 1)) {
+    if (yoff + regy > (20 - 1)) {
         regy = (20 - 1);
-    }
-    else {
+    } else {
         regy = yoff + regy < 0 ? 0 : yoff + regy;
     }
 
-    return(regx + regy * 20);
+    return regx + regy * 20;
 }
 
 
