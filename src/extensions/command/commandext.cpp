@@ -367,82 +367,59 @@ const char *ManualPlaceCommandClass::Get_Description() const
 
 bool ManualPlaceCommandClass::Process()
 {
-    if (!PlayerPtr) {
-        return false;
-    }
-
-    /**
-     *  Fetch the houses factory associated with producing buildings.
-     */
-    FactoryClass *factory = PlayerPtr->Fetch_Factory(RTTI_BUILDING);
-    if (!factory) {
-        DEV_DEBUG_WARNING("ManualPlaceCommand - Unable to fetch primary factory!\n");
-        return false;
-    }
-
-    /**
-     *  If this object is still being built, then bail.
-     */
-    if (!factory->Has_Completed()) {
-        DEV_DEBUG_WARNING("ManualPlaceCommand - Factory object has not yet completed production!\n");
+    if (PlayerPtr)
+    {
+        /**
+         *  Fetch the houses factory associated with producing buildings.
+         */
+        FactoryClass* factory = PlayerPtr->Fetch_Factory(RTTI_BUILDING);
+        if (!factory)
+            return false;
 
         /**
-         *  #issue-537
-         * 
-         *  Removed due to them being a nuisance to the player.
+         *  If this object is still being built, then bail.
          */
-        //Speak(VOX_NO_FACTORY);
-        return false;
-    }
+        if (!factory->Has_Completed()) {
+            return false;
+        }
 
-    TechnoClass *pending = factory->Get_Object();
-
-    /**
-     *  If by some rare chance the product is not a building, then bail.
-     */
-    if (pending->What_Am_I() != RTTI_BUILDING) {
-        DEV_DEBUG_ERROR("ManualPlaceCommand - Factory object is not a building!\n");
+        TechnoClass* pending = factory->Get_Object();
 
         /**
-         *  #issue-537
-         * 
-         *  Removed due to them being a nuisance to the player.
+         *  If by some rare chance the product is not a building, then bail.
          */
-        //Speak(VOX_NO_FACTORY);
-        return false;
-    }
+        if (pending->What_Am_I() != RTTI_BUILDING)
+            return false;
 
-    BuildingClass *pending_bptr = reinterpret_cast<BuildingClass *>(pending);
-
-    /**
-     *  Fetch the factory building that can build this object.
-     */
-    BuildingClass *builder = pending_bptr->Who_Can_Build_Me();
-    if (!builder) {
-        DEV_DEBUG_ERROR("ManualPlaceCommand - No builder available!\n");
+        BuildingClass* pending_bptr = reinterpret_cast<BuildingClass*>(pending);
 
         /**
-         *  #issue-537
-         * 
-         *  Removed due to them being a nuisance to the player.
+         *  Are we already trying to place this building? No need to re-enter placement mode...
          */
-        //Speak(VOX_NO_FACTORY);
-        return false;
-    }
+        if (Map.PendingObjectPtr == pending_bptr)
+            return false;
 
-    /**
-     *  Are we already trying to place this building? No need to re-enter placement mode...
-     */
-    if (Map.PendingObjectPtr == pending_bptr) {
+        /**
+         *  Fetch the factory building that can build this object.
+         */
+        BuildingClass* builder = pending_bptr->Who_Can_Build_Me();
+        if (!builder)
+            return false;
+
+        /**
+         *  Abort targeting the SW, so that once we place the building we don't go back to a superweapon cursor.
+         */
+        Map.TargettingType = SPECIAL_NONE;
+
+        /**
+         *  Go into placement mode.
+         */
+        PlayerPtr->Manual_Place(builder, pending_bptr);
+
         return true;
     }
 
-    DEV_DEBUG_INFO("ManualPlaceCommand - Entering placement mode with \"%s\"\n", pending_bptr->Full_Name());
-
-    /**
-     *  Go into placement mode.
-     */
-    return PlayerPtr->Manual_Place(builder, pending_bptr);
+    return false;
 }
 
 
