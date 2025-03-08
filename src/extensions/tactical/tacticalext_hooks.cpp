@@ -849,8 +849,8 @@ static void _Fill_With_Black()
     const int max_width = TacticalRect.Width - Map.MapLocalSize.Width * CELL_PIXEL_W;
     if (max_width > 0) {
         Rect rect = {
-            TacticalRect.Width - max_width,
-            0,
+            TacticalRect.X + TacticalRect.Width - max_width,
+            TacticalRect.Y,
             max_width,
             TacticalRect.Height };
         CompositeSurface->Fill_Rect(rect, COLOR_TBLACK);
@@ -859,8 +859,8 @@ static void _Fill_With_Black()
     const int max_height = TacticalRect.Height - Map.MapLocalSize.Height * CELL_PIXEL_H - int(4.5 * CELL_PIXEL_H);
     if (max_height > 0) {
         Rect rect = {
-            0,
-            TacticalRect.Height - max_height,
+            TacticalRect.X,
+            TacticalRect.Y + TacticalRect.Height - max_height,
             TacticalRect.Width,
             max_height };
         CompositeSurface->Fill_Rect(rect, COLOR_TBLACK);
