@@ -173,7 +173,7 @@ New:
 - Implement `ScorchChance`, `CraterChance` and `CellAnimChance` (by ZivDero)
 - Implement `ExplosionDamage` for animations (by ZivDero, Rampastring)
 - Implement `InfantryModifier`, `VehicleModifier`, `AircraftModifier`, `BuildingModifier`, `TerrainModifier` (by ZivDero)
-- Implement `Volumetric` (by ZivDero)
+- Implement `Volumetric`, `SnapToCellCenter` (by ZivDero)
 
 
 Vanilla fixes:

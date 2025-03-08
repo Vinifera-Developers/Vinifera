@@ -1213,8 +1213,18 @@ In `RULES.INI`:
 Volumetric=no  ; boolean, should objects in flight always be considered for damage by this warhead.
 ```
 
+### SnapToCellCenter
+
+- Vinifera allows focing explosions using a certain warhead to take place in the center of the cell where they occur. This can help reduce damage randomness in some cases.
+
+In `RULES.INI`:
+```ini
+[SOMEWARHEAD]        ; WarheadType
+SnapToCellCenter=no  ; boolean, do explosions using this warhead always take place in the cell center
+```
+
 ```{note}
-This tag may incur a small performance cost, as the game has to consider all units, infantry and aircraft on the map.
+This tag does not alter the visuals of the explosion in any way, but only affects the way damage is dealt.
 ```
 
 ### Smudges and Animations

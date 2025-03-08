@@ -67,7 +67,8 @@ WarheadTypeClassExtension::WarheadTypeClassExtension(const WarheadTypeClass *thi
     AircraftModifier(1.0f),
     BuildingModifier(1.0f),
     TerrainModifier(1.0f),
-    IsVolumetric(false)
+    IsVolumetric(false),
+    IsSnapToCellCenter(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("WarheadTypeClassExtension::WarheadTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -217,6 +218,8 @@ void WarheadTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
     crc(AircraftModifier);
     crc(BuildingModifier);
     crc(TerrainModifier);
+    crc(IsVolumetric);
+    crc(IsSnapToCellCenter);
 }
 
 
@@ -340,6 +343,7 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
     TerrainModifier = ini.Get_Float(ini_name, "TerrainModifier", TerrainModifier);
 
     IsVolumetric = ini.Get_Bool(ini_name, "Volumetric", IsVolumetric);
+    IsSnapToCellCenter = ini.Get_Bool(ini_name, "SnapToCellCenter", IsSnapToCellCenter);
 
     IsInitialized = true;
 

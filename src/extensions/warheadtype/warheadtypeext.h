@@ -133,4 +133,9 @@ WarheadTypeClassExtension final : public AbstractTypeClassExtension
          *  Should this warhead always damage things in air, regardless of the explosion height?
          */
         bool IsVolumetric;
+
+        /**
+         *  Should explosions using this warhead always take place at the center of the cell?
+         */
+        bool IsSnapToCellCenter;
 };

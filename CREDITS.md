@@ -222,5 +222,5 @@ This page lists all the individual contributions to the project by their author.
   - Implement `ScorchChance`, `CraterChance` and `CellAnimChance`.
   - Implement `ExplosionDamage` for animations.
   - Implement `InfantryMultiplier`, `VehicleMultiplier`, `AircraftMultiplier`, `BuildingMultiplier`, `TerrainMultiplier`.
-  - Implement `Volumetric`.
+  - Implement `Volumetric`, `SnapToCellCenter`.
   - Animations now use their `Warhead` to deal damage, if one is specified.
