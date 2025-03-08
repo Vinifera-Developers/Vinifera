@@ -370,7 +370,7 @@ bool ManualPlaceCommandClass::Process()
     if (PlayerPtr)
     {
         /**
-         *  Fetch the houses factory associated with producing buildings.
+         *  Fetch the house's factory associated with producing buildings.
          */
         FactoryClass* factory = PlayerPtr->Fetch_Factory(RTTI_BUILDING);
         if (!factory)
@@ -457,7 +457,7 @@ bool RepeatLastBuildingCommandClass::Process()
     }
 
     /**
-     *  Fetch the houses factory associated with producing building. This is
+     *  Fetch the house's factory associated with producing building. This is
      *  done to make sure the house still has a factory.
      */
     if (!PlayerPtr->Factory_Count(RTTI_BUILDING)) {
@@ -541,7 +541,7 @@ bool RepeatLastInfantryCommandClass::Process()
     }
 
     /**
-     *  Fetch the houses factory associated with producing infantry. This is
+     *  Fetch the house's factory associated with producing infantry. This is
      *  done to make sure the house still has a factory.
      */
     if (!PlayerPtr->Factory_Count(RTTI_INFANTRY)) {
@@ -618,7 +618,7 @@ bool RepeatLastUnitCommandClass::Process()
     }
 
     /**
-     *  Fetch the houses factory associated with producing unit. This is
+     *  Fetch the house's factory associated with producing unit. This is
      *  done to make sure the house still has a factory.
      */
     if (!PlayerPtr->Factory_Count(RTTI_UNIT)) {
@@ -695,7 +695,7 @@ bool RepeatLastAircraftCommandClass::Process()
     }
 
     /**
-     *  Fetch the houses factory associated with producing aircraft. This is
+     *  Fetch the house's factory associated with producing aircraft. This is
      *  done to make sure the house still has a factory.
      */
     if (!PlayerPtr->Factory_Count(RTTI_AIRCRAFT)) {
@@ -1172,7 +1172,7 @@ bool SetStructureTabCommandClass::Process()
     if (PlayerPtr)
     {
         /**
-         *  Fetch the houses factory associated with producing buildings.
+         *  Fetch the house's factory associated with producing buildings.
          */
         FactoryClass* factory = PlayerPtr->Fetch_Factory(RTTI_BUILDING);
         if (!factory)
