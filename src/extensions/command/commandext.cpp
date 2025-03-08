@@ -1232,6 +1232,11 @@ bool SetStructureTabCommandClass::Process()
             return result;
 
         /**
+         *  Abort targeting the SW, so that once we place the building we don't go back to a superweapon cursor.
+         */
+        Map.TargettingType = SPECIAL_NONE;
+
+        /**
          *  Go into placement mode.
          */
         PlayerPtr->Manual_Place(builder, pending_bptr);
