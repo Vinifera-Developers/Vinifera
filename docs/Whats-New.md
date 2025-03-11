@@ -170,7 +170,7 @@ New:
 - Add `TargetZoneScan` to TechnoTypes (by Rampastring)
 - Implement `DecloakToFire` (by ZivDero)
 - Implement `CellSpread` and `PercentAtMax` (by ZivDero)
-- Implement `ScorchChance`, `CraterChance` and `CellAnimChance` (by ZivDero)
+- Implement customizable spawnig of animations and smudges by explosions (by ZivDero)
 - Implement `ExplosionDamage` for animations (by ZivDero, Rampastring)
 - Implement `InfantryModifier`, `VehicleModifier`, `AircraftModifier`, `BuildingModifier`, `TerrainModifier` (by ZivDero)
 - Implement `Volumetric`, `SnapToCellCenter` (by ZivDero)

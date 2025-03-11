@@ -28,6 +28,7 @@
 #include "combatext_hooks.h"
 #include "tibsun_inline.h"
 #include "buildingext_hooks.h"
+#include <algorithm>
 #include <unordered_set>
 #include "aircraft.h"
 #include "aircrafttracker.h"
@@ -65,6 +66,31 @@
 #include "voxelanim.h"
 #include "jumpjetlocomotion.h"
 #include "smudgetype.h"
+
+
+template <typename T>
+static T Percent_At_Max(T value, int range, int distance, float percent_at_max)
+{
+    if (range != 0 && percent_at_max != 1.0f) {
+
+        /**
+         *  Calculate the damage at the furthest point.
+         */
+        float at_max = static_cast<float>(value) * percent_at_max;
+
+        /**
+         *  Reduce the damage based on the distance and the damage % at max distance.
+         */
+        value = static_cast<T>((static_cast<float>(value) - at_max) * static_cast<float>(range - distance) / static_cast<float>(range) + at_max);
+
+        /**
+         *  Our damage was originally positive, don't allow it to go negative.
+         */
+        value = std::max(static_cast<T>(0), value);
+    }
+
+    return value;
+}
 
 
 /**
@@ -107,6 +133,28 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ObjectClass * 
     const auto warhead_ext = Extension::Fetch<WarheadTypeClassExtension>(warhead);
     const int min_damage = warhead_ext->MinDamage >= 0 ? warhead_ext->MinDamage : Rule->MinDamage;
 
+    float type_modifier = 1.0f;
+    switch (target->RTTI)
+    {
+    case RTTI_INFANTRY:
+        type_modifier = warhead_ext->InfantryModifier;
+        break;
+    case RTTI_UNIT:
+        type_modifier = warhead_ext->VehicleModifier;
+        break;
+    case RTTI_AIRCRAFT:
+        type_modifier = warhead_ext->AircraftModifier;
+        break;
+    case RTTI_BUILDING:
+        type_modifier = warhead_ext->BuildingModifier;
+        break;
+    case RTTI_TERRAIN:
+        type_modifier = warhead_ext->TerrainModifier;
+        break;
+    default:
+        break;
+    }
+
     /**
      *  Apply TS Spread logic.
      */
@@ -120,26 +168,8 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ObjectClass * 
         /**
          *  Apply an extra modifier based on the object's type.
          */
-        switch (target->RTTI)
-        {
-        case RTTI_INFANTRY:
-            damage *= warhead_ext->InfantryModifier;
-            break;
-        case RTTI_UNIT:
-            damage *= warhead_ext->VehicleModifier;
-            break;
-        case RTTI_AIRCRAFT:
-            damage *= warhead_ext->AircraftModifier;
-            break;
-        case RTTI_BUILDING:
-            damage *= warhead_ext->BuildingModifier;
-            break;
-        case RTTI_TERRAIN:
-            damage *= warhead_ext->TerrainModifier;
-            break;
-        default:
-            break;
-        }
+        if (type_modifier != 1.0f)
+            damage *= type_modifier;
 
         /**
          *  Ensure that the damage is at least MinDamage.
@@ -175,28 +205,10 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ObjectClass * 
      */
     else
     {
-        float fdamage = (float)damage;
-
         /**
-         *  Calculate the damage at the furthest point.
+         *  Apply PercentAtMax.
          */
-        float at_max = fdamage * warhead_ext->PercentAtMax;
-
-        /**
-         *  Calculate our range in leptons.
-         */
-        int cell_spread = warhead_ext->CellSpread * CELL_LEPTON_W;
-
-        /**
-         *  Reduce the damage based on the distance and the damage % at max distance.
-         */
-        if (at_max != fdamage && cell_spread != 0)
-            damage = ((fdamage - at_max) * (cell_spread - distance) / (warhead_ext->CellSpread * CELL_LEPTON_W) + at_max);
-
-        /**
-         *  Our damage was originally positive, don't allow it to go negative.
-         */
-        damage = std::max(0, damage);
+        damage = Percent_At_Max<int>(damage, static_cast<int>(warhead_ext->CellSpread * CELL_LEPTON_W), distance, warhead_ext->PercentAtMax);
 
         /**
          *  Apply the warhead's modifier to the damage.
@@ -206,26 +218,8 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ObjectClass * 
         /**
          *  Apply an extra modifier based on the object's type.
          */
-        switch (target->RTTI)
-        {
-        case RTTI_INFANTRY:
-            damage *= warhead_ext->InfantryModifier;
-            break;
-        case RTTI_UNIT:
-            damage *= warhead_ext->VehicleModifier;
-            break;
-        case RTTI_AIRCRAFT:
-            damage *= warhead_ext->AircraftModifier;
-            break;
-        case RTTI_BUILDING:
-            damage *= warhead_ext->BuildingModifier;
-            break;
-        case RTTI_TERRAIN:
-            damage *= warhead_ext->TerrainModifier;
-            break;
-        default:
-            break;
-        }
+        if (type_modifier != 1.0f)
+            damage *= type_modifier;
 
         /**
          *  Ensure that the damage is at least MinDamage.
@@ -357,20 +351,20 @@ void Damage_Overlay(Cell const & cell, const WarheadTypeClass * warhead, int str
  *
  *  @author: ZivDero
  */
-void Spawn_Flames_And_Smudges(const Cell & cell, const WarheadTypeClass * warhead)
+void Spawn_Flames_And_Smudges(const Cell & cell, int range, int distance, const WarheadTypeClass * warhead)
 {
     Coordinate cell_coord = Cell_Coord(cell);
     cell_coord.Z = Map.Get_Cell_Height(cell_coord);
 
     const auto warhead_ext = Extension::Fetch<WarheadTypeClassExtension>(warhead);
 
-    if (Probability_Of(warhead_ext->ScorchChance)) {
+    if (Probability_Of(Percent_At_Max(warhead_ext->ScorchChance, range, distance, warhead_ext->ScorchPercentAtMax))) {
         SmudgeTypeClass::Create_Scorch(cell_coord, 100, 100, false);
     }
-    else if (Probability_Of(warhead_ext->CraterChance)) {
+    else if (Probability_Of(Percent_At_Max(warhead_ext->CraterChance, range, distance, warhead_ext->CraterPercentAtMax))) {
         SmudgeTypeClass::Create_Crater(cell_coord, 100, 100, false);
     }
-    if (Probability_Of(warhead_ext->CellAnimChance)) {
+    if (Probability_Of(Percent_At_Max(warhead_ext->CellAnimChance, range, distance, warhead_ext->CellAnimPercentAtMax))) {
         const TypeList<AnimTypeClass*>* anims = &warhead_ext->CellAnim;
         if (anims->Count() == 0) {
             anims = &Rule->OnFire;
@@ -536,15 +530,16 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
                 for (int y = -cell_radius; y <= cell_radius; y++) {
                     Cell newcell = cell + Cell(x, y);
                     if (!Map.In_Radar(newcell)) continue;
-                    if (Distance(Cell_Coord(newcell), Cell_Coord(cell)) <= range) {
+                    distance = Distance(Cell_Coord(newcell), Cell_Coord(cell));
+                    if (distance <= range) {
                         Damage_Overlay(newcell, warhead, strength, do_chain_reaction);
-                        Spawn_Flames_And_Smudges(newcell, warhead);
+                        Spawn_Flames_And_Smudges(newcell, range, distance, warhead);
                     }
                 }
             }
         } else {
             Damage_Overlay(cell, warhead, strength, do_chain_reaction);
-            Spawn_Flames_And_Smudges(cell, warhead);
+            Spawn_Flames_And_Smudges(cell, 0, 0, warhead);
         }
     }
 

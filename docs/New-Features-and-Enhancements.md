@@ -1229,7 +1229,7 @@ This tag does not alter the visuals of the explosion in any way, but only affect
 
 ### Smudges and Animations
 
-- Vinifera allows weapons to spawn scorches, craters and animations on cells affected by explosions.
+- Vinifera allows weapons to spawn scorches, craters and animations on cells affected by explosions. Similarly to damage, the smudge/animation spawn chance can be reduced with range.
 
 ```{note}
 When using `Spread`, only the cell directly hit by the explosion will be considered. When using `CellSpread`, all affected cells are taken into account.
@@ -1237,11 +1237,14 @@ When using `Spread`, only the cell directly hit by the explosion will be conside
 
 In `RULES.INI`:
 ```ini
-[SOMEWARHEAD]     ; WarheadType
-ScorchChance=0    ; % or float, the chance that an affected cell will contain a new scorch after the explosion.
-CraterChance=0    ; % or float, the chance that an affected cell will contain a new crater after the explosion.
-CellAnimChance=0  ; % or float, the chance that an affected cell will contain a new animation after the explosion.
-CellAnim=         ; list of AnimTypes, the list of animation to pick from when a random animation is spawned. Defaults to `[AudioVisual]->OnFire`.
+[SOMEWARHEAD]           ; WarheadType
+ScorchChance=0          ; % or float, the chance that an affected cell will contain a new scorch after the explosion.
+ScorchPercentAtMax=1    ; % or float, the fraction of the chance that is applied at the weapon's max range.
+CraterChance=0          ; % or float, the chance that an affected cell will contain a new crater after the explosion.
+CraterPercentAtMax=1    ; % or float, the fraction of the chance that is applied at the weapon's max range.
+CellAnimChance=0        ; % or float, the chance that an affected cell will contain a new animation after the explosion.
+CellAnimPercentAtMax=1  ; % or float, the fraction of the chance that is applied at the weapon's max range.
+CellAnim=               ; list of AnimTypes, the list of animation to pick from when a random animation is spawned. Defaults to `[AudioVisual]->OnFire`.
 ```
 
 ### Damage Modifier against types of objects

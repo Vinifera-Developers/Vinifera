@@ -59,8 +59,11 @@ WarheadTypeClassExtension::WarheadTypeClassExtension(const WarheadTypeClass *thi
     CellSpread(-1.0f),
     PercentAtMax(1.0f),
     ScorchChance(0.0f),
+    ScorchPercentAtMax(1.0f),
     CraterChance(0.0f),
+    CraterPercentAtMax(1.0f),
     CellAnimChance(0.0f),
+    CellAnimPercentAtMax(1.0f),
     CellAnim(),
     InfantryModifier(1.0f),
     VehicleModifier(1.0f),
@@ -210,8 +213,11 @@ void WarheadTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
     crc(CellSpread);
     crc(PercentAtMax);
     crc(ScorchChance);
+    crc(ScorchPercentAtMax);
     crc(CraterChance);
+    crc(CraterPercentAtMax);
     crc(CellAnimChance);
+    crc(CellAnimPercentAtMax);
     crc(CellAnim.Count());
     crc(InfantryModifier);
     crc(VehicleModifier);
@@ -330,10 +336,18 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
 
     ScorchChance = ini.Get_Float(ini_name, "ScorchChance", ScorchChance);
     ScorchChance = std::clamp(ScorchChance, 0.0f, 1.0f);
+    ScorchPercentAtMax = ini.Get_Float(ini_name, "ScorchPercentAtMax", ScorchPercentAtMax);
+    ScorchPercentAtMax = std::clamp(ScorchPercentAtMax, 0.0f, 1.0f);
+
     CraterChance = ini.Get_Float(ini_name, "CraterChance", CraterChance);
     CraterChance = std::clamp(CraterChance, 0.0f, 1.0f);
+    CraterPercentAtMax = ini.Get_Float(ini_name, "CraterPercentAtMax", CraterPercentAtMax);
+    CraterPercentAtMax = std::clamp(CraterPercentAtMax, 0.0f, 1.0f);
+
     CellAnimChance = ini.Get_Float(ini_name, "CellAnimChance", CellAnimChance);
     CellAnimChance = std::clamp(CellAnimChance, 0.0f, 1.0f);
+    CellAnimPercentAtMax = ini.Get_Float(ini_name, "CellAnimPercentAtMax", CellAnimPercentAtMax);
+    CellAnimPercentAtMax = std::clamp(CellAnimPercentAtMax, 0.0f, 1.0f);
     CellAnim = ini.Get_Anims(ini_name, "CellAnim", CellAnim);
 
     InfantryModifier = ini.Get_Float(ini_name, "InfantryModifier", InfantryModifier);

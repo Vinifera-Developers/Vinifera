@@ -104,16 +104,19 @@ WarheadTypeClassExtension final : public AbstractTypeClassExtension
          *  The chance that a cell affected by this warhead will spawn a random scorch.
          */
         float ScorchChance;
+        float ScorchPercentAtMax;
 
         /**
          *  The chance that a cell affected by this warhead will spawn a random crater.
          */
         float CraterChance;
+        float CraterPercentAtMax;
 
         /**
          *  The chance that a cell affected by this warhead will spawn a random anim from the list.
          */
         float CellAnimChance;
+        float CellAnimPercentAtMax;
 
         /**
          *  The list of anims to pick from when CellAnimChance is triggered.
