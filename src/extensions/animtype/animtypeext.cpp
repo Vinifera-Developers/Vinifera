@@ -64,7 +64,7 @@ AnimTypeClassExtension::AnimTypeClassExtension(const AnimTypeClass *this_ptr) :
     EndAnimsMinimum(),
     EndAnimsMaximum(),
     EndAnimsDelay(),
-    MiddleFrame(-2)
+    MiddleFrame(-1)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("AnimTypeClassExtension::AnimTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -402,7 +402,7 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     /**
      *  #issue-883
      * 
-     *  The "biggest" frame of a animation is frame which should hide all cosmetic
+     *  The "biggest" frame of an animation is frame which should hide all cosmetic
      *  changes to the underlaying ground (e.g. craters) that the animation causes,
      *  so these effects are delayed until this frame is reached. TibSun calculates
      *  this by scanning the entire shape file to find the largest visible frame, but
@@ -414,7 +414,7 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
      *  of the shape file. This behavior was observed in Red Alert 2.
      */
     if (This()->Image && This()->Image->Get_Frame_Count() > 0) {
-        MiddleFrame = ini.Get_Int_Clamp(ini_name, "MiddleFrame", -2, This()->Image->Get_Frame_Count() - 1, MiddleFrame);
+        MiddleFrame = ini.Get_Int_Clamp(ini_name, "MiddleFrame", -1, This()->Image->Get_Frame_Count() - 1, MiddleFrame);
     }
 
     IsInitialized = true;
@@ -430,10 +430,9 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
  */
 void AnimTypeClassExtension::Set_Biggest_Frame()
 {
-    if (MiddleFrame == -1 && This()->Image && This()->Image->Get_Frame_Count() >= 2) {
+    if (MiddleFrame < 0 && This()->Image && This()->Image->Get_Frame_Count() >= 2) {
         This()->Biggest = This()->Image->Get_Frame_Count() / 2;
-    }
-    else if (MiddleFrame != -2) {
+    } else {
         This()->Biggest = MiddleFrame;
     }
 }

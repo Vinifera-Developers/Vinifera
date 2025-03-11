@@ -328,6 +328,14 @@ DECLARE_PATCH(_AnimClass_AI_Beginning_Patch)
     animtypeext = Extension::Fetch<AnimTypeClassExtension>(animtype);
 
     /**
+     *  We have flagged that this animation's type needs to have
+     *  its biggest frame recalculated, do that.
+     */
+    if (animtype->Biggest == -1) {
+        animtypeext->Set_Biggest_Frame();
+    }
+
+    /**
      *  Stolen bytes/code.
      */
     if (animtype->IsFlamingGuy) {
