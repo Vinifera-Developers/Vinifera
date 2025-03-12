@@ -169,6 +169,11 @@ New:
 - Implement a feature for animations to spawn additional animations (by CCHyper/tomsons26, ZivDero)
 - Add `TargetZoneScan` to TechnoTypes (by Rampastring)
 - Implement `DecloakToFire` (by ZivDero)
+- Implement `CellSpread` and `PercentAtMax` (by ZivDero)
+- Implement customizable spawnig of animations and smudges by explosions (by ZivDero)
+- Implement `ExplosionDamage` for animations (by ZivDero, Rampastring)
+- Implement `InfantryModifier`, `VehicleModifier`, `AircraftModifier`, `BuildingModifier`, `TerrainModifier` (by ZivDero)
+- Implement `Volumetric`, `SnapToCellCenter` (by ZivDero)
 
 
 Vanilla fixes:
@@ -235,6 +240,7 @@ Vanilla fixes:
 - `[CombatDamage]->MinDamage` now works as expected and damage is no long always a minimum of `1` (by ZivDero)
 - VehicleTypes with Jumpjet locomotion now take damage in flight (by ZivDero)
 - Fix the map glitching around when scrolling if the map is not large enough to fill the entire screen (by Belonit, ZivDero)
+- Animations now use their `Warhead` to deal damage, if one is specified (by ZivDero)
 
 </details>
 

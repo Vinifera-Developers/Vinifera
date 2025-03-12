@@ -89,4 +89,56 @@ WarheadTypeClassExtension final : public AbstractTypeClassExtension
          *  The minimum damage something using this warhead can deal. Negative means to use Rule->MinDamage.
          */
         int MinDamage;
+
+        /**
+         *  The maximum range, in cells, at which a weapon using this warhead will damage objects.
+         */
+        float CellSpread;
+
+        /**
+         *  The fraction of the damage that is applied at this weapon's max range.
+         */
+        float PercentAtMax;
+
+        /**
+         *  The chance that a cell affected by this warhead will spawn a random scorch.
+         */
+        float ScorchChance;
+        float ScorchPercentAtMax;
+
+        /**
+         *  The chance that a cell affected by this warhead will spawn a random crater.
+         */
+        float CraterChance;
+        float CraterPercentAtMax;
+
+        /**
+         *  The chance that a cell affected by this warhead will spawn a random anim from the list.
+         */
+        float CellAnimChance;
+        float CellAnimPercentAtMax;
+
+        /**
+         *  The list of anims to pick from when CellAnimChance is triggered.
+         */
+        TypeList<AnimTypeClass*> CellAnim;
+
+        /**
+         *  Damage multipliers against various object types.
+         */
+        float InfantryModifier;
+        float VehicleModifier;
+        float AircraftModifier;
+        float BuildingModifier;
+        float TerrainModifier;
+
+        /**
+         *  Should this warhead always damage things in air, regardless of the explosion height?
+         */
+        bool IsVolumetric;
+
+        /**
+         *  Should explosions using this warhead always take place at the center of the cell?
+         */
+        bool IsSnapToCellCenter;
 };

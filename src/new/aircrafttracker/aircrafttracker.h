@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          FOOTEXT.H
+ *  @file          AIRCRAFTTRACKER.H
  *
- *  @author        CCHyper
+ *  @authors       ZivDero
  *
- *  @brief         Extended FootClass class.
+ *  @brief         AircraftTrackerClass reimplementation from YR.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -27,36 +27,41 @@
  ******************************************************************************/
 #pragma once
 
-#include "technoext.h"
-#include "foot.h"
+#include "vector.h"
+#include <unknwn.h>
+#include "tibsun_defines.h"
+
+class AbstractClass;
+class FootClass;
+class CellClass;
 
 
-class FootClassExtension : public TechnoClassExtension
-{
-    public:
-        /**
-         *  IPersistStream
-         */
-        IFACEMETHOD(Load)(IStream *pStm);
-        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+class AircraftTrackerClass {
+public:
+    AircraftTrackerClass() { }
+    ~AircraftTrackerClass() { };
 
-    public:
-        FootClassExtension(const FootClass *this_ptr);
-        FootClassExtension(const NoInitClass &noinit);
-        virtual ~FootClassExtension();
+    FootClass* Get_Target();
+    void Fetch_Targets(CellClass* cellptr, int range);
 
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+    void Track(FootClass* target);
+    void Untrack(FootClass* target);
+    void Update_Position(FootClass* target, Cell oldcell, Cell newcell);
 
-        virtual FootClass *This() const override { return reinterpret_cast<FootClass *>(TechnoClassExtension::This()); }
-        virtual const FootClass *This_Const() const override { return reinterpret_cast<const FootClass *>(TechnoClassExtension::This_Const()); }
+    void Clear();
 
-        virtual void Set_Last_Flight_Cell(Cell cell);
-        virtual Cell Get_Last_Flight_Cell();
+    HRESULT STDMETHODCALLTYPE Load(IStream* pStm);
+    HRESULT STDMETHODCALLTYPE Save(IStream* pStm);
 
-    public:
-        /**
-         *  The last known flight cell of this object, used by the AircraftTracker.
-         */
-        Cell LastFlightCell;
+    AircraftTrackerClass(const AircraftTrackerClass&) = delete;
+    AircraftTrackerClass& operator= (const AircraftTrackerClass&) = delete;
+
+private:
+    int Get_Region(Cell cell);
+    void Copy_Region(int region);
+    int Adjacent_Region(int region, int dy, int dx);
+
+public:
+    DynamicVectorClass<FootClass*> Regions[400];
+    DynamicVectorClass<FootClass*> WorkingSet;
 };

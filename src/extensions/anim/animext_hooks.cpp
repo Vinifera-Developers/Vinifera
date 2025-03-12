@@ -45,6 +45,7 @@
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "combat.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -460,6 +461,88 @@ function_return:
 
 
 /**
+ *  A helper is required because of stack issues.
+ */
+static Coordinate & Center_Coord_Helper(ObjectClass * obj)
+{
+    static Coordinate coord;
+    coord = obj->Center_Coord();
+    return coord;
+}
+
+
+/**
+ *  Allows the animation to explode
+ *  when it has reached its largest stage.
+ *
+ *  @author: Rampastring, ZivDero
+ */
+DECLARE_PATCH(_AnimClass_Middle_Explosion_Patch)
+{
+    GET_REGISTER_STATIC(AnimClass*, this_ptr, esi);
+    static AnimTypeClass* animtype;
+    static AnimTypeClassExtension* animtypeext;
+
+    animtype = this_ptr->Class;
+
+    /*
+     * If this animation is specified to do area damage, do the area damage effect now.
+     */
+    animtypeext = Extension::Fetch<AnimTypeClassExtension>(animtype);
+    if (animtypeext->ExplosionDamage > 0 && animtype->Warhead) {
+        Explosion_Damage(Center_Coord_Helper(this_ptr), animtypeext->ExplosionDamage, nullptr, animtype->Warhead, true);
+    }
+
+    /**
+     *  Continue function execution.
+     */
+continue_function:
+    _asm { lea  ecx, [esp + 18h] }
+    _asm { mov  eax, [esi] }
+    _asm { push ecx }
+    JMP_REG(ecx, 0x00415F4F);
+}
+
+
+/**
+ *  Changes animations to use their Warhead= when dealing damage if one is specified
+ *
+ *  @author: ZivDero
+ */
+static void Do_Anim_Damage(AnimClass* anim, int damage)
+{
+    /*
+     *  INVISO is hardcoded to use C4Warhead, let's leave that just in case.
+     */
+    if (std::strcmp(anim->Class->IniName, "INVISO") == 0) {
+        Explosion_Damage(anim->Center_Coord(), damage, nullptr, Rule->C4Warhead);
+    }
+    /*
+     *  If a Warhead= is set, use that.
+     */
+    else if (anim->Class->Warhead != nullptr) {
+        Explosion_Damage(anim->Center_Coord(), damage, nullptr, anim->Class->Warhead);
+    }
+    /*
+     *  Otherwise, default to FlameDamage2, like in vanilla.
+     */
+    else {
+        Explosion_Damage(anim->Center_Coord(), damage, nullptr, Rule->FlameDamage2);
+    }
+}
+
+DECLARE_PATCH(_AnimClass_AI_Warhead_Patch)
+{
+    GET_REGISTER_STATIC(AnimClass*, this_ptr, esi);
+    GET_REGISTER_STATIC(int, damage, ebp);
+
+    Do_Anim_Damage(this_ptr, damage);
+
+    JMP(0x004159B2);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void AnimClassExtension_Hooks()
@@ -498,4 +581,6 @@ void AnimClassExtension_Hooks()
     Patch_Jump(0x0041606C, &_AnimClass_Middle_SpawnParticle_Patch);
     Patch_Jump(0x00415D30, &AnimClassExt::_In_Which_Layer);
     Patch_Jump(0x00413D3E, &_AnimClass_Constructor_Layer_Set_Z_Height_Patch);
+    Patch_Jump(0x00415F48, &_AnimClass_Middle_Explosion_Patch);
+    Patch_Jump(0x00415947, &_AnimClass_AI_Warhead_Patch);
 }

@@ -64,6 +64,16 @@ MiddleFrame=   ; integer, the frame number in which the animation system will pe
 `MiddleFrame=0` is reserved and will not cause `MiddleAnims` to be spawned on every loop, but rather once at the start of the animation (like with `StartAnims`). To repeatedly spawn animations at the start of the loop, use `MiddleFrame` values of `1` or higher.
 ```
 
+### Middle Frame Explosion
+
+- Vinifera allows the animation to spawn an explosion on its biggest frame (also controlled by `MiddleFrame=`) using its `Warhead=`.
+
+In `ART.INI`:
+```ini
+[AnimType]         ; AnimType
+ExplosionDamage=0  ; integer, if positive, the animation will spawn an explosion during its biggest frame dealing this much damage.
+```
+
 ### Various Keys Ported from Red Alert 2
 
 - Vinifera implements various AnimType keys from Red Alert 2.
@@ -1177,6 +1187,79 @@ TurretFacings=32     ; integer, the turret facing count.
 - Because of the new extended facing support, it was observed that the buffer size was too small and has now been increased to allow a larger entry to accommodate a larger facing count. Mind that the maximum string length is 506 characters now, so be sure to use short names if you want to have 64 entries.
 
 ## Warheads
+
+### Cell Spread
+
+- Vinifera ports the Cell Spread mechanic from Red Alert 2, allowing for more destructive and flexible weapons.
+
+In `RULES.INI`:
+```ini
+[SOMEWARHEAD]      ; WarheadType
+CellSpread=-1      ; float, the maximum range, in cells, at which a weapon using this warhead will damage objects.
+PercentAtMax=100%  ; % or float, the fraction of the damage that is applied at the weapon's max range.
+```
+
+```{note}
+When `CellSpread` is negative, vanilla TS `Spread` logic is applied.
+```
+
+### Volumetric
+
+- By default, explosions located strictly on the ground do not deal damage against targets in air. You can change this on a per-warhead basis.
+
+In `RULES.INI`:
+```ini
+[SOMEWARHEAD]  ; WarheadType
+Volumetric=no  ; boolean, should objects in flight always be considered for damage by this warhead.
+```
+
+### SnapToCellCenter
+
+- Vinifera allows focing explosions using a certain warhead to take place in the center of the cell where they occur. This can help reduce damage randomness in some cases.
+
+In `RULES.INI`:
+```ini
+[SOMEWARHEAD]        ; WarheadType
+SnapToCellCenter=no  ; boolean, do explosions using this warhead always take place in the cell center
+```
+
+```{note}
+This tag does not alter the visuals of the explosion in any way, but only affects the way damage is dealt.
+```
+
+### Smudges and Animations
+
+- Vinifera allows weapons to spawn scorches, craters and animations on cells affected by explosions. Similarly to damage, the smudge/animation spawn chance can be reduced with range.
+
+```{note}
+When using `Spread`, only the cell directly hit by the explosion will be considered. When using `CellSpread`, all affected cells are taken into account.
+```
+
+In `RULES.INI`:
+```ini
+[SOMEWARHEAD]           ; WarheadType
+ScorchChance=0          ; % or float, the chance that an affected cell will contain a new scorch after the explosion.
+ScorchPercentAtMax=1    ; % or float, the fraction of the chance that is applied at the weapon's max range.
+CraterChance=0          ; % or float, the chance that an affected cell will contain a new crater after the explosion.
+CraterPercentAtMax=1    ; % or float, the fraction of the chance that is applied at the weapon's max range.
+CellAnimChance=0        ; % or float, the chance that an affected cell will contain a new animation after the explosion.
+CellAnimPercentAtMax=1  ; % or float, the fraction of the chance that is applied at the weapon's max range.
+CellAnim=               ; list of AnimTypes, the list of animation to pick from when a random animation is spawned. Defaults to `[AudioVisual]->OnFire`.
+```
+
+### Damage Modifier against types of objects
+
+- Vinifera allows specified a broad modifier to damage against infantry, vehicles, aircraft, buildings and terrain objects.
+
+In `RULES.INI`:
+```ini
+[SOMEWARHEAD]          ; WarheadType
+InfantryModifier=100%  ; % or float, modifier applied to damage dealt to infantry by this warhead.
+VehicleModifier=100%   ; % or float, modifier applied to damage dealt to vehicles by this warhead.
+AircraftModifier=100%  ; % or float, modifier applied to damage dealt to aircraft by this warhead.
+BuildingModifier=100%  ; % or float, modifier applied to damage dealt to buildings by this warhead.
+TerrainModifier=100%   ; % or float, modifier applied to damage dealt to terrain objects by this warhead.
+```
 
 ### MinDamage
 

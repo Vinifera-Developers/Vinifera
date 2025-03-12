@@ -26,6 +26,8 @@
  *
  ******************************************************************************/
 #include "footext_hooks.h"
+
+#include "aircrafttracker.h"
 #include "foot.h"
 #include "technoext.h"
 #include "technotype.h"
@@ -51,8 +53,11 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "ionstorm.h"
+#include "levitatelocomotion.h"
 #include "radarevent.h"
 #include "uicontrol.h"
+#include "vinifera_globals.h"
 #include "vox.h"
 
 
@@ -70,6 +75,8 @@ public:
     void _Draw_NavComQueue_Lines() const;
     void _Death_Announcement(TechnoClass* source) const;
     Cell _Search_For_Tiberium(int rad, bool a2);
+    bool _Unlimbo(Coordinate& coord, DirType dir);
+    bool _Limbo();
 
 private:
     void _Draw_Line(Coordinate& start_coord, Coordinate& end_coord, bool is_dashed, bool is_thick, bool is_dropshadow, unsigned line_color, unsigned drop_color, int rate) const;
@@ -682,6 +689,102 @@ void FootClassExt::_Death_Announcement(TechnoClass* source) const
 
 
 /**
+ *  FootClass::Unlimbo replacement.
+ *
+ *  @author: ZivDero
+ */
+bool FootClassExt::_Unlimbo(Coordinate& coord, DirType dir)
+{
+    /**
+     *  Try to unlimbo the unit.
+     */
+    if (TechnoClass::Unlimbo(coord, dir)) {
+
+        Locomotion->Unlimbo();
+
+        bool off = false;
+        if (IonStorm_Is_Active()) {
+            if (Locomotion->Is_Ion_Sensitive()) {
+                off = true;
+            }
+        }
+
+        if (off) {
+            Locomotion->Power_Off();
+        }
+        else {
+            Locomotion->Power_On();
+        }
+
+        /**
+         *  Instead of patching levitate locomotion to add to tracking, since levitate locomotion is
+         *  always in flight let's add it right now.
+         */
+        if (Techno_Type_Class()->Locomotor == __uuidof(LevitateLocomotionClass)) {
+            AircraftTracker->Track(this);
+        }
+
+        /**
+         *  Mobile units are always revealed to the house that owns them.
+         */
+        Revealed(House);
+
+        /**
+         *  Start in a still (non-moving) state.
+         */
+        Path[0] = FACING_NONE;
+
+        Cell cell = Coord_Cell(Coord);
+        for (int face = FACING_FIRST; face < FACING_COUNT; face++) {
+            Cell c = Adjacent_Cell(cell, FacingType(face));
+            CellClass* cptr = &Map[c];
+            cptr->AdjacentObjectCount++;
+        }
+
+        if (!In_Air()) {
+            LastAdjacencyCell = cell;
+        }
+
+        ThreatAvoidanceCoefficient = Techno_Type_Class()->ThreatAvoidanceCoefficient;
+        return true;
+    }
+    return false;
+}
+
+
+/**
+ *  FootClass::Limbo replacement.
+ *
+ *  @author: ZivDero
+ */
+bool FootClassExt::_Limbo()
+{
+    if (!IsInLimbo) {
+        Cell cell = LastAdjacencyCell;
+        for (FacingType face = FACING_FIRST; face < FACING_COUNT; face++) {
+            Cell newcell = Adjacent_Cell(cell, face);
+            CellClass* cptr = &Map[newcell];
+            cptr->AdjacentObjectCount--;
+        }
+        Stop_Driver();
+        if (Locomotion != nullptr) {
+            Locomotion->Mark_All_Occupation_Bits(MARK_UP);
+        }
+
+        /**
+         *  Remove the object from the aircraft tracker.
+         */
+        const auto ext = Extension::Fetch<FootClassExtension>(this);
+        if (ext->Get_Last_Flight_Cell() != CELL_NONE) {
+            AircraftTracker->Untrack(this);
+        }
+    }
+    return TechnoClass::Limbo();
+}
+
+
+
+/**
  *  Main function for patching the hooks.
  */
 void FootClassExtension_Hooks()
@@ -694,4 +797,6 @@ void FootClassExtension_Hooks()
     Patch_Jump(0x004A6A40, &FootClassExt::_Draw_Action_Line);
     Patch_Jump(0x004A4D60, &FootClassExt::_Death_Announcement);
     Patch_Jump(0x004A76F0, &FootClassExt::_Search_For_Tiberium);
+    Patch_Jump(0x004A2C70, &FootClassExt::_Unlimbo);
+    Patch_Jump(0x004A5E80, &FootClassExt::_Limbo);
 }

@@ -55,7 +55,23 @@ WarheadTypeClassExtension::WarheadTypeClassExtension(const WarheadTypeClass *thi
     ShakePixelYLo(0),
     ShakePixelXHi(0),
     ShakePixelXLo(0),
-    MinDamage(-1)
+    MinDamage(-1),
+    CellSpread(-1.0f),
+    PercentAtMax(1.0f),
+    ScorchChance(0.0f),
+    ScorchPercentAtMax(1.0f),
+    CraterChance(0.0f),
+    CraterPercentAtMax(1.0f),
+    CellAnimChance(0.0f),
+    CellAnimPercentAtMax(1.0f),
+    CellAnim(),
+    InfantryModifier(1.0f),
+    VehicleModifier(1.0f),
+    AircraftModifier(1.0f),
+    BuildingModifier(1.0f),
+    TerrainModifier(1.0f),
+    IsVolumetric(false),
+    IsSnapToCellCenter(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("WarheadTypeClassExtension::WarheadTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -69,7 +85,8 @@ WarheadTypeClassExtension::WarheadTypeClassExtension(const WarheadTypeClass *thi
  *  @author: CCHyper
  */
 WarheadTypeClassExtension::WarheadTypeClassExtension(const NoInitClass &noinit) :
-    AbstractTypeClassExtension(noinit)
+    AbstractTypeClassExtension(noinit),
+    CellAnim(noinit)
 {
     //EXT_DEBUG_TRACE("WarheadTypeClassExtension::WarheadTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -116,12 +133,18 @@ HRESULT WarheadTypeClassExtension::Load(IStream *pStm)
 {
     //EXT_DEBUG_TRACE("WarheadTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
+    CellAnim.Clear();
+
     HRESULT hr = AbstractTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return hr;
     }
 
     new (this) WarheadTypeClassExtension(NoInitClass());
+
+    CellAnim.Load(pStm);
+
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(CellAnim, "CellAnim");
     
     return hr;
 }
@@ -140,6 +163,8 @@ HRESULT WarheadTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
     if (FAILED(hr)) {
         return hr;
     }
+
+    CellAnim.Save(pStm);
 
     return hr;
 }
@@ -185,6 +210,22 @@ void WarheadTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
     crc(ShakePixelYLo);
     crc(ShakePixelXHi);
     crc(ShakePixelXLo);
+    crc(CellSpread);
+    crc(PercentAtMax);
+    crc(ScorchChance);
+    crc(ScorchPercentAtMax);
+    crc(CraterChance);
+    crc(CraterPercentAtMax);
+    crc(CellAnimChance);
+    crc(CellAnimPercentAtMax);
+    crc(CellAnim.Count());
+    crc(InfantryModifier);
+    crc(VehicleModifier);
+    crc(AircraftModifier);
+    crc(BuildingModifier);
+    crc(TerrainModifier);
+    crc(IsVolumetric);
+    crc(IsSnapToCellCenter);
 }
 
 
@@ -289,6 +330,34 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
     This()->IsOrganic = ini.Get_Bool(ini_name, "Organic", This()->IsOrganic);
 
     MinDamage = ini.Get_Int(ini_name, "MinDamage", MinDamage);
+
+    CellSpread = ini.Get_Float(ini_name, "CellSpread", CellSpread);
+    PercentAtMax = ini.Get_Float(ini_name, "PercentAtMax", PercentAtMax);
+
+    ScorchChance = ini.Get_Float(ini_name, "ScorchChance", ScorchChance);
+    ScorchChance = std::clamp(ScorchChance, 0.0f, 1.0f);
+    ScorchPercentAtMax = ini.Get_Float(ini_name, "ScorchPercentAtMax", ScorchPercentAtMax);
+    ScorchPercentAtMax = std::clamp(ScorchPercentAtMax, 0.0f, 1.0f);
+
+    CraterChance = ini.Get_Float(ini_name, "CraterChance", CraterChance);
+    CraterChance = std::clamp(CraterChance, 0.0f, 1.0f);
+    CraterPercentAtMax = ini.Get_Float(ini_name, "CraterPercentAtMax", CraterPercentAtMax);
+    CraterPercentAtMax = std::clamp(CraterPercentAtMax, 0.0f, 1.0f);
+
+    CellAnimChance = ini.Get_Float(ini_name, "CellAnimChance", CellAnimChance);
+    CellAnimChance = std::clamp(CellAnimChance, 0.0f, 1.0f);
+    CellAnimPercentAtMax = ini.Get_Float(ini_name, "CellAnimPercentAtMax", CellAnimPercentAtMax);
+    CellAnimPercentAtMax = std::clamp(CellAnimPercentAtMax, 0.0f, 1.0f);
+    CellAnim = ini.Get_Anims(ini_name, "CellAnim", CellAnim);
+
+    InfantryModifier = ini.Get_Float(ini_name, "InfantryModifier", InfantryModifier);
+    VehicleModifier = ini.Get_Float(ini_name, "VehicleModifier", VehicleModifier);
+    AircraftModifier = ini.Get_Float(ini_name, "AircraftModifier", AircraftModifier);
+    BuildingModifier = ini.Get_Float(ini_name, "BuildingModifier", BuildingModifier);
+    TerrainModifier = ini.Get_Float(ini_name, "TerrainModifier", TerrainModifier);
+
+    IsVolumetric = ini.Get_Bool(ini_name, "Volumetric", IsVolumetric);
+    IsSnapToCellCenter = ini.Get_Bool(ini_name, "SnapToCellCenter", IsSnapToCellCenter);
 
     IsInitialized = true;
 

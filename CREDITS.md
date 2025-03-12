@@ -169,6 +169,7 @@ This page lists all the individual contributions to the project by their author.
   - Add `TargetZoneScan` to TechnoTypes.
   - Fix a bug where a visceroid was spawned when poison gas destroyed a non-crewed vehicle, building, or terrain object.
   - Fix a bug where it was impossible to tell infantry to enter cloaked allied transports.
+  - Implement `ExplosionDamage` for animations.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:
@@ -217,3 +218,9 @@ This page lists all the individual contributions to the project by their author.
   - VehicleTypes with Jumpjet locomotion now take damage in flight.
   - Fix the map glitching around when scrolling if the map is not large enough to fill the entire screen.
   - Implement `DecloakToFire`.
+  - Implement `CellSpread` and `PercentAtMax`.
+  - Implement `ScorchChance`, `CraterChance` and `CellAnimChance`.
+  - Implement `ExplosionDamage` for animations.
+  - Implement `InfantryMultiplier`, `VehicleMultiplier`, `AircraftMultiplier`, `BuildingMultiplier`, `TerrainMultiplier`.
+  - Implement `Volumetric`, `SnapToCellCenter`.
+  - Animations now use their `Warhead` to deal damage, if one is specified.

@@ -152,6 +152,7 @@
 
 #include <iostream>
 
+#include "aircrafttracker.h"
 #include "armortype.h"
 #include "kamikazetracker.h"
 #include "rockettype.h"
@@ -2132,6 +2133,7 @@ unsigned Extension::Get_Save_Version_Number()
     version += sizeof(RocketTypeClass);
     version += sizeof(SpawnManagerClass);
     version += sizeof(KamikazeTrackerClass);
+    version += sizeof(AircraftTrackerClass);
 
     return version;
 }
