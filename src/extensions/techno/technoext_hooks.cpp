@@ -1749,17 +1749,19 @@ DECLARE_PATCH(_TechnoClass_Fire_At_Electric_Bolt_Patch)
         technoext = Extension::Fetch<TechnoClassExtension>(this_ptr);
         technoext->Electric_Bolt(target);
 
+        /**
+         *  Proceed to check for ammo.
+         */
+        JMP(0x0063126F);
+
     /**
      *  Spawn the laser.
      */
     } else if (weapon->IsLaser) {
-        goto is_laser;
+        JMP_REG(edi, 0x00631231);
     }
 
     JMP(0x006312CD);
-
-is_laser:
-    JMP_REG(edi, 0x00631231);
 }
 
 
