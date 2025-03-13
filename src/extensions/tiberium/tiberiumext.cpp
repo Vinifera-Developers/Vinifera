@@ -215,6 +215,9 @@ bool TiberiumClassExtension::Read_INI(CCINIClass &ini)
     const bool useSlopes = ini.Get_Bool(ini_name, "UseSlopes", This()->NumSlopeFacings > 0);
     This()->NumSlopeFacings = useSlopes ? 8 : 0;
 
+    This()->NumImages = ini.Get_Int(ini_name, "Variety", This()->NumImages);
+    This()->NumImages = std::max(1, This()->NumImages); // at least one overlay, please
+
     PipIndex = ini.Get_Int(ini_name, "PipIndex", PipIndex);
     PipDrawOrder = ini.Get_Int(ini_name, "PipDrawOrder", PipDrawOrder);
 
