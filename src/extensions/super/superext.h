@@ -66,6 +66,8 @@ SuperClassExtension final : public AbstractClassExtension
         virtual const SuperClass *This_Const() const override { return reinterpret_cast<const SuperClass *>(AbstractClassExtension::This_Const()); }
         virtual RTTIType What_Am_I() const override { return RTTI_SUPERWEAPON; }
 
+        const char* Ready_String() const;
+
     public:
         /**
          *  The time at which the flash mode should return to normal.

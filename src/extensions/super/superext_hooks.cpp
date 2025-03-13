@@ -88,6 +88,26 @@ DECLARE_PATCH(_SuperClass_Place_HunterSeeker_Type_Patch)
     }
 }
 
+DECLARE_PATCH(_SuperClass_Ready_String_Patch)
+{
+    GET_REGISTER_STATIC(SuperClass*, this_ptr, ecx);
+
+    static const char* ready_str;
+    static SuperClassExtension* extension;
+    extension = Extension::Fetch<SuperClassExtension>(this_ptr);
+
+    ready_str = extension->Ready_String();
+
+    /**
+     * A new string obtained using a function.
+     */
+    _asm {
+        mov eax, ready_str
+        mov [esp+40], eax
+    }
+
+    JMP(0x005F526F)
+}
 
 /**
  *  Main function for patching the hooks.
@@ -100,4 +120,6 @@ void SuperClassExtension_Hooks()
     SuperClassExtension_Init();
 
     Patch_Jump(0x0060C5DE, &_SuperClass_Place_HunterSeeker_Type_Patch);
+    Patch_Jump(0x005F5266, &_SuperClass_Ready_String_Patch);
+
 }

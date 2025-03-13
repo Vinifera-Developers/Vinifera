@@ -26,12 +26,15 @@
  *
  ******************************************************************************/
 #include "superext.h"
+#include "supertypeext.h"
 #include "super.h"
 #include "wwcrc.h"
 #include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
-
+#include "wstring.h"
+#include "language.h"
+#include "fetchres.h"
 
 /**
  *  Class constructor.
@@ -163,4 +166,49 @@ void SuperClassExtension::Detach(TARGET target, bool all)
 void SuperClassExtension::Compute_CRC(WWCRCEngine &crc) const
 {
     //EXT_DEBUG_TRACE("SuperClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+}
+
+/**
+ * Added Ready_String of custom string function.
+ * 
+ *  @author: GenKyoko
+ */
+const char* SuperClassExtension::Ready_String() const
+{
+    SuperClass* pThis = This();
+    SuperWeaponTypeClassExtension* pTypeExt = Extension::Fetch<SuperWeaponTypeClassExtension>(pThis->Class);
+
+    if (pThis->IsSuspended)
+    {
+        return pTypeExt->Misc_SuspendString;
+    }
+
+    if (!pThis->Class->IsUseChargeDrain)
+    {
+        SpecialWeaponType type = pThis->Class->ActsLike;
+        bool IsReady = pThis->IsReady;
+
+        if (type == SPECIAL_HUNTER_SEEKER) {
+            if (!IsReady)
+                return nullptr;
+            return pTypeExt->Misc_ReadyString;
+        }
+        if (!IsReady)
+            return nullptr;
+        return pTypeExt->Misc_ReadyString;
+    }
+
+    if (!pThis->field_34) {
+        return pTypeExt->Misc_ChargingString;
+    }
+
+    if (!(pThis->field_34 - 1)) {
+        return pTypeExt->Misc_ReadyString;
+    }
+
+    if ((pThis->field_34 - 1) != 1) {
+        return nullptr;
+    }
+
+    return pTypeExt->Misc_ActiveString;
 }
