@@ -337,17 +337,14 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
     ScorchChance = ini.Get_Float(ini_name, "ScorchChance", ScorchChance);
     ScorchChance = std::clamp(ScorchChance, 0.0f, 1.0f);
     ScorchPercentAtMax = ini.Get_Float(ini_name, "ScorchPercentAtMax", ScorchPercentAtMax);
-    ScorchPercentAtMax = std::clamp(ScorchPercentAtMax, 0.0f, 1.0f);
 
     CraterChance = ini.Get_Float(ini_name, "CraterChance", CraterChance);
     CraterChance = std::clamp(CraterChance, 0.0f, 1.0f);
     CraterPercentAtMax = ini.Get_Float(ini_name, "CraterPercentAtMax", CraterPercentAtMax);
-    CraterPercentAtMax = std::clamp(CraterPercentAtMax, 0.0f, 1.0f);
 
     CellAnimChance = ini.Get_Float(ini_name, "CellAnimChance", CellAnimChance);
     CellAnimChance = std::clamp(CellAnimChance, 0.0f, 1.0f);
     CellAnimPercentAtMax = ini.Get_Float(ini_name, "CellAnimPercentAtMax", CellAnimPercentAtMax);
-    CellAnimPercentAtMax = std::clamp(CellAnimPercentAtMax, 0.0f, 1.0f);
     CellAnim = ini.Get_Anims(ini_name, "CellAnim", CellAnim);
 
     InfantryModifier = ini.Get_Float(ini_name, "InfantryModifier", InfantryModifier);

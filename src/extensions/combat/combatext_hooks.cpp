@@ -358,13 +358,13 @@ void Spawn_Flames_And_Smudges(const Cell & cell, int range, int distance, const 
 
     const auto warhead_ext = Extension::Fetch<WarheadTypeClassExtension>(warhead);
 
-    if (Probability_Of(Percent_At_Max(warhead_ext->ScorchChance, range, distance, warhead_ext->ScorchPercentAtMax))) {
+    if (Probability_Of(std::clamp(Percent_At_Max(warhead_ext->ScorchChance, range, distance, warhead_ext->ScorchPercentAtMax), 0.0f, 1.0f))) {
         SmudgeTypeClass::Create_Scorch(cell_coord, 100, 100, false);
     }
-    else if (Probability_Of(Percent_At_Max(warhead_ext->CraterChance, range, distance, warhead_ext->CraterPercentAtMax))) {
+    else if (Probability_Of(std::clamp(Percent_At_Max(warhead_ext->CraterChance, range, distance, warhead_ext->CraterPercentAtMax), 0.0f, 1.0f))) {
         SmudgeTypeClass::Create_Crater(cell_coord, 100, 100, false);
     }
-    if (Probability_Of(Percent_At_Max(warhead_ext->CellAnimChance, range, distance, warhead_ext->CellAnimPercentAtMax))) {
+    if (Probability_Of(std::clamp(Percent_At_Max(warhead_ext->CellAnimChance, range, distance, warhead_ext->CellAnimPercentAtMax), 0.0f, 1.0f))) {
         const TypeList<AnimTypeClass*>* anims = &warhead_ext->CellAnim;
         if (anims->Count() == 0) {
             anims = &Rule->OnFire;
