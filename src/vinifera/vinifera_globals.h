@@ -30,6 +30,7 @@
 #include "always.h"
 #include "vector.h"
 #include "ccfile.h"
+#include "cratetype.h"
 
 
 class KamikazeTrackerClass;
@@ -112,6 +113,7 @@ extern AircraftTrackerClass *AircraftTracker;
 extern DynamicVectorClass<EBoltClass *> EBolts;
 extern DynamicVectorClass<TheaterTypeClass *> TheaterTypes;
 extern DynamicVectorClass<ArmorTypeClass *> ArmorTypes;
+extern DynamicVectorClass<CrateTypeClass *> CrateTypes;
 extern DynamicVectorClass<SpawnManagerClass *> SpawnManagers;
 extern DynamicVectorClass<RocketTypeClass *> RocketTypes;
 extern DynamicVectorClass<MouseTypeClass *> MouseTypes;

@@ -55,7 +55,10 @@ TechnoClassExtension::TechnoClassExtension(const TechnoClass *this_ptr) :
     ElectricBolt(nullptr),
     Storage(Tiberiums.Count()),
     SpawnManager(nullptr),
-    SpawnOwner(nullptr)
+    SpawnOwner(nullptr),
+    ArmorCrates(0),
+    SpeedCrates(0),
+    FirepowerCrates(0)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoClassExtension::TechnoClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 

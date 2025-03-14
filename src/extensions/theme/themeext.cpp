@@ -157,6 +157,8 @@ bool ThemeControlExtension::Read_INI(CCINIClass &ini)
     }
 
     RequiredAddon = (AddonType)ini.Get_Int(ini_name, "RequiredAddon", RequiredAddon);
-    
+
+    IsInitialized = true;
+
     return true;
 }

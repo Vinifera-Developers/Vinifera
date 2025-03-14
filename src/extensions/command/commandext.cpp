@@ -89,6 +89,7 @@
 #include "debughandler.h"
 #include "asserthandler.h"
 #include "bullettype.h"
+#include "cratetype.h"
 
 
 /**
@@ -4093,6 +4094,7 @@ bool DumpHeapsCommandClass::Process()
     LOG_HEAP(TiberiumClass, Tiberiums);
     LOG_HEAP(ArmorTypeClass, ArmorTypes);
     LOG_HEAP(RocketTypeClass, RocketTypes);
+    LOG_HEAP(CrateTypeClass, CrateTypes);
 
     DEBUG_INFO("\nFinished!\n\n");
 

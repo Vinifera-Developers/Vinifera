@@ -38,6 +38,7 @@
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "cratetype.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -63,6 +64,10 @@ static class CCINIClassExt final : public CCINIClass
 
         ArmorType _Get_ArmorType(const char *section, const char *entry, const ArmorType defvalue);
         bool _Put_ArmorType(const char *section, const char *entry, ArmorType value);
+
+
+        CrateType _Get_CrateType(const char *section, const char *entry, const CrateType defvalue);
+        bool _Put_CrateType(const char *section, const char *entry, CrateType value);
 
         ActionType _Get_ActionType(const char *section, const char *entry, const ActionType defvalue);
 };
@@ -256,6 +261,45 @@ bool CCINIClassExt::_Put_ArmorType(const char *section, const char *entry, Armor
 
 
 /**
+ *  Fetches the crate type from the INI database.
+ *
+ *  @author: ZivDero
+ */
+CrateType CCINIClassExt::_Get_CrateType(const char *section, const char *entry, const CrateType defvalue)
+{
+    char buffer[1024];
+
+    if (INIClass::Get_String(section, entry, nullptr, buffer, sizeof(buffer)) > 0) {
+
+        /**
+         *  Vanilla crate names need to be preserved even
+         *  if the crates have been renamed (which we do).
+         */
+        for (int i = 0; i < CRATE_COUNT; i++) {
+            if (std::strcmp(buffer, CrateNames[i]) == 0) {
+                return static_cast<CrateType>(i);
+            }
+        }
+
+        return CrateTypeClass::From_Name(buffer);
+    }
+
+    return defvalue;
+}
+
+
+/**
+ *  Store the crate type to the INI database.
+ *
+ *  @author: ZivDero
+ */
+bool CCINIClassExt::_Put_CrateType(const char *section, const char *entry, CrateType value)
+{
+    return Put_String(section, entry, CrateTypeClass::Name_From(value));
+}
+
+
+/**
  *  #issue-391
  *
  *  This is actually a patch in WeaponTypeClass:Read_INI, but because
@@ -311,6 +355,8 @@ void CCINIClassExtension_Hooks()
     Patch_Jump(0x0044B360, &CCINIClassExt::_Put_TheaterType);
     Patch_Jump(0x0044AF50, &CCINIClassExt::_Get_ArmorType);
     Patch_Jump(0x0044AFA0, &CCINIClassExt::_Put_ArmorType);
+    Patch_Jump(0x0044B490, &CCINIClassExt::_Get_CrateType);
+    Patch_Jump(0x0044B4E0, &CCINIClassExt::_Put_CrateType);
 
     // Put this here as it was only called in INIClass::Get_ArmorType.
     Patch_Jump(0x00681320, &ArmorTypeClass::From_Name);

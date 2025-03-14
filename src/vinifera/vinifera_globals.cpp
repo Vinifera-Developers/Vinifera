@@ -80,6 +80,7 @@ DynamicVectorClass<MFCC *> ViniferaMoviesMixes;
 DynamicVectorClass<EBoltClass *> EBolts;
 DynamicVectorClass<TheaterTypeClass *> TheaterTypes;
 DynamicVectorClass<ArmorTypeClass *> ArmorTypes;
+DynamicVectorClass<CrateTypeClass *> CrateTypes;
 DynamicVectorClass<SpawnManagerClass *> SpawnManagers;
 DynamicVectorClass<RocketTypeClass*> RocketTypes;
 DynamicVectorClass<MouseTypeClass *> MouseTypes;

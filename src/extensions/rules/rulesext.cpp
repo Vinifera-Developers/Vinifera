@@ -230,6 +230,10 @@ void RulesClassExtension::Process(CCINIClass &ini)
 {
     //EXT_DEBUG_TRACE("RulesClassExtension::Process - 0x%08X\n", (uintptr_t)(This()));
 
+    if (!IsInitialized) {
+        
+    }
+
     /**
      *  This function replaces the original rules process, so we need to duplicate
      *  the its behaviour here first.
@@ -292,6 +296,14 @@ void RulesClassExtension::Process(CCINIClass &ini)
     This()->IQ(ini);
     This()->General(ini);
 
+    /**
+     *  Read the new CratesTypes.
+     *
+     *  @author: ZivDero
+     */
+    CrateTypeClass::Init_From_Powerups(ini);
+    Crates(ini);
+
     for (int index = 0; index < BuildingTypes.Count(); ++index) {
 
         BuildingTypeClass *btype = BuildingTypes[index];
@@ -326,7 +338,7 @@ void RulesClassExtension::Process(CCINIClass &ini)
     Objects(ini);
 
     This()->Difficulty(ini);
-    This()->CrateRules(ini);
+    CrateRules(ini);
     This()->CombatDamage(ini);
     This()->AudioVisual(ini);
     This()->SpecialWeapons(ini);
@@ -374,6 +386,7 @@ void RulesClassExtension::Initialize(CCINIClass &ini)
 
     Verses::Clear();
     ArmorTypeClass::One_Time();
+    CrateTypeClass::One_Time();
 }
 
 
@@ -593,6 +606,11 @@ bool RulesClassExtension::Objects(CCINIClass &ini)
     DEBUG_INFO("Rules: Processing RocketTypes (Count: %d)...\n", RocketTypes.Count());
     for (int index = 0; index < RocketTypes.Count(); ++index) {
         RocketTypes[index]->Read_INI(ini);
+    }
+
+    DEBUG_INFO("Rules: Processing CrateTypes (Count: %d)...\n", CrateTypes.Count());
+    for (int index = 0; index < CrateTypes.Count(); ++index) {
+        CrateTypes[index]->Read_INI(ini);
     }
 
     return true;
@@ -818,6 +836,77 @@ bool RulesClassExtension::Rockets(CCINIClass &ini)
     }
 
     return counter > 0;
+}
+
+
+/**
+ *  Fetch all the crate characteristic values.
+ *
+ *  @author: ZivDero
+ */
+bool RulesClassExtension::Crates(CCINIClass& ini)
+{
+    //EXT_DEBUG_TRACE("RulesClassExtension::Crates - 0x%08X\n", (uintptr_t)(This()));
+
+    static const char* const CRATETYPES = "CrateTypes";
+
+    char buf[128];
+    const CrateTypeClass* cratetype;
+
+    int counter = ini.Entry_Count(CRATETYPES);
+    for (int index = 0; index < counter; ++index) {
+        const char* entry = ini.Get_Entry(CRATETYPES, index);
+
+        /**
+         *  Get a weapon entry.
+         */
+        if (ini.Get_String(CRATETYPES, entry, buf, sizeof(buf))) {
+
+            /**
+             *  Find or create a weapon of the name specified.
+             */
+            cratetype = CrateTypeClass::Find_Or_Make(buf);
+            if (cratetype) {
+                DEV_DEBUG_INFO("Rules: Found CrateType \"%s\".\n", buf);
+            }
+            else {
+                DEV_DEBUG_WARNING("Rules: Error processing CrateType \"%s\"!\n", buf);
+            }
+        }
+    }
+
+    return counter > 0;
+}
+
+
+bool RulesClassExtension::CrateRules(CCINIClass& ini)
+{
+    //EXT_DEBUG_TRACE("RulesClassExtension::CrateRules - 0x%08X\n", (uintptr_t)(This()));
+
+    static const char* const CRATERULES = "CrateRules";
+
+    if (ini.Is_Present(CRATERULES)) {
+
+        This()->IsFreeMCV = ini.Get_Bool(CRATERULES, "FreeMCV", This()->IsFreeMCV);
+        This()->WoodCrateImage = ini.Get_Overlay(CRATERULES, "WoodCrateImg", This()->WoodCrateImage);
+        This()->SteelCrateImage = ini.Get_Overlay(CRATERULES, "CrateImg", This()->SteelCrateImage);
+        This()->HealCrateSound = ini.Get_VocType(CRATERULES, "HealCrateSound", This()->HealCrateSound);
+
+        if (This()->HealCrateSound != VOC_NONE) {
+            CrateTypes[CrateTypeClass::From_Name("HealBaseCrate")]->Sound = This()->HealCrateSound;
+        }
+
+        This()->CrateMinimum = ini.Get_Int(CRATERULES, "CrateMinimum", This()->CrateMinimum);
+        This()->CrateMaximum = ini.Get_Int(CRATERULES, "CrateMaximum", This()->CrateMaximum);
+        This()->CrateRadius = ini.Get_Lepton(CRATERULES, "CrateRadius", This()->CrateRadius);
+        This()->CrateTime = ini.Get_Float(CRATERULES, "CrateRegen", This()->CrateTime);
+        This()->UnitCrateType = ini.Get_Unit(CRATERULES, "UnitCrateType", This()->UnitCrateType);
+        This()->SoloCrateMoney = ini.Get_Int(CRATERULES, "SoloCrateMoney", This()->SoloCrateMoney);
+        This()->SilverCrate = ini.Get_CrateType(CRATERULES, "SilverCrate", This()->SilverCrate);
+        This()->WoodCrate = ini.Get_CrateType(CRATERULES, "WoodCrate", This()->WoodCrate);
+    }
+
+    return true;
 }
 
 

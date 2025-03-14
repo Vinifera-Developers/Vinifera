@@ -163,6 +163,8 @@ void SessionClassExtension::Compute_CRC(WWCRCEngine &crc) const
 void SessionClassExtension::Read_MultiPlayer_Settings()
 {
     //EXT_DEBUG_TRACE("SessionClassExtension::Read_MultiPlayer_Settings - 0x%08X\n", (uintptr_t)(This()));
+
+    IsInitialized = true;
 }
 
 
