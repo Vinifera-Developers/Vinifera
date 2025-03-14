@@ -134,9 +134,9 @@ HRESULT FactoryClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int FactoryClassExtension::Size_Of() const
+int FactoryClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("FactoryClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("FactoryClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -147,7 +147,7 @@ int FactoryClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void FactoryClassExtension::Detach(TARGET target, bool all)
+void FactoryClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("FactoryClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -158,7 +158,7 @@ void FactoryClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void FactoryClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void FactoryClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("FactoryClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("FactoryClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }

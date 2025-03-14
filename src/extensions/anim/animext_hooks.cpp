@@ -58,7 +58,7 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-class AnimClassExt final : public AnimClass
+class AnimClassExt : public AnimClass
 {
     public:
         LayerType _In_Which_Layer() const;
@@ -235,7 +235,7 @@ DECLARE_PATCH(_AnimClass_Middle_SpawnParticle_Patch)
      *  Stolen bytes/code.
      */
     static int height;
-    height = this_ptr->Get_Height();
+    height = this_ptr->Height;
     _asm { mov eax, [height] }
 
     JMP_REG(ecx, 0x00416076);
@@ -261,16 +261,16 @@ DECLARE_PATCH(_AnimClass_Constructor_Layer_Set_Z_Height_Patch)
      */
     if (animtypeext->AttachLayer != LAYER_NONE
         && (animtypeext->AttachLayer == LAYER_AIR || animtypeext->AttachLayer == LAYER_TOP)) {
-        this_ptr->Set_Z_Coord(Rule->FlightLevel);
+        this_ptr->AbsoluteHeight = Rule->FlightLevel;
 
     /**
      *  Original code.
      */
     } else if (!this_ptr->Class->IsGroundLayer) {
-        this_ptr->Set_Z_Coord(Rule->FlightLevel);
+        this_ptr->AbsoluteHeight = Rule->FlightLevel;
 
     } else {
-        this_ptr->Set_Height(0);
+        this_ptr->Height = 0;
     }
 
     JMP(0x00413D63);

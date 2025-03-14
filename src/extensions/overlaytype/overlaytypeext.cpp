@@ -134,9 +134,9 @@ HRESULT OverlayTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int OverlayTypeClassExtension::Size_Of() const
+int OverlayTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("OverlayTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("OverlayTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -147,7 +147,7 @@ int OverlayTypeClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void OverlayTypeClassExtension::Detach(TARGET target, bool all)
+void OverlayTypeClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("OverlayTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -160,9 +160,9 @@ void OverlayTypeClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void OverlayTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void OverlayTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("OverlayTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("OverlayTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 

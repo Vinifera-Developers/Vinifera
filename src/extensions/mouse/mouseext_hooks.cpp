@@ -50,7 +50,7 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-class MouseClassExt final : public MouseClass
+class MouseClassExt : public MouseClass
 {
     public:
         void _AI(KeyNumType &input, Point2D &xy);

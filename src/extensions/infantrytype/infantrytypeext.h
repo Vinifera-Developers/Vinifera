@@ -51,13 +51,13 @@ InfantryTypeClassExtension final : public TechnoTypeClassExtension
         InfantryTypeClassExtension(const NoInitClass &noinit);
         virtual ~InfantryTypeClassExtension();
 
-        virtual int Size_Of() const override;
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+        virtual int Get_Object_Size() const override;
+        virtual void Detach(AbstractClass * target, bool all = true) override;
+        virtual void Object_CRC(CRCEngine &crc) const override;
         
         virtual InfantryTypeClass *This() const override { return reinterpret_cast<InfantryTypeClass *>(TechnoTypeClassExtension::This()); }
         virtual const InfantryTypeClass *This_Const() const override { return reinterpret_cast<const InfantryTypeClass *>(TechnoTypeClassExtension::This_Const()); }
-        virtual RTTIType What_Am_I() const override { return RTTI_INFANTRYTYPE; }
+        virtual RTTIType Fetch_RTTI() const override { return RTTI_INFANTRYTYPE; }
 
         virtual bool Read_INI(CCINIClass &ini) override;
 

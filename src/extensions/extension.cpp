@@ -354,7 +354,7 @@ static bool Extension_Save(IStream *pStm, const DynamicVectorClass<EXT_CLASS *> 
 
         EXT_CLASS * ext_ptr = reinterpret_cast<EXT_CLASS *>(lpPS);
 
-        if (ext_ptr->What_Am_I() != RTTI_WAVE || ext_ptr->What_Am_I() != RTTI_LIGHT) {
+        if (ext_ptr->Fetch_RTTI() != RTTI_WAVE || ext_ptr->Fetch_RTTI() != RTTI_LIGHT) {
             EXT_DEBUG_INFO("  -> %s\n", ext_ptr->Name());
         }
     }
@@ -457,7 +457,7 @@ static bool Extension_Request_Pointer_Remap(const DynamicVectorClass<BASE_CLASS 
  *  @author: CCHyper
  */
 template<class EXT_CLASS>
-static void Extension_Detach_This_From_All(DynamicVectorClass<EXT_CLASS *> &list, TARGET target, bool all)
+static void Extension_Detach_This_From_All(DynamicVectorClass<EXT_CLASS *> &list, AbstractClass * target, bool all)
 {
     for (int index = 0; index < list.Count(); ++index) {
         list[index]->Detach(target, all);
@@ -477,7 +477,7 @@ AbstractClassExtension *Extension::Private::Make_Internal(const AbstractClass *a
 
     AbstractClassExtension *extptr = nullptr;
 
-    switch (const_cast<AbstractClass *>(abstract)->What_Am_I()) {
+    switch (const_cast<AbstractClass *>(abstract)->Fetch_RTTI()) {
         case RTTI_UNIT: { extptr = Extension_Make<UnitClass, UnitClassExtension>(reinterpret_cast<const UnitClass *>(abstract)); break; }
         case RTTI_AIRCRAFT: { extptr = Extension_Make<AircraftClass, AircraftClassExtension>(reinterpret_cast<const AircraftClass *>(abstract)); break; }
         case RTTI_AIRCRAFTTYPE: { extptr = Extension_Make<AircraftTypeClass, AircraftTypeClassExtension>(reinterpret_cast<const AircraftTypeClass *>(abstract)); break; }
@@ -538,7 +538,7 @@ AbstractClassExtension *Extension::Private::Make_Internal(const AbstractClass *a
         //case RTTI_FOGGEDOBJECT: { extptr = Extension_Make<FoggedObjectClass, FoggedObjectClassExtension>(reinterpret_cast<const FoggedObjectClass *>(abstract)); break; } // Not yet implemented
         //case RTTI_ALPHASHAPE: { extptr = Extension_Make<AlphaShapeClass, AlphaShapeClassExtension>(reinterpret_cast<const AlphaShapeClass *>(abstract)); break; } // Not yet implemented
         //case RTTI_VEINHOLEMONSTER: { extptr = Extension_Make<VeinholeMonsterClass, VeinholeMonsterClassExtension>(reinterpret_cast<const VeinholeMonsterClass *>(abstract)); break; } // Not yet implemented
-        default: { DEBUG_ERROR("Extension::Make: No extension support for \"%s\" implemented!\n", Name_From_RTTI((RTTIType)abstract->What_Am_I())); break; }
+        default: { DEBUG_ERROR("Extension::Make: No extension support for \"%s\" implemented!\n", Name_From_RTTI(abstract->Fetch_RTTI())); break; }
     };
 
     return extptr;
@@ -557,7 +557,7 @@ bool Extension::Private::Destroy_Internal(const AbstractClass *abstract)
     
     bool removed = false;
 
-    switch (abstract->What_Am_I()) {
+    switch (abstract->Fetch_RTTI()) {
         case RTTI_UNIT: { removed = Extension_Destroy<UnitClass, UnitClassExtension>(reinterpret_cast<const UnitClass *>(abstract)); break; }
         case RTTI_AIRCRAFT: { removed = Extension_Destroy<AircraftClass, AircraftClassExtension>(reinterpret_cast<const AircraftClass *>(abstract)); break; }
         case RTTI_AIRCRAFTTYPE: { removed = Extension_Destroy<AircraftTypeClass, AircraftTypeClassExtension>(reinterpret_cast<const AircraftTypeClass *>(abstract)); break; }
@@ -618,7 +618,7 @@ bool Extension::Private::Destroy_Internal(const AbstractClass *abstract)
         //case RTTI_FOGGEDOBJECT: { removed = Extension_Destroy<FoggedObjectClass, FoggedObjectClassExtension>(reinterpret_cast<const FoggedObjectClass *>(abstract)); break; } // Not yet implemented
         //case RTTI_ALPHASHAPE: { removed = Extension_Destroy<AlphaShapeClass, AlphaShapeClassExtension>(reinterpret_cast<const AlphaShapeClass *>(abstract)); break; } // Not yet implemented
         //case RTTI_VEINHOLEMONSTER: { removed = Extension_Destroy<VeinholeMonsterClass, VeinholeMonsterClassExtension>(reinterpret_cast<const VeinholeMonsterClass *>(abstract)); break; } // Not yet implemented
-        default: { DEBUG_ERROR("Extension::Destroy: No extension support for \"%s\" implemented!\n", Name_From_RTTI((RTTIType)abstract->What_Am_I())); break; }
+        default: { DEBUG_ERROR("Extension::Destroy: No extension support for \"%s\" implemented!\n", Name_From_RTTI(abstract->Fetch_RTTI())); break; }
     };
 
     ASSERT(removed);
@@ -646,7 +646,7 @@ AbstractClassExtension *Extension::Private::Fetch_Internal(const AbstractClass *
     /**
      *  Its possible the pointer could be invalid, so perform a check.
      */
-    if (ext_ptr->What_Am_I() <= RTTI_NONE || ext_ptr->What_Am_I() >= RTTI_COUNT) {
+    if (ext_ptr->Fetch_RTTI() <= RTTI_NONE || ext_ptr->Fetch_RTTI() >= RTTI_COUNT) {
         DEBUG_ERROR("Extension::Fetch: Invalid extension RTTI type for \"%s\"!\n", Extension::Utility::Get_TypeID_Name(abstract).c_str());
         return nullptr;
     }
@@ -1145,7 +1145,7 @@ static bool Print_Event_List(FILE *fp, QueueClass<T, I> &list)
 template<class T>
 static void Print_Heap_CRC_Lists(FILE *fp, DynamicVectorClass<T *> &list)
 {
-    WWCRCEngine *crc = new WWCRCEngine;
+    CRCEngine *crc = new CRCEngine;
 
     std::fprintf(fp, "\n\n********* %s CRCs ********\n\n", Extension::Utility::Get_TypeID_Name<T>().c_str());
     std::fprintf(fp, "Index    CRC\n");
@@ -1153,7 +1153,7 @@ static void Print_Heap_CRC_Lists(FILE *fp, DynamicVectorClass<T *> &list)
 
     for (int index = 0; index < list.Count(); ++index) {
         T *ptr = list[index];
-        ptr->Compute_CRC(*crc);
+        ptr->Object_CRC(*crc);
         std::fprintf(fp, "%05d    %08x\n", index, crc->CRC_Value());
         EXT_DEBUG_INFO("%05d %08x\n", index, crc->CRC_Value());
     }
@@ -1481,12 +1481,12 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                     Coordinate navcom_coord;
 
                     if (ptr->TarCom) {
-                        tarcom_name = Name_From_RTTI((RTTIType)ptr->TarCom->What_Am_I());
+                        tarcom_name = Name_From_RTTI(ptr->TarCom->Fetch_RTTI());
                         tarcom_coord = ptr->TarCom->Center_Coord();
                     }
 
                     if (ptr->NavCom) {
-                        navcom_name = Name_From_RTTI((RTTIType)ptr->NavCom->What_Am_I());
+                        navcom_name = Name_From_RTTI(ptr->NavCom->Fetch_RTTI());
                         navcom_coord = ptr->NavCom->Center_Coord();
                     }
 
@@ -1527,12 +1527,12 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                     Coordinate navcom_coord;
 
                     if (ptr->TarCom) {
-                        tarcom_name = Name_From_RTTI((RTTIType)ptr->TarCom->What_Am_I());
+                        tarcom_name = Name_From_RTTI(ptr->TarCom->Fetch_RTTI());
                         tarcom_coord = ptr->TarCom->Center_Coord();
                     }
 
                     if (ptr->NavCom) {
-                        navcom_name = Name_From_RTTI((RTTIType)ptr->NavCom->What_Am_I());
+                        navcom_name = Name_From_RTTI(ptr->NavCom->Fetch_RTTI());
                         navcom_coord = ptr->NavCom->Center_Coord();
                     }
 
@@ -1569,7 +1569,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                     Coordinate tarcom_coord;
 
                     if (ptr->TarCom) {
-                        tarcom_name = Name_From_RTTI((RTTIType)ptr->TarCom->What_Am_I());
+                        tarcom_name = Name_From_RTTI(ptr->TarCom->Fetch_RTTI());
                         tarcom_coord = ptr->TarCom->Center_Coord();
                     }
 
@@ -1605,12 +1605,12 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                     Coordinate navcom_coord;
 
                     if (ptr->TarCom) {
-                        tarcom_name = Name_From_RTTI((RTTIType)ptr->TarCom->What_Am_I());
+                        tarcom_name = Name_From_RTTI(ptr->TarCom->Fetch_RTTI());
                         tarcom_coord = ptr->TarCom->Center_Coord();
                     }
 
                     if (ptr->NavCom) {
-                        navcom_name = Name_From_RTTI((RTTIType)ptr->NavCom->What_Am_I());
+                        navcom_name = Name_From_RTTI(ptr->NavCom->Fetch_RTTI());
                         navcom_coord = ptr->NavCom->Center_Coord();
                     }
 
@@ -1645,7 +1645,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         if (bullet->Payback) {
             payback = bullet->Payback->Full_Name();
 
-            payback_owner = bullet->Payback->Owning_House()->IniName;
+            payback_owner = bullet->Payback->Owner_HouseClass()->IniName;
             owner_id = bullet->Payback->Owner();
         }
 
@@ -1666,7 +1666,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         Coordinate xobject_coord;
 
         if (animp->xObject) {
-            xobject_name = Name_From_RTTI((RTTIType)animp->xObject->What_Am_I());
+            xobject_name = Name_From_RTTI(animp->xObject->Fetch_RTTI());
             xobject_coord = animp->xObject->Center_Coord();
         }
 
@@ -1691,39 +1691,39 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
             ObjectClass *objp = Map.Layer[layer][index];
             Add_CRC(&GameCRC, (int)((objp->Get_Coord().X / 10) << 16) + (int)(objp->Get_Coord().Y / 10));
             std::fprintf(fp, "Object %d: %s ", index, objp->Coord.As_String());
-            switch (objp->What_Am_I()) {
+            switch (objp->Fetch_RTTI()) {
                 case RTTI_AIRCRAFT:
-                    std::fprintf(fp, "Aircraft  (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                    std::fprintf(fp, "Aircraft  (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                     break;
                 case RTTI_ANIM:
-                    std::fprintf(fp, "Anim      (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                    std::fprintf(fp, "Anim      (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                         break;
                 case RTTI_BUILDING:
-                    std::fprintf(fp, "Building  (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                    std::fprintf(fp, "Building  (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                     break;
                 case RTTI_BULLET:
-                    std::fprintf(fp, "Bullet    (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                    std::fprintf(fp, "Bullet    (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                     break;
                 case RTTI_INFANTRY:
-                    std::fprintf(fp, "Infantry  (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                    std::fprintf(fp, "Infantry  (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                     break;
                 case RTTI_OVERLAY:
-                    std::fprintf(fp, "Overlay   (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                    std::fprintf(fp, "Overlay   (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                     break;
                 case RTTI_SMUDGE:
-                    std::fprintf(fp, "Smudge    (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                    std::fprintf(fp, "Smudge    (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                     break;
                 case RTTI_TERRAIN:
-                    std::fprintf(fp, "Terrain   (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                    std::fprintf(fp, "Terrain   (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                     break;
                 case RTTI_UNIT:
-                    std::fprintf(fp, "Unit      (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                    std::fprintf(fp, "Unit      (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                     break;
                 case RTTI_PARTICLE:
-                    std::fprintf(fp, "Particle  (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                    std::fprintf(fp, "Particle  (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                     break;
             };
-            HouseClass *housep = objp->Owning_House();
+            HouseClass *housep = objp->Owner_HouseClass();
             if (housep) {
                 std::fprintf(fp, "Owner: %s\n", housep->Class->IniName);
             } else {
@@ -1744,39 +1744,39 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         ObjectClass *objp = Logic[index];
         Add_CRC(&GameCRC, (int)((objp->Get_Coord().X / 10) << 16) + (int)(objp->Get_Coord().Y / 10));
         std::fprintf(fp, "Object %d: %s ", index, objp->Coord.As_String());
-        switch (objp->What_Am_I()) {
+        switch (objp->Fetch_RTTI()) {
             case RTTI_AIRCRAFT:
-                std::fprintf(fp, "Aircraft  (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                std::fprintf(fp, "Aircraft  (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_ANIM:
-                std::fprintf(fp, "Anim      (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                std::fprintf(fp, "Anim      (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_BUILDING:
-                std::fprintf(fp, "Building  (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                std::fprintf(fp, "Building  (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_BULLET:
-                std::fprintf(fp, "Bullet    (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                std::fprintf(fp, "Bullet    (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_INFANTRY:
-                std::fprintf(fp, "Infantry  (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                std::fprintf(fp, "Infantry  (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_OVERLAY:
-                std::fprintf(fp, "Overlay   (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                std::fprintf(fp, "Overlay   (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_SMUDGE:
-                std::fprintf(fp, "Smudge    (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                std::fprintf(fp, "Smudge    (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_TERRAIN:
-                std::fprintf(fp, "Terrain   (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                std::fprintf(fp, "Terrain   (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_UNIT:
-                std::fprintf(fp, "Unit      (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                std::fprintf(fp, "Unit      (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_PARTICLE:
-                std::fprintf(fp, "Particle  (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                std::fprintf(fp, "Particle  (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
         };
-        HouseClass *housep = objp->Owning_House();
+        HouseClass *housep = objp->Owner_HouseClass();
         if (housep) {
             std::fprintf(fp, "Owner: %s\n", housep->Class->IniName);
         } else {
@@ -1955,7 +1955,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
  * 
  *  @author: CCHyper
  */
-void Extension::Detach_This_From_All(TARGET target, bool all)
+void Extension::Detach_This_From_All(AbstractClass * target, bool all)
 {
     //DEV_DEBUG_INFO("Extension::Detach_This_From_All(enter)\n");
 

@@ -456,7 +456,7 @@ static SwizzleInfoDatabaseEntry *Swizzle_Find_Database_Entry(uintptr_t retaddr)
  *  @note: All functions must not be virtual and must also be prefixed
  *         with "_" to prevent accidental virtualization.
  */
-static class SwizzleManagerClassExt final : public ViniferaSwizzleManagerClass
+static class SwizzleManagerClassExt : public ViniferaSwizzleManagerClass
 {
     public:
         COM_DECLSPEC_NOTHROW LONG STDAPICALLTYPE _Reset();

@@ -212,7 +212,7 @@ LONG TechnoTypeClassExtension::GetSizeMax(ULARGE_INTEGER *pcbSize)
  *  
  *  @author: CCHyper
  */
-void TechnoTypeClassExtension::Detach(TARGET target, bool all)
+void TechnoTypeClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -223,9 +223,9 @@ void TechnoTypeClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void TechnoTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void TechnoTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     crc(IsShakeScreen);
     crc(IsImmuneToEMP);
@@ -235,7 +235,7 @@ void TechnoTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
     crc(ShakePixelXLo);
     crc(SoylentValue);
     crc(IsLegalTargetComputer);
-    crc(Spawns->Get_Heap_ID());
+    crc(Spawns->Fetch_Heap_ID());
     crc(SpawnRegenRate);
     crc(SpawnReloadRate);
     crc(SpawnsNumber);

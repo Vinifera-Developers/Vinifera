@@ -51,13 +51,13 @@ FactoryClassExtension final : public AbstractClassExtension
         FactoryClassExtension(const NoInitClass &noinit);
         virtual ~FactoryClassExtension();
 
-        virtual int Size_Of() const override;
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+        virtual int Get_Object_Size() const override;
+        virtual void Detach(AbstractClass * target, bool all = true) override;
+        virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual FactoryClass *This() const override { return reinterpret_cast<FactoryClass *>(AbstractClassExtension::This()); }
         virtual const FactoryClass *This_Const() const override { return reinterpret_cast<const FactoryClass *>(AbstractClassExtension::This_Const()); }
-        virtual RTTIType What_Am_I() const override { return RTTI_FACTORY; }
+        virtual RTTIType Fetch_RTTI() const override { return RTTI_FACTORY; }
 
         virtual const char *Name() const { return "Factory"; }
         virtual const char *Full_Name() const { return "Factory"; }

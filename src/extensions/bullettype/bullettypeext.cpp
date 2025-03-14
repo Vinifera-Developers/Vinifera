@@ -137,9 +137,9 @@ HRESULT BulletTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int BulletTypeClassExtension::Size_Of() const
+int BulletTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("BulletTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("BulletTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -150,7 +150,7 @@ int BulletTypeClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void BulletTypeClassExtension::Detach(TARGET target, bool all)
+void BulletTypeClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("BulletTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -163,9 +163,9 @@ void BulletTypeClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void BulletTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void BulletTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("BulletTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("BulletTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 

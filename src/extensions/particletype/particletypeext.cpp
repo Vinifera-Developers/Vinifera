@@ -134,9 +134,9 @@ HRESULT ParticleTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int ParticleTypeClassExtension::Size_Of() const
+int ParticleTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("ParticleTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("ParticleTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -147,7 +147,7 @@ int ParticleTypeClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void ParticleTypeClassExtension::Detach(TARGET target, bool all)
+void ParticleTypeClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("ParticleTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -160,9 +160,9 @@ void ParticleTypeClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void ParticleTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void ParticleTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("ParticleTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("ParticleTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 

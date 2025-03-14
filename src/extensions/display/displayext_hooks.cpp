@@ -247,7 +247,7 @@ static void Get_Mouse_Cursor_Coords()
     /**
      *  Fixup Z position based on cell height.
      */
-    _tmpcoord.Z = Map.Get_Cell_Height(_tmpcoord);
+    _tmpcoord.Z = Map.Get_Height_GL(_tmpcoord);
 }
 
 /**

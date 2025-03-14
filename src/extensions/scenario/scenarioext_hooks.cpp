@@ -57,7 +57,7 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-class ScenarioClassExt final : public ScenarioClass
+class ScenarioClassExt : public ScenarioClass
 {
     public:
         Cell _Get_Waypoint_Cell(WaypointType wp) const { return ScenExtension->Get_Waypoint_Cell(wp); }
@@ -125,7 +125,7 @@ void Init_Home_Cell()
         Scen->Views[3] = Scen->Views[2];
 
         Coordinate home_coord = Cell_Coord(home_cell);
-        home_coord.Z = Map.Get_Cell_Height(home_coord);
+        home_coord.Z = Map.Get_Height_GL(home_coord);
 
         Map.RadarClass::Set_Tactical_Position(home_coord);
     }

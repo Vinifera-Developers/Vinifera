@@ -97,7 +97,7 @@ void UnitClassExt::_Firing_AI()
         FireErrorType ok = Can_Fire(TarCom, primary);
         const WeaponTypeClass* weapon = Get_Weapon(primary)->Weapon;
 
-        if (weapon && weapon->WarheadPtr && weapon->WarheadPtr->IsWebby && TarCom->What_Am_I() == RTTI_INFANTRY)
+        if (weapon && weapon->WarheadPtr && weapon->WarheadPtr->IsWebby && TarCom->Fetch_RTTI() == RTTI_INFANTRY)
         {
             InfantryClass* inf = reinterpret_cast<InfantryClass*>(TarCom);
             if (inf->ProneStruggleTimer.Value() > weapon->WarheadPtr->WebDuration / 4)
@@ -161,7 +161,7 @@ void UnitClassExt::_Firing_AI()
         case FIRE_ILLEGAL:
             if (Combat_Damage(primary) < 0)
             {
-                if (!Is_Object(TarCom) || TarCom->What_Am_I() != RTTI_UNIT || static_cast<ObjectClass*>(TarCom)->Health_Ratio() >= Rule->ConditionGreen)
+                if (!Is_Object(TarCom) || TarCom->Fetch_RTTI() != RTTI_UNIT || static_cast<ObjectClass*>(TarCom)->HealthRatio >= Rule->ConditionGreen)
                 {
                     Assign_Target(nullptr);
                 }
@@ -211,7 +211,7 @@ void UnitClassExt::_Draw_Voxel(unsigned int frame, int key, Rect& rect, Point2D&
     if (typeext->WaterAlt
         && Map[Get_Coord()].Land_Type() == LAND_WATER
         && !IsOnBridge
-        && Get_Height() < CELL_HEIGHT(1))
+        && Height < LEVEL_LEPTON_H)
     {
         voxel = &typeext->WaterVoxel;
         cache = &typeext->WaterVoxelIndex;
@@ -559,7 +559,7 @@ DECLARE_PATCH(_UnitClass_Draw_It_Unloading_Harvester_Patch)
              */
             unittypeext = Extension::Fetch<UnitTypeClassExtension>(unittype);
             if (unittypeext->UnloadingClass) {
-                if (unittypeext->UnloadingClass->Kind_Of() == RTTI_UNITTYPE) {
+                if (unittypeext->UnloadingClass->Fetch_RTTI() == RTTI_UNITTYPE) {
                     unloading_class = reinterpret_cast<const UnitTypeClass *>(unittypeext->UnloadingClass);
                 }
             }
@@ -843,7 +843,7 @@ function_return:
 DECLARE_PATCH(_UnitClass_Per_Cell_Process_AutoHarvest_Assign_Harvest_Mission_Patch)
 {
     GET_REGISTER_STATIC(UnitClass *, this_ptr, ebp);
-    GET_REGISTER_STATIC(TARGET, target, esi);
+    GET_REGISTER_STATIC(AbstractClass *, target, esi);
     static BuildingClass *building_contact;
     static UnitTypeClass *unittype;
 
@@ -945,7 +945,7 @@ UnitClass* Create_Transform_Unit(UnitClass* this_ptr) {
     newunit->PrimaryFacing.Set_Desired(this_ptr->PrimaryFacing.Desired());
     newunit->SecondaryFacing.Set(this_ptr->SecondaryFacing.Current());
     newunit->SecondaryFacing.Set_Desired(this_ptr->SecondaryFacing.Desired());
-    newunit->Strength = (int)(this_ptr->Health_Ratio() * (int)newunit->Class->MaxStrength);
+    newunit->Strength = (int)(this_ptr->HealthRatio * (int)newunit->Class->MaxStrength);
     newunit->ArmorBias = this_ptr->ArmorBias;
     newunit->FirepowerBias = this_ptr->FirepowerBias;
     newunit->SpeedBias = this_ptr->SpeedBias;
@@ -960,7 +960,7 @@ UnitClass* Create_Transform_Unit(UnitClass* this_ptr) {
          *  Unlimbo successful, select our new unit and return it
          */
 
-        if (PlayerPtr == newunit->Owning_House()) {
+        if (PlayerPtr == newunit->Owner_HouseClass()) {
             newunit->Select();
         }
 

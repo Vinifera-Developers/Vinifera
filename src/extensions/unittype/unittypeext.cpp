@@ -145,9 +145,9 @@ HRESULT UnitTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int UnitTypeClassExtension::Size_Of() const
+int UnitTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("UnitTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("UnitTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -158,7 +158,7 @@ int UnitTypeClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void UnitTypeClassExtension::Detach(TARGET target, bool all)
+void UnitTypeClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("UnitTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -171,9 +171,9 @@ void UnitTypeClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void UnitTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void UnitTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("UnitTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("UnitTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 

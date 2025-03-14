@@ -52,7 +52,7 @@ TiberiumClassExtension::TiberiumClassExtension(const TiberiumClass *this_ptr) :
          *  By default Tiberium 0 gets green pips, and the rest get blue.
          *  Blue Tiberium is also drawn first
          */
-        if (this_ptr->Get_Heap_ID() == 0)
+        if (this_ptr->Fetch_Heap_ID() == 0)
         {
             PipIndex = 1;
             PipDrawOrder = 1;
@@ -155,9 +155,9 @@ HRESULT TiberiumClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int TiberiumClassExtension::Size_Of() const
+int TiberiumClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("TiberiumClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("TiberiumClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -168,7 +168,7 @@ int TiberiumClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void TiberiumClassExtension::Detach(TARGET target, bool all)
+void TiberiumClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("TiberiumClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -179,9 +179,9 @@ void TiberiumClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void TiberiumClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void TiberiumClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("TiberiumClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("TiberiumClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 

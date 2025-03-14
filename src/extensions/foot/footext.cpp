@@ -106,7 +106,7 @@ HRESULT FootClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-void FootClassExtension::Detach(TARGET target, bool all)
+void FootClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("FootClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -119,11 +119,11 @@ void FootClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void FootClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void FootClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("FootClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("FootClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    TechnoClassExtension::Compute_CRC(crc);
+    TechnoClassExtension::Object_CRC(crc);
 }
 
 

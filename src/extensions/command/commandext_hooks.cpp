@@ -139,7 +139,7 @@ DECLARE_PATCH(_GuardCommandClass_Process_Harvesters_Set_Mission_Patch)
          *  this check 'before' Can_Player_Fire() so we can handle any possible
          *  case where harvesters might have a weapon.
          */
-        if (techno->What_Am_I() == RTTI_UNIT) {
+        if (techno->Fetch_RTTI() == RTTI_UNIT) {
 
             /**
              *  Make sure this object is in fact a harvester of some type.

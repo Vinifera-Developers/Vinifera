@@ -134,9 +134,9 @@ HRESULT WaveClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int WaveClassExtension::Size_Of() const
+int WaveClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("WaveClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("WaveClassExtension::Get_Object_Size - 0x%08X\n", (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -147,7 +147,7 @@ int WaveClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void WaveClassExtension::Detach(TARGET target, bool all)
+void WaveClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("WaveClassExtension::Detach - 0x%08X\n", (uintptr_t)(This()));
 
@@ -160,7 +160,7 @@ void WaveClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void WaveClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void WaveClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("WaveClassExtension::Compute_CRC - 0x%08X\n", (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("WaveClassExtension::Object_CRC - 0x%08X\n", (uintptr_t)(This()));
 }

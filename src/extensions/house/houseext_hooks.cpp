@@ -62,7 +62,7 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-static class HouseClassExt final : public HouseClass
+static class HouseClassExt : public HouseClass
 {
 public:
     ProdFailType _Begin_Production(RTTIType type, int id, bool resume);
@@ -173,8 +173,8 @@ ProdFailType HouseClassExt::_Begin_Production(RTTIType type, int id, bool resume
     DEBUG_INFO("fptr->QueuedObjects.Count() == %d\n", fptr->QueuedObjects.Count());
     if (fptr->Get_Object())
     {
-        DEBUG_INFO("Object->RTTI == %d\n", fptr->Object->Kind_Of());
-        DEBUG_INFO("Object->HeapID == %d\n", fptr->Object->Get_Heap_ID());
+        DEBUG_INFO("Object->RTTI == %d\n", fptr->Object->Fetch_RTTI());
+        DEBUG_INFO("Object->HeapID == %d\n", fptr->Object->Fetch_Heap_ID());
     }
     DEBUG_INFO("IsSuspended\t= %d\n", fptr->IsSuspended);
 
@@ -220,7 +220,7 @@ ProdFailType HouseClassExt::_Abandon_Production(RTTIType type, int id)
             return PROD_OK;
 
         ObjectTypeClass* cls = obj->Class_Of();
-        if (id != cls->Get_Heap_ID())
+        if (id != cls->Fetch_Heap_ID())
             return PROD_OK;
     }
 
@@ -360,7 +360,7 @@ int HouseClassExt::_AI_Building()
             for (int i = 0; i < Buildings.Count(); i++) {
 
                 BuildingClass* owned_b = Buildings[i];
-                if (owned_b->Owning_House() == this) {
+                if (owned_b->Owner_HouseClass() == this) {
                     if (owned_b->Class == side_ext->RegularPowerPlant && owned_b->UpgradeLevel < owned_b->Class->Upgrades) {
                         can_build_turbine = true;
                         break;
@@ -381,7 +381,7 @@ int HouseClassExt::_AI_Building()
 
             for (int i = 0; i < Buildings.Count(); i++) {
                 BuildingClass* b2 = Buildings[i];
-                if (b2->Owning_House() == this) {
+                if (b2->Owner_HouseClass() == this) {
                     owned_buildings.Add(b2->Class);
                 }
             }
@@ -767,12 +767,12 @@ int _HouseClass_ShouldDisableCameo_Get_Queued_Count(FactoryClass* factory, Techn
     *  If the object can transform into another object through our special logic,
     *  then check that doing so doesn't allow circumventing build limits
     */
-    if (technotype->What_Am_I() == RTTI_UNITTYPE) {
+    if (technotype->Fetch_RTTI() == RTTI_UNITTYPE) {
         UnitTypeClass* unittype = reinterpret_cast<UnitTypeClass*>(technotype);
         UnitTypeClassExtension* unittypeext = Extension::Fetch<UnitTypeClassExtension>(unittype);
 
         if (unittype->DeploysInto == nullptr && unittypeext->TransformsInto != nullptr) {
-            count += factory->House->UQuantity.Count_Of((UnitType)(unittypeext->TransformsInto->Get_Heap_ID()));
+            count += factory->House->UQuantity.Count_Of((UnitType)(unittypeext->TransformsInto->Fetch_Heap_ID()));
         }
     }
 
@@ -824,14 +824,14 @@ DECLARE_PATCH(_HouseClass_Can_Build_BuildLimit_Handle_Vehicle_Transform)
     /**
      *  Stolen bytes / code.
      */
-    objectcount = house->UQuantity.Count_Of((UnitType)unittype->Get_Heap_ID());
+    objectcount = house->UQuantity.Count_Of((UnitType)unittype->Fetch_Heap_ID());
 
     /**
      *  Check whether this unit can deploy into a building.
      *  If it can, increment the object count by the number of buildings.
      */
     if (unittype->DeploysInto != nullptr) {
-        objectcount += house->BQuantity.Count_Of((BuildingType)unittype->DeploysInto->Get_Heap_ID());
+        objectcount += house->BQuantity.Count_Of((BuildingType)unittype->DeploysInto->Fetch_Heap_ID());
     }
     else if (unittypeext->TransformsInto != nullptr) {
 
@@ -839,7 +839,7 @@ DECLARE_PATCH(_HouseClass_Can_Build_BuildLimit_Handle_Vehicle_Transform)
          *  This unit can transform into another unit, increment the object count
          *  by the number of transformed units.
          */
-        objectcount += house->UQuantity.Count_Of((UnitType)(unittypeext->TransformsInto->Get_Heap_ID()));
+        objectcount += house->UQuantity.Count_Of((UnitType)(unittypeext->TransformsInto->Fetch_Heap_ID()));
     }
 
     _asm { mov esi, objectcount }

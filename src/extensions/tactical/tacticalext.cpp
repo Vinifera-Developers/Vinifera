@@ -142,9 +142,9 @@ HRESULT TacticalExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int TacticalExtension::Size_Of() const
+int TacticalExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("TacticalExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("TacticalExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -155,7 +155,7 @@ int TacticalExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void TacticalExtension::Detach(TARGET target, bool all)
+void TacticalExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("TacticalExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -166,9 +166,9 @@ void TacticalExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void TacticalExtension::Compute_CRC(WWCRCEngine &crc) const
+void TacticalExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("TacticalExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("TacticalExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -289,7 +289,7 @@ bool TacticalExtension::Debug_Draw_Facings()
     }
 
     ObjectClass *object = CurrentObjects.Fetch_Head();
-    if (object->What_Am_I() != RTTI_UNIT) {
+    if (object->Fetch_RTTI() != RTTI_UNIT) {
         return false;
     }
 

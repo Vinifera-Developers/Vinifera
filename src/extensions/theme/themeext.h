@@ -50,9 +50,9 @@ class ThemeControlExtension final : public GlobalExtensionClass<ThemeClass::Them
          *  ThemeControl extension does not require these to be used, but we
          *  implement them for completeness.
          */
-        virtual int Size_Of() const override;
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+        virtual int Get_Object_Size() const override;
+        virtual void Detach(AbstractClass * target, bool all = true) override;
+        virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual const char *Name() const override { return "ThemeControl"; }
         virtual const char *Full_Name() const override { return "ThemeControl"; }

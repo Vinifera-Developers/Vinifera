@@ -134,9 +134,9 @@ HRESULT InfantryClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int InfantryClassExtension::Size_Of() const
+int InfantryClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("InfantryClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("InfantryClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -147,7 +147,7 @@ int InfantryClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void InfantryClassExtension::Detach(TARGET target, bool all)
+void InfantryClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("InfantryClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -160,7 +160,7 @@ void InfantryClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void InfantryClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void InfantryClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("InfantryClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("InfantryClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }

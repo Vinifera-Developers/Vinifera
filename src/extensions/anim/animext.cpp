@@ -138,9 +138,9 @@ HRESULT AnimClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int AnimClassExtension::Size_Of() const
+int AnimClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("AnimClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("AnimClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -151,7 +151,7 @@ int AnimClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void AnimClassExtension::Detach(TARGET target, bool all)
+void AnimClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("AnimClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -164,9 +164,9 @@ void AnimClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void AnimClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void AnimClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("AnimClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("AnimClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 

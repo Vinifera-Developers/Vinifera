@@ -52,7 +52,7 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-class TActionClassExt final : public TActionClass
+class TActionClassExt : public TActionClass
 {
     public:
         bool _Play_Sound_At_Random_Waypoint(HouseClass *house, ObjectClass *object, TriggerClass *trigger, Cell &cell);

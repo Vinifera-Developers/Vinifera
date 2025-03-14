@@ -144,9 +144,9 @@ HRESULT ScenarioClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int ScenarioClassExtension::Size_Of() const
+int ScenarioClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("ScenarioClassExtension::Get_Object_Size - 0x%08X\n", (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -157,7 +157,7 @@ int ScenarioClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void ScenarioClassExtension::Detach(TARGET target, bool all)
+void ScenarioClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Detach - 0x%08X\n", (uintptr_t)(This()));
 }
@@ -168,9 +168,9 @@ void ScenarioClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void ScenarioClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void ScenarioClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Compute_CRC - 0x%08X\n", (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("ScenarioClassExtension::Object_CRC - 0x%08X\n", (uintptr_t)(This()));
 
     crc(IsIceDestruction);
 }
@@ -980,10 +980,10 @@ static int Scan_Place_Object(ObjectClass *obj, Cell cell, int min_dist = 1, int 
      */
     if (Map.In_Radar(cell)) {
         techno = Map[cell].Cell_Techno();
-        if (!techno || (techno->What_Am_I() == RTTI_INFANTRY &&
-            obj->What_Am_I() == RTTI_INFANTRY)) {
+        if (!techno || (techno->Fetch_RTTI() == RTTI_INFANTRY &&
+            obj->Fetch_RTTI() == RTTI_INFANTRY)) {
             Coordinate coord = Cell_Coord(newcell, true);
-            coord.Z = Map.Get_Cell_Height(coord);
+            coord.Z = Map.Get_Height_GL(coord);
             if (obj->Unlimbo(coord, DIR_N)) {
                 return true;
             }
@@ -1045,10 +1045,10 @@ static int Scan_Place_Object(ObjectClass *obj, Cell cell, int min_dist = 1, int 
                      *  - the techno in the cell & the object are both infantry
                      */
                     techno = Map[newcell].Cell_Techno();
-                    if (!techno || (techno->What_Am_I() == RTTI_INFANTRY &&
-                        obj->What_Am_I() == RTTI_INFANTRY)) {
+                    if (!techno || (techno->Fetch_RTTI() == RTTI_INFANTRY &&
+                        obj->Fetch_RTTI() == RTTI_INFANTRY)) {
                         Coordinate coord = Cell_Coord(newcell, true);
-                        coord.Z = Map.Get_Cell_Height(coord);
+                        coord.Z = Map.Get_Height_GL(coord);
                         if (obj->Unlimbo(coord, DIR_N)) {
                             return true;
                         }
@@ -1093,7 +1093,7 @@ static bool Is_Adjacent_Cell_Empty(Cell cell, FacingType facing, int dist)
     /**
      *  Is there any free infantry spots?
      */
-    if (techno->What_Am_I() == RTTI_INFANTRY
+    if (techno->Fetch_RTTI() == RTTI_INFANTRY
         && Map[newcell].Is_Any_Spot_Free()) {
 
         return true;
@@ -1142,7 +1142,7 @@ static bool Place_Object(ObjectClass *obj, Cell cell, FacingType facing, int dis
         techno = Map[newcell].Cell_Techno();
         if (!techno) {
             Coordinate coord = Cell_Coord(newcell, true);
-            coord.Z = Map.Get_Cell_Height(coord);
+            coord.Z = Map.Get_Height_GL(coord);
             if (obj->Unlimbo(coord, DIR_N)) {
                 return true;
             }

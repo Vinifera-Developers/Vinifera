@@ -81,7 +81,7 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-class SidebarClassExt final : public SidebarClass
+class SidebarClassExt : public SidebarClass
 {
 public:
     void _One_Time();
@@ -111,7 +111,7 @@ public:
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-static class StripClassExt final : public SidebarClass::StripClass
+static class StripClassExt : public SidebarClass::StripClass
 {
 public:
     void _One_Time(int id);
@@ -678,7 +678,7 @@ void SidebarClassExt::_Draw_It(bool complete)
         if (complete || SidebarExtension->Current_Tab().IsToRedraw)
         {
             Point2D xy(0, SidebarRect.Y);
-            CC_Draw_Shape(SidebarSurface, SidebarDrawer, SidebarShape, 0, &xy, &rect, SHAPE_WIN_REL, 0, 0, ZGRAD_GROUND, 1000, nullptr, 0, 0, 0);
+            Draw_Shape(SidebarSurface, SidebarDrawer, SidebarShape, 0, &xy, &rect, SHAPE_WIN_REL, 0, 0, ZGRAD_GROUND, 1000, nullptr, 0, 0, 0);
 
             int max_visible = SidebarClassExtension::Max_Visible(true);
             int y = SidebarRect.Y + SidebarShape->Get_Height();
@@ -686,14 +686,14 @@ void SidebarClassExt::_Draw_It(bool complete)
             for (int i = 0; i < max_visible; i++, y += SidebarMiddleShape->Get_Height())
             {
                 xy = Point2D(0, y);
-                CC_Draw_Shape(SidebarSurface, SidebarDrawer, SidebarMiddleShape, 0, &xy, &rect, SHAPE_WIN_REL, 0, 0, ZGRAD_GROUND, 1000, nullptr, 0, 0, 0);
+                Draw_Shape(SidebarSurface, SidebarDrawer, SidebarMiddleShape, 0, &xy, &rect, SHAPE_WIN_REL, 0, 0, ZGRAD_GROUND, 1000, nullptr, 0, 0, 0);
             }
 
             xy = Point2D(0, y);
-            CC_Draw_Shape(SidebarSurface, SidebarDrawer, SidebarBottomShape, 0, &xy, &rect, SHAPE_WIN_REL, 0, 0, ZGRAD_GROUND, 1000, nullptr, 0, 0, 0);
+            Draw_Shape(SidebarSurface, SidebarDrawer, SidebarBottomShape, 0, &xy, &rect, SHAPE_WIN_REL, 0, 0, ZGRAD_GROUND, 1000, nullptr, 0, 0, 0);
 
             xy = Point2D(0, y + SidebarBottomShape->Get_Height());
-            CC_Draw_Shape(SidebarSurface, SidebarDrawer, SidebarAddonShape, 0, &xy, &rect, SHAPE_WIN_REL, 0, 0, ZGRAD_GROUND, 1000, nullptr, 0, 0, 0);
+            Draw_Shape(SidebarSurface, SidebarDrawer, SidebarAddonShape, 0, &xy, &rect, SHAPE_WIN_REL, 0, 0, ZGRAD_GROUND, 1000, nullptr, 0, 0, 0);
 
             SidebarExtension->Current_Tab().IsToRedraw = true;
         }
@@ -1325,11 +1325,11 @@ bool StripClassExt::_AI(KeyNumType& input, Point2D&)
                     TechnoClass* pending = factory->Get_Object();
                     if (pending != nullptr)
                     {
-                        switch (pending->Kind_Of())
+                        switch (pending->Fetch_RTTI())
                         {
                         case RTTI_UNIT:
                         case RTTI_AIRCRAFT:
-                            OutList.Add(EventClass(pending->Owner(), EVENT_PLACE, pending->Kind_Of(), &INVALID_CELL));
+                            OutList.Add(EventClass(pending->Owner(), EVENT_PLACE, pending->Fetch_RTTI(), &INVALID_CELL));
                             Speak(VOX_UNIT_READY);
                             break;
 
@@ -1339,7 +1339,7 @@ bool StripClassExt::_AI(KeyNumType& input, Point2D&)
                             break;
 
                         case RTTI_INFANTRY:
-                            OutList.Add(EventClass(pending->Owner(), EVENT_PLACE, pending->Kind_Of(), &INVALID_CELL));
+                            OutList.Add(EventClass(pending->Owner(), EVENT_PLACE, pending->Fetch_RTTI(), &INVALID_CELL));
                             Speak(VOX_UNIT_READY);
                             break;
 
@@ -1609,7 +1609,7 @@ void StripClassExt::_Draw_It(bool complete)
                          *  If there is already a factory producing a building, then all
                          *  buildings are displayed in a disabled state.
                          */
-                        if (obj->Kind_Of() == RTTI_BUILDINGTYPE)
+                        if (obj->Fetch_RTTI() == RTTI_BUILDINGTYPE)
                         {
                             darken = PlayerPtr->Fetch_Factory(Buildables[index].BuildableType) != nullptr;
                         }
@@ -1707,7 +1707,7 @@ void StripClassExt::_Draw_It(bool complete)
                 }
                 else if (shapefile != nullptr)
                 {
-                    CC_Draw_Shape(SidebarSurface, CameoDrawer, shapefile,
+                    Draw_Shape(SidebarSurface, CameoDrawer, shapefile,
                         0, &drawpoint, &rect, SHAPE_WIN_REL, 0, 0, ZGRAD_GROUND, 1000, nullptr, 0, 0, 0);
                 }
 
@@ -1732,7 +1732,7 @@ void StripClassExt::_Draw_It(bool complete)
                  */
                 if (darken)
                 {
-                    CC_Draw_Shape(SidebarSurface, SidebarDrawer, DarkenShape,
+                    Draw_Shape(SidebarSurface, SidebarDrawer, DarkenShape,
                         0, &drawpoint, &rect, SHAPE_WIN_REL | SHAPE_DARKEN, 0, 0, ZGRAD_GROUND, 1000, nullptr, 0, 0, 0);
                 }
             }
@@ -1749,7 +1749,7 @@ void StripClassExt::_Draw_It(bool complete)
             bool hasqueuecount = false;
             if (obj != nullptr)
             {
-                RTTIType rtti = obj->Kind_Of();
+                RTTIType rtti = obj->Fetch_RTTI();
                 FactoryClass* factory = PlayerPtr->Fetch_Factory(rtti);
 
                 if (factory != nullptr)
@@ -1797,7 +1797,7 @@ void StripClassExt::_Draw_It(bool complete)
                         shape = ClockShape;
                     }
 
-                    CC_Draw_Shape(SidebarSurface, SidebarDrawer, shape,
+                    Draw_Shape(SidebarSurface, SidebarDrawer, shape,
                         shapenum, &drawpoint, &rect, SHAPE_WIN_REL | SHAPE_TRANS50, 0, 0, ZGRAD_GROUND, 1000, nullptr, 0, 0, 0);
 
                     /**
@@ -2119,7 +2119,7 @@ DECLARE_PATCH(_SidebarClass_StripClass_Custom_Cameo_Image_Patch)
         pointxy.X = pos_x;
         pointxy.Y = pos_y;
 
-        CC_Draw_Shape(SidebarSurface, CameoDrawer, shapefile, 0, &pointxy, window_rect, SHAPE_WIN_REL | SHAPE_NORMAL);
+        Draw_Shape(SidebarSurface, CameoDrawer, shapefile, 0, &pointxy, window_rect, SHAPE_WIN_REL | SHAPE_NORMAL);
     }
 
     _SidebarClass_StripClass_CustomImage = nullptr;

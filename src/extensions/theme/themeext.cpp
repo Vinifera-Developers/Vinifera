@@ -111,9 +111,9 @@ HRESULT ThemeControlExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int ThemeControlExtension::Size_Of() const
+int ThemeControlExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("ThemeControlExtension::Size_Of - 0x%08X\n", (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("ThemeControlExtension::Get_Object_Size - 0x%08X\n", (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -124,7 +124,7 @@ int ThemeControlExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void ThemeControlExtension::Detach(TARGET target, bool all)
+void ThemeControlExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("ThemeControlExtension::Detach - 0x%08X\n", (uintptr_t)(This()));
 }
@@ -135,9 +135,9 @@ void ThemeControlExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void ThemeControlExtension::Compute_CRC(WWCRCEngine &crc) const
+void ThemeControlExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("ThemeControlExtension::Compute_CRC - 0x%08X\n", (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("ThemeControlExtension::Object_CRC - 0x%08X\n", (uintptr_t)(This()));
 }
 
 

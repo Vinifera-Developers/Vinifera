@@ -144,7 +144,7 @@ DECLARE_PATCH(_JumpjetLocomotionClass_State4_AircraftTrackerPatch)
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-static class FlyLocomotionClassExt final : public FlyLocomotionClass
+static class FlyLocomotionClassExt : public FlyLocomotionClass
 {
 public:
     void _Take_Off();
@@ -163,7 +163,7 @@ void FlyLocomotionClassExt::_Take_Off()
             AircraftTracker->Track(LinkedTo);
         }
 
-        if (LinkedTo->Get_Height() == 0) {
+        if (LinkedTo->Height == 0) {
             LinkedTo->PrimaryFacing.Set(LinkedTo->SecondaryFacing.Desired());
         }
 
@@ -202,7 +202,7 @@ DECLARE_PATCH(_FlyLocomotionClass_Movement_AI_AircraftTracker_Patch2)
     AircraftTracker->Untrack(linked_to);
 
     // Stolen instruction
-    linked_to->Set_Height(0);
+    linked_to->Height = 0;
 
     JMP(0x0049A087);
 }

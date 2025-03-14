@@ -55,7 +55,7 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-static class BulletClassExt final : public BulletClass
+static class BulletClassExt : public BulletClass
 {
 public:
     bool _Is_Forced_To_Explode(Coordinate& coord);
@@ -129,7 +129,7 @@ bool BulletClassExt::_Is_Forced_To_Explode(Coordinate& coord)
     **  Bullets are generally more effective when they are fired at aircraft or flying jumpjets.
     */
     if (Class->IsAntiAircraft && Target_Legal(TarCom) &&
-        (TarCom->What_Am_I() == RTTI_AIRCRAFT || (TarCom->What_Am_I() == RTTI_INFANTRY && reinterpret_cast<InfantryClass*>(TarCom)->Is_Flying_JumpJet())) &&
+        (TarCom->Fetch_RTTI() == RTTI_AIRCRAFT || (TarCom->Fetch_RTTI() == RTTI_INFANTRY && reinterpret_cast<InfantryClass*>(TarCom)->Is_Flying_JumpJet())) &&
         Distance(TarCom) < 0x0080)
     {
         return true;

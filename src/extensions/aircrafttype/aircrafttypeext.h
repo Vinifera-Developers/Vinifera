@@ -51,13 +51,13 @@ AircraftTypeClassExtension final : public TechnoTypeClassExtension
         AircraftTypeClassExtension(const NoInitClass &noinit);
         virtual ~AircraftTypeClassExtension();
 
-        virtual int Size_Of() const override;
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+        virtual int Get_Object_Size() const override;
+        virtual void Detach(AbstractClass * target, bool all = true) override;
+        virtual void Object_CRC(CRCEngine &crc) const override;
         
         virtual AircraftTypeClass *This() const override { return reinterpret_cast<AircraftTypeClass *>(TechnoTypeClassExtension::This()); }
         virtual const AircraftTypeClass *This_Const() const override { return reinterpret_cast<const AircraftTypeClass *>(TechnoTypeClassExtension::This_Const()); }
-        virtual RTTIType What_Am_I() const override { return RTTI_AIRCRAFTTYPE; }
+        virtual RTTIType Fetch_RTTI() const override { return RTTI_AIRCRAFTTYPE; }
 
         virtual bool Read_INI(CCINIClass &ini) override;
 

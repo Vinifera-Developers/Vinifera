@@ -68,14 +68,14 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-class FootClassExt final : public FootClass
+class FootClassExt : public FootClass
 {
 public:
     void _Draw_Action_Line() const;
     void _Draw_NavComQueue_Lines() const;
     void _Death_Announcement(TechnoClass* source) const;
     Cell _Search_For_Tiberium(int rad, bool a2);
-    bool _Unlimbo(Coordinate& coord, DirType dir);
+    bool _Unlimbo(Coordinate& coord, Dir256 dir);
     bool _Limbo();
 
 private:
@@ -263,8 +263,8 @@ void FootClassExt::_Draw_NavComQueue_Lines() const
     /**
      *  Fetch the queue line start and end coord.
      */
-    TARGET start = NavCom;
-    TARGET end = NavQueue[0];
+    AbstractClass * start = NavCom;
+    AbstractClass * end = NavQueue[0];
 
     Coordinate start_coord;
     Coordinate end_coord;
@@ -274,13 +274,13 @@ void FootClassExt::_Draw_NavComQueue_Lines() const
         start_coord = start->Center_Coord();
 
         if (Map.In_Radar(Coord_Cell(start_coord)) && Map[start_coord].IsUnderBridge) {
-            start_coord.Z = BRIDGE_LEPTON_HEIGHT + Map.Get_Cell_Height(start_coord);
+            start_coord.Z = BRIDGE_LEPTON_HEIGHT + Map.Get_Height_GL(start_coord);
         }
 
         end_coord = end->Center_Coord();
 
         if (Map.In_Radar(Coord_Cell(end_coord)) && Map[end_coord].IsUnderBridge) {
-            end_coord.Z = BRIDGE_LEPTON_HEIGHT + Map.Get_Cell_Height(end_coord);
+            end_coord.Z = BRIDGE_LEPTON_HEIGHT + Map.Get_Height_GL(end_coord);
         }
 
         _Draw_Line(start_coord, end_coord, is_dashed, is_thick, is_dropshadow, line_color, drop_color, 128);
@@ -356,12 +356,12 @@ void FootClassExt::_Draw_Action_Line() const
 
         start_coord = Get_Coord();
 
-        TARGET navtarget = field_260.Count() ? field_260.Fetch_Tail() : NavCom;
+        AbstractClass * navtarget = field_260.Count() ? field_260.Fetch_Tail() : NavCom;
         end_coord = navtarget->Center_Coord();
         Cell target_cell = Coord_Cell(end_coord);
 
         if (Map.In_Radar(target_cell) && Map[end_coord].IsUnderBridge) {
-            end_coord.Z = BRIDGE_LEPTON_HEIGHT + Map.Get_Cell_Height(end_coord);
+            end_coord.Z = BRIDGE_LEPTON_HEIGHT + Map.Get_Height_GL(end_coord);
         }
 
         _Draw_Line(start_coord, end_coord, navcom_is_dashed, navcom_is_thick, navcom_is_dropshadow, navcom_color, navcom_drop_color, 128);
@@ -422,8 +422,8 @@ void _Vinifera_FootClass_Search_For_Tiberium_Check_Tiberium_Value_Of_Cell(FootCl
  */
 Cell FootClassExt::_Search_For_Tiberium(int rad, bool a2)
 {
-    if (!Owning_House()->Is_Human_Control() &&
-        What_Am_I() == RTTI_UNIT &&
+    if (!Owner_HouseClass()->Is_Human_Control() &&
+        Fetch_RTTI() == RTTI_UNIT &&
         ((UnitClass*)this)->Class->IsToHarvest &&
         a2 &&
         Session.Type != GAME_NORMAL)
@@ -452,7 +452,7 @@ Cell FootClassExt::_Search_For_Tiberium(int rad, bool a2)
     Cell besttiberiumcell = Cell(0, 0);
 
     UnitClassExtension* unitext = nullptr;
-    if (What_Am_I() == RTTI_UNIT) {
+    if (Fetch_RTTI() == RTTI_UNIT) {
         unitext = Extension::Fetch<UnitClassExtension>(this);
     }
 
@@ -693,7 +693,7 @@ void FootClassExt::_Death_Announcement(TechnoClass* source) const
  *
  *  @author: ZivDero
  */
-bool FootClassExt::_Unlimbo(Coordinate& coord, DirType dir)
+bool FootClassExt::_Unlimbo(Coordinate& coord, Dir256 dir)
 {
     /**
      *  Try to unlimbo the unit.

@@ -50,7 +50,7 @@ DECLARE_PATCH(_Get_Tiberium_Type_Debug_Info_Patch)
 {
     GET_REGISTER_STATIC(OverlayTypeClass*, overlaytype, eax);
 
-    DEBUG_FATAL("Overlay %s [%d] is not really Tiberium!\nAll overlays with Tiberium=yes must be used by a Tiberium!\n", overlaytype->Full_Name(), overlaytype->Get_Heap_ID());
+    DEBUG_FATAL("Overlay %s [%d] is not really Tiberium!\nAll overlays with Tiberium=yes must be used by a Tiberium!\n", overlaytype->Full_Name(), overlaytype->Fetch_Heap_ID());
 
     JMP(0x0058C951);
 }

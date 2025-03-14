@@ -55,7 +55,7 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-static class ObjectTypeClassExt final : public ObjectTypeClass
+static class ObjectTypeClassExt : public ObjectTypeClass
 {
     public:
         void _Assign_Theater_Name(char *buffer, TheaterType theater);
@@ -93,7 +93,7 @@ void ObjectTypeClassExt::_Assign_Theater_Name(char *fname, TheaterType theater)
      *  the Red Alert filename format. Unfortunately, the only way we can resolve this is
      *  to hard code checks for this filename prefixes and skip any remap attempt.
      */
-    if (What_Am_I() == RTTI_BUILDINGTYPE && (!std::strncmp(fname, "CITY", 4) || !std::strncmp(fname, "ABAN", 4) || !std::strncmp(fname, "BBOARD", 5))) {
+    if (Fetch_RTTI() == RTTI_BUILDINGTYPE && (!std::strncmp(fname, "CITY", 4) || !std::strncmp(fname, "ABAN", 4) || !std::strncmp(fname, "BBOARD", 5))) {
         DEV_DEBUG_WARNING("Skipping new theater filename remap of %s!\n", fname);
         return;
     }
@@ -102,7 +102,7 @@ void ObjectTypeClassExt::_Assign_Theater_Name(char *fname, TheaterType theater)
      *  Same as above, but for the deployed mobile war factory, cabal obelisk, and their
      *  respective animations.
      */
-    if (What_Am_I() == RTTI_BUILDINGTYPE && (std::strstr(fname, "MWAR") || std::strstr(fname, "OBL1"))) {
+    if (Fetch_RTTI() == RTTI_BUILDINGTYPE && (std::strstr(fname, "MWAR") || std::strstr(fname, "OBL1"))) {
         DEV_DEBUG_WARNING("Skipping new theater filename remap of %s!\n", fname);
         return;
     }
@@ -188,7 +188,7 @@ void ObjectTypeClassExt::_Fetch_Voxel_Image()
         }
     }
 
-    if (What_Am_I() != RTTI_UNITTYPE || reinterpret_cast<UnitTypeClass*>(this)->IsTurretEquipped)
+    if (Fetch_RTTI() != RTTI_UNITTYPE || reinterpret_cast<UnitTypeClass*>(this)->IsTurretEquipped)
     {
         std::snprintf(buffer, sizeof(buffer), "%sTUR", Graphic_Name());
         AuxVoxel.Load(AuxVoxelIndex, buffer);

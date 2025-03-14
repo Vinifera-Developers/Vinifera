@@ -43,9 +43,9 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
         ScenarioClassExtension(const NoInitClass &noinit);
         virtual ~ScenarioClassExtension();
 
-        virtual int Size_Of() const override;
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+        virtual int Get_Object_Size() const override;
+        virtual void Detach(AbstractClass * target, bool all = true) override;
+        virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual const char *Name() const override { return "Scenario"; }
         virtual const char *Full_Name() const override { return "Scenario"; }

@@ -45,9 +45,9 @@
 
 UnitClass* Create_Visceroid(ObjectClass* destroyedobject)
 {
-	if (destroyedobject->What_Am_I() == RTTI_INFANTRY ||
-		(destroyedobject->What_Am_I() == RTTI_UNIT && reinterpret_cast<UnitClass*>(destroyedobject)->Class->IsCrew) ||
-		(destroyedobject->What_Am_I() == RTTI_BUILDING && reinterpret_cast<BuildingClass*>(destroyedobject)->Class->IsCrew))
+	if (destroyedobject->Fetch_RTTI() == RTTI_INFANTRY ||
+		(destroyedobject->Fetch_RTTI() == RTTI_UNIT && reinterpret_cast<UnitClass*>(destroyedobject)->Class->IsCrew) ||
+		(destroyedobject->Fetch_RTTI() == RTTI_BUILDING && reinterpret_cast<BuildingClass*>(destroyedobject)->Class->IsCrew))
 	{
 		return new UnitClass(Rule->SmallVisceroid, HouseClass::As_Pointer(HouseTypeClass::From_Name("Neutral")));
 	}

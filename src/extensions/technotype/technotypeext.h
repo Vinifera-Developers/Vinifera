@@ -52,8 +52,8 @@ class TechnoTypeClassExtension : public ObjectTypeClassExtension
         TechnoTypeClassExtension(const NoInitClass &noinit);
         virtual ~TechnoTypeClassExtension();
 
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+        virtual void Detach(AbstractClass * target, bool all = true) override;
+        virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual TechnoTypeClass *This() const override { return reinterpret_cast<TechnoTypeClass *>(ObjectTypeClassExtension::This()); }
         virtual const TechnoTypeClass *This_Const() const override { return reinterpret_cast<const TechnoTypeClass *>(ObjectTypeClassExtension::This_Const()); }

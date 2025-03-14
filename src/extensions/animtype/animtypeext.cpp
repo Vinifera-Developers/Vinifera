@@ -227,9 +227,9 @@ HRESULT AnimTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int AnimTypeClassExtension::Size_Of() const
+int AnimTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -240,7 +240,7 @@ int AnimTypeClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void AnimTypeClassExtension::Detach(TARGET target, bool all)
+void AnimTypeClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("AnimTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -253,9 +253,9 @@ void AnimTypeClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void AnimTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void AnimTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     crc(AttachLayer);
     crc(NumberOfParticles);

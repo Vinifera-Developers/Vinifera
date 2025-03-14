@@ -149,9 +149,9 @@ HRESULT WeaponTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int WeaponTypeClassExtension::Size_Of() const
+int WeaponTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -162,7 +162,7 @@ int WeaponTypeClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void WeaponTypeClassExtension::Detach(TARGET target, bool all)
+void WeaponTypeClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -173,9 +173,9 @@ void WeaponTypeClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void WeaponTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void WeaponTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     crc(IsElectricBolt);
     crc(IsSpawner);

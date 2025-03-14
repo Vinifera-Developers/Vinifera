@@ -50,7 +50,7 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-static class CCINIClassExt final : public CCINIClass
+static class CCINIClassExt : public CCINIClass
 {
     public:
         TypeList<AnimTypeClass *> Get_AnimTypes(const char *section, const char *entry, const TypeList<AnimTypeClass *> defvalue);

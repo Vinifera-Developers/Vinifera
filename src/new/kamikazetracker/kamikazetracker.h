@@ -51,7 +51,7 @@ public:
     HRESULT STDMETHODCALLTYPE Load(IStream* pStm);
     HRESULT STDMETHODCALLTYPE Save(IStream* pStm, BOOL fClearDirty);
 
-    void Add(AircraftClass* aircraft, TARGET target);
+    void Add(AircraftClass* aircraft, AbstractClass * target);
     void AI();
     void Detach(AircraftClass const* aircraft);
     void Clear();

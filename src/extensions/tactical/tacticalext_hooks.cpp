@@ -259,7 +259,7 @@ static bool Should_Exclude_From_Selection(ObjectClass* obj)
     /**
      *  Don't exclude objects that we don't own.
      */
-    if (obj->Owning_House() != nullptr && !obj->Owning_House()->IsPlayerControl) {
+    if (obj->Owner_HouseClass() != nullptr && !obj->Owner_HouseClass()->IsPlayerControl) {
         return false;
     }
 
@@ -344,7 +344,7 @@ void TacticalExt::_Select_These(Rect& rect, void (*selection_func)(ObjectClass* 
     {
         for (int i = 0; i < DirtyObjectCount; i++)
         {
-            const auto dirty = DirtyObjects[i];
+            const auto dirty = SelectableObjects[i];
             if (dirty.Object && dirty.Object->IsActive)
             {
                 Point2D position = dirty.Position - field_5C;
@@ -357,7 +357,7 @@ void TacticalExt::_Select_These(Rect& rect, void (*selection_func)(ObjectClass* 
                     else
                     {
                         bool is_selectable_building = false;
-                        if (dirty.Object->What_Am_I() == RTTI_BUILDING)
+                        if (dirty.Object->Fetch_RTTI() == RTTI_BUILDING)
                         {
                             const auto bclass = static_cast<BuildingClass*>(dirty.Object)->Class;
                             if (bclass->UndeploysInto && !bclass->IsConstructionYard && !bclass->IsMobileWar)
@@ -366,12 +366,12 @@ void TacticalExt::_Select_These(Rect& rect, void (*selection_func)(ObjectClass* 
                             }
                         }
 
-                        HouseClass* owner = dirty.Object->Owning_House();
+                        HouseClass* owner = dirty.Object->Owner_HouseClass();
                         if (owner && owner->Is_Player_Control())
                         {
                             if (dirty.Object->Class_Of()->IsSelectable)
                             {
-                                if (dirty.Object->What_Am_I() != RTTI_BUILDING || is_selectable_building)
+                                if (dirty.Object->Fetch_RTTI() != RTTI_BUILDING || is_selectable_building)
                                 {
                                     if (dirty.Object->Select())
                                         AllowVoice = false;
@@ -402,7 +402,7 @@ void TacticalExt::_Select_These(Rect& rect, void (*selection_func)(ObjectClass* 
  */
 static void Vinifera_Bandbox_Select(ObjectClass* obj)
 {
-    HouseClass* house = obj->Owning_House();
+    HouseClass* house = obj->Owner_HouseClass();
     BuildingClass* building = Target_As_Building(obj);
 
     /**
@@ -490,7 +490,7 @@ void TacticalExt::_Draw_Rally_Points(bool blit)
     for (int i = 0; i < CurrentObjects.Count(); i++)
     {
         const ObjectClass* obj = CurrentObjects[i];
-        if (obj->Kind_Of() == RTTI_BUILDING && obj->IsActive && obj->IsSelected && obj->Owning_House() == PlayerPtr)
+        if (obj->Fetch_RTTI() == RTTI_BUILDING && obj->IsActive && obj->IsSelected && obj->Owner_HouseClass() == PlayerPtr)
         {
             const BuildingClass* bldg = static_cast<const BuildingClass*>(obj);
             /**
@@ -515,7 +515,7 @@ void TacticalExt::_Draw_Rally_Points(bool blit)
                      */
                     Coordinate rally_coord = bldg->ArchiveTarget->Center_Coord();
 
-                    rally_coord.Z = Map.Get_Cell_Height(rally_coord);
+                    rally_coord.Z = Map.Get_Height_GL(rally_coord);
                     if (Map[rally_coord].IsUnderBridge)
                         rally_coord.Z += BRIDGE_LEPTON_HEIGHT;
 

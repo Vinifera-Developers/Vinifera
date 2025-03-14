@@ -51,13 +51,13 @@ WeaponTypeClassExtension final : public AbstractTypeClassExtension
         WeaponTypeClassExtension(const NoInitClass &noinit);
         virtual ~WeaponTypeClassExtension();
 
-        virtual int Size_Of() const override;
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+        virtual int Get_Object_Size() const override;
+        virtual void Detach(AbstractClass * target, bool all = true) override;
+        virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual WeaponTypeClass *This() const override { return reinterpret_cast<WeaponTypeClass *>(AbstractTypeClassExtension::This()); }
         virtual const WeaponTypeClass *This_Const() const override { return reinterpret_cast<const WeaponTypeClass *>(AbstractTypeClassExtension::This_Const()); }
-        virtual RTTIType What_Am_I() const override { return RTTI_WEAPONTYPE; }
+        virtual RTTIType Fetch_RTTI() const override { return RTTI_WEAPONTYPE; }
 
         virtual bool Read_INI(CCINIClass &ini) override;
 

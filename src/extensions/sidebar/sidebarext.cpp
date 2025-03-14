@@ -155,9 +155,9 @@ HRESULT SidebarClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: ZivDero
  */
-int SidebarClassExtension::Size_Of() const
+int SidebarClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("SidebarClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("SidebarClassExtension::Get_Object_Size - 0x%08X\n", (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -168,7 +168,7 @@ int SidebarClassExtension::Size_Of() const
  *  
  *  @author: ZivDero
  */
-void SidebarClassExtension::Detach(TARGET target, bool all)
+void SidebarClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("SidebarClassExtension::Detach - 0x%08X\n", (uintptr_t)(This()));
 }
@@ -179,9 +179,9 @@ void SidebarClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: ZivDero
  */
-void SidebarClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void SidebarClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("SidebarClassExtension::Compute_CRC - 0x%08X\n", (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("SidebarClassExtension::Object_CRC - 0x%08X\n", (uintptr_t)(This()));
 }
 
 
@@ -574,7 +574,7 @@ bool SidebarClassExtension::TabButtonClass::Draw_Me(bool forced)
         shapenum = FRAME_NORMAL;
     }
 
-    CC_Draw_Shape(SidebarSurface, ShapeDrawer, ShapeData, shapenum, &Point2D(X + DrawX, Y + DrawY), &ScreenRect, SHAPE_NORMAL, 0, 0, ZGRAD_GROUND, 1000, nullptr, 0, 0);
+    Draw_Shape(SidebarSurface, ShapeDrawer, ShapeData, shapenum, &Point2D(X + DrawX, Y + DrawY), &ScreenRect, SHAPE_NORMAL, 0, 0, ZGRAD_GROUND, 1000, nullptr, 0, 0);
 
     if (MousedOver && !Scen->UserInputLocked && !IsDisabled && !IsSelected)
     {
@@ -768,7 +768,7 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
                     }
                     else
                     {
-                        OutList.Add(EventClass(PlayerPtr->Get_Heap_ID(), EVENT_SPECIAL_PLACE, PlayerPtr->SuperWeapon[spc]->Class->Type, &INVALID_CELL));
+                        OutList.Add(EventClass(PlayerPtr->Fetch_Heap_ID(), EVENT_SPECIAL_PLACE, PlayerPtr->SuperWeapon[spc]->Class->Type, &INVALID_CELL));
                     }
                 }
                 else
@@ -828,12 +828,12 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
                             count_to_abandon = std::clamp(5, 0, factory->Total_Queued(*choice));
 
                         for (int i = 0; i < count_to_abandon; i++)
-                            OutList.Add(EventClass(PlayerPtr->Get_Heap_ID(), EVENT_ABANDON, otype, oid));
+                            OutList.Add(EventClass(PlayerPtr->Fetch_Heap_ID(), EVENT_ABANDON, otype, oid));
                     }
                     else
                     {
                         Speak(VOX_SUSPENDED);
-                        OutList.Add(EventClass(PlayerPtr->Get_Heap_ID(), EVENT_SUSPEND, otype, oid));
+                        OutList.Add(EventClass(PlayerPtr->Fetch_Heap_ID(), EVENT_SUSPEND, otype, oid));
                         SidebarExtension->Get_Tab(otype).Flag_To_Redraw();
                         
                     }
@@ -851,7 +851,7 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
                             count_to_abandon = std::clamp(5, 0, factory->Total_Queued(*choice));
 
                         for (int i = 0; i < count_to_abandon; i++)
-                            OutList.Add(EventClass(PlayerPtr->Get_Heap_ID(), EVENT_ABANDON, otype, oid));
+                            OutList.Add(EventClass(PlayerPtr->Fetch_Heap_ID(), EVENT_ABANDON, otype, oid));
                     }
                 }
             }
@@ -881,7 +881,7 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
                             BuildingClass* builder = pending->Who_Can_Build_Me(false, false);
                             if (!builder)
                             {
-                                OutList.Add(EventClass(PlayerPtr->Get_Heap_ID(), EVENT_ABANDON, otype, oid));
+                                OutList.Add(EventClass(PlayerPtr->Fetch_Heap_ID(), EVENT_ABANDON, otype, oid));
                                 Speak(VOX_NO_FACTORY);
                             }
                             else
@@ -892,7 +892,7 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
                                 **	not transmitted to any linked computers until the moment
                                 **	the building is actually placed down.
                                 */
-                                if (pending->What_Am_I() == RTTI_BUILDING)
+                                if (pending->Fetch_RTTI() == RTTI_BUILDING)
                                 {
                                     PlayerPtr->Manual_Place(builder, (BuildingClass*)pending);
                                 }
@@ -922,7 +922,7 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
                         {
                             Speak(VOX_BUILDING);
                         }
-                        OutList.Add(EventClass(PlayerPtr->Get_Heap_ID(), EVENT_PRODUCE, Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID));
+                        OutList.Add(EventClass(PlayerPtr->Fetch_Heap_ID(), EVENT_PRODUCE, Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID));
                     }
                 }
                 else
@@ -953,7 +953,7 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
                         }
                         const int count_to_produce = (GetAsyncKeyState(VK_SHIFT) & 0x8000) ? 5 : 1;
                         for (int i = 0; i < count_to_produce; i++)
-                            OutList.Add(EventClass(PlayerPtr->Get_Heap_ID(), EVENT_PRODUCE, Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID));
+                            OutList.Add(EventClass(PlayerPtr->Fetch_Heap_ID(), EVENT_PRODUCE, Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID));
                     }
                 }
             }

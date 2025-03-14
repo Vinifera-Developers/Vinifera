@@ -36,7 +36,7 @@
 
 
 class AbstractClass;
-class WWCRCEngine;
+class CRCEngine;
 
 
 /**
@@ -80,21 +80,21 @@ class AbstractClassExtension : public IPersistStream
          *  
          *  @note: This must be overridden by the extended class!
          */
-        virtual int Size_Of() const = 0;
+        virtual int Get_Object_Size() const = 0;
 
         /**
          *  Removes the specified target from any targeting and reference trackers.
          *  
          *  @note: This must be overridden by the extended class!
          */
-        virtual void Detach(TARGET target, bool all = true) = 0;
+        virtual void Detach(AbstractClass * target, bool all = true) = 0;
 
         /**
          *  Compute a unique crc value for this instance.
          *  
          *  @note: This must be overridden by the extended class!
          */
-        virtual void Compute_CRC(WWCRCEngine &crc) const = 0;
+        virtual void Object_CRC(CRCEngine &crc) const = 0;
 
         /**
          *  Access to the class instance we extend.
@@ -107,7 +107,7 @@ class AbstractClassExtension : public IPersistStream
          *  
          *  @note: This must be overridden by the extended class!
          */
-        virtual RTTIType What_Am_I() const = 0; // { return RTTI_ABSTRACT; }
+        virtual RTTIType Fetch_RTTI() const = 0; // { return RTTI_ABSTRACT; }
 
         /**
          *  Returns the name of this object type.

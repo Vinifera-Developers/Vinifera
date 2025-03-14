@@ -57,13 +57,13 @@ AnimTypeClassExtension final : public ObjectTypeClassExtension
         AnimTypeClassExtension(const NoInitClass &noinit);
         virtual ~AnimTypeClassExtension();
 
-        virtual int Size_Of() const override;
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+        virtual int Get_Object_Size() const override;
+        virtual void Detach(AbstractClass * target, bool all = true) override;
+        virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual AnimTypeClass *This() const override { return reinterpret_cast<AnimTypeClass *>(ObjectTypeClassExtension::This()); }
         virtual const AnimTypeClass *This_Const() const override { return reinterpret_cast<const AnimTypeClass *>(ObjectTypeClassExtension::This_Const()); }
-        virtual RTTIType What_Am_I() const override { return RTTI_ANIMTYPE; }
+        virtual RTTIType Fetch_RTTI() const override { return RTTI_ANIMTYPE; }
 
         virtual bool Read_INI(CCINIClass &ini) override;
 

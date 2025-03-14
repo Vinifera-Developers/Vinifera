@@ -117,9 +117,9 @@ HRESULT OptionsClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int OptionsClassExtension::Size_Of() const
+int OptionsClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("OptionsClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("OptionsClassExtension::Get_Object_Size - 0x%08X\n", (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -130,7 +130,7 @@ int OptionsClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void OptionsClassExtension::Detach(TARGET target, bool all)
+void OptionsClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("OptionsClassExtension::Detach - 0x%08X\n", (uintptr_t)(This()));
 }
@@ -141,9 +141,9 @@ void OptionsClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void OptionsClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void OptionsClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("OptionsClassExtension::Compute_CRC - 0x%08X\n", (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("OptionsClassExtension::Object_CRC - 0x%08X\n", (uintptr_t)(This()));
 }
 
 

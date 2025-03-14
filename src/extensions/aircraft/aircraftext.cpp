@@ -135,9 +135,9 @@ HRESULT AircraftClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int AircraftClassExtension::Size_Of() const
+int AircraftClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("AircraftClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("AircraftClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -148,7 +148,7 @@ int AircraftClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void AircraftClassExtension::Detach(TARGET target, bool all)
+void AircraftClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("AircraftClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -161,7 +161,7 @@ void AircraftClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void AircraftClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void AircraftClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("AircraftClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("AircraftClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }

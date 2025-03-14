@@ -47,7 +47,7 @@
   *  @note: This must not contain a constructor or destructor!
   *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
   */
-static class CargoClassExt final : public CargoClass
+static class CargoClassExt : public CargoClass
 {
 public:
     void _Attach_One(FootClass* object);

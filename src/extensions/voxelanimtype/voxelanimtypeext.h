@@ -51,13 +51,13 @@ VoxelAnimTypeClassExtension final : public ObjectTypeClassExtension
         VoxelAnimTypeClassExtension(const NoInitClass &noinit);
         virtual ~VoxelAnimTypeClassExtension();
 
-        virtual int Size_Of() const override;
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+        virtual int Get_Object_Size() const override;
+        virtual void Detach(AbstractClass * target, bool all = true) override;
+        virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual VoxelAnimTypeClass *This() const override { return reinterpret_cast<VoxelAnimTypeClass *>(ObjectTypeClassExtension::This()); }
         virtual const VoxelAnimTypeClass *This_Const() const override { return reinterpret_cast<const VoxelAnimTypeClass *>(ObjectTypeClassExtension::This_Const()); }
-        virtual RTTIType What_Am_I() const override { return RTTI_VOXELANIMTYPE; }
+        virtual RTTIType Fetch_RTTI() const override { return RTTI_VOXELANIMTYPE; }
 
         virtual bool Read_INI(CCINIClass &ini) override;
 

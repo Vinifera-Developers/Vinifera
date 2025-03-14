@@ -47,7 +47,7 @@ class UIControlsClass
 
         HRESULT Load(IStream *pStm);
         HRESULT Save(IStream *pStm, BOOL fClearDirty);
-        int Size_Of() const;
+        int Get_Object_Size() const;
 
         bool Read_INI(CCINIClass &ini);
 

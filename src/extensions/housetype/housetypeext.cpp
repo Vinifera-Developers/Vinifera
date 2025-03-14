@@ -134,9 +134,9 @@ HRESULT HouseTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int HouseTypeClassExtension::Size_Of() const
+int HouseTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("HouseTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("HouseTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -147,7 +147,7 @@ int HouseTypeClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void HouseTypeClassExtension::Detach(TARGET target, bool all)
+void HouseTypeClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("HouseTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -158,9 +158,9 @@ void HouseTypeClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void HouseTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void HouseTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("HouseTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("HouseTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 

@@ -47,7 +47,7 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-class TextLabelClassExt final : public TextLabelClass
+class TextLabelClassExt : public TextLabelClass
 {
     public:
         bool _Draw_Me(bool forced = false);

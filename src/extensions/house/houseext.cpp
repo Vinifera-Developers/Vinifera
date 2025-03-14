@@ -160,9 +160,9 @@ HRESULT HouseClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int HouseClassExtension::Size_Of() const
+int HouseClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("HouseClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("HouseClassExtension::Get_Object_Size - 0x%08X\n", (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -173,7 +173,7 @@ int HouseClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void HouseClassExtension::Detach(TARGET target, bool all)
+void HouseClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("HouseClassExtension::Detach - 0x%08X\n", (uintptr_t)(This()));
 }
@@ -184,9 +184,9 @@ void HouseClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void HouseClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void HouseClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("HouseClassExtension::Compute_CRC - 0x%08X\n", (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("HouseClassExtension::Object_CRC - 0x%08X\n", (uintptr_t)(This()));
 }
 
 
@@ -209,7 +209,7 @@ void HouseClassExtension::Put_Storage_Pointers()
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-static class UnitTrackerClassExt final : public UnitTrackerClass
+static class UnitTrackerClassExt : public UnitTrackerClass
 {
 public:
     HRESULT _Load(IStream* pStm);

@@ -138,9 +138,9 @@ HRESULT IsometricTileTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int IsometricTileTypeClassExtension::Size_Of() const
+int IsometricTileTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -151,7 +151,7 @@ int IsometricTileTypeClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void IsometricTileTypeClassExtension::Detach(TARGET target, bool all)
+void IsometricTileTypeClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -164,9 +164,9 @@ void IsometricTileTypeClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void IsometricTileTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void IsometricTileTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 

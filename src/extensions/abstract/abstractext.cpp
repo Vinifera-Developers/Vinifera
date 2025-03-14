@@ -186,7 +186,7 @@ HRESULT AbstractClassExtension::Internal_Load(IStream *pStm)
     /**
      *  Read this class's binary blob data directly into this instance.
      */
-    hr = pStm->Read(this, Size_Of(), nullptr);
+    hr = pStm->Read(this, Get_Object_Size(), nullptr);
     if (FAILED(hr)) {
         return hr;
     }
@@ -228,7 +228,7 @@ HRESULT AbstractClassExtension::Internal_Save(IStream *pStm, BOOL fClearDirty)
     /**
      *  Write this class instance as a binary blob.
      */
-    hr = pStm->Write(this, Size_Of(), nullptr);
+    hr = pStm->Write(this, Get_Object_Size(), nullptr);
     if (FAILED(hr)) {
         return hr;
     }
@@ -250,7 +250,7 @@ LONG AbstractClassExtension::GetSizeMax(ULARGE_INTEGER *pcbSize)
         return E_POINTER;
     }
 
-    pcbSize->LowPart = Size_Of() + sizeof(uint32_t); // Add size of swizzle "id".
+    pcbSize->LowPart = Get_Object_Size() + sizeof(uint32_t); // Add size of swizzle "id".
     pcbSize->HighPart = 0;
 
     return S_OK;

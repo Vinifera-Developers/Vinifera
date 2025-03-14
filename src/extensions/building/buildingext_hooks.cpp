@@ -77,7 +77,7 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-static class BuildingClassExt final : public BuildingClass
+static class BuildingClassExt : public BuildingClass
 {
 public:
     bool _Can_Have_Rally_Point();
@@ -248,7 +248,7 @@ int BuildingClassExt::_Shape_Number() const
     }
     else if (Class->IsGate)
     {
-        if (Health_Ratio() > Rule->ConditionYellow) {
+        if (Get_Health_Ratio() > Rule->ConditionYellow) {
             return 0;
         }
         else {
@@ -260,7 +260,7 @@ int BuildingClassExt::_Shape_Number() const
          *  If below half strenth, then show the damage frames of the
          *  building.
          */
-        if (Health_Ratio() <= Rule->ConditionYellow) {
+        if (Get_Health_Ratio() <= Rule->ConditionYellow) {
             int last1 = Class->Anims[BSTATE_IDLE].Start + Class->Anims[BSTATE_IDLE].Count;
             int last2 = Class->Anims[BSTATE_ACTIVE].Start + Class->Anims[BSTATE_ACTIVE].Count;
             int largest = std::max(last1, last2);
@@ -316,7 +316,7 @@ bool _BuildingClass_Mission_Repair_Assign_Unit_Destination(BuildingClass *buildi
     Cell exitcell;
     CellClass* cellptr;
 
-    TARGET target = nullptr;
+    AbstractClass * target = nullptr;
 
     if (building->ArchiveTarget != nullptr)
     {
@@ -823,7 +823,7 @@ DECLARE_PATCH(_BuildingClass_Draw_Spied_Cameo_Palette_Patch)
          *  Original code used NormalDrawer, which is the old Red Alert shape
          *  drawer, so we need to use CameoDrawer here for the correct palette.
          */
-        CC_Draw_Shape(LogicSurface, CameoDrawer, cameo_shape, 0, pos_xy, window_rect, ShapeFlagsType(SHAPE_CENTER|SHAPE_WIN_REL|SHAPE_ALPHA|SHAPE_NORMAL));
+        Draw_Shape(LogicSurface, CameoDrawer, cameo_shape, 0, pos_xy, window_rect, ShapeFlagsType(SHAPE_CENTER|SHAPE_WIN_REL|SHAPE_ALPHA|SHAPE_NORMAL));
     }
 
     JMP(0x00428B13);
@@ -948,7 +948,7 @@ DECLARE_PATCH(_BuildingClass_Mission_Deconstruction_ConYard_Unlimbo_Patch)
 {
     GET_REGISTER_STATIC(UnitClass*, mcv, ebp);
     LEA_STACK_STATIC(Coordinate*, coords, esp, 0x40);
-    GET_REGISTER_STATIC(DirType, dir, eax);
+    GET_REGISTER_STATIC(Dir256, dir, eax);
 
     static bool result;
 
@@ -998,7 +998,7 @@ DECLARE_PATCH(_BuildingClass_Mission_Deconstruction_Double_Survivors_Patch)
 DECLARE_PATCH(_EventClass_Execute_Archive_Selling_Patch)
 {
     GET_REGISTER_STATIC(TechnoClass*, techno, edi);
-    GET_REGISTER_STATIC(TARGET, target, eax);
+    GET_REGISTER_STATIC(AbstractClass *, target, eax);
 
     // Don't assign an archive target if currently selling
     if (techno->Mission != MISSION_DECONSTRUCTION) {

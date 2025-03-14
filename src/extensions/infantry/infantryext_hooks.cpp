@@ -65,7 +65,7 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-static class InfantryClassExt final : public InfantryClass
+static class InfantryClassExt : public InfantryClass
 {
 public:
     const ShapeFileStruct* _Get_Image_Data() const;
@@ -128,7 +128,7 @@ static bool Health_Low_Enough_To_Capture(TechnoClass *tech)
      * 
      *  @author: CCHyper
      */
-    return tech->Health_Ratio() <= Rule->EngineerCaptureLevel;
+    return tech->HealthRatio <= Rule->EngineerCaptureLevel;
 }
 
 
@@ -225,7 +225,7 @@ DECLARE_PATCH(_InfantryClass_Firing_AI_Mechanic_Patch)
          *  Is the target being queried a unit, aircraft or infantry? If so, make
          *  sure this infantry is a mechanic before allowing it to heal the unit.
          */
-        if (targ->What_Am_I() == RTTI_UNIT || (targ->What_Am_I() == RTTI_AIRCRAFT && !targ->In_Air()) || targ->What_Am_I() == RTTI_INFANTRY) {
+        if (targ->Fetch_RTTI() == RTTI_UNIT || (targ->Fetch_RTTI() == RTTI_AIRCRAFT && !targ->In_Air()) || targ->Fetch_RTTI() == RTTI_INFANTRY) {
             goto health_ratio_check;
         }
 
@@ -238,14 +238,14 @@ DECLARE_PATCH(_InfantryClass_Firing_AI_Mechanic_Patch)
          *  Is the target being queried a unit or aircraft? If so, make sure this
          *  infantry is a mechanic before allowing it to heal the unit.
          */
-        if (targ->What_Am_I() == RTTI_UNIT || (targ->What_Am_I() == RTTI_AIRCRAFT && !targ->In_Air())) {
+        if (targ->Fetch_RTTI() == RTTI_UNIT || (targ->Fetch_RTTI() == RTTI_AIRCRAFT && !targ->In_Air())) {
             goto health_ratio_check;
         }
 
     /**
      *  Original code.
      */
-    } else if (targ->What_Am_I() == RTTI_INFANTRY) {
+    } else if (targ->Fetch_RTTI() == RTTI_INFANTRY) {
         goto health_ratio_check;
     }
 
@@ -291,7 +291,7 @@ DECLARE_PATCH(_InfantryClass_What_Action_Mechanic_Patch)
          *  Is the target being queried a unit, aircraft or infantry? If so, make
          *  sure this infantry is a mechanic before allowing it to heal the unit.
          */
-        if (object->What_Am_I() == RTTI_UNIT || object->What_Am_I() == RTTI_AIRCRAFT || object->What_Am_I() == RTTI_INFANTRY) {
+        if (object->Fetch_RTTI() == RTTI_UNIT || object->Fetch_RTTI() == RTTI_AIRCRAFT || object->Fetch_RTTI() == RTTI_INFANTRY) {
 
             /**
              *  If we are force-moving into an Transport, don't try to heal it!
@@ -324,7 +324,7 @@ DECLARE_PATCH(_InfantryClass_What_Action_Mechanic_Patch)
          *  Is the target being queried a unit or aircraft? If so, make sure this
          *  infantry is a mechanic before allowing it to heal the unit.
          */
-        if (object->What_Am_I() == RTTI_UNIT || object->What_Am_I() == RTTI_AIRCRAFT) {
+        if (object->Fetch_RTTI() == RTTI_UNIT || object->Fetch_RTTI() == RTTI_AIRCRAFT) {
 
             /**
              *  If we are force-moving into an Transport, don't try to heal it!
@@ -344,7 +344,7 @@ DECLARE_PATCH(_InfantryClass_What_Action_Mechanic_Patch)
     /**
      *  Original code.
      */
-    } else if (object->What_Am_I() == RTTI_INFANTRY) {
+    } else if (object->Fetch_RTTI() == RTTI_INFANTRY) {
 
         /**
          *  If the mouse is over ourself, show the guard area cursor.
@@ -386,7 +386,7 @@ health_ratio_check:
 DECLARE_PATCH(_InfantryClass_Can_Fire_Target_Check_Patch)
 {
     GET_REGISTER_STATIC(InfantryClass *, this_ptr, esi);
-    GET_STACK_STATIC(TARGET, target, esp, 0x10);
+    GET_STACK_STATIC(AbstractClass *, target, esp, 0x10);
     GET_STACK_STATIC(int, which, esp, 0x14);
     static FootClass *targ;
 
@@ -609,8 +609,8 @@ void _Set_Infantry_Facing_After_Doing_Check_For_Do_Nothing(InfantryClass* this_p
         return;
     }
 
-    DirType dirtype = Facing_Dir(facing);
-    DirStruct ds = DirStruct(dirtype);
+    Dir256 dirtype = Facing_Dir(facing);
+    DirType ds = DirType(dirtype);
     this_ptr->PrimaryFacing.Set(ds);
 }
 

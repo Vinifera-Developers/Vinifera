@@ -106,7 +106,7 @@ HRESULT MissionClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-void MissionClassExtension::Detach(TARGET target, bool all)
+void MissionClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("MissionClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -119,9 +119,9 @@ void MissionClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void MissionClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void MissionClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("MissionClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("MissionClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    ObjectClassExtension::Compute_CRC(crc);
+    ObjectClassExtension::Object_CRC(crc);
 }

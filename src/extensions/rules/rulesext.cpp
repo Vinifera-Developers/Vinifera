@@ -182,9 +182,9 @@ HRESULT RulesClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int RulesClassExtension::Size_Of() const
+int RulesClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("RulesClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("RulesClassExtension::Get_Object_Size - 0x%08X\n", (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -195,7 +195,7 @@ int RulesClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void RulesClassExtension::Detach(TARGET target, bool all)
+void RulesClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("RulesClassExtension::Detach - 0x%08X\n", (uintptr_t)(This()));
 }
@@ -206,9 +206,9 @@ void RulesClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void RulesClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void RulesClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("RulesClassExtension::Compute_CRC - 0x%08X\n", (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("RulesClassExtension::Object_CRC - 0x%08X\n", (uintptr_t)(This()));
 
     crc(IsMPAutoDeployMCV);
     crc(IsMPPrePlacedConYards);
@@ -988,13 +988,13 @@ void RulesClassExtension::Fixups(CCINIClass &ini)
              *   - Side 1 name is "Nod"
              */
             if (Wstring(housetype->Name()) == Wstring("Nod")
-                && housetype->Get_Heap_ID() == HOUSE_NOD
+                && housetype->Fetch_Heap_ID() == HOUSE_NOD
                 && housetype->Side == SIDE_GDI
                 && Wstring(Sides[housetype->Side]->Name()) == Wstring("GDI")
                 && Wstring(Sides[SIDE_NOD]->Name()) == Wstring("Nod")) {
 
                 DEBUG_WARNING("Rules: House \"%s\" (%d) has \"Side=GDI\", changing Side to \"Nod\"!\n",
-                    housetype->Name(), housetype->Get_Heap_ID());
+                    housetype->Name(), housetype->Fetch_Heap_ID());
 
                 /**
                  *  We are pretty sure this house is NOD, force the Side to SIDE_NOD.
@@ -1016,11 +1016,11 @@ void RulesClassExtension::Fixups(CCINIClass &ini)
              *   - HouseType "Nod" has Prefix=B
              */
             if (Wstring(housetype->Name()) == Wstring("Nod")
-                && housetype->Get_Heap_ID() == HOUSE_NOD
+                && housetype->Fetch_Heap_ID() == HOUSE_NOD
                 && housetype->Prefix == 'B') {
 
                 DEBUG_WARNING("Rules: House \"%s\" (%d) has \"Prefix=B\", changing Prefix to \"N\"!\n",
-                    housetype->Name(), housetype->Get_Heap_ID());
+                    housetype->Name(), housetype->Fetch_Heap_ID());
 
                 /**
                  *  We are pretty sure this house is NOD, force the Prefix to the 'N' character.

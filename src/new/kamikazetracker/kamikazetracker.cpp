@@ -188,7 +188,7 @@ HRESULT KamikazeTrackerClass::Save(IStream* pStm, BOOL fClearDirty)
  *
  *  @author: ZivDero
  */
-void KamikazeTrackerClass::Add(AircraftClass* aircraft, TARGET target)
+void KamikazeTrackerClass::Add(AircraftClass* aircraft, AbstractClass * target)
 {
     if (!Extension::Fetch<AircraftTypeClassExtension>(aircraft->Techno_Type_Class())->IsMissileSpawn)
     {

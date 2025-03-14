@@ -106,7 +106,7 @@ HRESULT RadioClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-void RadioClassExtension::Detach(TARGET target, bool all)
+void RadioClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("RadioClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -119,9 +119,9 @@ void RadioClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void RadioClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void RadioClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("RadioClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("RadioClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    MissionClassExtension::Compute_CRC(crc);
+    MissionClassExtension::Object_CRC(crc);
 }

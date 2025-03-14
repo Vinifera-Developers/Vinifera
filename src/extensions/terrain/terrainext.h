@@ -54,13 +54,13 @@ TerrainClassExtension final : public ObjectClassExtension
         TerrainClassExtension(const NoInitClass &noinit);
         virtual ~TerrainClassExtension();
 
-        virtual int Size_Of() const override;
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+        virtual int Get_Object_Size() const override;
+        virtual void Detach(AbstractClass * target, bool all = true) override;
+        virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual TerrainClass *This() const override { return reinterpret_cast<TerrainClass *>(ObjectClassExtension::This()); }
         virtual const TerrainClass *This_Const() const override { return reinterpret_cast<const TerrainClass *>(ObjectClassExtension::This_Const()); }
-        virtual RTTIType What_Am_I() const override { return RTTI_TERRAIN; }
+        virtual RTTIType Fetch_RTTI() const override { return RTTI_TERRAIN; }
 
     public:
         /**

@@ -136,9 +136,9 @@ HRESULT SmudgeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int SmudgeClassExtension::Size_Of() const
+int SmudgeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("SmudgeClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("SmudgeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -149,7 +149,7 @@ int SmudgeClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void SmudgeClassExtension::Detach(TARGET target, bool all)
+void SmudgeClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("SmudgeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -162,7 +162,7 @@ void SmudgeClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void SmudgeClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void SmudgeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("SmudgeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("SmudgeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }

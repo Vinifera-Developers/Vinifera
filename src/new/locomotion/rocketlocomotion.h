@@ -79,7 +79,7 @@ public:
     /**
      *  LocomotionClass
      */
-    virtual int Size_Of(bool firestorm = false) const override { return sizeof(*this); }
+    virtual int Get_Object_Size(bool firestorm = false) const override { return sizeof(*this); }
 
 private:
     /**

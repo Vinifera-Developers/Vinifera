@@ -189,7 +189,7 @@ SpawnManagerClass::SpawnManagerClass(TechnoClass* owner, const AircraftTypeClass
         if (control == nullptr)
             break;
 
-        auto spawnee = static_cast<AircraftClass*>(SpawnType->Create_One_Of(owner->Owning_House()));
+        auto spawnee = static_cast<AircraftClass*>(SpawnType->Create_One_Of(owner->Owner_HouseClass()));
         control->Spawnee = spawnee;
 
         if (spawnee != nullptr)
@@ -232,7 +232,7 @@ SpawnManagerClass::~SpawnManagerClass()
  *
  *  @author: ZivDero
  */
-RTTIType SpawnManagerClass::Kind_Of() const
+RTTIType SpawnManagerClass::Fetch_RTTI() const
 {
     return static_cast<RTTIType>(RTTI_SPAWN_MANAGER);
 }
@@ -243,7 +243,7 @@ RTTIType SpawnManagerClass::Kind_Of() const
  *
  *  @author: ZivDero
  */
-int SpawnManagerClass::Size_Of(bool firestorm) const
+int SpawnManagerClass::Get_Object_Size(bool firestorm) const
 {
     return sizeof(*this);
 }
@@ -254,17 +254,17 @@ int SpawnManagerClass::Size_Of(bool firestorm) const
  *
  *  @author: ZivDero
  */
-void SpawnManagerClass::Compute_CRC(WWCRCEngine& crc) const
+void SpawnManagerClass::Object_CRC(CRCEngine& crc) const
 {
-    AbstractClass::Compute_CRC(crc);
+    AbstractClass::Object_CRC(crc);
 
     crc(static_cast<int>(Status));
 
     if (QueuedTarget != nullptr)
-        crc(QueuedTarget->Get_Heap_ID());
+        crc(QueuedTarget->Fetch_Heap_ID());
 
     if (Target != nullptr)
-        crc(Target->Get_Heap_ID());
+        crc(Target->Fetch_Heap_ID());
 
     crc(SpawnTimer.Value());
     crc(LogicTimer.Value());
@@ -272,10 +272,10 @@ void SpawnManagerClass::Compute_CRC(WWCRCEngine& crc) const
     crc(SpawnCount);
 
     if (SpawnType != nullptr)
-        crc(SpawnType->Get_Heap_ID());
+        crc(SpawnType->Fetch_Heap_ID());
 
     if (Owner != nullptr)
-        crc(Owner->Get_Heap_ID());
+        crc(Owner->Fetch_Heap_ID());
 }
 
 
@@ -398,7 +398,7 @@ void SpawnManagerClass::AI()
                 /**
                  *  Place the spawn in the world.
                  */
-                DirStruct dir = Owner->PrimaryFacing.Current();
+                DirType dir = Owner->PrimaryFacing.Current();
                 spawnee->Unlimbo(spawn_coord, dir.Get_Dir());
 
                 const auto rocket = RocketTypeClass::From_AircraftType(SpawnType);
@@ -620,7 +620,7 @@ void SpawnManagerClass::AI()
                  *  Create a new spawn and set it to idle.
                  */
                 control->Status = SpawnControlStatus::Idle;
-                control->Spawnee = static_cast<AircraftClass*>(SpawnType->Create_One_Of(Owner->Owning_House()));
+                control->Spawnee = static_cast<AircraftClass*>(SpawnType->Create_One_Of(Owner->Owner_HouseClass()));
                 control->IsSpawnedMissile = RocketTypeClass::From_AircraftType(SpawnType) != nullptr;
                 control->Spawnee->Limbo();
                 Extension::Fetch<AircraftClassExtension>(control->Spawnee)->SpawnOwner = Owner;
@@ -816,7 +816,7 @@ void SpawnManagerClass::Detach_Spawns()
  *
  *  @author: ZivDero
  */
-void SpawnManagerClass::Queue_Target(TARGET target)
+void SpawnManagerClass::Queue_Target(AbstractClass * target)
 {
     if (target != Target)
         QueuedTarget = target;
@@ -878,7 +878,7 @@ bool SpawnManagerClass::Next_Target()
  *
  *  @author: ZivDero
  */
-void SpawnManagerClass::Detach(TARGET target)
+void SpawnManagerClass::Detach(AbstractClass * target)
 {
     /**
      *  If it's the suspended target, remove it.

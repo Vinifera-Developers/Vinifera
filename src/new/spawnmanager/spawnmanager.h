@@ -87,16 +87,16 @@ public:
     /**
      *  AbstractClass
      */
-    virtual RTTIType Kind_Of() const override;
-    virtual int Size_Of(bool firestorm = false) const override;
-    virtual void Compute_CRC(WWCRCEngine& crc) const override;
+    virtual RTTIType Fetch_RTTI() const override;
+    virtual int Get_Object_Size(bool firestorm = false) const override;
+    virtual void Object_CRC(CRCEngine& crc) const override;
     virtual void AI() override;
 
     void Detach_Spawns();
-    void Queue_Target(TARGET target);
+    void Queue_Target(AbstractClass * target);
     void Abandon_Target();
     bool Next_Target();
-    void Detach(TARGET target);
+    void Detach(AbstractClass * target);
     int Active_Count();
     int Docked_Count();
     int Preparing_Count();
@@ -158,12 +158,12 @@ public:
     /**
      *  The spawn manager's target.
      */
-    TARGET Target;
+    AbstractClass * Target;
 
     /**
      *  The next target the spawn manager should attack.
      */
-    TARGET QueuedTarget;
+    AbstractClass * QueuedTarget;
 
     /**
      *  The current status of the spawn manager.

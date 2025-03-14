@@ -388,7 +388,7 @@ bool ManualPlaceCommandClass::Process()
         /**
          *  If by some rare chance the product is not a building, then bail.
          */
-        if (pending->What_Am_I() != RTTI_BUILDING)
+        if (pending->Fetch_RTTI() != RTTI_BUILDING)
             return false;
 
         BuildingClass* pending_bptr = reinterpret_cast<BuildingClass*>(pending);
@@ -1190,7 +1190,7 @@ bool SetStructureTabCommandClass::Process()
         /**
          *  If by some rare chance the product is not a building, then bail.
          */
-        if (pending->What_Am_I() != RTTI_BUILDING)
+        if (pending->Fetch_RTTI() != RTTI_BUILDING)
             return result;
 
         BuildingClass* pending_bptr = reinterpret_cast<BuildingClass*>(pending);
@@ -1398,11 +1398,11 @@ const char *DumpHeapCRCCommandClass::Get_Description() const
         if (!heap_name.Count()) { \
             DEBUG_INFO("  EMPTY\n"); \
         } else { \
-            WWCRCEngine crc; \
+            CRCEngine crc; \
             for (unsigned i = 0; i < heap_name.Count(); ++i) { \
                 class_name *ptr = heap_name[i]; \
                 if (ptr != nullptr) { \
-                    ptr->Compute_CRC(crc); \
+                    ptr->Object_CRC(crc); \
                     DEBUG_INFO("  %04d\tName: %s\tCRC: 0x%08X\n", i, ptr->Name(), crc.CRC_Value()); \
                 } else { \
                     DEBUG_INFO("  %04d\tFAILED!\n", i); \
@@ -1441,7 +1441,7 @@ bool DumpHeapCRCCommandClass::Process()
         if (!ColorSchemes.Count()) {
             DEBUG_INFO("  EMPTY\n");
         } else {
-            WWCRCEngine crc;
+            CRCEngine crc;
             for (unsigned i = 0; i < ColorSchemes.Count(); ++i) {
                 ColorScheme *ptr = ColorSchemes[i];
                 if (ptr != nullptr) {
@@ -1767,7 +1767,7 @@ bool CaptureObjectCommandClass::Process()
         /**
          *  We own this object already, skip it.
          */
-        if (object->Owning_House() == PlayerPtr) {
+        if (object->Owner_HouseClass() == PlayerPtr) {
             continue;
         }
 
@@ -1943,7 +1943,7 @@ bool IonBlastCommandClass::Process()
     }
 
     Coordinate mouse_coord = Get_Coord_Under_Mouse();
-    mouse_coord.Z = Map.Get_Cell_Height(mouse_coord);
+    mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     new IonBlastClass(mouse_coord);
 
@@ -1983,7 +1983,7 @@ bool ExplosionCommandClass::Process()
     }
 
     Coordinate mouse_coord = Get_Coord_Under_Mouse();
-    mouse_coord.Z = Map.Get_Cell_Height(mouse_coord);
+    mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     const CellClass *cellptr = &Map[mouse_coord];
     if (!cellptr) {
@@ -2051,7 +2051,7 @@ bool SuperExplosionCommandClass::Process()
     }
 
     Coordinate mouse_coord = Get_Coord_Under_Mouse();
-    mouse_coord.Z = Map.Get_Cell_Height(mouse_coord);
+    mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     const CellClass *cellptr = &Map[mouse_coord];
     if (!cellptr) {
@@ -2263,7 +2263,7 @@ bool DeleteObjectCommandClass::Process()
         /**
          *  Buildings need to be "sold".
          */
-        if (object->What_Am_I() == RTTI_BUILDING) {
+        if (object->Fetch_RTTI() == RTTI_BUILDING) {
             object->Sell_Back(1);
         } else {
             object->Unselect();
@@ -2630,7 +2630,7 @@ bool BuildCheatCommandClass::Process()
         for (int index = 0; index < Buildings.Count(); index++) {
             BuildingClass *building = Buildings[index];
             if (building) {
-                if (building->Owning_House() == PlayerPtr) {
+                if (building->Owner_HouseClass() == PlayerPtr) {
                     building->Update_Buildables();
                 }
             }
@@ -3492,7 +3492,7 @@ bool StartingWaypointsCommandClass::Process()
         return false;
     }
 
-    wp_coord.Z = Map.Get_Cell_Height(wp_coord);
+    wp_coord.Z = Map.Get_Height_GL(wp_coord);
 
     /**
      *  Center the tactical camera at this waypoint.
@@ -3545,7 +3545,7 @@ bool PlaceInfantryCommandClass::Process()
     }
 
     Coordinate mouse_coord = Get_Coord_Under_Mouse();
-    mouse_coord.Z = Map.Get_Cell_Height(mouse_coord);
+    mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     const CellClass *cellptr = &Map[mouse_coord];
     if (!cellptr) {
@@ -3621,7 +3621,7 @@ bool PlaceUnitCommandClass::Process()
     }
 
     Coordinate mouse_coord = Get_Coord_Under_Mouse();
-    mouse_coord.Z = Map.Get_Cell_Height(mouse_coord);
+    mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     const CellClass *cellptr = &Map[mouse_coord];
     if (!cellptr) {
@@ -3699,7 +3699,7 @@ bool PlaceTiberiumCommandClass::Process()
     }
 
     Coordinate mouse_coord = Get_Coord_Under_Mouse();
-    mouse_coord.Z = Map.Get_Cell_Height(mouse_coord);
+    mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     CellClass *cellptr = &Map[mouse_coord];
     if (!cellptr) {
@@ -3747,7 +3747,7 @@ bool ReduceTiberiumCommandClass::Process()
     }
 
     Coordinate mouse_coord = Get_Coord_Under_Mouse();
-    mouse_coord.Z = Map.Get_Cell_Height(mouse_coord);
+    mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     CellClass *cellptr = &Map[mouse_coord];
     if (!cellptr) {
@@ -3795,7 +3795,7 @@ bool PlaceFullTiberiumCommandClass::Process()
     }
 
     Coordinate mouse_coord = Get_Coord_Under_Mouse();
-    mouse_coord.Z = Map.Get_Cell_Height(mouse_coord);
+    mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     CellClass *cellptr = &Map[mouse_coord];
     if (!cellptr) {
@@ -3843,7 +3843,7 @@ bool RemoveTiberiumCommandClass::Process()
     }
 
     Coordinate mouse_coord = Get_Coord_Under_Mouse();
-    mouse_coord.Z = Map.Get_Cell_Height(mouse_coord);
+    mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     CellClass *cellptr = &Map[mouse_coord];
     if (!cellptr) {

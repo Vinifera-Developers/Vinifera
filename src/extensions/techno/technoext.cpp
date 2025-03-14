@@ -161,7 +161,7 @@ HRESULT TechnoClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-void TechnoClassExtension::Detach(TARGET target, bool all)
+void TechnoClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("TechnoClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -182,14 +182,14 @@ void TechnoClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void TechnoClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void TechnoClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("TechnoClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("TechnoClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    RadioClassExtension::Compute_CRC(crc);
+    RadioClassExtension::Object_CRC(crc);
 
     if (SpawnOwner)
-        crc(SpawnOwner->Get_Heap_ID());
+        crc(SpawnOwner->Fetch_Heap_ID());
 }
 
 
@@ -198,7 +198,7 @@ void TechnoClassExtension::Compute_CRC(WWCRCEngine &crc) const
  * 
  *  @author: CCHyper
  */
-EBoltClass * TechnoClassExtension::Electric_Zap(TARGET target, int which, const WeaponTypeClass *weapontype, Coordinate &source_coord)
+EBoltClass * TechnoClassExtension::Electric_Zap(AbstractClass * target, int which, const WeaponTypeClass *weapontype, Coordinate &source_coord)
 {
     //EXT_DEBUG_TRACE("TechnoClassExtension::Electric_Zap - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -240,7 +240,7 @@ EBoltClass * TechnoClassExtension::Electric_Zap(TARGET target, int which, const 
  * 
  *  @author: CCHyper
  */
-EBoltClass * TechnoClassExtension::Electric_Bolt(TARGET target)
+EBoltClass * TechnoClassExtension::Electric_Bolt(AbstractClass * target)
 {
     //EXT_DEBUG_TRACE("TechnoClassExtension::Electric_Bolt - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 

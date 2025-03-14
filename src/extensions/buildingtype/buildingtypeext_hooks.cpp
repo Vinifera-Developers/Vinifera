@@ -52,7 +52,7 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-class BuildingTypeClassExt final : public BuildingTypeClass
+class BuildingTypeClassExt : public BuildingTypeClass
 {
     public:
         void _Free_Buildup_Image();

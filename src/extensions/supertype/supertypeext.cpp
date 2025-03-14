@@ -156,9 +156,9 @@ HRESULT SuperWeaponTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int SuperWeaponTypeClassExtension::Size_Of() const
+int SuperWeaponTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -169,7 +169,7 @@ int SuperWeaponTypeClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void SuperWeaponTypeClassExtension::Detach(TARGET target, bool all)
+void SuperWeaponTypeClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -180,9 +180,9 @@ void SuperWeaponTypeClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void SuperWeaponTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void SuperWeaponTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 

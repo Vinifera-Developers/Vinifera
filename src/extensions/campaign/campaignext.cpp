@@ -136,9 +136,9 @@ HRESULT CampaignClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int CampaignClassExtension::Size_Of() const
+int CampaignClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("CampaignClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("CampaignClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -149,7 +149,7 @@ int CampaignClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void CampaignClassExtension::Detach(TARGET target, bool all)
+void CampaignClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("CampaignClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -160,9 +160,9 @@ void CampaignClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void CampaignClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void CampaignClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("CampaignClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("CampaignClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 

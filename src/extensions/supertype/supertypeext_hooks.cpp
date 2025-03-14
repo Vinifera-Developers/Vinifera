@@ -49,7 +49,7 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-static class SuperWeaponTypeClassExt final : public SuperWeaponTypeClass
+static class SuperWeaponTypeClassExt : public SuperWeaponTypeClass
 {
 public:
     ActionType _What_Action(Cell& cell, ObjectClass* target) const;
@@ -67,7 +67,7 @@ ActionType SuperWeaponTypeClassExt::_What_Action(Cell& cell, ObjectClass* object
     {
         const auto swtype_ext = Extension::Fetch<SuperWeaponTypeClassExtension>(this);
 
-        TARGET target_ptr;
+        AbstractClass * target_ptr;
         Cell target_cell;
 
         if (object)

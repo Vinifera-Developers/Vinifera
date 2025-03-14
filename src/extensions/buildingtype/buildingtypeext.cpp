@@ -146,9 +146,9 @@ HRESULT BuildingTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int BuildingTypeClassExtension::Size_Of() const
+int BuildingTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -159,7 +159,7 @@ int BuildingTypeClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void BuildingTypeClassExtension::Detach(TARGET target, bool all)
+void BuildingTypeClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -172,9 +172,9 @@ void BuildingTypeClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void BuildingTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void BuildingTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     crc(IsEligibleForAllyBuilding);
 }

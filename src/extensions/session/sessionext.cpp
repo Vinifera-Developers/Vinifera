@@ -125,9 +125,9 @@ HRESULT SessionClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int SessionClassExtension::Size_Of() const
+int SessionClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("SessionClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("SessionClassExtension::Get_Object_Size - 0x%08X\n", (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -138,7 +138,7 @@ int SessionClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void SessionClassExtension::Detach(TARGET target, bool all)
+void SessionClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("SessionClassExtension::Detach - 0x%08X\n", (uintptr_t)(This()));
 }
@@ -149,9 +149,9 @@ void SessionClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void SessionClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void SessionClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("SessionClassExtension::Compute_CRC - 0x%08X\n", (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("SessionClassExtension::Object_CRC - 0x%08X\n", (uintptr_t)(This()));
 }
 
 

@@ -134,9 +134,9 @@ HRESULT VoxelAnimTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int VoxelAnimTypeClassExtension::Size_Of() const
+int VoxelAnimTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("VoxelAnimTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("VoxelAnimTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -147,7 +147,7 @@ int VoxelAnimTypeClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void VoxelAnimTypeClassExtension::Detach(TARGET target, bool all)
+void VoxelAnimTypeClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("VoxelAnimTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -160,9 +160,9 @@ void VoxelAnimTypeClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void VoxelAnimTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void VoxelAnimTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("VoxelAnimTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("VoxelAnimTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 

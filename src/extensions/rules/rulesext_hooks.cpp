@@ -58,7 +58,7 @@ extern HMODULE DLLInstance;
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-class RulesClassExt final : public RulesClass
+class RulesClassExt : public RulesClass
 {
 public:
     void _Process(CCINIClass &ini);

@@ -75,15 +75,15 @@ TestLocomotionClass : public LocomotionClass
         IFACEMETHOD_(bool, Process)();
         IFACEMETHOD_(void, Move_To)(Coordinate to);
         IFACEMETHOD_(void, Stop_Moving)();
-        IFACEMETHOD_(void, Do_Turn)(DirStruct coord);
+        IFACEMETHOD_(void, Do_Turn)(DirType coord);
         IFACEMETHOD_(void, Unlimbo)();
         IFACEMETHOD_(void, Tilt_Pitch_AI)();
         IFACEMETHOD_(bool, Power_On)();
         IFACEMETHOD_(bool, Power_Off)();
         IFACEMETHOD_(bool, Is_Powered)();
         IFACEMETHOD_(bool, Is_Ion_Sensitive)();
-        IFACEMETHOD_(bool, Push)(DirStruct dir);
-        IFACEMETHOD_(bool, Shove)(DirStruct dir);
+        IFACEMETHOD_(bool, Push)(DirType dir);
+        IFACEMETHOD_(bool, Shove)(DirType dir);
         IFACEMETHOD_(void, Force_Track)(int track, Coordinate coord);
         IFACEMETHOD_(LayerType, In_Which_Layer)();
         IFACEMETHOD_(void, Force_Immediate_Destination)(Coordinate coord);
@@ -107,7 +107,7 @@ TestLocomotionClass : public LocomotionClass
         IFACEMETHOD_(int, Get_Speed_Accum)();
 
     public:
-        virtual int Size_Of(bool firestorm = false) const override { return sizeof(*this); }
+        virtual int Get_Object_Size(bool firestorm = false) const override { return sizeof(*this); }
 
     public:
         TestLocomotionClass();

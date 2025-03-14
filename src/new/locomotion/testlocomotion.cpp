@@ -427,7 +427,7 @@ IFACEMETHODIMP_(void) TestLocomotionClass::Stop_Moving()
  * 
  *  @author: CCHyper
  */
-IFACEMETHODIMP_(void) TestLocomotionClass::Do_Turn(DirStruct coord)
+IFACEMETHODIMP_(void) TestLocomotionClass::Do_Turn(DirType coord)
 {
     LinkedTo->PrimaryFacing.Set(coord);
 }
@@ -506,7 +506,7 @@ IFACEMETHODIMP_(bool) TestLocomotionClass::Is_Ion_Sensitive()
  * 
  *  @author: CCHyper
  */
-IFACEMETHODIMP_(bool) TestLocomotionClass::Push(DirStruct dir)
+IFACEMETHODIMP_(bool) TestLocomotionClass::Push(DirType dir)
 {
     return false;
 }
@@ -517,7 +517,7 @@ IFACEMETHODIMP_(bool) TestLocomotionClass::Push(DirStruct dir)
  * 
  *  @author: CCHyper
  */
-IFACEMETHODIMP_(bool) TestLocomotionClass::Shove(DirStruct dir)
+IFACEMETHODIMP_(bool) TestLocomotionClass::Shove(DirType dir)
 {
     return false;
 }

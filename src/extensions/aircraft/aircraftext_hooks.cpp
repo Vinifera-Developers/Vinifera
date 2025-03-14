@@ -60,10 +60,10 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-static class AircraftClassExt final : public AircraftClass
+static class AircraftClassExt : public AircraftClass
 {
 public:
-    bool _Unlimbo(Coordinate& coord, DirType dir);
+    bool _Unlimbo(Coordinate& coord, Dir256 dir);
     bool _Cell_Seems_Ok(Cell& cell, bool strict) const;
 };
 
@@ -74,7 +74,7 @@ public:
  *  @author: 07/26/1994 JLB - Created.
  *           ZivDero - Adjustments for Tiberian Sun.
  */
-bool AircraftClassExt::_Unlimbo(Coordinate& coord, DirType dir)
+bool AircraftClassExt::_Unlimbo(Coordinate& coord, Dir256 dir)
 {
     Coordinate adjusted_coord = coord;
 
@@ -87,9 +87,9 @@ bool AircraftClassExt::_Unlimbo(Coordinate& coord, DirType dir)
     if (!class_ext->IsMissileSpawn && !ext->SpawnOwner)
     {
         if (IsALoaner || !Map.In_Local_Radar(coord)) {
-            adjusted_coord.Z = Class->Flight_Level() + Map.Get_Cell_Height(coord);
+            adjusted_coord.Z = Class->Flight_Level() + Map.Get_Height_GL(coord);
         } else {
-            adjusted_coord.Z = Map.Get_Cell_Height(coord);
+            adjusted_coord.Z = Map.Get_Height_GL(coord);
         }
     }
 
@@ -113,7 +113,7 @@ bool AircraftClassExt::_Unlimbo(Coordinate& coord, DirType dir)
         /**
          *  Forces the body of the helicopter to face the correct direction.
          */
-        SecondaryFacing.Set(DirStruct(dir));
+        SecondaryFacing.Set(DirType(dir));
 
         /**
          *  Start rotor animation.
@@ -125,7 +125,7 @@ bool AircraftClassExt::_Unlimbo(Coordinate& coord, DirType dir)
          *  When starting at flight level, then give it speed. When landed
          *  then it must be stationary.
          */
-        if (Get_Height() == Class->Flight_Level()) {
+        if (Height == Class->Flight_Level()) {
             Set_Speed(1.0);
         }
         else {
@@ -171,14 +171,14 @@ bool AircraftClassExt::_Cell_Seems_Ok(Cell& cell, bool strict) const
      *  If we're a carryall, we can enter a potential totable unit's cell.
      */
     bool can_tote = false;
-    if (Class->IsCarryall && Target_Legal(NavCom) && NavCom->What_Am_I() == RTTI_UNIT)
+    if (Class->IsCarryall && Target_Legal(NavCom) && NavCom->Fetch_RTTI() == RTTI_UNIT)
         can_tote = true;
 
     /**
      *  Make sure that no other aircraft are heading to the selected location. If they
      *  are, then don't consider the location as valid.
      */
-    TARGET astarget = &Map[cell];
+    AbstractClass * astarget = &Map[cell];
     for (int index = 0; index < Foots.Count(); index++) {
         const FootClass* foot = Foots[index];
         if (foot && (!can_tote || foot != NavCom) && (strict || foot != this) && !foot->IsInLimbo) {
@@ -373,7 +373,7 @@ DECLARE_PATCH(_AircraftClass_What_Action_Is_Totable_Patch)
         /**
          *  Target is a unit?
          */
-        if (target->What_Am_I() == RTTI_UNIT) {
+        if (target->Fetch_RTTI() == RTTI_UNIT) {
 
             target_unit = reinterpret_cast<UnitClass *>(target);
 
@@ -469,7 +469,7 @@ DECLARE_PATCH(_AircraftClass_Enter_Idle_Mode_Spawner_Patch)
 
     aircrafttypeext = Extension::Fetch<AircraftTypeClassExtension>(this_ptr->Class);
 
-    if (layer != LAYER_GROUND && this_ptr->Get_Height() > landingaltitude && !aircrafttypeext->IsMissileSpawn)
+    if (layer != LAYER_GROUND && this_ptr->Height > landingaltitude && !aircrafttypeext->IsMissileSpawn)
     {
         JMP(0x0040B3C1);
     }

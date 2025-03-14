@@ -234,7 +234,7 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ObjectClass * 
 
 static bool Is_On_High_Bridge(const Coordinate& coord)
 {
-    return Map[coord].IsUnderBridge && coord.Z >= BRIDGE_LEPTON_HEIGHT + Map.Get_Cell_Height(coord);
+    return Map[coord].IsUnderBridge && coord.Z >= BRIDGE_LEPTON_HEIGHT + Map.Get_Height_GL(coord);
 }
 
 
@@ -253,7 +253,7 @@ void Get_Explosion_Targets(const Coordinate& coord, TechnoClass* source, int ran
 
     int cell_radius = (range + CELL_LEPTON_W - 1) / CELL_LEPTON_W;
 
-    const bool isbridge = cellptr->IsUnderBridge && coord.Z > BRIDGE_LEPTON_HEIGHT / 2 + Map.Get_Cell_Height(coord);
+    const bool isbridge = cellptr->IsUnderBridge && coord.Z > BRIDGE_LEPTON_HEIGHT / 2 + Map.Get_Height_GL(coord);
 
     /**
      *  Fill the list of unit IDs that will have damage
@@ -278,7 +278,7 @@ void Get_Explosion_Targets(const Coordinate& coord, TechnoClass* source, int ran
             object = cellptr->Cell_Occupier(isbridge);
             while (object) {
                 if (object != source) {
-                    if (object->Kind_Of() != RTTI_UNIT || !Scen->SpecialFlags.IsHarvesterImmune || !Rule->HarvesterUnit.Is_Present(static_cast<UnitTypeClass*>(object->Class_Of()))) {
+                    if (object->Fetch_RTTI() != RTTI_UNIT || !Scen->SpecialFlags.IsHarvesterImmune || !Rule->HarvesterUnit.Is_Present(static_cast<UnitTypeClass*>(object->Class_Of()))) {
                         objects.insert(object);
                     }
                 }
@@ -354,7 +354,7 @@ void Damage_Overlay(Cell const & cell, const WarheadTypeClass * warhead, int str
 void Spawn_Flames_And_Smudges(const Cell & cell, int range, int distance, const WarheadTypeClass * warhead)
 {
     Coordinate cell_coord = Cell_Coord(cell);
-    cell_coord.Z = Map.Get_Cell_Height(cell_coord);
+    cell_coord.Z = Map.Get_Height_GL(cell_coord);
 
     const auto warhead_ext = Extension::Fetch<WarheadTypeClassExtension>(warhead);
 
@@ -411,14 +411,14 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
     cell = Coord_Cell(explosion_coord);
 
     CellClass* cellptr = &Map[cell];
-    const bool isbridge = cellptr->IsUnderBridge && explosion_coord.Z > BRIDGE_LEPTON_HEIGHT / 2 + Map.Get_Cell_Height(explosion_coord);
+    const bool isbridge = cellptr->IsUnderBridge && explosion_coord.Z > BRIDGE_LEPTON_HEIGHT / 2 + Map.Get_Height_GL(explosion_coord);
     ObjectClass* impacto = cellptr->Cell_Occupier(isbridge);
 
     /**
      *  Fill the list with units that are in flight, because
      *  they are not present in cell data.
      */
-    if (warhead_ext->IsVolumetric || Map.Get_Cell_Height(Cell_Coord(cell)) < explosion_coord.Z) {
+    if (warhead_ext->IsVolumetric || Map.Get_Height_GL(Cell_Coord(cell)) < explosion_coord.Z) {
         int air_range = use_cell_spread ? static_cast<int>(warhead_ext->CellSpread + 0.99) : 1;
         AircraftTracker->Fetch_Targets(&Map[cell], air_range);
 
@@ -461,7 +461,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
                  *
                  *  Take distance to ground level to account when damaging buildings.
                  */
-                distance = std::abs(explosion_coord.Z - object->Get_Z_Coord());
+                distance = std::abs(explosion_coord.Z - object->AbsoluteHeight);
                 if (distance < LEVEL_LEPTON_H * 2) {
                     distance = 0;
                 }
@@ -519,7 +519,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
         }
     }
 
-    const bool close_to_ground = std::abs(explosion_coord.Z - Map.Get_Cell_Height(explosion_coord)) < LEVEL_LEPTON_H;
+    const bool close_to_ground = std::abs(explosion_coord.Z - Map.Get_Height_GL(explosion_coord)) < LEVEL_LEPTON_H;
 
     cellptr = &Map[cell];
 

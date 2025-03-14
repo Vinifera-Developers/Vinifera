@@ -141,9 +141,9 @@ HRESULT TerrainTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int TerrainTypeClassExtension::Size_Of() const
+int TerrainTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -154,7 +154,7 @@ int TerrainTypeClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void TerrainTypeClassExtension::Detach(TARGET target, bool all)
+void TerrainTypeClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("TerrainTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -167,9 +167,9 @@ void TerrainTypeClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void TerrainTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void TerrainTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("TerrainTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     crc(IsLightEnabled);
 }

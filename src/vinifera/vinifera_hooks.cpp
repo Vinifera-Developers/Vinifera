@@ -61,11 +61,11 @@
  * 
  *  @author: CCHyper
  */
-static void _Detach_This_From_All_Intercept(TARGET target, bool all)
+static void _Detach_This_From_All_Intercept(AbstractClass * target, bool all)
 {
     Extension::Detach_This_From_All(target, all);
 
-    if (target->What_Am_I() == RTTI_AIRCRAFT)
+    if (target->Fetch_RTTI() == RTTI_AIRCRAFT)
         KamikazeTracker->Detach(reinterpret_cast<AircraftClass const*>(target));
 
     Detach_This_From_All(target, all);

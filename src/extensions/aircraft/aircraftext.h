@@ -55,13 +55,13 @@ AircraftClassExtension final : public FootClassExtension
         AircraftClassExtension(const NoInitClass &noinit);
         virtual ~AircraftClassExtension();
 
-        virtual int Size_Of() const override;
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+        virtual int Get_Object_Size() const override;
+        virtual void Detach(AbstractClass * target, bool all = true) override;
+        virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual AircraftClass *This() const override { return reinterpret_cast<AircraftClass *>(FootClassExtension::This()); }
         virtual const AircraftClass *This_Const() const override { return reinterpret_cast<const AircraftClass *>(FootClassExtension::This_Const()); }
-        virtual RTTIType What_Am_I() const override { return RTTI_AIRCRAFT; }
+        virtual RTTIType Fetch_RTTI() const override { return RTTI_AIRCRAFT; }
 
     public:
 
