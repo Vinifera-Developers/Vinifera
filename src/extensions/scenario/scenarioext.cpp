@@ -1314,7 +1314,7 @@ void ScenarioClassExtension::Create_Units(bool official)
             continue;
         }
 
-        int owner_id = 1 << hptr->Class->ID;
+        int owner_id = 1 << hptr->Class->HeapID;
 
         DEBUG_INFO("Generating units for house %d (Name: %s - \"%s\", Color: %s)...\n",
             house, hptr->Class->Name(), hptr->IniName, ColorSchemes[hptr->RemapColor]->Name);

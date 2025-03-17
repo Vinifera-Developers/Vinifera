@@ -63,7 +63,7 @@ public:
  */
 ActionType SuperWeaponTypeClassExt::_What_Action(Cell& cell, ObjectClass* object) const
 {
-    if (ActsLike == SPECIAL_EM_PULSE)
+    if (Type == SUPER_EM_PULSE)
     {
         const auto swtype_ext = Extension::Fetch<SuperWeaponTypeClassExtension>(this);
 

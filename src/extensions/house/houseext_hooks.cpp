@@ -321,7 +321,7 @@ int HouseClassExt::_AI_Building()
              *  If it's a wall tower, delete it twice?
              *  Perhaps it's assumed that the wall tower is followed by its upgrade?
              */
-            if (node->Type == Rule->WallTower->Type) {
+            if (node->Type == Rule->WallTower->HeapID) {
                 Base.Nodes.Delete(nodeid);
             }
 
@@ -402,7 +402,7 @@ int HouseClassExt::_AI_Building()
          *  Build our chosen power structure before building whatever else we're trying to build.
          */
         const int id = Base.Nodes.ID(node);
-        Base.Nodes.Insert(id, BaseNodeClass(choice->Type, Cell(0, 0)));
+        Base.Nodes.Insert(id, BaseNodeClass(choice->HeapID, Cell(0, 0)));
 
         return 1;
 
@@ -700,7 +700,7 @@ DECLARE_PATCH(_HouseClass_Can_Build_BuildCheat_Patch)
              *  Check that the object has this house set as one of its owners.
              *  if true, force this 
              */
-            if (((1 << this_ptr->Class->ID) & objecttype->Get_Ownable()) != 0) {
+            if (((1 << this_ptr->Class->HeapID) & objecttype->Get_Ownable()) != 0) {
                 //DEBUG_INFO("Forcing \"%s\" available.\n", objecttype->IniName);
                 goto return_true;
             }

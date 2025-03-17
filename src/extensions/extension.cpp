@@ -1443,9 +1443,9 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         GameCRC = 0;
         HouseClass *housep = Houses[house];
         if (housep) {
-            //const char *a = HouseTypes[housep->ID]->Name();
+            //const char *a = HouseTypes[housep->HeapID]->Name();
             //const char *b = housep->ActLike != HOUSE_NONE ? HouseTypes[housep->ActLike]->Name() : "<none>";
-            std::fprintf(fp, "%s: IsHuman:%d  Color:%s  ID:%d  Credits:%d  Power:%d  Drain:%d  HouseType:%s  ActLike:%s\n",
+            std::fprintf(fp, "%s: IsHuman:%d  Color:%s  HeapID:%d  Credits:%d  Power:%d  Drain:%d  HouseType:%s  ActLike:%s\n",
                 housep->IniName,
                 housep->IsHuman,
                 ColorSchemes[housep->RemapColor]->Name,
@@ -1490,10 +1490,10 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                         navcom_coord = ptr->NavCom->Center_Coord();
                     }
 
-                    std::fprintf(fp, "COORD:%d,%d,%d  Facing:%d  Mission:%s  Type:%s(%d)  Speed:%d  TarCom:%s(%d,%d,%d)  NavCom:%s(%d,%d,%d)  Doing:%d  Path: ",
+                    std::fprintf(fp, "COORD:%d,%d,%d  Facing:%d  Mission:%s  HeapID:%s(%d)  Speed:%d  TarCom:%s(%d,%d,%d)  NavCom:%s(%d,%d,%d)  Doing:%d  Path: ",
                                 ptr->Center_Coord().X, ptr->Center_Coord().Y, ptr->Center_Coord().Z,
                                 (int)ptr->PrimaryFacing.Current().Get_Dir(), MissionClass::Mission_Name(ptr->Get_Mission()),
-                                ptr->Class->Name(), ptr->Class->Type,
+                                ptr->Class->Name(), ptr->Class->HeapID,
                                 (int)(ptr->Speed * 256.0),
                                 tarcom_name, tarcom_coord.X, tarcom_coord.Y, tarcom_coord.Z,
                                 navcom_name, navcom_coord.X, navcom_coord.Y, navcom_coord.Z,
@@ -1536,10 +1536,10 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                         navcom_coord = ptr->NavCom->Center_Coord();
                     }
 
-                    std::fprintf(fp, "COORD:%d,%d,%d  Facing:%d  Facing2:%d  Mission:%s  Type:%s(%d)  TarCom:%s(%d,%d,%d)  NavCom:%s(%d,%d,%d)  TrkNum:%d  TrkInd:%d  SpdAcc:%d  Path:",
+                    std::fprintf(fp, "COORD:%d,%d,%d  Facing:%d  Facing2:%d  Mission:%s  HeapID:%s(%d)  TarCom:%s(%d,%d,%d)  NavCom:%s(%d,%d,%d)  TrkNum:%d  TrkInd:%d  SpdAcc:%d  Path:",
                                 ptr->Center_Coord().X, ptr->Center_Coord().Y, ptr->Center_Coord().Z,
                                 (int)ptr->PrimaryFacing.Current().Get_Dir(), (int)ptr->SecondaryFacing.Current().Get_Dir(), MissionClass::Mission_Name(ptr->Get_Mission()),
-                                ptr->Class->Name(), ptr->Class->Type,
+                                ptr->Class->Name(), ptr->Class->HeapID,
                                 tarcom_name, tarcom_coord.X, tarcom_coord.Y, tarcom_coord.Z,
                                 navcom_name, navcom_coord.X, navcom_coord.Y, navcom_coord.Z,
                                 ptr->Locomotor_Ptr()->Get_Track_Number(), ptr->Locomotor_Ptr()->Get_Track_Number(), ptr->Locomotor_Ptr()->Get_Speed_Accum());
@@ -1573,10 +1573,10 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                         tarcom_coord = ptr->TarCom->Center_Coord();
                     }
 
-                    std::fprintf(fp, "COORD:%d,%d,%d  Facing:%d  Mission:%s  Type:%s(%d)  TarCom:%s(%d,%d,%d)\n",
+                    std::fprintf(fp, "COORD:%d,%d,%d  Facing:%d  Mission:%s  HeapID:%s(%d)  TarCom:%s(%d,%d,%d)\n",
                                 ptr->Center_Coord().X, ptr->Center_Coord().Y, ptr->Center_Coord().Z,
                                 (int)ptr->PrimaryFacing.Current().Get_Dir(), MissionClass::Mission_Name(ptr->Get_Mission()),
-                                ptr->Class->Name(), ptr->Class->Type,
+                                ptr->Class->Name(), ptr->Class->HeapID,
                                 tarcom_name, tarcom_coord.X, tarcom_coord.Y, tarcom_coord.Z);
                 }
             }
@@ -1614,10 +1614,10 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                         navcom_coord = ptr->NavCom->Center_Coord();
                     }
 
-                    std::fprintf(fp, "COORD:%d,%d,%d  Facing:%d  Mission:%s  Type:%s(%d) TarCom:%s(%d,%d,%d)  NavCom:%s(%d,%d,%d)  Path:",
+                    std::fprintf(fp, "COORD:%d,%d,%d  Facing:%d  Mission:%s  HeapID:%s(%d) TarCom:%s(%d,%d,%d)  NavCom:%s(%d,%d,%d)  Path:",
                                 ptr->Center_Coord().X, ptr->Center_Coord().Y, ptr->Center_Coord().Z,
                                 (int)ptr->PrimaryFacing.Current().Get_Dir(), MissionClass::Mission_Name(ptr->Get_Mission()),
-                                ptr->Class->Name(), ptr->Class->Type,
+                                ptr->Class->Name(), ptr->Class->HeapID,
                                 tarcom_name, tarcom_coord.X, tarcom_coord.Y, tarcom_coord.Z,
                                 navcom_name, navcom_coord.X, navcom_coord.Y, navcom_coord.Z);
 
@@ -1649,7 +1649,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
             owner_id = bullet->Payback->Owner();
         }
 
-        std::fprintf(fp, "Coord:%d,%d,%d  TargetCoord:(%d,%d,%d)  Payback:%s  Owner:%s  OwnerID:%d  Type:%s\n",
+        std::fprintf(fp, "Coord:%d,%d,%d  TargetCoord:(%d,%d,%d)  Payback:%s  Owner:%s  OwnerID:%d  HeapID:%s\n",
             bullet->Center_Coord().X, bullet->Center_Coord().Y, bullet->Center_Coord().Z,
             bullet->Target_Coord().X, bullet->Target_Coord().Y, bullet->Target_Coord().Z,
             payback, payback_owner, owner_id, bullet_name);
@@ -1672,7 +1672,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
 
         const char *anim_name = animp->Full_Name();
 
-        std::fprintf(fp, "Coord:%d,%d,%d  Target:%s(%d,%d,%d)  OwnerHouse:%d  Loops:%d  Type:%s  \n",
+        std::fprintf(fp, "Coord:%d,%d,%d  Target:%s(%d,%d,%d)  OwnerHouse:%d  Loops:%d  HeapID:%s  \n",
             animp->Center_Coord().X, animp->Center_Coord().Y, animp->Center_Coord().Z,
             xobject_name, xobject_coord.X, xobject_coord.Y, xobject_coord.Z,
             animp->OwnerHouse,
@@ -1693,34 +1693,34 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
             std::fprintf(fp, "Object %d: %s ", index, objp->Coord.As_String());
             switch (objp->Fetch_RTTI()) {
                 case RTTI_AIRCRAFT:
-                    std::fprintf(fp, "Aircraft  (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                    std::fprintf(fp, "Aircraft  (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                     break;
                 case RTTI_ANIM:
-                    std::fprintf(fp, "Anim      (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                    std::fprintf(fp, "Anim      (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                         break;
                 case RTTI_BUILDING:
-                    std::fprintf(fp, "Building  (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                    std::fprintf(fp, "Building  (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                     break;
                 case RTTI_BULLET:
-                    std::fprintf(fp, "Bullet    (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                    std::fprintf(fp, "Bullet    (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                     break;
                 case RTTI_INFANTRY:
-                    std::fprintf(fp, "Infantry  (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                    std::fprintf(fp, "Infantry  (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                     break;
                 case RTTI_OVERLAY:
-                    std::fprintf(fp, "Overlay   (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                    std::fprintf(fp, "Overlay   (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                     break;
                 case RTTI_SMUDGE:
-                    std::fprintf(fp, "Smudge    (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                    std::fprintf(fp, "Smudge    (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                     break;
                 case RTTI_TERRAIN:
-                    std::fprintf(fp, "Terrain   (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                    std::fprintf(fp, "Terrain   (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                     break;
                 case RTTI_UNIT:
-                    std::fprintf(fp, "Unit      (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                    std::fprintf(fp, "Unit      (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                     break;
                 case RTTI_PARTICLE:
-                    std::fprintf(fp, "Particle  (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                    std::fprintf(fp, "Particle  (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                     break;
             };
             HouseClass *housep = objp->Owner_HouseClass();
@@ -1746,34 +1746,34 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         std::fprintf(fp, "Object %d: %s ", index, objp->Coord.As_String());
         switch (objp->Fetch_RTTI()) {
             case RTTI_AIRCRAFT:
-                std::fprintf(fp, "Aircraft  (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                std::fprintf(fp, "Aircraft  (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_ANIM:
-                std::fprintf(fp, "Anim      (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                std::fprintf(fp, "Anim      (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_BUILDING:
-                std::fprintf(fp, "Building  (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                std::fprintf(fp, "Building  (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_BULLET:
-                std::fprintf(fp, "Bullet    (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                std::fprintf(fp, "Bullet    (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_INFANTRY:
-                std::fprintf(fp, "Infantry  (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                std::fprintf(fp, "Infantry  (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_OVERLAY:
-                std::fprintf(fp, "Overlay   (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                std::fprintf(fp, "Overlay   (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_SMUDGE:
-                std::fprintf(fp, "Smudge    (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                std::fprintf(fp, "Smudge    (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_TERRAIN:
-                std::fprintf(fp, "Terrain   (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                std::fprintf(fp, "Terrain   (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_UNIT:
-                std::fprintf(fp, "Unit      (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                std::fprintf(fp, "Unit      (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_PARTICLE:
-                std::fprintf(fp, "Particle  (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                std::fprintf(fp, "Particle  (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
         };
         HouseClass *housep = objp->Owner_HouseClass();

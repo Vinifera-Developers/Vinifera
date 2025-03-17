@@ -706,7 +706,7 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
     int oid = Strip->Buildables[index].BuildableID;
 
     TechnoTypeClass const* choice = nullptr;
-    SpecialWeaponType spc = SPECIAL_NONE;
+    SuperWeaponType spc = SUPER_NONE;
 
     /*
     **	Determine the factory number that would apply to objects of the type
@@ -727,11 +727,11 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
         }
         else
         {
-            spc = (SpecialWeaponType)oid;
+            spc = (SuperWeaponType)oid;
         }
     }
 
-    if (spc != SPECIAL_NONE)
+    if (spc != SUPER_NONE)
     {
         /*
         **	Display the help text if the mouse is over the button.
@@ -747,7 +747,7 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
         */
         if (flags & RIGHTPRESS)
         {
-            Map.TargettingType = SPECIAL_NONE;
+            Map.TargettingType = SUPER_NONE;
         }
 
         /*
@@ -768,7 +768,7 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
                     }
                     else
                     {
-                        OutList.Add(EventClass(PlayerPtr->Fetch_Heap_ID(), EVENT_SPECIAL_PLACE, PlayerPtr->SuperWeapon[spc]->Class->Type, &INVALID_CELL));
+                        OutList.Add(EventClass(PlayerPtr->Fetch_Heap_ID(), EVENT_SPECIAL_PLACE, PlayerPtr->SuperWeapon[spc]->Class->HeapID, &INVALID_CELL));
                     }
                 }
                 else
@@ -874,7 +874,7 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
                         TechnoClass* pending = factory->Get_Object();
                         if (!pending && factory->Get_Special_Item())
                         {
-                            Map.TargettingType = SPECIAL_ANY;
+                            Map.TargettingType = SUPER_ANY;
                         }
                         else
                         {

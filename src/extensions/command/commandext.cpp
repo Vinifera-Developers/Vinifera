@@ -409,7 +409,7 @@ bool ManualPlaceCommandClass::Process()
         /**
          *  Abort targeting the SW, so that once we place the building we don't go back to a superweapon cursor.
          */
-        Map.TargettingType = SPECIAL_NONE;
+        Map.TargettingType = SUPER_NONE;
 
         /**
          *  Go into placement mode.
@@ -1211,7 +1211,7 @@ bool SetStructureTabCommandClass::Process()
         /**
          *  Abort targeting the SW, so that once we place the building we don't go back to a superweapon cursor.
          */
-        Map.TargettingType = SPECIAL_NONE;
+        Map.TargettingType = SUPER_NONE;
 
         /**
          *  Go into placement mode.
@@ -1816,7 +1816,7 @@ bool SpecialWeaponsCommandClass::Process()
      *  Iterate over all the special weapon slots for the player house
      *  and make them all available, fully charged!
      */
-    for (SpecialWeaponType i = SPECIAL_FIRST; i < SuperWeaponTypes.Count(); ++i) {
+    for (SuperWeaponType i = SUPER_FIRST; i < SuperWeaponTypes.Count(); ++i) {
 
         PlayerPtr->SuperWeapon[i]->Enable(true, true, true);
         PlayerPtr->SuperWeapon[i]->Forced_Charge(true);
@@ -3554,7 +3554,7 @@ bool PlaceInfantryCommandClass::Process()
     
     DynamicVectorClass<InfantryTypeClass *> available_infantry;
 
-    int owner_id = 1 << PlayerPtr->Class->ID;
+    int owner_id = 1 << PlayerPtr->Class->HeapID;
 
     /**
      *  Build a list of infantry from the available starting units.
@@ -3630,7 +3630,7 @@ bool PlaceUnitCommandClass::Process()
     
     DynamicVectorClass<UnitTypeClass *> available_units;
 
-    int owner_id = 1 << PlayerPtr->Class->ID;
+    int owner_id = 1 << PlayerPtr->Class->HeapID;
 
     /**
      *  Build a list of units from the available starting units.

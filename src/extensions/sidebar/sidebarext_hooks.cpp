@@ -1595,7 +1595,7 @@ void StripClassExt::_Draw_It(bool complete)
              */
             if (index < BuildableCount)
             {
-                SpecialWeaponType spc = SPECIAL_NONE;
+                SuperWeaponType spc = SUPER_NONE;
 
                 if (Buildables[index].BuildableType != RTTI_SPECIAL)
                 {
@@ -1658,7 +1658,7 @@ void StripClassExt::_Draw_It(bool complete)
                 }
                 else
                 {
-                    spc = (SpecialWeaponType)Buildables[index].BuildableID;
+                    spc = (SuperWeaponType)Buildables[index].BuildableID;
 
                     name = SuperWeaponTypes[spc]->FullName;
                     shapefile = Get_Special_Cameo(spc);
@@ -1673,7 +1673,7 @@ void StripClassExt::_Draw_It(bool complete)
                     stage = PlayerPtr->SuperWeapon[spc]->Anim_Stage();
                     darken = false;
 
-                    if (spc == SPECIAL_NONE)
+                    if (spc == SUPER_NONE)
                     {
                         shapefile = LogoShape;
                     }
