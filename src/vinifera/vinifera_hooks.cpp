@@ -616,6 +616,12 @@ __declspec(dllexport) uint32_t __cdecl Vinifera_Save_File_Version()
 }
 
 
+/**
+ *  A replacement buffer for RLE_Blit.
+ */
+char RLEBlitBuffer[4096];
+
+
 void Vinifera_Hooks()
 {
     /**
@@ -665,6 +671,11 @@ void Vinifera_Hooks()
      */
     Patch_Byte(0x0057C97E+3, 0x07);
 #endif
+
+    /**
+     *  Replace a small buffer in RLE_Blit which when overrun caused artifacts.
+     */
+    Patch_Dword(0x00423D4D + 4, reinterpret_cast<uint32_t>(&RLEBlitBuffer[0]));
 
     /**
      *  Fire an assert on save/load fail, rather than hard crash.
