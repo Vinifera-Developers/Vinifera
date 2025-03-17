@@ -241,6 +241,9 @@ Vanilla fixes:
 - VehicleTypes with Jumpjet locomotion now take damage in flight (by ZivDero)
 - Fix the map glitching around when scrolling if the map is not large enough to fill the entire screen (by Belonit, ZivDero)
 - Animations now use their `Warhead` to deal damage, if one is specified (by ZivDero)
+- Fix a bug where a visceroid was spawned when poison gas destroyed a non-crewed vehicle, building, or terrain object (by Rampastring)
+- Fix a bug where it was impossible to tell infantry to enter cloaked allied transports (by Rampastring)
+- Super Weapons with `Type=MultiMissile` and `Type=ChemMissile` now fire using their own weapon when fired from a building (by ZivDero)
 
 </details>
 

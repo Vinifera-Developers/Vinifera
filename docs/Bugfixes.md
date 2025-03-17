@@ -67,3 +67,4 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix the map glitching around when scrolling if the map is not large enough to fill the entire screen.
 - Fix a bug where a visceroid was spawned when poison gas destroyed a non-crewed vehicle, building, or terrain object.
 - Fix a bug where it was impossible to tell infantry to enter cloaked allied transports.
+- Super Weapons with `Type=MultiMissile` and `Type=ChemMissile` now fire using their own weapon when fired from a building

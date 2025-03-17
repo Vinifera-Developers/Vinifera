@@ -36,6 +36,7 @@
 #include "house.h"
 #include "housetype.h"
 #include "sideext.h"
+#include "building.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -90,6 +91,23 @@ DECLARE_PATCH(_SuperClass_Place_HunterSeeker_Type_Patch)
 
 
 /**
+ *  Patch to use the actual SAW HeapID when launching a missile,
+ *  instead of the Type= number.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_SuperClass_Place_NukeType)
+{
+    GET_REGISTER_STATIC(SuperClass*, this_ptr, eax);
+    GET_REGISTER_STATIC(BuildingClass*, launchsite, esi);
+
+    launchsite->field_298 = this_ptr->Class->HeapID;
+
+    JMP(0x0060C4AA);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void SuperClassExtension_Hooks()
@@ -100,4 +118,5 @@ void SuperClassExtension_Hooks()
     SuperClassExtension_Init();
 
     Patch_Jump(0x0060C5DE, &_SuperClass_Place_HunterSeeker_Type_Patch);
+    Patch_Jump(0x0060C49E, &_SuperClass_Place_NukeType);
 }
