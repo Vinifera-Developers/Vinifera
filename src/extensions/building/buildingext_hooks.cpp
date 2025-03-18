@@ -218,9 +218,8 @@ int BuildingClassExt::_How_Many_Survivors() const
  */
 int BuildingClassExt::_Shape_Number() const
 {
-    /**
-     *  Laser fences and Firestorm walls have a precalculated frame to show.
-     */
+    int shapenum = Fetch_Stage();
+
     if (Class->IsLaserFence) {
         return LaserFenceFrame;
     }
@@ -229,13 +228,15 @@ int BuildingClassExt::_Shape_Number() const
         return FirestormWallFrame;
     }
 
-    int shapenum = Fetch_Stage();
-
     /**
      *  The shape file to use for rendering depends on whether the building
      *  is undergoing construction or not.
      */
     if (BState == BSTATE_CONSTRUCTION) {
+
+        if (Class->IsGate) {
+            shapenum = (Class->Anims[BSTATE_CONSTRUCTION].Start + Class->Anims[BSTATE_CONSTRUCTION].Count - 1) - shapenum;
+        }
 
         /**
          *  If the building is deconstructing, then the display frame progresses
@@ -245,33 +246,73 @@ int BuildingClassExt::_Shape_Number() const
             shapenum = (Class->Anims[BState].Start + Class->Anims[BState].Count - 1) - shapenum;
         }
 
-    }
-    else if (Class->IsGate)
-    {
-        if (Get_Health_Ratio() > Rule->ConditionYellow) {
+    } else if (Class->IsGate) {
+
+        if (HealthRatio <= Rule->ConditionYellow) {
+            return Class->GateStages + 1;
+        } else {
             return 0;
         }
-        else {
-            return Class->GateStages + 1;
-        }
-    }
-    else {
+
+    } else {
+
         /**
          *  If below half strenth, then show the damage frames of the
          *  building.
          */
-        if (Get_Health_Ratio() <= Rule->ConditionYellow) {
-            int last1 = Class->Anims[BSTATE_IDLE].Start + Class->Anims[BSTATE_IDLE].Count;
-            int last2 = Class->Anims[BSTATE_ACTIVE].Start + Class->Anims[BSTATE_ACTIVE].Count;
-            int largest = std::max(last1, last2);
-            last2 = Class->Anims[BSTATE_AUX1].Start + Class->Anims[BSTATE_AUX1].Count;
-            largest = std::max(largest, last2);
-            last2 = Class->Anims[BSTATE_AUX2].Start + Class->Anims[BSTATE_AUX2].Count;
-            largest = std::max(largest, last2);
-            shapenum += largest;
+        if (HealthRatio <= Rule->ConditionYellow) {
+            if (BState == BSTATE_IDLE) {
+                shapenum++;
+            } else {
+
+                /**
+                 *  RA used to have all the damage frames follow the non-damaged frames. This is no longer the case
+                 */
+#if 0
+                int last1 = Class->Anims[BSTATE_IDLE].Start + Class->Anims[BSTATE_IDLE].Count;
+                int last2 = Class->Anims[BSTATE_ACTIVE].Start + Class->Anims[BSTATE_ACTIVE].Count;
+                int largest = std::max(last1, last2);
+                last2 = Class->Anims[BSTATE_AUX1].Start + Class->Anims[BSTATE_AUX1].Count;
+                largest = std::max(largest, last2);
+                last2 = Class->Anims[BSTATE_AUX2].Start + Class->Anims[BSTATE_AUX2].Count;
+                largest = std::max(largest, last2);
+                shapenum += largest;
+#endif
+
+                /**
+                 *  We are instead going to assume that first the user has non-anim frames, then
+                 *  all the non-damaged anim frames, followed by the same for damaged frames.
+                 */
+                int first = INT_MAX;
+                int last = -1;
+
+                /**
+                 *  We add 1 to the start frame, because in BuildingClass::Animation_AI takes place at the very
+                 *  start of BuildingClass::AI, so the first frame of the newly-assigned animation gets skipped.
+                 */
+                if (Class->Anims[BSTATE_IDLE].Start > 0 && Class->Anims[BSTATE_IDLE].Count > 0) {
+                    first = std::min(first, Class->Anims[BSTATE_IDLE].Start + 1);
+                    last = std::max(last, Class->Anims[BSTATE_IDLE].Start + Class->Anims[BSTATE_IDLE].Count - 1);
+                }
+                if (Class->Anims[BSTATE_ACTIVE].Start > 0 && Class->Anims[BSTATE_ACTIVE].Count > 0) {
+                    first = std::min(first, Class->Anims[BSTATE_ACTIVE].Start + 1);
+                    last = std::max(last, Class->Anims[BSTATE_ACTIVE].Start + Class->Anims[BSTATE_ACTIVE].Count - 1);
+                }
+                if (Class->Anims[BSTATE_AUX1].Start > 0 && Class->Anims[BSTATE_AUX1].Count > 0) {
+                    first = std::min(first, Class->Anims[BSTATE_AUX1].Start + 1);
+                    last = std::max(last, Class->Anims[BSTATE_AUX1].Start + Class->Anims[BSTATE_AUX1].Count - 1);
+                }
+                if (Class->Anims[BSTATE_AUX2].Start > 0 && Class->Anims[BSTATE_AUX2].Count > 0) {
+                    first = std::min(first, Class->Anims[BSTATE_AUX2].Start + 1);
+                    last = std::max(last, Class->Anims[BSTATE_AUX2].Start + Class->Anims[BSTATE_AUX2].Count - 1);
+                }
+
+                if (shapenum >= first) {
+                    shapenum += last - first + 1;
+                }
+            }
         }
     }
-
     return shapenum;
 }
 
@@ -1079,7 +1120,7 @@ DECLARE_PATCH(_BuildingClass_Mission_Missile_DOOR_OPENING_Delay_Patch)
     this_ptr->Status = LAUNCH_UP;
 
     ctrl = &this_ptr->Class->Anims[BSTATE_AUX1];
-    delay = (ctrl->Count - 1) * ctrl->Rate;
+    delay = (ctrl->Count - 1) * ctrl->Rate; // We have to subtract 1 here for an unknown reason, otherwise the animation loops for 1 frame
 
     _asm mov eax, delay
 
@@ -1097,7 +1138,7 @@ DECLARE_PATCH(_BuildingClass_Mission_Missile_LAUNCH_DOWN_Delay_Patch)
     this_ptr->Status = DONE_LAUNCH;
 
     ctrl = &this_ptr->Class->Anims[BSTATE_AUX2];
-    delay = (ctrl->Count - 1) * ctrl->Rate;
+    delay = ctrl->Count * ctrl->Rate;
 
     _asm mov eax, delay
 
@@ -1138,7 +1179,7 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x0049436A, &_EventClass_Execute_Archive_Selling_Patch);
     Patch_Jump(0x0042F799, &_BuildingClass_Captured_DontScore_Patch);
     Patch_Jump(0x0042E5F5, &_BuildingClass_Grand_Opening_Assign_FreeUnit_LastDockedBuilding_Patch);
-    //Patch_Jump(0x00429220, &BuildingClassExt::_Shape_Number); // It's identical to vanilla, leaving it in in case it's ever needed
+    Patch_Jump(0x00429220, &BuildingClassExt::_Shape_Number);
     Patch_Jump(0x0042E53C, 0x0042E56F); // Jump a check for the PurchasePrice of a building for spawning its FreeUnit in Grand_Opening
     Patch_Jump(0x00432740, &_BuildingClass_Mission_Missile_DOOR_OPENING_Delay_Patch);
     Patch_Jump(0x00432960, &_BuildingClass_Mission_Missile_LAUNCH_DOWN_Delay_Patch);
