@@ -1056,6 +1056,56 @@ DECLARE_PATCH(_BuildingClass_Grand_Opening_Assign_FreeUnit_LastDockedBuilding_Pa
 
 
 /**
+ *  Fix MISSION_MISSILE have the Nuke Silo open/close animations play exactly for one loop.
+ *
+ *  @author: ZivDero
+ */
+enum {
+    INITIAL,
+    DOOR_OPENING,
+    LAUNCH_UP,
+    LAUNCH_DOWN,
+    DONE_LAUNCH
+};
+
+
+DECLARE_PATCH(_BuildingClass_Mission_Missile_DOOR_OPENING_Delay_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    static int delay;
+    static const BuildingTypeClass::AnimControlStruct* ctrl;
+
+    // Stolen instructions
+    this_ptr->Status = LAUNCH_UP;
+
+    ctrl = &this_ptr->Class->Anims[BSTATE_AUX1];
+    delay = (ctrl->Count - 1) * ctrl->Rate;
+
+    _asm mov eax, delay
+
+    JMP_REG(edi, 0x0043274C);
+}
+
+
+DECLARE_PATCH(_BuildingClass_Mission_Missile_LAUNCH_DOWN_Delay_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    static int delay;
+    static const BuildingTypeClass::AnimControlStruct* ctrl;
+
+    // Stolen instructions
+    this_ptr->Status = DONE_LAUNCH;
+
+    ctrl = &this_ptr->Class->Anims[BSTATE_AUX2];
+    delay = (ctrl->Count - 1) * ctrl->Rate;
+
+    _asm mov eax, delay
+
+    JMP_REG(edi, 0x0043296C);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void BuildingClassExtension_Hooks()
@@ -1090,4 +1140,6 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x0042E5F5, &_BuildingClass_Grand_Opening_Assign_FreeUnit_LastDockedBuilding_Patch);
     //Patch_Jump(0x00429220, &BuildingClassExt::_Shape_Number); // It's identical to vanilla, leaving it in in case it's ever needed
     Patch_Jump(0x0042E53C, 0x0042E56F); // Jump a check for the PurchasePrice of a building for spawning its FreeUnit in Grand_Opening
+    Patch_Jump(0x00432740, &_BuildingClass_Mission_Missile_DOOR_OPENING_Delay_Patch);
+    Patch_Jump(0x00432960, &_BuildingClass_Mission_Missile_LAUNCH_DOWN_Delay_Patch);
 }

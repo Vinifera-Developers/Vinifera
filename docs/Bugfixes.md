@@ -68,3 +68,4 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where a visceroid was spawned when poison gas destroyed a non-crewed vehicle, building, or terrain object.
 - Fix a bug where it was impossible to tell infantry to enter cloaked allied transports.
 - Super Weapons with `Type=MultiMissile` and `Type=ChemMissile` now fire using their own weapon when fired from a building
+- Super Weapons with `Type=MultiMissile` and `Type=ChemMissile` now make the silo play `AnimAux1` and `AnimAux2` for exactly one loop at any rate.
