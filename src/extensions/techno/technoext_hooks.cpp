@@ -637,8 +637,8 @@ FireErrorType TechnoClassExt::_Can_Fire(AbstractClass * target, WeaponSlotType w
     /**
      *  If the object is completely cloaked, then you can't fire on it.
      */
-    if (techno != NULL && techno->Visual_Character(true, House) == VISUAL_HIDDEN
-        && !cptr->Sensed_By((HousesType)House->ID) && techno->House != House
+    if (techno != nullptr && techno->Visual_Character(true, House) == VISUAL_HIDDEN
+        && !cptr->Sensed_By(House->HeapID) && techno->House != House
         && (Combat_Damage() > 0 || !techno->House->Is_Ally(House)))
     {
         return FIRE_CANT;
@@ -2314,7 +2314,7 @@ DECLARE_PATCH(_TechnoClass_Null_House_Warning_Patch)
         Fatal("Null house pointer in TechnoClass::Owner!\n");
 
     } else {
-        id = house->ID;
+        id = house->HeapID;
     }
     
     _asm { mov eax, id }

@@ -501,7 +501,7 @@ bool RepeatLastBuildingCommandClass::Process()
 
     DEBUG_INFO("RepeatLastBuildingCommandClass - \"%s\"\n", buildingtype->Full_Name());
 
-    OutList.Add(EventClass(PlayerPtr->ID, EVENT_PRODUCE, RTTI_BUILDINGTYPE, building));
+    OutList.Add(EventClass(PlayerPtr->HeapID, EVENT_PRODUCE, RTTI_BUILDINGTYPE, building));
 
     return true;
 }
@@ -578,7 +578,7 @@ bool RepeatLastInfantryCommandClass::Process()
 
     DEBUG_INFO("RepeatLastInfantryCommandClass - \"%s\"\n", infantrytype->Full_Name());
 
-    OutList.Add(EventClass(PlayerPtr->ID, EVENT_PRODUCE, RTTI_INFANTRYTYPE, infantry));
+    OutList.Add(EventClass(PlayerPtr->HeapID, EVENT_PRODUCE, RTTI_INFANTRYTYPE, infantry));
 
     return true;
 }
@@ -655,7 +655,7 @@ bool RepeatLastUnitCommandClass::Process()
 
     DEBUG_INFO("RepeatLastUnitCommandClass - \"%s\"\n", unittype->Full_Name());
 
-    OutList.Add(EventClass(PlayerPtr->ID, EVENT_PRODUCE, RTTI_UNITTYPE, unit));
+    OutList.Add(EventClass(PlayerPtr->HeapID, EVENT_PRODUCE, RTTI_UNITTYPE, unit));
 
     return true;
 }
@@ -732,7 +732,7 @@ bool RepeatLastAircraftCommandClass::Process()
 
     DEBUG_INFO("RepeatLastAircraftCommandClass - \"%s\"\n", aircrafttype->Full_Name());
 
-    OutList.Add(EventClass(PlayerPtr->ID, EVENT_PRODUCE, RTTI_AIRCRAFTTYPE, aircraft));
+    OutList.Add(EventClass(PlayerPtr->HeapID, EVENT_PRODUCE, RTTI_AIRCRAFTTYPE, aircraft));
 
     return true;
 }
@@ -3994,7 +3994,7 @@ bool DumpNetworkCRCCommandClass::Process()
     std::snprintf(filename_buffer, sizeof(filename_buffer), "%s\\SYNC_%s-%02d_%02u-%02u-%04u_%02u-%02u-%02u.LOG",
         Vinifera_DebugDirectory,
         PlayerPtr->IniName,
-        PlayerPtr->ID,
+        PlayerPtr->HeapID,
         day, month, year, hour, min, sec);
 
     /**

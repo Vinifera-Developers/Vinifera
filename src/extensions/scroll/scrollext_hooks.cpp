@@ -54,7 +54,7 @@ bool Passes_Cloak_Check(TechnoClass* techno)
 
 	Coordinate coord = techno->Center_Coord();
 	const CellClass* cellptr = &Map[coord];
-	if (cellptr->Sensed_By((HousesType)PlayerPtr->ID))
+	if (cellptr->Sensed_By(PlayerPtr->HeapID))
 	{
 		return true;
 	}

@@ -679,7 +679,7 @@ void ScenarioClassExtension::Assign_Houses()
         /**
          *  Record where we placed this player.
          */
-        node.Player.ID = HousesType(housep->ID);
+        node.Player.ID = HousesType(housep->HeapID);
 
         DEBUG_INFO("    Assigned player \"%s\" (House: \"%s\", ID: %d, Color: \"%s\") to slot %d.\n",
             node.Name, housep->Class->Name(), node.Player.ID, ColorSchemes[housep->RemapColor]->Name, i);
@@ -756,7 +756,7 @@ void ScenarioClassExtension::Assign_Houses()
         housep->Assign_Handicap(difficulty);
 
         DEBUG_INFO("    Assigned computer house \"%s\" (ID: %d, Color: \"%s\") to slot %d.\n",
-            housep->Class->Name(), housep->ID, ColorSchemes[housep->RemapColor]->Name, i);
+            housep->Class->Name(), housep->HeapID, ColorSchemes[housep->RemapColor]->Name, i);
     }
 
     /**

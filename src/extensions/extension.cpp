@@ -1176,7 +1176,7 @@ void Extension::Print_CRCs(EventClass *ev)
     std::snprintf(filename_buffer, sizeof(filename_buffer), "%s\\SYNC_%s-%02d_%02u-%02u-%04u_%02u-%02u-%02u-%d.LOG",
         Vinifera_DebugDirectory,
         PlayerPtr->IniName,
-        PlayerPtr->ID,
+        PlayerPtr->HeapID,
         Execute_Day, Execute_Month, Execute_Year, Execute_Hour, Execute_Min, Execute_Sec, Frame);
 
     /**
@@ -1254,7 +1254,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     std::fprintf(fp, "\n");
 
     std::fprintf(fp, "Frames: %d\n", Frame);
-    std::fprintf(fp, "Player ID: %02d\n", PlayerPtr->ID);
+    std::fprintf(fp, "Player ID: %02d\n", PlayerPtr->HeapID);
     std::fprintf(fp, "Player Name: %s\n", PlayerPtr->IniName);
     //std::fprintf(fp, "Average FPS: %d\n", total_cycles_or_iterations_ > 0 ? total_fps_ / total_cycles_or_iterations_ : 0);
     std::fprintf(fp, "Max MaxAhead: %d\n", Session.MaxMaxAhead);
@@ -1449,7 +1449,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                 housep->IniName,
                 housep->IsHuman,
                 ColorSchemes[housep->RemapColor]->Name,
-                housep->ID,
+                housep->HeapID,
                 housep->Credits,
                 housep->Power,
                 housep->Drain,
@@ -1468,7 +1468,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         HouseClass *housep = Houses[house];
         if (housep) {
             GameCRC = 0;
-            std::fprintf(fp, "------------- %s (%s %d) %s ------------\n", housep->Class->Name(), housep->IniName, housep->ID, Extension::Utility::Get_TypeID_Name<InfantryClass>().c_str());
+            std::fprintf(fp, "------------- %s (%s %d) %s ------------\n", housep->Class->Name(), housep->IniName, housep->HeapID, Extension::Utility::Get_TypeID_Name<InfantryClass>().c_str());
             for (int index = 0; index < Infantry.Count(); ++index) {
                 InfantryClass *ptr = Infantry[index];
                 if (ptr->Owner() == house) {
@@ -1514,7 +1514,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         HouseClass *housep = Houses[house];
         if (housep) {
             GameCRC = 0;
-            std::fprintf(fp, "------------- %s (%s %d) %s ------------\n", housep->Class->Name(), housep->IniName, housep->ID, Extension::Utility::Get_TypeID_Name<UnitClass>().c_str());
+            std::fprintf(fp, "------------- %s (%s %d) %s ------------\n", housep->Class->Name(), housep->IniName, housep->HeapID, Extension::Utility::Get_TypeID_Name<UnitClass>().c_str());
             for (int index = 0; index < Units.Count(); ++index) {
                 UnitClass *ptr = Units[index];
                 if (ptr->Owner() == house) {
@@ -1559,7 +1559,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         HouseClass *housep = Houses[house];
         if (housep) {
             GameCRC = 0;
-            std::fprintf(fp, "------------- %s (%s %d) %s ------------\n", housep->Class->Name(), housep->IniName, housep->ID, Extension::Utility::Get_TypeID_Name<BuildingClass>().c_str());
+            std::fprintf(fp, "------------- %s (%s %d) %s ------------\n", housep->Class->Name(), housep->IniName, housep->HeapID, Extension::Utility::Get_TypeID_Name<BuildingClass>().c_str());
             for (int index = 0; index < Buildings.Count(); ++index) {
                 BuildingClass *ptr = Buildings[index];
                 if (ptr->Owner() == house) {
@@ -1592,7 +1592,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         HouseClass *housep = Houses[house];
         if (housep) {
             GameCRC = 0;
-            std::fprintf(fp, "------------- %s (%s %d) %s ------------\n", housep->Class->Name(), housep->IniName, housep->ID, Extension::Utility::Get_TypeID_Name<AircraftClass>().c_str());
+            std::fprintf(fp, "------------- %s (%s %d) %s ------------\n", housep->Class->Name(), housep->IniName, housep->HeapID, Extension::Utility::Get_TypeID_Name<AircraftClass>().c_str());
             for (int index = 0; index < Aircrafts.Count(); ++index) {
                 AircraftClass *ptr = Aircrafts[index];
                 if (ptr->Owner() == house) {

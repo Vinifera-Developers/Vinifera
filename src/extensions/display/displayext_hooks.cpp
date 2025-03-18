@@ -144,7 +144,7 @@ DECLARE_PATCH(_DisplayClass_Passes_Proximity_Passes_Check_Patch)
      * 
      *  Ensure the building is considered eligible for adjacency checks.
      */
-    if (base->House->ID == house && base->Class->IsBase) {
+    if (base->House->HeapID == house && base->Class->IsBase) {
         passes();
     }
 
