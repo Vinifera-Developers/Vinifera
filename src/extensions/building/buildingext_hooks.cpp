@@ -1106,7 +1106,7 @@ int _BuildingClass_Mission_Missile_LAUNCH_DOWN(BuildingClass* this_ptr)
     /**
      *  Check if the silo open animation has finished.
      */
-    if (this_ptr->Anims[BANIM_SPECIAL_ONE] == nullptr) {
+    if (this_ptr->Anims[BANIM_SPECIAL_TWO] == nullptr) {
 
         /**
          *  If so, play the closing animation.
