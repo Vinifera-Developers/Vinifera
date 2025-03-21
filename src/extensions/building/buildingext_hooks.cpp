@@ -1061,9 +1061,7 @@ DECLARE_PATCH(_BuildingClass_Grand_Opening_Assign_FreeUnit_LastDockedBuilding_Pa
 
 
 /**
- *  Fix MISSION_MISSILE have the Nuke Silo open/close animations play exactly for one loop.
- *
- *  @author: ZivDero
+ *  An enum for BuildingClass::Mission_Missile missile states
  */
 enum {
     INITIAL,
@@ -1074,7 +1072,12 @@ enum {
 };
 
 
-
+/**
+ *  Play SpecialAnim(Two, Three) as the MultiMissile/ChemMissile
+ *  Nuke open/wait/close animations.
+ *
+ *  @author: ZivDero
+ */
 int _BuildingClass_Mission_Missile_INITIAL(BuildingClass * this_ptr)
 {
     /**

@@ -225,3 +225,4 @@ This page lists all the individual contributions to the project by their author.
   - Implement `Volumetric`, `SnapToCellCenter`.
   - Animations now use their `Warhead` to deal damage, if one is specified.
   - Super Weapons with `Type=MultiMissile` and `Type=ChemMissile` now fire using their own weapon when fired from a building.
+  - Super Weapons with `Type=MultiMissile` and `Type=ChemMissile` now have the building display Special animations.
