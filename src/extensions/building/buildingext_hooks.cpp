@@ -1104,12 +1104,17 @@ int _BuildingClass_Mission_Missile_DOOR_OPENING(BuildingClass* this_ptr)
 int _BuildingClass_Mission_Missile_LAUNCH_DOWN(BuildingClass* this_ptr)
 {
     /**
-     *  Free the opening and open animations and play the closing animation.
+     *  Check if the silo open animation has finished.
      */
-    this_ptr->Free_Animation(BANIM_SPECIAL_ONE);
-    this_ptr->Free_Animation(BANIM_SPECIAL_TWO);
-    this_ptr->Play_Animation(BANIM_SPECIAL_THREE, false, 0);
-    this_ptr->Status = DONE_LAUNCH;
+    if (this_ptr->Anims[BANIM_SPECIAL_ONE] == nullptr) {
+
+        /**
+         *  If so, play the closing animation.
+         */
+        this_ptr->Play_Animation(BANIM_SPECIAL_THREE, false, 0);
+        this_ptr->Status = DONE_LAUNCH;
+    }
+
     return 1;
 }
 
