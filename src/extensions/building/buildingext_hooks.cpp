@@ -264,11 +264,6 @@ int BuildingClassExt::_Shape_Number() const
             if (BState == BSTATE_IDLE) {
                 shapenum++;
             } else {
-
-                /**
-                 *  RA used to have all the damage frames follow the non-damaged frames. This is no longer the case
-                 */
-#if 0
                 int last1 = Class->Anims[BSTATE_IDLE].Start + Class->Anims[BSTATE_IDLE].Count;
                 int last2 = Class->Anims[BSTATE_ACTIVE].Start + Class->Anims[BSTATE_ACTIVE].Count;
                 int largest = std::max(last1, last2);
@@ -277,39 +272,6 @@ int BuildingClassExt::_Shape_Number() const
                 last2 = Class->Anims[BSTATE_AUX2].Start + Class->Anims[BSTATE_AUX2].Count;
                 largest = std::max(largest, last2);
                 shapenum += largest;
-#endif
-
-                /**
-                 *  We are instead going to assume that first the user has non-anim frames, then
-                 *  all the non-damaged anim frames, followed by the same for damaged frames.
-                 */
-                int first = INT_MAX;
-                int last = -1;
-
-                /**
-                 *  We add 1 to the start frame, because in BuildingClass::Animation_AI takes place at the very
-                 *  start of BuildingClass::AI, so the first frame of the newly-assigned animation gets skipped.
-                 */
-                if (Class->Anims[BSTATE_IDLE].Start > 0 && Class->Anims[BSTATE_IDLE].Count > 0) {
-                    first = std::min(first, Class->Anims[BSTATE_IDLE].Start + 1);
-                    last = std::max(last, Class->Anims[BSTATE_IDLE].Start + Class->Anims[BSTATE_IDLE].Count - 1);
-                }
-                if (Class->Anims[BSTATE_ACTIVE].Start > 0 && Class->Anims[BSTATE_ACTIVE].Count > 0) {
-                    first = std::min(first, Class->Anims[BSTATE_ACTIVE].Start + 1);
-                    last = std::max(last, Class->Anims[BSTATE_ACTIVE].Start + Class->Anims[BSTATE_ACTIVE].Count - 1);
-                }
-                if (Class->Anims[BSTATE_AUX1].Start > 0 && Class->Anims[BSTATE_AUX1].Count > 0) {
-                    first = std::min(first, Class->Anims[BSTATE_AUX1].Start + 1);
-                    last = std::max(last, Class->Anims[BSTATE_AUX1].Start + Class->Anims[BSTATE_AUX1].Count - 1);
-                }
-                if (Class->Anims[BSTATE_AUX2].Start > 0 && Class->Anims[BSTATE_AUX2].Count > 0) {
-                    first = std::min(first, Class->Anims[BSTATE_AUX2].Start + 1);
-                    last = std::max(last, Class->Anims[BSTATE_AUX2].Start + Class->Anims[BSTATE_AUX2].Count - 1);
-                }
-
-                if (shapenum >= first) {
-                    shapenum += last - first + 1;
-                }
             }
         }
     }
@@ -1110,38 +1072,79 @@ enum {
 };
 
 
-DECLARE_PATCH(_BuildingClass_Mission_Missile_DOOR_OPENING_Delay_Patch)
+
+int _BuildingClass_Mission_Missile_INITIAL(BuildingClass * this_ptr)
+{
+    /**
+     *  Play the silo opening animation.
+     */
+    this_ptr->Play_Animation(BANIM_SPECIAL_ONE, false, 0);
+    this_ptr->Status = DOOR_OPENING;
+    return 1;
+}
+
+
+int _BuildingClass_Mission_Missile_DOOR_OPENING(BuildingClass* this_ptr)
+{
+    /**
+     *  Check if the silo opening animation has finished.
+     */
+    if (this_ptr->Anims[BANIM_SPECIAL_ONE] == nullptr) {
+
+        /**
+         *  If so, signal that we're ready to fire and play the "holding open" animation.
+         */
+        this_ptr->Play_Animation(BANIM_SPECIAL_TWO, false, 0);
+        this_ptr->Status = LAUNCH_UP;
+    }
+    return 1;
+}
+
+
+int _BuildingClass_Mission_Missile_LAUNCH_DOWN(BuildingClass* this_ptr)
+{
+    /**
+     *  Free the opening and open animations and play the closing animation.
+     */
+    this_ptr->Free_Animation(BANIM_SPECIAL_ONE);
+    this_ptr->Free_Animation(BANIM_SPECIAL_TWO);
+    this_ptr->Play_Animation(BANIM_SPECIAL_TWO, false, 0);
+    this_ptr->Status = DONE_LAUNCH;
+    return 1;
+}
+
+
+DECLARE_PATCH(_BuildingClass_Mission_Missile_INITIAL_Patch)
 {
     GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
     static int delay;
-    static const BuildingTypeClass::AnimControlStruct* ctrl;
 
-    // Stolen instructions
-    this_ptr->Status = LAUNCH_UP;
-
-    ctrl = &this_ptr->Class->Anims[BSTATE_AUX1];
-    delay = (ctrl->Count - 1) * ctrl->Rate; // We have to subtract 1 here for an unknown reason, otherwise the animation loops for 1 frame
+    delay = _BuildingClass_Mission_Missile_INITIAL(this_ptr);
 
     _asm mov eax, delay
+    JMP_REG(edi, 0x00432721);
+}
 
+
+
+DECLARE_PATCH(_BuildingClass_Mission_Missile_DOOR_OPENING_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    static int delay;
+    
+    delay = _BuildingClass_Mission_Missile_DOOR_OPENING(this_ptr);
+
+    _asm mov eax, delay
     JMP_REG(edi, 0x0043274C);
 }
 
 
-DECLARE_PATCH(_BuildingClass_Mission_Missile_LAUNCH_DOWN_Delay_Patch)
+DECLARE_PATCH(_BuildingClass_Mission_Missile_LAUNCH_DOWN_Patch)
 {
     GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
     static int delay;
-    static const BuildingTypeClass::AnimControlStruct* ctrl;
-
-    // Stolen instructions
-    this_ptr->Status = DONE_LAUNCH;
-
-    ctrl = &this_ptr->Class->Anims[BSTATE_AUX2];
-    delay = ctrl->Count * ctrl->Rate;
-
-    _asm mov eax, delay
-
+    
+    delay = _BuildingClass_Mission_Missile_LAUNCH_DOWN(this_ptr);
     JMP_REG(edi, 0x0043296C);
 }
 
@@ -1179,8 +1182,9 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x0049436A, &_EventClass_Execute_Archive_Selling_Patch);
     Patch_Jump(0x0042F799, &_BuildingClass_Captured_DontScore_Patch);
     Patch_Jump(0x0042E5F5, &_BuildingClass_Grand_Opening_Assign_FreeUnit_LastDockedBuilding_Patch);
-    Patch_Jump(0x00429220, &BuildingClassExt::_Shape_Number);
+    //Patch_Jump(0x00429220, &BuildingClassExt::_Shape_Number);
     Patch_Jump(0x0042E53C, 0x0042E56F); // Jump a check for the PurchasePrice of a building for spawning its FreeUnit in Grand_Opening
-    Patch_Jump(0x00432740, &_BuildingClass_Mission_Missile_DOOR_OPENING_Delay_Patch);
-    Patch_Jump(0x00432960, &_BuildingClass_Mission_Missile_LAUNCH_DOWN_Delay_Patch);
+    Patch_Jump(0x00432709, &_BuildingClass_Mission_Missile_INITIAL_Patch);
+    Patch_Jump(0x00432729, &_BuildingClass_Mission_Missile_DOOR_OPENING_Patch);
+    Patch_Jump(0x00432957, &_BuildingClass_Mission_Missile_LAUNCH_DOWN_Patch);
 }
