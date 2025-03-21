@@ -1108,7 +1108,7 @@ int _BuildingClass_Mission_Missile_LAUNCH_DOWN(BuildingClass* this_ptr)
      */
     this_ptr->Free_Animation(BANIM_SPECIAL_ONE);
     this_ptr->Free_Animation(BANIM_SPECIAL_TWO);
-    this_ptr->Play_Animation(BANIM_SPECIAL_TWO, false, 0);
+    this_ptr->Play_Animation(BANIM_SPECIAL_THREE, false, 0);
     this_ptr->Status = DONE_LAUNCH;
     return 1;
 }
