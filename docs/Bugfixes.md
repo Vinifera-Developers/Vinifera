@@ -69,3 +69,16 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where it was impossible to tell infantry to enter cloaked allied transports.
 - Super Weapons with `Type=MultiMissile` and `Type=ChemMissile` now fire using their own weapon when fired from a building
 - Super Weapons with `Type=MultiMissile` and `Type=ChemMissile` now make the silo play `AnimAux1` and `AnimAux2` for exactly one loop at any rate.
+  - These animations need to be part of the structure's own SHP, rather than a separate SHP file.
+  - Using the TS Missile Silo as an example, the `AnimAux1` frames need to be added after the structure's 3 regular frames, followed by the `AnimAux2` frames, followed by the damaged `AnimAux1` frames and finally the damaged `AnimAux2` frames. For example:
+    - 0: Non-damaged structure
+    - 1: Damaged structure
+    - 2: Demolished structure (unused)
+    - 3-10: Silo doors opening animation
+    - 11-20: Silo doors closing animation
+    - 21-28: Damaged silo doors opening animation
+    - 29-38: Damaged silo doors closing animation
+    - 39-77: Shadow frames
+  - The `AnimAux1` and `AnimAux2` keys require three comma-separated values: starting frame minus 1 (minus 2 if you start counting from 1 rather than 0), total frames, frame rate (1 is fastest and higher values indicate a slower speed). With the frames specified in the example above you can use values `AnimAux1=2,8,3` and `AnimAux2=11,10,3`.
+  - It's also allowed to have overlapping frames. For example `AnimAux1=2,9,3` and `AnimAux2=10,10,3`.
+  - The missile always gets launched on the last frame of `AnimAux1`.
