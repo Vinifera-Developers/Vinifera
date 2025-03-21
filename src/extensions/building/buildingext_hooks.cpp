@@ -42,6 +42,8 @@
 #include "aircraft.h"
 #include "aircrafttype.h"
 #include "aircrafttypeext.h"
+#include "anim.h"
+#include "animext.h"
 #include "house.h"
 #include "housetype.h"
 #include "map.h"
@@ -1089,7 +1091,7 @@ int _BuildingClass_Mission_Missile_DOOR_OPENING(BuildingClass* this_ptr)
     /**
      *  Check if the silo opening animation has finished.
      */
-    if (this_ptr->Anims[BANIM_SPECIAL_ONE] == nullptr) {
+    if (this_ptr->Anims[BANIM_SPECIAL_ONE] == nullptr || AnimClassExtension::Is_About_To_End(this_ptr->Anims[BANIM_SPECIAL_ONE])) {
 
         /**
          *  If so, signal that we're ready to fire and play the "holding open" animation.
@@ -1106,7 +1108,7 @@ int _BuildingClass_Mission_Missile_LAUNCH_DOWN(BuildingClass* this_ptr)
     /**
      *  Check if the silo open animation has finished.
      */
-    if (this_ptr->Anims[BANIM_SPECIAL_TWO] == nullptr) {
+    if (this_ptr->Anims[BANIM_SPECIAL_TWO] == nullptr || AnimClassExtension::Is_About_To_End(this_ptr->Anims[BANIM_SPECIAL_TWO])) {
 
         /**
          *  If so, play the closing animation.
