@@ -70,6 +70,9 @@
 #include "hooker.h"
 #include "hooker_macros.h"
 #include "rulesext.h"
+#include "super.h"
+#include "supertypeext.h"
+#include "vox.h"
 
 
 /**
@@ -1083,7 +1086,7 @@ int _BuildingClass_Mission_Missile_INITIAL(BuildingClass * this_ptr)
     /**
      *  Play the silo opening animation.
      */
-    this_ptr->Play_Animation(BANIM_SPECIAL_ONE, false, 0);
+    this_ptr->Play_Animation(BANIM_SPECIAL_ONE, this_ptr->IsDamagedAnims, 0);
     this_ptr->Status = DOOR_OPENING;
     return 1;
 }
@@ -1099,7 +1102,7 @@ int _BuildingClass_Mission_Missile_DOOR_OPENING(BuildingClass* this_ptr)
         /**
          *  If so, signal that we're ready to fire and play the "holding open" animation.
          */
-        this_ptr->Play_Animation(BANIM_SPECIAL_TWO, false, 0);
+        this_ptr->Play_Animation(BANIM_SPECIAL_TWO, this_ptr->IsDamagedAnims, 0);
         this_ptr->Status = LAUNCH_UP;
     }
     return 1;
@@ -1116,7 +1119,7 @@ int _BuildingClass_Mission_Missile_LAUNCH_DOWN(BuildingClass* this_ptr)
         /**
          *  If so, play the closing animation.
          */
-        this_ptr->Play_Animation(BANIM_SPECIAL_THREE, false, 0);
+        this_ptr->Play_Animation(BANIM_SPECIAL_THREE, this_ptr->IsDamagedAnims, 0);
         this_ptr->Status = DONE_LAUNCH;
     }
 
@@ -1160,6 +1163,25 @@ DECLARE_PATCH(_BuildingClass_Mission_Missile_LAUNCH_DOWN_Patch)
 
 
 /**
+ *  Implements `MissileLaunchedVoice` for missile SWs.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_BuildingClass_Mission_Missile_LAUNCH_DOWN_Voice_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    static SuperWeaponTypeClassExtension* super_ext;
+
+    super_ext = Extension::Fetch<SuperWeaponTypeClassExtension>(SuperWeaponTypes[this_ptr->field_298]);
+    if (super_ext->VoxMissileLaunched != VOX_NONE) {
+        Speak(super_ext->VoxMissileLaunched);
+    }
+
+    JMP(0x00432943);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void BuildingClassExtension_Hooks()
@@ -1197,4 +1219,5 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x00432709, &_BuildingClass_Mission_Missile_INITIAL_Patch);
     Patch_Jump(0x00432729, &_BuildingClass_Mission_Missile_DOOR_OPENING_Patch);
     Patch_Jump(0x00432957, &_BuildingClass_Mission_Missile_LAUNCH_DOWN_Patch);
+    Patch_Jump(0x00432937, &_BuildingClass_Mission_Missile_LAUNCH_DOWN_Voice_Patch);
 }

@@ -302,6 +302,8 @@ HunterSeeker=  ; UnitType, the unit that is this side's Hunter-Seeker.
 
 ## Super Weapons
 
+### Out of Range Cursor
+
 - Vinifera allows customizing the mouse cursor used for ranged super weapons (currently, the EMPulse Cannon).
 
 In `RULES.INI`:
@@ -309,6 +311,17 @@ In `RULES.INI`:
 [SOMESUPERWEAPON]              ; SuperWeaponType
 ActionOutOfRange=EMPulseRange  ; ActionType, the action used by this super weapon when it's out of range.
 ```
+
+### Missile Launched Voice
+
+- Vinifera allows customizing the voiceline played when a Super Weapon with `Type=MultiMissile` or `Type=ChemMissile` is launched.
+
+In `RULES.INI`:
+```ini
+[SOMESUPERWEAPON]              ; SuperWeaponType
+MissileLaunchedVoice=00-I150   ; VoxType, the voice to play when this missile is launched.
+```
+
 
 ## Mouse Cursors and Actions
 

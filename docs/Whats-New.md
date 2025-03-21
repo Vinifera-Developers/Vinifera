@@ -245,6 +245,7 @@ Vanilla fixes:
 - Fix a bug where it was impossible to tell infantry to enter cloaked allied transports (by Rampastring)
 - Super Weapons with `Type=MultiMissile` and `Type=ChemMissile` now fire using their own weapon when fired from a building (by ZivDero)
 - Super Weapons with `Type=MultiMissile` and `Type=ChemMissile` now have the building display Special animations (by ZivDero)
+- Allow customizing "Missile Launched" voice per super weapon (by ZivDero)
 
 </details>
 
