@@ -86,4 +86,9 @@ SuperWeaponTypeClassExtension final : public AbstractTypeClassExtension
          *  Action type used for the cursor when the SW is out of range to fire.
          */
         ActionType ActionOutOfRange;
+
+        /**
+         *  Vox to speak when a missile SW is launched.
+         */
+        VoxType VoxMissileLaunched;
 };

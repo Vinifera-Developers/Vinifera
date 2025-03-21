@@ -136,6 +136,25 @@ EngineerChance=0  ; integer (%), what is the chance that an engineer will exit t
 It is not recommended to set `EngineerChance=100`, as this may put the game into an infinite loop when it insists an infantry other than an engineer exits the building.
 ```
 
+### Special Animations for `MultiMissile` and `ChemMissile` Super Weapons
+
+- Super weapons with `Type=MultiMissile` and `Type=ChemMissile` now make the silo display animations when fired.
+
+- `SpecialAnim` is played before the missile is launched, and is typically the silo opening animation.
+- `SpecialAnimTwo` is played in between `SpecialAnim` and `SpecialAnimTwo`, after the missile has been launched, and is typically a looping animation of the silo being open.
+- `SpecialAnimThree` is played after `SpecialAnimTwo` and is typically the silo closing animation.
+
+In `ART.INI`:
+```ini
+[SOMEBUILDING]            ; BuildingType
+SpecialAnim=              ; AnimType, the animation to play when the silo is opening.
+SpecialAnimDamaged=       ; AnimType, the animation to play when the silo is opening, and the silo is damaged.
+SpecialAnimTwo=           ; AnimType, the animation to play when the silo is open.
+SpecialAnimTwoDamaged=    ; AnimType, the animation to play when the silo is open, and the silo is damaged.
+SpecialAnimThree=         ; AnimType, the animation to play when the silo is closing.
+SpecialAnimThreeDamaged=  ; AnimType, the animation to play when the silo is closing, and the silo is damaged.
+```
+
 ## Harvesters
 
 - In the original game, harvesters always prefer free refineries over occupied ones, even if the free refinery was much farther away than the occupied refinery. Vinifera fixes this so that harvesters now prefer queueing to occupied refineries if they are much closer than free refineries. The distance for this preference is customizable.
@@ -283,6 +302,8 @@ HunterSeeker=  ; UnitType, the unit that is this side's Hunter-Seeker.
 
 ## Super Weapons
 
+### Out of Range Cursor
+
 - Vinifera allows customizing the mouse cursor used for ranged super weapons (currently, the EMPulse Cannon).
 
 In `RULES.INI`:
@@ -290,6 +311,17 @@ In `RULES.INI`:
 [SOMESUPERWEAPON]              ; SuperWeaponType
 ActionOutOfRange=EMPulseRange  ; ActionType, the action used by this super weapon when it's out of range.
 ```
+
+### Missile Launched Voice
+
+- Vinifera allows customizing the voiceline played when a Super Weapon with `Type=MultiMissile` or `Type=ChemMissile` is launched.
+
+In `RULES.INI`:
+```ini
+[SOMESUPERWEAPON]              ; SuperWeaponType
+MissileLaunchedVoice=00-I150   ; VoxType, the voice to play when this missile is launched.
+```
+
 
 ## Mouse Cursors and Actions
 
