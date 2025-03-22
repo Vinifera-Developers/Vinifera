@@ -141,7 +141,7 @@ It is not recommended to set `EngineerChance=100`, as this may put the game into
 - Super weapons with `Type=MultiMissile` and `Type=ChemMissile` now make the silo display animations when fired.
 
 - `SpecialAnim` is played before the missile is launched, and is typically the silo opening animation.
-- `SpecialAnimTwo` is played in between `SpecialAnim` and `SpecialAnimTwo`, after the missile has been launched, and is typically a looping animation of the silo being open.
+- `SpecialAnimTwo` is played in between `SpecialAnim` and `SpecialAnimThree`, after the missile has been launched, and is typically a looping animation of the silo being open.
 - `SpecialAnimThree` is played after `SpecialAnimTwo` and is typically the silo closing animation.
 
 In `ART.INI`:
