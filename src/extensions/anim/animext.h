@@ -71,60 +71,6 @@ AnimClassExtension final : public ObjectClassExtension
         bool Middle();
         bool End();
 
-        /**
-         *  This function replicates part of AnimClass::AI and returns whether the next time
-         *  AnimClass::AI is executed, the animation will be deleted.
-         *
-         *  @note This function doesn't take into account the possibility of the animation destroying
-         *  the object it's attached to and thus deleting itself that way.
-         *
-         *  @author: ZivDero
-         */
-        static bool Is_About_To_End(AnimClass* this_ptr)
-        {
-            /**
-             *  Check if the anim is about to change its frame.
-             */
-            if (!this_ptr->IsDisabled && this_ptr->About_To_Change())
-            {
-                const AnimTypeClass * const animtype = this_ptr->Class;
-
-                int stage = this_ptr->Fetch_Stage();
-                int loops = this_ptr->Loops;
-
-                /**
-                 *  Simulate the anim changing its frame.
-                 */
-                stage += this_ptr->Fetch_Step();
-
-                /**
-                 *  If the anim is ping-ponging, it's not ensing right now.
-                 */
-                if (animtype->IsPingPong) {
-                    if ((loops <= 1 && (stage >= animtype->Stages || stage == 0)) || (loops > 1 && (stage >= animtype->LoopEnd - animtype->Start || stage == animtype->Start))) {
-                        return false;
-                    }
-                }
-
-                /**
-                 *  Check to see if the last frame has been displayed. If so, then the
-                 *  animation either ends or loops.
-                 */
-                if ((loops <= 1 && stage >= animtype->Stages) || (loops > 1 && stage >= animtype->LoopEnd - animtype->Start) || (animtype->IsReverse && stage <= animtype->Start)) {
-                    if (loops && loops != UCHAR_MAX) loops--;
-
-                    /**
-                     *  if the anim doesn't loop anymore, and has nothing to chain to, return that it's about to end.
-                     */
-                    if (loops == 0 && animtype->ChainTo == nullptr) {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
     private:
         bool Spawn_Animations(const Coordinate &coord, const TypeList<AnimTypeClass *> &animlist, const TypeList<int> &countlist, const TypeList<int> &minlist, const TypeList<int> &maxlist, const TypeList<int>& delaylist);
 

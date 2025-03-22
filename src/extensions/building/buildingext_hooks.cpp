@@ -90,6 +90,7 @@ public:
     const InfantryTypeClass* _Crew_Type() const;
     int _How_Many_Survivors() const;
     int _Shape_Number() const;
+    void _Detach_Anim(AnimClass* anim);
 };
 
 
@@ -281,6 +282,65 @@ int BuildingClassExt::_Shape_Number() const
         }
     }
     return shapenum;
+}
+
+
+/**
+ *  Detaches the animation from the building, and also
+ *  creates a "sequel" animation in some cases.
+ *
+ *  @author: ZivDero
+ */
+void BuildingClassExt::_Detach_Anim(AnimClass* anim)
+{
+    if (IsActive) {
+        for (int i = 0; i < BANIM_COUNT; i++) {
+            if (Anims[i] == anim) {
+                Anims[i] = nullptr;
+                switch (i) {
+                case BANIM_SPECIAL_ONE:
+                    if (Class->CanUnitRepair) {
+                        if (In_Radio_Contact() && Get_Mission() == MISSION_REPAIR) {
+                            Begin_Anim(BANIM_SPECIAL_TWO, Get_Health_Ratio() <= Rule->ConditionYellow, 0);
+                        }
+                    }
+                    else if (Class->IsNukeSilo) {
+                        if (Get_Mission() == MISSION_MISSILE) {
+                            Begin_Anim(BANIM_SPECIAL_TWO, Get_Health_Ratio() <= Rule->ConditionYellow, 0);
+                        }
+                    }
+                    break;
+
+                case BANIM_SPECIAL_TWO:
+                    if (Class->IsNukeSilo) {
+                        if (Get_Mission() == MISSION_MISSILE) {
+                            Begin_Anim(BANIM_SPECIAL_THREE, Get_Health_Ratio() <= Rule->ConditionYellow, 0);
+                        }
+                    }
+                    break;
+
+                default:
+                    break;
+                }
+            }
+        }
+    }
+}
+
+
+/**
+ *  Replaces an inlined call of Detach_Anim with a direct call.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_BuildingCLass_Detach_Detach_Anim_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    GET_REGISTER_STATIC(AnimClass*, anim, ecx);
+
+    this_ptr->Detach_Anim(anim);
+
+    JMP(0x00433F84);
 }
 
 
@@ -1086,9 +1146,16 @@ int _BuildingClass_Mission_Missile_INITIAL(BuildingClass * this_ptr)
     /**
      *  Play the silo opening animation.
      */
-    this_ptr->Play_Animation(BANIM_SPECIAL_ONE, this_ptr->IsDamagedAnims, 0);
+    this_ptr->Begin_Anim(BANIM_SPECIAL_ONE, this_ptr->HealthRatio <= Rule->ConditionYellow, 0);
     this_ptr->Status = DOOR_OPENING;
     return 1;
+}
+
+
+static bool Is_Anim_Present(BuildingClass * building, BAnimType anim)
+{
+    const char* name = building->HealthRatio <= Rule->ConditionYellow ? building->Class->field_580[anim].AnimDamaged : building->Class->field_580[anim].Anim;
+    return std::strlen(name) != 0;
 }
 
 
@@ -1097,12 +1164,11 @@ int _BuildingClass_Mission_Missile_DOOR_OPENING(BuildingClass* this_ptr)
     /**
      *  Check if the silo opening animation has finished.
      */
-    if (this_ptr->Anims[BANIM_SPECIAL_ONE] == nullptr || AnimClassExtension::Is_About_To_End(this_ptr->Anims[BANIM_SPECIAL_ONE])) {
+    if (this_ptr->Anims[BANIM_SPECIAL_TWO] != nullptr || !Is_Anim_Present(this_ptr, BANIM_SPECIAL_TWO)) {
 
         /**
          *  If so, signal that we're ready to fire and play the "holding open" animation.
          */
-        this_ptr->Play_Animation(BANIM_SPECIAL_TWO, this_ptr->IsDamagedAnims, 0);
         this_ptr->Status = LAUNCH_UP;
     }
     return 1;
@@ -1114,12 +1180,11 @@ int _BuildingClass_Mission_Missile_LAUNCH_DOWN(BuildingClass* this_ptr)
     /**
      *  Check if the silo open animation has finished.
      */
-    if (this_ptr->Anims[BANIM_SPECIAL_TWO] == nullptr || AnimClassExtension::Is_About_To_End(this_ptr->Anims[BANIM_SPECIAL_TWO])) {
+    if (this_ptr->Anims[BANIM_SPECIAL_THREE] != nullptr || !Is_Anim_Present(this_ptr, BANIM_SPECIAL_THREE)) {
 
         /**
          *  If so, play the closing animation.
          */
-        this_ptr->Play_Animation(BANIM_SPECIAL_THREE, this_ptr->IsDamagedAnims, 0);
         this_ptr->Status = DONE_LAUNCH;
     }
 
@@ -1216,6 +1281,8 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x0042E5F5, &_BuildingClass_Grand_Opening_Assign_FreeUnit_LastDockedBuilding_Patch);
     //Patch_Jump(0x00429220, &BuildingClassExt::_Shape_Number);
     Patch_Jump(0x0042E53C, 0x0042E56F); // Jump a check for the PurchasePrice of a building for spawning its FreeUnit in Grand_Opening
+    Patch_Jump(0x00436410, &BuildingClassExt::_Detach_Anim);
+    Patch_Jump(0x00433F1D, &_BuildingCLass_Detach_Detach_Anim_Patch);
     Patch_Jump(0x00432709, &_BuildingClass_Mission_Missile_INITIAL_Patch);
     Patch_Jump(0x00432729, &_BuildingClass_Mission_Missile_DOOR_OPENING_Patch);
     Patch_Jump(0x00432957, &_BuildingClass_Mission_Missile_LAUNCH_DOWN_Patch);
