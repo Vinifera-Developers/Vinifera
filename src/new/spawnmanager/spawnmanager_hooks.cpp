@@ -49,12 +49,13 @@ DECLARE_PATCH(_EventClass_Execute_IDLE_Spawn_Manager_Patch)
 {
     GET_REGISTER_STATIC(TechnoClass*, techno, esi);
     static TechnoClassExtension* extension;
+    static RTTIType rtti;
 
     extension = Extension::Fetch<TechnoClassExtension>(techno);
     if (extension->SpawnManager)
         extension->SpawnManager->Abandon_Target();
 
-    static RTTIType rtti = techno->Fetch_RTTI();
+    rtti = techno->Fetch_RTTI();
     if (rtti == RTTI_UNIT)
     {
         JMP(0x00494AC5);
