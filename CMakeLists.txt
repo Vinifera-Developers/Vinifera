@@ -291,20 +291,9 @@ GlobSources(GLOB HOOKER_SOURCES ${HOOKER_INCLUDE_DIR})
 
 
 ################################################################################
-# Fetch the latest TS++ source code
+# Include the TS++ submodule in the solution.
 ################################################################################
-include(FetchContent)
-FetchContent_Declare(
-	TSpp
-	GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
-	GIT_REPOSITORY https://github.com/Vinifera-Developers/TSpp.git
-	GIT_TAG        origin/master
-)
-
-FetchContent_GetProperties(TSpp)
-if(NOT tspp_POPULATED)
-	FetchContent_MakeAvailable(TSpp)
-endif()
+add_subdirectory(${CMAKE_SOURCE_DIR}/TSpp)
 
 
 ################################################################################

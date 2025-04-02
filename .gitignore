@@ -59,6 +59,3 @@ desktop.ini
 *.tmp
 *.bak
 *.idb
-
-# Fetched content
-tspp/
