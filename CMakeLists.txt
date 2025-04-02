@@ -550,7 +550,7 @@ target_compile_options(${PROJECT_NAME} PUBLIC /arch:IA32)
 target_compile_options(${PROJECT_NAME} PUBLIC /fp:fast)
 
 # Suppresses _ftol when a conversion from a floating-point type to an integer type is required (x86 only).
-target_compile_options(${PROJECT_NAME} PUBLIC /QIfist)
+#target_compile_options(${PROJECT_NAME} PUBLIC /QIfist) # This is no longer supported by the MSVC version that GitHub uses.
 
 # Force generates fast transcendentals.
 target_compile_options(${PROJECT_NAME} PUBLIC /Qfast_transcendentals)

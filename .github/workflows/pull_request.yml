@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Clone Repository
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
         
       - name: Checkout Files
         uses: actions/checkout@v4
@@ -56,8 +58,8 @@ jobs:
           cp ./build/Vinifera.dll ./artifact/Vinifera.dll
           cp ./build/Vinifera.pdb ./artifact/Vinifera.pdb
           cp ./build/LaunchVinifera.exe ./artifact/LaunchVinifera.exe
-          cp ./build/_deps/tspp-src/pdb/Game.pdb ./artifact/Game.pdb
-          cp ./build/_deps/tspp-src/edb/Game.edb ./artifact/Game.edb
+          cp ./TSpp/pdb/Game.pdb ./artifact/Game.pdb
+          cp ./TSpp/edb/Game.edb ./artifact/Game.edb
           cp ./vinifera-files/files/VINIFERA.VQA ./artifact/Movies/VINIFERA.VQA
 
       - name: Upload Artifact
@@ -77,6 +79,8 @@ jobs:
     steps:
       - name: Clone Repository
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
         
       - name: Checkout Files
         uses: actions/checkout@v4
@@ -114,8 +118,8 @@ jobs:
           cp ./build/Vinifera.dll ./artifact/Vinifera.dll
           cp ./build/Vinifera.pdb ./artifact/Vinifera.pdb
           cp ./build/LaunchVinifera.exe ./artifact/LaunchVinifera.dat
-          cp ./build/_deps/tspp-src/pdb/Game.pdb ./artifact/Game.pdb
-          cp ./build/_deps/tspp-src/edb/Game.edb ./artifact/Game.edb
+          cp ./TSpp/pdb/Game.pdb ./artifact/Game.pdb
+          cp ./TSpp/edb/Game.edb ./artifact/Game.edb
           cp ./vinifera-files/files/VINIFERA.WMV ./artifact/Movies/VINIFERA.VQA
 
       - name: Upload Artifact
