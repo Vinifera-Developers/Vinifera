@@ -17,16 +17,16 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - name: Clone Repository
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-        
       - name: Checkout Files
         uses: actions/checkout@v4
         with:
           repository: Vinifera-Developers/Vinifera-Files
           path: vinifera-files
+          
+      - name: Clone Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
         
       - name: Set Variables
         id: vars
