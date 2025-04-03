@@ -451,16 +451,11 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
      *  buildings, consider a hit on any cell the building occupies as if it
      *  were a direct hit on the building's center.
      */
-    //for (ObjectClass* object : objects) {
-    for (int i = 0; i < objects.Count(); i++) {
-        ObjectClass* object = objects[i];
-
+    for (ObjectClass* object : objects) {
         object->IsToDamage = false;
         if (object->IsActive && !(object->RTTI == RTTI_BUILDING && reinterpret_cast<BuildingClass*>(object)->Class->IsInvisibleInGame)) {
             if (object->RTTI == RTTI_BUILDING && impacto == object) {
-#if 0
-                distance = 0
-#endif
+
                 /**
                  *  #issue-1150
                  *
