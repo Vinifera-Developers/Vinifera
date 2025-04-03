@@ -243,7 +243,7 @@ static bool Is_On_High_Bridge(const Coordinate& coord)
  *
  *  @author: ZivDero
  */
-void Get_Explosion_Targets(const Coordinate& coord, TechnoClass* source, int range, std::unordered_set<ObjectClass*>& objects)
+void Get_Explosion_Targets(const Coordinate& coord, TechnoClass* source, int range, DynamicVectorClass<ObjectClass*>& objects)
 {
     Cell cell;      // Cell number under explosion.
     ObjectClass* object; // Working object pointer
@@ -279,7 +279,8 @@ void Get_Explosion_Targets(const Coordinate& coord, TechnoClass* source, int ran
             while (object) {
                 if (object != source) {
                     if (object->Fetch_RTTI() != RTTI_UNIT || !Scen->SpecialFlags.IsHarvesterImmune || !Rule->HarvesterUnit.Is_Present(static_cast<UnitTypeClass*>(object->Class_Of()))) {
-                        objects.insert(object);
+                        objects.Delete(object);
+                        objects.Add(object);
                     }
                 }
                 object = object->Next;
@@ -292,7 +293,8 @@ void Get_Explosion_Targets(const Coordinate& coord, TechnoClass* source, int ran
                 if (OverlayTypes[cellptr->Overlay]->IsVeinholeMonster) {
                     VeinholeMonsterClass* veinhole = VeinholeMonsterClass::Fetch_At(cell);
                     if (veinhole) {
-                        objects.insert(veinhole);
+                        //objects.Delete(veinhole); // vanilla doesn't do this, let's not do this either just in case it's intended.
+                        objects.Add(veinhole);
                     }
                 }
             }
@@ -384,10 +386,10 @@ void Spawn_Flames_And_Smudges(const Cell & cell, int range, int distance, const 
  */
 void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClass* source, const WarheadTypeClass* warhead, bool do_chain_reaction)
 {
-    Cell cell;      // Cell number under explosion.
-    std::unordered_set<ObjectClass*> objects;  // Maximum number of objects that can be damaged.
-    int distance;  // Distance to unit.
-    int range;    // Damage effect radius.
+    Cell cell;                                 // Cell number under explosion.
+    DynamicVectorClass<ObjectClass*> objects;  // Objects to be damaged.
+    int distance;                              // Distance to unit.
+    int range;                                 // Damage effect radius.
 
     if (Special.IsInert || !warhead) return;
 
@@ -426,7 +428,8 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
         while (target != nullptr) {
             if (target->IsActive && target->IsDown && target->Strength > 0) {
                 if (use_cell_spread || Distance(explosion_coord, target->Get_Coord()) < CELL_LEPTON_W) {
-                    objects.insert(target);
+                    objects.Delete(target);
+                    objects.Add(target);
                 }
             }
             target = AircraftTracker->Get_Target();
@@ -448,7 +451,9 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
      *  buildings, consider a hit on any cell the building occupies as if it
      *  were a direct hit on the building's center.
      */
-    for (ObjectClass* object : objects) {
+    //for (ObjectClass* object : objects) {
+    for (int i = 0; i < objects.Count(); i++) {
+        ObjectClass* object = objects[i];
 
         object->IsToDamage = false;
         if (object->IsActive && !(object->RTTI == RTTI_BUILDING && reinterpret_cast<BuildingClass*>(object)->Class->IsInvisibleInGame)) {
