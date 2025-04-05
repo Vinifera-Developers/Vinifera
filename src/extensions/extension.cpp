@@ -1693,37 +1693,37 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
             std::fprintf(fp, "Object %d: %s ", index, objp->Coord.As_String());
             switch (objp->Fetch_RTTI()) {
                 case RTTI_AIRCRAFT:
-                    std::fprintf(fp, "Aircraft  (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                    std::fprintf(fp, "Aircraft  (Type: %s (%d)) ", objp->Name(), Aircrafts.ID(static_cast<AircraftClass*>(objp)));
                     break;
                 case RTTI_ANIM:
-                    std::fprintf(fp, "Anim      (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                    std::fprintf(fp, "Anim      (Type: %s (%d)) ", objp->Name(), Anims.ID(static_cast<AnimClass*>(objp)));
                         break;
                 case RTTI_BUILDING:
-                    std::fprintf(fp, "Building  (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                    std::fprintf(fp, "Building  (Type: %s (%d)) ", objp->Name(), Buildings.ID(static_cast<BuildingClass*>(objp)));
                     break;
                 case RTTI_BULLET:
-                    std::fprintf(fp, "Bullet    (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                    std::fprintf(fp, "Bullet    (Type: %s (%d)) ", objp->Name(), Bullets.ID(static_cast<BulletClass*>(objp)));
                     break;
                 case RTTI_INFANTRY:
-                    std::fprintf(fp, "Infantry  (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                    std::fprintf(fp, "Infantry  (Type: %s (%d)) ", objp->Name(), Infantry.ID(static_cast<InfantryClass*>(objp)));
                     break;
                 case RTTI_OVERLAY:
-                    std::fprintf(fp, "Overlay   (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                    std::fprintf(fp, "Overlay   (Type: %s (%d)) ", objp->Name(), Overlays.ID(static_cast<OverlayClass*>(objp)));
                     break;
                 case RTTI_SMUDGE:
-                    std::fprintf(fp, "Smudge    (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                    std::fprintf(fp, "Smudge    (Type: %s (%d)) ", objp->Name(), Smudges.ID(static_cast<SmudgeClass*>(objp)));
                     break;
                 case RTTI_TERRAIN:
-                    std::fprintf(fp, "Terrain   (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                    std::fprintf(fp, "Terrain   (Type: %s (%d)) ", objp->Name(), Terrains.ID(static_cast<TerrainClass*>(objp)));
                     break;
                 case RTTI_UNIT:
-                    std::fprintf(fp, "Unit      (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                    std::fprintf(fp, "Unit      (Type: %s (%d)) ", objp->Name(), Units.ID(static_cast<UnitClass*>(objp)));
                     break;
                 case RTTI_PARTICLE:
-                    std::fprintf(fp, "Particle  (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                    std::fprintf(fp, "Particle  (Type: %s (%d)) ", objp->Name(), Particles.ID(static_cast<ParticleClass*>(objp)));
                     break;
                 default:
-                    std::fprintf(fp, "Other     (Type: %s (%d)) (RTTI: %d) ", objp->Name(), objp->Get_Heap_ID(), objp->What_Am_I());
+                    std::fprintf(fp, "Other     (Type: %s (%d)) (RTTI: %d) ", objp->Name(), objp->Fetch_Heap_ID(), objp->Fetch_RTTI());
                     break;
             };
             HouseClass *housep = objp->Owner_HouseClass();
@@ -1749,34 +1749,34 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         std::fprintf(fp, "Object %d: %s ", index, objp->Coord.As_String());
         switch (objp->Fetch_RTTI()) {
             case RTTI_AIRCRAFT:
-                std::fprintf(fp, "Aircraft  (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                std::fprintf(fp, "Aircraft  (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_ANIM:
-                std::fprintf(fp, "Anim      (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                std::fprintf(fp, "Anim      (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_BUILDING:
-                std::fprintf(fp, "Building  (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                std::fprintf(fp, "Building  (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_BULLET:
-                std::fprintf(fp, "Bullet    (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                std::fprintf(fp, "Bullet    (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_INFANTRY:
-                std::fprintf(fp, "Infantry  (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                std::fprintf(fp, "Infantry  (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_OVERLAY:
-                std::fprintf(fp, "Overlay   (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                std::fprintf(fp, "Overlay   (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_SMUDGE:
-                std::fprintf(fp, "Smudge    (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                std::fprintf(fp, "Smudge    (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_TERRAIN:
-                std::fprintf(fp, "Terrain   (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                std::fprintf(fp, "Terrain   (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_UNIT:
-                std::fprintf(fp, "Unit      (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                std::fprintf(fp, "Unit      (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_PARTICLE:
-                std::fprintf(fp, "Particle  (HeapID:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                std::fprintf(fp, "Particle  (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
         };
         HouseClass *housep = objp->Owner_HouseClass();
