@@ -20,21 +20,21 @@ This page lists the history of changes across stable Vinifera releases and also 
 - Removal of ts-patches [tiberium_stuff](https://github.com/CnCNet/ts-patches/blob/master/src/tiberium_stuff.asm) and [tiberium_damage](https://github.com/CnCNet/ts-patches/blob/master/src/tiberium_damage.asm) is required for this to work properly. Please keep in mind that Power once again behaves like in vanilla in regards to chain explosions and should be set to reasonable values, while `DamageToInfantry` should be used to customize Tiberium's damage to infantry.
 
 % ### New user settings in `SUN.ini`
-% 
+%
 % - These are new user setting keys added by various features in Vinifera. Most of them can be found in either in [user inteface](User-Interface.md) or [miscellaneous](Miscellaneous.md) sections. Search functionality can be used to find them quickly if % needed.
-% 
+%
 % ```ini
-% 
+%
 % ```
-% 
+%
 % ### For Map Editor (Final Sun)
-% 
+%
 % <details>
 %   <summary>Click to show</summary>
-% 
+%
 %   In `FAData.ini`:
 %   ```ini
-% 
+%
 %   ```
 % </details>
 

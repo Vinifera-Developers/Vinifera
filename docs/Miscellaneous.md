@@ -16,8 +16,8 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 
 - Harvesters are now considered when executing the "Guard" command. They have a special case when assigned with the Guard mission that tells them to find the nearest Tiberium patch and begin harvesting.
 - Harvesters now auto harvest when built from the war factory.
-- Vinifera changes the default value of `IsScoreShuffle` to true. 
-- Vinifera changes the default value of `AllowHiResModes` to true. 
+- Vinifera changes the default value of `IsScoreShuffle` to true.
+- Vinifera changes the default value of `AllowHiResModes` to true.
 
 ### Starting Unit Placement
 

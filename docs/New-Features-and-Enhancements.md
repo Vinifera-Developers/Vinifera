@@ -160,7 +160,7 @@ SpecialAnimThreeDamaged=  ; AnimType, the animation to play when the silo is clo
 - In the original game, harvesters always prefer free refineries over occupied ones, even if the free refinery was much farther away than the occupied refinery. Vinifera fixes this so that harvesters now prefer queueing to occupied refineries if they are much closer than free refineries. The distance for this preference is customizable.
 
 In `RULES.INI`:
-```
+```ini
 [General]
 ; When looking for refineries, harvesters will prefer a distant free
 ; refinery over a closer occupied refinery if the refineries' distance
@@ -226,7 +226,7 @@ SpawnDelay=3  ; unsigned integer, the number of frames between each of the spawn
 
 In `RULES.INI`:
 ```ini
-[SOMEBULLET]
+[SOMEBULLET]  ; BulletType
 Torpedo=yes   ; boolean, is this projectile considered a torpedo?
 ```
 
@@ -335,7 +335,7 @@ Vanilla cursors are always present implicitly, but their properties **can** be o
 ```
 
 - <details>
-    <summary>Basic `MOUSE.INI`</summary>
+    <summary>Basic <code class="docutils literal notranslate"><span class="pre">MOUSE.INI</span></code></summary>
 
     ```ini
     ;============================================================================
@@ -364,7 +364,7 @@ Vanilla cursors are always present implicitly, but their properties **can** be o
     ;      HotspotX = left, center, right
     ;      HotspotY = top, middle, bottom
     ;
-    ; NOTE: 
+    ; NOTE:
     ;   A SmallFrame value of "-1" means it will use the normal pointer when
     ;   the mouse is over the radar panel.
 
@@ -449,8 +449,8 @@ Vanilla actions are always present implicitly, but their properties **can** be o
 ```
 
 - <details>
-    <summary>Basic `ACTION.INI`</summary>
-    
+    <summary>Basic <code class="docutils literal notranslate"><span class="pre">ACTION.INI</span></code></summary>
+
     ```ini
     ;============================================================================
     ; ACTION.INI
@@ -730,7 +730,7 @@ CrewCount=1   ; integer, how many crew will exit this unit.
 This tag does not apply to buildings.
 ```
 
-### Alternative Water Image 
+### Alternative Water Image
 
 - `WaterAlt` can now be used to control whether a voxel unit uses a different model when in water, similar to the APC in vanilla.
 
@@ -946,7 +946,7 @@ DontScore=no  ; boolean, should this Techno not count towards promotion and mult
 
 In `RULES.INI`:
 ```ini
-[SOMETECHNO]
+[SOMETECHNO]      ; TechnoType
 BuildTimeCost=300 ; integer, specifies the object's build time.
                   ; for example, setting this to 300 makes the object build as fast as a 300-cost object, regardless of its actual cost.
 ```
@@ -963,7 +963,7 @@ With `TargetZoneScan=Any`, the AI considers all targets valid, regardless of zon
 
 In `RULES.INI`:
 ```ini
-[SOMETECHNO]
+[SOMETECHNO]           ; TechnoType
 TargetZoneScan=InRange ; InRange, Any, or Same. Same - matches original game behaviour and is the default. InRange - considers targets in other movement zones that are within weapon range. Any - ignore zone checks altogether.
 ```
 
@@ -1001,7 +1001,7 @@ LightBlueTint=1       ; float, the blue tint of this terrain objects light.
 The random map generator does not currently support new theater types.
 ```
 - <details>
-    <summary>Basic `THEATERS.INI`</summary>
+    <summary>Basic <code class="docutils literal notranslate"><span class="pre"></span>THEATERS.INI</code></summary>
 
     ```ini
     ;============================================================================
@@ -1078,7 +1078,7 @@ The random map generator does not currently support new theater types.
 
 - <details>
     <summary>Sample new theater</summary>
-    
+
     ```ini
     [TheaterTypes]
     3=DESERT
@@ -1110,7 +1110,7 @@ The random map generator does not currently support new theater types.
 In `THEME.INI`:
 ```ini
 [SOMETHEME]      ; ThemeType
-RequiredAddon=0  ; AddonType, the addon required to be active for this theme to be available. Currently, only 0 (none) and 1 (Firestorm) are supported. 
+RequiredAddon=0  ; AddonType, the addon required to be active for this theme to be available. Currently, only 0 (none) and 1 (Firestorm) are supported.
 ```
 
 ## Tiberiums
@@ -1179,8 +1179,8 @@ WeedPipIndex=1  ; integer, the pip index used for Weeds.
 
 In `RULES.INI`:
 ```ini
-[SOMEUNIT]
-TransformsInto=OTHERUNIT
+[SOMEUNIT]                   ; UnitType
+TransformsInto=OTHERUNIT     ; UnitType
 ```
 
 - Additionally, the unit can be configured to require full charge to be able to transform, reusing the charge mechanic from the vanilla Mobile EMP Cannon. To do this, give the unit `TransformRequiresFullCharge=yes`.
