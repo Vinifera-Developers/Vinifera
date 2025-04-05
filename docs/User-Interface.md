@@ -321,7 +321,7 @@ TargetLaserDropShadowColor=0,0,0   ; RGB color, color to draw target lasers' dro
 TargetLaserTime=15                 ; integer, time in frames the target laser should be drawn for when the unit fires.
 ```
 
-<img src="https://github.com/user-attachments/assets/d961fd81-d112-4bbc-b567-972beb011736" width="425"/> <img src="https://github.com/user-attachments/assets/a1feaa46-6232-4997-945c-10cde807ccb0" width="425"/> 
+<img src="https://github.com/user-attachments/assets/d961fd81-d112-4bbc-b567-972beb011736" width="425"/> <img src="https://github.com/user-attachments/assets/a1feaa46-6232-4997-945c-10cde807ccb0" width="425"/>
 
 - Additionally, you can also enable lines to be drawn indicating the unit's current navigation queue.
 
