@@ -31,7 +31,7 @@
 #include "tibsun_defines.h"
 #include "rules.h"
 #include "extension.h"
-#include "tpoint.h"
+#include "point.h"
 
 
 class CCINIClass;

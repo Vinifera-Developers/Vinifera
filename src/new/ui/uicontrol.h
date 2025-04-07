@@ -29,7 +29,7 @@
 
 #include "always.h"
 #include "tibsun_defines.h"
-#include "tpoint.h"
+#include "point.h"
 #include "typelist.h"
 
 

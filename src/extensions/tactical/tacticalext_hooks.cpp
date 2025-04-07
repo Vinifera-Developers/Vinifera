@@ -170,7 +170,7 @@ void TacticalExt::_Draw_Band_Box()
              *  Fill_Rect_Trans() doesn't not take a relative rect, so we need
              *  to need to align it with the TacticalRect manually.
              */
-            tint_rect.Move(TacticalRect.X, TacticalRect.Y);
+            tint_rect = tint_rect.Bias_To(TacticalRect);
 
             RGBClass tint_dark = UIControls->BandBoxTintColors[0];
             RGBClass tint_light = UIControls->BandBoxTintColors[1];
@@ -348,7 +348,7 @@ void TacticalExt::_Select_These(Rect& rect, void (*selection_func)(ObjectClass* 
             if (dirty.Object && dirty.Object->IsActive)
             {
                 Point2D position = dirty.Position - field_5C;
-                if (rect.Is_Within(position))
+                if (rect.Is_Point_Within(position))
                 {
                     if (selection_func)
                     {

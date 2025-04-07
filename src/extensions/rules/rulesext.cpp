@@ -332,6 +332,11 @@ void RulesClassExtension::Process(CCINIClass &ini)
     This()->SpecialWeapons(ini);
 
     /**
+     *  Now in case there are yet new warheads, resize the Verses arrays again.
+     */
+    Verses::Resize();
+
+    /**
      *  Note: The game re-reads INI values for warheads at the end of
      *  SpecialWeapons(), so we do the same here for our extensions.
      */

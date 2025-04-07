@@ -2370,7 +2370,7 @@ bool SpawnAllCommandClass::Process()
      *  If mouse position is valid, convert to world coordinates and update
      *  the spawn origin position to that of the mouse position.
      */
-    if (WWMouse->Get_Mouse_XY().Is_Valid()) {
+    if (WWMouse->Get_Mouse_XY() != Point2D(0, 0)) {
         origin = Get_Cell_Under_Mouse();
     }
 

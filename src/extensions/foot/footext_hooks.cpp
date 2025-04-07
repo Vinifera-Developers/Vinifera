@@ -113,6 +113,14 @@ void FootClassExt::_Draw_Line(Coordinate& start_coord, Coordinate& end_coord, bo
     end_point += Point2D(TacticalRect.X, TacticalRect.Y);
 
     /**
+     *  Save the start and end points before we clip them to the viewport,
+     *  so that when we draw start and end rectangles they don't show up
+     *  on screen edges if they're off-screen.
+     */
+    Point2D start_point_unclipped = start_point;
+    Point2D end_point_unclipped = end_point;
+
+    /**
      *  Draw the queue line.
      */
     if (Clip_Line(start_point, end_point, TacticalRect)) {
@@ -146,12 +154,12 @@ void FootClassExt::_Draw_Line(Coordinate& start_coord, Coordinate& end_coord, bo
                     drop_end_point.Y += 1;
                 }
 
-                CompositeSurface->Draw_Dashed_Line(drop_start_point, drop_end_point, drop_color, _pattern, offset);
+                CompositeSurface->Draw_Dashed_Line(TacticalRect, drop_start_point, drop_end_point, drop_color, _pattern, offset);
 
                 if (is_thick) {
                     drop_start_point.Y += 1;
                     drop_end_point.Y += 1;
-                    CompositeSurface->Draw_Dashed_Line(drop_start_point, drop_end_point, drop_color, _pattern, offset);
+                    CompositeSurface->Draw_Dashed_Line(TacticalRect, drop_start_point, drop_end_point, drop_color, _pattern, offset);
                 }
 
             }
@@ -159,12 +167,12 @@ void FootClassExt::_Draw_Line(Coordinate& start_coord, Coordinate& end_coord, bo
             /**
              *  Draw the dashed queue line.
              */
-            CompositeSurface->Draw_Dashed_Line(start_point, end_point, line_color, _pattern, offset);
+            CompositeSurface->Draw_Dashed_Line(TacticalRect, start_point, end_point, line_color, _pattern, offset);
 
             if (is_thick) {
                 start_point.Y += 1;
                 end_point.Y += 1;
-                CompositeSurface->Draw_Dashed_Line(start_point, end_point, line_color, _pattern, offset);
+                CompositeSurface->Draw_Dashed_Line(TacticalRect, start_point, end_point, line_color, _pattern, offset);
             }
 
         }
@@ -217,17 +225,17 @@ void FootClassExt::_Draw_Line(Coordinate& start_coord, Coordinate& end_coord, bo
             point_size -= 1;
         }
 
-        Rect drop_start_point_rect = TacticalRect.Intersect_With(Rect(start_point + drop_point_offset, drop_point_size, drop_point_size));
+        Rect drop_start_point_rect = Intersect(TacticalRect, Rect(start_point_unclipped + drop_point_offset, drop_point_size, drop_point_size));
         CompositeSurface->Fill_Rect(drop_start_point_rect, drop_color);
 
-        Rect drop_end_point_rect = TacticalRect.Intersect_With(Rect(end_point + drop_point_offset, drop_point_size, drop_point_size));
+        Rect drop_end_point_rect = Intersect(TacticalRect, Rect(end_point_unclipped + drop_point_offset, drop_point_size, drop_point_size));
         CompositeSurface->Fill_Rect(drop_end_point_rect, drop_color);
     }
 
-    Rect start_point_rect = TacticalRect.Intersect_With(Rect(start_point + point_offset, point_size, point_size));
+    Rect start_point_rect = Intersect(TacticalRect, Rect(start_point_unclipped + point_offset, point_size, point_size));
     CompositeSurface->Fill_Rect(start_point_rect, line_color);
 
-    Rect end_point_rect = TacticalRect.Intersect_With(Rect(end_point + point_offset, point_size, point_size));
+    Rect end_point_rect = Intersect(TacticalRect, Rect(end_point_unclipped + point_offset, point_size, point_size));
     CompositeSurface->Fill_Rect(end_point_rect, line_color);
 }
 
