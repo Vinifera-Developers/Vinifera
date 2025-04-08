@@ -1001,7 +1001,7 @@ LightBlueTint=1       ; float, the blue tint of this terrain objects light.
 The random map generator does not currently support new theater types.
 ```
 - <details>
-    <summary>Basic <code class="docutils literal notranslate"><span class="pre"></span>THEATERS.INI</code></summary>
+    <summary>Basic <code class="docutils literal notranslate"><span class="pre">THEATERS.INI</span></code></summary>
 
     ```ini
     ;============================================================================
