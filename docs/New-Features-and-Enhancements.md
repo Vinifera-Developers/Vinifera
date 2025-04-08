@@ -334,7 +334,7 @@ MissileLaunchedVoice=00-I150   ; VoxType, the voice to play when this missile is
 Vanilla cursors are always present implicitly, but their properties **can** be overridden in `MOUSE.INI`.
 ```
 
-- :::{dropdown} Basic `MOUSE.INI`
+- ````{dropdown} Basic `MOUSE.INI`
 
     ```ini
     ;============================================================================
@@ -436,7 +436,7 @@ Vanilla cursors are always present implicitly, but their properties **can** be o
     PatrolWaypoint=387,10,4,-1,10,4,center,middle
 
     ```
-   :::
+   ````
 
 ### Actions
 
@@ -447,7 +447,7 @@ Vanilla cursors are always present implicitly, but their properties **can** be o
 Vanilla actions are always present implicitly, but their properties **can** be overridden in `ACTION.INI`.
 ```
 
-- :::{dropdown} Basic `ACTION.INI`
+- ````{dropdown} Basic `ACTION.INI`
 
     ```ini
     ;============================================================================
@@ -528,7 +528,7 @@ Vanilla actions are always present implicitly, but their properties **can** be o
     AttackSupport=Normal,Normal
 
     ```
-   :::
+   ````
 
 ## Technos
 
@@ -998,7 +998,7 @@ LightBlueTint=1       ; float, the blue tint of this terrain objects light.
 ```{warning}
 The random map generator does not currently support new theater types.
 ```
-- :::{dropdown} Basic `THEATERS.INI`
+- ````{dropdown} Basic `THEATERS.INI`
 
     ```ini
     ;============================================================================
@@ -1071,9 +1071,9 @@ The random map generator does not currently support new theater types.
     HighRadarBrightness=1.1
 
     ```
-   :::
+   ````
 
-- :::{dropdown} Sample new theater
+- ````{dropdown} Sample new theater
 
     ```ini
     [TheaterTypes]
@@ -1097,7 +1097,7 @@ The random map generator does not currently support new theater types.
 
     Files following this format must exist otherwise the game could crash at any moment during gameplay.
     `DESERT.MIX`, `ISODES.MIX`, `DES.MIX`, `DESERT.INI`, `ISODES.PAL`, `DESERT.PAL`, `UNITDES.PAL`, and `SLOP#Z.DES` (where # is 1 to 4).
-   :::
+   ````
 
 ## Themes
 
