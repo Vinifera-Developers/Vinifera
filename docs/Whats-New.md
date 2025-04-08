@@ -37,13 +37,21 @@ This page lists the history of changes across stable Vinifera releases and also 
 %
 %   ```
 % </details>
+%
+% [New] Sphinx element : Dropdowns
+% :::{dropdown} Click to show
+%
+%   In `FAData.ini`:
+%   ```ini
+%
+%   ```
+% :::
 
 ## Changelog
 
 ### 0.1
 
-<details open>
-  <summary>Click to show</summary>
+:::{dropdown} Click to show
 
 New:
 - Implement `CurleyShuffle` for AircraftTypes (by CCHyper/tomsons26)
@@ -247,5 +255,5 @@ Vanilla fixes:
 - Super Weapons with `Type=MultiMissile` and `Type=ChemMissile` now have the building display Special animations (by ZivDero)
 - Allow customizing "Missile Launched" voice per super weapon (by ZivDero)
 
-</details>
+:::
 
