@@ -1198,11 +1198,11 @@ void Extension::Print_CRCs(EventClass *ev)
 
 const char* Facing_To_String(FacingType facing) 
 {
-    if (facing == FACING_NONE) {
+    if (facing < FACING_FIRST || facing >= FACING_COUNT) {
         return "";
     }
 
-    static const char* facing_names[8] = { "N", "NE", "E", "SE", "S", "SW", "W", "NW" };
+    static const char* facing_names[FACING_COUNT] = { "N", "NE", "E", "SE", "S", "SW", "W", "NW" };
 
     return facing_names[(int)facing];
 }
