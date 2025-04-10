@@ -59,7 +59,7 @@ static class ObjectTypeClassExt : public ObjectTypeClass
 {
     public:
         void _Assign_Theater_Name(char *buffer, TheaterType theater);
-        const ShapeFileStruct * _Get_Image_Data() const;
+        const ShapeSet * _Get_Image_Data() const;
         void _Fetch_Voxel_Image();
         static void _Clear_Voxel_Indexes();
 };
@@ -150,7 +150,7 @@ DECLARE_PATCH(_ObjectTypeClass_Load_Theater_Art_Assign_Theater_Name_Theater_Patc
  * 
  *  @author: CCHyper
  */
-const ShapeFileStruct * ObjectTypeClassExt::_Get_Image_Data() const
+const ShapeSet * ObjectTypeClassExt::_Get_Image_Data() const
 {
     if (Image == nullptr) {
         DEBUG_WARNING("Object %s has NULL image data!\n", Name());

@@ -306,16 +306,16 @@ void SidebarClassExtension::Set_Dimensions()
  */
 void SidebarClassExtension::Init_For_House()
 {
-    TabButtons[0].Set_Shape(MFCC::RetrieveT<ShapeFileStruct>("TAB-BLD.SHP"));
+    TabButtons[0].Set_Shape(MFCC::RetrieveT<ShapeSet>("TAB-BLD.SHP"));
     TabButtons[0].ShapeDrawer = SidebarDrawer;
 
-    TabButtons[1].Set_Shape(MFCC::RetrieveT<ShapeFileStruct>("TAB-INF.SHP"));
+    TabButtons[1].Set_Shape(MFCC::RetrieveT<ShapeSet>("TAB-INF.SHP"));
     TabButtons[1].ShapeDrawer = SidebarDrawer;
 
-    TabButtons[2].Set_Shape(MFCC::RetrieveT<ShapeFileStruct>("TAB-UNT.SHP"));
+    TabButtons[2].Set_Shape(MFCC::RetrieveT<ShapeSet>("TAB-UNT.SHP"));
     TabButtons[2].ShapeDrawer = SidebarDrawer;
 
-    TabButtons[3].Set_Shape(MFCC::RetrieveT<ShapeFileStruct>("TAB-SPC.SHP"));
+    TabButtons[3].Set_Shape(MFCC::RetrieveT<ShapeSet>("TAB-SPC.SHP"));
     TabButtons[3].ShapeDrawer = SidebarDrawer;
 }
 
@@ -423,7 +423,7 @@ IsDrawn(false)
  *
  *  @author: ZivDero
  */
-SidebarClassExtension::TabButtonClass::TabButtonClass(unsigned id, const ShapeFileStruct* shapes, int x, int y, ConvertClass* drawer, int w, int h) :
+SidebarClassExtension::TabButtonClass::TabButtonClass(unsigned id, const ShapeSet* shapes, int x, int y, ConvertClass* drawer, int w, int h) :
     ControlClass(id, x, y, w, h, LEFTPRESS | LEFTRELEASE, true),
 DrawX(0),
 DrawY(0),
@@ -574,7 +574,7 @@ bool SidebarClassExtension::TabButtonClass::Draw_Me(bool forced)
         shapenum = FRAME_NORMAL;
     }
 
-    Draw_Shape(SidebarSurface, ShapeDrawer, ShapeData, shapenum, &Point2D(X + DrawX, Y + DrawY), &ScreenRect, SHAPE_NORMAL, 0, 0, ZGRAD_GROUND, 1000, nullptr, 0, 0);
+    Draw_Shape(*SidebarSurface, *ShapeDrawer, ShapeData, shapenum, Point2D(X + DrawX, Y + DrawY), ScreenRect, SHAPE_NORMAL);
 
     if (MousedOver && !Scen->UserInputLocked && !IsDisabled && !IsSelected)
     {
@@ -594,7 +594,7 @@ bool SidebarClassExtension::TabButtonClass::Draw_Me(bool forced)
  *
  *  @author: ZivDero
  */
-void SidebarClassExtension::TabButtonClass::Set_Shape(const ShapeFileStruct* data, int width, int height)
+void SidebarClassExtension::TabButtonClass::Set_Shape(const ShapeSet* data, int width, int height)
 {
     ShapeData = data;
     if (ShapeData)

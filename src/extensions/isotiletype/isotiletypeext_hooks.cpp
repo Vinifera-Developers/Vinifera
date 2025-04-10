@@ -47,7 +47,7 @@
 static class IsometricTileTypeClassExt : public IsometricTileTypeClass
 {
     public:
-        const ShapeFileStruct * _Get_Image_Data();
+        const ShapeSet * _Get_Image_Data();
 };
 
 
@@ -56,7 +56,7 @@ static class IsometricTileTypeClassExt : public IsometricTileTypeClass
  * 
  *  @author: CCHyper
  */
-const ShapeFileStruct * IsometricTileTypeClassExt::_Get_Image_Data()
+const ShapeSet * IsometricTileTypeClassExt::_Get_Image_Data()
 {
     if (Image) {
         return Image;

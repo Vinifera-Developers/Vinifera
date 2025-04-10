@@ -32,6 +32,7 @@
 #include "mouse.h"
 #include "sidebar.h"
 #include "vinifera_globals.h"
+#include "shapeset.h"
 
 
 class SidebarClassExtension final : public GlobalExtensionClass<SidebarClass>
@@ -94,18 +95,18 @@ public:
 
     public:
         TabButtonClass();
-        TabButtonClass(unsigned id, const ShapeFileStruct* shapes, int x, int y, ConvertClass* drawer = SidebarDrawer, int w = 0, int h = 0);
+        TabButtonClass(unsigned id, const ShapeSet* shapes, int x, int y, ConvertClass* drawer = SidebarDrawer, int w = 0, int h = 0);
         virtual ~TabButtonClass() override = default;
 
         virtual bool Action(unsigned flags, KeyNumType& key) override;
         virtual void Disable() override;
         virtual void Enable() override;
         virtual bool Draw_Me(bool forced = false) override;
-        virtual void Set_Shape(const ShapeFileStruct* data, int width = 0, int height = 0);
+        virtual void Set_Shape(const ShapeSet* data, int width = 0, int height = 0);
         virtual void On_Mouse_Enter();
         virtual void On_Mouse_Leave();
 
-        const ShapeFileStruct* Get_Shape_Data() const { return ShapeData; }
+        const ShapeSet* Get_Shape_Data() const { return ShapeData; }
         void Start_Flashing();
         void Stop_Flashing();
         void Select();
@@ -118,7 +119,7 @@ public:
         int DrawX;
         int DrawY;
         ConvertClass* ShapeDrawer;
-        const ShapeFileStruct* ShapeData;
+        const ShapeSet* ShapeData;
 
         /**
          *  Flashing

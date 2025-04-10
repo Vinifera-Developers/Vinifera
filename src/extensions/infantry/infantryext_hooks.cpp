@@ -68,7 +68,7 @@
 static class InfantryClassExt : public InfantryClass
 {
 public:
-    const ShapeFileStruct* _Get_Image_Data() const;
+    const ShapeSet* _Get_Image_Data() const;
 };
 
 
@@ -82,7 +82,7 @@ public:
  *
  *  @author: ZivDero
  */
-const ShapeFileStruct* InfantryClassExt::_Get_Image_Data() const
+const ShapeSet* InfantryClassExt::_Get_Image_Data() const
 {
     if (Doing == DO_STRUGGLE && Rule->WebbedInfantry) {
         return Rule->WebbedInfantry->Get_Image_Data();

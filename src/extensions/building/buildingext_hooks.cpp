@@ -855,7 +855,7 @@ DECLARE_PATCH(_BuildingClass_Draw_Spied_Cameo_Palette_Patch)
     GET_REGISTER_STATIC(Rect *, window_rect, ebp);
     static TechnoTypeClass *technotype;
     static TechnoTypeClassExtension *technotypeext;
-    static const ShapeFileStruct *cameo_shape;
+    static const ShapeSet *cameo_shape;
     static Surface *pcx_image;
     static Rect pcxrect;
 
@@ -891,7 +891,7 @@ DECLARE_PATCH(_BuildingClass_Draw_Spied_Cameo_Palette_Patch)
          *  Original code used NormalDrawer, which is the old Red Alert shape
          *  drawer, so we need to use CameoDrawer here for the correct palette.
          */
-        Draw_Shape(LogicSurface, CameoDrawer, cameo_shape, 0, pos_xy, window_rect, ShapeFlagsType(SHAPE_CENTER|SHAPE_WIN_REL|SHAPE_ALPHA|SHAPE_NORMAL));
+        Draw_Shape(*LogicSurface, *CameoDrawer, cameo_shape, 0, *pos_xy, *window_rect, SHAPE_CENTER|SHAPE_WIN_REL|SHAPE_ALPHA|SHAPE_NORMAL);
     }
 
     JMP(0x00428B13);

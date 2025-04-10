@@ -602,8 +602,8 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
             cellptr->Redraw_Overlay();
             cellptr->Overlay = OVERLAY_NONE;
             cellptr->Recalc_Attributes();
-            Map.Update_Cell_Zone(cellptr->Pos);
-            Map.Update_Cell_Subzones(cellptr->Pos);
+            Map.Update_Cell_Zone(cellptr->CellID);
+            Map.Update_Cell_Subzones(cellptr->CellID);
             TechnoClass::Update_Mission_Targets(cellptr);
 
             new AnimClass(Rule->BarrelExplode, explosion_coord);

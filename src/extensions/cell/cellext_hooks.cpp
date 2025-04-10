@@ -51,8 +51,8 @@
 DECLARE_PATCH(_CellClass_Draw_Shroud_Fog_Patch)
 {
 	static bool _shroud_one_time = false;
-	static const ShapeFileStruct *_shroud_shape;
-	static const ShapeFileStruct *_fog_shape;
+	static const ShapeSet *_shroud_shape;
+	static const ShapeSet *_fog_shape;
 
 	/**
 	 *  Stolen bytes/code.
@@ -63,8 +63,8 @@ DECLARE_PATCH(_CellClass_Draw_Shroud_Fog_Patch)
 	 *  Perform a one-time load of the shroud and fog shape data.
 	 */
 	if (!_shroud_one_time) {
-		_shroud_shape = (const ShapeFileStruct *)MFCC::Retrieve("SHROUD.SHP");
-		_fog_shape = (const ShapeFileStruct *)MFCC::Retrieve("FOG.SHP");
+		_shroud_shape = (const ShapeSet *)MFCC::Retrieve("SHROUD.SHP");
+		_fog_shape = (const ShapeSet *)MFCC::Retrieve("FOG.SHP");
 		_shroud_one_time = true;
 	}
 
@@ -72,8 +72,8 @@ DECLARE_PATCH(_CellClass_Draw_Shroud_Fog_Patch)
 	 *  If we are playing a multiplayer game, use the hardcoded shape data.
 	 */
 	if (!Session.Singleplayer_Game()) {
-		Cell_ShroudShape = (const ShapeFileStruct *)&ShroudShapeBinary;
-		Cell_FogShape = (const ShapeFileStruct *)&FogShapeBinary;
+		Cell_ShroudShape = (const ShapeSet *)&ShroudShapeBinary;
+		Cell_FogShape = (const ShapeSet *)&FogShapeBinary;
 
 	} else {
 		Cell_ShroudShape = _shroud_shape;
@@ -98,7 +98,7 @@ continue_function:
 DECLARE_PATCH(_CellClass_Draw_Fog_Patch)
 {
 	static bool _fog_one_time = false;
-	static const ShapeFileStruct *_fog_shape;
+	static const ShapeSet *_fog_shape;
 	
 	/**
 	 *  Stolen bytes/code.
@@ -109,7 +109,7 @@ DECLARE_PATCH(_CellClass_Draw_Fog_Patch)
 	 *  Perform a one-time load of the fog shape data.
 	 */
 	if (!_fog_one_time) {
-		_fog_shape = (const ShapeFileStruct *)MFCC::Retrieve("FOG.SHP");
+		_fog_shape = (const ShapeSet *)MFCC::Retrieve("FOG.SHP");
 		_fog_one_time = true;
 	}
 
@@ -117,7 +117,7 @@ DECLARE_PATCH(_CellClass_Draw_Fog_Patch)
 	 *  If we are playing a multiplayer game, use the hardcoded shape data.
 	 */
 	if (!Session.Singleplayer_Game()) {
-		Cell_FixupFogShape = (const ShapeFileStruct *)&FogShapeBinary;
+		Cell_FixupFogShape = (const ShapeSet *)&FogShapeBinary;
 
 	} else {
 		Cell_FixupFogShape = _fog_shape;

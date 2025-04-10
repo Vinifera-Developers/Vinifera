@@ -100,7 +100,7 @@ DECLARE_PATCH(_AnimTypeClass_SDDTOR_Free_Image_Patch) { GET_REGISTER_STATIC(Anim
 DECLARE_PATCH(_AnimTypeClass_Get_Image_Data_Assertion_Patch)
 {
     GET_REGISTER_STATIC(AnimTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(const ShapeFileStruct *, image, eax);
+    GET_REGISTER_STATIC(const ShapeSet *, image, eax);
 
     if (image == nullptr) {
         DEBUG_WARNING("Anim %s has NULL image data!\n", this_ptr->Name());

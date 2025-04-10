@@ -390,7 +390,7 @@ DECLARE_PATCH(_UnitClass_Draw_Shape_IdleRate_Patch)
 {
     GET_REGISTER_STATIC(UnitClass *, this_ptr, esi);
     GET_REGISTER_STATIC(int, facing, ebx);
-    GET_REGISTER_STATIC(ShapeFileStruct *, shape, edi);
+    GET_REGISTER_STATIC(ShapeSet *, shape, edi);
     static UnitTypeClassExtension *unittypeext;
     static const UnitTypeClass *unittype;
     static int frame;

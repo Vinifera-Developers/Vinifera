@@ -415,8 +415,8 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
      *  A special value of "-1" will set the biggest frame to the actual middle frame
      *  of the shape file. This behavior was observed in Red Alert 2.
      */
-    if (This()->Image && This()->Image->Get_Frame_Count() > 0) {
-        MiddleFrame = ini.Get_Int_Clamp(ini_name, "MiddleFrame", -1, This()->Image->Get_Frame_Count() - 1, MiddleFrame);
+    if (This()->Image && This()->Image->Get_Count() > 0) {
+        MiddleFrame = ini.Get_Int_Clamp(ini_name, "MiddleFrame", -1, This()->Image->Get_Count() - 1, MiddleFrame);
     }
 
     ExplosionDamage = ini.Get_Int(ini_name, "ExplosionDamage", ExplosionDamage);
@@ -434,8 +434,8 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
  */
 void AnimTypeClassExtension::Set_Biggest_Frame()
 {
-    if (MiddleFrame < 0 && This()->Image && This()->Image->Get_Frame_Count() >= 2) {
-        This()->Biggest = This()->Image->Get_Frame_Count() / 2;
+    if (MiddleFrame < 0 && This()->Image && This()->Image->Get_Count() >= 2) {
+        This()->Biggest = This()->Image->Get_Count() / 2;
     } else {
         This()->Biggest = MiddleFrame;
     }

@@ -61,7 +61,6 @@
 #include "vox.h"
 #include "wwmouse.h"
 #include "sideext.h"
-
 #include "debughandler.h"
 #include "fatal.h"
 #include "asserthandler.h"
@@ -209,8 +208,8 @@ void SidebarClassExt::_One_Time()
     /**
      *  Load the sidebar shapes in at this time.
      */
-    StripClass::RechargeClockShape = MFCC::RetrieveT<ShapeFileStruct>("RCLOCK2.SHP");
-    StripClass::ClockShape = MFCC::RetrieveT<ShapeFileStruct>("GCLOCK2.SHP");
+    StripClass::RechargeClockShape = MFCC::RetrieveT<ShapeSet>("RCLOCK2.SHP");
+    StripClass::ClockShape = MFCC::RetrieveT<ShapeSet>("GCLOCK2.SHP");
 }
 
 
@@ -339,22 +338,22 @@ void SidebarClassExt::_Init_For_House()
     delete SidebarDrawer;
     SidebarDrawer = new ConvertClass(&pal, &pal, PrimarySurface, 1);
 
-    Sell.Set_Shape(MFCC::RetrieveT<ShapeFileStruct>("SELL.SHP"));
+    Sell.Set_Shape(MFCC::RetrieveT<ShapeSet>("SELL.SHP"));
     Sell.ShapeDrawer = SidebarDrawer;
 
-    Power.Set_Shape(MFCC::RetrieveT<ShapeFileStruct>("POWER.SHP"));
+    Power.Set_Shape(MFCC::RetrieveT<ShapeSet>("POWER.SHP"));
     Power.ShapeDrawer = SidebarDrawer;
 
-    Waypoint.Set_Shape(MFCC::RetrieveT<ShapeFileStruct>("WAYP.SHP"));
+    Waypoint.Set_Shape(MFCC::RetrieveT<ShapeSet>("WAYP.SHP"));
     Waypoint.ShapeDrawer = SidebarDrawer;
 
-    Repair.Set_Shape(MFCC::RetrieveT<ShapeFileStruct>("REPAIR.SHP"));
+    Repair.Set_Shape(MFCC::RetrieveT<ShapeSet>("REPAIR.SHP"));
     Repair.ShapeDrawer = SidebarDrawer;
 
-    SidebarShape = MFCC::RetrieveT<ShapeFileStruct>("SIDE1.SHP");
-    SidebarMiddleShape = MFCC::RetrieveT<ShapeFileStruct>("SIDE2.SHP");
-    SidebarBottomShape = MFCC::RetrieveT<ShapeFileStruct>("SIDE3.SHP");
-    SidebarAddonShape = MFCC::RetrieveT<ShapeFileStruct>("ADDON.SHP");
+    SidebarShape = MFCC::RetrieveT<ShapeSet>("SIDE1.SHP");
+    SidebarMiddleShape = MFCC::RetrieveT<ShapeSet>("SIDE2.SHP");
+    SidebarBottomShape = MFCC::RetrieveT<ShapeSet>("SIDE3.SHP");
+    SidebarAddonShape = MFCC::RetrieveT<ShapeSet>("ADDON.SHP");
 
     SidebarExtension->Init_For_House();
 
@@ -678,7 +677,7 @@ void SidebarClassExt::_Draw_It(bool complete)
         if (complete || SidebarExtension->Current_Tab().IsToRedraw)
         {
             Point2D xy(0, SidebarRect.Y);
-            Draw_Shape(SidebarSurface, SidebarDrawer, SidebarShape, 0, &xy, &rect, SHAPE_WIN_REL, 0, 0, ZGRAD_GROUND, 1000, nullptr, 0, 0, 0);
+            Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarShape, 0, xy, rect, SHAPE_WIN_REL);
 
             int max_visible = SidebarClassExtension::Max_Visible(true);
             int y = SidebarRect.Y + SidebarShape->Get_Height();
@@ -686,14 +685,14 @@ void SidebarClassExt::_Draw_It(bool complete)
             for (int i = 0; i < max_visible; i++, y += SidebarMiddleShape->Get_Height())
             {
                 xy = Point2D(0, y);
-                Draw_Shape(SidebarSurface, SidebarDrawer, SidebarMiddleShape, 0, &xy, &rect, SHAPE_WIN_REL, 0, 0, ZGRAD_GROUND, 1000, nullptr, 0, 0, 0);
+                Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarMiddleShape, 0, xy, rect, SHAPE_WIN_REL);
             }
 
             xy = Point2D(0, y);
-            Draw_Shape(SidebarSurface, SidebarDrawer, SidebarBottomShape, 0, &xy, &rect, SHAPE_WIN_REL, 0, 0, ZGRAD_GROUND, 1000, nullptr, 0, 0, 0);
+            Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarBottomShape, 0, xy, rect, SHAPE_WIN_REL);
 
             xy = Point2D(0, y + SidebarBottomShape->Get_Height());
-            Draw_Shape(SidebarSurface, SidebarDrawer, SidebarAddonShape, 0, &xy, &rect, SHAPE_WIN_REL, 0, 0, ZGRAD_GROUND, 1000, nullptr, 0, 0, 0);
+            Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarAddonShape, 0, xy, rect, SHAPE_WIN_REL);
 
             SidebarExtension->Current_Tab().IsToRedraw = true;
         }
@@ -813,9 +812,9 @@ void SidebarClassExt::_Set_Dimensions()
 
     if (!SidebarShape)
     {
-        SidebarShape = MFCC::RetrieveT<ShapeFileStruct>("SIDEGDI1.SHP");
-        SidebarMiddleShape = MFCC::RetrieveT<ShapeFileStruct>("SIDEGDI2.SHP");
-        SidebarBottomShape = MFCC::RetrieveT<ShapeFileStruct>("SIDEGDI3.SHP");
+        SidebarShape = MFCC::RetrieveT<ShapeSet>("SIDEGDI1.SHP");
+        SidebarMiddleShape = MFCC::RetrieveT<ShapeSet>("SIDEGDI2.SHP");
+        SidebarBottomShape = MFCC::RetrieveT<ShapeSet>("SIDEGDI3.SHP");
     }
 
     /**
@@ -969,7 +968,7 @@ int SidebarClassExt::_Max_Visible()
  */
 void StripClassExt::_One_Time(int id)
 {
-    DarkenShape = MFCC::RetrieveT<ShapeFileStruct>("DARKEN.SHP");
+    DarkenShape = MFCC::RetrieveT<ShapeSet>("DARKEN.SHP");
 }
 
 
@@ -1015,10 +1014,10 @@ void StripClassExt::_Init_IO(int id)
  */
 void StripClassExt::_Init_For_House(int id)
 {
-    UpButton[0].Set_Shape(MFCC::RetrieveT<ShapeFileStruct>("R-UP.SHP"));
+    UpButton[0].Set_Shape(MFCC::RetrieveT<ShapeSet>("R-UP.SHP"));
     UpButton[0].ShapeDrawer = SidebarDrawer;
 
-    DownButton[0].Set_Shape(MFCC::RetrieveT<ShapeFileStruct>("R-DN.SHP"));
+    DownButton[0].Set_Shape(MFCC::RetrieveT<ShapeSet>("R-DN.SHP"));
     DownButton[0].ShapeDrawer = SidebarDrawer;
 }
 
@@ -1569,7 +1568,7 @@ void StripClassExt::_Draw_It(bool complete)
             bool completed = false;
             int  stage = 0;
             bool darken = false;
-            ShapeFileStruct const* shapefile = nullptr;
+            ShapeSet const* shapefile = nullptr;
             BSurface* image_surface = nullptr;
             FactoryClass* factory = nullptr;
             int index = i + TopIndex;
@@ -1707,8 +1706,7 @@ void StripClassExt::_Draw_It(bool complete)
                 }
                 else if (shapefile != nullptr)
                 {
-                    Draw_Shape(SidebarSurface, CameoDrawer, shapefile,
-                        0, &drawpoint, &rect, SHAPE_WIN_REL, 0, 0, ZGRAD_GROUND, 1000, nullptr, 0, 0, 0);
+                    Draw_Shape(*SidebarSurface,* CameoDrawer, shapefile, 0, drawpoint, rect, SHAPE_WIN_REL);
                 }
 
 
@@ -1732,8 +1730,7 @@ void StripClassExt::_Draw_It(bool complete)
                  */
                 if (darken)
                 {
-                    Draw_Shape(SidebarSurface, SidebarDrawer, DarkenShape,
-                        0, &drawpoint, &rect, SHAPE_WIN_REL | SHAPE_DARKEN, 0, 0, ZGRAD_GROUND, 1000, nullptr, 0, 0, 0);
+                    Draw_Shape(*SidebarSurface, *SidebarDrawer, DarkenShape, 0, drawpoint, rect, SHAPE_WIN_REL | SHAPE_DARKEN);
                 }
             }
 
@@ -1781,7 +1778,7 @@ void StripClassExt::_Draw_It(bool complete)
                 if (!completed)
                 {
                     int shapenum;
-                    const ShapeFileStruct* shape;
+                    const ShapeSet* shape;
                     Point2D drawpoint;
 
                     if (isready)
@@ -1797,8 +1794,7 @@ void StripClassExt::_Draw_It(bool complete)
                         shape = ClockShape;
                     }
 
-                    Draw_Shape(SidebarSurface, SidebarDrawer, shape,
-                        shapenum, &drawpoint, &rect, SHAPE_WIN_REL | SHAPE_TRANS50, 0, 0, ZGRAD_GROUND, 1000, nullptr, 0, 0, 0);
+                    Draw_Shape(*SidebarSurface,* SidebarDrawer, shape, shapenum, drawpoint, rect, SHAPE_WIN_REL | SHAPE_TRANS50);
 
                     /**
                      *  Display text showing that the construction is temporarily on hold.
@@ -2035,7 +2031,7 @@ DECLARE_PATCH(_SidebarClass_StripClass_ObjectTypeClass_Custom_Cameo_Image_Patch)
 {
     GET_REGISTER_STATIC(const ObjectTypeClass*, obj, ebp);
     static const TechnoTypeClassExtension* technotypeext;
-    static const ShapeFileStruct* shapefile;
+    static const ShapeSet* shapefile;
 
     shapefile = obj->Get_Cameo_Data();
 
@@ -2056,7 +2052,7 @@ DECLARE_PATCH(_SidebarClass_StripClass_SuperWeaponType_Custom_Cameo_Image_Patch)
 {
     GET_REGISTER_STATIC(const SuperWeaponTypeClass*, supertype, eax);
     static const SuperWeaponTypeClassExtension* supertypeext;
-    static const ShapeFileStruct* shapefile;
+    static const ShapeSet* shapefile;
 
     shapefile = supertype->SidebarIcon;
 
@@ -2089,7 +2085,7 @@ DECLARE_PATCH(_SidebarClass_StripClass_Custom_Cameo_Image_Patch)
     LEA_STACK_STATIC(Rect*, window_rect, esp, 0x34);
     GET_REGISTER_STATIC(int, pos_x, edi);
     GET_REGISTER_STATIC(int, pos_y, esi);
-    GET_REGISTER_STATIC(const ShapeFileStruct*, shapefile, ebx);
+    GET_REGISTER_STATIC(const ShapeSet*, shapefile, ebx);
     static BSurface* image_surface;
 
     image_surface = nullptr;
@@ -2119,7 +2115,7 @@ DECLARE_PATCH(_SidebarClass_StripClass_Custom_Cameo_Image_Patch)
         pointxy.X = pos_x;
         pointxy.Y = pos_y;
 
-        Draw_Shape(SidebarSurface, CameoDrawer, shapefile, 0, &pointxy, window_rect, SHAPE_WIN_REL | SHAPE_NORMAL);
+        Draw_Shape(*SidebarSurface, *CameoDrawer, shapefile, 0, pointxy, *window_rect, SHAPE_WIN_REL | SHAPE_NORMAL);
     }
 
     _SidebarClass_StripClass_CustomImage = nullptr;

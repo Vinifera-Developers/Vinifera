@@ -139,9 +139,9 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
     int dx = 4;
     int dy = 2;
 
-    const ShapeFileStruct* pip_shapes = Class_Of()->PipShapes;
-    const ShapeFileStruct* pips1 = Class_Of()->PipShapes;
-    const ShapeFileStruct* pips2 = Class_Of()->Pip2Shapes;
+    const ShapeSet* pip_shapes = Class_Of()->PipShapes;
+    const ShapeSet* pips1 = Class_Of()->PipShapes;
+    const ShapeSet* pips2 = Class_Of()->Pip2Shapes;
 
     const auto ttype = Techno_Type_Class();
     const auto ttype_ext = Extension::Fetch<TechnoTypeClassExtension>(ttype);
@@ -183,7 +183,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
                     }
                     object = object->Next;
                 }
-                Draw_Shape(LogicSurface, NormalDrawer, pip_shapes, pip, &Point2D(drawx + dx * index, drawy + dy * index), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
+                Draw_Shape(*LogicSurface, *NormalDrawer, pip_shapes, pip, Point2D(drawx + dx * index, drawy + dy * index), rect, SHAPE_WIN_REL | SHAPE_CENTER);
             }
 
         }
@@ -253,7 +253,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
                     {
                         shape = pips_to_draw[index];
                     }
-                    Draw_Shape(LogicSurface, NormalDrawer, pip_shapes, shape, &Point2D(drawx + dx * index, drawy + dy * index), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
+                    Draw_Shape(*LogicSurface, *NormalDrawer, pip_shapes, shape, Point2D(drawx + dx * index, drawy + dy * index), rect, SHAPE_WIN_REL | SHAPE_CENTER);
                 }
             }
             else if (ext->SpawnManager && ext->SpawnManager->SpawnCount > 0)
@@ -261,7 +261,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
                 for (int index = 0; index < ext->SpawnManager->SpawnCount; index++)
                 {
                     const int pip = index < ext->SpawnManager->Docked_Count() ? 1 : 0;
-                    Draw_Shape(LogicSurface, NormalDrawer, pip_shapes, pip, &Point2D(drawx + dx * index, drawy + dy * index), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
+                    Draw_Shape(*LogicSurface,* NormalDrawer, pip_shapes, pip, Point2D(drawx + dx * index, drawy + dy * index), rect, SHAPE_WIN_REL | SHAPE_CENTER);
                 }
             }
             else if (Techno_Type_Class()->PipScale == PIP_AMMO)
@@ -275,14 +275,14 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
 
                     for (int index = 0; index < ttype_ext->PipWrap; index++)
                     {
-                        Draw_Shape(LogicSurface, NormalDrawer, pips2, PIP_AMMO_WRAP_FIRST + wrap_count + (index < leftover), &Point2D(drawx + dx * index, drawy + dy * index - 3), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
+                        Draw_Shape(*LogicSurface, *NormalDrawer, pips2, PIP_AMMO_WRAP_FIRST + wrap_count + (index < leftover), Point2D(drawx + dx * index, drawy + dy * index - 3), rect, SHAPE_WIN_REL | SHAPE_CENTER);
                     }
                 }
                 else
                 {
                     for (int index = 0; index < Class_Of()->Max_Pips() && pips > 0; index++, pips--)
                     {
-                        Draw_Shape(LogicSurface, NormalDrawer, pips2, 6, &Point2D(drawx + dx * index, drawy + dy * index - 3), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
+                        Draw_Shape(*LogicSurface,* NormalDrawer, pips2, 6, Point2D(drawx + dx * index, drawy + dy * index - 3), rect, SHAPE_WIN_REL | SHAPE_CENTER);
                     }
                 }
                 
@@ -291,7 +291,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
             {
                 for (int index = 0; index < Class_Of()->Max_Pips(); index++)
                 {
-                    Draw_Shape(LogicSurface, NormalDrawer, pip_shapes, index < pips ? 1 : 0, &Point2D(drawx + dx * index, drawy + dy * index), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
+                    Draw_Shape(*LogicSurface,* NormalDrawer, pip_shapes, index < pips ? 1 : 0, Point2D(drawx + dx * index, drawy + dy * index), rect, SHAPE_WIN_REL | SHAPE_CENTER);
                 }
             }
         }
@@ -331,11 +331,11 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
         const int specialpip = Extension::Fetch<TechnoTypeClassExtension>(Techno_Type_Class())->SpecialPipIndex;
         if (specialpip >= 0)
         {
-            Draw_Shape(LogicSurface, NormalDrawer, pips1, specialpip, &(Point2D(drawx, drawy) + UIControls->Get_Special_Pip_Offset(Fetch_RTTI())), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
+            Draw_Shape(*LogicSurface, *NormalDrawer, pips1, specialpip, (Point2D(drawx, drawy) + UIControls->Get_Special_Pip_Offset(Fetch_RTTI())), rect, SHAPE_WIN_REL | SHAPE_CENTER);
         }
         else if (Fetch_RTTI() == RTTI_INFANTRY && Combat_Damage() < 0)
         {
-            Draw_Shape(LogicSurface, NormalDrawer, pips1, 6, &(Point2D(drawx, drawy) + UIControls->Get_Special_Pip_Offset(Fetch_RTTI())), &rect, SHAPE_WIN_REL | SHAPE_CENTER);
+            Draw_Shape(*LogicSurface,* NormalDrawer, pips1, 6, (Point2D(drawx, drawy) + UIControls->Get_Special_Pip_Offset(Fetch_RTTI())), rect, SHAPE_WIN_REL | SHAPE_CENTER);
         }
 
         /**
@@ -361,7 +361,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
         {
             Point2D drawpoint = center;
             drawpoint += UIControls->Get_Veterancy_Pip_Offset(Fetch_RTTI());
-            Draw_Shape(LogicSurface, NormalDrawer, pips1, veterancy_shape, &drawpoint, &rect, SHAPE_WIN_REL | SHAPE_CENTER);
+            Draw_Shape(*LogicSurface, *NormalDrawer, pips1, veterancy_shape, drawpoint, rect, SHAPE_WIN_REL | SHAPE_CENTER);
         }
     }
 }

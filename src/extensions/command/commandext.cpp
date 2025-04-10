@@ -2695,7 +2695,7 @@ bool ToggleShroudCommandClass::Process()
             Map.Iterator_Reset();
 
             for (CellClass *cell = Map.Iterator_Next_Cell(); cell != nullptr; cell = Map.Iterator_Next_Cell()) {
-                Map.Map_Cell(cell->Pos, PlayerPtr);
+                Map.Map_Cell(cell->CellID, PlayerPtr);
             }
 
             Map.Flag_To_Redraw(true);
