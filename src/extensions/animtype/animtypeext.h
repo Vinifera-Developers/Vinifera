@@ -131,7 +131,7 @@ AnimTypeClassExtension final : public ObjectTypeClassExtension
         TypeList<int> EndAnimsDelay;
 
         /**
-         *  The middle (biggest) frame, if set by the user.
+         *  The middle (biggest) frames.
          */
         TypeList<int> MiddleFrames;
 
