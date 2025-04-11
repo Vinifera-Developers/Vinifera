@@ -268,7 +268,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
                 if (rocket->TakeoffAnim)
                     new AnimClass(rocket->TakeoffAnim, LinkedTo->Coord, 2, 1, SHAPE_WIN_REL | SHAPE_CENTER, -10);
 
-                Sound_Effect(LinkedTo->Techno_Type_Class()->AuxSound1, LinkedTo->Coord);
+                Static_Sound(LinkedTo->Techno_Type_Class()->AuxSound1, LinkedTo->Coord);
             }
             /**
              *  Otherwise, keep tilting.
@@ -446,7 +446,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
                 const auto linked_ext = Extension::Fetch<FootClassExtension>(LinkedTo);
                 if (linked_ext->Get_Last_Flight_Cell() == CELL_NONE)
                 {
-                    Sound_Effect(LinkedTo->Techno_Type_Class()->AuxSound1, LinkedTo->Coord);
+                    Static_Sound(LinkedTo->Techno_Type_Class()->AuxSound1, LinkedTo->Coord);
                     AircraftTracker->Track(LinkedTo);
                 }
 

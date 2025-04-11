@@ -194,7 +194,7 @@ DECLARE_PATCH(_InfantryClass_Per_Cell_Process_Transport_Attach_Sound_Patch)
      */
     radio_technotypeext = Extension::Fetch<TechnoTypeClassExtension>(techno->Techno_Type_Class());
     if (radio_technotypeext->EnterTransportSound != VOC_NONE) {
-        Sound_Effect(radio_technotypeext->EnterTransportSound, techno->Coord);
+        Static_Sound(radio_technotypeext->EnterTransportSound, techno->Coord);
     }
 
     JMP(0x004D3A87);

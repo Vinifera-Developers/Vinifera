@@ -780,7 +780,7 @@ DECLARE_PATCH(_Tactical_Render_Overlay_Patch)
          *  Play the one time notification sound if defined.
          */
         if (TacticalMapExtension->InfoTextNotifySound != VOC_NONE) {
-            Sound_Effect(TacticalMapExtension->InfoTextNotifySound, TacticalMapExtension->InfoTextNotifySoundVolume);
+            Voice_Sound_Effect(TacticalMapExtension->InfoTextNotifySound, TacticalMapExtension->InfoTextNotifySoundVolume);
             TacticalMapExtension->InfoTextNotifySound = VOC_NONE;
         }
         

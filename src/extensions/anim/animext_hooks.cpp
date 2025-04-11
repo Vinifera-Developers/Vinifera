@@ -46,12 +46,14 @@
 #include "debughandler.h"
 #include "asserthandler.h"
 #include "combat.h"
+#include "coord.h"
 #include "drawshape.h"
 #include "mouse.h"
 #include "voc.h"
 #include "overlaytype.h"
 #include "overlay.h"
 #include "tactical.h"
+#include "tiberium.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -69,6 +71,8 @@ class AnimClassExt : public AnimClass
 public:
     LayerType _In_Which_Layer() const;
     void _AI();
+    void _Start();
+    void _Middle();
 };
 
 
@@ -189,7 +193,7 @@ void AnimClassExt::_AI()
                     Combat_Lighting(Bounce.Get_Coord(), Class->Damage, Class->Warhead);
                 }
                 if ((unsigned char)Class->ExpireSound != 0xFF) {
-                    Sound_Effect(Class->ExpireSound, Center_Coord());
+                    Static_Sound(Class->ExpireSound, Center_Coord());
                 }
             }
 
@@ -438,27 +442,65 @@ void AnimClassExt::_AI()
 }
 
 
-/**
- *  Get the center coord of a anim. This is required as we can not allocate
- *  on the stack and Center_Coord returns Coordinate value.
- * 
- *  @author: CCHyper
- */
-static Coordinate &Anim_Get_Center_Coord(AnimClass *this_ptr)
+void AnimClassExt::_Start()
 {
-    return this_ptr->Center_Coord();
+    const auto animext = Extension::Fetch<AnimClassExtension>(this);
+    const auto animtypeext = Extension::Fetch<AnimTypeClassExtension>(Class);
+
+    Mark(MARK_UP_FORCED);
+
+    if (!IsInert && Class->Sound != VOC_NONE) {
+
+        /*
+        **	Play the sound effect for this animation.
+        */
+        Static_Sound(Class->Sound, Center_Coord());
+    }
+
+    /*
+    **	If the stage where collateral effects occur is the first stage of the animation, then
+    **	perform this action now. Subsequent checks against this stage value starts with the
+    **	second frame of the animation.
+    */
+    if (!Class->Biggest) {
+        Middle();
+    }
+
+    if (!IsInert && Class->IsTiberiumChainReaction) {
+        CellClass* cptr = &Map[Center_Coord()];
+        TiberiumType tib = cptr->Tiberium_Type_Here();
+
+        if (tib != TIBERIUM_NONE) {
+            TiberiumClass* tiberium = Tiberiums[tib];
+            cptr->Reduce_Tiberium(cptr->OverlayData + 1);
+
+            if (tiberium->Debris.Count() > 0 && (abs(Scen->RandomNumber) % 3) == 0) {
+                AnimClass* debris = new AnimClass(tiberium->Debris[Random_Pick(0, tiberium->Debris.Count() - 1)], Center_Coord() + Coordinate(0, 0, 10));
+                debris->AlternativeDrawer = ColorSchemes[tiberium->Color]->Converter;
+                debris->AlternativeBrightness = cptr->Brightness;
+            }
+
+            Explosion_Damage(Get_Coord(), Rule->TiberiumExplosionDamage, nullptr, Rule->C4Warhead, false);
+
+            cptr->Recalc_Attributes();
+            Map.Update_Cell_Zone(cptr->CellID);
+            Map.Update_Cell_Subzones(cptr->CellID);
+        }
+    }
+
+    animext->Start();
 }
 
 
 /**
  *  Spawn the attached particle systems. This is required as we can not
  *  allocate on the stack.
- * 
+ *
  *  @author: CCHyper
  */
-static void Anim_Spawn_Particles(AnimClass *this_ptr)
+static void Anim_Spawn_Particles(AnimClass* this_ptr)
 {
-    AnimTypeClassExtension *animtypeext;
+    AnimTypeClassExtension* animtypeext;
 
     animtypeext = Extension::Fetch<AnimTypeClassExtension>(this_ptr->Class);
     if (animtypeext->ParticleToSpawn != PARTICLE_NONE) {
@@ -471,7 +513,7 @@ static void Anim_Spawn_Particles(AnimClass *this_ptr)
              *  Spawn a new particle at this anims coord.
              */
             MasterParticle->Spawn_Particle(
-                (ParticleTypeClass *)ParticleTypeClass::As_Pointer(animtypeext->ParticleToSpawn),
+                (ParticleTypeClass*)ParticleTypeClass::As_Pointer(animtypeext->ParticleToSpawn),
                 spawn_coord);
 
         }
@@ -479,77 +521,109 @@ static void Anim_Spawn_Particles(AnimClass *this_ptr)
 }
 
 
-/**
- *  Calls the AnimClass extension start event processor.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_AnimClass_Start_Ext_Patch)
+void AnimClassExt::_Middle()
 {
-    GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
-    static AnimClassExtension *animext;
+    const auto animext = Extension::Fetch<AnimClassExtension>(this);
+    const auto animtypeext = Extension::Fetch<AnimTypeClassExtension>(Class);
 
-    animext = Extension::Fetch<AnimClassExtension>(this_ptr);
+    Cell cell = Center_Coord().As_Cell();
+    CellClass* cellptr = &Map[cell];
 
-    animext->Start();
-    
-original_code:
-    _asm { pop esi }
-    _asm { pop ebx }
-    _asm { add esp, 0x24 }
-    _asm { retn }
-}
+    /*
+     *  If this animation is specified to do area damage, do the area damage effect now.
+     *  @author: Rampastring, ZivDero
+     */
+    if (animtypeext->ExplosionDamage > 0 && Class->Warhead) {
+        Explosion_Damage(Center_Coord(), animtypeext->ExplosionDamage, nullptr, Class->Warhead, true);
+    }
 
+    int width = 30;
+    int height = 30;
 
-/**
- *  Calls the AnimClass extension middle event processor.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_AnimClass_Middle_Ext_Patch)
-{
-    GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
-    static AnimClassExtension *animext;
+    ShapeSet const* shapefile = (ShapeSet const*)Get_Image_Data();
+    if (shapefile != nullptr) {
+        width = shapefile->Get_Rect(Class->Biggest).Width;
+        height = shapefile->Get_Rect(Class->Biggest).Height;
+    }
 
-    animext = Extension::Fetch<AnimClassExtension>(this_ptr);
+    /**
+     *  #issue-568
+     *
+     *  Implements SpawnParticle for anims.
+     *
+     *  @author: CCHyper
+     */
+    Anim_Spawn_Particles(this);
+
+    if (Height < 30) {
+
+        /*
+        **	If this animation leaves scorch marks (e.g., napalm), then do so at this time.
+        */
+        if (Class->IsScorcher && (!Class->IsCraterForming || (Random_Pick(0, INT_MAX - 1) / (double)(INT_MAX - 1)) < 0.5)) {
+            SmudgeTypeClass::Create_Scorch(Center_Coord(), width, height);
+        }
+
+        /*
+        **	Some animations leave a crater when they occur. Artillery is a good example.
+        **	Craters always remove the Tiberium where they occur.
+        */
+        else if (Class->IsCraterForming) {
+
+            /*
+            **	Craters reduce the level of Tiberium in the cell.
+            */
+            cellptr->Reduce_Tiberium(6);
+
+            /*
+            **	If there already is a crater in the cell, then just expand the
+            **	crater.
+            */
+
+            /**
+             *  #issue-562
+             *
+             *  Implements IsForceBigCraters to Anims.
+             *
+             *  @author: CCHyper
+             */
+            if (animtypeext->IsForceBigCraters) {
+                SmudgeTypeClass::Create_Crater(Center_Coord(), 300, 300, true);
+            } else {
+                SmudgeTypeClass::Create_Crater(Center_Coord(), width, height, false);
+            }
+        }
+    }
+
+    AnimClass* newanim;
+
+    /*
+    **	If this animation spawns side effects during its lifetime, then
+    **	do so now. Usually, these side effects are in the form of other
+    **	animations.
+    */
+    if (Class->IsFlameThrower) {
+        new AnimClass(Rule->SmallFire, Map.Closest_Free_Spot(Coord_Scatter(Center_Coord(), 0x0040), true), 0, Random_Pick(1, 2));
+        if (Percent_Chance(50)) {
+            new AnimClass(Rule->SmallFire, Map.Closest_Free_Spot(Coord_Scatter(Center_Coord(), 0x00A0), true), 0, Random_Pick(1, 2));
+        }
+        if (Percent_Chance(50)) {
+            new AnimClass(Rule->LargeFire, Map.Closest_Free_Spot(Coord_Scatter(Center_Coord(), 0x0070), true), 0, Random_Pick(1, 2));
+        }
+    }
+    else if (Class->IsScorcher) {
+        if (Height < 10) {
+            LandType land = Map[Get_Coord()].Land_Type();
+            if (land != LAND_WATER && land != LAND_BEACH && land != LAND_ICE && land != LAND_ROCK) {
+                newanim = new AnimClass(Rule->SmallFire, Center_Coord(), 0, Random_Pick(1, 2));
+                if (newanim != nullptr && xObject != nullptr) {
+                    newanim->Attach_To(xObject);
+                }
+            }
+        }
+    }
 
     animext->Middle();
-    
-original_code:
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { add esp, 0x38 }
-    _asm { retn }
-}
-
-
-
-/**
- *  #issue-568
- * 
- *  Implements SpawnParticle for anims.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_AnimClass_Middle_SpawnParticle_Patch)
-{
-    GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
-    static AnimTypeClassExtension *animtypeext;
-
-    /**
-     *  Spawn a new particle at this anims coord if one is set.
-     */
-    Anim_Spawn_Particles(this_ptr);
-
-    /**
-     *  Stolen bytes/code.
-     */
-    static int height;
-    height = this_ptr->Height;
-    _asm { mov eax, [height] }
-
-    JMP_REG(ecx, 0x00416076);
 }
 
 
@@ -585,86 +659,6 @@ DECLARE_PATCH(_AnimClass_Constructor_Layer_Set_Z_Height_Patch)
     }
 
     JMP(0x00413D63);
-}
-
-
-/**
- *  #issue-562
- * 
- *  Implements IsForceBigCraters to Anims.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_AnimClass_Middle_Create_Crater_ForceBigCraters_Patch)
-{
-    GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(int, width, ebp);
-    GET_REGISTER_STATIC(int, height, edi);
-    static AnimTypeClassExtension *animtypeext;
-    static Coordinate *tmpcoord;
-    static Coordinate coord;
-
-    tmpcoord = &Anim_Get_Center_Coord(this_ptr);
-    coord.X = tmpcoord->X;
-    coord.Y = tmpcoord->Y;
-    coord.Z = tmpcoord->Z;
-
-    animtypeext = Extension::Fetch<AnimTypeClassExtension>(this_ptr->Class);
-
-    /**
-     *  Is this anim is to spawn big craters?
-     */
-    if (animtypeext->IsForceBigCraters) {
-        SmudgeTypeClass::Create_Crater(coord, 300, 300, true);
-    } else {
-        SmudgeTypeClass::Create_Crater(coord, width, height, false);
-    }
-
-    JMP(0x00416113);
-}
-
-
-/**
- *  A helper is required because of stack issues.
- */
-static Coordinate & Center_Coord_Helper(ObjectClass * obj)
-{
-    static Coordinate coord;
-    coord = obj->Center_Coord();
-    return coord;
-}
-
-
-/**
- *  Allows the animation to explode
- *  when it has reached its largest stage.
- *
- *  @author: Rampastring, ZivDero
- */
-DECLARE_PATCH(_AnimClass_Middle_Explosion_Patch)
-{
-    GET_REGISTER_STATIC(AnimClass*, this_ptr, esi);
-    static AnimTypeClass* animtype;
-    static AnimTypeClassExtension* animtypeext;
-
-    animtype = this_ptr->Class;
-
-    /*
-     * If this animation is specified to do area damage, do the area damage effect now.
-     */
-    animtypeext = Extension::Fetch<AnimTypeClassExtension>(animtype);
-    if (animtypeext->ExplosionDamage > 0 && animtype->Warhead) {
-        Explosion_Damage(Center_Coord_Helper(this_ptr), animtypeext->ExplosionDamage, nullptr, animtype->Warhead, true);
-    }
-
-    /**
-     *  Continue function execution.
-     */
-continue_function:
-    _asm { lea  ecx, [esp + 18h] }
-    _asm { mov  eax, [esi] }
-    _asm { push ecx }
-    JMP_REG(ecx, 0x00415F4F);
 }
 
 
@@ -724,34 +718,12 @@ void AnimClassExtension_Hooks()
      */
     AnimClassExtension_Init();
 
-    Patch_Jump(0x00415F38, &_AnimClass_Start_Ext_Patch);
-
-    /**
-     *  This patch removes duplicate return in AnimClass::Middle, so we only
-     *  need to hook one place.
-     */
-    Patch_Jump(0x004162BD, 0x0041637C);
-
-    /**
-     *  Unfortunately, this manual patch is required because the code is optimised
-     *  and reuses "this" (ESI), which we need for the ext patch.
-     */
-    Patch_Byte(0x0041636D, 0x8B); // mov esi, [esi+0x68] -> mov ebp, [esi+0x68]
-    Patch_Byte(0x0041636D+1, 0x6E); // ^
-    Patch_Byte(0x0041636D+2, 0x68); // ^
-    Patch_Byte(0x00416370, 0x85); // test esi, esi -> test ebp, ebp
-    Patch_Byte(0x00416370+1, 0xED); // ^
-    Patch_Byte(0x00416374, 0x55); // push esi -> push ebp
-
-    Patch_Jump(0x0041637C, &_AnimClass_Middle_Ext_Patch);
-
-    Patch_Jump(0x004160FB, &_AnimClass_Middle_Create_Crater_ForceBigCraters_Patch);
-    Patch_Jump(0x0041606C, &_AnimClass_Middle_SpawnParticle_Patch);
-    Patch_Jump(0x00415D30, &AnimClassExt::_In_Which_Layer);
     Patch_Jump(0x00413D3E, &_AnimClass_Constructor_Layer_Set_Z_Height_Patch);
-    Patch_Jump(0x00415F48, &_AnimClass_Middle_Explosion_Patch);
     Patch_Jump(0x00414B42, &_AnimClass_Draw_It_Shadow_Patch);
     Patch_Call(0x00414BA9, &Draw_Shape_Proxy);
+    Patch_Jump(0x00415D30, &AnimClassExt::_In_Which_Layer);
     Patch_Jump(0x00414E80, &AnimClassExt::_AI);
-    Patch_Jump(0x00413C89, 0x00413CBF);
+    Patch_Jump(0x00415D60, &AnimClassExt::_Start);
+    Patch_Jump(0x00415F40, &AnimClassExt::_Middle);
+    Patch_Jump(0x00413C89, 0x00413CBF); // Skip setting Class->Stages and Class->LoopEnd in the constructor, let it happen in AI instead.
 }

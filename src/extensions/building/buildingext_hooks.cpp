@@ -835,7 +835,7 @@ DECLARE_PATCH(_BuildingClass_Mission_Open_Gate_Open_Sound_Patch)
     /**
      *  Play the sound effect at the buildings location.
      */
-    Sound_Effect(voc, *coord);
+    Static_Sound(voc, *coord);
 
     JMP_REG(edx, 0x00433BC8);
 }
@@ -870,7 +870,7 @@ DECLARE_PATCH(_BuildingClass_Mission_Open_Gate_Close_Sound_Patch)
     /**
      *  Play the sound effect at the buildings location.
      */
-    Sound_Effect(voc, *coord);
+    Static_Sound(voc, *coord);
 
     /**
      *  Function return (0).

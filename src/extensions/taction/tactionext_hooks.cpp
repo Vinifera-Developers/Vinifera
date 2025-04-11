@@ -88,7 +88,7 @@ bool TActionClassExt::_Play_Sound_At_Random_Waypoint(HouseClass *house, ObjectCl
      */
     Cell rnd_cell = cell_list[Random_Pick<unsigned int>(0, std::size(cell_list) - 1)];
 
-    Sound_Effect(Data.Sound, Cell_Coord(rnd_cell, true));
+    Static_Sound(Data.Sound, Cell_Coord(rnd_cell, true));
 
     return true;
 }

@@ -280,7 +280,7 @@ DECLARE_PATCH(_AircraftClass_Mission_Unload_Transport_Detach_Sound_Patch)
          */
         technotypeext = Extension::Fetch<TechnoTypeClassExtension>(this_ptr->Techno_Type_Class());
         if (technotypeext->LeaveTransportSound != VOC_NONE) {
-            Sound_Effect(technotypeext->LeaveTransportSound, this_ptr->Coord);
+            Static_Sound(technotypeext->LeaveTransportSound, this_ptr->Coord);
         }
 
     }
