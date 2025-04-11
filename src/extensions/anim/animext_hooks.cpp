@@ -350,7 +350,7 @@ void AnimClassExt::_AI()
                 int frame = Class->Start + stage;
                 const ShapeSet* image = Get_Image_Data();
 
-                if (animtypeext->MiddleFrames.Is_Present(frame) || (animtypeext->MiddleFrames.Is_Present(-1) && image != nullptr && frame == image->Get_Count() / 2)) {
+                if (frame != 0 && (animtypeext->MiddleFrames.Is_Present(frame) || (animtypeext->MiddleFrames.Is_Present(-1) && image != nullptr && frame == image->Get_Count() / 2))) {
                     Middle();
                 }
             }
