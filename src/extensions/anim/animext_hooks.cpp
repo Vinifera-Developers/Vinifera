@@ -141,14 +141,6 @@ void AnimClassExt::_AI()
     const auto animext = Extension::Fetch<AnimClassExtension>(this);
     const auto animtypeext = Extension::Fetch<AnimTypeClassExtension>(Class);
 
-    /**
-     *  We have flagged that this animation's type needs to have
-     *  its biggest frame recalculated, do that.
-     */
-    if (Class->Biggest == -1) {
-        animtypeext->Set_Biggest_Frame();
-    }
-
     if (Class->IsFlamingGuy) {
         Flaming_Guy_AI();
         ObjectClass::AI();
@@ -351,8 +343,14 @@ void AnimClassExt::_AI()
             **	action required. This masks craters and scorch marks, so that they appear
             **	naturally rather than "popping" into existence while in plain sight.
             */
-            if (Class->Biggest && Class->Start + stage == Class->Biggest && !IsDebris) {
-                Middle();
+            if (animtypeext->MiddleFrames.Count() && !IsDebris) {
+
+                int frame = Class->Start + stage;
+                const ShapeSet* image = Get_Image_Data();
+
+                if (animtypeext->MiddleFrames.Is_Present(frame) || (animtypeext->MiddleFrames.Is_Present(-1) && image != nullptr && frame == image->Get_Count() / 2)) {
+                    Middle();
+                }
             }
 
             if (Class->IsPingPong) {

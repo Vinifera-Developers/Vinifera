@@ -699,8 +699,6 @@ void Vinifera_Post_Load_Game()
         const BuildingTypeClass* buildingtype = BuildingTypes[i];
         Extension::Fetch<BuildingTypeClassExtension>(buildingtype)->Fetch_Building_Normal_Image(Scen->Theater);
     }
-
-    AnimTypeClassExtension::All_Set_Biggest_Frame();
 }
 
 

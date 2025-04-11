@@ -67,9 +67,6 @@ AnimTypeClassExtension final : public ObjectTypeClassExtension
 
         virtual bool Read_INI(CCINIClass &ini) override;
 
-        void Set_Biggest_Frame();
-        static void All_Set_Biggest_Frame();
-
     public:
         /**
          *  If the cell in which this animation is placed does not contain
@@ -134,7 +131,7 @@ AnimTypeClassExtension final : public ObjectTypeClassExtension
         /**
          *  The middle (biggest) frame, if set by the user.
          */
-        int MiddleFrame;
+        TypeList<int> MiddleFrames;
 
         /**
          *  If positive, the animation will spawn an explosion during its biggest frame dealing this much damage.
