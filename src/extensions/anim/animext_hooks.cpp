@@ -733,7 +733,8 @@ void Draw_Shape_Proxy(
             int shadow_shapenum = shapenum + shapefile->Get_Count() / 2;
             Point2D shadow_point = point - Point2D(0, _CurrentlyDrawnAnim->Class->YDrawOffset);
             int shadow_height_offset = height_offset - _CurrentlyDrawnAnim->ZAdjust - _CurrentlyDrawnAnim->Class->YDrawOffset;
-            ShapeFlags_Type shadow_flags = flags & ~(SHAPE_Z_REMAP | SHAPE_DARKEN | SHAPE_TRANS75 | SHAPE_CENTER | SHAPE_WIN_REL) | (SHAPE_DARKEN | SHAPE_CENTER | SHAPE_WIN_REL);
+            ShapeFlags_Type shadow_flags = flags & ~SHAPE_FLAT;
+            shadow_flags = (shadow_flags & ~SHAPE_TRANS75) | (SHAPE_DARKEN | SHAPE_CENTER | SHAPE_WIN_REL);
 
             Draw_Shape(surface, convert, shapefile, shadow_shapenum, shadow_point, window, shadow_flags, nullptr, shadow_height_offset);
         }
