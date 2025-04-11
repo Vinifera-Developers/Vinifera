@@ -89,8 +89,7 @@ void AnimTypeClassExt::_Load_Image(TheaterType theater)
     if (!IsDemandLoad && Image == nullptr) {
         if (IsTheater) {
             Fetch_Normal_Image();
-        }
-        else {
+        } else {
             char fullname[_MAX_FNAME + _MAX_EXT];
             _makepath(fullname, nullptr, nullptr, Graphic_Name(), ".SHP");
             Theater_Naming_Convention(fullname, theater);
@@ -98,12 +97,14 @@ void AnimTypeClassExt::_Load_Image(TheaterType theater)
         }
     }
 
-    ShapeSet const* shape = Image;
-    if (shape != nullptr) {
+    if (Stages == 0) {
         Stages = -1;
-        LoopEnd = -1;
-        Biggest = -1;
     }
+    if (LoopEnd == 0) {
+        LoopEnd = -1;
+    }
+
+    Biggest = -1;
 }
 
 
