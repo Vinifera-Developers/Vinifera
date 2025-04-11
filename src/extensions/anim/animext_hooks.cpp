@@ -47,6 +47,11 @@
 #include "asserthandler.h"
 #include "combat.h"
 #include "drawshape.h"
+#include "mouse.h"
+#include "voc.h"
+#include "overlaytype.h"
+#include "overlay.h"
+#include "tactical.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -61,8 +66,9 @@
  */
 class AnimClassExt : public AnimClass
 {
-    public:
-        LayerType _In_Which_Layer() const;
+public:
+    LayerType _In_Which_Layer() const;
+    void _AI();
 };
 
 
@@ -96,6 +102,341 @@ LayerType AnimClassExt::_In_Which_Layer() const
 
     return LAYER_AIR;
 }
+
+
+/**
+ *  Changes animations to use their Warhead= when dealing damage if one is specified
+ *
+ *  @author: ZivDero
+ */
+static void Do_Anim_Damage(AnimClass* anim, int damage)
+{
+    /*
+     *  INVISO is hardcoded to use C4Warhead, let's leave that just in case.
+     */
+    if (std::strcmp(anim->Class->IniName, "INVISO") == 0) {
+        Explosion_Damage(anim->Center_Coord(), damage, nullptr, Rule->C4Warhead);
+    }
+    /*
+     *  If a Warhead= is set, use that.
+     */
+    else if (anim->Class->Warhead != nullptr) {
+        Explosion_Damage(anim->Center_Coord(), damage, nullptr, anim->Class->Warhead);
+    }
+    /*
+     *  Otherwise, default to FlameDamage2, like in vanilla.
+     */
+    else {
+        Explosion_Damage(anim->Center_Coord(), damage, nullptr, Rule->FlameDamage2);
+    }
+}
+
+
+void AnimClassExt::_AI()
+{
+    const auto animext = Extension::Fetch<AnimClassExtension>(this);
+    const auto animtypeext = Extension::Fetch<AnimTypeClassExtension>(Class);
+
+    /**
+     *  We have flagged that this animation's type needs to have
+     *  its biggest frame recalculated, do that.
+     */
+    if (Class->Biggest == -1) {
+        animtypeext->Set_Biggest_Frame();
+    }
+
+    if (Class->IsFlamingGuy) {
+        Flaming_Guy_AI();
+        ObjectClass::AI();
+    }
+
+    CellClass* cellptr = Get_Cell_Ptr();
+
+    /**
+     *  #issue-560
+     *
+     *  Implements IsHideIfNotTiberium for Anims.
+     *
+     *  @author: CCHyper
+     */
+    if (animtypeext->IsHideIfNotTiberium) {
+        if (!cellptr || !cellptr->Get_Tiberium_Value()) {
+            IsInvisible = true;
+        }
+
+    }
+
+    if (IsDebris) {
+        int bounce_res = Bounce_AI();
+        if (bounce_res == 2 || bounce_res == 1) {
+            bool water = Map[Get_Coord()].Land_Type() == LAND_WATER;
+            bool bridge = Get_Coord().Z >= Map.Get_Height_GL(Get_Coord()) + BRIDGE_LEPTON_HEIGHT;
+
+            if (water && !bridge) {
+                if (Class->IsMeteor) {
+                    new AnimClass(Rule->SplashList[Rule->SplashList.Count() - 1], Get_Coord() + Coordinate(0, 0, 3));
+                }
+                else {
+                    new AnimClass(Rule->Wake, Get_Coord());
+                    new AnimClass(Rule->SplashList[0], Get_Coord() + Coordinate(0, 0, 3));
+                }
+            }
+            else {
+                if (Class->ExpireAnim != nullptr) {
+                    Vector3 bouncecoord = Bounce.Coords;
+                    new AnimClass(Class->ExpireAnim, Coordinate(bouncecoord.X, bouncecoord.Y, bouncecoord.Z), 0, 1, ShapeFlags_Type(SHAPE_CENTER | SHAPE_WIN_REL | SHAPE_FLAT), -30);
+                    Explosion_Damage(Bounce.Get_Coord(), Class->Damage, nullptr, Class->Warhead);
+                    Combat_Lighting(Bounce.Get_Coord(), Class->Damage, Class->Warhead);
+                }
+                if ((unsigned char)Class->ExpireSound != 0xFF) {
+                    Sound_Effect(Class->ExpireSound, Center_Coord());
+                }
+            }
+
+            if (!water || bridge) {
+                Coordinate coord = Bounce.Get_Coord();
+                if (Class->Spawns != nullptr && Class->SpawnCount > 0) {
+                    int count = Random_Pick(0, Class->SpawnCount) + Random_Pick(0, Class->SpawnCount);
+                    for (int i = 0; i < count; i++) {
+                        new AnimClass(Class->Spawns, coord);
+                    }
+                }
+
+                if (Rule->CraterLevel != 0 && Class->IsMeteor && !bridge) {
+                    Map.Deform(coord.As_Cell(), false);
+                    if (Rule->CraterLevel > 1) {
+                        for (int dir = FACING_FIRST; dir < FACING_COUNT; dir++) {
+                            if (dir % 2 != 0 || Rule->CraterLevel > 2) {
+                                Map.Deform(Adjacent_Cell(coord.As_Cell(), (FacingType)dir), false);
+                            }
+                        }
+                        if (Rule->CraterLevel > 3) {
+                            Map.Deform(coord.As_Cell(), false);
+                        }
+                    }
+                }
+
+                Rect updaterect(0, 0, 0, 0);
+                if (Class->IsTiberium && !bridge) {
+                    for (int x = -Class->TiberiumSpreadRadius; x <= Class->TiberiumSpreadRadius; x++) {
+                        for (int y = -Class->TiberiumSpreadRadius; y <= Class->TiberiumSpreadRadius; y++) {
+                            if ((int)sqrt((double)x * (double)x + (double)y * (double)y) <= Class->TiberiumSpreadRadius) {
+                                CellClass* cellptr = &Map[Adjacent_Cell(coord.As_Cell(), FacingType(x))];
+                                if (cellptr->Can_Tiberium_Germinate(nullptr) && Class->TiberiumSpawnType != nullptr) {
+                                    new OverlayClass(OverlayTypes[Class->TiberiumSpawnType->HeapID + Random_Pick(0, 3)], cellptr->Cell_Number());
+                                    cellptr->OverlayData = Random_Pick(0, 2);
+                                    Rect overlayrect = cellptr->Get_Overlay_Rect();
+                                    overlayrect.Y -= TacticalRect.Y;
+                                    updaterect = Union(updaterect, overlayrect);
+                                }
+                            }
+                        }
+                    }
+                    TacticalMap->Register_Dirty_Area(updaterect);
+                }
+            }
+
+            Remove_This();
+            return;
+        }
+    }
+
+    if (IsActive && !IsToDelete) {
+        if (Class->TrailerAnim != nullptr && (Class->TrailerSeperation == 1 || (Frame % Class->TrailerSeperation == 0))) {
+            new AnimClass(Class->TrailerAnim, Center_Coord(), 1);
+        }
+    }
+
+    /*
+    **	Special case check to make sure that building on top of a smoke marker
+    **	causes the smoke marker to vanish.
+    */
+    if (Class == Rule->DropZoneAnim && Map[Center_Coord()].Cell_Building()) {
+        IsToDelete = true;
+    }
+
+    /*
+    **	Delete this animation and bail early if the animation is flagged to be deleted
+    **	immediately.
+    */
+    if (IsToDelete) {
+        Remove_This();
+        return;
+    }
+
+    /*
+    **	If this is a brand new animation, then don't process it the first logic pass
+    **	since it might end up skipping the first animation frame before it has had a
+    **	chance to draw it.
+    */
+    if (IsBrandNew) {
+        IsBrandNew = false;
+        return;
+    }
+
+    if (Delay) {
+        Delay--;
+        if (!Delay) {
+            Start();
+        }
+    }
+    else if (IsActive) {
+        if (Class->IsVeins) {
+            Vein_Attack_AI();
+        }
+
+        if (Class->IsAnimatedTiberium) {
+            OverlayType overlay = Map[Center_Coord() - Coordinate(CELL_LEPTON_W * 1.5, CELL_LEPTON_H * 1.5, 0)].Overlay;
+            if (overlay == OVERLAY_NONE || OverlayTypes[overlay]->CellAnim != Class) {
+                IsToDelete = true;
+            }
+        }
+
+        if (Class->Stages == -1) {
+            Class->Stages = Class->Get_Image_Data()->Get_Count();
+            if (animtypeext->IsShadow) {
+                Class->Stages /= 2;
+            }
+        }
+        if (Class->LoopEnd == -1) {
+            Class->LoopEnd = Class->Stages;
+        }
+
+        /*
+        **	This is necessary because there is no recording of animations on the map
+        **	and thus the animation cannot be intelligently flagged for redraw. Most
+        **	animations move fast enough that they would need to be redrawn every
+        **	game frame anyway so this isn't TOO bad.
+        */
+        Mark(MARK_UP_FORCED);
+
+        if (!IsDisabled && StageClass::Graphic_Logic()) {
+            int stage = Fetch_Stage();
+
+            /*
+            **	If this animation is attached to another object and it is a
+            **	damaging kind of animation, then do the damage to the other
+            **	object.
+            */
+            if (Class->Damage > 0 && !IsDebris) {
+                if (xObject != nullptr && xObject->RTTI == RTTI_TERRAIN) {
+                    Accum += Class->Damage * 5;
+                } else {
+                    Accum += Class->Damage;
+                }
+
+                if (Accum >= 1 && !IsInert) {
+
+                    /*
+                    **	Administer the damage. If the object was destroyed by this anim,
+                    **	then the attached damaging anim is also destroyed.
+                    */
+                    int damage = Accum;
+                    Accum -= damage;
+                    Do_Anim_Damage(this, damage);
+                    if (!IsActive) {
+                        return;
+                    }
+                }
+            }
+
+            /*
+            **	During the biggest stage (covers the most ground), perform any ground altering
+            **	action required. This masks craters and scorch marks, so that they appear
+            **	naturally rather than "popping" into existence while in plain sight.
+            */
+            if (Class->Biggest && Class->Start + stage == Class->Biggest && !IsDebris) {
+                Middle();
+            }
+
+            if (Class->IsPingPong) {
+                if ((Loops <= 1 && (stage >= Class->Stages || stage == 0)) || (Loops > 1 && (stage >= Class->LoopEnd - Class->Start || stage == Class->Start))) {
+                    Set_Step(-Fetch_Step());
+                    return;
+                }
+            }
+
+            /*
+            **	Check to see if the last frame has been displayed. If so, then the
+            **	animation either ends or loops.
+            */
+            if ((Loops <= 1 && stage >= Class->Stages) || (Loops > 1 && stage >= Class->LoopEnd - Class->Start) || (Class->IsReverse && stage <= Class->Start)) {
+
+                /*
+                **	Determine if this animation should loop another time. If so, then start the loop
+                **	but if not, then proceed into the animation termination handler.
+                */
+                if (Loops && Loops != UCHAR_MAX) Loops--;
+                if (Loops) {
+                    if (Class->IsReverse) {
+                        Set_Stage(Class->LoopEnd);
+                    }
+                    else {
+                        Set_Stage(Class->LoopStart - Class->Start);
+                    }
+                    if (Class->RandomLoopDelayMin != 0 || Class->RandomLoopDelayMax != 0) {
+
+                        /**
+                         *  #issue-114
+                         *
+                         *  Animations that use RandomLoopDelay incorrectly use the unsynchronized
+                         *  random-number generator to generate their loop delay. This causes such
+                         *  animations to cause sync errors in multiplayer.
+                         *
+                         *  @author: CCHyper (based on research by Rampastring)
+                         */
+                        Delay = Random_Pick(Class->RandomLoopDelayMin, Class->RandomLoopDelayMax);
+                    }
+                }
+                else {
+
+                    /*
+                    **	The animation should end now, but first check to see if
+                    **	it needs to chain into another animation. If so, then the
+                    **	animation isn't technically over. It metamorphoses into the
+                    **	new form.
+                    */
+                    if (Class->ChainTo != nullptr) {
+
+                        animext->End();
+
+                        Class = Class->ChainTo;
+
+                        if (Class->Stages == -1) {
+                            Class->Stages = Class->Get_Image_Data()->Get_Count();
+                            if (animtypeext->IsShadow) {
+                                Class->Stages /= 2;
+                            }
+                        }
+                        if (Class->LoopEnd == -1) {
+                            Class->LoopEnd = Class->Stages;
+                        }
+
+                        IsToDelete = false;
+                        Loops = Class->Loops;
+                        Accum = 0;
+                        int delay = Class->Delay;
+                        if (Class->RandomRateMin != 0 || Class->RandomRateMax != 0) {
+                            delay = Random_Pick(Class->RandomRateMin, Class->RandomRateMax);
+                        }
+                        if (Class->IsNormalized) {
+                            Set_Rate(Options.Normalize_Delay(delay));
+                        }
+                        else {
+                            Set_Rate(delay);
+                        }
+                        Set_Stage(Class->Start);
+                        Start();
+                    }
+                    else {
+                        Remove_This();
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 
 /**
@@ -183,36 +524,6 @@ original_code:
     _asm { retn }
 }
 
-
-/**
- *  Calls the AnimClass extension end event processor.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_AnimClass_AI_End_Ext_Patch)
-{
-    GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
-    static AnimClassExtension *animext;
-
-    animext = Extension::Fetch<AnimClassExtension>(this_ptr);
-
-    animext->End();
-    
-original_code:
-    /**
-     *  Restore expected register states.
-     */
-    _asm { mov esi, this_ptr }
-    _asm { xor ebp, ebp}
-
-    /**
-     *  Stolen bytes/code.
-     */
-    _asm { mov edx, [esi+0x64] } // this->Class
-    _asm { mov ecx, [edx+0x154] } // Class->ChainTo
-
-    JMP_REG(edx, 0x00415B03);
-}
 
 
 /**
@@ -315,153 +626,6 @@ DECLARE_PATCH(_AnimClass_Middle_Create_Crater_ForceBigCraters_Patch)
 
 
 /**
- *  Patch to intercept the start of the AnimClass::AI function.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_AnimClass_AI_Beginning_Patch)
-{
-    GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
-    static AnimTypeClass *animtype;
-    static AnimTypeClassExtension *animtypeext;
-    static CellClass *cell;
-
-    animtype = this_ptr->Class;
-    animtypeext = Extension::Fetch<AnimTypeClassExtension>(animtype);
-
-    /**
-     *  We have flagged that this animation's type needs to have
-     *  its biggest frame recalculated, do that.
-     */
-    if (animtype->Biggest == -1) {
-        animtypeext->Set_Biggest_Frame();
-    }
-
-    /**
-     *  Stolen bytes/code.
-     */
-    if (animtype->IsFlamingGuy) {
-        this_ptr->Flaming_Guy_AI();
-        this_ptr->ObjectClass::AI();
-    }
-
-    cell = this_ptr->Get_Cell_Ptr();
-    
-    /**
-     *  #issue-560
-     * 
-     *  Implements IsHideIfNotTiberium for Anims.
-     * 
-     *  @author: CCHyper
-     */
-    if (animtypeext->IsHideIfNotTiberium) {
-    
-        if (!cell || !cell->Get_Tiberium_Value()) {
-            this_ptr->IsInvisible = true;
-        }
-    
-    }
-
-    JMP_REG(edx, 0x00414EAA);
-}
-
-
-#if 0
-/**
- *  Patch for setting initial anim values in the class constructor.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_AnimClass_Constructor_Init_Class_Values_Patch)
-{
-    GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
-    static AnimTypeClassExtension *animtypeext;
-
-    /**
-     *  Stolen bytes/code.
-     */
-    this_ptr->IsActive = true;
-
-    /**
-     *  #BUGFIX:
-     * 
-     *  This check was observed in Red Alert 2, so there must be an edge case
-     *  where anims are created with a null type instance. So lets do that
-     *  here and also report a warning to the debug log.
-     */
-    if (!this_ptr->Class) {
-        goto destroy_anim;
-    }
-
-    /**
-     *  #issue-561
-     * 
-     *  Implements ZAdjust override for Anims. This will only have an effect
-     *  if the anim is created with a z-adjustment value of "0" (default value).
-     * 
-     *  @author: CCHyper
-     */
-    if (!this_ptr->ZAdjust) {
-        animtypeext = Extension::Fetch<AnimTypeClassExtension>(this_ptr->Class);
-        this_ptr->ZAdjust = animtypeext->ZAdjust;
-    }
-
-    /**
-     *  Restore some registers.
-     */
-    _asm { mov ecx, this_ptr }
-    _asm { mov edx, [ecx+0x64] } // this->Class
-    _asm { mov ecx, edx }
-
-    JMP_REG(edx, 0x00413C80);
-
-    /**
-     *  Report that the anim type instance was invalid.
-     */
-destroy_anim:
-    DEBUG_WARNING("Anim: Invalid anim type instance!\n");
-
-    /**
-     *  Remove the anim from the game world.
-     */
-    this_ptr->entry_E4();
-    
-    _asm { mov esi, this_ptr }
-    JMP_REG(edx, 0x00414157);
-}
-#endif
-
-
-/**
- *  #issue-114
- * 
- *  Animations that use RandomLoopDelay incorrectly use the unsynchronized
- *  random-number generator to generate their loop delay. This causes such
- *  animations to cause sync errors in multiplayer.
- * 
- *  @author: CCHyper (based on research by Rampastring)
- */
-DECLARE_PATCH(_AnimClass_AI_RandomLoop_Randomiser_BugFix_Patch)
-{
-    GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
-    static AnimTypeClass *animtype;
-
-    animtype = reinterpret_cast<AnimTypeClass *>(this_ptr->Class_Of());
-
-    /**
-     *  Generate a random delay using the network synchronized RNG.
-     */
-    this_ptr->Delay = Random_Pick(animtype->RandomLoopDelayMin, animtype->RandomLoopDelayMax);
-
-    /**
-     *  Return from the function.
-     */
-function_return:
-    JMP(0x00415AF2);
-}
-
-
-/**
  *  A helper is required because of stack issues.
  */
 static Coordinate & Center_Coord_Helper(ObjectClass * obj)
@@ -502,44 +666,6 @@ continue_function:
     _asm { mov  eax, [esi] }
     _asm { push ecx }
     JMP_REG(ecx, 0x00415F4F);
-}
-
-
-/**
- *  Changes animations to use their Warhead= when dealing damage if one is specified
- *
- *  @author: ZivDero
- */
-static void Do_Anim_Damage(AnimClass* anim, int damage)
-{
-    /*
-     *  INVISO is hardcoded to use C4Warhead, let's leave that just in case.
-     */
-    if (std::strcmp(anim->Class->IniName, "INVISO") == 0) {
-        Explosion_Damage(anim->Center_Coord(), damage, nullptr, Rule->C4Warhead);
-    }
-    /*
-     *  If a Warhead= is set, use that.
-     */
-    else if (anim->Class->Warhead != nullptr) {
-        Explosion_Damage(anim->Center_Coord(), damage, nullptr, anim->Class->Warhead);
-    }
-    /*
-     *  Otherwise, default to FlameDamage2, like in vanilla.
-     */
-    else {
-        Explosion_Damage(anim->Center_Coord(), damage, nullptr, Rule->FlameDamage2);
-    }
-}
-
-DECLARE_PATCH(_AnimClass_AI_Warhead_Patch)
-{
-    GET_REGISTER_STATIC(AnimClass*, this_ptr, esi);
-    GET_REGISTER_STATIC(int, damage, ebp);
-
-    Do_Anim_Damage(this_ptr, damage);
-
-    JMP(0x004159B2);
 }
 
 
@@ -614,16 +740,12 @@ void AnimClassExtension_Hooks()
 
     Patch_Jump(0x0041637C, &_AnimClass_Middle_Ext_Patch);
 
-    Patch_Jump(0x00415AFA, &_AnimClass_AI_End_Ext_Patch);
-    Patch_Jump(0x00415ADA, &_AnimClass_AI_RandomLoop_Randomiser_BugFix_Patch);
-    //Patch_Jump(0x00413C79, &_AnimClass_Constructor_Init_Class_Values_Patch); // Moved to AnimClassExtension due to patching conflict.
-    Patch_Jump(0x00414E8F, &_AnimClass_AI_Beginning_Patch);
     Patch_Jump(0x004160FB, &_AnimClass_Middle_Create_Crater_ForceBigCraters_Patch);
     Patch_Jump(0x0041606C, &_AnimClass_Middle_SpawnParticle_Patch);
     Patch_Jump(0x00415D30, &AnimClassExt::_In_Which_Layer);
     Patch_Jump(0x00413D3E, &_AnimClass_Constructor_Layer_Set_Z_Height_Patch);
     Patch_Jump(0x00415F48, &_AnimClass_Middle_Explosion_Patch);
-    Patch_Jump(0x00415947, &_AnimClass_AI_Warhead_Patch);
     Patch_Jump(0x00414B42, &_AnimClass_Draw_It_Shadow_Patch);
     Patch_Call(0x00414BA9, &Draw_Shape_Proxy);
+    Patch_Jump(0x00414E80, &AnimClassExt::_AI);
 }
