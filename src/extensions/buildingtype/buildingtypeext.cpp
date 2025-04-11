@@ -226,6 +226,11 @@ bool BuildingTypeClassExtension::Read_INI(CCINIClass &ini)
 }
 
 
+/**
+ *  Fetches the extra building graphics.
+ *
+ *  @author: ZivDero
+ */
 void BuildingTypeClassExtension::Fetch_Building_Normal_Image(TheaterType theater)
 {
     char fullname[MAX_PATH];
@@ -234,7 +239,7 @@ void BuildingTypeClassExtension::Fetch_Building_Normal_Image(TheaterType theater
     ArtINI.Get_String(This()->GraphicName, "RoofDeployingAnim", "", buffer, sizeof(buffer));
     if (strlen(buffer) != 0) {
         _makepath(fullname, nullptr, nullptr, buffer, ".SHP");
-        This()->Theater_Naming_Convention(fullname, theater); // note, This() may be invalid here, but even though Theater_Naming_Convention is thiscall, it doesn't actually use `this`.
+        This()->Theater_Naming_Convention(fullname, theater);
         RoofDeployingAnim = static_cast<ShapeSet const*>(MixFileClass::Retrieve(fullname));
     }
 

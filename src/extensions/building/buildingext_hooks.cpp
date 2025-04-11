@@ -339,6 +339,11 @@ void BuildingClassExt::_Detach_Anim(AnimClass* anim)
 }
 
 
+/**
+ *  Reimplementation of BuildingClass::Draw_It.
+ *
+ *  @author: ZivDero
+ */
 void BuildingClassExt::_Draw_It(Point2D const& xdrawpoint, Rect const& xcliprect)
 {
     Cell cell = Get_Cell();
@@ -1385,6 +1390,11 @@ DECLARE_PATCH(_BuildingClass_Mission_Missile_LAUNCH_DOWN_Voice_Patch)
 }
 
 
+/**
+ *  Should the factory open the roof as opposed to the door?
+ *
+ *  @author: ZivDero
+ */
 bool Should_Open_Roof(BuildingClass* building)
 {
     if (building->Get_Mission() == MISSION_UNLOAD) {
@@ -1397,6 +1407,11 @@ bool Should_Open_Roof(BuildingClass* building)
 }
 
 
+/**
+ *  Patches to make the factory show the roof door opening anim for JJs.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_BuildingClass_entry_370_RoofDoorAnim_Patch1)
 {
     GET_REGISTER_STATIC(BuildingClass*, building, ebp);
@@ -1477,6 +1492,6 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x00432729, &_BuildingClass_Mission_Missile_DOOR_OPENING_Patch);
     Patch_Jump(0x00432957, &_BuildingClass_Mission_Missile_LAUNCH_DOWN_Patch);
     Patch_Jump(0x00432937, &_BuildingClass_Mission_Missile_LAUNCH_DOWN_Voice_Patch);
-    Patch_Jump(0x00427CD8, &_BuildingClass_entry_370_RoofDoorAnim_Patch1);
-    Patch_Jump(0x00427DF5, &_BuildingClass_entry_370_RoofDoorAnim_Patch2);
+    //Patch_Jump(0x00427CD8, &_BuildingClass_entry_370_RoofDoorAnim_Patch1);
+    //Patch_Jump(0x00427DF5, &_BuildingClass_entry_370_RoofDoorAnim_Patch2);
 }

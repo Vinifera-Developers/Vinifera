@@ -138,6 +138,13 @@ AnimTypeClassExtension final : public ObjectTypeClassExtension
          */
         int ExplosionDamage;
 
+        /**
+         *  Does this animation have a shadow?
+         */
         bool IsShadow;
+
+        /**
+         *  A separate rate at which the anim deals damage.
+         */
         int DamageRate;
 };

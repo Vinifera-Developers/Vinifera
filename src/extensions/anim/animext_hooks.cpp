@@ -136,6 +136,11 @@ static void Do_Anim_Damage(AnimClass* anim, int damage)
 }
 
 
+/**
+ *  Reimplementation of AnimClass::AI.
+ *
+ *  @author: ZivDero
+ */
 void AnimClassExt::_AI()
 {
     const auto animext = Extension::Fetch<AnimClassExtension>(this);
@@ -442,6 +447,11 @@ void AnimClassExt::_AI()
 }
 
 
+/**
+ *  Reimplementation of AnimClass::Start.
+ *
+ *  @author: ZivDero
+ */
 void AnimClassExt::_Start()
 {
     const auto animext = Extension::Fetch<AnimClassExtension>(this);
@@ -521,6 +531,11 @@ static void Anim_Spawn_Particles(AnimClass* this_ptr)
 }
 
 
+/**
+ *  Reimplementation of AnimClass::Middle.
+ *
+ *  @author: ZivDero
+ */
 void AnimClassExt::_Middle()
 {
     const auto animext = Extension::Fetch<AnimClassExtension>(this);
@@ -662,6 +677,12 @@ DECLARE_PATCH(_AnimClass_Constructor_Layer_Set_Z_Height_Patch)
 }
 
 
+/**
+ *  Saves the currently drawn animation before the call to Draw_Shape
+ *  in AnimClass::Draw_It so that we can use it later.
+ *
+ *  @author: ZivDero
+ */
 static AnimClass* _CurrentlyDrawnAnim = nullptr;
 DECLARE_PATCH(_AnimClass_Draw_It_Shadow_Patch)
 {
@@ -676,6 +697,12 @@ DECLARE_PATCH(_AnimClass_Draw_It_Shadow_Patch)
 }
 
 
+/**
+ *  Proxy for Draw_Shape that lets up draw an animation's shadow
+ *  without hunting for arguments.
+ *
+ *  @author: ZivDero
+ */
 void Draw_Shape_Proxy(
     Surface& surface,
     ConvertClass& convert,
@@ -694,15 +721,31 @@ void Draw_Shape_Proxy(
 {
     Draw_Shape(surface, convert, shapefile, shapenum, point, window, flags, remap, height_offset, zgrad, intensity, z_shapefile, z_shapenum, z_off);
 
+    /**
+     *  Make sure that we have a valid animation saved just in case.
+     */
     if (_CurrentlyDrawnAnim != nullptr && _CurrentlyDrawnAnim->Class != nullptr) {
         const auto typeext = Extension::Fetch<AnimTypeClassExtension>(_CurrentlyDrawnAnim->Class);
+
+        /**
+         *  Draw the shadow.
+         */
         if (typeext->IsShadow) {
+
+            /**
+             *  We can deduce the necessary arguments for the draw call based on the ones that were passed in.
+             */
             int shadow_shapenum = shapenum + shapefile->Get_Count() / 2;
             Point2D shadow_point = point - Point2D(0, _CurrentlyDrawnAnim->Class->YDrawOffset);
             int shadow_height_offset = height_offset - _CurrentlyDrawnAnim->ZAdjust - _CurrentlyDrawnAnim->Class->YDrawOffset;
             ShapeFlags_Type shadow_flags = flags & ~(SHAPE_Z_REMAP | SHAPE_DARKEN | SHAPE_TRANS75 | SHAPE_CENTER | SHAPE_WIN_REL) | (SHAPE_DARKEN | SHAPE_CENTER | SHAPE_WIN_REL);
+
             Draw_Shape(surface, convert, shapefile, shadow_shapenum, shadow_point, window, shadow_flags, nullptr, shadow_height_offset);
         }
+
+        /**
+         *  Clean up the saved anim.
+         */
         _CurrentlyDrawnAnim = nullptr;
     }
 }

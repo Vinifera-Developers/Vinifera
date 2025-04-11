@@ -84,6 +84,11 @@ void AnimTypeClassExt::_Free_Image()
 }
 
 
+/**
+ *  Reimplementation of AnimTypeClass::Load_Image.
+ *
+ *  @author: ZivDero
+ */
 void AnimTypeClassExt::_Load_Image(TheaterType theater)
 {
     if (!IsDemandLoad && Image == nullptr) {
@@ -97,6 +102,10 @@ void AnimTypeClassExt::_Load_Image(TheaterType theater)
         }
     }
 
+    /**
+     *  The game would calculate Stages and LoopEnd now, set them to -1
+     *  instead to be calcalated in AnimClass::AI.
+     */
     if (Stages == 0) {
         Stages = -1;
     }
@@ -104,6 +113,9 @@ void AnimTypeClassExt::_Load_Image(TheaterType theater)
         LoopEnd = -1;
     }
 
+    /**
+     *  No longer important as we use the MiddleFrames type list now.
+     */
     Biggest = -1;
 }
 

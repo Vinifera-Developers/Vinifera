@@ -114,10 +114,17 @@ BuildingTypeClassExtension final : public TechnoTypeClassExtension
          */
         int EngineerChance;
 
+        /**
+         *  Should the building hide its main shape during the special anims?
+         *  Usually used for missile silos so that anims that don't completely
+         *  hide the main shape don't look glitched.
+         */
         bool IsHideDuringSpecialAnim;
 
+        /**
+         *  New shapes for roof door anims.
+         */
         const ShapeSet* RoofDeployingAnim;
         const ShapeSet* RoofDoorAnim;
         const ShapeSet* UnderRoofDoorAnim;
-
 };

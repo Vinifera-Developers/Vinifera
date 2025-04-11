@@ -248,6 +248,11 @@ int BuildingTypeClassExt::_Cost_Of(HouseClass* house)
 }
 
 
+/**
+ *  Patch to fetch the new building images.
+ *
+ *  Author: ZivDero
+ */
 DECLARE_PATCH(_BuildingTypeClass_Init_Fetch_Image_Patch)
 {
     GET_REGISTER_STATIC(BuildingTypeClass*, btype, esi);

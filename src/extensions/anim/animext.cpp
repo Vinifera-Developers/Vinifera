@@ -53,6 +53,11 @@ AnimClassExtension::AnimClassExtension(const AnimClass *this_ptr) :
     if (this_ptr) {
         const auto animtypeext = Extension::Fetch<AnimTypeClassExtension>(This()->Class);
 
+        /**
+         *  If we don't have End= and LoopEnd= set, set them now.
+         *  Vanilla does this in the AnimClass constructor, but we move it here
+         *  so that we have access to the extension.
+         */
         if (This()->Class->Stages == -1) {
             This()->Class->Stages = This()->Class->Get_Image_Data()->Get_Count();
             if (Extension::Fetch<AnimTypeClassExtension>(This()->Class)->IsShadow) {
@@ -64,6 +69,9 @@ AnimClassExtension::AnimClassExtension(const AnimClass *this_ptr) :
             This()->Class->LoopEnd = This()->Class->Stages;
         }
 
+        /**
+         *  Initialize the delay stage counter.
+         */
         int damagedelay = animtypeext->DamageRate == -1 ? This()->Fetch_Rate() : animtypeext->DamageRate;
         DamageStage.Set_Rate(damagedelay);
     }
