@@ -65,7 +65,8 @@ AnimTypeClassExtension::AnimTypeClassExtension(const AnimTypeClass *this_ptr) :
     EndAnimsMaximum(),
     EndAnimsDelay(),
     MiddleFrame(-1),
-    ExplosionDamage(0)
+    ExplosionDamage(0),
+    IsShadow(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("AnimTypeClassExtension::AnimTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -420,6 +421,7 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     }
 
     ExplosionDamage = ini.Get_Int(ini_name, "ExplosionDamage", ExplosionDamage);
+    IsShadow = ini.Get_Bool(ini_name, "Shadow", IsShadow);
 
     IsInitialized = true;
 

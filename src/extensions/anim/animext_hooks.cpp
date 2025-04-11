@@ -46,6 +46,7 @@
 #include "debughandler.h"
 #include "asserthandler.h"
 #include "combat.h"
+#include "drawshape.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -542,6 +543,46 @@ DECLARE_PATCH(_AnimClass_AI_Warhead_Patch)
 }
 
 
+static AnimClass* _CurrentlyDrawnAnim = nullptr;
+DECLARE_PATCH(_AnimClass_Draw_It_Shadow_Patch)
+{
+    GET_REGISTER_STATIC(AnimClass*, anim, esi);
+    _CurrentlyDrawnAnim = anim;
+
+    _asm mov eax, [eax + 0x1CC]
+        JMP_REG(edx, 0x00414B48);
+}
+
+
+void Draw_Shape_Proxy(
+    Surface& surface,
+    ConvertClass& convert,
+    const ShapeSet* shapefile,
+    int shapenum,
+    const Point2D& point,
+    const Rect& window,
+    ShapeFlags_Type flags = SHAPE_NORMAL,
+    const char* remap = nullptr,
+    int height_offset = 0,
+    ZGradientType zgrad = ZGRAD_GROUND,
+    int intensity = 1000,
+    const ShapeSet* z_shapefile = nullptr,
+    int z_shapenum = 0,
+    Point2D z_off = Point2D(0, 0))
+{
+    Draw_Shape(surface, convert, shapefile, shapenum, point, window, flags, remap, height_offset, zgrad, intensity, z_shapefile, z_shapenum, z_off);
+
+    const auto typeext = Extension::Fetch<AnimTypeClassExtension>(_CurrentlyDrawnAnim->Class);
+    if (typeext->IsShadow) {
+        int shadow_shapenum = shapenum + shapefile->Get_Count() / 2;
+        Point2D shadow_point = point - Point2D(0, _CurrentlyDrawnAnim->Class->YDrawOffset);
+        int shadow_height_offset = height_offset - _CurrentlyDrawnAnim->ZAdjust - _CurrentlyDrawnAnim->Class->YDrawOffset;
+        ShapeFlags_Type shadow_flags = flags & ~(SHAPE_Z_REMAP | SHAPE_DARKEN | SHAPE_TRANS75 | SHAPE_CENTER | SHAPE_WIN_REL) | (SHAPE_DARKEN | SHAPE_CENTER | SHAPE_WIN_REL);
+        Draw_Shape(surface, convert, shapefile, shadow_shapenum, shadow_point, window, shadow_flags, nullptr, shadow_height_offset);
+    }
+}
+
+
 /**
  *  Main function for patching the hooks.
  */
@@ -583,4 +624,6 @@ void AnimClassExtension_Hooks()
     Patch_Jump(0x00413D3E, &_AnimClass_Constructor_Layer_Set_Z_Height_Patch);
     Patch_Jump(0x00415F48, &_AnimClass_Middle_Explosion_Patch);
     Patch_Jump(0x00415947, &_AnimClass_AI_Warhead_Patch);
+    Patch_Jump(0x00414B42, &_AnimClass_Draw_It_Shadow_Patch);
+    Patch_Call(0x00414BA9, &Draw_Shape_Proxy);
 }
