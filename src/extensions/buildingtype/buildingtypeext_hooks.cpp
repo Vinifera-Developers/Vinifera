@@ -247,6 +247,22 @@ int BuildingTypeClassExt::_Cost_Of(HouseClass* house)
     return TechnoTypeClass::Cost_Of(house);
 }
 
+
+DECLARE_PATCH(_BuildingTypeClass_Init_Fetch_Image_Patch)
+{
+    GET_REGISTER_STATIC(BuildingTypeClass*, btype, esi);
+    GET_REGISTER_STATIC(TheaterType, theater, edi);
+
+    btype->Fetch_Building_Normal_Image(theater);
+
+    static BuildingTypeClassExtension* bext;
+    bext = Extension::Fetch<BuildingTypeClassExtension>(btype);
+    bext->Fetch_Building_Normal_Image(theater);
+
+    JMP(0x0043FDC7);
+}
+
+
 /**
  *  Main function for patching the hooks.
  */
@@ -270,4 +286,5 @@ void BuildingTypeClassExtension_Hooks()
     Patch_Jump(0x0043F936, &_BuildingTypeClass_DTOR_Free_Buildup_Image_Patch);
     Patch_Jump(0x00440000, &BuildingTypeClassExt::_Raw_Cost);
     Patch_Jump(0x00440080, &BuildingTypeClassExt::_Cost_Of);
+    Patch_Jump(0x0043FDBF, &_BuildingTypeClass_Init_Fetch_Image_Patch);
 }

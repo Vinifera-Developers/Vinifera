@@ -61,6 +61,8 @@ BuildingTypeClassExtension final : public TechnoTypeClassExtension
 
         virtual bool Read_INI(CCINIClass &ini) override;
 
+        void Fetch_Building_Normal_Image(TheaterType theater);
+
     public:
         /**
          *  This is the sound effect to play when the animation of the gate is rising.
@@ -111,4 +113,11 @@ BuildingTypeClassExtension final : public TechnoTypeClassExtension
          *  The percent chance for an engineer to exit this building as its crew.
          */
         int EngineerChance;
+
+        bool IsHideDuringSpecialAnim;
+
+        const ShapeSet* RoofDeployingAnim;
+        const ShapeSet* RoofDoorAnim;
+        const ShapeSet* UnderRoofDoorAnim;
+
 };
