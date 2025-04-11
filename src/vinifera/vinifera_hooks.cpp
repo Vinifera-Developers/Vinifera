@@ -80,8 +80,6 @@ static void _Detach_This_From_All_Intercept(AbstractClass * target, bool all)
  */
 static void _Free_Heaps_Intercept()
 {
-    Free_Heaps();
-
     /**
      *  Cleanup global heaps/vectors.
      */
@@ -107,6 +105,8 @@ static void _Free_Heaps_Intercept()
     Extension::Free_Heaps();
 
     --ScenarioInit;
+
+    Free_Heaps();
 }
 
 

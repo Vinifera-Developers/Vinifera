@@ -78,6 +78,7 @@ EBoltClass::EBoltClass() :
  */
 EBoltClass::~EBoltClass()
 {
+    EBolts.Delete(this);
     Clear();
 }
 
@@ -90,10 +91,7 @@ EBoltClass::~EBoltClass()
 void EBoltClass::Clear()
 {
     if (Source) {
-
-        TechnoClassExtension *technoext = Extension::Fetch<TechnoClassExtension>(Source);
-        technoext->ElectricBolt = nullptr;
-
+        Extension::Fetch<TechnoClassExtension>(Source)->ElectricBolt = nullptr;
         Source = nullptr;
     }
 
@@ -125,7 +123,6 @@ void EBoltClass::Draw_It()
         LineDrawList.Clear();
 
         for (int i = 0; i < IterationCount; ++i) {
-
             if (Lifetime) {
 
                 Point2D pixel_start;
@@ -138,7 +135,6 @@ void EBoltClass::Draw_It()
                     Plot_Bolt(StartCoord, EndCoord);
                 }
             }
-
         }
 
         /**
@@ -245,7 +241,6 @@ void EBoltClass::Draw_All()
          *  Is the source object has left the game world, remove this bolt.
          */
         if (ebolt->Source && (!ebolt->Source->IsActive || ebolt->Source->IsInLimbo)) {
-            EBolts.Delete(ebolt);
             delete ebolt;
             continue;
         }
@@ -267,7 +262,6 @@ void EBoltClass::Draw_All()
          *  Electric bolt has expired, delete it.
          */
         if (ebolt->Lifetime <= 0) {
-            EBolts.Delete(ebolt);
             delete ebolt;
         }
     }
@@ -281,10 +275,9 @@ void EBoltClass::Draw_All()
  */
 void EBoltClass::Clear_All()
 {
-    for (int i = 0; i < EBolts.Count(); ++i) {
-        delete EBolts[i];
+    while (EBolts.Count()) {
+        delete EBolts[0];
     }
-    EBolts.Clear();
 }
 
 
