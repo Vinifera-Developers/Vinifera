@@ -182,6 +182,10 @@ New:
 - Implement `ExplosionDamage` for animations (by ZivDero, Rampastring)
 - Implement `InfantryModifier`, `VehicleModifier`, `AircraftModifier`, `BuildingModifier`, `TerrainModifier` (by ZivDero)
 - Implement `Volumetric`, `SnapToCellCenter` (by ZivDero)
+- Add `Shadow` for animations (by ZivDero)
+- Add `DamageRate` for animations (by ZivDero)
+- Add `HideDuringSpecialAnim` for buildings (by ZivDero)
+- Add `RoofDeployingAnim` and `UnderRoofDoorAnim` for buildings (by ZivDero)
 
 
 Vanilla fixes:

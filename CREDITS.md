@@ -229,3 +229,7 @@ This page lists all the individual contributions to the project by their author.
   - Super Weapons with `Type=MultiMissile` and `Type=ChemMissile` now fire using their own weapon when fired from a building.
   - Super Weapons with `Type=MultiMissile` and `Type=ChemMissile` now have the building display Special animations.
   - Allow customizing "Missile Launched" voice per super weapon.
+  - Add `Shadow` for animations.
+  - Add `DamageRate` for animations.
+  - Add `HideDuringSpecialAnim` for buildings.
+  - Add `RoofDeployingAnim` and `UnderRoofDoorAnim` for buildings.
