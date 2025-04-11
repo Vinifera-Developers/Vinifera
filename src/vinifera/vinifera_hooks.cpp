@@ -85,28 +85,41 @@ static void _Free_Heaps_Intercept()
      */
     ++ScenarioInit;
 
-    while (ArmorTypes.Count()) {
-        delete ArmorTypes[0];
-    }
-    Remove_All_Inactive();
-
+    /**
+     *  Delete things that may depend on extensions/vanilla objects still existing.
+     */
     while (RocketTypes.Count()) {
         delete RocketTypes[0];
     }
     Remove_All_Inactive();
 
-    while (SpawnManagers.Count()) {
-        delete SpawnManagers[0];
-    }
-    Remove_All_Inactive();
+    //while (SpawnManagers.Count()) { // spawn managers are destroyed by their owners
+    //    delete SpawnManagers[0];
+    //}
+    //Remove_All_Inactive();
 
     EBoltClass::Clear_All();
 
+    /**
+     *  Free extensions as they may reference vanilla objects.
+     */
     Extension::Free_Heaps();
 
-    --ScenarioInit;
-
+    /**
+     *  Now free vanilla objects.
+     */
     Free_Heaps();
+
+    /**
+     *  Finally, clear armors. We do this at the very end because
+     *  lots of things depend on verses being around.
+     */
+    while (ArmorTypes.Count()) {
+        delete ArmorTypes[0];
+    }
+    Remove_All_Inactive();
+
+    --ScenarioInit;
 }
 
 
