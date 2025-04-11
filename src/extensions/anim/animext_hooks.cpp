@@ -314,8 +314,7 @@ void AnimClassExt::_AI()
         */
         Mark(MARK_UP_FORCED);
 
-        if (!IsDisabled && StageClass::Graphic_Logic()) {
-            int stage = Fetch_Stage();
+        if (!IsDisabled && animext->DamageStage.Graphic_Logic()) {
 
             /*
             **	If this animation is attached to another object and it is a
@@ -343,6 +342,10 @@ void AnimClassExt::_AI()
                     }
                 }
             }
+        }
+
+        if (!IsDisabled && StageClass::Graphic_Logic()) {
+            int stage = Fetch_Stage();
 
             /*
             **	During the biggest stage (covers the most ground), perform any ground altering
@@ -430,6 +433,8 @@ void AnimClassExt::_AI()
                             Set_Rate(delay);
                         }
                         Set_Stage(Class->Start);
+                        int damagedelay = animtypeext->DamageDelay == -1 ? Fetch_Rate() : animtypeext->DamageDelay;
+                        animext->DamageStage.Set_Rate(damagedelay);
                         Start();
                     }
                     else {

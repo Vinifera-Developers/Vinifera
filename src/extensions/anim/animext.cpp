@@ -43,13 +43,16 @@
  *  @author: CCHyper
  */
 AnimClassExtension::AnimClassExtension(const AnimClass *this_ptr) :
-    ObjectClassExtension(this_ptr)
+    ObjectClassExtension(this_ptr),
+    DamageStage()
 {
     //if (this_ptr) EXT_DEBUG_TRACE("AnimClassExtension::AnimClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     AnimExtensions.Add(this);
 
     if (this_ptr) {
+        const auto animtypeext = Extension::Fetch<AnimTypeClassExtension>(This()->Class);
+
         if (This()->Class->Stages == -1) {
             This()->Class->Stages = This()->Class->Get_Image_Data()->Get_Count();
             if (Extension::Fetch<AnimTypeClassExtension>(This()->Class)->IsShadow) {
@@ -60,6 +63,9 @@ AnimClassExtension::AnimClassExtension(const AnimClass *this_ptr) :
         if (This()->Class->LoopEnd == -1) {
             This()->Class->LoopEnd = This()->Class->Stages;
         }
+
+        int damagedelay = animtypeext->DamageDelay == -1 ? This()->Fetch_Rate() : animtypeext->DamageDelay;
+        DamageStage.Set_Rate(damagedelay);
     }
 }
 
@@ -70,7 +76,8 @@ AnimClassExtension::AnimClassExtension(const AnimClass *this_ptr) :
  *  @author: CCHyper
  */
 AnimClassExtension::AnimClassExtension(const NoInitClass &noinit) :
-    ObjectClassExtension(noinit)
+    ObjectClassExtension(noinit),
+    DamageStage(noinit)
 {
     //EXT_DEBUG_TRACE("AnimClassExtension::AnimClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }

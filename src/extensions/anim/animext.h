@@ -75,4 +75,5 @@ AnimClassExtension final : public ObjectClassExtension
         bool Spawn_Animations(const Coordinate &coord, const TypeList<AnimTypeClass *> &animlist, const TypeList<int> &countlist, const TypeList<int> &minlist, const TypeList<int> &maxlist, const TypeList<int>& delaylist);
 
     public:
+        StageClass DamageStage;
 };
