@@ -438,7 +438,6 @@ void AnimClassExt::_AI()
 }
 
 
-
 /**
  *  Get the center coord of a anim. This is required as we can not allocate
  *  on the stack and Center_Coord returns Coordinate value.
@@ -748,4 +747,5 @@ void AnimClassExtension_Hooks()
     Patch_Jump(0x00414B42, &_AnimClass_Draw_It_Shadow_Patch);
     Patch_Call(0x00414BA9, &Draw_Shape_Proxy);
     Patch_Jump(0x00414E80, &AnimClassExt::_AI);
+    Patch_Jump(0x00413C89, 0x00413CBF);
 }

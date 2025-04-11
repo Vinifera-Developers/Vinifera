@@ -234,21 +234,21 @@ void BuildingTypeClassExtension::Fetch_Building_Normal_Image(TheaterType theater
     ArtINI.Get_String(This()->GraphicName, "RoofDeployingAnim", "", buffer, sizeof(buffer));
     if (strlen(buffer) != 0) {
         _makepath(fullname, nullptr, nullptr, buffer, ".SHP");
-        This()->Assign_Theater_Name(fullname, theater); // note, This() may be invalid here, but even though Theater_Naming_Convention is thiscall, it doesn't actually use `this`.
+        This()->Theater_Naming_Convention(fullname, theater); // note, This() may be invalid here, but even though Theater_Naming_Convention is thiscall, it doesn't actually use `this`.
         RoofDeployingAnim = static_cast<ShapeSet const*>(MixFileClass::Retrieve(fullname));
     }
 
     ArtINI.Get_String(This()->GraphicName, "RoofDoorAnim", "", buffer, sizeof(buffer));
     if (strlen(buffer) != 0) {
         _makepath(fullname, nullptr, nullptr, buffer, ".SHP");
-        This()->Assign_Theater_Name(fullname, theater);
+        This()->Theater_Naming_Convention(fullname, theater);
         RoofDoorAnim = static_cast<ShapeSet const*>(MixFileClass::Retrieve(fullname));
     }
 
     ArtINI.Get_String(This()->GraphicName, "UnderRoofDoorAnim", "", buffer, sizeof(buffer));
     if (strlen(buffer) != 0) {
         _makepath(fullname, nullptr, nullptr, buffer, ".SHP");
-        This()->Assign_Theater_Name(fullname, theater);
+        This()->Theater_Naming_Convention(fullname, theater);
         UnderRoofDoorAnim = static_cast<ShapeSet const*>(MixFileClass::Retrieve(fullname));
     }
 }

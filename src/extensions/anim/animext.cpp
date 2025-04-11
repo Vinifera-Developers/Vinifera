@@ -48,6 +48,19 @@ AnimClassExtension::AnimClassExtension(const AnimClass *this_ptr) :
     //if (this_ptr) EXT_DEBUG_TRACE("AnimClassExtension::AnimClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     AnimExtensions.Add(this);
+
+    if (this_ptr) {
+        if (This()->Class->Stages == -1) {
+            This()->Class->Stages = This()->Class->Get_Image_Data()->Get_Count();
+            if (Extension::Fetch<AnimTypeClassExtension>(This()->Class)->IsShadow) {
+                This()->Class->Stages /= 2;
+            }
+        }
+
+        if (This()->Class->LoopEnd == -1) {
+            This()->Class->LoopEnd = This()->Class->Stages;
+        }
+    }
 }
 
 
