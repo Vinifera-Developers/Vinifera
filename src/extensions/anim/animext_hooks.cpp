@@ -394,6 +394,8 @@ void AnimClassExt::_AI()
                 }
                 else {
 
+                    animext->End();
+
                     /*
                     **	The animation should end now, but first check to see if
                     **	it needs to chain into another animation. If so, then the
@@ -401,8 +403,6 @@ void AnimClassExt::_AI()
                     **	new form.
                     */
                     if (Class->ChainTo != nullptr) {
-
-                        animext->End();
 
                         Class = Class->ChainTo;
 
