@@ -1385,6 +1385,56 @@ DECLARE_PATCH(_BuildingClass_Mission_Missile_LAUNCH_DOWN_Voice_Patch)
 }
 
 
+bool Should_Open_Roof(BuildingClass* building)
+{
+    if (building->Get_Mission() == MISSION_UNLOAD) {
+        TechnoClass* radio = building->Contact_With_Whom();
+        if (radio != nullptr && (radio->Techno_Type_Class()->Locomotor == __uuidof(JumpjetLocomotionClass))) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+DECLARE_PATCH(_BuildingClass_entry_370_RoofDoorAnim_Patch1)
+{
+    GET_REGISTER_STATIC(BuildingClass*, building, ebp);
+    const BuildingTypeClassExtension* btypeext;
+
+    btypeext = Extension::Fetch<BuildingTypeClassExtension>(building->Class);
+
+    if (building->Class->DoorAnim != nullptr && !Should_Open_Roof(building) || btypeext->RoofDoorAnim != nullptr && Should_Open_Roof(building)) {
+        JMP(0x00427CEC);
+    }
+
+    JMP(0x00427E27);
+}
+
+
+DECLARE_PATCH(_BuildingClass_entry_370_RoofDoorAnim_Patch2)
+{
+    GET_REGISTER_STATIC(BuildingClass*, building, ebp);
+    const BuildingTypeClassExtension* btypeext;
+    const ShapeSet* shapefile;
+
+    _asm pushad
+
+    btypeext = Extension::Fetch<BuildingTypeClassExtension>(building->Class);
+
+    if (Should_Open_Roof(building)) {
+        shapefile = building->Class->DoorAnim;
+    } else {
+        shapefile = btypeext->RoofDoorAnim;
+    }
+
+    _asm popad
+    _asm mov edx, shapefile
+
+    JMP_REG(ecx, 0x00427DFB);
+}
+
+
 /**
  *  Main function for patching the hooks.
  */
@@ -1427,4 +1477,6 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x00432729, &_BuildingClass_Mission_Missile_DOOR_OPENING_Patch);
     Patch_Jump(0x00432957, &_BuildingClass_Mission_Missile_LAUNCH_DOWN_Patch);
     Patch_Jump(0x00432937, &_BuildingClass_Mission_Missile_LAUNCH_DOWN_Voice_Patch);
+    Patch_Jump(0x00427CD8, &_BuildingClass_entry_370_RoofDoorAnim_Patch1);
+    Patch_Jump(0x00427DF5, &_BuildingClass_entry_370_RoofDoorAnim_Patch2);
 }
