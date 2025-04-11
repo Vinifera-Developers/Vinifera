@@ -64,7 +64,7 @@ AnimClassExtension::AnimClassExtension(const AnimClass *this_ptr) :
             This()->Class->LoopEnd = This()->Class->Stages;
         }
 
-        int damagedelay = animtypeext->DamageDelay == -1 ? This()->Fetch_Rate() : animtypeext->DamageDelay;
+        int damagedelay = animtypeext->DamageRate == -1 ? This()->Fetch_Rate() : animtypeext->DamageRate;
         DamageStage.Set_Rate(damagedelay);
     }
 }

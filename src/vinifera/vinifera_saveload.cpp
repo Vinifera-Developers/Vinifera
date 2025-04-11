@@ -699,6 +699,8 @@ void Vinifera_Post_Load_Game()
         const BuildingTypeClass* buildingtype = BuildingTypes[i];
         Extension::Fetch<BuildingTypeClassExtension>(buildingtype)->Fetch_Building_Normal_Image(Scen->Theater);
     }
+
+    AnimTypeClassExtension::All_Set_Biggest_Frame();
 }
 
 
@@ -929,7 +931,6 @@ bool Vinifera_Load_Game(const char* file_name)
     SwizzleManager.Reset();
     Post_Load_Game();
     Vinifera_Post_Load_Game();
-    AnimTypeClassExtension::All_Set_Biggest_Frame();
     Map.Init_IO();
     Map.Activate(1);
     Map.Set_Dimensions();

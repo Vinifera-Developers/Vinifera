@@ -167,7 +167,6 @@ void AnimClassExt::_AI()
         if (!cellptr || !cellptr->Get_Tiberium_Value()) {
             IsInvisible = true;
         }
-
     }
 
     if (IsDebris) {
@@ -377,8 +376,7 @@ void AnimClassExt::_AI()
                 if (Loops) {
                     if (Class->IsReverse) {
                         Set_Stage(Class->LoopEnd);
-                    }
-                    else {
+                    } else {
                         Set_Stage(Class->LoopStart - Class->Start);
                     }
                     if (Class->RandomLoopDelayMin != 0 || Class->RandomLoopDelayMax != 0) {
@@ -428,12 +426,11 @@ void AnimClassExt::_AI()
                         }
                         if (Class->IsNormalized) {
                             Set_Rate(Options.Normalize_Delay(delay));
-                        }
-                        else {
+                        } else {
                             Set_Rate(delay);
                         }
                         Set_Stage(Class->Start);
-                        int damagedelay = animtypeext->DamageDelay == -1 ? Fetch_Rate() : animtypeext->DamageDelay;
+                        int damagedelay = animtypeext->DamageRate == -1 ? Fetch_Rate() : animtypeext->DamageRate;
                         animext->DamageStage.Set_Rate(damagedelay);
                         Start();
                     }

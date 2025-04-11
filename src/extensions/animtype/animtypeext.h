@@ -142,5 +142,5 @@ AnimTypeClassExtension final : public ObjectTypeClassExtension
         int ExplosionDamage;
 
         bool IsShadow;
-        int DamageDelay;
+        int DamageRate;
 };
