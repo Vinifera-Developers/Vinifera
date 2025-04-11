@@ -346,12 +346,13 @@ void AnimClassExt::_AI()
             **	naturally rather than "popping" into existence while in plain sight.
             */
             if (animtypeext->MiddleFrames.Count() && !IsDebris) {
-
                 int frame = Class->Start + stage;
                 const ShapeSet* image = Get_Image_Data();
 
-                if (frame != 0 && (animtypeext->MiddleFrames.Is_Present(frame) || (animtypeext->MiddleFrames.Is_Present(-1) && image != nullptr && frame == image->Get_Count() / 2))) {
-                    Middle();
+                if (frame != 0) {
+                    if (animtypeext->MiddleFrames.Is_Present(frame) || (animtypeext->MiddleFrames.Is_Present(-1) && image != nullptr && frame == image->Get_Count() / 2)) {
+                        Middle();
+                    }
                 }
             }
 
@@ -466,7 +467,7 @@ void AnimClassExt::_Start()
     **	perform this action now. Subsequent checks against this stage value starts with the
     **	second frame of the animation.
     */
-    if (!Class->Biggest) {
+    if (animtypeext->MiddleFrames.Is_Present(0)) {
         Middle();
     }
 

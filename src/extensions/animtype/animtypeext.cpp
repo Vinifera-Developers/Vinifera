@@ -72,6 +72,9 @@ AnimTypeClassExtension::AnimTypeClassExtension(const AnimTypeClass *this_ptr) :
     //if (this_ptr) EXT_DEBUG_TRACE("AnimTypeClassExtension::AnimTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     AnimTypeExtensions.Add(this);
+
+    // The half-way frame is the middle frame by default.
+    MiddleFrames.Add(-1);
 }
 
 
@@ -424,7 +427,7 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
      */
     MiddleFrames = ini.Get_Integers(ini_name, "MiddleFrame", MiddleFrames);
     for (int& frame : MiddleFrames) {
-        frame = std::clamp(frame, -1, This()->Image->Get_Count() - 1);
+        frame = std::clamp(frame, -1, ((This()->Image != nullptr) ? (This()->Image->Get_Count() - 1) : 0));
     }
 
     ExplosionDamage = ini.Get_Int(ini_name, "ExplosionDamage", ExplosionDamage);
