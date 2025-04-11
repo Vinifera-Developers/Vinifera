@@ -1423,9 +1423,9 @@ DECLARE_PATCH(_BuildingClass_entry_370_RoofDoorAnim_Patch2)
     btypeext = Extension::Fetch<BuildingTypeClassExtension>(building->Class);
 
     if (Should_Open_Roof(building)) {
-        shapefile = building->Class->DoorAnim;
-    } else {
         shapefile = btypeext->RoofDoorAnim;
+    } else {
+        shapefile = building->Class->DoorAnim;
     }
 
     _asm popad

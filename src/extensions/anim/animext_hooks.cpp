@@ -672,10 +672,13 @@ static AnimClass* _CurrentlyDrawnAnim = nullptr;
 DECLARE_PATCH(_AnimClass_Draw_It_Shadow_Patch)
 {
     GET_REGISTER_STATIC(AnimClass*, anim, esi);
+    _asm pushad
+
     _CurrentlyDrawnAnim = anim;
 
+    _asm popad
     _asm mov eax, [eax + 0x1CC]
-        JMP_REG(edx, 0x00414B48);
+    JMP_REG(edx, 0x00414B48);
 }
 
 
@@ -697,13 +700,16 @@ void Draw_Shape_Proxy(
 {
     Draw_Shape(surface, convert, shapefile, shapenum, point, window, flags, remap, height_offset, zgrad, intensity, z_shapefile, z_shapenum, z_off);
 
-    const auto typeext = Extension::Fetch<AnimTypeClassExtension>(_CurrentlyDrawnAnim->Class);
-    if (typeext->IsShadow) {
-        int shadow_shapenum = shapenum + shapefile->Get_Count() / 2;
-        Point2D shadow_point = point - Point2D(0, _CurrentlyDrawnAnim->Class->YDrawOffset);
-        int shadow_height_offset = height_offset - _CurrentlyDrawnAnim->ZAdjust - _CurrentlyDrawnAnim->Class->YDrawOffset;
-        ShapeFlags_Type shadow_flags = flags & ~(SHAPE_Z_REMAP | SHAPE_DARKEN | SHAPE_TRANS75 | SHAPE_CENTER | SHAPE_WIN_REL) | (SHAPE_DARKEN | SHAPE_CENTER | SHAPE_WIN_REL);
-        Draw_Shape(surface, convert, shapefile, shadow_shapenum, shadow_point, window, shadow_flags, nullptr, shadow_height_offset);
+    if (_CurrentlyDrawnAnim != nullptr && _CurrentlyDrawnAnim->Class != nullptr) {
+        const auto typeext = Extension::Fetch<AnimTypeClassExtension>(_CurrentlyDrawnAnim->Class);
+        if (typeext->IsShadow) {
+            int shadow_shapenum = shapenum + shapefile->Get_Count() / 2;
+            Point2D shadow_point = point - Point2D(0, _CurrentlyDrawnAnim->Class->YDrawOffset);
+            int shadow_height_offset = height_offset - _CurrentlyDrawnAnim->ZAdjust - _CurrentlyDrawnAnim->Class->YDrawOffset;
+            ShapeFlags_Type shadow_flags = flags & ~(SHAPE_Z_REMAP | SHAPE_DARKEN | SHAPE_TRANS75 | SHAPE_CENTER | SHAPE_WIN_REL) | (SHAPE_DARKEN | SHAPE_CENTER | SHAPE_WIN_REL);
+            Draw_Shape(surface, convert, shapefile, shadow_shapenum, shadow_point, window, shadow_flags, nullptr, shadow_height_offset);
+        }
+        _CurrentlyDrawnAnim = nullptr;
     }
 }
 
