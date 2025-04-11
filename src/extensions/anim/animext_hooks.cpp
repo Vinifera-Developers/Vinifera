@@ -293,10 +293,7 @@ void AnimClassExt::_AI()
         }
 
         if (Class->Stages == -1) {
-            Class->Stages = Class->Get_Image_Data()->Get_Count();
-            if (animtypeext->IsShadow) {
-                Class->Stages /= 2;
-            }
+            Class->Stages = animtypeext->Stage_Count();
         }
         if (Class->LoopEnd == -1) {
             Class->LoopEnd = Class->Stages;
@@ -411,10 +408,7 @@ void AnimClassExt::_AI()
                         Class = Class->ChainTo;
 
                         if (Class->Stages == -1) {
-                            Class->Stages = Class->Get_Image_Data()->Get_Count();
-                            if (animtypeext->IsShadow) {
-                                Class->Stages /= 2;
-                            }
+                            Class->Stages = animtypeext->Stage_Count();
                         }
                         if (Class->LoopEnd == -1) {
                             Class->LoopEnd = Class->Stages;

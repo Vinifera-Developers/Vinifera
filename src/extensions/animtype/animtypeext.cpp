@@ -439,3 +439,21 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
 
     return true;
 }
+
+
+/**
+ *  Returns the default stage count for this animation.
+ *
+ *  @author: ZivDero
+ */
+int AnimTypeClassExtension::Stage_Count() const
+{
+    int stages = 0;
+    if (This()->Get_Image_Data() != nullptr) {
+        stages = This()->Get_Image_Data()->Get_Count();
+    }
+    if (IsShadow) {
+        stages /= 2;
+    }
+    return stages;
+}

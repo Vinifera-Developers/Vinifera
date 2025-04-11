@@ -67,6 +67,8 @@ AnimTypeClassExtension final : public ObjectTypeClassExtension
 
         virtual bool Read_INI(CCINIClass &ini) override;
 
+        int Stage_Count() const;
+
     public:
         /**
          *  If the cell in which this animation is placed does not contain

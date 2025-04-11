@@ -59,10 +59,7 @@ AnimClassExtension::AnimClassExtension(const AnimClass *this_ptr) :
          *  so that we have access to the extension.
          */
         if (This()->Class->Stages == -1) {
-            This()->Class->Stages = This()->Class->Get_Image_Data()->Get_Count();
-            if (Extension::Fetch<AnimTypeClassExtension>(This()->Class)->IsShadow) {
-                This()->Class->Stages /= 2;
-            }
+            This()->Class->Stages = animtypeext->Stage_Count();
         }
 
         if (This()->Class->LoopEnd == -1) {
