@@ -101,7 +101,7 @@ Shadow=no              ; boolean, does this animation show a shadow?
 In `ART.INI`:
 ```ini
 [AnimType]    ; AnimType
-DamageRate=0  ; integer, the rate at which this animation deals damage. Defaults to `Rate`.
+DamageRate=-1 ; integer, the rate at which this animation deals damage. Defaults to `Rate`.
 ```
 
 ## Buildings
