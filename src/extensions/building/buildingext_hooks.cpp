@@ -455,7 +455,7 @@ void BuildingClassExt::_Draw_It(Point2D const& xdrawpoint, Rect const& xcliprect
         /*
         **  Draw the weapon factory custom overlay graphic.
         */
-        if (Mission == MISSION_UNLOAD) {
+        if (Get_Mission() == MISSION_UNLOAD) {
             ShapeSet const* under_door_anim;
             if (open_roof) {
                 under_door_anim = type_ext->UnderRoofDoorAnim;
