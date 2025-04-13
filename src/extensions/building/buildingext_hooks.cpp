@@ -396,75 +396,74 @@ void BuildingClassExt::_Draw_It(Point2D const& xdrawpoint, Rect const& xcliprect
         shapenum += (HealthRatio <= Rule->ConditionYellow ? (Class->GateStages + 1) : 0);
         Techno_Draw_Object(shapefile, shapenum, xdrawpoint, xcliprect, DIR_N, 256, zadjust - TacticalMap->Z_Lepton_To_Pixel(AbsoluteHeight), zgrad, true, Map[cell].Land);
 
+        return;
     }
-    else {
 
-        if (Get_Mission() == MISSION_UNLOAD) {
-            if (open_roof) {
-                if (type_ext->RoofDeployingAnim != nullptr) {
-                    shapefile = type_ext->RoofDeployingAnim;
-                    zadjust = 0;
-                }
-            }
-            else {
-                if (Class->DeployingAnim != nullptr) {
-                    shapefile = Class->DeployingAnim;
-                    zadjust = 0;
-                }
-            }
-
-        }
-
-        Point2D drawpoint = xdrawpoint;
-        int height = drawpoint.Y + shapefile->Get_Height() / 2;
-
-        Rect cliprect = xcliprect;
-        cliprect.Height = std::min(cliprect.Height, height);
-
-        zdrawpoint += Class->ZShapePointMove;
-        zdrawpoint -= TacticalMap->func_60F270(Point2D((Class->Width() * CELL_LEPTON_W) - CELL_LEPTON_W, (Class->Height() * CELL_LEPTON_H) - CELL_LEPTON_H));
-
-        ShapeSet const* zshapefile = BuildingTypeClass::BuildingZShape;
-        if (Class->Width() >= 6) {
-            zshapefile = nullptr;
-        }
-
-        if (cliprect.Height > 0) {
-
-            /*
-            **	Actually draw the building shape.
-            */
-            if ((Class->IsLaserFence && (LaserFenceFrame == 12 || LaserFenceFrame == 8)) || Class->IsFirestormWall) {
-                Techno_Draw_Object(shapefile, Shape_Number(), drawpoint, cliprect, DIR_N, 256, -1 - TacticalMap->Z_Lepton_To_Pixel(AbsoluteHeight), ZGRAD_GROUND, true, Map[cell].Brightness + Class->ExtraLight);
-            }
-            else {
-                Techno_Draw_Object(shapefile, Shape_Number() < shapefile->Get_Count() / 2 ? Shape_Number() : shapefile->Get_Count() / 2, drawpoint, cliprect, DIR_N, 256, zadjust - TacticalMap->Z_Lepton_To_Pixel(AbsoluteHeight), ZGRAD_90DEG, true, Map[cell].Brightness + Class->ExtraLight, zshapefile, 0, zdrawpoint);
+    if (Get_Mission() == MISSION_UNLOAD) {
+        if (open_roof) {
+            if (type_ext->RoofDeployingAnim != nullptr) {
+                shapefile = type_ext->RoofDeployingAnim;
+                zadjust = 0;
             }
         }
+        else {
+            if (Class->DeployingAnim != nullptr) {
+                shapefile = Class->DeployingAnim;
+                zadjust = 0;
+            }
+        }
+    }
+
+    Point2D drawpoint = xdrawpoint;
+    int height = drawpoint.Y + shapefile->Get_Height() / 2;
+
+    Rect cliprect = xcliprect;
+    cliprect.Height = std::min(cliprect.Height, height);
+
+    zdrawpoint += Class->ZShapePointMove;
+    Point2D zsizeoffset((Class->Width() * CELL_LEPTON_W) - CELL_LEPTON_W, (Class->Height() * CELL_LEPTON_H) - CELL_LEPTON_H);
+    zdrawpoint -= TacticalMap->func_60F270(zsizeoffset);
+
+    ShapeSet const* zshapefile = BuildingTypeClass::BuildingZShape;
+    if (Class->Width() >= 6) {
+        zshapefile = nullptr;
+    }
+
+    if (cliprect.Height > 0) {
 
         /*
-        **  Patch for adding overlay onto weapon factory.  Only add the overlay if
-        **  the building has more than 1 hp.  Also, if the building's in radio
-        **  contact, he must be unloading a constructed vehicle, so draw that
-        **  vehicle before drawing the overlay.
+        **	Actually draw the building shape.
         */
-        if (Class->BibShape && BState != BSTATE_CONSTRUCTION) {
-            Techno_Draw_Object(Class->BibShape, Shape_Number(), xdrawpoint, xcliprect, DIR_N, 256, -1 - TacticalMap->Z_Lepton_To_Pixel(AbsoluteHeight), ZGRAD_GROUND, true, Map[cell].Brightness + Class->ExtraLight);
+        if ((Class->IsLaserFence && (LaserFenceFrame == 12 || LaserFenceFrame == 8)) || Class->IsFirestormWall) {
+            Techno_Draw_Object(shapefile, Shape_Number(), drawpoint, cliprect, DIR_N, 256, -1 - TacticalMap->Z_Lepton_To_Pixel(AbsoluteHeight), ZGRAD_GROUND, true, Map[cell].Brightness + Class->ExtraLight);
         }
+        else {
+            Techno_Draw_Object(shapefile, Shape_Number() < shapefile->Get_Count() / 2 ? Shape_Number() : shapefile->Get_Count() / 2, drawpoint, cliprect, DIR_N, 256, zadjust - TacticalMap->Z_Lepton_To_Pixel(AbsoluteHeight), ZGRAD_90DEG, true, Map[cell].Brightness + Class->ExtraLight, zshapefile, 0, zdrawpoint);
+        }
+    }
 
-        /*
-        **  Draw the weapon factory custom overlay graphic.
-        */
-        if (Get_Mission() == MISSION_UNLOAD) {
-            ShapeSet const* under_door_anim;
-            if (open_roof) {
-                under_door_anim = type_ext->UnderRoofDoorAnim;
-            } else {
-                under_door_anim = Class->UnderDoorAnim;
-            }
-            if (under_door_anim != nullptr) {
-                Techno_Draw_Object(under_door_anim, HealthRatio <= Rule->ConditionYellow ? 1 : 0, xdrawpoint, xcliprect, DIR_N, 256, -TacticalMap->Z_Lepton_To_Pixel(AbsoluteHeight), ZGRAD_GROUND, true, Map[cell].Brightness + Class->ExtraLight);
-            }
+    /*
+    **  Patch for adding overlay onto weapon factory.  Only add the overlay if
+    **  the building has more than 1 hp.  Also, if the building's in radio
+    **  contact, he must be unloading a constructed vehicle, so draw that
+    **  vehicle before drawing the overlay.
+    */
+    if (Class->BibShape && BState != BSTATE_CONSTRUCTION) {
+        Techno_Draw_Object(Class->BibShape, Shape_Number(), xdrawpoint, xcliprect, DIR_N, 256, -1 - TacticalMap->Z_Lepton_To_Pixel(AbsoluteHeight), ZGRAD_GROUND, true, Map[cell].Brightness + Class->ExtraLight);
+    }
+
+    /*
+    **  Draw the weapon factory custom overlay graphic.
+    */
+    if (Get_Mission() == MISSION_UNLOAD) {
+        ShapeSet const* under_door_anim;
+        if (open_roof) {
+            under_door_anim = type_ext->UnderRoofDoorAnim;
+        } else {
+            under_door_anim = Class->UnderDoorAnim;
+        }
+        if (under_door_anim != nullptr) {
+            Techno_Draw_Object(under_door_anim, HealthRatio <= Rule->ConditionYellow ? 1 : 0, xdrawpoint, xcliprect, DIR_N, 256, -TacticalMap->Z_Lepton_To_Pixel(AbsoluteHeight), ZGRAD_GROUND, true, Map[cell].Brightness + Class->ExtraLight);
         }
     }
 }
