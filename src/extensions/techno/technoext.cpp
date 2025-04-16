@@ -99,7 +99,7 @@ TechnoClassExtension::~TechnoClassExtension()
 
     if (ElectricBolt)
     {
-        //delete ElectricBolt;
+        delete ElectricBolt;
         ElectricBolt = nullptr;
     }
 
