@@ -54,9 +54,9 @@ AnimClassExtension::AnimClassExtension(const AnimClass *this_ptr) :
         const auto animtypeext = Extension::Fetch<AnimTypeClassExtension>(This()->Class);
 
         /**
-         *  If we don't have End= and LoopEnd= set, set them now.
-         *  Vanilla does this in the AnimClass constructor, but we move it here
-         *  so that we have access to the extension.
+         *  Reimplement part of the vanilla constructor below.
+         *  Anim extensions are created earlier, so we move par of the code here
+         *  so that we have access to the extension at this point.
          */
         if (This()->Class->Stages == -1) {
             This()->Class->Stages = animtypeext->Stage_Count();
@@ -65,6 +65,21 @@ AnimClassExtension::AnimClassExtension(const AnimClass *this_ptr) :
         if (This()->Class->LoopEnd == -1) {
             This()->Class->LoopEnd = This()->Class->Stages;
         }
+
+        int delay = This()->Class->Delay;
+        if (This()->Class->RandomRateMin != 0 || This()->Class->RandomRateMax != 0) {
+            if (This()->Class->RandomRateMin <= This()->Class->RandomRateMax) {
+                delay = Random_Pick(This()->Class->RandomRateMin, This()->Class->RandomRateMax);
+            }
+        }
+        if (This()->Class->IsNormalized) {
+            This()->Set_Rate(Options.Normalize_Delay(delay));
+        }
+        else {
+            This()->Set_Rate(delay);
+        }
+
+        This()->Set_Stage(0);
 
         /**
          *  Initialize the delay stage counter.

@@ -764,5 +764,4 @@ void AnimClassExtension_Hooks()
     Patch_Jump(0x00414E80, &AnimClassExt::_AI);
     Patch_Jump(0x00415D60, &AnimClassExt::_Start);
     Patch_Jump(0x00415F40, &AnimClassExt::_Middle);
-    Patch_Jump(0x00413C89, 0x00413CBF); // Skip setting Class->Stages and Class->LoopEnd in the constructor, let it happen in AI instead.
 }
