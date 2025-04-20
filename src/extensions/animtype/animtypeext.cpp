@@ -49,6 +49,7 @@ AnimTypeClassExtension::AnimTypeClassExtension(const AnimTypeClass *this_ptr) :
     AttachLayer(LAYER_NONE),
     ParticleToSpawn(PARTICLE_NONE),
     NumberOfParticles(0),
+    ParticleSpawnOffset(0, 0, 0),
     StartAnims(),
     StartAnimsCount(),
     StartAnimsMinimum(),
@@ -362,6 +363,7 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     AttachLayer = ini.Get_LayerType(ini_name, "Layer", AttachLayer);
     ParticleToSpawn = ini.Get_ParticleType(ini_name, "SpawnsParticle", ParticleToSpawn);
     NumberOfParticles = ini.Get_Int(ini_name, "NumParticles", NumberOfParticles);
+    ParticleSpawnOffset = ini.Get_Point(ini_name, "SpawnsParticleOffset", ParticleSpawnOffset);
 
     StartAnims = ini.Get_Anims(ini_name, "StartAnims", StartAnims);
     StartAnimsCount = ini.Get_Integers(ini_name, "StartAnimsCount", StartAnimsCount);

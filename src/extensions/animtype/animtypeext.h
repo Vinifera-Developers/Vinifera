@@ -101,7 +101,12 @@ AnimTypeClassExtension final : public ObjectTypeClassExtension
         /**
          *  The number of the particle to spawn.
          */
-        unsigned NumberOfParticles;
+        int NumberOfParticles;
+
+        /**
+         *  The coordinate offset of the spawned particle.
+         */
+        Point3D ParticleSpawnOffset;
 
         /**
          *  List of animations to spawn at the logical start of this animation.

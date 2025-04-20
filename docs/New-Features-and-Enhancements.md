@@ -80,17 +80,18 @@ ExplosionDamage=0  ; integer, if positive, the animation will spawn an explosion
 
 In `ART.INI`:
 ```ini
-[SOMEANIM]             ; AnimType
-HideIfNoTiberium=no    ; boolean, should this animation be hidden if the holding cell does not contain Tiberium?
-ForceBigCraters=no     ; boolean, are the craters spawned by this animation when it ends much larger than normal?
-ZAdjust=0              ; integer, fudge to this animation's Z-axis (depth). Positive values move the animation "away from the screen"/"closer to the ground", negative values do the opposite.
-Layer=<none>           ; LayerType, the map layer this animation is in when attached to an object.
-                       ; Available Options: underground, surface, ground, air, and top.
-                       ; NOTE: This will override the value of Surface= which forces a layer of ground.
-SpawnsParticle=<none>  ; ParticleType, the particle to spawn at the mid-point of this animation.
-                       ; This accepts any entry from the [Particles] list from RULES.INI.
-NumParticles=0         ; integer, the number of particles to spawn (as defined by SpawnsParticle=).
-Shadow=no              ; boolean, does this animation show a shadow?
+[SOMEANIM]                  ; AnimType
+HideIfNoTiberium=no         ; boolean, should this animation be hidden if the holding cell does not contain Tiberium?
+ForceBigCraters=no          ; boolean, are the craters spawned by this animation when it ends much larger than normal?
+ZAdjust=0                   ; integer, fudge to this animation's Z-axis (depth). Positive values move the animation "away from the screen"/"closer to the ground", negative values do the opposite.
+Layer=<none>                ; LayerType, the map layer this animation is in when attached to an object.
+                            ; Available Options: underground, surface, ground, air, and top.
+                            ; NOTE: This will override the value of Surface= which forces a layer of ground.
+SpawnsParticle=<none>       ; ParticleType, the particle to spawn at the mid-point of this animation.
+                            ; This accepts any entry from the [Particles] list from RULES.INI.
+NumParticles=0              ; integer, the number of particles to spawn (as defined by SpawnsParticle=).
+SpawnsParticleOffset=0,0,0  ; 3 integers, an offset to be added to the firing FLH for the every second spawn's location.
+Shadow=no                   ; boolean, does this animation show a shadow?
 ```
 
 ### Damage Rate
