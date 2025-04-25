@@ -129,7 +129,7 @@ ProduceCashStartupOneTime=no  ; boolean, is the bonus on capture a "one one" spe
 In `RULES.INI`:
 ```ini
 [SOMEBUILDING]    ; BuildingType
-EngineerChance=0  ; integer (%), what is the chance that an engineer will exit this building as its crew. Defaults to 25 for `Factory=BuildingType`, 0 otherwise.
+EngineerChance=0  ; integer (%), what is the chance that an engineer will exit this building as its crew. Defaults to 25 for Factory=BuildingType, 0 otherwise.
 ```
 
 ```{warning}
@@ -239,11 +239,11 @@ Torpedo=yes   ; boolean, is this projectile considered a torpedo?
 In `RULES.INI`:
 ```ini
 [SOMESIDE]        ; Side
-Crew=             ; InfantryType, this side's crew. Defaults to `[General]->Crew`
-Engineer=         ; InfantryType, this side's engineer. Defaults to `[General]->Engineer`
-Technician=       ; InfantryType, this side's technician. Defaults to `[General]->Technician`
-Disguise=         ; InfantryType, the type this side will see other players' spies as. Defaults to `[General]->Disguise`
-SurvivorDivisor=  ; integer, this side's survivor divisor. Defaults to `[General]->SurvivorDivisor`
+Crew=             ; InfantryType, this side's crew. Defaults to [General]->Crew.
+Engineer=         ; InfantryType, this side's engineer. Defaults to [General]->Engineer.
+Technician=       ; InfantryType, this side's technician. Defaults to [General]->Technician.
+Disguise=         ; InfantryType, the type this side will see other players' spies as. Defaults to [General]->Disguise.
+SurvivorDivisor=  ; integer, this side's survivor divisor. Defaults to [General]->SurvivorDivisor.
 ```
 
 ### Colors
@@ -651,7 +651,7 @@ Modifier=100%       ; % or float, default Verses value for this armor.
 ForceFire=yes       ; boolean, whether warheads can by default force-fire at this armor type.
 Retaliate=yes       ; boolean, whether warheads can by default retaliate against this armor type.
 PassiveAcquire=yes  ; boolean, whether warheads can by default passive acquire this armor type.
-BaseArmor=          ; ArmorType, the armor that provides the default values for this armor (this includes the `Verses=` or `Modifier.*=` values defined for the armor in every warhead's section).
+BaseArmor=          ; ArmorType, the armor that provides the default values for this armor (this includes the Verses= or Modifier.*= values defined for the armor in every warhead's section).
 ```
 
 ```{warning}
@@ -735,7 +735,7 @@ This tag does not apply to buildings.
 In `RULES.INI`:
 ```ini
 [SOMETECHNO]  ; TechnoType
-WaterAlt=no   ; boolean, should this Techno use a different voxel model when in water. Defaults to yes for `[APC]`, no for other Technos.
+WaterAlt=no   ; boolean, should this Techno use a different voxel model when in water. Defaults to yes for [APC], no for other Technos.
               ; When true, the model named SOMETECHNOW will be used when it's in water.
 ```
 
@@ -1273,7 +1273,7 @@ CraterChance=0          ; % or float, the chance that an affected cell will cont
 CraterPercentAtMax=1    ; % or float, the fraction of the chance that is applied at the weapon's max range.
 CellAnimChance=0        ; % or float, the chance that an affected cell will contain a new animation after the explosion.
 CellAnimPercentAtMax=1  ; % or float, the fraction of the chance that is applied at the weapon's max range.
-CellAnim=               ; list of AnimTypes, the list of animation to pick from when a random animation is spawned. Defaults to `[AudioVisual]->OnFire`.
+CellAnim=               ; list of AnimTypes, the list of animation to pick from when a random animation is spawned. Defaults to [AudioVisual]->OnFire.
 ```
 
 ### Damage Modifier against types of objects
