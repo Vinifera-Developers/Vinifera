@@ -37,7 +37,7 @@ CenterSidebarButtonsOnRadar=no  ; boolean, should the repair, etc. buttons be ce
 In `RULES.INI`:
 ```ini
 [SOMEBUILDING]             ; BuildingType
-SortCameoAsBaseDefense=no  ; boolean, is this building considered a base defense for the purposes of sorting
+SortCameoAsBaseDefense=no  ; boolean, is this building considered a base defense for the purposes of sorting.
 ```
 
 - This sorting feature can be turned off in `SUN.INI`.
@@ -224,8 +224,8 @@ TextLabelBackgroundTransparency=50  ; unsigned integer, the transparency of the 
 In `UI.INI`:
 ```ini
 [Ingame]
-UnitHealthBarPos=-25,-16     ; Point2D, the draw position of the unit health bar
-InfantryHealthBarPos=-24,-5  ; Point2D, the draw position of the infantry health bar
+UnitHealthBarPos=-25,-16     ; Point2D, the draw position of the unit health bar.
+InfantryHealthBarPos=-24,-5  ; Point2D, the draw position of the infantry health bar.
 ```
 
 ### Unit Pips
@@ -235,25 +235,25 @@ InfantryHealthBarPos=-24,-5  ; Point2D, the draw position of the infantry health
 In `UI.INI`:
 ```ini
 [Ingame]
-UnitGroupNumberOffset=-4,-4            ; Point2D, the group number offset for units
-InfantryGroupNumberOffset=-4,-4        ; Point2D, the group number offset for infantry
-BuildingGroupNumberOffset=-4,-4        ; Point2D, the group number offset for buildings
-AircraftGroupNumberOffset=-4,-4        ; Point2D, the group number offset for aircraft
+UnitGroupNumberOffset=-4,-4            ; Point2D, the group number offset for units.
+InfantryGroupNumberOffset=-4,-4        ; Point2D, the group number offset for infantry.
+BuildingGroupNumberOffset=-4,-4        ; Point2D, the group number offset for buildings.
+AircraftGroupNumberOffset=-4,-4        ; Point2D, the group number offset for aircraft.
 
-UnitWithPipGroupNumberOffset=-4,-8     ; Point2D, the group number offset for units with pips
-InfantryWithPipGroupNumberOffset=-4,-8 ; Point2D, the group number offset for infantry with pips
-BuildingWithPipGroupNumberOffset=-4,-8 ; Point2D, the group number offset for buildings with pips
-AircraftWithPipGroupNumberOffset=-4,-8 ; Point2D, the group number offset for aircraft with pips
+UnitWithPipGroupNumberOffset=-4,-8     ; Point2D, the group number offset for units with pips.
+InfantryWithPipGroupNumberOffset=-4,-8 ; Point2D, the group number offset for infantry with pips.
+BuildingWithPipGroupNumberOffset=-4,-8 ; Point2D, the group number offset for buildings with pips.
+AircraftWithPipGroupNumberOffset=-4,-8 ; Point2D, the group number offset for aircraft with pips.
 
-UnitVeterancyPipOffset=10,6            ; Point2D, the veterancy pip offset for units
-InfantryVeterancyPipOffset=5,4         ; Point2D, the veterancy pip offset for infantry
-BuildingVeterancyPipOffset=10,6        ; Point2D, the veterancy pip offset for buildings
-AircraftVeterancyPipOffset=10,6        ; Point2D, the veterancy pip offset for aircraft
+UnitVeterancyPipOffset=10,6            ; Point2D, the veterancy pip offset for units.
+InfantryVeterancyPipOffset=5,4         ; Point2D, the veterancy pip offset for infantry.
+BuildingVeterancyPipOffset=10,6        ; Point2D, the veterancy pip offset for buildings.
+AircraftVeterancyPipOffset=10,6        ; Point2D, the veterancy pip offset for aircraft.
 
-UnitSpecialPipOffset=0,-8              ; Point2D, the special pip offset for units
-InfantrySpecialPipOffset=0,-8          ; Point2D, the special pip offset for infantry
-BuildingSpecialPipOffset=0,-8          ; Point2D, the special pip offset for buildings
-AircraftSpecialPipOffset=0,-8          ; Point2D, the special pip offset for aircraft
+UnitSpecialPipOffset=0,-8              ; Point2D, the special pip offset for units.
+InfantrySpecialPipOffset=0,-8          ; Point2D, the special pip offset for infantry.
+BuildingSpecialPipOffset=0,-8          ; Point2D, the special pip offset for buildings.
+AircraftSpecialPipOffset=0,-8          ; Point2D, the special pip offset for aircraft.
 ```
 
 - TS Patches changes some of the default values. Below are the values that match them:

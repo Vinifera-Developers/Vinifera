@@ -162,8 +162,8 @@ SpecialAnimThreeDamaged=  ; AnimType, the animation to play when the silo is clo
 In `RULES.INI`:
 ```ini
 [General]
-; When looking for refineries, harvesters will prefer a distant free
-; refinery over a closer occupied refinery if the refineries' distance
+; When looking for refineries, harvesters will prefer a distant free.
+; refinery over a closer occupied refinery if the refineries' distance.
 ; difference in cells is less than this.
 MaxFreeRefineryDistanceBias=16
 ```
@@ -745,7 +745,7 @@ Unlike the APC in vanilla, the alternative model is loaded into a separate area 
 
 ### AILegalTarget
 
-- `AILegalTarget` can be used with TechnoTypes to forbid the AI from performing a targeting evaluation on this object. It is subject to LegalTarget=yes.
+- `AILegalTarget` can be used with TechnoTypes to forbid the AI from performing a targeting evaluation on this object. It is subject to `LegalTarget=yes`.
 
 In `RULES.INI`:
 ```ini
@@ -894,7 +894,7 @@ SpecialPipIndex=-1  ; integer, index of the pip to draw in place of the medic pi
 
 ### PipWrap
 
-- Vinifera ports PipWrap from Red Alert 2. If PipWrap is set to a positive integer greater than 0, that number of ammo pips will be rendered, incrementing the frame number for each time the pip count overflows PipWrap.
+- Vinifera ports `PipWrap` from Red Alert 2. If `PipWrap` is set to a positive integer greater than 0, that number of ammo pips will be rendered, incrementing the frame number for each time the pip count overflows `PipWrap`.
 - For usage notes, please see [the ModEnc article](https://modenc.renegadeprojects.com/PipWrap).
 
 In `RULES.INI`:
@@ -967,7 +967,7 @@ TargetZoneScan=InRange ; InRange, Any, or Same. Same - matches original game beh
 
 ### DecloakToFire
 
-- Vinifera ports the DecloakToFire key from Red Alert 2.
+- Vinifera ports the `DecloakToFire` key from Red Alert 2.
 
 In `RULES.INI`:
 ```ini
@@ -1120,13 +1120,13 @@ RequiredAddon=0  ; AddonType, the addon required to be active for this theme to 
 In `RULES.INI`:
 ```ini
 [SOMETIBERIUM]   ; Tiberium
-Overlay=         ; OverlayType, the first overlay that the Tiberium uses, defaults to the value usually used by the Image=, or overlay at index 102 if not specified
-Variety=12       ; integer, how many non-slope overlays does this Tiberium use, sequentially starting from the one specified by `Overlay=`?
+Overlay=         ; OverlayType, the first overlay that the Tiberium uses, defaults to the value usually used by the Image=, or overlay at index 102 if not specified.
+Variety=12       ; integer, how many non-slope overlays does this Tiberium use, sequentially starting from the one specified by Overlay=?
 UseSlopes=false  ; boolean, does this Tiberium have graphics for slopes?
 ```
 
 ```{note}
-The new graphics keys override defaults set according to Image=, please refer to [ModEnc](https://modenc.renegadeprojects.com/Image) about its vanilla behavior. It is not required to set Image= if you specify the graphics using new keys.
+The new graphics keys override defaults set according to Image=, please refer to [ModEnc](https://modenc.renegadeprojects.com/Image) about its vanilla behavior. It is not required to set `Image=` if you specify the graphics using new keys.
 ```
 
 ```{note}
@@ -1139,12 +1139,12 @@ All `OverlayTypes` used by a `Tiberium` must have `Tiberium=yes`, and no other `
 
 ### Tiberium Damage to Infantry
 
-- The damage Tiberium deals to infantry is now customizable separately from Power.
+- The damage Tiberium deals to infantry is now customizable separately from `Power`.
 
 In `RULES.INI`:
 ```ini
 [SOMETIBERIUM]     ; Tiberium
-DamageToInfantry=  ; integer, the damage to infantry per tick, defaults to Power / 10, but a minimum of 1
+DamageToInfantry=  ; integer, the damage to infantry per tick, defaults to Power / 10, but a minimum of 1.
 ```
 
 ### Pips
@@ -1158,7 +1158,7 @@ PipIndex=1      ; integer, pip index to use.
 PipDrawOrder=1  ; integer, the order the pips are drawn in. Less is earlier.
 ```
 
-- Additionally, buildings now show their storage with the proper pips, instead of showing pip 1 for all tiberiums
+- Additionally, buildings now show their storage with the proper pips, instead of showing pip 1 for all tiberiums.
 - The pip used to diplay weeds can now also be customized.
 
 In `RULES.INI`:
@@ -1249,7 +1249,7 @@ Volumetric=no  ; boolean, should objects in flight always be considered for dama
 In `RULES.INI`:
 ```ini
 [SOMEWARHEAD]        ; WarheadType
-SnapToCellCenter=no  ; boolean, do explosions using this warhead always take place in the cell center
+SnapToCellCenter=no  ; boolean, do explosions using this warhead always take place in the cell center.
 ```
 
 ```{note}
