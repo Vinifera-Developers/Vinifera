@@ -177,7 +177,7 @@ QueueMove=81    ; key number, Q if the new sidebar is off, otherwise Z
 
 ## Dropship Loadout
 
-- The Tiberian Sun Map theme is now played on the Dropship Loadout screen (`DSHPLOAD` can be defined in THEME.INI to customise this.)
+- The Tiberian Sun Map theme is now played on the Dropship Loadout screen (`DSHPLOAD` can be defined in `THEME.INI` to customise this.)
 - Help text is now shown on the screen to aid the user.
 
 ![image](https://user-images.githubusercontent.com/73803386/120932514-13b3d200-c6ee-11eb-9538-3f812323cb9f.png)
