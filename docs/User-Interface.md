@@ -163,7 +163,7 @@ Due to implementation details, it is recommended that you do not make the queue 
 
 - Vinifera allows the player to customize the keys used for Force Move, Force Attack, Select and Queued Move.
 ```{note}
-Due to engine limitations, these keys will not appear in the options menu and must be customized in KEYBOARD.INI
+Due to engine limitations, these keys will not appear in the options menu and must be customized in `KEYBOARD.INI`.
 ```
 
 In `KEYBOARD.INI`:

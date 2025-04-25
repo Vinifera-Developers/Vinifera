@@ -870,7 +870,7 @@ ShakeXlo=0    ; unsigned integer, the minimum pixel X value.
 
 ### WalkRate
 
-- Vinifera allows `WalkRate` to be optionally loaded from ART.INI image entries, overriding any value defined in RULES.INI.
+- Vinifera allows `WalkRate` to be optionally loaded from `ART.INI` image entries, overriding any value defined in `RULES.INI`.
 
 ### ImmuneToEMP
 

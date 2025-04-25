@@ -78,7 +78,7 @@ Red Alert Default values:
 `EngineerDamage=0.33`
 `EngineerCaptureLevel=0.25`
 
-Red Alert Multiplayer (MPLAYER.INI) values:
+Red Alert Multiplayer (`MPLAYER.INI`) values:
 `EngineerDamage=0.33`
 `EngineerCaptureLevel=0.66`
 ```
