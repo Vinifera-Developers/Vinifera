@@ -78,7 +78,7 @@ Red Alert Default values:
 `EngineerDamage=0.33`
 `EngineerCaptureLevel=0.25`
 
-Red Alert Multiplayer (MPLAYER.INI) values:
+Red Alert Multiplayer (`MPLAYER.INI`) values:
 `EngineerDamage=0.33`
 `EngineerCaptureLevel=0.66`
 ```
@@ -94,7 +94,7 @@ BuildOffAlly=yes                   ; boolean, can players build their own struct
 
 [SOMEBUILDING]                     ; BuildingType
 EligibleForAllyBuilding=<boolean>  ; Is this building eligible for proximity checks by players who are its owner's allies?
-                                   ; For buildings with `ConstructionYard=yes` this defaults to yes, otherwise it defaults to no.
+                                   ; For buildings with ConstructionYard=yes this defaults to yes, otherwise it defaults to no.
 ```
 
 ## Window Title, Cursor and Icon

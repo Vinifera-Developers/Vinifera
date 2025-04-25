@@ -129,7 +129,7 @@ ProduceCashStartupOneTime=no  ; boolean, is the bonus on capture a "one one" spe
 In `RULES.INI`:
 ```ini
 [SOMEBUILDING]    ; BuildingType
-EngineerChance=0  ; integer (%), what is the chance that an engineer will exit this building as its crew. Defaults to 25 for `Factory=BuildingType`, 0 otherwise.
+EngineerChance=0  ; integer (%), what is the chance that an engineer will exit this building as its crew. Defaults to 25 for Factory=BuildingType, 0 otherwise.
 ```
 
 ```{warning}
@@ -162,8 +162,8 @@ SpecialAnimThreeDamaged=  ; AnimType, the animation to play when the silo is clo
 In `RULES.INI`:
 ```ini
 [General]
-; When looking for refineries, harvesters will prefer a distant free
-; refinery over a closer occupied refinery if the refineries' distance
+; When looking for refineries, harvesters will prefer a distant free.
+; refinery over a closer occupied refinery if the refineries' distance.
 ; difference in cells is less than this.
 MaxFreeRefineryDistanceBias=16
 ```
@@ -205,7 +205,7 @@ OmniHealer=no   ; boolean, should this infantry consider other infantry, unit, a
 ```
 
 ```{note}
-When an infantry with `Mechanic=yes` and `OmniHealer=yes` is selected and the mouse is over a transport unit or aircraft, holding down the `Alt` key (Force Move) will allow you to enter the transport instead of healing it.
+When an infantry with `Mechanic=yes` and `OmniHealer=yes` is selected and the mouse is over a transport unit or aircraft, holding down the `ALT` key (Force Move) will allow you to enter the transport instead of healing it.
 ```
 
 ## Projectiles
@@ -239,11 +239,11 @@ Torpedo=yes   ; boolean, is this projectile considered a torpedo?
 In `RULES.INI`:
 ```ini
 [SOMESIDE]        ; Side
-Crew=             ; InfantryType, this side's crew. Defaults to `[General]->Crew`
-Engineer=         ; InfantryType, this side's engineer. Defaults to `[General]->Engineer`
-Technician=       ; InfantryType, this side's technician. Defaults to `[General]->Technician`
-Disguise=         ; InfantryType, the type this side will see other players' spies as. Defaults to `[General]->Disguise`
-SurvivorDivisor=  ; integer, this side's survivor divisor. Defaults to `[General]->SurvivorDivisor`
+Crew=             ; InfantryType, this side's crew. Defaults to [General]->Crew.
+Engineer=         ; InfantryType, this side's engineer. Defaults to [General]->Engineer.
+Technician=       ; InfantryType, this side's technician. Defaults to [General]->Technician.
+Disguise=         ; InfantryType, the type this side will see other players' spies as. Defaults to [General]->Disguise.
+SurvivorDivisor=  ; integer, this side's survivor divisor. Defaults to [General]->SurvivorDivisor.
 ```
 
 ### Colors
@@ -651,7 +651,7 @@ Modifier=100%       ; % or float, default Verses value for this armor.
 ForceFire=yes       ; boolean, whether warheads can by default force-fire at this armor type.
 Retaliate=yes       ; boolean, whether warheads can by default retaliate against this armor type.
 PassiveAcquire=yes  ; boolean, whether warheads can by default passive acquire this armor type.
-BaseArmor=          ; ArmorType, the armor that provides the default values for this armor (this includes the `Verses=` or `Modifier.*=` values defined for the armor in every warhead's section).
+BaseArmor=          ; ArmorType, the armor that provides the default values for this armor (this includes the Verses= or Modifier.*= values defined for the armor in every warhead's section).
 ```
 
 ```{warning}
@@ -735,7 +735,7 @@ This tag does not apply to buildings.
 In `RULES.INI`:
 ```ini
 [SOMETECHNO]  ; TechnoType
-WaterAlt=no   ; boolean, should this Techno use a different voxel model when in water. Defaults to yes for `[APC]`, no for other Technos.
+WaterAlt=no   ; boolean, should this Techno use a different voxel model when in water. Defaults to yes for [APC], no for other Technos.
               ; When true, the model named SOMETECHNOW will be used when it's in water.
 ```
 
@@ -745,7 +745,7 @@ Unlike the APC in vanilla, the alternative model is loaded into a separate area 
 
 ### AILegalTarget
 
-- `AILegalTarget` can be used with TechnoTypes to forbid the AI from performing a targeting evaluation on this object. It is subject to LegalTarget=yes.
+- `AILegalTarget` can be used with TechnoTypes to forbid the AI from performing a targeting evaluation on this object. It is subject to `LegalTarget=yes`.
 
 In `RULES.INI`:
 ```ini
@@ -870,7 +870,7 @@ ShakeXlo=0    ; unsigned integer, the minimum pixel X value.
 
 ### WalkRate
 
-- Vinifera allows `WalkRate` to be optionally loaded from ART.INI image entries, overriding any value defined in RULES.INI.
+- Vinifera allows `WalkRate` to be optionally loaded from `ART.INI` image entries, overriding any value defined in `RULES.INI`.
 
 ### ImmuneToEMP
 
@@ -894,7 +894,7 @@ SpecialPipIndex=-1  ; integer, index of the pip to draw in place of the medic pi
 
 ### PipWrap
 
-- Vinifera ports PipWrap from Red Alert 2. If PipWrap is set to a positive integer greater than 0, that number of ammo pips will be rendered, incrementing the frame number for each time the pip count overflows PipWrap.
+- Vinifera ports `PipWrap` from Red Alert 2. If `PipWrap` is set to a positive integer greater than 0, that number of ammo pips will be rendered, incrementing the frame number for each time the pip count overflows `PipWrap`.
 - For usage notes, please see [the ModEnc article](https://modenc.renegadeprojects.com/PipWrap).
 
 In `RULES.INI`:
@@ -967,7 +967,7 @@ TargetZoneScan=InRange ; InRange, Any, or Same. Same - matches original game beh
 
 ### DecloakToFire
 
-- Vinifera ports the DecloakToFire key from Red Alert 2.
+- Vinifera ports the `DecloakToFire` key from Red Alert 2.
 
 In `RULES.INI`:
 ```ini
@@ -1120,13 +1120,13 @@ RequiredAddon=0  ; AddonType, the addon required to be active for this theme to 
 In `RULES.INI`:
 ```ini
 [SOMETIBERIUM]   ; Tiberium
-Overlay=         ; OverlayType, the first overlay that the Tiberium uses, defaults to the value usually used by the Image=, or overlay at index 102 if not specified
-Variety=12       ; integer, how many non-slope overlays does this Tiberium use, sequentially starting from the one specified by `Overlay=`?
+Overlay=         ; OverlayType, the first overlay that the Tiberium uses, defaults to the value usually used by the Image=, or overlay at index 102 if not specified.
+Variety=12       ; integer, how many non-slope overlays does this Tiberium use, sequentially starting from the one specified by Overlay=?
 UseSlopes=false  ; boolean, does this Tiberium have graphics for slopes?
 ```
 
 ```{note}
-The new graphics keys override defaults set according to Image=, please refer to [ModEnc](https://modenc.renegadeprojects.com/Image) about its vanilla behavior. It is not required to set Image= if you specify the graphics using new keys.
+The new graphics keys override defaults set according to `Image=`, please refer to [ModEnc](https://modenc.renegadeprojects.com/Image) about its vanilla behavior. It is not required to set `Image=` if you specify the graphics using new keys.
 ```
 
 ```{note}
@@ -1139,12 +1139,12 @@ All `OverlayTypes` used by a `Tiberium` must have `Tiberium=yes`, and no other `
 
 ### Tiberium Damage to Infantry
 
-- The damage Tiberium deals to infantry is now customizable separately from Power.
+- The damage Tiberium deals to infantry is now customizable separately from `Power`.
 
 In `RULES.INI`:
 ```ini
 [SOMETIBERIUM]     ; Tiberium
-DamageToInfantry=  ; integer, the damage to infantry per tick, defaults to Power / 10, but a minimum of 1
+DamageToInfantry=  ; integer, the damage to infantry per tick, defaults to Power / 10, but a minimum of 1.
 ```
 
 ### Pips
@@ -1158,7 +1158,7 @@ PipIndex=1      ; integer, pip index to use.
 PipDrawOrder=1  ; integer, the order the pips are drawn in. Less is earlier.
 ```
 
-- Additionally, buildings now show their storage with the proper pips, instead of showing pip 1 for all tiberiums
+- Additionally, buildings now show their storage with the proper pips, instead of showing pip 1 for all tiberiums.
 - The pip used to diplay weeds can now also be customized.
 
 In `RULES.INI`:
@@ -1249,7 +1249,7 @@ Volumetric=no  ; boolean, should objects in flight always be considered for dama
 In `RULES.INI`:
 ```ini
 [SOMEWARHEAD]        ; WarheadType
-SnapToCellCenter=no  ; boolean, do explosions using this warhead always take place in the cell center
+SnapToCellCenter=no  ; boolean, do explosions using this warhead always take place in the cell center.
 ```
 
 ```{note}
@@ -1273,7 +1273,7 @@ CraterChance=0          ; % or float, the chance that an affected cell will cont
 CraterPercentAtMax=1    ; % or float, the fraction of the chance that is applied at the weapon's max range.
 CellAnimChance=0        ; % or float, the chance that an affected cell will contain a new animation after the explosion.
 CellAnimPercentAtMax=1  ; % or float, the fraction of the chance that is applied at the weapon's max range.
-CellAnim=               ; list of AnimTypes, the list of animation to pick from when a random animation is spawned. Defaults to `[AudioVisual]->OnFire`.
+CellAnim=               ; list of AnimTypes, the list of animation to pick from when a random animation is spawned. Defaults to [AudioVisual]->OnFire.
 ```
 
 ### Damage Modifier against types of objects

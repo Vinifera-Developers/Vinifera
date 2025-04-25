@@ -18,7 +18,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'Vinifera'
-copyright = '2024, The Vinifera Contributors'
+copyright = '2025, The Vinifera Contributors'
 author = 'The Vinifera Contributors'
 
 

@@ -3,16 +3,16 @@
 This page lists all the individual contributions to the project by their author.
 
 - **AlexB**:
-  - Make OverlayTypes 27 to 38 (fourth Tiberium images) passable by infantry (by AlexB)
+  - Make OverlayTypes 27 to 38 (fourth Tiberium images) passable by infantry.
 - **Belonit (Gluk-v48)**:
   - Check for Changelog/Documentation/Credits in Pull Requests.
   - Docs dark theme switcher.
   - Fix the map glitching around when scrolling if the map is not large enough to fill the entire screen.
 - **CCHyper/tomsons26**:
-  - Vinifera foundations: TS++, game.exe hooker, extension system and other core features
-  - Implement `CurleyShuffle` for AircraftTypes
-  - Implement `ReloadRate` for AircraftTypes
-  - Implement `AILegalTarget` for TechnoTypes
+  - Vinifera foundations: TS++, game.exe hooker, extension system and other core features.
+  - Implement `CurleyShuffle` for AircraftTypes.
+  - Implement `ReloadRate` for AircraftTypes.
+  - Implement `AILegalTarget` for TechnoTypes.
   - Add support for up to 32767 waypoints to be used in scenarios.
   - Implement the loading of Tutorial messages from scenarios.
   - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively.
@@ -72,13 +72,13 @@ This page lists all the individual contributions to the project by their author.
   - Fix a limitation where the game could only choose between the first two HouseTypes for the AI players.
   - Add command line options to skip to specific game modes and to skip startup movies.
   - Implement diagonal scroll commands.
-  - Fix a bug where the `Cloakable=yes` had no effect on AircraftTypes. 
+  - Fix a bug where the `Cloakable=yes` had no effect on AircraftTypes.
   - Add keyboard commands for playing previous and next music tracks in the jukebox.
   - Implement CloakSound and UncloakSound for TechnoTypes.
   - Restore the screen shake when a strong unit or building is destroyed.
   - Implement various Red Alert 2 WarheadType features.
-  - Add reading of Weapons list from RULES.INI.\
-  - Allow WalkRate to be optionally loaded from ART.INI image entries.
+  - Add reading of Weapons list from `RULES.INI`.
+  - Allow `WalkRate` to be optionally loaded from `ART.INI` image entries.
   - Fix a bug where `CloakStop` had no effect on the cloaking behaviour.
   - Add gate rising and lowering sound overrides for buildings.
   - Add UnitType flag to prevent a vehicle from being picked up by a Carryall.
@@ -88,7 +88,7 @@ This page lists all the individual contributions to the project by their author.
   - Implement ToggleFrameStepCommandClass.
   - Fix a bug where pre-placed crates and crates spawned by a destroyed truck will trigger a respawn when they are picked up.
   - Increase the string buffer size from 128 to 2048 characters for when reading and writing Owners from INI.
-  - Thicken the waypoint and rally point lines and adds stroke/outline to the waypoint number. 
+  - Thicken the waypoint and rally point lines and adds stroke/outline to the waypoint number.
   - Fix bugs where the Jumpjet uses the wrong animation sequence when firing and in the air.
   - Fix a bug where the wrong palette is used to draw the cameo above an enemy spied factory building.
   - Fix the animation speed of Waypoint and Rally Point lines so they are normalised and no longer subjected to the game speed setting.
@@ -134,6 +134,8 @@ This page lists all the individual contributions to the project by their author.
   - Implement a feature for animations to spawn additional animations.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
+- **Noble Fish**:
+  - Document proofreading and formatting/styling assistance.
 - **MarkJFox**:
   - Graphics for the new sidebar fitting vanilla sidebar.
 - **[Phobos Contributors](https://github.com/Phobos-developers/Phobos/blob/develop/CREDITS.md)**:
@@ -188,7 +190,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where under some circumstances, the player could hear "New Construction Options", even though no new construction options were available.
   - Add the ability to queue/dequeue 5 units at a time, or dequeue all units instantly.
   - Fix a bug where attempting to start construction when low funds would put the queue on hold.
-  - Port the fix for the (Whiteboy bug)[https://modenc.renegadeprojects.com/Whiteboy-Bug].
+  - Port the fix for the [Whiteboy bug](https://modenc.renegadeprojects.com/Whiteboy-Bug).
   - Implement the support for new ArmorTypes and allow forbidding force-fire, passive-acquire and retaliation versus specific armor types.
   - Fix a bug where the objects would sometimes receive a minimum of 1 damage even if MinDamage was set to 0.
   - Add a developer command to dump all heaps to the log.
