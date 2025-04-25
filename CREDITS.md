@@ -134,6 +134,8 @@ This page lists all the individual contributions to the project by their author.
   - Implement a feature for animations to spawn additional animations.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
+- **Noble Fish**:
+  - Document proofreading and formatting/styling assistance.
 - **MarkJFox**:
   - Graphics for the new sidebar fitting vanilla sidebar.
 - **[Phobos Contributors](https://github.com/Phobos-developers/Phobos/blob/develop/CREDITS.md)**:
