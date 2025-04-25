@@ -205,7 +205,7 @@ OmniHealer=no   ; boolean, should this infantry consider other infantry, unit, a
 ```
 
 ```{note}
-When an infantry with `Mechanic=yes` and `OmniHealer=yes` is selected and the mouse is over a transport unit or aircraft, holding down the `Alt` key (Force Move) will allow you to enter the transport instead of healing it.
+When an infantry with `Mechanic=yes` and `OmniHealer=yes` is selected and the mouse is over a transport unit or aircraft, holding down the `ALT` key (Force Move) will allow you to enter the transport instead of healing it.
 ```
 
 ## Projectiles
