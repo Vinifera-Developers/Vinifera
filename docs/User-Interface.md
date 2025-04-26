@@ -310,7 +310,7 @@ MovementLineDropShadowColor=0,0,0  ; RGB color, color to draw movement lines' dr
 TargetLineDashed=no                ; boolean, should target lines be drawn with dashes?
 TargetLineDropShadow=no            ; boolean, should target lines be drawn with a drop shadow?
 TargetLineThick=no                 ; boolean, should target lines be drawn with a thick line?
-TargetLineColor=173,0,0            ; RGB color, color to target movement lines with.
+TargetLineColor=173,0,0            ; RGB color, color to draw movement lines with.
 TargetLineDropShadowColor=0,0,0    ; RGB color, color to draw target lines' drop shadow with.
 
 TargetLaserDashed=no               ; boolean, should target lasers be drawn with dashes?
