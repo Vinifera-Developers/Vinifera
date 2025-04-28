@@ -55,19 +55,78 @@ class ViniferaSwizzleManagerClass : public ISwizzle
             {}
 
             SwizzlePointerStruct(LONG id, void *pointer, const char *file = nullptr, const int line = -1, const char *func = nullptr, const char *var = nullptr) :
-                ID(id), Pointer(pointer), File(file), Line(line), Function(func), Variable(var)
-            {}
+                ID(id), Pointer(pointer), File(nullptr), Line(line), Function(nullptr), Variable(nullptr)
+            {
+                if (file != nullptr) {
+                    File = new char[strlen(file) + 1];
+                    strcpy(File, file);
+                }
 
-            ~SwizzlePointerStruct() {}
+                if (func != nullptr) {
+                    Function = new char[strlen(func) + 1];
+                    strcpy(Function, func);
+                }
+
+                if (var != nullptr) {
+                    Variable = new char[strlen(var) + 1];
+                    strcpy(Variable, var);
+                }
+            }
+
+            ~SwizzlePointerStruct()
+            {
+                if (File) {
+                    delete File;
+                    File = nullptr;
+                }
+
+                if (Function) {
+                    delete Function;
+                    Function = nullptr;
+                }
+
+                if (Variable) {
+                    delete Variable;
+                    Variable = nullptr;
+                }
+            }
 
             void operator=(const SwizzlePointerStruct &that)
             {
                 ID = that.ID;
                 Pointer = that.Pointer;
-                File = that.File;
+
+                if (File) {
+                    delete File;
+                    File = nullptr;
+                }
+
+                if (that.File != nullptr) {
+                    File = new char[strlen(that.File) + 1];
+                    strcpy(File, that.File);
+                }
+
                 Line = that.Line;
-                Function = that.Function;
-                Variable = that.Variable;
+
+                if (Function) {
+                    delete Function;
+                    Function = nullptr;
+                }
+
+                if (that.Function != nullptr) {
+                    Function = new char[strlen(that.Function) + 1];
+                    strcpy(Function, that.Function);
+                }
+
+                if (Variable) {
+                    delete Variable;
+                    Variable = nullptr;
+                }
+
+                if (that.Variable != nullptr) {
+                    Variable = new char[strlen(that.Variable) + 1];
+                    strcpy(Variable, that.Variable);
+                }
             }
 
             bool operator==(const SwizzlePointerStruct &that) const { return ID == that.ID; }
@@ -88,10 +147,10 @@ class ViniferaSwizzleManagerClass : public ISwizzle
             /**
              *  Debugging information.
              */
-            const char *File;
+            char *File;
             /*const*/ int Line;
-            const char *Function;
-            const char *Variable;
+            char *Function;
+            char *Variable;
         };
 
     public:

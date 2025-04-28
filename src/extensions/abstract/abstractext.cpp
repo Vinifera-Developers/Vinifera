@@ -176,7 +176,7 @@ HRESULT AbstractClassExtension::Internal_Load(IStream *pStm)
         return hr;
     }
 
-    Wstring this_name = Wstring(Extension::Utility::Get_TypeID_Name(this).c_str()) + ":" + Wstring("ThisPtr");
+    Wstring this_name = Wstring(Extension::Utility::Get_TypeID_Name(this).c_str()) + "::" + Wstring("ThisPtr");
 
     /**
      *  Register this instance to be available for remapping references to.
@@ -210,7 +210,7 @@ HRESULT AbstractClassExtension::Internal_Save(IStream *pStm, BOOL fClearDirty)
         return E_POINTER;
     }
 
-    Wstring this_name = Wstring(Extension::Utility::Get_TypeID_Name(this).c_str()) + ":" + Wstring("ThisPtr");
+    Wstring this_name = Wstring(Extension::Utility::Get_TypeID_Name(this).c_str()) + "::" + Wstring("ThisPtr");
 
     /**
      *  Fetch the save id for this instance.
