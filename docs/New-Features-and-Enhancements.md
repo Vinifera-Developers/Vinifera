@@ -90,7 +90,7 @@ Layer=<none>                ; LayerType, the map layer this animation is in when
 SpawnsParticle=<none>       ; ParticleType, the particle to spawn at the mid-point of this animation.
                             ; This accepts any entry from the [Particles] list from RULES.INI.
 NumParticles=0              ; integer, the number of particles to spawn (as defined by SpawnsParticle=).
-SpawnsParticleOffset=0,0,0  ; 3 integers, an offset to be added to the firing FLH for the every second spawn's location.
+SpawnsParticleOffset=0,0,0  ; 3 integers, an offset to be added to the spawner particles' coordinates.
 Shadow=no                   ; boolean, does this animation show a shadow?
 ```
 
