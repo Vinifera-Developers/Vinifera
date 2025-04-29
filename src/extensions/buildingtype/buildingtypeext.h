@@ -61,6 +61,8 @@ BuildingTypeClassExtension final : public TechnoTypeClassExtension
 
         virtual bool Read_INI(CCINIClass &ini) override;
 
+        void Fetch_Building_Normal_Image(TheaterType theater);
+
     public:
         /**
          *  This is the sound effect to play when the animation of the gate is rising.
@@ -111,4 +113,18 @@ BuildingTypeClassExtension final : public TechnoTypeClassExtension
          *  The percent chance for an engineer to exit this building as its crew.
          */
         int EngineerChance;
+
+        /**
+         *  Should the building hide its main shape during the special anims?
+         *  Usually used for missile silos so that anims that don't completely
+         *  hide the main shape don't look glitched.
+         */
+        bool IsHideDuringSpecialAnim;
+
+        /**
+         *  New shapes for roof door anims.
+         */
+        const ShapeSet* RoofDeployingAnim;
+        const ShapeSet* RoofDoorAnim;
+        const ShapeSet* UnderRoofDoorAnim;
 };

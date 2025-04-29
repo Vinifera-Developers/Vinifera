@@ -482,7 +482,7 @@ DECLARE_PATCH(_UnitClass_Mission_Unload_Transport_Detach_Sound_Patch)
      */
     radio_technotypeext = Extension::Fetch<TechnoTypeClassExtension>(this_ptr->Techno_Type_Class());
     if (radio_technotypeext->LeaveTransportSound != VOC_NONE) {
-        Sound_Effect(radio_technotypeext->LeaveTransportSound, this_ptr->Coord);
+        Static_Sound(radio_technotypeext->LeaveTransportSound, this_ptr->Coord);
     }
 
     /**

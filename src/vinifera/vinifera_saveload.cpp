@@ -129,6 +129,7 @@
 
 #include "aircrafttracker.h"
 #include "animtypeext.h"
+#include "buildingtypeext.h"
 #include "hooker.h"
 #include "language.h"
 #include "loadoptions.h"
@@ -682,7 +683,7 @@ bool Vinifera_Remap_Extension_Pointers()
  *
  *  @author: ZivDero
  */
-void Put_Storage_Pointers()
+void Vinifera_Post_Load_Game()
 {
     for (int i = 0; i < Technos.Count(); i++) {
         const TechnoClass* techno = Technos[i];
@@ -692,6 +693,11 @@ void Put_Storage_Pointers()
     for (int i = 0; i < Houses.Count(); i++) {
         const HouseClass* house = Houses[i];
         Extension::Fetch<HouseClassExtension>(house)->Put_Storage_Pointers();
+    }
+
+    for (int i = 0; i < BuildingTypes.Count(); i++) {
+        const BuildingTypeClass* buildingtype = BuildingTypes[i];
+        Extension::Fetch<BuildingTypeClassExtension>(buildingtype)->Fetch_Building_Normal_Image(Scen->Theater);
     }
 }
 
@@ -922,8 +928,7 @@ bool Vinifera_Load_Game(const char* file_name)
 
     SwizzleManager.Reset();
     Post_Load_Game();
-    Put_Storage_Pointers();
-    AnimTypeClassExtension::All_Set_Biggest_Frame();
+    Vinifera_Post_Load_Game();
     Map.Init_IO();
     Map.Activate(1);
     Map.Set_Dimensions();

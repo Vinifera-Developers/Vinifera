@@ -26,6 +26,8 @@
  *
  ******************************************************************************/
 #include "buildingext_hooks.h"
+
+#include <algorithm>
 #include "buildingext_init.h"
 #include "buildingext.h"
 #include "buildingtypeext.h"
@@ -69,10 +71,12 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "jumpjetlocomotion.h"
 #include "rulesext.h"
 #include "super.h"
 #include "supertypeext.h"
 #include "vox.h"
+#include "tactical.h"
 
 
 /**
@@ -91,6 +95,7 @@ public:
     int _How_Many_Survivors() const;
     int _Shape_Number() const;
     void _Detach_Anim(AnimClass* anim);
+    void _Draw_It(Point2D const& xdrawpoint, Rect const& xcliprect);
 };
 
 
@@ -309,6 +314,7 @@ void BuildingClassExt::_Detach_Anim(AnimClass* anim)
                             Begin_Anim(BANIM_SPECIAL_TWO, Get_Health_Ratio() <= Rule->ConditionYellow, 0);
                         }
                     }
+                    IsToDisplay = true;
                     break;
 
                 case BANIM_SPECIAL_TWO:
@@ -317,12 +323,147 @@ void BuildingClassExt::_Detach_Anim(AnimClass* anim)
                             Begin_Anim(BANIM_SPECIAL_THREE, Get_Health_Ratio() <= Rule->ConditionYellow, 0);
                         }
                     }
+                    IsToDisplay = true;
+                    break;
+
+                case BANIM_SPECIAL_THREE:
+                    IsToDisplay = true;
                     break;
 
                 default:
                     break;
                 }
             }
+        }
+    }
+}
+
+
+/**
+ *  Reimplementation of BuildingClass::Draw_It.
+ *
+ *  @author: ZivDero
+ */
+void BuildingClassExt::_Draw_It(Point2D const& xdrawpoint, Rect const& xcliprect)
+{
+    Cell cell = Get_Cell();
+
+    /*
+    **  The shape file to use for rendering depends on whether the building
+    **  is undergoing construction or not.
+    */
+    ShapeSet const* shapefile = Get_Image_Data();
+    if (shapefile == nullptr) return;
+
+    if (Class->IsInvisibleInGame) return;
+
+    const auto type_ext = Extension::Fetch<BuildingTypeClassExtension>(Class);
+    if (type_ext->IsHideDuringSpecialAnim && (Anims[BANIM_SPECIAL_ONE] || Anims[BANIM_SPECIAL_TWO] || Anims[BANIM_SPECIAL_THREE])) return;
+
+    bool open_roof = false;
+    if (Get_Mission() == MISSION_UNLOAD) {
+        TechnoClass* radio = Contact_With_Whom();
+        if (radio != nullptr && (radio->Techno_Type_Class()->Locomotor == __uuidof(JumpjetLocomotionClass))) {
+            open_roof = true;
+        }
+    }
+
+    Point2D zdrawpoint(144, 172);
+    int zadjust = Class->NormalZAdjust;
+
+    if (Get_Mission() == MISSION_OPEN && !Door.Func1()) {
+
+        int shapenum = static_cast<int>(Door.Get_Percent_Complete() * Class->GateStages);
+        if (Door.Is_Door_Closing()) {
+            shapenum = Class->GateStages - shapenum;
+        }
+        if (Door.Is_Door_Closed()) {
+            shapenum = 0;
+        }
+        if (Door.Is_Door_Open()) {
+            shapenum = Class->GateStages - 1;
+        }
+        shapenum = std::min(shapenum, Class->GateStages - 1);
+        shapenum = std::max(shapenum, 0);
+
+        shapefile = Get_Image_Data();
+
+        ZGradientType zgrad = ZGRAD_GROUND;
+        if (shapenum < Class->GateStages / 2) {
+            zgrad = ZGRAD_90DEG;
+        }
+
+        shapenum += (HealthRatio <= Rule->ConditionYellow ? (Class->GateStages + 1) : 0);
+        Techno_Draw_Object(shapefile, shapenum, xdrawpoint, xcliprect, DIR_N, 256, zadjust - TacticalMap->Z_Lepton_To_Pixel(AbsoluteHeight), zgrad, true, Map[cell].Land);
+
+        return;
+    }
+
+    if (Get_Mission() == MISSION_UNLOAD) {
+        if (open_roof) {
+            if (type_ext->RoofDeployingAnim != nullptr) {
+                shapefile = type_ext->RoofDeployingAnim;
+                zadjust = 0;
+            }
+        }
+        else {
+            if (Class->DeployingAnim != nullptr) {
+                shapefile = Class->DeployingAnim;
+                zadjust = 0;
+            }
+        }
+    }
+
+    Point2D drawpoint = xdrawpoint;
+    int height = drawpoint.Y + shapefile->Get_Height() / 2;
+
+    Rect cliprect = xcliprect;
+    cliprect.Height = std::min(cliprect.Height, height);
+
+    zdrawpoint += Class->ZShapePointMove;
+    Point2D zsizeoffset((Class->Width() * CELL_LEPTON_W) - CELL_LEPTON_W, (Class->Height() * CELL_LEPTON_H) - CELL_LEPTON_H);
+    zdrawpoint -= TacticalMap->func_60F270(zsizeoffset);
+
+    ShapeSet const* zshapefile = BuildingTypeClass::BuildingZShape;
+    if (Class->Width() >= 6) {
+        zshapefile = nullptr;
+    }
+
+    if (cliprect.Height > 0) {
+
+        /*
+        **	Actually draw the building shape.
+        */
+        if ((Class->IsLaserFence && (LaserFenceFrame == 12 || LaserFenceFrame == 8)) || Class->IsFirestormWall) {
+            Techno_Draw_Object(shapefile, Shape_Number(), drawpoint, cliprect, DIR_N, 256, -1 - TacticalMap->Z_Lepton_To_Pixel(AbsoluteHeight), ZGRAD_GROUND, true, Map[cell].Brightness + Class->ExtraLight);
+        }
+        else {
+            Techno_Draw_Object(shapefile, Shape_Number() < shapefile->Get_Count() / 2 ? Shape_Number() : shapefile->Get_Count() / 2, drawpoint, cliprect, DIR_N, 256, zadjust - TacticalMap->Z_Lepton_To_Pixel(AbsoluteHeight), ZGRAD_90DEG, true, Map[cell].Brightness + Class->ExtraLight, zshapefile, 0, zdrawpoint);
+        }
+    }
+
+    /*
+    **  Patch for adding overlay onto weapon factory.  Only add the overlay if
+    **  the building has more than 1 hp.  Also, if the building's in radio
+    **  contact, he must be unloading a constructed vehicle, so draw that
+    **  vehicle before drawing the overlay.
+    */
+    if (Class->BibShape && BState != BSTATE_CONSTRUCTION) {
+        Techno_Draw_Object(Class->BibShape, Shape_Number(), xdrawpoint, xcliprect, DIR_N, 256, -1 - TacticalMap->Z_Lepton_To_Pixel(AbsoluteHeight), ZGRAD_GROUND, true, Map[cell].Brightness + Class->ExtraLight);
+    }
+
+    /*
+    **  Draw the weapon factory custom overlay graphic.
+    */
+    if (Get_Mission() == MISSION_UNLOAD) {
+        ShapeSet const* under_door_anim;
+        if (open_roof) {
+            under_door_anim = type_ext->UnderRoofDoorAnim;
+        } else {
+            under_door_anim = Class->UnderDoorAnim;
+        }
+        if (under_door_anim != nullptr) {
+            Techno_Draw_Object(under_door_anim, HealthRatio <= Rule->ConditionYellow ? 1 : 0, xdrawpoint, xcliprect, DIR_N, 256, -TacticalMap->Z_Lepton_To_Pixel(AbsoluteHeight), ZGRAD_GROUND, true, Map[cell].Brightness + Class->ExtraLight);
         }
     }
 }
@@ -698,7 +839,7 @@ DECLARE_PATCH(_BuildingClass_Mission_Open_Gate_Open_Sound_Patch)
     /**
      *  Play the sound effect at the buildings location.
      */
-    Sound_Effect(voc, *coord);
+    Static_Sound(voc, *coord);
 
     JMP_REG(edx, 0x00433BC8);
 }
@@ -733,7 +874,7 @@ DECLARE_PATCH(_BuildingClass_Mission_Open_Gate_Close_Sound_Patch)
     /**
      *  Play the sound effect at the buildings location.
      */
-    Sound_Effect(voc, *coord);
+    Static_Sound(voc, *coord);
 
     /**
      *  Function return (0).
@@ -1199,6 +1340,8 @@ DECLARE_PATCH(_BuildingClass_Mission_Missile_INITIAL_Patch)
 
     delay = _BuildingClass_Mission_Missile_INITIAL(this_ptr);
 
+    this_ptr->IsToDisplay = true;
+
     _asm mov eax, delay
     JMP_REG(edi, 0x00432721);
 }
@@ -1247,6 +1390,66 @@ DECLARE_PATCH(_BuildingClass_Mission_Missile_LAUNCH_DOWN_Voice_Patch)
 
 
 /**
+ *  Should the factory open the roof as opposed to the door?
+ *
+ *  @author: ZivDero
+ */
+bool Should_Open_Roof(BuildingClass* building)
+{
+    if (building->Get_Mission() == MISSION_UNLOAD) {
+        TechnoClass* radio = building->Contact_With_Whom();
+        if (radio != nullptr && (radio->Techno_Type_Class()->Locomotor == __uuidof(JumpjetLocomotionClass))) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+/**
+ *  Patches to make the factory show the roof door opening anim for JJs.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_BuildingClass_entry_370_RoofDoorAnim_Patch1)
+{
+    GET_REGISTER_STATIC(BuildingClass*, building, ebp);
+    const BuildingTypeClassExtension* btypeext;
+
+    btypeext = Extension::Fetch<BuildingTypeClassExtension>(building->Class);
+
+    if (building->Class->DoorAnim != nullptr && !Should_Open_Roof(building) || btypeext->RoofDoorAnim != nullptr && Should_Open_Roof(building)) {
+        JMP(0x00427CEC);
+    }
+
+    JMP(0x00427E27);
+}
+
+
+DECLARE_PATCH(_BuildingClass_entry_370_RoofDoorAnim_Patch2)
+{
+    GET_REGISTER_STATIC(BuildingClass*, building, ebp);
+    const BuildingTypeClassExtension* btypeext;
+    const ShapeSet* shapefile;
+
+    _asm pushad
+
+    btypeext = Extension::Fetch<BuildingTypeClassExtension>(building->Class);
+
+    if (Should_Open_Roof(building)) {
+        shapefile = btypeext->RoofDoorAnim;
+    } else {
+        shapefile = building->Class->DoorAnim;
+    }
+
+    _asm popad
+    _asm mov edx, shapefile
+
+    JMP_REG(ecx, 0x00427DFB);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void BuildingClassExtension_Hooks()
@@ -1282,9 +1485,12 @@ void BuildingClassExtension_Hooks()
     //Patch_Jump(0x00429220, &BuildingClassExt::_Shape_Number);
     Patch_Jump(0x0042E53C, 0x0042E56F); // Jump a check for the PurchasePrice of a building for spawning its FreeUnit in Grand_Opening
     Patch_Jump(0x00436410, &BuildingClassExt::_Detach_Anim);
+    Patch_Jump(0x004275B0, &BuildingClassExt::_Draw_It);
     Patch_Jump(0x00433F1D, &_BuildingCLass_Detach_Detach_Anim_Patch);
     Patch_Jump(0x00432709, &_BuildingClass_Mission_Missile_INITIAL_Patch);
     Patch_Jump(0x00432729, &_BuildingClass_Mission_Missile_DOOR_OPENING_Patch);
     Patch_Jump(0x00432957, &_BuildingClass_Mission_Missile_LAUNCH_DOWN_Patch);
     Patch_Jump(0x00432937, &_BuildingClass_Mission_Missile_LAUNCH_DOWN_Voice_Patch);
+    //Patch_Jump(0x00427CD8, &_BuildingClass_entry_370_RoofDoorAnim_Patch1);
+    //Patch_Jump(0x00427DF5, &_BuildingClass_entry_370_RoofDoorAnim_Patch2);
 }

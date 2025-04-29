@@ -49,6 +49,7 @@ AnimTypeClassExtension::AnimTypeClassExtension(const AnimTypeClass *this_ptr) :
     AttachLayer(LAYER_NONE),
     ParticleToSpawn(PARTICLE_NONE),
     NumberOfParticles(0),
+    ParticleSpawnOffset(0, 0, 0),
     StartAnims(),
     StartAnimsCount(),
     StartAnimsMinimum(),
@@ -64,12 +65,17 @@ AnimTypeClassExtension::AnimTypeClassExtension(const AnimTypeClass *this_ptr) :
     EndAnimsMinimum(),
     EndAnimsMaximum(),
     EndAnimsDelay(),
-    MiddleFrame(-1),
-    ExplosionDamage(0)
+    MiddleFrames(),
+    ExplosionDamage(0),
+    IsShadow(false),
+    DamageRate(-1)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("AnimTypeClassExtension::AnimTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     AnimTypeExtensions.Add(this);
+
+    // The half-way frame is the middle frame by default.
+    MiddleFrames.Add(-1);
 }
 
 
@@ -94,7 +100,8 @@ AnimTypeClassExtension::AnimTypeClassExtension(const NoInitClass &noinit) :
     EndAnimsCount(noinit),
     EndAnimsMinimum(noinit),
     EndAnimsMaximum(noinit),
-    EndAnimsDelay(noinit)
+    EndAnimsDelay(noinit),
+    MiddleFrames(noinit)
 {
     //EXT_DEBUG_TRACE("AnimTypeClassExtension::AnimTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -156,6 +163,7 @@ HRESULT AnimTypeClassExtension::Load(IStream *pStm)
     EndAnimsMinimum.Clear();
     EndAnimsMaximum.Clear();
     EndAnimsDelay.Clear();
+    MiddleFrames.Clear();
 
     HRESULT hr = ObjectTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
@@ -179,6 +187,7 @@ HRESULT AnimTypeClassExtension::Load(IStream *pStm)
     EndAnimsMinimum.Load(pStm);
     EndAnimsMaximum.Load(pStm);
     EndAnimsDelay.Load(pStm);
+    MiddleFrames.Load(pStm);
 
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(StartAnims, "StartAnims");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(MiddleAnims, "MiddleAnims");
@@ -217,6 +226,7 @@ HRESULT AnimTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
     EndAnimsMinimum.Save(pStm);
     EndAnimsMaximum.Save(pStm);
     EndAnimsDelay.Save(pStm);
+    MiddleFrames.Save(pStm);
 
     return hr;
 }
@@ -274,6 +284,7 @@ void AnimTypeClassExtension::Object_CRC(CRCEngine &crc) const
     crc(EndAnimsMinimum.Count());
     crc(EndAnimsMaximum.Count());
     crc(EndAnimsDelay.Count());
+    crc(MiddleFrames.Count());
     crc(ExplosionDamage);
 }
 
@@ -352,6 +363,7 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     AttachLayer = ini.Get_LayerType(ini_name, "Layer", AttachLayer);
     ParticleToSpawn = ini.Get_ParticleType(ini_name, "SpawnsParticle", ParticleToSpawn);
     NumberOfParticles = ini.Get_Int(ini_name, "NumParticles", NumberOfParticles);
+    ParticleSpawnOffset = ini.Get_Point(ini_name, "SpawnsParticleOffset", ParticleSpawnOffset);
 
     StartAnims = ini.Get_Anims(ini_name, "StartAnims", StartAnims);
     StartAnimsCount = ini.Get_Integers(ini_name, "StartAnimsCount", StartAnimsCount);
@@ -415,11 +427,18 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
      *  A special value of "-1" will set the biggest frame to the actual middle frame
      *  of the shape file. This behavior was observed in Red Alert 2.
      */
-    if (This()->Image && This()->Image->Get_Count() > 0) {
-        MiddleFrame = ini.Get_Int_Clamp(ini_name, "MiddleFrame", -1, This()->Image->Get_Count() - 1, MiddleFrame);
+    MiddleFrames = ini.Get_Integers(ini_name, "MiddleFrame", MiddleFrames);
+    for (int& frame : MiddleFrames) {
+        frame = std::clamp(frame, -1, ((This()->Image != nullptr) ? (This()->Image->Get_Count() - 1) : 0));
     }
 
     ExplosionDamage = ini.Get_Int(ini_name, "ExplosionDamage", ExplosionDamage);
+    IsShadow = ini.Get_Bool(ini_name, "Shadow", IsShadow);
+
+    int delay = DamageRate = ini.Get_Int(ini_name, "DamageRate", -1);
+    if (delay != -1) {
+        DamageRate = (delay > 0) ? 900 / delay : 0;
+    }
 
     IsInitialized = true;
 
@@ -428,29 +447,18 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
 
 
 /**
- *  Sets the biggest frame of the AnimType with our override.
+ *  Returns the default stage count for this animation.
  *
  *  @author: ZivDero
  */
-void AnimTypeClassExtension::Set_Biggest_Frame()
+int AnimTypeClassExtension::Stage_Count() const
 {
-    if (MiddleFrame < 0 && This()->Image && This()->Image->Get_Count() >= 2) {
-        This()->Biggest = This()->Image->Get_Count() / 2;
-    } else {
-        This()->Biggest = MiddleFrame;
+    int stages = 0;
+    if (This()->Get_Image_Data() != nullptr) {
+        stages = This()->Get_Image_Data()->Get_Count();
     }
-}
-
-
-/**
- *  Sets the biggest frame of the all AnimTypes with our override.
- *
- *  @author: ZivDero
- */
-void AnimTypeClassExtension::All_Set_Biggest_Frame()
-{
-    for (int i = 0; i < AnimTypeExtensions.Count(); i++) {
-        AnimTypeExtensions[i]->Set_Biggest_Frame();
+    if (IsShadow) {
+        stages /= 2;
     }
+    return stages;
 }
-

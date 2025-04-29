@@ -2254,7 +2254,7 @@ DECLARE_PATCH(_TechnoClass_Do_Cloak_Cloak_Sound_Patch)
     /**
      *  Play the sound effect at the objects location.
      */
-    Sound_Effect(voc, *coord);
+    Static_Sound(voc, *coord);
 
     JMP(0x00633C8B);
 }
@@ -2297,7 +2297,7 @@ DECLARE_PATCH(_TechnoClass_Do_Uncloak_Uncloak_Sound_Patch)
     /**
      *  Play the sound effect at the objects location.
      */
-    Sound_Effect(voc, *coord);
+    Static_Sound(voc, *coord);
 
     JMP(0x00633BE7);
 }

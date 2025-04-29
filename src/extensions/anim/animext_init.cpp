@@ -204,5 +204,6 @@ void AnimClassExtension_Init()
     Patch_Jump(0x00413C79, &_AnimClass_Constructor_Patch);
     Patch_Jump(0x004142A6, &_AnimClass_Default_Constructor_Patch);
     Patch_Jump(0x0041441F, 0x00414475); // This jump goes from duplicate code in the destructor to our patch, removing the need for two hooks.
+    Patch_Jump(0x00413C89, 0x00413D3E); // Skip part of the AnimClass constructor that's re-implemented in the extension constructor.
     Patch_Jump(0x004142CB, &_AnimClass_Destructor_Patch);
 }

@@ -167,7 +167,7 @@ void FlyLocomotionClassExt::_Take_Off()
             LinkedTo->PrimaryFacing.Set(LinkedTo->SecondaryFacing.Desired());
         }
 
-        Sound_Effect(LinkedTo->Techno_Type_Class()->AuxSound1, LinkedTo->Get_Coord());
+        Static_Sound(LinkedTo->Techno_Type_Class()->AuxSound1, LinkedTo->Get_Coord());
     }
 }
 

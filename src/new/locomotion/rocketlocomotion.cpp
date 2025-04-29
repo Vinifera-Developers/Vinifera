@@ -268,7 +268,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
                 if (rocket->TakeoffAnim)
                     new AnimClass(rocket->TakeoffAnim, LinkedTo->Coord, 2, 1, SHAPE_WIN_REL | SHAPE_CENTER, -10);
 
-                Sound_Effect(LinkedTo->Techno_Type_Class()->AuxSound1, LinkedTo->Coord);
+                Static_Sound(LinkedTo->Techno_Type_Class()->AuxSound1, LinkedTo->Coord);
             }
             /**
              *  Otherwise, keep tilting.
@@ -309,7 +309,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
             {
                 MissionState = RocketMissionState::Flight;
                 Coordinate center_coord = LinkedTo->Center_Coord();
-                ApogeeDistance = (center_coord.As_Cell() - DestinationCoord.As_Cell()).Length();
+                ApogeeDistance = (Cell(center_coord.X, center_coord.Y) - Cell(DestinationCoord.X, DestinationCoord.Y)).Length();
             }
             break;
         }
@@ -347,7 +347,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
                      *  compared to how far it was when it reached its cruising altitude.
                      */
                     const Coordinate center_coord = LinkedTo->Center_Coord();
-                    const double dist = (center_coord.As_Cell() - DestinationCoord.As_Cell()).Length();
+                    const double dist = (Cell(center_coord.X, center_coord.Y) - Cell(DestinationCoord.X, DestinationCoord.Y)).Length();
                     const double ratio = dist / ApogeeDistance;
 
                     CurrentPitch = rocket->PitchFinal * ratio * DEG_TO_RAD(90) + Get_Next_Pitch() * (1 - ratio);
@@ -366,7 +366,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
                     /**
                      *  If we're there, proceed to closing in.
                      */
-                    const int horizontal_distance = (LinkedTo->Center_Coord().As_Cell() - DestinationCoord.As_Cell()).Length();
+                    const int horizontal_distance = (Cell(LinkedTo->Center_Coord().X, LinkedTo->Center_Coord().Y) - Cell(DestinationCoord.X, DestinationCoord.Y)).Length();
                     const int vertical_distance = LinkedTo->Center_Coord().Z - DestinationCoord.Z;
                     if (horizontal_distance <= vertical_distance * rocket->CloseEnoughFactor)
                         MissionState = RocketMissionState::ClosingIn;
@@ -446,7 +446,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
                 const auto linked_ext = Extension::Fetch<FootClassExtension>(LinkedTo);
                 if (linked_ext->Get_Last_Flight_Cell() == CELL_NONE)
                 {
-                    Sound_Effect(LinkedTo->Techno_Type_Class()->AuxSound1, LinkedTo->Coord);
+                    Static_Sound(LinkedTo->Techno_Type_Class()->AuxSound1, LinkedTo->Coord);
                     AircraftTracker->Track(LinkedTo);
                 }
 

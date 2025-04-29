@@ -67,8 +67,7 @@ AnimTypeClassExtension final : public ObjectTypeClassExtension
 
         virtual bool Read_INI(CCINIClass &ini) override;
 
-        void Set_Biggest_Frame();
-        static void All_Set_Biggest_Frame();
+        int Stage_Count() const;
 
     public:
         /**
@@ -102,7 +101,12 @@ AnimTypeClassExtension final : public ObjectTypeClassExtension
         /**
          *  The number of the particle to spawn.
          */
-        unsigned NumberOfParticles;
+        int NumberOfParticles;
+
+        /**
+         *  The coordinate offset of the spawned particle.
+         */
+        Point3D ParticleSpawnOffset;
 
         /**
          *  List of animations to spawn at the logical start of this animation.
@@ -132,12 +136,22 @@ AnimTypeClassExtension final : public ObjectTypeClassExtension
         TypeList<int> EndAnimsDelay;
 
         /**
-         *  The middle (biggest) frame, if set by the user.
+         *  The middle (biggest) frames.
          */
-        int MiddleFrame;
+        TypeList<int> MiddleFrames;
 
         /**
          *  If positive, the animation will spawn an explosion during its biggest frame dealing this much damage.
          */
         int ExplosionDamage;
+
+        /**
+         *  Does this animation have a shadow?
+         */
+        bool IsShadow;
+
+        /**
+         *  A separate rate at which the anim deals damage.
+         */
+        int DamageRate;
 };

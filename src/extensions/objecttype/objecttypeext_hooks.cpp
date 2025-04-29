@@ -66,7 +66,7 @@ static class ObjectTypeClassExt : public ObjectTypeClass
 
 
 /**
- *  Reimplementation of ObjectTypeClass::Assign_Theater_Name to support new theater types.
+ *  Reimplementation of ObjectTypeClass::Theater_Naming_Convention to support new theater types.
  * 
  *  @author: CCHyper
  */
@@ -128,7 +128,7 @@ void ObjectTypeClassExt::_Assign_Theater_Name(char *fname, TheaterType theater)
 
 
 /**
- *  This patch replaces an inlined instance of ObjectTypeClass::Assign_Theater_Name
+ *  This patch replaces an inlined instance of ObjectTypeClass::Theater_Naming_Convention
  *  with a direct call.
  * 
  *  @author: CCHyper
@@ -139,7 +139,7 @@ DECLARE_PATCH(_ObjectTypeClass_Load_Theater_Art_Assign_Theater_Name_Theater_Patc
     LEA_STACK_STATIC(char *, fullname, esp, 0x0C);
     LEA_STACK_STATIC(char *, destbuffer, esp, 0x08);
 
-    this_ptr->Assign_Theater_Name(fullname, Scen->Theater);
+    this_ptr->Theater_Naming_Convention(fullname, Scen->Theater);
 
     JMP(0x005889E2);
 }

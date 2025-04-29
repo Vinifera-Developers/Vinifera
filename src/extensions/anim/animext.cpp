@@ -43,11 +43,50 @@
  *  @author: CCHyper
  */
 AnimClassExtension::AnimClassExtension(const AnimClass *this_ptr) :
-    ObjectClassExtension(this_ptr)
+    ObjectClassExtension(this_ptr),
+    DamageStage()
 {
     //if (this_ptr) EXT_DEBUG_TRACE("AnimClassExtension::AnimClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     AnimExtensions.Add(this);
+
+    if (this_ptr) {
+        const auto animtypeext = Extension::Fetch<AnimTypeClassExtension>(This()->Class);
+
+        /**
+         *  Reimplement part of the vanilla constructor below.
+         *  Anim extensions are created earlier, so we move par of the code here
+         *  so that we have access to the extension at this point.
+         */
+        if (This()->Class->Stages == -1) {
+            This()->Class->Stages = animtypeext->Stage_Count();
+        }
+
+        if (This()->Class->LoopEnd == -1) {
+            This()->Class->LoopEnd = This()->Class->Stages;
+        }
+
+        int delay = This()->Class->Delay;
+        if (This()->Class->RandomRateMin != 0 || This()->Class->RandomRateMax != 0) {
+            if (This()->Class->RandomRateMin <= This()->Class->RandomRateMax) {
+                delay = Random_Pick(This()->Class->RandomRateMin, This()->Class->RandomRateMax);
+            }
+        }
+        if (This()->Class->IsNormalized) {
+            This()->Set_Rate(Options.Normalize_Delay(delay));
+        }
+        else {
+            This()->Set_Rate(delay);
+        }
+
+        This()->Set_Stage(0);
+
+        /**
+         *  Initialize the delay stage counter.
+         */
+        int damagedelay = animtypeext->DamageRate == -1 ? This()->Fetch_Rate() : animtypeext->DamageRate;
+        DamageStage.Set_Rate(damagedelay);
+    }
 }
 
 
@@ -57,7 +96,8 @@ AnimClassExtension::AnimClassExtension(const AnimClass *this_ptr) :
  *  @author: CCHyper
  */
 AnimClassExtension::AnimClassExtension(const NoInitClass &noinit) :
-    ObjectClassExtension(noinit)
+    ObjectClassExtension(noinit),
+    DamageStage(noinit)
 {
     //EXT_DEBUG_TRACE("AnimClassExtension::AnimClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }

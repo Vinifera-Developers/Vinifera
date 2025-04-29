@@ -49,8 +49,9 @@
  */
 class AnimTypeClassExt : public AnimTypeClass
 {
-    public:
-        void _Free_Image();
+public:
+    void _Free_Image();
+    void _Load_Image(TheaterType theater);
 };
 
 
@@ -80,6 +81,42 @@ void AnimTypeClassExt::_Free_Image()
             Image = nullptr;
         }
     }
+}
+
+
+/**
+ *  Reimplementation of AnimTypeClass::Load_Image.
+ *
+ *  @author: ZivDero
+ */
+void AnimTypeClassExt::_Load_Image(TheaterType theater)
+{
+    if (!IsDemandLoad && Image == nullptr) {
+        if (IsTheater) {
+            Fetch_Normal_Image();
+        } else {
+            char fullname[_MAX_FNAME + _MAX_EXT];
+            _makepath(fullname, nullptr, nullptr, Graphic_Name(), ".SHP");
+            Theater_Naming_Convention(fullname, theater);
+            Image = static_cast<ShapeSet const*>(MixFileClass::Retrieve(fullname));
+        }
+    }
+
+    /**
+     *  The game would calculate Stages and LoopEnd now, set them to -1
+     *  instead to be calcalated in AnimClass::AI.
+     */
+    if (Stages == 0) {
+        Stages = -1;
+    }
+    if (LoopEnd == 0) {
+        LoopEnd = -1;
+    }
+
+    /**
+     *  No longer important as we use the MiddleFrames type list now.
+     */
+    Biggest = -1;
 }
 
 
@@ -114,23 +151,6 @@ DECLARE_PATCH(_AnimTypeClass_Get_Image_Data_Assertion_Patch)
 
 
 /**
- *  Set Biggest to -2 to flag that it needs to be recalculated.
- *  Ideally, this would be done now, but this is sometimes hit before the extension is
- *  constructed, and we need it.
- *
- *  @author: ZivDero
- */
-DECLARE_PATCH(_AnimTypeClass_Load_Image_Biggest_Patch)
-{
-    GET_REGISTER_STATIC(AnimTypeClass*, this_ptr, esi);
-    
-    this_ptr->Biggest = -1;
-
-    JMP(0x00418B99);
-}
-
-
-/**
  *  Main function for patching the hooks.
  */
 void AnimTypeClassExtension_Hooks()
@@ -143,7 +163,7 @@ void AnimTypeClassExtension_Hooks()
     //Patch_Jump(0x00419B37, &_AnimTypeClass_Get_Image_Data_Assertion_Patch);
 
     Patch_Jump(0x00419B40, &AnimTypeClassExt::_Free_Image);
+    Patch_Jump(0x00418A70, &AnimTypeClassExt::_Load_Image);
     Patch_Jump(0x004187DB, &_AnimTypeClass_DTOR_Free_Image_Patch);
     Patch_Jump(0x00419C0B, &_AnimTypeClass_SDDTOR_Free_Image_Patch);
-    Patch_Jump(0x00418B15, &_AnimTypeClass_Load_Image_Biggest_Patch);
 }

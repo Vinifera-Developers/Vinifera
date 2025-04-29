@@ -57,7 +57,7 @@ If the animation moves, delayed animations that it spawns will appear where it w
 In `ART.INI`:
 ```ini
 [AnimType]     ; AnimType
-MiddleFrame=   ; integer, the frame number in which the animation system will perform various logics (e.g. spawn craters, scorch marks, fires). Defaults to auto-detect based on the largest frame of the shape file. A special value of -1 can be used to tell the animation system to use the exact middle frame of the shape file (if shape file has 30 frames, frame 15 will be used).
+MiddleFrame=   ; list of integers, the frame numbers in which the animation system will perform various logics (e.g. spawn craters, scorch marks, fires). Defaults to auto-detect based on the largest frame of the shape file. A special value of -1 can be used to tell the animation system to use the exact middle frame of the shape file (if shape file has 30 frames, frame 15 will be used).
 ```
 
 ```{note}
@@ -80,16 +80,29 @@ ExplosionDamage=0  ; integer, if positive, the animation will spawn an explosion
 
 In `ART.INI`:
 ```ini
-[SOMEANIM]             ; AnimType
-HideIfNoTiberium=no    ; boolean, should this animation be hidden if the holding cell does not contain Tiberium?
-ForceBigCraters=no     ; boolean, are the craters spawned by this animation when it ends much larger than normal?
-ZAdjust=0              ; integer, fudge to this animation's Z-axis (depth). Positive values move the animation "away from the screen"/"closer to the ground", negative values do the opposite.
-Layer=<none>           ; LayerType, the map layer this animation is in when attached to an object.
-                       ; Available Options: underground, surface, ground, air, and top.
-                       ; NOTE: This will override the value of Surface= which forces a layer of ground.
-SpawnsParticle=<none>  ; ParticleType, the particle to spawn at the mid-point of this animation.
-                       ; This accepts any entry from the [Particles] list from RULES.INI.
-NumParticles=0         ; integer, the number of particles to spawn (as defined by SpawnsParticle=).
+[SOMEANIM]                  ; AnimType
+HideIfNoTiberium=no         ; boolean, should this animation be hidden if the holding cell does not contain Tiberium?
+ForceBigCraters=no          ; boolean, are the craters spawned by this animation when it ends much larger than normal?
+ZAdjust=0                   ; integer, fudge to this animation's Z-axis (depth). Positive values move the animation "away from the screen"/"closer to the ground", negative values do the opposite.
+Layer=<none>                ; LayerType, the map layer this animation is in when attached to an object.
+                            ; Available Options: underground, surface, ground, air, and top.
+                            ; NOTE: This will override the value of Surface= which forces a layer of ground.
+SpawnsParticle=<none>       ; ParticleType, the particle to spawn at the mid-point of this animation.
+                            ; This accepts any entry from the [Particles] list from RULES.INI.
+NumParticles=0              ; integer, the number of particles to spawn (as defined by SpawnsParticle=).
+SpawnsParticleOffset=0,0,0  ; 3 integers, an offset to be added to the spawner particles' coordinates.
+Shadow=no                   ; boolean, does this animation show a shadow?
+```
+
+### Damage Rate
+
+- Vinifera allows the animation to deal damage at a rate independent of main visual logic rate.
+- The calculation is the same as for `Rate=`, that is, the animation will deal damage every `900 / DamageRate` frames, rounded down.
+
+In `ART.INI`:
+```ini
+[AnimType]    ; AnimType
+DamageRate=-1 ; integer, the rate at which this animation deals damage. Defaults to `Rate`.
 ```
 
 ## Buildings
@@ -153,6 +166,25 @@ SpecialAnimTwo=           ; AnimType, the animation to play when the silo is ope
 SpecialAnimTwoDamaged=    ; AnimType, the animation to play when the silo is open, and the silo is damaged.
 SpecialAnimThree=         ; AnimType, the animation to play when the silo is closing.
 SpecialAnimThreeDamaged=  ; AnimType, the animation to play when the silo is closing, and the silo is damaged.
+```
+
+- Additionally, the main building shape may be hidden when any of the special anims is playing.
+
+In `ART.INI`:
+```ini
+[SOMEBUILDING]            ; BuildingType
+HideDuringSpecialAnim=no  ; boolean, should the main shape of the building be hidden when any special anim is playing.
+```
+
+### Roof War Factory Animations
+
+- Vinifera allows war factories to display a roof opening animation when a unit using the Jump Jet locomotor is produced, similar to Red Alert 2.
+
+In `ART.INI`:
+```ini
+[SOMEBUILDING]      ; BuildingType
+RoofDeployingAnim=  ; AnimType, the animation of the open roof when a Jump Jet is exiting the factory.
+UnderRoofDoorAnim=  ; AnimType, the animation of the rest of the building when a Jump Jet is exiting the factory.
 ```
 
 ## Harvesters

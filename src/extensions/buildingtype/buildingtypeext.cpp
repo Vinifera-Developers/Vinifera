@@ -33,6 +33,7 @@
 #include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "scenario.h"
 
 
 /**
@@ -51,7 +52,11 @@ BuildingTypeClassExtension::BuildingTypeClassExtension(const BuildingTypeClass *
     IsStartupCashOneTime(false),
     IsResetBudgetOnCapture(false),
     IsEligibleForAllyBuilding(false),
-    EngineerChance(0)
+    EngineerChance(0),
+    IsHideDuringSpecialAnim(false),
+    RoofDeployingAnim(nullptr),
+    RoofDoorAnim(nullptr),
+    UnderRoofDoorAnim(nullptr)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("BuildingTypeClassExtension::BuildingTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -211,8 +216,44 @@ bool BuildingTypeClassExtension::Read_INI(CCINIClass &ini)
     IsResetBudgetOnCapture = ini.Get_Bool(ini_name, "ProduceCashResetOnCapture", IsResetBudgetOnCapture);
 
     IsEligibleForAllyBuilding = ini.Get_Bool(ini_name, "EligibleForAllyBuilding", IsEligibleForAllyBuilding);
+    IsHideDuringSpecialAnim = ArtINI.Get_Bool(ini_name, "HideDuringSpecialAnim", IsHideDuringSpecialAnim);
+
+    Fetch_Building_Normal_Image(Scen->Theater);
 
     IsInitialized = true;
 
     return true;
+}
+
+
+/**
+ *  Fetches the extra building graphics.
+ *
+ *  @author: ZivDero
+ */
+void BuildingTypeClassExtension::Fetch_Building_Normal_Image(TheaterType theater)
+{
+    char fullname[MAX_PATH];
+    char buffer[64];
+
+    ArtINI.Get_String(This()->GraphicName, "RoofDeployingAnim", "", buffer, sizeof(buffer));
+    if (strlen(buffer) != 0) {
+        _makepath(fullname, nullptr, nullptr, buffer, ".SHP");
+        This()->Theater_Naming_Convention(fullname, theater);
+        RoofDeployingAnim = static_cast<ShapeSet const*>(MixFileClass::Retrieve(fullname));
+    }
+
+    ArtINI.Get_String(This()->GraphicName, "RoofDoorAnim", "", buffer, sizeof(buffer));
+    if (strlen(buffer) != 0) {
+        _makepath(fullname, nullptr, nullptr, buffer, ".SHP");
+        This()->Theater_Naming_Convention(fullname, theater);
+        RoofDoorAnim = static_cast<ShapeSet const*>(MixFileClass::Retrieve(fullname));
+    }
+
+    ArtINI.Get_String(This()->GraphicName, "UnderRoofDoorAnim", "", buffer, sizeof(buffer));
+    if (strlen(buffer) != 0) {
+        _makepath(fullname, nullptr, nullptr, buffer, ".SHP");
+        This()->Theater_Naming_Convention(fullname, theater);
+        UnderRoofDoorAnim = static_cast<ShapeSet const*>(MixFileClass::Retrieve(fullname));
+    }
 }
