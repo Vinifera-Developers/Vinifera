@@ -233,3 +233,4 @@ This page lists all the individual contributions to the project by their author.
   - Add `DamageRate` for animations.
   - Add `HideDuringSpecialAnim` for buildings.
   - Add `RoofDeployingAnim` and `UnderRoofDoorAnim` for buildings.
+  - Add `SpawnsParticleOffset`.
