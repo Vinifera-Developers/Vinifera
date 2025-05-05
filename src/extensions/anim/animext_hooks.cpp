@@ -512,7 +512,7 @@ static void Anim_Spawn_Particles(AnimClass* this_ptr)
 
         for (int i = 0; i < animtypeext->NumberOfParticles; ++i) {
 
-            Coordinate spawn_coord = this_ptr->Get_Coord() + Coordinate(animtypeext->ParticleSpawnOffset.X, animtypeext->ParticleSpawnOffset.Y, animtypeext->ParticleSpawnOffset.Z);
+            Coordinate spawn_coord = this_ptr->Center_Coord() + Coordinate(animtypeext->ParticleSpawnOffset.X, animtypeext->ParticleSpawnOffset.Y, animtypeext->ParticleSpawnOffset.Z);
 
             /**
              *  Spawn a new particle at this anims coord.
