@@ -52,6 +52,7 @@
 #include "kamikazetracker.h"
 #include "spawnmanager.h"
 #include "armortype.h"
+#include "layer.h"
 #include "rockettype.h"
 
 
@@ -635,6 +636,39 @@ __declspec(dllexport) uint32_t __cdecl Vinifera_Save_File_Version()
 char RLEBlitBuffer[4096];
 
 
+/**
+ *  Temporary LayerClass extension to catch null pointers being added to layers.
+ */
+static class LayerClassExt : public LayerClass
+{
+public:
+    bool _Submit(const ObjectClass* object, bool sort);
+};
+
+
+bool LayerClassExt::_Submit(const ObjectClass* object, bool sort)
+{
+    ASSERT(object != nullptr);
+
+    if (object == nullptr)
+    {
+        // force a crash
+        int* p = nullptr;
+        *p = 50;
+    }
+
+    /*
+    **	Add the object to the layer. Either at the end (if "sort" is false) or at the
+    **	appropriately sorted position.
+    */
+    if (sort) {
+        return((Sorted_Add(object)) != false);
+    }
+    return(Add((ObjectClass*)object) != false);
+}
+
+
+
 void Vinifera_Hooks()
 {
     /**
@@ -855,4 +889,6 @@ void Vinifera_Hooks()
     Patch_Call(0x005B5340, &_Print_CRCs_Intercept);
 
     //Patch_Call(0x005D6BEC, &_On_Load_Clear_Scenario_Intercept); // Load_All
+
+    Patch_Jump(0x004FCD70, &LayerClassExt::_Submit);
 }
