@@ -116,6 +116,7 @@ public:
     void _One_Time(int id);
     void _Init_IO(int id);
     void _Init_For_House(int id);
+    bool _Recalc();
     void _Activate();
     bool _Add(RTTIType type, int id);
     void _Deactivate();
@@ -1020,6 +1021,109 @@ void StripClassExt::_Init_For_House(int id)
     DownButton[0].Set_Shape(MFCC::RetrieveT<ShapeSet>("R-DN.SHP"));
     DownButton[0].ShapeDrawer = SidebarDrawer;
 }
+
+
+/**
+ *  Reimplements the entire SidebarClass::StripClass::Recalc function.
+ *
+ *  @author: ZivDero
+ */
+bool StripClassExt::_Recalc()
+{
+    bool ok;
+
+    if (Debug_Map || !BuildableCount) {
+        return false;
+    }
+
+    bool scroll = false;
+    int max_visible = SidebarClassExtension::Max_Visible(!Vinifera_NewSidebar);
+    BuildType* unshifted = new BuildType[max_visible];
+
+    for (int i = 0; i < max_visible; i++) {
+        if (i + TopIndex < BuildableCount) {
+            unshifted[i] = Buildables[i + TopIndex];
+        }
+    }
+
+    /**
+     *  Sweep through all objects listed in the sidebar. If any of those object can
+     *  not be created -- even in theory -- then they must be removed form the sidebar and
+     *  any current production must be abandoned.
+     */
+    bool redraw = false;
+    for (int index = 0; index < BuildableCount; index++) {
+        TechnoTypeClass const* tech = Fetch_Techno_Type(Buildables[index].BuildableType, Buildables[index].BuildableID);
+        if (tech != nullptr) {
+            BuildingClass const* who = tech->Who_Can_Build_Me(true, false, false, PlayerPtr);
+            ok = who != nullptr && who->House->Can_Build(tech, !RuleExtension->IsRecheckPrerequisites, true);
+        }
+        else {
+            if (Buildables[index].BuildableID < PlayerPtr->SuperWeapon.Count()) {
+                ok = PlayerPtr->SuperWeapon[Buildables[index].BuildableID]->Is_Present();
+            }
+            else {
+                ok = false;
+            }
+        }
+
+        if (!ok) {
+            for (int i = 0; i < max_visible; i++) {
+                if (unshifted[i] == Buildables[index]) {
+                    unshifted[i] = BuildType(0, RTTI_NONE);
+                }
+            }
+
+            /*
+            **	Removes this entry from the list.
+            */
+            if (BuildableCount > 1 && index < BuildableCount - 1) {
+                memmove(&Buildables[index], &Buildables[index + 1], sizeof(Buildables[0]) * ((BuildableCount - index) - 1));
+            }
+            redraw = true;
+            scroll = true;
+            Buildables[BuildableCount - 1].Factory = nullptr;
+            IsToRedraw = true;
+            BuildableCount--;
+            index--;
+        }
+    }
+
+    if (scroll) {
+        bool got_old = false;
+        bool got_new = false;
+
+        int oldpos;
+        for (oldpos = 0; oldpos < max_visible; oldpos++) {
+            if (unshifted[oldpos] != BuildType(0, RTTI_NONE)) {
+                got_old = true;
+                break;
+            }
+        }
+
+        int newpos;
+        if (got_old && BuildableCount != 0) {
+            for (newpos = 0; newpos < BuildableCount; newpos++) {
+                if (Buildables[newpos] == unshifted[oldpos]) {
+                    got_new = true;
+                    break;
+                }
+            }
+        }
+
+        if (got_old && got_new) {
+            TopIndex = newpos - oldpos;
+            TopIndex = std::max(0, std::min(TopIndex, BuildableCount - max_visible));
+        }
+        else {
+            TopIndex = 0;
+        }
+    }
+
+    delete[] unshifted;
+    return redraw;
+}
+
 
 
 /**
@@ -2162,45 +2266,6 @@ DECLARE_PATCH(_SidebarClass_StripClass_Help_Text_Extended_Tooltip_Patch)
 
 
 /**
- *  Makes the sidebar recheck prerequisites when doing a recalc.
- *
- *  @author: ZivDero
- */
-static bool _Can_Build_Helper(BuildingClass* who, TechnoTypeClass* tech)
-{
-    return who->House->Can_Build(tech, !RuleExtension->IsRecheckPrerequisites, true);
-}
-
-DECLARE_PATCH(_StripClass_Recalc_Recheck_Prerequisites_Patch)
-{
-    GET_REGISTER_STATIC(BuildingClass*, who, eax);
-    GET_REGISTER_STATIC(TechnoTypeClass*, tech, ebp);
-
-    if (!_Can_Build_Helper(who, tech))
-    {
-        JMP(0x005F5799);
-    }
-
-    JMP(0x005F5852);
-}
-
-
-/**
- *  Corrects the max visible buildables count for the new sidebar.
- *
- *  @author: ZivDero
- */
-DECLARE_PATCH(_StripClass_Recalc_MaxVisible_Patch)
-{
-    static int maxvisible;
-    maxvisible = SidebarClassExtension::Max_Visible(!Vinifera_NewSidebar);
-    _asm mov eax, maxvisible
-    _asm mov [esp+0x20], eax
-    JMP(0x005F569D);
-}
-
-
-/**
  *  Main function for patching the hooks.
  */
 void SidebarClassExtension_Hooks()
@@ -2213,6 +2278,7 @@ void SidebarClassExtension_Hooks()
      */
     Patch_Jump(0x005F4E40, &StripClassExt::_Help_Text);
     Patch_Jump(0x005F4630, &StripClassExt::_Add);
+    Patch_Jump(0x005F5610, &StripClassExt::_Recalc);
 
     // NOP away tooltip length check for formatting
     Patch_Byte(0x0044E486, 0x90);
@@ -2220,9 +2286,6 @@ void SidebarClassExtension_Hooks()
 
     // Change jle to jl to allow rendering tooltips that are exactly as wide as the sidebar
     Patch_Byte(0x0044E605 + 1, 0x8C);
-
-    Patch_Jump(0x005F5759, &_StripClass_Recalc_Recheck_Prerequisites_Patch);
-    Patch_Jump(0x005F563D, &_StripClass_Recalc_MaxVisible_Patch);
 
     /**
      *  Legacy patches for the old sidebar.
