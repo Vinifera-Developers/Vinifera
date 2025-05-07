@@ -37,7 +37,7 @@
 #include "building.h"
 #include "buildingtype.h"
 #include "buildingtypeext.h"
-#include "unit.h";
+#include "unit.h"
 #include "unitext.h"
 #include "technotype.h"
 #include "technotypeext.h"

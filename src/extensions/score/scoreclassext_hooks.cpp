@@ -31,7 +31,7 @@
 
 #include "tibsun_globals.h"
 #include "house.h"
-#include "vector.h";
+#include "vector.h"
 #include "scenarioext.h"
 
 #include "hooker.h"
