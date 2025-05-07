@@ -1771,7 +1771,7 @@ void StripClassExt::_Draw_It(bool complete)
 
                     production = true;
                     completed = !PlayerPtr->SuperWeapon[spc]->Needs_Redraw();
-                    isready = PlayerPtr->SuperWeapon[spc]->Is_Ready();
+                    isready = PlayerPtr->SuperWeapon[spc]->Can_Place();
                     state = PlayerPtr->SuperWeapon[spc]->Ready_String();
                     stage = PlayerPtr->SuperWeapon[spc]->Anim_Stage();
                     darken = false;
@@ -1995,7 +1995,7 @@ void StripClassExt::_Tab_Button_AI()
             for (int i = 0; i < PlayerPtr->SuperWeapon.Count(); i++)
             {
                 SuperClass* sw = PlayerPtr->SuperWeapon[i];
-                if (sw->Is_Ready() && !sw->Class->IsUseChargeDrain) // Firestorm is always "ready", so don't flash for it.
+                if (sw->Can_Place() && !sw->Class->IsUseChargeDrain) // Firestorm is always "ready", so don't flash for it.
                 {
                     ready_sw = true;
                     break;

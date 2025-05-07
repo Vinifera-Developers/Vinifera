@@ -758,7 +758,7 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
 
             if (spc < PlayerPtr->SuperWeapon.Count())
             {
-                if (PlayerPtr->SuperWeapon[spc]->Is_Ready())
+                if (PlayerPtr->SuperWeapon[spc]->Can_Place())
                 {
                     if (PlayerPtr->SuperWeapon[spc]->Class->Action != ACTION_NONE)
                     {
