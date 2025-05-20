@@ -62,8 +62,8 @@ struct IStream;
     { \
         Wstring funcname = __FUNCTION__; \
         funcname += "()"; \
-        for (int i = 0; i < vector.Count(); ++i) { \
-            ((ViniferaSwizzleManagerClass &)SwizzleManager).Swizzle_Dbg((void **)&vector[i], __FILE__, __LINE__, funcname.Peek_Buffer(), variable); \
+        for (int __i = 0; __i < vector.Count(); ++__i) { \
+            ((ViniferaSwizzleManagerClass &)SwizzleManager).Swizzle_Dbg((void **)&vector[__i], __FILE__, __LINE__, funcname.Peek_Buffer(), variable); \
         } \
     }
 
