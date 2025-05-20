@@ -164,7 +164,7 @@ HRESULT STDMETHODCALLTYPE AircraftTrackerClass::Load(IStream* stream)
         if (FAILED(result)) {
             return result;
         }
-        VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(Regions[i], "Regions");
+        VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(region, "Regions");
     }
 
     return S_OK;
