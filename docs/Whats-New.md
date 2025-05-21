@@ -186,6 +186,7 @@ New:
 - Add `DamageRate` for animations (by ZivDero)
 - Add `HideDuringSpecialAnim` for buildings (by ZivDero)
 - Add `RoofDeployingAnim` and `UnderRoofDoorAnim` for buildings (by ZivDero)
+- Implement Jumpjet Locomotion improvements (by ZivDero, tomsons26)
 
 
 Vanilla fixes:

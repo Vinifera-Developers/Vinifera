@@ -132,6 +132,7 @@ This page lists all the individual contributions to the project by their author.
   - Implement various controls to show and customise NavCom queue lines.
   - Implement customizable mouse cursors and actions.
   - Implement a feature for animations to spawn additional animations.
+  - Help with implementing Jumpjet Locomotion improvements.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Noble Fish**:
@@ -234,3 +235,4 @@ This page lists all the individual contributions to the project by their author.
   - Add `HideDuringSpecialAnim` for buildings.
   - Add `RoofDeployingAnim` and `UnderRoofDoorAnim` for buildings.
   - Add `SpawnsParticleOffset`.
+  - Implement Jumpjet Locomotion improvements.
