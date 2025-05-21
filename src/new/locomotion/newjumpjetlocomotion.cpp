@@ -25,17 +25,17 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include	"newjumpjetlocomotion.h"
+#include "newjumpjetlocomotion.h"
 
 #include <algorithm>
-#include	<new>
+#include <new>
 
 #include "aircrafttracker.h"
-#include	"rules.h"
-#include	"foot.h"
-#include	"mouse.h"
-#include	"cell.h"
-#include	"building.h"
+#include "rules.h"
+#include "foot.h"
+#include "mouse.h"
+#include "cell.h"
+#include "building.h"
 #include "coord.h"
 #include "extension.h"
 #include "footext.h"
