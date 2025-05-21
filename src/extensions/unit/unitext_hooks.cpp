@@ -1489,4 +1489,6 @@ void UnitClassExtension_Hooks()
     //Patch_Jump(0x00654AB0, &_UnitClass_Mission_Harvest_Block_Harvesting_On_Bridge_Patch); // Removed, keeping code for reference.
     Patch_Jump(0x0064E560, &UnitClassExt::_Rotation_AI);
     Patch_Jump(0x00656F99, &_UnitClass_Can_Fire_IsOmniFire_Patch);
+
+    Patch_Byte(0x00658961, 0xEB); // Allow pre-placed units to have missions in multiplayer, change JZ to JMP
 }

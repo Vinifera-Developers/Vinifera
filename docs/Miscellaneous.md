@@ -11,6 +11,7 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 - Harvesters used to drop their cargo as Tiberium Riparius on death. They will now drop the Tiberium types they are carrying, instead.
 - It is no longer required to list all Tiberiums in a map to override some Tiberium's properties.
 - `FreeUnit` or `PadAircraft` would in some cases affect the cost of a building. This functionality has been removed.
+- Allow pre-placed units to have missions in multiplayer (by Rampastring)
 
 ## Quality of Life
 

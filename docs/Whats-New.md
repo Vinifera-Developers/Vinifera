@@ -59,6 +59,7 @@ New:
 - Tooltips for super weapons on the sidebar can now show a custom description (by Rampastring)
 - Allow deploying air transports with the "Deploy" keyboard command (by Rampastring)
 - Add WallOwner to BuildingTypes (by Rampastring)
+- Allow pre-placed units to have missions in multiplayer (by Rampastring)
 
 
 Vinifera fixes:
