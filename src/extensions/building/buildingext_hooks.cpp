@@ -394,7 +394,7 @@ void BuildingClassExt::_Draw_It(Point2D const& xdrawpoint, Rect const& xcliprect
         }
 
         shapenum += (HealthRatio <= Rule->ConditionYellow ? (Class->GateStages + 1) : 0);
-        Techno_Draw_Object(shapefile, shapenum, xdrawpoint, xcliprect, DIR_N, 256, zadjust - TacticalMap->Z_Lepton_To_Pixel(AbsoluteHeight), zgrad, true, Map[cell].Land);
+        Techno_Draw_Object(shapefile, shapenum, xdrawpoint, xcliprect, DIR_N, 256, zadjust - TacticalMap->Z_Lepton_To_Pixel(AbsoluteHeight), zgrad, true, Map[cell].Brightness);
 
         return;
     }
