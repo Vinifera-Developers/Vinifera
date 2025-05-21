@@ -96,6 +96,7 @@ NewJumpjetLocomotionClass : public LocomotionClass
         double JumpjetAcceleration;
         double JumpjetWobblesPerSecond;
         int JumpjetWobbleDeviation;
+        bool JumpjetNoWobbles;
         int JumpjetCloakDetectionRadius;
 
         Coordinate HeadToCoord;

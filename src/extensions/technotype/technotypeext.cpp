@@ -99,7 +99,8 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     _JumpjetAcceleration(-std::numeric_limits<double>::max()),
     _JumpjetWobblesPerSecond(-std::numeric_limits<double>::max()),
     _JumpjetWobbleDeviation(std::numeric_limits<int>::min()),
-    _JumpjetCloakDetectionRadius(std::numeric_limits<int>::min())
+    _JumpjetCloakDetectionRadius(std::numeric_limits<int>::min()),
+    JumpjetNoWobbles(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -250,6 +251,15 @@ void TechnoTypeClassExtension::Object_CRC(CRCEngine &crc) const
     crc(SpawnsNumber);
     crc(TargetZoneScan);
     crc(IsDecloakToFire);
+    crc(_JumpjetTurnRate);
+    crc(_JumpjetSpeed);
+    crc(_JumpjetClimb);
+    crc(_JumpjetCruiseHeight);
+    crc(_JumpjetAcceleration);
+    crc(_JumpjetWobblesPerSecond);
+    crc(_JumpjetWobbleDeviation);
+    crc(_JumpjetCloakDetectionRadius);
+    crc(JumpjetNoWobbles);
 }
 
 
@@ -380,6 +390,7 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     _JumpjetWobblesPerSecond = ini.Get_Double(ini_name, "JumpjetWobblesPerSecond", _JumpjetWobblesPerSecond);
     _JumpjetWobbleDeviation = ini.Get_Int(ini_name, "JumpjetWobbleDeviation", _JumpjetWobbleDeviation);
     _JumpjetCloakDetectionRadius = ini.Get_Int(ini_name, "JumpjetCloakDetectionRadius", _JumpjetCloakDetectionRadius);
+    JumpjetNoWobbles = ini.Get_Bool(ini_name, "JumpjetNoWobbles", JumpjetNoWobbles);
 
     return true;
 }

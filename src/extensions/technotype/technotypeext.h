@@ -307,4 +307,6 @@ public:
 
     int Get_Jumpjet_Cloak_Detection_Radius() const;
     __declspec(property(get = Get_Jumpjet_Cloak_Detection_Radius)) int JumpjetCloakDetectionRadius;
+
+    bool JumpjetNoWobbles;
 };

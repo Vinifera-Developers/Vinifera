@@ -77,6 +77,7 @@ IFACEMETHODIMP NewJumpjetLocomotionClass::Link_To_Object(void* object)
     Facing.Set_Desired(DirType(0x4000));
     Facing.Set(DirType(0x4000));
     JumpjetCloakDetectionRadius = type_ext->JumpjetCloakDetectionRadius;
+    JumpjetNoWobbles = type_ext->JumpjetNoWobbles;
     return BASECLASS::Link_To_Object(object);
 }
 
@@ -449,7 +450,7 @@ void NewJumpjetLocomotionClass::Movement_AI()
 
     bool at_destination = LinkedTo->Get_Cell() == HeadToCoord.As_Cell();
 
-    if (CurrentState == HOVERING || CurrentState == CRUISING) {
+    if ((CurrentState == HOVERING || CurrentState == CRUISING) && !JumpjetNoWobbles) {
         CurrentWobble += DEG_TO_RAD(360) / (15.0 / JumpjetWobblesPerSecond);
     } else {
         CurrentWobble = 0;
