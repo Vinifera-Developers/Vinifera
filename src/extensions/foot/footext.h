@@ -52,7 +52,7 @@ class FootClassExtension : public TechnoClassExtension
         virtual const FootClass *This_Const() const override { return reinterpret_cast<const FootClass *>(TechnoClassExtension::This_Const()); }
 
         virtual void Set_Last_Flight_Cell(Cell cell);
-        virtual Cell Get_Last_Flight_Cell();
+        virtual Cell Get_Last_Flight_Cell() const;
 
     public:
         /**

@@ -29,6 +29,8 @@
 
 #include <algorithm>
 #include	<new>
+
+#include "aircrafttracker.h"
 #include	"rules.h"
 #include	"foot.h"
 #include	"mouse.h"
@@ -36,9 +38,11 @@
 #include	"building.h"
 #include "coord.h"
 #include "extension.h"
+#include "footext.h"
 #include "house.h"
 #include "ionstorm.h"
 #include "technotypeext.h"
+#include "vinifera_globals.h"
 
 
 NewJumpjetLocomotionClass::NewJumpjetLocomotionClass() :
@@ -259,6 +263,11 @@ void NewJumpjetLocomotionClass::Process_Grounded()
         TargetSpeed = 0;
         FlightLevel = JumpjetCruiseHeight;
         if (!IonStorm_Is_Active()) {
+            const auto extension = Extension::Fetch<FootClassExtension>(LinkedTo);
+            if (extension->Get_Last_Flight_Cell() == CELL_NONE) {
+                AircraftTracker->Track(LinkedTo);
+            }
+
             CurrentState = ASCENDING;
         }
     }
@@ -272,6 +281,14 @@ void NewJumpjetLocomotionClass::Process_Ascent()
         if (Map[LinkedTo->Get_Coord()].IsUnderBridge && height >= BRIDGE_LEPTON_HEIGHT) {
             height -= BRIDGE_LEPTON_HEIGHT;
         }
+    }
+
+    const auto extension = Extension::Fetch<FootClassExtension>(LinkedTo);
+    Cell oldcell = extension->Get_Last_Flight_Cell();
+    Cell newcell = LinkedTo->Get_Cell();
+
+    if (newcell != oldcell) {
+        AircraftTracker->Update_Position(LinkedTo, oldcell, newcell);
     }
 
     if (height >= FlightLevel) {
@@ -303,6 +320,15 @@ void NewJumpjetLocomotionClass::Process_Hover()
 void NewJumpjetLocomotionClass::Process_Cruise()
 {
     Coordinate position = LinkedTo->PositionCoord;
+
+    const auto extension = Extension::Fetch<FootClassExtension>(LinkedTo);
+    Cell oldcell = extension->Get_Last_Flight_Cell();
+    Cell newcell = LinkedTo->Get_Cell();
+
+    if (newcell != oldcell) {
+        AircraftTracker->Update_Position(LinkedTo, oldcell, newcell);
+    }
+
     Facing.Set_Desired(Direction(position, HeadToCoord));
 
     int distance = Point2D(position.X, position.Y).Distance_To(Point2D(HeadToCoord.X, HeadToCoord.Y));
@@ -378,6 +404,7 @@ void NewJumpjetLocomotionClass::Process_Descent()
 
             if (LinkedTo != nullptr && LinkedTo->IsActive && !LinkedTo->IsInLimbo && !LinkedTo->IsFalling) {
                 LinkedTo->Look();
+                AircraftTracker->Untrack(LinkedTo);
                 CurrentState = GROUNDED;
                 IsLanding = false;
             }

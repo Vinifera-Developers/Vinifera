@@ -143,7 +143,7 @@ void FootClassExtension::Set_Last_Flight_Cell(Cell cell)
  *
  *  @author: ZivDero
  */
-Cell FootClassExtension::Get_Last_Flight_Cell()
+Cell FootClassExtension::Get_Last_Flight_Cell() const
 {
     return LastFlightCell;
 }
