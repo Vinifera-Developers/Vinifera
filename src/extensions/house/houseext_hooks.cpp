@@ -219,7 +219,7 @@ ProdFailType HouseClassExt::_Abandon_Production(RTTIType type, int id)
         if (obj == nullptr)
             return PROD_OK;
 
-        ObjectTypeClass* cls = obj->Class_Of();
+        const ObjectTypeClass* cls = obj->Class_Of();
         if (id != cls->Fetch_Heap_ID())
             return PROD_OK;
     }

@@ -394,7 +394,7 @@ void BuildingClassExt::_Draw_It(Point2D const& xdrawpoint, Rect const& xcliprect
         }
 
         shapenum += (HealthRatio <= Rule->ConditionYellow ? (Class->GateStages + 1) : 0);
-        Techno_Draw_Object(shapefile, shapenum, xdrawpoint, xcliprect, DIR_N, 256, zadjust - TacticalMap->Z_Lepton_To_Pixel(AbsoluteHeight), zgrad, true, Map[cell].Brightness);
+        Techno_Draw_Object(shapefile, shapenum, xdrawpoint, xcliprect, DIR_N, 256, zadjust - TacticalMap->Z_Lepton_To_Pixel(Height), zgrad, true, Map[cell].Brightness);
 
         return;
     }
@@ -435,10 +435,10 @@ void BuildingClassExt::_Draw_It(Point2D const& xdrawpoint, Rect const& xcliprect
         **	Actually draw the building shape.
         */
         if ((Class->IsLaserFence && (LaserFenceFrame == 12 || LaserFenceFrame == 8)) || Class->IsFirestormWall) {
-            Techno_Draw_Object(shapefile, Shape_Number(), drawpoint, cliprect, DIR_N, 256, -1 - TacticalMap->Z_Lepton_To_Pixel(AbsoluteHeight), ZGRAD_GROUND, true, Map[cell].Brightness + Class->ExtraLight);
+            Techno_Draw_Object(shapefile, Shape_Number(), drawpoint, cliprect, DIR_N, 256, -1 - TacticalMap->Z_Lepton_To_Pixel(Height), ZGRAD_GROUND, true, Map[cell].Brightness + Class->ExtraLight);
         }
         else {
-            Techno_Draw_Object(shapefile, Shape_Number() < shapefile->Get_Count() / 2 ? Shape_Number() : shapefile->Get_Count() / 2, drawpoint, cliprect, DIR_N, 256, zadjust - TacticalMap->Z_Lepton_To_Pixel(AbsoluteHeight), ZGRAD_90DEG, true, Map[cell].Brightness + Class->ExtraLight, zshapefile, 0, zdrawpoint);
+            Techno_Draw_Object(shapefile, Shape_Number() < shapefile->Get_Count() / 2 ? Shape_Number() : shapefile->Get_Count() / 2, drawpoint, cliprect, DIR_N, 256, zadjust - TacticalMap->Z_Lepton_To_Pixel(Height), ZGRAD_90DEG, true, Map[cell].Brightness + Class->ExtraLight, zshapefile, 0, zdrawpoint);
         }
     }
 
@@ -449,7 +449,7 @@ void BuildingClassExt::_Draw_It(Point2D const& xdrawpoint, Rect const& xcliprect
     **  vehicle before drawing the overlay.
     */
     if (Class->BibShape && BState != BSTATE_CONSTRUCTION) {
-        Techno_Draw_Object(Class->BibShape, Shape_Number(), xdrawpoint, xcliprect, DIR_N, 256, -1 - TacticalMap->Z_Lepton_To_Pixel(AbsoluteHeight), ZGRAD_GROUND, true, Map[cell].Brightness + Class->ExtraLight);
+        Techno_Draw_Object(Class->BibShape, Shape_Number(), xdrawpoint, xcliprect, DIR_N, 256, -1 - TacticalMap->Z_Lepton_To_Pixel(Height), ZGRAD_GROUND, true, Map[cell].Brightness + Class->ExtraLight);
     }
 
     /*
@@ -463,7 +463,7 @@ void BuildingClassExt::_Draw_It(Point2D const& xdrawpoint, Rect const& xcliprect
             under_door_anim = Class->UnderDoorAnim;
         }
         if (under_door_anim != nullptr) {
-            Techno_Draw_Object(under_door_anim, HealthRatio <= Rule->ConditionYellow ? 1 : 0, xdrawpoint, xcliprect, DIR_N, 256, -TacticalMap->Z_Lepton_To_Pixel(AbsoluteHeight), ZGRAD_GROUND, true, Map[cell].Brightness + Class->ExtraLight);
+            Techno_Draw_Object(under_door_anim, HealthRatio <= Rule->ConditionYellow ? 1 : 0, xdrawpoint, xcliprect, DIR_N, 256, -TacticalMap->Z_Lepton_To_Pixel(Height), ZGRAD_GROUND, true, Map[cell].Brightness + Class->ExtraLight);
         }
     }
 }
@@ -994,7 +994,7 @@ DECLARE_PATCH(_BuildingClass_Draw_Spied_Cameo_Palette_Patch)
     GET_REGISTER_STATIC(TechnoClass *, factory_obj, eax);
     GET_REGISTER_STATIC(Point2D *, pos_xy, edi);
     GET_REGISTER_STATIC(Rect *, window_rect, ebp);
-    static TechnoTypeClass *technotype;
+    static const TechnoTypeClass *technotype;
     static TechnoTypeClassExtension *technotypeext;
     static const ShapeSet *cameo_shape;
     static Surface *pcx_image;

@@ -305,7 +305,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
              *  If the rocket has reached its cruising altitude, proceed to flight.
              *  Save the distance to the destination for lazy curve rockets.
              */
-            if (LinkedTo->Height >= rocket->Altitude)
+            if (LinkedTo->HeightAGL >= rocket->Altitude)
             {
                 MissionState = RocketMissionState::Flight;
                 Coordinate center_coord = LinkedTo->Center_Coord();
@@ -322,7 +322,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
             /**
              *  Check if we're still above ground. If not, explode.
              */
-            if (LinkedTo->Height > 0)
+            if (LinkedTo->HeightAGL > 0)
             {
                 /**
                  *  Keep accelerating towards the maximum speed.
@@ -670,7 +670,7 @@ bool RocketLocomotionClass::Time_To_Explode(const RocketTypeClass* rocket)
             /**
              *  Nope, too early.
              */
-            if (LinkedTo->Height > 0)
+            if (LinkedTo->HeightAGL > 0)
                 return false;
         }
     }

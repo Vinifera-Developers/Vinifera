@@ -6,7 +6,7 @@
  *
  *  @file          ROCKETLOCOMOTION.H
  *
- *  @authors       CCHyper
+ *  @authors       ZivDero
  *
  *  @brief         Rocket locomotion implementation.
  *
@@ -53,25 +53,25 @@ public:
     /**
      *  IPersist
      */
-    IFACEMETHOD(GetClassID)(CLSID* pClassID);
+    IFACEMETHOD(GetClassID)(CLSID* pClassID) override;
 
     /**
      *  IPersistStream
      */
-    IFACEMETHOD(Load)(IStream* pStm);
+    IFACEMETHOD(Load)(IStream* pStm) override;
 
     /**
      *  ILocomotion
      */
-    IFACEMETHOD_(bool, Is_Moving)();
-    IFACEMETHOD_(Coordinate, Destination)();
-    IFACEMETHOD_(Matrix3D, Draw_Matrix)(int *key);
-    IFACEMETHOD_(Point2D, Shadow_Point)();
-    IFACEMETHOD_(bool, Process)();
-    IFACEMETHOD_(void, Move_To)(Coordinate to);
-    IFACEMETHOD_(void, Stop_Moving)();
-    IFACEMETHOD_(LayerType, In_Which_Layer)();
-    IFACEMETHOD_(bool, Is_Moving_Now)();
+    IFACEMETHOD_(bool, Is_Moving)() override;
+    IFACEMETHOD_(Coordinate, Destination)() override;
+    IFACEMETHOD_(Matrix3D, Draw_Matrix)(int *key) override;
+    IFACEMETHOD_(Point2D, Shadow_Point)() override;
+    IFACEMETHOD_(bool, Process)() override;
+    IFACEMETHOD_(void, Move_To)(Coordinate to) override;
+    IFACEMETHOD_(void, Stop_Moving)() override;
+    IFACEMETHOD_(LayerType, In_Which_Layer)() override;
+    IFACEMETHOD_(bool, Is_Moving_Now)() override;
 
     RocketLocomotionClass();
     ~RocketLocomotionClass() override = default;

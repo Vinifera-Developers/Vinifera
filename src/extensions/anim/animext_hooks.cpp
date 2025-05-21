@@ -562,7 +562,7 @@ void AnimClassExt::_Middle()
      */
     Anim_Spawn_Particles(this);
 
-    if (Height < 30) {
+    if (HeightAGL < 30) {
 
         /*
         **	If this animation leaves scorch marks (e.g., napalm), then do so at this time.
@@ -619,7 +619,7 @@ void AnimClassExt::_Middle()
         }
     }
     else if (Class->IsScorcher) {
-        if (Height < 10) {
+        if (HeightAGL < 10) {
             LandType land = Map[Get_Coord()].Land_Type();
             if (land != LAND_WATER && land != LAND_BEACH && land != LAND_ICE && land != LAND_ROCK) {
                 newanim = new AnimClass(Rule->SmallFire, Center_Coord(), 0, Random_Pick(1, 2));
@@ -653,16 +653,16 @@ DECLARE_PATCH(_AnimClass_Constructor_Layer_Set_Z_Height_Patch)
      */
     if (animtypeext->AttachLayer != LAYER_NONE
         && (animtypeext->AttachLayer == LAYER_AIR || animtypeext->AttachLayer == LAYER_TOP)) {
-        this_ptr->AbsoluteHeight = Rule->FlightLevel;
+        this_ptr->Height = Rule->FlightLevel;
 
     /**
      *  Original code.
      */
     } else if (!this_ptr->Class->IsGroundLayer) {
-        this_ptr->AbsoluteHeight = Rule->FlightLevel;
+        this_ptr->Height = Rule->FlightLevel;
 
     } else {
-        this_ptr->Height = 0;
+        this_ptr->HeightAGL = 0;
     }
 
     JMP(0x00413D63);

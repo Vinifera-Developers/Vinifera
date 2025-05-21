@@ -163,7 +163,7 @@ void FlyLocomotionClassExt::_Take_Off()
             AircraftTracker->Track(LinkedTo);
         }
 
-        if (LinkedTo->Height == 0) {
+        if (LinkedTo->HeightAGL == 0) {
             LinkedTo->PrimaryFacing.Set(LinkedTo->SecondaryFacing.Desired());
         }
 
@@ -202,7 +202,7 @@ DECLARE_PATCH(_FlyLocomotionClass_Movement_AI_AircraftTracker_Patch2)
     AircraftTracker->Untrack(linked_to);
 
     // Stolen instruction
-    linked_to->Height = 0;
+    linked_to->HeightAGL = 0;
 
     JMP(0x0049A087);
 }

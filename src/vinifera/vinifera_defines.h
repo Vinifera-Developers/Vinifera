@@ -60,6 +60,7 @@
  */
 #define CLSID_TEST_LOCOMOTOR                "501DEF92-C7ED-448E-8FEB-7908DCE73377"
 #define CLSID_ROCKET_LOCOMOTOR              "B7B49766-E576-11d3-9BD9-00104B972FE8"
+#define CLSID_NEWJUMPJET_LOCOMOTOR          "92612C46-F71F-11D1-AC9F-006008055BB5" // This is the same as vanilla JumpjetLocomotion. This way, we silently replace it.
 
 
 /**

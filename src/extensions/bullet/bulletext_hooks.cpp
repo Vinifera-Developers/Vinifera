@@ -80,7 +80,7 @@ bool BulletClassExt::_Is_Forced_To_Explode(Coordinate& coord)
     */
     if (!Class->IsHigh && cellptr->Overlay != OVERLAY_NONE && OverlayTypeClass::As_Reference(cellptr->Overlay).IsHigh) {
 
-        if (Get_Height() < 100) {
+        if (HeightAGL < 100) {
             coord = Cell_Coord(Coord_Cell(coord));
             return true;
         }
@@ -89,7 +89,7 @@ bool BulletClassExt::_Is_Forced_To_Explode(Coordinate& coord)
     /*
     **  Check for impact on the ground.
     */
-    if (Get_Height() < 0) {
+    if (HeightAGL < 0) {
         return true;
     }
 
