@@ -274,6 +274,10 @@ public:
     bool IsDecloakToFire;
 
 private:
+
+    /**
+     *  These are backing fields for properties below.
+     */
     int _JumpjetTurnRate;
     int _JumpjetSpeed;
     double _JumpjetClimb;
@@ -284,29 +288,57 @@ private:
     int _JumpjetCloakDetectionRadius;
 
 public:
+
+    /**
+     *  Maximum turning rate of the jumpjet unit.
+     */
     int Get_Jumpjet_Turn_Rate() const;
     __declspec(property(get = Get_Jumpjet_Turn_Rate)) int JumpjetTurnRate;
 
+    /**
+     *  Forward speed of the jumpjet unit.
+     */
     int Get_Jumpjet_Speed() const;
     __declspec(property(get = Get_Jumpjet_Speed)) int JumpjetSpeed;
 
+    /**
+     *  Vertical climb rate of the jumpjet unit.
+     */
     double Get_Jumpjet_Climb() const;
     __declspec(property(get = Get_Jumpjet_Climb)) double JumpjetClimb;
 
+    /**
+     *  Desired cruising height of the jumpjet unit.
+     */
     int Get_Jumpjet_Cruise_Height() const;
     __declspec(property(get = Get_Jumpjet_Cruise_Height)) int JumpjetCruiseHeight;
 
+    /**
+     *  Acceleration of the jumpjet unit when gaining speed.
+     */
     double Get_Jumpjet_Acceleration() const;
     __declspec(property(get = Get_Jumpjet_Acceleration)) double JumpjetAcceleration;
 
+    /**
+     *  Frequency of wobble oscillation per second for jumpjets.
+     */
     double Get_Jumpjet_Wobbles_Per_Second() const;
     __declspec(property(get = Get_Jumpjet_Wobbles_Per_Second)) double JumpjetWobblesPerSecond;
 
+    /**
+     *  Maximum wobble deviation (in leptons) for jumpjet movement.
+     */
     int Get_Jumpjet_Wobble_Deviation() const;
     __declspec(property(get = Get_Jumpjet_Wobble_Deviation)) int JumpjetWobbleDeviation;
 
+    /**
+     *  Radius at which the jumpjet unit can detect cloaked objects.
+     */
     int Get_Jumpjet_Cloak_Detection_Radius() const;
     __declspec(property(get = Get_Jumpjet_Cloak_Detection_Radius)) int JumpjetCloakDetectionRadius;
 
+    /**
+     *  Whether the jumpjet unit doesn't wobble.
+     */
     bool JumpjetNoWobbles;
 };

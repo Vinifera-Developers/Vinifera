@@ -89,18 +89,69 @@ NewJumpjetLocomotionClass : public LocomotionClass
         int Desired_Flight_Level() const;
 
     private:
+        /**
+         *  Turn rate of the jumpjet unit.
+         */
         int JumpjetTurnRate;
+
+        /**
+         *  Maximum forward speed of the jumpjet unit in leptons per tick.
+         */
         int JumpjetSpeed;
+
+        /**
+         *  Vertical climb rate per tick for jumpjet ascent and descent.
+         */
         double JumpjetClimb;
+
+        /**
+         *  Desired cruising height (in leptons) for the jumpjet unit.
+         */
         int JumpjetCruiseHeight;
+
+        /**
+         *  Acceleration applied when changing the jumpjet's movement speed.
+         */
         double JumpjetAcceleration;
+
+        /**
+         *  Frequency in Hz of the jumpjet's wobble effect while flying.
+         */
         double JumpjetWobblesPerSecond;
+
+        /**
+         *  Maximum deviation of jumpjet vertical wobble (in leptons).
+         */
         int JumpjetWobbleDeviation;
+
+        /**
+         *  Whether this jumpjet unit doesn't wobble during flight.
+         */
         bool JumpjetNoWobbles;
+
+        /**
+         *  Radius (in cells) within which the jumpjet can detect cloaked units.
+         */
         int JumpjetCloakDetectionRadius;
 
+        /**
+         *  The destination coordinate the jumpjet is moving toward.
+         */
         Coordinate HeadToCoord;
+
+        /**
+         *  Indicates whether the jumpjet is currently moving toward a target.
+         */
         bool IsMoving;
+
+        /**
+         *  Represents the current flight state of the jumpjet.
+         *  - GROUNDED: Landed and idle
+         *  - ASCENDING: Taking off
+         *  - HOVERING: Stationary at cruise height
+         *  - CRUISING: Moving toward destination at cruise height
+         *  - DESCENDING: Attempting to land
+         */
         enum {
             GROUNDED,
             ASCENDING,
@@ -108,10 +159,34 @@ NewJumpjetLocomotionClass : public LocomotionClass
             CRUISING,
             DESCENDING
         } CurrentState;
+
+        /**
+         *  Current facing direction of the jumpjet.
+         */
         FacingClass Facing;
+
+        /**
+         *  Current movement speed of the jumpjet, in leptons per tick.
+         */
         double CurrentSpeed;
+
+        /**
+         *  Desired speed the jumpjet is accelerating or decelerating toward.
+         */
         double TargetSpeed;
+
+        /**
+         *  Desired height above ground level for the jumpjet during cruise.
+         */
         int FlightLevel;
+
+        /**
+         *  Phase value used to compute wobble displacement during flight.
+         */
         double CurrentWobble;
+
+        /**
+         *  Indicates whether the jumpjet is currently in the process of landing.
+         */
         bool IsLanding;
 };
