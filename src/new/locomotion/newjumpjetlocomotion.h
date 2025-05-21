@@ -52,6 +52,7 @@ NewJumpjetLocomotionClass : public LocomotionClass
         /**
          *  ILocomotion methods.
          */
+        IFACEMETHOD(Link_To_Object)(void* object);
         IFACEMETHOD_(bool, Is_Moving)() override;
         IFACEMETHOD_(Coordinate, Destination)() override;
         IFACEMETHOD_(Coordinate, Head_To_Coord)() override;
@@ -88,6 +89,15 @@ NewJumpjetLocomotionClass : public LocomotionClass
         int Desired_Flight_Level() const;
 
     private:
+        int JumpjetTurnRate;
+        int JumpjetSpeed;
+        double JumpjetClimb;
+        int JumpjetCruiseHeight;
+        double JumpjetAcceleration;
+        double JumpjetWobblesPerSecond;
+        int JumpjetWobbleDeviation;
+        int JumpjetCloakDetectionRadius;
+
         Coordinate HeadToCoord;
         bool IsMoving;
         enum {

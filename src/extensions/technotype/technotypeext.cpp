@@ -39,6 +39,7 @@
 #include "vinifera_saveload.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "rules.h"
 
 
 /**
@@ -90,7 +91,15 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     RequiredHouses(-1),
     ForbiddenHouses(-1),
     TargetZoneScan(TZST_SAME),
-    IsDecloakToFire(true)
+    IsDecloakToFire(true),
+    _JumpjetTurnRate(std::numeric_limits<int>::min()),
+    _JumpjetSpeed(std::numeric_limits<int>::min()),
+    _JumpjetClimb(-std::numeric_limits<double>::max()),
+    _JumpjetCruiseHeight(std::numeric_limits<int>::min()),
+    _JumpjetAcceleration(-std::numeric_limits<double>::max()),
+    _JumpjetWobblesPerSecond(-std::numeric_limits<double>::max()),
+    _JumpjetWobbleDeviation(std::numeric_limits<int>::min()),
+    _JumpjetCloakDetectionRadius(std::numeric_limits<int>::min())
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -363,5 +372,85 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     TargetZoneScan = _Get_TargetZoneScanType(ini, ini_name, "TargetZoneScan", TargetZoneScan);
     IsDecloakToFire = ini.Get_Bool(ini_name, "DecloakToFire", IsDecloakToFire);
 
+    _JumpjetTurnRate = ini.Get_Int(ini_name, "JumpjetTurnRate", _JumpjetTurnRate);
+    _JumpjetSpeed = ini.Get_Int(ini_name, "JumpjetSpeed", _JumpjetSpeed);
+    _JumpjetClimb = ini.Get_Double(ini_name, "JumpjetClimb", _JumpjetClimb);
+    _JumpjetCruiseHeight = ini.Get_Int(ini_name, "JumpjetCruiseHeight", _JumpjetCruiseHeight);
+    _JumpjetAcceleration = ini.Get_Double(ini_name, "JumpjetAcceleration", _JumpjetAcceleration);
+    _JumpjetWobblesPerSecond = ini.Get_Double(ini_name, "JumpjetWobblesPerSecond", _JumpjetWobblesPerSecond);
+    _JumpjetWobbleDeviation = ini.Get_Int(ini_name, "JumpjetWobbleDeviation", _JumpjetWobbleDeviation);
+    _JumpjetCloakDetectionRadius = ini.Get_Int(ini_name, "JumpjetCloakDetectionRadius", _JumpjetCloakDetectionRadius);
+
     return true;
+}
+
+
+int TechnoTypeClassExtension::Get_Jumpjet_Turn_Rate() const
+{
+    if (_JumpjetTurnRate != std::numeric_limits<int>::min()) {
+        return _JumpjetTurnRate;
+    }
+    return Rule->JumpjetTurnRate;
+}
+
+
+int TechnoTypeClassExtension::Get_Jumpjet_Speed() const
+{
+    if (_JumpjetSpeed != std::numeric_limits<int>::min()) {
+        return _JumpjetSpeed;
+    }
+    return Rule->JumpjetSpeed;
+}
+
+
+double TechnoTypeClassExtension::Get_Jumpjet_Climb() const
+{
+    if (_JumpjetClimb != -std::numeric_limits<double>::max()) {
+        return _JumpjetClimb;
+    }
+    return Rule->JumpjetClimb;
+}
+
+
+int TechnoTypeClassExtension::Get_Jumpjet_Cruise_Height() const
+{
+    if (_JumpjetCruiseHeight != std::numeric_limits<int>::min()) {
+        return _JumpjetCruiseHeight;
+    }
+    return Rule->JumpjetCruiseHeight;
+}
+
+
+double TechnoTypeClassExtension::Get_Jumpjet_Acceleration() const
+{
+    if (_JumpjetAcceleration != -std::numeric_limits<double>::max()) {
+        return _JumpjetAcceleration;
+    }
+    return Rule->JumpjetAcceleration;
+}
+
+
+double TechnoTypeClassExtension::Get_Jumpjet_Wobbles_Per_Second() const
+{
+    if (_JumpjetWobblesPerSecond != -std::numeric_limits<double>::max()) {
+        return _JumpjetWobblesPerSecond;
+    }
+    return Rule->JumpjetWobblesPerSecond;
+}
+
+
+int TechnoTypeClassExtension::Get_Jumpjet_Wobble_Deviation() const
+{
+    if (_JumpjetWobbleDeviation != std::numeric_limits<int>::min()) {
+        return _JumpjetWobbleDeviation;
+    }
+    return Rule->JumpjetWobbleDeviation;
+}
+
+
+int TechnoTypeClassExtension::Get_Jumpjet_Cloak_Detection_Radius() const {
+    if (_JumpjetCloakDetectionRadius != std::numeric_limits<int>::min()) {
+        return _JumpjetCloakDetectionRadius;
+    }
+    return Rule->JumpjetCloakDetectionRadius;
 }
