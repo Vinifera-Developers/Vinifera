@@ -4,6 +4,7 @@ This page lists all the individual contributions to the project by their author.
 
 - **AlexB**:
   - Make OverlayTypes 27 to 38 (fourth Tiberium images) passable by infantry.
+  - Fix a crash when a Jumpjet infantry is flying or trying to take off just when an Ion Storm starts.
 - **Belonit (Gluk-v48)**:
   - Check for Changelog/Documentation/Credits in Pull Requests.
   - Docs dark theme switcher.
@@ -236,3 +237,4 @@ This page lists all the individual contributions to the project by their author.
   - Add `RoofDeployingAnim` and `UnderRoofDoorAnim` for buildings.
   - Add `SpawnsParticleOffset`.
   - Implement Jumpjet Locomotion improvements.
+  - Fix a crash when a Jumpjet infantry is flying or trying to take off just when an Ion Storm starts.

@@ -110,7 +110,10 @@ IFACEMETHODIMP_(bool) NewJumpjetLocomotionClass::Process()
 
         if (IonStorm_Is_Active()) {
             if (CurrentState != GROUNDED) {
-                LinkedTo->Take_Damage(LinkedTo->Strength, 0, Rule->C4Warhead, nullptr, true, true);
+                ResultType result = LinkedTo->Take_Damage(LinkedTo->Strength, 0, Rule->C4Warhead, nullptr, true, true);
+                if (result == RESULT_DESTROYED) {
+                    return false;
+                }
             }
         }
 
