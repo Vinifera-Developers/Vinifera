@@ -125,7 +125,7 @@ bool AircraftClassExt::_Unlimbo(Coordinate& coord, Dir256 dir)
          *  When starting at flight level, then give it speed. When landed
          *  then it must be stationary.
          */
-        if (Height == Class->Flight_Level()) {
+        if (HeightAGL == Class->Flight_Level()) {
             Set_Speed(1.0);
         }
         else {
@@ -469,7 +469,7 @@ DECLARE_PATCH(_AircraftClass_Enter_Idle_Mode_Spawner_Patch)
 
     aircrafttypeext = Extension::Fetch<AircraftTypeClassExtension>(this_ptr->Class);
 
-    if (layer != LAYER_GROUND && this_ptr->Height > landingaltitude && !aircrafttypeext->IsMissileSpawn)
+    if (layer != LAYER_GROUND && this_ptr->HeightAGL > landingaltitude && !aircrafttypeext->IsMissileSpawn)
     {
         JMP(0x0040B3C1);
     }

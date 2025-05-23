@@ -1936,7 +1936,7 @@ DECLARE_PATCH(_TechnoClass_Refund_Amount_Soylent_Patch)
 {
     GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
     static TechnoTypeClassExtension *technotypext;
-    static TechnoTypeClass *technotype;
+    const static TechnoTypeClass *technotype;
     static int cost;
 
     /**
@@ -2228,7 +2228,7 @@ DECLARE_PATCH(_TechnoClass_Do_Cloak_Cloak_Sound_Patch)
 {
     GET_REGISTER_STATIC(Coordinate *, coord, eax);
     GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
-    static TechnoTypeClass *technotype;
+    const static TechnoTypeClass *technotype;
     static TechnoTypeClassExtension *technotypeext;
     static VocType voc;
 
@@ -2271,7 +2271,7 @@ DECLARE_PATCH(_TechnoClass_Do_Uncloak_Uncloak_Sound_Patch)
 {
     GET_REGISTER_STATIC(Coordinate *, coord, eax);
     GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
-    static TechnoTypeClass *technotype;
+    static const TechnoTypeClass *technotype;
     static TechnoTypeClassExtension *technotypeext;
     static VocType voc;
 

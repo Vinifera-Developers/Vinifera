@@ -211,7 +211,7 @@ void UnitClassExt::_Draw_Voxel(unsigned int frame, int key, Rect& rect, Point2D&
     if (typeext->WaterAlt
         && Map[Get_Coord()].Land_Type() == LAND_WATER
         && !IsOnBridge
-        && Height < LEVEL_LEPTON_H)
+        && HeightAGL < LEVEL_LEPTON_H)
     {
         voxel = &typeext->WaterVoxel;
         cache = &typeext->WaterVoxelIndex;
@@ -676,7 +676,7 @@ DECLARE_PATCH(_UnitClass_Draw_Shape_Turret_Facing_Patch)
 
     frame_number = 0;
 
-    unittype = reinterpret_cast<UnitTypeClass *>(this_ptr->Techno_Type_Class());
+    unittype = (UnitTypeClass *)this_ptr->Techno_Type_Class();
     
     /**
      *  All turrets have 32 facings in Tiberian Sun.
@@ -850,7 +850,7 @@ DECLARE_PATCH(_UnitClass_Per_Cell_Process_AutoHarvest_Assign_Harvest_Mission_Pat
     /**
      *  Is the unit we are processing a harvester?
      */
-    unittype = reinterpret_cast<UnitTypeClass *>(this_ptr->Class_Of());
+    unittype = (UnitTypeClass *)this_ptr->Class_Of();
     if (unittype->IsToHarvest || unittype->IsToVeinHarvest) {
 
         /**

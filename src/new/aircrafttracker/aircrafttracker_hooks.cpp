@@ -46,97 +46,6 @@
 #include "voc.h"
 
 
-void JJ_Track_Helper(JumpjetLocomotionClass* loco)
-{
-    FootClassExtension* extension;
-    Cell last_cell;
-
-    extension = Extension::Fetch<FootClassExtension>(loco->LinkedTo);
-    last_cell = extension->Get_Last_Flight_Cell();
-
-    if (last_cell == CELL_NONE) {
-        AircraftTracker->Track(loco->LinkedTo);
-    }
-}
-
-
-DECLARE_PATCH(_JumpjetLocomotionClass_State0_AircraftTrackerPatch)
-{
-    GET_REGISTER_STATIC(JumpjetLocomotionClass*, loco, edi);
-    static FootClassExtension* extension;
-    static Cell last_cell;
-
-    JJ_Track_Helper(loco);
-
-    // Stolen instruction
-    loco->CurrentState = JumpjetLocomotionClass::ASCENDING;
-
-    JMP(0x004F977E);
-}
-
-
-void JJ_Update_Position_Helper(JumpjetLocomotionClass* loco)
-{
-    FootClassExtension* linked_ext;
-    Cell oldcell, newcell;
-
-    linked_ext = Extension::Fetch<FootClassExtension>(loco->LinkedTo);
-
-    oldcell = linked_ext->Get_Last_Flight_Cell();
-    newcell = loco->LinkedTo->Get_Cell();
-
-    if (newcell != oldcell) {
-        AircraftTracker->Update_Position(loco->LinkedTo, oldcell, newcell);
-    }
-}
-
-
-DECLARE_PATCH(_JumpjetLocomotionClass_State1_AircraftTrackerPatch)
-{
-    GET_REGISTER_STATIC(JumpjetLocomotionClass*, loco, esi);
-    
-    JJ_Update_Position_Helper(loco);
-
-    // Stolen instructions (function epilogue)
-    _asm pop edi
-    _asm pop esi
-    _asm add esp, 0x14
-
-    JMP(0x004F9EBF);
-}
-
-
-DECLARE_PATCH(_JumpjetLocomotionClass_State3_AircraftTrackerPatch)
-{
-    GET_REGISTER_STATIC(JumpjetLocomotionClass*, loco, ecx);
-
-    _asm pushad
-
-    JJ_Update_Position_Helper(loco);
-
-    _asm popad
-
-    // Stolen instructions
-    _asm mov esi, ecx
-    _asm lea edx, [esp+0x10]
-
-    JMP(0x004FA071);
-}
-
-
-DECLARE_PATCH(_JumpjetLocomotionClass_State4_AircraftTrackerPatch)
-{
-    GET_REGISTER_STATIC(JumpjetLocomotionClass*, loco, esi);
-
-    AircraftTracker->Untrack(loco->LinkedTo);
-
-    // Stolen instruction
-    loco->CurrentState = JumpjetLocomotionClass::GROUNDED;
-
-    JMP(0x004FA42E);
-}
-
-
 /**
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
@@ -163,7 +72,7 @@ void FlyLocomotionClassExt::_Take_Off()
             AircraftTracker->Track(LinkedTo);
         }
 
-        if (LinkedTo->Height == 0) {
+        if (LinkedTo->HeightAGL == 0) {
             LinkedTo->PrimaryFacing.Set(LinkedTo->SecondaryFacing.Desired());
         }
 
@@ -202,7 +111,7 @@ DECLARE_PATCH(_FlyLocomotionClass_Movement_AI_AircraftTracker_Patch2)
     AircraftTracker->Untrack(linked_to);
 
     // Stolen instruction
-    linked_to->Height = 0;
+    linked_to->HeightAGL = 0;
 
     JMP(0x0049A087);
 }
@@ -258,10 +167,6 @@ DECLARE_PATCH(_LevitateLocomotionClass_State_AI_AircraftTracker_Patch)
  */
 void AircraftTracker_Hooks()
 {
-    Patch_Jump(0x004F9777, &_JumpjetLocomotionClass_State0_AircraftTrackerPatch);
-    Patch_Jump(0x004F9EBA, &_JumpjetLocomotionClass_State1_AircraftTrackerPatch);
-    Patch_Jump(0x004FA06B, &_JumpjetLocomotionClass_State3_AircraftTrackerPatch);
-    Patch_Jump(0x004FA427, &_JumpjetLocomotionClass_State4_AircraftTrackerPatch);
     Patch_Jump(0x0049CB00, &FlyLocomotionClassExt::_Take_Off);
     Patch_Jump(0x00499F51, &_FlyLocomotionClass_Movement_AI_AircraftTracker_Patch1);
     Patch_Jump(0x0049A07D, &_FlyLocomotionClass_Movement_AI_AircraftTracker_Patch2);

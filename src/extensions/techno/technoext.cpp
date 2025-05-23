@@ -436,7 +436,7 @@ bool TechnoClassExtension::Can_Passive_Acquire() const
  */
 Coordinate TechnoClassExtension::Fire_Coord(WeaponSlotType which, TPoint3D<int> offset) const
 {
-    TechnoTypeClass *ttype = This()->Techno_Type_Class();
+    const TechnoTypeClass *ttype = This()->Techno_Type_Class();
     const auto weaponinfo = This()->Get_Weapon(which);
 
     Matrix3D matrix;

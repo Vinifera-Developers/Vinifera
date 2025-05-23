@@ -60,6 +60,7 @@
 
 #include "aircrafttracker.h"
 #include "rocketlocomotion.h"
+#include "newjumpjetlocomotion.h"
 #include "setup_hooks.h"
 
 
@@ -843,6 +844,7 @@ bool Vinifera_Register_Com_Objects()
      */
     REGISTER_CLASS(TestLocomotionClass);
     REGISTER_CLASS(RocketLocomotionClass);
+    REGISTER_CLASS(NewJumpjetLocomotionClass);
 
     /**
      *  New types.

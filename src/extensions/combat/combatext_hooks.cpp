@@ -278,7 +278,7 @@ void Get_Explosion_Targets(const Coordinate& coord, TechnoClass* source, int ran
             object = cellptr->Cell_Occupier(isbridge);
             while (object) {
                 if (object != source) {
-                    if (object->Fetch_RTTI() != RTTI_UNIT || !Scen->SpecialFlags.IsHarvesterImmune || !Rule->HarvesterUnit.Is_Present(static_cast<UnitTypeClass*>(object->Class_Of()))) {
+                    if (object->Fetch_RTTI() != RTTI_UNIT || !Scen->SpecialFlags.IsHarvesterImmune || !Rule->HarvesterUnit.Is_Present((UnitTypeClass*)object->Class_Of())) {
                         objects.Delete(object);
                         objects.Add(object);
                     }
@@ -461,7 +461,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
                  *
                  *  Take distance to ground level to account when damaging buildings.
                  */
-                distance = std::abs(explosion_coord.Z - object->AbsoluteHeight);
+                distance = std::abs(explosion_coord.Z - object->Height);
                 if (distance < LEVEL_LEPTON_H * 2) {
                     distance = 0;
                 }

@@ -1007,6 +1007,32 @@ In `RULES.INI`:
 DecloakToFire=yes  ; boolean, does this Techno have to decloak before firing?
 ```
 
+### Jumpjet Locomotion Improvements
+
+- Vinifera allows customizing Jumpjet properties per unit.
+
+In `RULES.INI`:
+```ini
+[SOMETECHNO]                 ; TechnoType
+JumpjetTurnRate=             ; integer, maximum turning rate of the jumpjet unit, defaults to [JumpjetControls]->TurnRate.
+JumpjetSpeed=                ; integer, forward speed of the jumpjet unit, defaults to [JumpjetControls]->Speed.
+JumpjetClimb=                ; float, vertical climb rate of the jumpjet unit, defaults to [JumpjetControls]->Climb.
+JumpjetCruiseHeight=         ; integer, desired cruising height of the jumpjet unit, defaults to [JumpjetControls]->CruiseHeight.
+JumpjetAcceleration=         ; float, acceleration of the jumpjet unit when gaining speed, defaults to [JumpjetControls]->Acceleration.
+JumpjetWobblesPerSecond=     ; float, frequency of wobble oscillation per second for jumpjets, defaults to [JumpjetControls]->WobblesPerSecond.
+JumpjetWobbleDeviation=      ; integer, maximum wobble deviation (in leptons) for jumpjet movement, defaults to [JumpjetControls]->WobbleDeviation.
+JumpjetCloakDetectionRadius= ; integer, radius (in cells) at which the jumpjet unit can detect cloaked objects, defaults to [JumpjetControls]->CloakDetectionRadius.
+```
+
+- Additionally, you can now turn off wobbles for a given unit.
+
+In `RULES.INI`:
+```ini
+[SOMETECHNO]            ; TechnoType
+JumpjetNoWobbles=false  ; boolean, whether the jumpjet unit doesn't wobble.
+```
+
+
 ## Terrain
 
 ### Light Sources
