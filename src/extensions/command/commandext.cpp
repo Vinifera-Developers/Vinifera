@@ -484,13 +484,6 @@ bool RepeatLastBuildingCommandClass::Process()
     if (!buildingtype) {
         return false;
     }
-    
-    /**
-     *  Do an extra check to make sure we can produce this item.
-     */
-    if (((1 << PlayerPtr->ActLike) & buildingtype->Ownable) == 0) {
-        return false;
-    }
 
     /**
      *  Is the item currently available to build on the sidebar?
@@ -559,13 +552,6 @@ bool RepeatLastInfantryCommandClass::Process()
 
     const InfantryTypeClass *infantrytype = InfantryTypeClass::As_Pointer(infantry);
     if (!infantrytype) {
-        return false;
-    }
-    
-    /**
-     *  Do an extra check to make sure we can produce this item.
-     */
-    if (((1 << PlayerPtr->ActLike) & infantrytype->Ownable) == 0) {
         return false;
     }
     
@@ -640,13 +626,6 @@ bool RepeatLastUnitCommandClass::Process()
     }
     
     /**
-     *  Do an extra check to make sure we can produce this item.
-     */
-    if (((1 << PlayerPtr->ActLike) & unittype->Ownable) == 0) {
-        return false;
-    }
-    
-    /**
      *  Is the item currently available to build on the sidebar?
      */
     if (!SidebarExtension->Is_On_Sidebar(RTTI_UNITTYPE, unit)) {
@@ -713,13 +692,6 @@ bool RepeatLastAircraftCommandClass::Process()
 
     const AircraftTypeClass *aircrafttype = AircraftTypeClass::As_Pointer(aircraft);
     if (!aircrafttype) {
-        return false;
-    }
-    
-    /**
-     *  Do an extra check to make sure we can produce this item.
-     */
-    if (((1 << PlayerPtr->ActLike) & aircrafttype->Ownable) == 0) {
         return false;
     }
     
