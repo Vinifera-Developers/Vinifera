@@ -118,16 +118,13 @@ static bool Scale_Video_Rect(Rect &rect, int max_width, int max_height, bool mai
 
 
 /**
- *  #issue-292
- * 
- *  Videos stretch to the whole screen size and ignore the video aspect ratio.
- * 
- *  @author: CCHyper
+ *  Helper function to avoid trashing the esi register in _Play_Movie_Scale_By_Ratio_Patch.
+ *
+ *  @author: CCHyper, Rampastring
  */
-DECLARE_PATCH(_Play_Movie_Scale_By_Ratio_Patch)
+void Scale_Movie_Helper(MovieClass* this_ptr)
 {
-    GET_REGISTER_STATIC(MovieClass *, this_ptr, esi);
-    static Rect stretched_rect;
+    Rect stretched_rect;
 
     /**
      *  Calculate the stretched rect for this video, maintaining the video ratio.
@@ -141,13 +138,26 @@ DECLARE_PATCH(_Play_Movie_Scale_By_Ratio_Patch)
         this_ptr->StretchRect = stretched_rect;
 
         DEBUG_INFO("Stretching movie - VideoRect: %d,%d -> StretchRect: %d,%d\n",
-                this_ptr->VideoRect.Width, this_ptr->VideoRect.Height,
-                this_ptr->StretchRect.Width, this_ptr->StretchRect.Height);
+            this_ptr->VideoRect.Width, this_ptr->VideoRect.Height,
+            this_ptr->StretchRect.Width, this_ptr->StretchRect.Height);
 
         /*DEBUG_GAME("Stretching movie %dx%d -> %dx%d\n",
             this_ptr->VideoRect.Width, this_ptr->VideoRect.Height, this_ptr->StretchRect.Width, this_ptr->StretchRect.Height);*/
     }
+}
 
+
+/**
+ *  #issue-292
+ *
+ *  Videos stretch to the whole screen size and ignore the video aspect ratio.
+ *
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_Play_Movie_Scale_By_Ratio_Patch)
+{
+    GET_REGISTER_STATIC(MovieClass *, this_ptr, esi);
+    Scale_Movie_Helper(this_ptr);
     JMP(0x00563805);
 }
 
