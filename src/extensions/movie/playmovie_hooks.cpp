@@ -124,12 +124,10 @@ static bool Scale_Video_Rect(Rect &rect, int max_width, int max_height, bool mai
  */
 void Scale_Movie_Helper(MovieClass* this_ptr)
 {
-    Rect stretched_rect;
-
     /**
      *  Calculate the stretched rect for this video, maintaining the video ratio.
      */
-    stretched_rect = this_ptr->VideoRect;
+    Rect stretched_rect = this_ptr->VideoRect;
     if (Scale_Video_Rect(stretched_rect, HiddenSurface->Width, HiddenSurface->Height, true)) {
 
         /**
@@ -140,9 +138,6 @@ void Scale_Movie_Helper(MovieClass* this_ptr)
         DEBUG_INFO("Stretching movie - VideoRect: %d,%d -> StretchRect: %d,%d\n",
             this_ptr->VideoRect.Width, this_ptr->VideoRect.Height,
             this_ptr->StretchRect.Width, this_ptr->StretchRect.Height);
-
-        /*DEBUG_GAME("Stretching movie %dx%d -> %dx%d\n",
-            this_ptr->VideoRect.Width, this_ptr->VideoRect.Height, this_ptr->StretchRect.Width, this_ptr->StretchRect.Height);*/
     }
 }
 
