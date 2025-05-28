@@ -555,6 +555,9 @@ target_compile_options(${PROJECT_NAME} PUBLIC /fp:fast)
 # Force generates fast transcendentals.
 target_compile_options(${PROJECT_NAME} PUBLIC /Qfast_transcendentals)
 
+# Disable thread-safe local static initialization.
+target_compile_options(${PROJECT_NAME} PUBLIC /Zc:threadSafeInit-)
+
 # forces __fastcall as default calling convention.
 target_compile_options(${PROJECT_NAME} PUBLIC /Gr)
 
