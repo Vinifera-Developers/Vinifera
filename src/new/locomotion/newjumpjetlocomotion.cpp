@@ -47,6 +47,15 @@
 
 NewJumpjetLocomotionClass::NewJumpjetLocomotionClass() :
     BASECLASS(),
+    JumpjetTurnRate(Rule->JumpjetTurnRate),
+    JumpjetSpeed(Rule->JumpjetSpeed),
+    JumpjetClimb(Rule->JumpjetClimb),
+    JumpjetCruiseHeight(Rule->JumpjetCruiseHeight),
+    JumpjetAcceleration(Rule->JumpjetAcceleration),
+    JumpjetWobblesPerSecond(Rule->JumpjetWobblesPerSecond),
+    JumpjetWobbleDeviation(Rule->JumpjetWobbleDeviation),
+    JumpjetNoWobbles(false),
+    JumpjetCloakDetectionRadius(Rule->JumpjetCloakDetectionRadius),
     HeadToCoord(COORD_NONE),
     IsMoving(false),
     CurrentState(GROUNDED),

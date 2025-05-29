@@ -892,5 +892,5 @@ void Vinifera_Hooks()
 
     Patch_Jump(0x004FCD70, &LayerClassExt::_Submit);
 
-    Patch_Jump(0x00600A6D, 0x00600AAA); // Skip registering vanilla JumpjetLocomotionClass in WinMain
+    Patch_Jump(0x00600A54, 0x00600A91); // Skip registering vanilla JumpjetLocomotionClass in WinMain
 }
