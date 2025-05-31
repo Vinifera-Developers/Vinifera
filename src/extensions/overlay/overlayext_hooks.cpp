@@ -165,7 +165,10 @@ void Write_INI(CCINIClass& ini)
     ini.Clear("OVERLAY");
     ini.Clear("OverlayPack");
 
-    BufferPipe bpipe(AlternateSurface->Lock(), AlternateSurface->Get_Width() * AlternateSurface->Get_Height());
+    BSurface temp_surface(512, 512, 2);
+    temp_surface.Fill(0);
+
+    BufferPipe bpipe(temp_surface.Lock(), temp_surface.Get_Width() * temp_surface.Get_Height());
     LCWPipe comppipe(LCWPipe::COMPRESS);
 
     comppipe.Put_To(&bpipe);
@@ -181,14 +184,14 @@ void Write_INI(CCINIClass& ini)
         }
     }
     if (total) {
-        ini.Put_UUBlock("OverlayPack", AlternateSurface->Lock(), total);
-        AlternateSurface->Unlock();
+        ini.Put_UUBlock("OverlayPack", temp_surface.Lock(), total);
+        temp_surface.Unlock();
     }
-    AlternateSurface->Unlock();
+    temp_surface.Unlock();
 
     ini.Clear("OverlayDataPack");
 
-    BufferPipe bpipe2(AlternateSurface->Lock(), AlternateSurface->Get_Width() * AlternateSurface->Get_Height());
+    BufferPipe bpipe2(temp_surface.Lock(), temp_surface.Get_Width() * temp_surface.Get_Height());
     LCWPipe comppipe2(LCWPipe::COMPRESS);
 
     comppipe2.Put_To(&bpipe2);
@@ -200,10 +203,10 @@ void Write_INI(CCINIClass& ini)
         }
     }
     if (total) {
-        ini.Put_UUBlock("OverlayDataPack", AlternateSurface->Lock(), total);
-        AlternateSurface->Unlock();
+        ini.Put_UUBlock("OverlayDataPack", temp_surface.Lock(), total);
+        temp_surface.Unlock();
     }
-    AlternateSurface->Unlock();
+    temp_surface.Unlock();
 }
 
 
