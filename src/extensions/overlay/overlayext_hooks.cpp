@@ -85,7 +85,11 @@ void Read_INI(CCINIClass const& ini)
                     }
                     
                     if (classid != OVERLAY_NONE) {
-                        classid = static_cast<OverlayType>(classid & 0x00FF);
+                        if (NewINIFormat >= 5) {
+                            classid = static_cast<OverlayType>(classid & 0xFFFF);
+                        } else {
+                            classid = static_cast<OverlayType>(classid & 0x00FF);
+                        }
                     }
 
                     if (classid != OVERLAY_NONE && (OverlayTypes[classid]->Get_Image_Data() != nullptr || OverlayTypes[classid]->CellAnim)) {
