@@ -97,7 +97,9 @@ void Read_INI(CCINIClass const& ini)
                         /*
                         **	Don't allow placement of crates in the multiplayer scenarios.
                         */
+#if false
                         if (Session.Type == GAME_NORMAL || !OverlayTypes[classid]->IsCrate) {
+#endif
 
                             /*
                             **	Don't allow placement of overlays on the top or bottom rows of
@@ -112,7 +114,9 @@ void Read_INI(CCINIClass const& ini)
                                     Map[cell].OverlayData = old_overlay_data;
                                 }
                             }
+#if false
                         }
+#endif
                     }
                 }
             }
