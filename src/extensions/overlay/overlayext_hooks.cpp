@@ -62,7 +62,7 @@ void Read_INI(CCINIClass const& ini)
 {
     if (NewINIFormat > 1) {
 
-        BSurface temp_surface(640, 400, 2);
+        BSurface temp_surface(512, 512, 2);
         temp_surface.Fill(0);
 
         int len = ini.Get_UUBlock("OverlayPack", temp_surface.Lock(), temp_surface.Get_Width() * temp_surface.Get_Height() * temp_surface.BytesPerPixel);
