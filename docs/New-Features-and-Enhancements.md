@@ -1178,7 +1178,7 @@ RequiredAddon=0  ; AddonType, the addon required to be active for this theme to 
 In `RULES.INI`:
 ```ini
 [SOMETIBERIUM]   ; Tiberium
-Overlay=         ; OverlayType, the first overlay that the Tiberium uses, defaults to the value usually used by the Image=, or overlay at index 102 if not specified.
+Overlay=         ; OverlayType, the name of the first overlay that the Tiberium uses, defaults to the value usually used by the Image=, or overlay at index 102 if not specified.
 Variety=12       ; integer, how many non-slope overlays does this Tiberium use, sequentially starting from the one specified by Overlay=?
 UseSlopes=false  ; boolean, does this Tiberium have graphics for slopes?
 ```
