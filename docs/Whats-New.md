@@ -187,6 +187,7 @@ New:
 - Add `HideDuringSpecialAnim` for buildings (by ZivDero)
 - Add `RoofDeployingAnim` and `UnderRoofDoorAnim` for buildings (by ZivDero)
 - Implement Jumpjet Locomotion improvements (by ZivDero, tomsons26)
+- Allow up to 65535 OverlayTypes in maps using `NewINIFormat=5` (by ZivDero)
 
 
 Vanilla fixes:
