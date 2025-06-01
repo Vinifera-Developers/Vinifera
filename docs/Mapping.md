@@ -8,6 +8,7 @@ This page describes all mapping-related additions and changes introduced by Vini
 - Tutorial messages are now loaded from scenarios. This can be used to replace/update an existing entry from `TUTORIAL.INI`, or to add a new tutorial message index which can be used by trigger actions.
 - Remove a hardcoded limitation where the remap color of `Neutral` and `Special` could not be overridden in multiplayer games. Due to the inconsistencies between the official maps, values of `Grey` and `LightGrey` will be forced to `LightGrey`.
 - `[Basic]->SkipScore` is now considered when showing the multiplayer score screen. Setting to `SkipScore=yes` in the map file will now be all that is required for skip the score screen.
+- Maps can now contain OverlayTypes with indices up to 65535. To enable this, set `[Basic]->NewINIFormat=5` in the scenario file. Note that such maps are not backwards compatible with the vanilla game.
 
 ## Campaign Settings
 
