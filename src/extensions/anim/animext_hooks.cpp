@@ -144,7 +144,7 @@ static void Do_Anim_Damage(AnimClass* anim, int damage)
 void AnimClassExt::_AI()
 {
     const auto animext = Extension::Fetch<AnimClassExtension>(this);
-    const auto animtypeext = Extension::Fetch<AnimTypeClassExtension>(Class);
+    auto animtypeext = Extension::Fetch<AnimTypeClassExtension>(Class);
 
     if (Class->IsFlamingGuy) {
         Flaming_Guy_AI();
@@ -407,6 +407,7 @@ void AnimClassExt::_AI()
                     if (Class->ChainTo != nullptr) {
 
                         Class = Class->ChainTo;
+                        animtypeext = Extension::Fetch<AnimTypeClassExtension>(Class);
 
                         if (Class->Stages == -1) {
                             Class->Stages = animtypeext->Stage_Count();
