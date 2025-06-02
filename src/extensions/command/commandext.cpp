@@ -2222,7 +2222,7 @@ const char *DeleteObjectCommandClass::Get_Description() const
 
 bool DeleteObjectCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
