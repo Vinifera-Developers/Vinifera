@@ -2183,6 +2183,10 @@ DECLARE_PATCH(_SidebarClass_StripClass_SuperWeaponType_Custom_Cameo_Image_Patch)
  */
 static Point2D pointxy;
 static Rect pcxrect;
+void Draw_Shape_Wrapper(Surface& surface, ConvertClass& convert, const ShapeSet* shapefile, int shapenum, const Point2D& point, const Rect& window, ShapeFlags_Type flags)
+{
+    Draw_Shape(surface, convert, shapefile, shapenum, point, window, flags);
+}
 DECLARE_PATCH(_SidebarClass_StripClass_Custom_Cameo_Image_Patch)
 {
     GET_STACK_STATIC(SidebarClass::StripClass*, this_ptr, esp, 0x24);
@@ -2219,7 +2223,7 @@ DECLARE_PATCH(_SidebarClass_StripClass_Custom_Cameo_Image_Patch)
         pointxy.X = pos_x;
         pointxy.Y = pos_y;
 
-        Draw_Shape(*SidebarSurface, *CameoDrawer, shapefile, 0, pointxy, *window_rect, SHAPE_WIN_REL | SHAPE_NORMAL);
+        Draw_Shape_Wrapper(*SidebarSurface, *CameoDrawer, shapefile, 0, pointxy, *window_rect, SHAPE_WIN_REL | SHAPE_NORMAL);
     }
 
     _SidebarClass_StripClass_CustomImage = nullptr;
