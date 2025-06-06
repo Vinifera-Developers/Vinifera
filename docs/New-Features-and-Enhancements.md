@@ -1188,7 +1188,7 @@ The new graphics keys override defaults set according to `Image=`, please refer 
 ```
 
 ```{note}
-`Overlay` specifies the first overlay the Tiberium uses. There must be 12 overlays, located one after another sequentially. Additionally, is `UseSlopes` is set to yes, another 8 overlays are required after the previous 12.
+`Overlay` specifies the first overlay the Tiberium uses. There must be `Variety` overlays, located one after another sequentially. Additionally, is `UseSlopes` is set to yes, another 8 overlays are required after the previous `Variety` overlays.
 ```
 
 ```{warning}
