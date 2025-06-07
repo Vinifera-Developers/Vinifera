@@ -841,7 +841,7 @@ void BuildingClassExt::_Factory_AI()
                         bool allowed_factory = true;
                         auto btype_ext = Extension::Fetch<BuildingTypeClassExtension>(Class);
                         auto ttype_ext = Extension::Fetch<TechnoTypeClassExtension>(techno);
-                        if (techno->RTTI == RTTI_UNIT) {
+                        if (techno->RTTI == RTTI_UNITTYPE) {
                             if (btype_ext->IsNaval != ttype_ext->IsNaval) {
                                 allowed_factory = false;
                             }
@@ -1972,7 +1972,7 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x00434000, &BuildingClassExt::_Detach_All);
     Patch_Jump(0x0042F590, &BuildingClassExt::_Toggle_Primary);
     Patch_Jump(0x0042C340, &BuildingClassExt::_Assign_Rally_Point);
-    Patch_Jump(0x004500F0, &BuildingClassExt::_Factory_AI);
+    Patch_Jump(0x00434FE0, &BuildingClassExt::_Factory_AI);
     Patch_Jump(0x0042EBD0, static_cast<ActionType(BuildingClassExt::*)(ObjectClass const*, bool)>(&BuildingClassExt::_What_Action));
     Patch_Jump(0x0042EED0, static_cast<ActionType(BuildingClassExt::*)(const Cell&, bool, bool) const>(&BuildingClassExt::_What_Action));
     Patch_Jump(0x0042CA98, &_BuildingClass_Exit_Object_Naval_Patch);
