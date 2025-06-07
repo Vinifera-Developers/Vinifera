@@ -66,7 +66,9 @@
 #include "sideext.h"
 #include "fatal.h"
 #include "asserthandler.h"
+#include "bullettype.h"
 #include "debughandler.h"
+#include "event.h"
 #include "factory.h"
 #include "session.h"
 
@@ -79,6 +81,7 @@
 #include "supertypeext.h"
 #include "vox.h"
 #include "tactical.h"
+#include "weapontype.h"
 
 
 /**
@@ -100,6 +103,9 @@ public:
     void _Draw_It(Point2D const& xdrawpoint, Rect const& xcliprect);
     void _Detach_All(bool all);
     bool _Toggle_Primary();
+    void _Assign_Rally_Point(const Cell& cell);
+    ActionType _What_Action(ObjectClass const* object, bool disallow_force);
+    ActionType _What_Action(const Cell& cell, bool check_fog, bool disallow_force) const;
 };
 
 
@@ -555,6 +561,191 @@ bool BuildingClassExt::_Toggle_Primary()
 }
 
 
+/**
+ *  #issue-531
+ *
+ *  This patch allows naval yards to place rally
+ *  points on water rather than on land.
+ *
+ *  @author: CCHyper, modified by Rampastring, rewritten by ZivDero
+ */
+void BuildingClassExt::_Assign_Rally_Point(Cell const& cell)
+{
+    SpeedType speed = SPEED_FOOT;
+    MZoneType mzone = MZONE_NORMAL;
+
+    bool underbridge = Map[cell].IsUnderBridge;
+
+    if (Class->ToBuild == RTTI_AIRCRAFTTYPE) {
+        speed = SPEED_WINGED;
+        mzone = MZONE_FLYER;
+    } else {
+
+        /**
+         *  If this is a factory that produces units, and is flagged as a shipyard (Float SpeedType), then
+         *  change the zone flags to scan for water regions only.
+         */
+        if (Class->ToBuild == RTTI_UNITTYPE && Extension::Fetch<BuildingTypeClassExtension>(Class)->IsNaval) {
+            speed = SPEED_AMPHIBIOUS;
+            mzone = MZONE_AMPHIBIOUS_CRUSHER;
+        }
+    }
+
+    int zone = Map.Get_Cell_Zone(Get_Coord().As_Cell(), mzone, underbridge);
+
+    Cell nearbyloc = Map.Nearby_Location(cell, speed, zone, mzone, underbridge);
+
+    if (nearbyloc != CELL_NONE) {
+        OutList.Add(EventClass(Owner(), EVENT_ARCHIVE, TargetClass(this), TargetClass(&Map[nearbyloc])));
+    } else {
+        if (Class->IsConstructionYard && House->Is_Human_Control() && Session.Type != GAME_NORMAL && Session.Options.RedeployMCV) {
+            OutList.Add(EventClass(Owner(), EVENT_ARCHIVE, TargetClass(this), TargetClass(&Map[Center_Coord()])));
+        }
+    }
+}
+
+
+ActionType BuildingClassExt::_What_Action(ObjectClass const* object, bool disallow_force)
+{
+    if (Class->IsInvisibleInGame) {
+        return ACTION_NONE;
+    }
+
+    if (object->RTTI == RTTI_BUILDING && ((BuildingClass*)object)->Class->IsInvisibleInGame) {
+        return ACTION_NONE;
+    }
+
+    ActionType action = TechnoClass::What_Action(object, disallow_force);
+
+    if (action == ACTION_SELF) {
+        int index; 
+        if (EMPFramesRemaining == 0 && Class->ToBuild != RTTI_NONE && PlayerPtr == House &&
+            Extension::Fetch<HouseClassExtension>(House)->Factory_Count(Class->ToBuild, Extension::Fetch<BuildingTypeClassExtension>(Class)->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE) > 1) {
+
+            switch (Class->ToBuild) {
+            case RTTI_INFANTRYTYPE:
+            case RTTI_INFANTRY:
+                action = ACTION_NONE;
+                for (index = 0; index < Buildings.Count(); index++) {
+                    BuildingClass* bldg = Buildings[index];
+                    if (bldg != this && bldg->House == House && bldg->Class->ToBuild == RTTI_INFANTRYTYPE) {
+                        action = ACTION_SELF;
+                        break;
+                    }
+                }
+                break;
+
+            case RTTI_NONE:
+                action = ACTION_NONE;
+                break;
+
+            default:
+                break;
+            }
+
+        } else {
+            action = ACTION_NONE;
+        }
+    }
+
+    /*
+    **	Don't allow targeting of SAM sites, even if the CTRL key
+    **	is held down. Also don't allow targeting if the object is too
+    **	far away.
+    */
+    if (action == ACTION_ATTACK && PrimaryWeapon != nullptr) {
+        if (!In_Range_Of(const_cast<ObjectClass*>(object)) || !PrimaryWeapon->Bullet->IsAntiGround) {
+            action = ACTION_NONE;
+        } else if (Class->IsEMPulseCannon || Class->IsLimpetMine) {
+            action = ACTION_NONE;
+        }
+        if (CurrentMission == MISSION_DECONSTRUCTION) {
+            action = ACTION_NONE;
+        }
+    }
+
+    if (action == ACTION_MOVE || action == ACTION_NOMOVE) {
+        if (!Can_Player_Move()) {
+            action = ACTION_SELECT;
+        } else if (Class->ToBuild == RTTI_INFANTRYTYPE || Class->ToBuild == RTTI_UNITTYPE || Class->ToBuild == RTTI_AIRCRAFTTYPE) {
+            bool altdown = WWKeyboard->Down(Options.KeyForceMove1) || WWKeyboard->Down(Options.KeyForceMove2);
+            if (!altdown) {
+                action = ACTION_SELECT;
+            } else {
+                Cell cell = object->Center_Coord().As_Cell();
+                if (Class->ToBuild != RTTI_AIRCRAFTTYPE) {
+                    if (!Is_In_Same_Zone(cell.As_Coord())) {
+                        action = ACTION_NOMOVE;
+                    }
+                    if (!Map[cell].IsUnderBridge && Map[cell].Passability != PASSABLE_OK) {
+                        action = ACTION_NOMOVE;
+                    }
+                }
+            }
+        }
+    }
+
+    return action;
+}
+
+
+/**
+ *  #issue-531
+ *
+ *  This patch allows naval yards to display the "place rally point" cursor action
+ *  on water cells.
+ *
+ *  @author: ZivDero, Rampastring
+ */
+ActionType BuildingClassExt::_What_Action(const Cell& cell, bool check_fog, bool disallow_force) const
+{
+    if (Class->IsInvisibleInGame) {
+        return ACTION_NONE;
+    }
+
+    ActionType action;
+
+    if (Class->UndeploysInto != nullptr && check_fog) {
+        action = TechnoClass::What_Action(cell, false, disallow_force);
+    } else {
+        action = TechnoClass::What_Action(cell, check_fog, disallow_force);
+    }
+
+
+    if (action == ACTION_RALLY_TO_POINT) {
+        if (Class->ToBuild != RTTI_AIRCRAFTTYPE) {
+            if (!Is_In_Same_Zone(cell.As_Coord())) {
+                action = ACTION_NOMOVE;
+            }
+            if (!Map[cell].IsUnderBridge) {
+                if (Map[cell].Passability != PASSABLE_OK &&
+                    !(Extension::Fetch<BuildingTypeClassExtension>(Class)->IsNaval && Map[cell].Passability == PASSABLE_WATER)) {
+
+                    action = ACTION_NOMOVE;
+                }
+                
+            }
+        }
+    }
+
+    /*
+    **	Don't allow targeting of SAM sites, even if the CTRL key
+    **	is held down.
+    */
+    if (action == ACTION_ATTACK && PrimaryWeapon != nullptr) {
+        if (!PrimaryWeapon->Bullet->IsAntiGround) {
+            action = ACTION_NONE;
+        } else if (Class->IsEMPulseCannon || Class->IsLimpetMine) {
+            action = ACTION_NONE;
+        } if (CurrentMission == MISSION_DECONSTRUCTION) {
+            action = ACTION_NONE;
+        }
+    }
+
+    return action;
+}
+
+
 DECLARE_PATCH(_BuildingClass_Draw_Overlays_Fetch_Factory_Patch)
 {
     GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
@@ -665,7 +856,7 @@ bool _BuildingClass_Mission_Repair_Assign_Unit_Destination(BuildingClass *buildi
     }
 
     building->Transmit_Message(RADIO_OVER_OUT);
-    techno->field_20C = 0;
+    techno->field_20C = nullptr;
     return true;
 }
 
@@ -1549,144 +1740,6 @@ DECLARE_PATCH(_BuildingClass_entry_370_RoofDoorAnim_Patch2)
 }
 
 
-DECLARE_PATCH(_BuildingClass_What_Action_Factory_Counter_Patch)
-{
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
-
-    static HouseClassExtension* house_ext;
-    house_ext = Extension::Fetch<HouseClassExtension>(this_ptr->House);
-
-    static int count;
-    static BuildingTypeClassExtension* type_ext = Extension::Fetch<BuildingTypeClassExtension>(this_ptr->Class);
-    count = house_ext->Factory_Count(this_ptr->Class->ToBuild, type_ext->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
-
-    if (count > 1) {
-        JMP(0x0042EC7A);
-    } else {
-        JMP(0x0042ED68);
-    }
-}
-
-
-/**
- *  Allows weapon factories with WeaponsFactory=no to use rally points.
- *  Naval yards typically do not have WeaponsFactory specified.
- *
- *  This patch assigns the rally point to the unit when it is exiting
- *  the factory.
- *
- *  @author: Rampastring
- */
-DECLARE_PATCH(_BuildingClass_Exit_Object_Allow_Rally_Point_For_Naval_Yard_Patch)
-{
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
-    GET_REGISTER_STATIC(CellClass*, cellptr, eax);
-    GET_REGISTER_STATIC(TechnoClass*, techno, edi);
-    static FootClass* foot;
-
-    techno->Assign_Destination(cellptr, true);
-
-    /**
-     *  If we have an archive target (a rally point), assign it to the unit as a queued destination.
-     */
-    if (this_ptr->ArchiveTarget != nullptr) {
-        (reinterpret_cast<FootClass*>(techno))->Queue_Navigation_List(this_ptr->ArchiveTarget);
-    }
-
-    /**
-     *  Continue object exit process.
-     */
-    JMP(0x0042CE90);
-}
-
-
-/**
- *  #issue-531
- *
- *  This patch allows naval yards to place rally
- *  points on water rather than on land.
- *
- *  @author: CCHyper, modified by Rampastring
- */
-DECLARE_PATCH(_BuildingClass_Set_Rally_To_Point_NavalYard_Check_Patch)
-{
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
-    GET_REGISTER_STATIC(SpeedType, speed, ebx);
-    GET_REGISTER_STATIC(MZoneType, mzone, edi);
-    static BuildingTypeClass* buildingtype;
-
-    buildingtype = this_ptr->Class;
-
-    /**
-     *  Stolen bytes/code.
-     */
-    if (buildingtype->ToBuild == RTTI_AIRCRAFTTYPE) {
-        speed = SPEED_WINGED;
-        mzone = MZONE_FLYER;
-    }
-    else {
-        /**
-         *  If this is a factory that produces units, and is flagged as a shipyard (Float SpeedType), then
-         *  change the zone flags to scan for water regions only.
-         */
-        if (buildingtype->ToBuild == RTTI_UNITTYPE && buildingtype->Speed == SPEED_FLOAT) {
-            speed = SPEED_AMPHIBIOUS;
-            mzone = MZONE_AMPHIBIOUS_DESTROYER;
-        }
-    }
-
-    /**
-     *  Assign the zone flags to the expected registers.
-     */
-    _asm { mov eax, speed }
-    _asm { mov dword ptr[esp + 0x14], eax }
-
-    _asm { mov edi, mzone }
-
-    JMP(0x0042C38E);
-}
-
-
-/**
- *  #issue-531
- *
- *  This patch allows naval yards to display the "place rally point" cursor action
- *  on water cells.
- *
- *  @author: Rampastring
- */
-DECLARE_PATCH(_BuildingClass_What_Action_Allow_Rally_Point_For_Naval_Yard_Patch)
-{
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
-    GET_REGISTER_STATIC(CellClass*, cell, eax);
-
-    /**
-     *  Stolen bytes / code.
-     */
-    if (cell->Passability == PASSABLE_OK) {
-        goto allow_rally_point;
-    }
-
-    /**
-     *  If the building is water-bound (has Float SpeedType), allow it to be placed on water.
-     */
-    if (cell->Passability == PASSABLE_WATER && this_ptr->Class->Speed == SPEED_FLOAT) {
-        goto allow_rally_point;
-    }
-
-    /**
-     *  The cell is not passable, return ACTION_NOMOVE.
-     */
-    JMP(0x0042EFA4);
-
-    /**
-     *  Allow placing the rally points.
-     */
-allow_rally_point:
-    JMP(0x0042EFB4);
-}
-
-
 /**
  *  Main function for patching the hooks.
  */
@@ -1732,13 +1785,9 @@ void BuildingClassExtension_Hooks()
     //Patch_Jump(0x00427CD8, &_BuildingClass_entry_370_RoofDoorAnim_Patch1);
     //Patch_Jump(0x00427DF5, &_BuildingClass_entry_370_RoofDoorAnim_Patch2);
     Patch_Jump(0x00428AA4, &_BuildingClass_Draw_Overlays_Fetch_Factory_Patch);
-    Patch_Jump(0x0042EC6B, &_BuildingClass_What_Action_Factory_Counter_Patch);
     Patch_Jump(0x00434000, &BuildingClassExt::_Detach_All);
     Patch_Jump(0x0042F590, &BuildingClassExt::_Toggle_Primary);
-    Patch_Jump(0x0042CE87, &_BuildingClass_Exit_Object_Allow_Rally_Point_For_Naval_Yard_Patch);
-    // NOP out "push 1" instruction so we have an easier time injecting code here
-    Patch_Byte(0x0042CE7A, 0x90);
-    Patch_Byte(0x0042CE7A + 1, 0x90);
-    Patch_Jump(0x0042C37F, &_BuildingClass_Set_Rally_To_Point_NavalYard_Check_Patch);
-    Patch_Jump(0x0042EF9D, &_BuildingClass_What_Action_Allow_Rally_Point_For_Naval_Yard_Patch);
+    Patch_Jump(0x0042C340, &BuildingClassExt::_Assign_Rally_Point);
+    Patch_Jump(0x0042EBD0, static_cast<ActionType(BuildingClassExt::*)(ObjectClass const*, bool)>(&BuildingClassExt::_What_Action));
+    Patch_Jump(0x0042EED0, static_cast<ActionType(BuildingClassExt::*)(const Cell&, bool, bool) const>(&BuildingClassExt::_What_Action));
 }

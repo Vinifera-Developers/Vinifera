@@ -52,7 +52,7 @@
 static DECLARE_EXTENDING_CLASS_AND_PAIR(SuperWeaponTypeClass)
 {
 public:
-    ActionType _What_Action(Cell& cell, ObjectClass* target) const;
+    ActionType _What_Action(const Cell& cell, ObjectClass* target) const;
 };
 
 
@@ -61,7 +61,7 @@ public:
  *
  *  @author: ZivDero
  */
-ActionType SuperWeaponTypeClassExt::_What_Action(Cell& cell, ObjectClass* object) const
+ActionType SuperWeaponTypeClassExt::_What_Action(const Cell& cell, ObjectClass* object) const
 {
     if (Type == SUPER_EM_PULSE)
     {
