@@ -48,6 +48,7 @@
 #include "rules.h"
 #include "session.h"
 #include "ccini.h"
+#include "foot.h"
 #include "sideext.h"
 
 #include "hooker.h"
@@ -75,6 +76,7 @@ public:
     void _Active_Remove(TechnoClass const* techno);
     void _Active_Add(TechnoClass const* techno);
     Cell _Find_Build_Location(BuildingTypeClass* btype, int(__fastcall* callback)(int, Cell&, int, int), int a3 = -1);
+    Cell _Where_To_Go(FootClass const* object) const;
     void _Production_Check();
 
     // stubs
@@ -1037,6 +1039,22 @@ Cell HouseClassExt::_Find_Build_Location(BuildingTypeClass* btype, int(__fastcal
 }
 
 
+Cell HouseClassExt::_Where_To_Go(FootClass const* object) const
+{
+    ZoneType zone;  // The zone that the object should go to.
+    if (object->Anti_Air() + object->Anti_Armor() + object->Anti_Infantry() == 0) {
+        zone = ZONE_CORE;
+    } else {
+        zone = Random_Pick(ZONE_NORTH, ZONE_WEST);
+    }
+
+    Cell cell = Random_Cell_In_Zone(zone);
+    auto type_ext = Extension::Fetch<TechnoTypeClassExtension>(object->TClass);
+
+    return Map.Nearby_Location(cell, type_ext->IsNaval ? SPEED_FLOAT : SPEED_TRACK, Map.Get_Cell_Zone(object->PositionCoord.As_Cell()));
+}
+
+
 /**
  *  Adds a check to Can_Build to check for RequiredHouses and ForbiddenHouses
  *
@@ -1348,6 +1366,8 @@ void HouseClassExtension_Hooks()
     Patch_Call(0x0042D460, &HouseClassExt::_Find_Build_Location);
     Patch_Call(0x0042D53C, &HouseClassExt::_Find_Build_Location);
     Patch_Call(0x004C8104, &HouseClassExt::_Find_Build_Location);
+
+    Patch_Jump(0x004C2A20, &HouseClassExt::_Where_To_Go);
 
     Patch_Jump(0x004C2CA0, &HouseClassExt::_Fetch_Factory);
     Patch_Jump(0x004C2D20, &HouseClassExt::_Set_Factory);
