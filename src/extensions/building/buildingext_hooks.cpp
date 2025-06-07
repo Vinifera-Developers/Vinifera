@@ -1896,6 +1896,9 @@ bool Unlimbo_Naval_Helper(BuildingClass* building, TechnoClass* techno)
         techno->Mark(MARK_UP);
         techno->PositionCoord = Map[unlimbo_cell].Cell_Coord();
         techno->Mark(MARK_DOWN);
+        if (!techno->House->Is_Human_Player()) {
+            techno->Scatter(building->Center_Coord());
+        }
         return true;
     }
 
