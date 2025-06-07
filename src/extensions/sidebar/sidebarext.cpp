@@ -43,8 +43,10 @@
 #include "house.h"
 #include "super.h"
 #include "event.h"
+#include "eventext.h"
 #include "object.h"
 #include "factory.h"
+#include "houseext.h"
 #include "tibsun_functions.h"
 #include "vox.h"
 #include "wwmouse.h"
@@ -365,13 +367,22 @@ SidebarClassExtension::SidebarTabType SidebarClassExtension::First_Active_Tab()
 }
 
 
+bool SidebarClassExtension::Abandon_Production(RTTIType type, FactoryClass* factory, ProductionFlags flags)
+{
+    if (Vinifera_NewSidebar) {
+        return SidebarExtension->Get_Tab(type, flags).Abandon_Production(factory);
+    } else {
+        return Map.Column[Map.Which_Column(type)].Abandon_Production(factory);
+    }
+}
+
 
 /**
  *  Returns which tab a type belongs to.
  *
  *  @author: ZivDero
  */
-SidebarClassExtension::SidebarTabType SidebarClassExtension::Which_Tab(RTTIType type)
+SidebarClassExtension::SidebarTabType SidebarClassExtension::Which_Tab(RTTIType type, bool naval)
 {
     switch (type)
     {
@@ -828,19 +839,19 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
                             count_to_abandon = std::clamp(5, 0, factory->Total_Queued(*choice));
 
                         for (int i = 0; i < count_to_abandon; i++)
-                            OutList.Add(EventClass(PlayerPtr->Fetch_Heap_ID(), EVENT_ABANDON, otype, oid));
+                            OutList.Add(EventClassExt(PlayerPtr->Fetch_Heap_ID(), EVENT_ABANDON, otype, oid, TechnoTypeClassExtension::Get_Production_Flags(otype, oid)).As_Event());
                     }
                     else
                     {
                         Speak(VOX_SUSPENDED);
-                        OutList.Add(EventClass(PlayerPtr->Fetch_Heap_ID(), EVENT_SUSPEND, otype, oid));
-                        SidebarExtension->Get_Tab(otype).Flag_To_Redraw();
+                        OutList.Add(EventClassExt(PlayerPtr->Fetch_Heap_ID(), EVENT_SUSPEND, otype, oid, TechnoTypeClassExtension::Get_Production_Flags(otype, oid)).As_Event());
+                        SidebarExtension->Get_Tab(otype, TechnoTypeClassExtension::Get_Production_Flags(otype, oid)).Flag_To_Redraw();
                         
                     }
                 }
                 else
                 {
-                    factory = PlayerPtr->Fetch_Factory(otype);
+                    factory = Extension::Fetch<HouseClassExtension>(PlayerPtr)->Fetch_Factory(otype, TechnoTypeClassExtension::Get_Production_Flags(choice));
                     if (factory && factory->Is_Queued(*choice))
                     {
                         int count_to_abandon = 1;
@@ -851,7 +862,7 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
                             count_to_abandon = std::clamp(5, 0, factory->Total_Queued(*choice));
 
                         for (int i = 0; i < count_to_abandon; i++)
-                            OutList.Add(EventClass(PlayerPtr->Fetch_Heap_ID(), EVENT_ABANDON, otype, oid));
+                            OutList.Add(EventClassExt(PlayerPtr->Fetch_Heap_ID(), EVENT_ABANDON, otype, oid, TechnoTypeClassExtension::Get_Production_Flags(otype, oid)).As_Event());
                     }
                 }
             }
@@ -881,7 +892,7 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
                             BuildingClass* builder = pending->Who_Can_Build_Me(false, false);
                             if (!builder)
                             {
-                                OutList.Add(EventClass(PlayerPtr->Fetch_Heap_ID(), EVENT_ABANDON, otype, oid));
+                                OutList.Add(EventClassExt(PlayerPtr->Fetch_Heap_ID(), EVENT_ABANDON, otype, oid, TechnoTypeClassExtension::Get_Production_Flags(otype, oid)).As_Event());
                                 Speak(VOX_NO_FACTORY);
                             }
                             else
@@ -903,7 +914,7 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
                                     **  power, queue this event and process through normal house
                                     **  production channels.
                                     */
-                                    OutList.Add(EventClass(pending->Owner(), EVENT_PLACE, otype, CELL_NONE));
+                                    OutList.Add(EventClassExt(pending->Owner(), EVENT_PLACE, otype, CELL_NONE, TechnoTypeClassExtension::Get_Production_Flags(pending)).As_Event());
                                 }
                             }
                         }
@@ -922,7 +933,9 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
                         {
                             Speak(VOX_BUILDING);
                         }
-                        OutList.Add(EventClass(PlayerPtr->Fetch_Heap_ID(), EVENT_PRODUCE, Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID));
+                        OutList.Add(EventClassExt(PlayerPtr->Fetch_Heap_ID(), EVENT_PRODUCE,
+                            Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID,
+                            TechnoTypeClassExtension::Get_Production_Flags(Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID)).As_Event());
                     }
                 }
                 else
@@ -932,7 +945,7 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
                     **  on the icon that has the attached factory, then say that the factory is busy and
                     **  ignore the click.
                     */
-                    factory = PlayerPtr->Fetch_Factory(otype);
+                    factory = Extension::Fetch<HouseClassExtension>(PlayerPtr)->Fetch_Factory(otype, TechnoTypeClassExtension::Get_Production_Flags(choice));
                     if (factory != nullptr && (factory->Is_Building() || factory->Get_Object() || factory->Queued_Object_Count() > 0) && otype == RTTI_BUILDINGTYPE)
                     {
                         Speak(VOX_NO_FACTORY);
@@ -953,7 +966,11 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
                         }
                         const int count_to_produce = (GetAsyncKeyState(VK_SHIFT) & 0x8000) ? 5 : 1;
                         for (int i = 0; i < count_to_produce; i++)
-                            OutList.Add(EventClass(PlayerPtr->Fetch_Heap_ID(), EVENT_PRODUCE, Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID));
+                        {
+                            OutList.Add(EventClassExt(PlayerPtr->Fetch_Heap_ID(), EVENT_PRODUCE, Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID,
+                                TechnoTypeClassExtension::Get_Production_Flags(Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID)).As_Event());
+                        }
+
                     }
                 }
             }

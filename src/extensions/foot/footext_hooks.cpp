@@ -75,7 +75,7 @@ public:
     void _Draw_NavComQueue_Lines() const;
     void _Death_Announcement(TechnoClass* source) const;
     Cell _Search_For_Tiberium(int rad, bool a2);
-    bool _Unlimbo(Coordinate& coord, Dir256 dir);
+    bool _Unlimbo(const Coordinate& coord, Dir256 dir);
     bool _Limbo();
 
 private:
@@ -701,7 +701,7 @@ void FootClassExt::_Death_Announcement(TechnoClass* source) const
  *
  *  @author: ZivDero
  */
-bool FootClassExt::_Unlimbo(Coordinate& coord, Dir256 dir)
+bool FootClassExt::_Unlimbo(const Coordinate& coord, Dir256 dir)
 {
     /**
      *  Try to unlimbo the unit.

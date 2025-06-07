@@ -27,10 +27,13 @@
  ******************************************************************************/
 #pragma once
 
+#include "extension.h"
 #include "objecttypeext.h"
+#include "techno.h"
 #include "technotype.h"
 #include "typelist.h"
 #include "tibsun_defines.h"
+#include "tibsun_functions.h"
 
 
 class AircraftTypeClass;
@@ -59,6 +62,11 @@ public:
     virtual const TechnoTypeClass *This_Const() const override { return reinterpret_cast<const TechnoTypeClass *>(ObjectTypeClassExtension::This_Const()); }
 
     virtual bool Read_INI(CCINIClass &ini) override;
+
+    static ProductionFlags Get_Production_Flags(RTTIType type, int id) { return Get_Production_Flags(Fetch_Techno_Type(type, id)); }
+    static ProductionFlags Get_Production_Flags(const TechnoClass* techno) { return Get_Production_Flags(techno->Techno_Type_Class()); }
+    static ProductionFlags Get_Production_Flags(const TechnoTypeClass* ttype) { return Get_Production_Flags(Extension::Fetch<TechnoTypeClassExtension>(ttype)); }
+    static ProductionFlags Get_Production_Flags(const TechnoTypeClassExtension* ttype_ext);
 
 public:
     /**
@@ -272,6 +280,8 @@ public:
      *  Does this object need to decloak before firing?
      */
     bool IsDecloakToFire;
+
+    bool IsNaval;
 
 private:
 

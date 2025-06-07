@@ -38,6 +38,8 @@
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "building.h"
+#include "buildingtypeext.h"
 #include "extension.h"
 #include "voxellib.h"
 #include "motionlib.h"
@@ -46,6 +48,8 @@
 #include "hooker_macros.h"
 #include "miscutil.h"
 #include "rulesext.h"
+#include "unit.h"
+#include "unittypeext.h"
 
 
 /**
@@ -62,6 +66,7 @@ public:
     const ShapeSet * _Get_Image_Data() const;
     void _Fetch_Voxel_Image();
     static void _Clear_Voxel_Indexes();
+    BuildingClass* _Who_Can_Build_Me(bool intheory, bool needsnopower, bool legal, HouseClass* house) const;
 };
 
 
@@ -223,19 +228,45 @@ void ObjectTypeClassExt::_Clear_Voxel_Indexes()
 }
 
 
-/**
- *  Allow to skip the check for the MCV's ActLike.
- *
- *  Author: ZivDero
- */
-DECLARE_PATCH(_ObjectTypeClass_Who_Can_Build_Me_Multi_MCV_Patch)
+BuildingClass* ObjectTypeClassExt::_Who_Can_Build_Me(bool intheory, bool needsnopower, bool legal, HouseClass* house) const
 {
-    if (RuleExtension->IsMultiMCV) {
-        JMP(0x00587C0B);
+    BuildingClass* freebuilding = nullptr;
+    BuildingClass* anybuilding = nullptr;
+    int ownable = Get_Ownable();
+
+    for (int index = 0; index < Buildings.Count(); index++) {
+        BuildingClass* building = Buildings[index];
+
+        if (!building->IsInLimbo &&
+            building->House == house &&
+            building->Class->ToBuild == RTTI &&
+            (!needsnopower || building->IsPowerOn) &&
+            building->Mission != MISSION_DECONSTRUCTION && building->MissionQueue != MISSION_DECONSTRUCTION &&
+            (!legal || building->House->Can_Build(this, true, true) > 0) &&
+            building->Class->Get_Ownable() & ownable &&
+            (!Rule->BuildConst.Is_Present(building->Class) || RuleExtension->IsMultiMCV || 1L << building->ActLike & ownable)) {
+
+            if (intheory || !building->In_Radio_Contact() || RTTI != RTTI_AIRCRAFTTYPE) {
+                if (RTTI == RTTI_UNITTYPE) {
+                    UnitTypeClassExtension* type_ext = Extension::Fetch<UnitTypeClassExtension>(((UnitClass*)this)->Class);
+                    BuildingTypeClassExtension* btype_ext = Extension::Fetch<BuildingTypeClassExtension>(building->Class);
+                    if (btype_ext->IsNaval != type_ext->IsNaval) continue;
+                }
+                if (building->IsLeader) return building;
+                freebuilding = building;
+            } else {
+                if (RTTI == RTTI_AIRCRAFTTYPE) {
+                    anybuilding = building;
+                }
+            }
+        }
     }
 
-    _asm mov ecx, [esi+0x9C]
-    JMP_REG(edx, 0x00587C00);
+    if (freebuilding != nullptr) {
+        return freebuilding;
+    }
+
+    return anybuilding;
 }
 
 
@@ -249,5 +280,5 @@ void ObjectTypeClassExtension_Hooks()
     Patch_Jump(0x0058891D, &_ObjectTypeClass_Load_Theater_Art_Assign_Theater_Name_Theater_Patch);
     Patch_Jump(0x00587C80, &ObjectTypeClassExt::_Fetch_Voxel_Image);
     Patch_Jump(0x00589030, &ObjectTypeClassExt::_Clear_Voxel_Indexes);
-    Patch_Jump(0x00587BFA, &_ObjectTypeClass_Who_Can_Build_Me_Multi_MCV_Patch);
+    Patch_Jump(0x005F7900, &ObjectTypeClassExt::_Who_Can_Build_Me);
 }

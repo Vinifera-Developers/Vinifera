@@ -145,7 +145,7 @@
 #define NEW_WAYPOINT_COUNT SHRT_MAX // "AVLG"
 
 
-typedef enum ViniferaRTTIType
+enum ViniferaRTTIType
 {
     RTTI_SPAWN_MANAGER = RTTI_COUNT,
 
@@ -154,9 +154,18 @@ typedef enum ViniferaRTTIType
 DEFINE_ENUMERATION_OPERATORS(ViniferaRTTIType);
 
 
-typedef enum TargetZoneScanType
+enum TargetZoneScanType
 {
     TZST_SAME,
     TZST_ANY,
     TZST_INRANGE
-} TargetZoneScanType;
+};
+
+
+enum ProductionFlags
+{
+    PRODFLAG_NONE = 0,
+    PRODFLAG_NAVAL = 1 << 0,
+    PRODFLAG_DEFENSE = 1 << 1
+};
+DEFINE_ENUMERATION_OPERATORS(ProductionFlags);

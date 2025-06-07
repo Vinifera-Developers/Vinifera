@@ -42,6 +42,7 @@
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "buildingtypeext.h"
 #include "extension_globals.h"
 #include "sidebarext.h"
 #include "rules.h"
@@ -51,6 +52,8 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "houseext.h"
+#include "msgbox.h"
 #include "rulesext.h"
 #include "tibsun_functions.h"
 
@@ -65,11 +68,21 @@
 static DECLARE_EXTENDING_CLASS_AND_PAIR(HouseClass)
 {
 public:
-    ProdFailType _Begin_Production(RTTIType type, int id, bool resume);
-    ProdFailType _Abandon_Production(RTTIType type, int id);
     int _AI_Building();
     int _Expert_AI();
     bool _Can_Build_Required_Forbidden_Houses(const TechnoTypeClass* techno_type);
+    void _Active_Remove(TechnoClass const* techno);
+    void _Active_Add(TechnoClass const* techno);
+
+    // stubs
+    FactoryClass* _Fetch_Factory(RTTIType rtti);
+    void _Set_Factory(RTTIType rtti, FactoryClass* factory);
+    int* _Factory_Counter(RTTIType rtti);
+    int _Factory_Count(RTTIType rtti) const;
+    ProdFailType _Suspend_Production(RTTIType type);
+    ProdFailType _Begin_Production(RTTIType type, int id, bool resume);
+    ProdFailType _Abandon_Production(RTTIType type, int id);
+    bool _Place_Object(RTTIType type, Cell const& cell);
 };
 
 
@@ -915,6 +928,30 @@ bool HouseClassExt::_Can_Build_Required_Forbidden_Houses(const TechnoTypeClass* 
 }
 
 
+void HouseClassExt::_Active_Remove(TechnoClass const* techno)
+{
+    if (techno->RTTI == RTTI_BUILDING) {
+        int* fptr = Extension::Fetch<HouseClassExtension>(this)->Factory_Counter(((BuildingClass*)techno)->Class->ToBuild,
+            Extension::Fetch<BuildingTypeClassExtension>(((BuildingClass*)techno)->Class)->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
+        if (fptr != nullptr) {
+            *fptr = *fptr - 1;
+        }
+    }
+}
+
+
+void HouseClassExt::_Active_Add(TechnoClass const* techno)
+{
+    if (techno->RTTI == RTTI_BUILDING) {
+        int* fptr = Extension::Fetch<HouseClassExtension>(this)->Factory_Counter(((BuildingClass*)techno)->Class->ToBuild,
+            Extension::Fetch<BuildingTypeClassExtension>(((BuildingClass*)techno)->Class)->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
+        if (fptr != nullptr) {
+            *fptr = *fptr + 1;
+        }
+    }
+}
+
+
 /**
  *  Adds a check to Can_Build to check for RequiredHouses and ForbiddenHouses
  *
@@ -968,6 +1005,103 @@ DECLARE_PATCH(_HouseClass_Can_Build_Multi_MCV_Patch)
 
 
 /**
+ *  The below are dummies for the functions that have been completely supplanted by our extension functions.
+ *  These ought not to be used.
+ */
+FactoryClass* HouseClassExt::_Fetch_Factory(RTTIType rtti)
+{
+    DEBUG_FATAL("The legacy version of HouseClass::Fetch_Factory has been called! If you see this, please notify the developers. The game will now exit.\n");
+    DEBUG_FATAL("Return address: %p\n", _ReturnAddress());
+    WWMessageBox().Process("The legacy version of HouseClass::Fetch_Factory has been called! If you see this, please notify the developers. The game will now exit.", 0, TXT_OK);
+    Emergency_Exit(0);
+    return nullptr;
+}
+
+
+void HouseClassExt::_Set_Factory(RTTIType rtti, FactoryClass* factory)
+{
+    DEBUG_FATAL("The legacy version of HouseClass::Set_Factory has been called! If you see this, please notify the developers. The game will now exit.\n");
+    DEBUG_FATAL("Return address: %p\n", _ReturnAddress());
+    WWMessageBox().Process("The legacy version of HouseClass::Set_Factory has been called! If you see this, please notify the developers. The game will now exit.", 0, TXT_OK);
+    Emergency_Exit(0);
+}
+
+
+int* HouseClassExt::_Factory_Counter(RTTIType rtti)
+{
+    DEBUG_FATAL("The legacy version of HouseClass::Factory_Counter has been called! If you see this, please notify the developers. The game will now exit.\n");
+    DEBUG_FATAL("Return address: %p\n", _ReturnAddress());
+    WWMessageBox().Process("The legacy version of HouseClass::Factory_Counter has been called! If you see this, please notify the developers. The game will now exit.", 0, TXT_OK);
+    Emergency_Exit(0);
+    return nullptr;
+}
+
+
+int HouseClassExt::_Factory_Count(RTTIType rtti) const
+{
+    DEBUG_FATAL("The legacy version of HouseClass::Factory_Count has been called! If you see this, please notify the developers. The game will now exit.\n");
+    DEBUG_FATAL("Return address: %p\n", _ReturnAddress());
+    WWMessageBox().Process("The legacy version of HouseClass::Factory_Count has been called! If you see this, please notify the developers. The game will now exit.", 0, TXT_OK);
+    Emergency_Exit(0);
+    return 0;
+}
+
+
+ProdFailType HouseClassExt::_Suspend_Production(RTTIType type)
+{
+    DEBUG_FATAL("The legacy version of HouseClass::Suspend_Production has been called! If you see this, please notify the developers. The game will now exit.\n");
+    DEBUG_FATAL("Return address: %p\n", _ReturnAddress());
+    WWMessageBox().Process("The legacy version of HouseClass::Suspend_Production has been called! If you see this, please notify the developers. The game will now exit.", 0, TXT_OK);
+    Emergency_Exit(0);
+    return ProdFailType();
+}
+
+
+ProdFailType HouseClassExt::_Begin_Production(RTTIType type, int id, bool resume)
+{
+    DEBUG_FATAL("The legacy version of HouseClass::Begin_Production has been called! If you see this, please notify the developers. The game will now exit.\n");
+    DEBUG_FATAL("Return address: %p\n", _ReturnAddress());
+    WWMessageBox().Process("The legacy version of HouseClass::Begin_Production has been called! If you see this, please notify the developers. The game will now exit.", 0, TXT_OK);
+    Emergency_Exit(0);
+    return ProdFailType();
+}
+
+
+
+ProdFailType HouseClassExt::_Abandon_Production(RTTIType type, int id)
+{
+    DEBUG_FATAL("The legacy version of HouseClass::Abandon_Production has been called! If you see this, please notify the developers. The game will now exit.\n");
+    DEBUG_FATAL("Return address: %p\n", _ReturnAddress());
+    WWMessageBox().Process("The legacy version of HouseClass::Abandon_Production has been called! If you see this, please notify the developers. The game will now exit.", 0, TXT_OK);
+    Emergency_Exit(0);
+    return ProdFailType();
+}
+
+
+bool HouseClassExt::_Place_Object(RTTIType type, Cell const& cell)
+{
+    DEBUG_FATAL("The legacy version of HouseClass::Place_Object has been called! If you see this, please notify the developers. The game will now exit.\n");
+    DEBUG_FATAL("Return address: %p\n", _ReturnAddress());
+    WWMessageBox().Process("The legacy version of HouseClass::Place_Object has been called! If you see this, please notify the developers. The game will now exit.", 0, TXT_OK);
+    Emergency_Exit(0);
+    return false;
+}
+
+
+DECLARE_PATCH(_HouseClass_Exhausted_Build_Limit_Fetch_Factory_Patch)
+{
+    GET_REGISTER_STATIC(HouseClass*, this_ptr, ebx);
+    GET_REGISTER_STATIC(TechnoTypeClass const*, ttype, esi);
+
+    static FactoryClass* factory;
+    factory = Extension::Fetch<HouseClassExtension>(this_ptr)->Fetch_Factory(ttype->RTTI, TechnoTypeClassExtension::Get_Production_Flags(ttype));
+
+    _asm mov ecx, factory
+    JMP(0x004CB773);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void HouseClassExtension_Hooks()
@@ -980,9 +1114,6 @@ void HouseClassExtension_Hooks()
     Patch_Jump(0x004BBD26, &_HouseClass_Can_Build_BuildCheat_Patch);
     Patch_Jump(0x004BD30B, &_HouseClass_Super_Weapon_Handler_InstantRecharge_Patch);
 
-    Patch_Jump(0x004BE200, &HouseClassExt::_Begin_Production);
-    Patch_Jump(0x004BE6A0, &HouseClassExt::_Abandon_Production);
-
     Patch_Jump(0x004CB777, &_HouseClass_ShouldDisableCameo_BuildLimit_Fix);
     Patch_Jump(0x004BC187, &_HouseClass_Can_Build_BuildLimit_Handle_Vehicle_Transform);
     Patch_Jump(0x004CB6C1, &_HouseClass_Enable_SWs_Check_For_Building_Power);
@@ -993,4 +1124,18 @@ void HouseClassExtension_Hooks()
 
     Patch_Jump(0x004BAC2C, 0x004BAC39); // Patch a jump in the constructor to always allocate unit trackers
     Patch_Jump(0x004BC0B7, &_HouseClass_Can_Build_Multi_MCV_Patch);
+
+    Patch_Jump(0x004CB73D, &_HouseClass_Exhausted_Build_Limit_Fetch_Factory_Patch);
+
+    Patch_Jump(0x004C23B0, &HouseClassExt::_Active_Remove);
+    Patch_Jump(0x004C2450, &HouseClassExt::_Active_Add);
+
+    Patch_Jump(0x004C2CA0, &HouseClassExt::_Fetch_Factory);
+    Patch_Jump(0x004C2D20, &HouseClassExt::_Set_Factory);
+    Patch_Jump(0x004C2330, &HouseClassExt::_Factory_Counter);
+    Patch_Jump(0x004C2DB0, &HouseClassExt::_Factory_Count);
+    Patch_Jump(0x004BE5D0, &HouseClassExt::_Suspend_Production);
+    Patch_Jump(0x004BE200, &HouseClassExt::_Begin_Production);
+    Patch_Jump(0x004BE6A0, &HouseClassExt::_Abandon_Production);
+    Patch_Jump(0x004BEA10, &HouseClassExt::_Place_Object);
 }

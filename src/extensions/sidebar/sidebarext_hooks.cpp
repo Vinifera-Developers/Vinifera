@@ -65,8 +65,11 @@
 #include "fatal.h"
 #include "asserthandler.h"
 #include "building.h"
+#include "eventext.h"
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "houseext.h"
+#include "msgbox.h"
 #include "optionsext.h"
 #include "rulesext.h"
 #include "uicontrol.h"
@@ -381,7 +384,7 @@ void SidebarClassExt::_Init_Strips()
  */
 bool SidebarClassExt::_Factory_Link(FactoryClass* factory, RTTIType type, int id)
 {
-    return SidebarExtension->Get_Tab(type).Factory_Link(factory, type, id);
+    return SidebarExtension->Get_Tab(type, TechnoTypeClassExtension::Get_Production_Flags(type, id)).Factory_Link(factory, type, id);
 }
 
 
@@ -394,7 +397,7 @@ bool SidebarClassExt::_Add(RTTIType type, int id)
 {
     if (!Debug_Map)
     {
-        if (SidebarExtension->Get_Tab(type).Add(type, id))
+        if (SidebarExtension->Get_Tab(type, TechnoTypeClassExtension::Get_Production_Flags(type, id)).Add(type, id))
         {
             Activate(1);
             IsToRedraw = true;
@@ -789,7 +792,11 @@ void SidebarClassExt::_Recalc()
  */
 bool SidebarClassExt::_Abandon_Production(RTTIType type, FactoryClass* factory)
 {
-    return SidebarExtension->Get_Tab(type).Abandon_Production(factory);
+    DEBUG_FATAL("The legacy version of SidebarClass::Abandon_Production has been called! If you see this, please notify the developers. The game will now exit.\n");
+    DEBUG_FATAL("Return address: %p\n", _ReturnAddress());
+    WWMessageBox().Process("The legacy version of SidebarClass::Abandon_Production has been called! If you see this, please notify the developers. The game will now exit.", 0, TXT_OK);
+    Emergency_Exit(0);
+    return false;
 }
 
 
@@ -1432,7 +1439,7 @@ bool StripClassExt::_AI(KeyNumType& input, Point2D&)
                         {
                         case RTTI_UNIT:
                         case RTTI_AIRCRAFT:
-                            OutList.Add(EventClass(pending->Owner(), EVENT_PLACE, pending->RTTI, CELL_NONE));
+                            OutList.Add(EventClassExt(pending->Owner(), EVENT_PLACE, pending->Fetch_RTTI(), CELL_NONE, TechnoTypeClassExtension::Get_Production_Flags(pending)).As_Event());
                             Speak(VOX_UNIT_READY);
                             break;
 
@@ -1442,7 +1449,7 @@ bool StripClassExt::_AI(KeyNumType& input, Point2D&)
                             break;
 
                         case RTTI_INFANTRY:
-                            OutList.Add(EventClass(pending->Owner(), EVENT_PLACE, pending->RTTI, CELL_NONE));
+                            OutList.Add(EventClassExt(pending->Owner(), EVENT_PLACE, pending->Fetch_RTTI(), CELL_NONE, TechnoTypeClassExtension::Get_Production_Flags(pending)).As_Event());
                             Speak(VOX_UNIT_READY);
                             break;
 
@@ -1714,7 +1721,7 @@ void StripClassExt::_Draw_It(bool complete)
                          */
                         if (obj->RTTI == RTTI_BUILDINGTYPE)
                         {
-                            darken = PlayerPtr->Fetch_Factory(Buildables[index].BuildableType) != nullptr;
+                            darken = Extension::Fetch<HouseClassExtension>(PlayerPtr)->Fetch_Factory(Buildables[index].BuildableType, TechnoTypeClassExtension::Get_Production_Flags(obj)) != nullptr;
                         }
 
                         /**
@@ -1851,7 +1858,7 @@ void StripClassExt::_Draw_It(bool complete)
             if (obj != nullptr)
             {
                 RTTIType rtti = obj->RTTI;
-                FactoryClass* factory = PlayerPtr->Fetch_Factory(rtti);
+                FactoryClass* factory = Extension::Fetch<HouseClassExtension>(PlayerPtr)->Fetch_Factory(rtti, TechnoTypeClassExtension::Get_Production_Flags(obj));
 
                 if (factory != nullptr)
                 {
@@ -1977,18 +1984,18 @@ void StripClassExt::_Tab_Button_AI()
         if (!SidebarExtension->TabButtons[ID].Is_Enabled())
             SidebarExtension->TabButtons[ID].Enable();
 
-        int building_tab = SidebarClassExtension::Which_Tab(RTTI_BUILDINGTYPE);
+        int building_tab = SidebarClassExtension::Which_Tab(RTTI_BUILDINGTYPE, PRODFLAG_NONE);
         if (ID == building_tab)
         {
             if (SidebarExtension->TabButtons[ID].IsFlashing)
             {
-                FactoryClass* fptr = PlayerPtr->Fetch_Factory(RTTI_BUILDINGTYPE);
+                FactoryClass* fptr = Extension::Fetch<HouseClassExtension>(PlayerPtr)->Fetch_Factory(RTTI_BUILDINGTYPE, PRODFLAG_DEFENSE);
                 if (fptr == nullptr || !fptr->Has_Completed())
                     SidebarExtension->TabButtons[ID].Stop_Flashing();
             }
         }
 
-        int special_tab = SidebarClassExtension::Which_Tab(RTTI_SPECIAL);
+        int special_tab = SidebarClassExtension::Which_Tab(RTTI_SPECIAL, PRODFLAG_NONE);
         if (ID == special_tab)
         {
             bool ready_sw = false;
@@ -2023,7 +2030,7 @@ void StripClassExt::_Tab_Button_AI()
  */
 void StripClassExt::_Fake_Flag_To_Redraw_Special()
 {
-    SidebarExtension->Get_Tab(RTTI_SPECIAL).Flag_To_Redraw();
+    SidebarExtension->Get_Tab(RTTI_SPECIAL, PRODFLAG_NONE).Flag_To_Redraw();
 }
 
 
@@ -2280,6 +2287,7 @@ void SidebarClassExtension_Hooks()
     /**
      *  These patches are compatible with the vanilla sidebar.
      */
+    Patch_Jump(0x005F5F70, &SidebarClassExt::_Abandon_Production);
     Patch_Jump(0x005F4E40, &StripClassExt::_Help_Text);
     Patch_Jump(0x005F4630, &StripClassExt::_Add);
     Patch_Jump(0x005F5610, &StripClassExt::_Recalc);
@@ -2324,7 +2332,6 @@ void SidebarClassExtension_Conditional_Hooks()
         Patch_Jump(0x005F3C70, &SidebarClassExt::_AI);
         Patch_Jump(0x005F3E20, &SidebarClassExt::_Recalc);
         Patch_Jump(0x005F3E60, &SidebarClassExt::_Activate);
-        Patch_Jump(0x005F5F70, &SidebarClassExt::_Abandon_Production);
         Patch_Jump(0x005F6080, &SidebarClassExt::_Set_Dimensions);
         Patch_Jump(0x005F6620, &SidebarClassExt::_Help_Text);
         Patch_Jump(0x005F6670, &SidebarClassExt::_Max_Visible);

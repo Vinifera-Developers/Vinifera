@@ -133,6 +133,7 @@
 #include "combatext_hooks.h"
 #include "dropshipext_hooks.h"
 #include "endgameext_hooks.h"
+#include "eventext_hooks.h"
 #include "mapseedext_hooks.h"
 #include "multiscoreext_hooks.h"
 #include "multimissionext_hooks.h"
@@ -178,7 +179,7 @@ void Extension_Hooks()
     RadioClassExtension_Hooks();
     TechnoClassExtension_Hooks();
     FootClassExtension_Hooks();
-
+    EventClassExtension_Hooks();
     UnitClassExtension_Hooks();
     AircraftClassExtension_Hooks();
     AircraftTypeClassExtension_Hooks();

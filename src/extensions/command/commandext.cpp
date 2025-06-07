@@ -89,6 +89,8 @@
 #include "debughandler.h"
 #include "asserthandler.h"
 #include "bullettype.h"
+#include "eventext.h"
+#include "houseext.h"
 
 
 /**
@@ -372,7 +374,7 @@ bool ManualPlaceCommandClass::Process()
         /**
          *  Fetch the house's factory associated with producing buildings.
          */
-        FactoryClass* factory = PlayerPtr->Fetch_Factory(RTTI_BUILDING);
+        FactoryClass* factory = Extension::Fetch<HouseClassExtension>(PlayerPtr)->Fetch_Factory(RTTI_BUILDING, PRODFLAG_NONE);
         if (!factory)
             return false;
 
@@ -460,7 +462,7 @@ bool RepeatLastBuildingCommandClass::Process()
      *  Fetch the house's factory associated with producing building. This is
      *  done to make sure the house still has a factory.
      */
-    if (!PlayerPtr->Factory_Count(RTTI_BUILDING)) {
+    if (!Extension::Fetch<HouseClassExtension>(PlayerPtr)->Factory_Count(RTTI_BUILDING, PRODFLAG_NONE)) {
         DEV_DEBUG_WARNING("RepeatLastBuildingCommandClass - Unable to fetch primary factory!\n");
         return false;
     }
@@ -476,7 +478,8 @@ bool RepeatLastBuildingCommandClass::Process()
     /**
      *  Don't allow queuing of multiple structures.
      */
-    if (PlayerPtr->Fetch_Factory(RTTI_BUILDING) && PlayerPtr->Fetch_Factory(RTTI_BUILDING)->Get_Object()) {
+    if (Extension::Fetch<HouseClassExtension>(PlayerPtr)->Fetch_Factory(RTTI_BUILDING, PRODFLAG_NONE) &&
+        Extension::Fetch<HouseClassExtension>(PlayerPtr)->Fetch_Factory(RTTI_BUILDING, PRODFLAG_NONE)->Get_Object()) {
         return false;
     }
 
@@ -494,7 +497,7 @@ bool RepeatLastBuildingCommandClass::Process()
 
     DEBUG_INFO("RepeatLastBuildingCommandClass - \"%s\"\n", buildingtype->Full_Name());
 
-    OutList.Add(EventClass(PlayerPtr->HeapID, EVENT_PRODUCE, RTTI_BUILDINGTYPE, building));
+    OutList.Add(EventClassExt(PlayerPtr->HeapID, EVENT_PRODUCE, RTTI_BUILDINGTYPE, building, TechnoTypeClassExtension::Get_Production_Flags(RTTI_BUILDINGTYPE, building)).As_Event());
 
     return true;
 }
@@ -537,7 +540,7 @@ bool RepeatLastInfantryCommandClass::Process()
      *  Fetch the house's factory associated with producing infantry. This is
      *  done to make sure the house still has a factory.
      */
-    if (!PlayerPtr->Factory_Count(RTTI_INFANTRY)) {
+    if (!Extension::Fetch<HouseClassExtension>(PlayerPtr)->Factory_Count(RTTI_INFANTRY, PRODFLAG_NONE)) {
         DEV_DEBUG_WARNING("RepeatLastInfantryCommandClass - Unable to fetch primary factory!\n");
         return false;
     }
@@ -564,7 +567,7 @@ bool RepeatLastInfantryCommandClass::Process()
 
     DEBUG_INFO("RepeatLastInfantryCommandClass - \"%s\"\n", infantrytype->Full_Name());
 
-    OutList.Add(EventClass(PlayerPtr->HeapID, EVENT_PRODUCE, RTTI_INFANTRYTYPE, infantry));
+    OutList.Add(EventClassExt(PlayerPtr->HeapID, EVENT_PRODUCE, RTTI_INFANTRYTYPE, infantry, TechnoTypeClassExtension::Get_Production_Flags(RTTI_INFANTRYTYPE, infantry)).As_Event());
 
     return true;
 }
@@ -607,7 +610,7 @@ bool RepeatLastUnitCommandClass::Process()
      *  Fetch the house's factory associated with producing unit. This is
      *  done to make sure the house still has a factory.
      */
-    if (!PlayerPtr->Factory_Count(RTTI_UNIT)) {
+    if (!Extension::Fetch<HouseClassExtension>(PlayerPtr)->Factory_Count(RTTI_UNIT, PRODFLAG_NONE)) {
         DEV_DEBUG_WARNING("RepeatLastUnitCommandClass - Unable to fetch primary factory!\n");
         return false;
     }
@@ -634,7 +637,7 @@ bool RepeatLastUnitCommandClass::Process()
 
     DEBUG_INFO("RepeatLastUnitCommandClass - \"%s\"\n", unittype->Full_Name());
 
-    OutList.Add(EventClass(PlayerPtr->HeapID, EVENT_PRODUCE, RTTI_UNITTYPE, unit));
+    OutList.Add(EventClassExt(PlayerPtr->HeapID, EVENT_PRODUCE, RTTI_UNITTYPE, unit, TechnoTypeClassExtension::Get_Production_Flags(RTTI_UNITTYPE, unit)).As_Event());
 
     return true;
 }
@@ -677,7 +680,7 @@ bool RepeatLastAircraftCommandClass::Process()
      *  Fetch the house's factory associated with producing aircraft. This is
      *  done to make sure the house still has a factory.
      */
-    if (!PlayerPtr->Factory_Count(RTTI_AIRCRAFT)) {
+    if (!Extension::Fetch<HouseClassExtension>(PlayerPtr)->Factory_Count(RTTI_AIRCRAFT, PRODFLAG_NONE)) {
         DEV_DEBUG_WARNING("RepeatLastAircraftCommandClass - Unable to fetch primary factory!\n");
         return false;
     }
@@ -704,7 +707,7 @@ bool RepeatLastAircraftCommandClass::Process()
 
     DEBUG_INFO("RepeatLastAircraftCommandClass - \"%s\"\n", aircrafttype->Full_Name());
 
-    OutList.Add(EventClass(PlayerPtr->HeapID, EVENT_PRODUCE, RTTI_AIRCRAFTTYPE, aircraft));
+    OutList.Add(EventClassExt(PlayerPtr->HeapID, EVENT_PRODUCE, RTTI_AIRCRAFTTYPE, aircraft, TechnoTypeClassExtension::Get_Production_Flags(RTTI_AIRCRAFTTYPE, aircraft)).As_Event());
 
     return true;
 }
@@ -1146,7 +1149,7 @@ bool SetStructureTabCommandClass::Process()
         /**
          *  Fetch the house's factory associated with producing buildings.
          */
-        FactoryClass* factory = PlayerPtr->Fetch_Factory(RTTI_BUILDING);
+        FactoryClass* factory = Extension::Fetch<HouseClassExtension>(PlayerPtr)->Fetch_Factory(RTTI_BUILDING, PRODFLAG_NONE);
         if (!factory)
             return result;
 

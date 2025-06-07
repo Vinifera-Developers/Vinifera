@@ -39,6 +39,7 @@
 #include "technotype.h"
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "houseext.h"
 #include "mouse.h"
 #include "rulesext.h"
 #include "sidebarext.h"
@@ -57,6 +58,7 @@ public:
     void _Sanitize_Queue();
     void _AI();
     bool _Start(bool suspend);
+    void _Resume_Queue();
 };
 
 
@@ -105,7 +107,7 @@ void FactoryClassExt::_Sanitize_Queue()
 
     if (need_update) {
         if (House == PlayerPtr) {
-            SidebarExtension->Flag_Strip_To_Redraw(type);
+            SidebarExtension->Flag_Strip_To_Redraw(type, TechnoTypeClassExtension::Get_Production_Flags(producing_object));
         }
 
         House->Update_Factories(type);
@@ -227,6 +229,21 @@ void FactoryClassExt::_AI()
 }
 
 
+void FactoryClassExt::_Resume_Queue()
+{
+    if (QueuedObjects.Count()) {
+        if (Object == nullptr && (!Fetch_Rate() || IsSuspended)) {
+            const TechnoTypeClass* object = QueuedObjects[0];
+            QueuedObjects.Delete(0);
+            int id = object->Fetch_Heap_ID();
+            if (id >= 0) {
+                Extension::Fetch<HouseClassExtension>(House)->Begin_Production(object->RTTI, id, true, TechnoTypeClassExtension::Get_Production_Flags(object->RTTI, id));
+            }
+        }
+    }
+}
+
+
 /**
  *  Main function for patching the hooks.
  */
@@ -239,4 +256,5 @@ void FactoryClassExtension_Hooks()
 
     Patch_Jump(0x00496EA0, &FactoryClassExt::_AI);
     Patch_Jump(0x004971E0, &FactoryClassExt::_Start);
+    Patch_Jump(0x004978D0, &FactoryClassExt::_Resume_Queue);
 }

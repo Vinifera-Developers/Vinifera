@@ -100,7 +100,8 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     _JumpjetWobblesPerSecond(-std::numeric_limits<double>::max()),
     _JumpjetWobbleDeviation(std::numeric_limits<int>::min()),
     _JumpjetCloakDetectionRadius(std::numeric_limits<int>::min()),
-    JumpjetNoWobbles(false)
+    JumpjetNoWobbles(false),
+    IsNaval(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -260,6 +261,7 @@ void TechnoTypeClassExtension::Object_CRC(CRCEngine &crc) const
     crc(_JumpjetWobbleDeviation);
     crc(_JumpjetCloakDetectionRadius);
     crc(JumpjetNoWobbles);
+    crc(IsNaval);
 }
 
 
@@ -392,7 +394,24 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     _JumpjetCloakDetectionRadius = ini.Get_Int(ini_name, "JumpjetCloakDetectionRadius", _JumpjetCloakDetectionRadius);
     JumpjetNoWobbles = ini.Get_Bool(ini_name, "JumpjetNoWobbles", JumpjetNoWobbles);
 
+    IsNaval = ini.Get_Bool(ini_name, "Naval", IsNaval);
+
     return true;
+}
+
+ProductionFlags TechnoTypeClassExtension::Get_Production_Flags(const TechnoTypeClassExtension* ttype_ext)
+{
+    ProductionFlags flags = PRODFLAG_NONE;
+
+    if (ttype_ext->IsNaval) {
+        flags = static_cast<ProductionFlags>(flags | PRODFLAG_NAVAL);
+    }
+
+    //if (ttype_ext->IsCombat) {
+    //    flags = static_cast<ProductionFlags>(flags | PRODFLAG_DEFENSE);
+    //}
+
+    return flags;
 }
 
 

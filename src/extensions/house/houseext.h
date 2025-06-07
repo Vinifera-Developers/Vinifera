@@ -63,6 +63,15 @@ HouseClassExtension final : public AbstractClassExtension
         virtual const HouseClass *This_Const() const override { return reinterpret_cast<const HouseClass *>(AbstractClassExtension::This_Const()); }
         virtual RTTIType Fetch_RTTI() const override { return RTTI_HOUSE; }
 
+        FactoryClass* Fetch_Factory(RTTIType rtti, ProductionFlags flags) const;
+        void Set_Factory(RTTIType rtti, FactoryClass* factory, ProductionFlags flags);
+        int* Factory_Counter(RTTIType rtti, ProductionFlags flags);
+        int Factory_Count(RTTIType rtti, ProductionFlags flags) const;
+        ProdFailType Suspend_Production(RTTIType type, ProductionFlags flags);
+        ProdFailType Begin_Production(RTTIType type, int id, bool resume, ProductionFlags flags);
+        ProdFailType Abandon_Production(RTTIType type, int id, ProductionFlags flags);
+        bool Place_Object(RTTIType type, Cell const& cell, ProductionFlags flags);
+
         void Put_Storage_Pointers();
         static void Load_Unit_Trackers(HouseClass* house, IStream* pStm);
         static void Save_Unit_Trackers(HouseClass* house, IStream* pStm);
@@ -77,4 +86,7 @@ HouseClassExtension final : public AbstractClassExtension
          *  Replacement Weed storage.
          */
         VectorClass<int> WeedStorage;
+
+        int NavalFactories;
+        FactoryClass* NavalFactory;
 };

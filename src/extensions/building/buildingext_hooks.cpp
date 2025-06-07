@@ -67,10 +67,12 @@
 #include "fatal.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "factory.h"
 #include "session.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "houseext.h"
 #include "jumpjetlocomotion.h"
 #include "rulesext.h"
 #include "super.h"
@@ -96,6 +98,8 @@ public:
     int _Shape_Number() const;
     void _Detach_Anim(AnimClass* anim);
     void _Draw_It(Point2D const& xdrawpoint, Rect const& xcliprect);
+    void _Detach_All(bool all);
+    bool _Toggle_Primary();
 };
 
 
@@ -216,7 +220,7 @@ int BuildingClassExt::_How_Many_Survivors() const
     if (IsCaptured)
         divisor *= 2;
 
-    const int count = (Class->Cost_Of(House) * Rule->SurvivorFraction) / divisor;
+    const int count = Class->Cost_Of(House) * Rule->SurvivorFraction / divisor;
     return std::clamp(count, 1, 5);
 }
 
@@ -246,7 +250,7 @@ int BuildingClassExt::_Shape_Number() const
     if (BState == BSTATE_CONSTRUCTION) {
 
         if (Class->IsGate) {
-            shapenum = (Class->Anims[BSTATE_CONSTRUCTION].Start + Class->Anims[BSTATE_CONSTRUCTION].Count - 1) - shapenum;
+            shapenum = Class->Anims[BSTATE_CONSTRUCTION].Start + Class->Anims[BSTATE_CONSTRUCTION].Count - 1 - shapenum;
         }
 
         /**
@@ -254,7 +258,7 @@ int BuildingClassExt::_Shape_Number() const
          *  from the end to the beginning. Reverse the shape number accordingly.
          */
         if (Mission == MISSION_DECONSTRUCTION) {
-            shapenum = (Class->Anims[BState].Start + Class->Anims[BState].Count - 1) - shapenum;
+            shapenum = Class->Anims[BState].Start + Class->Anims[BState].Count - 1 - shapenum;
         }
 
     } else if (Class->IsGate) {
@@ -363,7 +367,7 @@ void BuildingClassExt::_Draw_It(Point2D const& xdrawpoint, Rect const& xcliprect
     bool open_roof = false;
     if (Get_Mission() == MISSION_UNLOAD) {
         TechnoClass* radio = Contact_With_Whom();
-        if (radio != nullptr && (radio->TClass->Locomotor == __uuidof(JumpjetLocomotionClass))) {
+        if (radio != nullptr && radio->Techno_Type_Class()->Locomotor == __uuidof(JumpjetLocomotionClass)) {
             open_roof = true;
         }
     }
@@ -393,7 +397,7 @@ void BuildingClassExt::_Draw_It(Point2D const& xdrawpoint, Rect const& xcliprect
             zgrad = ZGRAD_90DEG;
         }
 
-        shapenum += (HealthRatio <= Rule->ConditionYellow ? (Class->GateStages + 1) : 0);
+        shapenum += HealthRatio <= Rule->ConditionYellow ? Class->GateStages + 1 : 0;
         Techno_Draw_Object(shapefile, shapenum, xdrawpoint, xcliprect, DIR_N, 256, zadjust - TacticalMap->Z_Lepton_To_Pixel(Height), zgrad, true, Map[cell].Brightness);
 
         return;
@@ -421,7 +425,7 @@ void BuildingClassExt::_Draw_It(Point2D const& xdrawpoint, Rect const& xcliprect
     cliprect.Height = std::min(cliprect.Height, height);
 
     zdrawpoint += Class->ZShapePointMove;
-    Point2D zsizeoffset((Class->Width() * CELL_LEPTON_W) - CELL_LEPTON_W, (Class->Height() * CELL_LEPTON_H) - CELL_LEPTON_H);
+    Point2D zsizeoffset(Class->Width() * CELL_LEPTON_W - CELL_LEPTON_W, Class->Height() * CELL_LEPTON_H - CELL_LEPTON_H);
     zdrawpoint -= TacticalMap->func_60F270(zsizeoffset);
 
     ShapeSet const* zshapefile = BuildingTypeClass::BuildingZShape;
@@ -469,12 +473,108 @@ void BuildingClassExt::_Draw_It(Point2D const& xdrawpoint, Rect const& xcliprect
 }
 
 
+void BuildingClassExt::_Detach_All(bool all)
+{
+    if (all) {
+        /*
+        **	If it is producing something, then it must be abandoned.
+        */
+        if (Factory) {
+            Factory->Abandon();
+            delete Factory;
+            Factory = nullptr;
+        }
+
+        /*
+        ** If the owner HouseClass is building something, and this building can
+        ** build that thing, we may be the last building for that house that can
+        ** build that thing; if so, abandon production of it.
+        */
+        if (House) {
+            auto type_ext = Extension::Fetch<BuildingTypeClassExtension>(Class);
+            ProductionFlags prodflags = PRODFLAG_NONE; // TODO: this will need adjustment for defense factories because they share the building with normal building factories
+            if (type_ext->IsNaval) {
+                prodflags = PRODFLAG_NAVAL;
+            }
+
+            FactoryClass* factory = Extension::Fetch<HouseClassExtension>(House)->Fetch_Factory(Class->ToBuild, prodflags);
+
+            /*
+            **	If a factory was found, then temporarily disable this building and then
+            **	determine if any object that is being produced can still be produced. If
+            **	not, then the object being produced must be abandoned.
+            */
+            if (factory) {
+                TechnoClass* object = factory->Get_Object();
+                bool limbo = IsInLimbo;
+                IsInLimbo = true;
+                if (object && !object->TClass->Who_Can_Build_Me(true, false, false, House)) {
+                    Extension::Fetch<HouseClassExtension>(House)->Abandon_Production(Class->ToBuild, -1, prodflags);
+                }
+                IsInLimbo = limbo;
+            }
+        }
+    }
+
+    if (!all) {
+        if (In_Radio_Contact() && !House->Is_Ally(Contact_With_Whom())) {
+            Transmit_Message(RADIO_OVER_OUT);
+        }
+    } else {
+        Transmit_Message(RADIO_OVER_OUT);
+    }
+
+    TechnoClass::Detach_All(all);
+}
+
+
+bool BuildingClassExt::_Toggle_Primary()
+{
+    if (Class->ToBuild == RTTI_NONE) {
+        return IsLeader;
+    }
+
+    if (IsLeader) {
+        IsLeader = false;
+    } else {
+        for (int index = 0; index < Buildings.Count(); index++) {
+            BuildingClass* building = Buildings[index];
+
+            if (!building->IsInLimbo && building->House == House && building->Class->ToBuild == Class->ToBuild &&
+                Extension::Fetch<BuildingTypeClassExtension>(building->Class)->IsNaval == Extension::Fetch<BuildingTypeClassExtension>(Class)->IsNaval) {
+                building->IsLeader = false;
+            }
+        }
+        IsLeader = true;
+        if (House->Is_Player_Control()) {
+            Speak(VOX_PRIMARY_SELECTED);
+        }
+    }
+    Mark(MARK_CHANGE);
+    return IsLeader;
+}
+
+
+DECLARE_PATCH(_BuildingClass_Draw_Overlays_Fetch_Factory_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+
+    static FactoryClass* factory;
+    static BuildingTypeClassExtension const* type_ext;
+    type_ext = Extension::Fetch <BuildingTypeClassExtension>(this_ptr->Class);
+    factory = Extension::Fetch<HouseClassExtension>(this_ptr->House)->Fetch_Factory(this_ptr->Class->ToBuild, type_ext->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
+
+    _asm mov eax, factory
+    JMP_REG(ecx, 0x00428AC4);
+}
+
+
 /**
  *  Replaces an inlined call of Detach_Anim with a direct call.
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_BuildingCLass_Detach_Detach_Anim_Patch)
+DECLARE_PATCH(_BuildingClass_Detach_Detach_Anim_Patch)
 {
     GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
     GET_REGISTER_STATIC(AnimClass*, anim, ecx);
@@ -913,7 +1013,7 @@ static void BuildingClass_Shake_Screen(BuildingClass *building)
          *  If this building has screen shake values defined, then set the blitter
          *  offset values. GScreenClass::Blit will handle the rest for us.
          */
-        if ((buildingtypeext->ShakePixelXLo > 0 || buildingtypeext->ShakePixelXHi > 0)
+        if (buildingtypeext->ShakePixelXLo > 0 || buildingtypeext->ShakePixelXHi > 0
          || (buildingtypeext->ShakePixelYLo > 0 || buildingtypeext->ShakePixelYHi > 0)) {
 
             if (buildingtypeext->ShakePixelXLo > 0 || buildingtypeext->ShakePixelXHi > 0) {
@@ -1398,7 +1498,7 @@ bool Should_Open_Roof(BuildingClass* building)
 {
     if (building->Get_Mission() == MISSION_UNLOAD) {
         TechnoClass* radio = building->Contact_With_Whom();
-        if (radio != nullptr && (radio->TClass->Locomotor == __uuidof(JumpjetLocomotionClass))) {
+        if (radio != nullptr && radio->Techno_Type_Class()->Locomotor == __uuidof(JumpjetLocomotionClass)) {
             return true;
         }
     }
@@ -1449,6 +1549,25 @@ DECLARE_PATCH(_BuildingClass_entry_370_RoofDoorAnim_Patch2)
 }
 
 
+DECLARE_PATCH(_BuildingClass_What_Action_Factory_Counter_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+
+    static HouseClassExtension* house_ext;
+    house_ext = Extension::Fetch<HouseClassExtension>(this_ptr->House);
+
+    static int count;
+    static BuildingTypeClassExtension* type_ext = Extension::Fetch<BuildingTypeClassExtension>(this_ptr->Class);
+    count = house_ext->Factory_Count(this_ptr->Class->ToBuild, type_ext->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
+
+    if (count > 1) {
+        JMP(0x0042EC7A);
+    } else {
+        JMP(0x0042ED68);
+    }
+}
+
+
 /**
  *  Main function for patching the hooks.
  */
@@ -1486,11 +1605,14 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x0042E53C, 0x0042E56F); // Jump a check for the PurchasePrice of a building for spawning its FreeUnit in Grand_Opening
     Patch_Jump(0x00436410, &BuildingClassExt::_Detach_Anim);
     Patch_Jump(0x004275B0, &BuildingClassExt::_Draw_It);
-    Patch_Jump(0x00433F1D, &_BuildingCLass_Detach_Detach_Anim_Patch);
+    Patch_Jump(0x00433F1D, &_BuildingClass_Detach_Detach_Anim_Patch);
     Patch_Jump(0x00432709, &_BuildingClass_Mission_Missile_INITIAL_Patch);
     Patch_Jump(0x00432729, &_BuildingClass_Mission_Missile_DOOR_OPENING_Patch);
     Patch_Jump(0x00432957, &_BuildingClass_Mission_Missile_LAUNCH_DOWN_Patch);
     Patch_Jump(0x00432937, &_BuildingClass_Mission_Missile_LAUNCH_DOWN_Voice_Patch);
     //Patch_Jump(0x00427CD8, &_BuildingClass_entry_370_RoofDoorAnim_Patch1);
     //Patch_Jump(0x00427DF5, &_BuildingClass_entry_370_RoofDoorAnim_Patch2);
+    Patch_Jump(0x00428AA4, &_BuildingClass_Draw_Overlays_Fetch_Factory_Patch);
+    Patch_Jump(0x0042EC6B, &_BuildingClass_What_Action_Factory_Counter_Patch);
+    Patch_Jump(0x0042F590, &BuildingClassExt::_Toggle_Primary);
 }
