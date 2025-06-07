@@ -179,12 +179,12 @@ public:
         bool Change_Tab(SidebarTabType index);
 
         SidebarClass::StripClass& Current_Tab() { return Column[TabIndex];}
-        SidebarClass::StripClass& Get_Tab(RTTIType type, bool naval) { return Column[Which_Tab(type, naval)]; }
+        SidebarClass::StripClass& Get_Tab(RTTIType type, ProductionFlags flags) { return Column[Which_Tab(type, flags)]; }
         SidebarTabType First_Active_Tab();
 
         bool Abandon_Production(RTTIType type, FactoryClass* factory, ProductionFlags flags);
 
-        static SidebarTabType Which_Tab(RTTIType type, bool naval);
+        static SidebarTabType Which_Tab(RTTIType type, ProductionFlags flags);
 
         bool Is_On_Sidebar(RTTIType type, int id) const
         {

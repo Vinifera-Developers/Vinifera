@@ -27,6 +27,8 @@
  ******************************************************************************/
 #include "sidebarext_hooks.h"
 
+#include <algorithm>
+
 #include "bsurface.h"
 #include "buildingtype.h"
 #include "convert.h"
@@ -1185,10 +1187,7 @@ static int __cdecl BuildType_Comparison(const void* p1, const void* p2)
             for (int i = 0; i < HouseTypes.Count(); i++)
             {
                 if (owners & (1 << i))
-                {
-                    if (HouseTypes[i]->Side < side)
-                        side = HouseTypes[i]->Side;
-                }
+                    side = std::min<int>(HouseTypes[i]->Side, side);
             }
 
             return side != INT_MAX ? side : SIDE_NONE;
@@ -1306,16 +1305,16 @@ static int __cdecl BuildType_Comparison(const void* p1, const void* p2)
     if (bt2->BuildableType == RTTI_INFANTRYTYPE)
         return 1;
 
-    if (bt1->BuildableType == RTTI_UNITTYPE)
-        return -1;
-
-    if (bt2->BuildableType == RTTI_UNITTYPE)
-        return 1;
-
     if (bt1->BuildableType == RTTI_AIRCRAFTTYPE)
         return -1;
 
     if (bt2->BuildableType == RTTI_AIRCRAFTTYPE)
+        return 1;
+
+    if (bt1->BuildableType == RTTI_UNITTYPE)
+        return -1;
+
+    if (bt2->BuildableType == RTTI_UNITTYPE)
         return 1;
 
     return bt1->BuildableID - bt2->BuildableID;

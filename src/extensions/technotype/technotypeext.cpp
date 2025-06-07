@@ -428,6 +428,17 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     return true;
 }
 
+
+ProductionFlags TechnoTypeClassExtension::Get_Production_Flags(RTTIType type, int id)
+{
+    const TechnoTypeClass* ttype = Fetch_Techno_Type(type, id);
+    if (ttype != nullptr) {
+        return Get_Production_Flags(ttype);
+    }
+    return PRODFLAG_NONE;
+}
+
+
 ProductionFlags TechnoTypeClassExtension::Get_Production_Flags(const TechnoTypeClassExtension* ttype_ext)
 {
     ProductionFlags flags = PRODFLAG_NONE;

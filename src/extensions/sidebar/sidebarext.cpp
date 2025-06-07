@@ -382,10 +382,9 @@ bool SidebarClassExtension::Abandon_Production(RTTIType type, FactoryClass* fact
  *
  *  @author: ZivDero
  */
-SidebarClassExtension::SidebarTabType SidebarClassExtension::Which_Tab(RTTIType type, bool naval)
+SidebarClassExtension::SidebarTabType SidebarClassExtension::Which_Tab(RTTIType type, ProductionFlags flags)
 {
-    switch (type)
-    {
+    switch (type) {
     case RTTI_BUILDINGTYPE:
     case RTTI_BUILDING:
         return SIDEBAR_TAB_STRUCTURE;
@@ -396,7 +395,11 @@ SidebarClassExtension::SidebarTabType SidebarClassExtension::Which_Tab(RTTIType 
 
     case RTTI_UNITTYPE:
     case RTTI_UNIT:
-        return SIDEBAR_TAB_UNIT;
+        if (flags & PRODFLAG_NAVAL) {
+            return SIDEBAR_TAB_SPECIAL;
+        } else {
+            return SIDEBAR_TAB_UNIT;
+        }
 
     case RTTI_AIRCRAFTTYPE:
     case RTTI_AIRCRAFT:
