@@ -246,6 +246,17 @@ BuildingClass* ObjectTypeClassExt::_Who_Can_Build_Me(bool intheory, bool needsno
             building->Class->Get_Ownable() & ownable &&
             (!Rule->BuildConst.Is_Present(building->Class) || RuleExtension->IsMultiMCV || 1L << building->ActLike & ownable)) {
 
+            if (RTTI == RTTI_UNITTYPE || RTTI == RTTI_INFANTRYTYPE || RTTI == RTTI_BUILDINGTYPE || RTTI == RTTI_AIRCRAFTTYPE) {
+                TechnoTypeClassExtension* type_ext = Extension::Fetch<TechnoTypeClassExtension>(this);
+                BuildingTypeClassExtension* btype_ext = Extension::Fetch<BuildingTypeClassExtension>(building->Class);
+
+                // This object can't be built at this factory
+                if (type_ext->BuiltAt.Count() != 0 && !type_ext->BuiltAt.Is_Present(building->Class)) continue;
+
+                // This factory doesn't allow this unit
+                if (btype_ext->IsExclusiveFactory && !type_ext->BuiltAt.Is_Present(building->Class)) continue;
+            }
+
             if (intheory || !building->In_Radio_Contact() || RTTI != RTTI_AIRCRAFTTYPE) {
                 if (RTTI == RTTI_UNITTYPE) {
                     UnitTypeClassExtension* type_ext = Extension::Fetch<UnitTypeClassExtension>(this);

@@ -281,8 +281,6 @@ public:
      */
     bool IsDecloakToFire;
 
-    bool IsNaval;
-
 private:
 
     /**
@@ -351,4 +349,8 @@ public:
      *  Whether the jumpjet unit doesn't wobble.
      */
     bool JumpjetNoWobbles;
+
+    bool IsNaval;
+
+    TypeList<BuildingTypeClass*> BuiltAt;
 };
