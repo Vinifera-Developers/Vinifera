@@ -1569,6 +1569,125 @@ DECLARE_PATCH(_BuildingClass_What_Action_Factory_Counter_Patch)
 
 
 /**
+ *  Allows weapon factories with WeaponsFactory=no to use rally points.
+ *  Naval yards typically do not have WeaponsFactory specified.
+ *
+ *  This patch assigns the rally point to the unit when it is exiting
+ *  the factory.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_BuildingClass_Exit_Object_Allow_Rally_Point_For_Naval_Yard_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    GET_REGISTER_STATIC(CellClass*, cellptr, eax);
+    GET_REGISTER_STATIC(TechnoClass*, techno, edi);
+    static FootClass* foot;
+
+    techno->Assign_Destination(cellptr, true);
+
+    /**
+     *  If we have an archive target (a rally point), assign it to the unit as a queued destination.
+     */
+    if (this_ptr->ArchiveTarget != nullptr) {
+        (reinterpret_cast<FootClass*>(techno))->Queue_Navigation_List(this_ptr->ArchiveTarget);
+    }
+
+    /**
+     *  Continue object exit process.
+     */
+    JMP(0x0042CE90);
+}
+
+
+/**
+ *  #issue-531
+ *
+ *  This patch allows naval yards to place rally
+ *  points on water rather than on land.
+ *
+ *  @author: CCHyper, modified by Rampastring
+ */
+DECLARE_PATCH(_BuildingClass_Set_Rally_To_Point_NavalYard_Check_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    GET_REGISTER_STATIC(SpeedType, speed, ebx);
+    GET_REGISTER_STATIC(MZoneType, mzone, edi);
+    static BuildingTypeClass* buildingtype;
+
+    buildingtype = this_ptr->Class;
+
+    /**
+     *  Stolen bytes/code.
+     */
+    if (buildingtype->ToBuild == RTTI_AIRCRAFTTYPE) {
+        speed = SPEED_WINGED;
+        mzone = MZONE_FLYER;
+    }
+    else {
+        /**
+         *  If this is a factory that produces units, and is flagged as a shipyard (Float SpeedType), then
+         *  change the zone flags to scan for water regions only.
+         */
+        if (buildingtype->ToBuild == RTTI_UNITTYPE && buildingtype->Speed == SPEED_FLOAT) {
+            speed = SPEED_AMPHIBIOUS;
+            mzone = MZONE_AMPHIBIOUS_DESTROYER;
+        }
+    }
+
+    /**
+     *  Assign the zone flags to the expected registers.
+     */
+    _asm { mov eax, speed }
+    _asm { mov dword ptr[esp + 0x14], eax }
+
+    _asm { mov edi, mzone }
+
+    JMP(0x0042C38E);
+}
+
+
+/**
+ *  #issue-531
+ *
+ *  This patch allows naval yards to display the "place rally point" cursor action
+ *  on water cells.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_BuildingClass_What_Action_Allow_Rally_Point_For_Naval_Yard_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    GET_REGISTER_STATIC(CellClass*, cell, eax);
+
+    /**
+     *  Stolen bytes / code.
+     */
+    if (cell->Passability == PASSABLE_OK) {
+        goto allow_rally_point;
+    }
+
+    /**
+     *  If the building is water-bound (has Float SpeedType), allow it to be placed on water.
+     */
+    if (cell->Passability == PASSABLE_WATER && this_ptr->Class->Speed == SPEED_FLOAT) {
+        goto allow_rally_point;
+    }
+
+    /**
+     *  The cell is not passable, return ACTION_NOMOVE.
+     */
+    JMP(0x0042EFA4);
+
+    /**
+     *  Allow placing the rally points.
+     */
+allow_rally_point:
+    JMP(0x0042EFB4);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void BuildingClassExtension_Hooks()
@@ -1615,4 +1734,10 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x00428AA4, &_BuildingClass_Draw_Overlays_Fetch_Factory_Patch);
     Patch_Jump(0x0042EC6B, &_BuildingClass_What_Action_Factory_Counter_Patch);
     Patch_Jump(0x0042F590, &BuildingClassExt::_Toggle_Primary);
+    Patch_Jump(0x0042CE87, &_BuildingClass_Exit_Object_Allow_Rally_Point_For_Naval_Yard_Patch);
+    // NOP out "push 1" instruction so we have an easier time injecting code here
+    Patch_Byte(0x0042CE7A, 0x90);
+    Patch_Byte(0x0042CE7A + 1, 0x90);
+    Patch_Jump(0x0042C37F, &_BuildingClass_Set_Rally_To_Point_NavalYard_Check_Patch);
+    Patch_Jump(0x0042EF9D, &_BuildingClass_What_Action_Allow_Rally_Point_For_Naval_Yard_Patch);
 }
