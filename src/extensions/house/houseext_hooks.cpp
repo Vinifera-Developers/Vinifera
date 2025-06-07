@@ -73,6 +73,7 @@ public:
     bool _Can_Build_Required_Forbidden_Houses(const TechnoTypeClass* techno_type);
     void _Active_Remove(TechnoClass const* techno);
     void _Active_Add(TechnoClass const* techno);
+    Cell _Find_Build_Location(BuildingTypeClass* btype, int(__fastcall* callback)(int, Cell&, int, int), int a3 = -1);
 
     // stubs
     FactoryClass* _Fetch_Factory(RTTIType rtti);
@@ -953,6 +954,77 @@ void HouseClassExt::_Active_Add(TechnoClass const* techno)
 
 
 /**
+ *  #issue-531
+ *
+ *  Interception of Find_Build_Location. This allows us to find a suitable building
+ *  location for the specific buildings, such as the Naval Yard.
+ *
+ *  @author: CCHyper
+ */
+Cell HouseClassExt::_Find_Build_Location(BuildingTypeClass* btype, int(__fastcall* callback)(int, Cell&, int, int), int a3)
+{
+    /**
+     *  Find the type class extension instance.
+     */
+    BuildingTypeClassExtension* buildingtypeext = Extension::Fetch<BuildingTypeClassExtension>(btype);
+    if (buildingtypeext && buildingtypeext->IsNaval) {
+
+        DEV_DEBUG_INFO("Find_Build_Location(%s): Searching for Naval Yard \"%s\" build location...\n", Name(), btype->Name());
+
+        Cell cell(0, 0);
+
+        /**
+         *  Get the cell footprint for the Naval Yard, then add a safety margin of 2.
+         */
+        int area_w = btype->Width() + 2;
+        int area_h = btype->Height() + 2;
+
+        /**
+         *  find a nearby location from the center of the base that fits our naval yard.
+         */
+        Cell found_cell = Map.Nearby_Location(Coord_Cell(Center), SPEED_FLOAT, -1, MZONE_NORMAL, 0, area_w, area_h);
+        if (found_cell != CELL_NONE) {
+
+            DEV_DEBUG_INFO("Find_Build_Location(%s): Found possible Naval Yard location at %d,%d...\n", Name(), found_cell.X, found_cell.Y);
+
+            /**
+             *  Iterate over all owned construction yards and find the first that is closest to our cell.
+             */
+            for (int i = 0; i < ConstructionYards.Count(); ++i) {
+                BuildingClass* conyard = ConstructionYards[i];
+                if (conyard) {
+
+                    Coordinate conyard_coord = conyard->Center_Coord();
+                    Coordinate found_coord = Map[found_cell].Center_Coord();
+
+                    /**
+                     *  Is this location close enough to the construction yard for us to use?
+                     */
+                    if (Distance(conyard_coord, found_coord) <= Cell_To_Lepton(RuleExtension->AINavalYardAdjacency)) {
+                        DEV_DEBUG_INFO("Find_Build_Location(%s): Using location %d,%d for Naval Yard.\n", Name(), found_cell.X, found_cell.Y);
+                        cell = found_cell;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (cell == CELL_NONE) {
+            DEV_DEBUG_WARNING("Find_Build_Location(%s): Failed to find suitable location for \"%s\"!\n", Name(), btype->Name());
+        }
+
+        return cell;
+
+    }
+
+    /**
+     *  Call the original function to find a location for land buildings.
+     */
+    return HouseClass::Find_Build_Location(btype, callback, a3);
+}
+
+
+/**
  *  Adds a check to Can_Build to check for RequiredHouses and ForbiddenHouses
  *
  *  Author: ZivDero
@@ -1129,6 +1201,10 @@ void HouseClassExtension_Hooks()
 
     Patch_Jump(0x004C23B0, &HouseClassExt::_Active_Remove);
     Patch_Jump(0x004C2450, &HouseClassExt::_Active_Add);
+
+    Patch_Call(0x0042D460, &HouseClassExt::_Find_Build_Location);
+    Patch_Call(0x0042D53C, &HouseClassExt::_Find_Build_Location);
+    Patch_Call(0x004C8104, &HouseClassExt::_Find_Build_Location);
 
     Patch_Jump(0x004C2CA0, &HouseClassExt::_Fetch_Factory);
     Patch_Jump(0x004C2D20, &HouseClassExt::_Set_Factory);

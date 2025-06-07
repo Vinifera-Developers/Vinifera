@@ -127,4 +127,15 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
          *  Should the game assume there is more than one MCV (that factions don't share their MCV?)
          */
         bool IsMultiMCV;
+
+        /**
+         *  A list of buildings considered Naval Yard's for the computer to choose
+         *  from when building its base.
+         */
+        //TypeList<BuildingTypeClass*> BuildNavalYard;
+
+        /**
+         *  The distance in cells the computer player can place their Naval Yard from their Construction Yard.
+         */
+        int AINavalYardAdjacency;
 };
