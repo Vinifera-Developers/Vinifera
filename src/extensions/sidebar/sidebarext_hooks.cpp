@@ -1261,14 +1261,14 @@ static int __cdecl BuildType_Comparison(const void* p1, const void* p2)
         /**
          *  If both are Units, non-naval units come first
          */
-        //if (bt1->BuildableType == RTTI_UNITTYPE)
-        //{
-        //    const auto ext1 = Extension::Fetch(t1);
-        //    const auto ext2 = Extension::Fetch(t2);
+        if (bt1->BuildableType == RTTI_UNITTYPE)
+        {
+            const auto ext1 = Extension::Fetch(t1);
+            const auto ext2 = Extension::Fetch(t2);
 
-        //    if (ext1->IsNaval != ext2->IsNaval)
-        //        return (int)ext1->IsNaval - (int)ext2->IsNaval;
-        //}
+            if (ext1->IsNaval != ext2->IsNaval)
+                return static_cast<int>(ext1->IsNaval) - static_cast<int>(ext2->IsNaval);
+        }
 
         /**
          *  If your side owns one of the objects, but not another, yours comes first
