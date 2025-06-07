@@ -1945,6 +1945,8 @@ DECLARE_PATCH(_BuildingClass_Exit_Object_BuildNavalUnit_Patch)
         }
     }
 
+    _asm mov ebp, 0xFFFFFFFF
+
     JMP(0x0042CA50);
 }
 
