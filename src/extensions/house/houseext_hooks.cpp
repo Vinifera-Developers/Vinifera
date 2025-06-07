@@ -84,6 +84,7 @@ public:
     ProdFailType _Begin_Production(RTTIType type, int id, bool resume);
     ProdFailType _Abandon_Production(RTTIType type, int id);
     bool _Place_Object(RTTIType type, Cell const& cell);
+    void _Update_Factories(RTTIType rtti);
 };
 
 
@@ -1076,87 +1077,68 @@ DECLARE_PATCH(_HouseClass_Can_Build_Multi_MCV_Patch)
 }
 
 
+#define WARN_AND_EXIT(funcname) { \
+    DEBUG_FATAL("The legacy version of " STRINGIZE(funcname) " has been called! If you see this, please notify the developers. The game will now exit.\n"); \
+    DEBUG_FATAL("Return address: %p\n", _ReturnAddress()); \
+    WWMessageBox().Process("The legacy version of " STRINGIZE(funcname) " has been called! If you see this, please notify the developers. The game will now exit.", 0, TXT_OK); \
+    Emergency_Exit(0); } \
+
+
 /**
  *  The below are dummies for the functions that have been completely supplanted by our extension functions.
  *  These ought not to be used.
  */
 FactoryClass* HouseClassExt::_Fetch_Factory(RTTIType rtti)
 {
-    DEBUG_FATAL("The legacy version of HouseClass::Fetch_Factory has been called! If you see this, please notify the developers. The game will now exit.\n");
-    DEBUG_FATAL("Return address: %p\n", _ReturnAddress());
-    WWMessageBox().Process("The legacy version of HouseClass::Fetch_Factory has been called! If you see this, please notify the developers. The game will now exit.", 0, TXT_OK);
-    Emergency_Exit(0);
+    WARN_AND_EXIT(HouseClass::Fetch_Factory);
     return nullptr;
 }
-
 
 void HouseClassExt::_Set_Factory(RTTIType rtti, FactoryClass* factory)
 {
-    DEBUG_FATAL("The legacy version of HouseClass::Set_Factory has been called! If you see this, please notify the developers. The game will now exit.\n");
-    DEBUG_FATAL("Return address: %p\n", _ReturnAddress());
-    WWMessageBox().Process("The legacy version of HouseClass::Set_Factory has been called! If you see this, please notify the developers. The game will now exit.", 0, TXT_OK);
-    Emergency_Exit(0);
+    WARN_AND_EXIT(HouseClass::Set_Factory);
 }
-
 
 int* HouseClassExt::_Factory_Counter(RTTIType rtti)
 {
-    DEBUG_FATAL("The legacy version of HouseClass::Factory_Counter has been called! If you see this, please notify the developers. The game will now exit.\n");
-    DEBUG_FATAL("Return address: %p\n", _ReturnAddress());
-    WWMessageBox().Process("The legacy version of HouseClass::Factory_Counter has been called! If you see this, please notify the developers. The game will now exit.", 0, TXT_OK);
-    Emergency_Exit(0);
+    WARN_AND_EXIT(HouseClass::Factory_Counter);
     return nullptr;
 }
 
-
 int HouseClassExt::_Factory_Count(RTTIType rtti) const
 {
-    DEBUG_FATAL("The legacy version of HouseClass::Factory_Count has been called! If you see this, please notify the developers. The game will now exit.\n");
-    DEBUG_FATAL("Return address: %p\n", _ReturnAddress());
-    WWMessageBox().Process("The legacy version of HouseClass::Factory_Count has been called! If you see this, please notify the developers. The game will now exit.", 0, TXT_OK);
-    Emergency_Exit(0);
+    WARN_AND_EXIT(HouseClass::Factory_Count);
     return 0;
 }
 
-
 ProdFailType HouseClassExt::_Suspend_Production(RTTIType type)
 {
-    DEBUG_FATAL("The legacy version of HouseClass::Suspend_Production has been called! If you see this, please notify the developers. The game will now exit.\n");
-    DEBUG_FATAL("Return address: %p\n", _ReturnAddress());
-    WWMessageBox().Process("The legacy version of HouseClass::Suspend_Production has been called! If you see this, please notify the developers. The game will now exit.", 0, TXT_OK);
-    Emergency_Exit(0);
+    WARN_AND_EXIT(HouseClass::Suspend_Production);
     return ProdFailType();
 }
-
 
 ProdFailType HouseClassExt::_Begin_Production(RTTIType type, int id, bool resume)
 {
-    DEBUG_FATAL("The legacy version of HouseClass::Begin_Production has been called! If you see this, please notify the developers. The game will now exit.\n");
-    DEBUG_FATAL("Return address: %p\n", _ReturnAddress());
-    WWMessageBox().Process("The legacy version of HouseClass::Begin_Production has been called! If you see this, please notify the developers. The game will now exit.", 0, TXT_OK);
-    Emergency_Exit(0);
+    WARN_AND_EXIT(HouseClass::Begin_Production);
     return ProdFailType();
 }
-
 
 
 ProdFailType HouseClassExt::_Abandon_Production(RTTIType type, int id)
 {
-    DEBUG_FATAL("The legacy version of HouseClass::Abandon_Production has been called! If you see this, please notify the developers. The game will now exit.\n");
-    DEBUG_FATAL("Return address: %p\n", _ReturnAddress());
-    WWMessageBox().Process("The legacy version of HouseClass::Abandon_Production has been called! If you see this, please notify the developers. The game will now exit.", 0, TXT_OK);
-    Emergency_Exit(0);
+    WARN_AND_EXIT(HouseClass::Abandon_Production);
     return ProdFailType();
 }
 
-
 bool HouseClassExt::_Place_Object(RTTIType type, Cell const& cell)
 {
-    DEBUG_FATAL("The legacy version of HouseClass::Place_Object has been called! If you see this, please notify the developers. The game will now exit.\n");
-    DEBUG_FATAL("Return address: %p\n", _ReturnAddress());
-    WWMessageBox().Process("The legacy version of HouseClass::Place_Object has been called! If you see this, please notify the developers. The game will now exit.", 0, TXT_OK);
-    Emergency_Exit(0);
+    WARN_AND_EXIT(HouseClass::Place_Object);
     return false;
+}
+
+void HouseClassExt::_Update_Factories(RTTIType type)
+{
+    WARN_AND_EXIT(HouseClass::Update_Factories);
 }
 
 
@@ -1170,6 +1152,80 @@ DECLARE_PATCH(_HouseClass_Exhausted_Build_Limit_Fetch_Factory_Patch)
 
     _asm mov ecx, factory
     JMP(0x004CB773);
+}
+
+
+void Update_Factories_Helper(BuildingClass* building)
+{
+    if (building->Class->ToBuild != RTTI_NONE) {
+        BuildingTypeClassExtension* type_ext = Extension::Fetch<BuildingTypeClassExtension>(building->Class);
+        HouseClassExtension* house_ext = Extension::Fetch<HouseClassExtension>(building->House);
+        house_ext->Update_Factories(building->Class->ToBuild, type_ext->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
+    }
+}
+
+
+DECLARE_PATCH(_BuildingClass_Unlimbo_Update_Factories_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    Update_Factories_Helper(this_ptr);
+    JMP(0x0042AAEB);
+}
+
+
+DECLARE_PATCH(_BuildingClass_Limbo_Update_Factories_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, edi);
+    Update_Factories_Helper(this_ptr);
+    JMP(0x0042DFDA);
+}
+
+
+DECLARE_PATCH(_BuildingClass_Captured_Update_Factories_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    GET_STACK_STATIC(HouseClass*, newowner, esp, 0x18);
+    GET_STACK_STATIC(HouseClass*, oldowner, esp, 0x60);
+
+    static BuildingTypeClassExtension* type_ext;
+    static HouseClassExtension* old_house_ext;
+    static HouseClassExtension* new_house_ext;
+
+    if (this_ptr->Class->ToBuild != RTTI_NONE) {
+        type_ext = Extension::Fetch<BuildingTypeClassExtension>(this_ptr->Class);
+
+        old_house_ext = Extension::Fetch<HouseClassExtension>(oldowner);
+        old_house_ext->Update_Factories(this_ptr->Class->ToBuild, type_ext->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
+
+        new_house_ext = Extension::Fetch<HouseClassExtension>(oldowner);
+        new_house_ext->Update_Factories(this_ptr->Class->ToBuild, type_ext->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
+    }
+
+    JMP(0x0042FD28);
+}
+
+
+DECLARE_PATCH(_BuildingClass_Read_INI_Update_Factories_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    Update_Factories_Helper(this_ptr);
+    JMP(0x00434C94);
+}
+
+
+DECLARE_PATCH(_BuildingClass_Turn_On_Update_Factories_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    Update_Factories_Helper(this_ptr);
+    JMP(0x0043686B);
+}
+
+
+DECLARE_PATCH(_BuildingClass_Turn_Off_Update_Factories_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    Update_Factories_Helper(this_ptr);
+    JMP(0x0043692D);
 }
 
 
@@ -1198,6 +1254,12 @@ void HouseClassExtension_Hooks()
     Patch_Jump(0x004BC0B7, &_HouseClass_Can_Build_Multi_MCV_Patch);
 
     Patch_Jump(0x004CB73D, &_HouseClass_Exhausted_Build_Limit_Fetch_Factory_Patch);
+    Patch_Jump(0x0042AACF, &_BuildingClass_Unlimbo_Update_Factories_Patch);
+    Patch_Jump(0x0042DFBE, &_BuildingClass_Limbo_Update_Factories_Patch);
+    Patch_Jump(0x0042FCF8, &_BuildingClass_Captured_Update_Factories_Patch);
+    Patch_Jump(0x00434C78, &_BuildingClass_Read_INI_Update_Factories_Patch);
+    Patch_Jump(0x00436855, &_BuildingClass_Turn_On_Update_Factories_Patch);
+    Patch_Jump(0x00436911, &_BuildingClass_Turn_Off_Update_Factories_Patch);
 
     Patch_Jump(0x004C23B0, &HouseClassExt::_Active_Remove);
     Patch_Jump(0x004C2450, &HouseClassExt::_Active_Add);

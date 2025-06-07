@@ -612,6 +612,45 @@ bool HouseClassExtension::Place_Object(RTTIType type, Cell const& cell, Producti
 }
 
 
+void HouseClassExtension::Update_Factories(RTTIType rtti, ProductionFlags flags)
+{
+    FactoryClass* factory = Fetch_Factory(rtti, flags);
+
+    if (factory != nullptr) {
+        for (int i = factory->QueuedObjects.Count() - 1; i >= 0; i--) {
+            TechnoTypeClass const* ttype = factory->QueuedObjects[i];
+            if (ttype->Who_Can_Build_Me(true, false, true, This()) == nullptr) {
+                factory->QueuedObjects.Delete(i);
+            }
+        }
+        if (factory->Object != nullptr) {
+            if (factory->Object->TClass->Who_Can_Build_Me(true, false, true, This()) == nullptr) {
+                factory->Abandon();
+                factory->Resume_Queue();
+            } else {
+                if (factory->Object->TClass->Who_Can_Build_Me(true, true, true, This()) == nullptr) {
+                    factory->Suspend(false);
+                    if (PlayerPtr == This()) {
+                        Map.SidebarClass::IsToRedraw = true;
+                        RedrawSidebar = true;
+                        Map.Flag_To_Redraw();
+                        Map.Column[0].Flag_To_Redraw();
+                        Map.Column[1].Flag_To_Redraw();
+                    }
+                } else {
+                    if (factory->IsSuspended && !factory->IsOnHold) {
+                        factory->Start(false);
+                    }
+                }
+            }
+        }
+        if (factory->Object == nullptr && factory->QueuedObjects.Count() == 0) {
+            delete factory;
+        }
+    }
+}
+
+
 /**
  *  Puts pointers to the storage extension into the storage class.
  *
