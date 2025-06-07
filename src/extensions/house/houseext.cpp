@@ -189,6 +189,10 @@ int HouseClassExtension::Get_Object_Size() const
 void HouseClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("HouseClassExtension::Detach - 0x%08X\n", (uintptr_t)(This()));
+
+    if (NavalFactory == target) {
+        NavalFactory = nullptr;
+    }
 }
 
 
