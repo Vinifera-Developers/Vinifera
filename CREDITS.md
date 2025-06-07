@@ -181,6 +181,7 @@ This page lists all the individual contributions to the project by their author.
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:
   - Add `TargetZoneScan` to TechnoTypes.
+  - Original implementation of a separate AI naval production queue in Phobos.
 - **ZivDero**:
   - Filling the documentation for previously implemented features.
   - Add support for up to 32767 waypoints to be used in scenarios.
