@@ -1066,7 +1066,7 @@ BuiltAt=      ; list of BuildingTypes, if not empty, then this Techno will be pr
 
 In `RULES.INI`:
 ```ini
-[General]
+[SOMEBUILDING]       ; BuildingType
 ExclusiveFactory=no  ; boolean, if true, this factory will only be able to produce units that list it in BuiltAt
 ```
 
