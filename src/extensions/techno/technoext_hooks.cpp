@@ -1322,7 +1322,7 @@ int TechnoClassExt::_Time_To_Build() const
     if (RTTI == RTTI_BUILDING && ((BuildingClass*)this)->Class->IsWall) {
         val *= Rule->WallBuildSpeedCoefficient;
     }
-    return(val);
+    return val;
 }
 
 
