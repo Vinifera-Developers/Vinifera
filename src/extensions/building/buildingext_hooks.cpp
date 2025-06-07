@@ -654,9 +654,12 @@ ActionType BuildingClassExt::_What_Action(ObjectClass const* object, bool disall
     **	far away.
     */
     if (action == ACTION_ATTACK && PrimaryWeapon != nullptr) {
+#if 0
         if (!In_Range_Of(const_cast<ObjectClass*>(object)) || !PrimaryWeapon->Bullet->IsAntiGround) {
             action = ACTION_NONE;
-        } else if (Class->IsEMPulseCannon || Class->IsLimpetMine) {
+        } else
+#endif
+        if (Class->IsEMPulseCannon || Class->IsLimpetMine) {
             action = ACTION_NONE;
         }
         if (CurrentMission == MISSION_DECONSTRUCTION) {
