@@ -134,6 +134,7 @@ This page lists all the individual contributions to the project by their author.
   - Implement customizable mouse cursors and actions.
   - Implement a feature for animations to spawn additional animations.
   - Help with implementing Jumpjet Locomotion improvements.
+  - Implement naval yards rally points, AI naval yard base spacing.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Noble Fish**:
@@ -174,6 +175,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where a visceroid was spawned when poison gas destroyed a non-crewed vehicle, building, or terrain object.
   - Fix a bug where it was impossible to tell infantry to enter cloaked allied transports.
   - Implement `ExplosionDamage` for animations.
+  - Implement naval yards rally points.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:
@@ -239,3 +241,4 @@ This page lists all the individual contributions to the project by their author.
   - Implement Jumpjet Locomotion improvements.
   - Fix a crash when a Jumpjet infantry is flying or trying to take off just when an Ion Storm starts.
   - Allow up to 65535 OverlayTypes in maps using `NewINIFormat=5`.
+  - Implement naval yards.

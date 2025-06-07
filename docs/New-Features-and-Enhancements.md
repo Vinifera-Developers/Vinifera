@@ -1032,6 +1032,25 @@ In `RULES.INI`:
 JumpjetNoWobbles=false  ; boolean, whether the jumpjet unit doesn't wobble.
 ```
 
+### Naval Yards
+
+- Vinifera implements a separate queue for naval units.
+
+- `BuildingTypes`, types with `Naval=yes` in conjunction with `WeaponsFactory=yes` will be considered Naval Yards and will only be able to produce `UnitTypes` with `Naval=yes`. Similarly, `UnitTypes` with `Naval=yes` may only be produced from weapons factories with `Naval=yes`.
+
+In `RULES.INI`:
+```ini
+[SOMETECHNO]  ; TechnoType
+Naval=false   ; boolean, whether this Techno is considered naval.
+```
+
+- Additionally, AI uses extra base spacing to place naval yards.
+
+In `RULES.INI`:
+```ini
+[General]
+AINavalYardAdjacency=20   ; integer, the distance in cells AI can place its Naval Yard from its Construction Yard
+```
 
 ## Terrain
 
