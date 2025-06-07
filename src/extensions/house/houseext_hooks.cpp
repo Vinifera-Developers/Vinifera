@@ -983,7 +983,7 @@ Cell HouseClassExt::_Find_Build_Location(BuildingTypeClass* btype, int(__fastcal
         /**
          *  find a nearby location from the center of the base that fits our naval yard.
          */
-        Cell found_cell = Map.Nearby_Location(Coord_Cell(Center), SPEED_FLOAT, -1, MZONE_NORMAL, 0, area_w, area_h);
+        Cell found_cell = Map.Nearby_Location(Coord_Cell(Center), SPEED_FLOAT, -1, MZONE_NORMAL, false, Point2D(area_w, area_h));
         if (found_cell != CELL_NONE) {
 
             DEV_DEBUG_INFO("Find_Build_Location(%s): Found possible Naval Yard location at %d,%d...\n", Name(), found_cell.X, found_cell.Y);

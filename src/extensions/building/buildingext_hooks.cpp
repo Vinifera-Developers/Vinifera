@@ -67,6 +67,7 @@
 #include "fatal.h"
 #include "asserthandler.h"
 #include "bullettype.h"
+#include "coord.h"
 #include "debughandler.h"
 #include "event.h"
 #include "factory.h"
@@ -1747,6 +1748,64 @@ DECLARE_PATCH(_BuildingClass_entry_370_RoofDoorAnim_Patch2)
 }
 
 
+bool Unlimbo_Naval_Helper(BuildingClass* building, TechnoClass* techno)
+{
+    if (building->Transmit_Message(RADIO_HELLO, techno) == RADIO_ROGER) {
+        building->Transmit_Message(RADIO_UNLOAD);
+    }
+
+    Cell unlimbo_cell = building->Center_Coord().As_Cell();
+
+    if (building->ArchiveTarget != nullptr) {
+        Cell rally = building->ArchiveTarget->Center_Coord().As_Cell();
+        DirType direction = Desired_Facing(Point2D(unlimbo_cell.X, unlimbo_cell.Y), Point2D(rally.X, rally.Y));
+        FacingType facing = static_cast<FacingType>(direction.Get_Facing<8>());
+
+        while (Map[unlimbo_cell].Cell_Building() == building) {
+            unlimbo_cell = Adjacent_Cell(unlimbo_cell, facing);
+        }
+    }
+
+    if (building->ArchiveTarget == nullptr || Map[unlimbo_cell].Land_Type() != LAND_WATER || Map[unlimbo_cell].Cell_Techno() != nullptr || !Map.In_Radar(unlimbo_cell)) {
+        unlimbo_cell = Map.Nearby_Location(building->Center_Coord().As_Cell(), techno->TClass->Speed);
+    }
+
+    if (techno->Unlimbo(Map[unlimbo_cell].Center_Coord())) {
+        if (building->ArchiveTarget != nullptr) {
+            techno->Assign_Destination(building->ArchiveTarget);
+            techno->Assign_Mission(MISSION_MOVE);
+        }
+        techno->Mark(MARK_UP);
+        techno->PositionCoord = Map[unlimbo_cell].Cell_Coord();
+        techno->Mark(MARK_DOWN);
+        return true;
+    }
+
+    return false;
+}
+
+
+DECLARE_PATCH(_BuildingClass_Exit_Object_Naval_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    GET_REGISTER_STATIC(TechnoClass*, techno, edi);
+    static BuildingTypeClassExtension* type_ext;
+
+    type_ext = Extension::Fetch<BuildingTypeClassExtension>(this_ptr->Class);
+    if (type_ext->IsNaval) {
+        if (Unlimbo_Naval_Helper(this_ptr, techno)) {
+            JMP(0x0042D7DF); // return 2 - successfully exited
+        } else {
+            JMP(0x0042D966); // return 0 - exit failed
+        }
+    } else {
+        // Stolen call
+        techno->Assign_Archive_Target(this_ptr);
+        JMP(0x0042CAA6);
+    }
+}
+
+
 /**
  *  Main function for patching the hooks.
  */
@@ -1797,4 +1856,5 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x0042C340, &BuildingClassExt::_Assign_Rally_Point);
     Patch_Jump(0x0042EBD0, static_cast<ActionType(BuildingClassExt::*)(ObjectClass const*, bool)>(&BuildingClassExt::_What_Action));
     Patch_Jump(0x0042EED0, static_cast<ActionType(BuildingClassExt::*)(const Cell&, bool, bool) const>(&BuildingClassExt::_What_Action));
+    Patch_Jump(0x0042CA98, &_BuildingClass_Exit_Object_Naval_Patch);
 }
