@@ -189,6 +189,7 @@ New:
 - Implement Jumpjet Locomotion improvements (by ZivDero, tomsons26)
 - Allow up to 65535 OverlayTypes in maps using `NewINIFormat=5` (by ZivDero)
 - Implement naval yards (by ZivDero, CCHyper, Rampastring)
+- Implement exclusive factories (by ZivDero)
 
 
 Vanilla fixes:

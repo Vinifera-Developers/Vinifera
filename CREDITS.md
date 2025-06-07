@@ -135,6 +135,7 @@ This page lists all the individual contributions to the project by their author.
   - Implement a feature for animations to spawn additional animations.
   - Help with implementing Jumpjet Locomotion improvements.
   - Implement naval yards rally points, AI naval yard base spacing.
+  - Implement exclusive factories.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Noble Fish**:
