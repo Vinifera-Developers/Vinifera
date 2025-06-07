@@ -889,8 +889,7 @@ int HouseClassExtension::AI_Naval_Unit()
 
     if (Random_Pick2(0, 0x7FFFFFFE) < Rule->FillEarliestTeamProbability[This()->Difficulty] / 100.0) {
         BuildNavalUnit = lasttype;
-    }
-    else {
+    } else {
         /*
         **	The object type to build is now known. Fetch a pointer to the techno type class.
         */
