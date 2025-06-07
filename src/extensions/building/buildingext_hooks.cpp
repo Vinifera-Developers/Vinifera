@@ -1733,6 +1733,7 @@ void BuildingClassExtension_Hooks()
     //Patch_Jump(0x00427DF5, &_BuildingClass_entry_370_RoofDoorAnim_Patch2);
     Patch_Jump(0x00428AA4, &_BuildingClass_Draw_Overlays_Fetch_Factory_Patch);
     Patch_Jump(0x0042EC6B, &_BuildingClass_What_Action_Factory_Counter_Patch);
+    Patch_Jump(0x00434000, &BuildingClassExt::_Detach_All);
     Patch_Jump(0x0042F590, &BuildingClassExt::_Toggle_Primary);
     Patch_Jump(0x0042CE87, &_BuildingClass_Exit_Object_Allow_Rally_Point_For_Naval_Yard_Patch);
     // NOP out "push 1" instruction so we have an easier time injecting code here

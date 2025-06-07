@@ -526,7 +526,6 @@ bool HouseClassExtension::Place_Object(RTTIType type, Cell const& cell, Producti
                 TechnoClass* builder = tech->Who_Can_Build_Me(false, true);
                 if (builder == nullptr && tech->RTTI == RTTI_AIRCRAFT) {
                     builder = tech->Who_Can_Build_Me(true, true);
-
                 }
 
                 if (builder != nullptr) {

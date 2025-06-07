@@ -248,7 +248,7 @@ BuildingClass* ObjectTypeClassExt::_Who_Can_Build_Me(bool intheory, bool needsno
 
             if (intheory || !building->In_Radio_Contact() || RTTI != RTTI_AIRCRAFTTYPE) {
                 if (RTTI == RTTI_UNITTYPE) {
-                    UnitTypeClassExtension* type_ext = Extension::Fetch<UnitTypeClassExtension>(((UnitClass*)this)->Class);
+                    UnitTypeClassExtension* type_ext = Extension::Fetch<UnitTypeClassExtension>(this);
                     BuildingTypeClassExtension* btype_ext = Extension::Fetch<BuildingTypeClassExtension>(building->Class);
                     if (btype_ext->IsNaval != type_ext->IsNaval) continue;
                 }
@@ -280,5 +280,5 @@ void ObjectTypeClassExtension_Hooks()
     Patch_Jump(0x0058891D, &_ObjectTypeClass_Load_Theater_Art_Assign_Theater_Name_Theater_Patch);
     Patch_Jump(0x00587C80, &ObjectTypeClassExt::_Fetch_Voxel_Image);
     Patch_Jump(0x00589030, &ObjectTypeClassExt::_Clear_Voxel_Indexes);
-    Patch_Jump(0x005F7900, &ObjectTypeClassExt::_Who_Can_Build_Me);
+    Patch_Jump(0x00587B20, &ObjectTypeClassExt::_Who_Can_Build_Me);
 }
