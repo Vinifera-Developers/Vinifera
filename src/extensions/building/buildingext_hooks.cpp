@@ -677,8 +677,12 @@ ActionType BuildingClassExt::_What_Action(ObjectClass const* object, bool disall
                     if (!Is_In_Same_Zone(cell.As_Coord())) {
                         action = ACTION_NOMOVE;
                     }
-                    if (!Map[cell].IsUnderBridge && Map[cell].Passability != PASSABLE_OK) {
-                        action = ACTION_NOMOVE;
+                    if (!Map[cell].IsUnderBridge) {
+                        if (Map[cell].Passability != PASSABLE_OK &&
+                            !(Extension::Fetch<BuildingTypeClassExtension>(Class)->IsNaval && Map[cell].Passability == PASSABLE_WATER)) {
+
+                            action = ACTION_NOMOVE;
+                        }
                     }
                 }
             }
