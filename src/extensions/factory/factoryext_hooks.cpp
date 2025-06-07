@@ -43,9 +43,10 @@
 #include "mouse.h"
 #include "rulesext.h"
 #include "sidebarext.h"
+#include "unittypeext.h"
 
 
- /**
+/**
   *  A fake class for implementing new member functions which allow
   *  access to the "this" pointer of the intended class.
   *
@@ -59,6 +60,7 @@ public:
     void _AI();
     bool _Start(bool suspend);
     void _Resume_Queue();
+    bool _Abandon();
 };
 
 
@@ -244,6 +246,66 @@ void FactoryClassExt::_Resume_Queue()
 }
 
 
+bool FactoryClassExt::_Abandon()
+{
+    if (Object) {
+
+        if (Object) {
+
+            DEBUG_INFO("Abandoning production of %s\n", Object->Class_Of()->FullName);
+
+            /*
+            **	Refund all money expended so far, back to the owner of the object under construction.
+            */
+            int money = Object->Class_Of()->Cost_Of(Object->House);
+            House->Refund_Money(money - Balance);
+            Balance = 0;
+        }
+        if (SpecialItem) {
+            SpecialItem = SUPER_NONE;
+        }
+
+        /*
+        **	Set the factory back to the idle and empty state.
+        */
+        Set_Rate(0);
+        Set_Stage(0);
+        IsSuspended = true;
+        IsDifferent = true;
+
+        if (!House->Is_Human_Player()) {
+            if (Object->RTTI == RTTI_INFANTRY) {
+                House->BuildInfantry = INFANTRY_NONE;
+            }
+            if (Object->RTTI == RTTI_UNIT) {
+                if (Extension::Fetch<UnitTypeClassExtension>(Object->TClass)->IsNaval) {
+                    Extension::Fetch<HouseClassExtension>(House)->BuildNavalUnit = UNIT_NONE;
+                } else {
+                    House->BuildUnit = UNIT_NONE;
+                }
+            }
+            if (Object->RTTI == RTTI_AIRCRAFT) {
+                House->BuildAircraft = AIRCRAFT_NONE;
+            }
+            if (Object->RTTI == RTTI_BUILDING) {
+                House->BuildStructure = STRUCT_NONE;
+            }
+        }
+
+        /*
+        **	Delete the object under construction.
+        */
+        ScenarioInit++;
+        delete Object;
+        Object = nullptr;
+        ScenarioInit--;
+
+        return true;
+    }
+    return false;
+}
+
+
 /**
  *  Main function for patching the hooks.
  */
@@ -257,4 +319,5 @@ void FactoryClassExtension_Hooks()
     Patch_Jump(0x00496EA0, &FactoryClassExt::_AI);
     Patch_Jump(0x004971E0, &FactoryClassExt::_Start);
     Patch_Jump(0x004978D0, &FactoryClassExt::_Resume_Queue);
+    Patch_Jump(0x00497330, &FactoryClassExt::_Abandon);
 }

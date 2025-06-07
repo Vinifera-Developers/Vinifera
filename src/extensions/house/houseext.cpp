@@ -26,6 +26,8 @@
  *
  ******************************************************************************/
 #include "houseext.h"
+
+#include <algorithm>
 #include "house.h"
 #include "ccini.h"
 #include "extension.h"
@@ -42,6 +44,10 @@
 #include "building.h"
 #include "overlaytype.h"
 #include "rules.h"
+#include "session.h"
+#include "team.h"
+#include "teamtype.h"
+#include "unit.h"
 #include "voc.h"
 #include "vox.h"
 
@@ -56,7 +62,8 @@ HouseClassExtension::HouseClassExtension(const HouseClass *this_ptr) :
     TiberiumStorage(Tiberiums.Count()),
     WeedStorage(Tiberiums.Count()),
     NavalFactories(0),
-    NavalFactory(nullptr)
+    NavalFactory(nullptr),
+    BuildNavalUnit(UNIT_NONE)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("HouseClassExtension::HouseClassExtension - 0x%08X\n", (uintptr_t)(This()));
 
@@ -648,6 +655,251 @@ void HouseClassExtension::Update_Factories(RTTIType rtti, ProductionFlags flags)
             delete factory;
         }
     }
+}
+
+
+TechnoTypeClass const* HouseClassExtension::Suggest_New_Object(RTTIType objecttype, ProductionFlags flags) const
+{
+    TechnoTypeClass const* techno = nullptr;
+
+    switch (objecttype) {
+    case RTTI_AIRCRAFT:
+    case RTTI_AIRCRAFTTYPE:
+        if (This()->BuildAircraft != AIRCRAFT_NONE) {
+            return AircraftTypes[This()->BuildAircraft];
+        }
+        return nullptr;
+
+        /*
+        **	Unit construction is based on the rule that up to twice the number required
+        **	to fill all teams will be created.
+        */
+    case RTTI_UNIT:
+    case RTTI_UNITTYPE:
+        if (flags & PRODFLAG_NAVAL) {
+            if (BuildNavalUnit != UNIT_NONE) {
+                return UnitTypes[BuildNavalUnit];
+            }
+        } else {
+            if (This()->BuildUnit != UNIT_NONE) {
+                return UnitTypes[This()->BuildUnit];
+            }
+        }
+        return nullptr;
+
+        /*
+        **	Infantry construction is based on the rule that up to twice the number required
+        **	to fill all teams will be created.
+        */
+    case RTTI_INFANTRY:
+    case RTTI_INFANTRYTYPE:
+        if (This()->BuildInfantry != INFANTRY_NONE) {
+            return InfantryTypes[This()->BuildInfantry];
+        }
+        return nullptr;
+
+        /*
+        **	Building construction is based upon the preconstruction list.
+        */
+    case RTTI_BUILDING:
+    case RTTI_BUILDINGTYPE:
+        if (This()->BuildStructure != STRUCT_NONE) {
+            return BuildingTypes[This()->BuildStructure];
+        }
+        return nullptr;
+    }
+    return techno;
+}
+
+int HouseClassExtension::AI_Unit()
+{
+    if (This()->BuildUnit != UNIT_NONE) return TICKS_PER_SECOND;
+
+    int harv = This()->ActiveUQuantity.Count_Of(This()->Get_First_Ownable(Rule->HarvesterUnit)->HeapID);
+    int ref = This()->ActiveBQuantity.Count_Of(This()->Get_First_Ownable(Rule->BuildRefinery)->HeapID);
+    int mult;
+    if (Session.Type == GAME_NORMAL || This()->Difficulty == DIFF_HARD) {
+        mult = 1;
+    } else {
+        mult = 2;
+    }
+
+    /*
+    **	A computer controlled house will try to build a replacement
+    **	harvester if possible.
+    */
+    if (This()->IQ >= Rule->IQHarvester && !This()->IsTiberiumShort && !This()->Is_Human_Player() && ref * mult > harv) {
+        if (This()->Get_First_Ownable(Rule->HarvesterUnit)->TechLevel <= This()->Control.TechLevel) {
+            This()->BuildUnit = This()->Get_First_Ownable(Rule->HarvesterUnit)->HeapID;
+            return TICKS_PER_SECOND;
+        }
+    }
+
+    int counter[1000]; // size increased replicating ts-patches
+    int value[std::size(counter)];
+    memset(counter, 0x00, sizeof(counter));
+    for (int& i : value) {
+        i = 0x7FFFFFFF;
+    }
+
+    /*
+    **	Build a list of the maximum of each type we wish to produce. This will be
+    **	twice the number required to fill all teams.
+    */
+    for (TeamClass* tptr : Teams) {
+        if (tptr != nullptr) {
+
+            int val = tptr->field_40;
+
+            if (((tptr->Class->IsReinforcable && !tptr->IsFullStrength) || (!tptr->IsForcedActive && !tptr->IsHasBeen)) && tptr->House == This()) {
+                DynamicVectorClass<TechnoTypeClass const*> _members;
+                tptr->Team_Members(_members);
+
+                for (int subindex = 0; subindex < _members.Count(); subindex++) {
+
+                    UnitTypeClass const* memtype = static_cast<UnitTypeClass const*>(_members[subindex]);
+
+                    if (memtype->RTTI == RTTI_UNITTYPE) {
+                        counter[memtype->HeapID]++;
+                        value[memtype->HeapID] = std::min(val, value[memtype->HeapID]);
+                    }
+                }
+            }
+        }
+    }
+
+    /*
+    **	Reduce the theoretical maximum by the actual number of objects currently
+    **	in play.
+    */
+    for (UnitClass* obj : Units) {
+        if (obj != nullptr && obj->Is_Recruitable(This()) && counter[obj->Class->HeapID] > 0) {
+            counter[obj->Class->HeapID]--;
+        }
+    }
+
+    /*
+    **	Pick to build the most needed object but don't consider those object that
+    **	can't be built because of scenario restrictions or insufficient cash.
+    */
+    int bestval = -1;
+    int bestcount = 0;
+    UnitType lasttype = UNIT_NONE;
+    int lastval = 0x7FFFFFFF;
+    UnitType bestlist[std::size(counter)];
+    for (UnitType type = UNIT_FIRST; type < UnitTypes.Count(); type++) {
+        if (counter[type] > 0 && This()->Can_Build(UnitTypes[type], false, false) && UnitTypes[type]->Cost_Of(This()) <= This()->Available_Money() && !Extension::Fetch<TechnoTypeClassExtension>(UnitTypes[type])->IsNaval) {
+            if (bestval == -1 || bestval < counter[type]) {
+                bestval = counter[type];
+                bestcount = 0;
+            }
+            bestlist[bestcount++] = type;
+
+            if (lasttype == UNIT_NONE || value[type] < lastval) {
+                lasttype = type;
+                lastval = value[type];
+            }
+        }
+    }
+
+    if (Random_Pick2(0, 0x7FFFFFFE) < Rule->FillEarliestTeamProbability[This()->Difficulty] / 100.0) {
+        This()->BuildUnit = lasttype;
+    } else {
+        /*
+        **	The object type to build is now known. Fetch a pointer to the techno type class.
+        */
+        if (bestcount) {
+            This()->BuildUnit = bestlist[Random_Pick(0, bestcount - 1)];
+        }
+    }
+
+    return TICKS_PER_SECOND;
+}
+
+int HouseClassExtension::AI_Naval_Unit()
+{
+    if (BuildNavalUnit != UNIT_NONE) return TICKS_PER_SECOND;
+
+    int counter[1000]; // size increased replicating ts-patches
+    int value[std::size(counter)];
+    memset(counter, 0x00, sizeof(counter));
+    for (int& i : value) {
+        i = 0x7FFFFFFF;
+    }
+
+    /*
+    **	Build a list of the maximum of each type we wish to produce. This will be
+    **	twice the number required to fill all teams.
+    */
+    for (TeamClass* tptr : Teams) {
+        if (tptr != nullptr) {
+
+            int val = tptr->field_40;
+
+            if (((tptr->Class->IsReinforcable && !tptr->IsFullStrength) || (!tptr->IsForcedActive && !tptr->IsHasBeen)) && tptr->House == This()) {
+                DynamicVectorClass<TechnoTypeClass const*> _members;
+                tptr->Team_Members(_members);
+
+                for (int subindex = 0; subindex < _members.Count(); subindex++) {
+
+                    UnitTypeClass const* memtype = static_cast<UnitTypeClass const*>(_members[subindex]);
+
+                    if (memtype->RTTI == RTTI_UNITTYPE) {
+                        counter[memtype->HeapID]++;
+                        value[memtype->HeapID] = std::min(val, value[memtype->HeapID]);
+                    }
+                }
+            }
+        }
+    }
+
+    /*
+    **	Reduce the theoretical maximum by the actual number of objects currently
+    **	in play.
+    */
+    for (UnitClass* obj : Units) {
+        if (obj != nullptr && obj->Is_Recruitable(This()) && counter[obj->Class->HeapID] > 0) {
+            counter[obj->Class->HeapID]--;
+        }
+    }
+
+    /*
+    **	Pick to build the most needed object but don't consider those object that
+    **	can't be built because of scenario restrictions or insufficient cash.
+    */
+    int bestval = -1;
+    int bestcount = 0;
+    UnitType lasttype = UNIT_NONE;
+    int lastval = 0x7FFFFFFF;
+    UnitType bestlist[std::size(counter)];
+    for (UnitType type = UNIT_FIRST; type < UnitTypes.Count(); type++) {
+        if (counter[type] > 0 && This()->Can_Build(UnitTypes[type], false, false) && UnitTypes[type]->Cost_Of(This()) <= This()->Available_Money() && Extension::Fetch<TechnoTypeClassExtension>(UnitTypes[type])->IsNaval) {
+            if (bestval == -1 || bestval < counter[type]) {
+                bestval = counter[type];
+                bestcount = 0;
+            }
+            bestlist[bestcount++] = type;
+
+            if (lasttype == UNIT_NONE || value[type] < lastval) {
+                lasttype = type;
+                lastval = value[type];
+            }
+        }
+    }
+
+    if (Random_Pick2(0, 0x7FFFFFFE) < Rule->FillEarliestTeamProbability[This()->Difficulty] / 100.0) {
+        BuildNavalUnit = lasttype;
+    }
+    else {
+        /*
+        **	The object type to build is now known. Fetch a pointer to the techno type class.
+        */
+        if (bestcount) {
+            BuildNavalUnit = bestlist[Random_Pick(0, bestcount - 1)];
+        }
+    }
+
+    return TICKS_PER_SECOND;
 }
 
 

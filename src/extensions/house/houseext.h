@@ -72,6 +72,10 @@ public:
     ProdFailType Abandon_Production(RTTIType type, int id, ProductionFlags flags);
     bool Place_Object(RTTIType type, Cell const& cell, ProductionFlags flags);
     void Update_Factories(RTTIType rtti, ProductionFlags flags);
+    TechnoTypeClass const* Suggest_New_Object(RTTIType objecttype, ProductionFlags flags) const;
+
+    int AI_Unit();
+    int AI_Naval_Unit();
 
     void Put_Storage_Pointers();
     static void Load_Unit_Trackers(HouseClass* house, IStream* pStm);
@@ -90,4 +94,5 @@ public:
 
     int NavalFactories;
     FactoryClass* NavalFactory;
+    UnitType BuildNavalUnit;
 };

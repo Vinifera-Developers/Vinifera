@@ -69,11 +69,13 @@ static DECLARE_EXTENDING_CLASS_AND_PAIR(HouseClass)
 {
 public:
     int _AI_Building();
+    int _AI_Unit();
     int _Expert_AI();
     bool _Can_Build_Required_Forbidden_Houses(const TechnoTypeClass* techno_type);
     void _Active_Remove(TechnoClass const* techno);
     void _Active_Add(TechnoClass const* techno);
     Cell _Find_Build_Location(BuildingTypeClass* btype, int(__fastcall* callback)(int, Cell&, int, int), int a3 = -1);
+    void _Production_Check();
 
     // stubs
     FactoryClass* _Fetch_Factory(RTTIType rtti);
@@ -85,6 +87,7 @@ public:
     ProdFailType _Abandon_Production(RTTIType type, int id);
     bool _Place_Object(RTTIType type, Cell const& cell);
     void _Update_Factories(RTTIType rtti);
+    TechnoTypeClass const* _Suggest_New_Object(RTTIType objecttype, bool kennel) const;
 };
 
 
@@ -444,6 +447,15 @@ int HouseClassExt::_AI_Building()
 
     BuildStructure = node->Type;
     return TICKS_PER_SECOND;
+}
+
+
+int HouseClassExt::_AI_Unit()
+{
+    auto extension = Extension::Fetch<HouseClassExtension>(this);
+    int delay1 = extension->AI_Unit();
+    int delay2 = extension->AI_Naval_Unit();
+    return std::min(delay1, delay2);
 }
 
 
@@ -1142,6 +1154,13 @@ void HouseClassExt::_Update_Factories(RTTIType type)
 }
 
 
+TechnoTypeClass const* HouseClassExt::_Suggest_New_Object(RTTIType objecttype, bool kennel) const
+{
+    WARN_AND_EXIT(HouseClass::Suggest_New_Object);
+    return nullptr;
+}
+
+
 DECLARE_PATCH(_HouseClass_Exhausted_Build_Limit_Fetch_Factory_Patch)
 {
     GET_REGISTER_STATIC(HouseClass*, this_ptr, ebx);
@@ -1229,6 +1248,65 @@ DECLARE_PATCH(_BuildingClass_Turn_Off_Update_Factories_Patch)
 }
 
 
+DECLARE_PATCH(_HouseClass_Raise_Money_BuildNavalUnit_Patch)
+{
+    GET_REGISTER_STATIC(HouseClass*, this_ptr, esi);
+    GET_REGISTER_STATIC(bool, needs_harvester, cl);
+    static HouseClassExtension* house_ext;
+
+    house_ext = Extension::Fetch<HouseClassExtension>(this_ptr);
+
+    // Stolen instructions
+    this_ptr->BuildUnit = UNIT_NONE;
+    this_ptr->BuildInfantry = INFANTRY_NONE;
+    this_ptr->BuildAircraft = AIRCRAFT_NONE;
+    this_ptr->BuildStructure = STRUCT_NONE;
+
+    // Clear naval production target
+    house_ext->BuildNavalUnit = UNIT_NONE;
+
+    if (needs_harvester) {
+        JMP(0x004C0F5F);
+    } else {
+        JMP(0x004C0F87);
+    }
+}
+
+
+void HouseClassExt::_Production_Check()
+{
+    auto house_ext = Extension::Fetch<HouseClassExtension>(this);
+
+    bool b = BuildUnit == UNIT_NONE && BuildInfantry == INFANTRY_NONE && BuildAircraft == AIRCRAFT_NONE && house_ext->BuildNavalUnit == UNIT_NONE;
+
+    if (BuildUnit != UNIT_NONE && !UnitTypes[BuildUnit]->Who_Can_Build_Me(true, true, true, this)) {
+        b = true;
+    }
+    if (BuildInfantry != INFANTRY_NONE && !InfantryTypes[BuildInfantry]->Who_Can_Build_Me(true, true, true, this)) {
+        b = true;
+    }
+    if (BuildAircraft != AIRCRAFT_NONE && !AircraftTypes[BuildAircraft]->Who_Can_Build_Me(true, true, true, this)) {
+        b = true;
+    }
+    if (house_ext->BuildNavalUnit != UNIT_NONE && !UnitTypes[house_ext->BuildNavalUnit]->Who_Can_Build_Me(true, true, true, this)) {
+        b = true;
+    }
+
+    if (b) {
+        AI_Building();
+    }
+}
+
+
+DECLARE_PATCH(_HouseClass_AI_BuildNavalUnit_Patch)
+{
+    GET_REGISTER_STATIC(HouseClassExt*, this_ptr, esi);
+    this_ptr->_Production_Check();
+    JMP(0x004BD1A1);
+}
+
+
+
 /**
  *  Main function for patching the hooks.
  */
@@ -1247,6 +1325,7 @@ void HouseClassExtension_Hooks()
     Patch_Jump(0x004CB6C1, &_HouseClass_Enable_SWs_Check_For_Building_Power);
 
     Patch_Jump(0x004C10E0, &HouseClassExt::_AI_Building);
+    Patch_Jump(0x004C1650, &HouseClassExt::_AI_Unit);
     Patch_Jump(0x004C0630, &HouseClassExt::_Expert_AI);
     Patch_Jump(0x004BBC74, &_Can_Build_Required_Forbidden_Houses_Patch);
 
@@ -1260,6 +1339,8 @@ void HouseClassExtension_Hooks()
     Patch_Jump(0x00434C78, &_BuildingClass_Read_INI_Update_Factories_Patch);
     Patch_Jump(0x00436855, &_BuildingClass_Turn_On_Update_Factories_Patch);
     Patch_Jump(0x00436911, &_BuildingClass_Turn_Off_Update_Factories_Patch);
+    Patch_Jump(0x004C0F40, &_HouseClass_Raise_Money_BuildNavalUnit_Patch);
+    Patch_Jump(0x004BD0E5, &_HouseClass_AI_BuildNavalUnit_Patch);
 
     Patch_Jump(0x004C23B0, &HouseClassExt::_Active_Remove);
     Patch_Jump(0x004C2450, &HouseClassExt::_Active_Add);
@@ -1276,4 +1357,5 @@ void HouseClassExtension_Hooks()
     Patch_Jump(0x004BE200, &HouseClassExt::_Begin_Production);
     Patch_Jump(0x004BE6A0, &HouseClassExt::_Abandon_Production);
     Patch_Jump(0x004BEA10, &HouseClassExt::_Place_Object);
+    Patch_Jump(0x004BF180, &HouseClassExt::_Suggest_New_Object);
 }

@@ -600,7 +600,7 @@ void BuildingClassExt::_Assign_Rally_Point(Cell const& cell)
     if (nearbyloc != CELL_NONE) {
         OutList.Add(EventClass(Owner(), EVENT_ARCHIVE, TargetClass(this), TargetClass(&Map[nearbyloc])));
     } else {
-        if (Class->IsConstructionYard && House->Is_Human_Control() && Session.Type != GAME_NORMAL && Session.Options.RedeployMCV) {
+        if (Class->IsConstructionYard && House->Is_Human_Player() && Session.Type != GAME_NORMAL && Session.Options.RedeployMCV) {
             OutList.Add(EventClass(Owner(), EVENT_ARCHIVE, TargetClass(this), TargetClass(&Map[Center_Coord()])));
         }
     }
@@ -831,7 +831,8 @@ void BuildingClassExt::_Factory_AI()
                 **	production can never complete -- don't bother starting it.
                 */
                 if (House->IsStarted && House->Available_Money() > 10) {
-                    TechnoTypeClass const* techno = House->Suggest_New_Object(Class->ToBuild, false);
+                    auto btype_ext = Extension::Fetch<BuildingTypeClassExtension>(Class);
+                    TechnoTypeClass const* techno = Extension::Fetch<HouseClassExtension>(House)->Suggest_New_Object(Class->ToBuild, btype_ext->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
 
                     /*
                     **	If a suitable object type was selected for production, then start
@@ -839,7 +840,6 @@ void BuildingClassExt::_Factory_AI()
                     */
                     if (techno != nullptr) {
                         bool allowed_factory = true;
-                        auto btype_ext = Extension::Fetch<BuildingTypeClassExtension>(Class);
                         auto ttype_ext = Extension::Fetch<TechnoTypeClassExtension>(techno);
                         if (techno->RTTI == RTTI_UNITTYPE) {
                             if (btype_ext->IsNaval != ttype_ext->IsNaval) {
@@ -1924,6 +1924,28 @@ DECLARE_PATCH(_BuildingClass_Exit_Object_Naval_Patch)
 }
 
 
+DECLARE_PATCH(_BuildingClass_Exit_Object_BuildNavalUnit_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    GET_REGISTER_STATIC(TechnoClass*, techno, edi);
+
+    static TechnoTypeClassExtension* ttype_ext;
+    static HouseClassExtension* house_ext;
+
+    if (techno->RTTI == RTTI_UNIT) {
+        ttype_ext = Extension::Fetch<TechnoTypeClassExtension>(techno->TClass);
+        if (ttype_ext->IsNaval) {
+            house_ext = Extension::Fetch<HouseClassExtension>(this_ptr->House);
+            house_ext->BuildNavalUnit = UNIT_NONE;
+        } else {
+            this_ptr->House->BuildUnit = UNIT_NONE;
+        }
+    }
+
+    JMP(0x0042CA50);
+}
+
+
 /**
  *  Main function for patching the hooks.
  */
@@ -1976,4 +1998,5 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x0042EBD0, static_cast<ActionType(BuildingClassExt::*)(ObjectClass const*, bool)>(&BuildingClassExt::_What_Action));
     Patch_Jump(0x0042EED0, static_cast<ActionType(BuildingClassExt::*)(const Cell&, bool, bool) const>(&BuildingClassExt::_What_Action));
     Patch_Jump(0x0042CA98, &_BuildingClass_Exit_Object_Naval_Patch);
+    Patch_Jump(0x0042CA35, &_BuildingClass_Exit_Object_BuildNavalUnit_Patch);
 }
