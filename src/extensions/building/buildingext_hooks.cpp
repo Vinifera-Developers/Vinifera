@@ -107,6 +107,7 @@ public:
     void _Assign_Rally_Point(const Cell& cell);
     ActionType _What_Action(ObjectClass const* object, bool disallow_force);
     ActionType _What_Action(const Cell& cell, bool check_fog, bool disallow_force) const;
+    void _Factory_AI();
 };
 
 
@@ -751,6 +752,123 @@ ActionType BuildingClassExt::_What_Action(const Cell& cell, bool check_fog, bool
     }
 
     return action;
+}
+
+
+void BuildingClassExt::_Factory_AI()
+{
+    /*
+    **	Handle any production tied to this building. Only computer controlled buildings have
+    **	production attached to the building itself. The player uses the sidebar interface for
+    **	all production control.
+    */
+    if (Factory != nullptr && Factory->Has_Completed() && PlacementDelay == 0) {
+        TechnoClass* product = Factory->Get_Object();
+
+        switch (Exit_Object(product)) {
+
+            /*
+            **	If the object could not leave the factory, then either request
+            **	a transport, place the (what must be a) building using another method, or
+            **	abort the production and refund money.
+            */
+        case 0:
+            Factory->Abandon();
+            delete Factory;
+            Factory = nullptr;
+            break;
+
+            /*
+            **	Exiting this building is prevented by some temporary blockage. Wait
+            **	a bit before trying again.
+            */
+        case 1:
+            PlacementDelay = static_cast<int>(Rule->PlacementDelay * TICKS_PER_MINUTE);
+            break;
+
+            /*
+            **	The object was successfully sent from this factory. Inform the house
+            **	tracking logic that the requested object has been produced.
+            */
+        case 2:
+            House->Just_Built(product);
+            Factory->Completed();
+            delete Factory;
+            Factory = nullptr;
+            break;
+
+        default:
+            break;
+        }
+    }
+
+    /*
+    **	Pick something to create for this factory.
+    */
+    if (House->IsStarted && Mission != MISSION_CONSTRUCTION && Mission != MISSION_DECONSTRUCTION) {
+
+        /*
+        **	Buildings that produce other objects have special factory logic handled here.
+        */
+        if (Class->ToBuild != RTTI_NONE) {
+            if (Factory != nullptr) {
+
+                /*
+                **	If production has halted, then just abort production and make the
+                **	funds available for something else.
+                */
+                if (PlacementDelay == 0 && !Factory->Is_Building()) {
+                    Factory->Abandon();
+                    delete Factory;
+                    Factory = nullptr;
+                }
+
+            } else {
+
+                /*
+                **	Only look to start production if there is at least a small amount of
+                **	money available. In cases where there is no practical money left, then
+                **	production can never complete -- don't bother starting it.
+                */
+                if (House->IsStarted && House->Available_Money() > 10) {
+                    TechnoTypeClass const* techno = House->Suggest_New_Object(Class->ToBuild, false);
+
+                    /*
+                    **	If a suitable object type was selected for production, then start
+                    **	producing it now.
+                    */
+                    if (techno != nullptr) {
+                        bool allowed_factory = true;
+                        auto btype_ext = Extension::Fetch<BuildingTypeClassExtension>(Class);
+                        auto ttype_ext = Extension::Fetch<TechnoTypeClassExtension>(techno);
+                        if (techno->RTTI == RTTI_UNIT) {
+                            if (btype_ext->IsNaval != ttype_ext->IsNaval) {
+                                allowed_factory = false;
+                            }
+                        }
+                        // This object can't be built at this factory
+                        if (ttype_ext->BuiltAt.Count() != 0 && !ttype_ext->BuiltAt.Is_Present(Class)) allowed_factory = false;
+
+                        // This factory doesn't allow this unit
+                        if (btype_ext->IsExclusiveFactory && !ttype_ext->BuiltAt.Is_Present(Class)) allowed_factory = false;
+
+                        if (allowed_factory) {
+                            Factory = new FactoryClass;
+                            if (Factory != nullptr) {
+                                if (!Factory->Set(*techno, *House, false)) {
+                                    delete Factory;
+                                    Factory = nullptr;
+                                } else {
+                                    House->Production_Begun(Factory->Get_Object());
+                                    Factory->Start(false);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 
@@ -1854,6 +1972,7 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x00434000, &BuildingClassExt::_Detach_All);
     Patch_Jump(0x0042F590, &BuildingClassExt::_Toggle_Primary);
     Patch_Jump(0x0042C340, &BuildingClassExt::_Assign_Rally_Point);
+    Patch_Jump(0x004500F0, &BuildingClassExt::_Factory_AI);
     Patch_Jump(0x0042EBD0, static_cast<ActionType(BuildingClassExt::*)(ObjectClass const*, bool)>(&BuildingClassExt::_What_Action));
     Patch_Jump(0x0042EED0, static_cast<ActionType(BuildingClassExt::*)(const Cell&, bool, bool) const>(&BuildingClassExt::_What_Action));
     Patch_Jump(0x0042CA98, &_BuildingClass_Exit_Object_Naval_Patch);
