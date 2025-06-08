@@ -747,7 +747,7 @@ bool Vinifera_Init_Secondary_Mixfiles()
     }
 
 	/*
-	**	Register the score mixfile.
+	**  Register the score mixfile.
 	*/
     if (CCFileClass("SCORES.MIX").Is_Available()) {
         ScoreMix = new MFCC("SCORES.MIX", &FastKey);
@@ -944,7 +944,7 @@ bool Vinifera_Init_Bootstrap_Mixfiles()
     }
 
     /*
-    **	Bootstrap enough of the system so that the error dialog
+    **  Bootstrap enough of the system so that the error dialog
     *   box can successfully be displayed.
     */
     CacheMix = new MFCC("CACHE.MIX", &FastKey);

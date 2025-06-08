@@ -658,8 +658,8 @@ bool LayerClassExt::_Submit(const ObjectClass* object, bool sort)
     }
 
     /*
-    **	Add the object to the layer. Either at the end (if "sort" is false) or at the
-    **	appropriately sorted position.
+    **  Add the object to the layer. Either at the end (if "sort" is false) or at the
+    **  appropriately sorted position.
     */
     if (sort) {
         return((Sorted_Add(object)) != false);

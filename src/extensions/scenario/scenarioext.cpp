@@ -1204,7 +1204,7 @@ static DynamicVectorClass<Cell> Build_Starting_Waypoint_List(bool official)
             Cell trycell = XY_Cell(Map.MapCellX + Random_Pick(10, Map.MapCellWidth-10),
                                    Map.MapCellY + Random_Pick(0, Map.MapCellHeight-10) + 10);
 
-            trycell = Map.Nearby_Location(trycell, SPEED_TRACK, -1, MZONE_NORMAL, false, 8, 8);
+            trycell = Map.Nearby_Location(trycell, SPEED_TRACK, -1, MZONE_NORMAL, false, Point2D(8, 8));
             if (trycell != CELL_NONE) {
                 waypts.Add(trycell);
                 DEBUG_INFO("Random multiplayer start waypoint added at cell %d,%d.\n", trycell.X, trycell.Y);
@@ -1533,7 +1533,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                          */
                         if (Session.Options.UnitCount == 1) {
                             if (SessionExtension && SessionExtension->ExtOptions.IsAutoDeployMCV) {
-                                if (hptr->Is_Human_Control()) {
+                                if (hptr->Is_Human_Player()) {
                                     obj->Set_Mission(MISSION_UNLOAD);
                                 }
                             }
@@ -1605,7 +1605,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                                 obj->Veterancy.Set_Elite(true);
                             }
 
-                            if (hptr->Is_Human_Control()) {
+                            if (hptr->Is_Human_Player()) {
                                 obj->Set_Mission(MISSION_GUARD);
                             } else {
                                 obj->Set_Mission(MISSION_GUARD_AREA);
@@ -1657,7 +1657,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                                 obj->Veterancy.Set_Elite(true);
                             }
 
-                            if (hptr->Is_Human_Control()) {
+                            if (hptr->Is_Human_Player()) {
                                 obj->Set_Mission(MISSION_GUARD);
                             } else {
                                 obj->Set_Mission(MISSION_GUARD_AREA);
@@ -1687,7 +1687,7 @@ void ScenarioClassExtension::Create_Units(bool official)
              *  Scatter all the human placed objects to create
              *  some space around the base unit.
              */
-            if (hptr->Is_Human_Control()) {
+            if (hptr->Is_Human_Player()) {
                 for (int i = 0; i < deployed_objects.Count(); ++i) {
                     TechnoClass *techno = deployed_objects[i];
                     if (techno) {
@@ -1735,7 +1735,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                                     obj->Veterancy.Set_Elite(true);
                                 }
 
-                                if (hptr->Is_Human_Control()) {
+                                if (hptr->Is_Human_Player()) {
                                     obj->Set_Mission(MISSION_GUARD);
                                 } else {
                                     obj->Set_Mission(MISSION_GUARD_AREA);

@@ -63,7 +63,7 @@
 static class AircraftClassExt : public AircraftClass
 {
 public:
-    bool _Unlimbo(Coordinate& coord, Dir256 dir);
+    bool _Unlimbo(const Coordinate& coord, Dir256 dir);
     bool _Cell_Seems_Ok(Cell& cell, bool strict) const;
 };
 
@@ -74,7 +74,7 @@ public:
  *  @author: 07/26/1994 JLB - Created.
  *           ZivDero - Adjustments for Tiberian Sun.
  */
-bool AircraftClassExt::_Unlimbo(Coordinate& coord, Dir256 dir)
+bool AircraftClassExt::_Unlimbo(const Coordinate& coord, Dir256 dir)
 {
     Coordinate adjusted_coord = coord;
 

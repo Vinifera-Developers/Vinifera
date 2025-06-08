@@ -248,16 +248,16 @@ void AnimClassExt::_AI()
     }
 
     /*
-    **	Special case check to make sure that building on top of a smoke marker
-    **	causes the smoke marker to vanish.
+    **  Special case check to make sure that building on top of a smoke marker
+    **  causes the smoke marker to vanish.
     */
     if (Class == Rule->DropZoneAnim && Map[Center_Coord()].Cell_Building()) {
         IsToDelete = true;
     }
 
     /*
-    **	Delete this animation and bail early if the animation is flagged to be deleted
-    **	immediately.
+    **  Delete this animation and bail early if the animation is flagged to be deleted
+    **  immediately.
     */
     if (IsToDelete) {
         Remove_This();
@@ -265,9 +265,9 @@ void AnimClassExt::_AI()
     }
 
     /*
-    **	If this is a brand new animation, then don't process it the first logic pass
-    **	since it might end up skipping the first animation frame before it has had a
-    **	chance to draw it.
+    **  If this is a brand new animation, then don't process it the first logic pass
+    **  since it might end up skipping the first animation frame before it has had a
+    **  chance to draw it.
     */
     if (IsBrandNew) {
         IsBrandNew = false;
@@ -300,19 +300,19 @@ void AnimClassExt::_AI()
         }
 
         /*
-        **	This is necessary because there is no recording of animations on the map
-        **	and thus the animation cannot be intelligently flagged for redraw. Most
-        **	animations move fast enough that they would need to be redrawn every
-        **	game frame anyway so this isn't TOO bad.
+        **  This is necessary because there is no recording of animations on the map
+        **  and thus the animation cannot be intelligently flagged for redraw. Most
+        **  animations move fast enough that they would need to be redrawn every
+        **  game frame anyway so this isn't TOO bad.
         */
-        Mark(MARK_UP_FORCED);
+        Mark(MARK_CHANGE);
 
         if (!IsDisabled && animext->DamageStage.Graphic_Logic()) {
 
             /*
-            **	If this animation is attached to another object and it is a
-            **	damaging kind of animation, then do the damage to the other
-            **	object.
+            **  If this animation is attached to another object and it is a
+            **  damaging kind of animation, then do the damage to the other
+            **  object.
             */
             if (Class->Damage > 0 && !IsDebris) {
                 if (xObject != nullptr && xObject->RTTI == RTTI_TERRAIN) {
@@ -324,8 +324,8 @@ void AnimClassExt::_AI()
                 if (Accum >= 1 && !IsInert) {
 
                     /*
-                    **	Administer the damage. If the object was destroyed by this anim,
-                    **	then the attached damaging anim is also destroyed.
+                    **  Administer the damage. If the object was destroyed by this anim,
+                    **  then the attached damaging anim is also destroyed.
                     */
                     int damage = Accum;
                     Accum -= damage;
@@ -341,9 +341,9 @@ void AnimClassExt::_AI()
             int stage = Fetch_Stage();
 
             /*
-            **	During the biggest stage (covers the most ground), perform any ground altering
-            **	action required. This masks craters and scorch marks, so that they appear
-            **	naturally rather than "popping" into existence while in plain sight.
+            **  During the biggest stage (covers the most ground), perform any ground altering
+            **  action required. This masks craters and scorch marks, so that they appear
+            **  naturally rather than "popping" into existence while in plain sight.
             */
             if (animtypeext->MiddleFrames.Count() && !IsDebris) {
                 int frame = Class->Start + stage;
@@ -364,14 +364,14 @@ void AnimClassExt::_AI()
             }
 
             /*
-            **	Check to see if the last frame has been displayed. If so, then the
-            **	animation either ends or loops.
+            **  Check to see if the last frame has been displayed. If so, then the
+            **  animation either ends or loops.
             */
             if ((Loops <= 1 && stage >= Class->Stages) || (Loops > 1 && stage >= Class->LoopEnd - Class->Start) || (Class->IsReverse && stage <= Class->Start)) {
 
                 /*
-                **	Determine if this animation should loop another time. If so, then start the loop
-                **	but if not, then proceed into the animation termination handler.
+                **  Determine if this animation should loop another time. If so, then start the loop
+                **  but if not, then proceed into the animation termination handler.
                 */
                 if (Loops && Loops != UCHAR_MAX) Loops--;
                 if (Loops) {
@@ -399,10 +399,10 @@ void AnimClassExt::_AI()
                     animext->End();
 
                     /*
-                    **	The animation should end now, but first check to see if
-                    **	it needs to chain into another animation. If so, then the
-                    **	animation isn't technically over. It metamorphoses into the
-                    **	new form.
+                    **  The animation should end now, but first check to see if
+                    **  it needs to chain into another animation. If so, then the
+                    **  animation isn't technically over. It metamorphoses into the
+                    **  new form.
                     */
                     if (Class->ChainTo != nullptr) {
 
@@ -453,20 +453,20 @@ void AnimClassExt::_Start()
     const auto animext = Extension::Fetch<AnimClassExtension>(this);
     const auto animtypeext = Extension::Fetch<AnimTypeClassExtension>(Class);
 
-    Mark(MARK_UP_FORCED);
+    Mark(MARK_CHANGE);
 
     if (!IsInert && Class->Sound != VOC_NONE) {
 
         /*
-        **	Play the sound effect for this animation.
+        **  Play the sound effect for this animation.
         */
         Static_Sound(Class->Sound, Center_Coord());
     }
 
     /*
-    **	If the stage where collateral effects occur is the first stage of the animation, then
-    **	perform this action now. Subsequent checks against this stage value starts with the
-    **	second frame of the animation.
+    **  If the stage where collateral effects occur is the first stage of the animation, then
+    **  perform this action now. Subsequent checks against this stage value starts with the
+    **  second frame of the animation.
     */
     if (animtypeext->MiddleFrames.Is_Present(0)) {
         Middle();
@@ -566,26 +566,26 @@ void AnimClassExt::_Middle()
     if (HeightAGL < 30) {
 
         /*
-        **	If this animation leaves scorch marks (e.g., napalm), then do so at this time.
+        **  If this animation leaves scorch marks (e.g., napalm), then do so at this time.
         */
         if (Class->IsScorcher && (!Class->IsCraterForming || (Random_Pick(0, INT_MAX - 1) / (double)(INT_MAX - 1)) < 0.5)) {
             SmudgeTypeClass::Create_Scorch(Center_Coord(), width, height);
         }
 
         /*
-        **	Some animations leave a crater when they occur. Artillery is a good example.
-        **	Craters always remove the Tiberium where they occur.
+        **  Some animations leave a crater when they occur. Artillery is a good example.
+        **  Craters always remove the Tiberium where they occur.
         */
         else if (Class->IsCraterForming) {
 
             /*
-            **	Craters reduce the level of Tiberium in the cell.
+            **  Craters reduce the level of Tiberium in the cell.
             */
             cellptr->Reduce_Tiberium(6);
 
             /*
-            **	If there already is a crater in the cell, then just expand the
-            **	crater.
+            **  If there already is a crater in the cell, then just expand the
+            **  crater.
             */
 
             /**
@@ -606,9 +606,9 @@ void AnimClassExt::_Middle()
     AnimClass* newanim;
 
     /*
-    **	If this animation spawns side effects during its lifetime, then
-    **	do so now. Usually, these side effects are in the form of other
-    **	animations.
+    **  If this animation spawns side effects during its lifetime, then
+    **  do so now. Usually, these side effects are in the form of other
+    **  animations.
     */
     if (Class->IsFlameThrower) {
         new AnimClass(Rule->SmallFire, Map.Closest_Free_Spot(Coord_Scatter(Center_Coord(), 0x0040), true), 0, Random_Pick(1, 2));

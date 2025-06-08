@@ -31,11 +31,11 @@
 #include "tibsun_globals.h"
 
 
- /**
-  *  Reimplements StorageClass::Get_Total_Value.
-  *
-  *  @author: ZivDero
-  */
+/**
+ *  Reimplements StorageClass::Get_Total_Value.
+ *
+ *  @author: ZivDero
+ */
 int StorageClassExt::Get_Total_Value() const
 {
     int total = 0;

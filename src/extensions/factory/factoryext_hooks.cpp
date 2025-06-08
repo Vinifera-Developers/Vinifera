@@ -132,7 +132,7 @@ bool FactoryClassExt::_Start(bool suspend)
         IsSuspended = false;
 
         if (House->Available_Money() >= Cost_Per_Tick()) {
-            IsPlayerSuspended = true;
+            IsOnHold = true;
             if (suspend) {
                 Suspend(true);
             }
@@ -167,10 +167,10 @@ void FactoryClassExt::_AI()
             cost = std::min(cost, Balance);
 
             /*
-            **	Enough time has expired so that another production step can occur.
-            **	If there is insufficient funds, then go back one production step and
-            **	continue the countdown. The idea being that by the time the next
-            **	production step occurs, there may be sufficient funds available.
+            **  Enough time has expired so that another production step can occur.
+            **  If there is insufficient funds, then go back one production step and
+            **  continue the countdown. The idea being that by the time the next
+            **  production step occurs, there may be sufficient funds available.
             */
             if (cost > House->Available_Money()) {
                 Set_Stage(Fetch_Stage() - 1);
@@ -187,24 +187,24 @@ void FactoryClassExt::_AI()
              */
             if (Vinifera_DeveloperMode) {
                 /*
-                **	If AIInstantBuild is toggled on, make sure this is a non-human AI house.
+                **  If AIInstantBuild is toggled on, make sure this is a non-human AI house.
                 */
                 if (Vinifera_Developer_AIInstantBuild
-                    && !House->Is_Human_Control() && House != PlayerPtr) {
+                    && !House->Is_Human_Player() && House != PlayerPtr) {
                     Set_Stage(STEP_COUNT);
                 }
 
                 /*
-                **	If InstantBuild is toggled on, make sure the local player is a human house.
+                **  If InstantBuild is toggled on, make sure the local player is a human house.
                 */
                 if (Vinifera_Developer_InstantBuild
-                    && House->Is_Human_Control() && House == PlayerPtr) {
+                    && House->Is_Human_Player() && House == PlayerPtr) {
                     Set_Stage(STEP_COUNT);
                 }
 
                 /*
-                **	If the AI has taken control of the player house, it needs a special
-                **	case to handle the "player" instant build mode.
+                **  If the AI has taken control of the player house, it needs a special
+                **  case to handle the "player" instant build mode.
                 */
                 if (Vinifera_Developer_InstantBuild) {
                     if (Vinifera_Developer_AIControl && House == PlayerPtr)
@@ -214,7 +214,7 @@ void FactoryClassExt::_AI()
             }
 
             /*
-            **	If the production has completed, then suspend further production.
+            **  If the production has completed, then suspend further production.
             */
             if (Fetch_Stage() == STEP_COUNT) {
                 IsSuspended = true;

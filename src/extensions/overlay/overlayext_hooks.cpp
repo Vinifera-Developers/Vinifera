@@ -93,15 +93,15 @@ void Read_INI(CCINIClass const& ini)
                     if (classid != OVERLAY_NONE && (OverlayTypes[classid]->Get_Image_Data() != nullptr || OverlayTypes[classid]->CellAnim)) {
 
                         /*
-                        **	Don't allow placement of crates in the multiplayer scenarios.
+                        **  Don't allow placement of crates in the multiplayer scenarios.
                         */
 #if false
                         if (Session.Type == GAME_NORMAL || !OverlayTypes[classid]->IsCrate) {
 #endif
 
                             /*
-                            **	Don't allow placement of overlays on the top or bottom rows of
-                            **	the map.
+                            **  Don't allow placement of overlays on the top or bottom rows of
+                            **  the map.
                             */
                             if (Map.In_Radar(cell)) {
                                 unsigned char old_overlay_data = Map[cell].OverlayData;
@@ -158,7 +158,7 @@ void Read_INI(CCINIClass const& ini)
 void Write_INI(CCINIClass& ini)
 {
     /*
-    **	First, clear out all existing unit data from the ini file.
+    **  First, clear out all existing unit data from the ini file.
     */
     ini.Clear("OVERLAY");
     ini.Clear("OverlayPack");

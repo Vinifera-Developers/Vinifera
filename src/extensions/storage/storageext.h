@@ -28,10 +28,10 @@
 #pragma once
 #include "vector.h"
 
- /**
-  *  This class does not extend the vanilla StorageClass like AbstractClass extensions do.
-  *  Instead, it is constructed in its place by the owner class's extension.
-  */
+/**
+ *  This class does not extend the vanilla StorageClass like AbstractClass extensions do.
+ *  Instead, it is constructed in its place by the owner class's extension.
+ */
 class StorageClassExt
 {
 public:

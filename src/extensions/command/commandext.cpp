@@ -468,8 +468,8 @@ bool RepeatLastBuildingCommandClass::Process()
     /**
      *  Nothing built? Nothing to reproduce...
      */
-    BuildingType building = PlayerPtr->JustBuiltStructure;
-    if (building == BUILDING_NONE) {
+    StructType building = PlayerPtr->JustBuiltStructure;
+    if (building == STRUCT_NONE) {
         return false;
     }
 
@@ -2352,7 +2352,7 @@ bool SpawnAllCommandClass::Process()
      *  Attempt to spawn all ownable objects for the player house.
      */
 
-    for (BuildingType index = BUILDING_FIRST; index < BuildingTypes.Count(); ++index) {
+    for (StructType index = STRUCT_FIRST; index < BuildingTypes.Count(); ++index) {
         BuildingTypeClass const & building_type = BuildingTypeClass::As_Reference(index);
         if (building_type.Get_Ownable() /*&& building_type.Level != -1*/) {
             BuildingClass * building = (BuildingClass *)building_type.Create_One_Of(PlayerPtr);
@@ -2812,7 +2812,7 @@ bool DumpAIBaseNodesCommandClass::Process()
         /**
          *  Make sure we only process non-player houses.
          */
-        if (!house->Is_Player_Control() && !house->Is_Human_Control()) {
+        if (!house->Is_Player_Control() && !house->Is_Human_Player()) {
 
             DEBUG_INFO("\n");
 
@@ -2833,7 +2833,7 @@ bool DumpAIBaseNodesCommandClass::Process()
             for (int node_index = 0; node_index < house->Base.Nodes.Count(); ++node_index) {
                 BaseNodeClass &node = house->Base.Nodes[node_index];
 
-                if (node.Type == BUILDING_NONE) {
+                if (node.Type == STRUCT_NONE) {
                     continue;
                 }
 

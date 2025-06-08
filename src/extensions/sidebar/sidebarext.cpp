@@ -446,9 +446,9 @@ IsDrawn(false)
 bool SidebarClassExtension::TabButtonClass::Action(unsigned flags, KeyNumType& key)
 {
     /*
-    **	If there are no action flag bits set, then this must be a forced call. A forced call
-    **	must never actually function like a real call, but rather only performs any necessary
-    **	graphic updating.
+    **  If there are no action flag bits set, then this must be a forced call. A forced call
+    **  must never actually function like a real call, but rather only performs any necessary
+    **  graphic updating.
     */
     if (!flags)
     {
@@ -456,14 +456,14 @@ bool SidebarClassExtension::TabButtonClass::Action(unsigned flags, KeyNumType& k
     }
 
     /*
-    **	Handle the sticky state for this gadget. It must be processed here
-    **	because the event flags might be cleared before the action function
-    **	is called.
+    **  Handle the sticky state for this gadget. It must be processed here
+    **  because the event flags might be cleared before the action function
+    **  is called.
     */
     Sticky_Process(flags);
 
     /*
-    **	Pass the mouse press.
+    **  Pass the mouse press.
     */
     if (flags & LEFTPRESS)
     {
@@ -474,7 +474,7 @@ bool SidebarClassExtension::TabButtonClass::Action(unsigned flags, KeyNumType& k
     }
 
     /*
-    **	Act on mouse release.
+    **  Act on mouse release.
     */
     if (flags & LEFTRELEASE)
     {
@@ -491,8 +491,8 @@ bool SidebarClassExtension::TabButtonClass::Action(unsigned flags, KeyNumType& k
     }
     
     /*
-    **	Do normal button processing. This ends up causing the button's ID number to
-    **	be returned from the controlling Input() function.
+    **  Do normal button processing. This ends up causing the button's ID number to
+    **  be returned from the controlling Input() function.
     */
     return ControlClass::Action(flags, key);
 }
@@ -709,11 +709,11 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
     SuperWeaponType spc = SUPER_NONE;
 
     /*
-    **	Determine the factory number that would apply to objects of the type
-    **	the mouse is currently addressing. This doesn't mean that the factory number
-    **	fetched is actually producing the indicated object, merely that that particular
-    **	kind of factory is specified by the "genfactory" value. This can be used to see
-    **	if the factory type is currently busy or not.
+    **  Determine the factory number that would apply to objects of the type
+    **  the mouse is currently addressing. This doesn't mean that the factory number
+    **  fetched is actually producing the indicated object, merely that that particular
+    **  kind of factory is specified by the "genfactory" value. This can be used to see
+    **  if the factory type is currently busy or not.
     */
     FactoryClass* factory = Strip->Buildables[index].Factory;
 
@@ -734,7 +734,7 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
     if (spc != SUPER_NONE)
     {
         /*
-        **	Display the help text if the mouse is over the button.
+        **  Display the help text if the mouse is over the button.
         */
         if (flags & LEFTUP)
         {
@@ -742,8 +742,8 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
         }
 
         /*
-        **	A right mouse button signals "cancel".  If we are in targeting
-        ** mode then we don't want to be any more.
+        **  A right mouse button signals "cancel".  If we are in targeting
+        **  mode then we don't want to be any more.
         */
         if (flags & RIGHTPRESS)
         {
@@ -751,8 +751,8 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
         }
 
         /*
-        **	A left mouse press signal "activate".  If our weapon type is
-        ** available then we should activate it.
+        **  A left mouse press signal "activate".  If our weapon type is
+        **  available then we should activate it.
         */
         if (flags & LEFTPRESS) {
 
@@ -768,7 +768,7 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
                     }
                     else
                     {
-                        OutList.Add(EventClass(PlayerPtr->Fetch_Heap_ID(), EVENT_SPECIAL_PLACE, PlayerPtr->SuperWeapon[spc]->Class->HeapID, &INVALID_CELL));
+                        OutList.Add(EventClass(PlayerPtr->Fetch_Heap_ID(), EVENT_SPECIAL_PLACE, PlayerPtr->SuperWeapon[spc]->Class->HeapID, CELL_NONE));
                     }
                 }
                 else
@@ -784,7 +784,7 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
         if (choice != nullptr)
         {
             /*
-            **	Display the help text if the mouse is over the button.
+            **  Display the help text if the mouse is over the button.
             */
             if (flags & LEFTUP)
             {
@@ -792,21 +792,21 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
             }
 
             /*
-            **	A right mouse button signals "cancel".
+            **  A right mouse button signals "cancel".
             */
             if (flags & RIGHTPRESS)
             {
                 /*
-                **	If production is in progress, put it on hold. If production is already
-                **	on hold, then abandon it. Money will be refunded, the factory
-                **	manager deleted, and the object under construction is returned to
-                **	the free pool.
+                **  If production is in progress, put it on hold. If production is already
+                **  on hold, then abandon it. Money will be refunded, the factory
+                **  manager deleted, and the object under construction is returned to
+                **  the free pool.
                 */
                 if (factory != nullptr)
                 {
                     /*
-                    **	Cancels placement mode if the sidebar factory is abandoned or
-                    **	suspended.
+                    **  Cancels placement mode if the sidebar factory is abandoned or
+                    **  suspended.
                     */
                     if (Map.PendingObjectPtr && Map.PendingObjectPtr->Is_Techno())
                     {
@@ -859,14 +859,14 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
             if (flags & LEFTPRESS)
             {
                 /*
-                **	If this object is currently being built, then give a scold sound and text and then
-                **	bail.
+                **  If this object is currently being built, then give a scold sound and text and then
+                **  bail.
                 */
                 if (factory != nullptr && !factory->Is_Building())
                 {
                     /*
-                    **	If production has completed, then attempt to have the object exit
-                    **	the factory or go into placement mode.
+                    **  If production has completed, then attempt to have the object exit
+                    **  the factory or go into placement mode.
                     */
                     if (factory->Has_Completed())
                     {
@@ -887,10 +887,10 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
                             else
                             {
                                 /*
-                                **	If the completed object is a building, then change the
-                                **	game state into building placement mode. This fact is
-                                **	not transmitted to any linked computers until the moment
-                                **	the building is actually placed down.
+                                **  If the completed object is a building, then change the
+                                **  game state into building placement mode. This fact is
+                                **  not transmitted to any linked computers until the moment
+                                **  the building is actually placed down.
                                 */
                                 if (pending->Fetch_RTTI() == RTTI_BUILDING)
                                 {
@@ -899,11 +899,11 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
                                 else
                                 {
                                     /*
-                                    **	For objects that can leave the factory under their own
-                                    **	power, queue this event and process through normal house
-                                    **	production channels.
+                                    **  For objects that can leave the factory under their own
+                                    **  power, queue this event and process through normal house
+                                    **  production channels.
                                     */
-                                    OutList.Add(EventClass(pending->Owner(), EVENT_PLACE, otype, &INVALID_CELL));
+                                    OutList.Add(EventClass(pending->Owner(), EVENT_PLACE, otype, CELL_NONE));
                                 }
                             }
                         }
@@ -911,8 +911,8 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
                     else
                     {
                         /*
-                        **	The factory must have been in a suspended state. Resume construction
-                        **	normally.
+                        **  The factory must have been in a suspended state. Resume construction
+                        **  normally.
                         */
                         if (otype == RTTI_INFANTRYTYPE)
                         {
@@ -928,9 +928,9 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
                 else
                 {
                     /*
-                    **	If there is already a factory attached to this strip but the player didn't click
-                    **	on the icon that has the attached factory, then say that the factory is busy and
-                    **	ignore the click.
+                    **  If there is already a factory attached to this strip but the player didn't click
+                    **  on the icon that has the attached factory, then say that the factory is busy and
+                    **  ignore the click.
                     */
                     factory = PlayerPtr->Fetch_Factory(otype);
                     if (factory != nullptr && (factory->Is_Building() || factory->Get_Object() || factory->Queued_Object_Count() > 0) && otype == RTTI_BUILDINGTYPE)
@@ -940,8 +940,8 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
                     else
                     {
                         /*
-                        **	If this side strip is already busy with production, then ignore the
-                        **	input and announce this fact.
+                        **  If this side strip is already busy with production, then ignore the
+                        **  input and announce this fact.
                         */
                         if (otype == RTTI_INFANTRYTYPE)
                         {

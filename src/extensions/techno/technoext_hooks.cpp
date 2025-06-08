@@ -860,7 +860,7 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
     /**
      *  Human-controlled units that have a target don't retaliate.
      */
-    if (House->Is_Human_Control() && Target_Legal(TarCom))
+    if (House->Is_Human_Player() && Target_Legal(TarCom))
         return false;
 
     /**
@@ -870,7 +870,7 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
     if (warhead != nullptr && warhead->IsVeinhole)
     {
         const bool is_foot_with_nav = Is_Foot() && reinterpret_cast<FootClass const*>(this)->NavCom;
-        if (!is_foot_with_nav || !House->Is_Human_Control())
+        if (!is_foot_with_nav || !House->Is_Human_Player())
             return true;
     }
 
@@ -920,7 +920,7 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
      *  is, unless it is owned by the computer. Normally, units with C4 can't do anything substantial to a building
      *  except to blow it up.
      */
-    if (House->Is_Human_Control() && source->Fetch_RTTI() == RTTI_BUILDING)
+    if (House->Is_Human_Player() && source->Fetch_RTTI() == RTTI_BUILDING)
     {
         if (Fetch_RTTI() == RTTI_INFANTRY && static_cast<InfantryTypeClass const*>(ttype)->IsBomber)
             return false;
@@ -935,7 +935,7 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
     /**
      *  Artillery that need to deploy to fire don't retaliate.
      */
-    if (House->Is_Human_Control() && Fetch_RTTI() == RTTI_UNIT)
+    if (House->Is_Human_Player() && Fetch_RTTI() == RTTI_UNIT)
     {
         const BuildingTypeClass* deploys_into = reinterpret_cast<UnitClass const*>(this)->Class->DeploysInto;
         if (deploys_into && deploys_into->IsArtillary)
@@ -945,7 +945,7 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
     /**
      *  If a human house is not allowed to retaliate automatically, then don't
      */
-    if (House->Is_Human_Control() && !Rule->IsSmartDefense && Fetch_RTTI() != RTTI_BUILDING)
+    if (House->Is_Human_Player() && !Rule->IsSmartDefense && Fetch_RTTI() != RTTI_BUILDING)
     {
         if (Mission != MISSION_GUARD_AREA && Mission != MISSION_GUARD && Mission != MISSION_PATROL)
             return false;
@@ -961,7 +961,7 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
      *  Compare potential threat of the current target and the potential new target. Don't retaliate
      *  if it is currently attacking the greater threat.
      */
-    if (!House->Is_Human_Control() && Target_Legal(TarCom) && Is_Target_Object(TarCom))
+    if (!House->Is_Human_Player() && Target_Legal(TarCom) && Is_Target_Object(TarCom))
     {
         const float current_val = Target_Threat(static_cast<TechnoClass*>(TarCom), Coordinate());
         const float source_val = Target_Threat(source, Coordinate());
@@ -1642,7 +1642,7 @@ DECLARE_PATCH(_TechnoClass_Evaluate_Object_Is_Legal_Target_Patch)
     /**
      *  Now, determine if "we" are owned by a non-human house and the target is not theoretically allowed to be a target.
      */
-    if (!this_ptr->House->Is_Human_Control() && !object_tclassext->IsLegalTargetComputer) {
+    if (!this_ptr->House->Is_Human_Player() && !object_tclassext->IsLegalTargetComputer) {
         goto return_false;
     }
 
@@ -2590,20 +2590,18 @@ bool _TechnoClass_Evaluate_Object_Zone_Evaluation_Is_Valid_Target(TechnoClass* t
             return true;
         }
 
-        Cell nearbycellcoords = Map.Nearby_Location(Coord_Cell(target->Center_Coord()),
+        Cell nearbycell = Map.Nearby_Location(Coord_Cell(target->Center_Coord()),
             technotype->Speed,
             /*Phobos has -1 here*/ ourzone,
             technotype->MZone,
-            false, 1, 1, true, false, false, technotype->Speed != SPEED_FLOAT, Cell());
+            false, Point2D(1, 1), true, false, false, technotype->Speed != SPEED_FLOAT);
 
-        const CellClass& cell = Map[nearbycellcoords];
-
-        if (&cell == nullptr) {
+        if (nearbycell == CELL_NONE) {
             // We couldn't find a valid cell to reach the target from
             return false;
         }
 
-        int distance = ::Distance(nearbycellcoords, Coord_Cell(target->Center_Coord()));
+        int distance = ::Distance(nearbycell, Coord_Cell(target->Center_Coord()));
 
         WeaponSlotType weaponslot = techno->What_Weapon_Should_I_Use(target);
         auto weaponinfo = techno->Get_Weapon(weaponslot);

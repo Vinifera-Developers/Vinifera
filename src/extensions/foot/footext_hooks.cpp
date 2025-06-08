@@ -430,7 +430,7 @@ void _Vinifera_FootClass_Search_For_Tiberium_Check_Tiberium_Value_Of_Cell(FootCl
  */
 Cell FootClassExt::_Search_For_Tiberium(int rad, bool a2)
 {
-    if (!Owner_HouseClass()->Is_Human_Control() &&
+    if (!Owner_HouseClass()->Is_Human_Player() &&
         Fetch_RTTI() == RTTI_UNIT &&
         ((UnitClass*)this)->Class->IsToHarvest &&
         a2 &&

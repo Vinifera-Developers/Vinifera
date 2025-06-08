@@ -34,11 +34,11 @@
 #include "vinifera_saveload.h"
 
 
- /**
-  *  Basic constructor for armor objects.
-  *
-  *  @author: CCHyper
-  */
+/**
+ *  Basic constructor for armor objects.
+ *
+ *  @author: CCHyper
+ */
 ArmorTypeClass::ArmorTypeClass()
 {
     ArmorTypes.Add(this);

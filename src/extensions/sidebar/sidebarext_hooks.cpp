@@ -314,7 +314,7 @@ void SidebarClassExt::_Init_IO()
         Set_Dimensions();
 
         /**
-        ** If a game was loaded & the sidebar was enabled, pop it up now.
+        **  If a game was loaded & the sidebar was enabled, pop it up now.
         */
         if (IsSidebarActive)
         {
@@ -1075,7 +1075,7 @@ bool StripClassExt::_Recalc()
             }
 
             /*
-            **	Removes this entry from the list.
+            **  Removes this entry from the list.
             */
             if (BuildableCount > 1 && index < BuildableCount - 1) {
                 memmove(&Buildables[index], &Buildables[index + 1], sizeof(Buildables[0]) * ((BuildableCount - index) - 1));
@@ -1432,7 +1432,7 @@ bool StripClassExt::_AI(KeyNumType& input, Point2D&)
                         {
                         case RTTI_UNIT:
                         case RTTI_AIRCRAFT:
-                            OutList.Add(EventClass(pending->Owner(), EVENT_PLACE, pending->Fetch_RTTI(), &INVALID_CELL));
+                            OutList.Add(EventClass(pending->Owner(), EVENT_PLACE, pending->Fetch_RTTI(), CELL_NONE));
                             Speak(VOX_UNIT_READY);
                             break;
 
@@ -1442,7 +1442,7 @@ bool StripClassExt::_AI(KeyNumType& input, Point2D&)
                             break;
 
                         case RTTI_INFANTRY:
-                            OutList.Add(EventClass(pending->Owner(), EVENT_PLACE, pending->Fetch_RTTI(), &INVALID_CELL));
+                            OutList.Add(EventClass(pending->Owner(), EVENT_PLACE, pending->Fetch_RTTI(), CELL_NONE));
                             Speak(VOX_UNIT_READY);
                             break;
 

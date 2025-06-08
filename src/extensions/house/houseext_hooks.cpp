@@ -98,7 +98,7 @@ ProdFailType HouseClassExt::_Begin_Production(RTTIType type, int id, bool resume
     fptr = Fetch_Factory(type);
 
     /*
-    **	If no factory exists, create one.
+    **  If no factory exists, create one.
     */
     if (fptr == nullptr)
     {
@@ -112,8 +112,8 @@ ProdFailType HouseClassExt::_Begin_Production(RTTIType type, int id, bool resume
     }
 
     /*
-    **	If the house is already busy producing a building, then
-    **	return with this failure code.
+    **  If the house is already busy producing a building, then
+    **  return with this failure code.
     */
     if (fptr->Is_Building() && type == RTTI_BUILDINGTYPE)
     {
@@ -122,7 +122,7 @@ ProdFailType HouseClassExt::_Begin_Production(RTTIType type, int id, bool resume
     }
 
     /*
-    **	Check if we have an object of this type currently suspended in production.
+    **  Check if we have an object of this type currently suspended in production.
     */
     if (fptr->IsSuspended)
     {
@@ -140,8 +140,8 @@ ProdFailType HouseClassExt::_Begin_Production(RTTIType type, int id, bool resume
             fptr->Start(suspend);
 
             /*
-            **	Link this factory to the sidebar so that proper graphic feedback
-            **	can take place.
+            **  Link this factory to the sidebar so that proper graphic feedback
+            **  can take place.
             */
             if (PlayerPtr == this)
                 Map.Factory_Link(fptr, type, id);
@@ -158,7 +158,7 @@ ProdFailType HouseClassExt::_Begin_Production(RTTIType type, int id, bool resume
     DEBUG_INFO("Request to Begin_Production of '%s' was rejected. Factory was unable to create the requested object\n", tech->Full_Name());
 
     /*
-    **	If the factory has queued objects or is currently
+    **  If the factory has queued objects or is currently
     **  building an object, reject production.
     */
     if (fptr->Queued_Object_Count() > 0 || fptr->Object)
@@ -166,7 +166,7 @@ ProdFailType HouseClassExt::_Begin_Production(RTTIType type, int id, bool resume
 
 
     /*
-    **	Output debug information if production failed.
+    **  Output debug information if production failed.
     */
     DEBUG_INFO("type=%d\n", type);
     DEBUG_INFO("Frame == %d\n", Frame);
@@ -195,13 +195,13 @@ ProdFailType HouseClassExt::_Abandon_Production(RTTIType type, int id)
     FactoryClass* fptr = Fetch_Factory(type);
 
     /*
-    **	If there is no factory to abandon, then return with a failure code.
+    **  If there is no factory to abandon, then return with a failure code.
     */
     if (fptr == nullptr)
         return PROD_CANT;
 
     /*
-    **	If we're just dequeuing a unit, redraw the strip.
+    **  If we're just dequeuing a unit, redraw the strip.
     */
     if (fptr->Queued_Object_Count() > 0 && id >= 0)
     {
@@ -225,7 +225,7 @@ ProdFailType HouseClassExt::_Abandon_Production(RTTIType type, int id)
     }
 
     /*
-    **	Tell the sidebar that it needs to be redrawn because of this.
+    **  Tell the sidebar that it needs to be redrawn because of this.
     */
     if (PlayerPtr == this)
     {
@@ -240,7 +240,7 @@ ProdFailType HouseClassExt::_Abandon_Production(RTTIType type, int id)
     }
 
     /*
-    **	Abandon production of the object.
+    **  Abandon production of the object.
     */
     fptr->Abandon();
     if (fptr->Queued_Object_Count() > 0)
@@ -292,7 +292,7 @@ int HouseClassExt::_AI_Building()
     }
 
 
-    if (BuildStructure != BUILDING_NONE) return TICKS_PER_SECOND;
+    if (BuildStructure != STRUCT_NONE) return TICKS_PER_SECOND;
 
     if (ConstructionYards.Count() == 0) return TICKS_PER_SECOND;
 
@@ -635,7 +635,7 @@ DECLARE_PATCH(_HouseClass_Super_Weapon_Handler_InstantRecharge_Patch)
              *  If AIInstantBuild is toggled on, make sure this is a non-human AI house.
              */
             if (Vinifera_Developer_AIInstantSuperRecharge
-                && !this_ptr->Is_Human_Control() && this_ptr != PlayerPtr) {
+                && !this_ptr->Is_Human_Player() && this_ptr != PlayerPtr) {
 
                 special->Forced_Charge(is_player);
 
@@ -643,7 +643,7 @@ DECLARE_PATCH(_HouseClass_Super_Weapon_Handler_InstantRecharge_Patch)
              *  If InstantBuild is toggled on, make sure the local player is a human house.
              */
             } else if (Vinifera_Developer_InstantSuperRecharge
-                && this_ptr->Is_Human_Control() && this_ptr == PlayerPtr) {
+                && this_ptr->Is_Human_Player() && this_ptr == PlayerPtr) {
                 
                 special->Forced_Charge(is_player);
 
@@ -831,7 +831,7 @@ DECLARE_PATCH(_HouseClass_Can_Build_BuildLimit_Handle_Vehicle_Transform)
      *  If it can, increment the object count by the number of buildings.
      */
     if (unittype->DeploysInto != nullptr) {
-        objectcount += house->BQuantity.Count_Of((BuildingType)unittype->DeploysInto->Fetch_Heap_ID());
+        objectcount += house->BQuantity.Count_Of((StructType)unittype->DeploysInto->Fetch_Heap_ID());
     }
     else if (unittypeext->TransformsInto != nullptr) {
 

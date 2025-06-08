@@ -34,11 +34,11 @@
 #include "vinifera_saveload.h"
 
 
- /**
-  *  Basic constructor for rocket objects.
-  *
-  *  @author: ZivDero
-  */
+/**
+ *  Basic constructor for rocket objects.
+ *
+ *  @author: ZivDero
+ */
 RocketTypeClass::RocketTypeClass()
 {
     RocketTypes.Add(this);
