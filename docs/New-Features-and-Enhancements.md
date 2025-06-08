@@ -1041,14 +1041,14 @@ JumpjetNoWobbles=false  ; boolean, whether the jumpjet unit doesn't wobble.
 In `RULES.INI`:
 ```ini
 [SOMETECHNO]  ; TechnoType
-Naval=false   ; boolean, whether this Techno is considered naval.
+Naval=false   ; boolean, whether this Techno is considered naval
 ```
 
-- Additionally, AI uses extra base spacing to place naval yards.
+- Additionally, AI uses different rules to place naval yards.
 
 In `RULES.INI`:
 ```ini
-[General]
+[AI]
 AINavalYardAdjacency=20   ; integer, the distance in cells AI can place its Naval Yard from its Construction Yard
 ```
 

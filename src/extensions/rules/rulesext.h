@@ -64,6 +64,7 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
         bool MPlayer(CCINIClass &ini);
         bool AudioVisual(CCINIClass &ini);
         bool CombatDamage(CCINIClass &ini);
+        bool AI(CCINIClass& ini);
         bool Weapons(CCINIClass &ini);
         bool Armors(CCINIClass &ini);
         bool Rockets(CCINIClass &ini);
