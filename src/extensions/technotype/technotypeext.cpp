@@ -39,6 +39,7 @@
 #include "vinifera_saveload.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "findmake.h"
 #include "rules.h"
 
 
