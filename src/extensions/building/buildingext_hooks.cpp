@@ -591,7 +591,7 @@ void BuildingClassExt::_Assign_Rally_Point(Cell const& cell)
     } else {
 
         /**
-         *  If this is a factory that produces units, and is flagged as a shipyard (Float SpeedType), then
+         *  If this is a factory that produces units, and is flagged as a shipyard (Naval=yes), then
          *  change the zone flags to scan for water regions only.
          *
          *  @author: CCHyper, modified by Rampastring
@@ -665,17 +665,14 @@ ActionType BuildingClassExt::_What_Action(ObjectClass const* object, bool disall
     }
 
     /*
-    **  Don't allow targeting of SAM sites, even if the CTRL key
+    **  Don't allow targeting with SAM sites, even if the CTRL key
     **  is held down. Also don't allow targeting if the object is too
     **  far away.
     */
     if (action == ACTION_ATTACK && PrimaryWeapon != nullptr) {
-#if 0
-        if (!In_Range_Of(const_cast<ObjectClass*>(object)) || !PrimaryWeapon->Bullet->IsAntiGround) {
+        if (!In_Range_Of(const_cast<ObjectClass*>(object))/* || !PrimaryWeapon->Bullet->IsAntiGround*/) {
             action = ACTION_NONE;
-        } else
-#endif
-        if (Class->IsEMPulseCannon || Class->IsLimpetMine) {
+        } else if (Class->IsEMPulseCannon || Class->IsLimpetMine) {
             action = ACTION_NONE;
         }
         if (CurrentMission == MISSION_DECONSTRUCTION) {
@@ -858,20 +855,20 @@ void BuildingClassExt::_Factory_AI()
                 */
                 if (House->IsStarted && House->Available_Money() > 10) {
                     auto btype_ext = Extension::Fetch<BuildingTypeClassExtension>(Class);
-                    TechnoTypeClass const* techno = Extension::Fetch<HouseClassExtension>(House)->Suggest_New_Object(Class->ToBuild, btype_ext->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
+                    TechnoTypeClass const* ttype = Extension::Fetch<HouseClassExtension>(House)->Suggest_New_Object(Class->ToBuild, btype_ext->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
 
                     /*
                     **  If a suitable object type was selected for production, then start
                     **  producing it now.
                     */
-                    if (techno != nullptr) {
+                    if (ttype != nullptr) {
 
                         /*
                         **  But first, verify if this building is a valid factory for this object.
                         */
                         bool allowed_factory = true;
-                        auto ttype_ext = Extension::Fetch<TechnoTypeClassExtension>(techno);
-                        if (techno->RTTI == RTTI_UNITTYPE) {
+                        auto ttype_ext = Extension::Fetch<TechnoTypeClassExtension>(ttype);
+                        if (ttype->RTTI == RTTI_UNITTYPE) {
                             if (btype_ext->IsNaval != ttype_ext->IsNaval) {
                                 allowed_factory = false;
                             }
@@ -880,12 +877,12 @@ void BuildingClassExt::_Factory_AI()
                         /*
                         **  This object doesn't allow this factory to produce it.
                         */
-                        if (ttype_ext->BuiltAt.Count() != 0 && !ttype_ext->BuiltAt.Is_Present(Class)) allowed_factory = false;
+                        if (allowed_factory && ttype_ext->BuiltAt.Count() != 0 && !ttype_ext->BuiltAt.Is_Present(Class)) allowed_factory = false;
 
                         /*
                         **  This factory doesn't produce this kind of object.
                         */
-                        if (btype_ext->IsExclusiveFactory && !ttype_ext->BuiltAt.Is_Present(Class)) allowed_factory = false;
+                        if (allowed_factory && btype_ext->IsExclusiveFactory && !ttype_ext->BuiltAt.Is_Present(Class)) allowed_factory = false;
 
                         /*
                         **  If everything is okay, create the factory.
@@ -893,7 +890,7 @@ void BuildingClassExt::_Factory_AI()
                         if (allowed_factory) {
                             Factory = new FactoryClass;
                             if (Factory != nullptr) {
-                                if (!Factory->Set(*techno, *House, false)) {
+                                if (!Factory->Set(*ttype, *House, false)) {
                                     delete Factory;
                                     Factory = nullptr;
                                 } else {
