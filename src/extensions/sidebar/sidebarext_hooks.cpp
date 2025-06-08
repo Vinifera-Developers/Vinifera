@@ -1623,8 +1623,8 @@ bool StripClassExt::_AI_Vanilla(KeyNumType& input, Point2D const& xy)
     bool redraw = false;
 
     /*
-    **	If this is scroll button for this side strip, then scroll the strip as
-    **	indicated.
+    **  If this is scroll button for this side strip, then scroll the strip as
+    **  indicated.
     */
     if (key == KeyNumType(UpButton[ID].ID | KN_BUTTON)) {
         UpButton[ID].IsPressed = false;
@@ -1651,8 +1651,8 @@ bool StripClassExt::_AI_Vanilla(KeyNumType& input, Point2D const& xy)
     }
 
     /*
-    **	Reflect the scroll desired direction/value into the scroll
-    **	logic handler. This might result in up or down scrolling.
+    **  Reflect the scroll desired direction/value into the scroll
+    **  logic handler. This might result in up or down scrolling.
     */
     if (!IsScrolling && Scroller) {
         if (BuildableCount <= SidebarClassExtension::Max_Visible(true)) {
@@ -1660,9 +1660,9 @@ bool StripClassExt::_AI_Vanilla(KeyNumType& input, Point2D const& xy)
         } else {
 
             /*
-            **	Top of list is moving toward lower ordered entries in the object list. It looks like
-            **	the "window" to the object list is moving up even though the actual object images are
-            **	scrolling downward.
+            **  Top of list is moving toward lower ordered entries in the object list. It looks like
+            **  the "window" to the object list is moving up even though the actual object images are
+            **  scrolling downward.
             */
             if (Scroller < 0) {
                 if (!TopIndex) {
@@ -1689,7 +1689,7 @@ bool StripClassExt::_AI_Vanilla(KeyNumType& input, Point2D const& xy)
     }
 
     /*
-    **	Scroll logic is handled here.
+    **  Scroll logic is handled here.
     */
     if (IsScrolling) {
         if (IsScrollingDown) {
@@ -1710,8 +1710,8 @@ bool StripClassExt::_AI_Vanilla(KeyNumType& input, Point2D const& xy)
     }
 
     /*
-    **	Handle any flashing logic. Flashing occurs when the player selects an object
-    **	and provides the visual feedback of a recognized and legal selection.
+    **  Handle any flashing logic. Flashing occurs when the player selects an object
+    **  and provides the visual feedback of a recognized and legal selection.
     */
     if (Flasher != -1) {
         if (Graphic_Logic()) {
@@ -1725,7 +1725,7 @@ bool StripClassExt::_AI_Vanilla(KeyNumType& input, Point2D const& xy)
     }
 
     /*
-    **	Handle any building clock animation logic.
+    **  Handle any building clock animation logic.
     */
     if (IsBuilding) {
         for (int index = 0; index < BuildableCount; index++) {
@@ -1736,10 +1736,10 @@ bool StripClassExt::_AI_Vanilla(KeyNumType& input, Point2D const& xy)
                 if (factory->Has_Completed()) {
 
                     /*
-                    **	Construction has been completed. Announce this fact to the player and
-                    **	try to get the object to automatically leave the factory. Buildings are
-                    **	the main exception to the ability to leave the factory under their own
-                    **	power.
+                    **  Construction has been completed. Announce this fact to the player and
+                    **  try to get the object to automatically leave the factory. Buildings are
+                    **  the main exception to the ability to leave the factory under their own
+                    **  power.
                     */
                     TechnoClass* pending = factory->Get_Object();
                     if (pending != nullptr) {
@@ -1766,8 +1766,8 @@ bool StripClassExt::_AI_Vanilla(KeyNumType& input, Point2D const& xy)
     }
 
     /*
-    **	If any of the logic determined that this side strip needs to be redrawn, then
-    **	set the redraw flag for this side strip.
+    **  If any of the logic determined that this side strip needs to be redrawn, then
+    **  set the redraw flag for this side strip.
     */
     if (redraw) {
         Flag_To_Redraw();
@@ -2499,11 +2499,11 @@ bool SelectClassExt::_Action(unsigned flags, KeyNumType& key)
     SuperWeaponType spc = SUPER_NONE;
 
     /*
-    **	Determine the factory number that would apply to objects of the type
-    **	the mouse is currently addressing. This doesn't mean that the factory number
-    **	fetched is actually producing the indicated object, merely that that particular
-    **	kind of factory is specified by the "genfactory" value. This can be used to see
-    **	if the factory type is currently busy or not.
+    **  Determine the factory number that would apply to objects of the type
+    **  the mouse is currently addressing. This doesn't mean that the factory number
+    **  fetched is actually producing the indicated object, merely that that particular
+    **  kind of factory is specified by the "genfactory" value. This can be used to see
+    **  if the factory type is currently busy or not.
     */
     FactoryClass* factory = Strip->Buildables[index].Factory;
 
@@ -2520,23 +2520,23 @@ bool SelectClassExt::_Action(unsigned flags, KeyNumType& key)
     if (spc != SUPER_NONE) {
 
         /*
-        **	Display the help text if the mouse is over the button.
+        **  Display the help text if the mouse is over the button.
         */
         if (flags & LEFTUP) {
             flags &= ~LEFTUP;
         }
 
         /*
-        **	A right mouse button signals "cancel".  If we are in targeting
-        ** mode then we don't want to be any more.
+        **  A right mouse button signals "cancel".  If we are in targeting
+        **  mode then we don't want to be any more.
         */
         if (flags & RIGHTPRESS) {
             Map.TargettingType = SUPER_NONE;
         }
 
         /*
-        **	A left mouse press signal "activate".  If our weapon type is
-        ** available then we should activate it.
+        **  A left mouse press signal "activate".  If our weapon type is
+        **  available then we should activate it.
         */
         if (flags & LEFTPRESS) {
 
@@ -2559,27 +2559,27 @@ bool SelectClassExt::_Action(unsigned flags, KeyNumType& key)
         if (choice != nullptr) {
 
             /*
-            **	Display the help text if the mouse is over the button.
+            **  Display the help text if the mouse is over the button.
             */
             if (flags & LEFTUP) {
                 flags &= ~LEFTUP;
             }
 
             /*
-            **	A right mouse button signals "cancel".
+            **  A right mouse button signals "cancel".
             */
             if (flags & RIGHTPRESS) {
 
                 /*
-                **	If production is in progress, put it on hold. If production is already
-                **	on hold, then abandon it. Money will be refunded, the factory
-                **	manager deleted, and the object under construction is returned to
-                **	the free pool.
+                **  If production is in progress, put it on hold. If production is already
+                **  on hold, then abandon it. Money will be refunded, the factory
+                **  manager deleted, and the object under construction is returned to
+                **  the free pool.
                 */
                 if (factory != nullptr) {
                     /*
-                    **	Cancels placement mode if the sidebar factory is abandoned or
-                    **	suspended.
+                    **  Cancels placement mode if the sidebar factory is abandoned or
+                    **  suspended.
                     */
                     if (Map.PendingObjectPtr && Map.PendingObjectPtr->Is_Techno()) {
                         Map.PendingObjectPtr = nullptr;
@@ -2624,14 +2624,14 @@ bool SelectClassExt::_Action(unsigned flags, KeyNumType& key)
 
             if (flags & LEFTPRESS) {
                 /*
-                **	If this object is currently being built, then give a scold sound and text and then
-                **	bail.
+                **  If this object is currently being built, then give a scold sound and text and then
+                **  bail.
                 */
                 if (factory != nullptr && !factory->Is_Building()) {
 
                     /*
-                    **	If production has completed, then attempt to have the object exit
-                    **	the factory or go into placement mode.
+                    **  If production has completed, then attempt to have the object exit
+                    **  the factory or go into placement mode.
                     */
                     if (factory->Has_Completed()) {
 
@@ -2646,19 +2646,19 @@ bool SelectClassExt::_Action(unsigned flags, KeyNumType& key)
                             } else {
 
                                 /*
-                                **	If the completed object is a building, then change the
-                                **	game state into building placement mode. This fact is
-                                **	not transmitted to any linked computers until the moment
-                                **	the building is actually placed down.
+                                **  If the completed object is a building, then change the
+                                **  game state into building placement mode. This fact is
+                                **  not transmitted to any linked computers until the moment
+                                **  the building is actually placed down.
                                 */
                                 if (pending->Fetch_RTTI() == RTTI_BUILDING) {
                                     PlayerPtr->Manual_Place(builder, (BuildingClass*)pending);
                                 } else {
 
                                     /*
-                                    **	For objects that can leave the factory under their own
-                                    **	power, queue this event and process through normal house
-                                    **	production channels.
+                                    **  For objects that can leave the factory under their own
+                                    **  power, queue this event and process through normal house
+                                    **  production channels.
                                     */
                                     OutList.Add(EventClassExt(pending->Owner(), EVENT_PLACE, otype, CELL_NONE, TechnoTypeClassExtension::Get_Production_Flags(pending)).As_Event());
                                 }
@@ -2667,8 +2667,8 @@ bool SelectClassExt::_Action(unsigned flags, KeyNumType& key)
                     } else {
 
                         /*
-                        **	The factory must have been in a suspended state. Resume construction
-                        **	normally.
+                        **  The factory must have been in a suspended state. Resume construction
+                        **  normally.
                         */
                         if (otype == RTTI_INFANTRYTYPE) {
                             Speak(VOX_TRAINING);
@@ -2682,9 +2682,9 @@ bool SelectClassExt::_Action(unsigned flags, KeyNumType& key)
                 } else {
 
                     /*
-                    **	If there is already a factory attached to this strip but the player didn't click
-                    **	on the icon that has the attached factory, then say that the factory is busy and
-                    **	ignore the click.
+                    **  If there is already a factory attached to this strip but the player didn't click
+                    **  on the icon that has the attached factory, then say that the factory is busy and
+                    **  ignore the click.
                     */
                     factory = Extension::Fetch<HouseClassExtension>(PlayerPtr)->Fetch_Factory(otype, TechnoTypeClassExtension::Get_Production_Flags(choice));
                     if (factory != nullptr && (factory->Is_Building() || factory->Get_Object() || factory->Queued_Object_Count() > 0) && otype == RTTI_BUILDINGTYPE) {
@@ -2692,8 +2692,8 @@ bool SelectClassExt::_Action(unsigned flags, KeyNumType& key)
                     } else {
 
                         /*
-                        **	If this side strip is already busy with production, then ignore the
-                        **	input and announce this fact.
+                        **  If this side strip is already busy with production, then ignore the
+                        **  input and announce this fact.
                         */
                         if (otype == RTTI_INFANTRYTYPE) {
                             Speak(VOX_TRAINING);

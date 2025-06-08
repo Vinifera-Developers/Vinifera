@@ -1311,7 +1311,7 @@ int TechnoClassExt::_Time_To_Build() const
     val *= House->BuildSpeedBias;
 
     /*
-    **	Adjust the time to build based on the power output of the owning house.
+    **  Adjust the time to build based on the power output of the owning house.
     */
     double power = House->Power_Fraction();
     if (power > 1.0) power = 1.0;

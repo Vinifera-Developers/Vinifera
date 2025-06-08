@@ -265,7 +265,7 @@ bool FactoryClassExt::_Abandon()
             DEBUG_INFO("Abandoning production of %s\n", Object->Class_Of()->FullName);
 
             /*
-            **	Refund all money expended so far, back to the owner of the object under construction.
+            **  Refund all money expended so far, back to the owner of the object under construction.
             */
             int money = Object->Class_Of()->Cost_Of(Object->House);
             House->Refund_Money(money - Balance);
@@ -276,7 +276,7 @@ bool FactoryClassExt::_Abandon()
         }
 
         /*
-        **	Set the factory back to the idle and empty state.
+        **  Set the factory back to the idle and empty state.
         */
         Set_Rate(0);
         Set_Stage(0);
@@ -303,7 +303,7 @@ bool FactoryClassExt::_Abandon()
         }
 
         /*
-        **	Delete the object under construction.
+        **  Delete the object under construction.
         */
         ScenarioInit++;
         delete Object;

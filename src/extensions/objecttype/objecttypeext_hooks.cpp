@@ -251,7 +251,7 @@ BuildingClass* ObjectTypeClassExt::_Who_Can_Build_Me(bool intheory, bool needsno
             building->Class->Get_Ownable() & ownable &&
 
             /*
-            **	Construction yards can only produce objects according to their ActLike, but not if MultiMCV is enabled.
+            **  Construction yards can only produce objects according to their ActLike, but not if MultiMCV is enabled.
             */
             (!Rule->BuildConst.Is_Present(building->Class) || RuleExtension->IsMultiMCV || 1L << building->ActLike & ownable)) {
 
@@ -260,12 +260,12 @@ BuildingClass* ObjectTypeClassExt::_Who_Can_Build_Me(bool intheory, bool needsno
                 BuildingTypeClassExtension* btype_ext = Extension::Fetch<BuildingTypeClassExtension>(building->Class);
 
                 /*
-                **	This object doesn't allow this factory to produce it.
+                **  This object doesn't allow this factory to produce it.
                 */
                 if (type_ext->BuiltAt.Count() != 0 && !type_ext->BuiltAt.Is_Present(building->Class)) continue;
 
                 /*
-                **	This factory doesn't produce this kind of object.
+                **  This factory doesn't produce this kind of object.
                 */
                 if (btype_ext->IsExclusiveFactory && !type_ext->BuiltAt.Is_Present(building->Class)) continue;
             }

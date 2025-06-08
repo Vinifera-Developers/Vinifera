@@ -351,18 +351,18 @@ ProdFailType HouseClassExtension::Suspend_Production(RTTIType type, ProductionFl
     FactoryClass* fptr = Fetch_Factory(type, flags);
 
     /*
-    **	If the house is already busy producing the requested object, then
-    **	return with this failure code.
+    **  If the house is already busy producing the requested object, then
+    **  return with this failure code.
     */
     if (fptr == nullptr) return PROD_CANT;
 
     /*
-    **	Actually suspend the production.
+    **  Actually suspend the production.
     */
     fptr->Suspend();
 
     /*
-    **	Tell the sidebar that it needs to be redrawn because of this.
+    **  Tell the sidebar that it needs to be redrawn because of this.
     */
     if (PlayerPtr == This()) {
         Map.SidebarClass::IsToRedraw = true;
@@ -414,8 +414,8 @@ ProdFailType HouseClassExtension::Begin_Production(RTTIType type, int id, bool r
     }
 
     /*
-    **	If the house is already busy producing the requested object, then
-    **	return with this failure code, unless we are restarting production.
+    **  If the house is already busy producing the requested object, then
+    **  return with this failure code, unless we are restarting production.
     */
     if (fptr != nullptr) {
         if (fptr->Is_Building() && type == RTTI_BUILDINGTYPE) {
@@ -427,7 +427,7 @@ ProdFailType HouseClassExtension::Begin_Production(RTTIType type, int id, bool r
     Set_Factory(type, fptr, flags);
 
     /*
-    **	Check if we have an object of this type currently suspended in production.
+    **  Check if we have an object of this type currently suspended in production.
     */
     bool skipset = false;
     if (fptr->IsSuspended) {
@@ -450,8 +450,8 @@ ProdFailType HouseClassExtension::Begin_Production(RTTIType type, int id, bool r
             fptr->Start(onhold);
 
             /*
-            **	Link this factory to the sidebar so that proper graphic feedback
-            **	can take place.
+            **  Link this factory to the sidebar so that proper graphic feedback
+            **  can take place.
             */
             if (PlayerPtr == This()) {
                 Map.Factory_Link(fptr, type, id);
@@ -464,7 +464,7 @@ ProdFailType HouseClassExtension::Begin_Production(RTTIType type, int id, bool r
     DEBUG_INFO("Request to Begin_Production of '%s' was rejected. Factory was unable to create the requested object\n", tech->FullName);
 
     /*
-    **	Output debug information if production failed.
+    **  Output debug information if production failed.
     */
     if (fptr->QueuedObjects.Count() == 0 && fptr->Object == nullptr) {
         DEBUG_INFO("type=%d\n", type);
@@ -492,14 +492,14 @@ ProdFailType HouseClassExtension::Abandon_Production(RTTIType type, int id, Prod
     FactoryClass* fptr = Fetch_Factory(type, flags);
 
     /*
-    **	If there is no factory to abandon, then return with a failure code.
+    **  If there is no factory to abandon, then return with a failure code.
     */
     if (fptr == nullptr) {
         return PROD_CANT;
     }
 
     /*
-    **	If we're just dequeuing a unit, redraw the strip.
+    **  If we're just dequeuing a unit, redraw the strip.
     */
     if (fptr->Queued_Object_Count() > 0 && id >= 0) {
         const TechnoTypeClass* technotype = Fetch_Techno_Type(type, id);
@@ -517,7 +517,7 @@ ProdFailType HouseClassExtension::Abandon_Production(RTTIType type, int id, Prod
     }
 
     /*
-    **	Tell the sidebar that it needs to be redrawn because of this.
+    **  Tell the sidebar that it needs to be redrawn because of this.
     */
     if (PlayerPtr == This()) {
         SidebarExtension->Abandon_Production(type, fptr, flags);
@@ -531,7 +531,7 @@ ProdFailType HouseClassExtension::Abandon_Production(RTTIType type, int id, Prod
     }
 
     /*
-    **	Abandon production of the object.
+    **  Abandon production of the object.
     */
     fptr->Abandon();
     if (fptr->QueuedObjects.Count() == 0) {
@@ -557,12 +557,12 @@ bool HouseClassExtension::Place_Object(RTTIType type, Cell const& cell, Producti
     FactoryClass* factory = Fetch_Factory(type, flags);
 
     /*
-    **	Only if there is a factory active for this type, can it be "placed".
-    **	In the case of a missing factory, then this request is completely bogus --
-    **	ignore it. This might occur if, between two events to exit the same
-    **	object, the mouse was clicked on the sidebar to start building again.
-    **	The second placement event should NOT try to place the object that is
-    **	just starting construction.
+    **  Only if there is a factory active for this type, can it be "placed".
+    **  In the case of a missing factory, then this request is completely bogus --
+    **  ignore it. This might occur if, between two events to exit the same
+    **  object, the mouse was clicked on the sidebar to start building again.
+    **  The second placement event should NOT try to place the object that is
+    **  just starting construction.
     */
     if (factory && factory->Has_Completed()) {
         tech = factory->Get_Object();
@@ -571,8 +571,8 @@ bool HouseClassExtension::Place_Object(RTTIType type, Cell const& cell, Producti
             if (tech != nullptr) {
 
                 /*
-                **	Try to find a place for the object to appear from. For helicopters, it has the
-                **	option of finding a nearby helipad if no helipads are free.
+                **  Try to find a place for the object to appear from. For helicopters, it has the
+                **  option of finding a nearby helipad if no helipads are free.
                 */
                 TechnoClass* builder = tech->Who_Can_Build_Me(false, true);
                 if (builder == nullptr && tech->RTTI == RTTI_AIRCRAFT) {
@@ -584,9 +584,9 @@ bool HouseClassExtension::Place_Object(RTTIType type, Cell const& cell, Producti
                     if (exit == 2 || (exit == 1 && builder->RTTI == RTTI_BUILDING && static_cast<BuildingClass*>(builder)->Factory != nullptr)) {
 
                         /*
-                        **	Since the object has left the factory under its own power, delete
-                        **	the production manager tied to this slot in the sidebar. Its job
-                        **	has been completed.
+                        **  Since the object has left the factory under its own power, delete
+                        **  the production manager tied to this slot in the sidebar. Its job
+                        **  has been completed.
                         */
                         LastRadarEventCell = builder->Center_Coord().As_Cell();
                         factory->Completed();
@@ -594,8 +594,8 @@ bool HouseClassExtension::Place_Object(RTTIType type, Cell const& cell, Producti
                         placed = true;
                     } else {
                         /*
-                        **	The object could not leave under it's own power. Just wait
-                        **	until the player tries to place the object again.
+                        **  The object could not leave under it's own power. Just wait
+                        **  until the player tries to place the object again.
                         */
                         if (This()->RTTI != RTTI_BUILDING) {
                             DEBUG_INFO("Failed to exit object from factory - refunding money\n");
@@ -721,8 +721,8 @@ TechnoTypeClass const* HouseClassExtension::Suggest_New_Object(RTTIType objectty
         return nullptr;
 
         /*
-        **	Unit construction is based on the rule that up to twice the number required
-        **	to fill all teams will be created.
+        **  Unit construction is based on the rule that up to twice the number required
+        **  to fill all teams will be created.
         */
     case RTTI_UNIT:
     case RTTI_UNITTYPE:
@@ -738,8 +738,8 @@ TechnoTypeClass const* HouseClassExtension::Suggest_New_Object(RTTIType objectty
         return nullptr;
 
         /*
-        **	Infantry construction is based on the rule that up to twice the number required
-        **	to fill all teams will be created.
+        **  Infantry construction is based on the rule that up to twice the number required
+        **  to fill all teams will be created.
         */
     case RTTI_INFANTRY:
     case RTTI_INFANTRYTYPE:
@@ -749,7 +749,7 @@ TechnoTypeClass const* HouseClassExtension::Suggest_New_Object(RTTIType objectty
         return nullptr;
 
         /*
-        **	Building construction is based upon the preconstruction list.
+        **  Building construction is based upon the preconstruction list.
         */
     case RTTI_BUILDING:
     case RTTI_BUILDINGTYPE:
@@ -781,8 +781,8 @@ int HouseClassExtension::AI_Unit()
     }
 
     /*
-    **	A computer controlled house will try to build a replacement
-    **	harvester if possible.
+    **  A computer controlled house will try to build a replacement
+    **  harvester if possible.
     */
     if (This()->IQ >= Rule->IQHarvester && !This()->IsTiberiumShort && !This()->Is_Human_Player() && ref * mult > harv) {
         if (This()->Get_First_Ownable(Rule->HarvesterUnit)->TechLevel <= This()->Control.TechLevel) {
@@ -799,8 +799,8 @@ int HouseClassExtension::AI_Unit()
     }
 
     /*
-    **	Build a list of the maximum of each type we wish to produce. This will be
-    **	twice the number required to fill all teams.
+    **  Build a list of the maximum of each type we wish to produce. This will be
+    **  twice the number required to fill all teams.
     */
     for (TeamClass* tptr : Teams) {
         if (tptr != nullptr) {
@@ -825,8 +825,8 @@ int HouseClassExtension::AI_Unit()
     }
 
     /*
-    **	Reduce the theoretical maximum by the actual number of objects currently
-    **	in play.
+    **  Reduce the theoretical maximum by the actual number of objects currently
+    **  in play.
     */
     for (UnitClass* obj : Units) {
         if (obj != nullptr && obj->Is_Recruitable(This()) && counter[obj->Class->HeapID] > 0) {
@@ -835,8 +835,8 @@ int HouseClassExtension::AI_Unit()
     }
 
     /*
-    **	Pick to build the most needed object but don't consider those object that
-    **	can't be built because of scenario restrictions or insufficient cash.
+    **  Pick to build the most needed object but don't consider those object that
+    **  can't be built because of scenario restrictions or insufficient cash.
     */
     int bestval = -1;
     int bestcount = 0;
@@ -862,7 +862,7 @@ int HouseClassExtension::AI_Unit()
         This()->BuildUnit = lasttype;
     } else {
         /*
-        **	The object type to build is now known. Fetch a pointer to the techno type class.
+        **  The object type to build is now known. Fetch a pointer to the techno type class.
         */
         if (bestcount) {
             This()->BuildUnit = bestlist[Random_Pick(0, bestcount - 1)];
@@ -890,8 +890,8 @@ int HouseClassExtension::AI_Naval_Unit()
     }
 
     /*
-    **	Build a list of the maximum of each type we wish to produce. This will be
-    **	twice the number required to fill all teams.
+    **  Build a list of the maximum of each type we wish to produce. This will be
+    **  twice the number required to fill all teams.
     */
     for (TeamClass* tptr : Teams) {
         if (tptr != nullptr) {
@@ -916,8 +916,8 @@ int HouseClassExtension::AI_Naval_Unit()
     }
 
     /*
-    **	Reduce the theoretical maximum by the actual number of objects currently
-    **	in play.
+    **  Reduce the theoretical maximum by the actual number of objects currently
+    **  in play.
     */
     for (UnitClass* obj : Units) {
         if (obj != nullptr && obj->Is_Recruitable(This()) && counter[obj->Class->HeapID] > 0) {
@@ -926,8 +926,8 @@ int HouseClassExtension::AI_Naval_Unit()
     }
 
     /*
-    **	Pick to build the most needed object but don't consider those object that
-    **	can't be built because of scenario restrictions or insufficient cash.
+    **  Pick to build the most needed object but don't consider those object that
+    **  can't be built because of scenario restrictions or insufficient cash.
     */
     int bestval = -1;
     int bestcount = 0;
@@ -953,7 +953,7 @@ int HouseClassExtension::AI_Naval_Unit()
         BuildNavalUnit = lasttype;
     } else {
         /*
-        **	The object type to build is now known. Fetch a pointer to the techno type class.
+        **  The object type to build is now known. Fetch a pointer to the techno type class.
         */
         if (bestcount) {
             BuildNavalUnit = bestlist[Random_Pick(0, bestcount - 1)];

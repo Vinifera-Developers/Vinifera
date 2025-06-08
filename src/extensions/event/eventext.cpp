@@ -128,35 +128,35 @@ void EventClassExt::Execute()
     switch (Type) {
 
         /*
-        **	This event will place the specified object at the specified location.
-        **	The event is used to place newly constructed buildings down on the map. The
-        **	object type is specified. From this object type, the house can determine the
-        **	exact factory and real object pointer to use.
+        **  This event will place the specified object at the specified location.
+        **  The event is used to place newly constructed buildings down on the map. The
+        **  object type is specified. From this object type, the house can determine the
+        **  exact factory and real object pointer to use.
         */
     case EVENT_PLACE:
         house_ext->Place_Object(Data.Production.Type, Cell(Data.NewPlace.Where.X, Data.NewPlace.Where.Y), Data.NewPlace.Flags);
         break;
 
         /*
-        **	This event starts production of the specified object type. The house can
-        **	determine from the type and ID value, what object to begin production on and
-        **	what factory to use.
+        **  This event starts production of the specified object type. The house can
+        **  determine from the type and ID value, what object to begin production on and
+        **  what factory to use.
         */
     case EVENT_PRODUCE:
         house_ext->Begin_Production(Data.Production.Type, Data.Production.ID, false, Data.Production.Flags);
         break;
 
         /*
-        **	This event is generated when the player puts production on hold. From the
-        **	object type, the factory can be inferred.
+        **  This event is generated when the player puts production on hold. From the
+        **  object type, the factory can be inferred.
         */
     case EVENT_SUSPEND:
         house_ext->Suspend_Production(Data.Production.Type, Data.Production.Flags);
         break;
 
         /*
-        **	This event is generated when the player cancels production of the specified
-        **	object type. From the object type, the exact factory can be inferred.
+        **  This event is generated when the player cancels production of the specified
+        **  object type. From the object type, the exact factory can be inferred.
         */
     case EVENT_ABANDON:
         house_ext->Abandon_Production(Data.Production.Type, Data.Production.ID, Data.Production.Flags);

@@ -490,7 +490,7 @@ void BuildingClassExt::_Detach_All(bool all)
 {
     if (all) {
         /*
-        **	If it is producing something, then it must be abandoned.
+        **  If it is producing something, then it must be abandoned.
         */
         if (Factory) {
             Factory->Abandon();
@@ -499,9 +499,9 @@ void BuildingClassExt::_Detach_All(bool all)
         }
 
         /*
-        ** If the owner HouseClass is building something, and this building can
-        ** build that thing, we may be the last building for that house that can
-        ** build that thing; if so, abandon production of it.
+        **  If the owner HouseClass is building something, and this building can
+        **  build that thing, we may be the last building for that house that can
+        **  build that thing; if so, abandon production of it.
         */
         if (House) {
             auto type_ext = Extension::Fetch<BuildingTypeClassExtension>(Class);
@@ -513,9 +513,9 @@ void BuildingClassExt::_Detach_All(bool all)
             FactoryClass* factory = Extension::Fetch<HouseClassExtension>(House)->Fetch_Factory(Class->ToBuild, prodflags);
 
             /*
-            **	If a factory was found, then temporarily disable this building and then
-            **	determine if any object that is being produced can still be produced. If
-            **	not, then the object being produced must be abandoned.
+            **  If a factory was found, then temporarily disable this building and then
+            **  determine if any object that is being produced can still be produced. If
+            **  not, then the object being produced must be abandoned.
             */
             if (factory) {
                 TechnoClass* object = factory->Get_Object();
@@ -665,9 +665,9 @@ ActionType BuildingClassExt::_What_Action(ObjectClass const* object, bool disall
     }
 
     /*
-    **	Don't allow targeting of SAM sites, even if the CTRL key
-    **	is held down. Also don't allow targeting if the object is too
-    **	far away.
+    **  Don't allow targeting of SAM sites, even if the CTRL key
+    **  is held down. Also don't allow targeting if the object is too
+    **  far away.
     */
     if (action == ACTION_ATTACK && PrimaryWeapon != nullptr) {
 #if 0
@@ -759,8 +759,8 @@ ActionType BuildingClassExt::_What_Action(const Cell& cell, bool check_fog, bool
     }
 
     /*
-    **	Don't allow targeting of SAM sites, even if the CTRL key
-    **	is held down.
+    **  Don't allow targeting of SAM sites, even if the CTRL key
+    **  is held down.
     */
     if (action == ACTION_ATTACK && PrimaryWeapon != nullptr) {
         if (!PrimaryWeapon->Bullet->IsAntiGround) {
@@ -784,9 +784,9 @@ ActionType BuildingClassExt::_What_Action(const Cell& cell, bool check_fog, bool
 void BuildingClassExt::_Factory_AI()
 {
     /*
-    **	Handle any production tied to this building. Only computer controlled buildings have
-    **	production attached to the building itself. The player uses the sidebar interface for
-    **	all production control.
+    **  Handle any production tied to this building. Only computer controlled buildings have
+    **  production attached to the building itself. The player uses the sidebar interface for
+    **  all production control.
     */
     if (Factory != nullptr && Factory->Has_Completed() && PlacementDelay == 0) {
         TechnoClass* product = Factory->Get_Object();
@@ -794,9 +794,9 @@ void BuildingClassExt::_Factory_AI()
         switch (Exit_Object(product)) {
 
             /*
-            **	If the object could not leave the factory, then either request
-            **	a transport, place the (what must be a) building using another method, or
-            **	abort the production and refund money.
+            **  If the object could not leave the factory, then either request
+            **  a transport, place the (what must be a) building using another method, or
+            **  abort the production and refund money.
             */
         case 0:
             Factory->Abandon();
@@ -805,16 +805,16 @@ void BuildingClassExt::_Factory_AI()
             break;
 
             /*
-            **	Exiting this building is prevented by some temporary blockage. Wait
-            **	a bit before trying again.
+            **  Exiting this building is prevented by some temporary blockage. Wait
+            **  a bit before trying again.
             */
         case 1:
             PlacementDelay = static_cast<int>(Rule->PlacementDelay * TICKS_PER_MINUTE);
             break;
 
             /*
-            **	The object was successfully sent from this factory. Inform the house
-            **	tracking logic that the requested object has been produced.
+            **  The object was successfully sent from this factory. Inform the house
+            **  tracking logic that the requested object has been produced.
             */
         case 2:
             House->Just_Built(product);
@@ -829,19 +829,19 @@ void BuildingClassExt::_Factory_AI()
     }
 
     /*
-    **	Pick something to create for this factory.
+    **  Pick something to create for this factory.
     */
     if (House->IsStarted && Mission != MISSION_CONSTRUCTION && Mission != MISSION_DECONSTRUCTION) {
 
         /*
-        **	Buildings that produce other objects have special factory logic handled here.
+        **  Buildings that produce other objects have special factory logic handled here.
         */
         if (Class->ToBuild != RTTI_NONE) {
             if (Factory != nullptr) {
 
                 /*
-                **	If production has halted, then just abort production and make the
-                **	funds available for something else.
+                **  If production has halted, then just abort production and make the
+                **  funds available for something else.
                 */
                 if (PlacementDelay == 0 && !Factory->Is_Building()) {
                     Factory->Abandon();
@@ -852,22 +852,22 @@ void BuildingClassExt::_Factory_AI()
             } else {
 
                 /*
-                **	Only look to start production if there is at least a small amount of
-                **	money available. In cases where there is no practical money left, then
-                **	production can never complete -- don't bother starting it.
+                **  Only look to start production if there is at least a small amount of
+                **  money available. In cases where there is no practical money left, then
+                **  production can never complete -- don't bother starting it.
                 */
                 if (House->IsStarted && House->Available_Money() > 10) {
                     auto btype_ext = Extension::Fetch<BuildingTypeClassExtension>(Class);
                     TechnoTypeClass const* techno = Extension::Fetch<HouseClassExtension>(House)->Suggest_New_Object(Class->ToBuild, btype_ext->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
 
                     /*
-                    **	If a suitable object type was selected for production, then start
-                    **	producing it now.
+                    **  If a suitable object type was selected for production, then start
+                    **  producing it now.
                     */
                     if (techno != nullptr) {
 
                         /*
-                        **	But first, verify if this building is a valid factory for this object.
+                        **  But first, verify if this building is a valid factory for this object.
                         */
                         bool allowed_factory = true;
                         auto ttype_ext = Extension::Fetch<TechnoTypeClassExtension>(techno);
@@ -878,17 +878,17 @@ void BuildingClassExt::_Factory_AI()
                         }
 
                         /*
-                        **	This object doesn't allow this factory to produce it.
+                        **  This object doesn't allow this factory to produce it.
                         */
                         if (ttype_ext->BuiltAt.Count() != 0 && !ttype_ext->BuiltAt.Is_Present(Class)) allowed_factory = false;
 
                         /*
-                        **	This factory doesn't produce this kind of object.
+                        **  This factory doesn't produce this kind of object.
                         */
                         if (btype_ext->IsExclusiveFactory && !ttype_ext->BuiltAt.Is_Present(Class)) allowed_factory = false;
 
                         /*
-                        **	If everything is okay, create the factory.
+                        **  If everything is okay, create the factory.
                         */
                         if (allowed_factory) {
                             Factory = new FactoryClass;
