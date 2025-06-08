@@ -128,5 +128,8 @@ public:
     const ShapeSet* RoofDoorAnim;
     const ShapeSet* UnderRoofDoorAnim;
 
+    /**
+     *  If this building is a factory, can it only produce those units that list it in BuiltAt=?
+     */
     bool IsExclusiveFactory;
 };

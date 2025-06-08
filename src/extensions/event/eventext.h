@@ -32,6 +32,11 @@
 #include "event.h"
 
 
+/**
+ *  This is the extended EventClass. It doesn't literally extend or replace the vanilla EventClass,
+ *  but instead provides us with a way to send custom payloads via the event system as well as create new/
+ *  replace implementations of vanilla events.
+ */
 class EventClassExt
 {
 public:
@@ -79,6 +84,9 @@ public:
 #pragma pack()
 };
 
+/**
+ *  Ensure that our class has the same size and layout as the vanilla class.
+ */
 static_assert(sizeof(EventClassExt) == sizeof(EventClass), "EventClassExt must match EventClass in size!");
 static_assert(sizeof(EventClassExt::Data) == sizeof(EventClass::Data), "EventClassExt::Data must match EventClass::Data in size!");
 static_assert(offsetof(EventClassExt, Data) == offsetof(EventClass, Data), "EventClassExt::Data must be at the same offset as in EventClass!");

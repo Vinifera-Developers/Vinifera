@@ -481,6 +481,11 @@ void BuildingClassExt::_Draw_It(Point2D const& xdrawpoint, Rect const& xcliprect
 }
 
 
+/**
+ *  Reimplementation of BuildingClass::Detach_All.
+ *
+ *  @author: ZivDero
+ */
 void BuildingClassExt::_Detach_All(bool all)
 {
     if (all) {
@@ -500,7 +505,7 @@ void BuildingClassExt::_Detach_All(bool all)
         */
         if (House) {
             auto type_ext = Extension::Fetch<BuildingTypeClassExtension>(Class);
-            ProductionFlags prodflags = PRODFLAG_NONE; // TODO: this will need adjustment for defense factories because they share the building with normal building factories
+            ProductionFlags prodflags = PRODFLAG_NONE;
             if (type_ext->IsNaval) {
                 prodflags = PRODFLAG_NAVAL;
             }
@@ -536,6 +541,11 @@ void BuildingClassExt::_Detach_All(bool all)
 }
 
 
+/**
+ *  Reimplementation of BuildingClass::Toggle_Primary.
+ *
+ *  @author: ZivDero
+ */
 bool BuildingClassExt::_Toggle_Primary()
 {
     if (Class->ToBuild == RTTI_NONE) {
@@ -564,12 +574,9 @@ bool BuildingClassExt::_Toggle_Primary()
 
 
 /**
- *  #issue-531
+ *  Reimplementation of BuildingClass::Assign_Rally_Point.
  *
- *  This patch allows naval yards to place rally
- *  points on water rather than on land.
- *
- *  @author: CCHyper, modified by Rampastring, rewritten by ZivDero
+ *  @author: ZivDero
  */
 void BuildingClassExt::_Assign_Rally_Point(Cell const& cell)
 {
@@ -586,6 +593,8 @@ void BuildingClassExt::_Assign_Rally_Point(Cell const& cell)
         /**
          *  If this is a factory that produces units, and is flagged as a shipyard (Float SpeedType), then
          *  change the zone flags to scan for water regions only.
+         *
+         *  @author: CCHyper, modified by Rampastring
          */
         if (Class->ToBuild == RTTI_UNITTYPE && Extension::Fetch<BuildingTypeClassExtension>(Class)->IsNaval) {
             speed = SPEED_AMPHIBIOUS;
@@ -607,6 +616,11 @@ void BuildingClassExt::_Assign_Rally_Point(Cell const& cell)
 }
 
 
+/**
+ *  Reimplementation of BuildingClass::What_Action.
+ *
+ *  @author: ZivDero
+ */
 ActionType BuildingClassExt::_What_Action(ObjectClass const* object, bool disallow_force)
 {
     if (Class->IsInvisibleInGame) {
@@ -683,9 +697,14 @@ ActionType BuildingClassExt::_What_Action(ObjectClass const* object, bool disall
                         action = ACTION_NOMOVE;
                     }
                     if (!Map[cell].IsUnderBridge) {
-                        if (Map[cell].Passability != PASSABLE_OK &&
-                            !(Extension::Fetch<BuildingTypeClassExtension>(Class)->IsNaval && Map[cell].Passability == PASSABLE_WATER)) {
 
+                        /**
+                         *  This patch allows naval yards to display the "place rally point" cursor action
+                         *  on water cells.
+                         *
+                         *  @author: Rampastring
+                         */
+                        if (Map[cell].Passability != PASSABLE_OK && !(Extension::Fetch<BuildingTypeClassExtension>(Class)->IsNaval && Map[cell].Passability == PASSABLE_WATER)) {
                             action = ACTION_NOMOVE;
                         }
                     }
@@ -699,12 +718,9 @@ ActionType BuildingClassExt::_What_Action(ObjectClass const* object, bool disall
 
 
 /**
- *  #issue-531
+ *  Reimplementation of BuildingClass::What_Action.
  *
- *  This patch allows naval yards to display the "place rally point" cursor action
- *  on water cells.
- *
- *  @author: ZivDero, Rampastring
+ *  @author: ZivDero
  */
 ActionType BuildingClassExt::_What_Action(const Cell& cell, bool check_fog, bool disallow_force) const
 {
@@ -727,9 +743,14 @@ ActionType BuildingClassExt::_What_Action(const Cell& cell, bool check_fog, bool
                 action = ACTION_NOMOVE;
             }
             if (!Map[cell].IsUnderBridge) {
-                if (Map[cell].Passability != PASSABLE_OK &&
-                    !(Extension::Fetch<BuildingTypeClassExtension>(Class)->IsNaval && Map[cell].Passability == PASSABLE_WATER)) {
 
+                /**
+                 *  This patch allows naval yards to display the "place rally point" cursor action
+                 *  on water cells.
+                 *
+                 *  @author: Rampastring
+                 */
+                if (Map[cell].Passability != PASSABLE_OK && !(Extension::Fetch<BuildingTypeClassExtension>(Class)->IsNaval && Map[cell].Passability == PASSABLE_WATER)) {
                     action = ACTION_NOMOVE;
                 }
                 
@@ -755,6 +776,11 @@ ActionType BuildingClassExt::_What_Action(const Cell& cell, bool check_fog, bool
 }
 
 
+/**
+ *  Reimplementation of BuildingClass::Factory_AI.
+ *
+ *  @author: ZivDero
+ */
 void BuildingClassExt::_Factory_AI()
 {
     /*
@@ -839,6 +865,10 @@ void BuildingClassExt::_Factory_AI()
                     **	producing it now.
                     */
                     if (techno != nullptr) {
+
+                        /*
+                        **	But first, verify if this building is a valid factory for this object.
+                        */
                         bool allowed_factory = true;
                         auto ttype_ext = Extension::Fetch<TechnoTypeClassExtension>(techno);
                         if (techno->RTTI == RTTI_UNITTYPE) {
@@ -846,12 +876,20 @@ void BuildingClassExt::_Factory_AI()
                                 allowed_factory = false;
                             }
                         }
-                        // This object can't be built at this factory
+
+                        /*
+                        **	This object doesn't allow this factory to produce it.
+                        */
                         if (ttype_ext->BuiltAt.Count() != 0 && !ttype_ext->BuiltAt.Is_Present(Class)) allowed_factory = false;
 
-                        // This factory doesn't allow this unit
+                        /*
+                        **	This factory doesn't produce this kind of object.
+                        */
                         if (btype_ext->IsExclusiveFactory && !ttype_ext->BuiltAt.Is_Present(Class)) allowed_factory = false;
 
+                        /*
+                        **	If everything is okay, create the factory.
+                        */
                         if (allowed_factory) {
                             Factory = new FactoryClass;
                             if (Factory != nullptr) {
@@ -872,6 +910,11 @@ void BuildingClassExt::_Factory_AI()
 }
 
 
+/**
+ *  This patch fetches the correct factory when displaying a cameo on a spied factory.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_BuildingClass_Draw_Overlays_Fetch_Factory_Patch)
 {
     GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
@@ -1866,6 +1909,11 @@ DECLARE_PATCH(_BuildingClass_entry_370_RoofDoorAnim_Patch2)
 }
 
 
+/**
+ *  Helper function that handles unlimboing a unit the naval yard has produced.
+ *
+ *  @author: ZivDero
+ */
 bool Unlimbo_Naval_Helper(BuildingClass* building, TechnoClass* techno)
 {
     if (building->Transmit_Message(RADIO_HELLO, techno) == RADIO_ROGER) {
@@ -1874,6 +1922,9 @@ bool Unlimbo_Naval_Helper(BuildingClass* building, TechnoClass* techno)
 
     Cell unlimbo_cell = building->Center_Coord().As_Cell();
 
+    /**
+     *  If the yard has a rally point set, attempt to place the unit in that direction, next to the naval yard.
+     */
     if (building->ArchiveTarget != nullptr) {
         Cell rally = building->ArchiveTarget->Center_Coord().As_Cell();
         DirType direction = Desired_Facing(Point2D(unlimbo_cell.X, unlimbo_cell.Y), Point2D(rally.X, rally.Y));
@@ -1884,18 +1935,37 @@ bool Unlimbo_Naval_Helper(BuildingClass* building, TechnoClass* techno)
         }
     }
 
+    /**
+     *  If we haven't got a rally point, or the cell we've selected is no good, just pick some cell near the yard that is valid.
+     */
     if (building->ArchiveTarget == nullptr || Map[unlimbo_cell].Land_Type() != LAND_WATER || Map[unlimbo_cell].Cell_Techno() != nullptr || !Map.In_Radar(unlimbo_cell)) {
         unlimbo_cell = Map.Nearby_Location(building->Center_Coord().As_Cell(), techno->TClass->Speed);
     }
 
+    /**
+     *  Unlimbo the unit at that cell.
+     */
     if (techno->Unlimbo(Map[unlimbo_cell].Center_Coord())) {
+
+        /**
+         *  If there's a rally point, assign the unit to move there.
+         */
         if (building->ArchiveTarget != nullptr) {
             techno->Assign_Destination(building->ArchiveTarget);
             techno->Assign_Mission(MISSION_MOVE);
         }
+
+        /**
+         *  Reposition the unit. I'm not exactly sure why this is necessary,
+         *  it was copied from YR.
+         */
         techno->Mark(MARK_UP);
         techno->PositionCoord = Map[unlimbo_cell].Cell_Coord();
         techno->Mark(MARK_DOWN);
+
+        /**
+         *  If this is an AI, give the unit a scatter order so that the AI's ships don't clump at the naval yard.
+         */
         if (!techno->House->Is_Human_Player()) {
             techno->Scatter(building->Center_Coord());
         }
@@ -1906,6 +1976,12 @@ bool Unlimbo_Naval_Helper(BuildingClass* building, TechnoClass* techno)
 }
 
 
+/**
+ *  This patch handles unlimboing naval yards' production
+ *  next to them as opposed to having the units "drive out".
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_BuildingClass_Exit_Object_Naval_Patch)
 {
     GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
@@ -1927,6 +2003,11 @@ DECLARE_PATCH(_BuildingClass_Exit_Object_Naval_Patch)
 }
 
 
+/**
+ *  This patch is part of adding an extra naval queue for the AI.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_BuildingClass_Exit_Object_BuildNavalUnit_Patch)
 {
     GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);

@@ -129,12 +129,6 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
         bool IsMultiMCV;
 
         /**
-         *  A list of buildings considered Naval Yard's for the computer to choose
-         *  from when building its base.
-         */
-        //TypeList<BuildingTypeClass*> BuildNavalYard;
-
-        /**
          *  The distance in cells the computer player can place their Naval Yard from their Construction Yard.
          */
         int AINavalYardAdjacency;

@@ -32,6 +32,11 @@
 #include "houseext.h"
 
 
+/**
+ *  EventClassExt constructor for production events.
+ *
+ *  @author: ZivDero
+ */
 EventClassExt::EventClassExt(int index, EventType type, RTTIType object, int id, ProductionFlags flags)
 {
     DEBUG_INFO("Adding event %s\n", EventNames[type]);
@@ -52,6 +57,11 @@ EventClassExt::EventClassExt(int index, EventType type, RTTIType object, int id,
 }
 
 
+/**
+ *  EventClassExt constructor for the PLACE event.
+ *
+ *  @author: ZivDero
+ */
 EventClassExt::EventClassExt(int index, EventType type, RTTIType object, Cell const& cell, ProductionFlags flags)
 {
     DEBUG_INFO("Adding event %s\n", EventNames[type]);
@@ -72,6 +82,11 @@ EventClassExt::EventClassExt(int index, EventType type, RTTIType object, Cell co
 }
 
 
+/**
+ *  Should this event be handled by our event handler?
+ *
+ *  @author: ZivDero
+ */
 bool EventClassExt::Is_Vinifera_Event(EventType type)
 {
     // We have re-implemented these events, let's handle them ourselves
@@ -88,12 +103,23 @@ bool EventClassExt::Is_Vinifera_Event(EventType type)
     return false;
 }
 
+
+/**
+ *  Should this event be handled by our event handler?
+ *
+ *  @author: ZivDero
+ */
 bool EventClassExt::Is_Vinifera_Event() const
 {
     return Is_Vinifera_Event(Type);
 }
 
 
+/**
+ *  Executes the event.
+ *
+ *  @author: ZivDero
+ */
 void EventClassExt::Execute()
 {
     HouseClass* house = Houses[ID];

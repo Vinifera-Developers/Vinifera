@@ -228,6 +228,11 @@ void ObjectTypeClassExt::_Clear_Voxel_Indexes()
 }
 
 
+/**
+ *  Reimplementation of ObjectTypeClass::Who_Can_Build_Me.
+ *
+ *  @author: ZivDero
+ */
 BuildingClass* ObjectTypeClassExt::_Who_Can_Build_Me(bool intheory, bool needsnopower, bool legal, HouseClass* house) const
 {
     BuildingClass* freebuilding = nullptr;
@@ -244,16 +249,24 @@ BuildingClass* ObjectTypeClassExt::_Who_Can_Build_Me(bool intheory, bool needsno
             building->Mission != MISSION_DECONSTRUCTION && building->MissionQueue != MISSION_DECONSTRUCTION &&
             (!legal || building->House->Can_Build(this, true, true) > 0) &&
             building->Class->Get_Ownable() & ownable &&
+
+            /*
+            **	Construction yards can only produce objects according to their ActLike, but not if MultiMCV is enabled.
+            */
             (!Rule->BuildConst.Is_Present(building->Class) || RuleExtension->IsMultiMCV || 1L << building->ActLike & ownable)) {
 
             if (RTTI == RTTI_UNITTYPE || RTTI == RTTI_INFANTRYTYPE || RTTI == RTTI_BUILDINGTYPE || RTTI == RTTI_AIRCRAFTTYPE) {
                 TechnoTypeClassExtension* type_ext = Extension::Fetch<TechnoTypeClassExtension>(this);
                 BuildingTypeClassExtension* btype_ext = Extension::Fetch<BuildingTypeClassExtension>(building->Class);
 
-                // This object can't be built at this factory
+                /*
+                **	This object doesn't allow this factory to produce it.
+                */
                 if (type_ext->BuiltAt.Count() != 0 && !type_ext->BuiltAt.Is_Present(building->Class)) continue;
 
-                // This factory doesn't allow this unit
+                /*
+                **	This factory doesn't produce this kind of object.
+                */
                 if (btype_ext->IsExclusiveFactory && !type_ext->BuiltAt.Is_Present(building->Class)) continue;
             }
 

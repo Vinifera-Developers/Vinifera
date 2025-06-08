@@ -38,6 +38,11 @@
 #include "house.h"
 
 
+/**
+ *  This patch intercepts EventClass::Execute and executes the event if it's one of ours.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_EventClass_Execute_New_Events)
 {
     GET_REGISTER_STATIC(EventClassExt*, event, esi);

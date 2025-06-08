@@ -429,6 +429,11 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
 }
 
 
+/**
+ *  Gets the production flags for this object type.
+ *
+ *  @author: ZivDero
+ */
 ProductionFlags TechnoTypeClassExtension::Get_Production_Flags(RTTIType type, int id)
 {
     const TechnoTypeClass* ttype = Fetch_Techno_Type(type, id);
@@ -439,6 +444,11 @@ ProductionFlags TechnoTypeClassExtension::Get_Production_Flags(RTTIType type, in
 }
 
 
+/**
+ *  Gets the production flags for this object type.
+ *
+ *  @author: ZivDero
+ */
 ProductionFlags TechnoTypeClassExtension::Get_Production_Flags(const TechnoTypeClassExtension* ttype_ext)
 {
     ProductionFlags flags = PRODFLAG_NONE;
@@ -446,10 +456,6 @@ ProductionFlags TechnoTypeClassExtension::Get_Production_Flags(const TechnoTypeC
     if (ttype_ext->IsNaval) {
         flags = static_cast<ProductionFlags>(flags | PRODFLAG_NAVAL);
     }
-
-    //if (ttype_ext->IsCombat) {
-    //    flags = static_cast<ProductionFlags>(flags | PRODFLAG_DEFENSE);
-    //}
 
     return flags;
 }

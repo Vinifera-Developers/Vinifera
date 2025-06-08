@@ -350,7 +350,14 @@ public:
      */
     bool JumpjetNoWobbles;
 
+    /**
+     *  If this techno "naval"? For buildings, this usually means this is a naval yard,
+     *  and for units - that this is a ship.
+     */
     bool IsNaval;
 
+    /**
+     *  A list of factories that can produce this unit.
+     */
     TypeList<BuildingTypeClass*> BuiltAt;
 };

@@ -231,6 +231,11 @@ void FactoryClassExt::_AI()
 }
 
 
+/**
+ *  Reimplementation of FactoryClass::Resume_Queue.
+ *
+ *  @author: ZivDero
+ */
 void FactoryClassExt::_Resume_Queue()
 {
     if (QueuedObjects.Count()) {
@@ -246,6 +251,11 @@ void FactoryClassExt::_Resume_Queue()
 }
 
 
+/**
+ *  Reimplementation of FactoryClass::Abandon.
+ *
+ *  @author: ZivDero
+ */
 bool FactoryClassExt::_Abandon()
 {
     if (Object) {

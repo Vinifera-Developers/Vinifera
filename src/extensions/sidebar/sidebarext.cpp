@@ -367,6 +367,11 @@ SidebarClassExtension::SidebarTabType SidebarClassExtension::First_Active_Tab()
 }
 
 
+/**
+ *  Replacement for SidebarClass::Abandon_Production.
+ *
+ *  @author: ZivDero
+ */
 bool SidebarClassExtension::Abandon_Production(RTTIType type, FactoryClass* factory, ProductionFlags flags)
 {
     if (Vinifera_NewSidebar) {

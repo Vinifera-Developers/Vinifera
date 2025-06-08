@@ -92,7 +92,19 @@ public:
      */
     VectorClass<int> WeedStorage;
 
+    /**
+     *  Record the number of naval factories active.
+     */
     int NavalFactories;
+
+    /**
+     *  For human controlled houses, only one type of naval unit can be produced
+     *  at any one instant. This is the factory object controlling this production.
+     */
     FactoryClass* NavalFactory;
+
+    /**
+     *  The type of the naval unit the AI is currently scheduled to build.
+     */
     UnitType BuildNavalUnit;
 };

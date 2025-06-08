@@ -214,6 +214,11 @@ void HouseClassExtension::Object_CRC(CRCEngine &crc) const
 }
 
 
+/**
+ *  Extended replacement of HouseClass::Fetch_Factory.
+ *
+ *  @author: ZivDero
+ */
 FactoryClass* HouseClassExtension::Fetch_Factory(RTTIType rtti, ProductionFlags flags) const
 {
     FactoryClass* factory = nullptr;
@@ -251,6 +256,11 @@ FactoryClass* HouseClassExtension::Fetch_Factory(RTTIType rtti, ProductionFlags 
 }
 
 
+/**
+ *  Extended replacement of HouseClass::Set_Factory.
+ *
+ *  @author: ZivDero
+ */
 void HouseClassExtension::Set_Factory(RTTIType rtti, FactoryClass* factory, ProductionFlags flags)
 {
     switch (rtti) {
@@ -281,6 +291,11 @@ void HouseClassExtension::Set_Factory(RTTIType rtti, FactoryClass* factory, Prod
 }
 
 
+/**
+ *  Extended replacement of HouseClass::Factory_Counter.
+ *
+ *  @author: ZivDero
+ */
 int* HouseClassExtension::Factory_Counter(RTTIType rtti, ProductionFlags flags)
 {
     switch (rtti) {
@@ -311,6 +326,11 @@ int* HouseClassExtension::Factory_Counter(RTTIType rtti, ProductionFlags flags)
 }
 
 
+/**
+ *  Extended replacement of HouseClass::Factory_Count.
+ *
+ *  @author: ZivDero
+ */
 int HouseClassExtension::Factory_Count(RTTIType rtti, ProductionFlags flags) const
 {
     int const* ptr = const_cast<HouseClassExtension*>(this)->Factory_Counter(rtti, flags);
@@ -321,6 +341,11 @@ int HouseClassExtension::Factory_Count(RTTIType rtti, ProductionFlags flags) con
 }
 
 
+/**
+ *  Extended replacement of HouseClass::Suspend_Production.
+ *
+ *  @author: ZivDero
+ */
 ProdFailType HouseClassExtension::Suspend_Production(RTTIType type, ProductionFlags flags)
 {
     FactoryClass* fptr = Fetch_Factory(type, flags);
@@ -351,6 +376,11 @@ ProdFailType HouseClassExtension::Suspend_Production(RTTIType type, ProductionFl
 }
 
 
+/**
+ *  Extended replacement of HouseClass::Begin_Production.
+ *
+ *  @author: ZivDero
+ */
 ProdFailType HouseClassExtension::Begin_Production(RTTIType type, int id, bool resume, ProductionFlags flags)
 {
     int result = true;
@@ -452,6 +482,11 @@ ProdFailType HouseClassExtension::Begin_Production(RTTIType type, int id, bool r
 }
 
 
+/**
+ *  Extended replacement of HouseClass::Abandon_Production.
+ *
+ *  @author: ZivDero
+ */
 ProdFailType HouseClassExtension::Abandon_Production(RTTIType type, int id, ProductionFlags flags)
 {
     FactoryClass* fptr = Fetch_Factory(type, flags);
@@ -510,6 +545,11 @@ ProdFailType HouseClassExtension::Abandon_Production(RTTIType type, int id, Prod
 }
 
 
+/**
+ *  Extended replacement of HouseClass::Place_Object.
+ *
+ *  @author: ZivDero
+ */
 bool HouseClassExtension::Place_Object(RTTIType type, Cell const& cell, ProductionFlags flags)
 {
     bool placed = false;
@@ -619,6 +659,11 @@ bool HouseClassExtension::Place_Object(RTTIType type, Cell const& cell, Producti
 }
 
 
+/**
+ *  Extended replacement of HouseClass::Update_Factories.
+ *
+ *  @author: ZivDero
+ */
 void HouseClassExtension::Update_Factories(RTTIType rtti, ProductionFlags flags)
 {
     FactoryClass* factory = Fetch_Factory(rtti, flags);
@@ -658,6 +703,11 @@ void HouseClassExtension::Update_Factories(RTTIType rtti, ProductionFlags flags)
 }
 
 
+/**
+ *  Extended replacement of HouseClass::Suggest_New_Object.
+ *
+ *  @author: ZivDero
+ */
 TechnoTypeClass const* HouseClassExtension::Suggest_New_Object(RTTIType objecttype, ProductionFlags flags) const
 {
     TechnoTypeClass const* techno = nullptr;
@@ -711,6 +761,12 @@ TechnoTypeClass const* HouseClassExtension::Suggest_New_Object(RTTIType objectty
     return techno;
 }
 
+
+/**
+ *  Reimplementation of HouseClass::AI_Unit.
+ *
+ *  @author: ZivDero
+ */
 int HouseClassExtension::AI_Unit()
 {
     if (This()->BuildUnit != UNIT_NONE) return TICKS_PER_SECOND;
@@ -816,6 +872,12 @@ int HouseClassExtension::AI_Unit()
     return TICKS_PER_SECOND;
 }
 
+
+/**
+ *  A new AI naval unit production handler.
+ *
+ *  @author: ZivDero
+ */
 int HouseClassExtension::AI_Naval_Unit()
 {
     if (BuildNavalUnit != UNIT_NONE) return TICKS_PER_SECOND;

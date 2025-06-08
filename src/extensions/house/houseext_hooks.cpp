@@ -942,6 +942,11 @@ bool HouseClassExt::_Can_Build_Required_Forbidden_Houses(const TechnoTypeClass* 
 }
 
 
+/**
+ *  Reimplementation of HouseClass::Active_Remove.
+ *
+ *  @author: ZivDero
+ */
 void HouseClassExt::_Active_Remove(TechnoClass const* techno)
 {
     if (techno->RTTI == RTTI_BUILDING) {
@@ -954,6 +959,11 @@ void HouseClassExt::_Active_Remove(TechnoClass const* techno)
 }
 
 
+/**
+ *  Reimplementation of HouseClass::Active_Add.
+ *
+ *  @author: ZivDero
+ */
 void HouseClassExt::_Active_Add(TechnoClass const* techno)
 {
     if (techno->RTTI == RTTI_BUILDING) {
@@ -1089,6 +1099,9 @@ DECLARE_PATCH(_HouseClass_Can_Build_Multi_MCV_Patch)
 }
 
 
+/**
+ *  Handy macro for the functions below.
+ */
 #define WARN_AND_EXIT(funcname) { \
     DEBUG_FATAL("The legacy version of " STRINGIZE(funcname) " has been called! If you see this, please notify the developers. The game will now exit.\n"); \
     DEBUG_FATAL("Return address: %p\n", _ReturnAddress()); \
@@ -1153,7 +1166,6 @@ void HouseClassExt::_Update_Factories(RTTIType type)
     WARN_AND_EXIT(HouseClass::Update_Factories);
 }
 
-
 TechnoTypeClass const* HouseClassExt::_Suggest_New_Object(RTTIType objecttype, bool kennel) const
 {
     WARN_AND_EXIT(HouseClass::Suggest_New_Object);
@@ -1161,6 +1173,12 @@ TechnoTypeClass const* HouseClassExt::_Suggest_New_Object(RTTIType objecttype, b
 }
 
 
+/**
+ *  The patches below replace calls to various HouseClass functions that we've re-implemented
+ *  with calls to our extended implementations.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_HouseClass_Exhausted_Build_Limit_Fetch_Factory_Patch)
 {
     GET_REGISTER_STATIC(HouseClass*, this_ptr, ebx);
@@ -1248,6 +1266,11 @@ DECLARE_PATCH(_BuildingClass_Turn_Off_Update_Factories_Patch)
 }
 
 
+/**
+ *  This patch is part of adding an extra naval queue for the AI.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_HouseClass_Raise_Money_BuildNavalUnit_Patch)
 {
     GET_REGISTER_STATIC(HouseClass*, this_ptr, esi);
@@ -1273,6 +1296,12 @@ DECLARE_PATCH(_HouseClass_Raise_Money_BuildNavalUnit_Patch)
 }
 
 
+/**
+ *  Reimplementation of part of HouseClass::AI related to production,
+ *  patched for naval queues.
+ *
+ *  @author: ZivDero
+ */
 void HouseClassExt::_Production_Check()
 {
     auto house_ext = Extension::Fetch<HouseClassExtension>(this);
@@ -1297,14 +1326,12 @@ void HouseClassExt::_Production_Check()
     }
 }
 
-
 DECLARE_PATCH(_HouseClass_AI_BuildNavalUnit_Patch)
 {
     GET_REGISTER_STATIC(HouseClassExt*, this_ptr, esi);
     this_ptr->_Production_Check();
     JMP(0x004BD1A1);
 }
-
 
 
 /**

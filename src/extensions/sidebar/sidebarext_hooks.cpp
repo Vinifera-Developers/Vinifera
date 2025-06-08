@@ -1611,6 +1611,12 @@ bool StripClassExt::_AI(KeyNumType& input, Point2D const&)
 }
 
 
+/**
+ *  Reimplementation of SidebarClass::StripClass::AI, but for the vanilla sidebar.
+ *  Used when the new sidebar is turned off.
+ *
+ *  @author: ZivDero
+ */
 bool StripClassExt::_AI_Vanilla(KeyNumType& input, Point2D const& xy)
 {
     KeyNumType key = KeyNumType(input & ~16384);
