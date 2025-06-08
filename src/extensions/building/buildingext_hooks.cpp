@@ -1913,8 +1913,8 @@ DECLARE_PATCH(_BuildingClass_entry_370_RoofDoorAnim_Patch2)
  */
 bool Unlimbo_Naval_Helper(BuildingClass* building, TechnoClass* techno)
 {
-    if (building->Transmit_Message(RADIO_HELLO, techno) == RADIO_ROGER) {
-        building->Transmit_Message(RADIO_UNLOAD);
+    if (!building->In_Radio_Contact()) {
+        building->Assign_Mission(MISSION_UNLOAD);
     }
 
     Cell unlimbo_cell = building->Center_Coord().As_Cell();

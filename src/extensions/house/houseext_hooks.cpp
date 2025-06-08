@@ -965,7 +965,6 @@ ProdFailType HouseClassExt::_Begin_Production(RTTIType type, int id, bool resume
     return ProdFailType();
 }
 
-
 ProdFailType HouseClassExt::_Abandon_Production(RTTIType type, int id)
 {
     WARN_AND_EXIT(HouseClass::Abandon_Production);
