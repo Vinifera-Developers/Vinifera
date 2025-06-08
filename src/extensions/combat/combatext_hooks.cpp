@@ -278,7 +278,7 @@ void Get_Explosion_Targets(const Coordinate& coord, TechnoClass* source, int ran
             object = cellptr->Cell_Occupier(isbridge);
             while (object) {
                 if (object != source) {
-                    if (object->Fetch_RTTI() != RTTI_UNIT || !Scen->SpecialFlags.IsHarvesterImmune || !Rule->HarvesterUnit.Is_Present((UnitTypeClass*)object->Class_Of())) {
+                    if (object->RTTI != RTTI_UNIT || !Scen->SpecialFlags.IsHarvesterImmune || !Rule->HarvesterUnit.Is_Present((UnitTypeClass*)object->Class_Of())) {
                         objects.Delete(object);
                         objects.Add(object);
                     }
@@ -427,7 +427,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
         FootClass* target = AircraftTracker->Get_Target();
         while (target != nullptr) {
             if (target->IsActive && target->IsDown && target->Strength > 0) {
-                if (use_cell_spread || Distance(explosion_coord, target->Get_Coord()) < CELL_LEPTON_W) {
+                if (use_cell_spread || Distance(explosion_coord, target->PositionCoord) < CELL_LEPTON_W) {
                     objects.Delete(target);
                     objects.Add(target);
                 }
@@ -500,9 +500,9 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
                     TechnoClass* techno = object->As_Techno();
                     if (techno != NULL) {
                         if (Cell(x, y) == cell && source) {
-                            Coordinate tcoord = techno->Get_Coord();
+                            Coordinate tcoord = techno->PositionCoord;
 
-                            Coordinate rockdir = source->Get_Coord() - tcoord;
+                            Coordinate rockdir = source->PositionCoord - tcoord;
                             TPoint3D<float> rockdirf(rockdir.X, rockdir.Y, rockdir.Z);
                             rockdirf = rockdirf.Normalized() * 10.0f;
 

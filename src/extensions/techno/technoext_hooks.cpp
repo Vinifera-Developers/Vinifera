@@ -143,11 +143,11 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
     const ShapeSet* pips1 = Class_Of()->PipShapes;
     const ShapeSet* pips2 = Class_Of()->Pip2Shapes;
 
-    const auto ttype = Techno_Type_Class();
+    const auto ttype = TClass;
     const auto ttype_ext = Extension::Fetch<TechnoTypeClassExtension>(ttype);
     const auto ext = Extension::Fetch<TechnoClassExtension>(this);
 
-    if (Fetch_RTTI() != RTTI_BUILDING)
+    if (RTTI != RTTI_BUILDING)
     {
         drawx = bottomleft.X - 5;
         drawy = bottomleft.Y;
@@ -166,7 +166,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
          *  Transporter type objects have a different graphic representation for the pips. The
          *  pip color represents the type of occupant.
          */
-        const bool carrying_passengers = Techno_Type_Class()->Max_Passengers() > 0;
+        const bool carrying_passengers = TClass->Max_Passengers() > 0;
         if (carrying_passengers)
         {
             ObjectClass const* object = Cargo.Attached_Object();
@@ -177,7 +177,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
                 if (object != nullptr)
                 {
                     pip = 1;
-                    if (object->Fetch_RTTI() == RTTI_INFANTRY)
+                    if (object->RTTI == RTTI_INFANTRY)
                     {
                         pip = ((InfantryClass*)object)->Class->Pip;
                     }
@@ -199,7 +199,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
              *  Check if it contains Tiberium to show the right type of pips for the
              *  various minerals it could have stored.
              */
-            if ((Fetch_RTTI() == RTTI_UNIT || Fetch_RTTI() == RTTI_BUILDING) && Techno_Type_Class()->PipScale == PIP_TIBERIUM)
+            if ((RTTI == RTTI_UNIT || RTTI == RTTI_BUILDING) && TClass->PipScale == PIP_TIBERIUM)
             {
                 std::vector<int> pips_to_draw;
                 pips_to_draw.reserve(Class_Of()->Max_Pips());
@@ -207,8 +207,8 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
                 /**
                  *  Weeders/Waste Facilities draw all their contents with the Weed pip.
                  */
-                if ((ttype->Fetch_RTTI() == RTTI_UNITTYPE && ((UnitTypeClass*)ttype)->IsToVeinHarvest) ||
-                    (ttype->Fetch_RTTI() == RTTI_BUILDINGTYPE && ((BuildingTypeClass*)ttype)->IsWeeder))
+                if ((ttype->RTTI == RTTI_UNITTYPE && ((UnitTypeClass*)ttype)->IsToVeinHarvest) ||
+                    (ttype->RTTI == RTTI_BUILDINGTYPE && ((BuildingTypeClass*)ttype)->IsWeeder))
                 {
                     /**
                      *  Add the pips to draw to a vector.
@@ -264,7 +264,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
                     Draw_Shape(*LogicSurface,* NormalDrawer, pip_shapes, pip, Point2D(drawx + dx * index, drawy + dy * index), rect, SHAPE_WIN_REL | SHAPE_CENTER);
                 }
             }
-            else if (Techno_Type_Class()->PipScale == PIP_AMMO)
+            else if (TClass->PipScale == PIP_AMMO)
             {
                 if (ttype_ext->PipWrap > 0)
                 {
@@ -287,7 +287,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
                 }
                 
             }
-            else if (Techno_Type_Class()->PipScale == PIP_CHARGE)
+            else if (TClass->PipScale == PIP_CHARGE)
             {
                 for (int index = 0; index < Class_Of()->Max_Pips(); index++)
                 {
@@ -305,7 +305,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
             char buffer[12];
 
             Point2D drawpoint = bottomleft;
-            drawpoint += UIControls->Get_Group_Number_Offset(Fetch_RTTI(), Class_Of()->Max_Pips() > 0);
+            drawpoint += UIControls->Get_Group_Number_Offset(RTTI, Class_Of()->Max_Pips() > 0);
 
             int group = Group + 1;
 
@@ -328,20 +328,20 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
          *  Special hack to display a red pip on the medic,
          *  or a custom pip.
          */
-        const int specialpip = Extension::Fetch<TechnoTypeClassExtension>(Techno_Type_Class())->SpecialPipIndex;
+        const int specialpip = Extension::Fetch<TechnoTypeClassExtension>(TClass)->SpecialPipIndex;
         if (specialpip >= 0)
         {
-            Draw_Shape(*LogicSurface, *NormalDrawer, pips1, specialpip, (Point2D(drawx, drawy) + UIControls->Get_Special_Pip_Offset(Fetch_RTTI())), rect, SHAPE_WIN_REL | SHAPE_CENTER);
+            Draw_Shape(*LogicSurface, *NormalDrawer, pips1, specialpip, (Point2D(drawx, drawy) + UIControls->Get_Special_Pip_Offset(RTTI)), rect, SHAPE_WIN_REL | SHAPE_CENTER);
         }
-        else if (Fetch_RTTI() == RTTI_INFANTRY && Combat_Damage() < 0)
+        else if (RTTI == RTTI_INFANTRY && Combat_Damage() < 0)
         {
-            Draw_Shape(*LogicSurface,* NormalDrawer, pips1, 6, (Point2D(drawx, drawy) + UIControls->Get_Special_Pip_Offset(Fetch_RTTI())), rect, SHAPE_WIN_REL | SHAPE_CENTER);
+            Draw_Shape(*LogicSurface,* NormalDrawer, pips1, 6, (Point2D(drawx, drawy) + UIControls->Get_Special_Pip_Offset(RTTI)), rect, SHAPE_WIN_REL | SHAPE_CENTER);
         }
 
         /**
          *  Display whether this unit is a leader unit or not.
          */
-        if (Fetch_RTTI() != RTTI_BUILDING)
+        if (RTTI != RTTI_BUILDING)
             Draw_Text_Overlay(Point2D(bottomleft.X - 10, bottomleft.Y + 10), bottomleft, rect);
 
         /**
@@ -360,7 +360,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
         if (veterancy_shape != -1)
         {
             Point2D drawpoint = center;
-            drawpoint += UIControls->Get_Veterancy_Pip_Offset(Fetch_RTTI());
+            drawpoint += UIControls->Get_Veterancy_Pip_Offset(RTTI);
             Draw_Shape(*LogicSurface, *NormalDrawer, pips1, veterancy_shape, drawpoint, rect, SHAPE_WIN_REL | SHAPE_CENTER);
         }
     }
@@ -460,9 +460,9 @@ WeaponSlotType TechnoClassExt::_What_Weapon_Should_I_Use(AbstractClass * target)
                 immobilize = true;
             }
         } else if (!obj->Is_Foot()) {
-            immobilize = obj->Fetch_RTTI() == RTTI_ISOTILE;
+            immobilize = obj->RTTI == RTTI_ISOTILE;
         }
-    } else if (target->Fetch_RTTI() == RTTI_CELL) {
+    } else if (target->RTTI == RTTI_CELL) {
         CellClass* cell = static_cast<CellClass*>(target);
         IsometricTileType tile = cell->Tile;
         if (tile != DestroyableCliff && tile != BlackTile && !cell->IsUnderBridge) {
@@ -497,7 +497,7 @@ bool TechnoClassExt::_Spawner_Fire_At(AbstractClass * target, WeaponTypeClass* w
             if (!Map.Is_Shrouded(Center_Coord()) && !Map.Is_Fogged(Center_Coord()))
                 return true;
 
-            if (Fetch_RTTI() == RTTI_AIRCRAFT && IsOwnedByPlayer)
+            if (RTTI == RTTI_AIRCRAFT && IsOwnedByPlayer)
                 return true;
         }
 
@@ -626,7 +626,7 @@ FireErrorType TechnoClassExt::_Can_Fire(AbstractClass * target, WeaponSlotType w
         return FIRE_ILLEGAL;
 
     const auto ext = Extension::Fetch<TechnoClassExtension>(this);
-    const auto typeext = Extension::Fetch<TechnoTypeClassExtension>(Techno_Type_Class());
+    const auto typeext = Extension::Fetch<TechnoTypeClassExtension>(TClass);
 
     /**
      *  If this unit is a spawner, don't let it fire if it's currently in the process of spawning.
@@ -658,7 +658,7 @@ FireErrorType TechnoClassExt::_Can_Fire(AbstractClass * target, WeaponSlotType w
      */
     if (Is_Immobilized())
     {
-        if (Fetch_RTTI() != RTTI_UNIT)
+        if (RTTI != RTTI_UNIT)
             return FIRE_CANT;
         if (!reinterpret_cast<UnitClass*>(this)->Class->IsLargeVisceroid && !reinterpret_cast<UnitClass*>(this)->Class->IsSmallVisceroid)
             return FIRE_CANT;
@@ -738,7 +738,7 @@ FireErrorType TechnoClassExt::_Can_Fire(AbstractClass * target, WeaponSlotType w
      *  Check if the unit has synchronized shooting.
      */
     bool check_rearm = true;
-    if (which != WEAPON_SLOT_SECONDARY && Fetch_RTTI() == RTTI_UNIT)
+    if (which != WEAPON_SLOT_SECONDARY && RTTI == RTTI_UNIT)
     {
         const auto unit = reinterpret_cast<UnitClass*>(this);
         const int burst = CurrentBurstIndex % weapon->Burst;
@@ -770,7 +770,7 @@ FireErrorType TechnoClassExt::_Can_Fire(AbstractClass * target, WeaponSlotType w
     /**
      *  If the object has an armor type that this unit's warhead is forbidden to fire at, bail.
      */
-    if (techno && !Verses::Get_ForceFire(techno->Techno_Type_Class()->Armor, weapon->WarheadPtr))
+    if (techno && !Verses::Get_ForceFire(techno->TClass->Armor, weapon->WarheadPtr))
         return FIRE_ILLEGAL;
 
     /**
@@ -782,13 +782,13 @@ FireErrorType TechnoClassExt::_Can_Fire(AbstractClass * target, WeaponSlotType w
     /**
      *  If cloaked, then firing is disabled.
      */
-    if (typeext->IsDecloakToFire && Cloak != UNCLOAKED && (Fetch_RTTI() != RTTI_AIRCRAFT || Cloak == CLOAKED))
+    if (typeext->IsDecloakToFire && Cloak != UNCLOAKED && (RTTI != RTTI_AIRCRAFT || Cloak == CLOAKED))
         return FIRE_CLOAKED;
 
     /**
      *  Hunter seekers can't fire since they need to kamikaze into the target.
      */
-    if (Techno_Type_Class()->IsHunterSeeker)
+    if (TClass->IsHunterSeeker)
         return FIRE_RANGE;
 
     return FIRE_OK;
@@ -812,7 +812,7 @@ bool TechnoClassExt::_Can_Player_Move() const
     const auto ext = Extension::Fetch<TechnoClassExtension>(this);
     if (ext->SpawnManager)
     {
-        const auto typeext = Extension::Fetch<TechnoTypeClassExtension>(Techno_Type_Class());
+        const auto typeext = Extension::Fetch<TechnoTypeClassExtension>(TClass);
         if (ext->SpawnManager->Preparing_Count() > 0 && ext->SpawnManager->Preparing_Count() < typeext->SpawnsNumber)
             return false;
     }
@@ -849,7 +849,7 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
      *  @author: CCHyper
      */
 
-    const TechnoTypeClass* ttype = Techno_Type_Class();
+    const TechnoTypeClass* ttype = TClass;
 
     /**
      *  If this unit is flagged as not being allowed to retaliate to attacks, return false.
@@ -905,7 +905,7 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
      */
     const WeaponInfoStruct* weapon_info = Get_Weapon(What_Weapon_Should_I_Use(source));
     if (weapon_info->Weapon->WarheadPtr &&
-        Verses::Get_Modifier(source->Techno_Type_Class()->Armor, weapon_info->Weapon->WarheadPtr) == 0.0)
+        Verses::Get_Modifier(source->TClass->Armor, weapon_info->Weapon->WarheadPtr) == 0.0)
     {
         return false;
     }
@@ -913,16 +913,16 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
     /**
      *  Don't allow retaliation if it isn't equipped with a weapon that can deal with the threat.
      */
-    if (source->Fetch_RTTI() == RTTI_AIRCRAFT && !weapon_info->Weapon->Bullet->IsAntiAircraft) return false;
+    if (source->RTTI == RTTI_AIRCRAFT && !weapon_info->Weapon->Bullet->IsAntiAircraft) return false;
 
     /**
      *  Units with C4 are not allowed to retaliate against buildings in the normal sense while in guard mode. That
      *  is, unless it is owned by the computer. Normally, units with C4 can't do anything substantial to a building
      *  except to blow it up.
      */
-    if (House->Is_Human_Player() && source->Fetch_RTTI() == RTTI_BUILDING)
+    if (House->Is_Human_Player() && source->RTTI == RTTI_BUILDING)
     {
-        if (Fetch_RTTI() == RTTI_INFANTRY && static_cast<InfantryTypeClass const*>(ttype)->IsBomber)
+        if (RTTI == RTTI_INFANTRY && static_cast<InfantryTypeClass const*>(ttype)->IsBomber)
             return false;
 
         if (Veterancy.Is_Veteran() && ttype->VeteranAbilities[ABILITY_C4])
@@ -935,7 +935,7 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
     /**
      *  Artillery that need to deploy to fire don't retaliate.
      */
-    if (House->Is_Human_Player() && Fetch_RTTI() == RTTI_UNIT)
+    if (House->Is_Human_Player() && RTTI == RTTI_UNIT)
     {
         const BuildingTypeClass* deploys_into = reinterpret_cast<UnitClass const*>(this)->Class->DeploysInto;
         if (deploys_into && deploys_into->IsArtillary)
@@ -945,7 +945,7 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
     /**
      *  If a human house is not allowed to retaliate automatically, then don't
      */
-    if (House->Is_Human_Player() && !Rule->IsSmartDefense && Fetch_RTTI() != RTTI_BUILDING)
+    if (House->Is_Human_Player() && !Rule->IsSmartDefense && RTTI != RTTI_BUILDING)
     {
         if (Mission != MISSION_GUARD_AREA && Mission != MISSION_GUARD && Mission != MISSION_PATROL)
             return false;
@@ -974,7 +974,7 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
      *  The warhead may forbid the unit from retaliating against targets with some armor types.
      */
     if (weapon_info->Weapon->WarheadPtr != nullptr &&
-        !Verses::Get_Retaliate(source->Techno_Type_Class()->Armor, weapon_info->Weapon->WarheadPtr))
+        !Verses::Get_Retaliate(source->TClass->Armor, weapon_info->Weapon->WarheadPtr))
     {
         return false;
     }
@@ -999,7 +999,7 @@ double TechnoClassExt::_Target_Threat(TechnoClass* target, Coordinate& firing_co
     double target_strength_coefficient;
     double target_distance_coefficient;
 
-    const TechnoTypeClass* ttype = Techno_Type_Class();
+    const TechnoTypeClass* ttype = TClass;
 
     /**
      *  Nothing is not a threat.
@@ -1043,7 +1043,7 @@ double TechnoClassExt::_Target_Threat(TechnoClass* target, Coordinate& firing_co
         /**
          *  Add the special threat value.
          */
-        threat += target_special_threat_coefficient * target->Techno_Type_Class()->SpecialThreatValue;
+        threat += target_special_threat_coefficient * target->TClass->SpecialThreatValue;
 
         /**
          *  The enemy house extra gets priority.
@@ -1073,7 +1073,7 @@ double TechnoClassExt::_Target_Threat(TechnoClass* target, Coordinate& firing_co
     else
         dist = (firing_coord - target->Center_Coord()).Length();
 
-    const int threat_range = (weapon ? weapon->Range : Techno_Type_Class()->ThreatRange) / 256;
+    const int threat_range = (weapon ? weapon->Range : TClass->ThreatRange) / 256;
     threat += std::max(0, dist - threat_range) * target_distance_coefficient;
 
     return threat + 100000.0;
@@ -1102,7 +1102,7 @@ int TechnoClassExt::_Anti_Infantry() const
         const int mrange = std::min(static_cast<int>(weapon->Range), minrange);
 
         int value = ((weapon->Attack * Verses::Get_Modifier(ARMOR_NONE, weapon->WarheadPtr)) * mrange * weapon->WarheadPtr->SpreadFactor) / weapon->ROF;
-        if (Techno_Type_Class()->Is_Two_Shooter())
+        if (TClass->Is_Two_Shooter())
             value *= 2;
         
         if (bullet->IsInaccurate)
@@ -1150,7 +1150,7 @@ void TechnoClassExt::_Drop_Tiberium()
      */
     static FacingType drop_facings[9] = { FACING_NONE, FACING_E, FACING_NW, FACING_NE, FACING_S, FACING_SE, FACING_N, FACING_SW, FACING_W };
 
-    if (Storage.Get_Total_Amount() > 0 && Fetch_RTTI() != RTTI_BUILDING && !Scen->SpecialFlags.IsHarvesterImmune)
+    if (Storage.Get_Total_Amount() > 0 && RTTI != RTTI_BUILDING && !Scen->SpecialFlags.IsHarvesterImmune)
     {
         TiberiumType droplist[9] = { TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE };
         int dropcount = 0;
@@ -1161,7 +1161,7 @@ void TechnoClassExt::_Drop_Tiberium()
         for (int i = 0; i < Tiberiums.Count(); i++)
         {
             double amount = Storage.Get_Amount(static_cast<TiberiumType>(i));
-            amount = amount / Techno_Type_Class()->Storage * std::size(drop_facings);
+            amount = amount / TClass->Storage * std::size(drop_facings);
             for (int j = 0; j < amount && dropcount < std::size(droplist); j++)
                 droplist[dropcount++] = static_cast<TiberiumType>(i);
         }
@@ -1193,9 +1193,9 @@ void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
 {
     int total_recorded = 0;
 
-    const int points = Techno_Type_Class()->Cost_Of(House);
+    const int points = TClass->Cost_Of(House);
 
-    const auto typeext = Extension::Fetch<TechnoTypeClassExtension>(Techno_Type_Class());
+    const auto typeext = Extension::Fetch<TechnoTypeClassExtension>(TClass);
 
     /**
      *  Handle any trigger event associated with this object.
@@ -1204,7 +1204,7 @@ void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
 
     if (IsActive && Tag && source) Tag->Spring(TEVENT_DISCOVERED, this);
 
-    if (IsActive && Fetch_RTTI() != RTTI_UNIT) {
+    if (IsActive && RTTI != RTTI_UNIT) {
 
         if (IsActive && Tag && source) Tag->Spring(TEVENT_DESTROYED, this);
 
@@ -1216,15 +1216,15 @@ void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
     if (source && !typeext->IsDontScore && !House->Is_Ally(source) && !source->House->Is_Ally(this)) {
 
         const auto source_ext = Extension::Fetch<TechnoClassExtension>(source);
-        const auto source_typeext = Extension::Fetch<TechnoTypeClassExtension>(source->Techno_Type_Class());
+        const auto source_typeext = Extension::Fetch<TechnoTypeClassExtension>(source->TClass);
 
-        if (source->Techno_Type_Class()->IsTrainable) {
-            source->Veterancy.Gain_Experience(source->Techno_Type_Class()->Cost_Of(House), points);
+        if (source->TClass->IsTrainable) {
+            source->Veterancy.Gain_Experience(source->TClass->Cost_Of(House), points);
 
         } else if (source_typeext->IsMissileSpawn) {
 
-            if (source_ext->SpawnOwner && source_ext->SpawnOwner->Techno_Type_Class()->IsTrainable) {
-                source_ext->SpawnOwner->Veterancy.Gain_Experience(source_ext->SpawnOwner->Techno_Type_Class()->Cost_Of(House), points);
+            if (source_ext->SpawnOwner && source_ext->SpawnOwner->TClass->IsTrainable) {
+                source_ext->SpawnOwner->Veterancy.Gain_Experience(source_ext->SpawnOwner->TClass->Cost_Of(House), points);
             }
         }
 
@@ -1236,10 +1236,10 @@ void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
         source->House->PointTotal += points;
     }
 
-    switch (Fetch_RTTI()) {
+    switch (RTTI) {
     case RTTI_BUILDING:
     {
-        if (!Techno_Type_Class()->IsInsignificant) {
+        if (!TClass->IsInsignificant) {
             if (reinterpret_cast<BuildingClass*>(this)->WhoLastHurtMe != HOUSE_NONE) {
                 House->BuildingsLost++;
             }
@@ -1539,7 +1539,7 @@ void TechnoClassExt::_Draw_Text_Overlay(Point2D& point1, Point2D& point2, Rect& 
     /**
      *  Print the Power/Drain text on power plants.
      */
-    if (Fetch_RTTI() == RTTI_BUILDING && reinterpret_cast<const BuildingClass*>(this)->Class->Power > 0)
+    if (RTTI == RTTI_BUILDING && reinterpret_cast<const BuildingClass*>(this)->Class->Power > 0)
     {
         const auto owner = Owner_HouseClass();
         std::sprintf(buffer, Fetch_String(TXT_POWER_DRAIN), owner->Power_Output(), owner->Power_Drain());
@@ -1551,7 +1551,7 @@ void TechnoClassExt::_Draw_Text_Overlay(Point2D& point1, Point2D& point2, Rect& 
      */
     if (IsLeader)
     {
-        const int text = Fetch_RTTI() == RTTI_BUILDING && reinterpret_cast<const BuildingClass*>(this)->Class->Width() == 1 ? TXT_PRI : TXT_PRIMARY;
+        const int text = RTTI == RTTI_BUILDING && reinterpret_cast<const BuildingClass*>(this)->Class->Width() == 1 ? TXT_PRI : TXT_PRIMARY;
         Plain_Text_Print(text, LogicSurface, &rect, &point2, COLOR_WHITE, COLOR_TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_EFNT, colorschemetype, 1);
     }
 }
@@ -1569,7 +1569,7 @@ const InfantryTypeClass* TechnoClassExt::_Crew_Type() const
      *  If this object contains no crew, then there can be no
      *  crew inside, duh... return this news.
      */
-    if (!Techno_Type_Class()->IsCrew) {
+    if (!TClass->IsCrew) {
         return nullptr;
     }
 
@@ -1602,8 +1602,8 @@ const InfantryTypeClass* TechnoClassExt::_Crew_Type() const
  */
 int TechnoClassExt::_How_Many_Survivors() const
 {
-    if (Techno_Type_Class()->IsCrew) {
-        return Extension::Fetch<TechnoTypeClassExtension>(Techno_Type_Class())->CrewCount;
+    if (TClass->IsCrew) {
+        return Extension::Fetch<TechnoTypeClassExtension>(TClass)->CrewCount;
     }
 
     return 0;
@@ -1629,7 +1629,7 @@ DECLARE_PATCH(_TechnoClass_Evaluate_Object_Is_Legal_Target_Patch)
     //this_technoext = Extension::Fetch<TechnoClassExtension>(this_ptr);
     //object_technoext = Extension::Fetch<TechnoClassExtension>(object);
 
-    object_tclass = object->Techno_Type_Class();
+    object_tclass = object->TClass;
     object_tclassext = Extension::Fetch<TechnoTypeClassExtension>(object_tclass);
 
     /**
@@ -1676,7 +1676,7 @@ DECLARE_PATCH(_TechnoClass_Evaluate_Object_PassiveAcquire_Armor_Patch)
      *  Determine if the target object has an armor type that this warhead is not allowed to passive acquire.
      */
     weapon = const_cast<WeaponTypeClass*>(this_ptr->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon);
-    if (weapon && weapon->WarheadPtr && !Verses::Get_PassiveAcquire(object->Techno_Type_Class()->Armor, weapon->WarheadPtr))
+    if (weapon && weapon->WarheadPtr && !Verses::Get_PassiveAcquire(object->TClass->Armor, weapon->WarheadPtr))
         goto return_false;
 
     /**
@@ -1703,7 +1703,7 @@ DECLARE_PATCH(_TechnoClass_Base_Is_Attacked_Armor1_Patch)
     GET_STACK_STATIC(TechnoClass*, enemy, esp, 0x84);
     GET_REGISTER_STATIC(UnitClass*, unit, esi);
 
-    if (Verses::Get_Modifier(enemy->Techno_Type_Class()->Armor, unit->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon->WarheadPtr))
+    if (Verses::Get_Modifier(enemy->TClass->Armor, unit->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon->WarheadPtr))
     {
         _asm mov esi, unit
         JMP(0x00636C36);
@@ -1724,7 +1724,7 @@ DECLARE_PATCH(_TechnoClass_Base_Is_Attacked_Armor2_Patch)
     GET_STACK_STATIC(TechnoClass*, enemy, esp, 0x84);
     GET_REGISTER_STATIC(InfantryClass*, unit, esi);
 
-    if (Verses::Get_Modifier(enemy->Techno_Type_Class()->Armor, unit->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon->WarheadPtr) != 0)
+    if (Verses::Get_Modifier(enemy->TClass->Armor, unit->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon->WarheadPtr) != 0)
     {
         _asm mov esi, unit
         JMP(0x006369E8);
@@ -1829,11 +1829,11 @@ DECLARE_PATCH(_TechnoClass_Fire_At_Suicide_Patch)
              *  
              *  This same crash happens in Red Alert 2 also, possible engine bug.
              */
-            if (this_ptr->Fetch_RTTI() == RTTI_AIRCRAFT) {
+            if (this_ptr->RTTI == RTTI_AIRCRAFT) {
                 goto limpet_check;
             }
 
-            damage = this_ptr->Techno_Type_Class()->MaxStrength;
+            damage = this_ptr->TClass->MaxStrength;
             this_ptr->Take_Damage(damage, 0, Rule->C4Warhead, nullptr, true, false);
         }
 
@@ -1942,7 +1942,7 @@ DECLARE_PATCH(_TechnoClass_Refund_Amount_Soylent_Patch)
     /**
      *  Stolen bytes/code.
      */
-    technotype = this_ptr->Techno_Type_Class();
+    technotype = this_ptr->TClass;
 
     /**
      *  Fetch the extension instance.
@@ -2232,7 +2232,7 @@ DECLARE_PATCH(_TechnoClass_Do_Cloak_Cloak_Sound_Patch)
     static TechnoTypeClassExtension *technotypeext;
     static VocType voc;
 
-    technotype = this_ptr->Techno_Type_Class();
+    technotype = this_ptr->TClass;
 
     /**
      *  Fetch the default cloaking sound.
@@ -2275,7 +2275,7 @@ DECLARE_PATCH(_TechnoClass_Do_Uncloak_Uncloak_Sound_Patch)
     static TechnoTypeClassExtension *technotypeext;
     static VocType voc;
 
-    technotype = this_ptr->Techno_Type_Class();
+    technotype = this_ptr->TClass;
 
     /**
      *  Fetch the default cloaking sound.
@@ -2570,7 +2570,7 @@ DECLARE_PATCH(_TechnoClass_Fire_At_TargetLaserTimer_Patch)
  */
 bool _TechnoClass_Evaluate_Object_Zone_Evaluation_Is_Valid_Target(TechnoClass* techno, AbstractClass * target, int ourzone, int targetzone)
 {
-    auto technotype = techno->Techno_Type_Class();
+    auto technotype = techno->TClass;
     auto technotypeext = Extension::Fetch<TechnoTypeClassExtension>(technotype);
 
     if (technotypeext->TargetZoneScan == TZST_SAME) {

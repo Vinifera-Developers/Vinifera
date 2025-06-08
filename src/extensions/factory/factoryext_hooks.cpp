@@ -74,8 +74,8 @@ void FactoryClassExt::_Sanitize_Queue()
         return;
     }
 
-    const TechnoTypeClass* producing_type = producing_object->Techno_Type_Class();
-    const RTTIType type = producing_type->Fetch_RTTI();
+    const TechnoTypeClass* producing_type = producing_object->TClass;
+    const RTTIType type = producing_type->RTTI;
     const bool is_building = type == RTTI_BUILDING || type == RTTI_BUILDINGTYPE;
 
     bool need_update = false;

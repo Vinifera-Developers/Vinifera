@@ -95,7 +95,7 @@ DECLARE_PATCH(_EMPulseClass_Create_Foot_EMPImmune_Patch)
     static ILocomotion *loco;
     static TechnoTypeClassExtension *exttype_ptr;
 
-    exttype_ptr = Extension::Fetch<TechnoTypeClassExtension>(foot->Techno_Type_Class());
+    exttype_ptr = Extension::Fetch<TechnoTypeClassExtension>(foot->TClass);
 
     /**
      *  Is this object immune to EMP weapons?

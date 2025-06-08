@@ -238,7 +238,7 @@ IFACEMETHODIMP_(Coordinate) TestLocomotionClass::Head_To_Coord()
     /**
      *  Return the current coordinate.
      */
-    return LinkedTo->Get_Coord();
+    return LinkedTo->PositionCoord;
 }
 
 
@@ -368,7 +368,7 @@ IFACEMETHODIMP_(bool) TestLocomotionClass::Process()
          */
         LinkedTo->Mark(MARK_UP);
         if (Can_Enter_Cell(Coord_Cell(coord)) == MOVE_OK) {
-            LinkedTo->Set_Coord(coord);
+            LinkedTo->PositionCoord = coord;
 
             /**
              *  Increase the angle, wrapping if full circle is complete.

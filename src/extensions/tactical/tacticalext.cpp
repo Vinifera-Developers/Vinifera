@@ -289,7 +289,7 @@ bool TacticalExtension::Debug_Draw_Facings()
     }
 
     ObjectClass *object = CurrentObjects.Fetch_Head();
-    if (object->Fetch_RTTI() != RTTI_UNIT) {
+    if (object->RTTI != RTTI_UNIT) {
         return false;
     }
 

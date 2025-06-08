@@ -362,7 +362,7 @@ void FootClassExt::_Draw_Action_Line() const
 
     if (NavCom) {
 
-        start_coord = Get_Coord();
+        start_coord = PositionCoord;
 
         AbstractClass * navtarget = field_260.Count() ? field_260.Fetch_Tail() : NavCom;
         end_coord = navtarget->Center_Coord();
@@ -431,7 +431,7 @@ void _Vinifera_FootClass_Search_For_Tiberium_Check_Tiberium_Value_Of_Cell(FootCl
 Cell FootClassExt::_Search_For_Tiberium(int rad, bool a2)
 {
     if (!Owner_HouseClass()->Is_Human_Player() &&
-        Fetch_RTTI() == RTTI_UNIT &&
+        RTTI == RTTI_UNIT &&
         ((UnitClass*)this)->Class->IsToHarvest &&
         a2 &&
         Session.Type != GAME_NORMAL)
@@ -460,7 +460,7 @@ Cell FootClassExt::_Search_For_Tiberium(int rad, bool a2)
     Cell besttiberiumcell = Cell(0, 0);
 
     UnitClassExtension* unitext = nullptr;
-    if (Fetch_RTTI() == RTTI_UNIT) {
+    if (RTTI == RTTI_UNIT) {
         unitext = Extension::Fetch<UnitClassExtension>(this);
     }
 
@@ -498,7 +498,7 @@ Cell FootClassExt::_Search_For_Tiberium(int rad, bool a2)
  * 
  *  @author: CCHyper
  */
-static bool Foot_Target_Something_Nearby_Coord(FootClass *this_ptr, ThreatType threat) { return this_ptr->Target_Something_Nearby(this_ptr->Get_Coord(), threat); }
+static bool Foot_Target_Something_Nearby_Coord(FootClass *this_ptr, ThreatType threat) { return this_ptr->Target_Something_Nearby(this_ptr->PositionCoord, threat); }
 DECLARE_PATCH(_FootClass_Mission_Move_Can_Passive_Acquire_Patch)
 {
     GET_REGISTER_STATIC(FootClass *, this_ptr, esi);
@@ -605,14 +605,14 @@ DECLARE_PATCH(_FootClass_AI_IdleRate_Patch)
     GET_REGISTER_STATIC(ILocomotion *, loco, edi);
     static TechnoTypeClassExtension *technotypeext;
 
-    technotypeext = Extension::Fetch<TechnoTypeClassExtension>(this_ptr->Techno_Type_Class());
+    technotypeext = Extension::Fetch<TechnoTypeClassExtension>(this_ptr->TClass);
 
     /**
      *  Stolen bytes/code.
      * 
      *  If the object is currently moving, check to see if its time to update its walk frame.
      */
-    if (Locomotion_Is_Moving_Now(this_ptr) && !(Frame % this_ptr->Techno_Type_Class()->WalkRate)) {
+    if (Locomotion_Is_Moving_Now(this_ptr) && !(Frame % this_ptr->TClass->WalkRate)) {
         ++this_ptr->TotalFramesWalked;
 
     /**
@@ -686,8 +686,8 @@ void FootClassExt::_Death_Announcement(TechnoClass* source) const
 {
     if (IsOwnedByPlayer) {
 
-        const auto is_spawned = Extension::Fetch<TechnoTypeClassExtension>(Techno_Type_Class())->IsSpawned;
-        if (!Techno_Type_Class()->IsInsignificant && !is_spawned) {
+        const auto is_spawned = Extension::Fetch<TechnoTypeClassExtension>(TClass)->IsSpawned;
+        if (!TClass->IsInsignificant && !is_spawned) {
 
             RadarEventClass::LastEventCell = Coord_Cell(entry_50());
             Speak(VOX_UNIT_LOST);
@@ -728,7 +728,7 @@ bool FootClassExt::_Unlimbo(Coordinate& coord, Dir256 dir)
          *  Instead of patching levitate locomotion to add to tracking, since levitate locomotion is
          *  always in flight let's add it right now.
          */
-        if (Techno_Type_Class()->Locomotor == __uuidof(LevitateLocomotionClass)) {
+        if (TClass->Locomotor == __uuidof(LevitateLocomotionClass)) {
             AircraftTracker->Track(this);
         }
 
@@ -753,7 +753,7 @@ bool FootClassExt::_Unlimbo(Coordinate& coord, Dir256 dir)
             LastAdjacencyCell = cell;
         }
 
-        ThreatAvoidanceCoefficient = Techno_Type_Class()->ThreatAvoidanceCoefficient;
+        ThreatAvoidanceCoefficient = TClass->ThreatAvoidanceCoefficient;
         return true;
     }
     return false;

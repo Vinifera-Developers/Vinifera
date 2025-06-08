@@ -169,16 +169,16 @@ void AnimClassExt::_AI()
     if (IsDebris) {
         int bounce_res = Bounce_AI();
         if (bounce_res == 2 || bounce_res == 1) {
-            bool water = Map[Get_Coord()].Land_Type() == LAND_WATER;
-            bool bridge = Get_Coord().Z >= Map.Get_Height_GL(Get_Coord()) + BRIDGE_LEPTON_HEIGHT;
+            bool water = Map[PositionCoord].Land_Type() == LAND_WATER;
+            bool bridge = PositionCoord.Z >= Map.Get_Height_GL(PositionCoord) + BRIDGE_LEPTON_HEIGHT;
 
             if (water && !bridge) {
                 if (Class->IsMeteor) {
-                    new AnimClass(Rule->SplashList[Rule->SplashList.Count() - 1], Get_Coord() + Coordinate(0, 0, 3));
+                    new AnimClass(Rule->SplashList[Rule->SplashList.Count() - 1], PositionCoord + Coordinate(0, 0, 3));
                 }
                 else {
-                    new AnimClass(Rule->Wake, Get_Coord());
-                    new AnimClass(Rule->SplashList[0], Get_Coord() + Coordinate(0, 0, 3));
+                    new AnimClass(Rule->Wake, PositionCoord);
+                    new AnimClass(Rule->SplashList[0], PositionCoord + Coordinate(0, 0, 3));
                 }
             }
             else {
@@ -486,7 +486,7 @@ void AnimClassExt::_Start()
                 debris->AlternativeBrightness = cptr->Brightness;
             }
 
-            Explosion_Damage(Get_Coord(), Rule->TiberiumExplosionDamage, nullptr, Rule->C4Warhead, false);
+            Explosion_Damage(PositionCoord, Rule->TiberiumExplosionDamage, nullptr, Rule->C4Warhead, false);
 
             cptr->Recalc_Attributes();
             Map.Update_Cell_Zone(cptr->CellID);
@@ -621,7 +621,7 @@ void AnimClassExt::_Middle()
     }
     else if (Class->IsScorcher) {
         if (HeightAGL < 10) {
-            LandType land = Map[Get_Coord()].Land_Type();
+            LandType land = Map[PositionCoord].Land_Type();
             if (land != LAND_WATER && land != LAND_BEACH && land != LAND_ICE && land != LAND_ROCK) {
                 newanim = new AnimClass(Rule->SmallFire, Center_Coord(), 0, Random_Pick(1, 2));
                 if (newanim != nullptr && xObject != nullptr) {

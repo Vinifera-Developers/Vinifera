@@ -73,7 +73,7 @@ public:
 bool BulletClassExt::_Is_Forced_To_Explode(Coordinate& coord)
 {
     coord = Coord;
-    CellClass* cellptr = &Map[Get_Coord()];
+    CellClass* cellptr = &Map[PositionCoord];
 
     /*
     **  Check for impact on a wall or other high obstacle.
@@ -129,7 +129,7 @@ bool BulletClassExt::_Is_Forced_To_Explode(Coordinate& coord)
     **  Bullets are generally more effective when they are fired at aircraft or flying jumpjets.
     */
     if (Class->IsAntiAircraft && Target_Legal(TarCom) &&
-        (TarCom->Fetch_RTTI() == RTTI_AIRCRAFT || (TarCom->Fetch_RTTI() == RTTI_INFANTRY && reinterpret_cast<InfantryClass*>(TarCom)->Is_Flying_JumpJet())) &&
+        (TarCom->RTTI == RTTI_AIRCRAFT || (TarCom->RTTI == RTTI_INFANTRY && reinterpret_cast<InfantryClass*>(TarCom)->Is_Flying_JumpJet())) &&
         Distance(TarCom) < 0x0080)
     {
         return true;

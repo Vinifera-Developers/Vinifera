@@ -388,7 +388,7 @@ bool ManualPlaceCommandClass::Process()
         /**
          *  If by some rare chance the product is not a building, then bail.
          */
-        if (pending->Fetch_RTTI() != RTTI_BUILDING)
+        if (pending->RTTI != RTTI_BUILDING)
             return false;
 
         BuildingClass* pending_bptr = reinterpret_cast<BuildingClass*>(pending);
@@ -1162,7 +1162,7 @@ bool SetStructureTabCommandClass::Process()
         /**
          *  If by some rare chance the product is not a building, then bail.
          */
-        if (pending->Fetch_RTTI() != RTTI_BUILDING)
+        if (pending->RTTI != RTTI_BUILDING)
             return result;
 
         BuildingClass* pending_bptr = reinterpret_cast<BuildingClass*>(pending);
@@ -2235,7 +2235,7 @@ bool DeleteObjectCommandClass::Process()
         /**
          *  Buildings need to be "sold".
          */
-        if (object->Fetch_RTTI() == RTTI_BUILDING) {
+        if (object->RTTI == RTTI_BUILDING) {
             object->Sell_Back(1);
         } else {
             object->Unselect();

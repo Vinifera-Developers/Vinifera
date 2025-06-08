@@ -892,7 +892,7 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
                                 **  not transmitted to any linked computers until the moment
                                 **  the building is actually placed down.
                                 */
-                                if (pending->Fetch_RTTI() == RTTI_BUILDING)
+                                if (pending->RTTI == RTTI_BUILDING)
                                 {
                                     PlayerPtr->Manual_Place(builder, (BuildingClass*)pending);
                                 }

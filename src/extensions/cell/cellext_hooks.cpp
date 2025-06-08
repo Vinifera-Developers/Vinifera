@@ -192,7 +192,7 @@ DECLARE_PATCH(_CellClass_Goodie_Check_Veterency_Trainable_BugFix_Patch)
 	 *  Is this object trainable? If so, grant it the bonus.
 	 */
 	techno = reinterpret_cast<TechnoClass *>(object);
-	if (techno->Techno_Type_Class()->IsTrainable) {
+	if (techno->TClass->IsTrainable) {
 		goto passes_check;
 	}
 

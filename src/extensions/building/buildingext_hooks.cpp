@@ -363,7 +363,7 @@ void BuildingClassExt::_Draw_It(Point2D const& xdrawpoint, Rect const& xcliprect
     bool open_roof = false;
     if (Get_Mission() == MISSION_UNLOAD) {
         TechnoClass* radio = Contact_With_Whom();
-        if (radio != nullptr && (radio->Techno_Type_Class()->Locomotor == __uuidof(JumpjetLocomotionClass))) {
+        if (radio != nullptr && (radio->TClass->Locomotor == __uuidof(JumpjetLocomotionClass))) {
             open_roof = true;
         }
     }
@@ -898,7 +898,7 @@ static void BuildingClass_Shake_Screen(BuildingClass *building)
     /**
      *  Fetch the extension instance.
      */
-    buildingtypeext = Extension::Fetch<BuildingTypeClassExtension>(building->Techno_Type_Class());
+    buildingtypeext = Extension::Fetch<BuildingTypeClassExtension>(building->TClass);
 
     /**
      *  #issue-414
@@ -1000,7 +1000,7 @@ DECLARE_PATCH(_BuildingClass_Draw_Spied_Cameo_Palette_Patch)
     static Surface *pcx_image;
     static Rect pcxrect;
 
-    technotype = factory_obj->Techno_Type_Class();
+    technotype = factory_obj->TClass;
 
     /**
      *  #issue-487
@@ -1398,7 +1398,7 @@ bool Should_Open_Roof(BuildingClass* building)
 {
     if (building->Get_Mission() == MISSION_UNLOAD) {
         TechnoClass* radio = building->Contact_With_Whom();
-        if (radio != nullptr && (radio->Techno_Type_Class()->Locomotor == __uuidof(JumpjetLocomotionClass))) {
+        if (radio != nullptr && (radio->TClass->Locomotor == __uuidof(JumpjetLocomotionClass))) {
             return true;
         }
     }

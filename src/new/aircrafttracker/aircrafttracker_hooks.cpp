@@ -65,7 +65,7 @@ void FlyLocomotionClassExt::_Take_Off()
     if (LinkedTo->EMPFramesRemaining <= 0) {
         IsLanding = false;
         IsTakingOff = true;
-        FlightLevel = LinkedTo->Techno_Type_Class()->Flight_Level();
+        FlightLevel = LinkedTo->TClass->Flight_Level();
 
         const auto extension = Extension::Fetch<FootClassExtension>(LinkedTo);
         if (extension->Get_Last_Flight_Cell() == CELL_NONE) {
@@ -76,7 +76,7 @@ void FlyLocomotionClassExt::_Take_Off()
             LinkedTo->PrimaryFacing.Set(LinkedTo->SecondaryFacing.Desired());
         }
 
-        Static_Sound(LinkedTo->Techno_Type_Class()->AuxSound1, LinkedTo->Get_Coord());
+        Static_Sound(LinkedTo->TClass->AuxSound1, LinkedTo->PositionCoord);
     }
 }
 

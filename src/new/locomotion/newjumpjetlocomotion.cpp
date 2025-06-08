@@ -252,7 +252,7 @@ IFACEMETHODIMP_(LayerType) NewJumpjetLocomotionClass::In_Which_Layer()
 {
     int height = LinkedTo->HeightAGL;
     if (!LinkedTo->IsOnBridge) {
-        if (Map[LinkedTo->Get_Coord()].IsUnderBridge && height >= BRIDGE_LEPTON_HEIGHT && !LinkedTo->IsFalling) {
+        if (Map[LinkedTo->PositionCoord].IsUnderBridge && height >= BRIDGE_LEPTON_HEIGHT && !LinkedTo->IsFalling) {
             height -= BRIDGE_LEPTON_HEIGHT;
         }
     }
@@ -291,7 +291,7 @@ void NewJumpjetLocomotionClass::Process_Ascent()
 {
     int height = LinkedTo->HeightAGL;
     if (!LinkedTo->IsOnBridge) {
-        if (Map[LinkedTo->Get_Coord()].IsUnderBridge && height >= BRIDGE_LEPTON_HEIGHT) {
+        if (Map[LinkedTo->PositionCoord].IsUnderBridge && height >= BRIDGE_LEPTON_HEIGHT) {
             height -= BRIDGE_LEPTON_HEIGHT;
         }
     }
@@ -352,7 +352,7 @@ void NewJumpjetLocomotionClass::Process_Cruise()
         position.Y = HeadToCoord.Y;
         bool down = LinkedTo->IsDown;
         LinkedTo->IsDown = false;
-        LinkedTo->Set_Coord(position);
+        LinkedTo->PositionCoord = position;
         LinkedTo->IsDown = down;
         if (LinkedTo->TarCom == nullptr) {
             FlightLevel = 0;
@@ -393,7 +393,7 @@ void NewJumpjetLocomotionClass::Process_Descent()
 
         int height = LinkedTo->HeightAGL;
         if (!LinkedTo->IsOnBridge) {
-            if (Map[LinkedTo->Get_Coord()].IsUnderBridge && height >= BRIDGE_LEPTON_HEIGHT) {
+            if (Map[LinkedTo->PositionCoord].IsUnderBridge && height >= BRIDGE_LEPTON_HEIGHT) {
                 height -= BRIDGE_LEPTON_HEIGHT;
             }
         }
@@ -401,10 +401,10 @@ void NewJumpjetLocomotionClass::Process_Descent()
         if (height == 0) {
             LinkedTo->Set_Speed(0.0);
             LinkedTo->Mark(MARK_UP);
-            LinkedTo->Set_Coord(HeadToCoord);
+            LinkedTo->PositionCoord = HeadToCoord;
 
             if (LinkedTo->PositionCoord.Z > Map.Get_Height_GL(LinkedTo->PositionCoord)) {
-                if (Map[LinkedTo->Get_Coord()].IsUnderBridge) {
+                if (Map[LinkedTo->PositionCoord].IsUnderBridge) {
                     LinkedTo->IsOnBridge = true;
                 }
             }
@@ -472,7 +472,7 @@ void NewJumpjetLocomotionClass::Movement_AI()
     int height = LinkedTo->Height;
     int ground_height = Map.Get_Height_GL(LinkedTo->PositionCoord);
 
-    if (Map[LinkedTo->Get_Coord()].IsUnderBridge && LinkedTo->PositionCoord.Z >= ground_height + 4 * LEVEL_LEPTON_H) {
+    if (Map[LinkedTo->PositionCoord].IsUnderBridge && LinkedTo->PositionCoord.Z >= ground_height + 4 * LEVEL_LEPTON_H) {
         ground_height += BRIDGE_LEPTON_HEIGHT;
     }
 
@@ -486,7 +486,7 @@ void NewJumpjetLocomotionClass::Movement_AI()
     bool moved = false;
     if (height_diff < desired_height) {
         int height_agl = LinkedTo->HeightAGL;
-        if (Map[LinkedTo->Get_Coord()].IsUnderBridge && !LinkedTo->IsOnBridge) {
+        if (Map[LinkedTo->PositionCoord].IsUnderBridge && !LinkedTo->IsOnBridge) {
             if (LinkedTo->PositionCoord.Z >= Map.Get_Height_GL(LinkedTo->PositionCoord) + BRIDGE_LEPTON_HEIGHT) {
                 height_agl -= BRIDGE_LEPTON_HEIGHT;
             }
@@ -522,7 +522,7 @@ void NewJumpjetLocomotionClass::Movement_AI()
     }
 
     Coordinate new_coord = Coord_Move(LinkedTo->PositionCoord, Facing.Current(), CurrentSpeed);
-    LinkedTo->Set_Coord(new_coord);
+    LinkedTo->PositionCoord = new_coord;
 
     if (LinkedTo != nullptr) {
         const int & rad = JumpjetCloakDetectionRadius;
@@ -619,7 +619,7 @@ IFACEMETHODIMP_(void) NewJumpjetLocomotionClass::Mark_All_Occupation_Bits(MarkTy
 IFACEMETHODIMP_(Coordinate) NewJumpjetLocomotionClass::Head_To_Coord()
 {
     if (CurrentState == GROUNDED) {
-        return LinkedTo->Get_Coord();
+        return LinkedTo->PositionCoord;
     } else {
         return HeadToCoord;
     }

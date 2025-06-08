@@ -127,7 +127,7 @@ ProdFailType HouseClassExt::_Begin_Production(RTTIType type, int id, bool resume
     if (fptr->IsSuspended)
     {
         ObjectClass* obj = fptr->Get_Object();
-        if (obj != nullptr && obj->Techno_Type_Class() == tech)
+        if (obj != nullptr && obj->TClass == tech)
         {
             has_suspended = true;
         }
@@ -173,7 +173,7 @@ ProdFailType HouseClassExt::_Begin_Production(RTTIType type, int id, bool resume
     DEBUG_INFO("fptr->QueuedObjects.Count() == %d\n", fptr->QueuedObjects.Count());
     if (fptr->Get_Object())
     {
-        DEBUG_INFO("Object->RTTI == %d\n", fptr->Object->Fetch_RTTI());
+        DEBUG_INFO("Object->RTTI == %d\n", fptr->Object->RTTI);
         DEBUG_INFO("Object->HeapID == %d\n", fptr->Object->Fetch_Heap_ID());
     }
     DEBUG_INFO("IsSuspended\t= %d\n", fptr->IsSuspended);
@@ -745,7 +745,7 @@ int _HouseClass_ShouldDisableCameo_Get_Queued_Count(FactoryClass* factory, Techn
      *  Check that the factory is trying to create the object that the player is trying to queue
      *  If not, we don't need to mess with the count
      */
-    if (factoryobject->Techno_Type_Class() != technotype) {
+    if (factoryobject->TClass != technotype) {
         return count;
     }
 
@@ -767,7 +767,7 @@ int _HouseClass_ShouldDisableCameo_Get_Queued_Count(FactoryClass* factory, Techn
     *  If the object can transform into another object through our special logic,
     *  then check that doing so doesn't allow circumventing build limits
     */
-    if (technotype->Fetch_RTTI() == RTTI_UNITTYPE) {
+    if (technotype->RTTI == RTTI_UNITTYPE) {
         UnitTypeClass* unittype = reinterpret_cast<UnitTypeClass*>(technotype);
         UnitTypeClassExtension* unittypeext = Extension::Fetch<UnitTypeClassExtension>(unittype);
 

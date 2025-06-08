@@ -97,7 +97,7 @@ void UnitClassExt::_Firing_AI()
         FireErrorType ok = Can_Fire(TarCom, primary);
         const WeaponTypeClass* weapon = Get_Weapon(primary)->Weapon;
 
-        if (weapon && weapon->WarheadPtr && weapon->WarheadPtr->IsWebby && TarCom->Fetch_RTTI() == RTTI_INFANTRY)
+        if (weapon && weapon->WarheadPtr && weapon->WarheadPtr->IsWebby && TarCom->RTTI == RTTI_INFANTRY)
         {
             InfantryClass* inf = reinterpret_cast<InfantryClass*>(TarCom);
             if (inf->ProneStruggleTimer.Value() > weapon->WarheadPtr->WebDuration / 4)
@@ -161,7 +161,7 @@ void UnitClassExt::_Firing_AI()
         case FIRE_ILLEGAL:
             if (Combat_Damage(primary) < 0)
             {
-                if (!Is_Object(TarCom) || TarCom->Fetch_RTTI() != RTTI_UNIT || static_cast<ObjectClass*>(TarCom)->HealthRatio >= Rule->ConditionGreen)
+                if (!Is_Object(TarCom) || TarCom->RTTI != RTTI_UNIT || static_cast<ObjectClass*>(TarCom)->HealthRatio >= Rule->ConditionGreen)
                 {
                     Assign_Target(nullptr);
                 }
@@ -209,7 +209,7 @@ void UnitClassExt::_Draw_Voxel(unsigned int frame, int key, Rect& rect, Point2D&
     VoxelIndexClass* cache = nullptr;
 
     if (typeext->WaterAlt
-        && Map[Get_Coord()].Land_Type() == LAND_WATER
+        && Map[PositionCoord].Land_Type() == LAND_WATER
         && !IsOnBridge
         && HeightAGL < LEVEL_LEPTON_H)
     {
@@ -265,7 +265,7 @@ DECLARE_PATCH(_UnitClass_Draw_Voxel_Patch)
  * 
  *  @author: CCHyper
  */
-static CellClass *Unit_Get_Current_Cell(UnitClass *this_ptr) { return &Map[this_ptr->Get_Coord()]; }
+static CellClass *Unit_Get_Current_Cell(UnitClass *this_ptr) { return &Map[this_ptr->PositionCoord]; }
 DECLARE_PATCH(_UnitClass_Mission_Harvest_Block_Harvesting_On_Bridge_Patch)
 {
     GET_REGISTER_STATIC(UnitClass *, this_ptr, esi);
@@ -395,7 +395,7 @@ DECLARE_PATCH(_UnitClass_Draw_Shape_IdleRate_Patch)
     static const UnitTypeClass *unittype;
     static int frame;
 
-    unittype = reinterpret_cast<const UnitTypeClass *>(this_ptr->Techno_Type_Class());
+    unittype = reinterpret_cast<const UnitTypeClass *>(this_ptr->TClass);
     unittypeext = Extension::Fetch<UnitTypeClassExtension>(unittype);
 
     if (!Locomotion_Is_Moving(this_ptr)) {
@@ -480,7 +480,7 @@ DECLARE_PATCH(_UnitClass_Mission_Unload_Transport_Detach_Sound_Patch)
     /**
      *  Do we have a sound to play when passengers leave us? If so, play it now.
      */
-    radio_technotypeext = Extension::Fetch<TechnoTypeClassExtension>(this_ptr->Techno_Type_Class());
+    radio_technotypeext = Extension::Fetch<TechnoTypeClassExtension>(this_ptr->TClass);
     if (radio_technotypeext->LeaveTransportSound != VOC_NONE) {
         Static_Sound(radio_technotypeext->LeaveTransportSound, this_ptr->Coord);
     }
@@ -559,7 +559,7 @@ DECLARE_PATCH(_UnitClass_Draw_It_Unloading_Harvester_Patch)
              */
             unittypeext = Extension::Fetch<UnitTypeClassExtension>(unittype);
             if (unittypeext->UnloadingClass) {
-                if (unittypeext->UnloadingClass->Fetch_RTTI() == RTTI_UNITTYPE) {
+                if (unittypeext->UnloadingClass->RTTI == RTTI_UNITTYPE) {
                     unloading_class = reinterpret_cast<const UnitTypeClass *>(unittypeext->UnloadingClass);
                 }
             }
@@ -637,7 +637,7 @@ DECLARE_PATCH(_UnitClass_Draw_Shape_Primary_Facing_Patch)
      *  Using either of these causes a memory leak for some reason...
      *  So we now just fetch EAX which is a UnitTypeClass instance already.
      */
-    //unittype = reinterpret_cast<UnitTypeClass *>(this_ptr->Techno_Type_Class());
+    //unittype = reinterpret_cast<UnitTypeClass *>(this_ptr->TClass);
     //unittype = this_ptr->Class;
 
     /**
@@ -676,7 +676,7 @@ DECLARE_PATCH(_UnitClass_Draw_Shape_Turret_Facing_Patch)
 
     frame_number = 0;
 
-    unittype = (UnitTypeClass *)this_ptr->Techno_Type_Class();
+    unittype = (UnitTypeClass *)this_ptr->TClass;
     
     /**
      *  All turrets have 32 facings in Tiberian Sun.
@@ -753,7 +753,7 @@ static void UnitClass_Shake_Screen(UnitClass *unit)
     /**
      *  Fetch the extension instance.
      */
-    unittypeext = Extension::Fetch<UnitTypeClassExtension>(unit->Techno_Type_Class());
+    unittypeext = Extension::Fetch<UnitTypeClassExtension>(unit->TClass);
 
     /**
      *  #issue-414
@@ -900,7 +900,7 @@ DECLARE_PATCH(_UnitClass_Jellyfish_AI_Armor_Patch)
     GET_STACK_STATIC(WarheadTypeClass*, warhead, esp, 0x14);
 
     static int damage;
-    damage = weapon->Attack * Verses::Get_Modifier(target->Techno_Type_Class()->Armor, warhead);
+    damage = weapon->Attack * Verses::Get_Modifier(target->TClass->Armor, warhead);
     target->Take_Damage(damage, 0, warhead, this_ptr, false, false);
 
     JMP(0x0064F2FA);

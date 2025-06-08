@@ -268,7 +268,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
                 if (rocket->TakeoffAnim)
                     new AnimClass(rocket->TakeoffAnim, LinkedTo->Coord, 2, 1, SHAPE_WIN_REL | SHAPE_CENTER, -10);
 
-                Static_Sound(LinkedTo->Techno_Type_Class()->AuxSound1, LinkedTo->Coord);
+                Static_Sound(LinkedTo->TClass->AuxSound1, LinkedTo->Coord);
             }
             /**
              *  Otherwise, keep tilting.
@@ -299,7 +299,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
              *  Accelerate towards the maximum speed.
              */
             CurrentSpeed += rocket->Acceleration;
-            CurrentSpeed = std::min(CurrentSpeed, static_cast<double>(LinkedTo->Techno_Type_Class()->MaxSpeed));
+            CurrentSpeed = std::min(CurrentSpeed, static_cast<double>(LinkedTo->TClass->MaxSpeed));
 
             /**
              *  If the rocket has reached its cruising altitude, proceed to flight.
@@ -328,7 +328,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
                  *  Keep accelerating towards the maximum speed.
                  */
                 CurrentSpeed += rocket->Acceleration;
-                CurrentSpeed = std::min(CurrentSpeed, static_cast<double>(LinkedTo->Techno_Type_Class()->MaxSpeed));
+                CurrentSpeed = std::min(CurrentSpeed, static_cast<double>(LinkedTo->TClass->MaxSpeed));
 
                 /**
                  *  Lazy curve rockets curve towards the destination.
@@ -446,7 +446,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
                 const auto linked_ext = Extension::Fetch<FootClassExtension>(LinkedTo);
                 if (linked_ext->Get_Last_Flight_Cell() == CELL_NONE)
                 {
-                    Static_Sound(LinkedTo->Techno_Type_Class()->AuxSound1, LinkedTo->Coord);
+                    Static_Sound(LinkedTo->TClass->AuxSound1, LinkedTo->Coord);
                     AircraftTracker->Track(LinkedTo);
                 }
 
@@ -461,7 +461,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
                 Coordinate coord = LinkedTo->Coord;
                 coord.Z += rocket->RaiseRate;
                 if (Map.In_Radar(Coord_Cell(coord)))
-                    LinkedTo->Set_Coord(coord);
+                    LinkedTo->PositionCoord = coord;
             }
         }
         break;
@@ -487,7 +487,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
         Coordinate coord = Get_Next_Position(static_cast<int>(CurrentSpeed));
 
         if (Map.In_Radar(Coord_Cell(coord)))
-            LinkedTo->Set_Coord(coord);
+            LinkedTo->PositionCoord = coord;
 
         if (LinkedTo->Strength <= 0)
             Explode();

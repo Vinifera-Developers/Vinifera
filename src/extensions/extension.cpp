@@ -477,7 +477,7 @@ AbstractClassExtension *Extension::Private::Make_Internal(const AbstractClass *a
 
     AbstractClassExtension *extptr = nullptr;
 
-    switch (const_cast<AbstractClass *>(abstract)->Fetch_RTTI()) {
+    switch (const_cast<AbstractClass *>(abstract)->RTTI) {
         case RTTI_UNIT: { extptr = Extension_Make<UnitClass, UnitClassExtension>(reinterpret_cast<const UnitClass *>(abstract)); break; }
         case RTTI_AIRCRAFT: { extptr = Extension_Make<AircraftClass, AircraftClassExtension>(reinterpret_cast<const AircraftClass *>(abstract)); break; }
         case RTTI_AIRCRAFTTYPE: { extptr = Extension_Make<AircraftTypeClass, AircraftTypeClassExtension>(reinterpret_cast<const AircraftTypeClass *>(abstract)); break; }
@@ -538,7 +538,7 @@ AbstractClassExtension *Extension::Private::Make_Internal(const AbstractClass *a
         //case RTTI_FOGGEDOBJECT: { extptr = Extension_Make<FoggedObjectClass, FoggedObjectClassExtension>(reinterpret_cast<const FoggedObjectClass *>(abstract)); break; } // Not yet implemented
         //case RTTI_ALPHASHAPE: { extptr = Extension_Make<AlphaShapeClass, AlphaShapeClassExtension>(reinterpret_cast<const AlphaShapeClass *>(abstract)); break; } // Not yet implemented
         //case RTTI_VEINHOLEMONSTER: { extptr = Extension_Make<VeinholeMonsterClass, VeinholeMonsterClassExtension>(reinterpret_cast<const VeinholeMonsterClass *>(abstract)); break; } // Not yet implemented
-        default: { DEBUG_ERROR("Extension::Make: No extension support for \"%s\" implemented!\n", Name_From_RTTI(abstract->Fetch_RTTI())); break; }
+        default: { DEBUG_ERROR("Extension::Make: No extension support for \"%s\" implemented!\n", Name_From_RTTI(abstract->RTTI)); break; }
     };
 
     return extptr;
@@ -557,7 +557,7 @@ bool Extension::Private::Destroy_Internal(const AbstractClass *abstract)
     
     bool removed = false;
 
-    switch (abstract->Fetch_RTTI()) {
+    switch (abstract->RTTI) {
         case RTTI_UNIT: { removed = Extension_Destroy<UnitClass, UnitClassExtension>(reinterpret_cast<const UnitClass *>(abstract)); break; }
         case RTTI_AIRCRAFT: { removed = Extension_Destroy<AircraftClass, AircraftClassExtension>(reinterpret_cast<const AircraftClass *>(abstract)); break; }
         case RTTI_AIRCRAFTTYPE: { removed = Extension_Destroy<AircraftTypeClass, AircraftTypeClassExtension>(reinterpret_cast<const AircraftTypeClass *>(abstract)); break; }
@@ -618,7 +618,7 @@ bool Extension::Private::Destroy_Internal(const AbstractClass *abstract)
         //case RTTI_FOGGEDOBJECT: { removed = Extension_Destroy<FoggedObjectClass, FoggedObjectClassExtension>(reinterpret_cast<const FoggedObjectClass *>(abstract)); break; } // Not yet implemented
         //case RTTI_ALPHASHAPE: { removed = Extension_Destroy<AlphaShapeClass, AlphaShapeClassExtension>(reinterpret_cast<const AlphaShapeClass *>(abstract)); break; } // Not yet implemented
         //case RTTI_VEINHOLEMONSTER: { removed = Extension_Destroy<VeinholeMonsterClass, VeinholeMonsterClassExtension>(reinterpret_cast<const VeinholeMonsterClass *>(abstract)); break; } // Not yet implemented
-        default: { DEBUG_ERROR("Extension::Destroy: No extension support for \"%s\" implemented!\n", Name_From_RTTI(abstract->Fetch_RTTI())); break; }
+        default: { DEBUG_ERROR("Extension::Destroy: No extension support for \"%s\" implemented!\n", Name_From_RTTI(abstract->RTTI)); break; }
     };
 
     ASSERT(removed);
@@ -1472,7 +1472,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
             for (int index = 0; index < Infantry.Count(); ++index) {
                 InfantryClass *ptr = Infantry[index];
                 if (ptr->Owner() == house) {
-                    Add_CRC(&GameCRC, (int)((ptr->Get_Coord().X / 10) << 16) + (int)(ptr->Get_Coord().Y / 10) + (int)ptr->PrimaryFacing.Current().Get_Dir());
+                    Add_CRC(&GameCRC, (int)((ptr->PositionCoord.X / 10) << 16) + (int)(ptr->PositionCoord.Y / 10) + (int)ptr->PrimaryFacing.Current().Get_Dir());
 
                     const char *tarcom_name = "None";
                     Coordinate tarcom_coord = Coordinate(0, 0, 0);
@@ -1481,12 +1481,12 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                     Coordinate navcom_coord = Coordinate(0, 0, 0);
 
                     if (ptr->TarCom) {
-                        tarcom_name = Name_From_RTTI(ptr->TarCom->Fetch_RTTI());
+                        tarcom_name = Name_From_RTTI(ptr->TarCom->RTTI);
                         tarcom_coord = ptr->TarCom->Center_Coord();
                     }
 
                     if (ptr->NavCom) {
-                        navcom_name = Name_From_RTTI(ptr->NavCom->Fetch_RTTI());
+                        navcom_name = Name_From_RTTI(ptr->NavCom->RTTI);
                         navcom_coord = ptr->NavCom->Center_Coord();
                     }
 
@@ -1518,7 +1518,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
             for (int index = 0; index < Units.Count(); ++index) {
                 UnitClass *ptr = Units[index];
                 if (ptr->Owner() == house) {
-                    Add_CRC(&GameCRC, (int)((ptr->Get_Coord().X / 10) << 16) + (int)(ptr->Get_Coord().Y / 10) + (int)ptr->PrimaryFacing.Current().Get_Dir());
+                    Add_CRC(&GameCRC, (int)((ptr->PositionCoord.X / 10) << 16) + (int)(ptr->PositionCoord.Y / 10) + (int)ptr->PrimaryFacing.Current().Get_Dir());
 
                     const char *tarcom_name = "None";
                     Coordinate tarcom_coord = Coordinate(0, 0, 0);
@@ -1527,12 +1527,12 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                     Coordinate navcom_coord = Coordinate(0, 0, 0);
 
                     if (ptr->TarCom) {
-                        tarcom_name = Name_From_RTTI(ptr->TarCom->Fetch_RTTI());
+                        tarcom_name = Name_From_RTTI(ptr->TarCom->RTTI);
                         tarcom_coord = ptr->TarCom->Center_Coord();
                     }
 
                     if (ptr->NavCom) {
-                        navcom_name = Name_From_RTTI(ptr->NavCom->Fetch_RTTI());
+                        navcom_name = Name_From_RTTI(ptr->NavCom->RTTI);
                         navcom_coord = ptr->NavCom->Center_Coord();
                     }
 
@@ -1563,13 +1563,13 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
             for (int index = 0; index < Buildings.Count(); ++index) {
                 BuildingClass *ptr = Buildings[index];
                 if (ptr->Owner() == house) {
-                    Add_CRC(&GameCRC, (int)((ptr->Get_Coord().X / 10) << 16) + (int)(ptr->Get_Coord().Y / 10) + (int)ptr->PrimaryFacing.Current().Get_Dir());
+                    Add_CRC(&GameCRC, (int)((ptr->PositionCoord.X / 10) << 16) + (int)(ptr->PositionCoord.Y / 10) + (int)ptr->PrimaryFacing.Current().Get_Dir());
 
                     const char *tarcom_name = "None";
                     Coordinate tarcom_coord = Coordinate(0, 0, 0);;
 
                     if (ptr->TarCom) {
-                        tarcom_name = Name_From_RTTI(ptr->TarCom->Fetch_RTTI());
+                        tarcom_name = Name_From_RTTI(ptr->TarCom->RTTI);
                         tarcom_coord = ptr->TarCom->Center_Coord();
                     }
 
@@ -1596,7 +1596,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
             for (int index = 0; index < Aircrafts.Count(); ++index) {
                 AircraftClass *ptr = Aircrafts[index];
                 if (ptr->Owner() == house) {
-                    Add_CRC(&GameCRC, (int)((ptr->Get_Coord().X / 10) << 16) + (int)(ptr->Get_Coord().Y / 10) + (int)ptr->PrimaryFacing.Current().Get_Dir());
+                    Add_CRC(&GameCRC, (int)((ptr->PositionCoord.X / 10) << 16) + (int)(ptr->PositionCoord.Y / 10) + (int)ptr->PrimaryFacing.Current().Get_Dir());
 
                     const char *tarcom_name = "None";
                     Coordinate tarcom_coord = Coordinate(0, 0, 0);;
@@ -1605,12 +1605,12 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                     Coordinate navcom_coord = Coordinate(0, 0, 0);;
 
                     if (ptr->TarCom) {
-                        tarcom_name = Name_From_RTTI(ptr->TarCom->Fetch_RTTI());
+                        tarcom_name = Name_From_RTTI(ptr->TarCom->RTTI);
                         tarcom_coord = ptr->TarCom->Center_Coord();
                     }
 
                     if (ptr->NavCom) {
-                        navcom_name = Name_From_RTTI(ptr->NavCom->Fetch_RTTI());
+                        navcom_name = Name_From_RTTI(ptr->NavCom->RTTI);
                         navcom_coord = ptr->NavCom->Center_Coord();
                     }
 
@@ -1666,7 +1666,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         Coordinate xobject_coord = Coordinate(0, 0, 0);;
 
         if (animp->xObject) {
-            xobject_name = Name_From_RTTI(animp->xObject->Fetch_RTTI());
+            xobject_name = Name_From_RTTI(animp->xObject->RTTI);
             xobject_coord = animp->xObject->Center_Coord();
         }
 
@@ -1689,9 +1689,9 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         std::fprintf(fp, ">>>> MAP LAYER %s (%d) <<<<\n", Name_From_Layer(layer), layer);
         for (int index = 0; index < Map.Layer[layer].Count(); ++index) {
             ObjectClass *objp = Map.Layer[layer][index];
-            Add_CRC(&GameCRC, (int)((objp->Get_Coord().X / 10) << 16) + (int)(objp->Get_Coord().Y / 10));
+            Add_CRC(&GameCRC, (int)((objp->PositionCoord.X / 10) << 16) + (int)(objp->PositionCoord.Y / 10));
             std::fprintf(fp, "Object %d: %s ", index, objp->Coord.As_String());
-            switch (objp->Fetch_RTTI()) {
+            switch (objp->RTTI) {
                 case RTTI_AIRCRAFT:
                     std::fprintf(fp, "Aircraft  (Type: %s (%d)) ", objp->Name(), Aircrafts.ID(static_cast<AircraftClass*>(objp)));
                     break;
@@ -1723,7 +1723,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                     std::fprintf(fp, "Particle  (Type: %s (%d)) ", objp->Name(), Particles.ID(static_cast<ParticleClass*>(objp)));
                     break;
                 default:
-                    std::fprintf(fp, "Other     (Type: %s (%d)) (RTTI: %d) ", objp->Name(), objp->Fetch_Heap_ID(), objp->Fetch_RTTI());
+                    std::fprintf(fp, "Other     (Type: %s (%d)) (RTTI: %d) ", objp->Name(), objp->Fetch_Heap_ID(), objp->RTTI);
                     break;
             };
             HouseClass *housep = objp->Owner_HouseClass();
@@ -1745,9 +1745,9 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     std::fprintf(fp, ">>>> LOGIC LAYER <<<<\n");
     for (int index = 0; index < Logic.Count(); ++index) {
         ObjectClass *objp = Logic[index];
-        Add_CRC(&GameCRC, (int)((objp->Get_Coord().X / 10) << 16) + (int)(objp->Get_Coord().Y / 10));
+        Add_CRC(&GameCRC, (int)((objp->PositionCoord.X / 10) << 16) + (int)(objp->PositionCoord.Y / 10));
         std::fprintf(fp, "Object %d: %s ", index, objp->Coord.As_String());
-        switch (objp->Fetch_RTTI()) {
+        switch (objp->RTTI) {
             case RTTI_AIRCRAFT:
                 std::fprintf(fp, "Aircraft  (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;

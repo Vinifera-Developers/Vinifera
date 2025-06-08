@@ -267,7 +267,7 @@ static bool Should_Exclude_From_Selection(ObjectClass* obj)
      *  Exclude objects that aren't a selectable combatant per rules.
      */
     if (obj->Is_Techno()) {
-        return Extension::Fetch<TechnoTypeClassExtension>(obj->Techno_Type_Class())->IsFilterFromBandBoxSelection;
+        return Extension::Fetch<TechnoTypeClassExtension>(obj->TClass)->IsFilterFromBandBoxSelection;
     }
 
     return false;
@@ -319,7 +319,7 @@ static bool Has_NonCombatants_Selected()
 {
     for (int i = 0; i < CurrentObjects.Count(); i++)
     {
-        if (CurrentObjects[i]->Is_Techno() && Extension::Fetch<TechnoTypeClassExtension>(CurrentObjects[i]->Techno_Type_Class())->IsFilterFromBandBoxSelection)
+        if (CurrentObjects[i]->Is_Techno() && Extension::Fetch<TechnoTypeClassExtension>(CurrentObjects[i]->TClass)->IsFilterFromBandBoxSelection)
             return true;
     }
 
@@ -357,7 +357,7 @@ void TacticalExt::_Select_These(Rect& rect, void (*selection_func)(ObjectClass* 
                     else
                     {
                         bool is_selectable_building = false;
-                        if (dirty.Object->Fetch_RTTI() == RTTI_BUILDING)
+                        if (dirty.Object->RTTI == RTTI_BUILDING)
                         {
                             const auto bclass = static_cast<BuildingClass*>(dirty.Object)->Class;
                             if (bclass->UndeploysInto && !bclass->IsConstructionYard && !bclass->IsMobileWar)
@@ -371,7 +371,7 @@ void TacticalExt::_Select_These(Rect& rect, void (*selection_func)(ObjectClass* 
                         {
                             if (dirty.Object->Class_Of()->IsSelectable)
                             {
-                                if (dirty.Object->Fetch_RTTI() != RTTI_BUILDING || is_selectable_building)
+                                if (dirty.Object->RTTI != RTTI_BUILDING || is_selectable_building)
                                 {
                                     if (dirty.Object->Select())
                                         AllowVoice = false;
@@ -439,7 +439,7 @@ static void Vinifera_Bandbox_Select(ObjectClass* obj)
          && TacticalExt::SelectedCount > 0 && !TacticalExt::SelectionContainsNonCombatants
          && !WWKeyboard->Down(VK_ALT))
      {
-         const auto ext = Extension::Fetch<TechnoTypeClassExtension>(techno->Techno_Type_Class());
+         const auto ext = Extension::Fetch<TechnoTypeClassExtension>(techno->TClass);
          if (ext->IsFilterFromBandBoxSelection)
              return;
      }
@@ -490,7 +490,7 @@ void TacticalExt::_Draw_Rally_Points(bool blit)
     for (int i = 0; i < CurrentObjects.Count(); i++)
     {
         const ObjectClass* obj = CurrentObjects[i];
-        if (obj->Fetch_RTTI() == RTTI_BUILDING && obj->IsActive && obj->IsSelected && obj->Owner_HouseClass() == PlayerPtr)
+        if (obj->RTTI == RTTI_BUILDING && obj->IsActive && obj->IsSelected && obj->Owner_HouseClass() == PlayerPtr)
         {
             const BuildingClass* bldg = static_cast<const BuildingClass*>(obj);
             /**

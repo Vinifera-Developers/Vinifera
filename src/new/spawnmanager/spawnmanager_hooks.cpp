@@ -55,7 +55,7 @@ DECLARE_PATCH(_EventClass_Execute_IDLE_Spawn_Manager_Patch)
     if (extension->SpawnManager)
         extension->SpawnManager->Abandon_Target();
 
-    rtti = techno->Fetch_RTTI();
+    rtti = techno->RTTI;
     if (rtti == RTTI_UNIT)
     {
         JMP(0x00494AC5);

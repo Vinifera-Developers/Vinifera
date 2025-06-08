@@ -980,8 +980,8 @@ static int Scan_Place_Object(ObjectClass *obj, Cell cell, int min_dist = 1, int 
      */
     if (Map.In_Radar(cell)) {
         techno = Map[cell].Cell_Techno();
-        if (!techno || (techno->Fetch_RTTI() == RTTI_INFANTRY &&
-            obj->Fetch_RTTI() == RTTI_INFANTRY)) {
+        if (!techno || (techno->RTTI == RTTI_INFANTRY &&
+            obj->RTTI == RTTI_INFANTRY)) {
             Coordinate coord = Cell_Coord(newcell, true);
             coord.Z = Map.Get_Height_GL(coord);
             if (obj->Unlimbo(coord, DIR_N)) {
@@ -1045,8 +1045,8 @@ static int Scan_Place_Object(ObjectClass *obj, Cell cell, int min_dist = 1, int 
                      *  - the techno in the cell & the object are both infantry
                      */
                     techno = Map[newcell].Cell_Techno();
-                    if (!techno || (techno->Fetch_RTTI() == RTTI_INFANTRY &&
-                        obj->Fetch_RTTI() == RTTI_INFANTRY)) {
+                    if (!techno || (techno->RTTI == RTTI_INFANTRY &&
+                        obj->RTTI == RTTI_INFANTRY)) {
                         Coordinate coord = Cell_Coord(newcell, true);
                         coord.Z = Map.Get_Height_GL(coord);
                         if (obj->Unlimbo(coord, DIR_N)) {
@@ -1093,7 +1093,7 @@ static bool Is_Adjacent_Cell_Empty(Cell cell, FacingType facing, int dist)
     /**
      *  Is there any free infantry spots?
      */
-    if (techno->Fetch_RTTI() == RTTI_INFANTRY
+    if (techno->RTTI == RTTI_INFANTRY
         && Map[newcell].Is_Any_Spot_Free()) {
 
         return true;

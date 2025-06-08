@@ -1428,11 +1428,11 @@ bool StripClassExt::_AI(KeyNumType& input, Point2D&)
                     TechnoClass* pending = factory->Get_Object();
                     if (pending != nullptr)
                     {
-                        switch (pending->Fetch_RTTI())
+                        switch (pending->RTTI)
                         {
                         case RTTI_UNIT:
                         case RTTI_AIRCRAFT:
-                            OutList.Add(EventClass(pending->Owner(), EVENT_PLACE, pending->Fetch_RTTI(), CELL_NONE));
+                            OutList.Add(EventClass(pending->Owner(), EVENT_PLACE, pending->RTTI, CELL_NONE));
                             Speak(VOX_UNIT_READY);
                             break;
 
@@ -1442,7 +1442,7 @@ bool StripClassExt::_AI(KeyNumType& input, Point2D&)
                             break;
 
                         case RTTI_INFANTRY:
-                            OutList.Add(EventClass(pending->Owner(), EVENT_PLACE, pending->Fetch_RTTI(), CELL_NONE));
+                            OutList.Add(EventClass(pending->Owner(), EVENT_PLACE, pending->RTTI, CELL_NONE));
                             Speak(VOX_UNIT_READY);
                             break;
 
@@ -1712,7 +1712,7 @@ void StripClassExt::_Draw_It(bool complete)
                          *  If there is already a factory producing a building, then all
                          *  buildings are displayed in a disabled state.
                          */
-                        if (obj->Fetch_RTTI() == RTTI_BUILDINGTYPE)
+                        if (obj->RTTI == RTTI_BUILDINGTYPE)
                         {
                             darken = PlayerPtr->Fetch_Factory(Buildables[index].BuildableType) != nullptr;
                         }
@@ -1850,7 +1850,7 @@ void StripClassExt::_Draw_It(bool complete)
             bool hasqueuecount = false;
             if (obj != nullptr)
             {
-                RTTIType rtti = obj->Fetch_RTTI();
+                RTTIType rtti = obj->RTTI;
                 FactoryClass* factory = PlayerPtr->Fetch_Factory(rtti);
 
                 if (factory != nullptr)
@@ -1858,7 +1858,7 @@ void StripClassExt::_Draw_It(bool complete)
                     int total = factory->Total_Queued(*obj);
                     if (total > 1 ||
                         total > 0 && (factory->Object == nullptr ||
-                            factory->Object->Techno_Type_Class() != nullptr && factory->Object->Techno_Type_Class() != obj))
+                            factory->Object->TClass != nullptr && factory->Object->TClass != obj))
                     {
                         Point2D drawpoint(x + QUEUE_COUNT_X_OFFSET, y + TEXT_Y_OFFSET);
                         Fancy_Text_Print("%d", SidebarSurface, &rect, &drawpoint, ColorScheme::As_Pointer("LightGrey", 1), COLOR_TBLACK, TPF_RIGHT | TPF_FULLSHADOW | TPF_8POINT, total);

@@ -161,7 +161,7 @@ bool AircraftClassExt::_Cell_Seems_Ok(Cell& cell, bool strict) const
         const TechnoClass* techno = Map[cell].Cell_Techno();
         if (techno) {
             if (Extension::Fetch<TechnoClassExtension>(techno)->SpawnManager
-                || Extension::Fetch<TechnoTypeClassExtension>(techno->Techno_Type_Class())->IsSpawned) {
+                || Extension::Fetch<TechnoTypeClassExtension>(techno->TClass)->IsSpawned) {
                 return true;
             }
         }
@@ -171,7 +171,7 @@ bool AircraftClassExt::_Cell_Seems_Ok(Cell& cell, bool strict) const
      *  If we're a carryall, we can enter a potential totable unit's cell.
      */
     bool can_tote = false;
-    if (Class->IsCarryall && Target_Legal(NavCom) && NavCom->Fetch_RTTI() == RTTI_UNIT)
+    if (Class->IsCarryall && Target_Legal(NavCom) && NavCom->RTTI == RTTI_UNIT)
         can_tote = true;
 
     /**
@@ -278,7 +278,7 @@ DECLARE_PATCH(_AircraftClass_Mission_Unload_Transport_Detach_Sound_Patch)
         /**
          *  Do we have a sound to play when passengers leave us? If so, play it now.
          */
-        technotypeext = Extension::Fetch<TechnoTypeClassExtension>(this_ptr->Techno_Type_Class());
+        technotypeext = Extension::Fetch<TechnoTypeClassExtension>(this_ptr->TClass);
         if (technotypeext->LeaveTransportSound != VOC_NONE) {
             Static_Sound(technotypeext->LeaveTransportSound, this_ptr->Coord);
         }
@@ -373,7 +373,7 @@ DECLARE_PATCH(_AircraftClass_What_Action_Is_Totable_Patch)
         /**
          *  Target is a unit?
          */
-        if (target->Fetch_RTTI() == RTTI_UNIT) {
+        if (target->RTTI == RTTI_UNIT) {
 
             target_unit = reinterpret_cast<UnitClass *>(target);
 

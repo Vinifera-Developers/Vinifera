@@ -110,7 +110,7 @@ const ShapeSet* InfantryClassExt::_Get_Image_Data() const
 static int Get_Engineer_Damage(TechnoClass *tech)
 {
     float damage = Rule->EngineerDamage;    // Was "Rule->ConditionRed * 0.5f"
-    return std::min((tech->Techno_Type_Class()->MaxStrength * damage), (float)(tech->Strength-1));
+    return std::min((tech->TClass->MaxStrength * damage), (float)(tech->Strength-1));
 }
 
 
@@ -192,7 +192,7 @@ DECLARE_PATCH(_InfantryClass_Per_Cell_Process_Transport_Attach_Sound_Patch)
     /**
      *  If this transport we are entering has a passenger entering sound, play it now.
      */
-    radio_technotypeext = Extension::Fetch<TechnoTypeClassExtension>(techno->Techno_Type_Class());
+    radio_technotypeext = Extension::Fetch<TechnoTypeClassExtension>(techno->TClass);
     if (radio_technotypeext->EnterTransportSound != VOC_NONE) {
         Static_Sound(radio_technotypeext->EnterTransportSound, techno->Coord);
     }
@@ -225,7 +225,7 @@ DECLARE_PATCH(_InfantryClass_Firing_AI_Mechanic_Patch)
          *  Is the target being queried a unit, aircraft or infantry? If so, make
          *  sure this infantry is a mechanic before allowing it to heal the unit.
          */
-        if (targ->Fetch_RTTI() == RTTI_UNIT || (targ->Fetch_RTTI() == RTTI_AIRCRAFT && !targ->In_Air()) || targ->Fetch_RTTI() == RTTI_INFANTRY) {
+        if (targ->RTTI == RTTI_UNIT || (targ->RTTI == RTTI_AIRCRAFT && !targ->In_Air()) || targ->RTTI == RTTI_INFANTRY) {
             goto health_ratio_check;
         }
 
@@ -238,14 +238,14 @@ DECLARE_PATCH(_InfantryClass_Firing_AI_Mechanic_Patch)
          *  Is the target being queried a unit or aircraft? If so, make sure this
          *  infantry is a mechanic before allowing it to heal the unit.
          */
-        if (targ->Fetch_RTTI() == RTTI_UNIT || (targ->Fetch_RTTI() == RTTI_AIRCRAFT && !targ->In_Air())) {
+        if (targ->RTTI == RTTI_UNIT || (targ->RTTI == RTTI_AIRCRAFT && !targ->In_Air())) {
             goto health_ratio_check;
         }
 
     /**
      *  Original code.
      */
-    } else if (targ->Fetch_RTTI() == RTTI_INFANTRY) {
+    } else if (targ->RTTI == RTTI_INFANTRY) {
         goto health_ratio_check;
     }
 
@@ -291,12 +291,12 @@ DECLARE_PATCH(_InfantryClass_What_Action_Mechanic_Patch)
          *  Is the target being queried a unit, aircraft or infantry? If so, make
          *  sure this infantry is a mechanic before allowing it to heal the unit.
          */
-        if (object->Fetch_RTTI() == RTTI_UNIT || object->Fetch_RTTI() == RTTI_AIRCRAFT || object->Fetch_RTTI() == RTTI_INFANTRY) {
+        if (object->RTTI == RTTI_UNIT || object->RTTI == RTTI_AIRCRAFT || object->RTTI == RTTI_INFANTRY) {
 
             /**
              *  If we are force-moving into an Transport, don't try to heal it!
              */
-            if (object->Techno_Type_Class()->MaxPassengers > 0) {
+            if (object->TClass->MaxPassengers > 0) {
                 if (WWKeyboard->Down(Options.KeyForceMove1) || WWKeyboard->Down(Options.KeyForceMove2)) {
                     goto next_check;
                 }
@@ -324,12 +324,12 @@ DECLARE_PATCH(_InfantryClass_What_Action_Mechanic_Patch)
          *  Is the target being queried a unit or aircraft? If so, make sure this
          *  infantry is a mechanic before allowing it to heal the unit.
          */
-        if (object->Fetch_RTTI() == RTTI_UNIT || object->Fetch_RTTI() == RTTI_AIRCRAFT) {
+        if (object->RTTI == RTTI_UNIT || object->RTTI == RTTI_AIRCRAFT) {
 
             /**
              *  If we are force-moving into an Transport, don't try to heal it!
              */
-            if (object->Techno_Type_Class()->MaxPassengers > 0) {
+            if (object->TClass->MaxPassengers > 0) {
                 if (WWKeyboard->Down(Options.KeyForceMove1) || WWKeyboard->Down(Options.KeyForceMove2)) {
                     goto next_check;
                 }
@@ -344,7 +344,7 @@ DECLARE_PATCH(_InfantryClass_What_Action_Mechanic_Patch)
     /**
      *  Original code.
      */
-    } else if (object->Fetch_RTTI() == RTTI_INFANTRY) {
+    } else if (object->RTTI == RTTI_INFANTRY) {
 
         /**
          *  If the mouse is over ourself, show the guard area cursor.

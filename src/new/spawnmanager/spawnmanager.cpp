@@ -308,7 +308,7 @@ void SpawnManagerClass::AI()
         SpawnControl* control = SpawnControls[i];
         AircraftClass* spawnee = control->Spawnee;
         const auto owner_ext = Extension::Fetch<TechnoClassExtension>(Owner);
-        const auto owner_type_ext = Extension::Fetch<TechnoTypeClassExtension>(Owner->Techno_Type_Class());
+        const auto owner_type_ext = Extension::Fetch<TechnoTypeClassExtension>(Owner->TClass);
 
         switch (control->Status)
         {
@@ -558,7 +558,7 @@ void SpawnManagerClass::AI()
                 if (good_landing_cell)
                 {
                     bool good_landing_height = std::abs(spawnee->Coord.Z - Owner->Coord.Z) < 20;
-                    if (!good_landing_height && Owner->Is_Foot() && Owner->Techno_Type_Class()->Locomotor == __uuidof(HoverLocomotionClass))
+                    if (!good_landing_height && Owner->Is_Foot() && Owner->TClass->Locomotor == __uuidof(HoverLocomotionClass))
                         good_landing_height = (spawnee->Coord.Z <= Owner->Coord.Z + 20);
 
                     if (good_landing_height)
@@ -685,7 +685,7 @@ void SpawnManagerClass::AI()
                  *  If the spawn is a missile, add it to the kamikaze tracker and set it to take off.
                  *  Also set the reload timer to the missile's takeoff time.
                  */
-                if (Extension::Fetch<AircraftTypeClassExtension>(spawnee->Techno_Type_Class())->IsMissileSpawn)
+                if (Extension::Fetch<AircraftTypeClassExtension>(spawnee->TClass)->IsMissileSpawn)
                 {
                     is_missile_launcher = true;
                     KamikazeTracker->Add(spawnee, Target);
@@ -838,7 +838,7 @@ void SpawnManagerClass::Abandon_Target()
         SpawnControl* control = SpawnControls[i];
         if (control->Status == SpawnControlStatus::Preparing)
         {
-            const auto extension = Extension::Fetch<AircraftTypeClassExtension>(control->Spawnee->Techno_Type_Class());
+            const auto extension = Extension::Fetch<AircraftTypeClassExtension>(control->Spawnee->TClass);
             if (extension->IsMissileSpawn)
             {
                 KamikazeTracker->Add(control->Spawnee, Target);
@@ -987,7 +987,7 @@ int SpawnManagerClass::Preparing_Count()
         {
             const AircraftClass* spawnee = SpawnControls[i]->Spawnee;
             if (spawnee && !spawnee->IsInLimbo
-                && Extension::Fetch<AircraftTypeClassExtension>(spawnee->Techno_Type_Class())->IsMissileSpawn)
+                && Extension::Fetch<AircraftTypeClassExtension>(spawnee->TClass)->IsMissileSpawn)
             {
                 count++;
             }

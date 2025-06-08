@@ -190,7 +190,7 @@ HRESULT KamikazeTrackerClass::Save(IStream* pStm, BOOL fClearDirty)
  */
 void KamikazeTrackerClass::Add(AircraftClass* aircraft, AbstractClass * target)
 {
-    if (!Extension::Fetch<AircraftTypeClassExtension>(aircraft->Techno_Type_Class())->IsMissileSpawn)
+    if (!Extension::Fetch<AircraftTypeClassExtension>(aircraft->TClass)->IsMissileSpawn)
     {
         aircraft->On_Death(nullptr);
         return;
