@@ -1251,6 +1251,54 @@ bool HouseClassExt::_AI_Has_Prerequisites(const TechnoTypeClass* type, DynamicVe
 
 
 /**
+ *  Fixes a bug where the player is flagged as losing the game when
+ *  one of their allies is flagged to win the game.
+ *
+ *  NOTE: Typically only one house (the last opponent to be defeated) is flagged
+ *  to win/lose at game end, that house is then used to figure out whether the
+ *  local player won or lost.
+ *
+ *  Author: Rampastring
+ */
+DECLARE_PATCH(_HouseClass_AI_Fix_Player_Losing_When_Their_Allies_Win)
+{
+    GET_REGISTER_STATIC(HouseClass*, this_ptr, esi);
+
+    if (!PlayerPtr->Is_Ally(this_ptr)) {
+        PlayerLoses = true;
+    } else {
+        PlayerWins = true;
+    }
+
+    JMP(0x004BC7AA);
+}
+
+
+/**
+ *  Fixes a bug where the player is flagged as winning the game when
+ *  one of their allies is flagged to lose the game.
+ *
+ *  NOTE: Typically only one house (the last opponent to be defeated) is flagged
+ *  to win/lose at game end, that house is then used to figure out whether the
+ *  local player won or lost.
+ *
+ *  Author: Rampastring
+ */
+DECLARE_PATCH(_HouseClass_AI_Fix_Player_Winning_When_Their_Allies_Lose)
+{
+    GET_REGISTER_STATIC(HouseClass*, this_ptr, esi);
+
+    if (PlayerPtr->Is_Ally(this_ptr)) {
+        PlayerLoses = true;
+    } else {
+        PlayerWins = true;
+    }
+
+    JMP(0x004BC872);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void HouseClassExtension_Hooks()
@@ -1304,4 +1352,7 @@ void HouseClassExtension_Hooks()
     Patch_Jump(0x004BEA10, &HouseClassExt::_Place_Object);
     Patch_Jump(0x004BF180, &HouseClassExt::_Suggest_New_Object);
     Patch_Jump(0x004BD590, &HouseClassExt::_Harvested);
+
+    Patch_Jump(0x004BC78D, &_HouseClass_AI_Fix_Player_Losing_When_Their_Allies_Win);
+    Patch_Jump(0x004BC855, &_HouseClass_AI_Fix_Player_Winning_When_Their_Allies_Lose);
 }
