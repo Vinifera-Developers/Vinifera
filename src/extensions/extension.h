@@ -366,6 +366,11 @@ void Destroy(const BASE_CLASS *base, DynamicVectorClass<EXT_CLASS *> &list)
 
 }; // namespace "Extension::List".
 
+
+/**
+ *  Trait mapping a base class to its corresponding extension class.
+ *  Specialize this for each supported base type.
+ */
 template<typename BASE> struct Extension_Pair;
 
 #define MAKE_EXTENSION_PAIR(base) \
@@ -441,6 +446,12 @@ MAKE_EXTENSION_PAIR(SuperClass);
 //MAKE_EXTENSION_PAIR(AlphaShapeClass);                                 // Not yet implemented
 //MAKE_EXTENSION_PAIR(VeinholeMonsterClass);                            // Not yet implemented
 
+/**
+ *  Macro to declare a fake extension class that also
+ *  registers it as a pair with the extension, so that
+ *  the extension can be fetched without having to cast it
+ *  to the original class.
+ */
 #define DECLARE_EXTENDING_CLASS_AND_PAIR(BASE) \
     class BASE##Ext;                           \
     class BASE##Extension;                     \
@@ -455,7 +466,7 @@ MAKE_EXTENSION_PAIR(SuperClass);
 /**
  *  Fetch the extension instance linked to this abstract object. 
  * 
- *  @author: CCHyper
+ *  @author: CCHyper, ZivDero
  */
 template<typename BASE>
 typename Extension_Pair<typename std::remove_cv<BASE>::type>::Type*
