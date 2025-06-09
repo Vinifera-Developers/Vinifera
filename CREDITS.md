@@ -134,7 +134,7 @@ This page lists all the individual contributions to the project by their author.
   - Implement customizable mouse cursors and actions.
   - Implement a feature for animations to spawn additional animations.
   - Help with implementing Jumpjet Locomotion improvements.
-  - Implement naval yards rally points, AI naval yard base spacing.
+  - Implement naval yard rally points, AI naval yard base spacing.
   - Implement exclusive factories.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
@@ -176,7 +176,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where a visceroid was spawned when poison gas destroyed a non-crewed vehicle, building, or terrain object.
   - Fix a bug where it was impossible to tell infantry to enter cloaked allied transports.
   - Implement `ExplosionDamage` for animations.
-  - Implement naval yards rally points.
+  - Implement naval yard rally points.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:
