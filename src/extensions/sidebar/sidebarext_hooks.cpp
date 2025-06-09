@@ -1903,7 +1903,7 @@ void StripClassExt::_Draw_It(bool complete)
                          */
                         if (obj->RTTI == RTTI_BUILDINGTYPE)
                         {
-                            darken = Extension::Fetch<HouseClassExtension>(PlayerPtr)->Fetch_Factory(Buildables[index].BuildableType, TechnoTypeClassExtension::Get_Production_Flags(obj)) != nullptr;
+                            darken = Extension::Fetch(PlayerPtr)->Fetch_Factory(Buildables[index].BuildableType, TechnoTypeClassExtension::Get_Production_Flags(obj)) != nullptr;
                         }
 
                         /**
@@ -2040,7 +2040,7 @@ void StripClassExt::_Draw_It(bool complete)
             if (obj != nullptr)
             {
                 RTTIType rtti = obj->RTTI;
-                FactoryClass* factory = Extension::Fetch<HouseClassExtension>(PlayerPtr)->Fetch_Factory(rtti, TechnoTypeClassExtension::Get_Production_Flags(obj));
+                FactoryClass* factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(rtti, TechnoTypeClassExtension::Get_Production_Flags(obj));
 
                 if (factory != nullptr)
                 {
@@ -2171,7 +2171,7 @@ void StripClassExt::_Tab_Button_AI()
         {
             if (SidebarExtension->TabButtons[ID].IsFlashing)
             {
-                FactoryClass* fptr = Extension::Fetch<HouseClassExtension>(PlayerPtr)->Fetch_Factory(RTTI_BUILDINGTYPE, PRODFLAG_DEFENSE);
+                FactoryClass* fptr = Extension::Fetch(PlayerPtr)->Fetch_Factory(RTTI_BUILDINGTYPE, PRODFLAG_DEFENSE);
                 if (fptr == nullptr || !fptr->Has_Completed())
                     SidebarExtension->TabButtons[ID].Stop_Flashing();
             }
@@ -2464,7 +2464,7 @@ DECLARE_PATCH(_StripClass_Draw_It_Fetch_Factory_Patch1)
     GET_STACK_STATIC(RTTIType, rtti, esp, 0x44);
 
     static FactoryClass* factory;
-    factory = Extension::Fetch<HouseClassExtension>(PlayerPtr)->Fetch_Factory(rtti, TechnoTypeClassExtension::Get_Production_Flags(ttype));
+    factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(rtti, TechnoTypeClassExtension::Get_Production_Flags(ttype));
 
     _asm mov eax, factory
     JMP_REG(edx, 0x005F5132);
@@ -2477,7 +2477,7 @@ DECLARE_PATCH(_StripClass_Draw_It_Fetch_Factory_Patch2)
     GET_REGISTER_STATIC(RTTIType, rtti, eax);
 
     static FactoryClass* factory;
-    factory = Extension::Fetch<HouseClassExtension>(PlayerPtr)->Fetch_Factory(rtti, TechnoTypeClassExtension::Get_Production_Flags(ttype));
+    factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(rtti, TechnoTypeClassExtension::Get_Production_Flags(ttype));
 
     _asm mov ebx, factory
     JMP(0x005F538A);
@@ -2607,7 +2607,7 @@ bool SelectClassExt::_Action(unsigned flags, KeyNumType& key)
                         
                     }
                 } else {
-                    factory = Extension::Fetch<HouseClassExtension>(PlayerPtr)->Fetch_Factory(otype, TechnoTypeClassExtension::Get_Production_Flags(choice));
+                    factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(otype, TechnoTypeClassExtension::Get_Production_Flags(choice));
                     if (factory && factory->Is_Queued(*choice)) {
                         int count_to_abandon = 1;
 
@@ -2686,7 +2686,7 @@ bool SelectClassExt::_Action(unsigned flags, KeyNumType& key)
                     **  on the icon that has the attached factory, then say that the factory is busy and
                     **  ignore the click.
                     */
-                    factory = Extension::Fetch<HouseClassExtension>(PlayerPtr)->Fetch_Factory(otype, TechnoTypeClassExtension::Get_Production_Flags(choice));
+                    factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(otype, TechnoTypeClassExtension::Get_Production_Flags(choice));
                     if (factory != nullptr && (factory->Is_Building() || factory->Get_Object() || factory->Queued_Object_Count() > 0) && otype == RTTI_BUILDINGTYPE) {
                         Speak(VOX_NO_FACTORY);
                     } else {

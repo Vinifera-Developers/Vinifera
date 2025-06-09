@@ -123,7 +123,7 @@ bool EventClassExt::Is_Vinifera_Event() const
 void EventClassExt::Execute()
 {
     HouseClass* house = Houses[ID];
-    HouseClassExtension* house_ext = Extension::Fetch<HouseClassExtension>(house);
+    HouseClassExtension* house_ext = Extension::Fetch(house);
 
     switch (Type) {
 

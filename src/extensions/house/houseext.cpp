@@ -48,6 +48,7 @@
 #include "team.h"
 #include "teamtype.h"
 #include "unit.h"
+#include "unittypeext.h"
 #include "voc.h"
 #include "vox.h"
 
@@ -844,7 +845,7 @@ int HouseClassExtension::AI_Unit()
     int lastval = 0x7FFFFFFF;
     UnitType bestlist[std::size(counter)];
     for (UnitType type = UNIT_FIRST; type < UnitTypes.Count(); type++) {
-        if (counter[type] > 0 && This()->Can_Build(UnitTypes[type], false, false) && UnitTypes[type]->Cost_Of(This()) <= This()->Available_Money() && !Extension::Fetch<TechnoTypeClassExtension>(UnitTypes[type])->IsNaval) {
+        if (counter[type] > 0 && This()->Can_Build(UnitTypes[type], false, false) && UnitTypes[type]->Cost_Of(This()) <= This()->Available_Money() && !Extension::Fetch(UnitTypes[type])->IsNaval) {
             if (bestval == -1 || bestval < counter[type]) {
                 bestval = counter[type];
                 bestcount = 0;
@@ -935,7 +936,7 @@ int HouseClassExtension::AI_Naval_Unit()
     int lastval = 0x7FFFFFFF;
     UnitType bestlist[std::size(counter)];
     for (UnitType type = UNIT_FIRST; type < UnitTypes.Count(); type++) {
-        if (counter[type] > 0 && This()->Can_Build(UnitTypes[type], false, false) && UnitTypes[type]->Cost_Of(This()) <= This()->Available_Money() && Extension::Fetch<TechnoTypeClassExtension>(UnitTypes[type])->IsNaval) {
+        if (counter[type] > 0 && This()->Can_Build(UnitTypes[type], false, false) && UnitTypes[type]->Cost_Of(This()) <= This()->Available_Money() && Extension::Fetch(UnitTypes[type])->IsNaval) {
             if (bestval == -1 || bestval < counter[type]) {
                 bestval = counter[type];
                 bestcount = 0;

@@ -256,8 +256,8 @@ BuildingClass* ObjectTypeClassExt::_Who_Can_Build_Me(bool intheory, bool needsno
             (!Rule->BuildConst.Is_Present(building->Class) || RuleExtension->IsMultiMCV || 1L << building->ActLike & ownable)) {
 
             if (RTTI == RTTI_UNITTYPE || RTTI == RTTI_INFANTRYTYPE || RTTI == RTTI_BUILDINGTYPE || RTTI == RTTI_AIRCRAFTTYPE) {
-                TechnoTypeClassExtension* type_ext = Extension::Fetch<TechnoTypeClassExtension>(this);
-                BuildingTypeClassExtension* btype_ext = Extension::Fetch<BuildingTypeClassExtension>(building->Class);
+                TechnoTypeClassExtension* type_ext = Extension::Fetch(reinterpret_cast<const TechnoTypeClass*>(this));
+                BuildingTypeClassExtension* btype_ext = Extension::Fetch(building->Class);
 
                 /*
                 **  This object doesn't allow this factory to produce it.
@@ -272,8 +272,8 @@ BuildingClass* ObjectTypeClassExt::_Who_Can_Build_Me(bool intheory, bool needsno
 
             if (intheory || !building->In_Radio_Contact() || RTTI != RTTI_AIRCRAFTTYPE) {
                 if (RTTI == RTTI_UNITTYPE) {
-                    UnitTypeClassExtension* type_ext = Extension::Fetch<UnitTypeClassExtension>(this);
-                    BuildingTypeClassExtension* btype_ext = Extension::Fetch<BuildingTypeClassExtension>(building->Class);
+                    UnitTypeClassExtension* type_ext = Extension::Fetch(reinterpret_cast<const UnitTypeClass*>(this));
+                    BuildingTypeClassExtension* btype_ext = Extension::Fetch(building->Class);
                     if (btype_ext->IsNaval != type_ext->IsNaval) continue;
                 }
                 if (building->IsLeader) return building;

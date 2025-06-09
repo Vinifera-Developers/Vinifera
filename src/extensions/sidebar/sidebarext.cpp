@@ -838,7 +838,7 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
                         
                     }
                 } else {
-                    factory = Extension::Fetch<HouseClassExtension>(PlayerPtr)->Fetch_Factory(otype, TechnoTypeClassExtension::Get_Production_Flags(choice));
+                    factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(otype, TechnoTypeClassExtension::Get_Production_Flags(choice));
                     if (factory && factory->Is_Queued(*choice)) {
                         int count_to_abandon = 1;
 
@@ -917,7 +917,7 @@ bool SidebarClassExtension::ViniferaSelectClass::Action(unsigned flags, KeyNumTy
                     **  on the icon that has the attached factory, then say that the factory is busy and
                     **  ignore the click.
                     */
-                    factory = Extension::Fetch<HouseClassExtension>(PlayerPtr)->Fetch_Factory(otype, TechnoTypeClassExtension::Get_Production_Flags(choice));
+                    factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(otype, TechnoTypeClassExtension::Get_Production_Flags(choice));
                     if (factory != nullptr && (factory->Is_Building() || factory->Get_Object() || factory->Queued_Object_Count() > 0) && otype == RTTI_BUILDINGTYPE) {
                         Speak(VOX_NO_FACTORY);
                     } else {

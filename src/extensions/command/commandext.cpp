@@ -374,7 +374,7 @@ bool ManualPlaceCommandClass::Process()
         /**
          *  Fetch the house's factory associated with producing buildings.
          */
-        FactoryClass* factory = Extension::Fetch<HouseClassExtension>(PlayerPtr)->Fetch_Factory(RTTI_BUILDING, PRODFLAG_NONE);
+        FactoryClass* factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(RTTI_BUILDING, PRODFLAG_NONE);
         if (!factory)
             return false;
 
@@ -462,7 +462,7 @@ bool RepeatLastBuildingCommandClass::Process()
      *  Fetch the house's factory associated with producing building. This is
      *  done to make sure the house still has a factory.
      */
-    if (!Extension::Fetch<HouseClassExtension>(PlayerPtr)->Factory_Count(RTTI_BUILDING, PRODFLAG_NONE)) {
+    if (!Extension::Fetch(PlayerPtr)->Factory_Count(RTTI_BUILDING, PRODFLAG_NONE)) {
         DEV_DEBUG_WARNING("RepeatLastBuildingCommandClass - Unable to fetch primary factory!\n");
         return false;
     }
@@ -478,8 +478,8 @@ bool RepeatLastBuildingCommandClass::Process()
     /**
      *  Don't allow queuing of multiple structures.
      */
-    if (Extension::Fetch<HouseClassExtension>(PlayerPtr)->Fetch_Factory(RTTI_BUILDING, PRODFLAG_NONE) &&
-        Extension::Fetch<HouseClassExtension>(PlayerPtr)->Fetch_Factory(RTTI_BUILDING, PRODFLAG_NONE)->Get_Object()) {
+    if (Extension::Fetch(PlayerPtr)->Fetch_Factory(RTTI_BUILDING, PRODFLAG_NONE) &&
+        Extension::Fetch(PlayerPtr)->Fetch_Factory(RTTI_BUILDING, PRODFLAG_NONE)->Get_Object()) {
         return false;
     }
 
@@ -540,7 +540,7 @@ bool RepeatLastInfantryCommandClass::Process()
      *  Fetch the house's factory associated with producing infantry. This is
      *  done to make sure the house still has a factory.
      */
-    if (!Extension::Fetch<HouseClassExtension>(PlayerPtr)->Factory_Count(RTTI_INFANTRY, PRODFLAG_NONE)) {
+    if (!Extension::Fetch(PlayerPtr)->Factory_Count(RTTI_INFANTRY, PRODFLAG_NONE)) {
         DEV_DEBUG_WARNING("RepeatLastInfantryCommandClass - Unable to fetch primary factory!\n");
         return false;
     }
@@ -610,7 +610,7 @@ bool RepeatLastUnitCommandClass::Process()
      *  Fetch the house's factory associated with producing unit. This is
      *  done to make sure the house still has a factory.
      */
-    if (!Extension::Fetch<HouseClassExtension>(PlayerPtr)->Factory_Count(RTTI_UNIT, PRODFLAG_NONE)) {
+    if (!Extension::Fetch(PlayerPtr)->Factory_Count(RTTI_UNIT, PRODFLAG_NONE)) {
         DEV_DEBUG_WARNING("RepeatLastUnitCommandClass - Unable to fetch primary factory!\n");
         return false;
     }
@@ -680,7 +680,7 @@ bool RepeatLastAircraftCommandClass::Process()
      *  Fetch the house's factory associated with producing aircraft. This is
      *  done to make sure the house still has a factory.
      */
-    if (!Extension::Fetch<HouseClassExtension>(PlayerPtr)->Factory_Count(RTTI_AIRCRAFT, PRODFLAG_NONE)) {
+    if (!Extension::Fetch(PlayerPtr)->Factory_Count(RTTI_AIRCRAFT, PRODFLAG_NONE)) {
         DEV_DEBUG_WARNING("RepeatLastAircraftCommandClass - Unable to fetch primary factory!\n");
         return false;
     }
@@ -1149,7 +1149,7 @@ bool SetStructureTabCommandClass::Process()
         /**
          *  Fetch the house's factory associated with producing buildings.
          */
-        FactoryClass* factory = Extension::Fetch<HouseClassExtension>(PlayerPtr)->Fetch_Factory(RTTI_BUILDING, PRODFLAG_NONE);
+        FactoryClass* factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(RTTI_BUILDING, PRODFLAG_NONE);
         if (!factory)
             return result;
 

@@ -1320,7 +1320,7 @@ int TechnoClassExt::_Time_To_Build() const
     power = std::max(power, Rule->MinProductionSpeed);
     val /= power;
 
-    int divisor = Extension::Fetch<HouseClassExtension>(House)->Factory_Count(RTTI, TechnoTypeClassExtension::Get_Production_Flags(this));
+    int divisor = Extension::Fetch(House)->Factory_Count(RTTI, TechnoTypeClassExtension::Get_Production_Flags(this));
     if (divisor > 1 && Rule->MultipleFactory > 0) {
         val *= 1.0 / ((divisor - 1) * Rule->MultipleFactory);
     }

@@ -65,7 +65,7 @@ public:
 
     static ProductionFlags Get_Production_Flags(RTTIType type, int id);
     static ProductionFlags Get_Production_Flags(const TechnoClass* techno) { return Get_Production_Flags(techno->Techno_Type_Class()); }
-    static ProductionFlags Get_Production_Flags(const TechnoTypeClass* ttype) { return Get_Production_Flags(Extension::Fetch<TechnoTypeClassExtension>(ttype)); }
+    static ProductionFlags Get_Production_Flags(const TechnoTypeClass* ttype) { return Get_Production_Flags(Extension::Fetch(ttype)); }
     static ProductionFlags Get_Production_Flags(const TechnoTypeClassExtension* ttype_ext);
 
 public:

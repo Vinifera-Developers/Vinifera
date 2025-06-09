@@ -244,7 +244,7 @@ void FactoryClassExt::_Resume_Queue()
             QueuedObjects.Delete(0);
             int id = object->Fetch_Heap_ID();
             if (id >= 0) {
-                Extension::Fetch<HouseClassExtension>(House)->Begin_Production(object->RTTI, id, true, TechnoTypeClassExtension::Get_Production_Flags(object->RTTI, id));
+                Extension::Fetch(House)->Begin_Production(object->RTTI, id, true, TechnoTypeClassExtension::Get_Production_Flags(object->RTTI, id));
             }
         }
     }
@@ -288,8 +288,8 @@ bool FactoryClassExt::_Abandon()
                 House->BuildInfantry = INFANTRY_NONE;
             }
             if (Object->RTTI == RTTI_UNIT) {
-                if (Extension::Fetch<UnitTypeClassExtension>(Object->TClass)->IsNaval) {
-                    Extension::Fetch<HouseClassExtension>(House)->BuildNavalUnit = UNIT_NONE;
+                if (Extension::Fetch(Object->TClass)->IsNaval) {
+                    Extension::Fetch(House)->BuildNavalUnit = UNIT_NONE;
                 } else {
                     House->BuildUnit = UNIT_NONE;
                 }

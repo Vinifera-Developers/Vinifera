@@ -269,7 +269,7 @@ int HouseClassExt::_AI_Building()
 
 int HouseClassExt::_AI_Unit()
 {
-    auto extension = Extension::Fetch<HouseClassExtension>(this);
+    auto extension = Extension::Fetch(this);
     int delay1 = extension->AI_Unit();
     int delay2 = extension->AI_Naval_Unit();
     return std::min(delay1, delay2);
@@ -767,8 +767,8 @@ bool HouseClassExt::_Can_Build_Required_Forbidden_Houses(const TechnoTypeClass* 
 void HouseClassExt::_Active_Remove(TechnoClass const* techno)
 {
     if (techno->RTTI == RTTI_BUILDING) {
-        int* fptr = Extension::Fetch<HouseClassExtension>(this)->Factory_Counter(((BuildingClass*)techno)->Class->ToBuild,
-            Extension::Fetch<BuildingTypeClassExtension>(((BuildingClass*)techno)->Class)->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
+        int* fptr = Extension::Fetch(this)->Factory_Counter(((BuildingClass*)techno)->Class->ToBuild,
+            Extension::Fetch(((BuildingClass*)techno)->Class)->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
         if (fptr != nullptr) {
             *fptr = *fptr - 1;
         }
@@ -784,8 +784,8 @@ void HouseClassExt::_Active_Remove(TechnoClass const* techno)
 void HouseClassExt::_Active_Add(TechnoClass const* techno)
 {
     if (techno->RTTI == RTTI_BUILDING) {
-        int* fptr = Extension::Fetch<HouseClassExtension>(this)->Factory_Counter(((BuildingClass*)techno)->Class->ToBuild,
-            Extension::Fetch<BuildingTypeClassExtension>(((BuildingClass*)techno)->Class)->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
+        int* fptr = Extension::Fetch(this)->Factory_Counter(((BuildingClass*)techno)->Class->ToBuild,
+            Extension::Fetch(((BuildingClass*)techno)->Class)->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
         if (fptr != nullptr) {
             *fptr = *fptr + 1;
         }
@@ -806,7 +806,7 @@ Cell HouseClassExt::_Find_Build_Location(BuildingTypeClass* btype, int(__fastcal
     /**
      *  Find the type class extension instance.
      */
-    BuildingTypeClassExtension* buildingtypeext = Extension::Fetch<BuildingTypeClassExtension>(btype);
+    BuildingTypeClassExtension* buildingtypeext = Extension::Fetch(btype);
     if (buildingtypeext && buildingtypeext->IsNaval) {
 
         DEV_DEBUG_INFO("Find_Build_Location(%s): Searching for Naval Yard \"%s\" build location...\n", Name(), btype->Name());
@@ -1001,7 +1001,7 @@ DECLARE_PATCH(_HouseClass_Exhausted_Build_Limit_Fetch_Factory_Patch)
     GET_REGISTER_STATIC(TechnoTypeClass const*, ttype, esi);
 
     static FactoryClass* factory;
-    factory = Extension::Fetch<HouseClassExtension>(this_ptr)->Fetch_Factory(ttype->RTTI, TechnoTypeClassExtension::Get_Production_Flags(ttype));
+    factory = Extension::Fetch(this_ptr)->Fetch_Factory(ttype->RTTI, TechnoTypeClassExtension::Get_Production_Flags(ttype));
 
     _asm mov ecx, factory
     JMP(0x004CB773);
@@ -1011,8 +1011,8 @@ DECLARE_PATCH(_HouseClass_Exhausted_Build_Limit_Fetch_Factory_Patch)
 void Update_Factories_Helper(BuildingClass* building)
 {
     if (building->Class->ToBuild != RTTI_NONE) {
-        BuildingTypeClassExtension* type_ext = Extension::Fetch<BuildingTypeClassExtension>(building->Class);
-        HouseClassExtension* house_ext = Extension::Fetch<HouseClassExtension>(building->House);
+        BuildingTypeClassExtension* type_ext = Extension::Fetch(building->Class);
+        HouseClassExtension* house_ext = Extension::Fetch(building->House);
         house_ext->Update_Factories(building->Class->ToBuild, type_ext->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
     }
 }
@@ -1045,12 +1045,12 @@ DECLARE_PATCH(_BuildingClass_Captured_Update_Factories_Patch)
     static HouseClassExtension* new_house_ext;
 
     if (this_ptr->Class->ToBuild != RTTI_NONE) {
-        type_ext = Extension::Fetch<BuildingTypeClassExtension>(this_ptr->Class);
+        type_ext = Extension::Fetch(this_ptr->Class);
 
-        old_house_ext = Extension::Fetch<HouseClassExtension>(oldowner);
+        old_house_ext = Extension::Fetch(oldowner);
         old_house_ext->Update_Factories(this_ptr->Class->ToBuild, type_ext->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
 
-        new_house_ext = Extension::Fetch<HouseClassExtension>(oldowner);
+        new_house_ext = Extension::Fetch(oldowner);
         new_house_ext->Update_Factories(this_ptr->Class->ToBuild, type_ext->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
     }
 
@@ -1093,7 +1093,7 @@ DECLARE_PATCH(_HouseClass_Raise_Money_BuildNavalUnit_Patch)
     GET_REGISTER_STATIC(bool, needs_harvester, cl);
     static HouseClassExtension* house_ext;
 
-    house_ext = Extension::Fetch<HouseClassExtension>(this_ptr);
+    house_ext = Extension::Fetch(this_ptr);
 
     // Stolen instructions
     this_ptr->BuildUnit = UNIT_NONE;
@@ -1120,7 +1120,7 @@ DECLARE_PATCH(_HouseClass_Raise_Money_BuildNavalUnit_Patch)
  */
 void HouseClassExt::_Production_Check()
 {
-    auto house_ext = Extension::Fetch<HouseClassExtension>(this);
+    auto house_ext = Extension::Fetch(this);
 
     bool b = BuildUnit == UNIT_NONE && BuildInfantry == INFANTRY_NONE && BuildAircraft == AIRCRAFT_NONE && house_ext->BuildNavalUnit == UNIT_NONE;
 

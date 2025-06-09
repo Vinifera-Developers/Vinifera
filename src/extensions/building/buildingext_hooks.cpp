@@ -504,13 +504,13 @@ void BuildingClassExt::_Detach_All(bool all)
         **  build that thing; if so, abandon production of it.
         */
         if (House) {
-            auto type_ext = Extension::Fetch<BuildingTypeClassExtension>(Class);
+            auto type_ext = Extension::Fetch(Class);
             ProductionFlags prodflags = PRODFLAG_NONE;
             if (type_ext->IsNaval) {
                 prodflags = PRODFLAG_NAVAL;
             }
 
-            FactoryClass* factory = Extension::Fetch<HouseClassExtension>(House)->Fetch_Factory(Class->ToBuild, prodflags);
+            FactoryClass* factory = Extension::Fetch(House)->Fetch_Factory(Class->ToBuild, prodflags);
 
             /*
             **  If a factory was found, then temporarily disable this building and then
@@ -522,7 +522,7 @@ void BuildingClassExt::_Detach_All(bool all)
                 bool limbo = IsInLimbo;
                 IsInLimbo = true;
                 if (object && !object->TClass->Who_Can_Build_Me(true, false, false, House)) {
-                    Extension::Fetch<HouseClassExtension>(House)->Abandon_Production(Class->ToBuild, -1, prodflags);
+                    Extension::Fetch(House)->Abandon_Production(Class->ToBuild, -1, prodflags);
                 }
                 IsInLimbo = limbo;
             }
@@ -559,7 +559,7 @@ bool BuildingClassExt::_Toggle_Primary()
             BuildingClass* building = Buildings[index];
 
             if (!building->IsInLimbo && building->House == House && building->Class->ToBuild == Class->ToBuild &&
-                Extension::Fetch<BuildingTypeClassExtension>(building->Class)->IsNaval == Extension::Fetch<BuildingTypeClassExtension>(Class)->IsNaval) {
+                Extension::Fetch(building->Class)->IsNaval == Extension::Fetch(Class)->IsNaval) {
                 building->IsLeader = false;
             }
         }
@@ -596,7 +596,7 @@ void BuildingClassExt::_Assign_Rally_Point(Cell const& cell)
          *
          *  @author: CCHyper, modified by Rampastring
          */
-        if (Class->ToBuild == RTTI_UNITTYPE && Extension::Fetch<BuildingTypeClassExtension>(Class)->IsNaval) {
+        if (Class->ToBuild == RTTI_UNITTYPE && Extension::Fetch(Class)->IsNaval) {
             speed = SPEED_AMPHIBIOUS;
             mzone = MZONE_AMPHIBIOUS_CRUSHER;
         }
@@ -636,7 +636,7 @@ ActionType BuildingClassExt::_What_Action(ObjectClass const* object, bool disall
     if (action == ACTION_SELF) {
         int index; 
         if (EMPFramesRemaining == 0 && Class->ToBuild != RTTI_NONE && PlayerPtr == House &&
-            Extension::Fetch<HouseClassExtension>(House)->Factory_Count(Class->ToBuild, Extension::Fetch<BuildingTypeClassExtension>(Class)->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE) > 1) {
+            Extension::Fetch(House)->Factory_Count(Class->ToBuild, Extension::Fetch(Class)->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE) > 1) {
 
             switch (Class->ToBuild) {
             case RTTI_INFANTRYTYPE:
@@ -701,7 +701,7 @@ ActionType BuildingClassExt::_What_Action(ObjectClass const* object, bool disall
                          *
                          *  @author: Rampastring
                          */
-                        if (Map[cell].Passability != PASSABLE_OK && !(Extension::Fetch<BuildingTypeClassExtension>(Class)->IsNaval && Map[cell].Passability == PASSABLE_WATER)) {
+                        if (Map[cell].Passability != PASSABLE_OK && !(Extension::Fetch(Class)->IsNaval && Map[cell].Passability == PASSABLE_WATER)) {
                             action = ACTION_NOMOVE;
                         }
                     }
@@ -747,7 +747,7 @@ ActionType BuildingClassExt::_What_Action(const Cell& cell, bool check_fog, bool
                  *
                  *  @author: Rampastring
                  */
-                if (Map[cell].Passability != PASSABLE_OK && !(Extension::Fetch<BuildingTypeClassExtension>(Class)->IsNaval && Map[cell].Passability == PASSABLE_WATER)) {
+                if (Map[cell].Passability != PASSABLE_OK && !(Extension::Fetch(Class)->IsNaval && Map[cell].Passability == PASSABLE_WATER)) {
                     action = ACTION_NOMOVE;
                 }
                 
@@ -854,8 +854,8 @@ void BuildingClassExt::_Factory_AI()
                 **  production can never complete -- don't bother starting it.
                 */
                 if (House->IsStarted && House->Available_Money() > 10) {
-                    auto btype_ext = Extension::Fetch<BuildingTypeClassExtension>(Class);
-                    TechnoTypeClass const* ttype = Extension::Fetch<HouseClassExtension>(House)->Suggest_New_Object(Class->ToBuild, btype_ext->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
+                    auto btype_ext = Extension::Fetch(Class);
+                    TechnoTypeClass const* ttype = Extension::Fetch(House)->Suggest_New_Object(Class->ToBuild, btype_ext->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
 
                     /*
                     **  If a suitable object type was selected for production, then start
@@ -867,7 +867,7 @@ void BuildingClassExt::_Factory_AI()
                         **  But first, verify if this building is a valid factory for this object.
                         */
                         bool allowed_factory = true;
-                        auto ttype_ext = Extension::Fetch<TechnoTypeClassExtension>(ttype);
+                        auto ttype_ext = Extension::Fetch(ttype);
                         if (ttype->RTTI == RTTI_UNITTYPE) {
                             if (btype_ext->IsNaval != ttype_ext->IsNaval) {
                                 allowed_factory = false;
@@ -918,8 +918,8 @@ DECLARE_PATCH(_BuildingClass_Draw_Overlays_Fetch_Factory_Patch)
 
     static FactoryClass* factory;
     static BuildingTypeClassExtension const* type_ext;
-    type_ext = Extension::Fetch <BuildingTypeClassExtension>(this_ptr->Class);
-    factory = Extension::Fetch<HouseClassExtension>(this_ptr->House)->Fetch_Factory(this_ptr->Class->ToBuild, type_ext->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
+    type_ext = Extension::Fetch(this_ptr->Class);
+    factory = Extension::Fetch(this_ptr->House)->Fetch_Factory(this_ptr->Class->ToBuild, type_ext->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
 
     _asm mov eax, factory
     JMP_REG(ecx, 0x00428AC4);
@@ -1985,7 +1985,7 @@ DECLARE_PATCH(_BuildingClass_Exit_Object_Naval_Patch)
     GET_REGISTER_STATIC(TechnoClass*, techno, edi);
     static BuildingTypeClassExtension* type_ext;
 
-    type_ext = Extension::Fetch<BuildingTypeClassExtension>(this_ptr->Class);
+    type_ext = Extension::Fetch(this_ptr->Class);
     if (type_ext->IsNaval) {
         if (Unlimbo_Naval_Helper(this_ptr, techno)) {
             JMP(0x0042D7DF); // return 2 - successfully exited
@@ -2014,9 +2014,9 @@ DECLARE_PATCH(_BuildingClass_Exit_Object_BuildNavalUnit_Patch)
     static HouseClassExtension* house_ext;
 
     if (techno->RTTI == RTTI_UNIT) {
-        ttype_ext = Extension::Fetch<TechnoTypeClassExtension>(techno->TClass);
+        ttype_ext = Extension::Fetch(techno->TClass);
         if (ttype_ext->IsNaval) {
-            house_ext = Extension::Fetch<HouseClassExtension>(this_ptr->House);
+            house_ext = Extension::Fetch(this_ptr->House);
             house_ext->BuildNavalUnit = UNIT_NONE;
         } else {
             this_ptr->House->BuildUnit = UNIT_NONE;
