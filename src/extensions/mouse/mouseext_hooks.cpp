@@ -281,7 +281,7 @@ static ActionType Get_Action(ObjectClass* obj, Cell& cellnum, bool check_fog)
         const auto weapon = selected->Get_Weapon(selected->What_Weapon_Should_I_Use(obj));
 
         if (weapon->Weapon) {
-            const auto weapon_ext = Extension::Fetch<WeaponTypeClassExtension>(weapon->Weapon);
+            const auto weapon_ext = Extension::Fetch(weapon->Weapon);
 
             if (cellnum != CELL_NONE
                 && CurrentObjects.Count() == 1

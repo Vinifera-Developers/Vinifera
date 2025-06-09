@@ -156,7 +156,7 @@ DECLARE_PATCH(_IsometricTileTypeClass_Read_INI_Patch_1)
     /**
      *  Fetch the extension instance.
      */
-    exttype_ptr = Extension::Fetch<IsometricTileTypeClassExtension>(this_ptr);
+    exttype_ptr = Extension::Fetch(this_ptr);
 
     /**
      *  Read type class ini.
@@ -202,7 +202,7 @@ DECLARE_PATCH(_IsometricTileTypeClass_Read_INI_Patch_2)
     /**
      *  Fetch the extension instance.
      */
-    exttype_ptr = Extension::Fetch<IsometricTileTypeClassExtension>(this_ptr);
+    exttype_ptr = Extension::Fetch(this_ptr);
 
     /**
      *  Read type class ini.

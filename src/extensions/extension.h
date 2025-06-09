@@ -45,6 +45,152 @@
 class EventClass;
 class CRCEngine;
 
+// Abstract classes
+class AbstractClass;
+class AbstractTypeClass;
+class ObjectClass;
+class ObjectTypeClass;
+class RadioClass;
+class MissionClass;
+class TechnoClass;
+class TechnoTypeClass;
+class FootClass;
+
+// Final classes
+class UnitClass;
+class AircraftClass;
+class AircraftTypeClass;
+class AnimClass;
+class AnimTypeClass;
+class BuildingClass;
+class BuildingTypeClass;
+class BulletClass;
+class BulletTypeClass;
+class CampaignClass;
+class CellClass;
+class FactoryClass;
+class HouseClass;
+class HouseTypeClass;
+class InfantryClass;
+class InfantryTypeClass;
+class IsometricTileClass;
+class IsometricTileTypeClass;
+class BuildingLightClass;
+class OverlayClass;
+class OverlayTypeClass;
+class ParticleClass;
+class ParticleTypeClass;
+class ParticleSystemClass;
+class ParticleSystemTypeClass;
+class ScriptClass;
+class ScriptTypeClass;
+class SideClass;
+class SmudgeClass;
+class SmudgeTypeClass;
+class SuperWeaponTypeClass;
+class TaskForceClass;
+class TeamClass;
+class TeamTypeClass;
+class TerrainClass;
+class TerrainTypeClass;
+class TriggerClass;
+class TriggerTypeClass;
+class UnitTypeClass;
+class VoxelAnimClass;
+class VoxelAnimTypeClass;
+class WaveClass;
+class TagClass;
+class TagTypeClass;
+class TiberiumClass;
+class TActionClass;
+class TEventClass;
+class WeaponTypeClass;
+class WarheadTypeClass;
+class WaypointClass;
+class TubeClass;
+class LightSourceClass;
+class EMPulseClass;
+class SuperClass;
+class AITriggerClass;
+class AITriggerTypeClass;
+class NeuronClass;
+class FoggedObjectClass;
+class AlphaShapeClass;
+class VeinholeMonsterClass;
+
+// Abstract class extensions
+class AbstractClassExtension;
+class ObjectClassExtension;
+class RadioClassExtension;
+class MissionClassExtension;
+class TechnoClassExtension;
+class FootClassExtension;
+class AbstractTypeClassExtension;
+class ObjectTypeClassExtension;
+class TechnoTypeClassExtension;
+
+// Final class extensions
+class UnitClassExtension;
+class AircraftClassExtension;
+class AircraftTypeClassExtension;
+class AnimClassExtension;
+class AnimTypeClassExtension;
+class BuildingClassExtension;
+class BuildingTypeClassExtension;
+// class BulletClassExtension;
+class BulletTypeClassExtension;
+class CampaignClassExtension;
+// class CellClassExtension;
+class FactoryClassExtension;
+class HouseClassExtension;
+class HouseTypeClassExtension;
+class InfantryClassExtension;
+class InfantryTypeClassExtension;
+// class IsometricTileClassExtension;
+class IsometricTileTypeClassExtension;
+// class BuildingLightClassExtension;
+class OverlayClassExtension;
+class OverlayTypeClassExtension;
+// class ParticleClassExtension;
+class ParticleTypeClassExtension;
+// class ParticleSystemClassExtension;
+class ParticleSystemTypeClassExtension;
+// class ScriptClassExtension;
+// class ScriptTypeClassExtension;
+class SideClassExtension;
+class SmudgeClassExtension;
+class SmudgeTypeClassExtension;
+class SuperWeaponTypeClassExtension;
+// class TaskForceClassExtension;
+// class TeamClassExtension;
+// class TeamTypeClassExtension;
+class TerrainClassExtension;
+class TerrainTypeClassExtension;
+// class TriggerClassExtension;
+// class TriggerTypeClassExtension;
+class UnitTypeClassExtension;
+// class VoxelAnimClassExtension;
+class VoxelAnimTypeClassExtension;
+class WaveClassExtension;
+// class TagClassExtension;
+// class TagTypeClassExtension;
+class TiberiumClassExtension;
+// class TActionClassExtension;
+// class TEventClassExtension;
+class WeaponTypeClassExtension;
+class WarheadTypeClassExtension;
+// class WaypointClassExtension;
+// class TubeClassExtension;
+// class LightSourceClassExtension;
+// class EMPulseClassExtension;
+class SuperClassExtension;
+// class AITriggerClassExtension;
+// class AITriggerTypeClassExtension;
+// class NeuronClassExtension;
+// class FoggedObjectClassExtension;
+// class AlphaShapeClassExtension;
+// class VeinholeMonsterClassExtension;
+
 
 namespace Extension
 {
@@ -220,17 +366,108 @@ void Destroy(const BASE_CLASS *base, DynamicVectorClass<EXT_CLASS *> &list)
 
 }; // namespace "Extension::List".
 
+template<typename BASE> struct Extension_Pair;
+
+#define MAKE_EXTENSION_PAIR(base) \
+    template<> struct Extension_Pair<base> { using Type = base##Extension; };
+
+MAKE_EXTENSION_PAIR(AbstractClass);
+MAKE_EXTENSION_PAIR(ObjectClass);
+MAKE_EXTENSION_PAIR(RadioClass);
+MAKE_EXTENSION_PAIR(MissionClass);
+MAKE_EXTENSION_PAIR(TechnoClass);
+MAKE_EXTENSION_PAIR(FootClass);
+MAKE_EXTENSION_PAIR(AbstractTypeClass);
+MAKE_EXTENSION_PAIR(ObjectTypeClass);
+MAKE_EXTENSION_PAIR(TechnoTypeClass);
+MAKE_EXTENSION_PAIR(UnitClass);
+MAKE_EXTENSION_PAIR(AircraftClass);
+MAKE_EXTENSION_PAIR(AircraftTypeClass);
+MAKE_EXTENSION_PAIR(AnimClass);
+MAKE_EXTENSION_PAIR(AnimTypeClass);
+MAKE_EXTENSION_PAIR(BuildingClass);
+MAKE_EXTENSION_PAIR(BuildingTypeClass);
+//MAKE_EXTENSION_PAIR(BulletClass);                                     // Not yet implemented
+MAKE_EXTENSION_PAIR(BulletTypeClass);
+MAKE_EXTENSION_PAIR(CampaignClass);
+//MAKE_EXTENSION_PAIR(CellClass);                                       // Not yet implemented
+MAKE_EXTENSION_PAIR(FactoryClass);
+MAKE_EXTENSION_PAIR(HouseClass);
+MAKE_EXTENSION_PAIR(HouseTypeClass);
+MAKE_EXTENSION_PAIR(InfantryClass);
+MAKE_EXTENSION_PAIR(InfantryTypeClass);
+//MAKE_EXTENSION_PAIR(IsometricTileClass);                              // Not yet implemented
+MAKE_EXTENSION_PAIR(IsometricTileTypeClass);
+//MAKE_EXTENSION_PAIR(BuildingLightClass);                              // Not yet implemented
+MAKE_EXTENSION_PAIR(OverlayClass);
+MAKE_EXTENSION_PAIR(OverlayTypeClass);
+//MAKE_EXTENSION_PAIR(ParticleClass);                                   // Not yet implemented
+MAKE_EXTENSION_PAIR(ParticleTypeClass);
+//MAKE_EXTENSION_PAIR(ParticleSystemClass);                             // Not yet implemented
+MAKE_EXTENSION_PAIR(ParticleSystemTypeClass);
+//MAKE_EXTENSION_PAIR(ScriptClass);                                     // Not yet implemented
+//MAKE_EXTENSION_PAIR(ScriptTypeClass);                                 // Not yet implemented
+MAKE_EXTENSION_PAIR(SideClass);
+MAKE_EXTENSION_PAIR(SmudgeClass);
+MAKE_EXTENSION_PAIR(SmudgeTypeClass);
+MAKE_EXTENSION_PAIR(SuperWeaponTypeClass);
+//MAKE_EXTENSION_PAIR(TaskForceClass);                                  // Not yet implemented
+//MAKE_EXTENSION_PAIR(TeamClass);                                       // Not yet implemented
+//MAKE_EXTENSION_PAIR(TeamTypeClass);                                   // Not yet implemented
+MAKE_EXTENSION_PAIR(TerrainClass);
+MAKE_EXTENSION_PAIR(TerrainTypeClass);
+//MAKE_EXTENSION_PAIR(TriggerClass);                                    // Not yet implemented
+//MAKE_EXTENSION_PAIR(TriggerTypeClass);                                // Not yet implemented
+MAKE_EXTENSION_PAIR(UnitTypeClass);
+//MAKE_EXTENSION_PAIR(VoxelAnimClass);                                  // Not yet implemented
+MAKE_EXTENSION_PAIR(VoxelAnimTypeClass);
+MAKE_EXTENSION_PAIR(WaveClass);
+//MAKE_EXTENSION_PAIR(TagClass);                                        // Not yet implemented
+//MAKE_EXTENSION_PAIR(TagTypeClass);                                    // Not yet implemented
+MAKE_EXTENSION_PAIR(TiberiumClass);
+//MAKE_EXTENSION_PAIR(TActionClass);                                    // Not yet implemented
+//MAKE_EXTENSION_PAIR(TEventClass);                                     // Not yet implemented
+MAKE_EXTENSION_PAIR(WeaponTypeClass);
+MAKE_EXTENSION_PAIR(WarheadTypeClass);
+//MAKE_EXTENSION_PAIR(WaypointClass);                                   // Not yet implemented
+//MAKE_EXTENSION_PAIR(TubeClass);                                       // Not yet implemented
+//MAKE_EXTENSION_PAIR(LightSourceClass);                                // Not yet implemented
+//MAKE_EXTENSION_PAIR(EMPulseClass);                                    // Not yet implemented
+MAKE_EXTENSION_PAIR(SuperClass);
+//MAKE_EXTENSION_PAIR(AITriggerClass);                                  // Not yet implemented
+//MAKE_EXTENSION_PAIR(AITriggerTypeClass);                              // Not yet implemented
+//MAKE_EXTENSION_PAIR(NeuronClass);                                     // Not yet implemented
+//MAKE_EXTENSION_PAIR(FoggedObjectClass);                               // Not yet implemented
+//MAKE_EXTENSION_PAIR(AlphaShapeClass);                                 // Not yet implemented
+//MAKE_EXTENSION_PAIR(VeinholeMonsterClass);                            // Not yet implemented
+
+#define DECLARE_EXTENDING_CLASS_AND_PAIR(BASE) \
+    class BASE##Ext;                           \
+    class BASE##Extension;                     \
+    namespace Extension {                      \
+        template<>                             \
+        struct Extension_Pair<BASE##Ext> {     \
+            using Type = BASE##Extension;      \
+        };                                     \
+    }                                          \
+    class BASE##Ext : public BASE
+
 /**
  *  Fetch the extension instance linked to this abstract object. 
  * 
  *  @author: CCHyper
  */
-template<class EXT_CLASS>
-EXT_CLASS *Fetch(const AbstractClass *abstract)
+template<typename BASE>
+typename Extension_Pair<typename std::remove_cv<BASE>::type>::Type*
+Fetch(BASE* base_ptr)
 {
-    ASSERT(abstract != nullptr);
+    using BareBase = typename std::remove_cv<BASE>::type;
 
-    return (EXT_CLASS *)Extension::Private::Fetch_Internal(abstract);
+    static_assert(std::is_base_of<AbstractClass, BareBase>::value,
+        "BASE must derive from AbstractClass");
+
+    using EXT = typename Extension_Pair<BareBase>::Type;
+    return static_cast<EXT*>(Extension::Private::Fetch_Internal(base_ptr));
 }
 
 /**

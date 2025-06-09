@@ -55,13 +55,13 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-static class ObjectTypeClassExt : public ObjectTypeClass
+static DECLARE_EXTENDING_CLASS_AND_PAIR(ObjectTypeClass)
 {
-    public:
-        void _Assign_Theater_Name(char *buffer, TheaterType theater);
-        const ShapeSet * _Get_Image_Data() const;
-        void _Fetch_Voxel_Image();
-        static void _Clear_Voxel_Indexes();
+public:
+    void _Assign_Theater_Name(char *buffer, TheaterType theater);
+    const ShapeSet * _Get_Image_Data() const;
+    void _Fetch_Voxel_Image();
+    static void _Clear_Voxel_Indexes();
 };
 
 
@@ -214,7 +214,7 @@ void ObjectTypeClassExt::_Clear_Voxel_Indexes()
         otype->ShadowVoxelIndex.Clear();
         otype->AuxVoxel2Index.Clear();
 
-        const auto otype_ext = Extension::Fetch<ObjectTypeClassExtension>(otype);
+        const auto otype_ext = Extension::Fetch(otype);
         otype_ext->NoSpawnVoxelIndex.Clear();
         otype_ext->WaterVoxelIndex.Clear();
     }

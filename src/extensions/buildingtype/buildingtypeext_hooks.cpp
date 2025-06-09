@@ -52,7 +52,7 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-class BuildingTypeClassExt : public BuildingTypeClass
+DECLARE_EXTENDING_CLASS_AND_PAIR(BuildingTypeClass)
 {
     public:
         void _Free_Buildup_Image();
@@ -261,7 +261,7 @@ DECLARE_PATCH(_BuildingTypeClass_Init_Fetch_Image_Patch)
     btype->Fetch_Building_Normal_Image(theater);
 
     static BuildingTypeClassExtension* bext;
-    bext = Extension::Fetch<BuildingTypeClassExtension>(btype);
+    bext = Extension::Fetch(btype);
     bext->Fetch_Building_Normal_Image(theater);
 
     JMP(0x0043FDC7);

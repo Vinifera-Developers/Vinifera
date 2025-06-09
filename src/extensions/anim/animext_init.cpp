@@ -92,7 +92,7 @@ DECLARE_PATCH(_AnimClass_Constructor_Patch)
      *  @author: CCHyper
      */
     if (!this_ptr->ZAdjust) {
-        animtypeext = Extension::Fetch<AnimTypeClassExtension>(this_ptr->Class);
+        animtypeext = Extension::Fetch(this_ptr->Class);
         this_ptr->ZAdjust = animtypeext->ZAdjust;
     }
 

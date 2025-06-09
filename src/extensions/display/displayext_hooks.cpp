@@ -160,7 +160,7 @@ DECLARE_PATCH(_DisplayClass_Passes_Proximity_Passes_Check_Patch)
 
             if (base->House != hptr && base->House->Is_Ally(hptr)) {
 
-                buildingtypeext = Extension::Fetch<BuildingTypeClassExtension>(base->Class);
+                buildingtypeext = Extension::Fetch(base->Class);
                 if (buildingtypeext->IsEligibleForAllyBuilding) {
 #ifndef NDEBUG
                     //DEV_DEBUG_INFO("Ally \"%s's\" building \"%s\" is eligible for building off.\n", base->House->IniName, base->Name());

@@ -56,7 +56,7 @@ DECLARE_PATCH(_TabClass_Draw_It_Faction_Specific_Options_Button_Color_Scheme_Pat
     static ColorSchemeType colorschemetype;
     static ColorScheme* colorscheme;
 
-    colorschemetype = Extension::Fetch<SideClassExtension>(Sides[PlayerPtr->Class->Side])->UIColor;
+    colorschemetype = Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor;
     colorscheme = ColorSchemes[colorschemetype];
 
     _asm mov edx, colorscheme 
@@ -80,7 +80,7 @@ DECLARE_PATCH(_CreditClass_Graphic_Logic_Faction_Specific_Color_Scheme_Patch)
     static ColorSchemeType colorschemetype;
     static ColorScheme* colorscheme;
 
-    colorschemetype = Extension::Fetch<SideClassExtension>(Sides[PlayerPtr->Class->Side])->UIColor;
+    colorschemetype = Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor;
     colorscheme = ColorSchemes[colorschemetype];
 
     _asm mov eax, colorscheme
@@ -97,7 +97,7 @@ void Draw_Tooltip_Rectangle(DSurface* surface, Rect& drawrect)
 {
     surface->Fill_Rect(drawrect, 0);
 
-    const ColorSchemeType colorschemetype = Extension::Fetch<SideClassExtension>(Sides[PlayerPtr->Class->Side])->ToolTipColor;
+    const ColorSchemeType colorschemetype = Extension::Fetch(Sides[PlayerPtr->Class->Side])->ToolTipColor;
     const ColorScheme* colorscheme = ColorSchemes[colorschemetype];
 
     RGBClass rgb = colorscheme->HSV.operator RGBClass();
@@ -131,7 +131,7 @@ DECLARE_PATCH(_CCToolTip_Draw_Faction_Specific_Color_Scheme_Text_Patch)
     static ColorSchemeType colorschemetype;
     static ColorScheme* colorscheme;
 
-    colorschemetype = Extension::Fetch<SideClassExtension>(Sides[PlayerPtr->Class->Side])->ToolTipColor;
+    colorschemetype = Extension::Fetch(Sides[PlayerPtr->Class->Side])->ToolTipColor;
     colorscheme = ColorSchemes[colorschemetype];
 
     _asm mov eax, colorscheme

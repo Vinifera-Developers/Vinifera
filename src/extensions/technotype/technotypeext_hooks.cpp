@@ -50,7 +50,7 @@
  *  @note: All functions must not be virtual and must also be prefixed
  *         with "_" to prevent accidental virtualization.
  */
-class TechnoTypeClassExt : public TechnoTypeClass
+DECLARE_EXTENDING_CLASS_AND_PAIR(TechnoTypeClass)
 {
 public:
     int _Max_Pips() const;
@@ -102,7 +102,7 @@ int TechnoTypeClassExt::_Time_To_Build()
      *  TechnoClass::Time_To_Build calls TechnoTypeClass::Time_To_Build,
      *  so replacing TechnoTypeClass::Time_To_Build is enough for the desired functionality.
      */
-    TechnoTypeClassExtension* technotypeext = Extension::Fetch<TechnoTypeClassExtension>(this);
+    TechnoTypeClassExtension* technotypeext = Extension::Fetch(this);
 
     int cost;
 

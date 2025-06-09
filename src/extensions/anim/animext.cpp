@@ -51,7 +51,7 @@ AnimClassExtension::AnimClassExtension(const AnimClass *this_ptr) :
     AnimExtensions.Add(this);
 
     if (this_ptr) {
-        const auto animtypeext = Extension::Fetch<AnimTypeClassExtension>(This()->Class);
+        const auto animtypeext = Extension::Fetch(This()->Class);
 
         /**
          *  Reimplement part of the vanilla constructor below.
@@ -217,7 +217,7 @@ void AnimClassExtension::Object_CRC(CRCEngine &crc) const
  */
 bool AnimClassExtension::Start()
 {
-    AnimTypeClassExtension *animtypeext = Extension::Fetch<AnimTypeClassExtension>(This()->Class);
+    AnimTypeClassExtension *animtypeext = Extension::Fetch(This()->Class);
 
     /**
      *  #issue-752
@@ -237,7 +237,7 @@ bool AnimClassExtension::Start()
  */
 bool AnimClassExtension::Middle()
 {
-    AnimTypeClassExtension *animtypeext = Extension::Fetch<AnimTypeClassExtension>(This()->Class);
+    AnimTypeClassExtension *animtypeext = Extension::Fetch(This()->Class);
 
     /**
      *  #issue-752
@@ -257,7 +257,7 @@ bool AnimClassExtension::Middle()
  */
 bool AnimClassExtension::End()
 {
-    AnimTypeClassExtension *animtypeext = Extension::Fetch<AnimTypeClassExtension>(This()->Class);
+    AnimTypeClassExtension *animtypeext = Extension::Fetch(This()->Class);
 
     /**
      *  #issue-752

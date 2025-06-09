@@ -264,7 +264,7 @@ const InfantryTypeClass* SideClassExtension::Get_Crew(SideType side)
     if (side == SIDE_NONE)
         return Rule->Crew;
 
-    return Extension::Fetch<SideClassExtension>(Sides[side])->Crew;
+    return Extension::Fetch(Sides[side])->Crew;
 }
 
 
@@ -278,7 +278,7 @@ const InfantryTypeClass* SideClassExtension::Get_Engineer(SideType side)
     if (side == SIDE_NONE)
         return Rule->Engineer;
 
-    return Extension::Fetch<SideClassExtension>(Sides[side])->Engineer;
+    return Extension::Fetch(Sides[side])->Engineer;
 }
 
 
@@ -292,7 +292,7 @@ const InfantryTypeClass* SideClassExtension::Get_Technician(SideType side)
     if (side == SIDE_NONE)
         return Rule->Technician;
 
-    return Extension::Fetch<SideClassExtension>(Sides[side])->Technician;
+    return Extension::Fetch(Sides[side])->Technician;
 }
 
 
@@ -306,7 +306,7 @@ const InfantryTypeClass* SideClassExtension::Get_Disguise(SideType side)
     if (side == SIDE_NONE)
         return Rule->Disguise;
 
-    return Extension::Fetch<SideClassExtension>(Sides[side])->Disguise;
+    return Extension::Fetch(Sides[side])->Disguise;
 }
 
 
@@ -320,5 +320,5 @@ int SideClassExtension::Get_Survivor_Divisor(SideType side)
     if (side == SIDE_NONE)
         return Rule->SurvivorDivisor;
 
-    return Extension::Fetch<SideClassExtension>(Sides[side])->SurvivorDivisor;
+    return Extension::Fetch(Sides[side])->SurvivorDivisor;
 }

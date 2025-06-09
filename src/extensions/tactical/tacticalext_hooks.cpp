@@ -267,7 +267,7 @@ static bool Should_Exclude_From_Selection(ObjectClass* obj)
      *  Exclude objects that aren't a selectable combatant per rules.
      */
     if (obj->Is_Techno()) {
-        return Extension::Fetch<TechnoTypeClassExtension>(obj->TClass)->IsFilterFromBandBoxSelection;
+        return Extension::Fetch(obj->TClass)->IsFilterFromBandBoxSelection;
     }
 
     return false;
@@ -319,7 +319,7 @@ static bool Has_NonCombatants_Selected()
 {
     for (int i = 0; i < CurrentObjects.Count(); i++)
     {
-        if (CurrentObjects[i]->Is_Techno() && Extension::Fetch<TechnoTypeClassExtension>(CurrentObjects[i]->TClass)->IsFilterFromBandBoxSelection)
+        if (CurrentObjects[i]->Is_Techno() && Extension::Fetch(CurrentObjects[i]->TClass)->IsFilterFromBandBoxSelection)
             return true;
     }
 
@@ -439,7 +439,7 @@ static void Vinifera_Bandbox_Select(ObjectClass* obj)
          && TacticalExt::SelectedCount > 0 && !TacticalExt::SelectionContainsNonCombatants
          && !WWKeyboard->Down(VK_ALT))
      {
-         const auto ext = Extension::Fetch<TechnoTypeClassExtension>(techno->TClass);
+         const auto ext = Extension::Fetch(techno->TClass);
          if (ext->IsFilterFromBandBoxSelection)
              return;
      }

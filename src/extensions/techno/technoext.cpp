@@ -68,7 +68,7 @@ TechnoClassExtension::TechnoClassExtension(const TechnoClass *this_ptr) :
     {
         new ((StorageClassExt*)&(this_ptr->Storage)) StorageClassExt(&Storage);
 
-        const auto ttypeext = Extension::Fetch<TechnoTypeClassExtension>(this_ptr->Techno_Type_Class());
+        const auto ttypeext = Extension::Fetch(this_ptr->Techno_Type_Class());
         if (ttypeext->Spawns)
             SpawnManager = new SpawnManagerClass(const_cast<TechnoClass*>(this_ptr), ttypeext->Spawns, ttypeext->SpawnsNumber, ttypeext->SpawnRegenRate, ttypeext->SpawnReloadRate, ttypeext->SpawnSpawnRate, ttypeext->SpawnLogicRate);
     }
@@ -493,5 +493,5 @@ const TechnoTypeClass *TechnoClassExtension::Techno_Type_Class() const
  */
 const TechnoTypeClassExtension *TechnoClassExtension::Techno_Type_Class_Ext() const
 {
-    return Extension::Fetch<TechnoTypeClassExtension>(Techno_Type_Class());
+    return Extension::Fetch(Techno_Type_Class());
 }

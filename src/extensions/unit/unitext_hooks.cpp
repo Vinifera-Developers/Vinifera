@@ -69,12 +69,11 @@
  *  @note: All functions must not be virtual and must also be prefixed
  *         with "_" to prevent accidental virtualization.
  */
-class UnitClassExt : public UnitClass
+DECLARE_EXTENDING_CLASS_AND_PAIR(UnitClass)
 {
 public:
     void _Firing_AI();
     void _Draw_Voxel(unsigned int frame, int key, Rect& rect, Point2D& point, const Matrix3D& other_matrix, int color, int flags);
-
 };
 
 
@@ -169,7 +168,7 @@ void UnitClassExt::_Firing_AI()
             break;
 
         case FIRE_CANT:
-            ext = Extension::Fetch<UnitClassExtension>(this);
+            ext = Extension::Fetch(this);
             if (ext->SpawnManager)
                 ext->SpawnManager->Abandon_Target();
             break;
@@ -202,8 +201,8 @@ void UnitClassExt::_Draw_Voxel(unsigned int frame, int key, Rect& rect, Point2D&
 {
     Matrix3D matrix;
     Matrix3D::Multiply(Get_Voxel_Draw_Matrix(), other_matrix, &matrix);
-    const auto typeext = Extension::Fetch<UnitTypeClassExtension>(Class);
-    const auto ext = Extension::Fetch<UnitClassExtension>(this);
+    const auto typeext = Extension::Fetch(Class);
+    const auto ext = Extension::Fetch(this);
 
     VoxelObject* voxel = nullptr;
     VoxelIndexClass* cache = nullptr;
@@ -396,7 +395,7 @@ DECLARE_PATCH(_UnitClass_Draw_Shape_IdleRate_Patch)
     static int frame;
 
     unittype = reinterpret_cast<const UnitTypeClass *>(this_ptr->TClass);
-    unittypeext = Extension::Fetch<UnitTypeClassExtension>(unittype);
+    unittypeext = Extension::Fetch(unittype);
 
     if (!Locomotion_Is_Moving(this_ptr)) {
         if (this_ptr->FiringSyncDelay >= 0) {
@@ -480,7 +479,7 @@ DECLARE_PATCH(_UnitClass_Mission_Unload_Transport_Detach_Sound_Patch)
     /**
      *  Do we have a sound to play when passengers leave us? If so, play it now.
      */
-    radio_technotypeext = Extension::Fetch<TechnoTypeClassExtension>(this_ptr->TClass);
+    radio_technotypeext = Extension::Fetch(this_ptr->TClass);
     if (radio_technotypeext->LeaveTransportSound != VOC_NONE) {
         Static_Sound(radio_technotypeext->LeaveTransportSound, this_ptr->Coord);
     }
@@ -557,7 +556,7 @@ DECLARE_PATCH(_UnitClass_Draw_It_Unloading_Harvester_Patch)
             /**
              *  Fetch the unloading class from the extended class instance if it exists.
              */
-            unittypeext = Extension::Fetch<UnitTypeClassExtension>(unittype);
+            unittypeext = Extension::Fetch(unittype);
             if (unittypeext->UnloadingClass) {
                 if (unittypeext->UnloadingClass->RTTI == RTTI_UNITTYPE) {
                     unloading_class = reinterpret_cast<const UnitTypeClass *>(unittypeext->UnloadingClass);
@@ -688,7 +687,7 @@ DECLARE_PATCH(_UnitClass_Draw_Shape_Turret_Facing_Patch)
      */
     start_turret_frame = unittype->Facings * unittype->WalkFrames;
 
-    unittypeext = Extension::Fetch<UnitTypeClassExtension>(unittype);
+    unittypeext = Extension::Fetch(unittype);
 
     /**
      *  #issue-393
@@ -753,7 +752,7 @@ static void UnitClass_Shake_Screen(UnitClass *unit)
     /**
      *  Fetch the extension instance.
      */
-    unittypeext = Extension::Fetch<UnitTypeClassExtension>(unit->TClass);
+    unittypeext = Extension::Fetch(static_cast<const UnitTypeClass*>(unit->TClass));
 
     /**
      *  #issue-414
@@ -916,7 +915,7 @@ DECLARE_PATCH(_UnitClass_Jellyfish_AI_Armor_Patch)
  */
 UnitClass* Create_Transform_Unit(UnitClass* this_ptr) {
 
-    UnitTypeClassExtension* unittypeext = Extension::Fetch<UnitTypeClassExtension>(this_ptr->Class);
+    UnitTypeClassExtension* unittypeext = Extension::Fetch(this_ptr->Class);
 
     UnitClass* newunit = reinterpret_cast<UnitClass*>(unittypeext->TransformsInto->Create_One_Of(this_ptr->House));
     if (newunit == nullptr) {
@@ -1009,7 +1008,7 @@ TransformReturnValue _UnitClass_Try_To_Deploy_Transform_To_Vehicle_Patch_Func(Un
         return OriginalCode;
     }
 
-    UnitTypeClassExtension* unittypeext = Extension::Fetch<UnitTypeClassExtension>(this_ptr->Class);
+    UnitTypeClassExtension* unittypeext = Extension::Fetch(this_ptr->Class);
 
     if (unittypeext->TransformsInto != nullptr) {
 
@@ -1083,7 +1082,7 @@ DECLARE_PATCH(_UnitClass_What_Action_Self_Check_For_Vehicle_Transform_Patch) {
     static ActionType action;
 
     unittype = this_ptr->Class;
-    unittypeext = Extension::Fetch<UnitTypeClassExtension>(unittype);
+    unittypeext = Extension::Fetch(unittype);
 
     /**
      *  Stolen bytes/code.
@@ -1157,7 +1156,7 @@ DECLARE_PATCH(_UnitClass_Mission_Unload_Transform_To_Vehicle_Patch) {
         JMP(0x006545A5);
     }
 
-    unittypeext = Extension::Fetch<UnitTypeClassExtension>(unittype);
+    unittypeext = Extension::Fetch(unittype);
 
     if (unittype->DeploysInto != nullptr || unittypeext->TransformsInto != nullptr) {
     deployable_process:
@@ -1291,7 +1290,7 @@ DECLARE_PATCH(_UnitClass_Mission_Harvest_FINDHOME_Find_Nearest_Refinery_Patch)
         }
     }
 
-    unitext = Extension::Fetch<UnitClassExtension>(harvester);
+    unitext = Extension::Fetch(harvester);
 
     if (reserve_free_refinery) {
 

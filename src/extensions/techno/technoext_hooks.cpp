@@ -98,7 +98,7 @@
  *  @note: All functions must not be virtual and must also be prefixed
  *         with "_" to prevent accidental virtualization.
  */
-class TechnoClassExt : public TechnoClass
+DECLARE_EXTENDING_CLASS_AND_PAIR(TechnoClass)
 {
 public:
     void _Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect& rect) const;
@@ -144,8 +144,8 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
     const ShapeSet* pips2 = Class_Of()->Pip2Shapes;
 
     const auto ttype = TClass;
-    const auto ttype_ext = Extension::Fetch<TechnoTypeClassExtension>(ttype);
-    const auto ext = Extension::Fetch<TechnoClassExtension>(this);
+    const auto ttype_ext = Extension::Fetch(ttype);
+    const auto ext = Extension::Fetch(this);
 
     if (RTTI != RTTI_BUILDING)
     {
@@ -227,7 +227,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
                      *  Add all the Tiberiums and sort.
                      */
                     for (int i = 0; i < Tiberiums.Count(); i++)
-                        tibtypes.emplace_back(Extension::Fetch<TiberiumClassExtension>(Tiberiums[i])->PipDrawOrder, i);
+                        tibtypes.emplace_back(Extension::Fetch(Tiberiums[i])->PipDrawOrder, i);
 
                     std::stable_sort(tibtypes.begin(), tibtypes.end());
 
@@ -240,7 +240,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
                         const double fraction = amount / ttype->Storage;
                         const int pip_count = ttype->Max_Pips() * fraction + 0.5;
 
-                        int piptype = Extension::Fetch<TiberiumClassExtension>(Tiberiums[std::get<1>(tibtuple)])->PipIndex;
+                        int piptype = Extension::Fetch(Tiberiums[std::get<1>(tibtuple)])->PipIndex;
                         for (int i = 0; i < pip_count; i++)
                             pips_to_draw.emplace_back(piptype);
                     }
@@ -313,7 +313,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
                 group = 0;
 
             std::snprintf(buffer, std::size(buffer), "%d", group >= 10 ? 0 : group);
-            const ColorSchemeType colorschemetype = Extension::Fetch<SideClassExtension>(Sides[PlayerPtr->Class->Side])->UIColor;
+            const ColorSchemeType colorschemetype = Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor;
             Plain_Text_Print(buffer, LogicSurface, &rect, &drawpoint, COLOR_WHITE, COLOR_TBLACK, TPF_FULLSHADOW | TPF_EFNT, colorschemetype, 1);
         }
     }
@@ -328,7 +328,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
          *  Special hack to display a red pip on the medic,
          *  or a custom pip.
          */
-        const int specialpip = Extension::Fetch<TechnoTypeClassExtension>(TClass)->SpecialPipIndex;
+        const int specialpip = Extension::Fetch(TClass)->SpecialPipIndex;
         if (specialpip >= 0)
         {
             Draw_Shape(*LogicSurface, *NormalDrawer, pips1, specialpip, (Point2D(drawx, drawy) + UIControls->Get_Special_Pip_Offset(RTTI)), rect, SHAPE_WIN_REL | SHAPE_CENTER);
@@ -486,11 +486,11 @@ WeaponSlotType TechnoClassExt::_What_Weapon_Should_I_Use(AbstractClass * target)
  */
 bool TechnoClassExt::_Spawner_Fire_At(AbstractClass * target, WeaponTypeClass* weapon)
 {
-    auto weapon_ext = Extension::Fetch<WeaponTypeClassExtension>(weapon);
+    auto weapon_ext = Extension::Fetch(weapon);
 
     if (weapon_ext->IsSpawner)
     {
-        auto techno_ext = Extension::Fetch<TechnoClassExtension>(this);
+        auto techno_ext = Extension::Fetch(this);
         techno_ext->SpawnManager->Queue_Target(target);
         if (IsOwnedByPlayer || IsDiscoveredByPlayer)
         {
@@ -539,7 +539,7 @@ bool TechnoClassExt::_Target_Something_Nearby(Coordinate& coord, ThreatType thre
 
             if (fire == FIRE_CANT)
             {
-                SpawnManagerClass* spawn_manager = Extension::Fetch<TechnoClassExtension>(this)->SpawnManager;
+                SpawnManagerClass* spawn_manager = Extension::Fetch(this)->SpawnManager;
                 if (spawn_manager)
                     spawn_manager->Abandon_Target();
 
@@ -578,7 +578,7 @@ void TechnoClassExt::_Stun()
     Assign_Destination(nullptr);
     Transmit_Message(RADIO_OVER_OUT);
 
-    const auto extension = Extension::Fetch<TechnoClassExtension>(this);
+    const auto extension = Extension::Fetch(this);
     if (extension->SpawnManager)
     {
         extension->SpawnManager->Detach_Spawns();
@@ -603,7 +603,7 @@ void TechnoClassExt::_Mission_AI()
     if (!IsActive)
         return;
 
-    const auto extension = Extension::Fetch<TechnoClassExtension>(this);
+    const auto extension = Extension::Fetch(this);
 
     if (extension->SpawnManager)
         extension->SpawnManager->AI();
@@ -625,8 +625,8 @@ FireErrorType TechnoClassExt::_Can_Fire(AbstractClass * target, WeaponSlotType w
     if (!Target_Legal(target))
         return FIRE_ILLEGAL;
 
-    const auto ext = Extension::Fetch<TechnoClassExtension>(this);
-    const auto typeext = Extension::Fetch<TechnoTypeClassExtension>(TClass);
+    const auto ext = Extension::Fetch(this);
+    const auto typeext = Extension::Fetch(TClass);
 
     /**
      *  If this unit is a spawner, don't let it fire if it's currently in the process of spawning.
@@ -684,7 +684,7 @@ FireErrorType TechnoClassExt::_Can_Fire(AbstractClass * target, WeaponSlotType w
      *  If the weapon fires torpedoes and the target is on land,
      *  then firing is not allowed.
      */
-    const auto bullettypeext = Extension::Fetch<BulletTypeClassExtension>(weapon->Bullet);
+    const auto bullettypeext = Extension::Fetch(weapon->Bullet);
     if (bullettypeext->IsTorpedo) {
         if (Map[target->Center_Coord()].Land_Type() != LAND_WATER) {
             return FIRE_CANT;
@@ -694,7 +694,7 @@ FireErrorType TechnoClassExt::_Can_Fire(AbstractClass * target, WeaponSlotType w
     /**
      *  If the weapon is a spawner, it needs to have an object ready to spawn.
      */
-    if (weapon && Extension::Fetch<WeaponTypeClassExtension>(weapon)->IsSpawner)
+    if (weapon && Extension::Fetch(weapon)->IsSpawner)
     {
         if (ext->SpawnManager == nullptr)
         {
@@ -809,10 +809,10 @@ bool TechnoClassExt::_Can_Player_Move() const
     if (Is_Immobilized())
         return false;
 
-    const auto ext = Extension::Fetch<TechnoClassExtension>(this);
+    const auto ext = Extension::Fetch(this);
     if (ext->SpawnManager)
     {
-        const auto typeext = Extension::Fetch<TechnoTypeClassExtension>(TClass);
+        const auto typeext = Extension::Fetch(TClass);
         if (ext->SpawnManager->Preparing_Count() > 0 && ext->SpawnManager->Preparing_Count() < typeext->SpawnsNumber)
             return false;
     }
@@ -826,7 +826,7 @@ bool TechnoClassExt::_Can_Player_Move() const
  */
 Coordinate TechnoClassExt::_Fire_Coord(WeaponSlotType which) const
 {
-    return Extension::Fetch<TechnoClassExtension>(this)->Fire_Coord(which, TPoint3D<int>());
+    return Extension::Fetch(this)->Fire_Coord(which, TPoint3D<int>());
 }
 
 
@@ -854,7 +854,7 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
     /**
      *  If this unit is flagged as not being allowed to retaliate to attacks, return false.
      */
-    if (!Extension::Fetch<TechnoTypeClassExtension>(ttype)->IsCanRetaliate)
+    if (!Extension::Fetch(ttype)->IsCanRetaliate)
         return false;
 
     /**
@@ -1195,7 +1195,7 @@ void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
 
     const int points = TClass->Cost_Of(House);
 
-    const auto typeext = Extension::Fetch<TechnoTypeClassExtension>(TClass);
+    const auto typeext = Extension::Fetch(TClass);
 
     /**
      *  Handle any trigger event associated with this object.
@@ -1215,8 +1215,8 @@ void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
 
     if (source && !typeext->IsDontScore && !House->Is_Ally(source) && !source->House->Is_Ally(this)) {
 
-        const auto source_ext = Extension::Fetch<TechnoClassExtension>(source);
-        const auto source_typeext = Extension::Fetch<TechnoTypeClassExtension>(source->TClass);
+        const auto source_ext = Extension::Fetch(source);
+        const auto source_typeext = Extension::Fetch(source->TClass);
 
         if (source->TClass->IsTrainable) {
             source->Veterancy.Gain_Experience(source->TClass->Cost_Of(House), points);
@@ -1534,7 +1534,7 @@ void TechnoClassExt::_Draw_Target_Laser() const
 void TechnoClassExt::_Draw_Text_Overlay(Point2D& point1, Point2D& point2, Rect& rect) const
 {
     static char buffer[128];
-    const ColorSchemeType colorschemetype = Extension::Fetch<SideClassExtension>(Sides[PlayerPtr->Class->Side])->UIColor;
+    const ColorSchemeType colorschemetype = Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor;
 
     /**
      *  Print the Power/Drain text on power plants.
@@ -1603,7 +1603,7 @@ const InfantryTypeClass* TechnoClassExt::_Crew_Type() const
 int TechnoClassExt::_How_Many_Survivors() const
 {
     if (TClass->IsCrew) {
-        return Extension::Fetch<TechnoTypeClassExtension>(TClass)->CrewCount;
+        return Extension::Fetch(TClass)->CrewCount;
     }
 
     return 0;
@@ -1626,11 +1626,11 @@ DECLARE_PATCH(_TechnoClass_Evaluate_Object_Is_Legal_Target_Patch)
     static const TechnoTypeClass *object_tclass;
     static const TechnoTypeClassExtension *object_tclassext;
 
-    //this_technoext = Extension::Fetch<TechnoClassExtension>(this_ptr);
-    //object_technoext = Extension::Fetch<TechnoClassExtension>(object);
+    //this_technoext = Extension::Fetch(this_ptr);
+    //object_technoext = Extension::Fetch(object);
 
     object_tclass = object->TClass;
-    object_tclassext = Extension::Fetch<TechnoTypeClassExtension>(object_tclass);
+    object_tclassext = Extension::Fetch(object_tclass);
 
     /**
      *  Determine if the target is theoretically allowed to be a target.
@@ -1753,10 +1753,10 @@ DECLARE_PATCH(_TechnoClass_Fire_At_Electric_Bolt_Patch)
     /**
      *  Spawn the electric bolt.
      */
-    weapontypeext = Extension::Fetch<WeaponTypeClassExtension>(weapon);
+    weapontypeext = Extension::Fetch(weapon);
     if (weapontypeext->IsElectricBolt) {
 
-        technoext = Extension::Fetch<TechnoClassExtension>(this_ptr);
+        technoext = Extension::Fetch(this_ptr);
         technoext->Electric_Bolt(target);
 
         /**
@@ -1801,7 +1801,7 @@ DECLARE_PATCH(_TechnoClass_Fire_At_Suicide_Patch)
     /**
      *  Fetch the extension instance for the firing weapon.
      */
-    weapontypeext = Extension::Fetch<WeaponTypeClassExtension>(weap);
+    weapontypeext = Extension::Fetch(weap);
 
     /**
      *  Firing unit must be active in the game world when performing suicide.
@@ -1870,7 +1870,7 @@ static void Techno_Player_Assign_Mission_Response_Switch(TechnoClass *this_ptr, 
         return;
     }
 
-    TechnoClassExtension *technoext = Extension::Fetch<TechnoClassExtension>(this_ptr);
+    TechnoClassExtension *technoext = Extension::Fetch(this_ptr);
 
     switch (mission) {
 
@@ -1947,7 +1947,7 @@ DECLARE_PATCH(_TechnoClass_Refund_Amount_Soylent_Patch)
     /**
      *  Fetch the extension instance.
      */
-    technotypext = Extension::Fetch<TechnoTypeClassExtension>(technotype);
+    technotypext = Extension::Fetch(technotype);
 
     /**
      *  If the object has a soylent value defined, return this.
@@ -1996,7 +1996,7 @@ DECLARE_PATCH(_TechnoClass_Greatest_Threat_Infantry_Mechanic_Patch)
      *  #NOTE: Removed THREAT_AIR for IsMechanic and IsOmniHealer infantry and it causes
      *         them to chase down damaged friendly aircraft in the air.
      */
-    infantrytypeext = Extension::Fetch<InfantryTypeClassExtension>(infantry_this_ptr->Class);
+    infantrytypeext = Extension::Fetch(infantry_this_ptr->Class);
     if (infantrytypeext->IsOmniHealer) {
         method = method|(THREAT_INFANTRY|THREAT_VEHICLES/*|THREAT_AIR*/|THREAT_4000);
     } else if (infantrytypeext->IsMechanic) {
@@ -2084,7 +2084,7 @@ DECLARE_PATCH(_TechnoClass_Take_Damage_IsAffectsAllies_Patch)
         /**
          *  Is the warhead that hit us one that affects units allied with its firing owner?
          */
-        warheadtypeext = Extension::Fetch<WarheadTypeClassExtension>(warhead);
+        warheadtypeext = Extension::Fetch(warhead);
         if (!warheadtypeext->IsAffectsAllies) {
 
             /**
@@ -2242,7 +2242,7 @@ DECLARE_PATCH(_TechnoClass_Do_Cloak_Cloak_Sound_Patch)
     /**
      *  Fetch the extension instance.
      */
-    technotypeext = Extension::Fetch<TechnoTypeClassExtension>(technotype);
+    technotypeext = Extension::Fetch(technotype);
 
     /**
      *  Does this object have a custom cloaking sound? If so, use it.
@@ -2285,7 +2285,7 @@ DECLARE_PATCH(_TechnoClass_Do_Uncloak_Uncloak_Sound_Patch)
     /**
      *  Fetch the extension instance.
      */
-    technotypeext = Extension::Fetch<TechnoTypeClassExtension>(technotype);
+    technotypeext = Extension::Fetch(technotype);
 
     /**
      *  Does this object have a custom decloaking sound? If so, use it.
@@ -2405,7 +2405,7 @@ DECLARE_PATCH(_TechnoClass_Captured_Spawn_Manager_Patch)
     GET_REGISTER_STATIC(TechnoClass*, this_ptr, esi);
     static TechnoClassExtension* extension;
 
-    extension = Extension::Fetch<TechnoClassExtension>(this_ptr);
+    extension = Extension::Fetch(this_ptr);
 
     if (extension->SpawnManager)
         extension->SpawnManager->Detach_Spawns();
@@ -2428,7 +2428,7 @@ DECLARE_PATCH(_TechnoClass_Assign_Target_Spawn_Manager_Patch)
     GET_REGISTER_STATIC(TechnoClass*, this_ptr, esi);
     static TechnoClassExtension* extension;
 
-    extension = Extension::Fetch<TechnoClassExtension>(this_ptr);
+    extension = Extension::Fetch(this_ptr);
 
     if (extension->SpawnManager)
         extension->SpawnManager->Queue_Target(nullptr);
@@ -2500,7 +2500,7 @@ DECLARE_PATCH(_TechnoClass_2A0_Is_Allowed_To_Deploy_Unit_Transform_Patch)
         goto has_deploy_ability;
     }
 
-    unittypeext = Extension::Fetch<UnitTypeClassExtension>(unittype);
+    unittypeext = Extension::Fetch(unittype);
 
     if (unittypeext->TransformsInto != nullptr) {
         goto has_deploy_ability;
@@ -2571,7 +2571,7 @@ DECLARE_PATCH(_TechnoClass_Fire_At_TargetLaserTimer_Patch)
 bool _TechnoClass_Evaluate_Object_Zone_Evaluation_Is_Valid_Target(TechnoClass* techno, AbstractClass * target, int ourzone, int targetzone)
 {
     auto technotype = techno->TClass;
-    auto technotypeext = Extension::Fetch<TechnoTypeClassExtension>(technotype);
+    auto technotypeext = Extension::Fetch(technotype);
 
     if (technotypeext->TargetZoneScan == TZST_SAME) {
         // Only allow targeting objects in the same zone.

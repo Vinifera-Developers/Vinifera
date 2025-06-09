@@ -47,7 +47,7 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-class AnimTypeClassExt : public AnimTypeClass
+DECLARE_EXTENDING_CLASS_AND_PAIR(AnimTypeClass)
 {
 public:
     void _Free_Image();

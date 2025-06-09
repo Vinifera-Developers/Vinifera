@@ -52,7 +52,7 @@ DECLARE_PATCH(_Choose_Campaign_Debug_Only_Patch)
     GET_REGISTER_STATIC(int, index, edi);
     static CampaignClassExtension *campaignext;
 
-    campaignext = Extension::Fetch<CampaignClassExtension>(campaign);
+    campaignext = Extension::Fetch(campaign);
 
     /**
      *  Is this a debug campaign? Make sure the developer mode is enabled

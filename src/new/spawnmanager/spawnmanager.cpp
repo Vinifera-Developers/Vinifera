@@ -197,7 +197,7 @@ SpawnManagerClass::SpawnManagerClass(TechnoClass* owner, const AircraftTypeClass
             control->Status = SpawnControlStatus::Idle;
             control->IsSpawnedMissile = RocketTypeClass::From_AircraftType(SpawnType) != nullptr;
             control->Spawnee->Limbo();
-            Extension::Fetch<AircraftClassExtension>(control->Spawnee)->SpawnOwner = Owner;
+            Extension::Fetch(control->Spawnee)->SpawnOwner = Owner;
             control->ReloadTimer = 0;
             SpawnControls.Add(control);
         }
@@ -307,8 +307,8 @@ void SpawnManagerClass::AI()
     {
         SpawnControl* control = SpawnControls[i];
         AircraftClass* spawnee = control->Spawnee;
-        const auto owner_ext = Extension::Fetch<TechnoClassExtension>(Owner);
-        const auto owner_type_ext = Extension::Fetch<TechnoTypeClassExtension>(Owner->TClass);
+        const auto owner_ext = Extension::Fetch(Owner);
+        const auto owner_type_ext = Extension::Fetch(Owner->TClass);
 
         switch (control->Status)
         {
@@ -376,7 +376,7 @@ void SpawnManagerClass::AI()
                  */
                 control->Status = SpawnControlStatus::Preparing;
 
-                WeaponSlotType weapon_slot = Extension::Fetch<WeaponTypeClassExtension>(Owner->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon)->IsSpawner ? WEAPON_SLOT_PRIMARY : WEAPON_SLOT_SECONDARY;
+                WeaponSlotType weapon_slot = Extension::Fetch(Owner->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon)->IsSpawner ? WEAPON_SLOT_PRIMARY : WEAPON_SLOT_SECONDARY;
 
                 /**
                  *  Apply SecondSpawnOffset if this is the second missile in a burst.
@@ -623,7 +623,7 @@ void SpawnManagerClass::AI()
                 control->Spawnee = static_cast<AircraftClass*>(SpawnType->Create_One_Of(Owner->Owner_HouseClass()));
                 control->IsSpawnedMissile = RocketTypeClass::From_AircraftType(SpawnType) != nullptr;
                 control->Spawnee->Limbo();
-                Extension::Fetch<AircraftClassExtension>(control->Spawnee)->SpawnOwner = Owner;
+                Extension::Fetch(control->Spawnee)->SpawnOwner = Owner;
                 break;
             }
         }
@@ -685,7 +685,7 @@ void SpawnManagerClass::AI()
                  *  If the spawn is a missile, add it to the kamikaze tracker and set it to take off.
                  *  Also set the reload timer to the missile's takeoff time.
                  */
-                if (Extension::Fetch<AircraftTypeClassExtension>(spawnee->TClass)->IsMissileSpawn)
+                if (Extension::Fetch(spawnee->TClass)->IsMissileSpawn)
                 {
                     is_missile_launcher = true;
                     KamikazeTracker->Add(spawnee, Target);
@@ -838,7 +838,7 @@ void SpawnManagerClass::Abandon_Target()
         SpawnControl* control = SpawnControls[i];
         if (control->Status == SpawnControlStatus::Preparing)
         {
-            const auto extension = Extension::Fetch<AircraftTypeClassExtension>(control->Spawnee->TClass);
+            const auto extension = Extension::Fetch(control->Spawnee->TClass);
             if (extension->IsMissileSpawn)
             {
                 KamikazeTracker->Add(control->Spawnee, Target);
@@ -987,7 +987,7 @@ int SpawnManagerClass::Preparing_Count()
         {
             const AircraftClass* spawnee = SpawnControls[i]->Spawnee;
             if (spawnee && !spawnee->IsInLimbo
-                && Extension::Fetch<AircraftTypeClassExtension>(spawnee->TClass)->IsMissileSpawn)
+                && Extension::Fetch(spawnee->TClass)->IsMissileSpawn)
             {
                 count++;
             }

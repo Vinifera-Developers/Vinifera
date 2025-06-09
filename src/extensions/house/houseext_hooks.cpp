@@ -62,7 +62,7 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-static class HouseClassExt : public HouseClass
+static DECLARE_EXTENDING_CLASS_AND_PAIR(HouseClass)
 {
 public:
     ProdFailType _Begin_Production(RTTIType type, int id, bool resume);
@@ -349,7 +349,7 @@ int HouseClassExt::_AI_Building()
          *  In skirmish, try to build a power plant if there is insufficient power.
          */
         const BuildingTypeClass* choice = nullptr;
-        const auto side_ext = Extension::Fetch<SideClassExtension>(Sides[Class->Side]);
+        const auto side_ext = Extension::Fetch(Sides[Class->Side]);
 
         /**
          *  First let's see if we can upgrade a power plant with a turbine (like GDI).
@@ -769,7 +769,7 @@ int _HouseClass_ShouldDisableCameo_Get_Queued_Count(FactoryClass* factory, Techn
     */
     if (technotype->RTTI == RTTI_UNITTYPE) {
         UnitTypeClass* unittype = reinterpret_cast<UnitTypeClass*>(technotype);
-        UnitTypeClassExtension* unittypeext = Extension::Fetch<UnitTypeClassExtension>(unittype);
+        UnitTypeClassExtension* unittypeext = Extension::Fetch(unittype);
 
         if (unittype->DeploysInto == nullptr && unittypeext->TransformsInto != nullptr) {
             count += factory->House->UQuantity.Count_Of((UnitType)(unittypeext->TransformsInto->Fetch_Heap_ID()));
@@ -819,7 +819,7 @@ DECLARE_PATCH(_HouseClass_Can_Build_BuildLimit_Handle_Vehicle_Transform)
     static UnitTypeClassExtension* unittypeext;
     static int objectcount;
 
-    unittypeext = Extension::Fetch<UnitTypeClassExtension>(unittype);
+    unittypeext = Extension::Fetch(unittype);
 
     /**
      *  Stolen bytes / code.
@@ -897,7 +897,7 @@ DECLARE_PATCH(_HouseClass_Enable_SWs_Check_For_Building_Power)
  */
 bool HouseClassExt::_Can_Build_Required_Forbidden_Houses(const TechnoTypeClass* techno_type)
 {
-    const auto technotypeext = Extension::Fetch<TechnoTypeClassExtension>(techno_type);
+    const auto technotypeext = Extension::Fetch(techno_type);
 
     if (technotypeext->RequiredHouses != -1 &&
         (technotypeext->RequiredHouses & 1 << ActLike) == 0)

@@ -86,7 +86,7 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-static class BuildingClassExt : public BuildingClass
+static DECLARE_EXTENDING_CLASS_AND_PAIR(BuildingClass)
 {
 public:
     bool _Can_Have_Rally_Point();
@@ -190,7 +190,7 @@ const InfantryTypeClass* BuildingClassExt::_Crew_Type() const
     /**
      *  Construction yards can sometimes have an engineer exit them.
      */
-    const int engineer_chance = Extension::Fetch<BuildingTypeClassExtension>(Class)->EngineerChance;
+    const int engineer_chance = Extension::Fetch(Class)->EngineerChance;
     if (!IsCaptured && Percent_Chance(engineer_chance))
         return SideClassExtension::Get_Engineer(House);
 
@@ -357,7 +357,7 @@ void BuildingClassExt::_Draw_It(Point2D const& xdrawpoint, Rect const& xcliprect
 
     if (Class->IsInvisibleInGame) return;
 
-    const auto type_ext = Extension::Fetch<BuildingTypeClassExtension>(Class);
+    const auto type_ext = Extension::Fetch(Class);
     if (type_ext->IsHideDuringSpecialAnim && (Anims[BANIM_SPECIAL_ONE] || Anims[BANIM_SPECIAL_TWO] || Anims[BANIM_SPECIAL_THREE])) return;
 
     bool open_roof = false;
@@ -496,7 +496,7 @@ DECLARE_PATCH(_BuildingCLass_Detach_Detach_Anim_Patch)
 static int Building_Radio_Reload_Rate(BuildingClass *this_ptr)
 {
     AircraftClass *radio = reinterpret_cast<AircraftClass *>(this_ptr->Contact_With_Whom());
-    AircraftTypeClassExtension *radio_class_ext = Extension::Fetch<AircraftTypeClassExtension>(radio->Class);
+    AircraftTypeClassExtension *radio_class_ext = Extension::Fetch(radio->Class);
 
     return radio_class_ext->ReloadRate * TICKS_PER_MINUTE;
 }
@@ -646,7 +646,7 @@ DECLARE_PATCH(_BuildingClass_AI_ProduceCash_Patch)
     /**
      *  Fetch the extension instance.
      */
-    ext_ptr = Extension::Fetch<BuildingClassExtension>(this_ptr);
+    ext_ptr = Extension::Fetch(this_ptr);
 
     ext_ptr->Produce_Cash_AI();
 
@@ -681,8 +681,8 @@ DECLARE_PATCH(_BuildingClass_Captured_ProduceCash_Patch)
     /**
      *  Fetch the extension instances.
      */
-    ext_ptr = Extension::Fetch<BuildingClassExtension>(this_ptr);
-    exttype_ptr = Extension::Fetch<BuildingTypeClassExtension>(this_ptr->Class);
+    ext_ptr = Extension::Fetch(this_ptr);
+    exttype_ptr = Extension::Fetch(this_ptr->Class);
 
     /**
      *  Is the owner a passive/neutral house? Only they can provide the capture bonus.
@@ -766,8 +766,8 @@ DECLARE_PATCH(_BuildingClass_Grand_Opening_ProduceCash_Patch)
     /**
      *  Fetch the extension instances.
      */
-    ext_ptr = Extension::Fetch<BuildingClassExtension>(this_ptr);
-    exttype_ptr = Extension::Fetch<BuildingTypeClassExtension>(this_ptr->Class);
+    ext_ptr = Extension::Fetch(this_ptr);
+    exttype_ptr = Extension::Fetch(this_ptr->Class);
 
     /**
      *  Start the cash delay timer.
@@ -827,7 +827,7 @@ DECLARE_PATCH(_BuildingClass_Mission_Open_Gate_Open_Sound_Patch)
     /**
      *  Fetch the extension instance.
      */
-    buildingtypeext = Extension::Fetch<BuildingTypeClassExtension>(buildingtype);
+    buildingtypeext = Extension::Fetch(buildingtype);
 
     /**
      *  Does this building have a custom gate lowering sound? If so, use it.
@@ -862,7 +862,7 @@ DECLARE_PATCH(_BuildingClass_Mission_Open_Gate_Close_Sound_Patch)
     /**
      *  Fetch the extension instance.
      */
-    buildingtypeext = Extension::Fetch<BuildingTypeClassExtension>(buildingtype);
+    buildingtypeext = Extension::Fetch(buildingtype);
 
     /**
      *  Does this building have a custom gate rising sound? If so, use it.
@@ -898,7 +898,7 @@ static void BuildingClass_Shake_Screen(BuildingClass *building)
     /**
      *  Fetch the extension instance.
      */
-    buildingtypeext = Extension::Fetch<BuildingTypeClassExtension>(building->TClass);
+    buildingtypeext = Extension::Fetch(static_cast<const BuildingTypeClass*>(building->TClass));
 
     /**
      *  #issue-414
@@ -1009,7 +1009,7 @@ DECLARE_PATCH(_BuildingClass_Draw_Spied_Cameo_Palette_Patch)
      * 
      *  @author: CCHyper
      */
-    technotypeext = Extension::Fetch<TechnoTypeClassExtension>(technotype);
+    technotypeext = Extension::Fetch(technotype);
     if (technotypeext->CameoImageSurface) {
 
         /**
@@ -1228,7 +1228,7 @@ DECLARE_PATCH(_BuildingClass_Captured_DontScore_Patch)
     GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
     static BuildingTypeClassExtension* ext;
 
-    ext = Extension::Fetch<BuildingTypeClassExtension>(this_ptr->Class);
+    ext = Extension::Fetch(this_ptr->Class);
     if ((Session.Type == GAME_INTERNET || Session.Type == GAME_IPX) && !ext->IsDontScore)
     {
         JMP(0x0042F7A3);
@@ -1252,7 +1252,7 @@ DECLARE_PATCH(_BuildingClass_Grand_Opening_Assign_FreeUnit_LastDockedBuilding_Pa
     GET_REGISTER_STATIC(UnitClass*, unit, edi);
     static UnitClassExtension* unitext;
 
-    unitext = Extension::Fetch<UnitClassExtension>(unit);
+    unitext = Extension::Fetch(unit);
     unitext->LastDockedBuilding = this_ptr;
 
     /**
@@ -1380,7 +1380,7 @@ DECLARE_PATCH(_BuildingClass_Mission_Missile_LAUNCH_DOWN_Voice_Patch)
     GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
     static SuperWeaponTypeClassExtension* super_ext;
 
-    super_ext = Extension::Fetch<SuperWeaponTypeClassExtension>(SuperWeaponTypes[this_ptr->field_298]);
+    super_ext = Extension::Fetch(SuperWeaponTypes[this_ptr->field_298]);
     if (super_ext->VoxMissileLaunched != VOX_NONE) {
         Speak(super_ext->VoxMissileLaunched);
     }
@@ -1416,7 +1416,7 @@ DECLARE_PATCH(_BuildingClass_entry_370_RoofDoorAnim_Patch1)
     GET_REGISTER_STATIC(BuildingClass*, building, ebp);
     const BuildingTypeClassExtension* btypeext;
 
-    btypeext = Extension::Fetch<BuildingTypeClassExtension>(building->Class);
+    btypeext = Extension::Fetch(building->Class);
 
     if (building->Class->DoorAnim != nullptr && !Should_Open_Roof(building) || btypeext->RoofDoorAnim != nullptr && Should_Open_Roof(building)) {
         JMP(0x00427CEC);
@@ -1434,7 +1434,7 @@ DECLARE_PATCH(_BuildingClass_entry_370_RoofDoorAnim_Patch2)
 
     _asm pushad
 
-    btypeext = Extension::Fetch<BuildingTypeClassExtension>(building->Class);
+    btypeext = Extension::Fetch(building->Class);
 
     if (Should_Open_Roof(building)) {
         shapefile = btypeext->RoofDoorAnim;

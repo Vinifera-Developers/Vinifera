@@ -130,7 +130,7 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ObjectClass * 
         return 0;
     }
 
-    const auto warhead_ext = Extension::Fetch<WarheadTypeClassExtension>(warhead);
+    const auto warhead_ext = Extension::Fetch(warhead);
     const int min_damage = warhead_ext->MinDamage >= 0 ? warhead_ext->MinDamage : Rule->MinDamage;
 
     float type_modifier = 1.0f;
@@ -333,7 +333,7 @@ void Damage_Overlay(Cell const & cell, const WarheadTypeClass * warhead, int str
              *
              *  @author: CCHyper
              */
-            const auto warheadtypeext = Extension::Fetch<WarheadTypeClassExtension>(warhead);
+            const auto warheadtypeext = Extension::Fetch(warhead);
             if (warheadtypeext->IsWallAbsoluteDestroyer) {
                 Map[cell].Reduce_Wall(-1);
             }
@@ -358,7 +358,7 @@ void Spawn_Flames_And_Smudges(const Cell & cell, int range, int distance, const 
     Coordinate cell_coord = Cell_Coord(cell);
     cell_coord.Z = Map.Get_Height_GL(cell_coord);
 
-    const auto warhead_ext = Extension::Fetch<WarheadTypeClassExtension>(warhead);
+    const auto warhead_ext = Extension::Fetch(warhead);
 
     if (Probability_Of(std::clamp(Percent_At_Max(warhead_ext->ScorchChance, range, distance, warhead_ext->ScorchPercentAtMax), 0.0f, 1.0f))) {
         SmudgeTypeClass::Create_Scorch(cell_coord, 100, 100, false);
@@ -395,7 +395,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
 
     if (!strength && !warhead->IsWebby) return;
 
-    const auto warhead_ext = Extension::Fetch<WarheadTypeClassExtension>(warhead);
+    const auto warhead_ext = Extension::Fetch(warhead);
 
     Coordinate explosion_coord = coord;
     if (warhead_ext->IsSnapToCellCenter) {
@@ -699,7 +699,7 @@ DECLARE_PATCH(_Do_Flash_CombatLightSize_Patch)
     /**
      *  Fetch the extension instance.
      */
-    warheadtypeext = Extension::Fetch<WarheadTypeClassExtension>(warhead);
+    warheadtypeext = Extension::Fetch(warhead);
 
     /**
      *  If no custom light size has been set, then just use the default code.

@@ -91,7 +91,7 @@ EBoltClass::~EBoltClass()
 void EBoltClass::Clear()
 {
     if (Source) {
-        Extension::Fetch<TechnoClassExtension>(Source)->ElectricBolt = nullptr;
+        Extension::Fetch(Source)->ElectricBolt = nullptr;
         Source = nullptr;
     }
 
@@ -208,7 +208,7 @@ void EBoltClass::Set_Properties(TechnoClass *techno, const WeaponTypeClass *weap
                 /**
                  *  Copy the color overrides from the firing objects weapon.
                  */
-                WeaponTypeClassExtension *weapontypeext = Extension::Fetch<WeaponTypeClassExtension>(weapon);
+                WeaponTypeClassExtension *weapontypeext = Extension::Fetch(weapon);
 
                 LineColor1 = weapontypeext->ElectricBoltColor1;
                 LineColor2 = weapontypeext->ElectricBoltColor2;

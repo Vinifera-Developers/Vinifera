@@ -55,7 +55,7 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-static class BulletClassExt : public BulletClass
+static DECLARE_EXTENDING_CLASS_AND_PAIR(BulletClass)
 {
 public:
     bool _Is_Forced_To_Explode(Coordinate& coord);
@@ -97,7 +97,7 @@ bool BulletClassExt::_Is_Forced_To_Explode(Coordinate& coord)
     **  Check to make sure that underwater projectiles (torpedoes) will not
     **  travel in anything but water.
     */
-    const auto bullettypeext = Extension::Fetch<BulletTypeClassExtension>(Class);
+    const auto bullettypeext = Extension::Fetch(Class);
     if (bullettypeext->IsTorpedo)
     {
         int d = ::Distance(Coord_Fraction(coord), XY_Coord(CELL_LEPTON_W / 2, CELL_LEPTON_W / 2));
@@ -154,7 +154,7 @@ DECLARE_PATCH(_BulletClass_AI_SpawnDelay_Patch)
     /**
      *  Fetch the extension instance.
      */
-    bullettypeext = Extension::Fetch<BulletTypeClassExtension>(this_ptr->Class);
+    bullettypeext = Extension::Fetch(this_ptr->Class);
 
     /**
      *  If this bullet has a custom spawn delay (defaults to the original delay of 3), perform that check first.
@@ -188,7 +188,7 @@ DECLARE_PATCH(_BulletClass_Logic_ShakeScreen_Patch)
     /**
      *  Fetch the extension instance.
      */
-    warheadext = Extension::Fetch<WarheadTypeClassExtension>(warhead);
+    warheadext = Extension::Fetch(warhead);
 
     /**
      *  If this warhead has screen shake values defined, then set the blitter

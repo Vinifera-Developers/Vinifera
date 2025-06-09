@@ -60,7 +60,7 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-static class AircraftClassExt : public AircraftClass
+DECLARE_EXTENDING_CLASS_AND_PAIR(AircraftClass)
 {
 public:
     bool _Unlimbo(const Coordinate& coord, Dir256 dir);
@@ -78,8 +78,8 @@ bool AircraftClassExt::_Unlimbo(const Coordinate& coord, Dir256 dir)
 {
     Coordinate adjusted_coord = coord;
 
-    const auto class_ext = Extension::Fetch<AircraftTypeClassExtension>(Class);
-    const auto ext = Extension::Fetch<AircraftClassExtension>(this);
+    const auto class_ext = Extension::Fetch(Class);
+    const auto ext = Extension::Fetch(this);
 
     /**
      *  Rockets and other spawned aircraft don't have to spawn on the ground.
@@ -157,11 +157,11 @@ bool AircraftClassExt::_Cell_Seems_Ok(Cell& cell, bool strict) const
     /**
      *  Spawners and spawned objects can co-exist in cells.
      */
-    if (Extension::Fetch<AircraftTypeClassExtension>(Class)->IsSpawned) {
+    if (Extension::Fetch(Class)->IsSpawned) {
         const TechnoClass* techno = Map[cell].Cell_Techno();
         if (techno) {
-            if (Extension::Fetch<TechnoClassExtension>(techno)->SpawnManager
-                || Extension::Fetch<TechnoTypeClassExtension>(techno->TClass)->IsSpawned) {
+            if (Extension::Fetch(techno)->SpawnManager
+                || Extension::Fetch(techno->TClass)->IsSpawned) {
                 return true;
             }
         }
@@ -205,7 +205,7 @@ DECLARE_PATCH(_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET0_Can_
     static AircraftTypeClassExtension *class_ext;
     static bool is_curley_shuffle;
 
-    class_ext = Extension::Fetch<AircraftTypeClassExtension>(this_ptr->Class);
+    class_ext = Extension::Fetch(this_ptr->Class);
 
     is_curley_shuffle = class_ext->IsCurleyShuffle;
 
@@ -220,7 +220,7 @@ DECLARE_PATCH(_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_
     static AircraftTypeClassExtension * class_ext;
     static bool is_curley_shuffle;
 
-    class_ext = Extension::Fetch<AircraftTypeClassExtension>(this_ptr->Class);
+    class_ext = Extension::Fetch(this_ptr->Class);
 
     is_curley_shuffle = class_ext->IsCurleyShuffle;
 
@@ -234,7 +234,7 @@ DECLARE_PATCH(_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_
     static AircraftTypeClassExtension * class_ext;
     static bool is_curley_shuffle;
 
-    class_ext = Extension::Fetch<AircraftTypeClassExtension>(this_ptr->Class);
+    class_ext = Extension::Fetch(this_ptr->Class);
 
     is_curley_shuffle = class_ext->IsCurleyShuffle;
 
@@ -248,7 +248,7 @@ DECLARE_PATCH(_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_
     static AircraftTypeClassExtension *class_ext;
     static bool is_curley_shuffle;
 
-    class_ext = Extension::Fetch<AircraftTypeClassExtension>(this_ptr->Class);
+    class_ext = Extension::Fetch(this_ptr->Class);
 
     is_curley_shuffle = class_ext->IsCurleyShuffle;
 
@@ -278,7 +278,7 @@ DECLARE_PATCH(_AircraftClass_Mission_Unload_Transport_Detach_Sound_Patch)
         /**
          *  Do we have a sound to play when passengers leave us? If so, play it now.
          */
-        technotypeext = Extension::Fetch<TechnoTypeClassExtension>(this_ptr->TClass);
+        technotypeext = Extension::Fetch(this_ptr->TClass);
         if (technotypeext->LeaveTransportSound != VOC_NONE) {
             Static_Sound(technotypeext->LeaveTransportSound, this_ptr->Coord);
         }
@@ -380,7 +380,7 @@ DECLARE_PATCH(_AircraftClass_What_Action_Is_Totable_Patch)
             /**
              *  Fetch the extension instance.
              */
-            unittypeext = Extension::Fetch<UnitTypeClassExtension>(target_unit->Class);
+            unittypeext = Extension::Fetch(target_unit->Class);
 
             /**
              *  Can this unit be toted/picked up by us?
@@ -467,7 +467,7 @@ DECLARE_PATCH(_AircraftClass_Enter_Idle_Mode_Spawner_Patch)
     GET_REGISTER_STATIC(int, landingaltitude, ebp);
     static AircraftTypeClassExtension* aircrafttypeext;
 
-    aircrafttypeext = Extension::Fetch<AircraftTypeClassExtension>(this_ptr->Class);
+    aircrafttypeext = Extension::Fetch(this_ptr->Class);
 
     if (layer != LAYER_GROUND && this_ptr->HeightAGL > landingaltitude && !aircrafttypeext->IsMissileSpawn)
     {

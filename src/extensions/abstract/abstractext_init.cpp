@@ -45,7 +45,7 @@
  *  @note: All functions must not be virtual and must also be prefixed
  *         with "_" to prevent accidental virtualization.
  */
-class AbstractClassExt : public AbstractClass
+DECLARE_EXTENDING_CLASS_AND_PAIR(AbstractClass)
 {
     public:
         IFACEMETHOD_(LONG, IsDirty)();

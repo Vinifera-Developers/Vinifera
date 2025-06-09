@@ -1216,8 +1216,8 @@ static int __cdecl BuildType_Comparison(const void* p1, const void* p2)
         {
             const auto b1 = static_cast<const BuildingTypeClass*>(t1), b2 = static_cast<const BuildingTypeClass*>(t2);
 
-            const auto ext1 = Extension::Fetch<TechnoTypeClassExtension>(t1);
-            const auto ext2 = Extension::Fetch<TechnoTypeClassExtension>(t2);
+            const auto ext1 = Extension::Fetch(t1);
+            const auto ext2 = Extension::Fetch(t2);
 
             enum
             {
@@ -1240,8 +1240,8 @@ static int __cdecl BuildType_Comparison(const void* p1, const void* p2)
          */
         //if (bt1->BuildableType == RTTI_UNITTYPE)
         //{
-        //    const auto ext1 = Extension::Fetch<UnitTypeClassExtension>(t1);
-        //    const auto ext2 = Extension::Fetch<UnitTypeClassExtension>(t2);
+        //    const auto ext1 = Extension::Fetch(t1);
+        //    const auto ext2 = Extension::Fetch(t2);
 
         //    if (ext1->IsNaval != ext2->IsNaval)
         //        return (int)ext1->IsNaval - (int)ext2->IsNaval;
@@ -1618,7 +1618,7 @@ const char* StripClassExt::_Help_Text(int gadget_id)
              *
              *  @author: Rampastring
              */
-            const TechnoTypeClassExtension* technotypeext = Extension::Fetch<TechnoTypeClassExtension>(ttype);
+            const TechnoTypeClassExtension* technotypeext = Extension::Fetch(ttype);
             const char* description = technotypeext->Description;
 
             if (description[0] == '\0')
@@ -1729,7 +1729,7 @@ void StripClassExt::_Draw_It(bool complete)
                         }
 
                         shapefile = obj->Get_Cameo_Data();
-                        auto technotypeext = Extension::Fetch<TechnoTypeClassExtension>(obj);
+                        auto technotypeext = Extension::Fetch(obj);
                         if (technotypeext->CameoImageSurface != nullptr)
                             image_surface = technotypeext->CameoImageSurface;
 
@@ -1765,7 +1765,7 @@ void StripClassExt::_Draw_It(bool complete)
 
                     name = SuperWeaponTypes[spc]->FullName;
                     shapefile = Get_Special_Cameo(spc);
-                    auto supertypeext = Extension::Fetch<SuperWeaponTypeClassExtension>(PlayerPtr->SuperWeapon[spc]->Class);
+                    auto supertypeext = Extension::Fetch(PlayerPtr->SuperWeapon[spc]->Class);
                     if (supertypeext->CameoImageSurface != nullptr)
                         image_surface = supertypeext->CameoImageSurface;
 
@@ -1823,7 +1823,7 @@ void StripClassExt::_Draw_It(bool complete)
                 if (overbutton && !Scen->UserInputLocked && !darken)
                 {
                     Rect cameo_hover_rect(x, SidebarRect.Y + y, OBJECT_WIDTH, OBJECT_HEIGHT - 3);
-                    const ColorSchemeType colorschemetype = Extension::Fetch<SideClassExtension>(Sides[PlayerPtr->Class->Side])->UIColor;
+                    const ColorSchemeType colorschemetype = Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor;
                     SidebarSurface->Draw_Rect(cameo_hover_rect, DSurface::RGB_To_Pixel(ColorSchemes[colorschemetype]->HSV.operator RGBClass()));
                 }
 
@@ -2142,7 +2142,7 @@ DECLARE_PATCH(_SidebarClass_StripClass_ObjectTypeClass_Custom_Cameo_Image_Patch)
     _SidebarClass_StripClass_obj = obj;
     _SidebarClass_StripClass_CustomImage = nullptr;
 
-    technotypeext = Extension::Fetch<TechnoTypeClassExtension>(reinterpret_cast<const TechnoTypeClass*>(obj));
+    technotypeext = Extension::Fetch(reinterpret_cast<const TechnoTypeClass*>(obj));
     if (technotypeext->CameoImageSurface) {
         _SidebarClass_StripClass_CustomImage = technotypeext->CameoImageSurface;
     }
@@ -2163,7 +2163,7 @@ DECLARE_PATCH(_SidebarClass_StripClass_SuperWeaponType_Custom_Cameo_Image_Patch)
     _SidebarClass_StripClass_spc = supertype;
     _SidebarClass_StripClass_CustomImage = nullptr;
 
-    supertypeext = Extension::Fetch<SuperWeaponTypeClassExtension>(supertype);
+    supertypeext = Extension::Fetch(supertype);
     if (supertypeext->CameoImageSurface) {
         _SidebarClass_StripClass_CustomImage = supertypeext->CameoImageSurface;
     }
@@ -2249,7 +2249,7 @@ DECLARE_PATCH(_SidebarClass_StripClass_Help_Text_Extended_Tooltip_Patch)
 
     static TechnoTypeClassExtension* technotypeext;
     static char* description;
-    technotypeext = Extension::Fetch<TechnoTypeClassExtension>(technotype);
+    technotypeext = Extension::Fetch(technotype);
     description = technotypeext->Description;
 
     // Using sprintf below will affect the stack, but the compiler should also clean it up,

@@ -67,7 +67,7 @@ void FlyLocomotionClassExt::_Take_Off()
         IsTakingOff = true;
         FlightLevel = LinkedTo->TClass->Flight_Level();
 
-        const auto extension = Extension::Fetch<FootClassExtension>(LinkedTo);
+        const auto extension = Extension::Fetch(LinkedTo);
         if (extension->Get_Last_Flight_Cell() == CELL_NONE) {
             AircraftTracker->Track(LinkedTo);
         }
@@ -87,7 +87,7 @@ DECLARE_PATCH(_FlyLocomotionClass_Movement_AI_AircraftTracker_Patch1)
     static FootClassExtension* linked_ext;
     static Cell oldcell, newcell;
 
-    linked_ext = Extension::Fetch<FootClassExtension>(loco->LinkedTo);
+    linked_ext = Extension::Fetch(loco->LinkedTo);
 
     oldcell = linked_ext->Get_Last_Flight_Cell();
     newcell = loco->LinkedTo->Get_Cell();
@@ -137,7 +137,7 @@ void Levitate_Update_Position_Helper(LevitateLocomotionClass* loco)
     FootClassExtension* linked_ext;
     Cell oldcell, newcell;
 
-    linked_ext = Extension::Fetch<FootClassExtension>(loco->LinkedTo);
+    linked_ext = Extension::Fetch(loco->LinkedTo);
 
     oldcell = linked_ext->Get_Last_Flight_Cell();
     newcell = loco->LinkedTo->Get_Cell();

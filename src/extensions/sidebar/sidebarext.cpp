@@ -579,7 +579,7 @@ bool SidebarClassExtension::TabButtonClass::Draw_Me(bool forced)
     if (MousedOver && !Scen->UserInputLocked && !IsDisabled && !IsSelected)
     {
         Rect hover_rect(X + DrawX, Y + DrawY, Width - 1, Height - 1);
-        const ColorSchemeType colorschemetype = Extension::Fetch<SideClassExtension>(Sides[PlayerPtr->Class->Side])->UIColor;
+        const ColorSchemeType colorschemetype = Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor;
         SidebarSurface->Draw_Rect(hover_rect, DSurface::RGB_To_Pixel(ColorSchemes[colorschemetype]->HSV.operator RGBClass()));
     }
 

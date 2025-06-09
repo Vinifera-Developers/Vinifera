@@ -72,7 +72,7 @@ NewJumpjetLocomotionClass::NewJumpjetLocomotionClass() :
 
 IFACEMETHODIMP NewJumpjetLocomotionClass::Link_To_Object(void* object)
 {
-    TechnoTypeClassExtension const* type_ext = Extension::Fetch<TechnoTypeClassExtension>(static_cast<TechnoClass*>(object)->TClass);
+    TechnoTypeClassExtension const* type_ext = Extension::Fetch(static_cast<TechnoClass*>(object)->TClass);
     JumpjetTurnRate = type_ext->JumpjetTurnRate;
     JumpjetSpeed = type_ext->JumpjetSpeed;
     JumpjetClimb = type_ext->JumpjetClimb;
@@ -276,7 +276,7 @@ void NewJumpjetLocomotionClass::Process_Grounded()
         TargetSpeed = 0;
         FlightLevel = JumpjetCruiseHeight;
         if (!IonStorm_Is_Active()) {
-            const auto extension = Extension::Fetch<FootClassExtension>(LinkedTo);
+            const auto extension = Extension::Fetch(LinkedTo);
             if (extension->Get_Last_Flight_Cell() == CELL_NONE) {
                 AircraftTracker->Track(LinkedTo);
             }
@@ -296,7 +296,7 @@ void NewJumpjetLocomotionClass::Process_Ascent()
         }
     }
 
-    const auto extension = Extension::Fetch<FootClassExtension>(LinkedTo);
+    const auto extension = Extension::Fetch(LinkedTo);
     Cell oldcell = extension->Get_Last_Flight_Cell();
     Cell newcell = LinkedTo->Get_Cell();
 
@@ -334,7 +334,7 @@ void NewJumpjetLocomotionClass::Process_Cruise()
 {
     Coordinate position = LinkedTo->PositionCoord;
 
-    const auto extension = Extension::Fetch<FootClassExtension>(LinkedTo);
+    const auto extension = Extension::Fetch(LinkedTo);
     Cell oldcell = extension->Get_Last_Flight_Cell();
     Cell newcell = LinkedTo->Get_Cell();
 

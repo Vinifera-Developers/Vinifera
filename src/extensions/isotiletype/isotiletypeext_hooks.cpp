@@ -32,6 +32,7 @@
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "extension.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -44,10 +45,10 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-static class IsometricTileTypeClassExt : public IsometricTileTypeClass
+static DECLARE_EXTENDING_CLASS_AND_PAIR(IsometricTileTypeClass)
 {
-    public:
-        const ShapeSet * _Get_Image_Data();
+public:
+    const ShapeSet * _Get_Image_Data();
 };
 
 

@@ -174,7 +174,7 @@ DECLARE_PATCH(_CampaignClass_Read_INI_Patch)
     /**
      *  Fetch the extension instance.
      */
-    exttype_ptr = Extension::Fetch<CampaignClassExtension>(this_ptr);
+    exttype_ptr = Extension::Fetch(this_ptr);
 
     /**
      *  Read type class ini.

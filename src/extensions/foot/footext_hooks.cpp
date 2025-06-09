@@ -68,7 +68,7 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-class FootClassExt : public FootClass
+DECLARE_EXTENDING_CLASS_AND_PAIR(FootClass)
 {
 public:
     void _Draw_Action_Line() const;
@@ -461,7 +461,7 @@ Cell FootClassExt::_Search_For_Tiberium(int rad, bool a2)
 
     UnitClassExtension* unitext = nullptr;
     if (RTTI == RTTI_UNIT) {
-        unitext = Extension::Fetch<UnitClassExtension>(this);
+        unitext = Extension::Fetch(reinterpret_cast<UnitClass*>(this));
     }
 
     /**
@@ -504,7 +504,7 @@ DECLARE_PATCH(_FootClass_Mission_Move_Can_Passive_Acquire_Patch)
     GET_REGISTER_STATIC(FootClass *, this_ptr, esi);
     static TechnoClassExtension *technoclassext;
 
-    technoclassext = Extension::Fetch<TechnoClassExtension>(this_ptr);
+    technoclassext = Extension::Fetch(this_ptr);
 
     /**
      *  Can this unit passively acquire new targets?
@@ -535,7 +535,7 @@ DECLARE_PATCH(_FootClass_Mission_Guard_Can_Passive_Acquire_Patch)
     GET_REGISTER_STATIC(FootClass *, this_ptr, esi);
     static TechnoClassExtension *technoclassext;
 
-    technoclassext = Extension::Fetch<TechnoClassExtension>(this_ptr);
+    technoclassext = Extension::Fetch(this_ptr);
 
     /**
      *  Can this unit passively acquire new targets?
@@ -572,7 +572,7 @@ DECLARE_PATCH(_FootClass_Mission_Guard_Area_Can_Passive_Acquire_Patch)
     GET_REGISTER_STATIC(FootClass *, this_ptr, esi);
     static TechnoClassExtension *technoclassext;
 
-    technoclassext = Extension::Fetch<TechnoClassExtension>(this_ptr);
+    technoclassext = Extension::Fetch(this_ptr);
 
     /**
      *  Can this unit passively acquire new targets?
@@ -605,7 +605,7 @@ DECLARE_PATCH(_FootClass_AI_IdleRate_Patch)
     GET_REGISTER_STATIC(ILocomotion *, loco, edi);
     static TechnoTypeClassExtension *technotypeext;
 
-    technotypeext = Extension::Fetch<TechnoTypeClassExtension>(this_ptr->TClass);
+    technotypeext = Extension::Fetch(this_ptr->TClass);
 
     /**
      *  Stolen bytes/code.
@@ -686,7 +686,7 @@ void FootClassExt::_Death_Announcement(TechnoClass* source) const
 {
     if (IsOwnedByPlayer) {
 
-        const auto is_spawned = Extension::Fetch<TechnoTypeClassExtension>(TClass)->IsSpawned;
+        const auto is_spawned = Extension::Fetch(TClass)->IsSpawned;
         if (!TClass->IsInsignificant && !is_spawned) {
 
             RadarEventClass::LastEventCell = Coord_Cell(entry_50());
@@ -782,7 +782,7 @@ bool FootClassExt::_Limbo()
         /**
          *  Remove the object from the aircraft tracker.
          */
-        const auto ext = Extension::Fetch<FootClassExtension>(this);
+        const auto ext = Extension::Fetch(this);
         if (ext->Get_Last_Flight_Cell() != CELL_NONE) {
             AircraftTracker->Untrack(this);
         }

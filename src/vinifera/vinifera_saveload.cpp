@@ -687,17 +687,17 @@ void Vinifera_Post_Load_Game()
 {
     for (int i = 0; i < Technos.Count(); i++) {
         const TechnoClass* techno = Technos[i];
-        Extension::Fetch<TechnoClassExtension>(techno)->Put_Storage_Pointers();
+        Extension::Fetch(techno)->Put_Storage_Pointers();
     }
 
     for (int i = 0; i < Houses.Count(); i++) {
         const HouseClass* house = Houses[i];
-        Extension::Fetch<HouseClassExtension>(house)->Put_Storage_Pointers();
+        Extension::Fetch(house)->Put_Storage_Pointers();
     }
 
     for (int i = 0; i < BuildingTypes.Count(); i++) {
         const BuildingTypeClass* buildingtype = BuildingTypes[i];
-        Extension::Fetch<BuildingTypeClassExtension>(buildingtype)->Fetch_Building_Normal_Image(Scen->Theater);
+        Extension::Fetch(buildingtype)->Fetch_Building_Normal_Image(Scen->Theater);
     }
 }
 

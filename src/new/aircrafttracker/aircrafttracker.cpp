@@ -132,7 +132,7 @@ void AircraftTrackerClass::Fetch_Targets(CellClass* cellptr, int range)
 void AircraftTrackerClass::Track(FootClass* target)
 {
     Cell cell = target->Get_Cell();
-    const auto target_ext = Extension::Fetch<FootClassExtension>(target);
+    const auto target_ext = Extension::Fetch(target);
     target_ext->Set_Last_Flight_Cell(cell);
     Regions[Get_Region(cell)].Add(target);
 }
@@ -145,7 +145,7 @@ void AircraftTrackerClass::Track(FootClass* target)
  */
 void AircraftTrackerClass::Untrack(FootClass* target)
 {
-    const auto target_ext = Extension::Fetch<FootClassExtension>(target);
+    const auto target_ext = Extension::Fetch(target);
     Cell cell = target_ext->Get_Last_Flight_Cell();
     target_ext->Set_Last_Flight_Cell(CELL_NONE);
     Regions[Get_Region(cell)].Delete(target);
@@ -231,7 +231,7 @@ HRESULT STDMETHODCALLTYPE AircraftTrackerClass::Save(IStream* stream)
  */
 void AircraftTrackerClass::Update_Position(FootClass* target, Cell oldcell, Cell newcell)
 {
-    const auto target_ext = Extension::Fetch<FootClassExtension>(target);
+    const auto target_ext = Extension::Fetch(target);
     target_ext->Set_Last_Flight_Cell(newcell);
     const int oldregion = Get_Region(oldcell);
     const int newregion = Get_Region(newcell);

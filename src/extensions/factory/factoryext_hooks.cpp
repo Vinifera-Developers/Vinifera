@@ -51,7 +51,7 @@
   *  @note: This must not contain a constructor or destructor!
   *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
   */
-static class FactoryClassExt : public FactoryClass
+static DECLARE_EXTENDING_CLASS_AND_PAIR(FactoryClass)
 {
 public:
     void _Sanitize_Queue();

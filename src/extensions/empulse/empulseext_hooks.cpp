@@ -25,7 +25,7 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "technotypeext.h"
+#include "buildingtypeext.h"
 #include "technotype.h"
 #include "techno.h"
 #include "building.h"
@@ -50,9 +50,9 @@
 DECLARE_PATCH(_EMPulseClass_Create_Building_EMPImmune_Patch)
 {
     GET_REGISTER_STATIC(BuildingTypeClass *, buildingtype, eax);
-    static TechnoTypeClassExtension *exttype_ptr;
+    static BuildingTypeClassExtension *exttype_ptr;
 
-    exttype_ptr = Extension::Fetch<TechnoTypeClassExtension>(buildingtype);
+    exttype_ptr = Extension::Fetch(buildingtype);
 
     /**
      *  Is this building immune to EMP weapons?
@@ -95,7 +95,7 @@ DECLARE_PATCH(_EMPulseClass_Create_Foot_EMPImmune_Patch)
     static ILocomotion *loco;
     static TechnoTypeClassExtension *exttype_ptr;
 
-    exttype_ptr = Extension::Fetch<TechnoTypeClassExtension>(foot->TClass);
+    exttype_ptr = Extension::Fetch(foot->TClass);
 
     /**
      *  Is this object immune to EMP weapons?

@@ -60,8 +60,8 @@ static LightSourceClass *Terrain_New_LightSource(TerrainClass *this_ptr)
     /**
      *  Fetch the extension instance.
      */
-    terrainext = Extension::Fetch<TerrainClassExtension>(this_ptr);
-    terraintypeext = Extension::Fetch<TerrainTypeClassExtension>(this_ptr->Class);
+    terrainext = Extension::Fetch(this_ptr);
+    terraintypeext = Extension::Fetch(this_ptr->Class);
 
     /**
      *  Create the light source object at the terrain coord.
@@ -101,8 +101,8 @@ DECLARE_PATCH(_TerrainClass_Unlimbo_LightSource_Patch)
     /**
      *  Fetch the extension instances.
      */
-    terrainext = Extension::Fetch<TerrainClassExtension>(this_ptr);
-    terraintypeext = Extension::Fetch<TerrainTypeClassExtension>(terraintype);
+    terrainext = Extension::Fetch(this_ptr);
+    terraintypeext = Extension::Fetch(terraintype);
 
     if (terraintypeext->IsLightEnabled && terraintypeext->LightIntensity > 0) {
 
@@ -156,7 +156,7 @@ DECLARE_PATCH(_TerrainClass_Take_Damage_LightSource_Patch)
     /**
      *  Fetch the extension instance.
      */
-    terrainext = Extension::Fetch<TerrainClassExtension>(this_ptr);
+    terrainext = Extension::Fetch(this_ptr);
     if (terrainext->LightSource) {
 
         /**

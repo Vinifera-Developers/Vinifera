@@ -51,7 +51,7 @@ DECLARE_PATCH(_EventClass_Execute_IDLE_Spawn_Manager_Patch)
     static TechnoClassExtension* extension;
     static RTTIType rtti;
 
-    extension = Extension::Fetch<TechnoClassExtension>(techno);
+    extension = Extension::Fetch(techno);
     if (extension->SpawnManager)
         extension->SpawnManager->Abandon_Target();
 
@@ -80,7 +80,7 @@ DECLARE_PATCH(_DriveLocomotionClass_Start_Of_Move_Spawn_Manager_Patch)
 
     _asm pushad
 
-    extension = Extension::Fetch<TechnoClassExtension>(linked_to);
+    extension = Extension::Fetch(linked_to);
     if (linked_to->EMPFramesRemaining > 0 || extension->SpawnManager && extension->SpawnManager->Preparing_Count())
     {
         _asm popad

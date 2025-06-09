@@ -196,7 +196,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
     const auto atype = reinterpret_cast<AircraftClass*>(LinkedTo)->Class;
     const RocketTypeClass* rocket = RocketTypeClass::From_AircraftType(atype);
 
-    TechnoClass* spawn_owner = Extension::Fetch<AircraftClassExtension>(LinkedTo)->SpawnOwner;
+    TechnoClass* spawn_owner = Extension::Fetch(LinkedTo)->SpawnOwner;
 
     switch (MissionState)
     {
@@ -261,7 +261,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
                 CurrentPitch = rocket->PitchFinal * DEG_TO_RAD(90);
                 MissionState = RocketMissionState::GainingAltitude;
 
-                auto linked_ext = Extension::Fetch<FootClassExtension>(LinkedTo);
+                auto linked_ext = Extension::Fetch(LinkedTo);
                 if (linked_ext->Get_Last_Flight_Cell() == CELL_NONE)
                     AircraftTracker->Track(LinkedTo);
 
@@ -443,7 +443,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
             {
                 CurrentPitch = rocket->PitchFinal * DEG_TO_RAD(90);
 
-                const auto linked_ext = Extension::Fetch<FootClassExtension>(LinkedTo);
+                const auto linked_ext = Extension::Fetch(LinkedTo);
                 if (linked_ext->Get_Last_Flight_Cell() == CELL_NONE)
                 {
                     Static_Sound(LinkedTo->TClass->AuxSound1, LinkedTo->Coord);

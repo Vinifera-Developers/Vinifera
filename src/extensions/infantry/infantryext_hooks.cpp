@@ -65,7 +65,7 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-static class InfantryClassExt : public InfantryClass
+static DECLARE_EXTENDING_CLASS_AND_PAIR(InfantryClass)
 {
 public:
     const ShapeSet* _Get_Image_Data() const;
@@ -192,7 +192,7 @@ DECLARE_PATCH(_InfantryClass_Per_Cell_Process_Transport_Attach_Sound_Patch)
     /**
      *  If this transport we are entering has a passenger entering sound, play it now.
      */
-    radio_technotypeext = Extension::Fetch<TechnoTypeClassExtension>(techno->TClass);
+    radio_technotypeext = Extension::Fetch(techno->TClass);
     if (radio_technotypeext->EnterTransportSound != VOC_NONE) {
         Static_Sound(radio_technotypeext->EnterTransportSound, techno->Coord);
     }
@@ -214,7 +214,7 @@ DECLARE_PATCH(_InfantryClass_Firing_AI_Mechanic_Patch)
     GET_REGISTER_STATIC(ObjectClass *, targ, esi);      // TarCom as ObjectClass.
     static InfantryTypeClassExtension *infantrytypeext;
 
-    infantrytypeext = Extension::Fetch<InfantryTypeClassExtension>(this_ptr->Class);
+    infantrytypeext = Extension::Fetch(this_ptr->Class);
 
     /**
      *  Is this infantry a "dual healer" (can it heal both infantry and units)?
@@ -273,7 +273,7 @@ DECLARE_PATCH(_InfantryClass_What_Action_Mechanic_Patch)
     GET_REGISTER_STATIC(/*const */ObjectClass *, object, esi);  // target
     static InfantryTypeClassExtension *infantrytypeext;
 
-    infantrytypeext = Extension::Fetch<InfantryTypeClassExtension>(this_ptr->Class);
+    infantrytypeext = Extension::Fetch(this_ptr->Class);
 
     /**
      *  Is this infantry a "dual healer" (can it heal both infantry and units)?
@@ -582,7 +582,7 @@ DECLARE_PATCH(_InfantryClass_Per_Cell_Process_Tiberium_Damage_Patch)
     GET_REGISTER_STATIC(int, tib_id, eax);
 
     static int damage;
-    damage = Extension::Fetch<TiberiumClassExtension>(Tiberiums[tib_id])->DamageToInfantry;
+    damage = Extension::Fetch(Tiberiums[tib_id])->DamageToInfantry;
 
     _asm mov eax, damage
     _asm mov [esp + 0x10], eax

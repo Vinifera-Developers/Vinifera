@@ -49,7 +49,7 @@
  */
 static UnitClass* Make_HunterSeeker(HouseClass* house)
 {
-    const auto side_ext = Extension::Fetch<SideClassExtension>(Sides[house->Class->Side]);
+    const auto side_ext = Extension::Fetch(Sides[house->Class->Side]);
 
     if (side_ext->HunterSeeker) {
         return new UnitClass(const_cast<UnitTypeClass*>(side_ext->HunterSeeker), house);

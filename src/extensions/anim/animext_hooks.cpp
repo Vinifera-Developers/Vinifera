@@ -66,7 +66,7 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-class AnimClassExt : public AnimClass
+DECLARE_EXTENDING_CLASS_AND_PAIR(AnimClass)
 {
 public:
     LayerType _In_Which_Layer() const;
@@ -95,7 +95,7 @@ LayerType AnimClassExt::_In_Which_Layer() const
      *  @author: CCHyper
      */
     AnimTypeClassExtension *animtypeext = nullptr;
-    animtypeext = Extension::Fetch<AnimTypeClassExtension>(Class);
+    animtypeext = Extension::Fetch(Class);
     if (animtypeext->AttachLayer != LAYER_NONE) {
         return animtypeext->AttachLayer;
     }
@@ -143,8 +143,8 @@ static void Do_Anim_Damage(AnimClass* anim, int damage)
  */
 void AnimClassExt::_AI()
 {
-    const auto animext = Extension::Fetch<AnimClassExtension>(this);
-    auto animtypeext = Extension::Fetch<AnimTypeClassExtension>(Class);
+    const auto animext = Extension::Fetch(this);
+    auto animtypeext = Extension::Fetch(Class);
 
     if (Class->IsFlamingGuy) {
         Flaming_Guy_AI();
@@ -407,7 +407,7 @@ void AnimClassExt::_AI()
                     if (Class->ChainTo != nullptr) {
 
                         Class = Class->ChainTo;
-                        animtypeext = Extension::Fetch<AnimTypeClassExtension>(Class);
+                        animtypeext = Extension::Fetch(Class);
 
                         if (Class->Stages == -1) {
                             Class->Stages = animtypeext->Stage_Count();
@@ -450,8 +450,8 @@ void AnimClassExt::_AI()
  */
 void AnimClassExt::_Start()
 {
-    const auto animext = Extension::Fetch<AnimClassExtension>(this);
-    const auto animtypeext = Extension::Fetch<AnimTypeClassExtension>(Class);
+    const auto animext = Extension::Fetch(this);
+    const auto animtypeext = Extension::Fetch(Class);
 
     Mark(MARK_CHANGE);
 
@@ -508,7 +508,7 @@ static void Anim_Spawn_Particles(AnimClass* this_ptr)
 {
     AnimTypeClassExtension* animtypeext;
 
-    animtypeext = Extension::Fetch<AnimTypeClassExtension>(this_ptr->Class);
+    animtypeext = Extension::Fetch(this_ptr->Class);
     if (animtypeext->ParticleToSpawn != PARTICLE_NONE) {
 
         for (int i = 0; i < animtypeext->NumberOfParticles; ++i) {
@@ -531,8 +531,8 @@ static void Anim_Spawn_Particles(AnimClass* this_ptr)
  */
 void AnimClassExt::_Middle()
 {
-    const auto animext = Extension::Fetch<AnimClassExtension>(this);
-    const auto animtypeext = Extension::Fetch<AnimTypeClassExtension>(Class);
+    const auto animext = Extension::Fetch(this);
+    const auto animtypeext = Extension::Fetch(Class);
 
     Cell cell = Center_Coord().As_Cell();
     CellClass* cellptr = &Map[cell];
@@ -647,7 +647,7 @@ DECLARE_PATCH(_AnimClass_Constructor_Layer_Set_Z_Height_Patch)
     GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
     static AnimTypeClassExtension *animtypeext;
     
-    animtypeext = Extension::Fetch<AnimTypeClassExtension>(this_ptr->Class);
+    animtypeext = Extension::Fetch(this_ptr->Class);
 
     /**
      *  Set the layer to the highest level if "air" or "top".
@@ -718,7 +718,7 @@ void Draw_Shape_Proxy(
      *  Make sure that we have a valid animation saved just in case.
      */
     if (_CurrentlyDrawnAnim != nullptr && _CurrentlyDrawnAnim->Class != nullptr) {
-        const auto typeext = Extension::Fetch<AnimTypeClassExtension>(_CurrentlyDrawnAnim->Class);
+        const auto typeext = Extension::Fetch(_CurrentlyDrawnAnim->Class);
 
         /**
          *  Draw the shadow.
