@@ -875,14 +875,24 @@ void BuildingClassExt::_Factory_AI()
                         }
 
                         /*
-                        **  This object doesn't allow this factory to produce it.
+                        ** There may be limitations on whether this specific factory can build this object.
                         */
-                        if (allowed_factory && ttype_ext->BuiltAt.Count() != 0 && !ttype_ext->BuiltAt.Is_Present(Class)) allowed_factory = false;
+                        if (allowed_factory && !ttype_ext->BuiltAt.Is_Present(Class)) {
 
-                        /*
-                        **  This factory doesn't produce this kind of object.
-                        */
-                        if (allowed_factory && btype_ext->IsExclusiveFactory && !ttype_ext->BuiltAt.Is_Present(Class)) allowed_factory = false;
+                            /*
+                            **  This object doesn't allow this factory to produce it.
+                            */
+                            if (ttype_ext->BuiltAt.Count() != 0) {
+                                allowed_factory = false;
+                            }
+
+                            /*
+                            **  This factory can't produce this kind of object.
+                            */
+                            else if (btype_ext->IsExclusiveFactory) {
+                                allowed_factory = false;
+                            }
+                        }
 
                         /*
                         **  If everything is okay, create the factory.

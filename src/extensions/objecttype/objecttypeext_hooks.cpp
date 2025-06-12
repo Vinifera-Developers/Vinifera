@@ -260,14 +260,20 @@ BuildingClass* ObjectTypeClassExt::_Who_Can_Build_Me(bool intheory, bool needsno
                 BuildingTypeClassExtension* btype_ext = Extension::Fetch(building->Class);
 
                 /*
-                **  This object doesn't allow this factory to produce it.
+                ** There may be limitations on whether this specific factory can build this object.
                 */
-                if (type_ext->BuiltAt.Count() != 0 && !type_ext->BuiltAt.Is_Present(building->Class)) continue;
+                if (!type_ext->BuiltAt.Is_Present(building->Class)) {
 
-                /*
-                **  This factory doesn't produce this kind of object.
-                */
-                if (btype_ext->IsExclusiveFactory && !type_ext->BuiltAt.Is_Present(building->Class)) continue;
+                    /*
+                    **  This object doesn't allow this factory to produce it.
+                    */
+                    if (type_ext->BuiltAt.Count() != 0) continue;
+
+                    /*
+                    **  This factory can't produce this kind of object.
+                    */
+                    if (btype_ext->IsExclusiveFactory) continue;
+                }
             }
 
             if (intheory || !building->In_Radio_Contact() || RTTI != RTTI_AIRCRAFTTYPE) {
