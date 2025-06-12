@@ -33,6 +33,7 @@
 #include "sidebar.h"
 #include "vinifera_globals.h"
 #include "shapeset.h"
+#include "technotypeext.h"
 
 
 class SidebarClassExtension final : public GlobalExtensionClass<SidebarClass>
@@ -147,7 +148,7 @@ public:
         ViniferaSelectClass() = default;
         ViniferaSelectClass(const NoInitClass& x) : SelectClass(x) {}
 
-        virtual bool Action(unsigned flags, KeyNumType& key) override;
+        //virtual bool Action(unsigned flags, KeyNumType& key) override;
         virtual void On_Mouse_Enter();
         virtual void On_Mouse_Leave();
 
@@ -178,21 +179,23 @@ public:
         bool Change_Tab(SidebarTabType index);
 
         SidebarClass::StripClass& Current_Tab() { return Column[TabIndex];}
-        SidebarClass::StripClass& Get_Tab(RTTIType type) { return Column[Which_Tab(type)]; }
+        SidebarClass::StripClass& Get_Tab(RTTIType type, ProductionFlags flags) { return Column[Which_Tab(type, flags)]; }
         SidebarTabType First_Active_Tab();
 
-        static SidebarTabType Which_Tab(RTTIType type);
+        bool Abandon_Production(RTTIType type, FactoryClass* factory, ProductionFlags flags);
+
+        static SidebarTabType Which_Tab(RTTIType type, ProductionFlags flags);
 
         bool Is_On_Sidebar(RTTIType type, int id) const
         {
-            const int column = Which_Tab(type);
+            const int column = Which_Tab(type, TechnoTypeClassExtension::Get_Production_Flags(type, id));
             return Column[column].Is_On_Sidebar(type, id);
         }
 
-        void Flag_Strip_To_Redraw(RTTIType type)
+        void Flag_Strip_To_Redraw(RTTIType type, ProductionFlags flags)
         {
             if (Vinifera_NewSidebar)
-                Get_Tab(type).Flag_To_Redraw();
+                Get_Tab(type, flags).Flag_To_Redraw();
             else
                 Map.Column[Map.Which_Column(type)].Flag_To_Redraw();
         }
@@ -220,7 +223,7 @@ public:
             if (!Vinifera_NewSidebar)
                 return Map.Is_On_Sidebar(type, id);
 
-            int tab = Which_Tab(type);
+            int tab = Which_Tab(type, TechnoTypeClassExtension::Get_Production_Flags(type, id));
             return Column[tab].Is_On_Sidebar(type, id);
         }
 

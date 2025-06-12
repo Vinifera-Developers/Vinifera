@@ -27,6 +27,8 @@
  ******************************************************************************/
 #include "sidebarext_hooks.h"
 
+#include <algorithm>
+
 #include "bsurface.h"
 #include "buildingtype.h"
 #include "convert.h"
@@ -65,10 +67,14 @@
 #include "fatal.h"
 #include "asserthandler.h"
 #include "building.h"
+#include "eventext.h"
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "houseext.h"
+#include "msgbox.h"
 #include "optionsext.h"
 #include "rulesext.h"
+#include "sidebar.h"
 #include "uicontrol.h"
 #include "vinifera_globals.h"
 
@@ -122,13 +128,28 @@ public:
     void _Deactivate();
     bool _Scroll(bool up);
     bool _Scroll_Page(bool up);
-    bool _AI(KeyNumType& input, Point2D& xy);
+    bool _AI(KeyNumType& input, Point2D const& xy);
+    bool _AI_Vanilla(KeyNumType& input, Point2D const& xy);
     const char* _Help_Text(int gadget_id);
     void _Draw_It(bool complete);
     bool _Factory_Link(FactoryClass* factory, RTTIType type, int id);
     void _Tab_Button_AI();
     void _Fake_Flag_To_Redraw_Special();
     void _Fake_Flag_To_Redraw_Current();
+};
+
+
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or destructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+static class SelectClassExt : public SidebarClass::StripClass::SelectClass
+{
+public:
+    bool _Action(unsigned flags, KeyNumType& key);
 };
 
 
@@ -381,7 +402,7 @@ void SidebarClassExt::_Init_Strips()
  */
 bool SidebarClassExt::_Factory_Link(FactoryClass* factory, RTTIType type, int id)
 {
-    return SidebarExtension->Get_Tab(type).Factory_Link(factory, type, id);
+    return SidebarExtension->Get_Tab(type, TechnoTypeClassExtension::Get_Production_Flags(type, id)).Factory_Link(factory, type, id);
 }
 
 
@@ -394,7 +415,7 @@ bool SidebarClassExt::_Add(RTTIType type, int id)
 {
     if (!Debug_Map)
     {
-        if (SidebarExtension->Get_Tab(type).Add(type, id))
+        if (SidebarExtension->Get_Tab(type, TechnoTypeClassExtension::Get_Production_Flags(type, id)).Add(type, id))
         {
             Activate(1);
             IsToRedraw = true;
@@ -789,7 +810,11 @@ void SidebarClassExt::_Recalc()
  */
 bool SidebarClassExt::_Abandon_Production(RTTIType type, FactoryClass* factory)
 {
-    return SidebarExtension->Get_Tab(type).Abandon_Production(factory);
+    DEBUG_FATAL("The legacy version of SidebarClass::Abandon_Production has been called! If you see this, please notify the developers. The game will now exit.\n");
+    DEBUG_FATAL("Return address: %p\n", _ReturnAddress());
+    WWMessageBox().Process("The legacy version of SidebarClass::Abandon_Production has been called! If you see this, please notify the developers. The game will now exit.", 0, TXT_OK);
+    Emergency_Exit(0);
+    return false;
 }
 
 
@@ -1162,10 +1187,7 @@ static int __cdecl BuildType_Comparison(const void* p1, const void* p2)
             for (int i = 0; i < HouseTypes.Count(); i++)
             {
                 if (owners & (1 << i))
-                {
-                    if (HouseTypes[i]->Side < side)
-                        side = HouseTypes[i]->Side;
-                }
+                    side = std::min<int>(HouseTypes[i]->Side, side);
             }
 
             return side != INT_MAX ? side : SIDE_NONE;
@@ -1238,14 +1260,14 @@ static int __cdecl BuildType_Comparison(const void* p1, const void* p2)
         /**
          *  If both are Units, non-naval units come first
          */
-        //if (bt1->BuildableType == RTTI_UNITTYPE)
-        //{
-        //    const auto ext1 = Extension::Fetch(t1);
-        //    const auto ext2 = Extension::Fetch(t2);
+        if (bt1->BuildableType == RTTI_UNITTYPE)
+        {
+            const auto ext1 = Extension::Fetch(t1);
+            const auto ext2 = Extension::Fetch(t2);
 
-        //    if (ext1->IsNaval != ext2->IsNaval)
-        //        return (int)ext1->IsNaval - (int)ext2->IsNaval;
-        //}
+            if (ext1->IsNaval != ext2->IsNaval)
+                return static_cast<int>(ext1->IsNaval) - static_cast<int>(ext2->IsNaval);
+        }
 
         /**
          *  If your side owns one of the objects, but not another, yours comes first
@@ -1283,16 +1305,16 @@ static int __cdecl BuildType_Comparison(const void* p1, const void* p2)
     if (bt2->BuildableType == RTTI_INFANTRYTYPE)
         return 1;
 
-    if (bt1->BuildableType == RTTI_UNITTYPE)
-        return -1;
-
-    if (bt2->BuildableType == RTTI_UNITTYPE)
-        return 1;
-
     if (bt1->BuildableType == RTTI_AIRCRAFTTYPE)
         return -1;
 
     if (bt2->BuildableType == RTTI_AIRCRAFTTYPE)
+        return 1;
+
+    if (bt1->BuildableType == RTTI_UNITTYPE)
+        return -1;
+
+    if (bt2->BuildableType == RTTI_UNITTYPE)
         return 1;
 
     return bt1->BuildableID - bt2->BuildableID;
@@ -1400,7 +1422,7 @@ bool StripClassExt::_Scroll_Page(bool up)
  *
  *  @author: ZivDero
  */
-bool StripClassExt::_AI(KeyNumType& input, Point2D&)
+bool StripClassExt::_AI(KeyNumType& input, Point2D const&)
 {
     bool redraw = false;
 
@@ -1432,7 +1454,7 @@ bool StripClassExt::_AI(KeyNumType& input, Point2D&)
                         {
                         case RTTI_UNIT:
                         case RTTI_AIRCRAFT:
-                            OutList.Add(EventClass(pending->Owner(), EVENT_PLACE, pending->RTTI, CELL_NONE));
+                            OutList.Add(EventClassExt(pending->Owner(), EVENT_PLACE, pending->RTTI, CELL_NONE, TechnoTypeClassExtension::Get_Production_Flags(pending)).As_Event());
                             Speak(VOX_UNIT_READY);
                             break;
 
@@ -1442,7 +1464,7 @@ bool StripClassExt::_AI(KeyNumType& input, Point2D&)
                             break;
 
                         case RTTI_INFANTRY:
-                            OutList.Add(EventClass(pending->Owner(), EVENT_PLACE, pending->RTTI, CELL_NONE));
+                            OutList.Add(EventClassExt(pending->Owner(), EVENT_PLACE, pending->RTTI, CELL_NONE, TechnoTypeClassExtension::Get_Production_Flags(pending)).As_Event());
                             Speak(VOX_UNIT_READY);
                             break;
 
@@ -1590,6 +1612,173 @@ bool StripClassExt::_AI(KeyNumType& input, Point2D&)
 
 
 /**
+ *  Reimplementation of SidebarClass::StripClass::AI, but for the vanilla sidebar.
+ *  Used when the new sidebar is turned off.
+ *
+ *  @author: ZivDero
+ */
+bool StripClassExt::_AI_Vanilla(KeyNumType& input, Point2D const& xy)
+{
+    KeyNumType key = KeyNumType(input & ~16384);
+    bool redraw = false;
+
+    /*
+    **  If this is scroll button for this side strip, then scroll the strip as
+    **  indicated.
+    */
+    if (key == KeyNumType(UpButton[ID].ID | KN_BUTTON)) {
+        UpButton[ID].IsPressed = false;
+        if ((input & 16384) != 0) {
+            if (!Scroll_Page(true)) {
+                Sound_Effect(Rule->ScoldSound);
+            }
+        } else {
+            if (!Scroll(true)) {
+                Sound_Effect(Rule->ScoldSound);
+            }
+        }
+    } else if (key == KeyNumType(DownButton[ID].ID | KN_BUTTON)) {
+        DownButton[ID].IsPressed = false;
+        if ((input & 16384) != 0) {
+            if (!Scroll_Page(false)) {
+                Sound_Effect(Rule->ScoldSound);
+            }
+        } else {
+            if (!Scroll(false)) {
+                Sound_Effect(Rule->ScoldSound);
+            }
+        }
+    }
+
+    /*
+    **  Reflect the scroll desired direction/value into the scroll
+    **  logic handler. This might result in up or down scrolling.
+    */
+    if (!IsScrolling && Scroller) {
+        if (BuildableCount <= SidebarClassExtension::Max_Visible(true)) {
+            Scroller = 0;
+        } else {
+
+            /*
+            **  Top of list is moving toward lower ordered entries in the object list. It looks like
+            **  the "window" to the object list is moving up even though the actual object images are
+            **  scrolling downward.
+            */
+            if (Scroller < 0) {
+                if (!TopIndex) {
+                    Scroller = 0;
+                } else {
+                    Scroller++;
+                    IsScrollingDown = false;
+                    IsScrolling = true;
+                    TopIndex--;
+                    Slid = 0;
+                }
+
+            } else {
+                if (TopIndex + SidebarClassExtension::Max_Visible(true) >= BuildableCount) {
+                    Scroller = 0;
+                } else {
+                    Scroller--;
+                    Slid = OBJECT_HEIGHT;
+                    IsScrollingDown = true;
+                    IsScrolling = true;
+                }
+            }
+        }
+    }
+
+    /*
+    **  Scroll logic is handled here.
+    */
+    if (IsScrolling) {
+        if (IsScrollingDown) {
+            Slid -= SCROLL_RATE;
+            if (Slid <= 0) {
+                IsScrolling = false;
+                Slid = 0;
+                TopIndex++;
+            }
+        } else {
+            Slid += SCROLL_RATE;
+            if (Slid >= OBJECT_HEIGHT) {
+                IsScrolling = false;
+                Slid = 0;
+            }
+        }
+        redraw = true;
+    }
+
+    /*
+    **  Handle any flashing logic. Flashing occurs when the player selects an object
+    **  and provides the visual feedback of a recognized and legal selection.
+    */
+    if (Flasher != -1) {
+        if (Graphic_Logic()) {
+            redraw = true;
+            if (Fetch_Stage() >= 7) {
+                Set_Rate(0);
+                Set_Stage(0);
+                Flasher = -1;
+            }
+        }
+    }
+
+    /*
+    **  Handle any building clock animation logic.
+    */
+    if (IsBuilding) {
+        for (int index = 0; index < BuildableCount; index++) {
+            FactoryClass* factory = Buildables[index].Factory;
+
+            if (factory && factory->Has_Changed()) {
+                redraw = true;
+                if (factory->Has_Completed()) {
+
+                    /*
+                    **  Construction has been completed. Announce this fact to the player and
+                    **  try to get the object to automatically leave the factory. Buildings are
+                    **  the main exception to the ability to leave the factory under their own
+                    **  power.
+                    */
+                    TechnoClass* pending = factory->Get_Object();
+                    if (pending != nullptr) {
+                        switch (pending->RTTI) {
+                        case RTTI_UNIT:
+                        case RTTI_AIRCRAFT:
+                            OutList.Add(EventClassExt(pending->Owner(), EVENT_PLACE, pending->Fetch_RTTI(), CELL_NONE, TechnoTypeClassExtension::Get_Production_Flags(pending)).As_Event());
+                            Speak(VOX_UNIT_READY);
+                            break;
+
+                        case RTTI_BUILDING:
+                            Speak(VOX_CONSTRUCTION);
+                            break;
+
+                        case RTTI_INFANTRY:
+                            OutList.Add(EventClassExt(pending->Owner(), EVENT_PLACE, pending->Fetch_RTTI(), CELL_NONE, TechnoTypeClassExtension::Get_Production_Flags(pending)).As_Event());
+                            Speak(VOX_UNIT_READY);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /*
+    **  If any of the logic determined that this side strip needs to be redrawn, then
+    **  set the redraw flag for this side strip.
+    */
+    if (redraw) {
+        Flag_To_Redraw();
+        RedrawSidebar = true;
+    }
+
+    return(redraw);
+}
+
+
+/**
  *  Reimplements the entire SidebarClass::StripClass::Help_Text function.
  *
  *  @author: ZivDero
@@ -1714,7 +1903,7 @@ void StripClassExt::_Draw_It(bool complete)
                          */
                         if (obj->RTTI == RTTI_BUILDINGTYPE)
                         {
-                            darken = PlayerPtr->Fetch_Factory(Buildables[index].BuildableType) != nullptr;
+                            darken = Extension::Fetch(PlayerPtr)->Fetch_Factory(Buildables[index].BuildableType, TechnoTypeClassExtension::Get_Production_Flags(obj)) != nullptr;
                         }
 
                         /**
@@ -1851,7 +2040,7 @@ void StripClassExt::_Draw_It(bool complete)
             if (obj != nullptr)
             {
                 RTTIType rtti = obj->RTTI;
-                FactoryClass* factory = PlayerPtr->Fetch_Factory(rtti);
+                FactoryClass* factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(rtti, TechnoTypeClassExtension::Get_Production_Flags(obj));
 
                 if (factory != nullptr)
                 {
@@ -1977,18 +2166,18 @@ void StripClassExt::_Tab_Button_AI()
         if (!SidebarExtension->TabButtons[ID].Is_Enabled())
             SidebarExtension->TabButtons[ID].Enable();
 
-        int building_tab = SidebarClassExtension::Which_Tab(RTTI_BUILDINGTYPE);
+        int building_tab = SidebarClassExtension::Which_Tab(RTTI_BUILDINGTYPE, PRODFLAG_NONE);
         if (ID == building_tab)
         {
             if (SidebarExtension->TabButtons[ID].IsFlashing)
             {
-                FactoryClass* fptr = PlayerPtr->Fetch_Factory(RTTI_BUILDINGTYPE);
+                FactoryClass* fptr = Extension::Fetch(PlayerPtr)->Fetch_Factory(RTTI_BUILDINGTYPE, PRODFLAG_DEFENSE);
                 if (fptr == nullptr || !fptr->Has_Completed())
                     SidebarExtension->TabButtons[ID].Stop_Flashing();
             }
         }
 
-        int special_tab = SidebarClassExtension::Which_Tab(RTTI_SPECIAL);
+        int special_tab = SidebarClassExtension::Which_Tab(RTTI_SPECIAL, PRODFLAG_NONE);
         if (ID == special_tab)
         {
             bool ready_sw = false;
@@ -2023,7 +2212,7 @@ void StripClassExt::_Tab_Button_AI()
  */
 void StripClassExt::_Fake_Flag_To_Redraw_Special()
 {
-    SidebarExtension->Get_Tab(RTTI_SPECIAL).Flag_To_Redraw();
+    SidebarExtension->Get_Tab(RTTI_SPECIAL, PRODFLAG_NONE).Flag_To_Redraw();
 }
 
 
@@ -2269,6 +2458,267 @@ DECLARE_PATCH(_SidebarClass_StripClass_Help_Text_Extended_Tooltip_Patch)
 }
 
 
+DECLARE_PATCH(_StripClass_Draw_It_Fetch_Factory_Patch1)
+{
+    GET_REGISTER_STATIC(TechnoTypeClass*, ttype, ebp);
+    GET_STACK_STATIC(RTTIType, rtti, esp, 0x44);
+
+    static FactoryClass* factory;
+    factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(rtti, TechnoTypeClassExtension::Get_Production_Flags(ttype));
+
+    _asm mov eax, factory
+    JMP_REG(edx, 0x005F5132);
+}
+
+
+DECLARE_PATCH(_StripClass_Draw_It_Fetch_Factory_Patch2)
+{
+    GET_STACK_STATIC(TechnoTypeClass*, ttype, esp, 0x18);
+    GET_REGISTER_STATIC(RTTIType, rtti, eax);
+
+    static FactoryClass* factory;
+    factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(rtti, TechnoTypeClassExtension::Get_Production_Flags(ttype));
+
+    _asm mov ebx, factory
+    JMP(0x005F538A);
+}
+
+
+bool SelectClassExt::_Action(unsigned flags, KeyNumType& key)
+{
+    if (!Strip) {
+        return true;
+    }
+        
+
+    int index = Strip->TopIndex + Index;
+    RTTIType otype = Strip->Buildables[index].BuildableType;
+    int oid = Strip->Buildables[index].BuildableID;
+
+    TechnoTypeClass const* choice = nullptr;
+    SuperWeaponType spc = SUPER_NONE;
+
+    /*
+    **  Determine the factory number that would apply to objects of the type
+    **  the mouse is currently addressing. This doesn't mean that the factory number
+    **  fetched is actually producing the indicated object, merely that that particular
+    **  kind of factory is specified by the "genfactory" value. This can be used to see
+    **  if the factory type is currently busy or not.
+    */
+    FactoryClass* factory = Strip->Buildables[index].Factory;
+
+    Map.Override_Mouse_Shape(MOUSE_NORMAL);
+
+    if (index < Strip->BuildableCount) {
+        if (otype != RTTI_SPECIAL) {
+            choice = Fetch_Techno_Type(otype, oid);
+        } else {
+            spc = (SuperWeaponType)oid;
+        }
+    }
+
+    if (spc != SUPER_NONE) {
+
+        /*
+        **  Display the help text if the mouse is over the button.
+        */
+        if (flags & LEFTUP) {
+            flags &= ~LEFTUP;
+        }
+
+        /*
+        **  A right mouse button signals "cancel".  If we are in targeting
+        **  mode then we don't want to be any more.
+        */
+        if (flags & RIGHTPRESS) {
+            Map.TargettingType = SUPER_NONE;
+        }
+
+        /*
+        **  A left mouse press signal "activate".  If our weapon type is
+        **  available then we should activate it.
+        */
+        if (flags & LEFTPRESS) {
+
+            if (spc < PlayerPtr->SuperWeapon.Count()) {
+                if (PlayerPtr->SuperWeapon[spc]->Can_Place()) {
+                    if (PlayerPtr->SuperWeapon[spc]->Class->Action != ACTION_NONE) {
+                        Map.TargettingType = spc;
+                        Unselect_All();
+                        Speak(VOX_SELECT_TARGET);
+                    } else {
+                        OutList.Add(EventClass(PlayerPtr->Fetch_Heap_ID(), EVENT_SPECIAL_PLACE, PlayerPtr->SuperWeapon[spc]->Class->HeapID, CELL_NONE));
+                    }
+                } else {
+                    PlayerPtr->SuperWeapon[spc]->Impatient_Click();
+                }
+            }
+        }
+
+    } else {
+        if (choice != nullptr) {
+
+            /*
+            **  Display the help text if the mouse is over the button.
+            */
+            if (flags & LEFTUP) {
+                flags &= ~LEFTUP;
+            }
+
+            /*
+            **  A right mouse button signals "cancel".
+            */
+            if (flags & RIGHTPRESS) {
+
+                /*
+                **  If production is in progress, put it on hold. If production is already
+                **  on hold, then abandon it. Money will be refunded, the factory
+                **  manager deleted, and the object under construction is returned to
+                **  the free pool.
+                */
+                if (factory != nullptr) {
+                    /*
+                    **  Cancels placement mode if the sidebar factory is abandoned or
+                    **  suspended.
+                    */
+                    if (Map.PendingObjectPtr && Map.PendingObjectPtr->Is_Techno()) {
+                        Map.PendingObjectPtr = nullptr;
+                        Map.PendingObject = nullptr;
+                        Map.PendingHouse = HOUSE_NONE;
+                        Map.Set_Cursor_Shape(nullptr);
+                    }
+
+                    if (!factory->Is_Building()) {
+                        Speak(VOX_CANCELED);
+
+                        int count_to_abandon = 1;
+
+                        if ((GetAsyncKeyState(VK_SHIFT) & 0x8000))
+                            count_to_abandon = factory->Total_Queued(*choice);
+                        else if ((GetAsyncKeyState(VK_CONTROL) & 0x8000))
+                            count_to_abandon = std::clamp(5, 0, factory->Total_Queued(*choice));
+
+                        for (int i = 0; i < count_to_abandon; i++)
+                            OutList.Add(EventClassExt(PlayerPtr->Fetch_Heap_ID(), EVENT_ABANDON, otype, oid, TechnoTypeClassExtension::Get_Production_Flags(otype, oid)).As_Event());
+                    } else {
+                        Speak(VOX_SUSPENDED);
+                        OutList.Add(EventClassExt(PlayerPtr->Fetch_Heap_ID(), EVENT_SUSPEND, otype, oid, TechnoTypeClassExtension::Get_Production_Flags(otype, oid)).As_Event());
+                        SidebarExtension->Get_Tab(otype, TechnoTypeClassExtension::Get_Production_Flags(otype, oid)).Flag_To_Redraw();
+                        
+                    }
+                } else {
+                    factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(otype, TechnoTypeClassExtension::Get_Production_Flags(choice));
+                    if (factory && factory->Is_Queued(*choice)) {
+                        int count_to_abandon = 1;
+
+                        if ((GetAsyncKeyState(VK_SHIFT) & 0x8000))
+                            count_to_abandon = factory->Total_Queued(*choice);
+                        else if ((GetAsyncKeyState(VK_CONTROL) & 0x8000))
+                            count_to_abandon = std::clamp(5, 0, factory->Total_Queued(*choice));
+
+                        for (int i = 0; i < count_to_abandon; i++)
+                            OutList.Add(EventClassExt(PlayerPtr->Fetch_Heap_ID(), EVENT_ABANDON, otype, oid, TechnoTypeClassExtension::Get_Production_Flags(otype, oid)).As_Event());
+                    }
+                }
+            }
+
+            if (flags & LEFTPRESS) {
+                /*
+                **  If this object is currently being built, then give a scold sound and text and then
+                **  bail.
+                */
+                if (factory != nullptr && !factory->Is_Building()) {
+
+                    /*
+                    **  If production has completed, then attempt to have the object exit
+                    **  the factory or go into placement mode.
+                    */
+                    if (factory->Has_Completed()) {
+
+                        TechnoClass* pending = factory->Get_Object();
+                        if (!pending && factory->Get_Special_Item()) {
+                            Map.TargettingType = SUPER_ANY;
+                        } else {
+                            BuildingClass* builder = pending->Who_Can_Build_Me(false, false);
+                            if (!builder) {
+                                OutList.Add(EventClassExt(PlayerPtr->Fetch_Heap_ID(), EVENT_ABANDON, otype, oid, TechnoTypeClassExtension::Get_Production_Flags(otype, oid)).As_Event());
+                                Speak(VOX_NO_FACTORY);
+                            } else {
+
+                                /*
+                                **  If the completed object is a building, then change the
+                                **  game state into building placement mode. This fact is
+                                **  not transmitted to any linked computers until the moment
+                                **  the building is actually placed down.
+                                */
+                                if (pending->Fetch_RTTI() == RTTI_BUILDING) {
+                                    PlayerPtr->Manual_Place(builder, (BuildingClass*)pending);
+                                } else {
+
+                                    /*
+                                    **  For objects that can leave the factory under their own
+                                    **  power, queue this event and process through normal house
+                                    **  production channels.
+                                    */
+                                    OutList.Add(EventClassExt(pending->Owner(), EVENT_PLACE, otype, CELL_NONE, TechnoTypeClassExtension::Get_Production_Flags(pending)).As_Event());
+                                }
+                            }
+                        }
+                    } else {
+
+                        /*
+                        **  The factory must have been in a suspended state. Resume construction
+                        **  normally.
+                        */
+                        if (otype == RTTI_INFANTRYTYPE) {
+                            Speak(VOX_TRAINING);
+                        } else {
+                            Speak(VOX_BUILDING);
+                        }
+                        OutList.Add(EventClassExt(PlayerPtr->Fetch_Heap_ID(), EVENT_PRODUCE,
+                            Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID,
+                            TechnoTypeClassExtension::Get_Production_Flags(Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID)).As_Event());
+                    }
+                } else {
+
+                    /*
+                    **  If there is already a factory attached to this strip but the player didn't click
+                    **  on the icon that has the attached factory, then say that the factory is busy and
+                    **  ignore the click.
+                    */
+                    factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(otype, TechnoTypeClassExtension::Get_Production_Flags(choice));
+                    if (factory != nullptr && (factory->Is_Building() || factory->Get_Object() || factory->Queued_Object_Count() > 0) && otype == RTTI_BUILDINGTYPE) {
+                        Speak(VOX_NO_FACTORY);
+                    } else {
+
+                        /*
+                        **  If this side strip is already busy with production, then ignore the
+                        **  input and announce this fact.
+                        */
+                        if (otype == RTTI_INFANTRYTYPE) {
+                            Speak(VOX_TRAINING);
+                        } else {
+                            Speak(VOX_BUILDING);
+                        }
+                        const int count_to_produce = (GetAsyncKeyState(VK_SHIFT) & 0x8000) ? 5 : 1;
+                        for (int i = 0; i < count_to_produce; i++) {
+                            OutList.Add(EventClassExt(PlayerPtr->Fetch_Heap_ID(), EVENT_PRODUCE, Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID,
+                                TechnoTypeClassExtension::Get_Production_Flags(Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID)).As_Event());
+                        }
+
+                    }
+                }
+            }
+        } else {
+            flags = 0;
+        }
+    }
+
+    ControlClass::Action(flags, key);
+    return true;
+}
+
+
 /**
  *  Main function for patching the hooks.
  */
@@ -2280,9 +2730,12 @@ void SidebarClassExtension_Hooks()
     /**
      *  These patches are compatible with the vanilla sidebar.
      */
+    Patch_Jump(0x005F5F70, &SidebarClassExt::_Abandon_Production);
     Patch_Jump(0x005F4E40, &StripClassExt::_Help_Text);
     Patch_Jump(0x005F4630, &StripClassExt::_Add);
     Patch_Jump(0x005F5610, &StripClassExt::_Recalc);
+    Patch_Jump(0x005F4910, &StripClassExt::_AI_Vanilla);
+    Patch_Jump(0x005F59A0, &SelectClassExt::_Action);
 
     // NOP away tooltip length check for formatting
     Patch_Byte(0x0044E486, 0x90);
@@ -2297,6 +2750,8 @@ void SidebarClassExtension_Hooks()
     Patch_Jump(0x005F5188, &_SidebarClass_StripClass_ObjectTypeClass_Custom_Cameo_Image_Patch);
     Patch_Jump(0x005F5216, &_SidebarClass_StripClass_SuperWeaponType_Custom_Cameo_Image_Patch);
     Patch_Jump(0x005F52AF, &_SidebarClass_StripClass_Custom_Cameo_Image_Patch);
+    Patch_Jump(0x005F5120, &_StripClass_Draw_It_Fetch_Factory_Patch1);
+    Patch_Jump(0x005F537C, &_StripClass_Draw_It_Fetch_Factory_Patch2);
 
     Patch_Jump(0x005F4EDD, &_SidebarClass_StripClass_Help_Text_Extended_Tooltip_Patch);
     Patch_Byte(0x005F4EF7 + 2, 0x14); // Pop one more argument passed to sprintf
@@ -2308,8 +2763,7 @@ void SidebarClassExtension_Hooks()
  */
 void SidebarClassExtension_Conditional_Hooks()
 {
-    if (Vinifera_NewSidebar)
-    {
+    if (Vinifera_NewSidebar) {
         Patch_Jump(0x005F2610, &SidebarClassExt::_One_Time);
         Patch_Jump(0x005F2660, &SidebarClassExt::_Init_Clear);
         Patch_Jump(0x005F2720, &SidebarClassExt::_Init_IO);
@@ -2324,7 +2778,6 @@ void SidebarClassExtension_Conditional_Hooks()
         Patch_Jump(0x005F3C70, &SidebarClassExt::_AI);
         Patch_Jump(0x005F3E20, &SidebarClassExt::_Recalc);
         Patch_Jump(0x005F3E60, &SidebarClassExt::_Activate);
-        Patch_Jump(0x005F5F70, &SidebarClassExt::_Abandon_Production);
         Patch_Jump(0x005F6080, &SidebarClassExt::_Set_Dimensions);
         Patch_Jump(0x005F6620, &SidebarClassExt::_Help_Text);
         Patch_Jump(0x005F6670, &SidebarClassExt::_Max_Visible);

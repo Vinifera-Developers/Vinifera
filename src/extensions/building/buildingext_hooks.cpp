@@ -66,17 +66,23 @@
 #include "sideext.h"
 #include "fatal.h"
 #include "asserthandler.h"
+#include "bullettype.h"
+#include "coord.h"
 #include "debughandler.h"
+#include "event.h"
+#include "factory.h"
 #include "session.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "houseext.h"
 #include "jumpjetlocomotion.h"
 #include "rulesext.h"
 #include "super.h"
 #include "supertypeext.h"
 #include "vox.h"
 #include "tactical.h"
+#include "weapontype.h"
 
 
 /**
@@ -96,6 +102,12 @@ public:
     int _Shape_Number() const;
     void _Detach_Anim(AnimClass* anim);
     void _Draw_It(Point2D const& xdrawpoint, Rect const& xcliprect);
+    void _Detach_All(bool all);
+    bool _Toggle_Primary();
+    void _Assign_Rally_Point(const Cell& cell);
+    ActionType _What_Action(ObjectClass const* object, bool disallow_force);
+    ActionType _What_Action(const Cell& cell, bool check_fog, bool disallow_force) const;
+    void _Factory_AI();
 };
 
 
@@ -216,7 +228,7 @@ int BuildingClassExt::_How_Many_Survivors() const
     if (IsCaptured)
         divisor *= 2;
 
-    const int count = (Class->Cost_Of(House) * Rule->SurvivorFraction) / divisor;
+    const int count = Class->Cost_Of(House) * Rule->SurvivorFraction / divisor;
     return std::clamp(count, 1, 5);
 }
 
@@ -246,7 +258,7 @@ int BuildingClassExt::_Shape_Number() const
     if (BState == BSTATE_CONSTRUCTION) {
 
         if (Class->IsGate) {
-            shapenum = (Class->Anims[BSTATE_CONSTRUCTION].Start + Class->Anims[BSTATE_CONSTRUCTION].Count - 1) - shapenum;
+            shapenum = Class->Anims[BSTATE_CONSTRUCTION].Start + Class->Anims[BSTATE_CONSTRUCTION].Count - 1 - shapenum;
         }
 
         /**
@@ -254,7 +266,7 @@ int BuildingClassExt::_Shape_Number() const
          *  from the end to the beginning. Reverse the shape number accordingly.
          */
         if (Mission == MISSION_DECONSTRUCTION) {
-            shapenum = (Class->Anims[BState].Start + Class->Anims[BState].Count - 1) - shapenum;
+            shapenum = Class->Anims[BState].Start + Class->Anims[BState].Count - 1 - shapenum;
         }
 
     } else if (Class->IsGate) {
@@ -363,7 +375,7 @@ void BuildingClassExt::_Draw_It(Point2D const& xdrawpoint, Rect const& xcliprect
     bool open_roof = false;
     if (Get_Mission() == MISSION_UNLOAD) {
         TechnoClass* radio = Contact_With_Whom();
-        if (radio != nullptr && (radio->TClass->Locomotor == __uuidof(JumpjetLocomotionClass))) {
+        if (radio != nullptr && radio->Techno_Type_Class()->Locomotor == __uuidof(JumpjetLocomotionClass)) {
             open_roof = true;
         }
     }
@@ -393,7 +405,7 @@ void BuildingClassExt::_Draw_It(Point2D const& xdrawpoint, Rect const& xcliprect
             zgrad = ZGRAD_90DEG;
         }
 
-        shapenum += (HealthRatio <= Rule->ConditionYellow ? (Class->GateStages + 1) : 0);
+        shapenum += HealthRatio <= Rule->ConditionYellow ? Class->GateStages + 1 : 0;
         Techno_Draw_Object(shapefile, shapenum, xdrawpoint, xcliprect, DIR_N, 256, zadjust - TacticalMap->Z_Lepton_To_Pixel(Height), zgrad, true, Map[cell].Brightness);
 
         return;
@@ -421,7 +433,7 @@ void BuildingClassExt::_Draw_It(Point2D const& xdrawpoint, Rect const& xcliprect
     cliprect.Height = std::min(cliprect.Height, height);
 
     zdrawpoint += Class->ZShapePointMove;
-    Point2D zsizeoffset((Class->Width() * CELL_LEPTON_W) - CELL_LEPTON_W, (Class->Height() * CELL_LEPTON_H) - CELL_LEPTON_H);
+    Point2D zsizeoffset(Class->Width() * CELL_LEPTON_W - CELL_LEPTON_W, Class->Height() * CELL_LEPTON_H - CELL_LEPTON_H);
     zdrawpoint -= TacticalMap->func_60F270(zsizeoffset);
 
     ShapeSet const* zshapefile = BuildingTypeClass::BuildingZShape;
@@ -470,11 +482,466 @@ void BuildingClassExt::_Draw_It(Point2D const& xdrawpoint, Rect const& xcliprect
 
 
 /**
+ *  Reimplementation of BuildingClass::Detach_All.
+ *
+ *  @author: ZivDero
+ */
+void BuildingClassExt::_Detach_All(bool all)
+{
+    if (all) {
+        /*
+        **  If it is producing something, then it must be abandoned.
+        */
+        if (Factory) {
+            Factory->Abandon();
+            delete Factory;
+            Factory = nullptr;
+        }
+
+        /*
+        **  If the owner HouseClass is building something, and this building can
+        **  build that thing, we may be the last building for that house that can
+        **  build that thing; if so, abandon production of it.
+        */
+        if (House) {
+            auto type_ext = Extension::Fetch(Class);
+            ProductionFlags prodflags = PRODFLAG_NONE;
+            if (type_ext->IsNaval) {
+                prodflags = PRODFLAG_NAVAL;
+            }
+
+            FactoryClass* factory = Extension::Fetch(House)->Fetch_Factory(Class->ToBuild, prodflags);
+
+            /*
+            **  If a factory was found, then temporarily disable this building and then
+            **  determine if any object that is being produced can still be produced. If
+            **  not, then the object being produced must be abandoned.
+            */
+            if (factory) {
+                TechnoClass* object = factory->Get_Object();
+                bool limbo = IsInLimbo;
+                IsInLimbo = true;
+                if (object && !object->TClass->Who_Can_Build_Me(true, false, false, House)) {
+                    Extension::Fetch(House)->Abandon_Production(Class->ToBuild, -1, prodflags);
+                }
+                IsInLimbo = limbo;
+            }
+        }
+    }
+
+    if (!all) {
+        if (In_Radio_Contact() && !House->Is_Ally(Contact_With_Whom())) {
+            Transmit_Message(RADIO_OVER_OUT);
+        }
+    } else {
+        Transmit_Message(RADIO_OVER_OUT);
+    }
+
+    TechnoClass::Detach_All(all);
+}
+
+
+/**
+ *  Reimplementation of BuildingClass::Toggle_Primary.
+ *
+ *  @author: ZivDero
+ */
+bool BuildingClassExt::_Toggle_Primary()
+{
+    if (Class->ToBuild == RTTI_NONE) {
+        return IsLeader;
+    }
+
+    if (IsLeader) {
+        IsLeader = false;
+    } else {
+        for (int index = 0; index < Buildings.Count(); index++) {
+            BuildingClass* building = Buildings[index];
+
+            if (!building->IsInLimbo && building->House == House && building->Class->ToBuild == Class->ToBuild &&
+                Extension::Fetch(building->Class)->IsNaval == Extension::Fetch(Class)->IsNaval) {
+                building->IsLeader = false;
+            }
+        }
+        IsLeader = true;
+        if (House->Is_Player_Control()) {
+            Speak(VOX_PRIMARY_SELECTED);
+        }
+    }
+    Mark(MARK_CHANGE);
+    return IsLeader;
+}
+
+
+/**
+ *  Reimplementation of BuildingClass::Assign_Rally_Point.
+ *
+ *  @author: ZivDero
+ */
+void BuildingClassExt::_Assign_Rally_Point(Cell const& cell)
+{
+    SpeedType speed = SPEED_FOOT;
+    MZoneType mzone = MZONE_NORMAL;
+
+    bool underbridge = Map[cell].IsUnderBridge;
+
+    if (Class->ToBuild == RTTI_AIRCRAFTTYPE) {
+        speed = SPEED_WINGED;
+        mzone = MZONE_FLYER;
+    } else {
+
+        /**
+         *  If this is a factory that produces units, and is flagged as a shipyard (Naval=yes), then
+         *  change the zone flags to scan for water regions only.
+         *
+         *  @author: CCHyper, modified by Rampastring
+         */
+        if (Class->ToBuild == RTTI_UNITTYPE && Extension::Fetch(Class)->IsNaval) {
+            speed = SPEED_AMPHIBIOUS;
+            mzone = MZONE_AMPHIBIOUS_CRUSHER;
+        }
+    }
+
+    int zone = Map.Get_Cell_Zone(Get_Coord().As_Cell(), mzone, underbridge);
+
+    Cell nearbyloc = Map.Nearby_Location(cell, speed, zone, mzone, underbridge);
+
+    if (nearbyloc != CELL_NONE) {
+        OutList.Add(EventClass(Owner(), EVENT_ARCHIVE, TargetClass(this), TargetClass(&Map[nearbyloc])));
+    } else {
+        if (Class->IsConstructionYard && House->Is_Human_Player() && Session.Type != GAME_NORMAL && Session.Options.RedeployMCV) {
+            OutList.Add(EventClass(Owner(), EVENT_ARCHIVE, TargetClass(this), TargetClass(&Map[Center_Coord()])));
+        }
+    }
+}
+
+
+/**
+ *  Reimplementation of BuildingClass::What_Action.
+ *
+ *  @author: ZivDero
+ */
+ActionType BuildingClassExt::_What_Action(ObjectClass const* object, bool disallow_force)
+{
+    if (Class->IsInvisibleInGame) {
+        return ACTION_NONE;
+    }
+
+    if (object->RTTI == RTTI_BUILDING && ((BuildingClass*)object)->Class->IsInvisibleInGame) {
+        return ACTION_NONE;
+    }
+
+    ActionType action = TechnoClass::What_Action(object, disallow_force);
+
+    if (action == ACTION_SELF) {
+        int index; 
+        if (EMPFramesRemaining == 0 && Class->ToBuild != RTTI_NONE && PlayerPtr == House &&
+            Extension::Fetch(House)->Factory_Count(Class->ToBuild, Extension::Fetch(Class)->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE) > 1) {
+
+            switch (Class->ToBuild) {
+            case RTTI_INFANTRYTYPE:
+            case RTTI_INFANTRY:
+                action = ACTION_NONE;
+                for (index = 0; index < Buildings.Count(); index++) {
+                    BuildingClass* bldg = Buildings[index];
+                    if (bldg != this && bldg->House == House && bldg->Class->ToBuild == RTTI_INFANTRYTYPE) {
+                        action = ACTION_SELF;
+                        break;
+                    }
+                }
+                break;
+
+            case RTTI_NONE:
+                action = ACTION_NONE;
+                break;
+
+            default:
+                break;
+            }
+
+        } else {
+            action = ACTION_NONE;
+        }
+    }
+
+    /*
+    **  Don't allow targeting with SAM sites, even if the CTRL key
+    **  is held down. Also don't allow targeting if the object is too
+    **  far away.
+    */
+    if (action == ACTION_ATTACK && PrimaryWeapon != nullptr) {
+        if (!In_Range_Of(const_cast<ObjectClass*>(object))/* || !PrimaryWeapon->Bullet->IsAntiGround*/) {
+            action = ACTION_NONE;
+        } else if (Class->IsEMPulseCannon || Class->IsLimpetMine) {
+            action = ACTION_NONE;
+        }
+        if (CurrentMission == MISSION_DECONSTRUCTION) {
+            action = ACTION_NONE;
+        }
+    }
+
+    if (action == ACTION_MOVE || action == ACTION_NOMOVE) {
+        if (!Can_Player_Move()) {
+            action = ACTION_SELECT;
+        } else if (Class->ToBuild == RTTI_INFANTRYTYPE || Class->ToBuild == RTTI_UNITTYPE || Class->ToBuild == RTTI_AIRCRAFTTYPE) {
+            bool altdown = WWKeyboard->Down(Options.KeyForceMove1) || WWKeyboard->Down(Options.KeyForceMove2);
+            if (!altdown) {
+                action = ACTION_SELECT;
+            } else {
+                Cell cell = object->Center_Coord().As_Cell();
+                if (Class->ToBuild != RTTI_AIRCRAFTTYPE) {
+                    if (!Is_In_Same_Zone(cell.As_Coord())) {
+                        action = ACTION_NOMOVE;
+                    }
+                    if (!Map[cell].IsUnderBridge) {
+
+                        /**
+                         *  This patch allows naval yards to display the "place rally point" cursor action
+                         *  on water cells.
+                         *
+                         *  @author: Rampastring
+                         */
+                        if (Map[cell].Passability != PASSABLE_OK && !(Extension::Fetch(Class)->IsNaval && Map[cell].Passability == PASSABLE_WATER)) {
+                            action = ACTION_NOMOVE;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return action;
+}
+
+
+/**
+ *  Reimplementation of BuildingClass::What_Action.
+ *
+ *  @author: ZivDero
+ */
+ActionType BuildingClassExt::_What_Action(const Cell& cell, bool check_fog, bool disallow_force) const
+{
+    if (Class->IsInvisibleInGame) {
+        return ACTION_NONE;
+    }
+
+    ActionType action;
+
+    if (Class->UndeploysInto != nullptr && check_fog) {
+        action = TechnoClass::What_Action(cell, false, disallow_force);
+    } else {
+        action = TechnoClass::What_Action(cell, check_fog, disallow_force);
+    }
+
+
+    if (action == ACTION_RALLY_TO_POINT) {
+        if (Class->ToBuild != RTTI_AIRCRAFTTYPE) {
+            if (!Is_In_Same_Zone(cell.As_Coord())) {
+                action = ACTION_NOMOVE;
+            }
+            if (!Map[cell].IsUnderBridge) {
+
+                /**
+                 *  This patch allows naval yards to display the "place rally point" cursor action
+                 *  on water cells.
+                 *
+                 *  @author: Rampastring
+                 */
+                if (Map[cell].Passability != PASSABLE_OK && !(Extension::Fetch(Class)->IsNaval && Map[cell].Passability == PASSABLE_WATER)) {
+                    action = ACTION_NOMOVE;
+                }
+                
+            }
+        }
+    }
+
+    /*
+    **  Don't allow targeting of SAM sites, even if the CTRL key
+    **  is held down.
+    */
+    if (action == ACTION_ATTACK && PrimaryWeapon != nullptr) {
+        if (!PrimaryWeapon->Bullet->IsAntiGround) {
+            action = ACTION_NONE;
+        } else if (Class->IsEMPulseCannon || Class->IsLimpetMine) {
+            action = ACTION_NONE;
+        } if (CurrentMission == MISSION_DECONSTRUCTION) {
+            action = ACTION_NONE;
+        }
+    }
+
+    return action;
+}
+
+
+/**
+ *  Reimplementation of BuildingClass::Factory_AI.
+ *
+ *  @author: ZivDero
+ */
+void BuildingClassExt::_Factory_AI()
+{
+    /*
+    **  Handle any production tied to this building. Only computer controlled buildings have
+    **  production attached to the building itself. The player uses the sidebar interface for
+    **  all production control.
+    */
+    if (Factory != nullptr && Factory->Has_Completed() && PlacementDelay == 0) {
+        TechnoClass* product = Factory->Get_Object();
+
+        switch (Exit_Object(product)) {
+
+            /*
+            **  If the object could not leave the factory, then either request
+            **  a transport, place the (what must be a) building using another method, or
+            **  abort the production and refund money.
+            */
+        case 0:
+            Factory->Abandon();
+            delete Factory;
+            Factory = nullptr;
+            break;
+
+            /*
+            **  Exiting this building is prevented by some temporary blockage. Wait
+            **  a bit before trying again.
+            */
+        case 1:
+            PlacementDelay = static_cast<int>(Rule->PlacementDelay * TICKS_PER_MINUTE);
+            break;
+
+            /*
+            **  The object was successfully sent from this factory. Inform the house
+            **  tracking logic that the requested object has been produced.
+            */
+        case 2:
+            House->Just_Built(product);
+            Factory->Completed();
+            delete Factory;
+            Factory = nullptr;
+            break;
+
+        default:
+            break;
+        }
+    }
+
+    /*
+    **  Pick something to create for this factory.
+    */
+    if (House->IsStarted && Mission != MISSION_CONSTRUCTION && Mission != MISSION_DECONSTRUCTION) {
+
+        /*
+        **  Buildings that produce other objects have special factory logic handled here.
+        */
+        if (Class->ToBuild != RTTI_NONE) {
+            if (Factory != nullptr) {
+
+                /*
+                **  If production has halted, then just abort production and make the
+                **  funds available for something else.
+                */
+                if (PlacementDelay == 0 && !Factory->Is_Building()) {
+                    Factory->Abandon();
+                    delete Factory;
+                    Factory = nullptr;
+                }
+
+            } else {
+
+                /*
+                **  Only look to start production if there is at least a small amount of
+                **  money available. In cases where there is no practical money left, then
+                **  production can never complete -- don't bother starting it.
+                */
+                if (House->IsStarted && House->Available_Money() > 10) {
+                    auto btype_ext = Extension::Fetch(Class);
+                    TechnoTypeClass const* ttype = Extension::Fetch(House)->Suggest_New_Object(Class->ToBuild, btype_ext->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
+
+                    /*
+                    **  If a suitable object type was selected for production, then start
+                    **  producing it now.
+                    */
+                    if (ttype != nullptr) {
+
+                        /*
+                        **  But first, verify if this building is a valid factory for this object.
+                        */
+                        bool allowed_factory = true;
+                        auto ttype_ext = Extension::Fetch(ttype);
+                        if (ttype->RTTI == RTTI_UNITTYPE) {
+                            if (btype_ext->IsNaval != ttype_ext->IsNaval) {
+                                allowed_factory = false;
+                            }
+                        }
+
+                        /*
+                        ** There may be limitations on whether this specific factory can build this object.
+                        */
+                        if (allowed_factory && !ttype_ext->BuiltAt.Is_Present(Class)) {
+
+                            /*
+                            **  This object doesn't allow this factory to produce it.
+                            */
+                            if (ttype_ext->BuiltAt.Count() != 0) {
+                                allowed_factory = false;
+                            }
+
+                            /*
+                            **  This factory can't produce this kind of object.
+                            */
+                            else if (btype_ext->IsExclusiveFactory) {
+                                allowed_factory = false;
+                            }
+                        }
+
+                        /*
+                        **  If everything is okay, create the factory.
+                        */
+                        if (allowed_factory) {
+                            Factory = new FactoryClass;
+                            if (Factory != nullptr) {
+                                if (!Factory->Set(*ttype, *House, false)) {
+                                    delete Factory;
+                                    Factory = nullptr;
+                                } else {
+                                    House->Production_Begun(Factory->Get_Object());
+                                    Factory->Start(false);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+/**
+ *  This patch fetches the correct factory when displaying a cameo on a spied factory.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_BuildingClass_Draw_Overlays_Fetch_Factory_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+
+    static FactoryClass* factory;
+    static BuildingTypeClassExtension const* type_ext;
+    type_ext = Extension::Fetch(this_ptr->Class);
+    factory = Extension::Fetch(this_ptr->House)->Fetch_Factory(this_ptr->Class->ToBuild, type_ext->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
+
+    _asm mov eax, factory
+    JMP_REG(ecx, 0x00428AC4);
+}
+
+
+/**
  *  Replaces an inlined call of Detach_Anim with a direct call.
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_BuildingCLass_Detach_Detach_Anim_Patch)
+DECLARE_PATCH(_BuildingClass_Detach_Detach_Anim_Patch)
 {
     GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
     GET_REGISTER_STATIC(AnimClass*, anim, ecx);
@@ -565,7 +1032,7 @@ bool _BuildingClass_Mission_Repair_Assign_Unit_Destination(BuildingClass *buildi
     }
 
     building->Transmit_Message(RADIO_OVER_OUT);
-    techno->field_20C = 0;
+    techno->field_20C = nullptr;
     return true;
 }
 
@@ -913,7 +1380,7 @@ static void BuildingClass_Shake_Screen(BuildingClass *building)
          *  If this building has screen shake values defined, then set the blitter
          *  offset values. GScreenClass::Blit will handle the rest for us.
          */
-        if ((buildingtypeext->ShakePixelXLo > 0 || buildingtypeext->ShakePixelXHi > 0)
+        if (buildingtypeext->ShakePixelXLo > 0 || buildingtypeext->ShakePixelXHi > 0
          || (buildingtypeext->ShakePixelYLo > 0 || buildingtypeext->ShakePixelYHi > 0)) {
 
             if (buildingtypeext->ShakePixelXLo > 0 || buildingtypeext->ShakePixelXHi > 0) {
@@ -1398,7 +1865,7 @@ bool Should_Open_Roof(BuildingClass* building)
 {
     if (building->Get_Mission() == MISSION_UNLOAD) {
         TechnoClass* radio = building->Contact_With_Whom();
-        if (radio != nullptr && (radio->TClass->Locomotor == __uuidof(JumpjetLocomotionClass))) {
+        if (radio != nullptr && radio->Techno_Type_Class()->Locomotor == __uuidof(JumpjetLocomotionClass)) {
             return true;
         }
     }
@@ -1450,6 +1917,129 @@ DECLARE_PATCH(_BuildingClass_entry_370_RoofDoorAnim_Patch2)
 
 
 /**
+ *  Helper function that handles unlimboing a unit the naval yard has produced.
+ *
+ *  @author: ZivDero
+ */
+bool Unlimbo_Naval_Helper(BuildingClass* building, TechnoClass* techno)
+{
+    if (!building->In_Radio_Contact()) {
+        building->Assign_Mission(MISSION_UNLOAD);
+    }
+
+    Cell unlimbo_cell = building->Center_Coord().As_Cell();
+
+    /**
+     *  If the yard has a rally point set, attempt to place the unit in that direction, next to the naval yard.
+     */
+    if (building->ArchiveTarget != nullptr) {
+        Cell rally = building->ArchiveTarget->Center_Coord().As_Cell();
+        DirType direction = Desired_Facing(Point2D(unlimbo_cell.X, unlimbo_cell.Y), Point2D(rally.X, rally.Y));
+        FacingType facing = static_cast<FacingType>(direction.Get_Facing<8>());
+
+        while (Map[unlimbo_cell].Cell_Building() == building) {
+            unlimbo_cell = Adjacent_Cell(unlimbo_cell, facing);
+        }
+    }
+
+    /**
+     *  If we haven't got a rally point, or the cell we've selected is no good, just pick some cell near the yard that is valid.
+     */
+    if (building->ArchiveTarget == nullptr || Map[unlimbo_cell].Land_Type() != LAND_WATER || Map[unlimbo_cell].Cell_Techno() != nullptr || !Map.In_Radar(unlimbo_cell)) {
+        unlimbo_cell = Map.Nearby_Location(building->Center_Coord().As_Cell(), techno->TClass->Speed);
+    }
+
+    /**
+     *  Unlimbo the unit at that cell.
+     */
+    if (techno->Unlimbo(Map[unlimbo_cell].Center_Coord())) {
+
+        /**
+         *  If there's a rally point, assign the unit to move there.
+         */
+        if (building->ArchiveTarget != nullptr) {
+            techno->Assign_Destination(building->ArchiveTarget);
+            techno->Assign_Mission(MISSION_MOVE);
+        }
+
+        /**
+         *  Reposition the unit. I'm not exactly sure why this is necessary,
+         *  it was copied from YR.
+         */
+        techno->Mark(MARK_UP);
+        techno->PositionCoord = Map[unlimbo_cell].Cell_Coord();
+        techno->Mark(MARK_DOWN);
+
+        /**
+         *  If this is an AI, give the unit a scatter order so that the AI's ships don't clump at the naval yard.
+         */
+        if (!techno->House->Is_Human_Player()) {
+            techno->Scatter(building->Center_Coord());
+        }
+        return true;
+    }
+
+    return false;
+}
+
+
+/**
+ *  This patch handles unlimboing naval yards' production
+ *  next to them as opposed to having the units "drive out".
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_BuildingClass_Exit_Object_Naval_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    GET_REGISTER_STATIC(TechnoClass*, techno, edi);
+    static BuildingTypeClassExtension* type_ext;
+
+    type_ext = Extension::Fetch(this_ptr->Class);
+    if (type_ext->IsNaval) {
+        if (Unlimbo_Naval_Helper(this_ptr, techno)) {
+            JMP(0x0042D7DF); // return 2 - successfully exited
+        } else {
+            JMP(0x0042D966); // return 0 - exit failed
+        }
+    } else {
+        // Stolen call
+        techno->Assign_Archive_Target(this_ptr);
+        JMP(0x0042CAA6);
+    }
+}
+
+
+/**
+ *  This patch is part of adding an extra naval queue for the AI.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_BuildingClass_Exit_Object_BuildNavalUnit_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    GET_REGISTER_STATIC(TechnoClass*, techno, edi);
+
+    static TechnoTypeClassExtension* ttype_ext;
+    static HouseClassExtension* house_ext;
+
+    if (techno->RTTI == RTTI_UNIT) {
+        ttype_ext = Extension::Fetch(techno->TClass);
+        if (ttype_ext->IsNaval) {
+            house_ext = Extension::Fetch(this_ptr->House);
+            house_ext->BuildNavalUnit = UNIT_NONE;
+        } else {
+            this_ptr->House->BuildUnit = UNIT_NONE;
+        }
+    }
+
+    _asm mov ebp, 0xFFFFFFFF
+
+    JMP(0x0042CA50);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void BuildingClassExtension_Hooks()
@@ -1486,11 +2076,20 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x0042E53C, 0x0042E56F); // Jump a check for the PurchasePrice of a building for spawning its FreeUnit in Grand_Opening
     Patch_Jump(0x00436410, &BuildingClassExt::_Detach_Anim);
     Patch_Jump(0x004275B0, &BuildingClassExt::_Draw_It);
-    Patch_Jump(0x00433F1D, &_BuildingCLass_Detach_Detach_Anim_Patch);
+    Patch_Jump(0x00433F1D, &_BuildingClass_Detach_Detach_Anim_Patch);
     Patch_Jump(0x00432709, &_BuildingClass_Mission_Missile_INITIAL_Patch);
     Patch_Jump(0x00432729, &_BuildingClass_Mission_Missile_DOOR_OPENING_Patch);
     Patch_Jump(0x00432957, &_BuildingClass_Mission_Missile_LAUNCH_DOWN_Patch);
     Patch_Jump(0x00432937, &_BuildingClass_Mission_Missile_LAUNCH_DOWN_Voice_Patch);
     //Patch_Jump(0x00427CD8, &_BuildingClass_entry_370_RoofDoorAnim_Patch1);
     //Patch_Jump(0x00427DF5, &_BuildingClass_entry_370_RoofDoorAnim_Patch2);
+    Patch_Jump(0x00428AA4, &_BuildingClass_Draw_Overlays_Fetch_Factory_Patch);
+    Patch_Jump(0x00434000, &BuildingClassExt::_Detach_All);
+    Patch_Jump(0x0042F590, &BuildingClassExt::_Toggle_Primary);
+    Patch_Jump(0x0042C340, &BuildingClassExt::_Assign_Rally_Point);
+    Patch_Jump(0x00434FE0, &BuildingClassExt::_Factory_AI);
+    Patch_Jump(0x0042EBD0, static_cast<ActionType(BuildingClassExt::*)(ObjectClass const*, bool)>(&BuildingClassExt::_What_Action));
+    Patch_Jump(0x0042EED0, static_cast<ActionType(BuildingClassExt::*)(const Cell&, bool, bool) const>(&BuildingClassExt::_What_Action));
+    Patch_Jump(0x0042CA98, &_BuildingClass_Exit_Object_Naval_Patch);
+    Patch_Jump(0x0042CA35, &_BuildingClass_Exit_Object_BuildNavalUnit_Patch);
 }

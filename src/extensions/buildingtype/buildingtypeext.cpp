@@ -56,7 +56,8 @@ BuildingTypeClassExtension::BuildingTypeClassExtension(const BuildingTypeClass *
     IsHideDuringSpecialAnim(false),
     RoofDeployingAnim(nullptr),
     RoofDoorAnim(nullptr),
-    UnderRoofDoorAnim(nullptr)
+    UnderRoofDoorAnim(nullptr),
+    IsExclusiveFactory(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("BuildingTypeClassExtension::BuildingTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -182,6 +183,7 @@ void BuildingTypeClassExtension::Object_CRC(CRCEngine &crc) const
     //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     crc(IsEligibleForAllyBuilding);
+    crc(IsExclusiveFactory);
 }
 
 
@@ -217,6 +219,8 @@ bool BuildingTypeClassExtension::Read_INI(CCINIClass &ini)
 
     IsEligibleForAllyBuilding = ini.Get_Bool(ini_name, "EligibleForAllyBuilding", IsEligibleForAllyBuilding);
     IsHideDuringSpecialAnim = ArtINI.Get_Bool(ini_name, "HideDuringSpecialAnim", IsHideDuringSpecialAnim);
+
+    IsExclusiveFactory = ini.Get_Bool(ini_name, "ExclusiveFactory", IsExclusiveFactory);
 
     Fetch_Building_Normal_Image(Scen->Theater);
 

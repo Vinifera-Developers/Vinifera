@@ -84,7 +84,8 @@ RulesClassExtension::RulesClassExtension(const RulesClass *this_ptr) :
     WeedPipIndex(1),
     MaxFreeRefineryDistanceBias(16),
     IsRecheckPrerequisites(false),
-    IsMultiMCV(false)
+    IsMultiMCV(false),
+    AINavalYardAdjacency(20)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
@@ -218,6 +219,7 @@ void RulesClassExtension::Object_CRC(CRCEngine &crc) const
     crc(MaxFreeRefineryDistanceBias);
     crc(IsRecheckPrerequisites);
     crc(IsMultiMCV);
+    crc(AINavalYardAdjacency);
 }
 
 
@@ -355,6 +357,7 @@ void RulesClassExtension::Process(CCINIClass &ini)
     MPlayer(ini);
     AudioVisual(ini);
     CombatDamage(ini);
+    AI(ini);
 
     /**
      *  Run some checks to ensure certain values are as expected.
@@ -679,6 +682,27 @@ bool RulesClassExtension::CombatDamage(CCINIClass & ini)
     }
 
     IceStrength = ini.Get_Int(COMBATDAMAGE, "IceStrength", IceStrength);
+
+    return true;
+}
+
+
+/**
+ *  Process the AI related game settings.
+ *
+ *  @author: ZivDero
+ */
+bool RulesClassExtension::AI(CCINIClass& ini)
+{
+    //EXT_DEBUG_TRACE("RulesClassExtension::AI - 0x%08X\n", (uintptr_t)(This()));
+
+    static char const* const AI = "AI";
+
+    if (!ini.Is_Present(AI)) {
+        return false;
+    }
+
+    AINavalYardAdjacency = ini.Get_Int(AI, "AINavalYardAdjacency", AINavalYardAdjacency);
 
     return true;
 }

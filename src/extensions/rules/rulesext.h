@@ -64,6 +64,7 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
         bool MPlayer(CCINIClass &ini);
         bool AudioVisual(CCINIClass &ini);
         bool CombatDamage(CCINIClass &ini);
+        bool AI(CCINIClass& ini);
         bool Weapons(CCINIClass &ini);
         bool Armors(CCINIClass &ini);
         bool Rockets(CCINIClass &ini);
@@ -127,4 +128,9 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
          *  Should the game assume there is more than one MCV (that factions don't share their MCV?)
          */
         bool IsMultiMCV;
+
+        /**
+         *  The distance in cells the computer player can place their Naval Yard from their Construction Yard.
+         */
+        int AINavalYardAdjacency;
 };

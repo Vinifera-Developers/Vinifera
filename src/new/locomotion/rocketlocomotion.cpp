@@ -584,7 +584,7 @@ Coordinate RocketLocomotionClass::Get_Next_Position(double speed) const
     Coordinate coord;
 
     const double horizontal_speed = FastMath::Cos(CurrentPitch) * speed;
-    const double horizontal_angle = LinkedTo->PrimaryFacing.Current().Get_Radian<65536>();
+    const double horizontal_angle = LinkedTo->PrimaryFacing.Current().Get_Radian();
 
     coord.X = static_cast<int>(LinkedTo->Coord.X + FastMath::Cos(horizontal_angle) * horizontal_speed);
     coord.Y = static_cast<int>(LinkedTo->Coord.Y - FastMath::Sin(horizontal_angle) * horizontal_speed);

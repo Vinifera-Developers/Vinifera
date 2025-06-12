@@ -1032,6 +1032,47 @@ In `RULES.INI`:
 JumpjetNoWobbles=false  ; boolean, whether the jumpjet unit doesn't wobble.
 ```
 
+### Naval Yards
+
+- Vinifera implements a separate queue for naval units.
+
+- `BuildingTypes`, types with `Naval=yes` in conjunction with `WeaponsFactory=yes` will be considered Naval Yards and will only be able to produce `UnitTypes` with `Naval=yes`. Similarly, `UnitTypes` with `Naval=yes` may only be produced from weapons factories with `Naval=yes`.
+
+In `RULES.INI`:
+```ini
+[SOMETECHNO]  ; TechnoType
+Naval=false   ; boolean, whether this Techno is considered naval
+```
+
+- Additionally, AI uses different rules to place naval yards.
+
+In `RULES.INI`:
+```ini
+[AI]
+AINavalYardAdjacency=20   ; integer, the distance in cells AI can place its Naval Yard from its Construction Yard
+```
+
+### Exclusive Factories
+
+- Vinifera allows limiting what factories can produce what Technos.
+
+In `RULES.INI`:
+```ini
+[SOMETECHNO]  ; TechnoType
+BuiltAt=      ; list of BuildingTypes, if not empty, then this Techno will be produced at one of these factories
+```
+
+- Additionally, a factory may be set to only produce specific Technos.
+
+In `RULES.INI`:
+```ini
+[SOMEBUILDING]       ; BuildingType
+ExclusiveFactory=no  ; boolean, if true, this factory will only be able to produce units that list it in BuiltAt
+```
+
+```{note}
+To recreate the dog from Red Alert that is trained in a kennel, set `[KENN]->Factory=InfantryType`, `[KENN]->ExclusiveFactory=yes` and `[DOG]->BuiltAt=KENN`.
+```
 
 ## Terrain
 

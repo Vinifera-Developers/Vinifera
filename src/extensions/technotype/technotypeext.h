@@ -27,10 +27,13 @@
  ******************************************************************************/
 #pragma once
 
+#include "extension.h"
 #include "objecttypeext.h"
+#include "techno.h"
 #include "technotype.h"
 #include "typelist.h"
 #include "tibsun_defines.h"
+#include "tibsun_functions.h"
 
 
 class AircraftTypeClass;
@@ -59,6 +62,11 @@ public:
     virtual const TechnoTypeClass *This_Const() const override { return reinterpret_cast<const TechnoTypeClass *>(ObjectTypeClassExtension::This_Const()); }
 
     virtual bool Read_INI(CCINIClass &ini) override;
+
+    static ProductionFlags Get_Production_Flags(RTTIType type, int id);
+    static ProductionFlags Get_Production_Flags(const TechnoClass* techno) { return Get_Production_Flags(techno->Techno_Type_Class()); }
+    static ProductionFlags Get_Production_Flags(const TechnoTypeClass* ttype) { return Get_Production_Flags(Extension::Fetch(ttype)); }
+    static ProductionFlags Get_Production_Flags(const TechnoTypeClassExtension* ttype_ext);
 
 public:
     /**
@@ -341,4 +349,15 @@ public:
      *  Whether the jumpjet unit doesn't wobble.
      */
     bool JumpjetNoWobbles;
+
+    /**
+     *  If this techno "naval"? For buildings, this usually means this is a naval yard,
+     *  and for units - that this is a ship.
+     */
+    bool IsNaval;
+
+    /**
+     *  A list of factories that can produce this unit.
+     */
+    TypeList<BuildingTypeClass*> BuiltAt;
 };

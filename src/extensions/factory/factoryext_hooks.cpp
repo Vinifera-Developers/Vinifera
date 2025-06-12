@@ -39,12 +39,14 @@
 #include "technotype.h"
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "houseext.h"
 #include "mouse.h"
 #include "rulesext.h"
 #include "sidebarext.h"
+#include "unittypeext.h"
 
 
- /**
+/**
   *  A fake class for implementing new member functions which allow
   *  access to the "this" pointer of the intended class.
   *
@@ -57,6 +59,8 @@ public:
     void _Sanitize_Queue();
     void _AI();
     bool _Start(bool suspend);
+    void _Resume_Queue();
+    bool _Abandon();
 };
 
 
@@ -105,7 +109,7 @@ void FactoryClassExt::_Sanitize_Queue()
 
     if (need_update) {
         if (House == PlayerPtr) {
-            SidebarExtension->Flag_Strip_To_Redraw(type);
+            SidebarExtension->Flag_Strip_To_Redraw(type, TechnoTypeClassExtension::Get_Production_Flags(producing_type));
         }
 
         House->Update_Factories(type);
@@ -228,6 +232,89 @@ void FactoryClassExt::_AI()
 
 
 /**
+ *  Reimplementation of FactoryClass::Resume_Queue.
+ *
+ *  @author: ZivDero
+ */
+void FactoryClassExt::_Resume_Queue()
+{
+    if (QueuedObjects.Count()) {
+        if (Object == nullptr && (!Fetch_Rate() || IsSuspended)) {
+            const TechnoTypeClass* object = QueuedObjects[0];
+            QueuedObjects.Delete(0);
+            int id = object->Fetch_Heap_ID();
+            if (id >= 0) {
+                Extension::Fetch(House)->Begin_Production(object->RTTI, id, true, TechnoTypeClassExtension::Get_Production_Flags(object->RTTI, id));
+            }
+        }
+    }
+}
+
+
+/**
+ *  Reimplementation of FactoryClass::Abandon.
+ *
+ *  @author: ZivDero
+ */
+bool FactoryClassExt::_Abandon()
+{
+    if (Object) {
+
+        DEBUG_INFO("Abandoning production of %s\n", Object->Class_Of()->FullName);
+
+        /*
+        **  Refund all money expended so far, back to the owner of the object under construction.
+        */
+        int money = Object->Class_Of()->Cost_Of(Object->House);
+        House->Refund_Money(money - Balance);
+        Balance = 0;
+
+        if (SpecialItem) {
+            SpecialItem = SUPER_NONE;
+        }
+
+        /*
+        **  Set the factory back to the idle and empty state.
+        */
+        Set_Rate(0);
+        Set_Stage(0);
+        IsSuspended = true;
+        IsDifferent = true;
+
+        if (!House->Is_Human_Player()) {
+            if (Object->RTTI == RTTI_INFANTRY) {
+                House->BuildInfantry = INFANTRY_NONE;
+            }
+            if (Object->RTTI == RTTI_UNIT) {
+                if (Extension::Fetch(Object->TClass)->IsNaval) {
+                    Extension::Fetch(House)->BuildNavalUnit = UNIT_NONE;
+                } else {
+                    House->BuildUnit = UNIT_NONE;
+                }
+            }
+            if (Object->RTTI == RTTI_AIRCRAFT) {
+                House->BuildAircraft = AIRCRAFT_NONE;
+            }
+            if (Object->RTTI == RTTI_BUILDING) {
+                House->BuildStructure = STRUCT_NONE;
+            }
+        }
+
+        /*
+        **  Delete the object under construction.
+        */
+        ScenarioInit++;
+        delete Object;
+        Object = nullptr;
+        ScenarioInit--;
+
+        return true;
+    }
+    return false;
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void FactoryClassExtension_Hooks()
@@ -239,4 +326,6 @@ void FactoryClassExtension_Hooks()
 
     Patch_Jump(0x00496EA0, &FactoryClassExt::_AI);
     Patch_Jump(0x004971E0, &FactoryClassExt::_Start);
+    Patch_Jump(0x004978D0, &FactoryClassExt::_Resume_Queue);
+    Patch_Jump(0x00497330, &FactoryClassExt::_Abandon);
 }

@@ -42,6 +42,7 @@
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "buildingtypeext.h"
 #include "extension_globals.h"
 #include "sidebarext.h"
 #include "rules.h"
@@ -51,6 +52,8 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "houseext.h"
+#include "msgbox.h"
 #include "rulesext.h"
 #include "tibsun_functions.h"
 
@@ -65,195 +68,27 @@
 static DECLARE_EXTENDING_CLASS_AND_PAIR(HouseClass)
 {
 public:
-    ProdFailType _Begin_Production(RTTIType type, int id, bool resume);
-    ProdFailType _Abandon_Production(RTTIType type, int id);
     int _AI_Building();
+    int _AI_Unit();
     int _Expert_AI();
     bool _Can_Build_Required_Forbidden_Houses(const TechnoTypeClass* techno_type);
+    void _Active_Remove(TechnoClass const* techno);
+    void _Active_Add(TechnoClass const* techno);
+    Cell _Find_Build_Location(BuildingTypeClass* btype, int(__fastcall* callback)(int, Cell&, int, int), int a3 = -1);
+    void _Production_Check();
+
+    // stubs
+    FactoryClass* _Fetch_Factory(RTTIType rtti);
+    void _Set_Factory(RTTIType rtti, FactoryClass* factory);
+    int* _Factory_Counter(RTTIType rtti);
+    int _Factory_Count(RTTIType rtti) const;
+    ProdFailType _Suspend_Production(RTTIType type);
+    ProdFailType _Begin_Production(RTTIType type, int id, bool resume);
+    ProdFailType _Abandon_Production(RTTIType type, int id);
+    bool _Place_Object(RTTIType type, Cell const& cell);
+    void _Update_Factories(RTTIType rtti);
+    TechnoTypeClass const* _Suggest_New_Object(RTTIType objecttype, bool kennel) const;
 };
-
-
-/**
- *  Reimplements the entire HouseClass::Begin_Production function.
- *
- *  @author: ZivDero
- */
-ProdFailType HouseClassExt::_Begin_Production(RTTIType type, int id, bool resume)
-{
-    bool has_suspended = false;
-    bool suspend = false;
-    FactoryClass* fptr;
-    TechnoTypeClass const* tech = Fetch_Techno_Type(type, id);
-
-    if (!tech->Who_Can_Build_Me(false, true, true, this))
-    {
-        if (!resume || !tech->Who_Can_Build_Me(true, false, true, this))
-        {
-            DEBUG_INFO("Request to Begin_Production of '%s' was rejected. No-one can build.\n", tech->FullName);
-            return PROD_CANT;
-        }
-        suspend = true;
-    }
-
-    fptr = Fetch_Factory(type);
-
-    /*
-    **  If no factory exists, create one.
-    */
-    if (fptr == nullptr)
-    {
-        fptr = new FactoryClass();
-        if (!fptr)
-        {
-            DEBUG_INFO("Request to Begin_Production of '%s' was rejected. Unable to create factory\n", tech->FullName);
-            return PROD_CANT;
-        }
-        Set_Factory(type, fptr);
-    }
-
-    /*
-    **  If the house is already busy producing a building, then
-    **  return with this failure code.
-    */
-    if (fptr->Is_Building() && type == RTTI_BUILDINGTYPE)
-    {
-        DEBUG_INFO("Request to Begin_Production of '%s' was rejected. Cannot queue buildings.\n", tech->FullName);
-        return PROD_CANT;
-    }
-
-    /*
-    **  Check if we have an object of this type currently suspended in production.
-    */
-    if (fptr->IsSuspended)
-    {
-        ObjectClass* obj = fptr->Get_Object();
-        if (obj != nullptr && obj->TClass == tech)
-        {
-            has_suspended = true;
-        }
-    }
-
-    if (has_suspended || fptr->Set(*tech, *this, resume))
-    {
-        if (has_suspended || resume || fptr->Queued_Object_Count() == 0)
-        {
-            fptr->Start(suspend);
-
-            /*
-            **  Link this factory to the sidebar so that proper graphic feedback
-            **  can take place.
-            */
-            if (PlayerPtr == this)
-                Map.Factory_Link(fptr, type, id);
-
-            return PROD_OK;
-        }
-        else
-        {
-            SidebarExtension->Flag_Strip_To_Redraw(type);
-            return PROD_OK;
-        }
-    }
-
-    DEBUG_INFO("Request to Begin_Production of '%s' was rejected. Factory was unable to create the requested object\n", tech->Full_Name());
-
-    /*
-    **  If the factory has queued objects or is currently
-    **  building an object, reject production.
-    */
-    if (fptr->Queued_Object_Count() > 0 || fptr->Object)
-        return PROD_CANT;
-
-
-    /*
-    **  Output debug information if production failed.
-    */
-    DEBUG_INFO("type=%d\n", type);
-    DEBUG_INFO("Frame == %d\n", Frame);
-    DEBUG_INFO("fptr->QueuedObjects.Count() == %d\n", fptr->QueuedObjects.Count());
-    if (fptr->Get_Object())
-    {
-        DEBUG_INFO("Object->RTTI == %d\n", fptr->Object->RTTI);
-        DEBUG_INFO("Object->HeapID == %d\n", fptr->Object->Fetch_Heap_ID());
-    }
-    DEBUG_INFO("IsSuspended\t= %d\n", fptr->IsSuspended);
-
-    delete fptr;
-    Set_Factory(type, nullptr);
-
-    return PROD_CANT;
-}
-
-
-/**
- *  Reimplements the entire HouseClass::Abandon_Production function.
- *
- *  @author: ZivDero
- */
-ProdFailType HouseClassExt::_Abandon_Production(RTTIType type, int id)
-{
-    FactoryClass* fptr = Fetch_Factory(type);
-
-    /*
-    **  If there is no factory to abandon, then return with a failure code.
-    */
-    if (fptr == nullptr)
-        return PROD_CANT;
-
-    /*
-    **  If we're just dequeuing a unit, redraw the strip.
-    */
-    if (fptr->Queued_Object_Count() > 0 && id >= 0)
-    {
-        const TechnoTypeClass* technotype = Fetch_Techno_Type(type, id);
-        if (fptr->Remove_From_Queue(*technotype))
-        {
-            SidebarExtension->Flag_Strip_To_Redraw(type);
-            return PROD_OK;
-        }
-    }
-
-    if (id != -1)
-    {
-        ObjectClass* obj = fptr->Get_Object();
-        if (obj == nullptr)
-            return PROD_OK;
-
-        const ObjectTypeClass* cls = obj->Class_Of();
-        if (id != cls->Fetch_Heap_ID())
-            return PROD_OK;
-    }
-
-    /*
-    **  Tell the sidebar that it needs to be redrawn because of this.
-    */
-    if (PlayerPtr == this)
-    {
-        Map.Abandon_Production(type, fptr);
-        if (type == RTTI_BUILDINGTYPE || type == RTTI_BUILDING)
-        {
-            Map.PendingObjectPtr = nullptr;
-            Map.PendingObject = nullptr;
-            Map.PendingHouse = HOUSE_NONE;
-            Map.Set_Cursor_Shape(nullptr);
-        }
-    }
-
-    /*
-    **  Abandon production of the object.
-    */
-    fptr->Abandon();
-    if (fptr->Queued_Object_Count() > 0)
-    {
-        fptr->Resume_Queue();
-        return PROD_OK;
-    }
-
-    Set_Factory(type, nullptr);
-    delete fptr;
-
-    return PROD_OK;
-}
 
 
 /**
@@ -429,6 +264,15 @@ int HouseClassExt::_AI_Building()
 
     BuildStructure = node->Type;
     return TICKS_PER_SECOND;
+}
+
+
+int HouseClassExt::_AI_Unit()
+{
+    auto extension = Extension::Fetch(this);
+    int delay1 = extension->AI_Unit();
+    int delay2 = extension->AI_Naval_Unit();
+    return std::min(delay1, delay2);
 }
 
 
@@ -916,6 +760,111 @@ bool HouseClassExt::_Can_Build_Required_Forbidden_Houses(const TechnoTypeClass* 
 
 
 /**
+ *  Reimplementation of HouseClass::Active_Remove.
+ *
+ *  @author: ZivDero
+ */
+void HouseClassExt::_Active_Remove(TechnoClass const* techno)
+{
+    if (techno->RTTI == RTTI_BUILDING) {
+        int* fptr = Extension::Fetch(this)->Factory_Counter(((BuildingClass*)techno)->Class->ToBuild,
+            Extension::Fetch(((BuildingClass*)techno)->Class)->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
+        if (fptr != nullptr) {
+            *fptr = *fptr - 1;
+        }
+    }
+}
+
+
+/**
+ *  Reimplementation of HouseClass::Active_Add.
+ *
+ *  @author: ZivDero
+ */
+void HouseClassExt::_Active_Add(TechnoClass const* techno)
+{
+    if (techno->RTTI == RTTI_BUILDING) {
+        int* fptr = Extension::Fetch(this)->Factory_Counter(((BuildingClass*)techno)->Class->ToBuild,
+            Extension::Fetch(((BuildingClass*)techno)->Class)->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
+        if (fptr != nullptr) {
+            *fptr = *fptr + 1;
+        }
+    }
+}
+
+
+/**
+ *  #issue-531
+ *
+ *  Interception of Find_Build_Location. This allows us to find a suitable building
+ *  location for the specific buildings, such as the Naval Yard.
+ *
+ *  @author: CCHyper
+ */
+Cell HouseClassExt::_Find_Build_Location(BuildingTypeClass* btype, int(__fastcall* callback)(int, Cell&, int, int), int a3)
+{
+    /**
+     *  Find the type class extension instance.
+     */
+    BuildingTypeClassExtension* buildingtypeext = Extension::Fetch(btype);
+    if (buildingtypeext && buildingtypeext->IsNaval) {
+
+        DEV_DEBUG_INFO("Find_Build_Location(%s): Searching for Naval Yard \"%s\" build location...\n", Name(), btype->Name());
+
+        Cell cell(0, 0);
+
+        /**
+         *  Get the cell footprint for the Naval Yard, then add a safety margin of 2.
+         */
+        int area_w = btype->Width() + 2;
+        int area_h = btype->Height() + 2;
+
+        /**
+         *  find a nearby location from the center of the base that fits our naval yard.
+         */
+        Cell found_cell = Map.Nearby_Location(Coord_Cell(Center), SPEED_FLOAT, -1, MZONE_NORMAL, false, Point2D(area_w, area_h));
+        if (found_cell != CELL_NONE) {
+
+            DEV_DEBUG_INFO("Find_Build_Location(%s): Found possible Naval Yard location at %d,%d...\n", Name(), found_cell.X, found_cell.Y);
+
+            /**
+             *  Iterate over all owned construction yards and find the first that is closest to our cell.
+             */
+            for (int i = 0; i < ConstructionYards.Count(); ++i) {
+                BuildingClass* conyard = ConstructionYards[i];
+                if (conyard) {
+
+                    Coordinate conyard_coord = conyard->Center_Coord();
+                    Coordinate found_coord = Map[found_cell].Center_Coord();
+
+                    /**
+                     *  Is this location close enough to the construction yard for us to use?
+                     */
+                    if (Distance(conyard_coord, found_coord) <= Cell_To_Lepton(RuleExtension->AINavalYardAdjacency)) {
+                        DEV_DEBUG_INFO("Find_Build_Location(%s): Using location %d,%d for Naval Yard.\n", Name(), found_cell.X, found_cell.Y);
+                        cell = found_cell;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (cell == CELL_NONE) {
+            DEV_DEBUG_WARNING("Find_Build_Location(%s): Failed to find suitable location for \"%s\"!\n", Name(), btype->Name());
+        }
+
+        return cell;
+
+    }
+
+    /**
+     *  Call the original function to find a location for land buildings.
+     */
+    return HouseClass::Find_Build_Location(btype, callback, a3);
+}
+
+
+/**
  *  Adds a check to Can_Build to check for RequiredHouses and ForbiddenHouses
  *
  *  Author: ZivDero
@@ -968,6 +917,240 @@ DECLARE_PATCH(_HouseClass_Can_Build_Multi_MCV_Patch)
 
 
 /**
+ *  Handy macro for the functions below.
+ */
+#define WARN_AND_EXIT(funcname) { \
+    DEBUG_FATAL("The legacy version of " STRINGIZE(funcname) " has been called! If you see this, please notify the developers. The game will now exit.\n"); \
+    DEBUG_FATAL("Return address: %p\n", _ReturnAddress()); \
+    WWMessageBox().Process("The legacy version of " STRINGIZE(funcname) " has been called! If you see this, please notify the developers. The game will now exit.", 0, TXT_OK); \
+    Emergency_Exit(0); } \
+
+
+/**
+ *  The below are dummies for the functions that have been completely supplanted by our extension functions.
+ *  These ought not to be used.
+ */
+FactoryClass* HouseClassExt::_Fetch_Factory(RTTIType rtti)
+{
+    WARN_AND_EXIT(HouseClass::Fetch_Factory);
+    return nullptr;
+}
+
+void HouseClassExt::_Set_Factory(RTTIType rtti, FactoryClass* factory)
+{
+    WARN_AND_EXIT(HouseClass::Set_Factory);
+}
+
+int* HouseClassExt::_Factory_Counter(RTTIType rtti)
+{
+    WARN_AND_EXIT(HouseClass::Factory_Counter);
+    return nullptr;
+}
+
+int HouseClassExt::_Factory_Count(RTTIType rtti) const
+{
+    WARN_AND_EXIT(HouseClass::Factory_Count);
+    return 0;
+}
+
+ProdFailType HouseClassExt::_Suspend_Production(RTTIType type)
+{
+    WARN_AND_EXIT(HouseClass::Suspend_Production);
+    return ProdFailType();
+}
+
+ProdFailType HouseClassExt::_Begin_Production(RTTIType type, int id, bool resume)
+{
+    WARN_AND_EXIT(HouseClass::Begin_Production);
+    return ProdFailType();
+}
+
+ProdFailType HouseClassExt::_Abandon_Production(RTTIType type, int id)
+{
+    WARN_AND_EXIT(HouseClass::Abandon_Production);
+    return ProdFailType();
+}
+
+bool HouseClassExt::_Place_Object(RTTIType type, Cell const& cell)
+{
+    WARN_AND_EXIT(HouseClass::Place_Object);
+    return false;
+}
+
+void HouseClassExt::_Update_Factories(RTTIType type)
+{
+    WARN_AND_EXIT(HouseClass::Update_Factories);
+}
+
+TechnoTypeClass const* HouseClassExt::_Suggest_New_Object(RTTIType objecttype, bool kennel) const
+{
+    WARN_AND_EXIT(HouseClass::Suggest_New_Object);
+    return nullptr;
+}
+
+
+/**
+ *  The patches below replace calls to various HouseClass functions that we've re-implemented
+ *  with calls to our extended implementations.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_HouseClass_Exhausted_Build_Limit_Fetch_Factory_Patch)
+{
+    GET_REGISTER_STATIC(HouseClass*, this_ptr, ebx);
+    GET_REGISTER_STATIC(TechnoTypeClass const*, ttype, esi);
+
+    static FactoryClass* factory;
+    factory = Extension::Fetch(this_ptr)->Fetch_Factory(ttype->RTTI, TechnoTypeClassExtension::Get_Production_Flags(ttype));
+
+    _asm mov ecx, factory
+    JMP(0x004CB773);
+}
+
+
+void Update_Factories_Helper(BuildingClass* building)
+{
+    if (building->Class->ToBuild != RTTI_NONE) {
+        BuildingTypeClassExtension* type_ext = Extension::Fetch(building->Class);
+        HouseClassExtension* house_ext = Extension::Fetch(building->House);
+        house_ext->Update_Factories(building->Class->ToBuild, type_ext->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
+    }
+}
+
+
+DECLARE_PATCH(_BuildingClass_Unlimbo_Update_Factories_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    Update_Factories_Helper(this_ptr);
+    JMP(0x0042AAEB);
+}
+
+
+DECLARE_PATCH(_BuildingClass_Limbo_Update_Factories_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, edi);
+    Update_Factories_Helper(this_ptr);
+    JMP(0x0042DFDA);
+}
+
+
+DECLARE_PATCH(_BuildingClass_Captured_Update_Factories_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    GET_STACK_STATIC(HouseClass*, newowner, esp, 0x18);
+    GET_STACK_STATIC(HouseClass*, oldowner, esp, 0x60);
+
+    static BuildingTypeClassExtension* type_ext;
+    static HouseClassExtension* old_house_ext;
+    static HouseClassExtension* new_house_ext;
+
+    if (this_ptr->Class->ToBuild != RTTI_NONE) {
+        type_ext = Extension::Fetch(this_ptr->Class);
+
+        old_house_ext = Extension::Fetch(oldowner);
+        old_house_ext->Update_Factories(this_ptr->Class->ToBuild, type_ext->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
+
+        new_house_ext = Extension::Fetch(oldowner);
+        new_house_ext->Update_Factories(this_ptr->Class->ToBuild, type_ext->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
+    }
+
+    JMP(0x0042FD28);
+}
+
+
+DECLARE_PATCH(_BuildingClass_Read_INI_Update_Factories_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    Update_Factories_Helper(this_ptr);
+    JMP(0x00434C94);
+}
+
+
+DECLARE_PATCH(_BuildingClass_Turn_On_Update_Factories_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    Update_Factories_Helper(this_ptr);
+    JMP(0x0043686B);
+}
+
+
+DECLARE_PATCH(_BuildingClass_Turn_Off_Update_Factories_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
+    Update_Factories_Helper(this_ptr);
+    JMP(0x0043692D);
+}
+
+
+/**
+ *  This patch is part of adding an extra naval queue for the AI.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_HouseClass_Raise_Money_BuildNavalUnit_Patch)
+{
+    GET_REGISTER_STATIC(HouseClass*, this_ptr, esi);
+    GET_REGISTER_STATIC(bool, needs_harvester, cl);
+    static HouseClassExtension* house_ext;
+
+    house_ext = Extension::Fetch(this_ptr);
+
+    // Stolen instructions
+    this_ptr->BuildUnit = UNIT_NONE;
+    this_ptr->BuildInfantry = INFANTRY_NONE;
+    this_ptr->BuildAircraft = AIRCRAFT_NONE;
+    this_ptr->BuildStructure = STRUCT_NONE;
+
+    // Clear naval production target
+    house_ext->BuildNavalUnit = UNIT_NONE;
+
+    if (needs_harvester) {
+        JMP(0x004C0F5F);
+    } else {
+        JMP(0x004C0F87);
+    }
+}
+
+
+/**
+ *  Reimplementation of part of HouseClass::AI related to production,
+ *  patched for naval queues.
+ *
+ *  @author: ZivDero
+ */
+void HouseClassExt::_Production_Check()
+{
+    auto house_ext = Extension::Fetch(this);
+
+    bool b = BuildUnit == UNIT_NONE && BuildInfantry == INFANTRY_NONE && BuildAircraft == AIRCRAFT_NONE && house_ext->BuildNavalUnit == UNIT_NONE;
+
+    if (BuildUnit != UNIT_NONE && !UnitTypes[BuildUnit]->Who_Can_Build_Me(true, true, true, this)) {
+        b = true;
+    }
+    if (BuildInfantry != INFANTRY_NONE && !InfantryTypes[BuildInfantry]->Who_Can_Build_Me(true, true, true, this)) {
+        b = true;
+    }
+    if (BuildAircraft != AIRCRAFT_NONE && !AircraftTypes[BuildAircraft]->Who_Can_Build_Me(true, true, true, this)) {
+        b = true;
+    }
+    if (house_ext->BuildNavalUnit != UNIT_NONE && !UnitTypes[house_ext->BuildNavalUnit]->Who_Can_Build_Me(true, true, true, this)) {
+        b = true;
+    }
+
+    if (b) {
+        AI_Building();
+    }
+}
+
+DECLARE_PATCH(_HouseClass_AI_BuildNavalUnit_Patch)
+{
+    GET_REGISTER_STATIC(HouseClassExt*, this_ptr, esi);
+    this_ptr->_Production_Check();
+    JMP(0x004BD1A1);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void HouseClassExtension_Hooks()
@@ -980,17 +1163,42 @@ void HouseClassExtension_Hooks()
     Patch_Jump(0x004BBD26, &_HouseClass_Can_Build_BuildCheat_Patch);
     Patch_Jump(0x004BD30B, &_HouseClass_Super_Weapon_Handler_InstantRecharge_Patch);
 
-    Patch_Jump(0x004BE200, &HouseClassExt::_Begin_Production);
-    Patch_Jump(0x004BE6A0, &HouseClassExt::_Abandon_Production);
-
     Patch_Jump(0x004CB777, &_HouseClass_ShouldDisableCameo_BuildLimit_Fix);
     Patch_Jump(0x004BC187, &_HouseClass_Can_Build_BuildLimit_Handle_Vehicle_Transform);
     Patch_Jump(0x004CB6C1, &_HouseClass_Enable_SWs_Check_For_Building_Power);
 
     Patch_Jump(0x004C10E0, &HouseClassExt::_AI_Building);
+    Patch_Jump(0x004C1650, &HouseClassExt::_AI_Unit);
     Patch_Jump(0x004C0630, &HouseClassExt::_Expert_AI);
     Patch_Jump(0x004BBC74, &_Can_Build_Required_Forbidden_Houses_Patch);
 
     Patch_Jump(0x004BAC2C, 0x004BAC39); // Patch a jump in the constructor to always allocate unit trackers
     Patch_Jump(0x004BC0B7, &_HouseClass_Can_Build_Multi_MCV_Patch);
+
+    Patch_Jump(0x004CB73D, &_HouseClass_Exhausted_Build_Limit_Fetch_Factory_Patch);
+    Patch_Jump(0x0042AACF, &_BuildingClass_Unlimbo_Update_Factories_Patch);
+    Patch_Jump(0x0042DFBE, &_BuildingClass_Limbo_Update_Factories_Patch);
+    Patch_Jump(0x0042FCF8, &_BuildingClass_Captured_Update_Factories_Patch);
+    Patch_Jump(0x00434C78, &_BuildingClass_Read_INI_Update_Factories_Patch);
+    Patch_Jump(0x00436855, &_BuildingClass_Turn_On_Update_Factories_Patch);
+    Patch_Jump(0x00436911, &_BuildingClass_Turn_Off_Update_Factories_Patch);
+    Patch_Jump(0x004C0F40, &_HouseClass_Raise_Money_BuildNavalUnit_Patch);
+    Patch_Jump(0x004BD0E5, &_HouseClass_AI_BuildNavalUnit_Patch);
+
+    Patch_Jump(0x004C23B0, &HouseClassExt::_Active_Remove);
+    Patch_Jump(0x004C2450, &HouseClassExt::_Active_Add);
+
+    Patch_Call(0x0042D460, &HouseClassExt::_Find_Build_Location);
+    Patch_Call(0x0042D53C, &HouseClassExt::_Find_Build_Location);
+    Patch_Call(0x004C8104, &HouseClassExt::_Find_Build_Location);
+
+    Patch_Jump(0x004C2CA0, &HouseClassExt::_Fetch_Factory);
+    Patch_Jump(0x004C2D20, &HouseClassExt::_Set_Factory);
+    Patch_Jump(0x004C2330, &HouseClassExt::_Factory_Counter);
+    Patch_Jump(0x004C2DB0, &HouseClassExt::_Factory_Count);
+    Patch_Jump(0x004BE5D0, &HouseClassExt::_Suspend_Production);
+    Patch_Jump(0x004BE200, &HouseClassExt::_Begin_Production);
+    Patch_Jump(0x004BE6A0, &HouseClassExt::_Abandon_Production);
+    Patch_Jump(0x004BEA10, &HouseClassExt::_Place_Object);
+    Patch_Jump(0x004BF180, &HouseClassExt::_Suggest_New_Object);
 }

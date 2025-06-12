@@ -86,7 +86,7 @@
 #include "tibsun_functions.h"
 #include "utracker.h"
 #include "aircraft.h"
-
+#include "houseext.h"
 
 
 /**
@@ -121,6 +121,7 @@ public:
     bool _Can_Player_Move() const;
     Coordinate _Fire_Coord(WeaponSlotType which) const;
     void _Record_The_Kill(TechnoClass* source);
+    int _Time_To_Build() const;
 };
 
 
@@ -1295,6 +1296,38 @@ void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
     default:
         break;
     }
+}
+
+
+/**
+ *  Reimplementation of TechnoClass::Time_To_Build.
+ *
+ *  @author: ZivDero
+ */
+int TechnoClassExt::_Time_To_Build() const
+{
+    int val = Class_Of()->Time_To_Build();
+
+    val *= House->BuildSpeedBias;
+
+    /*
+    **  Adjust the time to build based on the power output of the owning house.
+    */
+    double power = House->Power_Fraction();
+    if (power > 1.0) power = 1.0;
+    if (power < 1.0 && power > 0.75) power = 0.75;
+    if (power < 0.5) power = 0.5;
+    power = std::max(power, Rule->MinProductionSpeed);
+    val /= power;
+
+    int divisor = Extension::Fetch(House)->Factory_Count(RTTI, TechnoTypeClassExtension::Get_Production_Flags(this));
+    if (divisor > 1 && Rule->MultipleFactory > 0) {
+        val *= 1.0 / ((divisor - 1) * Rule->MultipleFactory);
+    }
+    if (RTTI == RTTI_BUILDING && ((BuildingClass*)this)->Class->IsWall) {
+        val *= Rule->WallBuildSpeedCoefficient;
+    }
+    return val;
 }
 
 
@@ -2703,4 +2736,5 @@ void TechnoClassExtension_Hooks()
     //Patch_Jump(0x0062A3D0, &TechnoClassExt::_Fire_Coord); // Disabled because it's functionally identical to the vanilla function when there's no secondary coordinate
     Patch_Jump(0x00633745, (uintptr_t)0x00633762); // Do not trigger "Discovered by Player" when an object is destroyed
     Patch_Jump(0x0062D218, &_TechnoClass_Evaluate_Object_Zone_Evaluation_TargetZoneScanType_Patch);
+    Patch_Jump(0x0062A970, &TechnoClassExt::_Time_To_Build);
 }

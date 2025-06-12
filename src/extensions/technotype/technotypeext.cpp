@@ -39,6 +39,7 @@
 #include "vinifera_saveload.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "findmake.h"
 #include "rules.h"
 
 
@@ -100,7 +101,9 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     _JumpjetWobblesPerSecond(-std::numeric_limits<double>::max()),
     _JumpjetWobbleDeviation(std::numeric_limits<int>::min()),
     _JumpjetCloakDetectionRadius(std::numeric_limits<int>::min()),
-    JumpjetNoWobbles(false)
+    JumpjetNoWobbles(false),
+    IsNaval(false),
+    BuiltAt()
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -112,7 +115,12 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
  *  @author: CCHyper
  */
 TechnoTypeClassExtension::TechnoTypeClassExtension(const NoInitClass &noinit) :
-    ObjectTypeClassExtension(noinit)
+    ObjectTypeClassExtension(noinit),
+    VoiceCapture(noinit),
+    VoiceEnter(noinit),
+    VoiceDeploy(noinit),
+    VoiceHarvest(noinit),
+    BuiltAt(noinit)
 {
     //EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -141,13 +149,27 @@ HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
 {
     //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
+    VoiceCapture.Clear();
+    VoiceEnter.Clear();
+    VoiceDeploy.Clear();
+    VoiceHarvest.Clear();
+    BuiltAt.Clear();
+
     HRESULT hr = ObjectTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
 
+    VoiceCapture.Load(pStm);
+    VoiceEnter.Load(pStm);
+    VoiceDeploy.Load(pStm);
+    VoiceHarvest.Load(pStm);
+    BuiltAt.Load(pStm);
+
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(UnloadingClass, "UnloadingClass");
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Spawns, "Spawns");
+
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(BuiltAt, "BuiltAt");
 
     /**
      *  We need to reload the "Cameo" key because TechnoTypeClass does
@@ -190,6 +212,12 @@ HRESULT TechnoTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
     if (FAILED(hr)) {
         return hr;
     }
+
+    VoiceCapture.Save(pStm);
+    VoiceEnter.Save(pStm);
+    VoiceDeploy.Save(pStm);
+    VoiceHarvest.Save(pStm);
+    BuiltAt.Save(pStm);
 
     return hr;
 }
@@ -260,6 +288,8 @@ void TechnoTypeClassExtension::Object_CRC(CRCEngine &crc) const
     crc(_JumpjetWobbleDeviation);
     crc(_JumpjetCloakDetectionRadius);
     crc(JumpjetNoWobbles);
+    crc(IsNaval);
+    crc(BuiltAt.Count());
 }
 
 
@@ -392,7 +422,43 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     _JumpjetCloakDetectionRadius = ini.Get_Int(ini_name, "JumpjetCloakDetectionRadius", _JumpjetCloakDetectionRadius);
     JumpjetNoWobbles = ini.Get_Bool(ini_name, "JumpjetNoWobbles", JumpjetNoWobbles);
 
+    IsNaval = ini.Get_Bool(ini_name, "Naval", IsNaval);
+
+    BuiltAt = TGet_TypeList(ini, ini_name, "BuiltAt", BuiltAt);
+
     return true;
+}
+
+
+/**
+ *  Gets the production flags for this object type.
+ *
+ *  @author: ZivDero
+ */
+ProductionFlags TechnoTypeClassExtension::Get_Production_Flags(RTTIType type, int id)
+{
+    const TechnoTypeClass* ttype = Fetch_Techno_Type(type, id);
+    if (ttype != nullptr) {
+        return Get_Production_Flags(ttype);
+    }
+    return PRODFLAG_NONE;
+}
+
+
+/**
+ *  Gets the production flags for this object type.
+ *
+ *  @author: ZivDero
+ */
+ProductionFlags TechnoTypeClassExtension::Get_Production_Flags(const TechnoTypeClassExtension* ttype_ext)
+{
+    ProductionFlags flags = PRODFLAG_NONE;
+
+    if (ttype_ext->IsNaval) {
+        flags = static_cast<ProductionFlags>(flags | PRODFLAG_NAVAL);
+    }
+
+    return flags;
 }
 
 
