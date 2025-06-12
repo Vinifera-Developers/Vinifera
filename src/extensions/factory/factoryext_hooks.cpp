@@ -260,17 +260,15 @@ bool FactoryClassExt::_Abandon()
 {
     if (Object) {
 
-        if (Object) {
+        DEBUG_INFO("Abandoning production of %s\n", Object->Class_Of()->FullName);
 
-            DEBUG_INFO("Abandoning production of %s\n", Object->Class_Of()->FullName);
+        /*
+        **  Refund all money expended so far, back to the owner of the object under construction.
+        */
+        int money = Object->Class_Of()->Cost_Of(Object->House);
+        House->Refund_Money(money - Balance);
+        Balance = 0;
 
-            /*
-            **  Refund all money expended so far, back to the owner of the object under construction.
-            */
-            int money = Object->Class_Of()->Cost_Of(Object->House);
-            House->Refund_Money(money - Balance);
-            Balance = 0;
-        }
         if (SpecialItem) {
             SpecialItem = SUPER_NONE;
         }

@@ -813,10 +813,8 @@ int HouseClassExtension::AI_Unit()
                 tptr->Team_Members(_members);
 
                 for (int subindex = 0; subindex < _members.Count(); subindex++) {
-
-                    UnitTypeClass const* memtype = static_cast<UnitTypeClass const*>(_members[subindex]);
-
-                    if (memtype->RTTI == RTTI_UNITTYPE) {
+                    if (_members[subindex]->RTTI == RTTI_UNITTYPE) {
+                        UnitTypeClass const* memtype = static_cast<UnitTypeClass const*>(_members[subindex]);
                         counter[memtype->HeapID]++;
                         value[memtype->HeapID] = std::min(val, value[memtype->HeapID]);
                     }
