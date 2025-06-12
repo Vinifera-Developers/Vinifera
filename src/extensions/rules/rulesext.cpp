@@ -638,6 +638,7 @@ bool RulesClassExtension::General(CCINIClass &ini)
     IsRecheckPrerequisites = ini.Get_Bool(GENERAL, "RecheckPrerequisites", IsRecheckPrerequisites);
     IsMultiMCV = ini.Get_Bool(GENERAL, "MultiMCV", IsMultiMCV);
     LowPowerPenaltyModifier = ini.Get_Float(GENERAL, "LowPowerPenaltyModifier", LowPowerPenaltyModifier);
+    MultipleFactoryCap = ini.Get_Int(GENERAL, "MultipleFactoryCap", MultipleFactoryCap);
 
     return true;
 }
@@ -650,9 +651,8 @@ bool RulesClassExtension::General(CCINIClass &ini)
  */
 bool RulesClassExtension::AudioVisual(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("RulesClassExtension::General - 0x%08X\n", (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("RulesClassExtension::AudioVisual - 0x%08X\n", (uintptr_t)(This()));
 
-    static char const * const GENERAL = "General";
     static char const * const AUDIOVISUAL = "AudioVisual";
 
     if (!ini.Is_Present(AUDIOVISUAL)) {
@@ -662,7 +662,6 @@ bool RulesClassExtension::AudioVisual(CCINIClass &ini)
     IsShowSuperWeaponTimers = ini.Get_Bool(AUDIOVISUAL, "ShowSuperWeaponTimers", IsShowSuperWeaponTimers);
     WeedPipIndex = ini.Get_Int(AUDIOVISUAL, "WeedPipIndex", WeedPipIndex);
     MaxPips = ini.Get_Integers(AUDIOVISUAL, "MaxPips", MaxPips);
-    MultipleFactoryCap = ini.Get_Int(GENERAL, "MultipleFactoryCap", MultipleFactoryCap);
 
     for (int i = 0; i < MaxPips.Count(); i++)
         DEBUG_INFO("%d", MaxPips[i]);
@@ -945,16 +944,16 @@ void RulesClassExtension::Fixups(CCINIClass &ini)
     /**
      *  Check to see if the ini files have been modified.
      */
-    bool is_rule_unmodified = false;
+    bool rule_unmodified = false;
     if (rule_crc == Unmodified_RuleINI_CRC) {
         DEBUG_INFO("Rules: RuleINI is unmodified (version 2.03).\n");
-        is_rule_unmodified = true;
+        rule_unmodified = true;
     }
     bool fsrule_unmodified = false;
     if (Is_Addon_Available(ADDON_FIRESTORM)) {
         if (fsrule_crc == Unmodified_FSRuleINI_CRC) {
             DEBUG_INFO("Rules: FSRuleINI is unmodified (version 2.03).\n");
-            is_fsrule_unmodified = true;
+            fsrule_unmodified = true;
         }
     }
 

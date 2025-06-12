@@ -104,7 +104,7 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     JumpjetNoWobbles(false),
     IsNaval(false),
     BuiltAt(),
-    BuildTimeMultiplier(1.0f),
+    BuildTimeMultiplier(1.0f)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
