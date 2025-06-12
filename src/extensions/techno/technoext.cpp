@@ -45,6 +45,7 @@
 #include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "houseext.h"
 #include "saveload.h"
 #include "vinifera_saveload.h"
 #include "storageext.h"
@@ -438,13 +439,13 @@ bool TechnoClassExtension::Can_Passive_Acquire() const
 /**
  *  Determines the time it would take to build this object.
  * 
- *  @author: CCHyper
+ *  @author: CCHyper, ZivDero
  */
 int TechnoClassExtension::Time_To_Build() const
 {
     //EXT_DEBUG_TRACE("TechnoClassExtension::Time_To_Build - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    TechnoTypeClassExtension* technotypeext = Extension::Fetch< TechnoTypeClassExtension>(Techno_Type_Class());
+    const TechnoTypeClassExtension* technotypeext = Techno_Type_Class_Ext();
 
     int time = Techno_Type_Class()->Time_To_Build();
 
@@ -511,7 +512,7 @@ int TechnoClassExtension::Time_To_Build() const
     /**
      *  Calculate the bonus based on the current factory count.
      */
-    int divisor = This()->House->Factory_Count(This()->Kind_Of());
+    int divisor = Extension::Fetch(This()->House)->Factory_Count(This()->RTTI, TechnoTypeClassExtension::Get_Production_Flags(This()));
 #if 0
     /**
      *  Original code for "MultipleFactory".
