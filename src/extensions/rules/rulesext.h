@@ -133,4 +133,16 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
          *  The distance in cells the computer player can place their Naval Yard from their Construction Yard.
          */
         int AINavalYardAdjacency;
+
+        /**
+         *  The "double penalty" or "half penalty". Multiply this by the power
+         *  units you are short of to get the actual penalty to the build speed.
+         */
+        float LowPowerPenaltyModifier;
+
+        /**
+         *  The maximum number of factories that can be considered when calculating
+         *  the multiple factory bonus on an object's build time.
+         */
+        int MultipleFactoryCap;
 };

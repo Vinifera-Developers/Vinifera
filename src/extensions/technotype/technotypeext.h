@@ -360,4 +360,9 @@ public:
      *  A list of factories that can produce this unit.
      */
     TypeList<BuildingTypeClass*> BuiltAt;
+    
+    /**
+     *  This is an individual control of the build time for this object.
+     */
+    float BuildTimeMultiplier;
 };

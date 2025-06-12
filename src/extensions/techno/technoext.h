@@ -68,6 +68,8 @@ class TechnoClassExtension : public RadioClassExtension
 
         void Put_Storage_Pointers();
 
+        int Time_To_Build() const;
+
     private:
         const TechnoTypeClass *Techno_Type_Class() const;
         const TechnoTypeClassExtension *Techno_Type_Class_Ext() const;

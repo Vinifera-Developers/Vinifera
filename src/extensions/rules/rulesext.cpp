@@ -85,7 +85,9 @@ RulesClassExtension::RulesClassExtension(const RulesClass *this_ptr) :
     MaxFreeRefineryDistanceBias(16),
     IsRecheckPrerequisites(false),
     IsMultiMCV(false),
-    AINavalYardAdjacency(20)
+    AINavalYardAdjacency(20),
+    LowPowerPenaltyModifier(1.0f),
+    MultipleFactoryCap(0)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
@@ -635,6 +637,8 @@ bool RulesClassExtension::General(CCINIClass &ini)
     MaxFreeRefineryDistanceBias = ini.Get_Int(GENERAL, "MaxFreeRefineryDistanceBias", MaxFreeRefineryDistanceBias);
     IsRecheckPrerequisites = ini.Get_Bool(GENERAL, "RecheckPrerequisites", IsRecheckPrerequisites);
     IsMultiMCV = ini.Get_Bool(GENERAL, "MultiMCV", IsMultiMCV);
+    LowPowerPenaltyModifier = ini.Get_Float(GENERAL, "LowPowerPenaltyModifier", LowPowerPenaltyModifier);
+    MultipleFactoryCap = ini.Get_Int(GENERAL, "MultipleFactoryCap", MultipleFactoryCap);
 
     return true;
 }
@@ -647,7 +651,7 @@ bool RulesClassExtension::General(CCINIClass &ini)
  */
 bool RulesClassExtension::AudioVisual(CCINIClass &ini)
 {
-    //EXT_DEBUG_TRACE("RulesClassExtension::General - 0x%08X\n", (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("RulesClassExtension::AudioVisual - 0x%08X\n", (uintptr_t)(This()));
 
     static char const * const AUDIOVISUAL = "AudioVisual";
 
@@ -924,6 +928,7 @@ void RulesClassExtension::Fixups(CCINIClass &ini)
      */
     /*static*/ const float CorrectEngineerDamage = 1.0f / 3;                    // Amount of damage an engineer does.
     /*static*/ const float CorrectEngineerCaptureLevel = This()->ConditionRed;  // Building damage level before engineer can capture.
+    /*static*/ const float CorrectWorstLowPowerBuildRateCoefficient = 0.5f;     // Lowest the build rate can get for being low on power.
 
     /**
      *  Fetch the unique crc values for both rule databases.
@@ -988,6 +993,29 @@ void RulesClassExtension::Fixups(CCINIClass &ini)
 
         }
 
+    }
+
+    /**
+     *  Fix up the WorstLowPowerBuildRateCoefficient value if we have possibly detected the original, unmodified rule ini database.
+     *
+     *  Match criteria;
+     *   - Are we currently processing RuleINI?
+     *   - WorstLowPowerBuildRateCoefficient is "0.3"
+     * 
+     *  We don't need to check BestLowPowerBuildRateCoefficient as the value in the INI matches the original
+     *  hardcoded value in TechnoClass::Time_To_Build.
+     */
+    if (is_ruleini) {
+
+        /**
+         *  The loaded value is 0.3, but gets stored as 0.333 (with 3 repeating until infinity), so
+         *  we need to use a math utility function to do a "essentually equal" comparison.
+         */
+        if (WWMath::EssentiallyEqual(This()->WorstLowPowerBuildRateCoefficient, 0.3)) {
+            DEBUG_WARNING("Rules: WorstLowPowerBuildRateCoefficient is '%.2f', changing to '%.2f'!\n", This()->WorstLowPowerBuildRateCoefficient, CorrectWorstLowPowerBuildRateCoefficient);
+            DEBUG_WARNING("Rules: Please consider changing WorstLowPowerBuildRateCoefficient to %.2f!\n", CorrectWorstLowPowerBuildRateCoefficient);
+            This()->WorstLowPowerBuildRateCoefficient = CorrectWorstLowPowerBuildRateCoefficient;
+        }
     }
 
     /**

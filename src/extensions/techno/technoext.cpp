@@ -30,14 +30,22 @@
 #include "technotype.h"
 #include "technotypeext.h"
 #include "house.h"
+#include "housetype.h"
+#include "building.h"
+#include "buildingtype.h"
+#include "rules.h"
+#include "rulesext.h"
 #include "voc.h"
 #include "ebolt.h"
 #include "tactical.h"
 #include "tibsun_inline.h"
+#include "tibsun_globals.h"
+#include "extension_globals.h"
 #include "wwcrc.h"
 #include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "houseext.h"
 #include "saveload.h"
 #include "vinifera_saveload.h"
 #include "storageext.h"
@@ -424,6 +432,117 @@ bool TechnoClassExtension::Can_Passive_Acquire() const
      *  IsCanPassiveAcquire defaults to true to copy original behaviour, so all units can passive acquire unless told otherwise.
      */
     return Techno_Type_Class_Ext()->IsCanPassiveAcquire;
+}
+
+
+
+/**
+ *  Determines the time it would take to build this object.
+ * 
+ *  @author: CCHyper, ZivDero
+ */
+int TechnoClassExtension::Time_To_Build() const
+{
+    //EXT_DEBUG_TRACE("TechnoClassExtension::Time_To_Build - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    const TechnoTypeClassExtension* technotypeext = Techno_Type_Class_Ext();
+
+    int time = Techno_Type_Class()->Time_To_Build();
+
+    /**
+     *  Adjust the time based on the house's build speed bonus.
+     */
+    time *= This()->House->BuildSpeedBias;
+
+    /**
+     *  #issue-657
+     * 
+     *  Implements BuildTimeMultiplier for TechnoTypes.
+     * 
+     *  @author: CCHyper
+     */
+    time *= technotypeext->BuildTimeMultiplier;
+
+    /**
+     *  Adjust the time to build based on the power output of the owning house.
+     */
+    double power = This()->House->Power_Fraction();
+
+    /**
+     *  #issue-656
+     * 
+     *  Implements LowPowerPenaltyModifier for RulesClass.
+     * 
+     *  @author: CCHyper
+     */
+    double scale = 1.0f - (1.0f - power) * RuleExtension->LowPowerPenaltyModifier;
+
+    /**
+     *  #issue-658
+     *
+     *  Restores the affect of "WorstLowPowerBuildRateCoefficient".
+     *
+     *  @author: CCHyper
+     */
+    if (scale <= Rule->WorstLowPowerBuildRateCoefficient) scale = Rule->WorstLowPowerBuildRateCoefficient;
+
+    /**
+     *  #issue-658
+     *
+     *  Restores the affect of "BestLowPowerBuildRateCoefficient".
+     *
+     *  @author: CCHyper
+     */
+    if (power < 1.0 && scale >= Rule->BestLowPowerBuildRateCoefficient) scale = Rule->BestLowPowerBuildRateCoefficient; // Was "0.75"
+
+    /**
+     *  Ensure we don't end up doing division by zero.
+     */
+    if (scale == 0.0) scale = 0.01;
+
+    scale = std::max(scale, Rule->MinProductionSpeed);
+
+    time /= scale;
+
+    /**
+     *  Calculate the bonus based on the current factory count.
+     */
+    int divisor = Extension::Fetch(This()->House)->Factory_Count(This()->RTTI, TechnoTypeClassExtension::Get_Production_Flags(This())) - 1;
+
+    /**
+     *  #issue-106
+     * 
+     *  "MultipleFactory" calculation back ported from Red Alert 2.
+     * 
+     *  @author: CCHyper
+     */
+    if (Rule->MultipleFactory > 0.0 && divisor > 0) {
+
+        /**
+         *  #issue-659
+         * 
+         *  Implements MultipleFactoryCap for RulesClass.
+         * 
+         *  @author: CCHyper
+         */
+        if (RuleExtension->MultipleFactoryCap > 0) {
+            divisor = RuleExtension->MultipleFactoryCap - 1;
+        }
+
+        while (divisor) {
+            time *= Rule->MultipleFactory;
+            divisor--;
+        }
+    }
+
+    /**
+     *  Walls have a coefficient as they are really cheap.
+     */
+    if (This()->RTTI == RTTI_BUILDING && reinterpret_cast<const BuildingTypeClass *>(This()->Techno_Type_Class())->IsWall) {
+        time *= Rule->WallBuildSpeedCoefficient;
+    }
+
+    return time;
 }
 
 

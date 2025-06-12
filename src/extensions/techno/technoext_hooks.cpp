@@ -1302,32 +1302,11 @@ void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
 /**
  *  Reimplementation of TechnoClass::Time_To_Build.
  *
- *  @author: ZivDero
+ *  @author: CCHyper
  */
 int TechnoClassExt::_Time_To_Build() const
 {
-    int val = Class_Of()->Time_To_Build();
-
-    val *= House->BuildSpeedBias;
-
-    /*
-    **  Adjust the time to build based on the power output of the owning house.
-    */
-    double power = House->Power_Fraction();
-    if (power > 1.0) power = 1.0;
-    if (power < 1.0 && power > 0.75) power = 0.75;
-    if (power < 0.5) power = 0.5;
-    power = std::max(power, Rule->MinProductionSpeed);
-    val /= power;
-
-    int divisor = Extension::Fetch(House)->Factory_Count(RTTI, TechnoTypeClassExtension::Get_Production_Flags(this));
-    if (divisor > 1 && Rule->MultipleFactory > 0) {
-        val *= 1.0 / ((divisor - 1) * Rule->MultipleFactory);
-    }
-    if (RTTI == RTTI_BUILDING && ((BuildingClass*)this)->Class->IsWall) {
-        val *= Rule->WallBuildSpeedCoefficient;
-    }
-    return val;
+    return Extension::Fetch(this)->Time_To_Build();
 }
 
 
