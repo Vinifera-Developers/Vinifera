@@ -450,7 +450,7 @@ int TechnoClassExtension::Time_To_Build() const
     int time = Techno_Type_Class()->Time_To_Build();
 
     /**
-     *  Adjust the time based on the houses build speed bonus.
+     *  Adjust the time based on the house's build speed bonus.
      */
     time *= This()->House->BuildSpeedBias;
 
@@ -467,7 +467,6 @@ int TechnoClassExtension::Time_To_Build() const
      *  Adjust the time to build based on the power output of the owning house.
      */
     double power = This()->House->Power_Fraction();
-    double scale = 1.0f;
 
     /**
      *  #issue-656
@@ -476,51 +475,40 @@ int TechnoClassExtension::Time_To_Build() const
      * 
      *  @author: CCHyper
      */
-    scale = 1.0f - (1.0f - power) * RuleExtension->LowPowerPenaltyModifier;
+    double scale = 1.0f - (1.0f - power) * RuleExtension->LowPowerPenaltyModifier;
 
-    if (power > 1.0) {
-        scale = 1.0;
+    /**
+     *  #issue-658
+     *
+     *  Restores the affect of "WorstLowPowerBuildRateCoefficient".
+     *
+     *  @author: CCHyper
+     */
+    if (scale <= Rule->WorstLowPowerBuildRateCoefficient) scale = Rule->WorstLowPowerBuildRateCoefficient;
 
-    } else if (power < 1.0 && power >= Rule->BestLowPowerBuildRateCoefficient) {
+    /**
+     *  #issue-658
+     *
+     *  Restores the affect of "BestLowPowerBuildRateCoefficient".
+     *
+     *  @author: CCHyper
+     */
+    if (power < 1.0 && scale >= Rule->BestLowPowerBuildRateCoefficient) scale = Rule->BestLowPowerBuildRateCoefficient; // Was "0.75"
 
-        /**
-         *  #issue-658
-         *
-         *  Restores the affect of "BestLowPowerBuildRateCoefficient".
-         *
-         *  @author: CCHyper
-         */
-        scale = Rule->BestLowPowerBuildRateCoefficient; // Was "0.75"
+    /**
+     *  Ensure we don't end up doing division by zero.
+     */
+    if (scale == 0.0) scale = 0.01;
 
-    } else if (power <= Rule->WorstLowPowerBuildRateCoefficient) {
+    scale = std::max(scale, Rule->MinProductionSpeed);
 
-        /**
-         *  #issue-658
-         *
-         *  Restores the affect of "WorstLowPowerBuildRateCoefficient".
-         *
-         *  @author: CCHyper
-         */
-        scale = Rule->WorstLowPowerBuildRateCoefficient; // Was 0.5;
-
-    }
-    if (power <= Rule->MinProductionSpeed) {
-        scale = Rule->MinProductionSpeed;
-    }
     time /= scale;
 
     /**
      *  Calculate the bonus based on the current factory count.
      */
-    int divisor = Extension::Fetch(This()->House)->Factory_Count(This()->RTTI, TechnoTypeClassExtension::Get_Production_Flags(This()));
-#if 0
-    /**
-     *  Original code for "MultipleFactory".
-     */
-    if (Rule->MultipleFactory > 0.0 && divisor > 1) {
-        time = (double)(1.0 / ((double)(divisor-1) * Rule->MultipleFactory) * (double)time);
-    }
-#else
+    int divisor = Extension::Fetch(This()->House)->Factory_Count(This()->RTTI, TechnoTypeClassExtension::Get_Production_Flags(This())) - 1;
+
     /**
      *  #issue-106
      * 
@@ -528,7 +516,7 @@ int TechnoClassExtension::Time_To_Build() const
      * 
      *  @author: CCHyper
      */
-    if (Rule->MultipleFactory > 0.0 && (divisor-1) > 0) {
+    if (Rule->MultipleFactory > 0.0 && divisor > 0) {
 
         /**
          *  #issue-659
@@ -538,22 +526,19 @@ int TechnoClassExtension::Time_To_Build() const
          *  @author: CCHyper
          */
         if (RuleExtension->MultipleFactoryCap > 0) {
-            divisor = RuleExtension->MultipleFactoryCap;
+            divisor = RuleExtension->MultipleFactoryCap - 1;
         }
-
-        divisor = (divisor-1);
 
         while (divisor) {
             time *= Rule->MultipleFactory;
-            --divisor;
+            divisor--;
         }
     }
-#endif
 
     /**
      *  Walls have a coefficient as they are really cheap.
      */
-    if (This()->What_Am_I() == RTTI_BUILDING && reinterpret_cast<const BuildingTypeClass *>(This()->Techno_Type_Class())->IsWall) {
+    if (This()->RTTI == RTTI_BUILDING && reinterpret_cast<const BuildingTypeClass *>(This()->Techno_Type_Class())->IsWall) {
         time *= Rule->WallBuildSpeedCoefficient;
     }
 
