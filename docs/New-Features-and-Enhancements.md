@@ -1074,6 +1074,33 @@ ExclusiveFactory=no  ; boolean, if true, this factory will only be able to produ
 To recreate the dog from Red Alert that is trained in a kennel, set `[KENN]->Factory=InfantryType`, `[KENN]->ExclusiveFactory=yes` and `[DOG]->BuiltAt=KENN`.
 ```
 
+### Multiple Factory Modifier
+
+- Vinifera changes the effect of the `MultipleFactory` bonus to be the same as Red Alert 2 when calculating an object's build time. Now this is a straight discount multiplier that is cumulative.
+
+In `RULES.INI`:
+```ini
+[SOMETECHNO]           ; TechnoType
+BuildTimeMultiplier=1  ; float, multiplier to the time it takes for an object to be built
+```
+
+In `RULES.INI`:
+```ini
+[General]
+LowPowerPenaltyModifier=1              ; float, the "double penalty" or "half penalty". Multiply this by the power units you are short to get the actual penalty to the build speed
+WorstLowPowerBuildRateCoefficient=0.5  ; float, what is the lowest the build rate can get for being low on power?
+BestLowPowerBuildRateCoefficient=0.75  ; float, what is the highest the build rate can get when in a low power condition?
+MultipleFactoryCap=0                   ; integer, the maximum number of factories that can be considered when calculating the multiple factory bonus on an object's build time
+```
+
+```{note}
+`WorstLowPowerBuildRateCoefficient`, and `BestLowPowerBuildRateCoefficient`, albeit present in vanilla `RULES.INI`, were not read. They are not correctly read from `RULES.INI`.
+```
+
+```{warning}
+While the default value for `WorstLowPowerBuildRateCoefficient` is `0.5`, vanilla `RULES.INI` contains a value of `0.3`. To address this, when reading unmodified `RULES.INI`, the value will be changed to `0.5`. For modified `RULES.INI` files, please make sure to adjust the value.
+```
+
 ## Terrain
 
 ### Light Sources
