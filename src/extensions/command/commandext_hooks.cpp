@@ -291,6 +291,8 @@ void Init_Vinifera_Commands()
         Commands.Add(new DumpNetworkCRCCommandClass);
         Commands.Add(new DumpHeapsCommandClass);
         Commands.Add(new ReloadRulesCommandClass);
+        Commands.Add(new MeteorShowerCommandClass);
+        Commands.Add(new MeteorImpactCommandClass);
     }
 
     /**

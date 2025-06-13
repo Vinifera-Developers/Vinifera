@@ -44,6 +44,8 @@
 #include "factory.h"
 #include "anim.h"
 #include "animtype.h"
+#include "voxelanim.h"
+#include "voxelanimtype.h"
 #include "unit.h"
 #include "unittype.h"
 #include "infantry.h"
@@ -4107,6 +4109,130 @@ bool ReloadRulesCommandClass::Process()
     }
 
     Vinifera_Developer_IsToReloadRules = true;
+
+    return true;
+}
+
+/**
+ *  Creates a meteor shower around the current mouse cell.
+ * 
+ *  @author: CCHyper
+ */
+const char *MeteorShowerCommandClass::Get_Name() const
+{
+    return "MeteorShower";
+}
+
+const char *MeteorShowerCommandClass::Get_UI_Name() const
+{
+    return "Meteor Shower";
+}
+
+const char *MeteorShowerCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *MeteorShowerCommandClass::Get_Description() const
+{
+    return "Creates a meteor shower around the current mouse cell.";
+}
+
+bool MeteorShowerCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    Coordinate mouse_coord = Get_Coord_Under_Mouse();
+    mouse_coord.Z = Map.Get_Cell_Height(mouse_coord);
+
+    const CellClass *cellptr = &Map[mouse_coord];
+    if (!cellptr) {
+        return false;
+    }
+
+    static int const _meteor_counts[] = { 4, 8, 10 };
+
+    /**
+     *  Random pick how many meteors in the shower.
+     */
+    int count = Random_Pick<unsigned>(0, ARRAYSIZE(_meteor_counts)-1);
+
+    const AnimTypeClass *large_meteor = AnimTypeClass::As_Pointer("METLARGE");
+    const AnimTypeClass *small_meteor = AnimTypeClass::As_Pointer("METSMALL");
+
+    for (int i = 0; i < count; ++i) {
+
+        /**
+         *  Add a random adjust to the position of the meteor within the shower.
+         */
+        int x_adj = Scen->RandomNumber() % (count * (CELL_LEPTON_W/2));
+        int y_adj = Scen->RandomNumber() % (count * (CELL_LEPTON_H/2));
+
+        Coordinate where = mouse_coord;
+
+        where.X += x_adj;
+        where.Y += y_adj;
+        where.Z = Map.Get_Cell_Height(where);
+
+        const AnimTypeClass *anim = Percent_Chance(30) ? large_meteor : small_meteor;
+
+        new AnimClass(anim, where);
+    }
+
+    return true;
+}
+
+
+/**
+ *  Sends a meteor at the current mouse cell.
+ * 
+ *  @author: CCHyper
+ */
+const char *MeteorImpactCommandClass::Get_Name() const
+{
+    return "MeteorImpact";
+}
+
+const char *MeteorImpactCommandClass::Get_UI_Name() const
+{
+    return "Meteor Impact";
+}
+
+const char *MeteorImpactCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *MeteorImpactCommandClass::Get_Description() const
+{
+    return "Sends a meteor at the current mouse cell.";
+}
+
+bool MeteorImpactCommandClass::Process()
+{
+    if (!Session.Singleplayer_Game()) {
+        return false;
+    }
+
+    Coordinate mouse_coord = Get_Coord_Under_Mouse();
+    mouse_coord.Z = Map.Get_Cell_Height(mouse_coord);
+
+    const CellClass *cellptr = &Map[mouse_coord];
+    if (!cellptr) {
+        return false;
+    }
+
+    /**
+     *  Pick a random a random meteor object.
+     */
+    const VoxelAnimTypeClass *voxelanimtypeptr = VoxelAnimTypeClass::As_Pointer(Percent_Chance(50) ? "METEOR01" : "METEOR02");
+    if (!voxelanimtypeptr) {
+        return false;
+    }
+
+    new VoxelAnimClass(voxelanimtypeptr, mouse_coord);
 
     return true;
 }
