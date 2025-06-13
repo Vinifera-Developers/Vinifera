@@ -69,7 +69,6 @@ AnimTypeClassExtension::AnimTypeClassExtension(const AnimTypeClass *this_ptr) :
     ExplosionDamage(0),
     IsShadow(false),
     DamageRate(-1),
-    NumberOfParticles(0),
     StopSound(VOC_NONE)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("AnimTypeClassExtension::AnimTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));

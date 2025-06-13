@@ -61,55 +61,6 @@
 
 
 /**
- *  #issue-475
- * 
- *  Implements StopSound for AnimTypes.
- * 
- *  @author: CCHyper
- */
-static void Sound_Effect_At_Object(VocType sound, ObjectClass *object)
-{
-	Sound_Effect(sound, object->Center_Coord());
-}
-
-DECLARE_PATCH(_AnimClass_Remove_This_StopSound_Patch)
-{
-	GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
-	static AnimTypeClass *animtype;
-	static AnimTypeClassExtension *animtypeext;
-
-	animtype = this_ptr->Class;
-
-	animtypeext = AnimTypeClassExtensions.find(animtype);
-	if (animtypeext) {
-
-		/**
-		 *  Has the animation finished playing? StopSound should only
-		 *  be played if the animation was able to complete.
-		 */
-		if (!this_ptr->IsPlaying) {
-
-			/**
-			 *  Play the StopSound if one has been defined.
-			 */
-			if (animtypeext->StopSound != VOC_NONE) {
-				Sound_Effect_At_Object(animtypeext->StopSound, this_ptr);
-			}
-
-		}
-
-	}
-
-	/**
-	 *  Stolen bytes/code.
-	 */
-	this_ptr->ObjectClass::entry_E4();
-
-	JMP_REG(ecx, 0x004167D1);
-}
-
-
-/**
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
  * 
@@ -123,6 +74,7 @@ public:
     void _AI();
     void _Start();
     void _Middle();
+    void _Remove_This();
 };
 
 
@@ -686,6 +638,40 @@ void AnimClassExt::_Middle()
 
 
 /**
+ *  Reimplementation of AnimClass::Remove_This.
+ *
+ *  @author: ZivDero
+ */
+void AnimClassExt::_Remove_This()
+{
+    Attach_To(nullptr);
+
+    /**
+     *  #issue-475
+     *
+     *  Implements StopSound for AnimTypes.
+     *
+     *  @author: CCHyper
+     */
+    if (!IsInert && Class != nullptr) {
+
+        auto animtypeext = Extension::Fetch(Class);
+
+        /**
+         *  Play the StopSound if one has been defined.
+         */
+        if (animtypeext->StopSound != VOC_NONE) {
+            Static_Sound(animtypeext->StopSound, Center_Coord());
+        }
+
+    }
+
+    ObjectClass::Remove_This();
+}
+
+
+
+/**
  *  #issue-562
  * 
  *  Handles top level layer sorting for the new "AttachLayer" key.
@@ -812,5 +798,5 @@ void AnimClassExtension_Hooks()
     Patch_Jump(0x00414E80, &AnimClassExt::_AI);
     Patch_Jump(0x00415D60, &AnimClassExt::_Start);
     Patch_Jump(0x00415F40, &AnimClassExt::_Middle);
-	Patch_Jump(0x004167CA, &_AnimClass_Remove_This_StopSound_Patch);
+    Patch_Jump(0x004167C0, &AnimClassExt::_Remove_This);
 }

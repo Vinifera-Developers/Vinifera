@@ -157,6 +157,7 @@
 #include "hooker.h"
 #include "hooker_macros.h"
 #include "spawnmanager_hooks.h"
+#include "voxelanimext_hooks.h"
 
 
 void Extension_Hooks()
@@ -222,7 +223,7 @@ void Extension_Hooks()
     TriggerClassExtension_Hooks();
     TriggerTypeClassExtension_Hooks();
     UnitTypeClassExtension_Hooks();
-    //VoxelAnimClassExtension_Hooks();                      // Not yet implemented
+    VoxelAnimClassExtension_Hooks();
     VoxelAnimTypeClassExtension_Hooks();
     WaveClassExtension_Hooks();
     //TagClassExtension_Hooks();                            // Not yet implemented

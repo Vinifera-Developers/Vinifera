@@ -33,6 +33,7 @@
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "extension.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -45,20 +46,18 @@
  *  @note: This must not contain a constructor or deconstructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-class VoxelAnimClassFake final : public VoxelAnimClass
+DECLARE_EXTENDING_CLASS_AND_PAIR(VoxelAnimClass)
 {
     public:
-        void _entry_E4();
+        void _Remove_This();
 };
 
 
 /**
- *  Implementation of entry_E4() for VoxelAnimClass.
+ *  Implementation of Remove_This() for VoxelAnimClass.
  */
-void VoxelAnimClassFake::_entry_E4()
+void VoxelAnimClassExt::_Remove_This()
 {
-    VoxelAnimTypeClassExtension *voxelanimtypeext = nullptr;
-
     /**
      *  #issue-474
      * 
@@ -66,18 +65,18 @@ void VoxelAnimClassFake::_entry_E4()
      * 
      *  @author: CCHyper
      */
-    voxelanimtypeext = VoxelAnimTypeClassExtensions.find(Class);
+    VoxelAnimTypeClassExtension* voxelanimtypeext = Extension::Fetch(Class);
     if (voxelanimtypeext) {
 
         /**
          *  Play the StopSound if one has been defined.
          */
         if (voxelanimtypeext->StopSound != VOC_NONE) {
-            Sound_Effect(voxelanimtypeext->StopSound, Center_Coord());
+            Static_Sound(voxelanimtypeext->StopSound, Center_Coord());
         }
     }
 
-    ObjectClass::entry_E4();
+    ObjectClass::Remove_This();
 }
 
 
@@ -86,5 +85,5 @@ void VoxelAnimClassFake::_entry_E4()
  */
 void VoxelAnimClassExtension_Hooks()
 {
-    Change_Virtual_Address(0x006D9134, Get_Func_Address(&VoxelAnimClassFake::_entry_E4));
+    Change_Virtual_Address(0x006D9134, Get_Func_Address(&VoxelAnimClassExt::_Remove_This));
 }
