@@ -194,6 +194,7 @@ New:
 - Implement 'OmniFire' for WeaponTypes (by CCHyper)
 - Implement MeteorShowerCommandClass and MeteorImpactCommandClass (by CCHyper)
 
+
 Vanilla fixes:
 - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively (by CCHyper/tomsons26)
 - Fix a bug where VQA files could not be loaded from the root directory or local search paths (by CCHyper/tomsons26)
