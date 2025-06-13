@@ -271,7 +271,7 @@ DECLARE_PATCH(_UnitClass_Can_Fire_IsOmniFire_Patch)
     GET_REGISTER_STATIC(WeaponTypeClass *, weapon, ebx);
     static WeaponTypeClassExtension *weapontypeext;
 
-    weapontypeext = Extension::Fetch<WeaponTypeClassExtension>(weapon);
+    weapontypeext = Extension::Fetch(weapon);
 
     /**
      *  Do we need to perform a turn to face the target before firing?
@@ -310,7 +310,7 @@ locomotor_Can_Fire:
 DECLARE_PATCH(_UnitClass_Rotation_AI_IsOmniFire_Patch)
 {
     GET_REGISTER_STATIC(UnitClass *, this_ptr, esi);
-    GET_STACK_STATIC(DirStruct *, tarcom_dir, esp, 0x8);
+    GET_STACK_STATIC(DirType *, tarcom_dir, esp, 0x8);
     static const WeaponInfoStruct *weaponinfo;
     static WeaponTypeClass *weapontype;
     static WeaponTypeClassExtension *weapontypeext;
@@ -321,7 +321,7 @@ DECLARE_PATCH(_UnitClass_Rotation_AI_IsOmniFire_Patch)
     weaponinfo = this_ptr->Get_Weapon(WEAPON_SLOT_PRIMARY);
     if (weaponinfo->Weapon) {
 
-        weapontypeext = Extension::Fetch<WeaponTypeClassExtension>(weaponinfo->Weapon);
+        weapontypeext = Extension::Fetch(weaponinfo->Weapon);
 
         /**
          *  Do we need turn to face the target?

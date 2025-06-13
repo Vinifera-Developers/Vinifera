@@ -1534,3 +1534,17 @@ DeleteOnSuicide=no  ; boolean, logical option for Suicide=yes which will instant
 ```{note}
 `DeleteOnSuicide=yes` mimics Red Alert 2 behavior.
 ```
+
+### OmniFire
+
+- Vinifera implements `OmniFire` from Red Alert 2 for `WeaponTypes`.
+
+In `RULES.INI`:
+```ini
+[WeaponType]
+OmniFire=yes  ; boolean, does the unit firing this weapon have to perform a turn to face its target before firing.
+```
+
+```{note}
+`OmniFire` only applies to `UnitTypes`.
+```

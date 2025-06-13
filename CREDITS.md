@@ -138,6 +138,7 @@ This page lists all the individual contributions to the project by their author.
   - Implement exclusive factories.
   - Change the behavior MultipleFactory and implements build speed overrides.
   - Implement `StopSound` for `AnimTypes` and `VoxelAnimTypes`.
+  - Implement 'OmniFire' for WeaponTypes.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Noble Fish**:
