@@ -265,6 +265,7 @@ Vanilla fixes:
 - Super Weapons with `Type=MultiMissile` and `Type=ChemMissile` now fire using their own weapon when fired from a building (by ZivDero)
 - Super Weapons with `Type=MultiMissile` and `Type=ChemMissile` now have the building display Special animations (by ZivDero)
 - Allow customizing "Missile Launched" voice per super weapon (by ZivDero)
+- Add the "Underground" layer to the tactical display Next and Prev search (by CCHyper)
 
 :::
 

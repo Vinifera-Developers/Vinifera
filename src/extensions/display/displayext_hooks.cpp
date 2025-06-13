@@ -97,7 +97,7 @@ ObjectClass * DisplayClassExt::_Next_Object(ObjectClass * object) const
     if (object == nullptr) {
         foundmatch = true;
     }
-    for (int index = 0; index < ARRAY_SIZE(_layers); ++index) {
+    for (int index = 0; index < std::size(_layers); ++index) {
         LayerType layer = _layers[index];
 
         for (unsigned uindex = 0; uindex < (unsigned)Layer[layer].Count(); uindex++) {
@@ -144,7 +144,7 @@ ObjectClass * DisplayClassExt::_Prev_Object(ObjectClass * object)  const
     if (object == nullptr) {
         foundmatch = true;
     }
-    for (int index = 0; index < ARRAY_SIZE(_layers); ++index) {
+    for (int index = 0; index < std::size(_layers); ++index) {
         LayerType layer = _layers[index];
 
         for (int uindex = Layer[layer].Count()-1; uindex >= 0; uindex--) {
