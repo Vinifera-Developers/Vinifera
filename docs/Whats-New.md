@@ -192,7 +192,7 @@ New:
 - Change the behavior MultipleFactory and implements build speed overrides (by CCHyper)
 - Implement `StopSound` for `AnimTypes` and `VoxelAnimTypes` (by CCHyper)
 - Implement 'OmniFire' for WeaponTypes (by CCHyper)
-
+- Implement MeteorShowerCommandClass and MeteorImpactCommandClass (by CCHyper)
 
 Vanilla fixes:
 - Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively (by CCHyper/tomsons26)

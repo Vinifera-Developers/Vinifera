@@ -4113,6 +4113,7 @@ bool ReloadRulesCommandClass::Process()
     return true;
 }
 
+
 /**
  *  Creates a meteor shower around the current mouse cell.
  * 
@@ -4145,7 +4146,7 @@ bool MeteorShowerCommandClass::Process()
     }
 
     Coordinate mouse_coord = Get_Coord_Under_Mouse();
-    mouse_coord.Z = Map.Get_Cell_Height(mouse_coord);
+    mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     const CellClass *cellptr = &Map[mouse_coord];
     if (!cellptr) {
@@ -4157,7 +4158,7 @@ bool MeteorShowerCommandClass::Process()
     /**
      *  Random pick how many meteors in the shower.
      */
-    int count = Random_Pick<unsigned>(0, ARRAYSIZE(_meteor_counts)-1);
+    int count = Random_Pick<unsigned>(0, std::size(_meteor_counts)-1);
 
     const AnimTypeClass *large_meteor = AnimTypeClass::As_Pointer("METLARGE");
     const AnimTypeClass *small_meteor = AnimTypeClass::As_Pointer("METSMALL");
@@ -4174,7 +4175,7 @@ bool MeteorShowerCommandClass::Process()
 
         where.X += x_adj;
         where.Y += y_adj;
-        where.Z = Map.Get_Cell_Height(where);
+        where.Z = Map.Get_Height_GL(where);
 
         const AnimTypeClass *anim = Percent_Chance(30) ? large_meteor : small_meteor;
 
@@ -4217,7 +4218,7 @@ bool MeteorImpactCommandClass::Process()
     }
 
     Coordinate mouse_coord = Get_Coord_Under_Mouse();
-    mouse_coord.Z = Map.Get_Cell_Height(mouse_coord);
+    mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     const CellClass *cellptr = &Map[mouse_coord];
     if (!cellptr) {
