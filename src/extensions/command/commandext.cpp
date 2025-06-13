@@ -1323,7 +1323,7 @@ const char *MemoryDumpCommandClass::Get_Description() const
 
 bool MemoryDumpCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -1391,7 +1391,7 @@ const char *DumpHeapCRCCommandClass::Get_Description() const
 
 bool DumpHeapCRCCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -1538,9 +1538,9 @@ const char *InstantBuildCommandClass::Get_Description() const
 
 bool InstantBuildCommandClass::Process()
 {
-    //if (!Session.Singleplayer_Game()) {
-    //    return false;
-    //}
+    if (Session.Players.Count() > 1) {
+        return false;
+    }
 
     Vinifera_Developer_InstantBuild = !Vinifera_Developer_InstantBuild;
 
@@ -1577,7 +1577,7 @@ const char *AIInstantBuildCommandClass::Get_Description() const
 
 bool AIInstantBuildCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -1614,7 +1614,7 @@ const char *ForceWinCommandClass::Get_Description() const
 
 bool ForceWinCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -1652,7 +1652,7 @@ const char *ForceLoseCommandClass::Get_Description() const
 
 bool ForceLoseCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -1690,7 +1690,7 @@ const char *ForceDieCommandClass::Get_Description() const
 
 bool ForceDieCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -1728,7 +1728,7 @@ const char *CaptureObjectCommandClass::Get_Description() const
 
 bool CaptureObjectCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -1785,7 +1785,7 @@ const char *SpecialWeaponsCommandClass::Get_Description() const
 
 bool SpecialWeaponsCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -1836,7 +1836,7 @@ const char *FreeMoneyCommandClass::Get_Description() const
 
 bool FreeMoneyCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -1876,7 +1876,7 @@ const char *LightningBoltCommandClass::Get_Description() const
 
 bool LightningBoltCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -1915,7 +1915,7 @@ const char *IonBlastCommandClass::Get_Description() const
 
 bool IonBlastCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -1955,7 +1955,7 @@ const char *ExplosionCommandClass::Get_Description() const
 
 bool ExplosionCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -2023,7 +2023,7 @@ const char *SuperExplosionCommandClass::Get_Description() const
 
 bool SuperExplosionCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -2091,7 +2091,7 @@ const char *BailOutCommandClass::Get_Description() const
 
 bool BailOutCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -2129,7 +2129,7 @@ const char *IonStormCommandClass::Get_Description() const
 
 bool IonStormCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -2170,7 +2170,7 @@ const char *MapSnapshotCommandClass::Get_Description() const
 
 bool MapSnapshotCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -2329,7 +2329,7 @@ bool SpawnAllCommandClass::Try_Unlimbo(TechnoClass *techno, Cell &cell)
 
 bool SpawnAllCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -2459,7 +2459,7 @@ const char *DamageCommandClass::Get_Description() const
 
 bool DamageCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -2508,7 +2508,7 @@ const char *ToggleEliteCommandClass::Get_Description() const
 
 bool ToggleEliteCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -2585,7 +2585,7 @@ const char *BuildCheatCommandClass::Get_Description() const
 
 bool BuildCheatCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -2647,7 +2647,7 @@ const char *ToggleShroudCommandClass::Get_Description() const
 
 bool ToggleShroudCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -2719,7 +2719,7 @@ const char *HealCommandClass::Get_Description() const
 
 bool HealCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -2764,7 +2764,7 @@ const char *ToggleInertCommandClass::Get_Description() const
 
 bool ToggleInertCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -2805,7 +2805,7 @@ const char *DumpAIBaseNodesCommandClass::Get_Description() const
 
 bool DumpAIBaseNodesCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -2881,7 +2881,7 @@ const char *ToggleBerzerkCommandClass::Get_Description() const
 
 bool ToggleBerzerkCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -2929,7 +2929,7 @@ const char *EncroachShadowCommandClass::Get_Description() const
 
 bool EncroachShadowCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -2968,7 +2968,7 @@ const char *EncroachFogCommandClass::Get_Description() const
 
 bool EncroachFogCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -3007,7 +3007,7 @@ const char *ToggleAllianceCommandClass::Get_Description() const
 
 bool ToggleAllianceCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -3063,7 +3063,7 @@ const char *AddPowerCommandClass::Get_Description() const
 
 bool AddPowerCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -3105,7 +3105,7 @@ const char *PlaceCrateCommandClass::Get_Description() const
 
 bool PlaceCrateCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -3163,7 +3163,7 @@ const char *CursorPositionCommandClass::Get_Description() const
 
 bool CursorPositionCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -3203,7 +3203,7 @@ const char *ToggleFrameStepCommandClass::Get_Description() const
 
 bool ToggleFrameStepCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -3244,7 +3244,7 @@ const char *Step1FrameCommandClass::Get_Description() const
 
 bool Step1FrameCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -3285,7 +3285,7 @@ const char *Step5FramesCommandClass::Get_Description() const
 
 bool Step5FramesCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -3326,7 +3326,7 @@ const char *Step10FramesCommandClass::Get_Description() const
 
 bool Step10FramesCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -3367,7 +3367,7 @@ const char *ToggleAIControlCommandClass::Get_Description() const
 
 bool ToggleAIControlCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -3671,7 +3671,7 @@ const char *PlaceTiberiumCommandClass::Get_Description() const
 
 bool PlaceTiberiumCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -3719,7 +3719,7 @@ const char *ReduceTiberiumCommandClass::Get_Description() const
 
 bool ReduceTiberiumCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -3767,7 +3767,7 @@ const char *PlaceFullTiberiumCommandClass::Get_Description() const
 
 bool PlaceFullTiberiumCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -3815,7 +3815,7 @@ const char *RemoveTiberiumCommandClass::Get_Description() const
 
 bool RemoveTiberiumCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -3863,7 +3863,7 @@ const char *InstantSuperRechargeCommandClass::Get_Description() const
 
 bool InstantSuperRechargeCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -3900,7 +3900,7 @@ const char *AIInstantSuperRechargeCommandClass::Get_Description() const
 
 bool AIInstantSuperRechargeCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -4040,7 +4040,7 @@ const char* DumpHeapsCommandClass::Get_Description() const
 
 bool DumpHeapsCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -4104,7 +4104,7 @@ const char *ReloadRulesCommandClass::Get_Description() const
 
 bool ReloadRulesCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -4141,7 +4141,7 @@ const char *MeteorShowerCommandClass::Get_Description() const
 
 bool MeteorShowerCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -4213,7 +4213,7 @@ const char *MeteorImpactCommandClass::Get_Description() const
 
 bool MeteorImpactCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
