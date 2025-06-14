@@ -88,7 +88,6 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     MaxRandomSpawnOffset(0),
     IsDontScore(false),
     IsSpawned(false),
-    BuildTimeCost(0),
     RequiredHouses(-1),
     ForbiddenHouses(-1),
     TargetZoneScan(TZST_SAME),
@@ -407,7 +406,6 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
 
     IsDontScore = ini.Get_Bool(ini_name, "DontScore", IsDontScore);
     IsSpawned = ini.Get_Bool(ini_name, "Spawned", IsSpawned);
-    BuildTimeCost = ini.Get_Int(ini_name, "BuildTimeCost", BuildTimeCost);
 
     RequiredHouses = ini.Get_Owners(ini_name, "RequiredHouses", RequiredHouses);
     ForbiddenHouses = ini.Get_Owners(ini_name, "ForbiddenHouses", ForbiddenHouses);

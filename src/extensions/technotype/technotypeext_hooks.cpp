@@ -54,7 +54,6 @@ DECLARE_EXTENDING_CLASS_AND_PAIR(TechnoTypeClass)
 {
 public:
     int _Max_Pips() const;
-    int _Time_To_Build();
 };
 
 
@@ -89,32 +88,6 @@ int TechnoTypeClassExt::_Max_Pips() const
     }
 }
 
-/**
- *  #issue-433
- *
- *  Allows overriding the cost value that is used for calculating the build time of a TechnoType.
- *
- *  Author: Rampastring
- */
-int TechnoTypeClassExt::_Time_To_Build()
-{
-    /**
-     *  TechnoClass::Time_To_Build calls TechnoTypeClass::Time_To_Build,
-     *  so replacing TechnoTypeClass::Time_To_Build is enough for the desired functionality.
-     */
-    TechnoTypeClassExtension* technotypeext = Extension::Fetch(this);
-
-    int cost;
-
-    if (technotypeext->BuildTimeCost != 0) {
-        cost = technotypeext->BuildTimeCost;
-    }
-    else {
-        cost = Cost;
-    }
-
-    return static_cast<int>(cost * Rule->BuildSpeedBias * 0.9);
-}
 
 /**
  *  Main function for patching the hooks.
@@ -122,5 +95,4 @@ int TechnoTypeClassExt::_Time_To_Build()
 void TechnoTypeClassExtension_Hooks()
 {
     Patch_Jump(0x0063D460, &TechnoTypeClassExt::_Max_Pips);
-    Patch_Jump(0x0063B8B0, &TechnoTypeClassExt::_Time_To_Build);
 }

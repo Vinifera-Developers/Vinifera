@@ -163,7 +163,6 @@ New:
 - Harvesters' refinery-seeking algorithm now considers both free and occupied refineries when figuring out which refinery to unload at (by Rampastring)
 - Harvesters now consider distance to refinery when moving from one Tiberium patch to another (by Rampastring)
 - Implement the Torpedo logic from Red Alert 1 for BulletTypes (by Rampastring)
-- Add `BuildTimeCost` (by Rampastring)
 - Allow scenarios to have custom score screen bar colors (by Rampastring)
 - Allow customizing the hunter-seeker unit type per side (by ZivDero)
 - Allow customizing power plants per side (by ZivDero)

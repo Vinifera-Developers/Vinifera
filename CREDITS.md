@@ -170,7 +170,6 @@ This page lists all the individual contributions to the project by their author.
   - Harvesters' refinery-seeking algorithm now considers both free and occupied refineries when figuring out which refinery to unload at.
   - Harvesters now consider distance to refinery when moving from one Tiberium patch to another.
   - Implement the Torpedo logic from Red Alert 1 for BulletTypes.
-  - Add `BuildTimeCost`.
   - Allow scenarios to have custom score screen bar colors.
   - Add `Inaccuracy` to RocketTypes.
   - Add `TargetZoneScan` to TechnoTypes.
