@@ -154,4 +154,9 @@ AnimTypeClassExtension final : public ObjectTypeClassExtension
          *  A separate rate at which the anim deals damage.
          */
         int DamageRate;
+
+        /**
+         *  The sound effect to play when this anim has finished.
+         */
+        VocType StopSound;
 };

@@ -190,6 +190,7 @@ New:
 - Implement naval yards (by ZivDero, CCHyper, Rampastring)
 - Implement exclusive factories (by ZivDero)
 - Change the behavior MultipleFactory and implements build speed overrides (by CCHyper)
+- Implement `StopSound` for `AnimTypes` and `VoxelAnimTypes` (by CCHyper)
 
 
 Vanilla fixes:

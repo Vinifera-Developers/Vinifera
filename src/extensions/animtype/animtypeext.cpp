@@ -68,7 +68,8 @@ AnimTypeClassExtension::AnimTypeClassExtension(const AnimTypeClass *this_ptr) :
     MiddleFrames(),
     ExplosionDamage(0),
     IsShadow(false),
-    DamageRate(-1)
+    DamageRate(-1),
+    StopSound(VOC_NONE)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("AnimTypeClassExtension::AnimTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -286,6 +287,7 @@ void AnimTypeClassExtension::Object_CRC(CRCEngine &crc) const
     crc(EndAnimsDelay.Count());
     crc(MiddleFrames.Count());
     crc(ExplosionDamage);
+    crc(StopSound);
 }
 
 
@@ -439,6 +441,9 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     if (delay != -1) {
         DamageRate = (delay > 0) ? 900 / delay : 0;
     }
+    
+    StopSound = ini.Get_VocType(ini_name, "StopSound", StopSound);
+
 
     IsInitialized = true;
 

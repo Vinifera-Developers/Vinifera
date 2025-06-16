@@ -41,6 +41,7 @@
 #include "cell.h"
 #include "rules.h"
 #include "scenario.h"
+#include "voc.h"
 #include "extension.h"
 #include "fatal.h"
 #include "debughandler.h"
@@ -73,6 +74,7 @@ public:
     void _AI();
     void _Start();
     void _Middle();
+    void _Remove_This();
 };
 
 
@@ -636,6 +638,40 @@ void AnimClassExt::_Middle()
 
 
 /**
+ *  Reimplementation of AnimClass::Remove_This.
+ *
+ *  @author: ZivDero
+ */
+void AnimClassExt::_Remove_This()
+{
+    Attach_To(nullptr);
+
+    /**
+     *  #issue-475
+     *
+     *  Implements StopSound for AnimTypes.
+     *
+     *  @author: CCHyper
+     */
+    if (!IsInert && Class != nullptr) {
+
+        auto animtypeext = Extension::Fetch(Class);
+
+        /**
+         *  Play the StopSound if one has been defined.
+         */
+        if (animtypeext->StopSound != VOC_NONE) {
+            Static_Sound(animtypeext->StopSound, Center_Coord());
+        }
+
+    }
+
+    ObjectClass::Remove_This();
+}
+
+
+
+/**
  *  #issue-562
  * 
  *  Handles top level layer sorting for the new "AttachLayer" key.
@@ -762,4 +798,5 @@ void AnimClassExtension_Hooks()
     Patch_Jump(0x00414E80, &AnimClassExt::_AI);
     Patch_Jump(0x00415D60, &AnimClassExt::_Start);
     Patch_Jump(0x00415F40, &AnimClassExt::_Middle);
+    Patch_Jump(0x004167C0, &AnimClassExt::_Remove_This);
 }

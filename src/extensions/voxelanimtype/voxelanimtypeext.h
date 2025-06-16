@@ -62,4 +62,8 @@ VoxelAnimTypeClassExtension final : public ObjectTypeClassExtension
         virtual bool Read_INI(CCINIClass &ini) override;
 
     public:
+        /**
+         *  The sound effect to play when this voxel anim has finished.
+         */
+        VocType StopSound;
 };

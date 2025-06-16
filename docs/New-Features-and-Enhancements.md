@@ -40,7 +40,7 @@ The `Start` and `End` animations are spawned once per an animation's lifetime, n
 
 In `ART.INI`:
 ```ini
-[AnimType]            ; AnimType
+[SOMEANIM]            ; AnimType
 <stage>Anims=         ; list of AnimTypes, list of animations to spawn at the designated stage of the animation sequence.
 <stage>AnimsMinimum=  ; list of integers, the minimum number of animations that can spawn when choosing the random amount for each of the respective entries on the animations list. This list must have the same number of entries as the animations list. Defaults to 1 for each entry.
 <stage>AnimsMaximum=  ; list of integers, the maximum number of animations that can spawn when choosing the random amount for each of the respective entries on the animations list. This list must have the same number of entries as the animations list. Defaults to 1 for each entry.
@@ -56,7 +56,7 @@ If the animation moves, delayed animations that it spawns will appear where it w
 
 In `ART.INI`:
 ```ini
-[AnimType]     ; AnimType
+[SOMEANIM]     ; AnimType
 MiddleFrame=   ; list of integers, the frame numbers in which the animation system will perform various logics (e.g. spawn craters, scorch marks, fires). Defaults to auto-detect based on the largest frame of the shape file. A special value of -1 can be used to tell the animation system to use the exact middle frame of the shape file (if shape file has 30 frames, frame 15 will be used).
 ```
 
@@ -70,7 +70,7 @@ MiddleFrame=   ; list of integers, the frame numbers in which the animation syst
 
 In `ART.INI`:
 ```ini
-[AnimType]         ; AnimType
+[SOMEANIM]         ; AnimType
 ExplosionDamage=0  ; integer, if positive, the animation will spawn an explosion during its biggest frame dealing this much damage.
 ```
 
@@ -101,8 +101,18 @@ Shadow=no                   ; boolean, does this animation show a shadow?
 
 In `ART.INI`:
 ```ini
-[AnimType]    ; AnimType
+[SOMEANIM]    ; AnimType
 DamageRate=-1 ; integer, the rate at which this animation deals damage. Defaults to `Rate`.
+```
+
+### Stop Sound
+
+- Vinifera implements the `StopSound` key from Red Alert 2 for AnimTypes.
+
+In `ART.INI`:
+```ini
+[SOMEANIM]  ; AnimType
+StopSound=  ; VocType, the sound effect to play when this animation has finished/been removed.
 ```
 
 ## Buildings
@@ -1329,6 +1339,18 @@ TurretFacings=32     ; integer, the turret facing count.
 
 - Similarly, the `Anim=` INI key for WeaponTypes now also supports 16, 32 and 64 entries.
 - Because of the new extended facing support, it was observed that the buffer size was too small and has now been increased to allow a larger entry to accommodate a larger facing count. Mind that the maximum string length is 506 characters now, so be sure to use short names if you want to have 64 entries.
+
+## Voxel Animations
+
+### Stop Sound
+
+- Vinifera implements the `StopSound` key from Red Alert 2 for VoxelAnimTypes.
+
+In `ART.INI`:
+```ini
+[SOMEVOXELANIM]  ; VoxelAnimType
+StopSound=       ; VocType, the sound effect to play when this animation has finished/been removed.
+```
 
 ## Warheads
 
