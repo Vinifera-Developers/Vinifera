@@ -32,9 +32,12 @@
 #include "tibsun_globals.h"
 #include "tibsun_functions.h"
 #include "tag.h"
+#include "unittypeext.h"
 #include "technotype.h"
 #include "technotypeext.h"
 #include "warheadtype.h"
+#include "weapontype.h"
+#include "weapontypeext.h"
 #include "unit.h"
 #include "unitext.h"
 #include "unittype.h"
@@ -252,6 +255,97 @@ DECLARE_PATCH(_UnitClass_Draw_Voxel_Patch)
     _asm mov ebx, color
 
     JMP(0x006528E9);
+}
+
+
+/**
+ *  #issue-550
+ * 
+ *  Implements IsOmniFire for units.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_UnitClass_Can_Fire_IsOmniFire_Patch)
+{
+    GET_REGISTER_STATIC(UnitClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(WeaponTypeClass *, weapon, ebx);
+    static WeaponTypeClassExtension *weapontypeext;
+
+    weapontypeext = Extension::Fetch(weapon);
+
+    /**
+     *  Do we need to perform a turn to face the target before firing?
+     */
+    if (weapontypeext->IsOmniFire) {
+        goto locomotor_Can_Fire;
+    }
+
+    /**
+     *  Stolen bytes/code.
+     */
+    if (this_ptr->Class->IsLargeVisceroid) {
+        goto locomotor_Can_Fire;
+    }
+
+continue_facing_check:
+    static UnitTypeClass *class_ptr;    // Restore EAX pointer.
+    class_ptr = this_ptr->Class;
+    _asm { mov eax, class_ptr }
+
+    /**
+     *  Final check to make sure the locomotor allows firing.
+     */
+locomotor_Can_Fire:
+    JMP(0x00656FA7);
+}
+
+
+/**
+ *  #issue-550
+ * 
+ *  Implements IsOmniFire for units.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_UnitClass_Rotation_AI_IsOmniFire_Patch)
+{
+    GET_REGISTER_STATIC(UnitClass *, this_ptr, esi);
+    GET_STACK_STATIC(DirType *, tarcom_dir, esp, 0x8);
+    static const WeaponInfoStruct *weaponinfo;
+    static WeaponTypeClass *weapontype;
+    static WeaponTypeClassExtension *weapontypeext;
+
+    /**
+     *  Fetch this units primary weapon.
+     */
+    weaponinfo = this_ptr->Get_Weapon(WEAPON_SLOT_PRIMARY);
+    if (weaponinfo->Weapon) {
+
+        weapontypeext = Extension::Fetch(weaponinfo->Weapon);
+
+        /**
+         *  Do we need turn to face the target?
+         */
+        if (weapontypeext->IsOmniFire) {
+            goto continue_rotation_checks;
+        }
+
+    }
+
+    /**
+     *  Original code.
+     *  
+     *  Set the desired facing for the turret to that of the target.
+     */
+    this_ptr->SecondaryFacing.Set_Desired(*tarcom_dir);
+
+    JMP(0x0064E612);
+
+    /**
+     *  Skip setting turret facing, continue rotation checks.
+     */
+continue_rotation_checks:
+    JMP(0x0064E612);
 }
 
 
@@ -1364,4 +1458,6 @@ void UnitClassExtension_Hooks()
     Patch_Jump(0x00654EEE, &_UnitClass_Mission_Harvest_FINDHOME_Find_Nearest_Refinery_Patch);
     //Patch_Jump(0x0065054F, &_UnitClass_Enter_Idle_Mode_Block_Harvesting_On_Bridge_Patch); // Removed, keeping code for reference.
     //Patch_Jump(0x00654AB0, &_UnitClass_Mission_Harvest_Block_Harvesting_On_Bridge_Patch); // Removed, keeping code for reference.
+    Patch_Jump(0x0064E5A6, &_UnitClass_Rotation_AI_IsOmniFire_Patch);
+    Patch_Jump(0x00656F99, &_UnitClass_Can_Fire_IsOmniFire_Patch);
 }

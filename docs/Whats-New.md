@@ -191,6 +191,7 @@ New:
 - Implement exclusive factories (by ZivDero)
 - Change the behavior MultipleFactory and implements build speed overrides (by CCHyper)
 - Implement `StopSound` for `AnimTypes` and `VoxelAnimTypes` (by CCHyper)
+- Implement 'OmniFire' for WeaponTypes (by CCHyper)
 
 
 Vanilla fixes:
