@@ -4148,8 +4148,7 @@ bool MeteorShowerCommandClass::Process()
     Coordinate mouse_coord = Get_Coord_Under_Mouse();
     mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
-    const CellClass *cellptr = &Map[mouse_coord];
-    if (!cellptr) {
+    if (!Map.In_Radar(mouse_coord)) {
         return false;
     }
 
@@ -4220,8 +4219,7 @@ bool MeteorImpactCommandClass::Process()
     Coordinate mouse_coord = Get_Coord_Under_Mouse();
     mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
-    const CellClass *cellptr = &Map[mouse_coord];
-    if (!cellptr) {
+    if (!Map.In_Radar(mouse_coord)) {
         return false;
     }
 
