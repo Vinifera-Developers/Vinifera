@@ -69,3 +69,4 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where it was impossible to tell infantry to enter cloaked allied transports.
 - Super Weapons with `Type=MultiMissile` and `Type=ChemMissile` now fire using their own weapon when fired from a building.
 - Fix a crash when a Jumpjet infantry is flying or trying to take off just when an Ion Storm starts.
+- Add the "Underground" layer to the tactical display Next and Prev search.

@@ -140,6 +140,7 @@ This page lists all the individual contributions to the project by their author.
   - Implement `StopSound` for `AnimTypes` and `VoxelAnimTypes`.
   - Implement 'OmniFire' for WeaponTypes.
   - Implement MeteorShowerCommandClass and MeteorImpactCommandClass.
+  - Add the "Underground" layer to the tactical display Next and Prev search.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Noble Fish**:
