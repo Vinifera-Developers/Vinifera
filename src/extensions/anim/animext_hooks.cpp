@@ -74,7 +74,7 @@ public:
     void _AI();
     void _Start();
     void _Middle();
-    void _Remove_This();
+    void _Delete_Me();
 };
 
 
@@ -238,7 +238,7 @@ void AnimClassExt::_AI()
                 }
             }
 
-            Remove_This();
+            Delete_Me();
             return;
         }
     }
@@ -262,7 +262,7 @@ void AnimClassExt::_AI()
     **  immediately.
     */
     if (IsToDelete) {
-        Remove_This();
+        Delete_Me();
         return;
     }
 
@@ -436,7 +436,7 @@ void AnimClassExt::_AI()
                         Start();
                     }
                     else {
-                        Remove_This();
+                        Delete_Me();
                     }
                 }
             }
@@ -638,11 +638,11 @@ void AnimClassExt::_Middle()
 
 
 /**
- *  Reimplementation of AnimClass::Remove_This.
+ *  Reimplementation of AnimClass::Delete_Me.
  *
  *  @author: ZivDero
  */
-void AnimClassExt::_Remove_This()
+void AnimClassExt::_Delete_Me()
 {
     Attach_To(nullptr);
 
@@ -666,7 +666,7 @@ void AnimClassExt::_Remove_This()
 
     }
 
-    ObjectClass::Remove_This();
+    ObjectClass::Delete_Me();
 }
 
 
@@ -798,5 +798,5 @@ void AnimClassExtension_Hooks()
     Patch_Jump(0x00414E80, &AnimClassExt::_AI);
     Patch_Jump(0x00415D60, &AnimClassExt::_Start);
     Patch_Jump(0x00415F40, &AnimClassExt::_Middle);
-    Patch_Jump(0x004167C0, &AnimClassExt::_Remove_This);
+    Patch_Jump(0x004167C0, &AnimClassExt::_Delete_Me);
 }

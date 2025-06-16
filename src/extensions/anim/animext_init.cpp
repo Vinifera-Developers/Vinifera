@@ -120,7 +120,7 @@ destroy_anim:
     /**
      *  Remove the anim from the game world.
      */
-    this_ptr->Remove_This();
+    this_ptr->Delete_Me();
     
     _asm { mov esi, this_ptr }
     JMP_REG(edx, 0x00414157);

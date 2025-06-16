@@ -49,14 +49,14 @@
 DECLARE_EXTENDING_CLASS_AND_PAIR(VoxelAnimClass)
 {
     public:
-        void _Remove_This();
+        void _Delete_Me();
 };
 
 
 /**
- *  Implementation of Remove_This() for VoxelAnimClass.
+ *  Implementation of Delete_Me() for VoxelAnimClass.
  */
-void VoxelAnimClassExt::_Remove_This()
+void VoxelAnimClassExt::_Delete_Me()
 {
     /**
      *  #issue-474
@@ -76,7 +76,7 @@ void VoxelAnimClassExt::_Remove_This()
         }
     }
 
-    ObjectClass::Remove_This();
+    ObjectClass::Delete_Me();
 }
 
 
@@ -85,5 +85,5 @@ void VoxelAnimClassExt::_Remove_This()
  */
 void VoxelAnimClassExtension_Hooks()
 {
-    Change_Virtual_Address(0x006D9134, Get_Func_Address(&VoxelAnimClassExt::_Remove_This));
+    Change_Virtual_Address(0x006D9134, Get_Func_Address(&VoxelAnimClassExt::_Delete_Me));
 }

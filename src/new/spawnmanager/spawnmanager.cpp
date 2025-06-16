@@ -782,7 +782,7 @@ void SpawnManagerClass::Detach_Spawns()
                 {
                     KamikazeTracker->Detach(control->Spawnee);
                     control->Status = SpawnControlStatus::Dead;
-                    control->Spawnee->Remove_This();
+                    control->Spawnee->Delete_Me();
                 }
                 /**
                  *  Otherwise it's probably currently in flight, so just detach it.
@@ -798,7 +798,7 @@ void SpawnManagerClass::Detach_Spawns()
             else
             {
                 control->Status = SpawnControlStatus::Dead;
-                control->Spawnee->Remove_This();
+                control->Spawnee->Delete_Me();
                 control->Spawnee = nullptr;
             }
 

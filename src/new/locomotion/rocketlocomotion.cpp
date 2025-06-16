@@ -391,7 +391,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
              *  If the rocket has flown outside the map's bounds, remove it so as to not lag the game.
              */
             if (!Map.In_Radar(Coord_Cell(LinkedTo->Center_Coord())))
-                LinkedTo->Remove_This();
+                LinkedTo->Delete_Me();
 
             break;
         }
@@ -650,7 +650,7 @@ void RocketLocomotionClass::Explode()
         new AnimClass(animtype, coord, 0, 1, SHAPE_WIN_REL | SHAPE_CENTER | SHAPE_FLAT, Get_Explosion_Z(coord));
     Combat_Lighting(coord, damage, warhead);
     Explosion_Damage(coord, damage, LinkedTo, warhead, true);
-    LinkedTo->Remove_This();
+    LinkedTo->Delete_Me();
 }
 
 
