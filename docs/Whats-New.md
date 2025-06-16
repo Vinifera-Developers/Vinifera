@@ -192,6 +192,7 @@ New:
 - Change the behavior MultipleFactory and implements build speed overrides (by CCHyper)
 - Implement `StopSound` for `AnimTypes` and `VoxelAnimTypes` (by CCHyper)
 - Implement 'OmniFire' for WeaponTypes (by CCHyper)
+- Implement MeteorShowerCommandClass and MeteorImpactCommandClass (by CCHyper)
 
 
 Vanilla fixes:

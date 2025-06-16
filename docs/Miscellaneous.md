@@ -424,6 +424,14 @@ This could very well crash the game, please use it with caution and make small i
 
 - Cycle the camera between the starting waypoints on the map.
 
+#### `[ ]` Meteor Impact
+
+- Sends a meteor at the current mouse cell.
+
+#### `[ ]` Meteor Shower
+
+- Creates a meteor shower around the current mouse cell.
+
 ## INI
 
 - Add loading of `MPLAYER.INI` and `MPLAYERFS.INI` (Firestorm only) to override Rules data for multiplayer games (including Skirmish). Data contained in these INI's will not be loaded for the campaign and World Domination Tour games.
