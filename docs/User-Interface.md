@@ -7,7 +7,7 @@ This page lists all user interface additions, changes, fixes that are implemente
 ### Tabs
 
 - Vinifera enhances the Tiberian Sun sidebar by introducing tabs similar to those found in Red Alert 2.
-- There are four tabs, just like in Red Alert 2; however, due to the absence of a defense queue, the "Defenses" tab has been replaced by a new "Special" tab. This tab contains Superweapons and aircraft.
+- There are four tabs, just like in Red Alert 2; however, due to the absence of a defense queue, the "Defenses" tab has been replaced by a new "Special" tab. This tab contains Superweapons, aircraft and naval units.
 - Vinifera also introduces new hotkeys for quick tab switching and placing the currently available building (in the case of the Structure tab).
 - The new sidebar feature must be enabled in `VINIFERA.INI`.
 
