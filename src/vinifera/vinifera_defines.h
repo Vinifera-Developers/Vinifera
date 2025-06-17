@@ -169,3 +169,12 @@ enum ProductionFlags
     PRODFLAG_DEFENSE = 1 << 1
 };
 DEFINE_ENUMERATION_OPERATORS(ProductionFlags);
+
+
+enum PrerequisiteGroupType
+{
+    PREREQ_GROUP_FIRST = 0,
+
+    PREREQ_GROUP_NONE = -1
+};
+DEFINE_ENUMERATION_OPERATORS(PrerequisiteGroupType);

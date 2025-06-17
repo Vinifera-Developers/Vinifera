@@ -54,6 +54,7 @@
 #include "hooker_macros.h"
 #include "houseext.h"
 #include "msgbox.h"
+#include "prerequisitegroup.h"
 #include "rulesext.h"
 #include "tibsun_functions.h"
 
@@ -76,6 +77,7 @@ public:
     void _Active_Add(TechnoClass const* techno);
     Cell _Find_Build_Location(BuildingTypeClass* btype, int(__fastcall* callback)(int, Cell&, int, int), int a3 = -1);
     void _Production_Check();
+    bool _AI_Has_Prerequisites(const TechnoTypeClass* type, DynamicVectorClass<const BuildingTypeClass*>& owned, int ownedcount) const;
 
     // stubs
     FactoryClass* _Fetch_Factory(RTTIType rtti);
@@ -1151,6 +1153,64 @@ DECLARE_PATCH(_HouseClass_AI_BuildNavalUnit_Patch)
 
 
 /**
+ *  Reimplementation of of HouseClass::AI_Has_Prerequisites
+ *
+ *  @author: ZivDero
+ */
+bool HouseClassExt::_AI_Has_Prerequisites(const TechnoTypeClass* type, DynamicVectorClass<const BuildingTypeClass*>& owned, int ownedcount) const
+{
+    for (int i = 0; i < type->Prerequisite.Count(); i++) {
+
+        if (type->Prerequisite[i] >= STRUCT_FIRST) {
+
+            BuildingTypeClass* btype = BuildingTypes[type->Prerequisite[i]];
+            if (!Rule->BuildConst.Is_Present(btype)) {
+
+                bool found = false;
+                for (int j = 0; j < ownedcount; j++) {
+                    if (owned[j] == btype) {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found) {
+                    return false;
+                }
+            }
+
+        } else {
+
+            if (type->Prerequisite[i] == -1) {
+                continue;
+            }
+
+            PrerequisiteGroupType grouptype = PrerequisiteGroupClass::Decode(type->Prerequisite[i]);
+            if (grouptype == PREREQ_GROUP_NONE) {
+                return false;
+            }
+
+            PrerequisiteGroupClass* group = PrerequisiteGroups[grouptype];
+
+            bool found = false;
+            for (int j = 0; j < ownedcount; j++) {
+                if (group->Prerequisites.Is_Present(owned[j]->HeapID)) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void HouseClassExtension_Hooks()
@@ -1191,6 +1251,8 @@ void HouseClassExtension_Hooks()
     Patch_Call(0x0042D460, &HouseClassExt::_Find_Build_Location);
     Patch_Call(0x0042D53C, &HouseClassExt::_Find_Build_Location);
     Patch_Call(0x004C8104, &HouseClassExt::_Find_Build_Location);
+
+    Patch_Jump(0x004C5920, &HouseClassExt::_AI_Has_Prerequisites);
 
     Patch_Jump(0x004C2CA0, &HouseClassExt::_Fetch_Factory);
     Patch_Jump(0x004C2D20, &HouseClassExt::_Set_Factory);
