@@ -772,8 +772,8 @@ int HouseClassExtension::AI_Unit()
 {
     if (This()->BuildUnit != UNIT_NONE) return TICKS_PER_SECOND;
 
-    int harv = This()->ActiveUQuantity.Count_Of(This()->Get_First_Ownable(Rule->HarvesterUnit)->HeapID);
-    int ref = This()->ActiveBQuantity.Count_Of(This()->Get_First_Ownable(Rule->BuildRefinery)->HeapID);
+    int harv = This()->ActiveUQuantity.Count_Of(This()->Get_First_ActLike(Rule->HarvesterUnit)->HeapID);
+    int ref = This()->ActiveBQuantity.Count_Of(This()->Get_First_ActLike(Rule->BuildRefinery)->HeapID);
     int mult;
     if (Session.Type == GAME_NORMAL || This()->Difficulty == DIFF_HARD) {
         mult = 1;
@@ -786,8 +786,8 @@ int HouseClassExtension::AI_Unit()
     **  harvester if possible.
     */
     if (This()->IQ >= Rule->IQHarvester && !This()->IsTiberiumShort && !This()->Is_Human_Player() && ref * mult > harv) {
-        if (This()->Get_First_Ownable(Rule->HarvesterUnit)->TechLevel <= This()->Control.TechLevel) {
-            This()->BuildUnit = This()->Get_First_Ownable(Rule->HarvesterUnit)->HeapID;
+        if (This()->Get_First_ActLike(Rule->HarvesterUnit)->TechLevel <= This()->Control.TechLevel) {
+            This()->BuildUnit = This()->Get_First_ActLike(Rule->HarvesterUnit)->HeapID;
             return TICKS_PER_SECOND;
         }
     }
