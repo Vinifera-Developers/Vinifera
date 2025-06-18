@@ -186,13 +186,14 @@ New:
 - Add `HideDuringSpecialAnim` for buildings (by ZivDero)
 - Add `RoofDeployingAnim` and `UnderRoofDoorAnim` for buildings (by ZivDero)
 - Implement Jumpjet Locomotion improvements (by ZivDero, tomsons26)
-- Allow up to 65535 OverlayTypes in maps using `NewINIFormat=5` (by ZivDero)
+- Allow up to 65535 `OverlayTypes` in maps using `NewINIFormat=5` (by ZivDero)
 - Implement naval yards (by ZivDero, CCHyper, Rampastring)
 - Implement exclusive factories (by ZivDero)
-- Change the behavior MultipleFactory and implements build speed overrides (by CCHyper)
+- Change the behavior `MultipleFactory` and implement build speed overrides (by CCHyper)
 - Implement `StopSound` for `AnimTypes` and `VoxelAnimTypes` (by CCHyper)
-- Implement 'OmniFire' for WeaponTypes (by CCHyper)
-- Implement MeteorShowerCommandClass and MeteorImpactCommandClass (by CCHyper)
+- Implement 'OmniFire' for `WeaponTypes` (by CCHyper)
+- Implement `MeteorShowerCommandClass` and `MeteorImpactCommandClass` (by CCHyper)
+- Implement `OpportunityFire` (by ZivDero)
 
 
 Vanilla fixes:
