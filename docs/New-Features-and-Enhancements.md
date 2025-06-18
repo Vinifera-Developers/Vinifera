@@ -1124,7 +1124,7 @@ GROUPNAME=            ; list of BuildingTypes, the list of buildings that satisf
 
 In `RULES.INI`:
 ```ini
-[SOMETECHNO]           ; TechnoType
+[SOMETECHNO]            ; TechnoType
 Prerequisite=GROUPNAME
 ```
 
