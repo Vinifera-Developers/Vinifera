@@ -62,7 +62,7 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where if the player loaded a saved game, the score screen timer would report the time since the saved game was loaded, instead of since when the scenario was first started.
 - Fix a bug where units could gain veterancy by killing allies.
 - Fix a bug where AI players would send teams to attack their allies.
-- `[CombatDamage]->MinDamage` now works as expected and damage is no long always a minimum of `1`.
+- `[CombatDamage]->MinDamage` now works as expected and damage is no longer always a minimum of `1`.
 - VehicleTypes with Jumpjet locomotion now take damage in flight.
 - Fix the map glitching around when scrolling if the map is not large enough to fill the entire screen.
 - Fix a bug where a visceroid was spawned when poison gas destroyed a non-crewed vehicle, building, or terrain object.
