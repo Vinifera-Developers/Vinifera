@@ -194,6 +194,7 @@ New:
 - Implement 'OmniFire' for `WeaponTypes` (by CCHyper)
 - Implement `MeteorShowerCommandClass` and `MeteorImpactCommandClass` (by CCHyper)
 - Implement `OpportunityFire` (by ZivDero)
+- Implement prerequisite groups (by ZivDero)
 
 
 Vanilla fixes:
@@ -267,6 +268,8 @@ Vanilla fixes:
 - Super Weapons with `Type=MultiMissile` and `Type=ChemMissile` now have the building display Special animations (by ZivDero)
 - Allow customizing "Missile Launched" voice per super weapon (by ZivDero)
 - Add the "Underground" layer to the tactical display Next and Prev search (by CCHyper)
+- Fix a bug where upgrades did not always work properly as prerequisites (by ZivDero)
+- Fix a bug where upgrades did not work as `AuxBuilding` on Super Weapons (by ZivDero)
 
 :::
 

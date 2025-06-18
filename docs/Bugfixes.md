@@ -70,3 +70,5 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Super Weapons with `Type=MultiMissile` and `Type=ChemMissile` now fire using their own weapon when fired from a building.
 - Fix a crash when a Jumpjet infantry is flying or trying to take off just when an Ion Storm starts.
 - Add the "Underground" layer to the tactical display Next and Prev search.
+- Fix a bug where upgrades did not always work properly as prerequisites.
+- Fix a bug where upgrades did not work as `AuxBuilding` on Super Weapons.
