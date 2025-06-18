@@ -440,6 +440,8 @@ bool TechnoClassExtension::Can_Passive_Acquire() const
          */
         return Techno_Type_Class_Ext()->IsCanPassiveAcquire;
     }
+
+    return false;
 }
 
 
