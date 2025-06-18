@@ -908,6 +908,11 @@ bool RulesClassExtension::Tiberiums(CCINIClass &ini)
 }
 
 
+/**
+ *  Fetch all prerequisite group values.
+ *
+ *  @author: ZivDero
+ */
 bool RulesClassExtension::PrerequisiteGroups(CCINIClass& ini)
 {
     //EXT_DEBUG_TRACE("RulesClassExtension::Armors - 0x%08X\n", (uintptr_t)(This()));

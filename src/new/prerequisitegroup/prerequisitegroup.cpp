@@ -185,6 +185,8 @@ HRESULT PrerequisiteGroupClass::Load(IStream* pStm)
         return E_POINTER;
     }
 
+    Prerequisites.Clear();
+
     /**
      *  Load the unique id for this class.
      */
@@ -208,6 +210,8 @@ HRESULT PrerequisiteGroupClass::Load(IStream* pStm)
     }
 
     new (this) PrerequisiteGroupClass(NoInitClass());
+
+    Prerequisites.Load(pStm);
 
     return hr;
 }
@@ -245,6 +249,8 @@ HRESULT PrerequisiteGroupClass::Save(IStream* pStm, BOOL fClearDirty)
     if (FAILED(hr)) {
         return hr;
     }
+
+    Prerequisites.Save(pStm);
 
     return hr;
 }
@@ -307,7 +313,7 @@ const char* PrerequisiteGroupClass::Name_From(PrerequisiteGroupType type)
 /**
  *  Find or create a prerequisite group of the type specified.
  *
- *  @author: CCHyper
+ *  @author: ZivDero
  */
 const PrerequisiteGroupClass* PrerequisiteGroupClass::Find_Or_Make(const char* name)
 {
@@ -325,6 +331,11 @@ const PrerequisiteGroupClass* PrerequisiteGroupClass::Find_Or_Make(const char* n
 }
 
 
+/**
+ *  Parse the prerequisite group from a string.
+ *
+ *  @author: ZivDero
+ */
 void PrerequisiteGroupClass::Parse_String(char* string)
 {
     Prerequisites.Clear();

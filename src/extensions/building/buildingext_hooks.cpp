@@ -920,10 +920,19 @@ void BuildingClassExt::_Factory_AI()
 }
 
 
+/**
+ *  Reimplementation of BuildingClass::Fetch_Super_Weapon.
+ *
+ *  @author: ZivDero
+ */
 SuperWeaponType BuildingClassExt::_Fetch_Super_Weapon() const
 {
     if (Class->SuperWeapon != SUPER_NONE) {
         BuildingTypeClass const* aux = Supers[Class->SuperWeapon]->Class->AuxBuilding;
+
+        /**
+         *  Fix: use the prerequisite check to allow building upgrades to be AuxBulding.
+         */
         if (aux != nullptr && !Extension::Fetch(House)->Has_Prerequisite(aux->HeapID)) {
             return SUPER_NONE;
         }
@@ -932,9 +941,18 @@ SuperWeaponType BuildingClassExt::_Fetch_Super_Weapon() const
 }
 
 
+/**
+ *  Reimplementation of BuildingClass::Fetch_Super_Weapon2.
+ *
+ *  @author: ZivDero
+ */
 SuperWeaponType BuildingClassExt::_Fetch_Super_Weapon2() const
 {
     if (Class->SuperWeapon2 != SUPER_NONE) {
+
+        /**
+         *  Fix: use the prerequisite check to allow building upgrades to be AuxBulding.
+         */
         BuildingTypeClass const* aux = Supers[Class->SuperWeapon2]->Class->AuxBuilding;
         if (aux != nullptr && !Extension::Fetch(House)->Has_Prerequisite(aux->HeapID)) {
             return SUPER_NONE;

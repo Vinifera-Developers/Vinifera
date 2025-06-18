@@ -964,6 +964,11 @@ int HouseClassExtension::AI_Naval_Unit()
 }
 
 
+/**
+ *  Checks if the house owns this prerequisite, as it appears in the Prerequisite= list.
+ *
+ *  @author: ZivDero
+ */
 bool HouseClassExtension::Has_Prerequisite(int prerequisite)
 {
     if (prerequisite >= STRUCT_FIRST) {
@@ -974,6 +979,11 @@ bool HouseClassExtension::Has_Prerequisite(int prerequisite)
 }
 
 
+/**
+ *  Checks if the house owns a building that satisfies this prerequisite group.
+ *
+ *  @author: ZivDero
+ */
 bool HouseClassExtension::Has_Prerequisite(PrerequisiteGroupType group)
 {
     /*
@@ -998,6 +1008,11 @@ bool HouseClassExtension::Has_Prerequisite(PrerequisiteGroupType group)
 }
 
 
+/**
+ *  Checks if the house owns a specific building prerequisite.
+ *
+ *  @author: ZivDero
+ */
 bool HouseClassExtension::Has_Prerequisite(StructType building)
 {
     /*

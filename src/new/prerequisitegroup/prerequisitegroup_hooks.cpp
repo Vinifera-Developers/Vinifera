@@ -39,7 +39,7 @@
 
 
 /**
- *  
+ *  Re-implementation of prerequisite parsing for prerequisite groups.
  *
  *  @author: ZivDero
  */
@@ -71,7 +71,11 @@ TypeList<int> Get_Prerequisites(CCINIClass const& ini, char const* section, char
 }
 
 
-//4BBD3E
+/**
+ *  Patch to check new prerequisite groups in HouseClass::Can_Build.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_HouseClass_Can_Build_Prereq_Groups_Patch)
 {
     GET_REGISTER_STATIC(int, prereq, eax);
@@ -97,5 +101,4 @@ void PrerequisiteGroup_Hooks()
 {
     Patch_Jump(0x0044CB30, &Get_Prerequisites);
     Patch_Jump(0x004BBD3E, &_HouseClass_Can_Build_Prereq_Groups_Patch);
-    //Patch_Jump(0x00507000, &_LogicClass_AI_Kamikaze_AI_Patch);
 }

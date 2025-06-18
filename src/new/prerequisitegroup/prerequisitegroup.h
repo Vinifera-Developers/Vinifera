@@ -64,7 +64,7 @@ public:
     IFACEMETHOD_(LONG, GetSizeMax)(ULARGE_INTEGER* pcbSize);
 
     PrerequisiteGroupClass();
-    PrerequisiteGroupClass(const NoInitClass& noinit) {}
+    PrerequisiteGroupClass(const NoInitClass& noinit) : Prerequisites(noinit) {}
     PrerequisiteGroupClass(const char *name);
     virtual ~PrerequisiteGroupClass();
 
@@ -72,6 +72,9 @@ public:
     bool Read_INI(CCINIClass& ini);
     static bool Read_Global_INI(CCINIClass& ini);
 
+    /**
+     *  Converts the prerequisite group type to an integer as it appears in the Prerequisite= list.
+     */
     static int Encode(PrerequisiteGroupType type)
     {
         if (type < PREREQ_GROUP_FIRST) {
@@ -80,6 +83,9 @@ public:
         return -(static_cast<int>(type) + 1);
     }
 
+    /**
+     *  Converts the integer as it appears in the Prerequisite= list to a prerequisite group type.
+     */
     static PrerequisiteGroupType Decode(int number)
     {
         if (number >= STRUCT_FIRST) {
