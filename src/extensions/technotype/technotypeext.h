@@ -362,7 +362,7 @@ public:
     float BuildTimeMultiplier;
 
     /**
-     *  Can this object pick up targets withing its range automatically (opportunity fire)?
+     *  Can this object pick up targets within its range automatically (opportunity fire)?
      */
     bool IsOpportunityFire;
 };
