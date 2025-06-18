@@ -77,6 +77,7 @@ DECLARE_EXTENDING_CLASS_AND_PAIR(UnitClass)
 public:
     void _Firing_AI();
     void _Draw_Voxel(unsigned int frame, int key, Rect& rect, Point2D& point, const Matrix3D& other_matrix, int color, int flags);
+    void _Rotation_AI();
 };
 
 
@@ -271,6 +272,8 @@ DECLARE_PATCH(_UnitClass_Can_Fire_IsOmniFire_Patch)
     GET_REGISTER_STATIC(WeaponTypeClass *, weapon, ebx);
     static WeaponTypeClassExtension *weapontypeext;
 
+    _asm pushad
+
     weapontypeext = Extension::Fetch(weapon);
 
     /**
@@ -288,64 +291,84 @@ DECLARE_PATCH(_UnitClass_Can_Fire_IsOmniFire_Patch)
     }
 
 continue_facing_check:
-    static UnitTypeClass *class_ptr;    // Restore EAX pointer.
-    class_ptr = this_ptr->Class;
-    _asm { mov eax, class_ptr }
+    _asm popad
+    JMP_REG(ecx, 0x00656FA7);
 
     /**
      *  Final check to make sure the locomotor allows firing.
      */
 locomotor_Can_Fire:
+    _asm popad
     JMP(0x00656FA7);
 }
 
 
 /**
- *  #issue-550
- * 
- *  Implements IsOmniFire for units.
- * 
- *  @author: CCHyper
+ *  UnitClass::Rotation_AI re-implementation.
+ *
+ *  @author: ZivDero
  */
-DECLARE_PATCH(_UnitClass_Rotation_AI_IsOmniFire_Patch)
+void UnitClassExt::_Rotation_AI()
 {
-    GET_REGISTER_STATIC(UnitClass *, this_ptr, esi);
-    GET_STACK_STATIC(DirType *, tarcom_dir, esp, 0x8);
-    static const WeaponInfoStruct *weaponinfo;
-    static WeaponTypeClass *weapontype;
-    static WeaponTypeClassExtension *weapontypeext;
+    if (TarCom != nullptr && !IsRotating) {
+        DirType dir = Direction(TarCom);
 
-    /**
-     *  Fetch this units primary weapon.
-     */
-    weaponinfo = this_ptr->Get_Weapon(WEAPON_SLOT_PRIMARY);
-    if (weaponinfo->Weapon) {
+        if (Class->IsTurretEquipped) {
 
-        weapontypeext = Extension::Fetch(weaponinfo->Weapon);
+            /**
+             *  #issue-550
+             *
+             *  Implements IsOmniFire for units.
+             *
+             *  @author: CCHyper
+             */
+            WeaponTypeClass* primary = PrimaryWeapon;
+            if (primary != nullptr && !Extension::Fetch(primary)->IsOmniFire) {
+                SecondaryFacing.Set_Desired(dir);
+            }
+            
+        } else {
 
-        /**
-         *  Do we need turn to face the target?
-         */
-        if (weapontypeext->IsOmniFire) {
-            goto continue_rotation_checks;
+            /*
+            **  Non turret equipped vehicles will rotate their body to face the target only
+            **  if the vehicle isn't currently moving or facing the correct direction. This
+            **  applies only to tracked vehicles. Wheeled vehicles never rotate to face the
+            **  target, since they aren't maneuverable enough.
+            */
+            if (Class->Speed == SPEED_TRACK && NavCom == nullptr && !Locomotion->Is_Moving() && PrimaryFacing.Current() == dir) {
+                PrimaryFacing.Set_Desired(dir);
+            }
         }
-
     }
 
-    /**
-     *  Original code.
-     *  
-     *  Set the desired facing for the turret to that of the target.
-     */
-    this_ptr->SecondaryFacing.Set_Desired(*tarcom_dir);
+    if (Class->IsTurretSpins) {
+        SecondaryFacing.Set(DirType(static_cast<Dir256>(SecondaryFacing.Current().Get_Facing<256>() + 8)));
+    } else {
 
-    JMP(0x0064E612);
+        IsRotating = false;
+        if (Class->IsTurretEquipped) {
 
-    /**
-     *  Skip setting turret facing, continue rotation checks.
-     */
-continue_rotation_checks:
-    JMP(0x0064E612);
+            if (SecondaryFacing.Is_Rotating()) {
+
+                /*
+                **  If no further rotation is necessary, flag that the rotation
+                **  has stopped.
+                */
+                if (!Class->IsTurretSpins) {
+                    IsRotating = SecondaryFacing.Is_Rotating();
+                }
+            } else {
+                if (TarCom == nullptr) {
+                    if (NavCom == nullptr) {
+                        SecondaryFacing.Set_Desired(PrimaryFacing.Current());
+                    }
+                    else {
+                        SecondaryFacing.Set_Desired(Direction(NavCom));
+                    }
+                }
+            }
+        }
+    }
 }
 
 
@@ -1458,6 +1481,6 @@ void UnitClassExtension_Hooks()
     Patch_Jump(0x00654EEE, &_UnitClass_Mission_Harvest_FINDHOME_Find_Nearest_Refinery_Patch);
     //Patch_Jump(0x0065054F, &_UnitClass_Enter_Idle_Mode_Block_Harvesting_On_Bridge_Patch); // Removed, keeping code for reference.
     //Patch_Jump(0x00654AB0, &_UnitClass_Mission_Harvest_Block_Harvesting_On_Bridge_Patch); // Removed, keeping code for reference.
-    Patch_Jump(0x0064E5A6, &_UnitClass_Rotation_AI_IsOmniFire_Patch);
+    Patch_Jump(0x0064E560, &UnitClassExt::_Rotation_AI);
     Patch_Jump(0x00656F99, &_UnitClass_Can_Fire_IsOmniFire_Patch);
 }

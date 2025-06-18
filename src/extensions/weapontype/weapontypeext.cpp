@@ -44,7 +44,7 @@ WeaponTypeClassExtension::WeaponTypeClassExtension(const WeaponTypeClass *this_p
     AbstractTypeClassExtension(this_ptr),
     IsSuicide(false),
     IsDeleteOnSuicide(false),
-    IsOmniFire(true),
+    IsOmniFire(false),
     IsElectricBolt(false),
     ElectricBoltColor1(EBOLT_DEFAULT_COLOR_1),
     ElectricBoltColor2(EBOLT_DEFAULT_COLOR_2),

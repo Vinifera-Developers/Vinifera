@@ -73,7 +73,7 @@ WeaponTypeClassExtension final : public AbstractTypeClassExtension
         bool IsDeleteOnSuicide;
 
         /**
-         *  Does the unit firing this weapon have to perform a turn to face its target before firing?
+         *  Does the unit firing this weapon not have to perform a turn to face its target before firing?
          */
         bool IsOmniFire;
 

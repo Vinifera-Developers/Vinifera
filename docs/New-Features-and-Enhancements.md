@@ -1541,8 +1541,8 @@ DeleteOnSuicide=no  ; boolean, logical option for Suicide=yes which will instant
 
 In `RULES.INI`:
 ```ini
-[WeaponType]
-OmniFire=yes  ; boolean, does the unit firing this weapon have to perform a turn to face its target before firing.
+[SOMEWEAPON]  ; WeaponType
+OmniFire=no   ; boolean, does the unit firing this weapon not have to perform a turn to face its target before firing.
 ```
 
 ```{note}
