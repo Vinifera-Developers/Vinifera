@@ -97,7 +97,13 @@ class TechnoClassExtension : public RadioClassExtension
          */
         TechnoClass* SpawnOwner;
 
+        /**
+         *  Is this object's current target an opportunity fire target?
+         */
         bool HasOpportunityFireTarget;
 
+        /**
+         *  When has this unit last received a target? (not comprehensive)
+         */
         int LastTargetFrame;
 };

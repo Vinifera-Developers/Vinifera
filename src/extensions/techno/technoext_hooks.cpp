@@ -1330,6 +1330,11 @@ int TechnoClassExt::_Time_To_Build() const
 }
 
 
+/**
+ *  Reimplementation of TechnoClass::Assign_Target.
+ *
+ *  @author: ZivDero
+ */
 void TechnoClassExt::_Assign_Target(AbstractClass* target)
 {
     Extension::Fetch(this)->HasOpportunityFireTarget = false;

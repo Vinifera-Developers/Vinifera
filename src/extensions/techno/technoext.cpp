@@ -556,6 +556,11 @@ int TechnoClassExtension::Time_To_Build() const
 }
 
 
+/**
+ *  Can this unit opportunity fire?
+ *
+ *  @author: ZivDero
+ */
 bool TechnoClassExtension::Can_Opportunity_Fire() const
 {
     if (This()->TarCom != nullptr && !This()->House->Is_Human_Player() && This()->Is_Foot()) {
@@ -577,6 +582,11 @@ bool TechnoClassExtension::Can_Opportunity_Fire() const
 }
 
 
+/**
+ *  Perform opportunity fire.
+ *
+ *  @author: ZivDero
+ */
 bool TechnoClassExtension::Opportunity_Fire()
 {
     if (Can_Opportunity_Fire()) {
