@@ -360,4 +360,6 @@ public:
      *  This is an individual control of the build time for this object.
      */
     float BuildTimeMultiplier;
+
+    bool IsOpportunityFire;
 };
