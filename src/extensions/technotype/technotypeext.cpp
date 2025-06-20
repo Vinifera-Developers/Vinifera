@@ -428,7 +428,7 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     IsNaval = ini.Get_Bool(ini_name, "Naval", IsNaval);
 
     BuiltAt = TGet_TypeList(ini, ini_name, "BuiltAt", BuiltAt);
-    IsOpportunityFire = ini.Get_Bool(ini_name, "IsOpportunityFire", IsOpportunityFire);
+    IsOpportunityFire = ini.Get_Bool(ini_name, "OpportunityFire", IsOpportunityFire);
 
     return true;
 }
