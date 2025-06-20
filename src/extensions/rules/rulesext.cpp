@@ -927,14 +927,14 @@ bool RulesClassExtension::PrerequisiteGroups(CCINIClass& ini)
         const char* entry = ini.Get_Entry(PREREQUISITE_GROUPS, index);
 
         /**
-         *  Get a weapon entry.
+         *  Get a group entry.
          */
-        if (ini.Get_String(PREREQUISITE_GROUPS, entry, buf, sizeof(buf))) {
+        if (ini.Get_String(PREREQUISITE_GROUPS, entry, buf, sizeof(buf)) > 0) {
 
             /**
-             *  Find or create a weapon of the name specified.
+             *  Find or create a group of the name specified.
              */
-            group = PrerequisiteGroupClass::Find_Or_Make(buf);
+            group = PrerequisiteGroupClass::Find_Or_Make(entry);
             if (group) {
                 DEV_DEBUG_INFO("Rules: Found PrerequisiteGroup \"%s\".\n", buf);
             } else {

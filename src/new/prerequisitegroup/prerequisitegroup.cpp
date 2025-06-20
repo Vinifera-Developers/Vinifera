@@ -360,10 +360,6 @@ bool PrerequisiteGroupClass::Read_INI(CCINIClass& ini)
 {
     static const char* const PREREQUISITE_GROUPS = "PrerequisiteGroups";
 
-    if (!ini.Is_Present(IniName)) {
-        return false;
-    }
-
     char buffer[512];
 
     if (ini.Get_String(PREREQUISITE_GROUPS, IniName, "", buffer, sizeof(buffer)) > 0) {
