@@ -103,7 +103,8 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     JumpjetNoWobbles(false),
     IsNaval(false),
     BuiltAt(),
-    BuildTimeMultiplier(1.0f)
+    BuildTimeMultiplier(1.0f),
+    IsOpportunityFire(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -290,6 +291,7 @@ void TechnoTypeClassExtension::Object_CRC(CRCEngine &crc) const
     crc(JumpjetNoWobbles);
     crc(IsNaval);
     crc(BuiltAt.Count());
+    crc(IsOpportunityFire);
 }
 
 
@@ -426,6 +428,7 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     IsNaval = ini.Get_Bool(ini_name, "Naval", IsNaval);
 
     BuiltAt = TGet_TypeList(ini, ini_name, "BuiltAt", BuiltAt);
+    IsOpportunityFire = ini.Get_Bool(ini_name, "OpportunityFire", IsOpportunityFire);
 
     return true;
 }

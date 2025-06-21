@@ -50,6 +50,9 @@
 #include "vinifera_saveload.h"
 #include "storageext.h"
 #include "spawnmanager.h"
+#include "team.h"
+#include "teamtype.h"
+#include "unit.h"
 #include "weapontype.h"
 
 
@@ -63,7 +66,9 @@ TechnoClassExtension::TechnoClassExtension(const TechnoClass *this_ptr) :
     ElectricBolt(nullptr),
     Storage(Tiberiums.Count()),
     SpawnManager(nullptr),
-    SpawnOwner(nullptr)
+    SpawnOwner(nullptr),
+    HasOpportunityFireTarget(false),
+    LastTargetFrame(Frame)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoClassExtension::TechnoClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -428,10 +433,15 @@ bool TechnoClassExtension::Can_Passive_Acquire() const
 {
     //EXT_DEBUG_TRACE("TechnoClassExtension::Can_Passive_Acquire - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    /**
-     *  IsCanPassiveAcquire defaults to true to copy original behaviour, so all units can passive acquire unless told otherwise.
-     */
-    return Techno_Type_Class_Ext()->IsCanPassiveAcquire;
+    if ((!This()->Is_Renovator() || !This()->House->Is_Human_Player()) && This()->Is_Weapon_Equipped()) {
+
+        /**
+         *  IsCanPassiveAcquire defaults to true to copy original behaviour, so all units can passive acquire unless told otherwise.
+         */
+        return Techno_Type_Class_Ext()->IsCanPassiveAcquire;
+    }
+
+    return false;
 }
 
 
@@ -543,6 +553,51 @@ int TechnoClassExtension::Time_To_Build() const
     }
 
     return time;
+}
+
+
+/**
+ *  Can this unit opportunity fire?
+ *
+ *  @author: ZivDero
+ */
+bool TechnoClassExtension::Can_Opportunity_Fire() const
+{
+    if (This()->TarCom != nullptr && !This()->House->Is_Human_Player() && This()->Is_Foot()) {
+        FootClass* foot = static_cast<FootClass*>(This());
+        if (foot->Team != nullptr && !foot->Team->Class->IsSuicide && foot->Team->Class->IsAggressive && foot->CurrentMission == MISSION_MOVE) {
+            return true;
+        }
+    }
+
+    if (!Can_Passive_Acquire()) {
+        return false;
+    }
+
+    if (Techno_Type_Class_Ext()->IsOpportunityFire) {
+        return true;
+    }
+
+    return false;
+}
+
+
+/**
+ *  Perform opportunity fire.
+ *
+ *  @author: ZivDero
+ */
+bool TechnoClassExtension::Opportunity_Fire()
+{
+    if (Can_Opportunity_Fire()) {
+        bool result = This()->Target_Something_Nearby(This()->Center_Coord(), THREAT_RANGE);
+        if (result && This()->TarCom != nullptr) {
+            HasOpportunityFireTarget = true;
+        }
+        return result;
+    }
+
+    return false;
 }
 
 

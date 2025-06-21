@@ -1100,6 +1100,16 @@ MultipleFactoryCap=0                   ; integer, the maximum number of factorie
 While the default value for `WorstLowPowerBuildRateCoefficient` is `0.5`, vanilla `RULES.INI` contains a value of `0.3`. To address this, when reading unmodified `RULES.INI`, the value will be changed to `0.5`. For modified `RULES.INI` files, please make sure to adjust the value.
 ```
 
+### OpportunityFire
+
+- The `OpportunityFire` key has been backported from Red Alert 2, and controls whether this unit can fire whilst performing other actions (e.g. moving). For further details, see the article on [ModEnc²](https://modenc2.markjfox.net/OpportunityFire).
+
+In `RULES.INI`:
+```ini
+[SOMETECHNO]        ; TechnoType
+OpportunityFire=no  ; boolean, can this unit fire whilst performing other actions?
+```
+
 ## Terrain
 
 ### Light Sources

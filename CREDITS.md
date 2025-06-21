@@ -248,3 +248,4 @@ This page lists all the individual contributions to the project by their author.
   - Fix a crash when a Jumpjet infantry is flying or trying to take off just when an Ion Storm starts.
   - Allow up to 65535 OverlayTypes in maps using `NewINIFormat=5`.
   - Implement naval yards.
+  - Implement `OpportunityFire`.

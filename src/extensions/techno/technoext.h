@@ -69,6 +69,8 @@ class TechnoClassExtension : public RadioClassExtension
         void Put_Storage_Pointers();
 
         int Time_To_Build() const;
+        bool Can_Opportunity_Fire() const;
+        bool Opportunity_Fire();
 
     private:
         const TechnoTypeClass *Techno_Type_Class() const;
@@ -94,4 +96,14 @@ class TechnoClassExtension : public RadioClassExtension
          *  The object that spawned this object.
          */
         TechnoClass* SpawnOwner;
+
+        /**
+         *  Is this object's current target an opportunity fire target?
+         */
+        bool HasOpportunityFireTarget;
+
+        /**
+         *  When has this unit last received a target? (not comprehensive)
+         */
+        int LastTargetFrame;
 };

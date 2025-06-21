@@ -360,4 +360,9 @@ public:
      *  This is an individual control of the build time for this object.
      */
     float BuildTimeMultiplier;
+
+    /**
+     *  Can this object pick up targets within its range automatically (opportunity fire)?
+     */
+    bool IsOpportunityFire;
 };

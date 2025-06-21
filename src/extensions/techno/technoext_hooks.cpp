@@ -122,6 +122,7 @@ public:
     Coordinate _Fire_Coord(WeaponSlotType which) const;
     void _Record_The_Kill(TechnoClass* source);
     int _Time_To_Build() const;
+    void _Assign_Target(AbstractClass * target);
 };
 
 
@@ -526,30 +527,26 @@ bool TechnoClassExt::_Spawner_Fire_At(AbstractClass * target, WeaponTypeClass* w
  */
 bool TechnoClassExt::_Target_Something_Nearby(Coordinate& coord, ThreatType threat)
 {
+    auto extension = Extension::Fetch(this);
+
+    extension->LastTargetFrame = Frame;
+
     /**
      *  Determine that if there is an existing target it is still legal
      *  and within range.
      */
-    if (Target_Legal(TarCom))
-    {
-        // This bit is roughly ported from YR but is missing `ShouldLoseTargetNow`
-        if (threat & THREAT_RANGE)
-        {
-            WeaponSlotType primary = What_Weapon_Should_I_Use(TarCom);
-            FireErrorType fire = Can_Fire(TarCom, primary);
+    if (TarCom != nullptr && extension->HasOpportunityFireTarget) {
+        WeaponSlotType primary = What_Weapon_Should_I_Use(TarCom);
+        FireErrorType fire = Can_Fire(TarCom, primary);
 
-            if (fire == FIRE_CANT)
-            {
-                SpawnManagerClass* spawn_manager = Extension::Fetch(this)->SpawnManager;
-                if (spawn_manager)
-                    spawn_manager->Abandon_Target();
+        if (fire == FIRE_CANT) {
+            if (extension->SpawnManager) {
+                extension->SpawnManager->Abandon_Target();
+            }
+            Assign_Target(nullptr);
 
-                Assign_Target(nullptr);
-            }
-            else if (fire == FIRE_ILLEGAL || fire == FIRE_RANGE)
-            {
-                Assign_Target(nullptr);
-            }
+        } else if (fire == FIRE_ILLEGAL || fire == FIRE_RANGE) {
+            Assign_Target(nullptr);
         }
     }
 
@@ -592,22 +589,45 @@ void TechnoClassExt::_Stun()
 
 
 /**
- *  Wrapper function to patch the call in TechnoClass::AI to call
- *  SpawnManagerClass::AI.
+ *  Wrapper function around MissionClass::AI call in TechnoClass::AI
+ *  to conveniently insert code.
  *
  *  @author: ZivDero
  */
 void TechnoClassExt::_Mission_AI()
 {
-    MissionClass::AI();
-
-    if (!IsActive)
-        return;
-
     const auto extension = Extension::Fetch(this);
 
-    if (extension->SpawnManager)
+    if (TarCom != nullptr && extension->HasOpportunityFireTarget) {
+        if (CurrentMission == MISSION_SLEEP ||
+            CurrentMission == MISSION_ENTER ||
+            CurrentMission == MISSION_STOP ||
+            CurrentMission == MISSION_AMBUSH ||
+            CurrentMission == MISSION_UNLOAD ||
+            CurrentMission == MISSION_CONSTRUCTION ||
+            CurrentMission == MISSION_DECONSTRUCTION ||
+            CurrentMission == MISSION_REPAIR ||
+            CurrentMission == MISSION_MISSILE ||
+            CurrentMission == MISSION_HARMLESS ||
+            CurrentMission == MISSION_OPEN) {
+
+            Assign_Target(nullptr);
+        }
+    }
+
+    MissionClass::AI();
+
+    if (!IsActive) {
+        return;
+    }
+
+    if (CurrentMission == MISSION_MOVE || CurrentMission == MISSION_HARVEST || CurrentMission == MISSION_GUARD) {
+        extension->Opportunity_Fire();
+    }
+
+    if (extension->SpawnManager) {
         extension->SpawnManager->AI();
+    }
 }
 
 
@@ -1307,6 +1327,49 @@ void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
 int TechnoClassExt::_Time_To_Build() const
 {
     return Extension::Fetch(this)->Time_To_Build();
+}
+
+
+/**
+ *  Reimplementation of TechnoClass::Assign_Target.
+ *
+ *  @author: ZivDero
+ */
+void TechnoClassExt::_Assign_Target(AbstractClass* target)
+{
+    Extension::Fetch(this)->HasOpportunityFireTarget = false;
+
+    if (target == TarCom) return;
+
+    if (target == nullptr) {
+        target = nullptr;
+    } else {
+
+        /*
+        **  Prevent targeting of self.
+        */
+        if (target == this) {
+            target = &Map[PositionCoord];
+        } else {
+
+            /*
+            **  Make sure that the target is not already dead.
+            */
+            ObjectClass* object = dynamic_cast<ObjectClass*>(target);
+            if (object != nullptr && (object->IsActive == false || object->Strength == 0)) {
+                target = nullptr;
+            }
+        }
+    }
+
+    /*
+    **  Set the unit's targeting computer.
+    */
+    TarCom = target;
+
+    if (target == nullptr) {
+        CurrentBurstIndex = 0;
+    }
 }
 
 
@@ -2716,4 +2779,5 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x00633745, (uintptr_t)0x00633762); // Do not trigger "Discovered by Player" when an object is destroyed
     Patch_Jump(0x0062D218, &_TechnoClass_Evaluate_Object_Zone_Evaluation_TargetZoneScanType_Patch);
     Patch_Jump(0x0062A970, &TechnoClassExt::_Time_To_Build);
+    Patch_Jump(0x0062FD70, &TechnoClassExt::_Assign_Target);
 }
