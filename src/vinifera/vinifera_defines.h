@@ -69,6 +69,7 @@
 #define UUID_ARMORTYPE                      "EE8D505F-12BB-4313-AEDC-4AEA30A5BA03"
 #define UUID_ROCKETTYPE                     "FAE72300-A93C-476C-A6DB-CB2B62ADCECD"
 #define UUID_SPAWN_MANAGER                  "157ADEE5-D344-48B9-811B-3FA01EF3CCD4"
+#define UUID_PREREQUISITE_GROUP             "C0D8765A-FD0C-476D-B4DD-C8D061C323EE"
 
 
 /**
@@ -169,3 +170,12 @@ enum ProductionFlags
     PRODFLAG_DEFENSE = 1 << 1
 };
 DEFINE_ENUMERATION_OPERATORS(ProductionFlags);
+
+
+enum PrerequisiteGroupType
+{
+    PREREQ_GROUP_FIRST = 0,
+
+    PREREQ_GROUP_NONE = -1
+};
+DEFINE_ENUMERATION_OPERATORS(PrerequisiteGroupType);

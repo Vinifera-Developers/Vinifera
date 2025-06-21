@@ -249,3 +249,6 @@ This page lists all the individual contributions to the project by their author.
   - Allow up to 65535 OverlayTypes in maps using `NewINIFormat=5`.
   - Implement naval yards.
   - Implement `OpportunityFire`.
+  - Implement prerequisite groups.
+  - Fix a bug where upgrades did not always work properly as prerequisites.
+  - Fix a bug where upgrades did not work as `AuxBuilding` on Super Weapons.

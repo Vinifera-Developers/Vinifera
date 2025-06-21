@@ -43,6 +43,7 @@
 #include "utracker.h"
 #include "building.h"
 #include "overlaytype.h"
+#include "prerequisitegroup.h"
 #include "rules.h"
 #include "session.h"
 #include "team.h"
@@ -960,6 +961,97 @@ int HouseClassExtension::AI_Naval_Unit()
     }
 
     return TICKS_PER_SECOND;
+}
+
+
+/**
+ *  Checks if the house owns this prerequisite, as it appears in the Prerequisite= list.
+ *
+ *  @author: ZivDero
+ */
+bool HouseClassExtension::Has_Prerequisite(int prerequisite)
+{
+    if (prerequisite >= STRUCT_FIRST) {
+        return Has_Prerequisite(static_cast<StructType>(prerequisite));
+    } else {
+        return Has_Prerequisite(PrerequisiteGroupClass::Decode(prerequisite));
+    }
+}
+
+
+/**
+ *  Checks if the house owns a building that satisfies this prerequisite group.
+ *
+ *  @author: ZivDero
+ */
+bool HouseClassExtension::Has_Prerequisite(PrerequisiteGroupType group)
+{
+    /*
+    **  Invalid prerequisite groups can't be owned.
+    */
+    if (group < PREREQ_GROUP_FIRST || group > PrerequisiteGroups.Count()) {
+        return false;
+    }
+
+    PrerequisiteGroupClass* group_ptr = PrerequisiteGroups[group];
+
+    /*
+    **  Check if we own at least one of the types in this group.
+    */
+    for (int building : group_ptr->Prerequisites) {
+        if (Has_Prerequisite(static_cast<StructType>(building))) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
+/**
+ *  Checks if the house owns a specific building prerequisite.
+ *
+ *  @author: ZivDero
+ */
+bool HouseClassExtension::Has_Prerequisite(StructType building)
+{
+    /*
+    **  Invalid buildings can't be owned.
+    */
+    if (building < STRUCT_FIRST || building > BuildingTypes.Count()) {
+        return false;
+    }
+
+    BuildingTypeClass* btype = BuildingTypes[building];
+
+    /*
+    **  If this isn't an upgrade, just check the counter.
+    */
+    if (btype->PowersUpBuilding[0] == '\0') {
+        return This()->ActiveBQuantity.Count_Of(building) > 0;
+    }
+
+    /*
+    **  For upgrades, we have to scan all of the buildings on the map...
+    */
+    for (int i = 0; i < Buildings.Count(); i++) {
+        BuildingClass* bptr = Buildings[i];
+        if (!bptr->IsInLimbo && bptr->House == This() && bptr->IsPowerOn) {
+            if (bptr->Mission != MISSION_DECONSTRUCTION && bptr->MissionQueue != MISSION_DECONSTRUCTION) {
+                for (int j = 0; j < std::size(bptr->Upgrades); j++) {
+
+                    /*
+                    **  If this building is upgraded with our desired prerequisite, return true.
+                    */
+                    if (bptr->Upgrades[j] == btype) {
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+
+    return false;
 }
 
 

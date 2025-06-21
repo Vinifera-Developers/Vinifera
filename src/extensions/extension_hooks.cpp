@@ -156,6 +156,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "prerequisitegroup_hooks.h"
 #include "spawnmanager_hooks.h"
 #include "voxelanimext_hooks.h"
 
@@ -306,4 +307,5 @@ void Extension_Hooks()
     TheaterTypeClassExtension_Hooks();
     SpawnManager_Hooks();
     AircraftTracker_Hooks();
+    PrerequisiteGroup_Hooks();
 }

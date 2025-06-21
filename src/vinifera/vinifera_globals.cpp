@@ -30,6 +30,7 @@
 #include "vinifera_globals.h"
 
 #include "aircrafttracker.h"
+#include "prerequisitegroup.h"
 
 
 bool Vinifera_DeveloperMode = false;
@@ -84,6 +85,7 @@ DynamicVectorClass<SpawnManagerClass *> SpawnManagers;
 DynamicVectorClass<RocketTypeClass*> RocketTypes;
 DynamicVectorClass<MouseTypeClass *> MouseTypes;
 DynamicVectorClass<ActionTypeClass *> ActionTypes;
+DynamicVectorClass<PrerequisiteGroupClass *> PrerequisiteGroups;
 
 KamikazeTrackerClass* KamikazeTracker = nullptr;
 AircraftTrackerClass* AircraftTracker = nullptr;

@@ -61,6 +61,7 @@
 #include "aircrafttracker.h"
 #include "rocketlocomotion.h"
 #include "newjumpjetlocomotion.h"
+#include "prerequisitegroup.h"
 #include "setup_hooks.h"
 
 
@@ -851,6 +852,7 @@ bool Vinifera_Register_Com_Objects()
      */
     REGISTER_CLASS(ArmorTypeClass);
     REGISTER_CLASS(RocketTypeClass);
+    REGISTER_CLASS(PrerequisiteGroupClass);
 
     /**
      *  Other new entities.

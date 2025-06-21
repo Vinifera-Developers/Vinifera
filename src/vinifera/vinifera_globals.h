@@ -32,6 +32,7 @@
 #include "ccfile.h"
 
 
+class PrerequisiteGroupClass;
 class KamikazeTrackerClass;
 class AircraftTrackerClass;
 class SpawnManagerClass;
@@ -41,6 +42,7 @@ class ArmorTypeClass;
 class RocketTypeClass;
 class MouseTypeClass;
 class ActionTypeClass;
+class PrerequisiteGroupClass;
 
 
 extern bool Vinifera_DeveloperMode;
@@ -116,6 +118,7 @@ extern DynamicVectorClass<SpawnManagerClass *> SpawnManagers;
 extern DynamicVectorClass<RocketTypeClass *> RocketTypes;
 extern DynamicVectorClass<MouseTypeClass *> MouseTypes;
 extern DynamicVectorClass<ActionTypeClass *> ActionTypes;
+extern DynamicVectorClass<PrerequisiteGroupClass*> PrerequisiteGroups;
 
 
 /**

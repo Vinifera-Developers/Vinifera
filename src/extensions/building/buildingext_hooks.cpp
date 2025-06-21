@@ -108,6 +108,9 @@ public:
     ActionType _What_Action(ObjectClass const* object, bool disallow_force);
     ActionType _What_Action(const Cell& cell, bool check_fog, bool disallow_force) const;
     void _Factory_AI();
+    SuperWeaponType _Fetch_Super_Weapon() const;
+    SuperWeaponType _Fetch_Super_Weapon2() const;
+
 };
 
 
@@ -914,6 +917,48 @@ void BuildingClassExt::_Factory_AI()
             }
         }
     }
+}
+
+
+/**
+ *  Reimplementation of BuildingClass::Fetch_Super_Weapon.
+ *
+ *  @author: ZivDero
+ */
+SuperWeaponType BuildingClassExt::_Fetch_Super_Weapon() const
+{
+    if (Class->SuperWeapon != SUPER_NONE) {
+        BuildingTypeClass const* aux = Supers[Class->SuperWeapon]->Class->AuxBuilding;
+
+        /**
+         *  Fix: use the prerequisite check to allow building upgrades to be AuxBulding.
+         */
+        if (aux != nullptr && !Extension::Fetch(House)->Has_Prerequisite(aux->HeapID)) {
+            return SUPER_NONE;
+        }
+    }
+    return Class->SuperWeapon;
+}
+
+
+/**
+ *  Reimplementation of BuildingClass::Fetch_Super_Weapon2.
+ *
+ *  @author: ZivDero
+ */
+SuperWeaponType BuildingClassExt::_Fetch_Super_Weapon2() const
+{
+    if (Class->SuperWeapon2 != SUPER_NONE) {
+
+        /**
+         *  Fix: use the prerequisite check to allow building upgrades to be AuxBulding.
+         */
+        BuildingTypeClass const* aux = Supers[Class->SuperWeapon2]->Class->AuxBuilding;
+        if (aux != nullptr && !Extension::Fetch(House)->Has_Prerequisite(aux->HeapID)) {
+            return SUPER_NONE;
+        }
+    }
+    return Class->SuperWeapon2;
 }
 
 
@@ -2092,4 +2137,6 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x0042EED0, static_cast<ActionType(BuildingClassExt::*)(const Cell&, bool, bool) const>(&BuildingClassExt::_What_Action));
     Patch_Jump(0x0042CA98, &_BuildingClass_Exit_Object_Naval_Patch);
     Patch_Jump(0x0042CA35, &_BuildingClass_Exit_Object_BuildNavalUnit_Patch);
+    Patch_Jump(0x0043AF60, &BuildingClassExt::_Fetch_Super_Weapon);
+    Patch_Jump(0x0043AFC0, &BuildingClassExt::_Fetch_Super_Weapon2);
 }

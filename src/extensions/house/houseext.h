@@ -77,6 +77,10 @@ public:
     int AI_Unit();
     int AI_Naval_Unit();
 
+    bool Has_Prerequisite(int prerequisite);
+    bool Has_Prerequisite(PrerequisiteGroupType group);
+    bool Has_Prerequisite(StructType building);
+
     void Put_Storage_Pointers();
     static void Load_Unit_Trackers(HouseClass* house, IStream* pStm);
     static void Save_Unit_Trackers(HouseClass* house, IStream* pStm);

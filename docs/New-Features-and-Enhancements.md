@@ -1110,6 +1110,28 @@ In `RULES.INI`:
 OpportunityFire=no  ; boolean, can this unit fire whilst performing other actions?
 ```
 
+### Prerequisite Groups
+
+- Vinifera allows creating custom prerequsite groups, akin to vanilla's `POWER`, `TECH`, etc.
+
+In `RULES.INI`:
+```ini
+[PrerequisiteGroups]
+GROUPNAME=            ; list of BuildingTypes, the list of buildings that satisfy this prerequisite group
+```
+
+- The new prerequisite groups can then be used in the same way as vanilla groups.
+
+In `RULES.INI`:
+```ini
+[SOMETECHNO]            ; TechnoType
+Prerequisite=GROUPNAME
+```
+
+```{note}
+Vanilla prerequisite groups always exist by default. If you re-define them in `[PrerequisiteGroups]`, values from `[PrerequisiteGroups]` will overwrite the values from `[General]`.
+```
+
 ## Terrain
 
 ### Light Sources

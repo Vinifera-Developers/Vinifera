@@ -66,6 +66,7 @@
 #include "extension.h"
 #include "extension_globals.h"
 #include "mission.h"
+#include "prerequisitegroup.h"
 #include "verses.h"
 
 
@@ -244,6 +245,8 @@ void RulesClassExtension::Process(CCINIClass &ini)
     This()->Sides(ini);
     This()->Overlays(ini);
 
+    PrerequisiteGroups(ini);
+
     /**
      *  #issue-117
      * 
@@ -384,6 +387,7 @@ void RulesClassExtension::Initialize(CCINIClass &ini)
 
     Verses::Clear();
     ArmorTypeClass::One_Time();
+    PrerequisiteGroupClass::One_Time();
 }
 
 
@@ -603,6 +607,14 @@ bool RulesClassExtension::Objects(CCINIClass &ini)
     DEBUG_INFO("Rules: Processing RocketTypes (Count: %d)...\n", RocketTypes.Count());
     for (int index = 0; index < RocketTypes.Count(); ++index) {
         RocketTypes[index]->Read_INI(ini);
+    }
+
+    DEBUG_INFO("Rules: Processing global PrerequisiteGroups...\n");
+    PrerequisiteGroupClass::Read_Global_INI(ini);
+
+    DEBUG_INFO("Rules: Processing PrerequisiteGroups (Count: %d)...\n", ::PrerequisiteGroups.Count());
+    for (int index = 0; index < ::PrerequisiteGroups.Count(); ++index) {
+        ::PrerequisiteGroups[index]->Read_INI(ini);
     }
 
     return true;
@@ -890,6 +902,45 @@ bool RulesClassExtension::Tiberiums(CCINIClass &ini)
 
         }
 
+    }
+
+    return counter > 0;
+}
+
+
+/**
+ *  Fetch all prerequisite group values.
+ *
+ *  @author: ZivDero
+ */
+bool RulesClassExtension::PrerequisiteGroups(CCINIClass& ini)
+{
+    //EXT_DEBUG_TRACE("RulesClassExtension::Armors - 0x%08X\n", (uintptr_t)(This()));
+
+    static const char* const PREREQUISITE_GROUPS = "PrerequisiteGroups";
+
+    char buf[128];
+    const PrerequisiteGroupClass* group;
+
+    int counter = ini.Entry_Count(PREREQUISITE_GROUPS);
+    for (int index = 0; index < counter; ++index) {
+        const char* entry = ini.Get_Entry(PREREQUISITE_GROUPS, index);
+
+        /**
+         *  Get a group entry.
+         */
+        if (ini.Get_String(PREREQUISITE_GROUPS, entry, buf, sizeof(buf)) > 0) {
+
+            /**
+             *  Find or create a group of the name specified.
+             */
+            group = PrerequisiteGroupClass::Find_Or_Make(entry);
+            if (group) {
+                DEV_DEBUG_INFO("Rules: Found PrerequisiteGroup \"%s\".\n", buf);
+            } else {
+                DEV_DEBUG_WARNING("Rules: Error processing PrerequisiteGroup \"%s\"!\n", buf);
+            }
+        }
     }
 
     return counter > 0;

@@ -53,6 +53,7 @@
 #include "spawnmanager.h"
 #include "armortype.h"
 #include "layer.h"
+#include "prerequisitegroup.h"
 #include "rockettype.h"
 
 
@@ -117,6 +118,15 @@ static void _Free_Heaps_Intercept()
      */
     while (ArmorTypes.Count()) {
         delete ArmorTypes[0];
+    }
+    Remove_All_Inactive();
+
+    /**
+     *  Finally, clear armors. We do this at the very end because
+     *  lots of things depend on verses being around.
+     */
+    while (PrerequisiteGroups.Count()) {
+        delete PrerequisiteGroups[0];
     }
     Remove_All_Inactive();
 

@@ -69,6 +69,7 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
         bool Armors(CCINIClass &ini);
         bool Rockets(CCINIClass &ini);
         bool Tiberiums(CCINIClass &ini);
+        bool PrerequisiteGroups(CCINIClass &ini);
 
     private:
         void Check();
