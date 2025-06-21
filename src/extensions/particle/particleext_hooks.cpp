@@ -25,6 +25,7 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
+#include "aircraft.h"
 #include "building.h"
 #include "house.h"
 #include "housetype.h"
@@ -47,7 +48,8 @@ UnitClass* Create_Visceroid(ObjectClass* destroyedobject)
 {
 	if (destroyedobject->RTTI == RTTI_INFANTRY ||
 		(destroyedobject->RTTI == RTTI_UNIT && reinterpret_cast<UnitClass*>(destroyedobject)->Class->IsCrew) ||
-		(destroyedobject->RTTI == RTTI_BUILDING && reinterpret_cast<BuildingClass*>(destroyedobject)->Class->IsCrew))
+		(destroyedobject->RTTI == RTTI_BUILDING && reinterpret_cast<BuildingClass*>(destroyedobject)->Class->IsCrew) ||
+		(destroyedobject->RTTI == RTTI_AIRCRAFT && reinterpret_cast<AircraftClass*>(destroyedobject)->Class->IsCrew))
 	{
 		return new UnitClass(Rule->SmallVisceroid, HouseClass::As_Pointer(HouseTypeClass::From_Name("Neutral")));
 	}
