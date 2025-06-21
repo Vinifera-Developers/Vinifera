@@ -74,22 +74,19 @@ bool BulletClassExt::_Is_Forced_To_Explode(Coordinate& coord)
 {
     coord = Coord;
     CellClass* cellptr = &Map[PositionCoord];
+    int height = HeightAGL;
 
     /*
     **  Check for impact on a wall or other high obstacle.
     */
-    if (!Class->IsHigh && cellptr->Overlay != OVERLAY_NONE && OverlayTypeClass::As_Reference(cellptr->Overlay).IsHigh) {
-
-        if (HeightAGL < 100) {
-            coord = Cell_Coord(Coord_Cell(coord));
-            return true;
-        }
+    if (!Class->IsHigh && cellptr->Overlay != OVERLAY_NONE && OverlayTypes[cellptr->Overlay]->IsHigh && height < 100) {
+        return true;
     }
 
     /*
     **  Check for impact on the ground.
     */
-    if (HeightAGL < 0) {
+    if (height < 0) {
         return true;
     }
 
@@ -98,8 +95,7 @@ bool BulletClassExt::_Is_Forced_To_Explode(Coordinate& coord)
     **  travel in anything but water.
     */
     const auto bullettypeext = Extension::Fetch(Class);
-    if (bullettypeext->IsTorpedo)
-    {
+    if (bullettypeext->IsTorpedo) {
         int d = ::Distance(Coord_Fraction(coord), XY_Coord(CELL_LEPTON_W / 2, CELL_LEPTON_W / 2));
 
         if (cellptr->Land_Type() != LAND_WATER ||
