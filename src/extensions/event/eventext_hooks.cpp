@@ -65,7 +65,7 @@ DECLARE_PATCH(_EventClass_Execute_New_Events)
     _asm popad
     _asm mov al, etype
     _asm mov edi, eID
-    JMP_REG(ecx, 0x00494299);
+    JMP_REG(ebx, 0x00494299);
 }
 
 
