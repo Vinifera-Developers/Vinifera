@@ -46,54 +46,52 @@
 
 UnitClass* Create_Visceroid(ObjectClass* destroyedobject)
 {
-	if (destroyedobject->RTTI == RTTI_INFANTRY ||
-		(destroyedobject->RTTI == RTTI_UNIT && reinterpret_cast<UnitClass*>(destroyedobject)->Class->IsCrew) ||
-		(destroyedobject->RTTI == RTTI_BUILDING && reinterpret_cast<BuildingClass*>(destroyedobject)->Class->IsCrew) ||
-		(destroyedobject->RTTI == RTTI_AIRCRAFT && reinterpret_cast<AircraftClass*>(destroyedobject)->Class->IsCrew))
-	{
-		return new UnitClass(Rule->SmallVisceroid, HouseClass::As_Pointer(HouseTypeClass::From_Name("Neutral")));
-	}
+    if (destroyedobject->RTTI == RTTI_INFANTRY || (destroyedobject->Is_Techno() && destroyedobject->TClass->IsCrew)) {
+        return new UnitClass(Rule->SmallVisceroid, HouseClass::As_Pointer(HouseTypeClass::From_Name("Neutral")));
+    }
 
-	return nullptr;
+    return nullptr;
 }
 
 
 /**
  *  Fixes a bug where gas clouds are able to turn everything into visceroids, including
  *  non-crewed vehicles and even terrain objects.
+ *
+ *  @author: Rampastring
  */
 DECLARE_PATCH(_ParticleClass_Smoke_And_WeakGas_Behaviour_AI_Tiberium_Death_Patch)
 {
-	GET_REGISTER_STATIC(ObjectClass*, destroyedobject, esi);
-	GET_REGISTER_STATIC(ResultType, result, eax);
-	GET_STACK_STATIC(ObjectClass*, nextobject, esp, 0x40);
-	static UnitClass* visceroid;
+    GET_REGISTER_STATIC(ObjectClass*, destroyedobject, esi);
+    GET_REGISTER_STATIC(ResultType, result, eax);
+    GET_STACK_STATIC(ObjectClass*, nextobject, esp, 0x40);
+    static UnitClass* visceroid;
 
-	enum {
-		ContinueVisceroidPlacement = 0x005A38FC,
-		SkipToNextObjectOnCell = 0x005A3965
-	};
+    enum {
+        ContinueVisceroidPlacement = 0x005A38FC,
+        SkipToNextObjectOnCell = 0x005A3965
+    };
 
-	_asm { mov esi, dword ptr ds:nextobject }
+    _asm { mov esi, dword ptr ds:nextobject }
 
-	if (result != RESULT_DESTROYED) {
-		// Object was not destroyed, do not create visceroid.
-		JMP(SkipToNextObjectOnCell);
-	}
+    if (result != RESULT_DESTROYED) {
+        // Object was not destroyed, do not create visceroid.
+        JMP(SkipToNextObjectOnCell);
+    }
 
-	if (!Scen->IsTiberiumDeathToVisceroid) {
-		// Visceroids spawning from Tiberium death is disabled, do not create visceroid.
-		JMP(SkipToNextObjectOnCell);
-	}
+    if (!Scen->IsTiberiumDeathToVisceroid) {
+        // Visceroids spawning from Tiberium death is disabled, do not create visceroid.
+        JMP(SkipToNextObjectOnCell);
+    }
 
-	visceroid = Create_Visceroid(destroyedobject);
-	if (visceroid == nullptr) {
-		// No visceroid was created.
-		JMP(SkipToNextObjectOnCell);
-	}
+    visceroid = Create_Visceroid(destroyedobject);
+    if (visceroid == nullptr) {
+        // No visceroid was created.
+        JMP(SkipToNextObjectOnCell);
+    }
 
-	_asm { mov edi, dword ptr ds:visceroid }
-	JMP(ContinueVisceroidPlacement);
+    _asm { mov edi, dword ptr ds:visceroid }
+    JMP(ContinueVisceroidPlacement);
 }
 
 
@@ -102,5 +100,5 @@ DECLARE_PATCH(_ParticleClass_Smoke_And_WeakGas_Behaviour_AI_Tiberium_Death_Patch
  */
 void ParticleClassExtension_Hooks()
 {
-	Patch_Jump(0x005A389C, &_ParticleClass_Smoke_And_WeakGas_Behaviour_AI_Tiberium_Death_Patch);
+    Patch_Jump(0x005A389C, &_ParticleClass_Smoke_And_WeakGas_Behaviour_AI_Tiberium_Death_Patch);
 }
