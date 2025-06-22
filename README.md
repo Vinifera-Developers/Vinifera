@@ -42,8 +42,44 @@ You can find the latest Nightly builds [here](<https://nightly.link/Vinifera-Dev
 All release builds are made from the `master` branch. Vinifera is currently working towards its first release so there are no releases available yet, but they will be uploaded to [here](<https://github.com/Vinifera-Developers/Vinifera/releases>).
 
 ### Installing Vinifera
-Download your desired version. Once the desired download is finished, extract the contents of the archive into to the Tiberian Sun directory. Run `LaunchVinifera.exe` to start the game with the Vinifera extension applied.
 
+#### With Freeware TS
+
+1. **Download the latest Vinifera nightly build**  
+   Make sure to get the one **_not postfixed with `ts_client`_**  
+   → https://nightly.link/Vinifera-Developers/Vinifera/workflows/push/develop
+
+2. **Extract all files** from the archive into the **root directory of your Tiberian Sun installation** (where `Game.exe` is located).
+
+3. **Run `LaunchVinifera.exe`** to start the game with Vinifera.
+
+#### With TS Client
+Vinifera can be integrated into the latest [TS Client](https://www.moddb.com/mods/tiberian-sun-client).
+
+1. **Download the Vinifera nightly build _postfixed with `ts_client`_**  
+   → https://nightly.link/Vinifera-Developers/Vinifera/workflows/push/develop
+
+2. **Extract the files** into the **TS Client directory**.
+
+3. **Replace `Game.exe`** with the version patched for Vinifera:
+   - Go to the [latest `ts-patches` GitHub release](https://github.com/CnCNet/ts-patches/releases/tag/latest)
+   - Download `ts-patches-TSCLIENT-master-#.zip`
+   - Extract `GAME.EXE` from the `vinifera` folder inside the archive
+   - Replace the existing `Game.exe` in your TS Client directory
+
+4. **Create a file named `VINIFERA.INI`** in the `INI` folder of the TS Client directory, and paste in the following contents:
+   ```ini
+    [General]
+    ProjectName = Tiberian Sun          ; your project name here
+    IconFile = Resources\tsicon.ico     ; your project's icon file here.
+    CursorFile = Resources\arrow.cur    ; your project's cursor file here.
+    SearchPaths = INI,MIX
+    ; a blank line at the end is required for the game to parse the INI file correctly
+   ``` 
+
+5. **Edit `Resources\ClientDefinitions.ini`**:
+   - Change `GameExecutableNames=Game.exe` to `GameExecutableNames=LaunchVinifera.dat`
+   - Ensure `ExtraCommandLineParams=` includes `-CD.` **(the dot is required)** before any other flags.
 
 # Installing Tiberian Sun
 **NOTE: If you already have Tiberian Sun installed, you can skip this step;**<br><br>
@@ -57,7 +93,7 @@ Below are direct links to the released disk images *(English (US) only)*;<br>
 **Firestorm Disk**: [Download](<https://cnc-comm.com/tiberian-sun/downloads/the-game/firestorm-disc>).<br>
 *<sub>Note: These disk images can be mounted as virtual drives using a variety of free programs.</sub>*
 
-Otherwise, you can also purchase Tiberian Sun as part of the [Command & Conquer Ultimate Collection](<https://www.origin.com/gbr/en-us/store/command-and-conquer/command-and-conquer-the-ultimate-collection>) on EA's Origin service.
+Otherwise, you can also purchase Tiberian Sun as part of the [Command & Conquer The Ultimate Collection](https://store.steampowered.com/bundle/39394/Command__Conquer_The_Ultimate_Collection/) on Steam.
 
 ### Updating the game to the latest version
 This project currently only supports the latest English (US) version of Tiberian Sun due to technical limitations with patching the original binary.<br>
