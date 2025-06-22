@@ -144,8 +144,12 @@ The argument supports multiple entries separated by the `;` character. Below are
 
 ## Developer Features
 
+- You can enable the developer mode by running Vinifera (`LaunchVinifera.exe`) with the command line argument `-DEVELOPER`. You can also explicitly enable the debug console with `-CONSOLE`.
+
 ```{note}
-You can enable the developer mode by running Vinifera (LaunchVinifera.exe) with the command line argument `-DEVELOPER`.
+If you are using Vinifera with the TS Client, you can add these to the `ExtraCommandLineParams=` in `Resources\ClientDefinitions.ini`
+
+**Do not release your project/mod with either of these arguments defined, they will break multiplayer!**
 ```
 
 - The game will no longer fail to start if the startup mix files are not found.
