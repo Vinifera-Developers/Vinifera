@@ -96,12 +96,12 @@ bool BulletClassExt::_Is_Forced_To_Explode(Coordinate& coord)
     */
     const auto bullettypeext = Extension::Fetch(Class);
     if (bullettypeext->IsTorpedo) {
-        int d = ::Distance(Coord_Fraction(coord), XY_Coord(CELL_LEPTON_W / 2, CELL_LEPTON_W / 2));
+        int distance = ::Distance(Coord_Fraction(coord), XY_Coord(CELL_LEPTON_W / 2, CELL_LEPTON_W / 2));
 
         if (cellptr->Land_Type() != LAND_WATER ||
-            (d < CELL_LEPTON_W / 3 && cellptr->Cell_Techno() != nullptr &&
-                (Payback == nullptr || !Payback->House->Is_Ally(cellptr->Cell_Techno()))))
-        {
+            (distance < CELL_LEPTON_W / 3 && cellptr->Cell_Techno() != nullptr &&
+            (Payback == nullptr || !Payback->House->Is_Ally(cellptr->Cell_Techno())))) {
+
             /*
             **  Force explosion to be at center of techno object if one is present.
             */
@@ -122,12 +122,9 @@ bool BulletClassExt::_Is_Forced_To_Explode(Coordinate& coord)
     }
 
     /*
-    **  Bullets are generally more effective when they are fired at aircraft or flying jumpjets.
+    **  Bullets are generally more effective when they are fired at flying objects.
     */
-    if (Class->IsAntiAircraft && Target_Legal(TarCom) &&
-        (TarCom->RTTI == RTTI_AIRCRAFT || (TarCom->RTTI == RTTI_INFANTRY && reinterpret_cast<InfantryClass*>(TarCom)->Is_Flying_JumpJet())) &&
-        Distance(TarCom) < 0x0080)
-    {
+    if (Class->IsAntiAircraft && TarCom != nullptr && TarCom->In_Air() && Distance(TarCom) < 0x0080) {
         return true;
     }
 
