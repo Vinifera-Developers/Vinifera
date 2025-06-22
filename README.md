@@ -17,6 +17,7 @@
 - [Downloading Vinifera](#downloading-vinifera)
 - [Installing Tiberian Sun](#installing-tiberian-sun)
 - [Building Vinifera](#building-vinifera)
+- [Developers and Contributors](#developers-and-contributors)
 - [Contributing](#contributing)
 - [Third Party Libraries](#third-party-libraries)
 - [Anti-virus Warning](#anti-virus-warning)
@@ -56,6 +57,10 @@ All release builds are made from the `master` branch. Vinifera is currently work
 #### With TS Client
 Vinifera can be integrated into the latest [TS Client](https://www.moddb.com/mods/tiberian-sun-client).
 
+You can use the `Vinifera Beta` version of the TS Client. To switch to it, go to `Options` → `Updater` tab → `Update channel`, and select `Vinifera Beta`.  
+After saving your settings and restarting the client, **force an update** to download the Vinifera build.
+
+Alternatively, if you wish to install it manually, you can follow these steps:
 1. **Download the Vinifera nightly build _postfixed with `ts_client`_**  
    → https://nightly.link/Vinifera-Developers/Vinifera/workflows/push/develop
 
@@ -116,6 +121,26 @@ The following components are needed to build this project:
 **PLEASE NOTE:** If you are using the CMake GUI, please make sure to set the output build directory to either outside the source tree or the `./build/` in the source tree root. This directory is ignored for your convenience in the main projects `.gitignore` file.
 
 To run the built version, copy the built executables from the build directory to the Tiberian Sun directory. Run `LaunchVinifera.exe` to start the game with the Vinifera project applied. For more information on how to use Vinifera, please read the documention or you can join the **C&C Modding Haven** [Discord server](<https://discord.gg/sZeMzz6qVg>) and use the **#vinifera-chat** channel.
+
+
+# Developers and Contributors
+
+Vinifera was originally concepted and created by [**CCHyper**](https://github.com/CCHyper) and [**tomsons26**](https://github.com/tomsons26).
+- [**ZivDero**](https://github.com/ZivDero) – Project Leader · [Patreon](https://www.patreon.com/c/ZivDero)
+- [**Rampastring**](https://github.com/Rampastring) – Project Co-Leader · [Patreon](https://www.patreon.com/c/rampastring) · [Ko-fi](https://ko-fi.com/rampastring)
+
+Special thanks to:
+
+- [**Bittah Commander**](https://github.com/Bittah) – author of the [Dawn of the Tiberian Age](https://www.moddb.com/mods/the-dawn-of-the-tiberium-age) mod, for extensive testing, design discussions, and providing the mod as a major testing platform.  
+- [**Crimsonum**](https://github.com/Crimsonum) – author of the [Rubicon](https://www.moddb.com/mods/tiberian-sun-rubicon) mod, for dedicated testing and valuable feedback.  
+- [**E1 Elite**](https://github.com/E1Elite) – for consistent testing and thoughtful input on feature behavior and usability.  
+- [**OmniBlade**](https://github.com/omniblade) – for early testing and contributions to the codebase; the injector is based on his foundational work.  
+- [**MarkJFox**](https://github.com/MarkJFox) – for sidebar graphics and testing support.
+- [**Kerbiter**](https://github.com/Metadorius) – for help with setting up and maintaining the project documentation.  
+
+We also appreciate the support and engagement of the [C&C Mod Haven](https://discord.gg/NVuTSsPEqs) and [Dawn of the Tiberium Age](https://discord.gg/6UtC289) communities, as well as all the other testers and community members who provide feedback, report bugs, and help shape the project.
+
+You can view the full list of contributors [here](https://vinifera.readthedocs.io/en/latest/CREDITS.html).
 
 
 # Contributing
