@@ -146,6 +146,8 @@ The argument supports multiple entries separated by the `;` character. Below are
 
 - You can enable the developer mode by running Vinifera (`LaunchVinifera.exe`) with the command line argument `-DEVELOPER`. You can also explicitly enable the debug console with `-CONSOLE`.
 
+- `-NO_VERSION_STRING` can be used to hide the build version number from the in-game view.
+
 ```{note}
 If you are using Vinifera with the TS Client, you can add these to the `ExtraCommandLineParams=` in `Resources\ClientDefinitions.ini`
 
