@@ -29,18 +29,31 @@ Vinifera is an open source community project which aims to provide new features 
 
 
 # Community
-You can discuss the development and progress of this project on the **C&C Modding Haven** [Discord server](<https://discord.gg/sZeMzz6qVg>) at the **`#vinifera-chat`** channel.
+You can discuss the development and progress of this project on the **C&C Modding Haven** [Discord server](https://discord.gg/sZeMzz6qVg) at the **`#vinifera-chat`** channel.
 
 
 # Downloading Vinifera
-### Nightly
-Every day, an automated build of the `develop` branch is uploaded. These builds contain all the latest merged features, but are not yet considered stable for release. These builds are to help provide an insight to what the next release will contain and should only be used for active playtesting purposes **only**.
+### Nightly Builds
 
-There are two version of the Nightly builds available; **"Standard"** and **"Comptability"**. The **Standard** build is _as-is_, where as the **Comptability** build has modifications to ensure compatability _(where possible)_ with existing community patches. If you are unsure which version is best for you, you can ask a developer on the **Discord** server.
-You can find the latest Nightly builds [here](<https://nightly.link/Vinifera-Developers/Vinifera/blob/develop/.github/workflows/nightly.yml>). Alternatively, you can find the latest build from the most recent commit [here](https://nightly.link/Vinifera-Developers/Vinifera/blob/develop/.github/workflows/push.yml).
+An automated build of the `develop` branch is uploaded daily.  
+These Nightly builds include the latest merged features and updates, but they are **not considered stable** and may contain unfinished or experimental functionality.  
+They are intended for active playtesting and for previewing upcoming changes — use them at your own risk.
 
-### Release
-All release builds are made from the `master` branch. Vinifera is currently working towards its first release so there are no releases available yet, but they will be uploaded to [here](<https://github.com/Vinifera-Developers/Vinifera/releases>).
+There are two versions of the Nightly builds available: **Standard** and **Compatibility**.
+
+- The **Standard** build is provided _as-is_, with no modifications for third-party integration.
+- The **Compatibility** build includes changes to improve compatibility (where possible) with existing community patches. This version is also used for integration into the **TS Client**.
+
+If you're unsure which version is right for you, feel free to ask a developer on the **Discord** server.
+
+You can find the latest Nightly builds [here](https://nightly.link/Vinifera-Developers/Vinifera/blob/develop/.github/workflows/nightly.yml).  
+Alternatively, the latest build from the most recent commit can be found [here](https://nightly.link/Vinifera-Developers/Vinifera/blob/develop/.github/workflows/push.yml).
+
+### Releases
+
+All official release builds are made from the `master` branch.  
+Vinifera is currently working toward its first stable release, so no release builds are available yet.  
+Once available, they will be uploaded [here](https://github.com/Vinifera-Developers/Vinifera/releases).
 
 ### Installing Vinifera
 
@@ -91,11 +104,11 @@ Alternatively, if you wish to install it manually, you can follow these steps:
 <b><img width="190" src="https://github.com/CnCNet/cncnet-ts-client-package/raw/master/Resources/Default%20Theme/MainMenu/Logo.png" alt="Tiberian Sun"></b><br>
 Tiberian Sun was released as freeware by Electronic Arts in 2010 as a part of a promotional build-up to the release of Command & Conquer 4: Tiberian Twilight.
 
-The original links to these downloads on the Electronic Arts servers are no longer active, but an unofficial mirror can be found at the [C&C-Comm Center](<https://cnc-comm.com/>).<br>
+The original links to these downloads on the Electronic Arts servers are no longer active, but an unofficial mirror can be found at the [C&C-Comm Center](https://cnc-comm.com/).<br>
 Below are direct links to the released disk images *(English (US) only)*;<br>
-**GDI Disk**: [Download](<https://cnc-comm.com/tiberian-sun/downloads/the-game/gdi-disc>).<br>
-**NOD Disk**: [Download](<https://cnc-comm.com/tiberian-sun/downloads/the-game/nod-disc>).<br>
-**Firestorm Disk**: [Download](<https://cnc-comm.com/tiberian-sun/downloads/the-game/firestorm-disc>).<br>
+**GDI Disk**: [Download](https://cnc-comm.com/tiberian-sun/downloads/the-game/gdi-disc).<br>
+**NOD Disk**: [Download](https://cnc-comm.com/tiberian-sun/downloads/the-game/nod-disc).<br>
+**Firestorm Disk**: [Download](https://cnc-comm.com/tiberian-sun/downloads/the-game/firestorm-disc).<br>
 *<sub>Note: These disk images can be mounted as virtual drives using a variety of free programs.</sub>*
 
 Otherwise, you can also purchase Tiberian Sun as part of the [Command & Conquer The Ultimate Collection](https://store.steampowered.com/bundle/39394/Command__Conquer_The_Ultimate_Collection/) on Steam.
@@ -105,22 +118,27 @@ This project currently only supports the latest English (US) version of Tiberian
 `GAME.EXE; v2.03[EN]; Monday 5th June, 2000 (21:26:42)`<br>
 `MD5: C2C58CBBF83AF0458DC44EF64A3C011F`<br>
 You can download the v2.03 patch in English, French, German and Spanish.<br>
-**Patch 2.03**: [Download](<https://cnc-comm.com/tiberian-sun/downloads/patches/2.03>).<br>
+**Patch 2.03**: [Download](https://cnc-comm.com/tiberian-sun/downloads/patches/2.03).<br>
 
 
 # Building Vinifera
-**NOTE: This section is only for people who wish to build the source code locally;**<br><br>
-This project uses [CMake](<https://cmake.org/>) (version 3.17 minimum) for its build system. You can use either CMake via the command line or using the CMake GUI.
+**NOTE: This section is only for people who wish to build the source code locally.**
+
+This project uses [CMake](https://cmake.org/) (version 3.17 minimum) for its build system. You can use either CMake via the command line or using the CMake GUI.
 
 The following components are needed to build this project:
 
-- Microsoft Visual Studio 2019 for Windows
-- MSVC v141 C++ x86/x64 build tools
+- Microsoft Visual Studio 2022 for Windows
+- MSVC v143 C++ x86/x64 build tools
 - Windows 10 SDK
 
 **PLEASE NOTE:** If you are using the CMake GUI, please make sure to set the output build directory to either outside the source tree or the `./build/` in the source tree root. This directory is ignored for your convenience in the main projects `.gitignore` file.
 
-To run the built version, copy the built executables from the build directory to the Tiberian Sun directory. Run `LaunchVinifera.exe` to start the game with the Vinifera project applied. For more information on how to use Vinifera, please read the documention or you can join the **C&C Modding Haven** [Discord server](<https://discord.gg/sZeMzz6qVg>) and use the **#vinifera-chat** channel.
+To run the built version, copy the compiled executables from the build directory into your Tiberian Sun game directory. Then, launch `LaunchVinifera.exe` to start the game with Vinifera enabled.
+
+For more information on using Vinifera, refer to the documentation.  
+You’re also welcome to join the **C&C Mod Haven** [Discord server](https://discord.gg/sZeMzz6qVg) and use the **#vinifera-chat** channel to ask questions or get support.
+
 
 
 # Developers and Contributors
@@ -146,7 +164,11 @@ You can view the full list of contributors [here](https://vinifera.readthedocs.i
 
 
 # Contributing
-If you are interested in contributing to this project, you will need some knowledge of C++ as a minimum requirement, but it is recommended you have experience with binary analysis and x86 assembly. All contributions towards this projects goals are welcome, provided they follow the contribution guidelines. Please join the **Discord** server to discuss these guidelines with the active developers. Any pull requests that do not fit within the project guidelines will be recommended to be developed as a downstream project.
+If you're interested in contributing to this project, basic knowledge of C++ is required. Experience with binary analysis and x86 assembly is highly recommended.
+
+All contributions that align with the project's goals are welcome, as long as they follow our contribution guidelines. We encourage you to join the **Discord** server to discuss these guidelines with the active developers.
+
+Pull requests that fall outside the scope of the project may still receive feedback and suggestions for alternative approaches or directions.
 
 
 # Third-Party Libraries
@@ -170,13 +192,19 @@ No assets, texts, artwork or other media from the original game(s) is included i
 
 
 # License
-The source code provided in this repository is licenced under the [GNU General Public License version 3](<https://www.gnu.org/licenses/gpl-3.0.html>). Please see the accompanying LICENSE file.
+The source code in this repository is licensed under the [GNU General Public License version 3](https://www.gnu.org/licenses/gpl-3.0.html).  
+Please refer to the accompanying `LICENSE` file for full details.
 
-Some source code released by Electronic Arts Inc. for the [C&C Remastered Collection](<https://github.com/electronicarts/CnC_Remastered_Collection>)
-is used in this project and is licenced under the [GNU General Public License version 3](<https://www.gnu.org/licenses/gpl-3.0.html>).
-These source files are marked in the headers for easy identification and are applied
-with the following additional terms below, copied from the LICENSE file included in
-the C&C Remastered Collection source code repository.
+This project also incorporates source code released by Electronic Arts Inc. under the same [GNU GPL v3](https://www.gnu.org/licenses/gpl-3.0.html) license.  
+These contributions originate from the following official repositories:
+
+- [C&C Remastered Collection](https://github.com/electronicarts/CnC_Remastered_Collection)  
+- [C&C Red Alert](https://github.com/electronicarts/CnC_Red_Alert)  
+- [C&C Tiberian Dawn](https://github.com/electronicarts/CnC_Tiberian_Dawn)  
+- [C&C Renegade](https://github.com/electronicarts/CnC_Renegade)  
+- [C&C Generals: Zero Hour](https://github.com/electronicarts/CnC_Generals_Zero_Hour)
+
+They are used in accordance with the original license terms and include additional terms as permitted under [Section 7 of the GNU GPL v3](https://www.gnu.org/licenses/gpl-3.0.html#section7):
 
 <sub><i>Code within this repository can not be used for commercial or financial software as
 dictated by the license released by Electronic Arts Inc. (see ADDITIONAL TERMS - SECTION 7 of LICENSE)</i></sub>
