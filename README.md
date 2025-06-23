@@ -140,6 +140,8 @@ Special thanks to:
 
 We also appreciate the support and engagement of the [C&C Mod Haven](https://discord.gg/NVuTSsPEqs) and [Dawn of the Tiberium Age](https://discord.gg/6UtC289) communities, as well as all the other testers and community members who provide feedback, report bugs, and help shape the project.
 
+Some of the fixes and features present in Vinifera are based on previous work by the [ts-patches contributors](https://github.com/CnCNet/ts-patches/graphs/contributors).
+
 You can view the full list of contributors [here](https://vinifera.readthedocs.io/en/latest/CREDITS.html).
 
 
