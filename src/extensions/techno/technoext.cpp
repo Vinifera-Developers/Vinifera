@@ -621,7 +621,7 @@ Coordinate TechnoClassExtension::Fire_Coord(WeaponSlotType which, TPoint3D<int> 
     const TPoint3D<int> flh = weaponinfo->FireFLH + offset;
 
     const float trans_x = static_cast<float>(flh.X + ttype->TurretOffset);
-    const float trans_y = static_cast<float>(flh.Y * (This()->CurrentBurstIndex % 2 == 0 ? 1 : -1));
+    const float trans_y = static_cast<float>(flh.Y * (This()->BurstIndex % 2 == 0 ? 1 : -1));
     const float trans_z = static_cast<float>(flh.Z + weaponinfo->BarrelThickness);
     matrix.Translate(trans_x, trans_y, trans_z);
 

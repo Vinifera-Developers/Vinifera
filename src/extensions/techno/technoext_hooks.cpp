@@ -623,7 +623,7 @@ void TechnoClassExt::_Mission_AI()
      */
     if (extension->IsToResetBurst && extension->BurstResetTimer == 0) {
         extension->IsToResetBurst = false;
-        CurrentBurstIndex = 0;
+        BurstIndex = 0;
     }
 
     MissionClass::AI();
@@ -776,7 +776,7 @@ FireErrorType TechnoClassExt::_Can_Fire(AbstractClass * target, WeaponSlotType w
     if (which != WEAPON_SLOT_SECONDARY && RTTI == RTTI_UNIT)
     {
         const auto unit = reinterpret_cast<UnitClass*>(this);
-        const int burst = CurrentBurstIndex % weapon->Burst;
+        const int burst = BurstIndex % weapon->Burst;
         if (burst < 2)
         {
             if (unit->Class->FiringSyncFrame[burst] != -1
@@ -1386,7 +1386,7 @@ void TechnoClassExt::_Assign_Target(AbstractClass* target)
         }
 
         /*
-        **  We have a target now, don't try to burst anymore.
+        **  We have a target now, don't try to reset burst anymore.
         */
         extension->IsToResetBurst = false;
     }
@@ -1402,7 +1402,7 @@ void TechnoClassExt::_Assign_Target(AbstractClass* target)
         **  If we've got no target and didn't have one to begin with, reset burst now.
         */
         if (old_target == nullptr && !extension->IsToResetBurst) {
-            CurrentBurstIndex = 0;
+            BurstIndex = 0;
         }
 
         /*
@@ -1417,13 +1417,13 @@ void TechnoClassExt::_Assign_Target(AbstractClass* target)
                 /*
                 **  Set BurstIndex to a large value. This is a hack to make it so that Rearm_Delay returns the actual rearm time, not interburst time.
                 */
-                int old_burst = CurrentBurstIndex;
-                CurrentBurstIndex = INT_MAX;
+                int old_burst = BurstIndex;
+                BurstIndex = INT_MAX;
 
                 extension->IsToResetBurst = true;
                 extension->BurstResetTimer = Rearm_Delay(which);
 
-                CurrentBurstIndex = old_burst;
+                BurstIndex = old_burst;
             }
         }
     }
@@ -2566,7 +2566,7 @@ DECLARE_PATCH(_TechnoClass_Assign_Target_Spawn_Manager_Patch)
         extension->SpawnManager->Queue_Target(nullptr);
 
     // Stolen instructions
-    this_ptr->CurrentBurstIndex = 0;
+    this_ptr->BurstIndex = 0;
 
     JMP(0x0062FDE8);
 }

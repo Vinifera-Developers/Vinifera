@@ -367,9 +367,9 @@ void SpawnManagerClass::AI()
                  */
                 const auto weapon = Owner->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon;
                 if (control->IsSpawnedMissile && weapon->Burst > 1 && i < weapon->Burst)
-                    Owner->CurrentBurstIndex = i;
+                    Owner->BurstIndex = i;
                 else
-                    Owner->CurrentBurstIndex = 0;
+                    Owner->BurstIndex = 0;
 
                 /**
                  *  Update our status.
@@ -382,7 +382,7 @@ void SpawnManagerClass::AI()
                  *  Apply SecondSpawnOffset if this is the second missile in a burst.
                  */
                 Coordinate fire_coord;
-                if (Owner->CurrentBurstIndex % 2 == 0)
+                if (Owner->BurstIndex % 2 == 0)
                     fire_coord = owner_ext->Fire_Coord(weapon_slot);
                 else
                     fire_coord = owner_ext->Fire_Coord(weapon_slot, owner_type_ext->SecondSpawnOffset);
@@ -413,7 +413,7 @@ void SpawnManagerClass::AI()
                  *  Reset burst since if we're done with this volley.
                  */
                 if (i == SpawnControls.Count() - 1)
-                    Owner->CurrentBurstIndex = 0;
+                    Owner->BurstIndex = 0;
 
                 /**
                  *  Missiles only take a destination once, so they go straight to the target.
