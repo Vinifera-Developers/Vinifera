@@ -1410,22 +1410,22 @@ void TechnoClassExt::_Assign_Target(AbstractClass* target)
         */
         else {
 
-            /*
-            **  Set BurstIndex to a large value. This is a hack to make it so that Rearm_Delay returns the actual rearm time, not interburst time.
-            */
-            int old_burst = CurrentBurstIndex;
-            CurrentBurstIndex = INT_MAX;
-
             WeaponSlotType which = What_Weapon_Should_I_Use(old_target);
             const WeaponTypeClass* weapon = Get_Weapon(which)->Weapon;
             if (weapon != nullptr && weapon->Burst > 1) {
+
+                /*
+                **  Set BurstIndex to a large value. This is a hack to make it so that Rearm_Delay returns the actual rearm time, not interburst time.
+                */
+                int old_burst = CurrentBurstIndex;
+                CurrentBurstIndex = INT_MAX;
+
                 extension->IsToResetBurst = true;
                 extension->BurstResetTimer = Rearm_Delay(which);
-            }
 
-            CurrentBurstIndex = old_burst;
+                CurrentBurstIndex = old_burst;
+            }
         }
-        
     }
 }
 
