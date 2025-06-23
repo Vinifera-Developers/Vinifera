@@ -121,13 +121,16 @@ DECLARE_PATCH(_FlyLocomotionClass_Process_Landing_AircraftTracker_Patch)
 {
     GET_REGISTER_STATIC(FlyLocomotionClass*, loco, esi);
 
+    _asm pushad
+
     AircraftTracker->Untrack(loco->LinkedTo);
 
     // Stolen instructions
     loco->CurrentSpeed = 0;
     loco->TargetSpeed = 0;
 
-    _asm mov bp, 0
+    _asm popad
+
     JMP(0x0049B938);
 }
 
