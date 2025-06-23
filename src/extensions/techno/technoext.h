@@ -106,4 +106,14 @@ class TechnoClassExtension : public RadioClassExtension
          *  When has this unit last received a target? (not comprehensive)
          */
         int LastTargetFrame;
+
+        /**
+         *  Should we reset burst once the countdown reaches 0?
+         */
+        bool IsToResetBurst;
+
+        /**
+         *  The countdown until burst gets reset if unit has lost the target.
+         */
+        CDTimerClass<FrameTimerClass> BurstResetTimer;
 };

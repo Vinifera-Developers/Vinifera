@@ -134,7 +134,7 @@ void UnitClassExt::_Firing_AI()
 
             if (primary != WEAPON_SLOT_SECONDARY && weapon)
             {
-                const int firing_sync = CurrentBurstIndex % weapon->Burst;
+                const int firing_sync = BurstIndex % weapon->Burst;
                 if (firing_sync < 2 && Class->FiringSyncFrame[firing_sync] != -1)
                 {
                     if (FiringSyncDelay == -1)

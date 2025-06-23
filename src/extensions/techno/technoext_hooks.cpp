@@ -598,6 +598,9 @@ void TechnoClassExt::_Mission_AI()
 {
     const auto extension = Extension::Fetch(this);
 
+    /**
+     *  If the techno was opportunity fire but its mission no longer allows that, stop it.
+     */
     if (TarCom != nullptr && extension->HasOpportunityFireTarget) {
         if (CurrentMission == MISSION_SLEEP ||
             CurrentMission == MISSION_ENTER ||
@@ -615,12 +618,23 @@ void TechnoClassExt::_Mission_AI()
         }
     }
 
+    /**
+     *  If the techno has abandoned its target, and ROF time has passed, abandon 
+     */
+    if (extension->IsToResetBurst && extension->BurstResetTimer == 0) {
+        extension->IsToResetBurst = false;
+        BurstIndex = 0;
+    }
+
     MissionClass::AI();
 
     if (!IsActive) {
         return;
     }
 
+    /**
+     *  Certain missions allow the unit to pick up targets on the move.
+     */
     if (CurrentMission == MISSION_MOVE || CurrentMission == MISSION_HARVEST || CurrentMission == MISSION_GUARD) {
         extension->Opportunity_Fire();
     }
@@ -762,7 +776,7 @@ FireErrorType TechnoClassExt::_Can_Fire(AbstractClass * target, WeaponSlotType w
     if (which != WEAPON_SLOT_SECONDARY && RTTI == RTTI_UNIT)
     {
         const auto unit = reinterpret_cast<UnitClass*>(this);
-        const int burst = CurrentBurstIndex % weapon->Burst;
+        const int burst = BurstIndex % weapon->Burst;
         if (burst < 2)
         {
             if (unit->Class->FiringSyncFrame[burst] != -1
@@ -1337,7 +1351,17 @@ int TechnoClassExt::_Time_To_Build() const
  */
 void TechnoClassExt::_Assign_Target(AbstractClass* target)
 {
-    Extension::Fetch(this)->HasOpportunityFireTarget = false;
+    auto extension = Extension::Fetch(this);
+
+    /*
+    **  In case the unit was doing opportunity fire, record that it's not the case anymore.
+    */
+    extension->HasOpportunityFireTarget = false;
+
+    /*
+    **  Save our previous target.
+    */
+    AbstractClass* old_target = TarCom;
 
     if (target == TarCom) return;
 
@@ -1360,6 +1384,11 @@ void TechnoClassExt::_Assign_Target(AbstractClass* target)
                 target = nullptr;
             }
         }
+
+        /*
+        **  We have a target now, don't try to reset burst anymore.
+        */
+        extension->IsToResetBurst = false;
     }
 
     /*
@@ -1368,7 +1397,35 @@ void TechnoClassExt::_Assign_Target(AbstractClass* target)
     TarCom = target;
 
     if (target == nullptr) {
-        CurrentBurstIndex = 0;
+
+        /*
+        **  If we've got no target and didn't have one to begin with, reset burst now.
+        */
+        if (old_target == nullptr && !extension->IsToResetBurst) {
+            BurstIndex = 0;
+        }
+
+        /*
+        **  However, if we were firing at something, to prevent exploiting this to reset burst start a countdown instead.
+        */
+        else {
+
+            WeaponSlotType which = What_Weapon_Should_I_Use(old_target);
+            const WeaponTypeClass* weapon = Get_Weapon(which)->Weapon;
+            if (weapon != nullptr && weapon->Burst > 1) {
+
+                /*
+                **  Set BurstIndex to a large value. This is a hack to make it so that Rearm_Delay returns the actual rearm time, not interburst time.
+                */
+                int old_burst = BurstIndex;
+                BurstIndex = INT_MAX;
+
+                extension->IsToResetBurst = true;
+                extension->BurstResetTimer = Rearm_Delay(which);
+
+                BurstIndex = old_burst;
+            }
+        }
     }
 }
 
@@ -2509,7 +2566,7 @@ DECLARE_PATCH(_TechnoClass_Assign_Target_Spawn_Manager_Patch)
         extension->SpawnManager->Queue_Target(nullptr);
 
     // Stolen instructions
-    this_ptr->CurrentBurstIndex = 0;
+    this_ptr->BurstIndex = 0;
 
     JMP(0x0062FDE8);
 }
