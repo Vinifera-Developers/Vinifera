@@ -26,6 +26,7 @@
  *
  ******************************************************************************/
 #include "technoext.h"
+#include <algorithm>
 #include "techno.h"
 #include "technotype.h"
 #include "technotypeext.h"
@@ -68,7 +69,9 @@ TechnoClassExtension::TechnoClassExtension(const TechnoClass *this_ptr) :
     SpawnManager(nullptr),
     SpawnOwner(nullptr),
     HasOpportunityFireTarget(false),
-    LastTargetFrame(Frame)
+    LastTargetFrame(Frame),
+    IsToResetBurst(false),
+    BurstResetTimer()
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoClassExtension::TechnoClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -95,7 +98,8 @@ TechnoClassExtension::TechnoClassExtension(const TechnoClass *this_ptr) :
  */
 TechnoClassExtension::TechnoClassExtension(const NoInitClass &noinit) :
     RadioClassExtension(noinit),
-    Storage(noinit)
+    Storage(noinit),
+    BurstResetTimer(noinit)
 {
     //EXT_DEBUG_TRACE("TechnoClassExtension::TechnoClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -110,14 +114,12 @@ TechnoClassExtension::~TechnoClassExtension()
 {
     //EXT_DEBUG_TRACE("TechnoClassExtension::~TechnoClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    if (ElectricBolt)
-    {
+    if (ElectricBolt) {
         delete ElectricBolt;
         ElectricBolt = nullptr;
     }
 
-    if (SpawnManager)
-    {
+    if (SpawnManager) {
         delete SpawnManager;
         SpawnManager = nullptr;
     }
@@ -201,8 +203,9 @@ void TechnoClassExtension::Object_CRC(CRCEngine &crc) const
 
     RadioClassExtension::Object_CRC(crc);
 
-    if (SpawnOwner)
+    if (SpawnOwner) {
         crc(SpawnOwner->Fetch_Heap_ID());
+    }
 }
 
 
@@ -229,15 +232,11 @@ EBoltClass * TechnoClassExtension::Electric_Zap(AbstractClass * target, int whic
         Point2D p2 = TacticalMap->func_60F150(source_coord);
 
         z_adj = p2.Y - p1.Y;
-
-        if (z_adj > 0) {
-            z_adj = 0;
-        }
+        z_adj = std::min(z_adj, 0);
     }
 
     Coordinate target_coord = Is_Target_Object(target) ?
-        reinterpret_cast<ObjectClass *>(target)->Target_Coord() : // #TODO: Should be Target_As_Object.
-        target->entry_5C();
+        reinterpret_cast<ObjectClass *>(target)->Target_Coord() : target->entry_5C();
 
     /**
      *  Spawn the electric bolt.

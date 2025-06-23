@@ -72,3 +72,4 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Add the "Underground" layer to the tactical display Next and Prev search.
 - Fix a bug where upgrades did not always work properly as prerequisites.
 - Fix a bug where upgrades did not work as `AuxBuilding` on Super Weapons.
+- Fix a bug where you could use a stop command to reset a unit's burst.

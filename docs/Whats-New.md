@@ -270,6 +270,7 @@ Vanilla fixes:
 - Add the "Underground" layer to the tactical display Next and Prev search (by CCHyper)
 - Fix a bug where upgrades did not always work properly as prerequisites (by ZivDero)
 - Fix a bug where upgrades did not work as `AuxBuilding` on Super Weapons (by ZivDero)
+- Fix a bug where you could use a stop command to reset a unit's burst (by ZivDero)
 
 :::
 

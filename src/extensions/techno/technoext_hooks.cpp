@@ -598,6 +598,9 @@ void TechnoClassExt::_Mission_AI()
 {
     const auto extension = Extension::Fetch(this);
 
+    /**
+     *  If the techno was opportunity fire but its mission no longer allows that, stop it.
+     */
     if (TarCom != nullptr && extension->HasOpportunityFireTarget) {
         if (CurrentMission == MISSION_SLEEP ||
             CurrentMission == MISSION_ENTER ||
@@ -615,12 +618,22 @@ void TechnoClassExt::_Mission_AI()
         }
     }
 
+    /**
+     *  If the techno has abandoned its target, and ROF time has passed, abandon 
+     */
+    if (extension->IsToResetBurst && extension->BurstResetTimer == 0) {
+        CurrentBurstIndex = 0;
+    }
+
     MissionClass::AI();
 
     if (!IsActive) {
         return;
     }
 
+    /**
+     *  Ceratin missions allow the unit to pick up targets on the move.
+     */
     if (CurrentMission == MISSION_MOVE || CurrentMission == MISSION_HARVEST || CurrentMission == MISSION_GUARD) {
         extension->Opportunity_Fire();
     }
@@ -1337,7 +1350,17 @@ int TechnoClassExt::_Time_To_Build() const
  */
 void TechnoClassExt::_Assign_Target(AbstractClass* target)
 {
-    Extension::Fetch(this)->HasOpportunityFireTarget = false;
+    auto extension = Extension::Fetch(this);
+
+    /*
+    **  In case the unit was doing opportunity fire, record that it's not the case anymore.
+    */
+    extension->HasOpportunityFireTarget = false;
+
+    /*
+    **  Save our previous target.
+    */
+    AbstractClass* old_target = TarCom;
 
     if (target == TarCom) return;
 
@@ -1360,6 +1383,11 @@ void TechnoClassExt::_Assign_Target(AbstractClass* target)
                 target = nullptr;
             }
         }
+
+        /*
+        **  We have a target now, don't try to burst anymore.
+        */
+        extension->IsToResetBurst = false;
     }
 
     /*
@@ -1368,7 +1396,26 @@ void TechnoClassExt::_Assign_Target(AbstractClass* target)
     TarCom = target;
 
     if (target == nullptr) {
-        CurrentBurstIndex = 0;
+
+        /*
+        **  If we've got no target and didn't have one to begin with, reset burst now.
+        */
+        if (old_target == nullptr && !extension->BurstResetTimer.Is_Active()) {
+            CurrentBurstIndex = 0;
+        }
+
+        /*
+        **  However, if we were firing at something, to prevent exploiting this to reset burst start a countdown instead.
+        */
+        else {
+            WeaponSlotType which = What_Weapon_Should_I_Use(old_target);
+            const WeaponTypeClass* weapon = Get_Weapon(which)->Weapon;
+            if (weapon != nullptr && weapon->Burst > 1) {
+                extension->IsToResetBurst = true;
+                extension->BurstResetTimer = Rearm_Delay(which);
+            }
+        }
+        
     }
 }
 
