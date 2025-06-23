@@ -622,6 +622,7 @@ void TechnoClassExt::_Mission_AI()
      *  If the techno has abandoned its target, and ROF time has passed, abandon 
      */
     if (extension->IsToResetBurst && extension->BurstResetTimer == 0) {
+        extension->IsToResetBurst = false;
         CurrentBurstIndex = 0;
     }
 
@@ -632,7 +633,7 @@ void TechnoClassExt::_Mission_AI()
     }
 
     /**
-     *  Ceratin missions allow the unit to pick up targets on the move.
+     *  Certain missions allow the unit to pick up targets on the move.
      */
     if (CurrentMission == MISSION_MOVE || CurrentMission == MISSION_HARVEST || CurrentMission == MISSION_GUARD) {
         extension->Opportunity_Fire();
@@ -1400,7 +1401,7 @@ void TechnoClassExt::_Assign_Target(AbstractClass* target)
         /*
         **  If we've got no target and didn't have one to begin with, reset burst now.
         */
-        if (old_target == nullptr && !extension->BurstResetTimer.Is_Active()) {
+        if (old_target == nullptr && !extension->IsToResetBurst) {
             CurrentBurstIndex = 0;
         }
 
@@ -1408,12 +1409,21 @@ void TechnoClassExt::_Assign_Target(AbstractClass* target)
         **  However, if we were firing at something, to prevent exploiting this to reset burst start a countdown instead.
         */
         else {
+
+            /*
+            **  Set BurstIndex to a large value. This is a hack to make it so that Rearm_Delay returns the actual rearm time, not interburst time.
+            */
+            int old_burst = CurrentBurstIndex;
+            CurrentBurstIndex = INT_MAX;
+
             WeaponSlotType which = What_Weapon_Should_I_Use(old_target);
             const WeaponTypeClass* weapon = Get_Weapon(which)->Weapon;
             if (weapon != nullptr && weapon->Burst > 1) {
                 extension->IsToResetBurst = true;
                 extension->BurstResetTimer = Rearm_Delay(which);
             }
+
+            CurrentBurstIndex = old_burst;
         }
         
     }
