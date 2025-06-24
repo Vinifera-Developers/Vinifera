@@ -466,7 +466,7 @@ WeaponSlotType TechnoClassExt::_What_Weapon_Should_I_Use(AbstractClass * target)
         }
     } else if (target->RTTI == RTTI_CELL) {
         CellClass* cell = static_cast<CellClass*>(target);
-        IsometricTileType tile = cell->Tile;
+        IsometricTileType tile = cell->ITType;
         if (tile != DestroyableCliff && tile != BlackTile && !cell->IsUnderBridge) {
             if (cell->Overlay < OVERLAY_LOBRDG01 || cell->Overlay > OVERLAY_LOBRDG26) { 
                 immobilize = true;

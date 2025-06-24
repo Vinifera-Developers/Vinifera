@@ -197,8 +197,8 @@ bool TiberiumClassExtension::Read_INI(CCINIClass &ini)
     const char* ini_name = Name();
 
     if (!IsInitialized) {
-        This()->NumFrames = 12;
-        This()->NumImages = 12;
+        This()->FrameCount = 12;
+        This()->Variety = 12;
         DamageToInfantry = std::max(1, This()->Power / 10);
     }
 
@@ -210,13 +210,13 @@ bool TiberiumClassExtension::Read_INI(CCINIClass &ini)
         return false;
     }
 
-    This()->Image = const_cast<OverlayTypeClass*>(ini.Get_Overlay(ini_name, "Overlay", This()->Image));
+    This()->Overlay = const_cast<OverlayTypeClass*>(ini.Get_Overlay(ini_name, "Overlay", This()->Overlay));
 
-    const bool useSlopes = ini.Get_Bool(ini_name, "UseSlopes", This()->NumSlopeFacings > 0);
-    This()->NumSlopeFacings = useSlopes ? 8 : 0;
+    const bool useSlopes = ini.Get_Bool(ini_name, "UseSlopes", This()->RampVariety > 0);
+    This()->RampVariety = useSlopes ? 8 : 0;
 
-    This()->NumImages = ini.Get_Int(ini_name, "Variety", This()->NumImages);
-    This()->NumImages = std::max(1, This()->NumImages); // at least one overlay, please
+    This()->Variety = ini.Get_Int(ini_name, "Variety", This()->Variety);
+    This()->Variety = std::max(1, This()->Variety); // at least one overlay, please
 
     PipIndex = ini.Get_Int(ini_name, "PipIndex", PipIndex);
     PipDrawOrder = ini.Get_Int(ini_name, "PipDrawOrder", PipDrawOrder);

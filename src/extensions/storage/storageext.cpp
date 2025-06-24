@@ -42,7 +42,7 @@ int StorageClassExt::Get_Total_Value() const
 
     for (int i = 0; i < Tiberiums.Count(); i++)
     {
-        total += ((*Types)[i] * Tiberiums[i]->Value);
+        total += ((*Types)[i] * Tiberiums[i]->CreditValue);
     }
 
     return total;

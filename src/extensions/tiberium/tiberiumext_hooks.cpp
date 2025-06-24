@@ -67,7 +67,7 @@ DECLARE_PATCH(_CellClass_Place_Tiberium_Variety_Patch)
     GET_REGISTER_STATIC(TiberiumClass*, tiberium, ebp);
     static int frame;
 
-    frame = Random_Pick(0, tiberium->NumImages - 1);
+    frame = Random_Pick(0, tiberium->Variety - 1);
 
     _asm mov eax, frame
     JMP_REG(edx, 0x0045CEC8);
