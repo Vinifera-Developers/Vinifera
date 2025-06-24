@@ -34,6 +34,8 @@
 #include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "tiberium.h"
+#include "vinifera_saveload.h"
 
 
 /**
@@ -43,7 +45,8 @@
  */
 IsometricTileTypeClassExtension::IsometricTileTypeClassExtension(const IsometricTileTypeClass *this_ptr) :
     ObjectTypeClassExtension(this_ptr),
-    TileSetName(nullptr)
+    TileSetName(nullptr),
+    AllowedTiberiums()
 {
     //if (this_ptr) EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::~IsometricTileTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -104,12 +107,18 @@ HRESULT IsometricTileTypeClassExtension::Load(IStream *pStm)
 {
     //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
+    AllowedTiberiums.Clear();
+
     HRESULT hr = ObjectTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
 
     new (this) IsometricTileTypeClassExtension(NoInitClass());
+
+    AllowedTiberiums.Load(pStm);
+
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(AllowedTiberiums, "AllowedTiberiums");
     
     return hr;
 }
@@ -128,6 +137,8 @@ HRESULT IsometricTileTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
     if (FAILED(hr)) {
         return hr;
     }
+
+    AllowedTiberiums.Save(pStm);
 
     return hr;
 }
@@ -156,6 +167,10 @@ void IsometricTileTypeClassExtension::Detach(AbstractClass * target, bool all)
     //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     ObjectTypeClassExtension::Detach(target, all);
+
+    if (AllowedTiberiums.Is_Present(reinterpret_cast<TiberiumClass*>(target))) {
+        AllowedTiberiums.Delete(reinterpret_cast<TiberiumClass*>(target));
+    }
 }
 
 
@@ -187,6 +202,19 @@ bool IsometricTileTypeClassExtension::Read_INI(CCINIClass &ini)
 
     if (!ini.Is_Present(ini_name)) {
         return false;
+    }
+
+    char buffer[1024];
+    if (ini.Get_String(ini_name, "AllowedTiberiums", "", buffer, sizeof(buffer)) > 0) {
+        AllowedTiberiums.Clear();
+        char* token = std::strtok(buffer, ",");
+        while (token != nullptr) {
+            TiberiumType tiberium = TiberiumClass::From_Name(token);
+            if (tiberium != TIBERIUM_NONE) {
+                AllowedTiberiums.Add(Tiberiums[tiberium]);
+            }
+            token = std::strtok(nullptr, ",");
+        }
     }
 
     IsInitialized = true;

@@ -36,9 +36,66 @@
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "building.h"
+#include "extension.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "isotiletype.h"
+#include "isotiletypeext.h"
+#include "terrain.h"
+#include "terraintype.h"
+#include "tiberium.h"
+
+/**
+  *  A fake class for implementing new member functions which allow
+  *  access to the "this" pointer of the intended class.
+  *
+  *  @note: This must not contain a constructor or destructor!
+  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+  */
+static DECLARE_EXTENDING_CLASS_AND_PAIR(CellClass)
+{
+public:
+    bool _Can_Tiberium_Germinate(TiberiumClass const* tiberium) const;
+};
+
+
+bool CellClassExt::_Can_Tiberium_Germinate(TiberiumClass const* tiberium) const
+{
+    if (!Map.In_Local_Radar(CellID, true)) return false;
+
+    if (IsUnderBridge || WasUnderBridge) return false;
+
+    /*
+    **  Don't allow Tiberium to grow on a cell with a building unless that building is
+    **  invisible. In such a case, the Tiberium must grow or else the location of the
+    **  building will be revealed.
+    */
+    BuildingClass const* building = Cell_Building();
+    if (building != nullptr && building->Strength > 0 && !building->Class->IsInvisible && !building->Class->IsInvisibleInGame) return false;
+
+    TerrainClass* terrain = Cell_Terrain();
+    if (terrain != nullptr && terrain->Class->IsTiberiumSpawn) return false;
+
+    if (!Ground[Land_Type()].Build) return false;
+
+    if (Overlay != OVERLAY_NONE) return false;
+
+    if (Ramp > RAMP_SOUTH || (Ramp != RAMP_NONE && tiberium != nullptr && tiberium->RampVariety == 0)) return false;
+
+    if (ITType >= ISOTILE_FIRST && ITType < IsoTileTypes.Count()) {
+
+        IsometricTileTypeClass* ittype = IsoTileTypes[ITType];
+        if (!ittype->IsAllowTiberium) return false;
+
+        auto ittype_ext = Extension::Fetch(ittype);
+
+        if (ittype_ext->AllowedTiberiums.Count() > 0 && !ittype_ext->AllowedTiberiums.Is_Present(const_cast<TiberiumClass*>(tiberium))) return false;
+    }
+
+    return true;
+}
 
 
 /**
@@ -50,41 +107,41 @@
  */
 DECLARE_PATCH(_CellClass_Draw_Shroud_Fog_Patch)
 {
-	static bool _shroud_one_time = false;
-	static const ShapeSet *_shroud_shape;
-	static const ShapeSet *_fog_shape;
+    static bool _shroud_one_time = false;
+    static const ShapeSet *_shroud_shape;
+    static const ShapeSet *_fog_shape;
 
-	/**
-	 *  Stolen bytes/code.
-	 */
-	_asm { sub esp, 0x34 }
+    /**
+     *  Stolen bytes/code.
+     */
+    _asm { sub esp, 0x34 }
 
-	/**
-	 *  Perform a one-time load of the shroud and fog shape data.
-	 */
-	if (!_shroud_one_time) {
-		_shroud_shape = (const ShapeSet *)MFCC::Retrieve("SHROUD.SHP");
-		_fog_shape = (const ShapeSet *)MFCC::Retrieve("FOG.SHP");
-		_shroud_one_time = true;
-	}
+    /**
+     *  Perform a one-time load of the shroud and fog shape data.
+     */
+    if (!_shroud_one_time) {
+        _shroud_shape = (const ShapeSet *)MFCC::Retrieve("SHROUD.SHP");
+        _fog_shape = (const ShapeSet *)MFCC::Retrieve("FOG.SHP");
+        _shroud_one_time = true;
+    }
 
-	/**
-	 *  If we are playing a multiplayer game, use the hardcoded shape data.
-	 */
-	if (!Session.Singleplayer_Game()) {
-		Cell_ShroudShape = (const ShapeSet *)&ShroudShapeBinary;
-		Cell_FogShape = (const ShapeSet *)&FogShapeBinary;
+    /**
+     *  If we are playing a multiplayer game, use the hardcoded shape data.
+     */
+    if (!Session.Singleplayer_Game()) {
+        Cell_ShroudShape = (const ShapeSet *)&ShroudShapeBinary;
+        Cell_FogShape = (const ShapeSet *)&FogShapeBinary;
 
-	} else {
-		Cell_ShroudShape = _shroud_shape;
-		Cell_FogShape = _fog_shape;
-	}
+    } else {
+        Cell_ShroudShape = _shroud_shape;
+        Cell_FogShape = _fog_shape;
+    }
 
-	/**
-	 *  Continues function flow.
-	 */
+    /**
+     *  Continues function flow.
+     */
 continue_function:
-	JMP(0x00454E91);
+    JMP(0x00454E91);
 }
 
 
@@ -97,39 +154,39 @@ continue_function:
  */
 DECLARE_PATCH(_CellClass_Draw_Fog_Patch)
 {
-	static bool _fog_one_time = false;
-	static const ShapeSet *_fog_shape;
-	
-	/**
-	 *  Stolen bytes/code.
-	 */
-	_asm { sub esp, 0x2C }
-	
-	/**
-	 *  Perform a one-time load of the fog shape data.
-	 */
-	if (!_fog_one_time) {
-		_fog_shape = (const ShapeSet *)MFCC::Retrieve("FOG.SHP");
-		_fog_one_time = true;
-	}
+    static bool _fog_one_time = false;
+    static const ShapeSet *_fog_shape;
+    
+    /**
+     *  Stolen bytes/code.
+     */
+    _asm { sub esp, 0x2C }
+    
+    /**
+     *  Perform a one-time load of the fog shape data.
+     */
+    if (!_fog_one_time) {
+        _fog_shape = (const ShapeSet *)MFCC::Retrieve("FOG.SHP");
+        _fog_one_time = true;
+    }
 
-	/**
-	 *  If we are playing a multiplayer game, use the hardcoded shape data.
-	 */
-	if (!Session.Singleplayer_Game()) {
-		Cell_FixupFogShape = (const ShapeSet *)&FogShapeBinary;
+    /**
+     *  If we are playing a multiplayer game, use the hardcoded shape data.
+     */
+    if (!Session.Singleplayer_Game()) {
+        Cell_FixupFogShape = (const ShapeSet *)&FogShapeBinary;
 
-	} else {
-		Cell_FixupFogShape = _fog_shape;
-	}
+    } else {
+        Cell_FixupFogShape = _fog_shape;
+    }
 
-	/**
-	 *  Continues function flow.
-	 */
+    /**
+     *  Continues function flow.
+     */
 continue_function:
-	_asm { mov eax, Cell_FixupFogShape }
-	_asm { mov eax, [eax] }
-	JMP_REG(ecx, 0x00455159);
+    _asm { mov eax, Cell_FixupFogShape }
+    _asm { mov eax, [eax] }
+    JMP_REG(ecx, 0x00455159);
 }
 
 
@@ -144,26 +201,26 @@ continue_function:
  */
 DECLARE_PATCH(_CellClass_Goodie_Check_Crates_Disabled_Respawn_BugFix_Patch)
 {
-	/**
-	 *  Random crates are only thing in multiplayer.
-	 */
-	if (Session.Type != GAME_NORMAL) {
+    /**
+     *  Random crates are only thing in multiplayer.
+     */
+    if (Session.Type != GAME_NORMAL) {
 
-		/**
-		 *  Check to make sure crates are enabled for this game session.
-		 * 
-		 *  The original code was missing the Session "Goodies" check.
-		 */
-		if (Rule->IsMPCrates && Session.Options.Goodies) {
-			Map.Place_Random_Crate();
-		}
-	}
+        /**
+         *  Check to make sure crates are enabled for this game session.
+         * 
+         *  The original code was missing the Session "Goodies" check.
+         */
+        if (Rule->IsMPCrates && Session.Options.Goodies) {
+            Map.Place_Random_Crate();
+        }
+    }
 
-	/**
-	 *  Continues function flow.
-	 */
+    /**
+     *  Continues function flow.
+     */
 continue_function:
-	JMP_REG(ecx, 0x00457ECE);
+    JMP_REG(ecx, 0x00457ECE);
 }
 
 
@@ -177,36 +234,36 @@ continue_function:
  */
 DECLARE_PATCH(_CellClass_Goodie_Check_Veterency_Trainable_BugFix_Patch)
 {
-	GET_REGISTER_STATIC(ObjectClass *, object, ecx);
-	static TechnoClass *techno;
-	static TechnoTypeClass *technotype;
+    GET_REGISTER_STATIC(ObjectClass *, object, ecx);
+    static TechnoClass *techno;
+    static TechnoTypeClass *technotype;
 
-	/**
-	 *  Make sure the ground layer object is a techno.
-	 */
-	if (!object->Is_Techno()) {
-		goto continue_loop;
-	}
+    /**
+     *  Make sure the ground layer object is a techno.
+     */
+    if (!object->Is_Techno()) {
+        goto continue_loop;
+    }
 
-	/**
-	 *  Is this object trainable? If so, grant it the bonus.
-	 */
-	techno = reinterpret_cast<TechnoClass *>(object);
-	if (techno->TClass->IsTrainable) {
-		goto passes_check;
-	}
+    /**
+     *  Is this object trainable? If so, grant it the bonus.
+     */
+    techno = reinterpret_cast<TechnoClass *>(object);
+    if (techno->TClass->IsTrainable) {
+        goto passes_check;
+    }
 
-	/**
-	 *  Continues the loop over the ground layer objects.
-	 */
+    /**
+     *  Continues the loop over the ground layer objects.
+     */
 continue_loop:
-	JMP(0x0045894E);
+    JMP(0x0045894E);
 
-	/**
-	 *  Continue to grant the veterancy bonus.
-	 */
+    /**
+     *  Continue to grant the veterancy bonus.
+     */
 passes_check:
-	JMP(0x00458839);
+    JMP(0x00458839);
 }
 
 
@@ -215,8 +272,9 @@ passes_check:
  */
 void CellClassExtension_Hooks()
 {
-	Patch_Jump(0x0045882C, &_CellClass_Goodie_Check_Veterency_Trainable_BugFix_Patch);
-	Patch_Jump(0x00457EAB, &_CellClass_Goodie_Check_Crates_Disabled_Respawn_BugFix_Patch);
-	Patch_Jump(0x00454E60, &_CellClass_Draw_Shroud_Fog_Patch);
-	Patch_Jump(0x00455130, &_CellClass_Draw_Fog_Patch);
+    Patch_Jump(0x0045882C, &_CellClass_Goodie_Check_Veterency_Trainable_BugFix_Patch);
+    Patch_Jump(0x00457EAB, &_CellClass_Goodie_Check_Crates_Disabled_Respawn_BugFix_Patch);
+    Patch_Jump(0x00454E60, &_CellClass_Draw_Shroud_Fog_Patch);
+    Patch_Jump(0x00455130, &_CellClass_Draw_Fog_Patch);
+    Patch_Jump(0x004596C0, &CellClassExt::_Can_Tiberium_Germinate);
 }

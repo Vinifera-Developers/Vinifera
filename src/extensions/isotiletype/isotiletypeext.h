@@ -29,6 +29,7 @@
 
 #include "objecttypeext.h"
 #include "isotiletype.h"
+#include "typelist.h"
 
 
 class DECLSPEC_UUID(UUID_ISOTILE_EXTENSION)
@@ -71,4 +72,9 @@ IsometricTileTypeClassExtension final : public ObjectTypeClassExtension
          *  What set is this tile type part of?
          */
         const char *TileSetName;
+
+        /**
+         *  The list of Tiberiums that can grow on this tile type.
+         */
+        TypeList<TiberiumClass*> AllowedTiberiums;
 };
