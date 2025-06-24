@@ -132,6 +132,7 @@
 #include "animtypeext.h"
 #include "buildingtypeext.h"
 #include "hooker.h"
+#include "isotiletypeext.h"
 #include "language.h"
 #include "loadoptions.h"
 #include "miscutil.h"
@@ -701,6 +702,20 @@ void Vinifera_Post_Load_Game()
     for (int i = 0; i < BuildingTypes.Count(); i++) {
         const BuildingTypeClass* buildingtype = BuildingTypes[i];
         Extension::Fetch(buildingtype)->Fetch_Building_Normal_Image(Scen->Theater);
+    }
+
+    /**
+     *  IsometricTileTypes are created before objects are loaded, so they are read from INI incorrectly.
+     *  Let's re-read them now.
+     */
+    char theater_filename[32];
+    std::snprintf(theater_filename, sizeof(theater_filename), "%s.INI", Theaters[Scen->Theater].Root);
+    CCFileClass theater_file(theater_filename);
+    CCINIClass theater_ini;
+    theater_ini.Load(theater_file, false);
+
+    for (auto isotype_extension : IsometricTileTypeExtensions) {
+        isotype_extension->Read_INI(theater_ini);
     }
 }
 

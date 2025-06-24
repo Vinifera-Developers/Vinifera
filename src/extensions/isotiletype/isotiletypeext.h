@@ -71,7 +71,7 @@ IsometricTileTypeClassExtension final : public ObjectTypeClassExtension
         /**
          *  What set is this tile type part of?
          */
-        const char *TileSetName;
+        char TileSetName[64];
 
         /**
          *  The list of Tiberiums that can grow on this tile type.
