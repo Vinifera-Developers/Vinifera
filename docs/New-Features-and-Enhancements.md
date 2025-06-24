@@ -235,8 +235,8 @@ IceDestructionEnabled=no
 
 In `TEMPERAT.INI` (or other theater file):
 ```ini
-[SOMEISOTILE]
-AllowedTiberiums=  ; list of Tiberiums, which Tiberiums can grow on this tile. None means any.
+[SOMEISOTILESET]
+AllowedTiberiums=  ; list of Tiberiums (INI names), which Tiberiums can grow on this tile. None means any.
 ```
 
 ## Infantry
