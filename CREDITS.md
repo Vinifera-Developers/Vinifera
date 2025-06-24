@@ -253,3 +253,4 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where upgrades did not always work properly as prerequisites.
   - Fix a bug where upgrades did not work as `AuxBuilding` on Super Weapons.
   - Fix a bug where you could use a stop command to reset a unit's burst.
+  - Allow customizing which Tiberiums can grow on a tile.

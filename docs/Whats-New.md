@@ -195,6 +195,7 @@ New:
 - Implement `MeteorShowerCommandClass` and `MeteorImpactCommandClass` (by CCHyper)
 - Implement `OpportunityFire` (by ZivDero)
 - Implement prerequisite groups (by ZivDero)
+- Allow customizing which Tiberiums can grow on a tile (by ZivDero)
 
 
 Vanilla fixes:
