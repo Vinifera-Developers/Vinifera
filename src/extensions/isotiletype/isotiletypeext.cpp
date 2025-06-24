@@ -194,11 +194,11 @@ bool IsometricTileTypeClassExtension::Read_INI(CCINIClass &ini)
 {
     //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::Read_INI - Name: %s, TileSetName %s (0x%08X)\n", Name(), TileSetName, (uintptr_t)(This()));
 
-    if (!ObjectTypeClassExtension::Read_INI(ini)) {
-        return false;
-    }
+    //if (!ObjectTypeClassExtension::Read_INI(ini)) {   // not required for this and causes it to return early
+    //    return false;                                 // because individual tiles don't have their own sections
+    //}
 
-    const char *ini_name = Name();
+    const char *ini_name = TileSetName;
 
     if (!ini.Is_Present(ini_name)) {
         return false;
