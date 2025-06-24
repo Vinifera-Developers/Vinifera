@@ -143,7 +143,7 @@ DECLARE_PATCH(_IsometricTileTypeClass_Read_INI_Patch_1)
 {
     GET_REGISTER_STATIC(IsometricTileTypeClass *, this_ptr, ebp);
     LEA_STACK_STATIC(CCINIClass *, ini, esp, 0x30);
-    LEA_STACK_STATIC(/*const*/ char *, tilset_name, esp, 0x1F8);
+    LEA_STACK_STATIC(/*const*/ char *, tileset_name, esp, 0x1F8);
     LEA_STACK_STATIC(/*const*/ char *, set_name, esp, 0x29C);
     static IsometricTileTypeClassExtension *exttype_ptr;
 
@@ -161,7 +161,7 @@ DECLARE_PATCH(_IsometricTileTypeClass_Read_INI_Patch_1)
     /**
      *  Read type class ini.
      */
-    exttype_ptr->TileSetName = tilset_name;
+    std::strncpy(exttype_ptr->TileSetName, tileset_name, sizeof(exttype_ptr->TileSetName) - 1);
     exttype_ptr->Read_INI(*ini);
 
     /**
@@ -190,7 +190,7 @@ DECLARE_PATCH(_IsometricTileTypeClass_Read_INI_Patch_2)
 {
     GET_REGISTER_STATIC(IsometricTileTypeClass *, this_ptr, ebp);
     LEA_STACK_STATIC(CCINIClass *, ini, esp, 0x30);
-    LEA_STACK_STATIC(/*const*/ char *, tilset_name, esp, 0x1F8);
+    LEA_STACK_STATIC(/*const*/ char *, tileset_name, esp, 0x1F8);
     LEA_STACK_STATIC(/*const*/ char *, set_name, esp, 0x29C);
     static IsometricTileTypeClassExtension *exttype_ptr;
 
@@ -207,7 +207,7 @@ DECLARE_PATCH(_IsometricTileTypeClass_Read_INI_Patch_2)
     /**
      *  Read type class ini.
      */
-    exttype_ptr->TileSetName = tilset_name;
+    std::strncpy(exttype_ptr->TileSetName, tileset_name, sizeof(exttype_ptr->TileSetName) - 1);
     exttype_ptr->Read_INI(*ini);
 
     /**

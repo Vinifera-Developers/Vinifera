@@ -229,6 +229,16 @@ In the map file:
 IceDestructionEnabled=no
 ```
 
+## Isometric Tiles
+
+- Vinifera allows specifying which Tiberium types can grow on a specific IsometricTileType (provided `AllowTiberium=yes`).
+
+In `TEMPERAT.INI` (or other theater file):
+```ini
+[SOMEISOTILESET]
+AllowedTiberiums=  ; list of Tiberiums (INI names), which Tiberiums can grow on this tile. None means any.
+```
+
 ## Infantry
 
 ### Mechanic and OmniHealer
