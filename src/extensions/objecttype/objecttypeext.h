@@ -60,6 +60,7 @@ class ObjectTypeClassExtension : public AbstractTypeClassExtension
         virtual bool Read_INI(CCINIClass &ini) override;
 
         void Fetch_Voxel_Image(const char* graphic_name);
+        BuildingClass* Who_Can_Build_Me(bool intheory, bool needsnopower, bool legal, HouseClass* house, bool to_exit = false) const;
 
     protected:
         /**

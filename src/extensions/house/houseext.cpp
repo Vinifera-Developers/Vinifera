@@ -42,6 +42,7 @@
 #include "tibsun_functions.h"
 #include "utracker.h"
 #include "building.h"
+#include "factoryext.h"
 #include "overlaytype.h"
 #include "prerequisitegroup.h"
 #include "rules.h"
@@ -432,7 +433,7 @@ ProdFailType HouseClassExtension::Begin_Production(RTTIType type, int id, bool r
     **  Check if we have an object of this type currently suspended in production.
     */
     bool skipset = false;
-    if (fptr->IsSuspended) {
+    if (fptr->IsSuspended && !Extension::Fetch(fptr)->IsHoldingExit) {
         TechnoClass* object = fptr->Object;
         if (object != nullptr) {
             if (object->TClass == tech) {

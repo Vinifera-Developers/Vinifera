@@ -39,7 +39,8 @@
  *  @author: CCHyper
  */
 FactoryClassExtension::FactoryClassExtension(const FactoryClass *this_ptr) :
-    AbstractClassExtension(this_ptr)
+    AbstractClassExtension(this_ptr),
+    IsHoldingExit(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("FactoryClassExtension::FactoryClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 

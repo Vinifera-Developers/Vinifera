@@ -68,6 +68,7 @@
 #include "asserthandler.h"
 #include "building.h"
 #include "eventext.h"
+#include "factoryext.h"
 #include "hooker.h"
 #include "hooker_macros.h"
 #include "houseext.h"
@@ -1436,7 +1437,7 @@ bool StripClassExt::_AI(KeyNumType& input, Point2D const&)
         for (int index = 0; index < BuildableCount; index++)
         {
             FactoryClass* factory = Buildables[index].Factory;
-            if (factory && factory->Has_Changed())
+            if (factory && (factory->Has_Changed() || Extension::Fetch(factory)->IsHoldingExit))
             {
                 redraw = true;
                 if (factory->Has_Completed())
@@ -1453,9 +1454,20 @@ bool StripClassExt::_AI(KeyNumType& input, Point2D const&)
                         switch (pending->RTTI)
                         {
                         case RTTI_UNIT:
-                        case RTTI_AIRCRAFT:
-                            OutList.Add(EventClassExt(pending->Owner(), EVENT_PLACE, pending->RTTI, CELL_NONE, TechnoTypeClassExtension::Get_Production_Flags(pending)).As_Event());
-                            Speak(VOX_UNIT_READY);
+
+                            /**
+                             *  For units, make sure there's a factory that is not busy exiting a unit, otherwise just hold the unit for now.
+                             */
+                            if (Extension::Fetch(pending->Class_Of())->Who_Can_Build_Me(false, false, false, pending->Owner_HouseClass(), true) != nullptr)
+                            {
+                                OutList.Add(EventClassExt(pending->Owner(), EVENT_PLACE, pending->RTTI, CELL_NONE, TechnoTypeClassExtension::Get_Production_Flags(pending)).As_Event());
+                                Speak(VOX_UNIT_READY);
+                                Extension::Fetch(factory)->IsHoldingExit = false;
+                            }
+                            else
+                            {
+                                Extension::Fetch(factory)->IsHoldingExit = true;
+                            }
                             break;
 
                         case RTTI_BUILDING:
@@ -1464,6 +1476,7 @@ bool StripClassExt::_AI(KeyNumType& input, Point2D const&)
                             break;
 
                         case RTTI_INFANTRY:
+                        case RTTI_AIRCRAFT:
                             OutList.Add(EventClassExt(pending->Owner(), EVENT_PLACE, pending->RTTI, CELL_NONE, TechnoTypeClassExtension::Get_Production_Flags(pending)).As_Event());
                             Speak(VOX_UNIT_READY);
                             break;
@@ -2627,7 +2640,7 @@ bool SelectClassExt::_Action(unsigned flags, KeyNumType& key)
                 **  If this object is currently being built, then give a scold sound and text and then
                 **  bail.
                 */
-                if (factory != nullptr && !factory->Is_Building()) {
+                if (factory != nullptr && !factory->Is_Building() && !Extension::Fetch(factory)->IsHoldingExit) {
 
                     /*
                     **  If production has completed, then attempt to have the object exit
