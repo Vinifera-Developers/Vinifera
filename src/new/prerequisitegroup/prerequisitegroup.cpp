@@ -287,7 +287,7 @@ PrerequisiteGroupType PrerequisiteGroupClass::From_Name(const char* name)
 
     if (name != nullptr) {
         for (PrerequisiteGroupType group = PREREQ_GROUP_FIRST; group < PrerequisiteGroups.Count(); group++) {
-            if (std::strncmp(PrerequisiteGroups[group]->IniName, name, sizeof(IniName)) == 0) {
+            if (_strnicmp(PrerequisiteGroups[group]->IniName, name, sizeof(IniName)) == 0) {
                 return group;
             }
         }
@@ -320,7 +320,7 @@ const PrerequisiteGroupClass* PrerequisiteGroupClass::Find_Or_Make(const char* n
     ASSERT(name != nullptr);
 
     for (PrerequisiteGroupType group = PREREQ_GROUP_FIRST; group < PrerequisiteGroups.Count(); group++) {
-        if (std::strncmp(PrerequisiteGroups[group]->IniName, name, sizeof(IniName)) == 0) {
+        if (_strnicmp(PrerequisiteGroups[group]->IniName, name, sizeof(IniName)) == 0) {
             return PrerequisiteGroups[group];
         }
     }
