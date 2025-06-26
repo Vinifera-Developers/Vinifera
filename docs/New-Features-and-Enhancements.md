@@ -237,7 +237,7 @@ IceDestructionEnabled=no
 
 In `TEMPERAT.INI` (or other theater file):
 ```ini
-[SOMEISOTILESET]
+[SOMEISOTILESET]   ; IsometricTileType
 AllowedTiberiums=  ; list of Tiberiums (INI names), which Tiberiums can grow on this tile. None means any.
 ```
 
@@ -247,8 +247,8 @@ AllowedTiberiums=  ; list of Tiberiums (INI names), which Tiberiums can grow on 
 
 In `TEMPERAT.INI` (or other theater file):
 ```ini
-[SOMEISOTILESET]
-AllowedSmudges=  ; list of SmudgeTypes, which Smudges can appear on this tile. None means any.
+[SOMEISOTILESET]  ; IsometricTileType
+AllowedSmudges=   ; list of SmudgeTypes, which Smudges can appear on this tile. None means any.
 ```
 
 
