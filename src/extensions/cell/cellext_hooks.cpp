@@ -43,24 +43,31 @@
 #include "hooker_macros.h"
 #include "isotiletype.h"
 #include "isotiletypeext.h"
+#include "overlaytype.h"
 #include "terrain.h"
 #include "terraintype.h"
 #include "tiberium.h"
 
 /**
-  *  A fake class for implementing new member functions which allow
-  *  access to the "this" pointer of the intended class.
-  *
-  *  @note: This must not contain a constructor or destructor!
-  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
-  */
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or destructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
 static DECLARE_EXTENDING_CLASS_AND_PAIR(CellClass)
 {
 public:
     bool _Can_Tiberium_Germinate(TiberiumClass const* tiberium) const;
+    bool _Can_Place_Veins() const;
 };
 
 
+/**
+ *  Re-implementation of CellClass::Can_Tiberium_Germinate.
+ *
+ *  @author: ZivDero
+ */
 bool CellClassExt::_Can_Tiberium_Germinate(TiberiumClass const* tiberium) const
 {
     if (!Map.In_Local_Radar(CellID, true)) return false;
@@ -95,6 +102,44 @@ bool CellClassExt::_Can_Tiberium_Germinate(TiberiumClass const* tiberium) const
     }
 
     return true;
+}
+
+
+/**
+ *  Re-implementation of CellClass::Can_Place_Veins.
+ *
+ *  @author: ZivDero
+ */
+bool CellClassExt::_Can_Place_Veins() const
+{
+    if (Ramp <= RAMP_SOUTH) {
+        if (Land != LAND_WATER && Land != LAND_ROCK && Land != LAND_ICE && Land != LAND_BEACH) {
+            if (Overlay == OVERLAY_NONE || OverlayTypes[Overlay]->IsVeins) {
+                IsometricTileType ittype = ITType;
+                if (ITType < ISOTILE_FIRST || ITType >= IsoTileTypes.Count()) {
+                    ittype = ISOTILE_FIRST;
+                }
+                if (Extension::Fetch(IsoTileTypes[ittype])->IsAllowVeins) {
+                    for (int dir = FACING_N; dir < FACING_COUNT; dir += 2) {
+                        CellClass const& adjacent = Adjacent_Cell(static_cast<FacingType>(dir));
+                        if (adjacent.Ramp > RAMP_SOUTH && Ramp == RAMP_NONE) {
+                            if (adjacent.Overlay == OVERLAY_NONE || !OverlayTypes[adjacent.Overlay]->IsVeins) {
+                                return false;
+                            }
+                        }
+                        if (adjacent.Land == LAND_WATER || adjacent.Land == LAND_ROCK || adjacent.Land == LAND_ICE || adjacent.Land == LAND_BEACH) {
+                            return false;
+                        }
+                        if (adjacent.Overlay != OVERLAY_NONE && !OverlayTypes[adjacent.Overlay]->IsVeins) {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }
 
 
@@ -277,4 +322,5 @@ void CellClassExtension_Hooks()
     Patch_Jump(0x00454E60, &_CellClass_Draw_Shroud_Fog_Patch);
     Patch_Jump(0x00455130, &_CellClass_Draw_Fog_Patch);
     Patch_Jump(0x004596C0, &CellClassExt::_Can_Tiberium_Germinate);
+    Patch_Jump(0x0045B0D0, &CellClassExt::_Can_Place_Veins);
 }
