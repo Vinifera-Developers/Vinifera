@@ -252,6 +252,16 @@ AllowedSmudges=   ; list of SmudgeTypes, which Smudges can appear on this tile. 
 ```
 
 
+### AllowVeins
+
+- Similar to the `AllowTiberium` key, Vinifera allows specifying if Veins can grow on a specific IsometricTileType (provided all other requirements are satisfied).
+
+In `TEMPERAT.INI` (or other theater file):
+```ini
+[SOMEISOTILESET]  ; IsometricTileType
+AllowVeins=yes    ; boolean, can Veins can grow on this tile.
+```
+
 ## Infantry
 
 ### Mechanic and OmniHealer
