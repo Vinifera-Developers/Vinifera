@@ -67,4 +67,9 @@ FactoryClassExtension final : public AbstractClassExtension
          *  Is this factory holding a unit that wants to exist, but wasn't able to?
          */
         bool IsHoldingExit;
+
+        /**
+         *  Has it been announced that this factory can finished construction?
+         */
+        bool HasSpoken;
 };

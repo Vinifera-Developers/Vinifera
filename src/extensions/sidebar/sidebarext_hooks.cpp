@@ -1454,31 +1454,13 @@ bool StripClassExt::_AI(KeyNumType& input, Point2D const&)
                         switch (pending->RTTI)
                         {
                         case RTTI_UNIT:
-
-                            /**
-                             *  For units, make sure there's a factory that is not busy exiting a unit, otherwise just hold the unit for now.
-                             */
-                            if (Extension::Fetch(pending->Class_Of())->Who_Can_Build_Me(false, false, false, pending->Owner_HouseClass(), true) != nullptr)
-                            {
-                                OutList.Add(EventClassExt(pending->Owner(), EVENT_PLACE, pending->RTTI, CELL_NONE, TechnoTypeClassExtension::Get_Production_Flags(pending)).As_Event());
-                                Speak(VOX_UNIT_READY);
-                                Extension::Fetch(factory)->IsHoldingExit = false;
-                            }
-                            else
-                            {
-                                Extension::Fetch(factory)->IsHoldingExit = true;
-                            }
+                        case RTTI_INFANTRY:
+                        case RTTI_AIRCRAFT:
+                            OutList.Add(EventClassExt(pending->Owner(), EVENT_PLACE, pending->RTTI, CELL_NONE, TechnoTypeClassExtension::Get_Production_Flags(pending)).As_Event());
                             break;
 
                         case RTTI_BUILDING:
                             SidebarExtension->TabButtons[ID].Start_Flashing();
-                            Speak(VOX_CONSTRUCTION);
-                            break;
-
-                        case RTTI_INFANTRY:
-                        case RTTI_AIRCRAFT:
-                            OutList.Add(EventClassExt(pending->Owner(), EVENT_PLACE, pending->RTTI, CELL_NONE, TechnoTypeClassExtension::Get_Production_Flags(pending)).As_Event());
-                            Speak(VOX_UNIT_READY);
                             break;
 
                         default:
@@ -2768,6 +2750,8 @@ void SidebarClassExtension_Hooks()
 
     Patch_Jump(0x005F4EDD, &_SidebarClass_StripClass_Help_Text_Extended_Tooltip_Patch);
     Patch_Byte(0x005F4EF7 + 2, 0x14); // Pop one more argument passed to sprintf
+
+    Patch_Jump(0x005F4DD0, 0x005F4DD5); // Skip a call to Speak as we now speak UNIT_READY in HouseClassExt::Place_Object
 }
 
 

@@ -568,10 +568,32 @@ bool HouseClassExtension::Place_Object(RTTIType type, Cell const& cell, Producti
     **  just starting construction.
     */
     if (factory && factory->Has_Completed()) {
+        auto factory_ext = Extension::Fetch(factory);
         tech = factory->Get_Object();
 
-        if (cell == CELL_NONE || cell == Cell(-1, -1)) {
-            if (tech != nullptr) {
+        if (tech != nullptr) {
+
+            /*
+            **  Announce that the object is ready.
+            */
+            if (!factory_ext->HasSpoken) {
+                if (tech->Is_Foot()) {
+                    Speak(VOX_UNIT_READY);
+                } else if (tech->RTTI == RTTI_BUILDING) {
+                    Speak(VOX_CONSTRUCTION);
+                }
+                factory_ext->HasSpoken = true;
+            }
+
+            /*
+            **  For units, make sure there's a factory that is not busy exiting a unit, otherwise just hold the unit for now.
+            */
+            if (tech->RTTI == RTTI_UNIT && Extension::Fetch(tech->Class_Of())->Who_Can_Build_Me(false, false, false, tech->Owner_HouseClass(), true) == nullptr) {
+                factory_ext->IsHoldingExit = true;
+                return placed;
+            }
+
+            if (cell == CELL_NONE || cell == Cell(-1, -1)) {
 
                 /*
                 **  Try to find a place for the object to appear from. For helicopters, it has the
@@ -606,13 +628,9 @@ bool HouseClassExtension::Place_Object(RTTIType type, Cell const& cell, Producti
                         }
                         return placed;
                     }
-                } else {
-                    return placed;
                 }
-            }
 
-        } else {
-            if (tech) {
+            } else {
                 TechnoClass* builder = tech->Who_Can_Build_Me(false, false);
                 if (builder) {
 
@@ -648,14 +666,40 @@ bool HouseClassExtension::Place_Object(RTTIType type, Cell const& cell, Producti
                     }
                     builder->Transmit_Message(RADIO_OVER_OUT);
                 }
-            } else {
-
-                // Play a bad sound here?
-                return placed;
             }
         }
 
-        if (placed) This()->Just_Built(tech);
+        if (placed) {
+
+            /*
+            **  Record the construction of the object.
+            */
+            This()->Just_Built(tech);
+
+            /*
+            **  If the factory still exists, we need to "reset" it.
+            */
+            if (factory != nullptr && Factories.Is_Present(factory)) {
+
+                /*
+                **  Mark that the factory isn't holding anything waiting to exit anymore.
+                */
+                Extension::Fetch(factory)->IsHoldingExit = false;
+
+                /*
+                **  Clear the flag for announcing unit production.
+                */
+                Extension::Fetch(factory)->HasSpoken = false;
+
+            }
+
+            /*
+            **  For foot units, plays the unit ready sound when they exit.
+            */
+            if (tech->Is_Foot() && tech->House == PlayerPtr) {
+                Speak(VOX_UNIT_READY);
+            }
+        }
     }
 
     return placed;
