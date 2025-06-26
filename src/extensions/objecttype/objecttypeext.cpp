@@ -261,7 +261,7 @@ BuildingClass* ObjectTypeClassExtension::Who_Can_Build_Me(bool intheory, bool ne
             }
 
             /*
-            **  If we're looking for a place to exit then don't consider factories in radio contact (because they are currently exiting something).
+            **  If we're looking for a place to exit then don't consider weapons factories doing MISSION_UNLOAD (because they are currently exiting something).
             */
             if (to_exit && building->Class->IsWeaponsFactory && building->Mission == MISSION_UNLOAD) continue;
 
