@@ -53,6 +53,11 @@ public:
 };
 
 
+/**
+ *  Re-implementation of SmudgeTypeClass::Can_Place_Here.
+ *
+ *  @author: ZivDero
+ */
 bool SmudgeTypeClassExt::_Can_Place_Here(Cell const& origin, bool underbuildings) const
 {
     for (int h = 0; h < Height; h++) {
@@ -89,7 +94,6 @@ bool SmudgeTypeClassExt::_Can_Place_Here(Cell const& origin, bool underbuildings
     }
     return true;
 }
-
 
 
 /**
