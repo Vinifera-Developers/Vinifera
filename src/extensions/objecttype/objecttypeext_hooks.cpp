@@ -229,7 +229,7 @@ void ObjectTypeClassExt::_Clear_Voxel_Indexes()
 
 
 /**
- *  Reimplementation of ObjectTypeClass::Who_Can_Build_Me.
+ *  Proxy for ObjectTypeClass::Who_Can_Build_Me.
  *
  *  @author: ZivDero
  */

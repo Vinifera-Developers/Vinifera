@@ -217,6 +217,12 @@ void ObjectTypeClassExtension::Fetch_Voxel_Image(const char* graphic_name)
     }
 }
 
+
+/**
+ *  Reimplementation of ObjectTypeClass::Who_Can_Build_Me.
+ *
+ *  @author: ZivDero
+ */
 BuildingClass* ObjectTypeClassExtension::Who_Can_Build_Me(bool intheory, bool needsnopower, bool legal, HouseClass* house, bool to_exit) const
 {
     BuildingClass* freebuilding = nullptr;
