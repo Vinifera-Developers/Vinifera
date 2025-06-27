@@ -35,7 +35,9 @@
 #include "asserthandler.h"
 #include "debughandler.h"
 #include "tiberium.h"
+#include "smudgetype.h"
 #include "vinifera_saveload.h"
+#include "findmake.h"
 
 
 /**
@@ -46,7 +48,8 @@
 IsometricTileTypeClassExtension::IsometricTileTypeClassExtension(const IsometricTileTypeClass *this_ptr) :
     ObjectTypeClassExtension(this_ptr),
     TileSetName(""),
-    AllowedTiberiums()
+    AllowedTiberiums(),
+    AllowedSmudges()
 {
     //if (this_ptr) EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::~IsometricTileTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -108,6 +111,7 @@ HRESULT IsometricTileTypeClassExtension::Load(IStream *pStm)
     //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     AllowedTiberiums.Clear();
+    AllowedSmudges.Clear();
 
     HRESULT hr = ObjectTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
@@ -117,8 +121,10 @@ HRESULT IsometricTileTypeClassExtension::Load(IStream *pStm)
     new (this) IsometricTileTypeClassExtension(NoInitClass());
 
     AllowedTiberiums.Load(pStm);
+    AllowedSmudges.Load(pStm);
 
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(AllowedTiberiums, "AllowedTiberiums");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(AllowedSmudges, "AllowedSmudges");
     
     return hr;
 }
@@ -139,6 +145,7 @@ HRESULT IsometricTileTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
     }
 
     AllowedTiberiums.Save(pStm);
+    AllowedSmudges.Save(pStm);
 
     return hr;
 }
@@ -170,6 +177,10 @@ void IsometricTileTypeClassExtension::Detach(AbstractClass * target, bool all)
 
     if (AllowedTiberiums.Is_Present(reinterpret_cast<TiberiumClass*>(target))) {
         AllowedTiberiums.Delete(reinterpret_cast<TiberiumClass*>(target));
+    }
+
+    if (AllowedSmudges.Is_Present(reinterpret_cast<SmudgeTypeClass*>(target))) {
+        AllowedSmudges.Delete(reinterpret_cast<SmudgeTypeClass*>(target));
     }
 }
 
@@ -216,6 +227,8 @@ bool IsometricTileTypeClassExtension::Read_INI(CCINIClass &ini)
             token = std::strtok(nullptr, ",");
         }
     }
+
+    AllowedSmudges = TGet_TypeList(ini, ini_name, "AllowedSmudges", AllowedSmudges);
 
     IsInitialized = true;
     

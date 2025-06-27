@@ -196,6 +196,7 @@ New:
 - Implement `OpportunityFire` (by ZivDero)
 - Implement prerequisite groups (by ZivDero)
 - Allow customizing which Tiberiums can grow on a tile (by ZivDero)
+- Allow customizing which Smudges can appear on a tile (by ZivDero)
 
 
 Vanilla fixes:

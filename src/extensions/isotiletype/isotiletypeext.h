@@ -77,4 +77,9 @@ IsometricTileTypeClassExtension final : public ObjectTypeClassExtension
          *  The list of Tiberiums that can grow on this tile type.
          */
         TypeList<TiberiumClass*> AllowedTiberiums;
+
+        /**
+         *  The list of Smudges that can appear on this tile type.
+         */
+        TypeList<SmudgeTypeClass*> AllowedSmudges;
 };
