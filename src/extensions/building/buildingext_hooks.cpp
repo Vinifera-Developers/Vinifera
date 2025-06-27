@@ -2049,7 +2049,7 @@ DECLARE_PATCH(_BuildingClass_Exit_Object_Naval_Patch)
         }
     } else {
         // Stolen call
-        techno->Assign_Archive_Target(this_ptr);
+        techno->Assign_Archive_Target(this_ptr->ArchiveTarget);
         JMP(0x0042CAA6);
     }
 }
