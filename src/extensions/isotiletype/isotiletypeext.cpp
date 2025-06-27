@@ -49,7 +49,8 @@ IsometricTileTypeClassExtension::IsometricTileTypeClassExtension(const Isometric
     ObjectTypeClassExtension(this_ptr),
     TileSetName(""),
     AllowedTiberiums(),
-    AllowedSmudges()
+    AllowedSmudges(),
+    IsAllowVeins(true)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::~IsometricTileTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -229,6 +230,7 @@ bool IsometricTileTypeClassExtension::Read_INI(CCINIClass &ini)
     }
 
     AllowedSmudges = TGet_TypeList(ini, ini_name, "AllowedSmudges", AllowedSmudges);
+    IsAllowVeins = ini.Get_Bool(ini_name, "AllowVeins", IsAllowVeins);
 
     IsInitialized = true;
     

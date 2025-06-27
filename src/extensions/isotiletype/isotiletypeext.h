@@ -82,4 +82,9 @@ IsometricTileTypeClassExtension final : public ObjectTypeClassExtension
          *  The list of Smudges that can appear on this tile type.
          */
         TypeList<SmudgeTypeClass*> AllowedSmudges;
+
+        /**
+         *  Can veins grow on this tile type?
+         */
+        bool IsAllowVeins;
 };
