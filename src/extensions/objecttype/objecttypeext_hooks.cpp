@@ -229,74 +229,13 @@ void ObjectTypeClassExt::_Clear_Voxel_Indexes()
 
 
 /**
- *  Reimplementation of ObjectTypeClass::Who_Can_Build_Me.
+ *  Proxy for ObjectTypeClass::Who_Can_Build_Me.
  *
  *  @author: ZivDero
  */
 BuildingClass* ObjectTypeClassExt::_Who_Can_Build_Me(bool intheory, bool needsnopower, bool legal, HouseClass* house) const
 {
-    BuildingClass* freebuilding = nullptr;
-    BuildingClass* anybuilding = nullptr;
-    int ownable = Get_Ownable();
-
-    for (int index = 0; index < Buildings.Count(); index++) {
-        BuildingClass* building = Buildings[index];
-
-        if (!building->IsInLimbo &&
-            building->House == house &&
-            building->Class->ToBuild == RTTI &&
-            (!needsnopower || building->IsPowerOn) &&
-            building->Mission != MISSION_DECONSTRUCTION && building->MissionQueue != MISSION_DECONSTRUCTION &&
-            (!legal || building->House->Can_Build(this, true, true) > 0) &&
-            building->Class->Get_Ownable() & ownable &&
-
-            /*
-            **  Construction yards can only produce objects according to their ActLike, but not if MultiMCV is enabled.
-            */
-            (!Rule->BuildConst.Is_Present(building->Class) || RuleExtension->IsMultiMCV || 1L << building->ActLike & ownable)) {
-
-            if (RTTI == RTTI_UNITTYPE || RTTI == RTTI_INFANTRYTYPE || RTTI == RTTI_BUILDINGTYPE || RTTI == RTTI_AIRCRAFTTYPE) {
-                TechnoTypeClassExtension* type_ext = Extension::Fetch(reinterpret_cast<const TechnoTypeClass*>(this));
-                BuildingTypeClassExtension* btype_ext = Extension::Fetch(building->Class);
-
-                /*
-                ** There may be limitations on whether this specific factory can build this object.
-                */
-                if (!type_ext->BuiltAt.Is_Present(building->Class)) {
-
-                    /*
-                    **  This object doesn't allow this factory to produce it.
-                    */
-                    if (type_ext->BuiltAt.Count() != 0) continue;
-
-                    /*
-                    **  This factory can't produce this kind of object.
-                    */
-                    if (btype_ext->IsExclusiveFactory) continue;
-                }
-            }
-
-            if (intheory || !building->In_Radio_Contact() || RTTI != RTTI_AIRCRAFTTYPE) {
-                if (RTTI == RTTI_UNITTYPE) {
-                    UnitTypeClassExtension* type_ext = Extension::Fetch(reinterpret_cast<const UnitTypeClass*>(this));
-                    BuildingTypeClassExtension* btype_ext = Extension::Fetch(building->Class);
-                    if (btype_ext->IsNaval != type_ext->IsNaval) continue;
-                }
-                if (building->IsLeader) return building;
-                freebuilding = building;
-            } else {
-                if (RTTI == RTTI_AIRCRAFTTYPE) {
-                    anybuilding = building;
-                }
-            }
-        }
-    }
-
-    if (freebuilding != nullptr) {
-        return freebuilding;
-    }
-
-    return anybuilding;
+    return Extension::Fetch(this)->Who_Can_Build_Me(intheory, needsnopower, legal, house);
 }
 
 

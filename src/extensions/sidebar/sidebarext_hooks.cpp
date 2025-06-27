@@ -68,6 +68,7 @@
 #include "asserthandler.h"
 #include "building.h"
 #include "eventext.h"
+#include "factoryext.h"
 #include "hooker.h"
 #include "hooker_macros.h"
 #include "houseext.h"
@@ -1436,7 +1437,7 @@ bool StripClassExt::_AI(KeyNumType& input, Point2D const&)
         for (int index = 0; index < BuildableCount; index++)
         {
             FactoryClass* factory = Buildables[index].Factory;
-            if (factory && factory->Has_Changed())
+            if (factory && (factory->Has_Changed() || Extension::Fetch(factory)->IsHoldingExit))
             {
                 redraw = true;
                 if (factory->Has_Completed())
@@ -1453,19 +1454,13 @@ bool StripClassExt::_AI(KeyNumType& input, Point2D const&)
                         switch (pending->RTTI)
                         {
                         case RTTI_UNIT:
+                        case RTTI_INFANTRY:
                         case RTTI_AIRCRAFT:
                             OutList.Add(EventClassExt(pending->Owner(), EVENT_PLACE, pending->RTTI, CELL_NONE, TechnoTypeClassExtension::Get_Production_Flags(pending)).As_Event());
-                            Speak(VOX_UNIT_READY);
                             break;
 
                         case RTTI_BUILDING:
                             SidebarExtension->TabButtons[ID].Start_Flashing();
-                            Speak(VOX_CONSTRUCTION);
-                            break;
-
-                        case RTTI_INFANTRY:
-                            OutList.Add(EventClassExt(pending->Owner(), EVENT_PLACE, pending->RTTI, CELL_NONE, TechnoTypeClassExtension::Get_Production_Flags(pending)).As_Event());
-                            Speak(VOX_UNIT_READY);
                             break;
 
                         default:
@@ -2627,7 +2622,7 @@ bool SelectClassExt::_Action(unsigned flags, KeyNumType& key)
                 **  If this object is currently being built, then give a scold sound and text and then
                 **  bail.
                 */
-                if (factory != nullptr && !factory->Is_Building()) {
+                if (factory != nullptr && !factory->Is_Building() && !Extension::Fetch(factory)->IsHoldingExit) {
 
                     /*
                     **  If production has completed, then attempt to have the object exit
@@ -2755,6 +2750,8 @@ void SidebarClassExtension_Hooks()
 
     Patch_Jump(0x005F4EDD, &_SidebarClass_StripClass_Help_Text_Extended_Tooltip_Patch);
     Patch_Byte(0x005F4EF7 + 2, 0x14); // Pop one more argument passed to sprintf
+
+    Patch_Jump(0x005F4DD0, 0x005F4DD5); // Skip a call to Speak as we now speak UNIT_READY in HouseClassExt::Place_Object
 }
 
 

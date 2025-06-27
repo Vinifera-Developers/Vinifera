@@ -18,6 +18,7 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 - Harvesters now auto harvest when built from the war factory.
 - Vinifera changes the default value of `IsScoreShuffle` to true.
 - Vinifera changes the default value of `AllowHiResModes` to true.
+- Factories now hold their object if there is no war factory available for the unit to exit from instead of refuding construction.
 
 ### Starting Unit Placement
 
