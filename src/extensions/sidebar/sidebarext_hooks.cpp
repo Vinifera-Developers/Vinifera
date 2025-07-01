@@ -2461,10 +2461,9 @@ DECLARE_PATCH(_SidebarClass_StripClass_Help_Text_Extended_Tooltip_Patch)
 DECLARE_PATCH(_StripClass_Draw_It_Fetch_Factory_Patch1)
 {
     GET_REGISTER_STATIC(TechnoTypeClass*, ttype, ebp);
-    GET_STACK_STATIC(RTTIType, rtti, esp, 0x44);
 
     static FactoryClass* factory;
-    factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(rtti, TechnoTypeClassExtension::Get_Production_Flags(ttype));
+    factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(ttype->RTTI, TechnoTypeClassExtension::Get_Production_Flags(ttype));
 
     _asm mov eax, factory
     JMP_REG(edx, 0x005F5132);
@@ -2473,10 +2472,9 @@ DECLARE_PATCH(_StripClass_Draw_It_Fetch_Factory_Patch1)
 DECLARE_PATCH(_StripClass_Draw_It_Fetch_Factory_Patch2)
 {
     GET_STACK_STATIC(TechnoTypeClass*, ttype, esp, 0x18);
-    GET_REGISTER_STATIC(RTTIType, rtti, eax);
 
     static FactoryClass* factory;
-    factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(rtti, TechnoTypeClassExtension::Get_Production_Flags(ttype));
+    factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(ttype->RTTI, TechnoTypeClassExtension::Get_Production_Flags(ttype));
 
     _asm mov ebx, factory
     JMP(0x005F538A);
