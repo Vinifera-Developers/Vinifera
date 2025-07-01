@@ -2453,6 +2453,11 @@ DECLARE_PATCH(_SidebarClass_StripClass_Help_Text_Extended_Tooltip_Patch)
 }
 
 
+/**
+ *  Adds support for extended factories.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_StripClass_Draw_It_Fetch_Factory_Patch1)
 {
     GET_REGISTER_STATIC(TechnoTypeClass*, ttype, ebp);
@@ -2464,7 +2469,6 @@ DECLARE_PATCH(_StripClass_Draw_It_Fetch_Factory_Patch1)
     _asm mov eax, factory
     JMP_REG(edx, 0x005F5132);
 }
-
 
 DECLARE_PATCH(_StripClass_Draw_It_Fetch_Factory_Patch2)
 {
@@ -2479,12 +2483,16 @@ DECLARE_PATCH(_StripClass_Draw_It_Fetch_Factory_Patch2)
 }
 
 
+/**
+ *  Re-implementation of SelectClass::Action.
+ *
+ *  @author: ZivDero
+ */
 bool SelectClassExt::_Action(unsigned flags, KeyNumType& key)
 {
     if (!Strip) {
         return true;
     }
-        
 
     int index = Strip->TopIndex + Index;
     RTTIType otype = Strip->Buildables[index].BuildableType;
