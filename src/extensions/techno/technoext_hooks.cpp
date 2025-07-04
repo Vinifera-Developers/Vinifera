@@ -2517,7 +2517,7 @@ DECLARE_PATCH(_TechnoClass_AI_Abandon_Invalid_Target_Patch)
                 else if (weapon->IsUseSparkParticles && this_ptr->ParticleSystems[ATTACHED_PARTICLE_SPARK]) is_firing_particles = true;
                 else if (weapon->IsSonic && this_ptr->Wave) is_firing_particles = true;
 
-                if (!is_firing_particles)
+                if (!is_firing_particles || fire == FIRE_ILLEGAL)
                     this_ptr->Assign_Target(nullptr);
             }
         }
