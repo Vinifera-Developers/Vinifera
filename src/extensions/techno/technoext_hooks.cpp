@@ -797,6 +797,14 @@ FireErrorType TechnoClassExt::_Can_Fire(AbstractClass * target, WeaponSlotType w
         return FIRE_REARM;
 
     /**
+     *  An object can only have one instance of a particle/wave active at a time.
+     */
+    if (weapon->IsUseFireParticles && ParticleSystems[ATTACHED_PARTICLE_FIRE]) return FIRE_CANT;
+    if (weapon->IsRailgun && ParticleSystems[ATTACHED_PARTICLE_RAILGUN]) return FIRE_CANT;
+    if (weapon->IsUseSparkParticles && ParticleSystems[ATTACHED_PARTICLE_SPARK]) return FIRE_CANT;
+    if (weapon->IsSonic && Wave) return FIRE_CANT;
+
+    /**
      *  The target must be within range in order to allow firing.
      */
     if (!In_Range_Of(target, which))
@@ -2478,6 +2486,7 @@ DECLARE_PATCH(_TechnoClass_AI_Abandon_Invalid_Target_Patch)
     static FireErrorType fire;
     static WeaponSlotType which;
     static WeaponTypeClass* weapon;
+    static bool is_firing_particles;
 
     /**
      *  Vanilla code.
@@ -2501,7 +2510,15 @@ DECLARE_PATCH(_TechnoClass_AI_Abandon_Invalid_Target_Patch)
             fire = this_ptr->Can_Fire(this_ptr->TarCom, which);
             if (fire == FIRE_ILLEGAL || fire == FIRE_CANT)
             {
-                this_ptr->Assign_Target(nullptr);
+                is_firing_particles = false;
+
+                if (weapon->IsUseFireParticles && this_ptr->ParticleSystems[ATTACHED_PARTICLE_FIRE]) is_firing_particles = true;
+                else if (weapon->IsRailgun && this_ptr->ParticleSystems[ATTACHED_PARTICLE_RAILGUN]) is_firing_particles = true;
+                else if (weapon->IsUseSparkParticles && this_ptr->ParticleSystems[ATTACHED_PARTICLE_SPARK]) is_firing_particles = true;
+                else if (weapon->IsSonic && this_ptr->Wave) is_firing_particles = true;
+
+                if (!is_firing_particles)
+                    this_ptr->Assign_Target(nullptr);
             }
         }
     }
