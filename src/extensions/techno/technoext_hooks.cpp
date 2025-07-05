@@ -2505,17 +2505,17 @@ DECLARE_PATCH(_TechnoClass_AI_Abandon_Invalid_Target_Patch)
         if (this_ptr->Mission != MISSION_CAPTURE && this_ptr->Mission != MISSION_SABOTAGE)
         {
             which = this_ptr->What_Weapon_Should_I_Use(this_ptr->TarCom);
-            weapon = const_cast<WeaponTypeClass*>(this_ptr->Get_Weapon(which)->Weapon);
 
             fire = this_ptr->Can_Fire(this_ptr->TarCom, which);
             if (fire == FIRE_ILLEGAL || fire == FIRE_CANT)
             {
-                is_firing_particles = false;
-
-                if (weapon->IsUseFireParticles && this_ptr->ParticleSystems[ATTACHED_PARTICLE_FIRE]) is_firing_particles = true;
-                else if (weapon->IsRailgun && this_ptr->ParticleSystems[ATTACHED_PARTICLE_RAILGUN]) is_firing_particles = true;
-                else if (weapon->IsUseSparkParticles && this_ptr->ParticleSystems[ATTACHED_PARTICLE_SPARK]) is_firing_particles = true;
-                else if (weapon->IsSonic && this_ptr->Wave) is_firing_particles = true;
+                weapon = const_cast<WeaponTypeClass*>(this_ptr->Get_Weapon(which)->Weapon);
+                is_firing_particles = weapon && (
+                        (weapon->IsUseFireParticles && this_ptr->ParticleSystems[ATTACHED_PARTICLE_FIRE]) ||
+                        (weapon->IsRailgun && this_ptr->ParticleSystems[ATTACHED_PARTICLE_RAILGUN]) ||
+                        (weapon->IsUseSparkParticles && this_ptr->ParticleSystems[ATTACHED_PARTICLE_SPARK]) ||
+                        (weapon->IsSonic && this_ptr->Wave)
+                        );
 
                 if (!is_firing_particles || fire == FIRE_ILLEGAL)
                     this_ptr->Assign_Target(nullptr);
