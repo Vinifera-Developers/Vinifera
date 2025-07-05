@@ -576,7 +576,7 @@ bool HouseClassExtension::Place_Object(RTTIType type, Cell const& cell, Producti
             /*
             **  Announce that the object is ready.
             */
-            if (!factory_ext->HasSpoken) {
+            if (!factory_ext->HasSpoken && factory->House == PlayerPtr) {
                 if (tech->Is_Foot()) {
                     Speak(VOX_UNIT_READY);
                 } else if (tech->RTTI == RTTI_BUILDING) {
