@@ -127,7 +127,7 @@ class TacticalExtension final : public GlobalExtensionClass<Tactical>
         /**
          *  Replacement cell redraw list, as the vanilla one is too small for modern screen sizes.
          */
-        CellClass* CellRedraw[MAP_CELL_TOTAL];
+        CellClass* CellRedraw[128 * 128]; // Not a solid number, just enough to never cause problems.
 
         /**
          *  The number of cells in the array above, only used after loading the game!
