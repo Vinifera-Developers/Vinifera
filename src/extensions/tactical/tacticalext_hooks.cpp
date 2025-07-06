@@ -77,6 +77,7 @@ public:
     void _Select_These(Rect& rect, void (*selection_func)(ObjectClass* obj));
     void _Draw_Rally_Points(bool blit);
     bool _Clamp_To_Tactical_Rect(Point2D& pixel);
+    HRESULT STDMETHODCALLTYPE _Save(IStream* stream, BOOL cleardirty);
 
 public:
 
@@ -867,7 +868,6 @@ static void _Fill_With_Black()
     }
 }
 
-
 DECLARE_PATCH(_Tactical_Render_Fill_With_Black_Patch)
 {
     _Fill_With_Black();
@@ -877,6 +877,67 @@ DECLARE_PATCH(_Tactical_Render_Fill_With_Black_Patch)
     _asm {mov ecx, ebx}
     JMP_REG(EDX, 0x00611BC1);
 }
+
+
+/**
+ *  Re-implementation of Tactical::Save to save CellRedrawCount into the extension for load purposes.
+ *
+ *  @author: ZivDero
+ */
+HRESULT STDMETHODCALLTYPE TacticalExt::_Save(IStream* stream, BOOL cleardirty)
+{
+    HRESULT result = Abstract_Save(stream, cleardirty);
+    if (SUCCEEDED(result)) {
+
+        /**
+         *  Save the cell redraw count as we won't have access to it when loading the extension.
+         */
+        TacticalMapExtension->CellRedrawCount = CellRedrawCount;
+
+        result = S_OK;
+    }
+    return result;
+}
+
+
+/**
+ *  Patch in Tactical::Flag_Cell to use the new cell redraw array.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_TacticalClass_Flag_Cell_New_Array_Patch)
+{
+    GET_STACK_STATIC(CellClass*, cell, esp, 0x20);
+
+    TacticalMapExtension->Flag_Cell(*cell);
+
+    JMP(0x00616C2C);
+}
+
+
+/**
+ *  Patches in the multitude of Tactical render procedures to use the
+ *  new cell redraw array. Uses a macro for convenience.
+ *
+ *  @author: ZivDero
+ */
+#define CELL_REDRAW_POINTER_PATCH(PatchName, dst_reg, ret_reg, ret_addr) \
+DECLARE_PATCH(PatchName)                                                 \
+{                                                                        \
+    static CellClass** array;                                            \
+    array = TacticalMapExtension->CellRedraw;                            \
+    _asm { mov dst_reg, array }                                          \
+    JMP_REG(ret_reg, ret_addr);                                          \
+}
+
+CELL_REDRAW_POINTER_PATCH(_TacticalClass_SubRender1_Patch, eax, edx, 0x0061015A);
+CELL_REDRAW_POINTER_PATCH(_TacticalClass_SubRender2_Patch, ebx, eax, 0x006102BF);
+CELL_REDRAW_POINTER_PATCH(_TacticalClass_SubRender3_Patch, ebp, eax, 0x0061051F);
+CELL_REDRAW_POINTER_PATCH(_TacticalClass_SubRender4_Patch, ebx, eax, 0x00610768);
+CELL_REDRAW_POINTER_PATCH(_TacticalClass_SubRender5_Patch, ebp, eax, 0x0061094C);
+CELL_REDRAW_POINTER_PATCH(_TacticalClass_SubRender6_Patch, eax, edx, 0x00610B09);
+CELL_REDRAW_POINTER_PATCH(_TacticalClass_SubRender7_Patch, ebp, eax, 0x00610D67);
+CELL_REDRAW_POINTER_PATCH(_TacticalClass_SubRender8_Patch, ebp, eax, 0x00610FB7);
 
 
 /**
@@ -916,4 +977,16 @@ void TacticalExtension_Hooks()
 
     Patch_Jump(0x00614EC0, &TacticalExt::_Clamp_To_Tactical_Rect);
     Patch_Jump(0x00611BBB, &_Tactical_Render_Fill_With_Black_Patch);
+
+    Patch_Jump(0x00617F54, 0x00617F79); // Skip swizzling cell redraw pointers in TacticalClass as we have our own array
+    Patch_Jump(0x00617F80, &TacticalExt::_Save);
+    Patch_Jump(0x00616C07, _TacticalClass_Flag_Cell_New_Array_Patch);
+    Patch_Jump(0x00610154, _TacticalClass_SubRender1_Patch);
+    Patch_Jump(0x006102B9, _TacticalClass_SubRender2_Patch);
+    Patch_Jump(0x00610519, _TacticalClass_SubRender3_Patch);
+    Patch_Jump(0x00610762, _TacticalClass_SubRender4_Patch);
+    Patch_Jump(0x00610946, _TacticalClass_SubRender5_Patch);
+    Patch_Jump(0x00610B03, _TacticalClass_SubRender6_Patch);
+    Patch_Jump(0x00610D61, _TacticalClass_SubRender7_Patch);
+    Patch_Jump(0x00610FB1, _TacticalClass_SubRender8_Patch);
 }
