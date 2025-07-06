@@ -69,9 +69,12 @@ TacticalExtension::TacticalExtension(const Tactical *this_ptr) :
     InfoTextNotifySound(VOC_NONE),
     InfoTextNotifySoundVolume(1.0f),
     InfoTextStyle(TPF_6PT_GRAD|TPF_DROPSHADOW),
-    InfoTextTimer(0)
+    InfoTextTimer(0),
+    CellRedrawCount(0)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TacticalExtension::TacticalExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    std::memset(CellRedraw, 0, sizeof(CellRedraw));
 }
 
 
@@ -114,6 +117,10 @@ HRESULT TacticalExtension::Load(IStream *pStm)
     }
 
     new (this) TacticalExtension(NoInitClass());
+
+    for (int i = 0; i < CellRedrawCount; i++) {
+        VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(CellRedraw[i], "CellRedraw");
+    }
     
     return hr;
 }
@@ -704,5 +711,21 @@ void TacticalExtension::Draw_Super_Timers()
             );
         }
 
+    }
+}
+
+
+/**
+ *  Adds a cell to the to-redraw list.
+ *
+ *  @author: ZivDero
+ *
+ *  @note: Do not use this function by itself! Call Tactical::Flag_Cell instead.
+ */
+void TacticalExtension::Flag_Cell(CellClass& cell)
+{
+    if (TacticalMap->CellRedrawCount < std::size(CellRedraw) - 1) { // -1 because... reasons. It's that way in vanilla.
+        CellRedraw[TacticalMap->CellRedrawCount] = &cell;
+        TacticalMap->CellRedrawCount++;
     }
 }

@@ -79,6 +79,7 @@ class TacticalExtension final : public GlobalExtensionClass<Tactical>
         void Draw_Super_Timers();
 
         void Render_Post();
+        void Flag_Cell(CellClass& cell);
 
 #ifndef NDEBUG
         bool Debug_Draw_Facings();
@@ -122,4 +123,14 @@ class TacticalExtension final : public GlobalExtensionClass<Tactical>
          *  The lifetime timer for the information text.
          */
         CDTimerClass<MSTimerClass> InfoTextTimer;
+
+        /**
+         *  Replacement cell redraw list, as the vanilla one is too small for modern screen sizes.
+         */
+        CellClass* CellRedraw[128 * 128]; // Not a solid number, just enough to never cause problems.
+
+        /**
+         *  The number of cells in the array above, only used after loading the game!
+         */
+        int CellRedrawCount;
 };
