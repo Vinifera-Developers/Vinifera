@@ -82,6 +82,7 @@
 #include "supertypeext.h"
 #include "vox.h"
 #include "tactical.h"
+#include "vinifera_saveload.h"
 #include "weapontype.h"
 
 
@@ -110,7 +111,7 @@ public:
     void _Factory_AI();
     SuperWeaponType _Fetch_Super_Weapon() const;
     SuperWeaponType _Fetch_Super_Weapon2() const;
-
+    void _Swizzle_Light_Source();
 };
 
 
@@ -2085,6 +2086,26 @@ DECLARE_PATCH(_BuildingClass_Exit_Object_BuildNavalUnit_Patch)
 
 
 /**
+ *  Fixes the bug where a building detaches its light when loading a save.
+ *
+ *  @author: ZivDero
+ */
+void BuildingClassExt::_Swizzle_Light_Source()
+{
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(LightSource, "LightSource");
+}
+
+DECLARE_PATCH(_BuildingClass_Load_SwizzleLightSource_Patch)
+{
+    GET_REGISTER_STATIC(BuildingClassExt*, this_ptr, esi);
+
+    this_ptr->_Swizzle_Light_Source();
+
+    JMP(0x00438202);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void BuildingClassExtension_Hooks()
@@ -2139,4 +2160,5 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x0042CA35, &_BuildingClass_Exit_Object_BuildNavalUnit_Patch);
     Patch_Jump(0x0043AF60, &BuildingClassExt::_Fetch_Super_Weapon);
     Patch_Jump(0x0043AFC0, &BuildingClassExt::_Fetch_Super_Weapon2);
+    Patch_Jump(0x004381F8, &_BuildingClass_Load_SwizzleLightSource_Patch);
 }
