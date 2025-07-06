@@ -123,6 +123,7 @@ public:
     void _Record_The_Kill(TechnoClass* source);
     int _Time_To_Build() const;
     void _Assign_Target(AbstractClass * target);
+    void _AI_Abandon_Detour();
 };
 
 
@@ -2479,49 +2480,45 @@ DECLARE_PATCH(_TechnoClass_Null_House_Warning_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_TechnoClass_AI_Abandon_Invalid_Target_Patch)
+void TechnoClassExt::_AI_Abandon_Detour()
 {
-    GET_REGISTER_STATIC(TechnoClass*, this_ptr, esi);
-
-    static FireErrorType fire;
-    static WeaponSlotType which;
-    static WeaponTypeClass* weapon;
-    static bool is_firing_particles;
-
     /**
      *  Vanilla code.
      *  Don't let medics heal non-friendlies.
      */
-    if (Session.Type != GAME_NORMAL)
-    {
-        if (this_ptr->House->IsHuman && this_ptr->Combat_Damage(WEAPON_NONE) < 0 && !this_ptr->House->Is_Ally(this_ptr->TarCom))
-        {
-            this_ptr->Assign_Target(nullptr);
+    if (Session.Type != GAME_NORMAL) {
+        if (House->IsHuman && Combat_Damage(WEAPON_NONE) < 0 && !House->Is_Ally(TarCom)) {
+            Assign_Target(nullptr);
         }
     }
 
-    if (Frame % 16 == 0)
-    {
-        if (this_ptr->Mission != MISSION_CAPTURE && this_ptr->Mission != MISSION_SABOTAGE)
-        {
-            which = this_ptr->What_Weapon_Should_I_Use(this_ptr->TarCom);
+    if (Frame % 16 == 0) {
+        if (Mission != MISSION_CAPTURE && Mission != MISSION_SABOTAGE) {
+            WeaponSlotType which = What_Weapon_Should_I_Use(TarCom);
+            FireErrorType fire = Can_Fire(TarCom, which);
 
-            fire = this_ptr->Can_Fire(this_ptr->TarCom, which);
-            if (fire == FIRE_ILLEGAL || fire == FIRE_CANT)
-            {
-                weapon = const_cast<WeaponTypeClass*>(this_ptr->Get_Weapon(which)->Weapon);
-                is_firing_particles = weapon && (
-                        (weapon->IsUseFireParticles && this_ptr->ParticleSystems[ATTACHED_PARTICLE_FIRE]) ||
-                        (weapon->IsRailgun && this_ptr->ParticleSystems[ATTACHED_PARTICLE_RAILGUN]) ||
-                        (weapon->IsUseSparkParticles && this_ptr->ParticleSystems[ATTACHED_PARTICLE_SPARK]) ||
-                        (weapon->IsSonic && this_ptr->Wave)
-                        );
+            if (fire == FIRE_ILLEGAL || fire == FIRE_CANT) {
+                WeaponTypeClass* weapon = const_cast<WeaponTypeClass*>(Get_Weapon(which)->Weapon);
+                bool is_firing_particles = weapon && (
+                    (weapon->IsUseFireParticles && ParticleSystems[ATTACHED_PARTICLE_FIRE]) ||
+                    (weapon->IsRailgun && ParticleSystems[ATTACHED_PARTICLE_RAILGUN]) ||
+                    (weapon->IsUseSparkParticles && ParticleSystems[ATTACHED_PARTICLE_SPARK]) ||
+                    (weapon->IsSonic && Wave)
+                );
 
-                if (!is_firing_particles || fire == FIRE_ILLEGAL)
-                    this_ptr->Assign_Target(nullptr);
+                if (!is_firing_particles || fire == FIRE_ILLEGAL) {
+                    Assign_Target(nullptr);
+                }
             }
         }
     }
+}
+
+DECLARE_PATCH(_TechnoClass_AI_Abandon_Invalid_Target_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClassExt*, this_ptr, esi);
+
+    this_ptr->_AI_Abandon_Detour();
 
     JMP(0x0062EB6F);
 }
