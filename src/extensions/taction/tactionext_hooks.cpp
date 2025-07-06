@@ -55,7 +55,7 @@
 DECLARE_EXTENDING_CLASS_AND_PAIR(TActionClass)
 {
     public:
-        bool _Play_Sound_At_Random_Waypoint(HouseClass *house, ObjectClass *object, TriggerClass *trigger, Cell &cell);
+        bool _Do_PLAY_SOUND_RANDOM(HouseClass *house, ObjectClass *object, TriggerClass *trigger, const Cell &cell);
 };
 
 
@@ -66,30 +66,25 @@ DECLARE_EXTENDING_CLASS_AND_PAIR(TActionClass)
  *
  *  @author: CCHyper
  */
-bool TActionClassExt::_Play_Sound_At_Random_Waypoint(HouseClass *house, ObjectClass *object, TriggerClass *trigger, Cell &cell)
+bool TActionClassExt::_Do_PLAY_SOUND_RANDOM(HouseClass *house, ObjectClass *object, TriggerClass *trigger, const Cell &cell)
 {
-    Cell cell_list[NEW_WAYPOINT_COUNT];
-    int cell_list_count = 0;
+    Cell list[NEW_WAYPOINT_COUNT];
+    int count = 0;
 
     /**
      *  Make a list of all the valid waypoints in this scenario.
      */
-    for (WaypointType wp = WAYPOINT_FIRST; wp < NEW_WAYPOINT_COUNT; ++wp) {
-        if (ScenExtension->Is_Valid_Waypoint(wp)) {
-            cell_list[cell_list_count++] = ScenExtension->Get_Waypoint_Cell(wp);
-            if (cell_list_count >= std::size(cell_list)) {
-                break;
-            }
+    for (WaypointType index = WAYPOINT_FIRST; index < NEW_WAYPOINT_COUNT; ++index) {
+        if (ScenExtension->Is_Valid_Waypoint(index)) {
+            list[count++] = ScenExtension->Get_Waypoint_Cell(index);
+            if (count >= std::size(list)) break;
         }
     }
 
     /**
      *  Pick a random cell from the valid waypoint list and play the desired sound.
      */
-    Cell rnd_cell = cell_list[Random_Pick<unsigned int>(0, std::size(cell_list) - 1)];
-
-    Static_Sound(Data.Sound, Cell_Coord(rnd_cell, true));
-
+    Static_Sound(Data.Sound, list[Random_Pick(0u, std::size(list) - 1)].As_Coord());
     return true;
 }
 
@@ -97,11 +92,11 @@ bool TActionClassExt::_Play_Sound_At_Random_Waypoint(HouseClass *house, ObjectCl
 /**
  *  #issue-71
  *
- *  Replace inlined instance of Play_Sound_At_Random_Waypoint.
+ *  Replace inlined instance of Do_PLAY_SOUND_RANDOM.
  *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_TActionClass_Operator_Play_Sound_At_Random_Waypoint_Remove_Inline_Patch)
+DECLARE_PATCH(_TActionClass_Operator_Do_PLAY_SOUND_RANDOM_Remove_Inline_Patch)
 {
     GET_REGISTER_STATIC(TActionClass *, this_ptr, esi);
     GET_REGISTER_STATIC(ObjectClass *, object, ecx);
@@ -111,7 +106,7 @@ DECLARE_PATCH(_TActionClass_Operator_Play_Sound_At_Random_Waypoint_Remove_Inline
     GET_STACK_STATIC(HouseClass *, house, esp, 0x1C4);
     static bool retval;
 
-    retval = this_ptr->TAction_Play_Sound_At_Random_Waypoint(house, object, trigger, *cell);
+    retval = this_ptr->Do_PLAY_SOUND_RANDOM(house, object, trigger, *cell);
 
     /**
      *  Function return.
@@ -321,8 +316,8 @@ void TActionClassExtension_Hooks()
      *
      *  @author: CCHyper
      */
-    Patch_Jump(0x0061BF50, &TActionClassExt::_Play_Sound_At_Random_Waypoint);
-    Patch_Jump(0x00619E42, &_TActionClass_Operator_Play_Sound_At_Random_Waypoint_Remove_Inline_Patch);
+    Patch_Jump(0x0061BF50, &TActionClassExt::_Do_PLAY_SOUND_RANDOM);
+    Patch_Jump(0x00619E42, &_TActionClass_Operator_Do_PLAY_SOUND_RANDOM_Remove_Inline_Patch);
 
     Patch_Jump(0x00619FDB, &_TAction_Win_FlagLosersAsDefeatedInMultiplayer);
     Patch_Jump(0x0061A005, &_TAction_Lose_FlagLoserAsLostInMultiplayer);
