@@ -73,3 +73,4 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where upgrades did not always work properly as prerequisites.
 - Fix a bug where upgrades did not work as `AuxBuilding` on Super Weapons.
 - Fix a bug where you could use a stop command to reset a unit's burst.
+- Fix building light sources no longer being attached to the building after loading the game.

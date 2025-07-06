@@ -275,6 +275,7 @@ Vanilla fixes:
 - Fix a bug where upgrades did not work as `AuxBuilding` on Super Weapons (by ZivDero)
 - Fix a bug where you could use a stop command to reset a unit's burst (by ZivDero)
 - Factories now hold their object if there is no war factory available for the unit to exit from instead of refuding construction (by ZivDero)
+- Fix building light sources no longer being attached to the building after loading the game (by ZivDero)
 
 :::
 
