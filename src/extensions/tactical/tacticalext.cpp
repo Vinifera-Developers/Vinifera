@@ -69,7 +69,8 @@ TacticalExtension::TacticalExtension(const Tactical *this_ptr) :
     InfoTextNotifySound(VOC_NONE),
     InfoTextNotifySoundVolume(1.0f),
     InfoTextStyle(TPF_6PT_GRAD|TPF_DROPSHADOW),
-    InfoTextTimer(0)
+    InfoTextTimer(0),
+    CellRedrawCount(0)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TacticalExtension::TacticalExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
