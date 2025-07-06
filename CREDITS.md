@@ -258,3 +258,4 @@ This page lists all the individual contributions to the project by their author.
   - Allow customizing if Veins can grow on a tile.
   - Factories now hold their object if there is no war factory available for the unit to exit from instead of refuding construction.
   - Fix building light sources no longer being attached to the building after loading the game.
+  - Fix shroud looking bugged if you attempt to reveal too many cells at once.
