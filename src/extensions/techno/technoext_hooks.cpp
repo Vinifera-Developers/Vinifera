@@ -797,6 +797,14 @@ FireErrorType TechnoClassExt::_Can_Fire(AbstractClass * target, WeaponSlotType w
         return FIRE_REARM;
 
     /**
+     *  An object can only have one instance of a particle/wave active at a time.
+     */
+    if (weapon->IsUseFireParticles && ParticleSystems[ATTACHED_PARTICLE_FIRE]) return FIRE_CANT;
+    if (weapon->IsRailgun && ParticleSystems[ATTACHED_PARTICLE_RAILGUN]) return FIRE_CANT;
+    if (weapon->IsUseSparkParticles && ParticleSystems[ATTACHED_PARTICLE_SPARK]) return FIRE_CANT;
+    if (weapon->IsSonic && Wave) return FIRE_CANT;
+
+    /**
      *  The target must be within range in order to allow firing.
      */
     if (!In_Range_Of(target, which))
@@ -2478,6 +2486,7 @@ DECLARE_PATCH(_TechnoClass_AI_Abandon_Invalid_Target_Patch)
     static FireErrorType fire;
     static WeaponSlotType which;
     static WeaponTypeClass* weapon;
+    static bool is_firing_particles;
 
     /**
      *  Vanilla code.
@@ -2496,12 +2505,20 @@ DECLARE_PATCH(_TechnoClass_AI_Abandon_Invalid_Target_Patch)
         if (this_ptr->Mission != MISSION_CAPTURE && this_ptr->Mission != MISSION_SABOTAGE)
         {
             which = this_ptr->What_Weapon_Should_I_Use(this_ptr->TarCom);
-            weapon = const_cast<WeaponTypeClass*>(this_ptr->Get_Weapon(which)->Weapon);
 
             fire = this_ptr->Can_Fire(this_ptr->TarCom, which);
             if (fire == FIRE_ILLEGAL || fire == FIRE_CANT)
             {
-                this_ptr->Assign_Target(nullptr);
+                weapon = const_cast<WeaponTypeClass*>(this_ptr->Get_Weapon(which)->Weapon);
+                is_firing_particles = weapon && (
+                        (weapon->IsUseFireParticles && this_ptr->ParticleSystems[ATTACHED_PARTICLE_FIRE]) ||
+                        (weapon->IsRailgun && this_ptr->ParticleSystems[ATTACHED_PARTICLE_RAILGUN]) ||
+                        (weapon->IsUseSparkParticles && this_ptr->ParticleSystems[ATTACHED_PARTICLE_SPARK]) ||
+                        (weapon->IsSonic && this_ptr->Wave)
+                        );
+
+                if (!is_firing_particles || fire == FIRE_ILLEGAL)
+                    this_ptr->Assign_Target(nullptr);
             }
         }
     }
