@@ -2669,9 +2669,9 @@ bool ToggleShroudCommandClass::Process()
 
             PlayerPtr->IsVisionary = true;
 
-            Map.Iterator_Reset();
+            Map.Reset_Iterator();
 
-            for (CellClass *cell = Map.Iterator_Next_Cell(); cell != nullptr; cell = Map.Iterator_Next_Cell()) {
+            for (CellClass *cell = Map.Iterate(); cell != nullptr; cell = Map.Iterate()) {
                 Map.Map_Cell(cell->CellID, PlayerPtr);
             }
 
@@ -2772,7 +2772,7 @@ bool ToggleInertCommandClass::Process()
      *  This flags controls whether weapons are inert. An inert weapon doesn't do
      *  any damage. Effectively, if this is true, then units will never die.
      */
-    Scen->SpecialFlags.IsInert = !Scen->SpecialFlags.IsInert;
+    Scen->Special.IsInert = !Scen->Special.IsInert;
 
     return true;
 }
@@ -3464,7 +3464,7 @@ bool StartingWaypointsCommandClass::Process()
      *  as Tiberian Sun only supports these for starting locatons.
      */
     static int _current_index = 0;
-    Coordinate wp_coord = Scen->Get_Waypoint_Coord(_current_index++ % 8);
+    Coordinate wp_coord = Scen->Waypoint_Coord(_current_index++ % 8);
     if (wp_coord == COORD_NONE) {
         return false;
     }

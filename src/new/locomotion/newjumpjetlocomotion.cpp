@@ -149,7 +149,7 @@ IFACEMETHODIMP_(bool) NewJumpjetLocomotionClass::Process()
         }
 
         if (LinkedTo->IsSelected && LinkedTo->House != PlayerPtr) {
-            if (Map.Is_Shrouded(LinkedTo->PositionCoord) || (Scen->SpecialFlags.IsFogOfWar && Map.Is_Fogged(LinkedTo->PositionCoord))) {
+            if (Map.Is_Shrouded(LinkedTo->PositionCoord) || (Scen->Special.IsFogOfWar && Map.Is_Fogged(LinkedTo->PositionCoord))) {
                 LinkedTo->Unselect();
             }
         }

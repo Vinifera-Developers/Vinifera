@@ -284,7 +284,7 @@ static bool Main_Loop_Intercept()
 
 void Process_Command_If_Allowed(CommandClass* command)
 {
-    if (!Scen->UserInputLocked || (CommandClass::From_Type(COMMAND_OPTIONS) == command)) {
+    if (!Scen->InputLock || (CommandClass::From_Type(COMMAND_OPTIONS) == command)) {
         command->Process();
     }
 }

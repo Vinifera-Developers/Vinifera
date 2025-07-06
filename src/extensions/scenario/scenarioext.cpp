@@ -304,9 +304,9 @@ bool ScenarioClassExtension::Read_Tutorial_INI(CCINIClass &ini, bool log)
  *
  *  @author: CCHyper
  */
-Cell ScenarioClassExtension::Get_Waypoint_Cell(WaypointType wp) const
+Cell ScenarioClassExtension::Waypoint_CellClass(WaypointType wp) const
 {
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Get_Waypoint_Cell - 0x%08X\n", (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("ScenarioClassExtension::Waypoint_CellClass - 0x%08X\n", (uintptr_t)(This()));
     ASSERT_FATAL(wp < Waypoint.Length());
 
     return Waypoint[wp];
@@ -318,9 +318,9 @@ Cell ScenarioClassExtension::Get_Waypoint_Cell(WaypointType wp) const
  *
  *  @author: CCHyper
  */
-CellClass *ScenarioClassExtension::Get_Waypoint_CellPtr(WaypointType wp) const
+CellClass *ScenarioClassExtension::Waypoint_CellClassPtr(WaypointType wp) const
 {
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Get_Waypoint_CellPtr - 0x%08X\n", (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("ScenarioClassExtension::Waypoint_CellClassPtr - 0x%08X\n", (uintptr_t)(This()));
     ASSERT_FATAL(wp < Waypoint.Length());
 
     return &Map[Waypoint[wp]];
@@ -332,9 +332,9 @@ CellClass *ScenarioClassExtension::Get_Waypoint_CellPtr(WaypointType wp) const
  *
  *  @author: CCHyper
  */
-Coordinate ScenarioClassExtension::Get_Waypoint_Coord(WaypointType wp) const
+Coordinate ScenarioClassExtension::Waypoint_Coord(WaypointType wp) const
 {
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Get_Waypoint_Coord - 0x%08X\n", (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("ScenarioClassExtension::Waypoint_Coord - 0x%08X\n", (uintptr_t)(This()));
     ASSERT_FATAL(wp < Waypoint.Length());
 
     CellClass *cell = &Map[Waypoint[wp]];
@@ -350,9 +350,9 @@ Coordinate ScenarioClassExtension::Get_Waypoint_Coord(WaypointType wp) const
  *
  *  @author: CCHyper
  */
-Coordinate ScenarioClassExtension::Get_Waypoint_Coord_Height(WaypointType wp) const
+Coordinate ScenarioClassExtension::Waypoint_Coord_Height(WaypointType wp) const
 {
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Get_Waypoint_Coord_Height - 0x%08X\n", (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("ScenarioClassExtension::Waypoint_Coord_Height - 0x%08X\n", (uintptr_t)(This()));
     ASSERT_FATAL(wp < Waypoint.Length());
 
     CellClass *cell = &Map[Waypoint[wp]];
@@ -373,7 +373,7 @@ Coordinate ScenarioClassExtension::Get_Waypoint_Coord_Height(WaypointType wp) co
  */
 void ScenarioClassExtension::Set_Waypoint_Cell(WaypointType wp, Cell &cell)
 {
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Get_Waypoint_Cell - 0x%08X\n", (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("ScenarioClassExtension::Waypoint_CellClass - 0x%08X\n", (uintptr_t)(This()));
     ASSERT_FATAL(wp < Waypoint.Length());
 
     Waypoint[wp] = cell;
@@ -398,9 +398,9 @@ void ScenarioClassExtension::Set_Waypoint_Coord(WaypointType wp, Coordinate &coo
  *
  *  @author: CCHyper
  */
-bool ScenarioClassExtension::Is_Valid_Waypoint(WaypointType wp) const
+bool ScenarioClassExtension::Is_Waypoint_Valid(WaypointType wp) const
 {
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Is_Valid_Waypoint - 0x%08X\n", (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("ScenarioClassExtension::Is_Waypoint_Valid - 0x%08X\n", (uintptr_t)(This()));
     ASSERT_FATAL(wp < Waypoint.Length());
 
     return (wp >= WAYPOINT_FIRST && wp < Waypoint.Length()) ? (Waypoint[wp] != CELL_NONE) : false;
@@ -550,7 +550,7 @@ void ScenarioClassExtension::Write_Waypoint_INI(CCINIClass &ini)
      * Save the Waypoint entries.
      */
     for (WaypointType wp = WAYPOINT_FIRST; wp < Waypoint.Length(); ++wp) {
-        if (Is_Valid_Waypoint(wp)) {
+        if (Is_Waypoint_Valid(wp)) {
             std::snprintf(entry, sizeof(entry), "%d", wp);
             int value = Waypoint[wp].X + 1000 * Waypoint[wp].Y;
             ini.Put_Int(WAYNAME, entry, value);
@@ -572,7 +572,7 @@ const char * ScenarioClassExtension::Waypoint_As_String(WaypointType wp) const
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Waypoint_As_String - 0x%08X\n", (uintptr_t)(This()));
 
     for (WaypointType wp = WAYPOINT_FIRST; wp < Waypoint.Length(); ++wp) {
-        if (Is_Valid_Waypoint(wp)) {
+        if (Is_Waypoint_Valid(wp)) {
             return ::Waypoint_As_String(wp);
         }
     }
@@ -1167,7 +1167,7 @@ static DynamicVectorClass<Cell> Build_Starting_Waypoint_List(bool official)
      */
     int min_waypts = 0;
     for (int i = 0; i < 8; i++) {
-        if (!Scen->Is_Valid_Waypoint(i)) {
+        if (!Scen->Is_Waypoint_Valid(i)) {
             break;
         }
         min_waypts++;
@@ -1185,8 +1185,8 @@ static DynamicVectorClass<Cell> Build_Starting_Waypoint_List(bool official)
     }
 
     for (int waycount = 0; waycount < look_for; ++waycount) {
-        if (Scen->Is_Valid_Waypoint(waycount)) {
-            Cell waycell = Scen->Get_Waypoint_Location(waycount);
+        if (Scen->Is_Waypoint_Valid(waycount)) {
+            Cell waycell = Scen->Waypoint_Cell(waycount);
             waypts.Add(waycell);
             DEBUG_INFO("Multiplayer start waypoint found at cell %d,%d.\n", waycell.X, waycell.Y);
         }
@@ -1601,7 +1601,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                             DEBUG_INFO("  House %s deployed object %s at %d,%d\n",
                                 hptr->Class->Name(), obj->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
 
-                            if (Scen->SpecialFlags.IsInitialVeteran) {
+                            if (Scen->Special.IsInitialVeteran) {
                                 obj->Veterancy.Set_Elite(true);
                             }
 
@@ -1653,7 +1653,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                             DEBUG_INFO("  House %s deployed object %s at %d,%d\n",
                                 hptr->Class->Name(), obj->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
 
-                            if (Scen->SpecialFlags.IsInitialVeteran) {
+                            if (Scen->Special.IsInitialVeteran) {
                                 obj->Veterancy.Set_Elite(true);
                             }
 
@@ -1731,7 +1731,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                                 DEBUG_WARNING("  House %s deployed deficiency object %s at %d,%d\n",
                                     hptr->Class->Name(), obj->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
 
-                                if (Scen->SpecialFlags.InitialVeteran) {
+                                if (Scen->Special.InitialVeteran) {
                                     obj->Veterancy.Set_Elite(true);
                                 }
 

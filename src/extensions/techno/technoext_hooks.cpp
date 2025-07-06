@@ -1185,7 +1185,7 @@ void TechnoClassExt::_Drop_Tiberium()
      */
     static FacingType drop_facings[9] = { FACING_NONE, FACING_E, FACING_NW, FACING_NE, FACING_S, FACING_SE, FACING_N, FACING_SW, FACING_W };
 
-    if (Storage.Get_Total_Amount() > 0 && RTTI != RTTI_BUILDING && !Scen->SpecialFlags.IsHarvesterImmune)
+    if (Storage.Get_Total_Amount() > 0 && RTTI != RTTI_BUILDING && !Scen->Special.IsHarvesterImmune)
     {
         TiberiumType droplist[9] = { TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE, TIBERIUM_NONE };
         int dropcount = 0;

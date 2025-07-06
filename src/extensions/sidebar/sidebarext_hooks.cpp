@@ -2004,7 +2004,7 @@ void StripClassExt::_Draw_It(bool complete)
                  */
                 bool overbutton = SidebarExtension->SelectButton[ID][index - TopIndex].MousedOver;
 
-                if (overbutton && !Scen->UserInputLocked && !darken)
+                if (overbutton && !Scen->InputLock && !darken)
                 {
                     Rect cameo_hover_rect(x, SidebarRect.Y + y, OBJECT_WIDTH, OBJECT_HEIGHT - 3);
                     const ColorSchemeType colorschemetype = Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor;

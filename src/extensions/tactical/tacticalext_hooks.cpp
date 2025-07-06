@@ -179,7 +179,7 @@ void TacticalExt::_Draw_Band_Box()
              *  Interpolate between the two colors to find the correct tint
              *  for the current map ambient level.
              */
-            const float adjust = static_cast<float>(Scen->AmbientCurrent) / 100.0f;
+            const float adjust = static_cast<float>(Scen->CurrentAmbientLight) / 100.0f;
             const RGBClass tint_color = RGBClass::Interpolate(tint_dark, tint_light, adjust);
 
             LogicSurface->Fill_Rect_Trans(tint_rect, tint_color, trans);

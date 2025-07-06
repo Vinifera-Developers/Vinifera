@@ -595,7 +595,7 @@ bool SidebarClassExtension::TabButtonClass::Draw_Me(bool forced)
 
     Draw_Shape(*SidebarSurface, *ShapeDrawer, ShapeData, shapenum, Point2D(X + DrawX, Y + DrawY), ScreenRect, SHAPE_NORMAL);
 
-    if (MousedOver && !Scen->UserInputLocked && !IsDisabled && !IsSelected)
+    if (MousedOver && !Scen->InputLock && !IsDisabled && !IsSelected)
     {
         Rect hover_rect(X + DrawX, Y + DrawY, Width - 1, Height - 1);
         const ColorSchemeType colorschemetype = Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor;

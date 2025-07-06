@@ -55,15 +55,15 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
 
         bool Read_Tutorial_INI(CCINIClass &ini, bool log = false);
 
-        Cell Get_Waypoint_Cell(WaypointType wp) const;
-        CellClass * Get_Waypoint_CellPtr(WaypointType wp) const;
-        Coordinate Get_Waypoint_Coord(WaypointType wp) const;
-        Coordinate Get_Waypoint_Coord_Height(WaypointType wp) const;
+        Cell Waypoint_CellClass(WaypointType wp) const;
+        CellClass * Waypoint_CellClassPtr(WaypointType wp) const;
+        Coordinate Waypoint_Coord(WaypointType wp) const;
+        Coordinate Waypoint_Coord_Height(WaypointType wp) const;
 
         void Set_Waypoint_Cell(WaypointType wp, Cell &cell);
         void Set_Waypoint_Coord(WaypointType wp, Coordinate &coord);
 
-        bool Is_Valid_Waypoint(WaypointType wp) const;
+        bool Is_Waypoint_Valid(WaypointType wp) const;
         void Clear_Waypoint(WaypointType wp);
 
         void Clear_All_Waypoints();

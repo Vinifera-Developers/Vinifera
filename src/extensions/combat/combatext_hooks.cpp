@@ -112,7 +112,7 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ObjectClass * 
      *	If there is no raw damage value to start with, then
      *	there can be no modified damage either.
      */
-    if (!damage || Scen->SpecialFlags.IsInert || warhead == nullptr)
+    if (!damage || Scen->Special.IsInert || warhead == nullptr)
         return 0;
 
     ArmorType armor = target->Class_Of()->Armor;
@@ -278,7 +278,7 @@ void Get_Explosion_Targets(const Coordinate& coord, TechnoClass* source, int ran
             object = cellptr->Cell_Occupier(isbridge);
             while (object) {
                 if (object != source) {
-                    if (object->RTTI != RTTI_UNIT || !Scen->SpecialFlags.IsHarvesterImmune || !Rule->HarvesterUnit.Is_Present((UnitTypeClass*)object->Class_Of())) {
+                    if (object->RTTI != RTTI_UNIT || !Scen->Special.IsHarvesterImmune || !Rule->HarvesterUnit.Is_Present((UnitTypeClass*)object->Class_Of())) {
                         objects.Delete(object);
                         objects.Add(object);
                     }
@@ -549,7 +549,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
      *  combat damage.
      */
     bool ion_cannon = warhead == Rule->IonCannonWarhead;
-    if (Scen->SpecialFlags.IsDestroyableBridges && warhead->IsWallDestroyer) {
+    if (Scen->Special.IsDestroyableBridges && warhead->IsWallDestroyer) {
         const CellClass* bridge_owner_cell = cellptr->Get_Bridge_Owner();
 
         if (bridge_owner_cell && bridge_owner_cell->Is_Overlay_Bridge()

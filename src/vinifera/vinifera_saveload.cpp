@@ -774,7 +774,7 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
     versioninfo.Set_Scenario_Description(descr);
     versioninfo.Set_Version(1);
     versioninfo.Set_Player_House(PlayerPtr->Class->Full_Name());
-    versioninfo.Set_Campaign_Number(Scen->CampaignID);
+    versioninfo.Set_Campaign_Number(Scen->Campaign);
     versioninfo.Set_Scenario_Number(Scen->Scenario);
     versioninfo.Set_Executable_Name(VINIFERA_DLL);
     versioninfo.Set_Game_Type(Session.Type);

@@ -60,15 +60,15 @@
 class ScenarioClassExt : public ScenarioClass
 {
     public:
-        Cell _Get_Waypoint_Cell(WaypointType wp) const { return ScenExtension->Get_Waypoint_Cell(wp); }
-        CellClass *_Get_Waypoint_CellPtr(WaypointType wp) const { return ScenExtension->Get_Waypoint_CellPtr(wp); }
-        Coordinate _Get_Waypoint_Coord(WaypointType wp) const { return ScenExtension->Get_Waypoint_Coord(wp); }
-        Coordinate _Get_Waypoint_Coord_Height(WaypointType wp) const { return ScenExtension->Get_Waypoint_Coord_Height(wp); }
+        Cell _Waypoint_CellClass(WaypointType wp) const { return ScenExtension->Waypoint_CellClass(wp); }
+        CellClass *_Waypoint_CellClassPtr(WaypointType wp) const { return ScenExtension->Waypoint_CellClassPtr(wp); }
+        Coordinate _Waypoint_Coord(WaypointType wp) const { return ScenExtension->Waypoint_Coord(wp); }
+        Coordinate _Waypoint_Coord_Height(WaypointType wp) const { return ScenExtension->Waypoint_Coord_Height(wp); }
 
         void _Set_Waypoint_Cell(WaypointType wp, Cell cell) { ScenExtension->Set_Waypoint_Cell(wp, cell); }
         void _Set_Waypoint_Coord(WaypointType wp, Coordinate &coord) { ScenExtension->Set_Waypoint_Coord(wp, coord); }
 
-        bool _Is_Valid_Waypoint(WaypointType wp) const { return ScenExtension->Is_Valid_Waypoint(wp); }
+        bool _Is_Waypoint_Valid(WaypointType wp) const { return ScenExtension->Is_Waypoint_Valid(wp); }
         void _Clear_Waypoint(WaypointType wp) { ScenExtension->Clear_Waypoint(wp); }
 
         void _Clear_All_Waypoints() { ScenExtension->Clear_All_Waypoints(); }
@@ -116,7 +116,7 @@ void Init_Home_Cell()
     Map.SidebarClass::Activate(1);
     if (Session.Type == GAME_NORMAL)
     {
-        int home_cell_number = EndGame.Globals[0] ? Scen->AltHomeCell : Scen->HomeCell;
+        int home_cell_number = EndGame.Globals[0] ? Scen->AltHome : Scen->Home;
         Cell home_cell = ScenExtension->Waypoint[home_cell_number];
 
         Scen->Views[0] = home_cell;
@@ -346,16 +346,16 @@ void ScenarioClassExtension_Hooks()
      *
      *  @author: CCHyper, ZivDero
      */
-    Patch_Jump(0x005E1460, &ScenarioClassExt::_Get_Waypoint_Cell);
-    Patch_Jump(0x005E1480, &ScenarioClassExt::_Get_Waypoint_CellPtr);
-    Patch_Jump(0x005E14A0, &ScenarioClassExt::_Get_Waypoint_Coord);
+    Patch_Jump(0x005E1460, &ScenarioClassExt::_Waypoint_CellClass);
+    Patch_Jump(0x005E1480, &ScenarioClassExt::_Waypoint_CellClassPtr);
+    Patch_Jump(0x005E14A0, &ScenarioClassExt::_Waypoint_Coord);
     Patch_Jump(0x005E1500, &ScenarioClassExt::_Clear_All_Waypoints);
-    Patch_Jump(0x005E1520, &ScenarioClassExt::_Is_Valid_Waypoint);
+    Patch_Jump(0x005E1520, &ScenarioClassExt::_Is_Waypoint_Valid);
     Patch_Jump(0x005E1560, &ScenarioClassExt::_Read_Waypoint_INI);
     Patch_Jump(0x005E1630, &ScenarioClassExt::_Write_Waypoint_INI);
     Patch_Jump(0x005E16C0, &ScenarioClassExt::_Clear_Waypoint);
     Patch_Jump(0x005E16E0, &ScenarioClassExt::_Set_Waypoint_Cell);
-    Patch_Jump(0x005E1700, &ScenarioClassExt::_Get_Waypoint_CellPtr);
+    Patch_Jump(0x005E1700, &ScenarioClassExt::_Waypoint_CellClassPtr);
     Patch_Jump(0x005E1720, &ScenarioClassExt::_Waypoint_As_String);
     Patch_Jump(0x005DC852, &_Clear_Scenario_Patch);
     Patch_Jump(0x005DC0A0, &_Fill_In_Data_Home_Cell_Patch);

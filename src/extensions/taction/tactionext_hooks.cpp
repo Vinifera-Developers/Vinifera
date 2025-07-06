@@ -43,6 +43,8 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "mouse.h"
+#include "rules.h"
 
 
 /**
@@ -54,19 +56,20 @@
  */
 DECLARE_EXTENDING_CLASS_AND_PAIR(TActionClass)
 {
-    public:
-        bool _Do_PLAY_SOUND_RANDOM(HouseClass *house, ObjectClass *object, TriggerClass *trigger, const Cell &cell);
+public:
+    bool _Do_PLAY_SOUND_RANDOM(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
+
 };
 
 
 /**
  *  #issue-71
  *
- *  Reimplement Play_Sound_At_Random_Waypoint to support the new waypoint limit.
+ *  Reimplement Do_PLAY_SOUND_RANDOM to support the new waypoint limit.
  *
  *  @author: CCHyper
  */
-bool TActionClassExt::_Do_PLAY_SOUND_RANDOM(HouseClass *house, ObjectClass *object, TriggerClass *trigger, const Cell &cell)
+bool TActionClassExt::_Do_PLAY_SOUND_RANDOM(HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
     Cell list[NEW_WAYPOINT_COUNT];
     int count = 0;
@@ -75,8 +78,8 @@ bool TActionClassExt::_Do_PLAY_SOUND_RANDOM(HouseClass *house, ObjectClass *obje
      *  Make a list of all the valid waypoints in this scenario.
      */
     for (WaypointType index = WAYPOINT_FIRST; index < NEW_WAYPOINT_COUNT; ++index) {
-        if (ScenExtension->Is_Valid_Waypoint(index)) {
-            list[count++] = ScenExtension->Get_Waypoint_Cell(index);
+        if (ScenExtension->Is_Waypoint_Valid(index)) {
+            list[count++] = ScenExtension->Waypoint_CellClass(index);
             if (count >= std::size(list)) break;
         }
     }
