@@ -360,7 +360,6 @@ void Vinifera_Draw_Version_Text(XSurface *surface, bool pre_init)
  */
 bool Vinifera_Generate_Mini_Dump()
 {
-#if 0
     MessageBox(MainWindow,
         "A crash dump will now be generated that can be sent to the\n"
         "developers for further analysis.\n\n"
@@ -385,7 +384,6 @@ bool Vinifera_Generate_Mini_Dump()
     }
 
     MessageBox(MainWindow, "Failed to create crash dump!\n\n", "Crash dump", MB_OK|MB_ICONASTERISK);
-#endif
     return false;
 }
 
