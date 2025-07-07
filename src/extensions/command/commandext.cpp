@@ -1329,7 +1329,7 @@ bool MemoryDumpCommandClass::Process()
 
     DEBUG_INFO("About to produce memory dump...\n");
 
-    GenerateFullCrashDump = false; // We don't need a full memory dump.
+    GenerateFullCrashDump = true; // We don't need a full memory dump.
     NonFatalMinidump = true;
     MinidumpUseCurrentTime = true;
 

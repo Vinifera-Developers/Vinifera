@@ -50,7 +50,7 @@ extern int Execute_Min;
 extern int Execute_Sec;
 
 
-bool GenerateFullCrashDump = false;
+bool GenerateFullCrashDump = true;
 bool NonFatalMinidump = false;
 bool MinidumpUseCurrentTime = false;
 
