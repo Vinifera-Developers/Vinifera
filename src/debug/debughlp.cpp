@@ -170,23 +170,16 @@ bool __cdecl Init_Symbol_Info()
         SymbolProcess = GetCurrentProcess();
 
         GetModuleFileNameA(nullptr, pathname, PATH_MAX);
-        _splitpath(pathname, drive, directory, 0, 0);
-        std::snprintf(pathname, sizeof(pathname), "%s:\\%s", drive, directory);
-        std::strcat(pathname, ";.;");
+        _splitpath(pathname, drive, directory, nullptr, nullptr);
+        _makepath(pathname, drive, directory, ";", ";");
 
         /**
          *  Here is where things get a little interesting. We need to use the name of the DLL instead of the
          *  name of the target binary. The DLL's debug database contains all our debug info. So use the string
          *  literal of the dll name defined by the build system.
          */
-        //if (SymInitializePtr != nullptr && SymInitializePtr(SymbolProcess, DLL_NAME, TRUE)) {
         if (SymInitializePtr != nullptr && SymInitializePtr(SymbolProcess, VINIFERA_DLL, TRUE)) {
-            GetModuleFileNameA(nullptr, pathname, PATH_MAX);
-
-            //if (SymLoadModulePtr != nullptr && SymLoadModulePtr(SymbolProcess, nullptr, DLL_NAME, nullptr, 0, 0)) {
-            if (SymLoadModuleEx(SymbolProcess, nullptr, VINIFERA_DLL, nullptr, 0, 0, nullptr, 0)) {
-                return true;
-            }
+            return true;
         }
     }
 
