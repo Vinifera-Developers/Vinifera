@@ -1252,9 +1252,9 @@ void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
 
         if (IsActive && Tag && source) Tag->Spring(TEVENT_DESTROYED, this);
 
-        if (IsActive && Tag) Tag->Spring(TEVENT_DESTROYED_BY_ANYTHING, this);
+        if (IsActive && Tag) Tag->Spring(TEVENT_DESTROYED_ANY, this);
 
-        if (IsActive && Tag) Tag->Spring(TEVENT_FAKES_DESTROYED, this);
+        if (IsActive && Tag) Tag->Spring(TEVENT_DESTROYED_ANY_X, this);
     }
 
     if (source && !typeext->IsDontScore && !House->Is_Ally(source) && !source->House->Is_Ally(this)) {

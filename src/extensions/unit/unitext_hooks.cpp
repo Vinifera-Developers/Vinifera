@@ -1008,6 +1008,12 @@ continue_check_scatter:
  *
  *  @author: ZivDero
  */
+void UnitClass_Jellyfish_AI_Armor_Helper(UnitClass* this_ptr, TechnoClass* target, WeaponTypeClass* weapon, WarheadTypeClass* warhead)
+{
+    int damage = weapon->Attack * Verses::Get_Modifier(target->TClass->Armor, warhead);
+    target->Take_Damage(damage, 0, warhead, this_ptr, false, false);
+}
+
 DECLARE_PATCH(_UnitClass_Jellyfish_AI_Armor_Patch)
 {
     GET_REGISTER_STATIC(TechnoClass*, target, esi);
@@ -1015,9 +1021,9 @@ DECLARE_PATCH(_UnitClass_Jellyfish_AI_Armor_Patch)
     GET_STACK_STATIC(WeaponTypeClass*, weapon, esp, 0x20);
     GET_STACK_STATIC(WarheadTypeClass*, warhead, esp, 0x14);
 
-    static int damage;
-    damage = weapon->Attack * Verses::Get_Modifier(target->TClass->Armor, warhead);
-    target->Take_Damage(damage, 0, warhead, this_ptr, false, false);
+    _asm pushad
+    UnitClass_Jellyfish_AI_Armor_Helper(this_ptr, target, weapon, warhead);
+    _asm popad
 
     JMP(0x0064F2FA);
 }
