@@ -141,6 +141,7 @@ static bool Exception_Find_Datbase_Entry(uintptr_t address, bool &can_continue, 
  */
 static bool Exception_Generate_Mini_Dump()
 {
+#if 0
     int retval = MessageBox(MainWindow,
         "Would you like to generate a crash dump that can be sent to the\n"
         "developers for further analysis?\n\n"
@@ -169,6 +170,7 @@ static bool Exception_Generate_Mini_Dump()
 
         return true;
     }
+#endif
 
     return false;
 }
