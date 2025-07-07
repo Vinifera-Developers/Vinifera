@@ -98,11 +98,12 @@ extern bool Vinifera_ShowSuperWeaponTimers;
 
 extern unsigned Vinifera_TotalPlayTime;
 
-extern DynamicVectorClass<MFCC *> ViniferaMapsMixes;
-extern DynamicVectorClass<MFCC *> ViniferaMoviesMixes;
+extern DynamicVectorClass<MFCD *> ViniferaMapsMixes;
+extern DynamicVectorClass<MFCD *> ViniferaMoviesMixes;
 
-extern MFCC *GenericMix;
-extern MFCC *IsoGenericMix;
+extern MFCD *GenericMix;
+extern MFCD *IsoGenericMix;
+extern MFCD *SideCTMix;
 
 extern KamikazeTrackerClass *KamikazeTracker;
 extern AircraftTrackerClass *AircraftTracker;

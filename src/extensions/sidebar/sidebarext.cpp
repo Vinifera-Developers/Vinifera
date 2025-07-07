@@ -308,16 +308,16 @@ void SidebarClassExtension::Set_Dimensions()
  */
 void SidebarClassExtension::Init_For_House()
 {
-    TabButtons[0].Set_Shape(MFCC::RetrieveT<ShapeSet>("TAB-BLD.SHP"));
+    TabButtons[0].Set_Shape(MFCD::RetrieveT<ShapeSet>("TAB-BLD.SHP"));
     TabButtons[0].ShapeDrawer = SidebarDrawer;
 
-    TabButtons[1].Set_Shape(MFCC::RetrieveT<ShapeSet>("TAB-INF.SHP"));
+    TabButtons[1].Set_Shape(MFCD::RetrieveT<ShapeSet>("TAB-INF.SHP"));
     TabButtons[1].ShapeDrawer = SidebarDrawer;
 
-    TabButtons[2].Set_Shape(MFCC::RetrieveT<ShapeSet>("TAB-UNT.SHP"));
+    TabButtons[2].Set_Shape(MFCD::RetrieveT<ShapeSet>("TAB-UNT.SHP"));
     TabButtons[2].ShapeDrawer = SidebarDrawer;
 
-    TabButtons[3].Set_Shape(MFCC::RetrieveT<ShapeSet>("TAB-SPC.SHP"));
+    TabButtons[3].Set_Shape(MFCD::RetrieveT<ShapeSet>("TAB-SPC.SHP"));
     TabButtons[3].ShapeDrawer = SidebarDrawer;
 }
 

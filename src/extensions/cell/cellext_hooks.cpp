@@ -165,8 +165,8 @@ DECLARE_PATCH(_CellClass_Draw_Shroud_Fog_Patch)
      *  Perform a one-time load of the shroud and fog shape data.
      */
     if (!_shroud_one_time) {
-        _shroud_shape = (const ShapeSet *)MFCC::Retrieve("SHROUD.SHP");
-        _fog_shape = (const ShapeSet *)MFCC::Retrieve("FOG.SHP");
+        _shroud_shape = (const ShapeSet *)MFCD::Retrieve("SHROUD.SHP");
+        _fog_shape = (const ShapeSet *)MFCD::Retrieve("FOG.SHP");
         _shroud_one_time = true;
     }
 
@@ -211,7 +211,7 @@ DECLARE_PATCH(_CellClass_Draw_Fog_Patch)
      *  Perform a one-time load of the fog shape data.
      */
     if (!_fog_one_time) {
-        _fog_shape = (const ShapeSet *)MFCC::Retrieve("FOG.SHP");
+        _fog_shape = (const ShapeSet *)MFCD::Retrieve("FOG.SHP");
         _fog_one_time = true;
     }
 

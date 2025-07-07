@@ -75,8 +75,8 @@ bool Vinifera_ShowSuperWeaponTimers = true;
  */
 unsigned Vinifera_TotalPlayTime = 0;
 
-DynamicVectorClass<MFCC *> ViniferaMapsMixes;
-DynamicVectorClass<MFCC *> ViniferaMoviesMixes;
+DynamicVectorClass<MFCD *> ViniferaMapsMixes;
+DynamicVectorClass<MFCD *> ViniferaMoviesMixes;
 
 DynamicVectorClass<EBoltClass *> EBolts;
 DynamicVectorClass<TheaterTypeClass *> TheaterTypes;
@@ -90,8 +90,9 @@ DynamicVectorClass<PrerequisiteGroupClass *> PrerequisiteGroups;
 KamikazeTrackerClass* KamikazeTracker = nullptr;
 AircraftTrackerClass* AircraftTracker = nullptr;
 
-MFCC *GenericMix = nullptr;
-MFCC *IsoGenericMix = nullptr;
+MFCD *GenericMix = nullptr;
+MFCD *IsoGenericMix = nullptr;
+MFCD *SideCTMix = nullptr;
 
 bool Vinifera_SkipToTSMenu = false;
 bool Vinifera_SkipToFSMenu = false;
