@@ -52,8 +52,7 @@ Alternatively, the latest build from the most recent commit can be found [here](
 ### Releases
 
 All official release builds are made from the `master` branch.  
-Vinifera is currently working toward its first stable release, so no release builds are available yet.  
-Once available, they will be uploaded [here](https://github.com/Vinifera-Developers/Vinifera/releases).
+You can find all currently released versions of Vinifera [here](https://github.com/Vinifera-Developers/Vinifera/releases).
 
 ### Installing Vinifera
 
