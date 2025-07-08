@@ -74,3 +74,19 @@
 #define IDC_EXCEPTION_MAINMENU            1154
 #define IDC_EXCEPTION_LOG                 1156
 #define IDC_EXCEPTION_CONTINUE            1157
+
+
+/**
+ *  Version resources.
+ */
+#ifndef RELEASE
+    #if defined(NIGHTLY)
+        #define VER_SPECIALBUILD_STR "Nightly Build\0"
+    #elif defined(PREVIEW)
+        #define VER_SPECIALBUILD_STR "Preview Build\0"
+    #else
+        #define VER_SPECIALBUILD_STR "Local Unofficial Build\0"
+    #endif
+#else
+    #define VER_SPECIALBUILD_STR "\0"
+#endif

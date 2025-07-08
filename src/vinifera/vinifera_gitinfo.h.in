@@ -1,0 +1,96 @@
+/*******************************************************************************
+/*                 O P E N  S O U R C E  --  V I N I F E R A                  **
+/*******************************************************************************
+ *
+ *  @project       Vinifera
+ *
+ *  @file          VINIFERA_GITINFO.H
+ *
+ *  @authors       OmniBlade, CCHyper, ZivDero
+ *
+ *  @brief         Globals for accessing git version information from the build system.
+ *
+ *  @license       Vinifera is free software: you can redistribute it and/or
+ *                 modify it under the terms of the GNU General Public License
+ *                 as published by the Free Software Foundation, either version
+ *                 3 of the License, or (at your option) any later version.
+ *
+ *                 Vinifera is distributed in the hope that it will be
+ *                 useful, but WITHOUT ANY WARRANTY; without even the implied
+ *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ *                 PURPOSE. See the GNU General Public License for more details.
+ *
+ *                 You should have received a copy of the GNU General Public
+ *                 License along with this program.
+ *                 If not, see <http://www.gnu.org/licenses/>.
+ *
+ ******************************************************************************/
+#pragma once
+
+
+/**
+ *  #WARNING:
+ *  This file is automatically populated by the CMake, do not edit!
+ */
+
+
+#define VINIFERA_GIT_HASH           "@GIT_HEAD_SHA1@"
+#define VINIFERA_GIT_HASH_SHORT     "@GIT_HEAD_SHORT_SHA1@"
+#define VINIFERA_GIT_AUTHOR         "@GIT_AUTHOR_NAME@"
+#define VINIFERA_GIT_BRANCH         "@GIT_BRANCH@"
+#define VINIFERA_GIT_DATETIME       "@GIT_COMMIT_DATE_ISO8601@"
+#define VINIFERA_GIT_IS_DIRTY       @GIT_IS_DIRTY@
+
+#if VINIFERA_GIT_IS_DIRTY
+#define VINIFERA_GIT_UNCOMMITTED_SUFFIX "~"
+#else
+#define VINIFERA_GIT_UNCOMMITTED_SUFFIX ""
+#endif
+
+#define VINIFERA_GIT_VERSION_STRING                                            \
+  VINIFERA_GIT_BRANCH                                                          \
+      " " VINIFERA_GIT_AUTHOR                                                  \
+      " " VINIFERA_GIT_UNCOMMITTED_SUFFIX VINIFERA_GIT_HASH_SHORT              \
+      " " VINIFERA_GIT_DATETIME
+
+
+inline const char* Vinifera_Git_Hash()
+{
+    return VINIFERA_GIT_HASH;
+}
+
+
+inline const char* Vinifera_Git_Hash_Short()
+{
+    return VINIFERA_GIT_HASH_SHORT;
+}
+
+
+inline const char* Vinifera_Git_Author()
+{
+    return VINIFERA_GIT_AUTHOR;
+}
+
+
+inline const char* Vinifera_Git_Branch()
+{
+    return VINIFERA_GIT_BRANCH;
+}
+
+
+inline const char* Vinifera_Git_DateTime()
+{
+    return VINIFERA_GIT_DATETIME;
+}
+
+
+inline bool Vinifera_Git_Uncommitted_Changes()
+{
+    return VINIFERA_GIT_IS_DIRTY;
+}
+
+
+inline const char* Vinifera_Git_Version_String()
+{
+    return VINIFERA_GIT_VERSION_STRING;
+}
