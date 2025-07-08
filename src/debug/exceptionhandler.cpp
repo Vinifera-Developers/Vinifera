@@ -152,7 +152,7 @@ static bool Exception_Generate_Mini_Dump()
 
     if (retval == IDYES) {
 
-        GenerateFullCrashDump = false; // We don't need a full memory dump.
+        GenerateFullCrashDump = true; // We don't need a full memory dump.
         bool res = Create_Mini_Dump(ExceptionInfo, Get_Module_File_Name());
 
         if (res) {

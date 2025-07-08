@@ -369,7 +369,7 @@ bool Vinifera_Generate_Mini_Dump()
         "Crash dump", 
         MB_OK|MB_ICONQUESTION);
 
-    GenerateFullCrashDump = false; // We don't need a full memory dump.
+    GenerateFullCrashDump = true; // We don't need a full memory dump.
     bool res = Create_Mini_Dump(nullptr, Get_Module_File_Name());
 
     if (res) {
