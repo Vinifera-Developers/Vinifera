@@ -309,6 +309,7 @@ set(GIT_PRE_CONFIGURE_FILE "${CMAKE_SOURCE_DIR}/src/vinifera/vinifera_gitinfo.h.
 set(GIT_POST_CONFIGURE_FILE "${CMAKE_CURRENT_BINARY_DIR}/generated/vinifera_gitinfo.h")
 set(GIT_STATE_FILE "${CMAKE_CURRENT_BINARY_DIR}/vinifera-git-state-hash")
 set(GIT_WORKING_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+set(GIT_IGNORE_UNTRACKED TRUE) # Ignore untracked files in GitWatcher.
 
 include(GitWatcher)
 GitWatcher_SetupInitial()  # Running the script function again forces the file to be
