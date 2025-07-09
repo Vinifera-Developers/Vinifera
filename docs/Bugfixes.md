@@ -1,0 +1,77 @@
+# Bugfixes
+
+This page lists all vanilla bugs fixed by Vinifera.
+
+- Fix HouseType `Nod` having the `Prefix=B` and `Side=GDI` in vanilla `rules.ini` by setting them to `N` and `Nod`, respectively.
+- Fix a bug where VQA files could not be loaded from the root directory or local search paths.
+- Fix a bug where the player could issue a harvester to begin harvesting Tiberium that is below a bridge while the mouse is over the bridge itself.
+- Fix a bug where the values of `RandomRate` were not stored correctly. In addition to this, negative values will also be converted to absolute numbers.
+- Fix a bug where the `FSMENU` theme would incorrectly play instead of the `INTRO` theme when in Tiberian Sun mode after returning to the main menu.
+- Fix a bug where the game would crash when a trigger with the action "Wakeup group..." is executed and the requested Group was not found.
+- Fix a bug where animations with a `DetailLevel` value greater than 2 would not show in-game.
+- Fix a bug where `EngineerDamage` was incorrectly loaded with `EngineerCaptureLevel`.
+- Fix a bug where `EngineerDamage` was not used to calculate the engineer damage.
+- Fix a bug where `EngineerCaptureLevel` was not considered when checking the target building.
+- Fix a bug where air transports are unable to land when given a move order.
+- Fix the position of the health bar graphic on unit selection boxes.
+- Fix a bug where the game would crash when attempting to generate a random map if the `Neutral` or `Special` HouseTypes are not found.
+- Fix a bug where the game would crash when attempting to generate a random map if there are fewer than 4 HouseTypes defined.
+- Fix a limitation where the game could only choose between the first two HouseTypes for the AI players. Now, all HouseTypes with `Multiplay=yes` will be considered.
+- Fix a bug where the `Cloakable=yes` had no effect on AircraftTypes.
+- Fix a bug where `CloakStop` had no effect on the cloaking behaviour.
+- Fix a bug where pre-placed crates and crates spawned by a destroyed truck will trigger a respawn when they are picked up.
+- Increase the string buffer size from 128 to 2048 characters for when reading and writing Owners from INI.
+- Fix bugs where the Jumpjet uses the wrong animation sequence when firing and in the air.
+- Fix a bug where the wrong palette is used to draw the cameo above an enemy spied factory building.
+- Fix the animation speed of Waypoint and Rally Point lines so they are normalised and no longer subjected to the game speed setting.
+- Fix a limitation where returning to the Skirmish dialog after a game clamps the chosen side between 0 (GDI) and 1 (Nod).
+- Fix a bug where the user is able to place a building anywhere on the map by taking advantage of the sidebar.
+- Fix division by zero crashes when ShakeScreen is set to 0.
+- Increase the IsoMapPack5 buffer size when decoding a map.
+- Fix a bug where looping animations incorrectly use the unsynchronized RNG, which would cause the game to randomly crash during online games.
+- Fix a bug where `IsTrainable` is not checked when an object picks up a veteracy crate.
+- Fix a bug where `IsInsignificant` was not checked when a unit dies.
+- Fix the incorrect (RA legacy) cell calculation for the "move to cell" team script.
+- Fix a bug where the sidebar mouse wheel scrolling "error" sound can be heard at the main menu.
+- Fix a bug with TriggerTypes not setting difficulty flags correctly when reading from INI.
+- Fix a bug with triggers enabled via other triggers ignoring difficulty settings.
+- Fix MultiMission `MaxPlayers` incorrectly loaded with `MinPlayers`.
+- Fix to maintain aspect ratio when scaling movies/videos.
+- Fix incorrect spelling of "Loser" on the multiplayer score screen debug output.
+- Fix incorrect stretching of the main menu transition movies.
+- Fix mouse cursor not being displayed in the Dropship Loadout menu.
+- Fix a bug where losers were not marked as defeated in multiplayer when using TACTION_WIN or TACTION_LOSE to end the game.
+- Fix a bug where under some circumstances, the player could hear "New Construction Options", even though no new construction options were available.
+- Fix a bug where attempting to start construction when low funds would put the queue on hold.
+- Fix a bug where having 75 cameos in a single sidebar strip would crash the game.
+- Fix a bug where the objects would sometimes receive a minimum of 1 damage even if MinDamage was set to 0.
+- Fix a bug where players were only able to queue up to `(BuildLimit - 1)` objects when an object has `BuildLimit > 0`.
+- Fix a bug where the game could read Infantry DoControls out of bounds, potentially causing a desync error in multiplayer.
+- Fix a bug where pre-placed powered-down superweapon buildings had their superweapons enabled on scenario start.
+- Fix the economy score in the score screen. Dead players also have a score and the score is a percentage of the credits spent by the player who spent the most credits.
+- Fix a bug where the AI would sell off buildings with `Artillary=yes`, `TickTank=yes` or `IsJuggernaut=yes` that had `UndeploysInto=none` when they were fired at by something outside of their weapon range.
+- Fix a bug where harvesters on large maps could prefer unloading at refineries that were the longest distance away from the harvesters.
+- Fix a bug where the camera kept following a followed object when a trigger or script told it to center on a waypoint or team.
+- Fix a bug where aircraft are unable to attack shrouded targets in campaign games and instead get stuck in mid-air.
+- Fix a bug where the player was able to input keyboard commands while input was locked through a trigger action.
+- Fix a bug where a vehicle transport could end up attached to its own cargo, causing the transport to disappear upon unloading.
+- Fix a bug where a harvester could be ordered to dock with a refinery that wasn't listed in the harvester's `Dock=` key.
+- Fix a bug where house firepower bonus, veterancy and crate upgrade damage modifiers were not applied to railgun `AmbientDamage=`.
+- Fix a bug where crew wouldn't exit from construction yards when they were sold or destroyed.
+- Fix a bug where you could sometimes get extra crew to exit a building that was being sold and was destroying/undeploying.
+- Fix a bug where if the player loaded a saved game, the score screen timer would report the time since the saved game was loaded, instead of since when the scenario was first started.
+- Fix a bug where units could gain veterancy by killing allies.
+- Fix a bug where AI players would send teams to attack their allies.
+- `[CombatDamage]->MinDamage` now works as expected and damage is no longer always a minimum of `1`.
+- VehicleTypes with Jumpjet locomotion now take damage in flight.
+- Fix the map glitching around when scrolling if the map is not large enough to fill the entire screen.
+- Fix a bug where a visceroid was spawned when poison gas destroyed a non-crewed vehicle, building, or terrain object.
+- Fix a bug where it was impossible to tell infantry to enter cloaked allied transports.
+- Super Weapons with `Type=MultiMissile` and `Type=ChemMissile` now fire using their own weapon when fired from a building.
+- Fix a crash when a Jumpjet infantry is flying or trying to take off just when an Ion Storm starts.
+- Add the "Underground" layer to the tactical display Next and Prev search.
+- Fix a bug where upgrades did not always work properly as prerequisites.
+- Fix a bug where upgrades did not work as `AuxBuilding` on Super Weapons.
+- Fix a bug where you could use a stop command to reset a unit's burst.
+- Fix building light sources no longer being attached to the building after loading the game.
+- Fix shroud looking bugged if you attempt to reveal too many cells at once.

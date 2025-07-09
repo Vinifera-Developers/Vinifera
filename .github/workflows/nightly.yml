@@ -1,0 +1,202 @@
+#
+# GitHub action to build and deploy nightly releases.
+#
+
+name: Nightly
+
+# Note: This is performed "only" on the default branch of the repository!
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # At the end of every day (midnight UTC).
+
+jobs:
+  nightly_build:
+    name: Nightly
+    strategy:
+      fail-fast: false
+    runs-on: windows-latest
+    steps:
+   
+      # Activity check
+      # uses GitHub API to check last non-automagic commit in repository
+      # if it's older than a week, all other steps are skipped
+      - name:  Activity check
+        run: |
+          :
+          curl -sL https://api.github.com/repos/$GITHUB_REPOSITORY/commits | jq -r '[.[] | select(.author.login != "${{ secrets.GITHUB_TOKEN }}")][0]' > $HOME/commit.json
+          date="$(jq -r '.commit.author.date' $HOME/commit.json)"
+          timestamp=$(date --utc -d "$date" +%s)
+          author="$(jq -r '.commit.author.name' $HOME/commit.json)"
+          url="$(jq -r '.html_url' $HOME/commit.json)"
+          days=$(( ( $(date --utc +%s) - $timestamp ) / 86400 ))
+          rm -f $HOME/commit.json
+          echo "Repository activity : $timestamp $author $url"
+          alive=0
+          if [ "${{ github.event_name }}" == "repository_dispatch" ]; then
+             echo "[WARNING] Ignoring activity limits : workflow triggered manually"
+             alive=1
+          else
+             if [ $days -gt 2 ]; then
+                echo "[WARNING] Repository activity : $days days ago"
+             fi
+             if [ $days -lt 8 ]; then
+                echo Repository active : $days days
+                alive=1
+             else
+                echo "[WARNING] Repository not updated : event<${{ github.event_name }}> not allowed to modify stale repository"
+             fi
+          fi
+          if [ $alive -eq 1 ]; then
+             echo "Repository alive!"
+             echo "::set-output name=GHA_REPO_ALIVE::true"
+          fi
+        shell: bash
+        
+      - name: Clone Repository
+        if:   ${{ steps.vars.outputs.GHA_REPO_ALIVE }} == 'true'
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+        
+      - name: Checkout Files
+        uses: actions/checkout@v4
+        with:
+          repository: Vinifera-Developers/Vinifera-Files
+          path: vinifera-files
+        
+      - name: Set Variables
+        id: vars
+        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
+      - name: Install Dependencies
+        run: |
+          Invoke-WebRequest -Uri https://github.com/ninja-build/ninja/releases/download/v1.10.1/ninja-win.zip -OutFile $Env:TEMP\ninja-win.zip
+          Expand-Archive $Env:TEMP\ninja-win.zip -DestinationPath $Env:TEMP\ninja
+          echo "$Env:TEMP\ninja" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          
+      - uses: ilammy/msvc-dev-cmd@v1.10.0
+        with:
+          arch: x86
+          
+      - name: Configure Project
+        run: |
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -B build -DNIGHTLY=ON
+      
+      - name: Build Project
+        run: |
+          cmake --build build --config RelWithDebInfo
+      
+      - name: Copy Binaries
+        shell: bash
+        run: |
+          mkdir artifact
+          mkdir artifact/Movies
+          ls -p | grep -v /
+          cp ./build/Vinifera.dll ./artifact/Vinifera.dll
+          cp ./build/Vinifera.pdb ./artifact/Vinifera.pdb
+          cp ./build/LaunchVinifera.exe ./artifact/LaunchVinifera.exe
+          cp ./TSpp/pdb/Game.pdb ./artifact/Game.pdb
+          cp ./TSpp/edb/Game.edb ./artifact/Game.edb
+          cp ./vinifera-files/files/VINIFERA.VQA ./artifact/Movies/VINIFERA.VQA
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vinifera-nightly-${{ steps.vars.outputs.sha_short }}
+          path: artifact
+
+  nightly_build_ts_client:
+    name: Nightly (TS-Client)
+    strategy:
+      fail-fast: false
+    runs-on: windows-latest
+    steps:
+   
+      # Activity check
+      # uses GitHub API to check last non-automagic commit in repository
+      # if it's older than a week, all other steps are skipped
+      - name:  Activity check
+        run: |
+          :
+          curl -sL https://api.github.com/repos/$GITHUB_REPOSITORY/commits | jq -r '[.[] | select(.author.login != "${{ secrets.GITHUB_TOKEN }}")][0]' > $HOME/commit.json
+          date="$(jq -r '.commit.author.date' $HOME/commit.json)"
+          timestamp=$(date --utc -d "$date" +%s)
+          author="$(jq -r '.commit.author.name' $HOME/commit.json)"
+          url="$(jq -r '.html_url' $HOME/commit.json)"
+          days=$(( ( $(date --utc +%s) - $timestamp ) / 86400 ))
+          rm -f $HOME/commit.json
+          echo "Repository activity : $timestamp $author $url"
+          alive=0
+          if [ "${{ github.event_name }}" == "repository_dispatch" ]; then
+             echo "[WARNING] Ignoring activity limits : workflow triggered manually"
+             alive=1
+          else
+             if [ $days -gt 2 ]; then
+                echo "[WARNING] Repository activity : $days days ago"
+             fi
+             if [ $days -lt 8 ]; then
+                echo Repository active : $days days
+                alive=1
+             else
+                echo "[WARNING] Repository not updated : event<${{ github.event_name }}> not allowed to modify stale repository"
+             fi
+          fi
+          if [ $alive -eq 1 ]; then
+             echo "Repository alive!"
+             echo "::set-output name=GHA_REPO_ALIVE::true"
+          fi
+        shell: bash
+        
+      - name: Clone Repository
+        if:   ${{ steps.vars.outputs.GHA_REPO_ALIVE }} == 'true'
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+        
+      - name: Checkout Files
+        uses: actions/checkout@v4
+        with:
+          repository: Vinifera-Developers/Vinifera-Files
+          path: vinifera-files
+        
+      - name: Set Variables
+        id: vars
+        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
+      - name: Install Dependencies
+        run: |
+          Invoke-WebRequest -Uri https://github.com/ninja-build/ninja/releases/download/v1.10.1/ninja-win.zip -OutFile $Env:TEMP\ninja-win.zip
+          Expand-Archive $Env:TEMP\ninja-win.zip -DestinationPath $Env:TEMP\ninja
+          echo "$Env:TEMP\ninja" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          
+      - uses: ilammy/msvc-dev-cmd@v1.10.0
+        with:
+          arch: x86
+          
+      - name: Configure Project
+        run: |
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -B build -DNIGHTLY=ON -DOPTION_TS_CLIENT_BUILD=ON
+      
+      - name: Build Project
+        run: |
+          cmake --build build --config RelWithDebInfo
+      
+      - name: Copy Binaries
+        shell: bash
+        run: |
+          mkdir artifact
+          mkdir artifact/Movies
+          ls -p | grep -v /
+          cp ./build/Vinifera.dll ./artifact/Vinifera.dll
+          cp ./build/Vinifera.pdb ./artifact/Vinifera.pdb
+          cp ./build/LaunchVinifera.exe ./artifact/LaunchVinifera.dat
+          cp ./TSpp/pdb/Game.pdb ./artifact/Game.pdb
+          cp ./TSpp/edb/Game.edb ./artifact/Game.edb
+          cp ./vinifera-files/files/VINIFERA.VQA ./artifact/Movies/VINIFERA.VQA
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vinifera-nightly-${{ steps.vars.outputs.sha_short }}-ts_client
+          path: artifact

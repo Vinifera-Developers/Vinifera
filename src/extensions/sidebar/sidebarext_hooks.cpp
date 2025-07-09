@@ -1,0 +1,2821 @@
+/*******************************************************************************
+/*                 O P E N  S O U R C E  --  V I N I F E R A                  **
+/*******************************************************************************
+ *
+ *  @project       Vinifera
+ *
+ *  @file          SIDEBAREXT_HOOKS.CPP
+ *
+ *  @author        CCHyper
+ *
+ *  @brief         Contains the hooks for the extended SidebarClass.
+ *
+ *  @license       Vinifera is free software: you can redistribute it and/or
+ *                 modify it under the terms of the GNU General Public License
+ *                 as published by the Free Software Foundation, either version
+ *                 3 of the License, or (at your option) any later version.
+ *
+ *                 Vinifera is distributed in the hope that it will be
+ *                 useful, but WITHOUT ANY WARRANTY; without even the implied
+ *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ *                 PURPOSE. See the GNU General Public License for more details.
+ *
+ *                 You should have received a copy of the GNU General Public
+ *                 License along with this program.
+ *                 If not, see <http://www.gnu.org/licenses/>.
+ *
+ ******************************************************************************/
+#include "sidebarext_hooks.h"
+
+#include <algorithm>
+
+#include "bsurface.h"
+#include "buildingtype.h"
+#include "convert.h"
+#include "drawshape.h"
+#include "event.h"
+#include "extension.h"
+#include "factory.h"
+#include "fetchres.h"
+#include "house.h"
+#include "housetype.h"
+#include "language.h"
+#include "mouse.h"
+#include "playmovie.h"
+#include "rules.h"
+#include "scenarioext.h"
+#include "session.h"
+#include "sidebar.h"
+#include "sidebarext.h"
+#include "spritecollection.h"
+#include "super.h"
+#include "supertype.h"
+#include "supertypeext.h"
+#include "techno.h"
+#include "technotype.h"
+#include "technotypeext.h"
+#include "textprint.h"
+#include "tibsun_functions.h"
+#include "tibsun_globals.h"
+#include "tooltip.h"
+#include "unittypeext.h"
+#include "voc.h"
+#include "vox.h"
+#include "wwmouse.h"
+#include "sideext.h"
+#include "debughandler.h"
+#include "fatal.h"
+#include "asserthandler.h"
+#include "building.h"
+#include "eventext.h"
+#include "factoryext.h"
+#include "hooker.h"
+#include "hooker_macros.h"
+#include "houseext.h"
+#include "msgbox.h"
+#include "optionsext.h"
+#include "rulesext.h"
+#include "sidebar.h"
+#include "uicontrol.h"
+#include "vinifera_globals.h"
+
+
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or destructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+class SidebarClassExt : public SidebarClass
+{
+public:
+    void _One_Time();
+    void _Init_Clear();
+    void _Init_IO();
+    void _Init_For_House();
+    void _Init_Strips();
+    bool _Factory_Link(FactoryClass* factory, RTTIType type, int id);
+    bool _Add(RTTIType type, int id);
+    bool _Activate(int control);
+    bool _Scroll(bool up, int column);
+    bool _Scroll_Page(bool up, int column);
+    void _Draw_It(bool complete);
+    void _AI(KeyNumType& input, Point2D& xy);
+    void _Recalc();
+    bool _Abandon_Production(RTTIType type, FactoryClass* factory);
+    void _Set_Dimensions();
+    const char* _Help_Text(int gadget_id);
+    int _Max_Visible();
+};
+
+
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or destructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+static class StripClassExt : public SidebarClass::StripClass
+{
+public:
+    void _One_Time(int id);
+    void _Init_IO(int id);
+    void _Init_For_House(int id);
+    bool _Recalc();
+    void _Activate();
+    bool _Add(RTTIType type, int id);
+    void _Deactivate();
+    bool _Scroll(bool up);
+    bool _Scroll_Page(bool up);
+    bool _AI(KeyNumType& input, Point2D const& xy);
+    bool _AI_Vanilla(KeyNumType& input, Point2D const& xy);
+    const char* _Help_Text(int gadget_id);
+    void _Draw_It(bool complete);
+    bool _Factory_Link(FactoryClass* factory, RTTIType type, int id);
+    void _Tab_Button_AI();
+    void _Fake_Flag_To_Redraw_Special();
+    void _Fake_Flag_To_Redraw_Current();
+};
+
+
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or destructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+static class SelectClassExt : public SidebarClass::StripClass::SelectClass
+{
+public:
+    bool _Action(unsigned flags, KeyNumType& key);
+};
+
+
+/**
+ *  Patch for including the extended class members in the creation process.
+ *
+ *  @warning: Do not touch this unless you know what you are doing!
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_SidebarClass_Constructor_Patch)
+{
+    GET_REGISTER_STATIC(SidebarClass*, this_ptr, esi); // "this" pointer.
+
+    /**
+     *  Create the extended class instance.
+     */
+    SidebarExtension = Extension::Singleton::Make<SidebarClass, SidebarClassExtension>(this_ptr);
+
+    /**
+     *  Stolen bytes here.
+     */
+    _asm
+    {
+        mov eax, this_ptr
+        pop edi
+        pop esi
+        pop ebp
+        pop ebx
+        add esp, 14h
+        ret
+    }
+}
+
+
+/**
+ *  Patch for including the extended class members in the destruction process.
+ *
+ *  @warning: Do not touch this unless you know what you are doing!
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_SidebarClass_Destructor_Patch)
+{
+    //GET_REGISTER_STATIC(SidebarClass*, this_ptr, edi);
+
+    /**
+     *  Remove the extended class instance.
+     */
+    Extension::Singleton::Destroy<SidebarClass, SidebarClassExtension>(SidebarExtension);
+
+    /**
+     *  Stolen bytes here.
+     */
+    _asm
+    {
+        pop edi
+        pop esi
+        pop ebp
+        pop ebx
+        ret
+    }
+}
+
+
+/**
+ *  Reimplements the entire SidebarClass::One_Time function.
+ *
+ *  @author: ZivDero
+ */
+void SidebarClassExt::_One_Time()
+{
+    PowerClass::One_Time();
+
+    for (int i = 0; i < SidebarClassExtension::SIDEBAR_TAB_COUNT; i++)
+        SidebarExtension->Column[i].One_Time(i);
+
+    /**
+     *  Load the sidebar shapes in at this time.
+     */
+    StripClass::RechargeClockShape = MFCD::RetrieveT<ShapeSet>("RCLOCK2.SHP");
+    StripClass::ClockShape = MFCD::RetrieveT<ShapeSet>("GCLOCK2.SHP");
+}
+
+
+/**
+ *  Reimplements the entire SidebarClass::Init_Clear function.
+ *
+ *  @author: ZivDero
+ */
+void SidebarClassExt::_Init_Clear()
+{
+    PowerClass::Init_Clear();
+
+    IsToRedraw = true;
+    IsRepairActive = false;
+    IsUpgradeActive = false;
+    IsUpgradeActive = false;
+
+    SidebarExtension->TabIndex = SidebarClassExtension::SIDEBAR_TAB_STRUCTURE;
+
+    for (int i = 0; i < SidebarClassExtension::SIDEBAR_TAB_COUNT; i++)
+        SidebarExtension->Column[i].Init_Clear();
+
+    Activate(0);
+}
+
+
+/**
+ *  Reimplements the entire SidebarClass::Init_IO function.
+ *
+ *  @author: ZivDero
+ */
+void SidebarClassExt::_Init_IO()
+{
+    PowerClass::Init_IO();
+
+    SidebarRect.X = TacticalRect.Width + TacticalRect.X;
+    SidebarRect.Y = 148;
+    SidebarRect.Width = 641 - (TacticalRect.Width + TacticalRect.X);
+    SidebarRect.Height = TacticalRect.Height + TacticalRect.Y - SidebarRect.Y;
+
+    /**
+     * Add the sidebar's buttons only if we're not in editor mode.
+     */
+    if (!Debug_Map)
+    {
+        Repair.X = TacticalRect.Width + TacticalRect.X;
+        Sell.X = TacticalRect.Width + TacticalRect.X + 27;
+        Power.X = TacticalRect.Width + TacticalRect.X + 54;
+        Waypoint.X = TacticalRect.Width + TacticalRect.X + 81;
+
+        Repair.IsSticky = true;
+        Repair.ID = BUTTON_REPAIR;
+        Repair.Y = 148;
+        Repair.DrawX = -480;
+        Repair.DrawY = 3;
+        Repair.DrawnOnSidebarSurface = true;
+        Repair.ShapeDrawer = SidebarDrawer;
+        Repair.IsPressed = false;
+        Repair.IsToggleType = true;
+        Repair.ReflectButtonState = true;
+
+        Sell.IsSticky = true;
+        Sell.ID = BUTTON_SELL;
+        Sell.Y = 148;
+        Sell.DrawX = -480;
+        Sell.DrawY = 3;
+        Sell.DrawnOnSidebarSurface = true;
+        Sell.ShapeDrawer = SidebarDrawer;
+        Sell.IsPressed = false;
+        Sell.IsToggleType = true;
+        Sell.ReflectButtonState = true;
+
+        Power.IsSticky = true;
+        Power.ID = BUTTON_POWER;
+        Power.Y = 148;
+        Power.DrawX = -480;
+        Power.DrawY = 3;
+        Power.DrawnOnSidebarSurface = true;
+        Power.ShapeDrawer = SidebarDrawer;
+        Power.IsPressed = false;
+        Power.IsToggleType = true;
+        Power.ReflectButtonState = true;
+
+        Waypoint.IsSticky = true;
+        Waypoint.ID = BUTTON_WAYPOINT;
+        Waypoint.Y = 148;
+        Waypoint.DrawX = -480;
+        Waypoint.DrawY = 3;
+        Waypoint.DrawnOnSidebarSurface = true;
+        Waypoint.ShapeDrawer = SidebarDrawer;
+        Waypoint.IsPressed = false;
+        Waypoint.IsToggleType = true;
+        Waypoint.ReflectButtonState = true;
+        Waypoint.Enable();
+
+        SidebarExtension->Init_IO();
+
+        for (int i = 0; i < SidebarClassExtension::SIDEBAR_TAB_COUNT; i++)
+            SidebarExtension->Column[i].Init_IO(i);
+
+        Set_Dimensions();
+
+        /**
+        **  If a game was loaded & the sidebar was enabled, pop it up now.
+        */
+        if (IsSidebarActive)
+        {
+            IsSidebarActive = false;
+            Activate(1);
+        }
+    }
+}
+
+
+/**
+ *  Reimplements the entire SidebarClass::Init_For_House function.
+ *
+ *  @author: ZivDero
+ */
+void SidebarClassExt::_Init_For_House()
+{
+    PowerClass::Init_For_House();
+
+    PaletteClass pal("SIDEBAR.PAL");
+
+    delete SidebarDrawer;
+    SidebarDrawer = new ConvertClass(&pal, &pal, PrimarySurface, 1);
+
+    Sell.Set_Shape(MFCD::RetrieveT<ShapeSet>("SELL.SHP"));
+    Sell.ShapeDrawer = SidebarDrawer;
+
+    Power.Set_Shape(MFCD::RetrieveT<ShapeSet>("POWER.SHP"));
+    Power.ShapeDrawer = SidebarDrawer;
+
+    Waypoint.Set_Shape(MFCD::RetrieveT<ShapeSet>("WAYP.SHP"));
+    Waypoint.ShapeDrawer = SidebarDrawer;
+
+    Repair.Set_Shape(MFCD::RetrieveT<ShapeSet>("REPAIR.SHP"));
+    Repair.ShapeDrawer = SidebarDrawer;
+
+    SidebarShape = MFCD::RetrieveT<ShapeSet>("SIDE1.SHP");
+    SidebarMiddleShape = MFCD::RetrieveT<ShapeSet>("SIDE2.SHP");
+    SidebarBottomShape = MFCD::RetrieveT<ShapeSet>("SIDE3.SHP");
+    SidebarAddonShape = MFCD::RetrieveT<ShapeSet>("ADDON.SHP");
+
+    SidebarExtension->Init_For_House();
+
+    for (int i = 0; i < SidebarClassExtension::SIDEBAR_TAB_COUNT; ++i)
+        static_cast<StripClassExt*>(&SidebarExtension->Column[i])->_Init_For_House(i);
+}
+
+
+/**
+ *  Reimplements the entire SidebarClass::Init_Strips function.
+ *
+ *  @author: ZivDero
+ */
+void SidebarClassExt::_Init_Strips()
+{
+    SidebarExtension->Init_Strips();
+}
+
+
+/**
+ *  Reimplements the entire SidebarClass::Factory_Link function.
+ *
+ *  @author: ZivDero
+ */
+bool SidebarClassExt::_Factory_Link(FactoryClass* factory, RTTIType type, int id)
+{
+    return SidebarExtension->Get_Tab(type, TechnoTypeClassExtension::Get_Production_Flags(type, id)).Factory_Link(factory, type, id);
+}
+
+
+/**
+ *  Reimplements the entire SidebarClass::Add function.
+ *
+ *  @author: ZivDero
+ */
+bool SidebarClassExt::_Add(RTTIType type, int id)
+{
+    if (!Debug_Map)
+    {
+        if (SidebarExtension->Get_Tab(type, TechnoTypeClassExtension::Get_Production_Flags(type, id)).Add(type, id))
+        {
+            Activate(1);
+            IsToRedraw = true;
+            Flag_To_Redraw(false);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
+/**
+ *  Reimplements the entire SidebarClass::Activate function.
+ *
+ *  @author: ZivDero
+ */
+bool SidebarClassExt::_Activate(int control)
+{
+    bool old = IsSidebarActive;
+
+    if (Session.Play && !Session.Singleplayer_Game())
+        return old;
+
+    /**
+     *  Determine the new state of the sidebar.
+     */
+    switch (control)
+    {
+    case -1:
+        IsSidebarActive = IsSidebarActive == false;
+        break;
+
+    case 1:
+        IsSidebarActive = true;
+        break;
+
+    default:
+    case 0:
+        IsSidebarActive = false;
+        break;
+    }
+
+    /**
+     *  Only if there is a change in the state of the sidebar will anything
+     *  be done to change it.
+     */
+    if (IsSidebarActive != old)
+    {
+        /**
+         *  If the sidebar is activated but was on the right side of the screen, then
+         *  activate it on the left side of the screen.
+         */
+        if (IsSidebarActive)
+        {
+            Set_Dimensions();
+            IsToRedraw = true;
+            Repair.Zap();
+            Add_A_Button(Repair);
+            Sell.Zap();
+            Add_A_Button(Sell);
+            Power.Zap();
+            Add_A_Button(Power);
+            Waypoint.Zap();
+            Add_A_Button(Waypoint);
+            SidebarExtension->Current_Tab().Activate();
+            Background.Zap();
+            Add_A_Button(Background);
+            for (int i = 0; i < SidebarClassExtension::SIDEBAR_TAB_COUNT; i++)
+            {
+                SidebarExtension->TabButtons[i].Zap();
+                Add_A_Button(SidebarExtension->TabButtons[i]);
+            }
+            RadarButton.Zap();
+            Add_A_Button(RadarButton);
+        }
+        else
+        {
+            End_Ingame_Movie();
+            Remove_A_Button(Repair);
+            Remove_A_Button(Sell);
+            Remove_A_Button(Power);
+            Remove_A_Button(Waypoint);
+            Remove_A_Button(Background);
+            for (int i = 0; i < SidebarClassExtension::SIDEBAR_TAB_COUNT; i++)
+            {
+                SidebarExtension->Column[i].Deactivate();
+                Remove_A_Button(SidebarExtension->TabButtons[i]);
+            }
+            Remove_A_Button(RadarButton);
+        }
+
+        /**
+         *  Since the sidebar status has changed, update the map so that the graphics
+         *  will be rendered correctly.
+         */
+        Flag_To_Redraw(2);
+    }
+
+    return old;
+}
+
+
+/**
+ *  Reimplements the entire SidebarClass::Scroll function.
+ *
+ *  @author: ZivDero
+ */
+bool SidebarClassExt::_Scroll(bool up, int column)
+{
+    if (*reinterpret_cast<int*>(0x007E492C))
+        return false;
+
+    bool scr = SidebarExtension->Current_Tab().Scroll(up);
+
+    if (scr)
+    {
+        IsToRedraw = true;
+        Flag_To_Redraw(false);
+        return true;
+    }
+
+    Sound_Effect(Rule->ScoldSound);
+    return false;
+}
+
+
+/**
+ *  Reimplements the entire SidebarClass::Scroll_Page function.
+ *
+ *  @author: ZivDero
+ */
+bool SidebarClassExt::_Scroll_Page(bool up, int column)
+{
+    bool scr = SidebarExtension->Current_Tab().Scroll_Page(up);
+
+    if (scr)
+    {
+        IsToRedraw = true;
+        Flag_To_Redraw(false);
+        return true;
+    }
+
+    Sound_Effect(Rule->ScoldSound);
+    return false;
+}
+
+
+/**
+ *  Reimplements the entire SidebarClass::AI function.
+ *
+ *  @author: ZivDero
+ */
+void SidebarClassExt::_AI(KeyNumType& input, Point2D& xy)
+{
+    if (!Debug_Map)
+    {
+        Activate(1);
+        // The original code deducts the X coordinate by 480 here. Why? No one knows, but let's do the same
+        // 480 also appears as the draw offset of the sidebar buttons
+        Point2D newpoint(xy.X - 480, xy.Y);
+        for (int i = 0; i < SidebarClassExtension::SIDEBAR_TAB_COUNT; i++)
+            SidebarExtension->Column[i].AI(input, newpoint);
+    }
+
+    if (IsSidebarActive)
+    {
+        /**
+         *  If there are any buildings in the player's inventory, then allow the repair
+         *  option.
+         */
+
+        if (PlayerPtr->CurBuildings > 0)
+        {
+            Activate_Repair(true);
+        }
+        else
+        {
+            Activate_Repair(false);
+        }
+
+        if (input == (BUTTON_REPAIR | KN_BUTTON))
+        {
+            Repair_Mode_Control(-1);
+        }
+
+        if (input == (BUTTON_POWER | KN_BUTTON))
+        {
+            Power_Mode_Control(-1);
+        }
+
+        if (input == (BUTTON_WAYPOINT | KN_BUTTON))
+        {
+            Waypoint_Mode_Control(-1, false);
+        }
+
+        if (input == (BUTTON_SELL | KN_BUTTON))
+        {
+            Sell_Mode_Control(-1);
+        }
+
+        if (input == (SidebarClassExtension::BUTTON_TAB_1 | KN_BUTTON))
+        {
+            SidebarExtension->Change_Tab(SidebarClassExtension::SIDEBAR_TAB_STRUCTURE);
+        }
+
+        if (input == (SidebarClassExtension::BUTTON_TAB_2 | KN_BUTTON))
+        {
+            SidebarExtension->Change_Tab(SidebarClassExtension::SIDEBAR_TAB_INFANTRY);
+        }
+
+        if (input == (SidebarClassExtension::BUTTON_TAB_3 | KN_BUTTON))
+        {
+            SidebarExtension->Change_Tab(SidebarClassExtension::SIDEBAR_TAB_UNIT);
+        }
+
+        if (input == (SidebarClassExtension::BUTTON_TAB_4 | KN_BUTTON))
+        {
+            SidebarExtension->Change_Tab(SidebarClassExtension::SIDEBAR_TAB_SPECIAL);
+        }
+    }
+
+    if (!IsRepairMode && Repair.IsOn)
+    {
+        Repair.Turn_Off();
+    }
+
+    if (!IsSellMode && Sell.IsOn)
+    {
+        Sell.Turn_Off();
+    }
+
+    if (!IsPowerMode && Power.IsOn)
+    {
+        Power.Turn_Off();
+    }
+
+    if (!IsWaypointMode && Waypoint.IsOn)
+    {
+        Waypoint.Turn_Off();
+    }
+
+    /**
+     *  If for some reason the current tab's button is not selected, select it
+     */
+    if (!SidebarExtension->TabButtons[SidebarExtension->TabIndex].IsSelected)
+        SidebarExtension->TabButtons[SidebarExtension->TabIndex].Select();
+
+    /**
+     *  If our current tab no longer has any buildables, try to change to one that has some
+     */
+    if (SidebarExtension->Current_Tab().BuildableCount < 1)
+    {
+        SidebarClassExtension::SidebarTabType newtab = SidebarExtension->First_Active_Tab();
+        if (newtab != SidebarClassExtension::SIDEBAR_TAB_NONE)
+            SidebarExtension->Change_Tab(newtab);
+    }
+
+    PowerClass::AI(input, xy);
+}
+
+
+/**
+ *  Reimplements the entire SidebarClass::Draw_It function.
+ *
+ *  @author: ZivDero
+ */
+void SidebarClassExt::_Draw_It(bool complete)
+{
+    complete |= IsToFullRedraw;
+    Map.field_1214 = Rect();
+    PowerClass::Draw_It(complete);
+
+    DSurface* oldsurface = LogicSurface;
+    LogicSurface = SidebarSurface;
+
+    Rect rect(0, 0, SidebarSurface->Get_Width(), SidebarSurface->Get_Height());
+
+    if (IsSidebarActive && (IsToRedraw || complete) && !Debug_Map)
+    {
+        if (complete || SidebarExtension->Current_Tab().IsToRedraw)
+        {
+            Point2D xy(0, SidebarRect.Y);
+            Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarShape, 0, xy, rect, SHAPE_WIN_REL);
+
+            int max_visible = SidebarClassExtension::Max_Visible(true);
+            int y = SidebarRect.Y + SidebarShape->Get_Height();
+
+            for (int i = 0; i < max_visible; i++, y += SidebarMiddleShape->Get_Height())
+            {
+                xy = Point2D(0, y);
+                Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarMiddleShape, 0, xy, rect, SHAPE_WIN_REL);
+            }
+
+            xy = Point2D(0, y);
+            Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarBottomShape, 0, xy, rect, SHAPE_WIN_REL);
+
+            xy = Point2D(0, y + SidebarBottomShape->Get_Height());
+            Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarAddonShape, 0, xy, rect, SHAPE_WIN_REL);
+
+            SidebarExtension->Current_Tab().IsToRedraw = true;
+        }
+
+        Repair.Draw_Me(true);
+        Sell.Draw_Me(true);
+        Power.Draw_Me(true);
+        Waypoint.Draw_Me(true);
+
+        RedrawSidebar = true;
+    }
+
+    /**
+     *  Since the tabs might be blinking, draw them all the time.
+     */
+    for (int i = 0; i < SidebarClassExtension::SIDEBAR_TAB_COUNT; i++)
+        SidebarExtension->TabButtons[i].Draw_Me(true);
+
+    /**
+     *  Draw the side strip elements by calling their respective draw functions.
+     */
+    if (IsSidebarActive)
+    {
+        SidebarExtension->Current_Tab().Draw_It(complete);
+    }
+
+    if (Repair.IsDrawn)
+    {
+        RedrawSidebar = true;
+        Repair.IsDrawn = false;
+    }
+
+    if (Sell.IsDrawn)
+    {
+        RedrawSidebar = true;
+        Sell.IsDrawn = false;
+    }
+
+    if (Power.IsDrawn)
+    {
+        RedrawSidebar = true;
+        Power.IsDrawn = false;
+    }
+
+    if (Waypoint.IsDrawn)
+    {
+        RedrawSidebar = true;
+        Waypoint.IsDrawn = false;
+    }
+
+    for (int i = 0; i < SidebarClassExtension::SIDEBAR_TAB_COUNT; i++)
+    {
+        if (SidebarExtension->TabButtons[i].IsDrawn)
+        {
+            RedrawSidebar = true;
+            SidebarExtension->TabButtons[i].IsDrawn = false;
+        }
+    }
+
+    if (ToolTipHandler)
+        ToolTipHandler->Force_Redraw(true);
+
+    IsToRedraw = false;
+    IsToFullRedraw = false;
+    Blit_Sidebar(complete);
+    LogicSurface = oldsurface;
+}
+
+
+/**
+ *  Reimplements the entire SidebarClass::Recalc function.
+ *
+ *  @author: ZivDero
+ */
+void SidebarClassExt::_Recalc()
+{
+    bool redraw = false;
+    for (int i = 0; i < SidebarClassExtension::SIDEBAR_TAB_COUNT; i++)
+        redraw |= SidebarExtension->Column[i].Recalc();
+
+    if (redraw)
+    {
+        IsToRedraw = true;
+        Flag_To_Redraw();
+    }
+}
+
+
+/**
+ *  Reimplements the entire SidebarClass::Abandon_Production function.
+ *
+ *  @author: ZivDero
+ */
+bool SidebarClassExt::_Abandon_Production(RTTIType type, FactoryClass* factory)
+{
+    DEBUG_FATAL("The legacy version of SidebarClass::Abandon_Production has been called! If you see this, please notify the developers. The game will now exit.\n");
+    DEBUG_FATAL("Return address: %p\n", _ReturnAddress());
+    WWMessageBox().Process("The legacy version of SidebarClass::Abandon_Production has been called! If you see this, please notify the developers. The game will now exit.", 0, TXT_OK);
+    Emergency_Exit(0);
+    return false;
+}
+
+
+/**
+ *  Reimplements the entire SidebarClass::Set_Dimensions function.
+ *
+ *  @author: ZivDero
+ */
+void SidebarClassExt::_Set_Dimensions()
+{
+    /**
+     *  Position the sidebar itself.
+     */
+
+    SidebarRect.X = Options.SidebarOn ? TacticalRect.X + TacticalRect.Width : 0;
+    SidebarRect.Y = 148;
+    SidebarRect.Width = 168;
+    SidebarRect.Height = TacticalRect.Y + TacticalRect.Height - 148;
+
+    PowerClass::Set_Dimensions();
+
+    if (!SidebarShape)
+    {
+        SidebarShape = MFCD::RetrieveT<ShapeSet>("SIDEGDI1.SHP");
+        SidebarMiddleShape = MFCD::RetrieveT<ShapeSet>("SIDEGDI2.SHP");
+        SidebarBottomShape = MFCD::RetrieveT<ShapeSet>("SIDEGDI3.SHP");
+    }
+
+    /**
+     *  Position the sidebar's buttons.
+     */
+
+    Background.Set_Position(SidebarRect.X + 16, TacticalRect.Y);
+    Background.Flag_To_Redraw();
+
+    Repair.Set_Position(SidebarRect.X + (UIControls->IsCenterSidebarButtonsOnRadar ? SidebarClass::BUTTON_REPAIR_X_OFFSET : SidebarClassExtension::BUTTON_REPAIR_X_OFFSET), SidebarRect.Y + BUTTON_REPAIR_Y_OFFSET);
+    Repair.Flag_To_Redraw();
+    Repair.DrawX = -SidebarRect.X;
+
+    Sell.Set_Position(Repair.X + BUTTON_SELL_X_OFFSET, Repair.Y);
+    Sell.Flag_To_Redraw();
+    Sell.DrawX = -SidebarRect.X;
+
+    Power.Set_Position(Sell.X + BUTTON_POWER_X_OFFSET, Sell.Y);
+    Power.Flag_To_Redraw();
+    Power.DrawX = -SidebarRect.X;
+
+    Waypoint.Set_Position(Power.X + BUTTON_WAYPOINT_X_OFFSET, Power.Y);
+    Waypoint.Flag_To_Redraw();
+    Waypoint.DrawX = -SidebarRect.X;
+
+    SidebarExtension->Set_Dimensions();
+
+    /**
+     *  Create the tooltips for the sidebar.
+     */
+
+    if (ToolTipHandler)
+    {
+        ToolTip tooltip;
+
+        for (int i = 0; i < 100; i++)
+        {
+            ToolTipHandler->Remove(1000 + i);
+        }
+
+        int max_visible = SidebarClassExtension::Max_Visible();
+
+        StripClass::UpButton[0].Set_Position(SidebarRect.X + SidebarClassExtension::COLUMN_ONE_X + SidebarClassExtension::UP_X_OFFSET, SidebarRect.Y + StripClass::OBJECT_HEIGHT * max_visible / 2 + SidebarClassExtension::UP_Y_OFFSET);
+        StripClass::UpButton[0].Flag_To_Redraw();
+        StripClass::UpButton[0].DrawX = -SidebarRect.X;
+        StripClass::DownButton[0].Set_Position(SidebarRect.X + SidebarClassExtension::COLUMN_TWO_X + SidebarClassExtension::DOWN_X_OFFSET, SidebarRect.Y + StripClass::OBJECT_HEIGHT * max_visible / 2 + SidebarClassExtension::DOWN_Y_OFFSET);
+        StripClass::DownButton[0].Flag_To_Redraw();
+        StripClass::DownButton[0].DrawX = -SidebarRect.X;
+
+        for (int tab = 0; tab < SidebarClassExtension::SIDEBAR_TAB_COUNT; tab++)
+        {
+            for (int i = 0; i < max_visible; i++)
+            {
+                const int x = SidebarRect.X + ((i % 2 == 0) ? SidebarClassExtension::COLUMN_ONE_X : SidebarClassExtension::COLUMN_TWO_X);
+                const int y = SidebarRect.Y + SidebarClassExtension::COLUMN_Y + ((i / 2) * StripClass::OBJECT_HEIGHT);
+                SidebarExtension->SelectButton[tab][i].Set_Position(x, y);
+            }
+        }
+
+        for (int i = 0; i < max_visible; i++)
+        {
+            tooltip.Region = Rect(SidebarExtension->SelectButton[0][i].X, SidebarExtension->SelectButton[0][i].Y, SidebarExtension->SelectButton[0][i].Width, SidebarExtension->SelectButton[0][i].Height);
+            tooltip.ID = 1000 + i;
+            tooltip.Text = TXT_NONE;
+            ToolTipHandler->Add(&tooltip);
+        }
+
+        tooltip.Region = Rect(Repair.X, Repair.Y, Repair.Width, Repair.Height);
+        tooltip.ID = BUTTON_REPAIR;
+        tooltip.Text = TXT_REPAIR_MODE;
+        ToolTipHandler->Remove(tooltip.ID);
+        ToolTipHandler->Add(&tooltip);
+
+        tooltip.Region = Rect(Power.X, Power.Y, Power.Width, Power.Height);
+        tooltip.ID = BUTTON_POWER;
+        tooltip.Text = TXT_POWER_MODE;
+        ToolTipHandler->Remove(tooltip.ID);
+        ToolTipHandler->Add(&tooltip);
+
+        tooltip.Region = Rect(Sell.X, Sell.Y, Sell.Width, Sell.Height);
+        tooltip.ID = BUTTON_SELL;
+        tooltip.Text = TXT_SELL_MODE;
+        ToolTipHandler->Remove(tooltip.ID);
+        ToolTipHandler->Add(&tooltip);
+
+        tooltip.Region = Rect(Waypoint.X, Waypoint.Y, Waypoint.Width, Waypoint.Height);
+        tooltip.ID = BUTTON_WAYPOINT;
+        tooltip.Text = TXT_WAYPOINTMODE;
+        ToolTipHandler->Remove(tooltip.ID);
+        ToolTipHandler->Add(&tooltip);
+    }
+
+    Background.Set_Position(Options.SidebarOn ? TacticalRect.X + TacticalRect.Width : 0, RadarButton.Height + RadarButton.Y);
+    Background.Set_Size(SidebarSurface->Get_Width(), SidebarSurface->Get_Height() - RadarButton.Height + RadarButton.Y);
+}
+
+
+/**
+ *  Reimplements the entire SidebarClass::Help_Text function.
+ *
+ *  @author: ZivDero
+ */
+const char* SidebarClassExt::_Help_Text(int gadget_id)
+{
+    const char* text = PowerClass::Help_Text(gadget_id);
+    if (text == nullptr)
+    {
+        /**
+         *  New help text for sidebar tabs gets returned here
+         */
+        switch (gadget_id)
+        {
+        case SidebarClassExtension::BUTTON_TAB_1:
+            return SidebarExtension->TabButtons[SidebarClassExtension::SIDEBAR_TAB_STRUCTURE].Is_Enabled() ? "Structures Tab" : "Structures Tab@(Disabled)";
+        case SidebarClassExtension::BUTTON_TAB_2:
+            return SidebarExtension->TabButtons[SidebarClassExtension::SIDEBAR_TAB_INFANTRY].Is_Enabled() ? "Infantry Tab" : "Infantry Tab@(Disabled)";
+        case SidebarClassExtension::BUTTON_TAB_3:
+            return SidebarExtension->TabButtons[SidebarClassExtension::SIDEBAR_TAB_UNIT].Is_Enabled() ? "Vehicles Tab" : "Vehicles Tab@(Disabled)";
+        case SidebarClassExtension::BUTTON_TAB_4:
+            return SidebarExtension->TabButtons[SidebarClassExtension::SIDEBAR_TAB_SPECIAL].Is_Enabled() ? "Specials Tab" : "Specials Tab@(Disabled)";
+        default:
+            break;
+        }
+
+        /**
+         *  If it's a SelectClass, get the help text for the buildable
+         */
+        const int id = gadget_id - 1000;
+        if (id >= 0 && id < SidebarExtension->Current_Tab().BuildableCount)
+            return SidebarExtension->Current_Tab().Help_Text(gadget_id - 1000);
+    }
+    return text;
+}
+
+
+/**
+ *  Reimplements the entire SidebarClass::Max_Visible function.
+ *
+ *  @author: ZivDero
+ */
+int SidebarClassExt::_Max_Visible()
+{
+    return SidebarClassExtension::Max_Visible(true);
+}
+
+
+/**
+ *  Reimplements the entire SidebarClass::StripClass::One_Time function.
+ *
+ *  @author: ZivDero
+ */
+void StripClassExt::_One_Time(int id)
+{
+    DarkenShape = MFCD::RetrieveT<ShapeSet>("DARKEN.SHP");
+}
+
+
+/**
+ *  Reimplements the entire SidebarClass::StripClass::Init_IO function.
+ *
+ *  @author: ZivDero
+ */
+void StripClassExt::_Init_IO(int id)
+{
+    ID = id;
+
+    UpButton[0].IsSticky = true;
+    UpButton[0].ID = BUTTON_UP;
+    UpButton[0].DrawnOnSidebarSurface = true;
+    UpButton[0].ShapeDrawer = SidebarDrawer;
+    UpButton[0].Flags = GadgetClass::RIGHTRELEASE | GadgetClass::RIGHTPRESS | GadgetClass::LEFTRELEASE | GadgetClass::LEFTPRESS;
+
+    DownButton[0].IsSticky = true;
+    DownButton[0].ID = BUTTON_DOWN;
+    DownButton[0].DrawnOnSidebarSurface = true;
+    DownButton[0].ShapeDrawer = SidebarDrawer;
+    DownButton[0].Flags = GadgetClass::RIGHTRELEASE | GadgetClass::RIGHTPRESS | GadgetClass::LEFTRELEASE | GadgetClass::LEFTPRESS;
+
+    int max_visible = SidebarClassExtension::Max_Visible();
+    for (int index = 0; index < max_visible; index++)
+    {
+        SelectClass& g = SidebarExtension->SelectButton[ID][index];
+        g.ID = BUTTON_SELECT;
+        g.X = SidebarRect.X + ((index % 2 == 0) ? SidebarClassExtension::COLUMN_ONE_X : SidebarClassExtension::COLUMN_TWO_X);
+        g.Y = SidebarRect.Y + SidebarClassExtension::COLUMN_Y + ((index / 2) * OBJECT_HEIGHT);
+        g.Width = OBJECT_WIDTH;
+        g.Height = OBJECT_HEIGHT;
+        g.Set_Owner(*this, index);
+    }
+}
+
+
+/**
+ *  Reimplements the entire SidebarClass::StripClass::Init_For_House function.
+ *
+ *  @author: ZivDero
+ */
+void StripClassExt::_Init_For_House(int id)
+{
+    UpButton[0].Set_Shape(MFCD::RetrieveT<ShapeSet>("R-UP.SHP"));
+    UpButton[0].ShapeDrawer = SidebarDrawer;
+
+    DownButton[0].Set_Shape(MFCD::RetrieveT<ShapeSet>("R-DN.SHP"));
+    DownButton[0].ShapeDrawer = SidebarDrawer;
+}
+
+
+/**
+ *  Reimplements the entire SidebarClass::StripClass::Recalc function.
+ *
+ *  @author: ZivDero
+ */
+bool StripClassExt::_Recalc()
+{
+    bool ok;
+
+    if (Debug_Map || !BuildableCount) {
+        return false;
+    }
+
+    bool scroll = false;
+    int max_visible = SidebarClassExtension::Max_Visible(!Vinifera_NewSidebar);
+    BuildType* unshifted = new BuildType[max_visible];
+
+    for (int i = 0; i < max_visible; i++) {
+        if (i + TopIndex < BuildableCount) {
+            unshifted[i] = Buildables[i + TopIndex];
+        }
+    }
+
+    /**
+     *  Sweep through all objects listed in the sidebar. If any of those object can
+     *  not be created -- even in theory -- then they must be removed form the sidebar and
+     *  any current production must be abandoned.
+     */
+    bool redraw = false;
+    for (int index = 0; index < BuildableCount; index++) {
+        TechnoTypeClass const* tech = Fetch_Techno_Type(Buildables[index].BuildableType, Buildables[index].BuildableID);
+        if (tech != nullptr) {
+            BuildingClass const* who = tech->Who_Can_Build_Me(true, false, false, PlayerPtr);
+            ok = who != nullptr && who->House->Can_Build(tech, !RuleExtension->IsRecheckPrerequisites, true);
+        }
+        else {
+            if (Buildables[index].BuildableID < PlayerPtr->SuperWeapon.Count()) {
+                ok = PlayerPtr->SuperWeapon[Buildables[index].BuildableID]->Is_Present();
+            }
+            else {
+                ok = false;
+            }
+        }
+
+        if (!ok) {
+            for (int i = 0; i < max_visible; i++) {
+                if (unshifted[i] == Buildables[index]) {
+                    unshifted[i] = BuildType(0, RTTI_NONE);
+                }
+            }
+
+            /*
+            **  Removes this entry from the list.
+            */
+            if (BuildableCount > 1 && index < BuildableCount - 1) {
+                memmove(&Buildables[index], &Buildables[index + 1], sizeof(Buildables[0]) * ((BuildableCount - index) - 1));
+            }
+            redraw = true;
+            scroll = true;
+            Buildables[BuildableCount - 1].Factory = nullptr;
+            IsToRedraw = true;
+            BuildableCount--;
+            index--;
+        }
+    }
+
+    if (scroll) {
+        bool got_old = false;
+        bool got_new = false;
+
+        int oldpos;
+        for (oldpos = 0; oldpos < max_visible; oldpos++) {
+            if (unshifted[oldpos] != BuildType(0, RTTI_NONE)) {
+                got_old = true;
+                break;
+            }
+        }
+
+        int newpos;
+        if (got_old && BuildableCount != 0) {
+            for (newpos = 0; newpos < BuildableCount; newpos++) {
+                if (Buildables[newpos] == unshifted[oldpos]) {
+                    got_new = true;
+                    break;
+                }
+            }
+        }
+
+        if (got_old && got_new) {
+            TopIndex = newpos - oldpos;
+            TopIndex = std::max(0, std::min(TopIndex, BuildableCount - max_visible));
+        }
+        else {
+            TopIndex = 0;
+        }
+    }
+
+    delete[] unshifted;
+    return redraw;
+}
+
+
+
+/**
+ *  Reimplements the entire SidebarClass::StripClass::Activate function.
+ *
+ *  @author: ZivDero
+ */
+void StripClassExt::_Activate()
+{
+    UpButton[0].Zap();
+    Map.Add_A_Button(UpButton[0]);
+
+    DownButton[0].Zap();
+    Map.Add_A_Button(DownButton[0]);
+
+    int max_visible = SidebarClassExtension::Max_Visible();
+    for (int index = 0; index < max_visible; index++)
+    {
+        SidebarExtension->SelectButton[ID][index].Zap();
+        Map.Add_A_Button(SidebarExtension->SelectButton[ID][index]);
+    }
+}
+
+
+/**
+ *  Comparison function for sorting sidebar icons (BuildTypes)
+ *
+ *  @author: Rampastring, ZivDero
+ */
+static int __cdecl BuildType_Comparison(const void* p1, const void* p2)
+{
+    auto firstSide = [](unsigned owners) -> int
+        {
+            int side = INT_MAX;
+
+            for (int i = 0; i < HouseTypes.Count(); i++)
+            {
+                if (owners & (1 << i))
+                    side = std::min<int>(HouseTypes[i]->Side, side);
+            }
+
+            return side != INT_MAX ? side : SIDE_NONE;
+        };
+
+    auto isSideOwner = [](const HouseClass* house, unsigned owners) -> int
+        {
+            // The house owns the object directly
+            if (owners & 1 << house->ActLike)
+                return true;
+
+            const SideType side = house->Class->Side;
+            for (int i = 0; i < HouseTypes.Count(); i++)
+            {
+                if ((owners & 1 << i) && HouseTypes[i]->Side == side)
+                    return true;
+            }
+
+            return false;
+        };
+
+
+    const auto bt1 = static_cast<const SidebarClass::StripClass::BuildType*>(p1);
+    const auto bt2 = static_cast<const SidebarClass::StripClass::BuildType*>(p2);
+
+    if (bt1->BuildableType == bt2->BuildableType)
+    {
+        /**
+         *  If both are SWs, the one that recharges quicker goes first,
+         *  otherwise sort by ID.
+         */
+        if (bt1->BuildableType == RTTI_SPECIAL || bt1->BuildableType == RTTI_SUPERWEAPONTYPE)
+        {
+            if (SuperWeaponTypes[bt1->BuildableID]->RechargeTime != SuperWeaponTypes[bt2->BuildableID]->RechargeTime)
+                return SuperWeaponTypes[bt1->BuildableID]->RechargeTime - SuperWeaponTypes[bt2->BuildableID]->RechargeTime;
+
+            return bt1->BuildableID - bt2->BuildableID;
+        }
+
+
+        const TechnoTypeClass* t1 = Fetch_Techno_Type(bt1->BuildableType, bt1->BuildableID);
+        const TechnoTypeClass* t2 = Fetch_Techno_Type(bt2->BuildableType, bt2->BuildableID);
+
+        /**
+         *  If both are Buildings, non-defenses come first, then walls, then gates, then base defenses
+         */
+        if (bt1->BuildableType == RTTI_BUILDINGTYPE && OptionsExtension->SortDefensesAsLast)
+        {
+            const auto b1 = static_cast<const BuildingTypeClass*>(t1), b2 = static_cast<const BuildingTypeClass*>(t2);
+
+            const auto ext1 = Extension::Fetch(t1);
+            const auto ext2 = Extension::Fetch(t2);
+
+            enum
+            {
+                BCAT_NORMAL,
+                BCAT_WALL,
+                BCAT_GATE,
+                BCAT_DEFENSE
+            };
+
+            int building_category1 = (b1->IsWall || b1->IsFirestormWall || b1->IsLaserFencePost || b1->IsLaserFence) ? BCAT_WALL : (b1->IsGate ? BCAT_GATE : (ext1->IsSortCameoAsBaseDefense ? BCAT_DEFENSE : BCAT_NORMAL));
+            int building_category2 = (b2->IsWall || b2->IsFirestormWall || b2->IsLaserFencePost || b2->IsLaserFence) ? BCAT_WALL : (b2->IsGate ? BCAT_GATE : (ext2->IsSortCameoAsBaseDefense ? BCAT_DEFENSE : BCAT_NORMAL));
+
+            // Compare based on category priority
+            if (building_category1 != building_category2)
+                return building_category1 - building_category2;
+        }
+
+        /**
+         *  If both are Units, non-naval units come first
+         */
+        if (bt1->BuildableType == RTTI_UNITTYPE)
+        {
+            const auto ext1 = Extension::Fetch(t1);
+            const auto ext2 = Extension::Fetch(t2);
+
+            if (ext1->IsNaval != ext2->IsNaval)
+                return static_cast<int>(ext1->IsNaval) - static_cast<int>(ext2->IsNaval);
+        }
+
+        /**
+         *  If your side owns one of the objects, but not another, yours comes first
+         */
+        const int owns1 = isSideOwner(PlayerPtr, t1->Get_Ownable()),
+            owns2 = isSideOwner(PlayerPtr, t2->Get_Ownable());
+
+        if (owns1 != owns2)
+            return owns2 - owns1;
+
+        /**
+         *  If you don't own either of the objects, then sort by side index
+         */
+        if (!owns1 && !owns2)
+        {
+            const int side1 = firstSide(t1->Get_Ownable()),
+                side2 = firstSide(t2->Get_Ownable());
+
+            if (side1 != side2)
+                return side1 - side2;
+        }
+
+        return bt1->BuildableID - bt2->BuildableID;
+    }
+
+    if (bt1->BuildableType == RTTI_SPECIAL || bt1->BuildableType == RTTI_SUPERWEAPONTYPE)
+        return -1;
+
+    if (bt2->BuildableType == RTTI_SPECIAL || bt2->BuildableType == RTTI_SUPERWEAPONTYPE)
+        return 1;
+
+    if (bt1->BuildableType == RTTI_INFANTRYTYPE)
+        return -1;
+
+    if (bt2->BuildableType == RTTI_INFANTRYTYPE)
+        return 1;
+
+    if (bt1->BuildableType == RTTI_AIRCRAFTTYPE)
+        return -1;
+
+    if (bt2->BuildableType == RTTI_AIRCRAFTTYPE)
+        return 1;
+
+    if (bt1->BuildableType == RTTI_UNITTYPE)
+        return -1;
+
+    if (bt2->BuildableType == RTTI_UNITTYPE)
+        return 1;
+
+    return bt1->BuildableID - bt2->BuildableID;
+}
+
+
+/**
+ *  Reimplements the entire SidebarClass::StripClass::Add function.
+ *
+ *  @author: ZivDero
+ */
+bool StripClassExt::_Add(RTTIType type, int id)
+{
+    if (BuildableCount < MAX_BUILDABLES)
+    {
+        for (int index = 0; index < BuildableCount; index++)
+        {
+            if (Buildables[index].BuildableType == type && Buildables[index].BuildableID == id)
+                return false;
+        }
+
+        if (!ScenarioInit && type != RTTI_SPECIAL)
+            Speak(VOX_NEW_CONSTRUCT);
+
+        Buildables[BuildableCount].BuildableType = type;
+        Buildables[BuildableCount].BuildableID = id;
+        BuildableCount++;
+        IsToRedraw = true;
+        qsort(&Buildables, BuildableCount, sizeof(BuildType), &BuildType_Comparison);
+
+        return true;
+    }
+
+    return false;
+}
+
+
+/**
+ *  Reimplements the entire SidebarClass::StripClass::Deactivate function.
+ *
+ *  @author: ZivDero
+ */
+void StripClassExt::_Deactivate()
+{
+    Map.Remove_A_Button(UpButton[0]);
+    Map.Remove_A_Button(DownButton[0]);
+
+    int max_visible = SidebarClassExtension::Max_Visible();
+    for (int index = 0; index < max_visible; index++)
+    {
+        Map.Remove_A_Button(SidebarExtension->SelectButton[ID][index]);
+    }
+}
+
+
+/**
+ *  Reimplements the entire SidebarClass::StripClass::Scroll function.
+ *
+ *  @author: ZivDero
+ */
+bool StripClassExt::_Scroll(bool up)
+{
+    if (up)
+    {
+        if (!TopIndex)
+            return false;
+        Scroller--;
+    }
+    else
+    {
+        if (TopIndex + SidebarClassExtension::Max_Visible() >= BuildableCount + BuildableCount % 2)
+            return false;
+        Scroller++;
+    }
+
+    return true;
+}
+
+
+/**
+ *  Reimplements the entire SidebarClass::StripClass::Scroll_Page function.
+ *
+ *  @author: ZivDero
+ */
+bool StripClassExt::_Scroll_Page(bool up)
+{
+    if (up)
+    {
+        if (!TopIndex)
+            return false;
+        Scroller -= SidebarClassExtension::Max_Visible(true);
+    }
+    else
+    {
+        if (TopIndex + SidebarClassExtension::Max_Visible() >= BuildableCount + BuildableCount % 2)
+            return false;
+        Scroller += SidebarClassExtension::Max_Visible(true);
+    }
+    return true;
+}
+
+
+/**
+ *  Reimplements the entire SidebarClass::StripClass::AI function.
+ *
+ *  @author: ZivDero
+ */
+bool StripClassExt::_AI(KeyNumType& input, Point2D const&)
+{
+    bool redraw = false;
+
+    _Tab_Button_AI();
+
+    /**
+     *  Handle any building clock animation logic.
+     */
+    if (IsBuilding)
+    {
+        for (int index = 0; index < BuildableCount; index++)
+        {
+            FactoryClass* factory = Buildables[index].Factory;
+            if (factory && (factory->Has_Changed() || Extension::Fetch(factory)->IsHoldingExit))
+            {
+                redraw = true;
+                if (factory->Has_Completed())
+                {
+                    /**
+                     *  Construction has been completed. Announce this fact to the player and
+                     *  try to get the object to automatically leave the factory. Buildings are
+                     *  the main exception to the ability to leave the factory under their own
+                     *  power.
+                     */
+                    TechnoClass* pending = factory->Get_Object();
+                    if (pending != nullptr)
+                    {
+                        switch (pending->RTTI)
+                        {
+                        case RTTI_UNIT:
+                        case RTTI_INFANTRY:
+                        case RTTI_AIRCRAFT:
+                            OutList.Add(EventClassExt(pending->Owner(), EVENT_PLACE, pending->RTTI, CELL_NONE, TechnoTypeClassExtension::Get_Production_Flags(pending)).As_Event());
+                            break;
+
+                        case RTTI_BUILDING:
+                            SidebarExtension->TabButtons[ID].Start_Flashing();
+                            break;
+
+                        default:
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     *  If this is not the currently active tab, return and do not redraw.
+     */
+    if (SidebarExtension->TabIndex != ID)
+        return false;
+
+    /**
+     *  If this is scroll button for this side strip, then scroll the strip as
+     *  indicated.
+     */
+    if (input == (UpButton[0].ID | KN_BUTTON))
+    {
+        UpButton[0].IsPressed = false;
+        if (!Scroll(true))
+            Sound_Effect(Rule->ScoldSound);
+    }
+    if (input == (DownButton[0].ID | KN_BUTTON))
+    {
+        DownButton[0].IsPressed = false;
+        if (!Scroll(false))
+            Sound_Effect(Rule->ScoldSound);
+    }
+
+    /**
+     *  Reflect the scroll desired direction/value into the scroll
+     *  logic handler. This might result in up or down scrolling.
+     */
+    if (!IsScrolling && Scroller)
+    {
+        if (BuildableCount <= SidebarClassExtension::Max_Visible())
+        {
+            Scroller = 0;
+        }
+        else
+        {
+            /**
+             *  Top of list is moving toward lower ordered entries in the object list. It looks like
+             *  the "window" to the object list is moving up even though the actual object images are
+             *  scrolling downward.
+             */
+            if (Scroller < 0)
+            {
+                if (TopIndex <= 0)
+                {
+                    TopIndex = 0;
+                    Scroller = 0;
+                }
+                else
+                {
+                    Scroller++;
+                    IsScrollingDown = false;
+                    IsScrolling = true;
+                    TopIndex -= 2;
+                    Slid = 0;
+                }
+
+            }
+            else
+            {
+                if (TopIndex + SidebarClassExtension::Max_Visible() > BuildableCount)
+                {
+                    Scroller = 0;
+                }
+                else
+                {
+                    Scroller--;
+                    Slid = OBJECT_HEIGHT;
+                    IsScrollingDown = true;
+                    IsScrolling = true;
+                }
+            }
+        }
+    }
+
+    /**
+     *  Scroll logic is handled here.
+     */
+    if (IsScrolling)
+    {
+        if (IsScrollingDown)
+        {
+            Slid -= SCROLL_RATE;
+            if (Slid <= 0)
+            {
+                IsScrolling = false;
+                Slid = 0;
+                TopIndex += 2;
+            }
+        }
+        else
+        {
+            Slid += SCROLL_RATE;
+            if (Slid >= OBJECT_HEIGHT)
+            {
+                IsScrolling = false;
+                Slid = 0;
+            }
+        }
+        redraw = true;
+    }
+
+    /**
+     *  Handle any flashing logic. Flashing occurs when the player selects an object
+     *  and provides the visual feedback of a recognized and legal selection.
+     */
+    if (Flasher != -1)
+    {
+        if (Graphic_Logic())
+        {
+            redraw = true;
+            if (Fetch_Stage() >= 7)
+            {
+                Set_Rate(0);
+                Set_Stage(0);
+                Flasher = -1;
+            }
+        }
+    }
+
+    /**
+     *  If any of the logic determined that this side strip needs to be redrawn, then
+     *  set the redraw flag for this side strip.
+     */
+    if (redraw)
+    {
+        IsToRedraw = true;
+        Flag_To_Redraw();
+        RedrawSidebar = true;
+    }
+
+    return redraw;
+}
+
+
+/**
+ *  Reimplementation of SidebarClass::StripClass::AI, but for the vanilla sidebar.
+ *  Used when the new sidebar is turned off.
+ *
+ *  @author: ZivDero
+ */
+bool StripClassExt::_AI_Vanilla(KeyNumType& input, Point2D const& xy)
+{
+    KeyNumType key = KeyNumType(input & ~16384);
+    bool redraw = false;
+
+    /*
+    **  If this is scroll button for this side strip, then scroll the strip as
+    **  indicated.
+    */
+    if (key == KeyNumType(UpButton[ID].ID | KN_BUTTON)) {
+        UpButton[ID].IsPressed = false;
+        if ((input & 16384) != 0) {
+            if (!Scroll_Page(true)) {
+                Sound_Effect(Rule->ScoldSound);
+            }
+        } else {
+            if (!Scroll(true)) {
+                Sound_Effect(Rule->ScoldSound);
+            }
+        }
+    } else if (key == KeyNumType(DownButton[ID].ID | KN_BUTTON)) {
+        DownButton[ID].IsPressed = false;
+        if ((input & 16384) != 0) {
+            if (!Scroll_Page(false)) {
+                Sound_Effect(Rule->ScoldSound);
+            }
+        } else {
+            if (!Scroll(false)) {
+                Sound_Effect(Rule->ScoldSound);
+            }
+        }
+    }
+
+    /*
+    **  Reflect the scroll desired direction/value into the scroll
+    **  logic handler. This might result in up or down scrolling.
+    */
+    if (!IsScrolling && Scroller) {
+        if (BuildableCount <= SidebarClassExtension::Max_Visible(true)) {
+            Scroller = 0;
+        } else {
+
+            /*
+            **  Top of list is moving toward lower ordered entries in the object list. It looks like
+            **  the "window" to the object list is moving up even though the actual object images are
+            **  scrolling downward.
+            */
+            if (Scroller < 0) {
+                if (!TopIndex) {
+                    Scroller = 0;
+                } else {
+                    Scroller++;
+                    IsScrollingDown = false;
+                    IsScrolling = true;
+                    TopIndex--;
+                    Slid = 0;
+                }
+
+            } else {
+                if (TopIndex + SidebarClassExtension::Max_Visible(true) >= BuildableCount) {
+                    Scroller = 0;
+                } else {
+                    Scroller--;
+                    Slid = OBJECT_HEIGHT;
+                    IsScrollingDown = true;
+                    IsScrolling = true;
+                }
+            }
+        }
+    }
+
+    /*
+    **  Scroll logic is handled here.
+    */
+    if (IsScrolling) {
+        if (IsScrollingDown) {
+            Slid -= SCROLL_RATE;
+            if (Slid <= 0) {
+                IsScrolling = false;
+                Slid = 0;
+                TopIndex++;
+            }
+        } else {
+            Slid += SCROLL_RATE;
+            if (Slid >= OBJECT_HEIGHT) {
+                IsScrolling = false;
+                Slid = 0;
+            }
+        }
+        redraw = true;
+    }
+
+    /*
+    **  Handle any flashing logic. Flashing occurs when the player selects an object
+    **  and provides the visual feedback of a recognized and legal selection.
+    */
+    if (Flasher != -1) {
+        if (Graphic_Logic()) {
+            redraw = true;
+            if (Fetch_Stage() >= 7) {
+                Set_Rate(0);
+                Set_Stage(0);
+                Flasher = -1;
+            }
+        }
+    }
+
+    /*
+    **  Handle any building clock animation logic.
+    */
+    if (IsBuilding) {
+        for (int index = 0; index < BuildableCount; index++) {
+            FactoryClass* factory = Buildables[index].Factory;
+
+            if (factory && factory->Has_Changed()) {
+                redraw = true;
+                if (factory->Has_Completed()) {
+
+                    /*
+                    **  Construction has been completed. Announce this fact to the player and
+                    **  try to get the object to automatically leave the factory. Buildings are
+                    **  the main exception to the ability to leave the factory under their own
+                    **  power.
+                    */
+                    TechnoClass* pending = factory->Get_Object();
+                    if (pending != nullptr) {
+                        switch (pending->RTTI) {
+                        case RTTI_UNIT:
+                        case RTTI_AIRCRAFT:
+                            OutList.Add(EventClassExt(pending->Owner(), EVENT_PLACE, pending->Fetch_RTTI(), CELL_NONE, TechnoTypeClassExtension::Get_Production_Flags(pending)).As_Event());
+                            Speak(VOX_UNIT_READY);
+                            break;
+
+                        case RTTI_BUILDING:
+                            Speak(VOX_CONSTRUCTION);
+                            break;
+
+                        case RTTI_INFANTRY:
+                            OutList.Add(EventClassExt(pending->Owner(), EVENT_PLACE, pending->Fetch_RTTI(), CELL_NONE, TechnoTypeClassExtension::Get_Production_Flags(pending)).As_Event());
+                            Speak(VOX_UNIT_READY);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /*
+    **  If any of the logic determined that this side strip needs to be redrawn, then
+    **  set the redraw flag for this side strip.
+    */
+    if (redraw) {
+        Flag_To_Redraw();
+        RedrawSidebar = true;
+    }
+
+    return(redraw);
+}
+
+
+/**
+ *  Reimplements the entire SidebarClass::StripClass::Help_Text function.
+ *
+ *  @author: ZivDero
+ */
+const char* StripClassExt::_Help_Text(int gadget_id)
+{
+    static char _buffer[512];
+
+    int i = gadget_id + TopIndex;
+
+    if (GameActive)
+    {
+        if (i < BuildableCount && BuildableCount < MAX_BUILDABLES)
+        {
+            if (Buildables[i].BuildableType == RTTI_SPECIAL)
+                return SuperWeaponTypes[Buildables[i].BuildableID]->Full_Name();
+
+            const TechnoTypeClass* ttype = Fetch_Techno_Type(Buildables[i].BuildableType, Buildables[i].BuildableID);
+
+            // Bugfix from YR.
+            if (!ttype)
+                return nullptr;
+
+            /**
+             *  Adds support for extended sidebar tooltips.
+             *
+             *  @author: Rampastring
+             */
+            const TechnoTypeClassExtension* technotypeext = Extension::Fetch(ttype);
+            const char* description = technotypeext->Description;
+
+            if (description[0] == '\0')
+            {
+                // If there is no extended description, then simply show the name and price.
+                std::snprintf(_buffer, sizeof(_buffer), "%s@$%d", ttype->Full_Name(), ttype->Cost_Of(PlayerPtr));
+            }
+            else
+            {
+                // If there is an extended description, then show the name, price, and the description.
+                std::snprintf(_buffer, sizeof(_buffer), "%s@$%d@@%s", ttype->Full_Name(), ttype->Cost_Of(PlayerPtr), technotypeext->Description);
+            }
+
+            return _buffer;
+        }
+    }
+
+    return nullptr;
+}
+
+
+/**
+ *  Reimplements the entire SidebarClass::StripClass::Draw_It function.
+ *
+ *  @author: ZivDero
+ */
+void StripClassExt::_Draw_It(bool complete)
+{
+    if (IsToRedraw || complete)
+    {
+        IsToRedraw = false;
+        RedrawSidebar = true;
+
+        Rect rect = Rect(0, SidebarRect.Y, SidebarRect.Width, SidebarRect.Height);
+
+        /**
+         *  Redraw the scroll buttons.
+         */
+        UpButton[0].Draw_Me(true);
+        DownButton[0].Draw_Me(true);
+
+        int maxvisible = SidebarClassExtension::Max_Visible();
+
+        /**
+         *  Loop through all the buildable objects that are visible in the strip and render
+         *  them. Their Y offset may be adjusted if the strip is in the process of scrolling.
+         */
+        for (int i = 0; i < maxvisible + (IsScrolling ? 1 : 0); i++)
+        {
+            bool production = false;
+            bool completed = false;
+            int  stage = 0;
+            bool darken = false;
+            ShapeSet const* shapefile = nullptr;
+            BSurface* image_surface = nullptr;
+            FactoryClass* factory = nullptr;
+            int index = i + TopIndex;
+            int x = i % 2 == 0 ? SidebarClassExtension::COLUMN_ONE_X : SidebarClassExtension::COLUMN_TWO_X;
+            int y = SidebarClassExtension::COLUMN_Y + ((i / 2) * OBJECT_HEIGHT);
+
+            bool isready = false;
+            const char* state = nullptr;
+            const char* name = nullptr;
+            TechnoTypeClass const* obj = nullptr;
+
+            /**
+             *  If the strip is scrolling, then the offset is adjusted accordingly.
+             */
+            if (IsScrolling)
+            {
+                y -= OBJECT_HEIGHT - Slid;
+            }
+
+            /**
+             *  Fetch the shape number for the object type located at this current working
+             *  slot. This shape pointer is used to draw the underlying graphic there.
+             */
+            if (index < BuildableCount)
+            {
+                SuperWeaponType spc = SUPER_NONE;
+
+                if (Buildables[index].BuildableType != RTTI_SPECIAL)
+                {
+                    obj = Fetch_Techno_Type(Buildables[index].BuildableType, Buildables[index].BuildableID);
+                    if (obj != nullptr)
+                    {
+                        name = obj->FullName;
+                        darken = false;
+
+                        /**
+                         *  If there is already a factory producing a building, then all
+                         *  buildings are displayed in a disabled state.
+                         */
+                        if (obj->RTTI == RTTI_BUILDINGTYPE)
+                        {
+                            darken = Extension::Fetch(PlayerPtr)->Fetch_Factory(Buildables[index].BuildableType, TechnoTypeClassExtension::Get_Production_Flags(obj)) != nullptr;
+                        }
+
+                        /**
+                         *  If there is no factory that can produce this, or the factory that
+                         *  can produce this is currently busy,
+                         *  objects of this type are displayed in a disabled state.
+                         */
+                        if (!obj->Who_Can_Build_Me(true, true, true, PlayerPtr)
+                            || (!darken && PlayerPtr->Can_Build(Fetch_Techno_Type(Buildables[index].BuildableType, Buildables[index].BuildableID), false, false) == -1))
+                        {
+                            darken = true;
+                        }
+
+                        shapefile = obj->Get_Cameo_Data();
+                        auto technotypeext = Extension::Fetch(obj);
+                        if (technotypeext->CameoImageSurface != nullptr)
+                            image_surface = technotypeext->CameoImageSurface;
+
+                        factory = Buildables[index].Factory;
+                        if (factory != nullptr)
+                        {
+                            production = true;
+                            completed = factory->Has_Completed();
+                            if (completed)
+                            {
+                                /**
+                                 *  Display text showing that the object is ready to place.
+                                 */
+                                state = Fetch_String(TXT_READY);
+                            }
+                            stage = factory->Completion();
+                            darken = false;
+                        }
+                        else
+                        {
+                            production = false;
+                        }
+                    }
+                    else
+                    {
+                        shapefile = LogoShape;
+                    }
+
+                }
+                else
+                {
+                    spc = (SuperWeaponType)Buildables[index].BuildableID;
+
+                    name = SuperWeaponTypes[spc]->FullName;
+                    shapefile = Get_Special_Cameo(spc);
+                    auto supertypeext = Extension::Fetch(PlayerPtr->SuperWeapon[spc]->Class);
+                    if (supertypeext->CameoImageSurface != nullptr)
+                        image_surface = supertypeext->CameoImageSurface;
+
+                    production = true;
+                    completed = !PlayerPtr->SuperWeapon[spc]->Needs_Redraw();
+                    isready = PlayerPtr->SuperWeapon[spc]->Can_Place();
+                    state = PlayerPtr->SuperWeapon[spc]->Ready_String();
+                    stage = PlayerPtr->SuperWeapon[spc]->Anim_Stage();
+                    darken = false;
+
+                    if (spc == SUPER_NONE)
+                    {
+                        shapefile = LogoShape;
+                    }
+                }
+            }
+            else
+            {
+                shapefile = LogoShape;
+                production = false;
+            }
+
+            /**
+             *  Now that the shape of the object at the current working slot has been found,
+             *  draw it and any graphic overlays as necessary.
+             */
+            if (shapefile != LogoShape)
+            {
+                Point2D drawpoint(x, y);
+
+                /**
+                 *  #issue-487
+                 *
+                 *  Adds support for PCX/PNG cameo icons.
+                 *
+                 *  @author: CCHyper
+                  */
+                if (image_surface != nullptr)
+                {
+                    Rect pcxrect(rect.X + drawpoint.X, rect.Y + drawpoint.Y, image_surface->Get_Width(), image_surface->Get_Height());
+                    SpriteCollection.Draw(pcxrect, *SidebarSurface, *image_surface);
+                }
+                else if (shapefile != nullptr)
+                {
+                    Draw_Shape(*SidebarSurface,* CameoDrawer, shapefile, 0, drawpoint, rect, SHAPE_WIN_REL);
+                }
+
+
+                /**
+                 *  Draw a selection box around the cameo if we're currently hovering over it
+                 *  and it is available.
+                 */
+                bool overbutton = SidebarExtension->SelectButton[ID][index - TopIndex].MousedOver;
+
+                if (overbutton && !Scen->InputLock && !darken)
+                {
+                    Rect cameo_hover_rect(x, SidebarRect.Y + y, OBJECT_WIDTH, OBJECT_HEIGHT - 3);
+                    const ColorSchemeType colorschemetype = Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor;
+                    SidebarSurface->Draw_Rect(cameo_hover_rect, DSurface::RGB_To_Pixel(ColorSchemes[colorschemetype]->HSV.operator RGBClass()));
+                }
+
+
+                /**
+                 *  Darken this object because it cannot be produced or is otherwise
+                 *  unavailable.
+                 */
+                if (darken)
+                {
+                    Draw_Shape(*SidebarSurface, *SidebarDrawer, DarkenShape, 0, drawpoint, rect, SHAPE_WIN_REL | SHAPE_DARKEN);
+                }
+            }
+
+            if (name != nullptr)
+            {
+                Point2D drawpoint(x, y + OBJECT_NAME_OFFSET);
+                Print_Cameo_Text(name, drawpoint, rect, OBJECT_WIDTH);
+            }
+
+            /**
+             *  Draw the number of queued objects
+             */
+            bool hasqueuecount = false;
+            if (obj != nullptr)
+            {
+                RTTIType rtti = obj->RTTI;
+                FactoryClass* factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(rtti, TechnoTypeClassExtension::Get_Production_Flags(obj));
+
+                if (factory != nullptr)
+                {
+                    int total = factory->Total_Queued(*obj);
+                    if (total > 1 ||
+                        total > 0 && (factory->Object == nullptr ||
+                            factory->Object->TClass != nullptr && factory->Object->TClass != obj))
+                    {
+                        Point2D drawpoint(x + QUEUE_COUNT_X_OFFSET, y + TEXT_Y_OFFSET);
+                        Fancy_Text_Print("%d", SidebarSurface, &rect, &drawpoint, ColorScheme::As_Pointer("LightGrey", 1), COLOR_TBLACK, TPF_RIGHT | TPF_FULLSHADOW | TPF_8POINT, total);
+                        hasqueuecount = true;
+                    }
+                }
+            }
+
+            /**
+             *  Draw the overlapping clock shape if this is object is being constructed.
+             *  If the object is completed, then display "Ready" with no clock shape.
+             */
+            if (production)
+            {
+                if (state != nullptr)
+                {
+                    Point2D drawpoint(x + TEXT_X_OFFSET, y + TEXT_Y_OFFSET);
+                    Fancy_Text_Print(state, SidebarSurface, &rect, &drawpoint, ColorScheme::As_Pointer("LightBlue", 1), COLOR_TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_8POINT);
+                }
+
+                if (!completed)
+                {
+                    int shapenum;
+                    const ShapeSet* shape;
+                    Point2D drawpoint;
+
+                    if (isready)
+                    {
+                        shapenum = stage + 1;
+                        drawpoint = Point2D(x, y);
+                        shape = RechargeClockShape;
+                    }
+                    else
+                    {
+                        shapenum = stage + 1;
+                        drawpoint = Point2D(x, y);
+                        shape = ClockShape;
+                    }
+
+                    Draw_Shape(*SidebarSurface,* SidebarDrawer, shape, shapenum, drawpoint, rect, SHAPE_WIN_REL | SHAPE_TRANS50);
+
+                    /**
+                     *  Display text showing that the construction is temporarily on hold.
+                     */
+                    if (factory && !factory->Is_Building())
+                    {
+                        if (hasqueuecount)
+                        {
+                            Point2D drawpoint2(x, y + TEXT_Y_OFFSET);
+                            Fancy_Text_Print(TXT_HOLD, SidebarSurface, &rect, &drawpoint2, ColorScheme::As_Pointer("LightGrey", 1), COLOR_TBLACK, TPF_FULLSHADOW | TPF_8POINT);
+                        }
+                        else
+                        {
+                            Point2D drawpoint2(x + TEXT_X_OFFSET, y + TEXT_Y_OFFSET);
+                            Fancy_Text_Print(TXT_HOLD, SidebarSurface, &rect, &drawpoint2, ColorScheme::As_Pointer("LightGrey", 1), COLOR_TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_8POINT);
+                        }
+                    }
+                }
+            }
+
+        }
+
+        LastSlid = Slid;
+        return;
+    }
+
+    if (UpButton[0].IsDrawn)
+    {
+        RedrawSidebar = true;
+        UpButton[0].IsDrawn = false;
+    }
+
+    if (DownButton[0].IsDrawn)
+    {
+        RedrawSidebar = true;
+        DownButton[0].IsDrawn = false;
+    }
+}
+
+
+/**
+ *  Reimplements the entire SidebarClass::StripClass::Factory_Link function.
+ *
+ *  @author: ZivDero
+ */
+bool StripClassExt::_Factory_Link(FactoryClass* factory, RTTIType type, int id)
+{
+    for (int i = 0; i < BuildableCount; i++)
+    {
+        if (Buildables[i].BuildableType == type &&
+            Buildables[i].BuildableID == id)
+        {
+            Buildables[i].Factory = factory;
+            IsBuilding = true;
+            /**
+             *  Flag that all the icons on this strip need to be redrawn
+             */
+            Flag_To_Redraw();
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
+/**
+ *  Handles the state of this strip's tab button.
+ *
+ *  @author: ZivDero
+ */
+void StripClassExt::_Tab_Button_AI()
+{
+    if (BuildableCount > 0)
+    {
+        if (!SidebarExtension->TabButtons[ID].Is_Enabled())
+            SidebarExtension->TabButtons[ID].Enable();
+
+        int building_tab = SidebarClassExtension::Which_Tab(RTTI_BUILDINGTYPE, PRODFLAG_NONE);
+        if (ID == building_tab)
+        {
+            if (SidebarExtension->TabButtons[ID].IsFlashing)
+            {
+                FactoryClass* fptr = Extension::Fetch(PlayerPtr)->Fetch_Factory(RTTI_BUILDINGTYPE, PRODFLAG_DEFENSE);
+                if (fptr == nullptr || !fptr->Has_Completed())
+                    SidebarExtension->TabButtons[ID].Stop_Flashing();
+            }
+        }
+
+        int special_tab = SidebarClassExtension::Which_Tab(RTTI_SPECIAL, PRODFLAG_NONE);
+        if (ID == special_tab)
+        {
+            bool ready_sw = false;
+            for (int i = 0; i < PlayerPtr->SuperWeapon.Count(); i++)
+            {
+                SuperClass* sw = PlayerPtr->SuperWeapon[i];
+                if (sw->Can_Place() && !sw->Class->IsUseChargeDrain) // Firestorm is always "ready", so don't flash for it.
+                {
+                    ready_sw = true;
+                    break;
+                }
+            }
+
+            if (ready_sw && !SidebarExtension->TabButtons[ID].IsFlashing)
+                SidebarExtension->TabButtons[ID].Start_Flashing();
+            else if (!ready_sw && SidebarExtension->TabButtons[ID].IsFlashing)
+                SidebarExtension->TabButtons[ID].Stop_Flashing();
+        }
+    }
+    else
+    {
+        if (SidebarExtension->TabButtons[ID].Is_Enabled())
+            SidebarExtension->TabButtons[ID].Disable();
+    }
+}
+
+
+/**
+ *  Fake function to patch calls to redraw a specific vanilla strip.
+ *
+ *  @author: ZivDero
+ */
+void StripClassExt::_Fake_Flag_To_Redraw_Special()
+{
+    SidebarExtension->Get_Tab(RTTI_SPECIAL, PRODFLAG_NONE).Flag_To_Redraw();
+}
+
+
+/**
+ *  Fake function to patch calls to redraw a specific vanilla strip.
+ *
+ *  @author: ZivDero
+ */
+void StripClassExt::_Fake_Flag_To_Redraw_Current()
+{
+    SidebarExtension->Current_Tab().Flag_To_Redraw();
+}
+
+
+/**
+ *  Patch in GadgetClass::Input to handle hover effects for SelectClass.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_GadgetClass_Input_Mouse_Enter_Leave)
+{
+    GET_REGISTER_STATIC(int, key, eax);
+    GET_REGISTER_STATIC(int, mousex, ebp);
+    GET_REGISTER_STATIC(int, mousey, ebx);
+    GET_REGISTER_STATIC(unsigned, flags, edi);
+    GET_REGISTER_STATIC(GadgetClass*, this_ptr, esi);
+
+    _asm push eax
+    _asm push edx
+    SidebarClassExtension::Check_Hover(this_ptr, mousex, mousey);
+    _asm pop edx
+    _asm pop eax
+
+    // Stolen code
+
+    /**
+     *  Set the mouse button state flags. These will be passed to the individual
+     *  buttons so that they can determine what action to perform (if any).
+     */
+    flags = 0;
+    if (key)
+    {
+        if (key == KN_LMOUSE)
+            flags |= GadgetClass::LEFTPRESS;
+
+        if (key == KN_RMOUSE)
+            flags |= GadgetClass::RIGHTPRESS;
+
+        if (key == (KN_LMOUSE | KN_RLSE_BIT))
+            flags |= GadgetClass::LEFTRELEASE;
+
+        if (key == (KN_RMOUSE | KN_RLSE_BIT))
+            flags |= GadgetClass::RIGHTRELEASE;
+
+        /**
+         *  If the mouse wasn't responsible for this key code, then it must be from
+         *  the keyboard. Flag this fact.
+         */
+        if (!flags)
+            flags |= GadgetClass::KEYBOARD;
+
+        _asm mov edi, flags
+        JMP_REG(ecx, 0x004A9F7F);
+    }
+
+    _asm mov edi, flags
+    JMP_REG(ecx, 0x004A9F4D);
+}
+
+
+/**
+ *  Moves the power bar to accomodate for the taller SIDE1.SHP.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_PowerClass_Draw_It_Move_Power_Bar)
+{
+    static int y;
+    y = SidebarRect.Y + SidebarClassExtension::COLUMN_Y - 1;
+    _asm mov esi, y
+
+    static int max_visible;
+    max_visible = SidebarClassExtension::Max_Visible(true);
+    _asm
+    {
+        mov eax, max_visible
+        mov ecx, max_visible
+    }
+
+    JMP_REG(ebx, 0x005AB4D9);
+}
+
+
+static const ObjectTypeClass* _SidebarClass_StripClass_obj = nullptr;
+static const SuperWeaponTypeClass* _SidebarClass_StripClass_spc = nullptr;
+static BSurface* _SidebarClass_StripClass_CustomImage = nullptr;
+
+
+/**
+ *  #issue-487
+ *
+ *  Adds support for PCX/PNG cameo icons.
+ *
+ *  The following two patches store the PCX/PNG image for the factory object or special.
+ *
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_SidebarClass_StripClass_ObjectTypeClass_Custom_Cameo_Image_Patch)
+{
+    GET_REGISTER_STATIC(const ObjectTypeClass*, obj, ebp);
+    static const TechnoTypeClassExtension* technotypeext;
+    static const ShapeSet* shapefile;
+
+    shapefile = obj->Get_Cameo_Data();
+
+    _SidebarClass_StripClass_obj = obj;
+    _SidebarClass_StripClass_CustomImage = nullptr;
+
+    technotypeext = Extension::Fetch(reinterpret_cast<const TechnoTypeClass*>(obj));
+    if (technotypeext->CameoImageSurface) {
+        _SidebarClass_StripClass_CustomImage = technotypeext->CameoImageSurface;
+    }
+
+    _asm { mov eax, shapefile }
+
+    JMP_REG(ebx, 0x005F5193);
+}
+
+DECLARE_PATCH(_SidebarClass_StripClass_SuperWeaponType_Custom_Cameo_Image_Patch)
+{
+    GET_REGISTER_STATIC(const SuperWeaponTypeClass*, supertype, eax);
+    static const SuperWeaponTypeClassExtension* supertypeext;
+    static const ShapeSet* shapefile;
+
+    shapefile = supertype->SidebarIcon;
+
+    _SidebarClass_StripClass_spc = supertype;
+    _SidebarClass_StripClass_CustomImage = nullptr;
+
+    supertypeext = Extension::Fetch(supertype);
+    if (supertypeext->CameoImageSurface) {
+        _SidebarClass_StripClass_CustomImage = supertypeext->CameoImageSurface;
+    }
+
+    _asm { mov ebx, shapefile }
+
+    JMP(0x005F5220);
+}
+
+
+/**
+ *  #issue-487
+ *
+ *  Adds support for PCX/PNG cameo icons.
+ *
+ *  @author: CCHyper
+ */
+static Point2D pointxy;
+static Rect pcxrect;
+void Draw_Shape_Wrapper(Surface& surface, ConvertClass& convert, const ShapeSet* shapefile, int shapenum, const Point2D& point, const Rect& window, ShapeFlags_Type flags)
+{
+    Draw_Shape(surface, convert, shapefile, shapenum, point, window, flags);
+}
+DECLARE_PATCH(_SidebarClass_StripClass_Custom_Cameo_Image_Patch)
+{
+    GET_STACK_STATIC(SidebarClass::StripClass*, this_ptr, esp, 0x24);
+    LEA_STACK_STATIC(Rect*, window_rect, esp, 0x34);
+    GET_REGISTER_STATIC(int, pos_x, edi);
+    GET_REGISTER_STATIC(int, pos_y, esi);
+    GET_REGISTER_STATIC(const ShapeSet*, shapefile, ebx);
+    static BSurface* image_surface;
+
+    image_surface = nullptr;
+
+    /**
+     *  Was a factory object or special image found?
+     */
+    if (_SidebarClass_StripClass_CustomImage) {
+        image_surface = _SidebarClass_StripClass_CustomImage;
+    }
+
+    /**
+     *  Draw the cameo pcx image.
+     */
+    if (image_surface) {
+        pcxrect.X = window_rect->X + pos_x;
+        pcxrect.Y = window_rect->Y + pos_y;
+        pcxrect.Width = image_surface->Get_Width();
+        pcxrect.Height = image_surface->Get_Height();
+
+        SpriteCollection.Draw(pcxrect, *SidebarSurface, *image_surface);
+    }
+    /**
+     *  Draw shape cameo image.
+     */
+    else if (shapefile) {
+        pointxy.X = pos_x;
+        pointxy.Y = pos_y;
+
+        Draw_Shape_Wrapper(*SidebarSurface, *CameoDrawer, shapefile, 0, pointxy, *window_rect, SHAPE_WIN_REL | SHAPE_NORMAL);
+    }
+
+    _SidebarClass_StripClass_CustomImage = nullptr;
+
+    /**
+     *  Next, draw the clock darken shape.
+     */
+draw_darken_shape:
+    JMP(0x005F52F3);
+}
+
+
+/**
+ *  Adds support for extended sidebar tooltips.
+ *
+ *  @author: Rampastring
+ */
+static char extended_description[512];
+DECLARE_PATCH(_SidebarClass_StripClass_Help_Text_Extended_Tooltip_Patch)
+{
+    GET_REGISTER_STATIC(int, cost, eax);
+    GET_REGISTER_STATIC(TechnoTypeClass*, technotype, esi);
+
+    static TechnoTypeClassExtension* technotypeext;
+    static char* description;
+    technotypeext = Extension::Fetch(technotype);
+    description = technotypeext->Description;
+
+    // Using sprintf below will affect the stack, but the compiler should also clean it up,
+    // so there should be no issue.
+    if (description[0] == '\0') {
+        // If there is no extended description, then simply show the name and price.
+        sprintf(extended_description, "%s@$%d", technotype->FullName, cost);
+    }
+    else {
+        // If there is an extended description, then show the name, price, and the description.
+        sprintf(extended_description, "%s@$%d@@%s", technotype->FullName, cost, technotypeext->Description);
+    }
+
+    // Set up return value
+    _asm { mov  eax, offset ds : extended_description }
+    JMP_REG(ecx, 0x005F4EFF);
+}
+
+
+/**
+ *  Adds support for extended factories.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_StripClass_Draw_It_Fetch_Factory_Patch1)
+{
+    GET_REGISTER_STATIC(TechnoTypeClass*, ttype, ebp);
+
+    static FactoryClass* factory;
+    factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(ttype->RTTI, TechnoTypeClassExtension::Get_Production_Flags(ttype));
+
+    _asm mov eax, factory
+    JMP_REG(edx, 0x005F5132);
+}
+
+DECLARE_PATCH(_StripClass_Draw_It_Fetch_Factory_Patch2)
+{
+    GET_STACK_STATIC(TechnoTypeClass*, ttype, esp, 0x18);
+
+    static FactoryClass* factory;
+    factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(ttype->RTTI, TechnoTypeClassExtension::Get_Production_Flags(ttype));
+
+    _asm mov ebx, factory
+    JMP(0x005F538A);
+}
+
+
+/**
+ *  Re-implementation of SelectClass::Action.
+ *
+ *  @author: ZivDero
+ */
+bool SelectClassExt::_Action(unsigned flags, KeyNumType& key)
+{
+    if (!Strip) {
+        return true;
+    }
+
+    int index = Strip->TopIndex + Index;
+    RTTIType otype = Strip->Buildables[index].BuildableType;
+    int oid = Strip->Buildables[index].BuildableID;
+
+    TechnoTypeClass const* choice = nullptr;
+    SuperWeaponType spc = SUPER_NONE;
+
+    /*
+    **  Determine the factory number that would apply to objects of the type
+    **  the mouse is currently addressing. This doesn't mean that the factory number
+    **  fetched is actually producing the indicated object, merely that that particular
+    **  kind of factory is specified by the "genfactory" value. This can be used to see
+    **  if the factory type is currently busy or not.
+    */
+    FactoryClass* factory = Strip->Buildables[index].Factory;
+
+    Map.Override_Mouse_Shape(MOUSE_NORMAL);
+
+    if (index < Strip->BuildableCount) {
+        if (otype != RTTI_SPECIAL) {
+            choice = Fetch_Techno_Type(otype, oid);
+        } else {
+            spc = (SuperWeaponType)oid;
+        }
+    }
+
+    if (spc != SUPER_NONE) {
+
+        /*
+        **  Display the help text if the mouse is over the button.
+        */
+        if (flags & LEFTUP) {
+            flags &= ~LEFTUP;
+        }
+
+        /*
+        **  A right mouse button signals "cancel".  If we are in targeting
+        **  mode then we don't want to be any more.
+        */
+        if (flags & RIGHTPRESS) {
+            Map.TargettingType = SUPER_NONE;
+        }
+
+        /*
+        **  A left mouse press signal "activate".  If our weapon type is
+        **  available then we should activate it.
+        */
+        if (flags & LEFTPRESS) {
+
+            if (spc < PlayerPtr->SuperWeapon.Count()) {
+                if (PlayerPtr->SuperWeapon[spc]->Can_Place()) {
+                    if (PlayerPtr->SuperWeapon[spc]->Class->Action != ACTION_NONE) {
+                        Map.TargettingType = spc;
+                        Unselect_All();
+                        Speak(VOX_SELECT_TARGET);
+                    } else {
+                        OutList.Add(EventClass(PlayerPtr->Fetch_Heap_ID(), EVENT_SPECIAL_PLACE, PlayerPtr->SuperWeapon[spc]->Class->HeapID, CELL_NONE));
+                    }
+                } else {
+                    PlayerPtr->SuperWeapon[spc]->Impatient_Click();
+                }
+            }
+        }
+
+    } else {
+        if (choice != nullptr) {
+
+            /*
+            **  Display the help text if the mouse is over the button.
+            */
+            if (flags & LEFTUP) {
+                flags &= ~LEFTUP;
+            }
+
+            /*
+            **  A right mouse button signals "cancel".
+            */
+            if (flags & RIGHTPRESS) {
+
+                /*
+                **  If production is in progress, put it on hold. If production is already
+                **  on hold, then abandon it. Money will be refunded, the factory
+                **  manager deleted, and the object under construction is returned to
+                **  the free pool.
+                */
+                if (factory != nullptr) {
+                    /*
+                    **  Cancels placement mode if the sidebar factory is abandoned or
+                    **  suspended.
+                    */
+                    if (Map.PendingObjectPtr && Map.PendingObjectPtr->Is_Techno()) {
+                        Map.PendingObjectPtr = nullptr;
+                        Map.PendingObject = nullptr;
+                        Map.PendingHouse = HOUSE_NONE;
+                        Map.Set_Cursor_Shape(nullptr);
+                    }
+
+                    if (!factory->Is_Building()) {
+                        Speak(VOX_CANCELED);
+
+                        int count_to_abandon = 1;
+
+                        if ((GetAsyncKeyState(VK_SHIFT) & 0x8000))
+                            count_to_abandon = factory->Total_Queued(*choice);
+                        else if ((GetAsyncKeyState(VK_CONTROL) & 0x8000))
+                            count_to_abandon = std::clamp(5, 0, factory->Total_Queued(*choice));
+
+                        for (int i = 0; i < count_to_abandon; i++)
+                            OutList.Add(EventClassExt(PlayerPtr->Fetch_Heap_ID(), EVENT_ABANDON, otype, oid, TechnoTypeClassExtension::Get_Production_Flags(otype, oid)).As_Event());
+                    } else {
+                        Speak(VOX_SUSPENDED);
+                        OutList.Add(EventClassExt(PlayerPtr->Fetch_Heap_ID(), EVENT_SUSPEND, otype, oid, TechnoTypeClassExtension::Get_Production_Flags(otype, oid)).As_Event());
+                        SidebarExtension->Get_Tab(otype, TechnoTypeClassExtension::Get_Production_Flags(otype, oid)).Flag_To_Redraw();
+                        
+                    }
+                } else {
+                    factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(otype, TechnoTypeClassExtension::Get_Production_Flags(choice));
+                    if (factory && factory->Is_Queued(*choice)) {
+                        int count_to_abandon = 1;
+
+                        if ((GetAsyncKeyState(VK_SHIFT) & 0x8000))
+                            count_to_abandon = factory->Total_Queued(*choice);
+                        else if ((GetAsyncKeyState(VK_CONTROL) & 0x8000))
+                            count_to_abandon = std::clamp(5, 0, factory->Total_Queued(*choice));
+
+                        for (int i = 0; i < count_to_abandon; i++)
+                            OutList.Add(EventClassExt(PlayerPtr->Fetch_Heap_ID(), EVENT_ABANDON, otype, oid, TechnoTypeClassExtension::Get_Production_Flags(otype, oid)).As_Event());
+                    }
+                }
+            }
+
+            if (flags & LEFTPRESS) {
+                /*
+                **  If this object is currently being built, then give a scold sound and text and then
+                **  bail.
+                */
+                if (factory != nullptr && !factory->Is_Building() && !Extension::Fetch(factory)->IsHoldingExit) {
+
+                    /*
+                    **  If production has completed, then attempt to have the object exit
+                    **  the factory or go into placement mode.
+                    */
+                    if (factory->Has_Completed()) {
+
+                        TechnoClass* pending = factory->Get_Object();
+                        if (!pending && factory->Get_Special_Item()) {
+                            Map.TargettingType = SUPER_ANY;
+                        } else {
+                            BuildingClass* builder = pending->Who_Can_Build_Me(false, false);
+                            if (!builder) {
+                                OutList.Add(EventClassExt(PlayerPtr->Fetch_Heap_ID(), EVENT_ABANDON, otype, oid, TechnoTypeClassExtension::Get_Production_Flags(otype, oid)).As_Event());
+                                Speak(VOX_NO_FACTORY);
+                            } else {
+
+                                /*
+                                **  If the completed object is a building, then change the
+                                **  game state into building placement mode. This fact is
+                                **  not transmitted to any linked computers until the moment
+                                **  the building is actually placed down.
+                                */
+                                if (pending->Fetch_RTTI() == RTTI_BUILDING) {
+                                    PlayerPtr->Manual_Place(builder, (BuildingClass*)pending);
+                                } else {
+
+                                    /*
+                                    **  For objects that can leave the factory under their own
+                                    **  power, queue this event and process through normal house
+                                    **  production channels.
+                                    */
+                                    OutList.Add(EventClassExt(pending->Owner(), EVENT_PLACE, otype, CELL_NONE, TechnoTypeClassExtension::Get_Production_Flags(pending)).As_Event());
+                                }
+                            }
+                        }
+                    } else {
+
+                        /*
+                        **  The factory must have been in a suspended state. Resume construction
+                        **  normally.
+                        */
+                        if (otype == RTTI_INFANTRYTYPE) {
+                            Speak(VOX_TRAINING);
+                        } else {
+                            Speak(VOX_BUILDING);
+                        }
+                        OutList.Add(EventClassExt(PlayerPtr->Fetch_Heap_ID(), EVENT_PRODUCE,
+                            Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID,
+                            TechnoTypeClassExtension::Get_Production_Flags(Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID)).As_Event());
+                    }
+                } else {
+
+                    /*
+                    **  If there is already a factory attached to this strip but the player didn't click
+                    **  on the icon that has the attached factory, then say that the factory is busy and
+                    **  ignore the click.
+                    */
+                    factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(otype, TechnoTypeClassExtension::Get_Production_Flags(choice));
+                    if (factory != nullptr && (factory->Is_Building() || factory->Get_Object() || factory->Queued_Object_Count() > 0) && otype == RTTI_BUILDINGTYPE) {
+                        Speak(VOX_NO_FACTORY);
+                    } else {
+
+                        /*
+                        **  If this side strip is already busy with production, then ignore the
+                        **  input and announce this fact.
+                        */
+                        if (otype == RTTI_INFANTRYTYPE) {
+                            Speak(VOX_TRAINING);
+                        } else {
+                            Speak(VOX_BUILDING);
+                        }
+                        const int count_to_produce = (GetAsyncKeyState(VK_SHIFT) & 0x8000) ? 5 : 1;
+                        for (int i = 0; i < count_to_produce; i++) {
+                            OutList.Add(EventClassExt(PlayerPtr->Fetch_Heap_ID(), EVENT_PRODUCE, Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID,
+                                TechnoTypeClassExtension::Get_Production_Flags(Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID)).As_Event());
+                        }
+
+                    }
+                }
+            }
+        } else {
+            flags = 0;
+        }
+    }
+
+    ControlClass::Action(flags, key);
+    return true;
+}
+
+
+/**
+ *  Main function for patching the hooks.
+ */
+void SidebarClassExtension_Hooks()
+{
+    Patch_Jump(0x005F23AC, &_SidebarClass_Constructor_Patch);
+    Patch_Jump(0x005B8B7D, &_SidebarClass_Destructor_Patch);
+
+    /**
+     *  These patches are compatible with the vanilla sidebar.
+     */
+    Patch_Jump(0x005F5F70, &SidebarClassExt::_Abandon_Production);
+    Patch_Jump(0x005F4E40, &StripClassExt::_Help_Text);
+    Patch_Jump(0x005F4630, &StripClassExt::_Add);
+    Patch_Jump(0x005F5610, &StripClassExt::_Recalc);
+    Patch_Jump(0x005F4910, &StripClassExt::_AI_Vanilla);
+    Patch_Jump(0x005F59A0, &SelectClassExt::_Action);
+
+    // NOP away tooltip length check for formatting
+    Patch_Byte(0x0044E486, 0x90);
+    Patch_Byte(0x0044E486 + 1, 0x90);
+
+    // Change jle to jl to allow rendering tooltips that are exactly as wide as the sidebar
+    Patch_Byte(0x0044E605 + 1, 0x8C);
+
+    /**
+     *  Legacy patches for the old sidebar.
+     */
+    Patch_Jump(0x005F5188, &_SidebarClass_StripClass_ObjectTypeClass_Custom_Cameo_Image_Patch);
+    Patch_Jump(0x005F5216, &_SidebarClass_StripClass_SuperWeaponType_Custom_Cameo_Image_Patch);
+    Patch_Jump(0x005F52AF, &_SidebarClass_StripClass_Custom_Cameo_Image_Patch);
+    Patch_Jump(0x005F5120, &_StripClass_Draw_It_Fetch_Factory_Patch1);
+    Patch_Jump(0x005F537C, &_StripClass_Draw_It_Fetch_Factory_Patch2);
+
+    Patch_Jump(0x005F4EDD, &_SidebarClass_StripClass_Help_Text_Extended_Tooltip_Patch);
+    Patch_Byte(0x005F4EF7 + 2, 0x14); // Pop one more argument passed to sprintf
+
+    Patch_Jump(0x005F4DD0, 0x005F4DD5); // Skip a call to Speak as we now speak UNIT_READY in HouseClassExt::Place_Object
+}
+
+
+/**
+ *  Function for patching the hooks that require use to read VINIFERA.INI first.
+ */
+void SidebarClassExtension_Conditional_Hooks()
+{
+    if (Vinifera_NewSidebar) {
+        Patch_Jump(0x005F2610, &SidebarClassExt::_One_Time);
+        Patch_Jump(0x005F2660, &SidebarClassExt::_Init_Clear);
+        Patch_Jump(0x005F2720, &SidebarClassExt::_Init_IO);
+        Patch_Jump(0x005F2900, &SidebarClassExt::_Init_For_House);
+        Patch_Jump(0x005F2B00, &SidebarClassExt::_Init_Strips);
+        Patch_Jump(0x005F2C30, &SidebarClassExtension::Which_Tab);
+        Patch_Jump(0x005F2C50, &SidebarClassExt::_Factory_Link);
+        Patch_Jump(0x005F2E20, &SidebarClassExt::_Add);
+        Patch_Jump(0x005F2E90, &SidebarClassExt::_Scroll);
+        Patch_Jump(0x005F30F0, &SidebarClassExt::_Scroll_Page);
+        Patch_Jump(0x005F3560, &SidebarClassExt::_Draw_It);
+        Patch_Jump(0x005F3C70, &SidebarClassExt::_AI);
+        Patch_Jump(0x005F3E20, &SidebarClassExt::_Recalc);
+        Patch_Jump(0x005F3E60, &SidebarClassExt::_Activate);
+        Patch_Jump(0x005F6080, &SidebarClassExt::_Set_Dimensions);
+        Patch_Jump(0x005F6620, &SidebarClassExt::_Help_Text);
+        Patch_Jump(0x005F6670, &SidebarClassExt::_Max_Visible);
+
+        Patch_Jump(0x005F4210, &StripClassExt::_One_Time);
+        Patch_Jump(0x005F42A0, &StripClassExt::_Init_IO);
+        Patch_Jump(0x005F4450, &StripClassExt::_Activate);
+        Patch_Jump(0x005F4560, &StripClassExt::_Deactivate);
+        Patch_Jump(0x005F46B0, &StripClassExt::_Scroll);
+        Patch_Jump(0x005F4760, &StripClassExt::_Scroll_Page);
+        Patch_Jump(0x005F4910, &StripClassExt::_AI);
+        Patch_Jump(0x005F4F10, &StripClassExt::_Draw_It);
+        Patch_Jump(0x005F5F10, &StripClassExt::_Factory_Link);
+
+        Patch_Jump(0x004A9F0F, _GadgetClass_Input_Mouse_Enter_Leave);
+        Patch_Jump(0x005AB4CF, _PowerClass_Draw_It_Move_Power_Bar);
+
+        // There are a bunch of calls to vanilla strips to redraw them.
+        // We patch them to either redraw the supers' strip or the current strip
+        Patch_Call(0x00458ADB, &StripClassExt::_Fake_Flag_To_Redraw_Special);
+        Patch_Call(0x004BD32D, &StripClassExt::_Fake_Flag_To_Redraw_Special);
+        Patch_Call(0x004CB585, &StripClassExt::_Fake_Flag_To_Redraw_Special);
+        Patch_Call(0x004CB6F8, &StripClassExt::_Fake_Flag_To_Redraw_Special);
+        Patch_Call(0x00619F9A, &StripClassExt::_Fake_Flag_To_Redraw_Special);
+        Patch_Call(0x0061C09C, &StripClassExt::_Fake_Flag_To_Redraw_Special);
+        Patch_Call(0x0061C0FD, &StripClassExt::_Fake_Flag_To_Redraw_Special);
+
+        Patch_Call(0x004BD1E0, &StripClassExt::_Fake_Flag_To_Redraw_Current);
+        Patch_Call(0x004BD1EA, &StripClassExt::_Fake_Flag_To_Redraw_Current);
+        Patch_Call(0x004C9859, &StripClassExt::_Fake_Flag_To_Redraw_Current);
+        Patch_Call(0x004C9863, &StripClassExt::_Fake_Flag_To_Redraw_Current);
+
+        Patch_Jump(0x004E5C70, 0x004E5D4A); // Don't add LSidebarUpCommandClass and RSidebarUpCommandClass
+        Patch_Jump(0x004E5DB7, 0x004E5E91); // Don't add LSidebarDownCommandClass and RSidebarDownCommandClass
+        Patch_Jump(0x004E5EFE, 0x004E5FD8); // Don't add LSidebarPageUpCommandClass and RSidebarPageUpCommandClass
+        Patch_Jump(0x004E6045, 0x004E611F); // Don't add LSidebarPageDownCommandClass and RSidebarPageDownCommandClass
+    }
+}

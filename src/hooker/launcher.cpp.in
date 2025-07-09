@@ -1,0 +1,530 @@
+/*******************************************************************************
+/*                 O P E N  S O U R C E  --  V I N I F E R A                  **
+/*******************************************************************************
+ *
+ *  @project       Vinifera
+ *
+ *  @file          LAUNCHER.CPP.IN
+ *
+ *  @authors       OmniBlade, CCHyper
+ *
+ *  @brief         An executable launcher that will inject a dll into the
+ *                 launched process.
+ *
+ *  @license       Vinifera is free software: you can redistribute it and/or
+ *                 modify it under the terms of the GNU General Public License
+ *                 as published by the Free Software Foundation, either version
+ *                 3 of the License, or (at your option) any later version.
+ *
+ *                 Vinifera is distributed in the hope that it will be
+ *                 useful, but WITHOUT ANY WARRANTY; without even the implied
+ *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ *                 PURPOSE. See the GNU General Public License for more details.
+ *
+ *                 You should have received a copy of the GNU General Public
+ *                 License along with this program.
+ *                 If not, see <http://www.gnu.org/licenses/>.
+ *
+ ******************************************************************************/
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
+#include <fstream>
+#include <iostream>
+#include <string>
+#include <windows.h>
+#include "sha.h"
+
+
+/**
+ *  Use WinMain and don't make a console window.
+ */
+#pragma comment(linker, "/subsystem:windows /ENTRY:WinMainCRTStartup")
+
+/**
+ *  Define the point to stall at while the DLL loads, normally the programs entry point.
+ */
+#define EXE_ENTRY @TARGET_ENTRY@
+
+#define TARGET_NAME "@TARGET_NAME@"
+#define PROJECT_NAME "@PROJECT_NAME@"
+
+#define UNSUPPORTED_TARGET "@UNSUPPORTED_TARGET_ERROR@"
+
+/**
+ *  Should we check the target binary checksum before we attempt injection?
+ */
+const bool CheckTargetBinaries = @CHECK_TARGET_BINARIES@;
+
+/**
+ *  Define the SHA hash to compare against.
+ */
+const char *BinaryHash[] = {
+	"@TARGET_HASH@",
+	"@TARGET_FTS_HASH@",
+	"@TARGET_TUC_HASH@"
+};
+
+/**
+ *  Size of the binaries in bytes.
+ */
+int BinarySize[] = {
+	@TARGET_SIZE@,
+	@TARGET_FTS_SIZE@,
+	@TARGET_TUC_SIZE@
+};
+
+/**
+ *  The target EXE file to launch (can be changed by a custom argument).
+ */
+char *EXEName = "@TARGET_EXE@";
+
+/**
+ *  The target DLL file to inject (can be changed by a custom argument).
+ */
+char *DLLName = "@PROJECT_DLL@";
+
+/**
+ *  The target DLL debug database file.
+ */
+char *PDBName = "@PROJECT_NAME@.pdb";
+char *EXEPDBName = "@TARGET_PDB@";
+
+
+static STARTUPINFOA StartupInfo = {0};
+static PROCESS_INFORMATION ProcessInformation;
+
+
+/**
+ *  Check the target binary SHA hash.
+ */
+bool Check_Hash(const char *filename, const char *target_hash)
+{
+    SHA sha;
+    char buffer[1024];
+    char hash[41];
+    std::ifstream in(EXEName, std::ifstream::in|std::ifstream::binary);
+    
+	/**
+	 *  Get the hash of the binary.
+	 */
+    do {
+        in.read(buffer, sizeof(buffer));
+        sha.Hash(buffer, in.gcount());
+    } while (in.gcount() == sizeof(buffer));
+
+    sha.Print_Result(hash);
+
+	/**
+	 *  Does the expected hash match the target binary hash?
+	 */
+    return strcmpi(target_hash, hash) == 0;
+}
+
+
+/**
+ *  Inject the dll into the target binary process.
+ * 
+ *  Based on code from:
+ *  http://www.codeproject.com/Articles/4610/Three-Ways-to-Inject-Your-Code-into-Another-Proces
+ */
+bool Inject_Dll(const char *dllname, HANDLE hProcess)
+{
+    HANDLE hThread;
+    char szLibPath[_MAX_PATH]; // Buffer to hold the name of the DLL (including full path!)
+    void *pLibRemote; // The address (in the remote process) where szLibPath will be copied to.
+    DWORD hLibModule; // Base address of loaded module.
+    HMODULE hKernel32 = GetModuleHandleA("Kernel32"); // For the LoadLibraryA func.
+
+    GetFullPathNameA(dllname, _MAX_PATH, szLibPath, NULL);
+
+    std::ifstream in(dllname, std::ifstream::in|std::ifstream::binary);
+    IMAGE_NT_HEADERS exe_header;
+    in.seekg(offsetof(IMAGE_DOS_HEADER, e_lfanew), std::ifstream::cur); // seek to NE address pointer.
+    DWORD neptr;
+    in.read(reinterpret_cast<char *>(&neptr), sizeof(neptr));
+    in.seekg(neptr, std::ifstream::beg);
+    in.read(reinterpret_cast<char *>(&exe_header), sizeof(exe_header));
+
+    if (!(exe_header.FileHeader.Characteristics & IMAGE_FILE_DLL)) {
+		MessageBoxA(NULL, "DLL file does not have correct format flags!", "Error!", MB_OK | MB_ICONEXCLAMATION);
+        throw "DLL file does not have correct format flags!";
+    }
+
+	/**
+	 *  1. Allocate memory in the remote process for szLibPath.
+	 *  2. Write szLibPath to the allocated memory.
+	 */
+    pLibRemote = VirtualAllocEx(hProcess, NULL, sizeof(szLibPath), MEM_COMMIT, PAGE_READWRITE);
+
+    WriteProcessMemory(hProcess, pLibRemote, (void *)szLibPath, sizeof(szLibPath), NULL);
+
+	/**
+	 *  Load "dll" into the remote process by passing LoadLibraryA as the function
+	 *  to run as a thread with CreateRemoteThread. Pass copied name of DLL as
+	 *  the arguments to the function.
+	 */
+    hThread = CreateRemoteThread(
+        hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)GetProcAddress(hKernel32, "LoadLibraryA"), pLibRemote, 0, NULL);
+
+	/**
+	 *  Wait for the DLL to load and return.
+	 */
+    WaitForSingleObject(hThread, INFINITE);
+
+	/**
+	 *  Get handle of the loaded module.
+	 */
+    GetExitCodeThread(hThread, &hLibModule);
+
+	/**
+	 *  Clean up.
+	 */
+    CloseHandle(hThread);
+    VirtualFreeEx(hProcess, pLibRemote, sizeof(szLibPath), MEM_RELEASE);
+
+	/**
+	 *  LoadLibrary return is 0 on failure.
+	 */
+    return hLibModule != 0;
+}
+
+
+/**
+ *  Load the target binary to perform the injection on.
+ * 
+ *  Based on code snippet from:
+ *  https://opcode0x90.wordpress.com/2011/01/15/injecting-dll-into-process-on-load/
+ */
+bool Inject_Loader(const char *path, const char *dllname, char *args)
+{
+    DWORD oldProtect;
+    DWORD oldProtect2;
+    char oldBytes[2];
+    char checkBytes[2];
+    static const char patchBytes[2] = {'\xEB', '\xFE'}; // JMP $-2
+    static const int patchBytesSize = 2;
+    SIZE_T memwritten;
+    SIZE_T memread;
+
+	/**
+	 *  Initialize the structures.
+	 */
+    ZeroMemory(&StartupInfo, sizeof(StartupInfo));
+    StartupInfo.cb = sizeof(StartupInfo);
+
+	/**
+	 *  Attempt to load the specified target in suspended state.
+	 */
+    if (CreateProcessA(path, args, NULL, NULL, FALSE, CREATE_SUSPENDED, NULL,
+        NULL, &StartupInfo, &ProcessInformation)) {
+
+        HANDLE hProcess(ProcessInformation.hProcess);
+
+		/**
+		 *  Wait for the process to done.
+		 */
+        try {
+			/**
+			 *  Locate the entry point.
+			 */
+            LPVOID entry = (LPVOID)EXE_ENTRY;
+
+			/**
+			 *  Patch the entry point with infinite loop.
+			 */
+            VirtualProtectEx(ProcessInformation.hProcess, entry, 2, PAGE_EXECUTE_READWRITE, &oldProtect);
+            ReadProcessMemory(ProcessInformation.hProcess, entry, oldBytes, patchBytesSize, &memread);
+            WriteProcessMemory(ProcessInformation.hProcess, entry, patchBytes, patchBytesSize, &memwritten);
+            VirtualProtectEx(ProcessInformation.hProcess, entry, 2, oldProtect, &oldProtect2);
+
+			/**
+			 *  Resume the main thread.
+			 */
+            ResumeThread(ProcessInformation.hThread);
+
+			/**
+			 *  Wait until the thread stuck at entry point.
+			 */
+            CONTEXT context;
+            ZeroMemory(&context, sizeof(context));
+            for (unsigned int i = 0; i < 50 && context.Eip != (DWORD)entry; ++i) {
+
+				/**
+				 *  Patience...
+				 */
+                Sleep(100);
+
+				/**
+				 *  Read the thread context.
+				 */
+                context.ContextFlags = CONTEXT_CONTROL;
+                GetThreadContext(ProcessInformation.hThread, &context);
+            }
+
+            if (context.Eip != (DWORD)entry) {
+				/**
+				 *  Wait timed out, we never got to the entry point.
+				 */
+				MessageBoxA(NULL, "Entry point blockade timed out!", "Error!", MB_OK|MB_ICONEXCLAMATION);
+                throw "Entry point blockade timed out!";
+            }
+
+			/**
+			 *  Inject DLL payload into remote process.
+			 */
+            if (!Inject_Dll(dllname, ProcessInformation.hProcess)) {
+				MessageBoxA(NULL, "Failed to load DLL!", "Error!", MB_OK|MB_ICONEXCLAMATION);
+                throw "Failed to load DLL!";
+            }
+			
+#ifndef NDEBUG
+            if (IsDebuggerPresent()) {
+				/**
+				 *  Give the user time to attach the debugger if one is not already present.
+				 */
+                MessageBox(NULL, "Attach debugger now or continue.", "Launcher", MB_OK|MB_SERVICE_NOTIFICATION);
+            }
+#endif
+
+			/**
+			 *  Pause and restore original entry point unless DLL init overwrote it already.
+			 */
+            SuspendThread(ProcessInformation.hThread);
+            VirtualProtectEx(ProcessInformation.hProcess, entry, 2, PAGE_EXECUTE_READWRITE, &oldProtect);
+            ReadProcessMemory(ProcessInformation.hProcess, entry, checkBytes, 2, &memread);
+
+			/**
+			 *  Check entry point is still patched to infinite loop. We don't
+			 *  want to mess up any patching the DLL did.
+			 */
+            if (std::memcmp(checkBytes, patchBytes, 2) == 0) {
+                WriteProcessMemory(ProcessInformation.hProcess, entry, oldBytes, 2, &memwritten);
+            }
+
+            VirtualProtectEx(ProcessInformation.hProcess, entry, 2, oldProtect, &oldProtect2);
+
+			/**
+			 *  You are ready to go!
+			 */
+            ResumeThread(ProcessInformation.hThread);
+			
+			/**
+			 *  Keep the launcher running until the target process has exited.
+			 */
+			WaitForSingleObject(hProcess, INFINITE);
+			
+			return true;
+			
+        } catch (...) {
+
+			/**
+			 *  Terminate the newly spawned process.
+			 */
+            TerminateProcess(ProcessInformation.hProcess, EXIT_FAILURE);
+
+			/**
+			 *  Rethrow the exception to top-level handler.
+			 */
+            throw;
+        }
+
+    } else {
+	
+		/**
+		 *  Are you sure this is a valid target?
+		 */
+		MessageBoxA(NULL, "Unable to load the specified executable!", "Error!", MB_OK|MB_ICONEXCLAMATION);
+        throw "Unable to load the specified executable!";
+    }
+	
+	return false;
+}
+
+
+/**
+ *  Build run argument with the target name and any additional arguments.
+ */
+char *Make_Args(const char *args)
+{
+    const char *argstart = args;
+    static char argstring[_MAX_PATH * 2];
+
+	/**
+	 *  Stick the exe name on the front of the arg string.
+	 */
+    std::snprintf(argstring, sizeof(argstring), "%s %s", EXEName, argstart);
+
+    return argstring;
+}
+
+
+/**
+ *  Checks a file exists in the directory.
+ */
+bool File_Exists(const char *file)
+{
+    WIN32_FIND_DATA fileinfo;
+    HANDLE handle = FindFirstFile(file, &fileinfo) ;
+    bool found = (handle != INVALID_HANDLE_VALUE);
+    if (found) {
+        FindClose(handle);
+    }
+    return found;
+}
+
+
+int Get_File_Size(const char *file)
+{
+	/**
+	 *  Seek to the end of the file. Use the end position as the file size.
+	 */
+	FILE *f = fopen(EXEName, "r");
+	fseek(f, 0, SEEK_END);
+	int filesize = ftell(f);
+	fclose(f);
+	return filesize;
+}
+
+
+int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+{
+	/**
+	 *  Custom exe target defined?
+	 */
+	const char *tok = std::strstr(lpCmdLine, "-exe:");
+	if (tok != nullptr) {
+		EXEName = (char *)(tok+5); // Fetch the custom target EXE name.
+	}
+	
+	/**
+	 *  Custom dll defined?
+	 */
+	tok = std::strstr(lpCmdLine, "-dll:");
+	if (tok != nullptr) {
+		DLLName = (char *)(tok+5); // Fetch the custom DLL name.
+	}
+	
+	/**
+	 *  Check the target binary exists before we attempt injection.
+	 */
+	if (CheckTargetBinaries) {
+		if (!File_Exists(EXEName)) {
+			char buff[1024];
+			std::snprintf(buff, sizeof(buff),
+				"Unable to find %s!\n\n"
+				"Please check you have the correct version of " TARGET_NAME " installed\n"
+				"and that it is up to date " UNSUPPORTED_TARGET ".\n",
+				EXEName
+			);
+			MessageBoxA(NULL, buff, "Error!", MB_OK|MB_ICONEXCLAMATION);
+			return EXIT_FAILURE;
+		}
+	} else {
+		if (!File_Exists(EXEName)) {
+			char buff[1024];
+			std::snprintf(buff, sizeof(buff),
+				"Unable to find %s!\n\n"
+				"Please check you have the correct version of " TARGET_NAME " installed\n",
+				EXEName
+			);
+			MessageBoxA(NULL, buff, "Error!", MB_OK|MB_ICONEXCLAMATION);
+			return EXIT_FAILURE;
+		}
+	}
+
+	/**
+	 *  Check the DLL exists before we attempt injection.
+	 */
+    if (!File_Exists(DLLName)) {
+		char buff[1024];
+		std::snprintf(buff, sizeof(buff),
+            "Unable to find %s !\n\n"
+            "Please check you have the correct version of " PROJECT_NAME " installed\n"
+			"or reinstall the latest version.\n",
+			DLLName
+		);
+		MessageBoxA(NULL, buff, "Error!", MB_OK|MB_ICONEXCLAMATION);
+        return EXIT_FAILURE;
+    }
+	
+	/**
+	 *  Check the PDB exists before we attempt injection, this is required to
+	 *  ensure the debug systems output the correct information.
+	 */
+    if (!File_Exists(PDBName)) {
+		char buff[1024];
+		std::snprintf(buff, sizeof(buff),
+            "Unable to find %s !\n\n"
+            "Please check you have the correct version of " PROJECT_NAME " installed\n"
+			"or reinstall the latest version.\n",
+			PDBName
+		);
+		MessageBoxA(NULL, buff, "Error!", MB_OK|MB_ICONEXCLAMATION);
+        return EXIT_FAILURE;
+    }
+	
+	/**
+	 *  Check the target binary checksum before we attempt injection.
+	 */
+	if (CheckTargetBinaries) {
+		bool matches = false;
+	
+		/**
+		 *  Iterate over all the possible target binaries to check if
+		 *  they match one we support.
+		 */
+		for (int i = 0; i < 2; ++i) {
+		
+			/**
+			 *  Check the filesize and hash matches first before we attempt injection.
+			 */
+			if (Get_File_Size(EXEName) == BinarySize[i]) {
+				if (Check_Hash(EXEName, BinaryHash[i])) {
+					matches = true;
+				}
+			}
+
+		}
+
+		if (!matches) {
+			char buff[1024];
+			std::snprintf(buff, sizeof(buff),
+				"Modified or unsupported version of %s detected!\n\n"
+				"Please check you have the correct version of " TARGET_NAME " installed\n"
+				"and that it is up to date " UNSUPPORTED_TARGET ".\n",
+				EXEName
+			);
+			MessageBox(NULL, buff, "Error!", MB_OK|MB_ICONEXCLAMATION);
+			return EXIT_FAILURE;
+		}
+	}
+	
+	/**
+	 *  Check the fake GAME.EXE PDB exists before we attempt injection, this is
+	 *  required to ensure the debug systems output the correct information.
+	 */
+    if (!File_Exists(EXEPDBName)) {
+		char buff[1024];
+		std::snprintf(buff, sizeof(buff),
+            "Unable to find %s !\n\n"
+            "Please check you have the correct version of " PROJECT_NAME " installed\n"
+			"or reinstall the latest version.\n",
+			EXEPDBName
+		);
+		MessageBoxA(NULL, buff, "Error!", MB_OK|MB_ICONEXCLAMATION);
+        return EXIT_FAILURE;
+    }
+
+	if (!Inject_Loader(EXEName, DLLName, Make_Args(lpCmdLine))) {
+		MessageBoxA(NULL, "Injection failed!", "Error!", MB_OK|MB_ICONEXCLAMATION);
+		
+		/**
+		 *  Terminate the process we created.
+		 */
+		TerminateProcess(ProcessInformation.hProcess, EXIT_FAILURE);
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
+}

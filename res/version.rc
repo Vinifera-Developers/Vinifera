@@ -1,0 +1,72 @@
+/*******************************************************************************
+/*                 O P E N  S O U R C E  --  V I N I F E R A                  **
+/*******************************************************************************
+ *
+ *  @project       Vinifera
+ *
+ *  @file          VERSION.RC
+ *
+ *  @author        CCHyper
+ *
+ *  @brief         Windows version resource-definition script.
+ *
+ *  @license       Vinifera is free software: you can redistribute it and/or
+ *                 modify it under the terms of the GNU General Public License
+ *                 as published by the Free Software Foundation, either version
+ *                 3 of the License, or (at your option) any later version.
+ *
+ *                 Vinifera is distributed in the hope that it will be
+ *                 useful, but WITHOUT ANY WARRANTY; without even the implied
+ *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ *                 PURPOSE. See the GNU General Public License for more details.
+ *
+ *                 You should have received a copy of the GNU General Public
+ *                 License along with this program.
+ *                 If not, see <http://www.gnu.org/licenses/>.
+ *
+ ******************************************************************************/
+#include "resource.h"
+#include "vinifera_gitinfo.h"
+
+#pragma code_page(65001)
+
+LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 0,1,0,0
+ PRODUCTVERSION 0,1,0,0
+ FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
+#ifdef _DEBUG
+ FILEFLAGS VS_FF_DEBUG
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS VOS__WINDOWS32
+#ifdef BUILD_DLL
+ FILETYPE VFT_DLL
+#else
+ FILETYPE VFT_APP
+#endif
+ FILESUBTYPE VFT2_UNKNOWN
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "CompanyName", "The Vinifera Developers\0"
+            VALUE "FileDescription", "Vinifera Engine Extension for Tiberian Sun\0"
+            VALUE "FileVersion", "0.1.0.0\0"
+            VALUE "InternalName", "Vinifera\0"
+            VALUE "LegalCopyright", "© 2025 The Vinifera Developers\0"
+            VALUE "OriginalFilename", "VINIFERA.DLL\0"
+            VALUE "ProductName", "Vinifera\0"
+            VALUE "ProductVersion", "0.1.0.0 (" VINIFERA_GIT_HASH_SHORT ")\0"
+            VALUE "SpecialBuild", VER_SPECIALBUILD_STR
+            VALUE "PrivateBuild", VINIFERA_GIT_VERSION_STRING
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1252
+    END
+END

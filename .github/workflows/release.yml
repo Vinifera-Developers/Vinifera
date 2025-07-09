@@ -1,0 +1,133 @@
+#
+# GitHub action to build a release version.
+#
+
+name: Release
+
+# Note: This is performed "only" on the master branch of the repository!
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release_build:
+    name: Release
+    if: github.ref == 'refs/heads/master'
+    strategy:
+      fail-fast: false
+    runs-on: windows-latest
+    steps:
+        
+      - name: Clone Repository
+        if:   ${{ steps.vars.outputs.GHA_REPO_ALIVE }} == 'true'
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+        
+      - name: Checkout Files
+        uses: actions/checkout@v4
+        with:
+          repository: Vinifera-Developers/Vinifera-Files
+          path: vinifera-files
+        
+      - name: Set Variables
+        id: vars
+        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
+      - name: Install Dependencies
+        run: |
+          Invoke-WebRequest -Uri https://github.com/ninja-build/ninja/releases/download/v1.10.1/ninja-win.zip -OutFile $Env:TEMP\ninja-win.zip
+          Expand-Archive $Env:TEMP\ninja-win.zip -DestinationPath $Env:TEMP\ninja
+          echo "$Env:TEMP\ninja" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          
+      - uses: ilammy/msvc-dev-cmd@v1.10.0
+        with:
+          arch: x86
+          
+      - name: Configure Project
+        run: |
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -B build -DRELEASE=ON
+      
+      - name: Build Project
+        run: |
+          cmake --build build --config RelWithDebInfo
+      
+      - name: Copy Binaries
+        shell: bash
+        run: |
+          mkdir artifact
+          mkdir artifact/Movies
+          ls -p | grep -v /
+          cp ./build/Vinifera.dll ./artifact/Vinifera.dll
+          cp ./build/Vinifera.pdb ./artifact/Vinifera.pdb
+          cp ./build/LaunchVinifera.exe ./artifact/LaunchVinifera.exe
+          cp ./TSpp/pdb/Game.pdb ./artifact/Game.pdb
+          cp ./TSpp/edb/Game.edb ./artifact/Game.edb
+          cp ./vinifera-files/files/VINIFERA.VQA ./artifact/Movies/VINIFERA.VQA
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vinifera-release-${{ steps.vars.outputs.sha_short }}
+          path: artifact
+
+  release_build_ts_client:
+    name: Release (TS-Client)
+    if: github.ref == 'refs/heads/master'
+    strategy:
+      fail-fast: false
+    runs-on: windows-latest
+    steps:
+        
+      - name: Clone Repository
+        if:   ${{ steps.vars.outputs.GHA_REPO_ALIVE }} == 'true'
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+        
+      - name: Checkout Files
+        uses: actions/checkout@v4
+        with:
+          repository: Vinifera-Developers/Vinifera-Files
+          path: vinifera-files
+        
+      - name: Set Variables
+        id: vars
+        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
+      - name: Install Dependencies
+        run: |
+          Invoke-WebRequest -Uri https://github.com/ninja-build/ninja/releases/download/v1.10.1/ninja-win.zip -OutFile $Env:TEMP\ninja-win.zip
+          Expand-Archive $Env:TEMP\ninja-win.zip -DestinationPath $Env:TEMP\ninja
+          echo "$Env:TEMP\ninja" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          
+      - uses: ilammy/msvc-dev-cmd@v1.10.0
+        with:
+          arch: x86
+          
+      - name: Configure Project
+        run: |
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -B build -DRELEASE=ON -DOPTION_TS_CLIENT_BUILD=ON
+      
+      - name: Build Project
+        run: |
+          cmake --build build --config RelWithDebInfo
+      
+      - name: Copy Binaries
+        shell: bash
+        run: |
+          mkdir artifact
+          mkdir artifact/Movies
+          ls -p | grep -v /
+          cp ./build/Vinifera.dll ./artifact/Vinifera.dll
+          cp ./build/Vinifera.pdb ./artifact/Vinifera.pdb
+          cp ./build/LaunchVinifera.exe ./artifact/LaunchVinifera.dat
+          cp ./TSpp/pdb/Game.pdb ./artifact/Game.pdb
+          cp ./TSpp/edb/Game.edb ./artifact/Game.edb
+          cp ./vinifera-files/files/VINIFERA.VQA ./artifact/Movies/VINIFERA.VQA
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vinifera-release-${{ steps.vars.outputs.sha_short }}-ts_client
+          path: artifact
