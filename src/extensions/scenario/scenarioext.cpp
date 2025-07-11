@@ -982,7 +982,7 @@ static int Scan_Place_Object(ObjectClass *obj, Cell cell, int min_dist = 1, int 
         techno = Map[cell].Cell_Techno();
         if (!techno || (techno->RTTI == RTTI_INFANTRY &&
             obj->RTTI == RTTI_INFANTRY)) {
-            Coordinate coord = Cell_Coord(newcell, true);
+            Coordinate coord = cell.As_Coord();
             coord.Z = Map.Get_Height_GL(coord);
             if (obj->Unlimbo(coord, DIR_N)) {
                 return true;
@@ -1559,10 +1559,21 @@ void ScenarioClassExtension::Create_Units(bool official)
             TechnoTypeClass *technotype = nullptr;
 
             int inf_percent = 50;
-            int unit_percent = 50;
+            int unit_percent = 100 - inf_percent;
 
-            int inf_count = (Session.Options.UnitCount * inf_percent) / 100;
-            int unit_count = (Session.Options.UnitCount * unit_percent) / 100;
+            int inf_count = (tot_units * inf_percent) / 100;
+            int unit_count = (tot_units * unit_percent) / 100;
+
+            /**
+             *  Ensure that rounding errors don't result in the player getting fewer units than promised.
+             */
+            if (inf_count + unit_count < tot_units) {
+                if (Percent_Chance(inf_percent)) {
+                    inf_count += tot_units - (inf_count + unit_count);
+                } else {
+                    unit_count += tot_units - (inf_count + unit_count);
+                }
+            }
 
             /**
              *  Make sure we place 3 infantry per cell.
