@@ -137,4 +137,9 @@ public:
      *  Determines whether this building is able to claim nearby walls pre-placed on maps as belonging to the owner's house.
      */
     bool IsWallOwner;
+
+    /**
+     *  If this is a gate, should it always be drawn normally, as opposed to being drawn on the ground when open?
+     */
+    bool IsVerticalGate;
 };
