@@ -49,7 +49,7 @@ This page lists the history of changes across stable Vinifera releases and also 
 
 ## Changelog
 
-### 0.1.0.1
+### 0.1.1.0
 
 :::{dropdown} Click to show
 
