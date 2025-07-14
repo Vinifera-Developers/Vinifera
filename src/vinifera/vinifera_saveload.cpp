@@ -352,7 +352,7 @@ bool Vinifera_Put_All(IStream *pStm, bool save_net)
     if (FAILED(Vinifera_Save_Vector(pStm, Empulses, "Empulses"))) { return false; }
     if (FAILED(Vinifera_Save_Vector(pStm, SuperWeaponTypes, "SuperWeaponTypes"))) { return false; }
     if (FAILED(Vinifera_Save_Vector(pStm, Supers, "SuperWeapons"))) { return false; }
-    if (FAILED(Vinifera_Save_Vector(pStm, TerrainTypes, "TerrianTypes"))) { return false; }
+    if (FAILED(Vinifera_Save_Vector(pStm, TerrainTypes, "TerrainTypes"))) { return false; }
     if (FAILED(Vinifera_Save_Vector(pStm, Terrains, "Terrains"))) { return false; }
     if (FAILED(Vinifera_Save_Vector(pStm, FoggedObjects, "FoggedObjects"))) { return false; }
     if (FAILED(Vinifera_Save_Vector(pStm, AlphaShapes, "AlphaShapes"))) { return false; }
