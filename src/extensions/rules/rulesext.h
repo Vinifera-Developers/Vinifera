@@ -71,6 +71,8 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
         bool Tiberiums(CCINIClass &ini);
         bool PrerequisiteGroups(CCINIClass &ini);
 
+        static bool Set_Voxel_Light_Angle(float azimuth, float elevation, float offset);
+
     private:
         void Check();
         void Fixups(CCINIClass &ini);
@@ -146,4 +148,19 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
          *  the multiple factory bonus on an object's build time.
          */
         int MultipleFactoryCap;
+
+        /**
+         *  Horizontal direction of the light source.
+         */
+        float VoxelLightAzimuth;
+
+        /**
+         *  Vertical angle of the light source.
+         */
+        float VoxelLightElevation;
+
+        /**
+         *  How much the shadow is offset from the unit.
+         */
+        float VoxelShadowOffset;
 };

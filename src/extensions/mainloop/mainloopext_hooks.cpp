@@ -44,6 +44,8 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "rulesext.h"
+#include "voxelinit.h"
 
 
 /**
@@ -277,6 +279,17 @@ static bool Main_Loop_Intercept()
         }
 
     }
+
+#if false // demo day-night light cycle loop
+    static float light_angle = 0;
+    static CDTimerClass<SystemTimerClass> light_timer = 5;
+    if (light_timer == 0) {
+        light_timer = 5;
+        light_angle += DEG_TO_RADF(3);
+        if (light_angle >= DEG_TO_RADF(360)) light_angle -= DEG_TO_RADF(360);
+        RulesClassExtension::Set_Voxel_Light_Angle(RuleExtension->VoxelLightAzimuth, light_angle, 6);
+    }
+#endif
 
     return ret;
 }
