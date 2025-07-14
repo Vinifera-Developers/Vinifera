@@ -1232,7 +1232,8 @@ void ScenarioClassExtension::Create_Units(bool official)
      * 
      *  @author: CCHyper
      */
-    const unsigned int PLACEMENT_DISTANCE = 3;
+    const unsigned int MIN_PLACEMENT_DISTANCE = 3;
+    const unsigned int MAX_PLACEMENT_DISTANCE = 32;
 
     int tot_units = Session.Options.UnitCount;
     if (Session.Options.Bases) {
@@ -1591,9 +1592,9 @@ void ScenarioClassExtension::Create_Units(bool official)
                      *  If all cells are full, we can stop placing units. This
                      *  stops any run away cases with Scan_Place_Object.
                      */
-                    if (Are_Starting_Cells_Full(centroid, PLACEMENT_DISTANCE)) {
-                        break;
-                    }
+                    //if (Are_Starting_Cells_Full(centroid, PLACEMENT_DISTANCE)) { // disabled because we wanna keep placing units outwards
+                    //    break;
+                    //}
 
                     technotype = available_units[Random_Pick(0, available_units.Count()-1)];
                     if (!technotype) {
@@ -1607,7 +1608,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                     obj = reinterpret_cast<TechnoClass *>(technotype->Create_One_Of(hptr));
                     if (obj) {
 
-                        if (Vinifera_Scan_Place_Object(obj, centroid, PLACEMENT_DISTANCE, PLACEMENT_DISTANCE, true)) {
+                        if (Vinifera_Scan_Place_Object(obj, centroid, MIN_PLACEMENT_DISTANCE, MAX_PLACEMENT_DISTANCE, true)) {
 
                             DEBUG_INFO("  House %s deployed object %s at %d,%d\n",
                                 hptr->Class->Name(), obj->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
@@ -1643,9 +1644,9 @@ void ScenarioClassExtension::Create_Units(bool official)
                      *  If all cells are full, we can stop placing units. This
                      *  stops any run away cases with Scan_Place_Object.
                      */
-                    if (Are_Starting_Cells_Full(centroid, PLACEMENT_DISTANCE)) {
-                        break;
-                    }
+                    //if (Are_Starting_Cells_Full(centroid, PLACEMENT_DISTANCE)) {
+                    //    break;
+                    //}
 
                     technotype = available_infantry[Random_Pick(0, available_infantry.Count()-1)];
                     if (!technotype) {
@@ -1659,7 +1660,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                     obj = reinterpret_cast<TechnoClass *>(technotype->Create_One_Of(hptr));
                     if (obj) {
 
-                        if (Vinifera_Scan_Place_Object(obj, centroid, PLACEMENT_DISTANCE, PLACEMENT_DISTANCE, true)) {
+                        if (Vinifera_Scan_Place_Object(obj, centroid, MIN_PLACEMENT_DISTANCE, MAX_PLACEMENT_DISTANCE, true)) {
 
                             DEBUG_INFO("  House %s deployed object %s at %d,%d\n",
                                 hptr->Class->Name(), obj->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);

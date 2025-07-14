@@ -320,9 +320,10 @@ int Scan_Place_Object_Proxy(ObjectClass* obj, Cell const& cell)
      * 
      *  @author: CCHyper
      */
-    const unsigned int PLACEMENT_DISTANCE = 3;
+    const unsigned int MIN_PLACEMENT_DISTANCE = 3;
+    const unsigned int MAX_PLACEMENT_DISTANCE = 32;
 
-    return Vinifera_Scan_Place_Object(obj, cell, PLACEMENT_DISTANCE, PLACEMENT_DISTANCE, true);
+    return Vinifera_Scan_Place_Object(obj, cell, MIN_PLACEMENT_DISTANCE, MAX_PLACEMENT_DISTANCE, true);
 }
 
 
