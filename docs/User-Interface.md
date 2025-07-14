@@ -25,6 +25,8 @@ In `UI.INI`:
 CenterSidebarButtonsOnRadar=no  ; boolean, should the repair, etc. buttons be centered to the radar, instead of the tab buttons/cameo strips?
 ```
 
+- When `NewSidebar=yes` is set, the game loads an additional mix file `SIDECT##.MIX`, where `##` is `side index + 1`. Files found in `SIDECT##.MIX` override files from other side mixes.
+
 - Sample graphics for the new sidebar are available [here](https://github.com/Vinifera-Developers/Vinifera-Files/tree/master/files).
 
 ### Cameo Sorting
