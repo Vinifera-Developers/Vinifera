@@ -304,6 +304,29 @@ DECLARE_PATCH(_Do_Lose_Skip_MPlayer_Score_Screen_Patch)
 
 
 /**
+ *  Proxy for a Scan_Place_Object call in vanilla code so
+ *  that we can force RA2-like unit placement.
+ *
+ *  @author: ZivDero
+ */
+int Scan_Place_Object_Proxy(ObjectClass* obj, Cell const& cell)
+{
+    /**
+     *  #issue-338
+     * 
+     *  Change the starting unit formation to be like Red Alert 2.
+     * 
+     *  This sets the desired placement distance from the base center cell.
+     * 
+     *  @author: CCHyper
+     */
+    const unsigned int PLACEMENT_DISTANCE = 3;
+
+    return Vinifera_Scan_Place_Object(obj, cell, PLACEMENT_DISTANCE, PLACEMENT_DISTANCE, true);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void ScenarioClassExtension_Hooks()
@@ -361,5 +384,12 @@ void ScenarioClassExtension_Hooks()
     Patch_Jump(0x005DC0A0, &_Fill_In_Data_Home_Cell_Patch);
     Patch_Jump(0x00673330, &_Waypoint_From_Name);
     Patch_Jump(0x006732B0, &_Waypoint_To_Name);
-    // 0047A96C
+
+    /**
+     *  Patch vanilla Create_Units so that TS CLient builds get new unit placement.
+     *
+     *  @author: ZivDero
+     */
+    Patch_Call(0x005DED81, &Scan_Place_Object_Proxy);
+    Patch_Jump(0x005DEE64, 0x005DEE91); // Skip calling Scatter on placed units, let them stay in their spots.
 }

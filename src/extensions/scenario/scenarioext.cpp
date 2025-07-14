@@ -965,7 +965,7 @@ static Cell Clip_Move(Cell cell, FacingType facing, int dist)
  * 
  *  #issue-338 - Adds "min_dist" argument.
  */
-static int Scan_Place_Object(ObjectClass *obj, Cell cell, int min_dist = 1, int max_dist = 31, bool no_scatter = false)
+int Vinifera_Scan_Place_Object(ObjectClass *obj, Cell cell, int min_dist = 1, int max_dist = 31, bool no_scatter = false)
 {
     int dist;               // for object placement
     FacingType rot;         // for object placement
@@ -1459,7 +1459,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                  *  Create a construction yard (decided from the base unit).
                  */
                 obj = new BuildingClass(Rule->BaseUnit->DeploysInto, hptr);
-                if (obj->Unlimbo(Cell_Coord(centroid, true), DIR_N) || Scan_Place_Object(obj, centroid)) {
+                if (obj->Unlimbo(Cell_Coord(centroid, true), DIR_N) || Vinifera_Scan_Place_Object(obj, centroid)) {
                     if (obj != nullptr) {
                         DEBUG_INFO("  Construction yard %s placed at %d,%d.\n",
                             obj->Class_Of()->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
@@ -1514,7 +1514,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                  *    - Attach a flag to it for capture-the-flag mode.
                  */
                 obj = new UnitClass(Rule->BaseUnit, hptr);
-                if (obj->Unlimbo(Cell_Coord(centroid, true), DIR_N) || Scan_Place_Object(obj, centroid)) {
+                if (obj->Unlimbo(Cell_Coord(centroid, true), DIR_N) || Vinifera_Scan_Place_Object(obj, centroid)) {
                     if (obj != nullptr) {
                         DEBUG_INFO("  Base unit %s placed at %d,%d.\n",
                             obj->Class_Of()->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
@@ -1607,7 +1607,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                     obj = reinterpret_cast<TechnoClass *>(technotype->Create_One_Of(hptr));
                     if (obj) {
 
-                        if (Scan_Place_Object(obj, centroid, PLACEMENT_DISTANCE, PLACEMENT_DISTANCE, true)) {
+                        if (Vinifera_Scan_Place_Object(obj, centroid, PLACEMENT_DISTANCE, PLACEMENT_DISTANCE, true)) {
 
                             DEBUG_INFO("  House %s deployed object %s at %d,%d\n",
                                 hptr->Class->Name(), obj->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
@@ -1659,7 +1659,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                     obj = reinterpret_cast<TechnoClass *>(technotype->Create_One_Of(hptr));
                     if (obj) {
 
-                        if (Scan_Place_Object(obj, centroid, PLACEMENT_DISTANCE, PLACEMENT_DISTANCE, true)) {
+                        if (Vinifera_Scan_Place_Object(obj, centroid, PLACEMENT_DISTANCE, PLACEMENT_DISTANCE, true)) {
 
                             DEBUG_INFO("  House %s deployed object %s at %d,%d\n",
                                 hptr->Class->Name(), obj->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);

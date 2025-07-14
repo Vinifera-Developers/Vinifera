@@ -95,3 +95,5 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
         RGBStruct ScorePlayerColor;
         RGBStruct ScoreEnemyColor;
 };
+
+int Vinifera_Scan_Place_Object(ObjectClass* obj, Cell cell, int min_dist, int max_dist, bool no_scatter);
