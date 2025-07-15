@@ -51,12 +51,12 @@ TActionClass::ActionDescriptionStruct TActionClassExtension::ExtActionDescriptio
     { "Give Credits", "Gives or removes credits from the specified house. A positive amount gives money, a negative amount subtracts it." },
     { "Enable Short Game", "Enables the Short Game mode. Players will lose if all buildings are destroyed." },
     { "Disable Short Game", "Disables the Short Game mode. Players can continue playing even after all buildings are destroyed." },
-    { "Unused Action", "This action does nothing. Originally used to display the difficulty in ts-patches. Available for reuse." },
+    { "Unused Action", "This action does nothing. Originally used to display the difficulty in ts-patches." },
     { "Blow Up House", "Instantly destroys all buildings and units of the specified house and marks them as defeated." },
     { "Make Elite", "All units and buildings attached to this trigger will be promoted to elite status." },
     { "Enable Ally Reveal", "Enables the Ally Reveal feature, allowing allied players to see each other's explored areas." },
     { "Disable Ally Reveal", "Disables the Ally Reveal feature, hiding the fog of war even between allies." },
-    { "Create Autosave", "Schedules an autosave to be created on the next game frame. (Currently unimplemented.)" },
+    { "Create Autosave", "Schedules an autosave to be created on the next game frame." },
     { "Delete Attached Objects", "Deletes all units and structures on the map that are linked to this trigger silently." },
     { "All Assign Mission", "Forces all units owned by the trigger's house to begin the specified mission (e.g., hunt, move)." },
 };
@@ -209,25 +209,22 @@ bool TActionClassExtension::Is_Vinifera_TAction(TActionType type)
  *  Helper info for writing new actions.
  *
  *  TActionClass::Data                  = First Param (PARAM1)
- *  TActionClass::Bounds.X              = Second Param (PARAM2)
- *  TActionClass::Bounds.Y              = Third Param (PARAM3)
- *  TActionClass::Bounds.W              = Fourth Param (PARAM4)
- *  TActionClass::Bounds.H              = Fifth Param (PARAM5)
+ *  TActionClass::TriggerRect.X         = Second Param (PARAM2)
+ *  TActionClass::TriggerRect.Y         = Third Param (PARAM3)
+ *  TActionClass::TriggerRect.W         = Fourth Param (PARAM4)
+ *  TActionClass::TriggerRect.H         = Fifth Param (PARAM5)
  *
  *  (PARAM6) (OPTIONAL)
- *  if TActionFormatType == 4
+ *  if NeedCode == 4
  *    TActionClass::Data (overwrites PARAM1)
  *  else
- *    TActionClass::Location
+ *    TActionClass::EffectLocation
  *
  *
  *  Example action line from a scenario file;
  *
  *  [Actions]
- *  NAME = [Action Count], [TActionType], [TActionFormatType], [PARAM1], [PARAM2], [PARAM3], [PARAM4], [PARAM5], [PARAM6:OPTIONAL]
- *
- *  To allow the use of TActionClass::Data (PARAM1), you must have the TActionFormatType set
- *  to "0", otherwise this param is ignored!
+ *  NAME = [Action Count], [TActionType], [NeedCode], [PARAM1], [PARAM2], [PARAM3], [PARAM4], [PARAM5], [PARAM6:OPTIONAL]
  *
  *
  *  For producing FinalSun [Action] entries;
