@@ -101,19 +101,19 @@ NAME = [Action Count], [TActionType], [NeedCode], [PARAM1], [PARAM2], [PARAM3], 
 | 501      | Give Credits             |              |                  |            |            |            |            |            |
 |          | Gives or removes credits from the specified house. A positive amount gives money, a negative amount subtracts it. | Other (0)   | House (#)        | Credits    | *unused*   | *unused*   | *unused*   | *unused*   |
 | 502      | Enable Short Game        |              |                  |            |            |            |            |            |
-|          | Enables the Short Game mode. Players will lose if all buildings are destroyed. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
+|          | Enables Short Game. Players will lose if all buildings are destroyed. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
 | 503      | Disable Short Game       |              |                  |            |            |            |            |            |
-|          | Disables the Short Game mode. Players can continue playing even after all buildings are destroyed. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
+|          | Disables Short Game. Players can continue playing even after all buildings are destroyed. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
 | 504      | Unused Action            |              |                  |            |            |            |            |            |
 |          | This action does nothing. Originally used to display the difficulty in ts-patches. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
 | 505      | Blow Up House            |              |                  |            |            |            |            |            |
-|          | Instantly destroys all buildings and units of the specified house and marks them as defeated. | Other (0)   | House (#)        | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
+|          | Instantly destroys all technos of the specified house and marks them as defeated. | Other (0)   | House (#)        | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
 | 506      | Make Elite               |              |                  |            |            |            |            |            |
-|          | All units and buildings attached to this trigger will be promoted to elite status. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
+|          | All utechnos attached to this trigger will be promoted to elite status. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
 | 507      | Enable Ally Reveal       |              |                  |            |            |            |            |            |
-|          | Enables the Ally Reveal feature, allowing allied players to see each other's explored areas. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
+|          | Enables Ally Reveal, allowing allied players to see each other's explored areas. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
 | 508      | Disable Ally Reveal      |              |                  |            |            |            |            |            |
-|          | Disables the Ally Reveal feature, hiding the fog of war even between allies. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
+|          | Disables Ally Reveal, stopping allied players from seeing each other's explored areas. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
 | 509      | Create Autosave          |              |                  |            |            |            |            |            |
 |          | Schedules an autosave to be created on the next game frame. (Currently unimplemented, handled by ts-patches) | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
 | 510      | Delete Attached Objects  |              |                  |            |            |            |            |            |
