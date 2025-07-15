@@ -77,15 +77,15 @@ ScoreEnemyColor=250,28,28    ; color in R,G,B, color of the enemy's score bars.
 
 ### NeedCodes
 
-- Every trigger action has a NeedCode associated with it, parsed from the 3rd field of the action (P1). The NeedCode dictates how some of the data used by the trigger action is parsed. Below is a table containing all valid NeedCodes.
+- Every trigger action has a NeedCode associated with it. The NeedCode dictates how some of the data used by the trigger action is parsed. Below is a table containing all valid NeedCodes.
 
-|    *NeedCode*    | *Numeric Value* |   Meaning                                                          |
-|-----------------:|:---------------:|:-------------------------------------------------------------------|
-| NeedOther        | 0               | PARAM1 is parsed as a number                                       |
-| NeedTeam         | 1               | PARAM1 is parsed as a team name                                    |
-| NeedTrigger      | 2               | PARAM1 is parsed as a trigger name                                 |
-| NeedTag          | 3               | PARAM1 is parsed as a tag name                                     |
-| NeedTeamAndTime  | 4               | PARAM1 is parsed as a team name, PARAM6 (P7) is parsed as a number |
+|   **NeedCode**   | **Numeric Value** |   **Meaning**                                                      |
+|-----------------:|:-----------------:|:-------------------------------------------------------------------|
+| NeedOther        | 0                 | PARAM1 is parsed as a number, PARAM6 is parsed as a waypoint       |
+| NeedTeam         | 1                 | PARAM1 is parsed as a team name, PARAM6 is parsed as a waypoint    |
+| NeedTrigger      | 2                 | PARAM1 is parsed as a trigger name, PARAM6 is parsed as a waypoint |
+| NeedTag          | 3                 | PARAM1 is parsed as a tag name, PARAM6 is parsed as a waypoint     |
+| NeedTeamAndTime  | 4                 | PARAM1 is parsed as a team name, PARAM6 is parsed as a number      |
 
 - A trigger action is parsed from the map as follows:
 
@@ -115,7 +115,7 @@ NAME = [Action Count], [TActionType], [NeedCode], [PARAM1], [PARAM2], [PARAM3], 
 | 508      | Disable Ally Reveal      |              |                  |            |            |            |            |            |
 |          | Disables Ally Reveal, stopping allied players from seeing each other's explored areas. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
 | 509      | Create Autosave          |              |                  |            |            |            |            |            |
-|          | Schedules an autosave to be created on the next game frame. (Currently unimplemented, handled by ts-patches) | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
+|          | Schedules an autosave to be created on the next game frame. (Currently not implemented, handled by ts-patches) | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
 | 510      | Delete Attached Objects  |              |                  |            |            |            |            |            |
 |          | Deletes all units and structures on the map that are linked to this trigger silently. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
 | 511      | All Assign Mission       |              |                  |            |            |            |            |            |
