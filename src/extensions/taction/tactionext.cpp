@@ -109,8 +109,8 @@ bool TActionClassExtension::Execute(TActionClass& taction, HouseClass* house, Ob
 {
     bool success = false;
 
-    #define DISPATCH(a)	case TACTION_ ## a: success = Do_ ## a (taction, house, object, trig, cell); break;
-    #define EXT_DISPATCH(a)	case EXT_TACTION_ ## a: success = Do_ ## a (taction, house, object, trig, cell); break;
+    #define DISPATCH(a) case TACTION_ ## a: success = Do_ ## a (taction, house, object, trig, cell); break;
+    #define EXT_DISPATCH(a) case EXT_TACTION_ ## a: success = Do_ ## a (taction, house, object, trig, cell); break;
 
     // warning C4063: case '#' is not a valid value for switch of enum 'TActionType'
     #pragma warning(push)
