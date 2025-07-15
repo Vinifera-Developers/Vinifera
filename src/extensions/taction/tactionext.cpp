@@ -33,6 +33,7 @@
 #include "wwcrc.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "houseext.h"
 #include "housetype.h"
 #include "rules.h"
 #include "scenario.h"
@@ -412,7 +413,7 @@ bool TActionClassExtension::Do_PLAY_SOUND_RANDOM(TActionClass& taction, HouseCla
  */
 bool TActionClassExtension::Do_GIVE_CREDITS(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
-    HouseClass* hptr = HouseClass::As_Pointer(taction.Data.House);
+    HouseClass* hptr = HouseClassExtension::House_From_HousesType(taction.Data.House);
 
     /**
      *  Give credits to the house.
@@ -464,7 +465,7 @@ bool TActionClassExtension::Do_DISABLE_SHORT_GAME(TActionClass& taction, HouseCl
  */
 bool TActionClassExtension::Do_BLOWUP_HOUSE(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
-    HouseClass* hptr = HouseClass::As_Pointer(taction.Data.House);
+    HouseClass* hptr = HouseClassExtension::House_From_HousesType(taction.Data.House);
 
     /**
      *  Blow the house up and mark the player as defeated.

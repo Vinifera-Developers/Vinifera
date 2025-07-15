@@ -47,6 +47,7 @@
 #include "vinifera_saveload.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "houseext.h"
 
 
 /**
@@ -1419,6 +1420,7 @@ void ScenarioClassExtension::Create_Units(bool official)
          *  Assign the center of this house to the waypoint location.
          */
         hptr->Center = centroid.As_Coord();
+        Extension::Fetch(hptr)->Set_Spawn_Point(hptr->Center);
         DEBUG_INFO("  Setting house center to %d,%d\n", centroid.X, centroid.Y);
 
         /**
