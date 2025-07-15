@@ -146,6 +146,7 @@ bool TActionClassExtension::Execute(TActionClass& taction, HouseClass* house, Ob
          */
     case EXT_TACTION_UNUSED1:
         success = true;
+        break;
 
         /**
          *  Unexpected TActionType.
