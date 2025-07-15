@@ -45,6 +45,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "houseext.h"
 #include "kamikazetracker.h"
 #include "mouse.h"
 #include "vinifera_globals.h"
@@ -327,6 +328,28 @@ int Scan_Place_Object_Proxy(ObjectClass* obj, Cell const& cell)
 
 
 /**
+ *  Save the waypoint at which the house was spawned
+ *  so that we can later fetch it using this number.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_Create_Units_Save_Spawn_Waypoint_Patch)
+{
+    GET_REGISTER_STATIC(HouseClass*, house, edi);
+    static bool bases;
+
+    _asm pushad
+
+    Extension::Fetch(house)->Set_Spawn_Point(house->Center);
+    bases = Session.Options.Bases;
+
+    _asm popad
+    _asm mov al, bases
+    JMP_REG(ebx, 0x005DEBFF);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void ScenarioClassExtension_Hooks()
@@ -392,4 +415,6 @@ void ScenarioClassExtension_Hooks()
      */
     Patch_Call(0x005DED81, &Scan_Place_Object_Proxy);
     Patch_Jump(0x005DEE64, 0x005DEE91); // Skip calling Scatter on placed units, let them stay in their spots.
+
+    Patch_Jump(0x005DEBFA, &_Create_Units_Save_Spawn_Waypoint_Patch);
 }
