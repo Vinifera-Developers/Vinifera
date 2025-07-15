@@ -202,6 +202,8 @@ typedef enum ExtTActionType
     EXT_TACTION_CREATE_AUTOSAVE,
     EXT_TACTION_DELETE_OBJECT,
     EXT_TACTION_ALL_ASSIGN_MISSION,
+    EXT_TACTION_MAKE_ALLY_ONE_WAY,
+    EXT_TACTION_MAKE_ENEMY_ONE_WAY,
 
     /**
      *  The new total ExtTActionType count.

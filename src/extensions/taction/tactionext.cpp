@@ -59,6 +59,8 @@ TActionClass::ActionDescriptionStruct TActionClassExtension::ExtActionDescriptio
     { "Create Autosave", "Schedules an autosave to be created on the next game frame." },
     { "Delete Attached Objects", "Deletes all units and structures on the map that are linked to this trigger silently." },
     { "All Assign Mission", "Forces all units owned by the trigger's house to begin the specified mission (e.g., hunt, move)." },
+    { "Make Ally (One-Way)", "Cause this trigger's house to make a one-sided alliance with the specified house." },
+    { "Make Enemy (One-Way)", "Cause this trigger's house to unilaterally declare war on the specified house." },
 };
 
 
@@ -140,6 +142,8 @@ bool TActionClassExtension::Execute(TActionClass& taction, HouseClass* house, Ob
         EXT_DISPATCH(CREATE_AUTOSAVE);
         EXT_DISPATCH(DELETE_OBJECT);
         EXT_DISPATCH(ALL_ASSIGN_MISSION);
+        EXT_DISPATCH(MAKE_ALLY_ONE_WAY);
+        EXT_DISPATCH(MAKE_ENEMY_ONE_WAY);
 
         /**
          *  Used to print the current difficulty in ts-patches, available to be repurposed.
@@ -583,5 +587,49 @@ bool TActionClassExtension::Do_ALL_ASSIGN_MISSION(TActionClass& taction, HouseCl
         }
     }
 
+    return true;
+}
+
+
+/**
+ *  Cause this trigger's house to make a one-sided alliance with the specified house.
+ *
+ *  @author: ZivDero, based on ts-patches implementation by Rampastring
+ */
+bool TActionClassExtension::Do_MAKE_ALLY_ONE_WAY(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    if (taction.Data.House != HOUSE_NONE) {
+        HouseClass* house2 = HouseClassExtension::House_From_HousesType(taction.Data.House);
+
+        /**
+         *  We need to increment ScenarioInit to allow houses to ally even if
+         *  they would be the "last enemies" to each other in multiplayer
+         */
+        ScenarioInit++;
+        house->Make_Ally(house2);
+        ScenarioInit--;
+    }
+    return true;
+}
+
+
+/**
+ *  Cause this trigger's house to unilaterally declare war on the specified house.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_MAKE_ENEMY_ONE_WAY(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    if (taction.Data.House != HOUSE_NONE) {
+        HouseClass* house2 = HouseClassExtension::House_From_HousesType(taction.Data.House);
+
+        /**
+         *  We need to increment ScenarioInit to allow houses to ally even if
+         *  they would be the "last enemies" to each other in multiplayer
+         */
+        ScenarioInit++;
+        house->Make_Enemy(house2);
+        ScenarioInit--;
+    }
     return true;
 }
