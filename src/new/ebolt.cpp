@@ -159,7 +159,7 @@ void EBoltClass::Draw_It()
  * 
  *  @author: CCHyper
  */
-void EBoltClass::Create(Coordinate &start, Coordinate &end, int z_adjust)
+void EBoltClass::Create(Coord &start, Coord &end, int z_adjust)
 {
     StartCoord = start;
     EndCoord = end;
@@ -181,9 +181,9 @@ void EBoltClass::Create(Coordinate &start, Coordinate &end, int z_adjust)
  * 
  *  @author: CCHyper
  */
-Coordinate EBoltClass::Source_Coord() const
+Coord EBoltClass::Source_Coord() const
 {
-    Coordinate coord;
+    Coord coord;
     if (Source) {
         coord = Source->Fire_Coord(WeaponSlot);
     }
@@ -248,7 +248,7 @@ void EBoltClass::Draw_All()
         /**
          *  Update the source coord.
          */
-        Coordinate coord = ebolt->Source_Coord();
+        Coord coord = ebolt->Source_Coord();
         if (coord != COORD_NONE) {
             ebolt->StartCoord = coord;
         }
@@ -286,12 +286,12 @@ void EBoltClass::Clear_All()
  * 
  *  @author: tomsons26, CCHyper
  */
-void EBoltClass::Plot_Bolt(Coordinate &start, Coordinate &end)
+void EBoltClass::Plot_Bolt(Coord &start, Coord &end)
 {
     struct EBoltPlotStruct
     {
-        Coordinate StartCoords[EBOLT_DEFAULT_SEGMENT_LINES];
-        Coordinate EndCoords[EBOLT_DEFAULT_SEGMENT_LINES];
+        Coord StartCoords[EBOLT_DEFAULT_SEGMENT_LINES];
+        Coord EndCoords[EBOLT_DEFAULT_SEGMENT_LINES];
         int Distance;
         int Deviation;
         int StartZ;
@@ -301,13 +301,13 @@ void EBoltClass::Plot_Bolt(Coordinate &start, Coordinate &end)
         bool operator!=(const EBoltPlotStruct &that) const { return std::memcmp(this, &that, sizeof(EBoltPlotStruct)) != 0; }
     };
 
-    int SEGEMENT_COORDS_SIZE = sizeof(Coordinate)*EBOLT_DEFAULT_SEGMENT_LINES;
+    int SEGEMENT_COORDS_SIZE = sizeof(Coord)*EBOLT_DEFAULT_SEGMENT_LINES;
 
     VectorClass<EBoltPlotStruct> ebolt_plots(LineSegmentCount);
 
-    Coordinate start_coords[EBOLT_DEFAULT_SEGMENT_LINES];
-    Coordinate end_coords[EBOLT_DEFAULT_SEGMENT_LINES];
-    Coordinate working_coords[EBOLT_DEFAULT_SEGMENT_LINES];
+    Coord start_coords[EBOLT_DEFAULT_SEGMENT_LINES];
+    Coord end_coords[EBOLT_DEFAULT_SEGMENT_LINES];
+    Coord working_coords[EBOLT_DEFAULT_SEGMENT_LINES];
 
     int deviation_values[6];
 

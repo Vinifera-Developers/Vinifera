@@ -63,7 +63,7 @@
 DECLARE_EXTENDING_CLASS_AND_PAIR(AircraftClass)
 {
 public:
-    bool _Unlimbo(const Coordinate& coord, Dir256 dir);
+    bool _Unlimbo(const Coord& coord, Dir256 dir);
     bool _Cell_Seems_Ok(Cell& cell, bool strict) const;
 };
 
@@ -74,9 +74,9 @@ public:
  *  @author: 07/26/1994 JLB - Created.
  *           ZivDero - Adjustments for Tiberian Sun.
  */
-bool AircraftClassExt::_Unlimbo(const Coordinate& coord, Dir256 dir)
+bool AircraftClassExt::_Unlimbo(const Coord& coord, Dir256 dir)
 {
-    Coordinate adjusted_coord = coord;
+    Coord adjusted_coord = coord;
 
     const auto class_ext = Extension::Fetch(Class);
     const auto ext = Extension::Fetch(this);
@@ -182,7 +182,7 @@ bool AircraftClassExt::_Cell_Seems_Ok(Cell& cell, bool strict) const
     for (int index = 0; index < Foots.Count(); index++) {
         const FootClass* foot = Foots[index];
         if (foot && (!can_tote || foot != NavCom) && (strict || foot != this) && !foot->IsInLimbo) {
-            if (foot->IsDown && (Coord_Cell(foot->Coord) == cell || foot->NavCom == astarget)) {
+            if (foot->IsDown && (foot->Position.As_Cell() == cell || foot->NavCom == astarget)) {
                 return false;
             }
         }
@@ -280,7 +280,7 @@ DECLARE_PATCH(_AircraftClass_Mission_Unload_Transport_Detach_Sound_Patch)
          */
         technotypeext = Extension::Fetch(this_ptr->TClass);
         if (technotypeext->LeaveTransportSound != VOC_NONE) {
-            Static_Sound(technotypeext->LeaveTransportSound, this_ptr->Coord);
+            Static_Sound(technotypeext->LeaveTransportSound, this_ptr->Position);
         }
 
     }

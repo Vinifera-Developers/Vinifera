@@ -62,11 +62,11 @@ class ScenarioClassExt : public ScenarioClass
     public:
         Cell _Waypoint_CellClass(WaypointType wp) const { return ScenExtension->Waypoint_CellClass(wp); }
         CellClass *_Waypoint_CellClassPtr(WaypointType wp) const { return ScenExtension->Waypoint_CellClassPtr(wp); }
-        Coordinate _Waypoint_Coord(WaypointType wp) const { return ScenExtension->Waypoint_Coord(wp); }
-        Coordinate _Waypoint_Coord_Height(WaypointType wp) const { return ScenExtension->Waypoint_Coord_Height(wp); }
+        Coord _Waypoint_Coord(WaypointType wp) const { return ScenExtension->Waypoint_Coord(wp); }
+        Coord _Waypoint_Coord_Height(WaypointType wp) const { return ScenExtension->Waypoint_Coord_Height(wp); }
 
         void _Set_Waypoint_Cell(WaypointType wp, Cell cell) { ScenExtension->Set_Waypoint_Cell(wp, cell); }
-        void _Set_Waypoint_Coord(WaypointType wp, Coordinate &coord) { ScenExtension->Set_Waypoint_Coord(wp, coord); }
+        void _Set_Waypoint_Coord(WaypointType wp, Coord &coord) { ScenExtension->Set_Waypoint_Coord(wp, coord); }
 
         bool _Is_Waypoint_Valid(WaypointType wp) const { return ScenExtension->Is_Waypoint_Valid(wp); }
         void _Clear_Waypoint(WaypointType wp) { ScenExtension->Clear_Waypoint(wp); }
@@ -124,7 +124,7 @@ void Init_Home_Cell()
         Scen->Views[2] = Scen->Views[1];
         Scen->Views[3] = Scen->Views[2];
 
-        Coordinate home_coord = Cell_Coord(home_cell);
+        Coord home_coord = home_cell.As_Coord();
         home_coord.Z = Map.Get_Height_GL(home_coord);
 
         Map.RadarClass::Set_Tactical_Position(home_coord);

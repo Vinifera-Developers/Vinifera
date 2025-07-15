@@ -109,7 +109,7 @@ void AircraftTrackerClass::Fetch_Targets(CellClass* cellptr, int range)
 
     bool copied_regions[400] = {};
 
-    Cell cell = Coord_Cell(cellptr->Center_Coord());
+    Cell cell = cellptr->Center_Coord().As_Cell();
     int center_region = Get_Region(cell);
 
     for (int x = -region_range; x <= region_range; x++) {

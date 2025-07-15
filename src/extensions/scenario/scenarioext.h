@@ -57,11 +57,11 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
 
         Cell Waypoint_CellClass(WaypointType wp) const;
         CellClass * Waypoint_CellClassPtr(WaypointType wp) const;
-        Coordinate Waypoint_Coord(WaypointType wp) const;
-        Coordinate Waypoint_Coord_Height(WaypointType wp) const;
+        Coord Waypoint_Coord(WaypointType wp) const;
+        Coord Waypoint_Coord_Height(WaypointType wp) const;
 
         void Set_Waypoint_Cell(WaypointType wp, Cell &cell);
-        void Set_Waypoint_Coord(WaypointType wp, Coordinate &coord);
+        void Set_Waypoint_Coord(WaypointType wp, Coord &coord);
 
         bool Is_Waypoint_Valid(WaypointType wp) const;
         void Clear_Waypoint(WaypointType wp);

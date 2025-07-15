@@ -97,7 +97,7 @@ IFACEMETHODIMP_(bool) NewJumpjetLocomotionClass::Is_Moving()
 }
 
 
-IFACEMETHODIMP_(Coordinate) NewJumpjetLocomotionClass::Destination()
+IFACEMETHODIMP_(Coord) NewJumpjetLocomotionClass::Destination()
 {
     if (Is_Moving()) {
         return HeadToCoord;
@@ -169,7 +169,7 @@ IFACEMETHODIMP_(bool) NewJumpjetLocomotionClass::Process()
 }
 
 
-IFACEMETHODIMP_(void) NewJumpjetLocomotionClass::Move_To(Coordinate to)
+IFACEMETHODIMP_(void) NewJumpjetLocomotionClass::Move_To(Coord to)
 {
     if (HeadToCoord != COORD_NONE && CurrentState != GROUNDED && IsLanding) {
         LinkedTo->Clear_Occupy_Bit(HeadToCoord);
@@ -180,7 +180,7 @@ IFACEMETHODIMP_(void) NewJumpjetLocomotionClass::Move_To(Coordinate to)
 
     if (to != COORD_NONE) {
         Cell cell = Map.Nearby_Location(to.As_Cell(), LinkedTo->TClass->Speed, -1, MZONE_FLYER, Map[to].IsUnderBridge);
-        Coordinate free = Closest_Free_Spot(cell.As_Coord());
+        Coord free = Closest_Free_Spot(cell.As_Coord());
         if (free != COORD_NONE) {
             HeadToCoord = free;
             LinkedTo->NavCom = &Map[HeadToCoord];
@@ -206,7 +206,7 @@ IFACEMETHODIMP_(void) NewJumpjetLocomotionClass::Stop_Moving()
         Cell cell = LinkedTo->PositionCoord.As_Cell();
         Cell nearby = Map.Nearby_Location(cell, SPEED_TRACK);
         if (nearby != CELL_NONE) {
-            Coordinate nearby_coord = nearby.As_Coord();
+            Coord nearby_coord = nearby.As_Coord();
             nearby_coord.Z = Map.Get_Height_GL(nearby_coord);
             if (Map[nearby].IsUnderBridge) {
                 nearby_coord.Z += BRIDGE_LEPTON_HEIGHT;
@@ -220,9 +220,9 @@ IFACEMETHODIMP_(void) NewJumpjetLocomotionClass::Stop_Moving()
 }
 
 
-IFACEMETHODIMP_(void) NewJumpjetLocomotionClass::Do_Turn(DirType Coordinate)
+IFACEMETHODIMP_(void) NewJumpjetLocomotionClass::Do_Turn(DirType coord)
 {
-    LinkedTo->PrimaryFacing.Set(Coordinate);
+    LinkedTo->PrimaryFacing.Set(coord);
 }
 
 
@@ -316,8 +316,8 @@ void NewJumpjetLocomotionClass::Process_Ascent()
 void NewJumpjetLocomotionClass::Process_Hover()
 {
     if (Is_Moving()) {
-        Coordinate headto = HeadToCoord;
-        Coordinate position = LinkedTo->PositionCoord;
+        Coord headto = HeadToCoord;
+        Coord position = LinkedTo->PositionCoord;
         if (Point2D(headto.X, headto.Y) == Point2D(position.X, position.Y)) {
             if (LinkedTo->TarCom == nullptr) {
                 CurrentState = DESCENDING;
@@ -332,7 +332,7 @@ void NewJumpjetLocomotionClass::Process_Hover()
 
 void NewJumpjetLocomotionClass::Process_Cruise()
 {
-    Coordinate position = LinkedTo->PositionCoord;
+    Coord position = LinkedTo->PositionCoord;
 
     const auto extension = Extension::Fetch(LinkedTo);
     Cell oldcell = extension->Get_Last_Flight_Cell();
@@ -521,7 +521,7 @@ void NewJumpjetLocomotionClass::Movement_AI()
         }
     }
 
-    Coordinate new_coord = Coord_Move(LinkedTo->PositionCoord, Facing.Current(), CurrentSpeed);
+    Coord new_coord = Coord_Move(LinkedTo->PositionCoord, Facing.Current(), CurrentSpeed);
     LinkedTo->PositionCoord = new_coord;
 
     if (LinkedTo != nullptr) {
@@ -567,9 +567,9 @@ void NewJumpjetLocomotionClass::Movement_AI()
 }
 
 
-Coordinate NewJumpjetLocomotionClass::Closest_Free_Spot(Coordinate const & to) const
+Coord NewJumpjetLocomotionClass::Closest_Free_Spot(Coord const & to) const
 {
-    Coordinate closest = Map.Closest_Free_Spot(to);
+    Coord closest = Map.Closest_Free_Spot(to);
     if (closest != COORD_NONE) {
         closest.Z = Map.Get_Height_GL(closest);
         if (Map[closest].IsUnderBridge) {
@@ -582,17 +582,17 @@ Coordinate NewJumpjetLocomotionClass::Closest_Free_Spot(Coordinate const & to) c
 
 int NewJumpjetLocomotionClass::Desired_Flight_Level() const
 {
-    Coordinate Coordinate = LinkedTo->PositionCoord;
+    Coord coord = LinkedTo->PositionCoord;
 
-    int height = Map[Coordinate].Occupier_Height();
-    if (Map[Coordinate].IsUnderBridge) {
+    int height = Map[coord].Occupier_Height();
+    if (Map[coord].IsUnderBridge) {
         height += BRIDGE_LEPTON_HEIGHT;
     }
 
     if (CurrentSpeed > 0) {
-        Coordinate = Adjacent_Cell(Coordinate, static_cast<FacingType>(Facing.Current().Get_Facing<8>()));
-        int adjancent_height = Map[Coordinate].Occupier_Height();
-        if (Map[Coordinate].IsUnderBridge) {
+        coord = Adjacent_Cell(coord, static_cast<FacingType>(Facing.Current().Get_Facing<8>()));
+        int adjancent_height = Map[coord].Occupier_Height();
+        if (Map[coord].IsUnderBridge) {
             height += BRIDGE_LEPTON_HEIGHT;
         }
         if (adjancent_height > height) {
@@ -607,7 +607,7 @@ int NewJumpjetLocomotionClass::Desired_Flight_Level() const
 IFACEMETHODIMP_(void) NewJumpjetLocomotionClass::Mark_All_Occupation_Bits(MarkType mark)
 {
     if (mark == MARK_UP) {
-        Coordinate headto = Head_To_Coord();
+        Coord headto = Head_To_Coord();
         if (headto != COORD_NONE && (CurrentState == GROUNDED || IsLanding)) {
             LinkedTo->Clear_Occupy_Bit(headto);
             IsLanding = false;
@@ -616,7 +616,7 @@ IFACEMETHODIMP_(void) NewJumpjetLocomotionClass::Mark_All_Occupation_Bits(MarkTy
 }
 
 
-IFACEMETHODIMP_(Coordinate) NewJumpjetLocomotionClass::Head_To_Coord()
+IFACEMETHODIMP_(Coord) NewJumpjetLocomotionClass::Head_To_Coord()
 {
     if (CurrentState == GROUNDED) {
         return LinkedTo->PositionCoord;

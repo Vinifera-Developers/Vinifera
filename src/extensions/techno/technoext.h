@@ -57,14 +57,14 @@ class TechnoClassExtension : public RadioClassExtension
         virtual TechnoClass *This() const override { return reinterpret_cast<TechnoClass *>(RadioClassExtension::This()); }
         virtual const TechnoClass *This_Const() const override { return reinterpret_cast<const TechnoClass *>(RadioClassExtension::This_Const()); }
 
-        virtual EBoltClass *Electric_Zap(AbstractClass * target, int which, const WeaponTypeClass *weapontype, Coordinate &source_coord);
+        virtual EBoltClass *Electric_Zap(AbstractClass * target, int which, const WeaponTypeClass *weapontype, Coord &source_coord);
         virtual EBoltClass *Electric_Bolt(AbstractClass * target);
         virtual void Response_Capture();
         virtual void Response_Enter();
         virtual void Response_Deploy();
         virtual void Response_Harvest();
         virtual bool Can_Passive_Acquire() const;
-        virtual Coordinate Fire_Coord(WeaponSlotType which, TPoint3D<int> offset = TPoint3D<int>()) const;
+        virtual Coord Fire_Coord(WeaponSlotType which, TPoint3D<int> offset = TPoint3D<int>()) const;
 
         void Put_Storage_Pointers();
 

@@ -176,17 +176,17 @@ void AnimClassExt::_AI()
 
             if (water && !bridge) {
                 if (Class->IsMeteor) {
-                    new AnimClass(Rule->SplashList[Rule->SplashList.Count() - 1], PositionCoord + Coordinate(0, 0, 3));
+                    new AnimClass(Rule->SplashList[Rule->SplashList.Count() - 1], PositionCoord + Coord(0, 0, 3));
                 }
                 else {
                     new AnimClass(Rule->Wake, PositionCoord);
-                    new AnimClass(Rule->SplashList[0], PositionCoord + Coordinate(0, 0, 3));
+                    new AnimClass(Rule->SplashList[0], PositionCoord + Coord(0, 0, 3));
                 }
             }
             else {
                 if (Class->ExpireAnim != nullptr) {
                     Vector3 bouncecoord = Bounce.Coords;
-                    new AnimClass(Class->ExpireAnim, Coordinate(bouncecoord.X, bouncecoord.Y, bouncecoord.Z), 0, 1, ShapeFlags_Type(SHAPE_CENTER | SHAPE_WIN_REL | SHAPE_FLAT), -30);
+                    new AnimClass(Class->ExpireAnim, Coord(bouncecoord.X, bouncecoord.Y, bouncecoord.Z), 0, 1, ShapeFlags_Type(SHAPE_CENTER | SHAPE_WIN_REL | SHAPE_FLAT), -30);
                     Explosion_Damage(Bounce.Get_Coord(), Class->Damage, nullptr, Class->Warhead);
                     Combat_Lighting(Bounce.Get_Coord(), Class->Damage, Class->Warhead);
                 }
@@ -196,7 +196,7 @@ void AnimClassExt::_AI()
             }
 
             if (!water || bridge) {
-                Coordinate coord = Bounce.Get_Coord();
+                Coord coord = Bounce.Get_Coord();
                 if (Class->Spawns != nullptr && Class->SpawnCount > 0) {
                     int count = Random_Pick(0, Class->SpawnCount) + Random_Pick(0, Class->SpawnCount);
                     for (int i = 0; i < count; i++) {
@@ -288,7 +288,7 @@ void AnimClassExt::_AI()
         }
 
         if (Class->IsAnimatedTiberium) {
-            OverlayType overlay = Map[Center_Coord() - Coordinate(CELL_LEPTON_W * 1.5, CELL_LEPTON_H * 1.5, 0)].Overlay;
+            OverlayType overlay = Map[Center_Coord() - Coord(CELL_LEPTON_W * 1.5, CELL_LEPTON_H * 1.5, 0)].Overlay;
             if (overlay == OVERLAY_NONE || OverlayTypes[overlay]->CellAnim != Class) {
                 IsToDelete = true;
             }
@@ -483,7 +483,7 @@ void AnimClassExt::_Start()
             cptr->Reduce_Tiberium(cptr->OverlayData + 1);
 
             if (tiberium->Debris.Count() > 0 && (abs(Scen->RandomNumber) % 3) == 0) {
-                AnimClass* debris = new AnimClass(tiberium->Debris[Random_Pick(0, tiberium->Debris.Count() - 1)], Center_Coord() + Coordinate(0, 0, 10));
+                AnimClass* debris = new AnimClass(tiberium->Debris[Random_Pick(0, tiberium->Debris.Count() - 1)], Center_Coord() + Coord(0, 0, 10));
                 debris->AlternativeDrawer = ColorSchemes[tiberium->Color]->Converter;
                 debris->AlternativeBrightness = cptr->Brightness;
             }
@@ -515,7 +515,7 @@ static void Anim_Spawn_Particles(AnimClass* this_ptr)
 
         for (int i = 0; i < animtypeext->NumberOfParticles; ++i) {
 
-            Coordinate spawn_coord = this_ptr->Center_Coord() + Coordinate(animtypeext->ParticleSpawnOffset.X, animtypeext->ParticleSpawnOffset.Y, animtypeext->ParticleSpawnOffset.Z);
+            Coord spawn_coord = this_ptr->Center_Coord() + Coord(animtypeext->ParticleSpawnOffset.X, animtypeext->ParticleSpawnOffset.Y, animtypeext->ParticleSpawnOffset.Z);
 
             /**
              *  Spawn a new particle at this anims coord.

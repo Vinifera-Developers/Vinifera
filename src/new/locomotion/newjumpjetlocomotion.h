@@ -54,10 +54,10 @@ NewJumpjetLocomotionClass : public LocomotionClass
          */
         IFACEMETHOD(Link_To_Object)(void* object);
         IFACEMETHOD_(bool, Is_Moving)() override;
-        IFACEMETHOD_(Coordinate, Destination)() override;
-        IFACEMETHOD_(Coordinate, Head_To_Coord)() override;
+        IFACEMETHOD_(Coord, Destination)() override;
+        IFACEMETHOD_(Coord, Head_To_Coord)() override;
         IFACEMETHOD_(bool, Process)() override;
-        IFACEMETHOD_(void, Move_To)(Coordinate to) override;
+        IFACEMETHOD_(void, Move_To)(Coord to) override;
         IFACEMETHOD_(void, Stop_Moving)() override;
         IFACEMETHOD_(void, Do_Turn)(DirType coord) override;
         IFACEMETHOD_(LayerType, In_Which_Layer)() override;
@@ -85,7 +85,7 @@ NewJumpjetLocomotionClass : public LocomotionClass
         void Process_Cruise();
         void Process_Descent();
         void Movement_AI();
-        Coordinate Closest_Free_Spot(Coordinate const & to) const;
+        Coord Closest_Free_Spot(Coord const & to) const;
         int Desired_Flight_Level() const;
 
     private:
@@ -137,7 +137,7 @@ NewJumpjetLocomotionClass : public LocomotionClass
         /**
          *  The destination coordinate the jumpjet is moving toward.
          */
-        Coordinate HeadToCoord;
+        Coord HeadToCoord;
 
         /**
          *  Indicates whether the jumpjet is currently moving toward a target.

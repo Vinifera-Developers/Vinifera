@@ -232,7 +232,7 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ObjectClass * 
 }
 
 
-static bool Is_On_High_Bridge(const Coordinate& coord)
+static bool Is_On_High_Bridge(const Coord& coord)
 {
     return Map[coord].IsUnderBridge && coord.Z >= BRIDGE_LEPTON_HEIGHT + Map.Get_Height_GL(coord);
 }
@@ -243,12 +243,12 @@ static bool Is_On_High_Bridge(const Coordinate& coord)
  *
  *  @author: ZivDero
  */
-void Get_Explosion_Targets(const Coordinate& coord, TechnoClass* source, int range, DynamicVectorClass<ObjectClass*>& objects)
+void Get_Explosion_Targets(const Coord& coord, TechnoClass* source, int range, DynamicVectorClass<ObjectClass*>& objects)
 {
     Cell cell;      // Cell number under explosion.
     ObjectClass* object; // Working object pointer
 
-    cell = Coord_Cell(coord);
+    cell = coord.As_Cell();
     CellClass* cellptr = &Map[cell];
 
     int cell_radius = (range + CELL_LEPTON_W - 1) / CELL_LEPTON_W;
@@ -355,7 +355,7 @@ void Damage_Overlay(Cell const & cell, const WarheadTypeClass * warhead, int str
  */
 void Spawn_Flames_And_Smudges(const Cell & cell, int range, int distance, const WarheadTypeClass * warhead)
 {
-    Coordinate cell_coord = Cell_Coord(cell);
+    Coord cell_coord = cell.As_Coord();
     cell_coord.Z = Map.Get_Height_GL(cell_coord);
 
     const auto warhead_ext = Extension::Fetch(warhead);
@@ -384,7 +384,7 @@ void Spawn_Flames_And_Smudges(const Cell & cell, int range, int distance, const 
  *           02/19/2025 Rampastring : Improved handling of explosion height level.
  *           03/04/2025 ZivDero : Implement CellSpread.
  */
-void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClass* source, const WarheadTypeClass* warhead, bool do_chain_reaction)
+void Vinifera_Explosion_Damage(const Coord& coord, int strength, TechnoClass* source, const WarheadTypeClass* warhead, bool do_chain_reaction)
 {
     Cell cell;                                 // Cell number under explosion.
     DynamicVectorClass<ObjectClass*> objects;  // Objects to be damaged.
@@ -397,7 +397,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
 
     const auto warhead_ext = Extension::Fetch(warhead);
 
-    Coordinate explosion_coord = coord;
+    Coord explosion_coord = coord;
     if (warhead_ext->IsSnapToCellCenter) {
         explosion_coord = Coord_Snap(explosion_coord);
     }
@@ -410,7 +410,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
         range = CELL_LEPTON_W + (CELL_LEPTON_W >> 1);
     }
 
-    cell = Coord_Cell(explosion_coord);
+    cell = explosion_coord.As_Cell();
 
     CellClass* cellptr = &Map[cell];
     const bool isbridge = cellptr->IsUnderBridge && explosion_coord.Z > BRIDGE_LEPTON_HEIGHT / 2 + Map.Get_Height_GL(explosion_coord);
@@ -420,7 +420,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
      *  Fill the list with units that are in flight, because
      *  they are not present in cell data.
      */
-    if (warhead_ext->IsVolumetric || Map.Get_Height_GL(Cell_Coord(cell)) < explosion_coord.Z) {
+    if (warhead_ext->IsVolumetric || Map.Get_Height_GL(cell.As_Coord()) < explosion_coord.Z) {
         int air_range = use_cell_spread ? static_cast<int>(warhead_ext->CellSpread + 0.99) : 1;
         AircraftTracker->Fetch_Targets(&Map[cell], air_range);
 
@@ -472,7 +472,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
                 const Cell* list = object->Occupy_List();
                 distance = INT_MAX;
                 while (*list != REFRESH_EOL) {
-                    int trydist = Distance_Level_Snap(explosion_coord, Cell_Coord(object->Get_Cell() + *list++));
+                    int trydist = Distance_Level_Snap(explosion_coord, (object->Get_Cell() + *list++).As_Coord());
                     distance = std::min(trydist, distance);
                 }
             } else {
@@ -500,13 +500,13 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
                     TechnoClass* techno = object->As_Techno();
                     if (techno != NULL) {
                         if (Cell(x, y) == cell && source) {
-                            Coordinate tcoord = techno->PositionCoord;
+                            Coord tcoord = techno->PositionCoord;
 
-                            Coordinate rockdir = source->PositionCoord - tcoord;
+                            Coord rockdir = source->PositionCoord - tcoord;
                             TPoint3D<float> rockdirf(rockdir.X, rockdir.Y, rockdir.Z);
                             rockdirf = rockdirf.Normalized() * 10.0f;
 
-                            tcoord += Coordinate(rockdirf.X, rockdirf.Y, rockdirf.Z);
+                            tcoord += Coord(rockdirf.X, rockdirf.Y, rockdirf.Z);
                             techno->Rock(tcoord, rocking_force);
                         }
                         else {
@@ -530,7 +530,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
                 for (int y = -cell_radius; y <= cell_radius; y++) {
                     Cell newcell = cell + Cell(x, y);
                     if (!Map.In_Radar(newcell)) continue;
-                    distance = Distance(Cell_Coord(newcell), Cell_Coord(cell));
+                    distance = Distance(newcell.As_Coord(), cell.As_Coord());
                     if (distance <= range) {
                         Damage_Overlay(newcell, warhead, strength, do_chain_reaction);
                         Spawn_Flames_And_Smudges(newcell, range, distance, warhead);
@@ -622,7 +622,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
             static FacingType _part_facings[] = { FACING_N, FACING_E, FACING_S, FACING_W };
 
             for (auto facing : _part_facings) {
-                Coordinate adjacent = Adjacent_Coord_With_Height(explosion_coord, facing);
+                Coord adjacent = Adjacent_Coord_With_Height(explosion_coord, facing);
                 if (Map[adjacent].Overlay != OVERLAY_NONE && OverlayTypes[Map[adjacent].Overlay]->IsExplosive) {
                     new AnimClass(AnimTypes[AnimTypeClass::From_Name("FIRE3")], explosion_coord, Random_Pick(1, 3) + 3);
                 }
@@ -631,7 +631,7 @@ void Vinifera_Explosion_Damage(const Coordinate& coord, int strength, TechnoClas
 
         if (strength > warhead->DeformThreshhold) {
             if (Percent_Chance(strength * 0.01 * warhead->Deform * 100.0) && !Is_On_High_Bridge(explosion_coord)) {
-                Map.Deform(Coord_Cell(explosion_coord), false);
+                Map.Deform(explosion_coord.As_Cell(), false);
             }
         }
 

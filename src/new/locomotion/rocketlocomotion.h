@@ -64,11 +64,11 @@ public:
      *  ILocomotion
      */
     IFACEMETHOD_(bool, Is_Moving)() override;
-    IFACEMETHOD_(Coordinate, Destination)() override;
+    IFACEMETHOD_(Coord, Destination)() override;
     IFACEMETHOD_(Matrix3D, Draw_Matrix)(int *key) override;
     IFACEMETHOD_(Point2D, Shadow_Point)() override;
     IFACEMETHOD_(bool, Process)() override;
-    IFACEMETHOD_(void, Move_To)(Coordinate to) override;
+    IFACEMETHOD_(void, Move_To)(Coord to) override;
     IFACEMETHOD_(void, Stop_Moving)() override;
     IFACEMETHOD_(LayerType, In_Which_Layer)() override;
     IFACEMETHOD_(bool, Is_Moving_Now)() override;
@@ -85,7 +85,7 @@ private:
     /**
      *  RocketLocomotionClass
      */
-    Coordinate Get_Next_Position(double speed) const;
+    Coord Get_Next_Position(double speed) const;
     double Get_Next_Pitch() const;
     void Explode();
     bool Time_To_Explode(const RocketTypeClass* rocket);
@@ -99,7 +99,7 @@ protected:
     /**
      *  This is the desired destination coordinate of the rocket.
      */
-    Coordinate DestinationCoord;
+    Coord DestinationCoord;
 
     /**
      *  This is the timer used by various mission states of the rocket.

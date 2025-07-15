@@ -598,7 +598,7 @@ DECLARE_PATCH(_UnitClass_Mission_Unload_Transport_Detach_Sound_Patch)
      */
     radio_technotypeext = Extension::Fetch(this_ptr->TClass);
     if (radio_technotypeext->LeaveTransportSound != VOC_NONE) {
-        Static_Sound(radio_technotypeext->LeaveTransportSound, this_ptr->Coord);
+        Static_Sound(radio_technotypeext->LeaveTransportSound, this_ptr->Position);
     }
 
     /**
@@ -1071,12 +1071,12 @@ UnitClass* Create_Transform_Unit(UnitClass* this_ptr) {
     newunit->ArmorBias = this_ptr->ArmorBias;
     newunit->FirepowerBias = this_ptr->FirepowerBias;
     newunit->SpeedBias = this_ptr->SpeedBias;
-    newunit->Coord = this_ptr->Coord;
+    newunit->Position = this_ptr->Position;
     newunit->EMPFramesRemaining = this_ptr->EMPFramesRemaining;
     newunit->Ammo = this_ptr->Ammo;
 
 
-    if (newunit->Unlimbo(newunit->Coord, this_ptr->PrimaryFacing.Current().Get_Dir())) {
+    if (newunit->Unlimbo(newunit->Position, this_ptr->PrimaryFacing.Current().Get_Dir())) {
 
         /**
          *  Unlimbo successful, select our new unit and return it

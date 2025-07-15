@@ -104,7 +104,7 @@ public:
     void _Draw_Pips(Point2D& bottomleft, Point2D& bottomright, Rect& rect) const;
     WeaponSlotType _What_Weapon_Should_I_Use(AbstractClass * target) const;
     bool _Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeClass const* warhead) const;
-    double _Target_Threat(TechnoClass* target, Coordinate& firing_coord) const;
+    double _Target_Threat(TechnoClass* target, Coord& firing_coord) const;
     int _Anti_Infantry() const;
     ActionType _What_Action(ObjectClass* object, bool disallow_force);
     void _Drop_Tiberium();
@@ -114,12 +114,12 @@ public:
     const InfantryTypeClass* _Crew_Type() const;
     int _How_Many_Survivors() const;
     bool _Spawner_Fire_At(AbstractClass * target, WeaponTypeClass* weapon);
-    bool _Target_Something_Nearby(Coordinate& coord, ThreatType threat);
+    bool _Target_Something_Nearby(Coord& coord, ThreatType threat);
     void _Stun();
     void _Mission_AI();
     FireErrorType _Can_Fire(AbstractClass * target, WeaponSlotType which = WEAPON_SLOT_PRIMARY);
     bool _Can_Player_Move() const;
-    Coordinate _Fire_Coord(WeaponSlotType which) const;
+    Coord _Fire_Coord(WeaponSlotType which) const;
     void _Record_The_Kill(TechnoClass* source);
     int _Time_To_Build() const;
     void _Assign_Target(AbstractClass * target);
@@ -526,7 +526,7 @@ bool TechnoClassExt::_Spawner_Fire_At(AbstractClass * target, WeaponTypeClass* w
  *
  *  @author: ZivDero
  */
-bool TechnoClassExt::_Target_Something_Nearby(Coordinate& coord, ThreatType threat)
+bool TechnoClassExt::_Target_Something_Nearby(Coord& coord, ThreatType threat)
 {
     auto extension = Extension::Fetch(this);
 
@@ -868,7 +868,7 @@ bool TechnoClassExt::_Can_Player_Move() const
 /**
  *  Wrapper for TechnoClassExtension::Fire_Coord.
  */
-Coordinate TechnoClassExt::_Fire_Coord(WeaponSlotType which) const
+Coord TechnoClassExt::_Fire_Coord(WeaponSlotType which) const
 {
     return Extension::Fetch(this)->Fire_Coord(which, TPoint3D<int>());
 }
@@ -1007,8 +1007,8 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
      */
     if (!House->Is_Human_Player() && Target_Legal(TarCom) && Is_Target_Object(TarCom))
     {
-        const float current_val = Target_Threat(static_cast<TechnoClass*>(TarCom), Coordinate());
-        const float source_val = Target_Threat(source, Coordinate());
+        const float current_val = Target_Threat(static_cast<TechnoClass*>(TarCom), Coord());
+        const float source_val = Target_Threat(source, Coord());
 
         if (source_val < current_val)
             return false;
@@ -1035,7 +1035,7 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
  *
  *  @author: ZivDero
  */
-double TechnoClassExt::_Target_Threat(TechnoClass* target, Coordinate& firing_coord) const
+double TechnoClassExt::_Target_Threat(TechnoClass* target, Coord& firing_coord) const
 {
     double target_effectiveness_coefficient;
     double target_special_threat_coefficient;
@@ -1112,7 +1112,7 @@ double TechnoClassExt::_Target_Threat(TechnoClass* target, Coordinate& firing_co
      *  Adjust threat if the target is outside our threat range.
      */
     int dist;
-    if (firing_coord == Coordinate())
+    if (firing_coord == Coord())
         dist = (Center_Coord() - target->Center_Coord()).Length() / 256;
     else
         dist = (firing_coord - target->Center_Coord()).Length();
@@ -1210,7 +1210,7 @@ void TechnoClassExt::_Drop_Tiberium()
                 droplist[dropcount++] = static_cast<TiberiumType>(i);
         }
 
-        const Cell center_cell = Coord_Cell(Center_Coord());
+        const Cell center_cell = Center_Coord().As_Cell();
 
         /**
          *  Drop Tiberium around the harvester.
@@ -1446,7 +1446,7 @@ void TechnoClassExt::_Assign_Target(AbstractClass* target)
  *  Calculates the cell-based distance between this object and another object.
  *  Cell-based distance does not take leptons into account, only cell coordinates.
  *
- *  The original game's distance functions, such as Distance_Squared, also take leptons into
+ *  The original game's distance functions, such as Relative_Distance, also take leptons into
  *  account, which can lead into overflows that have bad consequences.
  *  For example, a harvester looking for a refinery on a big 256x256 sized map can believe
  *  that a refinery on the other side of the map would be next to it.
@@ -1458,8 +1458,8 @@ int TechnoClassExt::_Cell_Distance_Squared(const AbstractClass* object) const
     if (!object)
         return 0;
 
-    Coordinate our_coord = Center_Coord();
-    Coordinate their_coord = object->Center_Coord();
+    Coord our_coord = Center_Coord();
+    Coord their_coord = object->Center_Coord();
 
     int our_cell_x = our_coord.X / CELL_LEPTON_W;
     int their_cell_x = their_coord.X / CELL_LEPTON_W;
@@ -1524,8 +1524,8 @@ void TechnoClassExt::_Draw_Target_Laser() const
     /**
      *  Fetch the target laser line start and end coord.
      */
-    Coordinate start_coord = entry_28C();
-    Coordinate end_coord = func_638AF0();
+    Coord start_coord = entry_28C();
+    Coord end_coord = func_638AF0();
 
     /**
      *  Convert the world coord to screen pixel.
@@ -2367,7 +2367,7 @@ DECLARE_PATCH(_TechnoClass_Fire_At_Weapon_Anim_Patch)
  */
 DECLARE_PATCH(_TechnoClass_Do_Cloak_Cloak_Sound_Patch)
 {
-    GET_REGISTER_STATIC(Coordinate *, coord, eax);
+    GET_REGISTER_STATIC(Coord *, coord, eax);
     GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
     const static TechnoTypeClass *technotype;
     static TechnoTypeClassExtension *technotypeext;
@@ -2410,7 +2410,7 @@ DECLARE_PATCH(_TechnoClass_Do_Cloak_Cloak_Sound_Patch)
  */
 DECLARE_PATCH(_TechnoClass_Do_Uncloak_Uncloak_Sound_Patch)
 {
-    GET_REGISTER_STATIC(Coordinate *, coord, eax);
+    GET_REGISTER_STATIC(Coord *, coord, eax);
     GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
     static const TechnoTypeClass *technotype;
     static TechnoTypeClassExtension *technotypeext;
@@ -2736,7 +2736,7 @@ bool _TechnoClass_Evaluate_Object_Zone_Evaluation_Is_Valid_Target(TechnoClass* t
             return true;
         }
 
-        Cell nearbycell = Map.Nearby_Location(Coord_Cell(target->Center_Coord()),
+        Cell nearbycell = Map.Nearby_Location(target->Center_Coord().As_Cell(),
             technotype->Speed,
             /*Phobos has -1 here*/ ourzone,
             technotype->MZone,
@@ -2747,7 +2747,7 @@ bool _TechnoClass_Evaluate_Object_Zone_Evaluation_Is_Valid_Target(TechnoClass* t
             return false;
         }
 
-        int distance = ::Distance(nearbycell, Coord_Cell(target->Center_Coord()));
+        int distance = ::Distance(nearbycell, target->Center_Coord().As_Cell());
 
         WeaponSlotType weaponslot = techno->What_Weapon_Should_I_Use(target);
         auto weaponinfo = techno->Get_Weapon(weaponslot);

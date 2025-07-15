@@ -58,9 +58,9 @@ class EBoltClass
         ~EBoltClass();
 
         void Draw_It();
-        void Create(Coordinate &start, Coordinate &end, int z_adjust);
+        void Create(Coord &start, Coord &end, int z_adjust);
 
-        Coordinate Source_Coord() const;
+        Coord Source_Coord() const;
         void Set_Properties(TechnoClass *techno, const WeaponTypeClass *weapon, WeaponSlotType slot);
 
         void Flag_To_Delete() { Lifetime = 0; }
@@ -71,24 +71,24 @@ class EBoltClass
     private:
         void Clear();
 
-        void Add_Plot_Line(Coordinate &start, Coordinate &end, RGBClass &line_color, int start_z, int end_z)
+        void Add_Plot_Line(Coord &start, Coord &end, RGBClass &line_color, int start_z, int end_z)
         {
             LineDrawList.Add( LineDrawDataStruct { start, end, line_color, start_z, end_z } );
         }
 
-        void Plot_Bolt(Coordinate &start, Coordinate &end);
+        void Plot_Bolt(Coord &start, Coord &end);
         void Draw_Bolts();
 
     private:
         /**
          *  The start coordinate for this electric bolt.
          */
-        Coordinate StartCoord;
+        Coord StartCoord;
 
         /**
          *  The end coordinate for this electric bolt.
          */
-        Coordinate EndCoord;
+        Coord EndCoord;
 
         /**
          *  The initial z draw adjustment value.
@@ -144,8 +144,8 @@ class EBoltClass
          */
         struct LineDrawDataStruct
         {
-            Coordinate Start;
-            Coordinate End;
+            Coord Start;
+            Coord End;
             RGBClass Color;
             int StartZ;
             int EndZ;

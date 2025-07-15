@@ -61,8 +61,8 @@ TestLocomotionClass : public LocomotionClass
          */
         IFACEMETHOD(Link_To_Object)(void *object);
         IFACEMETHOD_(bool, Is_Moving)();
-        IFACEMETHOD_(Coordinate, Destination)();
-        IFACEMETHOD_(Coordinate, Head_To_Coord)();
+        IFACEMETHOD_(Coord, Destination)();
+        IFACEMETHOD_(Coord, Head_To_Coord)();
         IFACEMETHOD_(MoveType, Can_Enter_Cell)(Cell cell);
         IFACEMETHOD_(bool, Is_To_Have_Shadow)();
         IFACEMETHOD_(Matrix3D, Draw_Matrix)(int *key);
@@ -73,7 +73,7 @@ TestLocomotionClass : public LocomotionClass
         IFACEMETHOD_(int, Z_Adjust)();
         IFACEMETHOD_(ZGradientType, Z_Gradient)();
         IFACEMETHOD_(bool, Process)();
-        IFACEMETHOD_(void, Move_To)(Coordinate to);
+        IFACEMETHOD_(void, Move_To)(Coord to);
         IFACEMETHOD_(void, Stop_Moving)();
         IFACEMETHOD_(void, Do_Turn)(DirType coord);
         IFACEMETHOD_(void, Unlimbo)();
@@ -84,9 +84,9 @@ TestLocomotionClass : public LocomotionClass
         IFACEMETHOD_(bool, Is_Ion_Sensitive)();
         IFACEMETHOD_(bool, Push)(DirType dir);
         IFACEMETHOD_(bool, Shove)(DirType dir);
-        IFACEMETHOD_(void, Force_Track)(int track, Coordinate coord);
+        IFACEMETHOD_(void, Force_Track)(int track, Coord coord);
         IFACEMETHOD_(LayerType, In_Which_Layer)();
-        IFACEMETHOD_(void, Force_Immediate_Destination)(Coordinate coord);
+        IFACEMETHOD_(void, Force_Immediate_Destination)(Coord coord);
         IFACEMETHOD_(void, Force_New_Slope)(int ramp);
         IFACEMETHOD_(bool, Is_Moving_Now)();
         IFACEMETHOD_(int, Apparent_Speed)();
@@ -96,7 +96,7 @@ TestLocomotionClass : public LocomotionClass
         IFACEMETHOD_(void, Acquire_Hunter_Seeker_Target)();
         IFACEMETHOD_(bool, Is_Surfacing)();
         IFACEMETHOD_(void, Mark_All_Occupation_Bits)(int mark);
-        IFACEMETHOD_(bool, Is_Moving_Here)(Coordinate to);
+        IFACEMETHOD_(bool, Is_Moving_Here)(Coord to);
         IFACEMETHOD_(bool, Will_Jump_Tracks)();
         IFACEMETHOD_(bool, Is_Really_Moving_Now)();
         IFACEMETHOD_(void, Stop_Movement_Animation)();
@@ -117,7 +117,7 @@ TestLocomotionClass : public LocomotionClass
         /**
          *  This is the desired destination coordinate of the object.
          */
-        Coordinate DestinationCoord;
+        Coord DestinationCoord;
 
         /**
          *  This is the coordinate that the unit is heading to as an immediate
@@ -125,13 +125,13 @@ TestLocomotionClass : public LocomotionClass
          *  from the unit's location. When this coordinate is reached, then the
          *  next location in the path list becomes the next HeadTo coordinate.
          */
-        Coordinate HeadToCoord;
+        Coord HeadToCoord;
 
         /**
          *  This is the logical coordinate for the object. It is the center of
          *  the circle when calculating the rotation.
          */
-        Coordinate CenterCoord;
+        Coord CenterCoord;
 
         /**
          *  The current rotation angle.

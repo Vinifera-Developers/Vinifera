@@ -277,7 +277,7 @@ bool AnimClassExtension::End()
  *  
  *  @author: CCHyper
  */
-bool AnimClassExtension::Spawn_Animations(const Coordinate &coord, const TypeList<AnimTypeClass *> &animlist, const TypeList<int> &countlist, const TypeList<int> &minlist, const TypeList<int> &maxlist, const TypeList<int>& delaylist)
+bool AnimClassExtension::Spawn_Animations(const Coord &coord, const TypeList<AnimTypeClass *> &animlist, const TypeList<int> &countlist, const TypeList<int> &minlist, const TypeList<int> &maxlist, const TypeList<int>& delaylist)
 {
     if (!animlist.Count()) {
         return false;
@@ -329,7 +329,7 @@ bool AnimClassExtension::Spawn_Animations(const Coordinate &coord, const TypeLis
              */
             int delay = delaylist[index] * This()->Fetch_Rate();
 
-            AnimClass *anim = new AnimClass(animtype, (Coordinate &)coord, delay);
+            AnimClass *anim = new AnimClass(animtype, (Coord &)coord, delay);
             ASSERT(anim != nullptr);
         }
     }

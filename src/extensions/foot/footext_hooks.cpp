@@ -75,11 +75,11 @@ public:
     void _Draw_NavComQueue_Lines() const;
     void _Death_Announcement(TechnoClass* source) const;
     Cell _Search_For_Tiberium(int rad, bool a2);
-    bool _Unlimbo(const Coordinate& coord, Dir256 dir);
+    bool _Unlimbo(const Coord& coord, Dir256 dir);
     bool _Limbo();
 
 private:
-    void _Draw_Line(Coordinate& start_coord, Coordinate& end_coord, bool is_dashed, bool is_thick, bool is_dropshadow, unsigned line_color, unsigned drop_color, int rate) const;
+    void _Draw_Line(Coord& start_coord, Coord& end_coord, bool is_dashed, bool is_thick, bool is_dropshadow, unsigned line_color, unsigned drop_color, int rate) const;
 };
 
 
@@ -88,7 +88,7 @@ private:
  *
  *  @author: CCHyper, ZivDero
  */
-void FootClassExt::_Draw_Line(Coordinate& start_coord, Coordinate& end_coord, bool is_dashed, bool is_thick, bool is_dropshadow, unsigned line_color, unsigned drop_color, int rate) const
+void FootClassExt::_Draw_Line(Coord& start_coord, Coord& end_coord, bool is_dashed, bool is_thick, bool is_dropshadow, unsigned line_color, unsigned drop_color, int rate) const
 {
     int point_size = 3;
     Point2D point_offset(-1, -1);
@@ -274,20 +274,20 @@ void FootClassExt::_Draw_NavComQueue_Lines() const
     AbstractClass * start = NavCom;
     AbstractClass * end = NavQueue[0];
 
-    Coordinate start_coord;
-    Coordinate end_coord;
+    Coord start_coord;
+    Coord end_coord;
 
     for (int i = 0; i < NavQueue.Count(); i++) {
 
         start_coord = start->Center_Coord();
 
-        if (Map.In_Radar(Coord_Cell(start_coord)) && Map[start_coord].IsUnderBridge) {
+        if (Map.In_Radar(start_coord.As_Cell()) && Map[start_coord].IsUnderBridge) {
             start_coord.Z = BRIDGE_LEPTON_HEIGHT + Map.Get_Height_GL(start_coord);
         }
 
         end_coord = end->Center_Coord();
 
-        if (Map.In_Radar(Coord_Cell(end_coord)) && Map[end_coord].IsUnderBridge) {
+        if (Map.In_Radar(end_coord.As_Cell()) && Map[end_coord].IsUnderBridge) {
             end_coord.Z = BRIDGE_LEPTON_HEIGHT + Map.Get_Height_GL(end_coord);
         }
 
@@ -348,8 +348,8 @@ void FootClassExt::_Draw_Action_Line() const
     /**
      *  Fetch the action line start and end coord.
      */
-    Coordinate start_coord;
-    Coordinate end_coord;
+    Coord start_coord;
+    Coord end_coord;
 
     if (TarCom) {
 
@@ -366,7 +366,7 @@ void FootClassExt::_Draw_Action_Line() const
 
         AbstractClass * navtarget = field_260.Count() ? field_260.Fetch_Tail() : NavCom;
         end_coord = navtarget->Center_Coord();
-        Cell target_cell = Coord_Cell(end_coord);
+        Cell target_cell = end_coord.As_Cell();
 
         if (Map.In_Radar(target_cell) && Map[end_coord].IsUnderBridge) {
             end_coord.Z = BRIDGE_LEPTON_HEIGHT + Map.Get_Height_GL(end_coord);
@@ -443,8 +443,8 @@ Cell FootClassExt::_Search_For_Tiberium(int rad, bool a2)
         return Search_For_Tiberium_Weighted(rad);
     }
 
-    Coordinate center_coord = Center_Coord();
-    Cell cell_coords = Coord_Cell(center_coord);
+    Coord center_coord = Center_Coord();
+    Cell cell_coords = center_coord.As_Cell();
     Cell unit_cell_coords = cell_coords;
 
     if (Map[unit_cell_coords].Land_Type() == LAND_TIBERIUM) {
@@ -689,7 +689,7 @@ void FootClassExt::_Death_Announcement(TechnoClass* source) const
         const auto is_spawned = Extension::Fetch(TClass)->IsSpawned;
         if (!TClass->IsInsignificant && !is_spawned) {
 
-            RadarEventClass::LastEventCell = Coord_Cell(entry_50());
+            RadarEventClass::LastEventCell = entry_50().As_Cell();
             Speak(VOX_UNIT_LOST);
         }
     }
@@ -701,7 +701,7 @@ void FootClassExt::_Death_Announcement(TechnoClass* source) const
  *
  *  @author: ZivDero
  */
-bool FootClassExt::_Unlimbo(const Coordinate& coord, Dir256 dir)
+bool FootClassExt::_Unlimbo(const Coord& coord, Dir256 dir)
 {
     /**
      *  Try to unlimbo the unit.
@@ -742,7 +742,7 @@ bool FootClassExt::_Unlimbo(const Coordinate& coord, Dir256 dir)
          */
         Path[0] = FACING_NONE;
 
-        Cell cell = Coord_Cell(Coord);
+        Cell cell = Position.As_Cell();
         for (int face = FACING_FIRST; face < FACING_COUNT; face++) {
             Cell c = Adjacent_Cell(cell, FacingType(face));
             CellClass* cptr = &Map[c];

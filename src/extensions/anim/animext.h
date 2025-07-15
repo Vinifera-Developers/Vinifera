@@ -72,7 +72,7 @@ AnimClassExtension final : public ObjectClassExtension
         bool End();
 
     private:
-        bool Spawn_Animations(const Coordinate &coord, const TypeList<AnimTypeClass *> &animlist, const TypeList<int> &countlist, const TypeList<int> &minlist, const TypeList<int> &maxlist, const TypeList<int>& delaylist);
+        bool Spawn_Animations(const Coord &coord, const TypeList<AnimTypeClass *> &animlist, const TypeList<int> &countlist, const TypeList<int> &minlist, const TypeList<int> &maxlist, const TypeList<int>& delaylist);
 
     public:
         /**

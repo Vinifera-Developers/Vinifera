@@ -507,14 +507,14 @@ void TacticalExt::_Draw_Rally_Points(bool blit)
                     /**
                      *  The start of the line is just at the building's center.
                      */
-                    Coordinate center_coord = bldg->Center_Coord();
+                    Coord center_coord = bldg->Center_Coord();
                     Point2D start_pos = func_60F150(center_coord);
                     start_pos += Point2D(TacticalRect.X, TacticalRect.Y) - field_5C;
 
                     /**
                      *  Get the coordinate of the rally point and adjust it for cell height.
                      */
-                    Coordinate rally_coord = bldg->ArchiveTarget->Center_Coord();
+                    Coord rally_coord = bldg->ArchiveTarget->Center_Coord();
 
                     rally_coord.Z = Map.Get_Height_GL(rally_coord);
                     if (Map[rally_coord].IsUnderBridge)

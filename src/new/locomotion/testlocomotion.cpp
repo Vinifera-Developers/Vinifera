@@ -211,13 +211,13 @@ IFACEMETHODIMP_(bool) TestLocomotionClass::Is_Moving()
  * 
  *  @author: CCHyper
  */
-IFACEMETHODIMP_(Coordinate) TestLocomotionClass::Destination()
+IFACEMETHODIMP_(Coord) TestLocomotionClass::Destination()
 {
     if (IsMoving) {
         return DestinationCoord;
     }
 
-    return Coordinate(0, 0, 0);
+    return Coord(0, 0, 0);
 }
 
 
@@ -226,7 +226,7 @@ IFACEMETHODIMP_(Coordinate) TestLocomotionClass::Destination()
  * 
  *  @author: CCHyper
  */
-IFACEMETHODIMP_(Coordinate) TestLocomotionClass::Head_To_Coord()
+IFACEMETHODIMP_(Coord) TestLocomotionClass::Head_To_Coord()
 {
     /**
      *  If currently moving, return the immediate coordinate.
@@ -353,7 +353,7 @@ IFACEMETHODIMP_(bool) TestLocomotionClass::Process()
 {
     if (IsMoving) {
 
-        Coordinate coord = DestinationCoord;
+        Coord coord = DestinationCoord;
 
         /**
          *  Rotate the object around the center coord..
@@ -367,7 +367,7 @@ IFACEMETHODIMP_(bool) TestLocomotionClass::Process()
          *  Pickup the object the game world before we set the new coord.
          */
         LinkedTo->Mark(MARK_UP);
-        if (Can_Enter_Cell(Coord_Cell(coord)) == MOVE_OK) {
+        if (Can_Enter_Cell(coord.As_Cell()) == MOVE_OK) {
             LinkedTo->PositionCoord = coord;
 
             /**
@@ -391,7 +391,7 @@ IFACEMETHODIMP_(bool) TestLocomotionClass::Process()
  * 
  *  @author: CCHyper
  */
-IFACEMETHODIMP_(void) TestLocomotionClass::Move_To(Coordinate to)
+IFACEMETHODIMP_(void) TestLocomotionClass::Move_To(Coord to)
 {
     DestinationCoord = to;
 
@@ -413,8 +413,8 @@ IFACEMETHODIMP_(void) TestLocomotionClass::Move_To(Coordinate to)
  */
 IFACEMETHODIMP_(void) TestLocomotionClass::Stop_Moving()
 {
-    HeadToCoord = Coordinate();
-    DestinationCoord = Coordinate();
+    HeadToCoord = Coord();
+    DestinationCoord = Coord();
 
     Angle = 0;
 
@@ -528,7 +528,7 @@ IFACEMETHODIMP_(bool) TestLocomotionClass::Shove(DirType dir)
  * 
  *  @author: CCHyper
  */
-IFACEMETHODIMP_(void) TestLocomotionClass::Force_Track(int track, Coordinate coord)
+IFACEMETHODIMP_(void) TestLocomotionClass::Force_Track(int track, Coord coord)
 {
 }
 
@@ -549,7 +549,7 @@ IFACEMETHODIMP_(LayerType) TestLocomotionClass::In_Which_Layer()
  * 
  *  @author: CCHyper
  */
-IFACEMETHODIMP_(void) TestLocomotionClass::Force_Immediate_Destination(Coordinate coord)
+IFACEMETHODIMP_(void) TestLocomotionClass::Force_Immediate_Destination(Coord coord)
 {
     DestinationCoord = coord;
 }
@@ -656,7 +656,7 @@ IFACEMETHODIMP_(bool) TestLocomotionClass::Is_Surfacing()
  */
 IFACEMETHODIMP_(void) TestLocomotionClass::Mark_All_Occupation_Bits(int mark)
 {
-    Coordinate headto = Head_To_Coord();
+    Coord headto = Head_To_Coord();
     if (mark != 0) {
         LinkedTo->Set_Occupy_Bit(headto);
     } else {
@@ -670,9 +670,9 @@ IFACEMETHODIMP_(void) TestLocomotionClass::Mark_All_Occupation_Bits(int mark)
  * 
  *  @author: CCHyper
  */
-IFACEMETHODIMP_(bool) TestLocomotionClass::Is_Moving_Here(Coordinate to)
+IFACEMETHODIMP_(bool) TestLocomotionClass::Is_Moving_Here(Coord to)
 {
-    return Coord_Cell(Head_To_Coord()) == Coord_Cell(to) && std::abs(Head_To_Coord().Z - to.Z) <= LEVEL_LEPTON_H;
+    return Head_To_Coord().As_Cell() == to.As_Cell() && std::abs(Head_To_Coord().Z - to.Z) <= LEVEL_LEPTON_H;
 }
 
 

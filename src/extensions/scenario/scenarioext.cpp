@@ -332,13 +332,13 @@ CellClass *ScenarioClassExtension::Waypoint_CellClassPtr(WaypointType wp) const
  *
  *  @author: CCHyper
  */
-Coordinate ScenarioClassExtension::Waypoint_Coord(WaypointType wp) const
+Coord ScenarioClassExtension::Waypoint_Coord(WaypointType wp) const
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Waypoint_Coord - 0x%08X\n", (uintptr_t)(This()));
     ASSERT_FATAL(wp < Waypoint.Length());
 
     CellClass *cell = &Map[Waypoint[wp]];
-    Coordinate coord = cell->Center_Coord();
+    Coord coord = cell->Center_Coord();
     return coord;
 }
 
@@ -350,13 +350,13 @@ Coordinate ScenarioClassExtension::Waypoint_Coord(WaypointType wp) const
  *
  *  @author: CCHyper
  */
-Coordinate ScenarioClassExtension::Waypoint_Coord_Height(WaypointType wp) const
+Coord ScenarioClassExtension::Waypoint_Coord_Height(WaypointType wp) const
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Waypoint_Coord_Height - 0x%08X\n", (uintptr_t)(This()));
     ASSERT_FATAL(wp < Waypoint.Length());
 
     CellClass *cell = &Map[Waypoint[wp]];
-    Coordinate coord = cell->Center_Coord();
+    Coord coord = cell->Center_Coord();
 
     if (cell->IsUnderBridge && cell->Bit2_64) {
         coord.Z += BRIDGE_LEPTON_HEIGHT;
@@ -385,11 +385,11 @@ void ScenarioClassExtension::Set_Waypoint_Cell(WaypointType wp, Cell &cell)
  *
  *  @author: CCHyper
  */
-void ScenarioClassExtension::Set_Waypoint_Coord(WaypointType wp, Coordinate &coord)
+void ScenarioClassExtension::Set_Waypoint_Coord(WaypointType wp, Coord &coord)
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Set_Waypoint_Coord - 0x%08X\n", (uintptr_t)(This()));
 
-    Waypoint[wp] = Coord_Cell(coord);
+    Waypoint[wp] = coord.As_Cell();
 }
 
 
@@ -877,7 +877,7 @@ static Cell Clip_Scatter(Cell cell, int maxdist)
         }
     }
 
-    return XY_Cell(x, y);
+    return Cell(x, y);
 }
 
 
@@ -953,7 +953,7 @@ static Cell Clip_Move(Cell cell, FacingType facing, int dist)
     if (y > ymax) y = ymax;
     if (y < ymin) y = ymin;
 
-    return XY_Cell(x, y);
+    return Cell(x, y);
 }
 
 
@@ -982,7 +982,7 @@ int Vinifera_Scan_Place_Object(ObjectClass *obj, Cell cell, int min_dist = 1, in
         techno = Map[cell].Cell_Techno();
         if (!techno || (techno->RTTI == RTTI_INFANTRY &&
             obj->RTTI == RTTI_INFANTRY)) {
-            Coordinate coord = cell.As_Coord();
+            Coord coord = cell.As_Coord();
             coord.Z = Map.Get_Height_GL(coord);
             if (obj->Unlimbo(coord, DIR_N)) {
                 return true;
@@ -1047,7 +1047,7 @@ int Vinifera_Scan_Place_Object(ObjectClass *obj, Cell cell, int min_dist = 1, in
                     techno = Map[newcell].Cell_Techno();
                     if (!techno || (techno->RTTI == RTTI_INFANTRY &&
                         obj->RTTI == RTTI_INFANTRY)) {
-                        Coordinate coord = Cell_Coord(newcell, true);
+                        Coord coord = newcell.As_Coord();
                         coord.Z = Map.Get_Height_GL(coord);
                         if (obj->Unlimbo(coord, DIR_N)) {
                             return true;
@@ -1141,7 +1141,7 @@ static bool Place_Object(ObjectClass *obj, Cell cell, FacingType facing, int dis
     if (Map.In_Radar(newcell)) {
         techno = Map[newcell].Cell_Techno();
         if (!techno) {
-            Coordinate coord = Cell_Coord(newcell, true);
+            Coord coord = newcell.As_Coord();
             coord.Z = Map.Get_Height_GL(coord);
             if (obj->Unlimbo(coord, DIR_N)) {
                 return true;
@@ -1201,7 +1201,7 @@ static DynamicVectorClass<Cell> Build_Starting_Waypoint_List(bool official)
         DEBUG_WARNING("Multiplayer start waypoint deficiency - looking for more start positions.\n");
         for (int index = 0; index < deficiency; ++index) {
 
-            Cell trycell = XY_Cell(Map.MapCellX + Random_Pick(10, Map.MapCellWidth-10),
+            Cell trycell = Cell(Map.MapCellX + Random_Pick(10, Map.MapCellWidth-10),
                                    Map.MapCellY + Random_Pick(0, Map.MapCellHeight-10) + 10);
 
             trycell = Map.Nearby_Location(trycell, SPEED_TRACK, -1, MZONE_NORMAL, false, Point2D(8, 8));
@@ -1438,7 +1438,7 @@ void ScenarioClassExtension::Create_Units(bool official)
         /**
          *  Assign the center of this house to the waypoint location.
          */
-        hptr->Center = Cell_Coord(centroid, true);
+        hptr->Center = centroid.As_Coord();
         DEBUG_INFO("  Setting house center to %d,%d\n", centroid.X, centroid.Y);
 
         /**
@@ -1460,7 +1460,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                  *  Create a construction yard (decided from the base unit).
                  */
                 obj = new BuildingClass(Rule->BaseUnit->DeploysInto, hptr);
-                if (obj->Unlimbo(Cell_Coord(centroid, true), DIR_N) || Vinifera_Scan_Place_Object(obj, centroid)) {
+                if (obj->Unlimbo(centroid.As_Coord(), DIR_N) || Vinifera_Scan_Place_Object(obj, centroid)) {
                     if (obj != nullptr) {
                         DEBUG_INFO("  Construction yard %s placed at %d,%d.\n",
                             obj->Class_Of()->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
@@ -1489,7 +1489,7 @@ void ScenarioClassExtension::Create_Units(bool official)
 
                                 if (building->Class->IsConstructionYard) {
 
-                                    Cell cell = Coord_Cell(building->Coord);
+                                    Cell cell = building->Position.As_Cell();
 
                                     building->House->Begin_Construction();
 
@@ -1515,7 +1515,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                  *    - Attach a flag to it for capture-the-flag mode.
                  */
                 obj = new UnitClass(Rule->BaseUnit, hptr);
-                if (obj->Unlimbo(Cell_Coord(centroid, true), DIR_N) || Vinifera_Scan_Place_Object(obj, centroid)) {
+                if (obj->Unlimbo(centroid.As_Coord(), DIR_N) || Vinifera_Scan_Place_Object(obj, centroid)) {
                     if (obj != nullptr) {
                         DEBUG_INFO("  Base unit %s placed at %d,%d.\n",
                             obj->Class_Of()->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);

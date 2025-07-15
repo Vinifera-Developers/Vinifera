@@ -381,19 +381,19 @@ void SpawnManagerClass::AI()
                 /**
                  *  Apply SecondSpawnOffset if this is the second missile in a burst.
                  */
-                Coordinate fire_coord;
+                Coord fire_coord;
                 if (Owner->BurstIndex % 2 == 0)
                     fire_coord = owner_ext->Fire_Coord(weapon_slot);
                 else
                     fire_coord = owner_ext->Fire_Coord(weapon_slot, owner_type_ext->SecondSpawnOffset);
 
-                Coordinate spawn_coord = Coordinate(fire_coord.X, fire_coord.Y, fire_coord.Z + 10);
+                Coord spawn_coord = Coord(fire_coord.X, fire_coord.Y, fire_coord.Z + 10);
 
                 /**
                  *  Randomize the horizontal position a bit if requested.
                  */
                 if (owner_type_ext->MaxRandomSpawnOffset > 0)
-                    spawn_coord += Coordinate(Random_Pick(0, owner_type_ext->MaxRandomSpawnOffset), Random_Pick(0, owner_type_ext->MaxRandomSpawnOffset), 0);
+                    spawn_coord += Coord(Random_Pick(0, owner_type_ext->MaxRandomSpawnOffset), Random_Pick(0, owner_type_ext->MaxRandomSpawnOffset), 0);
 
                 /**
                  *  Place the spawn in the world.
@@ -407,7 +407,7 @@ void SpawnManagerClass::AI()
                  *  Cruise missiles spawn their takeoff animation.
                  */
                 if (rocket && rocket->IsCruiseMissile && rocket->TakeoffAnim)
-                    new AnimClass(rocket->TakeoffAnim, spawnee->Coord, 2, 1, SHAPE_WIN_REL | SHAPE_CENTER, -10);
+                    new AnimClass(rocket->TakeoffAnim, spawnee->Position, 2, 1, SHAPE_WIN_REL | SHAPE_CENTER, -10);
 
                 /**
                  *  Reset burst since if we're done with this volley.
@@ -557,9 +557,9 @@ void SpawnManagerClass::AI()
 
                 if (good_landing_cell)
                 {
-                    bool good_landing_height = std::abs(spawnee->Coord.Z - Owner->Coord.Z) < 20;
+                    bool good_landing_height = std::abs(spawnee->Position.Z - Owner->Position.Z) < 20;
                     if (!good_landing_height && Owner->Is_Foot() && Owner->TClass->Locomotor == __uuidof(HoverLocomotionClass))
-                        good_landing_height = (spawnee->Coord.Z <= Owner->Coord.Z + 20);
+                        good_landing_height = (spawnee->Position.Z <= Owner->Position.Z + 20);
 
                     if (good_landing_height)
                     {

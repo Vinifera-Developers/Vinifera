@@ -308,7 +308,7 @@ bool TacticalExtension::Debug_Draw_Facings()
     Point3D pix = unit->Class_Of()->Pixel_Dimensions();
     Point3D pixel_center = Point3D(pix.X/2, pix.Y/2, pix.Z/2);
 
-    Coordinate coord = unit->Center_Coord();
+    Coord coord = unit->Center_Coord();
 
     Point2D screen = TacticalMap->func_60F150(coord);
 

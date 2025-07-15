@@ -58,7 +58,7 @@
 static DECLARE_EXTENDING_CLASS_AND_PAIR(BulletClass)
 {
 public:
-    bool _Is_Forced_To_Explode(Coordinate& coord);
+    bool _Is_Forced_To_Explode(Coord& coord);
 };
 
 
@@ -70,9 +70,9 @@ public:
  *  @author: 10/10/1996 JLB : Created.
  *           22/10/2024 Rampastring : Adjustments for Tiberian Sun.
  */
-bool BulletClassExt::_Is_Forced_To_Explode(Coordinate& coord)
+bool BulletClassExt::_Is_Forced_To_Explode(Coord& coord)
 {
-    coord = Coord;
+    coord = Position;
     CellClass* cellptr = &Map[PositionCoord];
     int height = HeightAGL;
 
@@ -96,7 +96,7 @@ bool BulletClassExt::_Is_Forced_To_Explode(Coordinate& coord)
     */
     const auto bullettypeext = Extension::Fetch(Class);
     if (bullettypeext->IsTorpedo) {
-        int distance = ::Distance(Coord_Fraction(coord), XY_Coord(CELL_LEPTON_W / 2, CELL_LEPTON_W / 2));
+        int distance = ::Distance(Coord_Fraction(coord), Coord(CELL_LEPTON_W / 2, CELL_LEPTON_W / 2));
 
         if (cellptr->Land_Type() != LAND_WATER ||
             (distance < CELL_LEPTON_W / 3 && cellptr->Cell_Techno() != nullptr &&
@@ -175,7 +175,7 @@ DECLARE_PATCH(_BulletClass_Logic_ShakeScreen_Patch)
 {
     GET_REGISTER_STATIC(BulletClass *, this_ptr, ebx);
     GET_REGISTER_STATIC(WarheadTypeClass *, warhead, eax);
-    GET_STACK_STATIC(Coordinate *, coord, esp, 0x0A8);
+    GET_STACK_STATIC(Coord *, coord, esp, 0x0A8);
     static WarheadTypeClassExtension *warheadext;
 
     /**

@@ -200,7 +200,7 @@ void KamikazeTrackerClass::Add(AircraftClass* aircraft, AbstractClass * target)
     control->Aircraft = aircraft;
     control->Cell = target == nullptr ?
         &aircraft->Get_Cell_Ptr()->Adjacent_Cell(Dir_Facing(aircraft->PrimaryFacing.Current().Get_Dir())) :
-        &Map[Coord_Cell(target->Center_Coord())];
+        &Map[target->Center_Coord().As_Cell()];
     aircraft->IsKamikaze = true;
     aircraft->Ammo = 1;
     Controls.Add(control);

@@ -52,7 +52,7 @@ bool Passes_Cloak_Check(TechnoClass* techno)
 		return true;
 	}
 
-	Coordinate coord = techno->Center_Coord();
+	Coord coord = techno->Center_Coord();
 	const CellClass* cellptr = &Map[coord];
 	if (cellptr->Sensed_By(PlayerPtr->HeapID))
 	{

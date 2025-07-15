@@ -1475,10 +1475,10 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                     Add_CRC(&GameCRC, (int)((ptr->PositionCoord.X / 10) << 16) + (int)(ptr->PositionCoord.Y / 10) + (int)ptr->PrimaryFacing.Current().Get_Dir());
 
                     const char *tarcom_name = "None";
-                    Coordinate tarcom_coord = Coordinate(0, 0, 0);
+                    Coord tarcom_coord = Coord(0, 0, 0);
 
                     const char *navcom_name = "None";
-                    Coordinate navcom_coord = Coordinate(0, 0, 0);
+                    Coord navcom_coord = Coord(0, 0, 0);
 
                     if (ptr->TarCom) {
                         tarcom_name = Name_From_RTTI(ptr->TarCom->RTTI);
@@ -1521,10 +1521,10 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                     Add_CRC(&GameCRC, (int)((ptr->PositionCoord.X / 10) << 16) + (int)(ptr->PositionCoord.Y / 10) + (int)ptr->PrimaryFacing.Current().Get_Dir());
 
                     const char *tarcom_name = "None";
-                    Coordinate tarcom_coord = Coordinate(0, 0, 0);
+                    Coord tarcom_coord = Coord(0, 0, 0);
 
                     const char *navcom_name = "None";
-                    Coordinate navcom_coord = Coordinate(0, 0, 0);
+                    Coord navcom_coord = Coord(0, 0, 0);
 
                     if (ptr->TarCom) {
                         tarcom_name = Name_From_RTTI(ptr->TarCom->RTTI);
@@ -1566,7 +1566,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                     Add_CRC(&GameCRC, (int)((ptr->PositionCoord.X / 10) << 16) + (int)(ptr->PositionCoord.Y / 10) + (int)ptr->PrimaryFacing.Current().Get_Dir());
 
                     const char *tarcom_name = "None";
-                    Coordinate tarcom_coord = Coordinate(0, 0, 0);;
+                    Coord tarcom_coord = Coord(0, 0, 0);;
 
                     if (ptr->TarCom) {
                         tarcom_name = Name_From_RTTI(ptr->TarCom->RTTI);
@@ -1599,10 +1599,10 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
                     Add_CRC(&GameCRC, (int)((ptr->PositionCoord.X / 10) << 16) + (int)(ptr->PositionCoord.Y / 10) + (int)ptr->PrimaryFacing.Current().Get_Dir());
 
                     const char *tarcom_name = "None";
-                    Coordinate tarcom_coord = Coordinate(0, 0, 0);;
+                    Coord tarcom_coord = Coord(0, 0, 0);;
 
                     const char *navcom_name = "None";
-                    Coordinate navcom_coord = Coordinate(0, 0, 0);;
+                    Coord navcom_coord = Coord(0, 0, 0);;
 
                     if (ptr->TarCom) {
                         tarcom_name = Name_From_RTTI(ptr->TarCom->RTTI);
@@ -1663,7 +1663,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     for (int index = 0; index < Anims.Count(); ++index) {
         AnimClass *animp = Anims[index];
         const char *xobject_name = "None";
-        Coordinate xobject_coord = Coordinate(0, 0, 0);;
+        Coord xobject_coord = Coord(0, 0, 0);;
 
         if (animp->xObject) {
             xobject_name = Name_From_RTTI(animp->xObject->RTTI);
@@ -1690,7 +1690,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         for (int index = 0; index < Map.Layer[layer].Count(); ++index) {
             ObjectClass *objp = Map.Layer[layer][index];
             Add_CRC(&GameCRC, (int)((objp->PositionCoord.X / 10) << 16) + (int)(objp->PositionCoord.Y / 10));
-            std::fprintf(fp, "Object %d: %s ", index, objp->Coord.As_String());
+            std::fprintf(fp, "Object %d: %s ", index, objp->Position.As_String());
             switch (objp->RTTI) {
                 case RTTI_AIRCRAFT:
                     std::fprintf(fp, "Aircraft  (Type: %s (%d)) ", objp->Name(), Aircrafts.ID(static_cast<AircraftClass*>(objp)));
@@ -1746,7 +1746,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     for (int index = 0; index < Logic.Count(); ++index) {
         ObjectClass *objp = Logic[index];
         Add_CRC(&GameCRC, (int)((objp->PositionCoord.X / 10) << 16) + (int)(objp->PositionCoord.Y / 10));
-        std::fprintf(fp, "Object %d: %s ", index, objp->Coord.As_String());
+        std::fprintf(fp, "Object %d: %s ", index, objp->Position.As_String());
         switch (objp->RTTI) {
             case RTTI_AIRCRAFT:
                 std::fprintf(fp, "Aircraft  (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());

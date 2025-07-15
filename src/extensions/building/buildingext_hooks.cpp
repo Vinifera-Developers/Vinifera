@@ -1324,7 +1324,7 @@ has_opened_else:
  */
 DECLARE_PATCH(_BuildingClass_Mission_Open_Gate_Open_Sound_Patch)
 {
-    GET_REGISTER_STATIC(Coordinate *, coord, eax);
+    GET_REGISTER_STATIC(Coord *, coord, eax);
     GET_REGISTER_STATIC(BuildingClass *, this_ptr, esi);
     static BuildingTypeClass *buildingtype;
     static BuildingTypeClassExtension *buildingtypeext;
@@ -1359,7 +1359,7 @@ DECLARE_PATCH(_BuildingClass_Mission_Open_Gate_Open_Sound_Patch)
 
 DECLARE_PATCH(_BuildingClass_Mission_Open_Gate_Close_Sound_Patch)
 {
-    GET_REGISTER_STATIC(Coordinate *, coord, eax);
+    GET_REGISTER_STATIC(Coord *, coord, eax);
     GET_REGISTER_STATIC(BuildingClass *, this_ptr, esi);
     static BuildingTypeClass *buildingtype;
     static BuildingTypeClassExtension *buildingtypeext;
@@ -1669,7 +1669,7 @@ DECLARE_PATCH(_BuildingClass_Mission_Deconstruction_ConYard_Survivors_Patch)
 DECLARE_PATCH(_BuildingClass_Mission_Deconstruction_ConYard_Unlimbo_Patch)
 {
     GET_REGISTER_STATIC(UnitClass*, mcv, ebp);
-    LEA_STACK_STATIC(Coordinate*, coords, esp, 0x40);
+    LEA_STACK_STATIC(Coord*, coords, esp, 0x40);
     GET_REGISTER_STATIC(Dir256, dir, eax);
 
     static bool result;

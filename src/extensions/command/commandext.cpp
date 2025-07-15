@@ -1919,7 +1919,7 @@ bool IonBlastCommandClass::Process()
         return false;
     }
 
-    Coordinate mouse_coord = Get_Coord_Under_Mouse();
+    Coord mouse_coord = Get_Coord_Under_Mouse();
     mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     new IonBlastClass(mouse_coord);
@@ -1959,7 +1959,7 @@ bool ExplosionCommandClass::Process()
         return false;
     }
 
-    Coordinate mouse_coord = Get_Coord_Under_Mouse();
+    Coord mouse_coord = Get_Coord_Under_Mouse();
     mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     const CellClass *cellptr = &Map[mouse_coord];
@@ -2027,7 +2027,7 @@ bool SuperExplosionCommandClass::Process()
         return false;
     }
 
-    Coordinate mouse_coord = Get_Coord_Under_Mouse();
+    Coord mouse_coord = Get_Coord_Under_Mouse();
     mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     const CellClass *cellptr = &Map[mouse_coord];
@@ -2301,7 +2301,7 @@ bool SpawnAllCommandClass::Try_Unlimbo(TechnoClass *techno, Cell &cell)
 
         while (attempt.Y < map_cell_bottom) {
 
-            Coordinate coord = Cell_Coord(attempt, true);
+            Coord coord = attempt.As_Coord();
             if (techno->Unlimbo(coord)) {
 
                 attempt.X++;
@@ -3464,7 +3464,7 @@ bool StartingWaypointsCommandClass::Process()
      *  as Tiberian Sun only supports these for starting locatons.
      */
     static int _current_index = 0;
-    Coordinate wp_coord = Scen->Waypoint_Coord(_current_index++ % 8);
+    Coord wp_coord = Scen->Waypoint_Coord(_current_index++ % 8);
     if (wp_coord == COORD_NONE) {
         return false;
     }
@@ -3521,7 +3521,7 @@ bool PlaceInfantryCommandClass::Process()
         return false;
     }
 
-    Coordinate mouse_coord = Get_Coord_Under_Mouse();
+    Coord mouse_coord = Get_Coord_Under_Mouse();
     mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     const CellClass *cellptr = &Map[mouse_coord];
@@ -3561,7 +3561,7 @@ bool PlaceInfantryCommandClass::Process()
         return false;
     }
 
-    DEBUG_INFO("Placed infantry \"%s\" at %d,%d,%d\n", inf->Name(), inf->Coord.X, inf->Coord.Y, inf->Coord.Z);
+    DEBUG_INFO("Placed infantry \"%s\" at %d,%d,%d\n", inf->Name(), inf->Position.X, inf->Position.Y, inf->Position.Z);
     return true;
 }
 
@@ -3597,7 +3597,7 @@ bool PlaceUnitCommandClass::Process()
         return false;
     }
 
-    Coordinate mouse_coord = Get_Coord_Under_Mouse();
+    Coord mouse_coord = Get_Coord_Under_Mouse();
     mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     const CellClass *cellptr = &Map[mouse_coord];
@@ -3639,7 +3639,7 @@ bool PlaceUnitCommandClass::Process()
         return false;
     }
 
-    DEBUG_INFO("Placed unit \"%s\" at %d,%d,%d\n", unit->Name(), unit->Coord.X, unit->Coord.Y, unit->Coord.Z);
+    DEBUG_INFO("Placed unit \"%s\" at %d,%d,%d\n", unit->Name(), unit->Position.X, unit->Position.Y, unit->Position.Z);
     return true;
 }
 
@@ -3675,7 +3675,7 @@ bool PlaceTiberiumCommandClass::Process()
         return false;
     }
 
-    Coordinate mouse_coord = Get_Coord_Under_Mouse();
+    Coord mouse_coord = Get_Coord_Under_Mouse();
     mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     CellClass *cellptr = &Map[mouse_coord];
@@ -3723,7 +3723,7 @@ bool ReduceTiberiumCommandClass::Process()
         return false;
     }
 
-    Coordinate mouse_coord = Get_Coord_Under_Mouse();
+    Coord mouse_coord = Get_Coord_Under_Mouse();
     mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     CellClass *cellptr = &Map[mouse_coord];
@@ -3771,7 +3771,7 @@ bool PlaceFullTiberiumCommandClass::Process()
         return false;
     }
 
-    Coordinate mouse_coord = Get_Coord_Under_Mouse();
+    Coord mouse_coord = Get_Coord_Under_Mouse();
     mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     CellClass *cellptr = &Map[mouse_coord];
@@ -3819,7 +3819,7 @@ bool RemoveTiberiumCommandClass::Process()
         return false;
     }
 
-    Coordinate mouse_coord = Get_Coord_Under_Mouse();
+    Coord mouse_coord = Get_Coord_Under_Mouse();
     mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     CellClass *cellptr = &Map[mouse_coord];
@@ -4145,7 +4145,7 @@ bool MeteorShowerCommandClass::Process()
         return false;
     }
 
-    Coordinate mouse_coord = Get_Coord_Under_Mouse();
+    Coord mouse_coord = Get_Coord_Under_Mouse();
     mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     if (!Map.In_Radar(mouse_coord)) {
@@ -4170,7 +4170,7 @@ bool MeteorShowerCommandClass::Process()
         int x_adj = Scen->RandomNumber() % (count * (CELL_LEPTON_W/2));
         int y_adj = Scen->RandomNumber() % (count * (CELL_LEPTON_H/2));
 
-        Coordinate where = mouse_coord;
+        Coord where = mouse_coord;
 
         where.X += x_adj;
         where.Y += y_adj;
@@ -4216,7 +4216,7 @@ bool MeteorImpactCommandClass::Process()
         return false;
     }
 
-    Coordinate mouse_coord = Get_Coord_Under_Mouse();
+    Coord mouse_coord = Get_Coord_Under_Mouse();
     mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     if (!Map.In_Radar(mouse_coord)) {

@@ -214,7 +214,7 @@ void TechnoClassExtension::Object_CRC(CRCEngine &crc) const
  * 
  *  @author: CCHyper
  */
-EBoltClass * TechnoClassExtension::Electric_Zap(AbstractClass * target, int which, const WeaponTypeClass *weapontype, Coordinate &source_coord)
+EBoltClass * TechnoClassExtension::Electric_Zap(AbstractClass * target, int which, const WeaponTypeClass *weapontype, Coord &source_coord)
 {
     //EXT_DEBUG_TRACE("TechnoClassExtension::Electric_Zap - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -226,7 +226,7 @@ EBoltClass * TechnoClassExtension::Electric_Zap(AbstractClass * target, int whic
     int z_adj = 0;
 
     if (Is_Target_Building(target)) {
-        Coordinate source = This()->Render_Coord();
+        Coord source = This()->Render_Coord();
 
         Point2D p1 = TacticalMap->func_60F150(source);
         Point2D p2 = TacticalMap->func_60F150(source_coord);
@@ -235,7 +235,7 @@ EBoltClass * TechnoClassExtension::Electric_Zap(AbstractClass * target, int whic
         z_adj = std::min(z_adj, 0);
     }
 
-    Coordinate target_coord = Is_Target_Object(target) ?
+    Coord target_coord = Is_Target_Object(target) ?
         reinterpret_cast<ObjectClass *>(target)->Target_Coord() : target->entry_5C();
 
     /**
@@ -258,7 +258,7 @@ EBoltClass * TechnoClassExtension::Electric_Bolt(AbstractClass * target)
 
     WeaponSlotType which = This()->What_Weapon_Should_I_Use(target);
     const WeaponTypeClass *weapontype = This()->Get_Weapon(which)->Weapon;
-    Coordinate fire_coord = This()->Fire_Coord(which);
+    Coord fire_coord = This()->Fire_Coord(which);
 
     EBoltClass *ebolt = Electric_Zap(target, which, weapontype, fire_coord);
     if (ebolt) {
@@ -607,7 +607,7 @@ bool TechnoClassExtension::Opportunity_Fire()
  *
  *  @author: ZivDero
  */
-Coordinate TechnoClassExtension::Fire_Coord(WeaponSlotType which, TPoint3D<int> offset) const
+Coord TechnoClassExtension::Fire_Coord(WeaponSlotType which, TPoint3D<int> offset) const
 {
     const TechnoTypeClass *ttype = This()->Techno_Type_Class();
     const auto weaponinfo = This()->Get_Weapon(which);
@@ -631,7 +631,7 @@ Coordinate TechnoClassExtension::Fire_Coord(WeaponSlotType which, TPoint3D<int> 
     matrix.Translate(static_cast<float>(weaponinfo->BarrelLength), 0, 0);
 
     const Vector3 fire_coord = matrix * Vector3(0, 0, 0);
-    Coordinate render_coord = This()->Render_Coord();
+    Coord render_coord = This()->Render_Coord();
 
     return { render_coord.X + static_cast<int>(fire_coord.X), render_coord.Y - static_cast<int>(fire_coord.Y), render_coord.Z + static_cast<int>(fire_coord.Z) };
 }
