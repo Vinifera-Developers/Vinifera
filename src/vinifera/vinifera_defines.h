@@ -189,13 +189,27 @@ typedef enum ExtTActionType
     EXT_TACTION_PAD = TACTION_TALK_BUBBLE, // The last TActionType
 
     /**
-     *  Add new ExtTActionType's from here, do not reorder these!
+     *  Add new ExtTActionTypes from here.
      */
+    EXT_TACTION_GIVE_CREDITS,
+    EXT_TACTION_ENABLE_SHORT_GAME,
+    EXT_TACTION_DISABLE_SHORT_GAME,
+    EXT_TACTION_UNUSED1, // unused, used to print the difficulty as a message in ts-patches
+    EXT_TACTION_BLOWUP_HOUSE,
+    EXT_TACTION_MAKE_ELITE,
+    EXT_TACTION_ENABLE_ALLYREVEAL,
+    EXT_TACTION_DISABLE_ALLYREVEAL,
+    EXT_TACTION_CREATE_AUTOSAVE,
+    EXT_TACTION_DELETE_OBJECT,
+    EXT_TACTION_ALL_ASSIGN_MISSION,
 
+    /**
+     *  The new total ExtTActionType count.
+     */
+    EXT_TACTION_COUNT,
 
-
-     /**
-      *  The new total ExtTActionType count.
-      */
-    EXT_TACTION_COUNT
+    /**
+     *  The first ExtTActionType.
+     */
+    EXT_TACTION_FIRST = EXT_TACTION_GIVE_CREDITS
 } ExtTActionType;

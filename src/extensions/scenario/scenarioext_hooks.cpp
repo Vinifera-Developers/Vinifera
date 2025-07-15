@@ -60,23 +60,22 @@
 class ScenarioClassExt : public ScenarioClass
 {
     public:
-        Cell _Waypoint_CellClass(WaypointType wp) const { return ScenExtension->Waypoint_CellClass(wp); }
-        CellClass *_Waypoint_CellClassPtr(WaypointType wp) const { return ScenExtension->Waypoint_CellClassPtr(wp); }
-        Coord _Waypoint_Coord(WaypointType wp) const { return ScenExtension->Waypoint_Coord(wp); }
-        Coord _Waypoint_Coord_Height(WaypointType wp) const { return ScenExtension->Waypoint_Coord_Height(wp); }
+        Cell _Waypoint_Cell(WAYPOINT wp) const { return ScenExtension->Waypoint_Cell(wp); }
+        CellClass *_Waypoint_CellClass(WAYPOINT wp) const { return ScenExtension->Waypoint_CellClass(wp); }
+        Coord _Waypoint_Coord(WAYPOINT wp) const { return ScenExtension->Waypoint_Coord(wp); }
 
-        void _Set_Waypoint_Cell(WaypointType wp, Cell cell) { ScenExtension->Set_Waypoint_Cell(wp, cell); }
-        void _Set_Waypoint_Coord(WaypointType wp, Coord &coord) { ScenExtension->Set_Waypoint_Coord(wp, coord); }
+        void _Set_Waypoint_Cell(WAYPOINT wp, Cell cell) { ScenExtension->Set_Waypoint_Cell(wp, cell); }
+        void _Set_Waypoint_Coord(WAYPOINT wp, Coord &coord) { ScenExtension->Set_Waypoint_Coord(wp, coord); }
 
-        bool _Is_Waypoint_Valid(WaypointType wp) const { return ScenExtension->Is_Waypoint_Valid(wp); }
-        void _Clear_Waypoint(WaypointType wp) { ScenExtension->Clear_Waypoint(wp); }
+        bool _Is_Waypoint_Valid(WAYPOINT wp) const { return ScenExtension->Is_Waypoint_Valid(wp); }
+        void _Clear_Waypoint(WAYPOINT wp) { ScenExtension->Clear_Waypoint(wp); }
 
         void _Clear_All_Waypoints() { ScenExtension->Clear_All_Waypoints(); }
 
         void _Read_Waypoint_INI(CCINIClass &ini) { ScenExtension->Read_Waypoint_INI(ini); }
         void _Write_Waypoint_INI(CCINIClass &ini) { ScenExtension->Write_Waypoint_INI(ini); }
 
-        const char *_Waypoint_As_String(WaypointType wp) const { return ScenExtension->Waypoint_As_String(wp); }
+        const char *_Waypoint_As_String(WAYPOINT wp) const { return ScenExtension->Waypoint_As_String(wp); }
 };
 
 
@@ -370,8 +369,8 @@ void ScenarioClassExtension_Hooks()
      *
      *  @author: CCHyper, ZivDero
      */
-    Patch_Jump(0x005E1460, &ScenarioClassExt::_Waypoint_CellClass);
-    Patch_Jump(0x005E1480, &ScenarioClassExt::_Waypoint_CellClassPtr);
+    Patch_Jump(0x005E1460, &ScenarioClassExt::_Waypoint_Cell);
+    Patch_Jump(0x005E1480, &ScenarioClassExt::_Waypoint_CellClass);
     Patch_Jump(0x005E14A0, &ScenarioClassExt::_Waypoint_Coord);
     Patch_Jump(0x005E1500, &ScenarioClassExt::_Clear_All_Waypoints);
     Patch_Jump(0x005E1520, &ScenarioClassExt::_Is_Waypoint_Valid);
@@ -379,7 +378,7 @@ void ScenarioClassExtension_Hooks()
     Patch_Jump(0x005E1630, &ScenarioClassExt::_Write_Waypoint_INI);
     Patch_Jump(0x005E16C0, &ScenarioClassExt::_Clear_Waypoint);
     Patch_Jump(0x005E16E0, &ScenarioClassExt::_Set_Waypoint_Cell);
-    Patch_Jump(0x005E1700, &ScenarioClassExt::_Waypoint_CellClassPtr);
+    Patch_Jump(0x005E1700, &ScenarioClassExt::_Waypoint_CellClass);
     Patch_Jump(0x005E1720, &ScenarioClassExt::_Waypoint_As_String);
     Patch_Jump(0x005DC852, &_Clear_Scenario_Patch);
     Patch_Jump(0x005DC0A0, &_Fill_In_Data_Home_Cell_Patch);
