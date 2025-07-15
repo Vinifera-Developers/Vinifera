@@ -111,6 +111,15 @@ bool TActionClassExtension::Execute(TActionClass& taction, HouseClass* house, Ob
 {
     bool success = false;
 
+    /**
+     *  Ensure that the specified object is not actually dead. A dead object could
+     *  be passed to this routine in the case of a multiple event trigger that
+     *  had the first event kill the object.
+     */
+    if (object != nullptr && !object->IsActive) {
+        object = nullptr;
+    }
+
     #define DISPATCH(a) case TACTION_ ## a: success = Do_ ## a (taction, house, object, trig, cell); break;
     #define EXT_DISPATCH(a) case EXT_TACTION_ ## a: success = Do_ ## a (taction, house, object, trig, cell); break;
 

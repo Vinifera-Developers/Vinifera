@@ -77,15 +77,6 @@ bool TActionClassExt::_Operator_Parens_Intercept(HouseClass* house, ObjectClass*
     bool success = true;
 
     /**
-     *  Ensure that the specified object is not actually dead. A dead object could
-     *  be passed to this routine in the case of a multiple event trigger that
-     *  had the first event kill the object.
-     */
-    if (object != nullptr && !object->IsActive) {
-        object = nullptr;
-    }
-
-    /**
      *  If this is a Vinifera TAction, execute it.
      */
     if (TActionClassExtension::Is_Vinifera_TAction(Action)) {
