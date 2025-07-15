@@ -55,23 +55,22 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
 
         bool Read_Tutorial_INI(CCINIClass &ini, bool log = false);
 
-        Cell Waypoint_CellClass(WaypointType wp) const;
-        CellClass * Waypoint_CellClassPtr(WaypointType wp) const;
-        Coord Waypoint_Coord(WaypointType wp) const;
-        Coord Waypoint_Coord_Height(WaypointType wp) const;
+        Cell Waypoint_Cell(WAYPOINT wp) const;
+        CellClass * Waypoint_CellClass(WAYPOINT wp) const;
+        Coord Waypoint_Coord(WAYPOINT wp) const;
 
-        void Set_Waypoint_Cell(WaypointType wp, Cell &cell);
-        void Set_Waypoint_Coord(WaypointType wp, Coord &coord);
+        void Set_Waypoint_Cell(WAYPOINT wp, Cell &cell);
+        void Set_Waypoint_Coord(WAYPOINT wp, Coord &coord);
 
-        bool Is_Waypoint_Valid(WaypointType wp) const;
-        void Clear_Waypoint(WaypointType wp);
+        bool Is_Waypoint_Valid(WAYPOINT wp) const;
+        void Clear_Waypoint(WAYPOINT wp);
 
         void Clear_All_Waypoints();
 
         void Read_Waypoint_INI(CCINIClass &ini);
         void Write_Waypoint_INI(CCINIClass &ini);
 
-        const char *Waypoint_As_String(WaypointType wp) const;
+        const char *Waypoint_As_String(WAYPOINT wp) const;
 
         static void Assign_Houses();
         static void Create_Units(bool official);
