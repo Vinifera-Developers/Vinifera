@@ -68,6 +68,7 @@
 #include "mission.h"
 #include "prerequisitegroup.h"
 #include "verses.h"
+#include "voxelinit.h"
 
 
 /**
@@ -88,7 +89,10 @@ RulesClassExtension::RulesClassExtension(const RulesClass *this_ptr) :
     IsMultiMCV(false),
     AINavalYardAdjacency(20),
     LowPowerPenaltyModifier(1.0f),
-    MultipleFactoryCap(0)
+    MultipleFactoryCap(0),
+    VoxelLightAzimuth(0),
+    VoxelLightElevation(DEG_TO_RAD(45)),
+    VoxelShadowOffset(6)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
@@ -675,8 +679,11 @@ bool RulesClassExtension::AudioVisual(CCINIClass &ini)
     WeedPipIndex = ini.Get_Int(AUDIOVISUAL, "WeedPipIndex", WeedPipIndex);
     MaxPips = ini.Get_Integers(AUDIOVISUAL, "MaxPips", MaxPips);
 
-    for (int i = 0; i < MaxPips.Count(); i++)
-        DEBUG_INFO("%d", MaxPips[i]);
+    VoxelLightAzimuth = DEG_TO_RADF(ini.Get_Float(AUDIOVISUAL, "VoxelLightAzimuth", RAD_TO_DEGF(VoxelLightAzimuth)));
+    VoxelLightElevation = DEG_TO_RADF(ini.Get_Float(AUDIOVISUAL, "VoxelLightElevation", RAD_TO_DEGF(VoxelLightElevation)));
+    VoxelShadowOffset = ini.Get_Float(AUDIOVISUAL, "VoxelShadowOffset", VoxelShadowOffset);
+
+    Set_Voxel_Light_Angle(VoxelLightAzimuth, VoxelLightElevation, VoxelShadowOffset);
 
     return true;
 }
@@ -1147,4 +1154,31 @@ void RulesClassExtension::Fixups(CCINIClass &ini)
     }
 
     DEBUG_INFO("Rules::Fixups(exit)\n");
+}
+
+
+/**
+ *  Sets the properties of the voxel light.
+ *
+ *  @author: ZivDero
+ */
+bool RulesClassExtension::Set_Voxel_Light_Angle(float azimuth, float elevation, float offset)
+{
+    static float _last_azimuth = 0;
+    static float _last_offset = 6;
+
+    if (azimuth != _last_azimuth || elevation != VoxelLightAngle || offset != _last_offset) {
+        Matrix3D mtx(true);
+        VoxelLightAngle = elevation;
+        _last_azimuth = azimuth;
+        _last_offset = offset;
+        mtx.Rotate_Z(azimuth);
+        mtx.Rotate_Y(elevation);
+        VoxelLightSource = mtx * Vector3(-1, 0, 0);
+        VoxelShadowLightSource = Vector3(-offset * VoxelLightSource.X, -offset * VoxelLightSource.Y, 0);
+        ObjectTypeClass::Clear_Voxel_Indexes();
+        return true;
+    }
+
+    return false;
 }

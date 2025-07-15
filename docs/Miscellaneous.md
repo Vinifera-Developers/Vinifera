@@ -132,6 +132,20 @@ SavedGamesDirectory=Saved Games  ; string, the name of the directory in which to
 Subdirectories are also supported, e. g. `Tiberian Sun\Saved Games`.
 ```
 
+## Voxel Light Customization
+
+- In vanilla, voxels are lit directly from the South at a 45 degree angle. With Vinifera, this can be customized.
+
+In `RULES.INI`:
+```ini
+[AudioVisual]
+VoxelLightAzimuth=0     ; float, the horizontal direction of the light source,
+                        ; rotating from the South (bottom-left) counter-clockwise, in degrees.
+VoxelLightElevation=45  ; float, the vertical angle of the light source (how high up is the Sun),
+                        ; rotating from the South (bottom-left) counter-clockwise (towards North, passing above the unit), in degrees.
+VoxelShadowOffset=6     ; float, how much the shadow is offset from the unit.
+```
+
 ## File System
 
 - `GENERIC.MIX` and `ISOGEN.MIX` mixfiles can now be used to place common assets between theaters.
