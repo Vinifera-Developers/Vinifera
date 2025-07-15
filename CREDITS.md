@@ -187,6 +187,7 @@ This page lists all the individual contributions to the project by their author.
   - Implement `Mechanic` for InfantryTypes.
   - Fix a buffer overflow crash in MapClass::Place_Down.
   - Allow pre-placed units to have missions in multiplayer.
+  - Original implementations of actions in ts-patches.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:
@@ -266,3 +267,4 @@ This page lists all the individual contributions to the project by their author.
   - Fix building light sources no longer being attached to the building after loading the game.
   - Fix shroud looking bugged if you attempt to reveal too many cells at once.
   - Implement voxel light customization.
+  - Implement TActionClass extension, port ts-patches actions.
