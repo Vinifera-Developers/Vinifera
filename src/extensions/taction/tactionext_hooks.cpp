@@ -68,10 +68,15 @@ DECLARE_EXTENDING_CLASS_AND_PAIR(TActionClass)
 {
 public:
     bool _Operator_Parens_Intercept(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell const& cell);
-
 };
 
 
+/**
+ *  Intercept for TActionClass::operator() to add the
+ *  execution of our new TActions.
+ *
+ *  @author: ZivDero
+ */
 bool TActionClassExt::_Operator_Parens_Intercept(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell const& cell)
 {
     bool success = true;
