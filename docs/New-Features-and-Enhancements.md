@@ -128,6 +128,16 @@ GateUpSound=    ; VocType, sound effect to play when the gate is rising. Default
 GateDownSound=  ; VocType, sound effect to play when the gate is lowering. Defaults to [AudioVisual]->GateDown.
 ```
 
+### Vertical Gate
+
+- Normally, the game drawn gates flat on the ground when they are open. You can optionally turn this off to have a gate that is drawn above units when open instead.
+
+In `RULES.INI`:
+```ini
+[SOMEBUILDING]   ; BuildingType
+VerticalGate=no  ; boolean, should the gate be drawn normally, as opposed to flat when it's open.
+```
+
 ### ProduceCash
 
 - Vinifera implements the Produce Cash logic from Red Alert 2. The system works exactly as it does in Red Alert 2, but with the following differences:

@@ -56,6 +56,9 @@ This page lists the history of changes across stable Vinifera releases and also 
 Vinifera fixes:
 - Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)
 
+New:
+- Implement `VerticalGate` for buildings (by ZivDero)
+
 :::
 
 ### 0.1.0.0

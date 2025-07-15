@@ -132,4 +132,9 @@ public:
      *  If this building is a factory, can it only produce those units that list it in BuiltAt=?
      */
     bool IsExclusiveFactory;
+
+    /**
+     *  If this is a gate, should it always be drawn normally, as opposed to being drawn on the ground when open?
+     */
+    bool IsVerticalGate;
 };
