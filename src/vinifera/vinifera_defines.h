@@ -211,5 +211,5 @@ typedef enum ExtTActionType
     /**
      *  The first ExtTActionType.
      */
-    EXT_TACTION_FIRST = EXT_TACTION_GIVE_CREDITS
+    EXT_TACTION_FIRST = EXT_TACTION_PAD + 1
 } ExtTActionType;
