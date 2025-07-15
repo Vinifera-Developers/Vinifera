@@ -179,3 +179,23 @@ enum PrerequisiteGroupType
     PREREQ_GROUP_NONE = -1
 };
 DEFINE_ENUMERATION_OPERATORS(PrerequisiteGroupType);
+
+
+/**
+ *  Extension of the TActionType enum.
+ */
+typedef enum ExtTActionType
+{
+    EXT_TACTION_PAD = TACTION_TALK_BUBBLE, // The last TActionType
+
+    /**
+     *  Add new ExtTActionType's from here, do not reorder these!
+     */
+
+
+
+     /**
+      *  The new total ExtTActionType count.
+      */
+    EXT_TACTION_COUNT
+} ExtTActionType;
