@@ -1243,7 +1243,7 @@ void HouseClassExtension::Save_Unit_Trackers(HouseClass* house, IStream* pStm)
  */
 void HouseClassExtension::Set_Spawn_Point(const Coord& coord)
 {
-    for (int i = 0; i < NEW_WAYPOINT_COUNT; i++) {
+    for (int i = 0; i < MAX_PLAYERS; i++) {
         if (Scen->Waypoint_Coord(i).As_Cell() == coord.As_Cell()) {
             SpawnWaypoint = static_cast<WAYPOINT>(i);
             return;
