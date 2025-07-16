@@ -92,7 +92,8 @@ RulesClassExtension::RulesClassExtension(const RulesClass *this_ptr) :
     MultipleFactoryCap(0),
     VoxelLightAzimuth(0),
     VoxelLightElevation(DEG_TO_RAD(45)),
-    VoxelShadowOffset(6)
+    VoxelShadowOffset(6),
+    IsTiberiumStorage(true)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
@@ -655,6 +656,7 @@ bool RulesClassExtension::General(CCINIClass &ini)
     IsMultiMCV = ini.Get_Bool(GENERAL, "MultiMCV", IsMultiMCV);
     LowPowerPenaltyModifier = ini.Get_Float(GENERAL, "LowPowerPenaltyModifier", LowPowerPenaltyModifier);
     MultipleFactoryCap = ini.Get_Int(GENERAL, "MultipleFactoryCap", MultipleFactoryCap);
+    IsTiberiumStorage = ini.Get_Bool(GENERAL, "TiberiumStorage", IsTiberiumStorage);
 
     return true;
 }

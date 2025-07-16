@@ -146,6 +146,16 @@ VoxelLightElevation=45  ; float, the vertical angle of the light source (how hig
 VoxelShadowOffset=6     ; float, how much the shadow is offset from the unit.
 ```
 
+## Tiberium Storage
+
+- By default, you need storage (in the form of buildings with `Storage=`) to collect Tiberium. Vinifera allows optionally disabling it, depositing Tiberium directly as credits (like in Red Alert 2).
+
+In `RULES.INI`:
+```ini
+[General]
+TiberiumStorage=yes  ; boolean, does the player need storage (silos) to collect Tiberium?
+```
+
 ## File System
 
 - `GENERIC.MIX` and `ISOGEN.MIX` mixfiles can now be used to place common assets between theaters.

@@ -181,6 +181,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where it was impossible to tell infantry to enter cloaked allied transports.
   - Implement `ExplosionDamage` for animations.
   - Implement naval yard rally points.
+  - Implement an option to disable Tiberium storage.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:

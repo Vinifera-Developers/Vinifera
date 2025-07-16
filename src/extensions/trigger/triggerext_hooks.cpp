@@ -73,7 +73,7 @@ DECLARE_PATCH(_TriggerClass_Constructor_Enabled_For_Difficulty_Patch)
           (Session.Type == GAME_NORMAL && 
           ((Scen->CDifficulty == DIFF_HARD && !this_ptr->Class->IsEnabledEasy)
           || (Scen->CDifficulty == DIFF_NORMAL && !this_ptr->Class->IsEnabledMedium)
-          || (Scen->CDifficulty == DIFF_EASY && !this_ptr->Class-IsEnabled>Hard)))) {
+          || (Scen->CDifficulty == DIFF_EASY && !this_ptr->Class->IsEnabledHard)))) {
 
             this_ptr->IsEnabled = false;
         }

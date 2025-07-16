@@ -163,4 +163,9 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
          *  How much the shadow is offset from the unit.
          */
         float VoxelShadowOffset;
+
+        /**
+         *  Determines whether the Tiberium storage logic is enabled.
+         */
+        bool IsTiberiumStorage;
 };

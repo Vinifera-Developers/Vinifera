@@ -55,6 +55,7 @@ This page lists the history of changes across stable Vinifera releases and also 
 
 New:
 - Implement voxel light customization (by ZivDero)
+- Implement an option to disable Tiberium storage (by Rampastring)
 
 Vinifera fixes:
 - Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)

@@ -49,6 +49,7 @@
 #include "session.h"
 #include "ccini.h"
 #include "sideext.h"
+#include "tiberium.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -78,6 +79,7 @@ public:
     Cell _Find_Build_Location(BuildingTypeClass* btype, int(__fastcall* callback)(int, Cell&, int, int), int a3 = -1);
     void _Production_Check();
     bool _AI_Has_Prerequisites(const TechnoTypeClass* type, DynamicVectorClass<const BuildingTypeClass*>& owned, int ownedcount) const;
+    void _Harvested(int tiberium, TiberiumType slot);
 
     // stubs
     FactoryClass* _Fetch_Factory(RTTIType rtti);
@@ -454,6 +456,44 @@ int HouseClassExt::_Expert_AI()
     }
 
     return TICKS_PER_SECOND * 7 + Random_Pick(1, TICKS_PER_SECOND / 2);
+}
+
+
+/**
+ *  Patch to optionally disable Tiberium storage.
+ *
+ *  @author: ZivDero, tomsons26, Rampastring
+ */
+void HouseClassExt::_Harvested(int tiberium, TiberiumType slot)
+{
+    PointTotal += tiberium * 5;
+
+    if ((Session.Type != GAME_NORMAL && !IsHuman) || !RuleExtension->IsTiberiumStorage) {
+        Credits += tiberium * Tiberiums[slot]->Value;
+    }
+    else {
+        long oldcap = Capacity;
+        long oldtib = Tiberium.Get_Total_Amount();
+
+        if (tiberium + Tiberium.Get_Total_Amount() > Capacity) {
+            tiberium = Capacity - Tiberium.Get_Total_Amount();
+        }
+
+        for (int index = 0; index < Buildings.Count(); index++) {
+            BuildingClass* b = Buildings[index];
+            if (b && b->IsDown && b->House == this) {
+                if (b->Class->Storage > 0) {
+                    while (tiberium > 0 && b->Class->Storage > b->Storage.Get_Total_Amount()) {
+                        b->Storage.Increase_Amount(1, slot);
+                        Tiberium.Increase_Amount(1, slot);
+                        tiberium--;
+                    }
+                }
+            }
+        }
+
+        Silo_Redraw_Check(oldtib, oldcap);
+    }
 }
 
 
@@ -1263,4 +1303,5 @@ void HouseClassExtension_Hooks()
     Patch_Jump(0x004BE6A0, &HouseClassExt::_Abandon_Production);
     Patch_Jump(0x004BEA10, &HouseClassExt::_Place_Object);
     Patch_Jump(0x004BF180, &HouseClassExt::_Suggest_New_Object);
+    Patch_Jump(0x004BD590, &HouseClassExt::_Harvested);
 }
