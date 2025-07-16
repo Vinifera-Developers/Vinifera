@@ -149,10 +149,14 @@ DECLARE_PATCH(_TActionClass_Operator_Enable_Trigger_For_Difficulty_Patch)
         /**
          *  Set this trigger to be disabled if it is marked as disabled
          *  for this current mission difficulty.
+         *
+         *  Rampastring: Check CDifficulty instead of Difficulty.
+         *  Also, in non-campaign games, consider all difficulties enabled regardless of what the trigger specifies.
          */
-        if (Scen->Difficulty == DIFF_EASY && !trigger->Class->IsEnabledEasy
-            || Scen->Difficulty == DIFF_NORMAL && !trigger->Class->IsEnabledMedium
-            || Scen->Difficulty == DIFF_HARD && !trigger->Class->IsEnabledHard) {
+        if (Session.Type == GAME_NORMAL &&
+            (Scen->CDifficulty == DIFF_HARD && !trigger->Class->IsEnabledEasy
+            || Scen->CDifficulty == DIFF_NORMAL && !trigger->Class->IsEnabledMedium
+            || Scen->CDifficulty == DIFF_EASY && !trigger->Class->IsEnabledHard)) {
 
             trigger->Disable();
 
