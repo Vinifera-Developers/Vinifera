@@ -451,8 +451,8 @@ void EBoltClass::Draw_Bolts()
         TacticalMap->Coord_To_Pixel(data.Start, start_pixel);
         TacticalMap->Coord_To_Pixel(data.End, end_pixel);
 
-        int start_z = data.StartZ - TacticalMap->func_60F3C0(data.Start.Z) - 2;
-        int end_z = data.EndZ - TacticalMap->func_60F3C0(data.End.Z) - 2;
+        int start_z = data.StartZ - TacticalMap->Z_Lepton_To_Pixel(data.Start.Z) - 2;
+        int end_z = data.EndZ - TacticalMap->Z_Lepton_To_Pixel(data.End.Z) - 2;
 
         unsigned color = DSurface::RGB_To_Pixel(data.Color.Red, data.Color.Green, data.Color.Blue);
 
