@@ -64,7 +64,7 @@ private:
     static bool Do_GIVE_CREDITS(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     static bool Do_ENABLE_SHORT_GAME(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     static bool Do_DISABLE_SHORT_GAME(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
-    static bool Do_BLOWUP_HOUSE(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
+    static bool Do_HOUSE_DESTROY_ALL(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     static bool Do_MAKE_ELITE(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     static bool Do_ENABLE_ALLYREVEAL(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     static bool Do_DISABLE_ALLYREVEAL(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);

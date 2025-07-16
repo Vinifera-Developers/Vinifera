@@ -106,8 +106,8 @@ NAME = [Action Count], [TActionType], [NeedCode], [PARAM1], [PARAM2], [PARAM3], 
 |          | Disables Short Game. Players can continue playing even after all buildings are destroyed. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
 | 504      | Unused Action            |              |                  |            |            |            |            |            |
 |          | This action does nothing. Originally used to display the difficulty in ts-patches. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 505      | Blow Up House            |              |                  |            |            |            |            |            |
-|          | Instantly destroys all technos of the specified house and marks them as defeated. | Other (0)   | House (#)        | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
+| 505      | Destroy all of...       |              |                  |            |            |            |            |            |
+|          | Kills everything of the specified house and marks them as defeated. | Other (0)   | House (#)        | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
 | 506      | Make Elite               |              |                  |            |            |            |            |            |
 |          | All utechnos attached to this trigger will be promoted to elite status. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
 | 507      | Enable Ally Reveal       |              |                  |            |            |            |            |            |

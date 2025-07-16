@@ -52,7 +52,7 @@ TActionClass::ActionDescriptionStruct TActionClassExtension::ExtActionDescriptio
     { "Enable Short Game", "Enables Short Game. Players will lose if all buildings are destroyed." },
     { "Disable Short Game", "Disables Short Game. Players can continue playing even after all buildings are destroyed." },
     { "Unused Action", "This action does nothing. Originally used to display the difficulty in ts-patches." },
-    { "Blow Up House", "Instantly destroys all technos of the specified house and marks them as defeated." },
+    { "Destroy all of...", "Kills everything of the specified house and marks them as defeated." },
     { "Make Elite", "All technos attached to this trigger will be promoted to elite status." },
     { "Enable Ally Reveal", "Enables Ally Reveal, allowing allied players to see each other's explored areas." },
     { "Disable Ally Reveal", "Disables Ally Reveal, stopping allied players from seeing each other's explored areas." },
@@ -144,7 +144,7 @@ bool TActionClassExtension::Execute(TActionClass& taction, HouseClass* house, Ob
         EXT_DISPATCH(GIVE_CREDITS);
         EXT_DISPATCH(ENABLE_SHORT_GAME);
         EXT_DISPATCH(DISABLE_SHORT_GAME);
-        EXT_DISPATCH(BLOWUP_HOUSE);
+        EXT_DISPATCH(HOUSE_DESTROY_ALL);
         EXT_DISPATCH(MAKE_ELITE);
         EXT_DISPATCH(ENABLE_ALLYREVEAL);
         EXT_DISPATCH(DISABLE_ALLYREVEAL);
@@ -474,7 +474,7 @@ bool TActionClassExtension::Do_DISABLE_SHORT_GAME(TActionClass& taction, HouseCl
  *
  *  @author: ZivDero, based on ts-patches implementation by Rampastring
  */
-bool TActionClassExtension::Do_BLOWUP_HOUSE(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExtension::Do_HOUSE_DESTROY_ALL(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
     HouseClass* hptr = HouseClassExtension::House_From_HousesType(taction.Data.House);
 
