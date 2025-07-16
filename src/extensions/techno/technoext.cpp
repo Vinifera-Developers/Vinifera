@@ -84,7 +84,7 @@ TechnoClassExtension::TechnoClassExtension(const TechnoClass *this_ptr) :
     {
         new ((StorageClassExt*)&(this_ptr->Storage)) StorageClassExt(&Storage);
 
-        const auto ttypeext = Extension::Fetch(this_ptr->Techno_Type_Class());
+        const auto ttypeext = Extension::Fetch(this_ptr->TClass);
         if (ttypeext->Spawns)
             SpawnManager = new SpawnManagerClass(const_cast<TechnoClass*>(this_ptr), ttypeext->Spawns, ttypeext->SpawnsNumber, ttypeext->SpawnRegenRate, ttypeext->SpawnReloadRate, ttypeext->SpawnSpawnRate, ttypeext->SpawnLogicRate);
     }
@@ -547,7 +547,7 @@ int TechnoClassExtension::Time_To_Build() const
     /**
      *  Walls have a coefficient as they are really cheap.
      */
-    if (This()->RTTI == RTTI_BUILDING && reinterpret_cast<const BuildingTypeClass *>(This()->Techno_Type_Class())->IsWall) {
+    if (This()->RTTI == RTTI_BUILDING && reinterpret_cast<const BuildingTypeClass *>(This()->TClass)->IsWall) {
         time *= Rule->WallBuildSpeedCoefficient;
     }
 
@@ -609,7 +609,7 @@ bool TechnoClassExtension::Opportunity_Fire()
  */
 Coord TechnoClassExtension::Fire_Coord(WeaponSlotType which, TPoint3D<int> offset) const
 {
-    const TechnoTypeClass *ttype = This()->Techno_Type_Class();
+    const TechnoTypeClass *ttype = This()->TClass;
     const auto weaponinfo = This()->Get_Weapon(which);
 
     Matrix3D matrix;
@@ -655,7 +655,7 @@ void TechnoClassExtension::Put_Storage_Pointers()
  */
 const TechnoTypeClass *TechnoClassExtension::Techno_Type_Class() const
 {
-    return reinterpret_cast<TechnoClass *>(This())->Techno_Type_Class();
+    return reinterpret_cast<TechnoClass *>(This())->TClass;
 }
 
 

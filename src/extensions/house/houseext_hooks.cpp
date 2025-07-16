@@ -469,7 +469,7 @@ void HouseClassExt::_Harvested(int tiberium, TiberiumType slot)
     PointTotal += tiberium * 5;
 
     if ((Session.Type != GAME_NORMAL && !IsHuman) || !RuleExtension->IsTiberiumStorage) {
-        Credits += tiberium * Tiberiums[slot]->Value;
+        Credits += tiberium * Tiberiums[slot]->CreditValue;
     }
     else {
         long oldcap = Capacity;
