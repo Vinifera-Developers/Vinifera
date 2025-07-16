@@ -37,6 +37,7 @@ typedef LONG(*exceptionhandler_ptr_t)(unsigned int, struct _EXCEPTION_POINTERS *
 typedef void(*exceptioncallback_ptr_t)();
 
 LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS *e_info);
+LONG WINAPI Vinifera_Vector_Exception_Handler(struct _EXCEPTION_POINTERS *e_info);
 
 
 extern register_t LastExceptionEIP;
