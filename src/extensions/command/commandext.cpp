@@ -1471,17 +1471,17 @@ bool DumpTriggersCommandClass::Process()
         TriggerClass* trigger = Triggers[i];
 
         DEBUG_INFO("Trigger %d: %s\n", i, trigger->Class->FullName);
-        DEBUG_INFO("    IsDestroyed: %d\n", trigger->IsDestroyed);
-        DEBUG_INFO("    IsTripped: %d\n", trigger->IsTripped);
-        DEBUG_INFO("    IsEnabled: %d\n", trigger->IsEnabled);
+        DEBUG_INFO("    IsToDie: %d\n", trigger->IsToDie);
+        DEBUG_INFO("    TrippedFlags: %d\n", trigger->TrippedFlags);
+        DEBUG_INFO("    IsActive: %d\n", trigger->IsActive);
 
-        while (trigger->Next != nullptr) {
-            trigger = trigger->Next;
+        while (trigger->LinkedTo != nullptr) {
+            trigger = trigger->LinkedTo;
 
-            DEBUG_INFO("    Next: %s\n", trigger->Class->FullName);
-            DEBUG_INFO("        IsDestroyed: %d\n", trigger->IsDestroyed);
-            DEBUG_INFO("        IsTripped: %d\n", trigger->IsTripped);
-            DEBUG_INFO("        IsEnabled: %d\n", trigger->IsEnabled);
+            DEBUG_INFO("    LinkedTo: %s\n", trigger->Class->FullName);
+            DEBUG_INFO("        IsToDie: %d\n", trigger->IsToDie);
+            DEBUG_INFO("        TrippedFlags: %d\n", trigger->TrippedFlags);
+            DEBUG_INFO("        IsActive: %d\n", trigger->IsActive);
         }
     }
 

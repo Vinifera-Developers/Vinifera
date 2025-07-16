@@ -58,7 +58,7 @@ DECLARE_PATCH(_TriggerClass_Constructor_Enabled_For_Difficulty_Patch)
 
     if (this_ptr->Class) {
 
-        this_ptr->Reset();
+        this_ptr->Reset_Timer_Events();
 
         /**
          *  Set this trigger to be disabled if;
@@ -66,9 +66,9 @@ DECLARE_PATCH(_TriggerClass_Constructor_Enabled_For_Difficulty_Patch)
          *    - It is marked as disabled for this current mission difficulty.
          */
         if (!this_ptr->Class->Enabled
-          || (Scen->Difficulty == DIFF_EASY && !this_ptr->Class->Easy)
-          || (Scen->Difficulty == DIFF_NORMAL && !this_ptr->Class->Normal)
-          || (Scen->Difficulty == DIFF_HARD && !this_ptr->Class->Hard)) {
+          || (Scen->Difficulty == DIFF_EASY && !this_ptr->Class->IsEnabledEasy)
+          || (Scen->Difficulty == DIFF_NORMAL && !this_ptr->Class->IsEnabledMedium)
+          || (Scen->Difficulty == DIFF_HARD && !this_ptr->Class->IsEnabledHard)) {
 
             this_ptr->IsEnabled = false;
         }

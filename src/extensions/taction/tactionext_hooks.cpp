@@ -150,9 +150,9 @@ DECLARE_PATCH(_TActionClass_Operator_Enable_Trigger_For_Difficulty_Patch)
          *  Set this trigger to be disabled if it is marked as disabled
          *  for this current mission difficulty.
          */
-        if (Scen->Difficulty == DIFF_EASY && !trigger->Class->Easy
-            || Scen->Difficulty == DIFF_NORMAL && !trigger->Class->Normal
-            || Scen->Difficulty == DIFF_HARD && !trigger->Class->Hard) {
+        if (Scen->Difficulty == DIFF_EASY && !trigger->Class->IsEnabledEasy
+            || Scen->Difficulty == DIFF_NORMAL && !trigger->Class->IsEnabledMedium
+            || Scen->Difficulty == DIFF_HARD && !trigger->Class->IsEnabledHard) {
 
             trigger->Disable();
 
