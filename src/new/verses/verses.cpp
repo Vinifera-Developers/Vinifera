@@ -155,7 +155,7 @@ HRESULT Verses::Save_2D_Vector(IStream* pStm, std::vector<std::vector<T>>& vecto
         static char buffer[64];
         std::snprintf(buffer, sizeof(buffer), "%s[%d]", heap_name, i);
 
-        HRESULT hr = Save_Primitive_Vector(pStm, vector[i], buffer);
+        hr = Save_Primitive_Vector(pStm, vector[i], buffer);
         if (FAILED(hr))
             return hr;
     }
@@ -184,7 +184,7 @@ HRESULT Verses::Load_2D_Vector(IStream* pStm, std::vector<std::vector<T>>& vecto
         static char buffer[64];
         std::snprintf(buffer, sizeof(buffer), "%s[%d]", heap_name, i);
 
-        HRESULT hr = Load_Primitive_Vector(pStm, vector[i], buffer);
+        hr = Load_Primitive_Vector(pStm, vector[i], buffer);
         if (FAILED(hr))
             return hr;
     }

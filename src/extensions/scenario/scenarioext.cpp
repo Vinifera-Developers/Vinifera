@@ -571,10 +571,8 @@ const char * ScenarioClassExtension::Waypoint_As_String(WaypointType wp) const
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Waypoint_As_String - 0x%08X\n", (uintptr_t)(This()));
 
-    for (WaypointType wp = WAYPOINT_FIRST; wp < Waypoint.Length(); ++wp) {
-        if (Is_Waypoint_Valid(wp)) {
-            return ::Waypoint_As_String(wp);
-        }
+    if (Is_Waypoint_Valid(wp)) {
+        return ::Waypoint_As_String(wp);
     }
 
     return "";

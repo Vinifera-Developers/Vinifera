@@ -183,7 +183,7 @@ void EBoltClass::Create(Coord &start, Coord &end, int z_adjust)
  */
 Coord EBoltClass::Source_Coord() const
 {
-    Coord coord;
+    Coord coord = COORD_NONE;
     if (Source) {
         coord = Source->Fire_Coord(WeaponSlot);
     }

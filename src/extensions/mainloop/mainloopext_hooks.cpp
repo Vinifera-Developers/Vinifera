@@ -40,7 +40,7 @@
 #include "ccini.h"
 #include "fatal.h"
 #include "debughandler.h"
-#include "asserthandler.h"6
+#include "asserthandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"

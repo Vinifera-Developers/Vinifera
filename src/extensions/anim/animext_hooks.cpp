@@ -223,11 +223,11 @@ void AnimClassExt::_AI()
                     for (int x = -Class->TiberiumSpreadRadius; x <= Class->TiberiumSpreadRadius; x++) {
                         for (int y = -Class->TiberiumSpreadRadius; y <= Class->TiberiumSpreadRadius; y++) {
                             if ((int)sqrt((double)x * (double)x + (double)y * (double)y) <= Class->TiberiumSpreadRadius) {
-                                CellClass* cellptr = &Map[Adjacent_Cell(coord.As_Cell(), FacingType(x))];
-                                if (cellptr->Can_Tiberium_Germinate(nullptr) && Class->TiberiumSpawnType != nullptr) {
-                                    new OverlayClass(OverlayTypes[Class->TiberiumSpawnType->HeapID + Random_Pick(0, 3)], cellptr->Cell_Number());
-                                    cellptr->OverlayData = Random_Pick(0, 2);
-                                    Rect overlayrect = cellptr->Get_Overlay_Rect();
+                                CellClass* tibcell = &Map[Adjacent_Cell(coord.As_Cell(), FacingType(x))];
+                                if (tibcell->Can_Tiberium_Germinate(nullptr) && Class->TiberiumSpawnType != nullptr) {
+                                    new OverlayClass(OverlayTypes[Class->TiberiumSpawnType->HeapID + Random_Pick(0, 3)], tibcell->Cell_Number());
+                                    tibcell->OverlayData = Random_Pick(0, 2);
+                                    Rect overlayrect = tibcell->Get_Overlay_Rect();
                                     overlayrect.Y -= TacticalRect.Y;
                                     updaterect = Union(updaterect, overlayrect);
                                 }

@@ -998,9 +998,9 @@ void SidebarClassExtension::Check_Hover(GadgetClass* gadget, int mousex, int mou
             {
                 select->On_Mouse_Leave();
             }
-            else if (auto select = dynamic_cast<TabButtonClass*>(LastHovered))
+            else if (auto tab_button = dynamic_cast<TabButtonClass*>(LastHovered))
             {
-                select->On_Mouse_Leave();
+                tab_button->On_Mouse_Leave();
             }
 
             LastHovered = nullptr;
@@ -1013,10 +1013,10 @@ void SidebarClassExtension::Check_Hover(GadgetClass* gadget, int mousex, int mou
                 LastHovered = select;
                 select->On_Mouse_Enter();
             }
-            else if (auto select = dynamic_cast<TabButtonClass*>(to_enter))
+            else if (auto tab_button = dynamic_cast<TabButtonClass*>(to_enter))
             {
-                LastHovered = select;
-                select->On_Mouse_Enter();
+                LastHovered = tab_button;
+                tab_button->On_Mouse_Enter();
             }
         }
     }

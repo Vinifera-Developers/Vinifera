@@ -1167,7 +1167,7 @@ HRESULT UnitTrackerClassExt::_Save(IStream* pStm)
     }
 
     for (int i = 0; i < UnitCount; i++) {
-        HRESULT hr = pStm->Write(&UnitTotals[i], sizeof(UnitTotals[i]), nullptr);
+        hr = pStm->Write(&UnitTotals[i], sizeof(UnitTotals[i]), nullptr);
         if (FAILED(hr)) {
             return hr;
         }
