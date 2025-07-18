@@ -179,3 +179,39 @@ enum PrerequisiteGroupType
     PREREQ_GROUP_NONE = -1
 };
 DEFINE_ENUMERATION_OPERATORS(PrerequisiteGroupType);
+
+
+/**
+ *  Extension of the TActionType enum.
+ */
+typedef enum ExtTActionType
+{
+    EXT_TACTION_PAD = TACTION_TALK_BUBBLE, // The last TActionType
+
+    /**
+     *  Add new ExtTActionTypes from here.
+     */
+    EXT_TACTION_GIVE_CREDITS,
+    EXT_TACTION_ENABLE_SHORT_GAME,
+    EXT_TACTION_DISABLE_SHORT_GAME,
+    EXT_TACTION_UNUSED1, // unused, used to print the difficulty as a message in ts-patches
+    EXT_TACTION_HOUSE_DESTROY_ALL,
+    EXT_TACTION_MAKE_ELITE,
+    EXT_TACTION_ENABLE_ALLYREVEAL,
+    EXT_TACTION_DISABLE_ALLYREVEAL,
+    EXT_TACTION_CREATE_AUTOSAVE,
+    EXT_TACTION_DELETE_OBJECT,
+    EXT_TACTION_ALL_ASSIGN_MISSION,
+    EXT_TACTION_MAKE_ALLY_ONE_WAY,
+    EXT_TACTION_MAKE_ENEMY_ONE_WAY,
+
+    /**
+     *  The new total ExtTActionType count.
+     */
+    EXT_TACTION_COUNT,
+
+    /**
+     *  The first ExtTActionType.
+     */
+    EXT_TACTION_FIRST = EXT_TACTION_PAD + 1
+} ExtTActionType;

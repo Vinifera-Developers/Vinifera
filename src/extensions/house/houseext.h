@@ -85,6 +85,11 @@ public:
     static void Load_Unit_Trackers(HouseClass* house, IStream* pStm);
     static void Save_Unit_Trackers(HouseClass* house, IStream* pStm);
 
+    void Set_Spawn_Point(const Coord& coord);
+
+    static HouseClass* House_At_Spawn_Point(WAYPOINT waypoint);
+    static HouseClass* House_From_HousesType(HousesType house);
+
 public:
     /**
      *  Replacement Tiberium storage.
@@ -111,4 +116,9 @@ public:
      *  The type of the naval unit the AI is currently scheduled to build.
      */
     UnitType BuildNavalUnit;
+
+    /**
+     *  The waypoint at which this house was spawned.
+     */
+    WAYPOINT SpawnWaypoint;
 };

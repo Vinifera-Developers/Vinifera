@@ -66,7 +66,8 @@ HouseClassExtension::HouseClassExtension(const HouseClass *this_ptr) :
     WeedStorage(Tiberiums.Count()),
     NavalFactories(0),
     NavalFactory(nullptr),
-    BuildNavalUnit(UNIT_NONE)
+    BuildNavalUnit(UNIT_NONE),
+    SpawnWaypoint(WAYPOINT_NONE)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("HouseClassExtension::HouseClassExtension - 0x%08X\n", (uintptr_t)(This()));
 
@@ -1232,4 +1233,64 @@ void HouseClassExtension::Save_Unit_Trackers(HouseClass* house, IStream* pStm)
     reinterpret_cast<UnitTrackerClassExt*>(house->DestroyedBuildings)->_Save(pStm);
     reinterpret_cast<UnitTrackerClassExt*>(house->CapturedBuildings)->_Save(pStm);
     reinterpret_cast<UnitTrackerClassExt*>(house->TotalCrates)->_Save(pStm);
+}
+
+
+/**
+ *  Sets this house's spawn point from its coordinate.
+ *
+ *  @author: ZivDero
+ */
+void HouseClassExtension::Set_Spawn_Point(const Coord& coord)
+{
+    for (int i = 0; i < MAX_PLAYERS; i++) {
+        if (Scen->Waypoint_Coord(i).As_Cell() == coord.As_Cell()) {
+            SpawnWaypoint = static_cast<WAYPOINT>(i);
+            return;
+        }
+    }
+
+    SpawnWaypoint = WAYPOINT_NONE;
+}
+
+
+/**
+ *  Tries to fetch a house spawned at this waypoint
+ *
+ *  @author: ZivDero
+ */
+HouseClass* HouseClassExtension::House_At_Spawn_Point(WAYPOINT waypoint)
+{
+    for (auto& house_ext : HouseExtensions) {
+        if (house_ext->SpawnWaypoint != WAYPOINT_NONE && house_ext->SpawnWaypoint == waypoint) {
+            return house_ext->This();
+        }
+    }
+
+    return nullptr;
+}
+
+
+/**
+ *  Fetches a house by its houses type.
+ *  Also takes care of ts-patches spawn houses.
+ *
+ *  @author: ZivDero
+ */
+HouseClass* HouseClassExtension::House_From_HousesType(HousesType house)
+{
+    /**
+     *  Houses between 50 and 57 are "spawn houses".
+     *  Try to fetch the house at this waypoint.
+     */
+    if (Session.Type != GAME_NORMAL) {
+        if (house >= 50 && house <= 57) {
+            return House_At_Spawn_Point(static_cast<WAYPOINT>(house - 50));
+        }
+    }
+
+    /**
+     *  Otherwise, just perform the normal logic to fetch the house.
+     */
+    return HouseClass::As_Pointer(house);
 }
