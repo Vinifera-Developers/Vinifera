@@ -613,7 +613,7 @@ DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_NormaliseLineAnimation_Patch)
      *  Adjust the offset of the line pattern (this animates a little slower than rally points).
      */
     time = timeGetTime();
-    offset = (-time / 64) & (ARRAYSIZE(_pattern)-1);
+    offset = (-time / 64) & (std::size(_pattern)-1);
 
     color_black = DSurface::RGB_To_Pixel(0,0,0);
 
