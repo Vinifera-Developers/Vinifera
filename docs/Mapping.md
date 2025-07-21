@@ -74,3 +74,53 @@ ScoreEnemyColor=250,28,28    ; color in R,G,B, color of the enemy's score bars.
 ## Script Actions
 
 ## Trigger Actions
+
+### NeedCodes
+
+- Every trigger action has a NeedCode associated with it. The NeedCode dictates how some of the data used by the trigger action is parsed. Below is a table containing all valid NeedCodes.
+
+|   **NeedCode**   | **Numeric Value** |   **Meaning**                                                      |
+|-----------------:|:-----------------:|:-------------------------------------------------------------------|
+| NeedOther        | 0                 | PARAM1 is parsed as a number, PARAM6 is parsed as a waypoint       |
+| NeedTeam         | 1                 | PARAM1 is parsed as a team name, PARAM6 is parsed as a waypoint    |
+| NeedTrigger      | 2                 | PARAM1 is parsed as a trigger name, PARAM6 is parsed as a waypoint |
+| NeedTag          | 3                 | PARAM1 is parsed as a tag name, PARAM6 is parsed as a waypoint     |
+| NeedTeamAndTime  | 4                 | PARAM1 is parsed as a team name, PARAM6 is parsed as a number      |
+
+- A trigger action is parsed from the map as follows:
+
+```ini
+[Actions]
+NAME = [Action Count], [TActionType], [NeedCode], [PARAM1], [PARAM2], [PARAM3], [PARAM4], [PARAM5], [PARAM6:OPTIONAL]
+```
+
+### New Trigger Actions
+
+| **Code** | **Action**               | **NeedCode** | **PARAM1**       | **PARAM2** | **PARAM3** | **PARAM4** | **PARAM5** | **PARAM6** |
+|----------|--------------------------|--------------|------------------|------------|------------|------------|------------|------------|
+| 501      | Give Credits             |              |                  |            |            |            |            |            |
+|          | Gives or removes credits from the specified house. A positive amount gives money, a negative amount subtracts it. | Other (0)   | House (#)        | Credits    | *unused*   | *unused*   | *unused*   | *unused*   |
+| 502      | Enable Short Game        |              |                  |            |            |            |            |            |
+|          | Enables Short Game. Players will lose if all buildings are destroyed. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
+| 503      | Disable Short Game       |              |                  |            |            |            |            |            |
+|          | Disables Short Game. Players can continue playing even after all buildings are destroyed. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
+| 504      | Unused Action            |              |                  |            |            |            |            |            |
+|          | This action does nothing. Originally used to display the difficulty in ts-patches. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
+| 505      | Destroy all of...       |              |                  |            |            |            |            |            |
+|          | Kills everything of the specified house and marks them as defeated. | Other (0)   | House (#)        | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
+| 506      | Make Elite               |              |                  |            |            |            |            |            |
+|          | All utechnos attached to this trigger will be promoted to elite status. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
+| 507      | Enable Ally Reveal       |              |                  |            |            |            |            |            |
+|          | Enables Ally Reveal, allowing allied players to see each other's explored areas. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
+| 508      | Disable Ally Reveal      |              |                  |            |            |            |            |            |
+|          | Disables Ally Reveal, stopping allied players from seeing each other's explored areas. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
+| 509      | Create Autosave          |              |                  |            |            |            |            |            |
+|          | Schedules an autosave to be created on the next game frame. (Currently not implemented, handled by ts-patches) | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
+| 510      | Delete Attached Objects  |              |                  |            |            |            |            |            |
+|          | Deletes all units and structures on the map that are linked to this trigger silently. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
+| 511      | All Assign Mission       |              |                  |            |            |            |            |            |
+|          | Forces all units owned by the trigger's house to begin the specified mission (e.g., hunt, move). | Other (0)   | Mission (#)   | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
+| 512      | Make Ally (One-Way)      |              |                  |            |            |            |            |            |
+|          | Cause this trigger's house to make a one-sided alliance with the specified house. | Other (0)   | House (#)        | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
+| 513      | Make Enemy (One-Way)     |              |                  |            |            |            |            |            |
+|          | Cause this trigger's house to unilaterally declare war on the specified house. | Other (0)   | House (#)        | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |

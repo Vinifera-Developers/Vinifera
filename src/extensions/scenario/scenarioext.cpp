@@ -47,6 +47,7 @@
 #include "vinifera_saveload.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "houseext.h"
 
 
 /**
@@ -304,7 +305,7 @@ bool ScenarioClassExtension::Read_Tutorial_INI(CCINIClass &ini, bool log)
  *
  *  @author: CCHyper
  */
-Cell ScenarioClassExtension::Waypoint_CellClass(WaypointType wp) const
+Cell ScenarioClassExtension::Waypoint_Cell(WAYPOINT wp) const
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Waypoint_CellClass - 0x%08X\n", (uintptr_t)(This()));
     ASSERT_FATAL(wp < Waypoint.Length());
@@ -318,7 +319,7 @@ Cell ScenarioClassExtension::Waypoint_CellClass(WaypointType wp) const
  *
  *  @author: CCHyper
  */
-CellClass *ScenarioClassExtension::Waypoint_CellClassPtr(WaypointType wp) const
+CellClass *ScenarioClassExtension::Waypoint_CellClass(WAYPOINT wp) const
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Waypoint_CellClassPtr - 0x%08X\n", (uintptr_t)(This()));
     ASSERT_FATAL(wp < Waypoint.Length());
@@ -330,38 +331,20 @@ CellClass *ScenarioClassExtension::Waypoint_CellClassPtr(WaypointType wp) const
 /**
  *  Get the coordinate of a waypoint location.
  *
+ *  #NOTE: The coordinate is adjusted by the bridge height if the waypoint is on a bridge cell.
+ *
  *  @author: CCHyper
  */
-Coord ScenarioClassExtension::Waypoint_Coord(WaypointType wp) const
+Coord ScenarioClassExtension::Waypoint_Coord(WAYPOINT wp) const
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Waypoint_Coord - 0x%08X\n", (uintptr_t)(This()));
     ASSERT_FATAL(wp < Waypoint.Length());
 
     CellClass *cell = &Map[Waypoint[wp]];
     Coord coord = cell->Center_Coord();
-    return coord;
-}
-
-
-/**
- *  Get the coordinate of a waypoint location.
- *
- *  #NOTE: The coordinate is adjusted by the bridge height if the waypoint is on a bridge cell.
- *
- *  @author: CCHyper
- */
-Coord ScenarioClassExtension::Waypoint_Coord_Height(WaypointType wp) const
-{
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Waypoint_Coord_Height - 0x%08X\n", (uintptr_t)(This()));
-    ASSERT_FATAL(wp < Waypoint.Length());
-
-    CellClass *cell = &Map[Waypoint[wp]];
-    Coord coord = cell->Center_Coord();
-
-    if (cell->IsUnderBridge && cell->Bit2_64) {
+    if (cell->IsUnderBridge || cell->WasUnderBridge) {
         coord.Z += BRIDGE_LEPTON_HEIGHT;
     }
-
     return coord;
 }
 
@@ -371,7 +354,7 @@ Coord ScenarioClassExtension::Waypoint_Coord_Height(WaypointType wp) const
  *
  *  @author: CCHyper
  */
-void ScenarioClassExtension::Set_Waypoint_Cell(WaypointType wp, Cell &cell)
+void ScenarioClassExtension::Set_Waypoint_Cell(WAYPOINT wp, Cell &cell)
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Waypoint_CellClass - 0x%08X\n", (uintptr_t)(This()));
     ASSERT_FATAL(wp < Waypoint.Length());
@@ -385,7 +368,7 @@ void ScenarioClassExtension::Set_Waypoint_Cell(WaypointType wp, Cell &cell)
  *
  *  @author: CCHyper
  */
-void ScenarioClassExtension::Set_Waypoint_Coord(WaypointType wp, Coord &coord)
+void ScenarioClassExtension::Set_Waypoint_Coord(WAYPOINT wp, Coord &coord)
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Set_Waypoint_Coord - 0x%08X\n", (uintptr_t)(This()));
 
@@ -398,7 +381,7 @@ void ScenarioClassExtension::Set_Waypoint_Coord(WaypointType wp, Coord &coord)
  *
  *  @author: CCHyper
  */
-bool ScenarioClassExtension::Is_Waypoint_Valid(WaypointType wp) const
+bool ScenarioClassExtension::Is_Waypoint_Valid(WAYPOINT wp) const
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Is_Waypoint_Valid - 0x%08X\n", (uintptr_t)(This()));
     ASSERT_FATAL(wp < Waypoint.Length());
@@ -412,7 +395,7 @@ bool ScenarioClassExtension::Is_Waypoint_Valid(WaypointType wp) const
  *
  *  @author: CCHyper
  */
-void ScenarioClassExtension::Clear_Waypoint(WaypointType wp)
+void ScenarioClassExtension::Clear_Waypoint(WAYPOINT wp)
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Clear_Waypoint - 0x%08X\n", (uintptr_t)(This()));
     ASSERT_FATAL(wp < Waypoint.Length());
@@ -456,7 +439,7 @@ void ScenarioClassExtension::Read_Waypoint_INI(CCINIClass &ini)
     /**
      *  Read the Waypoint entries.
      */
-    for (WaypointType wp = WAYPOINT_FIRST; wp < Waypoint.Length(); ++wp) {
+    for (WAYPOINT wp = WAYPOINT_FIRST; wp < Waypoint.Length(); ++wp) {
 
         /**
          *  Get a waypoint entry.
@@ -549,7 +532,7 @@ void ScenarioClassExtension::Write_Waypoint_INI(CCINIClass &ini)
     /**
      * Save the Waypoint entries.
      */
-    for (WaypointType wp = WAYPOINT_FIRST; wp < Waypoint.Length(); ++wp) {
+    for (WAYPOINT wp = WAYPOINT_FIRST; wp < Waypoint.Length(); ++wp) {
         if (Is_Waypoint_Valid(wp)) {
             std::snprintf(entry, sizeof(entry), "%d", wp);
             int value = Waypoint[wp].X + 1000 * Waypoint[wp].Y;
@@ -567,7 +550,7 @@ void ScenarioClassExtension::Write_Waypoint_INI(CCINIClass &ini)
  *
  *  @author: CCHyper
  */
-const char * ScenarioClassExtension::Waypoint_As_String(WaypointType wp) const
+const char * ScenarioClassExtension::Waypoint_As_String(WAYPOINT wp) const
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Waypoint_As_String - 0x%08X\n", (uintptr_t)(This()));
 
@@ -1437,6 +1420,7 @@ void ScenarioClassExtension::Create_Units(bool official)
          *  Assign the center of this house to the waypoint location.
          */
         hptr->Center = centroid.As_Coord();
+        Extension::Fetch(hptr)->Set_Spawn_Point(hptr->Center);
         DEBUG_INFO("  Setting house center to %d,%d\n", centroid.X, centroid.Y);
 
         /**
