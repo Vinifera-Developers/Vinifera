@@ -87,6 +87,7 @@ FixedString<65536> ExceptionBuffer;
 static TextFileClass ExceptionFile;
 
 static FixedString<1024> ExceptionInfoDescription;
+static bool ExceptionInfoIsFatal = false;
 static bool ExceptionInfoCanContinue = false;
 static bool ExceptionInfoIgnore = false;
 
@@ -355,6 +356,11 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
             DEBUG_WARNING("Exception code is 0x%" PRIPTRSIZE PRIXPTR "\n", e_code);
             break;
     };
+
+    // log any unknown exception code in except as well
+    if (the_exception_code == uint32_t(-1)) {
+        Exception_Printf("Exception code is 0x%X\r\n", e_code);
+    }
 
     if (e_code == EXCEPTION_ACCESS_VIOLATION) {
 
@@ -692,7 +698,9 @@ static INT_PTR CALLBACK Exception_Dialog_Proc(HWND hDlg, UINT uMsg, WPARAM wPara
     /**
      *  Disable/Enable the Continue button.
      */
-    EnableWindow(GetDlgItem(hDlg, IDC_EXCEPTION_CONTINUE), ExceptionInfoCanContinue ? TRUE : FALSE); // Continue button
+    EnableWindow(GetDlgItem(hDlg, IDC_EXCEPTION_CONTINUE), ExceptionInfoCanContinue && !ExceptionInfoIsFatal ? TRUE : FALSE); // Continue button
+    EnableWindow(GetDlgItem(hDlg,IDC_EXCEPTION_MAINMENU), ExceptionInfoIsFatal ? FALSE : TRUE); // Main Menu button
+    EnableWindow(GetDlgItem(hDlg,IDC_EXCEPTION_SAVE), ExceptionInfoIsFatal ? FALSE : TRUE); // Save button
 
     switch (uMsg) {
         case WM_MOVING:
@@ -740,6 +748,11 @@ static INT_PTR CALLBACK Exception_Dialog_Proc(HWND hDlg, UINT uMsg, WPARAM wPara
             break;
 
         case WM_CLOSE:
+            if(ExceptionInfoIsFatal) {
+                // exception was fatal so we can't continue anything
+                exit(EXIT_FAILURE);
+                break;
+            }
             EndDialog(hDlg, IDC_EXCEPTION_QUIT);
             result = FALSE;
             break;
@@ -1130,6 +1143,27 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
      *  in the stack frame in which the handler is found.
      */
     return EXCEPTION_EXECUTE_HANDLER;
+}
+
+
+LONG WINAPI Vinifera_Vector_Exception_Handler(struct _EXCEPTION_POINTERS * e_info)
+{
+    DWORD code = e_info->ExceptionRecord->ExceptionCode;
+
+    bool handle = false;
+    // these error codes will likely never be caught by UEF, however 'may' get caught by VEH
+    if (code == STATUS_HEAP_CORRUPTION || code == STATUS_STACK_BUFFER_OVERRUN || code == STATUS_STACK_OVERFLOW) {
+        handle = true;
+    }
+
+    if(handle) {
+        // all these are fatal, don't allow any game continuation
+        ExceptionInfoIsFatal = true;
+        // call normal exception handler to at least get something to work with
+        return Vinifera_Exception_Handler(code, e_info);
+    }
+
+    return EXCEPTION_CONTINUE_SEARCH;
 }
 
 

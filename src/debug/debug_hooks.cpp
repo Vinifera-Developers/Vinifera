@@ -607,6 +607,7 @@ void Debug_Hooks()
     /**
      *  Hook in the Exception handler.
      */
+    AddVectoredExceptionHandler(true, &Vinifera_Vector_Exception_Handler);
     SetUnhandledExceptionFilter((LPTOP_LEVEL_EXCEPTION_FILTER)&_Top_Level_Exception_Filter);
     _set_se_translator((_se_translator_function)&_Structured_Exception_Translator);
     Hook_Function(0x005FF7D0, &_Top_Level_Exception_Filter);
