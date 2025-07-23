@@ -59,6 +59,7 @@ New:
 
 Vinifera fixes:
 - Fix unit placement in non-TS Client builds of Vinifera (by ZivDero)
+- Fix a bug where `CellSpread` incorrectly handled height distance with buildings (by ZivDero)
 
 :::
 
