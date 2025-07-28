@@ -51,6 +51,7 @@
 #include "hooker.h"
 #include "hooker_macros.h"
 #include "house.h"
+#include "rules.h"
 
 
 /**
@@ -65,6 +66,7 @@ DECLARE_EXTENDING_CLASS_AND_PAIR(AircraftClass)
 public:
     bool _Unlimbo(const Coord& coord, Dir256 dir);
     bool _Cell_Seems_Ok(Cell& cell, bool strict) const;
+    ActionType _What_Action(ObjectClass const* target, bool disallow_force);
 };
 
 
@@ -189,6 +191,102 @@ bool AircraftClassExt::_Cell_Seems_Ok(Cell& cell, bool strict) const
     }
 
     return true;
+}
+
+
+/**
+ *  Determines what action to perform.
+ *
+ *  @author: 06/19/1995 JLB - Created.
+ *           ZivDero - Adjustments for Tiberian Sun.
+ */
+ActionType AircraftClassExt::_What_Action(ObjectClass const* target, bool disallow_force)
+{
+    ActionType action = FootClass::What_Action(target, disallow_force);
+
+    /**
+     *  If this is a carryall, we might be able to tote a unit the mouse is over.
+     */
+    if (Class->IsCarryall && House->Is_Player_Control()) {
+        if (action == ACTION_SELECT || action == ACTION_NONE) {
+            if (House->Is_Ally(target)) {
+                if (!target->Is_Techno() || target->Owner_HouseClass()->Is_Ally(this)) {
+                    if (!Cargo.Is_Something_Attached() && target->RTTI == RTTI_UNIT) {
+                        action = ACTION_TOTE;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     *  Check if we can do something to the cell under the target.
+     */
+    if (action == ACTION_NONE) {
+        action = What_Action(target->Center_Coord().As_Cell(), false, disallow_force);
+    }
+
+    if (action == ACTION_SELF) {
+
+        /**
+         *  Can't unload the passengers if theer are none.
+         */
+        if (!Cargo.How_Many()) {
+            action = ACTION_NONE;
+        }
+
+        /**
+         *  #FIX: Check if there's a building under the aircraft, and if so
+         *  don't allow unloading to prevent units stuck in limbo.
+         */
+        else {
+            BuildingClass* building = Map[PositionCell].Cell_Building();
+            if (building != nullptr) {
+                action = ACTION_NO_DEPLOY;
+            }
+        }
+        
+    }
+
+    /**
+     *  Can't fire a weapon if there is none.
+     */
+    if (action == ACTION_ATTACK && PrimaryWeapon == nullptr) {
+        action = ACTION_NONE;
+    }
+
+    /**
+     *  Special return to friendly repair factory action.
+     *
+     *  #FIX: Check for ACTION_MOVE, because for allied buildings we get that sometimes, not ACTION_SELECT.
+     */
+    if (House->Is_Player_Control() && (action == ACTION_SELECT || action == ACTION_MOVE) && target->RTTI == RTTI_BUILDING) {
+        BuildingClass* building = (BuildingClass*)target;
+
+        /**
+         *  #FIX: Allow any repair depot to repair aircraft, not just Rule->RepairBay
+         */
+        if ((building->Class->IsCanUnitRepair || building->Class->IsHelipad) && !building->In_Radio_Contact() && !building->Cargo.Is_Something_Attached()) {
+            if (Transmit_Message(RADIO_CAN_LOAD, building) == RADIO_ROGER) {
+                action = ACTION_ENTER;
+            }
+        }
+    }
+
+    /**
+     *  Make sure we can't tote things out of the weapons factory.
+     */
+    if (Class->IsCarryall && action == ACTION_TOTE) {
+        Cell cell = target->PositionCell;
+        if (cell != CELL_NONE) {
+            BuildingClass* building = Map[cell].Cell_Building();
+            if (building != nullptr && building->Class->IsWeaponsFactory) {
+                action = ACTION_NONE;
+            }
+        }
+    }
+
+    return action;
 }
 
 
@@ -511,4 +609,5 @@ void AircraftClassExtension_Hooks()
     Patch_Jump(0x00408940, &AircraftClassExt::_Unlimbo);
     Patch_Jump(0x0040D260, &AircraftClassExt::_Cell_Seems_Ok);
     Patch_Jump(0x0040B3A6, &_AircraftClass_Enter_Idle_Mode_Spawner_Patch);
+    Patch_Jump(0x0040B7E0, &AircraftClassExt::_What_Action);
 }

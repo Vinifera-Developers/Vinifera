@@ -55,7 +55,7 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where aircraft are unable to attack shrouded targets in campaign games and instead get stuck in mid-air.
 - Fix a bug where the player was able to input keyboard commands while input was locked through a trigger action.
 - Fix a bug where a vehicle transport could end up attached to its own cargo, causing the transport to disappear upon unloading.
-- Fix a bug where a harvester could be ordered to dock with a refinery that wasn't listed in the harvester's `Dock=` key.
+- Fix a bug where a harvester/weeder could be ordered to dock with a refinery/waste facility that wasn't listed in the unit's `Dock=` key.
 - Fix a bug where house firepower bonus, veterancy and crate upgrade damage modifiers were not applied to railgun `AmbientDamage=`.
 - Fix a bug where crew wouldn't exit from construction yards when they were sold or destroyed.
 - Fix a bug where you could sometimes get extra crew to exit a building that was being sold and was destroying/undeploying.
@@ -75,3 +75,6 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where you could use a stop command to reset a unit's burst.
 - Fix building light sources no longer being attached to the building after loading the game.
 - Fix shroud looking bugged if you attempt to reveal too many cells at once.
+- Fix the player being able to unload an aircraft onto a building, resulting in limboed units (port from ts-patches).
+- Fix the player being able to land an aircraft onto a helipad even if it's not listed as `Dock=` of this aircraft.
+- Fix a bug where the player couldn't repair aircraft on allied repair bays under some circumstances.

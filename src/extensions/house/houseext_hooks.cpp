@@ -749,7 +749,7 @@ DECLARE_PATCH(_HouseClass_Enable_SWs_Check_For_Building_Power)
     GET_REGISTER_STATIC(int, quiet, eax);
     GET_REGISTER_STATIC(BuildingClass*, building, esi);
 
-    if (!building->IsPowerOn)
+    if (!building->IsOn)
     {
         /**
          *  Enable the superweapon in suspended mode.

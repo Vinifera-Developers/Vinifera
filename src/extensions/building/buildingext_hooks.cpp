@@ -112,6 +112,7 @@ public:
     SuperWeaponType _Fetch_Super_Weapon() const;
     SuperWeaponType _Fetch_Super_Weapon2() const;
     void _Swizzle_Light_Source();
+    RadioMessageType _Receive_Message(RadioClass * from, RadioMessageType message, long& param);
 };
 
 
@@ -128,7 +129,7 @@ bool BuildingClassExt::_Can_Have_Rally_Point()
      *
      *  @author: Rampastring
      */
-    if (this->Class->CanUnitRepair)
+    if (this->Class->IsCanUnitRepair)
         return true;
 
     return false;
@@ -145,7 +146,7 @@ bool BuildingClassExt::_Can_Have_Rally_Point()
  */
 void BuildingClassExt::_Update_Buildables()
 {
-    if (House == PlayerPtr && !IsInLimbo && IsDiscoveredByPlayer && IsPowerOn)
+    if (House == PlayerPtr && !IsInLimbo && IsDiscoveredByPlayer && IsOn)
     {
         switch (Class->ToBuild)
         {
@@ -320,7 +321,7 @@ void BuildingClassExt::_Detach_Anim(AnimClass* anim)
                 Anims[i] = nullptr;
                 switch (i) {
                 case BANIM_SPECIAL_ONE:
-                    if (Class->CanUnitRepair) {
+                    if (Class->IsCanUnitRepair) {
                         if (In_Radio_Contact() && Get_Mission() == MISSION_REPAIR) {
                             Begin_Anim(BANIM_SPECIAL_TWO, Get_Health_Ratio() <= Rule->ConditionYellow, 0);
                         }
@@ -1606,33 +1607,6 @@ bool Is_Allowed_Harvester(BuildingClass* building, UnitClass* harvester)
 
 
 /**
- *  #issue-129
- *
- *  Fixes a bug where a harvester is able to dock to a refinery that is not
- *  listed in the value of the harvester's Dock= key.
- *
- *  @author: Rampastring
- */
-DECLARE_PATCH(_BuildingClass_Receive_Message_Only_Allow_Dockable_Harvester_Patch)
-{
-    GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
-    GET_REGISTER_STATIC(UnitClass*, unit, edi);
-
-    if (!Is_Allowed_Harvester(this_ptr, unit)) {
-        JMP(0x0042696C); // Return RADIO_NEGATIVE
-    }
-
-    // Stolen bytes / code
-    if (!this_ptr->Cargo.Is_Something_Attached()) {
-        JMP(0x0042707B); // Return RADIO_ROGER
-    }
-
-    // Continue function execution beyond harvester-to-dock check
-    JMP(0x00426A8C);
-}
-
-
-/**
  *  #issue-445
  *
  *  Fixes a bug where crew wouldn't come out of sold/destroyed construction yards
@@ -2095,6 +2069,285 @@ void BuildingClassExt::_Swizzle_Light_Source()
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(LightSource, "LightSource");
 }
 
+
+/**
+ *  Handle an incoming message to the building.
+ *
+ *  @author: 06/09/1994 JLB - Created.
+ *           ZivDero - Adjustments for Tiberian Sun.
+ */
+RadioMessageType BuildingClassExt::_Receive_Message(RadioClass* from, RadioMessageType message, long& param)
+{
+    switch (message) {
+
+        /*
+        **  This message is received as a request to attach/load/dock with this building.
+        **  Verify that this is allowed and return the appropriate response.
+        */
+    case RADIO_CAN_LOAD:
+        TechnoClass::Receive_Message(from, message, param);
+        if (!House->Is_Ally(from)) return RADIO_STATIC;
+        if (Mission == MISSION_CONSTRUCTION || Mission == MISSION_DECONSTRUCTION || BState == BSTATE_CONSTRUCTION || (!ScenarioInit && In_Radio_Contact() && Contact_With_Whom() != from)) return RADIO_NEGATIVE;
+        if (!IsOn) return RADIO_NEGATIVE;
+        if (Class->IsCanUnitRepair) {
+            if (from->RTTI == RTTI_UNIT || from->RTTI == RTTI_AIRCRAFT) {
+                if (Transmit_Message(RADIO_ON_DEPOT, from) != RADIO_ROGER) {
+                    return RADIO_ROGER;
+                }
+            }
+            return RADIO_NEGATIVE;
+        }
+        if ((Class->IsArmory || Class->IsHospital) && from->RTTI == RTTI_INFANTRY) {
+            if (Ammo != 0 && Mission != MISSION_REPAIR) {
+                return RADIO_ROGER;
+            }
+            return RADIO_NEGATIVE;
+        }
+        if (Class->IsHelipad) {
+
+            /*
+            **  #FIX: Don't allow aircraft to dock with helipads that aren't listed as their Dock.
+            */
+            if (from->RTTI == RTTI_AIRCRAFT && static_cast<AircraftClass*>(from)->Class->Dock.Is_Present(Class)) {
+                return RADIO_ROGER;
+            }
+            return RADIO_NEGATIVE;
+        }
+
+        /**
+         *  #issue-129
+         *
+         *  Fixes a bug where a harvester is able to dock to a refinery that is not
+         *  listed in the value of the harvester's Dock= key.
+         *
+         *  @author: Rampastring
+         */
+        if (Class->IsDockUnload && from->RTTI == RTTI_UNIT && static_cast<UnitClass*>(from)->Class->IsToHarvest && static_cast<UnitClass*>(from)->Class->Dock.Is_Present(Class) && (ScenarioInit || !Cargo.Is_Something_Attached())) {
+            return RADIO_ROGER;
+        }
+
+        /**
+         *  Replicate the fix above for weeders.
+         *
+         *  @author: ZivDero
+         */
+        if (Class->IsWeeder && from->RTTI == RTTI_UNIT && static_cast<UnitClass*>(from)->Class->IsToVeinHarvest && static_cast<UnitClass*>(from)->Class->Dock.Is_Present(Class) && (ScenarioInit || !Cargo.Is_Something_Attached())) {
+            return RADIO_ROGER;
+        }
+
+        return RADIO_STATIC;
+
+        /*
+        **  This message is received when the object has attached itself to this
+        **  building.
+        */
+    case RADIO_IM_IN:
+        if (Mission == MISSION_DECONSTRUCTION) {
+            return RADIO_NEGATIVE;
+        }
+        if (Class->IsCanUnitRepair || Class->IsCanUnitReload || Class->IsHospital || Class->IsArmory) {
+            IsReadyToCommence = true;
+            Assign_Mission(MISSION_REPAIR);
+            from->Assign_Mission(MISSION_SLEEP);
+            return RADIO_ROGER;
+        }
+        if (Class->IsDockUnload || Class->IsWeeder) {
+            from->Assign_Mission(MISSION_UNLOAD);
+            return RADIO_ROGER;
+        }
+        break;
+
+        /*
+        **  Docking maneuver maintenance message. See if new order should be given to the
+        **  unit trying to dock.
+        */
+    case RADIO_DOCKING: {
+        TechnoClass::Receive_Message(from, message, param);
+
+        if (!IsOn) {
+            return RADIO_NEGATIVE;
+        }
+
+        if (Class->IsCanUnitRepair) {
+            RadioClass* radio = Contact_With_Whom();
+            if (radio != nullptr && radio == from) {
+                if (Transmit_Message(RADIO_NEED_REPAIR) == RADIO_NEGATIVE) {
+                    return RADIO_NEGATIVE;
+                }
+            }
+        }
+
+        /*
+        **  If this building is already in radio contact, then it might
+        **  be able to satisfy the request to load by bumping off any
+        **  preoccupying task.
+        */
+        if (Class->IsCanUnitReload) {
+            FootClass* radio = static_cast<FootClass*>(Contact_With_Whom());
+            if (radio != nullptr && radio != from) {
+                if (Transmit_Message(RADIO_ON_DEPOT) == RADIO_ROGER) {
+                    if (Transmit_Message(RADIO_ALL_DONE) == RADIO_ROGER) {
+                        radio->Assign_Destination(&Map[radio->Nearby_Location(this)]);
+                        radio->Assign_Mission(MISSION_MOVE);
+                        return RADIO_ROGER;
+                    }
+                }
+                return RADIO_NEGATIVE;
+            }
+        }
+
+        if (Class->IsHospital || Class->IsArmory) {
+            if (Contact_With_Whom() != from) {
+                if (Transmit_Message(RADIO_NEED_REPAIR) != RADIO_NEGATIVE) {
+                    return RADIO_ROGER;
+                }
+                Transmit_Message(RADIO_RUN_AWAY);
+            }
+            else {
+                param = reinterpret_cast<long>(&Map[Get_Coord()]);
+                Transmit_Message(RADIO_MOVE_HERE, param);
+            }
+            return RADIO_ROGER;
+        }
+
+        /*
+        **  Establish contact with the object if this building isn't already in contact
+        **  with another.
+        */
+        if (!In_Radio_Contact()) {
+            Transmit_Message(RADIO_HELLO, from);
+        }
+
+        bool needs_to_move = false;
+
+        if (Contact_With_Whom() != nullptr) {
+            if (Class->IsDockUnload || Class->IsWeeder) {
+                CellClass* docking_cell = &Map[Docking_Coord()];
+                AbstractClass* navcom = static_cast<FootClass*>(Contact_With_Whom())->NavCom;
+                if (navcom != nullptr && docking_cell != navcom) {
+                    needs_to_move = true;
+                }
+            }
+        }
+
+        if (Contact_With_Whom() != nullptr) {
+            if (Class->IsCanUnitRepair) {
+                if (Distance_To(Contact_With_Whom()) > CELL_LEPTON / 2) {
+                    needs_to_move = true;
+                }
+            }
+        }
+
+        if (Transmit_Message(RADIO_NEED_TO_MOVE) == RADIO_ROGER || needs_to_move) {
+            param = reinterpret_cast<long>(this);
+            if (Class->IsDockUnload || Class->IsWeeder) {
+                param = reinterpret_cast<long>(&Map[Get_Cell() + Cell(2, 1)]);
+
+                /*
+                **  Tell the harvester to move to the docking pad of the building.
+                */
+                if (Transmit_Message(RADIO_MOVE_HERE, param) == RADIO_YEA_NOW_WHAT) {
+
+                    /*
+                    **  Since the harvester is already there, tell it to begin the backup
+                    **  procedure now. If it can't, then tell it to get outta here.
+                    */
+                    Transmit_Message(RADIO_TETHER);
+                    if (Transmit_Message(RADIO_BACKUP_NOW, from) != RADIO_ROGER) {
+                        from->Scatter(COORD_NONE, true, true);
+                    }
+                }
+            }
+            else if (Class->IsHelipad) {
+                param = reinterpret_cast<long>(this);
+                if (Transmit_Message(RADIO_MOVE_HERE, param) == RADIO_YEA_NOW_WHAT) {
+                    Transmit_Message(RADIO_TETHER);
+                }
+            }
+        }
+        return RADIO_ROGER;
+    }
+
+        /*
+        **  If a transport or harvester is requesting permission to head toward, dock
+        **  and load/unload, check to make sure that this is allowed given the current
+        **  state of the building.
+        */
+    case RADIO_ARE_REFINERY:
+        if (Cargo.Is_Something_Attached() || In_Radio_Contact() || IsInLimbo || House != from->Owner_HouseClass() || (!Class->IsRefinery && !Class->IsCanUnitRepair && !Class->IsWeeder)) {
+            return RADIO_NEGATIVE;
+        }
+        return RADIO_ROGER;
+
+        /*
+        **  Someone is telling us that it is starting construction. This should only
+        **  occur if this is a construction yard and a building was just placed on
+        **  the map.
+        */
+    case RADIO_BUILDING:
+        Assign_Mission(MISSION_REPAIR);
+        TechnoClass::Receive_Message(from, message, param);
+        return RADIO_ROGER;
+
+        /*
+        **  Someone is telling us that they have finished construction. This should
+        **  only occur if this is a construction yard and the building that was being
+        **  constructed has finished. In this case, stop the construction yard
+        **  animation.
+        */
+    case RADIO_COMPLETE:
+        if (Mission != MISSION_DECONSTRUCTION) {
+            Assign_Mission(MISSION_GUARD);
+            if (Class->IsConstructionYard) {
+                End_Anim(BANIM_PRE_PRODUCTION);
+                Begin_Anim(BANIM_PRODUCTION, Get_Health_Ratio() <= Rule->ConditionYellow);
+            }
+        }
+        TechnoClass::Receive_Message(from, message, param);
+        return RADIO_ROGER;
+
+        /*
+        **  This message may occur unexpectedly if the unit in contact with this
+        **  building is suddenly destroyed. Handle any cleanup necessary. For example,
+        **  a construction yard should stop its construction animation in this case.
+        */
+    case RADIO_OVER_OUT:
+        Begin_Mode(BSTATE_IDLE);
+        TechnoClass::Receive_Message(from, message, param);
+        return RADIO_ROGER;
+
+        /*
+        **  This message is received when an object has completely left
+        **  building. Sometimes special cleanup action is required when
+        **  this event occurs.
+        */
+    case RADIO_UNLOADED:
+        if (Class->IsCanUnitRepair) {
+            if (Distance_To(from) < 0x0180) {
+                return RADIO_ROGER;
+            }
+        }
+        TechnoClass::Receive_Message(from, message, param);
+        if (Class->IsWeaponsFactory || Class->IsCanUnitRepair) return RADIO_RUN_AWAY;
+        return RADIO_ROGER;
+
+    case RADIO_REDRAW:
+        if (Class->IsWeaponsFactory) {
+            return RADIO_ROGER;
+        }
+        break;
+
+    default:
+        break;
+    }
+
+    /*
+    **  Pass along the message to the default message handler in the radio itself.
+    */
+    return TechnoClass::Receive_Message(from, message, param);
+}
+
+
 DECLARE_PATCH(_BuildingClass_Load_SwizzleLightSource_Patch)
 {
     GET_REGISTER_STATIC(BuildingClassExt*, this_ptr, esi);
@@ -2127,7 +2380,6 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x00432184, &_BuildingClass_Mission_Repair_Assign_Rally_Destination_When_No_Repair_Needed);
     Patch_Jump(0x00431DAB, &_BuildingClass_Mission_Repair_Assign_Rally_Destination_After_Repair_Complete);
     Patch_Jump(0x0042C624, &_BuildingClass_Assign_Target_No_Deconstruction_With_Null_UndeploysInto);
-    Patch_Jump(0x00426A7E, &_BuildingClass_Receive_Message_Only_Allow_Dockable_Harvester_Patch);
     Patch_Jump(0x00439D10, &BuildingClassExt::_Can_Have_Rally_Point);
     Patch_Jump(0x0042D9A0, &BuildingClassExt::_Update_Buildables);
     Patch_Jump(0x00433FB0, &BuildingClassExt::_Crew_Type);
@@ -2161,4 +2413,5 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x0043AF60, &BuildingClassExt::_Fetch_Super_Weapon);
     Patch_Jump(0x0043AFC0, &BuildingClassExt::_Fetch_Super_Weapon2);
     Patch_Jump(0x004381F8, &_BuildingClass_Load_SwizzleLightSource_Patch);
+    Patch_Jump(0x004268C0, &BuildingClassExt::_Receive_Message);
 }

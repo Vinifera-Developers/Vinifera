@@ -235,7 +235,7 @@ BuildingClass* ObjectTypeClassExtension::Who_Can_Build_Me(bool intheory, bool ne
         if (!building->IsInLimbo &&
             building->House == house &&
             building->Class->ToBuild == This()->RTTI &&
-            (!needsnopower || building->IsPowerOn) &&
+            (!needsnopower || building->IsOn) &&
             building->Mission != MISSION_DECONSTRUCTION && building->MissionQueue != MISSION_DECONSTRUCTION &&
             (!legal || building->House->Can_Build(This(), true, true) > 0) &&
             building->Class->Get_Ownable() & ownable &&

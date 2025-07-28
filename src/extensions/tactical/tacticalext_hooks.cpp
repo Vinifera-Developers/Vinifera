@@ -497,7 +497,7 @@ void TacticalExt::_Draw_Rally_Points(bool blit)
             /**
              *  We draw rally point for factories, as well as repair bays (Rampastring).
              */
-            if (bldg->Class->ToBuild == RTTI_UNITTYPE || bldg->Class->ToBuild == RTTI_INFANTRYTYPE || bldg->Class->ToBuild == RTTI_AIRCRAFTTYPE || bldg->Class->CanUnitRepair)
+            if (bldg->Class->ToBuild == RTTI_UNITTYPE || bldg->Class->ToBuild == RTTI_INFANTRYTYPE || bldg->Class->ToBuild == RTTI_AIRCRAFTTYPE || bldg->Class->IsCanUnitRepair)
             {
                 /**
                  *  ArchiveTarget contains the rally point cell, so it needs to be set.

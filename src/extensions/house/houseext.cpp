@@ -1081,7 +1081,7 @@ bool HouseClassExtension::Has_Prerequisite(StructType building)
     */
     for (int i = 0; i < Buildings.Count(); i++) {
         BuildingClass* bptr = Buildings[i];
-        if (!bptr->IsInLimbo && bptr->House == This() && bptr->IsPowerOn) {
+        if (!bptr->IsInLimbo && bptr->House == This() && bptr->IsOn) {
             if (bptr->Mission != MISSION_DECONSTRUCTION && bptr->MissionQueue != MISSION_DECONSTRUCTION) {
                 for (int j = 0; j < std::size(bptr->Upgrades); j++) {
 
