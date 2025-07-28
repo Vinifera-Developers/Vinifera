@@ -225,10 +225,10 @@ DECLARE_PATCH(_InfantryClass_Firing_AI_Mechanic_Patch)
          *  Is the target being queried a unit, aircraft or infantry? If so, make
          *  sure this infantry is a mechanic before allowing it to heal the unit.
          */
-        if (targ->What_Am_I() == RTTI_UNIT || 
-            (targ->What_Am_I() == RTTI_AIRCRAFT && !targ->In_Air()) || 
-            targ->What_Am_I() == RTTI_INFANTRY || 
-            (targ->What_Am_I() == RTTI_BUILDING && targ->Techno_Type_Class()->UndeploysInto != nullptr && !reinterpret_cast<BuildingClass*>(targ)->Class->IsConstructionYard)) {
+        if (targ->RTTI == RTTI_UNIT || 
+            (targ->RTTI == RTTI_AIRCRAFT && !targ->In_Air()) || 
+            targ->RTTI == RTTI_INFANTRY || 
+            (targ->RTTI == RTTI_BUILDING && targ->Techno_Type_Class()->UndeploysInto != nullptr && !reinterpret_cast<BuildingClass*>(targ)->Class->IsConstructionYard)) {
             goto health_ratio_check;
         }
 
@@ -241,9 +241,9 @@ DECLARE_PATCH(_InfantryClass_Firing_AI_Mechanic_Patch)
          *  Is the target being queried a unit or aircraft? If so, make sure this
          *  infantry is a mechanic before allowing it to heal the unit.
          */
-        if (targ->What_Am_I() == RTTI_UNIT || 
-            (targ->What_Am_I() == RTTI_AIRCRAFT && !targ->In_Air()) || 
-            (targ->What_Am_I() == RTTI_BUILDING && targ->Techno_Type_Class()->UndeploysInto != nullptr && !reinterpret_cast<BuildingClass*>(targ)->Class->IsConstructionYard)) {
+        if (targ->RTTI == RTTI_UNIT || 
+            (targ->RTTI == RTTI_AIRCRAFT && !targ->In_Air()) || 
+            (targ->RTTI == RTTI_BUILDING && targ->Techno_Type_Class()->UndeploysInto != nullptr && !reinterpret_cast<BuildingClass*>(targ)->Class->IsConstructionYard)) {
             goto health_ratio_check;
         }
 
@@ -296,10 +296,10 @@ DECLARE_PATCH(_InfantryClass_What_Action_Mechanic_Patch)
          *  Is the target being queried a unit, aircraft or infantry? If so, make
          *  sure this infantry is a mechanic before allowing it to heal the unit.
          */
-        if (object->What_Am_I() == RTTI_UNIT ||
-            object->What_Am_I() == RTTI_AIRCRAFT || 
-            object->What_Am_I() == RTTI_INFANTRY || 
-            (object->What_Am_I() == RTTI_BUILDING && object->Techno_Type_Class()->UndeploysInto != nullptr && !reinterpret_cast<BuildingClass*>(object)->Class->IsConstructionYard)) {
+        if (object->RTTI == RTTI_UNIT ||
+            object->RTTI == RTTI_AIRCRAFT || 
+            object->RTTI == RTTI_INFANTRY || 
+            (object->RTTI == RTTI_BUILDING && object->Techno_Type_Class()->UndeploysInto != nullptr && !reinterpret_cast<BuildingClass*>(object)->Class->IsConstructionYard)) {
 
             /**
              *  If we are force-moving into an Transport, don't try to heal it!
@@ -332,9 +332,9 @@ DECLARE_PATCH(_InfantryClass_What_Action_Mechanic_Patch)
          *  Is the target being queried a unit or aircraft? If so, make sure this
          *  infantry is a mechanic before allowing it to heal the unit.
          */
-        if (object->What_Am_I() == RTTI_UNIT ||
-            object->What_Am_I() == RTTI_AIRCRAFT ||
-            (object->What_Am_I() == RTTI_BUILDING && object->Techno_Type_Class()->UndeploysInto != nullptr && !reinterpret_cast<BuildingClass*>(object)->Class->IsConstructionYard)) {
+        if (object->RTTI == RTTI_UNIT ||
+            object->RTTI == RTTI_AIRCRAFT ||
+            (object->RTTI == RTTI_BUILDING && object->Techno_Type_Class()->UndeploysInto != nullptr && !reinterpret_cast<BuildingClass*>(object)->Class->IsConstructionYard)) {
 
             /**
              *  If we are force-moving into an Transport, don't try to heal it!

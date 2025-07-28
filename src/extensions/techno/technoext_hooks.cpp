@@ -124,7 +124,7 @@ public:
     int _Time_To_Build() const;
     void _Assign_Target(AbstractClass * target);
     void _AI_Abandon_Detour();
-    bool _Can_Deploy_Now(void) const;
+    bool _Can_Deploy_Now() const;
 };
 
 
@@ -2521,11 +2521,11 @@ void TechnoClassExt::_AI_Abandon_Detour()
  *
  *  @author: tomsons26, ZivDero, Rampastring
  */
-bool TechnoClassExt::_Can_Deploy_Now(void) const
+bool TechnoClassExt::_Can_Deploy_Now() const
 {
     bool blocked = false;
 
-    if (Fetch_RTTI() == RTTI_UNIT) {
+    if (RTTI == RTTI_UNIT) {
         UnitClass const * unit = reinterpret_cast<UnitClass const *>(this);
         blocked = unit->Is_Immobilized() || unit->CurrentTube >= TUBE_FIRST;
 
@@ -2540,29 +2540,29 @@ bool TechnoClassExt::_Can_Deploy_Now(void) const
         if (unit->Class->DeploysInto == nullptr &&
             unit->Class->Max_Passengers() == 0
             && !unit->Class->IsMobileEMP &&
-            unittypeext->TransformsInto == nullptr)
-        {
+            unittypeext->TransformsInto == nullptr) {
+
             blocked = true;
         }
 
-        if (unit->Class->Max_Passengers()) { // should be > but then the check get optimized out
+        if (unit->Class->Max_Passengers() > 0) {
             if (unit->IsOnBridge) {
                 blocked = true;
             }
             if (unit->Class->Max_Passengers() > 0) {
                 Cell cell = PositionCell;
                 CellClass* cellptr = &Map[cell];
-                if (cellptr != NULL) {
+                if (cellptr != nullptr) {
                     CellClass* cellptr_s = &Map[Adjacent_Cell(cell, FACING_S)];
                     CellClass* cellptr_n = &Map[Adjacent_Cell(cell, FACING_N)];
                     CellClass* cellptr_e = &Map[Adjacent_Cell(cell, FACING_E)];
                     CellClass* cellptr_w = &Map[Adjacent_Cell(cell, FACING_W)];
 
                     if (cellptr->IsUnderBridge ||
-                        cellptr_s != NULL && cellptr_s->IsUnderBridge ||
-                        cellptr_w != NULL && cellptr_w->IsUnderBridge ||
-                        cellptr_e != NULL && cellptr_e->IsUnderBridge ||
-                        cellptr_n != NULL && cellptr_n->IsUnderBridge) {
+                        cellptr_s != nullptr && cellptr_s->IsUnderBridge ||
+                        cellptr_w != nullptr && cellptr_w->IsUnderBridge ||
+                        cellptr_e != nullptr && cellptr_e->IsUnderBridge ||
+                        cellptr_n != nullptr && cellptr_n->IsUnderBridge) {
 
                         blocked = true;
                     }
@@ -2576,7 +2576,7 @@ bool TechnoClassExt::_Can_Deploy_Now(void) const
         }
     }
 
-    if (Fetch_RTTI() == RTTI_BUILDING) {
+    if (RTTI == RTTI_BUILDING) {
         BuildingClass const* building = reinterpret_cast<BuildingClass const*>(this);
         if (building->Class->IsLimpetMine || building->Class->IsMobileWar) {
             blocked = false;
@@ -2585,10 +2585,10 @@ bool TechnoClassExt::_Can_Deploy_Now(void) const
 
     Cell cell = PositionCell;
     CellClass* cellptr = &Map[cell];
-    if ((cellptr != NULL && cellptr->Is_Near_Tunnel_ES()) || blocked) {
-        return(false);
+    if ((cellptr != nullptr && cellptr->Is_Near_Tunnel_ES()) || blocked) {
+        return false;
     }
-    return(true);
+    return true;
 }
 
 

@@ -322,36 +322,36 @@ passes_check:
  */
 DECLARE_PATCH(_CellClass_Update_Wall_Owner_Skip_Buildings_That_Cannot_Own_Walls_Patch)
 {
-	GET_REGISTER_STATIC(BuildingClass*, building, esi);
+    GET_REGISTER_STATIC(BuildingClass*, building, esi);
     static BuildingTypeClassExtension* buildingtypeext;
 
-	/**
+    /**
      *  Stolen bytes/code.
-	 *  Skip the building if it is not active.
+     *  Skip the building if it is not active.
      */
-	if (!building->IsActive) {
-		JMP(0x0045321C);
-	}
+    if (!building->IsActive) {
+        JMP(0x0045321C);
+    }
 
     buildingtypeext = Extension::Fetch(building->Class);
 
-	/**
+    /**
      *  Skip the building if it cannot claim walls.
      */
-	if (!buildingtypeext->IsWallOwner) {
-		JMP(0x0045321C);
-	}
+    if (!buildingtypeext->IsWallOwner) {
+        JMP(0x0045321C);
+    }
 
-	/**
+    /**
      *  Restore value of "this" pointer to ecx register just in case the compiler
-	 *  decided to use it above.
+     *  decided to use it above.
      */
-	_asm { mov  ecx, [esp] }
+    _asm { mov  ecx, [esp] }
 
-	/**
+    /**
      *  Continue to further checks in the wall claiming logic.
      */
-	JMP(0x004531EB);
+    JMP(0x004531EB);
 }
 
 
@@ -366,5 +366,5 @@ void CellClassExtension_Hooks()
     Patch_Jump(0x00455130, &_CellClass_Draw_Fog_Patch);
     Patch_Jump(0x004596C0, &CellClassExt::_Can_Tiberium_Germinate);
     Patch_Jump(0x0045B0D0, &CellClassExt::_Can_Place_Veins);
-	Patch_Jump(0x004531E4, &_CellClass_Update_Wall_Owner_Skip_Buildings_That_Cannot_Own_Walls_Patch);
+    Patch_Jump(0x004531E4, &_CellClass_Update_Wall_Owner_Skip_Buildings_That_Cannot_Own_Walls_Patch);
 }
