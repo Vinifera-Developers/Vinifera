@@ -1970,9 +1970,16 @@ bool Unlimbo_Naval_Helper(BuildingClass* building, TechnoClass* techno)
     }
 
     /**
+     *  Calculate the direction the unit should face - away from the naval yard,
+     *  snapped to cardinal directions (looks nicer).
+     */
+    FacingType facing = static_cast<FacingType>(Desired_Facing(building->Center_Coord(), unlimbo_cell.As_Coord()).Get_Facing<8>());
+    Dir256 dir = static_cast<Dir256>(facing * ((DIR_MAX + 1) / FACING_COUNT));
+
+    /**
      *  Unlimbo the unit at that cell.
      */
-    if (techno->Unlimbo(Map[unlimbo_cell].Center_Coord())) {
+    if (techno->Unlimbo(Map[unlimbo_cell].Center_Coord(), dir)) {
 
         /**
          *  If there's a rally point, assign the unit to move there.
