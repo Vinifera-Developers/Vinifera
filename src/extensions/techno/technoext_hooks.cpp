@@ -124,6 +124,7 @@ public:
     int _Time_To_Build() const;
     void _Assign_Target(AbstractClass * target);
     void _AI_Abandon_Detour();
+    bool _Can_Deploy_Now(void) const;
 };
 
 
@@ -2514,6 +2515,84 @@ void TechnoClassExt::_AI_Abandon_Detour()
     }
 }
 
+
+/**
+ *  Checks whether the object is allowed to deploy using the "Deploy" keyboard command.
+ *
+ *  @author: tomsons26, ZivDero, Rampastring
+ */
+bool TechnoClassExt::_Can_Deploy_Now(void) const
+{
+    bool blocked = false;
+
+    if (Fetch_RTTI() == RTTI_UNIT) {
+        UnitClass const * unit = reinterpret_cast<UnitClass const *>(this);
+        blocked = unit->Is_Immobilized() || unit->CurrentTube >= TUBE_FIRST;
+
+        /**
+         *  #issue-715
+         *
+         *  Enables the deploy keyboard command to work for units that
+         *  transform into a different unit on deploy.
+         */
+        UnitTypeClassExtension* unittypeext = Extension::Fetch(unit->Class);
+
+        if (unit->Class->DeploysInto == nullptr &&
+            unit->Class->Max_Passengers() == 0
+            && !unit->Class->IsMobileEMP &&
+            unittypeext->TransformsInto == nullptr)
+        {
+            blocked = true;
+        }
+
+        if (unit->Class->Max_Passengers()) { // should be > but then the check get optimized out
+            if (unit->IsOnBridge) {
+                blocked = true;
+            }
+            if (unit->Class->Max_Passengers() > 0) {
+                Cell cell = PositionCell;
+                CellClass* cellptr = &Map[cell];
+                if (cellptr != NULL) {
+                    CellClass* cellptr_s = &Map[Adjacent_Cell(cell, FACING_S)];
+                    CellClass* cellptr_n = &Map[Adjacent_Cell(cell, FACING_N)];
+                    CellClass* cellptr_e = &Map[Adjacent_Cell(cell, FACING_E)];
+                    CellClass* cellptr_w = &Map[Adjacent_Cell(cell, FACING_W)];
+
+                    if (cellptr->IsUnderBridge ||
+                        cellptr_s != NULL && cellptr_s->IsUnderBridge ||
+                        cellptr_w != NULL && cellptr_w->IsUnderBridge ||
+                        cellptr_e != NULL && cellptr_e->IsUnderBridge ||
+                        cellptr_n != NULL && cellptr_n->IsUnderBridge) {
+
+                        blocked = true;
+                    }
+                }
+            }
+        }
+    } else {
+        blocked = Is_Immobilized();
+        if (TClass->Max_Passengers() == 0) {
+            blocked = true;
+        }
+    }
+
+    if (Fetch_RTTI() == RTTI_BUILDING) {
+        BuildingClass const* building = reinterpret_cast<BuildingClass const*>(this);
+        if (building->Class->IsLimpetMine || building->Class->IsMobileWar) {
+            blocked = false;
+        }
+    }
+
+    Cell cell = PositionCell;
+    CellClass* cellptr = &Map[cell];
+    if ((cellptr != NULL && cellptr->Is_Near_Tunnel_ES()) || blocked) {
+        return(false);
+    }
+    return(true);
+}
+
+
+
 DECLARE_PATCH(_TechnoClass_AI_Abandon_Invalid_Target_Patch)
 {
     GET_REGISTER_STATIC(TechnoClassExt*, this_ptr, esi);
@@ -2615,58 +2694,6 @@ DECLARE_PATCH(_TechnoClass_Fire_At_Spawn_Manager_Patch)
 
     // Continue checks
     JMP(0x0063052D);
-}
-
-
-/**
- *  #issue-715
- *
- *  Enables the deploy keyboard command to work for units that
- *  transform into a different unit on deploy.
- *
- *  @author: Rampastring
- */
-DECLARE_PATCH(_TechnoClass_2A0_Is_Allowed_To_Deploy_Unit_Transform_Patch)
-{
-    GET_REGISTER_STATIC(UnitTypeClass*, unittype, eax);
-    static UnitTypeClassExtension* unittypeext;
-
-    /**
-     *  Stolen bytes/code.
-     */
-    if (unittype->DeploysInto != nullptr) {
-        goto has_deploy_ability;
-
-    }
-    else if (unittype->MaxPassengers > 0) {
-        goto has_deploy_ability;
-
-    }
-    else if (unittype->IsMobileEMP) {
-        goto has_deploy_ability;
-    }
-
-    unittypeext = Extension::Fetch(unittype);
-
-    if (unittypeext->TransformsInto != nullptr) {
-        goto has_deploy_ability;
-    }
-
-    /**
-     *  The unit has no ability that allows it to deploy / unload.
-     *  Mark that and continue function after the check.
-     */
-has_no_deploy_ability:
-    _asm { mov eax, unittype }
-    JMP_REG(ecx, 0x006320E0);
-
-    /**
-     *  The unit has some kind of an ability that allows it to deploy / unload.
-     *  Continue function after the check.
-     */
-has_deploy_ability:
-    _asm { mov eax, unittype }
-    JMP_REG(ecx, 0x006320E5);
 }
 
 
@@ -2829,7 +2856,7 @@ void TechnoClassExtension_Hooks()
     Patch_Call(0x004A8532, &TechnoClassExt::_What_Action);
     Patch_Jump(0x0062EB27, &_TechnoClass_AI_Abandon_Invalid_Target_Patch);
     Patch_Jump(0x00632F4C, &_TechnoClass_Take_Damage_Drop_Tiberium_Type_Patch);
-    Patch_Jump(0x006320C2, &_TechnoClass_2A0_Is_Allowed_To_Deploy_Unit_Transform_Patch);
+    Patch_Jump(0x00632070, &TechnoClassExt::_Can_Deploy_Now);
     Patch_Call(0x00637FF5, &TechnoClassExt::_Cell_Distance_Squared); // Patch Find_Docking_Bay to call our own distance function that avoids overflows
     Patch_Jump(0x006396D1, &_TechnoClass_Railgun_Damage_Apply_Damage_Modifier_Patch);
     Patch_Jump(0x006313D0, &TechnoClassExt::_Draw_Target_Laser);
