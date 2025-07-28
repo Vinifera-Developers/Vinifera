@@ -1788,8 +1788,21 @@ const char* StripClassExt::_Help_Text(int gadget_id)
     {
         if (i < BuildableCount && BuildableCount < MAX_BUILDABLES)
         {
-            if (Buildables[i].BuildableType == RTTI_SPECIAL)
-                return SuperWeaponTypes[Buildables[i].BuildableID]->Full_Name();
+            if (Buildables[i].BuildableType == RTTI_SPECIAL) {
+                const SuperWeaponTypeClass* swtype = SuperWeaponTypes[Buildables[i].BuildableID];
+                const SuperWeaponTypeClassExtension* swtypeext = Extension::Fetch(swtype);
+                const char* description = swtypeext->Description;
+
+                if (description[0] == '\0')
+                {
+                    // If there is no extended description, then simply show the name and price.
+                    return swtype->Full_Name();
+                }
+
+                // If there is an extended description, then show the name and the description.
+                std::snprintf(_buffer, sizeof(_buffer), "%s@@%s", swtype->Full_Name(), swtypeext->Description);
+                return _buffer;
+            }
 
             const TechnoTypeClass* ttype = Fetch_Techno_Type(Buildables[i].BuildableType, Buildables[i].BuildableID);
 

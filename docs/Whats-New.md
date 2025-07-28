@@ -56,6 +56,7 @@ This page lists the history of changes across stable Vinifera releases and also 
 New:
 - Implement voxel light customization (by ZivDero)
 - Implement an option to disable Tiberium storage (by Rampastring)
+- Tooltips for super weapons on the sidebar can now show a custom description (by Rampastring)
 
 
 Vinifera fixes:

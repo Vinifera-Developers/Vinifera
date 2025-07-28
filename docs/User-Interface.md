@@ -53,7 +53,7 @@ SortDefensesAsLast=yes  ; boolean, are base defenses sorted to the end of the si
 ### Descriptions
 
 - Tooltips displayed when hovering over icons on the sidebar have been expanded.
-- By default, hovering over an icon will display the object's name and price. Additionally, a description can be specified for TechnoTypes, which will appear after the price.
+- By default, hovering over an icon will display the object's name and price. Additionally, a description can be specified, which will appear after the price for TechnoTypes and after the name for SuperWeaponTypes.
 
 In `RULES.INI`:
 ```ini

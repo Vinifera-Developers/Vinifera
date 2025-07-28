@@ -91,4 +91,9 @@ SuperWeaponTypeClassExtension final : public AbstractTypeClassExtension
          *  Vox to speak when a missile SW is launched.
          */
         VoxType VoxMissileLaunched;
+
+        /**
+         *  Description for the extended sidebar tooltip.
+         */
+        char Description[200];
 };

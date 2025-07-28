@@ -46,7 +46,8 @@ SuperWeaponTypeClassExtension::SuperWeaponTypeClassExtension(const SuperWeaponTy
     IsShowTimer(false),
     CameoImageSurface(nullptr),
     ActionOutOfRange(ACTION_EMPULSE_RANGE),
-    VoxMissileLaunched(VOX_MISSILE_LAUNCHED)
+    VoxMissileLaunched(VOX_MISSILE_LAUNCHED),
+    Description("")
 {
     //if (this_ptr) EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::SuperWeaponTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -214,6 +215,9 @@ bool SuperWeaponTypeClassExtension::Read_INI(CCINIClass &ini)
 
     ActionOutOfRange = ini.Get_ActionType(ini_name, "ActionOutOfRange", ActionOutOfRange);
     VoxMissileLaunched = ini.Get_VoxType(ini_name, "MissileLaunchedVoice", VoxMissileLaunched);
+
+    if (ini.Is_Present(ini_name, "Description"))
+        ini.Get_String(ini_name, "Description", Description, std::size(Description));
 
     IsInitialized = true;
     
