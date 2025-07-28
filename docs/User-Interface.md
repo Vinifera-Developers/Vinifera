@@ -79,6 +79,8 @@ Due to implementation details, it is recommended that you do not make the queue 
 
 ## Hotkey Commands
 
+Vinifera modifies the vanilla "Deploy" keyboard command to work with air transports and carryalls.
+
 ### `[ ]` Place Building
 
 - Enters the manual placement mode when a building is complete and pending on the sidebar. Defaults to `Z`.

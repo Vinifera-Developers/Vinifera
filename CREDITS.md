@@ -182,6 +182,7 @@ This page lists all the individual contributions to the project by their author.
   - Implement `ExplosionDamage` for animations.
   - Implement naval yard rally points.
   - Implement an option to disable Tiberium storage.
+  - Allow deploying air transports with the "Deploy" keyboard command.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:

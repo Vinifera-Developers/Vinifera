@@ -75,4 +75,5 @@ DECLARE_PATCH(_EventClass_Execute_New_Events)
 void EventClassExtension_Hooks()
 {
     Patch_Jump(0x00494294, &_EventClass_Execute_New_Events);
+    Patch_Jump(0x00494B9A, 0x00494BAA); // Jump over code that prevents deploying with aircraft
 }
