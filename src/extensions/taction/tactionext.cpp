@@ -369,12 +369,14 @@ bool TActionClassExtension::Do_ENABLE_TRIGGER(TActionClass& taction, HouseClass*
                  *  Set this trigger to be disabled if it is marked as disabled
                  *  for this current mission difficulty.
                  */
-                if (Scen->Difficulty == DIFF_EASY && !Triggers[index]->Class->IsEnabledEasy) {
-                    really_enable = false;
-                } else if (Scen->Difficulty == DIFF_NORMAL && !Triggers[index]->Class->IsEnabledMedium) {
-                    really_enable = false;
-                } else if (Scen->Difficulty == DIFF_HARD && !Triggers[index]->Class->IsEnabledHard) {
-                    really_enable = false;
+                if (Session.Type != GAME_NORMAL) {
+                    if (Scen->CDifficulty == DIFF_HARD && !Triggers[index]->Class->IsEnabledEasy) {
+                        really_enable = false;
+                    } else if (Scen->CDifficulty == DIFF_NORMAL && !Triggers[index]->Class->IsEnabledMedium) {
+                        really_enable = false;
+                    } else if (Scen->CDifficulty == DIFF_EASY && !Triggers[index]->Class->IsEnabledHard) {
+                        really_enable = false;
+                    }
                 }
 
                 if (really_enable) {
