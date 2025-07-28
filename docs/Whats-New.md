@@ -65,6 +65,7 @@ Vinifera fixes:
 
 Vanilla fixes:
 - Fix the player being able to unload an aircraft onto a building, resulting in limboed units (port from ts-patches) (by ZivDero)
+- Fix only the building specified under `[General]->RepairBay` being able to repair aircraft (port from ts-patches) (by ZivDero)
 - Fix the player being able to land an aircraft onto a helipad even if it's not listed as `Dock=` of this aircraft (by ZivDero)
 - Fix a bug where a weeder could be ordered to dock with a waste facility that wasn't listed in the weeder's `Dock=` key (by ZivDero)
 - Fix a bug where the player couldn't repair aircraft on allied repair bays under some circumstances (by ZivDero)

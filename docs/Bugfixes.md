@@ -76,5 +76,6 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix building light sources no longer being attached to the building after loading the game.
 - Fix shroud looking bugged if you attempt to reveal too many cells at once.
 - Fix the player being able to unload an aircraft onto a building, resulting in limboed units (port from ts-patches).
+- Fix only the building specified under `[General]->RepairBay` being able to repair aircraft (port from ts-patches).
 - Fix the player being able to land an aircraft onto a helipad even if it's not listed as `Dock=` of this aircraft.
 - Fix a bug where the player couldn't repair aircraft on allied repair bays under some circumstances.
