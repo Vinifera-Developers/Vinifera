@@ -229,7 +229,7 @@ ActionType AircraftClassExt::_What_Action(ObjectClass const* target, bool disall
     if (action == ACTION_SELF) {
 
         /**
-         *  Can't unload the passengers if theer are none.
+         *  Can't unload the passengers if there are none.
          */
         if (!Cargo.How_Many()) {
             action = ACTION_NONE;
