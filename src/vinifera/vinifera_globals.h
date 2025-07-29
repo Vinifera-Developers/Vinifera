@@ -30,6 +30,8 @@
 #include "always.h"
 #include "vector.h"
 #include "ccfile.h"
+#include "extension_globals.h"
+#include "scenarioext.h"
 
 
 class PrerequisiteGroupClass;
@@ -107,6 +109,8 @@ extern MFCD *SideCTMix;
 
 extern KamikazeTrackerClass *KamikazeTracker;
 extern AircraftTrackerClass *AircraftTracker;
+
+extern int EnvironmentGlobals[std::size(ScenExtension->GlobalFlags)];
 
 
 /**

@@ -48,6 +48,7 @@
 #include "asserthandler.h"
 #include "debughandler.h"
 #include "houseext.h"
+#include "tag.h"
 
 
 /**
@@ -209,6 +210,16 @@ void ScenarioClassExtension::Init_Clear()
      *  Clear all waypoint values, preparing for scenario loading.
      */
     Clear_All_Waypoints();
+
+    for (int index = 0; index < std::size(GlobalFlags); index++) {
+        GlobalFlags[index].VariableName[0] = '\0';
+        Set_Global_To(index, 0);
+    }
+
+    for (int index = 0; index < std::size(LocalFlags); index++) {
+        LocalFlags[index].VariableName[0] = '\0';
+        Set_Local_To(index, 0);
+    }
 }
 
 
@@ -386,7 +397,7 @@ bool ScenarioClassExtension::Is_Waypoint_Valid(WAYPOINT wp) const
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Is_Waypoint_Valid - 0x%08X\n", (uintptr_t)(This()));
     ASSERT_FATAL(wp < Waypoint.Length());
 
-    return (wp >= WAYPOINT_FIRST && wp < Waypoint.Length()) ? (Waypoint[wp] != CELL_NONE) : false;
+    return wp >= WAYPOINT_FIRST && wp < Waypoint.Length() ? Waypoint[wp] != CELL_NONE : false;
 }
 
 
@@ -563,6 +574,295 @@ const char * ScenarioClassExtension::Waypoint_As_String(WAYPOINT wp) const
 
 
 /**
+ *  Set scenario global to value specified.
+ *
+ *  @author: ZivDero
+ */
+bool ScenarioClassExtension::Set_Global_To(int global, int value)
+{
+    if ((unsigned)global < std::size(GlobalFlags)) {
+
+        bool previous = GlobalFlags[global].Value;
+        if (previous != value) {
+            GlobalFlags[global].Value = value;
+            Scen->IsGlobalChanged = true;
+
+            /*
+            **  Special case to scan through all triggers and if any are found that depend on this
+            **  global being set/cleared, then if there is an elapsed time event associated, it
+            **  will be reset at this time.
+            */
+            TagClass::All_Timer_Global_Reset(global);
+
+        }
+        return previous;
+    }
+    return false;
+}
+
+
+/**
+ *  Set scenario global to value specified.
+ *
+ *  @author: ZivDero
+ */
+bool ScenarioClassExtension::Set_Global_To(char const* name, int value)
+{
+    int global = Find_Global_Variable_Index(name);
+    if (global != -1) {
+        return Set_Global_To(global, value);
+    }
+    return true;
+}
+
+
+/**
+ *  Get scenario global value.
+ *
+ *  @author: ZivDero
+ */
+bool ScenarioClassExtension::Get_Global_Value(int global, int& value)
+{
+    if (global >= 0 && global < std::size(GlobalFlags)) {
+        value = GlobalFlags[global].Value;
+        return true;
+    }
+    return false;
+}
+
+
+/**
+ *  Get scenario global value.
+ *
+ *  @author: ZivDero
+ */
+bool ScenarioClassExtension::Get_Global_Value(char const* name, int& value)
+{
+    int global = Find_Global_Variable_Index(name);
+    if (global != -1) {
+        return Get_Global_Value(global, value);
+    }
+    return false;
+}
+
+
+/**
+ *  Get scenario global index by its name.
+ *
+ *  @author: ZivDero
+ */
+int ScenarioClassExtension::Find_Global_Variable_Index(char const* name)
+{
+    for (int i = 0; i < std::size(GlobalFlags); i++) {
+        if (!strcmp(name, GlobalFlags[i].VariableName)) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+
+/**
+ *  Read scenario globals from an INI file.
+ *
+ *  @author: ZivDero
+ */
+bool ScenarioClassExtension::Read_Global_INI(INIClass& ini)
+{
+    int count = std::min(ini.Entry_Count("VariableNames"), static_cast<int>(std::size(GlobalFlags)));
+
+    for (int i = 0; i < count; i++) {
+        const char* entry = ini.Get_Entry("VariableNames", i);
+        int idx = std::atoi(entry);
+        ini.Get_String("VariableNames", entry, nullptr, GlobalFlags[idx].VariableName, sizeof(GlobalFlags[idx].VariableName));
+    }
+
+    return true;
+}
+
+
+/**
+ *  Set scenario local to value specified.
+ *
+ *  @author: ZivDero
+ */
+bool ScenarioClassExtension::Set_Local_To(int local, int value)
+{
+    if (static_cast<size_t>(local) < std::size(Scen->LocalFlags)) {
+
+        bool previous = LocalFlags[local].Value;
+        if (previous != value) {
+            LocalFlags[local].Value = value;
+            Scen->IsGlobalChanged = true;
+
+            /*
+            **  Special case to scan through all triggers and if any are found that depend on this
+            **  local being set/cleared, then if there is an elapsed time event associated, it
+            **  will be reset at this time.
+            */
+            TagClass::All_Timer_Local_Reset(local);
+
+        }
+        return previous;
+    }
+    return false;
+}
+
+
+/**
+ *  Set scenario local to value specified.
+ *
+ *  @author: ZivDero
+ */
+bool ScenarioClassExtension::Set_Local_To(char const* name, int value)
+{
+    int local = Find_Local_Variable_Index(name);
+    if (local != -1) {
+        return Set_Local_To(local, value);
+    }
+    return true;
+}
+
+
+/**
+ *  Set scenario local to value specified.
+ *
+ *  @author: ZivDero
+ */
+bool ScenarioClassExtension::Get_Local_Value(int local, int& value)
+{
+    if (local >= 0 && local < std::size(Scen->LocalFlags)) {
+        value = LocalFlags[local].Value;
+        return true;
+    }
+    return false;
+}
+
+
+/**
+ *  Get scenario local value.
+ *
+ *  @author: ZivDero
+ */
+bool ScenarioClassExtension::Get_Local_Value(char const* name, int& value)
+{
+    int local = Find_Local_Variable_Index(name);
+    if (local != -1) {
+        return Get_Local_Value(local, value);
+    }
+    return false;
+}
+
+
+/**
+ *  Get scenario local index by its name.
+ *
+ *  @author: ZivDero
+ */
+int ScenarioClassExtension::Find_Local_Variable_Index(char const* name)
+{
+    for (int i = 0; i < std::size(Scen->LocalFlags); i++) {
+        if (!strcmp(name, LocalFlags[i].VariableName)) {
+            return i;
+        }
+    }
+    return-1;
+}
+
+
+/**
+ *  Read scenario locals from an INI file.
+ *
+ *  @author: ZivDero
+ */
+bool ScenarioClassExtension::Read_Local_INI(INIClass& ini)
+{
+    char buffer[128];
+
+    for (int i = 0; i < std::size(Scen->LocalFlags); i++) {
+        LocalFlags[i].VariableName[0] = 0;
+    }
+
+    int count = std::min(ini.Entry_Count("VariableNames"), static_cast<int>(std::size(Scen->LocalFlags)));
+
+    for (int i = 0; i < count; i++) {
+        const char* entry = ini.Get_Entry("VariableNames", i);
+        int local = atoi(entry);
+        ini.Get_String("VariableNames", entry, nullptr, buffer, sizeof(buffer));
+
+        const char* tok = std::strtok(buffer, ",");
+        strcpy(LocalFlags[local].VariableName, tok);
+
+        tok = std::strtok(nullptr, ",");
+        if (tok != nullptr) {
+            LocalFlags[local].Value = std::atoi(tok);
+        }
+    }
+
+    return true;
+}
+
+
+/**
+ *  Write scenario locals to an INI file.
+ *
+ *  @author: ZivDero
+ */
+bool ScenarioClassExtension::Write_Local_INI(INIClass& ini)
+{
+    static char const* const VARIABLENAMES = "VariableNames";
+    char buffer[128];
+    char local[10];
+
+    ini.Clear(VARIABLENAMES);
+
+    int length = std::size(LocalFlags);
+    for (int index = 0; index < length; index++) {
+        if (LocalFlags[index].VariableName[0] != '\0') {
+            std::snprintf(local, sizeof(local), "%d", index);
+            std::snprintf(buffer, sizeof(buffer), "%s,%d", LocalFlags[index].VariableName, LocalFlags[index].Value);
+            ini.Put_String(VARIABLENAMES, local, buffer);
+        }
+    }
+
+    return true;
+}
+
+
+/**
+ *  Count how many locals are in use in this scenario.
+ *
+ *  @author: ZivDero
+ */
+int ScenarioClassExtension::Num_Locals() const
+{
+    int count = 0;
+    for (int i = 0; i < std::size(LocalFlags); i++) {
+        if (LocalFlags[i].VariableName[0] != '\0') {
+            count++;
+        }
+    }
+    return count;
+}
+
+
+/**
+ *  Finds the first unused local variable.
+ *
+ *  @author: ZivDero
+ */
+int ScenarioClassExtension::Find_Free_Local() const
+{
+    for (int index = 0; index < std::size(LocalFlags); index++) {
+        if (LocalFlags[index].VariableName[0] == '\0') {
+            return index;
+        }
+    }
+    return -1;
+}
+
+
+/**
  *  Assigns multiplayer houses to various players.
  * 
  *  @author: 06/09/1995 BRR - Red Alert source code.
@@ -703,7 +1003,7 @@ void ScenarioClassExtension::Assign_Houses()
          *  Pick a color for this house; keep looping until we find one.
          */
         while (true) {
-            color = Random_Pick(0, (MAX_PLAYERS-1));
+            color = Random_Pick(0, MAX_PLAYERS -1);
             if (color_used[color] == false) {
                 break;
             }
@@ -1535,7 +1835,7 @@ void ScenarioClassExtension::Create_Units(bool official)
          *  #BUGFIX:
          *  Make sure there are units available to place before entering the loop.
          */
-        bool units_available = (tot_inf_count + tot_unit_count) > 0;
+        bool units_available = tot_inf_count + tot_unit_count > 0;
 
         if (units_available) {
 
@@ -1544,8 +1844,8 @@ void ScenarioClassExtension::Create_Units(bool official)
             int inf_percent = 50;
             int unit_percent = 100 - inf_percent;
 
-            int inf_count = (tot_units * inf_percent) / 100;
-            int unit_count = (tot_units * unit_percent) / 100;
+            int inf_count = tot_units * inf_percent / 100;
+            int unit_count = tot_units * unit_percent / 100;
 
             /**
              *  Ensure that rounding errors don't result in the player getting fewer units than promised.
