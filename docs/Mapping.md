@@ -116,15 +116,15 @@ NAME = [Action Count], [TActionType], [NeedCode], [PARAM1], [PARAM2], [PARAM3], 
 | 3        | Multiply           | x *= y         |
 | 4        | Divide             | x /= y         |
 | 5        | Modulo             | x %= y         |
-| 6        | Shift Left         | x <<= y        |
-| 7        | Shift Right        | x >>= y        |
-| 8        | Bitwise NOT        | x = ~x         |
-| 9        | Bitwise XOR        | x ^= y         |
-| 10       | Bitwise OR         | x \|= y         |
-| 11       | Bitwise AND        | x &= y         |
-| 12       | Negate             | x = -x         |
-| 13       | Maximum            | x = max(x, y)  |
-| 14       | Minimum            | x = min(x, y)  |
+| 6        | Negate             | x = -x         |
+| 7        | Shift Left         | x <<= y        |
+| 8        | Shift Right        | x >>= y        |
+| 9        | Bitwise NOT        | x = ~x         |
+| 10       | Bitwise XOR        | x ^= y         |
+| 11       | Bitwise OR         | x \|= y        |
+| 13       | Bitwise AND        | x &= y         |
+| 14       | Maximum            | x = max(x, y)  |
+| 15       | Minimum            | x = min(x, y)  |
 
 ### New Trigger Actions
 
@@ -184,6 +184,22 @@ NAME = [Action Count], [TActionType], [NeedCode], [PARAM1], [PARAM2], [PARAM3], 
 ```{note}
 Do not specigy extra arguments for trigger actions that don't require them!
 ```
+
+### Comparison Types
+
+- Conditions that compare values use the following comparison types:
+
+| Code | Comparison Name     | Example         |
+|------|---------------------|-----------------|
+| 0    | Greater Than        | x > y           |
+| 1    | Less Than           | x < y           |
+| 2    | Equal To            | x == y          |
+| 3    | Not Equal To        | x != y          |
+| 4    | Greater or Equal    | x >= y          |
+| 5    | Less or Equal       | x <= y          |
+| 6    | Bitwise AND         | (x & y) != 0    |
+| 7    | Bitwise OR          | (x \| y) != 0    |
+| 8    | Bitwise XOR         | (x ^ y) != 0    |
 
 
 ### New Trigger Events

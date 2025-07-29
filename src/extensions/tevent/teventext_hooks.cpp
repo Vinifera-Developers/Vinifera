@@ -79,9 +79,12 @@ enum ComparisonType
     COMP_GREATER,
     COMP_LESS,
     COMP_EQ,
+    COMP_NEQ,
     COMP_GREATER_OR_EQ,
     COMP_LESS_OR_EQ,
-    COMP_AND
+    COMP_AND,
+    COMP_OR,
+    COMP_XOR
 };
 
 
@@ -94,12 +97,18 @@ static bool Compare(int lhs, int rhs, ComparisonType type)
         return lhs < rhs;
     case COMP_EQ:
         return lhs == rhs;
+    case COMP_NEQ:
+        return lhs != rhs;
     case COMP_GREATER_OR_EQ:
         return lhs >= rhs;
     case COMP_LESS_OR_EQ:
         return lhs <= rhs;
     case COMP_AND:
         return (lhs & rhs) != 0;
+    case COMP_OR:
+        return (lhs | rhs) != 0;
+    case COMP_XOR:
+        return (lhs ^ rhs) != 0;
     default:
         return false;
     }

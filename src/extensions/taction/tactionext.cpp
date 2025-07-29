@@ -665,13 +665,13 @@ enum VariableOperation
     OP_MULTIPLY,
     OP_DIVIDE,
     OP_MODULO,
+    OP_NEGATE,
     OP_LSHIFT,
     OP_RSHIFT,
-    OP_BITWISE_NEG,
+    OP_NOT,
     OP_XOR,
     OP_OR,
     OP_AND,
-    OP_NEGATE,
     OP_MAX,
     OP_MIN
 };
@@ -728,7 +728,7 @@ bool TActionClassExtension::Do_MODIFY_VARIABLE_CONSTANT(TActionClass& taction, H
     case OP_RSHIFT:
         value >>= second_operand;
         break;
-    case OP_BITWISE_NEG:
+    case OP_NOT:
         value = ~value;
         break;
     case OP_XOR:
@@ -822,7 +822,7 @@ bool TActionClassExtension::Do_MODIFY_VARIABLE_VARIABLE(TActionClass& taction, H
     case OP_RSHIFT:
         value >>= second_operand;
         break;
-    case OP_BITWISE_NEG:
+    case OP_NOT:
         value = ~value;
         break;
     case OP_XOR:
