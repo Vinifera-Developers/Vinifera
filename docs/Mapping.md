@@ -175,11 +175,11 @@ NAME = [Action Count], [TActionType], [NeedCode], [PARAM1], [PARAM2], [PARAM3], 
 |----------------|-------------------|-----------------------------------------------------------------|
 | NeedOther      | 0                 | Single argument: PARAM1 parsed as a number                      |
 | NeedTeam       | 1                 | Single argument: PARAM1 parsed as a team name                   |
-| NeedTwoArgs    | 2                 | Two arguments: PARAM1 parsed as a number, PARAM2 parsed as an INI name                   |
-| NeedThreeArgs  | 3                 | Three arguments: PARAM1, PARAM2 parsed as numbers               |
-| NeedFourArgs   | 4                 | Four arguments: PARAM1, PARAM2, PARAM3 parsed as numbers        |
-| NeedFiveArgs   | 5                 | Five arguments: PARAM1, PARAM2, PARAM3, PARAM4 parsed as numbers|
-| NeedSixArgs    | 6                 | Six arguments: PARAM1, PARAM2, PARAM3, PARAM4, PARAM5 parsed as numbers|
+| NeedTechnoAndNumber    | 2                 | Two arguments: PARAM1 parsed as a number, PARAM2 parsed as an INI name                   |
+| NeedTwoArgs    | 3                 | Two arguments: PARAM1, PARAM2 parsed as numbers               |
+| NeedThreeArgs  | 4                 | Three arguments: PARAM1, PARAM2, PARAM3 parsed as numbers        |
+| NeedFourArgs   | 5                 | Four arguments: PARAM1, PARAM2, PARAM3, PARAM4 parsed as numbers|
+| NeedFiveArgs   | 6                 | Five arguments: PARAM1, PARAM2, PARAM3, PARAM4, PARAM5 parsed as numbers|
 
 ```{note}
 Do not specigy extra arguments for trigger actions that don't require them!
@@ -191,6 +191,6 @@ Do not specigy extra arguments for trigger actions that don't require them!
 | **Code** | **Action**                | **NeedCode** | **PARAM1**       | **PARAM2**        | **PARAM3**              | **PARAM4**           | **PARAM5**                |
 |----------|---------------------------|--------------|------------------|-------------------|-------------------------|----------------------|---------------------------|
 | 56       | Compare variable (constant) | 
-|          | Compares the value of a variable with a constant value. | Other (5) | Variable (#) | Is Global (0/1)          | Number     | Comparison Type            |
+|          | Compares the value of a variable with a constant value. | NeedFourArgs (5) | Variable (#) | Is Global (0/1)          | Number     | Comparison Type            |
 | 57       | Compare variable (variable) | 
-|          | Compares the value of a variable with the value of another variable. | Other (6) | Variable (#) | Is Global (0/1)          | Second Variable (#) | Is Second Global (0/1)  | Comparison Type    |
+|          | Compares the value of a variable with the value of another variable. | NeedFiveArgs (6) | Variable (#) | Is Global (0/1)          | Second Variable (#) | Is Second Global (0/1)  | Comparison Type    |
