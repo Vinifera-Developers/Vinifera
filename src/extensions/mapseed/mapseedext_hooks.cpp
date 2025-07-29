@@ -58,7 +58,7 @@ DECLARE_PATCH(_MapSeedClass_Generate_Place_Units_And_Infantry_Neutral_House_Cras
     _asm { mov [esp+0x2C], esi }
 
     house = HouseTypeClass::From_Name("Neutral");
-    hptr = HouseClass::As_Pointer(house);
+    hptr = House_From_HousesType(house);
 
     /**
      *  Make sure the house exists before placing the bridge repair hut.
@@ -83,7 +83,7 @@ DECLARE_PATCH(_MapSeedClass_Generate_Place_Town_Buildings_Neutral_House_Crash_Fi
     static HouseClass *hptr;
 
     house = HouseTypeClass::From_Name("Neutral");
-    hptr = HouseClass::As_Pointer(house);
+    hptr = House_From_HousesType(house);
 
     /**
      *  Make sure the house exists before placing the bridge repair hut.
@@ -113,7 +113,7 @@ DECLARE_PATCH(_MapSeedClass_Generate_Place_Town_Infantry_Neutral_House_Crash_Fix
     _asm { mov [esp+0x2C], esi }
 
     house = HouseTypeClass::From_Name("Neutral");
-    hptr = HouseClass::As_Pointer(house);
+    hptr = House_From_HousesType(house);
 
     /**
      *  Make sure the house exists before placing the bridge repair hut.
@@ -138,7 +138,7 @@ DECLARE_PATCH(_MapSeedClass_Generate_Place_City_Buildings_Neutral_House_Crash_Fi
     static HouseClass *hptr;
 
     house = HouseTypeClass::From_Name("Neutral");
-    hptr = HouseClass::As_Pointer(house);
+    hptr = House_From_HousesType(house);
 
     /**
      *  Make sure the house exists before placing the bridge repair hut.
@@ -168,7 +168,7 @@ DECLARE_PATCH(_MapSeedClass_Generate_Place_Tiberium_Wildlife_Neutral_House_Crash
     _asm { mov [esp+0x58], eax }
 
     house = HouseTypeClass::From_Name("Neutral");
-    hptr = HouseClass::As_Pointer(house);
+    hptr = House_From_HousesType(house);
 
     /**
      *  Make sure the house exists before placing the bridge repair hut.
@@ -193,7 +193,7 @@ DECLARE_PATCH(_MapSeedClass_Generate_Bridge_Hut_Neutral_House_Crash_Fix)
     static HouseClass *hptr;
 
     house = HouseTypeClass::From_Name("Neutral");
-    hptr = HouseClass::As_Pointer(house);
+    hptr = House_From_HousesType(house);
 
     /**
      *  Make sure the house exists before placing the bridge repair hut.
@@ -226,7 +226,7 @@ DECLARE_PATCH(_MapSeedClass_Generate_Add_Lights_Special_House_Crash_Fix)
     static HouseClass *hptr;
 
     house = HouseTypeClass::From_Name("Special");
-    hptr = HouseClass::As_Pointer(house);
+    hptr = House_From_HousesType(house);
 
     /**
      *  Make sure the house exists before placing the bridge repair hut.

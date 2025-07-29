@@ -658,7 +658,7 @@ int _HouseClass_ShouldDisableCameo_Get_Queued_Count(FactoryClass* factory, Techn
         UnitTypeClassExtension* unittypeext = Extension::Fetch(unittype);
 
         if (unittype->DeploysInto == nullptr && unittypeext->TransformsInto != nullptr) {
-            count += factory->House->UQuantity.Count_Of((UnitType)(unittypeext->TransformsInto->Fetch_Heap_ID()));
+            count += factory->House->UQuantity.Value((UnitType)(unittypeext->TransformsInto->Fetch_Heap_ID()));
         }
     }
 
@@ -710,14 +710,14 @@ DECLARE_PATCH(_HouseClass_Can_Build_BuildLimit_Handle_Vehicle_Transform)
     /**
      *  Stolen bytes / code.
      */
-    objectcount = house->UQuantity.Count_Of((UnitType)unittype->Fetch_Heap_ID());
+    objectcount = house->UQuantity.Value((UnitType)unittype->Fetch_Heap_ID());
 
     /**
      *  Check whether this unit can deploy into a building.
      *  If it can, increment the object count by the number of buildings.
      */
     if (unittype->DeploysInto != nullptr) {
-        objectcount += house->BQuantity.Count_Of((StructType)unittype->DeploysInto->Fetch_Heap_ID());
+        objectcount += house->BQuantity.Value((StructType)unittype->DeploysInto->Fetch_Heap_ID());
     }
     else if (unittypeext->TransformsInto != nullptr) {
 
@@ -725,7 +725,7 @@ DECLARE_PATCH(_HouseClass_Can_Build_BuildLimit_Handle_Vehicle_Transform)
          *  This unit can transform into another unit, increment the object count
          *  by the number of transformed units.
          */
-        objectcount += house->UQuantity.Count_Of((UnitType)(unittypeext->TransformsInto->Fetch_Heap_ID()));
+        objectcount += house->UQuantity.Value((UnitType)(unittypeext->TransformsInto->Fetch_Heap_ID()));
     }
 
     _asm { mov esi, objectcount }

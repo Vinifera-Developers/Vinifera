@@ -159,6 +159,7 @@
 #include "hooker_macros.h"
 #include "prerequisitegroup_hooks.h"
 #include "spawnmanager_hooks.h"
+#include "teventext_hooks.h"
 #include "voxelanimext_hooks.h"
 
 
@@ -217,7 +218,6 @@ void Extension_Hooks()
     SmudgeClassExtension_Hooks();
     SmudgeTypeClassExtension_Hooks();
     SuperWeaponTypeClassExtension_Hooks();
-    TActionClassExtension_Hooks();
     //TaskForceClassExtension_Hooks();                      // Not yet implemented
     TeamClassExtension_Hooks();
     //TeamTypeClassExtension_Hooks();                       // Not yet implemented
@@ -233,7 +233,7 @@ void Extension_Hooks()
     //TagTypeClassExtension_Hooks();                        // Not yet implemented
     TiberiumClassExtension_Hooks();
     TActionClassExtension_Hooks();
-    //TEventClassExtension_Hooks();                         // Not yet implemented
+    TEventClassExtension_Hooks();
     WeaponTypeClassExtension_Hooks();
     WarheadTypeClassExtension_Hooks();
     //WaypointClassExtension_Hooks();                       // Not yet implemented
