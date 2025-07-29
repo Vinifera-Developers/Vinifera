@@ -671,7 +671,9 @@ enum VariableOperation
     OP_XOR,
     OP_OR,
     OP_AND,
-    OP_NEGATE
+    OP_NEGATE,
+    OP_MAX,
+    OP_MIN
 };
 
 
@@ -740,6 +742,12 @@ bool TActionClassExtension::Do_MODIFY_VARIABLE_CONSTANT(TActionClass& taction, H
         break;
     case OP_NEGATE:
         value = -value;
+        break;
+    case OP_MAX:
+        value = std::max(value, second_operand);
+        break;
+    case OP_MIN:
+        value = std::min(value, second_operand);
         break;
     }
 

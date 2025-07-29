@@ -71,11 +71,6 @@ public:
 public:
 
     /**
-     *  Code representing which arguments this event takes.
-     */
-    int NeedCode;
-
-    /**
      *  An INI name passed as an argument.
      */
     char IniNameArgument[32];

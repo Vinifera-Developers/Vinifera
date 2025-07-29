@@ -517,8 +517,6 @@ void TEventClassExt::_Read_INI()
         seventh_arg = std::strtok(nullptr, ",");
     }
 
-    extension.NeedCode = code;
-
     switch (code) {
 
         /**
@@ -575,6 +573,23 @@ void TEventClassExt::_Read_INI()
 }
 
 
+int Event_Need_Code(TEventType type)
+{
+    switch (type) {
+    case TEVENT_LEAVES_MAP:
+        return 1;
+
+    case EXT_TEVENT_COMPARE_VARIABLE_WITH_CONSTANT:
+        return 5;
+
+    case EXT_TEVENT_COMPARE_VARIABLE_WITH_VARIABLE:
+        return 6;
+    }
+
+    return 0;
+}
+
+
 /**
  *  Builds the ini text for this event.
  *
@@ -584,7 +599,7 @@ void TEventClassExt::_Build_INI_Entry(char* ptr) const
 {
     auto& extension = *Extension::Fetch(this);
     ptr += std::strlen(ptr);
-    int code = extension.NeedCode;
+    int code = Event_Need_Code(Event);
 
     switch (code) {
     case 0:

@@ -271,3 +271,5 @@ This page lists all the individual contributions to the project by their author.
   - Implement voxel light customization.
   - Implement TActionClass extension, port ts-patches actions.
   - Implement TEventClass extension.
+  - Increase the local/global variable cap to 500.
+  - Implement integer varialbes, and trigger actiosn and events to operate on them.

@@ -23,6 +23,12 @@ Maps using this feature cannot be loaded by the vanilla game.
 Not all tools properly support this feature yet, and may crash or corrupt the map. We recommend using the [World-Altering Editor](https://github.com/CnCNet/WorldAlteringEditor) map editor when using this feature.
 ```
 
+## Local/Global Variabes
+
+- The game now supports up to 500 local and global variables each.
+
+- Additionally, variables are now signed 32-bit integer numbers, allowing for greater flexibility during scripting. To make use of this feature, use new actions/events. Vanilla actions/events will treat 0 as false, and any other number as true.
+
 ## Campaign Settings
 
 ### Intro Movie
@@ -98,33 +104,93 @@ ScoreEnemyColor=250,28,28    ; color in R,G,B, color of the enemy's score bars.
 NAME = [Action Count], [TActionType], [NeedCode], [PARAM1], [PARAM2], [PARAM3], [PARAM4], [PARAM5], [PARAM6:OPTIONAL]
 ```
 
+### Operation Types
+
+- Actions that operate on variables use the following operation types:
+
+| **Code** | **Operation Name** | **Example**    |
+|----------|--------------------|----------------|
+| 0        | Assign             | x = y          |
+| 1        | Add                | x += y         |
+| 2        | Subtract           | x -= y         |
+| 3        | Multiply           | x *= y         |
+| 4        | Divide             | x /= y         |
+| 5        | Modulo             | x %= y         |
+| 6        | Shift Left         | x <<= y        |
+| 7        | Shift Right        | x >>= y        |
+| 8        | Bitwise NOT        | x = ~x         |
+| 9        | Bitwise XOR        | x ^= y         |
+| 10       | Bitwise OR         | x \|= y         |
+| 11       | Bitwise AND        | x &= y         |
+| 12       | Negate             | x = -x         |
+| 13       | Maximum            | x = max(x, y)  |
+| 14       | Minimum            | x = min(x, y)  |
+
 ### New Trigger Actions
 
 | **Code** | **Action**               | **NeedCode** | **PARAM1**       | **PARAM2** | **PARAM3** | **PARAM4** | **PARAM5** | **PARAM6** |
 |----------|--------------------------|--------------|------------------|------------|------------|------------|------------|------------|
-| 501      | Give Credits             |              |                  |            |            |            |            |            |
+| 501      | Give Credits             |
 |          | Gives or removes credits from the specified house. A positive amount gives money, a negative amount subtracts it. | Other (0)   | House (#)        | Credits    | *unused*   | *unused*   | *unused*   | *unused*   |
-| 502      | Enable Short Game        |              |                  |            |            |            |            |            |
+| 502      | Enable Short Game        |
 |          | Enables Short Game. Players will lose if all buildings are destroyed. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 503      | Disable Short Game       |              |                  |            |            |            |            |            |
+| 503      | Disable Short Game       |
 |          | Disables Short Game. Players can continue playing even after all buildings are destroyed. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 504      | Unused Action            |              |                  |            |            |            |            |            |
+| 504      | Unused Action            |
 |          | This action does nothing. Originally used to display the difficulty in ts-patches. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 505      | Destroy all of...       |              |                  |            |            |            |            |            |
+| 505      | Destroy all of...       |
 |          | Kills everything of the specified house and marks them as defeated. | Other (0)   | House (#)        | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 506      | Make Elite               |              |                  |            |            |            |            |            |
+| 506      | Make Elite               |
 |          | All utechnos attached to this trigger will be promoted to elite status. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 507      | Enable Ally Reveal       |              |                  |            |            |            |            |            |
+| 507      | Enable Ally Reveal       |
 |          | Enables Ally Reveal, allowing allied players to see each other's explored areas. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 508      | Disable Ally Reveal      |              |                  |            |            |            |            |            |
+| 508      | Disable Ally Reveal      |
 |          | Disables Ally Reveal, stopping allied players from seeing each other's explored areas. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 509      | Create Autosave          |              |                  |            |            |            |            |            |
+| 509      | Create Autosave          |
 |          | Schedules an autosave to be created on the next game frame. (Currently not implemented, handled by ts-patches) | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 510      | Delete Attached Objects  |              |                  |            |            |            |            |            |
+| 510      | Delete Attached Objects  |
 |          | Deletes all units and structures on the map that are linked to this trigger silently. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 511      | All Assign Mission       |              |                  |            |            |            |            |            |
+| 511      | All Assign Mission       |
 |          | Forces all units owned by the trigger's house to begin the specified mission (e.g., hunt, move). | Other (0)   | Mission (#)   | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 512      | Make Ally (One-Way)      |              |                  |            |            |            |            |            |
+| 512      | Make Ally (One-Way)      |
 |          | Cause this trigger's house to make a one-sided alliance with the specified house. | Other (0)   | House (#)        | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 513      | Make Enemy (One-Way)     |              |                  |            |            |            |            |            |
+| 513      | Make Enemy (One-Way)     |
 |          | Cause this trigger's house to unilaterally declare war on the specified house. | Other (0)   | House (#)        | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
+| 514      | Modify Variable (Constant)  |
+|          | Modifies a variable using a constant and a specified operation. | Other (0) | Variable (#)   | Operation Type   | Number   | Is Global (0/1)  | *unused*         | *unused* |
+| 515      | Modify Variable (Variable)  |
+|          | Modifies a variable using another variable and a specified operation. | Other (0) | Variable (#)   | Operation Type   | Second Variable (#) | Is Global (0/1)  | Is 2nd Global (0/1) | *unused* |
+| 516      | Random Number to Variable   |
+|          | Stores a random number between Min and Max into the variable. | Other (0) | Variable (#)   | Min Value        | Max Value        | Is Global (0/1)  | *unused*         | *unused* |
+| 517      | Print Variable              |
+|          | Displays the current value of a variable as a message. | Other (0) | Variable (#)   | Is Global (0/1)  | *unused*         | *unused*         | *unused*         | *unused* |
+
+## Trigger Events
+
+- Every trigger event has a NeedCode associated with it. The NeedCode dictates how some of the data used by the trigger event is parsed. Below is a table containing all valid NeedCodes.
+
+### NeedCodes
+
+| **NeedCode**   | **Numeric Value** | **Meaning / Parameters**                                         |
+|----------------|-------------------|-----------------------------------------------------------------|
+| NeedOther      | 0                 | Single argument: PARAM1 parsed as a number                      |
+| NeedTeam       | 1                 | Single argument: PARAM1 parsed as a team name                   |
+| NeedTwoArgs    | 2                 | Two arguments: PARAM1 parsed as a number, PARAM2 parsed as an INI name                   |
+| NeedThreeArgs  | 3                 | Three arguments: PARAM1, PARAM2 parsed as numbers               |
+| NeedFourArgs   | 4                 | Four arguments: PARAM1, PARAM2, PARAM3 parsed as numbers        |
+| NeedFiveArgs   | 5                 | Five arguments: PARAM1, PARAM2, PARAM3, PARAM4 parsed as numbers|
+| NeedSixArgs    | 6                 | Six arguments: PARAM1, PARAM2, PARAM3, PARAM4, PARAM5 parsed as numbers|
+
+```{note}
+Do not specigy extra arguments for trigger actions that don't require them!
+```
+
+
+### New Trigger Events
+
+| **Code** | **Action**                | **NeedCode** | **PARAM1**       | **PARAM2**        | **PARAM3**              | **PARAM4**           | **PARAM5**                |
+|----------|---------------------------|--------------|------------------|-------------------|-------------------------|----------------------|---------------------------|
+| 56       | Compare variable (constant) | 
+|          | Compares the value of a variable with a constant value. | Other (5) | Variable (#) | Is Global (0/1)          | Number     | Comparison Type            |
+| 57       | Compare variable (variable) | 
+|          | Compares the value of a variable with the value of another variable. | Other (6) | Variable (#) | Is Global (0/1)          | Second Variable (#) | Is Second Global (0/1)  | Comparison Type    |
