@@ -60,6 +60,7 @@ New:
 - Allow deploying air transports with the "Deploy" keyboard command (by Rampastring)
 - Add WallOwner to BuildingTypes (by Rampastring)
 - Allow pre-placed units to have missions in multiplayer (by Rampastring)
+- Implement TActionClass extensions, port ts-patches actions (by ZivDero, Rampastring)
 
 
 Vinifera fixes:
