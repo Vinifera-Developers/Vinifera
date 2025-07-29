@@ -61,6 +61,8 @@ TActionClass::ActionDescriptionStruct TActionClassExtension::ExtActionDescriptio
     { "All Assign Mission", "Forces all units owned by the trigger's house to begin the specified mission (e.g., hunt, move)." },
     { "Make Ally (One-Way)", "Cause this trigger's house to make a one-sided alliance with the specified house." },
     { "Make Enemy (One-Way)", "Cause this trigger's house to unilaterally declare war on the specified house." },
+    { "Edit Variable (constant)", "Edits a local or global variable with a constant as the second operand."},
+    { "Edit Variable (variable)", "Edits a local or global variable with a variable as the second operand."},
 };
 
 
@@ -642,5 +644,259 @@ bool TActionClassExtension::Do_MAKE_ENEMY_ONE_WAY(TActionClass& taction, HouseCl
         house->Make_Enemy(house2);
         ScenarioInit--;
     }
+    return true;
+}
+
+
+/**
+ *  An enum for the operations that the actions can perform.
+ */
+enum VariableOperation
+{
+    OP_ASSIGN,
+    OP_ADD,
+    OP_SUBTRACT,
+    OP_MULTIPLY,
+    OP_DIVIDE,
+    OP_MODULO,
+    OP_LSHIFT,
+    OP_RSHIFT,
+    OP_BITWISE_NEG,
+    OP_XOR,
+    OP_OR,
+    OP_AND,
+    OP_NEGATE
+};
+
+
+/**
+ *  Edits a variable with a constant as the second operand.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_EDIT_VARIABLE_CONSTANT(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    /**
+     *  Save the parameters for convenience.
+     */
+    int index = taction.Data.Value;
+    VariableOperation operation = static_cast<VariableOperation>(taction.TriggerRect.X);
+    int second_operand = taction.TriggerRect.Y;
+    bool is_global = static_cast<bool>(taction.TriggerRect.Width);
+
+    /**
+     *  Fetch the current value of the variable.
+     */
+    int value;
+    if (!(is_global ? ScenExtension->Get_Global_Value(index, value) : ScenExtension->Get_Local_Value(index, value))) {
+        return false;
+    }
+
+    /**
+     *  Perform the requested operation.
+     */
+    switch (operation) {
+    case OP_ASSIGN:
+        value = second_operand;
+        break;
+    case OP_ADD:
+        value += second_operand;
+        break;
+    case OP_SUBTRACT:
+        value -= second_operand;
+        break;
+    case OP_MULTIPLY:
+        value *= second_operand;
+        break;
+    case OP_DIVIDE:
+        value /= second_operand;
+        break;
+    case OP_MODULO:
+        value %= second_operand;
+        break;
+    case OP_LSHIFT:
+        value <<= second_operand;
+        break;
+    case OP_RSHIFT:
+        value >>= second_operand;
+        break;
+    case OP_BITWISE_NEG:
+        value = ~value;
+        break;
+    case OP_XOR:
+        value ^= second_operand;
+        break;
+    case OP_OR:
+        value |= second_operand;
+        break;
+    case OP_AND:
+        value &= second_operand;
+        break;
+    case OP_NEGATE:
+        value = -value;
+        break;
+    }
+
+    /**
+     *  Save the result.
+     */
+    if (!(is_global ? ScenExtension->Set_Global_To(index, value) : ScenExtension->Set_Local_To(index, value))) {
+        return false;
+    }
+
+    return true;
+}
+
+
+/**
+ *  Edits a variable with another variable as the second operand.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_EDIT_VARIABLE_VARIABLE(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    /**
+     *  Save the parameters for convenience.
+     */
+    int index = taction.Data.Value;
+    VariableOperation operation = static_cast<VariableOperation>(taction.TriggerRect.X);
+    int second_operand_index = taction.TriggerRect.Y;
+    bool is_global = static_cast<bool>(taction.TriggerRect.Width);
+    bool second_operand_is_global = static_cast<bool>(taction.TriggerRect.Height);
+
+    /**
+     *  Fetch the current value of the variable.
+     */
+    int value;
+    if (!(is_global ? ScenExtension->Get_Global_Value(index, value) : ScenExtension->Get_Local_Value(index, value))) {
+        return false;
+    }
+
+    /**
+     *  Fetch the current value of the second variable.
+     */
+    int second_operand;
+    if (!(second_operand_is_global ? ScenExtension->Get_Global_Value(second_operand_index, second_operand) : ScenExtension->Get_Local_Value(second_operand_index, second_operand))) {
+        return false;
+    }
+
+    /**
+     *  Perform the requested operation.
+     */
+    switch (operation) {
+    case OP_ASSIGN:
+        value = second_operand;
+        break;
+    case OP_ADD:
+        value += second_operand;
+        break;
+    case OP_SUBTRACT:
+        value -= second_operand;
+        break;
+    case OP_MULTIPLY:
+        value *= second_operand;
+        break;
+    case OP_DIVIDE:
+        value /= second_operand;
+        break;
+    case OP_MODULO:
+        value %= second_operand;
+        break;
+    case OP_LSHIFT:
+        value <<= second_operand;
+        break;
+    case OP_RSHIFT:
+        value >>= second_operand;
+        break;
+    case OP_BITWISE_NEG:
+        value = ~value;
+        break;
+    case OP_XOR:
+        value ^= second_operand;
+        break;
+    case OP_OR:
+        value |= second_operand;
+        break;
+    case OP_AND:
+        value &= second_operand;
+        break;
+    case OP_NEGATE:
+        value = -value;
+        break;
+    }
+
+    /**
+     *  Save the result.
+     */
+    if (!(is_global ? ScenExtension->Set_Global_To(index, value) : ScenExtension->Set_Local_To(index, value))) {
+        return false;
+    }
+
+    return true;
+}
+
+
+/**
+ *  Generates a random number and stores it in a variable.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_RANDOM_NUMBER(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    /**
+     *  Save the parameters for convenience.
+     */
+    int index = taction.Data.Value;
+    int min = taction.TriggerRect.X;
+    int max = taction.TriggerRect.Y;
+    bool is_global = static_cast<bool>(taction.TriggerRect.Width);
+
+    /**
+     *  Generate the number.
+     */
+    int number = Random_Pick(min, max);
+
+    /**
+     *  Save the result.
+     */
+    if (!(is_global ? ScenExtension->Set_Global_To(index, number) : ScenExtension->Set_Local_To(index, number))) {
+        return false;
+    }
+
+    return true;
+}
+
+
+/**
+ *  Prints the variable as a message.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_PRINT_VARIABLE(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    /**
+     *  Save the parameters for convenience.
+     */
+    int index = taction.Data.Value;
+    bool is_global = static_cast<bool>(taction.TriggerRect.X);
+
+    /**
+     *  Fetch the current value of the variable.
+     */
+    int value;
+    if (!(is_global ? ScenExtension->Get_Global_Value(index, value) : ScenExtension->Get_Local_Value(index, value))) {
+        return false;
+    }
+
+    /**
+     *  Format the value into a string.
+     */
+    char buffer[32];
+    std::snprintf(buffer, sizeof(buffer), "%d", value);
+
+    /**
+     * Display a text message overlaid onto the tactical map.
+     */
+    Session.Messages.Add_Message(nullptr, 0, buffer, COLORSCHEME_FIRST, static_cast<TextPrintType>(TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW), Rule->MessageDelay * TICKS_PER_MINUTE);
     return true;
 }
