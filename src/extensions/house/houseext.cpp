@@ -819,8 +819,8 @@ int HouseClassExtension::AI_Unit()
 {
     if (This()->BuildUnit != UNIT_NONE) return TICKS_PER_SECOND;
 
-    int harv = This()->ActiveUQuantity.Count_Of(This()->Get_First_ActLike(Rule->HarvesterUnit)->HeapID);
-    int ref = This()->ActiveBQuantity.Count_Of(This()->Get_First_ActLike(Rule->BuildRefinery)->HeapID);
+    int harv = This()->ActiveUQuantity.Value(This()->Get_First_ActLike(Rule->HarvesterUnit)->HeapID);
+    int ref = This()->ActiveBQuantity.Value(This()->Get_First_ActLike(Rule->BuildRefinery)->HeapID);
     int mult;
     if (Session.Type == GAME_NORMAL || This()->Difficulty == DIFF_HARD) {
         mult = 1;
@@ -1074,7 +1074,7 @@ bool HouseClassExtension::Has_Prerequisite(StructType building)
     **  If this isn't an upgrade, just check the counter.
     */
     if (btype->PowersUpBuilding[0] == '\0') {
-        return This()->ActiveBQuantity.Count_Of(building) > 0;
+        return This()->ActiveBQuantity.Value(building) > 0;
     }
 
     /*
@@ -1243,9 +1243,9 @@ void HouseClassExtension::Save_Unit_Trackers(HouseClass* house, IStream* pStm)
  */
 void HouseClassExtension::Set_Spawn_Point(const Coord& coord)
 {
-    for (int i = 0; i < MAX_PLAYERS; i++) {
+    for (WAYPOINT i = 0; i < MAX_PLAYERS; i++) {
         if (Scen->Waypoint_Coord(i).As_Cell() == coord.As_Cell()) {
-            SpawnWaypoint = static_cast<WAYPOINT>(i);
+            SpawnWaypoint = i;
             return;
         }
     }
@@ -1292,5 +1292,5 @@ HouseClass* HouseClassExtension::House_From_HousesType(HousesType house)
     /**
      *  Otherwise, just perform the normal logic to fetch the house.
      */
-    return HouseClass::As_Pointer(house);
+    return ::House_From_HousesType(house);
 }

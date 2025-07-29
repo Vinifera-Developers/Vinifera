@@ -8,7 +8,7 @@
  *
  *  @author        CCHyper
  *
- *  @brief         Contains the hooks for the extended TriggerClass.
+ *  @brief         Contains the hooks for the extended TActionClass.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License

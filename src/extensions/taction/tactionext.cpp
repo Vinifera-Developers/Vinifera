@@ -65,10 +65,10 @@ TActionClass::ActionDescriptionStruct TActionClassExtension::ExtActionDescriptio
 
 
 /**
-  *  Returns the name of the TActionType.
-  *
-  *  @author: CCHyper, ZivDero
-  */
+ *  Returns the name of the TActionType.
+ *
+ *  @author: CCHyper, ZivDero
+ */
 const char* TActionClassExtension::Action_Name(int action)
 {
     if (action < TACTION_COUNT) {

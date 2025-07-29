@@ -47,7 +47,7 @@
 UnitClass* Create_Visceroid(ObjectClass* destroyedobject)
 {
     if (destroyedobject->RTTI == RTTI_INFANTRY || (destroyedobject->Is_Techno() && destroyedobject->TClass->IsCrew)) {
-        return new UnitClass(Rule->SmallVisceroid, HouseClass::As_Pointer(HouseTypeClass::From_Name("Neutral")));
+        return new UnitClass(Rule->SmallVisceroid, House_From_HousesType(HouseTypeClass::From_Name("Neutral")));
     }
 
     return nullptr;

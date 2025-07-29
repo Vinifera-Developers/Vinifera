@@ -61,7 +61,6 @@
 #include "ionblast.h"
 #include "tiberium.h"
 #include "combat.h"
-#include "scenarioini.h"
 #include "scenario.h"
 #include "sidebarext.h"
 #include "tag.h"

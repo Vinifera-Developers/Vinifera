@@ -270,7 +270,7 @@ bool Vinifera_Put_All(IStream *pStm, bool save_net)
      *  Save the scenario global information.
      */
     DEBUG_INFO("Saving Scenario...\n");
-    Scen->Save(pStm);
+    Scen->Save_Self(pStm);
 
     DEBUG_INFO("Saving EndGame...\n");
     EndGame.Save(pStm);
@@ -434,7 +434,7 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
      *  Load the scenario global information.
      */
     DEBUG_INFO("Loading Scenario...\n");
-    Scen->Load(pStm);
+    Scen->Load_Self(pStm);
 
     /**
      *  #issue-123
