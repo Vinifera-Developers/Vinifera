@@ -268,3 +268,4 @@ This page lists all the individual contributions to the project by their author.
   - Fix shroud looking bugged if you attempt to reveal too many cells at once.
   - Implement voxel light customization.
   - Implement TActionClass extension, port ts-patches actions.
+  - Implement TEventClass extension.
