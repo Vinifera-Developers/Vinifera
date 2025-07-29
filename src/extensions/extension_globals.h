@@ -68,6 +68,7 @@ class VoxelAnimTypeClassExtension;
 class WarheadTypeClassExtension;
 class WaveClassExtension;
 class WeaponTypeClassExtension;
+class TEventClassExtension;
 
 class TacticalExtension;
 
@@ -135,6 +136,7 @@ extern DynamicVectorClass<VoxelAnimTypeClassExtension *> VoxelAnimTypeExtensions
 extern DynamicVectorClass<WarheadTypeClassExtension *> WarheadTypeExtensions;
 extern DynamicVectorClass<WaveClassExtension *> WaveExtensions;
 extern DynamicVectorClass<WeaponTypeClassExtension *> WeaponTypeExtensions;
+extern DynamicVectorClass<TEventClassExtension*> TEventExtensions;
 
 /**
  *  Abstract derived classes, but only a single instance is required.

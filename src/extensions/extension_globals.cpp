@@ -60,12 +60,13 @@ DynamicVectorClass<VoxelAnimTypeClassExtension *> VoxelAnimTypeExtensions;
 DynamicVectorClass<WarheadTypeClassExtension *> WarheadTypeExtensions;
 DynamicVectorClass<WaveClassExtension *> WaveExtensions;
 DynamicVectorClass<WeaponTypeClassExtension *> WeaponTypeExtensions;
+DynamicVectorClass<TEventClassExtension*> TEventExtensions;
 
 TacticalExtension *TacticalMapExtension = nullptr;
 
 RulesClassExtension *RuleExtension = nullptr;
 ScenarioClassExtension *ScenExtension = nullptr;
-SidebarClassExtension* SidebarExtension = nullptr;
+SidebarClassExtension *SidebarExtension = nullptr;
 SessionClassExtension *SessionExtension = nullptr;
 OptionsClassExtension *OptionsExtension = nullptr;
 

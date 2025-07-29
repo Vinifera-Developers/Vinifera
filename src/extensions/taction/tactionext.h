@@ -44,8 +44,8 @@ public:
     static bool Execute(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     static bool Is_Vinifera_TAction(TActionType type);
 
-    static const char* Action_Name(int action);
-    static const char* Action_Description(int action);
+    static const char* Action_Name(int event);
+    static const char* Action_Description(int event);
 
 private:
 
@@ -73,11 +73,11 @@ private:
     static bool Do_ALL_ASSIGN_MISSION(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     static bool Do_MAKE_ALLY_ONE_WAY(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     static bool Do_MAKE_ENEMY_ONE_WAY(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
-    static bool Do_EDIT_VARIABLE_CONSTANT(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
-    static bool Do_EDIT_VARIABLE_VARIABLE(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
+    static bool Do_MODIFY_VARIABLE_CONSTANT(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
+    static bool Do_MODIFY_VARIABLE_VARIABLE(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     static bool Do_RANDOM_NUMBER(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     static bool Do_PRINT_VARIABLE(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
 
 private:
-    static TActionClass::ActionDescriptionStruct TActionClassExtension::ExtActionDescriptions[EXT_TACTION_COUNT - EXT_TACTION_FIRST];
+    static TActionClass::ActionDescriptionStruct ExtActionDescriptions[EXT_TACTION_COUNT - EXT_TACTION_FIRST];
 };

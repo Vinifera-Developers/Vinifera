@@ -46,7 +46,12 @@
 #include "mouse.h"
 #include "rules.h"
 #include "team.h"
+#include "teamtype.h"
+#include "teventext.h"
+#include "teventext_init.h"
 
+// warning C4063: case '#' is not a valid value for switch of enum 'TActionType'
+#pragma warning(disable : 4063)
 
 /**
  *  A fake class for implementing new member functions which allow
@@ -61,7 +66,44 @@ public:
     bool _Operator_Parens_Intercept(TEventType event, HouseClass const* house, ObjectClass const* object, CDTimerClass<FrameTimerClass> &timer, bool& is_perm, TechnoClass * source);
     bool _Is_Temporal() const;
     bool _Has_Memory() const;
+    void _Read_INI();
+    void _Build_INI_Entry(char* ptr) const;
 };
+
+
+/**
+ *  An enum for the various ways variables can be compared.
+ */
+enum ComparisonType
+{
+    COMP_GREATER,
+    COMP_LESS,
+    COMP_EQ,
+    COMP_GREATER_OR_EQ,
+    COMP_LESS_OR_EQ,
+    COMP_AND
+};
+
+
+static bool Compare(int lhs, int rhs, ComparisonType type)
+{
+    switch (type) {
+    case COMP_GREATER:
+        return lhs > rhs;
+    case COMP_LESS:
+        return lhs < rhs;
+    case COMP_EQ:
+        return lhs == rhs;
+    case COMP_GREATER_OR_EQ:
+        return lhs >= rhs;
+    case COMP_LESS_OR_EQ:
+        return lhs <= rhs;
+    case COMP_AND:
+        return (lhs & rhs) != 0;
+    default:
+        return false;
+    }
+}
 
 
 /**
@@ -72,6 +114,8 @@ public:
  */
 bool TEventClassExt::_Operator_Parens_Intercept(TEventType event, HouseClass const* house, ObjectClass const* object, CDTimerClass<FrameTimerClass>& timer, bool& is_perm, TechnoClass* source)
 {
+    auto& extension = *Extension::Fetch(this);
+
     /*
     **  Triggers based on the game's global environment such as time or
     **  global flags are triggered only when the appropriate condition
@@ -127,6 +171,29 @@ bool TEventClassExt::_Operator_Parens_Intercept(TEventType event, HouseClass con
         if (timer != 0) return false;
         return true;
 
+    case EXT_TEVENT_COMPARE_VARIABLE_WITH_CONSTANT: {
+        int left = Data.Value;
+        bool left_global = extension.Data2.Value != 0;
+        int right_value = extension.Data3.Value;
+        ComparisonType comp = static_cast<ComparisonType>(extension.Data4.Value);
+
+        int left_value;
+        left_global ? ScenExtension->Get_Global_Value(left, left_value) : ScenExtension->Get_Local_Value(left, left_value);
+        return Compare(left_value, right_value, comp);
+    }
+
+    case EXT_TEVENT_COMPARE_VARIABLE_WITH_VARIABLE: {
+        int left = Data.Value;
+        bool left_global = extension.Data2.Value != 0;
+        int right = extension.Data3.Value;
+        bool right_global = extension.Data4.Value != 0;
+        ComparisonType comp = static_cast<ComparisonType>(extension.Data5.Value);
+
+        int left_value, right_value;
+        left_global ? ScenExtension->Get_Global_Value(left, left_value) : ScenExtension->Get_Local_Value(left, left_value);
+        right_global ? ScenExtension->Get_Global_Value(right, right_value) : ScenExtension->Get_Local_Value(right, right_value);
+        return Compare(left_value, right_value, comp);
+    }
     }
 
     /*
@@ -190,14 +257,13 @@ bool TEventClassExt::_Operator_Parens_Intercept(TEventType event, HouseClass con
     **  events must be verified manually by examining the house that
     **  they are assigned to.
     */
-    int index;
     if (house != nullptr) {
-        int count;
         switch (Event) {
             /*
             **  Check to see if a team of the appropriate type has left the map.
             */
         case TEVENT_LEAVES_MAP:
+            int index;
             for (index = 0; index < Teams.Count(); index++) {
                 TeamClass* ptr = Teams[index];
                 if (ptr->Class == Team && ptr->Is_Empty() && ptr->IsLeaveMap) {
@@ -224,8 +290,8 @@ bool TEventClassExt::_Operator_Parens_Intercept(TEventType event, HouseClass con
             */
         case TEVENT_NOFACTORIES:
             if (house->CurBuildings > 0) {
-                for (int index = 0; index < Buildings.Count(); index++) {
-                    BuildingClass* ptr = Buildings[index];
+                for (int i = 0; i < Buildings.Count(); i++) {
+                    BuildingClass* ptr = Buildings[i];
                     if (ptr != nullptr && !ptr->IsInLimbo && ptr->House == house && ptr->Class->ToBuild != RTTI_NONE) {
                         return false;
                     }
@@ -417,11 +483,273 @@ bool TEventClassExt::_Has_Memory() const
 
 
 /**
+ *  Parses the INI text for this event's data.
+ *
+ *  @author: ZivDero
+ */
+void TEventClassExt::_Read_INI()
+{
+    auto& extension = *Extension::Fetch(this);
+
+    Data.Value = 0;
+    Event = static_cast<TEventType>(std::atoi(std::strtok(nullptr, ",")));
+    int code = std::atoi(std::strtok(nullptr, ","));
+    char* text = std::strtok(nullptr, ",");
+    int val = std::atoi(text);
+
+    char* fourth_arg = nullptr;
+    if (code == 2 || code == 3) {
+        fourth_arg = std::strtok(nullptr, ",");
+    }
+
+    char* fifth_arg = nullptr;
+    if (code == 4) {
+        fifth_arg = std::strtok(nullptr, ",");
+    }
+
+    char* sixth_arg = nullptr;
+    if (code == 5) {
+        sixth_arg = std::strtok(nullptr, ",");
+    }
+
+    char* seventh_arg = nullptr;
+    if (code == 6) {
+        seventh_arg = std::strtok(nullptr, ",");
+    }
+
+    extension.NeedCode = code;
+
+    switch (code) {
+
+        /**
+         *  Single argument, number.
+         */
+    case 0:
+        Data.Value = val;
+        break;
+
+        /**
+         *  Single argument, team.
+         */
+    case 1:
+        Team = const_cast<TeamTypeClass*>(TeamTypeClass::As_Pointer(text));
+        break;
+
+        /**
+         *  Two arguments, number and INI name.
+         */
+    case 2:
+        Data.Value = val;
+        std::strncpy(extension.IniNameArgument, fourth_arg, sizeof(extension));
+        break;
+
+        /**
+         *  Five arguments, numbers.
+         */
+    case 6:
+        extension.Data5.Value = std::atoi(seventh_arg);
+        // fall through
+
+        /**
+         *  Four arguments, numbers.
+         */
+    case 5:
+        extension.Data4.Value = std::atoi(sixth_arg);
+        // fall through
+
+        /**
+         *  Three arguments, numbers.
+         */
+    case 4:
+        extension.Data3.Value = std::atoi(fifth_arg);
+        // fall through
+
+        /**
+         *  Two arguments, numbers.
+         */
+    case 3:
+        extension.Data2.Value = std::atoi(fourth_arg);
+        Data.Value = val;
+        break;
+    }
+}
+
+
+/**
+ *  Builds the ini text for this event.
+ *
+ *  @author: ZivDero
+ */
+void TEventClassExt::_Build_INI_Entry(char* ptr) const
+{
+    auto& extension = *Extension::Fetch(this);
+    ptr += std::strlen(ptr);
+    int code = extension.NeedCode;
+
+    switch (code) {
+    case 0:
+        std::sprintf(ptr, "%d,%d,%d", Event, code, Data.Value);
+        break;
+
+    case 1:
+        std::sprintf(ptr, "%d,%d,%s", Event, code, Team->IniName);
+        break;
+
+    case 2:
+        std::sprintf(ptr, "%d,%d,%d,%s", Event, code, Data.Value, extension.IniNameArgument);
+        break;
+
+    case 3:
+        std::sprintf(ptr, "%d,%d,%d,%d", Event, code, Data.Value, extension.Data2.Value);
+        break;
+
+    case 4:
+        std::sprintf(ptr, "%d,%d,%d,%d,%d", Event, code, Data.Value, extension.Data2.Value, extension.Data3.Value);
+        break;
+
+    case 5:
+        std::sprintf(ptr, "%d,%d,%d,%d,%d,%d", Event, code, Data.Value, extension.Data2.Value, extension.Data3.Value, extension.Data4.Value);
+        break;
+
+    case 6:
+        std::sprintf(ptr, "%d,%d,%d,%d,%d,%d,%d", Event, code, Data.Value, extension.Data2.Value, extension.Data3.Value, extension.Data4.Value, extension.Data5.Value);
+        break;
+    }
+}
+
+
+/**
+ *  What can this event attach to?
+ *
+ *  @author: ZivDero
+ */
+AttachType _Attaches_To(TEventType event)
+{
+    AttachType attach = ATTACH_NONE;
+
+    switch (event) {
+    case TEVENT_CROSS_HORIZONTAL:
+    case TEVENT_CROSS_VERTICAL:
+    case TEVENT_ENTERS_ZONE:
+    case TEVENT_PLAYER_ENTERED:
+    case TEVENT_ANY:
+    case TEVENT_DISCOVERED:
+    case TEVENT_BRIDGE_DESTROYED:
+    case TEVENT_NONE:
+        attach |= ATTACH_CELL;
+        break;
+
+    default:
+        break;
+    }
+
+    switch (event) {
+    case TEVENT_FIRST_DAMAGED_ANY:
+    case TEVENT_ENTER_YELLOW_ANY:
+    case TEVENT_ENTER_RED_ANY:
+    case TEVENT_FIRST_DAMAGED:
+    case TEVENT_ENTER_YELLOW:
+    case TEVENT_ENTER_RED:
+    case TEVENT_SPIED:
+    case TEVENT_PLAYER_ENTERED:
+    case TEVENT_DISCOVERED:
+    case TEVENT_DESTROYED:
+    case TEVENT_DESTROYED_ANY:
+    case TEVENT_ATTACKED:
+    case TEVENT_ATTACKED_BY:
+    case TEVENT_ANY:
+    case TEVENT_NONE:
+    case TEVENT_SELECTED:
+    case TEVENT_NEAR_WAYPOINT:
+    case TEVENT_ENEMY_IN_SPOTLIGHT:
+    case TEVENT_PICKUP_CRATE:
+    case TEVENT_PARALYZED:
+    case TEVENT_ENEMY_IN_SPOTLIGHT_REPEATING:
+    case TEVENT_LIMPED:
+        attach |= ATTACH_OBJECT;
+        break;
+
+    default:
+        break;
+    }
+
+    switch (event) {
+    case TEVENT_ENTERS_ZONE:
+    case TEVENT_ANY:
+        attach |= ATTACH_MAP;
+        break;
+
+    default:
+        break;
+    }
+
+    switch (event) {
+    case TEVENT_LOW_POWER:
+    case TEVENT_EVAC_CIVILIAN:
+    case TEVENT_BUILDING_EXISTS:
+    case TEVENT_BUILD:
+    case TEVENT_BUILD_UNIT:
+    case TEVENT_BUILD_INFANTRY:
+    case TEVENT_BUILD_AIRCRAFT:
+    case TEVENT_NOFACTORIES:
+    case TEVENT_BUILDINGS_DESTROYED:
+    case TEVENT_NBUILDINGS_DESTROYED:
+    case TEVENT_UNITS_DESTROYED:
+    case TEVENT_NUNITS_DESTROYED:
+    case TEVENT_ALL_DESTROYED:
+    case TEVENT_HOUSE_DISCOVERED:
+    case TEVENT_CREDITS:
+    case TEVENT_CREDITS_BELOW:
+    case TEVENT_THIEVED:
+    case TEVENT_ANY:
+        attach |= ATTACH_HOUSE;
+        break;
+
+    default:
+        break;
+    }
+
+    switch (event) {
+    case TEVENT_GAME_TIME:
+    case TEVENT_TIME:
+    case TEVENT_RANDOM_TIME:
+    case TEVENT_GLOBAL_SET:
+    case TEVENT_GLOBAL_CLEAR:
+    case TEVENT_LOCAL_SET:
+    case TEVENT_LOCAL_CLEAR:
+    case TEVENT_MISSION_TIMER_EXPIRED:
+    case TEVENT_ANY:
+    case TEVENT_AMBIENT_LESS_THAN:
+    case TEVENT_AMBIENT_GREATER_THAN:
+    case TEVENT_LEAVES_MAP:
+    case TEVENT_PICKUP_CRATE_ANY:
+    case EXT_TEVENT_COMPARE_VARIABLE_WITH_CONSTANT:
+    case EXT_TEVENT_COMPARE_VARIABLE_WITH_VARIABLE:
+        attach |= ATTACH_GENERAL;
+        break;
+
+    default:
+        break;
+    }
+
+    return attach;
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void TEventClassExtension_Hooks()
 {
+    /**
+     *  Initialises the extended class.
+     */
+    TEventClassExtension_Init();
+
     Patch_Jump(0x00642310, &TEventClassExt::_Operator_Parens_Intercept);
     Patch_Jump(0x00642E20, &TEventClassExt::_Is_Temporal);
     Patch_Jump(0x00642E80, &TEventClassExt::_Has_Memory);
+    Patch_Jump(0x00642A60, &TEventClassExt::_Read_INI);
+    Patch_Jump(0x00642A10, &TEventClassExt::_Build_INI_Entry);
+    Patch_Jump(0x00642B90, &_Attaches_To);
 }

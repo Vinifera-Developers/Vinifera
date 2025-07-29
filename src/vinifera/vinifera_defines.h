@@ -138,6 +138,7 @@
 #define UUID_FOGGEDOBJECT_EXTENSION         "7D9C5263-465F-42CE-AD81-5C057B52226F"
 #define UUID_ALPHASHAPE_EXTENSION           "4C8171D5-E7A7-43D1-80F3-0C285CF6B352"
 #define UUID_VEINHOLEMONSTER_EXTENSION      "4AD76F43-090A-44BF-BB1A-5BFDE52BC842"
+#define UUID_TEVENT_EXTENSION               "7921504A-CECA-4239-B5B8-42931716B4F1"
 
 
 /**
@@ -204,7 +205,7 @@ typedef enum ExtTActionType
     EXT_TACTION_ALL_ASSIGN_MISSION,
     EXT_TACTION_MAKE_ALLY_ONE_WAY,
     EXT_TACTION_MAKE_ENEMY_ONE_WAY,
-    EXT_TACTION_MODIFY_VARIABLE_CONST,
+    EXT_TACTION_MODIFY_VARIABLE_CONSTANT,
     EXT_TACTION_MODIFY_VARIABLE_VARIABLE,
     EXT_TACTION_RANDOM_NUMBER,
     EXT_TACTION_PRINT_VARIABLE,
@@ -219,3 +220,28 @@ typedef enum ExtTActionType
      */
     EXT_TACTION_FIRST = EXT_TACTION_PAD + 1
 } ExtTActionType;
+
+
+/**
+ *  Extension of the TActionType enum.
+ */
+typedef enum ExtTEventType
+{
+    EXT_TEVENT_PAD = TEVENT_LIMPED, // The last TEventType
+
+    /**
+     *  Add new ExtTEventTypes from here.
+     */
+    EXT_TEVENT_COMPARE_VARIABLE_WITH_CONSTANT,
+    EXT_TEVENT_COMPARE_VARIABLE_WITH_VARIABLE,
+
+    /**
+     *  The new total ExtTEventType count.
+     */
+    EXT_TEVENT_COUNT,
+
+    /**
+     *  The first ExtTEventType.
+     */
+    EXT_TEVENT_FIRST = EXT_TEVENT_PAD + 1
+} ExtTEventType;

@@ -139,6 +139,7 @@
 #include "warheadtypeext.h"
 #include "waveext.h"
 #include "weapontypeext.h"
+#include "teventext.h"
 
 #include "rulesext.h"
 #include "scenarioext.h"
@@ -721,7 +722,7 @@ bool Extension::Save(IStream *pStm)
     //if (!Extension_Save<TagTypeClass, TagTypeClassExtension>(pStm, TagTypeExtensions)) { return false; }              // Not yet implemented
     if (!Extension_Save<TiberiumClass, TiberiumClassExtension>(pStm, TiberiumExtensions)) { return false; }
     //if (!Extension_Save<TActionClass, TActionClassExtension>(pStm, TActionExtensions)) { return false; }              // Not yet implemented
-    //if (!Extension_Save<TEventClass, TEventClassExtension>(pStm, TEventExtensions)) { return false; }                 // Not yet implemented
+    if (!Extension_Save<TEventClass, TEventClassExtension>(pStm, TEventExtensions)) { return false; }
     if (!Extension_Save<WeaponTypeClass, WeaponTypeClassExtension>(pStm, WeaponTypeExtensions)) { return false; }
     if (!Extension_Save<WarheadTypeClass, WarheadTypeClassExtension>(pStm, WarheadTypeExtensions)) { return false; }
     //if (!Extension_Save<WaypointClass, WaypointClassExtension>(pStm, WaypointExtensions)) { return false; }           // Not yet implemented
@@ -821,7 +822,7 @@ bool Extension::Load(IStream *pStm)
     //if (!Extension_Load<TagTypeClass, TagTypeClassExtension>(pStm, TagTypeExtensions)) { return false; }              // Not yet implemented
     if (!Extension_Load<TiberiumClass, TiberiumClassExtension>(pStm, TiberiumExtensions)) { return false; }
     //if (!Extension_Load<TActionClass, TActionClassExtension>(pStm, TActionExtensions)) { return false; }              // Not yet implemented
-    //if (!Extension_Load<TEventClass, TEventClassExtension>(pStm, TEventExtensions)) { return false; }                 // Not yet implemented
+    if (!Extension_Load<TEventClass, TEventClassExtension>(pStm, TEventExtensions)) { return false; }
     if (!Extension_Load<WeaponTypeClass, WeaponTypeClassExtension>(pStm, WeaponTypeExtensions)) { return false; }
     if (!Extension_Load<WarheadTypeClass, WarheadTypeClassExtension>(pStm, WarheadTypeExtensions)) { return false; }
     //if (!Extension_Load<WaypointClass, WaypointClassExtension>(pStm, WaypointExtensions)) { return false; }           // Not yet implemented
@@ -1087,7 +1088,7 @@ void Extension::Free_Heaps()
     //TagTypeExtensions.Clear();                                                // Not yet implemented
     TiberiumExtensions.Clear();
     //TActionExtensions.Clear();                                                // Not yet implemented
-    //TEventExtensions.Clear();                                                 // Not yet implemented
+    TEventExtensions.Clear();
      WeaponTypeExtensions.Clear();
     WarheadTypeExtensions.Clear();
     //WaypointExtensions.Clear();                                               // Not yet implemented
@@ -1416,7 +1417,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     //std::fprintf(fp, "TagTypeExtensions.Count = %d\n", TagTypeExtensions.Count());                                    // Not yet implemented
     std::fprintf(fp, "TiberiumExtensions.Count = %d\n", TiberiumExtensions.Count());
     //std::fprintf(fp, "TActionExtensions.Count = %d\n", TActionExtensions.Count());                                    // Not yet implemented
-    //std::fprintf(fp, "TEventExtensions.Count = %d\n", TEventExtensions.Count());                                      // Not yet implemented
+    std::fprintf(fp, "TEventExtensions.Count = %d\n", TEventExtensions.Count());
     std::fprintf(fp, "WeaponTypeExtensions.Count = %d\n", WeaponTypeExtensions.Count());
     std::fprintf(fp, "WarheadTypeExtensions.Count = %d\n", WarheadTypeExtensions.Count());
     //std::fprintf(fp, "WaypointExtensions.Count = %d\n", WaypointExtensions.Count());                                  // Not yet implemented
@@ -1934,7 +1935,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     //Print_Heap_CRC_Lists(fp, TagTypeExtensions);                              // Not yet implemented
     Print_Heap_CRC_Lists(fp, TiberiumExtensions);
     //Print_Heap_CRC_Lists(fp, TActionExtensions);                              // Not yet implemented
-    //Print_Heap_CRC_Lists(fp, TEventExtensions);                               // Not yet implemented
+    Print_Heap_CRC_Lists(fp, TEventExtensions);
     Print_Heap_CRC_Lists(fp, WeaponTypeExtensions);
     Print_Heap_CRC_Lists(fp, WarheadTypeExtensions);
     //Print_Heap_CRC_Lists(fp, WaypointExtensions);                             // Not yet implemented
@@ -2015,7 +2016,7 @@ void Extension::Detach_This_From_All(AbstractClass * target, bool all)
     //Extension_Detach_This_From_All(TagTypeExtensions, target, all);           // Not yet implemented
     Extension_Detach_This_From_All(TiberiumExtensions, target, all);
     //Extension_Detach_This_From_All(TActionExtensions, target, all);           // Not yet implemented
-    //Extension_Detach_This_From_All(TEventExtensions, target, all);            // Not yet implemented
+    Extension_Detach_This_From_All(TEventExtensions, target, all);
     Extension_Detach_This_From_All(WeaponTypeExtensions, target, all);
     Extension_Detach_This_From_All(WarheadTypeExtensions, target, all);
     //Extension_Detach_This_From_All(WaypointExtensions, target, all);          // Not yet implemented

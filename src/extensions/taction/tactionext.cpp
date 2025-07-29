@@ -61,8 +61,10 @@ TActionClass::ActionDescriptionStruct TActionClassExtension::ExtActionDescriptio
     { "All Assign Mission", "Forces all units owned by the trigger's house to begin the specified mission (e.g., hunt, move)." },
     { "Make Ally (One-Way)", "Cause this trigger's house to make a one-sided alliance with the specified house." },
     { "Make Enemy (One-Way)", "Cause this trigger's house to unilaterally declare war on the specified house." },
-    { "Edit Variable (constant)", "Edits a local or global variable with a constant as the second operand."},
-    { "Edit Variable (variable)", "Edits a local or global variable with a variable as the second operand."},
+    { "Modify variable (constant)", "Edits a local or global variable with a constant as the second operand."},
+    { "Modify variable (variable)", "Edits a local or global variable with a variable as the second operand."},
+    { "Generate random number", "Generates a random number and stores it in a variable."},
+    { "Print variable", "Prints the value of the variable as a message."},
 };
 
 
@@ -74,7 +76,7 @@ TActionClass::ActionDescriptionStruct TActionClassExtension::ExtActionDescriptio
 const char* TActionClassExtension::Action_Name(int action)
 {
     if (action < TACTION_COUNT) {
-        return TActionClass::Action_Name(TActionType(action));
+        return TActionClass::Action_Name(static_cast<TActionType>(action));
     }
 
     if (action < EXT_TACTION_COUNT) {
@@ -93,7 +95,7 @@ const char* TActionClassExtension::Action_Name(int action)
 const char* TActionClassExtension::Action_Description(int action)
 {
     if (action < TACTION_COUNT) {
-        return TActionClass::Action_Description(TActionType(action));
+        return TActionClass::Action_Description(static_cast<TActionType>(action));
     }
 
     if (action < EXT_TACTION_COUNT) {
@@ -155,6 +157,10 @@ bool TActionClassExtension::Execute(TActionClass& taction, HouseClass* house, Ob
         EXT_DISPATCH(ALL_ASSIGN_MISSION);
         EXT_DISPATCH(MAKE_ALLY_ONE_WAY);
         EXT_DISPATCH(MAKE_ENEMY_ONE_WAY);
+        EXT_DISPATCH(MODIFY_VARIABLE_CONSTANT);
+        EXT_DISPATCH(MODIFY_VARIABLE_VARIABLE);
+        EXT_DISPATCH(RANDOM_NUMBER);
+        EXT_DISPATCH(PRINT_VARIABLE);
 
         /**
          *  Used to print the current difficulty in ts-patches, available to be repurposed.
@@ -674,7 +680,7 @@ enum VariableOperation
  *
  *  @author: ZivDero
  */
-bool TActionClassExtension::Do_EDIT_VARIABLE_CONSTANT(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExtension::Do_MODIFY_VARIABLE_CONSTANT(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
     /**
      *  Save the parameters for convenience.
@@ -753,7 +759,7 @@ bool TActionClassExtension::Do_EDIT_VARIABLE_CONSTANT(TActionClass& taction, Hou
  *
  *  @author: ZivDero
  */
-bool TActionClassExtension::Do_EDIT_VARIABLE_VARIABLE(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExtension::Do_MODIFY_VARIABLE_VARIABLE(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
     /**
      *  Save the parameters for convenience.
