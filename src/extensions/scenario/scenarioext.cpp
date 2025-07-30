@@ -766,7 +766,7 @@ int ScenarioClassExtension::Find_Local_Variable_Index(char const* name)
             return i;
         }
     }
-    return-1;
+    return -1;
 }
 
 
