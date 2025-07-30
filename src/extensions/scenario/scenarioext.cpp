@@ -397,7 +397,7 @@ bool ScenarioClassExtension::Is_Waypoint_Valid(WAYPOINT wp) const
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Is_Waypoint_Valid - 0x%08X\n", (uintptr_t)(This()));
     ASSERT_FATAL(wp < Waypoint.Length());
 
-    return wp >= WAYPOINT_FIRST && wp < Waypoint.Length() ? Waypoint[wp] != CELL_NONE : false;
+    return (wp >= WAYPOINT_FIRST && wp < Waypoint.Length()) ? (Waypoint[wp] != CELL_NONE) : false;
 }
 
 
@@ -1835,7 +1835,7 @@ void ScenarioClassExtension::Create_Units(bool official)
          *  #BUGFIX:
          *  Make sure there are units available to place before entering the loop.
          */
-        bool units_available = tot_inf_count + tot_unit_count > 0;
+        bool units_available = (tot_inf_count + tot_unit_count) > 0;
 
         if (units_available) {
 
@@ -1844,8 +1844,8 @@ void ScenarioClassExtension::Create_Units(bool official)
             int inf_percent = 50;
             int unit_percent = 100 - inf_percent;
 
-            int inf_count = tot_units * inf_percent / 100;
-            int unit_count = tot_units * unit_percent / 100;
+            int inf_count = (tot_units * inf_percent) / 100;
+            int unit_count = (tot_units * unit_percent) / 100;
 
             /**
              *  Ensure that rounding errors don't result in the player getting fewer units than promised.
