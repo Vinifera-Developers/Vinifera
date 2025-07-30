@@ -578,11 +578,11 @@ const char * ScenarioClassExtension::Waypoint_As_String(WAYPOINT wp) const
  *
  *  @author: ZivDero
  */
-bool ScenarioClassExtension::Set_Global_To(int global, int value)
+int ScenarioClassExtension::Set_Global_To(int global, int value)
 {
     if ((unsigned)global < std::size(GlobalFlags)) {
 
-        bool previous = GlobalFlags[global].Value;
+        int previous = GlobalFlags[global].Value;
         if (previous != value) {
             GlobalFlags[global].Value = value;
             Scen->IsGlobalChanged = true;
@@ -597,7 +597,7 @@ bool ScenarioClassExtension::Set_Global_To(int global, int value)
         }
         return previous;
     }
-    return false;
+    return 0;
 }
 
 
@@ -606,13 +606,13 @@ bool ScenarioClassExtension::Set_Global_To(int global, int value)
  *
  *  @author: ZivDero
  */
-bool ScenarioClassExtension::Set_Global_To(char const* name, int value)
+int ScenarioClassExtension::Set_Global_To(char const* name, int value)
 {
     int global = Find_Global_Variable_Index(name);
     if (global != -1) {
         return Set_Global_To(global, value);
     }
-    return true;
+    return 0;
 }
 
 
@@ -686,11 +686,11 @@ bool ScenarioClassExtension::Read_Global_INI(INIClass& ini)
  *
  *  @author: ZivDero
  */
-bool ScenarioClassExtension::Set_Local_To(int local, int value)
+int ScenarioClassExtension::Set_Local_To(int local, int value)
 {
     if (static_cast<size_t>(local) < std::size(Scen->LocalFlags)) {
 
-        bool previous = LocalFlags[local].Value;
+        int previous = LocalFlags[local].Value;
         if (previous != value) {
             LocalFlags[local].Value = value;
             Scen->IsGlobalChanged = true;
@@ -705,7 +705,7 @@ bool ScenarioClassExtension::Set_Local_To(int local, int value)
         }
         return previous;
     }
-    return false;
+    return 0;
 }
 
 
@@ -714,13 +714,13 @@ bool ScenarioClassExtension::Set_Local_To(int local, int value)
  *
  *  @author: ZivDero
  */
-bool ScenarioClassExtension::Set_Local_To(char const* name, int value)
+int ScenarioClassExtension::Set_Local_To(char const* name, int value)
 {
     int local = Find_Local_Variable_Index(name);
     if (local != -1) {
         return Set_Local_To(local, value);
     }
-    return true;
+    return 0;
 }
 
 

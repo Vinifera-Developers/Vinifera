@@ -76,12 +76,12 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
         bool Read_Local_INI(INIClass& ini);
         bool Write_Local_INI(INIClass& ini);
 
-        bool Set_Global_To(int global, int value);
-        bool Set_Global_To(char const* name, int value);
+        int Set_Global_To(int global, int value);
+        int Set_Global_To(char const* name, int value);
         bool Get_Global_Value(int global, int& value);
         bool Get_Global_Value(char const* name, int& value);
-        bool Set_Local_To(int local, int value);
-        bool Set_Local_To(char const* name, int value);
+        int Set_Local_To(int local, int value);
+        int Set_Local_To(char const* name, int value);
         bool Get_Local_Value(int local, int& value);
         bool Get_Local_Value(char const* name, int& value);
 

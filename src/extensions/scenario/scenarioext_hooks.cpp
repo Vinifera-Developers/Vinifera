@@ -83,8 +83,8 @@ public:
     void _Read_Local_INI(INIClass& ini) { ScenExtension->Read_Local_INI(ini); }
     void _Write_Local_INI(INIClass& ini) { ScenExtension->Write_Local_INI(ini); }
 
-    bool _Set_Global_To(int global, bool value) { return ScenExtension->Set_Global_To(global, value ? 1 : 0); }
-    bool _Set_Global_To(const char* name, bool value) { return ScenExtension->Set_Global_To(name, value ? 1 : 0); }
+    bool _Set_Global_To(int global, bool value) { return ScenExtension->Set_Global_To(global, value ? 1 : 0) != 0; }
+    bool _Set_Global_To(const char* name, bool value) { return ScenExtension->Set_Global_To(name, value ? 1 : 0) != 0; }
 
     bool _Get_Global_Value(int global, bool& value)
     {
@@ -106,8 +106,8 @@ public:
         return false;
     }
 
-    bool _Set_Local_To(int local, bool value) { return ScenExtension->Set_Local_To(local, value ? 1 : 0); }
-    bool _Set_Local_To(const char* name, bool value) { return ScenExtension->Set_Local_To(name, value ? 1 : 0); }
+    bool _Set_Local_To(int local, bool value) { return ScenExtension->Set_Local_To(local, value ? 1 : 0) != 0; }
+    bool _Set_Local_To(const char* name, bool value) { return ScenExtension->Set_Local_To(name, value ? 1 : 0) != 0; }
 
     bool _Get_Local_Value(int local, bool& value)
     {

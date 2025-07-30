@@ -156,14 +156,34 @@ NAME = [Action Count], [TActionType], [NeedCode], [PARAM1], [PARAM2], [PARAM3], 
 |          | Cause this trigger's house to make a one-sided alliance with the specified house. | Other (0)   | House (#)        | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
 | 118      | Make Enemy (One-Way)     |
 |          | Cause this trigger's house to unilaterally declare war on the specified house. | Other (0)   | House (#)        | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 119      | Modify Variable (Constant)  |
-|          | Modifies a variable using a constant and a specified operation. | Other (0) | Variable (#)   | Operation Type   | Number   | Is Global (0/1)  | *unused*         | *unused* |
-| 120      | Modify Variable (Variable)  |
-|          | Modifies a variable using another variable and a specified operation. | Other (0) | Variable (#)   | Operation Type   | Second Variable (#) | Is Global (0/1)  | Is 2nd Global (0/1) | *unused* |
-| 121      | Random Number to Variable   |
-|          | Stores a random number between Min and Max into the variable. | Other (0) | Variable (#)   | Min Value        | Max Value        | Is Global (0/1)  | *unused*         | *unused* |
-| 122      | Print Variable              |
-|          | Displays the current value of a variable as a message. | Other (0) | Variable (#)   | Is Global (0/1)  | *unused*         | *unused*         | *unused*         | *unused* |
+| 119      | Modify Global (Constant)        |
+|          | Modifies a global variable using a constant and a specified operation. | Other (0) | Global Variable (#) | Operation Type   | Number     | unused         | unused         | unused         |
+| 120      | Modify Global (Global)          |
+|          | Modifies a global variable using another global variable and a specified operation. | Other (0) | Global Variable (#) | Operation Type   | Second Global (#)  | *unused*         | *unused*         | *unused*         |
+| 121      | Modify Global (Local)           |
+|          | Modifies a global variable using a local variable and a specified operation. | Other (0) | Global Variable (#) | Operation Type   | Local Variable (#) | *unused*         | *unused*         | *unused*         |
+| 122      | Increment Global                |
+|          | Increments a global variable by 1. | Other (0) | Global Variable (#) | *unused*          | *unused*         | *unused*         | *unused*         | *unused*         |
+| 123      | Decrement Global                |
+|          | Decrements a global variable by 1. | Other (0) | Global Variable (#) | *unused*          | *unused*         | *unused*         | *unused*         | *unused*         |
+| 124      | Modify Local (Constant)         |
+|          | Modifies a local variable using a constant and a specified operation. | Other (0) | Local Variable (#)  | Operation Type   | Number     | *unused*         | *unused*         | *unused*         |
+| 125      | Modify Local (Global)           |
+|          | Modifies a local variable using a global variable and a specified operation. | Other (0) | Local Variable (#)  | Operation Type   | Global Variable (#) | *unused*        | *unused*         | *unused*         |
+| 126      | Modify Local (Local)            |
+|          | Modifies a local variable using another local variable and a specified operation. | Other (0) | Local Variable (#)  | Operation Type   | Second Local (#)   | *unused*         | *unused*         | *unused*         |
+| 127      | Increment Local                 |
+|          | Increments a local variable by 1. | Other (0) | Local Variable (#)  | *unused*          | *unused*         | *unused*         | *unused*         | *unused*         |
+| 128      | Decrement Local                 |
+|          | Decrements a local variable by 1. | Other (0) | Local Variable (#)  | *unused*          | *unused*         | *unused*         | *unused*         | *unused*         |
+| 129      | Random Number to Global         |
+|          | Stores a random number between Min and Max into a global variable. | Other (0) | Global Variable (#) | Min Value        | Max Value        | *unused*         | *unused*         | *unused*         |
+| 130      | Random Number to Local          |
+|          | Stores a random number between Min and Max into a local variable. | Other (0) | Local Variable (#)  | Min Value        | Max Value        | *unused*         | *unused*         | *unused*         |
+| 131      | Print Global                    |
+|          | Displays the current value of a global variable as a message. | Other (0) | Global Variable (#) | *unused*          | *unused*         | *unused*         | *unused*         | *unused*         |
+| 132      | Print Local                     |
+|          | Displays the current value of a local variable as a message. | Other (0) | Local Variable (#)  | *unused*          | *unused*         | *unused*         | *unused*         | *unused*         |
 
 ## Trigger Events
 
