@@ -128,41 +128,41 @@ NAME = [Action Count], [TActionType], [NeedCode], [PARAM1], [PARAM2], [PARAM3], 
 
 ### New Trigger Actions
 
-| **Code** | **Action**               | **NeedCode** | **PARAM1**       | **PARAM2** | **PARAM3** | **PARAM4** | **PARAM5** | **PARAM6** |
+|  **ID**  | **Action**               | **NeedCode** | **PARAM1**       | **PARAM2** | **PARAM3** | **PARAM4** | **PARAM5** | **PARAM6** |
 |----------|--------------------------|--------------|------------------|------------|------------|------------|------------|------------|
-| 501      | Give Credits             |
+| 106      | Give Credits             |
 |          | Gives or removes credits from the specified house. A positive amount gives money, a negative amount subtracts it. | Other (0)   | House (#)        | Credits    | *unused*   | *unused*   | *unused*   | *unused*   |
-| 502      | Enable Short Game        |
+| 107      | Enable Short Game        |
 |          | Enables Short Game. Players will lose if all buildings are destroyed. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 503      | Disable Short Game       |
+| 108      | Disable Short Game       |
 |          | Disables Short Game. Players can continue playing even after all buildings are destroyed. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 504      | Unused Action            |
+| 109      | Unused Action            |
 |          | This action does nothing. Originally used to display the difficulty in ts-patches. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 505      | Destroy all of...       |
+| 110      | Destroy all of...       |
 |          | Kills everything of the specified house and marks them as defeated. | Other (0)   | House (#)        | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 506      | Make Elite               |
+| 111      | Make Elite               |
 |          | All utechnos attached to this trigger will be promoted to elite status. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 507      | Enable Ally Reveal       |
+| 112      | Enable Ally Reveal       |
 |          | Enables Ally Reveal, allowing allied players to see each other's explored areas. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 508      | Disable Ally Reveal      |
+| 113      | Disable Ally Reveal      |
 |          | Disables Ally Reveal, stopping allied players from seeing each other's explored areas. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 509      | Create Autosave          |
+| 114      | Create Autosave          |
 |          | Schedules an autosave to be created on the next game frame. (Currently not implemented, handled by ts-patches) | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 510      | Delete Attached Objects  |
+| 115      | Delete Attached Objects  |
 |          | Deletes all units and structures on the map that are linked to this trigger silently. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 511      | All Assign Mission       |
+| 116      | All Assign Mission       |
 |          | Forces all units owned by the trigger's house to begin the specified mission (e.g., hunt, move). | Other (0)   | Mission (#)   | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 512      | Make Ally (One-Way)      |
+| 117      | Make Ally (One-Way)      |
 |          | Cause this trigger's house to make a one-sided alliance with the specified house. | Other (0)   | House (#)        | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 513      | Make Enemy (One-Way)     |
+| 118      | Make Enemy (One-Way)     |
 |          | Cause this trigger's house to unilaterally declare war on the specified house. | Other (0)   | House (#)        | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 514      | Modify Variable (Constant)  |
+| 119      | Modify Variable (Constant)  |
 |          | Modifies a variable using a constant and a specified operation. | Other (0) | Variable (#)   | Operation Type   | Number   | Is Global (0/1)  | *unused*         | *unused* |
-| 515      | Modify Variable (Variable)  |
+| 120      | Modify Variable (Variable)  |
 |          | Modifies a variable using another variable and a specified operation. | Other (0) | Variable (#)   | Operation Type   | Second Variable (#) | Is Global (0/1)  | Is 2nd Global (0/1) | *unused* |
-| 516      | Random Number to Variable   |
+| 121      | Random Number to Variable   |
 |          | Stores a random number between Min and Max into the variable. | Other (0) | Variable (#)   | Min Value        | Max Value        | Is Global (0/1)  | *unused*         | *unused* |
-| 517      | Print Variable              |
+| 122      | Print Variable              |
 |          | Displays the current value of a variable as a message. | Other (0) | Variable (#)   | Is Global (0/1)  | *unused*         | *unused*         | *unused*         | *unused* |
 
 ## Trigger Events
