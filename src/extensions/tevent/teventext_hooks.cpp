@@ -88,6 +88,11 @@ enum ComparisonType
 };
 
 
+/**
+ *  Comparison helper.
+ *
+ *  @author: ZivDero
+ */
 static bool Compare(int lhs, int rhs, ComparisonType type)
 {
     switch (type) {
@@ -112,6 +117,40 @@ static bool Compare(int lhs, int rhs, ComparisonType type)
     default:
         return false;
     }
+}
+
+
+/**
+ *  Compares a variable with a constant.
+ *
+ *  @author: ZivDero
+ */
+static bool Compare_With_Constant(int left_index, bool left_global, int right, ComparisonType comp)
+{
+    int left;
+    if (!(left_global ? ScenExtension->Get_Global_Value(left_index, left) : ScenExtension->Get_Local_Value(left_index, left))) {
+        return false;
+    }
+    return Compare(left, right, comp);
+}
+
+
+/**
+ *  Compares a variable with another variable.
+ *
+ *  @author: ZivDero
+ */
+static bool Compare_With_Variable(int left_index, bool left_global, int right_index, bool right_global, ComparisonType comp)
+{
+    int left;
+    if (!(left_global ? ScenExtension->Get_Global_Value(left_index, left) : ScenExtension->Get_Local_Value(left_index, left))) {
+        return false;
+    }
+    int right;
+    if (!(right_global ? ScenExtension->Get_Global_Value(right_index, right) : ScenExtension->Get_Local_Value(right_index, right))) {
+        return false;
+    }
+    return Compare(left, right, comp);
 }
 
 
@@ -180,28 +219,178 @@ bool TEventClassExt::_Operator_Parens_Intercept(TEventType event, HouseClass con
         if (timer != 0) return false;
         return true;
 
-    case EXT_TEVENT_COMPARE_VARIABLE_WITH_CONSTANT: {
-        int left = Data.Value;
-        bool left_global = extension.Data2.Value != 0;
-        int right_value = extension.Data3.Value;
-        ComparisonType comp = static_cast<ComparisonType>(extension.Data4.Value);
+    case EXT_TEVENT_COMPARE_GLOBAL_WITH_CONSTANT: {
+        int left_index = Data.Value;
+        int right = extension.Data2.Value;
+        ComparisonType comp = static_cast<ComparisonType>(extension.Data3.Value);
 
-        int left_value;
-        left_global ? ScenExtension->Get_Global_Value(left, left_value) : ScenExtension->Get_Local_Value(left, left_value);
-        return Compare(left_value, right_value, comp);
+        return Compare_With_Constant(left_index, true, right, comp);
     }
 
-    case EXT_TEVENT_COMPARE_VARIABLE_WITH_VARIABLE: {
-        int left = Data.Value;
-        bool left_global = extension.Data2.Value != 0;
-        int right = extension.Data3.Value;
-        bool right_global = extension.Data4.Value != 0;
-        ComparisonType comp = static_cast<ComparisonType>(extension.Data5.Value);
+    case EXT_TEVENT_COMPARE_GLOBAL_WITH_GLOBAL: {
+        int left_index = Data.Value;
+        int right_index = extension.Data2.Value;
+        ComparisonType comp = static_cast<ComparisonType>(extension.Data3.Value);
 
-        int left_value, right_value;
-        left_global ? ScenExtension->Get_Global_Value(left, left_value) : ScenExtension->Get_Local_Value(left, left_value);
-        right_global ? ScenExtension->Get_Global_Value(right, right_value) : ScenExtension->Get_Local_Value(right, right_value);
-        return Compare(left_value, right_value, comp);
+        return Compare_With_Variable(left_index, true, right_index, true, comp);
+    }
+
+    case EXT_TEVENT_COMPARE_GLOBAL_WITH_LOCAL: {
+        int left_index = Data.Value;
+        int right_index = extension.Data2.Value;
+        ComparisonType comp = static_cast<ComparisonType>(extension.Data3.Value);
+
+        return Compare_With_Variable(left_index, true, right_index, false, comp);
+    }
+
+    case EXT_TEVENT_GLOBAL_EQUALS_CONSTANT: {
+        int left_index = Data.Value;
+        int right = extension.Data2.Value;
+
+        return Compare_With_Constant(left_index, true, right, COMP_EQ);
+    }
+
+    case EXT_TEVENT_GLOBAL_EQUALS_GLOBAL: {
+        int left_index = Data.Value;
+        int right_index = extension.Data2.Value;
+
+        return Compare_With_Variable(left_index, true, right_index, true, COMP_EQ);
+    }
+
+    case EXT_TEVENT_GLOBAL_EQUALS_LOCAL: {
+        int left_index = Data.Value;
+        int right_index = extension.Data2.Value;
+
+        return Compare_With_Variable(left_index, true, right_index, false, COMP_EQ);
+    }
+
+    case EXT_TEVENT_GLOBAL_GREATER_THAN_CONSTANT: {
+        int left_index = Data.Value;
+        int right = extension.Data2.Value;
+
+        return Compare_With_Constant(left_index, true, right, COMP_GREATER);
+    }
+
+    case EXT_TEVENT_GLOBAL_GREATER_THAN_GLOBAL: {
+        int left_index = Data.Value;
+        int right_index = extension.Data2.Value;
+
+        return Compare_With_Variable(left_index, true, right_index, true, COMP_GREATER);
+    }
+
+    case EXT_TEVENT_GLOBAL_GREATER_THAN_LOCAL: {
+        int left_index = Data.Value;
+        int right_index = extension.Data2.Value;
+
+        return Compare_With_Variable(left_index, true, right_index, false, COMP_GREATER);
+    }
+
+    case EXT_TEVENT_GLOBAL_LESS_THAN_CONSTANT: {
+        int left_index = Data.Value;
+        int right = extension.Data2.Value;
+
+        return Compare_With_Constant(left_index, true, right, COMP_LESS);
+    }
+
+    case EXT_TEVENT_GLOBAL_LESS_THAN_GLOBAL: {
+        int left_index = Data.Value;
+        int right_index = extension.Data2.Value;
+
+        return Compare_With_Variable(left_index, true, right_index, true, COMP_LESS);
+    }
+
+    case EXT_TEVENT_GLOBAL_LESS_THAN_LOCAL: {
+        int left_index = Data.Value;
+        int right_index = extension.Data2.Value;
+
+        return Compare_With_Variable(left_index, true, right_index, false, COMP_LESS);
+    }
+
+    case EXT_TEVENT_COMPARE_LOCAL_WITH_CONSTANT: {
+        int left_index = Data.Value;
+        int right = extension.Data2.Value;
+        ComparisonType comp = static_cast<ComparisonType>(extension.Data3.Value);
+
+        return Compare_With_Constant(left_index, false, right, comp);
+    }
+
+    case EXT_TEVENT_COMPARE_LOCAL_WITH_GLOBAL: {
+        int left_index = Data.Value;
+        int right_index = extension.Data2.Value;
+        ComparisonType comp = static_cast<ComparisonType>(extension.Data3.Value);
+
+        return Compare_With_Variable(left_index, false, right_index, true, comp);
+    }
+
+    case EXT_TEVENT_COMPARE_LOCAL_WITH_LOCAL: {
+        int left_index = Data.Value;
+        int right_index = extension.Data2.Value;
+        ComparisonType comp = static_cast<ComparisonType>(extension.Data3.Value);
+
+        return Compare_With_Variable(left_index, false, right_index, false, comp);
+    }
+
+    case EXT_TEVENT_LOCAL_EQUALS_CONSTANT: {
+        int left_index = Data.Value;
+        int right = extension.Data2.Value;
+
+        return Compare_With_Constant(left_index, false, right, COMP_EQ);
+    }
+
+    case EXT_TEVENT_LOCAL_EQUALS_GLOBAL: {
+        int left_index = Data.Value;
+        int right_index = extension.Data2.Value;
+
+        return Compare_With_Variable(left_index, false, right_index, true, COMP_EQ);
+    }
+
+    case EXT_TEVENT_LOCAL_EQUALS_LOCAL: {
+        int left_index = Data.Value;
+        int right_index = extension.Data2.Value;
+
+        return Compare_With_Variable(left_index, false, right_index, false, COMP_EQ);
+    }
+
+    case EXT_TEVENT_LOCAL_GREATER_THAN_CONSTANT: {
+        int left_index = Data.Value;
+        int right = extension.Data2.Value;
+
+        return Compare_With_Constant(left_index, false, right, COMP_GREATER);
+    }
+
+    case EXT_TEVENT_LOCAL_GREATER_THAN_GLOBAL: {
+        int left_index = Data.Value;
+        int right_index = extension.Data2.Value;
+
+        return Compare_With_Variable(left_index, false, right_index, true, COMP_GREATER);
+    }
+
+    case EXT_TEVENT_LOCAL_GREATER_THAN_LOCAL: {
+        int left_index = Data.Value;
+        int right_index = extension.Data2.Value;
+
+        return Compare_With_Variable(left_index, false, right_index, false, COMP_GREATER);
+    }
+
+    case EXT_TEVENT_LOCAL_LESS_THAN_CONSTANT: {
+        int left_index = Data.Value;
+        int right = extension.Data2.Value;
+
+        return Compare_With_Constant(left_index, false, right, COMP_LESS);
+    }
+
+    case EXT_TEVENT_LOCAL_LESS_THAN_GLOBAL: {
+        int left_index = Data.Value;
+        int right_index = extension.Data2.Value;
+
+        return Compare_With_Variable(left_index, false, right_index, true, COMP_LESS);
+    }
+
+    case EXT_TEVENT_LOCAL_LESS_THAN_LOCAL: {
+        int left_index = Data.Value;
+        int right_index = extension.Data2.Value;
+
+        return Compare_With_Variable(left_index, false, right_index, false, COMP_LESS);
     }
     }
 
@@ -588,11 +777,35 @@ int Event_Need_Code(TEventType type)
     case TEVENT_LEAVES_MAP:
         return 1;
 
-    case EXT_TEVENT_COMPARE_VARIABLE_WITH_CONSTANT:
-        return 5;
+        // Events that require three arguments
+    case EXT_TEVENT_COMPARE_GLOBAL_WITH_CONSTANT:
+    case EXT_TEVENT_COMPARE_GLOBAL_WITH_GLOBAL:
+    case EXT_TEVENT_COMPARE_GLOBAL_WITH_LOCAL:
+    case EXT_TEVENT_COMPARE_LOCAL_WITH_CONSTANT:
+    case EXT_TEVENT_COMPARE_LOCAL_WITH_GLOBAL:
+    case EXT_TEVENT_COMPARE_LOCAL_WITH_LOCAL:
+        return 4; // NeedThreeArgs
 
-    case EXT_TEVENT_COMPARE_VARIABLE_WITH_VARIABLE:
-        return 6;
+        // Events that require two arguments
+    case EXT_TEVENT_GLOBAL_EQUALS_CONSTANT:
+    case EXT_TEVENT_GLOBAL_EQUALS_GLOBAL:
+    case EXT_TEVENT_GLOBAL_EQUALS_LOCAL:
+    case EXT_TEVENT_GLOBAL_GREATER_THAN_CONSTANT:
+    case EXT_TEVENT_GLOBAL_GREATER_THAN_GLOBAL:
+    case EXT_TEVENT_GLOBAL_GREATER_THAN_LOCAL:
+    case EXT_TEVENT_GLOBAL_LESS_THAN_CONSTANT:
+    case EXT_TEVENT_GLOBAL_LESS_THAN_GLOBAL:
+    case EXT_TEVENT_GLOBAL_LESS_THAN_LOCAL:
+    case EXT_TEVENT_LOCAL_EQUALS_CONSTANT:
+    case EXT_TEVENT_LOCAL_EQUALS_GLOBAL:
+    case EXT_TEVENT_LOCAL_EQUALS_LOCAL:
+    case EXT_TEVENT_LOCAL_GREATER_THAN_CONSTANT:
+    case EXT_TEVENT_LOCAL_GREATER_THAN_GLOBAL:
+    case EXT_TEVENT_LOCAL_GREATER_THAN_LOCAL:
+    case EXT_TEVENT_LOCAL_LESS_THAN_CONSTANT:
+    case EXT_TEVENT_LOCAL_LESS_THAN_GLOBAL:
+    case EXT_TEVENT_LOCAL_LESS_THAN_LOCAL:
+        return 3; // NeedTwoArgs
     }
 
     return 0;
@@ -747,8 +960,30 @@ AttachType _Attaches_To(TEventType event)
     case TEVENT_AMBIENT_GREATER_THAN:
     case TEVENT_LEAVES_MAP:
     case TEVENT_PICKUP_CRATE_ANY:
-    case EXT_TEVENT_COMPARE_VARIABLE_WITH_CONSTANT:
-    case EXT_TEVENT_COMPARE_VARIABLE_WITH_VARIABLE:
+    case EXT_TEVENT_COMPARE_GLOBAL_WITH_CONSTANT:
+    case EXT_TEVENT_COMPARE_GLOBAL_WITH_GLOBAL:
+    case EXT_TEVENT_COMPARE_GLOBAL_WITH_LOCAL:
+    case EXT_TEVENT_GLOBAL_EQUALS_CONSTANT:
+    case EXT_TEVENT_GLOBAL_EQUALS_GLOBAL:
+    case EXT_TEVENT_GLOBAL_EQUALS_LOCAL:
+    case EXT_TEVENT_GLOBAL_GREATER_THAN_CONSTANT:
+    case EXT_TEVENT_GLOBAL_GREATER_THAN_GLOBAL:
+    case EXT_TEVENT_GLOBAL_GREATER_THAN_LOCAL:
+    case EXT_TEVENT_GLOBAL_LESS_THAN_CONSTANT:
+    case EXT_TEVENT_GLOBAL_LESS_THAN_GLOBAL:
+    case EXT_TEVENT_GLOBAL_LESS_THAN_LOCAL:
+    case EXT_TEVENT_COMPARE_LOCAL_WITH_CONSTANT:
+    case EXT_TEVENT_COMPARE_LOCAL_WITH_GLOBAL:
+    case EXT_TEVENT_COMPARE_LOCAL_WITH_LOCAL:
+    case EXT_TEVENT_LOCAL_EQUALS_CONSTANT:
+    case EXT_TEVENT_LOCAL_EQUALS_GLOBAL:
+    case EXT_TEVENT_LOCAL_EQUALS_LOCAL:
+    case EXT_TEVENT_LOCAL_GREATER_THAN_CONSTANT:
+    case EXT_TEVENT_LOCAL_GREATER_THAN_GLOBAL:
+    case EXT_TEVENT_LOCAL_GREATER_THAN_LOCAL:
+    case EXT_TEVENT_LOCAL_LESS_THAN_CONSTANT:
+    case EXT_TEVENT_LOCAL_LESS_THAN_GLOBAL:
+    case EXT_TEVENT_LOCAL_LESS_THAN_LOCAL:
         attach |= ATTACH_GENERAL;
         break;
 

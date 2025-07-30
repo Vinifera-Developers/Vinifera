@@ -35,8 +35,30 @@
 
 
 TEventClass::EventDescriptionStruct TEventClassExtension::ExtActionDescriptions[EXT_TEVENT_COUNT - EXT_TEVENT_FIRST] = {
-    { "Compare variable (constant)", "Compares the value of a variable with a constant value." },
-    { "Compare variable (variable)", "Compares the value of a variable with the value of another variable." },
+    { "Compare Global with Constant", "Compares a global variable with a constant using a selected operation." },
+    { "Compare Global with Global", "Compares two global variables using a selected operation." },
+    { "Compare Global with Local", "Compares a global variable with a local variable using a selected operation." },
+    { "Global equals Constant", "Checks if a global variable equals a constant." },
+    { "Global equals Global", "Checks if two global variables are equal." },
+    { "Global equals Local", "Checks if a global variable equals a local variable." },
+    { "Global greater than Constant", "Checks if a global variable is greater than a constant." },
+    { "Global greater than Global", "Checks if one global variable is greater than another." },
+    { "Global greater than Local", "Checks if a global variable is greater than a local variable." },
+    { "Global less than Constant", "Checks if a global variable is less than a constant." },
+    { "Global less than Global", "Checks if one global variable is less than another." },
+    { "Global less than Local", "Checks if a global variable is less than a local variable." },
+    { "Compare Local with Constant", "Compares a local variable with a constant using a selected operation." },
+    { "Compare Local with Global", "Compares a local variable with a global variable using a selected operation." },
+    { "Compare Local with Local", "Compares two local variables using a selected operation." },
+    { "Local equals Constant", "Checks if a local variable equals a constant." },
+    { "Local equals Global", "Checks if a local variable equals a global variable." },
+    { "Local equals Local", "Checks if two local variables are equal." },
+    { "Local greater than Constant", "Checks if a local variable is greater than a constant." },
+    { "Local greater than Global", "Checks if a local variable is greater than a global variable." },
+    { "Local greater than Local", "Checks if one local variable is greater than another." },
+    { "Local less than Constant", "Checks if a local variable is less than a constant." },
+    { "Local less than Global", "Checks if a local variable is less than a global variable." },
+    { "Local less than Local", "Checks if one local variable is less than another." },
 };
 
 

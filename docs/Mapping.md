@@ -202,7 +202,7 @@ NAME = [Action Count], [TActionType], [NeedCode], [PARAM1], [PARAM2], [PARAM3], 
 | NeedFiveArgs   | 6                 | Five arguments: PARAM1, PARAM2, PARAM3, PARAM4, PARAM5 parsed as numbers|
 
 ```{note}
-Do not specigy extra arguments for trigger actions that don't require them!
+Do not specify extra arguments for trigger actions that don't require them!
 ```
 
 ### Comparison Types
@@ -224,9 +224,54 @@ Do not specigy extra arguments for trigger actions that don't require them!
 
 ### New Trigger Events
 
-| **Code** | **Action**                | **NeedCode** | **PARAM1**       | **PARAM2**        | **PARAM3**              | **PARAM4**           | **PARAM5**                |
-|----------|---------------------------|--------------|------------------|-------------------|-------------------------|----------------------|---------------------------|
-| 56       | Compare variable (constant) | 
-|          | Compares the value of a variable with a constant value. | NeedFourArgs (5) | Variable (#) | Is Global (0/1)          | Number     | Comparison Type            |
-| 57       | Compare variable (variable) | 
-|          | Compares the value of a variable with the value of another variable. | NeedFiveArgs (6) | Variable (#) | Is Global (0/1)          | Second Variable (#) | Is Second Global (0/1)  | Comparison Type    |
+| **Code** | **Action**                                                                           | **NeedCode**      | **PARAM1**          | **PARAM2**          | **PARAM3**             |
+| -------- | ------------------------------------------------------------------------------------ | ----------------- | ------------------- | ------------------- | ---------------------- |
+| 56       | Compare Global with Constant                                                         |                   |                     |                     |                        |
+|          | Compares a global variable with a constant using a specified operation.              | NeedThreeArgs (4) | Global Variable (#) | Constant (#)        | Comparison Type |
+| 57       | Compare Global with Global                                                           |                   |                     |                     |                        |
+|          | Compares a global variable with another global variable using a specified operation. | NeedThreeArgs (4) | Global Variable (#) | Global Variable (#) | Comparison Type |
+| 58       | Compare Global with Local                                                            |                   |                     |                     |                        |
+|          | Compares a global variable with a local variable using a specified operation.        | NeedThreeArgs (4) | Global Variable (#) | Local Variable (#)  | Comparison Type |
+| 59       | Global Equals Constant                                                               |                   |                     |                     |                        |
+|          | True if a global variable equals a constant.                                         | NeedTwoArgs (3)   | Global Variable (#) | Constant (#)        |                        |
+| 60       | Global Equals Global                                                                 |                   |                     |                     |                        |
+|          | True if two global variables are equal.                                              | NeedTwoArgs (3)   | Global Variable (#) | Global Variable (#) |                        |
+| 61       | Global Equals Local                                                                  |                   |                     |                     |                        |
+|          | True if a global variable equals a local variable.                                   | NeedTwoArgs (3)   | Global Variable (#) | Local Variable (#)  |                        |
+| 62       | Global Greater Than Constant                                                         |                   |                     |                     |                        |
+|          | True if a global variable is greater than a constant.                                | NeedTwoArgs (3)   | Global Variable (#) | Constant (#)        |                        |
+| 63       | Global Greater Than Global                                                           |                   |                     |                     |                        |
+|          | True if one global variable is greater than another.                                 | NeedTwoArgs (3)   | Global Variable (#) | Global Variable (#) |                        |
+| 64       | Global Greater Than Local                                                            |                   |                     |                     |                        |
+|          | True if a global variable is greater than a local variable.                          | NeedTwoArgs (3)   | Global Variable (#) | Local Variable (#)  |                        |
+| 65       | Global Less Than Constant                                                            |                   |                     |                     |                        |
+|          | True if a global variable is less than a constant.                                   | NeedTwoArgs (3)   | Global Variable (#) | Constant (#)        |                        |
+| 66       | Global Less Than Global                                                              |                   |                     |                     |                        |
+|          | True if one global variable is less than another.                                    | NeedTwoArgs (3)   | Global Variable (#) | Global Variable (#) |                        |
+| 67       | Global Less Than Local                                                               |                   |                     |                     |                        |
+|          | True if a global variable is less than a local variable.                             | NeedTwoArgs (3)   | Global Variable (#) | Local Variable (#)  |                        |
+| 68       | Compare Local with Constant                                                          |                   |                     |                     |                        |
+|          | Compares a local variable with a constant using a specified operation.               | NeedThreeArgs (4) | Local Variable (#)  | Constant (#)        | Comparison Type |
+| 69       | Compare Local with Global                                                            |                   |                     |                     |                        |
+|          | Compares a local variable with a global variable using a specified operation.        | NeedThreeArgs (4) | Local Variable (#)  | Global Variable (#) | Comparison Type |
+| 70       | Compare Local with Local                                                             |                   |                     |                     |                        |
+|          | Compares a local variable with another local variable using a specified operation.   | NeedThreeArgs (4) | Local Variable (#)  | Local Variable (#)  | Comparison Type |
+| 71       | Local Equals Constant                                                                |                   |                     |                     |                        |
+|          | True if a local variable equals a constant.                                          | NeedTwoArgs (3)   | Local Variable (#)  | Constant (#)        |                        |
+| 72       | Local Equals Global                                                                  |                   |                     |                     |                        |
+|          | True if a local variable equals a global variable.                                   | NeedTwoArgs (3)   | Local Variable (#)  | Global Variable (#) |                        |
+| 73       | Local Equals Local                                                                   |                   |                     |                     |                        |
+|          | True if two local variables are equal.                                               | NeedTwoArgs (3)   | Local Variable (#)  | Local Variable (#)  |                        |
+| 74       | Local Greater Than Constant                                                          |                   |                     |                     |                        |
+|          | True if a local variable is greater than a constant.                                 | NeedTwoArgs (3)   | Local Variable (#)  | Constant (#)        |                        |
+| 75       | Local Greater Than Global                                                            |                   |                     |                     |                        |
+|          | True if a local variable is greater than a global variable.                          | NeedTwoArgs (3)   | Local Variable (#)  | Global Variable (#) |                        |
+| 76       | Local Greater Than Local                                                             |                   |                     |                     |                        |
+|          | True if a local variable is greater than another local variable.                     | NeedTwoArgs (3)   | Local Variable (#)  | Local Variable (#)  |                        |
+| 77       | Local Less Than Constant                                                             |                   |                     |                     |                        |
+|          | True if a local variable is less than a constant.                                    | NeedTwoArgs (3)   | Local Variable (#)  | Constant (#)        |                        |
+| 78       | Local Less Than Global                                                               |                   |                     |                     |                        |
+|          | True if a local variable is less than a global variable.                             | NeedTwoArgs (3)   | Local Variable (#)  | Global Variable (#) |                        |
+| 79       | Local Less Than Local                                                                |                   |                     |                     |                        |
+|          | True if a local variable is less than another local variable.                        | NeedTwoArgs (3)   | Local Variable (#)  | Local Variable (#)  |                        |
+
