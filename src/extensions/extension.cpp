@@ -525,7 +525,7 @@ AbstractClassExtension *Extension::Private::Make_Internal(const AbstractClass *a
         //case RTTI_TAGTYPE: { extptr = Extension_Make<TagTypeClass, Extension>(reinterpret_cast<const TagTypeClass *>(abstract)); break; } // Not yet implemented
         case RTTI_TIBERIUM: { extptr = Extension_Make<TiberiumClass, TiberiumClassExtension>(reinterpret_cast<const TiberiumClass *>(abstract)); break; }
         //case RTTI_ACTION: { extptr = Extension_Make<TActionClass, TActionClassExtension>(reinterpret_cast<const TActionClass *>(abstract)); break; } // Not yet implemented
-        //case RTTI_EVENT: { extptr = Extension_Make<TEventClass, TEventClassExtension>(reinterpret_cast<const TEventClass *>(abstract)); break; } // Not yet implemented
+        case RTTI_EVENT: { extptr = Extension_Make<TEventClass, TEventClassExtension>(reinterpret_cast<const TEventClass *>(abstract)); break; }
         case RTTI_WEAPONTYPE: { extptr = Extension_Make<WeaponTypeClass, WeaponTypeClassExtension>(reinterpret_cast<const WeaponTypeClass *>(abstract)); break; }
         case RTTI_WARHEADTYPE: { extptr = Extension_Make<WarheadTypeClass, WarheadTypeClassExtension>(reinterpret_cast<const WarheadTypeClass *>(abstract)); break; }
         //case RTTI_WAYPOINT: { extptr = Extension_Make<WaypointClass, WaypointClassExtension>(reinterpret_cast<const WaypointClass *>(abstract)); break; } // Not yet implemented
@@ -605,7 +605,7 @@ bool Extension::Private::Destroy_Internal(const AbstractClass *abstract)
         //case RTTI_TAGTYPE: { removed = Extension_Destroy<TagTypeClass, Extension>(reinterpret_cast<const TagTypeClass *>(abstract)); break; } // Not yet implemented
         case RTTI_TIBERIUM: { removed = Extension_Destroy<TiberiumClass, TiberiumClassExtension>(reinterpret_cast<const TiberiumClass *>(abstract)); break; }
         //case RTTI_ACTION: { removed = Extension_Destroy<TActionClass, TActionClassExtension>(reinterpret_cast<const TActionClass *>(abstract)); break; } // Not yet implemented
-        //case RTTI_EVENT: { removed = Extension_Destroy<TEventClass, TEventClassExtension>(reinterpret_cast<const TEventClass *>(abstract)); break; } // Not yet implemented
+        case RTTI_EVENT: { removed = Extension_Destroy<TEventClass, TEventClassExtension>(reinterpret_cast<const TEventClass *>(abstract)); break; } // Not yet implemented
         case RTTI_WEAPONTYPE: { removed = Extension_Destroy<WeaponTypeClass, WeaponTypeClassExtension>(reinterpret_cast<const WeaponTypeClass *>(abstract)); break; }
         case RTTI_WARHEADTYPE: { removed = Extension_Destroy<WarheadTypeClass, WarheadTypeClassExtension>(reinterpret_cast<const WarheadTypeClass *>(abstract)); break; }
         //case RTTI_WAYPOINT: { removed = Extension_Destroy<WaypointClass, WaypointClassExtension>(reinterpret_cast<const WaypointClass *>(abstract)); break; } // Not yet implemented
@@ -927,7 +927,7 @@ bool Extension::Request_Pointer_Remap()
     //if (!Extension_Request_Pointer_Remap<TagTypeClass, TagTypeClassExtension>(TagTypes)) { return false; }            // Not yet implemented
     if (!Extension_Request_Pointer_Remap<TiberiumClass, TiberiumClassExtension>(Tiberiums)) { return false; }
     //if (!Extension_Request_Pointer_Remap<TActionClass, TActionClassExtension>(TActions)) { return false; }            // Not yet implemented
-    //if (!Extension_Request_Pointer_Remap<TEventClass, TEventClassExtension>(TEvents)) { return false; }               // Not yet implemented
+    if (!Extension_Request_Pointer_Remap<TEventClass, TEventClassExtension>(TEvents)) { return false; }
     if (!Extension_Request_Pointer_Remap<WeaponTypeClass, WeaponTypeClassExtension>(Weapons)) { return false; }
     if (!Extension_Request_Pointer_Remap<WarheadTypeClass, WarheadTypeClassExtension>(Warheads)) { return false; }
     //if (!Extension_Request_Pointer_Remap<WaypointClass, WaypointClassExtension>(Waypoints)) { return false; }         // Not yet implemented
@@ -1006,7 +1006,7 @@ bool Extension::Register_Class_Factories()
     //REGISTER_CLASS(TagTypeClassExtension);                                    // Not yet implemented
     REGISTER_CLASS(TiberiumClassExtension);
     //REGISTER_CLASS(TActionClassExtension);                                    // Not yet implemented
-    //REGISTER_CLASS(TEventClassExtension);                                     // Not yet implemented
+    REGISTER_CLASS(TEventClassExtension);
     REGISTER_CLASS(WeaponTypeClassExtension);
     REGISTER_CLASS(WarheadTypeClassExtension);
     //REGISTER_CLASS(WaypointClassExtension);                                   // Not yet implemented
@@ -2105,7 +2105,7 @@ unsigned Extension::Get_Save_Version_Number()
     //version += sizeof(TagTypeClassExtension);                                 // Not yet implemented
     version += sizeof(TiberiumClassExtension);
     //version += sizeof(TActionClassExtension);                                 // Not yet implemented
-    //version += sizeof(TEventClassExtension);                                  // Not yet implemented
+    version += sizeof(TEventClassExtension);
     version += sizeof(WeaponTypeClassExtension);
     version += sizeof(WarheadTypeClassExtension);
     //version += sizeof(WaypointClassExtension);                                // Not yet implemented

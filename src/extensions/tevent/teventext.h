@@ -28,10 +28,11 @@
 #pragma once
 
 #include "abstractext.h"
+#include "extension.h"
 #include "tevent.h"
 
 
-class DECLSPEC_UUID(UUID_TEVENT_EXTENSION)
+class DECLSPEC_UUID(UUID_EVENT_EXTENSION)
 TEventClassExtension final : public AbstractClassExtension
 {
 public:

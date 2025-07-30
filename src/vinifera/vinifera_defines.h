@@ -138,7 +138,6 @@
 #define UUID_FOGGEDOBJECT_EXTENSION         "7D9C5263-465F-42CE-AD81-5C057B52226F"
 #define UUID_ALPHASHAPE_EXTENSION           "4C8171D5-E7A7-43D1-80F3-0C285CF6B352"
 #define UUID_VEINHOLEMONSTER_EXTENSION      "4AD76F43-090A-44BF-BB1A-5BFDE52BC842"
-#define UUID_TEVENT_EXTENSION               "7921504A-CECA-4239-B5B8-42931716B4F1"
 
 
 /**
@@ -147,13 +146,29 @@
 #define NEW_WAYPOINT_COUNT SHRT_MAX // "AVLG"
 
 
-enum ViniferaRTTIType
+/**
+ *  Extension of the RTTIType enum.
+ */
+enum ExtRTTIType
 {
-    RTTI_SPAWN_MANAGER = RTTI_COUNT,
+    EXT_RTTI_PAD = RTTI_VEINHOLEMONSTER, // The last RTTIType
 
-    VINIFERA_RTTI_COUNT
+    /**
+     *  Add new ExtRTTITypes from here.
+     */
+    EXT_RTTI_SPAWN_MANAGER,
+
+    /**
+     *  The new total ExtRTTITypes count.
+     */
+    EXT_RTTI_COUNT,
+
+    /**
+     *  The first ExtRTTITypes.
+     */
+    EXT_RTTI_FIRST = EXT_RTTI_PAD + 1
 };
-DEFINE_ENUMERATION_OPERATORS(ViniferaRTTIType);
+DEFINE_ENUMERATION_OPERATORS(ExtRTTIType);
 
 
 enum TargetZoneScanType
@@ -164,6 +179,9 @@ enum TargetZoneScanType
 };
 
 
+/**
+ *  Production flags that are used for factory selection.
+ */
 enum ProductionFlags
 {
     PRODFLAG_NONE = 0,
@@ -173,6 +191,9 @@ enum ProductionFlags
 DEFINE_ENUMERATION_OPERATORS(ProductionFlags);
 
 
+/**
+ *  Prerequisite group enum.
+ */
 enum PrerequisiteGroupType
 {
     PREREQ_GROUP_FIRST = 0,
