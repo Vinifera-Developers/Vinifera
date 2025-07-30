@@ -58,19 +58,25 @@
 
 /**
  *  Class constructor.
- *  
+ *
  *  @author: CCHyper
  */
-TacticalExtension::TacticalExtension(const Tactical *this_ptr) :
+TacticalExtension::TacticalExtension(const Tactical* this_ptr) :
     GlobalExtensionClass(this_ptr),
     IsInfoTextSet(false),
     InfoTextBuffer(),
     InfoTextPosition(BOTTOM_LEFT),
     InfoTextNotifySound(VOC_NONE),
     InfoTextNotifySoundVolume(1.0f),
-    InfoTextStyle(TPF_6PT_GRAD|TPF_DROPSHADOW),
+    InfoTextStyle(TPF_6PT_GRAD | TPF_DROPSHADOW),
     InfoTextTimer(0),
-    CellRedrawCount(0)
+    CellRedrawCount(0),
+    IsVariableCounterVisible(false),
+    VariableCounterLabelIndex(0),
+    VariableCounterVariableID(0),
+    IsCounterVariableGlobal(true),
+    VariableCounterPosition(TOP_RIGHT),
+    VariableCounterStyle(TPF_6PT_GRAD | TPF_DROPSHADOW)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TacticalExtension::TacticalExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -80,10 +86,10 @@ TacticalExtension::TacticalExtension(const Tactical *this_ptr) :
 
 /**
  *  Class no-init constructor.
- *  
+ *
  *  @author: CCHyper
  */
-TacticalExtension::TacticalExtension(const NoInitClass &noinit) :
+TacticalExtension::TacticalExtension(const NoInitClass& noinit) :
     GlobalExtensionClass(noinit),
     InfoTextTimer(noinit)
 {
@@ -93,7 +99,7 @@ TacticalExtension::TacticalExtension(const NoInitClass &noinit) :
 
 /**
  *  Class destructor.
- *  
+ *
  *  @author: CCHyper
  */
 TacticalExtension::~TacticalExtension()
@@ -104,10 +110,10 @@ TacticalExtension::~TacticalExtension()
 
 /**
  *  Initializes an object from the stream where it was saved previously.
- *  
+ *
  *  @author: CCHyper
  */
-HRESULT TacticalExtension::Load(IStream *pStm)
+HRESULT TacticalExtension::Load(IStream* pStm)
 {
     //EXT_DEBUG_TRACE("TacticalExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -121,17 +127,17 @@ HRESULT TacticalExtension::Load(IStream *pStm)
     for (int i = 0; i < CellRedrawCount; i++) {
         VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(CellRedraw[i], "CellRedraw");
     }
-    
+
     return hr;
 }
 
 
 /**
  *  Saves an object to the specified stream.
- *  
+ *
  *  @author: CCHyper
  */
-HRESULT TacticalExtension::Save(IStream *pStm, BOOL fClearDirty)
+HRESULT TacticalExtension::Save(IStream* pStm, BOOL fClearDirty)
 {
     //EXT_DEBUG_TRACE("TacticalExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -146,7 +152,7 @@ HRESULT TacticalExtension::Save(IStream *pStm, BOOL fClearDirty)
 
 /**
  *  Return the raw size of class data for save/load purposes.
- *  
+ *
  *  @author: CCHyper
  */
 int TacticalExtension::Get_Object_Size() const
@@ -159,10 +165,10 @@ int TacticalExtension::Get_Object_Size() const
 
 /**
  *  Removes the specified target from any targeting and reference trackers.
- *  
+ *
  *  @author: CCHyper
  */
-void TacticalExtension::Detach(AbstractClass * target, bool all)
+void TacticalExtension::Detach(AbstractClass* target, bool all)
 {
     //EXT_DEBUG_TRACE("TacticalExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -170,10 +176,10 @@ void TacticalExtension::Detach(AbstractClass * target, bool all)
 
 /**
  *  Compute a unique crc value for this instance.
- *  
+ *
  *  @author: CCHyper
  */
-void TacticalExtension::Object_CRC(CRCEngine &crc) const
+void TacticalExtension::Object_CRC(CRCEngine& crc) const
 {
     //EXT_DEBUG_TRACE("TacticalExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -181,14 +187,38 @@ void TacticalExtension::Object_CRC(CRCEngine &crc) const
 
 /**
  *  Set the information text to be displayed.
- * 
+ *
  *  @authors: CCHyper
  */
-void TacticalExtension::Set_Info_Text(const char *text)
+void TacticalExtension::Set_Info_Text(const char* text)
 {
-    std::memset(TacticalMapExtension->InfoTextBuffer, 0, sizeof(TacticalMapExtension->InfoTextBuffer));
     std::strncpy(TacticalMapExtension->InfoTextBuffer, text, sizeof(TacticalMapExtension->InfoTextBuffer));
-    TacticalMapExtension->InfoTextBuffer[std::strlen(text)-1] = '\0';
+    TacticalMapExtension->InfoTextBuffer[sizeof(InfoTextBuffer) - 1] = '\0';
+}
+
+
+/**
+ *  Enables the variable counter.
+ *
+ *  @authors: ZivDero
+ */
+void TacticalExtension::Enable_Variable_Counter(int label, int variable, bool global)
+{
+    IsVariableCounterVisible = true;
+    VariableCounterLabelIndex = label;
+    VariableCounterVariableID = variable;
+    IsCounterVariableGlobal = global;
+}
+
+
+/**
+ *  Disables the variable counter.
+ *
+ *  @authors: ZivDero
+ */
+void TacticalExtension::Disable_Variable_Counter()
+{
+    IsVariableCounterVisible = false;
 }
 
 
@@ -206,17 +236,17 @@ void TacticalExtension::Draw_Version_Number_Text()
 #endif
         Vinifera_Draw_Version_Text(CompositeSurface);
     }
-}
+    }
 
 
 /**
  *  Draws the developer mode overlay.
- * 
+ *
  *  @authors: CCHyper
  */
 void TacticalExtension::Draw_Debug_Overlay()
 {
-    RGBClass rgb_black(0,0,0);
+    RGBClass rgb_black(0, 0, 0);
     unsigned color_black = DSurface::RGB_To_Pixel(0, 0, 0);
     ColorScheme *text_color = Fetch_Scheme_By_Name("White");
 
@@ -243,14 +273,14 @@ void TacticalExtension::Draw_Debug_Overlay()
     Rect fill_rect;
     fill_rect.X = 160; // Width of Options tab, so we draw from there.
     fill_rect.Y = 0;
-    fill_rect.Width = text_rect.Width+(padding+1);
+    fill_rect.Width = text_rect.Width + (padding + 1);
     fill_rect.Height = 16; // Tab bar height
     CompositeSurface->Fill_Rect(fill_rect, color_black);
 
     /**
      *  Move rects into position.
      */
-    text_rect.X = fill_rect.X+padding;
+    text_rect.X = fill_rect.X + padding;
     text_rect.Y = 0;
     text_rect.Width += padding;
     text_rect.Height += 3;
@@ -259,7 +289,7 @@ void TacticalExtension::Draw_Debug_Overlay()
      *  Draw the overlay text.
      */
     Fancy_Text_Print(buffer, CompositeSurface, &CompositeSurface->Get_Rect(),
-        &Point2D(text_rect.X, text_rect.Y), text_color, COLOR_TBLACK, TextPrintType(TPF_6PT_GRAD|TPF_NOSHADOW));
+        &Point2D(text_rect.X, text_rect.Y), text_color, COLOR_TBLACK, TextPrintType(TPF_6PT_GRAD | TPF_NOSHADOW));
 
     /**
      *  Draw the current frame number.
@@ -267,9 +297,9 @@ void TacticalExtension::Draw_Debug_Overlay()
     std::snprintf(buffer, sizeof(buffer), "%d", Frame);
     GradFont6Ptr->String_Pixel_Rect(buffer, &text_rect);
 
-    fill_rect.Width = text_rect.Width+(padding+1);
+    fill_rect.Width = text_rect.Width + (padding + 1);
     fill_rect.Height = 16;
-    fill_rect.X = CompositeSurface->Get_Width()-fill_rect.Width;
+    fill_rect.X = CompositeSurface->Get_Width() - fill_rect.Width;
     fill_rect.Y = 0;
     CompositeSurface->Fill_Rect(fill_rect, color_black);
 
@@ -279,14 +309,14 @@ void TacticalExtension::Draw_Debug_Overlay()
     text_rect.Height += 3;
 
     Fancy_Text_Print(buffer, CompositeSurface, &CompositeSurface->Get_Rect(),
-        &Point2D(text_rect.X, text_rect.Y), text_color, COLOR_TBLACK, TextPrintType(TPF_RIGHT|TPF_6PT_GRAD|TPF_NOSHADOW));
+        &Point2D(text_rect.X, text_rect.Y), text_color, COLOR_TBLACK, TextPrintType(TPF_RIGHT | TPF_6PT_GRAD | TPF_NOSHADOW));
 }
 
 
 #ifndef NDEBUG
 /**
  *  Draws the current unit facing number.
- * 
+ *
  *  @author: CCHyper
  */
 bool TacticalExtension::Debug_Draw_Facings()
@@ -295,18 +325,18 @@ bool TacticalExtension::Debug_Draw_Facings()
         return false;
     }
 
-    ObjectClass *object = CurrentObjects.Fetch_Head();
+    ObjectClass* object = CurrentObjects.Fetch_Head();
     if (object->RTTI != RTTI_UNIT) {
         return false;
     }
 
-    UnitClass *unit = reinterpret_cast<UnitClass *>(object);
+    UnitClass* unit = reinterpret_cast<UnitClass*>(object);
 
     Point3D lept = unit->Class_Of()->Lepton_Dimensions();
-    Point3D lept_center = Point3D(lept.X/2, lept.Y/2, lept.Z/2);
+    Point3D lept_center = Point3D(lept.X / 2, lept.Y / 2, lept.Z / 2);
 
     Point3D pix = unit->Class_Of()->Pixel_Dimensions();
-    Point3D pixel_center = Point3D(pix.X/2, pix.Y/2, pix.Z/2);
+    Point3D pixel_center = Point3D(pix.X / 2, pix.Y / 2, pix.Z / 2);
 
     Coord coord = unit->Center_Coord();
 
@@ -318,12 +348,12 @@ bool TacticalExtension::Debug_Draw_Facings()
     screen.X += TacticalRect.X;
     screen.Y += TacticalRect.Y;
 
-    LogicSurface->Fill_Rect(TacticalRect, Rect(screen.X, screen.Y, 2, 2), DSurface::RGB_To_Pixel(255,0,0));
+    LogicSurface->Fill_Rect(TacticalRect, Rect(screen.X, screen.Y, 2, 2), DSurface::RGB_To_Pixel(255, 0, 0));
 
-    TextPrintType style = TPF_CENTER|TPF_FULLSHADOW|TPF_6POINT;
-    WWFontClass *font = Font_Ptr(style);
+    TextPrintType style = TPF_CENTER | TPF_FULLSHADOW | TPF_6POINT;
+    WWFontClass* font = Font_Ptr(style);
 
-    screen.Y -= font->Get_Char_Height()/2;
+    screen.Y -= font->Get_Char_Height() / 2;
 
     char buffer1[32];
     char buffer2[32];
@@ -343,18 +373,18 @@ bool TacticalExtension::Debug_Draw_Facings()
 
 /**
  *  Draws the overlay for frame step mode.
- * 
+ *
  *  @authors: CCHyper
  */
 void TacticalExtension::Draw_FrameStep_Overlay()
 {
-    RGBClass rgb_black(0,0,0);
+    RGBClass rgb_black(0, 0, 0);
     unsigned color_black = DSurface::RGB_To_Pixel(0, 0, 0);
     ColorScheme *text_color = Fetch_Scheme_By_Name("White");
 
     int padding = 2;
 
-    const char *text = "Frame Step Mode Enabled";
+    const char* text = "Frame Step Mode Enabled";
 
     /**
      * Fetch the text occupy area.
@@ -366,16 +396,16 @@ void TacticalExtension::Draw_FrameStep_Overlay()
      *  Fill the background area.
      */
     Rect fill_rect;
-    fill_rect.X = TacticalRect.X+TacticalRect.Width-text_rect.Width-(padding+1);
+    fill_rect.X = TacticalRect.X + TacticalRect.Width - text_rect.Width - (padding + 1);
     fill_rect.Y = 16; // Tab bar height
-    fill_rect.Width = text_rect.Width+(padding+1);
+    fill_rect.Width = text_rect.Width + (padding + 1);
     fill_rect.Height = 16;
     CompositeSurface->Fill_Rect(fill_rect, color_black);
 
     /**
      *  Move rects into position.
      */
-    text_rect.X = TacticalRect.X+TacticalRect.Width-1;
+    text_rect.X = TacticalRect.X + TacticalRect.Width - 1;
     text_rect.Y = fill_rect.Y;
     text_rect.Width += padding;
     text_rect.Height += 3;
@@ -384,13 +414,13 @@ void TacticalExtension::Draw_FrameStep_Overlay()
      *  Draw the overlay text.
      */
     Fancy_Text_Print(text, CompositeSurface, &CompositeSurface->Get_Rect(),
-        &Point2D(text_rect.X, text_rect.Y), text_color, COLOR_TBLACK, TextPrintType(TPF_RIGHT|TPF_6PT_GRAD|TPF_NOSHADOW));
+        &Point2D(text_rect.X, text_rect.Y), text_color, COLOR_TBLACK, TextPrintType(TPF_RIGHT | TPF_6PT_GRAD | TPF_NOSHADOW));
 }
 
 
 /**
  *  Draw the overlay information text if set.
- * 
+ *
  *  @author: CCHyper
  */
 void TacticalExtension::Draw_Information_Text()
@@ -399,13 +429,9 @@ void TacticalExtension::Draw_Information_Text()
         return;
     }
 
-    RGBClass rgb_black(0,0,0);
-    unsigned color_black = DSurface::RGB_To_Pixel(0, 0, 0);
-    ColorScheme *text_color = Fetch_Scheme_By_Name("White");
-
     int padding = 2;
 
-    const char *text = InfoTextBuffer;
+    const char* text = InfoTextBuffer;
 
     /**
      * Fetch the text occupy area.
@@ -421,104 +447,104 @@ void TacticalExtension::Draw_Information_Text()
 
     switch (InfoTextPosition) {
 
-        default:
-        case InfoTextPosType::TOP_LEFT:
-            pos_x = TacticalRect.X;
-            pos_y = TacticalRect.Y;
-            
-            /**
-             *  Move rects into position.
-             */
-            fill_rect.X = pos_x;
-            fill_rect.Y = pos_y;
-            fill_rect.Width = text_rect.Width+(padding+1)+2;
-            fill_rect.Height = text_rect.Height+1;
+    default:
+    case InfoTextPosType::TOP_LEFT:
+        pos_x = TacticalRect.X;
+        pos_y = TacticalRect.Y;
 
-            text_rect.X = fill_rect.X+2;
-            text_rect.Y = fill_rect.Y;
-            text_rect.Width += padding;
-            text_rect.Height += 3;
+        /**
+         *  Move rects into position.
+         */
+        fill_rect.X = pos_x;
+        fill_rect.Y = pos_y;
+        fill_rect.Width = text_rect.Width + (padding + 1) + 2;
+        fill_rect.Height = text_rect.Height + 1;
 
-            break;
+        text_rect.X = fill_rect.X + 2;
+        text_rect.Y = fill_rect.Y;
+        text_rect.Width += padding;
+        text_rect.Height += 3;
 
-        case InfoTextPosType::TOP_RIGHT:
-            pos_x = TacticalRect.X+TacticalRect.Width-text_rect.Width;
-            pos_y = TacticalRect.Y;
-            
-            /**
-             *  Move rects into position.
-             */
-            fill_rect.X = pos_x-5;
-            fill_rect.Y = pos_y;
-            fill_rect.Width = TacticalRect.X+TacticalRect.Width-text_rect.Width+3;
-            fill_rect.Height = text_rect.Height+1;
+        break;
 
-            text_rect.X = TacticalRect.X+TacticalRect.Width-2;
-            text_rect.Y = fill_rect.Y;
-            text_rect.Width += padding;
-            text_rect.Height += 3;
+    case InfoTextPosType::TOP_RIGHT:
+        pos_x = TacticalRect.X + TacticalRect.Width - text_rect.Width;
+        pos_y = TacticalRect.Y;
 
-            style |= TPF_RIGHT;
-            break;
+        /**
+         *  Move rects into position.
+         */
+        fill_rect.X = pos_x - 5;
+        fill_rect.Y = pos_y;
+        fill_rect.Width = TacticalRect.X + TacticalRect.Width - text_rect.Width + 3;
+        fill_rect.Height = text_rect.Height + 1;
 
-        case InfoTextPosType::BOTTOM_LEFT:
-            pos_x = 0;
-            pos_y = TacticalRect.Y+TacticalRect.Height-text_rect.Height;
-            
-            /**
-             *  Move rects into position.
-             */
-            fill_rect.X = pos_x;
-            fill_rect.Y = pos_y;
-            fill_rect.Width = text_rect.Width+(padding+1)+2;
-            fill_rect.Height = text_rect.Height+1;
+        text_rect.X = TacticalRect.X + TacticalRect.Width - 2;
+        text_rect.Y = fill_rect.Y;
+        text_rect.Width += padding;
+        text_rect.Height += 3;
 
-            text_rect.X = fill_rect.X+2;
-            text_rect.Y = fill_rect.Y;
-            text_rect.Width += padding;
-            text_rect.Height += 3;
+        style |= TPF_RIGHT;
+        break;
 
-            break;
+    case InfoTextPosType::BOTTOM_LEFT:
+        pos_x = 0;
+        pos_y = TacticalRect.Y + TacticalRect.Height - text_rect.Height;
 
-        case InfoTextPosType::BOTTOM_RIGHT:
-            pos_x = TacticalRect.X+TacticalRect.Width-text_rect.Width;
-            pos_y = TacticalRect.Y+TacticalRect.Height-text_rect.Height;
+        /**
+         *  Move rects into position.
+         */
+        fill_rect.X = pos_x;
+        fill_rect.Y = pos_y;
+        fill_rect.Width = text_rect.Width + (padding + 1) + 2;
+        fill_rect.Height = text_rect.Height + 1;
 
-            /**
-             *  Move rects into position.
-             */
-            fill_rect.X = pos_x-5;
-            fill_rect.Y = pos_y;
-            fill_rect.Width = TacticalRect.X+TacticalRect.Width-text_rect.Width+3;
-            fill_rect.Height = text_rect.Height+1;
+        text_rect.X = fill_rect.X + 2;
+        text_rect.Y = fill_rect.Y;
+        text_rect.Width += padding;
+        text_rect.Height += 3;
 
-            text_rect.X = TacticalRect.X+TacticalRect.Width-2;
-            text_rect.Y = fill_rect.Y;
-            text_rect.Width += padding;
-            text_rect.Height += 3;
+        break;
 
-            style |= TPF_RIGHT;
+    case InfoTextPosType::BOTTOM_RIGHT:
+        pos_x = TacticalRect.X + TacticalRect.Width - text_rect.Width;
+        pos_y = TacticalRect.Y + TacticalRect.Height - text_rect.Height;
 
-            break;
+        /**
+         *  Move rects into position.
+         */
+        fill_rect.X = pos_x - 5;
+        fill_rect.Y = pos_y;
+        fill_rect.Width = TacticalRect.X + TacticalRect.Width - text_rect.Width + 3;
+        fill_rect.Height = text_rect.Height + 1;
+
+        text_rect.X = TacticalRect.X + TacticalRect.Width - 2;
+        text_rect.Y = fill_rect.Y;
+        text_rect.Width += padding;
+        text_rect.Height += 3;
+
+        style |= TPF_RIGHT;
+
+        break;
 
     };
 
     /**
      *  Fill the background area.
      */
-    CompositeSurface->Fill_Rect_Trans(fill_rect, rgb_black, 50);
+    CompositeSurface->Fill_Rect_Trans(fill_rect, RGBClass(0, 0, 0), 50);
 
     /**
      *  Draw the overlay text.
      */
     Fancy_Text_Print(text, CompositeSurface, &CompositeSurface->Get_Rect(),
-        &Point2D(text_rect.X, text_rect.Y), text_color, COLOR_TBLACK, style);
+        &Point2D(text_rect.X, text_rect.Y), Fetch_Scheme_By_Name("White"), COLOR_TBLACK, style);
 }
 
 
 /**
  *  For drawing any new post-effects/systems.
- * 
+ *
  *  @authors: CCHyper
  */
 void TacticalExtension::Render_Post()
@@ -528,7 +554,7 @@ void TacticalExtension::Render_Post()
     /**
      *  Draw any new post effects here.
      */
-    //DEV_DEBUG_INFO("Before EBoltClass::Draw_All\n");
+     //DEV_DEBUG_INFO("Before EBoltClass::Draw_All\n");
     EBoltClass::Draw_All();
     //DEV_DEBUG_INFO("After EBoltClass::Draw_All\n");
 
@@ -541,14 +567,14 @@ void TacticalExtension::Render_Post()
 
 /**
  *  Prints a single super weapon timer to the tactical screen.
- * 
+ *
  *  @authors: CCHyper
  */
-void TacticalExtension::Super_Draw_Timer(int row_index, ColorScheme *color, int time, const char *name, unsigned long *flash_time, bool *flash_state)
+void TacticalExtension::Super_Draw_Timer(int row_index, ColorScheme * color, int time, const char* name, unsigned long* flash_time, bool* flash_state)
 {
-    static WWFontClass *_font = nullptr;
+    static WWFontClass* _font = nullptr;
 
-    TextPrintType style = TPF_8POINT|TPF_RIGHT|TPF_NOSHADOW|TPF_METAL12|TPF_SOLIDBLACK_BG;
+    TextPrintType style = TPF_8POINT | TPF_RIGHT | TPF_NOSHADOW | TPF_METAL12 | TPF_SOLIDBLACK_BG;
 
     if (!_font) {
         _font = Font_Ptr(style);
@@ -573,7 +599,8 @@ void TacticalExtension::Super_Draw_Timer(int row_index, ColorScheme *color, int 
         std::snprintf(fullbuff, sizeof(fullbuff), "%s %d:%02d:%02d", name, hours, minutes, seconds);
         std::snprintf(namebuff, sizeof(namebuff), "%s", name);
         std::snprintf(timerbuff, sizeof(timerbuff), "%d:%02d:%02d", hours, minutes, seconds);
-    } else {
+    }
+    else {
         std::snprintf(fullbuff, sizeof(fullbuff), "%s %02d:%02d", name, minutes, seconds);
         std::snprintf(namebuff, sizeof(namebuff), "%s", name);
         std::snprintf(timerbuff, sizeof(timerbuff), "%02d:%02d", minutes, seconds);
@@ -615,24 +642,24 @@ void TacticalExtension::Super_Draw_Timer(int row_index, ColorScheme *color, int 
 
     Rect fill_rect;
     fill_rect.X = TacticalRect.Width - (x_offset + name_rect.Width) - 4;
-    fill_rect.Y = y_pos-1;
+    fill_rect.Y = y_pos - 1;
     fill_rect.Width = x_offset + name_rect.Width + 2;
     fill_rect.Height = timer_rect.Height + 2;
 
     //CompositeSurface->Fill_Rect(CompositeSurface->Get_Rect(), fill_rect, color_black);
     CompositeSurface->Fill_Rect_Trans(fill_rect, rgb_black, background_tint);
 
-    Fancy_Text_Print(timerbuff, CompositeSurface, &CompositeSurface->Get_Rect(), 
+    Fancy_Text_Print(timerbuff, CompositeSurface, &CompositeSurface->Get_Rect(),
         &timer_point, to_flash ? white_color : color, COLOR_TBLACK, style);
 
-    Fancy_Text_Print(namebuff, CompositeSurface, &CompositeSurface->Get_Rect(), 
+    Fancy_Text_Print(namebuff, CompositeSurface, &CompositeSurface->Get_Rect(),
         &name_point, color, COLOR_TBLACK, style);
 }
 
 
 /**
  *  Draws super weapon timers to the tactical screen.
- * 
+ *
  *  @authors: CCHyper
  */
 void TacticalExtension::Draw_Super_Timers()
@@ -677,9 +704,9 @@ void TacticalExtension::Draw_Super_Timers()
      */
     for (int i = 0; i < Supers.Count(); ++i) {
 
-        SuperClass *super = Supers[i];
-        SuperClassExtension *superext = Extension::Fetch(super);
-        SuperWeaponTypeClassExtension *supertypeext = Extension::Fetch(super->Class);
+        SuperClass* super = Supers[i];
+        SuperClassExtension* superext = Extension::Fetch(super);
+        SuperWeaponTypeClassExtension* supertypeext = Extension::Fetch(super->Class);
 
         /**
          *  Should we show the recharge timer for this super?
@@ -710,8 +737,147 @@ void TacticalExtension::Draw_Super_Timers()
                 &superext->TimerFlashState
             );
         }
-
     }
+}
+
+
+/**
+ *  Draw the variable counter if enabled.
+ *
+ *  @author: CCHyper, ZivDero
+ */
+void TacticalExtension::Draw_Variable_Counter()
+{
+    if (!IsVariableCounterVisible) {
+        return;
+    }
+
+    int padding = 2;
+
+    int value;
+    if (IsCounterVariableGlobal) {
+        if (!ScenExtension->Get_Global_Value(VariableCounterVariableID, value)) {
+            return;
+        }
+    }
+    else {
+        if (!ScenExtension->Get_Local_Value(VariableCounterVariableID, value)) {
+            return;
+        }
+    }
+
+    /**
+     *  Format the string using the tutorial text as a format. God this is unsafe...
+     */
+    static char text[512];
+    std::snprintf(text, sizeof(text), TutorialText[VariableCounterLabelIndex], value);
+
+    /**
+     *  Fetch the text occupy area.
+     */
+    Rect text_rect;
+    GradFont6Ptr->String_Pixel_Rect(text, &text_rect);
+
+    Rect fill_rect;
+
+    TextPrintType style = VariableCounterStyle;
+    int pos_x = 0;
+    int pos_y = 0;
+
+    switch (VariableCounterPosition) {
+
+    default:
+    case InfoTextPosType::TOP_LEFT:
+        pos_x = TacticalRect.X;
+        pos_y = TacticalRect.Y;
+
+        /**
+         *  Move rects into position.
+         */
+        fill_rect.X = pos_x;
+        fill_rect.Y = pos_y;
+        fill_rect.Width = text_rect.Width + (padding + 1) + 2;
+        fill_rect.Height = text_rect.Height + 1;
+
+        text_rect.X = fill_rect.X + 2;
+        text_rect.Y = fill_rect.Y;
+        text_rect.Width += padding;
+        text_rect.Height += 3;
+
+        break;
+
+    case InfoTextPosType::TOP_RIGHT:
+        pos_x = TacticalRect.X + TacticalRect.Width - text_rect.Width;
+        pos_y = TacticalRect.Y;
+
+        /**
+         *  Move rects into position.
+         */
+        fill_rect.X = pos_x - 5;
+        fill_rect.Y = pos_y;
+        fill_rect.Width = TacticalRect.X + TacticalRect.Width - text_rect.Width + 3;
+        fill_rect.Height = text_rect.Height + 1;
+
+        text_rect.X = TacticalRect.X + TacticalRect.Width - 2;
+        text_rect.Y = fill_rect.Y;
+        text_rect.Width += padding;
+        text_rect.Height += 3;
+
+        style |= TPF_RIGHT;
+        break;
+
+    case InfoTextPosType::BOTTOM_LEFT:
+        pos_x = 0;
+        pos_y = TacticalRect.Y + TacticalRect.Height - text_rect.Height;
+
+        /**
+         *  Move rects into position.
+         */
+        fill_rect.X = pos_x;
+        fill_rect.Y = pos_y;
+        fill_rect.Width = text_rect.Width + (padding + 1) + 2;
+        fill_rect.Height = text_rect.Height + 1;
+
+        text_rect.X = fill_rect.X + 2;
+        text_rect.Y = fill_rect.Y;
+        text_rect.Width += padding;
+        text_rect.Height += 3;
+
+        break;
+
+    case InfoTextPosType::BOTTOM_RIGHT:
+        pos_x = TacticalRect.X + TacticalRect.Width - text_rect.Width;
+        pos_y = TacticalRect.Y + TacticalRect.Height - text_rect.Height;
+
+        /**
+         *  Move rects into position.
+         */
+        fill_rect.X = pos_x - 5;
+        fill_rect.Y = pos_y;
+        fill_rect.Width = TacticalRect.X + TacticalRect.Width - text_rect.Width + 3;
+        fill_rect.Height = text_rect.Height + 1;
+
+        text_rect.X = TacticalRect.X + TacticalRect.Width - 2;
+        text_rect.Y = fill_rect.Y;
+        text_rect.Width += padding;
+        text_rect.Height += 3;
+
+        style |= TPF_RIGHT;
+
+        break;
+
+    };
+
+    /**
+     *  Fill the background area.
+     */
+    CompositeSurface->Fill_Rect_Trans(fill_rect, RGBClass(0, 0, 0), 50);
+
+    /**
+     *  Draw the overlay text.
+     */
+    Fancy_Text_Print(text, CompositeSurface, &CompositeSurface->Get_Rect(),
+        &Point2D(text_rect.X, text_rect.Y), ColorSchemes[PlayerPtr->RemapColor], COLOR_TBLACK, style);
 }
 
 

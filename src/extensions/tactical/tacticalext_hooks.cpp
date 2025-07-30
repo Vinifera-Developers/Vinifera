@@ -798,6 +798,17 @@ DECLARE_PATCH(_Tactical_Render_Overlay_Patch)
     }
 
     /**
+     *  Has a variable counter been enabled?
+     */
+    if (TacticalMapExtension->IsVariableCounterVisible) {
+
+        /**
+         *  Draw it to the screen.
+         */
+        TacticalMapExtension->Draw_Variable_Counter();
+    }
+
+    /**
      *  Draw the version number on screen.
      * 
      *  @note: This must be last in the draw order!

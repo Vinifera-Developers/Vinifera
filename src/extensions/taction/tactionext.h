@@ -87,6 +87,9 @@ private:
     static bool Do_RANDOM_NUMBER_LOCAL(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     static bool Do_PRINT_GLOBAL(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     static bool Do_PRINT_LOCAL(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
+    static bool Do_ENABLE_GLOBAL_COUNTER(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
+    static bool Do_ENABLE_LOCAL_COUNTER(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
+    static bool Do_DISABLE_VARIABLE_COUNTER(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
 
 private:
     static TActionClass::ActionDescriptionStruct ExtActionDescriptions[EXT_TACTION_COUNT - EXT_TACTION_FIRST];
