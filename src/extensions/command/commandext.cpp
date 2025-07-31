@@ -1366,7 +1366,7 @@ bool ProcessVeterancyFilter(bool is_shift_pressed)
     if (!Set_Equals(current_technos, last_full_selection) &&
         !Set_Equals(current_technos, last_selection[0]) &&
         !Set_Equals(current_technos, last_selection[1]) &&
-        !Set_Equals(current_technos, last_selection[2]) && 
+        !Set_Equals(current_technos, last_selection[2]) &&
         !Equals_Union_Of_Two_Other_Sets(current_technos, last_selection[0], last_selection[1]) &&
         !Equals_Union_Of_Two_Other_Sets(current_technos, last_selection[0], last_selection[2]) &&
         !Equals_Union_Of_Two_Other_Sets(current_technos, last_selection[1], last_selection[2])) {
@@ -1378,14 +1378,14 @@ bool ProcessVeterancyFilter(bool is_shift_pressed)
         last_selection[1].Clear();
         last_selection[2].Clear();
         for (int i = 0; i < current_technos.Count(); ++i) {
-            last_full_selection.Add(current_technos[i]);     
+            last_full_selection.Add(current_technos[i]);
             last_selection[Classify_Veterancy(current_technos[i])].Add(current_technos[i]);
         }
         for (int i = best_selected_veterancy+1; i < 3; ++i) {
             for (int k = 0; k < current_selection[i].Count(); ++k) {
                 current_selection[i][k]->Unselect();
             }
-        }   
+        }
         if (best_selected_veterancy >= 0 && best_selected_veterancy < 3) {
             for (int k = 0; k < current_selection[best_selected_veterancy].Count(); ++k) {
                 current_selection[best_selected_veterancy][k]->Response_Select();
@@ -1426,7 +1426,7 @@ bool ProcessVeterancyFilter(bool is_shift_pressed)
                 last_selection[next_tier_veterancy][i]->Select();
             }
         }
-    } 
+    }
 
     Map.Recalc();
 
