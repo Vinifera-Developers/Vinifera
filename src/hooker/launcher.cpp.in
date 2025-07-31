@@ -60,18 +60,18 @@ const bool CheckTargetBinaries = @CHECK_TARGET_BINARIES@;
  *  Define the SHA hash to compare against.
  */
 const char *BinaryHash[] = {
-	"@TARGET_HASH@",
-	"@TARGET_FTS_HASH@",
-	"@TARGET_TUC_HASH@"
+    "@TARGET_HASH@",
+    "@TARGET_FTS_HASH@",
+    "@TARGET_TUC_HASH@"
 };
 
 /**
  *  Size of the binaries in bytes.
  */
 int BinarySize[] = {
-	@TARGET_SIZE@,
-	@TARGET_FTS_SIZE@,
-	@TARGET_TUC_SIZE@
+    @TARGET_SIZE@,
+    @TARGET_FTS_SIZE@,
+    @TARGET_TUC_SIZE@
 };
 
 /**
@@ -88,7 +88,6 @@ char *DLLName = "@PROJECT_DLL@";
  *  The target DLL debug database file.
  */
 char *PDBName = "@PROJECT_NAME@.pdb";
-char *EXEPDBName = "@TARGET_PDB@";
 
 
 static STARTUPINFOA StartupInfo = {0};
@@ -105,9 +104,9 @@ bool Check_Hash(const char *filename, const char *target_hash)
     char hash[41];
     std::ifstream in(EXEName, std::ifstream::in|std::ifstream::binary);
     
-	/**
-	 *  Get the hash of the binary.
-	 */
+    /**
+     *  Get the hash of the binary.
+     */
     do {
         in.read(buffer, sizeof(buffer));
         sha.Hash(buffer, in.gcount());
@@ -115,9 +114,9 @@ bool Check_Hash(const char *filename, const char *target_hash)
 
     sha.Print_Result(hash);
 
-	/**
-	 *  Does the expected hash match the target binary hash?
-	 */
+    /**
+     *  Does the expected hash match the target binary hash?
+     */
     return strcmpi(target_hash, hash) == 0;
 }
 
@@ -136,7 +135,7 @@ bool Inject_Dll(const char *dllname, HANDLE hProcess)
     DWORD hLibModule; // Base address of loaded module.
     HMODULE hKernel32 = GetModuleHandleA("Kernel32"); // For the LoadLibraryA func.
 
-    GetFullPathNameA(dllname, _MAX_PATH, szLibPath, NULL);
+    GetFullPathNameA(dllname, _MAX_PATH, szLibPath, nullptr);
 
     std::ifstream in(dllname, std::ifstream::in|std::ifstream::binary);
     IMAGE_NT_HEADERS exe_header;
@@ -147,45 +146,45 @@ bool Inject_Dll(const char *dllname, HANDLE hProcess)
     in.read(reinterpret_cast<char *>(&exe_header), sizeof(exe_header));
 
     if (!(exe_header.FileHeader.Characteristics & IMAGE_FILE_DLL)) {
-		MessageBoxA(NULL, "DLL file does not have correct format flags!", "Error!", MB_OK | MB_ICONEXCLAMATION);
+        MessageBoxA(nullptr, "DLL file does not have correct format flags!", "Error!", MB_OK | MB_ICONEXCLAMATION);
         throw "DLL file does not have correct format flags!";
     }
 
-	/**
-	 *  1. Allocate memory in the remote process for szLibPath.
-	 *  2. Write szLibPath to the allocated memory.
-	 */
-    pLibRemote = VirtualAllocEx(hProcess, NULL, sizeof(szLibPath), MEM_COMMIT, PAGE_READWRITE);
+    /**
+     *  1. Allocate memory in the remote process for szLibPath.
+     *  2. Write szLibPath to the allocated memory.
+     */
+    pLibRemote = VirtualAllocEx(hProcess, nullptr, sizeof(szLibPath), MEM_COMMIT, PAGE_READWRITE);
 
-    WriteProcessMemory(hProcess, pLibRemote, (void *)szLibPath, sizeof(szLibPath), NULL);
+    WriteProcessMemory(hProcess, pLibRemote, (void *)szLibPath, sizeof(szLibPath), nullptr);
 
-	/**
-	 *  Load "dll" into the remote process by passing LoadLibraryA as the function
-	 *  to run as a thread with CreateRemoteThread. Pass copied name of DLL as
-	 *  the arguments to the function.
-	 */
+    /**
+     *  Load "dll" into the remote process by passing LoadLibraryA as the function
+     *  to run as a thread with CreateRemoteThread. Pass copied name of DLL as
+     *  the arguments to the function.
+     */
     hThread = CreateRemoteThread(
-        hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)GetProcAddress(hKernel32, "LoadLibraryA"), pLibRemote, 0, NULL);
+        hProcess, nullptr, 0, (LPTHREAD_START_ROUTINE)GetProcAddress(hKernel32, "LoadLibraryA"), pLibRemote, 0, nullptr);
 
-	/**
-	 *  Wait for the DLL to load and return.
-	 */
+    /**
+     *  Wait for the DLL to load and return.
+     */
     WaitForSingleObject(hThread, INFINITE);
 
-	/**
-	 *  Get handle of the loaded module.
-	 */
+    /**
+     *  Get handle of the loaded module.
+     */
     GetExitCodeThread(hThread, &hLibModule);
 
-	/**
-	 *  Clean up.
-	 */
+    /**
+     *  Clean up.
+     */
     CloseHandle(hThread);
     VirtualFreeEx(hProcess, pLibRemote, sizeof(szLibPath), MEM_RELEASE);
 
-	/**
-	 *  LoadLibrary return is 0 on failure.
-	 */
+    /**
+     *  LoadLibrary return is 0 on failure.
+     */
     return hLibModule != 0;
 }
 
@@ -207,138 +206,138 @@ bool Inject_Loader(const char *path, const char *dllname, char *args)
     SIZE_T memwritten;
     SIZE_T memread;
 
-	/**
-	 *  Initialize the structures.
-	 */
+    /**
+     *  Initialize the structures.
+     */
     ZeroMemory(&StartupInfo, sizeof(StartupInfo));
     StartupInfo.cb = sizeof(StartupInfo);
 
-	/**
-	 *  Attempt to load the specified target in suspended state.
-	 */
-    if (CreateProcessA(path, args, NULL, NULL, FALSE, CREATE_SUSPENDED, NULL,
-        NULL, &StartupInfo, &ProcessInformation)) {
+    /**
+     *  Attempt to load the specified target in suspended state.
+     */
+    if (CreateProcessA(path, args, nullptr, nullptr, FALSE, CREATE_SUSPENDED, nullptr,
+        nullptr, &StartupInfo, &ProcessInformation)) {
 
         HANDLE hProcess(ProcessInformation.hProcess);
 
-		/**
-		 *  Wait for the process to done.
-		 */
+        /**
+         *  Wait for the process to done.
+         */
         try {
-			/**
-			 *  Locate the entry point.
-			 */
+            /**
+             *  Locate the entry point.
+             */
             LPVOID entry = (LPVOID)EXE_ENTRY;
 
-			/**
-			 *  Patch the entry point with infinite loop.
-			 */
+            /**
+             *  Patch the entry point with infinite loop.
+             */
             VirtualProtectEx(ProcessInformation.hProcess, entry, 2, PAGE_EXECUTE_READWRITE, &oldProtect);
             ReadProcessMemory(ProcessInformation.hProcess, entry, oldBytes, patchBytesSize, &memread);
             WriteProcessMemory(ProcessInformation.hProcess, entry, patchBytes, patchBytesSize, &memwritten);
             VirtualProtectEx(ProcessInformation.hProcess, entry, 2, oldProtect, &oldProtect2);
 
-			/**
-			 *  Resume the main thread.
-			 */
+            /**
+             *  Resume the main thread.
+             */
             ResumeThread(ProcessInformation.hThread);
 
-			/**
-			 *  Wait until the thread stuck at entry point.
-			 */
+            /**
+             *  Wait until the thread stuck at entry point.
+             */
             CONTEXT context;
             ZeroMemory(&context, sizeof(context));
             for (unsigned int i = 0; i < 50 && context.Eip != (DWORD)entry; ++i) {
 
-				/**
-				 *  Patience...
-				 */
+                /**
+                 *  Patience...
+                 */
                 Sleep(100);
 
-				/**
-				 *  Read the thread context.
-				 */
+                /**
+                 *  Read the thread context.
+                 */
                 context.ContextFlags = CONTEXT_CONTROL;
                 GetThreadContext(ProcessInformation.hThread, &context);
             }
 
             if (context.Eip != (DWORD)entry) {
-				/**
-				 *  Wait timed out, we never got to the entry point.
-				 */
-				MessageBoxA(NULL, "Entry point blockade timed out!", "Error!", MB_OK|MB_ICONEXCLAMATION);
+                /**
+                 *  Wait timed out, we never got to the entry point.
+                 */
+                MessageBoxA(nullptr, "Entry point blockade timed out!", "Error!", MB_OK|MB_ICONEXCLAMATION);
                 throw "Entry point blockade timed out!";
             }
 
-			/**
-			 *  Inject DLL payload into remote process.
-			 */
+            /**
+             *  Inject DLL payload into remote process.
+             */
             if (!Inject_Dll(dllname, ProcessInformation.hProcess)) {
-				MessageBoxA(NULL, "Failed to load DLL!", "Error!", MB_OK|MB_ICONEXCLAMATION);
+                MessageBoxA(nullptr, "Failed to load DLL!", "Error!", MB_OK|MB_ICONEXCLAMATION);
                 throw "Failed to load DLL!";
             }
-			
+            
 #ifndef NDEBUG
             if (IsDebuggerPresent()) {
-				/**
-				 *  Give the user time to attach the debugger if one is not already present.
-				 */
-                MessageBox(NULL, "Attach debugger now or continue.", "Launcher", MB_OK|MB_SERVICE_NOTIFICATION);
+                /**
+                 *  Give the user time to attach the debugger if one is not already present.
+                 */
+                MessageBox(nullptr, "Attach debugger now or continue.", "Launcher", MB_OK|MB_SERVICE_NOTIFICATION);
             }
 #endif
 
-			/**
-			 *  Pause and restore original entry point unless DLL init overwrote it already.
-			 */
+            /**
+             *  Pause and restore original entry point unless DLL init overwrote it already.
+             */
             SuspendThread(ProcessInformation.hThread);
             VirtualProtectEx(ProcessInformation.hProcess, entry, 2, PAGE_EXECUTE_READWRITE, &oldProtect);
             ReadProcessMemory(ProcessInformation.hProcess, entry, checkBytes, 2, &memread);
 
-			/**
-			 *  Check entry point is still patched to infinite loop. We don't
-			 *  want to mess up any patching the DLL did.
-			 */
+            /**
+             *  Check entry point is still patched to infinite loop. We don't
+             *  want to mess up any patching the DLL did.
+             */
             if (std::memcmp(checkBytes, patchBytes, 2) == 0) {
                 WriteProcessMemory(ProcessInformation.hProcess, entry, oldBytes, 2, &memwritten);
             }
 
             VirtualProtectEx(ProcessInformation.hProcess, entry, 2, oldProtect, &oldProtect2);
 
-			/**
-			 *  You are ready to go!
-			 */
+            /**
+             *  You are ready to go!
+             */
             ResumeThread(ProcessInformation.hThread);
-			
-			/**
-			 *  Keep the launcher running until the target process has exited.
-			 */
-			WaitForSingleObject(hProcess, INFINITE);
-			
-			return true;
-			
+            
+            /**
+             *  Keep the launcher running until the target process has exited.
+             */
+            WaitForSingleObject(hProcess, INFINITE);
+            
+            return true;
+            
         } catch (...) {
 
-			/**
-			 *  Terminate the newly spawned process.
-			 */
+            /**
+             *  Terminate the newly spawned process.
+             */
             TerminateProcess(ProcessInformation.hProcess, EXIT_FAILURE);
 
-			/**
-			 *  Rethrow the exception to top-level handler.
-			 */
+            /**
+             *  Rethrow the exception to top-level handler.
+             */
             throw;
         }
 
     } else {
-	
-		/**
-		 *  Are you sure this is a valid target?
-		 */
-		MessageBoxA(NULL, "Unable to load the specified executable!", "Error!", MB_OK|MB_ICONEXCLAMATION);
+    
+        /**
+         *  Are you sure this is a valid target?
+         */
+        MessageBoxA(nullptr, "Unable to load the specified executable!", "Error!", MB_OK|MB_ICONEXCLAMATION);
         throw "Unable to load the specified executable!";
     }
-	
-	return false;
+    
+    return false;
 }
 
 
@@ -350,9 +349,9 @@ char *Make_Args(const char *args)
     const char *argstart = args;
     static char argstring[_MAX_PATH * 2];
 
-	/**
-	 *  Stick the exe name on the front of the arg string.
-	 */
+    /**
+     *  Stick the exe name on the front of the arg string.
+     */
     std::snprintf(argstring, sizeof(argstring), "%s %s", EXEName, argstart);
 
     return argstring;
@@ -376,153 +375,137 @@ bool File_Exists(const char *file)
 
 int Get_File_Size(const char *file)
 {
-	/**
-	 *  Seek to the end of the file. Use the end position as the file size.
-	 */
-	FILE *f = fopen(EXEName, "r");
-	fseek(f, 0, SEEK_END);
-	int filesize = ftell(f);
-	fclose(f);
-	return filesize;
+    /**
+     *  Seek to the end of the file. Use the end position as the file size.
+     */
+    FILE *f = fopen(EXEName, "r");
+    fseek(f, 0, SEEK_END);
+    int filesize = ftell(f);
+    fclose(f);
+    return filesize;
 }
 
 
 int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-	/**
-	 *  Custom exe target defined?
-	 */
-	const char *tok = std::strstr(lpCmdLine, "-exe:");
-	if (tok != nullptr) {
-		EXEName = (char *)(tok+5); // Fetch the custom target EXE name.
-	}
-	
-	/**
-	 *  Custom dll defined?
-	 */
-	tok = std::strstr(lpCmdLine, "-dll:");
-	if (tok != nullptr) {
-		DLLName = (char *)(tok+5); // Fetch the custom DLL name.
-	}
-	
-	/**
-	 *  Check the target binary exists before we attempt injection.
-	 */
-	if (CheckTargetBinaries) {
-		if (!File_Exists(EXEName)) {
-			char buff[1024];
-			std::snprintf(buff, sizeof(buff),
-				"Unable to find %s!\n\n"
-				"Please check you have the correct version of " TARGET_NAME " installed\n"
-				"and that it is up to date " UNSUPPORTED_TARGET ".\n",
-				EXEName
-			);
-			MessageBoxA(NULL, buff, "Error!", MB_OK|MB_ICONEXCLAMATION);
-			return EXIT_FAILURE;
-		}
-	} else {
-		if (!File_Exists(EXEName)) {
-			char buff[1024];
-			std::snprintf(buff, sizeof(buff),
-				"Unable to find %s!\n\n"
-				"Please check you have the correct version of " TARGET_NAME " installed\n",
-				EXEName
-			);
-			MessageBoxA(NULL, buff, "Error!", MB_OK|MB_ICONEXCLAMATION);
-			return EXIT_FAILURE;
-		}
-	}
+    /**
+     *  Custom exe target defined?
+     */
+    const char *tok = std::strstr(lpCmdLine, "-exe:");
+    if (tok != nullptr) {
+        EXEName = (char *)(tok+5); // Fetch the custom target EXE name.
+    }
+    
+    /**
+     *  Custom dll defined?
+     */
+    tok = std::strstr(lpCmdLine, "-dll:");
+    if (tok != nullptr) {
+        DLLName = (char *)(tok+5); // Fetch the custom DLL name.
+    }
+    
+    /**
+     *  Check the target binary exists before we attempt injection.
+     */
+    if (CheckTargetBinaries) {
+        if (!File_Exists(EXEName)) {
+            char buff[1024];
+            std::snprintf(buff, sizeof(buff),
+                "Unable to find %s!\n\n"
+                "Please check you have the correct version of " TARGET_NAME " installed\n"
+                "and that it is up to date " UNSUPPORTED_TARGET ".\n",
+                EXEName
+            );
+            MessageBoxA(nullptr, buff, "Error!", MB_OK|MB_ICONEXCLAMATION);
+            return EXIT_FAILURE;
+        }
+    } else {
+        if (!File_Exists(EXEName)) {
+            char buff[1024];
+            std::snprintf(buff, sizeof(buff),
+                "Unable to find %s!\n\n"
+                "Please check you have the correct version of " TARGET_NAME " installed\n",
+                EXEName
+            );
+            MessageBoxA(nullptr, buff, "Error!", MB_OK|MB_ICONEXCLAMATION);
+            return EXIT_FAILURE;
+        }
+    }
 
-	/**
-	 *  Check the DLL exists before we attempt injection.
-	 */
+    /**
+     *  Check the DLL exists before we attempt injection.
+     */
     if (!File_Exists(DLLName)) {
-		char buff[1024];
-		std::snprintf(buff, sizeof(buff),
+        char buff[1024];
+        std::snprintf(buff, sizeof(buff),
             "Unable to find %s !\n\n"
             "Please check you have the correct version of " PROJECT_NAME " installed\n"
-			"or reinstall the latest version.\n",
-			DLLName
-		);
-		MessageBoxA(NULL, buff, "Error!", MB_OK|MB_ICONEXCLAMATION);
+            "or reinstall the latest version.\n",
+            DLLName
+        );
+        MessageBoxA(nullptr, buff, "Error!", MB_OK|MB_ICONEXCLAMATION);
         return EXIT_FAILURE;
     }
-	
-	/**
-	 *  Check the PDB exists before we attempt injection, this is required to
-	 *  ensure the debug systems output the correct information.
-	 */
+    
+    /**
+     *  Check the PDB exists before we attempt injection, this is required to
+     *  ensure the debug systems output the correct information.
+     */
     if (!File_Exists(PDBName)) {
-		char buff[1024];
-		std::snprintf(buff, sizeof(buff),
+        char buff[1024];
+        std::snprintf(buff, sizeof(buff),
             "Unable to find %s !\n\n"
             "Please check you have the correct version of " PROJECT_NAME " installed\n"
-			"or reinstall the latest version.\n",
-			PDBName
-		);
-		MessageBoxA(NULL, buff, "Error!", MB_OK|MB_ICONEXCLAMATION);
+            "or reinstall the latest version.\n",
+            PDBName
+        );
+        MessageBoxA(nullptr, buff, "Error!", MB_OK|MB_ICONEXCLAMATION);
         return EXIT_FAILURE;
     }
-	
-	/**
-	 *  Check the target binary checksum before we attempt injection.
-	 */
-	if (CheckTargetBinaries) {
-		bool matches = false;
-	
-		/**
-		 *  Iterate over all the possible target binaries to check if
-		 *  they match one we support.
-		 */
-		for (int i = 0; i < 2; ++i) {
-		
-			/**
-			 *  Check the filesize and hash matches first before we attempt injection.
-			 */
-			if (Get_File_Size(EXEName) == BinarySize[i]) {
-				if (Check_Hash(EXEName, BinaryHash[i])) {
-					matches = true;
-				}
-			}
+    
+    /**
+     *  Check the target binary checksum before we attempt injection.
+     */
+    if (CheckTargetBinaries) {
+        bool matches = false;
+    
+        /**
+         *  Iterate over all the possible target binaries to check if
+         *  they match one we support.
+         */
+        for (int i = 0; i < 2; ++i) {
+        
+            /**
+             *  Check the filesize and hash matches first before we attempt injection.
+             */
+            if (Get_File_Size(EXEName) == BinarySize[i]) {
+                if (Check_Hash(EXEName, BinaryHash[i])) {
+                    matches = true;
+                }
+            }
 
-		}
+        }
 
-		if (!matches) {
-			char buff[1024];
-			std::snprintf(buff, sizeof(buff),
-				"Modified or unsupported version of %s detected!\n\n"
-				"Please check you have the correct version of " TARGET_NAME " installed\n"
-				"and that it is up to date " UNSUPPORTED_TARGET ".\n",
-				EXEName
-			);
-			MessageBox(NULL, buff, "Error!", MB_OK|MB_ICONEXCLAMATION);
-			return EXIT_FAILURE;
-		}
-	}
-	
-	/**
-	 *  Check the fake GAME.EXE PDB exists before we attempt injection, this is
-	 *  required to ensure the debug systems output the correct information.
-	 */
-    if (!File_Exists(EXEPDBName)) {
-		char buff[1024];
-		std::snprintf(buff, sizeof(buff),
-            "Unable to find %s !\n\n"
-            "Please check you have the correct version of " PROJECT_NAME " installed\n"
-			"or reinstall the latest version.\n",
-			EXEPDBName
-		);
-		MessageBoxA(NULL, buff, "Error!", MB_OK|MB_ICONEXCLAMATION);
-        return EXIT_FAILURE;
+        if (!matches) {
+            char buff[1024];
+            std::snprintf(buff, sizeof(buff),
+                "Modified or unsupported version of %s detected!\n\n"
+                "Please check you have the correct version of " TARGET_NAME " installed\n"
+                "and that it is up to date " UNSUPPORTED_TARGET ".\n",
+                EXEName
+            );
+            MessageBox(nullptr, buff, "Error!", MB_OK|MB_ICONEXCLAMATION);
+            return EXIT_FAILURE;
+        }
     }
 
-	if (!Inject_Loader(EXEName, DLLName, Make_Args(lpCmdLine))) {
-		MessageBoxA(NULL, "Injection failed!", "Error!", MB_OK|MB_ICONEXCLAMATION);
-		
-		/**
-		 *  Terminate the process we created.
-		 */
-		TerminateProcess(ProcessInformation.hProcess, EXIT_FAILURE);
+    if (!Inject_Loader(EXEName, DLLName, Make_Args(lpCmdLine))) {
+        MessageBoxA(nullptr, "Injection failed!", "Error!", MB_OK|MB_ICONEXCLAMATION);
+        
+        /**
+         *  Terminate the process we created.
+         */
+        TerminateProcess(ProcessInformation.hProcess, EXIT_FAILURE);
         return EXIT_FAILURE;
     }
 
