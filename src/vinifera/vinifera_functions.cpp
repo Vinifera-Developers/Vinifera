@@ -46,12 +46,23 @@
 #include "tacticalext.h"
 #include "tclassfactory.h"
 #include "testlocomotion.h"
+#include "kamikazetracker.h"
+#include "spawnmanager.h"
 #include "extension.h"
 #include "theatertype.h"
+#include "armortype.h"
 #include "uicontrol.h"
+#include "mousetype.h"
+#include "actiontype.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 #include <string>
+
+#include "aircrafttracker.h"
+#include "rocketlocomotion.h"
+#include "newjumpjetlocomotion.h"
+#include "prerequisitegroup.h"
+#include "setup_hooks.h"
 
 
 static DynamicVectorClass<Wstring> ViniferaSearchPaths;
@@ -85,25 +96,21 @@ bool Vinifera_Load_INI()
     ini.Get_String("General", "CursorFile", Vinifera_CursorName, sizeof(Vinifera_CursorName));
 
 #if defined(TS_CLIENT)
-    {
     /**
      *  TS Client uses a seperate "version" file, so its best we fetch the current
      *  version from there rather than have the user update the INI file each time
      *  they update the project.
      */
     RawFileClass ver_file("version");
-    if (!ver_file.Is_Available()) {
-        DEBUG_ERROR("Failed to find TS Client version file!\n");
-        return false;
-    }
-
-    INIClass ver_ini;
-    ver_ini.Load(ver_file);
-
-    ver_ini.Get_String("DTA", "Version", Vinifera_ProjectVersion, sizeof(Vinifera_ProjectVersion));
+    if (ver_file.Is_Available()) {
+        INIClass ver_ini;
+        ver_ini.Load(ver_file);
+        ver_ini.Get_String("DTA", "Version", Vinifera_ProjectVersion, sizeof(Vinifera_ProjectVersion));
+    } else {
+        ini.Get_String("General", "ProjectVersion", Vinifera_ProjectVersion, sizeof(Vinifera_ProjectVersion));
     }
 #else
-    ini.Get_String("General", "ProjectVersion", "No version number set", Vinifera_ProjectVersion, sizeof(Vinifera_ProjectVersion));
+    ini.Get_String("General", "ProjectVersion", Vinifera_ProjectVersion, sizeof(Vinifera_ProjectVersion));
 #endif
 
     Vinifera_ProjectName[sizeof(Vinifera_ProjectName)-1] = '\0';
@@ -126,6 +133,14 @@ bool Vinifera_Load_INI()
         MessageBox(MainWindow, "Failed to find SearchPaths in VINIFERA.INI, please reinstall Vinifera.", "Vinifera", MB_ICONEXCLAMATION|MB_OK);
         return false;
 #endif
+    }
+
+    Vinifera_NoVersionString = ini.Get_Bool("General", "NoVersionString", Vinifera_NoVersionString);
+
+    Vinifera_NewSidebar = ini.Get_Bool("Features", "NewSidebar", false);
+    ini.Get_String("General", "SavedGamesDirectory", buffer, std::size(buffer));
+    if (std::strlen(buffer) > 0) {
+        std::strncpy(Vinifera_SavedGamesDirectory, buffer, std::size(Vinifera_SavedGamesDirectory) - 1);
     }
 
     return true;
@@ -537,6 +552,9 @@ bool Vinifera_Startup()
 #endif
     }
 
+    DEBUG_INFO("Setting up conditional hooks.\n");
+    Setup_Conditional_Hooks();
+
     /**
      *  Current path (perhaps set set with -CD) should go next.
      */
@@ -621,6 +639,9 @@ bool Vinifera_Startup()
     //CnCNet5::IsActive = true; // Enable when new Client system is implemented.
 #endif
 
+    KamikazeTracker = new KamikazeTrackerClass;
+    AircraftTracker = new AircraftTrackerClass;
+
     return true;
 }
 
@@ -642,13 +663,15 @@ bool Vinifera_Shutdown()
     delete IsoGenericMix;
     IsoGenericMix = nullptr;
 
+    delete SideCTMix;
+    SideCTMix = nullptr;
+
     ViniferaMapsMixes.Clear();
     ViniferaMoviesMixes.Clear();
 
     /**
      *  Cleanup global heaps/vectors.
      */
-    EBoltClass::Clear_All();
     TheaterTypes.Clear();
 
     /**
@@ -664,6 +687,12 @@ bool Vinifera_Shutdown()
      *  Cleanup additional extension instances.
      */
     ThemeControlExtensions.Clear();
+
+    delete KamikazeTracker;
+    KamikazeTracker = nullptr;
+
+    delete AircraftTracker;
+    AircraftTracker = nullptr;
 
     DEV_DEBUG_INFO("Shutdown - New Count: %d, Delete Count: %d\n", Vinifera_New_Count, Vinifera_Delete_Count);
 
@@ -708,6 +737,69 @@ int Vinifera_Pre_Init_Game(int argc, char *argv[])
     Vinifera_SkipStartupMovies = true;
 #endif
 
+    /**
+     *  Read the mouse controls and overrides.
+     * 
+     *  This must be loaded before Init_Game as MouseClass::Override_Mouse_Shape
+     *  is called as part of the games initialisation.
+     */
+    MouseTypeClass::One_Time();
+
+#if 0 //#ifndef NDEBUG
+    /**
+     *  Write the default mouse control values to ini.
+     */
+    {
+        CCFileClass mouse_write_file("MOUSE.DBG");
+        CCINIClass mouse_write_ini;
+        mouse_write_file.Delete();
+        MouseTypeClass::Write_Default_INI(mouse_write_ini);
+        mouse_write_ini.Save(mouse_write_file, false);
+        mouse_write_file.Close();
+    }
+#endif
+
+    CCFileClass mouse_file("MOUSE.INI");
+
+    if (mouse_file.Is_Available()) {
+
+        CCINIClass mouse_ini;
+        mouse_ini.Load(mouse_file, false);
+
+        MouseTypeClass::Read_INI(mouse_ini);
+    }
+
+    /**
+     *  Read the actions controls and overrides.
+     * 
+     *  This must be loaded after MouseTypeClass::One_Time as actions reference MouseTypes!
+     */
+    ActionTypeClass::One_Time();
+
+#if 0 //#ifndef NDEBUG
+    /**
+     *  Write the default mouse control values to ini.
+     */
+    {
+        CCFileClass action_write_file("ACTION.DBG");
+        CCINIClass action_write_ini;
+        action_write_file.Delete();
+        ActionTypeClass::Write_Default_INI(action_write_ini);
+        action_write_ini.Save(action_write_file, false);
+        action_write_file.Close();
+    }
+#endif
+
+    CCFileClass action_file("ACTION.INI");
+
+    if (action_file.Is_Available()) {
+
+        CCINIClass action_ini;
+        action_ini.Load(action_file, false);
+
+        ActionTypeClass::Read_INI(action_ini);
+    }
+
     return EXIT_SUCCESS;
 }
 
@@ -751,10 +843,25 @@ bool Vinifera_Register_Com_Objects()
 {
     DEBUG_INFO("Registering new com objects...\n");
 
-    //DEBUG_INFO("  TestLocomotionClass\n");
+    /**
+     *  New locomotors.
+     */
     REGISTER_CLASS(TestLocomotionClass);
+    REGISTER_CLASS(RocketLocomotionClass);
+    REGISTER_CLASS(NewJumpjetLocomotionClass);
+
+    /**
+     *  New types.
+     */
+    REGISTER_CLASS(ArmorTypeClass);
+    REGISTER_CLASS(RocketTypeClass);
+    REGISTER_CLASS(PrerequisiteGroupClass);
+
+    /**
+     *  Other new entities.
+     */
+    REGISTER_CLASS(SpawnManagerClass);
     
-    //DEBUG_INFO("  Extension classes\n");
     Extension::Register_Class_Factories();
 
     DEBUG_INFO("  ...OK!\n");

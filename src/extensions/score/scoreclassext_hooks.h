@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          ENDGAMEEXT_HOOKS.H
+ *  @file          SCORECLASSEXT_HOOKS.H
  *
- *  @author        CCHyper
+ *  @author        Rampastring
  *
- *  @brief         Contains the hooks for the extended EndGameClass.
+ *  @brief         Contains the hooks for the extended ScoreClass.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -28,4 +28,4 @@
 #pragma once
 
 
-void EndGameExtension_Hooks();
+void ScoreClassExtension_Hooks();

@@ -44,6 +44,8 @@
 #include "factory.h"
 #include "anim.h"
 #include "animtype.h"
+#include "voxelanim.h"
+#include "voxelanimtype.h"
 #include "unit.h"
 #include "unittype.h"
 #include "infantry.h"
@@ -59,9 +61,23 @@
 #include "ionblast.h"
 #include "tiberium.h"
 #include "combat.h"
-#include "scenarioini.h"
 #include "scenario.h"
+#include "sidebarext.h"
+#include "tag.h"
+#include "tagtype.h"
+#include "terraintype.h"
+#include "trigger.h"
+#include "triggertype.h"
+#include "smudgetype.h"
+#include "overlaytype.h"
+#include "armortype.h"
+#include "voxelanimtype.h"
+#include "particletype.h"
+#include "particlesystype.h"
+#include "rockettype.h"
 #include "vox.h"
+#include "event.h"
+#include "queue.h"
 #include "language.h"
 #include "wwcrc.h"
 #include "filepcx.h"
@@ -73,6 +89,9 @@
 #include "miscutil.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "bullettype.h"
+#include "eventext.h"
+#include "houseext.h"
 
 /**
  *  Handy defines for handling any adjustments.
@@ -350,82 +369,347 @@ const char *ManualPlaceCommandClass::Get_Description() const
 
 bool ManualPlaceCommandClass::Process()
 {
+    if (PlayerPtr)
+    {
+        /**
+         *  Fetch the house's factory associated with producing buildings.
+         */
+        FactoryClass* factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(RTTI_BUILDING, PRODFLAG_NONE);
+        if (!factory)
+            return false;
+
+        /**
+         *  If this object is still being built, then bail.
+         */
+        if (!factory->Has_Completed()) {
+            return false;
+        }
+
+        TechnoClass* pending = factory->Get_Object();
+
+        /**
+         *  If by some rare chance the product is not a building, then bail.
+         */
+        if (pending->RTTI != RTTI_BUILDING)
+            return false;
+
+        BuildingClass* pending_bptr = reinterpret_cast<BuildingClass*>(pending);
+
+        /**
+         *  Are we already trying to place this building? No need to re-enter placement mode...
+         */
+        if (Map.PendingObjectPtr == pending_bptr)
+            return false;
+
+        /**
+         *  Fetch the factory building that can build this object.
+         */
+        BuildingClass* builder = pending_bptr->Who_Can_Build_Me();
+        if (!builder)
+            return false;
+
+        /**
+         *  Abort targeting the SW, so that once we place the building we don't go back to a superweapon cursor.
+         */
+        Map.TargettingType = SUPER_NONE;
+
+        /**
+         *  Go into placement mode.
+         */
+        PlayerPtr->Manual_Place(builder, pending_bptr);
+
+        return true;
+    }
+
+    return false;
+}
+
+
+/**
+ *  #issue-168
+ * 
+ *  Reproduces the last structure that was built.
+ * 
+ *  @author: CCHyper (based on research by dkeeton)
+ */
+const char *RepeatLastBuildingCommandClass::Get_Name() const
+{
+    return "RepeatLastBuilding";
+}
+
+const char *RepeatLastBuildingCommandClass::Get_UI_Name() const
+{
+    return "Repeat Last Building";
+}
+
+const char *RepeatLastBuildingCommandClass::Get_Category() const
+{
+    return Text_String(TXT_INTERFACE);
+}
+
+const char *RepeatLastBuildingCommandClass::Get_Description() const
+{
+    return "Queue the last structure that was built.";
+}
+
+bool RepeatLastBuildingCommandClass::Process()
+{
     if (!PlayerPtr) {
         return false;
     }
 
     /**
-     *  Fetch the houses factory associated with producing buildings.
+     *  Fetch the house's factory associated with producing building. This is
+     *  done to make sure the house still has a factory.
      */
-    FactoryClass *factory = PlayerPtr->Fetch_Factory(RTTI_BUILDING);
-    if (!factory) {
-        DEV_DEBUG_WARNING("ManualPlaceCommand - Unable to fetch primary factory!\n");
+    if (!Extension::Fetch(PlayerPtr)->Factory_Count(RTTI_BUILDING, PRODFLAG_NONE)) {
+        DEV_DEBUG_WARNING("RepeatLastBuildingCommandClass - Unable to fetch primary factory!\n");
+        return false;
+    }
+    
+    /**
+     *  Nothing built? Nothing to reproduce...
+     */
+    StructType building = PlayerPtr->JustBuiltStructure;
+    if (building == STRUCT_NONE) {
         return false;
     }
 
     /**
-     *  If this object is still being built, then bail.
+     *  Don't allow queuing of multiple structures.
      */
-    if (!factory->Has_Completed()) {
-        DEV_DEBUG_WARNING("ManualPlaceCommand - Factory object has not yet completed production!\n");
-
-        /**
-         *  #issue-537
-         * 
-         *  Removed due to them being a nuisance to the player.
-         */
-        //Speak(VOX_NO_FACTORY);
+    if (Extension::Fetch(PlayerPtr)->Fetch_Factory(RTTI_BUILDING, PRODFLAG_NONE) &&
+        Extension::Fetch(PlayerPtr)->Fetch_Factory(RTTI_BUILDING, PRODFLAG_NONE)->Get_Object()) {
         return false;
     }
 
-    TechnoClass *pending = factory->Get_Object();
-
-    /**
-     *  If by some rare chance the product is not a building, then bail.
-     */
-    if (pending->What_Am_I() != RTTI_BUILDING) {
-        DEV_DEBUG_ERROR("ManualPlaceCommand - Factory object is not a building!\n");
-
-        /**
-         *  #issue-537
-         * 
-         *  Removed due to them being a nuisance to the player.
-         */
-        //Speak(VOX_NO_FACTORY);
-        return false;
-    }
-
-    BuildingClass *pending_bptr = reinterpret_cast<BuildingClass *>(pending);
-
-    /**
-     *  Fetch the factory building that can build this object.
-     */
-    BuildingClass *builder = pending_bptr->Who_Can_Build_Me();
-    if (!builder) {
-        DEV_DEBUG_ERROR("ManualPlaceCommand - No builder available!\n");
-
-        /**
-         *  #issue-537
-         * 
-         *  Removed due to them being a nuisance to the player.
-         */
-        //Speak(VOX_NO_FACTORY);
+    const BuildingTypeClass *buildingtype = BuildingTypeClass::As_Pointer(building);
+    if (!buildingtype) {
         return false;
     }
 
     /**
-     *  Are we already trying to place this building? No need to re-enter placement mode...
+     *  Is the item currently available to build on the sidebar?
      */
-    if (Map.PendingObjectPtr == pending_bptr) {
-        return true;
+    if (!SidebarExtension->Is_On_Sidebar(RTTI_BUILDINGTYPE, building)) {
+        return false;
     }
 
-    DEV_DEBUG_INFO("ManualPlaceCommand - Entering placement mode with \"%s\"\n", pending_bptr->Full_Name());
+    DEBUG_INFO("RepeatLastBuildingCommandClass - \"%s\"\n", buildingtype->Full_Name());
+
+    OutList.Add(EventClassExt(PlayerPtr->HeapID, EVENT_PRODUCE, RTTI_BUILDINGTYPE, building, TechnoTypeClassExtension::Get_Production_Flags(RTTI_BUILDINGTYPE, building)).As_Event());
+
+    return true;
+}
+
+
+/**
+ *  #issue-168
+ * 
+ *  Reproduces the last infantry that was built.
+ * 
+ *  @author: CCHyper (based on research by dkeeton)
+ */
+const char *RepeatLastInfantryCommandClass::Get_Name() const
+{
+    return "RepeatLastInfantry";
+}
+
+const char *RepeatLastInfantryCommandClass::Get_UI_Name() const
+{
+    return "Repeat Last Infantry";
+}
+
+const char *RepeatLastInfantryCommandClass::Get_Category() const
+{
+    return Text_String(TXT_INTERFACE);
+}
+
+const char *RepeatLastInfantryCommandClass::Get_Description() const
+{
+    return "Queue the last infantry that was built.";
+}
+
+bool RepeatLastInfantryCommandClass::Process()
+{
+    if (!PlayerPtr) {
+        return false;
+    }
 
     /**
-     *  Go into placement mode.
+     *  Fetch the house's factory associated with producing infantry. This is
+     *  done to make sure the house still has a factory.
      */
-    return PlayerPtr->Manual_Place(builder, pending_bptr);
+    if (!Extension::Fetch(PlayerPtr)->Factory_Count(RTTI_INFANTRY, PRODFLAG_NONE)) {
+        DEV_DEBUG_WARNING("RepeatLastInfantryCommandClass - Unable to fetch primary factory!\n");
+        return false;
+    }
+    
+    /**
+     *  Nothing built? Nothing to reproduce...
+     */
+    InfantryType infantry = PlayerPtr->JustBuiltInfantry;
+    if (infantry == INFANTRY_NONE) {
+        return false;
+    }
+
+    const InfantryTypeClass *infantrytype = InfantryTypeClass::As_Pointer(infantry);
+    if (!infantrytype) {
+        return false;
+    }
+    
+    /**
+     *  Is the item currently available to build on the sidebar?
+     */
+    if (!SidebarExtension->Is_On_Sidebar(RTTI_INFANTRYTYPE, infantry)) {
+        return false;
+    }
+
+    DEBUG_INFO("RepeatLastInfantryCommandClass - \"%s\"\n", infantrytype->Full_Name());
+
+    OutList.Add(EventClassExt(PlayerPtr->HeapID, EVENT_PRODUCE, RTTI_INFANTRYTYPE, infantry, TechnoTypeClassExtension::Get_Production_Flags(RTTI_INFANTRYTYPE, infantry)).As_Event());
+
+    return true;
+}
+
+
+/**
+ *  #issue-168
+ * 
+ *  Reproduces the last unit that was built.
+ * 
+ *  @author: CCHyper (based on research by dkeeton)
+ */
+const char *RepeatLastUnitCommandClass::Get_Name() const
+{
+    return "RepeatLastUnit";
+}
+
+const char *RepeatLastUnitCommandClass::Get_UI_Name() const
+{
+    return "Repeat Last Vehicle";
+}
+
+const char *RepeatLastUnitCommandClass::Get_Category() const
+{
+    return Text_String(TXT_INTERFACE);
+}
+
+const char *RepeatLastUnitCommandClass::Get_Description() const
+{
+    return "Queue the last vehicle that was built.";
+}
+
+bool RepeatLastUnitCommandClass::Process()
+{
+    if (!PlayerPtr) {
+        return false;
+    }
+
+    /**
+     *  Fetch the house's factory associated with producing unit. This is
+     *  done to make sure the house still has a factory.
+     */
+    if (!Extension::Fetch(PlayerPtr)->Factory_Count(RTTI_UNIT, PRODFLAG_NONE)) {
+        DEV_DEBUG_WARNING("RepeatLastUnitCommandClass - Unable to fetch primary factory!\n");
+        return false;
+    }
+    
+    /**
+     *  Nothing built? Nothing to reproduce...
+     */
+    UnitType unit = PlayerPtr->JustBuiltUnit;
+    if (unit == UNIT_NONE) {
+        return false;
+    }
+
+    const UnitTypeClass *unittype = UnitTypeClass::As_Pointer(unit);
+    if (!unittype) {
+        return false;
+    }
+    
+    /**
+     *  Is the item currently available to build on the sidebar?
+     */
+    if (!SidebarExtension->Is_On_Sidebar(RTTI_UNITTYPE, unit)) {
+        return false;
+    }
+
+    DEBUG_INFO("RepeatLastUnitCommandClass - \"%s\"\n", unittype->Full_Name());
+
+    OutList.Add(EventClassExt(PlayerPtr->HeapID, EVENT_PRODUCE, RTTI_UNITTYPE, unit, TechnoTypeClassExtension::Get_Production_Flags(RTTI_UNITTYPE, unit)).As_Event());
+
+    return true;
+}
+
+
+/**
+ *  #issue-168
+ * 
+ *  Reproduces the last aircraft that was built.
+ * 
+ *  @author: CCHyper (based on research by dkeeton)
+ */
+const char *RepeatLastAircraftCommandClass::Get_Name() const
+{
+    return "RepeatLastAircraft";
+}
+
+const char *RepeatLastAircraftCommandClass::Get_UI_Name() const
+{
+    return "Repeat Last Aircraft";
+}
+
+const char *RepeatLastAircraftCommandClass::Get_Category() const
+{
+    return Text_String(TXT_INTERFACE);
+}
+
+const char *RepeatLastAircraftCommandClass::Get_Description() const
+{
+    return "Queue the last aircraft that was built.";
+}
+
+bool RepeatLastAircraftCommandClass::Process()
+{
+    if (!PlayerPtr) {
+        return false;
+    }
+
+    /**
+     *  Fetch the house's factory associated with producing aircraft. This is
+     *  done to make sure the house still has a factory.
+     */
+    if (!Extension::Fetch(PlayerPtr)->Factory_Count(RTTI_AIRCRAFT, PRODFLAG_NONE)) {
+        DEV_DEBUG_WARNING("RepeatLastAircraftCommandClass - Unable to fetch primary factory!\n");
+        return false;
+    }
+    
+    /**
+     *  Nothing built? Nothing to reproduce...
+     */
+    AircraftType aircraft = PlayerPtr->JustBuiltAircraft;
+    if (aircraft == AIRCRAFT_NONE) {
+        return false;
+    }
+
+    const AircraftTypeClass *aircrafttype = AircraftTypeClass::As_Pointer(aircraft);
+    if (!aircrafttype) {
+        return false;
+    }
+    
+    /**
+     *  Is the item currently available to build on the sidebar?
+     */
+    if (!SidebarExtension->Is_On_Sidebar(RTTI_AIRCRAFTTYPE, aircraft)) {
+        return false;
+    }
+
+    DEBUG_INFO("RepeatLastAircraftCommandClass - \"%s\"\n", aircrafttype->Full_Name());
+
+    OutList.Add(EventClassExt(PlayerPtr->HeapID, EVENT_PRODUCE, RTTI_AIRCRAFTTYPE, aircraft, TechnoTypeClassExtension::Get_Production_Flags(RTTI_AIRCRAFTTYPE, aircraft)).As_Event());
+
+    return true;
 }
 
 
@@ -825,6 +1109,192 @@ bool ToggleSuperTimersCommandClass::Process()
 
 
 /**
+ *  Switches the sidebar to the Building Tab.
+ *
+ *  @author: ZivDero
+ */
+const char* SetStructureTabCommandClass::Get_Name() const
+{
+    return "StructureTab";
+}
+
+const char* SetStructureTabCommandClass::Get_UI_Name() const
+{
+    return "Select Building Tab";
+}
+
+const char* SetStructureTabCommandClass::Get_Category() const
+{
+    return Text_String(TXT_INTERFACE);
+}
+
+const char* SetStructureTabCommandClass::Get_Description() const
+{
+    return "Switch the command bar to the Building Tab and select the completed building if any.";
+}
+
+bool SetStructureTabCommandClass::Process()
+{
+    const SidebarClassExtension::SidebarTabType newtab = SidebarClassExtension::SIDEBAR_TAB_STRUCTURE;
+    bool result = SidebarExtension->Change_Tab(newtab);
+
+    /**
+     *  Enter the manual placement mode when a building is complete
+     *  and pending placement on the sidebar.
+     *
+     *  @author: CCHyper (based on research by dkeeton)
+     */
+    if (PlayerPtr)
+    {
+        /**
+         *  Fetch the house's factory associated with producing buildings.
+         */
+        FactoryClass* factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(RTTI_BUILDING, PRODFLAG_NONE);
+        if (!factory)
+            return result;
+
+        /**
+         *  If this object is still being built, then bail.
+         */
+        if (!factory->Has_Completed()) {
+            return result;
+        }
+
+        TechnoClass* pending = factory->Get_Object();
+
+        /**
+         *  If by some rare chance the product is not a building, then bail.
+         */
+        if (pending->RTTI != RTTI_BUILDING)
+            return result;
+
+        BuildingClass* pending_bptr = reinterpret_cast<BuildingClass*>(pending);
+
+        /**
+         *  Are we already trying to place this building? No need to re-enter placement mode...
+         */
+        if (Map.PendingObjectPtr == pending_bptr)
+            return result;
+
+        /**
+         *  Fetch the factory building that can build this object.
+         */
+        BuildingClass* builder = pending_bptr->Who_Can_Build_Me();
+        if (!builder)
+            return result;
+
+        /**
+         *  Abort targeting the SW, so that once we place the building we don't go back to a superweapon cursor.
+         */
+        Map.TargettingType = SUPER_NONE;
+
+        /**
+         *  Go into placement mode.
+         */
+        PlayerPtr->Manual_Place(builder, pending_bptr);
+    }
+
+    return result;
+}
+
+
+/**
+ *  Switches the sidebar to the Infantry Tab.
+ *
+ *  @author: ZivDero
+ */
+const char* SetInfantryTabCommandClass::Get_Name() const
+{
+    return "InfantryTab";
+}
+
+const char* SetInfantryTabCommandClass::Get_UI_Name() const
+{
+    return "Select Infantry Tab";
+}
+
+const char* SetInfantryTabCommandClass::Get_Category() const
+{
+    return Text_String(TXT_INTERFACE);
+}
+
+const char* SetInfantryTabCommandClass::Get_Description() const
+{
+    return "Switch the command bar to the Infantry Tab.";
+}
+
+bool SetInfantryTabCommandClass::Process()
+{
+    const SidebarClassExtension::SidebarTabType newtab = SidebarClassExtension::SIDEBAR_TAB_INFANTRY;
+    return SidebarExtension->Change_Tab(newtab);
+}
+
+
+/**
+ *  Switches the sidebar to the Vehicle Tab.
+ *
+ *  @author: ZivDero
+ */
+const char* SetUnitTabCommandClass::Get_Name() const
+{
+    return "UnitTab";
+}
+
+const char* SetUnitTabCommandClass::Get_UI_Name() const
+{
+    return "Select Vehicles Tab";
+}
+
+const char* SetUnitTabCommandClass::Get_Category() const
+{
+    return Text_String(TXT_INTERFACE);
+}
+
+const char* SetUnitTabCommandClass::Get_Description() const
+{
+    return "Switch the command bar to the Vehicle Tab.";
+}
+
+bool SetUnitTabCommandClass::Process()
+{
+    const SidebarClassExtension::SidebarTabType newtab = SidebarClassExtension::SIDEBAR_TAB_UNIT;
+    return SidebarExtension->Change_Tab(newtab);
+}
+
+
+/**
+ *  Switches the sidebar to the Special Tab.
+ *
+ *  @author: ZivDero
+ */
+const char* SetSpecialTabCommandClass::Get_Name() const
+{
+    return "SpecialTab";
+}
+
+const char* SetSpecialTabCommandClass::Get_UI_Name() const
+{
+    return "Select Specials Tab";
+}
+
+const char* SetSpecialTabCommandClass::Get_Category() const
+{
+    return Text_String(TXT_INTERFACE);
+}
+
+const char* SetSpecialTabCommandClass::Get_Description() const
+{
+    return "Switch the command bar to the Special Tab.";
+}
+
+bool SetSpecialTabCommandClass::Process()
+{
+    const SidebarClassExtension::SidebarTabType newtab = SidebarClassExtension::SIDEBAR_TAB_SPECIAL;
+    return SidebarExtension->Change_Tab(newtab);
+}
+
+
+/**
  *  Produces a memory dump on request.
  * 
  *  @author: CCHyper
@@ -851,7 +1321,7 @@ const char *MemoryDumpCommandClass::Get_Description() const
 
 bool MemoryDumpCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -903,11 +1373,11 @@ const char *DumpHeapCRCCommandClass::Get_Description() const
         if (!heap_name.Count()) { \
             DEBUG_INFO("  EMPTY\n"); \
         } else { \
-            WWCRCEngine crc; \
+            CRCEngine crc; \
             for (unsigned i = 0; i < heap_name.Count(); ++i) { \
                 class_name *ptr = heap_name[i]; \
                 if (ptr != nullptr) { \
-                    ptr->Compute_CRC(crc); \
+                    ptr->Object_CRC(crc); \
                     DEBUG_INFO("  %04d\tName: %s\tCRC: 0x%08X\n", i, ptr->Name(), crc.CRC_Value()); \
                 } else { \
                     DEBUG_INFO("  %04d\tFAILED!\n", i); \
@@ -919,7 +1389,7 @@ const char *DumpHeapCRCCommandClass::Get_Description() const
 
 bool DumpHeapCRCCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -946,7 +1416,7 @@ bool DumpHeapCRCCommandClass::Process()
         if (!ColorSchemes.Count()) {
             DEBUG_INFO("  EMPTY\n");
         } else {
-            WWCRCEngine crc;
+            CRCEngine crc;
             for (unsigned i = 0; i < ColorSchemes.Count(); ++i) {
                 ColorScheme *ptr = ColorSchemes[i];
                 if (ptr != nullptr) {
@@ -959,6 +1429,80 @@ bool DumpHeapCRCCommandClass::Process()
         DEBUG_INFO("\n");
     }
     
+    DEBUG_INFO("\nFinished!\n\n");
+
+    return true;
+}
+
+
+/**
+ *  Produces a log dump of active trigger instances.
+ *
+ *  @author: Rampastring
+ */
+const char* DumpTriggersCommandClass::Get_Name() const
+{
+    return "DumpTriggers";
+}
+
+const char* DumpTriggersCommandClass::Get_UI_Name() const
+{
+    return "Dump Trigger Info";
+}
+
+const char* DumpTriggersCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char* DumpTriggersCommandClass::Get_Description() const
+{
+    return "Dumps all existing triggers, tags, and local and global variables to the log output.";
+}
+
+bool DumpTriggersCommandClass::Process()
+{
+    DEBUG_INFO("\nAbout to dump trigger information...\n\n");
+
+    for (int i = 0; i < Triggers.Count(); i++)
+    {
+        TriggerClass* trigger = Triggers[i];
+
+        DEBUG_INFO("Trigger %d: %s\n", i, trigger->Class->FullName);
+        DEBUG_INFO("    IsToDie: %d\n", trigger->IsToDie);
+        DEBUG_INFO("    TrippedFlags: %d\n", trigger->TrippedFlags);
+        DEBUG_INFO("    IsActive: %d\n", trigger->IsActive);
+
+        while (trigger->LinkedTo != nullptr) {
+            trigger = trigger->LinkedTo;
+
+            DEBUG_INFO("    LinkedTo: %s\n", trigger->Class->FullName);
+            DEBUG_INFO("        IsToDie: %d\n", trigger->IsToDie);
+            DEBUG_INFO("        TrippedFlags: %d\n", trigger->TrippedFlags);
+            DEBUG_INFO("        IsActive: %d\n", trigger->IsActive);
+        }
+    }
+
+    DEBUG_INFO("\n\nAbout to dump tag information...\n\n");
+
+    for (int i = 0; i < Tags.Count(); i++)
+    {
+        TagClass* tag = Tags[i];
+
+        DEBUG_INFO("Tag %d: %s\n", i, tag->Class->FullName);
+        DEBUG_INFO("    AttachCount: %d\n", tag->AttachCount);
+        DEBUG_INFO("    CellID: %d,%d\n", tag->CellID.X, tag->CellID.Y);
+        DEBUG_INFO("    IsToDie: %d\n", tag->IsToDie);
+        DEBUG_INFO("    IsSprung: %d\n", tag->IsSprung);
+    }
+
+    DEBUG_INFO("\n\nAbout to dump local variable information...\n\n");
+
+    for (int i = 0; i < std::size(Scen->LocalFlags); i++)
+    {
+        DEBUG_INFO("LocalFlag %d: %s, enabled: %d\n", i, Scen->LocalFlags[i].Name, Scen->LocalFlags[i].Value);
+    }
+
     DEBUG_INFO("\nFinished!\n\n");
 
     return true;
@@ -992,9 +1536,9 @@ const char *InstantBuildCommandClass::Get_Description() const
 
 bool InstantBuildCommandClass::Process()
 {
-    //if (!Session.Singleplayer_Game()) {
-    //    return false;
-    //}
+    if (Session.Players.Count() > 1) {
+        return false;
+    }
 
     Vinifera_Developer_InstantBuild = !Vinifera_Developer_InstantBuild;
 
@@ -1031,7 +1575,7 @@ const char *AIInstantBuildCommandClass::Get_Description() const
 
 bool AIInstantBuildCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -1068,7 +1612,7 @@ const char *ForceWinCommandClass::Get_Description() const
 
 bool ForceWinCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -1106,7 +1650,7 @@ const char *ForceLoseCommandClass::Get_Description() const
 
 bool ForceLoseCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -1118,7 +1662,7 @@ bool ForceLoseCommandClass::Process()
 
 
 /**
- *  Forces the player to blowup and lose the current game session.
+ *  Forces all of the player's units and structures to explode, losing the current game session.
  * 
  *  @author: CCHyper
  */
@@ -1139,12 +1683,12 @@ const char *ForceDieCommandClass::Get_Category() const
 
 const char *ForceDieCommandClass::Get_Description() const
 {
-    return "Forces the player to blowup, loosing the current game session.";
+    return "Forces all of the player's units and structures to explode, losing the current game session.";
 }
 
 bool ForceDieCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -1182,7 +1726,7 @@ const char *CaptureObjectCommandClass::Get_Description() const
 
 bool CaptureObjectCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -1198,7 +1742,7 @@ bool CaptureObjectCommandClass::Process()
         /**
          *  We own this object already, skip it.
          */
-        if (object->Owning_House() == PlayerPtr) {
+        if (object->Owner_HouseClass() == PlayerPtr) {
             continue;
         }
 
@@ -1522,7 +2066,7 @@ const char *SpecialWeaponsCommandClass::Get_Description() const
 
 bool SpecialWeaponsCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -1530,7 +2074,7 @@ bool SpecialWeaponsCommandClass::Process()
      *  Iterate over all the special weapon slots for the player house
      *  and make them all available, fully charged!
      */
-    for (SpecialWeaponType i = SPECIAL_FIRST; i < SuperWeaponTypes.Count(); ++i) {
+    for (SuperWeaponType i = SUPER_FIRST; i < SuperWeaponTypes.Count(); ++i) {
 
         PlayerPtr->SuperWeapon[i]->Enable(true, true, true);
         PlayerPtr->SuperWeapon[i]->Forced_Charge(true);
@@ -1573,7 +2117,7 @@ const char *FreeMoneyCommandClass::Get_Description() const
 
 bool FreeMoneyCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -1613,7 +2157,7 @@ const char *LightningBoltCommandClass::Get_Description() const
 
 bool LightningBoltCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -1652,12 +2196,12 @@ const char *IonBlastCommandClass::Get_Description() const
 
 bool IonBlastCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
-    Coordinate mouse_coord = Get_Coord_Under_Mouse();
-    mouse_coord.Z = Map.Get_Cell_Height(mouse_coord);
+    Coord mouse_coord = Get_Coord_Under_Mouse();
+    mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     new IonBlastClass(mouse_coord);
 
@@ -1692,12 +2236,12 @@ const char *ExplosionCommandClass::Get_Description() const
 
 bool ExplosionCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
-    Coordinate mouse_coord = Get_Coord_Under_Mouse();
-    mouse_coord.Z = Map.Get_Cell_Height(mouse_coord);
+    Coord mouse_coord = Get_Coord_Under_Mouse();
+    mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     const CellClass *cellptr = &Map[mouse_coord];
     if (!cellptr) {
@@ -1727,7 +2271,7 @@ bool ExplosionCommandClass::Process()
 
     new AnimClass(cellanim, mouse_coord);
 
-    Explosion_Damage(&mouse_coord, damage, nullptr, warheadtypeptr);
+    Explosion_Damage(mouse_coord, damage, nullptr, warheadtypeptr);
 
     return true;
 }
@@ -1760,12 +2304,12 @@ const char *SuperExplosionCommandClass::Get_Description() const
 
 bool SuperExplosionCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
-    Coordinate mouse_coord = Get_Coord_Under_Mouse();
-    mouse_coord.Z = Map.Get_Cell_Height(mouse_coord);
+    Coord mouse_coord = Get_Coord_Under_Mouse();
+    mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     const CellClass *cellptr = &Map[mouse_coord];
     if (!cellptr) {
@@ -1795,7 +2339,7 @@ bool SuperExplosionCommandClass::Process()
 
     new AnimClass(cellanim, mouse_coord);
 
-    Explosion_Damage(&mouse_coord, damage, nullptr, warheadtypeptr);
+    Explosion_Damage(mouse_coord, damage, nullptr, warheadtypeptr);
 
     return true;
 }
@@ -1828,7 +2372,7 @@ const char *BailOutCommandClass::Get_Description() const
 
 bool BailOutCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -1866,7 +2410,7 @@ const char *IonStormCommandClass::Get_Description() const
 
 bool IonStormCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -1907,7 +2451,7 @@ const char *MapSnapshotCommandClass::Get_Description() const
 
 bool MapSnapshotCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -1964,7 +2508,7 @@ const char *DeleteObjectCommandClass::Get_Description() const
 
 bool DeleteObjectCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -1977,7 +2521,7 @@ bool DeleteObjectCommandClass::Process()
         /**
          *  Buildings need to be "sold".
          */
-        if (object->What_Am_I() == RTTI_BUILDING) {
+        if (object->RTTI == RTTI_BUILDING) {
             object->Sell_Back(1);
         } else {
             object->Unselect();
@@ -2038,7 +2582,7 @@ bool SpawnAllCommandClass::Try_Unlimbo(TechnoClass *techno, Cell &cell)
 
         while (attempt.Y < map_cell_bottom) {
 
-            Coordinate coord = Cell_Coord(attempt, true);
+            Coord coord = attempt.As_Coord();
             if (techno->Unlimbo(coord)) {
 
                 attempt.X++;
@@ -2066,7 +2610,7 @@ bool SpawnAllCommandClass::Try_Unlimbo(TechnoClass *techno, Cell &cell)
 
 bool SpawnAllCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -2084,7 +2628,7 @@ bool SpawnAllCommandClass::Process()
      *  If mouse position is valid, convert to world coordinates and update
      *  the spawn origin position to that of the mouse position.
      */
-    if (WWMouse->Get_Mouse_XY().Is_Valid()) {
+    if (WWMouse->Get_Mouse_XY() != Point2D(0, 0)) {
         origin = Get_Cell_Under_Mouse();
     }
 
@@ -2094,7 +2638,7 @@ bool SpawnAllCommandClass::Process()
      *  Attempt to spawn all ownable objects for the player house.
      */
 
-    for (BuildingType index = BUILDING_FIRST; index < BuildingTypes.Count(); ++index) {
+    for (StructType index = STRUCT_FIRST; index < BuildingTypes.Count(); ++index) {
         BuildingTypeClass const & building_type = BuildingTypeClass::As_Reference(index);
         if (building_type.Get_Ownable() /*&& building_type.Level != -1*/) {
             BuildingClass * building = (BuildingClass *)building_type.Create_One_Of(PlayerPtr);
@@ -2196,7 +2740,7 @@ const char *DamageCommandClass::Get_Description() const
 
 bool DamageCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -2245,7 +2789,7 @@ const char *ToggleEliteCommandClass::Get_Description() const
 
 bool ToggleEliteCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -2260,7 +2804,7 @@ bool ToggleEliteCommandClass::Process()
          *  Upgrade to rookie.
          */
         if (techno->Veterancy.Is_Dumbass()) {
-            techno->Veterancy.Set_Rookie(false);
+            techno->Veterancy.Set_Rookie(true);
             continue;
         }
 
@@ -2284,7 +2828,7 @@ bool ToggleEliteCommandClass::Process()
          *  Degrade elite back to dumbass.
          */
         if (techno->Veterancy.Is_Elite()) {
-            techno->Veterancy.Set_Rookie(true);
+            techno->Veterancy.Set_Dumbass(true);
             continue;
         }
     }
@@ -2322,7 +2866,7 @@ const char *BuildCheatCommandClass::Get_Description() const
 
 bool BuildCheatCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -2344,7 +2888,7 @@ bool BuildCheatCommandClass::Process()
         for (int index = 0; index < Buildings.Count(); index++) {
             BuildingClass *building = Buildings[index];
             if (building) {
-                if (building->Owning_House() == PlayerPtr) {
+                if (building->Owner_HouseClass() == PlayerPtr) {
                     building->Update_Buildables();
                 }
             }
@@ -2384,7 +2928,7 @@ const char *ToggleShroudCommandClass::Get_Description() const
 
 bool ToggleShroudCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -2406,10 +2950,10 @@ bool ToggleShroudCommandClass::Process()
 
             PlayerPtr->IsVisionary = true;
 
-            Map.Iterator_Reset();
+            Map.Reset_Iterator();
 
-            for (CellClass *cell = Map.Iterator_Next_Cell(); cell != nullptr; cell = Map.Iterator_Next_Cell()) {
-                Map.Map_Cell(cell->Pos, PlayerPtr);
+            for (CellClass *cell = Map.Iterate(); cell != nullptr; cell = Map.Iterate()) {
+                Map.Map_Cell(cell->CellID, PlayerPtr);
             }
 
             Map.Flag_To_Redraw(true);
@@ -2451,12 +2995,12 @@ const char *HealCommandClass::Get_Category() const
 
 const char *HealCommandClass::Get_Description() const
 {
-    return "Heal the selected objects.";
+    return "Heal the selected objects by 50 hit points.";
 }
 
 bool HealCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -2475,7 +3019,7 @@ bool HealCommandClass::Process()
 
 
 /**
- *  Toggles if weapons do damage or not.
+ *  Toggles if weapons are inert or not.
  * 
  *  @author: CCHyper
  */
@@ -2501,7 +3045,7 @@ const char *ToggleInertCommandClass::Get_Description() const
 
 bool ToggleInertCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -2509,7 +3053,7 @@ bool ToggleInertCommandClass::Process()
      *  This flags controls whether weapons are inert. An inert weapon doesn't do
      *  any damage. Effectively, if this is true, then units will never die.
      */
-    Scen->SpecialFlags.IsInert = !Scen->SpecialFlags.IsInert;
+    Scen->Special.IsInert = !Scen->Special.IsInert;
 
     return true;
 }
@@ -2542,7 +3086,7 @@ const char *DumpAIBaseNodesCommandClass::Get_Description() const
 
 bool DumpAIBaseNodesCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -2554,7 +3098,7 @@ bool DumpAIBaseNodesCommandClass::Process()
         /**
          *  Make sure we only process non-player houses.
          */
-        if (!house->Is_Player_Control() && !house->Is_Human_Control()) {
+        if (!house->Is_Player_Control() && !house->Is_Human_Player()) {
 
             DEBUG_INFO("\n");
 
@@ -2575,7 +3119,7 @@ bool DumpAIBaseNodesCommandClass::Process()
             for (int node_index = 0; node_index < house->Base.Nodes.Count(); ++node_index) {
                 BaseNodeClass &node = house->Base.Nodes[node_index];
 
-                if (node.Type == BUILDING_NONE) {
+                if (node.Type == STRUCT_NONE) {
                     continue;
                 }
 
@@ -2618,7 +3162,7 @@ const char *ToggleBerzerkCommandClass::Get_Description() const
 
 bool ToggleBerzerkCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -2666,7 +3210,7 @@ const char *EncroachShadowCommandClass::Get_Description() const
 
 bool EncroachShadowCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -2705,7 +3249,7 @@ const char *EncroachFogCommandClass::Get_Description() const
 
 bool EncroachFogCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -2744,7 +3288,7 @@ const char *ToggleAllianceCommandClass::Get_Description() const
 
 bool ToggleAllianceCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -2800,7 +3344,7 @@ const char *AddPowerCommandClass::Get_Description() const
 
 bool AddPowerCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -2842,7 +3386,7 @@ const char *PlaceCrateCommandClass::Get_Description() const
 
 bool PlaceCrateCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -2900,7 +3444,7 @@ const char *CursorPositionCommandClass::Get_Description() const
 
 bool CursorPositionCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -2940,7 +3484,7 @@ const char *ToggleFrameStepCommandClass::Get_Description() const
 
 bool ToggleFrameStepCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -2981,7 +3525,7 @@ const char *Step1FrameCommandClass::Get_Description() const
 
 bool Step1FrameCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -3022,7 +3566,7 @@ const char *Step5FramesCommandClass::Get_Description() const
 
 bool Step5FramesCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -3063,7 +3607,7 @@ const char *Step10FramesCommandClass::Get_Description() const
 
 bool Step10FramesCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -3104,7 +3648,7 @@ const char *ToggleAIControlCommandClass::Get_Description() const
 
 bool ToggleAIControlCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -3201,12 +3745,12 @@ bool StartingWaypointsCommandClass::Process()
      *  as Tiberian Sun only supports these for starting locatons.
      */
     static int _current_index = 0;
-    Coordinate wp_coord = Scen->Get_Waypoint_Coord(_current_index++ % 8);
-    if (!wp_coord) {
+    Coord wp_coord = Scen->Waypoint_Coord(_current_index++ % 8);
+    if (wp_coord == COORD_NONE) {
         return false;
     }
 
-    wp_coord.Z = Map.Get_Cell_Height(wp_coord);
+    wp_coord.Z = Map.Get_Height_GL(wp_coord);
 
     /**
      *  Center the tactical camera at this waypoint.
@@ -3258,8 +3802,8 @@ bool PlaceInfantryCommandClass::Process()
         return false;
     }
 
-    Coordinate mouse_coord = Get_Coord_Under_Mouse();
-    mouse_coord.Z = Map.Get_Cell_Height(mouse_coord);
+    Coord mouse_coord = Get_Coord_Under_Mouse();
+    mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     const CellClass *cellptr = &Map[mouse_coord];
     if (!cellptr) {
@@ -3268,7 +3812,7 @@ bool PlaceInfantryCommandClass::Process()
     
     DynamicVectorClass<InfantryTypeClass *> available_infantry;
 
-    int owner_id = 1 << PlayerPtr->Class->ID;
+    int owner_id = 1 << PlayerPtr->Class->HeapID;
 
     /**
      *  Build a list of infantry from the available starting units.
@@ -3298,7 +3842,7 @@ bool PlaceInfantryCommandClass::Process()
         return false;
     }
 
-    DEBUG_INFO("Placed infantry \"%s\" at %d,%d,%d\n", inf->Name(), inf->Coord.X, inf->Coord.Y, inf->Coord.Z);
+    DEBUG_INFO("Placed infantry \"%s\" at %d,%d,%d\n", inf->Name(), inf->Position.X, inf->Position.Y, inf->Position.Z);
     return true;
 }
 
@@ -3334,8 +3878,8 @@ bool PlaceUnitCommandClass::Process()
         return false;
     }
 
-    Coordinate mouse_coord = Get_Coord_Under_Mouse();
-    mouse_coord.Z = Map.Get_Cell_Height(mouse_coord);
+    Coord mouse_coord = Get_Coord_Under_Mouse();
+    mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     const CellClass *cellptr = &Map[mouse_coord];
     if (!cellptr) {
@@ -3344,7 +3888,7 @@ bool PlaceUnitCommandClass::Process()
     
     DynamicVectorClass<UnitTypeClass *> available_units;
 
-    int owner_id = 1 << PlayerPtr->Class->ID;
+    int owner_id = 1 << PlayerPtr->Class->HeapID;
 
     /**
      *  Build a list of units from the available starting units.
@@ -3376,7 +3920,7 @@ bool PlaceUnitCommandClass::Process()
         return false;
     }
 
-    DEBUG_INFO("Placed unit \"%s\" at %d,%d,%d\n", unit->Name(), unit->Coord.X, unit->Coord.Y, unit->Coord.Z);
+    DEBUG_INFO("Placed unit \"%s\" at %d,%d,%d\n", unit->Name(), unit->Position.X, unit->Position.Y, unit->Position.Z);
     return true;
 }
 
@@ -3408,12 +3952,12 @@ const char *PlaceTiberiumCommandClass::Get_Description() const
 
 bool PlaceTiberiumCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
-    Coordinate mouse_coord = Get_Coord_Under_Mouse();
-    mouse_coord.Z = Map.Get_Cell_Height(mouse_coord);
+    Coord mouse_coord = Get_Coord_Under_Mouse();
+    mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     CellClass *cellptr = &Map[mouse_coord];
     if (!cellptr) {
@@ -3456,12 +4000,12 @@ const char *ReduceTiberiumCommandClass::Get_Description() const
 
 bool ReduceTiberiumCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
-    Coordinate mouse_coord = Get_Coord_Under_Mouse();
-    mouse_coord.Z = Map.Get_Cell_Height(mouse_coord);
+    Coord mouse_coord = Get_Coord_Under_Mouse();
+    mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     CellClass *cellptr = &Map[mouse_coord];
     if (!cellptr) {
@@ -3504,12 +4048,12 @@ const char *PlaceFullTiberiumCommandClass::Get_Description() const
 
 bool PlaceFullTiberiumCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
-    Coordinate mouse_coord = Get_Coord_Under_Mouse();
-    mouse_coord.Z = Map.Get_Cell_Height(mouse_coord);
+    Coord mouse_coord = Get_Coord_Under_Mouse();
+    mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     CellClass *cellptr = &Map[mouse_coord];
     if (!cellptr) {
@@ -3552,12 +4096,12 @@ const char *RemoveTiberiumCommandClass::Get_Description() const
 
 bool RemoveTiberiumCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
-    Coordinate mouse_coord = Get_Coord_Under_Mouse();
-    mouse_coord.Z = Map.Get_Cell_Height(mouse_coord);
+    Coord mouse_coord = Get_Coord_Under_Mouse();
+    mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
 
     CellClass *cellptr = &Map[mouse_coord];
     if (!cellptr) {
@@ -3600,7 +4144,7 @@ const char *InstantSuperRechargeCommandClass::Get_Description() const
 
 bool InstantSuperRechargeCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -3637,7 +4181,7 @@ const char *AIInstantSuperRechargeCommandClass::Get_Description() const
 
 bool AIInstantSuperRechargeCommandClass::Process()
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
@@ -3708,7 +4252,7 @@ bool DumpNetworkCRCCommandClass::Process()
     std::snprintf(filename_buffer, sizeof(filename_buffer), "%s\\SYNC_%s-%02d_%02u-%02u-%04u_%02u-%02u-%02u.LOG",
         Vinifera_DebugDirectory,
         PlayerPtr->IniName,
-        PlayerPtr->ID,
+        PlayerPtr->HeapID,
         day, month, year, hour, min, sec);
 
     /**
@@ -3725,6 +4269,250 @@ bool DumpNetworkCRCCommandClass::Process()
     Extension::Print_CRCs(fp, nullptr);
 
     std::fclose(fp);
+
+    return true;
+}
+
+/**
+ *  Dumps all the type heaps to an output log.
+ *
+ *  @author: ZivDero
+ */
+const char* DumpHeapsCommandClass::Get_Name() const
+{
+    return "DumpHeaps";
+}
+
+const char* DumpHeapsCommandClass::Get_UI_Name() const
+{
+    return "Dump Heaps";
+}
+
+const char* DumpHeapsCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char* DumpHeapsCommandClass::Get_Description() const
+{
+    return "Dumps all the type heaps to an output log.";
+}
+
+/**
+ *  Handy macro for defining the logging the heaps CRCs.
+ *
+ *  @author: ZivDero
+ */
+#define LOG_HEAP(class_name, heap_name) \
+    { \
+        DEBUG_INFO(#class_name ":\n"); \
+        if (!heap_name.Count()) { \
+            DEBUG_INFO("  EMPTY\n"); \
+        } else { \
+            for (unsigned i = 0; i < heap_name.Count(); ++i) { \
+                class_name *ptr = heap_name[i]; \
+                if (ptr != nullptr) { \
+                    DEBUG_INFO("  %04d=%s\n", i, ptr->Name()); \
+                } \
+            } \
+        } \
+        DEBUG_INFO("\n"); \
+    }
+
+bool DumpHeapsCommandClass::Process()
+{
+    if (Session.Players.Count() > 1) {
+        return false;
+    }
+
+    DEBUG_INFO("\nAbout to dump heaps...\n\n");
+
+    LOG_HEAP(HouseTypeClass, HouseTypes);
+
+    LOG_HEAP(UnitTypeClass, UnitTypes);
+    LOG_HEAP(InfantryTypeClass, InfantryTypes);
+    LOG_HEAP(BuildingTypeClass, BuildingTypes);
+    LOG_HEAP(AircraftTypeClass, AircraftTypes);
+
+    LOG_HEAP(TerrainTypeClass, TerrainTypes);
+    LOG_HEAP(SmudgeTypeClass, SmudgeTypes);
+    LOG_HEAP(OverlayTypeClass, OverlayTypes);
+
+    LOG_HEAP(AnimTypeClass, AnimTypes);
+    LOG_HEAP(VoxelAnimTypeClass, VoxelAnimTypes);
+    LOG_HEAP(ParticleTypeClass, ParticleTypes);
+    LOG_HEAP(ParticleSystemTypeClass, ParticleSystemTypes);
+
+    LOG_HEAP(WeaponTypeClass, WeaponTypes);
+    LOG_HEAP(WarheadTypeClass, WarheadTypes);
+    LOG_HEAP(SuperWeaponTypeClass, SuperWeaponTypes);
+    LOG_HEAP(BulletTypeClass, BulletTypes);
+
+    LOG_HEAP(TiberiumClass, Tiberiums);
+    LOG_HEAP(ArmorTypeClass, ArmorTypes);
+    LOG_HEAP(RocketTypeClass, RocketTypes);
+
+    DEBUG_INFO("\nFinished!\n\n");
+
+    return true;
+}
+
+
+/**
+ *  Reloads the Rules and Art INI files.
+ * 
+ *  @author: CCHyper
+ */
+const char *ReloadRulesCommandClass::Get_Name() const
+{
+    return "ReloadRules";
+}
+
+const char *ReloadRulesCommandClass::Get_UI_Name() const
+{
+    return "Reload Rules";
+}
+
+const char *ReloadRulesCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *ReloadRulesCommandClass::Get_Description() const
+{
+    return "Reloads the Rules and Art INI files.";
+}
+
+bool ReloadRulesCommandClass::Process()
+{
+    if (Session.Players.Count() > 1) {
+        return false;
+    }
+
+    Vinifera_Developer_IsToReloadRules = true;
+
+    return true;
+}
+
+
+/**
+ *  Creates a meteor shower around the current mouse cell.
+ * 
+ *  @author: CCHyper
+ */
+const char *MeteorShowerCommandClass::Get_Name() const
+{
+    return "MeteorShower";
+}
+
+const char *MeteorShowerCommandClass::Get_UI_Name() const
+{
+    return "Meteor Shower";
+}
+
+const char *MeteorShowerCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *MeteorShowerCommandClass::Get_Description() const
+{
+    return "Creates a meteor shower around the current mouse cell.";
+}
+
+bool MeteorShowerCommandClass::Process()
+{
+    if (Session.Players.Count() > 1) {
+        return false;
+    }
+
+    Coord mouse_coord = Get_Coord_Under_Mouse();
+    mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
+
+    if (!Map.In_Radar(mouse_coord)) {
+        return false;
+    }
+
+    static int const _meteor_counts[] = { 4, 8, 10 };
+
+    /**
+     *  Random pick how many meteors in the shower.
+     */
+    int count = Random_Pick<unsigned>(0, std::size(_meteor_counts)-1);
+
+    const AnimTypeClass *large_meteor = AnimTypeClass::As_Pointer("METLARGE");
+    const AnimTypeClass *small_meteor = AnimTypeClass::As_Pointer("METSMALL");
+
+    for (int i = 0; i < count; ++i) {
+
+        /**
+         *  Add a random adjust to the position of the meteor within the shower.
+         */
+        int x_adj = Scen->RandomNumber() % (count * (CELL_LEPTON_W/2));
+        int y_adj = Scen->RandomNumber() % (count * (CELL_LEPTON_H/2));
+
+        Coord where = mouse_coord;
+
+        where.X += x_adj;
+        where.Y += y_adj;
+        where.Z = Map.Get_Height_GL(where);
+
+        const AnimTypeClass *anim = Percent_Chance(30) ? large_meteor : small_meteor;
+
+        new AnimClass(anim, where);
+    }
+
+    return true;
+}
+
+
+/**
+ *  Sends a meteor at the current mouse cell.
+ * 
+ *  @author: CCHyper
+ */
+const char *MeteorImpactCommandClass::Get_Name() const
+{
+    return "MeteorImpact";
+}
+
+const char *MeteorImpactCommandClass::Get_UI_Name() const
+{
+    return "Meteor Impact";
+}
+
+const char *MeteorImpactCommandClass::Get_Category() const
+{
+    return CATEGORY_DEVELOPER;
+}
+
+const char *MeteorImpactCommandClass::Get_Description() const
+{
+    return "Sends a meteor at the current mouse cell.";
+}
+
+bool MeteorImpactCommandClass::Process()
+{
+    if (Session.Players.Count() > 1) {
+        return false;
+    }
+
+    Coord mouse_coord = Get_Coord_Under_Mouse();
+    mouse_coord.Z = Map.Get_Height_GL(mouse_coord);
+
+    if (!Map.In_Radar(mouse_coord)) {
+        return false;
+    }
+
+    /**
+     *  Pick a random a random meteor object.
+     */
+    const VoxelAnimTypeClass *voxelanimtypeptr = VoxelAnimTypeClass::As_Pointer(Percent_Chance(50) ? "METEOR01" : "METEOR02");
+    if (!voxelanimtypeptr) {
+        return false;
+    }
+
+    new VoxelAnimClass(voxelanimtypeptr, mouse_coord);
 
     return true;
 }

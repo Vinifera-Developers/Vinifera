@@ -12,19 +12,6 @@ body:
         
         Please make sure you follow these instructions and fill in every question with as much detial as possible.
 
-  - type: checkboxes
-    id: checks
-    attributes:
-      label: First Check
-      description: Please confirm and check all the following options;
-      options:
-        - label: I added a very descriptive title to this issue.
-          required: true
-        - label: I used the GitHub search to find a similar issue and didn't find it.
-          required: true
-        - label: I have attached as much information as possible *(screenshots, debug and exception logs, etc)*.
-          required: true
-
   - type: textarea
     id: description
     attributes:
@@ -86,3 +73,16 @@ body:
     attributes:
       label: Additional Context
       description: Add any additional context information, screenshots, images, videos, debug logs, and/or exception files you think would be useful.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Final Check
+      description: Please confirm and check all the following options;
+      options:
+        - label: I added a very descriptive title to this issue.
+          required: true
+        - label: I used the GitHub search to find a similar issue and didn't find it.
+          required: true
+        - label: I have attached as much information as possible *(screenshots, debug and exception logs, etc)*.
+          required: true

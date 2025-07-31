@@ -40,12 +40,14 @@
 #include "language.h"
 #include "session.h"
 #include "sessionext.h"
+#include "waypoint.h"
 #include "iomap.h"
 #include "noinit.h"
 #include "swizzle.h"
 #include "vinifera_saveload.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "houseext.h"
 
 
 /**
@@ -55,6 +57,7 @@
  */
 ScenarioClassExtension::ScenarioClassExtension(const ScenarioClass *this_ptr) :
     GlobalExtensionClass(this_ptr),
+    Waypoint(NEW_WAYPOINT_COUNT),
     IsIceDestruction(true)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("ScenarioClassExtension::ScenarioClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
@@ -72,7 +75,8 @@ ScenarioClassExtension::ScenarioClassExtension(const ScenarioClass *this_ptr) :
  *  @author: CCHyper
  */
 ScenarioClassExtension::ScenarioClassExtension(const NoInitClass &noinit) :
-    GlobalExtensionClass(noinit)
+    GlobalExtensionClass(noinit),
+    Waypoint(noinit)
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::ScenarioClassExtension(NoInitClass) - 0x%08X\n", (uintptr_t)(ThisPtr));
 }
@@ -86,6 +90,11 @@ ScenarioClassExtension::ScenarioClassExtension(const NoInitClass &noinit) :
 ScenarioClassExtension::~ScenarioClassExtension()
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::~ScenarioClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
+
+    /**
+     *  Free up the cell array.
+     */
+    Waypoint.Clear();
 }
 
 
@@ -104,6 +113,8 @@ HRESULT ScenarioClassExtension::Load(IStream *pStm)
     }
 
     new (this) ScenarioClassExtension(NoInitClass());
+
+    Load_Primitive_Vector(pStm, Waypoint, "ScenarioClassExtension::Waypoint");
     
     return hr;
 }
@@ -123,6 +134,8 @@ HRESULT ScenarioClassExtension::Save(IStream *pStm, BOOL fClearDirty)
         return hr;
     }
 
+    Save_Primitive_Vector(pStm, Waypoint, "ScenarioClassExtension::Waypoint");
+
     return hr;
 }
 
@@ -132,9 +145,9 @@ HRESULT ScenarioClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int ScenarioClassExtension::Size_Of() const
+int ScenarioClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Size_Of - 0x%08X\n", (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("ScenarioClassExtension::Get_Object_Size - 0x%08X\n", (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -145,7 +158,7 @@ int ScenarioClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void ScenarioClassExtension::Detach(TARGET target, bool all)
+void ScenarioClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Detach - 0x%08X\n", (uintptr_t)(This()));
 }
@@ -156,9 +169,9 @@ void ScenarioClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void ScenarioClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void ScenarioClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Compute_CRC - 0x%08X\n", (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("ScenarioClassExtension::Object_CRC - 0x%08X\n", (uintptr_t)(This()));
 
     crc(IsIceDestruction);
 }
@@ -171,9 +184,11 @@ void ScenarioClassExtension::Compute_CRC(WWCRCEngine &crc) const
  */
 void ScenarioClassExtension::Init_Clear()
 {
-    //EXT_DEBUG_TRACE("ScenarioClassExtension::Init_Clear - 0x%08X\n", (uintptr_t)(This()));
-
     IsIceDestruction = true;
+    ScorePlayerColor = RGBStruct{ 253, 181, 28 }; // Default to TS GDI score color
+    ScoreEnemyColor = RGBStruct{ 250, 28, 28 };   // Default to TS Nod score color
+
+    //EXT_DEBUG_TRACE("ScenarioClassExtension::Init_Clear - 0x%08X\n", (uintptr_t)(This()));
 
     {
         /**
@@ -189,6 +204,11 @@ void ScenarioClassExtension::Init_Clear()
         ini.Load(CCFileClass("TUTORIAL.INI"), false);
         Read_Tutorial_INI(ini);
     }
+
+    /**
+     *  Clear all waypoint values, preparing for scenario loading.
+     */
+    Clear_All_Waypoints();
 }
 
 
@@ -204,6 +224,8 @@ bool ScenarioClassExtension::Read_INI(CCINIClass &ini)
     static const char * const BASIC = "Basic";
 
     IsIceDestruction = ini.Get_Bool(BASIC, "IceDestructionEnabled", IsIceDestruction);
+    ScorePlayerColor = ini.Get_RGB(BASIC, "ScorePlayerColor", ScorePlayerColor);
+    ScoreEnemyColor = ini.Get_RGB(BASIC, "ScoreEnemyColor", ScoreEnemyColor);
 
     /**
      *  #issue-123
@@ -275,6 +297,268 @@ bool ScenarioClassExtension::Read_Tutorial_INI(CCINIClass &ini, bool log)
     }
 
     return true;
+}
+
+
+/**
+ *  Get the cell value of a waypoint location.
+ *
+ *  @author: CCHyper
+ */
+Cell ScenarioClassExtension::Waypoint_Cell(WAYPOINT wp) const
+{
+    //EXT_DEBUG_TRACE("ScenarioClassExtension::Waypoint_CellClass - 0x%08X\n", (uintptr_t)(This()));
+    ASSERT_FATAL(wp < Waypoint.Length());
+
+    return Waypoint[wp];
+}
+
+
+/**
+ *  Get the cell pointer of a waypoint location.
+ *
+ *  @author: CCHyper
+ */
+CellClass *ScenarioClassExtension::Waypoint_CellClass(WAYPOINT wp) const
+{
+    //EXT_DEBUG_TRACE("ScenarioClassExtension::Waypoint_CellClassPtr - 0x%08X\n", (uintptr_t)(This()));
+    ASSERT_FATAL(wp < Waypoint.Length());
+
+    return &Map[Waypoint[wp]];
+}
+
+
+/**
+ *  Get the coordinate of a waypoint location.
+ *
+ *  #NOTE: The coordinate is adjusted by the bridge height if the waypoint is on a bridge cell.
+ *
+ *  @author: CCHyper
+ */
+Coord ScenarioClassExtension::Waypoint_Coord(WAYPOINT wp) const
+{
+    //EXT_DEBUG_TRACE("ScenarioClassExtension::Waypoint_Coord - 0x%08X\n", (uintptr_t)(This()));
+    ASSERT_FATAL(wp < Waypoint.Length());
+
+    CellClass *cell = &Map[Waypoint[wp]];
+    Coord coord = cell->Center_Coord();
+    if (cell->IsUnderBridge || cell->WasUnderBridge) {
+        coord.Z += BRIDGE_LEPTON_HEIGHT;
+    }
+    return coord;
+}
+
+
+/**
+ *  Set the waypoint location from the cell value.
+ *
+ *  @author: CCHyper
+ */
+void ScenarioClassExtension::Set_Waypoint_Cell(WAYPOINT wp, Cell &cell)
+{
+    //EXT_DEBUG_TRACE("ScenarioClassExtension::Waypoint_CellClass - 0x%08X\n", (uintptr_t)(This()));
+    ASSERT_FATAL(wp < Waypoint.Length());
+
+    Waypoint[wp] = cell;
+}
+
+
+/**
+ *  Set the waypoint location from a coordinate value.
+ *
+ *  @author: CCHyper
+ */
+void ScenarioClassExtension::Set_Waypoint_Coord(WAYPOINT wp, Coord &coord)
+{
+    //EXT_DEBUG_TRACE("ScenarioClassExtension::Set_Waypoint_Coord - 0x%08X\n", (uintptr_t)(This()));
+
+    Waypoint[wp] = coord.As_Cell();
+}
+
+
+/**
+ *  Is this waypoint a valid cell location?
+ *
+ *  @author: CCHyper
+ */
+bool ScenarioClassExtension::Is_Waypoint_Valid(WAYPOINT wp) const
+{
+    //EXT_DEBUG_TRACE("ScenarioClassExtension::Is_Waypoint_Valid - 0x%08X\n", (uintptr_t)(This()));
+    ASSERT_FATAL(wp < Waypoint.Length());
+
+    return (wp >= WAYPOINT_FIRST && wp < Waypoint.Length()) ? (Waypoint[wp] != CELL_NONE) : false;
+}
+
+
+/**
+ *  Clear the waypoint value.
+ *
+ *  @author: CCHyper
+ */
+void ScenarioClassExtension::Clear_Waypoint(WAYPOINT wp)
+{
+    //EXT_DEBUG_TRACE("ScenarioClassExtension::Clear_Waypoint - 0x%08X\n", (uintptr_t)(This()));
+    ASSERT_FATAL(wp < Waypoint.Length());
+
+    Waypoint[wp] = Cell();
+}
+
+
+/**
+ *  Clear all the waypoints, emptying the list.
+ *
+ *  @author: CCHyper
+ */
+void ScenarioClassExtension::Clear_All_Waypoints()
+{
+    //EXT_DEBUG_TRACE("ScenarioClassExtension::Clear_All_Waypoints - 0x%08X\n", (uintptr_t)(This()));
+
+    /**
+     *  Assume that whatever the contents of the VectorClass are is garbage
+     *  (it may have been loaded from a save-game file), so zero it out first.
+     */
+    new (&Waypoint) VectorClass<Cell>;
+    Waypoint.Resize(NEW_WAYPOINT_COUNT);
+}
+
+
+/**
+ *  Read the waypoint locations from the ini database.
+ *
+ *  @author: CCHyper
+ */
+void ScenarioClassExtension::Read_Waypoint_INI(CCINIClass &ini)
+{
+    //EXT_DEBUG_TRACE("ScenarioClassExtension::Read_Waypoint_INI - 0x%08X\n", (uintptr_t)(This()));
+
+    static const char * const WAYNAME = "Waypoints";
+
+    char entry[32];
+    int valid_count = 0;
+
+    /**
+     *  Read the Waypoint entries.
+     */
+    for (WAYPOINT wp = WAYPOINT_FIRST; wp < Waypoint.Length(); ++wp) {
+
+        /**
+         *  Get a waypoint entry.
+         */
+        std::snprintf(entry, sizeof(entry), "%d", wp);
+        int value = ini.Get_Int(WAYNAME, entry, 0);
+
+        /**
+         *  Skip invalid entries.
+         */
+        if (!value) {
+            continue;
+        }
+
+        ++valid_count;
+
+        /**
+         *  Convert this value to an actual map cell location.
+         */
+        Cell cell;
+        cell.X = value % 1000;
+        cell.Y = value / 1000;
+
+        int wp_num = std::strtol(entry, nullptr, 10);
+
+        switch (wp_num) {
+            case WAYPOINT_HOME:
+                DEV_DEBUG_INFO("Scenario: Read waypoint '%s' (HOME) (%d,%d).\n", ::Waypoint_As_String(wp), cell.X, cell.Y);
+                break;
+            case WAYPOINT_REINF:
+                DEV_DEBUG_INFO("Scenario: Read waypoint '%s' (REINF) (%d,%d).\n", ::Waypoint_As_String(wp), cell.X, cell.Y);
+                break;
+            case WAYPOINT_SPECIAL:
+                DEV_DEBUG_INFO("Scenario: Read waypoint '%s' (SPECIAL) (%d,%d).\n", ::Waypoint_As_String(wp), cell.X, cell.Y);
+                break;
+            default:
+                DEV_DEBUG_INFO("Scenario: Read waypoint '%s' (%d,%d).\n", ::Waypoint_As_String(wp), cell.X, cell.Y);
+                break;
+        };
+
+        /**
+         *  Store the waypoint value.
+         */
+        Waypoint[wp_num] = cell;
+
+#if defined(TS_CLIENT)
+        /**
+         *  Also store original waypoint value for the CnCNet ts-patches spawner.
+         */
+        if (wp_num < WAYPOINT_COUNT) {
+            Scen->Waypoint[wp_num] = cell;
+        }
+#endif
+
+        /**
+         *  If the cell location is valid, flag the cell on the map as a waypoint holder.
+         */
+        if (wp_num >= 0 && cell != CELL_NONE) {
+#ifndef NDEBUG
+            //DEV_DEBUG_INFO("Scenario: Waypoint '%s', location '%d,%d' -> IsWaypoint = true.\n", ::Waypoint_As_String(cell), cell.X, cell.Y);
+#endif
+            Map[cell].IsWaypoint = true;
+        }
+
+    }
+
+    if (valid_count > 0) DEV_DEBUG_INFO("Scenario: Read a total of '%d' waypoints.\n", valid_count);
+}
+
+
+/**
+ *  Write the waypoint locations to the ini database.
+ *
+ *  @author: CCHyper
+ */
+void ScenarioClassExtension::Write_Waypoint_INI(CCINIClass &ini)
+{
+    //EXT_DEBUG_TRACE("ScenarioClassExtension::Write_Waypoint_INI - 0x%08X\n", (uintptr_t)(This()));
+
+    static char const * const WAYNAME = "Waypoints";
+
+    char entry[32];
+    int valid_count = 0;
+
+    /**
+     *  Clear any existing section from the ini database.
+     */
+    ini.Clear(WAYNAME);
+
+    /**
+     * Save the Waypoint entries.
+     */
+    for (WAYPOINT wp = WAYPOINT_FIRST; wp < Waypoint.Length(); ++wp) {
+        if (Is_Waypoint_Valid(wp)) {
+            std::snprintf(entry, sizeof(entry), "%d", wp);
+            int value = Waypoint[wp].X + 1000 * Waypoint[wp].Y;
+            ini.Put_Int(WAYNAME, entry, value);
+            ++valid_count;
+        }
+    }
+
+    if (valid_count > 0) DEV_DEBUG_INFO("Scenario: Wrote a total of '%d' waypoints.\n", valid_count);
+}
+
+
+/**
+ *  Returns the waypoint number as a string.
+ *
+ *  @author: CCHyper
+ */
+const char * ScenarioClassExtension::Waypoint_As_String(WAYPOINT wp) const
+{
+    //EXT_DEBUG_TRACE("ScenarioClassExtension::Waypoint_As_String - 0x%08X\n", (uintptr_t)(This()));
+
+    if (Is_Waypoint_Valid(wp)) {
+        return ::Waypoint_As_String(wp);
+    }
+
+    return "";
 }
 
 
@@ -376,7 +660,7 @@ void ScenarioClassExtension::Assign_Houses()
         /**
          *  Record where we placed this player.
          */
-        node.Player.ID = HousesType(housep->ID);
+        node.Player.ID = HousesType(housep->HeapID);
 
         DEBUG_INFO("    Assigned player \"%s\" (House: \"%s\", ID: %d, Color: \"%s\") to slot %d.\n",
             node.Name, housep->Class->Name(), node.Player.ID, ColorSchemes[housep->RemapColor]->Name, i);
@@ -453,7 +737,7 @@ void ScenarioClassExtension::Assign_Houses()
         housep->Assign_Handicap(difficulty);
 
         DEBUG_INFO("    Assigned computer house \"%s\" (ID: %d, Color: \"%s\") to slot %d.\n",
-            housep->Class->Name(), housep->ID, ColorSchemes[housep->RemapColor]->Name, i);
+            housep->Class->Name(), housep->HeapID, ColorSchemes[housep->RemapColor]->Name, i);
     }
 
     /**
@@ -574,7 +858,7 @@ static Cell Clip_Scatter(Cell cell, int maxdist)
         }
     }
 
-    return XY_Cell(x, y);
+    return Cell(x, y);
 }
 
 
@@ -650,7 +934,7 @@ static Cell Clip_Move(Cell cell, FacingType facing, int dist)
     if (y > ymax) y = ymax;
     if (y < ymin) y = ymin;
 
-    return XY_Cell(x, y);
+    return Cell(x, y);
 }
 
 
@@ -659,8 +943,10 @@ static Cell Clip_Move(Cell cell, FacingType facing, int dist)
  * 
  *  @author: 06/09/1995 BRR - Red Alert source code.
  *           CCHyper - Adjustments for Tiberian Sun.
+ * 
+ *  #issue-338 - Adds "min_dist" argument.
  */
-static int Scan_Place_Object(ObjectClass *obj, Cell cell)
+int Vinifera_Scan_Place_Object(ObjectClass *obj, Cell cell, int min_dist = 1, int max_dist = 31, bool no_scatter = false)
 {
     int dist;               // for object placement
     FacingType rot;         // for object placement
@@ -675,10 +961,10 @@ static int Scan_Place_Object(ObjectClass *obj, Cell cell)
      */
     if (Map.In_Radar(cell)) {
         techno = Map[cell].Cell_Techno();
-        if (!techno || (techno->What_Am_I() == RTTI_INFANTRY &&
-            obj->What_Am_I() == RTTI_INFANTRY)) {
-            Coordinate coord = Cell_Coord(newcell, true);
-            coord.Z = Map.Get_Cell_Height(coord);
+        if (!techno || (techno->RTTI == RTTI_INFANTRY &&
+            obj->RTTI == RTTI_INFANTRY)) {
+            Coord coord = cell.As_Coord();
+            coord.Z = Map.Get_Height_GL(coord);
             if (obj->Unlimbo(coord, DIR_N)) {
                 return true;
             }
@@ -692,7 +978,7 @@ static int Scan_Place_Object(ObjectClass *obj, Cell cell)
      *  If that fails, go to the next distance.
      *  This ensures that the closest coordinates are filled first.
      */
-    for (dist = 1; dist < 32; dist++) {
+    for (dist = min_dist; dist <= max_dist; dist++) {
 
         /**
          *  Pick a random starting direction
@@ -720,7 +1006,7 @@ static int Scan_Place_Object(ObjectClass *obj, Cell cell)
                  *  If this is our second try at this distance, add a random scatter
                  *  to the desired cell, so our units aren't all aligned along spokes.
                  */
-                if (tryval > 0) {
+                if (!no_scatter && tryval > 0) {
                     newcell = Clip_Scatter(newcell, 1);
                 }
 
@@ -740,10 +1026,10 @@ static int Scan_Place_Object(ObjectClass *obj, Cell cell)
                      *  - the techno in the cell & the object are both infantry
                      */
                     techno = Map[newcell].Cell_Techno();
-                    if (!techno || (techno->What_Am_I() == RTTI_INFANTRY &&
-                        obj->What_Am_I() == RTTI_INFANTRY)) {
-                        Coordinate coord = Cell_Coord(newcell, true);
-                        coord.Z = Map.Get_Cell_Height(coord);
+                    if (!techno || (techno->RTTI == RTTI_INFANTRY &&
+                        obj->RTTI == RTTI_INFANTRY)) {
+                        Coord coord = newcell.As_Coord();
+                        coord.Z = Map.Get_Height_GL(coord);
                         if (obj->Unlimbo(coord, DIR_N)) {
                             return true;
                         }
@@ -763,6 +1049,92 @@ static int Scan_Place_Object(ObjectClass *obj, Cell cell)
 
 
 /**
+ *  Checks if the cell adjacent from the input cell is occupied.
+ * 
+ *  @author: CCHyper
+ */
+static bool Is_Adjacent_Cell_Empty(Cell cell, FacingType facing, int dist)
+{
+    Cell newcell;
+    TechnoClass *techno;
+
+    /**
+     *  Pick a coordinate along this directional axis
+     */
+    newcell = Clip_Move(cell, facing, dist);
+
+    /**
+     *  Is there already an object on this cell?
+     */
+    techno = Map[newcell].Cell_Techno();
+    if (!techno) {
+        return true;
+    }
+    
+    /**
+     *  Is there any free infantry spots?
+     */
+    if (techno->RTTI == RTTI_INFANTRY
+        && Map[newcell].Is_Any_Spot_Free()) {
+
+        return true;
+    }
+
+    return false;
+}
+
+
+static bool Are_Starting_Cells_Full(Cell cell, int dist)
+{
+    static bool empty_flag[FACING_COUNT];
+    std::memset(empty_flag, false, FACING_COUNT);
+
+    for (FacingType facing = FACING_FIRST; facing < FACING_COUNT; ++facing) {
+        if (Is_Adjacent_Cell_Empty(cell, facing, dist)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+/**
+ *  Places an object >at< the given cell.
+ * 
+ *  @author: CCHyper
+ * 
+ *  #issue-338 - Adds "min_dist" argument.
+ */
+static bool Place_Object(ObjectClass *obj, Cell cell, FacingType facing, int dist)
+{
+    Cell newcell;
+    TechnoClass *techno;
+
+    /**
+     *  Pick a coordinate along this directional axis
+     */
+    newcell = Clip_Move(cell, facing, dist);
+
+    /**
+     *  Try to unlimbo the object in the given cell.
+     */
+    if (Map.In_Radar(newcell)) {
+        techno = Map[newcell].Cell_Techno();
+        if (!techno) {
+            Coord coord = newcell.As_Coord();
+            coord.Z = Map.Get_Height_GL(coord);
+            if (obj->Unlimbo(coord, DIR_N)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+
+/**
  *  Build a list of valid multiplayer starting waypoints.
  * 
  *  @author: CCHyper
@@ -772,13 +1144,14 @@ static DynamicVectorClass<Cell> Build_Starting_Waypoint_List(bool official)
     DynamicVectorClass<Cell> waypts;
 
     /**
-     *  Find first valid?
+     *  Find first valid player spawn waypoint.
      */
     int min_waypts = 0;
-    for (int i = 0; i < WAYPT_COUNT; ++i) {
-        if (Scen->Waypoint[min_waypts]) {
+    for (int i = 0; i < 8; i++) {
+        if (!Scen->Is_Waypoint_Valid(i)) {
             break;
         }
+        min_waypts++;
     }
 
     /**
@@ -793,8 +1166,8 @@ static DynamicVectorClass<Cell> Build_Starting_Waypoint_List(bool official)
     }
 
     for (int waycount = 0; waycount < look_for; ++waycount) {
-        if (Scen->Is_Valid_Waypoint(waycount)) {
-            Cell waycell = Scen->Get_Waypoint_Location(waycount);
+        if (Scen->Is_Waypoint_Valid(waycount)) {
+            Cell waycell = Scen->Waypoint_Cell(waycount);
             waypts.Add(waycell);
             DEBUG_INFO("Multiplayer start waypoint found at cell %d,%d.\n", waycell.X, waycell.Y);
         }
@@ -809,11 +1182,11 @@ static DynamicVectorClass<Cell> Build_Starting_Waypoint_List(bool official)
         DEBUG_WARNING("Multiplayer start waypoint deficiency - looking for more start positions.\n");
         for (int index = 0; index < deficiency; ++index) {
 
-            Cell trycell = XY_Cell(Map.MapCellX + Random_Pick(10, Map.MapCellWidth-10),
+            Cell trycell = Cell(Map.MapCellX + Random_Pick(10, Map.MapCellWidth-10),
                                    Map.MapCellY + Random_Pick(0, Map.MapCellHeight-10) + 10);
 
-            trycell = Map.Nearby_Location(trycell, SPEED_TRACK, -1, MZONE_NORMAL, false, 8, 8);
-            if (trycell) {
+            trycell = Map.Nearby_Location(trycell, SPEED_TRACK, -1, MZONE_NORMAL, false, Point2D(8, 8));
+            if (trycell != CELL_NONE) {
                 waypts.Add(trycell);
                 DEBUG_INFO("Random multiplayer start waypoint added at cell %d,%d.\n", trycell.X, trycell.Y);
             }
@@ -831,7 +1204,17 @@ static DynamicVectorClass<Cell> Build_Starting_Waypoint_List(bool official)
  */
 void ScenarioClassExtension::Create_Units(bool official)
 {
-    DynamicVectorClass<TechnoClass *> deployed_objects;
+    /**
+     *  #issue-338
+     * 
+     *  Change the starting unit formation to be like Red Alert 2.
+     * 
+     *  This sets the desired placement distance from the base center cell.
+     * 
+     *  @author: CCHyper
+     */
+    const unsigned int MIN_PLACEMENT_DISTANCE = 3;
+    const unsigned int MAX_PLACEMENT_DISTANCE = 32;
 
     int tot_units = Session.Options.UnitCount;
     if (Session.Options.Bases) {
@@ -849,16 +1232,14 @@ void ScenarioClassExtension::Create_Units(bool official)
     /**
      *  Generate lists of all the available starting units (regardless of owner).
      */
-    int tot_count = 0;
-    int tot_cost = 0;
-    int budget = 0;
+    int tot_inf_count = 0;
+    int tot_unit_count = 0;
 
     for (int i = 0; i < UnitTypes.Count(); ++i) {
         UnitTypeClass *unittype = UnitTypes[i];
         if (unittype && unittype->IsAllowedToStartInMultiplayer) {
             if (Rule->BaseUnit->Fetch_ID() != unittype->Fetch_ID()) {
-                tot_cost += unittype->Raw_Cost();
-                ++tot_count;
+                ++tot_unit_count;
             }
         }
     }
@@ -866,21 +1247,12 @@ void ScenarioClassExtension::Create_Units(bool official)
     for (int i = 0; i < InfantryTypes.Count(); ++i) {
         InfantryTypeClass *infantrytype = InfantryTypes[i];
         if (infantrytype && infantrytype->IsAllowedToStartInMultiplayer) {
-            tot_cost += infantrytype->Raw_Cost();
-            ++tot_count;
+            ++tot_inf_count;
         }
     }
 
-    if (!tot_count) {
+    if (!(tot_inf_count + tot_unit_count)) {
         DEBUG_WARNING("No starting units available!");
-    }
-
-    /**
-     *  #BUGFIX:
-     *  Check to prevent division by zero crash.
-     */
-    if (tot_cost != 0 && tot_count != 0) {
-        budget = tot_units * (tot_cost / tot_count);
     }
 
     /**
@@ -924,7 +1296,7 @@ void ScenarioClassExtension::Create_Units(bool official)
             continue;
         }
 
-        int owner_id = 1 << hptr->Class->ID;
+        int owner_id = 1 << hptr->Class->HeapID;
 
         DEBUG_INFO("Generating units for house %d (Name: %s - \"%s\", Color: %s)...\n",
             house, hptr->Class->Name(), hptr->IniName, ColorSchemes[hptr->RemapColor]->Name);
@@ -1047,7 +1419,8 @@ void ScenarioClassExtension::Create_Units(bool official)
         /**
          *  Assign the center of this house to the waypoint location.
          */
-        hptr->Center = Cell_Coord(centroid, true);
+        hptr->Center = centroid.As_Coord();
+        Extension::Fetch(hptr)->Set_Spawn_Point(hptr->Center);
         DEBUG_INFO("  Setting house center to %d,%d\n", centroid.X, centroid.Y);
 
         /**
@@ -1063,13 +1436,13 @@ void ScenarioClassExtension::Create_Units(bool official)
              * 
              *  @author: CCHyper
              */
-            if (SessionExtension->ExtOptions.IsPrePlacedConYards) {
+            if (SessionExtension && SessionExtension->ExtOptions.IsPrePlacedConYards) {
 
                 /**
                  *  Create a construction yard (decided from the base unit).
                  */
                 obj = new BuildingClass(Rule->BaseUnit->DeploysInto, hptr);
-                if (obj->Unlimbo(Cell_Coord(centroid, true), DIR_N) || Scan_Place_Object(obj, centroid)) {
+                if (obj->Unlimbo(centroid.As_Coord(), DIR_N) || Vinifera_Scan_Place_Object(obj, centroid)) {
                     if (obj != nullptr) {
                         DEBUG_INFO("  Construction yard %s placed at %d,%d.\n",
                             obj->Class_Of()->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
@@ -1091,14 +1464,14 @@ void ScenarioClassExtension::Create_Units(bool official)
                          */
                         if (Session.Type != GAME_NORMAL) {
 
-                            if (!building->House->Is_Human_Control()) {
+                            if (!building->House->Is_Player_Control()) {
 
                                 building->IsToRebuild = true;
                                 building->IsToRepair = true;
 
                                 if (building->Class->IsConstructionYard) {
 
-                                    Cell cell = Coord_Cell(building->Coord);
+                                    Cell cell = building->Position.As_Cell();
 
                                     building->House->Begin_Construction();
 
@@ -1106,7 +1479,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                                     building->House->Base.field_50 = cell;
 
                                     building->House->IsStarted = true;
-                                    building->House->field_C8 = true;
+                                    building->House->IsAITriggersOn = true;
                                     building->House->IsBaseBuilding = true;
                                 }
                             }
@@ -1124,7 +1497,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                  *    - Attach a flag to it for capture-the-flag mode.
                  */
                 obj = new UnitClass(Rule->BaseUnit, hptr);
-                if (obj->Unlimbo(Cell_Coord(centroid, true), DIR_N) || Scan_Place_Object(obj, centroid)) {
+                if (obj->Unlimbo(centroid.As_Coord(), DIR_N) || Vinifera_Scan_Place_Object(obj, centroid)) {
                     if (obj != nullptr) {
                         DEBUG_INFO("  Base unit %s placed at %d,%d.\n",
                             obj->Class_Of()->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
@@ -1142,8 +1515,8 @@ void ScenarioClassExtension::Create_Units(bool official)
                          *  @author: CCHyper
                          */
                         if (Session.Options.UnitCount == 1) {
-                            if (SessionExtension->ExtOptions.IsAutoDeployMCV) {
-                                if (hptr->Is_Human_Control()) {
+                            if (SessionExtension && SessionExtension->ExtOptions.IsAutoDeployMCV) {
+                                if (hptr->Is_Human_Player()) {
                                     obj->Set_Mission(MISSION_UNLOAD);
                                 }
                             }
@@ -1159,86 +1532,217 @@ void ScenarioClassExtension::Create_Units(bool official)
         }
 
         /**
-         *  Clear the previous house's deployed list.
+         *  #BUGFIX:
+         *  Make sure there are units available to place before entering the loop.
          */
-        deployed_objects.Clear();
+        bool units_available = (tot_inf_count + tot_unit_count) > 0;
 
-        //DEBUG_INFO("  budget == %d\n", budget);
+        if (units_available) {
 
-        if (budget > 0) {
+            TechnoTypeClass *technotype = nullptr;
+
+            int inf_percent = 50;
+            int unit_percent = 100 - inf_percent;
+
+            int inf_count = (tot_units * inf_percent) / 100;
+            int unit_count = (tot_units * unit_percent) / 100;
 
             /**
-             *  Calculate the cost cap for units.
+             *  Ensure that rounding errors don't result in the player getting fewer units than promised.
              */
-            int unit_cost_cap = 2 * budget / 3;
+            if (inf_count + unit_count < tot_units) {
+                if (Percent_Chance(inf_percent)) {
+                    inf_count += tot_units - (inf_count + unit_count);
+                } else {
+                    unit_count += tot_units - (inf_count + unit_count);
+                }
+            }
+
+            /**
+             *  Make sure we place 3 infantry per cell.
+             */
+            inf_count *= 3;
 
             /**
              *  Place starting units for this house.
              */
-            int i = 0;
-            while (i < budget) {
+            if (available_units.Count() > 0) {
+                for (int i = 0; i < unit_count; ++i) {
 
-                TechnoTypeClass *technotype = nullptr;
+                    /**
+                     *  #BUGFIX:
+                     *  If all cells are full, we can stop placing units. This
+                     *  stops any run away cases with Scan_Place_Object.
+                     */
+                    //if (Are_Starting_Cells_Full(centroid, PLACEMENT_DISTANCE)) { // disabled because we wanna keep placing units outwards
+                    //    break;
+                    //}
 
-                if (i < unit_cost_cap && available_units.Count() > 0) {
                     technotype = available_units[Random_Pick(0, available_units.Count()-1)];
-                } else if (available_infantry.Count() > 0) {
-                    technotype = available_infantry[Random_Pick(0, available_infantry.Count()-1)];
-                }
-
-                if (!technotype) {
-                    DEBUG_WARNING("  Invalid techno pointer!\n");
-                    continue;
-                }
-
-                /**
-                 *  Create an instance of the unit.
-                 */
-                obj = reinterpret_cast<TechnoClass *>(technotype->Create_One_Of(hptr));
-                if (obj) {
-
-                    if (Scan_Place_Object(obj, centroid)) {
-
-                        DEBUG_INFO("  House %s deployed object %s at %d,%d\n",
-                            hptr->Class->Name(), obj->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
-
-                        i += technotype->Raw_Cost();
-
-                        if (Scen->SpecialFlags.IsInitialVeteran) {
-                            obj->Veterancy.Set_Elite(true);
-                        }
-
-                        if (hptr->Is_Human_Control()) {
-                            obj->Set_Mission(MISSION_GUARD);
-                        } else {
-                            obj->Set_Mission(MISSION_GUARD_AREA);
-                        }
-
-                        /**
-                         *  Add to the list of objects successfully deployed.
-                         */
-                        deployed_objects.Add(obj);
-
-                    } else if (obj) {
-                        delete obj;
+                    if (!technotype) {
+                        DEBUG_WARNING("  Invalid unit pointer!\n");
+                        continue;
                     }
 
-                }
+                    /**
+                     *  Create an instance of the unit.
+                     */
+                    obj = reinterpret_cast<TechnoClass *>(technotype->Create_One_Of(hptr));
+                    if (obj) {
 
-                /**
-                 *  Scatter all the human placed objects to create
-                 *  some space around the base unit.
-                 */
-                if (hptr->Is_Human_Control()) {
-                    for (int i = 0; i < deployed_objects.Count(); ++i) {
-                        TechnoClass *techno = deployed_objects[i];
-                        if (techno) {
-                            techno->Scatter();
+                        if (Vinifera_Scan_Place_Object(obj, centroid, MIN_PLACEMENT_DISTANCE, MAX_PLACEMENT_DISTANCE, true)) {
+
+                            DEBUG_INFO("  House %s deployed object %s at %d,%d\n",
+                                hptr->Class->Name(), obj->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
+
+                            if (Scen->Special.IsInitialVeteran) {
+                                obj->Veterancy.Set_Elite(true);
+                            }
+
+                            if (hptr->Is_Human_Player()) {
+                                obj->Set_Mission(MISSION_GUARD);
+                            } else {
+                                obj->Set_Mission(MISSION_GUARD_AREA);
+                            }
+
+                        } else if (obj) {
+                            delete obj;
                         }
+
                     }
+
                 }
 
             }
+
+            /**
+             *  Place starting infantry for this house.
+             */
+            if (available_infantry.Count() > 0) {
+                for (int i = 0; i < inf_count; ++i) {
+
+                    /**
+                     *  #BUGFIX:
+                     *  If all cells are full, we can stop placing units. This
+                     *  stops any run away cases with Scan_Place_Object.
+                     */
+                    //if (Are_Starting_Cells_Full(centroid, PLACEMENT_DISTANCE)) {
+                    //    break;
+                    //}
+
+                    technotype = available_infantry[Random_Pick(0, available_infantry.Count()-1)];
+                    if (!technotype) {
+                        DEBUG_WARNING("  Invalid infantry pointer!\n");
+                        continue;
+                    }
+
+                    /**
+                     *  Create an instance of the unit.
+                     */
+                    obj = reinterpret_cast<TechnoClass *>(technotype->Create_One_Of(hptr));
+                    if (obj) {
+
+                        if (Vinifera_Scan_Place_Object(obj, centroid, MIN_PLACEMENT_DISTANCE, MAX_PLACEMENT_DISTANCE, true)) {
+
+                            DEBUG_INFO("  House %s deployed object %s at %d,%d\n",
+                                hptr->Class->Name(), obj->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
+
+                            if (Scen->Special.IsInitialVeteran) {
+                                obj->Veterancy.Set_Elite(true);
+                            }
+
+                            if (hptr->Is_Human_Player()) {
+                                obj->Set_Mission(MISSION_GUARD);
+                            } else {
+                                obj->Set_Mission(MISSION_GUARD_AREA);
+                            }
+
+                        } else if (obj) {
+                            delete obj;
+                        }
+
+                    }
+
+                }
+
+            }
+
+            /**
+             *  #issue-338
+             * 
+             *  Change the starting unit formation to be like Red Alert 2.
+             *  As a result, this is no longer required as the units are
+             *  now placed neatly around the base unit.
+             * 
+             *  @author: CCHyper
+             */
+#if 0
+            /**
+             *  Scatter all the human placed objects to create
+             *  some space around the base unit.
+             */
+            if (hptr->Is_Human_Player()) {
+                for (int i = 0; i < deployed_objects.Count(); ++i) {
+                    TechnoClass *techno = deployed_objects[i];
+                    if (techno) {
+                        techno->Scatter();
+                    }
+                }
+            }
+#endif
+
+#if 0
+            /**
+             *  #BUGFIX:
+             * 
+             *  Due to the costings of the starting units in Tiberian Sun, sometimes
+             *  there was a deficiency in the equal placement of units in the radius
+             *  around the starting unit. This code makes sure there are no blank
+             *  spaces around the base unit and that all players get 9 units.
+             */
+            if (Session.Options.UnitCount) {
+                for (FacingType facing = FACING_FIRST; facing < FACING_COUNT; ++facing) {
+                    if (Is_Adjacent_Cell_Empty(centroid, facing, PLACEMENT_DISTANCE)) {
+
+                        TechnoTypeClass *technotype = nullptr;
+
+                        /**
+                         *  Very rarely should another unit be placed, the algorithm
+                         *  above places a fair amount already...
+                         */
+                        if (Percent_Chance(25)) {
+                            technotype = available_units[Random_Pick(0, available_units.Count()-1)];
+                        } else if (available_infantry.Count() > 0) {
+                            technotype = available_infantry[Random_Pick(0, available_infantry.Count()-1)];
+                        }
+
+                        /**
+                         *  Create an instance of the unit.
+                         */
+                        obj = reinterpret_cast<TechnoClass *>(technotype->Create_One_Of(hptr));
+                        if (obj) {
+                            if (Place_Object(obj, centroid, facing, PLACEMENT_DISTANCE)) {
+                                DEBUG_WARNING("  House %s deployed deficiency object %s at %d,%d\n",
+                                    hptr->Class->Name(), obj->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
+
+                                if (Scen->Special.InitialVeteran) {
+                                    obj->Veterancy.Set_Elite(true);
+                                }
+
+                                if (hptr->Is_Human_Player()) {
+                                    obj->Set_Mission(MISSION_GUARD);
+                                } else {
+                                    obj->Set_Mission(MISSION_GUARD_AREA);
+                                }
+
+                            } else if (obj) {
+                                delete obj;
+                            }
+                        }
+                    }
+                }
+            }
+#endif
 
         }
     }

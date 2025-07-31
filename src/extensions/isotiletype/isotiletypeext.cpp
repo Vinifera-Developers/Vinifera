@@ -34,6 +34,10 @@
 #include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "tiberium.h"
+#include "smudgetype.h"
+#include "vinifera_saveload.h"
+#include "findmake.h"
 
 
 /**
@@ -43,7 +47,10 @@
  */
 IsometricTileTypeClassExtension::IsometricTileTypeClassExtension(const IsometricTileTypeClass *this_ptr) :
     ObjectTypeClassExtension(this_ptr),
-    TileSetName(nullptr)
+    TileSetName(""),
+    AllowedTiberiums(),
+    AllowedSmudges(),
+    IsAllowVeins(true)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::~IsometricTileTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -104,12 +111,21 @@ HRESULT IsometricTileTypeClassExtension::Load(IStream *pStm)
 {
     //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
+    AllowedTiberiums.Clear();
+    AllowedSmudges.Clear();
+
     HRESULT hr = ObjectTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
 
     new (this) IsometricTileTypeClassExtension(NoInitClass());
+
+    AllowedTiberiums.Load(pStm);
+    AllowedSmudges.Load(pStm);
+
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(AllowedTiberiums, "AllowedTiberiums");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(AllowedSmudges, "AllowedSmudges");
     
     return hr;
 }
@@ -129,6 +145,9 @@ HRESULT IsometricTileTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
         return hr;
     }
 
+    AllowedTiberiums.Save(pStm);
+    AllowedSmudges.Save(pStm);
+
     return hr;
 }
 
@@ -138,9 +157,9 @@ HRESULT IsometricTileTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int IsometricTileTypeClassExtension::Size_Of() const
+int IsometricTileTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -151,9 +170,19 @@ int IsometricTileTypeClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void IsometricTileTypeClassExtension::Detach(TARGET target, bool all)
+void IsometricTileTypeClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    ObjectTypeClassExtension::Detach(target, all);
+
+    if (AllowedTiberiums.Is_Present(reinterpret_cast<TiberiumClass*>(target))) {
+        AllowedTiberiums.Delete(reinterpret_cast<TiberiumClass*>(target));
+    }
+
+    if (AllowedSmudges.Is_Present(reinterpret_cast<SmudgeTypeClass*>(target))) {
+        AllowedSmudges.Delete(reinterpret_cast<SmudgeTypeClass*>(target));
+    }
 }
 
 
@@ -162,9 +191,9 @@ void IsometricTileTypeClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void IsometricTileTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void IsometricTileTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -177,15 +206,33 @@ bool IsometricTileTypeClassExtension::Read_INI(CCINIClass &ini)
 {
     //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::Read_INI - Name: %s, TileSetName %s (0x%08X)\n", Name(), TileSetName, (uintptr_t)(This()));
 
-    if (!ObjectTypeClassExtension::Read_INI(ini)) {
-        return false;
-    }
+    //if (!ObjectTypeClassExtension::Read_INI(ini)) {   // not required for this and causes it to return early
+    //    return false;                                 // because individual tiles don't have their own sections
+    //}
 
-    const char *ini_name = Name();
+    const char *ini_name = TileSetName;
 
     if (!ini.Is_Present(ini_name)) {
         return false;
     }
+
+    char buffer[1024];
+    if (ini.Get_String(ini_name, "AllowedTiberiums", "", buffer, sizeof(buffer)) > 0) {
+        AllowedTiberiums.Clear();
+        char* token = std::strtok(buffer, ",");
+        while (token != nullptr) {
+            TiberiumType tiberium = TiberiumClass::From_Name(token);
+            if (tiberium != TIBERIUM_NONE) {
+                AllowedTiberiums.Add(Tiberiums[tiberium]);
+            }
+            token = std::strtok(nullptr, ",");
+        }
+    }
+
+    AllowedSmudges = TGet_TypeList(ini, ini_name, "AllowedSmudges", AllowedSmudges);
+    IsAllowVeins = ini.Get_Bool(ini_name, "AllowVeins", IsAllowVeins);
+
+    IsInitialized = true;
     
     return true;
 }

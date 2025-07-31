@@ -45,8 +45,8 @@ class ObjectTypeClassExtension : public AbstractTypeClassExtension
         ObjectTypeClassExtension(const NoInitClass &noinit);
         virtual ~ObjectTypeClassExtension();
 
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+        virtual void Detach(AbstractClass * target, bool all = true) override;
+        virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual const char *Name() const override { return reinterpret_cast<const ObjectTypeClass *>(This())->Name(); }
         virtual const char *Full_Name() const override { return reinterpret_cast<const ObjectTypeClass *>(This())->Full_Name(); }
@@ -59,6 +59,9 @@ class ObjectTypeClassExtension : public AbstractTypeClassExtension
 
         virtual bool Read_INI(CCINIClass &ini) override;
 
+        void Fetch_Voxel_Image(const char* graphic_name);
+        BuildingClass* Who_Can_Build_Me(bool intheory, bool needsnopower, bool legal, HouseClass* house, bool to_exit = false) const;
+
     protected:
         /**
          *  These are only to be accessed for save and load operations!
@@ -67,4 +70,26 @@ class ObjectTypeClassExtension : public AbstractTypeClassExtension
         char AlphaGraphicName[24 + 1];
 
     public:
+
+        /**
+         *  Should the object use a different voxel model when it has no spawn?
+         */
+        bool NoSpawnAlt;
+
+        /**
+         *  The voxel model to use when the object has no spawn, and its cache.
+         */
+        VoxelObject NoSpawnVoxel;
+        VoxelIndexClass NoSpawnVoxelIndex;
+
+        /**
+         *  Should the object use a different voxel model when it is in water?
+         */
+        bool WaterAlt;
+
+        /**
+         *  The voxel model to use when the object is in water, and its cache.
+         */
+        VoxelObject WaterVoxel;
+        VoxelIndexClass WaterVoxelIndex;
 };

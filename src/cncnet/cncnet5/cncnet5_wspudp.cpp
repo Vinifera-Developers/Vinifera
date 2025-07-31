@@ -104,7 +104,7 @@ LRESULT CnCNet5UDPInterfaceClass::Message_Handler(HWND hWnd, UINT uMsg, UINT wPa
             /**
              *  (CnCNet) Now, we need to map addr ip/port to index by reversing the search!
              */
-            for (int i = 0; i < ARRAY_SIZE(AddressList); i++) {
+            for (int i = 0; i < std::size(AddressList); i++) {
 
                 /**
                  *  Compare ip.
@@ -190,7 +190,7 @@ LRESULT CnCNet5UDPInterfaceClass::Message_Handler(HWND hWnd, UINT uMsg, UINT wPa
             /**
              *  (CnCNet) validate index.
              */
-            if (i >= ARRAY_SIZE(AddressList) || i < 0) {
+            if (i >= std::size(AddressList) || i < 0) {
                 return -1;
             }
 

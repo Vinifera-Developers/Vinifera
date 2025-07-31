@@ -31,22 +31,345 @@
 #include "vinifera_globals.h"
 #include "tibsun_globals.h"
 #include "tibsun_functions.h"
+#include "tag.h"
+#include "unittypeext.h"
 #include "technotype.h"
 #include "technotypeext.h"
+#include "warheadtype.h"
+#include "weapontype.h"
+#include "weapontypeext.h"
 #include "unit.h"
+#include "unitext.h"
 #include "unittype.h"
 #include "unittypeext.h"
+#include "tag.h"
 #include "target.h"
 #include "rules.h"
+#include "rulesext.h"
 #include "iomap.h"
+#include "infantry.h"
 #include "voc.h"
 #include "extension.h"
+#include "unitext.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "spawnmanager.h"
+#include "verses.h"
+#include "warheadtypeext.h"
+#include "weapontype.h"
+
+
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or destructor.
+ *
+ *  @note: All functions must not be virtual and must also be prefixed
+ *         with "_" to prevent accidental virtualization.
+ */
+DECLARE_EXTENDING_CLASS_AND_PAIR(UnitClass)
+{
+public:
+    void _Firing_AI();
+    void _Draw_Voxel(unsigned int frame, int key, Rect& rect, Point2D& point, const Matrix3D& other_matrix, int color, int flags);
+    void _Rotation_AI();
+};
+
+
+/**
+ *  Handles firing logic for this unit.
+ *
+ *  @author: 07/30/1996 JLB - Created
+ *           ZivDero - Adjustments for Tiberian Sun
+ */
+void UnitClassExt::_Firing_AI()
+{
+    if (Target_Legal(TarCom) && Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon)
+    {
+        /**
+         *  Determine which weapon can fire. First check for the primary weapon. If that weapon
+         *  cannot fire, then check any secondary weapon. If neither weapon can fire, then the
+         *  failure code returned is that from the primary weapon.
+         */
+        WeaponSlotType primary = What_Weapon_Should_I_Use(TarCom);
+        FireErrorType ok = Can_Fire(TarCom, primary);
+        const WeaponTypeClass* weapon = Get_Weapon(primary)->Weapon;
+
+        if (weapon && weapon->WarheadPtr && weapon->WarheadPtr->IsWebby && TarCom->RTTI == RTTI_INFANTRY)
+        {
+            InfantryClass* inf = reinterpret_cast<InfantryClass*>(TarCom);
+            if (inf->ProneStruggleTimer.Value() > weapon->WarheadPtr->WebDuration / 4)
+            {
+                Assign_Target(nullptr);
+                Assign_Mission(MISSION_GUARD);
+                ok = FIRE_CANT;
+            }
+        }
+
+        if ((ok == FIRE_OK || ok == FIRE_FACING) && Deploy_To_Fire())
+        {
+            Assign_Mission(MISSION_UNLOAD);
+            return;
+        }
+
+        static int visceroid_stages[8] = { 0x64, 0x69, 0x6E, 0x73, 0x78, 0x7D, 0x5A, 0x5F };
+        UnitClassExtension* ext;
+
+        switch (ok)
+        {
+        case FIRE_OK:
+            if (!Class->IsFireAnim)
+                IsFiring = false;
+
+            if (Class->IsLargeVisceroid || Class->IsSmallVisceroid)
+            {
+                Set_Stage(visceroid_stages[Dir_Facing(Direction(TarCom).Get_Dir())]);
+                Set_Rate(5);
+            }
+
+            if (primary != WEAPON_SLOT_SECONDARY && weapon)
+            {
+                const int firing_sync = BurstIndex % weapon->Burst;
+                if (firing_sync < 2 && Class->FiringSyncFrame[firing_sync] != -1)
+                {
+                    if (FiringSyncDelay == -1)
+                        FiringSyncDelay = 2 * Class->FiringFrames - 1;
+                    else if (FiringSyncDelay != Class->FiringSyncFrame[firing_sync])
+                        return;
+                }
+            }
+
+            Fire_At(TarCom, primary);
+            break;
+
+        case FIRE_FACING:
+            if (Class->IsLockTurret || !Class->IsTurretEquipped)
+            {
+                if (!Target_Legal(NavCom) && !Locomotion->Is_Moving()) {
+                    PrimaryFacing.Set_Desired(Direction(TarCom));
+                    SecondaryFacing.Set_Desired(PrimaryFacing.Desired());
+                }
+            }
+            else
+            {
+                SecondaryFacing.Set_Desired(Direction(TarCom));
+            }
+            break;
+
+        case FIRE_ILLEGAL:
+            if (Combat_Damage(primary) < 0)
+            {
+                if (!Is_Object(TarCom) || TarCom->RTTI != RTTI_UNIT || static_cast<ObjectClass*>(TarCom)->HealthRatio >= Rule->ConditionGreen)
+                {
+                    Assign_Target(nullptr);
+                }
+            }
+            break;
+
+        case FIRE_CANT:
+            ext = Extension::Fetch(this);
+            if (ext->SpawnManager)
+                ext->SpawnManager->Abandon_Target();
+            break;
+            
+
+        case FIRE_RANGE:
+        case FIRE_MUST_DEPLOY:
+            IsFiring = false;
+            Approach_Target();
+            break;
+
+        case FIRE_CLOAKED:
+            IsFiring = false;
+            Do_Uncloak();
+            break;
+
+        default:
+            return;
+        }
+    }
+}
+
+
+/**
+ *  Draws the voxel model for this unit.
+ *
+ *  @author: ZivDero
+ */
+void UnitClassExt::_Draw_Voxel(unsigned int frame, int key, Rect& rect, Point2D& point, const Matrix3D& other_matrix, int color, int flags)
+{
+    Matrix3D matrix;
+    Matrix3D::Multiply(Get_Voxel_Draw_Matrix(), other_matrix, &matrix);
+    const auto typeext = Extension::Fetch(Class);
+    const auto ext = Extension::Fetch(this);
+
+    VoxelObject* voxel = nullptr;
+    VoxelIndexClass* cache = nullptr;
+
+    if (typeext->WaterAlt
+        && Map[PositionCoord].Land_Type() == LAND_WATER
+        && !IsOnBridge
+        && HeightAGL < LEVEL_LEPTON_H)
+    {
+        voxel = &typeext->WaterVoxel;
+        cache = &typeext->WaterVoxelIndex;
+    }
+    else if (typeext->NoSpawnAlt && ext->SpawnManager && !ext->SpawnManager->Docked_Count())
+    {
+        voxel = &typeext->NoSpawnVoxel;
+        cache = &typeext->NoSpawnVoxelIndex;
+    }
+    else
+    {
+        voxel = &Class->Voxel;
+        cache = &Class->VoxelIndex;
+    }
+
+    Draw_Voxel(*voxel, frame, key, *cache, rect, point, matrix, color, flags);
+}
+
+
+/**
+ *  Patch that replaces the call to draw the voxel model to allow us to
+ *  chose which voxel to draw.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_UnitClass_Draw_Voxel_Patch)
+{
+    GET_STACK_STATIC(unsigned int, frame, esp, 0x58);
+    GET_STACK_STATIC(int, key, esp, 0x40);
+    LEA_STACK_STATIC(Rect*, rect, esp, 0x68);
+    LEA_STACK_STATIC(Point2D*, point, esp, 0x50);
+    LEA_STACK_STATIC(Matrix3D*, matrix, esp, 0x90);
+    GET_STACK_STATIC(int, color, esp, 0x17C);
+    GET_STACK_STATIC(int, flags, esp, 0x4C);
+    GET_REGISTER_STATIC(UnitClassExt*, this_ptr, ebp);
+
+    this_ptr->_Draw_Voxel(frame, key, *rect, *point, *matrix, color, flags);
+
+    _asm mov ebx, color
+
+    JMP(0x006528E9);
+}
+
+
+/**
+ *  #issue-550
+ * 
+ *  Implements IsOmniFire for units.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_UnitClass_Can_Fire_IsOmniFire_Patch)
+{
+    GET_REGISTER_STATIC(UnitClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(WeaponTypeClass *, weapon, ebx);
+    static WeaponTypeClassExtension *weapontypeext;
+
+    _asm pushad
+
+    weapontypeext = Extension::Fetch(weapon);
+
+    /**
+     *  Do we need to perform a turn to face the target before firing?
+     */
+    if (weapontypeext->IsOmniFire) {
+        goto locomotor_Can_Fire;
+    }
+
+    /**
+     *  Stolen bytes/code.
+     */
+    if (this_ptr->Class->IsLargeVisceroid) {
+        goto locomotor_Can_Fire;
+    }
+
+continue_facing_check:
+    _asm popad
+    JMP_REG(ecx, 0x00656FA7);
+
+    /**
+     *  Final check to make sure the locomotor allows firing.
+     */
+locomotor_Can_Fire:
+    _asm popad
+    JMP(0x00656FA7);
+}
+
+
+/**
+ *  UnitClass::Rotation_AI re-implementation.
+ *
+ *  @author: ZivDero
+ */
+void UnitClassExt::_Rotation_AI()
+{
+    if (TarCom != nullptr && !IsRotating) {
+        DirType dir = Direction(TarCom);
+
+        if (Class->IsTurretEquipped) {
+
+            /**
+             *  #issue-550
+             *
+             *  Implements IsOmniFire for units.
+             *
+             *  @author: CCHyper
+             */
+            WeaponTypeClass* primary = PrimaryWeapon;
+            if (primary != nullptr && !Extension::Fetch(primary)->IsOmniFire) {
+                SecondaryFacing.Set_Desired(dir);
+            }
+            
+        } else {
+
+            /*
+            **  Non turret equipped vehicles will rotate their body to face the target only
+            **  if the vehicle isn't currently moving or facing the correct direction. This
+            **  applies only to tracked vehicles. Wheeled vehicles never rotate to face the
+            **  target, since they aren't maneuverable enough.
+            */
+            if (Class->Speed == SPEED_TRACK && NavCom == nullptr && !Locomotion->Is_Moving() && PrimaryFacing.Current() == dir) {
+                PrimaryFacing.Set_Desired(dir);
+            }
+        }
+    }
+
+    if (Class->IsTurretSpins) {
+        SecondaryFacing.Set(DirType(static_cast<Dir256>(SecondaryFacing.Current().Get_Facing<256>() + 8)));
+    } else {
+
+        IsRotating = false;
+        if (Class->IsTurretEquipped) {
+
+            if (SecondaryFacing.Is_Rotating()) {
+
+                /*
+                **  If no further rotation is necessary, flag that the rotation
+                **  has stopped.
+                */
+                if (!Class->IsTurretSpins) {
+                    IsRotating = SecondaryFacing.Is_Rotating();
+                }
+            } else {
+                if (TarCom == nullptr) {
+                    if (NavCom == nullptr) {
+                        SecondaryFacing.Set_Desired(PrimaryFacing.Current());
+                    }
+                    else {
+                        SecondaryFacing.Set_Desired(Direction(NavCom));
+                    }
+                }
+            }
+        }
+    }
+}
 
 
 #if 0
@@ -58,7 +381,7 @@
  * 
  *  @author: CCHyper
  */
-static CellClass *Unit_Get_Current_Cell(UnitClass *this_ptr) { return &Map[this_ptr->Get_Coord()]; }
+static CellClass *Unit_Get_Current_Cell(UnitClass *this_ptr) { return &Map[this_ptr->PositionCoord]; }
 DECLARE_PATCH(_UnitClass_Mission_Harvest_Block_Harvesting_On_Bridge_Patch)
 {
     GET_REGISTER_STATIC(UnitClass *, this_ptr, esi);
@@ -183,13 +506,13 @@ DECLARE_PATCH(_UnitClass_Draw_Shape_IdleRate_Patch)
 {
     GET_REGISTER_STATIC(UnitClass *, this_ptr, esi);
     GET_REGISTER_STATIC(int, facing, ebx);
-    GET_REGISTER_STATIC(ShapeFileStruct *, shape, edi);
+    GET_REGISTER_STATIC(ShapeSet *, shape, edi);
     static UnitTypeClassExtension *unittypeext;
     static const UnitTypeClass *unittype;
     static int frame;
 
-    unittype = reinterpret_cast<const UnitTypeClass *>(this_ptr->Techno_Type_Class());
-    unittypeext = Extension::Fetch<UnitTypeClassExtension>(unittype);
+    unittype = reinterpret_cast<const UnitTypeClass *>(this_ptr->TClass);
+    unittypeext = Extension::Fetch(unittype);
 
     if (!Locomotion_Is_Moving(this_ptr)) {
         if (this_ptr->FiringSyncDelay >= 0) {
@@ -273,9 +596,9 @@ DECLARE_PATCH(_UnitClass_Mission_Unload_Transport_Detach_Sound_Patch)
     /**
      *  Do we have a sound to play when passengers leave us? If so, play it now.
      */
-    radio_technotypeext = Extension::Fetch<TechnoTypeClassExtension>(this_ptr->Techno_Type_Class());
+    radio_technotypeext = Extension::Fetch(this_ptr->TClass);
     if (radio_technotypeext->LeaveTransportSound != VOC_NONE) {
-        Sound_Effect(radio_technotypeext->LeaveTransportSound, this_ptr->Coord);
+        Static_Sound(radio_technotypeext->LeaveTransportSound, this_ptr->Position);
     }
 
     /**
@@ -350,9 +673,9 @@ DECLARE_PATCH(_UnitClass_Draw_It_Unloading_Harvester_Patch)
             /**
              *  Fetch the unloading class from the extended class instance if it exists.
              */
-            unittypeext = Extension::Fetch<UnitTypeClassExtension>(unittype);
+            unittypeext = Extension::Fetch(unittype);
             if (unittypeext->UnloadingClass) {
-                if (unittypeext->UnloadingClass->Kind_Of() == RTTI_UNITTYPE) {
+                if (unittypeext->UnloadingClass->RTTI == RTTI_UNITTYPE) {
                     unloading_class = reinterpret_cast<const UnitTypeClass *>(unittypeext->UnloadingClass);
                 }
             }
@@ -377,35 +700,35 @@ DECLARE_PATCH(_UnitClass_Draw_It_Unloading_Harvester_Patch)
  * 
  *  @author: CCHyper
  */
-static int Facing_To_Frame_Number(FacingClass &facing, int facings_count)
+static int Facing_To_Frame_Number(FacingClass &facing, int facing_count)
 {
     int shape_number = 0;
 
     /**
      *  Fetch the current facing value in the required units.
      */
-    switch (facings_count) {
+    switch (facing_count) {
 
-        case 8:
-            shape_number = Dir_To_8(facing.Current());
-            break;
+    case 8:
+        shape_number = (facing.Current().Get_Facing<8>() + 1) % 8;
+        break;
 
-        case 16:
-            shape_number = Dir_To_16(facing.Current());
-            break;
+    case 16:
+        shape_number = (facing.Current().Get_Facing<16>() + 2) % 16;
+        break;
 
-        case 32:
-            shape_number = Dir_To_32(facing.Current());
-            break;
+    case 32:
+        shape_number = (facing.Current().Get_Facing<32>() + 4) % 32;
+        break;
 
-        case 64:
-            shape_number = Dir_To_64(facing.Current());
-            break;
+    case 64:
+        shape_number = (facing.Current().Get_Facing<64>() + 8) % 64;
+        break;
 
-        default:
-            shape_number = 0;
-            break;
-    };
+    default:
+        shape_number = 0;
+        break;
+    }
 
     return shape_number;
 }
@@ -430,7 +753,7 @@ DECLARE_PATCH(_UnitClass_Draw_Shape_Primary_Facing_Patch)
      *  Using either of these causes a memory leak for some reason...
      *  So we now just fetch EAX which is a UnitTypeClass instance already.
      */
-    //unittype = reinterpret_cast<UnitTypeClass *>(this_ptr->Techno_Type_Class());
+    //unittype = reinterpret_cast<UnitTypeClass *>(this_ptr->TClass);
     //unittype = this_ptr->Class;
 
     /**
@@ -469,7 +792,7 @@ DECLARE_PATCH(_UnitClass_Draw_Shape_Turret_Facing_Patch)
 
     frame_number = 0;
 
-    unittype = reinterpret_cast<UnitTypeClass *>(this_ptr->Techno_Type_Class());
+    unittype = (UnitTypeClass *)this_ptr->TClass;
     
     /**
      *  All turrets have 32 facings in Tiberian Sun.
@@ -481,7 +804,7 @@ DECLARE_PATCH(_UnitClass_Draw_Shape_Turret_Facing_Patch)
      */
     start_turret_frame = unittype->Facings * unittype->WalkFrames;
 
-    unittypeext = Extension::Fetch<UnitTypeClassExtension>(unittype);
+    unittypeext = Extension::Fetch(unittype);
 
     /**
      *  #issue-393
@@ -546,7 +869,7 @@ static void UnitClass_Shake_Screen(UnitClass *unit)
     /**
      *  Fetch the extension instance.
      */
-    unittypeext = Extension::Fetch<UnitTypeClassExtension>(unit->Techno_Type_Class());
+    unittypeext = Extension::Fetch(static_cast<const UnitTypeClass*>(unit->TClass));
 
     /**
      *  #issue-414
@@ -636,14 +959,14 @@ function_return:
 DECLARE_PATCH(_UnitClass_Per_Cell_Process_AutoHarvest_Assign_Harvest_Mission_Patch)
 {
     GET_REGISTER_STATIC(UnitClass *, this_ptr, ebp);
-    GET_REGISTER_STATIC(TARGET, target, esi);
+    GET_REGISTER_STATIC(AbstractClass *, target, esi);
     static BuildingClass *building_contact;
     static UnitTypeClass *unittype;
 
     /**
      *  Is the unit we are processing a harvester?
      */
-    unittype = reinterpret_cast<UnitTypeClass *>(this_ptr->Class_Of());
+    unittype = (UnitTypeClass *)this_ptr->Class_Of();
     if (unittype->IsToHarvest || unittype->IsToVeinHarvest) {
 
         /**
@@ -681,6 +1004,462 @@ continue_check_scatter:
 
 
 /**
+ *  Replaces Verses (Modifier) of the Warhead with the one from the extension.
+ *
+ *  @author: ZivDero
+ */
+void UnitClass_Jellyfish_AI_Armor_Helper(UnitClass* this_ptr, TechnoClass* target, WeaponTypeClass* weapon, WarheadTypeClass* warhead)
+{
+    int damage = weapon->Attack * Verses::Get_Modifier(target->TClass->Armor, warhead);
+    target->Take_Damage(damage, 0, warhead, this_ptr, false, false);
+}
+
+DECLARE_PATCH(_UnitClass_Jellyfish_AI_Armor_Patch)
+{
+    GET_REGISTER_STATIC(TechnoClass*, target, esi);
+    GET_REGISTER_STATIC(UnitClass*, this_ptr, ebp);
+    GET_STACK_STATIC(WeaponTypeClass*, weapon, esp, 0x20);
+    GET_STACK_STATIC(WarheadTypeClass*, warhead, esp, 0x14);
+
+    _asm pushad
+    UnitClass_Jellyfish_AI_Armor_Helper(this_ptr, target, weapon, warhead);
+    _asm popad
+
+    JMP(0x0064F2FA);
+}
+
+
+/**
+ *  Helper function.
+ *  Creates a unit based on an already existing unit.
+ *  Returns the new unit if successful, otherwise null.
+ *
+ *  @author: Rampastring
+ */
+UnitClass* Create_Transform_Unit(UnitClass* this_ptr) {
+
+    UnitTypeClassExtension* unittypeext = Extension::Fetch(this_ptr->Class);
+
+    UnitClass* newunit = reinterpret_cast<UnitClass*>(unittypeext->TransformsInto->Create_One_Of(this_ptr->House));
+    if (newunit == nullptr) {
+
+        /**
+         *  Creating the new unit failed! Re-mark our occupation bits and return false.
+         */
+        return nullptr;
+    }
+
+    // Try_To_Deploy copies the tag this way at 0x0065112C
+    if (this_ptr->Tag != nullptr) {
+        newunit->Attach_Tag(this_ptr->Tag);
+        this_ptr->Tag->AttachCount--;
+        this_ptr->Tag = nullptr;
+    }
+
+    newunit->ActLike = this_ptr->ActLike;
+    newunit->LimpetSpeedFactor = this_ptr->LimpetSpeedFactor;
+    newunit->field_214 = this_ptr->field_214; // also copied at 0x00650F4E
+    newunit->Veterancy.From_Integer(this_ptr->Veterancy.To_Integer());
+    newunit->Group = this_ptr->Group;
+    newunit->BarrelFacing.Set(this_ptr->BarrelFacing.Current());
+    newunit->BarrelFacing.Set_Desired(this_ptr->BarrelFacing.Desired());
+    newunit->PrimaryFacing.Set(this_ptr->PrimaryFacing.Current());
+    newunit->PrimaryFacing.Set_Desired(this_ptr->PrimaryFacing.Desired());
+    newunit->SecondaryFacing.Set(this_ptr->SecondaryFacing.Current());
+    newunit->SecondaryFacing.Set_Desired(this_ptr->SecondaryFacing.Desired());
+    newunit->Strength = (int)(this_ptr->HealthRatio * (int)newunit->Class->MaxStrength);
+    newunit->ArmorBias = this_ptr->ArmorBias;
+    newunit->FirepowerBias = this_ptr->FirepowerBias;
+    newunit->SpeedBias = this_ptr->SpeedBias;
+    newunit->Position = this_ptr->Position;
+    newunit->EMPFramesRemaining = this_ptr->EMPFramesRemaining;
+    newunit->Ammo = this_ptr->Ammo;
+
+
+    if (newunit->Unlimbo(newunit->Position, this_ptr->PrimaryFacing.Current().Get_Dir())) {
+
+        /**
+         *  Unlimbo successful, select our new unit and return it
+         */
+
+        if (PlayerPtr == newunit->Owner_HouseClass()) {
+            newunit->Select();
+        }
+
+        if (this_ptr->TarCom) {
+            newunit->Assign_Target(this_ptr->TarCom);
+            newunit->Assign_Mission(MISSION_ATTACK);
+            newunit->Commence();
+        }
+
+        return newunit;
+    }
+
+    /**
+     *  Unlimboing the new unit failed! Delete the new unit and return false.
+     */
+    delete newunit;
+    return nullptr;
+}
+
+
+enum TransformReturnValue {
+    OriginalCode = 0x00650BC2,
+    NotEnoughCharge = 0x006511A0,
+    TransformSucceeded = 0x0065114C,
+    TransformFailed = 0x00651168
+};
+
+/**
+ *  Work-around function because the compiler likes smashing the stack by using ebp
+ *  when calling locomotor functions :)
+ *
+ *  Returns the address that the calling function should jump to after calling this.
+ *
+ *  @author: Rampastring
+ */
+TransformReturnValue _UnitClass_Try_To_Deploy_Transform_To_Vehicle_Patch_Func(UnitClass* this_ptr) {
+
+    /**
+     *  Stolen bytes/code.
+     */
+    if (this_ptr->Class->DeploysInto != nullptr) {
+
+        /**
+         *  This unit is deployable rather than transformable, check whether it can deploy.
+         */
+        return OriginalCode;
+    }
+
+    UnitTypeClassExtension* unittypeext = Extension::Fetch(this_ptr->Class);
+
+    if (unittypeext->TransformsInto != nullptr) {
+
+        /**
+         *  Use custom "transform to vehicle" logic if we don't need charge or we have enough of it.
+         */
+
+        if (unittypeext->IsTransformRequiresFullCharge && this_ptr->CurrentCharge < this_ptr->Class->MaxCharge) {
+
+            /**
+             *  We don't have enough charge, return false
+             */
+            return NotEnoughCharge;
+        }
+
+        this_ptr->Mark(MARK_UP);
+        this_ptr->Locomotor_Ptr()->Mark_All_Occupation_Bits(MARK_UP);
+
+        UnitClass* newunit = Create_Transform_Unit(this_ptr);
+
+        if (newunit != nullptr) {
+
+            /**
+             *  Creating transformed unit succeeded, erase the original unit and force function to return true
+             */
+            return TransformSucceeded;
+        }
+        else {
+
+            /**
+             *  Creating transformed unit failed. Re-mark our occupation bits and return false.
+             */
+            return TransformFailed;
+        }
+    }
+
+    /**
+     *  Continue to deployability check.
+     */
+    return OriginalCode;
+}
+
+
+/**
+ *  #issue-715
+ *
+ *  Transforms a unit to another unit when a transformable unit deploys.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_UnitClass_Try_To_Deploy_Transform_To_Vehicle_Patch) {
+    GET_REGISTER_STATIC(UnitClass*, this_ptr, esi);
+    static int address;
+    address = (int)(_UnitClass_Try_To_Deploy_Transform_To_Vehicle_Patch_Func(this_ptr));
+    JMP(address);
+}
+
+
+/**
+ *  #issue-715
+ *
+ *  Hack to display the the correct cursor for transformable units
+ *  upon ACTION_SELF.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_UnitClass_What_Action_Self_Check_For_Vehicle_Transform_Patch) {
+    GET_REGISTER_STATIC(UnitClass*, this_ptr, esi);
+    static UnitTypeClass* unittype;
+    static UnitTypeClassExtension* unittypeext;
+    static ActionType action;
+
+    unittype = this_ptr->Class;
+    unittypeext = Extension::Fetch(unittype);
+
+    /**
+     *  Stolen bytes/code.
+     *  If the unit can deploy into a building, check whether it's currently allowed.
+     */
+    if (unittype->DeploysInto != nullptr) {
+        JMP(0x0065602B);
+    }
+
+    /**
+     *  Check if this unit is able to transform into another unit.
+     *  If not, we don't have anything else to do here.
+     */
+    if (unittypeext->TransformsInto == nullptr) {
+        _asm { mov eax, unittype }
+        JMP_REG(ecx, 0x00656344);
+    }
+
+    /**
+     *  If this unit is able to transform to a different unit, check if it requires charge for it.
+     *  If it does, then check whether we have enough charge.
+     */
+    if (unittypeext->IsTransformRequiresFullCharge && this_ptr->CurrentCharge < this_ptr->Class->MaxCharge) {
+
+        /**
+         *  We don't have enough charge!
+         */
+        action = ACTION_NO_DEPLOY;
+    }
+    else if (this_ptr->Is_Immobilized()) {
+
+        /**
+         *  The unit is dying or under an EMP effect, don't allow it to transform.
+         */
+        action = ACTION_NO_DEPLOY;
+    }
+    else {
+        action = ACTION_SELF;
+    }
+
+    /**
+     *  Rebuilt function epilogue
+     */
+    _asm { pop edi }
+    _asm { pop esi }
+    _asm { pop ebp }
+    _asm { pop ebx }
+    _asm { add esp, 10h }
+    _asm { mov eax, dword ptr ds:action }
+    _asm { retn 8 }    
+}
+
+
+/**
+ *  #issue-715
+ *
+ *  Check whether the unit is able to transform into another unit
+ *  when performing the "Unload" mission.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_UnitClass_Mission_Unload_Transform_To_Vehicle_Patch) {
+    GET_REGISTER_STATIC(UnitTypeClass*, unittype, eax);
+    static UnitTypeClassExtension* unittypeext;
+
+    /**
+     *  Stolen bytes/code.
+     */
+    if (unittype->IsToHarvest || unittype->IsToVeinHarvest) {
+    harvester_process:
+        JMP(0x006545A5);
+    }
+
+    unittypeext = Extension::Fetch(unittype);
+
+    if (unittype->DeploysInto != nullptr || unittypeext->TransformsInto != nullptr) {
+    deployable_process:
+        JMP(0x00654403);
+    }
+
+mobile_emp_process:
+    _asm { mov eax, unittype }
+    JMP_REG(edx, 0x006543FD);
+}
+
+
+/**
+ *  Finds the nearest docking bay for a specific unit.
+ *
+ *  @author: Rampastring
+ */
+void UnitClassExtension_Find_Nearest_Refinery(UnitClass* this_ptr, BuildingClass** building_addr, int* distance_addr, bool include_reserved)
+{
+    int nearest_refinery_distance = INT_MAX;
+    BuildingClass* nearest_refinery = nullptr;
+
+    /**
+     *  Find_Docking_Bay looks also through occupied docking bays if ScenarioInit is set
+     */
+    if (include_reserved) {
+        ScenarioInit++;
+    }
+
+    for (int i = 0; i < this_ptr->Class->Dock.Count(); i++) {
+        BuildingTypeClass* dockbuildingtype = this_ptr->Class->Dock[i];
+
+        BuildingClass* dockbuilding = this_ptr->Find_Docking_Bay(dockbuildingtype, false, false);
+        if (dockbuilding == nullptr)
+            continue;
+
+        int distance = this_ptr->Distance(dockbuilding);
+
+        if (distance < nearest_refinery_distance) {
+            nearest_refinery_distance = distance;
+            nearest_refinery = dockbuilding;
+        }
+    }
+
+    if (include_reserved) {
+        ScenarioInit--;
+    }
+
+    *building_addr = nearest_refinery;
+    *distance_addr = nearest_refinery_distance;
+}
+
+
+/**
+ *  #issue-201
+ *
+ *  A "quality of life" patch for harvesters so they don't discriminate against dock
+ *  buildings that are not the first on their Dock= list. Also makes harvesters
+ *  smarter by making them prefer queuing for nearby occupied refineries instead
+ *  of wandering to distant free refineries.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_UnitClass_Mission_Harvest_FINDHOME_Find_Nearest_Refinery_Patch)
+{
+    /**
+     *  Enum for MISSION_HARVEST status constants.
+     */
+    enum {
+        LOOKING,
+        HARVESTING,
+        FINDHOME,
+        HEADINGHOME,
+        GOINGTOIDLE,
+    };
+
+
+    GET_REGISTER_STATIC(UnitClass*, harvester, esi);
+    static RadioMessageType response;
+    static UnitClassExtension* unitext;
+    static int free_refinery_distance_bias;
+    static BuildingClass* nearest_free_refinery;
+    static int nearest_free_refinery_distance;
+    static BuildingClass* nearest_possibly_occupied_refinery;
+    static int nearest_possibly_occupied_refinery_distance;
+    static bool reserve_free_refinery;
+
+    /**
+     *  Find the nearest refinery that is not occupied.
+     */
+    UnitClassExtension_Find_Nearest_Refinery(harvester, &nearest_free_refinery, &nearest_free_refinery_distance, false);
+
+    /**
+     *  Find the nearest refinery, regardless of whether it's occupied.
+     */
+    UnitClassExtension_Find_Nearest_Refinery(harvester, &nearest_possibly_occupied_refinery, &nearest_possibly_occupied_refinery_distance, true);
+
+    reserve_free_refinery = true;
+
+    if (nearest_free_refinery == nullptr) {
+
+        /**
+         *  There was no free refinery, check if there was an occupied one.
+         */
+        if (nearest_possibly_occupied_refinery == nullptr) {
+
+            /**
+             *  No refinery existed at all! We have nothing to do here.
+             */
+            goto set_mission_delay_and_return;
+        }
+
+        /**
+         *  There was an occupied refinery, queue for it instead.
+         */
+        reserve_free_refinery = false;
+    }
+    else if (nearest_free_refinery != nearest_possibly_occupied_refinery) {
+
+        /**
+         *  There was a free refinery as well as an occupied one.
+         *  Check if the occupied refinery is significantly closer to us than the free refinery.
+         */
+
+        free_refinery_distance_bias = RuleExtension->MaxFreeRefineryDistanceBias;
+
+        if (nearest_free_refinery_distance >
+            nearest_possibly_occupied_refinery_distance + Cell_To_Lepton(free_refinery_distance_bias)) {
+
+            reserve_free_refinery = false;
+        }
+    }
+
+    unitext = Extension::Fetch(harvester);
+
+    if (reserve_free_refinery) {
+
+        /**
+         *  We want to contact the free refinery, send a radio message to it.
+         */
+        response = harvester->Transmit_Message(RADIO_HELLO, nearest_free_refinery);
+
+        /**
+         *  Check if the refinery answered as expected. If not, we'll queue for it instead.
+         */
+        if (response == RADIO_ROGER) {
+
+            /**
+             *  The refinery accepted us! Change mission status to HEADINGHOME and jump to original code.
+             */
+            harvester->Status = HEADINGHOME;
+
+            unitext->LastDockedBuilding = nearest_free_refinery;
+
+            goto set_mission_delay_and_return;
+        }
+    }
+
+
+    /**
+     *  Re-use the original game's code for queueing to an occupied refinery.
+     *  The game expects the occupied refinery pointer to be in edi.
+     */
+queue_to_occupied:
+
+    unitext->LastDockedBuilding = nearest_possibly_occupied_refinery;
+
+    _asm { mov edi, [nearest_possibly_occupied_refinery] };
+    JMP(0x00654FAA);
+
+
+    /**
+     *  Set mission delay and return from function.
+     */
+set_mission_delay_and_return:
+    JMP(0x00655226);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void UnitClassExtension_Hooks()
@@ -699,6 +1478,17 @@ void UnitClassExtension_Hooks()
     Patch_Jump(0x00653114, &_UnitClass_Draw_Shape_IdleRate_Patch);
     Patch_Jump(0x00656623, &_UnitClass_What_Action_ACTION_HARVEST_Block_On_Bridge_Patch); // IsToHarvest
     Patch_Jump(0x0065665D, &_UnitClass_What_Action_ACTION_HARVEST_Block_On_Bridge_Patch); // IsToVeinHarvest
+    Patch_Jump(0x0064F2BE, &_UnitClass_Jellyfish_AI_Armor_Patch);
+    Patch_Jump(0x00650BAE, &_UnitClass_Try_To_Deploy_Transform_To_Vehicle_Patch);
+    Patch_Jump(0x00656017, &_UnitClass_What_Action_Self_Check_For_Vehicle_Transform_Patch);
+    Patch_Jump(0x006543DB, &_UnitClass_Mission_Unload_Transform_To_Vehicle_Patch);
+    Patch_Jump(0x0064E920, &UnitClassExt::_Firing_AI);
+    Patch_Jump(0x006527B1, &_UnitClass_Draw_Voxel_Patch);
+    Patch_Jump(0x00654EEE, &_UnitClass_Mission_Harvest_FINDHOME_Find_Nearest_Refinery_Patch);
     //Patch_Jump(0x0065054F, &_UnitClass_Enter_Idle_Mode_Block_Harvesting_On_Bridge_Patch); // Removed, keeping code for reference.
     //Patch_Jump(0x00654AB0, &_UnitClass_Mission_Harvest_Block_Harvesting_On_Bridge_Patch); // Removed, keeping code for reference.
+    Patch_Jump(0x0064E560, &UnitClassExt::_Rotation_AI);
+    Patch_Jump(0x00656F99, &_UnitClass_Can_Fire_IsOmniFire_Patch);
+
+    Patch_Byte(0x00658961, 0xEB); // Allow pre-placed units to have missions in multiplayer, change JZ to JMP
 }

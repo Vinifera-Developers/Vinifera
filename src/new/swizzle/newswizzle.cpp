@@ -257,7 +257,7 @@ ViniferaSwizzleManagerClass::ViniferaSwizzleManagerClass() :
 
 
 /**
- *  The class deconstructor.
+ *  The class destructor.
  * 
  *  @author: CCHyper
  */

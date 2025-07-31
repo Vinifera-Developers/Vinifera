@@ -69,9 +69,12 @@ TacticalExtension::TacticalExtension(const Tactical *this_ptr) :
     InfoTextNotifySound(VOC_NONE),
     InfoTextNotifySoundVolume(1.0f),
     InfoTextStyle(TPF_6PT_GRAD|TPF_DROPSHADOW),
-    InfoTextTimer(0)
+    InfoTextTimer(0),
+    CellRedrawCount(0)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TacticalExtension::TacticalExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    std::memset(CellRedraw, 0, sizeof(CellRedraw));
 }
 
 
@@ -114,6 +117,10 @@ HRESULT TacticalExtension::Load(IStream *pStm)
     }
 
     new (this) TacticalExtension(NoInitClass());
+
+    for (int i = 0; i < CellRedrawCount; i++) {
+        VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(CellRedraw[i], "CellRedraw");
+    }
     
     return hr;
 }
@@ -142,9 +149,9 @@ HRESULT TacticalExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int TacticalExtension::Size_Of() const
+int TacticalExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("TacticalExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("TacticalExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -155,7 +162,7 @@ int TacticalExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void TacticalExtension::Detach(TARGET target, bool all)
+void TacticalExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("TacticalExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -166,9 +173,9 @@ void TacticalExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void TacticalExtension::Compute_CRC(WWCRCEngine &crc) const
+void TacticalExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("TacticalExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("TacticalExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -289,7 +296,7 @@ bool TacticalExtension::Debug_Draw_Facings()
     }
 
     ObjectClass *object = CurrentObjects.Fetch_Head();
-    if (object->What_Am_I() != RTTI_UNIT) {
+    if (object->RTTI != RTTI_UNIT) {
         return false;
     }
 
@@ -301,7 +308,7 @@ bool TacticalExtension::Debug_Draw_Facings()
     Point3D pix = unit->Class_Of()->Pixel_Dimensions();
     Point3D pixel_center = Point3D(pix.X/2, pix.Y/2, pix.Z/2);
 
-    Coordinate coord = unit->Center_Coord();
+    Coord coord = unit->Center_Coord();
 
     Point2D screen = TacticalMap->func_60F150(coord);
 
@@ -311,7 +318,7 @@ bool TacticalExtension::Debug_Draw_Facings()
     screen.X += TacticalRect.X;
     screen.Y += TacticalRect.Y;
 
-    TempSurface->Fill_Rect(TacticalRect, Rect(screen.X, screen.Y, 2, 2), DSurface::RGB_To_Pixel(255,0,0));
+    LogicSurface->Fill_Rect(TacticalRect, Rect(screen.X, screen.Y, 2, 2), DSurface::RGB_To_Pixel(255,0,0));
 
     TextPrintType style = TPF_CENTER|TPF_FULLSHADOW|TPF_6POINT;
     WWFontClass *font = Font_Ptr(style);
@@ -324,10 +331,10 @@ bool TacticalExtension::Debug_Draw_Facings()
     std::snprintf(buffer1, sizeof(buffer1), "%d", unit->PrimaryFacing.Current().Get_Dir());
     std::snprintf(buffer2, sizeof(buffer2), "%d", unit->PrimaryFacing.Current().Get_Raw());
 
-    Simple_Text_Print(buffer1, TempSurface, &TacticalRect, &screen, ColorScheme::As_Pointer("White"), style);
+    Simple_Text_Print(buffer1, LogicSurface, &TacticalRect, &screen, ColorScheme::As_Pointer("White"), style);
 
     screen.Y += 10;
-    Simple_Text_Print(buffer2, TempSurface, &TacticalRect, &screen, ColorScheme::As_Pointer("White"), style);
+    Simple_Text_Print(buffer2, LogicSurface, &TacticalRect, &screen, ColorScheme::As_Pointer("White"), style);
 
     return true;
 }
@@ -671,8 +678,8 @@ void TacticalExtension::Draw_Super_Timers()
     for (int i = 0; i < Supers.Count(); ++i) {
 
         SuperClass *super = Supers[i];
-        SuperClassExtension *superext = Extension::Fetch<SuperClassExtension>(super);
-        SuperWeaponTypeClassExtension *supertypeext = Extension::Fetch<SuperWeaponTypeClassExtension>(super->Class);
+        SuperClassExtension *superext = Extension::Fetch(super);
+        SuperWeaponTypeClassExtension *supertypeext = Extension::Fetch(super->Class);
 
         /**
          *  Should we show the recharge timer for this super?
@@ -704,5 +711,21 @@ void TacticalExtension::Draw_Super_Timers()
             );
         }
 
+    }
+}
+
+
+/**
+ *  Adds a cell to the to-redraw list.
+ *
+ *  @author: ZivDero
+ *
+ *  @note: Do not use this function by itself! Call Tactical::Flag_Cell instead.
+ */
+void TacticalExtension::Flag_Cell(CellClass& cell)
+{
+    if (TacticalMap->CellRedrawCount < std::size(CellRedraw) - 1) { // -1 because... reasons. It's that way in vanilla.
+        CellRedraw[TacticalMap->CellRedrawCount] = &cell;
+        TacticalMap->CellRedrawCount++;
     }
 }

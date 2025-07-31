@@ -35,11 +35,16 @@
 #include "building.h"
 #include "buildingtype.h"
 #include "buildingtypeext.h"
+#include "techno.h"
+#include "technotype.h"
 #include "house.h"
 #include "housetype.h"
+#include "layer.h"
 #include "session.h"
 #include "sessionext.h"
 #include "wwmouse.h"
+#include "mousetype.h"
+#include "actiontype.h"
 #include "extension.h"
 #include "fatal.h"
 #include "debughandler.h"
@@ -47,6 +52,179 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ * 
+ *  @note: This must not contain a constructor or destructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+class DisplayClassExt final : public DisplayClass
+{
+    public:
+        ObjectClass * _Next_Object(ObjectClass * object) const;
+        ObjectClass * _Prev_Object(ObjectClass * object) const;
+};
+
+
+/**
+ *  Reimplementation of DisplayClass::Next_Object.
+ * 
+ *  Searches for next object on display.
+ * 
+ *  @author: 06/20/1994 JLB - Red Alert source code.
+ *           CCHyper - Adjustments for Tiberian Sun.
+ */
+ObjectClass * DisplayClassExt::_Next_Object(ObjectClass * object) const
+{
+    static const LayerType _layers[] = {
+        
+        /**
+         *  #issue-785
+         * 
+         *  Adds underground layer to display search.
+         */
+        LAYER_UNDERGROUND,
+
+        LAYER_GROUND, LAYER_AIR, LAYER_TOP,
+    };
+
+    ObjectClass * firstobj = nullptr;
+    bool foundmatch = false;
+
+    if (object == nullptr) {
+        foundmatch = true;
+    }
+    for (int index = 0; index < std::size(_layers); ++index) {
+        LayerType layer = _layers[index];
+
+        for (unsigned uindex = 0; uindex < (unsigned)Layer[layer].Count(); uindex++) {
+            ObjectClass * obj = Layer[layer][uindex];
+
+            /**
+             *  Verify that the object can be selected by and is owned by the player.
+             */
+            if (obj != nullptr && obj->Is_Players_Army()) {
+                if (firstobj == nullptr) firstobj = obj;
+                if (foundmatch) return obj;
+                if (object == obj) foundmatch = true;
+            }
+        }
+    }
+    return firstobj;
+}
+
+
+/**
+ *  Reimplementation of DisplayClass::Next_Object.
+ * 
+ *  Searches for the previous object on the map.
+ * 
+ *  @author: 08/24/1995 JLB - Red Alert source code.
+ *           CCHyper - Adjustments for Tiberian Sun.
+ */
+ObjectClass * DisplayClassExt::_Prev_Object(ObjectClass * object)  const
+{
+    static const LayerType _layers[] = {
+        LAYER_TOP, LAYER_AIR, LAYER_GROUND,
+
+        /**
+         *  #issue-785
+         * 
+         *  Adds underground layer to display search.
+         */
+        LAYER_UNDERGROUND,
+    };
+
+    ObjectClass * firstobj = nullptr;
+    bool foundmatch = false;
+
+    if (object == nullptr) {
+        foundmatch = true;
+    }
+    for (int index = 0; index < std::size(_layers); ++index) {
+        LayerType layer = _layers[index];
+
+        for (int uindex = Layer[layer].Count()-1; uindex >= 0; uindex--) {
+            ObjectClass * obj = Layer[layer][uindex];
+
+            /**
+             *  Verify that the object can be selected by and is owned by the player.
+             */
+            if (obj != nullptr && obj->Is_Players_Army()) {
+                if (firstobj == nullptr) firstobj = obj;
+                if (foundmatch) return obj;
+                if (object == obj) foundmatch = true;
+            }
+        }
+    }
+    return firstobj;
+}
+
+
+/**
+ *  Sets the mouse cursor based on the action.
+ *
+ *  @author: CCHyper, ZivDero
+ */
+static void Display_Set_Mouse_Cursor(ActionType action, bool shadow, bool wsmall, CellClass *cellptr)
+{
+    MouseType mouse = MOUSE_NORMAL;
+
+    if (shadow) {
+        
+        mouse = ActionTypeClass::As_Reference(action).Get_Shadow_Mouse();
+
+        if (action == ACTION_NOMOVE) {
+            if (CurrentObjects.Count()
+                && CurrentObjects[0]->Is_Techno()
+                && CurrentObjects[0]->TClass->MoveToShroud) {
+
+                mouse = ActionTypeClass::As_Reference(ACTION_MOVE).Get_Shadow_Mouse();
+            }
+        }
+
+    } else {
+        
+        mouse = ActionTypeClass::As_Reference(action).Get_Mouse();
+
+        if (action == ACTION_ATTACK) {
+            if (cellptr
+                && CurrentObjects.Count() == 1
+                && CurrentObjects[0]->Is_Techno()
+                && static_cast<TechnoClass*>(CurrentObjects[0])->In_Range_Of(cellptr)) {
+
+                mouse = MOUSE_STAY_ATTACK;
+            }
+        }
+
+    }
+
+    Map.Set_Default_Mouse(mouse, wsmall);
+}
+
+
+/**
+ *  Patch to set the mouse cursor based on the action.
+ *
+ *  @author: CCHyper, ZivDero
+ */
+DECLARE_PATCH(_DisplayClass_Mouse_Left_Up_Set_Mouse)
+{
+    GET_REGISTER_STATIC(ActionType, action, ebx);
+    GET_STACK_STATIC8(bool, shadow, esp, 0x20);
+    GET_STACK_STATIC(CellClass *, cellptr, esp, 0x10);
+    GET_STACK_STATIC8(bool, wsmall, esp, 0x2C);
+
+    _asm { pop ebp }
+
+    Display_Set_Mouse_Cursor(action, shadow, wsmall, cellptr);
+
+    //return
+    JMP(0x004786C5);
+}
 
 
 /**
@@ -77,7 +255,7 @@ DECLARE_PATCH(_DisplayClass_Passes_Proximity_Passes_Check_Patch)
      * 
      *  Ensure the building is considered eligible for adjacency checks.
      */
-    if (base->House->ID == house && base->Class->IsBase) {
+    if (base->House->HeapID == house && base->Class->IsBase) {
         passes();
     }
 
@@ -93,7 +271,7 @@ DECLARE_PATCH(_DisplayClass_Passes_Proximity_Passes_Check_Patch)
 
             if (base->House != hptr && base->House->Is_Ally(hptr)) {
 
-                buildingtypeext = Extension::Fetch<BuildingTypeClassExtension>(base->Class);
+                buildingtypeext = Extension::Fetch(base->Class);
                 if (buildingtypeext->IsEligibleForAllyBuilding) {
 #ifndef NDEBUG
                     //DEV_DEBUG_INFO("Ally \"%s's\" building \"%s\" is eligible for building off.\n", base->House->IniName, base->Name());
@@ -171,7 +349,7 @@ place_it:
  *  @author: CCHyper
  */
 static Cell _tmpcell;
-static Coordinate _tmpcoord;
+static Coord _tmpcoord;
 static void Get_Mouse_Cursor_Coords()
 {
     _tmpcell = Get_Cell_Under_Mouse();
@@ -180,7 +358,7 @@ static void Get_Mouse_Cursor_Coords()
     /**
      *  Fixup Z position based on cell height.
      */
-    _tmpcoord.Z = Map.Get_Cell_Height(_tmpcoord);
+    _tmpcoord.Z = Map.Get_Height_GL(_tmpcoord);
 }
 
 /**
@@ -193,7 +371,7 @@ static void Get_Mouse_Cursor_Coords()
 DECLARE_PATCH(_DisplayClass_Help_Text_GetCursorPosition_Patch)
 {
     GET_REGISTER_STATIC(DisplayClass *, this_ptr, ebx);
-    LEA_STACK_STATIC(Cell *, cell, esp, 0x2C);
+    LEA_STACK_STATIC(Coord *, coordinate, esp, 0x2C);
     static char _cursor_position_buffer[128];
 
     if (Vinifera_Developer_ShowCursorPosition) {
@@ -219,7 +397,7 @@ DECLARE_PATCH(_DisplayClass_Help_Text_GetCursorPosition_Patch)
      *  Stolen bytes/code.
      */
 original_code:
-    if (Map[*cell].IsVisible && MainWindow) {
+    if (!Map[*coordinate].IsMapped && MainWindow) {
         goto txt_shadow;
     }
 
@@ -244,13 +422,43 @@ return_label:
 
 
 /**
+ *  #issue-71
+ *
+ *  Replace the old waypoint count in a loop.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_DisplayClass_47A790_Patch)
+{
+    GET_REGISTER_STATIC(int, i, edi)
+
+        if (i < NEW_WAYPOINT_COUNT)
+        {
+            JMP(0x0047A7FC);
+        }
+        else
+        {
+            JMP(0x0047A85B);
+        }
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void DisplayClassExtension_Hooks()
 {
     Patch_Jump(0x0047AFA6, &_DisplayClass_Help_Text_GetCursorPosition_Patch);
     Patch_Jump(0x00478974, &_DisplayClass_Mouse_Left_Release_PlaceAnywhere_BugFix_Patch);
+
+    /**
+     *  The ts-patches spawner has its own Build off Ally implementation.
+     */
+#ifndef TS_CLIENT
     Patch_Jump(0x004762E4, &_DisplayClass_Passes_Proximity_Passes_Check_Patch);
+#endif
+
+    Patch_Jump(0x004782CA, &_DisplayClass_Mouse_Left_Up_Set_Mouse);
 
     /**
      *  #issue-76
@@ -270,4 +478,18 @@ void DisplayClassExtension_Hooks()
     Patch_Dword(0x0047A0B5+1, ISOMAPPACK_BUFF_WIDTH);
     Patch_Dword(0x0047A0BA+1, ISOMAPPACK_BUFF_HEIGHT);
     Patch_Dword(0x0047A0C8+1, ISOMAPPACK_BUFF_WIDTH*ISOMAPPACK_BUFF_HEIGHT*sizeof(unsigned short));
+
+    /**
+     *  #issue-71
+     *
+     *  Increases the amount of available waypoints (see ScenarioClassExtension for implementation).
+     *
+     *  @author: ZivDero
+     */
+    Patch_Jump(0x0047A856, &_DisplayClass_47A790_Patch);
+
+    Patch_Byte_Range(0x0047C0A2, 0x90, 13); // Patch out logging "Display: Abort_Drag_Select()"
+
+    Patch_Jump(0x00477390, &DisplayClassExt::_Next_Object);
+    Patch_Jump(0x00477430, &DisplayClassExt::_Prev_Object);
 }

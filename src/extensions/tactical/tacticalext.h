@@ -39,7 +39,7 @@
 
 
 class HouseClass;
-class WWCRCEngine;
+class CRCEngine;
 
 
 enum InfoTextPosType {
@@ -61,9 +61,9 @@ class TacticalExtension final : public GlobalExtensionClass<Tactical>
         TacticalExtension(const NoInitClass &noinit);
         virtual ~TacticalExtension();
 
-        virtual int Size_Of() const override;
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+        virtual int Get_Object_Size() const override;
+        virtual void Detach(AbstractClass * target, bool all = true) override;
+        virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual const char *Name() const override { return "TacticalMap"; }
         virtual const char *Full_Name() const override { return "TacticalMap"; }
@@ -79,6 +79,7 @@ class TacticalExtension final : public GlobalExtensionClass<Tactical>
         void Draw_Super_Timers();
 
         void Render_Post();
+        void Flag_Cell(CellClass& cell);
 
 #ifndef NDEBUG
         bool Debug_Draw_Facings();
@@ -122,4 +123,14 @@ class TacticalExtension final : public GlobalExtensionClass<Tactical>
          *  The lifetime timer for the information text.
          */
         CDTimerClass<MSTimerClass> InfoTextTimer;
+
+        /**
+         *  Replacement cell redraw list, as the vanilla one is too small for modern screen sizes.
+         */
+        CellClass* CellRedraw[128 * 128]; // Not a solid number, just enough to never cause problems.
+
+        /**
+         *  The number of cells in the array above, only used after loading the game!
+         */
+        int CellRedrawCount;
 };

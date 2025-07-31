@@ -108,7 +108,7 @@ HRESULT ObjectClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-void ObjectClassExtension::Detach(TARGET target, bool all)
+void ObjectClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("ObjectClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -119,9 +119,9 @@ void ObjectClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void ObjectClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void ObjectClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("ObjectClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("ObjectClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 

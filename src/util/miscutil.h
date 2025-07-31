@@ -28,10 +28,13 @@
 #pragma once
 
 #include "always.h"
+#include "tibsun_defines.h"
 #include <windows.h>
 #include <time.h>
 
 
+
+struct VoxelObject;
 typedef int clockid_t;
 
 
@@ -71,3 +74,5 @@ bool Is_Full_Path(const char *path);
 const char *Get_User_Documents_Path();
 
 const char *Filename_From_Path(const char *filename);
+
+bool Parse_Boolean(const char* value, bool defval);

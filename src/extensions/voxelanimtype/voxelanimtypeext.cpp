@@ -39,7 +39,8 @@
  *  @author: CCHyper
  */
 VoxelAnimTypeClassExtension::VoxelAnimTypeClassExtension(const VoxelAnimTypeClass *this_ptr) :
-    ObjectTypeClassExtension(this_ptr)
+    ObjectTypeClassExtension(this_ptr),
+    StopSound(VOC_NONE)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("VoxelAnimTypeClassExtension::VoxelAnimTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -134,9 +135,9 @@ HRESULT VoxelAnimTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int VoxelAnimTypeClassExtension::Size_Of() const
+int VoxelAnimTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("VoxelAnimTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("VoxelAnimTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -147,9 +148,11 @@ int VoxelAnimTypeClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void VoxelAnimTypeClassExtension::Detach(TARGET target, bool all)
+void VoxelAnimTypeClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("VoxelAnimTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    ObjectTypeClassExtension::Detach(target, all);
 }
 
 
@@ -158,9 +161,11 @@ void VoxelAnimTypeClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void VoxelAnimTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void VoxelAnimTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("VoxelAnimTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("VoxelAnimTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    crc(StopSound);
 }
 
 
@@ -182,6 +187,10 @@ bool VoxelAnimTypeClassExtension::Read_INI(CCINIClass &ini)
     if (!ini.Is_Present(ini_name)) {
         return false;
     }
+
+    StopSound = ini.Get_VocType(ini_name, "StopSound", StopSound);
+
+    IsInitialized = true;
     
     return true;
 }

@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          VINIFERA_GITINFO.H
+ *  @file          MAPEXT_HOOKS.H
  *
- *  @authors       OmniBlade, CCHyper
+ *  @author        Rampastring
  *
- *  @brief         Globals for accessing git version information from the build system.
+ *  @brief         Contains the hooks for the extended MapClass.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -28,10 +28,4 @@
 #pragma once
 
 
-const char *Vinifera_Git_Hash();
-const char *Vinifera_Git_Hash_Short();
-const char *Vinifera_Git_Author();
-const char *Vinifera_Git_Branch();
-const char *Vinifera_Git_DateTime();
-bool Vinifera_Git_Uncommitted_Changes();
-const char *Vinifera_Git_Version_String();
+void MapClassExtension_Hooks();

@@ -27,10 +27,66 @@
  ******************************************************************************/
 #include "technotypeext_hooks.h"
 #include "technotypeext.h"
+#include "objecttypeext.h"
 #include "technotype.h"
+#include "house.h"
+#include "rules.h"
+#include "tibsun_defines.h"
+#include "extension.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "extension_globals.h"
+#include "hooker.h"
+#include "rulesext.h"
+
+
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or destructor.
+ *
+ *  @note: All functions must not be virtual and must also be prefixed
+ *         with "_" to prevent accidental virtualization.
+ */
+DECLARE_EXTENDING_CLASS_AND_PAIR(TechnoTypeClass)
+{
+public:
+    int _Max_Pips() const;
+};
+
+
+/**
+ *  Reimplements TechnoTypeClass::Max_Pips.
+ *
+ *  @author: ZivDero
+ */
+int TechnoTypeClassExt::_Max_Pips() const
+{
+    int max_pips = 0;
+    if (PipScale - 1 < RuleExtension->MaxPips.Count())
+        max_pips = RuleExtension->MaxPips[PipScale - 1];
+
+    // Negative values are not allowed
+    if (max_pips < 0)
+        return 0;
+
+    switch (PipScale)
+    {
+    case PIP_AMMO:
+        return std::clamp(MaxAmmo, 0, max_pips);
+
+    case PIP_PASSENGERS:
+        return std::clamp(MaxPassengers, 0, max_pips);
+
+    case PIP_TIBERIUM:
+    case PIP_POWER:
+    case PIP_CHARGE:
+    default:
+        return max_pips;
+    }
+}
 
 
 /**
@@ -38,4 +94,5 @@
  */
 void TechnoTypeClassExtension_Hooks()
 {
+    Patch_Jump(0x0063D460, &TechnoTypeClassExt::_Max_Pips);
 }

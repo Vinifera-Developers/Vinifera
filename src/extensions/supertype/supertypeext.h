@@ -54,15 +54,15 @@ SuperWeaponTypeClassExtension final : public AbstractTypeClassExtension
         SuperWeaponTypeClassExtension(const NoInitClass &noinit);
         virtual ~SuperWeaponTypeClassExtension();
 
-        virtual int Size_Of() const override;
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+        virtual int Get_Object_Size() const override;
+        virtual void Detach(AbstractClass * target, bool all = true) override;
+        virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual bool Read_INI(CCINIClass &ini) override;
 
         virtual SuperWeaponTypeClass *This() const override { return reinterpret_cast<SuperWeaponTypeClass *>(AbstractTypeClassExtension::This()); }
         virtual const SuperWeaponTypeClass *This_Const() const override { return reinterpret_cast<const SuperWeaponTypeClass *>(AbstractTypeClassExtension::This_Const()); }
-        virtual RTTIType What_Am_I() const override { return RTTI_SUPERWEAPONTYPE; }
+        virtual RTTIType Fetch_RTTI() const override { return RTTI_SUPERWEAPONTYPE; }
 
     protected:
         /**
@@ -81,4 +81,19 @@ SuperWeaponTypeClassExtension final : public AbstractTypeClassExtension
          *  Pointer to the cameo image surface.
          */
         BSurface *CameoImageSurface;
+
+        /**
+         *  Action type used for the cursor when the SW is out of range to fire.
+         */
+        ActionType ActionOutOfRange;
+
+        /**
+         *  Vox to speak when a missile SW is launched.
+         */
+        VoxType VoxMissileLaunched;
+
+        /**
+         *  Description for the extended sidebar tooltip.
+         */
+        char Description[200];
 };

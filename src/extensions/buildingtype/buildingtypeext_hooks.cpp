@@ -26,17 +26,24 @@
  *
  ******************************************************************************/
 #include "buildingtypeext_hooks.h"
+
 #include "buildingtypeext_init.h"
 #include "buildingtypeext.h"
 #include "buildingtype.h"
+#include "bullettype.h"
+#include "warheadtype.h"
+#include "weapontype.h"
+#include "rules.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "extension.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
-
-
+#include "tibsun_globals.h"
+#include "verses.h"
+#include "warheadtypeext.h"
 
 /**
  *  A fake class for implementing new member functions which allow
@@ -45,10 +52,13 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-class BuildingTypeClassExt final : public BuildingTypeClass
+DECLARE_EXTENDING_CLASS_AND_PAIR(BuildingTypeClass)
 {
     public:
         void _Free_Buildup_Image();
+        void _Set_Base_Defense_Values();
+        int _Raw_Cost();
+        int _Cost_Of(HouseClass* house);
 };
 
 
@@ -74,6 +84,32 @@ void BuildingTypeClassExt::_Free_Buildup_Image()
         //delete BuildupData;
 
         BuildupData = nullptr;
+    }
+}
+
+
+/**
+ *  Reimplementation of BuildingClass::Set_Base_Defense_Values.
+ *
+ *  @author: ZivDero
+ */
+void BuildingTypeClassExt::_Set_Base_Defense_Values()
+{
+    if (IsBaseDefense) {
+        const WeaponTypeClass* weapon = Fetch_Weapon_Info(WEAPON_SLOT_PRIMARY).Weapon;
+
+        if (weapon != nullptr) {
+            int damage = weapon->Attack / (weapon->ROF * 0.025);
+
+            if (weapon->Bullet->IsAntiAircraft) {
+                AntiAirValue = std::min(static_cast<double>(Rule->MaximumBaseDefenseValue), damage * Verses::Get_Modifier(ARMOR_STEEL, weapon->WarheadPtr));
+            }
+
+            if (weapon->Bullet->IsAntiGround) {
+                AntiArmorValue = std::min(static_cast<double>(Rule->MaximumBaseDefenseValue), damage * Verses::Get_Modifier(ARMOR_STEEL, weapon->WarheadPtr));
+                AntiInfantryValue = std::min(static_cast<double>(Rule->MaximumBaseDefenseValue), damage * Verses::Get_Modifier(ARMOR_NONE, weapon->WarheadPtr));
+            }
+        }
     }
 }
 
@@ -163,7 +199,6 @@ DECLARE_PATCH(_BuildingTypeClass_SDDTOR_Free_Image_Patch) { GET_REGISTER_STATIC(
 DECLARE_PATCH(_BuildingTypeClass_Init_Free_Image_Patch) { GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, esi); BuildingTypeClass_Free_Image(this_ptr); JMP(0x0043FD9E); }
 DECLARE_PATCH(_BuildingTypeClass_DTOR_Free_Image_Patch) { GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, esi); BuildingTypeClass_Free_Image(this_ptr); JMP(0x0043F922); }
 
-
 /**
  *  Patches in an assertion check for image data.
  * 
@@ -172,7 +207,7 @@ DECLARE_PATCH(_BuildingTypeClass_DTOR_Free_Image_Patch) { GET_REGISTER_STATIC(Bu
 DECLARE_PATCH(_BuildingTypeClass_Get_Image_Data_Assertion_Patch)
 {
     GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(const ShapeFileStruct *, image, eax);
+    GET_REGISTER_STATIC(const ShapeSet *, image, eax);
 
     if (image == nullptr) {
         DEBUG_WARNING("Building %s has NULL image data!\n", this_ptr->Name());
@@ -182,6 +217,54 @@ DECLARE_PATCH(_BuildingTypeClass_Get_Image_Data_Assertion_Patch)
     _asm { pop esi }
     _asm { add esp, 0x64 }
     _asm { ret }
+}
+
+
+/**
+ *  #issue-433
+ *
+ *  Disables unintuitive Westwood logic that links a BuildingType's cost to the cost
+ *  of its FreeUnit or pad aircraft.
+ *
+ *  Author: Rampastring
+ */
+int BuildingTypeClassExt::_Raw_Cost()
+{
+    return TechnoTypeClass::Raw_Cost();
+}
+
+
+/**
+ *  #issue-433
+ *
+ *  Disables unintuitive Westwood logic that links a BuildingType's cost to the cost
+ *  of its FreeUnit or pad aircraft.
+ *
+ *  Author: Rampastring
+ */
+int BuildingTypeClassExt::_Cost_Of(HouseClass* house)
+{
+    return TechnoTypeClass::Cost_Of(house);
+}
+
+
+/**
+ *  Patch to fetch the new building images.
+ *
+ *  Author: ZivDero
+ */
+DECLARE_PATCH(_BuildingTypeClass_Init_Fetch_Image_Patch)
+{
+    GET_REGISTER_STATIC(BuildingTypeClass*, btype, esi);
+    GET_REGISTER_STATIC(TheaterType, theater, edi);
+
+    btype->Fetch_Building_Normal_Image(theater);
+
+    static BuildingTypeClassExtension* bext;
+    bext = Extension::Fetch(btype);
+    bext->Fetch_Building_Normal_Image(theater);
+
+    JMP(0x0043FDC7);
 }
 
 
@@ -198,6 +281,7 @@ void BuildingTypeClassExtension_Hooks()
     //Patch_Jump(0x00440365, &_BuildingTypeClass_Get_Image_Data_Assertion_Patch);
 
     Patch_Jump(0x00443CF0, &BuildingTypeClassExt::_Free_Buildup_Image);
+    Patch_Jump(0x00443D20, &BuildingTypeClassExt::_Set_Base_Defense_Values);
 
     Patch_Jump(0x0044403B, &_BuildingTypeClass_SDDTOR_Free_Image_Patch);
     Patch_Jump(0x0043FD83, &_BuildingTypeClass_Init_Free_Image_Patch);
@@ -205,4 +289,7 @@ void BuildingTypeClassExtension_Hooks()
     Patch_Jump(0x00444052, &_BuildingTypeClass_SDDTOR_Free_Buildup_Image_Patch);
     Patch_Jump(0x0043FDB0, &_BuildingTypeClass_Init_Free_Buildup_Image_Patch);
     Patch_Jump(0x0043F936, &_BuildingTypeClass_DTOR_Free_Buildup_Image_Patch);
+    Patch_Jump(0x00440000, &BuildingTypeClassExt::_Raw_Cost);
+    Patch_Jump(0x00440080, &BuildingTypeClassExt::_Cost_Of);
+    Patch_Jump(0x0043FDBF, &_BuildingTypeClass_Init_Fetch_Image_Patch);
 }

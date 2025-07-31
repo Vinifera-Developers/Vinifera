@@ -646,3 +646,25 @@ void Vinifera_Printf(DebugType type, const char *file, const char *function, int
 
     va_end(args);
 }
+
+
+void Vinifera_Escape_Percent_Sign(char* string, size_t buffer_length)
+{
+    static char buffer[4096];
+
+    int i = 0, j = 0;
+    while (string[i] && i < buffer_length) {
+        if (string[i] == '%') {
+            buffer[j++] = '%';
+            buffer[j++] = '%';
+            i++;
+        }
+        else {
+            buffer[j++] = string[i++];
+        }
+    }
+    buffer[j] = '\0';
+
+    std::snprintf(string, buffer_length, "%s", buffer);
+}
+

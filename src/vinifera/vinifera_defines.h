@@ -56,13 +56,24 @@
 
 
 /**
- *  CLSID's for all new locomotors.
+ *  CLSIDs for all new locomotors.
  */
-#define		CLSID_TEST_LOCOMOTOR	"501DEF92-C7ED-448E-8FEB-7908DCE73377"
+#define CLSID_TEST_LOCOMOTOR                "501DEF92-C7ED-448E-8FEB-7908DCE73377"
+#define CLSID_ROCKET_LOCOMOTOR              "B7B49766-E576-11d3-9BD9-00104B972FE8"
+#define CLSID_NEWJUMPJET_LOCOMOTOR          "92612C46-F71F-11D1-AC9F-006008055BB5" // This is the same as vanilla JumpjetLocomotion. This way, we silently replace it.
 
 
 /**
- *  UUID's for all extension classes.
+ *  CLSIDs for new classes.
+ */
+#define UUID_ARMORTYPE                      "EE8D505F-12BB-4313-AEDC-4AEA30A5BA03"
+#define UUID_ROCKETTYPE                     "FAE72300-A93C-476C-A6DB-CB2B62ADCECD"
+#define UUID_SPAWN_MANAGER                  "157ADEE5-D344-48B9-811B-3FA01EF3CCD4"
+#define UUID_PREREQUISITE_GROUP             "C0D8765A-FD0C-476D-B4DD-C8D061C323EE"
+
+
+/**
+ *  UUIDs for all extension classes.
  */
 #define UUID_UNIT_EXTENSION                 "17621513-3BDA-4FBD-A591-1A0B6DA0F4B9"
 #define UUID_AIRCRAFT_EXTENSION             "04B6C8D5-6D12-41C3-BF4B-B52F25928CF3"
@@ -127,3 +138,80 @@
 #define UUID_FOGGEDOBJECT_EXTENSION         "7D9C5263-465F-42CE-AD81-5C057B52226F"
 #define UUID_ALPHASHAPE_EXTENSION           "4C8171D5-E7A7-43D1-80F3-0C285CF6B352"
 #define UUID_VEINHOLEMONSTER_EXTENSION      "4AD76F43-090A-44BF-BB1A-5BFDE52BC842"
+
+
+/**
+ *  The maximum amount of waypoints available for a scenario to use.
+ */
+#define NEW_WAYPOINT_COUNT SHRT_MAX // "AVLG"
+
+
+enum ViniferaRTTIType
+{
+    RTTI_SPAWN_MANAGER = RTTI_COUNT,
+
+    VINIFERA_RTTI_COUNT
+};
+DEFINE_ENUMERATION_OPERATORS(ViniferaRTTIType);
+
+
+enum TargetZoneScanType
+{
+    TZST_SAME,
+    TZST_ANY,
+    TZST_INRANGE
+};
+
+
+enum ProductionFlags
+{
+    PRODFLAG_NONE = 0,
+    PRODFLAG_NAVAL = 1 << 0,
+    PRODFLAG_DEFENSE = 1 << 1
+};
+DEFINE_ENUMERATION_OPERATORS(ProductionFlags);
+
+
+enum PrerequisiteGroupType
+{
+    PREREQ_GROUP_FIRST = 0,
+
+    PREREQ_GROUP_NONE = -1
+};
+DEFINE_ENUMERATION_OPERATORS(PrerequisiteGroupType);
+
+
+/**
+ *  Extension of the TActionType enum.
+ */
+typedef enum ExtTActionType
+{
+    EXT_TACTION_PAD = TACTION_TALK_BUBBLE, // The last TActionType
+
+    /**
+     *  Add new ExtTActionTypes from here.
+     */
+    EXT_TACTION_GIVE_CREDITS,
+    EXT_TACTION_ENABLE_SHORT_GAME,
+    EXT_TACTION_DISABLE_SHORT_GAME,
+    EXT_TACTION_UNUSED1, // unused, used to print the difficulty as a message in ts-patches
+    EXT_TACTION_HOUSE_DESTROY_ALL,
+    EXT_TACTION_MAKE_ELITE,
+    EXT_TACTION_ENABLE_ALLYREVEAL,
+    EXT_TACTION_DISABLE_ALLYREVEAL,
+    EXT_TACTION_CREATE_AUTOSAVE,
+    EXT_TACTION_DELETE_OBJECT,
+    EXT_TACTION_ALL_ASSIGN_MISSION,
+    EXT_TACTION_MAKE_ALLY_ONE_WAY,
+    EXT_TACTION_MAKE_ENEMY_ONE_WAY,
+
+    /**
+     *  The new total ExtTActionType count.
+     */
+    EXT_TACTION_COUNT,
+
+    /**
+     *  The first ExtTActionType.
+     */
+    EXT_TACTION_FIRST = EXT_TACTION_PAD + 1
+} ExtTActionType;

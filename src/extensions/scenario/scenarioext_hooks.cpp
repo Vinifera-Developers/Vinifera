@@ -36,13 +36,174 @@
 #include "rules.h"
 #include "ccfile.h"
 #include "ccini.h"
+#include "environment.h"
 #include "addon.h"
+#include "aircrafttracker.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "houseext.h"
+#include "kamikazetracker.h"
+#include "mouse.h"
+#include "vinifera_globals.h"
+
+
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or destructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+class ScenarioClassExt : public ScenarioClass
+{
+    public:
+        Cell _Waypoint_Cell(WAYPOINT wp) const { return ScenExtension->Waypoint_Cell(wp); }
+        CellClass *_Waypoint_CellClass(WAYPOINT wp) const { return ScenExtension->Waypoint_CellClass(wp); }
+        Coord _Waypoint_Coord(WAYPOINT wp) const { return ScenExtension->Waypoint_Coord(wp); }
+
+        void _Set_Waypoint_Cell(WAYPOINT wp, Cell cell) { ScenExtension->Set_Waypoint_Cell(wp, cell); }
+        void _Set_Waypoint_Coord(WAYPOINT wp, Coord &coord) { ScenExtension->Set_Waypoint_Coord(wp, coord); }
+
+        bool _Is_Waypoint_Valid(WAYPOINT wp) const { return ScenExtension->Is_Waypoint_Valid(wp); }
+        void _Clear_Waypoint(WAYPOINT wp) { ScenExtension->Clear_Waypoint(wp); }
+
+        void _Clear_All_Waypoints() { ScenExtension->Clear_All_Waypoints(); }
+
+        void _Read_Waypoint_INI(CCINIClass &ini) { ScenExtension->Read_Waypoint_INI(ini); }
+        void _Write_Waypoint_INI(CCINIClass &ini) { ScenExtension->Write_Waypoint_INI(ini); }
+
+        const char *_Waypoint_As_String(WAYPOINT wp) const { return ScenExtension->Waypoint_As_String(wp); }
+};
+
+
+/**
+ *  #issue-71
+ * 
+ *  Clear things in preparation for loading the scenario data.
+ *
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_Clear_Scenario_Patch)
+{
+    /**
+     *  Stolen bytes/code.
+     */
+    _asm { add esp, 0x4 } // Fixes up the stack from the WWDebugPrintf call.
+
+    //DEBUG_INFO("Clearing waypoints...\n");
+    ScenExtension->Clear_All_Waypoints();
+
+    KamikazeTracker->Clear();
+    AircraftTracker->Clear();
+
+    JMP(0x005DC872);
+}
+
+
+/**
+ *  #issue-71
+ *
+ *  Reimplements a part of the Fill_In_Data function to set the view to the HomeCell.
+ *
+ *  @author: ZivDero
+ */
+void Init_Home_Cell()
+{
+    Map.SidebarClass::Activate(1);
+    if (Session.Type == GAME_NORMAL)
+    {
+        int home_cell_number = Environment.Globals[0] ? Scen->AltHome : Scen->Home;
+        Cell home_cell = ScenExtension->Waypoint[home_cell_number];
+
+        Scen->Views[0] = home_cell;
+        Scen->Views[1] = Scen->Views[0];
+        Scen->Views[2] = Scen->Views[1];
+        Scen->Views[3] = Scen->Views[2];
+
+        Coord home_coord = home_cell.As_Coord();
+        home_coord.Z = Map.Get_Height_GL(home_coord);
+
+        Map.RadarClass::Set_Tactical_Position(home_coord);
+    }
+}
+
+
+/**
+ *  #issue-71
+ *
+ *  Assign the home cell waypoint.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_Fill_In_Data_Home_Cell_Patch)
+{
+    Init_Home_Cell();
+
+    JMP(0x005DC166);
+}
+
+
+/**
+ *  #issue-71
+ *
+ *  Replace waypoint number to string conversion.
+ *
+ *  @author: secsome, ZivDero
+ */
+const char* _Waypoint_To_Name(int wp)
+{
+    enum { CHAR_COUNT = 26 };
+
+    static char buffer[8]{ '\0' };
+
+    if (wp < 0)
+        return buffer;
+
+    ++wp;
+    int pos = 7;
+
+    while (wp > 0)
+    {
+        --pos;
+        char m = wp % CHAR_COUNT;
+        if (m == 0) m = CHAR_COUNT;
+        buffer[pos] = m + '@'; // '@' = 'A' - 1
+        wp = (wp - m) / CHAR_COUNT;
+    }
+
+    return buffer + pos;
+}
+
+
+/**
+ *  #issue-71
+ *
+ *  Replace waypoint string to number conversion.
+ *
+ *  @author: secsome, ZivDero
+ */
+int _Waypoint_From_Name(char* wp)
+{
+    enum { CHAR_COUNT = 26 };
+
+    int n = 0;
+    int len = strlen(wp);
+
+    for (int i = len - 1, j = 1; i >= 0; i--, j *= CHAR_COUNT)
+    {
+        int c = toupper(wp[i]);
+        if (c < 'A' || c > 'Z')
+            return WAYPOINT_NONE;
+
+        n += (c - '@') * j; // '@' = 'A' - 1
+    }
+
+    return n - 1;
+}
 
 
 /**
@@ -85,7 +246,7 @@ DECLARE_PATCH(_Read_Scenario_INI_MPlayer_INI_Patch)
          *  Process the multiplayer ini overrides.
          */
         Rule_Addition("MPLAYER.INI");
-        if (Addon_Enabled(ADDON_FIRESTORM)) { 
+        if (Is_Addon_Enabled(ADDON_FIRESTORM)) { 
             Rule_Addition("MPLAYERFS.INI");
         }
 
@@ -143,6 +304,52 @@ DECLARE_PATCH(_Do_Lose_Skip_MPlayer_Score_Screen_Patch)
 
 
 /**
+ *  Proxy for a Scan_Place_Object call in vanilla code so
+ *  that we can force RA2-like unit placement.
+ *
+ *  @author: ZivDero
+ */
+int Scan_Place_Object_Proxy(ObjectClass* obj, Cell const& cell)
+{
+    /**
+     *  #issue-338
+     * 
+     *  Change the starting unit formation to be like Red Alert 2.
+     * 
+     *  This sets the desired placement distance from the base center cell.
+     * 
+     *  @author: CCHyper
+     */
+    const unsigned int MIN_PLACEMENT_DISTANCE = 3;
+    const unsigned int MAX_PLACEMENT_DISTANCE = 32;
+
+    return Vinifera_Scan_Place_Object(obj, cell, MIN_PLACEMENT_DISTANCE, MAX_PLACEMENT_DISTANCE, true);
+}
+
+
+/**
+ *  Save the waypoint at which the house was spawned
+ *  so that we can later fetch it using this number.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_Create_Units_Save_Spawn_Waypoint_Patch)
+{
+    GET_REGISTER_STATIC(HouseClass*, house, edi);
+    static bool bases;
+
+    _asm pushad
+
+    Extension::Fetch(house)->Set_Spawn_Point(house->Center);
+    bases = Session.Options.Bases;
+
+    _asm popad
+    _asm mov al, bases
+    JMP_REG(ebx, 0x005DEBFF);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void ScenarioClassExtension_Hooks()
@@ -177,4 +384,37 @@ void ScenarioClassExtension_Hooks()
     Patch_Jump(0x005DC9D4, &_Do_Win_Skip_MPlayer_Score_Screen_Patch);
     Patch_Jump(0x005DCD92, &_Do_Lose_Skip_MPlayer_Score_Screen_Patch);
     Patch_Jump(0x005DD8D5, &_Read_Scenario_INI_MPlayer_INI_Patch);
+
+    /**
+     *  #issue-71
+     *
+     *  Increases the amount of available waypoints (see ScenarioClassExtension for implementation).
+     *
+     *  @author: CCHyper, ZivDero
+     */
+    Patch_Jump(0x005E1460, &ScenarioClassExt::_Waypoint_Cell);
+    Patch_Jump(0x005E1480, &ScenarioClassExt::_Waypoint_CellClass);
+    Patch_Jump(0x005E14A0, &ScenarioClassExt::_Waypoint_Coord);
+    Patch_Jump(0x005E1500, &ScenarioClassExt::_Clear_All_Waypoints);
+    Patch_Jump(0x005E1520, &ScenarioClassExt::_Is_Waypoint_Valid);
+    Patch_Jump(0x005E1560, &ScenarioClassExt::_Read_Waypoint_INI);
+    Patch_Jump(0x005E1630, &ScenarioClassExt::_Write_Waypoint_INI);
+    Patch_Jump(0x005E16C0, &ScenarioClassExt::_Clear_Waypoint);
+    Patch_Jump(0x005E16E0, &ScenarioClassExt::_Set_Waypoint_Cell);
+    Patch_Jump(0x005E1700, &ScenarioClassExt::_Waypoint_CellClass);
+    Patch_Jump(0x005E1720, &ScenarioClassExt::_Waypoint_As_String);
+    Patch_Jump(0x005DC852, &_Clear_Scenario_Patch);
+    Patch_Jump(0x005DC0A0, &_Fill_In_Data_Home_Cell_Patch);
+    Patch_Jump(0x00673330, &_Waypoint_From_Name);
+    Patch_Jump(0x006732B0, &_Waypoint_To_Name);
+
+    /**
+     *  Patch vanilla Create_Units so that TS CLient builds get new unit placement.
+     *
+     *  @author: ZivDero
+     */
+    Patch_Call(0x005DED81, &Scan_Place_Object_Proxy);
+    Patch_Jump(0x005DEE64, 0x005DEE91); // Skip calling Scatter on placed units, let them stay in their spots.
+
+    Patch_Jump(0x005DEBFA, &_Create_Units_Save_Spawn_Waypoint_Patch);
 }

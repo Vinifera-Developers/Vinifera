@@ -60,5 +60,5 @@ desktop.ini
 *.bak
 *.idb
 
-# Fetched content
-tspp/
+# Docs
+docs/_build/

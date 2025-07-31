@@ -50,9 +50,9 @@ class OptionsClassExtension final : public GlobalExtensionClass<OptionsClass>
          *  OptionsClass extension does not require these to be used, but we
          *  implement them for completeness.
          */
-        virtual int Size_Of() const override;
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+        virtual int Get_Object_Size() const override;
+        virtual void Detach(AbstractClass * target, bool all = true) override;
+        virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual const char *Name() const override { return "Options"; }
         virtual const char *Full_Name() const override { return "Options"; }
@@ -64,4 +64,14 @@ class OptionsClassExtension final : public GlobalExtensionClass<OptionsClass>
         void Set();
 
     public:
+
+        /**
+         *  Should cameos of defenses (including walls and gates) be sorted to the bottom of the sidebar?
+         */
+        bool SortDefensesAsLast;
+
+        /**
+         *  Are harvesters and MCVs excluded from a band-box selection that includes combat units?
+         */
+        bool FilterBandBoxSelection;
 };

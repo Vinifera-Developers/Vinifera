@@ -26,6 +26,8 @@
  *
  ******************************************************************************/
 #include "infantryext_hooks.h"
+
+#include "animtype.h"
 #include "infantryext_init.h"
 #include "infantry.h"
 #include "infantrytype.h"
@@ -44,12 +46,58 @@
 #include "options.h"
 #include "rules.h"
 #include "wwkeyboard.h"
+#include "tiberium.h"
+#include "tiberiumext.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "tibsun_inline.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "sideext.h"
+
+
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or destructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+static DECLARE_EXTENDING_CLASS_AND_PAIR(InfantryClass)
+{
+public:
+    const ShapeSet* _Get_Image_Data() const;
+};
+
+
+/**
+ *  Fetches the image data for this infantry unit.
+ *
+ *  The image data for the infantry differs from normal if this is a spy. A spy always
+ *  appears like a regular infantry to the non-owning players.
+ *
+ *  Infantry currently in webs also display a different image.
+ *
+ *  @author: ZivDero
+ */
+const ShapeSet* InfantryClassExt::_Get_Image_Data() const
+{
+    if (Doing == DO_STRUGGLE && Rule->WebbedInfantry) {
+        return Rule->WebbedInfantry->Get_Image_Data();
+    }
+
+    if (!IsOwnedByPlayer && Class->IsDisguised) {
+
+        const auto disguise = SideClassExtension::Get_Disguise(House);
+        if (disguise) {
+            return disguise->Image;
+        }
+    }
+
+    return ObjectClass::Get_Image_Data();
+};
 
 
 /**
@@ -62,7 +110,7 @@
 static int Get_Engineer_Damage(TechnoClass *tech)
 {
     float damage = Rule->EngineerDamage;    // Was "Rule->ConditionRed * 0.5f"
-    return std::min((tech->Techno_Type_Class()->MaxStrength * damage), (float)(tech->Strength-1));
+    return std::min((tech->TClass->MaxStrength * damage), (float)(tech->Strength-1));
 }
 
 
@@ -80,7 +128,7 @@ static bool Health_Low_Enough_To_Capture(TechnoClass *tech)
      * 
      *  @author: CCHyper
      */
-    return tech->Health_Ratio() <= Rule->EngineerCaptureLevel;
+    return tech->HealthRatio <= Rule->EngineerCaptureLevel;
 }
 
 
@@ -144,9 +192,9 @@ DECLARE_PATCH(_InfantryClass_Per_Cell_Process_Transport_Attach_Sound_Patch)
     /**
      *  If this transport we are entering has a passenger entering sound, play it now.
      */
-    radio_technotypeext = Extension::Fetch<TechnoTypeClassExtension>(techno->Techno_Type_Class());
+    radio_technotypeext = Extension::Fetch(techno->TClass);
     if (radio_technotypeext->EnterTransportSound != VOC_NONE) {
-        Sound_Effect(radio_technotypeext->EnterTransportSound, techno->Coord);
+        Static_Sound(radio_technotypeext->EnterTransportSound, techno->Position);
     }
 
     JMP(0x004D3A87);
@@ -166,7 +214,7 @@ DECLARE_PATCH(_InfantryClass_Firing_AI_Mechanic_Patch)
     GET_REGISTER_STATIC(ObjectClass *, targ, esi);      // TarCom as ObjectClass.
     static InfantryTypeClassExtension *infantrytypeext;
 
-    infantrytypeext = Extension::Fetch<InfantryTypeClassExtension>(this_ptr->Class);
+    infantrytypeext = Extension::Fetch(this_ptr->Class);
 
     /**
      *  Is this infantry a "dual healer" (can it heal both infantry and units)?
@@ -177,7 +225,10 @@ DECLARE_PATCH(_InfantryClass_Firing_AI_Mechanic_Patch)
          *  Is the target being queried a unit, aircraft or infantry? If so, make
          *  sure this infantry is a mechanic before allowing it to heal the unit.
          */
-        if (targ->What_Am_I() == RTTI_UNIT || (targ->What_Am_I() == RTTI_AIRCRAFT && !targ->In_Air()) || targ->What_Am_I() == RTTI_INFANTRY) {
+        if (targ->RTTI == RTTI_UNIT || 
+            (targ->RTTI == RTTI_AIRCRAFT && !targ->In_Air()) || 
+            targ->RTTI == RTTI_INFANTRY || 
+            (targ->RTTI == RTTI_BUILDING && targ->Techno_Type_Class()->UndeploysInto != nullptr && !reinterpret_cast<BuildingClass*>(targ)->Class->IsConstructionYard)) {
             goto health_ratio_check;
         }
 
@@ -190,14 +241,16 @@ DECLARE_PATCH(_InfantryClass_Firing_AI_Mechanic_Patch)
          *  Is the target being queried a unit or aircraft? If so, make sure this
          *  infantry is a mechanic before allowing it to heal the unit.
          */
-        if (targ->What_Am_I() == RTTI_UNIT || (targ->What_Am_I() == RTTI_AIRCRAFT && !targ->In_Air())) {
+        if (targ->RTTI == RTTI_UNIT || 
+            (targ->RTTI == RTTI_AIRCRAFT && !targ->In_Air()) || 
+            (targ->RTTI == RTTI_BUILDING && targ->Techno_Type_Class()->UndeploysInto != nullptr && !reinterpret_cast<BuildingClass*>(targ)->Class->IsConstructionYard)) {
             goto health_ratio_check;
         }
 
     /**
      *  Original code.
      */
-    } else if (targ->What_Am_I() == RTTI_INFANTRY) {
+    } else if (targ->RTTI == RTTI_INFANTRY) {
         goto health_ratio_check;
     }
 
@@ -225,7 +278,7 @@ DECLARE_PATCH(_InfantryClass_What_Action_Mechanic_Patch)
     GET_REGISTER_STATIC(/*const */ObjectClass *, object, esi);  // target
     static InfantryTypeClassExtension *infantrytypeext;
 
-    infantrytypeext = Extension::Fetch<InfantryTypeClassExtension>(this_ptr->Class);
+    infantrytypeext = Extension::Fetch(this_ptr->Class);
 
     /**
      *  Is this infantry a "dual healer" (can it heal both infantry and units)?
@@ -243,12 +296,15 @@ DECLARE_PATCH(_InfantryClass_What_Action_Mechanic_Patch)
          *  Is the target being queried a unit, aircraft or infantry? If so, make
          *  sure this infantry is a mechanic before allowing it to heal the unit.
          */
-        if (object->What_Am_I() == RTTI_UNIT || object->What_Am_I() == RTTI_AIRCRAFT || object->What_Am_I() == RTTI_INFANTRY) {
+        if (object->RTTI == RTTI_UNIT ||
+            object->RTTI == RTTI_AIRCRAFT || 
+            object->RTTI == RTTI_INFANTRY || 
+            (object->RTTI == RTTI_BUILDING && object->Techno_Type_Class()->UndeploysInto != nullptr && !reinterpret_cast<BuildingClass*>(object)->Class->IsConstructionYard)) {
 
             /**
              *  If we are force-moving into an Transport, don't try to heal it!
              */
-            if (object->Techno_Type_Class()->MaxPassengers > 0) {
+            if (object->TClass->MaxPassengers > 0) {
                 if (WWKeyboard->Down(Options.KeyForceMove1) || WWKeyboard->Down(Options.KeyForceMove2)) {
                     goto next_check;
                 }
@@ -276,12 +332,14 @@ DECLARE_PATCH(_InfantryClass_What_Action_Mechanic_Patch)
          *  Is the target being queried a unit or aircraft? If so, make sure this
          *  infantry is a mechanic before allowing it to heal the unit.
          */
-        if (object->What_Am_I() == RTTI_UNIT || object->What_Am_I() == RTTI_AIRCRAFT) {
+        if (object->RTTI == RTTI_UNIT ||
+            object->RTTI == RTTI_AIRCRAFT ||
+            (object->RTTI == RTTI_BUILDING && object->Techno_Type_Class()->UndeploysInto != nullptr && !reinterpret_cast<BuildingClass*>(object)->Class->IsConstructionYard)) {
 
             /**
              *  If we are force-moving into an Transport, don't try to heal it!
              */
-            if (object->Techno_Type_Class()->MaxPassengers > 0) {
+            if (object->TClass->MaxPassengers > 0) {
                 if (WWKeyboard->Down(Options.KeyForceMove1) || WWKeyboard->Down(Options.KeyForceMove2)) {
                     goto next_check;
                 }
@@ -296,7 +354,7 @@ DECLARE_PATCH(_InfantryClass_What_Action_Mechanic_Patch)
     /**
      *  Original code.
      */
-    } else if (object->What_Am_I() == RTTI_INFANTRY) {
+    } else if (object->RTTI == RTTI_INFANTRY) {
 
         /**
          *  If the mouse is over ourself, show the guard area cursor.
@@ -338,11 +396,11 @@ health_ratio_check:
 DECLARE_PATCH(_InfantryClass_Can_Fire_Target_Check_Patch)
 {
     GET_REGISTER_STATIC(InfantryClass *, this_ptr, esi);
-    GET_STACK_STATIC(TARGET, target, esp, 0x10);
+    GET_STACK_STATIC(AbstractClass *, target, esp, 0x10);
     GET_STACK_STATIC(int, which, esp, 0x14);
-    static FootClass *targ;
+    static TechnoClass *targ;
 
-    targ = Target_As_Foot(target);
+    targ = Target_As_Techno(target);
     if (targ == nullptr) {
         goto return_FIRE_ILLEGAL;
     }
@@ -525,6 +583,57 @@ DECLARE_PATCH(_InfantryClass_Firing_AI_JumpJet_In_Air_Patch)
 
 
 /**
+ *  Uses a new extension value as the damage Tiberium deals to infantry.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_InfantryClass_Per_Cell_Process_Tiberium_Damage_Patch)
+{
+    GET_REGISTER_STATIC(int, tib_id, eax);
+
+    static int damage;
+    damage = Extension::Fetch(Tiberiums[tib_id])->DamageToInfantry;
+
+    _asm mov eax, damage
+    _asm mov [esp + 0x10], eax
+
+    JMP(0x004D3F8E);
+}
+
+
+/**
+ *  #issue-1080
+ *
+ *  Fixes an out-of-bounds DoControls read when an infantry is "doing nothing".
+ *
+ *  @author: Rampastring
+ */
+void _Set_Infantry_Facing_After_Doing_Check_For_Do_Nothing(InfantryClass* this_ptr)
+{
+    if (this_ptr->Doing == DO_NOTHING) {
+        return;
+    }
+
+    FacingType facing = this_ptr->Class->DoControls[this_ptr->Doing].Finish;
+    if (facing == FACING_NONE) {
+        return;
+    }
+
+    Dir256 dirtype = Facing_Dir(facing);
+    DirType ds = DirType(dirtype);
+    this_ptr->PrimaryFacing.Set(ds);
+}
+
+
+DECLARE_PATCH(_InfantryClass_Doing_AI_Fix_Invalid_Facing_Set)
+{
+    GET_REGISTER_STATIC(InfantryClass*, inf, esi);
+    _Set_Infantry_Facing_After_Doing_Check_For_Do_Nothing(inf);
+    JMP(0x004D8C14);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void InfantryClassExtension_Hooks()
@@ -543,13 +652,8 @@ void InfantryClassExtension_Hooks()
     Patch_Jump(0x004D87E9, &_InfantryClass_Firing_AI_Mechanic_Patch);
     Patch_Jump(0x004D3A7B, &_InfantryClass_Per_Cell_Process_Transport_Attach_Sound_Patch);
     Patch_Jump(0x004D35F9, &_InfantryClass_Per_Cell_Process_Engineer_Capture_Damage_Patch);
+    Patch_Jump(0x004D3F5D, &_InfantryClass_Per_Cell_Process_Tiberium_Damage_Patch);
+    Patch_Jump(0x004D8BE4, &_InfantryClass_Doing_AI_Fix_Invalid_Facing_Set);
 
-    /**
-     *  ACTION_DAMAGE no longer a case in DisplayClass::Left_Mouse_Up to show the
-     *  correct mouse cursor for the multi-engineer damage (MOUSE.SHP also does not
-     *  contain any artwork for this), so with the multi-engineer fixes above it shows
-     *  the default arrow cursor. We fix this by making it use ACTION_CAPTURE still
-     *  to make sure the mouse shows the correct visual cursor.
-     */
-    Patch_Byte(0x004D7124+1, ACTION_CAPTURE);
+    Patch_Jump(0x004D90B0, &InfantryClassExt::_Get_Image_Data);
 }

@@ -51,13 +51,13 @@ HouseTypeClassExtension final : public AbstractTypeClassExtension
         HouseTypeClassExtension(const NoInitClass &noinit);
         virtual ~HouseTypeClassExtension();
 
-        virtual int Size_Of() const override;
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+        virtual int Get_Object_Size() const override;
+        virtual void Detach(AbstractClass * target, bool all = true) override;
+        virtual void Object_CRC(CRCEngine &crc) const override;
         
         virtual HouseTypeClass *This() const override { return reinterpret_cast<HouseTypeClass *>(AbstractTypeClassExtension::This()); }
         virtual const HouseTypeClass *This_Const() const override { return reinterpret_cast<const HouseTypeClass *>(AbstractTypeClassExtension::This_Const()); }
-        virtual RTTIType What_Am_I() const override { return RTTI_HOUSETYPE; }
+        virtual RTTIType Fetch_RTTI() const override { return RTTI_HOUSETYPE; }
 
         virtual bool Read_INI(CCINIClass &ini) override;
 

@@ -26,18 +26,35 @@
  *
  ******************************************************************************/
 #include "technoext.h"
+#include <algorithm>
 #include "techno.h"
 #include "technotype.h"
 #include "technotypeext.h"
 #include "house.h"
+#include "housetype.h"
+#include "building.h"
+#include "buildingtype.h"
+#include "rules.h"
+#include "rulesext.h"
 #include "voc.h"
 #include "ebolt.h"
 #include "tactical.h"
 #include "tibsun_inline.h"
+#include "tibsun_globals.h"
+#include "extension_globals.h"
 #include "wwcrc.h"
 #include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "houseext.h"
+#include "saveload.h"
+#include "vinifera_saveload.h"
+#include "storageext.h"
+#include "spawnmanager.h"
+#include "team.h"
+#include "teamtype.h"
+#include "unit.h"
+#include "weapontype.h"
 
 
 /**
@@ -47,9 +64,30 @@
  */
 TechnoClassExtension::TechnoClassExtension(const TechnoClass *this_ptr) :
     RadioClassExtension(this_ptr),
-    ElectricBolt(nullptr)
+    ElectricBolt(nullptr),
+    Storage(Tiberiums.Count()),
+    SpawnManager(nullptr),
+    SpawnOwner(nullptr),
+    HasOpportunityFireTarget(false),
+    LastTargetFrame(Frame),
+    IsToResetBurst(false),
+    BurstResetTimer()
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoClassExtension::TechnoClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    for (int i = 0; i < Tiberiums.Count(); i++)
+    {
+        Storage[i] = 0;
+    }
+
+    if (this_ptr)
+    {
+        new ((StorageClassExt*)&(this_ptr->Storage)) StorageClassExt(&Storage);
+
+        const auto ttypeext = Extension::Fetch(this_ptr->TClass);
+        if (ttypeext->Spawns)
+            SpawnManager = new SpawnManagerClass(const_cast<TechnoClass*>(this_ptr), ttypeext->Spawns, ttypeext->SpawnsNumber, ttypeext->SpawnRegenRate, ttypeext->SpawnReloadRate, ttypeext->SpawnSpawnRate, ttypeext->SpawnLogicRate);
+    }
 }
 
 
@@ -59,7 +97,9 @@ TechnoClassExtension::TechnoClassExtension(const TechnoClass *this_ptr) :
  *  @author: CCHyper
  */
 TechnoClassExtension::TechnoClassExtension(const NoInitClass &noinit) :
-    RadioClassExtension(noinit)
+    RadioClassExtension(noinit),
+    Storage(noinit),
+    BurstResetTimer(noinit)
 {
     //EXT_DEBUG_TRACE("TechnoClassExtension::TechnoClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -74,7 +114,15 @@ TechnoClassExtension::~TechnoClassExtension()
 {
     //EXT_DEBUG_TRACE("TechnoClassExtension::~TechnoClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    ElectricBolt = nullptr;
+    if (ElectricBolt) {
+        delete ElectricBolt;
+        ElectricBolt = nullptr;
+    }
+
+    if (SpawnManager) {
+        delete SpawnManager;
+        SpawnManager = nullptr;
+    }
 }
 
 
@@ -92,7 +140,12 @@ HRESULT TechnoClassExtension::Load(IStream *pStm)
         return E_FAIL;
     }
 
+    Load_Primitive_Vector(pStm, Storage, "Storage");
+
     ElectricBolt = nullptr;
+
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(SpawnManager, "SpawnManager");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(SpawnOwner, "SpawnOwner");
     
     return hr;
 }
@@ -112,8 +165,7 @@ HRESULT TechnoClassExtension::Save(IStream *pStm, BOOL fClearDirty)
         return hr;
     }
 
-    delete ElectricBolt;
-    ElectricBolt = nullptr;
+    Save_Primitive_Vector(pStm, Storage, "Storage");
 
     return hr;
 }
@@ -124,11 +176,19 @@ HRESULT TechnoClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-void TechnoClassExtension::Detach(TARGET target, bool all)
+void TechnoClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("TechnoClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     RadioClassExtension::Detach(target, all);
+
+    if (SpawnManager) {
+        SpawnManager->Detach(target);
+    }
+
+    if (target == SpawnOwner) {
+        SpawnOwner = nullptr;
+    }
 }
 
 
@@ -137,11 +197,15 @@ void TechnoClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void TechnoClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void TechnoClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("TechnoClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("TechnoClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    RadioClassExtension::Compute_CRC(crc);
+    RadioClassExtension::Object_CRC(crc);
+
+    if (SpawnOwner) {
+        crc(SpawnOwner->Fetch_Heap_ID());
+    }
 }
 
 
@@ -150,7 +214,7 @@ void TechnoClassExtension::Compute_CRC(WWCRCEngine &crc) const
  * 
  *  @author: CCHyper
  */
-EBoltClass * TechnoClassExtension::Electric_Zap(TARGET target, int which, const WeaponTypeClass *weapontype, Coordinate &source_coord)
+EBoltClass * TechnoClassExtension::Electric_Zap(AbstractClass * target, int which, const WeaponTypeClass *weapontype, Coord &source_coord)
 {
     //EXT_DEBUG_TRACE("TechnoClassExtension::Electric_Zap - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -162,21 +226,17 @@ EBoltClass * TechnoClassExtension::Electric_Zap(TARGET target, int which, const 
     int z_adj = 0;
 
     if (Is_Target_Building(target)) {
-        Coordinate source = This()->Render_Coord();
+        Coord source = This()->Render_Coord();
 
         Point2D p1 = TacticalMap->func_60F150(source);
         Point2D p2 = TacticalMap->func_60F150(source_coord);
 
         z_adj = p2.Y - p1.Y;
-
-        if (z_adj > 0) {
-            z_adj = 0;
-        }
+        z_adj = std::min(z_adj, 0);
     }
 
-    Coordinate target_coord = Is_Target_Object(target) ?
-        reinterpret_cast<ObjectClass *>(target)->Target_Coord() : // #TODO: Should be Target_As_Object.
-        target->entry_5C();
+    Coord target_coord = Is_Target_Object(target) ?
+        reinterpret_cast<ObjectClass *>(target)->Target_Coord() : target->entry_5C();
 
     /**
      *  Spawn the electric bolt.
@@ -192,13 +252,13 @@ EBoltClass * TechnoClassExtension::Electric_Zap(TARGET target, int which, const 
  * 
  *  @author: CCHyper
  */
-EBoltClass * TechnoClassExtension::Electric_Bolt(TARGET target)
+EBoltClass * TechnoClassExtension::Electric_Bolt(AbstractClass * target)
 {
     //EXT_DEBUG_TRACE("TechnoClassExtension::Electric_Bolt - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     WeaponSlotType which = This()->What_Weapon_Should_I_Use(target);
     const WeaponTypeClass *weapontype = This()->Get_Weapon(which)->Weapon;
-    Coordinate fire_coord = This()->Fire_Coord(which);
+    Coord fire_coord = This()->Fire_Coord(which);
 
     EBoltClass *ebolt = Electric_Zap(target, which, weapontype, fire_coord);
     if (ebolt) {
@@ -372,10 +432,219 @@ bool TechnoClassExtension::Can_Passive_Acquire() const
 {
     //EXT_DEBUG_TRACE("TechnoClassExtension::Can_Passive_Acquire - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
+    if ((!This()->Is_Renovator() || !This()->House->Is_Human_Player()) && This()->Is_Weapon_Equipped()) {
+
+        /**
+         *  IsCanPassiveAcquire defaults to true to copy original behaviour, so all units can passive acquire unless told otherwise.
+         */
+        return Techno_Type_Class_Ext()->IsCanPassiveAcquire;
+    }
+
+    return false;
+}
+
+
+
+/**
+ *  Determines the time it would take to build this object.
+ * 
+ *  @author: CCHyper, ZivDero
+ */
+int TechnoClassExtension::Time_To_Build() const
+{
+    //EXT_DEBUG_TRACE("TechnoClassExtension::Time_To_Build - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    const TechnoTypeClassExtension* technotypeext = Techno_Type_Class_Ext();
+
+    int time = Techno_Type_Class()->Time_To_Build();
+
     /**
-     *  IsCanPassiveAcquire defaults to true to copy original behaviour, so all units can passive acquire unless told otherwise.
+     *  Adjust the time based on the house's build speed bonus.
      */
-    return Techno_Type_Class_Ext()->IsCanPassiveAcquire;
+    time *= This()->House->BuildSpeedBias;
+
+    /**
+     *  #issue-657
+     * 
+     *  Implements BuildTimeMultiplier for TechnoTypes.
+     * 
+     *  @author: CCHyper
+     */
+    time *= technotypeext->BuildTimeMultiplier;
+
+    /**
+     *  Adjust the time to build based on the power output of the owning house.
+     */
+    double power = This()->House->Power_Fraction();
+
+    /**
+     *  #issue-656
+     * 
+     *  Implements LowPowerPenaltyModifier for RulesClass.
+     * 
+     *  @author: CCHyper
+     */
+    double scale = 1.0f - (1.0f - power) * RuleExtension->LowPowerPenaltyModifier;
+
+    /**
+     *  #issue-658
+     *
+     *  Restores the affect of "WorstLowPowerBuildRateCoefficient".
+     *
+     *  @author: CCHyper
+     */
+    if (scale <= Rule->WorstLowPowerBuildRateCoefficient) scale = Rule->WorstLowPowerBuildRateCoefficient;
+
+    /**
+     *  #issue-658
+     *
+     *  Restores the affect of "BestLowPowerBuildRateCoefficient".
+     *
+     *  @author: CCHyper
+     */
+    if (power < 1.0 && scale >= Rule->BestLowPowerBuildRateCoefficient) scale = Rule->BestLowPowerBuildRateCoefficient; // Was "0.75"
+
+    /**
+     *  Ensure we don't end up doing division by zero.
+     */
+    if (scale == 0.0) scale = 0.01;
+
+    scale = std::max(scale, Rule->MinProductionSpeed);
+
+    time /= scale;
+
+    /**
+     *  Calculate the bonus based on the current factory count.
+     */
+    int divisor = Extension::Fetch(This()->House)->Factory_Count(This()->RTTI, TechnoTypeClassExtension::Get_Production_Flags(This())) - 1;
+
+    /**
+     *  #issue-106
+     * 
+     *  "MultipleFactory" calculation back ported from Red Alert 2.
+     * 
+     *  @author: CCHyper
+     */
+    if (Rule->MultipleFactory > 0.0 && divisor > 0) {
+
+        /**
+         *  #issue-659
+         * 
+         *  Implements MultipleFactoryCap for RulesClass.
+         * 
+         *  @author: CCHyper
+         */
+        if (RuleExtension->MultipleFactoryCap > 0) {
+            divisor = RuleExtension->MultipleFactoryCap - 1;
+        }
+
+        while (divisor) {
+            time *= Rule->MultipleFactory;
+            divisor--;
+        }
+    }
+
+    /**
+     *  Walls have a coefficient as they are really cheap.
+     */
+    if (This()->RTTI == RTTI_BUILDING && reinterpret_cast<const BuildingTypeClass *>(This()->TClass)->IsWall) {
+        time *= Rule->WallBuildSpeedCoefficient;
+    }
+
+    return time;
+}
+
+
+/**
+ *  Can this unit opportunity fire?
+ *
+ *  @author: ZivDero
+ */
+bool TechnoClassExtension::Can_Opportunity_Fire() const
+{
+    if (This()->TarCom != nullptr && !This()->House->Is_Human_Player() && This()->Is_Foot()) {
+        FootClass* foot = static_cast<FootClass*>(This());
+        if (foot->Team != nullptr && !foot->Team->Class->IsSuicide && foot->Team->Class->IsAggressive && foot->CurrentMission == MISSION_MOVE) {
+            return true;
+        }
+    }
+
+    if (!Can_Passive_Acquire()) {
+        return false;
+    }
+
+    if (Techno_Type_Class_Ext()->IsOpportunityFire) {
+        return true;
+    }
+
+    return false;
+}
+
+
+/**
+ *  Perform opportunity fire.
+ *
+ *  @author: ZivDero
+ */
+bool TechnoClassExtension::Opportunity_Fire()
+{
+    if (Can_Opportunity_Fire()) {
+        bool result = This()->Target_Something_Nearby(This()->Center_Coord(), THREAT_RANGE);
+        if (result && This()->TarCom != nullptr) {
+            HasOpportunityFireTarget = true;
+        }
+        return result;
+    }
+
+    return false;
+}
+
+
+/**
+ *  Determines the coordinate where bullets appear.
+ *  Contains an additional argument to add an offset to the firing coordinate,
+ *  used by the spawn manager.
+ *
+ *  @author: ZivDero
+ */
+Coord TechnoClassExtension::Fire_Coord(WeaponSlotType which, TPoint3D<int> offset) const
+{
+    const TechnoTypeClass *ttype = This()->TClass;
+    const auto weaponinfo = This()->Get_Weapon(which);
+
+    Matrix3D matrix;
+    matrix.Make_Identity();
+
+    float theta = This()->Turret_Facing().Get_Radian<32>();
+    matrix.Rotate_Z(theta);
+
+    const TPoint3D<int> flh = weaponinfo->FireFLH + offset;
+
+    const float trans_x = static_cast<float>(flh.X + ttype->TurretOffset);
+    const float trans_y = static_cast<float>(flh.Y * (This()->BurstIndex % 2 == 0 ? 1 : -1));
+    const float trans_z = static_cast<float>(flh.Z + weaponinfo->BarrelThickness);
+    matrix.Translate(trans_x, trans_y, trans_z);
+
+    theta = -This()->BarrelFacing.Current().Get_Radian<32>();
+    matrix.Rotate_Y(theta);
+
+    matrix.Translate(static_cast<float>(weaponinfo->BarrelLength), 0, 0);
+
+    const Vector3 fire_coord = matrix * Vector3(0, 0, 0);
+    Coord render_coord = This()->Render_Coord();
+
+    return { render_coord.X + static_cast<int>(fire_coord.X), render_coord.Y - static_cast<int>(fire_coord.Y), render_coord.Z + static_cast<int>(fire_coord.Z) };
+}
+
+
+/**
+ *  Puts pointers to the storage extension into the storage class.
+ *
+ *  @author: ZivDero
+ */
+void TechnoClassExtension::Put_Storage_Pointers()
+{
+    new (reinterpret_cast<StorageClassExt*>(&This()->Storage)) StorageClassExt(&Storage);
 }
 
 
@@ -386,7 +655,7 @@ bool TechnoClassExtension::Can_Passive_Acquire() const
  */
 const TechnoTypeClass *TechnoClassExtension::Techno_Type_Class() const
 {
-    return reinterpret_cast<TechnoClass *>(This())->Techno_Type_Class();
+    return reinterpret_cast<TechnoClass *>(This())->TClass;
 }
 
 
@@ -397,5 +666,5 @@ const TechnoTypeClass *TechnoClassExtension::Techno_Type_Class() const
  */
 const TechnoTypeClassExtension *TechnoClassExtension::Techno_Type_Class_Ext() const
 {
-    return Extension::Fetch<TechnoTypeClassExtension>(Techno_Type_Class());
+    return Extension::Fetch(Techno_Type_Class());
 }

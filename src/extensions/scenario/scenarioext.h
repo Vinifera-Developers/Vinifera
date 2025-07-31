@@ -43,9 +43,9 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
         ScenarioClassExtension(const NoInitClass &noinit);
         virtual ~ScenarioClassExtension();
 
-        virtual int Size_Of() const override;
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+        virtual int Get_Object_Size() const override;
+        virtual void Detach(AbstractClass * target, bool all = true) override;
+        virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual const char *Name() const override { return "Scenario"; }
         virtual const char *Full_Name() const override { return "Scenario"; }
@@ -55,12 +55,44 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
 
         bool Read_Tutorial_INI(CCINIClass &ini, bool log = false);
 
+        Cell Waypoint_Cell(WAYPOINT wp) const;
+        CellClass * Waypoint_CellClass(WAYPOINT wp) const;
+        Coord Waypoint_Coord(WAYPOINT wp) const;
+
+        void Set_Waypoint_Cell(WAYPOINT wp, Cell &cell);
+        void Set_Waypoint_Coord(WAYPOINT wp, Coord &coord);
+
+        bool Is_Waypoint_Valid(WAYPOINT wp) const;
+        void Clear_Waypoint(WAYPOINT wp);
+
+        void Clear_All_Waypoints();
+
+        void Read_Waypoint_INI(CCINIClass &ini);
+        void Write_Waypoint_INI(CCINIClass &ini);
+
+        const char *Waypoint_As_String(WAYPOINT wp) const;
+
         static void Assign_Houses();
         static void Create_Units(bool official);
 
     public:
         /**
+         *  This is an vector of waypoints; each waypoint corresponds to a letter of
+         *  the alphabet, and points to a cell position.
+         * 
+         *  The CellClass has a bit that tells if that cell has a waypoint attached to
+         *  it; the only way to find which waypoint it is, is to scan this array. This
+         *  shouldn't be needed often; usually, you know the waypoint & you want the "Cell".
+         */
+        VectorClass<Cell> Waypoint;
+
+        /**
          *  Can ice get destroyed when hit by certain weapons?
          */
         bool IsIceDestruction;
+
+        RGBStruct ScorePlayerColor;
+        RGBStruct ScoreEnemyColor;
 };
+
+int Vinifera_Scan_Place_Object(ObjectClass* obj, Cell cell, int min_dist, int max_dist, bool no_scatter);

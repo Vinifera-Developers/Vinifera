@@ -29,6 +29,7 @@
 #include "animtype.h"
 #include "ccini.h"
 #include "tibsun_defines.h"
+#include "vinifera_saveload.h"
 #include "wwcrc.h"
 #include "extension.h"
 #include "asserthandler.h"
@@ -47,11 +48,35 @@ AnimTypeClassExtension::AnimTypeClassExtension(const AnimTypeClass *this_ptr) :
     ZAdjust(0),
     AttachLayer(LAYER_NONE),
     ParticleToSpawn(PARTICLE_NONE),
-    NumberOfParticles(0)
+    NumberOfParticles(0),
+    ParticleSpawnOffset(0, 0, 0),
+    StartAnims(),
+    StartAnimsCount(),
+    StartAnimsMinimum(),
+    StartAnimsMaximum(),
+    StartAnimsDelay(),
+    MiddleAnims(),
+    MiddleAnimsCount(),
+    MiddleAnimsMinimum(),
+    MiddleAnimsMaximum(),
+    MiddleAnimsDelay(),
+    EndAnims(),
+    EndAnimsCount(),
+    EndAnimsMinimum(),
+    EndAnimsMaximum(),
+    EndAnimsDelay(),
+    MiddleFrames(),
+    ExplosionDamage(0),
+    IsShadow(false),
+    DamageRate(-1),
+    StopSound(VOC_NONE)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("AnimTypeClassExtension::AnimTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     AnimTypeExtensions.Add(this);
+
+    // The half-way frame is the middle frame by default.
+    MiddleFrames.Add(-1);
 }
 
 
@@ -61,7 +86,23 @@ AnimTypeClassExtension::AnimTypeClassExtension(const AnimTypeClass *this_ptr) :
  *  @author: CCHyper
  */
 AnimTypeClassExtension::AnimTypeClassExtension(const NoInitClass &noinit) :
-    ObjectTypeClassExtension(noinit)
+    ObjectTypeClassExtension(noinit),
+    StartAnims(noinit),
+    StartAnimsCount(noinit),
+    StartAnimsMinimum(noinit),
+    StartAnimsMaximum(noinit),
+    StartAnimsDelay(noinit),
+    MiddleAnims(noinit),
+    MiddleAnimsCount(noinit),
+    MiddleAnimsMinimum(noinit),
+    MiddleAnimsMaximum(noinit),
+    MiddleAnimsDelay(noinit),
+    EndAnims(noinit),
+    EndAnimsCount(noinit),
+    EndAnimsMinimum(noinit),
+    EndAnimsMaximum(noinit),
+    EndAnimsDelay(noinit),
+    MiddleFrames(noinit)
 {
     //EXT_DEBUG_TRACE("AnimTypeClassExtension::AnimTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -108,12 +149,50 @@ HRESULT AnimTypeClassExtension::Load(IStream *pStm)
 {
     //EXT_DEBUG_TRACE("AnimTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
+    StartAnims.Clear();
+    StartAnimsCount.Clear();
+    StartAnimsMinimum.Clear();
+    StartAnimsMaximum.Clear();
+    StartAnimsDelay.Clear();
+    MiddleAnims.Clear();
+    MiddleAnimsCount.Clear();
+    MiddleAnimsMinimum.Clear();
+    MiddleAnimsMaximum.Clear();
+    MiddleAnimsDelay.Clear();
+    EndAnims.Clear();
+    EndAnimsCount.Clear();
+    EndAnimsMinimum.Clear();
+    EndAnimsMaximum.Clear();
+    EndAnimsDelay.Clear();
+    MiddleFrames.Clear();
+
     HRESULT hr = ObjectTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
 
     new (this) AnimTypeClassExtension(NoInitClass());
+
+    StartAnims.Load(pStm);
+    StartAnimsCount.Load(pStm);
+    StartAnimsMinimum.Load(pStm);
+    StartAnimsMaximum.Load(pStm);
+    StartAnimsDelay.Load(pStm);
+    MiddleAnims.Load(pStm);
+    MiddleAnimsCount.Load(pStm);
+    MiddleAnimsMinimum.Load(pStm);
+    MiddleAnimsMaximum.Load(pStm);
+    MiddleAnimsDelay.Load(pStm);
+    EndAnims.Load(pStm);
+    EndAnimsCount.Load(pStm);
+    EndAnimsMinimum.Load(pStm);
+    EndAnimsMaximum.Load(pStm);
+    EndAnimsDelay.Load(pStm);
+    MiddleFrames.Load(pStm);
+
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(StartAnims, "StartAnims");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(MiddleAnims, "MiddleAnims");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(EndAnims, "EndAnims");
     
     return hr;
 }
@@ -133,6 +212,23 @@ HRESULT AnimTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
         return hr;
     }
 
+    StartAnims.Save(pStm);
+    StartAnimsCount.Save(pStm);
+    StartAnimsMinimum.Save(pStm);
+    StartAnimsMaximum.Save(pStm);
+    StartAnimsDelay.Save(pStm);
+    MiddleAnims.Save(pStm);
+    MiddleAnimsCount.Save(pStm);
+    MiddleAnimsMinimum.Save(pStm);
+    MiddleAnimsMaximum.Save(pStm);
+    MiddleAnimsDelay.Save(pStm);
+    EndAnims.Save(pStm);
+    EndAnimsCount.Save(pStm);
+    EndAnimsMinimum.Save(pStm);
+    EndAnimsMaximum.Save(pStm);
+    EndAnimsDelay.Save(pStm);
+    MiddleFrames.Save(pStm);
+
     return hr;
 }
 
@@ -142,9 +238,9 @@ HRESULT AnimTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int AnimTypeClassExtension::Size_Of() const
+int AnimTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -155,9 +251,11 @@ int AnimTypeClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void AnimTypeClassExtension::Detach(TARGET target, bool all)
+void AnimTypeClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("AnimTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    ObjectTypeClassExtension::Detach(target, all);
 }
 
 
@@ -166,13 +264,39 @@ void AnimTypeClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void AnimTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void AnimTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("AnimTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     crc(AttachLayer);
     crc(NumberOfParticles);
+    crc(StartAnims.Count());
+    crc(StartAnimsCount.Count());
+    crc(StartAnimsMinimum.Count());
+    crc(StartAnimsMaximum.Count());
+    crc(StartAnimsDelay.Count());
+    crc(MiddleAnims.Count());
+    crc(MiddleAnimsCount.Count());
+    crc(MiddleAnimsMinimum.Count());
+    crc(MiddleAnimsMaximum.Count());
+    crc(MiddleAnimsDelay.Count());
+    crc(EndAnims.Count());
+    crc(EndAnimsCount.Count());
+    crc(EndAnimsMinimum.Count());
+    crc(EndAnimsMaximum.Count());
+    crc(EndAnimsDelay.Count());
+    crc(MiddleFrames.Count());
+    crc(ExplosionDamage);
+    crc(StopSound);
 }
+
+
+/**
+ *  Helper macro to fill a list up to a certain count with a specific value.
+ */
+#define FILL_TYPELIST(list, count, value) \
+    { while (list.Count() < count) \
+        list.Add(value); }
 
 
 /**
@@ -201,16 +325,24 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
      */
     TPoint2D<int> random_rate = ini.Get_Point(ini_name, "RandomRate", TPoint2D<int>(-1, -1));
     if (random_rate.X != -1) {
-        if (random_rate.Y <= 0) {
-            DEV_DEBUG_WARNING("Animation \"%s\" has a zero or negative random rate 'Low' value!\n", This()->Name());
+        if (random_rate.X == 0) {
+            DEV_DEBUG_WARNING("Animation \"%s\" has a zero random rate 'Low' value!\n", This()->Name());
+        } else {
+            if (random_rate.X < 0) {
+                DEV_DEBUG_WARNING("Animation \"%s\" has a negative random rate 'Low' value!\n", This()->Name());
+            }
+            random_rate.X = TICKS_PER_MINUTE / std::abs(random_rate.X);
         }
-        random_rate.X = TICKS_PER_MINUTE / std::abs(random_rate.X);
     }
     if (random_rate.Y != -1) {
-        if (random_rate.Y <= 0) {
-            DEV_DEBUG_WARNING("Animation \"%s\" has a zero or negative random rate 'High' value!\n", This()->Name());
+        if (random_rate.Y == 0) {
+            DEV_DEBUG_WARNING("Animation \"%s\" has a zero random rate 'High' value!\n", This()->Name());
+        } else {
+            if (random_rate.Y < 0) {
+                DEV_DEBUG_WARNING("Animation \"%s\" has a negative random rate 'High' value!\n", This()->Name());
+            }
+            random_rate.Y = TICKS_PER_MINUTE / std::abs(random_rate.Y);
         }
-        random_rate.Y = TICKS_PER_MINUTE / std::abs(random_rate.Y);
     }
     if ((random_rate.X != -1 && random_rate.Y != -1) && random_rate.X > random_rate.Y) {
         std::swap(random_rate.X, random_rate.Y);
@@ -233,6 +365,105 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     AttachLayer = ini.Get_LayerType(ini_name, "Layer", AttachLayer);
     ParticleToSpawn = ini.Get_ParticleType(ini_name, "SpawnsParticle", ParticleToSpawn);
     NumberOfParticles = ini.Get_Int(ini_name, "NumParticles", NumberOfParticles);
+    ParticleSpawnOffset = ini.Get_Point(ini_name, "SpawnsParticleOffset", ParticleSpawnOffset);
+
+    StartAnims = ini.Get_Anims(ini_name, "StartAnims", StartAnims);
+    StartAnimsCount = ini.Get_Integers(ini_name, "StartAnimsCount", StartAnimsCount);
+    StartAnimsMinimum = ini.Get_Integers(ini_name, "StartAnimsMinimum", StartAnimsMinimum);
+    StartAnimsMaximum = ini.Get_Integers(ini_name, "StartAnimsMaximum", StartAnimsMaximum);
+    StartAnimsDelay = ini.Get_Integers(ini_name, "StartAnimsDelay", StartAnimsDelay);
+
+    if (!StartAnimsCount.Count()) {
+        FILL_TYPELIST(StartAnimsMinimum, StartAnims.Count(), 1);
+        FILL_TYPELIST(StartAnimsMaximum, StartAnims.Count(), 1);
+    }
+    else {
+        FILL_TYPELIST(StartAnimsCount, StartAnims.Count(), 1);
+    }
+
+    FILL_TYPELIST(StartAnimsDelay, StartAnims.Count(), 0);
+
+    MiddleAnims = ini.Get_Anims(ini_name, "MiddleAnims", MiddleAnims);
+    MiddleAnimsCount = ini.Get_Integers(ini_name, "MiddleAnimsCount", MiddleAnimsCount);
+    MiddleAnimsMinimum = ini.Get_Integers(ini_name, "MiddleAnimsMinimum", MiddleAnimsMinimum);
+    MiddleAnimsMaximum = ini.Get_Integers(ini_name, "MiddleAnimsMaximum", MiddleAnimsMaximum);
+    MiddleAnimsDelay = ini.Get_Integers(ini_name, "MiddleAnimsDelay", MiddleAnimsDelay);
+
+    if (!MiddleAnimsCount.Count()) {
+        FILL_TYPELIST(MiddleAnimsMinimum, MiddleAnims.Count(), 1);
+        FILL_TYPELIST(MiddleAnimsMaximum, MiddleAnims.Count(), 1);
+    }
+    else {
+        FILL_TYPELIST(MiddleAnimsCount, MiddleAnims.Count(), 1);
+    }
+
+    FILL_TYPELIST(MiddleAnimsDelay, MiddleAnims.Count(), 0);
+
+    EndAnims = ini.Get_Anims(ini_name, "EndAnims", EndAnims);
+    EndAnimsCount = ini.Get_Integers(ini_name, "EndAnimsCount", EndAnimsCount);
+    EndAnimsMinimum = ini.Get_Integers(ini_name, "EndAnimsMinimum", EndAnimsMinimum);
+    EndAnimsMaximum = ini.Get_Integers(ini_name, "EndAnimsMaximum", EndAnimsMaximum);
+    EndAnimsDelay = ini.Get_Integers(ini_name, "EndAnimsDelay", EndAnimsDelay);
+
+    if (!EndAnimsCount.Count()) {
+        FILL_TYPELIST(EndAnimsMinimum, EndAnims.Count(), 1);
+        FILL_TYPELIST(EndAnimsMaximum, EndAnims.Count(), 1);
+    }
+    else {
+        FILL_TYPELIST(EndAnimsCount, EndAnims.Count(), 1);
+    }
+
+    FILL_TYPELIST(EndAnimsDelay, EndAnims.Count(), 0);
+
+    /**
+     *  #issue-883
+     * 
+     *  The "biggest" frame of an animation is frame which should hide all cosmetic
+     *  changes to the underlaying ground (e.g. craters) that the animation causes,
+     *  so these effects are delayed until this frame is reached. TibSun calculates
+     *  this by scanning the entire shape file to find the largest visible frame, but
+     *  in some cases, this might not be ideal (e.g. the shape has consistent frame
+     *  dimensions). This new value allows the frame in which these effects are 
+     *  spawned be set.
+     * 
+     *  A special value of "-1" will set the biggest frame to the actual middle frame
+     *  of the shape file. This behavior was observed in Red Alert 2.
+     */
+    MiddleFrames = ini.Get_Integers(ini_name, "MiddleFrame", MiddleFrames);
+    for (int& frame : MiddleFrames) {
+        frame = std::clamp(frame, -1, ((This()->Image != nullptr) ? (This()->Image->Get_Count() - 1) : 0));
+    }
+
+    ExplosionDamage = ini.Get_Int(ini_name, "ExplosionDamage", ExplosionDamage);
+    IsShadow = ini.Get_Bool(ini_name, "Shadow", IsShadow);
+
+    int delay = DamageRate = ini.Get_Int(ini_name, "DamageRate", -1);
+    if (delay != -1) {
+        DamageRate = (delay > 0) ? 900 / delay : 0;
+    }
     
+    StopSound = ini.Get_VocType(ini_name, "StopSound", StopSound);
+
+
+    IsInitialized = true;
+
     return true;
+}
+
+
+/**
+ *  Returns the default stage count for this animation.
+ *
+ *  @author: ZivDero
+ */
+int AnimTypeClassExtension::Stage_Count() const
+{
+    int stages = 0;
+    if (This()->Get_Image_Data() != nullptr) {
+        stages = This()->Get_Image_Data()->Get_Count();
+    }
+    if (IsShadow) {
+        stages /= 2;
+    }
+    return stages;
 }

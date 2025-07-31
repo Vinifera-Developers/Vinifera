@@ -230,7 +230,6 @@ endif()
 set(PROJECT_DLL "${PROJECT_NAME}.dll")
 set(UNSUPPORTED_TARGET_ERROR "(Only TS203EN, Freeware-TS, and TUC-TS (2024 release) is currently supported)")
 set(TARGET_EXE "GAME.EXE") # Define the EXE to launch.
-set(TARGET_PDB "GAME.PDB") # Define the PDB for the target.
 set(TARGET_EDB "GAME.EDB") # Define the EDB (exception database) for the target.
 set(TARGET_NAME "Tiberian Sun")
 
@@ -291,21 +290,9 @@ GlobSources(GLOB HOOKER_SOURCES ${HOOKER_INCLUDE_DIR})
 
 
 ################################################################################
-# Fetch the latest TS++ source code
+# Include the TS++ submodule in the solution.
 ################################################################################
-include(FetchContent)
-FetchContent_Declare(
-	TSpp
-	GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
-	GIT_REPOSITORY https://github.com/Vinifera-Developers/TSpp.git
-	GIT_TAG        origin/master
-)
-
-FetchContent_GetProperties(TSpp)
-if(NOT tspp_POPULATED)
-	FetchContent_Populate(TSpp)
-	add_subdirectory(${tspp_SOURCE_DIR} ${tspp_BINARY_DIR} EXCLUDE_FROM_ALL)
-endif()
+add_subdirectory(${CMAKE_SOURCE_DIR}/TSpp)
 
 
 ################################################################################
@@ -317,10 +304,11 @@ message(STATUS "Fetching git repository information.")
 # find_package(Git) # Removed, GitWatcher does this quietly.
 
 # The following two defines are automatically picked up by GitWatcher.
-set(GIT_PRE_CONFIGURE_FILE "${CMAKE_SOURCE_DIR}/src/vinifera/vinifera_gitinfo.cpp.in")
-set(GIT_POST_CONFIGURE_FILE "${CMAKE_CURRENT_BINARY_DIR}/generated/vinifera_gitinfo.cpp")
+set(GIT_PRE_CONFIGURE_FILE "${CMAKE_SOURCE_DIR}/src/vinifera/vinifera_gitinfo.h.in")
+set(GIT_POST_CONFIGURE_FILE "${CMAKE_CURRENT_BINARY_DIR}/generated/vinifera_gitinfo.h")
 set(GIT_STATE_FILE "${CMAKE_CURRENT_BINARY_DIR}/vinifera-git-state-hash")
 set(GIT_WORKING_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+set(GIT_IGNORE_UNTRACKED TRUE) # Ignore untracked files in GitWatcher.
 
 include(GitWatcher)
 GitWatcher_SetupInitial()  # Running the script function again forces the file to be
@@ -387,14 +375,6 @@ if(NOT ${OPTION_CUSTOM_DEBUGGER_DIRECTORY_PATH} STREQUAL " ")
 	# Set input and output paths.
 	set(COPY_SOURCE_FILE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>/)
 	set(COPY_DESTINATION_PATH ${OPTION_CUSTOM_DEBUGGER_DIRECTORY_PATH})
-
-	# Create the post build script.
-	include(WindowsCopyFiles)
-	PostBuild_WindowsCopyFiles(${LAUNCHER_NAME}
-		${COPY_SOURCE_FILE}
-		${COPY_DESTINATION_PATH}
-		"${LAUNCHER_NAME}.exe"
-	)
 endif()
 
 
@@ -412,11 +392,13 @@ add_library(${PROJECT_NAME} SHARED
 		${CMAKE_SOURCE_DIR}/res/resource.h
 		${CMAKE_SOURCE_DIR}/res/dialog.rc
 		${CMAKE_SOURCE_DIR}/res/icon.rc
+		${CMAKE_SOURCE_DIR}/res/version.rc
 )
 target_include_directories(${PROJECT_NAME} BEFORE PUBLIC
 		${VINIFERA_INCLUDE_DIRS}
 		${PROJECT_SOURCE_DIR}/hooker/
 		${CMAKE_SOURCE_DIR}/res
+		${CMAKE_CURRENT_BINARY_DIR}/generated
 )
 
 # Set custom debugging target name (only works if the custom path option has been set!).
@@ -435,8 +417,8 @@ if(NOT ${OPTION_CUSTOM_DEBUGGER_DIRECTORY_PATH} STREQUAL " ")
 endif()
 
 # Set input and output paths.
-set(PDB_COPY_SOURCE_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/_deps/tspp-src/pdb/)
-set(EDB_COPY_SOURCE_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/_deps/tspp-src/edb/)
+set(PDB_COPY_SOURCE_PATH ${CMAKE_SOURCE_DIR}/TSpp/pdb/)
+set(EDB_COPY_SOURCE_PATH ${CMAKE_SOURCE_DIR}/TSpp/edb/)
 set(PDB_COPY_DESTINATION_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>/)
 set(EDB_COPY_DESTINATION_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>/)
 
@@ -562,10 +544,13 @@ target_compile_options(${PROJECT_NAME} PUBLIC /arch:IA32)
 target_compile_options(${PROJECT_NAME} PUBLIC /fp:fast)
 
 # Suppresses _ftol when a conversion from a floating-point type to an integer type is required (x86 only).
-target_compile_options(${PROJECT_NAME} PUBLIC /QIfist)
+#target_compile_options(${PROJECT_NAME} PUBLIC /QIfist) # This is no longer supported by the MSVC version that GitHub uses.
 
 # Force generates fast transcendentals.
 target_compile_options(${PROJECT_NAME} PUBLIC /Qfast_transcendentals)
+
+# Disable thread-safe local static initialization.
+target_compile_options(${PROJECT_NAME} PUBLIC /Zc:threadSafeInit-)
 
 # forces __fastcall as default calling convention.
 target_compile_options(${PROJECT_NAME} PUBLIC /Gr)
@@ -591,12 +576,12 @@ string(REPLACE "/O2" "/O1" CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL}
 string(REPLACE "/O2" "/O1" CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL}")
 
 # (Non-debug only) Disable frame pointer omission (FPO).
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /Oy")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Oy")
-set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} /Oy")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /Oy")
-set(CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL} /Oy")
-set(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} /Oy")
+set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /Oy-")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Oy-")
+set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} /Oy-")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /Oy-")
+set(CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL} /Oy-")
+set(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} /Oy-")
 
 # Inline function expansion.
 target_compile_options(${PROJECT_NAME} PUBLIC

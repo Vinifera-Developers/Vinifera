@@ -29,15 +29,23 @@
 #include "vinifera_globals.h"
 #include "tibsun_globals.h"
 #include "tibsun_functions.h"
+#include "command.h"
+#include "uicontrol.h"
+#include "rules.h"
 #include "iomap.h"
 #include "tactical.h"
 #include "house.h"
+#include "ccfile.h"
+#include "addon.h"
+#include "ccini.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "rulesext.h"
+#include "voxelinit.h"
 
 
 /**
@@ -76,6 +84,106 @@ static void Before_Main_Loop()
 
 static void After_Main_Loop()
 {
+    /**
+     *  Has we been flagged to reload the rules data?
+     */
+    if (Vinifera_Developer_IsToReloadRules) {
+
+        /**
+         *  Reinitalise the Rule instance to the defaults.
+         */
+        Rule->~RulesClass();
+        new (Rule) RulesClass();
+
+        /**
+         *  Clear the current ini databases.
+         */
+        ArtINI.Clear();
+        RuleINI->Clear();
+        FSRuleINI.Clear();
+
+        /**
+         *  Reload RULES.INI and FIRESTRM.INI.
+         */
+        {
+            CCFileClass rulefile("RULES.INI");
+            RuleINI->Load(rulefile, false);
+            ASSERT_FATAL(rulefile.Is_Available());
+
+            if (Is_Addon_Available(ADDON_FIRESTORM) && Is_Addon_Enabled(ADDON_FIRESTORM)) {
+                rulefile.Set_Name("FIRESTRM.INI");
+                ASSERT_FATAL(rulefile.Is_Available());
+                FSRuleINI.Load(rulefile, false);
+            }
+        }
+
+        /**
+         *  Reload ART.INI and ARTFS.INI.
+         */
+        {
+            CCFileClass artfile("ART.INI");
+
+            DEBUG_INFO("Loading ART.INI.\n");
+            ArtINI.Load(artfile, false);
+            ASSERT_FATAL(artfile.Is_Available());
+            DEBUG_INFO("Finished loading ART.INI.\n");
+
+            if (Is_Addon_Available(ADDON_FIRESTORM) && Is_Addon_Enabled(ADDON_FIRESTORM)) {
+                DEBUG_INFO("Loading ARTFS.INI.\n");
+                artfile.Set_Name("ARTFS.INI");
+                ASSERT_FATAL(artfile.Is_Available());
+                ArtINI.Load(artfile, false);
+                DEBUG_INFO("Finished loading ARTFS.INI.\n");
+            }
+        }
+
+        /**
+         *  Process rule INIs.
+         */
+        DEBUG_INFO("Calling Rule->Process(*RuleINI).\n");
+        Rule->Process(*RuleINI);
+        DEBUG_INFO("Finished Rule->Process(*RuleINI).\n");
+
+        DEBUG_INFO("Calling Rule->Addition(FSRuleINI).\n");
+        Rule->Addition(FSRuleINI);
+        DEBUG_INFO("Finished Rule->Addition(FSRuleINI).\n");
+
+        /**
+         *  Process scenario rule overrides.
+         */
+        {
+            CCFileClass scenfile(Scen->ScenarioName);
+            ASSERT_FATAL(scenfile.Is_Available());
+
+            CCINIClass scenini;
+
+            scenini.Load(scenfile, false);
+
+            DEBUG_INFO("Calling Rule->Addition() with scenario overrides.\n");
+            Rule->Addition(scenini);
+            DEBUG_INFO("Finished Rule->Addition() with scenario overrides.\n");
+        }
+
+        /**
+         *  Finally, reload miscellaneous classes.
+         */
+        {
+            CCFileClass workingfile;
+            CCINIClass workingini;
+
+            DEBUG_INFO("Calling UIControls->Read_INI().\n");
+            workingfile.Set_Name("UI.INI");
+            workingini.Clear();
+            workingini.Load(workingfile, false);
+            UIControls->Read_INI(workingini);
+            DEBUG_INFO("Finished UIControls->Read_INI().\n");
+        }
+
+        /**
+         *  All done!
+         */
+        Vinifera_Developer_IsToReloadRules = false;
+    }
 }
 
 
@@ -172,8 +280,69 @@ static bool Main_Loop_Intercept()
 
     }
 
+#if false // demo day-night light cycle loop
+    static float light_angle = 0;
+    static CDTimerClass<SystemTimerClass> light_timer = 5;
+    if (light_timer == 0) {
+        light_timer = 5;
+        light_angle += DEG_TO_RADF(3);
+        if (light_angle >= DEG_TO_RADF(360)) light_angle -= DEG_TO_RADF(360);
+        RulesClassExtension::Set_Voxel_Light_Angle(RuleExtension->VoxelLightAzimuth, light_angle, 6);
+    }
+#endif
+
     return ret;
 }
+
+
+void Process_Command_If_Allowed(CommandClass* command)
+{
+    if (!Scen->InputLock || (CommandClass::From_Type(COMMAND_OPTIONS) == command)) {
+        command->Process();
+    }
+}
+
+/**
+ *  #issue-255
+ *
+ *  Fixes the user being able to do keyboard input and as such, affect
+ *  game state while input is locked.
+ *
+ *  @author: Rampastring
+ */
+DECLARE_PATCH(_Main_Loop_Check_Keyboard_Input_Allowed)
+{
+    GET_REGISTER_STATIC(CommandClass*, command, ecx);
+    Process_Command_If_Allowed(command);
+    JMP(0x00508EA8);
+}
+
+DECLARE_PATCH(_Keyboard_Process_Check_Keyboard_Input_Allowed)
+{
+    GET_REGISTER_STATIC(CommandClass*, command, ecx);
+    Process_Command_If_Allowed(command);
+
+    // Rebuild function epilogue, we destroyed one byte of it
+    // by jumping to this hack
+    _asm { pop esi }
+    _asm { pop ebp }
+    _asm { retn }
+}
+
+DECLARE_PATCH(_Sync_Delay_Check_Keyboard_Input_Allowed_Patch1)
+{
+    GET_REGISTER_STATIC(CommandClass*, command, eax);
+    Process_Command_If_Allowed(command);
+    JMP(0x00509659);
+}
+
+DECLARE_PATCH(_Sync_Delay_Check_Keyboard_Input_Allowed_Patch2)
+{
+    GET_REGISTER_STATIC(CommandClass*, command, ecx);
+    Process_Command_If_Allowed(command);
+    JMP(0x0050976C);
+}
+
 
 /**
  *  Main function for patching the hooks.
@@ -184,4 +353,16 @@ void MainLoop_Hooks()
     Patch_Call(0x00462A9C, &Main_Loop_Intercept);
     Patch_Call(0x005A0B85, &Main_Loop_Intercept);
     Patch_Jump(0x005B10F0, &_Queue_Options_Frame_Step_Check_Patch);
+
+    /**
+     *  #issue-255
+     *
+     *  Keyboard processing patches.
+     *  Technically not all are directly in the main loop,
+     *  but all of these are similar to the main loop patch so we include them all here.
+     */
+    Patch_Jump(0x00508E83, &_Main_Loop_Check_Keyboard_Input_Allowed);
+    Patch_Jump(0x0050945C, &_Keyboard_Process_Check_Keyboard_Input_Allowed);
+    Patch_Jump(0x00509632, &_Sync_Delay_Check_Keyboard_Input_Allowed_Patch1);
+    Patch_Jump(0x00509747, &_Sync_Delay_Check_Keyboard_Input_Allowed_Patch2);
 }

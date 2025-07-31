@@ -8,7 +8,7 @@
  *
  *  @author        CCHyper
  *
- *  @brief         Contains the hooks for the extended TriggerClass.
+ *  @brief         Contains the hooks for the extended TActionClass.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -27,60 +27,75 @@
  ******************************************************************************/
 #include "tactionext_hooks.h"
 #include "tibsun_globals.h"
+#include "tibsun_inline.h"
 #include "trigger.h"
 #include "triggertype.h"
+#include "taction.h"
 #include "scenario.h"
+#include "scenarioext.h"
+#include "voc.h"
+#include "tactionext.h"
+#include "taction.h"
+#include "tibsun_defines.h"
+#include "vinifera_defines.h"
+#include "house.h"
+#include "housetype.h"
+#include "object.h"
+#include "objecttype.h"
+#include "trigger.h"
+#include "triggertype.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "house.h"
+#include "housetype.h"
+#include "session.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "mouse.h"
+#include "rules.h"
 
 
 /**
- *  #issue-299
- * 
- *  Fixes the issue with the current difficulty not being checked
- *  when enabling triggers.
- * 
- *  @see: TriggerClass and TriggerTypeClass for the other parts of this fix.
- * 
- *  @author: CCHyper
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or destructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-DECLARE_PATCH(_TActionClass_Operator_Enable_Trigger_For_Difficulty_Patch)
+DECLARE_EXTENDING_CLASS_AND_PAIR(TActionClass)
 {
-    GET_REGISTER_STATIC(int, trigger_index, edi);
-    static TriggerClass *trigger;
+public:
+    bool _Operator_Parens_Intercept(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell const& cell);
+};
+
+
+/**
+ *  Intercept for TActionClass::operator() to add the
+ *  execution of our new TActions.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExt::_Operator_Parens_Intercept(HouseClass* house, ObjectClass* object, TriggerClass* trigger, Cell const& cell)
+{
+    bool success = true;
 
     /**
-     *  This is direct port of the code from Red Alert 2, which looks to fix this issue.
+     *  If this is a Vinifera TAction, execute it.
      */
-
-    /**
-     *  We need to re-fetch the trigger from the vector as the
-     *  register is reused by this point.
-     */
-    trigger = Triggers[trigger_index];
-    if (trigger) {
-
-        /**
-         *  Set this trigger to be disabled if it is marked as disabled
-         *  for this current mission difficulty.
-         */
-        if (Scen->Difficulty == DIFF_EASY && !trigger->Class->Easy
-         || Scen->Difficulty == DIFF_NORMAL && !trigger->Class->Normal
-         || Scen->Difficulty == DIFF_HARD && !trigger->Class->Hard) {
-
-            trigger->Disable();
-
-        } else {
-
-            trigger->Enable();
-        }
+    if (TActionClassExtension::Is_Vinifera_TAction(Action)) {
+        success = TActionClassExtension::Execute(*this, house, object, trigger, cell);
     }
 
-    JMP(0x0061A611);
+    /**
+     *  Otherwise, let the game handle it.
+     */
+    else {
+        success = TActionClass::operator()(house, object, trigger, cell);
+    }
+
+    return success;
 }
 
 
@@ -89,6 +104,8 @@ DECLARE_PATCH(_TActionClass_Operator_Enable_Trigger_For_Difficulty_Patch)
  */
 void TActionClassExtension_Hooks()
 {
+    Patch_Call(0x0064961C, &TActionClassExt::_Operator_Parens_Intercept);
+
     /**
      *  #issue-674
      * 
@@ -101,6 +118,4 @@ void TActionClassExtension_Hooks()
      *  @author: CCHyper
      */
     Patch_Dword(0x00619552+2, (0x007E4820+4)); // Foot vector to Technos vector.
-
-    Patch_Jump(0x0061A60C, &_TActionClass_Operator_Enable_Trigger_For_Difficulty_Patch);
 }

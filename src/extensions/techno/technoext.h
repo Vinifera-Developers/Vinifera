@@ -31,6 +31,7 @@
 #include "techno.h"
 
 
+class SpawnManagerClass;
 class EBoltClass;
 class TechnoTypeClass;
 class TechnoTypeClassExtension;
@@ -50,19 +51,26 @@ class TechnoClassExtension : public RadioClassExtension
         TechnoClassExtension(const NoInitClass &noinit);
         virtual ~TechnoClassExtension();
 
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+        virtual void Detach(AbstractClass * target, bool all = true) override;
+        virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual TechnoClass *This() const override { return reinterpret_cast<TechnoClass *>(RadioClassExtension::This()); }
         virtual const TechnoClass *This_Const() const override { return reinterpret_cast<const TechnoClass *>(RadioClassExtension::This_Const()); }
 
-        virtual EBoltClass *Electric_Zap(TARGET target, int which, const WeaponTypeClass *weapontype, Coordinate &source_coord);
-        virtual EBoltClass *Electric_Bolt(TARGET target);
+        virtual EBoltClass *Electric_Zap(AbstractClass * target, int which, const WeaponTypeClass *weapontype, Coord &source_coord);
+        virtual EBoltClass *Electric_Bolt(AbstractClass * target);
         virtual void Response_Capture();
         virtual void Response_Enter();
         virtual void Response_Deploy();
         virtual void Response_Harvest();
         virtual bool Can_Passive_Acquire() const;
+        virtual Coord Fire_Coord(WeaponSlotType which, TPoint3D<int> offset = TPoint3D<int>()) const;
+
+        void Put_Storage_Pointers();
+
+        int Time_To_Build() const;
+        bool Can_Opportunity_Fire() const;
+        bool Opportunity_Fire();
 
     private:
         const TechnoTypeClass *Techno_Type_Class() const;
@@ -73,4 +81,39 @@ class TechnoClassExtension : public RadioClassExtension
          *  The current electric bolt instance fired by this object.
          */
         EBoltClass *ElectricBolt;
+
+        /**
+         *  Replacement Tiberium storage.
+         */
+        VectorClass<int> Storage;
+
+        /**
+         *  The spawn manager of this unit.
+         */
+        SpawnManagerClass* SpawnManager;
+
+        /**
+         *  The object that spawned this object.
+         */
+        TechnoClass* SpawnOwner;
+
+        /**
+         *  Is this object's current target an opportunity fire target?
+         */
+        bool HasOpportunityFireTarget;
+
+        /**
+         *  When has this unit last received a target? (not comprehensive)
+         */
+        int LastTargetFrame;
+
+        /**
+         *  Should we reset burst once the countdown reaches 0?
+         */
+        bool IsToResetBurst;
+
+        /**
+         *  The countdown until burst gets reset if unit has lost the target.
+         */
+        CDTimerClass<FrameTimerClass> BurstResetTimer;
 };

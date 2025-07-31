@@ -43,7 +43,7 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-class CCFileClassExt final : public CCFileClass
+class CCFileClassExt : public CCFileClass
 {
     public:
         void _Error(FileErrorType error, bool can_retry = false, const char *filename = nullptr);

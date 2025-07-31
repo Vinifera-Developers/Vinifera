@@ -31,6 +31,9 @@
 #include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "overlaytype.h"
+#include "tibsun_globals.h"
+#include "vinifera_saveload.h"
 
 
 /**
@@ -42,6 +45,24 @@ TiberiumClassExtension::TiberiumClassExtension(const TiberiumClass *this_ptr) :
     AbstractTypeClassExtension(this_ptr)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TiberiumClassExtension::TiberiumClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    if (this_ptr)
+    {
+        /**
+         *  By default Tiberium 0 gets green pips, and the rest get blue.
+         *  Blue Tiberium is also drawn first
+         */
+        if (this_ptr->Fetch_Heap_ID() == 0)
+        {
+            PipIndex = 1;
+            PipDrawOrder = 1;
+        }
+        else
+        {
+            PipIndex = 5;
+            PipDrawOrder = 0;
+        }
+    }
 
     TiberiumExtensions.Add(this);
 }
@@ -134,9 +155,9 @@ HRESULT TiberiumClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int TiberiumClassExtension::Size_Of() const
+int TiberiumClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("TiberiumClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("TiberiumClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -147,7 +168,7 @@ int TiberiumClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void TiberiumClassExtension::Detach(TARGET target, bool all)
+void TiberiumClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("TiberiumClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -158,9 +179,9 @@ void TiberiumClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void TiberiumClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void TiberiumClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("TiberiumClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("TiberiumClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -173,15 +194,36 @@ bool TiberiumClassExtension::Read_INI(CCINIClass &ini)
 {
     //EXT_DEBUG_TRACE("TiberiumClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
+    const char* ini_name = Name();
+
+    if (!IsInitialized) {
+        This()->FrameCount = 12;
+        This()->Variety = 12;
+        DamageToInfantry = std::max(1, This()->Power / 10);
+    }
+
     if (!AbstractTypeClassExtension::Read_INI(ini)) {
         return false;
     }
 
-    const char *ini_name = Name();
-
     if (!ini.Is_Present(ini_name)) {
         return false;
     }
+
+    This()->Overlay = const_cast<OverlayTypeClass*>(ini.Get_Overlay(ini_name, "Overlay", This()->Overlay));
+
+    const bool useSlopes = ini.Get_Bool(ini_name, "UseSlopes", This()->RampVariety > 0);
+    This()->RampVariety = useSlopes ? 8 : 0;
+
+    This()->Variety = ini.Get_Int(ini_name, "Variety", This()->Variety);
+    This()->Variety = std::max(1, This()->Variety); // at least one overlay, please
+
+    PipIndex = ini.Get_Int(ini_name, "PipIndex", PipIndex);
+    PipDrawOrder = ini.Get_Int(ini_name, "PipDrawOrder", PipDrawOrder);
+
+    DamageToInfantry = ini.Get_Int(ini_name, "DamageToInfantry", DamageToInfantry);
+
+    IsInitialized = true;
     
     return true;
 }

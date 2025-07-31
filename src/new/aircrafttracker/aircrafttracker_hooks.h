@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          VINIFERA_GITINFO.CPP.IN
+ *  @file          AIRCRAFTTRACKER_HOOKS.H
  *
- *  @authors       OmniBlade, CCHyper
+ *  @author        ZivDero
  *
- *  @brief         Globals for accessing git version information from the build system.
+ *  @brief         Contains the hooks for AircraftTrackerClass.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -25,63 +25,6 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "vinifera_gitinfo.h"
-#include <cstdio>
+#pragma once
 
-
-/**
- *  #WARNING:
- *  This file is automatically populated by the CMake, do not edit!
- */
-
-
-const char *Vinifera_Git_Hash()
-{
-	return "@GIT_HEAD_SHA1@";
-}
-
-
-const char *Vinifera_Git_Hash_Short()
-{
-	return "@GIT_HEAD_SHORT_SHA1@";
-}
-
-
-const char *Vinifera_Git_Author()
-{
-	return "@GIT_AUTHOR_NAME@";
-}
-
-
-const char *Vinifera_Git_Branch()
-{
-	return "@GIT_BRANCH@";
-}
-
-
-const char *Vinifera_Git_DateTime()
-{
-	return "@GIT_COMMIT_DATE_ISO8601@";
-}
-
-
-bool Vinifera_Git_Uncommitted_Changes()
-{
-	return @GIT_IS_DIRTY@;
-}
-
-
-const char *Vinifera_Git_Version_String()
-{
-	static char _buffer[1024];
-	static bool _onetime = false;
-
-	if (!_onetime) {
-		std::snprintf(_buffer, sizeof(_buffer), "%s %s %s%s %s",
-			Vinifera_Git_Branch(), Vinifera_Git_Author(),
-			Vinifera_Git_Uncommitted_Changes() ? "~" : "", Vinifera_Git_Hash_Short(), Vinifera_Git_DateTime());
-		_onetime = true;
-	}
-
-	return _buffer;
-}
+void AircraftTracker_Hooks();

@@ -51,13 +51,13 @@ WeaponTypeClassExtension final : public AbstractTypeClassExtension
         WeaponTypeClassExtension(const NoInitClass &noinit);
         virtual ~WeaponTypeClassExtension();
 
-        virtual int Size_Of() const override;
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+        virtual int Get_Object_Size() const override;
+        virtual void Detach(AbstractClass * target, bool all = true) override;
+        virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual WeaponTypeClass *This() const override { return reinterpret_cast<WeaponTypeClass *>(AbstractTypeClassExtension::This()); }
         virtual const WeaponTypeClass *This_Const() const override { return reinterpret_cast<const WeaponTypeClass *>(AbstractTypeClassExtension::This_Const()); }
-        virtual RTTIType What_Am_I() const override { return RTTI_WEAPONTYPE; }
+        virtual RTTIType Fetch_RTTI() const override { return RTTI_WEAPONTYPE; }
 
         virtual bool Read_INI(CCINIClass &ini) override;
 
@@ -71,6 +71,11 @@ WeaponTypeClassExtension final : public AbstractTypeClassExtension
          *  Does the firing unit get explictly deleted when this weapon is fired?
          */
         bool IsDeleteOnSuicide;
+
+        /**
+         *  Does the unit firing this weapon not have to perform a turn to face its target before firing?
+         */
+        bool IsOmniFire;
 
         /**
          *  Is this a electric bolt weapon (Uses custom drawing)?
@@ -103,6 +108,26 @@ WeaponTypeClassExtension final : public AbstractTypeClassExtension
          *  The maximum deviation from a straight line the electric bolts can be.
          */
         float ElectricBoltDeviation;
+
+        /**
+         *  Does this weapon spawn aircraft when fired?
+         */
+        bool IsSpawner;
+
+        /**
+         *  Should the firer of this weapon be revealed when firing?
+         */
+        bool IsRevealOnFire;
+
+        /**
+         *  The action type used for this weapon's attack cursor.
+         */
+        ActionType CursorAttack;
+
+        /**
+         *  The action type used for this weapon's attack cursor when hovering over shroud.
+         */
+        ActionType CursorStayAttack;
 
         /**
          *  Particle systems to display.

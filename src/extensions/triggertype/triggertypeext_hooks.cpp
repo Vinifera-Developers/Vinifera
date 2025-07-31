@@ -52,13 +52,13 @@ DECLARE_PATCH(_TriggerTypeClass_Read_INI_Load_Difficulty_Patch)
     static char *tok;
 
     tok = std::strtok(nullptr, ",");
-    this_ptr->Easy = tok && std::atoi(tok);
+    this_ptr->IsEnabledEasy = tok && std::atoi(tok);
 
     tok = std::strtok(nullptr, ",");
-    this_ptr->Normal = tok && std::atoi(tok);
+    this_ptr->IsEnabledMedium = tok && std::atoi(tok);
 
     tok = std::strtok(nullptr, ",");
-    this_ptr->Hard = tok && std::atoi(tok);
+    this_ptr->IsEnabledHard = tok && std::atoi(tok);
 
     _asm { xor ebx, ebx } // Restore EBX state.
     JMP(0x0064A337);

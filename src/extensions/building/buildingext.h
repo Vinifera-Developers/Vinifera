@@ -57,13 +57,13 @@ BuildingClassExtension final : public TechnoClassExtension
         BuildingClassExtension(const NoInitClass &noinit);
         virtual ~BuildingClassExtension();
 
-        virtual int Size_Of() const override;
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+        virtual int Get_Object_Size() const override;
+        virtual void Detach(AbstractClass * target, bool all = true) override;
+        virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual BuildingClass *This() const override { return reinterpret_cast<BuildingClass *>(TechnoClassExtension::This()); }
         virtual const BuildingClass *This_Const() const override { return reinterpret_cast<const BuildingClass *>(TechnoClassExtension::This_Const()); }
-        virtual RTTIType What_Am_I() const override { return RTTI_BUILDING; }
+        virtual RTTIType Fetch_RTTI() const override { return RTTI_BUILDING; }
 
         void Produce_Cash_AI();
 

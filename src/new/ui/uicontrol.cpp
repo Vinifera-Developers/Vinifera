@@ -50,8 +50,56 @@ UIControlsClass::UIControlsClass() :
     UnitHealthBarDrawPos(-25, -16), // Y was -15
     InfantryHealthBarDrawPos(-24, -5),
     IsTextLabelOutline(true),
-    TextLabelBackgroundTransparency(50)
+    TextLabelBackgroundTransparency(50),
+    UnitGroupNumberOffset(-4, -4),
+    InfantryGroupNumberOffset(-4, -4),
+    BuildingGroupNumberOffset(-4, -4),
+    AircraftGroupNumberOffset(-4, -4),
+    UnitWithPipGroupNumberOffset(-4, -8),
+    InfantryWithPipGroupNumberOffset(-4, -8),
+    BuildingWithPipGroupNumberOffset(-4, -8),
+    AircraftWithPipGroupNumberOffset(-4, -8),
+    UnitVeterancyPipOffset(10, 6),
+    InfantryVeterancyPipOffset(5, 2),
+    BuildingVeterancyPipOffset(10, 6),
+    AircraftVeterancyPipOffset(10, 6),
+    UnitSpecialPipOffset(0, -8),
+    InfantrySpecialPipOffset(0, -8),
+    BuildingSpecialPipOffset(0, -8),
+    AircraftSpecialPipOffset(0, -8),
+    IsBandBoxDropShadow(false),
+    IsBandBoxThick(false),
+    BandBoxColor{ 255, 255, 255 },
+    BandBoxDropShadowColor{ 0, 0, 0 },
+    BandBoxTintTransparency(0),
+    BandBoxTintColors(),
+    IsAlwaysShowActionLines(false),
+    IsMovementLineDashed(false),
+    IsMovementLineDropShadow(false),
+    IsMovementLineThick(false),
+    MovementLineColor{ 0, 170, 0 }, // COLOR_GREEN
+    MovementLineDropShadowColor{ 0, 0, 0 },
+    IsTargetLineDashed(false),
+    IsTargetLineDropShadow(false),
+    IsTargetLineThick(false),
+    TargetLineColor{ 173, 0, 0 }, // COLOR_RED
+    TargetLineDropShadowColor{ 0, 0, 0 },
+    IsTargetLaserDashed(true),
+    IsTargetLaserDropShadow(false),
+    IsTargetLaserThick(false),
+    TargetLaserColor{ 173, 0, 0 }, // COLOR_RED
+    TargetLaserDropShadowColor{ 0, 0, 0 },
+    TargetLaserTime(15),
+    IsShowNavComQueueLines(true),
+    IsNavComQueueLineDashed(false),
+    IsNavComQueueLineDropShadow(false),
+    IsNavComQueueLineThick(false),
+    NavComQueueLineColor{ 74, 77, 255 }, // COLOR_LTBLUE
+    NavComQueueLineDropShadowColor{ 0, 0, 0 },
+    IsCenterSidebarButtonsOnRadar(false)
 {
+    BandBoxTintColors.Add(RGBStruct{ 0, 0, 0 });
+    BandBoxTintColors.Add(RGBStruct{ 255, 255, 255 });
 }
 
 
@@ -60,7 +108,8 @@ UIControlsClass::UIControlsClass() :
  *  
  *  @author: CCHyper
  */
-UIControlsClass::UIControlsClass(const NoInitClass &noinit)
+UIControlsClass::UIControlsClass(const NoInitClass &noinit) :
+    BandBoxTintColors(noinit)
 {
 }
 
@@ -89,6 +138,61 @@ bool UIControlsClass::Read_INI(CCINIClass &ini)
 
     IsTextLabelOutline = ini.Get_Bool(INGAME, "TextLabelOutline", IsTextLabelOutline);
     TextLabelBackgroundTransparency = ini.Get_Int_Clamp(INGAME, "TextLabelBackgroundTransparency", 0, 100, TextLabelBackgroundTransparency);
+
+    UnitGroupNumberOffset = ini.Get_Point(INGAME, "UnitGroupNumberOffset", UnitGroupNumberOffset);
+    InfantryGroupNumberOffset = ini.Get_Point(INGAME, "InfantryGroupNumberOffset", InfantryGroupNumberOffset);
+    BuildingGroupNumberOffset = ini.Get_Point(INGAME, "BuildingGroupNumberOffset", BuildingGroupNumberOffset);
+    AircraftGroupNumberOffset = ini.Get_Point(INGAME, "AircraftGroupNumberOffset", AircraftGroupNumberOffset);
+    UnitWithPipGroupNumberOffset = ini.Get_Point(INGAME, "UnitWithPipGroupNumberOffset", UnitWithPipGroupNumberOffset);
+    InfantryWithPipGroupNumberOffset = ini.Get_Point(INGAME, "InfantryWithPipGroupNumberOffset", InfantryWithPipGroupNumberOffset);
+    BuildingWithPipGroupNumberOffset = ini.Get_Point(INGAME, "BuildingWithPipGroupNumberOffset", BuildingWithPipGroupNumberOffset);
+    AircraftWithPipGroupNumberOffset = ini.Get_Point(INGAME, "AircraftWithPipGroupNumberOffset", AircraftWithPipGroupNumberOffset);
+    UnitVeterancyPipOffset = ini.Get_Point(INGAME, "UnitVeterancyPipOffset", UnitVeterancyPipOffset);
+    InfantryVeterancyPipOffset = ini.Get_Point(INGAME, "InfantryVeterancyPipOffset", InfantryVeterancyPipOffset);
+    BuildingVeterancyPipOffset = ini.Get_Point(INGAME, "BuildingVeterancyPipOffset", BuildingVeterancyPipOffset);
+    AircraftVeterancyPipOffset = ini.Get_Point(INGAME, "AircraftVeterancyPipOffset", AircraftVeterancyPipOffset);
+    UnitSpecialPipOffset = ini.Get_Point(INGAME, "UnitSpecialPipOffset", UnitSpecialPipOffset);
+    InfantrySpecialPipOffset = ini.Get_Point(INGAME, "InfantrySpecialPipOffset", InfantrySpecialPipOffset);
+    BuildingSpecialPipOffset = ini.Get_Point(INGAME, "BuildingSpecialPipOffset", BuildingSpecialPipOffset);
+    AircraftSpecialPipOffset = ini.Get_Point(INGAME, "AircraftSpecialPipOffset", AircraftSpecialPipOffset);
+
+    IsBandBoxDropShadow = ini.Get_Bool(INGAME, "BandBoxDropShadow", IsBandBoxDropShadow);
+    IsBandBoxThick = ini.Get_Bool(INGAME, "BandBoxThick", IsBandBoxThick);
+    BandBoxColor = ini.Get_RGB(INGAME, "BandBoxColor", BandBoxColor);
+    BandBoxDropShadowColor = ini.Get_RGB(INGAME, "BandBoxDropShadowColor", BandBoxDropShadowColor);
+    BandBoxTintTransparency = ini.Get_Int_Clamp(INGAME, "BandBoxTintTransparency", 0, 100, BandBoxTintTransparency);
+    BandBoxTintColors = ini.Get_RGBs(INGAME, "BandBoxTintColors", BandBoxTintColors);
+
+    ASSERT_PRINT(BandBoxTintColors.Count() == 2, "BandBoxTintColors must contain two valid entries!");
+
+    IsAlwaysShowActionLines = ini.Get_Bool(INGAME, "AlwaysShowActionLines", IsAlwaysShowActionLines);
+    IsMovementLineDashed = ini.Get_Bool(INGAME, "MovementLineDashed", IsMovementLineDashed);
+    IsMovementLineDropShadow = ini.Get_Bool(INGAME, "MovementLineDropShadow", IsMovementLineDropShadow);
+    IsMovementLineThick = ini.Get_Bool(INGAME, "MovementLineThick", IsMovementLineThick);
+    MovementLineColor = ini.Get_RGB(INGAME, "MovementLineColor", MovementLineColor);
+    MovementLineDropShadowColor = ini.Get_RGB(INGAME, "MovementLineDropShadowColor", MovementLineDropShadowColor);
+
+    IsTargetLineDashed = ini.Get_Bool(INGAME, "TargetLineDashed", IsTargetLineDashed);
+    IsTargetLineDropShadow = ini.Get_Bool(INGAME, "TargetLineDropShadow", IsTargetLineDropShadow);
+    IsTargetLineThick = ini.Get_Bool(INGAME, "TargetLineThick", IsTargetLineThick);
+    TargetLineColor = ini.Get_RGB(INGAME, "TargetLineColor", TargetLineColor);
+    TargetLineDropShadowColor = ini.Get_RGB(INGAME, "TargetLineDropShadowColor", TargetLineDropShadowColor);
+
+    IsTargetLaserDashed = ini.Get_Bool(INGAME, "TargetLaserDashed", IsTargetLaserDashed);
+    IsTargetLaserDropShadow = ini.Get_Bool(INGAME, "TargetLaserDropShadow", IsTargetLaserDropShadow);
+    IsTargetLaserThick = ini.Get_Bool(INGAME, "TargetLaserThick", IsTargetLaserThick);
+    TargetLaserColor = ini.Get_RGB(INGAME, "TargetLaserColor", TargetLaserColor);
+    TargetLaserDropShadowColor = ini.Get_RGB(INGAME, "TargetLaserDropShadowColor", TargetLaserDropShadowColor);
+    TargetLaserTime = ini.Get_Int(INGAME, "TargetLaserTime", TargetLaserTime);
+
+    IsShowNavComQueueLines = ini.Get_Bool(INGAME, "ShowNavComQueueLines", IsShowNavComQueueLines);
+    IsNavComQueueLineDashed = ini.Get_Bool(INGAME, "NavComQueueLineDashed", IsNavComQueueLineDashed);
+    IsNavComQueueLineDropShadow = ini.Get_Bool(INGAME, "NavComQueueLineDropShadow", IsNavComQueueLineDropShadow);
+    IsNavComQueueLineThick = ini.Get_Bool(INGAME, "NavComQueueLineThick", IsNavComQueueLineThick);
+    NavComQueueLineColor = ini.Get_RGB(INGAME, "NavComQueueLineColor", NavComQueueLineColor);
+    NavComQueueLineDropShadowColor = ini.Get_RGB(INGAME, "NavComQueueLineDropShadowColor", NavComQueueLineDropShadowColor);
+
+    IsCenterSidebarButtonsOnRadar = ini.Get_Bool(INGAME, "CenterSidebarButtonsOnRadar", IsCenterSidebarButtonsOnRadar);
 
     return true;
 }

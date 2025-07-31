@@ -65,6 +65,7 @@
 #include "particletype.h"
 #include "particlesys.h"
 #include "particlesystype.h"
+#include "sidebarext.h"
 #include "radarevent.h"
 #include "script.h"
 #include "scripttype.h"
@@ -151,6 +152,12 @@
 
 #include <iostream>
 
+#include "aircrafttracker.h"
+#include "armortype.h"
+#include "kamikazetracker.h"
+#include "rockettype.h"
+#include "spawnmanager.h"
+
 
 extern int Execute_Day;
 extern int Execute_Month;
@@ -207,22 +214,6 @@ static AbstractClassExtension *Extension_Get_Abstract_Pointer(const AbstractClas
 static void Extension_Clear_Abstract_Pointer(const AbstractClass *abstract)
 {
     ABSTRACT_EXTENSION_POINTER_CAST_MACRO(abstract) = (uintptr_t)0x00000000;
-}
-
-
-/**
- *  Check if the extension pointer is a valid memory address.
- * 
- *  #WARNING: This is not guanteed to work, but it should capture the majority of possible bad pointers.
- * 
- *  0x00870000 -> End of GAME.EXE .data segment virtual address.
- *  0x20000000 -> Arbitrary address VINIFERA.DLL 'should' never get to.
- * 
- *  @author: CCHyper
- */
-static bool Extension_Is_Valid_Pointer(const AbstractClassExtension *abstract_extension)
-{
-    return ((uintptr_t)abstract_extension) >= 0x00870000 || ((uintptr_t)abstract_extension) < 0x20000000;
 }
 
 
@@ -363,7 +354,7 @@ static bool Extension_Save(IStream *pStm, const DynamicVectorClass<EXT_CLASS *> 
 
         EXT_CLASS * ext_ptr = reinterpret_cast<EXT_CLASS *>(lpPS);
 
-        if (ext_ptr->What_Am_I() != RTTI_WAVE || ext_ptr->What_Am_I() != RTTI_LIGHT) {
+        if (ext_ptr->Fetch_RTTI() != RTTI_WAVE || ext_ptr->Fetch_RTTI() != RTTI_LIGHT) {
             EXT_DEBUG_INFO("  -> %s\n", ext_ptr->Name());
         }
     }
@@ -466,7 +457,7 @@ static bool Extension_Request_Pointer_Remap(const DynamicVectorClass<BASE_CLASS 
  *  @author: CCHyper
  */
 template<class EXT_CLASS>
-static void Extension_Detach_This_From_All(DynamicVectorClass<EXT_CLASS *> &list, TARGET target, bool all)
+static void Extension_Detach_This_From_All(DynamicVectorClass<EXT_CLASS *> &list, AbstractClass * target, bool all)
 {
     for (int index = 0; index < list.Count(); ++index) {
         list[index]->Detach(target, all);
@@ -486,7 +477,7 @@ AbstractClassExtension *Extension::Private::Make_Internal(const AbstractClass *a
 
     AbstractClassExtension *extptr = nullptr;
 
-    switch (const_cast<AbstractClass *>(abstract)->What_Am_I()) {
+    switch (const_cast<AbstractClass *>(abstract)->RTTI) {
         case RTTI_UNIT: { extptr = Extension_Make<UnitClass, UnitClassExtension>(reinterpret_cast<const UnitClass *>(abstract)); break; }
         case RTTI_AIRCRAFT: { extptr = Extension_Make<AircraftClass, AircraftClassExtension>(reinterpret_cast<const AircraftClass *>(abstract)); break; }
         case RTTI_AIRCRAFTTYPE: { extptr = Extension_Make<AircraftTypeClass, AircraftTypeClassExtension>(reinterpret_cast<const AircraftTypeClass *>(abstract)); break; }
@@ -547,7 +538,7 @@ AbstractClassExtension *Extension::Private::Make_Internal(const AbstractClass *a
         //case RTTI_FOGGEDOBJECT: { extptr = Extension_Make<FoggedObjectClass, FoggedObjectClassExtension>(reinterpret_cast<const FoggedObjectClass *>(abstract)); break; } // Not yet implemented
         //case RTTI_ALPHASHAPE: { extptr = Extension_Make<AlphaShapeClass, AlphaShapeClassExtension>(reinterpret_cast<const AlphaShapeClass *>(abstract)); break; } // Not yet implemented
         //case RTTI_VEINHOLEMONSTER: { extptr = Extension_Make<VeinholeMonsterClass, VeinholeMonsterClassExtension>(reinterpret_cast<const VeinholeMonsterClass *>(abstract)); break; } // Not yet implemented
-        default: { DEBUG_ERROR("Extension::Make: No extension support for \"%s\" implemented!\n", Name_From_RTTI((RTTIType)abstract->What_Am_I())); break; }
+        default: { DEBUG_ERROR("Extension::Make: No extension support for \"%s\" implemented!\n", Name_From_RTTI(abstract->RTTI)); break; }
     };
 
     return extptr;
@@ -566,7 +557,7 @@ bool Extension::Private::Destroy_Internal(const AbstractClass *abstract)
     
     bool removed = false;
 
-    switch (abstract->What_Am_I()) {
+    switch (abstract->RTTI) {
         case RTTI_UNIT: { removed = Extension_Destroy<UnitClass, UnitClassExtension>(reinterpret_cast<const UnitClass *>(abstract)); break; }
         case RTTI_AIRCRAFT: { removed = Extension_Destroy<AircraftClass, AircraftClassExtension>(reinterpret_cast<const AircraftClass *>(abstract)); break; }
         case RTTI_AIRCRAFTTYPE: { removed = Extension_Destroy<AircraftTypeClass, AircraftTypeClassExtension>(reinterpret_cast<const AircraftTypeClass *>(abstract)); break; }
@@ -627,7 +618,7 @@ bool Extension::Private::Destroy_Internal(const AbstractClass *abstract)
         //case RTTI_FOGGEDOBJECT: { removed = Extension_Destroy<FoggedObjectClass, FoggedObjectClassExtension>(reinterpret_cast<const FoggedObjectClass *>(abstract)); break; } // Not yet implemented
         //case RTTI_ALPHASHAPE: { removed = Extension_Destroy<AlphaShapeClass, AlphaShapeClassExtension>(reinterpret_cast<const AlphaShapeClass *>(abstract)); break; } // Not yet implemented
         //case RTTI_VEINHOLEMONSTER: { removed = Extension_Destroy<VeinholeMonsterClass, VeinholeMonsterClassExtension>(reinterpret_cast<const VeinholeMonsterClass *>(abstract)); break; } // Not yet implemented
-        default: { DEBUG_ERROR("Extension::Destroy: No extension support for \"%s\" implemented!\n", Name_From_RTTI((RTTIType)abstract->What_Am_I())); break; }
+        default: { DEBUG_ERROR("Extension::Destroy: No extension support for \"%s\" implemented!\n", Name_From_RTTI(abstract->RTTI)); break; }
     };
 
     ASSERT(removed);
@@ -653,18 +644,10 @@ AbstractClassExtension *Extension::Private::Fetch_Internal(const AbstractClass *
     }
 
     /**
-     *  Check for a malformed extension pointer.
+     *  Its possible the pointer could be invalid, so perform a check.
      */
-    if (!Extension_Is_Valid_Pointer(ext_ptr)) {
-        DEBUG_ERROR("Extension::Fetch: Corrupt extension pointer for \"%s\"!\n", Extension::Utility::Get_TypeID_Name(abstract).c_str());
-        return nullptr;
-    }
-
-    /**
-     *  Its still possible the pointer could be invalid, so perform a final check.
-     */
-    if (ext_ptr->What_Am_I() <= RTTI_NONE || ext_ptr->What_Am_I() >= RTTI_COUNT) {
-        DEBUG_ERROR("Extension::Fetch: Invalid extension rtti type for \"%s\"!\n", Extension::Utility::Get_TypeID_Name(abstract).c_str());
+    if (ext_ptr->Fetch_RTTI() <= RTTI_NONE || ext_ptr->Fetch_RTTI() >= RTTI_COUNT) {
+        DEBUG_ERROR("Extension::Fetch: Invalid extension RTTI type for \"%s\"!\n", Extension::Utility::Get_TypeID_Name(abstract).c_str());
         return nullptr;
     }
 
@@ -761,6 +744,9 @@ bool Extension::Save(IStream *pStm)
 
     if (FAILED(ScenExtension->Save(pStm, true))) { return false; }
     DEBUG_INFO("Saved \"%s\" extension\n", ScenExtension->Name());
+
+    if (FAILED(SidebarExtension->Save(pStm, true))) { return false; }
+    DEBUG_INFO("Saved \"%s\" extension\n", SidebarExtension->Name());
 
     if (FAILED(SessionExtension->Save(pStm, true))) { return false; }
     DEBUG_INFO("Saved \"%s\" extension\n", SessionExtension->Name());
@@ -861,6 +847,10 @@ bool Extension::Load(IStream *pStm)
     if (FAILED(ScenExtension->Load(pStm))) { return false; }
     DEBUG_INFO("Loaded \"%s\" extension.\n", ScenExtension->Name());
     ScenExtension->Assign_This(Scen);
+
+    if (FAILED(SidebarExtension->Load(pStm))) { return false; }
+    DEBUG_INFO("Loaded \"%s\" extension.\n", SidebarExtension->Name());
+    SidebarExtension->Assign_This(&Map);
 
     if (FAILED(SessionExtension->Load(pStm))) { return false; }
     DEBUG_INFO("Loaded \"%s\" extension.\n", SessionExtension->Name());
@@ -1139,7 +1129,8 @@ static bool Print_Event_List(FILE *fp, QueueClass<T, I> &list)
                 ev_data_buffer += ev_byte_format;
                 if (i < ev_size-1) ev_data_buffer += " ";
             }
-            std::fprintf(fp, "%04d  %s  Frame: %d  ID: %d  Data: %s\n", index, ev_name, ev->Frame, ev->ID, ev_data_buffer.Peek_Buffer());
+
+            std::fprintf(fp, "%04d  %s  Frame: %d  ID: %d  Data: %s\n", index, EventClass::Event_Name(ev->Type), ev->Frame, ev->ID, ev_data_buffer);
         }
     }
     return true;
@@ -1154,7 +1145,7 @@ static bool Print_Event_List(FILE *fp, QueueClass<T, I> &list)
 template<class T>
 static void Print_Heap_CRC_Lists(FILE *fp, DynamicVectorClass<T *> &list)
 {
-    WWCRCEngine *crc = new WWCRCEngine;
+    CRCEngine *crc = new CRCEngine;
 
     std::fprintf(fp, "\n\n********* %s CRCs ********\n\n", Extension::Utility::Get_TypeID_Name<T>().c_str());
     std::fprintf(fp, "Index    CRC\n");
@@ -1162,7 +1153,7 @@ static void Print_Heap_CRC_Lists(FILE *fp, DynamicVectorClass<T *> &list)
 
     for (int index = 0; index < list.Count(); ++index) {
         T *ptr = list[index];
-        ptr->Compute_CRC(*crc);
+        ptr->Object_CRC(*crc);
         std::fprintf(fp, "%05d    %08x\n", index, crc->CRC_Value());
         EXT_DEBUG_INFO("%05d %08x\n", index, crc->CRC_Value());
     }
@@ -1182,11 +1173,11 @@ void Extension::Print_CRCs(EventClass *ev)
      *  Create a unique filename for the sync log based on the time of execution and the player name.
      */
     char filename_buffer[512];
-    std::snprintf(filename_buffer, sizeof(filename_buffer), "%s\\SYNC_%s-%02d_%02u-%02u-%04u_%02u-%02u-%02u.LOG",
+    std::snprintf(filename_buffer, sizeof(filename_buffer), "%s\\SYNC_%s-%02d_%02u-%02u-%04u_%02u-%02u-%02u-%d.LOG",
         Vinifera_DebugDirectory,
         PlayerPtr->IniName,
-        PlayerPtr->ID,
-        Execute_Day, Execute_Month, Execute_Year, Execute_Hour, Execute_Min, Execute_Sec);
+        PlayerPtr->HeapID,
+        Execute_Day, Execute_Month, Execute_Year, Execute_Hour, Execute_Min, Execute_Sec, Frame);
 
     /**
      *  Open the sync log.
@@ -1202,6 +1193,35 @@ void Extension::Print_CRCs(EventClass *ev)
     Extension::Print_CRCs(fp, ev);
 
     std::fclose(fp);
+}
+
+
+const char* Facing_To_String(FacingType facing) 
+{
+    if (facing < FACING_FIRST || facing >= FACING_COUNT) {
+        return "";
+    }
+
+    static const char* facing_names[FACING_COUNT] = { "N", "NE", "E", "SE", "S", "SW", "W", "NW" };
+
+    return facing_names[(int)facing];
+}
+
+
+void Print_Path(FILE* fp, FootClass *foot)
+{
+    // Print path
+    FacingType facing = foot->Path[0];
+    int pathindex = 0;
+
+    while (facing != FACING_NONE && pathindex < std::size(foot->Path)) {
+        std::fprintf(fp, Facing_To_String(facing));
+        std::fprintf(fp, " ");
+        pathindex++;
+        facing = foot->Path[pathindex];
+    }
+
+    std::fprintf(fp, "\n");
 }
 
 
@@ -1234,7 +1254,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     std::fprintf(fp, "\n");
 
     std::fprintf(fp, "Frames: %d\n", Frame);
-    std::fprintf(fp, "Player ID: %02d\n", PlayerPtr->ID);
+    std::fprintf(fp, "Player ID: %02d\n", PlayerPtr->HeapID);
     std::fprintf(fp, "Player Name: %s\n", PlayerPtr->IniName);
     //std::fprintf(fp, "Average FPS: %d\n", total_cycles_or_iterations_ > 0 ? total_fps_ / total_cycles_or_iterations_ : 0);
     std::fprintf(fp, "Max MaxAhead: %d\n", Session.MaxMaxAhead);
@@ -1280,8 +1300,10 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
 
     /**
      *  Print the most recent CRC values.
+     * 
+     *  Rampastring: print all of 'em
      */
-    for (int i = 0; i < 32; ++i) {
+    for (int i = 0; i < 256; ++i) {
         std::fprintf(fp, "CRC[%d]=%x\n", i, CRC[i]);
     }
     std::fprintf(fp, "\n");
@@ -1421,15 +1443,18 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         GameCRC = 0;
         HouseClass *housep = Houses[house];
         if (housep) {
-            //const char *a = HouseTypes[housep->ID]->Name();
-            //const char *b = housep->ActLike != SIDE_NONE ? Sides[housep->ActLike]->Name() : "<none>";
-            std::fprintf(fp, "%s: IsHuman:%d  Color:%s  ID:%d  HouseType:%s  ActLike:%s\n",
+            //const char *a = HouseTypes[housep->HeapID]->Name();
+            //const char *b = housep->ActLike != HOUSE_NONE ? HouseTypes[housep->ActLike]->Name() : "<none>";
+            std::fprintf(fp, "%s: IsHuman:%d  Color:%s  HeapID:%d  Credits:%d  Power:%d  Drain:%d  HouseType:%s  ActLike:%s\n",
                 housep->IniName,
                 housep->IsHuman,
                 ColorSchemes[housep->RemapColor]->Name,
-                housep->ID,
+                housep->HeapID,
+                housep->Credits,
+                housep->Power,
+                housep->Drain,
                 housep->Class->Name(),
-                housep->ActLike != SIDE_NONE ? Sides[housep->ActLike]->Name() : "<none>");
+                housep->ActLike != HOUSE_NONE ? HouseTypes[housep->ActLike]->Name() : "<none>");
             Add_CRC(&GameCRC, (int)housep->Credits + (int)housep->Power + (int)housep->Drain);
             EXT_DEBUG_INFO("House %s:%x\n", housep->Class->Name(), GameCRC);
         }
@@ -1443,35 +1468,38 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         HouseClass *housep = Houses[house];
         if (housep) {
             GameCRC = 0;
-            std::fprintf(fp, "------------- %s (%s %d) %s ------------\n", housep->Class->Name(), housep->IniName, housep->ID, Extension::Utility::Get_TypeID_Name<InfantryClass>().c_str());
+            std::fprintf(fp, "------------- %s (%s %d) %s ------------\n", housep->Class->Name(), housep->IniName, housep->HeapID, Extension::Utility::Get_TypeID_Name<InfantryClass>().c_str());
             for (int index = 0; index < Infantry.Count(); ++index) {
                 InfantryClass *ptr = Infantry[index];
                 if (ptr->Owner() == house) {
-                    Add_CRC(&GameCRC, (int)((ptr->Get_Coord().X / 10) << 16) + (int)(ptr->Get_Coord().Y / 10) + (int)ptr->PrimaryFacing.Current().Get_Dir());
+                    Add_CRC(&GameCRC, (int)((ptr->PositionCoord.X / 10) << 16) + (int)(ptr->PositionCoord.Y / 10) + (int)ptr->PrimaryFacing.Current().Get_Dir());
 
                     const char *tarcom_name = "None";
-                    Coordinate tarcom_coord;
+                    Coord tarcom_coord = Coord(0, 0, 0);
 
                     const char *navcom_name = "None";
-                    Coordinate navcom_coord;
+                    Coord navcom_coord = Coord(0, 0, 0);
 
                     if (ptr->TarCom) {
-                        tarcom_name = Name_From_RTTI((RTTIType)ptr->TarCom->What_Am_I());
+                        tarcom_name = Name_From_RTTI(ptr->TarCom->RTTI);
                         tarcom_coord = ptr->TarCom->Center_Coord();
                     }
 
                     if (ptr->NavCom) {
-                        navcom_name = Name_From_RTTI((RTTIType)ptr->NavCom->What_Am_I());
+                        navcom_name = Name_From_RTTI(ptr->NavCom->RTTI);
                         navcom_coord = ptr->NavCom->Center_Coord();
                     }
 
-                    std::fprintf(fp, "COORD:%d,%d,%d  Facing:%d  Mission:%s  Type:%s(%d)  Speed:%d  TarCom:%s(%d,%d,%d)  NavCom:%s(%d,%d,%d)\n",
+                    std::fprintf(fp, "COORD:%d,%d,%d  Facing:%d  Mission:%s  HeapID:%s(%d)  Speed:%d  TarCom:%s(%d,%d,%d)  NavCom:%s(%d,%d,%d)  Doing:%d  Path: ",
                                 ptr->Center_Coord().X, ptr->Center_Coord().Y, ptr->Center_Coord().Z,
                                 (int)ptr->PrimaryFacing.Current().Get_Dir(), MissionClass::Mission_Name(ptr->Get_Mission()),
-                                ptr->Class->Name(), ptr->Class->Type,
+                                ptr->Class->Name(), ptr->Class->HeapID,
                                 (int)(ptr->Speed * 256.0),
                                 tarcom_name, tarcom_coord.X, tarcom_coord.Y, tarcom_coord.Z,
-                                navcom_name, navcom_coord.X, navcom_coord.Y, navcom_coord.Z);
+                                navcom_name, navcom_coord.X, navcom_coord.Y, navcom_coord.Z,
+                                ptr->Doing);
+
+                    Print_Path(fp, ptr);
                 }
             }
             EXT_DEBUG_INFO("%s %s:%x\n", housep->Class->Name(), Extension::Utility::Get_TypeID_Name<InfantryClassExtension>().c_str(), GameCRC);
@@ -1486,35 +1514,37 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         HouseClass *housep = Houses[house];
         if (housep) {
             GameCRC = 0;
-            std::fprintf(fp, "------------- %s (%s %d) %s ------------\n", housep->Class->Name(), housep->IniName, housep->ID, Extension::Utility::Get_TypeID_Name<UnitClass>().c_str());
+            std::fprintf(fp, "------------- %s (%s %d) %s ------------\n", housep->Class->Name(), housep->IniName, housep->HeapID, Extension::Utility::Get_TypeID_Name<UnitClass>().c_str());
             for (int index = 0; index < Units.Count(); ++index) {
                 UnitClass *ptr = Units[index];
                 if (ptr->Owner() == house) {
-                    Add_CRC(&GameCRC, (int)((ptr->Get_Coord().X / 10) << 16) + (int)(ptr->Get_Coord().Y / 10) + (int)ptr->PrimaryFacing.Current().Get_Dir());
+                    Add_CRC(&GameCRC, (int)((ptr->PositionCoord.X / 10) << 16) + (int)(ptr->PositionCoord.Y / 10) + (int)ptr->PrimaryFacing.Current().Get_Dir());
 
                     const char *tarcom_name = "None";
-                    Coordinate tarcom_coord;
+                    Coord tarcom_coord = Coord(0, 0, 0);
 
                     const char *navcom_name = "None";
-                    Coordinate navcom_coord;
+                    Coord navcom_coord = Coord(0, 0, 0);
 
                     if (ptr->TarCom) {
-                        tarcom_name = Name_From_RTTI((RTTIType)ptr->TarCom->What_Am_I());
+                        tarcom_name = Name_From_RTTI(ptr->TarCom->RTTI);
                         tarcom_coord = ptr->TarCom->Center_Coord();
                     }
 
                     if (ptr->NavCom) {
-                        navcom_name = Name_From_RTTI((RTTIType)ptr->NavCom->What_Am_I());
+                        navcom_name = Name_From_RTTI(ptr->NavCom->RTTI);
                         navcom_coord = ptr->NavCom->Center_Coord();
                     }
 
-                    std::fprintf(fp, "COORD:%d,%d,%d  Facing:%d  Facing2:%d  Mission:%s  Type:%s(%d)  TarCom:%s(%d,%d,%d)  NavCom:%s(%d,%d,%d)  TrkNum:%d  TrkInd:%d  SpdAcc:%d\n",
+                    std::fprintf(fp, "COORD:%d,%d,%d  Facing:%d  Facing2:%d  Mission:%s  HeapID:%s(%d)  TarCom:%s(%d,%d,%d)  NavCom:%s(%d,%d,%d)  TrkNum:%d  TrkInd:%d  SpdAcc:%d  Path:",
                                 ptr->Center_Coord().X, ptr->Center_Coord().Y, ptr->Center_Coord().Z,
                                 (int)ptr->PrimaryFacing.Current().Get_Dir(), (int)ptr->SecondaryFacing.Current().Get_Dir(), MissionClass::Mission_Name(ptr->Get_Mission()),
-                                ptr->Class->Name(), ptr->Class->Type,
+                                ptr->Class->Name(), ptr->Class->HeapID,
                                 tarcom_name, tarcom_coord.X, tarcom_coord.Y, tarcom_coord.Z,
                                 navcom_name, navcom_coord.X, navcom_coord.Y, navcom_coord.Z,
                                 ptr->Locomotor_Ptr()->Get_Track_Number(), ptr->Locomotor_Ptr()->Get_Track_Number(), ptr->Locomotor_Ptr()->Get_Speed_Accum());
+
+                    Print_Path(fp, ptr);
                 }
             }
             EXT_DEBUG_INFO("%s %s:%x\n", housep->Class->Name(), Extension::Utility::Get_TypeID_Name<UnitClass>().c_str(), GameCRC);
@@ -1529,24 +1559,24 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         HouseClass *housep = Houses[house];
         if (housep) {
             GameCRC = 0;
-            std::fprintf(fp, "------------- %s (%s %d) %s ------------\n", housep->Class->Name(), housep->IniName, housep->ID, Extension::Utility::Get_TypeID_Name<BuildingClass>().c_str());
+            std::fprintf(fp, "------------- %s (%s %d) %s ------------\n", housep->Class->Name(), housep->IniName, housep->HeapID, Extension::Utility::Get_TypeID_Name<BuildingClass>().c_str());
             for (int index = 0; index < Buildings.Count(); ++index) {
                 BuildingClass *ptr = Buildings[index];
                 if (ptr->Owner() == house) {
-                    Add_CRC(&GameCRC, (int)((ptr->Get_Coord().X / 10) << 16) + (int)(ptr->Get_Coord().Y / 10) + (int)ptr->PrimaryFacing.Current().Get_Dir());
+                    Add_CRC(&GameCRC, (int)((ptr->PositionCoord.X / 10) << 16) + (int)(ptr->PositionCoord.Y / 10) + (int)ptr->PrimaryFacing.Current().Get_Dir());
 
                     const char *tarcom_name = "None";
-                    Coordinate tarcom_coord;
+                    Coord tarcom_coord = Coord(0, 0, 0);;
 
                     if (ptr->TarCom) {
-                        tarcom_name = Name_From_RTTI((RTTIType)ptr->TarCom->What_Am_I());
+                        tarcom_name = Name_From_RTTI(ptr->TarCom->RTTI);
                         tarcom_coord = ptr->TarCom->Center_Coord();
                     }
 
-                    std::fprintf(fp, "COORD:%d,%d,%d  Facing:%d  Mission:%s  Type:%s(%d)  TarCom:%s(%d,%d,%d)\n",
+                    std::fprintf(fp, "COORD:%d,%d,%d  Facing:%d  Mission:%s  HeapID:%s(%d)  TarCom:%s(%d,%d,%d)\n",
                                 ptr->Center_Coord().X, ptr->Center_Coord().Y, ptr->Center_Coord().Z,
                                 (int)ptr->PrimaryFacing.Current().Get_Dir(), MissionClass::Mission_Name(ptr->Get_Mission()),
-                                ptr->Class->Name(), ptr->Class->Type,
+                                ptr->Class->Name(), ptr->Class->HeapID,
                                 tarcom_name, tarcom_coord.X, tarcom_coord.Y, tarcom_coord.Z);
                 }
             }
@@ -1556,40 +1586,42 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     }
 
     /**
-     *  Units
+     *  Aircraft
      */
     for (int house = 0; house < Houses.Count(); ++house) {
         HouseClass *housep = Houses[house];
         if (housep) {
             GameCRC = 0;
-            std::fprintf(fp, "------------- %s (%s %d) %s ------------\n", housep->Class->Name(), housep->IniName, housep->ID, Extension::Utility::Get_TypeID_Name<AircraftClass>().c_str());
+            std::fprintf(fp, "------------- %s (%s %d) %s ------------\n", housep->Class->Name(), housep->IniName, housep->HeapID, Extension::Utility::Get_TypeID_Name<AircraftClass>().c_str());
             for (int index = 0; index < Aircrafts.Count(); ++index) {
                 AircraftClass *ptr = Aircrafts[index];
                 if (ptr->Owner() == house) {
-                    Add_CRC(&GameCRC, (int)((ptr->Get_Coord().X / 10) << 16) + (int)(ptr->Get_Coord().Y / 10) + (int)ptr->PrimaryFacing.Current().Get_Dir());
+                    Add_CRC(&GameCRC, (int)((ptr->PositionCoord.X / 10) << 16) + (int)(ptr->PositionCoord.Y / 10) + (int)ptr->PrimaryFacing.Current().Get_Dir());
 
                     const char *tarcom_name = "None";
-                    Coordinate tarcom_coord;
+                    Coord tarcom_coord = Coord(0, 0, 0);;
 
                     const char *navcom_name = "None";
-                    Coordinate navcom_coord;
+                    Coord navcom_coord = Coord(0, 0, 0);;
 
                     if (ptr->TarCom) {
-                        tarcom_name = Name_From_RTTI((RTTIType)ptr->TarCom->What_Am_I());
+                        tarcom_name = Name_From_RTTI(ptr->TarCom->RTTI);
                         tarcom_coord = ptr->TarCom->Center_Coord();
                     }
 
                     if (ptr->NavCom) {
-                        navcom_name = Name_From_RTTI((RTTIType)ptr->NavCom->What_Am_I());
+                        navcom_name = Name_From_RTTI(ptr->NavCom->RTTI);
                         navcom_coord = ptr->NavCom->Center_Coord();
                     }
 
-                    std::fprintf(fp, "COORD:%d,%d,%d  Facing:%d  Mission:%s  Type:%s(%d) TarCom:%s(%d,%d,%d)  NavCom:%s(%d,%d,%d)\n",
+                    std::fprintf(fp, "COORD:%d,%d,%d  Facing:%d  Mission:%s  HeapID:%s(%d) TarCom:%s(%d,%d,%d)  NavCom:%s(%d,%d,%d)  Path:",
                                 ptr->Center_Coord().X, ptr->Center_Coord().Y, ptr->Center_Coord().Z,
                                 (int)ptr->PrimaryFacing.Current().Get_Dir(), MissionClass::Mission_Name(ptr->Get_Mission()),
-                                ptr->Class->Name(), ptr->Class->Type,
+                                ptr->Class->Name(), ptr->Class->HeapID,
                                 tarcom_name, tarcom_coord.X, tarcom_coord.Y, tarcom_coord.Z,
                                 navcom_name, navcom_coord.X, navcom_coord.Y, navcom_coord.Z);
+
+                    Print_Path(fp, ptr);
                 }
             }
             EXT_DEBUG_INFO("%s %s:%x\n", housep->Class->Name(), Extension::Utility::Get_TypeID_Name<AircraftClass>().c_str(), GameCRC);
@@ -1598,15 +1630,54 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     }
 
     /**
+     *  Projectiles
+     */
+    std::fprintf(fp, "-------------------- Projectiles / Bullets ------------------ - \n");
+    for (int index = 0; index < Bullets.Count(); ++index) {
+        BulletClass *bullet = Bullets[index];
+
+        const char *bullet_name = bullet->Class_Of()->IniName;
+
+        const char* payback = "None";
+        const char* payback_owner = "None";
+        int owner_id = -1;
+
+        if (bullet->Payback) {
+            payback = bullet->Payback->Full_Name();
+
+            payback_owner = bullet->Payback->Owner_HouseClass()->IniName;
+            owner_id = bullet->Payback->Owner();
+        }
+
+        std::fprintf(fp, "Coord:%d,%d,%d  TargetCoord:(%d,%d,%d)  Payback:%s  Owner:%s  OwnerID:%d  HeapID:%s\n",
+            bullet->Center_Coord().X, bullet->Center_Coord().Y, bullet->Center_Coord().Z,
+            bullet->Target_Coord().X, bullet->Target_Coord().Y, bullet->Target_Coord().Z,
+            payback, payback_owner, owner_id, bullet_name);
+    }
+    std::fprintf(fp, "\n");
+
+    /**
      *  Animations
      */
     std::fprintf(fp, "-------------------- Animations -------------------\n");
     for (int index = 0; index < Anims.Count(); ++index) {
         AnimClass *animp = Anims[index];
-        std::fprintf(fp, "Target:%x OwnerHouse:%d Loops:%d\n",
-            (uintptr_t)animp->xObject,
+        const char *xobject_name = "None";
+        Coord xobject_coord = Coord(0, 0, 0);;
+
+        if (animp->xObject) {
+            xobject_name = Name_From_RTTI(animp->xObject->RTTI);
+            xobject_coord = animp->xObject->Center_Coord();
+        }
+
+        const char *anim_name = animp->Full_Name();
+
+        std::fprintf(fp, "Coord:%d,%d,%d  Target:%s(%d,%d,%d)  OwnerHouse:%d  Loops:%d  HeapID:%s  \n",
+            animp->Center_Coord().X, animp->Center_Coord().Y, animp->Center_Coord().Z,
+            xobject_name, xobject_coord.X, xobject_coord.Y, xobject_coord.Z,
             animp->OwnerHouse,
-            animp->Loops);
+            animp->Loops,
+            anim_name);
     }
     std::fprintf(fp, "\n");
 
@@ -1618,38 +1689,44 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         std::fprintf(fp, ">>>> MAP LAYER %s (%d) <<<<\n", Name_From_Layer(layer), layer);
         for (int index = 0; index < Map.Layer[layer].Count(); ++index) {
             ObjectClass *objp = Map.Layer[layer][index];
-            Add_CRC(&GameCRC, (int)((objp->Get_Coord().X / 10) << 16) + (int)(objp->Get_Coord().Y / 10));
-            std::fprintf(fp, "Object %d: %s ", index, objp->Coord.As_String());
-            switch (objp->What_Am_I()) {
+            Add_CRC(&GameCRC, (int)((objp->PositionCoord.X / 10) << 16) + (int)(objp->PositionCoord.Y / 10));
+            std::fprintf(fp, "Object %d: %s ", index, objp->Position.As_String());
+            switch (objp->RTTI) {
                 case RTTI_AIRCRAFT:
-                    std::fprintf(fp, "Aircraft  (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                    std::fprintf(fp, "Aircraft  (Type: %s (%d)) ", objp->Name(), Aircrafts.ID(static_cast<AircraftClass*>(objp)));
                     break;
                 case RTTI_ANIM:
-                    std::fprintf(fp, "Anim      (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                    std::fprintf(fp, "Anim      (Type: %s (%d)) ", objp->Name(), Anims.ID(static_cast<AnimClass*>(objp)));
                         break;
                 case RTTI_BUILDING:
-                    std::fprintf(fp, "Building  (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                    std::fprintf(fp, "Building  (Type: %s (%d)) ", objp->Name(), Buildings.ID(static_cast<BuildingClass*>(objp)));
                     break;
                 case RTTI_BULLET:
-                    std::fprintf(fp, "Bullet    (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                    std::fprintf(fp, "Bullet    (Type: %s (%d)) ", objp->Name(), Bullets.ID(static_cast<BulletClass*>(objp)));
                     break;
                 case RTTI_INFANTRY:
-                    std::fprintf(fp, "Infantry  (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                    std::fprintf(fp, "Infantry  (Type: %s (%d)) ", objp->Name(), Infantry.ID(static_cast<InfantryClass*>(objp)));
                     break;
                 case RTTI_OVERLAY:
-                    std::fprintf(fp, "Overlay   (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                    std::fprintf(fp, "Overlay   (Type: %s (%d)) ", objp->Name(), Overlays.ID(static_cast<OverlayClass*>(objp)));
                     break;
                 case RTTI_SMUDGE:
-                    std::fprintf(fp, "Smudge    (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                    std::fprintf(fp, "Smudge    (Type: %s (%d)) ", objp->Name(), Smudges.ID(static_cast<SmudgeClass*>(objp)));
                     break;
                 case RTTI_TERRAIN:
-                    std::fprintf(fp, "Terrain   (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                    std::fprintf(fp, "Terrain   (Type: %s (%d)) ", objp->Name(), Terrains.ID(static_cast<TerrainClass*>(objp)));
                     break;
                 case RTTI_UNIT:
-                    std::fprintf(fp, "Unit      (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                    std::fprintf(fp, "Unit      (Type: %s (%d)) ", objp->Name(), Units.ID(static_cast<UnitClass*>(objp)));
+                    break;
+                case RTTI_PARTICLE:
+                    std::fprintf(fp, "Particle  (Type: %s (%d)) ", objp->Name(), Particles.ID(static_cast<ParticleClass*>(objp)));
+                    break;
+                default:
+                    std::fprintf(fp, "Other     (Type: %s (%d)) (RTTI: %d) ", objp->Name(), objp->Fetch_Heap_ID(), objp->RTTI);
                     break;
             };
-            HouseClass *housep = objp->Owning_House();
+            HouseClass *housep = objp->Owner_HouseClass();
             if (housep) {
                 std::fprintf(fp, "Owner: %s\n", housep->Class->IniName);
             } else {
@@ -1668,38 +1745,41 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     std::fprintf(fp, ">>>> LOGIC LAYER <<<<\n");
     for (int index = 0; index < Logic.Count(); ++index) {
         ObjectClass *objp = Logic[index];
-        Add_CRC(&GameCRC, (int)((objp->Get_Coord().X / 10) << 16) + (int)(objp->Get_Coord().Y / 10));
-        std::fprintf(fp, "Object %d: %s ", index, objp->Coord.As_String());
-        switch (objp->What_Am_I()) {
+        Add_CRC(&GameCRC, (int)((objp->PositionCoord.X / 10) << 16) + (int)(objp->PositionCoord.Y / 10));
+        std::fprintf(fp, "Object %d: %s ", index, objp->Position.As_String());
+        switch (objp->RTTI) {
             case RTTI_AIRCRAFT:
-                std::fprintf(fp, "Aircraft  (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                std::fprintf(fp, "Aircraft  (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_ANIM:
-                std::fprintf(fp, "Anim      (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                std::fprintf(fp, "Anim      (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_BUILDING:
-                std::fprintf(fp, "Building  (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                std::fprintf(fp, "Building  (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_BULLET:
-                std::fprintf(fp, "Bullet    (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                std::fprintf(fp, "Bullet    (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_INFANTRY:
-                std::fprintf(fp, "Infantry  (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                std::fprintf(fp, "Infantry  (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_OVERLAY:
-                std::fprintf(fp, "Overlay   (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                std::fprintf(fp, "Overlay   (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_SMUDGE:
-                std::fprintf(fp, "Smudge    (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                std::fprintf(fp, "Smudge    (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_TERRAIN:
-                std::fprintf(fp, "Terrain   (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                std::fprintf(fp, "Terrain   (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
             case RTTI_UNIT:
-                std::fprintf(fp, "Unit      (Type:%s (%d)) ", objp->Name(), objp->Get_Heap_ID());
+                std::fprintf(fp, "Unit      (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
+                break;
+            case RTTI_PARTICLE:
+                std::fprintf(fp, "Particle  (Type:%s (%d)) ", objp->Name(), objp->Fetch_Heap_ID());
                 break;
         };
-        HouseClass *housep = objp->Owning_House();
+        HouseClass *housep = objp->Owner_HouseClass();
         if (housep) {
             std::fprintf(fp, "Owner: %s\n", housep->Class->IniName);
         } else {
@@ -1732,7 +1812,9 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
 
     /**
      *  Event queues.
+     *  Rampastring: printing these causes a crash atm
      */
+#if 0
     std::fprintf(fp, "-------------------- DoList Events -------------------\n");
     Print_Event_List(fp, DoList);
     std::fprintf(fp, "\n");
@@ -1740,6 +1822,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     std::fprintf(fp, "-------------------- OutList Events -------------------\n");
     Print_Event_List(fp, OutList);
     std::fprintf(fp, "\n");
+#endif
 
     /**
      *  Print heap CRC's.
@@ -1875,9 +1958,13 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
  * 
  *  @author: CCHyper
  */
-void Extension::Detach_This_From_All(TARGET target, bool all)
+void Extension::Detach_This_From_All(AbstractClass * target, bool all)
 {
     //DEV_DEBUG_INFO("Extension::Detach_This_From_All(enter)\n");
+
+    /**
+     *  #NOTE: AnimClass and IsoTileTypeClass detach calls are disabled because they currently do nothing but take up a lot of performance.
+     */
 
     /**
      *  #NOTE: The order of these calls must match the relevant RTTIType order!
@@ -1885,7 +1972,7 @@ void Extension::Detach_This_From_All(TARGET target, bool all)
     Extension_Detach_This_From_All(UnitExtensions, target, all);
     Extension_Detach_This_From_All(AircraftExtensions, target, all);
     Extension_Detach_This_From_All(AircraftTypeExtensions, target, all);
-    Extension_Detach_This_From_All(AnimExtensions, target, all);
+    //Extension_Detach_This_From_All(AnimExtensions, target, all);
     Extension_Detach_This_From_All(AnimTypeExtensions, target, all);
     Extension_Detach_This_From_All(BuildingExtensions, target, all);
     Extension_Detach_This_From_All(BuildingTypeExtensions, target, all);
@@ -1899,7 +1986,7 @@ void Extension::Detach_This_From_All(TARGET target, bool all)
     Extension_Detach_This_From_All(InfantryExtensions, target, all);
     Extension_Detach_This_From_All(InfantryTypeExtensions, target, all);
     //Extension_Detach_This_From_All(IsometricTileExtensions, target, all);     // Not yet implemented
-    Extension_Detach_This_From_All(IsometricTileTypeExtensions, target, all);
+    //Extension_Detach_This_From_All(IsometricTileTypeExtensions, target, all);
     //Extension_Detach_This_From_All(BuildingLightExtensions, target, all);     // Not yet implemented
     Extension_Detach_This_From_All(OverlayExtensions, target, all);
     Extension_Detach_This_From_All(OverlayTypeExtensions, target, all);
@@ -2038,12 +2125,18 @@ unsigned Extension::Get_Save_Version_Number()
     version += sizeof(TacticalExtension);                                       // We ignore the fact that Tactical is an abstract derived class, as we treat the extension as a global.
     version += sizeof(RulesClassExtension);
     version += sizeof(ScenarioClassExtension);
+    version += sizeof(SidebarClassExtension);
     version += sizeof(SessionClassExtension);
 
     /**
      *  All other classes.
      */
     version += sizeof(ThemeControlExtension);
+    version += sizeof(ArmorTypeClass);
+    version += sizeof(RocketTypeClass);
+    version += sizeof(SpawnManagerClass);
+    version += sizeof(KamikazeTrackerClass);
+    version += sizeof(AircraftTrackerClass);
 
     return version;
 }

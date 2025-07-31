@@ -160,7 +160,7 @@ TheaterTypeClass::TheaterTypeClass(const NoInitClass &noinit)
 
 
 /**
- *  Class deconstructor.
+ *  Class destructor.
  * 
  *  @author: CCHyper
  */

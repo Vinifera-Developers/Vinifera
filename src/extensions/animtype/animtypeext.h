@@ -29,6 +29,12 @@
 
 #include "objecttypeext.h"
 #include "animtype.h"
+#include "typelist.h"
+
+
+class AnimTypeClass;
+class CCINIClass;
+class ParticleTypeClass;
 
 
 class DECLSPEC_UUID(UUID_ANIMTYPE_EXTENSION)
@@ -51,15 +57,17 @@ AnimTypeClassExtension final : public ObjectTypeClassExtension
         AnimTypeClassExtension(const NoInitClass &noinit);
         virtual ~AnimTypeClassExtension();
 
-        virtual int Size_Of() const override;
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+        virtual int Get_Object_Size() const override;
+        virtual void Detach(AbstractClass * target, bool all = true) override;
+        virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual AnimTypeClass *This() const override { return reinterpret_cast<AnimTypeClass *>(ObjectTypeClassExtension::This()); }
         virtual const AnimTypeClass *This_Const() const override { return reinterpret_cast<const AnimTypeClass *>(ObjectTypeClassExtension::This_Const()); }
-        virtual RTTIType What_Am_I() const override { return RTTI_ANIMTYPE; }
+        virtual RTTIType Fetch_RTTI() const override { return RTTI_ANIMTYPE; }
 
         virtual bool Read_INI(CCINIClass &ini) override;
+
+        int Stage_Count() const;
 
     public:
         /**
@@ -93,5 +101,62 @@ AnimTypeClassExtension final : public ObjectTypeClassExtension
         /**
          *  The number of the particle to spawn.
          */
-        unsigned NumberOfParticles;
+        int NumberOfParticles;
+
+        /**
+         *  The coordinate offset of the spawned particle.
+         */
+        Point3D ParticleSpawnOffset;
+
+        /**
+         *  List of animations to spawn at the logical start of this animation.
+         */
+        TypeList<AnimTypeClass *> StartAnims;
+        TypeList<int> StartAnimsCount;
+        TypeList<int> StartAnimsMinimum;
+        TypeList<int> StartAnimsMaximum;
+        TypeList<int> StartAnimsDelay;
+
+        /**
+         *  List of animations to spawn at the logical middle of this animation.
+         */
+        TypeList<AnimTypeClass *> MiddleAnims;
+        TypeList<int> MiddleAnimsCount;
+        TypeList<int> MiddleAnimsMinimum;
+        TypeList<int> MiddleAnimsMaximum;
+        TypeList<int> MiddleAnimsDelay;
+
+        /**
+         *  List of animations to spawn at the logical end of this animation.
+         */
+        TypeList<AnimTypeClass *> EndAnims;
+        TypeList<int> EndAnimsCount;
+        TypeList<int> EndAnimsMinimum;
+        TypeList<int> EndAnimsMaximum;
+        TypeList<int> EndAnimsDelay;
+
+        /**
+         *  The middle (biggest) frames.
+         */
+        TypeList<int> MiddleFrames;
+
+        /**
+         *  If positive, the animation will spawn an explosion during its biggest frame dealing this much damage.
+         */
+        int ExplosionDamage;
+
+        /**
+         *  Does this animation have a shadow?
+         */
+        bool IsShadow;
+
+        /**
+         *  A separate rate at which the anim deals damage.
+         */
+        int DamageRate;
+
+        /**
+         *  The sound effect to play when this anim has finished.
+         */
+        VocType StopSound;
 };

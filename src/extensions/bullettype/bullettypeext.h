@@ -51,13 +51,13 @@ BulletTypeClassExtension final : public ObjectTypeClassExtension
         BulletTypeClassExtension(const NoInitClass &noinit);
         virtual ~BulletTypeClassExtension();
 
-        virtual int Size_Of() const override;
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+        virtual int Get_Object_Size() const override;
+        virtual void Detach(AbstractClass * target, bool all = true) override;
+        virtual void Object_CRC(CRCEngine &crc) const override;
         
         virtual BulletTypeClass *This() const override { return reinterpret_cast<BulletTypeClass *>(ObjectTypeClassExtension::This()); }
         virtual const BulletTypeClass *This_Const() const override { return reinterpret_cast<const BulletTypeClass *>(ObjectTypeClassExtension::This_Const()); }
-        virtual RTTIType What_Am_I() const override { return RTTI_BULLETTYPE; }
+        virtual RTTIType Fetch_RTTI() const override { return RTTI_BULLETTYPE; }
 
         virtual bool Read_INI(CCINIClass &ini) override;
 
@@ -66,4 +66,9 @@ BulletTypeClassExtension final : public ObjectTypeClassExtension
          *  The number of frames between trailer anim spawns.
          */
         unsigned SpawnDelay;
+
+        /**
+         *  If set, this projectile can only be used against targets on water.
+         */
+        bool IsTorpedo;
 };

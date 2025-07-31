@@ -51,13 +51,13 @@ SmudgeTypeClassExtension final : public ObjectTypeClassExtension
         SmudgeTypeClassExtension(const NoInitClass &noinit);
         virtual ~SmudgeTypeClassExtension();
 
-        virtual int Size_Of() const override;
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+        virtual int Get_Object_Size() const override;
+        virtual void Detach(AbstractClass * target, bool all = true) override;
+        virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual SmudgeTypeClass *This() const override { return reinterpret_cast<SmudgeTypeClass *>(ObjectTypeClassExtension::This()); }
         virtual const SmudgeTypeClass *This_Const() const override { return reinterpret_cast<const SmudgeTypeClass *>(ObjectTypeClassExtension::This_Const()); }
-        virtual RTTIType What_Am_I() const override { return RTTI_SMUDGETYPE; }
+        virtual RTTIType Fetch_RTTI() const override { return RTTI_SMUDGETYPE; }
 
         virtual bool Read_INI(CCINIClass &ini) override;
 

@@ -33,6 +33,7 @@
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "extension.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -46,10 +47,11 @@
  *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-class AnimTypeClassExt final : public AnimTypeClass
+DECLARE_EXTENDING_CLASS_AND_PAIR(AnimTypeClass)
 {
-    public:
-        void _Free_Image();
+public:
+    void _Free_Image();
+    void _Load_Image(TheaterType theater);
 };
 
 
@@ -83,6 +85,42 @@ void AnimTypeClassExt::_Free_Image()
 
 
 /**
+ *  Reimplementation of AnimTypeClass::Load_Image.
+ *
+ *  @author: ZivDero
+ */
+void AnimTypeClassExt::_Load_Image(TheaterType theater)
+{
+    if (!IsDemandLoad && Image == nullptr) {
+        if (IsTheater) {
+            Fetch_Normal_Image();
+        } else {
+            char fullname[_MAX_FNAME + _MAX_EXT];
+            _makepath(fullname, nullptr, nullptr, Graphic_Name(), ".SHP");
+            Theater_Naming_Convention(fullname, theater);
+            Image = static_cast<ShapeSet const*>(MixFileClass::Retrieve(fullname));
+        }
+    }
+
+    /**
+     *  The game would calculate Stages and LoopEnd now, set them to -1
+     *  instead to be calcalated in AnimClass::AI.
+     */
+    if (Stages == 0) {
+        Stages = -1;
+    }
+    if (LoopEnd == 0) {
+        LoopEnd = -1;
+    }
+
+    /**
+     *  No longer important as we use the MiddleFrames type list now.
+     */
+    Biggest = -1;
+}
+
+
+/**
  *  Write to the debug log when freeing up pre-loaded buildup images.
  * 
  *  @author: CCHyper
@@ -99,7 +137,7 @@ DECLARE_PATCH(_AnimTypeClass_SDDTOR_Free_Image_Patch) { GET_REGISTER_STATIC(Anim
 DECLARE_PATCH(_AnimTypeClass_Get_Image_Data_Assertion_Patch)
 {
     GET_REGISTER_STATIC(AnimTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(const ShapeFileStruct *, image, eax);
+    GET_REGISTER_STATIC(const ShapeSet *, image, eax);
 
     if (image == nullptr) {
         DEBUG_WARNING("Anim %s has NULL image data!\n", this_ptr->Name());
@@ -125,6 +163,7 @@ void AnimTypeClassExtension_Hooks()
     //Patch_Jump(0x00419B37, &_AnimTypeClass_Get_Image_Data_Assertion_Patch);
 
     Patch_Jump(0x00419B40, &AnimTypeClassExt::_Free_Image);
+    Patch_Jump(0x00418A70, &AnimTypeClassExt::_Load_Image);
     Patch_Jump(0x004187DB, &_AnimTypeClass_DTOR_Free_Image_Patch);
     Patch_Jump(0x00419C0B, &_AnimTypeClass_SDDTOR_Free_Image_Patch);
 }

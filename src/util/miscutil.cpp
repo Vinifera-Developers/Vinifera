@@ -40,6 +40,11 @@
 #include <locale>
 #include <codecvt>
 
+#include "ccfile.h"
+#include "objectext.h"
+#include "motionlib.h"
+#include "voxellib.h"
+
 
 const char *Get_Text_Time()
 {
@@ -563,4 +568,25 @@ const char *Filename_From_Path(const char *filename)
     _makepath(path, nullptr, nullptr, name, ext);
 
     return path;
+}
+
+
+bool Parse_Boolean(const char* value, bool defval)
+{
+    while (*value == ' ') {
+        value++;
+    }
+
+    switch (toupper(value[0])) {
+    case '0':
+    case 'F':
+    case 'N':
+        return false;
+    case '1':
+    case 'T':
+    case 'Y':
+        return true;
+    default:
+        return defval;
+    }
 }

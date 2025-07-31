@@ -48,10 +48,10 @@
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
  * 
- *  @note: This must not contain a constructor or deconstructor!
+ *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-static class ThemeClassExt final : public ThemeClass
+static class ThemeClassExt : public ThemeClass
 {
     public:
         bool _Is_Allowed(ThemeType index) const;
@@ -97,7 +97,7 @@ bool ThemeClassExt::_Is_Allowed(ThemeType index) const
      */
     ThemeControlExtension *themectrlext = Extension::List::Fetch<ThemeClass::ThemeControl, ThemeControlExtension>(Themes[index], ThemeControlExtensions);
     if (themectrlext->RequiredAddon != ADDON_NONE) {
-        if (!Addon_Enabled(themectrlext->RequiredAddon)) {
+        if (!Is_Addon_Enabled(themectrlext->RequiredAddon)) {
             return false;
         }
     }

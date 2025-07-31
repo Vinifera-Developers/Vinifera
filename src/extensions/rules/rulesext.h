@@ -31,7 +31,7 @@
 #include "tibsun_defines.h"
 #include "rules.h"
 #include "extension.h"
-#include "tpoint.h"
+#include "point.h"
 
 
 class CCINIClass;
@@ -48,9 +48,9 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
         RulesClassExtension(const NoInitClass &noinit);
         virtual ~RulesClassExtension();
 
-        virtual int Size_Of() const override;
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+        virtual int Get_Object_Size() const override;
+        virtual void Detach(AbstractClass * target, bool all = true) override;
+        virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual const char *Name() const override { return "Rule"; }
         virtual const char *Full_Name() const override { return "Rule"; }
@@ -64,7 +64,14 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
         bool MPlayer(CCINIClass &ini);
         bool AudioVisual(CCINIClass &ini);
         bool CombatDamage(CCINIClass &ini);
+        bool AI(CCINIClass& ini);
         bool Weapons(CCINIClass &ini);
+        bool Armors(CCINIClass &ini);
+        bool Rockets(CCINIClass &ini);
+        bool Tiberiums(CCINIClass &ini);
+        bool PrerequisiteGroups(CCINIClass &ini);
+
+        static bool Set_Voxel_Light_Angle(float azimuth, float elevation, float offset);
 
     private:
         void Check();
@@ -97,4 +104,68 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
          *  to break from a shot.
          */
         int IceStrength;
+
+        /**
+         *  Storage pip used for weeds.
+         */
+        int WeedPipIndex;
+
+        /**
+         *  Customizable maximum counts for drawing different pips.
+         */
+        TypeList<int> MaxPips;
+
+        /**
+         *  When looking for refineries, harvesters will prefer a distant free
+         *  refinery over a closer occupied refinery if the refineries' distance
+         *  difference in cells is less than this.
+         */
+        int MaxFreeRefineryDistanceBias;
+
+        /**
+         *  Should prerequisites be rechecked when buildings are lost, making the player lose access to units/buildings?
+         */
+        bool IsRecheckPrerequisites;
+
+        /**
+         *  Should the game assume there is more than one MCV (that factions don't share their MCV?)
+         */
+        bool IsMultiMCV;
+
+        /**
+         *  The distance in cells the computer player can place their Naval Yard from their Construction Yard.
+         */
+        int AINavalYardAdjacency;
+
+        /**
+         *  The "double penalty" or "half penalty". Multiply this by the power
+         *  units you are short of to get the actual penalty to the build speed.
+         */
+        float LowPowerPenaltyModifier;
+
+        /**
+         *  The maximum number of factories that can be considered when calculating
+         *  the multiple factory bonus on an object's build time.
+         */
+        int MultipleFactoryCap;
+
+        /**
+         *  Horizontal direction of the light source.
+         */
+        float VoxelLightAzimuth;
+
+        /**
+         *  Vertical angle of the light source.
+         */
+        float VoxelLightElevation;
+
+        /**
+         *  How much the shadow is offset from the unit.
+         */
+        float VoxelShadowOffset;
+
+        /**
+         *  Determines whether the Tiberium storage logic is enabled.
+         */
+        bool IsTiberiumStorage;
 };

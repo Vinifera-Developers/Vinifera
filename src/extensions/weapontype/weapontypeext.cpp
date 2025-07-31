@@ -44,6 +44,7 @@ WeaponTypeClassExtension::WeaponTypeClassExtension(const WeaponTypeClass *this_p
     AbstractTypeClassExtension(this_ptr),
     IsSuicide(false),
     IsDeleteOnSuicide(false),
+    IsOmniFire(false),
     IsElectricBolt(false),
     ElectricBoltColor1(EBOLT_DEFAULT_COLOR_1),
     ElectricBoltColor2(EBOLT_DEFAULT_COLOR_2),
@@ -51,7 +52,11 @@ WeaponTypeClassExtension::WeaponTypeClassExtension(const WeaponTypeClass *this_p
     ElectricBoltSegmentCount(EBOLT_DEFAULT_LINE_SEGEMENTS),
     ElectricBoltLifetime(EBOLT_DEFAULT_LIFETIME),
     ElectricBoltIterationCount(EBOLT_DEFAULT_INTERATIONS),
-    ElectricBoltDeviation(EBOLT_DEFAULT_DEVIATION)
+    ElectricBoltDeviation(EBOLT_DEFAULT_DEVIATION),
+    IsSpawner(false),
+    IsRevealOnFire(false),
+    CursorAttack(ACTION_ATTACK),
+    CursorStayAttack(ACTION_ATTACK)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("WeaponTypeClassExtension::WeaponTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -145,9 +150,9 @@ HRESULT WeaponTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int WeaponTypeClassExtension::Size_Of() const
+int WeaponTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -158,7 +163,7 @@ int WeaponTypeClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void WeaponTypeClassExtension::Detach(TARGET target, bool all)
+void WeaponTypeClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -169,11 +174,14 @@ void WeaponTypeClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void WeaponTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void WeaponTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("WeaponTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
+    crc(IsOmniFire);
     crc(IsElectricBolt);
+    crc(IsSpawner);
+    crc(IsRevealOnFire);
 }
 
 
@@ -194,6 +202,7 @@ bool WeaponTypeClassExtension::Read_INI(CCINIClass &ini)
     
     IsSuicide = ini.Get_Bool(ini_name, "Suicide", IsSuicide);
     IsDeleteOnSuicide = ini.Get_Bool(ini_name, "DeleteOnSuicide", IsDeleteOnSuicide);
+    IsOmniFire = ini.Get_Bool(ini_name, "OmniFire", IsOmniFire);
 
     IsElectricBolt = ini.Get_Bool(ini_name, "IsElectricBolt", IsElectricBolt);
     ElectricBoltColor1 = ini.Get_RGB(ini_name, "EBoltColor1", ElectricBoltColor1);
@@ -203,9 +212,14 @@ bool WeaponTypeClassExtension::Read_INI(CCINIClass &ini)
     ElectricBoltLifetime = ini.Get_Int(ini_name, "EBoltLifetime", ElectricBoltLifetime);
     ElectricBoltIterationCount = ini.Get_Int(ini_name, "EBoltIterations", ElectricBoltIterationCount);
     ElectricBoltDeviation = ini.Get_Float(ini_name, "EBoltDeviation", ElectricBoltDeviation);
+    IsSpawner = ini.Get_Bool(ini_name, "Spawner", IsSpawner);
+    IsRevealOnFire = ini.Get_Bool(ini_name, "RevealOnFire", IsRevealOnFire);
+    CursorAttack = ini.Get_ActionType(ini_name, "CursorAttack", CursorAttack);
+    CursorStayAttack = ini.Get_ActionType(ini_name, "CursorStayAttack", CursorStayAttack);
     //ElectricBoltSourceBoltParticleSys = ini.Get_ParticleSys(ini_name, "EBoltSourceParticleSys", ElectricBoltSourceBoltParticleSys);
     //ElectricBoltTargetBoltParticleSys = ini.Get_ParticleSys(ini_name, "EBoltTargetBoltParticleSys", ElectricBoltTargetBoltParticleSys);
-    
+
+    IsInitialized = true;
 
     return true;
 }

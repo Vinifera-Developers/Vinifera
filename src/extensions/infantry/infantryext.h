@@ -55,13 +55,13 @@ InfantryClassExtension final : public FootClassExtension
         InfantryClassExtension(const NoInitClass &noinit);
         virtual ~InfantryClassExtension();
 
-        virtual int Size_Of() const override;
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+        virtual int Get_Object_Size() const override;
+        virtual void Detach(AbstractClass * target, bool all = true) override;
+        virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual InfantryClass *This() const override { return reinterpret_cast<InfantryClass *>(FootClassExtension::This()); }
         virtual const InfantryClass *This_Const() const override { return reinterpret_cast<const InfantryClass *>(FootClassExtension::This_Const()); }
-        virtual RTTIType What_Am_I() const override { return RTTI_INFANTRY; }
+        virtual RTTIType Fetch_RTTI() const override { return RTTI_INFANTRY; }
 
     public:
 };

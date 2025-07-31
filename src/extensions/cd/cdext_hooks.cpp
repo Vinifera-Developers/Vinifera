@@ -45,7 +45,7 @@
 DECLARE_PATCH(_CD_Is_Available_Local_Files_Patch)
 {
 	GET_REGISTER_STATIC(CD *, this_ptr, ecx);
-	GET_REGISTER_STATIC(int, disk, eax);
+	GET_REGISTER_STATIC(DiskID, disk, eax);
 	static bool retval;
 
 	/**

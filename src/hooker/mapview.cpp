@@ -81,7 +81,7 @@ bool GetModuleSectionInfo(ImageSectionInfo &info)
 {
     wchar_t fileName[MAX_PATH] = { 0 };
 
-    if (GetModuleFileNameW(NULL, fileName, ARRAY_SIZE(fileName)) != 0) {
+    if (GetModuleFileNameW(NULL, fileName, std::size(fileName)) != 0) {
         MapViewOfFileClass mapView(fileName);
         PIMAGE_OPTIONAL_HEADER OptionalHeader = mapView.GetOptionalHeader();
 

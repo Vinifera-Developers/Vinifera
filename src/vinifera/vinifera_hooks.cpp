@@ -48,6 +48,13 @@
 #include "hooker_macros.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "ebolt.h"
+#include "kamikazetracker.h"
+#include "spawnmanager.h"
+#include "armortype.h"
+#include "layer.h"
+#include "prerequisitegroup.h"
+#include "rockettype.h"
 
 
 /**
@@ -56,9 +63,12 @@
  * 
  *  @author: CCHyper
  */
-static void _Detach_This_From_All_Intercept(TARGET target, bool all)
+static void _Detach_This_From_All_Intercept(AbstractClass * target, bool all)
 {
     Extension::Detach_This_From_All(target, all);
+
+    if (target->RTTI == RTTI_AIRCRAFT)
+        KamikazeTracker->Detach(reinterpret_cast<AircraftClass const*>(target));
 
     Detach_This_From_All(target, all);
 }
@@ -72,9 +82,55 @@ static void _Detach_This_From_All_Intercept(TARGET target, bool all)
  */
 static void _Free_Heaps_Intercept()
 {
+    /**
+     *  Cleanup global heaps/vectors.
+     */
+    ++ScenarioInit;
+
+    /**
+     *  Delete things that may depend on extensions/vanilla objects still existing.
+     */
+    while (RocketTypes.Count()) {
+        delete RocketTypes[0];
+    }
+    Remove_All_Inactive();
+
+    //while (SpawnManagers.Count()) { // spawn managers are destroyed by their owners
+    //    delete SpawnManagers[0];
+    //}
+    //Remove_All_Inactive();
+
+    EBoltClass::Clear_All();
+
+    /**
+     *  Free extensions as they may reference vanilla objects.
+     */
     Extension::Free_Heaps();
 
+    /**
+     *  Now free vanilla objects.
+     */
     Free_Heaps();
+
+    /**
+     *  Finally, clear armors. We do this at the very end because
+     *  lots of things depend on verses being around.
+     */
+    while (ArmorTypes.Count()) {
+        delete ArmorTypes[0];
+    }
+    Remove_All_Inactive();
+
+    /**
+     *  Finally, clear armors. We do this at the very end because
+     *  lots of things depend on verses being around.
+     */
+    while (PrerequisiteGroups.Count()) {
+        delete PrerequisiteGroups[0];
+    }
+    Remove_All_Inactive();
+
+    --ScenarioInit;
 }
 
 
@@ -85,13 +141,11 @@ static void _Free_Heaps_Intercept()
  */
 static void _Print_CRCs_Intercept(EventClass *ev)
 {
-#if 0
     /**
      *  Call the original function to print the object CRCs.
      */
     DEBUG_INFO("About to call Print_CRCs...\n");
     Print_CRCs(ev);
-#endif
 
     /**
      *  Calls a reimplementation of Print_CRCs that prints both the original
@@ -389,6 +443,7 @@ DECLARE_PATCH(_Select_Game_Clear_Globals_Patch)
      *  Reset any globals.
      */
     Vinifera_ShowSuperWeaponTimers = true;
+    Vinifera_TotalPlayTime = 0;
 
     /**
      *  Stolen bytes/code.
@@ -396,110 +451,6 @@ DECLARE_PATCH(_Select_Game_Clear_Globals_Patch)
     Map.Set_Default_Mouse(MOUSE_NORMAL);
 
     JMP(0x004E1F30);
-}
-
-
-/**
- *  When writing save game info, write the base level Vinifera version. This patch
- *  will block vanilla Tiberian Sun from loading any Vinifera save files.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_Save_Game_Put_Game_Version)
-{
-    _asm { mov edx, ViniferaSaveGameVersion };
-
-    JMP(0x005D5064);
-}
-
-
-/**
- *  Sanity check on the return value of Load_All().
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_Load_Game_Check_Return_Value)
-{
-    GET_REGISTER_STATIC(const char *, filename, esi);
-    GET_STACK_STATIC(IStream *, pStm, esp, 0x20);
-
-    /**
-     *  Replace this with a direct call to the Vinifera Get_All, otherwise we
-     *  get stuck in an infinite loop.
-     */
-#if 0
-    _asm { mov ecx, [esp+0x20] }
-    _asm { xor dl, dl }
-    _asm { mov eax, 0x005D6BE0 }
-    _asm { call eax } // Load_All
-
-    _asm { test al, al }
-    _asm { jz failure }
-#endif
-
-    if (!Vinifera_Get_All(pStm)) {
-        goto failure;
-    }
-
-    DEBUG_INFO("Loading of save game \"%s\" complete.\n", filename);
-    JMP(0x005D6B1C);
-
-failure:
-    DEBUG_ERROR("Error loading save game \"%s\"!\n", filename);
-    JMP(0x005D6A65);
-}
-
-
-/**
- *  Do not allow save games below our the base level Vinifera version. This patch
- *  will remove any support for save games made with vanilla Tiberian Sun 2.03!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_LoadOptionsClass_Read_File_Check_Game_Version)
-{
-    GET_REGISTER_STATIC(FileEntryClass *, file, ebp);
-    GET_REGISTER_STATIC(int, file_version, eax);
-    GET_REGISTER_OFFSET_STATIC(WIN32_FIND_DATA *, wfd, esp, 0x348);
-    //GET_REGISTER_OFFSET_STATIC(WWSaveLoadClass *, saveload, esp, 0x0C);
-
-    /**
-     *  If the version in the save file does not match our build
-     *  version exactly, then don't add this file to the listing.
-     */
-    if (file_version != ViniferaSaveGameVersion) {
-        DEBUG_WARNING("Save file \"%s\" is incompatible! File version 0x%X, Expected version 0x%X.\n", wfd->cFileName, file_version, ViniferaSaveGameVersion);
-        JMP(0x00505AAD);
-    }
-
-    DEV_DEBUG_INFO("Save file \"%s\" is compatible.\n", wfd->cFileName);
-
-    JMP(0x00505ABB);
-}
-
-
-/**
- *  Change the saved module filename to the DLL name. 
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_Save_Game_Change_Module_Filename)
-{
-    static const char *DLL_NAME = VINIFERA_DLL;
-    _asm { push DLL_NAME }
-
-    JMP(0x005D50E2);
-}
-
-       
-/**
- *  Removes the code which prefixed older save files with "*".
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_LoadOptionsClass_Read_File_Remove_Older_Prefixing)
-{
-    JMP(0x00505AE9);
 }
 
 
@@ -578,87 +529,6 @@ DECLARE_PATCH(_NewMenuClass_Process_Disable_Load_Button_TiberianSun)
 
 
 /**
- *  Patch in the Vinifera data to be saved in the stream.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_Put_All_Vinifera_Data)
-{
-    GET_REGISTER_STATIC(IStream *, pStm, esi);
-
-    /**
-     *  Call to the Vinifera data stream saver.
-     */
-    if (!Vinifera_Put_All(pStm)) {
-        goto failed;
-    }
-
-    /**
-     *  Stolen bytes/code.
-     */
-original_code:
-    _asm { mov al, 1 }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { pop ebx }
-    _asm { add esp, 0x8 }
-    _asm { ret }
-
-failed:
-    _asm { xor al, al }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { pop ebx }
-    _asm { add esp, 0x8 }
-    _asm { ret }
-}
-
-
-/**
- *  Patch in the Vinifera data to be loaded in the stream.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_Load_All_Vinifera_Data)
-{
-    GET_REGISTER_STATIC(IStream *, pStm, esi);
-
-    /**
-     *  Call to the Vinifera data stream loader.
-     */
-    if (!Vinifera_Get_All(pStm)) {
-        goto failed;
-    }
-
-    /**
-     *  Stolen bytes/code.
-     */
-original_code:
-
-    Map.Flag_To_Redraw(2);
-
-    _asm { mov al, 1 }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { pop ebx }
-    _asm { add esp, 0xB0 }
-    _asm { ret }
-
-failed:
-    _asm { xor al, al }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { pop ebx }
-    _asm { add esp, 0xB0 }
-    _asm { ret }
-}
-
-
-/**
  *  #issue-269
  * 
  *  Adds a "Load Game" button to the dialog shown on mission lose.
@@ -695,7 +565,7 @@ retry_dialog:
 
         case 2: // User pressed "Load Game"
         {
-#if !defined(RELEASE) && defined(NDEBUG)
+#if 0 //!defined(RELEASE) && defined(NDEBUG)
             /**
              *  We disable loading in non-release.
              */
@@ -749,8 +619,8 @@ static void Decrypt_Serial(char *buffer)
      */
     if (!_done) {
         std::srand(timeGetTime());
-        for (int i = 0; i < ARRAY_SIZE(_buf); ++i) {
-            _buf[i] = _alphanum[std::rand() % (ARRAY_SIZE(_alphanum)-1)];
+        for (int i = 0; i < std::size(_buf); ++i) {
+            _buf[i] = _alphanum[std::rand() % (std::size(_alphanum)-1)];
         }
         _done = true;
     }
@@ -768,6 +638,45 @@ __declspec(dllexport) uint32_t __cdecl Vinifera_Save_File_Version()
 {
     return Extension::Get_Save_Version_Number();
 }
+
+
+/**
+ *  A replacement buffer for RLE_Blit.
+ */
+char RLEBlitBuffer[4096];
+
+
+/**
+ *  Temporary LayerClass extension to catch null pointers being added to layers.
+ */
+static class LayerClassExt : public LayerClass
+{
+public:
+    bool _Submit(const ObjectClass* object, bool sort);
+};
+
+
+bool LayerClassExt::_Submit(const ObjectClass* object, bool sort)
+{
+    ASSERT(object != nullptr);
+
+    if (object == nullptr)
+    {
+        // force a crash
+        int* p = nullptr;
+        *p = 50;
+    }
+
+    /*
+    **  Add the object to the layer. Either at the end (if "sort" is false) or at the
+    **  appropriately sorted position.
+    */
+    if (sort) {
+        return((Sorted_Add(object)) != false);
+    }
+    return(Add((ObjectClass*)object) != false);
+}
+
 
 
 void Vinifera_Hooks()
@@ -821,25 +730,9 @@ void Vinifera_Hooks()
 #endif
 
     /**
-     *  Write Vinifera save files with the new base version number.
+     *  Replace a small buffer in RLE_Blit which when overrun caused artifacts.
      */
-    Patch_Jump(0x005D505E, &_Save_Game_Put_Game_Version);
-
-    /**
-     *  Check the return value of Load_Game to ensure no false game starts.
-     */
-    Patch_Jump(0x005D6B11, &_Load_Game_Check_Return_Value);
-
-    /**
-     *  Change SUN.EXE to our DLL name.
-     */
-    Patch_Jump(0x005D50DD, &_Save_Game_Change_Module_Filename);
-
-    /**
-     *  Handle save files in the dialogs.
-     */
-    Patch_Jump(0x00505A9E, &_LoadOptionsClass_Read_File_Check_Game_Version);
-    Patch_Jump(0x00505ABB, &_LoadOptionsClass_Read_File_Remove_Older_Prefixing);
+    Patch_Dword(0x00423D4D + 4, reinterpret_cast<uint32_t>(&RLEBlitBuffer[0]));
 
     /**
      *  Fire an assert on save/load fail, rather than hard crash.
@@ -849,14 +742,19 @@ void Vinifera_Hooks()
     /**
      *  Patch in the new save and load system functions.
      */
-    Patch_Call(0x005D5307, &Vinifera_Put_All);
-    Patch_Call(0x005D6B17, &Vinifera_Get_All);
+    Patch_Jump(0x005D4FE0, &Vinifera_Save_Game);
+    Patch_Jump(0x005D6910, &Vinifera_Load_Game);
+
+    /**
+     *  Hooks related to saving/loading games.
+     */
+    SaveGame_Hooks();
 
     /**
      *  Set the save game version.
      */
-    ViniferaSaveGameVersion = Extension::Get_Save_Version_Number();
-    DEBUG_INFO("Save game version number: 0x%X\n", ViniferaSaveGameVersion);
+    ViniferaGameVersion = Extension::Get_Save_Version_Number();
+    DEBUG_INFO("Save game version number: 0x%X\n", ViniferaGameVersion);
 
     Patch_Jump(0x005DCDFD, &_Do_Lose_Create_Lose_WWMessageBox);
 
@@ -1001,4 +899,8 @@ void Vinifera_Hooks()
     Patch_Call(0x005B5340, &_Print_CRCs_Intercept);
 
     //Patch_Call(0x005D6BEC, &_On_Load_Clear_Scenario_Intercept); // Load_All
+
+    Patch_Jump(0x004FCD70, &LayerClassExt::_Submit);
+
+    Patch_Jump(0x00600A54, 0x00600A91); // Skip registering vanilla JumpjetLocomotionClass in WinMain
 }

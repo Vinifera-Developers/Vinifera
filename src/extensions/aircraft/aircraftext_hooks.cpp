@@ -28,6 +28,7 @@
 #include "aircraftext_hooks.h"
 #include "aircraftext_init.h"
 #include "aircraft.h"
+#include "aircraftext.h"
 #include "aircrafttype.h"
 #include "aircrafttypeext.h"
 #include "object.h"
@@ -37,14 +38,256 @@
 #include "unittypeext.h"
 #include "technotype.h"
 #include "technotypeext.h"
+#include "weapontype.h"
 #include "extension.h"
 #include "voc.h"
+#include "mouse.h"
+#include "team.h"
+#include "building.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "house.h"
+#include "rules.h"
+
+
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or destructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+DECLARE_EXTENDING_CLASS_AND_PAIR(AircraftClass)
+{
+public:
+    bool _Unlimbo(const Coord& coord, Dir256 dir);
+    bool _Cell_Seems_Ok(Cell& cell, bool strict) const;
+    ActionType _What_Action(ObjectClass const* target, bool disallow_force);
+};
+
+
+/**
+ *  Removes an aircraft from the limbo state.
+ *
+ *  @author: 07/26/1994 JLB - Created.
+ *           ZivDero - Adjustments for Tiberian Sun.
+ */
+bool AircraftClassExt::_Unlimbo(const Coord& coord, Dir256 dir)
+{
+    Coord adjusted_coord = coord;
+
+    const auto class_ext = Extension::Fetch(Class);
+    const auto ext = Extension::Fetch(this);
+
+    /**
+     *  Rockets and other spawned aircraft don't have to spawn on the ground.
+     */
+    if (!class_ext->IsMissileSpawn && !ext->SpawnOwner)
+    {
+        if (IsALoaner || !Map.In_Local_Radar(coord)) {
+            adjusted_coord.Z = Class->Flight_Level() + Map.Get_Height_GL(coord);
+        } else {
+            adjusted_coord.Z = Map.Get_Height_GL(coord);
+        }
+    }
+
+    if (FootClass::Unlimbo(adjusted_coord, dir)) {
+
+        const auto weapon = Class->Fetch_Weapon_Info(WEAPON_SLOT_PRIMARY).Weapon;
+        if (!class_ext->IsSpawned && (!Class->IsSelectable || !Class->IsLandable || (weapon && weapon->IsCamera))) {
+            IsALoaner = true;
+        }
+
+        /**
+         *  If this aicraft has passangers, mark it accordingly.
+         *  Set Ammo to the number of passangers divided by 5 rounded up for
+         *  backwards compatibility with TS-Patches.
+         */
+        if (Cargo.Is_Something_Attached()) {
+            Passenger = true;
+            Ammo = (Cargo.How_Many() + 4) / 5;
+        }
+
+        /**
+         *  Forces the body of the helicopter to face the correct direction.
+         */
+        SecondaryFacing.Set(DirType(dir));
+
+        /**
+         *  Start rotor animation.
+         */
+        Set_Rate(1);
+        Set_Stage(0);
+
+        /**
+         *  When starting at flight level, then give it speed. When landed
+         *  then it must be stationary.
+         */
+        if (HeightAGL == Class->Flight_Level()) {
+            Set_Speed(1.0);
+        }
+        else {
+            Set_Speed(0.0);
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+
+/**
+ *  Checks to see if a cell is good to enter.
+ *
+ *  @author: 06/19/1995 JLB - Created.
+ *           ZivDero - Adjustments for Tiberian Sun.
+ */
+bool AircraftClassExt::_Cell_Seems_Ok(Cell& cell, bool strict) const
+{
+    /**
+     *  If the cell is outisde the playable area, then it is not a valid cell to enter.
+     */
+    if (!Map.In_Local_Radar(cell)) {
+        return false;
+    }
+
+    /**
+     *  Spawners and spawned objects can co-exist in cells.
+     */
+    if (Extension::Fetch(Class)->IsSpawned) {
+        const TechnoClass* techno = Map[cell].Cell_Techno();
+        if (techno) {
+            if (Extension::Fetch(techno)->SpawnManager
+                || Extension::Fetch(techno->TClass)->IsSpawned) {
+                return true;
+            }
+        }
+    }
+
+    /**
+     *  If we're a carryall, we can enter a potential totable unit's cell.
+     */
+    bool can_tote = false;
+    if (Class->IsCarryall && Target_Legal(NavCom) && NavCom->RTTI == RTTI_UNIT)
+        can_tote = true;
+
+    /**
+     *  Make sure that no other aircraft are heading to the selected location. If they
+     *  are, then don't consider the location as valid.
+     */
+    AbstractClass * astarget = &Map[cell];
+    for (int index = 0; index < Foots.Count(); index++) {
+        const FootClass* foot = Foots[index];
+        if (foot && (!can_tote || foot != NavCom) && (strict || foot != this) && !foot->IsInLimbo) {
+            if (foot->IsDown && (foot->Position.As_Cell() == cell || foot->NavCom == astarget)) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+
+/**
+ *  Determines what action to perform.
+ *
+ *  @author: 06/19/1995 JLB - Created.
+ *           ZivDero - Adjustments for Tiberian Sun.
+ */
+ActionType AircraftClassExt::_What_Action(ObjectClass const* target, bool disallow_force)
+{
+    ActionType action = FootClass::What_Action(target, disallow_force);
+
+    /**
+     *  If this is a carryall, we might be able to tote a unit the mouse is over.
+     */
+    if (Class->IsCarryall && House->Is_Player_Control()) {
+        if (action == ACTION_SELECT || action == ACTION_NONE) {
+            if (House->Is_Ally(target)) {
+                if (!target->Is_Techno() || target->Owner_HouseClass()->Is_Ally(this)) {
+                    if (!Cargo.Is_Something_Attached() && target->RTTI == RTTI_UNIT) {
+                        action = ACTION_TOTE;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     *  Check if we can do something to the cell under the target.
+     */
+    if (action == ACTION_NONE) {
+        action = What_Action(target->Center_Coord().As_Cell(), false, disallow_force);
+    }
+
+    if (action == ACTION_SELF) {
+
+        /**
+         *  Can't unload the passengers if there are none.
+         */
+        if (!Cargo.How_Many()) {
+            action = ACTION_NONE;
+        }
+
+        /**
+         *  #FIX: Check if there's a building under the aircraft, and if so
+         *  don't allow unloading to prevent units stuck in limbo.
+         */
+        else {
+            BuildingClass* building = Map[PositionCell].Cell_Building();
+            if (building != nullptr) {
+                action = ACTION_NO_DEPLOY;
+            }
+        }
+        
+    }
+
+    /**
+     *  Can't fire a weapon if there is none.
+     */
+    if (action == ACTION_ATTACK && PrimaryWeapon == nullptr) {
+        action = ACTION_NONE;
+    }
+
+    /**
+     *  Special return to friendly repair factory action.
+     *
+     *  #FIX: Check for ACTION_MOVE, because for allied buildings we get that sometimes, not ACTION_SELECT.
+     */
+    if (House->Is_Player_Control() && (action == ACTION_SELECT || action == ACTION_MOVE) && target->RTTI == RTTI_BUILDING) {
+        BuildingClass* building = (BuildingClass*)target;
+
+        /**
+         *  #FIX: Allow any repair depot to repair aircraft, not just Rule->RepairBay
+         */
+        if ((building->Class->IsCanUnitRepair || building->Class->IsHelipad) && !building->In_Radio_Contact() && !building->Cargo.Is_Something_Attached()) {
+            if (Transmit_Message(RADIO_CAN_LOAD, building) == RADIO_ROGER) {
+                action = ACTION_ENTER;
+            }
+        }
+    }
+
+    /**
+     *  Make sure we can't tote things out of the weapons factory.
+     */
+    if (Class->IsCarryall && action == ACTION_TOTE) {
+        Cell cell = target->PositionCell;
+        if (cell != CELL_NONE) {
+            BuildingClass* building = Map[cell].Cell_Building();
+            if (building != nullptr && building->Class->IsWeaponsFactory) {
+                action = ACTION_NONE;
+            }
+        }
+    }
+
+    return action;
+}
 
 
 /**
@@ -60,7 +303,7 @@ DECLARE_PATCH(_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET0_Can_
     static AircraftTypeClassExtension *class_ext;
     static bool is_curley_shuffle;
 
-    class_ext = Extension::Fetch<AircraftTypeClassExtension>(this_ptr->Class);
+    class_ext = Extension::Fetch(this_ptr->Class);
 
     is_curley_shuffle = class_ext->IsCurleyShuffle;
 
@@ -75,7 +318,7 @@ DECLARE_PATCH(_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_
     static AircraftTypeClassExtension * class_ext;
     static bool is_curley_shuffle;
 
-    class_ext = Extension::Fetch<AircraftTypeClassExtension>(this_ptr->Class);
+    class_ext = Extension::Fetch(this_ptr->Class);
 
     is_curley_shuffle = class_ext->IsCurleyShuffle;
 
@@ -89,7 +332,7 @@ DECLARE_PATCH(_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_
     static AircraftTypeClassExtension * class_ext;
     static bool is_curley_shuffle;
 
-    class_ext = Extension::Fetch<AircraftTypeClassExtension>(this_ptr->Class);
+    class_ext = Extension::Fetch(this_ptr->Class);
 
     is_curley_shuffle = class_ext->IsCurleyShuffle;
 
@@ -103,7 +346,7 @@ DECLARE_PATCH(_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_
     static AircraftTypeClassExtension *class_ext;
     static bool is_curley_shuffle;
 
-    class_ext = Extension::Fetch<AircraftTypeClassExtension>(this_ptr->Class);
+    class_ext = Extension::Fetch(this_ptr->Class);
 
     is_curley_shuffle = class_ext->IsCurleyShuffle;
 
@@ -133,9 +376,9 @@ DECLARE_PATCH(_AircraftClass_Mission_Unload_Transport_Detach_Sound_Patch)
         /**
          *  Do we have a sound to play when passengers leave us? If so, play it now.
          */
-        technotypeext = Extension::Fetch<TechnoTypeClassExtension>(this_ptr->Techno_Type_Class());
+        technotypeext = Extension::Fetch(this_ptr->TClass);
         if (technotypeext->LeaveTransportSound != VOC_NONE) {
-            Sound_Effect(technotypeext->LeaveTransportSound, this_ptr->Coord);
+            Static_Sound(technotypeext->LeaveTransportSound, this_ptr->Position);
         }
 
     }
@@ -228,14 +471,14 @@ DECLARE_PATCH(_AircraftClass_What_Action_Is_Totable_Patch)
         /**
          *  Target is a unit?
          */
-        if (target->What_Am_I() == RTTI_UNIT) {
+        if (target->RTTI == RTTI_UNIT) {
 
             target_unit = reinterpret_cast<UnitClass *>(target);
 
             /**
              *  Fetch the extension instance.
              */
-            unittypeext = Extension::Fetch<UnitTypeClassExtension>(target_unit->Class);
+            unittypeext = Extension::Fetch(target_unit->Class);
 
             /**
              *  Can this unit be toted/picked up by us?
@@ -315,6 +558,26 @@ DECLARE_PATCH(_AircraftClass_Init_IsCloakable_BugFix_Patch)
 }
 
 
+DECLARE_PATCH(_AircraftClass_Enter_Idle_Mode_Spawner_Patch)
+{
+    GET_REGISTER_STATIC(AircraftClass*, this_ptr, esi);
+    GET_REGISTER_STATIC(int, layer, eax);
+    GET_REGISTER_STATIC(int, landingaltitude, ebp);
+    static AircraftTypeClassExtension* aircrafttypeext;
+
+    aircrafttypeext = Extension::Fetch(this_ptr->Class);
+
+    if (layer != LAYER_GROUND && this_ptr->HeightAGL > landingaltitude && !aircrafttypeext->IsMissileSpawn)
+    {
+        JMP(0x0040B3C1);
+    }
+    else
+    {
+        JMP(0x0040B5DC);
+    }
+}
+
+
 /**
  *  Main function for patching the hooks.
  */
@@ -333,4 +596,18 @@ void AircraftClassExtension_Hooks()
     Patch_Jump(0x0040C054, &_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_Fire_FIRE_OK_Patch);
     Patch_Jump(0x0040BF9D, &_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_Fire_FIRE_FACING_Patch);
     Patch_Jump(0x0040C0AC, &_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_Fire_DEFAULT_Patch);
+
+    /**
+     *  #issue-1091
+     *
+     *  Fix bug where aircraft are unable to attack shrouded targets in campaign games and instead get stuck in mid-air.
+     *
+     *  Author: Rampastring
+     */
+    Patch_Jump(0x0040D0C5, (uintptr_t)0x0040D0EA);
+
+    Patch_Jump(0x00408940, &AircraftClassExt::_Unlimbo);
+    Patch_Jump(0x0040D260, &AircraftClassExt::_Cell_Seems_Ok);
+    Patch_Jump(0x0040B3A6, &_AircraftClass_Enter_Idle_Mode_Spawner_Patch);
+    Patch_Jump(0x0040B7E0, &AircraftClassExt::_What_Action);
 }

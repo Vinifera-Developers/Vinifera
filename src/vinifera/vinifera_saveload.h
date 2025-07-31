@@ -27,7 +27,10 @@
  ******************************************************************************/
 #pragma once
 
+#include <vector>
+
 #include "always.h"
+#include "debughandler.h"
 #include "vinifera_globals.h"
 #include "tibsun_globals.h"
 #include "wstring.h"
@@ -59,8 +62,8 @@ struct IStream;
     { \
         Wstring funcname = __FUNCTION__; \
         funcname += "()"; \
-        for (int i = 0; i < vector.Count(); ++i) { \
-            ((ViniferaSwizzleManagerClass &)SwizzleManager).Swizzle_Dbg((void **)&vector[i], __FILE__, __LINE__, funcname.Peek_Buffer(), variable); \
+        for (int __i = 0; __i < vector.Count(); ++__i) { \
+            ((ViniferaSwizzleManagerClass &)SwizzleManager).Swizzle_Dbg((void **)&vector[__i], __FILE__, __LINE__, funcname.Peek_Buffer(), variable); \
         } \
     }
 
@@ -87,8 +90,193 @@ struct IStream;
 #endif
 
 
-extern unsigned ViniferaSaveGameVersion;
+extern unsigned ViniferaGameVersion;
 
 bool Vinifera_Put_All(IStream *pStm, bool save_net = false);
 bool Vinifera_Get_All(IStream *pStm, bool load_net = false);
 bool Vinifera_Remap_Extension_Pointers();
+void Vinifera_Post_Load_Game();
+bool Vinifera_Save_Game(const char* file_name, const char* descr, bool);
+bool Vinifera_Load_Game(const char* file_name);
+void SaveGame_Hooks();
+
+
+template<class T>
+HRESULT Save_Primitive_Vector(LPSTREAM& pStm, VectorClass<T>& list, const char* heap_name)
+{
+    DEBUG_INFO("Saving %s...\n", heap_name);
+
+    int count = list.Length();
+    HRESULT hr = pStm->Write(&count, sizeof(count), nullptr);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    if (count <= 0) {
+        return hr;
+    }
+
+    for (int index = 0; index < count; ++index) {
+
+        hr = pStm->Write(&list[index], sizeof(list[index]), nullptr);
+        if (FAILED(hr)) {
+            return hr;
+        }
+
+    }
+
+    return hr;
+}
+
+
+template<class T>
+HRESULT Load_Primitive_Vector(LPSTREAM& pStm, VectorClass<T>& list, const char* heap_name)
+{
+    // DEBUG_INFO("Loading %s...\n", heap_name);
+
+    int count = 0;
+    HRESULT hr = pStm->Read(&count, sizeof(count), nullptr);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    new (&list) VectorClass<T>(count);
+
+    if (count <= 0) {
+        return hr;
+    }
+
+    for (int index = 0; index < count; ++index) {
+
+        T obj;
+        hr = pStm->Read(&obj, sizeof(obj), nullptr);
+        if (FAILED(hr)) {
+            return hr;
+        }
+        list[index] = obj;
+
+    }
+
+    return hr;
+}
+
+
+template<class T>
+HRESULT Save_Primitive_Vector(LPSTREAM& pStm, DynamicVectorClass<T>& list, const char* heap_name)
+{
+    DEBUG_INFO("Saving %s...\n", heap_name);
+
+    int count = list.Count();
+    HRESULT hr = pStm->Write(&count, sizeof(count), nullptr);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    if (count <= 0) {
+        return hr;
+    }
+
+    for (int index = 0; index < count; ++index) {
+
+        hr = pStm->Write(&list[index], sizeof(list[index]), nullptr);
+        if (FAILED(hr)) {
+            return hr;
+        }
+
+    }
+
+    return hr;
+}
+
+
+template<class T>
+HRESULT Load_Primitive_Vector(LPSTREAM& pStm, DynamicVectorClass<T>& list, const char* heap_name)
+{
+    DEBUG_INFO("Loading %s...\n", heap_name);
+
+    int count = 0;
+    HRESULT hr = pStm->Read(&count, sizeof(count), nullptr);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    new (&list) DynamicVectorClass<T>(count);
+
+    if (count <= 0) {
+        return hr;
+    }
+
+    for (int index = 0; index < count; ++index) {
+
+        T obj;
+        hr = pStm->Read(&obj, sizeof(obj), nullptr);
+        if (FAILED(hr)) {
+            return hr;
+        }
+        list.Add(obj);
+
+    }
+
+    return hr;
+}
+
+
+template<class T>
+HRESULT Save_Primitive_Vector(LPSTREAM& pStm, std::vector<T>& list, const char* heap_name)
+{
+    DEBUG_INFO("Saving %s...\n", heap_name);
+
+    int count = list.size();
+    HRESULT hr = pStm->Write(&count, sizeof(count), nullptr);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    if (count <= 0) {
+        return hr;
+    }
+
+    for (int index = 0; index < count; ++index) {
+
+        hr = pStm->Write(&list[index], sizeof(list[index]), nullptr);
+        if (FAILED(hr)) {
+            return hr;
+        }
+
+    }
+
+    return hr;
+}
+
+
+template<class T>
+HRESULT Load_Primitive_Vector(LPSTREAM& pStm, std::vector<T>& list, const char* heap_name)
+{
+    DEBUG_INFO("Loading %s...\n", heap_name);
+
+    int count = 0;
+    HRESULT hr = pStm->Read(&count, sizeof(count), nullptr);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    new (&list) std::vector<T>(count);
+
+    if (count <= 0) {
+        return hr;
+    }
+
+    for (int index = 0; index < count; ++index) {
+
+        T obj;
+        hr = pStm->Read(&obj, sizeof(obj), nullptr);
+        if (FAILED(hr)) {
+            return hr;
+        }
+        list[index] = obj;
+
+    }
+
+    return hr;
+}
+

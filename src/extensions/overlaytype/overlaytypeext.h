@@ -51,15 +51,15 @@ OverlayTypeClassExtension final : public ObjectTypeClassExtension
         OverlayTypeClassExtension(const NoInitClass &noinit);
         virtual ~OverlayTypeClassExtension();
 
-        virtual int Size_Of() const override;
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+        virtual int Get_Object_Size() const override;
+        virtual void Detach(AbstractClass * target, bool all = true) override;
+        virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual bool Read_INI(CCINIClass &ini) override;
 
         virtual OverlayTypeClass *This() const override { return reinterpret_cast<OverlayTypeClass *>(ObjectTypeClassExtension::This()); }
         virtual const OverlayTypeClass *This_Const() const override { return reinterpret_cast<const OverlayTypeClass *>(ObjectTypeClassExtension::This_Const()); }
-        virtual RTTIType What_Am_I() const override { return RTTI_INFANTRYTYPE; }
+        virtual RTTIType Fetch_RTTI() const override { return RTTI_INFANTRYTYPE; }
 
     public:
 };

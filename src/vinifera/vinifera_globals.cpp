@@ -29,6 +29,9 @@
 
 #include "vinifera_globals.h"
 
+#include "aircrafttracker.h"
+#include "prerequisitegroup.h"
+
 
 bool Vinifera_DeveloperMode = false;
 
@@ -41,6 +44,7 @@ bool Vinifera_AssertFileErrors = false;
 char Vinifera_ExceptionDatabaseFilename[PATH_MAX] = { "GAME.EDB" };
 char Vinifera_DebugDirectory[PATH_MAX] = { "Debug" };
 char Vinifera_ScreenshotDirectory[PATH_MAX] = { "Screenshots" };
+char Vinifera_SavedGamesDirectory[PATH_MAX] = { "Saved Games" };
 
 char Vinifera_ProjectName[64] = { '\0' };
 char Vinifera_ProjectVersion[64] = { '\0' };
@@ -57,6 +61,7 @@ bool Vinifera_Developer_ShowCursorPosition = false;
 bool Vinifera_Developer_FrameStep = false;
 int Vinifera_Developer_FrameStepCount = 0;
 bool Vinifera_Developer_AIControl = false;
+bool Vinifera_Developer_IsToReloadRules = false;
 
 bool Vinifera_SkipLogoMovies = false;
 bool Vinifera_SkipStartupMovies = false;
@@ -65,14 +70,29 @@ bool Vinifera_NoTacticalVersionString = false;
 
 bool Vinifera_ShowSuperWeaponTimers = true;
 
-DynamicVectorClass<MFCC *> ViniferaMapsMixes;
-DynamicVectorClass<MFCC *> ViniferaMoviesMixes;
+/**
+ *  The total play time from all previous sessions of the current game.
+ */
+unsigned Vinifera_TotalPlayTime = 0;
+
+DynamicVectorClass<MFCD *> ViniferaMapsMixes;
+DynamicVectorClass<MFCD *> ViniferaMoviesMixes;
 
 DynamicVectorClass<EBoltClass *> EBolts;
 DynamicVectorClass<TheaterTypeClass *> TheaterTypes;
+DynamicVectorClass<ArmorTypeClass *> ArmorTypes;
+DynamicVectorClass<SpawnManagerClass *> SpawnManagers;
+DynamicVectorClass<RocketTypeClass*> RocketTypes;
+DynamicVectorClass<MouseTypeClass *> MouseTypes;
+DynamicVectorClass<ActionTypeClass *> ActionTypes;
+DynamicVectorClass<PrerequisiteGroupClass *> PrerequisiteGroups;
 
-MFCC *GenericMix = nullptr;
-MFCC *IsoGenericMix = nullptr;
+KamikazeTrackerClass* KamikazeTracker = nullptr;
+AircraftTrackerClass* AircraftTracker = nullptr;
+
+MFCD *GenericMix = nullptr;
+MFCD *IsoGenericMix = nullptr;
+MFCD *SideCTMix = nullptr;
 
 bool Vinifera_SkipToTSMenu = false;
 bool Vinifera_SkipToFSMenu = false;
@@ -81,5 +101,8 @@ bool Vinifera_SkipToSkirmish = false;
 bool Vinifera_SkipToCampaign = false;
 bool Vinifera_SkipToInternet = false;
 bool Vinifera_ExitAfterSkip = false;
+
+bool Vinifera_NewSidebar = false;
+bool Vinifera_NoVersionString = false;
 
 DynamicVectorClass<ExceptionInfoDatabaseStruct> ExceptionInfoDatabase;

@@ -45,8 +45,8 @@ class RadioClassExtension : public MissionClassExtension
         RadioClassExtension(const NoInitClass &noinit);
         virtual ~RadioClassExtension();
 
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+        virtual void Detach(AbstractClass * target, bool all = true) override;
+        virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual RadioClass *This() const override { return reinterpret_cast<RadioClass *>(ObjectClassExtension::This()); }
         virtual const RadioClass *This_Const() const override { return reinterpret_cast<const RadioClass *>(ObjectClassExtension::This_Const()); }

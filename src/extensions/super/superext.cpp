@@ -136,9 +136,9 @@ HRESULT SuperClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int SuperClassExtension::Size_Of() const
+int SuperClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("SuperClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("SuperClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -149,7 +149,7 @@ int SuperClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void SuperClassExtension::Detach(TARGET target, bool all)
+void SuperClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("SuperClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -160,7 +160,7 @@ void SuperClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void SuperClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void SuperClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("SuperClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("SuperClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }

@@ -51,15 +51,29 @@ TiberiumClassExtension final : public AbstractTypeClassExtension
         TiberiumClassExtension(const NoInitClass &noinit);
         virtual ~TiberiumClassExtension();
 
-        virtual int Size_Of() const override;
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+        virtual int Get_Object_Size() const override;
+        virtual void Detach(AbstractClass * target, bool all = true) override;
+        virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual TiberiumClass *This() const override { return reinterpret_cast<TiberiumClass *>(AbstractTypeClassExtension::This()); }
         virtual const TiberiumClass *This_Const() const override { return reinterpret_cast<const TiberiumClass *>(AbstractTypeClassExtension::This_Const()); }
-        virtual RTTIType What_Am_I() const override { return RTTI_TIBERIUM; }
+        virtual RTTIType Fetch_RTTI() const override { return RTTI_TIBERIUM; }
 
         virtual bool Read_INI(CCINIClass &ini) override;
 
     public:
+        /**
+         *  The index of the pip shape to be drawn for this Tiberium.
+         */
+        int PipIndex;
+
+        /**
+         *  The order in which this Tiberium appears when pips are drawn.
+         */
+        int PipDrawOrder;
+
+        /**
+         *  The damage this Tiberium does to infantry.
+         */
+        int DamageToInfantry;
 };

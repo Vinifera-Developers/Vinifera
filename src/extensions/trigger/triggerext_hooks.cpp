@@ -30,6 +30,7 @@
 #include "trigger.h"
 #include "triggertype.h"
 #include "scenario.h"
+#include "session.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
@@ -58,17 +59,21 @@ DECLARE_PATCH(_TriggerClass_Constructor_Enabled_For_Difficulty_Patch)
 
     if (this_ptr->Class) {
 
-        this_ptr->Reset();
+        this_ptr->Reset_Timer_Events();
 
         /**
          *  Set this trigger to be disabled if;
          *    - The class instance is marked as inactive.
          *    - It is marked as disabled for this current mission difficulty.
+         *
+         *  Rampastring: Check CDifficulty instead of Difficulty.
+         *  Also, in non-campaign games, consider all difficulties enabled regardless of what the trigger specifies.
          */
-        if (!this_ptr->Class->Enabled
-          || (Scen->Difficulty == DIFF_EASY && !this_ptr->Class->Easy)
-          || (Scen->Difficulty == DIFF_NORMAL && !this_ptr->Class->Normal)
-          || (Scen->Difficulty == DIFF_HARD && !this_ptr->Class->Hard)) {
+        if (!this_ptr->Class->Enabled ||
+          (Session.Type == GAME_NORMAL && 
+          ((Scen->CDifficulty == DIFF_HARD && !this_ptr->Class->IsEnabledEasy)
+          || (Scen->CDifficulty == DIFF_NORMAL && !this_ptr->Class->IsEnabledMedium)
+          || (Scen->CDifficulty == DIFF_EASY && !this_ptr->Class->IsEnabledHard)))) {
 
             this_ptr->IsEnabled = false;
         }

@@ -26,6 +26,8 @@
  *
  ******************************************************************************/
 #include "technotypeext.h"
+
+#include "aircrafttype.h"
 #include "technotype.h"
 #include "ccini.h"
 #include "filepng.h"
@@ -37,6 +39,8 @@
 #include "vinifera_saveload.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "findmake.h"
+#include "rules.h"
 
 
 /**
@@ -65,8 +69,42 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
     VoiceEnter(),
     VoiceDeploy(),
     VoiceHarvest(),
+    SpecialPipIndex(-1),
+    PipWrap(0),
     IdleRate(0),
-    CameoImageSurface(nullptr)
+    CameoImageSurface(nullptr),
+    IsSortCameoAsBaseDefense(false),
+    Description(""),
+    IsFilterFromBandBoxSelection(false),
+    CrewCount(1),
+    IsMissileSpawn(false),
+    Spawns(nullptr),
+    SpawnReloadRate(0),
+    SpawnRegenRate(0),
+    SpawnSpawnRate(20),
+    SpawnLogicRate(10),
+    SpawnsNumber(0),
+    SecondSpawnOffset(0, 0, 0),
+    MaxRandomSpawnOffset(0),
+    IsDontScore(false),
+    IsSpawned(false),
+    RequiredHouses(-1),
+    ForbiddenHouses(-1),
+    TargetZoneScan(TZST_SAME),
+    IsDecloakToFire(true),
+    _JumpjetTurnRate(std::numeric_limits<int>::min()),
+    _JumpjetSpeed(std::numeric_limits<int>::min()),
+    _JumpjetClimb(-std::numeric_limits<double>::max()),
+    _JumpjetCruiseHeight(std::numeric_limits<int>::min()),
+    _JumpjetAcceleration(-std::numeric_limits<double>::max()),
+    _JumpjetWobblesPerSecond(-std::numeric_limits<double>::max()),
+    _JumpjetWobbleDeviation(std::numeric_limits<int>::min()),
+    _JumpjetCloakDetectionRadius(std::numeric_limits<int>::min()),
+    JumpjetNoWobbles(false),
+    IsNaval(false),
+    BuiltAt(),
+    BuildTimeMultiplier(1.0f),
+    IsOpportunityFire(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -78,7 +116,12 @@ TechnoTypeClassExtension::TechnoTypeClassExtension(const TechnoTypeClass *this_p
  *  @author: CCHyper
  */
 TechnoTypeClassExtension::TechnoTypeClassExtension(const NoInitClass &noinit) :
-    ObjectTypeClassExtension(noinit)
+    ObjectTypeClassExtension(noinit),
+    VoiceCapture(noinit),
+    VoiceEnter(noinit),
+    VoiceDeploy(noinit),
+    VoiceHarvest(noinit),
+    BuiltAt(noinit)
 {
     //EXT_DEBUG_TRACE("TechnoTypeClassExtension::TechnoTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -107,12 +150,27 @@ HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
 {
     //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
+    VoiceCapture.Clear();
+    VoiceEnter.Clear();
+    VoiceDeploy.Clear();
+    VoiceHarvest.Clear();
+    BuiltAt.Clear();
+
     HRESULT hr = ObjectTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
 
+    VoiceCapture.Load(pStm);
+    VoiceEnter.Load(pStm);
+    VoiceDeploy.Load(pStm);
+    VoiceHarvest.Load(pStm);
+    BuiltAt.Load(pStm);
+
     VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(UnloadingClass, "UnloadingClass");
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Spawns, "Spawns");
+
+    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP_LIST(BuiltAt, "BuiltAt");
 
     /**
      *  We need to reload the "Cameo" key because TechnoTypeClass does
@@ -156,6 +214,12 @@ HRESULT TechnoTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
         return hr;
     }
 
+    VoiceCapture.Save(pStm);
+    VoiceEnter.Save(pStm);
+    VoiceDeploy.Save(pStm);
+    VoiceHarvest.Save(pStm);
+    BuiltAt.Save(pStm);
+
     return hr;
 }
 
@@ -187,7 +251,7 @@ LONG TechnoTypeClassExtension::GetSizeMax(ULARGE_INTEGER *pcbSize)
  *  
  *  @author: CCHyper
  */
-void TechnoTypeClassExtension::Detach(TARGET target, bool all)
+void TechnoTypeClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -198,9 +262,9 @@ void TechnoTypeClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void TechnoTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void TechnoTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("TechnoTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     crc(IsShakeScreen);
     crc(IsImmuneToEMP);
@@ -210,6 +274,53 @@ void TechnoTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
     crc(ShakePixelXLo);
     crc(SoylentValue);
     crc(IsLegalTargetComputer);
+    crc(Spawns->Fetch_Heap_ID());
+    crc(SpawnRegenRate);
+    crc(SpawnReloadRate);
+    crc(SpawnsNumber);
+    crc(TargetZoneScan);
+    crc(IsDecloakToFire);
+    crc(_JumpjetTurnRate);
+    crc(_JumpjetSpeed);
+    crc(_JumpjetClimb);
+    crc(_JumpjetCruiseHeight);
+    crc(_JumpjetAcceleration);
+    crc(_JumpjetWobblesPerSecond);
+    crc(_JumpjetWobbleDeviation);
+    crc(_JumpjetCloakDetectionRadius);
+    crc(JumpjetNoWobbles);
+    crc(IsNaval);
+    crc(BuiltAt.Count());
+    crc(IsOpportunityFire);
+}
+
+
+/**
+ *  #issue-1161
+ *
+ *  Fetches the target zone scan type from the INI database.
+ *
+ *  @author: Rampastring
+ */
+TargetZoneScanType _Get_TargetZoneScanType(CCINIClass& ini, const char* section, const char* entry, const TargetZoneScanType defvalue)
+{
+    char buffer[1024];
+
+    if (ini.Get_String(section, entry, nullptr, buffer, sizeof(buffer)) > 0) {
+        if (std::strncmp("Same", buffer, sizeof("Same")) == 0) {
+            return TZST_SAME;
+        }
+
+        if (std::strncmp("Any", buffer, sizeof("Any")) == 0) {
+            return TZST_ANY;
+        }
+
+        if (std::strncmp("InRange", buffer, sizeof("InRange")) == 0) {
+            return TZST_INRANGE;
+        }
+    }
+
+    return defvalue;
 }
 
 
@@ -262,17 +373,165 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     VoiceEnter = ini.Get_VocTypes(ini_name, "VoiceEnter", VoiceEnter);
     VoiceDeploy = ini.Get_VocTypes(ini_name, "VoiceDeploy", VoiceDeploy);
     VoiceHarvest = ini.Get_VocTypes(ini_name, "VoiceHarvest", VoiceHarvest);
+    SpecialPipIndex = ini.Get_Int(ini_name, "SpecialPipIndex", SpecialPipIndex);
+    PipWrap = ini.Get_Int(ini_name, "PipWrap", PipWrap);
+
+    if (ini.Is_Present(ini_name, "Description"))
+        ini.Get_String(ini_name, "Description", Description, std::size(Description));
 
     IdleRate = ini.Get_Int(ini_name, "IdleRate", IdleRate);
     IdleRate = ArtINI.Get_Int(graphic_name, "IdleRate", IdleRate);
 
+    BuildTimeMultiplier = ini.Get_Float(ini_name, "BuildTimeMultiplier", BuildTimeMultiplier);
+
     /**
      *  Fetch the cameo image surface if it exists.
      */
-    BSurface *imagesurface = Vinifera_Get_Image_Surface(This()->CameoFilename);
+    BSurface* imagesurface = Vinifera_Get_Image_Surface(This()->CameoFilename);
     if (imagesurface) {
         CameoImageSurface = imagesurface;
     }
 
+    IsSortCameoAsBaseDefense = ini.Get_Bool(ini_name, "SortCameoAsBaseDefense", IsSortCameoAsBaseDefense);
+    IsFilterFromBandBoxSelection = ini.Get_Bool(ini_name, "FilterFromBandBoxSelection", IsFilterFromBandBoxSelection);
+    CrewCount = ini.Get_Int(ini_name, "CrewCount", CrewCount);
+
+    IsMissileSpawn = ini.Get_Bool(ini_name, "MissileSpawn", IsMissileSpawn);
+    Spawns = ini.Get_Aircraft(ini_name, "Spawns", Spawns);
+    SpawnReloadRate = ini.Get_Int(ini_name, "SpawnReloadRate", SpawnReloadRate);
+    SpawnRegenRate = ini.Get_Int(ini_name, "SpawnRegenRate", SpawnRegenRate);
+    SpawnSpawnRate = ini.Get_Int(ini_name, "SpawnSpawnRate", SpawnSpawnRate);
+    SpawnLogicRate = ini.Get_Int(ini_name, "SpawnLogicRate", SpawnLogicRate);
+    SpawnsNumber = ini.Get_Int(ini_name, "SpawnsNumber", SpawnsNumber);
+    SecondSpawnOffset = ArtINI.Get_Point(graphic_name, "SecondSpawnOffset", SecondSpawnOffset);
+    MaxRandomSpawnOffset = ini.Get_Int(graphic_name, "MaxRandomSpawnOffset", MaxRandomSpawnOffset);
+
+    IsDontScore = ini.Get_Bool(ini_name, "DontScore", IsDontScore);
+    IsSpawned = ini.Get_Bool(ini_name, "Spawned", IsSpawned);
+
+    RequiredHouses = ini.Get_Owners(ini_name, "RequiredHouses", RequiredHouses);
+    ForbiddenHouses = ini.Get_Owners(ini_name, "ForbiddenHouses", ForbiddenHouses);
+
+    TargetZoneScan = _Get_TargetZoneScanType(ini, ini_name, "TargetZoneScan", TargetZoneScan);
+    IsDecloakToFire = ini.Get_Bool(ini_name, "DecloakToFire", IsDecloakToFire);
+
+    _JumpjetTurnRate = ini.Get_Int(ini_name, "JumpjetTurnRate", _JumpjetTurnRate);
+    _JumpjetSpeed = ini.Get_Int(ini_name, "JumpjetSpeed", _JumpjetSpeed);
+    _JumpjetClimb = ini.Get_Double(ini_name, "JumpjetClimb", _JumpjetClimb);
+    _JumpjetCruiseHeight = ini.Get_Int(ini_name, "JumpjetCruiseHeight", _JumpjetCruiseHeight);
+    _JumpjetAcceleration = ini.Get_Double(ini_name, "JumpjetAcceleration", _JumpjetAcceleration);
+    _JumpjetWobblesPerSecond = ini.Get_Double(ini_name, "JumpjetWobblesPerSecond", _JumpjetWobblesPerSecond);
+    _JumpjetWobbleDeviation = ini.Get_Int(ini_name, "JumpjetWobbleDeviation", _JumpjetWobbleDeviation);
+    _JumpjetCloakDetectionRadius = ini.Get_Int(ini_name, "JumpjetCloakDetectionRadius", _JumpjetCloakDetectionRadius);
+    JumpjetNoWobbles = ini.Get_Bool(ini_name, "JumpjetNoWobbles", JumpjetNoWobbles);
+
+    IsNaval = ini.Get_Bool(ini_name, "Naval", IsNaval);
+
+    BuiltAt = TGet_TypeList(ini, ini_name, "BuiltAt", BuiltAt);
+    IsOpportunityFire = ini.Get_Bool(ini_name, "OpportunityFire", IsOpportunityFire);
+
     return true;
+}
+
+
+/**
+ *  Gets the production flags for this object type.
+ *
+ *  @author: ZivDero
+ */
+ProductionFlags TechnoTypeClassExtension::Get_Production_Flags(RTTIType type, int id)
+{
+    const TechnoTypeClass* ttype = Fetch_Techno_Type(type, id);
+    if (ttype != nullptr) {
+        return Get_Production_Flags(ttype);
+    }
+    return PRODFLAG_NONE;
+}
+
+
+/**
+ *  Gets the production flags for this object type.
+ *
+ *  @author: ZivDero
+ */
+ProductionFlags TechnoTypeClassExtension::Get_Production_Flags(const TechnoTypeClassExtension* ttype_ext)
+{
+    ProductionFlags flags = PRODFLAG_NONE;
+
+    if (ttype_ext->IsNaval) {
+        flags = static_cast<ProductionFlags>(flags | PRODFLAG_NAVAL);
+    }
+
+    return flags;
+}
+
+
+int TechnoTypeClassExtension::Get_Jumpjet_Turn_Rate() const
+{
+    if (_JumpjetTurnRate != std::numeric_limits<int>::min()) {
+        return _JumpjetTurnRate;
+    }
+    return Rule->JumpjetTurnRate;
+}
+
+
+int TechnoTypeClassExtension::Get_Jumpjet_Speed() const
+{
+    if (_JumpjetSpeed != std::numeric_limits<int>::min()) {
+        return _JumpjetSpeed;
+    }
+    return Rule->JumpjetSpeed;
+}
+
+
+double TechnoTypeClassExtension::Get_Jumpjet_Climb() const
+{
+    if (_JumpjetClimb != -std::numeric_limits<double>::max()) {
+        return _JumpjetClimb;
+    }
+    return Rule->JumpjetClimb;
+}
+
+
+int TechnoTypeClassExtension::Get_Jumpjet_Cruise_Height() const
+{
+    if (_JumpjetCruiseHeight != std::numeric_limits<int>::min()) {
+        return _JumpjetCruiseHeight;
+    }
+    return Rule->JumpjetCruiseHeight;
+}
+
+
+double TechnoTypeClassExtension::Get_Jumpjet_Acceleration() const
+{
+    if (_JumpjetAcceleration != -std::numeric_limits<double>::max()) {
+        return _JumpjetAcceleration;
+    }
+    return Rule->JumpjetAcceleration;
+}
+
+
+double TechnoTypeClassExtension::Get_Jumpjet_Wobbles_Per_Second() const
+{
+    if (_JumpjetWobblesPerSecond != -std::numeric_limits<double>::max()) {
+        return _JumpjetWobblesPerSecond;
+    }
+    return Rule->JumpjetWobblesPerSecond;
+}
+
+
+int TechnoTypeClassExtension::Get_Jumpjet_Wobble_Deviation() const
+{
+    if (_JumpjetWobbleDeviation != std::numeric_limits<int>::min()) {
+        return _JumpjetWobbleDeviation;
+    }
+    return Rule->JumpjetWobbleDeviation;
+}
+
+
+int TechnoTypeClassExtension::Get_Jumpjet_Cloak_Detection_Radius() const {
+    if (_JumpjetCloakDetectionRadius != std::numeric_limits<int>::min()) {
+        return _JumpjetCloakDetectionRadius;
+    }
+    return Rule->JumpjetCloakDetectionRadius;
 }

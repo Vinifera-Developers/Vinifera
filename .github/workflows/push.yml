@@ -20,6 +20,8 @@ jobs:
       - name: Clone Repository
         if:   ${{ steps.vars.outputs.GHA_REPO_ALIVE }} == 'true'
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
         
       - name: Checkout Files
         uses: actions/checkout@v4
@@ -58,12 +60,11 @@ jobs:
           cp ./build/Vinifera.dll ./artifact/Vinifera.dll
           cp ./build/Vinifera.pdb ./artifact/Vinifera.pdb
           cp ./build/LaunchVinifera.exe ./artifact/LaunchVinifera.exe
-          cp ./build/_deps/tspp-src/pdb/Game.pdb ./artifact/Game.pdb
-          cp ./build/_deps/tspp-src/edb/Game.edb ./artifact/Game.edb
+          cp ./TSpp/edb/Game.edb ./artifact/Game.edb
           cp ./vinifera-files/files/VINIFERA.VQA ./artifact/Movies/VINIFERA.VQA
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: vinifera-push-${{ steps.vars.outputs.sha_short }}
           path: artifact
@@ -78,6 +79,8 @@ jobs:
       - name: Clone Repository
         if:   ${{ steps.vars.outputs.GHA_REPO_ALIVE }} == 'true'
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
         
       - name: Checkout Files
         uses: actions/checkout@v4
@@ -116,12 +119,11 @@ jobs:
           cp ./build/Vinifera.dll ./artifact/Vinifera.dll
           cp ./build/Vinifera.pdb ./artifact/Vinifera.pdb
           cp ./build/LaunchVinifera.exe ./artifact/LaunchVinifera.dat
-          cp ./build/_deps/tspp-src/pdb/Game.pdb ./artifact/Game.pdb
-          cp ./build/_deps/tspp-src/edb/Game.edb ./artifact/Game.edb
+          cp ./TSpp/edb/Game.edb ./artifact/Game.edb
           cp ./vinifera-files/files/VINIFERA.VQA ./artifact/Movies/VINIFERA.VQA
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: vinifera-push-${{ steps.vars.outputs.sha_short }}-ts_client
           path: artifact

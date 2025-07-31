@@ -126,6 +126,10 @@ void __cdecl Vinifera_Debug_Handler_Shutdown();
  */
 void Vinifera_Output_Debug_String(const char *string);
 
+/**
+ *  Helper that re-escapes the % sign so that it can be further passed to sprintf.
+ */
+void Vinifera_Escape_Percent_Sign(char *string, size_t buffer_length);
 
 extern char CrashdumpFilename[PATH_MAX];
 

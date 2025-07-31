@@ -32,6 +32,7 @@
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "extension.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -41,13 +42,13 @@
  *  A fake class for implementing new member functions which allow
  *  access to the "this" pointer of the intended class.
  * 
- *  @note: This must not contain a constructor or deconstructor!
+ *  @note: This must not contain a constructor or destructor!
  *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
  */
-static class IsometricTileTypeClassExt final : public IsometricTileTypeClass
+static DECLARE_EXTENDING_CLASS_AND_PAIR(IsometricTileTypeClass)
 {
-    public:
-        const ShapeFileStruct * _Get_Image_Data();
+public:
+    const ShapeSet * _Get_Image_Data();
 };
 
 
@@ -56,7 +57,7 @@ static class IsometricTileTypeClassExt final : public IsometricTileTypeClass
  * 
  *  @author: CCHyper
  */
-const ShapeFileStruct * IsometricTileTypeClassExt::_Get_Image_Data()
+const ShapeSet * IsometricTileTypeClassExt::_Get_Image_Data()
 {
     if (Image) {
         return Image;

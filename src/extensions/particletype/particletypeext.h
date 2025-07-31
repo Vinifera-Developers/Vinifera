@@ -51,13 +51,13 @@ ParticleTypeClassExtension final : public ObjectTypeClassExtension
         ParticleTypeClassExtension(const NoInitClass &noinit);
         virtual ~ParticleTypeClassExtension();
 
-        virtual int Size_Of() const override;
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+        virtual int Get_Object_Size() const override;
+        virtual void Detach(AbstractClass * target, bool all = true) override;
+        virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual ParticleTypeClass *This() const override { return reinterpret_cast<ParticleTypeClass *>(ObjectTypeClassExtension::This()); }
         virtual const ParticleTypeClass *This_Const() const override { return reinterpret_cast<const ParticleTypeClass *>(ObjectTypeClassExtension::This_Const()); }
-        virtual RTTIType What_Am_I() const override { return RTTI_PARTICLETYPE; }
+        virtual RTTIType Fetch_RTTI() const override { return RTTI_PARTICLETYPE; }
 
         virtual bool Read_INI(CCINIClass &ini) override;
 

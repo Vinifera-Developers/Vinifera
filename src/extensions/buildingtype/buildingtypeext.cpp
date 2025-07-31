@@ -33,6 +33,7 @@
 #include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "scenario.h"
 
 
 /**
@@ -50,7 +51,14 @@ BuildingTypeClassExtension::BuildingTypeClassExtension(const BuildingTypeClass *
     ProduceCashBudget(0),
     IsStartupCashOneTime(false),
     IsResetBudgetOnCapture(false),
-    IsEligibleForAllyBuilding(false)
+    IsEligibleForAllyBuilding(false),
+    EngineerChance(0),
+    IsHideDuringSpecialAnim(false),
+    RoofDeployingAnim(nullptr),
+    RoofDoorAnim(nullptr),
+    UnderRoofDoorAnim(nullptr),
+    IsExclusiveFactory(false),
+    IsWallOwner(true)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("BuildingTypeClassExtension::BuildingTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -145,9 +153,9 @@ HRESULT BuildingTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int BuildingTypeClassExtension::Size_Of() const
+int BuildingTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -158,9 +166,11 @@ int BuildingTypeClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void BuildingTypeClassExtension::Detach(TARGET target, bool all)
+void BuildingTypeClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    TechnoTypeClassExtension::Detach(target, all);
 }
 
 
@@ -169,11 +179,12 @@ void BuildingTypeClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void BuildingTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void BuildingTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     crc(IsEligibleForAllyBuilding);
+    crc(IsExclusiveFactory);
 }
 
 
@@ -185,6 +196,11 @@ void BuildingTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
 bool BuildingTypeClassExtension::Read_INI(CCINIClass &ini)
 {
     //EXT_DEBUG_TRACE("BuildingTypeClassExtension::Read_INI - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+
+    if (!IsInitialized) {
+        IsEligibleForAllyBuilding = This()->IsConstructionYard;
+        EngineerChance = This()->ToBuild == RTTI_BUILDINGTYPE ? 25 : 0;
+    }
 
     if (!TechnoTypeClassExtension::Read_INI(ini)) {
         return false;
@@ -202,8 +218,49 @@ bool BuildingTypeClassExtension::Read_INI(CCINIClass &ini)
     IsStartupCashOneTime = ini.Get_Int(ini_name, "ProduceCashStartupOneTime", IsStartupCashOneTime);
     IsResetBudgetOnCapture = ini.Get_Bool(ini_name, "ProduceCashResetOnCapture", IsResetBudgetOnCapture);
 
-    IsEligibleForAllyBuilding = ini.Get_Bool(ini_name, "EligibleForAllyBuilding",
-                                                    This()->IsConstructionYard ? true : IsEligibleForAllyBuilding);
-    
+    IsEligibleForAllyBuilding = ini.Get_Bool(ini_name, "EligibleForAllyBuilding", IsEligibleForAllyBuilding);
+    IsHideDuringSpecialAnim = ArtINI.Get_Bool(ini_name, "HideDuringSpecialAnim", IsHideDuringSpecialAnim);
+
+    IsExclusiveFactory = ini.Get_Bool(ini_name, "ExclusiveFactory", IsExclusiveFactory);
+
+    IsWallOwner = ini.Get_Bool(ini_name, "WallOwner", IsWallOwner);
+
+    Fetch_Building_Normal_Image(Scen->Theater);
+
+    IsInitialized = true;
+
     return true;
+}
+
+
+/**
+ *  Fetches the extra building graphics.
+ *
+ *  @author: ZivDero
+ */
+void BuildingTypeClassExtension::Fetch_Building_Normal_Image(TheaterType theater)
+{
+    char fullname[MAX_PATH];
+    char buffer[64];
+
+    ArtINI.Get_String(This()->GraphicName, "RoofDeployingAnim", "", buffer, sizeof(buffer));
+    if (strlen(buffer) != 0) {
+        _makepath(fullname, nullptr, nullptr, buffer, ".SHP");
+        This()->Theater_Naming_Convention(fullname, theater);
+        RoofDeployingAnim = static_cast<ShapeSet const*>(MixFileClass::Retrieve(fullname));
+    }
+
+    ArtINI.Get_String(This()->GraphicName, "RoofDoorAnim", "", buffer, sizeof(buffer));
+    if (strlen(buffer) != 0) {
+        _makepath(fullname, nullptr, nullptr, buffer, ".SHP");
+        This()->Theater_Naming_Convention(fullname, theater);
+        RoofDoorAnim = static_cast<ShapeSet const*>(MixFileClass::Retrieve(fullname));
+    }
+
+    ArtINI.Get_String(This()->GraphicName, "UnderRoofDoorAnim", "", buffer, sizeof(buffer));
+    if (strlen(buffer) != 0) {
+        _makepath(fullname, nullptr, nullptr, buffer, ".SHP");
+        This()->Theater_Naming_Convention(fullname, theater);
+        UnderRoofDoorAnim = static_cast<ShapeSet const*>(MixFileClass::Retrieve(fullname));
+    }
 }

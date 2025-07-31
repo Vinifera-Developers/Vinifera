@@ -78,6 +78,7 @@ EBoltClass::EBoltClass() :
  */
 EBoltClass::~EBoltClass()
 {
+    EBolts.Delete(this);
     Clear();
 }
 
@@ -90,10 +91,7 @@ EBoltClass::~EBoltClass()
 void EBoltClass::Clear()
 {
     if (Source) {
-
-        TechnoClassExtension *technoext = Extension::Fetch<TechnoClassExtension>(Source);
-        technoext->ElectricBolt = nullptr;
-
+        Extension::Fetch(Source)->ElectricBolt = nullptr;
         Source = nullptr;
     }
 
@@ -125,7 +123,6 @@ void EBoltClass::Draw_It()
         LineDrawList.Clear();
 
         for (int i = 0; i < IterationCount; ++i) {
-
             if (Lifetime) {
 
                 Point2D pixel_start;
@@ -134,11 +131,10 @@ void EBoltClass::Draw_It()
                 TacticalMap->Coord_To_Pixel(StartCoord, pixel_start);
                 TacticalMap->Coord_To_Pixel(EndCoord, pixel_end);
 
-                if (Clip_Line(&pixel_start, &pixel_end, &TacticalRect)) {
+                if (Clip_Line(pixel_start, pixel_end, TacticalRect)) {
                     Plot_Bolt(StartCoord, EndCoord);
                 }
             }
-
         }
 
         /**
@@ -163,7 +159,7 @@ void EBoltClass::Draw_It()
  * 
  *  @author: CCHyper
  */
-void EBoltClass::Create(Coordinate &start, Coordinate &end, int z_adjust)
+void EBoltClass::Create(Coord &start, Coord &end, int z_adjust)
 {
     StartCoord = start;
     EndCoord = end;
@@ -185,9 +181,9 @@ void EBoltClass::Create(Coordinate &start, Coordinate &end, int z_adjust)
  * 
  *  @author: CCHyper
  */
-Coordinate EBoltClass::Source_Coord() const
+Coord EBoltClass::Source_Coord() const
 {
-    Coordinate coord;
+    Coord coord = COORD_NONE;
     if (Source) {
         coord = Source->Fire_Coord(WeaponSlot);
     }
@@ -212,7 +208,7 @@ void EBoltClass::Set_Properties(TechnoClass *techno, const WeaponTypeClass *weap
                 /**
                  *  Copy the color overrides from the firing objects weapon.
                  */
-                WeaponTypeClassExtension *weapontypeext = Extension::Fetch<WeaponTypeClassExtension>(weapon);
+                WeaponTypeClassExtension *weapontypeext = Extension::Fetch(weapon);
 
                 LineColor1 = weapontypeext->ElectricBoltColor1;
                 LineColor2 = weapontypeext->ElectricBoltColor2;
@@ -245,7 +241,6 @@ void EBoltClass::Draw_All()
          *  Is the source object has left the game world, remove this bolt.
          */
         if (ebolt->Source && (!ebolt->Source->IsActive || ebolt->Source->IsInLimbo)) {
-            EBolts.Delete(ebolt);
             delete ebolt;
             continue;
         }
@@ -253,8 +248,8 @@ void EBoltClass::Draw_All()
         /**
          *  Update the source coord.
          */
-        Coordinate coord = ebolt->Source_Coord();
-        if (coord) {
+        Coord coord = ebolt->Source_Coord();
+        if (coord != COORD_NONE) {
             ebolt->StartCoord = coord;
         }
 
@@ -267,7 +262,6 @@ void EBoltClass::Draw_All()
          *  Electric bolt has expired, delete it.
          */
         if (ebolt->Lifetime <= 0) {
-            EBolts.Delete(ebolt);
             delete ebolt;
         }
     }
@@ -281,10 +275,9 @@ void EBoltClass::Draw_All()
  */
 void EBoltClass::Clear_All()
 {
-    for (int i = 0; i < EBolts.Count(); ++i) {
-        delete EBolts[i];
+    while (EBolts.Count()) {
+        delete EBolts[0];
     }
-    EBolts.Clear();
 }
 
 
@@ -293,12 +286,12 @@ void EBoltClass::Clear_All()
  * 
  *  @author: tomsons26, CCHyper
  */
-void EBoltClass::Plot_Bolt(Coordinate &start, Coordinate &end)
+void EBoltClass::Plot_Bolt(Coord &start, Coord &end)
 {
     struct EBoltPlotStruct
     {
-        Coordinate StartCoords[EBOLT_DEFAULT_SEGMENT_LINES];
-        Coordinate EndCoords[EBOLT_DEFAULT_SEGMENT_LINES];
+        Coord StartCoords[EBOLT_DEFAULT_SEGMENT_LINES];
+        Coord EndCoords[EBOLT_DEFAULT_SEGMENT_LINES];
         int Distance;
         int Deviation;
         int StartZ;
@@ -308,13 +301,13 @@ void EBoltClass::Plot_Bolt(Coordinate &start, Coordinate &end)
         bool operator!=(const EBoltPlotStruct &that) const { return std::memcmp(this, &that, sizeof(EBoltPlotStruct)) != 0; }
     };
 
-    int SEGEMENT_COORDS_SIZE = sizeof(Coordinate)*EBOLT_DEFAULT_SEGMENT_LINES;
+    int SEGEMENT_COORDS_SIZE = sizeof(Coord)*EBOLT_DEFAULT_SEGMENT_LINES;
 
     VectorClass<EBoltPlotStruct> ebolt_plots(LineSegmentCount);
 
-    Coordinate start_coords[EBOLT_DEFAULT_SEGMENT_LINES];
-    Coordinate end_coords[EBOLT_DEFAULT_SEGMENT_LINES];
-    Coordinate working_coords[EBOLT_DEFAULT_SEGMENT_LINES];
+    Coord start_coords[EBOLT_DEFAULT_SEGMENT_LINES];
+    Coord end_coords[EBOLT_DEFAULT_SEGMENT_LINES];
+    Coord working_coords[EBOLT_DEFAULT_SEGMENT_LINES];
 
     int deviation_values[6];
 
@@ -358,7 +351,7 @@ void EBoltClass::Plot_Bolt(Coordinate &start, Coordinate &end)
                  */
                 if (init_deviation_values) {
 
-                    for (int i = 0; i < ARRAY_SIZE(deviation_values); ++i) {
+                    for (int i = 0; i < std::size(deviation_values); ++i) {
                         deviation_values[i] = (WWMath::Sin((double)Sim_Random_Pick(0, 256) * WWMATH_PI / (double)(i + 7)) * (double)line_deviation);
                     }
 
@@ -458,8 +451,8 @@ void EBoltClass::Draw_Bolts()
         TacticalMap->Coord_To_Pixel(data.Start, start_pixel);
         TacticalMap->Coord_To_Pixel(data.End, end_pixel);
 
-        int start_z = data.StartZ - TacticalMap->func_60F3C0(data.Start.Z) - 2;
-        int end_z = data.EndZ - TacticalMap->func_60F3C0(data.End.Z) - 2;
+        int start_z = data.StartZ - TacticalMap->Z_Lepton_To_Pixel(data.Start.Z) - 2;
+        int end_z = data.EndZ - TacticalMap->Z_Lepton_To_Pixel(data.End.Z) - 2;
 
         unsigned color = DSurface::RGB_To_Pixel(data.Color.Red, data.Color.Green, data.Color.Blue);
 

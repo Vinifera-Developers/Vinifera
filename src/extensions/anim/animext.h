@@ -29,6 +29,10 @@
 
 #include "objectext.h"
 #include "anim.h"
+#include "animtype.h"
+#include "ttimer.h"
+#include "ftimer.h"
+#include "typelist.h"
 
 
 class AnimClass;
@@ -55,13 +59,24 @@ AnimClassExtension final : public ObjectClassExtension
         AnimClassExtension(const NoInitClass &noinit);
         virtual ~AnimClassExtension();
 
-        virtual int Size_Of() const override;
-        virtual void Detach(TARGET target, bool all = true) override;
-        virtual void Compute_CRC(WWCRCEngine &crc) const override;
+        virtual int Get_Object_Size() const override;
+        virtual void Detach(AbstractClass * target, bool all = true) override;
+        virtual void Object_CRC(CRCEngine &crc) const override;
 
         virtual AnimClass *This() const override { return reinterpret_cast<AnimClass *>(ObjectClassExtension::This()); }
         virtual const AnimClass *This_Const() const override { return reinterpret_cast<const AnimClass *>(ObjectClassExtension::This_Const()); }
-        virtual RTTIType What_Am_I() const override { return RTTI_ANIM; }
+        virtual RTTIType Fetch_RTTI() const override { return RTTI_ANIM; }
+
+        bool Start();
+        bool Middle();
+        bool End();
+
+    private:
+        bool Spawn_Animations(const Coord &coord, const TypeList<AnimTypeClass *> &animlist, const TypeList<int> &countlist, const TypeList<int> &minlist, const TypeList<int> &maxlist, const TypeList<int>& delaylist);
 
     public:
+        /**
+         *  Separate StageClass instance for damage dealing, to separate it from visual stages.
+         */
+        StageClass DamageStage;
 };

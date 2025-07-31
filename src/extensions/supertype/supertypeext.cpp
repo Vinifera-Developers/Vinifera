@@ -44,7 +44,10 @@ SuperWeaponTypeClassExtension::SuperWeaponTypeClassExtension(const SuperWeaponTy
     AbstractTypeClassExtension(this_ptr),
     SidebarImage(),
     IsShowTimer(false),
-    CameoImageSurface(nullptr)
+    CameoImageSurface(nullptr),
+    ActionOutOfRange(ACTION_EMPULSE_RANGE),
+    VoxMissileLaunched(VOX_MISSILE_LAUNCHED),
+    Description("")
 {
     //if (this_ptr) EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::SuperWeaponTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -155,9 +158,9 @@ HRESULT SuperWeaponTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
  *  
  *  @author: CCHyper
  */
-int SuperWeaponTypeClassExtension::Size_Of() const
+int SuperWeaponTypeClassExtension::Get_Object_Size() const
 {
-    //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::Size_Of - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::Get_Object_Size - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     return sizeof(*this);
 }
@@ -168,7 +171,7 @@ int SuperWeaponTypeClassExtension::Size_Of() const
  *  
  *  @author: CCHyper
  */
-void SuperWeaponTypeClassExtension::Detach(TARGET target, bool all)
+void SuperWeaponTypeClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -179,9 +182,9 @@ void SuperWeaponTypeClassExtension::Detach(TARGET target, bool all)
  *  
  *  @author: CCHyper
  */
-void SuperWeaponTypeClassExtension::Compute_CRC(WWCRCEngine &crc) const
+void SuperWeaponTypeClassExtension::Object_CRC(CRCEngine &crc) const
 {
-    //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::Compute_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
+    //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::Object_CRC - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
 
 
@@ -209,6 +212,14 @@ bool SuperWeaponTypeClassExtension::Read_INI(CCINIClass &ini)
     if (imagesurface) {
         CameoImageSurface = imagesurface;
     }
+
+    ActionOutOfRange = ini.Get_ActionType(ini_name, "ActionOutOfRange", ActionOutOfRange);
+    VoxMissileLaunched = ini.Get_VoxType(ini_name, "MissileLaunchedVoice", VoxMissileLaunched);
+
+    if (ini.Is_Present(ini_name, "Description"))
+        ini.Get_String(ini_name, "Description", Description, std::size(Description));
+
+    IsInitialized = true;
     
     return true;
 }

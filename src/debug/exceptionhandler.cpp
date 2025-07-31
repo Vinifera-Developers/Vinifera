@@ -318,7 +318,7 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
     const char *the_exception_desc = "UNKNOWN EXCEPTION";
     uint32_t the_exception_code = uint32_t(-1);
 
-    for (int i = 0; i < ARRAY_SIZE(ExceptionText); ++i) {
+    for (int i = 0; i < std::size(ExceptionText); ++i) {
         if (e_info->ExceptionRecord->ExceptionCode == ExceptionCodes[i]) {
             DEBUG_WARNING("Found exception description.\n");
             the_exception_desc = ExceptionText[i];

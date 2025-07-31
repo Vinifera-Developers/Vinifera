@@ -32,8 +32,17 @@
 #include "ccfile.h"
 
 
+class PrerequisiteGroupClass;
+class KamikazeTrackerClass;
+class AircraftTrackerClass;
+class SpawnManagerClass;
 class EBoltClass;
 class TheaterTypeClass;
+class ArmorTypeClass;
+class RocketTypeClass;
+class MouseTypeClass;
+class ActionTypeClass;
+class PrerequisiteGroupClass;
 
 
 extern bool Vinifera_DeveloperMode;
@@ -47,6 +56,7 @@ extern bool Vinifera_AssertFileErrors;
 extern char Vinifera_ExceptionDatabaseFilename[PATH_MAX];
 extern char Vinifera_DebugDirectory[PATH_MAX];
 extern char Vinifera_ScreenshotDirectory[PATH_MAX];
+extern char Vinifera_SavedGamesDirectory[PATH_MAX];
 
 extern char Vinifera_ProjectName[64];
 extern char Vinifera_ProjectVersion[64];
@@ -57,7 +67,7 @@ extern char Vinifera_CursorName[64];
 /**
  *  Defines and constants.
  */
-#define TEXT_S_S					"%s: %s"
+#define TEXT_S_S "%s: %s"
 
 
 /**
@@ -73,6 +83,7 @@ extern bool Vinifera_Developer_ShowCursorPosition;
 extern bool Vinifera_Developer_FrameStep;
 extern int Vinifera_Developer_FrameStepCount;
 extern bool Vinifera_Developer_AIControl;
+extern bool Vinifera_Developer_IsToReloadRules;
 
 
 /**
@@ -85,11 +96,17 @@ extern bool Vinifera_NoTacticalVersionString;
 
 extern bool Vinifera_ShowSuperWeaponTimers;
 
-extern DynamicVectorClass<MFCC *> ViniferaMapsMixes;
-extern DynamicVectorClass<MFCC *> ViniferaMoviesMixes;
+extern unsigned Vinifera_TotalPlayTime;
 
-extern MFCC *GenericMix;
-extern MFCC *IsoGenericMix;
+extern DynamicVectorClass<MFCD *> ViniferaMapsMixes;
+extern DynamicVectorClass<MFCD *> ViniferaMoviesMixes;
+
+extern MFCD *GenericMix;
+extern MFCD *IsoGenericMix;
+extern MFCD *SideCTMix;
+
+extern KamikazeTrackerClass *KamikazeTracker;
+extern AircraftTrackerClass *AircraftTracker;
 
 
 /**
@@ -97,6 +114,12 @@ extern MFCC *IsoGenericMix;
  */
 extern DynamicVectorClass<EBoltClass *> EBolts;
 extern DynamicVectorClass<TheaterTypeClass *> TheaterTypes;
+extern DynamicVectorClass<ArmorTypeClass *> ArmorTypes;
+extern DynamicVectorClass<SpawnManagerClass *> SpawnManagers;
+extern DynamicVectorClass<RocketTypeClass *> RocketTypes;
+extern DynamicVectorClass<MouseTypeClass *> MouseTypes;
+extern DynamicVectorClass<ActionTypeClass *> ActionTypes;
+extern DynamicVectorClass<PrerequisiteGroupClass*> PrerequisiteGroups;
 
 
 /**
@@ -109,6 +132,10 @@ extern bool Vinifera_SkipToSkirmish;
 extern bool Vinifera_SkipToCampaign;
 extern bool Vinifera_SkipToInternet;
 extern bool Vinifera_ExitAfterSkip;
+
+
+extern bool Vinifera_NewSidebar;
+extern bool Vinifera_NoVersionString;
 
 
 /**

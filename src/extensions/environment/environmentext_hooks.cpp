@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          ENDGAMEEXT_HOOKS.CPP
+ *  @file          ENVIRONMENTEXT_HOOKS.CPP
  *
  *  @author        CCHyper
  *
- *  @brief         Contains the hooks for the extended EndGameClass.
+ *  @brief         Contains the hooks for the extended EnvironmentClass.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -25,9 +25,9 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "endgameext_hooks.h"
+#include "environmentext_hooks.h"
 #include "tibsun_globals.h"
-#include "endgame.h"
+#include "environment.h"
 #include "scenario.h"
 #include "theme.h"
 #include "debughandler.h"
@@ -43,23 +43,23 @@
  *  Fixes bug where the game difficulty gets reset, but not reassigned
  *  after restarting a mission.
  * 
- *  This also handles the case where the EndGame instance is re-initialised.
+ *  This also handles the case where the Environment instance is re-initialised.
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_EndGameClass_Constructor_Set_Difficulty_Patch)
+DECLARE_PATCH(_EnvironmentClass_Constructor_Set_Difficulty_Patch)
 {
-    GET_REGISTER_STATIC(EndGameClass *, this_ptr, edx);
+    GET_REGISTER_STATIC(EnvironmentClass *, this_ptr, edx);
 
     /**
-     *  The EndGameClass constructor initialises Difficulty to NORMAL.
+     *  The EnvironmentClass constructor initialises Difficulty to NORMAL.
      *  This patch uses the ScenarioClass Difficulty if set at this point.
      */
     if (Scen && Scen->Difficulty != -1) {
         this_ptr->Difficulty = Scen->Difficulty;
     }
 
-    //DEBUG_INFO("EndGameClass constructor.\n");
+    //DEBUG_INFO("EnvironmentClass constructor.\n");
 
     /**
      *  Stolen bytes/code.
@@ -69,7 +69,7 @@ DECLARE_PATCH(_EndGameClass_Constructor_Set_Difficulty_Patch)
     _asm { ret }
 }
 
-DECLARE_PATCH(_Select_Game_Set_EndGameClass_Difficulty_Patch)
+DECLARE_PATCH(_Select_Game_Set_EnvironmentClass_Difficulty_Patch)
 {
     DEBUG_INFO("Scen->Difficulty = %d\n", Scen->Difficulty);
     DEBUG_INFO("Scen->CDifficulty = %d\n", Scen->CDifficulty);
@@ -78,8 +78,8 @@ DECLARE_PATCH(_Select_Game_Set_EndGameClass_Difficulty_Patch)
      *  Assign the ScenarioClass Difficulty. This is done to ensure
      *  the difficulty is restored after game restart.
      */
-    DEBUG_INFO("Setting EndGame difficulty to %d.\n", Scen->Difficulty);
-    EndGame.Difficulty = Scen->Difficulty;
+    DEBUG_INFO("Setting Environment difficulty to %d.\n", Scen->Difficulty);
+    Environment.Difficulty = Scen->Difficulty;
 
     /**
      *  Stolen bytes/code.
@@ -89,9 +89,9 @@ DECLARE_PATCH(_Select_Game_Set_EndGameClass_Difficulty_Patch)
     JMP(0x004E2AE3);
 }
 
-DECLARE_PATCH(_EndGameClass_Record_Debug_Patch)
+DECLARE_PATCH(_EnvironmentClass_Record_Debug_Patch)
 {
-    GET_REGISTER_STATIC(EndGameClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(EnvironmentClass *, this_ptr, esi);
 
     /**
      *  Stolen bytes/code.
@@ -99,7 +99,7 @@ DECLARE_PATCH(_EndGameClass_Record_Debug_Patch)
     this_ptr->Stage = Scen->Stage;
 
     DEBUG_INFO("Recording end game information...\n");
-    DEBUG_INFO("  Credits: %d\n", this_ptr->Credits);
+    DEBUG_INFO("  CarryOverMoney: %d\n", this_ptr->CarryOverMoney);
     DEBUG_INFO("  MissionTimer: %d\n", this_ptr->MissionTimer);
     DEBUG_INFO("  Difficulty: %d\n", this_ptr->Difficulty);
     DEBUG_INFO("  Stage: %d\n", this_ptr->Stage);
@@ -111,12 +111,12 @@ DECLARE_PATCH(_EndGameClass_Record_Debug_Patch)
     _asm { ret }
 }
 
-DECLARE_PATCH(_EndGameClass_Apply_Debug_Patch)
+DECLARE_PATCH(_EnvironmentClass_Apply_Debug_Patch)
 {
-    GET_REGISTER_STATIC(EndGameClass *, this_ptr, edi);
+    GET_REGISTER_STATIC(EnvironmentClass *, this_ptr, edi);
 
     DEBUG_INFO("Applying end game information...\n");
-    DEBUG_INFO("  Credits: %d\n", this_ptr->Credits);
+    DEBUG_INFO("  CarryOverMoney: %d\n", this_ptr->CarryOverMoney);
     DEBUG_INFO("  MissionTimer: %d\n", this_ptr->MissionTimer);
     DEBUG_INFO("  Difficulty: %d\n", this_ptr->Difficulty);
     DEBUG_INFO("  Stage: %d\n", this_ptr->Stage);
@@ -136,16 +136,16 @@ DECLARE_PATCH(_EndGameClass_Apply_Debug_Patch)
 /**
  *  Main function for patching the hooks.
  */
-void EndGameExtension_Hooks()
+void EnvironmentExtension_Hooks()
 {
-    Patch_Jump(0x00493881, &_EndGameClass_Constructor_Set_Difficulty_Patch);
-    Patch_Jump(0x004E2AD7, &_Select_Game_Set_EndGameClass_Difficulty_Patch);
+    Patch_Jump(0x00493881, &_EnvironmentClass_Constructor_Set_Difficulty_Patch);
+    Patch_Jump(0x004E2AD7, &_Select_Game_Set_EnvironmentClass_Difficulty_Patch);
 
     /**
-     *  Patches to log the current state of EndGameClass.
+     *  Patches to log the current state of EnvironmentClass.
      */
-    Patch_Jump(0x00493919, &_EndGameClass_Record_Debug_Patch);
-    Patch_Jump(0x004939F1, &_EndGameClass_Apply_Debug_Patch);
+    Patch_Jump(0x00493919, &_EnvironmentClass_Record_Debug_Patch);
+    Patch_Jump(0x004939F1, &_EnvironmentClass_Apply_Debug_Patch);
     Patch_Jump(0x00493A07, 0x004939F1);
     Patch_Jump(0x00493A18, 0x004939F1);
 }
