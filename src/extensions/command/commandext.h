@@ -464,7 +464,7 @@ class CaptureObjectCommandClass : public ViniferaCommandClass
 class VeterancyPromoteCommandClass : public ViniferaCommandClass
 {
     public:
-        VeterancyPromoteCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        VeterancyPromoteCommandClass() : ViniferaCommandClass() { IsDeveloper = true; }
         virtual ~VeterancyPromoteCommandClass() {}
 
         virtual const char *Get_Name() const override;
