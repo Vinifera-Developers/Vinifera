@@ -1848,6 +1848,19 @@ static int Get_Veterancy_Level(TechnoClass* techno)
     }
 }
 
+static int Get_Health_Level(TechnoClass* techno) {
+    auto ratio = techno->Get_Health_Ratio();
+    if (Rule->ConditionRed >= ratio) {
+        return 0;
+    }
+    if (Rule->ConditionYellow >= ratio) {
+        return 1;
+    }
+    return 2;
+}
+ 
+typedef int (*Classify_Function)(TechnoClass*);
+
 // returns veterancy other than the two specified
 int Get_Other_Veterancy(int a, int b)
 {
@@ -1855,12 +1868,12 @@ int Get_Other_Veterancy(int a, int b)
     return ((a + b) * 2) % 3;
 }
 
-bool Process_Veterancy_Filter(bool is_shift_pressed)
+bool Process_Filter(const Classify_Function &classify_function, bool is_shift_pressed)
 {
     if (Session.Players.Count() > 1) {
         return false;
-    }
-
+    }    
+    
     static TechnoList last_selection[3];
     static TechnoList last_full_selection;
     TechnoList current_selection[3];
@@ -1881,7 +1894,7 @@ bool Process_Veterancy_Filter(bool is_shift_pressed)
         }
         TechnoClass* techno = static_cast<TechnoClass*>(object);
         current_technos.Add(techno);
-        int veterancy = Get_Veterancy_Level(techno);
+        int veterancy = classify_function(techno);
         best_selected_veterancy = std::min(veterancy, best_selected_veterancy);
         worst_selected_veterancy = std::max(veterancy, worst_selected_veterancy);
         if (veterancy >= 0 && veterancy < 3) {
@@ -1905,7 +1918,7 @@ bool Process_Veterancy_Filter(bool is_shift_pressed)
         last_selection[2].Clear();
         for (int i = 0; i < current_technos.Count(); ++i) {
             last_full_selection.Add(current_technos[i]);
-            last_selection[Get_Veterancy_Level(current_technos[i])].Add(current_technos[i]);
+            last_selection[classify_function(current_technos[i])].Add(current_technos[i]);
         }
         for (int i = best_selected_veterancy+1; i < 3; ++i) {
             for (int k = 0; k < current_selection[i].Count(); ++k) {
@@ -1982,7 +1995,7 @@ const char* VeterancyFilterCommandClass::Get_Description() const
 
 bool VeterancyFilterCommandClass::Process()
 {
-    return Process_Veterancy_Filter(false);
+    return Process_Filter(Get_Veterancy_Level, false);
 }
 
 
@@ -1991,30 +2004,93 @@ bool VeterancyFilterCommandClass::Process()
  *
  *  @author: hacklex
  */
-const char* VeterancyFilterAddLowerCommandClass::Get_Name() const
+const char* VeterancyFilterAddNextCommandClass::Get_Name() const
 {
     return "VeterancyFilterAddLower";
 }
 
-const char* VeterancyFilterAddLowerCommandClass::Get_UI_Name() const
+const char* VeterancyFilterAddNextCommandClass::Get_UI_Name() const
 {
     return "Veterancy Filter (Add Lower)";
 }
 
-const char* VeterancyFilterAddLowerCommandClass::Get_Category() const
+const char* VeterancyFilterAddNextCommandClass::Get_Category() const
 {
     return "Selection";
 }
 
-const char* VeterancyFilterAddLowerCommandClass::Get_Description() const
+const char* VeterancyFilterAddNextCommandClass::Get_Description() const
 {
     return "Add units of lower veterancy to the already filtered subset.";
 }
 
-bool VeterancyFilterAddLowerCommandClass::Process()
+bool VeterancyFilterAddNextCommandClass::Process()
 {
-    return Process_Veterancy_Filter(true);
+    return Process_Filter(Get_Veterancy_Level, true);
 }
+
+
+/**
+ *  Cycle through elite/veteran/green units among the last heterogenous selection.
+ *
+ *  @author: hacklex
+ */
+const char* HealthFilterCommandClass::Get_Name() const
+{
+    return "HealthFilter";
+}
+
+const char* HealthFilterCommandClass::Get_UI_Name() const
+{
+    return "Health Filter";
+}
+
+const char* HealthFilterCommandClass::Get_Category() const
+{
+    return "Selection";
+}
+
+const char* HealthFilterCommandClass::Get_Description() const
+{
+    return "Filter out red/yellow/green units from the last mixed selection.";
+}
+
+bool HealthFilterCommandClass::Process()
+{
+    return Process_Filter(Get_Health_Level, false);
+}
+
+
+/**
+ *  Cycle through elite/veteran/green units among the last heterogenous selection.
+ *
+ *  @author: hacklex
+ */
+const char* HealthFilterAddNextCommandClass::Get_Name() const
+{
+    return "HealthFilterAddLower";
+}
+
+const char* HealthFilterAddNextCommandClass::Get_UI_Name() const
+{
+    return "Health Filter (Add Lower)";
+}
+
+const char* HealthFilterAddNextCommandClass::Get_Category() const
+{
+    return "Selection";
+}
+
+const char* HealthFilterAddNextCommandClass::Get_Description() const
+{
+    return "Add units of higher health group (yellow, green) to the already filtered subset.";
+}
+
+bool HealthFilterAddNextCommandClass::Process()
+{
+    return Process_Filter(Get_Health_Level, true);
+}
+
 
 /**
  *  Grants all available special weapons to the player.

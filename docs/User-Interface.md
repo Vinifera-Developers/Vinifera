@@ -89,6 +89,10 @@ Vinifera modifies the vanilla "Deploy" keyboard command to work with air transpo
 
 - Cycles through green/veteran/elite units among the initially selected group. Defaults to `Y`.
 
+### `[ ]` Health Level Filter
+
+- Cycles through red/yellow/green HP units among the initially selected group. Defaults to `U`.
+
 ### `[ ]` Toggle Special Timers
 
 - Toggles the visibility of Super Weapon timers. Defaults to `<none>`.

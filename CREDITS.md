@@ -142,7 +142,7 @@ This page lists all the individual contributions to the project by their author.
   - Implement MeteorShowerCommandClass and MeteorImpactCommandClass.
   - Add the "Underground" layer to the tactical display Next and Prev search.
 - **hacklex**:
-  - Add Veterancy Filter Hotkey.
+  - Add Veterancy and Health Filter Hotkeys.
 - **Kerbiter (Metadorius)**:
   - Initial documentation setup.
 - **Noble Fish**:

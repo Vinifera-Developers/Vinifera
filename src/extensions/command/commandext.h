@@ -668,13 +668,32 @@ class VeterancyFilterCommandClass : public ViniferaCommandClass
 
 
 /**
- *  Adds lower-ranked units to already filtered veterans 
+ *  Cycles through red/yellow/green health units among the initially selected group 
  */
-class VeterancyFilterAddLowerCommandClass : public ViniferaCommandClass
+class HealthFilterCommandClass : public ViniferaCommandClass
 {
     public:
-        VeterancyFilterAddLowerCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
-        virtual ~VeterancyFilterAddLowerCommandClass() {}
+        HealthFilterCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        virtual ~HealthFilterCommandClass() {}
+
+        virtual const char *Get_Name() const override;
+        virtual const char *Get_UI_Name() const override;
+        virtual const char *Get_Category() const override;
+        virtual const char *Get_Description() const override;
+        virtual bool Process() override;
+
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_U); }
+};
+
+
+/**
+ *  Adds lower-ranked units to already filtered veterans 
+ */
+class VeterancyFilterAddNextCommandClass : public ViniferaCommandClass
+{
+    public:
+        VeterancyFilterAddNextCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        virtual ~VeterancyFilterAddNextCommandClass() {}
 
         virtual const char *Get_Name() const override;
         virtual const char *Get_UI_Name() const override;
@@ -683,6 +702,25 @@ class VeterancyFilterAddLowerCommandClass : public ViniferaCommandClass
         virtual bool Process() override;
 
         virtual KeyNumType Default_Key() const override { return KeyNumType(KN_Y | KN_SHIFT_BIT); }
+};
+
+
+/**
+ *  Adds units from the next health group (yellow, green) to already filtered veterans 
+ */
+class HealthFilterAddNextCommandClass : public ViniferaCommandClass
+{
+    public:
+        HealthFilterAddNextCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
+        virtual ~HealthFilterAddNextCommandClass() {}
+
+        virtual const char *Get_Name() const override;
+        virtual const char *Get_UI_Name() const override;
+        virtual const char *Get_Category() const override;
+        virtual const char *Get_Description() const override;
+        virtual bool Process() override;
+
+        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_U | KN_SHIFT_BIT); }
 };
 
 
