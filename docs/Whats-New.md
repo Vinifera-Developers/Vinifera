@@ -62,6 +62,7 @@ New:
 - Allow pre-placed units to have missions in multiplayer (by Rampastring)
 - Implement TActionClass extensions, port ts-patches actions (by ZivDero, Rampastring)
 - Implement TEventClass extensions (by ZivDero)
+- Veterancy Filter Hotkey (by hacklex)
 
 
 Vinifera fixes:

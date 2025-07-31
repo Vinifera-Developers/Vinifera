@@ -85,6 +85,10 @@ Vinifera modifies the vanilla "Deploy" keyboard command to work with air transpo
 
 - Enters the manual placement mode when a building is complete and pending on the sidebar. Defaults to `Z`.
 
+### `[ ]` Veterancy Filter
+
+- Cycles through green/veteran/elite units among the initially selected group. Defaults to `Y`.
+
 ### `[ ]` Toggle Special Timers
 
 - Toggles the visibility of Super Weapon timers. Defaults to `<none>`.

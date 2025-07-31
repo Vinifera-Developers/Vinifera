@@ -629,6 +629,9 @@ public:
     virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
+/**
+ *  Promote selected units.
+ */
 class VeterancyPromoteCommandClass : public ViniferaCommandClass
 {
     public:
