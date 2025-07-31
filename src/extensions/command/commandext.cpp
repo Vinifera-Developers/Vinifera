@@ -1212,15 +1212,13 @@ bool CaptureObjectCommandClass::Process()
     return true;
 }
 
-int ClassifyVeterancy(TechnoClass* techno)
+int Classify_Veterancy(TechnoClass* techno)
 {
     if (techno->Veterancy.Is_Elite()) {
         return 0;
-    }
-    else if (techno->Veterancy.Is_Veteran()) {
+    } else if (techno->Veterancy.Is_Veteran()) {
         return 1;
-    }
-    else {
+    } else {
         return 2;
     }
 }
@@ -1256,9 +1254,6 @@ bool VeterancyPromoteCommandClass::Process()
         return false;
     }
 
-    /**
-     *  Iterate over all currently selected objects force them to hold position
-     */
     for (int i = 0; i < CurrentObjects.Count(); ++i) {
         ObjectClass* object = CurrentObjects[i];
         if (!object || !object->Is_Techno()) {
@@ -1266,10 +1261,10 @@ bool VeterancyPromoteCommandClass::Process()
         }
         if (object->Owning_House() == PlayerPtr) {
             TechnoClass* techno = dynamic_cast<TechnoClass*>(object);
-            if(ClassifyVeterancy(techno) == 2) {
+            if (Classify_Veterancy(techno) == 2) {
                 techno->Veterancy.Set_Veteran(true);
             }
-            else if(ClassifyVeterancy(techno) == 1) {
+            else if(Classify_Veterancy(techno) == 1) {
                 techno->Veterancy.Set_Elite(true);
             }
         }
@@ -1280,7 +1275,9 @@ bool VeterancyPromoteCommandClass::Process()
     return true;
 }
 
-bool SetEquals(DynamicVectorClass<TechnoClass*>& a, DynamicVectorClass<TechnoClass*>& b)
+using TechnoList = DynamicVectorClass<TechnoClass*>;
+
+bool Set_Equals(TechnoList& a, TechnoList& b)
 {
     if (a.Count() != b.Count()) {
         return false;
@@ -1293,7 +1290,9 @@ bool SetEquals(DynamicVectorClass<TechnoClass*>& a, DynamicVectorClass<TechnoCla
     return true;
 }
 
-bool EqualsUnionOfTwoOtherSets(DynamicVectorClass<TechnoClass*>& current, DynamicVectorClass<TechnoClass*>& a, DynamicVectorClass<TechnoClass*>& b)
+
+
+bool Equals_Union_Of_Two_Other_Sets(TechnoList& current, TechnoList& a, TechnoList& b)
 {
     if (current.Count() != a.Count() + b.Count()) {
         return false;
@@ -1306,7 +1305,7 @@ bool EqualsUnionOfTwoOtherSets(DynamicVectorClass<TechnoClass*>& current, Dynami
     return true;
 }
 
-bool EqualsUnionOfThreeOtherSets(DynamicVectorClass<TechnoClass*>& current, DynamicVectorClass<TechnoClass*>& a, DynamicVectorClass<TechnoClass*>& b, DynamicVectorClass<TechnoClass*>& c)
+bool Equals_Union_Of_Three_Other_Sets(TechnoList& current, TechnoList& a, TechnoList& b, TechnoList& c)
 {
     if (current.Count() != a.Count() + b.Count() + c.Count()) {
         return false;
@@ -1319,39 +1318,32 @@ bool EqualsUnionOfThreeOtherSets(DynamicVectorClass<TechnoClass*>& current, Dyna
     return true;
 }
 
-int GetThirdVeterancy(int first, int second)
+// returns veterancy other than the two specified
+int Get_Other_Veterancy(int a, int b)
 {
-    if (first == 0 && second == 1) {
-        return 2;
-    }
-    if (first == 0 && second == 2) {
-        return 1;
-    }
-    if (first == 1 && second == 2) {
-        return 0;
-    }
-    return -1;
+    // (0, 1) => 2, (0, 2) => 1, (1, 2) => 0
+    return ((a + b) * 2) % 3;
 }
 
-bool ProcessVeterancyFilter(bool isShiftPressed)
+bool ProcessVeterancyFilter(bool is_shift_pressed)
 {
     if (!Session.Singleplayer_Game()) {
         return false;
     }
 
-    static DynamicVectorClass<TechnoClass*> lastSelection[3];
-    static DynamicVectorClass<TechnoClass*> lastFullSelection;
-    bool isHeterogenous = false;
-    DynamicVectorClass<TechnoClass*> currentSelection[3];
+    static TechnoList last_selection[3];
+    static TechnoList last_full_selection;
+    bool is_heterogenous = false;
+    TechnoList current_selection[3];
 
-    currentSelection[0].Clear();
-    currentSelection[1].Clear();
-    currentSelection[2].Clear();
+    current_selection[0].Clear();
+    current_selection[1].Clear();
+    current_selection[2].Clear();
 
-    DynamicVectorClass<TechnoClass*> currentTechnos;
+    TechnoList current_technos;
 
-    int highestSelectedVeterancy = 3;
-    int lowestSelectedVeterancy = -1;
+    int best_selected_veterancy = 3;
+    int worst_selected_veterancy = -1;
 
     for (int i = 0; i < CurrentObjects.Count(); ++i) {
         ObjectClass* object = CurrentObjects[i];
@@ -1359,80 +1351,80 @@ bool ProcessVeterancyFilter(bool isShiftPressed)
             return true;
         }
         TechnoClass* techno = dynamic_cast<TechnoClass*>(object);
-        currentTechnos.Add(techno);
-        int veterancy = ClassifyVeterancy(techno);
-        if (veterancy < highestSelectedVeterancy) {
-            highestSelectedVeterancy = veterancy;
+        current_technos.Add(techno);
+        int veterancy = Classify_Veterancy(techno);
+        if (veterancy < best_selected_veterancy) {
+            best_selected_veterancy = veterancy;
         }
-        if (veterancy > lowestSelectedVeterancy) {
-            lowestSelectedVeterancy = veterancy;
+        if (veterancy > worst_selected_veterancy) {
+            worst_selected_veterancy = veterancy;
         }
-        if (veterancy >= 0 && veterancy < 3)
-            currentSelection[veterancy].Add(techno);
+        if (veterancy >= 0 && veterancy < 3) {
+            current_selection[veterancy].Add(techno);
+        }
     }
 
-    if (!SetEquals(currentTechnos, lastFullSelection) &&
-        !SetEquals(currentTechnos, lastSelection[0]) &&
-        !SetEquals(currentTechnos, lastSelection[1]) &&
-        !SetEquals(currentTechnos, lastSelection[2]) && 
-        !EqualsUnionOfTwoOtherSets(currentTechnos, lastSelection[0], lastSelection[1]) &&
-        !EqualsUnionOfTwoOtherSets(currentTechnos, lastSelection[0], lastSelection[2]) &&
-        !EqualsUnionOfTwoOtherSets(currentTechnos, lastSelection[1], lastSelection[2])) {
-        if (isShiftPressed || highestSelectedVeterancy == lowestSelectedVeterancy) {
+    if (!Set_Equals(current_technos, last_full_selection) &&
+        !Set_Equals(current_technos, last_selection[0]) &&
+        !Set_Equals(current_technos, last_selection[1]) &&
+        !Set_Equals(current_technos, last_selection[2]) && 
+        !Equals_Union_Of_Two_Other_Sets(current_technos, last_selection[0], last_selection[1]) &&
+        !Equals_Union_Of_Two_Other_Sets(current_technos, last_selection[0], last_selection[2]) &&
+        !Equals_Union_Of_Two_Other_Sets(current_technos, last_selection[1], last_selection[2])) {
+        if (is_shift_pressed || best_selected_veterancy == worst_selected_veterancy) {
             return true; // can't add anything if we haven't filtered yet or the new selection is already of same rank
         }
-        lastFullSelection.Clear();
-        lastSelection[0].Clear();
-        lastSelection[1].Clear();
-        lastSelection[2].Clear();
-        for (int i = 0; i < currentTechnos.Count(); ++i) {
-            lastFullSelection.Add(currentTechnos[i]);     
-            lastSelection[ClassifyVeterancy(currentTechnos[i])].Add(currentTechnos[i]);
+        last_full_selection.Clear();
+        last_selection[0].Clear();
+        last_selection[1].Clear();
+        last_selection[2].Clear();
+        for (int i = 0; i < current_technos.Count(); ++i) {
+            last_full_selection.Add(current_technos[i]);     
+            last_selection[Classify_Veterancy(current_technos[i])].Add(current_technos[i]);
         }
-        for (int i = highestSelectedVeterancy+1; i < 3; ++i) {
-            for (int k = 0; k < currentSelection[i].Count(); ++k) {
-                currentSelection[i][k]->Unselect();
+        for (int i = best_selected_veterancy+1; i < 3; ++i) {
+            for (int k = 0; k < current_selection[i].Count(); ++k) {
+                current_selection[i][k]->Unselect();
             }
         }   
-        if (highestSelectedVeterancy >= 0 && highestSelectedVeterancy < 3) {
-            for (int k = 0; k < currentSelection[highestSelectedVeterancy].Count(); ++k) {
-                currentSelection[highestSelectedVeterancy][k]->Response_Select();
+        if (best_selected_veterancy >= 0 && best_selected_veterancy < 3) {
+            for (int k = 0; k < current_selection[best_selected_veterancy].Count(); ++k) {
+                current_selection[best_selected_veterancy][k]->Response_Select();
             }
         }
     }
     else {
-        int nextTierVeterancy = lowestSelectedVeterancy;
-        int loopBreaker = 3;
-        if (highestSelectedVeterancy != lowestSelectedVeterancy) {
-            if (SetEquals(currentTechnos, lastFullSelection)) {
-                nextTierVeterancy = highestSelectedVeterancy;
+        int next_tier_veterancy = worst_selected_veterancy;
+        int loop_breaker = 3;
+        if (best_selected_veterancy != worst_selected_veterancy) {
+            if (Set_Equals(current_technos, last_full_selection)) {
+                next_tier_veterancy = best_selected_veterancy;
             }
             else {
-                nextTierVeterancy = GetThirdVeterancy(highestSelectedVeterancy, lowestSelectedVeterancy);
+                next_tier_veterancy = Get_Other_Veterancy(best_selected_veterancy, worst_selected_veterancy);
             }
-        }
-        else {
+        } else {
             do {
-                loopBreaker--;
-                nextTierVeterancy = (nextTierVeterancy + 1) % 3;
-            } while (lastSelection[nextTierVeterancy].Count() == 0 && loopBreaker > 0);
+                loop_breaker--;
+                next_tier_veterancy = (next_tier_veterancy + 1) % 3;
+            } while (last_selection[next_tier_veterancy].Count() == 0 && loop_breaker > 0);
         }
-        if (nextTierVeterancy == -1) {
-            if (isShiftPressed) {
+        if (next_tier_veterancy == -1) {
+            if (is_shift_pressed) {
                 return true;
             }
             else {
-                nextTierVeterancy = highestSelectedVeterancy;
+                next_tier_veterancy = best_selected_veterancy;
             }
         }
-        if (nextTierVeterancy >= 0 && nextTierVeterancy < 3 && lastSelection[nextTierVeterancy].Count() > 0) {
-            if (!isShiftPressed) {
-                for (int i = 0; i < currentTechnos.Count(); ++i) {
-                    currentTechnos[i]->Unselect();
+        if (next_tier_veterancy >= 0 && next_tier_veterancy < 3 && last_selection[next_tier_veterancy].Count() > 0) {
+            if (!is_shift_pressed) {
+                for (int i = 0; i < current_technos.Count(); ++i) {
+                    current_technos[i]->Unselect();
                 }
             }
-            for (int i = 0; i < lastSelection[nextTierVeterancy].Count(); ++i) {
-                lastSelection[nextTierVeterancy][i]->Select();
+            for (int i = 0; i < last_selection[next_tier_veterancy].Count(); ++i) {
+                last_selection[next_tier_veterancy][i]->Select();
             }
         }
     } 
@@ -1503,7 +1495,6 @@ bool VeterancyFilterAddLowerCommandClass::Process()
 {
     return ProcessVeterancyFilter(true);
 }
-
 
 /**
  *  Grants all available special weapons to the player.
