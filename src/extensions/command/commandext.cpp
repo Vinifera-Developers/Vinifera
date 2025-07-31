@@ -26,7 +26,7 @@
  *
  ******************************************************************************/
 #include "commandext.h"
-
+#include <map>
 #include <algorithm>
 #include "tibsun_globals.h"
 #include "tibsun_util.h"
@@ -1809,8 +1809,16 @@ bool VeterancyPromoteCommandClass::Process()
     return true;
 }
 
+/**
+ * A shorter name for a list of TechnoClass pointers.
+ */
 using TechnoList = DynamicVectorClass<TechnoClass*>;
 
+
+/**
+ * Checks if two lists are equal, meaning they contain the same TechnoClass pointers.
+ * We expect that the lists are actually sets, so they should not contain duplicates.
+ */
 static bool Set_Equals(TechnoList& a, TechnoList& b)
 {
     if (a.Count() != b.Count()) {
@@ -1824,6 +1832,9 @@ static bool Set_Equals(TechnoList& a, TechnoList& b)
     return true;
 }
 
+/**
+ * Checks if the current set is equal to the union of two other sets.
+ */
 static bool Equals_Union_Of_Two_Other_Sets(TechnoList& current, TechnoList& a, TechnoList& b)
 {
     if (current.Count() != a.Count() + b.Count()) {
@@ -1837,6 +1848,13 @@ static bool Equals_Union_Of_Two_Other_Sets(TechnoList& current, TechnoList& a, T
     return true;
 }
 
+/**
+ *  Classifies a TechnoClass object based on its veterancy level.
+ *  Returns:
+ *  - 0 for Elite
+ *  - 1 for Veteran
+ *  - 2 for Rookie
+ */
 static int Get_Veterancy_Level(TechnoClass* techno)
 {
     if (techno->Veterancy.Is_Elite()) {
@@ -1848,6 +1866,13 @@ static int Get_Veterancy_Level(TechnoClass* techno)
     }
 }
 
+/**
+ *  Classifies a TechnoClass object based on its health level.
+ *  Returns:
+ *  - 0 for Red (low health)
+ *  - 1 for Yellow (medium health)
+ *  - 2 for Green (high health)
+ */
 static int Get_Health_Level(TechnoClass* techno) {
     auto ratio = techno->Get_Health_Ratio();
     if (Rule->ConditionRed >= ratio) {
@@ -1858,115 +1883,180 @@ static int Get_Health_Level(TechnoClass* techno) {
     }
     return 2;
 }
- 
+
+/**
+ *  A pointer to a function that classifies a TechnoClass by assigning it an integer tier from 0 to 2
+ */
 typedef int (*Classify_Function)(TechnoClass*);
 
-// returns veterancy other than the two specified
-int Get_Other_Veterancy(int a, int b)
+/**
+ *  returns the tier other than the two specified
+ */
+int Get_Other_Tier(int a, int b)
 {
     // (0, 1) => 2, (0, 2) => 1, (1, 2) => 0
     return ((a + b) * 2) % 3;
 }
 
+/**
+ *  Reclassifies the TechnoClass objects in the lists_by_tiers array based on the classify_function.
+ *  It moves objects from one tier to another based on the classification result.
+ *  Might be needed when the objects' properties change, such as health or veterancy.
+ */ 
+void Reclassify(const Classify_Function& classify_function, TechnoList* lists_by_tiers) {
+    for (int from_tier = 0; from_tier < 3; from_tier++) { 
+        for (int i = lists_by_tiers[from_tier].Count() - 1; i >= 0; i--) {
+            auto current_tier = classify_function(lists_by_tiers[from_tier][i]);
+            if (current_tier != from_tier) {
+                lists_by_tiers[current_tier].Add(lists_by_tiers[from_tier][i]);
+                lists_by_tiers[from_tier].Delete(i);
+            }
+        }
+    }
+}
+
+/**
+ *  Classifies the TechnoClass objects in the current_selection list into three tiers based on the classify_function.
+ *  The results are stored in the lists_by_tiers array, where each index corresponds to a tier.
+ *  We expect the array to have three elements, one for each tier.
+ */
+void Classify(const Classify_Function &classify_function, TechnoList &current_selection, TechnoList *lists_by_tiers)
+{
+    for (int i = 0; i < current_selection.Count(); ++i) {
+        int tier = classify_function(current_selection[i]);
+        if (tier >= 0 && tier < 3) {
+            lists_by_tiers[tier].Add(current_selection[i]);
+        }
+    }
+}
+
+/**
+ *  Performs the filtering of the selection based on the classification function.
+ *  If shift is pressed, the next tier will be added to the selection,
+ *  otherwise the selection will be replaced with the next tier.
+ */
 bool Process_Filter(const Classify_Function &classify_function, bool is_shift_pressed)
 {
     if (Session.Players.Count() > 1) {
         return false;
-    }    
+    }
+
+    // each classify_function has its own last_full_selection and last_selection arrays
+    static std::map<Classify_Function, TechnoList*> last_full_selection_by_classifiers = {
+        { Get_Veterancy_Level, new TechnoList() },
+        { Get_Health_Level, new TechnoList() }
+    };
     
-    static TechnoList last_selection[3];
-    static TechnoList last_full_selection;
+    // we fetch the last full selection for the given classify_function
+    TechnoList &last_full_selection = *(last_full_selection_by_classifiers[classify_function]);
+    TechnoList last_selection[3];
+    // then we classify the last full selection into three tiers
+    Classify(classify_function, last_full_selection, last_selection);
     TechnoList current_selection[3];
-
-    current_selection[0].Clear();
-    current_selection[1].Clear();
-    current_selection[2].Clear();
-
     TechnoList current_technos;
+    int best_selected_tier = 3;
+    int worst_selected_tier = -1;
 
-    int best_selected_veterancy = 3;
-    int worst_selected_veterancy = -1;
-
+    // Collecting info about current selection,
+    // splitting it into three tiers based on the value returned by classify_function
     for (int i = 0; i < CurrentObjects.Count(); ++i) {
         ObjectClass* object = CurrentObjects[i];
         if (!object || !object->Is_Techno() || !static_cast<TechnoClass*>(object)->House->Is_Player_Control()) {
-            return true;
+            // skip non-techno objects and objects not owned by the player
+            continue;
         }
         TechnoClass* techno = static_cast<TechnoClass*>(object);
         current_technos.Add(techno);
-        int veterancy = classify_function(techno);
-        best_selected_veterancy = std::min(veterancy, best_selected_veterancy);
-        worst_selected_veterancy = std::max(veterancy, worst_selected_veterancy);
-        if (veterancy >= 0 && veterancy < 3) {
-            current_selection[veterancy].Add(techno);
+        int tier = classify_function(techno);
+        best_selected_tier = std::min(tier, best_selected_tier);
+        worst_selected_tier = std::max(tier, worst_selected_tier);
+        if (tier >= 0 && tier < 3) {
+            current_selection[tier].Add(techno);
         }
     }
 
-    if (!Set_Equals(current_technos, last_full_selection) &&
-        !Set_Equals(current_technos, last_selection[0]) &&
-        !Set_Equals(current_technos, last_selection[1]) &&
+    if (!Set_Equals(current_technos, last_full_selection) && // current selection differs from the last full selection
+        !Set_Equals(current_technos, last_selection[0]) && // current selection is not exactly any of the tiers 
+        !Set_Equals(current_technos, last_selection[1]) && 
         !Set_Equals(current_technos, last_selection[2]) &&
-        !Equals_Union_Of_Two_Other_Sets(current_technos, last_selection[0], last_selection[1]) &&
+        !Equals_Union_Of_Two_Other_Sets(current_technos, last_selection[0], last_selection[1]) && // and not a union of any two tiers
         !Equals_Union_Of_Two_Other_Sets(current_technos, last_selection[0], last_selection[2]) &&
         !Equals_Union_Of_Two_Other_Sets(current_technos, last_selection[1], last_selection[2])) {
-        if (is_shift_pressed || best_selected_veterancy == worst_selected_veterancy) {
+        // then we have a new selection that is not a subset of the last selection,
+        // and we start a new filtering process
+        if (is_shift_pressed || best_selected_tier == worst_selected_tier) {
+            // shift only makes sense if we already have started filtering
             return true; // can't add anything if we haven't filtered yet or the new selection is already of same rank
         }
         last_full_selection.Clear();
         last_selection[0].Clear();
         last_selection[1].Clear();
         last_selection[2].Clear();
+        // fill the last_full_selection and last_selection arrays
         for (int i = 0; i < current_technos.Count(); ++i) {
             last_full_selection.Add(current_technos[i]);
             last_selection[classify_function(current_technos[i])].Add(current_technos[i]);
         }
-        for (int i = best_selected_veterancy+1; i < 3; ++i) {
+        // unselect all objects except the ones in the best tier among the current selection
+        for (int i = best_selected_tier + 1; i < 3; ++i) {
             for (int k = 0; k < current_selection[i].Count(); ++k) {
                 current_selection[i][k]->Unselect();
             }
         }
-        if (best_selected_veterancy >= 0 && best_selected_veterancy < 3) {
-            for (int k = 0; k < current_selection[best_selected_veterancy].Count(); ++k) {
-                current_selection[best_selected_veterancy][k]->Response_Select();
+        // play the selection sound for the best tier
+        if (best_selected_tier >= 0 && best_selected_tier < 3) {
+            for (int k = 0; k < current_selection[best_selected_tier].Count(); ++k) {
+                current_selection[best_selected_tier][k]->Response_Select();
             }
         }
     } else {
-        int next_tier_veterancy = worst_selected_veterancy;
+        // we're already filtering
+        int next_tier = worst_selected_tier;
         int loop_breaker = 3;
-        if (best_selected_veterancy != worst_selected_veterancy) {
+        if (best_selected_tier != worst_selected_tier) {
+            // there are at least two tiers in the selection
             if (Set_Equals(current_technos, last_full_selection)) {
-                next_tier_veterancy = best_selected_veterancy;
+                // if the current selection is the same as the last full selection,
+                // we restrict the selection to the best tier
+                next_tier = best_selected_tier;
             } else {
-                next_tier_veterancy = Get_Other_Veterancy(best_selected_veterancy, worst_selected_veterancy);
+                // if the current selection is not the same as the last full selection,
+                // we find the tier not in the current selection
+                next_tier = Get_Other_Tier(best_selected_tier, worst_selected_tier);
             }
         } else {
             do {
                 loop_breaker--;
-                next_tier_veterancy = (next_tier_veterancy + 1) % 3;
-            } while (last_selection[next_tier_veterancy].Count() == 0 && loop_breaker > 0);
+                next_tier = (next_tier + 1) % 3;
+                // we loop through the tiers until we find a non-empty one
+            } while (last_selection[next_tier].Count() == 0 && loop_breaker > 0);
         }
-        if (next_tier_veterancy == -1) {
+        if (next_tier == -1) {
+            // couldn't find the next tier
             if (is_shift_pressed) {
+                // nothing to do if we can't find a next tier
                 return true;
             } else {
-                next_tier_veterancy = best_selected_veterancy;
+                // if we're not in add mode, we select the best tier
+                next_tier = best_selected_tier;
             }
         }
-        if (next_tier_veterancy >= 0 && next_tier_veterancy < 3 && last_selection[next_tier_veterancy].Count() > 0) {
+        if (next_tier >= 0 && next_tier < 3 && last_selection[next_tier].Count() > 0) {
+            // we found the next tier, and it is not empty
             if (!is_shift_pressed) {
                 for (int i = 0; i < current_technos.Count(); ++i) {
                     current_technos[i]->Unselect();
                 }
             }
-            for (int i = 0; i < last_selection[next_tier_veterancy].Count(); ++i) {
-                last_selection[next_tier_veterancy][i]->Select();
+            // Select() also plays the selection sound
+            for (int i = 0; i < last_selection[next_tier].Count(); ++i) {
+                last_selection[next_tier][i]->Select();
             }
         }
     }
 
     return true;
 }
-
 
 /**
  *  Cycle through elite/veteran/green units among the last heterogenous selection.
