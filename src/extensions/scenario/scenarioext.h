@@ -91,6 +91,8 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
         int Find_Free_Local() const;
         int Num_Locals() const;
 
+        static std::string Substitute_Variable_Placeholders(std::string input);
+
         static void Assign_Houses();
         static void Create_Units(bool official);
 

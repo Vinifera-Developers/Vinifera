@@ -151,6 +151,7 @@ bool TActionClassExtension::Execute(TActionClass& taction, HouseClass* house, Ob
          */
         DISPATCH(WIN);
         DISPATCH(LOSE);
+        DISPATCH(TEXT_TRIGGER);
         DISPATCH(DESTROY_TRIGGER);
         DISPATCH(ENABLE_TRIGGER);
         DISPATCH(PLAY_SOUND_RANDOM);
@@ -353,6 +354,47 @@ bool TActionClassExtension::Do_LOSE(TActionClass& taction, HouseClass* house, Ob
         }
     }
 
+    return true;
+}
+
+
+/**
+ *  An enhanced text trigger action.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_TEXT_TRIGGER(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    int text_index = taction.Data.Value;
+    if (!TutorialText.Is_Present(text_index)) {
+        return false;
+    }
+
+    /**
+     *  Substitute the placeholders in the tutorial string.
+     */
+    std::string text = ScenarioClassExtension::Substitute_Variable_Placeholders(TutorialText[text_index]);
+
+    /**
+     *  Fetch the requested duration. If it's <= 0, fall back to vanilla.
+     */
+    int duration = taction.TriggerRect.X;
+    duration = std::max(0, duration);
+    if (duration == 0) {
+        duration = Rule->MessageDelay * TICKS_PER_MINUTE;
+    } else {
+        duration *= TICKS_PER_SECOND;
+    }
+
+    ColorSchemeType color = static_cast<ColorSchemeType>(taction.TriggerRect.Y);
+    if (color < COLORSCHEME_FIRST || color >= ColorSchemes.Count()) {
+        color = PlayerPtr->RemapColor;
+    }
+
+    /**
+     *  Display a text message overlayed onto the tactical map.
+     */
+    Session.Messages.Add_Message(nullptr, 0, text.c_str(), color, TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, duration);
     return true;
 }
 

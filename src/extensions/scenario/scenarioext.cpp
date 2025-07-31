@@ -49,6 +49,7 @@
 #include "debughandler.h"
 #include "houseext.h"
 #include "tag.h"
+#include <regex>
 
 
 /**
@@ -843,6 +844,71 @@ int ScenarioClassExtension::Num_Locals() const
         }
     }
     return count;
+}
+
+
+/**
+ *  Gets the value of a global as a string.
+ *
+ *  @author: ZivDero
+ */
+static std::string Resolve_Global(const std::string& name)
+{
+    int value;
+    if (ScenExtension->Get_Global_Value(ScenExtension->Find_Global_Variable_Index(name.c_str()), value)) {
+        return std::to_string(value);
+    }
+    return "";
+}
+
+
+/**
+ *  Gets the value of a local as a string.
+ *
+ *  @author: ZivDero
+ */
+static std::string Resolve_Local(const std::string& name)
+{
+    int value;
+    if (ScenExtension->Get_Local_Value(ScenExtension->Find_Local_Variable_Index(name.c_str()), value)) {
+        return std::to_string(value);
+    }
+    return "";
+}
+
+
+/**
+ *  Replaces variable placeholders in a text line with the variables' values.
+ *
+ *  @author: ZivDero
+ */
+std::string ScenarioClassExtension::Substitute_Variable_Placeholders(std::string input)
+{
+    static const std::regex placeholder_re(R"(\{\{([a-zA-Z_][a-zA-Z0-9_]*)\}\})");
+
+    std::string result;
+    std::sregex_iterator begin(input.begin(), input.end(), placeholder_re), end;
+    std::size_t last_pos = 0;
+
+    for (auto it = begin; it != end; ++it) {
+        result.append(input, last_pos, it->position() - last_pos);
+
+        const std::string name = (*it)[1];
+        if (name.compare(0, 2, "g_") == 0) {
+            result.append(Resolve_Global(name.substr(2)));
+        }
+        else if (name.compare(0, 2, "l_") == 0) {
+            result.append(Resolve_Local(name.substr(2)));
+        }
+        else {
+            // Unknown prefix: skip (i.e. replace with "")
+        }
+
+        last_pos = it->position() + it->length();
+    }
+
+    result.append(input, last_pos, std::string::npos);
+    return result;
 }
 
 
