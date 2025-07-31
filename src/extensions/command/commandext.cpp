@@ -73,7 +73,6 @@
 #include "miscutil.h"
 #include "debughandler.h"
 #include "asserthandler.h"
-#include "event.h"
 
 /**
  *  Handy defines for handling any adjustments.
