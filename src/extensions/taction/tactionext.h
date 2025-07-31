@@ -44,8 +44,8 @@ public:
     static bool Execute(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     static bool Is_Vinifera_TAction(TActionType type);
 
-    static const char* Action_Name(int event);
-    static const char* Action_Description(int event);
+    static const char* Action_Name(int action);
+    static const char* Action_Description(int action);
 
 private:
 
