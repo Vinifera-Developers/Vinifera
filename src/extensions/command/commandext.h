@@ -461,25 +461,6 @@ class CaptureObjectCommandClass : public ViniferaCommandClass
         virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
-
-/**
- *  Forces selected units to hold position.
- */
-class HoldPositionCommandClass : public ViniferaCommandClass
-{
-    public:
-        HoldPositionCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
-        virtual ~HoldPositionCommandClass() {}
-
-        virtual const char *Get_Name() const override;
-        virtual const char *Get_UI_Name() const override;
-        virtual const char *Get_Category() const override;
-        virtual const char *Get_Description() const override;
-        virtual bool Process() override;
-
-        virtual KeyNumType Default_Key() const override { return KeyNumType(KN_CTRL_BIT | KN_S); }
-};
-
 class VeterancyPromoteCommandClass : public ViniferaCommandClass
 {
     public:

@@ -246,12 +246,6 @@ void Init_Vinifera_Commands()
     cmdptr = new ToggleSuperTimersCommandClass;
     Commands.Add(cmdptr);
 
-    cmdptr = new HoldPositionCommandClass;
-    Commands.Add(cmdptr);
-
-    cmdptr = new VeterancyPromoteCommandClass;
-    Commands.Add(cmdptr);
-
     cmdptr = new VeterancyFilterCommandClass;
     Commands.Add(cmdptr);
 
