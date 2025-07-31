@@ -54,6 +54,7 @@
 #include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include <regex>
 
 
 /**
@@ -71,12 +72,11 @@ TacticalExtension::TacticalExtension(const Tactical* this_ptr) :
     InfoTextStyle(TPF_6PT_GRAD | TPF_DROPSHADOW),
     InfoTextTimer(0),
     CellRedrawCount(0),
-    IsVariableCounterVisible(false),
-    VariableCounterLabelIndex(0),
-    VariableCounterVariableID(0),
-    IsCounterVariableGlobal(true),
-    VariableCounterPosition(TOP_RIGHT),
-    VariableCounterStyle(TPF_6PT_GRAD | TPF_DROPSHADOW)
+    IsTemplatedTextVisible(false),
+    TemplatedTextIndex(0),
+    TemplateTextPosition(TOP_RIGHT),
+    TemplateTextColor(COLORSCHEME_NONE),
+    TemplateTextStyle(TPF_6PT_GRAD | TPF_DROPSHADOW)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TacticalExtension::TacticalExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -202,12 +202,11 @@ void TacticalExtension::Set_Info_Text(const char* text)
  *
  *  @authors: ZivDero
  */
-void TacticalExtension::Enable_Variable_Counter(int label, int variable, bool global)
+void TacticalExtension::Enable_Templated_Text(int label, ColorSchemeType color)
 {
-    IsVariableCounterVisible = true;
-    VariableCounterLabelIndex = label;
-    VariableCounterVariableID = variable;
-    IsCounterVariableGlobal = global;
+    IsTemplatedTextVisible = true;
+    TemplatedTextIndex = label;
+    TemplateTextColor = color;
 }
 
 
@@ -216,9 +215,9 @@ void TacticalExtension::Enable_Variable_Counter(int label, int variable, bool gl
  *
  *  @authors: ZivDero
  */
-void TacticalExtension::Disable_Variable_Counter()
+void TacticalExtension::Disable_Templated_Text()
 {
-    IsVariableCounterVisible = false;
+    IsTemplatedTextVisible = false;
 }
 
 
@@ -236,7 +235,7 @@ void TacticalExtension::Draw_Version_Number_Text()
 #endif
         Vinifera_Draw_Version_Text(CompositeSurface);
     }
-    }
+}
 
 
 /**
@@ -742,49 +741,109 @@ void TacticalExtension::Draw_Super_Timers()
 
 
 /**
+ *  Gets the value of a global as a string.
+ *
+ *  @author: ZivDero
+ */
+static std::string Resolve_Global(const std::string& name)
+{
+    int value;
+    if (ScenExtension->Get_Global_Value(ScenExtension->Find_Global_Variable_Index(name.c_str()), value)) {
+        return std::to_string(value);
+    }
+    return "";
+}
+
+
+/**
+ *  Gets the value of a local as a string.
+ *
+ *  @author: ZivDero
+ */
+static std::string Resolve_Local(const std::string& name)
+{
+    int value;
+    if (ScenExtension->Get_Local_Value(ScenExtension->Find_Local_Variable_Index(name.c_str()), value)) {
+        return std::to_string(value);
+    }
+    return "";
+}
+
+
+/**
+ *  Replaces variable placeholders in a text line with the variables' values.
+ *
+ *  @author: ZivDero
+ */
+std::string Replace_Placeholders(const std::string& input) {
+    static const std::regex placeholder_re(R"(\{\{([a-zA-Z_][a-zA-Z0-9_]*)\}\})");
+
+    std::string result;
+    std::sregex_iterator begin(input.begin(), input.end(), placeholder_re), end;
+    std::size_t last_pos = 0;
+
+    for (auto it = begin; it != end; ++it) {
+        result.append(input, last_pos, it->position() - last_pos);
+
+        const std::string name = (*it)[1];
+        if (name.compare(0, 2, "g_") == 0) {
+            result.append(Resolve_Global(name.substr(2)));
+        }
+        else if (name.compare(0, 2, "l_") == 0) {
+            result.append(Resolve_Local(name.substr(2)));
+        }
+        else {
+            // Unknown prefix: skip (i.e. replace with "")
+        }
+
+        last_pos = it->position() + it->length();
+    }
+
+    result.append(input, last_pos, std::string::npos);
+    return result;
+}
+
+
+/**
  *  Draw the variable counter if enabled.
  *
  *  @author: CCHyper, ZivDero
  */
 void TacticalExtension::Draw_Variable_Counter()
 {
-    if (!IsVariableCounterVisible) {
+    if (!IsTemplatedTextVisible) {
         return;
     }
 
     int padding = 2;
 
-    int value;
-    if (IsCounterVariableGlobal) {
-        if (!ScenExtension->Get_Global_Value(VariableCounterVariableID, value)) {
-            return;
-        }
-    }
-    else {
-        if (!ScenExtension->Get_Local_Value(VariableCounterVariableID, value)) {
-            return;
-        }
+    if (!TutorialText.Is_Present(TemplatedTextIndex)) {
+        return;
     }
 
     /**
      *  Format the string using the tutorial text as a format. God this is unsafe...
      */
-    static char text[512];
-    std::snprintf(text, sizeof(text), TutorialText[VariableCounterLabelIndex], value);
+    std::string text = Replace_Placeholders(TutorialText[TemplatedTextIndex]);
 
     /**
      *  Fetch the text occupy area.
      */
     Rect text_rect;
-    GradFont6Ptr->String_Pixel_Rect(text, &text_rect);
+    GradFont6Ptr->String_Pixel_Rect(text.c_str(), &text_rect);
 
     Rect fill_rect;
 
-    TextPrintType style = VariableCounterStyle;
+    TextPrintType style = TemplateTextStyle;
     int pos_x = 0;
     int pos_y = 0;
 
-    switch (VariableCounterPosition) {
+    ColorSchemeType color = TemplateTextColor;
+    if (color < COLORSCHEME_FIRST || color >= ColorSchemes.Count()) {
+        color = PlayerPtr->RemapColor;
+    }
+
+    switch (TemplateTextPosition) {
 
     default:
     case InfoTextPosType::TOP_LEFT:
@@ -876,8 +935,8 @@ void TacticalExtension::Draw_Variable_Counter()
     /**
      *  Draw the overlay text.
      */
-    Fancy_Text_Print(text, CompositeSurface, &CompositeSurface->Get_Rect(),
-        &Point2D(text_rect.X, text_rect.Y), ColorSchemes[PlayerPtr->RemapColor], COLOR_TBLACK, style);
+    Fancy_Text_Print(text.c_str(), CompositeSurface, &CompositeSurface->Get_Rect(),
+        &Point2D(text_rect.X, text_rect.Y), ColorSchemes[color], COLOR_TBLACK, style);
 }
 
 

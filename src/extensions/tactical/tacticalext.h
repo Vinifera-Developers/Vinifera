@@ -69,8 +69,8 @@ public:
     virtual const char* Full_Name() const override { return "TacticalMap"; }
 
     void Set_Info_Text(const char* text);
-    void Enable_Variable_Counter(int label, int variable, bool global);
-    void Disable_Variable_Counter();
+    void Enable_Templated_Text(int label, ColorSchemeType color);
+    void Disable_Templated_Text();
 
     void Draw_Version_Number_Text();
 
@@ -138,32 +138,27 @@ public:
     int CellRedrawCount;
 
     /**
-     *  Is the variable counter currently enabled?
+     *  Is the templated text currently shown?
      */
-    bool IsVariableCounterVisible;
+    bool IsTemplatedTextVisible;
 
     /**
-     *  Index of the tutorial text to show as the counter label.
+     *  Index of the tutorial text to show as the templated text.
      */
-    int VariableCounterLabelIndex;
+    int TemplatedTextIndex;
 
     /**
-     *  Which variable is the source for the counter's value.
+     *  Where on the screen shall the templated text be printed?
      */
-    int VariableCounterVariableID;
+    InfoTextPosType TemplateTextPosition;
 
     /**
-     *  Is the counter variable global?
+     *  Which color scheme should the templated text use?
      */
-    bool IsCounterVariableGlobal;
+    ColorSchemeType TemplateTextColor;
 
     /**
-     *  Where on the screen shall the counter be printed?
+     *  The font style of the templated text.
      */
-    InfoTextPosType VariableCounterPosition;
-
-    /**
-     *  The font style of the print text.
-     */
-    TextPrintType VariableCounterStyle;
+    TextPrintType TemplateTextStyle;
 };

@@ -800,7 +800,7 @@ DECLARE_PATCH(_Tactical_Render_Overlay_Patch)
     /**
      *  Has a variable counter been enabled?
      */
-    if (TacticalMapExtension->IsVariableCounterVisible) {
+    if (TacticalMapExtension->IsTemplatedTextVisible) {
 
         /**
          *  Draw it to the screen.

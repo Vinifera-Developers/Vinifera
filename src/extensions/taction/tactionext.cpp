@@ -76,9 +76,8 @@ TActionClass::ActionDescriptionStruct TActionClassExtension::ExtActionDescriptio
     { "Random number (local)", "Generates a random number and stores it in a local variable." },
     { "Print global", "Prints the value of a global variable." },
     { "Print local", "Prints the value of a local variable." },
-    { "Enable global counter", "Displays the value of a global variable with a label on the screen. The label text must contain exactly one \"%d\" as a format placeholder." },
-    { "Enable local counter", "Displays the value of a local variable with a label on the screen. The label text must contain exactly one \"%d\" as a format placeholder." },
-    { "Disable counter", "Hides the currently active variable counter from the screen." },
+    { "Enable templated text", "Displays a line of text on the screen with variable substitution. The text may include placeholders like {{g_variableName}} or {{l_variableName}}, which are replaced with the corresponding global or local variable values. Color `-1` uses the color of the player's house." },
+    { "Disable templated text", "Removes the currently active templated text from the screen." },
 };
 
 
@@ -185,9 +184,8 @@ bool TActionClassExtension::Execute(TActionClass& taction, HouseClass* house, Ob
         EXT_DISPATCH(RANDOM_NUMBER_LOCAL);
         EXT_DISPATCH(PRINT_GLOBAL);
         EXT_DISPATCH(PRINT_LOCAL);
-        EXT_DISPATCH(ENABLE_GLOBAL_COUNTER);
-        EXT_DISPATCH(ENABLE_LOCAL_COUNTER);
-        EXT_DISPATCH(DISABLE_VARIABLE_COUNTER);
+        EXT_DISPATCH(ENABLE_TEMPLATED_TEXT);
+        EXT_DISPATCH(DISABLE_TEMPLATED_TEXT);
 
         /**
          *  Used to print the current difficulty in ts-patches, available to be repurposed.
@@ -1277,21 +1275,9 @@ bool TActionClassExtension::Do_PRINT_LOCAL(TActionClass& taction, HouseClass* ho
  *
  *  @author: ZivDero
  */
-bool TActionClassExtension::Do_ENABLE_GLOBAL_COUNTER(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExtension::Do_ENABLE_TEMPLATED_TEXT(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
-    TacticalMapExtension->Enable_Variable_Counter(taction.Data.Value, taction.TriggerRect.X, true);
-    return true;
-}
-
-
-/**
- *  Enables the variable counter for a local variable.
- *
- *  @author: ZivDero
- */
-bool TActionClassExtension::Do_ENABLE_LOCAL_COUNTER(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
-{
-    TacticalMapExtension->Enable_Variable_Counter(taction.Data.Value, taction.TriggerRect.X, false);
+    TacticalMapExtension->Enable_Templated_Text(taction.Data.Value, static_cast<ColorSchemeType>(taction.TriggerRect.X));
     return true;
 }
 
@@ -1301,8 +1287,8 @@ bool TActionClassExtension::Do_ENABLE_LOCAL_COUNTER(TActionClass& taction, House
  *
  *  @author: ZivDero
  */
-bool TActionClassExtension::Do_DISABLE_VARIABLE_COUNTER(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+bool TActionClassExtension::Do_DISABLE_TEMPLATED_TEXT(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
-    TacticalMapExtension->Disable_Variable_Counter();
+    TacticalMapExtension->Disable_Templated_Text();
     return true;
 }

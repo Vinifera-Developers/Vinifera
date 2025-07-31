@@ -184,12 +184,10 @@ NAME = [Action Count], [TActionType], [NeedCode], [PARAM1], [PARAM2], [PARAM3], 
 |          | Displays the current value of a global variable as a message. | Other (0) | Global Variable (#) | *unused*          | *unused*         | *unused*         | *unused*         | *unused*         |
 | 132      | Print Local                     |
 |          | Displays the current value of a local variable as a message. | Other (0) | Local Variable (#)  | *unused*          | *unused*         | *unused*         | *unused*         | *unused*         |
-| 133      | Enable Global Counter     |
-|          | Displays the value of a global variable with a label on the screen. The label text must contain exactly one "%d" as a format placeholder. | Other (0) | Text Index (#)     | Global Variable (#) | *unused*   | *unused*   | *unused*   | *unused*   |
-| 134      | Enable Local Counter      |
-|          | Displays the value of a local variable with a label on the screen. The label text must contain exactly one "%d" as a format placeholder.  | Other (0) | Text Index (#)     | Local Variable (#)  | *unused*   | *unused*   | *unused*   | *unused*   |
-| 135      | Disable Counter           |
-|          | Hides the currently active variable counter from the screen. | Other (0) | *unused*           | *unused*            | *unused*   | *unused*   | *unused*   | *unused*   |
+| 133      | Enable Templated Text     |
+|          | Displays a line of text on the screen with variable substitution. The text may include placeholders like `{{g_variableName}}` or `{{l_variableName}}`, which are replaced with the corresponding global or local variable values. Color `-1` uses the color of the player's house. | Other (0) | Text Index (#)     | Color (#) | *unused*   | *unused*   | *unused*   | *unused*   |
+| 134      | Disable Templated Text           |
+|          | Removes the currently active templated text from the screen. | Other (0) | *unused*           | *unused*            | *unused*   | *unused*   | *unused*   | *unused*   |
 
 
 ## Trigger Events
