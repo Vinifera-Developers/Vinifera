@@ -26,6 +26,8 @@
  *
  ******************************************************************************/
 #include "commandext.h"
+
+#include <algorithm>
 #include "tibsun_globals.h"
 #include "tibsun_util.h"
 #include "vinifera_globals.h"
@@ -1755,16 +1757,6 @@ bool CaptureObjectCommandClass::Process()
     return true;
 }
 
-int Classify_Veterancy(TechnoClass* techno)
-{
-    if (techno->Veterancy.Is_Elite()) {
-        return 0;
-    } else if (techno->Veterancy.Is_Veteran()) {
-        return 1;
-    } else {
-        return 2;
-    }
-}
 
 /**
  *  Promote selected units to higher veterancy level
@@ -1802,12 +1794,11 @@ bool VeterancyPromoteCommandClass::Process()
         if (!object || !object->Is_Techno()) {
             continue;
         }
-        if (object->Owning_House() == PlayerPtr) {
-            TechnoClass* techno = dynamic_cast<TechnoClass*>(object);
-            if (Classify_Veterancy(techno) == 2) {
+        TechnoClass* techno = static_cast<TechnoClass*>(object);
+        if (techno->House->Is_Player_Control()) {
+            if (techno->Veterancy.Is_Rookie()) {
                 techno->Veterancy.Set_Veteran(true);
-            }
-            else if(Classify_Veterancy(techno) == 1) {
+            } else if (techno->Veterancy.Is_Veteran()) {
                 techno->Veterancy.Set_Elite(true);
             }
         }
@@ -1820,7 +1811,7 @@ bool VeterancyPromoteCommandClass::Process()
 
 using TechnoList = DynamicVectorClass<TechnoClass*>;
 
-bool Set_Equals(TechnoList& a, TechnoList& b)
+static bool Set_Equals(TechnoList& a, TechnoList& b)
 {
     if (a.Count() != b.Count()) {
         return false;
@@ -1833,9 +1824,7 @@ bool Set_Equals(TechnoList& a, TechnoList& b)
     return true;
 }
 
-
-
-bool Equals_Union_Of_Two_Other_Sets(TechnoList& current, TechnoList& a, TechnoList& b)
+static bool Equals_Union_Of_Two_Other_Sets(TechnoList& current, TechnoList& a, TechnoList& b)
 {
     if (current.Count() != a.Count() + b.Count()) {
         return false;
@@ -1848,17 +1837,15 @@ bool Equals_Union_Of_Two_Other_Sets(TechnoList& current, TechnoList& a, TechnoLi
     return true;
 }
 
-bool Equals_Union_Of_Three_Other_Sets(TechnoList& current, TechnoList& a, TechnoList& b, TechnoList& c)
+static int Get_Veterancy_Level(TechnoClass* techno)
 {
-    if (current.Count() != a.Count() + b.Count() + c.Count()) {
-        return false;
+    if (techno->Veterancy.Is_Elite()) {
+        return 0;
+    } else if (techno->Veterancy.Is_Veteran()) {
+        return 1;
+    } else {
+        return 2;
     }
-    for (int i = 0; i < current.Count(); ++i) {
-        if (!a.Is_Present(current[i]) && !b.Is_Present(current[i]) && !c.Is_Present(current[i])) {
-            return false;
-        }
-    }
-    return true;
 }
 
 // returns veterancy other than the two specified
@@ -1868,15 +1855,14 @@ int Get_Other_Veterancy(int a, int b)
     return ((a + b) * 2) % 3;
 }
 
-bool ProcessVeterancyFilter(bool is_shift_pressed)
+bool Process_Veterancy_Filter(bool is_shift_pressed)
 {
-    if (!Session.Singleplayer_Game()) {
+    if (Session.Players.Count() > 1) {
         return false;
     }
 
     static TechnoList last_selection[3];
     static TechnoList last_full_selection;
-    bool is_heterogenous = false;
     TechnoList current_selection[3];
 
     current_selection[0].Clear();
@@ -1890,18 +1876,14 @@ bool ProcessVeterancyFilter(bool is_shift_pressed)
 
     for (int i = 0; i < CurrentObjects.Count(); ++i) {
         ObjectClass* object = CurrentObjects[i];
-        if (!object || object->Owning_House() != PlayerPtr || !object->Is_Techno()) {
+        if (!object || !object->Is_Techno() || !static_cast<TechnoClass*>(object)->House->Is_Player_Control()) {
             return true;
         }
-        TechnoClass* techno = dynamic_cast<TechnoClass*>(object);
+        TechnoClass* techno = static_cast<TechnoClass*>(object);
         current_technos.Add(techno);
-        int veterancy = Classify_Veterancy(techno);
-        if (veterancy < best_selected_veterancy) {
-            best_selected_veterancy = veterancy;
-        }
-        if (veterancy > worst_selected_veterancy) {
-            worst_selected_veterancy = veterancy;
-        }
+        int veterancy = Get_Veterancy_Level(techno);
+        best_selected_veterancy = std::min(veterancy, best_selected_veterancy);
+        worst_selected_veterancy = std::max(veterancy, worst_selected_veterancy);
         if (veterancy >= 0 && veterancy < 3) {
             current_selection[veterancy].Add(techno);
         }
@@ -1923,7 +1905,7 @@ bool ProcessVeterancyFilter(bool is_shift_pressed)
         last_selection[2].Clear();
         for (int i = 0; i < current_technos.Count(); ++i) {
             last_full_selection.Add(current_technos[i]);
-            last_selection[Classify_Veterancy(current_technos[i])].Add(current_technos[i]);
+            last_selection[Get_Veterancy_Level(current_technos[i])].Add(current_technos[i]);
         }
         for (int i = best_selected_veterancy+1; i < 3; ++i) {
             for (int k = 0; k < current_selection[i].Count(); ++k) {
@@ -1935,15 +1917,13 @@ bool ProcessVeterancyFilter(bool is_shift_pressed)
                 current_selection[best_selected_veterancy][k]->Response_Select();
             }
         }
-    }
-    else {
+    } else {
         int next_tier_veterancy = worst_selected_veterancy;
         int loop_breaker = 3;
         if (best_selected_veterancy != worst_selected_veterancy) {
             if (Set_Equals(current_technos, last_full_selection)) {
                 next_tier_veterancy = best_selected_veterancy;
-            }
-            else {
+            } else {
                 next_tier_veterancy = Get_Other_Veterancy(best_selected_veterancy, worst_selected_veterancy);
             }
         } else {
@@ -1955,8 +1935,7 @@ bool ProcessVeterancyFilter(bool is_shift_pressed)
         if (next_tier_veterancy == -1) {
             if (is_shift_pressed) {
                 return true;
-            }
-            else {
+            } else {
                 next_tier_veterancy = best_selected_veterancy;
             }
         }
@@ -1971,8 +1950,6 @@ bool ProcessVeterancyFilter(bool is_shift_pressed)
             }
         }
     }
-
-    Map.Recalc();
 
     return true;
 }
@@ -2000,12 +1977,12 @@ const char* VeterancyFilterCommandClass::Get_Category() const
 
 const char* VeterancyFilterCommandClass::Get_Description() const
 {
-    return "Filter out elites/veterans/green units among the last mixed selection";
+    return "Filter out elite/veteran/rookie units from the last mixed selection.";
 }
 
 bool VeterancyFilterCommandClass::Process()
 {
-    return ProcessVeterancyFilter(false);
+    return Process_Veterancy_Filter(false);
 }
 
 
@@ -2021,7 +1998,7 @@ const char* VeterancyFilterAddLowerCommandClass::Get_Name() const
 
 const char* VeterancyFilterAddLowerCommandClass::Get_UI_Name() const
 {
-    return "Veterancy Filter/Add Lower";
+    return "Veterancy Filter (Add Lower)";
 }
 
 const char* VeterancyFilterAddLowerCommandClass::Get_Category() const
@@ -2031,12 +2008,12 @@ const char* VeterancyFilterAddLowerCommandClass::Get_Category() const
 
 const char* VeterancyFilterAddLowerCommandClass::Get_Description() const
 {
-    return "Add units of lower veterancy to the already filtered subset";
+    return "Add units of lower veterancy to the already filtered subset.";
 }
 
 bool VeterancyFilterAddLowerCommandClass::Process()
 {
-    return ProcessVeterancyFilter(true);
+    return Process_Veterancy_Filter(true);
 }
 
 /**

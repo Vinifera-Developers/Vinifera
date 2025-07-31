@@ -629,6 +629,7 @@ public:
     virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
+
 /**
  *  Promote selected units.
  */
@@ -645,6 +646,7 @@ class VeterancyPromoteCommandClass : public ViniferaCommandClass
         virtual bool Process() override;
         virtual KeyNumType Default_Key() const override { return KeyNumType(KN_CTRL_BIT | KN_Y); }
 };
+
 
 /**
  *  Cycles through green/veteran/elite units among the initially selected group 
