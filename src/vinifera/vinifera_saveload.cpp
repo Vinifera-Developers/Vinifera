@@ -52,7 +52,7 @@
 #include "campaign.h"
 #include "ccini.h"
 #include "empulse.h"
-#include "endgame.h"
+#include "environment.h"
 #include "factory.h"
 #include "foggedobject.h"
 #include "house.h"
@@ -116,7 +116,7 @@
 
 
 #include "scenario.h"
-#include "endgame.h"
+#include "environment.h"
 #include "rules.h"
 #include "iomap.h"
 #include "logic.h"
@@ -272,8 +272,8 @@ bool Vinifera_Put_All(IStream *pStm, bool save_net)
     DEBUG_INFO("Saving Scenario...\n");
     Scen->Save_Self(pStm);
 
-    DEBUG_INFO("Saving EndGame...\n");
-    EndGame.Save(pStm);
+    DEBUG_INFO("Saving Environment...\n");
+    Environment.Save(pStm);
 
     DEBUG_INFO("Saving Rule...\n");
     Rule->Save(pStm);
@@ -496,8 +496,8 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
     Map.Set_View_Dimensions(tactical_rect);
     }
 
-    DEBUG_INFO("Loading EndGame...\n");
-    EndGame.Load(pStm);
+    DEBUG_INFO("Loading Environment...\n");
+    Environment.Load(pStm);
 
     Init_Theater(Scen->Theater);
 

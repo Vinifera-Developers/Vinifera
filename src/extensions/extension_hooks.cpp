@@ -133,7 +133,7 @@
 
 #include "combatext_hooks.h"
 #include "dropshipext_hooks.h"
-#include "endgameext_hooks.h"
+#include "environmentext_hooks.h"
 #include "eventext_hooks.h"
 #include "mapseedext_hooks.h"
 #include "multiscoreext_hooks.h"
@@ -286,7 +286,7 @@ void Extension_Hooks()
 
     CombatExtension_Hooks();
     DropshipExtension_Hooks();
-    EndGameExtension_Hooks();
+    EnvironmentExtension_Hooks();
     MapSeedClassExtension_Hooks();
     MultiScoreExtension_Hooks();
     ScoreClassExtension_Hooks();

@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          ENDGAMEEXT_HOOKS.H
+ *  @file          ENVIRONMENTEXT_HOOKS.H
  *
  *  @author        CCHyper
  *
- *  @brief         Contains the hooks for the extended EndGameClass.
+ *  @brief         Contains the hooks for the extended EnvironmentClass.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -28,4 +28,4 @@
 #pragma once
 
 
-void EndGameExtension_Hooks();
+void EnvironmentExtension_Hooks();

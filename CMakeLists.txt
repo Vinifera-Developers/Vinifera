@@ -230,7 +230,6 @@ endif()
 set(PROJECT_DLL "${PROJECT_NAME}.dll")
 set(UNSUPPORTED_TARGET_ERROR "(Only TS203EN, Freeware-TS, and TUC-TS (2024 release) is currently supported)")
 set(TARGET_EXE "GAME.EXE") # Define the EXE to launch.
-set(TARGET_PDB "GAME.PDB") # Define the PDB for the target.
 set(TARGET_EDB "GAME.EDB") # Define the EDB (exception database) for the target.
 set(TARGET_NAME "Tiberian Sun")
 
@@ -376,14 +375,6 @@ if(NOT ${OPTION_CUSTOM_DEBUGGER_DIRECTORY_PATH} STREQUAL " ")
 	# Set input and output paths.
 	set(COPY_SOURCE_FILE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>/)
 	set(COPY_DESTINATION_PATH ${OPTION_CUSTOM_DEBUGGER_DIRECTORY_PATH})
-
-	# Create the post build script.
-	include(WindowsCopyFiles)
-	PostBuild_WindowsCopyFiles(${LAUNCHER_NAME}
-		${COPY_SOURCE_FILE}
-		${COPY_DESTINATION_PATH}
-		"${LAUNCHER_NAME}.exe"
-	)
 endif()
 
 

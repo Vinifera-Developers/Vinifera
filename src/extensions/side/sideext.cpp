@@ -44,8 +44,8 @@
  */
 SideClassExtension::SideClassExtension(const SideClass *this_ptr) :
     AbstractTypeClassExtension(this_ptr),
-    UIColor(COLORSCHEME_NONE),
-    ToolTipColor(COLORSCHEME_NONE),
+    UIColor(COLORSCHEME_FIRST),
+    ToolTipColor(COLORSCHEME_FIRST),
     Crew(nullptr),
     Engineer(nullptr),
     Technician(nullptr),

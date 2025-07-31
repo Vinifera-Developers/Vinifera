@@ -1492,8 +1492,8 @@ bool DumpTriggersCommandClass::Process()
 
         DEBUG_INFO("Tag %d: %s\n", i, tag->Class->FullName);
         DEBUG_INFO("    AttachCount: %d\n", tag->AttachCount);
-        DEBUG_INFO("    Location: %d,%d\n", tag->Location.X, tag->Location.Y);
-        DEBUG_INFO("    IsDestroyed: %d\n", tag->IsDestroyed);
+        DEBUG_INFO("    CellID: %d,%d\n", tag->CellID.X, tag->CellID.Y);
+        DEBUG_INFO("    IsToDie: %d\n", tag->IsToDie);
         DEBUG_INFO("    IsSprung: %d\n", tag->IsSprung);
     }
 

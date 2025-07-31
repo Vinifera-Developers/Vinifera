@@ -36,7 +36,7 @@
 #include "rules.h"
 #include "ccfile.h"
 #include "ccini.h"
-#include "endgame.h"
+#include "environment.h"
 #include "addon.h"
 #include "aircrafttracker.h"
 #include "fatal.h"
@@ -116,7 +116,7 @@ void Init_Home_Cell()
     Map.SidebarClass::Activate(1);
     if (Session.Type == GAME_NORMAL)
     {
-        int home_cell_number = EndGame.Globals[0] ? Scen->AltHome : Scen->Home;
+        int home_cell_number = Environment.Globals[0] ? Scen->AltHome : Scen->Home;
         Cell home_cell = ScenExtension->Waypoint[home_cell_number];
 
         Scen->Views[0] = home_cell;

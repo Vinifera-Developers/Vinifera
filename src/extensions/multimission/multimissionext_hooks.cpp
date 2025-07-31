@@ -25,7 +25,7 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "endgameext_hooks.h"
+#include "environmentext_hooks.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 

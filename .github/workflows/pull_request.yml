@@ -58,7 +58,6 @@ jobs:
           cp ./build/Vinifera.dll ./artifact/Vinifera.dll
           cp ./build/Vinifera.pdb ./artifact/Vinifera.pdb
           cp ./build/LaunchVinifera.exe ./artifact/LaunchVinifera.exe
-          cp ./TSpp/pdb/Game.pdb ./artifact/Game.pdb
           cp ./TSpp/edb/Game.edb ./artifact/Game.edb
           cp ./vinifera-files/files/VINIFERA.VQA ./artifact/Movies/VINIFERA.VQA
 
@@ -118,7 +117,6 @@ jobs:
           cp ./build/Vinifera.dll ./artifact/Vinifera.dll
           cp ./build/Vinifera.pdb ./artifact/Vinifera.pdb
           cp ./build/LaunchVinifera.exe ./artifact/LaunchVinifera.dat
-          cp ./TSpp/pdb/Game.pdb ./artifact/Game.pdb
           cp ./TSpp/edb/Game.edb ./artifact/Game.edb
           cp ./vinifera-files/files/VINIFERA.WMV ./artifact/Movies/VINIFERA.VQA
 
