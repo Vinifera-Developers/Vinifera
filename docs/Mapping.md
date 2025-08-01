@@ -131,7 +131,7 @@ NAME = [Action Count], [TActionType], [NeedCode], [PARAM1], [PARAM2], [PARAM3], 
 |  **ID**  | **Action**               | **NeedCode** | **PARAM1**       | **PARAM2** | **PARAM3** | **PARAM4** | **PARAM5** | **PARAM6** |
 |----------|--------------------------|--------------|------------------|------------|------------|------------|------------|------------|
 | 11       | Text Trigger (Enhanced)     |
-|          | Displays a text message with optional color and duration. Supports templated text substitution: placeholders like `{{g_variableName}}` or `{{l_variableName}}` are replaced with the corresponding global or local variable values. Duration is in seconds at 15 FPS (0 means like in vanilla). | Other (0) | Text Index (#)     | Color (#) | Duration  | *unused*   | *unused*   | *unused*   |
+|          | Displays a text message with optional color and duration. Supports templated text substitution: placeholders like `{{g_variableName}}` or `{{l_variableName}}` are replaced with the corresponding global or local variable values. Duration is in seconds (0 means like in vanilla). | Other (0) | Text Index (#)     | Color (#) | Duration  | *unused*   | *unused*   | *unused*   |
 | 106      | Give Credits             |
 |          | Gives or removes credits from the specified house. A positive amount gives money, a negative amount subtracts it. | Other (0)   | House (#)        | Credits    | *unused*   | *unused*   | *unused*   | *unused*   |
 | 107      | Enable Short Game        |

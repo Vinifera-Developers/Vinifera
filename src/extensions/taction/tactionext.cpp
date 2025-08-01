@@ -384,7 +384,7 @@ bool TActionClassExtension::Do_TEXT_TRIGGER(TActionClass& taction, HouseClass* h
     if (duration == 0) {
         duration = Rule->MessageDelay * TICKS_PER_MINUTE;
     } else {
-        duration *= TICKS_PER_SECOND;
+        duration *= TIMER_SECOND;
     }
 
     ColorSchemeType color = static_cast<ColorSchemeType>(taction.TriggerRect.X) * 2;
