@@ -740,11 +740,11 @@ void TacticalExtension::Draw_Super_Timers()
 
 
 /**
- *  Draw the variable counter if enabled.
+ *  Draw the templated text display if it's enabled.
  *
  *  @author: CCHyper, ZivDero
  */
-void TacticalExtension::Draw_Variable_Counter()
+void TacticalExtension::Draw_Templated_Text()
 {
     if (!IsTemplatedTextVisible) {
         return;
