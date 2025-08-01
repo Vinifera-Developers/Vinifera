@@ -386,7 +386,7 @@ bool TActionClassExtension::Do_TEXT_TRIGGER(TActionClass& taction, HouseClass* h
         duration *= TICKS_PER_SECOND;
     }
 
-    ColorSchemeType color = static_cast<ColorSchemeType>(taction.TriggerRect.Y);
+    ColorSchemeType color = static_cast<ColorSchemeType>(taction.TriggerRect.Y) * 2;
     if (color < COLORSCHEME_FIRST || color >= ColorSchemes.Count()) {
         color = PlayerPtr->RemapColor;
     }
@@ -1319,7 +1319,7 @@ bool TActionClassExtension::Do_PRINT_LOCAL(TActionClass& taction, HouseClass* ho
  */
 bool TActionClassExtension::Do_ENABLE_TEMPLATED_TEXT(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
 {
-    TacticalMapExtension->Enable_Templated_Text(taction.Data.Value, static_cast<ColorSchemeType>(taction.TriggerRect.X));
+    TacticalMapExtension->Enable_Templated_Text(taction.Data.Value, static_cast<ColorSchemeType>(taction.TriggerRect.X * 2));
     return true;
 }
 
