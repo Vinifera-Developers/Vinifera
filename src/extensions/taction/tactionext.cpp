@@ -388,7 +388,7 @@ bool TActionClassExtension::Do_TEXT_TRIGGER(TActionClass& taction, HouseClass* h
 
     ColorSchemeType color = static_cast<ColorSchemeType>(taction.TriggerRect.Y) * 2;
     if (color < COLORSCHEME_FIRST || color >= ColorSchemes.Count()) {
-        color = PlayerPtr->RemapColor;
+        color = COLORSCHEME_FIRST;
     }
 
     /**
