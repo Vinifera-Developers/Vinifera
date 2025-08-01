@@ -151,17 +151,17 @@ public:
     /**
      *  Where on the screen shall the templated text be printed?
      */
-    InfoTextPosType TemplateTextPosition;
+    InfoTextPosType TemplatedTextPosition;
 
     /**
      *  Which color scheme should the templated text use?
      */
-    ColorSchemeType TemplateTextColor;
+    ColorSchemeType TemplatedTextColor;
 
     /**
      *  The font style of the templated text.
      */
-    TextPrintType TemplateTextStyle;
+    TextPrintType TemplatedTextStyle;
 
     /**
      *  Is there a cached string containing the formatted templated text?

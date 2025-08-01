@@ -379,7 +379,7 @@ bool TActionClassExtension::Do_TEXT_TRIGGER(TActionClass& taction, HouseClass* h
     /**
      *  Fetch the requested duration. If it's <= 0, fall back to vanilla.
      */
-    int duration = taction.TriggerRect.X;
+    int duration = taction.TriggerRect.Y;
     duration = std::max(0, duration);
     if (duration == 0) {
         duration = Rule->MessageDelay * TICKS_PER_MINUTE;
@@ -387,7 +387,7 @@ bool TActionClassExtension::Do_TEXT_TRIGGER(TActionClass& taction, HouseClass* h
         duration *= TICKS_PER_SECOND;
     }
 
-    ColorSchemeType color = static_cast<ColorSchemeType>(taction.TriggerRect.Y) * 2;
+    ColorSchemeType color = static_cast<ColorSchemeType>(taction.TriggerRect.X) * 2;
     if (color < COLORSCHEME_FIRST || color >= ColorSchemes.Count()) {
         color = PlayerPtr->RemapColor;
     }

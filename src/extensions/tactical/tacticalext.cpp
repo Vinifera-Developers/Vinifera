@@ -73,9 +73,9 @@ TacticalExtension::TacticalExtension(const Tactical* this_ptr) :
     CellRedrawCount(0),
     IsTemplatedTextVisible(false),
     TemplatedTextIndex(0),
-    TemplateTextPosition(TOP_RIGHT),
-    TemplateTextColor(COLORSCHEME_NONE),
-    TemplateTextStyle(TPF_6PT_GRAD | TPF_DROPSHADOW),
+    TemplatedTextPosition(TOP_RIGHT),
+    TemplatedTextColor(COLORSCHEME_NONE),
+    TemplatedTextStyle(TPF_6PT_GRAD | TPF_DROPSHADOW),
     IsTemplatedTextCached(false),
     TemplatedTextCache {""}
 {
@@ -207,7 +207,7 @@ void TacticalExtension::Enable_Templated_Text(int label, ColorSchemeType color)
 {
     IsTemplatedTextVisible = true;
     TemplatedTextIndex = label;
-    TemplateTextColor = color;
+    TemplatedTextColor = color;
     IsTemplatedTextCached = false;
 }
 
@@ -776,16 +776,16 @@ void TacticalExtension::Draw_Templated_Text()
 
     Rect fill_rect;
 
-    TextPrintType style = TemplateTextStyle;
+    TextPrintType style = TemplatedTextStyle;
     int pos_x = 0;
     int pos_y = 0;
 
-    ColorSchemeType color = TemplateTextColor;
+    ColorSchemeType color = TemplatedTextColor;
     if (color < COLORSCHEME_FIRST || color >= ColorSchemes.Count()) {
         color = PlayerPtr->RemapColor;
     }
 
-    switch (TemplateTextPosition) {
+    switch (TemplatedTextPosition) {
 
     default:
     case InfoTextPosType::TOP_LEFT:
