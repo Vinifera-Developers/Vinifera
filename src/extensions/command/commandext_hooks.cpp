@@ -221,6 +221,10 @@ void Init_Vinifera_Commands()
     Commands.Add(new JumpCameraNorthCommandClass);
     Commands.Add(new JumpCameraSouthCommandClass);
     Commands.Add(new ToggleSuperTimersCommandClass);
+    Commands.Add(new VeterancyFilterCommandClass);
+    Commands.Add(new VeterancyFilterAddNextCommandClass);
+    Commands.Add(new HealthFilterCommandClass);
+    Commands.Add(new HealthFilterAddNextCommandClass);
 
     /**
      *  Initialize hotkeys for the sidebar tabs, if sidebar tabs are enabled.
@@ -293,6 +297,7 @@ void Init_Vinifera_Commands()
         Commands.Add(new ReloadRulesCommandClass);
         Commands.Add(new MeteorShowerCommandClass);
         Commands.Add(new MeteorImpactCommandClass);
+        Commands.Add(new VeterancyPromoteCommandClass);
     }
 
     /**
