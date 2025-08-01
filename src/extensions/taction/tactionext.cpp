@@ -237,6 +237,7 @@ bool TActionClassExtension::Is_Vinifera_TAction(TActionType type)
     switch (type) {
     case TACTION_WIN:
     case TACTION_LOSE:
+    case TACTION_TEXT_TRIGGER:
     case TACTION_DESTROY_TRIGGER:
     case TACTION_ENABLE_TRIGGER:
     case TACTION_PLAY_SOUND_RANDOM:
