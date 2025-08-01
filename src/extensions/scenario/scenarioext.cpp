@@ -48,6 +48,7 @@
 #include "asserthandler.h"
 #include "debughandler.h"
 #include "houseext.h"
+#include "tacticalext.h"
 #include "tag.h"
 #include <regex>
 
@@ -595,6 +596,10 @@ int ScenarioClassExtension::Set_Global_To(int global, int value)
             */
             TagClass::All_Timer_Global_Reset(global);
 
+            /*
+            **  Clear the templated text cache as it may contain this variable.
+            */
+            TacticalMapExtension->Clear_Templated_Text_Cache();
         }
         return previous;
     }
@@ -703,6 +708,10 @@ int ScenarioClassExtension::Set_Local_To(int local, int value)
             */
             TagClass::All_Timer_Local_Reset(local);
 
+            /*
+            **  Clear the templated text cache as it may contain this variable.
+            */
+            TacticalMapExtension->Clear_Templated_Text_Cache();
         }
         return previous;
     }

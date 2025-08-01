@@ -77,8 +77,6 @@ TEventClassExtension::TEventClassExtension(const TEventClass *this_ptr) :
 
     Data2.Value = 0;
     Data3.Value = 0;
-    Data4.Value = 0;
-    Data5.Value = 0;
 }
 
 

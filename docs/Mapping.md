@@ -205,8 +205,6 @@ NAME = [Action Count], [TActionType], [NeedCode], [PARAM1], [PARAM2], [PARAM3], 
 | NeedTechnoAndNumber    | 2                 | Two arguments: PARAM1 parsed as a number, PARAM2 parsed as an INI name                   |
 | NeedTwoArgs    | 3                 | Two arguments: PARAM1, PARAM2 parsed as numbers               |
 | NeedThreeArgs  | 4                 | Three arguments: PARAM1, PARAM2, PARAM3 parsed as numbers        |
-| NeedFourArgs   | 5                 | Four arguments: PARAM1, PARAM2, PARAM3, PARAM4 parsed as numbers|
-| NeedFiveArgs   | 6                 | Five arguments: PARAM1, PARAM2, PARAM3, PARAM4, PARAM5 parsed as numbers|
 
 ```{note}
 Do not specify extra arguments for trigger actions that don't require them!

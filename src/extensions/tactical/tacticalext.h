@@ -71,6 +71,7 @@ public:
     void Set_Info_Text(const char* text);
     void Enable_Templated_Text(int label, ColorSchemeType color);
     void Disable_Templated_Text();
+    void Clear_Templated_Text_Cache() { IsTemplatedTextCached = false; }
 
     void Draw_Version_Number_Text();
 
@@ -161,4 +162,14 @@ public:
      *  The font style of the templated text.
      */
     TextPrintType TemplateTextStyle;
+
+    /**
+     *  Is there a cached string containing the formatted templated text?
+     */
+    bool IsTemplatedTextCached;
+
+    /**
+     *  The cached string containing the formatted templated text.
+     */
+    char TemplatedTextCache[512];
 };

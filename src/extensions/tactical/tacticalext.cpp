@@ -75,7 +75,9 @@ TacticalExtension::TacticalExtension(const Tactical* this_ptr) :
     TemplatedTextIndex(0),
     TemplateTextPosition(TOP_RIGHT),
     TemplateTextColor(COLORSCHEME_NONE),
-    TemplateTextStyle(TPF_6PT_GRAD | TPF_DROPSHADOW)
+    TemplateTextStyle(TPF_6PT_GRAD | TPF_DROPSHADOW),
+    IsTemplatedTextCached(false),
+    TemplatedTextCache {""}
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TacticalExtension::TacticalExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -206,6 +208,7 @@ void TacticalExtension::Enable_Templated_Text(int label, ColorSchemeType color)
     IsTemplatedTextVisible = true;
     TemplatedTextIndex = label;
     TemplateTextColor = color;
+    IsTemplatedTextCached = false;
 }
 
 
@@ -217,6 +220,7 @@ void TacticalExtension::Enable_Templated_Text(int label, ColorSchemeType color)
 void TacticalExtension::Disable_Templated_Text()
 {
     IsTemplatedTextVisible = false;
+    IsTemplatedTextCached = false;
 }
 
 
@@ -759,13 +763,16 @@ void TacticalExtension::Draw_Templated_Text()
     /**
      *  Substitute the placeholders in the tutorial string.
      */
-    std::string text = ScenarioClassExtension::Substitute_Variable_Placeholders(TutorialText[TemplatedTextIndex]);
+    if (!IsTemplatedTextCached) {
+        std::strncpy(TemplatedTextCache, ScenarioClassExtension::Substitute_Variable_Placeholders(TutorialText[TemplatedTextIndex]).c_str(), sizeof(TemplatedTextCache));
+        IsTemplatedTextCached = true;
+    }
 
     /**
      *  Fetch the text occupy area.
      */
     Rect text_rect;
-    GradFont6Ptr->String_Pixel_Rect(text.c_str(), &text_rect);
+    GradFont6Ptr->String_Pixel_Rect(TemplatedTextCache, &text_rect);
 
     Rect fill_rect;
 
@@ -870,7 +877,7 @@ void TacticalExtension::Draw_Templated_Text()
     /**
      *  Draw the overlay text.
      */
-    Fancy_Text_Print(text.c_str(), CompositeSurface, &CompositeSurface->Get_Rect(),
+    Fancy_Text_Print(TemplatedTextCache, CompositeSurface, &CompositeSurface->Get_Rect(),
         &Point2D(text_rect.X, text_rect.Y), ColorSchemes[color], COLOR_TBLACK, style);
 }
 

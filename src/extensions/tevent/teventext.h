@@ -87,14 +87,6 @@ public:
         int Value;
     } Data3;
 
-    union {
-        int Value;
-    } Data4;
-
-    union {
-        int Value;
-    } Data5;
-
 private:
     static TEventClass::EventDescriptionStruct ExtActionDescriptions[EXT_TEVENT_COUNT - EXT_TEVENT_FIRST];
 };

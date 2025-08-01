@@ -696,23 +696,19 @@ void TEventClassExt::_Read_INI()
     int val = std::atoi(text);
 
     char* fourth_arg = nullptr;
-    if (code == 2 || code == 3) {
-        fourth_arg = std::strtok(nullptr, ",");
-    }
-
     char* fifth_arg = nullptr;
-    if (code == 4) {
+
+    switch (code) {
+    default:
+        break;
+    case 4: // 5 args
+        fourth_arg = std::strtok(nullptr, ",");
         fifth_arg = std::strtok(nullptr, ",");
-    }
-
-    char* sixth_arg = nullptr;
-    if (code == 5) {
-        sixth_arg = std::strtok(nullptr, ",");
-    }
-
-    char* seventh_arg = nullptr;
-    if (code == 6) {
-        seventh_arg = std::strtok(nullptr, ",");
+        break;
+    case 3: // 4 args
+    case 2:
+        fourth_arg = std::strtok(nullptr, ",");
+        break;
     }
 
     switch (code) {
@@ -738,20 +734,6 @@ void TEventClassExt::_Read_INI()
         Data.Value = val;
         std::strncpy(extension.IniNameArgument, fourth_arg, sizeof(extension));
         break;
-
-        /**
-         *  Five arguments, numbers.
-         */
-    case 6:
-        extension.Data5.Value = std::atoi(seventh_arg);
-        // fall through
-
-        /**
-         *  Four arguments, numbers.
-         */
-    case 5:
-        extension.Data4.Value = std::atoi(sixth_arg);
-        // fall through
 
         /**
          *  Three arguments, numbers.
@@ -842,14 +824,6 @@ void TEventClassExt::_Build_INI_Entry(char* ptr) const
 
     case 4:
         std::sprintf(ptr, "%d,%d,%d,%d,%d", Event, code, Data.Value, extension.Data2.Value, extension.Data3.Value);
-        break;
-
-    case 5:
-        std::sprintf(ptr, "%d,%d,%d,%d,%d,%d", Event, code, Data.Value, extension.Data2.Value, extension.Data3.Value, extension.Data4.Value);
-        break;
-
-    case 6:
-        std::sprintf(ptr, "%d,%d,%d,%d,%d,%d,%d", Event, code, Data.Value, extension.Data2.Value, extension.Data3.Value, extension.Data4.Value, extension.Data5.Value);
         break;
     }
 }
