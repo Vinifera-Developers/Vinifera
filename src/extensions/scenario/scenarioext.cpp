@@ -884,7 +884,7 @@ static std::string Resolve_Local(const std::string& name)
  */
 std::string ScenarioClassExtension::Substitute_Variable_Placeholders(std::string input)
 {
-    static const std::regex placeholder_re(R"(\{\{([a-zA-Z_][a-zA-Z0-9_]*)\}\})");
+    static const std::regex placeholder_re(R"(\{\{([^{}]*)\}\})");
 
     std::string result;
     std::sregex_iterator begin(input.begin(), input.end(), placeholder_re), end;
