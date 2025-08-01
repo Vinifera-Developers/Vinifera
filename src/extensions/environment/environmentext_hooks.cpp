@@ -46,6 +46,8 @@ class EnvironmentClassExt final : public EnvironmentClass
 public:
     void _Snapshot_Game_State();
     void _Apply_To_Game_State();
+    HRESULT _Load(IStream* stream);
+    HRESULT _Save(IStream* stream);
 };
 
 /**
@@ -108,6 +110,36 @@ void EnvironmentClassExt::_Apply_To_Game_State()
     DEBUG_INFO("  MissionTimer: %d\n", MissionTimer);
     DEBUG_INFO("  Difficulty: %d\n", Difficulty);
     DEBUG_INFO("  Stage: %d\n", Stage);
+}
+
+
+/**
+ *  Re-implementation of EnvironmentClass::Load.
+ *
+ *  @author: tomsons26, ZivDero
+ */
+HRESULT EnvironmentClassExt::_Load(IStream* stream)
+{
+    HRESULT hr = stream->Read(this, sizeof(*this), nullptr);
+    if (FAILED(hr)) return hr;
+
+    hr = stream->Read(&EnvironmentGlobals, sizeof(EnvironmentGlobals), nullptr);
+    return hr;
+}
+
+
+/**
+ *  Re-implementation of EnvironmentClass::Save.
+ *
+ *  @author: tomsons26, ZivDero
+ */
+HRESULT EnvironmentClassExt::_Save(IStream* stream)
+{
+    HRESULT hr = stream->Write(this, sizeof(*this), nullptr);
+    if (FAILED(hr)) return hr;
+
+    hr = stream->Write(&EnvironmentGlobals, sizeof(EnvironmentGlobals), nullptr);
+    return hr;
 }
 
 
@@ -181,4 +213,6 @@ void EnvironmentExtension_Hooks()
     Patch_Jump(0x004E2AD7, &_Select_Game_Set_EnvironmentClass_Difficulty_Patch);
     Patch_Jump(0x004938A0, &EnvironmentClassExt::_Snapshot_Game_State);
     Patch_Jump(0x00493920, &EnvironmentClassExt::_Apply_To_Game_State);
+    Patch_Jump(0x00493A30, &EnvironmentClassExt::_Load);
+    Patch_Jump(0x00493A50, &EnvironmentClassExt::_Save);
 }
