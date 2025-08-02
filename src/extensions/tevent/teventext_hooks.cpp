@@ -724,7 +724,7 @@ void TEventClassExt::_Read_INI()
          *  Single argument, team.
          */
     case 1:
-        Team = const_cast<TeamTypeClass*>(TeamTypeClass::As_Pointer(text));
+        Team = TeamTypes[TeamTypeClass::From_Name(text)];
         break;
 
         /**
