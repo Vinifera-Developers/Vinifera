@@ -221,24 +221,24 @@ bool TEventClassExt::_Operator_Parens_Intercept(TEventType event, HouseClass con
 
     case EXT_TEVENT_COMPARE_GLOBAL_WITH_CONSTANT: {
         int left_index = Data.Value;
-        int right = extension.Data2.Value;
-        ComparisonType comp = static_cast<ComparisonType>(extension.Data3.Value);
+        ComparisonType comp = static_cast<ComparisonType>(extension.Data2.Value);
+        int right = extension.Data3.Value;
 
         return Compare_With_Constant(left_index, true, right, comp);
     }
 
     case EXT_TEVENT_COMPARE_GLOBAL_WITH_GLOBAL: {
         int left_index = Data.Value;
-        int right_index = extension.Data2.Value;
-        ComparisonType comp = static_cast<ComparisonType>(extension.Data3.Value);
+        ComparisonType comp = static_cast<ComparisonType>(extension.Data2.Value);
+        int right_index = extension.Data3.Value;
 
         return Compare_With_Variable(left_index, true, right_index, true, comp);
     }
 
     case EXT_TEVENT_COMPARE_GLOBAL_WITH_LOCAL: {
         int left_index = Data.Value;
-        int right_index = extension.Data2.Value;
-        ComparisonType comp = static_cast<ComparisonType>(extension.Data3.Value);
+        ComparisonType comp = static_cast<ComparisonType>(extension.Data2.Value);
+        int right_index = extension.Data3.Value;
 
         return Compare_With_Variable(left_index, true, right_index, false, comp);
     }
@@ -308,24 +308,24 @@ bool TEventClassExt::_Operator_Parens_Intercept(TEventType event, HouseClass con
 
     case EXT_TEVENT_COMPARE_LOCAL_WITH_CONSTANT: {
         int left_index = Data.Value;
-        int right = extension.Data2.Value;
-        ComparisonType comp = static_cast<ComparisonType>(extension.Data3.Value);
+        ComparisonType comp = static_cast<ComparisonType>(extension.Data2.Value);
+        int right = extension.Data3.Value;
 
         return Compare_With_Constant(left_index, false, right, comp);
     }
 
     case EXT_TEVENT_COMPARE_LOCAL_WITH_GLOBAL: {
         int left_index = Data.Value;
-        int right_index = extension.Data2.Value;
-        ComparisonType comp = static_cast<ComparisonType>(extension.Data3.Value);
+        ComparisonType comp = static_cast<ComparisonType>(extension.Data2.Value);
+        int right_index = extension.Data3.Value;
 
         return Compare_With_Variable(left_index, false, right_index, true, comp);
     }
 
     case EXT_TEVENT_COMPARE_LOCAL_WITH_LOCAL: {
         int left_index = Data.Value;
-        int right_index = extension.Data2.Value;
-        ComparisonType comp = static_cast<ComparisonType>(extension.Data3.Value);
+        ComparisonType comp = static_cast<ComparisonType>(extension.Data2.Value);
+        int right_index = extension.Data3.Value;
 
         return Compare_With_Variable(left_index, false, right_index, false, comp);
     }

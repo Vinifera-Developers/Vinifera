@@ -131,7 +131,7 @@ NAME = [Action Count], [TActionType], [NeedCode], [PARAM1], [PARAM2], [PARAM3], 
 |  **ID**  | **Action**               | **NeedCode** | **PARAM1**       | **PARAM2** | **PARAM3** | **PARAM4** | **PARAM5** | **PARAM6** |
 |----------|--------------------------|--------------|------------------|------------|------------|------------|------------|------------|
 | 11       | Text Trigger (Enhanced)     |
-|          | Displays a text message with optional color and duration. Supports templated text substitution: placeholders like `{{g_variableName}}` or `{{l_variableName}}` are replaced with the corresponding global or local variable values. Duration is in seconds (0 means like in vanilla). | Other (0) | Text Index (#)     | Color (#) | Duration  | *unused*   | *unused*   | *unused*   |
+|          | Displays a text message with optional color and duration. Supports templated text substitution: placeholders like `{{g_variableName}}` or `{{l_variableName}}` are replaced with the corresponding global or local variable values. Duration is in real time seconds (0 means like in vanilla). | Other (0) | Text Index (#)     | Color (#) | Duration  | *unused*   | *unused*   | *unused*   |
 | 106      | Give Credits             |
 |          | Gives or removes credits from the specified house. A positive amount gives money, a negative amount subtracts it. | Other (0)   | House (#)        | Credits    | *unused*   | *unused*   | *unused*   | *unused*   |
 | 107      | Enable Short Game        |
@@ -232,11 +232,11 @@ Do not specify extra arguments for trigger actions that don't require them!
 | **Code** | **Action**                                                                           | **NeedCode**      | **PARAM1**          | **PARAM2**          | **PARAM3**             |
 | -------- | ------------------------------------------------------------------------------------ | ----------------- | ------------------- | ------------------- | ---------------------- |
 | 56       | Compare Global with Constant                                                         |                   |                     |                     |                        |
-|          | Compares a global variable with a constant using a specified operation.              | NeedThreeArgs (4) | Global Variable (#) | Constant (#)        | Comparison Type |
+|          | Compares a global variable with a constant using a specified operation.              | NeedThreeArgs (4) | Global Variable (#) | Comparison Type     | Constant (#)           |
 | 57       | Compare Global with Global                                                           |                   |                     |                     |                        |
-|          | Compares a global variable with another global variable using a specified operation. | NeedThreeArgs (4) | Global Variable (#) | Global Variable (#) | Comparison Type |
+|          | Compares a global variable with another global variable using a specified operation. | NeedThreeArgs (4) | Global Variable (#) | Comparison Type     | Global Variable (#)    |
 | 58       | Compare Global with Local                                                            |                   |                     |                     |                        |
-|          | Compares a global variable with a local variable using a specified operation.        | NeedThreeArgs (4) | Global Variable (#) | Local Variable (#)  | Comparison Type |
+|          | Compares a global variable with a local variable using a specified operation.        | NeedThreeArgs (4) | Global Variable (#) | Comparison Type     | Local Variable (#)     |
 | 59       | Global Equals Constant                                                               |                   |                     |                     |                        |
 |          | True if a global variable equals a constant.                                         | NeedTwoArgs (3)   | Global Variable (#) | Constant (#)        |                        |
 | 60       | Global Equals Global                                                                 |                   |                     |                     |                        |
@@ -256,11 +256,11 @@ Do not specify extra arguments for trigger actions that don't require them!
 | 67       | Global Less Than Local                                                               |                   |                     |                     |                        |
 |          | True if a global variable is less than a local variable.                             | NeedTwoArgs (3)   | Global Variable (#) | Local Variable (#)  |                        |
 | 68       | Compare Local with Constant                                                          |                   |                     |                     |                        |
-|          | Compares a local variable with a constant using a specified operation.               | NeedThreeArgs (4) | Local Variable (#)  | Constant (#)        | Comparison Type |
+|          | Compares a local variable with a constant using a specified operation.               | NeedThreeArgs (4) | Local Variable (#)  | Comparison Type     | Constant (#)           |
 | 69       | Compare Local with Global                                                            |                   |                     |                     |                        |
-|          | Compares a local variable with a global variable using a specified operation.        | NeedThreeArgs (4) | Local Variable (#)  | Global Variable (#) | Comparison Type |
+|          | Compares a local variable with a global variable using a specified operation.        | NeedThreeArgs (4) | Local Variable (#)  | Comparison Type     | Global Variable (#)    |
 | 70       | Compare Local with Local                                                             |                   |                     |                     |                        |
-|          | Compares a local variable with another local variable using a specified operation.   | NeedThreeArgs (4) | Local Variable (#)  | Local Variable (#)  | Comparison Type |
+|          | Compares a local variable with another local variable using a specified operation.   | NeedThreeArgs (4) | Local Variable (#)  | Comparison Type     | Local Variable (#)     |
 | 71       | Local Equals Constant                                                                |                   |                     |                     |                        |
 |          | True if a local variable equals a constant.                                          | NeedTwoArgs (3)   | Local Variable (#)  | Constant (#)        |                        |
 | 72       | Local Equals Global                                                                  |                   |                     |                     |                        |
