@@ -36,6 +36,8 @@
 #include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "animtype.h"
+#include "findmake.h"
 #include "miscutil.h"
 #include "verses.h"
 #include "vinifera_saveload.h"
@@ -254,7 +256,7 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
     ShakePixelXHi = ini.Get_Int(ini_name, "ShakeXhi", ShakePixelXHi);
     ShakePixelXLo = ini.Get_Int(ini_name, "ShakeXlo", ShakePixelXLo);
 
-    WarheadType warheadtype = static_cast<WarheadType>(WarheadTypes.ID(This()));
+    WarheadType warheadtype = static_cast<WarheadType>(Warheads.ID(This()));
 
     /**
      *  Reload the legacy version Verses, ForceFire, PassiveAcquire, Retaliate entries into the new Modifier array.
@@ -345,7 +347,7 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
     CellAnimChance = ini.Get_Float(ini_name, "CellAnimChance", CellAnimChance);
     CellAnimChance = std::clamp(CellAnimChance, 0.0f, 1.0f);
     CellAnimPercentAtMax = ini.Get_Float(ini_name, "CellAnimPercentAtMax", CellAnimPercentAtMax);
-    CellAnim = ini.Get_Anims(ini_name, "CellAnim", CellAnim);
+    CellAnim = TGet_TypeList(ini, ini_name, "CellAnim", CellAnim);
 
     InfantryModifier = ini.Get_Float(ini_name, "InfantryModifier", InfantryModifier);
     VehicleModifier = ini.Get_Float(ini_name, "VehicleModifier", VehicleModifier);

@@ -28,10 +28,11 @@
 #include "tiberiumext.h"
 #include "tiberium.h"
 #include "ccini.h"
+#include "overlaytype.h"
 #include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
-#include "overlaytype.h"
+#include "findmake.h"
 #include "tibsun_globals.h"
 #include "vinifera_saveload.h"
 
@@ -210,7 +211,7 @@ bool TiberiumClassExtension::Read_INI(CCINIClass &ini)
         return false;
     }
 
-    This()->Overlay = const_cast<OverlayTypeClass*>(ini.Get_Overlay(ini_name, "Overlay", This()->Overlay));
+    This()->Overlay = TGet_Class(ini, ini_name, "Overlay", This()->Overlay);
 
     const bool useSlopes = ini.Get_Bool(ini_name, "UseSlopes", This()->RampVariety > 0);
     This()->RampVariety = useSlopes ? 8 : 0;

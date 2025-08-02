@@ -218,7 +218,7 @@ void TacticalExtension::Draw_Debug_Overlay()
 {
     RGBClass rgb_black(0,0,0);
     unsigned color_black = DSurface::RGB_To_Pixel(0, 0, 0);
-    ColorScheme *text_color = ColorScheme::As_Pointer("White");
+    ColorScheme *text_color = Fetch_Scheme_By_Name("White");
 
     int padding = 2;
 
@@ -331,10 +331,10 @@ bool TacticalExtension::Debug_Draw_Facings()
     std::snprintf(buffer1, sizeof(buffer1), "%d", unit->PrimaryFacing.Current().Get_Dir());
     std::snprintf(buffer2, sizeof(buffer2), "%d", unit->PrimaryFacing.Current().Get_Raw());
 
-    Simple_Text_Print(buffer1, LogicSurface, &TacticalRect, &screen, ColorScheme::As_Pointer("White"), style);
+    Simple_Text_Print(buffer1, LogicSurface, &TacticalRect, &screen, Fetch_Scheme_By_Name("White"), style);
 
     screen.Y += 10;
-    Simple_Text_Print(buffer2, LogicSurface, &TacticalRect, &screen, ColorScheme::As_Pointer("White"), style);
+    Simple_Text_Print(buffer2, LogicSurface, &TacticalRect, &screen, Fetch_Scheme_By_Name("White"), style);
 
     return true;
 }
@@ -350,7 +350,7 @@ void TacticalExtension::Draw_FrameStep_Overlay()
 {
     RGBClass rgb_black(0,0,0);
     unsigned color_black = DSurface::RGB_To_Pixel(0, 0, 0);
-    ColorScheme *text_color = ColorScheme::As_Pointer("White");
+    ColorScheme *text_color = Fetch_Scheme_By_Name("White");
 
     int padding = 2;
 
@@ -401,7 +401,7 @@ void TacticalExtension::Draw_Information_Text()
 
     RGBClass rgb_black(0,0,0);
     unsigned color_black = DSurface::RGB_To_Pixel(0, 0, 0);
-    ColorScheme *text_color = ColorScheme::As_Pointer("White");
+    ColorScheme *text_color = Fetch_Scheme_By_Name("White");
 
     int padding = 2;
 
@@ -562,7 +562,7 @@ void TacticalExtension::Super_Draw_Timer(int row_index, ColorScheme *color, int 
     bool to_flash = false;
     unsigned color_black = DSurface::RGB_To_Pixel(0, 0, 0);
     RGBClass rgb_black(0, 0, 0);
-    ColorScheme *white_color = ColorScheme::As_Pointer("White", 1);
+    ColorScheme *white_color = Fetch_Scheme_By_Name("White", 1);
     int background_tint = 50;
 
     long hours = (time / 60 / 60);

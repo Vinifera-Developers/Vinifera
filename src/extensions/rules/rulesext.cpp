@@ -479,9 +479,9 @@ bool RulesClassExtension::Objects(CCINIClass &ini)
         InfantryTypeExtensions[index]->Read_INI(ini);
     }
     
-    DEBUG_INFO("Rules: Processing WeaponTypes (Count: %d)...\n", WeaponTypes.Count());
-    for (int index = 0; index < WeaponTypes.Count(); ++index) {
-        WeaponTypes[index]->Read_INI(ini);
+    DEBUG_INFO("Rules: Processing WeaponTypes (Count: %d)...\n", ::Weapons.Count());
+    for (int index = 0; index < ::Weapons.Count(); ++index) {
+        ::Weapons[index]->Read_INI(ini);
     }
 
     DEBUG_INFO("Rules: Processing WeaponTypeExtensions (Count: %d)...\n", WeaponTypeExtensions.Count());
@@ -499,9 +499,9 @@ bool RulesClassExtension::Objects(CCINIClass &ini)
         BulletTypeExtensions[index]->Read_INI(ini);
     }
     
-    DEBUG_INFO("Rules: Processing WarheadTypes (Count: %d)...\n", WarheadTypes.Count());
-    for (int index = 0; index < WarheadTypes.Count(); ++index) {
-        WarheadTypes[index]->Read_INI(ini);
+    DEBUG_INFO("Rules: Processing WarheadTypes (Count: %d)...\n", Warheads.Count());
+    for (int index = 0; index < Warheads.Count(); ++index) {
+        Warheads[index]->Read_INI(ini);
     }
     
     DEBUG_INFO("Rules: Processing WarheadTypeExtensions (Count: %d)...\n", WarheadTypeExtensions.Count());
@@ -509,9 +509,9 @@ bool RulesClassExtension::Objects(CCINIClass &ini)
         WarheadTypeExtensions[index]->Read_INI(ini);
     }
 
-    DEBUG_INFO("Rules: Calling WeaponTypeClass::Set_Speed (Count: %d)...\n", WeaponTypes.Count());
-    for (int index = 0; index < WeaponTypes.Count(); ++index) {
-        WeaponTypes[index]->Set_Speed();
+    DEBUG_INFO("Rules: Calling WeaponTypeClass::Set_Speed (Count: %d)...\n", ::Weapons.Count());
+    for (int index = 0; index < ::Weapons.Count(); ++index) {
+        ::Weapons[index]->Set_Speed();
     }
 
     DEBUG_INFO("Rules: Calling BuildingTypeClass::Set_Base_Defense_Values (Count: %d)...\n", BuildingTypes.Count());

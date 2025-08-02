@@ -73,7 +73,7 @@ class MouseClassExt : public MouseClass
 void MouseClassExt::_Mouse_Small(bool wsmall)
 {
     //MouseStruct const * control = &MouseControl[CurrentMouseShape];
-    MouseTypeClass const * control = MouseTypeClass::As_Pointer(CurrentMouseShape);
+    MouseTypeClass const * control = MouseTypes[CurrentMouseShape];
 
     if (IsSmall == wsmall) {
         return;
@@ -100,7 +100,7 @@ bool MouseClassExt::_Override_Mouse_Shape(MouseType mouse, bool wsmall)
     ASSERT((unsigned)mouse < MouseTypes.Count());
 
     //MouseStruct const * control = &MouseControl[mouse];
-    MouseTypeClass const * control = MouseTypeClass::As_Pointer(mouse);
+    MouseTypeClass const * control = MouseTypes[mouse];
     static bool startup = false;
     int baseshp;
 
@@ -144,7 +144,7 @@ bool MouseClassExt::_Override_Mouse_Shape(MouseType mouse, bool wsmall)
 void MouseClassExt::_AI(KeyNumType &input, Point2D &xy)
 {
     //MouseStruct const * control = &MouseControl[CurrentMouseShape];
-    MouseTypeClass const * control = MouseTypeClass::As_Pointer(CurrentMouseShape);
+    MouseTypeClass const * control = MouseTypes[CurrentMouseShape];
 
     if (((IsSmall && control->SmallFrameRate) || control->FrameRate) && Timer == 0) {
 
@@ -169,7 +169,7 @@ void MouseClassExt::_AI(KeyNumType &input, Point2D &xy)
 int MouseClassExt::_Get_Mouse_Current_Frame(MouseType mouse, bool wsmall) const
 {
     //MouseStruct const * control = &MouseControl[mouse];
-    MouseTypeClass const * control = MouseTypeClass::As_Pointer(mouse);
+    MouseTypeClass const * control = MouseTypes[mouse];
 
     if (wsmall) {
         if (control->SmallFrame != -1) {
@@ -194,7 +194,7 @@ Point2D MouseClassExt::_Get_Mouse_Hotspot(MouseType mouse) const
     if (MouseShapes) {
 
         //MouseStruct const * control = &MouseControl[mouse];
-        MouseTypeClass const * control = MouseTypeClass::As_Pointer(mouse);
+        MouseTypeClass const * control = MouseTypes[mouse];
 
         int hotspot_x = IsSmall ? control->SmallHotspot.X : control->Hotspot.X;
         int hotspot_y = IsSmall ? control->SmallHotspot.X : control->Hotspot.X;
@@ -240,7 +240,7 @@ Point2D MouseClassExt::_Get_Mouse_Hotspot(MouseType mouse) const
 int MouseClassExt::_Get_Mouse_Start_Frame(MouseType mouse) const
 {
     //return MouseControl[mouse].StartFrame;
-    return MouseTypeClass::As_Pointer(mouse)->StartFrame;
+    return MouseTypes[mouse]->StartFrame;
 }
 
 
@@ -253,7 +253,7 @@ int MouseClassExt::_Get_Mouse_Start_Frame(MouseType mouse) const
 int MouseClassExt::_Get_Mouse_Frame_Count(MouseType mouse) const
 {
     //return MouseControl[mouse].FrameCount;
-    return MouseTypeClass::As_Pointer(mouse)->FrameCount;
+    return MouseTypes[mouse]->FrameCount;
 }
 
 

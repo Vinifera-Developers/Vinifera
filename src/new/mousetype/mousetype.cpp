@@ -475,52 +475,6 @@ bool MouseTypeClass::Write_Default_INI(CCINIClass &ini)
 
 
 /**
- *  Converts a mouse number into a mouse control object pointer.
- *
- *  @author: CCHyper
- */
-const MouseTypeClass *MouseTypeClass::As_Pointer(MouseType type)
-{
-    //ASSERT(type >= MOUSE_NORMAL && type < MouseTypes.Count());
-    return type >= MOUSE_NORMAL && type < MouseTypes.Count() ? MouseTypes[type] : nullptr;
-}
-
-
-/**
- *  Converts a mouse name into a mouse control object pointer.
- *
- *  @author: CCHyper
- */
-const MouseTypeClass *MouseTypeClass::As_Pointer(const char *name)
-{
-    return As_Pointer(From_Name(name));
-}
-
-
-/**
- *  Converts a mouse number into a mouse control object reference.
- *
- *  @author: CCHyper
- */
-const MouseTypeClass &MouseTypeClass::As_Reference(MouseType type)
-{
-    ASSERT(type >= MOUSE_NORMAL && type < MouseTypes.Count());
-    return *MouseTypes[type];
-}
-
-
-/**
- *  Converts a mouse name into a mouse control object reference.
- *
- *  @author: CCHyper
- */
-const MouseTypeClass &MouseTypeClass::As_Reference(const char *name)
-{
-    return As_Reference(From_Name(name));
-}
-
-
-/**
  *  Retrieves the mouse type for given name.
  *
  *  @author: CCHyper

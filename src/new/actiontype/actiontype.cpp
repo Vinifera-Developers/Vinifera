@@ -292,52 +292,6 @@ bool ActionTypeClass::Write_Default_INI(CCINIClass &ini)
 
 
 /**
- *  Converts a action number into a action control object pointer.
- * 
- *  @author: CCHyper
- */
-const ActionTypeClass *ActionTypeClass::As_Pointer(ActionType type)
-{
-    //ASSERT(type >= ACTION_NONE && type < ActionTypes.Count());
-    return type >= ACTION_NONE && type < ActionTypes.Count() ? ActionTypes[type] : nullptr;
-}
-
-
-/**
- *  Converts a action name into a action control object pointer.
- * 
- *  @author: CCHyper
- */
-const ActionTypeClass *ActionTypeClass::As_Pointer(const char *name)
-{
-    return As_Pointer(From_Name(name));
-}
-
-
-/**
- *  Converts a action number into a action control object reference.
- * 
- *  @author: CCHyper
- */
-const ActionTypeClass &ActionTypeClass::As_Reference(ActionType type)
-{
-    ASSERT(type >= ACTION_NONE && type < ActionTypes.Count());
-    return *ActionTypes[type];
-}
-
-
-/**
- *  Converts a action name into a action control object reference.
- * 
- *  @author: CCHyper
- */
-const ActionTypeClass &ActionTypeClass::As_Reference(const char *name)
-{
-    return As_Reference(From_Name(name));
-}
-
-
-/**
  *  Retrieves the action type for given name.
  * 
  *  @author: CCHyper

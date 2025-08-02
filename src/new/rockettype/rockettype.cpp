@@ -31,6 +31,9 @@
 #include "tibsun_globals.h"
 #include "tibsun_functions.h"
 #include "asserthandler.h"
+#include "animtype.h"
+#include "aircrafttype.h"
+#include "findmake.h"
 #include "vinifera_saveload.h"
 
 
@@ -397,11 +400,11 @@ bool RocketTypeClass::Read_INI(CCINIClass& ini)
     IsLazyCurve = ini.Get_Bool(IniName, "LazyCurve", IsLazyCurve);
     IsCruiseMissile = ini.Get_Bool(IniName, "CruiseMissile", IsCruiseMissile);
     CloseEnoughFactor = ini.Get_Double(IniName, "CloseEnoughFactor", CloseEnoughFactor);
-    Type = ini.Get_Aircraft(IniName, "Type", Type);
-    Warhead = ini.Get_Warhead(IniName, "Warhead", Warhead);
-    EliteWarhead = ini.Get_Warhead(IniName, "EliteWarhead", EliteWarhead);
-    TakeoffAnim = ini.Get_Anim(IniName, "TakeoffAnim", TakeoffAnim);
-    TrailAnim = ini.Get_Anim(IniName, "TrailAnim", TrailAnim);
+    Type = TGet_Class(ini, IniName, "Type", Type);
+    Warhead = TGet_Class(ini, IniName, "Warhead", Warhead);
+    EliteWarhead = TGet_Class(ini, IniName, "EliteWarhead", EliteWarhead);
+    TakeoffAnim = TGet_Class(ini, IniName, "TakeoffAnim", TakeoffAnim);
+    TrailAnim = TGet_Class(ini, IniName, "TrailAnim", TrailAnim);
     TrailSpawnDelay = ini.Get_Int(IniName, "TrailSpawnDelay", TrailSpawnDelay);
     TrailAppearDelay = ini.Get_Int(IniName, "TrailAppearDelay", TrailAppearDelay);
     Inaccuracy = ini.Get_Int(IniName, "Inaccuracy", Inaccuracy);

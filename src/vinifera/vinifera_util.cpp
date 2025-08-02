@@ -238,8 +238,8 @@ void Vinifera_Draw_Version_Text(XSurface *surface, bool pre_init)
     Rect surfrect = surface->Get_Rect();
 
     TextPrintType style = (TPF_RIGHT|TPF_NOSHADOW|TPF_8POINT);
-    ColorScheme *color_white = ColorScheme::As_Pointer("White");
-    ColorScheme *color_yellow = ColorScheme::As_Pointer("Yellow");
+    ColorScheme *color_white = Fetch_Scheme_By_Name("White");
+    ColorScheme *color_yellow = Fetch_Scheme_By_Name("Yellow");
 
 #ifndef RELEASE
 #if defined(NIGHTLY)

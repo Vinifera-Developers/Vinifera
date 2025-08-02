@@ -486,7 +486,7 @@ bool RepeatLastBuildingCommandClass::Process()
         return false;
     }
 
-    const BuildingTypeClass *buildingtype = BuildingTypeClass::As_Pointer(building);
+    const BuildingTypeClass *buildingtype = BuildingTypes[building];
     if (!buildingtype) {
         return false;
     }
@@ -556,7 +556,7 @@ bool RepeatLastInfantryCommandClass::Process()
         return false;
     }
 
-    const InfantryTypeClass *infantrytype = InfantryTypeClass::As_Pointer(infantry);
+    const InfantryTypeClass *infantrytype = InfantryTypes[infantry];
     if (!infantrytype) {
         return false;
     }
@@ -626,7 +626,7 @@ bool RepeatLastUnitCommandClass::Process()
         return false;
     }
 
-    const UnitTypeClass *unittype = UnitTypeClass::As_Pointer(unit);
+    const UnitTypeClass *unittype = UnitTypes[unit];
     if (!unittype) {
         return false;
     }
@@ -696,7 +696,7 @@ bool RepeatLastAircraftCommandClass::Process()
         return false;
     }
 
-    const AircraftTypeClass *aircrafttype = AircraftTypeClass::As_Pointer(aircraft);
+    const AircraftTypeClass *aircrafttype = AircraftTypes[aircraft];
     if (!aircrafttype) {
         return false;
     }
@@ -1408,8 +1408,8 @@ bool DumpHeapCRCCommandClass::Process()
     LOG_CRC(BuildingTypeClass, BuildingTypes);
     LOG_CRC(AircraftTypeClass, AircraftTypes);
 
-    LOG_CRC(WeaponTypeClass, WeaponTypes);
-    LOG_CRC(WarheadTypeClass, WarheadTypes);
+    LOG_CRC(WeaponTypeClass, Weapons);
+    LOG_CRC(WarheadTypeClass, Warheads);
 
     /**
      *  Color Schemes.
@@ -2456,7 +2456,7 @@ bool ExplosionCommandClass::Process()
     /**
      *  Pick a random warhead from the list, using C4Warhead as a backup.
      */
-    const WarheadTypeClass *warheadtypeptr = WarheadTypeClass::As_Pointer(Percent_Chance(50) ? "AP" : "HE");
+    const WarheadTypeClass* warheadtypeptr = Warheads[WarheadTypeClass::From_Name(Percent_Chance(50) ? "AP" : "HE")];
     if (!warheadtypeptr) {
         warheadtypeptr = Rule->C4Warhead;
     }
@@ -2524,7 +2524,7 @@ bool SuperExplosionCommandClass::Process()
     /**
      *  Pick a random warhead from the list, using C4Warhead as a backup.
      */
-    const WarheadTypeClass *warheadtypeptr = WarheadTypeClass::As_Pointer("Super");
+    const WarheadTypeClass *warheadtypeptr = Warheads[WarheadTypeClass::From_Name("Super")];
     if (!warheadtypeptr) {
         warheadtypeptr = Rule->C4Warhead;
     }
@@ -2839,7 +2839,7 @@ bool SpawnAllCommandClass::Process()
      */
 
     for (StructType index = STRUCT_FIRST; index < BuildingTypes.Count(); ++index) {
-        BuildingTypeClass const & building_type = BuildingTypeClass::As_Reference(index);
+        BuildingTypeClass const & building_type = *BuildingTypes[index];
         if (building_type.Get_Ownable() /*&& building_type.Level != -1*/) {
             BuildingClass * building = (BuildingClass *)building_type.Create_One_Of(PlayerPtr);
             if (building) {
@@ -2855,7 +2855,7 @@ bool SpawnAllCommandClass::Process()
     }
 
     for (UnitType index = UNIT_FIRST; index < UnitTypes.Count(); ++index) {
-        UnitTypeClass const & unit_type = UnitTypeClass::As_Reference(index);
+        UnitTypeClass const & unit_type = *UnitTypes[index];
         if (unit_type.Get_Ownable() /*&& unit_type.Level != -1*/) {
             UnitClass * unit = (UnitClass *)unit_type.Create_One_Of(PlayerPtr);
             if (unit) {
@@ -2873,7 +2873,7 @@ bool SpawnAllCommandClass::Process()
     }
 
     for (InfantryType index = INFANTRY_FIRST; index < InfantryTypes.Count(); ++index) {
-        InfantryTypeClass const & infantry_type = InfantryTypeClass::As_Reference(index);
+        InfantryTypeClass const & infantry_type = *InfantryTypes[index];
         if (infantry_type.Get_Ownable() /*&& infantry_type.Level != -1*/) {
             InfantryClass * inf = (InfantryClass *)infantry_type.Create_One_Of(PlayerPtr);
             if (inf) {
@@ -2889,7 +2889,7 @@ bool SpawnAllCommandClass::Process()
     }
 
     for (AircraftType index = AIRCRAFT_FIRST; index < AircraftTypes.Count(); ++index) {
-        AircraftTypeClass const & aircraft_type = AircraftTypeClass::As_Reference(index);
+        AircraftTypeClass const & aircraft_type = *AircraftTypes[index];
 
         /**
          *  DROPPOD breaks the game!
@@ -2949,7 +2949,7 @@ bool DamageCommandClass::Process()
      */
     for (int i = 0; i < CurrentObjects.Count(); ++i) {
         int damage = std::max(50, Rule->MinDamage);
-        const WarheadTypeClass *warhead = WarheadTypeClass::As_Pointer("SA");
+        const WarheadTypeClass *warhead = Warheads[WarheadTypeClass::From_Name("SA")];
         if (!warhead) {
             warhead = Rule->C4Warhead;
         }
@@ -4539,8 +4539,8 @@ bool DumpHeapsCommandClass::Process()
     LOG_HEAP(ParticleTypeClass, ParticleTypes);
     LOG_HEAP(ParticleSystemTypeClass, ParticleSystemTypes);
 
-    LOG_HEAP(WeaponTypeClass, WeaponTypes);
-    LOG_HEAP(WarheadTypeClass, WarheadTypes);
+    LOG_HEAP(WeaponTypeClass, Weapons);
+    LOG_HEAP(WarheadTypeClass, Warheads);
     LOG_HEAP(SuperWeaponTypeClass, SuperWeaponTypes);
     LOG_HEAP(BulletTypeClass, BulletTypes);
 
@@ -4636,8 +4636,8 @@ bool MeteorShowerCommandClass::Process()
      */
     int count = Random_Pick<unsigned>(0, std::size(_meteor_counts)-1);
 
-    const AnimTypeClass *large_meteor = AnimTypeClass::As_Pointer("METLARGE");
-    const AnimTypeClass *small_meteor = AnimTypeClass::As_Pointer("METSMALL");
+    const AnimTypeClass *large_meteor = AnimTypes[AnimTypeClass::From_Name("METLARGE")];
+    const AnimTypeClass *small_meteor = AnimTypes[AnimTypeClass::From_Name("METSMALL")];
 
     for (int i = 0; i < count; ++i) {
 
@@ -4703,7 +4703,7 @@ bool MeteorImpactCommandClass::Process()
     /**
      *  Pick a random a random meteor object.
      */
-    const VoxelAnimTypeClass *voxelanimtypeptr = VoxelAnimTypeClass::As_Pointer(Percent_Chance(50) ? "METEOR01" : "METEOR02");
+    const VoxelAnimTypeClass *voxelanimtypeptr = VoxelAnimTypes[VoxelAnimTypeClass::From_Name(Percent_Chance(50) ? "METEOR01" : "METEOR02")];
     if (!voxelanimtypeptr) {
         return false;
     }

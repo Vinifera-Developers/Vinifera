@@ -33,6 +33,7 @@
 #include "vinifera_saveload.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "findmake.h"
 
 
 /**
@@ -198,7 +199,7 @@ bool UnitTypeClassExtension::Read_INI(CCINIClass &ini)
     //}
 
     IsTotable = ini.Get_Bool(ini_name, "Totable", IsTotable);
-    TransformsInto = ini.Get_Unit(ini_name, "TransformsInto", TransformsInto);
+    TransformsInto = TGet_Class(ini, ini_name, "TransformsInto", TransformsInto);
     IsTransformRequiresFullCharge = ini.Get_Bool(ini_name, "TransformRequiresFullCharge", IsTransformRequiresFullCharge);
 
     StartTurretFrame = ArtINI.Get_Int(graphic_name, "StartTurretFrame", StartTurretFrame);

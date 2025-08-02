@@ -60,10 +60,6 @@ class MouseTypeClass
         static bool Write_Default_INI(CCINIClass &ini);
 #endif
 
-        static const MouseTypeClass *As_Pointer(MouseType type);
-        static const MouseTypeClass *As_Pointer(const char *name);
-        static const MouseTypeClass &As_Reference(MouseType type);
-        static const MouseTypeClass &As_Reference(const char *name);
         static MouseType From_Name(const char *name);
         static const char *Name_From(MouseType type);
 

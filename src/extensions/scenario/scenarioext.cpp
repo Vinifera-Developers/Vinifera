@@ -747,8 +747,8 @@ void ScenarioClassExtension::Assign_Houses()
      *  Added checks to make sure the houses exist before blindly
      *  attempting to create a instance of them.
      */
-    ColorSchemeType remap_color = ColorScheme::From_Name("LightGrey");
-    ColorSchemeType grey_color = ColorScheme::From_Name("Grey");
+    ColorSchemeType remap_color = Fetch_Scheme_Index_By_Name("LightGrey");
+    ColorSchemeType grey_color = Fetch_Scheme_Index_By_Name("Grey");
 
     house = HouseTypeClass::From_Name("Neutral");
     if (house != HOUSE_NONE) {

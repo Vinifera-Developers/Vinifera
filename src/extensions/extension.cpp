@@ -927,8 +927,8 @@ bool Extension::Request_Pointer_Remap()
     if (!Extension_Request_Pointer_Remap<TiberiumClass, TiberiumClassExtension>(Tiberiums)) { return false; }
     //if (!Extension_Request_Pointer_Remap<TActionClass, TActionClassExtension>(TActions)) { return false; }            // Not yet implemented
     //if (!Extension_Request_Pointer_Remap<TEventClass, TEventClassExtension>(TEvents)) { return false; }               // Not yet implemented
-    if (!Extension_Request_Pointer_Remap<WeaponTypeClass, WeaponTypeClassExtension>(WeaponTypes)) { return false; }
-    if (!Extension_Request_Pointer_Remap<WarheadTypeClass, WarheadTypeClassExtension>(WarheadTypes)) { return false; }
+    if (!Extension_Request_Pointer_Remap<WeaponTypeClass, WeaponTypeClassExtension>(Weapons)) { return false; }
+    if (!Extension_Request_Pointer_Remap<WarheadTypeClass, WarheadTypeClassExtension>(Warheads)) { return false; }
     //if (!Extension_Request_Pointer_Remap<WaypointClass, WaypointClassExtension>(Waypoints)) { return false; }         // Not yet implemented
     //if (!Extension_Request_Pointer_Remap<TubeClass, TubeClassExtension>(Tubes)) { return false; }                     // Not yet implemented
     //if (!Extension_Request_Pointer_Remap<LightSourceClass, LightSourceClassExtension>(LightSources)) { return false; } // Not yet implemented
@@ -1358,8 +1358,8 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     std::fprintf(fp, "Tiberiums.Count = %d\n", Tiberiums.Count());
     std::fprintf(fp, "TActions.Count = %d\n", TActions.Count());
     std::fprintf(fp, "TEvents.Count = %d\n", TEvents.Count());
-    std::fprintf(fp, "WeaponTypes.Count = %d\n", WeaponTypes.Count());
-    std::fprintf(fp, "WarheadTypes.Count = %d\n", WarheadTypes.Count());
+    std::fprintf(fp, "Weapons.Count = %d\n", Weapons.Count());
+    std::fprintf(fp, "Warheads.Count = %d\n", Warheads.Count());
     std::fprintf(fp, "WaypointPaths.Count = %d\n", WaypointPaths.Count());
     std::fprintf(fp, "Tubes.Count = %d\n", Tubes.Count());
     std::fprintf(fp, "LightSources.Count = %d\n", LightSources.Count());
@@ -1873,8 +1873,8 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     Print_Heap_CRC_Lists(fp, Tiberiums);
     Print_Heap_CRC_Lists(fp, TActions);
     Print_Heap_CRC_Lists(fp, TEvents);
-    Print_Heap_CRC_Lists(fp, WeaponTypes);
-    Print_Heap_CRC_Lists(fp, WarheadTypes);
+    Print_Heap_CRC_Lists(fp, Weapons);
+    Print_Heap_CRC_Lists(fp, Warheads);
     Print_Heap_CRC_Lists(fp, WaypointPaths);
     Print_Heap_CRC_Lists(fp, Tubes);
     Print_Heap_CRC_Lists(fp, LightSources);

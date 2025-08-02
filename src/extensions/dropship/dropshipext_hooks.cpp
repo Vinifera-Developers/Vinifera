@@ -130,7 +130,7 @@ static void Draw_Dropship_Loadout_Help_Text(XSurface *surface)
     Rect surfrect = surface->Get_Rect();
 
     TextPrintType style = (TPF_CENTER|TPF_FULLSHADOW|TPF_6PT_GRAD);
-    ColorScheme *color_white = ColorScheme::As_Pointer("White");
+    ColorScheme *color_white = Fetch_Scheme_By_Name("White");
     ColorType back_color = COLOR_TBLACK;
 
     Point2D text_pos;

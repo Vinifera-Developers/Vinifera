@@ -175,20 +175,20 @@ static void Display_Set_Mouse_Cursor(ActionType action, bool shadow, bool wsmall
 
     if (shadow) {
         
-        mouse = ActionTypeClass::As_Reference(action).Get_Shadow_Mouse();
+        mouse = ActionTypes[action]->Get_Shadow_Mouse();
 
         if (action == ACTION_NOMOVE) {
             if (CurrentObjects.Count()
                 && CurrentObjects[0]->Is_Techno()
                 && CurrentObjects[0]->TClass->MoveToShroud) {
 
-                mouse = ActionTypeClass::As_Reference(ACTION_MOVE).Get_Shadow_Mouse();
+                mouse = ActionTypes[ACTION_MOVE]->Get_Shadow_Mouse();
             }
         }
 
     } else {
-        
-        mouse = ActionTypeClass::As_Reference(action).Get_Mouse();
+
+        mouse = ActionTypes[action]->Get_Mouse();
 
         if (action == ACTION_ATTACK) {
             if (cellptr

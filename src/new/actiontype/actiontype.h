@@ -53,10 +53,6 @@ class ActionTypeClass
         static bool Write_Default_INI(CCINIClass &ini);
 #endif
 
-        static const ActionTypeClass *As_Pointer(ActionType type);
-        static const ActionTypeClass *As_Pointer(const char *name);
-        static const ActionTypeClass &As_Reference(ActionType type);
-        static const ActionTypeClass &As_Reference(const char *name);
         static ActionType From_Name(const char *name);
         static const char *Name_From(ActionType type);
 

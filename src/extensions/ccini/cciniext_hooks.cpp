@@ -128,7 +128,7 @@ bool CCINIClassExt::_Put_Owners(const char *section, const char *entry, long val
             if (buffer[0] != '\0') {
                 std::strcat(buffer, ",");
             }
-            std::strcat(buffer, HouseTypeClass::As_Reference(house).Name());
+            std::strcat(buffer, HouseTypes[house]->Name());
         }
     }
 

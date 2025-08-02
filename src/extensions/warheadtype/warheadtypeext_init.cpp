@@ -98,7 +98,7 @@ DECLARE_PATCH(_WarheadTypeClass_Destructor_Patch)
      *  Stolen bytes here.
      */
 original_code:
-    _asm { mov edx, ds:0x0074C798 } // WarheadTypes.vtble
+    _asm { mov edx, ds:0x0074C798 } // Warheads.vtble
     JMP_REG(eax, 0x0066EF7E);
 }
 
@@ -123,7 +123,7 @@ DECLARE_PATCH(_WarheadTypeClass_Scalar_Destructor_Patch)
      *  Stolen bytes here.
      */
 original_code:
-    _asm { mov edx, ds:0x0074C798 } // WarheadTypes.vtble
+    _asm { mov edx, ds:0x0074C798 } // Warheads.vtble
     JMP_REG(eax, 0x0066FA9E);
 }
 

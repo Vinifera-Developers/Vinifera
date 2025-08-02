@@ -34,6 +34,7 @@
 #include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "findmake.h"
 
 
 /**
@@ -367,7 +368,7 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
     NumberOfParticles = ini.Get_Int(ini_name, "NumParticles", NumberOfParticles);
     ParticleSpawnOffset = ini.Get_Point(ini_name, "SpawnsParticleOffset", ParticleSpawnOffset);
 
-    StartAnims = ini.Get_Anims(ini_name, "StartAnims", StartAnims);
+    StartAnims = TGet_TypeList(ini, ini_name, "StartAnims", StartAnims);
     StartAnimsCount = ini.Get_Integers(ini_name, "StartAnimsCount", StartAnimsCount);
     StartAnimsMinimum = ini.Get_Integers(ini_name, "StartAnimsMinimum", StartAnimsMinimum);
     StartAnimsMaximum = ini.Get_Integers(ini_name, "StartAnimsMaximum", StartAnimsMaximum);
@@ -383,7 +384,7 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
 
     FILL_TYPELIST(StartAnimsDelay, StartAnims.Count(), 0);
 
-    MiddleAnims = ini.Get_Anims(ini_name, "MiddleAnims", MiddleAnims);
+    MiddleAnims = TGet_TypeList(ini, ini_name, "MiddleAnims", MiddleAnims);
     MiddleAnimsCount = ini.Get_Integers(ini_name, "MiddleAnimsCount", MiddleAnimsCount);
     MiddleAnimsMinimum = ini.Get_Integers(ini_name, "MiddleAnimsMinimum", MiddleAnimsMinimum);
     MiddleAnimsMaximum = ini.Get_Integers(ini_name, "MiddleAnimsMaximum", MiddleAnimsMaximum);
@@ -399,7 +400,7 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
 
     FILL_TYPELIST(MiddleAnimsDelay, MiddleAnims.Count(), 0);
 
-    EndAnims = ini.Get_Anims(ini_name, "EndAnims", EndAnims);
+    EndAnims = TGet_TypeList(ini, ini_name, "EndAnims", EndAnims);
     EndAnimsCount = ini.Get_Integers(ini_name, "EndAnimsCount", EndAnimsCount);
     EndAnimsMinimum = ini.Get_Integers(ini_name, "EndAnimsMinimum", EndAnimsMinimum);
     EndAnimsMaximum = ini.Get_Integers(ini_name, "EndAnimsMaximum", EndAnimsMaximum);

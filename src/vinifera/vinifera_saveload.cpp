@@ -334,8 +334,8 @@ bool Vinifera_Put_All(IStream *pStm, bool save_net)
     if (FAILED(Vinifera_Save_Vector(pStm, Factories, "Factories"))) { return false; }
     if (FAILED(Vinifera_Save_Vector(pStm, VoxelAnimTypes, "VoxelAnimTypes"))) { return false; }
     if (FAILED(Vinifera_Save_Vector(pStm, VoxelAnims, "VoxelAnims"))) { return false; }
-    if (FAILED(Vinifera_Save_Vector(pStm, WarheadTypes, "Warheads"))) { return false; }
-    if (FAILED(Vinifera_Save_Vector(pStm, WeaponTypes, "Weapons"))) { return false; }
+    if (FAILED(Vinifera_Save_Vector(pStm, Warheads, "Warheads"))) { return false; }
+    if (FAILED(Vinifera_Save_Vector(pStm, Weapons, "Weapons"))) { return false; }
     if (FAILED(Vinifera_Save_Vector(pStm, ParticleTypes, "ParticleTypes"))) { return false; }
     if (FAILED(Vinifera_Save_Vector(pStm, Particles, "Particles"))) { return false; }
     if (FAILED(Vinifera_Save_Vector(pStm, ParticleSystemTypes, "ParticleSystemTypes"))) { return false; }
@@ -579,8 +579,8 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
     if (FAILED(Vinifera_Load_Vector(pStm, Factories, "Factories"))) { return false; }
     if (FAILED(Vinifera_Load_Vector(pStm, VoxelAnimTypes, "VoxelAnimTypes"))) { return false; }
     if (FAILED(Vinifera_Load_Vector(pStm, VoxelAnims, "VoxelAnims"))) { return false; }
-    if (FAILED(Vinifera_Load_Vector(pStm, WarheadTypes, "Warheads"))) { return false; }
-    if (FAILED(Vinifera_Load_Vector(pStm, WeaponTypes, "Weapons"))) { return false; }
+    if (FAILED(Vinifera_Load_Vector(pStm, Warheads, "Warheads"))) { return false; }
+    if (FAILED(Vinifera_Load_Vector(pStm, Weapons, "Weapons"))) { return false; }
     if (FAILED(Vinifera_Load_Vector(pStm, ParticleTypes, "ParticleTypes"))) { return false; }
     if (FAILED(Vinifera_Load_Vector(pStm, Particles, "Particles"))) { return false; }
     if (FAILED(Vinifera_Load_Vector(pStm, ParticleSystemTypes, "ParticleSystemTypes"))) { return false; }

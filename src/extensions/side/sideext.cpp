@@ -33,6 +33,7 @@
 #include "colorscheme.h"
 #include "rules.h"
 #include "debughandler.h"
+#include "findmake.h"
 #include "tibsun_globals.h"
 #include "vinifera_saveload.h"
 
@@ -201,8 +202,8 @@ bool SideClassExtension::Read_INI(CCINIClass &ini)
 
     if (!IsInitialized) {
 
-        UIColor = ColorScheme::From_Name("LightGold");
-        ToolTipColor = ColorScheme::From_Name("Green");
+        UIColor = Fetch_Scheme_Index_By_Name("LightGold");
+        ToolTipColor = Fetch_Scheme_Index_By_Name("Green");
 
         Crew = Rule->Crew;
         Engineer = Rule->Engineer;
@@ -236,17 +237,17 @@ bool SideClassExtension::Read_INI(CCINIClass &ini)
     UIColor = ini.Get_ColorSchemeType(ini_name, "UIColor", UIColor);
     ToolTipColor = ini.Get_ColorSchemeType(ini_name, "ToolTipColor", ToolTipColor);
 
-    Crew = ini.Get_Infantry(ini_name, "Crew", Crew);
-    Engineer = ini.Get_Infantry(ini_name, "Engineer", Engineer);
-    Technician = ini.Get_Infantry(ini_name, "Technician", Technician);
-    Disguise = ini.Get_Infantry(ini_name, "Disguise", Disguise);
+    Crew = TGet_Class(ini, ini_name, "Crew", Crew);
+    Engineer = TGet_Class(ini, ini_name, "Engineer", Engineer);
+    Technician = TGet_Class(ini, ini_name, "Technician", Technician);
+    Disguise = TGet_Class(ini, ini_name, "Disguise", Disguise);
     SurvivorDivisor = ini.Get_Int(ini_name, "SurvivorDivisor", SurvivorDivisor);
 
-    RegularPowerPlant = ini.Get_Building(ini_name, "RegularPowerPlant", RegularPowerPlant);
-    AdvancedPowerPlant = ini.Get_Building(ini_name, "AdvancedPowerPlant", AdvancedPowerPlant);
-    PowerTurbine = ini.Get_Building(ini_name, "PowerTurbine", PowerTurbine);
+    RegularPowerPlant = TGet_Class(ini, ini_name, "RegularPowerPlant", RegularPowerPlant);
+    AdvancedPowerPlant = TGet_Class(ini, ini_name, "AdvancedPowerPlant", AdvancedPowerPlant);
+    PowerTurbine = TGet_Class(ini, ini_name, "PowerTurbine", PowerTurbine);
 
-    HunterSeeker = ini.Get_Unit(ini_name, "HunterSeeker", HunterSeeker);
+    HunterSeeker = TGet_Class(ini, ini_name, "HunterSeeker", HunterSeeker);
 
     IsInitialized = true;
 
