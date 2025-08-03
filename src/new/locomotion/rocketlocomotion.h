@@ -104,7 +104,7 @@ protected:
     /**
      *  This is the timer used by various mission states of the rocket.
      */
-    CDRateTimerClass<FrameTimerClass> MissionTimer;
+    ProgressTimerClass<FrameTimerClass> MissionTimer;
 
     /**
      *  This is the timer used for timing the trail animation.

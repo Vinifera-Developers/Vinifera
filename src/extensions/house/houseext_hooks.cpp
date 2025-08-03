@@ -151,7 +151,7 @@ int HouseClassExt::_AI_Building()
     /**
      *  Build some defenses.
      */
-    if (node->Type == BASE_DEFENSE || BuildingTypes[node->Type] == Rule->WallTower && node->Where == Cell(0, 0)) {
+    if (node->Type == BASE_DEFENSE || BuildingTypes[node->Type] == Rule->WallTower && node->CellID == Cell(0, 0)) {
 
         const int nodeid = Base.Nodes.ID(node);
         if (!AI_Build_Defense(nodeid, Base.field_38.Count() > 0 ? &Base.field_38 : nullptr)) {
@@ -250,19 +250,19 @@ int HouseClassExt::_AI_Building()
     /**
      *  Check if this is a building upgrade if we can actually place the upgrade where it's scheduled to be placed.
      */
-    if (b->PowersUpToLevel == -1 && node->Where != Cell(0, 0) && b->PowersUpBuilding[0]) {
+    if (b->PowersUpToLevel == -1 && node->CellID != Cell(0, 0) && b->PowersUpBuilding[0]) {
 
-        BuildingClass* existing_building = Map[node->Where].Cell_Building();
+        BuildingClass* existing_building = Map[node->CellID].Cell_Building();
         BuildingTypeClass* node_building = BuildingTypes[BuildingTypeClass::From_Name(b->PowersUpBuilding)];
 
         if (existing_building == nullptr) {
-            node->Where = Cell(0, 0);
+            node->CellID = Cell(0, 0);
         }
         else if (existing_building->Class != node_building) {
-            node->Where = Cell(0, 0);
+            node->CellID = Cell(0, 0);
         }
         else if (existing_building->Class->PowersUpToLevel == -1 && existing_building->UpgradeLevel >= existing_building->Class->Upgrades || existing_building->Class->PowersUpToLevel > 0 && existing_building->UpgradeLevel > 0) {
-            node->Where = Cell(0, 0);
+            node->CellID = Cell(0, 0);
         }
     }
 

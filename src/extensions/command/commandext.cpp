@@ -3320,7 +3320,7 @@ bool DumpAIBaseNodesCommandClass::Process()
                 }
 
                 const char *name = BuildingTypeClass::Name_From(node.Type);
-                DEBUG_INFO("  Node %03d: \"%s\" at %d,%d\n", node_index, name, node.Where.X, node.Where.Y);
+                DEBUG_INFO("  Node %03d: \"%s\" at %d,%d\n", node_index, name, node.CellID.X, node.CellID.Y);
             }
         }
     }
