@@ -72,6 +72,27 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
 
         const char *Waypoint_As_String(WAYPOINT wp) const;
 
+        bool Read_Global_INI(INIClass& ini);
+        bool Read_Local_INI(INIClass& ini);
+        bool Write_Local_INI(INIClass& ini);
+
+        int Set_Global_To(int global, int value);
+        int Set_Global_To(char const* name, int value);
+        bool Get_Global_Value(int global, int& value);
+        bool Get_Global_Value(char const* name, int& value);
+        int Set_Local_To(int local, int value);
+        int Set_Local_To(char const* name, int value);
+        bool Get_Local_Value(int local, int& value);
+        bool Get_Local_Value(char const* name, int& value);
+
+        int Find_Global_Variable_Index(char const* name);
+        int Find_Local_Variable_Index(char const* name);
+
+        int Find_Free_Local() const;
+        int Num_Locals() const;
+
+        static std::string Substitute_Variable_Placeholders(std::string input);
+
         static void Assign_Houses();
         static void Create_Units(bool official);
 
@@ -93,6 +114,13 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
 
         RGBStruct ScorePlayerColor;
         RGBStruct ScoreEnemyColor;
+
+        struct ScenarioFlagExtType {
+            char VariableName[40];
+            int Value;
+        };
+        ScenarioFlagExtType GlobalFlags[500];
+        ScenarioFlagExtType LocalFlags[500];
 };
 
 int Vinifera_Scan_Place_Object(ObjectClass* obj, Cell cell, int min_dist, int max_dist, bool no_scatter);

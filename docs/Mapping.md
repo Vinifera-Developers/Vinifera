@@ -23,6 +23,12 @@ Maps using this feature cannot be loaded by the vanilla game.
 Not all tools properly support this feature yet, and may crash or corrupt the map. We recommend using the [World-Altering Editor](https://github.com/CnCNet/WorldAlteringEditor) map editor when using this feature.
 ```
 
+## Local/Global Variabes
+
+- The game now supports up to 500 local and global variables each.
+
+- Additionally, variables are now signed 32-bit integer numbers, allowing for greater flexibility during scripting. To make use of this feature, use new actions/events. Vanilla actions/events will treat 0 as false, and any other number as true.
+
 ## Campaign Settings
 
 ### Intro Movie
@@ -98,33 +104,179 @@ ScoreEnemyColor=250,28,28    ; color in R,G,B, color of the enemy's score bars.
 NAME = [Action Count], [TActionType], [NeedCode], [PARAM1], [PARAM2], [PARAM3], [PARAM4], [PARAM5], [PARAM6:OPTIONAL]
 ```
 
+### Operation Types
+
+- Actions that operate on variables use the following operation types:
+
+| **Code** | **Operation Name** | **Example**    |
+|----------|--------------------|----------------|
+| 0        | Assign             | x = y          |
+| 1        | Add                | x += y         |
+| 2        | Subtract           | x -= y         |
+| 3        | Multiply           | x *= y         |
+| 4        | Divide             | x /= y         |
+| 5        | Modulo             | x %= y         |
+| 6        | Negate             | x = -x         |
+| 7        | Shift Left         | x <<= y        |
+| 8        | Shift Right        | x >>= y        |
+| 9        | Bitwise NOT        | x = ~x         |
+| 10       | Bitwise XOR        | x ^= y         |
+| 11       | Bitwise OR         | x \|= y        |
+| 13       | Bitwise AND        | x &= y         |
+| 14       | Maximum            | x = max(x, y)  |
+| 15       | Minimum            | x = min(x, y)  |
+
 ### New Trigger Actions
 
-| **Code** | **Action**               | **NeedCode** | **PARAM1**       | **PARAM2** | **PARAM3** | **PARAM4** | **PARAM5** | **PARAM6** |
+|  **ID**  | **Action**               | **NeedCode** | **PARAM1**       | **PARAM2** | **PARAM3** | **PARAM4** | **PARAM5** | **PARAM6** |
 |----------|--------------------------|--------------|------------------|------------|------------|------------|------------|------------|
-| 501      | Give Credits             |              |                  |            |            |            |            |            |
+| 11       | Text Trigger (Enhanced)     |
+|          | Displays a text message with optional color and duration. Supports templated text substitution: placeholders like `{{g_variableName}}` or `{{l_variableName}}` are replaced with the corresponding global or local variable values. Duration is in real time seconds (0 means like in vanilla). | Other (0) | Text Index (#)     | Color (#) | Duration  | *unused*   | *unused*   | *unused*   |
+| 106      | Give Credits             |
 |          | Gives or removes credits from the specified house. A positive amount gives money, a negative amount subtracts it. | Other (0)   | House (#)        | Credits    | *unused*   | *unused*   | *unused*   | *unused*   |
-| 502      | Enable Short Game        |              |                  |            |            |            |            |            |
+| 107      | Enable Short Game        |
 |          | Enables Short Game. Players will lose if all buildings are destroyed. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 503      | Disable Short Game       |              |                  |            |            |            |            |            |
+| 108      | Disable Short Game       |
 |          | Disables Short Game. Players can continue playing even after all buildings are destroyed. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 504      | Unused Action            |              |                  |            |            |            |            |            |
+| 109      | Unused Action            |
 |          | This action does nothing. Originally used to display the difficulty in ts-patches. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 505      | Destroy all of...       |              |                  |            |            |            |            |            |
+| 110      | Destroy all of...       |
 |          | Kills everything of the specified house and marks them as defeated. | Other (0)   | House (#)        | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 506      | Make Elite               |              |                  |            |            |            |            |            |
+| 111      | Make Elite               |
 |          | All utechnos attached to this trigger will be promoted to elite status. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 507      | Enable Ally Reveal       |              |                  |            |            |            |            |            |
+| 112      | Enable Ally Reveal       |
 |          | Enables Ally Reveal, allowing allied players to see each other's explored areas. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 508      | Disable Ally Reveal      |              |                  |            |            |            |            |            |
+| 113      | Disable Ally Reveal      |
 |          | Disables Ally Reveal, stopping allied players from seeing each other's explored areas. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 509      | Create Autosave          |              |                  |            |            |            |            |            |
+| 114      | Create Autosave          |
 |          | Schedules an autosave to be created on the next game frame. (Currently not implemented, handled by ts-patches) | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 510      | Delete Attached Objects  |              |                  |            |            |            |            |            |
+| 115      | Delete Attached Objects  |
 |          | Deletes all units and structures on the map that are linked to this trigger silently. | Other (0)   | *unused*         | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 511      | All Assign Mission       |              |                  |            |            |            |            |            |
+| 116      | All Assign Mission       |
 |          | Forces all units owned by the trigger's house to begin the specified mission (e.g., hunt, move). | Other (0)   | Mission (#)   | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 512      | Make Ally (One-Way)      |              |                  |            |            |            |            |            |
+| 117      | Make Ally (One-Way)      |
 |          | Cause this trigger's house to make a one-sided alliance with the specified house. | Other (0)   | House (#)        | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
-| 513      | Make Enemy (One-Way)     |              |                  |            |            |            |            |            |
+| 118      | Make Enemy (One-Way)     |
 |          | Cause this trigger's house to unilaterally declare war on the specified house. | Other (0)   | House (#)        | *unused*   | *unused*   | *unused*   | *unused*   | *unused*   |
+| 119      | Modify Global (Constant)        |
+|          | Modifies a global variable using a constant and a specified operation. | Other (0) | Global Variable (#) | Operation Type   | Number     | unused         | unused         | unused         |
+| 120      | Modify Global (Global)          |
+|          | Modifies a global variable using another global variable and a specified operation. | Other (0) | Global Variable (#) | Operation Type   | Second Global (#)  | *unused*         | *unused*         | *unused*         |
+| 121      | Modify Global (Local)           |
+|          | Modifies a global variable using a local variable and a specified operation. | Other (0) | Global Variable (#) | Operation Type   | Local Variable (#) | *unused*         | *unused*         | *unused*         |
+| 122      | Increment Global                |
+|          | Increments a global variable by 1. | Other (0) | Global Variable (#) | *unused*          | *unused*         | *unused*         | *unused*         | *unused*         |
+| 123      | Decrement Global                |
+|          | Decrements a global variable by 1. | Other (0) | Global Variable (#) | *unused*          | *unused*         | *unused*         | *unused*         | *unused*         |
+| 124      | Modify Local (Constant)         |
+|          | Modifies a local variable using a constant and a specified operation. | Other (0) | Local Variable (#)  | Operation Type   | Number     | *unused*         | *unused*         | *unused*         |
+| 125      | Modify Local (Global)           |
+|          | Modifies a local variable using a global variable and a specified operation. | Other (0) | Local Variable (#)  | Operation Type   | Global Variable (#) | *unused*        | *unused*         | *unused*         |
+| 126      | Modify Local (Local)            |
+|          | Modifies a local variable using another local variable and a specified operation. | Other (0) | Local Variable (#)  | Operation Type   | Second Local (#)   | *unused*         | *unused*         | *unused*         |
+| 127      | Increment Local                 |
+|          | Increments a local variable by 1. | Other (0) | Local Variable (#)  | *unused*          | *unused*         | *unused*         | *unused*         | *unused*         |
+| 128      | Decrement Local                 |
+|          | Decrements a local variable by 1. | Other (0) | Local Variable (#)  | *unused*          | *unused*         | *unused*         | *unused*         | *unused*         |
+| 129      | Random Number to Global         |
+|          | Stores a random number between Min and Max into a global variable. | Other (0) | Global Variable (#) | Min Value        | Max Value        | *unused*         | *unused*         | *unused*         |
+| 130      | Random Number to Local          |
+|          | Stores a random number between Min and Max into a local variable. | Other (0) | Local Variable (#)  | Min Value        | Max Value        | *unused*         | *unused*         | *unused*         |
+| 131      | Print Global                    |
+|          | Displays the current value of a global variable as a message. | Other (0) | Global Variable (#) | *unused*          | *unused*         | *unused*         | *unused*         | *unused*         |
+| 132      | Print Local                     |
+|          | Displays the current value of a local variable as a message. | Other (0) | Local Variable (#)  | *unused*          | *unused*         | *unused*         | *unused*         | *unused*         |
+| 133      | Enable Templated Text     |
+|          | Displays a line of text on the screen with variable substitution. The text may include placeholders like `{{g_variableName}}` or `{{l_variableName}}`, which are replaced with the corresponding global or local variable values. Color `-1` uses the color of the player's house. | Other (0) | Text Index (#)     | Color (#) | *unused*   | *unused*   | *unused*   | *unused*   |
+| 134      | Disable Templated Text           |
+|          | Removes the currently active templated text from the screen. | Other (0) | *unused*           | *unused*            | *unused*   | *unused*   | *unused*   | *unused*   |
+
+
+## Trigger Events
+
+- Every trigger event has a NeedCode associated with it. The NeedCode dictates how some of the data used by the trigger event is parsed. Below is a table containing all valid NeedCodes.
+
+### NeedCodes
+
+| **NeedCode**   | **Numeric Value** | **Meaning / Parameters**                                         |
+|----------------|-------------------|-----------------------------------------------------------------|
+| NeedOther      | 0                 | Single argument: PARAM1 parsed as a number                      |
+| NeedTeam       | 1                 | Single argument: PARAM1 parsed as a team name                   |
+| NeedTechnoAndNumber    | 2                 | Two arguments: PARAM1 parsed as a number, PARAM2 parsed as an INI name                   |
+| NeedTwoArgs    | 3                 | Two arguments: PARAM1, PARAM2 parsed as numbers               |
+| NeedThreeArgs  | 4                 | Three arguments: PARAM1, PARAM2, PARAM3 parsed as numbers        |
+
+```{note}
+Do not specify extra arguments for trigger actions that don't require them!
+```
+
+### Comparison Types
+
+- Conditions that compare values use the following comparison types:
+
+| Code | Comparison Name     | Example         |
+|------|---------------------|-----------------|
+| 0    | Greater Than        | x > y           |
+| 1    | Less Than           | x < y           |
+| 2    | Equal To            | x == y          |
+| 3    | Not Equal To        | x != y          |
+| 4    | Greater or Equal    | x >= y          |
+| 5    | Less or Equal       | x <= y          |
+| 6    | Bitwise AND         | (x & y) != 0    |
+| 7    | Bitwise OR          | (x \| y) != 0    |
+| 8    | Bitwise XOR         | (x ^ y) != 0    |
+
+
+### New Trigger Events
+
+| **Code** | **Action**                                                                           | **NeedCode**      | **PARAM1**          | **PARAM2**          | **PARAM3**             |
+| -------- | ------------------------------------------------------------------------------------ | ----------------- | ------------------- | ------------------- | ---------------------- |
+| 56       | Compare Global with Constant                                                         |                   |                     |                     |                        |
+|          | Compares a global variable with a constant using a specified operation.              | NeedThreeArgs (4) | Global Variable (#) | Comparison Type     | Constant (#)           |
+| 57       | Compare Global with Global                                                           |                   |                     |                     |                        |
+|          | Compares a global variable with another global variable using a specified operation. | NeedThreeArgs (4) | Global Variable (#) | Comparison Type     | Global Variable (#)    |
+| 58       | Compare Global with Local                                                            |                   |                     |                     |                        |
+|          | Compares a global variable with a local variable using a specified operation.        | NeedThreeArgs (4) | Global Variable (#) | Comparison Type     | Local Variable (#)     |
+| 59       | Global Equals Constant                                                               |                   |                     |                     |                        |
+|          | True if a global variable equals a constant.                                         | NeedTwoArgs (3)   | Global Variable (#) | Constant (#)        |                        |
+| 60       | Global Equals Global                                                                 |                   |                     |                     |                        |
+|          | True if two global variables are equal.                                              | NeedTwoArgs (3)   | Global Variable (#) | Global Variable (#) |                        |
+| 61       | Global Equals Local                                                                  |                   |                     |                     |                        |
+|          | True if a global variable equals a local variable.                                   | NeedTwoArgs (3)   | Global Variable (#) | Local Variable (#)  |                        |
+| 62       | Global Greater Than Constant                                                         |                   |                     |                     |                        |
+|          | True if a global variable is greater than a constant.                                | NeedTwoArgs (3)   | Global Variable (#) | Constant (#)        |                        |
+| 63       | Global Greater Than Global                                                           |                   |                     |                     |                        |
+|          | True if one global variable is greater than another.                                 | NeedTwoArgs (3)   | Global Variable (#) | Global Variable (#) |                        |
+| 64       | Global Greater Than Local                                                            |                   |                     |                     |                        |
+|          | True if a global variable is greater than a local variable.                          | NeedTwoArgs (3)   | Global Variable (#) | Local Variable (#)  |                        |
+| 65       | Global Less Than Constant                                                            |                   |                     |                     |                        |
+|          | True if a global variable is less than a constant.                                   | NeedTwoArgs (3)   | Global Variable (#) | Constant (#)        |                        |
+| 66       | Global Less Than Global                                                              |                   |                     |                     |                        |
+|          | True if one global variable is less than another.                                    | NeedTwoArgs (3)   | Global Variable (#) | Global Variable (#) |                        |
+| 67       | Global Less Than Local                                                               |                   |                     |                     |                        |
+|          | True if a global variable is less than a local variable.                             | NeedTwoArgs (3)   | Global Variable (#) | Local Variable (#)  |                        |
+| 68       | Compare Local with Constant                                                          |                   |                     |                     |                        |
+|          | Compares a local variable with a constant using a specified operation.               | NeedThreeArgs (4) | Local Variable (#)  | Comparison Type     | Constant (#)           |
+| 69       | Compare Local with Global                                                            |                   |                     |                     |                        |
+|          | Compares a local variable with a global variable using a specified operation.        | NeedThreeArgs (4) | Local Variable (#)  | Comparison Type     | Global Variable (#)    |
+| 70       | Compare Local with Local                                                             |                   |                     |                     |                        |
+|          | Compares a local variable with another local variable using a specified operation.   | NeedThreeArgs (4) | Local Variable (#)  | Comparison Type     | Local Variable (#)     |
+| 71       | Local Equals Constant                                                                |                   |                     |                     |                        |
+|          | True if a local variable equals a constant.                                          | NeedTwoArgs (3)   | Local Variable (#)  | Constant (#)        |                        |
+| 72       | Local Equals Global                                                                  |                   |                     |                     |                        |
+|          | True if a local variable equals a global variable.                                   | NeedTwoArgs (3)   | Local Variable (#)  | Global Variable (#) |                        |
+| 73       | Local Equals Local                                                                   |                   |                     |                     |                        |
+|          | True if two local variables are equal.                                               | NeedTwoArgs (3)   | Local Variable (#)  | Local Variable (#)  |                        |
+| 74       | Local Greater Than Constant                                                          |                   |                     |                     |                        |
+|          | True if a local variable is greater than a constant.                                 | NeedTwoArgs (3)   | Local Variable (#)  | Constant (#)        |                        |
+| 75       | Local Greater Than Global                                                            |                   |                     |                     |                        |
+|          | True if a local variable is greater than a global variable.                          | NeedTwoArgs (3)   | Local Variable (#)  | Global Variable (#) |                        |
+| 76       | Local Greater Than Local                                                             |                   |                     |                     |                        |
+|          | True if a local variable is greater than another local variable.                     | NeedTwoArgs (3)   | Local Variable (#)  | Local Variable (#)  |                        |
+| 77       | Local Less Than Constant                                                             |                   |                     |                     |                        |
+|          | True if a local variable is less than a constant.                                    | NeedTwoArgs (3)   | Local Variable (#)  | Constant (#)        |                        |
+| 78       | Local Less Than Global                                                               |                   |                     |                     |                        |
+|          | True if a local variable is less than a global variable.                             | NeedTwoArgs (3)   | Local Variable (#)  | Global Variable (#) |                        |
+| 79       | Local Less Than Local                                                                |                   |                     |                     |                        |
+|          | True if a local variable is less than another local variable.                        | NeedTwoArgs (3)   | Local Variable (#)  | Local Variable (#)  |                        |
+

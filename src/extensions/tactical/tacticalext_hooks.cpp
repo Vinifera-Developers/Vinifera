@@ -794,7 +794,18 @@ DECLARE_PATCH(_Tactical_Render_Overlay_Patch)
             std::memset(TacticalMapExtension->InfoTextBuffer, 0, sizeof(TacticalMapExtension->InfoTextBuffer));
             TacticalMapExtension->InfoTextNotifySound = VOC_NONE;
             TacticalMapExtension->InfoTextPosition = TOP_LEFT;
-        }       
+        }
+    }
+
+    /**
+     *  Has a templated text been set to be displayed?
+     */
+    if (TacticalMapExtension->IsTemplatedTextVisible) {
+
+        /**
+         *  Draw it to the screen.
+         */
+        TacticalMapExtension->Draw_Templated_Text();
     }
 
     /**

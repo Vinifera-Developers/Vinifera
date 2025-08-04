@@ -39,6 +39,7 @@
 #include "scenario.h"
 #include "scenarioext.h"
 #include "session.h"
+#include "tacticalext.h"
 #include "tag.h"
 #include "techno.h"
 #include "tibsun_inline.h"
@@ -61,6 +62,22 @@ TActionClass::ActionDescriptionStruct TActionClassExtension::ExtActionDescriptio
     { "All Assign Mission", "Forces all units owned by the trigger's house to begin the specified mission (e.g., hunt, move)." },
     { "Make Ally (One-Way)", "Cause this trigger's house to make a one-sided alliance with the specified house." },
     { "Make Enemy (One-Way)", "Cause this trigger's house to unilaterally declare war on the specified house." },
+    { "Modify global (constant)", "Modifies a global variable using a constant as the second operand." },
+    { "Modify global (global)", "Modifies a global variable using another global variable as the second operand." },
+    { "Modify global (local)", "Modifies a global variable using a local variable as the second operand." },
+    { "Increment global", "Increases a global variable by 1." },
+    { "Decrement global", "Decreases a global variable by 1." },
+    { "Modify local (constant)", "Modifies a local variable using a constant as the second operand." },
+    { "Modify local (global)", "Modifies a local variable using a global variable as the second operand." },
+    { "Modify local (local)", "Modifies a local variable using another local variable as the second operand." },
+    { "Increment local", "Increases a local variable by 1." },
+    { "Decrement local", "Decreases a local variable by 1." },
+    { "Random number (global)", "Generates a random number and stores it in a global variable." },
+    { "Random number (local)", "Generates a random number and stores it in a local variable." },
+    { "Print global", "Prints the value of a global variable." },
+    { "Print local", "Prints the value of a local variable." },
+    { "Enable templated text", "Displays a line of text on the screen with variable substitution. The text may include placeholders like {{g_variableName}} or {{l_variableName}}, which are replaced with the corresponding global or local variable values. Color `-1` uses the color of the player's house." },
+    { "Disable templated text", "Removes the currently active templated text from the screen." },
 };
 
 
@@ -72,7 +89,7 @@ TActionClass::ActionDescriptionStruct TActionClassExtension::ExtActionDescriptio
 const char* TActionClassExtension::Action_Name(int action)
 {
     if (action < TACTION_COUNT) {
-        return TActionClass::Action_Name(TActionType(action));
+        return TActionClass::Action_Name(static_cast<TActionType>(action));
     }
 
     if (action < EXT_TACTION_COUNT) {
@@ -91,7 +108,7 @@ const char* TActionClassExtension::Action_Name(int action)
 const char* TActionClassExtension::Action_Description(int action)
 {
     if (action < TACTION_COUNT) {
-        return TActionClass::Action_Description(TActionType(action));
+        return TActionClass::Action_Description(static_cast<TActionType>(action));
     }
 
     if (action < EXT_TACTION_COUNT) {
@@ -134,6 +151,7 @@ bool TActionClassExtension::Execute(TActionClass& taction, HouseClass* house, Ob
          */
         DISPATCH(WIN);
         DISPATCH(LOSE);
+        DISPATCH(TEXT_TRIGGER);
         DISPATCH(DESTROY_TRIGGER);
         DISPATCH(ENABLE_TRIGGER);
         DISPATCH(PLAY_SOUND_RANDOM);
@@ -153,6 +171,22 @@ bool TActionClassExtension::Execute(TActionClass& taction, HouseClass* house, Ob
         EXT_DISPATCH(ALL_ASSIGN_MISSION);
         EXT_DISPATCH(MAKE_ALLY_ONE_WAY);
         EXT_DISPATCH(MAKE_ENEMY_ONE_WAY);
+        EXT_DISPATCH(MODIFY_GLOBAL_CONSTANT);
+        EXT_DISPATCH(MODIFY_GLOBAL_GLOBAL);
+        EXT_DISPATCH(MODIFY_GLOBAL_LOCAL);
+        EXT_DISPATCH(INCREMENT_GLOBAL);
+        EXT_DISPATCH(DECREMENT_GLOBAL);
+        EXT_DISPATCH(MODIFY_LOCAL_CONSTANT);
+        EXT_DISPATCH(MODIFY_LOCAL_GLOBAL);
+        EXT_DISPATCH(MODIFY_LOCAL_LOCAL);
+        EXT_DISPATCH(INCREMENT_LOCAL);
+        EXT_DISPATCH(DECREMENT_LOCAL);
+        EXT_DISPATCH(RANDOM_NUMBER_GLOBAL);
+        EXT_DISPATCH(RANDOM_NUMBER_LOCAL);
+        EXT_DISPATCH(PRINT_GLOBAL);
+        EXT_DISPATCH(PRINT_LOCAL);
+        EXT_DISPATCH(ENABLE_TEMPLATED_TEXT);
+        EXT_DISPATCH(DISABLE_TEMPLATED_TEXT);
 
         /**
          *  Used to print the current difficulty in ts-patches, available to be repurposed.
@@ -203,6 +237,7 @@ bool TActionClassExtension::Is_Vinifera_TAction(TActionType type)
     switch (type) {
     case TACTION_WIN:
     case TACTION_LOSE:
+    case TACTION_TEXT_TRIGGER:
     case TACTION_DESTROY_TRIGGER:
     case TACTION_ENABLE_TRIGGER:
     case TACTION_PLAY_SOUND_RANDOM:
@@ -320,6 +355,47 @@ bool TActionClassExtension::Do_LOSE(TActionClass& taction, HouseClass* house, Ob
         }
     }
 
+    return true;
+}
+
+
+/**
+ *  An enhanced text trigger action.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_TEXT_TRIGGER(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    int text_index = taction.Data.Value;
+    if (!TutorialText.Is_Present(text_index)) {
+        return false;
+    }
+
+    /**
+     *  Substitute the placeholders in the tutorial string.
+     */
+    std::string text = ScenarioClassExtension::Substitute_Variable_Placeholders(TutorialText[text_index]);
+
+    /**
+     *  Fetch the requested duration. If it's <= 0, fall back to vanilla.
+     */
+    int duration = taction.TriggerRect.Y;
+    duration = std::max(0, duration);
+    if (duration == 0) {
+        duration = Rule->MessageDelay * TICKS_PER_MINUTE;
+    } else {
+        duration *= TIMER_SECOND;
+    }
+
+    ColorSchemeType color = static_cast<ColorSchemeType>(taction.TriggerRect.X) * 2;
+    if (color < COLORSCHEME_FIRST || color >= ColorSchemes.Count()) {
+        color = PlayerPtr->RemapColor;
+    }
+
+    /**
+     *  Display a text message overlayed onto the tactical map.
+     */
+    Session.Messages.Add_Message(nullptr, 0, text.c_str(), color, TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, duration);
     return true;
 }
 
@@ -642,5 +718,620 @@ bool TActionClassExtension::Do_MAKE_ENEMY_ONE_WAY(TActionClass& taction, HouseCl
         house->Make_Enemy(house2);
         ScenarioInit--;
     }
+    return true;
+}
+
+
+/**
+ *  An enum for the operations that the actions can perform.
+ */
+enum VariableOperation
+{
+    OP_ASSIGN,
+    OP_ADD,
+    OP_SUBTRACT,
+    OP_MULTIPLY,
+    OP_DIVIDE,
+    OP_MODULO,
+    OP_NEGATE,
+    OP_LSHIFT,
+    OP_RSHIFT,
+    OP_NOT,
+    OP_XOR,
+    OP_OR,
+    OP_AND,
+    OP_MAX,
+    OP_MIN
+};
+
+
+/**
+ *  Performs an operation.
+ */
+static int Operate(int lhs, int rhs, VariableOperation operation)
+{
+    switch (operation) {
+    case OP_ASSIGN:
+        lhs = rhs;
+        break;
+    case OP_ADD:
+        lhs += rhs;
+        break;
+    case OP_SUBTRACT:
+        lhs -= rhs;
+        break;
+    case OP_MULTIPLY:
+        lhs *= rhs;
+        break;
+    case OP_DIVIDE:
+        lhs /= rhs;
+        break;
+    case OP_MODULO:
+        lhs %= rhs;
+        break;
+    case OP_NEGATE:
+        lhs = -lhs;
+        break;
+    case OP_LSHIFT:
+        lhs <<= rhs;
+        break;
+    case OP_RSHIFT:
+        lhs >>= rhs;
+        break;
+    case OP_NOT:
+        lhs = ~lhs;
+        break;
+    case OP_XOR:
+        lhs ^= rhs;
+        break;
+    case OP_OR:
+        lhs |= rhs;
+        break;
+    case OP_AND:
+        lhs &= rhs;
+        break;
+    case OP_MAX:
+        lhs = std::max(lhs, rhs);
+        break;
+    case OP_MIN:
+        lhs = std::min(lhs, rhs);
+        break;
+    }
+    return lhs;
+}
+
+
+/**
+ *  Edits a global with a constant as the second operand.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_MODIFY_GLOBAL_CONSTANT(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    /**
+     *  Save the parameters for convenience.
+     */
+    int left_index = taction.Data.Value;
+    VariableOperation operation = static_cast<VariableOperation>(taction.TriggerRect.X);
+    int right = taction.TriggerRect.Y;
+
+    /**
+     *  Fetch the current value of the variable.
+     */
+    int left;
+    if (!ScenExtension->Get_Global_Value(left_index, left)) {
+        return false;
+    }
+
+    /**
+     *  Perform the requested operation.
+     */
+    left = Operate(left, right, operation);
+
+    /**
+     *  Save the result.
+     */
+    ScenExtension->Set_Global_To(left_index, left);
+
+    return true;
+}
+
+
+/**
+ *  Edits a global with another global as the second operand.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_MODIFY_GLOBAL_GLOBAL(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    /**
+     *  Save the parameters for convenience.
+     */
+    int left_index = taction.Data.Value;
+    VariableOperation operation = static_cast<VariableOperation>(taction.TriggerRect.X);
+    int right_index = taction.TriggerRect.Y;
+
+    /**
+     *  Fetch the current value of the variable.
+     */
+    int left;
+    if (!ScenExtension->Get_Global_Value(left_index, left)) {
+        return false;
+    }
+
+    /**
+     *  Fetch the current value of the second variable.
+     */
+    int right;
+    if (!ScenExtension->Get_Global_Value(right_index, right)) {
+        return false;
+    }
+
+    /**
+     *  Perform the requested operation.
+     */
+    left = Operate(left, right, operation);
+
+    /**
+     *  Save the result.
+     */
+    ScenExtension->Set_Global_To(left_index, left);
+
+    return true;
+}
+
+
+/**
+ *  Edits a global with a local as the second operand.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_MODIFY_GLOBAL_LOCAL(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    /**
+     *  Save the parameters for convenience.
+     */
+    int left_index = taction.Data.Value;
+    VariableOperation operation = static_cast<VariableOperation>(taction.TriggerRect.X);
+    int right_index = taction.TriggerRect.Y;
+
+    /**
+     *  Fetch the current value of the variable.
+     */
+    int left;
+    if (!ScenExtension->Get_Global_Value(left_index, left)) {
+        return false;
+    }
+
+    /**
+     *  Fetch the current value of the second variable.
+     */
+    int right;
+    if (!ScenExtension->Get_Local_Value(right_index, right)) {
+        return false;
+    }
+
+    /**
+     *  Perform the requested operation.
+     */
+    left = Operate(left, right, operation);
+
+    /**
+     *  Save the result.
+     */
+    ScenExtension->Set_Global_To(left_index, left);
+
+    return true;
+}
+
+
+/**
+ *  Increments a global.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_INCREMENT_GLOBAL(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    /**
+     *  Save the parameters for convenience.
+     */
+    int index = taction.Data.Value;
+
+    /**
+     *  Fetch the current value of the variable.
+     */
+    int value;
+    if (!ScenExtension->Get_Global_Value(index, value)) {
+        return false;
+    }
+
+    /**
+     *  Perform the requested operation.
+     */
+    value++;
+
+    /**
+     *  Save the result.
+     */
+    ScenExtension->Set_Global_To(index, value);
+
+    return true;
+}
+
+
+/**
+ *  Decrements a global.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_DECREMENT_GLOBAL(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    /**
+     *  Save the parameters for convenience.
+     */
+    int index = taction.Data.Value;
+
+    /**
+     *  Fetch the current value of the variable.
+     */
+    int value;
+    if (!ScenExtension->Get_Global_Value(index, value)) {
+        return false;
+    }
+
+    /**
+     *  Perform the requested operation.
+     */
+    value--;
+
+    /**
+     *  Save the result.
+     */
+    ScenExtension->Set_Global_To(index, value);
+
+    return true;
+}
+
+
+/**
+ *  Edits a local with a constant as the second operand.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_MODIFY_LOCAL_CONSTANT(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    /**
+     *  Save the parameters for convenience.
+     */
+    int left_index = taction.Data.Value;
+    VariableOperation operation = static_cast<VariableOperation>(taction.TriggerRect.X);
+    int right = taction.TriggerRect.Y;
+
+    /**
+     *  Fetch the current value of the variable.
+     */
+    int left;
+    if (!ScenExtension->Get_Local_Value(left_index, left)) {
+        return false;
+    }
+
+    /**
+     *  Perform the requested operation.
+     */
+    left = Operate(left, right, operation);
+
+    /**
+     *  Save the result.
+     */
+    ScenExtension->Set_Local_To(left_index, left);
+
+    return true;
+}
+
+
+/**
+ *  Edits a local with a global as the second operand.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_MODIFY_LOCAL_GLOBAL(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    /**
+     *  Save the parameters for convenience.
+     */
+    int left_index = taction.Data.Value;
+    VariableOperation operation = static_cast<VariableOperation>(taction.TriggerRect.X);
+    int right_index = taction.TriggerRect.Y;
+
+    /**
+     *  Fetch the current value of the variable.
+     */
+    int left;
+    if (!ScenExtension->Get_Local_Value(left_index, left)) {
+        return false;
+    }
+
+    /**
+     *  Fetch the current value of the second variable.
+     */
+    int right;
+    if (!ScenExtension->Get_Global_Value(right_index, right)) {
+        return false;
+    }
+
+    /**
+     *  Perform the requested operation.
+     */
+    left = Operate(left, right, operation);
+
+    /**
+     *  Save the result.
+     */
+    ScenExtension->Set_Local_To(left_index, left);
+
+    return true;
+}
+
+
+/**
+ *  Edits a local with another local as the second operand.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_MODIFY_LOCAL_LOCAL(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    /**
+     *  Save the parameters for convenience.
+     */
+    int left_index = taction.Data.Value;
+    VariableOperation operation = static_cast<VariableOperation>(taction.TriggerRect.X);
+    int right_index = taction.TriggerRect.Y;
+
+    /**
+     *  Fetch the current value of the variable.
+     */
+    int left;
+    if (!ScenExtension->Get_Local_Value(left_index, left)) {
+        return false;
+    }
+
+    /**
+     *  Fetch the current value of the second variable.
+     */
+    int right;
+    if (!ScenExtension->Get_Local_Value(right_index, right)) {
+        return false;
+    }
+
+    /**
+     *  Perform the requested operation.
+     */
+    left = Operate(left, right, operation);
+
+    /**
+     *  Save the result.
+     */
+    ScenExtension->Set_Local_To(left_index, left);
+
+    return true;
+}
+
+
+/**
+ *  Increments a local.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_INCREMENT_LOCAL(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    /**
+     *  Save the parameters for convenience.
+     */
+    int index = taction.Data.Value;
+
+    /**
+     *  Fetch the current value of the variable.
+     */
+    int value;
+    if (!ScenExtension->Get_Local_Value(index, value)) {
+        return false;
+    }
+
+    /**
+     *  Perform the requested operation.
+     */
+    value++;
+
+    /**
+     *  Save the result.
+     */
+    ScenExtension->Set_Local_To(index, value);
+
+    return true;
+}
+
+
+/**
+ *  Decrements a local.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_DECREMENT_LOCAL(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    /**
+     *  Save the parameters for convenience.
+     */
+    int index = taction.Data.Value;
+
+    /**
+     *  Fetch the current value of the variable.
+     */
+    int value;
+    if (!ScenExtension->Get_Local_Value(index, value)) {
+        return false;
+    }
+
+    /**
+     *  Perform the requested operation.
+     */
+    value--;
+
+    /**
+     *  Save the result.
+     */
+    ScenExtension->Set_Local_To(index, value);
+
+    return true;
+}
+
+
+/**
+ *  Generates a random number and stores it in a global.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_RANDOM_NUMBER_GLOBAL(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    /**
+     *  Save the parameters for convenience.
+     */
+    int index = taction.Data.Value;
+    int min = taction.TriggerRect.X;
+    int max = taction.TriggerRect.Y;
+
+    /**
+     *  Generate the number.
+     */
+    int number = Random_Pick(min, max);
+
+    /**
+     *  Save the result.
+     */
+    if (!ScenExtension->Set_Global_To(index, number)) {
+        return false;
+    }
+
+    return true;
+}
+
+
+/**
+ *  Generates a random number and stores it in a local.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_RANDOM_NUMBER_LOCAL(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    /**
+     *  Save the parameters for convenience.
+     */
+    int index = taction.Data.Value;
+    int min = taction.TriggerRect.X;
+    int max = taction.TriggerRect.Y;
+
+    /**
+     *  Generate the number.
+     */
+    int number = Random_Pick(min, max);
+
+    /**
+     *  Save the result.
+     */
+    if (!ScenExtension->Set_Local_To(index, number)) {
+        return false;
+    }
+
+    return true;
+}
+
+
+/**
+ *  Prints the global as a message.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_PRINT_GLOBAL(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    /**
+     *  Save the parameters for convenience.
+     */
+    int index = taction.Data.Value;
+
+    /**
+     *  Fetch the current value of the variable.
+     */
+    int value;
+    if (!ScenExtension->Get_Global_Value(index, value)) {
+        return false;
+    }
+
+    /**
+     *  Format the value into a string.
+     */
+    char buffer[32];
+    std::snprintf(buffer, sizeof(buffer), "%d", value);
+
+    /**
+     *  Display a text message overlaid onto the tactical map.
+     */
+    Session.Messages.Add_Message(nullptr, 0, buffer, COLORSCHEME_FIRST, TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
+    return true;
+}
+
+
+/**
+ *  Prints the local as a message.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_PRINT_LOCAL(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    /**
+     *  Save the parameters for convenience.
+     */
+    int index = taction.Data.Value;
+
+    /**
+     *  Fetch the current value of the variable.
+     */
+    int value;
+    if (!ScenExtension->Get_Local_Value(index, value)) {
+        return false;
+    }
+
+    /**
+     *  Format the value into a string.
+     */
+    char buffer[32];
+    std::snprintf(buffer, sizeof(buffer), "%d", value);
+
+    /**
+     *  Display a text message overlaid onto the tactical map.
+     */
+    Session.Messages.Add_Message(nullptr, 0, buffer, COLORSCHEME_FIRST, TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
+    return true;
+}
+
+
+/**
+ *  Enables the variable counter for a global variable.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_ENABLE_TEMPLATED_TEXT(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    TacticalMapExtension->Enable_Templated_Text(taction.Data.Value, static_cast<ColorSchemeType>(taction.TriggerRect.X * 2));
+    return true;
+}
+
+
+/**
+ *  Disables the variable counter.
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_DISABLE_TEMPLATED_TEXT(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    TacticalMapExtension->Disable_Templated_Text();
     return true;
 }

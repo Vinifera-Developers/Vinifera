@@ -234,7 +234,7 @@ SpawnManagerClass::~SpawnManagerClass()
  */
 RTTIType SpawnManagerClass::Fetch_RTTI() const
 {
-    return static_cast<RTTIType>(RTTI_SPAWN_MANAGER);
+    return static_cast<RTTIType>(EXT_RTTI_SPAWN_MANAGER);
 }
 
 

@@ -62,6 +62,8 @@ New:
 - Allow pre-placed units to have missions in multiplayer (by Rampastring)
 - Implement TActionClass extensions, port ts-patches actions (by ZivDero, Rampastring)
 - Implement TEventClass extensions (by ZivDero)
+- Increase the local/global variable cap to 500 (by ZivDero)
+- Implement integer varialbes, and trigger actiosn and events to operate on them (by ZivDero)
 - Veterancy and Health Filter kotkeys (by hacklex)
 
 

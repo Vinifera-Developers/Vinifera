@@ -100,11 +100,39 @@ bool TActionClassExt::_Operator_Parens_Intercept(HouseClass* house, ObjectClass*
 
 
 /**
+ *  What can this action attach to?
+ *
+ *  @author: ZivDero
+ */
+AttachType _Attaches_To(TActionType event)
+{
+    AttachType attach = ATTACH_NONE;
+
+    switch (event) {
+    case TACTION_DESTROY_OBJECT:
+    case TACTION_SELL_ATTACHED:
+    case TACTION_TURN_OFF_ATTACHED:
+    case TACTION_TURN_ON_ATTACHED:
+    case TACTION_CHANGE_HOUSE:
+    case TACTION_GO_BERZERK:
+    case TACTION_SET_GROUP_ID:
+        attach |= ATTACH_OBJECT;
+        break;
+
+    default:
+        break;
+    }
+    return attach;
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void TActionClassExtension_Hooks()
 {
     Patch_Call(0x0064961C, &TActionClassExt::_Operator_Parens_Intercept);
+    Patch_Jump(0x0061D9C0, &_Attaches_To);
 
     /**
      *  #issue-674

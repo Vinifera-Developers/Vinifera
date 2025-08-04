@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          ENVIRONMENTEXT_HOOKS.H
+ *  @file          TEVENTEXT_INIT.H
  *
- *  @author        CCHyper
+ *  @author        ZivDero
  *
- *  @brief         Contains the hooks for the extended EnvironmentClass.
+ *  @brief         Contains the hooks for initialising the extended TEventClass.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -27,4 +27,5 @@
  ******************************************************************************/
 #pragma once
 
-void EnvironmentExtension_Hooks();
+
+void TEventClassExtension_Init();

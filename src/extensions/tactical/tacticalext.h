@@ -52,85 +52,124 @@ enum InfoTextPosType {
 
 class TacticalExtension final : public GlobalExtensionClass<Tactical>
 {
-    public:
-        IFACEMETHOD(Load)(IStream *pStm);
-        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+public:
+    IFACEMETHOD(Load)(IStream* pStm);
+    IFACEMETHOD(Save)(IStream* pStm, BOOL fClearDirty);
 
-    public:
-        TacticalExtension(const Tactical *this_ptr = nullptr);
-        TacticalExtension(const NoInitClass &noinit);
-        virtual ~TacticalExtension();
+public:
+    TacticalExtension(const Tactical* this_ptr = nullptr);
+    TacticalExtension(const NoInitClass& noinit);
+    virtual ~TacticalExtension();
 
-        virtual int Get_Object_Size() const override;
-        virtual void Detach(AbstractClass * target, bool all = true) override;
-        virtual void Object_CRC(CRCEngine &crc) const override;
+    virtual int Get_Object_Size() const override;
+    virtual void Detach(AbstractClass* target, bool all = true) override;
+    virtual void Object_CRC(CRCEngine& crc) const override;
 
-        virtual const char *Name() const override { return "TacticalMap"; }
-        virtual const char *Full_Name() const override { return "TacticalMap"; }
+    virtual const char* Name() const override { return "TacticalMap"; }
+    virtual const char* Full_Name() const override { return "TacticalMap"; }
 
-        void Set_Info_Text(const char *text);
+    void Set_Info_Text(const char* text);
+    void Enable_Templated_Text(int label, ColorSchemeType color);
+    void Disable_Templated_Text();
+    void Clear_Templated_Text_Cache() { IsTemplatedTextCached = false; }
 
-        void Draw_Version_Number_Text();
+    void Draw_Version_Number_Text();
 
-        void Draw_Debug_Overlay();
-        void Draw_FrameStep_Overlay();
+    void Draw_Debug_Overlay();
+    void Draw_FrameStep_Overlay();
 
-        void Draw_Information_Text();
-        void Draw_Super_Timers();
+    void Draw_Information_Text();
+    void Draw_Super_Timers();
+    void Draw_Templated_Text();
 
-        void Render_Post();
-        void Flag_Cell(CellClass& cell);
+    void Render_Post();
+    void Flag_Cell(CellClass& cell);
 
 #ifndef NDEBUG
-        bool Debug_Draw_Facings();
+    bool Debug_Draw_Facings();
 #endif
 
-    private:
-        void Super_Draw_Timer(int row_index, ColorScheme *color, int time, const char *name, unsigned long *flash_time, bool *flash_state);
+private:
+    void Super_Draw_Timer(int row_index, ColorScheme* color, int time, const char* name, unsigned long* flash_time, bool* flash_state);
 
-    public:
-        /**
-         *  Has information text been set?
-         */
-        bool IsInfoTextSet;
+public:
+    /**
+     *  Has information text been set?
+     */
+    bool IsInfoTextSet;
 
-        /**
-         *  The information text to print on the screen.
-         */
-        char InfoTextBuffer[512];
+    /**
+     *  The information text to print on the screen.
+     */
+    char InfoTextBuffer[512];
 
-        /**
-         *  Where on the screen shall the text be printed?
-         */
-        InfoTextPosType InfoTextPosition;
+    /**
+     *  Where on the screen shall the text be printed?
+     */
+    InfoTextPosType InfoTextPosition;
 
-        /**
-         *  Sound to play when this text is initially drawn.
-         */
-        VocType InfoTextNotifySound;
+    /**
+     *  Sound to play when this text is initially drawn.
+     */
+    VocType InfoTextNotifySound;
 
-        /**
-         *  Volume at which to play the initial sound.
-         */
-        float InfoTextNotifySoundVolume;
+    /**
+     *  Volume at which to play the initial sound.
+     */
+    float InfoTextNotifySoundVolume;
 
-        /**
-         *  The font style of the print text.
-         */
-        TextPrintType InfoTextStyle;
+    /**
+     *  The font style of the print text.
+     */
+    TextPrintType InfoTextStyle;
 
-        /**
-         *  The lifetime timer for the information text.
-         */
-        CDTimerClass<MSTimerClass> InfoTextTimer;
+    /**
+     *  The lifetime timer for the information text.
+     */
+    CDTimerClass<MSTimerClass> InfoTextTimer;
 
-        /**
-         *  Replacement cell redraw list, as the vanilla one is too small for modern screen sizes.
-         */
-        CellClass* CellRedraw[128 * 128]; // Not a solid number, just enough to never cause problems.
+    /**
+     *  Replacement cell redraw list, as the vanilla one is too small for modern screen sizes.
+     */
+    CellClass* CellRedraw[128 * 128]; // Not a solid number, just enough to never cause problems.
 
-        /**
-         *  The number of cells in the array above, only used after loading the game!
-         */
-        int CellRedrawCount;
+    /**
+     *  The number of cells in the array above, only used after loading the game!
+     */
+    int CellRedrawCount;
+
+    /**
+     *  Is the templated text currently shown?
+     */
+    bool IsTemplatedTextVisible;
+
+    /**
+     *  Index of the tutorial text to show as the templated text.
+     */
+    int TemplatedTextIndex;
+
+    /**
+     *  Where on the screen shall the templated text be printed?
+     */
+    InfoTextPosType TemplatedTextPosition;
+
+    /**
+     *  Which color scheme should the templated text use?
+     */
+    ColorSchemeType TemplatedTextColor;
+
+    /**
+     *  The font style of the templated text.
+     */
+    TextPrintType TemplatedTextStyle;
+
+    /**
+     *  Is there a cached string containing the formatted templated text?
+     */
+    bool IsTemplatedTextCached;
+
+    /**
+     *  The cached string containing the formatted templated text.
+     */
+    char TemplatedTextCache[512];
 };
