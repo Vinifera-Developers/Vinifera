@@ -91,11 +91,6 @@ SideClassExtension final : public AbstractTypeClassExtension
         ColorSchemeType ToolTipColor;
 
         /**
-         *  RGB color used by the options menu.
-         */
-        RGBStruct OptionsColor;
-
-        /**
          *  InfantryType used as this Side's crew.
          */
         const InfantryTypeClass* Crew;

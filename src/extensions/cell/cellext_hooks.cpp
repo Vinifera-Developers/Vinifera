@@ -223,8 +223,7 @@ DECLARE_PATCH(_CellClass_Goodie_Check_CRATE_UNIT_BaseUnit_Patch)
      */
     unittype = objhouse->Get_First_Ownable(RuleExtension->BaseUnit);
 
-    if (unittype)
-    {
+    if (unittype) {
         _asm mov eax, Rule
         _asm mov eax, [eax]
         _asm mov edi, unittype
@@ -253,8 +252,7 @@ DECLARE_PATCH(_CellClass_Goodie_Check_CRATE_UNIT_BuildRefinery_HarvesterUnit_Pat
 
     owner_house = object->House;
 
-    if (owner_house->Count_Owned(Rule->BuildRefinery) > 0 && owner_house->Count_Owned(Rule->HarvesterUnit) == 0)
-    {
+    if (owner_house->Count_Owned(Rule->BuildRefinery) > 0 && owner_house->Count_Owned(Rule->HarvesterUnit) == 0) {
         // We can grant a harvester
         unittype = owner_house->Get_First_Ownable(Rule->HarvesterUnit);
     }
@@ -282,8 +280,7 @@ DECLARE_PATCH(_CellClass_Goodie_Check_No_Buildings_Force_MCV_BaseUnit_Patch)
      *  Check if this is a BaseUnit.
      *  If so, continue the loop.
      */
-    if (RuleExtension->BaseUnit.Is_Present(unittype))
-    {
+    if (RuleExtension->BaseUnit.Is_Present(unittype)) {
         JMP(0x004581BA);
     }
 

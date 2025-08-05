@@ -2419,8 +2419,7 @@ DECLARE_PATCH(_BuildingClass_Unlimbo_BuildConst_Patch)
 {
     GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
 
-    if (Rule->BuildConst.Is_Present(this_ptr->Class))
-    {
+    if (Rule->BuildConst.Is_Present(this_ptr->Class)) {
         JMP(0x0042AA8B);
     }
 
@@ -2439,8 +2438,7 @@ DECLARE_PATCH(_BuildingClass_Captured_BuildConst_Patch1)
 {
     GET_REGISTER_STATIC(BuildingTypeClass*, buildingtype, ecx);
 
-    if (Rule->BuildConst.Is_Present(buildingtype))
-    {
+    if (Rule->BuildConst.Is_Present(buildingtype)) {
         JMP(0x0042F968);
     }
 
@@ -2459,8 +2457,7 @@ DECLARE_PATCH(_BuildingClass_Captured_BuildConst_Patch2)
 {
     GET_REGISTER_STATIC(HouseClass*, house, ebx);
 
-    if (house->Count_Owned(Rule->BuildConst))
-    {
+    if (house->Count_Owned(Rule->BuildConst)) {
         JMP(0x0042FAEF);
     }
 
@@ -2479,8 +2476,7 @@ DECLARE_PATCH(_BuildingClass_Captured_BuildConst_Patch3)
 {
     GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
 
-    if (Rule->BuildConst.Is_Present(this_ptr->Class))
-    {
+    if (Rule->BuildConst.Is_Present(this_ptr->Class)) {
         JMP(0x0042FCB6);
     }
 

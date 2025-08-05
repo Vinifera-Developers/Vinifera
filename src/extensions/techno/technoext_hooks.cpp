@@ -972,7 +972,7 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
     /**
      *  If the current mission doesn't allow retaliation, return false;
      */
-    if (!Get_Current_Mission_Control().IsRetaliate)
+    if (!Current_Mission_Control().IsRetaliate)
         return false;
 
     /**
@@ -1333,7 +1333,7 @@ void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
                 House->BuildingsLost++;
             }
 
-            if (source) {
+            if (source != nullptr) {
                 if (!typeext->IsDontScore) {
                     source->House->DestroyedBuildings->Increment_Unit_Total(reinterpret_cast<BuildingClass*>(this)->Class->HeapID);
                 }
@@ -1430,7 +1430,6 @@ bool TechnoClassExt::_Revealed(HouseClass* house)
         }
 
         if (house == PlayerPtr) {
-
             IsDiscoveredByPlayer = true;
             House->RecalcPower = true;
             House->RecalcRadar = true;
@@ -1441,7 +1440,7 @@ bool TechnoClassExt::_Revealed(HouseClass* house)
                  *  If there is a trigger event associated with this object, then process
                  *  it for discovery purposes.
                  */
-                if (!ScenarioInit && Tag) {
+                if (!ScenarioInit && Tag != nullptr) {
                     Tag->Spring(TEVENT_DISCOVERED, this);
                 }
 
@@ -1449,8 +1448,7 @@ bool TechnoClassExt::_Revealed(HouseClass* house)
                  *  Alert the enemy house to presence of the friendly side.
                  */
                 House->IsDiscovered = true;
-            }
-            else {
+            } else {
 
                 /**
                  *  A newly revealed object will always perform a look operation.
@@ -1464,8 +1462,7 @@ bool TechnoClassExt::_Revealed(HouseClass* house)
             if (Session.Type != GAME_NORMAL && Rule->IsAllyReveal && House->Is_Ally(house)) {
                 Look();
             }
-        }
-        else {
+        } else {
             IsDiscoveredByComputer = true;
         }
 
@@ -1963,7 +1960,7 @@ return_false:
 static bool Can_Attack_Neutrals(TechnoClass* target)
 {
     bool attack_neutrals = Vinifera_SpawnerActive && Vinifera_SpawnerConfig->AttackNeutralUnits;
-    bool unarmed_building = target->What_Am_I() == RTTI_BUILDING && (!target->Is_Weapon_Equipped() || target->Get_Weapon()->Weapon->Range == 0);
+    bool unarmed_building = target->RTTI == RTTI_BUILDING && (!target->Is_Weapon_Equipped() || target->Get_Weapon()->Weapon->Range == 0);
 
     return attack_neutrals && !unarmed_building;
 };
@@ -1978,13 +1975,12 @@ DECLARE_PATCH(_TechnoClass_Evaluate_Object_AttackNeutralUnits_Patch)
 {
     GET_REGISTER_STATIC(TechnoClass*, target, esi);
 
-    if (Session.Type != GAME_NORMAL && target->Owner_HouseClass()->Class->IsMultiplayPassive)
-    {
+    if (Session.Type != GAME_NORMAL && target->Owner_HouseClass()->Class->IsMultiplayPassive) {
+
         /**
          *  Allow attacking neutrals, but if it's a building, it must be armed.
          */
-        if (!Can_Attack_Neutrals(target))
-        {
+        if (!Can_Attack_Neutrals(target)) {
             // return false;
             JMP(0x0062D8C0);
         }

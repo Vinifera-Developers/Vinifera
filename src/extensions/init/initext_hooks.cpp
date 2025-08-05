@@ -650,14 +650,6 @@ bool Vinifera_Prep_For_Side(SideType side)
 
     Map.Init_For_House();
 
-    /**
-     *  Set the options menu color.
-     */
-    static auto& OptionsColor = Make_Global<COLORREF>(0x00808B7C);
-    const SideClassExtension* sideext = Extension::Fetch(Sides[static_cast<SideType>(Scen->IsGDI)]);
-    const RGBStruct& options_rgb = sideext->OptionsColor;
-    OptionsColor = RGB(options_rgb.R, options_rgb.G, options_rgb.B);
-
     return true;
 }
 

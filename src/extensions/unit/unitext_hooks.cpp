@@ -78,7 +78,7 @@ DECLARE_EXTENDING_CLASS_AND_PAIR(UnitClass)
 public:
     void _Firing_AI();
     void _Draw_Voxel(unsigned int frame, int key, Rect& rect, Point2D& point, const Matrix3D& other_matrix, int color, int flags);
-    int _Mission_Hunt();
+    int _Do_MISSION_HUNT();
     void _Rotation_AI();
 };
 
@@ -377,29 +377,47 @@ void UnitClassExt::_Rotation_AI()
 /**
  *  #issue-177
  *
- *  Reaplces UnitClass::MissionHunt to consider the entire BuildConst vector.
+ *  Reaplces UnitClass::Do_MISSION_HUNT to consider the entire BuildConst vector.
  *
  *  @author: ZivDero
  */
-int UnitClassExt::_Mission_Hunt()
+int UnitClassExt::_Do_MISSION_HUNT()
 {
-    if (Class->DeploysInto && (Rule->BuildConst.Is_Present(Class->DeploysInto) || TarCom || House->Is_Human_Player()))
-    {
-        if (Status)
-        {
-            if (Status == 1 && !IsDeploying)
-                Status = 0;
-        }
-        else if (Goto_Clear_Spot())
-        {
-            if (Try_To_Deploy())
-                Status = 1;
-        }
+    if (Class->DeploysInto && (Rule->BuildConst.Is_Present(Class->DeploysInto) || TarCom != nullptr || House->Is_Human_Player())) {
+        enum {
+            FIND_SPOT,
+            WAITING
+        };
 
-        return Get_Current_Mission_Control().Rate * TICKS_PER_MINUTE + Random_Pick(0, 2);
+        switch (Status) {
+
+        /**
+         *  This stage handles locating a convenient spot, rotating to face the correct
+         *  direction and then commencing the deployment operation.
+         */
+        case FIND_SPOT:
+            if (Goto_Clear_Spot()) {
+                if (Try_To_Deploy()) {
+                    Status = WAITING;
+                }
+            }
+            break;
+
+        /**
+         *  This stage watchdogs the deployment operation and if for some reason, the deployment
+         *  is aborted (the IsDeploying flag becomes false), then it reverts back to hunting for
+         *  a convenient spot to deploy.
+         */
+        case WAITING:
+            if (!IsDeploying) {
+                Status = FIND_SPOT;
+            }
+            break;
+        }
+    } else {
+        return FootClass::Mission_Hunt();
     }
-
-    return FootClass::Mission_Hunt();
+    return Current_Mission_Control().Normal_Delay() + Random_Pick(0, 2);
 }
 
 
@@ -1501,8 +1519,7 @@ DECLARE_PATCH(_UnitClass_AI_BuildConst_Patch)
 {
     GET_REGISTER_STATIC(UnitTypeClass*, unittype, edx);
 
-    if (Rule->BuildConst.Is_Present(unittype->DeploysInto))
-    {
+    if (Rule->BuildConst.Is_Present(unittype->DeploysInto)) {
         JMP_REG(ecx, 0x0064E0EC);
     }
 
@@ -1522,8 +1539,7 @@ DECLARE_PATCH(_UnitClass_What_Action_BuildConst)
     GET_REGISTER_STATIC(BuildingTypeClass*, buildingtype, ebp);
     _asm pushad
 
-    if (Rule->BuildConst.Is_Present(buildingtype))
-    {
+    if (Rule->BuildConst.Is_Present(buildingtype)) {
         _asm popad
         JMP_REG(edx, 0x00656084);
     }
@@ -1544,8 +1560,7 @@ DECLARE_PATCH(_UnitClass_Mission_Guard_BuildConst)
 {
     GET_REGISTER_STATIC(UnitClass*, unit, esi);
 
-    if (Rule->BuildConst.Is_Present(unit->Class->DeploysInto))
-    {
+    if (Rule->BuildConst.Is_Present(unit->Class->DeploysInto)) {
         JMP(0x00656770);
     }
 
@@ -1579,7 +1594,7 @@ void UnitClassExtension_Hooks()
     Patch_Jump(0x006527B1, &_UnitClass_Draw_Voxel_Patch);
     Patch_Jump(0x00654EEE, &_UnitClass_Mission_Harvest_FINDHOME_Find_Nearest_Refinery_Patch);
     Patch_Jump(0x0064E0D7, &_UnitClass_AI_BuildConst_Patch);
-    Patch_Jump(0x00655270, &UnitClassExt::_Mission_Hunt);
+    Patch_Jump(0x00655270, &UnitClassExt::_Do_MISSION_HUNT);
     Patch_Jump(0x00656074, &_UnitClass_What_Action_BuildConst);
     Patch_Jump(0x00656751, &_UnitClass_Mission_Guard_BuildConst);
     //Patch_Jump(0x0065054F, &_UnitClass_Enter_Idle_Mode_Block_Harvesting_On_Bridge_Patch); // Removed, keeping code for reference.
