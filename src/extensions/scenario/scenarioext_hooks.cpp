@@ -181,8 +181,6 @@ DECLARE_PATCH(_Clear_Scenario_Patch)
     KamikazeTracker->Clear();
     AircraftTracker->Clear();
 
-    Vinifera_ObserverPtr = nullptr;
-
     JMP(0x005DC872);
 }
 

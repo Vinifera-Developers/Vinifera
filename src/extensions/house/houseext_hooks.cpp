@@ -704,7 +704,7 @@ void HouseClassExt::_MPlayer_Defeated()
      *  - Add my defeat message
      */
     if (PlayerPtr == this) {
-        if (Vinifera_ObserverPtr != this) {
+        if (!Extension::Fetch(PlayerPtr)->IsObserver) {
 
             /**
              *  Pop up a message showing that I was defeated
@@ -715,7 +715,7 @@ void HouseClassExt::_MPlayer_Defeated()
         }
 
         Map.Flag_To_Redraw();
-        DEBUG_INFO("MPlayer_Defeated() - Player %s has been defeated (OBIWAN MODE)\n", IniName);
+        DEBUG_INFO("MPlayer_Defeated() - Player %s has been defeated\n", IniName);
 
     } else {
 
@@ -723,7 +723,7 @@ void HouseClassExt::_MPlayer_Defeated()
          *  If it wasn't me, find out who was defeated
          */
         if (!Class->IsMultiplayPassive) {
-            if (Vinifera_ObserverPtr != this) {
+            if (!Extension::Fetch(PlayerPtr)->IsObserver) {
                 std::snprintf(txt, std::size(txt), Fetch_String(TXT_PLAYER_DEFEATED), IniName);
                 Session.Messages.Add_Message(nullptr, 0, txt, Scheme, TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
                 Speak(VOX_PLAYER_DEFEATED);
@@ -737,7 +737,7 @@ void HouseClassExt::_MPlayer_Defeated()
     /**
      *  If the local player is been defeated, check if they should be given OBIWAN mode.
      */
-    if (PlayerPtr->IsDefeated && PlayerPtr != Vinifera_ObserverPtr && Session.ObiWan == false) {
+    if (PlayerPtr->IsDefeated && !Extension::Fetch(PlayerPtr)->IsObserver && Session.ObiWan == false) {
 
         /**
          *  With the spawner active, if Coach mode is enabled, players don't get vision.
@@ -768,7 +768,6 @@ void HouseClassExt::_MPlayer_Defeated()
             Session.ObiWan = true;
             Map.Reveal_The_Map();
             Extension::Fetch(PlayerPtr)->IsObserver = true;
-            Vinifera_ObserverPtr = PlayerPtr;
             PlayerPtr->RecalcRadar = true;
             HiddenSurface->Fill(0);
             Map.Flag_To_Redraw();
@@ -840,15 +839,17 @@ void HouseClassExt::_MPlayer_Defeated()
      *  - Determine whether this player wins or loses, based on the state of the
      *    player's IsDefeated flag
      */
-    if (num_alive == 1 || (num_humans == 0 && !(Vinifera_SpawnerActive && Vinifera_SpawnerConfig->ContinueWithoutHumans))) {
-        IsToDie = false;
+    if (!Extension::Fetch(this)->IsObserver) {
+        if (num_alive == 1 || (num_humans == 0 && !(Vinifera_SpawnerActive && Vinifera_SpawnerConfig->ContinueWithoutHumans))) {
+            IsToDie = false;
 
-        if (PlayerPtr->IsDefeated) {
-            DEBUG_INFO("MPlayer_Defeated() - Flag_To_Lose\n");
-            Flag_To_Lose(false);
-        } else {
-            DEBUG_INFO("MPlayer_Defeated() - Flag_To_Win\n");
-            Flag_To_Win(false);
+            if (PlayerPtr->IsDefeated) {
+                DEBUG_INFO("MPlayer_Defeated() - Flag_To_Lose\n");
+                Flag_To_Lose(false);
+            } else {
+                DEBUG_INFO("MPlayer_Defeated() - Flag_To_Win\n");
+                Flag_To_Win(false);
+            }
         }
     }
 }

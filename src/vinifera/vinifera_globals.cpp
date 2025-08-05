@@ -76,8 +76,6 @@ DynamicVectorClass<MFCD*> ViniferaMoviesMixes;
 SpawnerConfig* Vinifera_SpawnerConfig = nullptr;
 bool Vinifera_SpawnerActive = false;
 
-HouseClass* Vinifera_ObserverPtr = nullptr;
-
 bool Vinifera_DoSave = false;
 int Vinifera_NextAutoSaveFrame = -1;
 int Vinifera_NextAutoSaveNumber = 0;

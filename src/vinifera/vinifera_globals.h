@@ -117,14 +117,6 @@ extern int EnvironmentGlobals[std::size(ScenExtension->GlobalFlags)];
 extern SpawnerConfig* Vinifera_SpawnerConfig;
 extern bool Vinifera_SpawnerActive;
 
-/**
- *  This is the pointer to the local observer player.
- *  #NOTE: This pointer is only set if the player is a REAL
- *  observer, i.e. has been an observer since the start,
- *  or "Coach Mode" is off.
- */
-extern HouseClass* Vinifera_ObserverPtr;
-
 extern bool Vinifera_DoSave;
 extern int Vinifera_NextAutoSaveFrame;
 extern int Vinifera_NextAutoSaveNumber;

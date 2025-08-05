@@ -300,8 +300,6 @@ bool Vinifera_Put_All(IStream *pStm, bool save_net)
     DEBUG_INFO("Saving Misc. Values...\n");
     if (FAILED(Save_Misc_Values(pStm))) { return false; }
 
-    pStm->Write(&Vinifera_ObserverPtr, sizeof(Vinifera_ObserverPtr), nullptr);
-
     /**
      *  Save the Logic & Map layers.
      */
@@ -522,9 +520,6 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
      */
     DEBUG_INFO("Loading Misc. Values...\n");
     if (FAILED(Load_Misc_Values(pStm))) { return false; }
-
-    pStm->Read(&Vinifera_ObserverPtr, sizeof(Vinifera_ObserverPtr), nullptr);
-    VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(Vinifera_ObserverPtr, "Vinifera_ObserverPtr");
 
     DEBUG_INFO("About to call Map.Clear_SubZones()...\n");
     Map.Clear_SubZones();
@@ -988,8 +983,8 @@ bool Vinifera_Load_Game(const char* file_name)
     Map.Init_IO();
     Map.Activate(1);
     Map.Set_Dimensions();
-    TiberiumClass::Growth_Init_Clear();
-    TiberiumClass::Init_Cells();
+    TiberiumClass::Initialize_Tiberium_Growth_System();
+    TiberiumClass::Initialize_Tiberium_Spread_System();
     Map.Total_Radar_Refresh();
     TacticalViewActive = true;
     ScenarioStarted = true;

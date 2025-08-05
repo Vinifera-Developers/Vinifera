@@ -1683,8 +1683,8 @@ bool ScenarioClassExtension::Read_Scenario_INI(CCINIClass& ini, bool random)
     /**
      *  Initialize Tiberium.
      */
-    TiberiumClass::Growth_Init_Clear();
-    TiberiumClass::Init_Cells();
+    TiberiumClass::Initialize_Tiberium_Growth_System();
+    TiberiumClass::Initialize_Tiberium_Spread_System();
 
     Session.Loading_Callback(72);
 
@@ -2248,22 +2248,14 @@ void ScenarioClassExtension::Assign_Houses()
              *  Mark an observer accordingly.
              */
             if (houseconfig.IsObserver) {
-
                 houseext->IsObserver = true;
-
-                /**
-                 *  If this ID is for myself, set up ObserverPtr.
-                 */
-                if (index == 0) {
-                    Vinifera_ObserverPtr = housep;
-                }
             }
         }
 
         /**
          *  Record where we placed this player.
          */
-        node.Player.ID = static_cast<HousesType>(housep->HeapID);
+        node.Player.ID = housep->HeapID;
 
         DEBUG_INFO("    Assigned player \"%s\" (House: \"%s\", ID: %d, Color: \"%s\") to slot %d.\n", node.Name, housep->Class->Name(), node.Player.ID, ColorSchemes[housep->Scheme]->Name, i);
     }
@@ -2757,7 +2749,7 @@ void ScenarioClassExtension::Create_Units(bool official)
 
     DEBUG_INFO("NumPlayers = %d\n", Session.NumPlayers);
     DEBUG_INFO("AIPlayers = %d\n", Session.Options.AIPlayers);
-    DEBUG_INFO("Creating %d starting units per house - Random seed is %08x\n", unit_count, Scen->RandomNumber);
+    DEBUG_INFO("Creating %d starting units per house - Random seed is %08x\n", unit_count, static_cast<int>(Scen->RandomNumber));
     DEBUG_INFO("UniqueID is %08x\n", Scen->UniqueID);
 
     /**

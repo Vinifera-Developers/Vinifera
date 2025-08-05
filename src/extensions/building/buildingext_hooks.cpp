@@ -1048,7 +1048,7 @@ void BuildingClassExt::_Draw_Overlays(const Point2D& coord, const Rect& rect)
             /**
              *  Draw the primary factory pip.
              */
-            if (House->Is_Ally(PlayerPtr) || SpiedBy & (1 << (PlayerPtr->Class->House)) || (PlayerPtr == Vinifera_ObserverPtr)) {
+            if (House->Is_Ally(PlayerPtr) || SpiedBy & (1 << (PlayerPtr->Class->House)) || Extension::Fetch(PlayerPtr)->IsObserver) {
                 Point2D xy(coord.X - 10, coord.Y + 10);
                 Draw_Text_Overlay(xy, coord, rect);
             }
@@ -1056,7 +1056,7 @@ void BuildingClassExt::_Draw_Overlays(const Point2D& coord, const Rect& rect)
             /**
              *  If this is a factory, and the player has spied its owner, draw the cameo of what it's currently producing.
              */
-            if (SpiedBy & (1 << (PlayerPtr->Class->House)) || (PlayerPtr == Vinifera_ObserverPtr)) {
+            if (SpiedBy & (1 << (PlayerPtr->Class->House)) || Extension::Fetch(PlayerPtr)->IsObserver) {
                 FactoryClass* factory = House->Is_Human_Player() ? House->Fetch_Factory(Class->ToBuild) : Factory;
                 if (factory != nullptr) {
                     ObjectClass* obj = factory->Get_Object();

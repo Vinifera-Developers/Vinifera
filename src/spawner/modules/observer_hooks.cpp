@@ -63,20 +63,21 @@ public:
  */
 bool HouseClassExt::_Is_Ally_Or_Observer(const HouseClassExt* house) const
 {
-    return Is_Ally(house) || PlayerPtr == Vinifera_ObserverPtr;
+    return Is_Ally(house) || Extension::Fetch(PlayerPtr)->IsObserver;
 }
 
 
 /**
- *  Enable the radar for observers.
+ *  Enable the radar and reveal the map for observers.
  *
  *  @author: ZivDero
  */
 void HouseClassExt::_Recalc_Radar_Availability()
 {
-    if (this == Vinifera_ObserverPtr) {
+    if (this == PlayerPtr && Extension::Fetch(PlayerPtr)->IsObserver) {
         if (!Map.Is_Radar_Existing()) {
             Map.Toggle_Radar(true);
+            Map.Reveal_The_Map();
         }
     } else {
         Recalc_Radar_Availability();
@@ -108,7 +109,7 @@ public:
  */
 void DisplayClassExt::_Encroach_Shadow_Observer()
 {
-    if (Vinifera_SpawnerActive && PlayerPtr == Vinifera_ObserverPtr) {
+    if (Vinifera_SpawnerActive && Extension::Fetch(PlayerPtr)->IsObserver) {
         return;
     }
 
@@ -123,7 +124,7 @@ void DisplayClassExt::_Encroach_Shadow_Observer()
  */
 void DisplayClassExt::_Encroach_Fog_Observer()
 {
-    if (Vinifera_SpawnerActive && PlayerPtr == Vinifera_ObserverPtr) {
+    if (Vinifera_SpawnerActive && Extension::Fetch(PlayerPtr)->IsObserver) {
         return;
     }
 
