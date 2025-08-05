@@ -87,6 +87,7 @@
 #include "utracker.h"
 #include "aircraft.h"
 #include "houseext.h"
+#include "vox.h"
 
 
 /**
@@ -643,6 +644,46 @@ void TechnoClassExt::_Mission_AI()
 
     if (extension->SpawnManager) {
         extension->SpawnManager->AI();
+    }
+
+
+    /**
+     *  Check if the unit has been promoted.
+     */
+    if (extension->LastVeterancy != Veterancy.Get_Rank()) {
+        if (extension->LastVeterancy != RANK_NONE) {
+            if (Veterancy.Is_Elite()) {
+
+                /**
+                 *  Play the promotion sound and voice line.
+                 */
+                if (House->Is_Player_Control()) {
+                    Static_Sound(RuleExtension->UpgradeEliteSound, PositionCoord);
+                    Speak(RuleExtension->VoxUnitPromoted);
+                }
+
+                /**
+                 *  Elite units also flash for a while.
+                 */
+                FlashCount = RuleExtension->EliteFlashTimer;
+            } else if (Veterancy.Is_Veteran()) {
+
+                /**
+                 *  Play the promotion sound and voice line.
+                 */
+                if (House->Is_Player_Control()) {
+                    Static_Sound(RuleExtension->UpgradeVeteranSound, PositionCoord);
+                    Speak(RuleExtension->VoxUnitPromoted);
+                }
+            }
+
+            /**
+             *  Force the unit to look in case its range has been upgraded.
+             */
+            Look();
+        }
+
+        extension->LastVeterancy = Veterancy.Get_Rank();
     }
 }
 

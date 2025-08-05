@@ -273,3 +273,4 @@ This page lists all the individual contributions to the project by their author.
   - Implement TEventClass extension.
   - Increase the local/global variable cap to 500.
   - Implement integer varialbes, and trigger actiosn and events to operate on them.
+  - Add unit promotion sounds, EVA and flashing.

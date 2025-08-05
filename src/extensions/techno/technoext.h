@@ -116,4 +116,10 @@ class TechnoClassExtension : public RadioClassExtension
          *  The countdown until burst gets reset if unit has lost the target.
          */
         CDTimerClass<FrameTimerClass> BurstResetTimer;
+
+        /**
+         *  The veternacy rank of this unit last time it performed its AI() function.
+         *  Used to determine when a unit has ranked up.
+         */
+        VeterancyRankType LastVeterancy;
 };

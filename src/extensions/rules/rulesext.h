@@ -168,4 +168,20 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
          *  Determines whether the Tiberium storage logic is enabled.
          */
         bool IsTiberiumStorage;
+
+        /**
+         *  Sounds played when a unit is promoted.
+         */
+        VocType UpgradeVeteranSound;
+        VocType UpgradeEliteSound;
+
+        /**
+         *  EVA announcement when a unit is promoted.
+         */
+        VoxType VoxUnitPromoted;
+
+        /**
+         *  The number of frames that a newly elite unit will flash for.
+         */
+        int EliteFlashTimer;
 };

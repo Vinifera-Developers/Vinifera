@@ -65,6 +65,7 @@ New:
 - Increase the local/global variable cap to 500 (by ZivDero)
 - Implement integer varialbes, and trigger actiosn and events to operate on them (by ZivDero)
 - Veterancy and Health Filter kotkeys (by hacklex)
+- Add unit promotion sounds, EVA and flashing (by ZivDero)
 
 
 Vinifera fixes:
