@@ -2249,6 +2249,14 @@ void ScenarioClassExtension::Assign_Houses()
              */
             if (houseconfig.IsObserver) {
                 houseext->IsObserver = true;
+
+                /**
+                 *  If the local player starts as an observer, mark him as "Obi Wan" -
+                 *  prevents him from sending DMs to players (and removes fog).
+                 */
+                if (house_index == 0) {
+                    Session.ObiWan = true;
+                }
             }
         }
 
