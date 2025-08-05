@@ -88,11 +88,11 @@ HouseClassExtension::HouseClassExtension(const HouseClass *this_ptr) :
          *  Uuuhh... the fact that this is const is annoying, but for now while
          *  this is not a massive issue, just const_cast it.
          */
-        if (Wstring(this_ptr->IniName) != "Neutral" && Wstring(this_ptr->IniName) != "Special")
+        if (std::strcmp(this_ptr->IniName, "Neutral") != 0 && std::strcmp(this_ptr->IniName, "Special") != 0) {
             const_cast<HouseClass*>(this_ptr)->ActLike = this_ptr->Class->House;
-        else
+        } else {
             const_cast<HouseClass*>(this_ptr)->ActLike = HOUSE_NONE;
-        
+        }
     }
 
     HouseExtensions.Add(this);

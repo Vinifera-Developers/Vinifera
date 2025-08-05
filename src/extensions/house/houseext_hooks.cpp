@@ -285,39 +285,17 @@ int HouseClassExt::_AI_Unit()
 int HouseClassExt::_Expert_AI()
 {
     /**
-     *  Unfortunately, ts-patches spawner has a hack here.
-     *  Until we reimplement the spawner in Vinifera, this will have to do.
-     */
-    static bool spawner_hack_init = false;
-    static bool spawner_hack_mpnodes = false;
-
-    if (!spawner_hack_init)
-    {
-        RawFileClass file("SPAWN.INI");
-        CCINIClass spawn_ini;
-
-        if (file.Is_Available()) {
-
-            spawn_ini.Load(file, false);
-            spawner_hack_mpnodes = spawn_ini.Get_Bool("Settings", "UseMPAIBaseNodes", spawner_hack_mpnodes);
-        }
-
-        spawner_hack_init = true;
-    }
-
-    /**
      *  If there is no enemy assigned to this house, then assign one now. The
      *  enemy that is closest is picked. However, don't pick an enemy if the
      *  base has not been established yet.
      */
-    if (ExpertAITimer.Expired()) {
+    if (ExpertAITimer == 0) {
         if (Enemy == HOUSE_NONE && Session.Type != GAME_NORMAL && !Class->IsMultiplayPassive && Center != COORD_NONE) {
             int close = INT_MAX;
             HouseClass* enemy = nullptr;
 
             for (int i = 0; i < Houses.Count(); i++) {
                 HouseClass* house = Houses[i];
-
                 if (house != this && !house->Class->IsMultiplayPassive && !house->IsDefeated && !Is_Ally(house)) {
 
                     /**
@@ -366,7 +344,7 @@ int HouseClassExt::_Expert_AI()
      *  Use any ready super weapons.
      */
     if (Session.Type != GAME_NORMAL || IQ >= Rule->IQSuperWeapons) {
-        AI_Super_Weapon_Handler();
+        AI_Super_Weapons();
     }
 
     /**
@@ -378,8 +356,7 @@ int HouseClassExt::_Expert_AI()
     if (State == STATE_ENDGAME) {
         Fire_Sale();
         All_To_Hunt();
-    }
-    else {
+    } else {
         if (State == STATE_BUILDUP) {
             if (Available_Money() < 25) {
                 State = STATE_BROKE;
@@ -398,7 +375,7 @@ int HouseClassExt::_Expert_AI()
         }
     }
 
-    if (Session.Type != GAME_NORMAL && !spawner_hack_mpnodes) {
+    if (Session.Type != GAME_NORMAL && !ScenExtension->IsUseMPAIBaseNodes) {
 
         /**
          *  Records the urgency of all actions possible.
@@ -685,13 +662,6 @@ UrgencyType HouseClassExt::_Check_Raise_Money()
 void HouseClassExt::_MPlayer_Defeated()
 {
     char txt[80];
-    int i, j;
-    unsigned char id;
-    HouseClass* hptr;
-    HouseClass* hptr2;
-    int num_alive;
-    int num_humans;
-    bool all_allies;
 
     /**
      *  Set the defeat flag for this house
@@ -702,7 +672,7 @@ void HouseClassExt::_MPlayer_Defeated()
      *  If this is a computer controlled house, then all computer controlled
      *  houses become paranoid.
      */
-    if (IQ == Rule->MaxIQ && !(IsHuman || Session.Type == GAME_NORMAL && IsPlayerControl) && Rule->IsComputerParanoid) {
+    if (IQ == Rule->MaxIQ && !Is_Human_Player() && Rule->IsComputerParanoid) {
         Computer_Paranoid();
     }
 
@@ -712,8 +682,7 @@ void HouseClassExt::_MPlayer_Defeated()
     if (Special.IsCaptureTheFlag) {
         if (FlagLocation) {
             Flag_Remove(FlagLocation, true);
-        }
-        else {
+        } else {
             if (FlagHome != CELL_NONE) {
                 Flag_Remove(&Map[FlagHome], true);
             }
@@ -725,7 +694,7 @@ void HouseClassExt::_MPlayer_Defeated()
      */
     if (Session.Type != GAME_NORMAL && Scen->Special.IsHarvesterImmune) {
         for (int i = 0; i < Units.Count(); i++) {
-            if (Units[i]->Owner_HouseClass() == this && Units[i]->IsActive) {
+            if (Units[i]->House == this && Units[i]->IsActive) {
                 Units[i]->Delete_Me();
             }
         }
@@ -733,17 +702,11 @@ void HouseClassExt::_MPlayer_Defeated()
 
     /**
      *  If this is me:
-     *  - Set MPlayerObiWan, so I can only send messages to all players, and
-     *    not just one (so I can't be obnoxiously omnipotent)
-     *  - Reveal the map
      *  - Add my defeat message
      */
     if (PlayerPtr == this) {
-        Session.ObiWan = true;
-        Map.Reveal_The_Map();
-        HiddenSurface->Fill(0);
-
         if (Vinifera_ObserverPtr != this) {
+
             /**
              *  Pop up a message showing that I was defeated
              */
@@ -752,11 +715,10 @@ void HouseClassExt::_MPlayer_Defeated()
             Speak(VOX_YOU_HAVE_LOST);
         }
 
-        Map.Flag_To_Redraw(0);
+        Map.Flag_To_Redraw();
         DEBUG_INFO("MPlayer_Defeated() - Player %s has been defeated (OBIWAN MODE)\n", IniName);
 
-    }
-    else {
+    } else {
 
         /**
          *  If it wasn't me, find out who was defeated
@@ -766,23 +728,64 @@ void HouseClassExt::_MPlayer_Defeated()
                 std::snprintf(txt, std::size(txt), Fetch_String(TXT_PLAYER_DEFEATED), IniName);
                 Session.Messages.Add_Message(nullptr, 0, txt, Scheme, TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
                 Speak(VOX_PLAYER_DEFEATED);
-                
             }
 
-            Map.Flag_To_Redraw(0);
+            Map.Flag_To_Redraw();
             DEBUG_INFO("MPlayer_Defeated() - Opponent %s has been defeated\n", IniName);
         }
     }
 
     /**
+     *  If the local player is been defeated, check if they should be given OBIWAN mode.
+     */
+    if (PlayerPtr->IsDefeated && PlayerPtr != Vinifera_ObserverPtr && Session.ObiWan == false) {
+
+        /**
+         *  With the spawner active, if Coach mode is enabled, players don't get vision.
+         */
+        bool obiwan = true;
+        if (Vinifera_SpawnerActive && Vinifera_SpawnerConfig->CoachMode) {
+            obiwan = false;
+        }
+
+        /**
+         *  Now check if the player has any player allies remaining.
+         */
+        for (int i = 0; i < Houses.Count(); i++) {
+            HouseClass* hptr = Houses[i];
+            if (!hptr->IsDefeated && !hptr->Class->IsMultiplayPassive && (hptr->Is_Ally(PlayerPtr) || PlayerPtr->Is_Ally(hptr))) {
+                obiwan = false;
+                break;
+            }
+        }
+
+        /**
+         *  - Set MPlayerObiWan, so I can only send messages to all players, and
+         *    not just one (so I can't be obnoxiously omnipotent)
+         *  - Make the player the local observer
+         *  - Reveal the map
+         */
+        if (obiwan) {
+            Session.ObiWan = true;
+            Map.Reveal_The_Map();
+            Extension::Fetch(PlayerPtr)->IsObserver = true;
+            Vinifera_ObserverPtr = PlayerPtr;
+            PlayerPtr->RecalcRadar = true;
+            HiddenSurface->Fill(0);
+            Map.Flag_To_Redraw();
+        }
+
+    }
+
+    /**
      *  Find out how many players are left alive.
      */
-    num_alive = 0;
-    num_humans = 0;
-    for (i = 0; i < Houses.Count(); i++) {
-        hptr = Houses[i];
+    int num_alive = 0;
+    int num_humans = 0;
+    for (int i = 0; i < Houses.Count(); i++) {
+        HouseClass* hptr = Houses[i];
         if (hptr && !hptr->IsDefeated && !hptr->Class->IsMultiplayPassive) {
-            if (hptr->IsHuman || (Session.Type == GAME_NORMAL && hptr->IsPlayerControl)) {
+            if (hptr->Is_Human_Player()) {
                 num_humans++;
             }
             num_alive++;
@@ -794,27 +797,26 @@ void HouseClassExt::_MPlayer_Defeated()
      *  If all the houses left alive are allied with each other, then in reality
      *  there's only one player left:
      */
-    all_allies = true;
-    for (i = 0; i < Houses.Count(); i++) {
+    bool all_allies = true;
+    for (int i = 0; i < Houses.Count(); i++) {
 
         /**
          *  Get a pointer to this house
          */
-        hptr = Houses[i];
-        if (!hptr || hptr->IsDefeated || hptr->Class->IsMultiplayPassive)
-            continue;
+        HouseClass* hptr = Houses[i];
+        if (!hptr || hptr->IsDefeated || hptr->Class->IsMultiplayPassive) continue;
 
         /**
          *  Loop through all houses; if there's one left alive that this house
          *  isn't allied with, then all_allies will be false
          */
-        for (j = 0; j < Houses.Count(); j++) {
-            hptr2 = Houses[j];
+        for (int j = 0; j < Houses.Count(); j++) {
+            HouseClass* hptr2 = Houses[j];
             if (!hptr2) {
                 continue;
             }
 
-            if (!hptr2->IsDefeated && !hptr2->Class->IsMultiplayPassive && hptr != hptr2 && !hptr->Is_Ally(hptr2)) {
+            if (!hptr2->IsDefeated && !hptr2->Class->IsMultiplayPassive && (!hptr->Is_Ally(hptr2) || !hptr2->Is_Ally(hptr))) {
                 all_allies = false;
                 break;
             }
@@ -828,7 +830,6 @@ void HouseClassExt::_MPlayer_Defeated()
      *  If all houses left are allies, set 'num_alive' to 1; game over.
      */
     if (all_allies) {
-
         Session.SawCompletion = true;
         DEBUG_INFO("Saw game completion due to player defeat\n");
         DEBUG_INFO("MPlayer_Defeated() - All remaining players are allied\n");
@@ -840,23 +841,17 @@ void HouseClassExt::_MPlayer_Defeated()
      *  - Determine whether this player wins or loses, based on the state of the
      *    player's IsDefeated flag
      */
-    HouseClassExtension* houseext = Extension::Fetch(this);
-    if (!houseext->IsObserver) {
-        if (num_alive == 1 || (num_humans == 0 && !(Vinifera_SpawnerActive && Vinifera_SpawnerConfig->ContinueWithoutHumans))) {
-            IsToDie = false;
+    if (num_alive == 1 || (num_humans == 0 && !(Vinifera_SpawnerActive && Vinifera_SpawnerConfig->ContinueWithoutHumans))) {
+        IsToDie = false;
 
-            if (PlayerPtr->IsDefeated) {
-                DEBUG_INFO("MPlayer_Defeated() - Flag_To_Lose\n");
-                Flag_To_Lose(false);
-            }
-            else {
-                DEBUG_INFO("MPlayer_Defeated() - Flag_To_Win\n");
-                Flag_To_Win(false);
-            }
+        if (PlayerPtr->IsDefeated) {
+            DEBUG_INFO("MPlayer_Defeated() - Flag_To_Lose\n");
+            Flag_To_Lose(false);
+        } else {
+            DEBUG_INFO("MPlayer_Defeated() - Flag_To_Win\n");
+            Flag_To_Win(false);
         }
     }
-
-    
 }
 
 
@@ -870,15 +865,15 @@ void HouseClassExt::_Make_Ally(HouseClass* house)
 {
     if (Is_Allowed_To_Ally(house)) {
 
-        Allies |= (1L << house->ID);
+        Allies |= (1L << house->HeapID);
 
         /**
          *  Don't consider the newfound ally to be an enemy -- of course.
          */
         Recalc_Threat_Regions();
         Clear_Anger(house);
-        
-        if (Enemy == house->ID) {
+
+        if (Enemy == house->HeapID) {
             Enemy = HOUSE_NONE;
         }
 
@@ -905,9 +900,9 @@ void HouseClassExt::_Make_Ally(HouseClass* house)
                 for (int index = 0; index < Logic.Count(); index++) {
                     ObjectClass* object = Logic[index];
 
-                    if (object != NULL && object->As_Techno() && !object->IsInLimbo && object->Owner() == Class->ID) {
-                        TargetClass target = As_Target(static_cast<TechnoClass*>(object)->TarCom);
-                        if (target.Is_Valid() && target.As_Techno()) {
+                    if (object != nullptr && object->Is_Techno() && !object->IsInLimbo && object->Owner() == HeapID) {
+                        TargetClass target = static_cast<TechnoClass*>(object)->TarCom;
+                        if (target.Is_Valid() && target.As_Techno() != nullptr) {
                             if (Is_Ally(target.As_Techno())) {
                                 static_cast<TechnoClass*>(object)->Assign_Target(nullptr);
                             }
@@ -920,10 +915,10 @@ void HouseClassExt::_Make_Ally(HouseClass* house)
                     char buffer[80];
                     std::snprintf(buffer, std::size(buffer), Fetch_String(TXT_HAS_ALLIED), IniName, house->IniName);
                     Session.Messages.Add_Message(nullptr, 0, buffer, Scheme, TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, TICKS_PER_MINUTE * Rule->MessageDelay);
-                }
 
-                if (Is_Human_Player()) {
-                    Speak(VOX_ALLIANCE_FORMED);
+                    if (Is_Player_Control()) {
+                        Speak(VOX_ALLIANCE_FORMED);
+                    }
                 }
             }
 
@@ -936,7 +931,7 @@ void HouseClassExt::_Make_Ally(HouseClass* house)
                     TechnoClass const* t = Technos[index];
 
                     if (!t->IsInLimbo && t->House == this) {
-                        Map.Sight_From(t->Center_Coord(), t->Techno_Type_Class()->SightRange, PlayerPtr);
+                        Map.Sight_From(t->Center_Coord(), t->TClass->SightRange, PlayerPtr);
                     }
                 }
             }
@@ -945,7 +940,6 @@ void HouseClassExt::_Make_Ally(HouseClass* house)
         }
     }
 }
-
 
 
 /**
