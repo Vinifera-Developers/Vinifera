@@ -300,3 +300,27 @@ typedef enum ExtTEventType
      */
     EXT_TEVENT_FIRST = EXT_TEVENT_PAD + 1
 } ExtTEventType;
+
+
+/**
+ *  Extension of the EventType enum.
+ */
+enum ExtEventType {
+    EXT_EVENT_PAD = EVENT_LATENCYFUDGE, // The last EventType
+
+    /**
+     *  Add new ExtEventTypes from here.
+     */
+    
+
+    /**
+     *  The new total ExtEventTypes count.
+     */
+    EXT_EVENT_COUNT,
+
+    /**
+     *  The first ExtEventTypes.
+     */
+    EXT_EVENT_FIRST = EXT_EVENT_PAD + 1
+};
+DEFINE_ENUMERATION_OPERATORS(ExtEventType);
