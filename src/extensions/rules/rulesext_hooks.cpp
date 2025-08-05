@@ -181,7 +181,7 @@ DECLARE_PATCH(_Init_Rules_Extended_Class_Patch)
      * 
      *  @author: CCHyper
      */
-    if (Is_Addon_Enabled(ADDON_FIRESTORM)) {
+    if (Addon_Enabled(ADDON_FIRESTORM)) {
         Rule->Colors(FSRuleINI);
         Rule->AudioVisual(FSRuleINI);
         Rule->MPlayer(FSRuleINI);

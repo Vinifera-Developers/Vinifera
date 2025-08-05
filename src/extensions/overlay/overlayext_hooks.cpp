@@ -145,7 +145,7 @@ void Read_INI(CCINIClass const& ini)
         }
         temp_surface.Unlock();
     }
-    Remove_All_Inactive();
+    Delete_Marked();
 }
 
 

@@ -95,8 +95,7 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
         static std::string Substitute_Variable_Placeholders(std::string input);
 
         static bool Start_Scenario(char* name, bool briefing, CampaignType campaignid);
-        static bool Read_Scenario_INI(const char* root, bool);
-        static bool Load_Scenario(CCINIClass& ini, bool random = false);
+        static bool Read_Scenario_INI(CCINIClass& ini, bool random = false);
         static void Init_Forced_Alliances();
 
         void Assign_Starting_Positions(bool official);
@@ -152,4 +151,3 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
         bool IsUseMPAIBaseNodes;
 };
 
-int Vinifera_Scan_Place_Object(ObjectClass* obj, Cell cell, int min_dist, int max_dist, bool no_scatter);

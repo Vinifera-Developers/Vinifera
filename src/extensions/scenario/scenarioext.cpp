@@ -1057,271 +1057,225 @@ bool ScenarioClassExtension::Start_Scenario(char* name, bool briefing, CampaignT
     /**
      *  Play the winning movie and then start the next scenario.
      */
-    CD::Set_Required_CD(DISK_ANY);
+    CD::SetRequiredDisk(DISK_ANY);
 
     if (Session.Type == GAME_NORMAL) {
         if (Scen->Campaign != CAMPAIGN_NONE) {
-            DiskID disk = Campaigns[Scen->Campaign]->WhichCD;
-            CD::Set_Required_CD(disk);
+            CD::SetRequiredDisk(Campaigns[Scen->Campaign]->WhichCD);
         }
-    }
-    else if (Session.Options.ScenarioIndex != -1) {
-        MultiMission* mission = Session.Scenarios[Session.Options.ScenarioIndex];
-        DiskID CurrentDisk = CD::Get_Volume_Index();
-        if (!mission->Is_Available(CurrentDisk)) {
-            DiskID disk = mission->Get_Disk();
-            CD::Set_Required_CD(disk);
+    } else if (Session.Options.ScenarioIndex != -1) {
+        MultiMission* multi = Session.Scenarios[Session.Options.ScenarioIndex];
+        if (!multi->Is_Available(CD::GetCurrentDisk())) {
+            CD::SetRequiredDisk(multi->Get_Disk());
         }
     }
 
     Session.Suspended++;
-    if (CD().Is_Available(CD::RequiredCD)) {
 
+    if (CD::ForceAvailable() == false) {
         Session.Suspended--;
-        if (briefing && campaignid != CAMPAIGN_NONE && Scen->Scenario == 1) {
-
-            /**
-             *  #issue-95
-             *
-             *  Patch for handling the campaign intro movies
-             *  for "The First Decade" and "Freeware TS" installations.
-             *
-             *  @author: CCHyper
-             */
-            char movie_filename[32];
-
-            /**
-             *  Fetch the campaign disk id.
-             */
-            CampaignClass* campaign = Campaigns[campaignid];
-            DiskID cd_num = campaign->WhichCD;
-
-            /**
-             *  Check if the current campaign is an original GDI or NOD campaign.
-             */
-            bool is_original_gdi = (cd_num == DISK_GDI && (Wstring(campaign->IniName) == "GDI1" || Wstring(campaign->IniName) == "GDI1A") && Wstring(campaign->Scenario) == "GDI1A.MAP");
-            bool is_original_nod = (cd_num == DISK_NOD && (Wstring(campaign->IniName) == "NOD1" || Wstring(campaign->IniName) == "NOD1A") && Wstring(campaign->Scenario) == "NOD1A.MAP");
-
-            /**
-             *  #issue-762
-             *
-             *  Fetch the campaign extension (if available) and get the custom intro movie.
-             *
-             *  @author: CCHyper
-             */
-            CampaignClassExtension* campaignext = Extension::Fetch(campaign);
-            if (campaignext->IntroMovie[0] != '\0') {
-                std::snprintf(movie_filename, sizeof(movie_filename), "%s.VQA", campaignext->IntroMovie);
-                DEBUG_INFO("About to play \"%s\".\n", movie_filename);
-                Play_Movie(movie_filename);
-            }
-            /**
-             *  If this is an original Tiberian Sun campaign, play the respective intro movie.
-             */
-            else if (is_original_gdi || is_original_nod) {
-
-                /**
-                 *  "The First Decade" and "Freeware TS" installations reshuffle
-                 *  the movie files due to all mix files being local now and a
-                 *  primitive "no-cd" added;
-                 *
-                 *  MOVIES01.MIX -> INTRO.VQA (GDI) is now INTR0.VQA
-                 *  MOVIES02.MIX -> INTRO.VQA (NOD) is now INTR1.VQA
-                 *
-                 *  Build the movie filename based on the current campaign's desired CD (see DiskID enum).
-                 */
-                std::snprintf(movie_filename, sizeof(movie_filename), "INTR%d.VQA", cd_num);
-
-                /**
-                 *  Now play the movie if it is found, falling back to original behavior otherwise.
-                 */
-                if (CCFileClass(movie_filename).Is_Available()) {
-                    DEBUG_INFO("About to play \"%s\".\n", movie_filename);
-                    Play_Movie(movie_filename);
-
-                }
-                else if (CCFileClass("INTRO.VQA").Is_Available()) {
-                    DEBUG_INFO("About to play \"INTRO.VQA\".\n");
-                    Play_Movie("INTRO.VQA");
-
-                }
-                else {
-                    DEBUG_WARNING("Failed to find Intro movie!\n");
-                    return false;
-                }
-
-            }
-            else {
-                DEBUG_WARNING("No campaign intro movie defined.\n");
-            }
-        }
-
-        if (!Read_Scenario(name)) {
-            return false;
-        }
-
-        Theme.Stop();
-
-        if (briefing) {
-            Play_Movie(Scen->IntroMovie, THEME_NONE);
-            Play_Movie(Scen->BriefMovie, THEME_NONE);
-        }
-
-        /**
-         *  If there's no briefing movie, restate the mission at the beginning.
-         */
-        char buffer[32];
-        if (Scen->BriefMovie != VQ_NONE) {
-            std::snprintf(buffer, std::size(buffer), "%s.VQA", Movies[Scen->BriefMovie]);
-        }
-
-        if (Session.Type == GAME_NORMAL && (Scen->BriefMovie == VQ_NONE || !CCFileClass(buffer).Is_Available())) {
-
-            /**
-             *  Make sure the mouse is visible before showing the restatement.
-             */
-            WWMouse->Release_Mouse();
-            WWMouse->Show_Mouse();
-
-            Restate_Mission(Scen);
-
-            WWMouse->Hide_Mouse();
-            WWMouse->Capture_Mouse();
-        }
-
-        /**
-         *  Show the dropship loadout screen if this mission has a dropship.
-         */
-        if (Scen->StartingDropships > 0) {
-
-            /**
-             *  issue-284
-             *
-             *  Play a background theme during the loadout menu.
-             *
-             *  @author: CCHyper
-             */
-            if (!Theme.Still_Playing()) {
-
-                /**
-                 *  If DSHPLOAD is defined in THEME.INI, play that, otherwise default
-                 *  to playing the TS Maps theme.
-                 */
-                ThemeType theme = Theme.From_Name("DSHPLOAD");
-                if (theme == THEME_NONE) {
-                    theme = Theme.From_Name("MAPS");
-                }
-
-                Theme.Play_Song(theme);
-            }
-
-            WWMouse->Release_Mouse();
-            WWMouse->Show_Mouse();
-
-            Dropship_Loadout();
-
-            WWMouse->Hide_Mouse();
-            WWMouse->Capture_Mouse();
-
-            if (Theme.Still_Playing()) {
-                Theme.Stop(true); // Smoothly fade out the track.
-            }
-        }
-
-        if (briefing) {
-            Play_Movie(Scen->ActionMovie, Scen->TransitTheme);
-        }
-
-        if (Scen->ActionMovie != VQ_NONE || Scen->TransitTheme == THEME_NONE) {
-            Theme.Queue_Song(THEME_PICK_ANOTHER);
-        }
-        else {
-            Theme.Queue_Song(Scen->TransitTheme);
-        }
-
-        /**
-         *  Set the options values, since the palette has been initialized by Read_Scenario.
-         */
-        Options.Set();
-
-        /**
-         *  Black out the screen.
-         */
-        HiddenSurface->Fill(0);
-        GScreenClass::Blit(true, HiddenSurface, 0);
-
-        /**
-         *  Toggle the display mode if mode toggling is allowed.
-         */
-        if (Debug_AllowModeToggle && (ScreenRect.Width != Options.ScreenWidth || ScreenRect.Height != Options.ScreenHeight)) {
-            DEBUG_INFO("Toggle display mode to %d X %d\n", Options.ScreenWidth, Options.ScreenHeight);
-            Change_Video_Mode(Options.ScreenWidth, Options.ScreenHeight);
-        }
-
-        /**
-         *  Print a message stating the current difficulty level.
-         */
-        constexpr char difficulty_names[3][20] = {
-            "Difficulty: Hard",
-            "Difficulty: Medium",
-            "Difficulty: Easy",
-        };
-
-        Session.Messages.Add_Message(nullptr, 0, difficulty_names[Scen->CDifficulty], static_cast<ColorSchemeType>(4), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
-
-        /**
-         *  Mark the game as having started.
-         */
-        Scen->ElapsedTimer.Start();
-        TacticalViewActive = true;
-        ScenarioStarted = true;
-
-        return true;
+        return false;
     }
 
     Session.Suspended--;
-    return false;
-}
 
-
-
-/**
- *  Read specified scenario INI file.
- *
- *  @author: ZivDero
- */
-bool ScenarioClassExtension::Read_Scenario_INI(const char* root, bool)
-{
-    if (CD().Is_Available(CD::RequiredCD)) {
-        /**
-         *  Reset the frame counter.
-         */
-        Frame = 0;
+    if (briefing && campaignid != CAMPAIGN_NONE && Scen->Scenario == 1) {
 
         /**
-         *  Set the time limit if the game is to be of a specified duration.
+         *  #issue-95
+         *
+         *  Patch for handling the campaign intro movies
+         *  for "The First Decade" and "Freeware TS" installations.
+         *
+         *  @author: CCHyper
          */
-        /*
-        if (TournamentTime > 0) {
-            PlayLimitTimer = TournamentTime * 900;
-        }
-        */
+        char movie_filename[32];
 
-        CCINIClass scenario_ini;
-        CCFileClass scenario_file(root);
+        /**
+         *  Fetch the campaign disk id.
+         */
+        CampaignClass* campaign = Campaigns[campaignid];
+        DiskID cd_num = campaign->WhichCD;
 
-        DEBUG_INFO("Read_Scenario_INI - Filename is %s\n", root);
-        if (scenario_ini.Load(scenario_file, true, false)) {
-            std::strncpy(Scen->ScenarioName, root, sizeof(Scen->ScenarioName) - 1);
-            return Load_Scenario(scenario_ini, false);
+        /**
+         *  Check if the current campaign is an original GDI or NOD campaign.
+         */
+        bool is_original_gdi = (cd_num == DISK_GDI && (Wstring(campaign->IniName) == "GDI1" || Wstring(campaign->IniName) == "GDI1A") && Wstring(campaign->Scenario) == "GDI1A.MAP");
+        bool is_original_nod = (cd_num == DISK_NOD && (Wstring(campaign->IniName) == "NOD1" || Wstring(campaign->IniName) == "NOD1A") && Wstring(campaign->Scenario) == "NOD1A.MAP");
+
+        /**
+         *  #issue-762
+         *
+         *  Fetch the campaign extension (if available) and get the custom intro movie.
+         *
+         *  @author: CCHyper
+         */
+        CampaignClassExtension* campaignext = Extension::Fetch(campaign);
+        if (campaignext->IntroMovie[0] != '\0') {
+            std::snprintf(movie_filename, sizeof(movie_filename), "%s.VQA", campaignext->IntroMovie);
+            DEBUG_INFO("About to play \"%s\".\n", movie_filename);
+            Play_Movie(movie_filename);
         }
-        else {
-            DEBUG_INFO("Scenario ini load failed!\n");
-            return false;
+        /**
+         *  If this is an original Tiberian Sun campaign, play the respective intro movie.
+         */
+        else if (is_original_gdi || is_original_nod) {
+
+            /**
+             *  "The First Decade" and "Freeware TS" installations reshuffle
+             *  the movie files due to all mix files being local now and a
+             *  primitive "no-cd" added;
+             *
+             *  MOVIES01.MIX -> INTRO.VQA (GDI) is now INTR0.VQA
+             *  MOVIES02.MIX -> INTRO.VQA (NOD) is now INTR1.VQA
+             *
+             *  Build the movie filename based on the current campaign's desired CD (see DiskID enum).
+             */
+            std::snprintf(movie_filename, sizeof(movie_filename), "INTR%d.VQA", cd_num);
+
+            /**
+             *  Now play the movie if it is found, falling back to original behavior otherwise.
+             */
+            if (CCFileClass(movie_filename).Is_Available()) {
+                DEBUG_INFO("About to play \"%s\".\n", movie_filename);
+                Play_Movie(movie_filename);
+
+            } else if (CCFileClass("INTRO.VQA").Is_Available()) {
+                DEBUG_INFO("About to play \"INTRO.VQA\".\n");
+                Play_Movie("INTRO.VQA");
+
+            } else {
+                DEBUG_WARNING("Failed to find Intro movie!\n");
+                return false;
+            }
+
+        } else {
+            DEBUG_WARNING("No campaign intro movie defined.\n");
         }
     }
 
-    return false;
+    DEBUG_INFO("Reading scenario: %s\n", name);
+
+    if (!Read_Scenario(name)) {
+        return false;
+    }
+
+    Theme.Stop();
+
+    if (briefing) {
+        Play_Movie(Scen->IntroMovie, THEME_NONE);
+        Play_Movie(Scen->BriefMovie, THEME_NONE);
+    }
+
+    /**
+     *  If there's no briefing movie, restate the mission at the beginning.
+     */
+    char buffer[32];
+    if (Scen->BriefMovie != VQ_NONE) {
+        std::snprintf(buffer, std::size(buffer), "%s.VQA", Movies[Scen->BriefMovie]);
+    }
+
+    if (Session.Type == GAME_NORMAL && (Scen->BriefMovie == VQ_NONE || !CCFileClass(buffer).Is_Available())) {
+
+        /**
+         *  Make sure the mouse is visible before showing the restatement.
+         */
+        WWMouse->Release_Mouse();
+        WWMouse->Show_Mouse();
+
+        Restate_Mission(Scen);
+
+        WWMouse->Hide_Mouse();
+        WWMouse->Capture_Mouse();
+    }
+
+    /**
+     *  Show the dropship loadout screen if this mission has a dropship.
+     */
+    if (Scen->StartingDropships > 0) {
+
+        /**
+         *  issue-284
+         *
+         *  Play a background theme during the loadout menu.
+         *
+         *  @author: CCHyper
+         */
+        if (!Theme.Still_Playing()) {
+
+            /**
+             *  If DSHPLOAD is defined in THEME.INI, play that, otherwise default
+             *  to playing the TS Maps theme.
+             */
+            ThemeType theme = Theme.From_Name("DSHPLOAD");
+            if (theme == THEME_NONE) {
+                theme = Theme.From_Name("MAPS");
+            }
+
+            Theme.Play_Song(theme);
+        }
+
+        WWMouse->Release_Mouse();
+        WWMouse->Show_Mouse();
+
+        Dropship_Loadout();
+
+        WWMouse->Hide_Mouse();
+        WWMouse->Capture_Mouse();
+
+        if (Theme.Still_Playing()) {
+            Theme.Stop(true); // Smoothly fade out the track.
+        }
+    }
+
+    if (briefing) {
+        Play_Movie(Scen->ActionMovie, Scen->TransitTheme);
+    }
+
+    if (Scen->ActionMovie != VQ_NONE || Scen->TransitTheme == THEME_NONE) {
+        Theme.Queue_Song(THEME_PICK_ANOTHER);
+    } else {
+        Theme.Queue_Song(Scen->TransitTheme);
+    }
+
+    /**
+     *  Set the options values, since the palette has been initialized by Read_Scenario.
+     */
+    Options.Set();
+
+    /**
+     *  Black out the screen.
+     */
+    HiddenSurface->Fill(0);
+    GScreenClass::Blit(true, HiddenSurface, 0);
+
+    /**
+     *  Toggle the display mode if mode toggling is allowed.
+     */
+    if (Debug_AllowModeToggle && (ScreenRect.Width != Options.ScreenWidth || ScreenRect.Height != Options.ScreenHeight)) {
+        DEBUG_INFO("Toggle display mode to %d X %d\n", Options.ScreenWidth, Options.ScreenHeight);
+        Change_Video_Mode(Options.ScreenWidth, Options.ScreenHeight);
+    }
+
+    /**
+     *  Print a message stating the current difficulty level.
+     */
+    static const char* difficulty_names[] = {
+        "Difficulty: Hard",
+        "Difficulty: Medium",
+        "Difficulty: Easy",
+    };
+
+    Session.Messages.Add_Message(nullptr, 0, difficulty_names[Scen->CDifficulty], Fetch_Scheme_Index_By_Name("DarkGold"), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
+
+    /**
+     *  Mark the game as having started.
+     */
+    Scen->ElapsedTimer.Start();
+    TacticalViewActive = true;
+    ScenarioStarted = true;
+
+    return true;
 }
 
 
@@ -1356,7 +1310,7 @@ static bool Rule_Addition(const char* fname, bool with_digest = false)
  *  @author: 10/07/1992 JLB - Red Alert source code.
  *           ZivDero - Adjustments for Tiberian Sun.
  */
-bool ScenarioClassExtension::Load_Scenario(CCINIClass& ini, bool random)
+bool ScenarioClassExtension::Read_Scenario_INI(CCINIClass& ini, bool random)
 {
     static const char* BASIC = "Basic";
     static const char* MAP = "Map";
@@ -1364,6 +1318,8 @@ bool ScenarioClassExtension::Load_Scenario(CCINIClass& ini, bool random)
     char buffer[32];
 
     ScenarioInit++;
+
+    DEBUG_INFO("Clearing old scenario\n");
 
     Clear_Scenario();
 
@@ -1374,15 +1330,13 @@ bool ScenarioClassExtension::Load_Scenario(CCINIClass& ini, bool random)
         if (Vinifera_SpawnerActive) {
             Scen->Difficulty = static_cast<DiffType>(Vinifera_SpawnerConfig->CampaignDifficulty);
             Scen->CDifficulty = static_cast<DiffType>(Vinifera_SpawnerConfig->CampaignCDifficulty);
-        }
-        else {
+        } else {
             Scen->Difficulty = static_cast<DiffType>(Options.Difficulty);
             Scen->CDifficulty = static_cast<DiffType>(2 - Options.Difficulty);
         }
         Scen->Special.IsFogOfWar = false;
         Special.IsFogOfWar = false;
-    }
-    else {
+    } else {
         Scen->Difficulty = static_cast<DiffType>(Session.Options.AIDifficulty);
         Scen->CDifficulty = static_cast<DiffType>(2 - Scen->Difficulty);
         Scen->Special.IsFogOfWar = Session.Options.FogOfWar;
@@ -1402,17 +1356,14 @@ bool ScenarioClassExtension::Load_Scenario(CCINIClass& ini, bool random)
      *  Make sure we have, and then enable the required addon.
      */
     if (Session.Type == GAME_NORMAL) {
-
         Disable_Addon(ADDON_ANY);
-        Scen->RequiredAddOn = static_cast<AddonType>(ini.Get_Bool(BASIC, "RequiredAddOn", ADDON_NONE));
+        Scen->RequiredAddOn = static_cast<AddonType>(ini.Get_Bool(BASIC, "RequiredAddOn", ADDON_BASE_GAME));
         Set_Required_Addon(Scen->RequiredAddOn);
-        if (!Is_Addon_Available(Scen->RequiredAddOn)) {
+        if (!Addon_Installed(Scen->RequiredAddOn)) {
             return false;
         }
         Enable_Addon(Scen->RequiredAddOn);
-    }
-    else {
-
+    } else {
         Scen->RequiredAddOn = Get_Required_Addon();
     }
 
@@ -1428,12 +1379,13 @@ bool ScenarioClassExtension::Load_Scenario(CCINIClass& ini, bool random)
      */
     DEBUG_INFO("Creating new tactical map\n");
     delete TacticalMap;
-    TacticalMap = new Tactical();
-    TacticalMap->Set_Tactical_Dimensions(TacticalRect);
+    TacticalMap = new Tactical;
+    TacticalMap->Set_View_Dimensions(TacticalRect);
 
     /**
      *  Initialize the theater.
      */
+    DEBUG_INFO("Initializing Theater\n");
     Scen->Theater = ini.Get_TheaterType(MAP, "Theater", THEATER_FIRST);
     Init_Theater(Scen->Theater);
     Session.Loading_Callback(8);
@@ -1469,10 +1421,9 @@ bool ScenarioClassExtension::Load_Scenario(CCINIClass& ini, bool random)
          *  Process the multiplayer ini overrides.
          */
         Rule_Addition("MPLAYER.INI");
-        if (Is_Addon_Enabled(ADDON_FIRESTORM)) {
+        if (Addon_Enabled(ADDON_FIRESTORM)) {
             Rule_Addition("MPLAYERFS.INI");
         }
-
     }
 
     Session.Loading_Callback(30);
@@ -1505,433 +1456,429 @@ bool ScenarioClassExtension::Load_Scenario(CCINIClass& ini, bool random)
     /**
      *  Read scenario data from the scenario INI.
      */
-    if (Scen->Read_INI(ini) && ScenExtension->Read_INI(ini)) {
+    if (!Scen->Read_INI(ini) || !ScenExtension->Read_INI(ini)) {
+        ScenarioInit--;
+        return false;
+    }
 
-        Session.Loading_Callback(50);
+    Session.Loading_Callback(50);
 
-        /**
-         *  Determine the player's side.
-         */
-        if (Session.Type == GAME_NORMAL) {
-            ini.Get_String(BASIC, "Player", "GDI", buffer, 32);
-
-            /**
-             *  Fetch the house's side and use this to decide which assets to load.
-             */
-            const auto housetype = HouseTypes[HouseTypeClass::From_Name(buffer)];
-
-            Scen->IsGDI = static_cast<unsigned char>(housetype->Side & 0xFF);
-            Scen->SpeechSide = housetype->Side;
-            ScenExtension->SidebarSide = housetype->Side;
-        }
-        else {
-            Scen->IsGDI = static_cast<unsigned char>(Session.IsGDI);
-            Scen->SpeechSide = static_cast<SideType>(Session.IsGDI);
-            ScenExtension->SidebarSide = static_cast<SideType>(Session.IsGDI);
-        }
+    /**
+     *  Determine the player's side.
+     */
+    if (Session.Type == GAME_NORMAL) {
+        ini.Get_String(BASIC, "Player", "GDI", buffer, 32);
 
         /**
-         *  Init side-specific data.
+         *  Fetch the house's side and use this to decide which assets to load.
          */
-        DEBUG_INFO("Calling Prep_For_Side()\n");
-        if (Prep_For_Side(ScenExtension->SidebarSide)) {
+        const auto housetype = HouseTypes[HouseTypeClass::From_Name(buffer)];
 
-            Call_Back();
+        Scen->IsGDI = static_cast<unsigned char>(housetype->Side & 0xFF);
+        Scen->SpeechSide = housetype->Side;
+        ScenExtension->SidebarSide = housetype->Side;
+        Scen->Special.IsFogOfWar = false;
+        Special.IsFogOfWar = false;
+    } else {
+        Scen->IsGDI = static_cast<unsigned char>(Session.IsGDI);
+        Scen->SpeechSide = static_cast<SideType>(Session.IsGDI);
+        ScenExtension->SidebarSide = static_cast<SideType>(Session.IsGDI);
+        Scen->Special.IsFogOfWar = Session.Options.FogOfWar;
+        Special.IsFogOfWar = Session.Options.FogOfWar;
+    }
+
+    /**
+     *  Init side-specific data.
+     */
+    DEBUG_INFO("Calling Prep_For_Side()\n");
+    if (!Prep_For_Side(ScenExtension->SidebarSide)) {
+        ScenarioInit--;
+        return false;
+    }
+
+    Call_Back();
+
+    /**
+     *  Unfortunately, since we now load rules before prepping for side,
+     *  we have to reload cameos for Technos, as they can be side-specific.
+     */
+    for (int index = 0; index < TechnoTypes.Count(); ++index) {
+
+        TechnoTypeClass* ttype = TechnoTypes[index];
+        std::snprintf(buffer, sizeof(buffer), "%s.SHP", ttype->CameoFilename);
+
+        const ShapeSet* cameodata = MFCD::RetrieveT<const ShapeSet>(buffer);
+
+        if (cameodata != nullptr) {
+            ttype->CameoData = cameodata;
+        }
+    }
+
+    Call_Back();
+
+    /**
+     *  In single player, the speech and sidebar side can be overridden by the scenario.
+     */
+    if (Session.Type == GAME_NORMAL) {
+        Scen->SpeechSide = ini.Get_SideType("Basic", "SpeechSide", Scen->SpeechSide);
+        ScenExtension->SidebarSide = ini.Get_SideType("Basic", "SidebarSide", ScenExtension->SidebarSide);
+    }
+
+    /**
+     *  Init the speech for the side.
+     */
+    DEBUG_INFO("Calling Prep_Speech_For_Side()\n");
+    if (!Prep_Speech_For_Side(Scen->SpeechSide)) {
+        ScenarioInit--;
+        return false;
+    }
+
+    Session.Loading_Callback(58);
+
+    /**
+     *  Read in the map control values. This includes dimensions
+     *  as well as theater information.
+     */
+    Map.Read_INI(ini);
+
+    /**
+     *  Outside of campaign, assign houses their starting positions.
+     *  This used to happen in Create_Units(), but needs to happen earlier
+     *  so that we can handle Spawn houses.
+     */
+    if (Session.Type != GAME_NORMAL) {
+        ScenExtension->Assign_Starting_Positions(official);
+    }
+
+    /**
+     *  Outside of campaign, whether the bridges are destructible can be controlled.
+     */
+    if (Session.Type != GAME_NORMAL && !Session.Options.BridgeDestruction) {
+        Special.IsDestroyableBridges = false;
+    }
+    // Special.Apply_To_Game(); // does nothing
+    Call_Back();
+
+    /**
+     *  Outside of campaign, the scenario may request that we read base nodes for
+     *  Spawn houses. Do that if necessary.
+     */
+    if (Session.Type != GAME_NORMAL && ScenExtension->IsUseMPAIBaseNodes) {
+        for (int i = 0; i < Session.Players.Count() + Session.Options.AIPlayers; i++) {
 
             /**
-             *  Unfortunately, since we now load rules before prepping for side,
-             *  we have to reload cameos for Technos, as they can be side-specific.
+             *  Skip observers, they don't need base nodes.
              */
-
-            for (int index = 0; index < TechnoTypes.Count(); ++index) {
-
-                TechnoTypeClass* ttype = TechnoTypes[index];
-                std::snprintf(buffer, sizeof(buffer), "%s.SHP", ttype->CameoFilename);
-
-                const ShapeSet* cameodata = MFCD::RetrieveT<const ShapeSet>(buffer);
-
-                if (cameodata != nullptr) {
-                    ttype->CameoData = cameodata;
-                }
+            const auto houseext = Extension::Fetch(Houses[i]);
+            if (houseext->IsObserver) {
+                continue;
             }
 
-            Call_Back();
-
             /**
-             *  In single player, the speech and sidebar side can be overridden by the scenario.
+             *  Read base nodes for this house.
              */
-            if (Session.Type == GAME_NORMAL)  {
-                Scen->SpeechSide = ini.Get_SideType("Basic", "SpeechSide", Scen->SpeechSide);
-                ScenExtension->SidebarSide = ini.Get_SideType("Basic", "SidebarSide", ScenExtension->SidebarSide);
+            std::snprintf(buffer, std::size(buffer), "Spawn%d", houseext->SpawnWaypoint + 1);
+            Houses[i]->Base.Read_INI(ini, buffer);
+        }
+    }
+
+    /**
+     *  Read in the team type data. The team types must be created before any
+     *  triggers can be created.
+     */
+    TeamTypeClass::Read_Scenario_INI(AIINI, true);
+    if (Addon_Enabled(ADDON_FIRESTORM)) {
+        TeamTypeClass::Read_Scenario_INI(FSAIINI, true);
+    }
+    TeamTypeClass::Read_Scenario_INI(ini, false);
+
+    /**
+     *  Read in the script type data.
+     */
+    ScriptTypeClass::Read_Scenario_INI(AIINI, true);
+    if (Addon_Enabled(ADDON_FIRESTORM)) {
+        ScriptTypeClass::Read_Scenario_INI(FSAIINI, true);
+    }
+    ScriptTypeClass::Read_Scenario_INI(ini, false);
+
+    /**
+     *  Read in the task force data.
+     */
+    TaskForceClass::Read_Scenario_INI(AIINI, true);
+    if (Addon_Enabled(ADDON_FIRESTORM)) {
+        TaskForceClass::Read_Scenario_INI(FSAIINI, true);
+    }
+    TaskForceClass::Read_Scenario_INI(ini, false);
+
+    /**
+     *  Read in the trigger data. The triggers must be created before any other
+     *  objects can be initialized.
+     */
+    TriggerTypeClass::Read_Scenario_INI(ini);
+
+    /**
+     *  Read in the trigger tag data.
+     */
+    TagTypeClass::Read_Scenario_INI(ini);
+
+    /**
+     *  Read in the AI trigger data.
+     */
+    AITriggerTypeClass::Read_Scenario_INI(AIINI, true);
+    if (Addon_Enabled(ADDON_FIRESTORM)) {
+        AITriggerTypeClass::Read_Scenario_INI(FSAIINI, true);
+    }
+    AITriggerTypeClass::Read_Scenario_INI(ini, 0);
+
+    Session.Loading_Callback(60);
+
+    Call_Back();
+
+    /**
+     *  Read in the tunnel values.
+     */
+    TubeClass::Read_Scenario_INI(ini);
+
+    /**
+     *  Buildings that convert into isometric tiles need to have
+     *  pointers to those tiles fetched now.
+     */
+    BuildingTypeClass::Fetch_ToTile_Types();
+
+    Map.Flag_To_Redraw(2);
+
+    Session.Loading_Callback(70);
+    Call_Back();
+
+    /**
+     *  Read in any normal overlay objects.
+     */
+    OverlayClass::Read_INI(ini);
+    Call_Back();
+
+    /**
+     *  Recalc the attributes of all cells of the map.
+     */
+    Map.Reset_Iterator();
+    for (CellClass* cell = Map.Iterate(); cell; cell = Map.Iterate()) {
+        cell->Recalc_Attributes(-1);
+    }
+
+    /**
+     *  Place veins onto the map.
+     */
+    OverlayClass::Scenario_Load_Fixup_Veins();
+
+    /**
+     *  Read in and place the 3D terrain objects.
+     */
+    TerrainClass::Read_INI(ini);
+    Call_Back();
+
+    /**
+     *  Place veinhole monsters onto the map.
+     */
+    VeinholeMonsterClass::Place_Monsters(true);
+
+    /**
+     *  Initialize Tiberium.
+     */
+    TiberiumClass::Growth_Init_Clear();
+    TiberiumClass::Init_Cells();
+
+    Session.Loading_Callback(72);
+
+    /**
+     *  Do something with the radar.
+     */
+    Map.Compute_Radar_Image();
+
+    /**
+     *  Read in and place the units (all sides).
+     */
+    UnitClass::Read_INI(ini);
+    Call_Back();
+    Session.Loading_Callback(74);
+
+    /**
+     *  Read in and place the aircraft units (all sides).
+     */
+    AircraftClass::Read_INI(ini);
+    Call_Back();
+
+    /**
+     *  Read in and place the infantry units (all sides).
+     */
+    InfantryClass::Read_INI(ini);
+    Call_Back();
+    Session.Loading_Callback(76);
+
+    /**
+     *  Read in and place all the buildings on the map.
+     */
+    LightSourceClass::Recalc = false;
+    BuildingClass::Read_INI(ini);
+    Call_Back();
+    Session.Loading_Callback(78);
+
+    LightSourceClass::Recalc = true;
+    Call_Back();
+
+    /**
+     *  Read in any smudge overlays.
+     */
+    SmudgeClass::Read_INI(ini);
+    Call_Back();
+
+    CCINIClass mini;
+    CCFileClass file;
+
+    if (Session.Type == GAME_NORMAL) {
+
+        /**
+         *  Reload the rules with out scenario file again? Not sure why.
+         */
+        _splitpath(Scen->ScenarioName, nullptr, nullptr, buffer, nullptr);
+        std::strncat(buffer, ".INI", std::size(buffer) - 1);
+
+        file.Set_Name(buffer);
+        if (file.Is_Available(false)) {
+            mini.Load(file, false);
+            Rule->Addition(mini);
+        }
+        file.Close();
+
+        /**
+         *  Read the name and briefing of the mission from the MISSION.INI file.
+         */
+        if (Scen->RequiredAddOn > ADDON_BASE_GAME) {
+            char fname[32];
+            std::snprintf(fname, std::size(fname), "MISSION%1d.INI", Scen->RequiredAddOn);
+            file.Set_Name(fname);
+        } else {
+            file.Set_Name("MISSION.INI");
+        }
+
+
+        if (file.Is_Available(false)) {
+            mini.Load(file, false);
+
+            if (mini.Is_Present("Name")) {
+                mini.Get_String(Scen->ScenarioName, "Name", "", Scen->Description, std::size(Scen->Description));
             }
 
-            /**
-             *  Init the speech for the side.
-             */
-            DEBUG_INFO("Calling Prep_Speech_For_Side()\n");
-            if (Prep_Speech_For_Side(Scen->SpeechSide)) {
-
-                Session.Loading_Callback(58);
-
-                /**
-                 *  Read in the map control values. This includes dimensions
-                 *  as well as theater information.
-                 */
-                Map.Read_INI(ini);
-
-                /**
-                 *  Outside of campaign, assign houses their starting positions.
-                 *  This used to happen in Create_Units(), but needs to happen earlier
-                 *  so that we can handle Spawn houses.
-                 */
-                if (Session.Type != GAME_NORMAL) {
-                    ScenExtension->Assign_Starting_Positions(official);
+            if (mini.Is_Present("Briefing")) {
+                mini.Get_String(Scen->ScenarioName, "Briefing", "", buffer, std::size(buffer));
+                if (std::strlen(buffer) > 0) {
+                    mini.Get_TextBlock(buffer, Scen->BriefingText, std::size(Scen->BriefingText));
                 }
-
-                /**
-                 *  Outside of campaign, whether the buildings are destructible can be controlled.
-                 */
-                if (Session.Type != GAME_NORMAL) {
-                    Special.IsDestroyableBridges = Session.Options.BridgeDestruction;
-                }
-
-                Call_Back();
-
-                /**
-                 *  Outside of campaign, the scenario may request that we read base nodes for
-                 *  Spawn houses. Do that if necessary.
-                 */
-                if (Session.Type != GAME_NORMAL && ScenExtension->IsUseMPAIBaseNodes) {
-                    for (int i = 0; i < Session.Players.Count() + Session.Options.AIPlayers; i++) {
-
-                        /**
-                         *  Skip observers, they don't need base nodes.
-                         */
-                        const auto houseext = Extension::Fetch(Houses[i]);
-                        if (houseext->IsObserver) {
-                            continue;
-                        }
-
-                        /**
-                         *  Read base nodes for this house.
-                         */
-                        std::snprintf(buffer, std::size(buffer), "Spawn%d", houseext->SpawnWaypoint + 1);
-                        Houses[i]->Base.Read_INI(ini, buffer);
-                    }
-                }
-
-                /**
-                 *  Read in the team type data. The team types must be created before any
-                 *  triggers can be created.
-                 */
-                TeamTypeClass::Read_Scenario_INI(AIINI, true);
-                if (Is_Addon_Enabled(ADDON_FIRESTORM)) {
-                    TeamTypeClass::Read_Scenario_INI(FSAIINI, true);
-                }
-                TeamTypeClass::Read_Scenario_INI(ini, false);
-
-                /**
-                 *  Read in the script type data.
-                 */
-                ScriptTypeClass::Read_Scenario_INI(AIINI, true);
-                if (Is_Addon_Enabled(ADDON_FIRESTORM)) {
-                    ScriptTypeClass::Read_Scenario_INI(FSAIINI, true);
-                }
-                ScriptTypeClass::Read_Scenario_INI(ini, false);
-
-                /**
-                 *  Read in the task force data.
-                 */
-                TaskForceClass::Read_Scenario_INI(AIINI, true);
-                if (Is_Addon_Enabled(ADDON_FIRESTORM)) {
-                    TaskForceClass::Read_Scenario_INI(FSAIINI, true);
-                }
-                TaskForceClass::Read_Scenario_INI(ini, false);
-
-                /**
-                 *  Read in the trigger data. The triggers must be created before any other
-                 *  objects can be initialized.
-                 */
-                TriggerTypeClass::Read_Scenario_INI(ini);
-
-                /**
-                 *  Read in the trigger tag data.
-                 */
-                TagTypeClass::Read_Scenario_INI(ini);
-
-                /**
-                 *  Read in the AI trigger data.
-                 */
-                AITriggerTypeClass::Read_Scenario_INI(AIINI, true);
-                if (Is_Addon_Enabled(ADDON_FIRESTORM)) {
-                    AITriggerTypeClass::Read_Scenario_INI(FSAIINI, true);
-                }
-                AITriggerTypeClass::Read_Scenario_INI(ini, 0);
-
-                Session.Loading_Callback(60);
-
-                Call_Back();
-
-                /**
-                 *  Read in the tunnel values.
-                 */
-                TubeClass::Read_Scenario_INI(ini);
-
-                /**
-                 *  Buildings that convert into isometric tiles need to have
-                 *  pointers to those tiles fetched now.
-                 */
-                BuildingTypeClass::Fetch_ToTile_Types();
-
-                Map.Flag_To_Redraw(2);
-
-                Session.Loading_Callback(70);
-                Call_Back();
-
-                /**
-                 *  Read in any normal overlay objects.
-                 */
-                OverlayClass::Read_INI(ini);
-                Call_Back();
-
-                /**
-                 *  Recalc the attributes of all cells of the map.
-                 */
-                Map.Reset_Iterator();
-                for (CellClass* cell = Map.Iterate(); cell; cell = Map.Iterate()) {
-                    cell->Recalc_Attributes(-1);
-                }
-
-                /**
-                 *  Place veins onto the map.
-                 */
-                OverlayClass::Place_All_Veins();
-
-                /**
-                 *  Read in and place the 3D terrain objects.
-                 */
-                TerrainClass::Read_INI(ini);
-                Call_Back();
-
-                /**
-                 *  Place veinhole monsters onto the map.
-                 */
-                VeinholeMonsterClass::Place_Veinhole_Monsters(true);
-
-                /**
-                 *  Initialize Tiberium.
-                 */
-                TiberiumClass::Growth_Init_Clear();
-                TiberiumClass::Init_Cells();
-
-                Session.Loading_Callback(72);
-
-                /**
-                 *  Do something with the radar.
-                 */
-                Map.Compute_Radar_Image();
-
-                /**
-                 *  Read in and place the units (all sides).
-                 */
-                UnitClass::Read_INI(ini);
-                Call_Back();
-                Session.Loading_Callback(74);
-
-                /**
-                 *  Read in and place the aircraft units (all sides).
-                 */
-                AircraftClass::Read_INI(ini);
-                Call_Back();
-
-                /**
-                 *  Read in and place the infantry units (all sides).
-                 */
-                InfantryClass::Read_INI(ini);
-                Call_Back();
-                Session.Loading_Callback(76);
-
-                /**
-                 *  Read in and place all the buildings on the map.
-                 */
-                LightSourceClass::UpdateAllowed = false;
-                BuildingClass::Read_INI(ini);
-                Call_Back();
-                Session.Loading_Callback(78);
-
-                LightSourceClass::UpdateAllowed = true;
-                Call_Back();
-
-                /**
-                 *  Read in any smudge overlays.
-                 */
-                SmudgeClass::Read_INI(ini);
-                Call_Back();
-
-                CCINIClass temp_ini;
-                CCFileClass temp_file;
-
-                if (Session.Type == GAME_NORMAL) {
-
-                    /**
-                     *  Reload the rules with out scenario file again? Not sure why.
-                     */
-                    _splitpath(Scen->ScenarioName, nullptr, nullptr, buffer, nullptr);
-                    std::strncat(buffer, ".INI", std::size(buffer) - 1);
-
-                    temp_file.Set_Name(buffer);
-                    if (temp_file.Is_Available(false)) {
-                        temp_ini.Load(temp_file, false, false);
-                        Rule->Addition(temp_ini);
-                    }
-                    temp_file.Close();
-
-                    /**
-                     *  Read the name and briefing of the mission from the MISSION.INI file.
-                     */
-                    const char* mission_file_name;
-                    if (Scen->RequiredAddOn > ADDON_NONE) {
-                        std::snprintf(buffer, std::size(buffer), "MISSION%1d.INI", Scen->RequiredAddOn);
-                        mission_file_name = buffer;
-                    }
-                    else {
-                        mission_file_name = MISSION_INI;
-                    }
-
-                    temp_file.Set_Name(mission_file_name);
-                    if (temp_file.Is_Available(false)) {
-
-                        temp_ini.Load(temp_file, false, false);
-
-                        if (temp_ini.Is_Present("Name")) {
-                            temp_ini.Get_String(Scen->ScenarioName, "Name", "", Scen->Description, std::size(Scen->Description));
-                        }
-
-                        if (temp_ini.Is_Present("Briefing")) {
-                            temp_ini.Get_String(Scen->ScenarioName, "Briefing", "", buffer, std::size(buffer));
-                            if (std::strlen(buffer)) {
-                                temp_ini.Get_TextBlock(buffer, Scen->BriefingText, std::size(Scen->BriefingText));
-                            }
-                        }
-                    }
-                }
-
-                /**
-                 *  WW's "TheTeam" cheat.
-                 */
-                if (Session.Type == GAME_SKIRMISH && Cheat_TheTeam) {
-
-                    temp_file.Close();
-                    temp_file.Set_Name("TMCJ4F.INI");
-
-                    if (temp_file.Is_Available(false)) {
-                        temp_ini.Load(temp_file, false, false);
-                        Rule->Addition(temp_ini);
-                    }
-                }
-
-                Session.Loading_Callback(82);
-                Call_Back();
-
-                /**
-                 *  Do some last passes on some map stuff.
-                 */
-                Map.Overpass();
-
-                Session.Loading_Callback(86);
-                Call_Back();
-
-                Session.Loading_Callback(90);
-                Call_Back();
-
-                /**
-                 *  Multi-player last-minute fixups
-                 */
-                if (Session.Type != GAME_NORMAL && !random) {
-                    Last_Minute_Multiplayer_Fixups(official);
-                }
-
-                if (Session.Type != GAME_NORMAL) {
-                    Init_Forced_Alliances();
-                }
-
-                Call_Back();
-
-                /**
-                 *  Reset the swizzle manager.
-                 */
-                SwizzleManager.Reset();
-
-                Session.Loading_Callback(96);
-                Call_Back();
-
-                /**
-                 *  Remove all inactive objects.
-                 */
-                Remove_All_Inactive();
-
-                /**
-                 *  Outside of campaign, the scenario's special flags are not used.
-                 */
-                if (Session.Type != GAME_NORMAL) {
-                    Scen->Special = Special;
-                }
-
-                int save_init = ScenarioInit;
-                ScenarioInit = 0;
-
-                /**
-                 *  Set up laser fences.
-                 */
-                BuildingClass::Init_Laser_Fences();
-
-                ScenarioInit = save_init;
-                ScenarioInit--;
-
-                Session.Loading_Callback(98);
-                Call_Back();
-
-                Map.PixelStack.Clear();
-
-                /**
-                 *  If we have FoW turned on, fog the entire map.
-                 */
-                if (Scen->Special.IsFogOfWar) {
-                    Map.Fog_Map();
-                }
-
-                /**
-                 *  Refresh the radar.
-                 */
-                RadarEventClass::Clear_All();
-                Map.Total_Radar_Refresh();
-
-                /**
-                 *  Schedule the next autosave.
-                 */
-                Vinifera_NextAutoSaveFrame = Frame;
-                Vinifera_NextAutoSaveFrame += Vinifera_SpawnerActive && Session.Type == GAME_IPX ? Vinifera_SpawnerConfig->AutoSaveInterval : OptionsExtension->AutoSaveInterval;
-
-                /**
-                 *  Set the skip score bool.
-                 */
-                if (Vinifera_SpawnerActive) {
-                    Scen->IsSkipScore = Vinifera_SpawnerConfig->SkipScoreScreen;
-                }
-
-                /**
-                 *  Return with flag saying that the scenario file was read.
-                 */
-                return true;
             }
         }
     }
 
     /**
-     *  Return with flag saying that the scenario file failed to be read.
+     *  WW's "TheTeam" cheat.
      */
+    if (Session.Type == GAME_SKIRMISH && Cheat_TheTeam) {
+        file.Close();
+        file.Set_Name("TMCJ4F.INI");
+
+        if (file.Is_Available(false)) {
+            mini.Load(file, false, false);
+            Rule->Addition(mini);
+        }
+    }
+
+    Session.Loading_Callback(82);
+    Call_Back();
+
+    /**
+     *  Do some last passes on some map stuff.
+     */
+    Map.Overpass();
+    Session.Loading_Callback(86);
+    Call_Back();
+
+    Session.Loading_Callback(90);
+    Call_Back();
+
+    /**
+     *  Multi-player last-minute fixups
+     */
+    if (Session.Type != GAME_NORMAL && !random) {
+        Last_Minute_Multiplayer_Fixups(official);
+    }
+
+    if (Session.Type != GAME_NORMAL) {
+        Init_Forced_Alliances();
+    }
+
+    Call_Back();
+
+    /**
+     *  Reset the swizzle manager.
+     */
+    SwizzleManager.Reset();
+    Session.Loading_Callback(96);
+    Call_Back();
+
+    /**
+     *  Remove all inactive objects.
+     */
+    Delete_Marked();
+
+    /**
+     *  Outside of campaign, the scenario's special flags are not used.
+     */
+    if (Session.Type != GAME_NORMAL) {
+        Scen->Special = Special;
+    }
+
     ScenarioInit--;
-    return false;
+
+    /**
+     *  Set up laser fences.
+     */
+    int save_init = ScenarioInit;
+    ScenarioInit = 0;
+    BuildingClass::Init_Laser_Fences();
+    ScenarioInit = save_init;
+
+    Session.Loading_Callback(98);
+    Call_Back();
+
+    Map.Clear_Background_Update_Stack();
+
+    /**
+     *  If we have FoW turned on, fog the entire map.
+     */
+    if (Scen->Special.IsFogOfWar) {
+        Map.Initialize_Fog_System();
+    }
+
+    /**
+     *  Refresh the radar.
+     */
+    RadarEventClass::Clear();
+    Map.Total_Radar_Refresh();
+
+    /**
+     *  Schedule the next autosave.
+     */
+    Vinifera_NextAutoSaveFrame = Frame;
+    Vinifera_NextAutoSaveFrame += Vinifera_SpawnerActive && Session.Type == GAME_IPX ? Vinifera_SpawnerConfig->AutoSaveInterval : OptionsExtension->AutoSaveInterval;
+
+    /**
+     *  Set the skip score bool.
+     */
+    if (Vinifera_SpawnerActive) {
+        Scen->IsSkipScore = Vinifera_SpawnerConfig->SkipScoreScreen;
+    }
+
+    /**
+     *  Return with flag saying that the scenario file was read.
+     */
+    return true;
 }
 
 
@@ -1952,15 +1899,12 @@ void ScenarioClassExtension::Init_Forced_Alliances()
             /**
              *  Multiplay passive houses don't get allies.
              */
-            if (housep->Class->IsMultiplayPassive)
-                continue;
+            if (housep->Class->IsMultiplayPassive) continue;
 
             const auto house_config = &Vinifera_SpawnerConfig->Houses[i];
-            for (int j = 0; j < std::size(house_config->Alliances); j++)
-            {
+            for (int j = 0; j < std::size(house_config->Alliances); j++) {
                 const int ally_index = house_config->Alliances[j];
-                if (ally_index != -1)
-                    housep->Make_Ally(static_cast<HousesType>(ally_index));
+                if (ally_index != -1) housep->Make_Ally(static_cast<HousesType>(ally_index));
             }
         }
     }
@@ -1972,19 +1916,20 @@ void ScenarioClassExtension::Init_Forced_Alliances()
  *
  *  @author: CCHyper
  */
-static DynamicVectorClass<Cell> Fetch_Starting_Points(bool official)
+static DynamicVectorClass<Cell> _Fetch_Starting_Points(bool official)
 {
-    DynamicVectorClass<Cell> waypts;
+    DynamicVectorClass<Cell> list;
 
     /**
      *  Find first valid player spawn waypoint.
      */
-    int min_waypts = 0;
-    for (int i = 0; i < 8; i++) {
-        if (!Scen->Is_Waypoint_Valid(i)) {
+    int avail_waypoints = 0;
+    for (int i = 0; i < MAX_PLAYERS; i++) {
+        if (Scen->Is_Waypoint_Valid(i)) {
+            avail_waypoints++;
+        } else {
             break;
         }
-        min_waypts++;
     }
 
     /**
@@ -1993,7 +1938,7 @@ static DynamicVectorClass<Cell> Fetch_Starting_Points(bool official)
      *  if there are 4 or fewer players. Unofficial maps will pick from all the
      *  available waypoints.
      */
-    int look_for = std::max(min_waypts, Session.Players.Count() + Session.Options.AIPlayers);
+    int look_for = std::max(avail_waypoints, Session.Players.Count() + Session.Options.AIPlayers);
     if (!official) {
         look_for = MAX_PLAYERS;
     }
@@ -2008,9 +1953,8 @@ static DynamicVectorClass<Cell> Fetch_Starting_Points(bool official)
 
     for (int waycount = 0; waycount < look_for; ++waycount) {
         if (Scen->Is_Waypoint_Valid(waycount)) {
-            Cell waycell = Scen->Waypoint_Cell(waycount);
-            waypts.Add(waycell);
-            DEBUG_INFO("Multiplayer start waypoint found at cell %d,%d.\n", waycell.X, waycell.Y);
+            list.Add(Scen->Waypoint_Cell(waycount));
+            DEBUG_INFO("Multiplayer start waypoint found at cell %d,%d.\n", Scen->Waypoint_Cell(waycount).X, Scen->Waypoint_Cell(waycount).Y);
         }
     }
 
@@ -2018,22 +1962,21 @@ static DynamicVectorClass<Cell> Fetch_Starting_Points(bool official)
      *  If there are insufficient waypoints to account for all players, then randomly
      *  assign starting points until there is enough.
      */
-    int deficiency = look_for - waypts.Count();
+    int deficiency = look_for - list.Count();
     if (deficiency > 0) {
         DEBUG_WARNING("Multiplayer start waypoint deficiency - looking for more start positions.\n");
         for (int index = 0; index < deficiency; ++index) {
-
             Cell trycell = Cell(Map.MapRect.X + Random_Pick(10, Map.MapRect.Width - 10), Map.MapRect.Y + Random_Pick(0, Map.MapRect.Height - 10) + 10);
-            trycell = Map.Nearby_Location(trycell, SPEED_TRACK, -1, MZONE_NORMAL, false, Point2D(8, 8));
 
+            trycell = Map.Nearby_Location(trycell, SPEED_TRACK, -1, MZONE_NORMAL, false, Point2D(8, 8));
             if (trycell != CELL_NONE) {
-                waypts.Add(trycell);
+                list.Add(trycell);
                 DEBUG_INFO("Random multiplayer start waypoint added at cell %d,%d.\n", trycell.X, trycell.Y);
             }
         }
     }
 
-    return waypts;
+    return list;
 }
 
 
@@ -2057,7 +2000,7 @@ void ScenarioClassExtension::Assign_Starting_Positions(bool official)
     bool taken[26] = {};
 
     DynamicVectorClass<Cell> starting_points;
-    starting_points = Fetch_Starting_Points(official);
+    starting_points = _Fetch_Starting_Points(official);
 
     DEV_DEBUG_INFO("Assigning starting positions to houses.\n");
 
@@ -2629,11 +2572,11 @@ static Cell Clip_Move(Cell cell, FacingType facing, int dist)
     /**
      *  Clip to the map
      */
-    if (x > xmax) x = xmax;
-    if (x < xmin) x = xmin;
+    x = std::min(x, xmax);
+    x = std::max(x, xmin);
 
-    if (y > ymax) y = ymax;
-    if (y < ymin) y = ymin;
+    y = std::min(y, ymax);
+    y = std::max(y, ymin);
 
     return Cell(x, y);
 }
@@ -2647,7 +2590,7 @@ static Cell Clip_Move(Cell cell, FacingType facing, int dist)
  * 
  *  #issue-338 - Adds "min_dist" argument.
  */
-int Vinifera_Scan_Place_Object(ObjectClass *obj, Cell cell, int min_dist = 1, int max_dist = 31, bool no_scatter = false)
+static int _Scan_Place_Object(ObjectClass *obj, Cell cell, int min_dist = 1, int max_dist = 31, bool no_scatter = false)
 {
     int dist;               // for object placement
     FacingType rot;         // for object placement
@@ -2779,56 +2722,6 @@ static bool Is_Adjacent_Cell_Empty(Cell cell, FacingType facing, int dist)
         && Map[newcell].Is_Any_Spot_Free()) {
 
         return true;
-    }
-
-    return false;
-}
-
-
-static bool Are_Starting_Cells_Full(Cell cell, int dist)
-{
-    static bool empty_flag[FACING_COUNT];
-    std::memset(empty_flag, false, FACING_COUNT);
-
-    for (FacingType facing = FACING_FIRST; facing < FACING_COUNT; ++facing) {
-        if (Is_Adjacent_Cell_Empty(cell, facing, dist)) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-
-/**
- *  Places an object >at< the given cell.
- * 
- *  @author: CCHyper
- * 
- *  #issue-338 - Adds "min_dist" argument.
- */
-static bool Place_Object(ObjectClass *obj, Cell cell, FacingType facing, int dist)
-{
-    Cell newcell;
-    TechnoClass *techno;
-
-    /**
-     *  Pick a coordinate along this directional axis
-     */
-    newcell = Clip_Move(cell, facing, dist);
-
-    /**
-     *  Try to unlimbo the object in the given cell.
-     */
-    if (Map.In_Radar(newcell)) {
-        techno = Map[newcell].Cell_Techno();
-        if (!techno) {
-            Coord coord = newcell.As_Coord();
-            coord.Z = Map.Get_Height_GL(coord);
-            if (obj->Unlimbo(coord, DIR_N)) {
-                return true;
-            }
-        }
     }
 
     return false;
@@ -3011,7 +2904,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                  *  Create a construction yard (decided from the base unit).
                  */
                 BuildingClass* building = new BuildingClass(hptr->Get_First_Ownable(RuleExtension->BaseUnit)->DeploysInto, hptr);
-                if (building->Unlimbo(centroid.As_Coord(), DIR_N) || Vinifera_Scan_Place_Object(building, centroid)) {
+                if (building->Unlimbo(centroid.As_Coord(), DIR_N) || _Scan_Place_Object(building, centroid)) {
                     if (building != nullptr) {
                         DEBUG_INFO("  Construction yard %s placed at %d,%d.\n", building->Class_Of()->Name(), building->Get_Cell().X, building->Get_Cell().Y);
 
@@ -3063,7 +2956,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                  *    - Attach a flag to it for capture-the-flag mode.
                  */
                 UnitClass* unit = new UnitClass(hptr->Get_First_Ownable(RuleExtension->BaseUnit), hptr);
-                if (unit->Unlimbo(centroid.As_Coord(), DIR_N) || Vinifera_Scan_Place_Object(unit, centroid)) {
+                if (unit->Unlimbo(centroid.As_Coord(), DIR_N) || _Scan_Place_Object(unit, centroid)) {
                     if (unit != nullptr) {
                         DEBUG_INFO("  Base unit %s placed at %d,%d.\n", unit->Class_Of()->Name(), unit->Get_Cell().X, unit->Get_Cell().Y);
                         hptr->FlagHome = Cell(0, 0);
@@ -3124,7 +3017,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                 ObjectClass* obj = technotype->Create_One_Of(hptr);
                 TechnoClass* tobj = As_Techno(obj);
 
-                if (!Vinifera_Scan_Place_Object(obj, centroid, MIN_PLACEMENT_DISTANCE, MAX_PLACEMENT_DISTANCE)) {
+                if (!_Scan_Place_Object(obj, centroid, MIN_PLACEMENT_DISTANCE, MAX_PLACEMENT_DISTANCE)) {
                     delete obj;
                 } else {
                     DEBUG_INFO("House %s deployed object %s\n", hptr->Class->IniName, technotype->IniName);

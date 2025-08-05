@@ -142,7 +142,7 @@ static void After_Main_Loop()
             RuleINI->Load(rulefile, false);
             ASSERT_FATAL(rulefile.Is_Available());
 
-            if (Is_Addon_Available(ADDON_FIRESTORM) && Is_Addon_Enabled(ADDON_FIRESTORM)) {
+            if (Addon_Installed(ADDON_FIRESTORM) && Addon_Enabled(ADDON_FIRESTORM)) {
                 rulefile.Set_Name("FIRESTRM.INI");
                 ASSERT_FATAL(rulefile.Is_Available());
                 FSRuleINI.Load(rulefile, false);
@@ -160,7 +160,7 @@ static void After_Main_Loop()
             ASSERT_FATAL(artfile.Is_Available());
             DEBUG_INFO("Finished loading ART.INI.\n");
 
-            if (Is_Addon_Available(ADDON_FIRESTORM) && Is_Addon_Enabled(ADDON_FIRESTORM)) {
+            if (Addon_Installed(ADDON_FIRESTORM) && Addon_Enabled(ADDON_FIRESTORM)) {
                 DEBUG_INFO("Loading ARTFS.INI.\n");
                 artfile.Set_Name("ARTFS.INI");
                 ASSERT_FATAL(artfile.Is_Available());

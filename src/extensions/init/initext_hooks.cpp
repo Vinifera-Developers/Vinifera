@@ -179,7 +179,7 @@ DECLARE_PATCH(_Init_CDROM_Access_Local_Files_Patch)
         /**
          *  Double check that the game was launched with -CD.
          */
-        if (CD::IsFilesLocal) {
+        if (CD::OverrideSwap) {
 
             /**
              *  This is a workaround to ensure the mix loading code passes.
@@ -587,7 +587,7 @@ bool Vinifera_Prep_For_Side(SideType side)
     /**
      *  Cached expansion side-specific mixes.
      */
-    if (Is_Addon_Enabled(ADDON_ANY) == true) {
+    if (Addon_Enabled(ADDON_ANY) == true) {
         for (int index = 99; index >= 0; index--) {
             std::snprintf(name, sizeof(name), "E%02dSC%02d.MIX", index, id);
             if (CCFileClass(name).Is_Available()) {
@@ -612,7 +612,7 @@ bool Vinifera_Prep_For_Side(SideType side)
     /**
      *  Not cached expansion side-specific mixes.
      */
-    if (Is_Addon_Enabled(ADDON_ANY) == true) {
+    if (Addon_Enabled(ADDON_ANY) == true) {
         for (int index = 99; index >= 0; index--) {
             std::snprintf(name, sizeof(name), "E%02dSNC%02d.MIX", index, id);
 
@@ -637,7 +637,7 @@ bool Vinifera_Prep_For_Side(SideType side)
      *  Disk side-specific mix.
      */
     if (Session.Type == GAME_NORMAL) {
-        if (Is_Addon_Enabled(ADDON_ANY) == false) {
+        if (Addon_Enabled(ADDON_ANY) == false) {
             std::snprintf(name, sizeof(name), "SIDECD%02d.MIX", id);
         } else {
             std::snprintf(name, sizeof(name), "E%02dSCD%02d.MIX", Get_Required_Addon(), id);
@@ -708,12 +708,12 @@ bool Vinifera_Init_Secondary_Mixfiles()
         DEBUG_INFO(" CONQUER.MIX\n");
     }
 
-    int cd = CD::Get_Volume_Index();
+    int cd = CD::GetCurrentDisk();
 
     /**
      *  Make sure we have a grounded volume index (invalid volumes will cause error).
      */
-    if (CD::Get_Volume_Index() < 0) {
+    if (CD::GetCurrentDisk() < 0) {
         cd = 0;
     }
 
@@ -730,7 +730,7 @@ bool Vinifera_Init_Secondary_Mixfiles()
      * 
      *  @author: CCHyper
      */
-    if (CD::IsFilesLocal) {
+    if (CD::OverrideSwap) {
 
         std::snprintf(buffer, sizeof(buffer), "MAPS*.MIX");
         if (CCFileClass::Find_First_File(buffer)) {
@@ -759,7 +759,7 @@ bool Vinifera_Init_Secondary_Mixfiles()
         DEBUG_WARNING("Failed to load %s!\n", buffer);
         //return false; // #issue-110: Unable to load startup mix files is no longer a fatal error.
     } else {
-        if (!CD::IsFilesLocal) DEBUG_INFO(" %s\n", buffer);
+        if (!CD::OverrideSwap) DEBUG_INFO(" %s\n", buffer);
     }
 
     if (CCFileClass("MULTI.MIX").Is_Available()) {
@@ -773,7 +773,7 @@ bool Vinifera_Init_Secondary_Mixfiles()
         DEBUG_INFO(" MULTI.MIX\n", buffer);
     }
 
-    if (Is_Addon_Available(ADDON_FIRESTORM)) {
+    if (Addon_Installed(ADDON_FIRESTORM)) {
         if (CCFileClass("SOUNDS01.MIX").Is_Available()) {
             FSSoundsMix = new MFCD("SOUNDS01.MIX", &FastKey);
             ASSERT(FSSoundsMix);
@@ -832,7 +832,7 @@ bool Vinifera_Init_Secondary_Mixfiles()
      * 
      *  @author: CCHyper
      */
-    if (CD::IsFilesLocal) {
+    if (CD::OverrideSwap) {
 
         std::snprintf(buffer, sizeof(buffer), "MOVIES*.MIX");
         if (CCFileClass::Find_First_File(buffer)) {
@@ -861,7 +861,7 @@ bool Vinifera_Init_Secondary_Mixfiles()
         DEBUG_WARNING("Failed to load %s!\n", buffer);
         //return false; // #issue-110: Unable to load startup mix files is no longer a fatal error.
     } else {
-        if (!CD::IsFilesLocal) DEBUG_INFO(" %s\n", buffer);
+        if (!CD::OverrideSwap) DEBUG_INFO(" %s\n", buffer);
     }
 
     return true;
@@ -970,7 +970,7 @@ bool Vinifera_Init_Bootstrap_Mixfiles()
     MFCD *mix;
 
     DiskID temp = CD::RequiredCD;
-    CD::Set_Required_CD(DISK_LOCAL);
+    CD::SetRequiredDisk(DISK_LOCAL);
 
     DEBUG_INFO("\n"); // Fixes missing new-line after "Bootstrap..." print.
     //DEBUG_INFO("Init bootstrap mixfiles...\n");
@@ -1031,7 +1031,7 @@ bool Vinifera_Init_Bootstrap_Mixfiles()
         DEBUG_INFO(" LOCAL.MIX\n");
     }
 
-    CD::Set_Required_CD(temp);
+    CD::SetRequiredDisk(temp);
 
     return true;
 }
@@ -1073,12 +1073,12 @@ void GameInit_Hooks()
      *  This was a because the game was checking if the Firestorm addon was
      *  installed rather than if it was the currently active game mode.
      */
-    Patch_Call(0x004E1F70, &Is_Addon_Enabled);
-    Patch_Call(0x004E25A6, &Is_Addon_Enabled);
-    Patch_Call(0x004E2890, &Is_Addon_Enabled);
-    Patch_Call(0x004E2991, &Is_Addon_Enabled);
-    Patch_Call(0x004E86F5, &Is_Addon_Enabled);
-    Patch_Call(0x004E8735, &Is_Addon_Enabled);
+    Patch_Call(0x004E1F70, &Addon_Enabled);
+    Patch_Call(0x004E25A6, &Addon_Enabled);
+    Patch_Call(0x004E2890, &Addon_Enabled);
+    Patch_Call(0x004E2991, &Addon_Enabled);
+    Patch_Call(0x004E86F5, &Addon_Enabled);
+    Patch_Call(0x004E8735, &Addon_Enabled);
 
     Patch_Jump(0x00685F69, &_Main_Window_Procedure_Scroll_Sidebar_Check_Patch);
 

@@ -399,7 +399,7 @@ bool Vinifera_Parse_Command_Line(int argc, char *argv[])
                 /**
                  *  Flag the cd search system to search for files locally.
                  */
-                CD::IsFilesLocal = true;
+                CD::OverrideSwap(true);
             }
             continue;
         }
@@ -499,7 +499,7 @@ bool Vinifera_Startup()
     /**
      *  If -CD has been defined, set the root directory as highest priority.
      */
-    if (CD::IsFilesLocal) {
+    if (CD::OverrideSwap) {
         ViniferaSearchPaths.Add(".");
     }
     

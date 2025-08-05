@@ -74,11 +74,11 @@ static void Set_Addon_Mode(bool firestorm)
          Enable_Addon(ADDON_FIRESTORM);
     }
 
-    Set_Required_Addon(firestorm ? ADDON_FIRESTORM : ADDON_NONE);
+    Set_Required_Addon(firestorm ? ADDON_FIRESTORM : ADDON_BASE_GAME);
 
     if (firestorm) {
-        CD::Set_Required_CD(DISK_FIRESTORM);
-        CD().Is_Available(DISK_FIRESTORM);
+        CD::SetRequiredDisk(DISK_FIRESTORM);
+        CD().ForceAvailable(DISK_FIRESTORM);
         Session.Read_Scenario_Descriptions();
     }
 }

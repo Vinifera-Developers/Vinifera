@@ -66,11 +66,11 @@ DECLARE_PATCH(_Choose_Campaign_Debug_Only_Patch)
     /**
      *  Are there any addon modes enabled? Check to make sure its the required one.
      */
-    if (Is_Addon_Enabled(ADDON_ANY)) {
-        if (campaign->RequiredAddon == ADDON_NONE) {
+    if (Addon_Enabled(ADDON_ANY)) {
+        if (campaign->RequiredAddon == ADDON_BASE_GAME) {
             goto skip_campaign;
         }
-        if (!Is_Addon_Enabled(campaign->RequiredAddon)) {
+        if (!Addon_Enabled(campaign->RequiredAddon)) {
             goto skip_campaign;
         }
 
@@ -78,7 +78,7 @@ DECLARE_PATCH(_Choose_Campaign_Debug_Only_Patch)
      *  We are in the normal Tiberian Sun mode, but if the campaign has a
      *  required addon set, skip it.
      */
-    } else if (campaign->RequiredAddon != ADDON_NONE) {
+    } else if (campaign->RequiredAddon != ADDON_BASE_GAME) {
         goto skip_campaign;
     }
 

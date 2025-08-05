@@ -52,7 +52,7 @@ DECLARE_PATCH(_CD_Is_Available_Local_Files_Patch)
 	 *  If the CD system has been flagged that the files are local, then
 	 *  return true as they are always available.
 	 */
-	if (CD::IsFilesLocal) {
+	if (CD::OverrideSwap) {
 		retval = true;
 		goto function_return;
 	}
@@ -62,7 +62,7 @@ DECLARE_PATCH(_CD_Is_Available_Local_Files_Patch)
 	 */
 	this_ptr->ThemePlaying = THEME_NONE;
 
-	retval = this_ptr->Force_Available(disk);
+	retval = this_ptr->ForceAvailable(disk);
 
 function_return:
 	_asm { mov al, retval }

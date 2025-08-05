@@ -39,7 +39,7 @@
  */
 ThemeControlExtension::ThemeControlExtension(const ThemeClass::ThemeControl *this_ptr) :
     GlobalExtensionClass(this_ptr),
-    RequiredAddon(ADDON_NONE)
+    RequiredAddon(ADDON_BASE_GAME)
 {
     //EXT_DEBUG_TRACE("ThemeControlExtension::ThemeControlExtension - 0x%08X\n", (uintptr_t)(This()));
 }
