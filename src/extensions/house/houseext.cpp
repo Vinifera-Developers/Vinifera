@@ -845,7 +845,7 @@ int HouseClassExtension::AI_Unit()
     **  harvester if possible.
     */
     if (This()->IQ >= Rule->IQHarvester && !This()->IsTiberiumShort && !This()->Is_Human_Player() && ref * mult > harv) {
-        if (This()->Get_First_ActLike(Rule->HarvesterUnit)->TechLevel <= This()->Control.TechLevel) {
+        if (This()->Get_First_ActLike(Rule->HarvesterUnit)->Level <= This()->Control.TechLevel) {
             This()->BuildUnit = This()->Get_First_ActLike(Rule->HarvesterUnit)->HeapID;
             return TICKS_PER_SECOND;
         }
@@ -1249,24 +1249,6 @@ void HouseClassExtension::Save_Unit_Trackers(HouseClass* house, IStream* pStm)
 
 
 /**
- *  Sets this house's spawn point from its coordinate.
- *
- *  @author: ZivDero
- */
-void HouseClassExtension::Set_Spawn_Point(const Coord& coord)
-{
-    for (WAYPOINT i = 0; i < MAX_PLAYERS; i++) {
-        if (Scen->Waypoint_Coord(i).As_Cell() == coord.As_Cell()) {
-            SpawnWaypoint = i;
-            return;
-        }
-    }
-
-    SpawnWaypoint = WAYPOINT_NONE;
-}
-
-
-/**
  *  Tries to fetch a house spawned at this waypoint
  *
  *  @author: ZivDero
@@ -1311,4 +1293,26 @@ HouseClass* HouseClassExtension::House_From_HousesType(HousesType house)
         }
     }
     return nullptr;
+}
+
+
+/**
+ *  Checks if this house can build this object based on RequiredHouses
+ *  and ForbiddenHouses.
+ *
+ *  @author: ZivDero
+ */
+bool HouseClassExtension::Required_Forbidden_Houses_Check(TechnoTypeClass const* ttype)
+{
+    const auto technotypeext = Extension::Fetch(ttype);
+
+    if (technotypeext->RequiredHouses != -1 && (technotypeext->RequiredHouses & 1 << This()->ActLike) == 0) {
+        return false;
+    }
+
+    if (technotypeext->ForbiddenHouses != -1 && (technotypeext->ForbiddenHouses & 1 << This()->ActLike) != 0) {
+        return false;
+    }
+
+    return true;
 }

@@ -1797,10 +1797,10 @@ bool VeterancyPromoteCommandClass::Process()
         }
         TechnoClass* techno = static_cast<TechnoClass*>(object);
         if (techno->House->Is_Player_Control()) {
-            if (techno->Veterancy.Is_Rookie()) {
-                techno->Veterancy.Set_Veteran(true);
-            } else if (techno->Veterancy.Is_Veteran()) {
-                techno->Veterancy.Set_Elite(true);
+            if (techno->Crew.Is_Rookie()) {
+                techno->Crew.Set_Veteran(true);
+            } else if (techno->Crew.Is_Veteran()) {
+                techno->Crew.Set_Elite(true);
             }
         }
     }
@@ -1856,9 +1856,9 @@ static bool Equals_Union_Of_Two_Other_Sets(TechnoList& current, TechnoList& a, T
  */
 static int Get_Veterancy_Level(TechnoClass* techno)
 {
-    if (techno->Veterancy.Is_Elite()) {
+    if (techno->Crew.Is_Elite()) {
         return 0;
-    } else if (techno->Veterancy.Is_Veteran()) {
+    } else if (techno->Crew.Is_Veteran()) {
         return 1;
     } else {
         return 2;
@@ -3003,32 +3003,32 @@ bool ToggleEliteCommandClass::Process()
         /**
          *  Upgrade to rookie.
          */
-        if (techno->Veterancy.Is_Dumbass()) {
-            techno->Veterancy.Set_Rookie(true);
+        if (techno->Crew.Is_Dumbass()) {
+            techno->Crew.Set_Rookie(true);
             continue;
         }
 
         /**
          *  Upgrade to veteran.
          */
-        if (techno->Veterancy.Is_Rookie()) {
-            techno->Veterancy.Set_Veteran(true);
+        if (techno->Crew.Is_Rookie()) {
+            techno->Crew.Set_Veteran(true);
             continue;
         }
         
         /**
          *  Upgrade to elite.
          */
-        if (techno->Veterancy.Is_Veteran()) {
-            techno->Veterancy.Set_Elite(true);
+        if (techno->Crew.Is_Veteran()) {
+            techno->Crew.Set_Elite(true);
             continue;
         }
         
         /**
          *  Degrade elite back to dumbass.
          */
-        if (techno->Veterancy.Is_Elite()) {
-            techno->Veterancy.Set_Dumbass(true);
+        if (techno->Crew.Is_Elite()) {
+            techno->Crew.Set_Dumbass(true);
             continue;
         }
     }
@@ -4016,7 +4016,7 @@ bool PlaceInfantryCommandClass::Process()
     for (int i = 0; i < InfantryTypes.Count(); ++i) {
         InfantryTypeClass *infantrytype = InfantryTypes[i];
         if (infantrytype && infantrytype->IsAllowedToStartInMultiplayer) {
-            if (infantrytype->TechLevel <= PlayerPtr->Control.TechLevel && (owner_id & infantrytype->Ownable) != 0) {
+            if (infantrytype->Level <= PlayerPtr->Control.TechLevel && (owner_id & infantrytype->Ownable) != 0) {
                 available_infantry.Add(infantrytype);
             }
         }
@@ -4093,7 +4093,7 @@ bool PlaceUnitCommandClass::Process()
         UnitTypeClass *unittype = UnitTypes[i];
         if (unittype && unittype->IsAllowedToStartInMultiplayer) {
             if (Rule->BaseUnit->Fetch_ID() != unittype->Fetch_ID()) {
-                if (unittype->TechLevel <= PlayerPtr->Control.TechLevel && (owner_id & unittype->Ownable) != 0) {
+                if (unittype->Level <= PlayerPtr->Control.TechLevel && (owner_id & unittype->Ownable) != 0) {
                     available_units.Add(unittype);
                 }
             }

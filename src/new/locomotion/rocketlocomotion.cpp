@@ -206,7 +206,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
     case RocketMissionState::Pause:
         {
             CurrentSpeed = 0;
-            IsSpawnerElite = spawn_owner && spawn_owner->Veterancy.Is_Elite();
+            IsSpawnerElite = spawn_owner && spawn_owner->Crew.Is_Elite();
 
             /**
              *  Cruise missiles spawn a "taking off" animation in this state.
@@ -251,7 +251,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
     case RocketMissionState::Tilt:
         {
             CurrentSpeed = 0;
-            IsSpawnerElite = spawn_owner && spawn_owner->Veterancy.Is_Elite();
+            IsSpawnerElite = spawn_owner && spawn_owner->Crew.Is_Elite();
 
             /**
              *  If the rocket is done tilting, play a sound and animation, and proceed to take off.
@@ -422,7 +422,7 @@ IFACEMETHODIMP_(bool) RocketLocomotionClass::Process()
          */
     case RocketMissionState::VerticalTakeOff:
         {
-            IsSpawnerElite = spawn_owner && spawn_owner->Veterancy.Is_Elite();
+            IsSpawnerElite = spawn_owner && spawn_owner->Crew.Is_Elite();
 
             /**
              *  Spawn the trail animation, as if the rocket is doing its best to lift off.

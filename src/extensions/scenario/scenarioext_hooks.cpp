@@ -552,54 +552,6 @@ DECLARE_PATCH(_Do_Lose_Skip_MPlayer_Score_Screen_Patch)
 }
 
 
-#define SPAWN_HOUSE_OFFSET 50
-
-/**
- *  Proxy for a Scan_Place_Object call in vanilla code so
- *  that we can force RA2-like unit placement.
- *
- *  @author: ZivDero
- */
-int Scan_Place_Object_Proxy(ObjectClass* obj, Cell const& cell)
-{
-    /**
-     *  #issue-338
-     * 
-     *  Change the starting unit formation to be like Red Alert 2.
-     * 
-     *  This sets the desired placement distance from the base center cell.
-     * 
-     *  @author: CCHyper
-     */
-    const unsigned int MIN_PLACEMENT_DISTANCE = 3;
-    const unsigned int MAX_PLACEMENT_DISTANCE = 32;
-
-    return Vinifera_Scan_Place_Object(obj, cell, MIN_PLACEMENT_DISTANCE, MAX_PLACEMENT_DISTANCE, true);
-}
-
-
-/**
- *  Save the waypoint at which the house was spawned
- *  so that we can later fetch it using this number.
- *
- *  @author: ZivDero
- */
-DECLARE_PATCH(_Create_Units_Save_Spawn_Waypoint_Patch)
-{
-    GET_REGISTER_STATIC(HouseClass*, house, edi);
-    static bool bases;
-
-    _asm pushad
-
-    Extension::Fetch(house)->Set_Spawn_Point(house->Center);
-    bases = Session.Options.Bases;
-
-    _asm popad
-    _asm mov al, bases
-    JMP_REG(ebx, 0x005DEBFF);
-}
-
-
 /**
  *  Patch the check for if ALtScenario should be started
  *  to use the extended global variables.
@@ -654,6 +606,7 @@ DECLARE_PATCH(_Read_Scenario_INI_Read_Global_INI_Patch)
     JMP(0x005DD8D5);
 }
 
+#define SPAWN_HOUSE_OFFSET 50
 
 /**
  *  Main function for patching the hooks.
@@ -927,17 +880,6 @@ void ScenarioClassExtension_Hooks()
     Patch_Jump(0x005DC0A0, &_Fill_In_Data_Home_Cell_Patch);
     Patch_Jump(0x00673330, &_Waypoint_From_Name);
     Patch_Jump(0x006732B0, &_Waypoint_To_Name);
-
-    /**
-     *  Patch vanilla Create_Units so that TS CLient builds get new unit placement.
-     *
-     *  @author: ZivDero
-     */
-    Patch_Call(0x005DED81, &Scan_Place_Object_Proxy);
-    Patch_Jump(0x005DEE64, 0x005DEE91); // Skip calling Scatter on placed units, let them stay in their spots.
-
-    Patch_Jump(0x005DEBFA, &_Create_Units_Save_Spawn_Waypoint_Patch);
-
     Patch_Jump(0x005DF930, &ScenarioClassExt::_Read_Global_INI);
     Patch_Jump(0x005DFBD0, &ScenarioClassExt::_Read_Local_INI);
     Patch_Jump(0x005DFD10, &ScenarioClassExt::_Write_Local_INI);

@@ -793,7 +793,7 @@ bool TActionClassExtension::Do_MAKE_ELITE(TActionClass& taction, HouseClass* hou
 
         if (techno->IsActive && techno->IsDown && !techno->IsInLimbo) {
             if (techno->Tag && techno->Tag->Is_Trigger_Attached(trig)) {
-                techno->Veterancy.Set_Elite(true);
+                techno->Crew.Set_Elite(true);
             }
         }
     }

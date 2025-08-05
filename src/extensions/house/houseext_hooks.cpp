@@ -87,7 +87,6 @@ public:
     int _AI_Building();
     int _AI_Unit();
     int _Expert_AI();
-    bool _Can_Build_Required_Forbidden_Houses(const TechnoTypeClass* techno_type);
     void _Active_Remove(TechnoClass const* techno);
     void _Active_Add(TechnoClass const* techno);
     Cell _Find_Build_Location(BuildingTypeClass* btype, int(__fastcall* callback)(int, Cell&, int, int), int a3 = -1);
@@ -1264,31 +1263,6 @@ DECLARE_PATCH(_HouseClass_Enable_SWs_Check_For_Building_Power)
 
 
 /**
- *  Checks if the TechnoType can be built by this house based on RequiredHouses and ForbiddenHouses, if set.
- *
- *  Author: ZivDero, Rampastring
- */
-bool HouseClassExt::_Can_Build_Required_Forbidden_Houses(const TechnoTypeClass* techno_type)
-{
-    const auto technotypeext = Extension::Fetch(techno_type);
-
-    if (technotypeext->RequiredHouses != -1 &&
-        (technotypeext->RequiredHouses & 1 << ActLike) == 0)
-    {
-        return false;
-    }
-
-    if (technotypeext->ForbiddenHouses != -1 &&
-        (technotypeext->ForbiddenHouses & 1 << ActLike) != 0)
-    {
-        return false;
-    }
-
-    return true;
-}
-
-
-/**
  *  Reimplementation of HouseClass::Active_Remove.
  *
  *  @author: ZivDero
@@ -1404,17 +1378,15 @@ DECLARE_PATCH(_Can_Build_Required_Forbidden_Houses_Patch)
     GET_REGISTER_STATIC(HouseClassExt*, this_ptr, ebp);
     static bool can_build;
 
-    can_build = this_ptr->_Can_Build_Required_Forbidden_Houses(techno_type);
+    can_build = Extension::Fetch(this_ptr)->Required_Forbidden_Houses_Check(techno_type);
 
-    if (!can_build)
-    {
+    if (!can_build) {
         //return false;
         JMP(0x004BBC9A);
     }
 
     // Stolen bytes
-    _asm
-    {
+    _asm {
         mov eax, [esi+0x14]
         mov edx, [edi+0x32C]
     }

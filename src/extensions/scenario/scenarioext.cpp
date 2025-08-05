@@ -85,6 +85,7 @@
 #include "restate.h"
 #include "wwmouse.h"
 #include "campaignext.h"
+#include "unittypeext.h"
 
 
 /**
@@ -2836,61 +2837,66 @@ static bool Place_Object(ObjectClass *obj, Cell cell, FacingType facing, int dis
 
 /**
  *  New implementation of Create_Units()
- * 
+ *
  *  @author: CCHyper (assistance from tomsons26).
  */
 void ScenarioClassExtension::Create_Units(bool official)
 {
     /**
      *  #issue-338
-     * 
+     *
      *  Change the starting unit formation to be like Red Alert 2.
-     * 
+     *
      *  This sets the desired placement distance from the base center cell.
-     * 
+     *
      *  @author: CCHyper
      */
     const unsigned int MIN_PLACEMENT_DISTANCE = 3;
     const unsigned int MAX_PLACEMENT_DISTANCE = 32;
 
-    int tot_units = Session.Options.UnitCount;
+    Cell centroid; // centroid of this house's stuff
+    DynamicVectorClass<TechnoClass*> just_deployed;
+    int unit_count = Session.Options.UnitCount;
+
     if (Session.Options.Bases) {
-        --tot_units;
+        unit_count--;
     }
 
     DEBUG_INFO("NumPlayers = %d\n", Session.NumPlayers);
     DEBUG_INFO("AIPlayers = %d\n", Session.Options.AIPlayers);
-    DEBUG_INFO("Creating %d starting units per house - Random seed is %08x\n", tot_units, Scen->RandomNumber);
+    DEBUG_INFO("Creating %d starting units per house - Random seed is %08x\n", unit_count, Scen->RandomNumber);
     DEBUG_INFO("UniqueID is %08x\n", Scen->UniqueID);
-
-    Cell centroid;          // centroid of this house's stuff.
-    TechnoClass *obj;       // newly-created object.
 
     /**
      *  Generate lists of all the available starting units (regardless of owner).
      */
-    int tot_inf_count = 0;
-    int tot_unit_count = 0;
+    int total_cost = 0;
+    int total_objs = 0;
 
     for (int i = 0; i < UnitTypes.Count(); ++i) {
-        UnitTypeClass *unittype = UnitTypes[i];
-        if (unittype && unittype->IsAllowedToStartInMultiplayer) {
-            if (!RuleExtension->BaseUnit.Is_Present(unittype)) {
-                ++tot_unit_count;
+        UnitTypeClass* utype = UnitTypes[i];
+        if (utype && utype->IsAllowedToStartInMultiplayer) {
+            if (!RuleExtension->BaseUnit.Is_Present(utype)) {
+                total_cost += utype->Raw_Cost();
+                total_objs++;
             }
         }
     }
 
     for (int i = 0; i < InfantryTypes.Count(); ++i) {
-        InfantryTypeClass *infantrytype = InfantryTypes[i];
-        if (infantrytype && infantrytype->IsAllowedToStartInMultiplayer) {
-            ++tot_inf_count;
+        InfantryTypeClass* itype = InfantryTypes[i];
+        if (itype && itype->IsAllowedToStartInMultiplayer) {
+            total_cost += itype->Raw_Cost();
+            total_objs++;
         }
     }
 
-    if (!(tot_inf_count + tot_unit_count)) {
+    if (total_objs == 0) {
         DEBUG_WARNING("No starting units available!");
     }
+
+    int average_cost = total_objs ? (total_cost / total_objs) : 0;
+    int allowed_unit_cost = unit_count * average_cost;
 
     /**
      *  Loop through all houses.  Computer-controlled houses, with Session.Options.Bases
@@ -2901,7 +2907,7 @@ void ScenarioClassExtension::Create_Units(bool official)
         /**
          *  Get a pointer to this house; if there is none, go to the next house.
          */
-        HouseClass *hptr = Houses[house];
+        HouseClass* hptr = Houses[house];
         if (hptr == nullptr) {
             DEV_DEBUG_INFO("Invalid house %d!\n", house);
             continue;
@@ -2912,9 +2918,6 @@ void ScenarioClassExtension::Create_Units(bool official)
             DEV_DEBUG_INFO("House %d is an Observer, skipping.\n", house);
             continue;
         }
-
-        DynamicVectorClass<InfantryTypeClass *> available_infantry;
-        DynamicVectorClass<UnitTypeClass *> available_units;
 
         /**
          *  Skip passive houses.
@@ -2929,34 +2932,33 @@ void ScenarioClassExtension::Create_Units(bool official)
          */
         centroid = Scen->Waypoint_Cell(houseext->SpawnWaypoint);
 
-        int owner_id = 1 << hptr->Class->ID;
+        DEBUG_INFO("Generating units for house %d (Name: %s - \"%s\", Color: %s)...\n", house, hptr->Class->Name(), hptr->IniName, ColorSchemes[hptr->Scheme]->Name);
 
-        DEBUG_INFO("Generating units for house %d (Name: %s - \"%s\", Color: %s)...\n",
-            house, hptr->Class->Name(), hptr->IniName, ColorSchemes[hptr->Scheme]->Name);
+        DynamicVectorClass<InfantryTypeClass*> infantry;
+        DynamicVectorClass<UnitTypeClass*> units;
+        unsigned long mask = 1 << hptr->Class->HeapID;
 
         /**
          *  Generate list of starting units for this house.
          */
         DEBUG_INFO("  Creating list of available UnitTypes...\n");
         for (int i = 0; i < UnitTypes.Count(); ++i) {
-            UnitTypeClass *unittype = UnitTypes[i];
-            if (unittype) {
+            UnitTypeClass* unittype = UnitTypes[i];
 
-                /**
-                 *  Is this unit allowed to be placed in multiplayer?
-                 */
-                if (!unittype->IsAllowedToStartInMultiplayer) {
-                    continue;
-                }
+            /**
+             *  Is this unit allowed to be placed in multiplayer?
+             */
+            if (!unittype->IsAllowedToStartInMultiplayer) {
+                continue;
+            }
 
-                /**
-                 *  Check tech level and ownership.
-                 */
-                if (unittype->TechLevel <= hptr->Control.TechLevel && (owner_id & unittype->Ownable) != 0) {
-                    if (!RuleExtension->BaseUnit.Is_Present(unittype)) {
-                        DEBUG_INFO("    Added %s\n", unittype->Name());
-                        available_units.Add(unittype);
-                    }
+            /**
+             *  Check tech level and ownership.
+             */
+            if (unittype->Level <= hptr->Control.TechLevel && (unittype->Ownable & mask) != 0 && Extension::Fetch(hptr)->Required_Forbidden_Houses_Check(unittype)) {
+                if (!RuleExtension->BaseUnit.Is_Present(unittype)) {
+                    DEBUG_INFO("    Added %s\n", unittype->Name());
+                    units.Add(unittype);
                 }
             }
         }
@@ -2966,23 +2968,21 @@ void ScenarioClassExtension::Create_Units(bool official)
          */
         DEBUG_INFO("  Creating list of available InfantryTypes...\n");
         for (int i = 0; i < InfantryTypes.Count(); ++i) {
-            InfantryTypeClass *infantrytype = InfantryTypes[i];
-            if (infantrytype) {
+            InfantryTypeClass* infantrytype = InfantryTypes[i];
 
-                /**
-                 *  Is this unit allowed to be placed in multiplayer?
-                 */
-                if (!infantrytype->IsAllowedToStartInMultiplayer) {
-                    continue;
-                }
+            /**
+             *  Is this unit allowed to be placed in multiplayer?
+             */
+            if (!infantrytype->IsAllowedToStartInMultiplayer) {
+                continue;
+            }
 
-                /**
-                 *  Check tech level and ownership.
-                 */
-                if (infantrytype->TechLevel <= hptr->Control.TechLevel && (owner_id & infantrytype->Ownable) != 0) {
-                    available_infantry.Add(infantrytype);
-                    DEBUG_INFO("    Added %s\n", infantrytype->Name());
-                }
+            /**
+             *  Check tech level and ownership.
+             */
+            if (infantrytype->Level <= hptr->Control.TechLevel && (infantrytype->Ownable & mask) != 0 && Extension::Fetch(hptr)->Required_Forbidden_Houses_Check(infantrytype)) {
+                infantry.Add(infantrytype);
+                DEBUG_INFO("    Added %s\n", infantrytype->Name());
             }
         }
 
@@ -2990,7 +2990,6 @@ void ScenarioClassExtension::Create_Units(bool official)
          *  Assign the center of this house to the waypoint location.
          */
         hptr->Center = centroid.As_Coord();
-        Extension::Fetch(hptr)->Set_Spawn_Point(hptr->Center);
         DEBUG_INFO("  Setting house center to %d,%d\n", centroid.X, centroid.Y);
 
         /**
@@ -3000,10 +2999,10 @@ void ScenarioClassExtension::Create_Units(bool official)
 
             /**
              *  #issue-206
-             * 
+             *
              *  Adds game option to allow construction yards to be placed on the
              *  map at game start instead of an MCV.
-             * 
+             *
              *  @author: CCHyper
              */
             if (SessionExtension && SessionExtension->ExtOptions.IsPrePlacedConYards) {
@@ -3011,19 +3010,16 @@ void ScenarioClassExtension::Create_Units(bool official)
                 /**
                  *  Create a construction yard (decided from the base unit).
                  */
-                obj = new BuildingClass(hptr->Get_First_Ownable(RuleExtension->BaseUnit)->DeploysInto, hptr);
-                if (obj->Unlimbo(centroid.As_Coord(), DIR_N) || Vinifera_Scan_Place_Object(obj, centroid)) {
-                    if (obj != nullptr) {
-                        DEBUG_INFO("  Construction yard %s placed at %d,%d.\n",
-                            obj->Class_Of()->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
-
-                        BuildingClass *building = reinterpret_cast<BuildingClass *>(obj);
+                BuildingClass* building = new BuildingClass(hptr->Get_First_Ownable(RuleExtension->BaseUnit)->DeploysInto, hptr);
+                if (building->Unlimbo(centroid.As_Coord(), DIR_N) || Vinifera_Scan_Place_Object(building, centroid)) {
+                    if (building != nullptr) {
+                        DEBUG_INFO("  Construction yard %s placed at %d,%d.\n", building->Class_Of()->Name(), building->Get_Cell().X, building->Get_Cell().Y);
 
                         /**
                          *  Always reveal the construction yard to the player
                          *  that owns it.
                          */
-                        building->Revealed(obj->House);
+                        building->Revealed(building->House);
                         building->IsReadyToCommence = true;
 
                         /**
@@ -3055,7 +3051,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                             }
                         }
                     }
-                    hptr->FlagHome = Cell(0,0);
+                    hptr->FlagHome = Cell(0, 0);
                     hptr->FlagLocation = nullptr;
                 }
 
@@ -3066,38 +3062,36 @@ void ScenarioClassExtension::Create_Units(bool official)
                  *    - Create an MCV
                  *    - Attach a flag to it for capture-the-flag mode.
                  */
-                obj = new UnitClass(hptr->Get_First_Ownable(RuleExtension->BaseUnit), hptr);
-                if (obj->Unlimbo(centroid.As_Coord(), DIR_N) || Vinifera_Scan_Place_Object(obj, centroid)) {
-                    if (obj != nullptr) {
-                        DEBUG_INFO("  Base unit %s placed at %d,%d.\n",
-                            obj->Class_Of()->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
-                        hptr->FlagHome = Cell(0,0);
+                UnitClass* unit = new UnitClass(hptr->Get_First_Ownable(RuleExtension->BaseUnit), hptr);
+                if (unit->Unlimbo(centroid.As_Coord(), DIR_N) || Vinifera_Scan_Place_Object(unit, centroid)) {
+                    if (unit != nullptr) {
+                        DEBUG_INFO("  Base unit %s placed at %d,%d.\n", unit->Class_Of()->Name(), unit->Get_Cell().X, unit->Get_Cell().Y);
+                        hptr->FlagHome = Cell(0, 0);
                         hptr->FlagLocation = nullptr;
                         if (Special.IsCaptureTheFlag) {
-                            hptr->Flag_Attach((UnitClass *)obj, true);
+                            hptr->Flag_Attach(unit, true);
                         }
 
                         /**
                          *  #issue-206
-                         * 
+                         *
                          *  Adds game option to allow MCV's to auto-deploy on game start.
-                         * 
+                         *
                          *  @author: CCHyper
                          */
                         if (Session.Options.UnitCount == 1) {
                             if (SessionExtension && SessionExtension->ExtOptions.IsAutoDeployMCV) {
                                 if (hptr->Is_Human_Player()) {
-                                    obj->Set_Mission(MISSION_UNLOAD);
+                                    unit->Set_Mission(MISSION_UNLOAD);
                                 }
                             }
                         }
                     }
 
-                } else if (obj) {
-                    delete obj;
-                    obj = nullptr;
+                } else if (unit) {
+                    delete unit;
+                    unit = nullptr;
                 }
-
             }
         }
 
@@ -3105,215 +3099,59 @@ void ScenarioClassExtension::Create_Units(bool official)
          *  #BUGFIX:
          *  Make sure there are units available to place before entering the loop.
          */
-        bool units_available = (tot_inf_count + tot_unit_count) > 0;
+        if (total_objs) {
 
-        if (units_available) {
+            TechnoTypeClass* technotype = nullptr;
+            int deployed_so_far = 0;
 
-            TechnoTypeClass *technotype = nullptr;
+            just_deployed.Clear();
 
-            int inf_percent = 50;
-            int unit_percent = 100 - inf_percent;
+            while (deployed_so_far < allowed_unit_cost) {
 
-            int inf_count = (tot_units * inf_percent) / 100;
-            int unit_count = (tot_units * unit_percent) / 100;
+                technotype = nullptr;
 
-            /**
-             *  Ensure that rounding errors don't result in the player getting fewer units than promised.
-             */
-            if (inf_count + unit_count < tot_units) {
-                if (Percent_Chance(inf_percent)) {
-                    inf_count += tot_units - (inf_count + unit_count);
+                if (deployed_so_far < (allowed_unit_cost * 2) / 3 && units.Count() > 0) {
+                    technotype = units[Random_Pick(0, units.Count() - 1)];
+                } else if (infantry.Count() > 0) {
+                    technotype = infantry[Random_Pick(0, infantry.Count() - 1)];
+                }
+
+                /**
+                 *  Create units (Note: Unlimbo calls Enter_Idle_Mode(), which
+                 *  assigns the unit to HUNT; we must use Set_Mission() to override
+                 *  this state.)
+                 */
+                ObjectClass* obj = technotype->Create_One_Of(hptr);
+                TechnoClass* tobj = As_Techno(obj);
+
+                if (!Vinifera_Scan_Place_Object(obj, centroid, MIN_PLACEMENT_DISTANCE, MAX_PLACEMENT_DISTANCE)) {
+                    delete obj;
                 } else {
-                    unit_count += tot_units - (inf_count + unit_count);
+                    DEBUG_INFO("House %s deployed object %s\n", hptr->Class->IniName, technotype->IniName);
+
+                    deployed_so_far += technotype->Raw_Cost();
+                    just_deployed.Add(tobj);
+
+                    if (Scen->Special.IsInitialVeteran) {
+                        tobj->Crew.IsElite = true;
+                    }
+
+                    if (!hptr->Is_Human_Player()) {
+                        tobj->Set_Mission(MISSION_GUARD_AREA);
+                    } else {
+                        tobj->Set_Mission(MISSION_GUARD);
+                    }
                 }
             }
 
-            /**
-             *  Make sure we place 3 infantry per cell.
-             */
-            inf_count *= 3;
-
-            /**
-             *  Place starting units for this house.
-             */
-            if (available_units.Count() > 0) {
-                for (int i = 0; i < unit_count; ++i) {
-
-                    /**
-                     *  #BUGFIX:
-                     *  If all cells are full, we can stop placing units. This
-                     *  stops any run away cases with Scan_Place_Object.
-                     */
-                    //if (Are_Starting_Cells_Full(centroid, PLACEMENT_DISTANCE)) { // disabled because we wanna keep placing units outwards
-                    //    break;
-                    //}
-
-                    technotype = available_units[Random_Pick(0, available_units.Count()-1)];
-                    if (!technotype) {
-                        DEBUG_WARNING("  Invalid unit pointer!\n");
-                        continue;
-                    }
-
-                    /**
-                     *  Create an instance of the unit.
-                     */
-                    obj = reinterpret_cast<TechnoClass *>(technotype->Create_One_Of(hptr));
-                    if (obj) {
-
-                        if (Vinifera_Scan_Place_Object(obj, centroid, MIN_PLACEMENT_DISTANCE, MAX_PLACEMENT_DISTANCE, true)) {
-
-                            DEBUG_INFO("  House %s deployed object %s at %d,%d\n",
-                                hptr->Class->Name(), obj->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
-
-                            if (Scen->Special.IsInitialVeteran) {
-                                obj->Veterancy.Set_Elite(true);
-                            }
-
-                            if (hptr->Is_Human_Player()) {
-                                obj->Set_Mission(MISSION_GUARD);
-                            } else {
-                                obj->Set_Mission(MISSION_GUARD_AREA);
-                            }
-
-                        } else if (obj) {
-                            delete obj;
-                        }
-
-                    }
-
-                }
-
-            }
-
-            /**
-             *  Place starting infantry for this house.
-             */
-            if (available_infantry.Count() > 0) {
-                for (int i = 0; i < inf_count; ++i) {
-
-                    /**
-                     *  #BUGFIX:
-                     *  If all cells are full, we can stop placing units. This
-                     *  stops any run away cases with Scan_Place_Object.
-                     */
-                    //if (Are_Starting_Cells_Full(centroid, PLACEMENT_DISTANCE)) {
-                    //    break;
-                    //}
-
-                    technotype = available_infantry[Random_Pick(0, available_infantry.Count()-1)];
-                    if (!technotype) {
-                        DEBUG_WARNING("  Invalid infantry pointer!\n");
-                        continue;
-                    }
-
-                    /**
-                     *  Create an instance of the unit.
-                     */
-                    obj = reinterpret_cast<TechnoClass *>(technotype->Create_One_Of(hptr));
-                    if (obj) {
-
-                        if (Vinifera_Scan_Place_Object(obj, centroid, MIN_PLACEMENT_DISTANCE, MAX_PLACEMENT_DISTANCE, true)) {
-
-                            DEBUG_INFO("  House %s deployed object %s at %d,%d\n",
-                                hptr->Class->Name(), obj->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
-
-                            if (Scen->Special.IsInitialVeteran) {
-                                obj->Veterancy.Set_Elite(true);
-                            }
-
-                            if (hptr->Is_Human_Player()) {
-                                obj->Set_Mission(MISSION_GUARD);
-                            } else {
-                                obj->Set_Mission(MISSION_GUARD_AREA);
-                            }
-
-                        } else if (obj) {
-                            delete obj;
-                        }
-
-                    }
-
-                }
-
-            }
-
-            /**
-             *  #issue-338
-             * 
-             *  Change the starting unit formation to be like Red Alert 2.
-             *  As a result, this is no longer required as the units are
-             *  now placed neatly around the base unit.
-             * 
-             *  @author: CCHyper
-             */
-#if 0
-            /**
-             *  Scatter all the human placed objects to create
-             *  some space around the base unit.
-             */
+#if 0 // don't scatter anymore, we're deploying in a RA2-like formation
             if (hptr->Is_Human_Player()) {
-                for (int i = 0; i < deployed_objects.Count(); ++i) {
-                    TechnoClass *techno = deployed_objects[i];
-                    if (techno) {
-                        techno->Scatter();
-                    }
+                for (int t = 0; t < just_deployed.Count(); t++) {
+                    just_deployed[t]->Scatter(COORD_NONE);
                 }
             }
 #endif
-
-#if 0
-            /**
-             *  #BUGFIX:
-             * 
-             *  Due to the costings of the starting units in Tiberian Sun, sometimes
-             *  there was a deficiency in the equal placement of units in the radius
-             *  around the starting unit. This code makes sure there are no blank
-             *  spaces around the base unit and that all players get 9 units.
-             */
-            if (Session.Options.UnitCount) {
-                for (FacingType facing = FACING_FIRST; facing < FACING_COUNT; ++facing) {
-                    if (Is_Adjacent_Cell_Empty(centroid, facing, PLACEMENT_DISTANCE)) {
-
-                        TechnoTypeClass *technotype = nullptr;
-
-                        /**
-                         *  Very rarely should another unit be placed, the algorithm
-                         *  above places a fair amount already...
-                         */
-                        if (Percent_Chance(25)) {
-                            technotype = available_units[Random_Pick(0, available_units.Count()-1)];
-                        } else if (available_infantry.Count() > 0) {
-                            technotype = available_infantry[Random_Pick(0, available_infantry.Count()-1)];
-                        }
-
-                        /**
-                         *  Create an instance of the unit.
-                         */
-                        obj = reinterpret_cast<TechnoClass *>(technotype->Create_One_Of(hptr));
-                        if (obj) {
-                            if (Place_Object(obj, centroid, facing, PLACEMENT_DISTANCE)) {
-                                DEBUG_WARNING("  House %s deployed deficiency object %s at %d,%d\n",
-                                    hptr->Class->Name(), obj->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
-
-                                if (Scen->Special.InitialVeteran) {
-                                    obj->Veterancy.Set_Elite(true);
-                                }
-
-                                if (hptr->Is_Human_Player()) {
-                                    obj->Set_Mission(MISSION_GUARD);
-                                } else {
-                                    obj->Set_Mission(MISSION_GUARD_AREA);
-                                }
-
-                            } else if (obj) {
-                                delete obj;
-                            }
-                        }
-                    }
-                }
-            }
-#endif
-
+            just_deployed.Clear();
         }
     }
 
