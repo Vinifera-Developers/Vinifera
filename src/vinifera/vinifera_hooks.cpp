@@ -93,12 +93,12 @@ static void _Free_Heaps_Intercept()
     while (RocketTypes.Count()) {
         delete RocketTypes[0];
     }
-    Remove_All_Inactive();
+    Delete_Marked();
 
     //while (SpawnManagers.Count()) { // spawn managers are destroyed by their owners
     //    delete SpawnManagers[0];
     //}
-    //Remove_All_Inactive();
+    //Delete_Marked();
 
     EBoltClass::Clear_All();
 
@@ -119,7 +119,7 @@ static void _Free_Heaps_Intercept()
     while (ArmorTypes.Count()) {
         delete ArmorTypes[0];
     }
-    Remove_All_Inactive();
+    Delete_Marked();
 
     /**
      *  Finally, clear armors. We do this at the very end because
@@ -128,7 +128,7 @@ static void _Free_Heaps_Intercept()
     while (PrerequisiteGroups.Count()) {
         delete PrerequisiteGroups[0];
     }
-    Remove_All_Inactive();
+    Delete_Marked();
 
     --ScenarioInit;
 }

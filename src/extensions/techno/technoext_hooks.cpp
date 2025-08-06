@@ -353,13 +353,13 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
          *  Display a veterancy pip is the unit is promoted.
          */
         int veterancy_shape = -1;
-        if (Veterancy.Is_Veteran())
+        if (Crew.IsVeteran)
             veterancy_shape = 7;
 
-        if (Veterancy.Is_Elite())
+        if (Crew.IsElite)
             veterancy_shape = 8;
 
-        if (Veterancy.Is_Dumbass())
+        if (Crew.Is_Dumbass())
             veterancy_shape = 12;
 
         if (veterancy_shape != -1)
@@ -650,9 +650,9 @@ void TechnoClassExt::_Mission_AI()
     /**
      *  Check if the unit has been promoted.
      */
-    if (extension->LastVeterancy != Veterancy.Get_Rank()) {
+    if (extension->LastVeterancy != Crew.Get_Rank()) {
         if (extension->LastVeterancy != RANK_NONE) {
-            if (Veterancy.Is_Elite()) {
+            if (Crew.IsElite) {
 
                 /**
                  *  Play the promotion sound and voice line.
@@ -666,7 +666,7 @@ void TechnoClassExt::_Mission_AI()
                  *  Elite units also flash for a while.
                  */
                 FlashCount = RuleExtension->EliteFlashTimer;
-            } else if (Veterancy.Is_Veteran()) {
+            } else if (Crew.IsVeteran) {
 
                 /**
                  *  Play the promotion sound and voice line.
@@ -683,7 +683,7 @@ void TechnoClassExt::_Mission_AI()
             Look();
         }
 
-        extension->LastVeterancy = Veterancy.Get_Rank();
+        extension->LastVeterancy = Crew.Get_Rank();
     }
 }
 
@@ -969,7 +969,7 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
     /**
      *  If the current mission doesn't allow retaliation, return false;
      */
-    if (!Get_Current_Mission_Control().IsRetaliate)
+    if (!Current_Mission_Control().IsRetaliate)
         return false;
 
     /**
@@ -1011,10 +1011,10 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
         if (RTTI == RTTI_INFANTRY && static_cast<InfantryTypeClass const*>(ttype)->IsBomber)
             return false;
 
-        if (Veterancy.Is_Veteran() && ttype->VeteranAbilities[ABILITY_C4])
+        if (Crew.IsVeteran && ttype->VeteranAbilities[ABILITY_C4])
             return false;
         
-        if (Veterancy.Is_Elite() && (ttype->VeteranAbilities[ABILITY_C4] || ttype->EliteAbilities[ABILITY_C4]))
+        if (Crew.IsElite && (ttype->VeteranAbilities[ABILITY_C4] || ttype->EliteAbilities[ABILITY_C4]))
             return false;
     }
 
@@ -1305,12 +1305,12 @@ void TechnoClassExt::_Record_The_Kill(TechnoClass* source)
         const auto source_typeext = Extension::Fetch(source->TClass);
 
         if (source->TClass->IsTrainable) {
-            source->Veterancy.Gain_Experience(source->TClass->Cost_Of(House), points);
+            source->Crew.Made_A_Kill(source->TClass->Cost_Of(House), points);
 
         } else if (source_typeext->IsMissileSpawn) {
 
             if (source_ext->SpawnOwner && source_ext->SpawnOwner->TClass->IsTrainable) {
-                source_ext->SpawnOwner->Veterancy.Gain_Experience(source_ext->SpawnOwner->TClass->Cost_Of(House), points);
+                source_ext->SpawnOwner->Crew.Made_A_Kill(source_ext->SpawnOwner->TClass->Cost_Of(House), points);
             }
         }
 

@@ -1450,7 +1450,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
             std::fprintf(fp, "%s: IsHuman:%d  Color:%s  HeapID:%d  Credits:%d  Power:%d  Drain:%d  HouseType:%s  ActLike:%s\n",
                 housep->IniName,
                 housep->IsHuman,
-                ColorSchemes[housep->RemapColor]->Name,
+                ColorSchemes[housep->Scheme]->Name,
                 housep->HeapID,
                 housep->Credits,
                 housep->Power,

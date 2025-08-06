@@ -461,12 +461,12 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
         }
     }
 
-    Disable_Addon(ADDON_NONE);
+    Disable_Addon(ADDON_BASE_GAME);
 
     DEBUG_INFO("Setting required addon to '%d'\n", Scen->RequiredAddOn);
     Set_Required_Addon(Scen->RequiredAddOn);
 
-    if (!Is_Addon_Available(Scen->RequiredAddOn)) {
+    if (!Addon_Installed(Scen->RequiredAddOn)) {
         DEBUG_ERROR("Addon '%d' is not installed!\n", Scen->RequiredAddOn);
         return false;
     }
@@ -504,7 +504,7 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
     DEBUG_INFO("About to call Load_Art_INI()...\n");
     RulesClass::Load_Art_INI();
 
-    if (Is_Addon_Enabled(ADDON_FIRESTORM)) {
+    if (Addon_Enabled(ADDON_FIRESTORM)) {
         DEBUG_INFO("About to call Load_ArtFS_INI()...\n");
         RulesClass::Load_ArtFS_INI();
     }
@@ -950,8 +950,8 @@ bool Vinifera_Load_Game(const char* file_name)
     Map.Init_IO();
     Map.Activate(1);
     Map.Set_Dimensions();
-    TiberiumClass::Growth_Init_Clear();
-    TiberiumClass::Init_Cells();
+    TiberiumClass::Initialize_Tiberium_Growth_System();
+    TiberiumClass::Initialize_Tiberium_Spread_System();
     Map.Total_Radar_Refresh();
     TacticalViewActive = true;
     ScenarioStarted = true;

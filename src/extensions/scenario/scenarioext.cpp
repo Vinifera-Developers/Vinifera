@@ -1017,10 +1017,9 @@ void ScenarioClassExtension::Assign_Houses()
         housep->IsHuman = true;
 
         housep->Control.TechLevel = BuildLevel;
-        housep->Init_Data((PlayerColorType)node.Player.Color,
-            node.Player.House, Session.Options.Credits);
-        housep->RemapColor = Session.Player_Color_To_Scheme_Color((PlayerColorType)node.Player.Color);
-        housep->Init_Remap_Color();
+        housep->Init_Data(node.Player.Color, node.Player.House, Session.Options.Credits);
+        housep->Scheme = Session.Player_Color_To_Scheme_Color(node.Player.Color);
+        housep->Initialize_Radar_Color();
 
         /**
          *  If this ID is for myself, set up PlayerPtr.
@@ -1038,7 +1037,7 @@ void ScenarioClassExtension::Assign_Houses()
         node.Player.ID = HousesType(housep->HeapID);
 
         DEBUG_INFO("    Assigned player \"%s\" (House: \"%s\", ID: %d, Color: \"%s\") to slot %d.\n",
-            node.Name, housep->Class->Name(), node.Player.ID, ColorSchemes[housep->RemapColor]->Name, i);
+            node.Name, housep->Class->Name(), node.Player.ID, ColorSchemes[housep->Scheme]->Name, i);
     }
 
     if (Session.Options.AIPlayers > 0) {
@@ -1095,8 +1094,8 @@ void ScenarioClassExtension::Assign_Houses()
 
         housep->Control.TechLevel = BuildLevel;
         housep->Init_Data((PlayerColorType)color, pref_house, Session.Options.Credits);
-        housep->RemapColor = Session.Player_Color_To_Scheme_Color((PlayerColorType)color);
-        housep->Init_Remap_Color();
+        housep->Scheme = Session.Player_Color_To_Scheme_Color((PlayerColorType)color);
+        housep->Initialize_Radar_Color();
 
         std::strcpy(housep->IniName, Text_String(TXT_COMPUTER));
 
@@ -1112,7 +1111,7 @@ void ScenarioClassExtension::Assign_Houses()
         housep->Assign_Handicap(difficulty);
 
         DEBUG_INFO("    Assigned computer house \"%s\" (ID: %d, Color: \"%s\") to slot %d.\n",
-            housep->Class->Name(), housep->HeapID, ColorSchemes[housep->RemapColor]->Name, i);
+            housep->Class->Name(), housep->HeapID, ColorSchemes[housep->Scheme]->Name, i);
     }
 
     /**
@@ -1142,12 +1141,12 @@ void ScenarioClassExtension::Assign_Houses()
          * 
          *  @author: CCHyper
          */
-        if (housetype->RemapColor != remap_color && housetype->RemapColor != grey_color) {
-            remap_color = housetype->RemapColor;
+        if (housetype->Scheme != remap_color && housetype->Scheme != grey_color) {
+            remap_color = housetype->Scheme;
         }
-        housep->RemapColor = remap_color;
+        housep->Scheme = remap_color;
 
-        housep->Init_Remap_Color();
+        housep->Initialize_Radar_Color();
     }
 
     house = HouseTypeClass::From_Name("Special");
@@ -1167,12 +1166,12 @@ void ScenarioClassExtension::Assign_Houses()
          * 
          *  @author: CCHyper
          */
-        if (housetype->RemapColor != remap_color && housetype->RemapColor != grey_color) {
-            remap_color = housetype->RemapColor;
+        if (housetype->Scheme != remap_color && housetype->Scheme != grey_color) {
+            remap_color = housetype->Scheme;
         }
-        housep->RemapColor = remap_color;
+        housep->Scheme = remap_color;
 
-        housep->Init_Remap_Color();
+        housep->Initialize_Radar_Color();
     }
 
     DEBUG_INFO("Assign_Houses(exit)\n");
@@ -1196,10 +1195,10 @@ static Cell Clip_Scatter(Cell cell, int maxdist)
     /**
      *  Compute our x & y limits
      */
-    int xmin = Map.MapCellX;
-    int xmax = xmin + Map.MapCellWidth - 1;
-    int ymin = Map.MapCellY;
-    int ymax = ymin + Map.MapCellHeight - 1;
+    int xmin = Map.MapRect.X;
+    int xmax = xmin + Map.MapRect.Width - 1;
+    int ymin = Map.MapRect.Y;
+    int ymax = ymin + Map.MapRect.Height - 1;
 
     /**
      *  Adjust the x-coordinate.
@@ -1254,10 +1253,10 @@ static Cell Clip_Move(Cell cell, FacingType facing, int dist)
     /**
      *  Compute our x & y limits.
      */
-    int xmin = Map.MapCellX;
-    int xmax = xmin + Map.MapCellWidth - 1;
-    int ymin = Map.MapCellY;
-    int ymax = ymin + Map.MapCellHeight - 1;
+    int xmin = Map.MapRect.X;
+    int xmax = xmin + Map.MapRect.Width - 1;
+    int ymin = Map.MapRect.Y;
+    int ymax = ymin + Map.MapRect.Height - 1;
 
     /**
      *  Adjust the x-coordinate.
@@ -1557,8 +1556,8 @@ static DynamicVectorClass<Cell> Build_Starting_Waypoint_List(bool official)
         DEBUG_WARNING("Multiplayer start waypoint deficiency - looking for more start positions.\n");
         for (int index = 0; index < deficiency; ++index) {
 
-            Cell trycell = Cell(Map.MapCellX + Random_Pick(10, Map.MapCellWidth-10),
-                                   Map.MapCellY + Random_Pick(0, Map.MapCellHeight-10) + 10);
+            Cell trycell = Cell(Map.MapRect.X + Random_Pick(10, Map.MapRect.Width-10),
+                                   Map.MapRect.Y + Random_Pick(0, Map.MapRect.Height-10) + 10);
 
             trycell = Map.Nearby_Location(trycell, SPEED_TRACK, -1, MZONE_NORMAL, false, Point2D(8, 8));
             if (trycell != CELL_NONE) {
@@ -1674,7 +1673,7 @@ void ScenarioClassExtension::Create_Units(bool official)
         int owner_id = 1 << hptr->Class->HeapID;
 
         DEBUG_INFO("Generating units for house %d (Name: %s - \"%s\", Color: %s)...\n",
-            house, hptr->Class->Name(), hptr->IniName, ColorSchemes[hptr->RemapColor]->Name);
+            house, hptr->Class->Name(), hptr->IniName, ColorSchemes[hptr->Scheme]->Name);
 
         /**
          *  Generate list of starting units for this house.
@@ -1694,7 +1693,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                 /**
                  *  Check tech level and ownership.
                  */
-                if (unittype->TechLevel <= hptr->Control.TechLevel && (owner_id & unittype->Ownable) != 0) {
+                if (unittype->Level <= hptr->Control.TechLevel && (owner_id & unittype->Ownable) != 0) {
 
                     if (Rule->BaseUnit->Fetch_ID() != unittype->Fetch_ID()) {
                         DEBUG_INFO("    Added %s\n", unittype->Name());
@@ -1722,7 +1721,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                 /**
                  *  Check tech level and ownership.
                  */
-                if (infantrytype->TechLevel <= hptr->Control.TechLevel && (owner_id & infantrytype->Ownable) != 0) {
+                if (infantrytype->Level <= hptr->Control.TechLevel && (owner_id & infantrytype->Ownable) != 0) {
                     available_infantry.Add(infantrytype);
                     DEBUG_INFO("    Added %s\n", infantrytype->Name());
                 }
@@ -1971,7 +1970,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                                 hptr->Class->Name(), obj->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
 
                             if (Scen->Special.IsInitialVeteran) {
-                                obj->Veterancy.Set_Elite(true);
+                                obj->Crew.Set_Elite(true);
                             }
 
                             if (hptr->Is_Human_Player()) {
@@ -2023,7 +2022,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                                 hptr->Class->Name(), obj->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
 
                             if (Scen->Special.IsInitialVeteran) {
-                                obj->Veterancy.Set_Elite(true);
+                                obj->Crew.Set_Elite(true);
                             }
 
                             if (hptr->Is_Human_Player()) {
@@ -2101,7 +2100,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                                     hptr->Class->Name(), obj->Name(), obj->Get_Cell().X, obj->Get_Cell().Y);
 
                                 if (Scen->Special.InitialVeteran) {
-                                    obj->Veterancy.Set_Elite(true);
+                                    obj->Crew.Set_Elite(true);
                                 }
 
                                 if (hptr->Is_Human_Player()) {

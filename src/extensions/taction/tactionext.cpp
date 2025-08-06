@@ -389,7 +389,7 @@ bool TActionClassExtension::Do_TEXT_TRIGGER(TActionClass& taction, HouseClass* h
 
     ColorSchemeType color = static_cast<ColorSchemeType>(taction.TriggerRect.X) * 2;
     if (color < COLORSCHEME_FIRST || color >= ColorSchemes.Count()) {
-        color = PlayerPtr->RemapColor;
+        color = PlayerPtr->Scheme;
     }
 
     /**
@@ -583,7 +583,7 @@ bool TActionClassExtension::Do_MAKE_ELITE(TActionClass& taction, HouseClass* hou
 
         if (techno->IsActive && techno->IsDown && !techno->IsInLimbo) {
             if (techno->Tag && techno->Tag->Is_Trigger_Attached(trig)) {
-                techno->Veterancy.Set_Elite(true);
+                techno->Crew.Set_Elite(true);
             }
         }
     }

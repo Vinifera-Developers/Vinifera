@@ -295,7 +295,7 @@ static void Play_Intro_SneakPeak_Movies()
      *  If at least one of the movie pairs were found, we can go ahead and play
      *  them, otherwise set the required disk to GDI and request it if not present.
      */
-    if (movie_pair_available || (CD::Set_Required_CD(DISK_GDI), CD().Is_Available(DISK_GDI))) {
+    if (movie_pair_available || (CD::SetRequiredDisk(DISK_GDI), CD().ForceAvailable(DISK_GDI))) {
         
         /**
          *  Play the intro movie (GDI).

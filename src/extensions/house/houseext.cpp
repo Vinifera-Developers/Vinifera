@@ -833,7 +833,7 @@ int HouseClassExtension::AI_Unit()
     **  harvester if possible.
     */
     if (This()->IQ >= Rule->IQHarvester && !This()->IsTiberiumShort && !This()->Is_Human_Player() && ref * mult > harv) {
-        if (This()->Get_First_ActLike(Rule->HarvesterUnit)->TechLevel <= This()->Control.TechLevel) {
+        if (This()->Get_First_ActLike(Rule->HarvesterUnit)->Level <= This()->Control.TechLevel) {
             This()->BuildUnit = This()->Get_First_ActLike(Rule->HarvesterUnit)->HeapID;
             return TICKS_PER_SECOND;
         }

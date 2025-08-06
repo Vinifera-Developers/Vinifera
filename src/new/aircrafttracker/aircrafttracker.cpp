@@ -90,8 +90,8 @@ int AircraftTrackerClass::Get_Region(Cell cell)
     int x = std::max(0, static_cast<int>(cell.X));
     int y = std::max(0, static_cast<int>(cell.Y));
 
-    int regx = std::min(19, x / (Map.MapCellWidth / 20));
-    int regy = std::min(19, y / (Map.MapCellHeight / 20));
+    int regx = std::min(19, x / (Map.MapRect.Width / 20));
+    int regy = std::min(19, y / (Map.MapRect.Height / 20));
 
     return regx + regy * 20;
 }

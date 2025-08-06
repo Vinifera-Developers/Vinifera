@@ -732,7 +732,7 @@ void TacticalExtension::Draw_Super_Timers()
 
             Super_Draw_Timer(
                 row_index++,
-                ColorSchemes[super->House->RemapColor],
+                ColorSchemes[super->House->Scheme],
                 super->Control.Value() / TICKS_PER_SECOND,
                 super->Class->FullName,
                 &superext->FlashTimeEnd,
@@ -782,7 +782,7 @@ void TacticalExtension::Draw_Templated_Text()
 
     ColorSchemeType color = TemplatedTextColor;
     if (color < COLORSCHEME_FIRST || color >= ColorSchemes.Count()) {
-        color = PlayerPtr->RemapColor;
+        color = PlayerPtr->Scheme;
     }
 
     switch (TemplatedTextPosition) {

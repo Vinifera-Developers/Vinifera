@@ -103,19 +103,18 @@ bool TacticalExt::FilterSelection = false;
  */
 bool TacticalExt::_Clamp_To_Tactical_Rect(Point2D& pixel)
 {
-    int xmin = TacticalRect.Width / 2 - (CELL_PIXEL_W >> 1) * (Map.MapSize.Width - 2 * Map.MapLocalSize.X);
-    int xmax = std::max(xmin + CELL_PIXEL_W * Map.MapLocalSize.Width - TacticalRect.Width, xmin);
+    int xmin = TacticalRect.Width / 2 - (CELL_PIXEL_W >> 1) * (Map.PlayRect.Width - 2 * Map.LocalRect.X);
+    int xmax = std::max(xmin + CELL_PIXEL_W * Map.LocalRect.Width - TacticalRect.Width, xmin);
 
-    int ymin = TacticalRect.Height / 2 + (CELL_PIXEL_H >> 1) * (Map.MapSize.Width + 2 * Map.MapLocalSize.Y - 5);
-    int ymax = std::max(ymin + CELL_PIXEL_H * (2 * Map.MapLocalSize.Height + 9) / 2 - TacticalRect.Height, ymin);
+    int ymin = TacticalRect.Height / 2 + (CELL_PIXEL_H >> 1) * (Map.PlayRect.Width + 2 * Map.LocalRect.Y - 5);
+    int ymax = std::max(ymin + CELL_PIXEL_H * (2 * Map.LocalRect.Height + 9) / 2 - TacticalRect.Height, ymin);
 
     bool clamped = false;
 
     if (pixel.Y < ymin) {
         pixel.Y = ymin;
         clamped = true;
-    }
-    else if (pixel.Y > ymax) {
+    } else if (pixel.Y > ymax) {
         pixel.Y = ymax;
         clamped = true;
     }
@@ -123,13 +122,12 @@ bool TacticalExt::_Clamp_To_Tactical_Rect(Point2D& pixel)
     if (pixel.X < xmin) {
         pixel.X = xmin;
         clamped = true;
-    }
-    else if (pixel.X > xmax) {
+    } else if (pixel.X > xmax) {
         pixel.X = xmax;
         clamped = true;
     }
 
-    return(clamped);
+    return clamped;
 }
 
 
@@ -839,7 +837,7 @@ original_code:
  */
 DECLARE_PATCH(_Tactical_Center_On_Location_Unfollow_Object_Patch)
 {
-    Map.Follow_This(nullptr);
+    Map.Break_Follow_Mode();
 
     // Rebuild function epilogue
     _asm { pop  edi }
@@ -858,7 +856,7 @@ DECLARE_PATCH(_Tactical_Center_On_Location_Unfollow_Object_Patch)
  */
 static void _Fill_With_Black()
 {
-    const int max_width = TacticalRect.Width - Map.MapLocalSize.Width * CELL_PIXEL_W;
+    const int max_width = TacticalRect.Width - Map.LocalRect.Width * CELL_PIXEL_W;
     if (max_width > 0) {
         Rect rect = {
             TacticalRect.X + TacticalRect.Width - max_width,
@@ -868,7 +866,7 @@ static void _Fill_With_Black()
         CompositeSurface->Fill_Rect(rect, COLOR_TBLACK);
     }
 
-    const int max_height = TacticalRect.Height - Map.MapLocalSize.Height * CELL_PIXEL_H - int(4.5 * CELL_PIXEL_H);
+    const int max_height = TacticalRect.Height - Map.LocalRect.Height * CELL_PIXEL_H - int(4.5 * CELL_PIXEL_H);
     if (max_height > 0) {
         Rect rect = {
             TacticalRect.X,

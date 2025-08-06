@@ -370,7 +370,7 @@ int HouseClassExt::_Expert_AI()
      *  Use any ready super weapons.
      */
     if (Session.Type != GAME_NORMAL || IQ >= Rule->IQSuperWeapons) {
-        AI_Super_Weapon_Handler();
+        AI_Super_Weapons();
     }
 
     /**
