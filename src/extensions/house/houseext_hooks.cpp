@@ -771,6 +771,7 @@ void HouseClassExt::_MPlayer_Defeated()
             PlayerPtr->RecalcRadar = true;
             HiddenSurface->Fill(0);
             Map.Flag_To_Redraw();
+            DEBUG_INFO("MPlayer_Defeated() - Player %s has no allies left (OBIWAN MODE)\n", IniName);
         }
 
     }
@@ -878,7 +879,7 @@ void HouseClassExt::_Make_Ally(HouseClass* house)
         }
 
         if (ScenarioInit) {
-            Control.Allies |= (1L << house->ID);
+            Control.Allies |= (1L << house->HeapID);
         }
 
         if (Session.Type != GAME_NORMAL || !ScenarioInit) {
