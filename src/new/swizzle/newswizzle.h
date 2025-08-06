@@ -76,17 +76,17 @@ class ViniferaSwizzleManagerClass : public ISwizzle
             ~SwizzlePointerStruct()
             {
                 if (File) {
-                    delete File;
+                    delete[] File;
                     File = nullptr;
                 }
 
                 if (Function) {
-                    delete Function;
+                    delete[] Function;
                     Function = nullptr;
                 }
 
                 if (Variable) {
-                    delete Variable;
+                    delete[] Variable;
                     Variable = nullptr;
                 }
             }
