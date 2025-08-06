@@ -315,6 +315,36 @@ bool TheaterTypeClass::Read_Theaters_INI(CCINIClass &ini)
 
 
 /**
+ *  Fetches a reference to the theater specified.
+ * 
+ *  @author: CCHyper
+ */
+const TheaterTypeClass &TheaterTypeClass::As_Reference(TheaterType type)
+{
+    static const TheaterTypeClass _x;
+
+    //ASSERT(type != THEATER_NONE && type < TheaterTypes.Count());
+
+    if (type == THEATER_NONE || type >= TheaterTypes.Count()) {
+        return _x;
+    }
+
+    return *TheaterTypes[type];
+}
+
+
+/**
+ *  Fetches a reference to the theater specified.
+ * 
+ *  @author: CCHyper
+ */
+const TheaterTypeClass &TheaterTypeClass::As_Reference(const char *name)
+{
+    return As_Reference(From_Name(name));
+}
+
+
+/**
  *  Retrieves the TheaterType for given name.
  * 
  *  @author: CCHyper
@@ -329,7 +359,7 @@ TheaterType TheaterTypeClass::From_Name(const char *name)
 
     if (name != nullptr) {
         for (TheaterType index = THEATER_FIRST; index < TheaterTypes.Count(); ++index) {
-            if (!strcasecmp(TheaterTypes[index]->Name, name)) {
+            if (!strcasecmp(As_Reference(index).Name, name)) {
                 return index;
             }
         }
@@ -346,7 +376,7 @@ TheaterType TheaterTypeClass::From_Name(const char *name)
  */
 const char *TheaterTypeClass::Name_From(TheaterType type)
 {
-    return (type != THEATER_NONE && type < TheaterTypes.Count() ? TheaterTypes[type]->Name : "<none>");
+    return (type != THEATER_NONE && type < TheaterTypes.Count() ? As_Reference(type).Name : "<none>");
 }
 
 
@@ -357,7 +387,7 @@ const char *TheaterTypeClass::Name_From(TheaterType type)
  */
 const char *TheaterTypeClass::Root_From(TheaterType type)
 {
-    return TheaterTypes[type]->Root;
+    return As_Reference(type).Root;
 }
 
 
@@ -368,7 +398,7 @@ const char *TheaterTypeClass::Root_From(TheaterType type)
  */
 const char *TheaterTypeClass::IsoRoot_From(TheaterType type)
 {
-    return TheaterTypes[type]->IsoRoot;
+    return As_Reference(type).IsoRoot;
 }
 
 
@@ -379,7 +409,7 @@ const char *TheaterTypeClass::IsoRoot_From(TheaterType type)
  */
 const char *TheaterTypeClass::Suffix_From(TheaterType type)
 {
-    return TheaterTypes[type]->Suffix;
+    return As_Reference(type).Suffix;
 }
 
 
@@ -390,7 +420,7 @@ const char *TheaterTypeClass::Suffix_From(TheaterType type)
  */
 const char *TheaterTypeClass::MMSuffix_From(TheaterType type)
 {
-    return TheaterTypes[type]->MMSuffix;
+    return As_Reference(type).MMSuffix;
 }
 
 
@@ -401,7 +431,7 @@ const char *TheaterTypeClass::MMSuffix_From(TheaterType type)
  */
 const char TheaterTypeClass::ImageLetter_From(TheaterType type)
 {
-    return TheaterTypes[type]->ImageLetter;
+    return As_Reference(type).ImageLetter;
 }
 
 
@@ -437,7 +467,7 @@ const TheaterTypeClass *TheaterTypeClass::Find_Or_Make(const char *name)
  */
 bool TheaterTypeClass::Is_Arctic(TheaterType type)
 {
-    return TheaterTypes[type]->IsArctic;
+    return As_Reference(type).IsArctic;
 }
 
 
@@ -448,7 +478,7 @@ bool TheaterTypeClass::Is_Arctic(TheaterType type)
  */
 bool TheaterTypeClass::Ice_Growth_Allowed(TheaterType type)
 {
-    return TheaterTypes[type]->IsIceGrowthEnabled;
+    return As_Reference(type).IsIceGrowthEnabled;
 }
 
 
@@ -459,7 +489,7 @@ bool TheaterTypeClass::Ice_Growth_Allowed(TheaterType type)
  */
 bool TheaterTypeClass::Vein_Growth_Allowed(TheaterType type)
 {
-    return TheaterTypes[type]->IsVeinGrowthEnabled;
+    return As_Reference(type).IsVeinGrowthEnabled;
 }
 
 
@@ -470,7 +500,7 @@ bool TheaterTypeClass::Vein_Growth_Allowed(TheaterType type)
  */
 bool TheaterTypeClass::Allowed_In_Map_Generator(TheaterType type)
 {
-    return TheaterTypes[type]->IsAllowedInMapGenerator;
+    return As_Reference(type).IsAllowedInMapGenerator;
 }
 
 
@@ -481,7 +511,7 @@ bool TheaterTypeClass::Allowed_In_Map_Generator(TheaterType type)
  */
 bool TheaterTypeClass::Veins_Allowed_In_Map_Generator(TheaterType type)
 {
-    return TheaterTypes[type]->IsGenerateVeinholesInMapGenerator;
+    return As_Reference(type).IsGenerateVeinholesInMapGenerator;
 }
 
 
@@ -492,7 +522,7 @@ bool TheaterTypeClass::Veins_Allowed_In_Map_Generator(TheaterType type)
  */
 float TheaterTypeClass::Low_Radar_Brightness(TheaterType type)
 {
-    return TheaterTypes[type]->LowRadarBrightness1;
+    return As_Reference(type).LowRadarBrightness1;
 }
 
 
@@ -503,5 +533,5 @@ float TheaterTypeClass::Low_Radar_Brightness(TheaterType type)
  */
 float TheaterTypeClass::High_Radar_Brightness(TheaterType type)
 {
-    return TheaterTypes[type]->HighRadarBrightness1;
+    return As_Reference(type).HighRadarBrightness1;
 }
