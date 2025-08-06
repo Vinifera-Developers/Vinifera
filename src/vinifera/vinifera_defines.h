@@ -32,11 +32,6 @@
 
 
 /**
- *  If defined, this will replace the SwizzleManagerClass with our own new implementation.
- */
-#define VINIFERA_USE_NEW_SWIZZLE_MANAGER 1
-
-/**
  *  Enable debug printing of the swizzle remapping process.
  * 
  *  WARNING: This will take cause the save/load process to take up to 10 minutes!
