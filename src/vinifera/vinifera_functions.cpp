@@ -499,7 +499,7 @@ bool Vinifera_Startup()
     /**
      *  If -CD has been defined, set the root directory as highest priority.
      */
-    if (CD::OverrideSwap) {
+    if (CD::IsOverrideSwap()) {
         ViniferaSearchPaths.Add(".");
     }
     

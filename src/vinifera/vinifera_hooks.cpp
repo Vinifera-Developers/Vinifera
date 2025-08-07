@@ -99,7 +99,7 @@ static void _Free_Heaps_Intercept()
     //while (SpawnManagers.Count()) { // spawn managers are destroyed by their owners
     //    delete SpawnManagers[0];
     //}
-    //Remove_All_Inactive();
+    //Delete_Marked();
 
     EBoltClass::Clear_All();
 

@@ -114,8 +114,7 @@ bool TacticalExt::_Clamp_To_Tactical_Rect(Point2D& pixel)
     if (pixel.Y < ymin) {
         pixel.Y = ymin;
         clamped = true;
-    }
-    else if (pixel.Y > ymax) {
+    } else if (pixel.Y > ymax) {
         pixel.Y = ymax;
         clamped = true;
     }
@@ -123,13 +122,12 @@ bool TacticalExt::_Clamp_To_Tactical_Rect(Point2D& pixel)
     if (pixel.X < xmin) {
         pixel.X = xmin;
         clamped = true;
-    }
-    else if (pixel.X > xmax) {
+    } else if (pixel.X > xmax) {
         pixel.X = xmax;
         clamped = true;
     }
 
-    return(clamped);
+    return clamped;
 }
 
 
@@ -839,7 +837,7 @@ original_code:
  */
 DECLARE_PATCH(_Tactical_Center_On_Location_Unfollow_Object_Patch)
 {
-    Map.Set_To_Follow(nullptr);
+    Map.Break_Follow_Mode();
 
     // Rebuild function epilogue
     _asm { pop  edi }

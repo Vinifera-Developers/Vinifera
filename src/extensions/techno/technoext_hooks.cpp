@@ -655,7 +655,7 @@ void TechnoClassExt::_Mission_AI()
      */
     if (extension->LastVeterancy != Crew.Get_Rank()) {
         if (extension->LastVeterancy != RANK_NONE) {
-            if (Crew.Is_Elite()) {
+            if (Crew.IsElite) {
 
                 /**
                  *  Play the promotion sound and voice line.
@@ -669,7 +669,7 @@ void TechnoClassExt::_Mission_AI()
                  *  Elite units also flash for a while.
                  */
                 FlashCount = RuleExtension->EliteFlashTimer;
-            } else if (Crew.Is_Veteran()) {
+            } else if (Crew.IsVeteran) {
 
                 /**
                  *  Play the promotion sound and voice line.
@@ -1014,10 +1014,10 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
         if (RTTI == RTTI_INFANTRY && static_cast<InfantryTypeClass const*>(ttype)->IsBomber)
             return false;
 
-        if (Crew.Is_Veteran() && ttype->VeteranAbilities[ABILITY_C4])
+        if (Crew.IsVeteran && ttype->VeteranAbilities[ABILITY_C4])
             return false;
         
-        if (Crew.Is_Elite() && (ttype->VeteranAbilities[ABILITY_C4] || ttype->EliteAbilities[ABILITY_C4]))
+        if (Crew.IsElite && (ttype->VeteranAbilities[ABILITY_C4] || ttype->EliteAbilities[ABILITY_C4]))
             return false;
     }
 

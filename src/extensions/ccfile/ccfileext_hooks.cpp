@@ -61,7 +61,7 @@ void CCFileClassExt::_Error(FileErrorType error, bool can_retry, const char *fil
     /**
      *  File system is failled as local, no need to check if required cd is available.
      */
-    if (CD::OverrideSwap) {
+    if (CD::IsOverrideSwap()) {
         CDFileClass::Error(error, can_retry, filename);
 
     } else {

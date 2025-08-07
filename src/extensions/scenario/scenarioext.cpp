@@ -3026,7 +3026,7 @@ void ScenarioClassExtension::Create_Units(bool official)
                     just_deployed.Add(tobj);
 
                     if (Scen->Special.IsInitialVeteran) {
-                        tobj->Crew.IsElite = true;
+                        tobj->Crew.Set_Elite(true);
                     }
 
                     if (!hptr->Is_Human_Player()) {

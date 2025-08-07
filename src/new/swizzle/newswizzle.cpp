@@ -8,7 +8,7 @@
  *
  *  @author        CCHyper
  *
- *  @contributors  tomsons26
+ *  @contributors  tomsons26, ZivDero
  *
  *  @brief         Replacement pointer swizzling interface for debugging save load issues.
  *
@@ -28,15 +28,11 @@
  *
  ******************************************************************************/
 #include "newswizzle.h"
-
-#ifdef VINIFERA_USE_NEW_SWIZZLE_MANAGER
-
-#include "tibsun_globals.h"
-#include "debughandler.h"
 #include "asserthandler.h"
-#include "vinifera_util.h"
+#include "debughandler.h"
 #include "fatal.h"
-#include <cstdlib>  // for std::qsort
+#include "tibsun_globals.h"
+#include "vinifera_util.h"
 
 
 extern void Clear_All_Surfaces();
@@ -45,44 +41,21 @@ extern void Clear_All_Surfaces();
 /**
  *  Instance of the new swizzle manager.
  */
-//ViniferaSwizzleManagerClass ViniferaSwizzleManager;
-
-
-/**
- *  This compare function presumes that its parameters are pointing to SwizzlePointerStruct
- *  and that the first "int" in the struct is the pointer ID number to be used for comparison.
- * 
- *  @return     Returns with the comparison value between the two pointer structs.
- * 
- *  @author:    CCHyper
- */
-int __cdecl ViniferaSwizzleManagerClass::ptr_compare_func(const void *ptr1, const void *ptr2)
-{
-    const SwizzlePointerStruct *p1 = static_cast<const SwizzlePointerStruct *>(ptr1);
-    const SwizzlePointerStruct *p2 = static_cast<const SwizzlePointerStruct *>(ptr2);
-
-    if (p1->ID == p2->ID) {
-        return 0;
-    }
-    if (p1->ID < p2->ID) {
-        return -1;
-    }
-    return 1;
-}
+ViniferaSwizzleManagerClass ViniferaSwizzleManager;
 
 
 /**
  *  Retrieves pointers to the supported interfaces on an object.
- * 
- *  @author:    tomsons26, CCHyper
- *  
+ *
+ *  @author:    tomsons26, CCHyper, ZivDero
+ *
  *  @param      riid    The interface to this object being queried for.
- * 
+ *
  *  @param      ppv     Buffer to fill with obtained interface.
- * 
+ *
  *  @return     S_OK if interface obtained; E_NOINTERFACE otherwise.
  */
-LONG STDMETHODCALLTYPE ViniferaSwizzleManagerClass::QueryInterface(REFIID riid, LPVOID *ppv)
+LONG STDMETHODCALLTYPE ViniferaSwizzleManagerClass::QueryInterface(REFIID riid, LPVOID* ppv)
 {
     if (ppv == nullptr) {
         return E_POINTER;
@@ -90,17 +63,13 @@ LONG STDMETHODCALLTYPE ViniferaSwizzleManagerClass::QueryInterface(REFIID riid, 
 
     *ppv = nullptr;
     if (riid == __uuidof(IUnknown)) {
-        if (reinterpret_cast<IUnknown *>(this) != nullptr) {
-            *ppv = reinterpret_cast<IUnknown *>(this);
-        }
+        *ppv = reinterpret_cast<IUnknown*>(this);
     } else if (riid == __uuidof(ISwizzle)) {
-        if (reinterpret_cast<ISwizzle *>(this) != nullptr) {
-            *ppv = reinterpret_cast<ISwizzle *>(this);
-        }
+        *ppv = reinterpret_cast<ISwizzle*>(this);
     }
 
     if (*ppv != nullptr) {
-        reinterpret_cast<IUnknown *>(*ppv)->AddRef();
+        static_cast<IUnknown*>(*ppv)->AddRef();
         return S_OK;
     }
 
@@ -110,7 +79,7 @@ LONG STDMETHODCALLTYPE ViniferaSwizzleManagerClass::QueryInterface(REFIID riid, 
 
 /**
  *  Increments the reference count for an interface pointer to a COM object.
- * 
+ *
  *  @author: CCHyper
  */
 ULONG STDMETHODCALLTYPE ViniferaSwizzleManagerClass::AddRef()
@@ -121,7 +90,7 @@ ULONG STDMETHODCALLTYPE ViniferaSwizzleManagerClass::AddRef()
 
 /**
  *  Decrements the reference count for an interface on a COM object.
- * 
+ *
  *  @author: CCHyper
  */
 ULONG STDMETHODCALLTYPE ViniferaSwizzleManagerClass::Release()
@@ -132,7 +101,7 @@ ULONG STDMETHODCALLTYPE ViniferaSwizzleManagerClass::Release()
 
 /**
  *  Reset swizzler in preparation for load.
- * 
+ *
  *  @author: CCHyper
  */
 LONG STDMETHODCALLTYPE ViniferaSwizzleManagerClass::Reset()
@@ -145,36 +114,34 @@ LONG STDMETHODCALLTYPE ViniferaSwizzleManagerClass::Reset()
 
 /**
  *  Swizzle a pointer after load (requests new pointer).
- * 
- *  @author: CCHyper
+ *
+ *  @author: CCHyper, ZivDero
  */
-LONG STDMETHODCALLTYPE ViniferaSwizzleManagerClass::Swizzle(void **pointer)
+LONG STDMETHODCALLTYPE ViniferaSwizzleManagerClass::Swizzle(void** pointer)
 {
     if (pointer == nullptr) {
         return E_POINTER;
     }
 
-    uintptr_t id = uintptr_t(*pointer);
+    uintptr_t id = reinterpret_cast<uintptr_t>(*pointer);
     if (!id) {
         return S_OK;
     }
 
-    SwizzlePointerStruct pair(id, pointer);
-    bool added = RequestTable.Add(pair);
-    ASSERT(added);
+    RequestTable.emplace_back(id, pointer);
 
     *pointer = nullptr;
 
-    return (added == true ? S_OK : S_FALSE);
+    return S_OK;
 }
 
 
 /**
  *  Convert pointer to ID number.
- * 
+ *
  *  @author: CCHyper
  */
-LONG STDMETHODCALLTYPE ViniferaSwizzleManagerClass::Fetch_Swizzle_ID(void *pointer, LONG *id)
+LONG STDMETHODCALLTYPE ViniferaSwizzleManagerClass::Fetch_Swizzle_ID(void* pointer, LONG* id)
 {
     if (pointer == nullptr || id == nullptr) {
         return E_POINTER;
@@ -182,7 +149,7 @@ LONG STDMETHODCALLTYPE ViniferaSwizzleManagerClass::Fetch_Swizzle_ID(void *point
 
     *id = reinterpret_cast<uintptr_t>(pointer);
 
-    //DEV_DEBUG_INFO("SwizzleManager::Fetch_Swizzle_ID() - ID: 0x%08X.\n", *id);
+    // DEV_DEBUG_INFO("SwizzleManager::Fetch_Swizzle_ID() - ID: 0x%08X.\n", *id);
 
     return S_OK;
 }
@@ -190,25 +157,23 @@ LONG STDMETHODCALLTYPE ViniferaSwizzleManagerClass::Fetch_Swizzle_ID(void *point
 
 /**
  *  Inform (register) swizzler of new object location.
- * 
+ *
  *  @author: CCHyper
  */
-LONG STDMETHODCALLTYPE ViniferaSwizzleManagerClass::Here_I_Am(LONG id, void *pointer)
+LONG STDMETHODCALLTYPE ViniferaSwizzleManagerClass::Here_I_Am(LONG id, void* pointer)
 {
-    SwizzlePointerStruct pair(id, pointer);
-    bool added = PointerTable.Add(pair);
-    ASSERT(added);
+    PointerTable.emplace(std::piecewise_construct, std::forward_as_tuple(id), std::forward_as_tuple(id, pointer));
 
-    return (added == true ? S_OK : S_FALSE);
+    return S_OK;
 }
 
 
 /**
  *  Save interface pointer to stream.
- * 
+ *
  *  @author: CCHyper
  */
-LONG STDMETHODCALLTYPE ViniferaSwizzleManagerClass::Save_Interface(IStream *stream, IUnknown *pointer)
+LONG STDMETHODCALLTYPE ViniferaSwizzleManagerClass::Save_Interface(IStream* stream, IUnknown* pointer)
 {
     return E_NOTIMPL;
 }
@@ -216,10 +181,10 @@ LONG STDMETHODCALLTYPE ViniferaSwizzleManagerClass::Save_Interface(IStream *stre
 
 /**
  *  Loads interface pointer from stream.
- * 
+ *
  *  @author: CCHyper
  */
-LONG STDMETHODCALLTYPE ViniferaSwizzleManagerClass::Load_Interface(IStream *stream, CLSID *riid, void **pointer)
+LONG STDMETHODCALLTYPE ViniferaSwizzleManagerClass::Load_Interface(IStream* stream, CLSID* riid, void** pointer)
 {
     return E_NOTIMPL;
 }
@@ -227,10 +192,10 @@ LONG STDMETHODCALLTYPE ViniferaSwizzleManagerClass::Load_Interface(IStream *stre
 
 /**
  *  Fetch bytes required to save interface pointer.
- * 
+ *
  *  @author: CCHyper
  */
-LONG STDMETHODCALLTYPE ViniferaSwizzleManagerClass::Get_Save_Size(LONG *psize)
+LONG STDMETHODCALLTYPE ViniferaSwizzleManagerClass::Get_Save_Size(LONG* psize)
 {
     if (psize == nullptr) {
         return E_POINTER;
@@ -244,172 +209,119 @@ LONG STDMETHODCALLTYPE ViniferaSwizzleManagerClass::Get_Save_Size(LONG *psize)
 
 /**
  *  The default class constructor.
- * 
- *  @author: CCHyper
+ *
+ *  @author: CCHyper, ZivDero
  */
 ViniferaSwizzleManagerClass::ViniferaSwizzleManagerClass() :
     RequestTable(),
     PointerTable()
 {
-    RequestTable.Set_Growth_Step(1000);
-    PointerTable.Set_Growth_Step(1000);
+    RequestTable.reserve(1000);
+    PointerTable.reserve(1000);
 }
 
 
 /**
  *  The class destructor.
- * 
+ *
  *  @author: CCHyper
  */
- ViniferaSwizzleManagerClass::~ViniferaSwizzleManagerClass()
- {
-     Process_Tables();
- }
-
-
-/**
- *  Sort the pointer tables.
- * 
- *  @author: CCHyper
- */
-void ViniferaSwizzleManagerClass::Sort_Tables()
+ViniferaSwizzleManagerClass::~ViniferaSwizzleManagerClass()
 {
-    if (PointerTable.Count() > 0) {
-        std::qsort(&PointerTable[0], PointerTable.Count(), sizeof(SwizzlePointerStruct), ptr_compare_func);
-    }
-    if (RequestTable.Count() > 0) {
-        std::qsort(&RequestTable[0], RequestTable.Count(), sizeof(SwizzlePointerStruct), ptr_compare_func);
-    }
+    Process_Tables();
 }
 
 
 /**
  *  Process and remap pointers in the tables.
- * 
- *  @author: tomsons26, CCHyper
+ *
+ *  @author: tomsons26, CCHyper, ZivDero
  */
 void ViniferaSwizzleManagerClass::Process_Tables()
 {
-    if (RequestTable.Count() > 0) {
-
-        Sort_Tables();
-
-        int request_index = 0;
-        int request_count = RequestTable.Count();
-
-        int pointer_index = 0;
-        int pointer_count = PointerTable.Count();
+    if (!RequestTable.empty()) {
 
 #ifdef VINIFERA_ENABLE_SWIZZLE_DEBUG_PRINTING
-        DEV_DEBUG_INFO("SwizzleManager::Process_Tables() - RequestTable.Count %d.\n", request_count);
-        DEV_DEBUG_INFO("SwizzleManager::Process_Tables() - PointerTable.Count %d.\n", pointer_count);
+        DEV_DEBUG_INFO("SwizzleManager::Process_Tables() - RequestTable.Count %d.\n", RequestTable.size());
+        DEV_DEBUG_INFO("SwizzleManager::Process_Tables() - PointerTable.Count %d.\n", PointerTable.size());
 #endif
 
-        while (request_count > 0) {
+        for (SwizzlePointerStruct& request : RequestTable) {
 
-            int pre_search_id = RequestTable[request_index].ID;
-            int ptr_id = PointerTable[pointer_index].ID;
-            
 #ifdef VINIFERA_ENABLE_SWIZZLE_DEBUG_PRINTING
-            DEV_DEBUG_INFO("SwizzleManager::Process_Tables() - Processing request \"%s\" from %s.\n", RequestTable[request_index].Variable, RequestTable[request_index].Function);
+            DEV_DEBUG_INFO("SwizzleManager::Process_Tables() - Processing request \"%s\" from %s.\n", request.Variable.c_str(), request.Function.c_str());
 #endif
 
-            if (pre_search_id == ptr_id) {
+            auto it = PointerTable.find(request.ID);
+            if (it != PointerTable.end()) {
 
                 /**
                  *  The id's match, remap the pointer.
                  */
-                uintptr_t *ptr = (uintptr_t *)RequestTable[request_index].Pointer;
-                *ptr = (uintptr_t)PointerTable[pointer_index].Pointer;
+                uintptr_t* ptr = (uintptr_t*)request.Pointer;
+                *ptr = reinterpret_cast<uintptr_t>(it->second.Pointer);
 
 #ifdef VINIFERA_ENABLE_SWIZZLE_DEBUG_PRINTING
-                DEV_DEBUG_INFO("SwizzleManager::Process_Tables() - Remapped \"%s\" (ID: %08X) to 0x%08X.\n",
-                                            RequestTable[request_index].Variable, RequestTable[request_index].ID, (uintptr_t)PointerTable[pointer_index].Pointer);
+                DEV_DEBUG_INFO("SwizzleManager::Process_Tables() - Remapped \"%s\" (ID: %08X) to 0x%08X.\n", request.Variable.c_str(), request.ID, reinterpret_cast<uintptr_t>(request.Pointer));
 #endif
+            } else {
 
-                ++request_index;
-                --request_count;
-
-                continue;
-
-            }
-
-            /**
-             *  Perform a quick search.
-             */
-            while (pre_search_id > ptr_id) {
-                ++pointer_index;
-                --pointer_count;
-                ptr_id = PointerTable[pointer_index].ID;
-            }
-
-            void *old_ptr = RequestTable[request_index].Pointer;
-            int new_id = PointerTable[pointer_index].ID;
-
-            /**
-             *  #NOTE: Original code was divide by zero to force a crash!
-             */
-            bool failed = (pre_search_id != new_id);
-
-            /**
-             *  Non matching id's means we failed to remap!
-             */
-            if (failed) {
-
+                /**
+                 *  The id's not present, remap failed.
+                 */
                 DEV_DEBUG_ERROR("SwizzleManager::Process_Tables() - Failed to remap a pointer from the save file!\n");
 
                 /**
                  *  If there is additional debug information attached to this
                  *  pointer, then throw an assertion instead.
                  */
-                if (RequestTable[request_index].Variable != nullptr) {
-
-                    SwizzlePointerStruct &req = RequestTable[request_index];
+                if (!request.Variable.empty()) {
 
                     /**
-                     *  If a variable value has been set, then it will be a 
+                     *  If a variable value has been set, then it will be a
                      *  pointer from the original game code. Use this as we
                      *  have no line information.
                      */
                     static char buffer[1024];
 
-                    DEV_DEBUG_ERROR("SwizzleManager::Process_Tables() - Request info:\n  File: %s\n  Line: %d\n  Function: %s\n  Variable: %s\n",
-                                        req.File ? req.File : "<no-filename-info>",
-                                        req.Line,
-                                        req.Function ? req.Function : "<no-function-info>",
-                                        req.Variable ? req.Variable : "<no-variable-info>");
+                    DEV_DEBUG_ERROR("SwizzleManager::Process_Tables() - Request info:\n  File: %s\n  Line: %d\n  Function: %s\n  Variable: %s\n"
+                                    , !request.File.empty() ? request.File.c_str() : "<no-filename-info>"
+                                    , request.Line
+                                    , !request.Function.empty() ? request.Function.c_str() : "<no-function-info>"
+                                    , !request.Variable.empty() ? request.Variable.c_str() : "<no-variable-info>");
 
                     std::snprintf(buffer, sizeof(buffer),
-                            "SwizzleManager failed to remap a pointer from the save file!\n\n"
-                            "Additional debug information:\n"
-                            "  File: %s\n"
-                            "  Line: %d\n"
-                            "  Function: %s\n"
-                            "  Variable: %s\n"
-#if defined(TS_CLIENT)
-                            "\nThe game will now exit.\n",
-#else
-                            "\nThe game will now return to the main menu.\n",
-#endif
-                            req.File ? req.File : "<no-filename-info>",
-                            req.Line,
-                            req.Function ? req.Function : "<no-function-info>",
-                            req.Variable ? req.Variable : "<no-variable-info>");
+                                  "SwizzleManager failed to remap a pointer from the save file!\n\n"
+                                  "Additional debug information:\n"
+                                  "  File: %s\n"
+                                  "  Line: %d\n"
+                                  "  Function: %s\n"
+                                  "  Variable: %s\n"
 
-                    MessageBox(MainWindow, buffer, "Vinifera", MB_OK|MB_ICONEXCLAMATION);
+#if defined(TS_CLIENT)
+                                  "\nThe game will now exit.\n"
+#else
+                                  "\nThe game will now return to the main menu.\n"
+#endif
+                                  
+                                , !request.File.empty() ? request.File.c_str() : "<no-filename-info>"
+                                , request.Line
+                                , !request.Function.empty() ? request.Function.c_str() : "<no-function-info>"
+                                , !request.Variable.empty() ? request.Variable.c_str() : "<no-variable-info>");
+
+                    MessageBox(MainWindow, buffer, "Vinifera", MB_OK | MB_ICONEXCLAMATION);
 
                 } else {
 
 #if defined(TS_CLIENT)
-                    MessageBox(MainWindow, "SwizzleManager failed to remap a pointer from the save file!\n\nThe game will now exit.", "Vinifera", MB_OK|MB_ICONEXCLAMATION);
+                    MessageBox(MainWindow, "SwizzleManager failed to remap a pointer from the save file!\n\nThe game will now exit.", "Vinifera", MB_OK | MB_ICONEXCLAMATION);
 #else
-                    MessageBox(MainWindow, "SwizzleManager failed to remap a pointer from the save file!\n\nThe game will now return to the main menu.", "Vinifera", MB_OK|MB_ICONEXCLAMATION);
+                    MessageBox(MainWindow, "SwizzleManager failed to remap a pointer from the save file!\n\nThe game will now return to the main menu.", "Vinifera", MB_OK | MB_ICONEXCLAMATION);
 #endif
-
                 }
 
 #if defined(TS_CLIENT)
-                //Fatal("SwizzleManager failed to remap a pointer from the save file!\n");
+                // Fatal("SwizzleManager failed to remap a pointer from the save file!\n");
                 Emergency_Exit(EXIT_FAILURE);
                 exit(EXIT_FAILURE);
 #else
@@ -420,7 +332,7 @@ void ViniferaSwizzleManagerClass::Process_Tables()
                  */
                 Clear_All_Surfaces();
 
-                //WWMouseClass::System_Hide_Mouse();
+                // WWMouseClass::System_Hide_Mouse();
                 ShowCursor(FALSE);
 
                 /**
@@ -434,9 +346,9 @@ void ViniferaSwizzleManagerClass::Process_Tables()
 
                     RtlCaptureContext(&_ctx);
 
-                    DWORD *ebp = &(_ctx.Ebp);
-                    DWORD *esp = &(_ctx.Esp);
-                    DWORD *eip = &(_ctx.Eip);
+                    DWORD* ebp = &(_ctx.Ebp);
+                    DWORD* esp = &(_ctx.Esp);
+                    DWORD* eip = &(_ctx.Eip);
                     *ebp = ExceptionReturnBase;
                     *esp = ExceptionReturnStack;
                     *eip = ExceptionReturnAddress;
@@ -445,38 +357,34 @@ void ViniferaSwizzleManagerClass::Process_Tables()
 
                 return; // For clean binary analysis.
             }
-
         }
 
         /**
          *  We fixed up all pointers, clear the tables.
          */
-        RequestTable.Clear();
-        PointerTable.Clear();
+        RequestTable.clear();
+        PointerTable.clear();
     }
-
 }
 
 
 /**
  *  Swizzle a pointer after load (requests new pointer). [Debug version]
- * 
- *  @author: CCHyper
+ *
+ *  @author: CCHyper, ZivDero
  */
-LONG STDAPICALLTYPE ViniferaSwizzleManagerClass::Swizzle_Dbg(void **pointer, const char *file, const int line, const char *func, const char *var)
+LONG STDAPICALLTYPE ViniferaSwizzleManagerClass::Swizzle_Dbg(void** pointer, const char* file, const int line, const char* func, const char* var)
 {
     if (pointer == nullptr) {
         return E_POINTER;
     }
 
-    uintptr_t id = uintptr_t(*pointer);
+    uintptr_t id = reinterpret_cast<uintptr_t>(*pointer);
     if (!id) {
         return S_OK;
     }
 
-    SwizzlePointerStruct pair(id, pointer, file, line, func, var);
-    bool added = RequestTable.Add(pair);
-    ASSERT(added);
+    RequestTable.emplace_back(id, pointer, file, line, func, var);
 
     *pointer = nullptr;
 
@@ -484,16 +392,16 @@ LONG STDAPICALLTYPE ViniferaSwizzleManagerClass::Swizzle_Dbg(void **pointer, con
     DEV_DEBUG_INFO("SwizzleManager::Swizzle() - Requested remap for \"%s\" (0x%08X) in %s.\n", var, id, func);
 #endif
 
-    return (added == true ? S_OK : S_FALSE);
+    return S_OK;
 }
 
 
 /**
  *  Convert pointer to ID number. [Debug version]
- * 
- *  @author: CCHyper
+ *
+ *  @author: CCHyper, ZivDero
  */
-LONG STDAPICALLTYPE ViniferaSwizzleManagerClass::Fetch_Swizzle_ID_Dbg(void *pointer, LONG *id, const char *file, const int line, const char *func, const char *var)
+LONG STDAPICALLTYPE ViniferaSwizzleManagerClass::Fetch_Swizzle_ID_Dbg(void* pointer, LONG* id, const char* file, const int line, const char* func, const char* var)
 {
     if (pointer == nullptr || id == nullptr) {
         return E_POINTER;
@@ -521,21 +429,17 @@ LONG STDAPICALLTYPE ViniferaSwizzleManagerClass::Fetch_Swizzle_ID_Dbg(void *poin
 
 /**
  *  Inform (register) swizzler of new object location. [Debug version]
- * 
- *  @author: CCHyper
+ *
+ *  @author: CCHyper, ZivDero
  */
-LONG STDAPICALLTYPE ViniferaSwizzleManagerClass::Here_I_Am_Dbg(LONG id, void *pointer, const char *file, const int line, const char *func, const char *var)
+LONG STDAPICALLTYPE ViniferaSwizzleManagerClass::Here_I_Am_Dbg(LONG id, void* pointer, const char* file, const int line, const char* func, const char* var)
 {
-    SwizzlePointerStruct pair(id, pointer, file, line, func, var);
-    bool added = PointerTable.Add(pair);
-    ASSERT(added);
+    PointerTable.emplace(std::piecewise_construct, std::forward_as_tuple(id), std::forward_as_tuple(id, pointer, file, line, func, var));
 
 #ifdef VINIFERA_ENABLE_SWIZZLE_DEBUG_PRINTING
-    DEV_DEBUG_INFO("SwizzleManager::Here_I_Am() - PointerTable.Count = %d.\n", PointerTable.Count());
+    DEV_DEBUG_INFO("SwizzleManager::Here_I_Am() - PointerTable.Count = %d.\n", PointerTable.size());
     DEV_DEBUG_INFO("SwizzleManager::Here_I_Am() - Informed swizzler of \"%s\" (0x%08X) in %s.\n", var, id, func);
 #endif
 
-    return (added == true ? S_OK : S_FALSE);
+    return S_OK;
 }
-
-#endif

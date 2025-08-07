@@ -854,8 +854,8 @@ DECLARE_PATCH(_CellClass_Cell_Color_Theater_Patch_1)
      *  See:
      *  https://en.wikipedia.org/wiki/Fast_inverse_square_root
      */
-    val  = *(long *)&TheaterTypes[theater]->LowRadarBrightness1;
-
+    val  = *(long *)&TheaterTypeClass::As_Reference(theater).LowRadarBrightness1;
+    
     _asm { mov ecx, rgb }
     _asm { mov eax, val }
     JMP_REG(edx, 0x00451ECB);
@@ -882,8 +882,8 @@ DECLARE_PATCH(_CellClass_Cell_Color_Theater_Patch_2)
      *  See:
      *  https://en.wikipedia.org/wiki/Fast_inverse_square_root
      */
-    val  = *(long *)&TheaterTypes[theater]->LowRadarBrightness2;
-
+    val  = *(long *)&TheaterTypeClass::As_Reference(theater).LowRadarBrightness2;
+    
     _asm { mov ecx, rgb }
     _asm { mov eax, val }
     JMP_REG(edx, 0x00451EFC);
@@ -910,8 +910,8 @@ DECLARE_PATCH(_CellClass_Cell_Color_Theater_Patch_3)
      *  See:
      *  https://en.wikipedia.org/wiki/Fast_inverse_square_root
      */
-    val  = *(long *)&TheaterTypes[theater]->HighRadarBrightness1;
-
+    val  = *(long *)&TheaterTypeClass::As_Reference(theater).HighRadarBrightness1;
+    
     _asm { mov ecx, rgb }
     _asm { mov eax, val }
     JMP_REG(edx, 0x00451F2D);
@@ -938,8 +938,8 @@ DECLARE_PATCH(_CellClass_Cell_Color_Theater_Patch_4)
      *  See:
      *  https://en.wikipedia.org/wiki/Fast_inverse_square_root
      */
-    val  = *(long *)&TheaterTypes[theater]->HighRadarBrightness2;
-
+    val  = *(long *)&TheaterTypeClass::As_Reference(theater).HighRadarBrightness2;
+    
     _asm { mov edx, rgb }
     _asm { mov ecx, val }
     JMP_REG(eax, 0x00451F4F);

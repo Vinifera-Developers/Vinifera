@@ -161,7 +161,7 @@ message_handler:
 /**
  *  #issue-513
  * 
- *  Patch to add check for CD::IsFilesLocal to make sure -CD really
+ *  Patch to add check for CD::IsOverrideSwap() to make sure -CD really
  *  was set by the user.
  * 
  *  @author: CCHyper
@@ -179,7 +179,7 @@ DECLARE_PATCH(_Init_CDROM_Access_Local_Files_Patch)
         /**
          *  Double check that the game was launched with -CD.
          */
-        if (CD::OverrideSwap) {
+        if (CD::IsOverrideSwap()) {
 
             /**
              *  This is a workaround to ensure the mix loading code passes.
@@ -730,7 +730,7 @@ bool Vinifera_Init_Secondary_Mixfiles()
      * 
      *  @author: CCHyper
      */
-    if (CD::OverrideSwap) {
+    if (CD::IsOverrideSwap()) {
 
         std::snprintf(buffer, sizeof(buffer), "MAPS*.MIX");
         if (CCFileClass::Find_First_File(buffer)) {
@@ -759,7 +759,7 @@ bool Vinifera_Init_Secondary_Mixfiles()
         DEBUG_WARNING("Failed to load %s!\n", buffer);
         //return false; // #issue-110: Unable to load startup mix files is no longer a fatal error.
     } else {
-        if (!CD::OverrideSwap) DEBUG_INFO(" %s\n", buffer);
+        if (!CD::IsOverrideSwap()) DEBUG_INFO(" %s\n", buffer);
     }
 
     if (CCFileClass("MULTI.MIX").Is_Available()) {
@@ -832,7 +832,7 @@ bool Vinifera_Init_Secondary_Mixfiles()
      * 
      *  @author: CCHyper
      */
-    if (CD::OverrideSwap) {
+    if (CD::IsOverrideSwap()) {
 
         std::snprintf(buffer, sizeof(buffer), "MOVIES*.MIX");
         if (CCFileClass::Find_First_File(buffer)) {
@@ -861,7 +861,7 @@ bool Vinifera_Init_Secondary_Mixfiles()
         DEBUG_WARNING("Failed to load %s!\n", buffer);
         //return false; // #issue-110: Unable to load startup mix files is no longer a fatal error.
     } else {
-        if (!CD::OverrideSwap) DEBUG_INFO(" %s\n", buffer);
+        if (!CD::IsOverrideSwap()) DEBUG_INFO(" %s\n", buffer);
     }
 
     return true;

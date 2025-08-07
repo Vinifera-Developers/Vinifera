@@ -1797,9 +1797,9 @@ bool VeterancyPromoteCommandClass::Process()
         }
         TechnoClass* techno = static_cast<TechnoClass*>(object);
         if (techno->House->Is_Player_Control()) {
-            if (techno->Crew.Is_Rookie()) {
+            if (techno->Crew.IsRookie) {
                 techno->Crew.Set_Veteran(true);
-            } else if (techno->Crew.Is_Veteran()) {
+            } else if (techno->Crew.IsVeteran) {
                 techno->Crew.Set_Elite(true);
             }
         }
@@ -1856,9 +1856,9 @@ static bool Equals_Union_Of_Two_Other_Sets(TechnoList& current, TechnoList& a, T
  */
 static int Get_Veterancy_Level(TechnoClass* techno)
 {
-    if (techno->Crew.Is_Elite()) {
+    if (techno->Crew.IsElite) {
         return 0;
-    } else if (techno->Crew.Is_Veteran()) {
+    } else if (techno->Crew.IsVeteran) {
         return 1;
     } else {
         return 2;
@@ -3011,7 +3011,7 @@ bool ToggleEliteCommandClass::Process()
         /**
          *  Upgrade to veteran.
          */
-        if (techno->Crew.Is_Rookie()) {
+        if (techno->Crew.IsRookie) {
             techno->Crew.Set_Veteran(true);
             continue;
         }
@@ -3019,7 +3019,7 @@ bool ToggleEliteCommandClass::Process()
         /**
          *  Upgrade to elite.
          */
-        if (techno->Crew.Is_Veteran()) {
+        if (techno->Crew.IsVeteran) {
             techno->Crew.Set_Elite(true);
             continue;
         }
@@ -3027,7 +3027,7 @@ bool ToggleEliteCommandClass::Process()
         /**
          *  Degrade elite back to dumbass.
          */
-        if (techno->Crew.Is_Elite()) {
+        if (techno->Crew.IsElite) {
             techno->Crew.Set_Dumbass(true);
             continue;
         }
@@ -3959,7 +3959,7 @@ bool StartingWaypointsCommandClass::Process()
     if (Map.PendingObject) {
         Map.Set_Cursor_Pos(Cell(0,0));
     }
-    Map.Set_To_Follow(nullptr);
+    Map.Break_Follow_Mode();
 
     Map.Flag_To_Redraw(true);
 

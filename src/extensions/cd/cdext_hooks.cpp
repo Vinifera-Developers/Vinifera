@@ -38,7 +38,7 @@
 /**
  *  #issue-513
  * 
- *  Patch to add check for CD::IsFilesLocal in CD::Is_Available
+ *  Patch to add check for CD::IsOverrideSwap() in CD::Is_Available
  * 
  *  @author: CCHyper
  */
@@ -52,7 +52,7 @@ DECLARE_PATCH(_CD_Is_Available_Local_Files_Patch)
 	 *  If the CD system has been flagged that the files are local, then
 	 *  return true as they are always available.
 	 */
-	if (CD::OverrideSwap) {
+	if (CD::IsOverrideSwap()) {
 		retval = true;
 		goto function_return;
 	}

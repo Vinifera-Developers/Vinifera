@@ -54,6 +54,8 @@ class TheaterTypeClass
 
         static bool Read_Theaters_INI(CCINIClass &ini);
         
+        static const TheaterTypeClass &As_Reference(TheaterType type);
+        static const TheaterTypeClass &As_Reference(const char *name);
         static TheaterType From_Name(const char *name);
         static const char *Name_From(TheaterType type);
 
