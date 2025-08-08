@@ -228,14 +228,6 @@ bool TActionClassExtension::Execute(TActionClass& taction, HouseClass* house, Ob
 bool TActionClassExtension::Is_Vinifera_TAction(TActionType type)
 {
     /**
-     *  Hack: if the action is to create an autosave, pass that to the game
-     *  for ts-patches to handle until we implement our own autosaves.
-     */
-    if (type == EXT_TACTION_CREATE_AUTOSAVE) {
-        return false;
-    }
-
-    /**
      *  All new TActions are always executed by us.
      */
     if (type >= EXT_TACTION_FIRST && type < EXT_TACTION_COUNT) {
