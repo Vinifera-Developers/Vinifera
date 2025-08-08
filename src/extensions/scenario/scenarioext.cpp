@@ -1999,8 +1999,7 @@ void ScenarioClassExtension::Assign_Starting_Positions(bool official)
      */
     bool taken[26] = {};
 
-    DynamicVectorClass<Cell> starting_points;
-    starting_points = _Fetch_Starting_Points(official);
+    DynamicVectorClass<Cell> starting_points = _Fetch_Starting_Points(official);
 
     DEV_DEBUG_INFO("Assigning starting positions to houses.\n");
 
@@ -2023,7 +2022,7 @@ void ScenarioClassExtension::Assign_Starting_Positions(bool official)
              *  Get a pointer to this house.
              */
             HouseClass* hptr = Houses[house];
-            assert(hptr != nullptr);
+            ASSERT(hptr != nullptr);
 
             /**
              *  Skip passive houses.
@@ -2056,7 +2055,7 @@ void ScenarioClassExtension::Assign_Starting_Positions(bool official)
          *  Get a pointer to this house.
          */
         HouseClass* hptr = Houses[house];
-        assert(hptr != nullptr);
+        ASSERT(hptr != nullptr);
 
         /**
          *  Skip passive houses.
@@ -2153,7 +2152,7 @@ void ScenarioClassExtension::Assign_Starting_Positions(bool official)
          *  Get a pointer to this house.
          */
         HouseClass* hptr = Houses[house];
-        assert(hptr != nullptr);
+        ASSERT(hptr != nullptr);
 
         auto houseext = Extension::Fetch(hptr);
 
@@ -2180,9 +2179,10 @@ void ScenarioClassExtension::Assign_Starting_Positions(bool official)
              *  Pick a random house to observe.
              */
             else {
-                int pick = Random_Pick(0, Session.Players.Count() + Session.Options.AIPlayers - 1);
+                int player_count = Session.Players.Count() + Session.Options.AIPlayers;
+                int pick = Random_Pick(0, player_count - 1);
                 while (!taken[pick]) {
-                    pick = Random_Pick(0, Session.Players.Count() + Session.Options.AIPlayers - 1);
+                    pick = Random_Pick(0, player_count - 1);
                 }
                 centroid = starting_points[pick];
             }
