@@ -336,40 +336,56 @@ void EventClassExt::Execute()
 }
 
 
+/**
+ *  Executes the IDLE event.
+ *
+ *  @author: ZivDero
+ */
 void EventClassExt::Do_IDLE()
 {
     TechnoClass* techno = Data.Target.Whom.As_Techno();
 
-    if (techno != nullptr && techno->IsActive && !techno->IsInLimbo && !techno->IsTethered && techno->Mission != MISSION_CONSTRUCTION && techno->Mission != MISSION_DECONSTRUCTION) {
-        if (techno->IsOnBridge || Map[techno->Get_Coord()].Ramp != RAMP_NONE || !techno->Is_On_Elevation()) {
-            if (techno->Is_Foot()) {
-                FootClass* foot = static_cast<FootClass*>(techno);
-                foot->NavQueue.Clear();
-                foot->Clear_Navigation_List();
-                foot->field_220 = -1;
-                foot->field_33E = 0;
-                foot->field_224 = Cell();
-                foot->field_228 = Cell();
+    if (techno != nullptr && techno->IsActive && !techno->IsInLimbo && !techno->IsTethered) {
+        if (techno->Mission != MISSION_CONSTRUCTION && techno->Mission != MISSION_DECONSTRUCTION) {
+            return;
+        }
+        if (!techno->IsOnBridge) {
+            if (!Map[techno->PositionCoord].Ramp != RAMP_NONE && techno->Is_On_Elevation()) {
+                return;
             }
+        }
+        if (techno->Is_Foot()) {
+            FootClass* foot = static_cast<FootClass*>(techno);
+            foot->NavQueue.Clear();
+            foot->Clear_Navigation_List();
+            foot->field_220 = -1;
+            foot->field_33E = 0;
+            foot->field_224 = Cell();
+            foot->field_228 = Cell();
+        }
 
-            techno->Transmit_Message(RADIO_OVER_OUT);
-            techno->Assign_Destination(nullptr);
-            techno->Assign_Target(nullptr);
+        techno->Transmit_Message(RADIO_OVER_OUT);
+        techno->Assign_Destination(nullptr);
+        techno->Assign_Target(nullptr);
 
-            const auto extension = Extension::Fetch(techno);
-            if (extension->SpawnManager) extension->SpawnManager->Abandon_Target();
+        const auto extension = Extension::Fetch(techno);
+        if (extension->SpawnManager) extension->SpawnManager->Abandon_Target();
 
-            if (techno->RTTI == RTTI_UNIT && (static_cast<UnitClass*>(techno)->Class->IsToHarvest || static_cast<UnitClass*>(techno)->Class->IsToVeinHarvest)) {
-                if (techno->Mission == MISSION_HARVEST || techno->Mission == MISSION_RETURN) {
-                    techno->Assign_Mission(MISSION_GUARD);
-                    techno->Commence();
-                }
+        if (techno->RTTI == RTTI_UNIT && (static_cast<UnitClass*>(techno)->Class->IsToHarvest || static_cast<UnitClass*>(techno)->Class->IsToVeinHarvest)) {
+            if (techno->Mission == MISSION_HARVEST || techno->Mission == MISSION_RETURN) {
+                techno->Assign_Mission(MISSION_GUARD);
+                techno->Commence();
             }
         }
     }
 }
 
 
+/**
+ *  Executes the TIMING event.
+ *
+ *  @author: ZivDero
+ */
 void EventClassExt::Do_TIMING()
 {
     if (!Vinifera_SpawnerActive || !ProtocolZero::Enable) {
@@ -400,6 +416,11 @@ void EventClassExt::Do_TIMING()
 }
 
 
+/**
+ *  Executes the REMOVEPLAYER event.
+ *
+ *  @author: ZivDero
+ */
 void EventClassExt::Do_REMOVEPLAYER()
 {
     DEBUG_INFO("Executing REMOVEPLAYER event. Frame is %d\n", Frame);

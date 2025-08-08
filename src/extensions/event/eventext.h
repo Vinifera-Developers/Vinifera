@@ -67,9 +67,9 @@ public:
 #pragma pack(1) // We need this so bools/bits are not aligned.
 public:
     EventType Type;
-    unsigned Frame;
+    long Frame;
     bool IsExecuted;
-    int ID;
+    unsigned ID;
 
     union {
         struct {
