@@ -27,7 +27,6 @@
  ******************************************************************************/
 
 #include "spawnerconfig.h"
-
 #include "ccini.h"
 
 
@@ -133,16 +132,52 @@ void SpawnerConfig::Read_INI(CCINIClass& spawn_ini)
 }
 
 
-static constexpr char* PlayerSectionArray[8] = {"Settings", "Other1", "Other2", "Other3", "Other4", "Other5", "Other6", "Other7"};
+static constexpr const char* PlayerSectionArray[8] = {
+    "Settings",
+    "Other1",
+    "Other2",
+    "Other3",
+    "Other4",
+    "Other5",
+    "Other6",
+    "Other7"
+};
 
 
-static constexpr char* MultiTagArray[8] = {"Multi1", "Multi2", "Multi3", "Multi4", "Multi5", "Multi6", "Multi7", "Multi8"};
+static constexpr const char* MultiTagArray[8] = {
+    "Multi1",
+    "Multi2",
+    "Multi3",
+    "Multi4",
+    "Multi5",
+    "Multi6",
+    "Multi7",
+    "Multi8"
+};
 
 
-static constexpr char* AlliancesSectionArray[8] = {"Multi1_Alliances", "Multi2_Alliances", "Multi3_Alliances", "Multi4_Alliances", "Multi5_Alliances", "Multi6_Alliances", "Multi7_Alliances", "Multi8_Alliances"};
+static constexpr const char* AlliancesSectionArray[8] = {
+    "Multi1_Alliances",
+    "Multi2_Alliances",
+    "Multi3_Alliances",
+    "Multi4_Alliances",
+    "Multi5_Alliances",
+    "Multi6_Alliances",
+    "Multi7_Alliances",
+    "Multi8_Alliances"
+};
 
 
-static constexpr char* AlliancesTagArray[8] = {"HouseAllyOne", "HouseAllyTwo", "HouseAllyThree", "HouseAllyFour", "HouseAllyFive", "HouseAllySix", "HouseAllySeven", "HouseAllyEight"};
+static constexpr const char* AlliancesTagArray[8] = {
+    "HouseAllyOne",
+    "HouseAllyTwo",
+    "HouseAllyThree",
+    "HouseAllyFour",
+    "HouseAllyFive",
+    "HouseAllySix",
+    "HouseAllySeven",
+    "HouseAllyEight"
+};
 
 
 /**
@@ -160,12 +195,9 @@ void SpawnerConfig::PlayerConfig::Read_INI(CCINIClass& spawn_ini, int index)
     if (spawn_ini.Is_Present(SECTION)) {
         IsHuman = true;
         Difficulty = -1;
-
         spawn_ini.Get_String(SECTION, "Name", Name, Name, sizeof(Name));
-
         Color = spawn_ini.Get_Int(SECTION, "Color", Color);
         House = spawn_ini.Get_Int(SECTION, "Side", House);
-
         spawn_ini.Get_String(SECTION, "Ip", Ip, Ip, sizeof(Ip));
         Port = spawn_ini.Get_Int(SECTION, "Port", Port);
     } else if (!IsHuman) {
@@ -192,19 +224,13 @@ void SpawnerConfig::HouseConfig::Read_INI(CCINIClass& spawn_ini, int index)
     SpawnLocation = spawn_ini.Get_Int("SpawnLocations", MULTI_TAG, SpawnLocation);
 
     /**
-     *  The client might pass these to indicate that this is an observer.
-     */
-    if (SpawnLocation == -1 || SpawnLocation == 90) {
-        IsObserver = true;
-        SpawnLocation = -1;
-    }
-
-    /**
      *  Reset any weird values we might receive as input.
      */
     if (SpawnLocation < 0 || SpawnLocation > MAX_PLAYERS - 1) SpawnLocation = -1;
 
     if (spawn_ini.Is_Present(ALLIANCES)) {
-        for (int i = 0; i < 8; i++) Alliances[i] = spawn_ini.Get_Int(ALLIANCES, AlliancesTagArray[i], Alliances[i]);
+        for (int i = 0; i < 8; i++) {
+            Alliances[i] = spawn_ini.Get_Int(ALLIANCES, AlliancesTagArray[i], Alliances[i]);
+        }
     }
 }
