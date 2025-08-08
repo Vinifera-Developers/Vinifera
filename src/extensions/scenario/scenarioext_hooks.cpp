@@ -344,14 +344,16 @@ static void Init_Loading_Screen(const char* filename)
      *  We need to read sides and houses now, because we need them to determine the player's
      *  side and loading screens.
      */
-    Rule->Sides(*RuleINI);
     Rule->Houses(*RuleINI);
+    Rule->Sides(*RuleINI);
 
-    for (int i = 0; i < HouseTypes.Count(); i++)
+    for (int i = 0; i < HouseTypes.Count(); i++) {
         HouseTypes[i]->Read_INI(*RuleINI);
+    }
 
-    for (int i = 0; i < HouseTypeExtensions.Count(); i++)
+    for (int i = 0; i < HouseTypeExtensions.Count(); i++) {
         HouseTypeExtensions[i]->Read_INI(*RuleINI);
+    }
 
     /**
      *  #EDGE-CASE/#BUGFIX:
