@@ -174,15 +174,13 @@ public:
         AlliesAllowed {false},
         HarvesterTruce {false},
         FogOfWar {false},
-        MCVRedeploy {true}
+        MCVRedeploy {true},
 
-        ,
         LoadSaveGame {false},
         SaveGameName {""},
         AutoSaveInterval {1},
-        NextAutoSaveNumber {0}
+        NextAutoSaveNumber {0},
 
-        ,
         Seed {0},
         TechLevel {10},
         IsCampaign {false},
@@ -194,35 +192,27 @@ public:
         ScenarioName {"spawnmap.ini"},
         MapHash {""},
         UIMapName {""},
-        PlayMoviesInMultiplayer {false}
+        PlayMoviesInMultiplayer {false},
 
-        ,
         Protocol {2},
         FrameSendRate {4},
         ReconnectTimeout {2400},
         ConnTimeout {3600},
         MaxAhead {-1},
         PreCalcMaxAhead {0},
-        MaxLatencyLevel {0xFF}
+        MaxLatencyLevel {0xFF} ,
 
-        ,
         TunnelId {0},
         TunnelIp {"0.0.0.0"},
         TunnelPort {0},
-        ListenPort {1234}
+        ListenPort {1234} ,
 
-        ,
         Players {PlayerConfig(), PlayerConfig(), PlayerConfig(), PlayerConfig(),
-
                  PlayerConfig(), PlayerConfig(), PlayerConfig(), PlayerConfig()},
-        HumanPlayers(0)
-
-        ,
+        HumanPlayers(0),
         Houses {HouseConfig(), HouseConfig(), HouseConfig(), HouseConfig(),
+                HouseConfig(), HouseConfig(), HouseConfig(), HouseConfig()},
 
-                HouseConfig(), HouseConfig(), HouseConfig(), HouseConfig()}
-
-        ,
         Firestorm {true},
         QuickMatch {false},
         SkipScoreScreen {false},
