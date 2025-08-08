@@ -58,6 +58,7 @@
 #include "houseext.h"
 #include "tacticalext.h"
 #include "tag.h"
+#include <algorithm>
 #include <regex>
 #include "houseext.h"
 #include "infantry.h"
@@ -2219,15 +2220,6 @@ void ScenarioClassExtension::Assign_Houses()
     bool assigned[MAX_PLAYERS] = {};   // true = this house slot is in use.
     bool color_used[MAX_PLAYERS] = {}; // true = this color is in use.
 
-    HouseClass* housep;
-    HouseClassExtension* houseext;
-    HouseTypeClass* housetype;
-    HousesType house;
-    int lowest_color;
-    int index;
-    HousesType pref_house;
-    int color;
-
     DEBUG_INFO("Assign_Houses(enter)\n");
 
     if (Session.Players.Count() > 0) {
@@ -2244,8 +2236,8 @@ void ScenarioClassExtension::Assign_Houses()
         /**
          *  Find the player with the lowest color index.
          */
-        index = 0;
-        lowest_color = -1;
+        int index = 0;
+        int lowest_color = -1;
         for (int j = 0; j < Session.Players.Count(); j++) {
 
             /**
@@ -2272,8 +2264,8 @@ void ScenarioClassExtension::Assign_Houses()
          *  Assign the lowest-colored player to the next available slot
          *  in the HouseClass array.
          */
-        housep = new HouseClass(HouseTypes[node.Player.House]);
-        houseext = Extension::Fetch(housep);
+        HouseClass* housep = new HouseClass(HouseTypes[node.Player.House]);
+        HouseClassExtension* houseext = Extension::Fetch(housep);
 
         std::memset(housep->IniName, 0, MPLAYER_NAME_MAX);
         std::strncpy(housep->IniName, node.Name, MPLAYER_NAME_MAX - 1);
@@ -2342,6 +2334,9 @@ void ScenarioClassExtension::Assign_Houses()
      *  Now assign computer players to the remaining houses.
      */
     for (int i = Session.Players.Count(); i < Session.Players.Count() + Session.Options.AIPlayers; ++i) {
+        HousesType pref_house;
+        int color;
+
         if (!Vinifera_SpawnerActive) {
 
             /**
@@ -2373,8 +2368,7 @@ void ScenarioClassExtension::Assign_Houses()
             pref_house = static_cast<HousesType>(Vinifera_SpawnerConfig->Players[i].House);
         }
 
-        housep = new HouseClass(HouseTypes[pref_house]);
-        houseext = Extension::Fetch(housep);
+        HouseClass* housep = new HouseClass(HouseTypes[pref_house]);
 
         /**
          *  Set up the house.
@@ -2436,12 +2430,12 @@ void ScenarioClassExtension::Assign_Houses()
     ColorSchemeType scheme_lgrey = Fetch_Scheme_Index_By_Name("LightGrey");
     ColorSchemeType scheme_grey = Fetch_Scheme_Index_By_Name("Grey");
 
-    house = HouseTypeClass::From_Name("Neutral");
+    HousesType house = HouseTypeClass::From_Name("Neutral");
     if (house != HOUSE_NONE) {
         DEBUG_INFO("  Creating Neutral house...\n");
 
-        housetype = HouseTypes[house];
-        housep = new HouseClass(housetype);
+        HouseTypeClass* housetype = HouseTypes[house];
+        HouseClass* housep = new HouseClass(housetype);
 
         /**
          *  #issue-773
@@ -2466,8 +2460,8 @@ void ScenarioClassExtension::Assign_Houses()
     if (house != HOUSE_NONE) {
         DEBUG_INFO("  Creating Special house...\n");
 
-        housetype = HouseTypes[house];
-        housep = new HouseClass(housetype);
+        HouseTypeClass* housetype = HouseTypes[house];
+        HouseClass* housep = new HouseClass(housetype);
 
         /**
          *  #issue-773
@@ -2493,7 +2487,7 @@ void ScenarioClassExtension::Assign_Houses()
      */
     if (Vinifera_SpawnerActive) {
         for (int i = 0; i < Session.Players.Count() + Session.Options.AIPlayers; i++) {
-            housep = Houses[i];
+            HouseClass* housep = Houses[i];
 
             /**
              *  Multiplay passive houses don't get allies.
@@ -2542,14 +2536,10 @@ static Cell Clip_Scatter(Cell cell, int maxdist)
     int xdist = Random_Pick(0, maxdist);
     if (Percent_Chance(50)) {
         x += xdist;
-        if (x > xmax) {
-            x = xmax;
-        }
+        x = std::min(x, xmax);
     } else {
         x -= xdist;
-        if (x < xmin) {
-            x = xmin;
-        }
+        x = std::max(x, xmin);
     }
 
     /**
@@ -2558,14 +2548,10 @@ static Cell Clip_Scatter(Cell cell, int maxdist)
     int ydist = Random_Pick(0, maxdist);
     if (Percent_Chance(50)) {
         y += ydist;
-        if (y > ymax) {
-            y = ymax;
-        }
+        y = std::min(y, ymax);
     } else {
         y -= ydist;
-        if (y < ymin) {
-            y = ymin;
-        }
+        y = std::max(y, ymin);
     }
 
     return Cell(x, y);
