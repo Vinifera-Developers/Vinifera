@@ -1988,7 +1988,6 @@ static DynamicVectorClass<Cell> _Fetch_Starting_Points(bool official)
  */
 void ScenarioClassExtension::Assign_Starting_Positions(bool official)
 {
-    Cell centroid; // centroid of this house's stuff.
     int numtaken = 0;
 
     /**
@@ -2014,123 +2013,190 @@ void ScenarioClassExtension::Assign_Starting_Positions(bool official)
     }
 
     /**
-     *  Loop through all the houses.
+     *  First pass - assign spawn waypoints given to use by the client.
+     */
+    if (Vinifera_SpawnerActive) {
+        for (int house = HOUSE_FIRST; house < Houses.Count(); house++) {
+
+            /**
+             *  Get a pointer to this house.
+             */
+            HouseClass* hptr = Houses[house];
+            assert(hptr != nullptr);
+
+            /**
+             *  Skip passive houses.
+             */
+            if (hptr->Class->IsMultiplayPassive) {
+                continue;
+            }
+
+            /**
+             *  Skip observers for now, we'll set them to observe another player later.
+             */
+            if (Vinifera_SpawnerConfig->Houses[house].IsObserver) {
+                continue;
+            }
+
+            const int chosen_spawn = Extension::Fetch(hptr)->SpawnWaypoint;
+            if (chosen_spawn >= 0 && chosen_spawn < MAX_PLAYERS && !taken[chosen_spawn]) {
+                taken[chosen_spawn] = true;
+                numtaken++;
+            }
+        }
+    }
+
+    /**
+     *  Second pass - assign spawn waypoints to houses that don't have one yet.
      */
     for (int house = HOUSE_FIRST; house < Houses.Count(); house++) {
 
         /**
-         *  Get a pointer to this house; if there is none, go to the next house.
+         *  Get a pointer to this house.
          */
         HouseClass* hptr = Houses[house];
-        if (hptr == nullptr) {
-            DEV_DEBUG_INFO("Invalid house %d!\n", house);
-            continue;
-        }
+        assert(hptr != nullptr);
 
         /**
          *  Skip passive houses.
          */
         if (hptr->Class->IsMultiplayPassive) {
-            DEV_DEBUG_INFO("House %d (%s - \"%s\") is passive, skipping.\n", house, hptr->Class->Name(), hptr->IniName);
             continue;
         }
 
-        auto houseext = Extension::Fetch(hptr);
-
-        bool pick_random = true;
-        if (Vinifera_SpawnerActive) {
-
-            const auto& houseconfig = Vinifera_SpawnerConfig->Houses[house];
-            if (houseconfig.IsObserver) {
-
-                /**
-                 *  Compute our x & y limits
-                 */
-                const int xmin = Map.MapRect.X;
-                const int xmax = xmin + Map.MapRect.Width - 1;
-                const int ymin = Map.MapRect.Y;
-                const int ymax = ymin + Map.MapRect.Height - 1;
-
-                centroid = Cell(Random_Pick(xmin, xmax), Random_Pick(ymin, ymax));
-                hptr->Center = centroid.As_Coord();
-
-                DEBUG_INFO("  House %d (%s) observing at random cell (%d,%d)\n", house, hptr->IniName, centroid.X, centroid.Y);
-                continue;
-            }
-
-            const int chosen_spawn = houseext->SpawnWaypoint;
-            if (chosen_spawn >= 0 && chosen_spawn < MAX_PLAYERS && !taken[chosen_spawn]) {
-                centroid = starting_points[chosen_spawn];
-                taken[chosen_spawn] = true;
-                pick_random = false;
-                numtaken++;
-            }
+        /**
+         *  Skip observers for now, we'll set them to observe another player later.
+         */
+        if (Vinifera_SpawnerConfig->Houses[house].IsObserver) {
+            continue;
         }
 
-        if (pick_random) {
+        /**
+         *  Skip houses that already have a waypoint.
+         */
+        auto houseext = Extension::Fetch(hptr);
+        if (houseext->SpawnWaypoint != WAYPOINT_NONE) {
+            continue;
+        }
+
+        /**
+         *  Pick the starting location for this house. The first house just picks
+         *  one of the valid locations at random. The other houses pick the furthest
+         *  waypoint from the existing houses.
+         */
+        if (numtaken == 0) {
+            int pick = Random_Pick(0, starting_points.Count() - 1);
+            taken[pick] = true;
+            numtaken++;
+            houseext->SpawnWaypoint = pick;
+
+        } else {
 
             /**
-             *  Pick the starting location for this house. The first house just picks
-             *  one of the valid locations at random. The other houses pick the furthest
-             *  waypoint from the existing houses.
+             *  Set all waypoints to have a score of zero in preparation for giving
+             *  a distance score to all waypoints.
              */
-            if (numtaken == 0) {
-                int pick = Random_Pick(0, starting_points.Count() - 1);
-                centroid = starting_points[pick];
-                taken[pick] = true;
-                numtaken++;
-                houseext->SpawnWaypoint = pick;
+            int score[std::size(taken)] = {};
 
-            } else {
-
-                /**
-                 *  Set all waypoints to have a score of zero in preparation for giving
-                 *  a distance score to all waypoints.
-                 */
-                int score[std::size(taken)] = {};
+            /**
+             *  Scan through all waypoints and give a score as a value of the sum
+             *  of the distances from this waypoint to all taken waypoints.
+             */
+            for (int index = 0; index < starting_points.Count(); index++) {
 
                 /**
-                 *  Scan through all waypoints and give a score as a value of the sum
-                 *  of the distances from this waypoint to all taken waypoints.
+                 *  If this waypoint has not already been taken, then accumulate the
+                 *  sum of the distance between this waypoint and all other taken
+                 *  waypoints.
                  */
-                for (int index = 0; index < starting_points.Count(); index++) {
+                if (!taken[index]) {
+                    for (int trypoint = 0; trypoint < starting_points.Count(); trypoint++) {
 
-                    /**
-                     *  If this waypoint has not already been taken, then accumulate the
-                     *  sum of the distance between this waypoint and all other taken
-                     *  waypoints.
-                     */
-                    if (!taken[index]) {
-                        for (int trypoint = 0; trypoint < starting_points.Count(); trypoint++) {
-
-                            if (taken[trypoint]) {
-                                score[index] += Distance(starting_points[index], starting_points[trypoint]);
-                            }
+                        if (taken[trypoint]) {
+                            score[index] += Distance(starting_points[index], starting_points[trypoint]);
                         }
                     }
                 }
-
-                /**
-                 *  Now find the waypoint with the largest score. This waypoint is the one
-                 *  that is furthest from all other taken waypoints.
-                 */
-                int best = 0;
-                int bestvalue = 0;
-                for (int searchindex = 0; searchindex < starting_points.Count(); searchindex++) {
-                    if (score[searchindex] > bestvalue || bestvalue == 0) {
-                        bestvalue = score[searchindex];
-                        best = searchindex;
-                    }
-                }
-
-                /**
-                 *  Assign this best position to the house.
-                 */
-                centroid = starting_points[best];
-                taken[best] = true;
-                numtaken++;
-                houseext->SpawnWaypoint = best;
             }
+
+            /**
+             *  Now find the waypoint with the largest score. This waypoint is the one
+             *  that is furthest from all other taken waypoints.
+             */
+            int best = 0;
+            int bestvalue = 0;
+            for (int searchindex = 0; searchindex < starting_points.Count(); searchindex++) {
+                if (score[searchindex] > bestvalue || bestvalue == 0) {
+                    bestvalue = score[searchindex];
+                    best = searchindex;
+                }
+            }
+
+            /**
+             *  Assign this best position to the house.
+             */
+            taken[best] = true;
+            numtaken++;
+            houseext->SpawnWaypoint = best;
+        }
+    }
+
+    
+    /**
+     *  Third pass - give observers someone to observe, and assign everyone their house centers.
+     */
+    for (int house = HOUSE_FIRST; house < Houses.Count(); house++) {
+        Cell centroid(0, 0); // centroid of this house's stuff.
+
+        /**
+         *  Get a pointer to this house.
+         */
+        HouseClass* hptr = Houses[house];
+        assert(hptr != nullptr);
+
+        auto houseext = Extension::Fetch(hptr);
+
+        /**
+         *  Skip passive houses.
+         */
+        if (hptr->Class->IsMultiplayPassive) {
+            continue;
+        }
+
+        /**
+         *  Observers now pick a random house to observe.
+         */
+        if (Vinifera_SpawnerConfig->Houses[house].IsObserver) {
+
+            /**
+             *  No players - just plop the spectator in the map center.
+             */
+            if (numtaken == 0) {
+                centroid = Cell(Map.MapRect.X + Map.MapRect.Width / 2, Map.MapRect.Y + Map.MapRect.Height / 2);
+            }
+
+            /**
+             *  Pick a random house to observe.
+             */
+            else {
+                int pick = Random_Pick(0, Session.Players.Count() + Session.Options.AIPlayers - 1);
+                while (!taken[pick]) {
+                    pick = Random_Pick(0, Session.Players.Count() + Session.Options.AIPlayers - 1);
+                }
+                centroid = starting_points[pick];
+            }
+
+            /**
+             *  Ensure that observers do not have a spawn waypoint.
+             */
+            houseext->SpawnWaypoint = WAYPOINT_NONE;
+
+        } else {
+
+            /**
+             *  For normal players, the centroid is their starting waypoint.
+             */
+            centroid = starting_points[houseext->SpawnWaypoint];
         }
 
         /**
