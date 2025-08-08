@@ -2067,7 +2067,7 @@ void ScenarioClassExtension::Assign_Starting_Positions(bool official)
         /**
          *  Skip observers for now, we'll set them to observe another player later.
          */
-        if (Vinifera_SpawnerConfig->Houses[house].IsObserver) {
+        if (Vinifera_SpawnerActive && Vinifera_SpawnerConfig->Houses[house].IsObserver) {
             continue;
         }
 
@@ -2166,7 +2166,7 @@ void ScenarioClassExtension::Assign_Starting_Positions(bool official)
         /**
          *  Observers now pick a random house to observe.
          */
-        if (Vinifera_SpawnerConfig->Houses[house].IsObserver) {
+        if (Vinifera_SpawnerActive && Vinifera_SpawnerConfig->Houses[house].IsObserver) {
 
             /**
              *  No players - just plop the spectator in the map center.
