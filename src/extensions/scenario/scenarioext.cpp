@@ -2086,6 +2086,9 @@ void ScenarioClassExtension::Assign_Starting_Positions(bool official)
          */
         if (numtaken == 0) {
             int pick = Random_Pick(0, starting_points.Count() - 1);
+            while (taken[pick]) {
+                pick = Random_Pick(0, starting_points.Count() - 1);
+            }
             taken[pick] = true;
             numtaken++;
             houseext->SpawnWaypoint = pick;
