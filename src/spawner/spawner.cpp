@@ -224,7 +224,8 @@ bool Spawner::Start_Scenario(char* scenario_name)
  */
 bool Spawner::Load_Game(const char* file_name)
 {
-    if (!file_name[0] || !::Load_Game(file_name)) {
+//    if (strlen(file_name) == 0 || !::Load_Game(file_name)) {
+    if (strlen(file_name) == 0 || !LoadOptionsClass().Load_File(file_name)) { // using LoadOptionsClass().Load_File here gives us a "Mission is loading. Please wait..." box.
         DEBUG_INFO("[Spawner] Failed to load savegame [%s]\n", file_name);
         MessageBox(MainWindow, Text_String(TXT_ERROR_LOADING_GAME), "Vinifera", MB_OK);
 
