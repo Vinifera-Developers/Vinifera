@@ -646,7 +646,7 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
      *  bugfix works without extending any of the games classes, but this does mean we
      *  are limited to 255 unique houses!
      */
-    const HousesType house = static_cast<HousesType>(Scen->IsGDI);
+    const HousesType house = static_cast<HousesType>(reinterpret_cast<unsigned char&>(Scen->IsGDI));
     ASSERT_FATAL(house != HOUSE_NONE & house < HouseTypes.Count());
     const HouseTypeClass* housetype = HouseTypes[house];
     ASSERT_FATAL(housetype != nullptr);
@@ -770,13 +770,6 @@ bool Vinifera_Save_Game(const char* file_name, const char* descr, bool)
     _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, Filename_From_Path(file_name), nullptr);
 
     DEBUG_INFO("SAVING GAME [%s - %s]\n", formatted_file_name, descr);
-
-    /**
-     *  This is required for compatibility with TS Client's sidebar hack.
-     */
-#if defined(TS_CLIENT)
-    Scen->IsGDI = Session.IsGDI;
-#endif
 
     /**
      *  Make sure our saved games folder exists.

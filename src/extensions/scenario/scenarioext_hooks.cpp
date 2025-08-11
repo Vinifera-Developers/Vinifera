@@ -393,7 +393,7 @@ static void Init_Loading_Screen(const char* filename)
          *  Set the player's side. This would happen in Select_Game, but we
          *  do it here for the spawner, and to take advantage of fixups.
          */
-        reinterpret_cast<unsigned char&>(Session.IsGDI) = static_cast<unsigned char>(housetype->Side) & 0xFF;
+        reinterpret_cast<unsigned char&>(Session.IsGDI) = housetype->Side;
     }
 
     /**
@@ -897,7 +897,6 @@ void ScenarioClassExtension_Hooks()
 
     Patch_Jump(0x005DCB59, &_ScenarioClass_Do_Win_GlobalFlags_Patch);
     Patch_Jump(0x005DC64D, &_Clear_Scenario_Clear_Globals_Patch);
-    Patch_Jump(0x005DD85D, &_Read_Scenario_INI_Read_Global_INI_Patch);
 
     /**
      *  #issue-218
@@ -920,7 +919,7 @@ void ScenarioClassExtension_Hooks()
     Patch_Call(0x00628600, &CCINIClassExt::_Get_HousesType); // TeamTypeClass
 
     /**
-     *  Units have the followed mechanic, so we need to fix that up to account for potentially missing units.
+     *  Units have the follower mechanic, so we need to fix that up to account for potentially missing units.
      */
     Patch_Jump(0x006589C8, &_UnitClass_Read_INI_Link_Units);
 

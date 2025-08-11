@@ -444,13 +444,9 @@ bool Spawner::Reconcile_Players()
  */
 void Spawner::Init_UI()
 {
-    //OwnerDraw::Initialize();
-
-    //if (!OwnerDraw::UIInitialized) {
-    //    OwnerDraw::Init_Masks();
-    //    OwnerDraw::Cache_Images();
-    //    OwnerDraw::UIInitialized = true;
-    //}
+    OwnerDraw::Initialize();
+    OwnerDraw::Init_Masks();
+    OwnerDraw::Cache_Images();
 }
 
 

@@ -1315,7 +1315,6 @@ bool ScenarioClassExtension::Read_Scenario_INI(CCINIClass& ini, bool random)
 {
     static const char* BASIC = "Basic";
     static const char* MAP = "Map";
-    static const char* MISSION_INI = "MISSION.INI";
     char buffer[32];
 
     ScenarioInit++;
@@ -1475,15 +1474,15 @@ bool ScenarioClassExtension::Read_Scenario_INI(CCINIClass& ini, bool random)
          */
         const auto housetype = HouseTypes[HouseTypeClass::From_Name(buffer)];
 
-        Scen->IsGDI = static_cast<unsigned char>(housetype->Side & 0xFF);
+        reinterpret_cast<unsigned char&>(Scen->IsGDI) = housetype->Side;
         Scen->SpeechSide = housetype->Side;
         ScenExtension->SidebarSide = housetype->Side;
         Scen->Special.IsFogOfWar = false;
         Special.IsFogOfWar = false;
     } else {
-        Scen->IsGDI = static_cast<unsigned char>(Session.IsGDI);
-        Scen->SpeechSide = static_cast<SideType>(Session.IsGDI);
-        ScenExtension->SidebarSide = static_cast<SideType>(Session.IsGDI);
+        reinterpret_cast<unsigned char&>(Scen->IsGDI) = reinterpret_cast<unsigned char&>(Session.IsGDI);
+        Scen->SpeechSide = static_cast<SideType>(reinterpret_cast<unsigned char&>(Session.IsGDI));
+        ScenExtension->SidebarSide = static_cast<SideType>(reinterpret_cast<unsigned char&>(Session.IsGDI));
         Scen->Special.IsFogOfWar = Session.Options.FogOfWar;
         Special.IsFogOfWar = Session.Options.FogOfWar;
     }
