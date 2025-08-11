@@ -1989,7 +1989,7 @@ DECLARE_PATCH(_HouseClass_Has_Prerequisites_BuildConst)
 DECLARE_PATCH(_HouseClass_GenerateAIBuildList_4C5BB0_BuildConst)
 {
     GET_STACK_STATIC(HouseClass*, this_ptr, esp, 0x14);
-    BuildingTypeClass* conyard;
+    static BuildingTypeClass* conyard;
 
     conyard = this_ptr->Get_First_Ownable(Rule->BuildConst);
 
