@@ -1474,15 +1474,22 @@ bool ScenarioClassExtension::Read_Scenario_INI(CCINIClass& ini, bool random)
          */
         const auto housetype = HouseTypes[HouseTypeClass::From_Name(buffer)];
 
-        reinterpret_cast<unsigned char&>(Scen->IsGDI) = housetype->Side;
+        ScenExtension->House = housetype->HeapID;
         Scen->SpeechSide = housetype->Side;
         ScenExtension->SidebarSide = housetype->Side;
         Scen->Special.IsFogOfWar = false;
         Special.IsFogOfWar = false;
+
     } else {
-        reinterpret_cast<unsigned char&>(Scen->IsGDI) = reinterpret_cast<unsigned char&>(Session.IsGDI);
-        Scen->SpeechSide = static_cast<SideType>(reinterpret_cast<unsigned char&>(Session.IsGDI));
-        ScenExtension->SidebarSide = static_cast<SideType>(reinterpret_cast<unsigned char&>(Session.IsGDI));
+
+        /**
+         *  Fetch the house's side and use this to decide which assets to load.
+         */
+        const auto housetype = HouseTypes[SessionExtension->House];
+
+        ScenExtension->House = housetype->HeapID;
+        Scen->SpeechSide = housetype->Side;
+        ScenExtension->SidebarSide = housetype->Side;
         Scen->Special.IsFogOfWar = Session.Options.FogOfWar;
         Special.IsFogOfWar = Session.Options.FogOfWar;
     }

@@ -26,35 +26,35 @@
  *
  ******************************************************************************/
 #include "initext_hooks.h"
-#include "vinifera_const.h"
-#include "vinifera_globals.h"
-#include "vinifera_util.h"
-#include "tibsun_globals.h"
-#include "tibsun_functions.h"
-#include "special.h"
-#include "playmovie.h"
-#include "cd.h"
-#include "newmenu.h"
 #include "addon.h"
-#include "command.h"
-#include "theme.h"
-#include "session.h"
-#include "iomap.h"
-#include "house.h"
-#include "housetype.h"
-#include "dsaudio.h"
-#include "vinifera_gitinfo.h"
-#include "tspp_gitinfo.h"
-#include "resource.h"
 #include "asserthandler.h"
+#include "cd.h"
+#include "command.h"
 #include "debughandler.h"
-#include <Windows.h>
-#include <commctrl.h>
-
+#include "dsaudio.h"
 #include "extension.h"
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "house.h"
+#include "housetype.h"
+#include "iomap.h"
+#include "newmenu.h"
+#include "playmovie.h"
+#include "resource.h"
+#include "session.h"
+#include "sessionext.h"
 #include "sideext.h"
+#include "special.h"
+#include "theme.h"
+#include "tibsun_functions.h"
+#include "tibsun_globals.h"
+#include "tspp_gitinfo.h"
+#include "vinifera_const.h"
+#include "vinifera_gitinfo.h"
+#include "vinifera_globals.h"
+#include "vinifera_util.h"
+#include <Windows.h>
+#include <commctrl.h>
 
 
 extern HMODULE DLLInstance;
@@ -70,16 +70,16 @@ extern HMODULE DLLInstance;
 /**
  *  #issue-218
  *
- *  We abuse SessionClass::IsGDI in this patch to store the current players
+ *  We abuse SessionClass::IsGDI in this patch to store the current player's
  *  HouseType so it can be used to fetch the SideType from it for loading
  *  the assets. This also means this bugfix works without extending any of
  *  the games classes.
  *
  *  @warning: This does mean we are limited to 255 unique houses (oh no!).
- *)
+ *
  *  @author: CCHyper
  */
-static void Set_Session_House() { reinterpret_cast<unsigned char&>(Session.IsGDI) = Session.Players.Fetch_Head()->Player.House; }
+static void Set_Session_House() { SessionExtension->House = Session.Players.Fetch_Head()->Player.House; }
 DECLARE_PATCH(_Select_Game_PreStart_SetPlayerHouse_Patch)
 {
     /**

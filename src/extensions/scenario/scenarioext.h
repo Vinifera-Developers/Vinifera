@@ -149,5 +149,12 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
          *  Should the AI use base nodes outside of campaign, instead of skirmish AI base building logic.
          */
         bool IsUseMPAIBaseNodes;
+
+        /**
+         *  Convenient property to access IsGDI as a HousesType.
+         */
+        HousesType Get_House() const { return static_cast<HousesType>(reinterpret_cast<unsigned char&>(This()->IsGDI)); }
+        void Set_House(HousesType house) { reinterpret_cast<unsigned char&>(This()->IsGDI) = house; }
+        __declspec(property(get = Get_House, put = Set_House)) HousesType House;
 };
 
