@@ -585,17 +585,6 @@ DECLARE_PATCH(_Clear_Scenario_Clear_Globals_Patch)
 }
 
 
-/**
- *  Replace an inlined call to Scen->Read_Global_INI in Read_Scenario_INI.
- *
- *  @author: ZivDero
- */
-DECLARE_PATCH(_Read_Scenario_INI_Read_Global_INI_Patch)
-{
-    ScenExtension->Read_Global_INI(*RuleINI);
-    JMP(0x005DD8D5);
-}
-
 #define SPAWN_HOUSE_OFFSET 50
 
 /**
