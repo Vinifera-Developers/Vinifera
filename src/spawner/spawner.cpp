@@ -192,17 +192,17 @@ bool Spawner::Start_Scenario(char* scenario_name)
     if (Session.Type == GAME_NORMAL) {
         Session.Options.Goodies = true;
 
-        const bool result = Vinifera_SpawnerConfig->LoadSaveGame ? Load_Game(Vinifera_SpawnerConfig->SaveGameName) : ::Start_Scenario(scenario_name, Vinifera_SpawnerConfig->PlayMoviesInMultiplayer, static_cast<CampaignType>(Vinifera_SpawnerConfig->CampaignID));
+        const bool result = Vinifera_SpawnerConfig->LoadSaveGame ? Load_Game(Vinifera_SpawnerConfig->SaveGameName) : ::Start_Scenario(scenario_name, true, static_cast<CampaignType>(Vinifera_SpawnerConfig->CampaignID));
 
         return result;
     } else if (Session.Type == GAME_SKIRMISH) {
-        const bool result = Vinifera_SpawnerConfig->LoadSaveGame ? Load_Game(Vinifera_SpawnerConfig->SaveGameName) : ::Start_Scenario(scenario_name, false, CAMPAIGN_NONE);
+        const bool result = Vinifera_SpawnerConfig->LoadSaveGame ? Load_Game(Vinifera_SpawnerConfig->SaveGameName) : ::Start_Scenario(scenario_name, true, CAMPAIGN_NONE);
 
         return result;
     } else {
         Init_Network();
 
-        bool result = Vinifera_SpawnerConfig->LoadSaveGame ? Load_Game(Vinifera_SpawnerConfig->SaveGameName) : ::Start_Scenario(scenario_name, false, CAMPAIGN_NONE);
+        bool result = Vinifera_SpawnerConfig->LoadSaveGame ? Load_Game(Vinifera_SpawnerConfig->SaveGameName) : ::Start_Scenario(scenario_name, Vinifera_SpawnerConfig->PlayMoviesInMultiplayer, CAMPAIGN_NONE);
 
         if (!result) return false;
 
