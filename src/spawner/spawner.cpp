@@ -191,26 +191,37 @@ bool Spawner::Start_Scenario(char* scenario_name)
      */
     if (Session.Type == GAME_NORMAL) {
         Session.Options.Goodies = true;
-
-        const bool result = Vinifera_SpawnerConfig->LoadSaveGame ? Load_Game(Vinifera_SpawnerConfig->SaveGameName) : ::Start_Scenario(scenario_name, true, static_cast<CampaignType>(Vinifera_SpawnerConfig->CampaignID));
-
-        return result;
+        if (Vinifera_SpawnerConfig->LoadSaveGame) {
+            return Load_Game(Vinifera_SpawnerConfig->SaveGameName);
+        } else {
+            return ::Start_Scenario(scenario_name, true, static_cast<CampaignType>(Vinifera_SpawnerConfig->CampaignID));
+        }
     } else if (Session.Type == GAME_SKIRMISH) {
-        const bool result = Vinifera_SpawnerConfig->LoadSaveGame ? Load_Game(Vinifera_SpawnerConfig->SaveGameName) : ::Start_Scenario(scenario_name, true, CAMPAIGN_NONE);
-
-        return result;
+        if (Vinifera_SpawnerConfig->LoadSaveGame) {
+            return Load_Game(Vinifera_SpawnerConfig->SaveGameName);
+        } else {
+            return ::Start_Scenario(scenario_name, true, CAMPAIGN_NONE);
+        }
     } else {
         Init_Network();
 
-        bool result = Vinifera_SpawnerConfig->LoadSaveGame ? Load_Game(Vinifera_SpawnerConfig->SaveGameName) : ::Start_Scenario(scenario_name, Vinifera_SpawnerConfig->PlayMoviesInMultiplayer, CAMPAIGN_NONE);
+        bool result = Vinifera_SpawnerConfig->LoadSaveGame
+        ? Load_Game(Vinifera_SpawnerConfig->SaveGameName)
+        : ::Start_Scenario(scenario_name, Vinifera_SpawnerConfig->PlayMoviesInMultiplayer, CAMPAIGN_NONE);
 
-        if (!result) return false;
+        if (!result) {
+            return false;
+        }
 
         Session.Type = GAME_IPX;
 
-        if (Vinifera_SpawnerConfig->LoadSaveGame && !Reconcile_Players()) return false;
+        if (Vinifera_SpawnerConfig->LoadSaveGame && !Reconcile_Players()) {
+            return false;
+        }
 
-        if (!Session.Create_Connections()) return false;
+        if (!Session.Create_Connections()) {
+            return false;
+        }
 
         return true;
     }
