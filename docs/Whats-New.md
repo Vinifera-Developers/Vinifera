@@ -73,6 +73,8 @@ Vinifera fixes:
 - Fix a bug where `CellSpread` incorrectly handled height distance with buildings (by ZivDero)
 - Units spawned from naval factories now face away from the factory, instead of always facing North (by ZivDero)
 - Fix mechanic infantry being unable to repair deployed vehicles (by Rampastring)
+- Fix a bug where `OpportunityFire=true` would make technos abandon targets assigned by the player (by ZivDero)
+- Fix a bug where `OpportunityFire=true` units could drive to crush their opportunity fire targets (by ZivDero)
 
 
 Vanilla fixes:
@@ -81,7 +83,7 @@ Vanilla fixes:
 - Fix the player being able to land an aircraft onto a helipad even if it's not listed as `Dock=` of this aircraft (by ZivDero)
 - Fix a bug where a weeder could be ordered to dock with a waste facility that wasn't listed in the weeder's `Dock=` key (by ZivDero)
 - Fix a bug where the player couldn't repair aircraft on allied repair bays under some circumstances (by ZivDero)
-- Fix a buffer overflow crash in MapClass::Place_Down (by Rampastring)
+- Fix a buffer overflow crash in `MapClass::Place_Down` (by Rampastring)
 
 :::
 

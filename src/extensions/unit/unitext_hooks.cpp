@@ -58,6 +58,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "house.h"
 #include "spawnmanager.h"
 #include "verses.h"
 #include "warheadtypeext.h"
@@ -80,6 +81,7 @@ public:
     void _Draw_Voxel(unsigned int frame, int key, Rect& rect, Point2D& point, const Matrix3D& other_matrix, int color, int flags);
     int _Do_MISSION_HUNT();
     void _Rotation_AI();
+    void _Approach_Target();
 };
 
 
@@ -371,6 +373,45 @@ void UnitClassExt::_Rotation_AI()
             }
         }
     }
+}
+
+
+/**
+ *  UnitClass::Approach_Target re-implementation.
+ *
+ *  @author: ZivDero
+ */
+void UnitClassExt::_Approach_Target()
+{
+    /**
+     *  Only if there is a legal target should the approach check occur.
+     */
+    if (!House->Is_Human_Player() && TarCom != nullptr && NavCom == nullptr) {
+
+        /**
+         *  Special case:
+         *  If this is for a unit that can crush infantry, and the target is
+         *  infantry, AND the infantry is pretty darn close, then just try
+         *  to drive over the infantry instead of firing on it.
+         */
+        TechnoClass* target = ::As_Techno(TarCom);
+        if ((Class->IsCrusher || Has_Ability(ABILITY_CRUSHER)) && Distance(TarCom) < Rule->CrushDistance && target && target->Class_Of()->IsCrushable && (Class->IsAutoCrush || !House->Is_Human_Player())) {
+
+            /**
+             *  Don't allow units to try to crush opportunity fire targets.
+             */
+            if (!House->IsHuman || !Extension::Fetch(this)->HasOpportunityFireTarget) {
+                Assign_Destination(TarCom);
+            }
+            return;
+        }
+    }
+
+    /**
+     *  In the other cases, uses the more complex "get to just within weapon range"
+     *  algorithm.
+     */
+    FootClass::Approach_Target();
 }
 
 
@@ -1601,6 +1642,7 @@ void UnitClassExtension_Hooks()
     //Patch_Jump(0x00654AB0, &_UnitClass_Mission_Harvest_Block_Harvesting_On_Bridge_Patch); // Removed, keeping code for reference.
     Patch_Jump(0x0064E560, &UnitClassExt::_Rotation_AI);
     Patch_Jump(0x00656F99, &_UnitClass_Can_Fire_IsOmniFire_Patch);
+    Patch_Jump(0x006571E0, &UnitClassExt::_Approach_Target);
 
     Patch_Byte(0x00658961, 0xEB); // Allow pre-placed units to have missions in multiplayer, change JZ to JMP
 }
