@@ -109,23 +109,22 @@ static T Percent_At_Max(T value, int range, int distance, float percent_at_max)
 int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ObjectClass * target, int distance)
 {
     /**
-     *	If there is no raw damage value to start with, then
-     *	there can be no modified damage either.
+     *  If there is no raw damage value to start with, then
+     *  there can be no modified damage either.
      */
-    if (!damage || Scen->Special.IsInert || warhead == nullptr)
-        return 0;
+    if (!damage || Scen->Special.IsInert || warhead == nullptr) return 0;
 
     ArmorType armor = target->Class_Of()->Armor;
 
     /**
-     *	Negative damage (i.e., heal) is always applied full strength, but only if the heal
-     *	effect is close enough.
+     *  Negative damage (i.e., heal) is always applied full strength, but only if the heal
+     *  effect is close enough.
      */
-    if (damage < 0)
-    {
+    if (damage < 0) {
         enum { MAX_HEAL_DISTANCE = 8 };
-        if (distance < MAX_HEAL_DISTANCE)
+        if (distance < MAX_HEAL_DISTANCE) {
             return damage;
+        }
 
         return 0;
     }
@@ -133,33 +132,11 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ObjectClass * 
     const auto warhead_ext = Extension::Fetch(warhead);
     const int min_damage = warhead_ext->MinDamage >= 0 ? warhead_ext->MinDamage : Rule->MinDamage;
 
-    float type_modifier = 1.0f;
-    switch (target->RTTI)
-    {
-    case RTTI_INFANTRY:
-        type_modifier = warhead_ext->InfantryModifier;
-        break;
-    case RTTI_UNIT:
-        type_modifier = warhead_ext->VehicleModifier;
-        break;
-    case RTTI_AIRCRAFT:
-        type_modifier = warhead_ext->AircraftModifier;
-        break;
-    case RTTI_BUILDING:
-        type_modifier = warhead_ext->BuildingModifier;
-        break;
-    case RTTI_TERRAIN:
-        type_modifier = warhead_ext->TerrainModifier;
-        break;
-    default:
-        break;
-    }
-
     /**
      *  Apply TS Spread logic.
      */
-    if (warhead_ext->CellSpread < 0.0)
-    {
+    if (warhead_ext->CellSpread < 0.0) {
+
         /**
          *  Apply the warhead's modifier to the damage.
          */
@@ -168,8 +145,7 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ObjectClass * 
         /**
          *  Apply an extra modifier based on the object's type.
          */
-        if (type_modifier != 1.0f)
-            damage *= type_modifier;
+        damage *= warhead_ext->Fetch_Type_Modifier(target->RTTI);
 
         /**
          *  Ensure that the damage is at least MinDamage.
@@ -179,32 +155,36 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ObjectClass * 
         /**
          *  Reduce damage according to the distance from the impact point.
          */
-        if (damage)
-        {
-            if (!warhead->SpreadFactor)
+        if (damage) {
+
+            if (warhead->SpreadFactor == 0) {
                 distance /= PIXEL_LEPTON_W / 2;
-            else
+            } else {
                 distance /= warhead->SpreadFactor * (PIXEL_LEPTON_W / 2 + 1);
+            }
 
             distance = std::clamp(distance, 0, 16);
 
-            if (distance)
+            if (distance) {
                 damage /= distance;
+            }
 
             /**
-             *	Allow damage to drop to zero only if the distance would have
-             *	reduced damage to less than 1/4 full damage. Otherwise, ensure
-             *	that at least one damage point is done.
+             *  Allow damage to drop to zero only if the distance would have
+             *  reduced damage to less than 1/4 full damage. Otherwise, ensure
+             *  that at least one damage point is done.
              */
-            if (distance < 4)
+            if (distance < 4) {
                 damage = std::max(damage, min_damage);
+            }
         }
     }
+
     /**
      *  Apply RA2 CellSpread logic.
      */
-    else
-    {
+    else {
+
         /**
          *  Apply PercentAtMax.
          */
@@ -218,8 +198,7 @@ int Vinifera_Modify_Damage(int damage, WarheadTypeClass* warhead, ObjectClass * 
         /**
          *  Apply an extra modifier based on the object's type.
          */
-        if (type_modifier != 1.0f)
-            damage *= type_modifier;
+        damage *= warhead_ext->Fetch_Type_Modifier(target->RTTI);
 
         /**
          *  Ensure that the damage is at least MinDamage.

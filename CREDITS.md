@@ -276,3 +276,4 @@ This page lists all the individual contributions to the project by their author.
   - Add unit promotion sounds, EVA and flashing.
   - Fix a bug where `OpportunityFire=true` would make technos abandon targets assigned by the player.
   - Fix a bug where `OpportunityFire=true` units could drive to crush their opportunity fire targets.
+  - Fix a bug where per-type modifiers on warheads wouldn't impact weapon selection.

@@ -362,3 +362,33 @@ bool WarheadTypeClassExtension::Read_INI(CCINIClass &ini)
 
     return true;
 }
+
+
+/**
+ *  Returns the damage modifier for this type of object.
+ *
+ *  @author: ZivDero
+ */
+float WarheadTypeClassExtension::Fetch_Type_Modifier(RTTIType type) const
+{
+    switch (type) {
+    case RTTI_INFANTRY:
+    case RTTI_INFANTRYTYPE:
+        return InfantryModifier;
+    case RTTI_UNIT:
+    case RTTI_UNITTYPE:
+        return VehicleModifier;
+    case RTTI_AIRCRAFT:
+    case RTTI_AIRCRAFTTYPE:
+        return AircraftModifier;
+    case RTTI_BUILDING:
+    case RTTI_BUILDINGTYPE:
+        return BuildingModifier;
+    case RTTI_TERRAIN:
+    case RTTI_TERRAINTYPE:
+        return TerrainModifier;
+    default:
+        break;
+    }
+    return 1.0f;
+}
