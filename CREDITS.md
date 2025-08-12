@@ -187,7 +187,7 @@ This page lists all the individual contributions to the project by their author.
   - Allow deploying air transports with the "Deploy" keyboard command.
   - Add WallOwner to BuildingTypes.
   - Implement `Mechanic` for InfantryTypes.
-  - Fix a buffer overflow crash in MapClass::Place_Down.
+  - Fix a buffer overflow crash in `MapClass::Place_Down`.
   - Allow pre-placed units to have missions in multiplayer.
   - Original implementations of actions in ts-patches.
 - **secsome**:
@@ -274,3 +274,5 @@ This page lists all the individual contributions to the project by their author.
   - Increase the local/global variable cap to 500.
   - Implement integer varialbes, and trigger actiosn and events to operate on them.
   - Add unit promotion sounds, EVA and flashing.
+  - Fix a bug where `OpportunityFire=true` would make technos abandon targets assigned by the player.
+  - Fix a bug where `OpportunityFire=true` units could drive to crush their opportunity fire targets.
