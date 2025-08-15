@@ -161,6 +161,7 @@
 #include "spawnmanager_hooks.h"
 #include "teventext_hooks.h"
 #include "voxelanimext_hooks.h"
+#include "xsurfaceext_hooks.h"
 
 
 void Extension_Hooks()
@@ -302,6 +303,7 @@ void Extension_Hooks()
      */
     FilePCXExtension_Hooks();
     FetchRes_Hooks();
+    XSurfaceExtension_Hooks();
 
     /**
      *  New classes and interfaces.

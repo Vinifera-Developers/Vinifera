@@ -141,6 +141,7 @@ This page lists all the individual contributions to the project by their author.
   - Implement 'OmniFire' for WeaponTypes.
   - Implement MeteorShowerCommandClass and MeteorImpactCommandClass.
   - Add the "Underground" layer to the tactical display Next and Prev search.
+  - Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2.
 - **hacklex**:
   - Add Veterancy and Health Filter hotkeys.
 - **Kerbiter (Metadorius)**:
@@ -190,6 +191,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a buffer overflow crash in `MapClass::Place_Down`.
   - Allow pre-placed units to have missions in multiplayer.
   - Original implementations of actions in ts-patches.
+  - Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:

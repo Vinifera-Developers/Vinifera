@@ -82,3 +82,4 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a buffer overflow crash in `MapClass::Place_Down`.
 - Fix a bug where the "Building exists" event would fire when you queued a building on the sidebar.
 - Fix a bug where using the "Destroy Tag" trigger action could lead to trying to free invalid memory.
+- Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2.
