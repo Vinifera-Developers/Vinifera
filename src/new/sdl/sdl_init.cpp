@@ -94,6 +94,7 @@ bool SDL_Allocate_Surfaces(const Rect& hidden_rect, const Rect& composite_rect, 
 
 void Prep_SDL()
 {
+#if 0
     DEBUG_INFO("Prep SDL.\n");
 
     if (SDLWindow != nullptr) {
@@ -133,11 +134,13 @@ void Prep_SDL()
     SDL_SetCursor(cursor); 
 
     DEBUG_INFO("SDL initialized with existing HWND.\n");
+#endif
 }
 
 
 void Destroy_SDL()
 {
+#if 0
     if (SDLWindowRenderer) {
         SDL_DestroyRenderer(SDLWindowRenderer);
         SDLWindowRenderer = nullptr;
@@ -149,6 +152,7 @@ void Destroy_SDL()
 
     SDL_QuitSubSystem(SDL_INIT_VIDEO);
     DEBUG_INFO("SDL destroyed.\n");
+#endif
 }
 
 
@@ -166,49 +170,134 @@ void Destroy_SDL()
  *=============================================================================================*/
 bool SDL_Set_Video_Mode(HWND, int w, int h, int bits_per_pixel)
 {
-    HRESULT result;
-
-    Prep_SDL();
+    if (!SDLWindow) {
+        DEBUG_ERROR("SDLWindow is null!\n");
+        return false;
+    }
 #if 0
-    //
-    // Set the required display mode with 8 bits per pixel
-    //
-    DEBUG_INFO("SetDisplayMode: %dx%dx%d\n", w, h, bits_per_pixel);
-    // MessageBox(MainWindow, "In Set_Video_Mode. About to call call SetDisplayMode.","Note", MB_ICONEXCLAMATION|MB_OK);
-    result = DirectDrawObject->SetDisplayMode(w, h, bits_per_pixel);
-    if (result != DD_OK) {
-        //		Process_DD_Result(result, false);
-        //		DirectDrawObject->Release();
-        //		DirectDrawObject = NULL;
-        DEBUG_INFO("SetDisplayMode failed\n");
-        return (false);
+    if (SDLWindowRenderer) {
+        DEBUG_WARNING("Video mode has already been set!\n");
+        return true;
+    }
+
+    SDL_PixelFormat pixel_format = SDL_GetWindowPixelFormat(SDLWindow);
+    if (pixel_format == SDL_PIXELFORMAT_UNKNOWN || SDL_BITSPERPIXEL(pixel_format) < 16) {
+        DEBUG_ERROR("SDL2 window pixel format unsupported: %s (%d bpp)\n", SDL_GetPixelFormatName(pixel_format), SDL_BITSPERPIXEL(pixel_format));
+        return false;
+    }
+
+    DEBUG_INFO("Pixel format: %s (%d bpp)\n", SDL_GetPixelFormatName(pixel_format), SDL_BITSPERPIXEL(pixel_format));
+
+    int renderer_index = -1;
+    SDL_PropertiesID props = SDL_CreateProperties();
+
+    SDL_SetBooleanPropery(SDL_RENDERER_PROP)
+
+    int flags = SDL_RENDERER_TARGETTEXTURE;
+    if (SDLHardwareRenderer) {
+        flags |= SDL_RENDERER_ACCELERATED;
+    } else {
+        flags |= SDL_RENDERER_SOFTWARE;
+    }
+
+    /**
+     *  Create renderer for window.
+     */
+    SDLWindowRenderer = SDL_CreateRenderer(SDLWindow, renderer_index, flags);
+    SDL_CreateRendererWithProperties(SDL_PROP_RENDERER_CREATE_GPU_SHADERS_DXIL_BOOLEAN)
+    if (SDLWindowRenderer == nullptr) {
+        DEBUG_ERROR("SDLWindowRenderer could not be created! SDL Error: %s\n", SDL_GetError());
+        return false;
+    }
+    DEBUG_INFO("SDLWindowRenderer created.\n");
+
+    /**
+     *  Get window surface.
+     */
+    SDLWindowSurface = SDL_CreateRGBSurfaceWithFormat(0, width, height, 32, SDL_PIXELFORMAT_RGB888);
+    // SDLWindowSurface = SDL_GetWindowSurface(SDLWindow);
+    if (SDLWindowSurface == nullptr) {
+        DEBUG_ERROR("SDLWindowSurface could not be created! SDL_Error: %s\n", SDL_GetError());
+        return false;
+    }
+    DEBUG_INFO("SDLWindowSurface created.\n");
+
+    /**
+     *  Create window texture.
+     */
+    SDLWindowTexture = SDL_CreateTexture(SDLWindowRenderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STREAMING, width, height);
+    if (SDLWindowTexture == nullptr) {
+        DEBUG_ERROR("SDLWindowTexture could not be created! SDL_Error: %s\n", SDL_GetError());
+        return false;
+    }
+    DEBUG_INFO("SDLWindowTexture created.\n");
+
+    SDL_RendererInfo info;
+    if (SDL_GetRendererInfo(SDLWindowRenderer, &info) != 0) {
+        DEBUG_ERROR("SDL_GetRendererInfo failed to get info! SDL Error: %s\n", SDL_GetError());
+        SDL_Reset_Video_Mode();
+        return false;
+    }
+
+    /**
+     *  Clear the window screen to black.
+     */
+    SDL_Clear_Screen();
+    SDL_Update_Screen(nullptr);
+
+    DEBUG_INFO("Initialized SDL2 driver '%s'\n", info.name);
+    DEBUG_INFO("  flags:\n");
+    if (info.flags & SDL_RENDERER_SOFTWARE) {
+        DEBUG_INFO("    SDL_RENDERER_SOFTWARE\n");
+    }
+    if (info.flags & SDL_RENDERER_ACCELERATED) {
+        DEBUG_INFO("    SDL_RENDERER_ACCELERATED\n");
+    }
+    if (info.flags & SDL_RENDERER_PRESENTVSYNC) {
+        DEBUG_INFO("    SDL_RENDERER_PRESENT_VSYNC\n");
+    }
+    if (info.flags & SDL_RENDERER_TARGETTEXTURE) {
+        DEBUG_INFO("    SDL_RENDERER_TARGETTEXTURE\n");
+    }
+
+    // DEBUG_INFO("  Max texture size: %dx%d\n", info.max_texture_width, info.max_texture_height);
+    DEBUG_INFO("  %d texture formats supported\n", info.num_texture_formats);
+
+    /*
+    ** Pick the first pixel format or the user requested one. It better be RGB.
+    */
+    pixel_format = SDL_PIXELFORMAT_UNKNOWN;
+    for (int i = 0; i < info.num_texture_formats; i++) {
+        if (pixel_format == SDL_PIXELFORMAT_UNKNOWN && i == 0) {
+            pixel_format = info.texture_formats[i];
+        }
+    }
+
+    for (int i = 0; i < info.num_texture_formats; i++) {
+        DEBUG_INFO("    %s%s\n", SDL_GetPixelFormatName(info.texture_formats[i]), (pixel_format == info.texture_formats[i] ? " (selected)" : ""));
+    }
+
+    /*
+    ** Set requested scaling algorithm.
+    */
+    if (!SDL_SetHintWithPriority(SDL_HINT_RENDER_SCALE_QUALITY, "nearest", SDL_HINT_OVERRIDE)) {
+        DEBUG_WARNING("  scaler 'nearest' is unsupported!\n");
+    } else {
+        DEBUG_INFO("  scaler set to 'nearest'\n");
     }
 #endif
+
+    /**
+     *  Explicitly set input focus to the window.
+     */
+    SDL_RaiseWindow(SDLWindow);
+    GameInFocus = true; // The SDL window needs this initially otherwise we need to alt-tab to gain focus.
 
     VideoWidth = w;
     VideoHeight = h;
     VideoBitsPerPixel = bits_per_pixel;
 
-#if 0
-    if (bits_per_pixel == 8) {
-        DEBUG_INFO("CreatePalette\n");
-        //
-        // Create a direct draw palette object
-        //
-        // MessageBox(MainWindow, "In Set_Video_Mode. About to call CreatePalette.","Note", MB_ICONEXCLAMATION|MB_OK);
-        result = DirectDrawObject->CreatePalette(DDPCAPS_8BIT | DDPCAPS_ALLOW256, &PaletteEntries[0], &PalettePtr, nullptr);
-        Process_DD_Result(result, false);
-        if (result != DD_OK) {
-            DEBUG_INFO("CreatePalette failed\n");
-            return (false);
-        }
-    }
-
-    Check_Overlapped_Blit_Capability();
-    DEBUG_INFO("Display mode set\n");
-#endif
-
-    return (true);
+    return true;
 }
 
 /***********************************************************************************************
@@ -259,7 +348,7 @@ void SDL_Update_Visible_Surface(bool flip_mouse, Surface* surface, Rect* rect)
 {
     Rect fill_rect;
 
-    if (rect == NULL) {
+    if (rect == nullptr) {
         fill_rect = surface->Get_Rect();
         rect = &fill_rect;
     }
@@ -359,23 +448,6 @@ void SDL_Update_Visible_Surface(bool flip_mouse, Surface* surface, Rect* rect)
     static int& _dialog_count = *reinterpret_cast<int*>(0x007E492C);
     VisibleSurface->Blit_From(dest_rect, *surface, src_rect, false, _dialog_count == 0);
 
-    if (SDLWindow) {
-        SDL_Surface* win_surf = SDL_GetWindowSurface(SDLWindow);
-        if (win_surf) {
-            SDL_Rect dst;
-            dst.x = 0;
-            dst.y = 0;
-            dst.w = VisibleSurface->Get_Width();
-            dst.h = VisibleSurface->Get_Height();
-
-            // If VisibleSurface is a wrapper around SDL_Surface, just copy pixels
-            SDL_BlitSurface(static_cast<SDLSurface*>(VisibleSurface)->Get_SDL_Surface(), nullptr, win_surf, &dst);
-
-            // Present the new framebuffer
-            SDL_UpdateWindowSurface(SDLWindow);
-        }
-    }
-
     if (flip_mouse && MouseCursor != nullptr) {
         Sleep(50);
         MouseCursor->Erase_Mouse(surface, false);
@@ -432,8 +504,6 @@ bool SDL_Create_Main_Window(HINSTANCE hInstance, int width, int height)
         return false;
     }
 
-    const SDL_DisplayMode* dm = SDL_GetCurrentDisplayMode(0);
-
     SDL_PropertiesID props = SDL_CreateProperties();
 
     SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_HIDDEN_BOOLEAN, false);
@@ -448,6 +518,14 @@ bool SDL_Create_Main_Window(HINSTANCE hInstance, int width, int height)
         SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_FULLSCREEN_BOOLEAN, true);
 
     } else {
+        int num_displays;
+        SDL_DisplayID* displays = SDL_GetDisplays(&num_displays);
+        const SDL_DisplayMode* dm = num_displays ? SDL_GetCurrentDisplayMode(displays[0]) : nullptr;
+        if (dm == nullptr) {
+            DEBUG_ERROR("SDL_GetDesktopDisplayMode failed! SDL_Error: %s\n", SDL_GetError());
+            return false;
+        }
+
         int wnd_xpos = (dm->w - width) / 2;
         int wnd_ypos = (dm->h - height) / 2;
 
