@@ -60,6 +60,7 @@
 #include "options.h"
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
+#include "vinifera_globals.h"
 #include "SDL3/SDL_oldnames.h"
 
 
@@ -336,10 +337,10 @@ SDLSurface::SDLSurface(SDL_Surface* surfaceptr) : BytesPerPixel(0), LockPtr(null
  *=============================================================================================*/
 HDC SDLSurface::GetDC()
 {
-    if (gdi_dc) {
+    if (GdiDC) {
         // Already created — just bump lock count
         LockCount++;
-        return gdi_dc;
+        return GdiDC;
     }
 
     // Lock SDL surface to ensure we have access to pixel buffer
@@ -348,9 +349,9 @@ HDC SDLSurface::GetDC()
     }
 
     // Use SDL's pixel buffer directly
-    gdi_pixels = SurfacePtr->pixels;
+    GdiBuffer = SurfacePtr->pixels;
 
-    gdi_dc = CreateCompatibleDC(nullptr);
+    GdiDC = CreateCompatibleDC(nullptr);
 
     BITMAPINFO bmi = {};
     bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
@@ -364,20 +365,20 @@ HDC SDLSurface::GetDC()
     *reinterpret_cast<DWORD*>(&bmi.bmiColors[2]) = PixelFormat->Bmask;
 
     // Create a DIB section that *uses* SDL's pixel memory
-    gdi_bitmap = CreateDIBSection(gdi_dc, &bmi, DIB_RGB_COLORS, &gdi_pixels, nullptr, 0);
+    GdiBitmap = CreateDIBSection(GdiDC, &bmi, DIB_RGB_COLORS, &GdiBuffer, nullptr, 0);
 
-    if (!gdi_bitmap) {
-        DeleteDC(gdi_dc);
-        gdi_dc = nullptr;
+    if (!GdiBitmap) {
+        DeleteDC(GdiDC);
+        GdiDC = nullptr;
         SDL_UnlockSurface(SurfacePtr);
-        gdi_pixels = nullptr;
+        GdiBuffer = nullptr;
         return nullptr;
     }
 
-    SelectObject(gdi_dc, gdi_bitmap);
+    SelectObject(GdiDC, GdiBitmap);
 
     LockCount++;
-    return gdi_dc;
+    return GdiDC;
 }
 
 
@@ -395,7 +396,7 @@ HDC SDLSurface::GetDC()
  *=============================================================================================*/
 int SDLSurface::ReleaseDC(HDC hdc)
 {
-    if (!gdi_dc || hdc != gdi_dc) {
+    if (!GdiDC || hdc != GdiDC) {
         return 0;
     }
 
@@ -405,14 +406,14 @@ int SDLSurface::ReleaseDC(HDC hdc)
     }
 
     // Cleanup
-    DeleteObject(gdi_bitmap);
-    gdi_bitmap = nullptr;
+    DeleteObject(GdiBitmap);
+    GdiBitmap = nullptr;
 
-    DeleteDC(gdi_dc);
-    gdi_dc = nullptr;
+    DeleteDC(GdiDC);
+    GdiDC = nullptr;
 
     SDL_UnlockSurface(SurfacePtr);
-    gdi_pixels = nullptr;
+    GdiBuffer = nullptr;
 
     return 1;
 }
@@ -561,7 +562,28 @@ bool SDLSurface::Unlock() const
  *=============================================================================================*/
 bool SDLSurface::Restore_Check() const
 {
-    return false;
+    return true;
+}
+
+
+void SDLSurface::Blit_To_Window() const
+{
+    if (SDLWindow && this == VisibleSurface) {
+        SDL_Surface* win_surf = SDL_GetWindowSurface(SDLWindow);
+        if (win_surf) {
+            SDL_Rect dst;
+            dst.x = 0;
+            dst.y = 0;
+            dst.w = Get_Width();
+            dst.h = Get_Height();
+
+            // If VisibleSurface is a wrapper around SDL_Surface, just copy pixels
+            SDL_BlitSurface(Get_SDL_Surface(), nullptr, win_surf, &dst);
+
+            // Present the new framebuffer
+            SDL_UpdateWindowSurface(SDLWindow);
+        }
+    }
 }
 
 
@@ -625,41 +647,12 @@ bool SDLSurface::Blit_From(Rect const& dcliprect, Rect const& destrect, Surface 
 {
     if (!dcliprect.Is_Valid() || !scliprect.Is_Valid() || !destrect.Is_Valid() || !sourcerect.Is_Valid()) return false;
 
-    bool use_xsurface = false;
-
-    /*
-    **	For non-direct draw surfaces, perform a manual blit operation. This is also
-    **	necessary if any of the surfaces are currently locked. It is also necessary if the
-    **	blit regions overlap and the blitter cannot handle overlapped regions.
-    **
-    ** NOTE: Its legal to blit to a locked surface but not from a locked surface.
-    ** 	 	ST - 4/23/97 1:03AM
-    */
-    if (!ssource.Is_Direct_Draw() == true || ((SDLSurface&)ssource).Is_Locked() == true || trans == true) {
-        use_xsurface = true;
-    } else {
-        if (Bytes_Per_Pixel() != ssource.Bytes_Per_Pixel()) {
-            use_xsurface = true;
-        }
+    if (XSurface::Blit_From(dcliprect, destrect, ssource, scliprect, sourcerect, trans, a7)) {
+        Blit_To_Window();
+        return true;
     }
 
-    if (IsPrimary == true && WindowedMode == true) {
-        a7 = false;
-    }
-
-    if (use_xsurface == false && a7 == true && /*(IsVideoRam == false || ((SDLSurface&)ssource).Is_Direct_Draw() == true && ((SDLSurface&)ssource).IsVideoRam == false)*/ false && sourcerect.Width == destrect.Width && sourcerect.Height == destrect.Height) { 
-        use_xsurface = true; // SDL surfaces in RAM
-    }
-
-    if (Restore_Check() == false) {
-        return false;
-    }
-
-    if (use_xsurface == true) {
-        return XSurface::Blit_From(destrect, ssource, sourcerect, trans, true);
-    }
-
-    SDLSurface const& source = static_cast<SDLSurface const&>(ssource);
+    return false;
 
     Rect drect = destrect;
     Rect srect = sourcerect;
@@ -678,13 +671,14 @@ bool SDLSurface::Blit_From(Rect const& dcliprect, Rect const& destrect, Surface 
         xsrcrect.w = srect.Width;
         xsrcrect.h = srect.Height;
 
-        bool result = SDL_BlitSurface(source.SurfacePtr, &xsrcrect, SurfacePtr, &xdestrect);
+        //bool result = SDL_BlitSurface(source.SurfacePtr, &xsrcrect, SurfacePtr, &xdestrect);
+        //if (result) {
+        //    Blit_To_SDL();
+        //} else {
+        //    DEBUG_INFO("SDL_BlitSurface failed: %s", SDL_GetError());
+        //}
 
-        if (!result) {
-            DEBUG_INFO("SDL_BlitSurface failed: %s", SDL_GetError());
-        }
-
-        return result;
+       // return result;
     }
     return false;
 }

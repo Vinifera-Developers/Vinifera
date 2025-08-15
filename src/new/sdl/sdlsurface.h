@@ -104,8 +104,9 @@ public:
     virtual bool Is_Direct_Draw() const override { return true; }
 
     virtual bool Can_Blit() const;
-    SDL_Surface* Get_SDL_Surface() { return SurfacePtr; }
+    SDL_Surface* Get_SDL_Surface() const { return SurfacePtr; }
     bool Restore_Check() const;
+    void Blit_To_Window() const;
 
 protected:
 
@@ -133,9 +134,9 @@ protected:
      */
     SDL_Surface* SurfacePtr;
 
-    mutable HDC gdi_dc = nullptr;
-    mutable HBITMAP gdi_bitmap = nullptr;
-    mutable void* gdi_pixels = nullptr; // Points directly to SDL's pixel buffer
+    mutable HDC GdiDC = nullptr;
+    mutable HBITMAP GdiBitmap = nullptr;
+    mutable void* GdiBuffer = nullptr; // Points directly to SDL's pixel buffer
 
     /**
      *  Pixel format of primary surface.

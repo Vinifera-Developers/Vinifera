@@ -70,7 +70,7 @@ SDL_Renderer* SDLWindowRenderer = nullptr;
 //SDL_Palette* SDLPalette = nullptr;
 bool SDLHardwareRenderer = true;
 bool SDLBorderless = true;
-bool SDLBorderlessFullscreen = true;
+bool SDLBorderlessFullscreen = false;
 bool SDLClipMouseToWindow = true;
 
 bool Vinifera_SkipLogoMovies = false;
