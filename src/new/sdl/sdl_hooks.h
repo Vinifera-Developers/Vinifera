@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          SURFACESCALE.H
+ *  @file          SDL_HOOKS.H
  *
- *  @author        CCHyper
+ *  @author        ZivDero
  *
- *  @brief         
+ *  @brief         Contains the hooks for the SDL system.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -27,14 +27,5 @@
  ******************************************************************************/
 #pragma once
 
-#include "always.h"
 
-
-class Surface;
-
-
-bool Scale_Surface_Nearest(Surface* src, Surface* dst);
-bool Scale_Surface_Bilinear(Surface* src, Surface* dst);
-bool Scale_Surface_Bicubic(Surface* src, Surface* dst);
-bool Scale_Surface_Cardinal(Surface *src, Surface* dst);
-bool Scale_Surface_Lanczos(Surface* src, Surface* dst);
+void SDL_Hooks();

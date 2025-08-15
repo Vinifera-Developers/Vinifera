@@ -193,7 +193,7 @@ void TacticalExt::_Draw_Band_Box()
             drop_rect.X += 1;
             drop_rect.Y += 1;
 
-            const unsigned drop_color = DSurface::RGB_To_Pixel(
+            const unsigned drop_color = DSurface::Build_Hicolor_Pixel(
                 UIControls->BandBoxDropShadowColor.R,
                 UIControls->BandBoxDropShadowColor.G,
                 UIControls->BandBoxDropShadowColor.B);
@@ -226,7 +226,7 @@ void TacticalExt::_Draw_Band_Box()
         /**
          *  Draw the custom rubber band rect.
          */
-        const unsigned band_color = DSurface::RGB_To_Pixel(
+        const unsigned band_color = DSurface::Build_Hicolor_Pixel(
             UIControls->BandBoxColor.R,
             UIControls->BandBoxColor.G,
             UIControls->BandBoxColor.B);
@@ -480,8 +480,8 @@ void TacticalExt::_Draw_Rally_Points(bool blit)
     const int time = timeGetTime();
     const int offset = (-time / 32) & (std::size(_pattern) - 1);
 
-    const unsigned color = DSurface::RGB_To_Pixel(0, 255, 0);
-    const unsigned color_black = DSurface::RGB_To_Pixel(0, 0, 0);
+    const unsigned color = DSurface::Build_Hicolor_Pixel(0, 255, 0);
+    const unsigned color_black = DSurface::Build_Hicolor_Pixel(0, 0, 0);
 
     /**
      *  Iterate all selected objects to see if we need to draw a rally point line for them.
@@ -613,7 +613,7 @@ DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_NormaliseLineAnimation_Patch)
     time = timeGetTime();
     offset = (-time / 64) & (std::size(_pattern)-1);
 
-    color_black = DSurface::RGB_To_Pixel(0,0,0);
+    color_black = DSurface::Build_Hicolor_Pixel(0,0,0);
 
 #if 0
     /**
@@ -678,7 +678,7 @@ DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_DrawNormalLine_Patch)
 
     static unsigned color_black;
 
-    color_black = DSurface::RGB_To_Pixel(0,0,0);
+    color_black = DSurface::Build_Hicolor_Pixel(0,0,0);
 
     /**
      *  Draw the drop shadow line.
@@ -687,7 +687,7 @@ DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_DrawNormalLine_Patch)
     end_pos->Y += 2;
     if (Clip_Line(*start_pos, *end_pos, TacticalRect))
     {
-        LogicSurface->entry_4C(*start_pos, *end_pos, color_black);
+        LogicSurface->entry_4C(*start_pos, *end_pos, color_black, false);
     }
 
     /**
@@ -698,14 +698,14 @@ DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_DrawNormalLine_Patch)
     --end_pos->Y;
     if (Clip_Line(*start_pos, *end_pos, TacticalRect))
     {
-        LogicSurface->entry_4C(*start_pos, *end_pos, color);
+        LogicSurface->entry_4C(*start_pos, *end_pos, color, false);
     }
 
     --start_pos->Y;
     --end_pos->Y;
     if (Clip_Line(*start_pos, *end_pos, TacticalRect))
     {
-        LogicSurface->entry_4C(*start_pos, *end_pos, color);
+        LogicSurface->entry_4C(*start_pos, *end_pos, color, false);
     }
 
     JMP(0x00617307);

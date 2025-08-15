@@ -293,6 +293,7 @@ GlobSources(GLOB HOOKER_SOURCES ${HOOKER_INCLUDE_DIR})
 # Include the TS++ submodule in the solution.
 ################################################################################
 add_subdirectory(${CMAKE_SOURCE_DIR}/TSpp)
+add_subdirectory(${CMAKE_SOURCE_DIR}/SDL)
 
 
 ################################################################################
@@ -596,6 +597,9 @@ target_compile_options(${PROJECT_NAME} PUBLIC /MP2)
 # Link to the TS++ static library.
 target_link_libraries(${PROJECT_NAME} TSpp)
 add_dependencies(${PROJECT_NAME} TSpp)
+
+target_link_libraries(${PROJECT_NAME} SDL3::SDL3)
+set_target_properties(SDL3_test PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
 # Ensure the launcher is built with the main project.
 add_dependencies(${PROJECT_NAME} Launch${PROJECT_NAME})

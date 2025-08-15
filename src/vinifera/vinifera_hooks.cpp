@@ -185,7 +185,7 @@ static void _On_Load_Clear_Scenario_Intercept()
  */
 DECLARE_PATCH(_Version_Text_Draw_Patch)
 {
-    GET_REGISTER_STATIC(XSurface *, surface, ecx);
+    GET_REGISTER_STATIC(Surface*, surface, ecx);
 
     Vinifera_Draw_Version_Text(surface);
 
@@ -226,7 +226,7 @@ DECLARE_PATCH(_Init_Game_Loading_Screen_Version_Text_Patch)
     /**
      *  Flag as pre-init, as we need to draw this differently.
      */
-    Vinifera_Draw_Version_Text(PrimarySurface, true);
+    Vinifera_Draw_Version_Text(VisibleSurface, true);
 
     /**
      *  Stolen bytes/code.

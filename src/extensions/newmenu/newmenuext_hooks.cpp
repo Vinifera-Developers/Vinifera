@@ -55,7 +55,7 @@ static bool MenuSkipDone = false;
  */
 static void Draw_Title_Screen(bool firestorm)
 {
-    Load_Title_Screen(firestorm ? "FSTBACK.PCX" : "TSTBACK.PCX", (XSurface *)HiddenSurface, &OriginalPalette);
+    Load_Title_Screen(firestorm ? "FSTBACK.PCX" : "TSTBACK.PCX", (Surface*)HiddenSurface, &OriginalPalette);
     GScreenClass::Blit(false, (Surface *)HiddenSurface);
 }
 

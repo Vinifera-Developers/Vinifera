@@ -249,7 +249,7 @@ void TacticalExtension::Draw_Version_Number_Text()
 void TacticalExtension::Draw_Debug_Overlay()
 {
     RGBClass rgb_black(0, 0, 0);
-    unsigned color_black = DSurface::RGB_To_Pixel(0, 0, 0);
+    unsigned color_black = DSurface::Build_Hicolor_Pixel(0, 0, 0);
     ColorScheme *text_color = Fetch_Scheme_By_Name("White");
 
     int padding = 2;
@@ -350,7 +350,7 @@ bool TacticalExtension::Debug_Draw_Facings()
     screen.X += TacticalRect.X;
     screen.Y += TacticalRect.Y;
 
-    LogicSurface->Fill_Rect(TacticalRect, Rect(screen.X, screen.Y, 2, 2), DSurface::RGB_To_Pixel(255, 0, 0));
+    LogicSurface->Fill_Rect(TacticalRect, Rect(screen.X, screen.Y, 2, 2), DSurface::Build_Hicolor_Pixel(255, 0, 0));
 
     TextPrintType style = TPF_CENTER | TPF_FULLSHADOW | TPF_6POINT;
     WWFontClass* font = Font_Ptr(style);
@@ -381,7 +381,7 @@ bool TacticalExtension::Debug_Draw_Facings()
 void TacticalExtension::Draw_FrameStep_Overlay()
 {
     RGBClass rgb_black(0, 0, 0);
-    unsigned color_black = DSurface::RGB_To_Pixel(0, 0, 0);
+    unsigned color_black = DSurface::Build_Hicolor_Pixel(0, 0, 0);
     ColorScheme *text_color = Fetch_Scheme_By_Name("White");
 
     int padding = 2;
@@ -588,7 +588,7 @@ void TacticalExtension::Super_Draw_Timer(int row_index, ColorScheme * color, int
     int text_width = -1;
     int flash_delay = 500; // was 1000
     bool to_flash = false;
-    unsigned color_black = DSurface::RGB_To_Pixel(0, 0, 0);
+    unsigned color_black = DSurface::Build_Hicolor_Pixel(0, 0, 0);
     RGBClass rgb_black(0, 0, 0);
     ColorScheme *white_color = Fetch_Scheme_By_Name("White", 1);
     int background_tint = 50;

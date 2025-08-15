@@ -93,7 +93,7 @@ DECLARE_PATCH(_CreditClass_Graphic_Logic_Faction_Specific_Color_Scheme_Patch)
  *
  *  @author: Rampastring, ZivDero
  */
-void Draw_Tooltip_Rectangle(DSurface* surface, Rect& drawrect)
+void Draw_Tooltip_Rectangle(Surface* surface, Rect& drawrect)
 {
     surface->Fill_Rect(drawrect, 0);
 
@@ -101,7 +101,7 @@ void Draw_Tooltip_Rectangle(DSurface* surface, Rect& drawrect)
     const ColorScheme* colorscheme = ColorSchemes[colorschemetype];
 
     RGBClass rgb = colorscheme->HSV.operator RGBClass();
-    surface->Draw_Rect(drawrect, DSurface::RGB_To_Pixel(rgb));
+    surface->Draw_Rect(drawrect, DSurface::Build_Hicolor_Pixel(rgb));
 }
 
 
@@ -112,7 +112,7 @@ void Draw_Tooltip_Rectangle(DSurface* surface, Rect& drawrect)
  */
 DECLARE_PATCH(_CCToolTip_Draw_Faction_Specific_Color_Scheme_Rect_Patch)
 {
-    GET_REGISTER_STATIC(DSurface*, surface, esi);
+    GET_REGISTER_STATIC(Surface*, surface, esi);
     GET_REGISTER_STATIC(Rect*, drawrect, eax);
 
     Draw_Tooltip_Rectangle(surface, *drawrect);

@@ -497,7 +497,7 @@ bool SidebarClassExtension::TabButtonClass::Action(unsigned flags, KeyNumType& k
     */
     if (flags & LEFTRELEASE)
     {
-        bool overbutton = (WWMouse->Get_Mouse_X() - X) < Width && (WWMouse->Get_Mouse_Y() - Y) < Height;
+        bool overbutton = (MouseCursor->Get_Mouse_X() - X) < Width && (MouseCursor->Get_Mouse_Y() - Y) < Height;
         if (!IsSelected && overbutton)
         {
             IsSelected = true;
@@ -593,13 +593,13 @@ bool SidebarClassExtension::TabButtonClass::Draw_Me(bool forced)
         shapenum = FRAME_NORMAL;
     }
 
-    Draw_Shape(*SidebarSurface, *ShapeDrawer, ShapeData, shapenum, Point2D(X + DrawX, Y + DrawY), ScreenRect, SHAPE_NORMAL);
+    Draw_Shape(*SidebarSurface, *ShapeDrawer, ShapeData, shapenum, Point2D(X + DrawX, Y + DrawY), VisibleRect, SHAPE_NORMAL);
 
     if (MousedOver && !Scen->InputLock && !IsDisabled && !IsSelected)
     {
         Rect hover_rect(X + DrawX, Y + DrawY, Width - 1, Height - 1);
         const ColorSchemeType colorschemetype = Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor;
-        SidebarSurface->Draw_Rect(hover_rect, DSurface::RGB_To_Pixel(ColorSchemes[colorschemetype]->HSV.operator RGBClass()));
+        SidebarSurface->Draw_Rect(hover_rect, DSurface::Build_Hicolor_Pixel(ColorSchemes[colorschemetype]->HSV.operator RGBClass()));
     }
 
     IsDrawn = true;

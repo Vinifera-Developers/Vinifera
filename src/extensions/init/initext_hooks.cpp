@@ -51,6 +51,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "sdl_init.h"
 
 
 extern HMODULE DLLInstance;
@@ -278,6 +279,9 @@ void Vinifera_Create_Main_Window(HINSTANCE hInstance, int nCmdShow, int width, i
 {
     //DEV_DEBUG_INFO("Create_Main_Window(enter)\n");
 
+    SDL_Create_Main_Window(hInstance, width, height);
+    return;
+
     MainWindow = nullptr;
 
     HWND hWnd = nullptr;
@@ -381,7 +385,7 @@ void Vinifera_Create_Main_Window(HINSTANCE hInstance, int nCmdShow, int width, i
     /**
      *  Create our main window.
      */
-    if (Debug_Windowed) {
+    if (WindowedMode) {
 
         DEBUG_INFO("Create_Main_Window() - Creating desktop window (%d x %d).\n", width, height);
 

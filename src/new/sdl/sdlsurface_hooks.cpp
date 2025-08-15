@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          SURFACESCALE.H
+ *  @file          SDLSURFACE_HOOKS.CPP
  *
- *  @author        CCHyper
+ *  @author        ZivDero
  *
- *  @brief         
+ *  @brief         Contains the hooks for the SDLSurface class.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -26,15 +26,17 @@
  *
  ******************************************************************************/
 #pragma once
-
-#include "always.h"
-
-
-class Surface;
+#include "hooker.h"
+#include "sdlsurface.h"
 
 
-bool Scale_Surface_Nearest(Surface* src, Surface* dst);
-bool Scale_Surface_Bilinear(Surface* src, Surface* dst);
-bool Scale_Surface_Bicubic(Surface* src, Surface* dst);
-bool Scale_Surface_Cardinal(Surface *src, Surface* dst);
-bool Scale_Surface_Lanczos(Surface* src, Surface* dst);
+/**
+ *  Main function for patching the hooks.
+ */
+void SDLSurface_Hooks()
+{
+    Patch_Jump(0x0048AD60, &SDLSurface::Create_Primary);
+    Patch_Jump(0x0048B510, &SDLSurface::Restore_Check);
+    Patch_Jump(0x0048B2E0, &SDLSurface::GetDC);
+    Patch_Jump(0x0048B320, &SDLSurface::ReleaseDC);
+}

@@ -32,6 +32,7 @@
 #include "ccfile.h"
 #include "extension_globals.h"
 #include "scenarioext.h"
+#include "SDL3/SDL_render.h"
 
 
 class PrerequisiteGroupClass;
@@ -86,6 +87,20 @@ extern bool Vinifera_Developer_FrameStep;
 extern int Vinifera_Developer_FrameStepCount;
 extern bool Vinifera_Developer_AIControl;
 extern bool Vinifera_Developer_IsToReloadRules;
+
+
+/**
+ *  SDL globals.
+ */
+extern SDL_Window* SDLWindow;
+extern SDL_Renderer* SDLWindowRenderer;
+//extern SDL_Surface* SDLWindowSurface;
+//extern SDL_Texture* SDLWindowTexture;
+//extern SDL_Palette* SDLPalette;
+extern bool SDLHardwareRenderer;
+extern bool SDLBorderless;
+extern bool SDLBorderlessFullscreen;
+extern bool SDLClipMouseToWindow;
 
 
 /**

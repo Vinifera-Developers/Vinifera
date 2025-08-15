@@ -486,11 +486,11 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
 
     {
     Rect tactical_rect = Get_Tactical_Rect();
-    Rect composite_rect(0, 0, tactical_rect.Width, ScreenRect.Height);
-    Rect tile_rect(0, 0, tactical_rect.Width, ScreenRect.Height);
-    Rect sidebar_rect(tactical_rect.X, tactical_rect.Y, SidebarClass::SIDE_WIDTH, ScreenRect.Height);
+    Rect composite_rect(0, 0, tactical_rect.Width, VisibleRect.Height);
+    Rect tile_rect(0, 0, tactical_rect.Width, VisibleRect.Height);
+    Rect sidebar_rect(tactical_rect.X, tactical_rect.Y, SidebarClass::SIDE_WIDTH, VisibleRect.Height);
     DEBUG_INFO("About to call Allocate_Surfaces()...\n");
-    Allocate_Surfaces(&ScreenRect, &composite_rect, &tile_rect, &sidebar_rect);
+    Allocate_Surfaces(&VisibleRect, &composite_rect, &tile_rect, &sidebar_rect);
 
     DEBUG_INFO("About to call Map.Set_View_Dimensions()...\n");
     Map.Set_View_Dimensions(tactical_rect);

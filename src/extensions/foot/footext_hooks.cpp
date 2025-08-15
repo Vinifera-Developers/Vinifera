@@ -258,12 +258,12 @@ void FootClassExt::_Draw_NavComQueue_Lines() const
     const bool is_thick = UIControls->IsNavComQueueLineThick;
     const bool is_dropshadow = UIControls->IsNavComQueueLineDropShadow;
 
-    const unsigned line_color = DSurface::RGB_To_Pixel(
+    const unsigned line_color = DSurface::Build_Hicolor_Pixel(
         UIControls->NavComQueueLineColor.R,
         UIControls->NavComQueueLineColor.G,
         UIControls->NavComQueueLineColor.B);
 
-    const unsigned drop_color = DSurface::RGB_To_Pixel(
+    const unsigned drop_color = DSurface::Build_Hicolor_Pixel(
         UIControls->NavComQueueLineDropShadowColor.R,
         UIControls->NavComQueueLineDropShadowColor.G,
         UIControls->NavComQueueLineDropShadowColor.B);
@@ -325,22 +325,22 @@ void FootClassExt::_Draw_Action_Line() const
     const bool navcom_is_thick = UIControls->IsMovementLineThick;
     const bool navcom_is_dropshadow = UIControls->IsMovementLineDropShadow;
 
-    const unsigned tarcom_color = DSurface::RGB_To_Pixel(
+    const unsigned tarcom_color = DSurface::Build_Hicolor_Pixel(
         UIControls->TargetLineColor.R,
         UIControls->TargetLineColor.G,
         UIControls->TargetLineColor.B);
 
-    const unsigned tarcom_drop_color = DSurface::RGB_To_Pixel(
+    const unsigned tarcom_drop_color = DSurface::Build_Hicolor_Pixel(
         UIControls->TargetLineDropShadowColor.R,
         UIControls->TargetLineDropShadowColor.G,
         UIControls->TargetLineDropShadowColor.B);
 
-    const unsigned navcom_color = DSurface::RGB_To_Pixel(
+    const unsigned navcom_color = DSurface::Build_Hicolor_Pixel(
         UIControls->MovementLineColor.R,
         UIControls->MovementLineColor.G,
         UIControls->MovementLineColor.B);
 
-    const unsigned navcom_drop_color = DSurface::RGB_To_Pixel(
+    const unsigned navcom_drop_color = DSurface::Build_Hicolor_Pixel(
         UIControls->MovementLineDropShadowColor.R,
         UIControls->MovementLineDropShadowColor.G,
         UIControls->MovementLineDropShadowColor.B);

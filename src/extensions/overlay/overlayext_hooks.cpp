@@ -63,7 +63,7 @@ void Read_INI(CCINIClass const& ini)
         BSurface temp_surface(512, 512, 2);
         temp_surface.Fill(0);
 
-        int len = ini.Get_UUBlock("OverlayPack", temp_surface.Lock(), temp_surface.Get_Width() * temp_surface.Get_Height() * temp_surface.BytesPerPixel);
+        int len = ini.Get_UUBlock("OverlayPack", temp_surface.Lock(), temp_surface.Get_Width() * temp_surface.Get_Height() * temp_surface.Bytes_Per_Pixel());
 
         if (len > 0) {
             BufferStraw bpipe(temp_surface.Lock(), len);

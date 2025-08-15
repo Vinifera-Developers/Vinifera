@@ -108,7 +108,7 @@ DECLARE_PATCH(_Init_Rules_Show_Rules_Select_Dialog_Patch)
     /**
      *  Stolen bytes/code.
      */
-    WWMouse->Release_Mouse();
+    MouseCursor->Release_Mouse();
 
 show_rules_dialog:
     JMP(0x004E12F6);

@@ -359,7 +359,7 @@ void SidebarClassExt::_Init_For_House()
     PaletteClass pal("SIDEBAR.PAL");
 
     delete SidebarDrawer;
-    SidebarDrawer = new ConvertClass(&pal, &pal, PrimarySurface, 1);
+    SidebarDrawer = new ConvertClass(&pal, &pal, VisibleSurface, 1);
 
     Sell.Set_Shape(MFCD::RetrieveT<ShapeSet>("SELL.SHP"));
     Sell.ShapeDrawer = SidebarDrawer;
@@ -690,7 +690,7 @@ void SidebarClassExt::_Draw_It(bool complete)
     Map.field_1214 = Rect();
     PowerClass::Draw_It(complete);
 
-    DSurface* oldsurface = LogicSurface;
+    Surface* oldsurface = LogicSurface;
     LogicSurface = SidebarSurface;
 
     Rect rect(0, 0, SidebarSurface->Get_Width(), SidebarSurface->Get_Height());
@@ -830,7 +830,7 @@ void SidebarClassExt::_Set_Dimensions()
      *  Position the sidebar itself.
      */
 
-    SidebarRect.X = Options.SidebarOn ? TacticalRect.X + TacticalRect.Width : 0;
+    SidebarRect.X = Options.SidebarSide ? TacticalRect.X + TacticalRect.Width : 0;
     SidebarRect.Y = 148;
     SidebarRect.Width = 168;
     SidebarRect.Height = TacticalRect.Y + TacticalRect.Height - 148;
@@ -934,7 +934,7 @@ void SidebarClassExt::_Set_Dimensions()
         ToolTipHandler->Add(&tooltip);
     }
 
-    Background.Set_Position(Options.SidebarOn ? TacticalRect.X + TacticalRect.Width : 0, RadarButton.Height + RadarButton.Y);
+    Background.Set_Position(Options.SidebarSide ? TacticalRect.X + TacticalRect.Width : 0, RadarButton.Height + RadarButton.Y);
     Background.Set_Size(SidebarSurface->Get_Width(), SidebarSurface->Get_Height() - RadarButton.Height + RadarButton.Y);
 }
 
@@ -2021,7 +2021,7 @@ void StripClassExt::_Draw_It(bool complete)
                 {
                     Rect cameo_hover_rect(x, SidebarRect.Y + y, OBJECT_WIDTH, OBJECT_HEIGHT - 3);
                     const ColorSchemeType colorschemetype = Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor;
-                    SidebarSurface->Draw_Rect(cameo_hover_rect, DSurface::RGB_To_Pixel(ColorSchemes[colorschemetype]->HSV.operator RGBClass()));
+                    SidebarSurface->Draw_Rect(cameo_hover_rect, DSurface::Build_Hicolor_Pixel(ColorSchemes[colorschemetype]->HSV.operator RGBClass()));
                 }
 
 

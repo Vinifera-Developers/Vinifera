@@ -219,7 +219,7 @@ const char *TSpp_Version_String()
  * 
  *  @author: CCHyper
  */
-void Vinifera_Draw_Version_Text(XSurface *surface, bool pre_init)
+void Vinifera_Draw_Version_Text(Surface* surface, bool pre_init)
 {
     if (!surface) {
         return;
