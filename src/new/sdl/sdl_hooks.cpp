@@ -28,34 +28,170 @@
 #pragma once
 #include "dsurface.h"
 #include "hooker.h"
+#include "hooker_macros.h"
 #include "sdl_init.h"
 #include "sdlsurface.h"
+#include "tibsun_globals.h"
+#include "SDL3/SDL_timer.h"
 
 
 void _Wait_Blit()
 {
-    
 }
 
 
 void _Set_Palette(void const* palette)
 {
+}
+
+
+DECLARE_PATCH(_GScreenClass_Do_Blit_SDL_Update_Window_Patch)
+{
+    SDL_Update_Screen(static_cast<SDLSurface*>(VisibleSurface));
+
+    _asm { test bl, bl }
+    _asm { pop edi }
+    _asm { pop ebp }
+    _asm { pop ebx }
+    JMP(0x004B9A47);
+}
+
+
+DECLARE_PATCH(_Main_Loop_SDL_Update_Window_Patch)
+{
+    SDL_Update_Screen(static_cast<SDLSurface*>(VisibleSurface));
+    SDL_Delay(0);
+
+    _asm { setz al }
+    _asm { pop edi }
+    _asm { add esp, 0x38 }
+    _asm { ret }
+}
+
+
+/**
+ *  Flip hidden surface onto the primary SDL surface when drawing movie frame.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_MovieClass_Blit_SDL_Update_Window_Patch_1)
+{
+    // PrimarySurface (ecx) -> Copy_From
+    _asm { mov eax, [edx+8] }
+    _asm { call eax }
+
+    //DEBUG_INFO("MovieClass::Blit(1) - Copying to PrimarySurface.\n");
+
+    _asm { pop edi }
+    _asm { pop esi }
+    _asm { pop ebx }
+
+    SDL_Update_Screen(static_cast<SDLSurface*>(VisibleSurface /*, &src_rect, &dest_rect*/) /*, &src_rect, &dest_rect*/);
     
+    JMP(0x005640D3);
 }
 
 
-class DSurfaceExt : public DSurface
+/**
+ *  Flip hidden surface onto the primary SDL surface when drawing movie frame.
+ * 
+ *  @author: CCHyper
+ */
+DECLARE_PATCH(_MovieClass_Blit_SDL_Update_Window_Patch_2)
 {
-public:
-    DSurface* CTOR_Proxy(int width, int height, bool system_memory);
-};
+    // PrimarySurface (ecx) -> Copy_From
+    _asm { mov eax, [edx+8] }
+    _asm { call eax }
 
+    //DEBUG_INFO("MovieClass::Blit(2) - Copying to PrimarySurface.\n");
 
-DSurface* DSurfaceExt::CTOR_Proxy(int width, int height, bool system_memory)
-{
-    return reinterpret_cast<DSurface*>(new(this) SDLSurface(width, height));
+    _asm { pop edi }
+    _asm { pop esi }
+    _asm { pop ebx }
+
+    SDL_Update_Screen(static_cast<SDLSurface*>(VisibleSurface /*, &src_rect, &dest_rect*/) /*, &src_rect, &dest_rect*/);
+    
+    JMP(0x0056478D);
 }
 
+
+DECLARE_PATCH(_MSEngine_Blit_SDL_Update_Window_Patch)
+{
+    // PrimarySurface (ecx) -> Copy_From
+    _asm { push eax }
+    _asm { mov edx, [ecx] }
+    _asm { mov eax, [edx+0x8] }
+    _asm { call eax }
+
+    DEBUG_INFO("MSEngine::Blit() - Copying to PrimarySurface.\n");
+    SDL_Update_Screen(static_cast<SDLSurface*>(VisibleSurface));
+
+    JMP(0x0057111C);
+}
+
+DECLARE_PATCH(_MSEngine_Draw_SDL_Update_Window_Patch)
+{
+    // PrimarySurface (ecx) -> Copy_From
+    _asm { push edx }
+    _asm { mov ecx, [ecx] }
+    _asm { mov eax, [ecx+0x8] }
+    _asm { call eax }
+
+    DEBUG_INFO("MSEngine::Draw() - Copying to PrimarySurface.\n");
+    SDL_Update_Screen(static_cast<SDLSurface*>(VisibleSurface));
+
+    JMP(0x005711F8);
+}
+
+
+DECLARE_PATCH(_SidebarClass_Blit_Sidebar_SDL_Update_Window_Patch)
+{
+    SDL_Update_Screen(static_cast<SDLSurface*>(VisibleSurface));
+
+    _asm { ret 4 }
+}
+
+
+DECLARE_PATCH(_OwnerDraw_DialogProc_SDL_Update_Window_Patch_Return_0)
+{
+    SDL_Update_Screen(static_cast<SDLSurface*>(VisibleSurface));
+
+    _asm { xor eax, eax }
+    _asm { pop edi }
+    _asm { pop esi }
+    _asm { pop ebp }
+    _asm { pop ebx }
+    _asm { add esp, 0x2E8 }
+    _asm { ret 0x10 }
+}
+
+
+DECLARE_PATCH(_OwnerDraw_DialogProc_SDL_Update_Window_Patch_Return_1)
+{
+    SDL_Update_Screen(static_cast<SDLSurface*>(VisibleSurface));
+
+    _asm { mov eax, 1 }
+    _asm { pop edi }
+    _asm { pop esi }
+    _asm { pop ebp }
+    _asm { pop ebx }
+    _asm { add esp, 0x2E8 }
+    _asm { ret 0x10 }
+}
+
+
+DECLARE_PATCH(_OwnerDraw_DialogProc_SDL_Update_Window_Patch_Return_Var)
+{
+    SDL_Update_Screen(static_cast<SDLSurface*>(VisibleSurface));
+
+    _asm { mov eax, [esp+0x1C] }
+    _asm { pop edi }
+    _asm { pop esi }
+    _asm { pop ebp }
+    _asm { pop ebx }
+    _asm { add esp, 0x2E8 }
+    _asm { ret 0x10 }
+}
 
 
 /**
@@ -70,15 +206,17 @@ void SDL_Hooks()
     Patch_Jump(0x00472BC0, &Destroy_SDL);
     Patch_Jump(0x00472DF0, &SDL_Set_Video_Mode);
     Patch_Jump(0x00472FF0, &SDL_Reset_Video_Mode);
-    Patch_Jump(0x00472FF0, &SDL_Update_Visible_Surface);
 
-    Patch_Byte(0x0056848A, sizeof(SDLSurface)); // MultiScore::Init
-    Patch_Byte(0x005AC325, sizeof(SDLSurface)); // PreviewClass::Create_Preview
-    Patch_Byte(0x005ACA6B, sizeof(SDLSurface)); // PreviewClass::Read_INI
-    Patch_Byte(0x005ACD43, sizeof(SDLSurface)); // PreviewClass::Read_PCX_Preview
-    Patch_Byte(0x005AD4C8, sizeof(SDLSurface)); // PreviewClass::Create_Preview_Surface
-    Patch_Byte(0x005ACA6B, sizeof(SDLSurface)); // RadarClass::Compute_Radar_Image
-    Patch_Byte(0x005E304E, sizeof(SDLSurface)); // ScoreClass::Presentation
-
-    Patch_Jump(0x0048ABB0, &DSurfaceExt::CTOR_Proxy);
+    // Patch_Jump(0x005F3C61, &_SidebarClass_Blit_Sidebar_SDL_Update_Window_Patch);
+    Patch_Jump(0x005640CD, &_MovieClass_Blit_SDL_Update_Window_Patch_1);
+    Patch_Jump(0x00564787, &_MovieClass_Blit_SDL_Update_Window_Patch_2);
+    Patch_Jump(0x00571116, &_MSEngine_Blit_SDL_Update_Window_Patch);
+    Patch_Jump(0x005711F5, &_MSEngine_Draw_SDL_Update_Window_Patch);
+    Patch_Jump(0x00592356, &_OwnerDraw_DialogProc_SDL_Update_Window_Patch_Return_1);
+    Patch_Jump(0x0059264F, &_OwnerDraw_DialogProc_SDL_Update_Window_Patch_Return_0);
+    Patch_Jump(0x005926D8, &_OwnerDraw_DialogProc_SDL_Update_Window_Patch_Return_1);
+    Patch_Jump(0x00592802, &_OwnerDraw_DialogProc_SDL_Update_Window_Patch_Return_1);
+    Patch_Jump(0x005944EF, &_OwnerDraw_DialogProc_SDL_Update_Window_Patch_Return_1);
+    Patch_Jump(0x005944FE, &_OwnerDraw_DialogProc_SDL_Update_Window_Patch_Return_Var);
+    Patch_Jump(0x004B9A42, &_GScreenClass_Do_Blit_SDL_Update_Window_Patch);
 }

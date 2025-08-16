@@ -106,7 +106,23 @@ public:
     virtual bool Can_Blit() const;
     SDL_Surface* Get_SDL_Surface() const { return SurfacePtr; }
     bool Restore_Check() const;
-    void Blit_To_Window() const;
+    void Blit_To_Window(Rect const* region = nullptr) const;
+
+    virtual bool Fill(int color) override;
+    //virtual bool Draw_Ellipse(Point2D point, int radius_x, int radius_y, Rect clip, int color) override;
+    //virtual bool Put_Pixel(Point2D const& point, int color) override;
+    //virtual bool Draw_Line(Point2D const& startpoint, Point2D const& endpoint, int color) override;
+    //virtual bool Draw_Line(Rect const& cliprect, Point2D const& startpoint, Point2D const& endpoint, int color) override;
+    //virtual bool Draw_Line_entry_34(Rect const& cliprect, Point2D const& startpoint, Point2D const& endpoint, unsigned color, int a5, int a6, bool z_only = false) override;
+    //virtual bool Draw_Line_entry_38(Rect const& cliprect, Point2D const& startpoint, Point2D const& endpoint, int a4, int a5, int a6, bool a7 = false) override;
+    //virtual bool Draw_Line_entry_3C(Rect const& cliprect, Point2D const& startpoint, Point2D const& endpoint, RGBClass& color, int a5, int a6, bool a7, bool a8, bool a9, bool a10, float a11) override;
+    //virtual bool Plot_Line(Rect& area, Point2D& start, Point2D& end, void (*drawer_callback)(Point2D&)) override;
+    //virtual int Draw_Dashed_Line(Point2D& start, Point2D& end, unsigned color, bool pattern[], int offset) override;
+    //virtual int entry_48(Point2D& start, Point2D& end, unsigned color, bool pattern[], int offset, bool a6) override;
+    //virtual bool entry_4C(Point2D& start, Point2D& end, unsigned a4, bool a5) override;
+    //virtual bool Draw_Rect(Rect const& rect, int color) override;
+    //virtual bool Draw_Rect(Rect const& cliprect, Rect const& rect, int color) override;
+    //virtual bool entry_84(Point2D const& point, int color, Rect const& rect) override;
 
 protected:
 
@@ -134,9 +150,9 @@ protected:
      */
     SDL_Surface* SurfacePtr;
 
-    mutable HDC GdiDC = nullptr;
-    mutable HBITMAP GdiBitmap = nullptr;
-    mutable void* GdiBuffer = nullptr; // Points directly to SDL's pixel buffer
+    mutable HDC GDIDC = nullptr;
+    mutable HBITMAP GDIBitmap = nullptr;
+    mutable void* GDIBuffer = nullptr; // Points directly to SDL's pixel buffer
 
     /**
      *  Pixel format of primary surface.

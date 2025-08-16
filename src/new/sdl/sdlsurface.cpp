@@ -58,6 +58,7 @@
 #include "debughandler.h"
 #include "dsurface.h"
 #include "options.h"
+#include "sdl_init.h"
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
 #include "vinifera_globals.h"
@@ -91,11 +92,16 @@ const SDL_PixelFormatDetails* SDLSurface::PixelFormat = nullptr;
  * HISTORY:                                                                                    *
  *   02/07/1997 JLB : Created.                                                                 *
  *=============================================================================================*/
-SDLSurface::SDLSurface(int width, int height) : XSurface(width, height), BytesPerPixel(0), LockPtr(nullptr), IsPrimary(false), SurfacePtr(nullptr)
+SDLSurface::SDLSurface(int width, int height) :
+    XSurface(width, height),
+    BytesPerPixel(0),
+    LockPtr(nullptr),
+    IsPrimary(false),
+    SurfacePtr(nullptr)
 {
     SurfacePtr = SDL_CreateSurface(width, height, SDL_PIXELFORMAT_RGB565);
     if (SurfacePtr == nullptr) {
-        DEBUG_ERROR("VideoSurface could not be created! SDL Error: %s\n", SDL_GetError());
+        DEBUG_ERROR("SurfacePtr could not be created! SDL Error: %s\n", SDL_GetError());
         return;
     }
 
@@ -145,9 +151,38 @@ SDLSurface::~SDLSurface()
  * HISTORY:                                                                                    *
  *   02/07/1997 JLB : Created.                                                                 *
  *=============================================================================================*/
-SDLSurface::SDLSurface() : BytesPerPixel(0), LockPtr(nullptr), IsPrimary(false), SurfacePtr(nullptr)
+SDLSurface::SDLSurface() :
+    BytesPerPixel(0),
+    LockPtr(nullptr),
+    IsPrimary(false),
+    SurfacePtr(nullptr)
 {
 
+}
+
+
+/**
+ *  Calculate bit shifts to properly extract channel data.
+ */
+static void Calculate_Mask_Info(unsigned int mask, int& right, int& left)
+{
+    /**
+     *  Figure out how far to shift bits to the left.
+     */
+    for (int index = 0; index < 16; index++) {
+        if (mask & 0x01) break;
+        mask >>= 1;
+        right++;
+    }
+
+    /**
+     *  Figure out how far to shift bits to the right.
+     */
+    for (int index = 0; index < 8; index++) {
+        if (mask & 0x80) break;
+        mask <<= 1;
+        left++;
+    }
 }
 
 
@@ -178,106 +213,30 @@ SDLSurface* SDLSurface::Create_Primary(SDLSurface** backsurface1)
     DSurface::AllowStretchBlits = false;
     DSurface::AllowHWFill = false;
 
-    /*
-    **	Setup parameter for creating the primary surface. This will
-    **	always be the visible surface plus optional back buffers of identical
-    **	dimensions.
-    */
-    //surface->Description->dwFlags = DDSD_CAPS;
-    //surface->Description->ddsCaps.dwCaps = DDSCAPS_PRIMARYSURFACE;
-    //if (backcount > 0) {
-    //    surface->Description->ddsCaps.dwCaps |= DDSCAPS_FLIP | DDSCAPS_COMPLEX;
-    //    surface->Description->dwFlags |= DDSD_BACKBUFFERCOUNT;
-    //    surface->Description->dwBackBufferCount = backcount;
-    //}
-
     DEBUG_INFO("SDLSurface::Create_Primary - Creating surface\n");
     SDLSurface* surface = new SDLSurface(Options.ScreenWidth, Options.ScreenHeight);
 
-    /*
-    **	If the primary surface object was created, then fetch a pointer to the
-    **	back buffer if there is one present.
-    */
-    DEBUG_INFO("CreateSurface OK\n");
-
-    ///*
-    //**	Get a description of the surface that was just allocated.
-    //*/
-    //memset(surface->Description, '\0', sizeof(DSDLSurfaceDESC));
-    //surface->Description->dwSize = sizeof(DSDLSurfaceDESC);
-
-    //result = surface->SurfacePtr->GetSurfaceDesc(surface->Description);
-    //if (result != DD_OK) {
-    //    DebugString("Failed to get description of primary surface\n");
-    //}
-
-    //surface->BytesPerPixel = (surface->Description->ddpfPixelFormat.dwRGBBitCount + 7) / 8;
-    //surface->IsVideoRam = (surface->Description->ddsCaps.dwCaps & DDSCAPS_VIDEOMEMORY) != 0;
     surface->IsPrimary = true;
 
-    ////		surface->Window.Set(Rect(0, 0, surface->Description->dwWidth, surface->Description->dwHeight));
-    //surface->Width = surface->Description->dwWidth;
-    //surface->Height = surface->Description->dwHeight;
-    //PaletteSurface = surface->SurfacePtr;
-
-    /*
-    **	Fetch the pixel format for the surface.
-    */
+    /**
+     *  Fetch the pixel format for the surface.
+     */
     PixelFormat = SDL_GetPixelFormatDetails(surface->SurfacePtr->format);
 
-    /*
-    **	If this is a hicolor surface, then build the shift values for
-    **	building and extracting the colors from the hicolor pixel.
-    */
+    /**
+     *  If this is a hicolor surface, then build the shift values for
+     *  building and extracting the colors from the hicolor pixel.
+     */
     if (surface->Bytes_Per_Pixel() == 2) {
-        int index;
-        int shift = PixelFormat->Rmask;
-        DSurface::RedRight = 0;
-        DSurface::RedLeft = 0;
-        for (index = 0; index < 16; index++) {
-            if (shift & 0x01) break;
-            shift >>= 1;
-            DSurface::RedRight++;
-        }
-        for (index = 0; index < 8; index++) {
-            if (shift & 0x80) break;
-            shift <<= 1;
-            DSurface::RedLeft++;
-        }
-
-        shift = PixelFormat->Gmask;
-        DSurface::GreenRight = 0;
-        DSurface::GreenLeft = 0;
-        for (index = 0; index < 16; index++) {
-            if (shift & 0x01) break;
-            DSurface::GreenRight++;
-            shift >>= 1;
-        }
-        for (index = 0; index < 8; index++) {
-            if (shift & 0x80) break;
-            DSurface::GreenLeft++;
-            shift <<= 1;
-        }
-
-        shift = PixelFormat->Bmask;
-        DSurface::BlueRight = 0;
-        DSurface::BlueLeft = 0;
-        for (index = 0; index < 16; index++) {
-            if (shift & 0x01) break;
-            DSurface::BlueRight++;
-            shift >>= 1;
-        }
-        for (index = 0; index < 8; index++) {
-            if (shift & 0x80) break;
-            DSurface::BlueLeft++;
-            shift <<= 1;
-        }
+        Calculate_Mask_Info(PixelFormat->Rmask, DSurface::RedRight, DSurface::RedLeft);
+        Calculate_Mask_Info(PixelFormat->Gmask, DSurface::GreenRight, DSurface::GreenLeft);
+        Calculate_Mask_Info(PixelFormat->Bmask, DSurface::BlueRight, DSurface::BlueLeft);
 
         DSurface::PrimaryColorMode = COLORMODE_INVALID;
 
-        /*
-        **	Create the halfbright mask.
-        */
+        /**
+         *  Create the halfbright mask.
+         */
         DSurface::HalfbrightMask = static_cast<unsigned short>(DSurface::Build_Hicolor_Pixel(127, 127, 127));
         DSurface::QuarterbrightMask = static_cast<unsigned short>(DSurface::Build_Hicolor_Pixel(63, 63, 63));
         DSurface::EighthbrightMask = static_cast<unsigned short>(DSurface::Build_Hicolor_Pixel(31, 31, 31));
@@ -313,7 +272,11 @@ SDLSurface* SDLSurface::Create_Primary(SDLSurface** backsurface1)
  * HISTORY:                                                                                    *
  *   02/07/1997 JLB : Created.                                                                 *
  *=============================================================================================*/
-SDLSurface::SDLSurface(SDL_Surface* surfaceptr) : BytesPerPixel(0), LockPtr(nullptr), IsPrimary(false), SurfacePtr(surfaceptr)
+SDLSurface::SDLSurface(SDL_Surface* surfaceptr) :
+    BytesPerPixel(0),
+    LockPtr(nullptr),
+    IsPrimary(false),
+    SurfacePtr(surfaceptr)
 {
     if (SurfacePtr != nullptr) {
         BytesPerPixel = SDL_GetPixelFormatDetails(SurfacePtr->format)->bytes_per_pixel;
@@ -337,10 +300,9 @@ SDLSurface::SDLSurface(SDL_Surface* surfaceptr) : BytesPerPixel(0), LockPtr(null
  *=============================================================================================*/
 HDC SDLSurface::GetDC()
 {
-    if (GdiDC) {
-        // Already created — just bump lock count
+    if (GDIDC) { // Already created — just bump lock count
         LockCount++;
-        return GdiDC;
+        return GDIDC;
     }
 
     // Lock SDL surface to ensure we have access to pixel buffer
@@ -349,9 +311,9 @@ HDC SDLSurface::GetDC()
     }
 
     // Use SDL's pixel buffer directly
-    GdiBuffer = SurfacePtr->pixels;
+    GDIBuffer = SurfacePtr->pixels;
 
-    GdiDC = CreateCompatibleDC(nullptr);
+    GDIDC = CreateCompatibleDC(nullptr);
 
     BITMAPINFO bmi = {};
     bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
@@ -365,20 +327,20 @@ HDC SDLSurface::GetDC()
     *reinterpret_cast<DWORD*>(&bmi.bmiColors[2]) = PixelFormat->Bmask;
 
     // Create a DIB section that *uses* SDL's pixel memory
-    GdiBitmap = CreateDIBSection(GdiDC, &bmi, DIB_RGB_COLORS, &GdiBuffer, nullptr, 0);
+    GDIBitmap = CreateDIBSection(GDIDC, &bmi, DIB_RGB_COLORS, &GDIBuffer, nullptr, 0);
 
-    if (!GdiBitmap) {
-        DeleteDC(GdiDC);
-        GdiDC = nullptr;
+    if (!GDIBitmap) {
+        DeleteDC(GDIDC);
+        GDIDC = nullptr;
         SDL_UnlockSurface(SurfacePtr);
-        GdiBuffer = nullptr;
+        GDIBuffer = nullptr;
         return nullptr;
     }
 
-    SelectObject(GdiDC, GdiBitmap);
+    SelectObject(GDIDC, GDIBitmap);
 
     LockCount++;
-    return GdiDC;
+    return GDIDC;
 }
 
 
@@ -396,7 +358,7 @@ HDC SDLSurface::GetDC()
  *=============================================================================================*/
 int SDLSurface::ReleaseDC(HDC hdc)
 {
-    if (!GdiDC || hdc != GdiDC) {
+    if (!GDIDC || hdc != GDIDC) {
         return 0;
     }
 
@@ -406,14 +368,14 @@ int SDLSurface::ReleaseDC(HDC hdc)
     }
 
     // Cleanup
-    DeleteObject(GdiBitmap);
-    GdiBitmap = nullptr;
+    DeleteObject(GDIBitmap);
+    GDIBitmap = nullptr;
 
-    DeleteDC(GdiDC);
-    GdiDC = nullptr;
+    DeleteDC(GDIDC);
+    GDIDC = nullptr;
 
     SDL_UnlockSurface(SurfacePtr);
-    GdiBuffer = nullptr;
+    GDIBuffer = nullptr;
 
     return 1;
 }
@@ -566,24 +528,63 @@ bool SDLSurface::Restore_Check() const
 }
 
 
-void SDLSurface::Blit_To_Window() const
+void SDLSurface::Blit_To_Window(Rect const* region) const
 {
-    if (SDLWindow && this == VisibleSurface) {
-        SDL_Surface* win_surf = SDL_GetWindowSurface(SDLWindow);
-        if (win_surf) {
-            SDL_Rect dst;
-            dst.x = 0;
-            dst.y = 0;
-            dst.w = Get_Width();
-            dst.h = Get_Height();
+    return;
+    if (/*!IsPrimary ||*/ !SDLWindow || !SurfacePtr) return;
 
-            // If VisibleSurface is a wrapper around SDL_Surface, just copy pixels
-            SDL_BlitSurface(Get_SDL_Surface(), nullptr, win_surf, &dst);
+    //SDL_Surface* win_surf = SDL_GetWindowSurface(SDLWindow);
+    //if (win_surf) {
+    //    SDL_Rect dst;
+    //    dst.x = 0;
+    //    dst.y = 0;
+    //    dst.w = Get_Width();
+    //    dst.h = Get_Height();
 
-            // Present the new framebuffer
-            SDL_UpdateWindowSurface(SDLWindow);
-        }
+    //    // If VisibleSurface is a wrapper around SDL_Surface, just copy pixels
+    //    SDL_BlitSurface(Get_SDL_Surface(), nullptr, win_surf, &dst);
+
+    //    // Present the new framebuffer
+    //    SDL_UpdateWindowSurface(SDLWindow);
+    //}
+    //return;
+
+
+    SDL_Rect sdl_rect;
+    int w = SurfacePtr->w;
+    int h = SurfacePtr->h;
+
+    if (region) {
+        sdl_rect.x = region->X;
+        sdl_rect.y = region->Y;
+        sdl_rect.w = region->Width;
+        sdl_rect.h = region->Height;
+        w = region->Width;
+        h = region->Height;
+    } else {
+        sdl_rect.x = sdl_rect.y = 0;
+        sdl_rect.w = w;
+        sdl_rect.h = h;
     }
+
+    SDL_FRect sdl_frect = {
+        static_cast<float>(sdl_rect.x),
+        static_cast<float>(sdl_rect.y),
+        static_cast<float>(sdl_rect.w),
+        static_cast<float>(sdl_rect.h)};
+
+    void* pixels;
+    int pitch;
+    SDL_LockTexture(SDLWindowTexture, &sdl_rect, &pixels, &pitch);
+
+    SDL_ConvertPixels(w, h, SurfacePtr->format, (uint8_t*)SurfacePtr->pixels + sdl_rect.y * SurfacePtr->pitch + sdl_rect.x * Bytes_Per_Pixel(), SurfacePtr->pitch, SDLWindowTexture->format, pixels, pitch);
+
+    SDL_UnlockTexture(SDLWindowTexture);
+
+    SDL_RenderTexture(SDLWindowRenderer, SDLWindowTexture, &sdl_frect, &sdl_frect);
+    SDL_RenderPresent(SDLWindowRenderer);
+
+    DEBUG_INFO("Blit_To_Window: Blitted %dx%d pixels to window at (%d, %d)\n", sdl_rect.w, sdl_rect.h, sdl_rect.x, sdl_rect.y);
 }
 
 
@@ -645,41 +646,11 @@ bool SDLSurface::Blit_From(Rect const& destrect, Surface const& ssource, Rect co
  *=============================================================================================*/
 bool SDLSurface::Blit_From(Rect const& dcliprect, Rect const& destrect, Surface const& ssource, Rect const& scliprect, Rect const& sourcerect, bool trans, bool a7)
 {
-    if (!dcliprect.Is_Valid() || !scliprect.Is_Valid() || !destrect.Is_Valid() || !sourcerect.Is_Valid()) return false;
-
     if (XSurface::Blit_From(dcliprect, destrect, ssource, scliprect, sourcerect, trans, a7)) {
-        Blit_To_Window();
+        Blit_To_Window(&dcliprect);
         return true;
     }
 
-    return false;
-
-    Rect drect = destrect;
-    Rect srect = sourcerect;
-    Rect swindow = Intersect(scliprect, ssource.Get_Rect());
-    Rect dwindow = Intersect(dcliprect, Get_Rect());
-    if (Blit_Clip(drect, dwindow, srect, swindow)) {
-        SDL_Rect xdestrect;
-        xdestrect.x = drect.X + dwindow.X;
-        xdestrect.y = drect.Y + dwindow.Y;
-        xdestrect.w = drect.Width;
-        xdestrect.h = drect.Height;
-
-        SDL_Rect xsrcrect;
-        xsrcrect.x = srect.X + swindow.X;
-        xsrcrect.y = srect.Y + swindow.Y;
-        xsrcrect.w = srect.Width;
-        xsrcrect.h = srect.Height;
-
-        //bool result = SDL_BlitSurface(source.SurfacePtr, &xsrcrect, SurfacePtr, &xdestrect);
-        //if (result) {
-        //    Blit_To_SDL();
-        //} else {
-        //    DEBUG_INFO("SDL_BlitSurface failed: %s", SDL_GetError());
-        //}
-
-       // return result;
-    }
     return false;
 }
 
@@ -730,55 +701,16 @@ bool SDLSurface::Fill_Rect(Rect const& fillrect, int color)
  *=============================================================================================*/
 bool SDLSurface::Fill_Rect(Rect const& cliprect, Rect const& fillrect, int color)
 {
-    if (SurfacePtr == nullptr || !fillrect.Is_Valid()) return false;
-
-    /*
-    **	If the buffer is locked, then using the blitter to perform the fill is not possible.
-    **	In such a case, perform a manual fill of the region.
-    */
-    if (!DSurface::AllowHWFill || Is_Locked() || !SDLSurface::Can_Blit()) {
-        return XSurface::Fill_Rect(cliprect, fillrect, color);
+    /**
+     *  If the buffer is locked, then using the blitter to perform the fill is not possible.
+     *  In such a case, perform a manual fill of the region.
+     */
+    if (XSurface::Fill_Rect(cliprect, fillrect, color)) {
+        Blit_To_Window(&cliprect);
+        return true;
     }
 
-    if (!Restore_Check()) return false;
-
-    /*
-    **	Ensure that the clipping rectangle is legal.
-    */
-    Rect crect = Intersect(cliprect, Get_Rect());
-
-    /*
-    **	Bias the fill rect to the clipping rectangle.
-    */
-    Rect frect = fillrect.Bias_To(cliprect);
-
-    /*
-    **	Find the region that should be filled after being clipped by the
-    **	clipping rectangle. This could result in no fill operation being performed
-    **	if the desired fill rectangle has been completely clipped away.
-    */
-    frect = Intersect(frect, crect);
-    if (!frect.Is_Valid()) return false;
-
-    SDL_Rect rect;
-    rect.x = frect.X;
-    rect.y = frect.Y;
-    rect.w = frect.Width;
-    rect.h = frect.Height;
-
-    //// Fill color should be mapped to the surface format
-    //Uint32 sdl_color = SDL_MapRGB(SurfacePtr->format,
-    //                              (color >> 16) & 0xFF, // R
-    //                              (color >> 8) & 0xFF,  // G
-    //                              (color) & 0xFF);      // B
-
-    bool result = SDL_FillSurfaceRect(SurfacePtr, &rect, color);
-
-    if (!result) {
-        DEBUG_INFO("SDL_FillRect failed: %s", SDL_GetError());
-    }
-
-    return result;
+    return false;
 }
 
 
@@ -825,5 +757,139 @@ bool SDLSurface::Fill_Rect_Trans(Rect const& rect, const RGBClass& color, int op
     }
 
     Unlock();
+    Blit_To_Window(&newrect);
+
     return true;
 }
+
+
+bool SDLSurface::Fill(int color)
+{
+    if (XSurface::Fill(color)) {
+        SDL_Update_Screen(this);
+        return true;
+    }
+    return false;
+}
+
+//bool SDLSurface::Draw_Ellipse(Point2D point, int radius_x, int radius_y, Rect clip, int color)
+//{
+//    if (XSurface::Draw_Ellipse(point, radius_x, radius_y, clip, color)) {
+//        Blit_To_Window(&clip);
+//        return true;
+//    }
+//    return false;
+//}
+//
+//bool SDLSurface::Put_Pixel(Point2D const& point, int color)
+//{
+//    if (XSurface::Put_Pixel(point, color)) {
+//        Blit_To_Window();
+//        return true;
+//    }
+//    return false;
+//}
+//
+//bool SDLSurface::Draw_Line(Point2D const& startpoint, Point2D const& endpoint, int color)
+//{
+//    if (XSurface::Draw_Line(startpoint, endpoint, color)) {
+//        Blit_To_Window();
+//        return true;
+//    }
+//    return false;
+//}
+//
+//bool SDLSurface::Draw_Line(Rect const& cliprect, Point2D const& startpoint, Point2D const& endpoint, int color)
+//{
+//    if (XSurface::Draw_Line(cliprect, startpoint, endpoint, color)) {
+//        Blit_To_Window(&cliprect);
+//        return true;
+//    }
+//    return false;
+//}
+//
+//bool SDLSurface::Draw_Line_entry_34(Rect const& cliprect, Point2D const& startpoint, Point2D const& endpoint, unsigned color, int a5, int a6, bool z_only)
+//{
+//    if (XSurface::Draw_Line_entry_34(cliprect, startpoint, endpoint, color, a5, a6, z_only)) {
+//        Blit_To_Window(&cliprect);
+//        return true;
+//    }
+//    return false;
+//}
+//
+//bool SDLSurface::Draw_Line_entry_38(Rect const& cliprect, Point2D const& startpoint, Point2D const& endpoint, int a4, int a5, int a6, bool a7)
+//{
+//    if (XSurface::Draw_Line_entry_38(cliprect, startpoint, endpoint, a4, a5, a6, a7)) {
+//        Blit_To_Window(&cliprect);
+//        return true;
+//    }
+//    return false;
+//}
+//
+//bool SDLSurface::Draw_Line_entry_3C(Rect const& cliprect, Point2D const& startpoint, Point2D const& endpoint, RGBClass& color, int a5, int a6, bool a7, bool a8, bool a9, bool a10, float a11)
+//{
+//    if (XSurface::Draw_Line_entry_3C(cliprect, startpoint, endpoint, color, a5, a6, a7, a8, a9, a10, a11)) {
+//        Blit_To_Window(&cliprect);
+//        return true;
+//    }
+//    return false;
+//}
+//
+//bool SDLSurface::Plot_Line(Rect& area, Point2D& start, Point2D& end, void (*drawer_callback)(Point2D&))
+//{
+//    if (XSurface::Plot_Line(area, start, end, drawer_callback)) {
+//        Blit_To_Window(&area);
+//        return true;
+//    }
+//    return false;
+//}
+//
+//int SDLSurface::Draw_Dashed_Line(Point2D& start, Point2D& end, unsigned color, bool pattern[], int offset)
+//{
+//    int ret = XSurface::Draw_Dashed_Line(start, end, color, pattern, offset);
+//    Blit_To_Window();
+//    return ret;
+//}
+//
+//int SDLSurface::entry_48(Point2D& start, Point2D& end, unsigned color, bool pattern[], int offset, bool a6)
+//{
+//    int ret = XSurface::entry_48(start, end, color, pattern, offset, a6);
+//    Blit_To_Window();
+//    return ret;
+//}
+//
+//bool SDLSurface::entry_4C(Point2D& start, Point2D& end, unsigned a4, bool a5)
+//{
+//    if (XSurface::entry_4C(start, end, a4, a5)) {
+//        Blit_To_Window();
+//        return true;
+//    }
+//    return false;
+//}
+//
+//bool SDLSurface::Draw_Rect(Rect const& rect, int color)
+//{
+//    if (XSurface::Draw_Rect(rect, color)) {
+//        Blit_To_Window(&rect);
+//        return true;
+//    }
+//    return false;
+//}
+//
+//bool SDLSurface::Draw_Rect(Rect const& cliprect, Rect const& rect, int color)
+//{
+//    if (XSurface::Draw_Rect(cliprect, rect, color)) {
+//        Blit_To_Window(&rect);
+//        return true;
+//    }
+//    return false;
+//}
+//
+//bool SDLSurface::entry_84(Point2D const& point, int color, Rect const& rect)
+//{
+//    if (XSurface::entry_84(point, color, rect)) {
+//        Blit_To_Window(&rect);
+//        return true;
+//    }
+//    return false;
+//}
