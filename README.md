@@ -205,9 +205,6 @@ These contributions originate from the following official repositories:
 
 They are used in accordance with the original license terms and include additional terms as permitted under [Section 7 of the GNU GPL v3](https://www.gnu.org/licenses/gpl-3.0.html#section7):
 
-<sub><i>Code within this repository can not be used for commercial or financial software as
-dictated by the license released by Electronic Arts Inc. (see ADDITIONAL TERMS - SECTION 7 of LICENSE)</i></sub>
-
 <sub><i>No trademark or publicity rights are granted. This license does NOT give
 you any right, title or interest in "Command & Conquer" or any other
 Electronic Arts Inc. trademark. You may not distribute any modification of this
