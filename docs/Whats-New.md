@@ -76,6 +76,7 @@ Vinifera fixes:
 - Fix a bug where `OpportunityFire=true` would make technos abandon targets assigned by the player (by ZivDero)
 - Fix a bug where `OpportunityFire=true` units could drive to crush their opportunity fire targets (by ZivDero)
 - Fix a bug where per-type modifiers on warheads wouldn't impact weapon selection (by ZivDero)
+- Fix a bug where `Totable=no` did not work (by ZivDero)
 
 
 Vanilla fixes:
