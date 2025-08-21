@@ -278,3 +278,4 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where `OpportunityFire=true` units could drive to crush their opportunity fire targets.
   - Fix a bug where per-type modifiers on warheads wouldn't impact weapon selection.
   - Fix a bug where `Totable=no` did not work.
+  - Fix a bug where the "Building exists" event would fire when you queued a building on the sidebar.

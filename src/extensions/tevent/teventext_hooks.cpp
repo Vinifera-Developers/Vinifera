@@ -508,7 +508,7 @@ bool TEventClassExt::_Operator_Parens_Intercept(TEventType event, HouseClass con
             **  Verify that the structure has been built.
             */
         case TEVENT_BUILDING_EXISTS:
-            if (house->BQuantity.Value(Data.Structure) == 0) return false;
+            if (house->ActiveBQuantity.Value(Data.Structure) == 0) return false;
             is_perm = true;
             break;
 

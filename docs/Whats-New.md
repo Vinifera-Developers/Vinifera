@@ -86,6 +86,7 @@ Vanilla fixes:
 - Fix a bug where a weeder could be ordered to dock with a waste facility that wasn't listed in the weeder's `Dock=` key (by ZivDero)
 - Fix a bug where the player couldn't repair aircraft on allied repair bays under some circumstances (by ZivDero)
 - Fix a buffer overflow crash in `MapClass::Place_Down` (by Rampastring)
+- Fix a bug where the "Building exists" event would fire when you queued a building on the sidebar (by ZivDero)
 
 :::
 
