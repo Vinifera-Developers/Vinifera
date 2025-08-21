@@ -630,6 +630,7 @@ bool TEventClassExt::_Is_Temporal() const
     case TEVENT_ATTACKED_BY:
     case TEVENT_DESTROYED:
     case TEVENT_DESTROYED_ANY:
+    case TEVENT_DESTROYED_ANY_X:
     case TEVENT_EVAC_CIVILIAN:
     case TEVENT_BUILD:
     case TEVENT_BUILD_UNIT:
@@ -648,11 +649,11 @@ bool TEventClassExt::_Is_Temporal() const
     case TEVENT_FIRST_DAMAGED_ANY:
     case TEVENT_ENTER_YELLOW_ANY:
     case TEVENT_ENTER_RED_ANY:
+    case TEVENT_BRIDGE_DESTROYED:
     case TEVENT_PARALYZED:
     case TEVENT_ENEMY_IN_SPOTLIGHT_REPEATING:
     case TEVENT_LIMPED:
         return true;
-
     }
     return false;
 }
