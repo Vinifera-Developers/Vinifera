@@ -110,7 +110,7 @@ extern MFCD *SideCTMix;
 extern KamikazeTrackerClass *KamikazeTracker;
 extern AircraftTrackerClass *AircraftTracker;
 
-extern int EnvironmentGlobals[std::size(ScenExtension->GlobalFlags)];
+extern int EnvironmentGlobals[/*std::size(ScenExtension->GlobalFlags)*/500];
 
 
 /**
