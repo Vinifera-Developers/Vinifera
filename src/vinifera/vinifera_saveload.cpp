@@ -136,6 +136,7 @@
 #include "language.h"
 #include "loadoptions.h"
 #include "miscutil.h"
+#include "newsidebar.h"
 #include "savever.h"
 #include "vinifera_savever.h"
 #include "windialog.h"
@@ -301,9 +302,10 @@ bool Vinifera_Put_All(IStream *pStm, bool save_net)
     if (FAILED(Logic.Save(pStm))) { return false; }
 
     DEBUG_INFO("Saving TacticalMap...\n");
-    {
-        if (FAILED(OleSaveToStream(TacticalMap, pStm))) { return false; }
-    }
+    if (FAILED(OleSaveToStream(TacticalMap, pStm))) { return false; }
+
+    DEBUG_INFO("Saving Sidebar...\n");
+    if (FAILED(Sidebar->Save(pStm))) { return false; }
 
     /**
      *  Save all game objects. This code saves every object that's stored in a DynamicVector class.
@@ -544,11 +546,14 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
     if (FAILED(Logic.Load(pStm))) { return false; }
 
     DEBUG_INFO("Loading TacticalMap...\n");
-    {
-        delete TacticalMap;
-        IUnknown *spUnk = nullptr;
-        if (FAILED(OleLoadFromStream(pStm, __uuidof(IUnknown), (LPVOID *)&spUnk))) { return false; }
-    }
+    delete TacticalMap;
+    IUnknown *spUnk = nullptr;
+    if (FAILED(OleLoadFromStream(pStm, __uuidof(IUnknown), (LPVOID *)&spUnk))) { return false; }
+
+    DEBUG_INFO("Loading Sidebar...\n");
+    delete Sidebar;
+    Sidebar = new NewSidebarClass;
+    if (FAILED(Sidebar->Load(pStm))) { return false; }
 
     /**
      *  Load all game objects. This code loads every object that's stored in a DynamicVector class.

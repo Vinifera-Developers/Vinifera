@@ -94,6 +94,7 @@
 #include "bullettype.h"
 #include "eventext.h"
 #include "houseext.h"
+#include "newsidebar.h"
 
 
 /**
@@ -414,7 +415,7 @@ bool ManualPlaceCommandClass::Process()
         /**
          *  Abort targeting the SW, so that once we place the building we don't go back to a superweapon cursor.
          */
-        Map.TargettingType = SUPER_NONE;
+        Map.IsTargettingMode = SUPER_NONE;
 
         /**
          *  Go into placement mode.
@@ -494,7 +495,7 @@ bool RepeatLastBuildingCommandClass::Process()
     /**
      *  Is the item currently available to build on the sidebar?
      */
-    if (!SidebarExtension->Is_On_Sidebar(RTTI_BUILDINGTYPE, building)) {
+    if (!Sidebar->Is_On_Sidebar(RTTI_BUILDINGTYPE, building)) {
         return false;
     }
 
@@ -564,7 +565,7 @@ bool RepeatLastInfantryCommandClass::Process()
     /**
      *  Is the item currently available to build on the sidebar?
      */
-    if (!SidebarExtension->Is_On_Sidebar(RTTI_INFANTRYTYPE, infantry)) {
+    if (!Sidebar->Is_On_Sidebar(RTTI_INFANTRYTYPE, infantry)) {
         return false;
     }
 
@@ -634,7 +635,7 @@ bool RepeatLastUnitCommandClass::Process()
     /**
      *  Is the item currently available to build on the sidebar?
      */
-    if (!SidebarExtension->Is_On_Sidebar(RTTI_UNITTYPE, unit)) {
+    if (!Sidebar->Is_On_Sidebar(RTTI_UNITTYPE, unit)) {
         return false;
     }
 
@@ -704,7 +705,7 @@ bool RepeatLastAircraftCommandClass::Process()
     /**
      *  Is the item currently available to build on the sidebar?
      */
-    if (!SidebarExtension->Is_On_Sidebar(RTTI_AIRCRAFTTYPE, aircraft)) {
+    if (!Sidebar->Is_On_Sidebar(RTTI_AIRCRAFTTYPE, aircraft)) {
         return false;
     }
 
@@ -1138,8 +1139,8 @@ const char* SetStructureTabCommandClass::Get_Description() const
 
 bool SetStructureTabCommandClass::Process()
 {
-    const SidebarClassExtension::SidebarTabType newtab = SidebarClassExtension::SIDEBAR_TAB_STRUCTURE;
-    bool result = SidebarExtension->Change_Tab(newtab);
+    const int newtab = 0;
+    bool result = Sidebar->Change_Tab(newtab);
 
     /**
      *  Enter the manual placement mode when a building is complete
@@ -1189,7 +1190,7 @@ bool SetStructureTabCommandClass::Process()
         /**
          *  Abort targeting the SW, so that once we place the building we don't go back to a superweapon cursor.
          */
-        Map.TargettingType = SUPER_NONE;
+        Map.IsTargettingMode = SUPER_NONE;
 
         /**
          *  Go into placement mode.
@@ -1228,8 +1229,8 @@ const char* SetInfantryTabCommandClass::Get_Description() const
 
 bool SetInfantryTabCommandClass::Process()
 {
-    const SidebarClassExtension::SidebarTabType newtab = SidebarClassExtension::SIDEBAR_TAB_INFANTRY;
-    return SidebarExtension->Change_Tab(newtab);
+    const int newtab = 1;
+    return Sidebar->Change_Tab(newtab);
 }
 
 
@@ -1260,8 +1261,8 @@ const char* SetUnitTabCommandClass::Get_Description() const
 
 bool SetUnitTabCommandClass::Process()
 {
-    const SidebarClassExtension::SidebarTabType newtab = SidebarClassExtension::SIDEBAR_TAB_UNIT;
-    return SidebarExtension->Change_Tab(newtab);
+    const int newtab = 2;
+    return Sidebar->Change_Tab(newtab);
 }
 
 
@@ -1292,8 +1293,8 @@ const char* SetSpecialTabCommandClass::Get_Description() const
 
 bool SetSpecialTabCommandClass::Process()
 {
-    const SidebarClassExtension::SidebarTabType newtab = SidebarClassExtension::SIDEBAR_TAB_SPECIAL;
-    return SidebarExtension->Change_Tab(newtab);
+    const int newtab = 3;
+    return Sidebar->Change_Tab(newtab);
 }
 
 

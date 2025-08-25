@@ -181,7 +181,7 @@ void TacticalExt::_Draw_Band_Box()
             const float adjust = static_cast<float>(Scen->CurrentAmbientLight) / 100.0f;
             const RGBClass tint_color = RGBClass::Interpolate(tint_dark, tint_light, adjust);
 
-            LogicSurface->Fill_Rect_Trans(tint_rect, tint_color, trans);
+            LogicalSurface->Fill_Rect_Trans(tint_rect, tint_color, trans);
         }
 
         /**
@@ -206,7 +206,7 @@ void TacticalExt::_Draw_Band_Box()
                 drop_rect.X += 1;
                 drop_rect.Y += 1;
 
-                LogicSurface->Draw_Rect(TacticalRect, drop_rect, drop_color);
+                LogicalSurface->Draw_Rect(TacticalRect, drop_rect, drop_color);
 
                 Rect thick_rect = drop_rect;
                 thick_rect.X += 1;
@@ -214,11 +214,11 @@ void TacticalExt::_Draw_Band_Box()
                 thick_rect.Width -= 2;
                 thick_rect.Height -= 2;
 
-                LogicSurface->Draw_Rect(TacticalRect, thick_rect, drop_color);
+                LogicalSurface->Draw_Rect(TacticalRect, thick_rect, drop_color);
 
             }
             else {
-                LogicSurface->Draw_Rect(TacticalRect, drop_rect, drop_color);
+                LogicalSurface->Draw_Rect(TacticalRect, drop_rect, drop_color);
             }
 
         }
@@ -231,7 +231,7 @@ void TacticalExt::_Draw_Band_Box()
             UIControls->BandBoxColor.G,
             UIControls->BandBoxColor.B);
 
-        LogicSurface->Draw_Rect(TacticalRect, band_rect, band_color);
+        LogicalSurface->Draw_Rect(TacticalRect, band_rect, band_color);
 
         /**
          *  If the band box is thick, draw an extra outline.
@@ -242,7 +242,7 @@ void TacticalExt::_Draw_Band_Box()
             thick_rect.Y += 1;
             thick_rect.Width -= 2;
             thick_rect.Height -= 2;
-            LogicSurface->Draw_Rect(TacticalRect, thick_rect, band_color);
+            LogicalSurface->Draw_Rect(TacticalRect, thick_rect, band_color);
         }
     }
 }
@@ -537,7 +537,7 @@ void TacticalExt::_Draw_Rally_Points(bool blit)
                     end_pos.Y += 2;
                     if (Clip_Line(start_pos, end_pos, TacticalRect))
                     {
-                        LogicSurface->entry_48(start_pos, end_pos, color_black, _pattern, offset, blit);
+                        LogicalSurface->entry_48(start_pos, end_pos, color_black, _pattern, offset, blit);
                     }
 
                     /**
@@ -548,14 +548,14 @@ void TacticalExt::_Draw_Rally_Points(bool blit)
                     --end_pos.Y;
                     if (Clip_Line(start_pos, end_pos, TacticalRect))
                     {
-                        LogicSurface->entry_48(start_pos, end_pos, color, _pattern, offset, blit);
+                        LogicalSurface->entry_48(start_pos, end_pos, color, _pattern, offset, blit);
                     }
 
                     --start_pos.Y;
                     --end_pos.Y;
                     if (Clip_Line(start_pos, end_pos, TacticalRect))
                     {
-                        LogicSurface->entry_48(start_pos, end_pos, color, _pattern, offset, blit);
+                        LogicalSurface->entry_48(start_pos, end_pos, color, _pattern, offset, blit);
                     }
                 }
             }
@@ -637,7 +637,7 @@ DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_NormaliseLineAnimation_Patch)
     end_pos->Y += 2;
     if (Clip_Line(*start_pos, *end_pos, TacticalRect))
     {
-        LogicSurface->entry_48(*start_pos, *end_pos, color_black, _pattern, offset, blit);
+        LogicalSurface->entry_48(*start_pos, *end_pos, color_black, _pattern, offset, blit);
     }
 
     /**
@@ -648,14 +648,14 @@ DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_NormaliseLineAnimation_Patch)
     --end_pos->Y;
     if (Clip_Line(*start_pos, *end_pos, TacticalRect))
     {
-        LogicSurface->entry_48(*start_pos, *end_pos, color, _pattern, offset, blit);
+        LogicalSurface->entry_48(*start_pos, *end_pos, color, _pattern, offset, blit);
     }
 
     --start_pos->Y;
     --end_pos->Y;
     if (Clip_Line(*start_pos, *end_pos, TacticalRect))
     {
-        LogicSurface->entry_48(*start_pos, *end_pos, color, _pattern, offset, blit);
+        LogicalSurface->entry_48(*start_pos, *end_pos, color, _pattern, offset, blit);
     }
 
     JMP(0x00617307);
@@ -687,7 +687,7 @@ DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_DrawNormalLine_Patch)
     end_pos->Y += 2;
     if (Clip_Line(*start_pos, *end_pos, TacticalRect))
     {
-        LogicSurface->entry_4C(*start_pos, *end_pos, color_black);
+        LogicalSurface->entry_4C(*start_pos, *end_pos, color_black);
     }
 
     /**
@@ -698,14 +698,14 @@ DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_DrawNormalLine_Patch)
     --end_pos->Y;
     if (Clip_Line(*start_pos, *end_pos, TacticalRect))
     {
-        LogicSurface->entry_4C(*start_pos, *end_pos, color);
+        LogicalSurface->entry_4C(*start_pos, *end_pos, color);
     }
 
     --start_pos->Y;
     --end_pos->Y;
     if (Clip_Line(*start_pos, *end_pos, TacticalRect))
     {
-        LogicSurface->entry_4C(*start_pos, *end_pos, color);
+        LogicalSurface->entry_4C(*start_pos, *end_pos, color);
     }
 
     JMP(0x00617307);

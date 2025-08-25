@@ -41,6 +41,7 @@
 #include "hooker_macros.h"
 #include "houseext.h"
 #include "mouse.h"
+#include "newsidebar.h"
 #include "rulesext.h"
 #include "sidebarext.h"
 #include "unittypeext.h"
@@ -110,7 +111,7 @@ void FactoryClassExt::_Sanitize_Queue()
 
     if (need_update) {
         if (House == PlayerPtr) {
-            SidebarExtension->Flag_Strip_To_Redraw(type, TechnoTypeClassExtension::Get_Production_Flags(producing_type));
+            Sidebar->Get_Column(type, TechnoTypeClassExtension::Get_Production_Flags(producing_type)).Flag_To_Redraw();
         }
 
         House->Update_Factories(type);

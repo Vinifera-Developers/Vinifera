@@ -188,7 +188,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
                     }
                     object = object->Next;
                 }
-                Draw_Shape(*LogicSurface, *NormalDrawer, pip_shapes, pip, Point2D(drawx + dx * index, drawy + dy * index), rect, SHAPE_WIN_REL | SHAPE_CENTER);
+                Draw_Shape(*LogicalSurface, *NormalDrawer, pip_shapes, pip, Point2D(drawx + dx * index, drawy + dy * index), rect, SHAPE_WIN_REL | SHAPE_CENTER);
             }
 
         }
@@ -258,7 +258,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
                     {
                         shape = pips_to_draw[index];
                     }
-                    Draw_Shape(*LogicSurface, *NormalDrawer, pip_shapes, shape, Point2D(drawx + dx * index, drawy + dy * index), rect, SHAPE_WIN_REL | SHAPE_CENTER);
+                    Draw_Shape(*LogicalSurface, *NormalDrawer, pip_shapes, shape, Point2D(drawx + dx * index, drawy + dy * index), rect, SHAPE_WIN_REL | SHAPE_CENTER);
                 }
             }
             else if (ext->SpawnManager && ext->SpawnManager->SpawnCount > 0)
@@ -266,7 +266,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
                 for (int index = 0; index < ext->SpawnManager->SpawnCount; index++)
                 {
                     const int pip = index < ext->SpawnManager->Docked_Count() ? 1 : 0;
-                    Draw_Shape(*LogicSurface,* NormalDrawer, pip_shapes, pip, Point2D(drawx + dx * index, drawy + dy * index), rect, SHAPE_WIN_REL | SHAPE_CENTER);
+                    Draw_Shape(*LogicalSurface,* NormalDrawer, pip_shapes, pip, Point2D(drawx + dx * index, drawy + dy * index), rect, SHAPE_WIN_REL | SHAPE_CENTER);
                 }
             }
             else if (TClass->PipScale == PIP_AMMO)
@@ -280,14 +280,14 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
 
                     for (int index = 0; index < ttype_ext->PipWrap; index++)
                     {
-                        Draw_Shape(*LogicSurface, *NormalDrawer, pips2, PIP_AMMO_WRAP_FIRST + wrap_count + (index < leftover), Point2D(drawx + dx * index, drawy + dy * index - 3), rect, SHAPE_WIN_REL | SHAPE_CENTER);
+                        Draw_Shape(*LogicalSurface, *NormalDrawer, pips2, PIP_AMMO_WRAP_FIRST + wrap_count + (index < leftover), Point2D(drawx + dx * index, drawy + dy * index - 3), rect, SHAPE_WIN_REL | SHAPE_CENTER);
                     }
                 }
                 else
                 {
                     for (int index = 0; index < Class_Of()->Max_Pips() && pips > 0; index++, pips--)
                     {
-                        Draw_Shape(*LogicSurface,* NormalDrawer, pips2, 6, Point2D(drawx + dx * index, drawy + dy * index - 3), rect, SHAPE_WIN_REL | SHAPE_CENTER);
+                        Draw_Shape(*LogicalSurface,* NormalDrawer, pips2, 6, Point2D(drawx + dx * index, drawy + dy * index - 3), rect, SHAPE_WIN_REL | SHAPE_CENTER);
                     }
                 }
                 
@@ -296,7 +296,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
             {
                 for (int index = 0; index < Class_Of()->Max_Pips(); index++)
                 {
-                    Draw_Shape(*LogicSurface,* NormalDrawer, pip_shapes, index < pips ? 1 : 0, Point2D(drawx + dx * index, drawy + dy * index), rect, SHAPE_WIN_REL | SHAPE_CENTER);
+                    Draw_Shape(*LogicalSurface,* NormalDrawer, pip_shapes, index < pips ? 1 : 0, Point2D(drawx + dx * index, drawy + dy * index), rect, SHAPE_WIN_REL | SHAPE_CENTER);
                 }
             }
         }
@@ -319,7 +319,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
 
             std::snprintf(buffer, std::size(buffer), "%d", group >= 10 ? 0 : group);
             const ColorSchemeType colorschemetype = Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor;
-            Plain_Text_Print(buffer, LogicSurface, &rect, &drawpoint, COLOR_WHITE, COLOR_TBLACK, TPF_FULLSHADOW | TPF_EFNT, colorschemetype, 1);
+            Plain_Text_Print(buffer, *LogicalSurface, rect, drawpoint, COLOR_WHITE, COLOR_TBLACK, TPF_FULLSHADOW | TPF_EFNT, colorschemetype, 1);
         }
     }
 
@@ -336,11 +336,11 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
         const int specialpip = Extension::Fetch(TClass)->SpecialPipIndex;
         if (specialpip >= 0)
         {
-            Draw_Shape(*LogicSurface, *NormalDrawer, pips1, specialpip, (Point2D(drawx, drawy) + UIControls->Get_Special_Pip_Offset(RTTI)), rect, SHAPE_WIN_REL | SHAPE_CENTER);
+            Draw_Shape(*LogicalSurface, *NormalDrawer, pips1, specialpip, (Point2D(drawx, drawy) + UIControls->Get_Special_Pip_Offset(RTTI)), rect, SHAPE_WIN_REL | SHAPE_CENTER);
         }
         else if (RTTI == RTTI_INFANTRY && Combat_Damage() < 0)
         {
-            Draw_Shape(*LogicSurface,* NormalDrawer, pips1, 6, (Point2D(drawx, drawy) + UIControls->Get_Special_Pip_Offset(RTTI)), rect, SHAPE_WIN_REL | SHAPE_CENTER);
+            Draw_Shape(*LogicalSurface,* NormalDrawer, pips1, 6, (Point2D(drawx, drawy) + UIControls->Get_Special_Pip_Offset(RTTI)), rect, SHAPE_WIN_REL | SHAPE_CENTER);
         }
 
         /**
@@ -366,7 +366,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
         {
             Point2D drawpoint = center;
             drawpoint += UIControls->Get_Veterancy_Pip_Offset(RTTI);
-            Draw_Shape(*LogicSurface, *NormalDrawer, pips1, veterancy_shape, drawpoint, rect, SHAPE_WIN_REL | SHAPE_CENTER);
+            Draw_Shape(*LogicalSurface, *NormalDrawer, pips1, veterancy_shape, drawpoint, rect, SHAPE_WIN_REL | SHAPE_CENTER);
         }
     }
 }
@@ -1727,7 +1727,7 @@ void TechnoClassExt::_Draw_Text_Overlay(Point2D& point1, Point2D& point2, Rect& 
     {
         const auto owner = Owner_HouseClass();
         std::sprintf(buffer, Fetch_String(TXT_POWER_DRAIN), owner->Power_Output(), owner->Power_Drain());
-        Plain_Text_Print(buffer, LogicSurface, &rect, &point2, COLOR_WHITE, COLOR_TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_EFNT, colorschemetype, 1);
+        Plain_Text_Print(buffer, *LogicalSurface, rect, point2, COLOR_WHITE, COLOR_TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_EFNT, colorschemetype, 1);
     }
 
     /**
@@ -1736,7 +1736,7 @@ void TechnoClassExt::_Draw_Text_Overlay(Point2D& point1, Point2D& point2, Rect& 
     if (IsLeader)
     {
         const int text = RTTI == RTTI_BUILDING && reinterpret_cast<const BuildingClass*>(this)->Class->Width() == 1 ? TXT_PRI : TXT_PRIMARY;
-        Plain_Text_Print(text, LogicSurface, &rect, &point2, COLOR_WHITE, COLOR_TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_EFNT, colorschemetype, 1);
+        Plain_Text_Print(text, *LogicalSurface, rect, point2, COLOR_WHITE, COLOR_TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_EFNT, colorschemetype, 1);
     }
 }
 

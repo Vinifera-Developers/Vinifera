@@ -148,7 +148,6 @@ extern TacticalExtension *TacticalMapExtension;
  */
 extern RulesClassExtension *RuleExtension;
 extern ScenarioClassExtension *ScenExtension;
-extern SidebarClassExtension* SidebarExtension;
 extern SessionClassExtension *SessionExtension;
 extern OptionsClassExtension *OptionsExtension;
 

@@ -290,8 +290,7 @@ void TacticalExtension::Draw_Debug_Overlay()
     /**
      *  Draw the overlay text.
      */
-    Fancy_Text_Print(buffer, CompositeSurface, &CompositeSurface->Get_Rect(),
-        &Point2D(text_rect.X, text_rect.Y), text_color, COLOR_TBLACK, TextPrintType(TPF_6PT_GRAD | TPF_NOSHADOW));
+    Fancy_Text_Print(buffer, *CompositeSurface, CompositeSurface->Get_Rect(), Point2D(text_rect.X, text_rect.Y), text_color, COLOR_TBLACK, TextPrintType(TPF_6PT_GRAD | TPF_NOSHADOW));
 
     /**
      *  Draw the current frame number.
@@ -310,8 +309,7 @@ void TacticalExtension::Draw_Debug_Overlay()
     text_rect.Width += padding;
     text_rect.Height += 3;
 
-    Fancy_Text_Print(buffer, CompositeSurface, &CompositeSurface->Get_Rect(),
-        &Point2D(text_rect.X, text_rect.Y), text_color, COLOR_TBLACK, TextPrintType(TPF_RIGHT | TPF_6PT_GRAD | TPF_NOSHADOW));
+    Fancy_Text_Print(buffer, *CompositeSurface, CompositeSurface->Get_Rect(), Point2D(text_rect.X, text_rect.Y), text_color, COLOR_TBLACK, TextPrintType(TPF_RIGHT | TPF_6PT_GRAD | TPF_NOSHADOW));
 }
 
 
@@ -350,7 +348,7 @@ bool TacticalExtension::Debug_Draw_Facings()
     screen.X += TacticalRect.X;
     screen.Y += TacticalRect.Y;
 
-    LogicSurface->Fill_Rect(TacticalRect, Rect(screen.X, screen.Y, 2, 2), DSurface::RGB_To_Pixel(255, 0, 0));
+    LogicalSurface->Fill_Rect(TacticalRect, Rect(screen.X, screen.Y, 2, 2), DSurface::RGB_To_Pixel(255, 0, 0));
 
     TextPrintType style = TPF_CENTER | TPF_FULLSHADOW | TPF_6POINT;
     WWFontClass* font = Font_Ptr(style);
@@ -363,10 +361,10 @@ bool TacticalExtension::Debug_Draw_Facings()
     std::snprintf(buffer1, sizeof(buffer1), "%d", unit->PrimaryFacing.Current().Get_Dir());
     std::snprintf(buffer2, sizeof(buffer2), "%d", unit->PrimaryFacing.Current().Get_Raw());
 
-    Simple_Text_Print(buffer1, LogicSurface, &TacticalRect, &screen, Fetch_Scheme_By_Name("White"), style);
+    Simple_Text_Print(buffer1, *LogicalSurface, TacticalRect, screen, Fetch_Scheme_By_Name("White"), style, TPF_8POINT | TPF_DROPSHADOW, 1);
 
     screen.Y += 10;
-    Simple_Text_Print(buffer2, LogicSurface, &TacticalRect, &screen, Fetch_Scheme_By_Name("White"), style);
+    Simple_Text_Print(buffer2, *LogicalSurface, TacticalRect, screen, Fetch_Scheme_By_Name("White"), style, TPF_8POINT | TPF_DROPSHADOW, 1);
 
     return true;
 }
@@ -415,8 +413,7 @@ void TacticalExtension::Draw_FrameStep_Overlay()
     /**
      *  Draw the overlay text.
      */
-    Fancy_Text_Print(text, CompositeSurface, &CompositeSurface->Get_Rect(),
-        &Point2D(text_rect.X, text_rect.Y), text_color, COLOR_TBLACK, TextPrintType(TPF_RIGHT | TPF_6PT_GRAD | TPF_NOSHADOW));
+    Fancy_Text_Print(text, *CompositeSurface, CompositeSurface->Get_Rect(), Point2D(text_rect.X, text_rect.Y), text_color, COLOR_TBLACK, TextPrintType(TPF_RIGHT | TPF_6PT_GRAD | TPF_NOSHADOW));
 }
 
 
@@ -539,8 +536,7 @@ void TacticalExtension::Draw_Information_Text()
     /**
      *  Draw the overlay text.
      */
-    Fancy_Text_Print(text, CompositeSurface, &CompositeSurface->Get_Rect(),
-        &Point2D(text_rect.X, text_rect.Y), Fetch_Scheme_By_Name("White"), COLOR_TBLACK, style);
+    Fancy_Text_Print(text, *CompositeSurface, CompositeSurface->Get_Rect(), Point2D(text_rect.X, text_rect.Y), Fetch_Scheme_By_Name("White"), COLOR_TBLACK, style);
 }
 
 
@@ -651,11 +647,11 @@ void TacticalExtension::Super_Draw_Timer(int row_index, ColorScheme * color, int
     //CompositeSurface->Fill_Rect(CompositeSurface->Get_Rect(), fill_rect, color_black);
     CompositeSurface->Fill_Rect_Trans(fill_rect, rgb_black, background_tint);
 
-    Fancy_Text_Print(timerbuff, CompositeSurface, &CompositeSurface->Get_Rect(),
-        &timer_point, to_flash ? white_color : color, COLOR_TBLACK, style);
+    Fancy_Text_Print(timerbuff, *CompositeSurface, CompositeSurface->Get_Rect(),
+        timer_point, to_flash ? white_color : color, COLOR_TBLACK, style);
 
-    Fancy_Text_Print(namebuff, CompositeSurface, &CompositeSurface->Get_Rect(),
-        &name_point, color, COLOR_TBLACK, style);
+    Fancy_Text_Print(namebuff, *CompositeSurface, CompositeSurface->Get_Rect(),
+        name_point, color, COLOR_TBLACK, style);
 }
 
 
@@ -877,8 +873,7 @@ void TacticalExtension::Draw_Templated_Text()
     /**
      *  Draw the overlay text.
      */
-    Fancy_Text_Print(TemplatedTextCache, CompositeSurface, &CompositeSurface->Get_Rect(),
-        &Point2D(text_rect.X, text_rect.Y), ColorSchemes[color], COLOR_TBLACK, style);
+    Fancy_Text_Print(TemplatedTextCache, *CompositeSurface, CompositeSurface->Get_Rect(), Point2D(text_rect.X, text_rect.Y), ColorSchemes[color], COLOR_TBLACK, style);
 }
 
 

@@ -29,4 +29,3 @@
 
 
 void SidebarClassExtension_Hooks();
-void SidebarClassExtension_Conditional_Hooks();

@@ -53,6 +53,7 @@
 #include "spawnmanager.h"
 #include "armortype.h"
 #include "layer.h"
+#include "newsidebar.h"
 #include "prerequisitegroup.h"
 #include "rockettype.h"
 
@@ -101,6 +102,9 @@ static void _Free_Heaps_Intercept()
     //Delete_Marked();
 
     EBoltClass::Clear_All();
+
+    delete Sidebar;
+    Sidebar = nullptr;
 
     /**
      *  Free extensions as they may reference vanilla objects.

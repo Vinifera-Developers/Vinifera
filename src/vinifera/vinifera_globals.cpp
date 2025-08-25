@@ -90,6 +90,8 @@ DynamicVectorClass<PrerequisiteGroupClass *> PrerequisiteGroups;
 KamikazeTrackerClass* KamikazeTracker = nullptr;
 AircraftTrackerClass* AircraftTracker = nullptr;
 
+NewSidebarClass* Sidebar = nullptr;
+
 int EnvironmentGlobals[/*std::size(ScenExtension->GlobalFlags)*/500];
 
 MFCD *GenericMix = nullptr;

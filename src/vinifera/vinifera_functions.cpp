@@ -61,6 +61,7 @@
 #include "aircrafttracker.h"
 #include "rocketlocomotion.h"
 #include "newjumpjetlocomotion.h"
+#include "newsidebar.h"
 #include "prerequisitegroup.h"
 #include "setup_hooks.h"
 
@@ -137,7 +138,8 @@ bool Vinifera_Load_INI()
 
     Vinifera_NoVersionString = ini.Get_Bool("General", "NoVersionString", Vinifera_NoVersionString);
 
-    Vinifera_NewSidebar = ini.Get_Bool("Features", "NewSidebar", false);
+    Vinifera_NewSidebar = false;
+    //ini.Get_Bool("Features", "NewSidebar", false);
     ini.Get_String("General", "SavedGamesDirectory", buffer, std::size(buffer));
     if (std::strlen(buffer) > 0) {
         std::strncpy(Vinifera_SavedGamesDirectory, buffer, std::size(Vinifera_SavedGamesDirectory) - 1);
@@ -693,6 +695,9 @@ bool Vinifera_Shutdown()
 
     delete AircraftTracker;
     AircraftTracker = nullptr;
+
+    delete Sidebar;
+    Sidebar = nullptr;
 
     DEV_DEBUG_INFO("Shutdown - New Count: %d, Delete Count: %d\n", Vinifera_New_Count, Vinifera_Delete_Count);
 

@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          SIDEBAREXT.CPP
+ *  @file          NEWSIDEBAR_HOOKS.CPP
  *
  *  @author        ZivDero
  *
- *  @brief         Extended SidebarClass class.
+ *  @brief         Contains the hooks for the new sidebar.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -25,32 +25,48 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "sidebarext.h"
-#include "sidebarext.h"
-#include "tibsun_globals.h"
-#include "tibsun_defines.h"
-#include "ccini.h"
-#include "noinit.h"
-#include "swizzle.h"
-#include "scenarioext.h"
-#include "vinifera_saveload.h"
-#include "asserthandler.h"
-#include "debughandler.h"
-#include "drawshape.h"
-#include "language.h"
-#include "tooltip.h"
-#include "mouse.h"
-#include "house.h"
-#include "super.h"
-#include "event.h"
-#include "eventext.h"
-#include "object.h"
-#include "factory.h"
-#include "houseext.h"
-#include "tibsun_functions.h"
-#include "vox.h"
-#include "wwmouse.h"
-#include "techno.h"
-#include "sideext.h"
-#include "housetype.h"
 
+#include "newsidebar_hooks.h"
+
+#include "debughandler.h"
+#include "hooker.h"
+#include "hooker_macros.h"
+#include "newsidebar.h"
+#include "tibsun_globals.h"
+#include "vinifera_globals.h"
+
+
+static void Delete_Sidebar()
+{
+    delete Sidebar;
+    Sidebar = nullptr;
+}
+
+
+static void Create_Sidebar()
+{
+    DEBUG_INFO("Creating New Sidebar\n");
+    delete Sidebar;
+    Sidebar = new NewSidebarClass;
+}
+
+
+DECLARE_PATCH(_Init_Game_Create_Sidebar_Patch)
+{
+    // Stolen instruction
+    LogicalSurface = HiddenSurface;
+
+    Create_Sidebar();
+
+    DEBUG_INFO("Init Bulk Data\n");
+    JMP(0x004E08DE);
+}
+
+
+/**
+ *  Main function for patching the hooks.
+ */
+void NewSidebar_Hooks()
+{
+    Patch_Jump(0x004E08D3, &_Init_Game_Create_Sidebar_Patch);
+}

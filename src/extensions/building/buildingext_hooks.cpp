@@ -1534,7 +1534,7 @@ DECLARE_PATCH(_BuildingClass_Draw_Spied_Cameo_Palette_Patch)
         pcxrect.Width = technotypeext->CameoImageSurface->Get_Width();
         pcxrect.Height = technotypeext->CameoImageSurface->Get_Height();
 
-        SpriteCollection.Draw(pcxrect, *LogicSurface, *technotypeext->CameoImageSurface);
+        SpriteCollection.Draw(pcxrect, *LogicalSurface, *technotypeext->CameoImageSurface);
 
     } else {
 
@@ -1546,7 +1546,7 @@ DECLARE_PATCH(_BuildingClass_Draw_Spied_Cameo_Palette_Patch)
          *  Original code used NormalDrawer, which is the old Red Alert shape
          *  drawer, so we need to use CameoDrawer here for the correct palette.
          */
-        Draw_Shape(*LogicSurface, *CameoDrawer, cameo_shape, 0, *pos_xy, *window_rect, SHAPE_CENTER|SHAPE_WIN_REL|SHAPE_ALPHA|SHAPE_NORMAL);
+        Draw_Shape(*LogicalSurface, *CameoDrawer, cameo_shape, 0, *pos_xy, *window_rect, SHAPE_CENTER|SHAPE_WIN_REL|SHAPE_ALPHA|SHAPE_NORMAL);
     }
 
     JMP(0x00428B13);

@@ -620,7 +620,7 @@ return_true:
  */
 int _HouseClass_ShouldDisableCameo_Get_Queued_Count(FactoryClass* factory, TechnoTypeClass* technotype)
 {
-    int count = factory->Total_Queued(*technotype);
+    int count = factory->Total(technotype);
     TechnoClass* factoryobject = factory->Get_Object();
 
     if (factoryobject == nullptr || count == 0) {

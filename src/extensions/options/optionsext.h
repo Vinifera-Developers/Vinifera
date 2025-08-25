@@ -74,4 +74,60 @@ class OptionsClassExtension final : public GlobalExtensionClass<OptionsClass>
          *  Are harvesters and MCVs excluded from a band-box selection that includes combat units?
          */
         bool FilterBandBoxSelection;
+
+        struct {
+
+            bool IsTabs = false;
+            int Tabs = 1;
+            int Columns = 1;
+
+            int CameoWidth = 64;
+            int CameoHeight = 48;
+            int CameoXSpacing = 3;
+            int CameoYSpacing = 3;
+            Point2D CameoNameOffset = Point2D(0, 41); //0, 41
+            Point2D CameoQueueCountOffset = Point2D(60, 2); // 60, 2
+            Point2D CameoStateOffset;
+
+            int StripXLeftSpace = 24;
+            int StripXRightSpace = 13;
+            int StripYOffset = 26;
+
+            int PowerXOffset = 25;
+
+            int RadarHeight = 134;
+            int TabHeight = 16;
+
+            int Get_Sidebar_Width() const { return (CameoWidth * Columns) + (CameoXSpacing * (Columns - 1)) + StripXRightSpace + StripXLeftSpace; }
+            __declspec(property(get = Get_Sidebar_Width)) int SidebarWidth;
+
+            int Get_Strip1_X() const { return StripXLeftSpace; }
+            __declspec(property(get = Get_Strip1_X)) int Strip1X;
+
+            int Get_Strip2_X() const { return Strip1X + CameoWidth + CameoXSpacing; }
+            __declspec(property(get = Get_Strip2_X)) int Strip2X;
+
+            int Get_Strip3_X() const { return Strip2X + CameoWidth + CameoXSpacing; }
+            __declspec(property(get = Get_Strip3_X)) int Strip3X;
+
+            int Get_Object_Width() const { return CameoWidth + CameoXSpacing; }
+            __declspec(property(get = Get_Object_Width)) int ObjectWidth;
+
+            int Get_Object_Height() const { return CameoHeight + CameoYSpacing; }
+            __declspec(property(get = Get_Object_Height)) int ObjectHeight;
+
+            int ScrollRate = 51;
+
+            Point2D RepairOffset = Point2D(31, -9);
+            Point2D SellOffset = Point2D(58, -9);
+            Point2D PowerOffset = Point2D(85, -9);
+            Point2D WaypointOffset = Point2D(112, -9);
+
+            Point2D TabButtonOffset[6];
+
+            Point2D UpButtonOffset = Point2D(2, -1);
+            Point2D DownButtonOffset = Point2D(31, -1);
+
+
+        } SidebarControls;
 };

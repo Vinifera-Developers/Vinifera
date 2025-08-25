@@ -49,6 +49,8 @@
 #include "houseext.h"
 #include "kamikazetracker.h"
 #include "mouse.h"
+#include "newsidebar.h"
+#include "tactical.h"
 #include "vinifera_globals.h"
 
 
@@ -137,6 +139,14 @@ public:
 };
 
 
+static void Create_Sidebar()
+{
+    DEBUG_INFO("Creating New Sidebar\n");
+    delete Sidebar;
+    Sidebar = new NewSidebarClass;
+}
+
+
 /**
  *  #issue-71
  * 
@@ -156,6 +166,8 @@ DECLARE_PATCH(_Clear_Scenario_Patch)
 
     KamikazeTracker->Clear();
     AircraftTracker->Clear();
+
+    Create_Sidebar();
 
     JMP(0x005DC872);
 }
@@ -458,6 +470,17 @@ DECLARE_PATCH(_Read_Scenario_INI_Read_Global_INI_Patch)
 {
     ScenExtension->Read_Global_INI(*RuleINI);
     JMP(0x005DD8D5);
+}
+
+
+DECLARE_PATCH(_Read_Scenario_INI_Create_Sidebar_Patch)
+{
+    // Stolen instruction
+    TacticalMap->Set_View_Dimensions(TacticalRect);
+
+    Create_Sidebar();
+
+    JMP(0x005DD6B3);
 }
 
 

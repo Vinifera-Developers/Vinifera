@@ -34,6 +34,7 @@
 #include "scenarioext.h"
 
 
+class NewSidebarClass;
 class PrerequisiteGroupClass;
 class KamikazeTrackerClass;
 class AircraftTrackerClass;
@@ -109,6 +110,8 @@ extern MFCD *SideCTMix;
 
 extern KamikazeTrackerClass *KamikazeTracker;
 extern AircraftTrackerClass *AircraftTracker;
+
+extern NewSidebarClass *Sidebar;
 
 extern int EnvironmentGlobals[/*std::size(ScenExtension->GlobalFlags)*/500];
 
