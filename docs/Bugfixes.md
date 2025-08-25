@@ -81,3 +81,4 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where the player couldn't repair aircraft on allied repair bays under some circumstances.
 - Fix a buffer overflow crash in `MapClass::Place_Down`.
 - Fix a bug where the "Building exists" event would fire when you queued a building on the sidebar.
+- Fix a bug where using the "Destroy Tag" trigger action could lead to trying to free invalid memory.

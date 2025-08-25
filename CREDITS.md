@@ -279,3 +279,4 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where per-type modifiers on warheads wouldn't impact weapon selection.
   - Fix a bug where `Totable=no` did not work.
   - Fix a bug where the "Building exists" event would fire when you queued a building on the sidebar.
+  - Fix a bug where using the "Destroy Tag" trigger action could lead to trying to free invalid memory.
