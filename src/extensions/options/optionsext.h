@@ -90,7 +90,7 @@ class OptionsClassExtension final : public GlobalExtensionClass<OptionsClass>
             char MixLetter = '\0';
 
             bool IsTabs = false;
-            int Tabs = 1;
+            int Tabs = 0;
             int Columns = 2;
 
             int TabHeight = 16;
@@ -164,12 +164,22 @@ class OptionsClassExtension final : public GlobalExtensionClass<OptionsClass>
             int NavalTab = -1;
             int AircraftTab = -1;
 
-            TabActionType TabActions[MAX_TABS] = {
+            TabActionType TabAction[MAX_TABS] = {
                 TAB_ACTION_NONE,
                 TAB_ACTION_NONE,
                 TAB_ACTION_NONE,
                 TAB_ACTION_NONE,
                 TAB_ACTION_NONE
             };
+
+            std::string TabName[MAX_TABS] = {
+                "",
+                "",
+                "",
+                "",
+                "",
+                ""
+            };
+
         } SidebarControls;
 };

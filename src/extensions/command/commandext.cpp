@@ -94,6 +94,7 @@
 #include "eventext.h"
 #include "houseext.h"
 #include "newsidebar.h"
+#include "optionsext.h"
 #include "technotypeext.h"
 
 
@@ -1117,184 +1118,112 @@ bool ToggleSuperTimersCommandClass::Process()
  *
  *  @author: ZivDero
  */
-const char* SetStructureTabCommandClass::Get_Name() const
+template class SetTabCommandClass<0>;
+template class SetTabCommandClass<1>;
+template class SetTabCommandClass<2>;
+template class SetTabCommandClass<3>;
+template class SetTabCommandClass<4>;
+template class SetTabCommandClass<5>;
+
+template<int tab_number>
+const char* SetTabCommandClass<tab_number>::Get_Name() const
 {
-    return "StructureTab";
+    static std::string str = OptionsExtension->SidebarControls.TabName[tab_number] + "Tab";
+    return str.c_str();
 }
 
-const char* SetStructureTabCommandClass::Get_UI_Name() const
+template<int tab_number>
+const char* SetTabCommandClass<tab_number>::Get_UI_Name() const
 {
-    return "Select Building Tab";
+    static std::string str = "Select " + OptionsExtension->SidebarControls.TabName[tab_number] + " Tab";
+    return str.c_str();
 }
 
-const char* SetStructureTabCommandClass::Get_Category() const
+template<int tab_number>
+const char* SetTabCommandClass<tab_number>::Get_Category() const
 {
     return Text_String(TXT_INTERFACE);
 }
 
-const char* SetStructureTabCommandClass::Get_Description() const
+template<int tab_number>
+const char* SetTabCommandClass<tab_number>::Get_Description() const
 {
-    return "Switch the command bar to the Building Tab and select the completed building if any.";
+    static std::string str = "Switch the command bar to the " + OptionsExtension->SidebarControls.TabName[tab_number] + " Tab.";
+    return str.c_str();
 }
 
-bool SetStructureTabCommandClass::Process()
+template<int tab_number>
+bool SetTabCommandClass<tab_number>::Process()
 {
-    const int newtab = 0;
-    bool result = Sidebar->Change_Tab(newtab);
+    bool result = Sidebar->Change_Tab(tab_number);
 
-    /**
-     *  Enter the manual placement mode when a building is complete
-     *  and pending placement on the sidebar.
-     *
-     *  @author: CCHyper (based on research by dkeeton)
-     */
-    if (PlayerPtr)
-    {
-        /**
-         *  Fetch the house's factory associated with producing buildings.
-         */
-        FactoryClass* factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(RTTI_BUILDING, PRODFLAG_NONE);
-        if (!factory)
-            return result;
+    OptionsClassExtension::TabActionType action = OptionsExtension->SidebarControls.TabAction[tab_number];
+    if (action != OptionsClassExtension::TAB_ACTION_NONE) {
 
         /**
-         *  If this object is still being built, then bail.
+         *  Enter the manual placement mode when a building is complete
+         *  and pending placement on the sidebar.
+         *
+         *  @author: CCHyper (based on research by dkeeton)
          */
-        if (!factory->Has_Completed()) {
-            return result;
+        if (PlayerPtr) {
+
+            /**
+             *  Fetch the house's factory associated with producing buildings.
+             */
+            FactoryClass* factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(RTTI_BUILDING, action == OptionsClassExtension::TAB_ACTION_DEFENSES ? PRODFLAG_DEFENSE : PRODFLAG_NONE);
+            if (!factory) {
+                return result;
+            }
+
+
+            /**
+             *  If this object is still being built, then bail.
+             */
+            if (!factory->Has_Completed()) {
+                return result;
+            }
+
+            TechnoClass* pending = factory->Get_Object();
+
+            /**
+             *  If by some rare chance the product is not a building, then bail.
+             */
+            if (pending->RTTI != RTTI_BUILDING) {
+                return result;
+            }
+
+
+            BuildingClass* pending_bptr = reinterpret_cast<BuildingClass*>(pending);
+
+            /**
+             *  Are we already trying to place this building? No need to re-enter placement mode...
+             */
+            if (Map.PendingObjectPtr == pending_bptr) {
+                return result;
+            }
+
+            /**
+             *  Fetch the factory building that can build this object.
+             */
+            BuildingClass* builder = pending_bptr->Who_Can_Build_Me();
+            if (!builder) {
+                return result;
+            }
+
+            /**
+             *  Abort targeting the SW, so that once we place the building we don't go back to a superweapon cursor.
+             */
+            Map.IsTargettingMode = SUPER_NONE;
+
+            /**
+             *  Go into placement mode.
+             */
+            PlayerPtr->Manual_Place(builder, pending_bptr);
         }
-
-        TechnoClass* pending = factory->Get_Object();
-
-        /**
-         *  If by some rare chance the product is not a building, then bail.
-         */
-        if (pending->RTTI != RTTI_BUILDING)
-            return result;
-
-        BuildingClass* pending_bptr = reinterpret_cast<BuildingClass*>(pending);
-
-        /**
-         *  Are we already trying to place this building? No need to re-enter placement mode...
-         */
-        if (Map.PendingObjectPtr == pending_bptr)
-            return result;
-
-        /**
-         *  Fetch the factory building that can build this object.
-         */
-        BuildingClass* builder = pending_bptr->Who_Can_Build_Me();
-        if (!builder)
-            return result;
-
-        /**
-         *  Abort targeting the SW, so that once we place the building we don't go back to a superweapon cursor.
-         */
-        Map.IsTargettingMode = SUPER_NONE;
-
-        /**
-         *  Go into placement mode.
-         */
-        PlayerPtr->Manual_Place(builder, pending_bptr);
     }
 
     return result;
-}
-
-
-/**
- *  Switches the sidebar to the Infantry Tab.
- *
- *  @author: ZivDero
- */
-const char* SetInfantryTabCommandClass::Get_Name() const
-{
-    return "InfantryTab";
-}
-
-const char* SetInfantryTabCommandClass::Get_UI_Name() const
-{
-    return "Select Infantry Tab";
-}
-
-const char* SetInfantryTabCommandClass::Get_Category() const
-{
-    return Text_String(TXT_INTERFACE);
-}
-
-const char* SetInfantryTabCommandClass::Get_Description() const
-{
-    return "Switch the command bar to the Infantry Tab.";
-}
-
-bool SetInfantryTabCommandClass::Process()
-{
-    const int newtab = 1;
-    return Sidebar->Change_Tab(newtab);
-}
-
-
-/**
- *  Switches the sidebar to the Vehicle Tab.
- *
- *  @author: ZivDero
- */
-const char* SetUnitTabCommandClass::Get_Name() const
-{
-    return "UnitTab";
-}
-
-const char* SetUnitTabCommandClass::Get_UI_Name() const
-{
-    return "Select Vehicles Tab";
-}
-
-const char* SetUnitTabCommandClass::Get_Category() const
-{
-    return Text_String(TXT_INTERFACE);
-}
-
-const char* SetUnitTabCommandClass::Get_Description() const
-{
-    return "Switch the command bar to the Vehicle Tab.";
-}
-
-bool SetUnitTabCommandClass::Process()
-{
-    const int newtab = 2;
-    return Sidebar->Change_Tab(newtab);
-}
-
-
-/**
- *  Switches the sidebar to the Special Tab.
- *
- *  @author: ZivDero
- */
-const char* SetSpecialTabCommandClass::Get_Name() const
-{
-    return "SpecialTab";
-}
-
-const char* SetSpecialTabCommandClass::Get_UI_Name() const
-{
-    return "Select Specials Tab";
-}
-
-const char* SetSpecialTabCommandClass::Get_Category() const
-{
-    return Text_String(TXT_INTERFACE);
-}
-
-const char* SetSpecialTabCommandClass::Get_Description() const
-{
-    return "Switch the command bar to the Special Tab.";
-}
-
-bool SetSpecialTabCommandClass::Process()
-{
-    const int newtab = 3;
-    return Sidebar->Change_Tab(newtab);
 }
 
 

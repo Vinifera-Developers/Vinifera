@@ -40,6 +40,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "optionsext.h"
 
 
 /**
@@ -231,10 +232,23 @@ void Init_Vinifera_Commands()
      */
     DEBUG_INFO("Initializing sidebar tab commands.\n");
 
-    Commands.Add(new SetStructureTabCommandClass);
-    Commands.Add(new SetInfantryTabCommandClass);
-    Commands.Add(new SetUnitTabCommandClass);
-    Commands.Add(new SetSpecialTabCommandClass);
+    if (OptionsExtension->SidebarControls.IsTabs) {
+        switch (OptionsExtension->SidebarControls.Tabs) {
+        case 6:
+            Commands.Add(new SetTabCommandClass<5>());
+        case 5:
+            Commands.Add(new SetTabCommandClass<4>());
+        case 4:
+            Commands.Add(new SetTabCommandClass<3>());
+        case 3:
+            Commands.Add(new SetTabCommandClass<2>());
+        case 2:
+            Commands.Add(new SetTabCommandClass<1>());
+        case 1:
+            Commands.Add(new SetTabCommandClass<0>());
+            break;
+        }
+    }
 
     /**
      *  Next, initialize any developer mode commands if developer mode is enabled.
@@ -308,26 +322,6 @@ void Init_Vinifera_Commands()
 
 
 /**
- *  Set the default key assignments.
- * 
- *  @author: ZivDero
- */
-static void Process_Vinifera_Hotkey_Defaults()
-{
-    for (int i = 0; i < Commands.Count(); i++)
-    {
-        auto vcmd = dynamic_cast<ViniferaCommandClass*>(Commands[i]);
-        if (vcmd) {
-            KeyNumType key = vcmd->Default_Key();
-            if (key != KN_NONE && !HotkeyIndex.Is_Present(key) && HotkeyIndex.Fetch_ID_By_Data(vcmd) == -1) {
-                HotkeyIndex.Add_Index(key, vcmd);
-            }
-        }
-    }
-}
-
-
-/**
  *  Patch for initializing the new hotkey commands.
  * 
  *  @author: CCHyper
@@ -340,8 +334,6 @@ DECLARE_PATCH(_Init_Commands_Patch)
      *  Stolen bytes/code here.
      */
     Load_Keyboard_Hotkeys();
-
-    Process_Vinifera_Hotkey_Defaults();
 
     JMP(0x004E6FAE);
 }

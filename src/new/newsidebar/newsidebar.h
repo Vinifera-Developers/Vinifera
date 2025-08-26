@@ -334,43 +334,21 @@ public:
 
     std::vector<StripClass> Column;
 
-    //bool IsCameoText;
-
-    /*
-    **  If the sidebar is active then this flag is true.
-    */
-    //bool IsSidebarActive;
-
-    /*
-    **  This flag tells the rendering system that the sidebar needs to be redrawn.
-    */
-    //bool IsToRedraw;
-
-    //bool FullRedraw;
-    //bool field_1CD8;
-
     int CurrentTab;
     StripClass& Current_Tab() { return Column[CurrentTab]; }
 
     bool Scroll(bool up, int column);
     bool Page(bool up, int column);
 
-
-    //bool Activate_Repair(int control);
-    //bool Activate_Upgrade(int control);
-    //bool Activate_Demolish(int control);
     static int Which_Column(RTTIType type, ProductionFlags flags);
     StripClass& Get_Column(RTTIType type, ProductionFlags flags) { return Column[Which_Column(type, flags)]; }
 
 private:
-    //bool IsRepairActive;
-    //bool IsUpgradeActive;
-    //bool IsDemolishActive;
 
     class SBGadgetClass : public GadgetClass
     {
     public:
-        SBGadgetClass(void);
+        SBGadgetClass();
 
     protected:
         virtual int Action(unsigned flags, KeyNumType& key);
