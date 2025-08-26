@@ -30,6 +30,7 @@
 #include "always.h"
 #include "extension.h"
 #include "options.h"
+#include <vector>
 
 
 class CCINIClass;
@@ -74,12 +75,6 @@ class OptionsClassExtension final : public GlobalExtensionClass<OptionsClass>
          *  Are harvesters and MCVs excluded from a band-box selection that includes combat units?
          */
         bool FilterBandBoxSelection;
-
-        enum TabActionType {
-            TAB_ACTION_NONE = -1,
-            TAB_ACTION_BUILDINGS,
-            TAB_ACTION_DEFENSES
-        };
 
         struct {
 
@@ -141,14 +136,7 @@ class OptionsClassExtension final : public GlobalExtensionClass<OptionsClass>
             Point2D PowerButtonPosition = Point2D(85, -9);
             Point2D WaypointButtonPosition = Point2D(112, -9);
 
-            Point2D TabButtonOffset[MAX_TABS] = {
-                Point2D(0, 0),
-                Point2D(0, 0),
-                Point2D(0, 0),
-                Point2D(0, 0),
-                Point2D(0, 0),
-                Point2D(0, 0)
-            };
+            std::vector<Point2D> TabButtonOffset;
 
             Point2D UpButtonOffset = Point2D(2, -1);
             Point2D DownButtonOffset = Point2D(31, -1);
@@ -164,22 +152,7 @@ class OptionsClassExtension final : public GlobalExtensionClass<OptionsClass>
             int NavalTab = -1;
             int AircraftTab = -1;
 
-            TabActionType TabAction[MAX_TABS] = {
-                TAB_ACTION_NONE,
-                TAB_ACTION_NONE,
-                TAB_ACTION_NONE,
-                TAB_ACTION_NONE,
-                TAB_ACTION_NONE
-            };
-
-            std::string TabName[MAX_TABS] = {
-                "",
-                "",
-                "",
-                "",
-                "",
-                ""
-            };
+            std::vector<std::string> TabName;
 
         } SidebarControls;
 };

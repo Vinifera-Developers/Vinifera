@@ -240,8 +240,6 @@ void OptionsClassExtension::Load_Init_Settings()
                 SidebarControls.Columns = 2;
                 SidebarControls.MixLetter = 'T';
 
-                SidebarControls.TabAction[0] = TAB_ACTION_BUILDINGS;
-
                 SidebarControls.BuildingsTab = 0;
                 SidebarControls.DefensesTab = 0;
                 SidebarControls.SpecialTab = 3;
@@ -281,8 +279,6 @@ void OptionsClassExtension::Load_Init_Settings()
                 SidebarControls.Columns = 3;
                 SidebarControls.MixLetter = 'T';
 
-                SidebarControls.TabAction[0] = TAB_ACTION_BUILDINGS;
-
                 SidebarControls.BuildingsTab = 0;
                 SidebarControls.DefensesTab = 0;
                 SidebarControls.SpecialTab = 3;
@@ -298,6 +294,7 @@ void OptionsClassExtension::Load_Init_Settings()
                 SidebarControls.PowerButtonPosition = Point2D(85, -9);
                 SidebarControls.WaypointButtonPosition = Point2D(112, -9);
 
+                SidebarControls.TabButtonOffset.resize(SidebarControls.Tabs, Point2D(0, 0));
                 SidebarControls.TabButtonOffset[0] = Point2D(20, 27);
                 SidebarControls.TabButtonOffset[1] = Point2D(55, 27);
                 SidebarControls.TabButtonOffset[2] = Point2D(90, 27);
@@ -309,6 +306,7 @@ void OptionsClassExtension::Load_Init_Settings()
                 SidebarControls.PowerPosition = Point2D(8, 53);
                 SidebarControls.PowerHeightFudge = 3;
 
+                SidebarControls.TabName.resize(SidebarControls.Tabs, "");
                 SidebarControls.TabName[0] = "Buildings";
                 SidebarControls.TabName[1] = "Infantry";
                 SidebarControls.TabName[2] = "Units";
@@ -322,9 +320,6 @@ void OptionsClassExtension::Load_Init_Settings()
                 SidebarControls.Tabs = 6;
                 SidebarControls.Columns = 3;
                 SidebarControls.MixLetter = 'T';
-
-                SidebarControls.TabAction[0] = TAB_ACTION_BUILDINGS;
-                SidebarControls.TabAction[1] = TAB_ACTION_DEFENSES;
 
                 SidebarControls.BuildingsTab = 0;
                 SidebarControls.DefensesTab = 1;
@@ -341,6 +336,7 @@ void OptionsClassExtension::Load_Init_Settings()
                 SidebarControls.PowerButtonPosition = Point2D(85, -9);
                 SidebarControls.WaypointButtonPosition = Point2D(112, -9);
 
+                SidebarControls.TabButtonOffset.resize(SidebarControls.Tabs, Point2D(0, 0));
                 SidebarControls.TabButtonOffset[0] = Point2D(20, 27);
                 SidebarControls.TabButtonOffset[1] = Point2D(55, 27);
                 SidebarControls.TabButtonOffset[2] = Point2D(90, 27);
@@ -357,6 +353,7 @@ void OptionsClassExtension::Load_Init_Settings()
                 SidebarControls.RadarHeight = 188;
                 SidebarControls.RadarMapRect = Rect(15, 12, 196, 151);
 
+                SidebarControls.TabName.resize(SidebarControls.Tabs, "");
                 SidebarControls.TabName[0] = "Buildings";
                 SidebarControls.TabName[1] = "Defenses";
                 SidebarControls.TabName[2] = "Infantry";
@@ -404,6 +401,7 @@ void OptionsClassExtension::Load_Init_Settings()
             SidebarControls.PowerButtonPosition = sun_ini.Get_Point(SIDEBAR, "PowerButtonPosition", SidebarControls.PowerButtonPosition);
             SidebarControls.WaypointButtonPosition = sun_ini.Get_Point(SIDEBAR, "WaypointButtonPosition", SidebarControls.WaypointButtonPosition);
 
+            SidebarControls.TabButtonOffset.resize(SidebarControls.Tabs, Point2D(0, 0));
             for (int i = 0; i < SidebarControls.Tabs; i++) {
                 char key[32];
                 std::snprintf(key, sizeof(key), "TabButton%dOffset", i);
@@ -429,35 +427,7 @@ void OptionsClassExtension::Load_Init_Settings()
             SidebarControls.NavalTab = sun_ini.Get_Int_Clamp(SIDEBAR, "NavalTab", 0, SidebarControls.Tabs - 1, SidebarControls.NavalTab);
             SidebarControls.AircraftTab = sun_ini.Get_Int_Clamp(SIDEBAR, "AircraftTab", 0, SidebarControls.Tabs - 1, SidebarControls.AircraftTab);
 
-            auto tab_action_from_string = [](const char* str) -> TabActionType {
-                if (strnicmp(str, "Buildings", 9) == 0) {
-                    return TAB_ACTION_BUILDINGS;
-                }
-                if (strnicmp(str, "Defenses", 8) == 0) {
-                    return TAB_ACTION_DEFENSES;
-                }
-                return TAB_ACTION_NONE;
-            };
-
-            auto tab_action_to_string = [](TabActionType type) -> const char* {
-                switch (type) {
-                case TAB_ACTION_BUILDINGS:
-                    return "Buildings";
-                case TAB_ACTION_DEFENSES:
-                    return "Defenses";
-                default:
-                    return "None";
-                }
-            };
-
-            for (int i = 0; i < SidebarControls.Tabs; i++) {
-                char key[32];
-                std::snprintf(key, sizeof(key), "Tab%dAction", i);
-                if (sun_ini.Get_String(SIDEBAR, key, tab_action_to_string(SidebarControls.TabAction[i]), buffer, sizeof(buffer)) > 0) {
-                    SidebarControls.TabAction[i] = tab_action_from_string(buffer);
-                }
-            }
-
+            SidebarControls.TabName.resize(SidebarControls.Tabs, "");
             for (int i = 0; i < SidebarControls.Tabs; i++) {
                 char key[32];
                 std::snprintf(key, sizeof(key), "Tab%dName", i);
