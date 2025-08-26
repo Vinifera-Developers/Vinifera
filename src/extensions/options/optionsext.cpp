@@ -210,14 +210,14 @@ void OptionsClassExtension::Load_Init_Settings()
 
         {
             char buffer[512];
-            sun_ini.Get_String(SIDEBAR, "Preset", "Vanilla", buffer, sizeof(buffer));
+            sun_ini.Get_String(SIDEBAR, "Preset", "", buffer, sizeof(buffer));
 
             enum {
                 PRESET_VANILLA,
                 PRESET_4TABS,
                 PRESET_4TABSWIDE,
                 PREST_6TABS
-            } preset = PRESET_VANILLA;
+            } preset = PREST_6TABS; // PRESET_VANILLA;
 
             if (strnicmp(buffer, "Vanilla", sizeof(buffer)) == 0) {
                 preset = PRESET_VANILLA;
@@ -228,8 +228,6 @@ void OptionsClassExtension::Load_Init_Settings()
             } else if (strnicmp(buffer, "6Tabs", sizeof(buffer)) == 0) {
                 preset = PREST_6TABS;
             }
-
-            preset = PRESET_4TABSWIDE;
 
             switch (preset) {
             case PRESET_VANILLA:

@@ -52,6 +52,7 @@
 #include "technotypeext.h"
 #include "tooltip.h"
 #include "vinifera_globals.h"
+#include "vinifera_saveload.h"
 #include "voc.h"
 #include "vox.h"
 #include "wwmouse.h"
@@ -140,13 +141,42 @@ NewSidebarClass::NewSidebarClass(NoInitClass const& x)
 {
 }
 
-HRESULT NewSidebarClass::Load(IStream* pStm)
+
+HRESULT NewSidebarClass::Load(IStream* stream)
 {
-    return S_OK;
+    HRESULT result = stream->Read(this, sizeof(*this), nullptr);
+    if (FAILED(result)) return result;
+
+    new (this) NewSidebarClass(NoInitClass());
+
+    int count;
+    result = stream->Read(&count, sizeof(count), nullptr);
+    if (FAILED(result)) return result;
+
+    for (int i = 0; i < count; i++) {
+        Column.emplace_back(NoInitClass());
+        result = Column.back().Load(stream);
+        if (FAILED(result)) return result;
+    }
+
+    return result;
 }
 
-HRESULT NewSidebarClass::Save(IStream* pStm)
+
+HRESULT NewSidebarClass::Save(IStream* stream) const
 {
+    HRESULT result = stream->Write(this, sizeof(*this), nullptr);
+    if (FAILED(result)) return result;
+
+    int count = static_cast<int>(Column.size());
+    result = stream->Write(&count, sizeof(count), nullptr);
+    if (FAILED(result)) return result;
+
+    for (const auto& strip : Column) {
+        result = strip.Save(stream);
+        if (FAILED(result)) return result;
+    }
+
     return S_OK;
 }
 
@@ -874,6 +904,50 @@ NewSidebarClass::StripClass::StripClass(int id, Point2D origin, int columns) :
     Slid(0),
     LastSlid(0)
 {
+}
+
+
+HRESULT NewSidebarClass::StripClass::Load(IStream* stream)
+{
+    HRESULT result = stream->Read(this, sizeof(*this), nullptr);
+    if (FAILED(result)) return result;
+
+    new (this) StripClass(NoInitClass());
+
+    int count;
+    result = stream->Read(&count, sizeof(count), nullptr);
+    if (FAILED(result)) return result;
+
+    for (int i = 0; i < count; i++) {
+        BuildType buildable;
+        result = stream->Read(&buildable, sizeof(buildable), nullptr);
+        if (FAILED(result)) return result;
+        Buildables.push_back(buildable);
+    }
+
+    for (auto& buildable : Buildables) {
+        VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(buildable.Factory, "BuildType::Factory");
+    }
+
+    return result;
+}
+
+
+HRESULT NewSidebarClass::StripClass::Save(IStream* stream) const
+{
+    HRESULT result = stream->Write(this, sizeof(*this), nullptr);
+    if (FAILED(result)) return result;
+
+    int count = static_cast<int>(Buildables.size());
+    result = stream->Write(&count, sizeof(count), nullptr);
+    if (FAILED(result)) return result;
+
+    for (const auto& buildable : Buildables) {
+        result = stream->Write(&buildable, sizeof(buildable), nullptr);
+        if (FAILED(result)) return result;
+    }
+
+    return S_OK;
 }
 
 

@@ -1118,42 +1118,42 @@ bool ToggleSuperTimersCommandClass::Process()
  *
  *  @author: ZivDero
  */
-template class SetTabCommandClass<0>;
-template class SetTabCommandClass<1>;
-template class SetTabCommandClass<2>;
-template class SetTabCommandClass<3>;
-template class SetTabCommandClass<4>;
-template class SetTabCommandClass<5>;
+template class SetTabXCommandClass<0>;
+template class SetTabXCommandClass<1>;
+template class SetTabXCommandClass<2>;
+template class SetTabXCommandClass<3>;
+template class SetTabXCommandClass<4>;
+template class SetTabXCommandClass<5>;
 
 template<int tab_number>
-const char* SetTabCommandClass<tab_number>::Get_Name() const
+const char* SetTabXCommandClass<tab_number>::Get_Name() const
 {
     static std::string str = OptionsExtension->SidebarControls.TabName[tab_number] + "Tab";
     return str.c_str();
 }
 
 template<int tab_number>
-const char* SetTabCommandClass<tab_number>::Get_UI_Name() const
+const char* SetTabXCommandClass<tab_number>::Get_UI_Name() const
 {
     static std::string str = "Select " + OptionsExtension->SidebarControls.TabName[tab_number] + " Tab";
     return str.c_str();
 }
 
 template<int tab_number>
-const char* SetTabCommandClass<tab_number>::Get_Category() const
+const char* SetTabXCommandClass<tab_number>::Get_Category() const
 {
     return Text_String(TXT_INTERFACE);
 }
 
 template<int tab_number>
-const char* SetTabCommandClass<tab_number>::Get_Description() const
+const char* SetTabXCommandClass<tab_number>::Get_Description() const
 {
     static std::string str = "Switch the command bar to the " + OptionsExtension->SidebarControls.TabName[tab_number] + " Tab.";
     return str.c_str();
 }
 
 template<int tab_number>
-bool SetTabCommandClass<tab_number>::Process()
+bool SetTabXCommandClass<tab_number>::Process()
 {
     bool result = Sidebar->Change_Tab(tab_number);
 

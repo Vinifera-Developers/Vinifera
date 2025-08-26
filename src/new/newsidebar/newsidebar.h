@@ -79,8 +79,8 @@ public:
     NewSidebarClass(NoInitClass const& x);
     ~NewSidebarClass() = default;
 
-    HRESULT STDMETHODCALLTYPE Load(IStream* pStm);
-    HRESULT STDMETHODCALLTYPE Save(IStream* pStm);
+    HRESULT STDMETHODCALLTYPE Load(IStream* stream);
+    HRESULT STDMETHODCALLTYPE Save(IStream* stream) const;
 
     void Init_Clear(); // Clears all to known state
     void Init_IO();    // Inits button list
@@ -90,7 +90,7 @@ public:
     void AI(KeyNumType& input, Point2D const& xy);
     void Draw_It(bool complete);
     void Set_Dimensions();
-    virtual char const* Help_Text(int id);
+    char const* Help_Text(int id);
 
     bool Abandon_Production(RTTIType type, FactoryClass* factory, ProductionFlags flags);
     bool Activate(int control);
@@ -126,6 +126,9 @@ public:
         StripClass() = default;
         StripClass(int id, Point2D origin, int columns);
         StripClass(NoInitClass const&) {};
+
+        HRESULT STDMETHODCALLTYPE Load(IStream* stream);
+        HRESULT STDMETHODCALLTYPE Save(IStream* stream) const;
 
         bool Add(RTTIType type, int ID);
         bool Abandon_Production(FactoryClass const* factory);
@@ -368,5 +371,4 @@ private:
     static ShapeSet const* SidebarMiddleShape;
     static ShapeSet const* SidebarBottomShape;
     static ShapeSet const* SidebarAddonShape;
-
 };

@@ -235,17 +235,17 @@ void Init_Vinifera_Commands()
     if (OptionsExtension->SidebarControls.IsTabs) {
         switch (OptionsExtension->SidebarControls.Tabs) {
         case 6:
-            Commands.Add(new SetTabCommandClass<5>());
+            Commands.Add(new SetTabXCommandClass<5>());
         case 5:
-            Commands.Add(new SetTabCommandClass<4>());
+            Commands.Add(new SetTabXCommandClass<4>());
         case 4:
-            Commands.Add(new SetTabCommandClass<3>());
+            Commands.Add(new SetTabXCommandClass<3>());
         case 3:
-            Commands.Add(new SetTabCommandClass<2>());
+            Commands.Add(new SetTabXCommandClass<2>());
         case 2:
-            Commands.Add(new SetTabCommandClass<1>());
+            Commands.Add(new SetTabXCommandClass<1>());
         case 1:
-            Commands.Add(new SetTabCommandClass<0>());
+            Commands.Add(new SetTabXCommandClass<0>());
             break;
         }
     }
