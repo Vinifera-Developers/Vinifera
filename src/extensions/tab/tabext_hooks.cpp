@@ -30,10 +30,14 @@
 #include "drawshape.h"
 #include "extension_globals.h"
 #include "hooker.h"
+#include "house.h"
+#include "housetype.h"
 #include "language.h"
 #include "mouse.h"
 #include "optionsext.h"
+#include "rules.h"
 #include "shapeset.h"
+#include "sideext.h"
 #include "tab.h"
 #include "textprint.h"
 #include "uicontrol.h"
@@ -50,6 +54,7 @@ class TabClassExt : public TabClass
 {
 public:
     void _Draw_It(bool complete);
+    void _Draw_Credits_Tab();
     void _AI(KeyNumType& input, Point2D const& xy);
 };
 
@@ -75,7 +80,7 @@ void TabClassExt::_Draw_It(bool complete)
                 Draw_Shape(*CompositeSurface, *SidebarDrawer, TabShape, 0, Point2D(0, 0), VisibleRect);
                 Draw_Credits_Tab();
                 LogicalSurface->Draw_Line(Point2D(0, tab_height - 2), Point2D(rightx, tab_height - 2), TBLACK);
-                Fancy_Text_Print(TXT_TAB_BUTTON_CONTROLS, *LogicalSurface, LogicalSurface->Get_Rect(), Point2D(OptionsExtension->SidebarControls.SidebarWidth / 2, 0), ColorSchemes[0], TBLACK, TPF_USE_GRAD_PAL | TPF_CENTER | TPF_METAL12);
+                Fancy_Text_Print(TXT_TAB_BUTTON_CONTROLS, *LogicalSurface, LogicalSurface->Get_Rect(), Point2D(OptionsExtension->SidebarControls.SidebarWidth / 2, 0), ColorSchemes[Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor], TBLACK, TPF_USE_GRAD_PAL | TPF_CENTER | TPF_METAL12);
 
                 if (LogicalSurface != TileSurface) {
                     TileSurface->Copy_From(Rect(0, 0, TileSurface->Get_Width(), tab_height), *LogicalSurface, Rect(0, 0, TileSurface->Get_Width(), tab_height));
@@ -92,6 +97,32 @@ void TabClassExt::_Draw_It(bool complete)
     }
 
     SidebarClass::Draw_It(complete);
+}
+
+void TabClassExt::_Draw_Credits_Tab()
+{
+    Draw_Shape(*SidebarSurface, *SidebarDrawer, TabShape, 2, Point2D(0, 0), SidebarSurface->Get_Rect());
+
+    if (Scen->MissionTimer.Is_Active()) {
+        bool light = ((int)Scen->MissionTimer < TICKS_PER_MINUTE * Rule->TimerWarning) || Map.FlasherTimer > 0;
+        Draw_Shape(*CompositeSurface, *SidebarDrawer, TabShape, /*light ? 4 :*/ 2, Point2D(TacticalRect.Width - TabShape->Get_Width(), 0), VisibleRect);
+
+        int time = Scen->MissionTimer;
+
+        int seconds = time / TICKS_PER_SECOND;
+        int hours = seconds / 60 / 60;
+        int minutes = seconds / 60;
+
+        seconds = seconds % 60;
+        minutes = minutes % 60;
+
+        if (hours != 0) {
+            Fancy_Text_Print(TXT_TIME_FORMAT_HOURS, *CompositeSurface, CompositeSurface->Get_Rect(), Point2D(TacticalRect.Width - TabShape->Get_Width() / 2, 0), ColorSchemes[Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor], TBLACK, TPF_METAL12 | TPF_CENTER | TPF_USE_GRAD_PAL, hours, minutes, seconds);
+        } else {
+            Fancy_Text_Print(TXT_TIME_FORMAT_NO_HOURS, *CompositeSurface, CompositeSurface->Get_Rect(), Point2D(TacticalRect.Width - TabShape->Get_Width() / 2, 0), ColorSchemes[Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor], TBLACK, TPF_METAL12 | TPF_CENTER | TPF_USE_GRAD_PAL, minutes, seconds);
+        }
+    }
+    RedrawSidebar = true;
 }
 
 void TabClassExt::_AI(KeyNumType& input, Point2D const& xy)
@@ -145,5 +176,6 @@ void TabClassExt::_AI(KeyNumType& input, Point2D const& xy)
 void TabClassExtension_Hooks()
 {
     Patch_Jump(0x0060E980, &TabClassExt::_AI);
+    Patch_Jump(0x0060E690, &TabClassExt::_Draw_Credits_Tab);
     Patch_Jump(0x0060E440, &TabClassExt::_Draw_It);
 }

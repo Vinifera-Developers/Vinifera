@@ -47,26 +47,6 @@
 
 
 /**
- *  Modifies the color of the "Options" text based on the player's side.
- *
- *  @author: Rampastring, ZivDero
- */
-DECLARE_PATCH(_TabClass_Draw_It_Faction_Specific_Options_Button_Color_Scheme_Patch)
-{
-    static ColorSchemeType colorschemetype;
-    static ColorScheme* colorscheme;
-
-    colorschemetype = Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor;
-    colorscheme = ColorSchemes[colorschemetype];
-
-    _asm mov edx, colorscheme 
-    _asm mov ecx, LogicalSurface
-    _asm mov ecx, [ecx]
-    JMP(0x0060E5B4);
-}
-
-
-/**
  *  Modifies the color of the credits display based on the player's side.
  *
  *  @author: Rampastring, ZivDero
@@ -144,7 +124,6 @@ DECLARE_PATCH(_CCToolTip_Draw_Faction_Specific_Color_Scheme_Text_Patch)
  */
 void CreditClassExtension_Hooks()
 {
-    Patch_Jump(0x0060E5AE, &_TabClass_Draw_It_Faction_Specific_Options_Button_Color_Scheme_Patch);
     Patch_Jump(0x004714E6, &_CreditClass_Graphic_Logic_Faction_Specific_Color_Scheme_Patch);
 
     Patch_Jump(0x0044E682, &_CCToolTip_Draw_Faction_Specific_Color_Scheme_Rect_Patch);
