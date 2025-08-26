@@ -138,10 +138,10 @@ int PowerClassExt::_Desired_Levels(int& green, int& yellow, int& red)
 
 void PowerClassExt::_Draw_It(bool complete)
 {
-    if (complete || IsToRedraw) {
+    if (complete || PowerClass::IsToRedraw) {
 
         if (Map.IsSidebarActive) {
-            IsToRedraw = false;
+            PowerClass::IsToRedraw = false;
             RedrawSidebar = true;
 
             Rect rect = SidebarSurface->Get_Rect();

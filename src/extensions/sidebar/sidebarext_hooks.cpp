@@ -275,7 +275,7 @@ bool SidebarClassExt::_Abandon_Production(RTTIType type, FactoryClass* factory)
  */
 void SidebarClassExt::_Set_Dimensions()
 {
-    Sidebar->Set_Dimensions();
+    //Sidebar->Set_Dimensions();
 }
 
 

@@ -208,80 +208,139 @@ void NewSidebarClass::Init_Clear()
 
 void NewSidebarClass::Init_IO()
 {
+    Set_Dimensions();
+
+    Repair.IsSticky = true;
+    Repair.ID = BUTTON_REPAIR;
+    Repair.DrawOnSidebar = true;
+    Repair.ShapeDrawer = SidebarDrawer;
+    Repair.IsPressed = false;
+    Repair.IsToggleType = true;
+    Repair.ReflectButtonState = true;
+
+    Sell.IsSticky = true;
+    Sell.ID = BUTTON_SELL;
+    Sell.DrawOnSidebar = true;
+    Sell.ShapeDrawer = SidebarDrawer;
+    Sell.IsPressed = false;
+    Sell.IsToggleType = true;
+    Sell.ReflectButtonState = true;
+
+    Power.IsSticky = true;
+    Power.ID = BUTTON_POWER;
+    Power.DrawOnSidebar = true;
+    Power.ShapeDrawer = SidebarDrawer;
+    Power.IsPressed = false;
+    Power.IsToggleType = true;
+    Power.ReflectButtonState = true;
+
+    Waypoint.IsSticky = true;
+    Waypoint.ID = BUTTON_WAYPOINT;
+    Waypoint.DrawOnSidebar = true;
+    Waypoint.ShapeDrawer = SidebarDrawer;
+    Waypoint.IsPressed = false;
+    Waypoint.IsToggleType = true;
+    Waypoint.ReflectButtonState = true;
+
+    Waypoint.Enable();
+
+    for (auto& strip : Column) {
+        strip.Init_IO();
+    }
+
+    Init_Tooltips();
+
+    /*
+    ** If a game was loaded & the sidebar was enabled, pop it up now
+    */
+    if (Map.SidebarClass::IsSidebarActive) {
+        Map.SidebarClass::IsSidebarActive = false;
+        Activate(1);
+    }
+}
+
+
+void NewSidebarClass::Set_Dimensions()
+{
+    /*
+    **	Position the sidebar.
+    */
     SidebarRect.X = TacticalRect.X + TacticalRect.Width;
     SidebarRect.Y = OptionsExtension->SidebarControls.RadarHeight + OptionsExtension->SidebarControls.RadarTopHeight + OptionsExtension->SidebarControls.TabHeight;
     SidebarRect.Width = OptionsExtension->SidebarControls.SidebarWidth;
     SidebarRect.Height = TacticalRect.Y + TacticalRect.Height - SidebarRect.Y;
 
+    Map.PowerClass::Set_Dimensions();
+
     /*
-    ** Add the sidebar's buttons only if we're not in editor mode.
+    **	Position the sidebar's buttons.
     */
-    if (!Debug_Map) {
-        int xoff = -480;
-        int yoff = 3;
+    Point2D position = SidebarRect.TopLeft + OptionsExtension->SidebarControls.RepairButtonPosition;
+    Repair.Set_Position(position.X, position.Y);
+    Repair.DrawOffsetX = -SidebarRect.X;
 
-        Repair.IsSticky = true;
-        Repair.ID = BUTTON_REPAIR;
-        Repair.X = SidebarRect.X + OptionsExtension->SidebarControls.RepairButtonPosition.X;
-        Repair.Y = SidebarRect.Y + OptionsExtension->SidebarControls.RepairButtonPosition.Y;
-        Repair.DrawOffsetX = xoff;
-        Repair.DrawOffsetY = yoff;
-        Repair.DrawOnSidebar = true;
-        Repair.ShapeDrawer = SidebarDrawer;
-        Repair.IsPressed = false;
-        Repair.IsToggleType = true;
-        Repair.ReflectButtonState = true;
+    position = SidebarRect.TopLeft + OptionsExtension->SidebarControls.SellButtonPosition;
+    Sell.Set_Position(position.X, position.Y);
+    Sell.DrawOffsetX = -SidebarRect.X;
 
-        Sell.IsSticky = true;
-        Sell.ID = BUTTON_SELL;
-        Sell.X = SidebarRect.X + OptionsExtension->SidebarControls.SellButtonPosition.X;
-        Sell.Y = SidebarRect.Y + OptionsExtension->SidebarControls.SellButtonPosition.Y;
-        Sell.DrawOffsetX = xoff;
-        Sell.DrawOffsetY = yoff;
-        Sell.DrawOnSidebar = true;
-        Sell.ShapeDrawer = SidebarDrawer;
-        Sell.IsPressed = false;
-        Sell.IsToggleType = true;
-        Sell.ReflectButtonState = true;
+    position = SidebarRect.TopLeft + OptionsExtension->SidebarControls.PowerButtonPosition;
+    Power.Set_Position(position.X, position.Y);
+    Power.DrawOffsetX = -SidebarRect.X;
 
-        Power.IsSticky = true;
-        Power.ID = BUTTON_POWER;
-        Power.X = SidebarRect.X + OptionsExtension->SidebarControls.PowerButtonPosition.X;
-        Power.Y = SidebarRect.Y + OptionsExtension->SidebarControls.PowerButtonPosition.Y;
-        Power.DrawOffsetX = xoff;
-        Power.DrawOffsetY = yoff;
-        Power.DrawOnSidebar = true;
-        Power.ShapeDrawer = SidebarDrawer;
-        Power.IsPressed = false;
-        Power.IsToggleType = true;
-        Power.ReflectButtonState = true;
+    position = SidebarRect.TopLeft + OptionsExtension->SidebarControls.WaypointButtonPosition;
+    Waypoint.Set_Position(position.X, position.Y);
+    Waypoint.DrawOffsetX = -SidebarRect.X;
 
-        Waypoint.IsSticky = true;
-        Waypoint.ID = BUTTON_WAYPOINT;
-        Waypoint.X = SidebarRect.X + OptionsExtension->SidebarControls.WaypointButtonPosition.X;
-        Waypoint.Y = SidebarRect.Y + OptionsExtension->SidebarControls.WaypointButtonPosition.Y;
-        Waypoint.DrawOffsetX = xoff;
-        Waypoint.DrawOffsetY = yoff;
-        Waypoint.DrawOnSidebar = true;
-        Waypoint.ShapeDrawer = SidebarDrawer;
-        Waypoint.IsPressed = false;
-        Waypoint.IsToggleType = true;
-        Waypoint.ReflectButtonState = true;
+    for (auto& strip : Column) {
+        strip.Set_Dimensions();
+    }
 
-        Waypoint.Enable();
+    int y = RadarClass::RadarButton.Height + RadarClass::RadarButton.Y;
+    Background.Set_Position(TacticalRect.X + TacticalRect.Width, y);
+    Background.Set_Size(SidebarSurface->Get_Width(), SidebarSurface->Get_Height() - y);
+}
 
-        for (auto& strip : Column) {
-            strip.Init_IO();
+void NewSidebarClass::Init_Tooltips()
+{
+    /*
+     **	Create the tooltips for the sidebar.
+     */
+    if (ToolTips) {
+        ToolTip tooltip;
+
+        for (int index = 0; index < Column.size(); index++) {
+            for (int j = 0; j < 100; j++) {
+                ToolTips->Remove((j | index << 8) + 1000);
+            }
         }
 
-        Set_Dimensions();
 
-        /*
-        ** If a game was loaded & the sidebar was enabled, pop it up now
-        */
-        if (Map.SidebarClass::IsSidebarActive) {
-            Map.SidebarClass::IsSidebarActive = false;
-            Activate(1);
+        tooltip.ID = BUTTON_REPAIR;
+        tooltip.Text = TXT_REPAIR_MODE;
+        tooltip.Region.Set(Repair.X, Repair.Y, Repair.Width, Repair.Height);
+        ToolTips->Remove(tooltip.ID);
+        ToolTips->Add(&tooltip);
+
+        tooltip.ID = BUTTON_POWER;
+        tooltip.Text = TXT_POWER_MODE;
+        tooltip.Region.Set(Power.X, Power.Y, Power.Width, Power.Height);
+        ToolTips->Remove(tooltip.ID);
+        ToolTips->Add(&tooltip);
+
+        tooltip.ID = BUTTON_SELL;
+        tooltip.Text = TXT_SELL_MODE;
+        tooltip.Region.Set(Sell.X, Sell.Y, Sell.Width, Sell.Height);
+        ToolTips->Remove(tooltip.ID);
+        ToolTips->Add(&tooltip);
+
+        tooltip.ID = BUTTON_WAYPOINT;
+        tooltip.Text = TXT_WAYPOINTMODE;
+        tooltip.Region.Set(Waypoint.X, Waypoint.Y, Waypoint.Width, Waypoint.Height);
+        ToolTips->Remove(tooltip.ID);
+        ToolTips->Add(&tooltip);
+
+        for (auto& strip : Column) {
+            strip.Init_Tooltips();
         }
     }
 }
@@ -422,6 +481,7 @@ bool NewSidebarClass::Add(RTTIType type, int id)
         if (Column[column].Add(type, id)) {
             Activate(1);
             Map.SidebarClass::IsToRedraw = true;
+            Map.SidebarClass::IsToFullRedraw = true;
             Map.Flag_To_Redraw();
             return true;
         }
@@ -451,6 +511,7 @@ bool NewSidebarClass::Scroll(bool up, int column)
         }
         if (scr) {
             Map.SidebarClass::IsToRedraw = true;
+            Map.SidebarClass::IsToFullRedraw = true;
             Map.Flag_To_Redraw();
             return true;
         } else {
@@ -501,8 +562,6 @@ void NewSidebarClass::Draw_It(bool complete)
 {
     complete = complete || Map.SidebarClass::IsToFullRedraw;
     Map.LastDrawRect = RECT_NONE;
-
-    Map.PowerClass::Draw_It(complete);
 
     DSurface* old = LogicalSurface;
     LogicalSurface = SidebarSurface;
@@ -556,6 +615,9 @@ void NewSidebarClass::Draw_It(bool complete)
             if (strip.IsActive) strip.Draw_It(complete);
         }
     }
+
+    Map.PowerClass::Draw_It(complete);
+
     if (Repair.IsDrawn) {
         RedrawSidebar = true;
         Repair.IsDrawn = false;
@@ -572,14 +634,16 @@ void NewSidebarClass::Draw_It(bool complete)
         RedrawSidebar = true;
         Waypoint.IsDrawn = false;
     }
-    if (ToolTips != nullptr) {
-        ToolTips->Force_Redraw(true);
-    }
     if (OptionsExtension->SidebarControls.IsTabs) {
         for (auto& strip : Column) {
             strip.TabButton.Draw_Me(true);
         }
     }
+
+    if (ToolTips != nullptr) {
+        ToolTips->Force_Redraw(true);
+    }
+
     Map.SidebarClass::IsToRedraw = false;
     Map.SidebarClass::IsToFullRedraw = false;
 
@@ -777,9 +841,15 @@ char const* NewSidebarClass::Help_Text(int id)
     const char* text = Map.PowerClass::Help_Text(id);
     if (text == nullptr) {
         if (id >= BUTTON_TAB && id < BUTTON_SELECT) {
-
+            int tab = id - BUTTON_TAB;
+            static char buffer[256] = "";
+            if (Column[tab].TabButton.Is_Enabled()) {
+                std::snprintf(buffer, sizeof(buffer), "%s Tab", OptionsExtension->SidebarControls.TabName[tab].c_str());
+            } else {
+                std::snprintf(buffer, sizeof(buffer), "%s Tab@(Disabled)", OptionsExtension->SidebarControls.TabName[tab].c_str());
+            }
+            return buffer;
         }
-
 
         id -= 1000;
         int index = id >> 8;
@@ -798,87 +868,6 @@ int NewSidebarClass::Max_Visible()
     } else {
         return SidebarClass::StripClass::MAX_VISIBLE;
     }
-}
-
-
-void NewSidebarClass::Set_Dimensions()
-{
-    /*
-    **	Position the sidebar.
-    */
-    SidebarRect.X = TacticalRect.X + TacticalRect.Width;
-    SidebarRect.Y = OptionsExtension->SidebarControls.RadarHeight + OptionsExtension->SidebarControls.RadarTopHeight + OptionsExtension->SidebarControls.TabHeight;
-    SidebarRect.Width = OptionsExtension->SidebarControls.SidebarWidth;
-    SidebarRect.Height = TacticalRect.Y + TacticalRect.Height - SidebarRect.Y;
-
-    /*
-    **	Position the sidebar's buttons.
-    */
-    Point2D position = SidebarRect.TopLeft + OptionsExtension->SidebarControls.RepairButtonPosition;
-    Repair.Set_Position(position.X, position.Y);
-    Repair.Flag_To_Redraw();
-    Repair.DrawOffsetX = -SidebarRect.X;
-
-    position = SidebarRect.TopLeft + OptionsExtension->SidebarControls.SellButtonPosition;
-    Sell.Set_Position(position.X, position.Y);
-    Sell.Flag_To_Redraw();
-    Sell.DrawOffsetX = -SidebarRect.X;
-
-    position = SidebarRect.TopLeft + OptionsExtension->SidebarControls.PowerButtonPosition;
-    Power.Set_Position(position.X, position.Y);
-    Power.Flag_To_Redraw();
-    Power.DrawOffsetX = -SidebarRect.X;
-
-    position = SidebarRect.TopLeft + OptionsExtension->SidebarControls.WaypointButtonPosition;
-    Waypoint.Set_Position(position.X, position.Y);
-    Waypoint.Flag_To_Redraw();
-    Waypoint.DrawOffsetX = -SidebarRect.X;
-
-    /*
-    **	Create the tooltips for the sidebar.
-    */
-    if (ToolTips) {
-        ToolTip tooltip;
-
-        for (int index = 0; index < Column.size(); index++) {
-            for (int j = 0; j < 100; j++) {
-                ToolTips->Remove((j | index << 8) + 1000);
-            }
-        }
-
-        for (auto& strip : Column) {
-            strip.Set_Dimensions();
-        }
-
-        tooltip.ID = BUTTON_REPAIR;
-        tooltip.Text = TXT_REPAIR_MODE;
-        tooltip.Region.Set(Repair.X, Repair.Y, Repair.Width, Repair.Height);
-        ToolTips->Remove(tooltip.ID);
-        ToolTips->Add(&tooltip);
-
-        tooltip.ID = BUTTON_POWER;
-        tooltip.Text = TXT_POWER_MODE;
-        tooltip.Region.Set(Power.X, Power.Y, Power.Width, Power.Height);
-        ToolTips->Remove(tooltip.ID);
-        ToolTips->Add(&tooltip);
-
-        tooltip.ID = BUTTON_SELL;
-        tooltip.Text = TXT_SELL_MODE;
-        tooltip.Region.Set(Sell.X, Sell.Y, Sell.Width, Sell.Height);
-        ToolTips->Remove(tooltip.ID);
-        ToolTips->Add(&tooltip);
-
-        tooltip.ID = BUTTON_WAYPOINT;
-        tooltip.Text = TXT_WAYPOINTMODE;
-        tooltip.Region.Set(Waypoint.X, Waypoint.Y, Waypoint.Width, Waypoint.Height);
-        ToolTips->Remove(tooltip.ID);
-        ToolTips->Add(&tooltip);
-    }
-
-    int y = RadarClass::RadarButton.Height + RadarClass::RadarButton.Y;
-    Background.Set_Position(TacticalRect.X + TacticalRect.Width, y);
-    Background.Set_Size(SidebarSurface->Get_Width(), SidebarSurface->Get_Height() - y);
-    Background.Flag_To_Redraw();
 }
 
 
@@ -1059,12 +1048,10 @@ void NewSidebarClass::StripClass::Set_Dimensions()
 {
     Point2D up_position = SidebarRect.TopLeft + Position + Point2D(0, Max_Visible() * OptionsExtension->SidebarControls.ObjectHeight) + OptionsExtension->SidebarControls.UpButtonOffset;
     UpButton.Set_Position(up_position.X, up_position.Y);
-    UpButton.Flag_To_Redraw();
     UpButton.DrawOffsetX = -SidebarRect.X;
 
     Point2D down_position = SidebarRect.TopLeft + Position + Point2D(0, Max_Visible() * OptionsExtension->SidebarControls.ObjectHeight) + OptionsExtension->SidebarControls.DownButtonOffset;
     DownButton.Set_Position(down_position.X, down_position.Y);
-    DownButton.Flag_To_Redraw();
     DownButton.DrawOffsetX = -SidebarRect.X;
 
     for (int index = 0; index < SelectButton.size(); index++) {
@@ -1073,6 +1060,15 @@ void NewSidebarClass::StripClass::Set_Dimensions()
         SelectButton[index].Set_Position(x, y);
     }
 
+    if (OptionsExtension->SidebarControls.IsTabs) {
+        TabButton.Set_Position(SidebarRect.X + OptionsExtension->SidebarControls.TabButtonOffset[ID].X, SidebarRect.Y + OptionsExtension->SidebarControls.TabButtonOffset[ID].Y);
+        TabButton.DrawOffsetX = -SidebarRect.X;
+    }
+}
+
+
+void NewSidebarClass::StripClass::Init_Tooltips()
+{
     for (int i = 0; i < SelectButton.size(); i++) {
         ToolTip tooltip;
         tooltip.Region = Rect(SelectButton[i].X, SelectButton[i].Y, SelectButton[i].Width, SelectButton[i].Height);
@@ -1082,8 +1078,11 @@ void NewSidebarClass::StripClass::Set_Dimensions()
     }
 
     if (OptionsExtension->SidebarControls.IsTabs) {
-        TabButton.Set_Position(SidebarRect.X + OptionsExtension->SidebarControls.TabButtonOffset[ID].X, SidebarRect.Y + OptionsExtension->SidebarControls.TabButtonOffset[ID].Y);
-        TabButton.DrawOffsetX = -SidebarRect.X;
+        ToolTip tooltip;
+        tooltip.Region = Rect(TabButton.X, TabButton.Y, TabButton.Width, TabButton.Height);
+        tooltip.ID = BUTTON_TAB + ID;
+        tooltip.Text = TXT_NONE;
+        ToolTips->Add(&tooltip);
     }
 }
 

@@ -84,12 +84,13 @@ public:
 
     void Init_Clear(); // Clears all to known state
     void Init_IO();    // Inits button list
+    void Set_Dimensions();
+    void Init_Tooltips();
     void Init_For_House();
     void Toggle_Cameo_Text(bool on);
 
     void AI(KeyNumType& input, Point2D const& xy);
     void Draw_It(bool complete);
-    void Set_Dimensions();
     char const* Help_Text(int id);
 
     bool Abandon_Production(RTTIType type, FactoryClass* factory, ProductionFlags flags);
@@ -140,6 +141,7 @@ public:
         static void One_Time();
         void Init_Clear();
         void Init_IO();
+        void Init_Tooltips();
         void Init_For_House();
         bool Recalc();
         void Activate();
