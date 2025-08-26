@@ -76,10 +76,11 @@ class OptionsClassExtension final : public GlobalExtensionClass<OptionsClass>
          */
         bool FilterBandBoxSelection;
 
-        struct {
-
+        struct SidebarControlsType {
             char MixLetter = '\0';
 
+            
+            int SidebarWidth = 168;
             bool IsTabs = false;
             int Tabs = 0;
             int Columns = 2;
@@ -89,61 +90,6 @@ class OptionsClassExtension final : public GlobalExtensionClass<OptionsClass>
 
             int Get_Top_Bar_Height() const { return IsTopBar ? TabHeight : 0; }
             __declspec(property(get = Get_Top_Bar_Height)) int TopBarHeight;
-
-            int CameoWidth = 64;
-            int CameoHeight = 48;
-            int CameoXSpacing = 3;
-            int CameoYSpacing = 3;
-            Point2D CameoNameOffset = Point2D(0, 41);
-            Point2D CameoQueueCountOffset = Point2D(61, 2);
-            Point2D CameoStateOffset = Point2D(33, 2);
-            Point2D CameoQueueStateOffset = Point2D(0, 2);
-
-            int StripXLeftSpace = 24;
-            int StripXRightSpace = 13;
-            int StripYOffset = 26;
-
-            int ScrollRate = 51;
-
-            int Get_Sidebar_Width() const { return (CameoWidth * Columns) + (CameoXSpacing * (Columns - 1)) + StripXRightSpace + StripXLeftSpace; }
-            __declspec(property(get = Get_Sidebar_Width)) int SidebarWidth;
-
-            int Get_Strip1_X() const { return StripXLeftSpace; }
-            __declspec(property(get = Get_Strip1_X)) int Strip1X;
-
-            int Get_Strip2_X() const { return Strip1X + CameoWidth + CameoXSpacing; }
-            __declspec(property(get = Get_Strip2_X)) int Strip2X;
-
-            int Get_Strip3_X() const { return Strip2X + CameoWidth + CameoXSpacing; }
-            __declspec(property(get = Get_Strip3_X)) int Strip3X;
-
-            int Get_Object_Width() const { return CameoWidth + CameoXSpacing; }
-            __declspec(property(get = Get_Object_Width)) int ObjectWidth;
-
-            int Get_Object_Height() const { return CameoHeight + CameoYSpacing; }
-            __declspec(property(get = Get_Object_Height)) int ObjectHeight;
-
-            Point2D PowerPosition = Point2D(8, 25);
-            int PowerWidth = 12;
-            int PowerHeightFudge = 1;
-            int PowerPipHeight = 4;
-
-            int RadarHeight = 134;
-            int RadarTopHeight = 0;
-            Rect RadarMapRect = Rect(15, 12, 140, 108);
-
-            Point2D RepairButtonPosition = Point2D(31, -9);
-            Point2D SellButtonPosition = Point2D(58, -9);
-            Point2D PowerButtonPosition = Point2D(85, -9);
-            Point2D WaypointButtonPosition = Point2D(112, -9);
-
-            std::vector<Point2D> TabButtonOffset;
-
-            Point2D UpButtonOffset = Point2D(2, -1);
-            Point2D DownButtonOffset = Point2D(31, -1);
-
-            std::string StateColor = "LightBlue";
-            std::string OnHoldColor = "LightGrey";
 
             int BuildingsTab = -1;
             int DefensesTab = -1;

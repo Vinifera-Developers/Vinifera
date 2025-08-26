@@ -46,6 +46,7 @@
 #include "spritecollection.h"
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
+#include "uicontrol.h"
 #include "vinifera_globals.h"
 #include "voc.h"
 #include "wwmouse.h"
@@ -337,7 +338,7 @@ void SidebarClassExt::_Blit_Sidebar(bool complete)
 
         int sidebar_width = OptionsExtension->SidebarControls.SidebarWidth;
         int tab_height = OptionsExtension->SidebarControls.TabHeight;
-        int radar_height = OptionsExtension->SidebarControls.RadarHeight + OptionsExtension->SidebarControls.RadarTopHeight + 4; // 4 because ?? for now
+        int radar_height = UIControls->SidebarControls.RadarHeight + UIControls->SidebarControls.RadarTopHeight + 4; // 4 because ?? for now
 
         if (!RedrawSidebar && !complete) {
             RedrawSidebar = false;
@@ -429,26 +430,6 @@ DECLARE_PATCH(_GadgetClass_Input_Mouse_Enter_Leave)
 }
 
 
-static void Create_Sidebar()
-{
-    DEBUG_INFO("Creating New Sidebar\n");
-    delete Sidebar;
-    Sidebar = new NewSidebarClass;
-}
-
-
-DECLARE_PATCH(_Init_Game_Create_Sidebar_Patch)
-{
-    // Stolen instruction
-    LogicalSurface = HiddenSurface;
-
-    Create_Sidebar();
-
-    DEBUG_INFO("Init Bulk Data\n");
-    JMP(0x004E08DE);
-}
-
-
 static bool _Allocate_Surfaces(const Rect& hidden_rect, const Rect& composite_rect, const Rect& tile_rect, const Rect& sidebar_rect, bool hidden_first)
 {
     Rect tactical_rect = VisibleRect;
@@ -514,7 +495,6 @@ void SidebarClassExtension_Hooks()
     // Change jle to jl to allow rendering tooltips that are exactly as wide as the sidebar
     Patch_Byte(0x0044E605 + 1, 0x8C);
 
-    Patch_Jump(0x004E08D3, &_Init_Game_Create_Sidebar_Patch);
     Patch_Call(0x0050B05D, &_Allocate_Surfaces);
     Patch_Call(0x00601543, &_Allocate_Surfaces);
 }

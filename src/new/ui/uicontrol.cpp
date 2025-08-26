@@ -29,6 +29,7 @@
 #include "ccini.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "side.h"
 
 
 UIControlsClass *UIControls = nullptr;
@@ -40,6 +41,7 @@ UIControlsClass *UIControls = nullptr;
  *  @author: CCHyper
  */
 UIControlsClass::UIControlsClass() :
+
     /**
      *  #issue-541
      * 
@@ -195,4 +197,220 @@ bool UIControlsClass::Read_INI(CCINIClass &ini)
     IsCenterSidebarButtonsOnRadar = ini.Get_Bool(INGAME, "CenterSidebarButtonsOnRadar", IsCenterSidebarButtonsOnRadar);
 
     return true;
+}
+
+bool UIControlsClass::Read_Sidebar_INI(CCINIClass& ini, SideType side)
+{
+    char section[128] = "";
+    std::snprintf(section, sizeof(section), "Sidebar%d", side);
+
+    char buffer[512];
+    ini.Get_String(section, "Preset", "", buffer, sizeof(buffer));
+
+    SidebarPresetType preset = PRESET_VANILLA;
+
+    if (strnicmp(buffer, "Vanilla", sizeof(buffer)) == 0) {
+        preset = PRESET_VANILLA;
+    } else if (strnicmp(buffer, "4Tabs", sizeof(buffer)) == 0) {
+        preset = PRESET_4TABS;
+    } else if (strnicmp(buffer, "4TabsWide", sizeof(buffer)) == 0) {
+        preset = PRESET_4TABSWIDE;
+    } else if (strnicmp(buffer, "6Tabs", sizeof(buffer)) == 0) {
+        preset = PRESET_6TABS;
+    }
+
+    Set_Sidebar_Defaults(preset);
+
+    SidebarControls.CameoWidth = ini.Get_Int(section, "CameoWidth", SidebarControls.CameoWidth);
+    SidebarControls.CameoHeight = ini.Get_Int(section, "CameoHeight", SidebarControls.CameoHeight);
+    SidebarControls.CameoXSpacing = ini.Get_Int(section, "CameoXSpacing", SidebarControls.CameoXSpacing);
+    SidebarControls.CameoYSpacing = ini.Get_Int(section, "CameoYSpacing", SidebarControls.CameoYSpacing);
+    SidebarControls.CameoNameOffset = ini.Get_Point(section, "CameoNameOffset", SidebarControls.CameoNameOffset);
+    SidebarControls.CameoQueueCountOffset = ini.Get_Point(section, "CameoQueueCountOffset", SidebarControls.CameoQueueCountOffset);
+    SidebarControls.CameoStateOffset = ini.Get_Point(section, "CameoStateOffset", SidebarControls.CameoStateOffset);
+    SidebarControls.CameoQueueStateOffset = ini.Get_Point(section, "CameoQueueStateOffset", SidebarControls.CameoQueueStateOffset);
+    SidebarControls.StripPosition = ini.Get_Point(section, "StripPosition", SidebarControls.StripPosition);
+    SidebarControls.ScrollRate = ini.Get_Int(section, "ScrollRate", SidebarControls.ScrollRate);
+
+    SidebarControls.PowerPosition = ini.Get_Point(section, "PowerPosition", SidebarControls.PowerPosition);
+    SidebarControls.PowerWidth = ini.Get_Int(section, "PowerWidth", SidebarControls.PowerWidth);
+    SidebarControls.PowerHeightFudge = ini.Get_Int(section, "PowerHeightFudge", SidebarControls.PowerHeightFudge);
+    SidebarControls.PowerPipHeight = ini.Get_Int(section, "PowerPipHeight", SidebarControls.PowerPipHeight);
+
+    SidebarControls.RadarHeight = ini.Get_Int(section, "RadarHeight", SidebarControls.RadarHeight);
+    SidebarControls.RadarTopHeight = ini.Get_Int(section, "RadarTopHeight", SidebarControls.RadarTopHeight);
+
+    if (ini.Is_Present(section, "RadarMapRect")) { // seems to be bugged and instead of using the defvalue returns (0,0,0,0) if not present
+        SidebarControls.RadarMapRect = ini.Get_Rect(section, "RadarMapRect", SidebarControls.RadarMapRect);
+    }
+
+    SidebarControls.RepairButtonPosition = ini.Get_Point(section, "RepairButtonPosition", SidebarControls.RepairButtonPosition);
+    SidebarControls.SellButtonPosition = ini.Get_Point(section, "SellButtonPosition", SidebarControls.SellButtonPosition);
+    SidebarControls.PowerButtonPosition = ini.Get_Point(section, "PowerButtonPosition", SidebarControls.PowerButtonPosition);
+    SidebarControls.WaypointButtonPosition = ini.Get_Point(section, "WaypointButtonPosition", SidebarControls.WaypointButtonPosition);
+
+    SidebarControls.TabButtonOffset.resize(OptionsExtension->SidebarControls.Tabs, Point2D(0, 0));
+    for (int i = 0; i < OptionsExtension->SidebarControls.Tabs; i++) {
+        char key[32];
+        std::snprintf(key, sizeof(key), "TabButton%dOffset", i);
+        SidebarControls.TabButtonOffset[i] = ini.Get_Point(section, key, SidebarControls.TabButtonOffset[i]);
+    }
+
+    SidebarControls.UpButtonOffset = ini.Get_Point(section, "UpButtonOffset", SidebarControls.UpButtonOffset);
+    SidebarControls.DownButtonOffset = ini.Get_Point(section, "DownButtonOffset", SidebarControls.DownButtonOffset);
+
+    if (ini.Get_String(section, "StateColor", SidebarControls.StateColor.c_str(), buffer, sizeof(buffer)) > 0) {
+        SidebarControls.StateColor = buffer;
+    }
+
+    if (ini.Get_String(section, "OnHoldColor", SidebarControls.OnHoldColor.c_str(), buffer, sizeof(buffer)) > 0) {
+        SidebarControls.OnHoldColor = buffer;
+    }
+
+    return true;
+}
+
+void UIControlsClass::Set_Sidebar_Defaults(SidebarPresetType preset)
+{
+    switch (preset) {
+    case PRESET_VANILLA:
+        break;
+
+    case PRESET_4TABS: {
+        SidebarControls.StripPosition = Point2D(24, 54);
+
+        SidebarControls.RepairButtonPosition = Point2D(31, -9);
+        SidebarControls.SellButtonPosition = Point2D(58, -9);
+        SidebarControls.PowerButtonPosition = Point2D(85, -9);
+        SidebarControls.WaypointButtonPosition = Point2D(112, -9);
+
+        SidebarControls.TabButtonOffset.resize(OptionsExtension->SidebarControls.Tabs, Point2D(0, 0));
+        SidebarControls.TabButtonOffset[0] = Point2D(20, 27);
+        SidebarControls.TabButtonOffset[1] = Point2D(55, 27);
+        SidebarControls.TabButtonOffset[2] = Point2D(90, 27);
+        SidebarControls.TabButtonOffset[3] = Point2D(125, 27);
+
+        SidebarControls.UpButtonOffset = Point2D(2, -1);
+        SidebarControls.DownButtonOffset = Point2D(68, -1);
+
+        SidebarControls.PowerPosition = Point2D(8, 53);
+        break;
+    }
+
+    case PRESET_4TABSWIDE: {
+        SidebarControls.StripPosition = Point2D(24, 54);
+
+        SidebarControls.RepairButtonPosition = Point2D(31, -9);
+        SidebarControls.SellButtonPosition = Point2D(58, -9);
+        SidebarControls.PowerButtonPosition = Point2D(85, -9);
+        SidebarControls.WaypointButtonPosition = Point2D(112, -9);
+
+        SidebarControls.TabButtonOffset.resize(OptionsExtension->SidebarControls.Tabs, Point2D(0, 0));
+        SidebarControls.TabButtonOffset[0] = Point2D(20, 27);
+        SidebarControls.TabButtonOffset[1] = Point2D(55, 27);
+        SidebarControls.TabButtonOffset[2] = Point2D(90, 27);
+        SidebarControls.TabButtonOffset[3] = Point2D(125, 27);
+
+        SidebarControls.UpButtonOffset = Point2D(2, -1);
+        SidebarControls.DownButtonOffset = Point2D(68, -1);
+
+        SidebarControls.PowerPosition = Point2D(8, 53);
+        SidebarControls.PowerHeightFudge = 3;
+        break;
+    }
+
+    case PRESET_6TABS: {
+        SidebarControls.StripPosition = Point2D(24, 54);
+
+        SidebarControls.RepairButtonPosition = Point2D(31, -9);
+        SidebarControls.SellButtonPosition = Point2D(58, -9);
+        SidebarControls.PowerButtonPosition = Point2D(85, -9);
+        SidebarControls.WaypointButtonPosition = Point2D(112, -9);
+
+        SidebarControls.TabButtonOffset.resize(OptionsExtension->SidebarControls.Tabs, Point2D(0, 0));
+        SidebarControls.TabButtonOffset[0] = Point2D(20, 27);
+        SidebarControls.TabButtonOffset[1] = Point2D(55, 27);
+        SidebarControls.TabButtonOffset[2] = Point2D(90, 27);
+        SidebarControls.TabButtonOffset[3] = Point2D(125, 27);
+        SidebarControls.TabButtonOffset[4] = Point2D(160, 27);
+        SidebarControls.TabButtonOffset[5] = Point2D(195, 27);
+
+        SidebarControls.UpButtonOffset = Point2D(2, -1);
+        SidebarControls.DownButtonOffset = Point2D(68, -1);
+
+        SidebarControls.PowerPosition = Point2D(8, 53);
+        SidebarControls.PowerHeightFudge = 3;
+
+        SidebarControls.RadarHeight = 188;
+        SidebarControls.RadarMapRect = Rect(15, 12, 196, 151);
+        break;
+    }
+    }
+}
+
+
+Point2D UIControlsClass::Get_Group_Number_Offset(RTTIType type, bool has_pip) const
+{
+    switch (type) {
+    case RTTI_UNIT:
+    case RTTI_UNITTYPE:
+        return has_pip ? UnitWithPipGroupNumberOffset : UnitGroupNumberOffset;
+    case RTTI_INFANTRY:
+    case RTTI_INFANTRYTYPE:
+        return has_pip ? InfantryWithPipGroupNumberOffset : InfantryGroupNumberOffset;
+    case RTTI_BUILDING:
+    case RTTI_BUILDINGTYPE:
+        return has_pip ? BuildingWithPipGroupNumberOffset : BuildingGroupNumberOffset;
+    case RTTI_AIRCRAFT:
+    case RTTI_AIRCRAFTTYPE:
+        return has_pip ? AircraftWithPipGroupNumberOffset : AircraftGroupNumberOffset;
+    default:
+        return Point2D(0, 0);
+    }
+}
+
+/**
+ *  Helper to get the veterancy pip drawing offset based on the object type.
+ */
+Point2D UIControlsClass::Get_Veterancy_Pip_Offset(RTTIType type) const
+{
+    switch (type) {
+    case RTTI_UNIT:
+    case RTTI_UNITTYPE:
+        return UnitVeterancyPipOffset;
+    case RTTI_INFANTRY:
+    case RTTI_INFANTRYTYPE:
+        return InfantryVeterancyPipOffset;
+    case RTTI_BUILDING:
+    case RTTI_BUILDINGTYPE:
+        return BuildingVeterancyPipOffset;
+    case RTTI_AIRCRAFT:
+    case RTTI_AIRCRAFTTYPE:
+        return AircraftVeterancyPipOffset;
+    default:
+        return Point2D(0, 0);
+    }
+}
+
+/**
+ *  Helper to get the special pip drawing offset based on the object type.
+ */
+Point2D UIControlsClass::Get_Special_Pip_Offset(RTTIType type) const
+{
+    switch (type) {
+    case RTTI_UNIT:
+    case RTTI_UNITTYPE:
+        return UnitSpecialPipOffset;
+    case RTTI_INFANTRY:
+    case RTTI_INFANTRYTYPE:
+        return InfantrySpecialPipOffset;
+    case RTTI_BUILDING:
+    case RTTI_BUILDINGTYPE:
+        return BuildingSpecialPipOffset;
+    case RTTI_AIRCRAFT:
+    case RTTI_AIRCRAFTTYPE:
+        return AircraftSpecialPipOffset;
+    default:
+        return Point2D(0, 0);
+    }
 }

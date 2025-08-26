@@ -36,6 +36,7 @@
 #include "shapeset.h"
 #include "tab.h"
 #include "textprint.h"
+#include "uicontrol.h"
 
 
 /**

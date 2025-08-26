@@ -33,6 +33,7 @@
 #include "hooker_macros.h"
 #include "optionsext.h"
 #include "radar.h"
+#include "uicontrol.h"
 
 
 /**
@@ -54,15 +55,15 @@ void RadarClassExt::_One_Time()
 {
     DEBUG_INFO("RadarClass::One_Time()\n");
     RadX = 0;
-    RadY = OptionsExtension->SidebarControls.TabHeight + OptionsExtension->SidebarControls.RadarTopHeight;
+    RadY = OptionsExtension->SidebarControls.TabHeight + UIControls->SidebarControls.RadarTopHeight;
     RadWidth = SidebarSurface->Get_Width();
-    RadHeight = OptionsExtension->SidebarControls.RadarHeight;
-    RadOffX = OptionsExtension->SidebarControls.RadarMapRect.X;
-    RadOffY = OptionsExtension->SidebarControls.RadarMapRect.Y;
-    RadPWidth = OptionsExtension->SidebarControls.RadarMapRect.Width;
-    RadPHeight = OptionsExtension->SidebarControls.RadarMapRect.Height;
-    RadIWidth = OptionsExtension->SidebarControls.RadarMapRect.Width;
-    RadIHeight = OptionsExtension->SidebarControls.RadarMapRect.Height;
+    RadHeight = UIControls->SidebarControls.RadarHeight;
+    RadOffX = UIControls->SidebarControls.RadarMapRect.X;
+    RadOffY = UIControls->SidebarControls.RadarMapRect.Y;
+    RadPWidth = UIControls->SidebarControls.RadarMapRect.Width;
+    RadPHeight = UIControls->SidebarControls.RadarMapRect.Height;
+    RadIWidth = UIControls->SidebarControls.RadarMapRect.Width;
+    RadIHeight = UIControls->SidebarControls.RadarMapRect.Height;
 
     DisplayClass::One_Time();
 

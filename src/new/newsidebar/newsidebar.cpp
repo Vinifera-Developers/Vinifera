@@ -51,6 +51,7 @@
 #include "supertypeext.h"
 #include "technotypeext.h"
 #include "tooltip.h"
+#include "uicontrol.h"
 #include "vinifera_globals.h"
 #include "vinifera_saveload.h"
 #include "voc.h"
@@ -115,24 +116,17 @@ NewSidebarClass::SBGadgetClass::SBGadgetClass() :
  */
 NewSidebarClass::NewSidebarClass() :
     CurrentTab(0)
-    //IsCameoText(false),
-    //IsSidebarActive(false)
-    //IsToRedraw(true),
-    //field_1CD8(false)//,
-    //IsRepairActive(false),
-    //IsUpgradeActive(false),
-    //IsDemolishActive(false)
 {
     /*
     **  Set up the coordinates for the sidebar strips. These coordinates are for
     **  the upper left corner.
     */
     if (!OptionsExtension->SidebarControls.IsTabs) {
-        Column.emplace_back(0, Point2D(OptionsExtension->SidebarControls.Strip1X, OptionsExtension->SidebarControls.StripYOffset), 1);
-        Column.emplace_back(1, Point2D(OptionsExtension->SidebarControls.Strip2X, OptionsExtension->SidebarControls.StripYOffset), 1);
+        Column.emplace_back(0, UIControls->SidebarControls.StripPosition, 1);
+        Column.emplace_back(1, UIControls->SidebarControls.StripPosition + Point2D(UIControls->SidebarControls.ObjectWidth, 0), 1);
     } else {
         for (int i = 0; i < OptionsExtension->SidebarControls.Tabs; i++) {
-            Column.emplace_back(i, Point2D(OptionsExtension->SidebarControls.Strip1X, OptionsExtension->SidebarControls.StripYOffset), OptionsExtension->SidebarControls.Columns);
+            Column.emplace_back(i, UIControls->SidebarControls.StripPosition, OptionsExtension->SidebarControls.Columns);
         }
     }
 }
@@ -266,7 +260,7 @@ void NewSidebarClass::Set_Dimensions()
     **	Position the sidebar.
     */
     SidebarRect.X = TacticalRect.X + TacticalRect.Width;
-    SidebarRect.Y = OptionsExtension->SidebarControls.RadarHeight + OptionsExtension->SidebarControls.RadarTopHeight + OptionsExtension->SidebarControls.TabHeight;
+    SidebarRect.Y = UIControls->SidebarControls.RadarHeight + UIControls->SidebarControls.RadarTopHeight + OptionsExtension->SidebarControls.TabHeight;
     SidebarRect.Width = OptionsExtension->SidebarControls.SidebarWidth;
     SidebarRect.Height = TacticalRect.Y + TacticalRect.Height - SidebarRect.Y;
 
@@ -275,19 +269,19 @@ void NewSidebarClass::Set_Dimensions()
     /*
     **	Position the sidebar's buttons.
     */
-    Point2D position = SidebarRect.TopLeft + OptionsExtension->SidebarControls.RepairButtonPosition;
+    Point2D position = SidebarRect.TopLeft + UIControls->SidebarControls.RepairButtonPosition;
     Repair.Set_Position(position.X, position.Y);
     Repair.DrawOffsetX = -SidebarRect.X;
 
-    position = SidebarRect.TopLeft + OptionsExtension->SidebarControls.SellButtonPosition;
+    position = SidebarRect.TopLeft + UIControls->SidebarControls.SellButtonPosition;
     Sell.Set_Position(position.X, position.Y);
     Sell.DrawOffsetX = -SidebarRect.X;
 
-    position = SidebarRect.TopLeft + OptionsExtension->SidebarControls.PowerButtonPosition;
+    position = SidebarRect.TopLeft + UIControls->SidebarControls.PowerButtonPosition;
     Power.Set_Position(position.X, position.Y);
     Power.DrawOffsetX = -SidebarRect.X;
 
-    position = SidebarRect.TopLeft + OptionsExtension->SidebarControls.WaypointButtonPosition;
+    position = SidebarRect.TopLeft + UIControls->SidebarControls.WaypointButtonPosition;
     Waypoint.Set_Position(position.X, position.Y);
     Waypoint.DrawOffsetX = -SidebarRect.X;
 
@@ -577,7 +571,10 @@ void NewSidebarClass::Draw_It(bool complete)
 
         if (complete || redraw_strip) {
 
-            Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarTopShape, 0, Point2D(0, OptionsExtension->SidebarControls.TabHeight), window, SHAPE_WIN_REL);
+            if (SidebarTopShape != nullptr) {
+                Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarTopShape, 0, Point2D(0, OptionsExtension->SidebarControls.TabHeight), window, SHAPE_WIN_REL);
+            }
+           
 
             int y = SidebarRect.Y;
 
@@ -1027,10 +1024,10 @@ void NewSidebarClass::StripClass::Init_IO()
     for (int index = 0; index < SelectButton.size(); index++) {
         SelectClass& g = SelectButton[index];
         g.ID = BUTTON_SELECT;
-        g.X = SidebarRect.X + Position.X + index % Columns * OptionsExtension->SidebarControls.ObjectWidth;
-        g.Y = SidebarRect.Y + Position.Y + index / Columns * OptionsExtension->SidebarControls.ObjectHeight;
-        g.Width = OptionsExtension->SidebarControls.CameoWidth;
-        g.Height = OptionsExtension->SidebarControls.CameoHeight;
+        g.X = SidebarRect.X + Position.X + index % Columns * UIControls->SidebarControls.ObjectWidth;
+        g.Y = SidebarRect.Y + Position.Y + index / Columns * UIControls->SidebarControls.ObjectHeight;
+        g.Width = UIControls->SidebarControls.CameoWidth;
+        g.Height = UIControls->SidebarControls.CameoHeight;
         g.Set_Owner(*this, index);
     }
 
@@ -1046,22 +1043,22 @@ void NewSidebarClass::StripClass::Init_IO()
 
 void NewSidebarClass::StripClass::Set_Dimensions()
 {
-    Point2D up_position = SidebarRect.TopLeft + Position + Point2D(0, Max_Visible() * OptionsExtension->SidebarControls.ObjectHeight) + OptionsExtension->SidebarControls.UpButtonOffset;
+    Point2D up_position = SidebarRect.TopLeft + Position + Point2D(0, Max_Visible() * UIControls->SidebarControls.ObjectHeight) + UIControls->SidebarControls.UpButtonOffset;
     UpButton.Set_Position(up_position.X, up_position.Y);
     UpButton.DrawOffsetX = -SidebarRect.X;
 
-    Point2D down_position = SidebarRect.TopLeft + Position + Point2D(0, Max_Visible() * OptionsExtension->SidebarControls.ObjectHeight) + OptionsExtension->SidebarControls.DownButtonOffset;
+    Point2D down_position = SidebarRect.TopLeft + Position + Point2D(0, Max_Visible() * UIControls->SidebarControls.ObjectHeight) + UIControls->SidebarControls.DownButtonOffset;
     DownButton.Set_Position(down_position.X, down_position.Y);
     DownButton.DrawOffsetX = -SidebarRect.X;
 
     for (int index = 0; index < SelectButton.size(); index++) {
-        const int x = SidebarRect.X + Position.X + index % Columns * OptionsExtension->SidebarControls.ObjectWidth;
-        const int y = SidebarRect.Y + Position.Y + index / Columns * OptionsExtension->SidebarControls.ObjectHeight;
+        const int x = SidebarRect.X + Position.X + index % Columns * UIControls->SidebarControls.ObjectWidth;
+        const int y = SidebarRect.Y + Position.Y + index / Columns * UIControls->SidebarControls.ObjectHeight;
         SelectButton[index].Set_Position(x, y);
     }
 
     if (OptionsExtension->SidebarControls.IsTabs) {
-        TabButton.Set_Position(SidebarRect.X + OptionsExtension->SidebarControls.TabButtonOffset[ID].X, SidebarRect.Y + OptionsExtension->SidebarControls.TabButtonOffset[ID].Y);
+        TabButton.Set_Position(SidebarRect.X + UIControls->SidebarControls.TabButtonOffset[ID].X, SidebarRect.Y + UIControls->SidebarControls.TabButtonOffset[ID].Y);
         TabButton.DrawOffsetX = -SidebarRect.X;
     }
 }
@@ -1504,7 +1501,7 @@ bool NewSidebarClass::StripClass::AI(KeyNumType& input)
                     Scroller = 0;
                 } else {
                     Scroller--;
-                    Slid = OptionsExtension->SidebarControls.ObjectHeight;
+                    Slid = UIControls->SidebarControls.ObjectHeight;
                     IsScrollingDown = true;
                     IsScrolling = true;
                 }
@@ -1517,15 +1514,15 @@ bool NewSidebarClass::StripClass::AI(KeyNumType& input)
     */
     if (IsScrolling) {
         if (IsScrollingDown) {
-            Slid -= OptionsExtension->SidebarControls.ScrollRate;
+            Slid -= UIControls->SidebarControls.ScrollRate;
             if (Slid <= 0) {
                 IsScrolling = false;
                 Slid = 0;
                 TopIndex += Columns;
             }
         } else {
-            Slid += OptionsExtension->SidebarControls.ScrollRate;
-            if (Slid >= OptionsExtension->SidebarControls.ObjectHeight) {
+            Slid += UIControls->SidebarControls.ScrollRate;
+            if (Slid >= UIControls->SidebarControls.ObjectHeight) {
                 IsScrolling = false;
                 Slid = 0;
             }
@@ -1596,14 +1593,14 @@ void NewSidebarClass::StripClass::Draw_It(bool complete)
         */
         for (int index = TopIndex; index < Buildables.size() && index < TopIndex + Max_Visible() * Columns + (IsScrolling ? Columns : 0); index++) {
 
-            int x = Position.X + (index - TopIndex) % Columns * OptionsExtension->SidebarControls.ObjectWidth;
-            int y = Position.Y + (index - TopIndex) / Columns * OptionsExtension->SidebarControls.ObjectHeight;
+            int x = Position.X + (index - TopIndex) % Columns * UIControls->SidebarControls.ObjectWidth;
+            int y = Position.Y + (index - TopIndex) / Columns * UIControls->SidebarControls.ObjectHeight;
 
             /*
             **	If the strip is scrolling, then the offset is adjusted accordingly.
             */
             if (IsScrolling) {
-                y -= OptionsExtension->SidebarControls.ObjectHeight - Slid;
+                y -= UIControls->SidebarControls.ObjectHeight - Slid;
             }
 
             Buildables[index].Draw_It(Point2D(x, y), SelectButton[index - TopIndex].Is_Moused_Over());
@@ -1742,7 +1739,7 @@ bool NewSidebarClass::StripClass::Recalc()
  *   01/19/1995 JLB : Created.                                                                 *
  *=============================================================================================*/
 NewSidebarClass::StripClass::SelectClass::SelectClass() :
-    ControlClass(0, 0, 0, OptionsExtension->SidebarControls.CameoWidth, OptionsExtension->SidebarControls.CameoHeight, LEFTPRESS | RIGHTPRESS | LEFTUP),
+    ControlClass(0, 0, 0, UIControls->SidebarControls.CameoWidth, UIControls->SidebarControls.CameoHeight, LEFTPRESS | RIGHTPRESS | LEFTUP),
     Strip(nullptr),
     Index(0) {}
 
@@ -2636,7 +2633,7 @@ void NewSidebarClass::StripClass::BuildType::Draw_It(Point2D const& position, bo
 
     char const* name = Cameo_Text();
     if (name != nullptr) {
-        Print_Cameo_Text(name, position + OptionsExtension->SidebarControls.CameoNameOffset, cliprect, OptionsExtension->SidebarControls.CameoWidth - 2);
+        Print_Cameo_Text(name, position + UIControls->SidebarControls.CameoNameOffset, cliprect, UIControls->SidebarControls.CameoWidth - 2);
     }
 
     bool hasqueuecount = false;
@@ -2646,7 +2643,7 @@ void NewSidebarClass::StripClass::BuildType::Draw_It(Point2D const& position, bo
         if (factory != nullptr) {
             int total = factory->Total(ttype);
             if (total > 1 || total > 0 && !factory->Is_Currently_Producing(ttype)) {
-                Fancy_Text_Print("%d", *SidebarSurface, cliprect, position + OptionsExtension->SidebarControls.CameoQueueCountOffset, Fetch_Scheme_By_Name("LightGrey"), TBLACK, TPF_RIGHT | TPF_FULLSHADOW | TPF_8POINT, total);
+                Fancy_Text_Print("%d", *SidebarSurface, cliprect, position + UIControls->SidebarControls.CameoQueueCountOffset, Fetch_Scheme_By_Name("LightGrey"), TBLACK, TPF_RIGHT | TPF_FULLSHADOW | TPF_8POINT, total);
                 hasqueuecount = true;
             }
         }
@@ -2663,7 +2660,7 @@ void NewSidebarClass::StripClass::BuildType::Draw_It(Point2D const& position, bo
         */
         char const* state = State_Text();
         if (state != nullptr) {
-            Fancy_Text_Print(state, *SidebarSurface, cliprect, position + OptionsExtension->SidebarControls.CameoStateOffset, Fetch_Scheme_By_Name(OptionsExtension->SidebarControls.StateColor.c_str()), TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_8POINT);
+            Fancy_Text_Print(state, *SidebarSurface, cliprect, position + UIControls->SidebarControls.CameoStateOffset, Fetch_Scheme_By_Name(UIControls->SidebarControls.StateColor.c_str()), TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_8POINT);
         }
 
         if (!Is_Completed()) {
@@ -2681,9 +2678,9 @@ void NewSidebarClass::StripClass::BuildType::Draw_It(Point2D const& position, bo
             */
             if (Factory && !Factory->Is_Building()) {
                 if (!hasqueuecount) {
-                    Fancy_Text_Print(TXT_HOLD, *SidebarSurface, cliprect, position + OptionsExtension->SidebarControls.CameoStateOffset, Fetch_Scheme_By_Name(OptionsExtension->SidebarControls.OnHoldColor.c_str()), TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_8POINT);
+                    Fancy_Text_Print(TXT_HOLD, *SidebarSurface, cliprect, position + UIControls->SidebarControls.CameoStateOffset, Fetch_Scheme_By_Name(UIControls->SidebarControls.OnHoldColor.c_str()), TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_8POINT);
                 } else {
-                    Fancy_Text_Print(TXT_HOLD, *SidebarSurface, cliprect, position + OptionsExtension->SidebarControls.CameoQueueStateOffset, Fetch_Scheme_By_Name(OptionsExtension->SidebarControls.OnHoldColor.c_str()), TBLACK, TPF_FULLSHADOW | TPF_8POINT);
+                    Fancy_Text_Print(TXT_HOLD, *SidebarSurface, cliprect, position + UIControls->SidebarControls.CameoQueueStateOffset, Fetch_Scheme_By_Name(UIControls->SidebarControls.OnHoldColor.c_str()), TBLACK, TPF_FULLSHADOW | TPF_8POINT);
                 }
             }
         }
@@ -2694,7 +2691,7 @@ void NewSidebarClass::StripClass::BuildType::Draw_It(Point2D const& position, bo
      *  and it is available.
      */
     if (highlight && !Is_Darkened()) {
-        SidebarSurface->Draw_Rect(Rect(position + Point2D(0, SidebarRect.Y) - Point2D(1, 1), OptionsExtension->SidebarControls.CameoWidth + 2, OptionsExtension->SidebarControls.CameoHeight + 2), DSurface::RGB_To_Pixel(ColorSchemes[Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor]->HSV.operator RGBClass()));
+        SidebarSurface->Draw_Rect(Rect(position + Point2D(0, SidebarRect.Y) - Point2D(1, 1), UIControls->SidebarControls.CameoWidth + 2, UIControls->SidebarControls.CameoHeight + 2), DSurface::RGB_To_Pixel(ColorSchemes[Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor]->HSV.operator RGBClass()));
     }
 }
 

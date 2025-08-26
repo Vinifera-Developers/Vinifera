@@ -38,6 +38,7 @@
 #include "optionsext.h"
 #include "power.h"
 #include "tooltip.h"
+#include "uicontrol.h"
 
 
 /**
@@ -60,7 +61,7 @@ public:
 
 int PowerClassExt::_Max_Power_Height()
 {
-    return (OptionsExtension->SidebarControls.ObjectHeight * NewSidebarClass::Max_Visible() + OptionsExtension->SidebarControls.PowerHeightFudge) / OptionsExtension->SidebarControls.PowerPipHeight;
+    return (UIControls->SidebarControls.ObjectHeight * NewSidebarClass::Max_Visible() + UIControls->SidebarControls.PowerHeightFudge) / UIControls->SidebarControls.PowerPipHeight;
 }
 
 
@@ -145,22 +146,22 @@ void PowerClassExt::_Draw_It(bool complete)
             RedrawSidebar = true;
 
             Rect rect = SidebarSurface->Get_Rect();
-            int x = OptionsExtension->SidebarControls.PowerPosition.X;
-            int y = SidebarRect.Y + OptionsExtension->SidebarControls.PowerPosition.Y;
+            int x = UIControls->SidebarControls.PowerPosition.X;
+            int y = SidebarRect.Y + UIControls->SidebarControls.PowerPosition.Y;
 
             int num = Max_Power_Height() - RedPipCount - YellowPipCount - GreenPipCount;
 
             int index;
             for (index = 0; index < num; index++) {
                 Draw_Shape(*SidebarSurface, *SidebarDrawer, PowerPipShape, POWER_PIP_EMPTY, Point2D(x, y), rect, SHAPE_WIN_REL);
-                y += OptionsExtension->SidebarControls.PowerPipHeight;
+                y += UIControls->SidebarControls.PowerPipHeight;
             }
 
             index = 0;
             if (FlashCount > 0) {
                 if ((FlashCount % 2) == 0) {
                     Draw_Shape(*SidebarSurface, *SidebarDrawer, PowerPipShape, POWER_PIP_WHITE, Point2D(x, y), rect, SHAPE_WIN_REL);
-                    y += OptionsExtension->SidebarControls.PowerPipHeight;
+                    y += UIControls->SidebarControls.PowerPipHeight;
                     index++;
                 }
             }
@@ -168,7 +169,7 @@ void PowerClassExt::_Draw_It(bool complete)
             if (GreenPipCount > 0) {
                 while (index < GreenPipCount) {
                     Draw_Shape(*SidebarSurface, *SidebarDrawer, PowerPipShape, POWER_PIP_GREEN, Point2D(x, y), rect, SHAPE_WIN_REL);
-                    y += OptionsExtension->SidebarControls.PowerPipHeight;
+                    y += UIControls->SidebarControls.PowerPipHeight;
                     index++;
                 }
                 index = 0;
@@ -177,7 +178,7 @@ void PowerClassExt::_Draw_It(bool complete)
             if (YellowPipCount > 0) {
                 while (index < YellowPipCount) {
                     Draw_Shape(*SidebarSurface, *SidebarDrawer, PowerPipShape, POWER_PIP_YELLOW, Point2D(x, y), rect, SHAPE_WIN_REL);
-                    y += OptionsExtension->SidebarControls.PowerPipHeight;
+                    y += UIControls->SidebarControls.PowerPipHeight;
                     index++;
                 }
                 index = 0;
@@ -186,7 +187,7 @@ void PowerClassExt::_Draw_It(bool complete)
             if (RedPipCount > 0) {
                 while (index < RedPipCount) {
                     Draw_Shape(*SidebarSurface, *SidebarDrawer, PowerPipShape, POWER_PIP_RED, Point2D(x, y), rect, SHAPE_WIN_REL);
-                    y += OptionsExtension->SidebarControls.PowerPipHeight;
+                    y += UIControls->SidebarControls.PowerPipHeight;
                     index++;
                 }
                 index = 0;
@@ -206,10 +207,10 @@ void PowerClassExt::_Set_Dimensions(void)
         ToolTip tt;
         tt.Text = TXT_NONE;
         tt.ID = GADGET_POWER;
-        tt.Region.X = SidebarRect.X + OptionsExtension->SidebarControls.PowerPosition.X;
-        tt.Region.Y = SidebarRect.Y + OptionsExtension->SidebarControls.PowerPosition.Y;
-        tt.Region.Width = OptionsExtension->SidebarControls.PowerWidth;
-        tt.Region.Height = OptionsExtension->SidebarControls.ObjectHeight * NewSidebarClass::Max_Visible() + OptionsExtension->SidebarControls.PowerHeightFudge;
+        tt.Region.X = SidebarRect.X + UIControls->SidebarControls.PowerPosition.X;
+        tt.Region.Y = SidebarRect.Y + UIControls->SidebarControls.PowerPosition.Y;
+        tt.Region.Width = UIControls->SidebarControls.PowerWidth;
+        tt.Region.Height = UIControls->SidebarControls.ObjectHeight * NewSidebarClass::Max_Visible() + UIControls->SidebarControls.PowerHeightFudge;
 
         ToolTips->Remove(tt.ID);
         ToolTips->Add(&tt);

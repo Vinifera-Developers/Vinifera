@@ -45,13 +45,17 @@
 #include "tspp_gitinfo.h"
 #include "resource.h"
 #include "asserthandler.h"
+#include "ccini.h"
+#include "commandext.h"
 #include "debughandler.h"
 #include <Windows.h>
 #include <commctrl.h>
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "newsidebar.h"
 #include "optionsext.h"
+#include "uicontrol.h"
 
 
 extern HMODULE DLLInstance;
@@ -606,6 +610,24 @@ bool Vinifera_Prep_For_Side(SideType side)
             SideCDMix = new MFCD(name, &FastKey);
         }
     }
+
+    UIControls->Set_Sidebar_Defaults(UIControlsClass::PRESET_VANILLA);
+
+    CCFileClass file("UI.INI");
+    CCINIClass ui_ini;
+    if (file.Is_Available()) {
+        ui_ini.Load(file, false);
+        UIControls->Read_Sidebar_INI(ui_ini, side);
+    }
+
+    DEBUG_INFO("Creating side-specific new sidebar.\n");
+    delete Sidebar;
+    Sidebar = new NewSidebarClass;
+
+    /**
+     *  We have to re-do this because it depends on dimesnsions that we read now.
+     */
+    Map.One_Time();
 
     Map.Init_For_House();
 
