@@ -49,6 +49,7 @@
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "eventext.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -69,6 +70,7 @@ public:
     ObjectClass* _Prev_Object(ObjectClass* object) const;
     void _Set_View_Dimensions(Rect const& dimensions);
     void _One_Time();
+    void _Place_Object(Cell const& cell);
 };
 
 
@@ -192,6 +194,22 @@ void DisplayClassExt::_One_Time()
     tactical_rect.Width -= OptionsExtension->SidebarControls.SidebarWidth;
     tactical_rect.Height -= OptionsExtension->SidebarControls.TabHeight;
     Set_View_Dimensions(tactical_rect);
+}
+
+
+void DisplayClassExt::_Place_Object(Cell const& cell)
+{
+    OutList.Add(EventClassExt(PlayerPtr->HeapID, EVENT_PLACE, PendingObjectPtr->RTTI, cell + ZoneOffset, TechnoTypeClassExtension::Get_Production_Flags(PendingObjectPtr->RTTI, PendingObjectPtr->Class_Of()->Fetch_Heap_ID())).As_Event());
+}
+
+
+DECLARE_PATCH(_DisplayClass_Mouse_Left_Release_Place_Object_Patch)
+{
+    GET_REGISTER_STATIC(Cell*, cell, eax);
+    GET_REGISTER_STATIC(DisplayClassExt*, this_ptr, ebx);
+
+    this_ptr->_Place_Object(*cell);
+    JMP(0x00479140);
 }
 
 
@@ -526,5 +544,5 @@ void DisplayClassExtension_Hooks()
 
     Patch_Call(0x0050B13C, &DisplayClassExt::_Set_View_Dimensions);
     Patch_Jump(0x00475C80, &DisplayClassExt::_One_Time);
-
+    Patch_Jump(0x00478994, &_DisplayClass_Mouse_Left_Release_Place_Object_Patch);
 }

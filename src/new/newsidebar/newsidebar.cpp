@@ -1941,9 +1941,10 @@ void NewSidebarClass::StripClass::Tab_AI()
         }
 
         int building_tab = Which_Column(RTTI_BUILDINGTYPE, PRODFLAG_NONE);
-        if (ID == building_tab) {
+        int defenses_tab = Which_Column(RTTI_BUILDINGTYPE, PRODFLAG_DEFENSE);
+        if (ID == building_tab || ID == defenses_tab) {
             if (TabButton.IsFlashing) {
-                FactoryClass* fptr = Extension::Fetch(PlayerPtr)->Fetch_Factory(RTTI_BUILDINGTYPE, PRODFLAG_DEFENSE);
+                FactoryClass* fptr = Extension::Fetch(PlayerPtr)->Fetch_Factory(RTTI_BUILDINGTYPE, ID == defenses_tab ? PRODFLAG_DEFENSE : PRODFLAG_NONE);
                 if (fptr == nullptr || !fptr->Has_Completed()) TabButton.Stop_Flashing();
             }
         }

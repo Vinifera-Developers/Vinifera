@@ -1157,7 +1157,9 @@ bool SetTabXCommandClass<tab_number>::Process()
 {
     bool result = Sidebar->Change_Tab(tab_number);
 
-    if (tab_number == OptionsExtension->SidebarControls.BuildingsTab || tab_number == OptionsExtension->SidebarControls.DefensesTab) {
+    int building_tab = NewSidebarClass::Which_Column(RTTI_BUILDINGTYPE, PRODFLAG_NONE);
+    int defenses_tab = NewSidebarClass::Which_Column(RTTI_BUILDINGTYPE, PRODFLAG_DEFENSE);
+    if (tab_number == building_tab || tab_number == defenses_tab) {
 
         /**
          *  Enter the manual placement mode when a building is complete
@@ -1170,7 +1172,7 @@ bool SetTabXCommandClass<tab_number>::Process()
             /**
              *  Fetch the house's factory associated with producing buildings.
              */
-            FactoryClass* factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(RTTI_BUILDING, tab_number == OptionsExtension->SidebarControls.DefensesTab ? PRODFLAG_DEFENSE : PRODFLAG_NONE);
+            FactoryClass* factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(RTTI_BUILDING, tab_number == defenses_tab ? PRODFLAG_DEFENSE : PRODFLAG_NONE);
             if (!factory) {
                 return result;
             }
