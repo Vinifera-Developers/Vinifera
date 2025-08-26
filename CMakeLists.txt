@@ -417,18 +417,8 @@ if(NOT ${OPTION_CUSTOM_DEBUGGER_DIRECTORY_PATH} STREQUAL " ")
 endif()
 
 # Set input and output paths.
-set(PDB_COPY_SOURCE_PATH ${CMAKE_SOURCE_DIR}/TSpp/pdb/)
 set(EDB_COPY_SOURCE_PATH ${CMAKE_SOURCE_DIR}/TSpp/edb/)
-set(PDB_COPY_DESTINATION_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>/)
 set(EDB_COPY_DESTINATION_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>/)
-
-# Create post build script to copy the Target Fake PDB to the build output directory.
-include(WindowsCopyFiles)
-PostBuild_WindowsCopyFiles(${PROJECT_NAME}
-	${PDB_COPY_SOURCE_PATH}
-	${PDB_COPY_DESTINATION_PATH}
-	"${TARGET_PDB}"
-)
 
 # Create post build script to copy the EDB (exception database) to the build output directory.
 include(WindowsCopyFiles)
@@ -466,14 +456,6 @@ if(NOT ${OPTION_CUSTOM_DEBUGGER_DIRECTORY_PATH} STREQUAL " ")
 	PostBuild_WindowsCopyFiles(${PROJECT_NAME}
 		${COPY_SOURCE_FILE_PATH}
 		${COPY_DESTINATION_PATH}
-		"${TARGET_PDB}"
-	)
-	
-	# Create the post build script.
-	include(WindowsCopyFiles)
-	PostBuild_WindowsCopyFiles(${PROJECT_NAME}
-		${COPY_SOURCE_FILE_PATH}
-		${COPY_DESTINATION_PATH}
 		"${TARGET_EDB}"
 	)
 endif()
@@ -489,7 +471,6 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC VINIFERA_UNSUPPORTED_TARGET_ER
 target_compile_definitions(${PROJECT_NAME} PUBLIC VINIFERA_DLL="${PROJECT_DLL}")
 target_compile_definitions(${PROJECT_NAME} PUBLIC VINIFERA_TARGET_EXE="${TARGET_EXE}")
 target_compile_definitions(${PROJECT_NAME} PUBLIC VINIFERA_TARGET_EDB="${TARGET_EDB}")
-target_compile_definitions(${PROJECT_NAME} PUBLIC VINIFERA_TARGET_PDB="${TARGET_PDB}")
 target_compile_definitions(${PROJECT_NAME} PUBLIC VINIFERA_TARGET_SIZE=${TARGET_SIZE})
 target_compile_definitions(${PROJECT_NAME} PUBLIC VINIFERA_TARGET_HASH="${TARGET_HASH}")
 
