@@ -62,21 +62,25 @@ void TabClassExt::_Draw_It(bool complete)
         */
         if (complete || IsToRedraw) {
 
-            int width = SidebarSurface->Get_Width();
-            int rightx = width + CompositeSurface->Get_Width() - 1;
-            int tab_height = OptionsExtension->SidebarControls.TabHeight;
+            if (OptionsExtension->SidebarControls.IsTopBar) {
+                int width = SidebarSurface->Get_Width();
+                int rightx = width + CompositeSurface->Get_Width() - 1;
+                int tab_height = OptionsExtension->SidebarControls.TopBarHeight;
 
-            for (int x = TabShape->Get_Width(); x < CompositeSurface->Get_Width(); x += TabShape->Get_Width()) {
-                Draw_Shape(*CompositeSurface, *SidebarDrawer, TabShape, 1, Point2D(x, 0), CompositeSurface->Get_Rect());
-            }
+                for (int x = TabShape->Get_Width(); x < CompositeSurface->Get_Width(); x += TabShape->Get_Width()) {
+                    Draw_Shape(*CompositeSurface, *SidebarDrawer, TabShape, 1, Point2D(x, 0), CompositeSurface->Get_Rect());
+                }
 
-            Draw_Shape(*CompositeSurface, *SidebarDrawer, TabShape, 0, Point2D(0, 0), VisibleRect);
-            Draw_Credits_Tab();
-            LogicalSurface->Draw_Line(Point2D(0, tab_height - 2), Point2D(rightx, tab_height - 2), TBLACK);
-            Fancy_Text_Print(TXT_TAB_BUTTON_CONTROLS, *LogicalSurface, LogicalSurface->Get_Rect(), Point2D(OptionsExtension->SidebarControls.SidebarWidth / 2, 0), ColorSchemes[0], TBLACK, TPF_USE_GRAD_PAL | TPF_CENTER | TPF_METAL12);
+                Draw_Shape(*CompositeSurface, *SidebarDrawer, TabShape, 0, Point2D(0, 0), VisibleRect);
+                Draw_Credits_Tab();
+                LogicalSurface->Draw_Line(Point2D(0, tab_height - 2), Point2D(rightx, tab_height - 2), TBLACK);
+                Fancy_Text_Print(TXT_TAB_BUTTON_CONTROLS, *LogicalSurface, LogicalSurface->Get_Rect(), Point2D(OptionsExtension->SidebarControls.SidebarWidth / 2, 0), ColorSchemes[0], TBLACK, TPF_USE_GRAD_PAL | TPF_CENTER | TPF_METAL12);
 
-            if (LogicalSurface != TileSurface) {
-                TileSurface->Copy_From(Rect(0, 0, TileSurface->Get_Width(), tab_height), *LogicalSurface, Rect(0, 0, TileSurface->Get_Width(), tab_height));
+                if (LogicalSurface != TileSurface) {
+                    TileSurface->Copy_From(Rect(0, 0, TileSurface->Get_Width(), tab_height), *LogicalSurface, Rect(0, 0, TileSurface->Get_Width(), tab_height));
+                }
+            } else {
+                Draw_Credits_Tab();
             }
         }
     }
@@ -92,7 +96,7 @@ void TabClassExt::_Draw_It(bool complete)
 void TabClassExt::_AI(KeyNumType& input, Point2D const& xy)
 {
     if (!Map.IsRubberBand) {
-        if (xy.Y >= 0 && xy.Y < OptionsExtension->SidebarControls.TabHeight && xy.X < (VisibleSurface->Get_Width() - 1) && xy.X > 0) {
+        if (xy.Y >= 0 && xy.Y < OptionsExtension->SidebarControls.TopBarHeight && xy.X < (VisibleSurface->Get_Width() - 1) && xy.X > 0) {
 
             bool ok = false;
 

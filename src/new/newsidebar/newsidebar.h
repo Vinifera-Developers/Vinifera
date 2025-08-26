@@ -367,6 +367,7 @@ private:
     static ShapeButtonClass Waypoint;
     static SBGadgetClass Background;
 
+    static ShapeSet const* SidebarTopShape;
     static ShapeSet const* SidebarShape;
     static ShapeSet const* SidebarMiddleShape;
     static ShapeSet const* SidebarBottomShape;

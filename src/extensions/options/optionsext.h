@@ -78,17 +78,17 @@ class OptionsClassExtension final : public GlobalExtensionClass<OptionsClass>
 
         struct {
 
-            enum {
-                MAX_TABS = 6
-            };
-
             char MixLetter = '\0';
 
             bool IsTabs = false;
             int Tabs = 0;
             int Columns = 2;
 
+            bool IsTopBar = true;
             int TabHeight = 16;
+
+            int Get_Top_Bar_Height() const { return IsTopBar ? TabHeight : 0; }
+            __declspec(property(get = Get_Top_Bar_Height)) int TopBarHeight;
 
             int CameoWidth = 64;
             int CameoHeight = 48;
@@ -129,6 +129,7 @@ class OptionsClassExtension final : public GlobalExtensionClass<OptionsClass>
             int PowerPipHeight = 4;
 
             int RadarHeight = 134;
+            int RadarTopHeight = 0;
             Rect RadarMapRect = Rect(15, 12, 140, 108);
 
             Point2D RepairButtonPosition = Point2D(31, -9);

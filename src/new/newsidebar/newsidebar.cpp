@@ -58,6 +58,7 @@
 #include "wwmouse.h"
 
 
+ShapeSet const* NewSidebarClass::SidebarTopShape = nullptr;
 ShapeSet const* NewSidebarClass::SidebarShape = nullptr;
 ShapeSet const* NewSidebarClass::SidebarMiddleShape = nullptr;
 ShapeSet const* NewSidebarClass::SidebarBottomShape = nullptr;
@@ -208,7 +209,7 @@ void NewSidebarClass::Init_Clear()
 void NewSidebarClass::Init_IO()
 {
     SidebarRect.X = TacticalRect.X + TacticalRect.Width;
-    SidebarRect.Y = OptionsExtension->SidebarControls.RadarHeight + OptionsExtension->SidebarControls.TabHeight;
+    SidebarRect.Y = OptionsExtension->SidebarControls.RadarHeight + OptionsExtension->SidebarControls.RadarTopHeight + OptionsExtension->SidebarControls.TabHeight;
     SidebarRect.Width = OptionsExtension->SidebarControls.SidebarWidth;
     SidebarRect.Height = TacticalRect.Y + TacticalRect.Height - SidebarRect.Y;
 
@@ -305,6 +306,7 @@ void NewSidebarClass::Init_For_House()
     Repair.Set_Shape(MFCD::RetrieveT<ShapeSet>("REPAIR.SHP"));
     Repair.ShapeDrawer = SidebarDrawer;
 
+    SidebarTopShape = MFCD::RetrieveT<ShapeSet>("TOP.SHP");
     SidebarShape = MFCD::RetrieveT<ShapeSet>("SIDE1.SHP");
     SidebarMiddleShape = MFCD::RetrieveT<ShapeSet>("SIDE2.SHP");
     SidebarBottomShape = MFCD::RetrieveT<ShapeSet>("SIDE3.SHP");
@@ -515,6 +517,8 @@ void NewSidebarClass::Draw_It(bool complete)
         }
 
         if (complete || redraw_strip) {
+
+            Draw_Shape(*SidebarSurface, *SidebarDrawer, SidebarTopShape, 0, Point2D(0, OptionsExtension->SidebarControls.TabHeight), window, SHAPE_WIN_REL);
 
             int y = SidebarRect.Y;
 
@@ -803,7 +807,7 @@ void NewSidebarClass::Set_Dimensions()
     **	Position the sidebar.
     */
     SidebarRect.X = TacticalRect.X + TacticalRect.Width;
-    SidebarRect.Y = OptionsExtension->SidebarControls.RadarHeight + OptionsExtension->SidebarControls.TabHeight;
+    SidebarRect.Y = OptionsExtension->SidebarControls.RadarHeight + OptionsExtension->SidebarControls.RadarTopHeight + OptionsExtension->SidebarControls.TabHeight;
     SidebarRect.Width = OptionsExtension->SidebarControls.SidebarWidth;
     SidebarRect.Height = TacticalRect.Y + TacticalRect.Height - SidebarRect.Y;
 
@@ -2039,7 +2043,10 @@ void NewSidebarClass::StripClass::Init_For_House()
 
     char const* TabShapes[6] = {"TAB-BLD.SHP", "TAB-INF.SHP", "TAB-UNT.SHP", "TAB-SPC.SHP", "TAB-SPC.SHP", "TAB-SPC.SHP"};
 
-    TabButton.Set_Shape(MFCD::RetrieveT<ShapeSet>(TabShapes[ID]));
+    char buffer[32];
+    std::snprintf(buffer, sizeof(buffer), "TAB%02d.SHP", ID);
+
+    TabButton.Set_Shape(MFCD::RetrieveT<ShapeSet>(buffer));
     TabButton.ShapeDrawer = SidebarDrawer;
 }
 

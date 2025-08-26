@@ -255,6 +255,7 @@ void OptionsClassExtension::Load_Init_Settings()
                 SidebarControls.PowerButtonPosition = Point2D(85, -9);
                 SidebarControls.WaypointButtonPosition = Point2D(112, -9);
 
+                SidebarControls.TabButtonOffset.resize(SidebarControls.Tabs, Point2D(0, 0));
                 SidebarControls.TabButtonOffset[0] = Point2D(20, 27);
                 SidebarControls.TabButtonOffset[1] = Point2D(55, 27);
                 SidebarControls.TabButtonOffset[2] = Point2D(90, 27);
@@ -265,6 +266,7 @@ void OptionsClassExtension::Load_Init_Settings()
 
                 SidebarControls.PowerPosition = Point2D(8, 53);
 
+                SidebarControls.TabName.resize(SidebarControls.Tabs, "");
                 SidebarControls.TabName[0] = "Buildings";
                 SidebarControls.TabName[1] = "Infantry";
                 SidebarControls.TabName[2] = "Vehicles";
@@ -371,7 +373,18 @@ void OptionsClassExtension::Load_Init_Settings()
                 }
             }
 
+            SidebarControls.IsTabs = sun_ini.Get_Bool(SIDEBAR, "IsTabs", SidebarControls.IsTopBar);
+            if (SidebarControls.IsTabs) {
+                SidebarControls.Tabs = sun_ini.Get_Int_Clamp(SIDEBAR, "Tabs", 4, 6, SidebarControls.Tabs);
+            } else {
+                SidebarControls.Tabs = 0;
+            }
+
+            SidebarControls.Columns = sun_ini.Get_Int_Clamp(SIDEBAR, "Columns", 2, 5, SidebarControls.Columns);
+
+            SidebarControls.IsTopBar = sun_ini.Get_Bool(SIDEBAR, "IsTopBar", SidebarControls.IsTopBar);
             SidebarControls.TabHeight = sun_ini.Get_Int(SIDEBAR, "TabHeight", SidebarControls.TabHeight);
+
             SidebarControls.CameoWidth = sun_ini.Get_Int(SIDEBAR, "CameoWidth", SidebarControls.CameoWidth);
             SidebarControls.CameoHeight = sun_ini.Get_Int(SIDEBAR, "CameoHeight", SidebarControls.CameoHeight);
             SidebarControls.CameoXSpacing = sun_ini.Get_Int(SIDEBAR, "CameoXSpacing", SidebarControls.CameoXSpacing);
@@ -391,6 +404,7 @@ void OptionsClassExtension::Load_Init_Settings()
             SidebarControls.PowerPipHeight = sun_ini.Get_Int(SIDEBAR, "PowerPipHeight", SidebarControls.PowerPipHeight);
 
             SidebarControls.RadarHeight = sun_ini.Get_Int(SIDEBAR, "RadarHeight", SidebarControls.RadarHeight);
+            SidebarControls.RadarTopHeight = sun_ini.Get_Int(SIDEBAR, "RadarTopHeight", SidebarControls.RadarTopHeight);
 
             if (sun_ini.Is_Present(SIDEBAR, "RadarMapRect")) { // seems to be bugged and instead of using the defvalue returns (0,0,0,0) if not present
                 SidebarControls.RadarMapRect = sun_ini.Get_Rect(SIDEBAR, "RadarMapRect", SidebarControls.RadarMapRect);
@@ -405,7 +419,7 @@ void OptionsClassExtension::Load_Init_Settings()
             for (int i = 0; i < SidebarControls.Tabs; i++) {
                 char key[32];
                 std::snprintf(key, sizeof(key), "TabButton%dOffset", i);
-                SidebarControls.TabButtonOffset[i] = sun_ini.Get_Point(SIDEBAR, "TabButtonOffset", SidebarControls.TabButtonOffset[i]);
+                SidebarControls.TabButtonOffset[i] = sun_ini.Get_Point(SIDEBAR, key, SidebarControls.TabButtonOffset[i]);
             }
 
             SidebarControls.UpButtonOffset = sun_ini.Get_Point(SIDEBAR, "UpButtonOffset", SidebarControls.UpButtonOffset);

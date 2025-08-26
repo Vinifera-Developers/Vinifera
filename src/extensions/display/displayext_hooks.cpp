@@ -173,9 +173,9 @@ void DisplayClassExt::_Set_View_Dimensions(Rect const& dimensions)
 {
     Rect tactical_rect = VisibleRect;
     tactical_rect.X = ((Options.SidebarSide || Debug_Map) ? 0 : OptionsExtension->SidebarControls.SidebarWidth);
-    tactical_rect.Y = OptionsExtension->SidebarControls.TabHeight;
+    tactical_rect.Y = OptionsExtension->SidebarControls.TopBarHeight;
     tactical_rect.Width -= OptionsExtension->SidebarControls.SidebarWidth;
-    tactical_rect.Height -= OptionsExtension->SidebarControls.TabHeight;
+    tactical_rect.Height -= OptionsExtension->SidebarControls.TopBarHeight;
 
     DisplayClass::Set_View_Dimensions(tactical_rect);
 }
@@ -190,9 +190,9 @@ void DisplayClassExt::_One_Time()
 
     Rect tactical_rect = VisibleRect;
     tactical_rect.X = ((Options.SidebarSide || Debug_Map) ? 0 : OptionsExtension->SidebarControls.SidebarWidth);
-    tactical_rect.Y = OptionsExtension->SidebarControls.TabHeight;
+    tactical_rect.Y = OptionsExtension->SidebarControls.TopBarHeight;
     tactical_rect.Width -= OptionsExtension->SidebarControls.SidebarWidth;
-    tactical_rect.Height -= OptionsExtension->SidebarControls.TabHeight;
+    tactical_rect.Height -= OptionsExtension->SidebarControls.TopBarHeight;
     Set_View_Dimensions(tactical_rect);
 }
 

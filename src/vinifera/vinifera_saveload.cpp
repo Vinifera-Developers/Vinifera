@@ -490,9 +490,9 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
     {
         Rect tactical_rect = VisibleRect;
         tactical_rect.X = ((Options.SidebarSide || Debug_Map) ? 0 : OptionsExtension->SidebarControls.SidebarWidth);
-        tactical_rect.Y = OptionsExtension->SidebarControls.TabHeight;
+        tactical_rect.Y = OptionsExtension->SidebarControls.TopBarHeight;
         tactical_rect.Width -= OptionsExtension->SidebarControls.SidebarWidth;
-        tactical_rect.Height -= OptionsExtension->SidebarControls.TabHeight;
+        tactical_rect.Height -= OptionsExtension->SidebarControls.TopBarHeight;
 
         DEBUG_INFO("About to call Allocate_Surfaces()...\n");
         Allocate_Surfaces(VisibleRect, Rect(0, 0, tactical_rect.Width, VisibleRect.Height), Rect(0, 0, tactical_rect.Width, VisibleRect.Height), Rect(0, 0, OptionsExtension->SidebarControls.SidebarWidth, VisibleRect.Height));

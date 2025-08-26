@@ -337,7 +337,7 @@ void SidebarClassExt::_Blit_Sidebar(bool complete)
 
         int sidebar_width = OptionsExtension->SidebarControls.SidebarWidth;
         int tab_height = OptionsExtension->SidebarControls.TabHeight;
-        int radar_height = OptionsExtension->SidebarControls.RadarHeight + 4; // 4 because ?? for now
+        int radar_height = OptionsExtension->SidebarControls.RadarHeight + OptionsExtension->SidebarControls.RadarTopHeight + 4; // 4 because ?? for now
 
         if (!RedrawSidebar && !complete) {
             RedrawSidebar = false;
@@ -453,9 +453,9 @@ static bool _Allocate_Surfaces(const Rect& hidden_rect, const Rect& composite_re
 {
     Rect tactical_rect = VisibleRect;
     tactical_rect.X = ((Options.SidebarSide || Debug_Map) ? 0 : OptionsExtension->SidebarControls.SidebarWidth);
-    tactical_rect.Y = OptionsExtension->SidebarControls.TabHeight;
+    tactical_rect.Y = OptionsExtension->SidebarControls.TopBarHeight;
     tactical_rect.Width -= OptionsExtension->SidebarControls.SidebarWidth;
-    tactical_rect.Height -= OptionsExtension->SidebarControls.TabHeight;
+    tactical_rect.Height -= OptionsExtension->SidebarControls.TopBarHeight;
 
     return Allocate_Surfaces(VisibleRect, Rect(0, 0, tactical_rect.Width, VisibleRect.Height), Rect(0, 0, tactical_rect.Width, VisibleRect.Height), Rect(0, 0, OptionsExtension->SidebarControls.SidebarWidth, VisibleRect.Height));
 }

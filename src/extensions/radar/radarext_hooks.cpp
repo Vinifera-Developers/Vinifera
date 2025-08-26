@@ -54,7 +54,7 @@ void RadarClassExt::_One_Time()
 {
     DEBUG_INFO("RadarClass::One_Time()\n");
     RadX = 0;
-    RadY = OptionsExtension->SidebarControls.TabHeight;
+    RadY = OptionsExtension->SidebarControls.TabHeight + OptionsExtension->SidebarControls.RadarTopHeight;
     RadWidth = SidebarSurface->Get_Width();
     RadHeight = OptionsExtension->SidebarControls.RadarHeight;
     RadOffX = OptionsExtension->SidebarControls.RadarMapRect.X;

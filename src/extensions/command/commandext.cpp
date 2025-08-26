@@ -1124,6 +1124,8 @@ template class SetTabXCommandClass<2>;
 template class SetTabXCommandClass<3>;
 template class SetTabXCommandClass<4>;
 template class SetTabXCommandClass<5>;
+template class SetTabXCommandClass<6>;
+template class SetTabXCommandClass<7>;
 
 template<int tab_number>
 const char* SetTabXCommandClass<tab_number>::Get_Name() const
@@ -1172,7 +1174,7 @@ bool SetTabXCommandClass<tab_number>::Process()
             /**
              *  Fetch the house's factory associated with producing buildings.
              */
-            FactoryClass* factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(RTTI_BUILDING, tab_number == defenses_tab ? PRODFLAG_DEFENSE : PRODFLAG_NONE);
+            FactoryClass* factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(RTTI_BUILDING, tab_number == building_tab ? PRODFLAG_NONE : PRODFLAG_DEFENSE);
             if (!factory) {
                 return result;
             }
