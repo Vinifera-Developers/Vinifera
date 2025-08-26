@@ -137,6 +137,7 @@
 #include "loadoptions.h"
 #include "miscutil.h"
 #include "newsidebar.h"
+#include "optionsext.h"
 #include "savever.h"
 #include "vinifera_savever.h"
 #include "windialog.h"
@@ -487,15 +488,17 @@ bool Vinifera_Get_All(IStream *pStm, bool load_net)
     }
 
     {
-    Rect tactical_rect = Get_Tactical_Rect();
-    Rect composite_rect(0, 0, tactical_rect.Width, ScreenRect.Height);
-    Rect tile_rect(0, 0, tactical_rect.Width, ScreenRect.Height);
-    Rect sidebar_rect(tactical_rect.X, tactical_rect.Y, SidebarClass::SIDE_WIDTH, ScreenRect.Height);
-    DEBUG_INFO("About to call Allocate_Surfaces()...\n");
-    Allocate_Surfaces(&ScreenRect, &composite_rect, &tile_rect, &sidebar_rect);
+        Rect tactical_rect = VisibleRect;
+        tactical_rect.X = ((Options.SidebarSide || Debug_Map) ? 0 : OptionsExtension->SidebarControls.SidebarWidth);
+        tactical_rect.Y = OptionsExtension->SidebarControls.TabHeight;
+        tactical_rect.Width -= OptionsExtension->SidebarControls.SidebarWidth;
+        tactical_rect.Height -= OptionsExtension->SidebarControls.TabHeight;
 
-    DEBUG_INFO("About to call Map.Set_View_Dimensions()...\n");
-    Map.Set_View_Dimensions(tactical_rect);
+        DEBUG_INFO("About to call Allocate_Surfaces()...\n");
+        Allocate_Surfaces(VisibleRect, Rect(0, 0, tactical_rect.Width, VisibleRect.Height), Rect(0, 0, tactical_rect.Width, VisibleRect.Height), Rect(0, 0, 168, VisibleRect.Height));
+
+        DEBUG_INFO("About to call Map.Set_View_Dimensions()...\n");
+        Map.Set_View_Dimensions(tactical_rect);
     }
 
     DEBUG_INFO("Loading Environment...\n");

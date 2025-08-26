@@ -264,7 +264,7 @@ void NewSidebarClass::Init_For_House()
     PaletteClass pal("SIDEBAR.PAL");
 
     delete SidebarDrawer;
-    SidebarDrawer = new ConvertClass(&pal, &pal, PrimarySurface, 1);
+    SidebarDrawer = new ConvertClass(&pal, &pal, VisibleSurface, 1);
 
     Sell.Set_Shape(MFCD::RetrieveT<ShapeSet>("SELL.SHP"));
     Sell.ShapeDrawer = SidebarDrawer;
@@ -471,7 +471,7 @@ bool NewSidebarClass::Page(bool up, int column)
 void NewSidebarClass::Draw_It(bool complete)
 {
     complete = complete || Map.SidebarClass::IsToFullRedraw;
-    Map.field_1214 = RECT_NONE;
+    Map.LastDrawRect = RECT_NONE;
 
     Map.PowerClass::Draw_It(complete);
 
@@ -2042,7 +2042,7 @@ int NewSidebarClass::StripClass::TabButtonClass::Action(unsigned flags, KeyNumTy
     **  Act on mouse release.
     */
     if (flags & LEFTRELEASE) {
-        bool overbutton = WWMouse->Get_Mouse_X() - X < Width && WWMouse->Get_Mouse_Y() - Y < Height;
+        bool overbutton = MouseCursor->Get_Mouse_X() - X < Width && MouseCursor->Get_Mouse_Y() - Y < Height;
         if (!IsSelected && overbutton) {
             IsSelected = true;
             Flag_To_Redraw();
@@ -2125,7 +2125,7 @@ bool NewSidebarClass::StripClass::TabButtonClass::Draw_Me(bool forced)
         shapenum = FRAME_NORMAL;
     }
 
-    Draw_Shape(*SidebarSurface, *ShapeDrawer, ShapeData, shapenum, Point2D(X + DrawOffsetX, Y + DrawOffsetY), ScreenRect, SHAPE_NORMAL);
+    Draw_Shape(*SidebarSurface, *ShapeDrawer, ShapeData, shapenum, Point2D(X + DrawOffsetX, Y + DrawOffsetY), VisibleRect, SHAPE_NORMAL);
 
     if (MousedOver && !Scen->InputLock && !IsDisabled && !IsSelected) {
         Rect hover_rect(X + DrawOffsetX, Y + DrawOffsetY, Width - 1, Height - 1);

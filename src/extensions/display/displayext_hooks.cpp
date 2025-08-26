@@ -52,6 +52,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "optionsext.h"
 
 
 /**
@@ -63,9 +64,11 @@
  */
 class DisplayClassExt final : public DisplayClass
 {
-    public:
-        ObjectClass * _Next_Object(ObjectClass * object) const;
-        ObjectClass * _Prev_Object(ObjectClass * object) const;
+public:
+    ObjectClass* _Next_Object(ObjectClass* object) const;
+    ObjectClass* _Prev_Object(ObjectClass* object) const;
+    void _Set_View_Dimensions(Rect const& dimensions);
+    void _One_Time();
 };
 
 
@@ -161,6 +164,34 @@ ObjectClass * DisplayClassExt::_Prev_Object(ObjectClass * object)  const
         }
     }
     return firstobj;
+}
+
+
+void DisplayClassExt::_Set_View_Dimensions(Rect const& dimensions)
+{
+    Rect tactical_rect = VisibleRect;
+    tactical_rect.X = ((Options.SidebarSide || Debug_Map) ? 0 : OptionsExtension->SidebarControls.SidebarWidth);
+    tactical_rect.Y = OptionsExtension->SidebarControls.TabHeight;
+    tactical_rect.Width -= OptionsExtension->SidebarControls.SidebarWidth;
+    tactical_rect.Height -= OptionsExtension->SidebarControls.TabHeight;
+
+    DisplayClass::Set_View_Dimensions(tactical_rect);
+}
+
+
+void DisplayClassExt::_One_Time()
+{
+    MapClass::One_Time();
+
+    PlacementShapes = MFCD::RetrieveT<ShapeSet>("PLACE.SHP");
+    ShadowShapes = MFCD::RetrieveT<ShapeSet>("SHADOW.SHP");
+
+    Rect tactical_rect = VisibleRect;
+    tactical_rect.X = ((Options.SidebarSide || Debug_Map) ? 0 : OptionsExtension->SidebarControls.SidebarWidth);
+    tactical_rect.Y = OptionsExtension->SidebarControls.TabHeight;
+    tactical_rect.Width -= OptionsExtension->SidebarControls.SidebarWidth;
+    tactical_rect.Height -= OptionsExtension->SidebarControls.TabHeight;
+    Set_View_Dimensions(tactical_rect);
 }
 
 
@@ -308,8 +339,8 @@ DECLARE_PATCH(_DisplayClass_Mouse_Left_Release_PlaceAnywhere_BugFix_Patch)
      *  Find out where the mouse cursor is, if its over the sidebar
      *  then invalidate the proximity checks, fixing the glitch.
      */
-    mouse_pos.X = WWMouse->Get_Mouse_X();
-    mouse_pos.Y = WWMouse->Get_Mouse_Y();
+    mouse_pos.X = MouseCursor->Get_Mouse_X();
+    mouse_pos.Y = MouseCursor->Get_Mouse_Y();
     if (mouse_pos.X >= (TacticalRect.Width-1)) {
         this_ptr->IsProximityCheck = false;
         this_ptr->IsShroudCheck = false;
@@ -492,4 +523,8 @@ void DisplayClassExtension_Hooks()
 
     Patch_Jump(0x00477390, &DisplayClassExt::_Next_Object);
     Patch_Jump(0x00477430, &DisplayClassExt::_Prev_Object);
+
+    Patch_Call(0x0050B13C, &DisplayClassExt::_Set_View_Dimensions);
+    Patch_Jump(0x00475C80, &DisplayClassExt::_One_Time);
+
 }

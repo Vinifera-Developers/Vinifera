@@ -160,6 +160,7 @@
 #include "powerext_hooks.h"
 #include "prerequisitegroup_hooks.h"
 #include "spawnmanager_hooks.h"
+#include "tabext_hooks.h"
 #include "teventext_hooks.h"
 #include "voxelanimext_hooks.h"
 
@@ -266,6 +267,7 @@ void Extension_Hooks()
     SidebarClassExtension_Hooks();
     MouseClassExtension_Hooks();
     PowerClassExtension_Hooks();
+    TabClassExtension_Hooks();
 
     /**
      *  Various modules and functions.

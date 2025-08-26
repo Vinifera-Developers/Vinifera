@@ -29,55 +29,26 @@
 
 #include <algorithm>
 
-#include "bsurface.h"
-#include "buildingtype.h"
-#include "convert.h"
-#include "drawshape.h"
-#include "event.h"
-#include "extension.h"
-#include "factory.h"
-#include "fetchres.h"
-#include "house.h"
-#include "housetype.h"
-#include "language.h"
-#include "mouse.h"
-#include "playmovie.h"
-#include "rules.h"
-#include "scenarioext.h"
-#include "session.h"
-#include "sidebar.h"
-#include "spritecollection.h"
-#include "super.h"
-#include "supertype.h"
-#include "supertypeext.h"
-#include "techno.h"
-#include "technotype.h"
-#include "technotypeext.h"
-#include "textprint.h"
-#include "tibsun_functions.h"
-#include "tibsun_globals.h"
-#include "tooltip.h"
-#include "unittypeext.h"
-#include "voc.h"
-#include "vox.h"
-#include "wwmouse.h"
-#include "sideext.h"
-#include "debughandler.h"
-#include "fatal.h"
 #include "asserthandler.h"
 #include "building.h"
-#include "eventext.h"
-#include "factoryext.h"
+#include "debughandler.h"
+#include "extension.h"
+#include "fatal.h"
 #include "hooker.h"
 #include "hooker_macros.h"
-#include "houseext.h"
+#include "house.h"
+#include "language.h"
+#include "mouse.h"
 #include "msgbox.h"
 #include "newsidebar.h"
 #include "optionsext.h"
-#include "rulesext.h"
 #include "sidebar.h"
-#include "uicontrol.h"
+#include "spritecollection.h"
+#include "tibsun_functions.h"
+#include "tibsun_globals.h"
 #include "vinifera_globals.h"
+#include "voc.h"
+#include "wwmouse.h"
 
 
 /**
@@ -107,6 +78,7 @@ public:
     void _Set_Dimensions();
     const char* _Help_Text(int gadget_id);
     int _Max_Visible();
+    void _Blit_Sidebar(bool complete);
 };
 
 
@@ -351,6 +323,58 @@ void StripClassExt::_Fake_Flag_To_Redraw_Current()
 }
 
 
+void SidebarClassExt::_Blit_Sidebar(bool complete)
+{
+    if (IsSidebarActive && GameActive && TacticalViewActive) {
+
+        RECT crect;
+        GetClientRect(MainWindow, &crect);
+
+        POINT scrnpt;
+        scrnpt.x = crect.left;
+        scrnpt.y = crect.top;
+        ClientToScreen(MainWindow, &scrnpt);
+
+        bool draw = false;
+
+        int sidebar_width = OptionsExtension->SidebarControls.SidebarWidth;
+        int tab_height = OptionsExtension->SidebarControls.TabHeight;
+        int radar_height = OptionsExtension->SidebarControls.RadarHeight + 4; // 4 because ?? for now
+
+        if (!RedrawSidebar && !complete) {
+            RedrawSidebar = false;
+            if (Map.LastDrawRect == RECT_NONE) {
+                if (IsToRedrawCredits) {
+                    MouseCursor->Draw_Mouse(SidebarSurface, true);
+                    VisibleSurface->Copy_From(Rect(scrnpt.x + TacticalRect.Width, scrnpt.y, sidebar_width, tab_height), *SidebarSurface, Rect(0, 0, sidebar_width, tab_height),
+                        false,
+                        true);
+                    IsToRedrawCredits = false;
+                    EraseMouse = true;
+                }
+                RedrawSidebar = false;
+                return;
+            }
+        } else {
+            RedrawSidebar = true;
+        }
+
+        MouseCursor->Draw_Mouse(SidebarSurface, true);
+        if (Map.LastDrawRect == RECT_NONE && !complete) {
+            VisibleSurface->Copy_From(Rect(scrnpt.x + TacticalRect.Width, scrnpt.y, sidebar_width, tab_height), *SidebarSurface, Rect(0, 0, sidebar_width, tab_height));
+            VisibleSurface->Copy_From(Rect(scrnpt.x + TacticalRect.Width, scrnpt.y + radar_height, sidebar_width, SidebarSurface->Get_Height() - radar_height), *SidebarSurface, Rect(0, 138, sidebar_width, SidebarSurface->Get_Height() - radar_height));
+        } else if (!RedrawSidebar) {
+            VisibleSurface->Copy_From(Rect(scrnpt.x + Map.LastDrawRect.X + TacticalRect.Width, scrnpt.y + Map.LastDrawRect.Y, Map.LastDrawRect.Width, Map.LastDrawRect.Height), *SidebarSurface, Map.LastDrawRect);
+        } else {
+            Rect sb_rect = SidebarSurface->Get_Rect();
+            VisibleSurface->Copy_From(Rect(scrnpt.x + TacticalRect.Width, scrnpt.y, sb_rect.Width, sb_rect.Height), *SidebarSurface, Rect(0, 0, sb_rect.Width, sb_rect.Height));
+        }
+        EraseMouse = true;
+    }
+    RedrawSidebar = false;
+}
+
+
 /**
  *  Patch in GadgetClass::Input to handle hover effects for SelectClass.
  *
@@ -427,6 +451,18 @@ DECLARE_PATCH(_Init_Game_Create_Sidebar_Patch)
 }
 
 
+static bool _Allocate_Surfaces(const Rect& hidden_rect, const Rect& composite_rect, const Rect& tile_rect, const Rect& sidebar_rect, bool hidden_first)
+{
+    Rect tactical_rect = VisibleRect;
+    tactical_rect.X = ((Options.SidebarSide || Debug_Map) ? 0 : OptionsExtension->SidebarControls.SidebarWidth);
+    tactical_rect.Y = OptionsExtension->SidebarControls.TabHeight;
+    tactical_rect.Width -= OptionsExtension->SidebarControls.SidebarWidth;
+    tactical_rect.Height -= OptionsExtension->SidebarControls.TabHeight;
+
+    return Allocate_Surfaces(VisibleRect, Rect(0, 0, tactical_rect.Width, VisibleRect.Height), Rect(0, 0, tactical_rect.Width, VisibleRect.Height), Rect(0, 0, OptionsExtension->SidebarControls.SidebarWidth, VisibleRect.Height));
+}
+
+
 /**
  *  Main function for patching the hooks.
  */
@@ -449,6 +485,7 @@ void SidebarClassExtension_Hooks()
     Patch_Jump(0x005F6080, &SidebarClassExt::_Set_Dimensions);
     Patch_Jump(0x005F6620, &SidebarClassExt::_Help_Text);
     Patch_Jump(0x005F6670, &SidebarClassExt::_Max_Visible);
+    Patch_Jump(0x005F38C0, &SidebarClassExt::_Blit_Sidebar);
 
     Patch_Jump(0x004A9F0F, _GadgetClass_Input_Mouse_Enter_Leave);
 
@@ -480,4 +517,6 @@ void SidebarClassExtension_Hooks()
     Patch_Byte(0x0044E605 + 1, 0x8C);
 
     Patch_Jump(0x004E08D3, &_Init_Game_Create_Sidebar_Patch);
+    Patch_Call(0x0050B05D, &_Allocate_Surfaces);
+    Patch_Call(0x00601543, &_Allocate_Surfaces);
 }

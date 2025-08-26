@@ -54,6 +54,7 @@
 #include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "optionsext.h"
 
 
 /**
@@ -273,10 +274,10 @@ void TacticalExtension::Draw_Debug_Overlay()
      *  Fill the background area.
      */
     Rect fill_rect;
-    fill_rect.X = 160; // Width of Options tab, so we draw from there.
+    fill_rect.X = OptionsExtension->SidebarControls.SidebarWidth; // Width of Options tab, so we draw from there.
     fill_rect.Y = 0;
     fill_rect.Width = text_rect.Width + (padding + 1);
-    fill_rect.Height = 16; // Tab bar height
+    fill_rect.Height = OptionsExtension->SidebarControls.TabHeight; // Tab bar height
     CompositeSurface->Fill_Rect(fill_rect, color_black);
 
     /**
@@ -299,7 +300,7 @@ void TacticalExtension::Draw_Debug_Overlay()
     GradFont6Ptr->String_Pixel_Rect(buffer, &text_rect);
 
     fill_rect.Width = text_rect.Width + (padding + 1);
-    fill_rect.Height = 16;
+    fill_rect.Height = OptionsExtension->SidebarControls.TabHeight;
     fill_rect.X = CompositeSurface->Get_Width() - fill_rect.Width;
     fill_rect.Y = 0;
     CompositeSurface->Fill_Rect(fill_rect, color_black);
