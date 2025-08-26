@@ -144,6 +144,8 @@ NewSidebarClass::NewSidebarClass(NoInitClass const& x)
 
 HRESULT NewSidebarClass::Load(IStream* stream)
 {
+    Column.clear(); // don't leak memory
+
     HRESULT result = stream->Read(this, sizeof(*this), nullptr);
     if (FAILED(result)) return result;
 
@@ -909,6 +911,8 @@ NewSidebarClass::StripClass::StripClass(int id, Point2D origin, int columns) :
 
 HRESULT NewSidebarClass::StripClass::Load(IStream* stream)
 {
+    Buildables.clear(); // don't leak memory
+
     HRESULT result = stream->Read(this, sizeof(*this), nullptr);
     if (FAILED(result)) return result;
 
