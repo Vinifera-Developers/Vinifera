@@ -298,9 +298,9 @@ void Vinifera_Draw_Version_Text(XSurface *surface, bool pre_init)
          *  Draw the warning string.
          */
     #if defined(NIGHTLY)
-        Simple_Text_Print(TXT_VINIFERA_NIGHTLY_BUILD, surface, &surfrect, &warning_pos, NormalDrawer, nightly_color, nightly_back_color, style);
+        Simple_Text_Print(TXT_VINIFERA_NIGHTLY_BUILD, *surface, surfrect, warning_pos, NormalDrawer, nightly_color, nightly_back_color, style);
     #elif defined(PREVIEW)
-        Simple_Text_Print(TXT_VINIFERA_PREVIEW_BUILD, surface, &surfrect, &warning_pos, NormalDrawer, preview_color, preview_back_color, style);
+        Simple_Text_Print(TXT_VINIFERA_PREVIEW_BUILD, *surface, surfrect, warning_pos, NormalDrawer, preview_color, preview_back_color, style);
     #else
         Simple_Text_Print(Vinifera_Git_Uncommitted_Changes() ? TXT_VINIFERA_LOCAL_BUILD : TXT_VINIFERA_UNOFFICIAL_BUILD,
             *surface, surfrect, warning_pos, NormalDrawer, warning_color, warning_back_color, style);
@@ -315,7 +315,7 @@ void Vinifera_Draw_Version_Text(XSurface *surface, bool pre_init)
         /**
          *  Draw the vinifera name string.
          */
-        Simple_Text_Print(Vinifera_Version_String(), surface, &surfrect, &version_pos, NormalDrawer, version_color, back_color, style);
+        Simple_Text_Print(Vinifera_Version_String(), *surface, surfrect, version_pos, NormalDrawer, version_color, back_color, style);
 #endif
 
     } else {
@@ -331,9 +331,9 @@ void Vinifera_Draw_Version_Text(XSurface *surface, bool pre_init)
          *  Draw the warning string.
          */
     #if defined(NIGHTLY)
-        Fancy_Text_Print(TXT_VINIFERA_NIGHTLY_BUILD, surface, &surfrect, &warning_pos, color_white, nightly_back_color, style);
+        Fancy_Text_Print(TXT_VINIFERA_NIGHTLY_BUILD, *surface, surfrect, warning_pos, color_white, nightly_back_color, style);
     #elif defined(PREVIEW)
-        Fancy_Text_Print(TXT_VINIFERA_PREVIEW_BUILD, surface, &surfrect, &warning_pos, color_white, preview_back_color, style);
+        Fancy_Text_Print(TXT_VINIFERA_PREVIEW_BUILD, *surface, surfrect, warning_pos, color_white, preview_back_color, style);
     #else
         Fancy_Text_Print(Vinifera_Git_Uncommitted_Changes() ? TXT_VINIFERA_LOCAL_BUILD : TXT_VINIFERA_UNOFFICIAL_BUILD,
             *surface, surfrect, warning_pos, color_yellow, warning_back_color, style);
@@ -348,7 +348,7 @@ void Vinifera_Draw_Version_Text(XSurface *surface, bool pre_init)
         /**
          *  Draw the version string.
          */
-        Fancy_Text_Print(Vinifera_Version_String(), surface, &surfrect, &version_pos, color_white, back_color, style);
+        Fancy_Text_Print(Vinifera_Version_String(), *surface, surfrect, version_pos, color_white, back_color, style);
 #endif
 
     }
