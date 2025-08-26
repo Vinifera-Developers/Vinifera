@@ -46,7 +46,6 @@
 #include "scenarioext.h"
 #include "session.h"
 #include "sidebar.h"
-#include "sidebarext.h"
 #include "spritecollection.h"
 #include "super.h"
 #include "supertype.h"
@@ -408,6 +407,25 @@ DECLARE_PATCH(_GadgetClass_Input_Mouse_Enter_Leave)
 }
 
 
+static void Create_Sidebar()
+{
+    DEBUG_INFO("Creating New Sidebar\n");
+    delete Sidebar;
+    Sidebar = new NewSidebarClass;
+}
+
+
+DECLARE_PATCH(_Init_Game_Create_Sidebar_Patch)
+{
+    // Stolen instruction
+    LogicalSurface = HiddenSurface;
+
+    Create_Sidebar();
+
+    DEBUG_INFO("Init Bulk Data\n");
+    JMP(0x004E08DE);
+}
+
 
 /**
  *  Main function for patching the hooks.
@@ -460,4 +478,6 @@ void SidebarClassExtension_Hooks()
 
     // Change jle to jl to allow rendering tooltips that are exactly as wide as the sidebar
     Patch_Byte(0x0044E605 + 1, 0x8C);
+
+    Patch_Jump(0x004E08D3, &_Init_Game_Create_Sidebar_Patch);
 }

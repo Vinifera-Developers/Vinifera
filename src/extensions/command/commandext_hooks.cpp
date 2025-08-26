@@ -229,14 +229,12 @@ void Init_Vinifera_Commands()
     /**
      *  Initialize hotkeys for the sidebar tabs, if sidebar tabs are enabled.
      */
-    if (Vinifera_NewSidebar) {
-        DEBUG_INFO("Initializing sidebar tab commands.\n");
+    DEBUG_INFO("Initializing sidebar tab commands.\n");
 
-        Commands.Add(new SetStructureTabCommandClass);
-        Commands.Add(new SetInfantryTabCommandClass);
-        Commands.Add(new SetUnitTabCommandClass);
-        Commands.Add(new SetSpecialTabCommandClass);
-    }
+    Commands.Add(new SetStructureTabCommandClass);
+    Commands.Add(new SetInfantryTabCommandClass);
+    Commands.Add(new SetUnitTabCommandClass);
+    Commands.Add(new SetSpecialTabCommandClass);
 
     /**
      *  Next, initialize any developer mode commands if developer mode is enabled.

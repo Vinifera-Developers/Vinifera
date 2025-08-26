@@ -43,7 +43,6 @@
 #include "mouse.h"
 #include "newsidebar.h"
 #include "rulesext.h"
-#include "sidebarext.h"
 #include "unittypeext.h"
 
 

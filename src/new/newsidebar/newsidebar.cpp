@@ -283,8 +283,6 @@ void NewSidebarClass::Init_For_House()
     SidebarBottomShape = MFCD::RetrieveT<ShapeSet>("SIDE3.SHP");
     SidebarAddonShape = MFCD::RetrieveT<ShapeSet>("ADDON.SHP");
 
-    //SidebarExtension->Init_For_House();
-
     for (auto& strip : Column) {
         strip.Init_For_House();
     }
@@ -297,31 +295,46 @@ int NewSidebarClass::Which_Column(RTTIType type, ProductionFlags flags)
         return type == RTTI_BUILDING || type == RTTI_BUILDINGTYPE ? 0 : 1;
     }
 
+    int column = -1;
+
     switch (type) {
     case RTTI_BUILDINGTYPE:
     case RTTI_BUILDING:
-        return 0;
+        if (flags & PRODFLAG_DEFENSE) {
+            column = OptionsExtension->SidebarControls.DefensesTab;
+        } else {
+            column = OptionsExtension->SidebarControls.BuildingsTab;
+        }
+        break;
 
     case RTTI_INFANTRYTYPE:
     case RTTI_INFANTRY:
-        return 1;
+        column = OptionsExtension->SidebarControls.InfantryTab;
+        break;
 
     case RTTI_UNITTYPE:
     case RTTI_UNIT:
         if (flags & PRODFLAG_NAVAL) {
-            return 3;
+            column = OptionsExtension->SidebarControls.NavalTab;
         } else {
-            return 2;
+            column = OptionsExtension->SidebarControls.UnitsTab;
         }
+        break;
 
     case RTTI_AIRCRAFTTYPE:
     case RTTI_AIRCRAFT:
+        column = OptionsExtension->SidebarControls.AircraftTab;
+        break;
+
     case RTTI_SUPERWEAPONTYPE:
     case RTTI_SUPERWEAPON:
     case RTTI_SPECIAL:
-    default:
-        return 3;
+        column = OptionsExtension->SidebarControls.SpecialTab;
+        break;
     }
+
+    ASSERT_PRINT(column != -1, "RTTI %s (%d) has no tab assigned!", Name_From_RTTI(type), type);
+    return column;
 }
 
 
@@ -457,7 +470,7 @@ bool NewSidebarClass::Page(bool up, int column)
 
 void NewSidebarClass::Draw_It(bool complete)
 {
-    complete = complete || Map.SidebarClass::FullRedraw;
+    complete = complete || Map.SidebarClass::IsToFullRedraw;
     Map.field_1214 = RECT_NONE;
 
     Map.PowerClass::Draw_It(complete);
@@ -531,8 +544,13 @@ void NewSidebarClass::Draw_It(bool complete)
     if (ToolTips != nullptr) {
         ToolTips->Force_Redraw(true);
     }
+    if (OptionsExtension->SidebarControls.IsTabs) {
+        for (auto& strip : Column) {
+            strip.TabButton.Draw_Me(true);
+        }
+    }
     Map.SidebarClass::IsToRedraw = false;
-    Map.SidebarClass::FullRedraw = false;
+    Map.SidebarClass::IsToFullRedraw = false;
 
     Map.Blit_Sidebar(complete);
     LogicalSurface = old;
@@ -601,7 +619,7 @@ void NewSidebarClass::AI(KeyNumType& input, Point2D const& xy)
     }
 
     if (OptionsExtension->SidebarControls.IsTabs) {
-        if (!Current_Tab().TabButton.Is_Enabled()) {
+        if (!Current_Tab().TabButton.IsSelected) {
             Current_Tab().TabButton.Select();
         }
 
@@ -945,10 +963,6 @@ void NewSidebarClass::StripClass::Init_IO()
     if (OptionsExtension->SidebarControls.IsTabs) {
         TabButton.IsSticky = true;
         TabButton.ID = BUTTON_TAB + ID;
-        TabButton.X = SidebarRect.X + OptionsExtension->SidebarControls.TabButtonOffset[ID].X;
-        TabButton.Y = SidebarRect.Y + OptionsExtension->SidebarControls.TabButtonOffset[ID].Y;
-        TabButton.DrawOffsetX = -480;
-        TabButton.DrawOffsetY = 3;
         TabButton.ShapeDrawer = SidebarDrawer;
         TabButton.IsSelected = false;
         TabButton.IsDisabled = true;
@@ -980,6 +994,11 @@ void NewSidebarClass::StripClass::Set_Dimensions()
         tooltip.ID = (i | (ID << 8)) + 1000;
         tooltip.Text = TXT_NONE;
         ToolTips->Add(&tooltip);
+    }
+
+    if (OptionsExtension->SidebarControls.IsTabs) {
+        TabButton.Set_Position(SidebarRect.X + OptionsExtension->SidebarControls.TabButtonOffset[ID].X, SidebarRect.Y + OptionsExtension->SidebarControls.TabButtonOffset[ID].Y);
+        TabButton.DrawOffsetX = -SidebarRect.X;
     }
 }
 
@@ -1509,16 +1528,16 @@ void NewSidebarClass::StripClass::Draw_It(bool complete)
         }
 
         LastSlid = Slid;
-    } else {
-        if (UpButton.IsDrawn) {
-            RedrawSidebar = true;
-            UpButton.IsDrawn = false;
-        }
+    }
 
-        if (DownButton.IsDrawn) {
-            RedrawSidebar = true;
-            DownButton.IsDrawn = false;
-        }
+    if (UpButton.IsDrawn) {
+        RedrawSidebar = true;
+        UpButton.IsDrawn = false;
+    }
+
+    if (DownButton.IsDrawn) {
+        RedrawSidebar = true;
+        DownButton.IsDrawn = false;
     }
 }
 
@@ -1591,20 +1610,32 @@ bool NewSidebarClass::StripClass::Recalc()
     }
 
     if (scroll) {
-        TopIndex = 0;
+        bool got_old = false;
+        bool got_new = false;
 
-        auto old_it = std::find_if(unshifted.begin(), unshifted.end(), [](const BuildType& b) { return b != BuildType(0, RTTI_NONE); });
-
-        if (old_it != unshifted.end() && !Buildables.empty()) {
-            auto new_it = std::find(Buildables.begin(), Buildables.end(), *old_it);
-
-            if (new_it != Buildables.end()) {
-                int oldpos = std::distance(unshifted.begin(), old_it);
-                int newpos = std::distance(Buildables.begin(), new_it);
-
-                TopIndex = newpos - oldpos;
-                TopIndex = std::clamp(TopIndex, 0, static_cast<int>(Buildables.size()) - Max_Visible() * Columns);
+        int oldpos = 0;
+        for (oldpos = 0; oldpos < unshifted.size(); oldpos++) {
+            if (unshifted[oldpos] != BuildType(0, RTTI_NONE)) {
+                got_old = true;
+                break;
             }
+        }
+
+        int newpos = 0;
+        if (got_old && !Buildables.empty()) {
+            for (newpos = 0; newpos < Buildables.size(); newpos++) {
+                if (Buildables[newpos] == unshifted[oldpos]) {
+                    got_new = true;
+                    break;
+                }
+            }
+        }
+
+        if (got_old && got_new) {
+            TopIndex = newpos - oldpos;
+            TopIndex = std::max(0, std::min(TopIndex, static_cast<int>(Buildables.size()) - Max_Visible() * Columns));
+        } else {
+            TopIndex = 0;
         }
     }
 
@@ -1821,8 +1852,14 @@ void NewSidebarClass::StripClass::Tab_AI()
         return;
     }
 
-    if (!Buildables.empty()) {
-        if (TabButton.Is_Enabled()) TabButton.Enable();
+    if (Buildables.empty()) {
+        if (TabButton.Is_Enabled()) {
+            TabButton.Disable();
+        }
+    } else {
+        if (!TabButton.Is_Enabled()) {
+            TabButton.Enable();
+        }
 
         int building_tab = Which_Column(RTTI_BUILDINGTYPE, PRODFLAG_NONE);
         if (ID == building_tab) {
@@ -1843,19 +1880,18 @@ void NewSidebarClass::StripClass::Tab_AI()
                 }
             }
 
-            if (ready_sw && !TabButton.IsFlashing)
+            if (ready_sw && !TabButton.IsFlashing) {
                 TabButton.Start_Flashing();
-            else if (!ready_sw && TabButton.IsFlashing)
+            } else if (!ready_sw && TabButton.IsFlashing) {
                 TabButton.Stop_Flashing();
+            }
         }
-    } else {
-        if (TabButton.Is_Enabled()) TabButton.Disable();
     }
 }
 
 bool NewSidebarClass::StripClass::Is_On_Sidebar(RTTIType type, int id) const
 {
-    for (auto build : Buildables) {
+    for (auto& build : Buildables) {
         if (build.BuildableType == type && build.BuildableID == id) {
             return true;
         }
@@ -1920,6 +1956,11 @@ void NewSidebarClass::StripClass::Init_For_House()
 
     DownButton.Set_Shape(MFCD::RetrieveT<ShapeSet>("R-DN.SHP"));
     DownButton.ShapeDrawer = SidebarDrawer;
+
+    char const* TabShapes[6] = {"TAB-BLD.SHP", "TAB-INF.SHP", "TAB-UNT.SHP", "TAB-SPC.SHP", "TAB-SPC.SHP", "TAB-SPC.SHP"};
+
+    TabButton.Set_Shape(MFCD::RetrieveT<ShapeSet>(TabShapes[ID]));
+    TabButton.ShapeDrawer = SidebarDrawer;
 }
 
 
@@ -2519,7 +2560,7 @@ void NewSidebarClass::StripClass::BuildType::Draw_It(Point2D const& position) co
         if (factory != nullptr) {
             int total = factory->Total(ttype);
             if (total > 1 || total > 0 && !factory->Is_Currently_Producing(ttype)) {
-                Fancy_Text_Print("%d", *SidebarSurface, cliprect, OptionsExtension->SidebarControls.CameoQueueCountOffset, Fetch_Scheme_By_Name("LightGrey"), TBLACK, TPF_RIGHT | TPF_FULLSHADOW | TPF_8POINT, total);
+                Fancy_Text_Print("%d", *SidebarSurface, cliprect, position + OptionsExtension->SidebarControls.CameoQueueCountOffset, Fetch_Scheme_By_Name("LightGrey"), TBLACK, TPF_RIGHT | TPF_FULLSHADOW | TPF_8POINT, total);
                 hasqueuecount = true;
             }
         }
@@ -2536,7 +2577,7 @@ void NewSidebarClass::StripClass::BuildType::Draw_It(Point2D const& position) co
         */
         char const* state = State_Text();
         if (state != nullptr) {
-            Fancy_Text_Print(state, *SidebarSurface, cliprect, position + OptionsExtension->SidebarControls.CameoStateOffset, Fetch_Scheme_By_Name("LightBlue"), TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_8POINT);
+            Fancy_Text_Print(state, *SidebarSurface, cliprect, position + OptionsExtension->SidebarControls.CameoStateOffset, Fetch_Scheme_By_Name(OptionsExtension->SidebarControls.StateColor.c_str()), TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_8POINT);
         }
 
         if (!Is_Completed()) {
@@ -2554,9 +2595,9 @@ void NewSidebarClass::StripClass::BuildType::Draw_It(Point2D const& position) co
             */
             if (Factory && !Factory->Is_Building()) {
                 if (!hasqueuecount) {
-                    Fancy_Text_Print(TXT_HOLD, *SidebarSurface, cliprect, position + OptionsExtension->SidebarControls.CameoStateOffset, Fetch_Scheme_By_Name("LightGrey"), TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_8POINT);
+                    Fancy_Text_Print(TXT_HOLD, *SidebarSurface, cliprect, position + OptionsExtension->SidebarControls.CameoStateOffset, Fetch_Scheme_By_Name(OptionsExtension->SidebarControls.OnHoldColor.c_str()), TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_8POINT);
                 } else {
-                    Fancy_Text_Print(TXT_HOLD, *SidebarSurface, cliprect, position + Point2D(0, OptionsExtension->SidebarControls.CameoStateOffset.Y), Fetch_Scheme_By_Name("LightGrey"), TBLACK, TPF_FULLSHADOW | TPF_8POINT);
+                    Fancy_Text_Print(TXT_HOLD, *SidebarSurface, cliprect, position + OptionsExtension->SidebarControls.CameoQueueStateOffset, Fetch_Scheme_By_Name(OptionsExtension->SidebarControls.OnHoldColor.c_str()), TBLACK, TPF_FULLSHADOW | TPF_8POINT);
                 }
             }
         }

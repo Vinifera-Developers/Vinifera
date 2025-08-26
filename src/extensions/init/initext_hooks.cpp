@@ -51,6 +51,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "optionsext.h"
 
 
 extern HMODULE DLLInstance;
@@ -533,8 +534,8 @@ bool Vinifera_Prep_For_Side(SideType side)
     /**
      *  New Vinifera sidebar (Tabs) side-specific mix.
      */
-    if (Vinifera_NewSidebar) {
-        std::snprintf(name, sizeof(name), "SIDECT%02d.MIX", id);
+    if (OptionsExtension->SidebarControls.MixLetter != '\0') {
+        std::snprintf(name, sizeof(name), "SIDEC%c%02d.MIX", OptionsExtension->SidebarControls.MixLetter, id);
         if (CCFileClass(name).Is_Available()) {
             DEBUG_INFO("     Initializing %s\n", name);
             SideCTMix = new MFCD(name, &FastKey);

@@ -138,8 +138,6 @@ bool Vinifera_Load_INI()
 
     Vinifera_NoVersionString = ini.Get_Bool("General", "NoVersionString", Vinifera_NoVersionString);
 
-    Vinifera_NewSidebar = false;
-    //ini.Get_Bool("Features", "NewSidebar", false);
     ini.Get_String("General", "SavedGamesDirectory", buffer, std::size(buffer));
     if (std::strlen(buffer) > 0) {
         std::strncpy(Vinifera_SavedGamesDirectory, buffer, std::size(Vinifera_SavedGamesDirectory) - 1);

@@ -154,8 +154,8 @@ void OptionsClassExtension::Object_CRC(CRCEngine &crc) const
  */
 void OptionsClassExtension::Load_Settings()
 {
-    //EXT_DEBUG_TRACE("OptionsClassExtension::Load_Settings - 0x%08X\n", (uintptr_t)(This()));
-    
+    // EXT_DEBUG_TRACE("OptionsClassExtension::Load_Settings - 0x%08X\n", (uintptr_t)(This()));
+
     RawFileClass file("SUN.INI");
     CCINIClass sun_ini;
 
@@ -167,26 +167,112 @@ void OptionsClassExtension::Load_Settings()
         FilterBandBoxSelection = sun_ini.Get_Bool("Options", "FilterBandBoxSelection", FilterBandBoxSelection);
     }
 
-    /**
-     *  Read hardcoded modifier keys from Keyboard.ini.
-     *
-     *  @author: ZivDero
-     */
-    CCFileClass keyboard_file("Keyboard.ini");
-    CCINIClass keyboard_ini;
+    char const* const SIDEBAR = "Sidebar";
 
-    if (keyboard_file.Is_Available()) {
+    {
+        char buffer[512];
+        sun_ini.Get_String(SIDEBAR, "Preset", "Vanilla", buffer, sizeof(buffer));
 
-        keyboard_ini.Load(keyboard_file, false);
+        enum {
+            PRESET_VANILLA,
+            PRESET_4TABSTS,
+            PRESET_4TABSRA2,
+            PREST_6TABS
+        } preset = PRESET_VANILLA;
 
-        Options.KeyForceMove1 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "ForceMove", VK_MENU);
-        Options.KeyForceMove2 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "ForceMove", VK_MENU);
-        Options.KeyForceAttack1 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "ForceAttack", VK_CONTROL);
-        Options.KeyForceAttack2 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "ForceAttack", VK_CONTROL);
-        Options.KeySelect1 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "Select", VK_SHIFT);
-        Options.KeySelect2 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "Select", VK_SHIFT);
-        Options.KeyQueueMove1 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "QueueMove", Vinifera_NewSidebar ? KN_Z : KN_Q);
-        Options.KeyQueueMove2 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "QueueMove", Vinifera_NewSidebar ? KN_Z : KN_Q);
+        if (strncmp(buffer, "Vanilla", sizeof(buffer)) == 0) {
+            preset = PRESET_VANILLA;
+        } else if (strncmp(buffer, "4TabsTS", sizeof(buffer)) == 0) {
+            preset = PRESET_4TABSTS;
+        } else if (strncmp(buffer, "4TabsRA2", sizeof(buffer)) == 0) {
+            preset = PRESET_4TABSRA2;
+        } else if (strncmp(buffer, "6Tabs", sizeof(buffer)) == 0) {
+            preset = PREST_6TABS;
+        }
+
+        preset = PRESET_4TABSTS;
+
+        switch (preset) {
+        case PRESET_VANILLA: {
+            break;
+
+
+        case PRESET_4TABSRA2:
+        case PRESET_4TABSTS: {
+
+            SidebarControls.IsTabs = true;
+            SidebarControls.Tabs = 4;
+            SidebarControls.Columns = 2;
+            SidebarControls.MixLetter = 'T';
+
+            if (preset == PRESET_4TABSRA2) {
+                SidebarControls.TabActions[0] = TAB_ACTION_BUILDINGS;
+                SidebarControls.TabActions[1] = TAB_ACTION_DEFENSES;
+
+                SidebarControls.BuildingsTab = 0;
+                SidebarControls.DefensesTab = 1;
+                SidebarControls.SpecialTab = 1;
+                SidebarControls.InfantryTab = 2;
+                SidebarControls.UnitsTab = 3;
+                SidebarControls.NavalTab = 3;
+                SidebarControls.AircraftTab = 3;
+            } else {
+                SidebarControls.TabActions[0] = TAB_ACTION_BUILDINGS;
+
+                SidebarControls.BuildingsTab = 0;
+                SidebarControls.DefensesTab = 0;
+                SidebarControls.SpecialTab = 3;
+                SidebarControls.InfantryTab = 1;
+                SidebarControls.UnitsTab = 2;
+                SidebarControls.NavalTab = 3;
+                SidebarControls.AircraftTab = 3;
+            }
+
+            SidebarControls.StripYOffset = 54;
+
+            SidebarControls.RepairOffset = Point2D(31, -9);
+            SidebarControls.SellOffset = Point2D(58, -9);
+            SidebarControls.PowerOffset = Point2D(85, -9);
+            SidebarControls.WaypointOffset = Point2D(112, -9);
+
+            SidebarControls.TabButtonOffset[0] = Point2D(20, 27);
+            SidebarControls.TabButtonOffset[1] = Point2D(55, 27);
+            SidebarControls.TabButtonOffset[2] = Point2D(90, 27);
+            SidebarControls.TabButtonOffset[3] = Point2D(125, 27);
+
+            SidebarControls.UpButtonOffset = Point2D(2, -1);
+            SidebarControls.DownButtonOffset = Point2D(68, -1);
+
+            SidebarControls.PowerPosition = Point2D(8, 53);
+            break;
+        }
+
+        case PREST_6TABS:
+            break;
+        }
+        }
+
+        /**
+         *  Read hardcoded modifier keys from Keyboard.ini.
+         *
+         *  @author: ZivDero
+         */
+        CCFileClass keyboard_file("Keyboard.ini");
+        CCINIClass keyboard_ini;
+
+        if (keyboard_file.Is_Available()) {
+
+            keyboard_ini.Load(keyboard_file, false);
+
+            Options.KeyForceMove1 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "ForceMove", VK_MENU);
+            Options.KeyForceMove2 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "ForceMove", VK_MENU);
+            Options.KeyForceAttack1 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "ForceAttack", VK_CONTROL);
+            Options.KeyForceAttack2 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "ForceAttack", VK_CONTROL);
+            Options.KeySelect1 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "Select", VK_SHIFT);
+            Options.KeySelect2 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "Select", VK_SHIFT);
+            Options.KeyQueueMove1 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "QueueMove", Vinifera_NewSidebar ? KN_Z : KN_Q);
+            Options.KeyQueueMove2 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "QueueMove", Vinifera_NewSidebar ? KN_Z : KN_Q);
+        }
     }
 }
 

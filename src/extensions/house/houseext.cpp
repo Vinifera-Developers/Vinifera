@@ -36,7 +36,6 @@
 #include "factory.h"
 #include "mouse.h"
 #include "saveload.h"
-#include "sidebarext.h"
 #include "vinifera_saveload.h"
 #include "storageext.h"
 #include "tibsun_functions.h"

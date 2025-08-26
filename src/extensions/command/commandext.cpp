@@ -64,7 +64,6 @@
 #include "tiberium.h"
 #include "combat.h"
 #include "scenario.h"
-#include "sidebarext.h"
 #include "tag.h"
 #include "tagtype.h"
 #include "terraintype.h"
@@ -95,6 +94,7 @@
 #include "eventext.h"
 #include "houseext.h"
 #include "newsidebar.h"
+#include "technotypeext.h"
 
 
 /**

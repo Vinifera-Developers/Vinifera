@@ -65,7 +65,6 @@
 #include "particletype.h"
 #include "particlesys.h"
 #include "particlesystype.h"
-#include "sidebarext.h"
 #include "radarevent.h"
 #include "script.h"
 #include "scripttype.h"

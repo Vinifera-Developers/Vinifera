@@ -44,7 +44,6 @@
 #include "asserthandler.h"
 #include "buildingtypeext.h"
 #include "extension_globals.h"
-#include "sidebarext.h"
 #include "rules.h"
 #include "session.h"
 #include "ccini.h"

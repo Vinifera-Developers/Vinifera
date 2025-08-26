@@ -106,7 +106,7 @@ bool Vinifera_SkipToCampaign = false;
 bool Vinifera_SkipToInternet = false;
 bool Vinifera_ExitAfterSkip = false;
 
-bool Vinifera_NewSidebar = false;
+bool Vinifera_NewSidebar = true;
 bool Vinifera_NoVersionString = false;
 
 DynamicVectorClass<ExceptionInfoDatabaseStruct> ExceptionInfoDatabase;

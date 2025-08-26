@@ -157,7 +157,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
-#include "newsidebar_hooks.h"
+#include "powerext_hooks.h"
 #include "prerequisitegroup_hooks.h"
 #include "spawnmanager_hooks.h"
 #include "teventext_hooks.h"
@@ -264,8 +264,8 @@ void Extension_Hooks()
     DisplayClassExtension_Hooks();
     ScrollClassExtension_Hooks();
     SidebarClassExtension_Hooks();
-    NewSidebar_Hooks();
     MouseClassExtension_Hooks();
+    PowerClassExtension_Hooks();
 
     /**
      *  Various modules and functions.
