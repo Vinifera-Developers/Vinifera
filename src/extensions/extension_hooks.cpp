@@ -159,6 +159,7 @@
 #include "hooker_macros.h"
 #include "powerext_hooks.h"
 #include "prerequisitegroup_hooks.h"
+#include "radarext_hooks.h"
 #include "spawnmanager_hooks.h"
 #include "tabext_hooks.h"
 #include "teventext_hooks.h"
@@ -268,6 +269,7 @@ void Extension_Hooks()
     MouseClassExtension_Hooks();
     PowerClassExtension_Hooks();
     TabClassExtension_Hooks();
+    RadarClassExtension_Hooks();
 
     /**
      *  Various modules and functions.

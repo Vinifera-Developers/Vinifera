@@ -163,11 +163,6 @@ void NewSidebarClass::Toggle_Cameo_Text(bool on)
 
 void NewSidebarClass::Init_Clear()
 {
-    //IsToRedraw = true;
-    //IsRepairActive = false;
-    //IsUpgradeActive = false;
-    //IsDemolishActive = false;
-
     CurrentTab = 0;
 
     for (auto& strip : Column) {
@@ -194,8 +189,8 @@ void NewSidebarClass::Init_IO()
 
         Repair.IsSticky = true;
         Repair.ID = BUTTON_REPAIR;
-        Repair.X = SidebarRect.X + OptionsExtension->SidebarControls.RepairOffset.X;
-        Repair.Y = SidebarRect.Y + OptionsExtension->SidebarControls.RepairOffset.Y;
+        Repair.X = SidebarRect.X + OptionsExtension->SidebarControls.RepairButtonPosition.X;
+        Repair.Y = SidebarRect.Y + OptionsExtension->SidebarControls.RepairButtonPosition.Y;
         Repair.DrawOffsetX = xoff;
         Repair.DrawOffsetY = yoff;
         Repair.DrawOnSidebar = true;
@@ -206,8 +201,8 @@ void NewSidebarClass::Init_IO()
 
         Sell.IsSticky = true;
         Sell.ID = BUTTON_SELL;
-        Sell.X = SidebarRect.X + OptionsExtension->SidebarControls.SellOffset.X;
-        Sell.Y = SidebarRect.Y + OptionsExtension->SidebarControls.SellOffset.Y;
+        Sell.X = SidebarRect.X + OptionsExtension->SidebarControls.SellButtonPosition.X;
+        Sell.Y = SidebarRect.Y + OptionsExtension->SidebarControls.SellButtonPosition.Y;
         Sell.DrawOffsetX = xoff;
         Sell.DrawOffsetY = yoff;
         Sell.DrawOnSidebar = true;
@@ -218,8 +213,8 @@ void NewSidebarClass::Init_IO()
 
         Power.IsSticky = true;
         Power.ID = BUTTON_POWER;
-        Power.X = SidebarRect.X + OptionsExtension->SidebarControls.PowerOffset.X;
-        Power.Y = SidebarRect.Y + OptionsExtension->SidebarControls.PowerOffset.Y;
+        Power.X = SidebarRect.X + OptionsExtension->SidebarControls.PowerButtonPosition.X;
+        Power.Y = SidebarRect.Y + OptionsExtension->SidebarControls.PowerButtonPosition.Y;
         Power.DrawOffsetX = xoff;
         Power.DrawOffsetY = yoff;
         Power.DrawOnSidebar = true;
@@ -230,8 +225,8 @@ void NewSidebarClass::Init_IO()
 
         Waypoint.IsSticky = true;
         Waypoint.ID = BUTTON_WAYPOINT;
-        Waypoint.X = SidebarRect.X + OptionsExtension->SidebarControls.WaypointOffset.X;
-        Waypoint.Y = SidebarRect.Y + OptionsExtension->SidebarControls.WaypointOffset.Y;
+        Waypoint.X = SidebarRect.X + OptionsExtension->SidebarControls.WaypointButtonPosition.X;
+        Waypoint.Y = SidebarRect.Y + OptionsExtension->SidebarControls.WaypointButtonPosition.Y;
         Waypoint.DrawOffsetX = xoff;
         Waypoint.DrawOffsetY = yoff;
         Waypoint.DrawOnSidebar = true;
@@ -693,12 +688,17 @@ bool NewSidebarClass::Activate(int control)
             Waypoint.Zap();
             Map.Add_A_Button(Waypoint);
             if (OptionsExtension->SidebarControls.IsTabs) {
+                for (auto& strip : Column) {
+                    strip.TabButton.Zap();
+                    Map.Add_A_Button(strip.TabButton);
+                }
                 Current_Tab().Activate();
             } else {
                 for (auto& strip : Column) {
                     strip.Activate();
                 }
             }
+
             Background.Zap();
             Map.Add_A_Button(Background);
             RadarClass::RadarButton.Zap();
@@ -712,6 +712,9 @@ bool NewSidebarClass::Activate(int control)
             Map.Remove_A_Button(Background);
             for (auto& strip : Column) {
                 strip.Deactivate();
+                if (OptionsExtension->SidebarControls.IsTabs) {
+                    Map.Remove_A_Button(strip.TabButton);
+                }
             }
             Map.Remove_A_Button(RadarClass::RadarButton);
         }
@@ -767,30 +770,30 @@ void NewSidebarClass::Set_Dimensions()
     /*
     **	Position the sidebar.
     */
-    //SidebarRect.X = TacticalRect.X + TacticalRect.Width;
-    //SidebarRect.Y = OptionsExtension->SidebarControls.RadarHeight + OptionsExtension->SidebarControls.TabHeight; // 148;
-    //SidebarRect.Width = OptionsExtension->SidebarControls.SidebarWidth; // 168;
-    //SidebarRect.Height = TacticalRect.Y + TacticalRect.Height - SidebarRect.Y;
+    SidebarRect.X = TacticalRect.X + TacticalRect.Width;
+    SidebarRect.Y = OptionsExtension->SidebarControls.RadarHeight + OptionsExtension->SidebarControls.TabHeight;
+    SidebarRect.Width = OptionsExtension->SidebarControls.SidebarWidth;
+    SidebarRect.Height = TacticalRect.Y + TacticalRect.Height - SidebarRect.Y;
 
     /*
     **	Position the sidebar's buttons.
     */
-    Point2D position = SidebarRect.TopLeft + OptionsExtension->SidebarControls.RepairOffset;
+    Point2D position = SidebarRect.TopLeft + OptionsExtension->SidebarControls.RepairButtonPosition;
     Repair.Set_Position(position.X, position.Y);
     Repair.Flag_To_Redraw();
     Repair.DrawOffsetX = -SidebarRect.X;
 
-    position = SidebarRect.TopLeft + OptionsExtension->SidebarControls.SellOffset;
+    position = SidebarRect.TopLeft + OptionsExtension->SidebarControls.SellButtonPosition;
     Sell.Set_Position(position.X, position.Y);
     Sell.Flag_To_Redraw();
     Sell.DrawOffsetX = -SidebarRect.X;
 
-    position = SidebarRect.TopLeft + OptionsExtension->SidebarControls.PowerOffset;
+    position = SidebarRect.TopLeft + OptionsExtension->SidebarControls.PowerButtonPosition;
     Power.Set_Position(position.X, position.Y);
     Power.Flag_To_Redraw();
     Power.DrawOffsetX = -SidebarRect.X;
 
-    position = SidebarRect.TopLeft + OptionsExtension->SidebarControls.WaypointOffset;
+    position = SidebarRect.TopLeft + OptionsExtension->SidebarControls.WaypointButtonPosition;
     Waypoint.Set_Position(position.X, position.Y);
     Waypoint.Flag_To_Redraw();
     Waypoint.DrawOffsetX = -SidebarRect.X;
@@ -1511,10 +1514,9 @@ void NewSidebarClass::StripClass::Draw_It(bool complete)
         **	them. Their Y offset may be adjusted if the strip is in the process of scrolling.
         */
         for (int index = TopIndex; index < Buildables.size() && index < TopIndex + Max_Visible() * Columns + (IsScrolling ? Columns : 0); index++) {
-            ShapeSet const* shapefile = nullptr;
 
-            int x = /*SidebarRect.X +*/ Position.X + (index - TopIndex) % Columns * OptionsExtension->SidebarControls.ObjectWidth;
-            int y = /*SidebarRect.Y +*/ Position.Y + (index - TopIndex) / Columns * OptionsExtension->SidebarControls.ObjectHeight;
+            int x = Position.X + (index - TopIndex) % Columns * OptionsExtension->SidebarControls.ObjectWidth;
+            int y = Position.Y + (index - TopIndex) / Columns * OptionsExtension->SidebarControls.ObjectHeight;
 
             /*
             **	If the strip is scrolling, then the offset is adjusted accordingly.
@@ -1523,8 +1525,7 @@ void NewSidebarClass::StripClass::Draw_It(bool complete)
                 y -= OptionsExtension->SidebarControls.ObjectHeight - Slid;
             }
 
-            Buildables[index].Draw_It(Point2D(x, y));
-
+            Buildables[index].Draw_It(Point2D(x, y), SelectButton[index - TopIndex].Is_Moused_Over());
         }
 
         LastSlid = Slid;
@@ -2456,7 +2457,7 @@ void NewSidebarClass::StripClass::BuildType::On_Right_Press(unsigned& flags)
                 } else {
                     Speak(VOX_SUSPENDED);
                     OutList.Add(EventClassExt(PlayerPtr->HeapID, EVENT_SUSPEND, BuildableType, BuildableID, TechnoTypeClassExtension::Get_Production_Flags(BuildableType, BuildableID)).As_Event());
-                    Sidebar->Column[Sidebar->Which_Column(BuildableType, TechnoTypeClassExtension::Get_Production_Flags(BuildableType, BuildableID))].IsToRedraw = true;
+                    Sidebar->Get_Column(BuildableType, TechnoTypeClassExtension::Get_Production_Flags(BuildableType, BuildableID)).IsToRedraw = true;
                 }
             } else {
 
@@ -2484,7 +2485,7 @@ void NewSidebarClass::StripClass::BuildType::On_Right_Press(unsigned& flags)
     }
 }
 
-void NewSidebarClass::StripClass::BuildType::Draw_It(Point2D const& position) const
+void NewSidebarClass::StripClass::BuildType::Draw_It(Point2D const& position, bool highlight) const
 {
     Rect cliprect = SidebarRect;
     cliprect.X = 0;
@@ -2601,6 +2602,14 @@ void NewSidebarClass::StripClass::BuildType::Draw_It(Point2D const& position) co
                 }
             }
         }
+    }
+
+    /**
+     *  Draw a selection box around the cameo if we're currently hovering over it
+     *  and it is available.
+     */
+    if (highlight && !Is_Darkened()) {
+        SidebarSurface->Draw_Rect(Rect(position + Point2D(0, SidebarRect.Y) - Point2D(1, 1), OptionsExtension->SidebarControls.CameoWidth + 2, OptionsExtension->SidebarControls.CameoHeight + 2), DSurface::RGB_To_Pixel(ColorSchemes[Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor]->HSV.operator RGBClass()));
     }
 }
 

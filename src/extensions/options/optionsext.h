@@ -93,6 +93,8 @@ class OptionsClassExtension final : public GlobalExtensionClass<OptionsClass>
             int Tabs = 1;
             int Columns = 2;
 
+            int TabHeight = 16;
+
             int CameoWidth = 64;
             int CameoHeight = 48;
             int CameoXSpacing = 3;
@@ -107,14 +109,6 @@ class OptionsClassExtension final : public GlobalExtensionClass<OptionsClass>
             int StripYOffset = 26;
 
             int ScrollRate = 51;
-
-            Point2D PowerPosition = Point2D(8, 25);
-            int PowerWidth = 12;
-            int PowerHeightFudge = 0;
-            int PowerPipHeight = 4;
-
-            int RadarHeight = 134;
-            int TabHeight = 16;
 
             int Get_Sidebar_Width() const { return (CameoWidth * Columns) + (CameoXSpacing * (Columns - 1)) + StripXRightSpace + StripXLeftSpace; }
             __declspec(property(get = Get_Sidebar_Width)) int SidebarWidth;
@@ -134,10 +128,18 @@ class OptionsClassExtension final : public GlobalExtensionClass<OptionsClass>
             int Get_Object_Height() const { return CameoHeight + CameoYSpacing; }
             __declspec(property(get = Get_Object_Height)) int ObjectHeight;
 
-            Point2D RepairOffset = Point2D(31, -9);
-            Point2D SellOffset = Point2D(58, -9);
-            Point2D PowerOffset = Point2D(85, -9);
-            Point2D WaypointOffset = Point2D(112, -9);
+            Point2D PowerPosition = Point2D(8, 25);
+            int PowerWidth = 12;
+            int PowerHeightFudge = 0;
+            int PowerPipHeight = 4;
+
+            int RadarHeight = 134;
+            Rect RadarMapRect = Rect(15, 12, 140, 108);
+
+            Point2D RepairButtonPosition = Point2D(31, -9);
+            Point2D SellButtonPosition = Point2D(58, -9);
+            Point2D PowerButtonPosition = Point2D(85, -9);
+            Point2D WaypointButtonPosition = Point2D(112, -9);
 
             Point2D TabButtonOffset[MAX_TABS] = {
                 Point2D(0, 0),

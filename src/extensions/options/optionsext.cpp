@@ -214,64 +214,86 @@ void OptionsClassExtension::Load_Init_Settings()
 
             enum {
                 PRESET_VANILLA,
-                PRESET_4TABSTS,
-                PRESET_4TABSRA2,
+                PRESET_4TABS,
+                PRESET_4TABSWIDE,
                 PREST_6TABS
             } preset = PRESET_VANILLA;
 
-            if (strncmp(buffer, "Vanilla", sizeof(buffer)) == 0) {
+            if (strnicmp(buffer, "Vanilla", sizeof(buffer)) == 0) {
                 preset = PRESET_VANILLA;
-            } else if (strncmp(buffer, "4TabsTS", sizeof(buffer)) == 0) {
-                preset = PRESET_4TABSTS;
-            } else if (strncmp(buffer, "4TabsRA2", sizeof(buffer)) == 0) {
-                preset = PRESET_4TABSRA2;
-            } else if (strncmp(buffer, "6Tabs", sizeof(buffer)) == 0) {
+            } else if (strnicmp(buffer, "4Tabs", sizeof(buffer)) == 0) {
+                preset = PRESET_4TABS;
+            } else if (strnicmp(buffer, "4TabsWide", sizeof(buffer)) == 0) {
+                preset = PRESET_4TABSWIDE;
+            } else if (strnicmp(buffer, "6Tabs", sizeof(buffer)) == 0) {
                 preset = PREST_6TABS;
             }
 
-            preset = PREST_6TABS;
+            preset = PRESET_4TABSWIDE;
 
             switch (preset) {
             case PRESET_VANILLA:
                 break;
 
-            case PRESET_4TABSRA2:
-            case PRESET_4TABSTS: {
+            case PRESET_4TABS: {
 
                 SidebarControls.IsTabs = true;
                 SidebarControls.Tabs = 4;
                 SidebarControls.Columns = 2;
                 SidebarControls.MixLetter = 'T';
 
-                if (preset == PRESET_4TABSRA2) {
-                    SidebarControls.TabActions[0] = TAB_ACTION_BUILDINGS;
-                    SidebarControls.TabActions[1] = TAB_ACTION_DEFENSES;
+                SidebarControls.TabActions[0] = TAB_ACTION_BUILDINGS;
 
-                    SidebarControls.BuildingsTab = 0;
-                    SidebarControls.DefensesTab = 1;
-                    SidebarControls.SpecialTab = 1;
-                    SidebarControls.InfantryTab = 2;
-                    SidebarControls.UnitsTab = 3;
-                    SidebarControls.NavalTab = 3;
-                    SidebarControls.AircraftTab = 3;
-                } else {
-                    SidebarControls.TabActions[0] = TAB_ACTION_BUILDINGS;
-
-                    SidebarControls.BuildingsTab = 0;
-                    SidebarControls.DefensesTab = 0;
-                    SidebarControls.SpecialTab = 3;
-                    SidebarControls.InfantryTab = 1;
-                    SidebarControls.UnitsTab = 2;
-                    SidebarControls.NavalTab = 3;
-                    SidebarControls.AircraftTab = 3;
-                }
+                SidebarControls.BuildingsTab = 0;
+                SidebarControls.DefensesTab = 0;
+                SidebarControls.SpecialTab = 3;
+                SidebarControls.InfantryTab = 1;
+                SidebarControls.UnitsTab = 2;
+                SidebarControls.NavalTab = 3;
+                SidebarControls.AircraftTab = 3;
 
                 SidebarControls.StripYOffset = 54;
 
-                SidebarControls.RepairOffset = Point2D(31, -9);
-                SidebarControls.SellOffset = Point2D(58, -9);
-                SidebarControls.PowerOffset = Point2D(85, -9);
-                SidebarControls.WaypointOffset = Point2D(112, -9);
+                SidebarControls.RepairButtonPosition = Point2D(31, -9);
+                SidebarControls.SellButtonPosition = Point2D(58, -9);
+                SidebarControls.PowerButtonPosition = Point2D(85, -9);
+                SidebarControls.WaypointButtonPosition = Point2D(112, -9);
+
+                SidebarControls.TabButtonOffset[0] = Point2D(20, 27);
+                SidebarControls.TabButtonOffset[1] = Point2D(55, 27);
+                SidebarControls.TabButtonOffset[2] = Point2D(90, 27);
+                SidebarControls.TabButtonOffset[3] = Point2D(125, 27);
+
+                SidebarControls.UpButtonOffset = Point2D(2, -1);
+                SidebarControls.DownButtonOffset = Point2D(68, -1);
+
+                SidebarControls.PowerPosition = Point2D(8, 53);
+                break;
+            }
+
+            case PRESET_4TABSWIDE: {
+
+                SidebarControls.IsTabs = true;
+                SidebarControls.Tabs = 4;
+                SidebarControls.Columns = 3;
+                SidebarControls.MixLetter = 'T';
+
+                SidebarControls.TabActions[0] = TAB_ACTION_BUILDINGS;
+
+                SidebarControls.BuildingsTab = 0;
+                SidebarControls.DefensesTab = 0;
+                SidebarControls.SpecialTab = 3;
+                SidebarControls.InfantryTab = 1;
+                SidebarControls.UnitsTab = 2;
+                SidebarControls.NavalTab = 3;
+                SidebarControls.AircraftTab = 3;
+
+                SidebarControls.StripYOffset = 54;
+
+                SidebarControls.RepairButtonPosition = Point2D(31, -9);
+                SidebarControls.SellButtonPosition = Point2D(58, -9);
+                SidebarControls.PowerButtonPosition = Point2D(85, -9);
+                SidebarControls.WaypointButtonPosition = Point2D(112, -9);
 
                 SidebarControls.TabButtonOffset[0] = Point2D(20, 27);
                 SidebarControls.TabButtonOffset[1] = Point2D(55, 27);
@@ -305,10 +327,10 @@ void OptionsClassExtension::Load_Init_Settings()
 
                 SidebarControls.StripYOffset = 54;
 
-                SidebarControls.RepairOffset = Point2D(31, -9);
-                SidebarControls.SellOffset = Point2D(58, -9);
-                SidebarControls.PowerOffset = Point2D(85, -9);
-                SidebarControls.WaypointOffset = Point2D(112, -9);
+                SidebarControls.RepairButtonPosition = Point2D(31, -9);
+                SidebarControls.SellButtonPosition = Point2D(58, -9);
+                SidebarControls.PowerButtonPosition = Point2D(85, -9);
+                SidebarControls.WaypointButtonPosition = Point2D(112, -9);
 
                 SidebarControls.TabButtonOffset[0] = Point2D(20, 27);
                 SidebarControls.TabButtonOffset[1] = Point2D(55, 27);
@@ -321,8 +343,98 @@ void OptionsClassExtension::Load_Init_Settings()
                 SidebarControls.DownButtonOffset = Point2D(68, -1);
 
                 SidebarControls.PowerPosition = Point2D(8, 53);
+                SidebarControls.RadarHeight = 188;
+                SidebarControls.RadarMapRect = Rect(15, 12, 196, 151);
                 break;
             }
+            }
+
+            char old_letter[2] = {SidebarControls.MixLetter, 0};
+            if (sun_ini.Get_String(SIDEBAR, "MixLetter", old_letter, buffer, sizeof(buffer)) > 0) {
+                if (strlen(buffer) > 0) {
+                    SidebarControls.MixLetter = buffer[0];
+                }
+            }
+
+            SidebarControls.TabHeight = sun_ini.Get_Int(SIDEBAR, "TabHeight", SidebarControls.TabHeight);
+            SidebarControls.CameoWidth = sun_ini.Get_Int(SIDEBAR, "CameoWidth", SidebarControls.CameoWidth);
+            SidebarControls.CameoHeight = sun_ini.Get_Int(SIDEBAR, "CameoHeight", SidebarControls.CameoHeight);
+            SidebarControls.CameoXSpacing = sun_ini.Get_Int(SIDEBAR, "CameoXSpacing", SidebarControls.CameoXSpacing);
+            SidebarControls.CameoYSpacing = sun_ini.Get_Int(SIDEBAR, "CameoYSpacing", SidebarControls.CameoYSpacing);
+            SidebarControls.CameoNameOffset = sun_ini.Get_Point(SIDEBAR, "CameoNameOffset", SidebarControls.CameoNameOffset);
+            SidebarControls.CameoQueueCountOffset = sun_ini.Get_Point(SIDEBAR, "CameoQueueCountOffset", SidebarControls.CameoQueueCountOffset);
+            SidebarControls.CameoStateOffset = sun_ini.Get_Point(SIDEBAR, "CameoStateOffset", SidebarControls.CameoStateOffset);
+            SidebarControls.CameoQueueStateOffset = sun_ini.Get_Point(SIDEBAR, "CameoQueueStateOffset", SidebarControls.CameoQueueStateOffset);
+            SidebarControls.StripXLeftSpace = sun_ini.Get_Int(SIDEBAR, "StripXLeftSpace", SidebarControls.StripXLeftSpace);
+            SidebarControls.StripXRightSpace = sun_ini.Get_Int(SIDEBAR, "StripXRightSpace", SidebarControls.StripXRightSpace);
+            SidebarControls.StripYOffset = sun_ini.Get_Int(SIDEBAR, "StripYOffset", SidebarControls.StripYOffset);
+            SidebarControls.ScrollRate = sun_ini.Get_Int(SIDEBAR, "ScrollRate", SidebarControls.ScrollRate);
+
+            SidebarControls.PowerPosition = sun_ini.Get_Point(SIDEBAR, "PowerPosition", SidebarControls.PowerPosition);
+            SidebarControls.PowerWidth = sun_ini.Get_Int(SIDEBAR, "PowerWidth", SidebarControls.PowerWidth);
+            SidebarControls.PowerHeightFudge = sun_ini.Get_Int(SIDEBAR, "PowerHeightFudge", SidebarControls.PowerHeightFudge);
+            SidebarControls.PowerPipHeight = sun_ini.Get_Int(SIDEBAR, "PowerPipHeight", SidebarControls.PowerPipHeight);
+
+            SidebarControls.RadarHeight = sun_ini.Get_Int(SIDEBAR, "RadarHeight", SidebarControls.RadarHeight);
+            SidebarControls.RadarMapRect = sun_ini.Get_Rect(SIDEBAR, "RadarMapRect", SidebarControls.RadarMapRect);
+
+            SidebarControls.RepairButtonPosition = sun_ini.Get_Point(SIDEBAR, "RepairButtonPosition", SidebarControls.RepairButtonPosition);
+            SidebarControls.SellButtonPosition = sun_ini.Get_Point(SIDEBAR, "SellButtonPosition", SidebarControls.SellButtonPosition);
+            SidebarControls.PowerButtonPosition = sun_ini.Get_Point(SIDEBAR, "PowerButtonPosition", SidebarControls.PowerButtonPosition);
+            SidebarControls.WaypointButtonPosition = sun_ini.Get_Point(SIDEBAR, "WaypointButtonPosition", SidebarControls.WaypointButtonPosition);
+
+            for (int i = 0; i < SidebarControls.Tabs; i++) {
+                char key[32];
+                std::snprintf(key, sizeof(key), "TabButton%dOffset", i);
+                SidebarControls.TabButtonOffset[i] = sun_ini.Get_Point(SIDEBAR, "TabButtonOffset", SidebarControls.TabButtonOffset[i]);
+            }
+
+            SidebarControls.UpButtonOffset = sun_ini.Get_Point(SIDEBAR, "UpButtonOffset", SidebarControls.UpButtonOffset);
+            SidebarControls.DownButtonOffset = sun_ini.Get_Point(SIDEBAR, "DownButtonOffset", SidebarControls.DownButtonOffset);
+
+            if (sun_ini.Get_String(SIDEBAR, "StateColor", SidebarControls.StateColor.c_str(), buffer, sizeof(buffer)) > 0) {
+                SidebarControls.StateColor = buffer;
+            }
+
+            if (sun_ini.Get_String(SIDEBAR, "OnHoldColor", SidebarControls.OnHoldColor.c_str(), buffer, sizeof(buffer)) > 0) {
+                SidebarControls.OnHoldColor = buffer;
+            }
+
+            SidebarControls.BuildingsTab = sun_ini.Get_Int_Clamp(SIDEBAR, "BuildingsTab", 0, SidebarControls.Tabs - 1, SidebarControls.BuildingsTab);
+            SidebarControls.DefensesTab = sun_ini.Get_Int_Clamp(SIDEBAR, "DefensesTab", 0, SidebarControls.Tabs - 1, SidebarControls.DefensesTab);
+            SidebarControls.SpecialTab = sun_ini.Get_Int_Clamp(SIDEBAR, "SpecialTab", 0, SidebarControls.Tabs - 1, SidebarControls.SpecialTab);
+            SidebarControls.InfantryTab = sun_ini.Get_Int_Clamp(SIDEBAR, "InfantryTab", 0, SidebarControls.Tabs - 1, SidebarControls.InfantryTab);
+            SidebarControls.UnitsTab = sun_ini.Get_Int_Clamp(SIDEBAR, "UnitsTab", 0, SidebarControls.Tabs - 1, SidebarControls.UnitsTab);
+            SidebarControls.NavalTab = sun_ini.Get_Int_Clamp(SIDEBAR, "NavalTab", 0, SidebarControls.Tabs - 1, SidebarControls.NavalTab);
+            SidebarControls.AircraftTab = sun_ini.Get_Int_Clamp(SIDEBAR, "AircraftTab", 0, SidebarControls.Tabs - 1, SidebarControls.AircraftTab);
+
+            auto tab_action_from_string = [](const char* str) -> TabActionType {
+                if (strnicmp(str, "Buildings", 9) == 0) {
+                    return TAB_ACTION_BUILDINGS;
+                }
+                if (strnicmp(str, "Defenses", 8) == 0) {
+                    return TAB_ACTION_DEFENSES;
+                }
+                return TAB_ACTION_NONE;
+            };
+
+            auto tab_action_to_string = [](TabActionType type) -> const char* {
+                switch (type) {
+                case TAB_ACTION_BUILDINGS:
+                    return "Buildings";
+                case TAB_ACTION_DEFENSES:
+                    return "Defenses";
+                default:
+                    return "None";
+                }
+            };
+
+            for (int i = 0; i < SidebarControls.Tabs; i++) {
+                char key[32];
+                std::snprintf(key, sizeof(key), "Tab%dAction", i);
+                if (sun_ini.Get_String(SIDEBAR, key, tab_action_to_string(SidebarControls.TabActions[i]), buffer, sizeof(buffer)) > 0) {
+                    SidebarControls.TabActions[i] = tab_action_from_string(buffer);
+                }
             }
         }
     }

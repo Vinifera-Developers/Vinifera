@@ -335,8 +335,6 @@ void SidebarClassExt::_Blit_Sidebar(bool complete)
         scrnpt.y = crect.top;
         ClientToScreen(MainWindow, &scrnpt);
 
-        bool draw = false;
-
         int sidebar_width = OptionsExtension->SidebarControls.SidebarWidth;
         int tab_height = OptionsExtension->SidebarControls.TabHeight;
         int radar_height = OptionsExtension->SidebarControls.RadarHeight + 4; // 4 because ?? for now
@@ -362,7 +360,7 @@ void SidebarClassExt::_Blit_Sidebar(bool complete)
         MouseCursor->Draw_Mouse(SidebarSurface, true);
         if (Map.LastDrawRect == RECT_NONE && !complete) {
             VisibleSurface->Copy_From(Rect(scrnpt.x + TacticalRect.Width, scrnpt.y, sidebar_width, tab_height), *SidebarSurface, Rect(0, 0, sidebar_width, tab_height));
-            VisibleSurface->Copy_From(Rect(scrnpt.x + TacticalRect.Width, scrnpt.y + radar_height, sidebar_width, SidebarSurface->Get_Height() - radar_height), *SidebarSurface, Rect(0, 138, sidebar_width, SidebarSurface->Get_Height() - radar_height));
+            VisibleSurface->Copy_From(Rect(scrnpt.x + TacticalRect.Width, scrnpt.y + radar_height, sidebar_width, SidebarSurface->Get_Height() - radar_height), *SidebarSurface, Rect(0, radar_height, sidebar_width, SidebarSurface->Get_Height() - radar_height));
         } else if (!RedrawSidebar) {
             VisibleSurface->Copy_From(Rect(scrnpt.x + Map.LastDrawRect.X + TacticalRect.Width, scrnpt.y + Map.LastDrawRect.Y, Map.LastDrawRect.Width, Map.LastDrawRect.Height), *SidebarSurface, Map.LastDrawRect);
         } else {

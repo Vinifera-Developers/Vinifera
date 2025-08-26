@@ -230,7 +230,7 @@ public:
             void On_Left_Press(unsigned& flags);
             void On_Right_Press(unsigned& flags);
 
-            void Draw_It(Point2D const& position) const;
+            void Draw_It(Point2D const& position, bool highlight) const;
             bool Is_Darkened() const;
             bool Is_Clock() const;
             bool Is_Completed() const;
@@ -271,7 +271,7 @@ public:
         /**
          *  New class for the tab buttons.
          */
-        class TabButtonClass : public ControlClass, IHoverableGadget
+        class TabButtonClass : public ControlClass, public IHoverableGadget
         {
         private:
             enum {
