@@ -216,8 +216,8 @@ void OptionsClassExtension::Load_Init_Settings()
                 PRESET_VANILLA,
                 PRESET_4TABS,
                 PRESET_4TABSWIDE,
-                PREST_6TABS
-            } preset = PREST_6TABS; // PRESET_VANILLA;
+                PRESET_6TABS
+            } preset = PRESET_VANILLA; // PRESET_VANILLA;
 
             if (strnicmp(buffer, "Vanilla", sizeof(buffer)) == 0) {
                 preset = PRESET_VANILLA;
@@ -226,7 +226,7 @@ void OptionsClassExtension::Load_Init_Settings()
             } else if (strnicmp(buffer, "4TabsWide", sizeof(buffer)) == 0) {
                 preset = PRESET_4TABSWIDE;
             } else if (strnicmp(buffer, "6Tabs", sizeof(buffer)) == 0) {
-                preset = PREST_6TABS;
+                preset = PRESET_6TABS;
             }
 
             switch (preset) {
@@ -307,6 +307,7 @@ void OptionsClassExtension::Load_Init_Settings()
                 SidebarControls.DownButtonOffset = Point2D(68, -1);
 
                 SidebarControls.PowerPosition = Point2D(8, 53);
+                SidebarControls.PowerHeightFudge = 3;
 
                 SidebarControls.TabName[0] = "Buildings";
                 SidebarControls.TabName[1] = "Infantry";
@@ -315,7 +316,7 @@ void OptionsClassExtension::Load_Init_Settings()
                 break;
             }
 
-            case PREST_6TABS: {
+            case PRESET_6TABS: {
 
                 SidebarControls.IsTabs = true;
                 SidebarControls.Tabs = 6;
@@ -351,6 +352,8 @@ void OptionsClassExtension::Load_Init_Settings()
                 SidebarControls.DownButtonOffset = Point2D(68, -1);
 
                 SidebarControls.PowerPosition = Point2D(8, 53);
+                SidebarControls.PowerHeightFudge = 3;
+
                 SidebarControls.RadarHeight = 188;
                 SidebarControls.RadarMapRect = Rect(15, 12, 196, 151);
 
@@ -391,7 +394,10 @@ void OptionsClassExtension::Load_Init_Settings()
             SidebarControls.PowerPipHeight = sun_ini.Get_Int(SIDEBAR, "PowerPipHeight", SidebarControls.PowerPipHeight);
 
             SidebarControls.RadarHeight = sun_ini.Get_Int(SIDEBAR, "RadarHeight", SidebarControls.RadarHeight);
-            SidebarControls.RadarMapRect = sun_ini.Get_Rect(SIDEBAR, "RadarMapRect", SidebarControls.RadarMapRect);
+
+            if (sun_ini.Is_Present(SIDEBAR, "RadarMapRect")) { // seems to be bugged and instead of using the defvalue returns (0,0,0,0) if not present
+                SidebarControls.RadarMapRect = sun_ini.Get_Rect(SIDEBAR, "RadarMapRect", SidebarControls.RadarMapRect);
+            }
 
             SidebarControls.RepairButtonPosition = sun_ini.Get_Point(SIDEBAR, "RepairButtonPosition", SidebarControls.RepairButtonPosition);
             SidebarControls.SellButtonPosition = sun_ini.Get_Point(SIDEBAR, "SellButtonPosition", SidebarControls.SellButtonPosition);

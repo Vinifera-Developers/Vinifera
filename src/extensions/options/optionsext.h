@@ -130,7 +130,7 @@ class OptionsClassExtension final : public GlobalExtensionClass<OptionsClass>
 
             Point2D PowerPosition = Point2D(8, 25);
             int PowerWidth = 12;
-            int PowerHeightFudge = 0;
+            int PowerHeightFudge = 1;
             int PowerPipHeight = 4;
 
             int RadarHeight = 134;
