@@ -142,8 +142,8 @@ class OptionsClassExtension final : public GlobalExtensionClass<OptionsClass>
             Point2D UpButtonOffset = Point2D(2, -1);
             Point2D DownButtonOffset = Point2D(31, -1);
 
-            std::string StateColor = "LightGrey";
-            std::string OnHoldColor = "LightBlue";
+            std::string StateColor = "LightBlue";
+            std::string OnHoldColor = "LightGrey";
 
             int BuildingsTab = -1;
             int DefensesTab = -1;
