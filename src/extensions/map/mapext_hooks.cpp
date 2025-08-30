@@ -42,6 +42,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "sidebarext.h"
 #include "techno.h"
 #include "tibsun_functions.h"
 #include "weapontypeext.h"
@@ -58,6 +59,7 @@ static class MapClassExt final : public MapClass
 {
 public:
     void _Place_Down(Cell& cell, ObjectClass* object);
+    void _Detach(AbstractClass* target, bool all);
 };
 
 
@@ -91,9 +93,26 @@ void MapClassExt::_Place_Down(Cell& cell, ObjectClass* object)
 
 
 /**
+ *  Proxy for MapClass::Dewtach
+ *
+ *  @author: ZivDero
+ */
+void MapClassExt::_Detach(AbstractClass* target, bool all)
+{
+    MapClass::Detach(target, all);
+
+    if (target->RTTI == RTTI_FACTORY) {
+        SidebarExtension->Detach(target);
+    }
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void MapClassExtension_Hooks()
 {
     Patch_Jump(0x00511070, &MapClassExt::_Place_Down);
+    Patch_Call(0x00648BCF, &MapClassExt::_Detach);
+    Patch_Call(0x00648B67, &MapClassExt::_Detach);
 }
