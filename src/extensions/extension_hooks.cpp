@@ -73,7 +73,7 @@
 #include "supertypeext_hooks.h"
 //#include "taskforceext_hooks.h"
 #include "teamext_hooks.h"
-//#include "teamtypeext_hooks.h"
+#include "teamtypeext_hooks.h"
 #include "terrainext_hooks.h"
 #include "terraintypeext_hooks.h"
 #include "triggerext_hooks.h"
@@ -221,7 +221,7 @@ void Extension_Hooks()
     SuperWeaponTypeClassExtension_Hooks();
     //TaskForceClassExtension_Hooks();                      // Not yet implemented
     TeamClassExtension_Hooks();
-    //TeamTypeClassExtension_Hooks();                       // Not yet implemented
+    TeamTypeClassExtension_Hooks();
     TerrainClassExtension_Hooks();
     TerrainTypeClassExtension_Hooks();
     TriggerClassExtension_Hooks();

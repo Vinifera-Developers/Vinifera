@@ -130,6 +130,7 @@
 #include "smudgetypeext.h"
 #include "superext.h"
 #include "supertypeext.h"
+#include "teamtypeext.h"
 #include "terrainext.h"
 #include "terraintypeext.h"
 #include "tiberiumext.h"
@@ -513,7 +514,7 @@ AbstractClassExtension *Extension::Private::Make_Internal(const AbstractClass *a
         case RTTI_SUPERWEAPONTYPE: { extptr = Extension_Make<SuperWeaponTypeClass, SuperWeaponTypeClassExtension>(reinterpret_cast<const SuperWeaponTypeClass *>(abstract)); break; }
         //case RTTI_TASKFORCE: { extptr = Extension_Make<TaskForceClass, TaskForceClassExtension>(reinterpret_cast<const TaskForceClass *>(abstract)); break; } // Not yet implemented
         //case RTTI_TEAM: { extptr = Extension_Make<TeamClass, TeamClassExtension>(reinterpret_cast<const TeamClass *>(abstract)); break; } // Not yet implemented
-        //case RTTI_TEAMTYPE: { extptr = Extension_Make<TeamTypeClass, TeamTypeClassExtension>(reinterpret_cast<const TeamTypeClass *>(abstract)); break; } // Not yet implemented
+        case RTTI_TEAMTYPE: { extptr = Extension_Make<TeamTypeClass, TeamTypeClassExtension>(reinterpret_cast<const TeamTypeClass *>(abstract)); break; }
         case RTTI_TERRAIN: { extptr = Extension_Make<TerrainClass, TerrainClassExtension>(reinterpret_cast<const TerrainClass *>(abstract)); break; }
         case RTTI_TERRAINTYPE: { extptr = Extension_Make<TerrainTypeClass, TerrainTypeClassExtension>(reinterpret_cast<const TerrainTypeClass *>(abstract)); break; }
         //case RTTI_TRIGGER: { extptr = Extension_Make<TriggerClass, TriggerClassExtension>(reinterpret_cast<const TriggerClass *>(abstract)); break; } // Not yet implemented
@@ -593,7 +594,7 @@ bool Extension::Private::Destroy_Internal(const AbstractClass *abstract)
         case RTTI_SUPERWEAPONTYPE: { removed = Extension_Destroy<SuperWeaponTypeClass, SuperWeaponTypeClassExtension>(reinterpret_cast<const SuperWeaponTypeClass *>(abstract)); break; }
         //case RTTI_TASKFORCE: { removed = Extension_Destroy<TaskForceClass, TaskForceClassExtension>(reinterpret_cast<const TaskForceClass *>(abstract)); break; } // Not yet implemented
         //case RTTI_TEAM: { removed = Extension_Destroy<TeamClass, TeamClassExtension>(reinterpret_cast<const TeamClass *>(abstract)); break; } // Not yet implemented
-        //case RTTI_TEAMTYPE: { removed = Extension_Destroy<TeamTypeClass, TeamTypeClassExtension>(reinterpret_cast<const TeamTypeClass *>(abstract)); break; } // Not yet implemented
+        case RTTI_TEAMTYPE: { removed = Extension_Destroy<TeamTypeClass, TeamTypeClassExtension>(reinterpret_cast<const TeamTypeClass *>(abstract)); break; }
         case RTTI_TERRAIN: { removed = Extension_Destroy<TerrainClass, TerrainClassExtension>(reinterpret_cast<const TerrainClass *>(abstract)); break; }
         case RTTI_TERRAINTYPE: { removed = Extension_Destroy<TerrainTypeClass, TerrainTypeClassExtension>(reinterpret_cast<const TerrainTypeClass *>(abstract)); break; }
         //case RTTI_TRIGGER: { removed = Extension_Destroy<TriggerClass, TriggerClassExtension>(reinterpret_cast<const TriggerClass *>(abstract)); break; } // Not yet implemented
@@ -710,7 +711,7 @@ bool Extension::Save(IStream *pStm)
     if (!Extension_Save<SuperWeaponTypeClass, SuperWeaponTypeClassExtension>(pStm, SuperWeaponTypeExtensions)) { return false; }
     //if (!Extension_Save<TaskForceClass, TaskForceClassExtension>(pStm, TaskForceExtensions)) { return false; }        // Not yet implemented
     //if (!Extension_Save<TeamClass, TeamClassExtension>(pStm, TeamExtensions)) { return false; }                       // Not yet implemented
-    //if (!Extension_Save<TeamTypeClass, TeamTypeClassExtension>(pStm, TeamTypeExtensions)) { return false; }           // Not yet implemented
+    if (!Extension_Save<TeamTypeClass, TeamTypeClassExtension>(pStm, TeamTypeExtensions)) { return false; }
     if (!Extension_Save<TerrainClass, TerrainClassExtension>(pStm, TerrainExtensions)) { return false; }
     if (!Extension_Save<TerrainTypeClass, TerrainTypeClassExtension>(pStm, TerrainTypeExtensions)) { return false; }
     //if (!Extension_Save<TriggerClass, TriggerClassExtension>(pStm, TriggerExtensions)) { return false; }              // Not yet implemented
@@ -810,7 +811,7 @@ bool Extension::Load(IStream *pStm)
     if (!Extension_Load<SuperWeaponTypeClass, SuperWeaponTypeClassExtension>(pStm, SuperWeaponTypeExtensions)) { return false; }
     //if (!Extension_Load<TaskForceClass, TaskForceClassExtension>(pStm, TaskForceExtensions)) { return false; }        // Not yet implemented
     //if (!Extension_Load<TeamClass, TeamClassExtension>(pStm, TeamExtensions)) { return false; }                       // Not yet implemented
-    //if (!Extension_Load<TeamTypeClass, TeamTypeClassExtension>(pStm, TeamTypeExtensions)) { return false; }           // Not yet implemented
+    if (!Extension_Load<TeamTypeClass, TeamTypeClassExtension>(pStm, TeamTypeExtensions)) { return false; }
     if (!Extension_Load<TerrainClass, TerrainClassExtension>(pStm, TerrainExtensions)) { return false; }
     if (!Extension_Load<TerrainTypeClass, TerrainTypeClassExtension>(pStm, TerrainTypeExtensions)) { return false; }
     //if (!Extension_Load<TriggerClass, TriggerClassExtension>(pStm, TriggerExtensions)) { return false; }              // Not yet implemented
@@ -915,7 +916,7 @@ bool Extension::Request_Pointer_Remap()
     if (!Extension_Request_Pointer_Remap<SuperWeaponTypeClass, SuperWeaponTypeClassExtension>(SuperWeaponTypes)) { return false; }
     //if (!Extension_Request_Pointer_Remap<TaskForceClass, TaskForceClassExtension>(TaskForces)) { return false; }      // Not yet implemented
     //if (!Extension_Request_Pointer_Remap<TeamClass, TeamClassExtension>(Teams)) { return false; }                     // Not yet implemented
-    //if (!Extension_Request_Pointer_Remap<TeamTypeClass, TeamTypeClassExtension>(TeamTypes)) { return false; }         // Not yet implemented
+    if (!Extension_Request_Pointer_Remap<TeamTypeClass, TeamTypeClassExtension>(TeamTypes)) { return false; }
     if (!Extension_Request_Pointer_Remap<TerrainClass, TerrainClassExtension>(Terrains)) { return false; }
     if (!Extension_Request_Pointer_Remap<TerrainTypeClass, TerrainTypeClassExtension>(TerrainTypes)) { return false; }
     //if (!Extension_Request_Pointer_Remap<TriggerClass, TriggerClassExtension>(Triggers)) { return false; }            // Not yet implemented
@@ -994,7 +995,7 @@ bool Extension::Register_Class_Factories()
     REGISTER_CLASS(SuperWeaponTypeClassExtension);
     //REGISTER_CLASS(TaskForceClassExtension);                                  // Not yet implemented
     //REGISTER_CLASS(TeamClassExtension);                                       // Not yet implemented
-    //REGISTER_CLASS(TeamTypeClassExtension);                                   // Not yet implemented
+    REGISTER_CLASS(TeamTypeClassExtension);
     REGISTER_CLASS(TerrainClassExtension);
     REGISTER_CLASS(TerrainTypeClassExtension);
     //REGISTER_CLASS(TriggerClassExtension);                                    // Not yet implemented
@@ -1076,7 +1077,7 @@ void Extension::Free_Heaps()
     SuperWeaponTypeExtensions.Clear();
     //TaskForceExtensions.Clear();                                              // Not yet implemented
     //TeamExtensions.Clear();                                                   // Not yet implemented
-    //TeamTypeExtensions.Clear();                                               // Not yet implemented
+    TeamTypeExtensions.Clear();
     TerrainExtensions.Clear();
     TerrainTypeExtensions.Clear();
     //TriggerExtensions.Clear();                                                // Not yet implemented
@@ -1405,7 +1406,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     std::fprintf(fp, "SuperWeaponTypeExtensions.Count = %d\n", SuperWeaponTypeExtensions.Count());
     //std::fprintf(fp, "TaskForceExtensions.Count = %d\n", TaskForceExtensions.Count());                                // Not yet implemented
     //std::fprintf(fp, "TeamExtensions.Count = %d\n", TeamExtensions.Count());                                          // Not yet implemented
-    //std::fprintf(fp, "TeamTypeExtensions.Count = %d\n", TeamTypeExtensions.Count());                                  // Not yet implemented
+    std::fprintf(fp, "TeamTypeExtensions.Count = %d\n", TeamTypeExtensions.Count());
     std::fprintf(fp, "TerrainExtensions.Count = %d\n", TerrainExtensions.Count());
     std::fprintf(fp, "TerrainTypeExtensions.Count = %d\n", TerrainTypeExtensions.Count());
     //std::fprintf(fp, "TriggerExtensions.Count = %d\n", TriggerExtensions.Count());                                    // Not yet implemented
@@ -1923,7 +1924,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     Print_Heap_CRC_Lists(fp, SuperWeaponTypeExtensions);
     //Print_Heap_CRC_Lists(fp, TaskForceExtensions);                            // Not yet implemented
     //Print_Heap_CRC_Lists(fp, TeamExtensions);                                 // Not yet implemented
-    //Print_Heap_CRC_Lists(fp, TeamTypeExtensions);                             // Not yet implemented
+    Print_Heap_CRC_Lists(fp, TeamTypeExtensions);
     Print_Heap_CRC_Lists(fp, TerrainExtensions);
     Print_Heap_CRC_Lists(fp, TerrainTypeExtensions);
     //Print_Heap_CRC_Lists(fp, TriggerExtensions);                              // Not yet implemented
