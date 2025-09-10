@@ -45,7 +45,7 @@
 
 static bool Is_Spawner_Write_Statistics()
 {
-    if (Vinifera_SpawnerActive) {
+    if (Vinifera_SpawnerConfig != nullptr) {
         return Vinifera_SpawnerConfig->WriteStatistics && Session.Type == GAME_IPX;
     }
 

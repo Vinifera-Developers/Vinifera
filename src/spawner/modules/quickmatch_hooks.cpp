@@ -64,7 +64,7 @@ public:
  */
 char* IPXManagerClassExt::_Connection_Name(int id)
 {
-    if (Vinifera_SpawnerActive && Vinifera_SpawnerConfig->QuickMatch) {
+    if (Vinifera_SpawnerConfig != nullptr && Vinifera_SpawnerConfig->QuickMatch) {
         return const_cast<char*>(PLAYER);
     } else {
         return IPXManagerClass::Connection_Name(id);
@@ -79,7 +79,7 @@ char* IPXManagerClassExt::_Connection_Name(int id)
  */
 static int __cdecl sprintf_RadarClass_Draw_Names_Wrapper(char* buffer, const char* format, char* str)
 {
-    if (Vinifera_SpawnerActive && Vinifera_SpawnerConfig->QuickMatch) {
+    if (Vinifera_SpawnerConfig != nullptr && Vinifera_SpawnerConfig->QuickMatch) {
         return std::sprintf(buffer, "%s", PLAYER);
     } else {
         return std::sprintf(buffer, format, str);
@@ -94,7 +94,7 @@ static int __cdecl sprintf_RadarClass_Draw_Names_Wrapper(char* buffer, const cha
  */
 static Point2D Fancy_Text_Print_ProgressScreenClass_Draw_Graphics_Wrapper(const char* text, XSurface* surface, Rect* rect, Point2D* xy, ColorScheme* fore, unsigned back, TextPrintType flag)
 {
-    if (Vinifera_SpawnerActive && Vinifera_SpawnerConfig->QuickMatch) {
+    if (Vinifera_SpawnerConfig != nullptr && Vinifera_SpawnerConfig->QuickMatch) {
         return Fancy_Text_Print(PLAYER, surface, rect, xy, fore, back, flag);
     } else {
         return Fancy_Text_Print(text, surface, rect, xy, fore, back, flag);
@@ -114,7 +114,7 @@ DECLARE_PATCH(_Kick_Player_Dialog_SendMessage_Hide_Name)
 
     _asm pushad
 
-    if (Vinifera_SpawnerActive && Vinifera_SpawnerConfig->QuickMatch) {
+    if (Vinifera_SpawnerConfig != nullptr && Vinifera_SpawnerConfig->QuickMatch) {
         SendMessageA(hWnd, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(PLAYER));
     } else {
         SendMessageA(hWnd, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(Session.Players[index]->Name));

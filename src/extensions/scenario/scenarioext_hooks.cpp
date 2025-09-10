@@ -366,7 +366,7 @@ static void Init_Loading_Screen(const char* filename)
     /**
      *  The spawner can forcibly override the loading screen, and it already includes .PCX.
      */
-    if (Vinifera_SpawnerActive) {
+    if (Vinifera_SpawnerConfig != nullptr) {
 
         if (Wstring(Vinifera_SpawnerConfig->CustomLoadScreen).Is_Not_Empty()) {
             std::snprintf(loadfilename, sizeof(loadfilename), "%s", Vinifera_SpawnerConfig->CustomLoadScreen);

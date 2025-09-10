@@ -986,7 +986,7 @@ bool Vinifera_Load_Game(const char* file_name)
      *  Schedule the next autosave.
      */
     Vinifera_NextAutoSaveFrame = Frame;
-    Vinifera_NextAutoSaveFrame += Vinifera_SpawnerActive && Session.Type == GAME_IPX ? Vinifera_SpawnerConfig->AutoSaveInterval : OptionsExtension->AutoSaveInterval;
+    Vinifera_NextAutoSaveFrame += Session.Type == GAME_IPX && Vinifera_SpawnerConfig != nullptr ? Vinifera_SpawnerConfig->AutoSaveInterval : OptionsExtension->AutoSaveInterval;
 
     DEBUG_INFO("LOADING GAME [%s] - Complete\n", formatted_file_name);
 
@@ -1029,11 +1029,6 @@ bool LoadOptionsClassExt::_Load_File(const char* filename)
 
     TacticalViewActive = false;
     ScenarioStarted = false;
-
-    /**
-     *  If the user has manually loaded a save game, the spawner isn't responsible for anything anymore.
-     */
-    Vinifera_SpawnerActive = false;
 
     _makepath(formatted_file_name, nullptr, Vinifera_SavedGamesDirectory, Filename_From_Path(filename), nullptr);
     const bool result = Load_Game(formatted_file_name);

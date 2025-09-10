@@ -109,7 +109,7 @@ public:
  */
 void DisplayClassExt::_Encroach_Shadow_Observer()
 {
-    if (Vinifera_SpawnerActive && Extension::Fetch(PlayerPtr)->IsObserver) {
+    if (Vinifera_SpawnerConfig != nullptr && Extension::Fetch(PlayerPtr)->IsObserver) {
         return;
     }
 
@@ -124,7 +124,7 @@ void DisplayClassExt::_Encroach_Shadow_Observer()
  */
 void DisplayClassExt::_Encroach_Fog_Observer()
 {
-    if (Vinifera_SpawnerActive && Extension::Fetch(PlayerPtr)->IsObserver) {
+    if (Vinifera_SpawnerConfig != nullptr && Extension::Fetch(PlayerPtr)->IsObserver) {
         return;
     }
 

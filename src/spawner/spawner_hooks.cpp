@@ -66,7 +66,9 @@ public:
  */
 void SessionClassExt::_Read_Scenario_Descriptions()
 {
-    if (Vinifera_SpawnerActive) return;
+    if (Vinifera_SpawnerConfig != nullptr) {
+        return;
+    }
 
     SessionClass::Read_Scenario_Descriptions();
 }
@@ -154,7 +156,7 @@ DECLARE_PATCH(_Destroy_Connection_AutoSurrender_Patch)
 {
     GET_REGISTER_STATIC(HouseClass*, hptr, ebp);
 
-    if ((Session.Type == GAME_INTERNET && PlanetWestwoodTournament) || (Vinifera_SpawnerActive && Vinifera_SpawnerConfig->AutoSurrender)) {
+    if ((Session.Type == GAME_INTERNET && PlanetWestwoodTournament) || (Vinifera_SpawnerConfig != nullptr && Vinifera_SpawnerConfig->AutoSurrender)) {
         hptr->Flag_To_Die();
     } else {
         hptr->AI_Takeover();
@@ -169,8 +171,8 @@ DECLARE_PATCH(_Destroy_Connection_AutoSurrender_Patch)
  */
 void Spawner_Hooks()
 {
-    Patch_Call(0x004629D1, &Spawner::Start_Game); // Main_Game
-    Patch_Call(0x00462B8B, &Spawner::Start_Game); // Main_Game
+    Patch_Call(0x004629D1, &Spawner::Start_Game); // Select_Game in Main_Game
+    Patch_Call(0x00462B8B, &Spawner::Start_Game); // Select_Game in Main_Game
 
     /**
      *  The spawner allows player to jump right into a game, so no need to

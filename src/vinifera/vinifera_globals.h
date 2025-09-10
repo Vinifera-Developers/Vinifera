@@ -115,7 +115,7 @@ extern int EnvironmentGlobals[/*std::size(ScenExtension->GlobalFlags)*/500];
  *  Spawner-related globals.
  */
 extern SpawnerConfig* Vinifera_SpawnerConfig;
-extern bool Vinifera_SpawnerActive;
+extern bool Vinifera_HasSpawned;
 
 extern bool Vinifera_DoSave;
 extern int Vinifera_NextAutoSaveFrame;

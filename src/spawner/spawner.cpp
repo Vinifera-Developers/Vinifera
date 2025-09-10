@@ -89,17 +89,17 @@ void Spawner::Init()
  */
 bool Spawner::Start_Game()
 {
-    if (Vinifera_SpawnerActive) return false;
+    if (Vinifera_HasSpawned) {
+        return false;
+    }
 
-    Vinifera_SpawnerActive = true;
     GameActive = true;
 
     Init_UI();
-
-    const bool result = Start_Scenario(Vinifera_SpawnerConfig->ScenarioName);
-
     Prepare_Screen();
 
+    const bool result = Start_Scenario(Vinifera_SpawnerConfig->ScenarioName);
+    Vinifera_HasSpawned = true;
     return result;
 }
 
@@ -176,12 +176,13 @@ bool Spawner::Start_Scenario(char* scenario_name)
     /**
      *  Set session type.
      */
-    if (Vinifera_SpawnerConfig->IsCampaign)
+    if (Vinifera_SpawnerConfig->IsCampaign) {
         Session.Type = GAME_NORMAL;
-    else if (Session.NumPlayers > 1)
+    } else if (Session.NumPlayers > 1) {
         Session.Type = GAME_INTERNET; // HACK: will be set to GAME_IPX later
-    else
+    } else {
         Session.Type = GAME_SKIRMISH;
+    }
 
 
     Init_Random();

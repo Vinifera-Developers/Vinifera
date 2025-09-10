@@ -743,7 +743,7 @@ void HouseClassExt::_MPlayer_Defeated()
          *  With the spawner active, if Coach mode is enabled, players don't get vision.
          */
         bool obiwan = true;
-        if (Vinifera_SpawnerActive && Vinifera_SpawnerConfig->CoachMode) {
+        if (Vinifera_SpawnerConfig != nullptr && Vinifera_SpawnerConfig->CoachMode) {
             obiwan = false;
         }
 
@@ -841,7 +841,7 @@ void HouseClassExt::_MPlayer_Defeated()
      *    player's IsDefeated flag
      */
     if (!Extension::Fetch(this)->IsObserver) {
-        if (num_alive == 1 || (num_humans == 0 && !(Vinifera_SpawnerActive && Vinifera_SpawnerConfig->ContinueWithoutHumans))) {
+        if (num_alive == 1 || (num_humans == 0 && !(Vinifera_SpawnerConfig != nullptr && Vinifera_SpawnerConfig->ContinueWithoutHumans))) {
             IsToDie = false;
 
             if (PlayerPtr->IsDefeated) {
@@ -2087,7 +2087,7 @@ DECLARE_PATCH(_HouseClass_AI_Building_MP_AI_BaseNodes_Patch)
     /**
      *  Also use base nodes if it was requested by the client.
      */
-    if (Vinifera_SpawnerActive && ScenExtension->IsUseMPAIBaseNodes)
+    if (ScenExtension->IsUseMPAIBaseNodes)
     {
         _asm popad
         JMP_REG(ecx, 0x004C1554);

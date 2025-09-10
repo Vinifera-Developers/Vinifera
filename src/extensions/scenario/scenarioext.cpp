@@ -1339,7 +1339,7 @@ bool ScenarioClassExtension::Read_Scenario_INI(CCINIClass& ini, bool random)
      *  Set up difficulty and fog of war settings.
      */
     if (Session.Type == GAME_NORMAL) {
-        if (Vinifera_SpawnerActive) {
+        if (Vinifera_SpawnerConfig != nullptr) {
             Scen->Difficulty = static_cast<DiffType>(Vinifera_SpawnerConfig->CampaignDifficulty);
             Scen->CDifficulty = static_cast<DiffType>(Vinifera_SpawnerConfig->CampaignCDifficulty);
         } else {
@@ -1885,12 +1885,12 @@ bool ScenarioClassExtension::Read_Scenario_INI(CCINIClass& ini, bool random)
      *  Schedule the next autosave.
      */
     Vinifera_NextAutoSaveFrame = Frame;
-    Vinifera_NextAutoSaveFrame += Vinifera_SpawnerActive && Session.Type == GAME_IPX ? Vinifera_SpawnerConfig->AutoSaveInterval : OptionsExtension->AutoSaveInterval;
+    Vinifera_NextAutoSaveFrame += Session.Type == GAME_IPX && Vinifera_SpawnerConfig != nullptr ? Vinifera_SpawnerConfig->AutoSaveInterval : OptionsExtension->AutoSaveInterval;
 
     /**
      *  Set the skip score bool.
      */
-    if (Vinifera_SpawnerActive) {
+    if (Vinifera_SpawnerConfig != nullptr) {
         Scen->IsSkipScore = Vinifera_SpawnerConfig->SkipScoreScreen;
     }
 
@@ -1911,7 +1911,7 @@ void ScenarioClassExtension::Init_Forced_Alliances()
     /**
      *  Process the clients's forced alliances.
      */
-    if (Vinifera_SpawnerActive) {
+    if (Vinifera_SpawnerConfig != nullptr) {
         for (int i = 0; i < Session.Players.Count() + Session.Options.AIPlayers; i++) {
             HouseClass* housep = Houses[i];
 
@@ -1962,7 +1962,7 @@ static DynamicVectorClass<Cell> _Fetch_Starting_Points(bool official)
         look_for = MAX_PLAYERS;
     }
 
-    if (Vinifera_SpawnerActive) {
+    if (Vinifera_SpawnerConfig != nullptr) {
         for (int i = 0; i < Session.Players.Count() + Session.Options.AIPlayers; i++) {
             if (Vinifera_SpawnerConfig->Houses[i].IsObserver) {
                 look_for--;
@@ -2024,7 +2024,7 @@ void ScenarioClassExtension::Assign_Starting_Positions(bool official)
     /**
      *  If the spawner is active, assign the received starting positions to the houses.
      */
-    if (Vinifera_SpawnerActive) {
+    if (Vinifera_SpawnerConfig != nullptr) {
         for (int house = 0; house < Session.Players.Count() + Session.Options.AIPlayers; house++) {
             Extension::Fetch(Houses[house])->SpawnWaypoint = Vinifera_SpawnerConfig->Houses[house].SpawnLocation;
         }
@@ -2033,7 +2033,7 @@ void ScenarioClassExtension::Assign_Starting_Positions(bool official)
     /**
      *  First pass - assign spawn waypoints given to use by the client.
      */
-    if (Vinifera_SpawnerActive) {
+    if (Vinifera_SpawnerConfig != nullptr) {
         for (int house = HOUSE_FIRST; house < Houses.Count(); house++) {
 
             /**
@@ -2085,7 +2085,7 @@ void ScenarioClassExtension::Assign_Starting_Positions(bool official)
         /**
          *  Skip observers for now, we'll set them to observe another player later.
          */
-        if (Vinifera_SpawnerActive && Vinifera_SpawnerConfig->Houses[house].IsObserver) {
+        if (Vinifera_SpawnerConfig != nullptr && Vinifera_SpawnerConfig->Houses[house].IsObserver) {
             continue;
         }
 
@@ -2187,7 +2187,7 @@ void ScenarioClassExtension::Assign_Starting_Positions(bool official)
         /**
          *  Observers now pick a random house to observe.
          */
-        if (Vinifera_SpawnerActive && Vinifera_SpawnerConfig->Houses[house].IsObserver) {
+        if (Vinifera_SpawnerConfig != nullptr && Vinifera_SpawnerConfig->Houses[house].IsObserver) {
 
             /**
              *  No players - just plop the spectator in the map center.
@@ -2319,7 +2319,7 @@ void ScenarioClassExtension::Assign_Houses()
         /**
          *  Process spawner overrides.
          */
-        if (Vinifera_SpawnerActive) {
+        if (Vinifera_SpawnerConfig != nullptr) {
             int house_index = Houses.Count() - 1;
             const auto& houseconfig = Vinifera_SpawnerConfig->Houses[house_index];
 
@@ -2358,7 +2358,7 @@ void ScenarioClassExtension::Assign_Houses()
         HousesType pref_house;
         int color;
 
-        if (!Vinifera_SpawnerActive) {
+        if (Vinifera_SpawnerConfig == nullptr) {
 
             /**
              *  #issue-7
@@ -2418,7 +2418,7 @@ void ScenarioClassExtension::Assign_Houses()
         /**
          *  Process spawner overrides.
          */
-        if (Vinifera_SpawnerActive) {
+        if (Vinifera_SpawnerConfig != nullptr) {
             static char const* AINamesByDifficultyArray[] = {
                 "Hard AI",
                 "Medium AI",
@@ -2506,7 +2506,7 @@ void ScenarioClassExtension::Assign_Houses()
     /**
      *  Process the spawner's forced alliances.
      */
-    if (Vinifera_SpawnerActive) {
+    if (Vinifera_SpawnerConfig != nullptr) {
         for (int i = 0; i < Session.Players.Count() + Session.Options.AIPlayers; i++) {
             HouseClass* housep = Houses[i];
 

@@ -388,7 +388,7 @@ void EventClassExt::Do_IDLE()
  */
 void EventClassExt::Do_TIMING()
 {
-    if (!Vinifera_SpawnerActive || !ProtocolZero::Enable) {
+    if (!ProtocolZero::Enable) {
         if (Scen->Special.IsFogOfWar) {
             Data.Timing.MaxAhead -= 10;
         }
@@ -429,11 +429,11 @@ void EventClassExt::Do_REMOVEPLAYER()
     /**
      *  Turn off autosaves when a player disconnects.
      */
-    if (Vinifera_SpawnerActive) {
+    if (Vinifera_SpawnerConfig != nullptr) {
         Vinifera_SpawnerConfig->AutoSaveInterval = 0;
     }
 
-    if ((Session.Type == GAME_INTERNET && PlanetWestwoodTournament) || (Vinifera_SpawnerActive && Session.Type == GAME_IPX && Vinifera_SpawnerConfig->AutoSurrender)) {
+    if ((Session.Type == GAME_INTERNET && PlanetWestwoodTournament) || (Session.Type == GAME_IPX & Vinifera_SpawnerConfig != nullptr && Vinifera_SpawnerConfig->AutoSurrender)) {
         house->Flag_To_Die();
     } else if (house->Is_Human_Player()) {
         house->AI_Takeover();

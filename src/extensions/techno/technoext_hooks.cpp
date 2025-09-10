@@ -1960,7 +1960,7 @@ return_false:
  */
 static bool Can_Attack_Neutrals(TechnoClass* target)
 {
-    bool attack_neutrals = Vinifera_SpawnerActive && Vinifera_SpawnerConfig->AttackNeutralUnits;
+    bool attack_neutrals = Vinifera_SpawnerConfig != nullptr && Vinifera_SpawnerConfig->AttackNeutralUnits;
     bool unarmed_building = target->RTTI == RTTI_BUILDING && (!target->Is_Weapon_Equipped() || target->Get_Weapon()->Weapon->Range == 0);
 
     return attack_neutrals && !unarmed_building;
