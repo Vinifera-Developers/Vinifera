@@ -30,6 +30,7 @@
 #include "always.h"
 #include "extension.h"
 #include "scenario.h"
+#include "uicontrol.h"
 #include "wstring.h"
 
 
@@ -103,6 +104,8 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
         static void Create_Units(bool official);
         bool Read_Loading_Screen_INI(const char* filename);
 
+        UIControlsClass::LoadingScreen const* Pick_Loading_Screen_Override(HousesType house) const;
+
     public:
         /**
          *  This is a vector of waypoints; each waypoint corresponds to a letter of
@@ -138,12 +141,7 @@ class ScenarioClassExtension final : public GlobalExtensionClass<ScenarioClass>
          *  Scenarios can override the loading screen with a custom variant, these
          *  define the filename to load and position overrides.
          */
-        struct LoadingScreenData {
-            Wstring Filename;
-            TPoint2D<int> Position;
-        };
-
-        LoadingScreenData LoadingScreens[3];
+        std::vector<UIControlsClass::LoadingScreen> LoadingScreens;
 
         /**
          *  Should the AI use base nodes outside of campaign, instead of skirmish AI base building logic.

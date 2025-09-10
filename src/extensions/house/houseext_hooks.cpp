@@ -2251,6 +2251,7 @@ void HouseClassExtension_Hooks()
 
     Patch_Jump(0x004BF4C0, &HouseClassExt::_MPlayer_Defeated);
     Patch_Jump(0x004C4730, &HouseClassExtension::House_From_HousesType);
+    Patch_Jump(0x004CDEF0, &HouseClassExtension::House_From_Name);
 
     /**
      *  Patch away a few checks for GAME_INTERNET to enable statistics collection.

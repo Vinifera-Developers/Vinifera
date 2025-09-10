@@ -601,7 +601,7 @@ bool SidebarClassExtension::TabButtonClass::Draw_Me(bool forced)
         shapenum = FRAME_NORMAL;
     }
 
-    Draw_Shape(*SidebarSurface, *ShapeDrawer, ShapeData, shapenum, Point2D(X + DrawX, Y + DrawY), ScreenRect, SHAPE_NORMAL);
+    Draw_Shape(*SidebarSurface, *ShapeDrawer, ShapeData, shapenum, Point2D(X + DrawX, Y + DrawY), VisibleRect, SHAPE_NORMAL);
 
     if (MousedOver && !Scen->InputLock && !IsDisabled && !IsSelected)
     {

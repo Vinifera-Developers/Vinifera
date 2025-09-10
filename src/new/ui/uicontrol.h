@@ -28,9 +28,11 @@
 #pragma once
 
 #include "always.h"
-#include "tibsun_defines.h"
 #include "point.h"
+#include "tibsun_defines.h"
 #include "typelist.h"
+#include <string>
+#include <vector>
 
 
 struct IStream;
@@ -40,275 +42,242 @@ class NoInitClass;
 
 class UIControlsClass
 {
-    public:
-        UIControlsClass();
-        UIControlsClass(const NoInitClass &noinit);
-        ~UIControlsClass();
+public:
+    UIControlsClass();
+    UIControlsClass(const NoInitClass& noinit);
+    ~UIControlsClass();
 
-        HRESULT Load(IStream *pStm);
-        HRESULT Save(IStream *pStm, BOOL fClearDirty);
-        int Get_Object_Size() const;
+    bool Read_INI(CCINIClass& ini);
 
-        bool Read_INI(CCINIClass &ini);
+    struct LoadingScreenSize {
+        Point2D Size;
+        Point2D SPPosition;
+        Point2D MPPosition;
+    };
 
-        /**
-         *  Helper to get the group number drawing offset based on the object type.
-         */
-        TPoint2D<int> Get_Group_Number_Offset(RTTIType type, bool has_pip) const
-        {
-            switch (type)
-            {
-            case RTTI_UNIT:
-            case RTTI_UNITTYPE:
-                return has_pip ? UnitWithPipGroupNumberOffset : UnitGroupNumberOffset;
-            case RTTI_INFANTRY:
-            case RTTI_INFANTRYTYPE:
-                return has_pip ? InfantryWithPipGroupNumberOffset : InfantryGroupNumberOffset;
-            case RTTI_BUILDING:
-            case RTTI_BUILDINGTYPE:
-                return has_pip ? BuildingWithPipGroupNumberOffset : BuildingGroupNumberOffset;
-            case RTTI_AIRCRAFT:
-            case RTTI_AIRCRAFTTYPE:
-                return has_pip ? AircraftWithPipGroupNumberOffset : AircraftGroupNumberOffset;
-            default:
-                return TPoint2D<int>();
-            }
-        }
+    struct LoadingScreen {
+        LoadingScreen() = default;
+        LoadingScreen(char const* entry);
+        LoadingScreen(HousesType house, std::string const& filename, LoadingScreenSize const& size) : IsValid(true), House(house), Filename(filename), Size(size) {};
 
-        /**
-         *  Helper to get the veterancy pip drawing offset based on the object type.
-         */
-        TPoint2D<int> Get_Veterancy_Pip_Offset(RTTIType type) const
-        {
-            switch (type)
-            {
-            case RTTI_UNIT:
-            case RTTI_UNITTYPE:
-                return UnitVeterancyPipOffset;
-            case RTTI_INFANTRY:
-            case RTTI_INFANTRYTYPE:
-                return InfantryVeterancyPipOffset;
-            case RTTI_BUILDING:
-            case RTTI_BUILDINGTYPE:
-                return BuildingVeterancyPipOffset;
-            case RTTI_AIRCRAFT:
-            case RTTI_AIRCRAFTTYPE:
-                return AircraftVeterancyPipOffset;
-            default:
-                return TPoint2D<int>();
-            }
-        }
+        bool IsValid;
+        HousesType House;
+        std::string Filename;
+        LoadingScreenSize Size;
+    };
 
-        /**
-         *  Helper to get the special pip drawing offset based on the object type.
-         */
-        TPoint2D<int> Get_Special_Pip_Offset(RTTIType type) const
-        {
-            switch (type)
-            {
-            case RTTI_UNIT:
-            case RTTI_UNITTYPE:
-                return UnitSpecialPipOffset;
-            case RTTI_INFANTRY:
-            case RTTI_INFANTRYTYPE:
-                return InfantrySpecialPipOffset;
-            case RTTI_BUILDING:
-            case RTTI_BUILDINGTYPE:
-                return BuildingSpecialPipOffset;
-            case RTTI_AIRCRAFT:
-            case RTTI_AIRCRAFTTYPE:
-                return AircraftSpecialPipOffset;
-            default:
-                return TPoint2D<int>();
-            }
-        }
+private:
 
-    public:
-        /**
-         *  Health bar draw positions.
-         */
-        TPoint2D<int> UnitHealthBarDrawPos;
-        TPoint2D<int> InfantryHealthBarDrawPos;
+    static const LoadingScreenSize DefaultLoadingScreenSizes[];
+    static LoadingScreenSize const& Pick_Default_Loading_Screen_Size();
 
-        /**
-         *  Should the text label be drawn with an outline?
-         */
-        bool IsTextLabelOutline;
+public:
 
-        /**
-         *  Transparency of the text background.
-         */
-        unsigned TextLabelBackgroundTransparency;
+    /**
+     *  Helper to get the group number drawing offset based on the object type.
+     */
+    TPoint2D<int> Get_Group_Number_Offset(RTTIType type, bool has_pip) const;
 
-        /**
-         *  Customizable offsets for drawing different pips.
-         */
-        TPoint2D<int> UnitGroupNumberOffset;
-        TPoint2D<int> InfantryGroupNumberOffset;
-        TPoint2D<int> BuildingGroupNumberOffset;
-        TPoint2D<int> AircraftGroupNumberOffset;
-        TPoint2D<int> UnitWithPipGroupNumberOffset;
-        TPoint2D<int> InfantryWithPipGroupNumberOffset;
-        TPoint2D<int> BuildingWithPipGroupNumberOffset;
-        TPoint2D<int> AircraftWithPipGroupNumberOffset;
-        TPoint2D<int> UnitVeterancyPipOffset;
-        TPoint2D<int> InfantryVeterancyPipOffset;
-        TPoint2D<int> BuildingVeterancyPipOffset;
-        TPoint2D<int> AircraftVeterancyPipOffset;
-        TPoint2D<int> UnitSpecialPipOffset;
-        TPoint2D<int> InfantrySpecialPipOffset;
-        TPoint2D<int> BuildingSpecialPipOffset;
-        TPoint2D<int> AircraftSpecialPipOffset;
+    /**
+     *  Helper to get the veterancy pip drawing offset based on the object type.
+     */
+    TPoint2D<int> Get_Veterancy_Pip_Offset(RTTIType type) const;
 
-        /**
-         *  Should the tactical rubber band box be drawn with a drop shadow?
-         */
-        bool IsBandBoxDropShadow;
+    /**
+     *  Helper to get the special pip drawing offset based on the object type.
+     */
+    TPoint2D<int> Get_Special_Pip_Offset(RTTIType type) const;
 
-        /**
-         *  Should the tactical rubber band box be drawn with a thick border?
-         */
-        bool IsBandBoxThick;
+    LoadingScreen Pick_Loading_Screen(HousesType house) const;
 
-        /**
-         *  Color to draw the tactical rubber band box with.
-         */
-        RGBStruct BandBoxColor;
+public:
+    /**
+     *  Health bar draw positions.
+     */
+    TPoint2D<int> UnitHealthBarDrawPos;
+    TPoint2D<int> InfantryHealthBarDrawPos;
 
-        /**
-         *  Color to draw the tactical rubber band box's shadow with.
-         */
-        RGBStruct BandBoxDropShadowColor;
+    /**
+     *  Should the text label be drawn with an outline?
+     */
+    bool IsTextLabelOutline;
 
-        /**
-         *  Transparency of the tactical rubber band.
-         */
-        unsigned BandBoxTintTransparency;
+    /**
+     *  Transparency of the text background.
+     */
+    unsigned TextLabelBackgroundTransparency;
 
-        /**
-         *  Two tint colors, interpolated between based on the current ambient light level.
-         */
-        TypeList<RGBStruct> BandBoxTintColors;
+    /**
+     *  Customizable offsets for drawing different pips.
+     */
+    TPoint2D<int> UnitGroupNumberOffset;
+    TPoint2D<int> InfantryGroupNumberOffset;
+    TPoint2D<int> BuildingGroupNumberOffset;
+    TPoint2D<int> AircraftGroupNumberOffset;
+    TPoint2D<int> UnitWithPipGroupNumberOffset;
+    TPoint2D<int> InfantryWithPipGroupNumberOffset;
+    TPoint2D<int> BuildingWithPipGroupNumberOffset;
+    TPoint2D<int> AircraftWithPipGroupNumberOffset;
+    TPoint2D<int> UnitVeterancyPipOffset;
+    TPoint2D<int> InfantryVeterancyPipOffset;
+    TPoint2D<int> BuildingVeterancyPipOffset;
+    TPoint2D<int> AircraftVeterancyPipOffset;
+    TPoint2D<int> UnitSpecialPipOffset;
+    TPoint2D<int> InfantrySpecialPipOffset;
+    TPoint2D<int> BuildingSpecialPipOffset;
+    TPoint2D<int> AircraftSpecialPipOffset;
 
-        /**
-         *  Should action lines remain visible continuously, instead of disappearing after some time?
-         */
-        bool IsAlwaysShowActionLines;
+    /**
+     *  Should the tactical rubber band box be drawn with a drop shadow?
+     */
+    bool IsBandBoxDropShadow;
 
-        /**
-         *  Should movement lines be drawn with dashes?
-         */
-        bool IsMovementLineDashed;
+    /**
+     *  Should the tactical rubber band box be drawn with a thick border?
+     */
+    bool IsBandBoxThick;
 
-        /**
-         *  Should movement lines be drawn with a drop shadow?
-         */
-        bool IsMovementLineDropShadow;
+    /**
+     *  Color to draw the tactical rubber band box with.
+     */
+    RGBStruct BandBoxColor;
 
-        /**
-         *  Should movement lines be drawn with a thick line?
-         */
-        bool IsMovementLineThick;
+    /**
+     *  Color to draw the tactical rubber band box's shadow with.
+     */
+    RGBStruct BandBoxDropShadowColor;
 
-        /**
-         *  Color to draw movement lines with.
-         */
-        RGBStruct MovementLineColor;
+    /**
+     *  Transparency of the tactical rubber band.
+     */
+    unsigned BandBoxTintTransparency;
 
-        /**
-         *  Color to draw movement lines' drop shadow with.
-         */
-        RGBStruct MovementLineDropShadowColor;
+    /**
+     *  Two tint colors, interpolated between based on the current ambient light level.
+     */
+    TypeList<RGBStruct> BandBoxTintColors;
 
-        /**
-         *  Should target lines be drawn with dashes?
-         */
-        bool IsTargetLineDashed;
+    /**
+     *  Should action lines remain visible continuously, instead of disappearing after some time?
+     */
+    bool IsAlwaysShowActionLines;
 
-        /**
-         *  Should target lines be drawn with a drop shadow?
-         */
-        bool IsTargetLineDropShadow;
+    /**
+     *  Should movement lines be drawn with dashes?
+     */
+    bool IsMovementLineDashed;
 
-        /**
-         *  Should target lines be drawn with a thick line?
-         */
-        bool IsTargetLineThick;
+    /**
+     *  Should movement lines be drawn with a drop shadow?
+     */
+    bool IsMovementLineDropShadow;
 
-        /**
-         *  Color to target movement lines with.
-         */
-        RGBStruct TargetLineColor;
+    /**
+     *  Should movement lines be drawn with a thick line?
+     */
+    bool IsMovementLineThick;
 
-        /**
-         *  Color to draw target lines' drop shadow with.
-         */
-        RGBStruct TargetLineDropShadowColor;
+    /**
+     *  Color to draw movement lines with.
+     */
+    RGBStruct MovementLineColor;
 
-        /**
-         *  Should target laser be drawn with dashes?
-         */
-        bool IsTargetLaserDashed;
+    /**
+     *  Color to draw movement lines' drop shadow with.
+     */
+    RGBStruct MovementLineDropShadowColor;
 
-        /**
-         *  Should target laser be drawn with a drop shadow?
-         */
-        bool IsTargetLaserDropShadow;
+    /**
+     *  Should target lines be drawn with dashes?
+     */
+    bool IsTargetLineDashed;
 
-        /**
-         *  Should target laser be drawn with a thick line?
-         */
-        bool IsTargetLaserThick;
+    /**
+     *  Should target lines be drawn with a drop shadow?
+     */
+    bool IsTargetLineDropShadow;
 
-        /**
-         *  Color to draw the target laser with.
-         */
-        RGBStruct TargetLaserColor;
+    /**
+     *  Should target lines be drawn with a thick line?
+     */
+    bool IsTargetLineThick;
 
-        /**
-         *  Color to draw the target laser's drop shadow with.
-         */
-        RGBStruct TargetLaserDropShadowColor;
+    /**
+     *  Color to target movement lines with.
+     */
+    RGBStruct TargetLineColor;
 
-        /**
-         *  Time in frames the target laser should be drawn for when the unit fires.
-         */
-        unsigned TargetLaserTime;
+    /**
+     *  Color to draw target lines' drop shadow with.
+     */
+    RGBStruct TargetLineDropShadowColor;
 
-        /**
-         *  Should NavCom queue lines be displayed?
-         */
-        bool IsShowNavComQueueLines;
+    /**
+     *  Should target laser be drawn with dashes?
+     */
+    bool IsTargetLaserDashed;
 
-        /**
-         *  Should NavCom queue lines be drawn with dashes?
-         */
-        bool IsNavComQueueLineDashed;
+    /**
+     *  Should target laser be drawn with a drop shadow?
+     */
+    bool IsTargetLaserDropShadow;
 
-        /**
-         *  Should NavCom queue lines be drawn with a drop shadow?
-         */
-        bool IsNavComQueueLineDropShadow;
+    /**
+     *  Should target laser be drawn with a thick line?
+     */
+    bool IsTargetLaserThick;
 
-        /**
-         *  Should NavCom queue lines be drawn with a thick line?
-         */
-        bool IsNavComQueueLineThick;
+    /**
+     *  Color to draw the target laser with.
+     */
+    RGBStruct TargetLaserColor;
 
-        /**
-         *  Color to draw the NavCom queue lines with.
-         */
-        RGBStruct NavComQueueLineColor;
+    /**
+     *  Color to draw the target laser's drop shadow with.
+     */
+    RGBStruct TargetLaserDropShadowColor;
 
-        /**
-         *  Color to draw the NavCom queue lines' drop shadow with.
-         */
-        RGBStruct NavComQueueLineDropShadowColor;
+    /**
+     *  Time in frames the target laser should be drawn for when the unit fires.
+     */
+    unsigned TargetLaserTime;
 
-        /**
-         *  Should the sidebar repair, etc. buttons use the old X position, centered on the radar?
-         */
-        bool IsCenterSidebarButtonsOnRadar;
+    /**
+     *  Should NavCom queue lines be displayed?
+     */
+    bool IsShowNavComQueueLines;
+
+    /**
+     *  Should NavCom queue lines be drawn with dashes?
+     */
+    bool IsNavComQueueLineDashed;
+
+    /**
+     *  Should NavCom queue lines be drawn with a drop shadow?
+     */
+    bool IsNavComQueueLineDropShadow;
+
+    /**
+     *  Should NavCom queue lines be drawn with a thick line?
+     */
+    bool IsNavComQueueLineThick;
+
+    /**
+     *  Color to draw the NavCom queue lines with.
+     */
+    RGBStruct NavComQueueLineColor;
+
+    /**
+     *  Color to draw the NavCom queue lines' drop shadow with.
+     */
+    RGBStruct NavComQueueLineDropShadowColor;
+
+    /**
+     *  Should the sidebar repair, etc. buttons use the old X position, centered on the radar?
+     */
+    bool IsCenterSidebarButtonsOnRadar;
+
+    std::vector<LoadingScreen> LoadingScreens;
 };
 
-extern UIControlsClass *UIControls;
+extern UIControlsClass* UIControls;

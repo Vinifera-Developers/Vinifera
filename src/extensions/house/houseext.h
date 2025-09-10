@@ -89,6 +89,7 @@ public:
 
     static HouseClass* House_At_Spawn_Point(WAYPOINT waypoint);
     static HouseClass* House_From_HousesType(HousesType house);
+    static HousesType House_From_Name(char const* name);
 
 public:
     /**

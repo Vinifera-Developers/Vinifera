@@ -100,7 +100,7 @@ ScenarioClassExtension::ScenarioClassExtension(const ScenarioClass *this_ptr) :
     IsIceDestruction(true),
     SidebarSide(SIDE_NONE),
     IsUseMPAIBaseNodes(false),
-    LoadingScreens{ { "", {} }, { "", {} } , { "", {} } }
+    LoadingScreens()
 {
     //if (this_ptr) EXT_DEBUG_TRACE("ScenarioClassExtension::ScenarioClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
@@ -232,12 +232,7 @@ void ScenarioClassExtension::Init_Clear()
 
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Init_Clear - 0x%08X\n", (uintptr_t)(This()));
 
-    LoadingScreens[0].Filename = "";
-    LoadingScreens[1].Filename = "";
-    LoadingScreens[2].Filename = "";
-    LoadingScreens[0].Position = TPoint2D<int>(0,0);
-    LoadingScreens[1].Position = TPoint2D<int>(0,0);
-    LoadingScreens[2].Position = TPoint2D<int>(0,0);
+    LoadingScreens.clear();
 
     {
         /**
@@ -317,24 +312,42 @@ bool ScenarioClassExtension::Read_Loading_Screen_INI(const char *filename)
     }
 
     if (Session.Type == GAME_NORMAL) {
-
-        char buffer[MAX_PATH];
-
-        ini.Get_String(BASIC, "LoadingScreen400", buffer, sizeof(buffer));
-        ScenExtension->LoadingScreens[0].Filename = buffer;
-
-        ini.Get_String(BASIC, "LoadingScreen480", buffer, sizeof(buffer));
-        ScenExtension->LoadingScreens[1].Filename = buffer;
-
-        ini.Get_String(BASIC, "LoadingScreen600", buffer, sizeof(buffer));
-        ScenExtension->LoadingScreens[2].Filename = buffer;
-
-        ScenExtension->LoadingScreens[0].Position = ini.Get_Point(BASIC, "LoadingScreen400TextPos", ScenExtension->LoadingScreens[0].Position);
-        ScenExtension->LoadingScreens[1].Position = ini.Get_Point(BASIC, "LoadingScreen460TextPos", ScenExtension->LoadingScreens[1].Position);
-        ScenExtension->LoadingScreens[2].Position = ini.Get_Point(BASIC, "LoadingScreen600TextPos", ScenExtension->LoadingScreens[2].Position);
+        static char const* const LOADING_SCREENS = "LoadingScreens";
+        for (int i = 0; i < ini.Entry_Count(LOADING_SCREENS); i++) {
+            UIControlsClass::LoadingScreen screen(ini.Get_Entry(LOADING_SCREENS, i));
+            if (screen.IsValid) {
+                LoadingScreens.emplace_back(screen);
+            }
+        }
     }
 
     return true;
+}
+
+
+UIControlsClass::LoadingScreen const* ScenarioClassExtension::Pick_Loading_Screen_Override(HousesType house) const
+{
+    std::vector<UIControlsClass::LoadingScreen const*> screens;
+
+    int largest_size = 0;
+    for (auto& screen : LoadingScreens) {
+        if (screen.House == house && VisibleRect.Width >= screen.Size.Size.X && VisibleRect.Height >= screen.Size.Size.Y) {
+            int size = screen.Size.Size.X * screen.Size.Size.Y;
+            if (size > largest_size) {
+                screens.clear();
+                screens.emplace_back(&screen);
+                largest_size = size;
+            } else if (size == largest_size) {
+                screens.emplace_back(&screen);
+            }
+        }
+    }
+
+    if (!screens.empty()) {
+        return screens[Sim_Random_Pick(0u, screens.size() - 1)];
+    }
+
+    return nullptr;
 }
 
 
@@ -1253,7 +1266,7 @@ bool ScenarioClassExtension::Start_Scenario(char* name, bool briefing, CampaignT
     /**
      *  Toggle the display mode if mode toggling is allowed.
      */
-    if (Debug_AllowModeToggle && (ScreenRect.Width != Options.ScreenWidth || ScreenRect.Height != Options.ScreenHeight)) {
+    if (Debug_AllowModeToggle && (VisibleRect.Width != Options.ScreenWidth || VisibleRect.Height != Options.ScreenHeight)) {
         DEBUG_INFO("Toggle display mode to %d X %d\n", Options.ScreenWidth, Options.ScreenHeight);
         Change_Video_Mode(Options.ScreenWidth, Options.ScreenHeight);
     }
@@ -1320,7 +1333,6 @@ bool ScenarioClassExtension::Read_Scenario_INI(CCINIClass& ini, bool random)
     ScenarioInit++;
 
     DEBUG_INFO("Clearing old scenario\n");
-
     Clear_Scenario();
 
     /**

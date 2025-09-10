@@ -61,6 +61,7 @@
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
 #include "tibsun_inline.h"
+#include "uicontrol.h"
 #include "unit.h"
 #include "vinifera_globals.h"
 #include "wsproto.h"
@@ -277,52 +278,6 @@ int _Waypoint_From_Name(char* wp)
 }
 
 
-enum {
-    LS_400,
-    LS_480,
-    LS_600,
-    LS_SIZE_COUNT,
-    LS_SIZE_FIRST = LS_400
-};
-
-
-struct LoadingScreenConfig
-{
-    int SizeIndex;
-    TPoint2D<int> Size;
-    TPoint2D<int> SPPosition;
-    TPoint2D<int> MPPosition;
-};
-
-
-/**
- *  This array contains the loading screen properties for different screen sizes.
- */
-static LoadingScreenConfig LoadingScreenConfigs[]
-{
-    { LS_400, { 640, 400 }, { 436, 155 }, { 566, 152 } },
-    { LS_480, { 640, 480 }, { 436, 186 }, { 566, 177 } },
-    { LS_600, { 800, 600 }, { 546, 233 }, { 711, 227 } }
-};
-
-
-/**
- *  Gets the loading screen roperties for the user's screen size.
- *
- *  @author: ZivDero
- */
-static LoadingScreenConfig& Get_Loading_Screen_Config()
-{
-    for (int i = LS_SIZE_COUNT - 1; i > LS_SIZE_FIRST; i--) {
-        if (ScreenRect.Width >= LoadingScreenConfigs[i].Size.X && ScreenRect.Height >= LoadingScreenConfigs[i].Size.Y) {
-            return LoadingScreenConfigs[i];
-        }
-    }
-
-    return LoadingScreenConfigs[LS_SIZE_FIRST];
-}
-
-
 /**
  *  Reimplements the loading screen setup routine.
  * 
@@ -330,6 +285,14 @@ static LoadingScreenConfig& Get_Loading_Screen_Config()
  */
 static void Init_Loading_Screen(const char* filename)
 {
+    /**
+     *  If this is a continued game, we've still got the houses from that game (they're normally cleared
+     *  in RulesClass::Initialize later down the line), so we need to delete them. But to do that,
+     *  we need to clear the scenario first, so this now happens here.
+     */
+    DEBUG_INFO("Clearing old scenario\n");
+    Clear_Scenario();
+
     /**
      *  We need to read sides and houses now, because we need them to determine the player's
      *  side and loading screens.
@@ -340,21 +303,8 @@ static void Init_Loading_Screen(const char* filename)
     for (int i = 0; i < HouseTypes.Count(); i++) {
         HouseTypes[i]->Read_INI(*RuleINI);
     }
-
     for (int i = 0; i < HouseTypeExtensions.Count(); i++) {
         HouseTypeExtensions[i]->Read_INI(*RuleINI);
-    }
-
-    /**
-     *  #EDGE-CASE/#BUGFIX:
-     *
-     *  We need to do the fixup even earlier now as we need to use the Side
-     *  value from the players HouseType.
-     */
-    {
-        CCFileClass file(filename);
-        CCINIClass ini(file);
-        RuleExtension->Fixups(ini);
     }
 
     /**
@@ -364,12 +314,10 @@ static void Init_Loading_Screen(const char* filename)
     HousesType house = HOUSE_GDI;
     if (Session.Type == GAME_NORMAL) {
         if (Scen->Campaign != CAMPAIGN_NONE) {
-
             const auto campaign_ext = Extension::Fetch(Campaigns[Scen->Campaign]);
             house = campaign_ext->House;
         }
-    }
-    else {
+    } else {
 
         /**
          *  The first player in the player array is always the local player, so
@@ -393,47 +341,24 @@ static void Init_Loading_Screen(const char* filename)
         house = HOUSE_GDI;
     }
 
-    const char* loadname;
-    TPoint2D<int> textpos;
-
     /**
      *  Fetch the loading screen properties for the user's screen size.
      */
-    LoadingScreenConfig& ls_config = Get_Loading_Screen_Config();
-
-    /**
-     *  Fetch the according loading screen from the user's house's data.
-     */
-    const auto housetype_ext = Extension::Fetch(HouseTypes[house]);
-    const auto& house_ls = housetype_ext->LoadingScreens[ls_config.SizeIndex];
-
-    loadname = house_ls[Sim_Random_Pick(0, house_ls.Count() - 1)].Peek_Buffer();
-    textpos = Session.Singleplayer_Game() ? ls_config.SPPosition : ls_config.MPPosition;
-
-    /**
-     *  Adjust the text position for Nod.
-     */
-    if (house == HOUSE_NOD) {
-        textpos.Y += 7;
-    }
+    auto loading_screen = UIControls->Pick_Loading_Screen(house);
 
     /**
      *  Fetch the loading screen override from the scenario.
      */
-    const auto& ls_override = ScenExtension->LoadingScreens[ls_config.SizeIndex];
-    if (ls_override.Filename.Is_Not_Empty()) {
-        loadname = ls_override.Filename.Peek_Buffer();
-
-        if (ls_override.Position != Point2D(0, 0)) {
-            textpos = ls_override.Position;
-        }
+    const auto ls_override = ScenExtension->Pick_Loading_Screen_Override(house);
+    if (ls_override != nullptr) {
+        loading_screen = *ls_override;
     }
 
     /**
-     *  Adjust the position of the text so it is correct for widescreen resolutions.
+     *  
      */
-    textpos.X += (ScreenRect.Width - ls_config.Size.X) / 2;
-    textpos.Y += (ScreenRect.Height - ls_config.Size.Y) / 2;
+    const char* loadname = loading_screen.Filename.c_str();
+    Point2D bar_pos = Session.Singleplayer_Game() ? loading_screen.Size.SPPosition : loading_screen.Size.MPPosition;
 
     char loadfilename[PATH_MAX];
     std::snprintf(loadfilename, sizeof(loadfilename), "%s.PCX", loadname);
@@ -447,10 +372,16 @@ static void Init_Loading_Screen(const char* filename)
             std::snprintf(loadfilename, sizeof(loadfilename), "%s", Vinifera_SpawnerConfig->CustomLoadScreen);
 
             if (Vinifera_SpawnerConfig->CustomLoadScreenPos != Point2D(0, 0)) {
-                textpos = Vinifera_SpawnerConfig->CustomLoadScreenPos;
+                bar_pos = Vinifera_SpawnerConfig->CustomLoadScreenPos;
             }
         }
     }
+
+    /**
+     *  Adjust the position of the text and bars so it is correct for widescreen resolutions.
+     */
+    bar_pos.X += (VisibleRect.Width - loading_screen.Size.Size.X) / 2;
+    bar_pos.Y += (VisibleRect.Height - loading_screen.Size.Size.Y) / 2;
 
     DEV_DEBUG_INFO("Loading Screen: \"%s\"\n", loadfilename);
 
@@ -458,11 +389,11 @@ static void Init_Loading_Screen(const char* filename)
      *  If this is a tournament game, format the game id.
      */
     char gamenamebuffer[128];
-    const char* gamename = nullptr;
+    const char* prog_msg = nullptr;
 
     if (Session.Type == GAME_INTERNET && PlanetWestwoodTournament == WOL::TOURNAMENT_0) {
         std::snprintf(gamenamebuffer, sizeof(gamenamebuffer), Text_String(TXT_GAME_ID), PlanetWestwoodGameID);
-        gamename = gamenamebuffer;
+        prog_msg = gamenamebuffer;
     }
 
     /**
@@ -474,13 +405,13 @@ static void Init_Loading_Screen(const char* filename)
     /**
      *  Initialise the loading screen.
      */
-    ProgressScreen.Init(100.0f, player_count);
+    Progress.Initialize(100, player_count);
 
     /**
      *  Forces the initial draw, Call_Back calls will update the redraw from here on.
      */
-    ProgressScreen.Draw_Graphics(progress_name, loadfilename, gamename, textpos.X, textpos.Y);
-    ProgressScreen.Draw_Bars_And_Text();
+    Progress.Set_Graphic_Data(progress_name, loadfilename, prog_msg, bar_pos);
+    Progress.Display_Progress();
 }
 
 
@@ -585,86 +516,20 @@ DECLARE_PATCH(_Clear_Scenario_Clear_Globals_Patch)
 }
 
 
-#define SPAWN_HOUSE_OFFSET 50
-
-/**
- *  Main function for patching the hooks.
- *  Returns a house from a spawn house name.
- *
- *  @author: ZivDero
- */
-HousesType Spawn_House_From_Name(const char* name)
-{
-    ASSERT(name != nullptr);
-
-    int spawn_number;
-
-    /**
-     *  Try to read the house name as a spawn house name and extract its number.
-     */
-    if (std::sscanf(name, "Spawn%d", &spawn_number) == 1) {
-
-        /**
-         *  If we're successful, return a spawn house number.
-         */
-        return static_cast<HousesType>(spawn_number - 1 + SPAWN_HOUSE_OFFSET);
-    }
-
-    /**
-     *  Fetch the house the normal way.
-     */
-    return HouseTypeClass::From_Name(name);
-}
-
-
-bool Is_Spawn_House(HousesType house)
-{
-    return house >= SPAWN_HOUSE_OFFSET && house < SPAWN_HOUSE_OFFSET + MAX_PLAYERS;
-}
-
-/**
- *  Returns a house from a spawn house name or a normal house name.
- *
- *  @author: ZivDero
- */
-HousesType House_Or_Spawn_House_From_Name(const char* name)
-{
-    /**
-     *  In campaigns, proceed as usual.
-     */
-    if (Session.Type == GAME_NORMAL) {
-        return HouseTypeClass::From_Name(name);
-    }
-
-    /**
-     *  In skirmish/multiplayer, try to fetch a spawn house instead.
-     */
-    return Spawn_House_From_Name(name);
-}
-
-
 /**
  *  Special unit version of House_Or_Spawn_House_From_Name that adds a
  *  null pointer to the unit vector if the house is not found.
  *
  *  @author: ZivDero
  */
-HousesType House_Or_Spawn_House_From_Name_Unit(const char* name)
+HousesType House_From_Name_Unit(const char* name)
 {
     /**
-     *  In campaigns, proceed as usual.
-     */
-    if (Session.Type == GAME_NORMAL) {
-        return HouseTypeClass::From_Name(name);
-    }
-
-    /**
-     *  In skirmish/multiplayer, try to fetch a spawn house instead.
      *  If we couldn't find the spawn house, add a null pointer to the unit vector
      *  so that the "LinkedTo" numbers don't break. We'll remove these null pointers
      *  at the end.
      */
-    HousesType house = Spawn_House_From_Name(name);
+    HousesType house = HouseTypeClass::From_Name(name);
     if (house == HOUSE_NONE) {
         Units.Add(nullptr);
     }
@@ -685,14 +550,12 @@ DECLARE_PATCH(_InfantryClass_Read_INI_SpawnHouses_Patch)
     static HousesType house;
     static HouseClass* hptr;
 
-    house = House_Or_Spawn_House_From_Name(house_name);
+    house = HouseTypeClass::From_Name(house_name);
 
-    if (house != HOUSE_NONE)
-    {
+    if (house != HOUSE_NONE) {
         hptr = House_From_HousesType(house);
 
-        if (hptr)
-        {
+        if (hptr) {
             _asm mov edi, hptr
             JMP(0x004D7BD5);
         }
@@ -712,8 +575,7 @@ static void Link_Units(DynamicVectorClass<int>& link_vector)
     /**
      *  Links the followed and followed units, checking to make sure both actually exist.
      */
-    for (int i = 0; i < Units.Count(); ++i)
-    {
+    for (int i = 0; i < Units.Count(); ++i) {
         int follower_id = link_vector[i];
         UnitClass* unit = Units[i];
 
@@ -723,8 +585,7 @@ static void Link_Units(DynamicVectorClass<int>& link_vector)
                 UnitClass* follower = Units[follower_id];
                 unit->FollowingMe = follower;
                 follower->IsFollowing = true;
-            }
-            else {
+            } else {
                 unit->FollowingMe = nullptr;
             }
         }
@@ -753,45 +614,6 @@ DECLARE_PATCH(_UnitClass_Read_INI_Link_Units)
     Link_Units(*link_vector);
 
     JMP(0x00658A10);
-}
-
-
-/**
- *  A fake class for implementing new member functions which allow
- *  access to the "this" pointer of the intended class.
- *
- *  @note: This must not contain a constructor or destructor!
- *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
- */
-static class CCINIClassExt final : public CCINIClass
-{
-public:
-    HousesType _Get_HousesType(const char* section, const char* entry, const HousesType defvalue);
-};
-
-
-/**
- *  A wrapper for CCINIClass::Get_HousesType to read SpawnX houses.
- *
- *  @author: ZivDero
- */
-HousesType CCINIClassExt::_Get_HousesType(const char* section, const char* entry, const HousesType defvalue)
-{
-    char buffer[128];
-
-    /**
-     *  In campaigns, proceed as usual.
-     */
-    if (Session.Type == GAME_NORMAL) {
-        return Get_HousesType(section, entry, defvalue);
-    }
-
-    Get_String(section, entry, "", buffer, sizeof(buffer));
-
-    /**
-     *  Try to fetch the spawn houses's index.
-     */
-    return Spawn_House_From_Name(buffer);
 }
 
 
@@ -888,14 +710,11 @@ void ScenarioClassExtension_Hooks()
     Patch_Jump(0x005DBA8B, &_Read_Scenario_Loading_Screen_Patch);
 
     /**
-     *  Patch Unit, Building, Aircraft, Infatry and Team creation from the map to
-     *  fetch Spawn houses by names correctly.
+     *  Patch Unit creation to take possible missing houses into account for linked units.
+     *  Patch Infantry to read spawn houses, as it doesn't house House_From_HousesType.
      */
-    Patch_Call(0x00658658, &House_Or_Spawn_House_From_Name_Unit); // UnitClass
-    Patch_Call(0x00434843, &House_Or_Spawn_House_From_Name); // BuildingClass
-    Patch_Call(0x0040E806, &House_Or_Spawn_House_From_Name); // AircraftClass
-    Patch_Jump(0x004D7B98, &_InfantryClass_Read_INI_SpawnHouses_Patch); // InfantryClass doesn't use House_From_HousesType
-    Patch_Call(0x00628600, &CCINIClassExt::_Get_HousesType); // TeamTypeClass
+    Patch_Call(0x00658658, &House_From_Name_Unit); // UnitClass
+    Patch_Jump(0x004D7B98, &_InfantryClass_Read_INI_SpawnHouses_Patch); // InfantryClass
 
     /**
      *  Units have the follower mechanic, so we need to fix that up to account for potentially missing units.
