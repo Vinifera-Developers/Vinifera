@@ -346,22 +346,20 @@ void EventClassExt::Do_IDLE()
     TechnoClass* techno = Data.Target.Whom.As_Techno();
 
     if (techno != nullptr && techno->IsActive && !techno->IsInLimbo && !techno->IsTethered) {
-        if (techno->Mission != MISSION_CONSTRUCTION && techno->Mission != MISSION_DECONSTRUCTION) {
+        if (techno->Mission == MISSION_CONSTRUCTION || techno->Mission == MISSION_DECONSTRUCTION) {
             return;
         }
-        if (!techno->IsOnBridge) {
-            if (!Map[techno->PositionCoord].Ramp != RAMP_NONE && techno->Is_On_Elevation()) {
-                return;
-            }
+        if (!techno->IsOnBridge && Map[techno->PositionCoord].Ramp == RAMP_NONE && techno->Is_On_Elevation()) {
+            return;
         }
         if (techno->Is_Foot()) {
             FootClass* foot = static_cast<FootClass*>(techno);
             foot->NavQueue.Clear();
             foot->Clear_Navigation_List();
-            foot->field_220 = -1;
-            foot->field_33E = 0;
-            foot->field_224 = Cell();
-            foot->field_228 = Cell();
+            foot->CurrentPath = -1;
+            foot->NextWaypoint = 0;
+            foot->field_224 = Cell(0, 0);
+            foot->field_228 = Cell(0, 0);
         }
 
         techno->Transmit_Message(RADIO_OVER_OUT);
@@ -369,7 +367,9 @@ void EventClassExt::Do_IDLE()
         techno->Assign_Target(nullptr);
 
         const auto extension = Extension::Fetch(techno);
-        if (extension->SpawnManager) extension->SpawnManager->Abandon_Target();
+        if (extension->SpawnManager) {
+            extension->SpawnManager->Abandon_Target();
+        }
 
         if (techno->RTTI == RTTI_UNIT && (static_cast<UnitClass*>(techno)->Class->IsToHarvest || static_cast<UnitClass*>(techno)->Class->IsToVeinHarvest)) {
             if (techno->Mission == MISSION_HARVEST || techno->Mission == MISSION_RETURN) {
