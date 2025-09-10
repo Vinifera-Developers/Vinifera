@@ -174,7 +174,7 @@ HRESULT Save_Primitive_Vector(LPSTREAM& pStm, DynamicVectorClass<T>& list, const
 template<class T>
 HRESULT Load_Primitive_Vector(LPSTREAM& pStm, DynamicVectorClass<T>& list, const char* heap_name)
 {
-    DEBUG_INFO("Loading %s...\n", heap_name);
+    // DEBUG_INFO("Loading %s...\n", heap_name); disabled due to excessive logging
 
     int count = 0;
     HRESULT hr = pStm->Read(&count, sizeof(count), nullptr);

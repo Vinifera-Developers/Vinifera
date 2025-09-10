@@ -211,7 +211,15 @@ ActionType AircraftClassExt::_What_Action(ObjectClass const* target, bool disall
         if (action == ACTION_SELECT || action == ACTION_NONE) {
             if (House->Is_Ally(target)) {
                 if (!target->Is_Techno() || target->Owner_HouseClass()->Is_Ally(this)) {
-                    if (!Cargo.Is_Something_Attached() && target->RTTI == RTTI_UNIT) {
+
+                    /**
+                     *  #issue-208
+                     *
+                     *  Check if the target unit is "totable" before we attempt to pick it up.
+                     *
+                     *  @author: CCHyper
+                     */
+                    if (!Cargo.Is_Something_Attached() && target->RTTI == RTTI_UNIT && Extension::Fetch(static_cast<const UnitClass*>(target)->Class)->IsTotable) {
                         action = ACTION_TOTE;
                     }
                 }
@@ -444,92 +452,6 @@ return_one:
 
 
 /**
- *  #issue-208
- * 
- *  Check if the target unit is "totable" before we attempt to pick it up.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_AircraftClass_What_Action_Is_Totable_Patch)
-{
-    GET_REGISTER_STATIC(AircraftClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(ObjectClass *, target, edi);
-    GET_REGISTER_STATIC(ActionType, action, ebx);
-    static UnitClass *target_unit;
-    static UnitTypeClassExtension *unittypeext;
-
-    /**
-     *  Code before this patch checks for if this aircraft
-     *  is a carryall and if it is owned by a player (non-AI).
-     */
-
-    /**
-     *  Make sure the mouse is over something.
-     */
-    if (action != ACTION_NONE) {
-
-        /**
-         *  Target is a unit?
-         */
-        if (target->RTTI == RTTI_UNIT) {
-
-            target_unit = reinterpret_cast<UnitClass *>(target);
-
-            /**
-             *  Fetch the extension instance.
-             */
-            unittypeext = Extension::Fetch(target_unit->Class);
-
-            /**
-             *  Can this unit be toted/picked up by us?
-             */
-            if (!unittypeext->IsTotable) {
-
-                /**
-                 *  If not, then show the "no move" mouse.
-                 */
-                action = ACTION_NOMOVE;
-
-                goto failed_tote_check;
-
-            }
-        }
-    }
-
-    /**
-     *  Stolen code.
-     */
-    if (action != ACTION_NONE && action != ACTION_SELECT) {
-        goto action_self_check;
-    }
-
-    /**
-     *  Passes our tote check, continue original carryall checks.
-     */
-passes_tote_check:
-    _asm { mov ebx, action }
-    _asm { mov edi, target }
-    JMP_REG(ecx, 0x0040B826);
-
-    /**
-     *  Undeploy/unload check.
-     */
-action_self_check:
-    _asm { mov ebx, action }
-    _asm { mov edi, target }
-    JMP(0x0040B8C2);
-
-    /**
-     *  We cant pick this unit up, so continue to evaluate the target.
-     */
-failed_tote_check:
-    _asm { mov ebx, action }
-    _asm { mov edi, target }
-    JMP(0x0040B871);
-}
-
-
-/**
  *  #issue-469
  * 
  *  Fixes a bug where IsCloakable has no effect on Aircrafts. This was
@@ -589,7 +511,6 @@ void AircraftClassExtension_Hooks()
     AircraftClassExtension_Init();
 
     Patch_Jump(0x00408898, &_AircraftClass_Init_IsCloakable_BugFix_Patch);
-    Patch_Jump(0x0040B819, &_AircraftClass_What_Action_Is_Totable_Patch);
     Patch_Jump(0x0040A413, &_AircraftClass_Mission_Move_LAND_Is_Moving_Check_Patch);
     Patch_Jump(0x0040988C, &_AircraftClass_Mission_Unload_Transport_Detach_Sound_Patch);
     Patch_Jump(0x0040BDCF, &_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET0_Can_Fire_FIRE_FACING_Patch);

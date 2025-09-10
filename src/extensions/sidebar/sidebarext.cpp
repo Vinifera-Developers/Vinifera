@@ -173,6 +173,14 @@ int SidebarClassExtension::Get_Object_Size() const
 void SidebarClassExtension::Detach(AbstractClass * target, bool all)
 {
     //EXT_DEBUG_TRACE("SidebarClassExtension::Detach - 0x%08X\n", (uintptr_t)(This()));
+
+    for (auto& column : Column) {
+        for (auto& buildable : column.Buildables) {
+            if (buildable.Factory == target) {
+                buildable.Factory = nullptr;
+            }
+        }
+    }
 }
 
 

@@ -143,6 +143,7 @@ This page lists all the individual contributions to the project by their author.
   - Implement MeteorShowerCommandClass and MeteorImpactCommandClass.
   - Add the "Underground" layer to the tactical display Next and Prev search.
   - Extend `BaseUnit` to accept a list of vehicles.
+  - Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2.
 - **CnCNet Contributors**:
   - Tiberian Sun TS-patches spawner, Yuri's Revenge CnCNet spawner that served as a base for Vinifera spawner.
 - **hacklex**:
@@ -195,6 +196,7 @@ This page lists all the individual contributions to the project by their author.
   - Allow pre-placed units to have missions in multiplayer.
   - Original implementations of actions in ts-patches.
   - Add support for more than 2 sides' loading screens, sidebars and speeches.
+  - Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:
@@ -294,3 +296,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where AI Triggers' `MultiSide` wouldn't correctly consider all houses.
   - Fix a bug where newly created objects wouldn't reveal shroud for allies with `AllyReveal=yes`.
   - Fix a bug where mission `Ambush` wouldn't work correctly.
+  - Fix a bug where per-type modifiers on warheads wouldn't impact weapon selection.
+  - Fix a bug where `Totable=no` did not work.
+  - Fix a bug where the "Building exists" event would fire when you queued a building on the sidebar.
+  - Fix a bug where using the "Destroy Tag" trigger action could lead to trying to free invalid memory.

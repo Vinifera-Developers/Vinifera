@@ -386,8 +386,9 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
  */
 WeaponSlotType TechnoClassExt::_What_Weapon_Should_I_Use(AbstractClass * target) const
 {
-    if (!Target_Legal(target))
+    if (!Target_Legal(target)) {
         return WEAPON_SLOT_PRIMARY;
+    }
 
     bool webby_primary = false;
     bool webby_secondary = false;
@@ -409,7 +410,7 @@ WeaponSlotType TechnoClassExt::_What_Weapon_Should_I_Use(AbstractClass * target)
     WeaponTypeClass const* wptr = Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon;
     if (wptr && wptr->WarheadPtr) {
         webby_primary = wptr->WarheadPtr->IsWebby;
-        w1 = Verses::Get_Modifier(armor, wptr->WarheadPtr) * 1000;
+        w1 = Verses::Get_Modifier(armor, wptr->WarheadPtr) * Extension::Fetch(wptr->WarheadPtr)->Fetch_Type_Modifier(target->RTTI) * 1000;
     }
     if (In_Range_Of(target, WEAPON_SLOT_PRIMARY)) w1 *= 2;
     FireErrorType ok1 = Can_Fire(target, WEAPON_SLOT_PRIMARY);
@@ -422,7 +423,7 @@ WeaponSlotType TechnoClassExt::_What_Weapon_Should_I_Use(AbstractClass * target)
     wptr = Get_Weapon(WEAPON_SLOT_SECONDARY)->Weapon;
     if (wptr && wptr->WarheadPtr) {
         webby_secondary = wptr->WarheadPtr->IsWebby;
-        w2 = Verses::Get_Modifier(armor, wptr->WarheadPtr) * 1000;
+        w2 = Verses::Get_Modifier(armor, wptr->WarheadPtr) * Extension::Fetch(wptr->WarheadPtr)->Fetch_Type_Modifier(target->RTTI) * 1000;
     }
     if (In_Range_Of(target, WEAPON_SLOT_SECONDARY)) w2 *= 2;
     FireErrorType ok2 = Can_Fire(target, WEAPON_SLOT_SECONDARY);

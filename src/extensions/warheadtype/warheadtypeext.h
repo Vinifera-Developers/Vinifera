@@ -61,6 +61,8 @@ WarheadTypeClassExtension final : public AbstractTypeClassExtension
 
         virtual bool Read_INI(CCINIClass &ini) override;
 
+        float Fetch_Type_Modifier(RTTIType type) const;
+
     public:
         /**
          *  Does this warhead instantly destroy walls regardless of the warhead damage value?

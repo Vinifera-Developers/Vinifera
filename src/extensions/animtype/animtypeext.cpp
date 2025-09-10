@@ -324,8 +324,9 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
      * 
      *  Reload the RandomRate value and correctly fix up negative and back to front values.
      */
-    TPoint2D<int> random_rate = ini.Get_Point(ini_name, "RandomRate", TPoint2D<int>(-1, -1));
-    if (random_rate.X != -1) {
+    if (ini.Is_Present(ini_name, "RandomRate")) {
+        TPoint2D<int> random_rate = ini.Get_Point(ini_name, "RandomRate", TPoint2D<int>(-1, -1));
+
         if (random_rate.X == 0) {
             DEV_DEBUG_WARNING("Animation \"%s\" has a zero random rate 'Low' value!\n", This()->Name());
         } else {
@@ -334,8 +335,7 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
             }
             random_rate.X = TICKS_PER_MINUTE / std::abs(random_rate.X);
         }
-    }
-    if (random_rate.Y != -1) {
+
         if (random_rate.Y == 0) {
             DEV_DEBUG_WARNING("Animation \"%s\" has a zero random rate 'High' value!\n", This()->Name());
         } else {
@@ -344,12 +344,13 @@ bool AnimTypeClassExtension::Read_INI(CCINIClass &ini)
             }
             random_rate.Y = TICKS_PER_MINUTE / std::abs(random_rate.Y);
         }
+
+        if (random_rate.X > random_rate.Y) {
+            std::swap(random_rate.X, random_rate.Y);
+        }
+        This()->RandomRateMin = std::clamp(random_rate.X, 0, random_rate.X);
+        This()->RandomRateMax = std::clamp(random_rate.Y, 0, random_rate.Y);
     }
-    if ((random_rate.X != -1 && random_rate.Y != -1) && random_rate.X > random_rate.Y) {
-        std::swap(random_rate.X, random_rate.Y);
-    }
-    This()->RandomRateMin = std::clamp(random_rate.X, 0, random_rate.X);
-    This()->RandomRateMax = std::clamp(random_rate.Y, 0, random_rate.Y);
 
     /**
      *  #issue-646

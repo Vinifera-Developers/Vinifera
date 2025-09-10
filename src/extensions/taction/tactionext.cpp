@@ -163,6 +163,7 @@ bool TActionClassExtension::Execute(TActionClass& taction, HouseClass* house, Ob
         DISPATCH(MAKE_ALLY);
         DISPATCH(MAKE_ENEMY);
         DISPATCH(ENABLE_TRIGGER);
+        DISPATCH(DESTROY_TAG);
         DISPATCH(BEGIN_AI_TRIGGERS);
         DISPATCH(STOP_AI_TRIGGERS);
         DISPATCH(PLAY_SOUND_RANDOM);
@@ -251,6 +252,7 @@ bool TActionClassExtension::Is_Vinifera_TAction(TActionType type)
     case TACTION_MAKE_ALLY:
     case TACTION_MAKE_ENEMY:
     case TACTION_ENABLE_TRIGGER:
+    case TACTION_DESTROY_TAG:
     case TACTION_BEGIN_AI_TRIGGERS:
     case TACTION_STOP_AI_TRIGGERS:
     case TACTION_PLAY_SOUND_RANDOM:
@@ -626,6 +628,26 @@ bool TActionClassExtension::Do_ENABLE_TRIGGER(TActionClass& taction, HouseClass*
                 if (really_enable) {
                     Triggers[index]->Enable();
                 }
+            }
+        }
+    }
+    return true;
+}
+
+
+/**
+ *  Fixes a bug where caching Tags.Count() before the loop
+ *  could cause out-of-bounds access after deletions
+ *
+ *  @author: ZivDero
+ */
+bool TActionClassExtension::Do_DESTROY_TAG(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    if (taction.Tag != nullptr) {
+        for (int index = 0; index < Tags.Count(); index++) {
+            if (Tags[index]->Class == taction.Tag) {
+                delete Tags[index];
+                index--;
             }
         }
     }

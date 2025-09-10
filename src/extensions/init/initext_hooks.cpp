@@ -390,7 +390,7 @@ void Vinifera_Create_Main_Window(HINSTANCE hInstance, int nCmdShow, int width, i
      */
     wc.cbSize         = sizeof(WNDCLASSEX);
     wc.style          = CS_HREDRAW|CS_VREDRAW;
-    wc.lpfnWndProc    = Main_Window_Procedure;
+    wc.lpfnWndProc    = Windows_Procedure;
     wc.cbClsExtra     = 0;
     wc.cbWndExtra     = 0;
     wc.hInstance      = (HINSTANCE)hInstance;
