@@ -286,28 +286,6 @@ int _Waypoint_From_Name(char* wp)
 static void Init_Loading_Screen(const char* filename)
 {
     /**
-     *  If this is a continued game, we've still got the houses from that game (they're normally cleared
-     *  in RulesClass::Initialize later down the line), so we need to delete them. But to do that,
-     *  we need to clear the scenario first, so this now happens here.
-     */
-    DEBUG_INFO("Clearing old scenario\n");
-    Clear_Scenario();
-
-    /**
-     *  We need to read sides and houses now, because we need them to determine the player's
-     *  side and loading screens.
-     */
-    Rule->Houses(*RuleINI);
-    Rule->Sides(*RuleINI);
-
-    for (int i = 0; i < HouseTypes.Count(); i++) {
-        HouseTypes[i]->Read_INI(*RuleINI);
-    }
-    for (int i = 0; i < HouseTypeExtensions.Count(); i++) {
-        HouseTypeExtensions[i]->Read_INI(*RuleINI);
-    }
-
-    /**
      *  For the campaign, we check to see if the scenario name contains either
      *  "GDI" or "NOD", and then set the side to those respectively.
      */
