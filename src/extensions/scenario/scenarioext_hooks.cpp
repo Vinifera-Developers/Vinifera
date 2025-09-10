@@ -292,8 +292,7 @@ static void Init_Loading_Screen(const char* filename)
     HousesType house = HOUSE_GDI;
     if (Session.Type == GAME_NORMAL) {
         if (Scen->Campaign != CAMPAIGN_NONE) {
-            const auto campaign_ext = Extension::Fetch(Campaigns[Scen->Campaign]);
-            house = campaign_ext->House;
+            house = Extension::Fetch(Campaigns[Scen->Campaign])->House;
         }
     } else {
 
@@ -301,15 +300,13 @@ static void Init_Loading_Screen(const char* filename)
          *  The first player in the player array is always the local player, so
          *  fetch our player info and the house we are assigned as.
          */
-
-        HouseTypeClass* housetype = HouseTypes[Session.Players.Fetch_Head()->Player.House];
-        house = housetype->House;
+        house = Session.Players[0]->Player.House;
 
         /**
          *  Set the player's side. This would happen in Select_Game, but we
          *  do it here for the spawner, and to take advantage of fixups.
          */
-        SessionExtension->House = housetype->HeapID;
+        SessionExtension->House = house;
     }
 
     /**
