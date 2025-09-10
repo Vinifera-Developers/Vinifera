@@ -41,21 +41,84 @@
 #include "vinifera_globals.h"
 
 
-class EnvironmentClassExt final : public EnvironmentClass
+/**
+ *  Replacement class for EnvironmentClass.
+ *
+ *  @author: ZivDero, tomsons26
+ */
+class ExtEnvironmentClass
 {
+    friend void EnvironmentExtension_Hooks();
+
 public:
-    void _Snapshot_Game_State();
-    void _Apply_To_Game_State();
-    HRESULT _Load(IStream* stream);
-    HRESULT _Save(IStream* stream);
+    ExtEnvironmentClass();
+    ~ExtEnvironmentClass() = default;
+
+    void Snapshot_Game_State();
+    void Apply_To_Game_State();
+
+    HRESULT Load(IStream* stream);
+    HRESULT Save(IStream* stream);
+
+private:
+    ExtEnvironmentClass* Hook_Ctor() { return new (this) ExtEnvironmentClass; }
+    void Hook_Dtor() { this->~ExtEnvironmentClass(); }
+
+    static int __cdecl Static_Init();
+    static void __cdecl Static_Deinit();
+
+private:
+    char __Padding[50]; // Used to be Globals[50], available for re-use.
+
+public:
+    int CarryOverMoney;
+    int MissionTimer;
+    DiffType Difficulty;
+    unsigned short Stage;
 };
+
+
+/**
+ *  Since we're not making a new instance, ensure that the size is the same
+ */
+static_assert(sizeof(ExtEnvironmentClass) == sizeof(EnvironmentClass));
+
 
 /**
  *  Re-implementation of EnvironmentClass::Snapshot_Game_State.
  *
  *  @author: tomsons26, ZivDero
  */
-void EnvironmentClassExt::_Snapshot_Game_State()
+ExtEnvironmentClass::ExtEnvironmentClass() :
+    CarryOverMoney(0),
+    MissionTimer(0),
+    Difficulty(DIFF_NORMAL),
+    Stage(0)
+{
+    /**
+     *  The EnvironmentClass constructor initialises Difficulty to NORMAL.
+     *  It now uses the ScenarioClass Difficulty if set at this point.
+     *  Fixes bug where the game difficulty gets reset, but not reassigned
+     *  after restarting a mission.
+     *
+     *  @author: CCHyper
+     */
+    if (Scen && Scen->Difficulty != -1) {
+        Difficulty = Scen->Difficulty;
+    }
+
+    for (int i = 0; i < std::size(EnvironmentGlobals); i++) {
+        EnvironmentGlobals[i] = 0;
+    }
+}
+
+
+/**
+ *  Re-implementation of EnvironmentClass::Snapshot_Game_State.
+ *
+ *  @author: tomsons26, ZivDero
+ */
+void ExtEnvironmentClass::Snapshot_Game_State()
 {
     for (int i = 0; i < std::size(EnvironmentGlobals); i++) {
         EnvironmentGlobals[i] = ScenExtension->GlobalFlags[i].Value;
@@ -79,7 +142,7 @@ void EnvironmentClassExt::_Snapshot_Game_State()
  *
  *  @author: tomsons26, ZivDero
  */
-void EnvironmentClassExt::_Apply_To_Game_State()
+void ExtEnvironmentClass::Apply_To_Game_State()
 {
     for (int i = 0; i < std::size(EnvironmentGlobals); i++) {
         ScenExtension->Set_Global_To(i, EnvironmentGlobals[i]);
@@ -94,7 +157,7 @@ void EnvironmentClassExt::_Apply_To_Game_State()
 
     PlayerPtr->Refund_Money(money);
     PlayerPtr->Control.InitialCredits += money;
-    PlayerPtr->Assign_Handicap(static_cast<DiffType>(Difficulty));
+    PlayerPtr->Assign_Handicap(Difficulty);
 
     if (Scen->IsInheritTimer) {
         if (MissionTimer > 0) {
@@ -118,7 +181,7 @@ void EnvironmentClassExt::_Apply_To_Game_State()
  *
  *  @author: tomsons26, ZivDero
  */
-HRESULT EnvironmentClassExt::_Load(IStream* stream)
+HRESULT ExtEnvironmentClass::Load(IStream* stream)
 {
     HRESULT hr = stream->Read(this, sizeof(*this), nullptr);
     if (FAILED(hr)) return hr;
@@ -133,7 +196,7 @@ HRESULT EnvironmentClassExt::_Load(IStream* stream)
  *
  *  @author: tomsons26, ZivDero
  */
-HRESULT EnvironmentClassExt::_Save(IStream* stream)
+HRESULT ExtEnvironmentClass::Save(IStream* stream)
 {
     HRESULT hr = stream->Write(this, sizeof(*this), nullptr);
     if (FAILED(hr)) return hr;
@@ -144,64 +207,26 @@ HRESULT EnvironmentClassExt::_Save(IStream* stream)
 
 
 /**
- *  #issue-46
- * 
- *  Fixes bug where the game difficulty gets reset, but not reassigned
- *  after restarting a mission.
- * 
- *  This also handles the case where the Environment instance is re-initialised.
- * 
- *  @author: CCHyper
+ *  Replacement static initializer for Environment.
+ *
+ *  @author: ZivDero
  */
-DECLARE_PATCH(_EnvironmentClass_Constructor_Patch)
+int __cdecl ExtEnvironmentClass::Static_Init()
 {
-    GET_REGISTER_STATIC(EnvironmentClass *, this_ptr, edx);
+    new (reinterpret_cast<ExtEnvironmentClass*>(&Environment)) ExtEnvironmentClass;
+    return atexit(Static_Deinit);
+};
 
-    /**
-     *  The EnvironmentClass constructor initialises Difficulty to NORMAL.
-     *  This patch uses the ScenarioClass Difficulty if set at this point.
-     */
-    if (Scen && Scen->Difficulty != -1) {
-        this_ptr->Difficulty = Scen->Difficulty;
-    }
 
-    /**
-     *  Initialize the new globals array.
-     */
-    static int i;
-    for (i = 0; i < 50; i++) {
-        EnvironmentGlobals[i] = 0;
-    }
-
-    //DEBUG_INFO("EnvironmentClass constructor.\n");
-
-    /**
-     *  Stolen bytes/code.
-     */
-    _asm { mov eax, this_ptr }
-    _asm { pop edi }
-    _asm { ret }
-}
-
-DECLARE_PATCH(_Select_Game_Set_EnvironmentClass_Difficulty_Patch)
+/**
+ *  Replacement static de-initializer for Environment.
+ *
+ *  @author: ZivDero
+ */
+void __cdecl ExtEnvironmentClass::Static_Deinit()
 {
-    DEBUG_INFO("Scen->Difficulty = %d\n", Scen->Difficulty);
-    DEBUG_INFO("Scen->CDifficulty = %d\n", Scen->CDifficulty);
-
-    /**
-     *  Assign the ScenarioClass Difficulty. This is done to ensure
-     *  the difficulty is restored after game restart.
-     */
-    DEBUG_INFO("Setting Environment difficulty to %d.\n", Scen->Difficulty);
-    Environment.Difficulty = Scen->Difficulty;
-
-    /**
-     *  Stolen bytes/code.
-     */
-    Theme.Stop(true);
-
-    JMP(0x004E2AE3);
-}
+    reinterpret_cast<ExtEnvironmentClass*>(&Environment)->~ExtEnvironmentClass();
+};
 
 
 /**
@@ -209,10 +234,12 @@ DECLARE_PATCH(_Select_Game_Set_EnvironmentClass_Difficulty_Patch)
  */
 void EnvironmentExtension_Hooks()
 {
-    Patch_Jump(0x00493881, &_EnvironmentClass_Constructor_Patch);
-    Patch_Jump(0x004E2AD7, &_Select_Game_Set_EnvironmentClass_Difficulty_Patch);
-    Patch_Jump(0x004938A0, &EnvironmentClassExt::_Snapshot_Game_State);
-    Patch_Jump(0x00493920, &EnvironmentClassExt::_Apply_To_Game_State);
-    Patch_Jump(0x00493A30, &EnvironmentClassExt::_Load);
-    Patch_Jump(0x00493A50, &EnvironmentClassExt::_Save);
+    Patch_Jump(0x004938A0, &ExtEnvironmentClass::Snapshot_Game_State);
+    Patch_Jump(0x00493920, &ExtEnvironmentClass::Apply_To_Game_State);
+    Patch_Jump(0x00493A30, &ExtEnvironmentClass::Load);
+    Patch_Jump(0x00493A50, &ExtEnvironmentClass::Save);
+    Patch_Jump(0x00493860, &ExtEnvironmentClass::Hook_Ctor);
+    Patch_Jump(0x00493890, &ExtEnvironmentClass::Hook_Dtor);
+    Patch_Jump(0x00493810, &ExtEnvironmentClass::Static_Init);
+    Patch_Jump(0x00493850, &ExtEnvironmentClass::Static_Deinit);
 }
