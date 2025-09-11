@@ -63,9 +63,4 @@ HouseTypeClassExtension final : public AbstractTypeClassExtension
         virtual bool Read_INI(CCINIClass &ini) override;
 
     public:
-
-        /**
-         *  Loading screen used by this house type.
-         */
-        DynamicVectorClass<Wstring> LoadingScreens[3];
 };
