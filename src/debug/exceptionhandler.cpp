@@ -673,7 +673,7 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
      */
     CurrentExceptionCRC = CRC32_Memory(ExceptionBuffer.Peek_Buffer(), ExceptionBuffer.Get_Length());
 
-    DEBUG_WARNING("****************************** END EXEPTION DUMP ******************************!\n");
+    DEBUG_WARNING("****************************** END EXCEPTION DUMP ******************************!\n");
 }
 
 

@@ -598,15 +598,6 @@ void ScenarioClassExtension::Read_Waypoint_INI(CCINIClass &ini)
          */
         Waypoint[wp_num] = cell;
 
-#if defined(TS_CLIENT)
-        /**
-         *  Also store original waypoint value for the CnCNet ts-patches spawner.
-         */
-        if (wp_num < WAYPOINT_COUNT) {
-            Scen->Waypoint[wp_num] = cell;
-        }
-#endif
-
         /**
          *  If the cell location is valid, flag the cell on the map as a waypoint holder.
          */
