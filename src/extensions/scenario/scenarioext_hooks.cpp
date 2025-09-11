@@ -593,6 +593,45 @@ DECLARE_PATCH(_UnitClass_Read_INI_Link_Units)
 
 
 /**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or destructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+static class CCINIClassExt final : public CCINIClass
+{
+public:
+    HousesType _Get_HousesType(const char* section, const char* entry, const HousesType defvalue);
+};
+
+
+/**
+ *  A wrapper for CCINIClass::Get_HousesType to read SpawnX houses.
+ *
+ *  @author: ZivDero
+ */
+HousesType CCINIClassExt::_Get_HousesType(const char* section, const char* entry, const HousesType defvalue)
+{
+    char buffer[128];
+
+    /**
+     *  In campaigns, proceed as usual.
+     */
+    if (Session.Type == GAME_NORMAL) {
+        return Get_HousesType(section, entry, defvalue);
+    }
+
+    Get_String(section, entry, "", buffer, sizeof(buffer));
+
+    /**
+     *  Try to fetch the spawn houses's index.
+     */
+    return HouseTypeClass::From_Name(buffer);
+}
+
+
+/**
  *  A wrapper for Do_Reinforcements that checks if the team has a house.
  *
  *  @author: ZivDero
@@ -685,11 +724,15 @@ void ScenarioClassExtension_Hooks()
     Patch_Jump(0x005DBA8B, &_Read_Scenario_Loading_Screen_Patch);
 
     /**
-     *  Patch Unit creation to take possible missing houses into account for linked units.
-     *  Patch Infantry to read spawn houses, as it doesn't house House_From_HousesType.
+     *  Patch Unit, Building, Aircraft, Infatry and Team creation from the map to
+     *  fetch Spawn houses by names correctly.
      */
-    Patch_Call(0x00658658, &House_From_Name_Unit); // UnitClass
-    Patch_Jump(0x004D7B98, &_InfantryClass_Read_INI_SpawnHouses_Patch); // InfantryClass
+    Patch_Call(0x00658658, &House_From_Name_Unit);       // UnitClass
+    Patch_Call(0x00434843, &HouseTypeClassExtension::House_From_Name);            // BuildingClass
+    Patch_Call(0x0040E806, &HouseTypeClassExtension::House_From_Name);  // AircraftClass
+    Patch_Jump(0x004D7B98, &_InfantryClass_Read_INI_SpawnHouses_Patch); // InfantryClass doesn't use House_From_HousesType
+    Patch_Call(0x00628600, &CCINIClassExt::_Get_HousesType);            // TeamTypeClass
+
 
     /**
      *  Units have the follower mechanic, so we need to fix that up to account for potentially missing units.

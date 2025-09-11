@@ -31,6 +31,7 @@
 #include "extension.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "session.h"
 
 
 /**
@@ -186,4 +187,41 @@ bool HouseTypeClassExtension::Read_INI(CCINIClass &ini)
     IsInitialized = true;
     
     return true;
+}
+
+
+/**
+ *  Fetch house pointer from its name.
+ *  Also takes care of ts-patches spawn houses.
+ *
+ *  @warning: Do not use the raw output if you expect spawn houses!
+ *
+ *  @author: ZivDero
+ */
+HousesType HouseTypeClassExtension::House_From_Name(char const* name)
+{
+    if (Session.Type != GAME_NORMAL) {
+        int spawn_number;
+
+        /**
+         *  Try to read the house name as a spawn house name and extract its number.
+         */
+        if (std::sscanf(name, "Spawn%d", &spawn_number) == 1) {
+            spawn_number--;
+            if (spawn_number >= 0 && spawn_number < MAX_PLAYERS) {
+                return static_cast<HousesType>(spawn_number + 50);
+            }
+        }
+    }
+
+    if (name != nullptr) {
+        for (int house = HOUSE_FIRST; house < HouseTypes.Count(); house++) {
+            HouseTypeClass* ptr = HouseTypes[house];
+            if (strcmp(ptr->FullName, name) == 0 || strcmp(ptr->IniName, name) == 0) {
+                return ptr->House;
+            }
+        }
+    }
+
+    return HOUSE_NONE;
 }
