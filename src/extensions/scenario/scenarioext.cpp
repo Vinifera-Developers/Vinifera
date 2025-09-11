@@ -1545,11 +1545,7 @@ bool ScenarioClassExtension::Read_Scenario_INI(CCINIClass& ini, bool random)
 
     Session.Loading_Callback(58);
 
-    /**
-     *  Read in the map control values. This includes dimensions
-     *  as well as theater information.
-     */
-    Map.Read_INI(ini);
+    Scen->Read_Waypoints(ini);
 
     /**
      *  Outside of campaign, assign houses their starting positions.
@@ -1642,6 +1638,11 @@ bool ScenarioClassExtension::Read_Scenario_INI(CCINIClass& ini, bool random)
 
     Session.Loading_Callback(60);
 
+    /**
+     *  Read in the map control values. This includes dimensions
+     *  as well as theater information.
+     */
+    Map.Read_INI(ini);
     Call_Back();
 
     /**
