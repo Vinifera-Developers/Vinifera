@@ -100,23 +100,12 @@ HRESULT HouseTypeClassExtension::Load(IStream *pStm)
 {
     //EXT_DEBUG_TRACE("HouseTypeClassExtension::Load - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
-    LoadingScreens[0].Clear();
-    LoadingScreens[1].Clear();
-    LoadingScreens[2].Clear();
-
     HRESULT hr = AbstractTypeClassExtension::Load(pStm);
     if (FAILED(hr)) {
         return E_FAIL;
     }
 
     new (this) HouseTypeClassExtension(NoInitClass());
-
-    /**
-     *  We don't need loading screens during the game so we don't bother saving and loading them.
-     */
-    new (&LoadingScreens[0]) DynamicVectorClass<Wstring>();
-    new (&LoadingScreens[1]) DynamicVectorClass<Wstring>();
-    new (&LoadingScreens[2]) DynamicVectorClass<Wstring>();
     
     return hr;
 }
