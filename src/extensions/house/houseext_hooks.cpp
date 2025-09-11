@@ -177,7 +177,7 @@ int HouseClassExt::_AI_Building()
      */
     BuildingTypeClass* b = BuildingTypes[node->Type];
 
-    if (Session.Type != GAME_NORMAL && ScenExtension->IsUseMPAIBaseNodes && b->Drain + Drain > Power - PowerSurplus && b != Rule->BuildConst[0] && b->Drain > 0) {
+    if (Session.Type != GAME_NORMAL && !ScenExtension->IsUseMPAIBaseNodes && b->Drain + Drain > Power - PowerSurplus && b != Rule->BuildConst[0] && b->Drain > 0) {
 
         /**
          *  In skirmish, try to build a power plant if there is insufficient power.
@@ -239,7 +239,6 @@ int HouseClassExt::_AI_Building()
         Base.Nodes.Insert(id, BaseNodeClass(choice->HeapID, Cell(0, 0)));
 
         return 1;
-
     }
 
     /**
@@ -2071,41 +2070,6 @@ DECLARE_PATCH(_InfantryClass_What_Action_Harvester_Thief)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_HouseClass_AI_Building_MP_AI_BaseNodes_Patch)
-{
-    _asm pushad
-
-    /**
-     *  Use base nodes in Campaign.
-     */
-    if (Session.Type == GAME_NORMAL)
-    {
-        _asm popad
-        JMP_REG(ecx, 0x004C1554);
-    }
-
-    /**
-     *  Also use base nodes if it was requested by the client.
-     */
-    if (ScenExtension->IsUseMPAIBaseNodes)
-    {
-        _asm popad
-        JMP_REG(ecx, 0x004C1554);
-    }
-
-    /**
-     *  Continue checks.
-     */
-    _asm popad
-    JMP_REG(ecx, 0x004C129D);
-}
-
-
-/**
- *  Patch to enable base nodes for the AI when UseMPAIBaseNodes=yes is set in the scenario.
- *
- *  @author: ZivDero
- */
 DECLARE_PATCH(_HouseClass_Can_Build_Here_MP_AI_BaseNodes_Patch)
 {
     // Stolen instructions
@@ -2134,34 +2098,6 @@ DECLARE_PATCH(_HouseClass_Can_Build_Here_MP_AI_BaseNodes_Patch)
      *  Continue with AIBaseSpacing.
      */
     JMP_REG(ecx, 0x004CB9DE);
-}
-
-
-/**
- *  Patch to enable base nodes for the AI when UseMPAIBaseNodes=yes is set in the scenario.
- *
- *  @author: ZivDero
- */
-DECLARE_PATCH(_HouseClass_Expert_AI_MP_AI_BaseNodes_Patch)
-{
-    _asm push eax
-
-    if (Session.Type == GAME_NORMAL || ScenExtension->IsUseMPAIBaseNodes)
-    {
-        /**
-         *  Skip trying to raise money.
-         */
-        _asm pop eax
-        JMP_REG(ecx, 0x004C09AF);
-
-
-    }
-
-    /**
-     *  Potentially try to raise money
-     */
-    _asm pop eax
-    JMP_REG(ecx, 0x004C08D1);
 }
 
 
@@ -2195,12 +2131,9 @@ void HouseClassExtension_Hooks()
     Patch_Jump(0x004CA9A1, &_HouseClass_AI_Takeover_BuildConst);
     Patch_Jump(0x004D7284, &_InfantryClass_What_Action_Harvester_Thief);
 
-    Patch_Jump(0x004BE200, &HouseClassExt::_Begin_Production);
-    Patch_Jump(0x004BE6A0, &HouseClassExt::_Abandon_Production);
     Patch_Jump(0x004BAED0, &HouseClassExt::_Can_Make_Money);
     Patch_Jump(0x004C0A40, &HouseClassExt::_Check_Raise_Money);
     Patch_Jump(0x004C10E0, &HouseClassExt::_AI_Building);
-    Patch_Jump(0x004BF4C0, &HouseClassExt::_MPlayer_Defeated);
     Patch_Jump(0x004BDB50, &HouseClassExt::_Make_Ally);
 
     Patch_Jump(0x004CB777, &_HouseClass_ShouldDisableCameo_BuildLimit_Fix);
@@ -2211,6 +2144,7 @@ void HouseClassExtension_Hooks()
     Patch_Jump(0x004C1650, &HouseClassExt::_AI_Unit);
     Patch_Jump(0x004C0630, &HouseClassExt::_Expert_AI);
     Patch_Jump(0x004BBC74, &_Can_Build_Required_Forbidden_Houses_Patch);
+    Patch_Jump(0x004CB9CD, &_HouseClass_Can_Build_Here_MP_AI_BaseNodes_Patch);
 
     Patch_Jump(0x004BAC2C, 0x004BAC39); // Patch a jump in the constructor to always allocate unit trackers
     Patch_Jump(0x004BC0B7, &_HouseClass_Can_Build_Multi_MCV_Patch);
@@ -2260,8 +2194,4 @@ void HouseClassExtension_Hooks()
     Patch_Jump(0x004C2255, 0x004C2262); // HouseClass::Add_Tracking
     Patch_Jump(0x004C229F, 0x004C22A8); // HouseClass::Add_Tracking
     Patch_Jump(0x004C22E5, 0x004C22EE); // HouseClass::Add_Tracking
-
-    Patch_Jump(0x004C128F, &_HouseClass_AI_Building_MP_AI_BaseNodes_Patch);
-    Patch_Jump(0x004CB9CD, &_HouseClass_Can_Build_Here_MP_AI_BaseNodes_Patch);
-    Patch_Jump(0x004C08C5, &_HouseClass_Expert_AI_MP_AI_BaseNodes_Patch);
 }
