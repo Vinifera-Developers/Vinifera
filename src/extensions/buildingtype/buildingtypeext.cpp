@@ -223,8 +223,8 @@ bool BuildingTypeClassExtension::Read_INI(CCINIClass &ini)
     IsHideDuringSpecialAnim = ArtINI.Get_Bool(ini_name, "HideDuringSpecialAnim", IsHideDuringSpecialAnim);
 
     IsExclusiveFactory = ini.Get_Bool(ini_name, "ExclusiveFactory", IsExclusiveFactory);
-
     IsWallOwner = ini.Get_Bool(ini_name, "WallOwner", IsWallOwner);
+    IsVerticalGate = ini.Get_Bool(ini_name, "VerticalGate", IsVerticalGate);
 
     Fetch_Building_Normal_Image(Scen->Theater);
 
