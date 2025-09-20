@@ -34,12 +34,79 @@
 #include "lightsource.h"
 #include "vinifera_util.h"
 #include "extension.h"
+#include "scenario.h"
+#include "mouse.h"
 #include "fatal.h"
+#include "rules.h"
 #include "asserthandler.h"
 #include "debughandler.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+
+
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or destructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+static DECLARE_EXTENDING_CLASS_AND_PAIR(TerrainClass)
+{
+public:
+    void _AI();
+};
+
+
+/**
+ *  Replacement for TerrainClass::AI.
+ *
+ *  @author: ZivDero
+ */
+void TerrainClassExt::_AI()
+{
+    ObjectClass::AI();
+
+    if (Class->IsAnimated) {
+        if (Fetch_Rate() == 0) {
+            if (Probability_Of(Class->AnimationProbability)) {
+                Set_Stage(0);
+                Set_Rate(Class->AnimationRate);
+            }
+        }
+    }
+
+    if (StageClass::Graphic_Logic()) {
+
+        /**
+         *  If the terrain object is in the process of crumbling, then when at the
+         *  last stage of the crumbling animation, delete the terrain object.
+         */
+        if (IsCrumbling && Fetch_Stage() == (((ShapeSet const*)Class->Get_Image_Data())->Get_Count()) - 1) {
+            Delete_Me();
+            return;
+        }
+
+        if (Class->IsTiberiumSpawn && Class->IsAnimated && Fetch_Stage() == (((ShapeSet const*)Class->Get_Image_Data())->Get_Count() / 2)) {
+            Set_Stage(0);
+            Set_Rate(0);
+            Extension::Fetch(this)->Spread_Tiberium();
+        }
+    }
+
+    if (IsOnFire) {
+        if (abs(Scen->RandomNumber()) % 100 == 0) {
+            CellClass& cellptr = Map[Get_Coord()];
+            for (FacingType facing = FACING_FIRST; facing < FACING_COUNT; facing++) {
+                TerrainClass* terrain = cellptr.Adjacent_Cell(facing).Cell_Terrain();
+                if (terrain && !terrain->IsOnFire && Probability_Of2(Rule->TreeFlammability)) {
+                    terrain->Catch_Fire();
+                }
+            }
+        }
+    }
+}
 
 
 /**
@@ -190,4 +257,5 @@ void TerrainClassExtension_Hooks()
 
     Patch_Jump(0x006409C3, &_TerrainClass_Unlimbo_LightSource_Patch);
     Patch_Jump(0x0063F4D9, &_TerrainClass_Take_Damage_LightSource_Patch);
+    Patch_Jump(0x0063FFB0, &TerrainClassExt::_AI);
 }

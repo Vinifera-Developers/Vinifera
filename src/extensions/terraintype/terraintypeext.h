@@ -91,4 +91,19 @@ TerrainTypeClassExtension final : public ObjectTypeClassExtension
          *  The blue tint of this terrain objects light.
          */
         int LightBlueTint;
+
+        /**
+         *  If SpreadsTiberium=yes, the max range in which Tiberium will be spread.
+         */
+        int TiberiumSpawnRange;
+
+        /**
+         *  If SpreadsTiberium=yes, the growth stage at which the Tiberium will be spawned (min, max).
+         */
+        Point2D TiberiumSpawnGrowth;
+
+        /**
+         *  If SpreadsTiberium=yes, the number of Tiberium overlays that will be spawned (min, max).
+         */
+        Point2D TiberiumSpawnCount;
 };
