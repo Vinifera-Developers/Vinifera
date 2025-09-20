@@ -66,6 +66,7 @@ New:
 - Implement integer varialbes, and trigger actiosn and events to operate on them (by ZivDero)
 - Veterancy and Health Filter kotkeys (by hacklex)
 - Add unit promotion sounds, EVA and flashing (by ZivDero)
+- Add Tiberium spreader customization (by ZivDero)
 
 
 Vinifera fixes:

@@ -1202,6 +1202,18 @@ LightGreenTint=1      ; float, the green tint of this terrain objects light.
 LightBlueTint=1       ; float, the blue tint of this terrain objects light.
 ```
 
+### Tiberium Speaders
+
+- Vinifera adds additional customization for Tiberium spreaders (`SpawnsTiberium=yes`).
+
+In `RULES.INI`:
+```ini
+[SOMETERRAIN]             ; TerrainType
+SpawnsTiberiumRange=1     ; integer, the maximum range in which Tiberium will be spawned.
+SpawnsTiberiumGrowth=1,1  ; two integers, the minimum and maximum growth stage at which Tiberium will be spawned (maximum can be omitted).
+SpawnsTiberiumCount=5,5   ; two integers, the minimum and maximum number of Tiberium overlaysthat will be spawned (maximum can be omitted).
+```
+
 ## Theaters
 
 - Vinifera allow the creation of new custom theater types. A new INI has been added to define these TheaterTypes, if the INI is not present, the game will default to the normal `TEMPERATE` and `SNOW` TheaterTypes.
