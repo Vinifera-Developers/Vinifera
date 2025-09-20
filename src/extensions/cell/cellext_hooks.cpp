@@ -101,7 +101,7 @@ bool CellClassExt::_Can_Tiberium_Germinate(TiberiumClass const* tiberium) const
 
         auto ittype_ext = Extension::Fetch(ittype);
 
-        if (ittype_ext->AllowedTiberiums.Count() > 0 && !ittype_ext->AllowedTiberiums.Is_Present(const_cast<TiberiumClass*>(tiberium))) return false;
+        if (tiberium != nullptr && ittype_ext->AllowedTiberiums.Count() > 0 && !ittype_ext->AllowedTiberiums.Is_Present(tiberium->HeapID)) return false;
     }
 
     return true;

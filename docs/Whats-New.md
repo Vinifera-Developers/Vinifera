@@ -78,6 +78,7 @@ Vinifera fixes:
 - Fix a bug where per-type modifiers on warheads wouldn't impact weapon selection (by ZivDero)
 - Fix a bug where `Totable=no` did not work (by ZivDero)
 - Fix a crash that could happen if you lost a factory while producing something (by ZivDero)
+- Fix problems with new IsometricTileType flags during save/load (by ZivDero)
 
 
 Vanilla fixes:
