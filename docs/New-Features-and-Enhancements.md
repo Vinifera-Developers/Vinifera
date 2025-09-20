@@ -1206,12 +1206,16 @@ LightBlueTint=1       ; float, the blue tint of this terrain objects light.
 
 - Vinifera adds additional customization for Tiberium spreaders (`SpawnsTiberium=yes`).
 
+```{note}
+Spreaders don't spawn Tiberium out of thin air. A spreader first spreads Tiberium from itself, then from the radius-1 ring of Tiberium around it, then from the radius-2 ring, and so on. You can think of it as accelerating the natural spread process. If a cell doesn't border the spreader of a piece of Tiberium, it won't be spread to.
+```
+
 In `RULES.INI`:
 ```ini
 [SOMETERRAIN]             ; TerrainType
 SpawnsTiberiumRange=1     ; integer, the maximum range in which Tiberium will be spawned.
 SpawnsTiberiumGrowth=5,5  ; two integers, the minimum and maximum growth stage at which Tiberium will be spawned (maximum can be omitted).
-SpawnsTiberiumCount=1,1   ; two integers, the minimum and maximum number of Tiberium overlays that will be spawned (maximum can be omitted).
+SpawnsTiberiumCount=1,1   ; two integers, the minimum and maximum number of spreads that will occur (maximum can be omitted).
 ```
 
 ## Theaters

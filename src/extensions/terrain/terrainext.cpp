@@ -234,19 +234,30 @@ void TerrainClassExtension::Spread_Tiberium() const
         /**
          *  Shuffle them so that spread isn't orderly.
          */
-        static std::minstd_rand rng(Scen->RandomNumber);
+        static std::minstd_rand rng(Scen->RandomNumber());
         std::shuffle(ring.begin(), ring.end(), rng);
 
-        /**
-         *  Try to spread from cells in this ring until we've spread enough.
-         */
-        for (auto& cell : ring) {
-            if (Map[cell].Tiberium_Type_Here() == ttype->TiberiumToSpawn && CellClassExtension::Spread_Tiberium(&Map[cell], true, Scen->RandomNumber(ttype_ext->TiberiumSpawnGrowth.X, ttype_ext->TiberiumSpawnGrowth.Y))) {
-                spreads++;
-                if (spreads >= count) break;
+        while (spreads < count) {
+
+            /**
+             *  Track if we've spread at all in this cycle. If not, then bail.
+             */
+            bool has_spread = false;
+
+            /**
+             *  Try to spread from cells in this ring until we've spread enough.
+             */
+            for (auto& cell : ring) {
+                if (Map[cell].Tiberium_Type_Here() == ttype->TiberiumToSpawn && CellClassExtension::Spread_Tiberium(&Map[cell], true, Scen->RandomNumber(ttype_ext->TiberiumSpawnGrowth.X, ttype_ext->TiberiumSpawnGrowth.Y))) {
+                    spreads++;
+                    has_spread = true;
+                    if (spreads >= count) break;
+                }
             }
+
+            if (!has_spread) break;
         }
 
-        if (spreads >= count) return;
+        if (spreads >= count) break;
     }
 }
