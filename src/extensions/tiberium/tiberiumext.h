@@ -29,6 +29,7 @@
 
 #include "abstracttypeext.h"
 #include "tiberium.h"
+#include <queue>
 
 
 class DECLSPEC_UUID(UUID_TIBERIUM_EXTENSION)
@@ -61,6 +62,20 @@ TiberiumClassExtension final : public AbstractTypeClassExtension
 
         virtual bool Read_INI(CCINIClass &ini) override;
 
+        void Spread_AI(void);
+        void Initialize_Spread(void);
+        void Recalc_Spread(void);
+        void Clear_Spread(void);
+        void Queue_Spread(Cell const& cell);
+
+        void Growth_AI(void);
+        void Initialize_Growth(void);
+        void Recalc_Growth(void);
+        void Clear_Growth(void);
+        void Queue_Growth(Cell const& cell);
+
+        static void Clear_Tiberium_Spread_State(Cell const& cell);
+
     public:
         /**
          *  The index of the pip shape to be drawn for this Tiberium.
@@ -76,4 +91,18 @@ TiberiumClassExtension final : public AbstractTypeClassExtension
          *  The damage this Tiberium does to infantry.
          */
         int DamageToInfantry;
+
+        using QueueItem = std::pair<float, Cell>;
+
+        struct CompareQueueItem {
+            bool operator()(const QueueItem& a, const QueueItem& b) const
+            {
+                return a.first > b.first; // min-heap by float
+            }
+        };
+
+        std::priority_queue<QueueItem, std::vector<QueueItem>, CompareQueueItem> SpreadQueue;
+        std::vector<bool> SpreadState;
+        std::priority_queue<QueueItem, std::vector<QueueItem>, CompareQueueItem> GrowthQueue;
+        std::vector<bool> GrowthState;
 };

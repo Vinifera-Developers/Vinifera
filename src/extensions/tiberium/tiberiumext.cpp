@@ -33,6 +33,7 @@
 #include "asserthandler.h"
 #include "debughandler.h"
 #include "findmake.h"
+#include "mouse.h"
 #include "tibsun_globals.h"
 #include "vinifera_saveload.h"
 
@@ -227,4 +228,193 @@ bool TiberiumClassExtension::Read_INI(CCINIClass &ini)
     IsInitialized = true;
     
     return true;
+}
+
+
+int Map_Cell_Index(Cell const& cell)
+{
+    return ((cell.X - cell.Y + Map.PlayRect.Width - 1) >> 1) + Map.PlayRect.Width * (cell.X - Map.PlayRect.Width + cell.Y - 1);
+}
+
+
+int Map_Cell_Count(void)
+{
+    return (2 * Map.PlayRect.Width) * (Map.PlayRect.Height + 4);
+}
+
+
+void TiberiumClassExtension::Spread_AI()
+{
+    if (!SpreadQueue.empty() && This()->SpreadPercentage > 0.00001) {
+        double amount = SpreadQueue.size() * This()->SpreadPercentage;
+
+        int count = std::min(25, std::max(5, (int)amount));
+        count = Random_Pick(1, count);
+
+        if (SpreadQueue.size() > Map_Cell_Count() - 20) {
+            Recalc_Spread();
+        }
+
+        for (int index = 0; index < count && !SpreadQueue.empty();) {
+            auto node = SpreadQueue.top();
+            SpreadQueue.pop();
+
+            Cell cell = node.second;
+            CellClass& cellptr = Map[cell];
+
+            int numallowed = 0;
+
+            for (FacingType facing = FACING_N; facing < FACING_COUNT; facing++) {
+                if (cellptr.Adjacent_Cell(facing).Can_Tiberium_Germinate(NULL)) {
+                    numallowed++;
+                }
+            }
+
+            if (numallowed != 0) {
+                cellptr.Spread_Tiberium();
+                index++;
+
+                if (numallowed > 1) {
+                    SpreadQueue.emplace(Frame + Random_Pick(0, 49), cell);
+                    SpreadState[Map_Cell_Index(cellptr.CellID)] = true;
+                }
+            } else {
+                SpreadState[Map_Cell_Index(cellptr.CellID)] = false;
+            }
+        }
+    }
+}
+
+
+void TiberiumClassExtension::Initialize_Spread()
+{
+    Clear_Spread();
+    Recalc_Spread();
+}
+
+
+void TiberiumClassExtension::Recalc_Spread()
+{
+    Clear_Spread();
+
+    Map.Reset_Iterator();
+    CellClass* iter = Map.Iterate();
+
+    while (iter != nullptr) {
+        if (iter->Tiberium_Type_Here() == This()->HeapID && iter->Can_Tiberium_Spread()) {
+            SpreadQueue.emplace(0.0, iter->CellID);
+            SpreadState[Map_Cell_Index(iter->CellID)] = true;
+        }
+        iter = Map.Iterate();
+    }
+}
+
+
+void TiberiumClassExtension::Clear_Spread()
+{
+    SpreadQueue = std::priority_queue<QueueItem, std::vector<QueueItem>, CompareQueueItem>();
+    SpreadState.clear();
+    SpreadState.resize(Map_Cell_Count());
+}
+
+
+void TiberiumClassExtension::Queue_Spread(Cell const& cell)
+{
+    if (Map[cell].Can_Tiberium_Spread() && !SpreadState[Map_Cell_Index(cell)]) {
+        if (SpreadQueue.size() >= Map_Cell_Count() - 20) {
+            Recalc_Spread();
+        }
+
+        SpreadQueue.emplace(Frame + Random_Pick(0, 49), cell);
+        SpreadState[Map_Cell_Index(cell)] = true;
+    }
+}
+
+
+void TiberiumClassExtension::Growth_AI()
+{
+    if (!GrowthQueue.empty() && This()->GrowthPercentage > 0.00001) {
+        double amount = GrowthQueue.size() * This()->GrowthPercentage;
+
+        int count = std::min(50, std::max(5, (int)amount));
+        count = Random_Pick(1, count);
+
+        if (GrowthQueue.size() > Map_Cell_Count() - 2 * count) {
+            Recalc_Growth();
+        }
+
+        for (int index = 0; index < count && !GrowthQueue.empty(); index++) {
+            auto node = GrowthQueue.top();
+            GrowthQueue.pop();
+
+            Cell cell = node.second;
+            CellClass& cellptr = Map[cell];
+
+            if (cellptr.Tiberium_Type_Here() == This()->HeapID) {
+                cellptr.Grow_Tiberium();
+
+                if (cellptr.OverlayData < This()->FrameCount - 1) {
+                    GrowthQueue.emplace(Frame + Random_Pick(0, 49), cell);
+                    GrowthState[Map_Cell_Index(cell)] = true;
+                    Queue_Spread(cell);
+                } else {
+                    GrowthState[Map_Cell_Index(cell)] = false;
+                }
+            }
+        }
+    }
+}
+
+
+void TiberiumClassExtension::Initialize_Growth()
+{
+    Clear_Growth();
+    Recalc_Growth();
+}
+
+
+void TiberiumClassExtension::Recalc_Growth()
+{
+    Clear_Growth();
+
+    Map.Reset_Iterator();
+    CellClass* iter = Map.Iterate();
+
+    while (iter != nullptr) {
+        if (iter->Tiberium_Type_Here() == This()->HeapID && iter->Can_Tiberium_Grow()) {
+            GrowthQueue.emplace(0.0, iter->CellID);
+            GrowthState[Map_Cell_Index(iter->CellID)] = true;
+        }
+        iter = Map.Iterate();
+    }
+}
+
+
+void TiberiumClassExtension::Clear_Growth()
+{
+    GrowthQueue = std::priority_queue<QueueItem, std::vector<QueueItem>, CompareQueueItem>();
+    GrowthState.clear();
+    GrowthState.resize(Map_Cell_Count());
+}
+
+
+void TiberiumClassExtension::Queue_Growth(Cell const& cell)
+{
+    if (Map[cell].OverlayData < 11) {
+        if (GrowthQueue.size() > Map_Cell_Count() - 10) {
+            Recalc_Growth();
+        }
+
+        GrowthQueue.emplace(Frame + Random_Pick(0, 49), cell);
+        GrowthState[Map_Cell_Index(cell)] = true;
+    }
+}
+
+
+void TiberiumClassExtension::Clear_Tiberium_Spread_State(Cell const& cell)
+{
+    int cellindex = Map_Cell_Index(cell);
+    for (int i = 0; i < Tiberiums.Count(); i++) {
+        TiberiumExtensions[i]->SpreadState[cellindex] = false;
+    }
 }
