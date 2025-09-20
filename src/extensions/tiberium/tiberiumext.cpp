@@ -312,7 +312,7 @@ void TiberiumClassExtension::Recalc_Spread()
 
 void TiberiumClassExtension::Clear_Spread()
 {
-    SpreadQueue = std::priority_queue<QueueItem, std::vector<QueueItem>, CompareQueueItem>();
+    SpreadQueue = decltype(SpreadQueue)();
     SpreadState.clear();
     SpreadState.resize(Map_Cell_Count());
 }
@@ -392,7 +392,7 @@ void TiberiumClassExtension::Recalc_Growth()
 
 void TiberiumClassExtension::Clear_Growth()
 {
-    GrowthQueue = std::priority_queue<QueueItem, std::vector<QueueItem>, CompareQueueItem>();
+    GrowthQueue = decltype(GrowthQueue)();
     GrowthState.clear();
     GrowthState.resize(Map_Cell_Count());
 }
