@@ -1211,7 +1211,7 @@ In `RULES.INI`:
 [SOMETERRAIN]             ; TerrainType
 SpawnsTiberiumRange=1     ; integer, the maximum range in which Tiberium will be spawned.
 SpawnsTiberiumGrowth=1,1  ; two integers, the minimum and maximum growth stage at which Tiberium will be spawned (maximum can be omitted).
-SpawnsTiberiumCount=5,5   ; two integers, the minimum and maximum number of Tiberium overlaysthat will be spawned (maximum can be omitted).
+SpawnsTiberiumCount=5,5   ; two integers, the minimum and maximum number of Tiberium overlays that will be spawned (maximum can be omitted).
 ```
 
 ## Theaters
