@@ -141,5 +141,5 @@ public:
     /**
      *  If this is a gate, should it always be drawn normally, as opposed to being drawn on the ground when open?
      */
-    bool IsVerticalGate;
+    bool IsBarGate;
 };

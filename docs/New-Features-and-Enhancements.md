@@ -134,8 +134,8 @@ GateDownSound=  ; VocType, sound effect to play when the gate is lowering. Defau
 
 In `RULES.INI`:
 ```ini
-[SOMEBUILDING]   ; BuildingType
-VerticalGate=no  ; boolean, should the gate be drawn normally, as opposed to flat when it's open.
+[SOMEBUILDING]  ; BuildingType
+BarGate=no      ; boolean, should the gate be drawn normally, as opposed to flat when it's open.
 ```
 
 ### ProduceCash

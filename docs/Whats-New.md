@@ -93,7 +93,7 @@ Vanilla fixes:
 - Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2 (by tomsons26, Rampastring)
 
 New:
-- Implement `VerticalGate` for buildings (by ZivDero)
+- Implement `BarGate` for buildings (by ZivDero)
 
 :::
 
