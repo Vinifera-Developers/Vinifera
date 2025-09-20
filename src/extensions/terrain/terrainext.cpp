@@ -200,7 +200,7 @@ void TerrainClassExtension::Spread_Tiberium() const
      *  Try up to 8 times, since there are 8 cells bordering the center.
      */
     for (int i = 0; i < FACING_COUNT; i++) {
-        if (Map[This()->PositionCoord].Spread_Tiberium(true)) {
+        if (CellClassExtension::Spread_Tiberium(&Map[This()->PositionCoord], true, Scen->RandomNumber(ttype_ext->TiberiumSpawnGrowth.X, ttype_ext->TiberiumSpawnGrowth.Y))) {
             spreads++;
             if (spreads >= count) break;
         }
