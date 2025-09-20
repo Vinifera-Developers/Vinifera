@@ -58,7 +58,8 @@ BuildingTypeClassExtension::BuildingTypeClassExtension(const BuildingTypeClass *
     RoofDoorAnim(nullptr),
     UnderRoofDoorAnim(nullptr),
     IsExclusiveFactory(false),
-    IsWallOwner(true)
+    IsWallOwner(true),
+    IsBarGate(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("BuildingTypeClassExtension::BuildingTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -222,8 +223,8 @@ bool BuildingTypeClassExtension::Read_INI(CCINIClass &ini)
     IsHideDuringSpecialAnim = ArtINI.Get_Bool(ini_name, "HideDuringSpecialAnim", IsHideDuringSpecialAnim);
 
     IsExclusiveFactory = ini.Get_Bool(ini_name, "ExclusiveFactory", IsExclusiveFactory);
-
     IsWallOwner = ini.Get_Bool(ini_name, "WallOwner", IsWallOwner);
+    IsBarGate = ini.Get_Bool(ini_name, "BarGate", IsBarGate);
 
     Fetch_Building_Normal_Image(Scen->Theater);
 

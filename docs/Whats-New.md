@@ -92,6 +92,9 @@ Vanilla fixes:
 - Fix a bug where using the "Destroy Tag" trigger action could lead to trying to free invalid memory (by ZivDero)
 - Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2 (by tomsons26, Rampastring)
 
+New:
+- Implement `BarGate` for buildings (by ZivDero)
+
 :::
 
 ### 0.1.0.0
