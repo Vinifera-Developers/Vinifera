@@ -197,10 +197,16 @@ void TerrainClassExtension::Spread_Tiberium() const
 
     /**
      *  First try spreading from under the tree, like in vanilla.
+     *  Try up to 8 times, since there are 8 cells bordering the center.
      */
-    if (Map[This()->PositionCoord].Spread_Tiberium(true)) {
-        spreads++;
+    for (int i = 0; i < FACING_COUNT; i++) {
+        if (Map[This()->PositionCoord].Spread_Tiberium(true)) {
+            spreads++;
+            if (spreads >= count) break;
+        }
     }
+
+    if (spreads >= count) return;
 
     /**
      *  Then we start spreading in concentric rings.
