@@ -228,7 +228,7 @@ void TerrainClassExtension::Spread_Tiberium() const
         /**
          *  Shuffle them so that spread isn't orderly.
          */
-        static std::mt19937 rng(Scen->RandomNumber);
+        static std::minstd_rand rng(Scen->RandomNumber);
         std::shuffle(ring.begin(), ring.end(), rng);
 
         /**
