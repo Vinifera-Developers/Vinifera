@@ -48,8 +48,8 @@ TerrainTypeClassExtension::TerrainTypeClassExtension(const TerrainTypeClass* thi
     LightGreenTint(1000000),
     LightBlueTint(1000000),
     TiberiumSpawnRange(1),
-    TiberiumSpawnCount(1, 1),
-    TiberiumSpawnGrowth(5, 5)
+    TiberiumSpawnGrowth(5, 5),
+    TiberiumSpawnCount(1, 1)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TerrainTypeClassExtension::TerrainTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 

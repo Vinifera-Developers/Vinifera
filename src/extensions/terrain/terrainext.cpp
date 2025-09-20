@@ -203,7 +203,7 @@ void TerrainClassExtension::Spread_Tiberium() const
     }
 
     /**
-     *  Then we start spreading in concentic rings.
+     *  Then we start spreading in concentric rings.
      */
     for (int r = 1; r <= ttype_ext->TiberiumSpawnRange - 1; ++r) {
         static std::vector<Cell> ring(128);
