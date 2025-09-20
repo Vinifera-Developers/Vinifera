@@ -227,7 +227,7 @@ void AnimClassExt::_AI()
                                 if (tibcell->Can_Tiberium_Germinate(nullptr) && Class->TiberiumSpawnType != nullptr) {
                                     new OverlayClass(OverlayTypes[Class->TiberiumSpawnType->HeapID + Random_Pick(0, 3)], tibcell->Cell_Number());
                                     tibcell->OverlayData = Random_Pick(0, 2);
-                                    Rect overlayrect = tibcell->Get_Overlay_Rect();
+                                    Rect overlayrect = tibcell->Overlay_Render_Rect();
                                     overlayrect.Y -= TacticalRect.Y;
                                     updaterect = Union(updaterect, overlayrect);
                                 }
