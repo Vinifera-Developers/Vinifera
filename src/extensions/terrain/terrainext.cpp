@@ -30,6 +30,7 @@
 #include "lightsource.h"
 #include "wwcrc.h"
 #include "extension.h"
+#include "tiberium.h"
 #include "mouse.h"
 #include "cellext.h"
 #include "terraintypeext.h"
@@ -193,6 +194,8 @@ void TerrainClassExtension::Spread_Tiberium() const
     Cell origin = This()->PositionCell;
     int count = Scen->RandomNumber(ttype_ext->TiberiumSpawnCount.X, ttype_ext->TiberiumSpawnCount.Y);
 
+    TiberiumClass* tiberium = Tiberiums[ttype->TiberiumToSpawn];
+
     int spreads = 0;
 
     /**
@@ -200,7 +203,9 @@ void TerrainClassExtension::Spread_Tiberium() const
      *  Try up to 8 times, since there are 8 cells bordering the center.
      */
     for (int i = 0; i < FACING_COUNT; i++) {
-        if (CellClassExtension::Spread_Tiberium(&Map[This()->PositionCoord], true, Scen->RandomNumber(ttype_ext->TiberiumSpawnGrowth.X, ttype_ext->TiberiumSpawnGrowth.Y))) {
+        int stage = Scen->RandomNumber(ttype_ext->TiberiumSpawnStage.X, ttype_ext->TiberiumSpawnStage.Y);
+        stage = std::clamp(stage, 0, tiberium->FrameCount - 1);
+        if (CellClassExtension::Spread_Tiberium(&Map[This()->PositionCoord], true, stage)) {
             spreads++;
             if (spreads >= count) break;
         }
@@ -248,10 +253,16 @@ void TerrainClassExtension::Spread_Tiberium() const
              *  Try to spread from cells in this ring until we've spread enough.
              */
             for (auto& cell : ring) {
-                if (Map[cell].Tiberium_Type_Here() == ttype->TiberiumToSpawn && CellClassExtension::Spread_Tiberium(&Map[cell], true, Scen->RandomNumber(ttype_ext->TiberiumSpawnGrowth.X, ttype_ext->TiberiumSpawnGrowth.Y))) {
-                    spreads++;
-                    has_spread = true;
-                    if (spreads >= count) break;
+                if (Map[cell].Tiberium_Type_Here() == ttype->TiberiumToSpawn) {
+                    int stage = Scen->RandomNumber(ttype_ext->TiberiumSpawnStage.X, ttype_ext->TiberiumSpawnStage.Y);
+                    stage -= ttype_ext->TiberiumSpawnStageFalloff * r;
+                    stage = std::clamp(stage, 0, tiberium->FrameCount - 1);
+
+                    if (CellClassExtension::Spread_Tiberium(&Map[cell], true, stage)) {
+                        spreads++;
+                        has_spread = true;
+                        if (spreads >= count) break;
+                    }
                 }
             }
 

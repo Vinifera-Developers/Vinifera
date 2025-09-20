@@ -100,7 +100,12 @@ TerrainTypeClassExtension final : public ObjectTypeClassExtension
         /**
          *  If SpawnsTiberium=yes, the growth stage at which the Tiberium will be spawned (min, max).
          */
-        Point2D TiberiumSpawnGrowth;
+        Point2D TiberiumSpawnStage;
+
+        /**
+         *  If SpawnsTiberium=yes, amount by which the growth stage will decrease for ever ring after 1.
+         */
+        float TiberiumSpawnStageFalloff;
 
         /**
          *  If SpawnsTiberium=yes, the number of Tiberium overlays that will be spawned (min, max).

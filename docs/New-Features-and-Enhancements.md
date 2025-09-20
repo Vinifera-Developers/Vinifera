@@ -1212,10 +1212,11 @@ Spreaders don't spawn Tiberium out of thin air. A spreader first spreads Tiberiu
 
 In `RULES.INI`:
 ```ini
-[SOMETERRAIN]             ; TerrainType
-SpawnsTiberiumRange=1     ; integer, the maximum range in which Tiberium will be spawned.
-SpawnsTiberiumGrowth=5,5  ; two integers, the minimum and maximum growth stage at which Tiberium will be spawned (maximum can be omitted).
-SpawnsTiberiumCount=1,1   ; two integers, the minimum and maximum number of spreads that will occur (maximum can be omitted).
+[SOMETERRAIN]                 ; TerrainType
+SpawnsTiberiumRange=1         ; integer, the maximum range in which Tiberium will be spawned.
+SpawnsTiberiumStage=5,5       ; two integers, the minimum and maximum growth stage at which Tiberium will be spawned (maximum can be omitted).
+SpawnsTiberiumStageFalloff=0  ; float, the amount by which the growth stage will decrease for ever ring after the first one.
+SpawnsTiberiumCount=1,1       ; two integers, the minimum and maximum number of spreads that will occur (maximum can be omitted).
 ```
 
 ## Theaters
