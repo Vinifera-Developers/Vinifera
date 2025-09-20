@@ -248,7 +248,7 @@ void TiberiumClassExtension::Spread_AI()
     if (!SpreadQueue.empty() && This()->SpreadPercentage > 0.00001) {
         double amount = SpreadQueue.size() * This()->SpreadPercentage;
 
-        int count = std::min(25, std::max(5, (int)amount));
+        int count = std::clamp((int)amount, 5, 25);
         count = Random_Pick(1, count);
 
         if (SpreadQueue.size() > Map_Cell_Count() - 20) {
@@ -336,7 +336,7 @@ void TiberiumClassExtension::Growth_AI()
     if (!GrowthQueue.empty() && This()->GrowthPercentage > 0.00001) {
         double amount = GrowthQueue.size() * This()->GrowthPercentage;
 
-        int count = std::min(50, std::max(5, (int)amount));
+        int count = std::clamp((int)amount, 5, 50);
         count = Random_Pick(1, count);
 
         if (GrowthQueue.size() > Map_Cell_Count() - 2 * count) {
