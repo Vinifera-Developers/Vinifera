@@ -106,3 +106,6 @@ TiberiumClassExtension final : public AbstractTypeClassExtension
         std::priority_queue<QueueItem, std::vector<QueueItem>, CompareQueueItem> GrowthQueue;
         std::vector<bool> GrowthState;
 };
+
+int Map_Cell_Index(Cell const& cell);
+int Map_Cell_Count(void);

@@ -50,6 +50,8 @@
 #include "terrain.h"
 #include "terraintype.h"
 #include "tiberium.h"
+#include "tiberiumext.h"
+#include "tactical.h"
 
 /**
  *  A fake class for implementing new member functions which allow
@@ -64,6 +66,7 @@ public:
     bool _Can_Tiberium_Germinate(TiberiumClass const* tiberium) const;
     bool _Can_Place_Veins() const;
     bool _Spread_Tiberium(bool forced);
+    int _Reduce_Tiberium(int levels);
 };
 
 
@@ -155,6 +158,48 @@ bool CellClassExt::_Can_Place_Veins() const
 bool CellClassExt::_Spread_Tiberium(bool forced)
 {
     return CellClassExtension::Spread_Tiberium(this, forced);
+}
+
+
+int CellClassExt::_Reduce_Tiberium(int levels)
+{
+    Rect dirty = Union(Overlay_Render_Rect(), Overlay_Shadow_Render_Rect());
+    dirty.Y -= TacticalRect.Y;
+
+    TiberiumType tibtype = Tiberium_Type_Here();
+    int reducer = levels;
+
+    if (levels > 0 && tibtype != TIBERIUM_NONE) {
+        TiberiumClass* tiberium = Tiberiums[tibtype];
+        if (OverlayData == 11) {
+            tiberium->Queue_Growth(CellID);
+        }
+        if (OverlayData + 1 > levels) {
+            OverlayData -= levels;
+            reducer = levels;
+        } else {
+            PassabilityType passability = Passability;
+            Overlay = OVERLAY_NONE;
+            reducer = OverlayData;
+            OverlayData = 0;
+            Recalc_Attributes();
+            if (passability != Passability) {
+                Map.Update_Cell_Zone(CellID);
+                Map.Update_Cell_Subzones(CellID);
+            }
+            Map.Flag_Background_Update(CellID);
+            tiberium->Clear_Tiberium_Spread_State(CellID);
+            for (int facing = FACING_FIRST; facing < FACING_COUNT; facing++) {
+                Cell adjacent = ::Adjacent_Cell(CellID, (FacingType)facing);
+                if (Map.In_Radar(adjacent) && !Extension::Fetch(tiberium)->SpreadState[Map_Cell_Index(adjacent)]) {
+                    tiberium->Queue_Spread(adjacent);
+                }
+            }
+        }
+        TacticalMap->Register_Dirty_Area(dirty);
+        return reducer;
+    }
+    return 0;
 }
 
 
@@ -379,5 +424,6 @@ void CellClassExtension_Hooks()
     Patch_Jump(0x004596C0, &CellClassExt::_Can_Tiberium_Germinate);
     Patch_Jump(0x0045B0D0, &CellClassExt::_Can_Place_Veins);
     Patch_Jump(0x004594D0, &CellClassExt::_Spread_Tiberium);
+    Patch_Jump(0x00456BF0, &CellClassExt::_Reduce_Tiberium);
     Patch_Jump(0x004531E4, &_CellClass_Update_Wall_Owner_Skip_Buildings_That_Cannot_Own_Walls_Patch);
 }

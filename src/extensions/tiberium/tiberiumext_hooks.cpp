@@ -81,7 +81,7 @@ void TiberiumClassExt::_Initialize_Tiberium_Spread_System()
 void TiberiumClassExt::_Deinitialize_Tiberium_Spread_System()
 {
     for (int i = 0; i < Tiberiums.Count(); i++) {
-        Tiberiums[i]->Deinitialize_Spread();
+        Tiberiums[i]->Clear_Spread();
     }
 }
 
@@ -97,7 +97,7 @@ void TiberiumClassExt::_Initialize_Tiberium_Growth_System()
 void TiberiumClassExt::_Deinitialize_Tiberium_Growth_System()
 {
     for (int i = 0; i < Tiberiums.Count(); i++) {
-        Tiberiums[i]->Deinitialize_Growth();
+        Tiberiums[i]->Clear_Growth();
     }
 }
 
