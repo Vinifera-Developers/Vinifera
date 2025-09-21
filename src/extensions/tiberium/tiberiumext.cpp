@@ -246,14 +246,8 @@ int Map_Cell_Count(void)
 void TiberiumClassExtension::Spread_AI()
 {
     if (!SpreadQueue.empty() && This()->SpreadPercentage > 0.00001) {
-        double amount = SpreadQueue.size() * This()->SpreadPercentage;
-
-        int count = std::clamp((int)amount, 5, 300);
+        int count = std::clamp((int)(SpreadQueue.size() * This()->SpreadPercentage), 5, 300);
         count = Random_Pick(1, count);
-
-        if (SpreadQueue.size() > Map_Cell_Count() - 20) {
-            Recalc_Spread();
-        }
 
         for (int index = 0; index < count && !SpreadQueue.empty();) {
             auto node = SpreadQueue.top();
@@ -261,6 +255,10 @@ void TiberiumClassExtension::Spread_AI()
 
             Cell cell = node.second;
             CellClass& cellptr = Map[cell];
+
+            if (!cellptr.Can_Tiberium_Spread()) {
+                continue;
+            }
 
             int numallowed = 0;
 
@@ -334,14 +332,8 @@ void TiberiumClassExtension::Queue_Spread(Cell const& cell)
 void TiberiumClassExtension::Growth_AI()
 {
     if (!GrowthQueue.empty() && This()->GrowthPercentage > 0.00001) {
-        double amount = GrowthQueue.size() * This()->GrowthPercentage;
-
-        int count = std::clamp((int)amount, 5, 300);
+        int count = std::clamp((int)(GrowthQueue.size() * This()->GrowthPercentage), 5, 300);
         count = Random_Pick(1, count);
-
-        if (GrowthQueue.size() > Map_Cell_Count() - 2 * count) {
-            Recalc_Growth();
-        }
 
         for (int index = 0; index < count && !GrowthQueue.empty(); index++) {
             auto node = GrowthQueue.top();
@@ -349,6 +341,11 @@ void TiberiumClassExtension::Growth_AI()
 
             Cell cell = node.second;
             CellClass& cellptr = Map[cell];
+
+            if (!cellptr.Can_Tiberium_Grow()) {
+                index--;
+                continue;
+            }
 
             if (cellptr.Tiberium_Type_Here() == This()->HeapID) {
                 cellptr.Grow_Tiberium();
