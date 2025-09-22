@@ -249,7 +249,8 @@ void TiberiumClassExtension::Spread_AI()
         int count = std::clamp((int)(SpreadQueue.size() * This()->SpreadPercentage), 5, 300);
         count = Random_Pick(1, count);
 
-        for (int index = 0; index < count && !SpreadQueue.empty();) {
+        int index = 0;
+        while (index < count && !SpreadQueue.empty()) {
             auto node = SpreadQueue.top();
             SpreadQueue.pop();
 
@@ -257,6 +258,7 @@ void TiberiumClassExtension::Spread_AI()
             CellClass& cellptr = Map[cell];
 
             if (!cellptr.Can_Tiberium_Spread()) {
+                SpreadState[Map_Cell_Index(cellptr.CellID)] = false;
                 continue;
             }
 
@@ -286,7 +288,6 @@ void TiberiumClassExtension::Spread_AI()
 
 void TiberiumClassExtension::Initialize_Spread()
 {
-    Clear_Spread();
     Recalc_Spread();
 }
 
@@ -319,10 +320,6 @@ void TiberiumClassExtension::Clear_Spread()
 void TiberiumClassExtension::Queue_Spread(Cell const& cell)
 {
     if (Map[cell].Can_Tiberium_Spread() && !SpreadState[Map_Cell_Index(cell)]) {
-        if (SpreadQueue.size() >= Map_Cell_Count() - 20) {
-            Recalc_Spread();
-        }
-
         SpreadQueue.emplace(Frame + Random_Pick(0, 49), cell);
         SpreadState[Map_Cell_Index(cell)] = true;
     }
@@ -335,7 +332,8 @@ void TiberiumClassExtension::Growth_AI()
         int count = std::clamp((int)(GrowthQueue.size() * This()->GrowthPercentage), 5, 300);
         count = Random_Pick(1, count);
 
-        for (int index = 0; index < count && !GrowthQueue.empty(); index++) {
+        int index = 0;
+        while (index < count && !GrowthQueue.empty()) {
             auto node = GrowthQueue.top();
             GrowthQueue.pop();
 
@@ -343,7 +341,7 @@ void TiberiumClassExtension::Growth_AI()
             CellClass& cellptr = Map[cell];
 
             if (!cellptr.Can_Tiberium_Grow()) {
-                index--;
+                GrowthState[Map_Cell_Index(cell)] = false;
                 continue;
             }
 
@@ -358,6 +356,8 @@ void TiberiumClassExtension::Growth_AI()
                     GrowthState[Map_Cell_Index(cell)] = false;
                 }
             }
+
+            index++;
         }
     }
 }
@@ -365,7 +365,6 @@ void TiberiumClassExtension::Growth_AI()
 
 void TiberiumClassExtension::Initialize_Growth()
 {
-    Clear_Growth();
     Recalc_Growth();
 }
 
@@ -398,10 +397,6 @@ void TiberiumClassExtension::Clear_Growth()
 void TiberiumClassExtension::Queue_Growth(Cell const& cell)
 {
     if (Map[cell].OverlayData < This()->FrameCount - 1) {
-        if (GrowthQueue.size() > Map_Cell_Count() - 10) {
-            Recalc_Growth();
-        }
-
         GrowthQueue.emplace(Frame + Random_Pick(0, 49), cell);
         GrowthState[Map_Cell_Index(cell)] = true;
     }
