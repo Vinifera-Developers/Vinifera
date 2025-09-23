@@ -175,14 +175,6 @@ void IsometricTileTypeClassExtension::Detach(AbstractClass * target, bool all)
     //EXT_DEBUG_TRACE("IsometricTileTypeClassExtension::Detach - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     ObjectTypeClassExtension::Detach(target, all);
-
-    if (AllowedTiberiums.Is_Present(reinterpret_cast<TiberiumClass*>(target))) {
-        AllowedTiberiums.Delete(reinterpret_cast<TiberiumClass*>(target));
-    }
-
-    if (AllowedSmudges.Is_Present(reinterpret_cast<SmudgeTypeClass*>(target))) {
-        AllowedSmudges.Delete(reinterpret_cast<SmudgeTypeClass*>(target));
-    }
 }
 
 
@@ -223,13 +215,20 @@ bool IsometricTileTypeClassExtension::Read_INI(CCINIClass &ini)
         while (token != nullptr) {
             TiberiumType tiberium = TiberiumClass::From_Name(token);
             if (tiberium != TIBERIUM_NONE) {
-                AllowedTiberiums.Add(Tiberiums[tiberium]);
+                AllowedTiberiums.Add(tiberium);
             }
             token = std::strtok(nullptr, ",");
         }
     }
 
-    AllowedSmudges = TGet_TypeList(ini, ini_name, "AllowedSmudges", AllowedSmudges);
+    auto smudges = TGet_TypeList(ini, ini_name, "AllowedSmudges", TypeList<SmudgeTypeClass*>());
+    if (smudges.Count() > 0) {
+        AllowedSmudges.Clear();
+        for (auto smudge : smudges) {
+            AllowedSmudges.Add(smudge->HeapID);
+        }
+    }
+
     IsAllowVeins = ini.Get_Bool(ini_name, "AllowVeins", IsAllowVeins);
 
     IsInitialized = true;

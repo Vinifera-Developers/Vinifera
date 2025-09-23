@@ -159,9 +159,22 @@ DECLARE_PATCH(_IsometricTileTypeClass_Read_INI_Patch_1)
     exttype_ptr = Extension::Fetch(this_ptr);
 
     /**
-     *  Read type class ini.
+     *  Save the tile set name.
      */
     std::strncpy(exttype_ptr->TileSetName, tileset_name, sizeof(exttype_ptr->TileSetName) - 1);
+
+    /**
+     *  We can't read the INI right now if we're loading the game because
+     *  all the other objects we may require don't exist yet.
+     *  We'll read the INIs later.
+     */
+    if (Vinifera_PerformingLoad) {
+        goto original_code;
+    }
+
+    /**
+     *  Read type class ini.
+     */
     exttype_ptr->Read_INI(*ini);
 
     /**
@@ -205,9 +218,22 @@ DECLARE_PATCH(_IsometricTileTypeClass_Read_INI_Patch_2)
     exttype_ptr = Extension::Fetch(this_ptr);
 
     /**
-     *  Read type class ini.
+     *  Save the tile set name.
      */
     std::strncpy(exttype_ptr->TileSetName, tileset_name, sizeof(exttype_ptr->TileSetName) - 1);
+
+    /**
+     *  We can't read the INI right now if we're loading the game because
+     *  all the other objects we may require don't exist yet.
+     *  We'll read the INIs later.
+     */
+    if (Vinifera_PerformingLoad) {
+        goto original_code;
+    }
+
+    /**
+     *  Read type class ini.
+     */
     exttype_ptr->Read_INI(*ini);
 
     /**

@@ -128,6 +128,16 @@ GateUpSound=    ; VocType, sound effect to play when the gate is rising. Default
 GateDownSound=  ; VocType, sound effect to play when the gate is lowering. Defaults to [AudioVisual]->GateDown.
 ```
 
+### Vertical Gate
+
+- Normally, the game drawn gates flat on the ground when they are open. You can optionally turn this off to have a gate that is drawn above units when open instead.
+
+In `RULES.INI`:
+```ini
+[SOMEBUILDING]  ; BuildingType
+BarGate=no      ; boolean, should the gate be drawn normally, as opposed to flat when it's open.
+```
+
 ### ProduceCash
 
 - Vinifera implements the Produce Cash logic from Red Alert 2. The system works exactly as it does in Red Alert 2, but with the following differences:
@@ -1216,6 +1226,23 @@ LightIntensity=0      ; float, the distance that this light is visible from.
 LightRedTint=1        ; float, the red tint of this terrain objects light.
 LightGreenTint=1      ; float, the green tint of this terrain objects light.
 LightBlueTint=1       ; float, the blue tint of this terrain objects light.
+```
+
+### Tiberium Speaders
+
+- Vinifera adds additional customization for Tiberium spreaders (`SpawnsTiberium=yes`).
+
+```{note}
+Spreaders don't spawn Tiberium out of thin air. A spreader first spreads Tiberium from itself, then from the radius-1 ring of Tiberium around it, then from the radius-2 ring, and so on. You can think of it as accelerating the natural spread process. If a cell doesn't border the spreader of a piece of Tiberium, it won't be spread to.
+```
+
+In `RULES.INI`:
+```ini
+[SOMETERRAIN]                 ; TerrainType
+SpawnsTiberiumRange=1         ; integer, the maximum range in which Tiberium will be spawned.
+SpawnsTiberiumStage=5,5       ; two integers, the minimum and maximum growth stage at which Tiberium will be spawned (maximum can be omitted).
+SpawnsTiberiumStageFalloff=0  ; float, the amount by which the growth stage will decrease for every ring after the first one.
+SpawnsTiberiumCount=1,1       ; two integers, the minimum and maximum number of spreads that will occur (maximum can be omitted).
 ```
 
 ## Theaters

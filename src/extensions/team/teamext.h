@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          TERRAINEXT.H
+ *  @file          TEAMEXT.H
  *
- *  @author        CCHyper
+ *  @author        Rampastring
  *
- *  @brief         Extended TerrainClass class.
+ *  @brief         Extended TeamClass class.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -27,15 +27,12 @@
  ******************************************************************************/
 #pragma once
 
-#include "objectext.h"
-#include "terrain.h"
+#include "abstracttypeext.h"
+#include "team.h"
 
 
-class LightSourceClass;
-
-
-class DECLSPEC_UUID(UUID_TERRAIN_EXTENSION)
-TerrainClassExtension final : public ObjectClassExtension
+class DECLSPEC_UUID(UUID_TEAM_EXTENSION)
+TeamClassExtension final : public AbstractClassExtension
 {
     public:
         /**
@@ -50,23 +47,21 @@ TerrainClassExtension final : public ObjectClassExtension
         IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
 
     public:
-        TerrainClassExtension(const TerrainClass *this_ptr = nullptr);
-        TerrainClassExtension(const NoInitClass &noinit);
-        virtual ~TerrainClassExtension();
+        TeamClassExtension(const TeamClass *this_ptr = nullptr);
+        TeamClassExtension(const NoInitClass &noinit);
+        virtual ~TeamClassExtension();
 
         virtual int Get_Object_Size() const override;
         virtual void Detach(AbstractClass * target, bool all = true) override;
         virtual void Object_CRC(CRCEngine &crc) const override;
 
-        virtual TerrainClass *This() const override { return reinterpret_cast<TerrainClass *>(ObjectClassExtension::This()); }
-        virtual const TerrainClass *This_Const() const override { return reinterpret_cast<const TerrainClass *>(ObjectClassExtension::This_Const()); }
-        virtual RTTIType Fetch_RTTI() const override { return RTTI_TERRAIN; }
+        virtual const char* Name() const override;
+        virtual const char* Full_Name() const override;
 
-        void Spread_Tiberium() const;
+        virtual TeamClass *This() const override { return reinterpret_cast<TeamClass *>(AbstractClassExtension::This()); }
+        virtual const TeamClass *This_Const() const override { return reinterpret_cast<const TeamClass *>(AbstractClassExtension::This_Const()); }
+        virtual RTTIType Fetch_RTTI() const override { return RTTI_TEAM; }
 
     public:
-        /**
-         *  The light source instance for this terrain object.
-         */
-        LightSourceClass *LightSource;
+
 };

@@ -66,6 +66,7 @@ New:
 - Implement integer varialbes, and trigger actiosn and events to operate on them (by ZivDero)
 - Veterancy and Health Filter kotkeys (by hacklex)
 - Add unit promotion sounds, EVA and flashing (by ZivDero)
+- Add Tiberium spreader customization (by ZivDero)
 
 
 Vinifera fixes:
@@ -78,6 +79,7 @@ Vinifera fixes:
 - Fix a bug where per-type modifiers on warheads wouldn't impact weapon selection (by ZivDero)
 - Fix a bug where `Totable=no` did not work (by ZivDero)
 - Fix a crash that could happen if you lost a factory while producing something (by ZivDero)
+- Fix problems with new IsometricTileType flags during save/load (by ZivDero)
 
 
 Vanilla fixes:
@@ -90,6 +92,9 @@ Vanilla fixes:
 - Fix a bug where the "Building exists" event would fire when you queued a building on the sidebar (by ZivDero)
 - Fix a bug where using the "Destroy Tag" trigger action could lead to trying to free invalid memory (by ZivDero)
 - Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2 (by tomsons26, Rampastring)
+
+New:
+- Implement `BarGate` for buildings (by ZivDero)
 
 :::
 

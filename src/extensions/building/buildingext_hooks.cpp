@@ -411,7 +411,7 @@ void BuildingClassExt::_Draw_It(Point2D const& xdrawpoint, Rect const& xcliprect
         shapefile = Get_Image_Data();
 
         ZGradientType zgrad = ZGRAD_GROUND;
-        if (shapenum < Class->GateStages / 2) {
+        if (shapenum < Class->GateStages / 2 || type_ext->IsBarGate) {
             zgrad = ZGRAD_90DEG;
         }
 

@@ -45,7 +45,7 @@
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
-#include "building.h"
+#include "cellext.h"
 #include "extension.h"
 #include "buildingtype.h"
 #include "vinifera_globals.h"
@@ -71,6 +71,7 @@ static DECLARE_EXTENDING_CLASS_AND_PAIR(CellClass)
 public:
     bool _Can_Tiberium_Germinate(TiberiumClass const* tiberium) const;
     bool _Can_Place_Veins() const;
+    bool _Spread_Tiberium(bool forced);
 };
 
 
@@ -109,7 +110,7 @@ bool CellClassExt::_Can_Tiberium_Germinate(TiberiumClass const* tiberium) const
 
         auto ittype_ext = Extension::Fetch(ittype);
 
-        if (ittype_ext->AllowedTiberiums.Count() > 0 && !ittype_ext->AllowedTiberiums.Is_Present(const_cast<TiberiumClass*>(tiberium))) return false;
+        if (tiberium != nullptr && ittype_ext->AllowedTiberiums.Count() > 0 && !ittype_ext->AllowedTiberiums.Is_Present(tiberium->HeapID)) return false;
     }
 
     return true;
@@ -151,6 +152,17 @@ bool CellClassExt::_Can_Place_Veins() const
         }
     }
     return false;
+}
+
+
+/**
+ *  Proxy for CellClassExt::Spread_Tiberium.
+ *
+ *  @author: ZivDero
+ */
+bool CellClassExt::_Spread_Tiberium(bool forced)
+{
+    return CellClassExtension::Spread_Tiberium(this, forced);
 }
 
 
@@ -508,6 +520,7 @@ void CellClassExtension_Hooks()
     Patch_Jump(0x00455130, &_CellClass_Draw_Fog_Patch);
     Patch_Jump(0x004596C0, &CellClassExt::_Can_Tiberium_Germinate);
     Patch_Jump(0x0045B0D0, &CellClassExt::_Can_Place_Veins);
+    Patch_Jump(0x004594D0, &CellClassExt::_Spread_Tiberium);
     Patch_Jump(0x004531E4, &_CellClass_Update_Wall_Owner_Skip_Buildings_That_Cannot_Own_Walls_Patch);
     Patch_Jump(0x00457D90, &_CellClass_Goodie_Check_BaseUnit_Quantity_Patch);
     Patch_Jump(0x0045813E, &_CellClass_Goodie_Check_CRATE_UNIT_BaseUnit_Patch);

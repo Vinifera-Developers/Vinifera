@@ -479,8 +479,12 @@ static int _Extract_Compressed_Events(void* buf, int bufsize)
 void EventClassExtension_Hooks()
 {
     Patch_Jump(0x00494294, &_EventClass_Execute_New_Events);
-    Patch_Jump(0x005B4530, &_Add_Compressed_Events);
-    Patch_Jump(0x005B4A40, &_Extract_Compressed_Events);
+    //Patch_Jump(0x005B4530, &_Add_Compressed_Events);
+    //Patch_Jump(0x005B4A40, &_Extract_Compressed_Events);
+
+    Patch_Dword(0x005B45E2 + 2, reinterpret_cast<uint32_t>(&EventClassExt::EventLength));
+    Patch_Dword(0x005B4AED + 2, reinterpret_cast<uint32_t>(&EventClassExt::EventLength));
+    Patch_Dword(0x005B4CF8 + 2, reinterpret_cast<uint32_t>(&EventClassExt::EventLength));
 
     Patch_Jump(0x00494B9A, 0x00494BAA); // Jump over code that prevents deploying with aircraft
 }
