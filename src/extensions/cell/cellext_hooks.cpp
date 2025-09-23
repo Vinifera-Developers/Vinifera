@@ -443,6 +443,7 @@ void CellClassExtension_Hooks()
     Patch_Jump(0x00454E60, &_CellClass_Draw_Shroud_Fog_Patch);
     Patch_Jump(0x00455130, &_CellClass_Draw_Fog_Patch);
     Patch_Jump(0x004596C0, &CellClassExt::_Can_Tiberium_Germinate);
+    Patch_Jump(0x00459300, &CellClassExt::_Can_Tiberium_Spread);
     Patch_Jump(0x0045B0D0, &CellClassExt::_Can_Place_Veins);
     Patch_Jump(0x004594D0, &CellClassExt::_Spread_Tiberium);
     Patch_Jump(0x00456BF0, &CellClassExt::_Reduce_Tiberium);
