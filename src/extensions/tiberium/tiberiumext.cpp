@@ -31,6 +31,7 @@
 #include "overlaytype.h"
 #include "extension.h"
 #include "asserthandler.h"
+#include "cellext.h"
 #include "debughandler.h"
 #include "findmake.h"
 #include "mouse.h"
@@ -44,7 +45,9 @@
  *  @author: CCHyper
  */
 TiberiumClassExtension::TiberiumClassExtension(const TiberiumClass *this_ptr) :
-    AbstractTypeClassExtension(this_ptr)
+    AbstractTypeClassExtension(this_ptr),
+    MinSpreadStage(0),
+    SpawnSpreadStage(5)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TiberiumClassExtension::TiberiumClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -202,6 +205,7 @@ bool TiberiumClassExtension::Read_INI(CCINIClass &ini)
         This()->FrameCount = 12;
         This()->Variety = 12;
         DamageToInfantry = std::max(1, This()->Power / 10);
+        MinSpreadStage = This()->HeapID / 2 + 1; // default from CellClass::Can_Tiberium_Spread
     }
 
     if (!AbstractTypeClassExtension::Read_INI(ini)) {
@@ -225,6 +229,9 @@ bool TiberiumClassExtension::Read_INI(CCINIClass &ini)
 
     DamageToInfantry = ini.Get_Int(ini_name, "DamageToInfantry", DamageToInfantry);
 
+    MinSpreadStage = ini.Get_Int(ini_name, "MinSpreadStage", MinSpreadStage);
+    SpawnSpreadStage = ini.Get_Int(ini_name, "SpawnSpreadStage", SpawnSpreadStage);
+
     IsInitialized = true;
     
     return true;
@@ -246,7 +253,7 @@ int Map_Cell_Count(void)
 void TiberiumClassExtension::Spread_AI()
 {
     if (!SpreadQueue.empty() && This()->SpreadPercentage > 0.00001) {
-        int count = std::clamp((int)(SpreadQueue.size() * This()->SpreadPercentage), 5, 300);
+        int count = std::clamp(static_cast<int>(SpreadQueue.size() * This()->SpreadPercentage), 5, 300);
         count = Random_Pick(1, count);
 
         int index = 0;
@@ -265,13 +272,13 @@ void TiberiumClassExtension::Spread_AI()
             int numallowed = 0;
 
             for (FacingType facing = FACING_N; facing < FACING_COUNT; facing++) {
-                if (cellptr.Adjacent_Cell(facing).Can_Tiberium_Germinate(NULL)) {
+                if (cellptr.Adjacent_Cell(facing).Can_Tiberium_Germinate(nullptr)) {
                     numallowed++;
                 }
             }
 
             if (numallowed != 0) {
-                cellptr.Spread_Tiberium();
+                CellClassExtension::Spread_Tiberium(&cellptr, false, SpawnSpreadStage);
                 index++;
 
                 if (numallowed > 1) {
@@ -329,7 +336,7 @@ void TiberiumClassExtension::Queue_Spread(Cell const& cell)
 void TiberiumClassExtension::Growth_AI()
 {
     if (!GrowthQueue.empty() && This()->GrowthPercentage > 0.00001) {
-        int count = std::clamp((int)(GrowthQueue.size() * This()->GrowthPercentage), 5, 300);
+        int count = std::clamp(static_cast<int>(GrowthQueue.size() * This()->GrowthPercentage), 5, 300);
         count = Random_Pick(1, count);
 
         int index = 0;

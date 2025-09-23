@@ -64,6 +64,7 @@ static DECLARE_EXTENDING_CLASS_AND_PAIR(CellClass)
 {
 public:
     bool _Can_Tiberium_Germinate(TiberiumClass const* tiberium) const;
+    bool _Can_Tiberium_Spread();
     bool _Can_Place_Veins() const;
     bool _Spread_Tiberium(bool forced);
     int _Reduce_Tiberium(int levels);
@@ -107,6 +108,26 @@ bool CellClassExt::_Can_Tiberium_Germinate(TiberiumClass const* tiberium) const
 
         if (tiberium != nullptr && ittype_ext->AllowedTiberiums.Count() > 0 && !ittype_ext->AllowedTiberiums.Is_Present(tiberium->HeapID)) return false;
     }
+
+    return true;
+}
+
+
+bool CellClassExt::_Can_Tiberium_Spread()
+{
+    if (!Scen->Special.IsTSpread) return false;
+
+    TiberiumType tiberium = Tiberium_Type_Here();
+
+    if (tiberium == TIBERIUM_NONE) return false;
+
+    if (OverlayData < Extension::Fetch(Tiberiums[tiberium])->MinSpreadStage) return false;
+
+    if (Tiberiums[tiberium]->SpreadPercentage < 0.00001) return false;
+
+    if (Cell_Occupier() != nullptr) return false;
+
+    if (OverlayData)
 
     return true;
 }
@@ -171,7 +192,7 @@ int CellClassExt::_Reduce_Tiberium(int levels)
 
     if (levels > 0 && tibtype != TIBERIUM_NONE) {
         TiberiumClass* tiberium = Tiberiums[tibtype];
-        if (OverlayData == 11) {
+        if (OverlayData == tiberium->FrameCount - 1) {
             tiberium->Queue_Growth(CellID);
         }
         if (OverlayData + 1 > levels) {
@@ -190,7 +211,7 @@ int CellClassExt::_Reduce_Tiberium(int levels)
             Map.Flag_Background_Update(CellID);
             tiberium->Clear_Tiberium_Spread_State(CellID);
             for (int facing = FACING_FIRST; facing < FACING_COUNT; facing++) {
-                Cell adjacent = ::Adjacent_Cell(CellID, (FacingType)facing);
+                Cell adjacent = ::Adjacent_Cell(CellID, static_cast<FacingType>(facing));
                 if (Map.In_Radar(adjacent) && !Extension::Fetch(tiberium)->SpreadState[Map_Cell_Index(adjacent)]) {
                     tiberium->Queue_Spread(adjacent);
                 }

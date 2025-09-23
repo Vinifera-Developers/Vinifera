@@ -230,6 +230,10 @@ void AnimClassExt::_AI()
                                     Rect overlayrect = tibcell->Overlay_Render_Rect();
                                     overlayrect.Y -= TacticalRect.Y;
                                     updaterect = Union(updaterect, overlayrect);
+                                    TiberiumType tiberium = tibcell->Tiberium_Type_Here();
+                                    if (tiberium != TIBERIUM_NONE) {
+                                        Tiberiums[tiberium]->Queue_Growth(tibcell->CellID);
+                                    }
                                 }
                             }
                         }

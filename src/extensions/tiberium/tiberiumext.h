@@ -32,79 +32,83 @@
 #include <queue>
 
 
-class DECLSPEC_UUID(UUID_TIBERIUM_EXTENSION)
-TiberiumClassExtension final : public AbstractTypeClassExtension
+class DECLSPEC_UUID(UUID_TIBERIUM_EXTENSION) TiberiumClassExtension final : public AbstractTypeClassExtension
 {
-    public:
-        /**
-         *  IPersist
-         */
-        IFACEMETHOD(GetClassID)(CLSID *pClassID);
+public:
+    /**
+     *  IPersist
+     */
+    IFACEMETHOD(GetClassID)(CLSID* pClassID);
 
-        /**
-         *  IPersistStream
-         */
-        IFACEMETHOD(Load)(IStream *pStm);
-        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+    /**
+     *  IPersistStream
+     */
+    IFACEMETHOD(Load)(IStream* pStm);
+    IFACEMETHOD(Save)(IStream* pStm, BOOL fClearDirty);
 
-    public:
-        TiberiumClassExtension(const TiberiumClass *this_ptr = nullptr);
-        TiberiumClassExtension(const NoInitClass &noinit);
-        virtual ~TiberiumClassExtension();
+public:
+    TiberiumClassExtension(const TiberiumClass* this_ptr = nullptr);
+    TiberiumClassExtension(const NoInitClass& noinit);
+    virtual ~TiberiumClassExtension();
 
-        virtual int Get_Object_Size() const override;
-        virtual void Detach(AbstractClass * target, bool all = true) override;
-        virtual void Object_CRC(CRCEngine &crc) const override;
+    virtual int Get_Object_Size() const override;
+    virtual void Detach(AbstractClass* target, bool all = true) override;
+    virtual void Object_CRC(CRCEngine& crc) const override;
 
-        virtual TiberiumClass *This() const override { return reinterpret_cast<TiberiumClass *>(AbstractTypeClassExtension::This()); }
-        virtual const TiberiumClass *This_Const() const override { return reinterpret_cast<const TiberiumClass *>(AbstractTypeClassExtension::This_Const()); }
-        virtual RTTIType Fetch_RTTI() const override { return RTTI_TIBERIUM; }
+    virtual TiberiumClass* This() const override { return reinterpret_cast<TiberiumClass*>(AbstractTypeClassExtension::This()); }
+    virtual const TiberiumClass* This_Const() const override { return reinterpret_cast<const TiberiumClass*>(AbstractTypeClassExtension::This_Const()); }
+    virtual RTTIType Fetch_RTTI() const override { return RTTI_TIBERIUM; }
 
-        virtual bool Read_INI(CCINIClass &ini) override;
+    virtual bool Read_INI(CCINIClass& ini) override;
 
-        void Spread_AI(void);
-        void Initialize_Spread(void);
-        void Recalc_Spread(void);
-        void Clear_Spread(void);
-        void Queue_Spread(Cell const& cell);
+    void Spread_AI(void);
+    void Initialize_Spread(void);
+    void Recalc_Spread(void);
+    void Clear_Spread(void);
+    void Queue_Spread(Cell const& cell);
 
-        void Growth_AI(void);
-        void Initialize_Growth(void);
-        void Recalc_Growth(void);
-        void Clear_Growth(void);
-        void Queue_Growth(Cell const& cell);
+    void Growth_AI(void);
+    void Initialize_Growth(void);
+    void Recalc_Growth(void);
+    void Clear_Growth(void);
+    void Queue_Growth(Cell const& cell);
 
-        static void Clear_Tiberium_Spread_State(Cell const& cell);
+    static void Clear_Tiberium_Spread_State(Cell const& cell);
 
-    public:
-        /**
-         *  The index of the pip shape to be drawn for this Tiberium.
-         */
-        int PipIndex;
+public:
+    /**
+     *  The index of the pip shape to be drawn for this Tiberium.
+     */
+    int PipIndex;
 
-        /**
-         *  The order in which this Tiberium appears when pips are drawn.
-         */
-        int PipDrawOrder;
+    /**
+     *  The order in which this Tiberium appears when pips are drawn.
+     */
+    int PipDrawOrder;
 
-        /**
-         *  The damage this Tiberium does to infantry.
-         */
-        int DamageToInfantry;
+    /**
+     *  The damage this Tiberium does to infantry.
+     */
+    int DamageToInfantry;
 
-        using QueueItem = std::pair<float, Cell>;
+    int MinSpreadStage;
+    int SpawnSpreadStage;
 
-        struct CompareQueueItem {
-            bool operator()(const QueueItem& a, const QueueItem& b) const
-            {
-                return a.first > b.first; // min-heap by float
-            }
-        };
+private:
+    using QueueItem = std::pair<float, Cell>;
 
-        std::priority_queue<QueueItem, std::vector<QueueItem>, CompareQueueItem> SpreadQueue;
-        std::vector<bool> SpreadState;
-        std::priority_queue<QueueItem, std::vector<QueueItem>, CompareQueueItem> GrowthQueue;
-        std::vector<bool> GrowthState;
+    struct CompareQueueItem {
+        bool operator()(const QueueItem& a, const QueueItem& b) const
+        {
+            return a.first > b.first; // min-heap by float
+        }
+    };
+
+public:
+    std::priority_queue<QueueItem, std::vector<QueueItem>, CompareQueueItem> SpreadQueue;
+    std::vector<bool> SpreadState;
+    std::priority_queue<QueueItem, std::vector<QueueItem>, CompareQueueItem> GrowthQueue;
+    std::vector<bool> GrowthState;
 };
 
 int Map_Cell_Index(Cell const& cell);
