@@ -105,6 +105,5 @@ bool Vinifera_SkipToInternet = false;
 bool Vinifera_ExitAfterSkip = false;
 
 bool Vinifera_NewSidebar = false;
-bool Vinifera_NoVersionString = false;
 
 DynamicVectorClass<ExceptionInfoDatabaseStruct> ExceptionInfoDatabase;

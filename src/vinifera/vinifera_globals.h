@@ -139,7 +139,6 @@ extern bool Vinifera_ExitAfterSkip;
 
 
 extern bool Vinifera_NewSidebar;
-extern bool Vinifera_NoVersionString;
 
 
 /**
