@@ -1643,8 +1643,8 @@ DECLARE_PATCH(_BuildingClass_Mission_Deconstruction_ConYard_Survivors_Patch)
 DECLARE_PATCH(_BuildingClass_Mission_Deconstruction_ConYard_Unlimbo_Patch)
 {
     GET_REGISTER_STATIC(UnitClass*, mcv, ebp);
-    LEA_STACK_STATIC(Coord*, coords, esp, 0x40);
     GET_REGISTER_STATIC(Dir256, dir, eax);
+    LEA_STACK_STATIC(Coord*, coords, esp, 0x40);
 
     static bool result;
 

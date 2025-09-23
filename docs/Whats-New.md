@@ -80,6 +80,7 @@ Vinifera fixes:
 - Fix a bug where `Totable=no` did not work (by ZivDero)
 - Fix a crash that could happen if you lost a factory while producing something (by ZivDero)
 - Fix problems with new IsometricTileType flags during save/load (by ZivDero)
+- Fix a bug where when undeploying a building, the resulting unit would face the wrong way (by ZivDero)
 
 
 Vanilla fixes:
