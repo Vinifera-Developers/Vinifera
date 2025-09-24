@@ -99,6 +99,8 @@ Vanilla fixes:
 - Fix a bug where carryalls would try to drop off units when landing on a helipad (by ZivDero)
 - Fix a bug where carryalls would land too high when carrying infantry (by ZivDero)
 - Fix a bug where carryalls would allow boarding in some situations when they shouldn't (by ZivDero)
+- Fix a bug where under some circumstances Tiberium would halt spreading and/or growing temporarily (by ZivDero)
+- Fix a bug where Tiberium spawned by animations wouldn't grow or spread (by ZivDero)
 
 :::
 
