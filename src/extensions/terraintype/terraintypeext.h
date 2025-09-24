@@ -112,5 +112,8 @@ TerrainTypeClassExtension final : public ObjectTypeClassExtension
          */
         Point2D TiberiumSpawnCount;
 
+        /**
+         *  If SpawnsTiberium=yes, should TIberium be spawned randomly in the range instead of spreading from the center.
+         */
         bool IsTiberiumScatterSpawn;
 };

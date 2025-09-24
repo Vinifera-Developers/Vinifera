@@ -113,6 +113,11 @@ bool CellClassExt::_Can_Tiberium_Germinate(TiberiumClass const* tiberium) const
 }
 
 
+/**
+ *  Re-implementation of CellClass::Can_Tiberium_Spread.
+ *
+ *  @author: ZivDero, tomsons26
+ */
 bool CellClassExt::_Can_Tiberium_Spread()
 {
     if (!Scen->Special.IsTSpread) return false;
@@ -121,6 +126,9 @@ bool CellClassExt::_Can_Tiberium_Spread()
 
     if (tiberium == TIBERIUM_NONE) return false;
 
+    /**
+     *  Use the new setting as the minimum stage to spread.
+     */
     if (OverlayData < Extension::Fetch(Tiberiums[tiberium])->MinSpreadStage) return false;
 
     if (Tiberiums[tiberium]->SpreadPercentage < 0.00001) return false;
@@ -182,6 +190,11 @@ bool CellClassExt::_Spread_Tiberium(bool forced)
 }
 
 
+/**
+ *  Re-implementation of CellClass::Reduce_Tiberium.
+ *
+ *  @author: ZivDero
+ */
 int CellClassExt::_Reduce_Tiberium(int levels)
 {
     Rect dirty = Union(Overlay_Render_Rect(), Overlay_Shadow_Render_Rect());
@@ -209,7 +222,7 @@ int CellClassExt::_Reduce_Tiberium(int levels)
                 Map.Update_Cell_Subzones(CellID);
             }
             Map.Flag_Background_Update(CellID);
-            tiberium->Clear_Tiberium_Spread_State(CellID);
+            tiberium->Clear_Spread_State(CellID);
             for (int facing = FACING_FIRST; facing < FACING_COUNT; facing++) {
                 Cell adjacent = ::Adjacent_Cell(CellID, static_cast<FacingType>(facing));
                 if (Map.In_Radar(adjacent) && !Extension::Fetch(tiberium)->SpreadState[Map_Cell_Index(adjacent)]) {

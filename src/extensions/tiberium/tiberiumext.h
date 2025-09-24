@@ -62,18 +62,18 @@ public:
     virtual bool Read_INI(CCINIClass& ini) override;
 
     void Spread_AI(void);
-    void Initialize_Spread(void);
+    void Init_Spread(void);
     void Recalc_Spread(void);
     void Clear_Spread(void);
     void Queue_Spread(Cell const& cell);
 
     void Growth_AI(void);
-    void Initialize_Growth(void);
+    void Init_Growth(void);
     void Recalc_Growth(void);
     void Clear_Growth(void);
     void Queue_Growth(Cell const& cell);
 
-    static void Clear_Tiberium_Spread_State(Cell const& cell);
+    static void Clear_Spread_State(Cell const& cell);
 
 public:
     /**
@@ -91,12 +91,18 @@ public:
      */
     int DamageToInfantry;
 
+    /**
+     *  The minimum stage at which this Tiberium can spread.
+     */
     int MinSpreadStage;
-    int SpawnSpreadStage;
+
+    /**
+     *  The stage at which newly spread overlays spawn.
+     */
+    int SpreadSpawnStage;
 
 private:
     using QueueItem = std::pair<float, Cell>;
-
     struct CompareQueueItem {
         bool operator()(const QueueItem& a, const QueueItem& b) const
         {
@@ -105,6 +111,12 @@ private:
     };
 
 public:
+
+    /**
+     *  Replacement queues for spread and growth mechanics.
+     *  The vectors represent whether the cell at that index is scheduled to
+     *  grow or spread.
+     */
     std::priority_queue<QueueItem, std::vector<QueueItem>, CompareQueueItem> SpreadQueue;
     std::vector<bool> SpreadState;
     std::priority_queue<QueueItem, std::vector<QueueItem>, CompareQueueItem> GrowthQueue;
@@ -112,4 +124,4 @@ public:
 };
 
 int Map_Cell_Index(Cell const& cell);
-int Map_Cell_Count(void);
+int Map_Cell_Count();

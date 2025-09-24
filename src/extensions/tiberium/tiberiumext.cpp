@@ -47,7 +47,7 @@
 TiberiumClassExtension::TiberiumClassExtension(const TiberiumClass *this_ptr) :
     AbstractTypeClassExtension(this_ptr),
     MinSpreadStage(0),
-    SpawnSpreadStage(5)
+    SpreadSpawnStage(5)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TiberiumClassExtension::TiberiumClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -230,7 +230,7 @@ bool TiberiumClassExtension::Read_INI(CCINIClass &ini)
     DamageToInfantry = ini.Get_Int(ini_name, "DamageToInfantry", DamageToInfantry);
 
     MinSpreadStage = ini.Get_Int(ini_name, "MinSpreadStage", MinSpreadStage);
-    SpawnSpreadStage = ini.Get_Int(ini_name, "SpawnSpreadStage", SpawnSpreadStage);
+    SpreadSpawnStage = ini.Get_Int(ini_name, "SpreadSpawnStage", SpreadSpawnStage);
 
     IsInitialized = true;
     
@@ -238,18 +238,33 @@ bool TiberiumClassExtension::Read_INI(CCINIClass &ini)
 }
 
 
+/**
+ *  Computes a unique index for this map cell.
+ *
+ *  @author: ZivDero, tomsons26
+ */
 int Map_Cell_Index(Cell const& cell)
 {
     return ((cell.X - cell.Y + Map.PlayRect.Width - 1) >> 1) + Map.PlayRect.Width * (cell.X - Map.PlayRect.Width + cell.Y - 1);
 }
 
 
-int Map_Cell_Count(void)
+/**
+ *  Computes the number of cells on the map.
+ *
+ *  @author: ZivDero, tomsons26
+ */
+int Map_Cell_Count()
 {
     return (2 * Map.PlayRect.Width) * (Map.PlayRect.Height + 4);
 }
 
 
+/**
+ *  Tiberium spread logic main function.
+ *
+ *  @author: ZivDero, tomsons26
+ */
 void TiberiumClassExtension::Spread_AI()
 {
     if (!SpreadQueue.empty() && This()->SpreadPercentage > 0.00001) {
@@ -278,7 +293,7 @@ void TiberiumClassExtension::Spread_AI()
             }
 
             if (numallowed != 0) {
-                CellClassExtension::Spread_Tiberium(&cellptr, false, SpawnSpreadStage);
+                CellClassExtension::Spread_Tiberium(&cellptr, false, SpreadSpawnStage);
                 index++;
 
                 if (numallowed > 1) {
@@ -293,12 +308,22 @@ void TiberiumClassExtension::Spread_AI()
 }
 
 
-void TiberiumClassExtension::Initialize_Spread()
+/**
+ *  Initializes the spread logic for this Tiberium.
+ *
+ *  @author: ZivDero, tomsons26
+ */
+void TiberiumClassExtension::Init_Spread()
 {
     Recalc_Spread();
 }
 
 
+/**
+ *  Resets and recalculates the spread logic for this Tiberium.
+ *
+ *  @author: ZivDero, tomsons26
+ */
 void TiberiumClassExtension::Recalc_Spread()
 {
     Clear_Spread();
@@ -316,6 +341,11 @@ void TiberiumClassExtension::Recalc_Spread()
 }
 
 
+/**
+ *  Clears and recalculates the spread logic for this Tiberium.
+ *
+ *  @author: ZivDero, tomsons26
+ */
 void TiberiumClassExtension::Clear_Spread()
 {
     SpreadQueue = decltype(SpreadQueue)();
@@ -324,6 +354,11 @@ void TiberiumClassExtension::Clear_Spread()
 }
 
 
+/**
+ *  Queues Tiberium to spread FROM this cell.
+ *
+ *  @author: ZivDero, tomsons26
+ */
 void TiberiumClassExtension::Queue_Spread(Cell const& cell)
 {
     if (Map[cell].Can_Tiberium_Spread() && !SpreadState[Map_Cell_Index(cell)]) {
@@ -333,6 +368,11 @@ void TiberiumClassExtension::Queue_Spread(Cell const& cell)
 }
 
 
+/**
+ *  Tiberium growth logic main function.
+ *
+ *  @author: ZivDero, tomsons26
+ */
 void TiberiumClassExtension::Growth_AI()
 {
     if (!GrowthQueue.empty() && This()->GrowthPercentage > 0.00001) {
@@ -370,12 +410,22 @@ void TiberiumClassExtension::Growth_AI()
 }
 
 
-void TiberiumClassExtension::Initialize_Growth()
+/**
+ *  Initializes the spread logic for this Tiberium.
+ *
+ *  @author: ZivDero, tomsons26
+ */
+void TiberiumClassExtension::Init_Growth()
 {
     Recalc_Growth();
 }
 
 
+/**
+ *  Resets and recalculates the spread logic for this Tiberium.
+ *
+ *  @author: ZivDero, tomsons26
+ */
 void TiberiumClassExtension::Recalc_Growth()
 {
     Clear_Growth();
@@ -393,6 +443,11 @@ void TiberiumClassExtension::Recalc_Growth()
 }
 
 
+/**
+ *  Clears and recalculates the spread logic for this Tiberium.
+ *
+ *  @author: ZivDero, tomsons26
+ */
 void TiberiumClassExtension::Clear_Growth()
 {
     GrowthQueue = decltype(GrowthQueue)();
@@ -401,6 +456,11 @@ void TiberiumClassExtension::Clear_Growth()
 }
 
 
+/**
+ *  Queues Tiberium to spread AT this cell.
+ *
+ *  @author: ZivDero, tomsons26
+ */
 void TiberiumClassExtension::Queue_Growth(Cell const& cell)
 {
     if (Map[cell].OverlayData < This()->FrameCount - 1) {
@@ -410,7 +470,12 @@ void TiberiumClassExtension::Queue_Growth(Cell const& cell)
 }
 
 
-void TiberiumClassExtension::Clear_Tiberium_Spread_State(Cell const& cell)
+/**
+ *  Marks this cell as not spreading for all Tiberiums.
+ *
+ *  @author: ZivDero, tomsons26
+ */
+void TiberiumClassExtension::Clear_Spread_State(Cell const& cell)
 {
     int cellindex = Map_Cell_Index(cell);
     for (int i = 0; i < Tiberiums.Count(); i++) {
