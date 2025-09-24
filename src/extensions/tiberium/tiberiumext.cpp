@@ -284,19 +284,18 @@ void TiberiumClassExtension::Spread_AI()
                 continue;
             }
 
-            int numallowed = 0;
-
+            int possible_spreads = 0;
             for (FacingType facing = FACING_N; facing < FACING_COUNT; facing++) {
                 if (cellptr.Adjacent_Cell(facing).Can_Tiberium_Germinate(nullptr)) {
-                    numallowed++;
+                    possible_spreads++;
                 }
             }
 
-            if (numallowed != 0) {
+            if (possible_spreads != 0) {
                 CellClassExtension::Spread_Tiberium(&cellptr, false, SpreadSpawnStage);
                 index++;
 
-                if (numallowed > 1) {
+                if (possible_spreads > 1) {
                     SpreadQueue.emplace(Frame + Random_Pick(0, 49), cell);
                     SpreadState[Map_Cell_Index(cellptr.CellID)] = true;
                 }
