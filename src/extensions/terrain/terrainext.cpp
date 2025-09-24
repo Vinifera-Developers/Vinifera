@@ -223,7 +223,9 @@ void TerrainClassExtension::Spread_Tiberium() const
          *  Place Tiberium as many times as we want to spread.
          */
         while (spreads < count && !cells.empty()) {
-            Cell cell = cells[Random_Pick(0u, cells.size() - 1)];
+            int index = Random_Pick(0u, cells.size() - 1);
+            Cell cell = cells[index];
+            cells.erase(cells.begin() + index);
             int stage = Scen->RandomNumber(ttype_ext->TiberiumSpawnStage.X, ttype_ext->TiberiumSpawnStage.Y);
             stage = std::clamp(stage, 0, tiberium->FrameCount - 1);
             if (Map[cell].Place_Tiberium(ttype->TiberiumToSpawn, stage)) {
