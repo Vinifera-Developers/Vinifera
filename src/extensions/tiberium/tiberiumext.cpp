@@ -268,6 +268,11 @@ int Map_Cell_Count()
 void TiberiumClassExtension::Spread_AI()
 {
     if (!SpreadQueue.empty() && This()->SpreadPercentage > 0.00001) {
+
+        /**
+         *  The number of spreads depends on the queue size and Tiberium properties,
+         *  capped for performance (and a minimum so that it never completely halts).
+         */
         int count = std::clamp(static_cast<int>(SpreadQueue.size() * This()->SpreadPercentage), 5, 300);
         count = Random_Pick(1, count);
 
@@ -279,11 +284,19 @@ void TiberiumClassExtension::Spread_AI()
             Cell cell = node.second;
             CellClass& cellptr = Map[cell];
 
+            /**
+             *  If we can't spread, skip without increasing the counter. This fixes a bug in vanilla
+             *  where sometimes the queue would contain a bunch of entries that all failed,
+             *  and it appeared as if Tiberium broke.
+             */
             if (!cellptr.Can_Tiberium_Spread()) {
                 SpreadState[Map_Cell_Index(cellptr.CellID)] = false;
                 continue;
             }
 
+            /**
+             *  Count how many neighbors we can potentially spread to.
+             */
             int possible_spreads = 0;
             for (FacingType facing = FACING_N; facing < FACING_COUNT; facing++) {
                 if (cellptr.Adjacent_Cell(facing).Can_Tiberium_Germinate(nullptr)) {
@@ -295,6 +308,9 @@ void TiberiumClassExtension::Spread_AI()
                 CellClassExtension::Spread_Tiberium(&cellptr, false, SpreadSpawnStage);
                 index++;
 
+                /**
+                 *  If there's more than one option, queue to spread again later.
+                 */
                 if (possible_spreads > 1) {
                     SpreadQueue.emplace(Frame + Random_Pick(0, 49), cell);
                     SpreadState[Map_Cell_Index(cellptr.CellID)] = true;
@@ -375,6 +391,11 @@ void TiberiumClassExtension::Queue_Spread(Cell const& cell)
 void TiberiumClassExtension::Growth_AI()
 {
     if (!GrowthQueue.empty() && This()->GrowthPercentage > 0.00001) {
+
+        /**
+         *  The number of growths depends on the queue size and Tiberium properties,
+         *  capped for performance (and a minimum so that it never completely halts).
+         */
         int count = std::clamp(static_cast<int>(GrowthQueue.size() * This()->GrowthPercentage), 5, 300);
         count = Random_Pick(1, count);
 
@@ -386,6 +407,12 @@ void TiberiumClassExtension::Growth_AI()
             Cell cell = node.second;
             CellClass& cellptr = Map[cell];
 
+
+            /**
+             *  If we can't grow, skip without increasing the counter. This fixes a bug in vanilla
+             *  where sometimes the queue would contain a bunch of entries that all failed,
+             *  and it appeared as if Tiberium broke.
+             */
             if (!cellptr.Can_Tiberium_Grow()) {
                 GrowthState[Map_Cell_Index(cell)] = false;
                 continue;
@@ -394,6 +421,10 @@ void TiberiumClassExtension::Growth_AI()
             if (cellptr.Tiberium_Type_Here() == This()->HeapID) {
                 cellptr.Grow_Tiberium();
 
+                /**
+                 *  If the overlay isn't completely grown yet, queue it to grow
+                 *  again later.
+                 */
                 if (cellptr.OverlayData < This()->FrameCount - 1) {
                     GrowthQueue.emplace(Frame + Random_Pick(0, 49), cell);
                     GrowthState[Map_Cell_Index(cell)] = true;
