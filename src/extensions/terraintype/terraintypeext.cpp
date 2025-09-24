@@ -50,7 +50,8 @@ TerrainTypeClassExtension::TerrainTypeClassExtension(const TerrainTypeClass* thi
     TiberiumSpawnRange(1),
     TiberiumSpawnStage(5, 5),
     TiberiumSpawnCount(1, 1),
-    TiberiumSpawnStageFalloff(0)
+    TiberiumSpawnStageFalloff(0),
+    IsTiberiumScatterSpawn(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TerrainTypeClassExtension::TerrainTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -222,6 +223,7 @@ bool TerrainTypeClassExtension::Read_INI(CCINIClass &ini)
     TiberiumSpawnCount = get_min_max(ini, ini_name, "SpawnsTiberiumCount", TiberiumSpawnCount);
     TiberiumSpawnStage = get_min_max(ini, ini_name, "SpawnsTiberiumStage", TiberiumSpawnStage);
     TiberiumSpawnStageFalloff = ini.Get_Float(ini_name, "SpawnsTiberiumStageFalloff", TiberiumSpawnStageFalloff);
+    IsTiberiumScatterSpawn = ini.Get_Bool(ini_name, "SpawnsTiberiumScattered", IsTiberiumScatterSpawn);
 
     IsInitialized = true;
     
