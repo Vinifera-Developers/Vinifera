@@ -83,3 +83,5 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where the "Building exists" event would fire when you queued a building on the sidebar.
 - Fix a bug where using the "Destroy Tag" trigger action could lead to trying to free invalid memory.
 - Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2.
+- Fix a bug where carryalls would unload infantry like they unload vehicles.
+- Fix a bug where carryalls would draw their infantry passenger's shadow.

@@ -501,6 +501,68 @@ DECLARE_PATCH(_AircraftClass_Enter_Idle_Mode_Spawner_Patch)
 
 
 /**
+ *  The below patches make the carryall only unload vehicles by dropping them off,
+ *  leaving infantry to be manually unloaded.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_AircraftClass_Do_MISSION_UNLOAD_Carryall_Drop_Off_Patch)
+{
+    GET_REGISTER_STATIC(AircraftClass*, this_ptr, esi);
+
+    if (this_ptr->Class->IsCarryall && this_ptr->Cargo.Is_Something_Attached(RTTI_UNIT)) {
+        JMP(0x0040980F);
+    }
+
+    JMP(0x00409833);
+}
+
+DECLARE_PATCH(_AircraftClass_Do_MISSION_MOVE_CARRYALL_Drop_Off_Patch)
+{
+    GET_REGISTER_STATIC(AircraftClass*, this_ptr, esi);
+
+    _asm add esp, 4
+
+    if (this_ptr->Cargo.Is_Something_Attached(RTTI_UNIT)) {
+        JMP(0x0040AD82);
+    }
+
+    JMP(0x0040ADD0);
+}
+
+DECLARE_PATCH(_AircraftClass_Do_MISSION_ENTER_Drop_Off_Patch)
+{
+    GET_REGISTER_STATIC(AircraftClass*, this_ptr, esi);
+
+    if (this_ptr->Class->IsCarryall && this_ptr->Cargo.Is_Something_Attached(RTTI_UNIT)) {
+        JMP(0x0040D62F);
+    }
+
+    JMP(0x0040D6D3);
+}
+
+
+/**
+ *  Patches AircraftClass::Draw_It to only draw vehicle passengers' shadows
+ *  for carryalls.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_AircraftClass_Draw_It_Carry_All_Patch)
+{
+    GET_REGISTER_STATIC(AircraftClass*, this_ptr, ebp);
+    GET_STACK_STATIC(Rect*, cliprect, esp, 0xD0);
+    LEA_STACK_STATIC(Point2D*, drawpoint, esp, 0x10);
+
+    if (this_ptr->Cargo.Is_Something_Attached(RTTI_UNIT) && this_ptr->Class->IsCarryall) {
+        this_ptr->Cargo.Attached_Object(RTTI_UNIT)->Draw_It(*drawpoint, *cliprect);
+    }
+
+    JMP(0x00408C27);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void AircraftClassExtension_Hooks()
@@ -531,4 +593,9 @@ void AircraftClassExtension_Hooks()
     Patch_Jump(0x0040D260, &AircraftClassExt::_Cell_Seems_Ok);
     Patch_Jump(0x0040B3A6, &_AircraftClass_Enter_Idle_Mode_Spawner_Patch);
     Patch_Jump(0x0040B7E0, &AircraftClassExt::_What_Action);
+
+    Patch_Jump(0x004097FF, &_AircraftClass_Do_MISSION_UNLOAD_Carryall_Drop_Off_Patch);
+    Patch_Jump(0x0040AD7B, &_AircraftClass_Do_MISSION_MOVE_CARRYALL_Drop_Off_Patch);
+    Patch_Jump(0x0040D60D, &_AircraftClass_Do_MISSION_ENTER_Drop_Off_Patch);
+    Patch_Jump(0x00408BF3, &_AircraftClass_Draw_It_Carry_All_Patch);
 }
