@@ -225,7 +225,7 @@ void AnimClassExt::_AI()
                             if ((int)sqrt((double)x * (double)x + (double)y * (double)y) <= Class->TiberiumSpreadRadius) {
                                 CellClass* tibcell = &Map[Adjacent_Cell(coord.As_Cell(), FacingType(x))];
                                 if (tibcell->Can_Tiberium_Germinate(nullptr) && Class->TiberiumSpawnType != nullptr) {
-                                    new OverlayClass(OverlayTypes[Class->TiberiumSpawnType->HeapID + Random_Pick(0, 3)], tibcell->Cell_Number());
+                                    new OverlayClass(OverlayTypes[Class->TiberiumSpawnType->HeapID + Random_Pick(0, 3)], tibcell->Fetch_CellID());
                                     tibcell->OverlayData = Random_Pick(0, 2);
                                     Rect overlayrect = tibcell->Overlay_Render_Rect();
                                     overlayrect.Y -= TacticalRect.Y;
