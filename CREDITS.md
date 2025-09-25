@@ -284,3 +284,8 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where using the "Destroy Tag" trigger action could lead to trying to free invalid memory.
   - Implement `BarGate` for buildings.
   - Add Tiberium spreader customization.
+  - Fix a bug where carryalls would unload infantry like they unload vehicles.
+  - Fix a bug where carryalls would draw their infantry passenger's shadow.
+  - Fix a bug where carryalls would try to drop off units when landing on a helipad.
+  - Fix a bug where carryalls would land too high when carrying infantry.
+  - Fix a bug where carryalls would allow boarding in some situations when they shouldn't.

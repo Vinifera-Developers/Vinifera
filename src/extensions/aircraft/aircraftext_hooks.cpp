@@ -67,6 +67,9 @@ public:
     bool _Unlimbo(const Coord& coord, Dir256 dir);
     bool _Cell_Seems_Ok(Cell& cell, bool strict) const;
     ActionType _What_Action(ObjectClass const* target, bool disallow_force);
+    LONG STDMETHODCALLTYPE _Landing_Altitude();
+    LONG STDMETHODCALLTYPE _Landing_Altitude_Thunk();
+    RadioMessageType _Receive_Message(RadioClass * from, RadioMessageType message, long& param);
 };
 
 
@@ -240,7 +243,16 @@ ActionType AircraftClassExt::_What_Action(ObjectClass const* target, bool disall
          *  Can't unload the passengers if there are none.
          */
         if (!Cargo.How_Many()) {
-            action = ACTION_NONE;
+
+            /**
+             *  If this is also a normal transport, show the "can't deploy" cursor, like for APCs,
+             *  otherwise just show the normal cursor.
+             */
+            if (Class->Max_Passengers() > 0) {
+                action = ACTION_NO_DEPLOY;
+            } else {
+                action = ACTION_NONE;
+            }
         }
 
         /**
@@ -282,6 +294,17 @@ ActionType AircraftClassExt::_What_Action(ObjectClass const* target, bool disall
     }
 
     /**
+     *  #FIX: If we're carrying a unit, only allow dropping it off on a repair depot,
+     *  not on a helipad or anything else.
+     */
+    if (Class->IsCarryall && action == ACTION_ENTER && Cargo.Is_Something_Attached(RTTI_UNIT)) {
+        BuildingClass* building = (BuildingClass*)target;
+        if (!building->Class->IsCanUnitRepair) {
+            action = ACTION_NO_ENTER;
+        }
+    }
+
+    /**
      *  Make sure we can't tote things out of the weapons factory.
      */
     if (Class->IsCarryall && action == ACTION_TOTE) {
@@ -295,6 +318,164 @@ ActionType AircraftClassExt::_What_Action(ObjectClass const* target, bool disall
     }
 
     return action;
+}
+
+
+/**
+ *  AircraftClass::Receive_Message replacement.
+ *
+ *  @author: ZivDero
+ */
+RadioMessageType AircraftClassExt::_Receive_Message(RadioClass* from, RadioMessageType message, long& param)
+{
+    AbstractClass* target;
+
+    switch (message) {
+
+    case RADIO_RELOAD:
+        if (Ammo >= Class->MaxAmmo / 2 && TarCom != nullptr) {
+            return RADIO_ROGER;
+        }
+        return FootClass::Receive_Message(from, message, param);
+
+    case RADIO_PREPARED:
+        if (TarCom != nullptr) return RADIO_NEGATIVE;
+        if ((HeightAGL == 0 && Ammo == Class->MaxAmmo) || (HeightAGL > 0 && Ammo > 0)) return RADIO_ROGER;
+        return RADIO_NEGATIVE;
+
+    case RADIO_ALL_DONE:
+        if (Ammo == Class->MaxAmmo) {
+            return RADIO_ROGER;
+        }
+        return RADIO_NEGATIVE;
+
+    /*
+    **  Something disastrous has happened to the object in contact with. Fall back
+    **  and regroup. This means that any landing process is immediately aborted.
+    */
+    case RADIO_RUN_AWAY:
+        Scatter(COORD_NONE, true);
+        break;
+
+    /*
+    **  The ground control requests that this specified landing spot be used.
+    */
+    case RADIO_MOVE_HERE:
+        FootClass::Receive_Message(from, message, param);
+        target = reinterpret_cast<AbstractClass*>(param);
+        if (dynamic_cast<BuildingClass*>(target) != nullptr) {
+            if (Transmit_Message(RADIO_CAN_LOAD, ::As_Techno(target)) != RADIO_ROGER) {
+                return RADIO_NEGATIVE;
+            }
+            Assign_Mission(MISSION_ENTER);
+            Assign_Destination(target);
+        } else {
+            Assign_Mission(MISSION_MOVE);
+            Assign_Destination(target);
+        }
+        Commence();
+        return RADIO_ROGER;
+
+    /*
+    **  Ground control is requesting if the aircraft requires navigation direction.
+    */
+    case RADIO_NEED_TO_MOVE:
+        FootClass::Receive_Message(from, message, param);
+        if (!Locomotion->Is_Moving() || NavCom == nullptr) {
+            return RADIO_ROGER;
+        }
+        return RADIO_NEGATIVE;
+
+    /*
+    **  This message is sent by the passenger when it determines that it has
+    **  entered the transport.
+    */
+    case RADIO_IM_IN:
+        if (Cargo.How_Many() == Class->Max_Passengers()) {
+            Door.Close_Door(Class->DeployTime);
+        }
+
+        /*
+        **  If a civilian has entered the transport, then the transport will immediately
+        **  fly off the map.
+        */
+        if (Counts_As_Civ_Evac(from)) {
+            Assign_Mission(MISSION_RETREAT);
+        }
+        return RADIO_ATTACH;
+
+    /*
+    **  Docking maintenance message received. Check to see if new orders should be given
+    **  to the impatient unit.
+    */
+    case RADIO_DOCKING:
+        if (Class->Max_Passengers() > 0 && Cargo.How_Many() < Class->Max_Passengers()) {
+            FootClass::Receive_Message(from, message, param);
+
+            if (!Locomotion->Is_Moving()) {
+
+                Door.Open_Door(Class->DeployTime);
+
+                /*
+                **  If the potential passenger needs someplace to go, then figure out a good
+                **  spot and tell it to go.
+                */
+                if (Transmit_Message(RADIO_NEED_TO_MOVE, from) == RADIO_ROGER) {
+
+                    /*
+                    **  Tell the potential passenger where it should go. If the passenger is
+                    **  already at the staging location, then tell it to move onto the transport
+                    **  directly.
+                    */
+                    param = reinterpret_cast<long>(this);
+                    if (Transmit_Message(RADIO_MOVE_HERE, param, from) != RADIO_ROGER) {
+                        Transmit_Message(RADIO_OVER_OUT, from);
+                    } else {
+                        Contact_With_Whom()->Unselect();
+                    }
+                }
+            }
+            return RADIO_ROGER;
+        }
+        break;
+
+    /*
+    **  Asks if the passenger can load on this transport.
+    */
+    case RADIO_CAN_LOAD:
+        if (Class->Max_Passengers() == 0 || from == nullptr || !House->Is_Ally(from)) return RADIO_STATIC;
+
+        /*
+        **  Don't allow boarding if we're docked.
+        */
+        if (In_Radio_Contact() && Contact_With_Whom()->RTTI == RTTI_BUILDING) return RADIO_NEGATIVE;
+
+        /*
+        **  Carryalls can only carry one vehicle, and only by itself.
+        */
+        if (Class->IsCarryall && Cargo.Is_Something_Attached(RTTI_UNIT)) return RADIO_NEGATIVE;
+
+        if (Cargo.How_Many() < Class->Max_Passengers()) {
+            return RADIO_ROGER;
+        }
+        return RADIO_NEGATIVE;
+
+    case RADIO_UNLOADED:
+        if (Class->IsCarryall && Mission == MISSION_MOVE && IsTethered) {
+            if ((Cargo.Is_Something_Attached() && Cargo.Attached_Object() == from) || NavCom == from) {
+                return RADIO_NEGATIVE;
+            }
+        }
+        break;
+
+    default:
+        break;
+    }
+
+    /*
+    **	Let the base class take over processing this message.
+    */
+    return FootClass::Receive_Message(from, message, param);
 }
 
 
@@ -501,6 +682,124 @@ DECLARE_PATCH(_AircraftClass_Enter_Idle_Mode_Spawner_Patch)
 
 
 /**
+ *  The below patches make the carryall only unload vehicles by dropping them off,
+ *  leaving infantry to be manually unloaded.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_AircraftClass_Do_MISSION_UNLOAD_Carryall_Drop_Off_Patch)
+{
+    GET_REGISTER_STATIC(AircraftClass*, this_ptr, esi);
+
+    if (this_ptr->Class->IsCarryall && this_ptr->Cargo.Is_Something_Attached(RTTI_UNIT)) {
+        JMP(0x0040980F);
+    }
+
+    JMP(0x00409833);
+}
+
+DECLARE_PATCH(_AircraftClass_Do_MISSION_MOVE_CARRYALL_Drop_Off_Patch)
+{
+    GET_REGISTER_STATIC(AircraftClass*, this_ptr, esi);
+
+    _asm add esp, 4
+
+    if (this_ptr->Cargo.Is_Something_Attached(RTTI_UNIT)) {
+        JMP(0x0040AD82);
+    }
+
+    JMP(0x0040ADD0);
+}
+
+DECLARE_PATCH(_AircraftClass_Do_MISSION_ENTER_Drop_Off_Patch)
+{
+    GET_REGISTER_STATIC(AircraftClass*, this_ptr, esi);
+
+    if (this_ptr->Class->IsCarryall && this_ptr->Cargo.Is_Something_Attached(RTTI_UNIT)) {
+        JMP(0x0040D62F);
+    }
+
+    JMP(0x0040D6D3);
+}
+
+
+/**
+ *  Patches AircraftClass::Draw_It to only draw vehicle passengers' shadows
+ *  for carryalls.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_AircraftClass_Draw_It_Carry_All_Patch)
+{
+    GET_REGISTER_STATIC(AircraftClass*, this_ptr, ebp);
+    GET_STACK_STATIC(Rect*, cliprect, esp, 0xD0);
+    LEA_STACK_STATIC(Point2D*, drawpoint, esp, 0x10);
+
+    if (this_ptr->Cargo.Is_Something_Attached(RTTI_UNIT) && this_ptr->Class->IsCarryall) {
+        this_ptr->Cargo.Attached_Object(RTTI_UNIT)->Draw_It(*drawpoint, *cliprect);
+    }
+
+    JMP(0x00408C27);
+}
+
+
+/**
+ *  Replacement for AircraftClass::Landing_Altitude.
+ *  Fixes a problem where a carryall would land too high with any cargo,
+ *  not just units.
+ *
+ *  @author: ZivDero
+ */
+LONG AircraftClassExt::_Landing_Altitude()
+{
+    /**
+     *  If this is a carryall, if it's landing by itself on a helipad or a service depot,
+     *  it should land at a normal height.
+     */
+    if (Class->IsCarryall && !Cargo.Is_Something_Attached()) {
+        TechnoClass* tptr = Contact_With_Whom();
+        if (tptr != nullptr && Mission == MISSION_ENTER) {
+            BuildingClass* bptr = dynamic_cast<BuildingClass*>(tptr);
+            if (bptr != nullptr) {
+                if (bptr->Class->IsCanUnitRepair || bptr->Class->IsHelipad) {
+                    return 0;
+                }
+            }
+        }
+    }
+
+    if (Class->IsCarryall) {
+
+        /**
+         *  We're picking something up.
+         *  Check for RTTI is new to prevent landing too high on buildings we're in contact with.
+         */
+        if (In_Radio_Contact() && Contact_With_Whom()->RTTI == RTTI_UNIT) {
+            return 100;
+        }
+
+        /**
+         *  Something is attached below us, account for that.
+         */
+        if (Cargo.Is_Something_Attached(RTTI_UNIT)) {
+            return 100;
+        }
+    }
+
+    return 0;
+}
+
+/**
+ *  AircraftClass::Landing_Altitude is an interface method so we need to make
+ *  a thunk to properly patch it.
+ */
+LONG AircraftClassExt::_Landing_Altitude_Thunk()
+{
+    return static_cast<AircraftClassExt*>(reinterpret_cast<IFlyControl*>(this))->_Landing_Altitude();
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void AircraftClassExtension_Hooks()
@@ -531,4 +830,11 @@ void AircraftClassExtension_Hooks()
     Patch_Jump(0x0040D260, &AircraftClassExt::_Cell_Seems_Ok);
     Patch_Jump(0x0040B3A6, &_AircraftClass_Enter_Idle_Mode_Spawner_Patch);
     Patch_Jump(0x0040B7E0, &AircraftClassExt::_What_Action);
+
+    Patch_Jump(0x004097FF, &_AircraftClass_Do_MISSION_UNLOAD_Carryall_Drop_Off_Patch);
+    Patch_Jump(0x0040AD7B, &_AircraftClass_Do_MISSION_MOVE_CARRYALL_Drop_Off_Patch);
+    Patch_Jump(0x0040D60D, &_AircraftClass_Do_MISSION_ENTER_Drop_Off_Patch);
+    Patch_Jump(0x00408BF3, &_AircraftClass_Draw_It_Carry_All_Patch);
+    Patch_Jump(0x0040EDD0, &AircraftClassExt::_Landing_Altitude_Thunk);
+    Patch_Jump(0x0040C8A0, &AircraftClassExt::_Receive_Message);
 }

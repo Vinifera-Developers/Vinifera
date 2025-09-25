@@ -51,6 +51,7 @@ static class CargoClassExt : public CargoClass
 {
 public:
     void _Attach_One(FootClass* object);
+    FootClass* _Detach_Unit();
 };
 
 
@@ -77,7 +78,7 @@ public:
 void CargoClassExt::_Attach_One(FootClass* object) {
 
     // If there is no object, then no action is necessary.
-    if (object == NULL) return;
+    if (object == nullptr) return;
 
     object->Limbo();
 
@@ -91,6 +92,19 @@ void CargoClassExt::_Attach_One(FootClass* object) {
 
 
 /**
+ *  Proxy function to detach specifically a unit.
+ *  Used in AircraftClass::Drop_Off_Cargo so that
+ *  carryalls don't drop off infantry like vehicles.
+ *
+ *  @author: ZivDero
+ */
+FootClass* CargoClassExt::_Detach_Unit()
+{
+    return Detach_Object(RTTI_UNIT);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void CargoClassExtension_Hooks()
@@ -99,4 +113,5 @@ void CargoClassExtension_Hooks()
     Patch_Call(0x004D39FB, &CargoClassExt::_Attach_One);
     Patch_Call(0x004D3A82, &CargoClassExt::_Attach_One);
     Patch_Call(0x0065431A, &CargoClassExt::_Attach_One);
+    Patch_Call(0x0040A76F, &CargoClassExt::_Detach_Unit);
 }
