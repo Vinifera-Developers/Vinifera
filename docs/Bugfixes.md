@@ -85,3 +85,6 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2.
 - Fix a bug where carryalls would unload infantry like they unload vehicles.
 - Fix a bug where carryalls would draw their infantry passenger's shadow.
+- Fix a bug where carryalls would try to drop off units when landing on a helipad.
+- Fix a bug where carryalls would land too high when carrying infantry.
+- Fix a bug where carryalls would allow boarding in some situations when they shouldn't.

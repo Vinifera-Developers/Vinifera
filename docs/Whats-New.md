@@ -67,6 +67,7 @@ New:
 - Veterancy and Health Filter kotkeys (by hacklex)
 - Add unit promotion sounds, EVA and flashing (by ZivDero)
 - Add Tiberium spreader customization (by ZivDero)
+- Implement `BarGate` for buildings (by ZivDero)
 
 
 Vinifera fixes:
@@ -95,9 +96,9 @@ Vanilla fixes:
 - Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2 (by tomsons26, Rampastring)
 - Fix a bug where carryalls would unload infantry like they unload vehicles (by ZivDero)
 - Fix a bug where carryalls would draw their infantry passenger's shadow (by ZivDero)
-
-New:
-- Implement `BarGate` for buildings (by ZivDero)
+- Fix a bug where carryalls would try to drop off units when landing on a helipad (by ZivDero)
+- Fix a bug where carryalls would land too high when carrying infantry (by ZivDero)
+- Fix a bug where carryalls would allow boarding in some situations when they shouldn't (by ZivDero)
 
 :::
 
