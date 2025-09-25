@@ -67,6 +67,8 @@ public:
     bool _Unlimbo(const Coord& coord, Dir256 dir);
     bool _Cell_Seems_Ok(Cell& cell, bool strict) const;
     ActionType _What_Action(ObjectClass const* target, bool disallow_force);
+    LONG STDMETHODCALLTYPE _Landing_Altitude();
+    LONG STDMETHODCALLTYPE _Landing_Altitude_Thunk();
 };
 
 
@@ -563,6 +565,46 @@ DECLARE_PATCH(_AircraftClass_Draw_It_Carry_All_Patch)
 
 
 /**
+ *  Replacement for AircraftClass::Landing_Altitude.
+ *  Fixes a problem where a carryall would land too high with any cargo,
+ *  not just units.
+ *
+ *  @author: ZivDero
+ */
+LONG AircraftClassExt::_Landing_Altitude()
+{
+    if (Class->IsCarryall && !Cargo.Is_Something_Attached()) {
+        TechnoClass* tptr = Contact_With_Whom();
+        if (tptr != nullptr && Mission == MISSION_ENTER) {
+            BuildingClass* bptr = static_cast<BuildingClass*>(tptr);
+            if (bptr != nullptr) {
+                if (bptr->Class->IsCanUnitRepair || bptr->Class->IsHelipad) {
+                    return 0;
+                }
+            }
+        }
+    }
+
+    if (Class->IsCarryall) {
+        if (In_Radio_Contact() || Cargo.Is_Something_Attached(RTTI_UNIT)) {
+            return 100;
+        }
+    }
+
+    return 0;
+}
+
+/**
+ *  AircraftClass::Landing_Altitude is an interface method so we need to make
+ *  a thunk to properly patch it.
+ */
+LONG AircraftClassExt::_Landing_Altitude_Thunk()
+{
+    return static_cast<AircraftClassExt*>(reinterpret_cast<IFlyControl*>(this))->_Landing_Altitude();
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void AircraftClassExtension_Hooks()
@@ -598,4 +640,5 @@ void AircraftClassExtension_Hooks()
     Patch_Jump(0x0040AD7B, &_AircraftClass_Do_MISSION_MOVE_CARRYALL_Drop_Off_Patch);
     Patch_Jump(0x0040D60D, &_AircraftClass_Do_MISSION_ENTER_Drop_Off_Patch);
     Patch_Jump(0x00408BF3, &_AircraftClass_Draw_It_Carry_All_Patch);
+    Patch_Jump(0x0040EDD0, &AircraftClassExt::_Landing_Altitude_Thunk);
 }
