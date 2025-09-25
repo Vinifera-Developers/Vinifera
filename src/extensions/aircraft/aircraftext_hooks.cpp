@@ -573,10 +573,14 @@ DECLARE_PATCH(_AircraftClass_Draw_It_Carry_All_Patch)
  */
 LONG AircraftClassExt::_Landing_Altitude()
 {
+    /**
+     *  If this is a carryall, if it's landing by itself on a helipad or a service depot,
+     *  it should land at a normal height.
+     */
     if (Class->IsCarryall && !Cargo.Is_Something_Attached()) {
         TechnoClass* tptr = Contact_With_Whom();
         if (tptr != nullptr && Mission == MISSION_ENTER) {
-            BuildingClass* bptr = static_cast<BuildingClass*>(tptr);
+            BuildingClass* bptr = dynamic_cast<BuildingClass*>(tptr);
             if (bptr != nullptr) {
                 if (bptr->Class->IsCanUnitRepair || bptr->Class->IsHelipad) {
                     return 0;
@@ -586,7 +590,19 @@ LONG AircraftClassExt::_Landing_Altitude()
     }
 
     if (Class->IsCarryall) {
-        if (In_Radio_Contact() || Cargo.Is_Something_Attached(RTTI_UNIT)) {
+
+        /**
+         *  We're picking something up.
+         *  Check for RTTI is new to prevent landing too high on buildings we're in contact with.
+         */
+        if (In_Radio_Contact() && Contact_With_Whom()->RTTI == RTTI_UNIT) {
+            return 100;
+        }
+
+        /**
+         *  Something is attached below us, account for that.
+         */
+        if (Cargo.Is_Something_Attached(RTTI_UNIT)) {
             return 100;
         }
     }
