@@ -284,6 +284,17 @@ ActionType AircraftClassExt::_What_Action(ObjectClass const* target, bool disall
     }
 
     /**
+     *  #FIX: If we're carrying a unit, only allow dropping it off on a repair depot,
+     *  not on a helipad or anything else.
+     */
+    if (Class->IsCarryall && action == ACTION_ENTER && Cargo.Is_Something_Attached(RTTI_UNIT)) {
+        BuildingClass* building = (BuildingClass*)target;
+        if (!building->Class->IsCanUnitRepair) {
+            action = ACTION_NO_ENTER;
+        }
+    }
+
+    /**
      *  Make sure we can't tote things out of the weapons factory.
      */
     if (Class->IsCarryall && action == ACTION_TOTE) {
