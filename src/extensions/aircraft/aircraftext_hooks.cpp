@@ -243,7 +243,16 @@ ActionType AircraftClassExt::_What_Action(ObjectClass const* target, bool disall
          *  Can't unload the passengers if there are none.
          */
         if (!Cargo.How_Many()) {
-            action = ACTION_NONE;
+
+            /**
+             *  If this is also a normal transport, show the "can't deploy" cursor, like for APCs,
+             *  otherwise just show the normal cursor.
+             */
+            if (Class->Max_Passengers() > 0) {
+                action = ACTION_NO_DEPLOY;
+            } else {
+                action = ACTION_NONE;
+            }
         }
 
         /**
