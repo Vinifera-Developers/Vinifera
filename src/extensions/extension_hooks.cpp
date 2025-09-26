@@ -157,6 +157,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "objectext_hooks.h"
 #include "prerequisitegroup_hooks.h"
 #include "spawnmanager_hooks.h"
 #include "teventext_hooks.h"
@@ -207,6 +208,7 @@ void Extension_Hooks()
     IsometricTileTypeClassExtension_Hooks();
     MapClassExtension_Hooks();
     //BuildingLightExtension_Hooks();                       // Not yet implemented
+    ObjectClassExtension_Hooks();
     OverlayClassExtension_Hooks();
     OverlayTypeClassExtension_Hooks();
     ParticleClassExtension_Hooks();

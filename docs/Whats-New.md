@@ -68,6 +68,7 @@ New:
 - Add unit promotion sounds, EVA and flashing (by ZivDero)
 - Add Tiberium spreader customization (by ZivDero)
 - Implement `BarGate` for buildings (by ZivDero)
+- Parachute animations with `AltPalette=yes` now remap to the parachuted unit owner's color (by ZivDero)
 
 
 Vinifera fixes:
@@ -100,6 +101,9 @@ Vanilla fixes:
 - Fix a bug where carryalls would land too high when carrying infantry (by ZivDero)
 - Fix a bug where carryalls would allow boarding in some situations when they shouldn't (by ZivDero)
 - Fix a bug where carryalls assign their ROT to the unit they're carrying (by ZivDero)
+- Fix a bug where paradropped vehicles would not be placed off-center in the cell (by ZivDero)
+- Fix a bug where vehicles paradropped from a carryall would be drawn with an offset (by ZivDero)
+- Fix a bug where paradrops didn't take cell passability and bridges into account (by ZivDero)
 
 :::
 
