@@ -800,6 +800,25 @@ LONG AircraftClassExt::_Landing_Altitude_Thunk()
 
 
 /**
+ *  Fix a bug where carryalls assign their ROT (via the FacingClass assignment) to the unit they're carrying.
+ *
+ *  Author: ZivDero
+ */
+DECLARE_PATCH(_AircraftClass_AI_Carryall_Facing_Patch)
+{
+    GET_REGISTER_STATIC(AircraftClass*, this_ptr, ebp);
+
+    if (this_ptr->Cargo.Is_Something_Attached(RTTI_UNIT) && this_ptr->Class->IsCarryall) {
+        this_ptr->Cargo.Attached_Object()->PrimaryFacing.Set(this_ptr->SecondaryFacing.Current());
+        this_ptr->Cargo.Attached_Object()->SecondaryFacing.Set(this_ptr->SecondaryFacing.Current());
+        this_ptr->Cargo.Attached_Object()->PositionCoord = this_ptr->PositionCoord;
+    }
+
+    JMP(0x004093DE);
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void AircraftClassExtension_Hooks()
@@ -837,4 +856,6 @@ void AircraftClassExtension_Hooks()
     Patch_Jump(0x00408BF3, &_AircraftClass_Draw_It_Carry_All_Patch);
     Patch_Jump(0x0040EDD0, &AircraftClassExt::_Landing_Altitude_Thunk);
     Patch_Jump(0x0040C8A0, &AircraftClassExt::_Receive_Message);
+
+    Patch_Jump(0x00409366, &_AircraftClass_AI_Carryall_Facing_Patch);
 }

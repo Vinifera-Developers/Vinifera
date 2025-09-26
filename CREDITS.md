@@ -291,3 +291,4 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where carryalls would allow boarding in some situations when they shouldn't.
   - Fix a bug where under some circumstances Tiberium would halt spreading and/or growing temporarily.
   - Fix a bug where Tiberium spawned by animations wouldn't grow or spread.
+  - Fix a bug where carryalls assign their ROT to the unit they're carrying.
