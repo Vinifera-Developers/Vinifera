@@ -89,6 +89,6 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix a bug where carryalls would land too high when carrying infantry.
 - Fix a bug where carryalls would allow boarding in some situations when they shouldn't.
 - Fix a bug where carryalls assign their ROT to the unit they're carrying.
-- Fix a bug where paradropped vehicles would not be placed off-center in the cell.
+- Fix a bug where paradropped vehicles would be placed off-center in the cell.
 - Fix a bug where vehicles paradropped from a carryall would be drawn with an offset.
 - Fix a bug where paradrops didn't take cell passability and bridges into account.

@@ -290,7 +290,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where carryalls would land too high when carrying infantry.
   - Fix a bug where carryalls would allow boarding in some situations when they shouldn't.
   - Fix a bug where carryalls assign their ROT to the unit they're carrying.
-  - Fix a bug where paradropped vehicles would not be placed off-center in the cell.
+  - Fix a bug where paradropped vehicles would be placed off-center in the cell.
   - Fix a bug where vehicles paradropped from a carryall would be drawn with an offset.
   - Parachute animations with `AltPalette=yes` now remap to the parachuted unit owner's color.
   - Fix a bug where paradrops didn't take cell passability and bridges into account.
