@@ -289,3 +289,4 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where carryalls would try to drop off units when landing on a helipad.
   - Fix a bug where carryalls would land too high when carrying infantry.
   - Fix a bug where carryalls would allow boarding in some situations when they shouldn't.
+  - Fix a bug where carryalls assign their ROT to the unit they're carrying.

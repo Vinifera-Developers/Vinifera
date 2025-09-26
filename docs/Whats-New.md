@@ -99,6 +99,7 @@ Vanilla fixes:
 - Fix a bug where carryalls would try to drop off units when landing on a helipad (by ZivDero)
 - Fix a bug where carryalls would land too high when carrying infantry (by ZivDero)
 - Fix a bug where carryalls would allow boarding in some situations when they shouldn't (by ZivDero)
+- Fix a bug where carryalls assign their ROT to the unit they're carrying (by ZivDero)
 
 :::
 
