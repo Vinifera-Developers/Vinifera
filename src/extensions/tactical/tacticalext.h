@@ -85,6 +85,8 @@ public:
     void Render_Post();
     void Flag_Cell(CellClass& cell);
 
+    void Beacon_Mode_Control(int control);
+
 #ifndef NDEBUG
     bool Debug_Draw_Facings();
 #endif
@@ -172,4 +174,6 @@ public:
      *  The cached string containing the formatted templated text.
      */
     char TemplatedTextCache[512];
+
+    bool IsBeaconPlacementMode;
 };

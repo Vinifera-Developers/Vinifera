@@ -97,7 +97,10 @@ RulesClassExtension::RulesClassExtension(const RulesClass *this_ptr) :
     UpgradeVeteranSound(VOC_NONE),
     UpgradeEliteSound(VOC_NONE),
     VoxUnitPromoted(VOX_NONE),
-    EliteFlashTimer(0)
+    EliteFlashTimer(0),
+    PlaceBeaconSound(VOC_NONE),
+    PlaceBeaconVoice(VOX_NONE),
+    DetectBeaconVoice(VOX_NONE)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
@@ -695,6 +698,11 @@ bool RulesClassExtension::AudioVisual(CCINIClass &ini)
     UpgradeEliteSound = ini.Get_VocType(AUDIOVISUAL, "UpgradeEliteSound", UpgradeEliteSound);
     VoxUnitPromoted = ini.Get_VoxType(AUDIOVISUAL, "VoxUnitPromoted", VoxUnitPromoted);
     EliteFlashTimer = ini.Get_Int(AUDIOVISUAL, "EliteFlashTimer", EliteFlashTimer);
+
+    
+    PlaceBeaconSound = ini.Get_VocType(AUDIOVISUAL, "PlaceBeaconSound", PlaceBeaconSound);
+    PlaceBeaconVoice = ini.Get_VoxType(AUDIOVISUAL, "PlaceBeaconVoice", PlaceBeaconVoice);
+    DetectBeaconVoice = ini.Get_VoxType(AUDIOVISUAL, "DetectBeaconVoice", DetectBeaconVoice);
 
     return true;
 }

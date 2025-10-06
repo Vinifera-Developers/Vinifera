@@ -91,9 +91,11 @@
 #include "miscutil.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "beacon.h"
 #include "bullettype.h"
 #include "eventext.h"
 #include "houseext.h"
+#include "waypointpath.h"
 
 
 /**
@@ -339,6 +341,52 @@ bool PNGScreenCaptureCommandClass::Process()
     }
 
     return success;
+}
+
+
+const char* DeleteCommandClass::Get_Name() const
+{
+    return "DeleteWaypoint"; // kept as DeleteWaypoint to preserve keyboard.ini compatibility
+}
+
+const char* DeleteCommandClass::Get_UI_Name() const
+{
+    return "Delete";
+}
+
+const char* DeleteCommandClass::Get_Category() const
+{
+    return "Interface";
+}
+
+const char* DeleteCommandClass::Get_Description() const
+{
+    return "Deletes the selected object.";
+}
+
+bool DeleteCommandClass::Process()
+{
+    if (Map.DraggedWaypoint) {
+        char waypoint_number;
+        PathType path_type = PATH_NONE;
+        PlayerPtr->Fetch_Waypoint_Data(Map.DraggedWaypoint, path_type, waypoint_number);
+        PlayerPtr->Ensure_Path(path_type);
+        PlayerPtr->Paths[path_type]->Delete_Waypoint(waypoint_number);
+        Map.DraggedWaypoint = nullptr;
+
+        for (int i = Foots.Count() - 1; i >= 0; i--) {
+            FootClass* foot = Foots[i];
+            if (foot->House == PlayerPtr && foot->CurrentPath == path_type && foot->NextWaypoint > waypoint_number) {
+                foot->NextWaypoint--;
+            }
+        }
+
+        WWMouse->Show_Mouse();
+    }
+
+    BeaconManager.Delete_Beacon(HOUSE_NONE, -1);
+
+    return true;
 }
 
 
@@ -2236,6 +2284,43 @@ const char* HealthFilterAddNextCommandClass::Get_Description() const
 bool HealthFilterAddNextCommandClass::Process()
 {
     return Process_Filter(Get_Health_Level, true);
+}
+
+
+/**
+ *  
+ *
+ *  @author: ZivDero
+ */
+const char* BeaconPlacementCommandClass::Get_Name() const
+{
+    return "PlaceBeacon";
+}
+
+const char* BeaconPlacementCommandClass::Get_UI_Name() const
+{
+    return "Place Beacon";
+}
+
+const char* BeaconPlacementCommandClass::Get_Category() const
+{
+    return "Interface";
+}
+
+const char* BeaconPlacementCommandClass::Get_Description() const
+{
+    return "Used to place a communication beacon.";
+}
+
+bool BeaconPlacementCommandClass::Process()
+{
+    if (/*Session.Type != GAME_NORMAL && Session.Type != GAME_SKIRMISH*/true) {
+        if (!PlayerPtr->IsDefeated) {
+            TacticalMapExtension->Beacon_Mode_Control(-1);
+        }
+    }
+
+    return true;
 }
 
 

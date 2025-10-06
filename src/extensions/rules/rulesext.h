@@ -184,4 +184,8 @@ class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
          *  The number of frames that a newly elite unit will flash for.
          */
         int EliteFlashTimer;
+
+        VocType PlaceBeaconSound;
+        VoxType PlaceBeaconVoice;
+        VoxType DetectBeaconVoice;
 };

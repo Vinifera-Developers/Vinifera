@@ -298,6 +298,7 @@ void Init_Vinifera_Commands()
         Commands.Add(new MeteorShowerCommandClass);
         Commands.Add(new MeteorImpactCommandClass);
         Commands.Add(new VeterancyPromoteCommandClass);
+        Commands.Add(new BeaconPlacementCommandClass);
     }
 
     /**
@@ -366,6 +367,15 @@ void CommandExtension_Hooks()
     Hook_Virtual(0x004EAAD0, PNGScreenCaptureCommandClass::Get_Category);
     Hook_Virtual(0x004EAAF0, PNGScreenCaptureCommandClass::Get_Description);
     Hook_Virtual(0x004EAB00, PNGScreenCaptureCommandClass::Process);
+
+    /**
+     *  Replace DeleteWaypointCommandClass with DeleteCommandClass.
+     */
+    Hook_Virtual(0x004EAEE0, DeleteCommandClass::Get_Name);
+    Hook_Virtual(0x004EAEF0, DeleteCommandClass::Get_UI_Name);
+    Hook_Virtual(0x004EAF00, DeleteCommandClass::Get_Category);
+    Hook_Virtual(0x004EAF10, DeleteCommandClass::Get_Description);
+    Hook_Virtual(0x004EAF20, DeleteCommandClass::Process);
 
     Patch_Jump(0x004E95C2, &_GuardCommandClass_Process_Harvesters_Set_Mission_Patch);
 

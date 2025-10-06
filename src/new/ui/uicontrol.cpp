@@ -96,7 +96,9 @@ UIControlsClass::UIControlsClass() :
     IsNavComQueueLineThick(false),
     NavComQueueLineColor{ 74, 77, 255 }, // COLOR_LTBLUE
     NavComQueueLineDropShadowColor{ 0, 0, 0 },
-    IsCenterSidebarButtonsOnRadar(false)
+    IsCenterSidebarButtonsOnRadar(false),
+    BeaconAnimFramesPerSecond(25),
+    RadarBeaconAnimFramesPerSecond(25)
 {
     BandBoxTintColors.Add(RGBStruct{ 0, 0, 0 });
     BandBoxTintColors.Add(RGBStruct{ 255, 255, 255 });
@@ -193,6 +195,9 @@ bool UIControlsClass::Read_INI(CCINIClass &ini)
     NavComQueueLineDropShadowColor = ini.Get_RGB(INGAME, "NavComQueueLineDropShadowColor", NavComQueueLineDropShadowColor);
 
     IsCenterSidebarButtonsOnRadar = ini.Get_Bool(INGAME, "CenterSidebarButtonsOnRadar", IsCenterSidebarButtonsOnRadar);
+
+    BeaconAnimFramesPerSecond = ini.Get_Int(INGAME, "BeaconAnimFramesPerSecond", BeaconAnimFramesPerSecond);
+    RadarBeaconAnimFramesPerSecond = ini.Get_Int(INGAME, "RadarBeaconAnimFramesPerSecond", RadarBeaconAnimFramesPerSecond);
 
     return true;
 }

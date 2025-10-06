@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          ACTIONTYPE.H
+ *  @file          CONQUEREXT_HOOKS.H
  *
- *  @author        CCHyper, tomsons26
+ *  @author        ZivDero
  *
- *  @brief         Mouse cursor controls and overrides.
+ *  @brief         Contains the hooks for conquer.cpp.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -27,45 +27,4 @@
  ******************************************************************************/
 #pragma once
 
-#include "always.h"
-#include "iomap.h"
-#include "vinifera_defines.h"
-#include "wstring.h"
-
-
-class CCINIClass;
-class MouseTypeClass;
-
-
-class ActionTypeClass
-{
-    public:
-        ActionTypeClass(const char* name, MouseType mouse = MOUSE_NORMAL, MouseType shadow_mouse = MOUSE_NORMAL);
-        ActionTypeClass(const NoInitClass &noinit);
-        ~ActionTypeClass();
-
-        MouseType Get_Mouse() const { return Mouse; }
-        MouseType Get_Shadow_Mouse() const { return ShadowMouse; }
-
-        static void One_Time();
-
-        static bool Read_INI(CCINIClass &ini);
-#ifndef NDEBUG
-        static bool Write_Default_INI(CCINIClass &ini);
-#endif
-
-        static ActionType From_Name(const char *name);
-        static const char *Name_From(ActionType type);
-
-    private:
-        static ActionTypeClass *Find_Or_Make(const char *name);
-
-    private:
-        Wstring Name;
-        MouseType Mouse;
-        MouseType ShadowMouse;
-
-    private:
-        static ActionTypeClass ActionControl[EXT_ACTION_COUNT];
-        static const char* ActionNames[EXT_ACTION_COUNT];
-};
+void ConquerExtension_Hooks();

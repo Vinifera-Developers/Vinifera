@@ -46,6 +46,7 @@
 #include "swizzle.h"
 #include "vinifera_saveload.h"
 #include "asserthandler.h"
+#include "beacon.h"
 #include "debughandler.h"
 #include "houseext.h"
 #include "tacticalext.h"
@@ -246,6 +247,8 @@ bool ScenarioClassExtension::Read_INI(CCINIClass &ini)
      *  Fetch additional tutorial message data (if present) from the scenario.
      */
     Read_Tutorial_INI(ini, true);
+
+    BeaconManager.Load_Art();
 
     return true;
 }
@@ -1018,7 +1021,7 @@ void ScenarioClassExtension::Assign_Houses()
 
         housep->Control.TechLevel = BuildLevel;
         housep->Init_Data(node.Player.Color, node.Player.House, Session.Options.Credits);
-        housep->Scheme = Session.Player_Color_To_Scheme_Color(node.Player.Color);
+        housep->Scheme = Session.Scheme_From_Color_ID(node.Player.Color);
         housep->Initialize_Radar_Color();
 
         /**
@@ -1094,7 +1097,7 @@ void ScenarioClassExtension::Assign_Houses()
 
         housep->Control.TechLevel = BuildLevel;
         housep->Init_Data((PlayerColorType)color, pref_house, Session.Options.Credits);
-        housep->Scheme = Session.Player_Color_To_Scheme_Color((PlayerColorType)color);
+        housep->Scheme = Session.Scheme_From_Color_ID((PlayerColorType)color);
         housep->Initialize_Radar_Color();
 
         std::strcpy(housep->IniName, Text_String(TXT_COMPUTER));

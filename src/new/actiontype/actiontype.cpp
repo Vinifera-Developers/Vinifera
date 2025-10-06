@@ -36,7 +36,7 @@
 /**
  *  These are the ASCII names for the action types.
  */
-const char *ActionTypeClass::ActionNames[ACTION_COUNT] = {
+const char* ActionTypeClass::ActionNames[EXT_ACTION_COUNT] = {
     "None",                     // ACTION_NONE
 
     "Move",                     // ACTION_MOVE
@@ -91,6 +91,8 @@ const char *ActionTypeClass::ActionNames[ACTION_COUNT] = {
     "DropPod",                  // ACTION_DROP_POD
     "RallyToPoint",             // ACTION_RALLY_TO_POINT        // Was "Rally To Point"
     "AttackSupport",            // ACTION_ATTACK_SUPPORT        // Was "Attack Support"
+    "PlaceBeacon",
+    "SelectBeacon"
 };
 
 
@@ -98,7 +100,7 @@ const char *ActionTypeClass::ActionNames[ACTION_COUNT] = {
  *  This array of structures is used to control the cursors used by various actions.
  */
 #define NO_MOUSE_SHAPE MOUSE_NORMAL
-ActionTypeClass ActionTypeClass::ActionControl[ACTION_COUNT] = {
+ActionTypeClass ActionTypeClass::ActionControl[EXT_ACTION_COUNT] = {
     ActionTypeClass(ActionNames[ACTION_NONE],                 MOUSE_NORMAL,               MOUSE_NORMAL),              // ACTION_NONE
     ActionTypeClass(ActionNames[ACTION_MOVE],                 MOUSE_CAN_MOVE,             MOUSE_CAN_MOVE),            // ACTION_MOVE
     ActionTypeClass(ActionNames[ACTION_NOMOVE],               MOUSE_NO_MOVE,              MOUSE_NO_MOVE),             // ACTION_NOMOVE
@@ -151,7 +153,9 @@ ActionTypeClass ActionTypeClass::ActionControl[ACTION_COUNT] = {
     ActionTypeClass(ActionNames[ACTION_PATROL_WAYPOINT],      MOUSE_PATROL_WAYPOINT,      MOUSE_PATROL_WAYPOINT),     // ACTION_PATROL_WAYPOINT
     ActionTypeClass(ActionNames[ACTION_DROP_POD],             MOUSE_AIR_STRIKE,           MOUSE_AIR_STRIKE),          // ACTION_DROP_POD
     ActionTypeClass(ActionNames[ACTION_RALLY_TO_POINT],       MOUSE_CAN_MOVE,             NO_MOUSE_SHAPE),            // ACTION_RALLY_TO_POINT
-    ActionTypeClass(ActionNames[ACTION_ATTACK_SUPPORT],       NO_MOUSE_SHAPE,             NO_MOUSE_SHAPE)             // ACTION_ATTACK_SUPPORT
+    ActionTypeClass(ActionNames[ACTION_ATTACK_SUPPORT],       NO_MOUSE_SHAPE,             NO_MOUSE_SHAPE),            // ACTION_ATTACK_SUPPORT
+    ActionTypeClass(ActionNames[EXT_ACTION_PLACE_BEACON],     MOUSE_PLACE_WAYPOINT,       MOUSE_PLACE_WAYPOINT),      // 
+    ActionTypeClass(ActionNames[EXT_ACTION_SELECT_BEACON],    MOUSE_SELECT_WAYPOINT,      MOUSE_SELECT_WAYPOINT)      //
 };
 
 
@@ -203,7 +207,7 @@ void ActionTypeClass::One_Time()
     /**
      *  Create the default action type controls.
      */
-    for (ActionType action = ACTION_NONE; action < ACTION_COUNT; ++action) {
+    for (ActionType action = ACTION_NONE; action < std::size(ActionControl); ++action) {
          
         ActionTypeClass *actiontype = new ActionTypeClass(
             ActionControl[action].Name.Peek_Buffer(),
@@ -275,7 +279,7 @@ bool ActionTypeClass::Write_Default_INI(CCINIClass &ini)
 
     char buffer[1024];
 
-    for (ActionType action = ACTION_NONE; action < ACTION_COUNT; ++action) {
+    for (ActionType action = ACTION_NONE; action < std::size(ActionControl); ++action) {
 
         ActionTypeClass &actionctrl = ActionControl[action];
 

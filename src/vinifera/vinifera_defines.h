@@ -28,6 +28,7 @@
 #pragma once
 
 #include "always.h"
+#include "session.h"
 #include "tibsun_defines.h"
 
 
@@ -319,3 +320,61 @@ enum ExtEventType {
     EXT_EVENT_FIRST = EXT_EVENT_PAD + 1
 };
 DEFINE_ENUMERATION_OPERATORS(ExtEventType);
+
+
+/**
+ *  Extension of the ActionType enum.
+ */
+enum ExtActionType {
+    EXT_ACTION_PAD = ACTION_ATTACK_SUPPORT, // The last ActionType
+
+    /**
+     *  Add new ExtEventTypes from here.
+     */
+    EXT_ACTION_PLACE_BEACON,
+    EXT_ACTION_SELECT_BEACON,
+
+    /**
+     *  The new total ExtEventTypes count.
+     */
+    EXT_ACTION_COUNT,
+
+    /**
+     *  The first ExtEventTypes.
+     */
+    EXT_ACTION_FIRST = EXT_ACTION_PAD + 1
+};
+DEFINE_ENUMERATION_OPERATORS(ExtActionType);
+
+enum ExtNetCommandType {
+    EXT_NET_BEACON_PLACE = NET_PROPOSE_KICK + 1,
+    EXT_NET_BEACON_DELETE,
+    EXT_NET_BEACON_TEXT
+};
+
+#pragma pack(1)
+struct ExtGlobalPacketType {
+    ExtNetCommandType Command;
+    char Name[MPLAYER_NAME_MAX];
+    char Serial[SERIAL_MAX];
+    union {
+        struct {
+            CoordStruct Position;
+            char House;
+            int Number;
+        } PlaceBeacon;
+        struct {
+            char House;
+            int Number;
+        } DeleteBeacon;
+        struct {
+            char Text[256];
+            int Number;
+            char House;
+        } BeaconText;
+        char padding[455 - sizeof(Command) - sizeof(Name) - sizeof(Serial)];
+    };
+};
+#pragma pack()
+
+static_assert(sizeof(ExtGlobalPacketType) == sizeof(GlobalPacketType), "ExtGlobalPacketType size is wrong!");

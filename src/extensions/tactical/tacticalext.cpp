@@ -53,7 +53,10 @@
 #include "vinifera_saveload.h"
 #include "extension.h"
 #include "asserthandler.h"
+#include "beacon.h"
 #include "debughandler.h"
+#include "mouse.h"
+#include "tibsun_functions.h"
 
 
 /**
@@ -77,7 +80,8 @@ TacticalExtension::TacticalExtension(const Tactical* this_ptr) :
     TemplatedTextColor(COLORSCHEME_NONE),
     TemplatedTextStyle(TPF_6PT_GRAD | TPF_DROPSHADOW),
     IsTemplatedTextCached(false),
-    TemplatedTextCache {""}
+    TemplatedTextCache {""},
+    IsBeaconPlacementMode(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TacticalExtension::TacticalExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -249,7 +253,7 @@ void TacticalExtension::Draw_Version_Number_Text()
 void TacticalExtension::Draw_Debug_Overlay()
 {
     RGBClass rgb_black(0, 0, 0);
-    unsigned color_black = DSurface::RGB_To_Pixel(0, 0, 0);
+    unsigned color_black = DSurface::Build_Hicolor_Pixel(0, 0, 0);
     ColorScheme *text_color = Fetch_Scheme_By_Name("White");
 
     int padding = 2;
@@ -350,7 +354,7 @@ bool TacticalExtension::Debug_Draw_Facings()
     screen.X += TacticalRect.X;
     screen.Y += TacticalRect.Y;
 
-    LogicSurface->Fill_Rect(TacticalRect, Rect(screen.X, screen.Y, 2, 2), DSurface::RGB_To_Pixel(255, 0, 0));
+    LogicSurface->Fill_Rect(TacticalRect, Rect(screen.X, screen.Y, 2, 2), DSurface::Build_Hicolor_Pixel(255, 0, 0));
 
     TextPrintType style = TPF_CENTER | TPF_FULLSHADOW | TPF_6POINT;
     WWFontClass* font = Font_Ptr(style);
@@ -381,7 +385,7 @@ bool TacticalExtension::Debug_Draw_Facings()
 void TacticalExtension::Draw_FrameStep_Overlay()
 {
     RGBClass rgb_black(0, 0, 0);
-    unsigned color_black = DSurface::RGB_To_Pixel(0, 0, 0);
+    unsigned color_black = DSurface::Build_Hicolor_Pixel(0, 0, 0);
     ColorScheme *text_color = Fetch_Scheme_By_Name("White");
 
     int padding = 2;
@@ -556,9 +560,8 @@ void TacticalExtension::Render_Post()
     /**
      *  Draw any new post effects here.
      */
-     //DEV_DEBUG_INFO("Before EBoltClass::Draw_All\n");
     EBoltClass::Draw_All();
-    //DEV_DEBUG_INFO("After EBoltClass::Draw_All\n");
+    BeaconManager.Draw(LogicSurface, TacticalRect);
 
     /**
      *  Draw any overlay text.
@@ -588,7 +591,7 @@ void TacticalExtension::Super_Draw_Timer(int row_index, ColorScheme * color, int
     int text_width = -1;
     int flash_delay = 500; // was 1000
     bool to_flash = false;
-    unsigned color_black = DSurface::RGB_To_Pixel(0, 0, 0);
+    unsigned color_black = DSurface::Build_Hicolor_Pixel(0, 0, 0);
     RGBClass rgb_black(0, 0, 0);
     ColorScheme *white_color = Fetch_Scheme_By_Name("White", 1);
     int background_tint = 50;
@@ -894,5 +897,39 @@ void TacticalExtension::Flag_Cell(CellClass& cell)
     if (TacticalMap->CellRedrawCount < std::size(CellRedraw) - 1) { // -1 because... reasons. It's that way in vanilla.
         CellRedraw[TacticalMap->CellRedrawCount] = &cell;
         TacticalMap->CellRedrawCount++;
+    }
+}
+
+
+void TacticalExtension::Beacon_Mode_Control(int control)
+{
+    bool mode = IsBeaconPlacementMode;
+    switch (control) {
+    case 0:
+        mode = false;
+        break;
+
+    case -1:
+        mode = (IsBeaconPlacementMode == false);
+        break;
+
+    case 1:
+        mode = true;
+        break;
+    }
+
+    if (mode != IsBeaconPlacementMode && !Map.PendingObject) {
+        Map.IsSellMode = false;
+        Map.IsPowerMode = false;
+        Map.IsWaypointMode = false;
+        Map.IsRepairMode = false;
+        Map.Set_Default_Mouse(MOUSE_NORMAL, false);
+        if (mode) {
+            IsBeaconPlacementMode = true;
+            Unselect_All();
+        } else {
+            IsBeaconPlacementMode = false;
+            Map.Revert_Mouse_Shape();
+        }
     }
 }

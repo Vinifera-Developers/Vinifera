@@ -1533,22 +1533,22 @@ void TechnoClassExt::_Draw_Target_Laser() const
     const bool is_thick = TarCom ? UIControls->IsTargetLaserThick : UIControls->IsMovementLineThick;
     const bool is_dropshadow = TarCom ? UIControls->IsTargetLaserDropShadow : UIControls->IsMovementLineDropShadow;
 
-    const unsigned tarcom_color = DSurface::RGB_To_Pixel(
+    const unsigned tarcom_color = DSurface::Build_Hicolor_Pixel(
         UIControls->TargetLaserColor.R,
         UIControls->TargetLaserColor.G,
         UIControls->TargetLaserColor.B);
 
-    const unsigned tarcom_drop_color = DSurface::RGB_To_Pixel(
+    const unsigned tarcom_drop_color = DSurface::Build_Hicolor_Pixel(
         UIControls->TargetLaserDropShadowColor.R,
         UIControls->TargetLaserDropShadowColor.G,
         UIControls->TargetLaserDropShadowColor.B);
 
-    const unsigned navcom_color = DSurface::RGB_To_Pixel(
+    const unsigned navcom_color = DSurface::Build_Hicolor_Pixel(
         UIControls->MovementLineColor.R,
         UIControls->MovementLineColor.G,
         UIControls->MovementLineColor.B);
 
-    const unsigned navcom_drop_color = DSurface::RGB_To_Pixel(
+    const unsigned navcom_drop_color = DSurface::Build_Hicolor_Pixel(
         UIControls->MovementLineDropShadowColor.R,
         UIControls->MovementLineDropShadowColor.G,
         UIControls->MovementLineDropShadowColor.B);
