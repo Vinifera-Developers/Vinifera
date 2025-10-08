@@ -51,6 +51,8 @@ public:
     void Draw_On_Radar(Surface* surface, Rect cliprect, bool is_doer);
     bool Is_Visible_To_Player() const;
 
+    int Get_Shape_Frame() const;
+
     Coord Position;
     bool HasOwner;
     bool IsSelected;
@@ -85,6 +87,8 @@ public:
     static void Send_Beacon_Place(Coord coord, HousesType house, int beacon_id);
     static void Send_Beacon_Delete(HousesType house, int beacon_id);
     static void Send_Set_Beacon_Text(char const* text, HousesType house, int beacon_id);
+
+    int Get_Radar_Shape_Frame() const;
 
     std::vector<std::unique_ptr<BeaconClass>> Beacons[MAX_PLAYERS];
     int BeaconWidth;

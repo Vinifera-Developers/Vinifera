@@ -43,6 +43,7 @@
 #include "shapeset.h"
 #include "tactical.h"
 #include "tibsun_functions.h"
+#include "uicontrol.h"
 #include "vinifera_defines.h"
 #include "voc.h"
 #include "vox.h"
@@ -69,7 +70,8 @@ void BeaconClass::Draw(Surface* surface, Rect cliprect) const
 
     Point2D drawpoint;
     if (TacticalMap->Coord_To_Pixel(Position, drawpoint)) {
-        int shapenum = Frame % (BeaconManager.BeaconFrameCount / 2) + (IsSelected ? BeaconManager.BeaconFrameCount / 2 : 0);
+        int shapenum = Get_Shape_Frame();
+
         Draw_Shape(*surface, *scheme->Converter, BeaconManagerClass::BeaconArt, shapenum, drawpoint, cliprect, SHAPE_CENTER | SHAPE_WIN_REL);
         if (!Text.empty()) {
             std::string text = Text;
@@ -161,8 +163,9 @@ void BeaconClass::Set_Text(char const* text)
 
 void BeaconClass::Draw_On_Radar(Surface* surface, Rect cliprect, bool is_doer)
 {
-    int shapenum = Frame % BeaconManager.RadarBeaconAnimPeriod;
-    if (Frame % BeaconManager.RadarBeaconAnimPeriod < BeaconManager.RadarBeaconFrameCount + 1 || is_doer) {
+    int shapenum = BeaconManager.Get_Radar_Shape_Frame();
+
+    if (shapenum < BeaconManager.RadarBeaconFrameCount + 1 || is_doer) {
         Point2D drawpoint = Map.Coord_To_Radar_Pixel(Position, true);
         if (shapenum < BeaconManager.RadarBeaconFrameCount && !is_doer) {
             Draw_Shape(*surface, *ColorSchemes[Houses[Owner]->Scheme]->Converter, BeaconManagerClass::RadarBeaconArt, shapenum, drawpoint, cliprect, SHAPE_CENTER | SHAPE_WIN_REL);
@@ -187,6 +190,15 @@ bool BeaconClass::Is_Visible_To_Player() const
         return true;
     }
     return false;
+}
+
+
+int BeaconClass::Get_Shape_Frame() const
+{
+    float rate = static_cast<float>(UIControls->BeaconAnimFramesPerSecond);
+    int frame = static_cast<int>(static_cast<float>(timeGetTime()) * rate / 1000.0f) % (BeaconManager.BeaconFrameCount / 2);
+    int shapenum = frame + (IsSelected ? BeaconManager.BeaconFrameCount / 2 : 0);
+    return shapenum;
 }
 
 
@@ -423,7 +435,7 @@ void BeaconManagerClass::Set_Beacon_Text(char const* text, HousesType house, int
 
 void BeaconManagerClass::Draw_On_Radar(Surface* surface, Rect cliprect)
 {
-    if (Frame % RadarBeaconAnimPeriod < BeaconManager.RadarBeaconFrameCount + 1) {
+    if (Get_Radar_Shape_Frame() < BeaconManager.RadarBeaconFrameCount + 1) {
         for (auto& array : Beacons) {
             for (auto& beacon : array) {
                 if (beacon->Is_Visible_To_Player()) {
@@ -448,7 +460,7 @@ bool BeaconManagerClass::Is_To_Redraw_Radar()
     }
 
     breakout:
-    if (visible && Frame % RadarBeaconAnimPeriod < BeaconManager.RadarBeaconFrameCount + 1) {
+    if (visible && Get_Radar_Shape_Frame() < BeaconManager.RadarBeaconFrameCount + 1) {
         return true;
     }
     return false;
@@ -504,4 +516,12 @@ void BeaconManagerClass::Send_Set_Beacon_Text(char const * text, HousesType hous
             Ipx.Send_Global_Message(&packet, sizeof(packet), true, &Session.Players[i]->Address);
         }
     }
+}
+
+
+int BeaconManagerClass::Get_Radar_Shape_Frame() const
+{
+    float rate = static_cast<float>(UIControls->RadarBeaconAnimFramesPerSecond);
+    int shapenum = static_cast<int>(static_cast<float>(timeGetTime()) * rate / 1000.0f) % RadarBeaconAnimPeriod;
+    return shapenum;
 }
