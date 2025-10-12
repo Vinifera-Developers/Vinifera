@@ -350,12 +350,18 @@ enum ExtActionType {
 };
 DEFINE_ENUMERATION_OPERATORS(ExtActionType);
 
+/**
+ *  New global packet types.
+ */
 enum ExtNetCommandType {
     EXT_NET_BEACON_PLACE = NET_PROPOSE_KICK + 1,
     EXT_NET_BEACON_DELETE,
     EXT_NET_BEACON_TEXT
 };
 
+/**
+ *  Extended struct for new global packet types.
+ */
 #pragma pack(1)
 struct ExtGlobalPacketType {
     ExtNetCommandType Command;

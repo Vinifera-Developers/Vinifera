@@ -185,9 +185,11 @@ public:
      */
     int EliteFlashTimer;
 
+    /**
+     *  Controls for beacons.
+     */
     bool IsBeaconsEnabled;
     int MaxBeacons;
-
     VocType PlaceBeaconSound;
     VoxType PlaceBeaconVoice;
     VoxType DetectBeaconVoice;

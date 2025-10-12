@@ -6,7 +6,7 @@
  *
  *  @file          BEACON.H
  *
- *  @author        ZivDero
+ *  @author        ZivDero, tomsons26
  *
  *  @brief         New classes adding Beacons to TS.
  *
@@ -38,21 +38,31 @@ class ShapeSet;
 class Surface;
 enum HousesType;
 
+/**
+ *  An individual beacon is represented by this class.
+ */
 class BeaconClass
 {
 public:
     BeaconClass();
-
+    
+    /**
+     *  Rendering
+     */
     void Draw(Surface* surface, Rect cliprect) const;
+    void Draw_On_Radar(Surface* surface, Rect cliprect, bool removed);
+    bool Is_Visible_To_Player() const;
+    int Get_Shape_Frame() const;
+    
+    /**
+     *  I/O
+     */
     void Set(Coord coord, HousesType owner);
+    void Set_Text(char const* text);
     void Select(bool selected);
     void Disown();
-    void Set_Text(char const* text);
-    void Draw_On_Radar(Surface* surface, Rect cliprect, bool is_doer);
-    bool Is_Visible_To_Player() const;
 
-    int Get_Shape_Frame() const;
-
+public:
     Coord Position;
     bool HasOwner;
     bool IsSelected;
@@ -60,6 +70,11 @@ public:
     HousesType Owner;
 };
 
+
+/**
+ *  This class manages all the beacons currently in existence (and owns them).
+ *  There is a list of beacons per player.
+ */
 class BeaconManagerClass
 {
     enum {
@@ -68,43 +83,79 @@ class BeaconManagerClass
 
 public:
     BeaconManagerClass();
-    ~BeaconManagerClass();
+    ~BeaconManagerClass() = default;
 
+    /**
+     *  Initialization & teardown
+     */
     void Reset();
     void Load_Art();
-    void Draw(Surface* surface, Rect cliprect);
+
+    /**
+     *  Rendering
+     */
+    void Draw(Surface* surface, Rect cliprect) const;
+    void Draw_On_Radar(Surface* surface, Rect cliprect) const;
+    bool Is_To_Redraw_Radar() const;
+    int Get_Radar_Shape_Frame() const;
+
+    /**
+     *  Beacon lifecycle
+     */
     void Place_Beacon(HousesType house, Coord coord, int beacon_id = -1, char const* text = nullptr);
-    bool Select_Beacon(Coord coord);
-    void Unselect_All_Beacons();
-    BeaconClass* Beacon_At(Coord coord);
-    bool Find_Beacon(BeaconClass const* beacon, HousesType& house, int& beacon_id);
-    BeaconClass* Find_Selected_Beacon(HousesType house);
     void Delete_Beacon(HousesType house, int beacon_id);
     void Delete_Owned_Beacons(HousesType house);
     void Set_Beacon_Text(char const* text, HousesType house, int beacon_id, bool send = false);
-    void Draw_On_Radar(Surface* surface, Rect cliprect);
-    bool Is_To_Redraw_Radar();
 
+    /**
+     *  Selection & lookup
+     */
+    bool Select_Beacon(Coord coord);
+    void Unselect_All_Beacons();
+    BeaconClass* Beacon_At(Coord coord) const;
+    bool Find_Beacon(BeaconClass const* beacon, HousesType& house, int& beacon_id) const;
+    BeaconClass* Find_Selected_Beacon(HousesType house) const;
+    
+    /**
+     *  Networking
+     */
     static void Send_Beacon_Place(Coord coord, HousesType house, int beacon_id);
     static void Send_Beacon_Delete(HousesType house, int beacon_id);
     static void Send_Set_Beacon_Text(char const* text, HousesType house, int beacon_id);
 
+    /**
+     *  Action helpers
+     */
     static ActionType Pick_Beacon_Placement_Action();
     static bool Is_Beacon_Placement_Action(ActionType action);
     static char const* Beacon_Text(ActionType action);
 
-    int Get_Radar_Shape_Frame() const;
-
+public:
+    /**
+     *  Per-player beacon lists.
+     */
     std::vector<std::unique_ptr<BeaconClass>> Beacons[MAX_PLAYERS];
+
+    /**
+     *  Dimensions of the beacon graphics.
+     */
     int BeaconWidth;
     int BeaconHeight;
     int BeaconFrameCount;
     int RadarBeaconWidth;
     int RadarBeaconHeight;
     int RadarBeaconFrameCount;
+
+    /**
+     *  The radar beacon isn't constantly visible - it "blinks".
+     *  This is how many frames the cycle is.
+     */
     int RadarBeaconAnimPeriod;
 
 public:
+    /**
+     *  Beacon graphics.
+     */
     static ShapeSet const* BeaconArt;
     static ShapeSet const* RadarBeaconArt;
 };

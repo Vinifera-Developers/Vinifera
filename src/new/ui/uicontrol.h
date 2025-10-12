@@ -310,8 +310,15 @@ class UIControlsClass
          */
         bool IsCenterSidebarButtonsOnRadar;
 
+        /**
+         *  Beacon animations are not tied to game FPS, this is the FPS at which they play.
+         */
         int BeaconAnimFramesPerSecond;
         int RadarBeaconAnimFramesPerSecond;
+
+        /**
+         *  The offset at which beacon text is drawn (on actual beacons, and during preview).
+         */
         int BeaconTextOffset;
         int BeaconPreviewTextOffset;
 };

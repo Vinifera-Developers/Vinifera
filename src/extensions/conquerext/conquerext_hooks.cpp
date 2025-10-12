@@ -6,7 +6,7 @@
  *
  *  @file          CONQUEREXT_HOOKS.H
  *
- *  @author        ZivDero
+ *  @author        ZivDero, tomsons26
  *
  *  @brief         Contains the hooks for conquer.cpp.
  *
@@ -43,6 +43,12 @@
 #include "rules.h"
 #include "voc.h"
 
+
+/**
+ *  Replacement for Unselect_All.
+ *
+ *  @author: tomsons26, ZivDero
+ */
 void _Unselect_All()
 {
     while (CurrentObjects.Count()) {
@@ -53,6 +59,11 @@ void _Unselect_All()
 }
 
 
+/**
+ *  Replacement for IPX_Call_Back.
+ *
+ *  @author: tomsons26, ZivDero
+ */
 void _IPX_Call_Back()
 {
     Windows_Message_Handler();
@@ -176,20 +187,37 @@ void _IPX_Call_Back()
 }
 
 
+/**
+ *  Adds a new edit (message being typed).
+ *
+ *  @author: ZivDero
+ */
 void New_Edit(char const* to, bool enable_overflow = true, int width = -1)
 {
+    /**
+     *  Set the prefix (e.g. "From:").
+     */
     char txt[80 + MAX_MESSAGE_LENGTH + 32];
     strcpy(txt, to);
 
+    /**
+     *  Create the edit.
+     */
     Session.Messages.Add_Edit(static_cast<ColorSchemeType>(Session.ColorIdx), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, txt, 0, width);
     Session.Messages.EnableOverflow = enable_overflow;
 
-    BeaconManager.Set_Beacon_Text("_", HOUSE_NONE, -1, false);
-
+    /**
+     *  Flag the map to be redrawn so that the text shows up.
+     */
     Map.Flag_To_Redraw();
 }
 
 
+/**
+ *  Checks if we're beginning input.
+ *
+ *  @author: tomsons26, ZivDero
+ */
 bool Begin_Message(KeyNumType input)
 {
     /*
@@ -206,6 +234,7 @@ bool Begin_Message(KeyNumType input)
         BeaconClass* beacon = BeaconManager.Find_Selected_Beacon(PlayerPtr->HeapID);
         if (beacon != nullptr) {
             New_Edit("Beacon Message:", false, 10000);
+            BeaconManager.Set_Beacon_Text("_", HOUSE_NONE, -1, false);
             return true;
         }
     }
@@ -268,6 +297,11 @@ bool Begin_Message(KeyNumType input)
 }
 
 
+/**
+ *  Replacement for Message_Input.
+ *
+ *  @author: tomsons26, ZivDero
+ */
 void _Message_Input(KeyNumType& input)
 {
     /*
@@ -439,6 +473,10 @@ void _Message_Input(KeyNumType& input)
     }
 }
 
+
+/**
+ *  Main function for patching the hooks.
+ */
 void ConquerExtension_Hooks()
 {
     Patch_Jump(0x00463180, &_Unselect_All);

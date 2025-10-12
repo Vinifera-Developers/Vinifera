@@ -570,6 +570,10 @@ void TacticalExtension::Render_Post()
      */
     Draw_Super_Timers();
 
+    /**
+     *  In decon placement mode, holding modifier keys can give you a preset text
+     *  (e.g. attack, defend). Draw it.
+     */
     if (IsBeaconPlacementMode) {
         char const* beacon_text = BeaconManagerClass::Beacon_Text(BeaconManagerClass::Pick_Beacon_Placement_Action());
         if (beacon_text != nullptr) {
@@ -910,6 +914,11 @@ void TacticalExtension::Flag_Cell(CellClass& cell)
 }
 
 
+/**
+ *  Toggles beacon mode (analogous to Sell_Mode_Control, etc.)
+ *
+ *  @author: ZivDero
+ */
 void TacticalExtension::Beacon_Mode_Control(int control)
 {
     if (!RuleExtension->IsBeaconsEnabled) {
@@ -947,6 +956,12 @@ void TacticalExtension::Beacon_Mode_Control(int control)
     }
 }
 
+
+/**
+ *  Draws beacon text.
+ *
+ *  @author: ZivDero
+ */
 void TacticalExtension::Draw_Beacon_Text(std::string const& text, ColorScheme const& scheme, Point2D const& drawpoint, Rect const& cliprect, bool centered, int offset)
 {
     WWFontClass* font = Font6Ptr;

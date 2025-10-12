@@ -43,7 +43,11 @@
 #include "vinifera_globals.h"
 
 
-//
+/**
+ *  Patch to redraw the radar when a beacon anim needs redraw.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_RadarClass_Render_Radar_Redraw_Beacons_Patch)
 {
     GET_REGISTER_STATIC(RadarClass*, this_ptr, esi);
@@ -57,11 +61,16 @@ DECLARE_PATCH(_RadarClass_Render_Radar_Redraw_Beacons_Patch)
     JMP(0x005BCBBC);
 }
 
+
+/**
+ *  Draws beacons on the radar.
+ *
+ *  @author: ZivDero
+ */
 void Draw_Radar_Beacons()
 {
     BeaconManager.Draw_On_Radar(Map.RadarSurface, Map.RadarSurface->Get_Rect());
 }
-
 
 DECLARE_PATCH(_RadarClass_Render_Radar_Draw_Beacons_Patch)
 {
@@ -72,6 +81,11 @@ DECLARE_PATCH(_RadarClass_Render_Radar_Draw_Beacons_Patch)
 }
 
 
+/**
+ *  Deletes the house's beacons when the house is defeated.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_HouseClass_MPlayer_Defeated_Delete_Beacons_Patch)
 {
     GET_REGISTER_STATIC(HouseClass*, this_ptr, ebx);
@@ -101,6 +115,12 @@ public:
 };
 
 
+/**
+ *  Replacement for DisplayClass::Sell_Mode_Control.
+ *  Disables beacon placement mode when sell mode is entered.
+ *
+ *  @author: ZivDero, tomsons26
+ */
 void DisplayClassExt::_Sell_Mode_Control(int control)
 {
     bool mode = IsSellMode;
@@ -135,6 +155,12 @@ void DisplayClassExt::_Sell_Mode_Control(int control)
 }
 
 
+/**
+ *  Replacement for DisplayClass::Power_Mode_Control.
+ *  Disables beacon placement mode when power mode is entered.
+ *
+ *  @author: ZivDero, tomsons26
+ */
 void DisplayClassExt::_Power_Mode_Control(int control)
 {
     bool mode = IsPowerMode;
@@ -169,6 +195,12 @@ void DisplayClassExt::_Power_Mode_Control(int control)
 }
 
 
+/**
+ *  Replacement for DisplayClass::Repair_Mode_Control.
+ *  Disables beacon placement mode when repair mode is entered.
+ *
+ *  @author: ZivDero, tomsons26
+ */
 void DisplayClassExt::_Repair_Mode_Control(int control)
 {
     bool mode = IsRepairMode;
@@ -202,6 +234,13 @@ void DisplayClassExt::_Repair_Mode_Control(int control)
     }
 }
 
+
+/**
+ *  Replacement for DisplayClass::Mouse_Right_Release.
+ *  Disables beacon placement mode on RMB.
+ *
+ *  @author: ZivDero, tomsons26
+ */
 void DisplayClassExt::_Mouse_Right_Release(Point2D const& point)
 {
     if (PendingObjectPtr && PendingObjectPtr->Is_Techno()) {
@@ -241,6 +280,11 @@ void DisplayClassExt::_Mouse_Right_Release(Point2D const& point)
 }
 
 
+/**
+ *  Disables beacon placement mode when waypoint mode is entered.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_DisplayClass_Waypoint_Mode_Control_BeaconMode_Patch)
 {
     GET_REGISTER_STATIC(DisplayClass*, this_ptr, esi);
@@ -251,6 +295,12 @@ DECLARE_PATCH(_DisplayClass_Waypoint_Mode_Control_BeaconMode_Patch)
     JMP(0x004795D6);
 }
 
+
+/**
+ *  Acts on the various beacon actions.
+ *
+ *  @author: ZivDero
+ */
 void Place_Beacon(Cell* cell, ActionType action)
 {
     if (!PlayerPtr->IsDefeated) {
@@ -288,6 +338,11 @@ DECLARE_PATCH(_DisplayClass_Mouse_Left_Release_Beacon_Patch)
 }
 
 
+/**
+ *  Sets the beacon selection action when in beacon mode.
+ *
+ *  @author: ZivDero
+ */
 void Process_Select(ObjectClass* object, TechnoClass* techno, ActionType& action, Cell* cell)
 {
     if (object && object->Class_Of() && object->Class_Of()->IsSelectable && (object->RTTI != RTTI_BUILDING || !static_cast<BuildingClass*>(object)->IsFogged) && (techno == nullptr || !techno->IsALoaner)) {
@@ -300,7 +355,6 @@ void Process_Select(ObjectClass* object, TechnoClass* techno, ActionType& action
         action = static_cast<ActionType>(EXT_ACTION_SELECT_BEACON);
     }
 }
-
 
 DECLARE_PATCH(_ScrollClass_What_Action_Select_Beacon_Patch)
 {
@@ -316,6 +370,11 @@ DECLARE_PATCH(_ScrollClass_What_Action_Select_Beacon_Patch)
 }
 
 
+/**
+ *  Sets the beacon placement action when in beacon mode.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_ScrollClass_What_Action_Place_Beacon_Patch)
 {
     if (TacticalMapExtension->IsBeaconPlacementMode) {

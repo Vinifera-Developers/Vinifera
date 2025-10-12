@@ -79,7 +79,7 @@ public:
 
 
 /**
- *  Replacement for DeleteWaypoingCommandClass.
+ *  Replacement for DeleteWaypointCommandClass.
  */
 class DeleteCommandClass : public ViniferaCommandClass
 {
@@ -725,7 +725,7 @@ public:
 
 
 /**
- *  Adds units from the next health group (yellow, green) to already filtered veterans
+ *  Adds units from the next health group (yellow, green) to already filtered veterans.
  */
 class HealthFilterAddNextCommandClass : public ViniferaCommandClass
 {
@@ -743,6 +743,9 @@ public:
 };
 
 
+/**
+ *  Enters beacon placement mode.
+ */
 class BeaconPlacementCommandClass : public ViniferaCommandClass
 {
 public:

@@ -2288,7 +2288,7 @@ bool HealthFilterAddNextCommandClass::Process()
 
 
 /**
- *  
+ *  Enters beacon placement mode.
  *
  *  @author: ZivDero
  */
@@ -2314,7 +2314,7 @@ const char* BeaconPlacementCommandClass::Get_Description() const
 
 bool BeaconPlacementCommandClass::Process()
 {
-    if (/*Session.Type != GAME_NORMAL && Session.Type != GAME_SKIRMISH*/true) {
+    if (Session.Type != GAME_NORMAL && Session.Type != GAME_SKIRMISH) {
         if (!PlayerPtr->IsDefeated) {
             TacticalMapExtension->Beacon_Mode_Control(-1);
         }
