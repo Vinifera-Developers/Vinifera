@@ -251,12 +251,12 @@ DECLARE_PATCH(_DisplayClass_Waypoint_Mode_Control_BeaconMode_Patch)
     JMP(0x004795D6);
 }
 
-void Place_Beacon(Cell* cell)
+void Place_Beacon(Cell* cell, ActionType action)
 {
     if (!PlayerPtr->IsDefeated) {
         Coord coord = cell->As_Coord();
         coord.Z = Map[coord].Height * LEVEL_LEPTON_H;
-        BeaconManager.Place_Beacon(PlayerPtr->HeapID, coord, -1);
+        BeaconManager.Place_Beacon(PlayerPtr->HeapID, coord, -1, BeaconManagerClass::Beacon_Text(action));
     }
     TacticalMapExtension->Beacon_Mode_Control(0);
     Map.Set_Default_Mouse(MOUSE_NORMAL, false);
@@ -274,8 +274,8 @@ DECLARE_PATCH(_DisplayClass_Mouse_Left_Release_Beacon_Patch)
     GET_REGISTER_STATIC(ActionType, action, edi)
     GET_REGISTER_STATIC(Cell*, cell, ebp);
 
-    if (action == EXT_ACTION_PLACE_BEACON) {
-        Place_Beacon(cell);
+    if (BeaconManagerClass::Is_Beacon_Placement_Action(action)) {
+        Place_Beacon(cell, action);
         JMP(0x004790D1);
     } if (action == EXT_ACTION_SELECT_BEACON) {
         Select_Beacon(cell);
@@ -319,7 +319,8 @@ DECLARE_PATCH(_ScrollClass_What_Action_Select_Beacon_Patch)
 DECLARE_PATCH(_ScrollClass_What_Action_Place_Beacon_Patch)
 {
     if (TacticalMapExtension->IsBeaconPlacementMode) {
-        static ActionType action = static_cast<ActionType>(EXT_ACTION_PLACE_BEACON);
+        static ActionType action;
+        action = BeaconManagerClass::Pick_Beacon_Placement_Action();
         _asm mov ebp, action
     }
     if (Map.IsSellMode) {

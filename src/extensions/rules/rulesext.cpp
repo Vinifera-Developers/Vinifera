@@ -76,7 +76,7 @@
  *  
  *  @author: CCHyper
  */
-RulesClassExtension::RulesClassExtension(const RulesClass *this_ptr) :
+RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     GlobalExtensionClass(this_ptr),
     IsMPAutoDeployMCV(false),
     IsMPPrePlacedConYards(false),
@@ -98,6 +98,8 @@ RulesClassExtension::RulesClassExtension(const RulesClass *this_ptr) :
     UpgradeEliteSound(VOC_NONE),
     VoxUnitPromoted(VOX_NONE),
     EliteFlashTimer(0),
+    IsBeaconsEnabled(false),
+    MaxBeacons(-1),
     PlaceBeaconSound(VOC_NONE),
     PlaceBeaconVoice(VOX_NONE),
     DetectBeaconVoice(VOX_NONE)
@@ -664,6 +666,8 @@ bool RulesClassExtension::General(CCINIClass &ini)
     LowPowerPenaltyModifier = ini.Get_Float(GENERAL, "LowPowerPenaltyModifier", LowPowerPenaltyModifier);
     MultipleFactoryCap = ini.Get_Int(GENERAL, "MultipleFactoryCap", MultipleFactoryCap);
     IsTiberiumStorage = ini.Get_Bool(GENERAL, "TiberiumStorage", IsTiberiumStorage);
+    IsBeaconsEnabled = ini.Get_Bool(GENERAL, "BeaconsEnabled", IsBeaconsEnabled);
+    MaxBeacons = ini.Get_Int(GENERAL, "MaxBeacons", MaxBeacons);
 
     return true;
 }

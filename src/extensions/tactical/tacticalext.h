@@ -86,6 +86,7 @@ public:
     void Flag_Cell(CellClass& cell);
 
     void Beacon_Mode_Control(int control);
+    void Draw_Beacon_Text(std::string const& text, ColorScheme const& scheme, Point2D const& drawpoint, Rect const& cliprect, bool centered, int offset);
 
 #ifndef NDEBUG
     bool Debug_Draw_Facings();

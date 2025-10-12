@@ -33,6 +33,7 @@
 #include "extension_globals.h"
 #include "house.h"
 #include "ipxmgr.h"
+#include "miscutil.h"
 #include "mixfile.h"
 #include "mouse.h"
 #include "radarevent.h"
@@ -42,6 +43,7 @@
 #include "session.h"
 #include "shapeset.h"
 #include "tactical.h"
+#include "tacticalext.h"
 #include "tibsun_functions.h"
 #include "uicontrol.h"
 #include "vinifera_defines.h"
@@ -99,29 +101,7 @@ void BeaconClass::Draw(Surface* surface, Rect cliprect) const
                 }
             }
 
-            WWFontClass* font = Font6Ptr;
-            
-            /**
-             *  Fetch the text occupy area.
-             */
-            Rect string_rect;
-            font->String_Pixel_Rect(text.c_str(), &string_rect);
-
-            RGBClass rgb = scheme->HSV;
-            int fore = DSurface::Build_Hicolor_Pixel(rgb.Get_Red(), rgb.Get_Green(), rgb.Get_Blue());
-
-            /**
-             *  Fill the background area.
-             */
-            Rect text_rect(drawpoint.X - string_rect.Width / 2 - 4, drawpoint.Y + 32, string_rect.Width + 8, string_rect.Height + 8);
-            Rect fill_rect = Intersect(text_rect, cliprect);
-            CompositeSurface->Fill_Rect_Trans(fill_rect, RGBClass(0, 0, 0), 50);
-            CompositeSurface->Draw_Rect(fill_rect, fore);
-
-            /**
-             *  Draw the overlay text.
-             */
-            Fancy_Text_Print(text.c_str(), CompositeSurface, &CompositeSurface->Get_Rect(), &Point2D(text_rect.X + 4, text_rect.Y + 4), scheme, COLOR_TBLACK, TPF_6POINT | TPF_NOSHADOW);
+            TacticalMapExtension->Draw_Beacon_Text(text, *scheme, drawpoint, cliprect, true, UIControls->BeaconTextOffset);
         }
     }
 }
@@ -209,7 +189,7 @@ BeaconManagerClass::BeaconManagerClass() :
     RadarBeaconWidth(0),
     RadarBeaconHeight(0),
     RadarBeaconFrameCount(0),
-    RadarBeaconAnimPeriod(0)
+    RadarBeaconAnimPeriod(1)
 {
 }
 
@@ -271,7 +251,7 @@ void BeaconManagerClass::Draw(Surface* surface, Rect cliprect)
 }
 
 
-void BeaconManagerClass::Place_Beacon(HousesType house, Coord coord, int beacon_id)
+void BeaconManagerClass::Place_Beacon(HousesType house, Coord coord, int beacon_id, char const* text)
 {
     BeaconClass* beacon = new BeaconClass;
 
@@ -279,12 +259,16 @@ void BeaconManagerClass::Place_Beacon(HousesType house, Coord coord, int beacon_
         Beacons[house].erase(Beacons[house].begin() + beacon_id);
         Beacons[house].emplace(Beacons[house].begin() + beacon_id, beacon);
     } else {
+        if (RuleExtension->MaxBeacons > 0 && Beacons[house].size() >= RuleExtension->MaxBeacons) {
+            Delete_Beacon(house, 0);
+        }
         Beacons[house].emplace_back(beacon);
     }
 
+    DEBUG_INFO("Placing beacon: (%d, %d, %d)\n", coord.X, coord.Y, coord.Z);
     beacon->Set(coord, house);
 
-    if (/*Session.Type != GAME_NORMAL && Session.Type != GAME_SKIRMISH*/true) {
+    if (Session.Type != GAME_NORMAL && Session.Type != GAME_SKIRMISH) {
         if (house == PlayerPtr->HeapID) {
             //Session.Messages.Add_Message(nullptr, 0, "Select a beacon and hit 'enter' key to enter text", PlayerPtr->Scheme, TPF_USE_GRAD_PAL | TPF_FULLSHADOW | TPF_6PT_GRAD, 225);
             //Session.Messages.Add_Message(nullptr, 0, "Select a beacon and hit 'delete' key to remove", PlayerPtr->Scheme, TPF_USE_GRAD_PAL | TPF_FULLSHADOW | TPF_6PT_GRAD, 225);
@@ -296,6 +280,11 @@ void BeaconManagerClass::Place_Beacon(HousesType house, Coord coord, int beacon_
                 Speak(RuleExtension->DetectBeaconVoice);
             }
         }
+    }
+
+    if (text != nullptr) {
+        Find_Beacon(beacon, house, beacon_id);
+        Set_Beacon_Text(text, house, beacon_id, house == PlayerPtr->HeapID);
     }
 }
 
@@ -335,6 +324,21 @@ BeaconClass* BeaconManagerClass::Beacon_At(Coord coord)
     return nullptr;
 }
 
+bool BeaconManagerClass::Find_Beacon(BeaconClass const* beacon, HousesType& house, int& beacon_id)
+{
+    for (HousesType i = HOUSE_FIRST; i < std::size(Beacons); i++) {
+        auto& vec = Beacons[i];
+        auto it = std::find_if(vec.begin(), vec.end(), [beacon](const std::unique_ptr<BeaconClass>& ptr) { return ptr.get() == beacon; });
+        if (it != vec.end()) {
+            house = i;
+            beacon_id = it - vec.begin();
+            return true;
+        }
+    }
+
+    return false;
+}
+
 
 BeaconClass* BeaconManagerClass::Find_Selected_Beacon(HousesType house)
 {
@@ -353,18 +357,18 @@ BeaconClass* BeaconManagerClass::Find_Selected_Beacon(HousesType house)
 void BeaconManagerClass::Delete_Beacon(HousesType house, int beacon_id)
 {
     BeaconClass* beacon = nullptr;
-    bool is_doer = false;
+    bool is_local_action = false;
 
     if (house == HOUSE_NONE && beacon_id == -1) {
-        is_doer = true;
+        is_local_action = true;
         beacon = Find_Selected_Beacon(house);
     } else {
-        is_doer = false;
         beacon = Beacons[house][beacon_id].get();
     }
 
     if (beacon != nullptr) {
-        if (beacon->Owner != PlayerPtr->HeapID && is_doer) {
+
+        if (beacon->Owner != PlayerPtr->HeapID && is_local_action) {
             beacon->Disown();
             beacon->Select(false);
         } else {
@@ -372,19 +376,12 @@ void BeaconManagerClass::Delete_Beacon(HousesType house, int beacon_id)
                 beacon->Draw_On_Radar(Map.RadarSurface, Map.RadarSurface->Get_Rect(), true);
             }
 
-            for (auto& vec : Beacons) {
-                auto it = std::find_if(vec.begin(), vec.end(), [beacon](const std::unique_ptr<BeaconClass>& ptr) { return ptr.get() == beacon; });
-
-                if (it != vec.end()) {
-                    vec.erase(it);
-
-                    if (/*Session.Type != GAME_NORMAL && Session.Type != GAME_SKIRMISH*/ true) {
-                        if (house == PlayerPtr->HeapID && is_doer) {
-                            Send_Beacon_Delete(house, beacon_id);
-                        }
+            if (Find_Beacon(beacon, house, beacon_id)) {
+                Beacons[house].erase(Beacons[house].begin() + beacon_id);
+                if (Session.Type != GAME_NORMAL && Session.Type != GAME_SKIRMISH) {
+                    if (house == PlayerPtr->HeapID && is_local_action) {
+                        Send_Beacon_Delete(house, beacon_id);
                     }
-
-                    break;
                 }
             }
         }
@@ -400,30 +397,28 @@ void BeaconManagerClass::Delete_Owned_Beacons(HousesType house)
 }
 
 
-void BeaconManagerClass::Set_Beacon_Text(char const* text, HousesType house, int beacon_id, bool is_doer)
+void BeaconManagerClass::Set_Beacon_Text(char const* text, HousesType house, int beacon_id, bool send)
 {
     BeaconClass* beacon = nullptr;
-    bool selected = false;
+    bool is_local_action = false;
 
     if (house == HOUSE_NONE && beacon_id == -1) {
-        selected = true;
+        is_local_action = true;
         beacon = Find_Selected_Beacon(house);
     } else {
-        selected = false;
         beacon = Beacons[house][beacon_id].get();
     }
 
     if (beacon != nullptr) {
         beacon->Set_Text(text);
-        if (/*Session.Type != GAME_NORMAL && Session.Type != GAME_SKIRMISH*/ true) {
-            if (selected && beacon->Owner == PlayerPtr->HeapID && is_doer) {
+        if (Session.Type != GAME_NORMAL && Session.Type != GAME_SKIRMISH) {
+            if (is_local_action && beacon->Owner == PlayerPtr->HeapID && send) {
                 for (int i = 0; i < Beacons[PlayerPtr->HeapID].size(); i++) {
                     if (Beacons[PlayerPtr->HeapID][i].get() == beacon) {
                         beacon_id = i;
                         break;
                     }
                 }
-
                 Send_Set_Beacon_Text(text, house, beacon_id);
             } else if (beacon->Is_Visible_To_Player()) {
                 Submit_Radar_Event(RADAREVENT_DROPZONE, beacon->Position.As_Cell()); // abusing RADAREVENT_DROPZONE for beacons
@@ -515,6 +510,61 @@ void BeaconManagerClass::Send_Set_Beacon_Text(char const * text, HousesType hous
             DEBUG_INFO("Sending beacon text to %s\n", static_cast<const char*>(Session.Players[i]->Name));
             Ipx.Send_Global_Message(&packet, sizeof(packet), true, &Session.Players[i]->Address);
         }
+    }
+}
+
+
+ActionType BeaconManagerClass::Pick_Beacon_Placement_Action()
+{
+    const bool altdown = Key_Down(Options.KeyForceMove1) || Key_Down(Options.KeyForceMove2);
+    const bool ctrldown = Key_Down(Options.KeyForceAttack1) || Key_Down(Options.KeyForceAttack2);
+    const bool shiftdown = Key_Down(Options.KeySelect1) || Key_Down(Options.KeySelect2);
+
+    ExtActionType action = EXT_ACTION_PLACE_BEACON;
+
+    if (ctrldown && altdown) {
+        action = EXT_ACTION_PLACE_DEFEND_BEACON;
+    } else if (ctrldown) {
+        action = EXT_ACTION_PLACE_ATTACK_BEACON;
+    } else if (altdown) {
+        action = EXT_ACTION_PLACE_MOVE_BEACON;
+    } else if (shiftdown) {
+        action = EXT_ACTION_PLACE_EXPAND_BEACON;
+    }
+
+    return static_cast<ActionType>(action);
+}
+
+
+bool BeaconManagerClass::Is_Beacon_Placement_Action(ActionType action)
+{
+    switch (action) {
+    case EXT_ACTION_PLACE_BEACON:
+    case EXT_ACTION_PLACE_ATTACK_BEACON:
+    case EXT_ACTION_PLACE_DEFEND_BEACON:
+    case EXT_ACTION_PLACE_MOVE_BEACON:
+    case EXT_ACTION_PLACE_EXPAND_BEACON:
+        return true;
+    default:
+        return false;
+    }
+}
+
+
+char const* BeaconManagerClass::Beacon_Text(ActionType action)
+{
+    switch (action) {
+    case EXT_ACTION_PLACE_ATTACK_BEACON:
+        return "Attack";
+    case EXT_ACTION_PLACE_DEFEND_BEACON:
+        return "Defend";
+    case EXT_ACTION_PLACE_MOVE_BEACON:
+        return "Move";
+    case EXT_ACTION_PLACE_EXPAND_BEACON:
+        return "Expand";
+    case EXT_ACTION_PLACE_BEACON:
+    default:
+        return nullptr;
     }
 }
 

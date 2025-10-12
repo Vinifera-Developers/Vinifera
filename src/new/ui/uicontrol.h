@@ -312,6 +312,8 @@ class UIControlsClass
 
         int BeaconAnimFramesPerSecond;
         int RadarBeaconAnimFramesPerSecond;
+        int BeaconTextOffset;
+        int BeaconPreviewTextOffset;
 };
 
 extern UIControlsClass *UIControls;

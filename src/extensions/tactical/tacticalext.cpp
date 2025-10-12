@@ -57,6 +57,8 @@
 #include "debughandler.h"
 #include "mouse.h"
 #include "tibsun_functions.h"
+#include "uicontrol.h"
+#include "wwmouse.h"
 
 
 /**
@@ -567,6 +569,13 @@ void TacticalExtension::Render_Post()
      *  Draw any overlay text.
      */
     Draw_Super_Timers();
+
+    if (IsBeaconPlacementMode) {
+        char const* beacon_text = BeaconManagerClass::Beacon_Text(BeaconManagerClass::Pick_Beacon_Placement_Action());
+        if (beacon_text != nullptr) {
+            Draw_Beacon_Text(beacon_text, *ColorSchemes[PlayerPtr->Scheme], WWMouse->Get_Mouse_XY(), VisibleRect, false, UIControls->BeaconPreviewTextOffset);
+        }
+    }
 }
 
 
@@ -903,6 +912,10 @@ void TacticalExtension::Flag_Cell(CellClass& cell)
 
 void TacticalExtension::Beacon_Mode_Control(int control)
 {
+    if (!RuleExtension->IsBeaconsEnabled) {
+        return;
+    }
+
     bool mode = IsBeaconPlacementMode;
     switch (control) {
     case 0:
@@ -932,4 +945,40 @@ void TacticalExtension::Beacon_Mode_Control(int control)
             Map.Revert_Mouse_Shape();
         }
     }
+}
+
+void TacticalExtension::Draw_Beacon_Text(std::string const& text, ColorScheme const& scheme, Point2D const& drawpoint, Rect const& cliprect, bool centered, int offset)
+{
+    WWFontClass* font = Font6Ptr;
+
+    /**
+     *  Determine the text bounds.
+     */
+    Rect text_rect;
+    font->String_Pixel_Rect(text.c_str(), &text_rect);
+    text_rect += drawpoint;
+    text_rect.Y += offset;
+
+    if (centered) {
+        text_rect.X -= text_rect.Width / 2;
+    }
+
+    /**
+     *  Determine the size of the box encompassing the text.
+     *  Center the box if necessary.
+     */
+    Rect box_rect = text_rect;
+    box_rect.X -= 4;
+    box_rect.Y -= 4;
+    box_rect.Width += 8;
+    box_rect.Height += 8;
+
+    RGBClass rgb = scheme.HSV;
+    int fore = DSurface::Build_Hicolor_Pixel(rgb.Get_Red(), rgb.Get_Green(), rgb.Get_Blue());
+
+    Rect visible_box_rect = Intersect(box_rect, cliprect);
+    CompositeSurface->Fill_Rect_Trans(visible_box_rect, RGBClass(0, 0, 0), 50);
+    CompositeSurface->Draw_Rect(visible_box_rect, fore);
+
+    Fancy_Text_Print(text.c_str(), CompositeSurface, &CompositeSurface->Get_Rect(), &text_rect.TopLeft, const_cast<ColorScheme*>(&scheme), COLOR_TBLACK, TPF_6POINT | TPF_NOSHADOW);
 }

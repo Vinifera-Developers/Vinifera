@@ -176,22 +176,37 @@ void _IPX_Call_Back()
 }
 
 
-void _Message_Input(KeyNumType& input)
+void New_Edit(char const* to, bool enable_overflow = true, int width = -1)
 {
     char txt[80 + MAX_MESSAGE_LENGTH + 32];
+    strcpy(txt, to);
 
-    char char_input = WWKeyboard->To_ASCII(input);
-    if ((char_input == '\r' || char_input == '\b') && !Session.Messages.Is_Edit()) {
+    Session.Messages.Add_Edit(static_cast<ColorSchemeType>(Session.ColorIdx), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, txt, 0, width);
+    Session.Messages.EnableOverflow = enable_overflow;
+
+    BeaconManager.Set_Beacon_Text("_", HOUSE_NONE, -1, false);
+
+    Map.Flag_To_Redraw();
+}
+
+
+bool Begin_Message(KeyNumType input)
+{
+    /*
+    **  Check if we've got an active message already.
+    */
+    if (Session.Messages.Is_Edit()) {
+        return false;
+    }
+
+    /*
+    **  Check if player is trying to type a beacon message.
+    */
+    if (input == KN_RETURN || input == KN_BACKSPACE) {
         BeaconClass* beacon = BeaconManager.Find_Selected_Beacon(PlayerPtr->HeapID);
         if (beacon != nullptr) {
-            strcpy(txt, "Beacon Message:");
-
-            Session.Messages.Add_Edit(static_cast<ColorSchemeType>(Session.ColorIdx), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, txt, 0, 10000);
-            Session.Messages.EnableOverflow = false;
-
-            BeaconManager.Set_Beacon_Text("_", HOUSE_NONE, -1, false);
-
-            Map.Flag_To_Redraw();
+            New_Edit("Beacon Message:", false, 10000);
+            return true;
         }
     }
 
@@ -203,52 +218,63 @@ void _Message_Input(KeyNumType& input)
     **  'to' portion.  At the other end, the buffer allocated to display the
     **  message must be MAX_MESSAGE_LENGTH plus the size of "From: xxx (house)".
     */
-    if (Session.Type != GAME_NORMAL && Session.Type != GAME_SKIRMISH && input >= KN_F1 && input < KN_F1 + Session.MaxPlayers && !Session.Messages.Is_Edit()) {
-        txt[0] = '\0';
+    if (Session.Type != GAME_NORMAL && Session.Type != GAME_SKIRMISH) {
+        if (input >= KN_F1 && input < KN_F1 + Session.MaxPlayers) {
 
-        /*
-        **  For a serial game, send a message on F1 or F4; set 'txt' to the
-        **  "Message:" string & add an editable message to the list.
-        */
-        if (Session.Type == GAME_NULL_MODEM || Session.Type == GAME_MODEM) {
-            if (input == KN_F1 || input == KN_F1 + Session.MaxPlayers - 1) {
-
-                strcpy(txt, Fetch_String(TXT_MESSAGE)); // "Message:"
-
-                Session.Messages.Add_Edit(static_cast<ColorSchemeType>(Session.ColorIdx), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, txt, 0, -1);
-                Session.Messages.EnableOverflow = true;
-
-                Map.Flag_To_Redraw();
-            }
-        } else if ((Session.Type == GAME_IPX || Session.Type == GAME_INTERNET) && !Session.Messages.Is_Edit()) {
+            switch (Session.Type) {
 
             /*
-            **  For a network game:
-            **  F1-F7 = "To <name> (house):" (only allowed if we're not in ObiWan mode)
-            **  F8 = "To All:"
+            **  For a serial game, send a message on F1 or F4; set 'txt' to the
+            **  "Message:" string & add an editable message to the list.
             */
-            if (input == KN_F1 + Session.MaxPlayers - 1) {
+            case GAME_NULL_MODEM:
+            case GAME_MODEM:
+                if (input == KN_F1 || input == KN_F1 + Session.MaxPlayers - 1) {
+                    New_Edit(Fetch_String(TXT_MESSAGE));
+                    return true;
+                }
+                break;
 
-                Session.MessageAddress = IPXAddressClass(); // set to broadcast
-                strcpy(txt, Fetch_String(TXT_TO_ALL));      // "To All:"
+                /*
+                **  For a network game:
+                **  F1-F7 = "To <name> (house):" (only allowed if we're not in ObiWan mode)
+                **  F8 = "To All:"
+                */
+            case GAME_IPX:
+            case GAME_INTERNET:
+                if (input == KN_F1 + Session.MaxPlayers - 1) {
+                    Session.MessageAddress = IPXAddressClass(); // set to broadcast
+                    New_Edit(Fetch_String(TXT_TO_ALL));
+                    return true;
+                }
 
-                Session.Messages.Add_Edit(static_cast<ColorSchemeType>(Session.ColorIdx), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, txt, 0, -1);
-                Session.Messages.EnableOverflow = true;
+                if (input - KN_F1 < Ipx.Num_Connections() && !Session.ObiWan) {
+                    int id = Ipx.Connection_ID(input - KN_F1);
+                    Session.MessageAddress = *Ipx.Connection_Address(id);
+                    char txt[80 + MAX_MESSAGE_LENGTH + 32];
+                    std::sprintf(txt, Fetch_String(TXT_TO), Ipx.Connection_Name(id));
+                    New_Edit(txt);
+                    return true;
+                }
+                break;
 
-                Map.Flag_To_Redraw();
-
-            } else if (input - KN_F1 < Ipx.Num_Connections() && !Session.ObiWan) {
-
-                int id = Ipx.Connection_ID(input - KN_F1);
-                Session.MessageAddress = *Ipx.Connection_Address(id);
-                wsprintf(txt, Fetch_String(TXT_TO), Ipx.Connection_Name(id));
-
-                Session.Messages.Add_Edit(static_cast<ColorSchemeType>(Session.ColorIdx), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, txt, 0, -1);
-                Session.Messages.EnableOverflow = true;
-
-                Map.Flag_To_Redraw();
+            default:
+                break;
             }
         }
+    }
+
+    return false;
+}
+
+
+void _Message_Input(KeyNumType& input)
+{
+    /*
+    **  Check if we should begin recording input right now.
+    */
+    if (Begin_Message(input)) {
+        input = KN_NONE;
     }
 
     /*
@@ -257,7 +283,23 @@ void _Message_Input(KeyNumType& input)
     KeyNumType copy_input = input;
     int rc = Session.Messages.Input(input);
 
-    if ((rc == 1 || rc == 2) && Session.Type != GAME_NORMAL) {
+    /*
+    **  No chat exists in single-player.
+    */
+    //if (Session.Type == GAME_NORMAL || Session.Type == GAME_SKIRMISH) {
+    //    return;
+    //}
+
+    /*
+    **  1 = caller should redraw the message list (no need to complete
+    **      refresh, though)
+    **  2 = caller should completely refresh the display.
+    **  3 = caller should send the edit message.
+    **      (sets 'input' to 0 if it processes it.)
+    **  4 = caller should send the Overflow buffer
+    */
+
+    if (rc == 1 || rc == 2) {
 
         /*
         **  If a single character has been added to an edit buffer, update the display.
@@ -280,6 +322,11 @@ void _Message_Input(KeyNumType& input)
             }
         }
 
+        /*
+        **  If we're typing a beacon message, save it into the beacon.
+        **  If the player has hit the escape button, clear it instead.
+        **  The fact that it's being typed is reflected by a blinking underscore.
+        */
         if (copy_input == KN_ESC) {
             BeaconManager.Set_Beacon_Text(nullptr, HOUSE_NONE, -1, true);
         } else {
@@ -296,8 +343,11 @@ void _Message_Input(KeyNumType& input)
     /*
     **  Send a message
     */
-    if (rc == 3 || rc == 4 /*&& Session.Type != GAME_NORMAL && Session.Type != GAME_SKIRMISH*/) {
+    if (rc == 3 || rc == 4) {
 
+        /*
+        **  If we're typing a beacon message, save it accordingly.
+        */
         BeaconClass* beacon = BeaconManager.Find_Selected_Beacon(PlayerPtr->HeapID);
         if (beacon != nullptr) {
             if (copy_input == KN_ESC) {
@@ -309,7 +359,7 @@ void _Message_Input(KeyNumType& input)
                     buffer += edit;
                     buffer.pop_back(); // MessageListClass appends a space to the end
                 }
-                BeaconManager.Set_Beacon_Text(buffer.c_str(), HOUSE_NONE, -1, false);
+                BeaconManager.Set_Beacon_Text(buffer.c_str(), HOUSE_NONE, -1, true);
             }
         }
 

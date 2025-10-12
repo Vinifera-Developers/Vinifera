@@ -73,20 +73,25 @@ public:
     void Reset();
     void Load_Art();
     void Draw(Surface* surface, Rect cliprect);
-    void Place_Beacon(HousesType house, Coord coord, int beacon_id = -1);
+    void Place_Beacon(HousesType house, Coord coord, int beacon_id = -1, char const* text = nullptr);
     bool Select_Beacon(Coord coord);
     void Unselect_All_Beacons();
     BeaconClass* Beacon_At(Coord coord);
+    bool Find_Beacon(BeaconClass const* beacon, HousesType& house, int& beacon_id);
     BeaconClass* Find_Selected_Beacon(HousesType house);
     void Delete_Beacon(HousesType house, int beacon_id);
     void Delete_Owned_Beacons(HousesType house);
-    void Set_Beacon_Text(char const* text, HousesType house, int beacon_id, bool is_doer = false);
+    void Set_Beacon_Text(char const* text, HousesType house, int beacon_id, bool send = false);
     void Draw_On_Radar(Surface* surface, Rect cliprect);
     bool Is_To_Redraw_Radar();
 
     static void Send_Beacon_Place(Coord coord, HousesType house, int beacon_id);
     static void Send_Beacon_Delete(HousesType house, int beacon_id);
     static void Send_Set_Beacon_Text(char const* text, HousesType house, int beacon_id);
+
+    static ActionType Pick_Beacon_Placement_Action();
+    static bool Is_Beacon_Placement_Action(ActionType action);
+    static char const* Beacon_Text(ActionType action);
 
     int Get_Radar_Shape_Frame() const;
 

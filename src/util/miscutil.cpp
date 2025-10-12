@@ -590,3 +590,8 @@ bool Parse_Boolean(const char* value, bool defval)
         return defval;
     }
 }
+
+bool Key_Down(int key)
+{
+    return (GetAsyncKeyState(key) & 0x8000) != 0;
+}
