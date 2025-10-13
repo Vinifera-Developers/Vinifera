@@ -535,7 +535,7 @@ void BeaconManagerClass::Delete_Owned_Beacons(HousesType house)
 
 
 /**
- *  Sets or updates a beacon’s text.
+ *  Sets or updates a beacon's text.
  *
  *  @authors: ZivDero, tomsons26
  */

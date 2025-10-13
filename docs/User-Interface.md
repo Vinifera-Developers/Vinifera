@@ -88,7 +88,7 @@ IsBeaconsEnabled=no  ; boolean, are beacons enabled?
 MaxBeacons=-1        ; integer, maximum beacons per player. When the cap is reached, the oldest beacon will be deleted when a new beacon is placed. Negative numbers mean there is no cap.
 ```
 
-- When a beacon is placed/detected, a sound effect an EVA line are played.
+- When a beacon is placed/detected, a sound effect and an EVA line are played.
 
 ```ini
 [AudioVisual]
