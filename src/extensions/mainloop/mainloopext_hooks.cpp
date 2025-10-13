@@ -449,7 +449,7 @@ static bool Begin_Message(KeyNumType input)
                 if (input == OptionsExtension->KeyChatToAllies && !Session.ObiWan) {
                     Session.MessageAddress = IPXAddressClass(); // set to broadcast
                     SessionExtension->IsChatToAllies = true;    // set to filter to allies only
-                    New_Edit("To Allies: ");
+                    New_Edit("To Team: ");
                     return true;
                 }
 
@@ -622,7 +622,7 @@ void _Message_Input(KeyNumType& input)
             */
             if (Session.MessageAddress.Is_Broadcast()) {
                 if (SessionExtension->IsChatToAllies) {
-                    strcpy(packet.Message.Scope, "Allies");
+                    strcpy(packet.Message.Scope, "Team");
                 } else {
                     strcpy(packet.Message.Scope, "All");
                 }
