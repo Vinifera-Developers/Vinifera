@@ -89,18 +89,12 @@ MaxBeacons=-1        ; integer, maximum beacons per player. When the cap is reac
 ```
 
 - When a beacon is placed/detected, a sound effect an EVA line are played.
+
 ```ini
 [AudioVisual]
 PlaceBeaconSound=   ; VocType, the sound played when the player places a beacon.
 PlaceBeaconVoice=   ; VoxType, the EVA line played when the player places a beacon.
 DetectBeaconVoice=  ; VoxType, the EVA line played another player places a beacon.
-```
-
-In `RULES.INI`:
-```ini
-[General]
-IsBeaconsEnabled=no  ; boolean, are beacons enabled?
-MaxBeacons=-1        ; integer, maximum beacons per player. When the cap is reached, the oldest beacon will be deleted when a new beacon is placed. Negative numbers mean there is no cap.
 ```
 
 In `UI.INI`:
