@@ -571,7 +571,7 @@ void TacticalExtension::Render_Post()
     Draw_Super_Timers();
 
     /**
-     *  In decon placement mode, holding modifier keys can give you a preset text
+     *  In beacon placement mode, holding modifier keys can give you a preset text
      *  (e.g. attack, defend). Draw it.
      */
     if (IsBeaconPlacementMode) {
