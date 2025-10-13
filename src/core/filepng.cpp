@@ -233,7 +233,7 @@ BSurface *Read_PNG_File(FileClass *name, unsigned char *palette, void *buff, lon
             int g = *png_image++; // & 0xFF;
             int b = *png_image++; // & 0xFF;
     
-            *buffptr++ = DSurface::RGB_To_Pixel(r, g, b);
+            *buffptr++ = DSurface::Build_Hicolor_Pixel(r, g, b);
         }
     
         pic->Unlock();

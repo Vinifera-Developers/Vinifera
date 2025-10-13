@@ -687,7 +687,7 @@ void SidebarClassExt::_AI(KeyNumType& input, Point2D& xy)
 void SidebarClassExt::_Draw_It(bool complete)
 {
     complete |= IsToFullRedraw;
-    Map.field_1214 = Rect();
+    Map.LastDrawRect = Rect(0, 0, 0, 0);
     PowerClass::Draw_It(complete);
 
     DSurface* oldsurface = LogicSurface;
@@ -2021,7 +2021,7 @@ void StripClassExt::_Draw_It(bool complete)
                 {
                     Rect cameo_hover_rect(x, SidebarRect.Y + y, OBJECT_WIDTH, OBJECT_HEIGHT - 3);
                     const ColorSchemeType colorschemetype = Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor;
-                    SidebarSurface->Draw_Rect(cameo_hover_rect, DSurface::RGB_To_Pixel(ColorSchemes[colorschemetype]->HSV.operator RGBClass()));
+                    SidebarSurface->Draw_Rect(cameo_hover_rect, DSurface::Build_Hicolor_Pixel(ColorSchemes[colorschemetype]->HSV.operator RGBClass()));
                 }
 
 

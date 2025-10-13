@@ -454,7 +454,7 @@ void EBoltClass::Draw_Bolts()
         int start_z = data.StartZ - TacticalMap->Z_Lepton_To_Pixel(data.Start.Z) - 2;
         int end_z = data.EndZ - TacticalMap->Z_Lepton_To_Pixel(data.End.Z) - 2;
 
-        unsigned color = DSurface::RGB_To_Pixel(data.Color.Red, data.Color.Green, data.Color.Blue);
+        unsigned color = DSurface::Build_Hicolor_Pixel(data.Color.Red, data.Color.Green, data.Color.Blue);
 
         CompositeSurface->Draw_Line_entry_34(TacticalRect, start_pixel, end_pixel, color, start_z, end_z);
     }
