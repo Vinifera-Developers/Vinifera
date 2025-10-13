@@ -268,7 +268,7 @@ ShowTimer=no       ; boolean, when this superweapon is active, does its recharge
 - Additionally, Vinifera implements the system to echo the user's sent messages back to them in-game as a confirmation they were sent. This is an enhancement from Red Alert 2.
 ![image](https://user-images.githubusercontent.com/73803386/137031682-3f265d48-7f28-410f-bf0d-3260e24f1748.png)
 
-- Vinifera allows players to send a message to only their allies. Additionally, all messages now display their recipient ("All", "Allies" or "You").
+- Vinifera allows players to send a message to only their allies. Additionally, all messages now display their recipient ("All", "Allies" or "Whisper").
 
 In `KEYBOARD.INI`:
 ```ini

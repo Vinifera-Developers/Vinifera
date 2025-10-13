@@ -39,5 +39,6 @@
  */
 void MessageListClassExtension_Hooks()
 {
-    
+    // Replace the message format to add a space after the semicolon after the message author's name.
+    Patch_Dword(0x00573161 + 1, reinterpret_cast<uintptr_t>(&"%s: %s"));
 }

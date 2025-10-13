@@ -396,7 +396,7 @@ static bool Begin_Message(KeyNumType input)
     if (input == OptionsExtension->KeyChatToAll1 || input == OptionsExtension->KeyChatToAll2 || input == OptionsExtension->KeyChatToAllies) {
         BeaconClass* beacon = BeaconManager.Find_Selected_Beacon(PlayerPtr->HeapID);
         if (beacon != nullptr) {
-            New_Edit("Beacon Message:", false, 10000);
+            New_Edit("Beacon Message: ", false, 10000);
             BeaconManager.Set_Beacon_Text("_", HOUSE_NONE, -1, false);
             return true;
         }
@@ -427,7 +427,7 @@ static bool Begin_Message(KeyNumType input)
             case GAME_NULL_MODEM:
             case GAME_MODEM:
                 if (input == KN_F1 || input == OptionsExtension->KeyChatToAll1 || input == OptionsExtension->KeyChatToAll2 || input == OptionsExtension->KeyChatToAllies) {
-                    New_Edit(Fetch_String(TXT_MESSAGE));
+                    New_Edit("Message: ");
                     return true;
                 }
                 break;
@@ -442,14 +442,14 @@ static bool Begin_Message(KeyNumType input)
             case GAME_INTERNET:
                 if (input == OptionsExtension->KeyChatToAll1 || input == OptionsExtension->KeyChatToAll2) {
                     Session.MessageAddress = IPXAddressClass(); // set to broadcast
-                    New_Edit(Fetch_String(TXT_TO_ALL));
+                    New_Edit("To All: ");
                     return true;
                 }
 
                 if (input == OptionsExtension->KeyChatToAllies && !Session.ObiWan) {
                     Session.MessageAddress = IPXAddressClass(); // set to broadcast
                     SessionExtension->IsChatToAllies = true;    // set to filter to allies only
-                    New_Edit("To Allies:");
+                    New_Edit("To Allies: ");
                     return true;
                 }
 
@@ -457,7 +457,7 @@ static bool Begin_Message(KeyNumType input)
                     int id = Ipx.Connection_ID(input - KN_F1);
                     Session.MessageAddress = *Ipx.Connection_Address(id);
                     char txt[80 + MAX_MESSAGE_LENGTH + 32];
-                    std::sprintf(txt, Fetch_String(TXT_TO), Ipx.Connection_Name(id));
+                    std::sprintf(txt, "To %s: ", Ipx.Connection_Name(id));
                     New_Edit(txt);
                     return true;
                 }
@@ -627,7 +627,7 @@ void _Message_Input(KeyNumType& input)
                     strcpy(packet.Message.Scope, "All");
                 }
             } else {
-                strcpy(packet.Message.Scope, "You");
+                strcpy(packet.Message.Scope, "Whisper");
             }
 
             if (rc == 3) {
