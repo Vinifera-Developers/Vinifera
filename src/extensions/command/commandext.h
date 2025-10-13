@@ -668,7 +668,7 @@ public:
 
 
 /**
- *  Cycles through green/veteran/elite units among the initially selected group
+ *  Cycles through green/veteran/elite units among the initially selected group.
  */
 class VeterancyFilterCommandClass : public ViniferaCommandClass
 {
@@ -687,7 +687,7 @@ public:
 
 
 /**
- *  Cycles through red/yellow/green health units among the initially selected group
+ *  Cycles through red/yellow/green health units among the initially selected group.
  */
 class HealthFilterCommandClass : public ViniferaCommandClass
 {
@@ -706,7 +706,7 @@ public:
 
 
 /**
- *  Adds lower-ranked units to already filtered veterans
+ *  Adds lower-ranked units to already filtered veterans.
  */
 class VeterancyFilterAddNextCommandClass : public ViniferaCommandClass
 {
