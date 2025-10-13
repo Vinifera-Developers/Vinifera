@@ -77,10 +77,6 @@ public:
  */
 class BeaconManagerClass
 {
-    enum {
-        BEACONS_PER_PLAYER = 3
-    };
-
 public:
     BeaconManagerClass();
     ~BeaconManagerClass() = default;
