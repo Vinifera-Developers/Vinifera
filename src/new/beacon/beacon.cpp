@@ -75,7 +75,9 @@ BeaconClass::BeaconClass() :
     HasOwner(false),
     IsSelected(false),
     Owner(HOUSE_NONE)
-{}
+{
+    
+}
 
 
 /**

@@ -621,6 +621,12 @@ Vanilla actions are always present implicitly, but their properties **can** be o
     DropPod=AirStrike,AirStrike
     RallyToPoint=CanMove,Normal
     AttackSupport=Normal,Normal
+    PlaceBeacon=PlaceWaypoint,PlaceWaypoint
+    PlaceAttackBeacon=PlaceWaypoint,PlaceWaypoint
+    PlaceDefendBeacon=PlaceWaypoint,PlaceWaypoint
+    PlaceMoveBeacon=PlaceWaypoint,PlaceWaypoint
+    PlaceExpandBeacon=PlaceWaypoint,PlaceWaypoint
+    SelectBeacon=SelectWaypoint,SelectWaypoint
 
     ```
    :::

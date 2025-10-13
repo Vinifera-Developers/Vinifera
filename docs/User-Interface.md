@@ -77,6 +77,54 @@ Due to limitations of the game's tooltip system, the length of the description i
 Due to implementation details, it is recommended that you do not make the queue longer than 50 units. Dequeueing more than 63 units at a time could potentially result in other actions being done by the player on the same frame being ignored by the game.
 ```
 
+## Beacons
+
+Vinifera implements multiplayer beacons, similar to those seen in Red Alert 2.
+
+In `RULES.INI`:
+```ini
+[General]
+IsBeaconsEnabled=no  ; boolean, are beacons enabled?
+MaxBeacons=-1        ; integer, maximum beacons per player. When the cap is reached, the oldest beacon will be deleted when a new beacon is placed. Negative numbers mean there is no cap.
+```
+
+- When a beacon is placed/detected, a sound effect an EVA line are played.
+```ini
+[AudioVisual]
+PlaceBeaconSound=   ; VocType, the sound played when the player places a beacon.
+PlaceBeaconVoice=   ; VoxType, the EVA line played when the player places a beacon.
+DetectBeaconVoice=  ; VoxType, the EVA line played another player places a beacon.
+```
+
+In `RULES.INI`:
+```ini
+[General]
+IsBeaconsEnabled=no  ; boolean, are beacons enabled?
+MaxBeacons=-1        ; integer, maximum beacons per player. When the cap is reached, the oldest beacon will be deleted when a new beacon is placed. Negative numbers mean there is no cap.
+```
+
+In `UI.INI`:
+```ini
+[Ingame]
+BeaconTextOffset=24         ; integer, the Y offset for the beacon text.
+BeaconPreviewTextOffset=20  ; integer, the Y offset for the beacon text during preview.
+```
+
+- When drawn on the map, beacons use `PBEACON.SHP`. The animation is drawn using the unit palette, and is remapped to the beacon owner's house color. The second half of the animation is played when the beacon is selected.
+
+- When drawn on the radar, beacons use `RDRBEACON.SHP`.
+
+- Beacon animations are not tied to game FPS and instead play at a set framerate.
+
+In `UI.INI`:
+```ini
+[Ingame]
+BeaconAnimFramesPerSecond=25       ; integer, the framerate at which the beacon anim is played.
+RadarBeaconAnimFramesPerSecond=25  ; integer, the framerate at which the radar beacon anim is played.
+```
+
+- Beacon placement/selection uses new mouse actions. For their defaults, please refer to [Actions](New-Features-and-Enhancements.md/#actions).
+
 ## Hotkey Commands
 
 Vinifera modifies the vanilla "Deploy" keyboard command to work with air transports and carryalls.
