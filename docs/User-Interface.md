@@ -106,7 +106,7 @@ BeaconPreviewTextOffset=20  ; integer, the Y offset for the beacon text during p
 
 - When drawn on the map, beacons use `PBEACON.SHP`. The animation is drawn using the unit palette, and is remapped to the beacon owner's house color. The second half of the animation is played when the beacon is selected.
 
-- When drawn on the radar, beacons use `RDRBEACON.SHP`.
+- When drawn on the radar, beacons use `RDRBEACN.SHP`.
 
 - Beacon animations are not tied to game FPS and instead play at a set framerate.
 
