@@ -85,7 +85,7 @@ BeaconClass::BeaconClass() :
  *
  *  @authors: ZivDero, tomsons26
  */
-void BeaconClass::Set(Coord coord, HousesType owner)
+void BeaconClass::Set(Coord const& coord, HousesType owner)
 {
     if (coord != COORD_NONE) {
         Position = coord;
@@ -167,7 +167,7 @@ int BeaconClass::Get_Shape_Frame() const
  *
  *  @authors: ZivDero, tomsons26
  */
-void BeaconClass::Draw(Surface* surface, Rect cliprect) const
+void BeaconClass::Draw(Surface* surface, Rect const& cliprect) const
 {
     ColorScheme* scheme = ColorSchemes[Houses[Owner]->Scheme];
 
@@ -226,7 +226,7 @@ void BeaconClass::Draw(Surface* surface, Rect cliprect) const
  *
  *  @authors: ZivDero, tomsons26
  */
-void BeaconClass::Draw_On_Radar(Surface* surface, Rect cliprect, bool removed)
+void BeaconClass::Draw_On_Radar(Surface* surface, Rect const& cliprect, bool removed)
 {
     int shapenum = BeaconManager.Get_Radar_Shape_Frame();
 
@@ -358,7 +358,7 @@ bool BeaconManagerClass::Are_Beacons_Enabled()
  *
  *  @authors: ZivDero, tomsons26
  */
-void BeaconManagerClass::Draw(Surface* surface, Rect cliprect) const
+void BeaconManagerClass::Draw(Surface* surface, Rect const& cliprect) const
 {
     for (auto& map : Beacons) {
         for (auto& pair : map) {
@@ -376,7 +376,7 @@ void BeaconManagerClass::Draw(Surface* surface, Rect cliprect) const
  *
  *  @authors: ZivDero, tomsons26
  */
-void BeaconManagerClass::Draw_On_Radar(Surface* surface, Rect cliprect) const
+void BeaconManagerClass::Draw_On_Radar(Surface* surface, Rect const& cliprect) const
 {
     if (Get_Radar_Shape_Frame() < BeaconManager.RadarBeaconFrameCount + 1) {
         for (auto& map : Beacons) {
@@ -435,7 +435,7 @@ int BeaconManagerClass::Get_Radar_Shape_Frame() const
  *
  *  @authors: ZivDero, tomsons26
  */
-void BeaconManagerClass::Place_Beacon(HousesType house, Coord coord, int beacon_id, char const* text)
+void BeaconManagerClass::Place_Beacon(HousesType house, Coord const& coord, int beacon_id, char const* text)
 {
     BeaconClass* beacon = new BeaconClass;
 
@@ -606,7 +606,7 @@ void BeaconManagerClass::Set_Beacon_Text(char const* text, HousesType house, int
  *
  *  @authors: ZivDero, tomsons26
  */
-bool BeaconManagerClass::Select_Beacon(Coord coord)
+bool BeaconManagerClass::Select_Beacon(Coord const& coord)
 {
     BeaconClass* beacon = Beacon_At(coord);
     if (beacon != nullptr) {
@@ -639,7 +639,7 @@ void BeaconManagerClass::Unselect_All_Beacons()
  *
  *  @authors: ZivDero, tomsons26
  */
-BeaconClass* BeaconManagerClass::Beacon_At(Coord coord) const
+BeaconClass* BeaconManagerClass::Beacon_At(Coord const& coord) const
 {
     for (auto& map : Beacons) {
         for (auto& pair : map) {
@@ -700,7 +700,7 @@ BeaconClass* BeaconManagerClass::Find_Selected_Beacon(HousesType house) const
  *
  *  @authors: ZivDero, tomsons26
  */
-void BeaconManagerClass::Send_Beacon_Place(Coord coord, HousesType house, int beacon_id)
+void BeaconManagerClass::Send_Beacon_Place(Coord const& coord, HousesType house, int beacon_id)
 {
     ExtGlobalPacketType packet;
     packet.Command = EXT_NET_BEACON_PLACE;

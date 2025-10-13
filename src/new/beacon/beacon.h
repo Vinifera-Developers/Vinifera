@@ -45,19 +45,20 @@ class BeaconClass
 {
 public:
     BeaconClass();
+    ~BeaconClass() = default;
     
     /**
      *  Rendering
      */
-    void Draw(Surface* surface, Rect cliprect) const;
-    void Draw_On_Radar(Surface* surface, Rect cliprect, bool removed);
+    void Draw(Surface* surface, Rect const& cliprect) const;
+    void Draw_On_Radar(Surface* surface, Rect const& cliprect, bool removed);
     bool Is_Visible_To_Player() const;
     int Get_Shape_Frame() const;
     
     /**
      *  I/O
      */
-    void Set(Coord coord, HousesType owner);
+    void Set(Coord const& coord, HousesType owner);
     void Set_Text(char const* text);
     void Select(bool selected);
     void Disown();
@@ -91,15 +92,15 @@ public:
     /**
      *  Rendering
      */
-    void Draw(Surface* surface, Rect cliprect) const;
-    void Draw_On_Radar(Surface* surface, Rect cliprect) const;
+    void Draw(Surface* surface, Rect const& cliprect) const;
+    void Draw_On_Radar(Surface* surface, Rect const& cliprect) const;
     bool Is_To_Redraw_Radar() const;
     int Get_Radar_Shape_Frame() const;
 
     /**
      *  Beacon lifecycle
      */
-    void Place_Beacon(HousesType house, Coord coord, int beacon_id = -1, char const* text = nullptr);
+    void Place_Beacon(HousesType house, Coord const& coord, int beacon_id = -1, char const* text = nullptr);
     void Delete_Beacon(HousesType house, int beacon_id);
     void Delete_Owned_Beacons(HousesType house);
     void Set_Beacon_Text(char const* text, HousesType house, int beacon_id, bool send = false);
@@ -107,16 +108,16 @@ public:
     /**
      *  Selection & lookup
      */
-    bool Select_Beacon(Coord coord);
+    bool Select_Beacon(Coord const& coord);
     void Unselect_All_Beacons();
-    BeaconClass* Beacon_At(Coord coord) const;
+    BeaconClass* Beacon_At(Coord const& coord) const;
     bool Find_Beacon(BeaconClass const* beacon, HousesType& house, int& beacon_id) const;
     BeaconClass* Find_Selected_Beacon(HousesType house) const;
     
     /**
      *  Networking
      */
-    static void Send_Beacon_Place(Coord coord, HousesType house, int beacon_id);
+    static void Send_Beacon_Place(Coord const& coord, HousesType house, int beacon_id);
     static void Send_Beacon_Delete(HousesType house, int beacon_id);
     static void Send_Set_Beacon_Text(char const* text, HousesType house, int beacon_id);
 
