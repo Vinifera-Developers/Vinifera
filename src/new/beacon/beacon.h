@@ -64,6 +64,7 @@ public:
     void Disown();
 
 public:
+    int ID;
     Coord Position;
     bool HasOwner;
     bool IsSelected;
@@ -111,7 +112,6 @@ public:
     bool Select_Beacon(Coord const& coord);
     void Unselect_All_Beacons();
     BeaconClass* Beacon_At(Coord const& coord) const;
-    bool Find_Beacon(BeaconClass const* beacon, HousesType& house, int& beacon_id) const;
     BeaconClass* Find_Selected_Beacon(HousesType house) const;
     
     /**

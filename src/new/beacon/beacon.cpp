@@ -71,6 +71,7 @@ ShapeSet const* BeaconManagerClass::RadarBeaconArt = nullptr;
  *  @authors: ZivDero, tomsons26
  */
 BeaconClass::BeaconClass() :
+    ID(-1),
     Position(COORD_NONE),
     HasOwner(false),
     IsSelected(false),
@@ -444,15 +445,17 @@ void BeaconManagerClass::Place_Beacon(HousesType house, Coord const& coord, int 
      */
     if (beacon_id != -1) {
         Beacons[house][beacon_id] = std::unique_ptr<BeaconClass>(beacon);
+        beacon->ID = beacon_id;
     } else {
 
         /**
          *  Enforce per-house beacon limit.
          */
         if (RuleExtension->MaxBeacons > 0 && Beacons[house].size() >= RuleExtension->MaxBeacons) {
-            Delete_Beacon(house, 0);
+            Delete_Beacon(house, Beacons[house].begin()->second->ID);
         }
         Beacons[house].emplace(Frame, beacon);
+        beacon->ID = Frame;
     }
 
     DEBUG_INFO("Placing beacon: (%d, %d, %d)\n", coord.X, coord.Y, coord.Z);
@@ -486,8 +489,7 @@ void BeaconManagerClass::Place_Beacon(HousesType house, Coord const& coord, int 
      *  Assign initial label text if provided.
      */
     if (text != nullptr) {
-        Find_Beacon(beacon, house, beacon_id);
-        Set_Beacon_Text(text, house, beacon_id, house == PlayerPtr->HeapID);
+        Set_Beacon_Text(text, beacon->Owner, beacon->ID, house == PlayerPtr->HeapID);
     }
 }
 
@@ -532,12 +534,12 @@ void BeaconManagerClass::Delete_Beacon(HousesType house, int beacon_id)
             /**
              *  Remove beacon from container and propagate deletion.
              */
-            if (Find_Beacon(beacon, house, beacon_id)) {
-                Beacons[house].erase(beacon_id);
-                if (Session.Type != GAME_NORMAL && Session.Type != GAME_SKIRMISH) {
-                    if (house == PlayerPtr->HeapID && is_local_action) {
-                        Send_Beacon_Delete(house, beacon_id);
-                    }
+            house = beacon->Owner;
+            beacon_id = beacon->ID;
+            Beacons[house].erase(beacon_id);
+            if (Session.Type != GAME_NORMAL && Session.Type != GAME_SKIRMISH) {
+                if (house == PlayerPtr->HeapID && is_local_action) {
+                    Send_Beacon_Delete(house, beacon_id);
                 }
             }
         }
@@ -584,8 +586,7 @@ void BeaconManagerClass::Set_Beacon_Text(char const* text, HousesType house, int
 
         if (Session.Type != GAME_NORMAL && Session.Type != GAME_SKIRMISH) {
             if (is_local_action && beacon->Owner == PlayerPtr->HeapID && send) {
-                Find_Beacon(beacon, house, beacon_id);
-                Send_Set_Beacon_Text(text, house, beacon_id);
+                Send_Set_Beacon_Text(text, beacon->Owner, beacon->ID);
             } else {
 
                 /**
@@ -651,27 +652,6 @@ BeaconClass* BeaconManagerClass::Beacon_At(Coord const& coord) const
     }
 
     return nullptr;
-}
-
-
-/**
- *  Locates the owning house and index of a given beacon instance.
- *
- *  @authors: ZivDero, tomsons26
- */
-bool BeaconManagerClass::Find_Beacon(BeaconClass const* beacon, HousesType& house, int& beacon_id) const
-{
-    for (HousesType i = HOUSE_FIRST; i < std::size(Beacons); i++) {
-        const auto& map = Beacons[i];
-        auto it = std::find_if(map.begin(), map.end(), [beacon](const auto& pair) { return pair.second.get() == beacon; });
-        if (it != map.end()) {
-            house = i;
-            beacon_id = it->first;
-            return true;
-        }
-    }
-
-    return false;
 }
 
 
