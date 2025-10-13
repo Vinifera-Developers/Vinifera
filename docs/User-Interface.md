@@ -85,7 +85,8 @@ In `RULES.INI`:
 ```ini
 [General]
 BeaconsEnabled=no  ; boolean, are beacons enabled?
-MaxBeacons=-1        ; integer, maximum beacons per player. When the cap is reached, the oldest beacon will be deleted when a new beacon is placed. Negative numbers mean there is no cap.
+SPBeacons=no       ; boolean, can the player place beacons in single-player?
+MaxBeacons=-1      ; integer, maximum beacons per player. When the cap is reached, the oldest beacon will be deleted when a new beacon is placed. Negative numbers mean there is no cap.
 ```
 
 - When a beacon is placed/detected, a sound effect and an EVA line are played.
@@ -211,6 +212,10 @@ Vinifera modifies the vanilla "Deploy" keyboard command to work with air transpo
 
 - Plays the next music track. Defaults to `]`.
 
+### `[ ]` Place Beacon
+
+- Enters beacon placement mode.
+
 ![image](https://user-images.githubusercontent.com/73803386/123566309-4ade4600-d7b7-11eb-9b77-5c9de7959822.png)
 
 ### Customizable Vanilla Modifier Keys
@@ -263,6 +268,15 @@ ShowTimer=no       ; boolean, when this superweapon is active, does its recharge
 - Additionally, Vinifera implements the system to echo the user's sent messages back to them in-game as a confirmation they were sent. This is an enhancement from Red Alert 2.
 ![image](https://user-images.githubusercontent.com/73803386/137031682-3f265d48-7f28-410f-bf0d-3260e24f1748.png)
 
+- Vinifera allows players to send a message to only their allies. Additionally, all messages now display their recipient ("All", "Allies" or "You").
+
+In `KEYBOARD.INI`:
+```ini
+[Hotkey]
+ChatToAll=13    ; key number, RETURN
+ChatToAll2=119  ; key number, F8
+ChatToAllies=8  ; key number, BACKSPACE
+```
 
 In `UI.INI`:
 ```ini

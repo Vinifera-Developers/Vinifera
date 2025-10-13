@@ -2319,7 +2319,7 @@ const char* BeaconPlacementCommandClass::Get_Description() const
 
 bool BeaconPlacementCommandClass::Process()
 {
-    if (/*Session.Type != GAME_NORMAL && Session.Type != GAME_SKIRMISH*/true) {
+    if (BeaconManagerClass::Are_Beacons_Enabled()) {
         if (!PlayerPtr->IsDefeated) {
             TacticalMapExtension->Beacon_Mode_Control(-1);
         }

@@ -99,6 +99,7 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     VoxUnitPromoted(VOX_NONE),
     EliteFlashTimer(0),
     IsBeaconsEnabled(false),
+    IsSPBeacons(false),
     MaxBeacons(-1),
     PlaceBeaconSound(VOC_NONE),
     PlaceBeaconVoice(VOX_NONE),
@@ -667,6 +668,7 @@ bool RulesClassExtension::General(CCINIClass &ini)
     MultipleFactoryCap = ini.Get_Int(GENERAL, "MultipleFactoryCap", MultipleFactoryCap);
     IsTiberiumStorage = ini.Get_Bool(GENERAL, "TiberiumStorage", IsTiberiumStorage);
     IsBeaconsEnabled = ini.Get_Bool(GENERAL, "BeaconsEnabled", IsBeaconsEnabled);
+    IsSPBeacons = ini.Get_Bool(GENERAL, "SPBeacons", IsSPBeacons);
     MaxBeacons = ini.Get_Int(GENERAL, "MaxBeacons", MaxBeacons);
 
     return true;

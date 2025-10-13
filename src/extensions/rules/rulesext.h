@@ -189,6 +189,7 @@ public:
      *  Controls for beacons.
      */
     bool IsBeaconsEnabled;
+    bool IsSPBeacons;
     int MaxBeacons;
     VocType PlaceBeaconSound;
     VoxType PlaceBeaconVoice;

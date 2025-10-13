@@ -283,8 +283,8 @@ BeaconManagerClass::BeaconManagerClass() :
  */
 void BeaconManagerClass::Reset()
 {
-    for (auto& array : Beacons) {
-        array.clear();
+    for (auto& map : Beacons) {
+        map.clear();
     }
 }
 
@@ -335,14 +335,34 @@ void BeaconManagerClass::Load_Art()
 
 
 /**
+ *  Returns if beacons are currently enabled.
+ *
+ *  @authors: ZivDero
+ */
+bool BeaconManagerClass::Are_Beacons_Enabled()
+{
+    if (!RuleExtension->IsBeaconsEnabled) {
+        return false;
+    }
+
+    if (!RuleExtension->IsSPBeacons && (Session.Type == GAME_NORMAL || Session.Type == GAME_SKIRMISH)) {
+        return false;
+    }
+
+    return true;
+}
+
+
+/**
  *  Draws all visible beacons on the tactical map.
  *
  *  @authors: ZivDero, tomsons26
  */
 void BeaconManagerClass::Draw(Surface* surface, Rect cliprect) const
 {
-    for (auto& array : Beacons) {
-        for (auto& beacon : array) {
+    for (auto& map : Beacons) {
+        for (auto& pair : map) {
+            auto& beacon = pair.second;
             if (beacon->Is_Visible_To_Player()) {
                 beacon->Draw(surface, cliprect);
             }
@@ -359,8 +379,9 @@ void BeaconManagerClass::Draw(Surface* surface, Rect cliprect) const
 void BeaconManagerClass::Draw_On_Radar(Surface* surface, Rect cliprect) const
 {
     if (Get_Radar_Shape_Frame() < BeaconManager.RadarBeaconFrameCount + 1) {
-        for (auto& array : Beacons) {
-            for (auto& beacon : array) {
+        for (auto& map : Beacons) {
+            for (auto& pair : map) {
+                auto& beacon = pair.second;
                 if (beacon->Is_Visible_To_Player()) {
                     beacon->Draw_On_Radar(surface, cliprect, false);
                 }
@@ -378,8 +399,9 @@ void BeaconManagerClass::Draw_On_Radar(Surface* surface, Rect cliprect) const
 bool BeaconManagerClass::Is_To_Redraw_Radar() const
 {
     bool visible = false;
-    for (auto& array : Beacons) {
-        for (auto& beacon : array) {
+    for (auto& map : Beacons) {
+        for (auto& pair : map) {
+            auto& beacon = pair.second;
             if (beacon->Is_Visible_To_Player()) {
                 visible = true;
                 goto breakout;
@@ -421,8 +443,7 @@ void BeaconManagerClass::Place_Beacon(HousesType house, Coord coord, int beacon_
      *  Resolve target beacon to update.
      */
     if (beacon_id != -1) {
-        Beacons[house].erase(Beacons[house].begin() + beacon_id);
-        Beacons[house].emplace(Beacons[house].begin() + beacon_id, beacon);
+        Beacons[house][beacon_id] = std::unique_ptr<BeaconClass>(beacon);
     } else {
 
         /**
@@ -431,11 +452,16 @@ void BeaconManagerClass::Place_Beacon(HousesType house, Coord coord, int beacon_
         if (RuleExtension->MaxBeacons > 0 && Beacons[house].size() >= RuleExtension->MaxBeacons) {
             Delete_Beacon(house, 0);
         }
-        Beacons[house].emplace_back(beacon);
+        Beacons[house].emplace(Frame, beacon);
     }
 
     DEBUG_INFO("Placing beacon: (%d, %d, %d)\n", coord.X, coord.Y, coord.Z);
     beacon->Set(coord, house);
+
+    if (house == PlayerPtr->HeapID) {
+        Speak(RuleExtension->PlaceBeaconVoice);
+        Sound_Effect(RuleExtension->PlaceBeaconSound);
+    }
 
     if (Session.Type != GAME_NORMAL && Session.Type != GAME_SKIRMISH) {
 
@@ -443,8 +469,6 @@ void BeaconManagerClass::Place_Beacon(HousesType house, Coord coord, int beacon_
          *  Send update to network peers if this is a local edit.
          */
         if (house == PlayerPtr->HeapID) {
-            Speak(RuleExtension->PlaceBeaconVoice);
-            Sound_Effect(RuleExtension->PlaceBeaconSound);
             Send_Beacon_Place(coord, house, beacon_id);
         }
 
@@ -509,7 +533,7 @@ void BeaconManagerClass::Delete_Beacon(HousesType house, int beacon_id)
              *  Remove beacon from container and propagate deletion.
              */
             if (Find_Beacon(beacon, house, beacon_id)) {
-                Beacons[house].erase(Beacons[house].begin() + beacon_id);
+                Beacons[house].erase(beacon_id);
                 if (Session.Type != GAME_NORMAL && Session.Type != GAME_SKIRMISH) {
                     if (house == PlayerPtr->HeapID && is_local_action) {
                         Send_Beacon_Delete(house, beacon_id);
@@ -552,18 +576,24 @@ void BeaconManagerClass::Set_Beacon_Text(char const* text, HousesType house, int
     }
 
     if (beacon != nullptr) {
+
+        /**
+         *  Set the text to the beacon.
+         */
         beacon->Set_Text(text);
+
         if (Session.Type != GAME_NORMAL && Session.Type != GAME_SKIRMISH) {
             if (is_local_action && beacon->Owner == PlayerPtr->HeapID && send) {
-                for (int i = 0; i < Beacons[PlayerPtr->HeapID].size(); i++) {
-                    if (Beacons[PlayerPtr->HeapID][i].get() == beacon) {
-                        beacon_id = i;
-                        break;
-                    }
-                }
+                Find_Beacon(beacon, house, beacon_id);
                 Send_Set_Beacon_Text(text, house, beacon_id);
-            } else if (beacon->Is_Visible_To_Player()) {
-                Submit_Radar_Event(RADAREVENT_DROPZONE, beacon->Position.As_Cell()); // abusing RADAREVENT_DROPZONE for beacons
+            } else {
+
+                /**
+                 *  Emit a radar event, but only if the beacon came from another player.
+                 */
+                if (beacon->Owner != PlayerPtr->HeapID && beacon->Is_Visible_To_Player()) {
+                    Submit_Radar_Event(RADAREVENT_DROPZONE, beacon->Position.As_Cell()); // abusing RADAREVENT_DROPZONE for beacons
+                }
             }
         }
     }
@@ -595,8 +625,9 @@ bool BeaconManagerClass::Select_Beacon(Coord coord)
  */
 void BeaconManagerClass::Unselect_All_Beacons()
 {
-    for (auto& array : Beacons) {
-        for (auto& beacon : array) {
+    for (auto& map : Beacons) {
+        for (auto& pair : map) {
+            auto& beacon = pair.second;
             beacon->Select(false);
         }
     }
@@ -610,9 +641,10 @@ void BeaconManagerClass::Unselect_All_Beacons()
  */
 BeaconClass* BeaconManagerClass::Beacon_At(Coord coord) const
 {
-    for (auto& array : Beacons) {
-        for (auto& beacon : array) {
-            if (coord.Distance_To(beacon->Position) < 128) {
+    for (auto& map : Beacons) {
+        for (auto& pair : map) {
+            auto& beacon = pair.second;
+            if (coord.Distance_To(beacon->Position) < 128 && beacon->Is_Visible_To_Player()) {
                 return beacon.get();
             }
         }
@@ -630,11 +662,11 @@ BeaconClass* BeaconManagerClass::Beacon_At(Coord coord) const
 bool BeaconManagerClass::Find_Beacon(BeaconClass const* beacon, HousesType& house, int& beacon_id) const
 {
     for (HousesType i = HOUSE_FIRST; i < std::size(Beacons); i++) {
-        auto& vec = Beacons[i];
-        auto it = std::find_if(vec.begin(), vec.end(), [beacon](const std::unique_ptr<BeaconClass>& ptr) { return ptr.get() == beacon; });
-        if (it != vec.end()) {
+        const auto& map = Beacons[i];
+        auto it = std::find_if(map.begin(), map.end(), [beacon](const auto& pair) { return pair.second.get() == beacon; });
+        if (it != map.end()) {
             house = i;
-            beacon_id = it - vec.begin();
+            beacon_id = it->first;
             return true;
         }
     }
@@ -650,8 +682,9 @@ bool BeaconManagerClass::Find_Beacon(BeaconClass const* beacon, HousesType& hous
  */
 BeaconClass* BeaconManagerClass::Find_Selected_Beacon(HousesType house) const
 {
-    for (auto& array : Beacons) {
-        for (auto& beacon : array) {
+    for (auto& map : Beacons) {
+        for (auto& pair : map) {
+            auto& beacon = pair.second;
             if (beacon->IsSelected && (house == HOUSE_NONE || house == beacon->Owner)) {
                 return beacon.get();
             }
@@ -732,7 +765,7 @@ void BeaconManagerClass::Send_Set_Beacon_Text(char const * text, HousesType hous
 /**
  *  Determines which beacon placement action should be used based on key state.
  *
- *  @authors: ZivDero, tomsons26
+ *  @authors: ZivDero
  */
 ActionType BeaconManagerClass::Pick_Beacon_Placement_Action()
 {
@@ -759,7 +792,7 @@ ActionType BeaconManagerClass::Pick_Beacon_Placement_Action()
 /**
  *  Checks if an action type corresponds to a beacon placement.
  *
- *  @authors: ZivDero, tomsons26
+ *  @authors: ZivDero
  */
 bool BeaconManagerClass::Is_Beacon_Placement_Action(ActionType action)
 {
@@ -779,7 +812,7 @@ bool BeaconManagerClass::Is_Beacon_Placement_Action(ActionType action)
 /**
  *  Returns a preset text label for a beacon placement action.
  *
- *  @authors: ZivDero, tomsons26
+ *  @authors: ZivDero
  */
 char const* BeaconManagerClass::Beacon_Text(ActionType action)
 {

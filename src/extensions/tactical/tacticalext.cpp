@@ -995,5 +995,5 @@ void TacticalExtension::Draw_Beacon_Text(std::string const& text, ColorScheme co
     CompositeSurface->Fill_Rect_Trans(visible_box_rect, RGBClass(0, 0, 0), 50);
     CompositeSurface->Draw_Rect(visible_box_rect, fore);
 
-    Fancy_Text_Print(text.c_str(), CompositeSurface, &CompositeSurface->Get_Rect(), &text_rect.TopLeft, const_cast<ColorScheme*>(&scheme), COLOR_TBLACK, TPF_6POINT | TPF_NOSHADOW);
+    Fancy_Text_Print(text.c_str(), CompositeSurface, const_cast<Rect*>(&cliprect), &(text_rect.TopLeft - cliprect.TopLeft), const_cast<ColorScheme*>(&scheme), COLOR_TBLACK, TPF_6POINT | TPF_NOSHADOW);
 }

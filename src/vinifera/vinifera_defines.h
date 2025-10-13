@@ -382,6 +382,12 @@ struct ExtGlobalPacketType {
             int Number;
             char House;
         } BeaconText;
+        struct {
+            char Buf[390];
+            char Scope[10];
+            PlayerColorType Color;
+            unsigned long NameCRC;
+        } Message;
         char padding[455 - sizeof(Command) - sizeof(Name) - sizeof(Serial)];
     };
 };

@@ -295,3 +295,4 @@ This page lists all the individual contributions to the project by their author.
   - Parachute animations with `AltPalette=yes` now remap to the parachuted unit owner's color.
   - Fix a bug where paradrops didn't take cell passability and bridges into account.
   - Implement multiplayer beacons.
+  - Chat improvements.

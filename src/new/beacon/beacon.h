@@ -31,8 +31,8 @@
 #include "point.h"
 #include "rect.h"
 
+#include <map>
 #include <string>
-#include <vector>
 
 class ShapeSet;
 class Surface;
@@ -90,6 +90,7 @@ public:
      */
     void Reset();
     void Load_Art();
+    static bool Are_Beacons_Enabled();
 
     /**
      *  Rendering
@@ -132,9 +133,9 @@ public:
 
 public:
     /**
-     *  Per-player beacon lists.
+     *  Per-player beacon lists (sorted by creation frame).
      */
-    std::vector<std::unique_ptr<BeaconClass>> Beacons[MAX_PLAYERS];
+    std::map<int, std::unique_ptr<BeaconClass>> Beacons[MAX_PLAYERS];
 
     /**
      *  Dimensions of the beacon graphics.

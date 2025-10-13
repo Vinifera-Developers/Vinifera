@@ -74,4 +74,9 @@ class SessionClassExtension final : public GlobalExtensionClass<SessionClass>
         } ExtGameOptionsType;
 
         ExtGameOptionsType ExtOptions;
+
+        /**
+         *  Is the message we're currently writing meant to be sent to allies only?
+         */
+        bool IsChatToAllies;
 };
