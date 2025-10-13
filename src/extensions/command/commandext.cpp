@@ -344,6 +344,11 @@ bool PNGScreenCaptureCommandClass::Process()
 }
 
 
+/**
+ *  Replacement for DeleteWaypointCommandClass.
+ *
+ *  @author: ZivDero
+ */
 const char* DeleteCommandClass::Get_Name() const
 {
     return "DeleteWaypoint"; // kept as DeleteWaypoint to preserve keyboard.ini compatibility

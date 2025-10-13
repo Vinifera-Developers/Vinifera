@@ -176,5 +176,8 @@ public:
      */
     char TemplatedTextCache[512];
 
+    /**
+     *  Is the player currently placing a beacon?
+     */
     bool IsBeaconPlacementMode;
 };
