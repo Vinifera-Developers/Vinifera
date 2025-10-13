@@ -84,7 +84,7 @@ Vinifera implements multiplayer beacons, similar to those seen in Red Alert 2.
 In `RULES.INI`:
 ```ini
 [General]
-IsBeaconsEnabled=no  ; boolean, are beacons enabled?
+BeaconsEnabled=no  ; boolean, are beacons enabled?
 MaxBeacons=-1        ; integer, maximum beacons per player. When the cap is reached, the oldest beacon will be deleted when a new beacon is placed. Negative numbers mean there is no cap.
 ```
 
