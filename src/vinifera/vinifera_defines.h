@@ -386,8 +386,8 @@ struct ExtGlobalPacketType {
             char House;
         } BeaconText;
         struct {
-            char Buf[390];
-            char Scope[10];
+            char Buf[370];
+            char Scope[30];
             PlayerColorType Color;
             unsigned long NameCRC;
         } Message;

@@ -442,22 +442,23 @@ static bool Begin_Message(KeyNumType input)
             case GAME_INTERNET:
                 if (input == OptionsExtension->KeyChatToAll1 || input == OptionsExtension->KeyChatToAll2) {
                     Session.MessageAddress = IPXAddressClass(); // set to broadcast
-                    New_Edit("To All: ");
+                    New_Edit("Send to all: ");
                     return true;
                 }
 
                 if (input == OptionsExtension->KeyChatToAllies && !Session.ObiWan) {
                     Session.MessageAddress = IPXAddressClass(); // set to broadcast
                     SessionExtension->IsChatToAllies = true;    // set to filter to allies only
-                    New_Edit("To Team: ");
+                    New_Edit("Send to team: ");
                     return true;
                 }
 
                 if (input - KN_F1 < Ipx.Num_Connections() && !Session.ObiWan) {
+                    char txt[80 + MAX_MESSAGE_LENGTH + 32];
                     int id = Ipx.Connection_ID(input - KN_F1);
                     Session.MessageAddress = *Ipx.Connection_Address(id);
-                    char txt[80 + MAX_MESSAGE_LENGTH + 32];
-                    std::sprintf(txt, "To %s: ", Ipx.Connection_Name(id));
+                    std::strncpy(SessionExtension->MessageRecipientName, Ipx.Connection_Name(id), std::size(SessionExtension->MessageRecipientName));
+                    std::sprintf(txt, "Send to %s: ", SessionExtension->MessageRecipientName);
                     New_Edit(txt);
                     return true;
                 }
@@ -622,12 +623,12 @@ void _Message_Input(KeyNumType& input)
             */
             if (Session.MessageAddress.Is_Broadcast()) {
                 if (SessionExtension->IsChatToAllies) {
-                    strcpy(packet.Message.Scope, "Team");
+                    strcpy(packet.Message.Scope, "to team");
                 } else {
-                    strcpy(packet.Message.Scope, "All");
+                    strcpy(packet.Message.Scope, "to all");
                 }
             } else {
-                strcpy(packet.Message.Scope, "Whisper");
+                std::snprintf(packet.Message.Scope, std::size(packet.Message.Scope), "to %s", SessionExtension->MessageRecipientName);
             }
 
             if (rc == 3) {

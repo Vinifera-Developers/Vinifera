@@ -79,4 +79,9 @@ class SessionClassExtension final : public GlobalExtensionClass<SessionClass>
          *  Is the message we're currently writing meant to be sent to allies only?
          */
         bool IsChatToAllies;
+
+        /**
+         *  If we're writing a private message, this is the name of its recipient.
+         */
+        char MessageRecipientName[32];
 };

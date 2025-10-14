@@ -47,7 +47,8 @@
 SessionClassExtension::SessionClassExtension(const SessionClass *this_ptr) :
     GlobalExtensionClass(this_ptr),
     ExtOptions(),
-    IsChatToAllies(false)
+    IsChatToAllies(false),
+    MessageRecipientName("")
 {
     //if (this_ptr) EXT_DEBUG_TRACE("SessionClassExtension::SessionClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
