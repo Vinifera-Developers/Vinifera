@@ -49,7 +49,6 @@
 #include "vinifera_defines.h"
 #include "voc.h"
 #include "vox.h"
-#include "wwfont.h"
 #include <cstring>
 
 
@@ -73,28 +72,27 @@ ShapeSet const* BeaconManagerClass::RadarBeaconArt = nullptr;
 BeaconClass::BeaconClass() :
     ID(-1),
     Position(COORD_NONE),
-    HasOwner(false),
+    IsVisible(false),
     IsSelected(false),
-    Owner(HOUSE_NONE)
+    House(HOUSE_NONE)
 {
-    
 }
 
 
 /**
- *  Sets a beacon's position and owner.
+ *  Sets a beacon's position and house.
  *
  *  @authors: ZivDero, tomsons26
  */
-void BeaconClass::Set(Coord const& coord, HousesType owner)
+void BeaconClass::Set(Coord const& coord, HousesType house)
 {
     if (coord != COORD_NONE) {
         Position = coord;
     }
 
-    if (owner < MAX_PLAYERS) {
-        Owner = owner;
-        HasOwner = true;
+    if (house < MAX_PLAYERS) {
+        House = house;
+        IsVisible = true;
     }
 }
 
@@ -111,13 +109,13 @@ void BeaconClass::Select(bool selected)
 
 
 /**
- *  Removes owner association from this beacon.
+ *  Hides the beacon.
  *
  *  @authors: ZivDero, tomsons26
  */
-void BeaconClass::Disown()
+void BeaconClass::Hide()
 {
-    HasOwner = false;
+    IsVisible = false;
 }
 
 
@@ -142,7 +140,7 @@ void BeaconClass::Set_Text(char const* text)
  */
 bool BeaconClass::Is_Visible_To_Player() const
 {
-    if (HasOwner && PlayerPtr->Is_Ally(Owner) && Houses[Owner]->Is_Ally(PlayerPtr) && !Houses[Owner]->IsDefeated) {
+    if (IsVisible && PlayerPtr->Is_Ally(House) && Houses[House]->Is_Ally(PlayerPtr) && !Houses[House]->IsDefeated) {
         return true;
     }
     return false;
@@ -170,7 +168,7 @@ int BeaconClass::Get_Shape_Frame() const
  */
 void BeaconClass::Draw(Surface* surface, Rect const& cliprect) const
 {
-    ColorScheme* scheme = ColorSchemes[Houses[Owner]->Scheme];
+    ColorScheme* scheme = ColorSchemes[Houses[House]->Scheme];
 
     Point2D drawpoint;
     if (TacticalMap->Coord_To_Pixel(Position, drawpoint)) {
@@ -227,7 +225,7 @@ void BeaconClass::Draw(Surface* surface, Rect const& cliprect) const
  *
  *  @authors: ZivDero, tomsons26
  */
-void BeaconClass::Draw_On_Radar(Surface* surface, Rect const& cliprect, bool removed)
+void BeaconClass::Draw_On_Radar(Surface* surface, Rect const& cliprect, bool removed) const
 {
     int shapenum = BeaconManager.Get_Radar_Shape_Frame();
 
@@ -238,7 +236,7 @@ void BeaconClass::Draw_On_Radar(Surface* surface, Rect const& cliprect, bool rem
     if (shapenum < BeaconManager.RadarBeaconFrameCount + 1 || removed) {
         Point2D drawpoint = Map.Coord_To_Radar_Pixel(Position, true);
         if (shapenum < BeaconManager.RadarBeaconFrameCount && !removed) {
-            Draw_Shape(*surface, *ColorSchemes[Houses[Owner]->Scheme]->Converter, BeaconManagerClass::RadarBeaconArt, shapenum, drawpoint, cliprect, SHAPE_CENTER | SHAPE_WIN_REL);
+            Draw_Shape(*surface, *ColorSchemes[Houses[House]->Scheme]->Converter, BeaconManagerClass::RadarBeaconArt, shapenum, drawpoint, cliprect, SHAPE_CENTER | SHAPE_WIN_REL);
         }
 
         /**
@@ -489,7 +487,7 @@ void BeaconManagerClass::Place_Beacon(HousesType house, Coord const& coord, int 
      *  Assign initial label text if provided.
      */
     if (text != nullptr) {
-        Set_Beacon_Text(text, beacon->Owner, beacon->ID, house == PlayerPtr->HeapID);
+        Set_Beacon_Text(text, beacon->House, beacon->ID, house == PlayerPtr->HeapID);
     }
 }
 
@@ -517,10 +515,10 @@ void BeaconManagerClass::Delete_Beacon(HousesType house, int beacon_id)
     if (beacon != nullptr) {
 
         /**
-         *  If deleting remotely owned beacon, only unselect locally.
+         *  If deleting remotely owned beacon, just hide it.
          */
-        if (beacon->Owner != PlayerPtr->HeapID && is_local_action) {
-            beacon->Disown();
+        if (beacon->House != PlayerPtr->HeapID && is_local_action) {
+            beacon->Hide();
             beacon->Select(false);
         } else {
 
@@ -534,7 +532,7 @@ void BeaconManagerClass::Delete_Beacon(HousesType house, int beacon_id)
             /**
              *  Remove beacon from container and propagate deletion.
              */
-            house = beacon->Owner;
+            house = beacon->House;
             beacon_id = beacon->ID;
             Beacons[house].erase(beacon_id);
             if (Session.Type != GAME_NORMAL && Session.Type != GAME_SKIRMISH) {
@@ -585,14 +583,14 @@ void BeaconManagerClass::Set_Beacon_Text(char const* text, HousesType house, int
         beacon->Set_Text(text);
 
         if (Session.Type != GAME_NORMAL && Session.Type != GAME_SKIRMISH) {
-            if (is_local_action && beacon->Owner == PlayerPtr->HeapID && send) {
-                Send_Set_Beacon_Text(text, beacon->Owner, beacon->ID);
+            if (is_local_action && beacon->House == PlayerPtr->HeapID && send) {
+                Send_Set_Beacon_Text(text, beacon->House, beacon->ID);
             } else {
 
                 /**
                  *  Emit a radar event, but only if the beacon came from another player.
                  */
-                if (beacon->Owner != PlayerPtr->HeapID && beacon->Is_Visible_To_Player()) {
+                if (beacon->House != PlayerPtr->HeapID && beacon->Is_Visible_To_Player()) {
                     Submit_Radar_Event(RADAREVENT_DROPZONE, beacon->Position.As_Cell()); // abusing RADAREVENT_DROPZONE for beacons
                 }
             }
@@ -607,7 +605,7 @@ void BeaconManagerClass::Set_Beacon_Text(char const* text, HousesType house, int
  *
  *  @authors: ZivDero, tomsons26
  */
-bool BeaconManagerClass::Select_Beacon(Coord const& coord)
+bool BeaconManagerClass::Select_Beacon(Coord const& coord) const
 {
     BeaconClass* beacon = Beacon_At(coord);
     if (beacon != nullptr) {
@@ -665,7 +663,7 @@ BeaconClass* BeaconManagerClass::Find_Selected_Beacon(HousesType house) const
     for (auto& map : Beacons) {
         for (auto& pair : map) {
             auto& beacon = pair.second;
-            if (beacon->IsSelected && (house == HOUSE_NONE || house == beacon->Owner)) {
+            if (beacon->IsSelected && (house == HOUSE_NONE || house == beacon->House)) {
                 return beacon.get();
             }
         }
@@ -731,7 +729,7 @@ void BeaconManagerClass::Send_Set_Beacon_Text(char const * text, HousesType hous
     }
 
     packet.BeaconText.Number = beacon_id;
-    packet.BeaconText.House = PlayerPtr->HeapID;
+    packet.BeaconText.House = house;
 
     if (beacon_id != -1) {
         for (int i = 1; i < Session.Players.Count(); i++) {

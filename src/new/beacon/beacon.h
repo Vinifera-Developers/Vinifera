@@ -51,25 +51,25 @@ public:
      *  Rendering
      */
     void Draw(Surface* surface, Rect const& cliprect) const;
-    void Draw_On_Radar(Surface* surface, Rect const& cliprect, bool removed);
+    void Draw_On_Radar(Surface* surface, Rect const& cliprect, bool removed) const;
     bool Is_Visible_To_Player() const;
     int Get_Shape_Frame() const;
     
     /**
      *  I/O
      */
-    void Set(Coord const& coord, HousesType owner);
+    void Set(Coord const& coord, HousesType house);
     void Set_Text(char const* text);
     void Select(bool selected);
-    void Disown();
+    void Hide();
 
 public:
     int ID;
     Coord Position;
-    bool HasOwner;
+    bool IsVisible;
     bool IsSelected;
     std::string Text;
-    HousesType Owner;
+    HousesType House;
 };
 
 
@@ -109,7 +109,7 @@ public:
     /**
      *  Selection & lookup
      */
-    bool Select_Beacon(Coord const& coord);
+    bool Select_Beacon(Coord const& coord) const;
     void Unselect_All_Beacons();
     BeaconClass* Beacon_At(Coord const& coord) const;
     BeaconClass* Find_Selected_Beacon(HousesType house) const;
