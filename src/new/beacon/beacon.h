@@ -127,6 +127,7 @@ public:
     static ActionType Pick_Beacon_Placement_Action();
     static bool Is_Beacon_Placement_Action(ActionType action);
     static char const* Beacon_Text(ActionType action);
+    static char const* Beacon_Preview_Text(ActionType action);
 
 public:
     /**

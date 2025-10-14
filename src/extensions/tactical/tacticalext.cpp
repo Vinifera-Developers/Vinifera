@@ -575,7 +575,7 @@ void TacticalExtension::Render_Post()
      *  (e.g. attack, defend). Draw it.
      */
     if (IsBeaconPlacementMode) {
-        char const* beacon_text = BeaconManagerClass::Beacon_Text(BeaconManagerClass::Pick_Beacon_Placement_Action());
+        char const* beacon_text = BeaconManagerClass::Beacon_Preview_Text(BeaconManagerClass::Pick_Beacon_Placement_Action());
         if (beacon_text != nullptr) {
             Draw_Beacon_Text(beacon_text, *ColorSchemes[PlayerPtr->Scheme], WWMouse->Get_Mouse_XY(), VisibleRect, false, UIControls->BeaconPreviewTextOffset);
         }

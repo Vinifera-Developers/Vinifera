@@ -32,6 +32,8 @@
 #include "point.h"
 #include "typelist.h"
 
+#include <string>
+
 
 struct IStream;
 class CCINIClass;
@@ -321,6 +323,16 @@ class UIControlsClass
          */
         int BeaconTextOffset;
         int BeaconPreviewTextOffset;
+
+        /**
+         *  Text presets for beacons when holding modifier keys when placing.
+         */
+        std::string BeaconText[7];
+
+        /**
+         *  Text presets for beacons *shown as a tooltip* when holding modifier keys when placing.
+         */
+        std::string BeaconPreviewText[7];
 };
 
 extern UIControlsClass *UIControls;

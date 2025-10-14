@@ -98,11 +98,30 @@ PlaceBeaconVoice=   ; VoxType, the EVA line played when the player places a beac
 DetectBeaconVoice=  ; VoxType, the EVA line played another player places a beacon.
 ```
 
+- Beacons can have a text label.
+- Additionally, beacons may be placed with a preset label by holding `CTRL`, `SHIFT`, `ALT`, or a combination of them. The text that is shows as the preview, and the text that is set on the placed beacon can be configured.
+
 In `UI.INI`:
 ```ini
 [Ingame]
-BeaconTextOffset=24         ; integer, the Y offset for the beacon text.
+BeaconTextOffset=32         ; integer, the Y offset for the beacon text.
 BeaconPreviewTextOffset=20  ; integer, the Y offset for the beacon text during preview.
+
+BeaconText1=Expand  ; string, shown when placing with Shift.
+BeaconText2=Attack  ; string, shown when placing with Ctrl.
+BeaconText3=Move    ; string, shown when placing with Alt.
+BeaconText4=        ; string, shown when placing with Ctrl+Shift.
+BeaconText5=        ; string, shown when placing with Alt+Shift.
+BeaconText6=Defend  ; string, shown when placing with Ctrl+Alt.
+BeaconText7=        ; string, shown when placing with Ctrl+Alt+Shift.
+
+BeaconPreviewText1=Expand  ; string, preview shown with Shift.
+BeaconPreviewText2=Attack  ; string, preview shown with Ctrl.
+BeaconPreviewText3=Move    ; string, preview shown with Alt.
+BeaconPreviewText4=        ; string, preview shown with Ctrl+Shift.
+BeaconPreviewText5=        ; string, preview shown with Alt+Shift.
+BeaconPreviewText6=Defend  ; string, preview shown with Ctrl+Alt.
+BeaconPreviewText7=        ; string, preview shown with Ctrl+Alt+Shift.
 ```
 
 - When drawn on the map, beacons use `PBEACON.SHP`. The animation is drawn using the unit palette, and is remapped to the beacon owner's house color. The second half of the animation is played when the beacon is selected.

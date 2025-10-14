@@ -92,10 +92,13 @@ const char* ActionTypeClass::ActionNames[EXT_ACTION_COUNT] = {
     "RallyToPoint",             // ACTION_RALLY_TO_POINT        // Was "Rally To Point"
     "AttackSupport",            // ACTION_ATTACK_SUPPORT        // Was "Attack Support"
     "PlaceBeacon",              // EXT_ACTION_PLACE_BEACON
-    "PlaceAttackBeacon",        // EXT_ACTION_PLACE_ATTACK_BEACON
-    "PlaceDefendBeacon",        // EXT_ACTION_PLACE_DEFEND_BEACON
-    "PlaceMoveBeacon",          // EXT_ACTION_PLACE_MOVE_BEACON
-    "PlaceExpandBeacon",        // EXT_ACTION_PLACE_EXPAND_BEACON
+    "PlaceBeacon1",             // EXT_ACTION_PLACE_BEACON_1
+    "PlaceBeacon2",             // EXT_ACTION_PLACE_BEACON_2
+    "PlaceBeacon3",             // EXT_ACTION_PLACE_BEACON_3
+    "PlaceBeacon4",             // EXT_ACTION_PLACE_BEACON_4
+    "PlaceBeacon5",             // EXT_ACTION_PLACE_BEACON_5
+    "PlaceBeacon6",             // EXT_ACTION_PLACE_BEACON_6
+    "PlaceBeacon7",             // EXT_ACTION_PLACE_BEACON_7
     "SelectBeacon"              // EXT_ACTION_SELECT_BEACON
 };
 
@@ -159,10 +162,13 @@ ActionTypeClass ActionTypeClass::ActionControl[EXT_ACTION_COUNT] = {
     ActionTypeClass(ActionNames[ACTION_RALLY_TO_POINT],          MOUSE_CAN_MOVE,             NO_MOUSE_SHAPE),            // ACTION_RALLY_TO_POINT
     ActionTypeClass(ActionNames[ACTION_ATTACK_SUPPORT],          NO_MOUSE_SHAPE,             NO_MOUSE_SHAPE),            // ACTION_ATTACK_SUPPORT
     ActionTypeClass(ActionNames[EXT_ACTION_PLACE_BEACON],        MOUSE_PLACE_WAYPOINT,       MOUSE_PLACE_WAYPOINT),      // EXT_ACTION_PLACE_BEACON
-    ActionTypeClass(ActionNames[EXT_ACTION_PLACE_ATTACK_BEACON], MOUSE_PLACE_WAYPOINT,       MOUSE_PLACE_WAYPOINT),      // EXT_ACTION_PLACE_ATTACK_BEACON
-    ActionTypeClass(ActionNames[EXT_ACTION_PLACE_DEFEND_BEACON], MOUSE_PLACE_WAYPOINT,       MOUSE_PLACE_WAYPOINT),      // EXT_ACTION_PLACE_DEFEND_BEACON
-    ActionTypeClass(ActionNames[EXT_ACTION_PLACE_MOVE_BEACON],   MOUSE_PLACE_WAYPOINT,       MOUSE_PLACE_WAYPOINT),      // EXT_ACTION_PLACE_MOVE_BEACON
-    ActionTypeClass(ActionNames[EXT_ACTION_PLACE_EXPAND_BEACON], MOUSE_PLACE_WAYPOINT,       MOUSE_PLACE_WAYPOINT),      // EXT_ACTION_PLACE_EXPAND_BEACON
+    ActionTypeClass(ActionNames[EXT_ACTION_PLACE_BEACON_1],      MOUSE_PLACE_WAYPOINT,       MOUSE_PLACE_WAYPOINT),      // EXT_ACTION_PLACE_BEACON_1
+    ActionTypeClass(ActionNames[EXT_ACTION_PLACE_BEACON_2],      MOUSE_PLACE_WAYPOINT,       MOUSE_PLACE_WAYPOINT),      // EXT_ACTION_PLACE_BEACON_2
+    ActionTypeClass(ActionNames[EXT_ACTION_PLACE_BEACON_3],      MOUSE_PLACE_WAYPOINT,       MOUSE_PLACE_WAYPOINT),      // EXT_ACTION_PLACE_BEACON_3
+    ActionTypeClass(ActionNames[EXT_ACTION_PLACE_BEACON_4],      MOUSE_PLACE_WAYPOINT,       MOUSE_PLACE_WAYPOINT),      // EXT_ACTION_PLACE_BEACON_4
+    ActionTypeClass(ActionNames[EXT_ACTION_PLACE_BEACON_5],      MOUSE_PLACE_WAYPOINT,       MOUSE_PLACE_WAYPOINT),      // EXT_ACTION_PLACE_BEACON_6
+    ActionTypeClass(ActionNames[EXT_ACTION_PLACE_BEACON_6],      MOUSE_PLACE_WAYPOINT,       MOUSE_PLACE_WAYPOINT),      // EXT_ACTION_PLACE_BEACON_7
+    ActionTypeClass(ActionNames[EXT_ACTION_PLACE_BEACON_7],      MOUSE_PLACE_WAYPOINT,       MOUSE_PLACE_WAYPOINT),      // EXT_ACTION_PLACE_BEACON_8
     ActionTypeClass(ActionNames[EXT_ACTION_SELECT_BEACON],       MOUSE_SELECT_WAYPOINT,      MOUSE_SELECT_WAYPOINT)      // EXT_ACTION_SELECT_BEACON
 };
 

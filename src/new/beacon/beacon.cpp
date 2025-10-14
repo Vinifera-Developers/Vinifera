@@ -753,18 +753,27 @@ ActionType BeaconManagerClass::Pick_Beacon_Placement_Action()
 
     ExtActionType action = EXT_ACTION_PLACE_BEACON;
 
-    if (ctrldown && altdown) {
-        action = EXT_ACTION_PLACE_DEFEND_BEACON;
-    } else if (ctrldown) {
-        action = EXT_ACTION_PLACE_ATTACK_BEACON;
-    } else if (altdown) {
-        action = EXT_ACTION_PLACE_MOVE_BEACON;
-    } else if (shiftdown) {
-        action = EXT_ACTION_PLACE_EXPAND_BEACON;
+    if (!ctrldown && !altdown && !shiftdown) {
+        action = EXT_ACTION_PLACE_BEACON; // none
+    } else if (shiftdown && !ctrldown && !altdown) {
+        action = EXT_ACTION_PLACE_BEACON_1; // shift
+    } else if (ctrldown && !altdown && !shiftdown) {
+        action = EXT_ACTION_PLACE_BEACON_2; // ctrl
+    } else if (altdown && !ctrldown && !shiftdown) {
+        action = EXT_ACTION_PLACE_BEACON_3; // alt
+    } else if (ctrldown && shiftdown && !altdown) {
+        action = EXT_ACTION_PLACE_BEACON_4; // ctrl + shift
+    } else if (altdown && shiftdown && !ctrldown) {
+        action = EXT_ACTION_PLACE_BEACON_5; // alt + shift
+    } else if (ctrldown && altdown && !shiftdown) {
+        action = EXT_ACTION_PLACE_BEACON_6; // ctrl + alt
+    } else if (ctrldown && altdown && shiftdown) {
+        action = EXT_ACTION_PLACE_BEACON_7; // ctrl + alt + shift
     }
 
     return static_cast<ActionType>(action);
 }
+
 
 
 /**
@@ -776,10 +785,13 @@ bool BeaconManagerClass::Is_Beacon_Placement_Action(ActionType action)
 {
     switch (action) {
     case EXT_ACTION_PLACE_BEACON:
-    case EXT_ACTION_PLACE_ATTACK_BEACON:
-    case EXT_ACTION_PLACE_DEFEND_BEACON:
-    case EXT_ACTION_PLACE_MOVE_BEACON:
-    case EXT_ACTION_PLACE_EXPAND_BEACON:
+    case EXT_ACTION_PLACE_BEACON_1:
+    case EXT_ACTION_PLACE_BEACON_2:
+    case EXT_ACTION_PLACE_BEACON_3:
+    case EXT_ACTION_PLACE_BEACON_4:
+    case EXT_ACTION_PLACE_BEACON_5:
+    case EXT_ACTION_PLACE_BEACON_6:
+    case EXT_ACTION_PLACE_BEACON_7:
         return true;
     default:
         return false;
@@ -794,17 +806,27 @@ bool BeaconManagerClass::Is_Beacon_Placement_Action(ActionType action)
  */
 char const* BeaconManagerClass::Beacon_Text(ActionType action)
 {
-    switch (action) {
-    case EXT_ACTION_PLACE_ATTACK_BEACON:
-        return "Attack";
-    case EXT_ACTION_PLACE_DEFEND_BEACON:
-        return "Defend";
-    case EXT_ACTION_PLACE_MOVE_BEACON:
-        return "Move";
-    case EXT_ACTION_PLACE_EXPAND_BEACON:
-        return "Expand";
-    case EXT_ACTION_PLACE_BEACON:
-    default:
-        return nullptr;
+    if (action >= EXT_ACTION_PLACE_BEACON_1 && action <= EXT_ACTION_PLACE_BEACON_7) {
+        if (!UIControls->BeaconText[action - EXT_ACTION_PLACE_BEACON_1].empty()) {
+            return UIControls->BeaconText[action - EXT_ACTION_PLACE_BEACON_1].c_str();
+        }
     }
+
+    return nullptr;
+}
+
+/**
+ *  Returns a preset preview text label for a beacon placement action.
+ *
+ *  @authors: ZivDero
+ */
+char const* BeaconManagerClass::Beacon_Preview_Text(ActionType action)
+{
+    if (action >= EXT_ACTION_PLACE_BEACON_1 && action <= EXT_ACTION_PLACE_BEACON_7) {
+        if (!UIControls->BeaconPreviewText[action - EXT_ACTION_PLACE_BEACON_1].empty()) {
+            return UIControls->BeaconPreviewText[action - EXT_ACTION_PLACE_BEACON_1].c_str();
+        }
+    }
+
+    return nullptr;
 }

@@ -622,10 +622,13 @@ Vanilla actions are always present implicitly, but their properties **can** be o
     RallyToPoint=CanMove,Normal
     AttackSupport=Normal,Normal
     PlaceBeacon=PlaceWaypoint,PlaceWaypoint
-    PlaceAttackBeacon=PlaceWaypoint,PlaceWaypoint
-    PlaceDefendBeacon=PlaceWaypoint,PlaceWaypoint
-    PlaceMoveBeacon=PlaceWaypoint,PlaceWaypoint
-    PlaceExpandBeacon=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon1=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon2=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon3=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon4=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon5=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon6=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon7=PlaceWaypoint,PlaceWaypoint
     SelectBeacon=SelectWaypoint,SelectWaypoint
 
     ```

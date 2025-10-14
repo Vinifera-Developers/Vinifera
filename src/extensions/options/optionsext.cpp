@@ -171,7 +171,7 @@ void OptionsClassExtension::Load_Settings()
     }
 
     /**
-     *  Read hardcoded modifier keys from Keyboard.ini.
+     *  Read keys from Keyboard.ini.
      *
      *  @author: ZivDero
      */
@@ -223,7 +223,7 @@ void OptionsClassExtension::Save_Settings()
     RawFileClass file("SUN.INI");
 
     /**
-     *  Save hardcoded modifier keys to Keyboard.ini.
+     *  Save keys to Keyboard.ini.
      *
      *  @author: ZivDero
      */
@@ -238,6 +238,10 @@ void OptionsClassExtension::Save_Settings()
         keyboard_ini.Put_Int("Hotkey", "ForceAttack", Options.KeyForceAttack1);
         keyboard_ini.Put_Int("Hotkey", "Select", Options.KeySelect1);
         keyboard_ini.Put_Int("Hotkey", "QueueMove", Options.KeyQueueMove1);
+
+        keyboard_ini.Put_Int("Hotkey", "ChatToAll", KeyChatToAll1);
+        keyboard_ini.Put_Int("Hotkey", "ChatToAll2", KeyChatToAll2);
+        keyboard_ini.Put_Int("Hotkey", "ChatToAllies", KeyChatToAllies);
 
         keyboard_ini.Save(keyboard_file, false);
     }
