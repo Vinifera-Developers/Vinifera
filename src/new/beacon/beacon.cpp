@@ -438,12 +438,14 @@ void BeaconManagerClass::Place_Beacon(HousesType house, Coord const& coord, int 
 {
     BeaconClass* beacon = new BeaconClass;
 
-    /**
-     *  Resolve target beacon to update.
-     */
     if (beacon_id != -1) {
+
+        /**
+         *  Store the beacon at the given ID.
+         */
         Beacons[house][beacon_id] = std::unique_ptr<BeaconClass>(beacon);
         beacon->ID = beacon_id;
+
     } else {
 
         /**
@@ -452,6 +454,10 @@ void BeaconManagerClass::Place_Beacon(HousesType house, Coord const& coord, int 
         if (RuleExtension->MaxBeacons > 0 && Beacons[house].size() >= RuleExtension->MaxBeacons) {
             Delete_Beacon(house, Beacons[house].begin()->second->ID);
         }
+
+        /**
+         *  Store the beacon with the current frame number as its ID.
+         */
         Beacons[house].emplace(Frame, beacon);
         beacon->ID = Frame;
     }
@@ -459,7 +465,7 @@ void BeaconManagerClass::Place_Beacon(HousesType house, Coord const& coord, int 
     DEBUG_INFO("Placing beacon: (%d, %d, %d)\n", coord.X, coord.Y, coord.Z);
     beacon->Set(coord, house);
 
-    if (house == PlayerPtr->HeapID) {
+    if (beacon->House == PlayerPtr->HeapID) {
         Speak(RuleExtension->PlaceBeaconVoice);
         Sound_Effect(RuleExtension->PlaceBeaconSound);
     }
@@ -469,8 +475,8 @@ void BeaconManagerClass::Place_Beacon(HousesType house, Coord const& coord, int 
         /**
          *  Send update to network peers if this is a local edit.
          */
-        if (house == PlayerPtr->HeapID) {
-            Send_Beacon_Place(coord, house, beacon_id);
+        if (beacon->House == PlayerPtr->HeapID) {
+            Send_Beacon_Place(beacon->Position, beacon->House, beacon->ID);
         }
 
         /**
@@ -566,10 +572,8 @@ void BeaconManagerClass::Delete_Owned_Beacons(HousesType house)
 void BeaconManagerClass::Set_Beacon_Text(char const* text, HousesType house, int beacon_id, bool send)
 {
     BeaconClass* beacon = nullptr;
-    bool is_local_action = false;
 
     if (house == HOUSE_NONE && beacon_id == -1) {
-        is_local_action = true;
         beacon = Find_Selected_Beacon(house);
     } else {
         beacon = Beacons[house][beacon_id].get();
@@ -583,16 +587,19 @@ void BeaconManagerClass::Set_Beacon_Text(char const* text, HousesType house, int
         beacon->Set_Text(text);
 
         if (Session.Type != GAME_NORMAL && Session.Type != GAME_SKIRMISH) {
-            if (is_local_action && beacon->House == PlayerPtr->HeapID && send) {
-                Send_Set_Beacon_Text(text, beacon->House, beacon->ID);
-            } else {
 
-                /**
-                 *  Emit a radar event, but only if the beacon came from another player.
-                 */
-                if (beacon->House != PlayerPtr->HeapID && beacon->Is_Visible_To_Player()) {
-                    Submit_Radar_Event(RADAREVENT_DROPZONE, beacon->Position.As_Cell()); // abusing RADAREVENT_DROPZONE for beacons
-                }
+            /**
+             *  If it's the player setting the text for a beacon, send the update to other players.
+             */
+            if (beacon->House == PlayerPtr->HeapID && send) {
+                Send_Set_Beacon_Text(text, beacon->House, beacon->ID);
+            }
+
+            /**
+             *  Otherwise, we must've received an updated, so emit a radar event.
+             */
+            else if (beacon->House != PlayerPtr->HeapID && beacon->Is_Visible_To_Player()) {
+                Submit_Radar_Event(RADAREVENT_DROPZONE, beacon->Position.As_Cell()); // abusing RADAREVENT_DROPZONE for beacons
             }
         }
     }
