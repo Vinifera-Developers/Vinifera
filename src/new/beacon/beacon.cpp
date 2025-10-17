@@ -559,7 +559,7 @@ void BeaconManagerClass::Delete_Beacon(HousesType house, int beacon_id)
 void BeaconManagerClass::Delete_Owned_Beacons(HousesType house)
 {
     while (!Beacons[house].empty()) {
-        Delete_Beacon(house, 0);
+        Delete_Beacon(house, Beacons[house].begin()->second->ID);
     }
 }
 
