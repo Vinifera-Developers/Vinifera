@@ -367,7 +367,7 @@ static void New_Edit(char const* to, bool enable_overflow = true, int width = -1
      *  Create the edit.
      */
     Session.Messages.Add_Edit(static_cast<ColorSchemeType>(Session.ColorIdx), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, txt, 0, width);
-    Session.Messages.EnableOverflow = enable_overflow;
+    //Session.Messages.EnableOverflow = enable_overflow; // disabled because overflow is off in vanilla by default
 
     /**
      *  Flag the map to be redrawn so that the text shows up.
