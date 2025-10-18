@@ -52,6 +52,7 @@
 #include "sessionext.h"
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "tacticalext.h"
 
 
 /**
@@ -398,6 +399,7 @@ static bool Begin_Message(KeyNumType input)
         if (beacon != nullptr) {
             New_Edit("Beacon Message: ", false, 10000);
             BeaconManager.Set_Beacon_Text("_", HOUSE_NONE, -1, false);
+            TacticalMapExtension->IsEditingBeaconText = true;
             return true;
         }
     }
@@ -531,16 +533,8 @@ void _Message_Input(KeyNumType& input)
         **  If the player has hit the escape button, clear it instead.
         **  The fact that it's being typed is reflected by a blinking underscore.
         */
-        if (copy_input == KN_ESC) {
-            BeaconManager.Set_Beacon_Text(nullptr, HOUSE_NONE, -1, true);
-        } else {
-            std::string buffer;
-            char const* edit = Session.Messages.Get_Edit_Buf();
-            if (edit != nullptr) {
-                buffer += edit;
-            }
-            buffer += '_';
-            BeaconManager.Set_Beacon_Text(buffer.c_str(), HOUSE_NONE, -1, false);
+        if (TacticalMapExtension->IsEditingBeaconText) {
+            BeaconManager.Input(copy_input, false);
         }
     }
 
@@ -552,24 +546,8 @@ void _Message_Input(KeyNumType& input)
         /*
         **  If we're typing a beacon message, save it accordingly.
         */
-        BeaconClass* beacon = BeaconManager.Find_Selected_Beacon(PlayerPtr->HeapID);
-        if (beacon != nullptr) {
-            if (copy_input == KN_ESC) {
-                BeaconManager.Set_Beacon_Text(nullptr, HOUSE_NONE, -1, true);
-            } else {
-                std::string buffer;
-                char const* edit = Session.Messages.Get_Edit_Buf();
-                if (edit != nullptr) {
-                    buffer += edit;
-                    buffer.pop_back(); // MessageListClass appends a space to the end
-                }
-                BeaconManager.Set_Beacon_Text(buffer.c_str(), HOUSE_NONE, -1, true);
-            }
-
-            /*
-            **  We're done with this beacon - de-select it.
-            */
-            beacon->Select(false);
+        if (TacticalMapExtension->IsEditingBeaconText) {
+            BeaconManager.Input(copy_input, true);
         }
 
         /*

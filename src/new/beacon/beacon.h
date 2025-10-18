@@ -37,6 +37,7 @@
 class ShapeSet;
 class Surface;
 enum HousesType;
+enum KeyNumType;
 
 /**
  *  An individual beacon is represented by this class.
@@ -107,12 +108,13 @@ public:
     void Set_Beacon_Text(char const* text, HousesType house, int beacon_id, bool send = false);
 
     /**
-     *  Selection & lookup
+     *  I/O.
      */
     bool Select_Beacon(Coord const& coord) const;
     void Unselect_All_Beacons();
     BeaconClass* Beacon_At(Coord const& coord) const;
     BeaconClass* Find_Selected_Beacon(HousesType house) const;
+    void Input(KeyNumType input, bool finalize = false);
     
     /**
      *  Networking

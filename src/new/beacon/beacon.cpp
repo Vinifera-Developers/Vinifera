@@ -377,7 +377,7 @@ void BeaconManagerClass::Draw(Surface* surface, Rect const& cliprect) const
  */
 void BeaconManagerClass::Draw_On_Radar(Surface* surface, Rect const& cliprect) const
 {
-    if (Get_Radar_Shape_Frame() < BeaconManager.RadarBeaconFrameCount + 1) {
+    if (Get_Radar_Shape_Frame() < RadarBeaconFrameCount + 1) {
         for (auto& map : Beacons) {
             for (auto& pair : map) {
                 auto& beacon = pair.second;
@@ -409,7 +409,7 @@ bool BeaconManagerClass::Is_To_Redraw_Radar() const
     }
 
 breakout:
-    if (visible && Get_Radar_Shape_Frame() < BeaconManager.RadarBeaconFrameCount + 1) {
+    if (visible && Get_Radar_Shape_Frame() < RadarBeaconFrameCount + 1) {
         return true;
     }
     return false;
@@ -631,6 +631,15 @@ bool BeaconManagerClass::Select_Beacon(Coord const& coord) const
  */
 void BeaconManagerClass::Unselect_All_Beacons()
 {
+    /**
+     *  If we're editing a beacon, then clear its text and exit editing mode.
+     */
+    if (TacticalMapExtension->IsEditingBeaconText) {
+        Set_Beacon_Text(nullptr, HOUSE_NONE, -1, true);
+        Session.Messages.Remove_Edit();
+        TacticalMapExtension->IsEditingBeaconText = false;
+    }
+
     for (auto& map : Beacons) {
         for (auto& pair : map) {
             auto& beacon = pair.second;
@@ -677,6 +686,71 @@ BeaconClass* BeaconManagerClass::Find_Selected_Beacon(HousesType house) const
     }
 
     return nullptr;
+}
+
+
+/**
+ *  Handles input for the beacon message.
+ *
+ *  @authors: ZivDero
+ */
+void BeaconManagerClass::Input(KeyNumType input, bool finalize)
+{
+    BeaconClass* beacon = BeaconManager.Find_Selected_Beacon(PlayerPtr->HeapID);
+
+    /**
+     *  No beacon - nothing to edit.
+     */
+    if (beacon == nullptr) {
+        return;
+    }
+
+    /**
+     *  Escape always clears the beacon and de-selects it.
+     */
+    if (input == KN_ESC) {
+        Set_Beacon_Text(nullptr, HOUSE_NONE, -1, true);
+        TacticalMapExtension->IsEditingBeaconText = false;
+        beacon->Select(false);
+        return;
+    }
+
+    /**
+     *  Otherwise, we need to update the beacon's text.
+     */
+    std::string buffer;
+    if (auto edit = Session.Messages.Get_Edit_Buf()) {
+        buffer.assign(edit);
+
+        /**
+         *  If we're done editing the text, it will contain a space at the end (just how
+         *  MessageListClass works), remove it.
+         */
+        if (finalize && !buffer.empty()) {
+            buffer.pop_back();
+        }
+    }
+
+    /**
+     *  If we're aren't done editing the text, then add an undescore
+     *  (it will be make to blink by the rendering function).
+     */
+    if (!finalize) {
+        buffer.push_back('_');
+    }
+
+    /**
+     *  Set the text.
+     */
+    Set_Beacon_Text(buffer.c_str(), HOUSE_NONE, -1, finalize);
+
+    /**
+     *  If we're done with this beacon - de-select it and mark that we're done.
+     */
+    if (finalize) {
+        beacon->Select(false);
+        TacticalMapExtension->IsEditingBeaconText = false;
+    }
 }
 
 

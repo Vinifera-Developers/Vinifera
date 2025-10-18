@@ -180,4 +180,9 @@ public:
      *  Is the player currently placing a beacon?
      */
     bool IsBeaconPlacementMode;
+
+    /**
+     *  Is the player currently editing a beacon's text?
+     */
+    bool IsEditingBeaconText;
 };
