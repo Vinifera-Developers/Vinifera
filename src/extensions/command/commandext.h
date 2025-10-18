@@ -88,8 +88,6 @@ public:
     virtual const char* Get_Category() const override;
     virtual const char* Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_NONE); }
 };
 
 
@@ -683,8 +681,6 @@ public:
     virtual const char* Get_Category() const override;
     virtual const char* Get_Description() const override;
     virtual bool Process() override;
-
-    virtual KeyNumType Default_Key() const override { return KeyNumType(KN_U | KN_SHIFT_BIT); }
 };
 
 
