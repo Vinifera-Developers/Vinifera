@@ -1471,7 +1471,7 @@ bool DumpTriggersCommandClass::Process()
     {
         TriggerClass* trigger = Triggers[i];
 
-        DEBUG_INFO("Trigger %d: %s\n", i, trigger->Class->FullName);
+        DEBUG_INFO("Trigger %d: %s\n", i, trigger->Class->GivenName.c_str());
         DEBUG_INFO("    IsToDie: %d\n", trigger->IsToDie);
         DEBUG_INFO("    TrippedFlags: %d\n", trigger->TrippedFlags);
         DEBUG_INFO("    IsActive: %d\n", trigger->IsActive);
@@ -1479,7 +1479,7 @@ bool DumpTriggersCommandClass::Process()
         while (trigger->LinkedTo != nullptr) {
             trigger = trigger->LinkedTo;
 
-            DEBUG_INFO("    LinkedTo: %s\n", trigger->Class->FullName);
+            DEBUG_INFO("    LinkedTo: %s\n", trigger->Class->GivenName.c_str());
             DEBUG_INFO("        IsToDie: %d\n", trigger->IsToDie);
             DEBUG_INFO("        TrippedFlags: %d\n", trigger->TrippedFlags);
             DEBUG_INFO("        IsActive: %d\n", trigger->IsActive);
@@ -1492,7 +1492,7 @@ bool DumpTriggersCommandClass::Process()
     {
         TagClass* tag = Tags[i];
 
-        DEBUG_INFO("Tag %d: %s\n", i, tag->Class->FullName);
+        DEBUG_INFO("Tag %d: %s\n", i, tag->Class->GivenName.c_str());
         DEBUG_INFO("    AttachCount: %d\n", tag->AttachCount);
         DEBUG_INFO("    CellID: %d,%d\n", tag->CellID.X, tag->CellID.Y);
         DEBUG_INFO("    IsToDie: %d\n", tag->IsToDie);
@@ -4161,7 +4161,7 @@ bool PlaceTiberiumCommandClass::Process()
     }
 
     if (cellptr->Place_Tiberium(TIBERIUM_FIRST, 1)) {
-        DEBUG_INFO("Placed tiberium \"%s\" at %d,%d,%d\n", Tiberiums[TIBERIUM_FIRST]->IniName, mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
+        DEBUG_INFO("Placed tiberium \"%s\" at %d,%d,%d\n", Tiberiums[TIBERIUM_FIRST]->IniName.c_str(), mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
         return true;
     }
 
@@ -4209,7 +4209,7 @@ bool ReduceTiberiumCommandClass::Process()
     }
 
     if (cellptr->Reduce_Tiberium(1)) {
-        DEBUG_INFO("Reduced tiberium \"%s\" at %d,%d,%d\n", Tiberiums[TIBERIUM_FIRST]->IniName, mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
+        DEBUG_INFO("Reduced tiberium \"%s\" at %d,%d,%d\n", Tiberiums[TIBERIUM_FIRST]->IniName.c_str(), mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
         return true;
     }
 
@@ -4257,7 +4257,7 @@ bool PlaceFullTiberiumCommandClass::Process()
     }
 
     if (cellptr->Place_Tiberium(TIBERIUM_FIRST, 11)) {
-        DEBUG_INFO("Placed fully grown tiberium \"%s\" at %d,%d,%d\n", Tiberiums[TIBERIUM_FIRST]->IniName, mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
+        DEBUG_INFO("Placed fully grown tiberium \"%s\" at %d,%d,%d\n", Tiberiums[TIBERIUM_FIRST]->IniName.c_str(), mouse_coord.X, mouse_coord.Y, mouse_coord.Z);
         return true;
     }
 
@@ -4447,7 +4447,7 @@ bool DumpNetworkCRCCommandClass::Process()
     char filename_buffer[512];
     std::snprintf(filename_buffer, sizeof(filename_buffer), "%s\\SYNC_%s-%02d_%02u-%02u-%04u_%02u-%02u-%02u.LOG",
         Vinifera_DebugDirectory,
-        PlayerPtr->IniName,
+        PlayerPtr->IniName.c_str(),
         PlayerPtr->HeapID,
         day, month, year, hour, min, sec);
 

@@ -2829,7 +2829,7 @@ bool _TechnoClass_Evaluate_Object_Zone_Evaluation_Is_Valid_Target(TechnoClass* t
     }
 
     // For some reason the target zone scan type was invalid. Something is wrong.
-    Fatal("Invalid TargetZoneScanType for techno type %s", technotype->IniName);
+    Fatal("Invalid TargetZoneScanType for techno type %s", technotype->IniName.c_str());
     return false;
 }
 

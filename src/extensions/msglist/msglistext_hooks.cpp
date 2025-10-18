@@ -70,7 +70,7 @@ DECLARE_PATCH(_MessageListClass_Echo_Sent_Messages_Patch)
     /**
      *  Echo the last sent message back to the user.
      */
-    std::snprintf(echobuff, sizeof(echobuff), TEXT_S_S, PlayerPtr->IniName, Session.LastMessage);
+    std::snprintf(echobuff, sizeof(echobuff), TEXT_S_S, PlayerPtr->IniName.c_str(), Session.LastMessage);
   	Session.Messages.Add_Message(
         nullptr, 0, echobuff, PlayerPtr->Scheme,
         TPF_6PT_GRAD|TPF_USE_GRAD_PAL|TPF_FULLSHADOW,

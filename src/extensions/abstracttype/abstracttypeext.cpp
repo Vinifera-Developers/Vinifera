@@ -41,7 +41,7 @@
 AbstractTypeClassExtension::AbstractTypeClassExtension(const AbstractTypeClass *this_ptr) :
     AbstractClassExtension(this_ptr),
     IniName(),
-    FullName(),
+    GivenName(),
     IsInitialized(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("AbstractTypeClassExtension::AbstractTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
@@ -54,7 +54,9 @@ AbstractTypeClassExtension::AbstractTypeClassExtension(const AbstractTypeClass *
  *  @author: CCHyper
  */
 AbstractTypeClassExtension::AbstractTypeClassExtension(const NoInitClass &noinit) :
-    AbstractClassExtension(noinit)
+    AbstractClassExtension(noinit),
+    IniName(noinit),
+    GivenName(noinit)
 {
     //EXT_DEBUG_TRACE("AbstractTypeClassExtension::AbstractTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -101,8 +103,8 @@ HRESULT AbstractTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
     /**
      *  Store the name strings as raw data, these are used by the load operation.
      */
-    std::strncpy(IniName, Name(), sizeof(IniName));
-    std::strncpy(FullName, Full_Name(), sizeof(FullName));
+    IniName = Name();
+    GivenName = Full_Name();
 
     HRESULT hr = AbstractClassExtension::Internal_Save(pStm, fClearDirty);
     if (FAILED(hr)) {
