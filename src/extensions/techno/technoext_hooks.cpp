@@ -1051,8 +1051,8 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
      */
     if (!House->Is_Human_Player() && Target_Legal(TarCom) && Is_Target_Object(TarCom))
     {
-        const float current_val = Target_Threat(static_cast<TechnoClass*>(TarCom), Coord());
-        const float source_val = Target_Threat(source, Coord());
+        const float current_val = Target_Threat(static_cast<TechnoClass*>(TarCom), Coord(0, 0, 0));
+        const float source_val = Target_Threat(source, Coord(0, 0, 0));
 
         if (source_val < current_val)
             return false;
@@ -1156,7 +1156,7 @@ double TechnoClassExt::_Target_Threat(TechnoClass* target, Coord& firing_coord) 
      *  Adjust threat if the target is outside our threat range.
      */
     int dist;
-    if (firing_coord == Coord())
+    if (firing_coord == Coord(0, 0, 0))
         dist = (Center_Coord() - target->Center_Coord()).Length() / 256;
     else
         dist = (firing_coord - target->Center_Coord()).Length();

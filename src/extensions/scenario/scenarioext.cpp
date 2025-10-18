@@ -413,7 +413,7 @@ void ScenarioClassExtension::Clear_Waypoint(WAYPOINT wp)
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Clear_Waypoint - 0x%08X\n", (uintptr_t)(This()));
     ASSERT_FATAL(wp < Waypoint.Length());
 
-    Waypoint[wp] = Cell();
+    Waypoint[wp] = Cell(0, 0);
 }
 
 

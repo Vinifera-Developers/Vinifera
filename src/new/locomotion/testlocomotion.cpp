@@ -413,8 +413,8 @@ IFACEMETHODIMP_(void) TestLocomotionClass::Move_To(Coord to)
  */
 IFACEMETHODIMP_(void) TestLocomotionClass::Stop_Moving()
 {
-    HeadToCoord = Coord();
-    DestinationCoord = Coord();
+    HeadToCoord = Coord(0, 0, 0);
+    DestinationCoord = Coord(0, 0, 0);
 
     Angle = 0;
 
