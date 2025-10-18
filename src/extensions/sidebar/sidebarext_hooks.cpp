@@ -2059,7 +2059,7 @@ void StripClassExt::_Draw_It(bool complete)
                             factory->Object->TClass != nullptr && factory->Object->TClass != obj))
                     {
                         Point2D drawpoint(x + QUEUE_COUNT_X_OFFSET, y + TEXT_Y_OFFSET);
-                        Fancy_Text_Print("%d", SidebarSurface, &rect, &drawpoint, Fetch_Scheme_By_Name("LightGrey", 1), COLOR_TBLACK, TPF_RIGHT | TPF_FULLSHADOW | TPF_8POINT, total);
+                        Fancy_Text_Print("%d", *SidebarSurface, rect, drawpoint, Fetch_Scheme_By_Name("LightGrey", 1), COLOR_TBLACK, TPF_RIGHT | TPF_FULLSHADOW | TPF_8POINT, total);
                         hasqueuecount = true;
                     }
                 }
@@ -2074,7 +2074,7 @@ void StripClassExt::_Draw_It(bool complete)
                 if (state != nullptr)
                 {
                     Point2D drawpoint(x + TEXT_X_OFFSET, y + TEXT_Y_OFFSET);
-                    Fancy_Text_Print(state, SidebarSurface, &rect, &drawpoint, Fetch_Scheme_By_Name("LightBlue", 1), COLOR_TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_8POINT);
+                    Fancy_Text_Print(state, *SidebarSurface, rect, drawpoint, Fetch_Scheme_By_Name("LightBlue", 1), COLOR_TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_8POINT);
                 }
 
                 if (!completed)
@@ -2106,12 +2106,12 @@ void StripClassExt::_Draw_It(bool complete)
                         if (hasqueuecount)
                         {
                             Point2D drawpoint2(x, y + TEXT_Y_OFFSET);
-                            Fancy_Text_Print(TXT_HOLD, SidebarSurface, &rect, &drawpoint2, Fetch_Scheme_By_Name("LightGrey", 1), COLOR_TBLACK, TPF_FULLSHADOW | TPF_8POINT);
+                            Fancy_Text_Print(TXT_HOLD, *SidebarSurface, rect, drawpoint2, Fetch_Scheme_By_Name("LightGrey", 1), COLOR_TBLACK, TPF_FULLSHADOW | TPF_8POINT);
                         }
                         else
                         {
                             Point2D drawpoint2(x + TEXT_X_OFFSET, y + TEXT_Y_OFFSET);
-                            Fancy_Text_Print(TXT_HOLD, SidebarSurface, &rect, &drawpoint2, Fetch_Scheme_By_Name("LightGrey", 1), COLOR_TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_8POINT);
+                            Fancy_Text_Print(TXT_HOLD, *SidebarSurface, rect, drawpoint2, Fetch_Scheme_By_Name("LightGrey", 1), COLOR_TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_8POINT);
                         }
                     }
                 }

@@ -1043,9 +1043,7 @@ bool _BuildingClass_Mission_Repair_Assign_Unit_Destination(BuildingClass *buildi
 
     if (building->ArchiveTarget != nullptr)
     {
-        bool is_object = Target_As_Object(building->ArchiveTarget) != nullptr;
-
-        if (Target_Legal(building->ArchiveTarget, is_object))
+        if (building->ArchiveTarget != nullptr)
             target = building->ArchiveTarget;
     }
 

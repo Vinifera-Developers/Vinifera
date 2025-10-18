@@ -500,7 +500,7 @@ void TacticalExt::_Draw_Rally_Points(bool blit)
                 /**
                  *  ArchiveTarget contains the rally point cell, so it needs to be set.
                  */
-                if (Target_Legal(bldg->ArchiveTarget) && bldg->Get_Mission() != MISSION_DECONSTRUCTION)
+                if (bldg->ArchiveTarget != nullptr && bldg->Get_Mission() != MISSION_DECONSTRUCTION)
                 {
                     /**
                      *  The start of the line is just at the building's center.
