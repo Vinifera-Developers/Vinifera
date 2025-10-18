@@ -319,7 +319,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
 
             std::snprintf(buffer, std::size(buffer), "%d", group >= 10 ? 0 : group);
             const ColorSchemeType colorschemetype = Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor;
-            Plain_Text_Print(buffer, LogicSurface, &rect, &drawpoint, COLOR_WHITE, COLOR_TBLACK, TPF_FULLSHADOW | TPF_EFNT, colorschemetype, 1);
+            Plain_Text_Print(buffer, *LogicSurface, rect, drawpoint, COLOR_WHITE, COLOR_TBLACK, TPF_FULLSHADOW | TPF_EFNT, colorschemetype, 1);
         }
     }
 
@@ -1728,7 +1728,7 @@ void TechnoClassExt::_Draw_Text_Overlay(Point2D& point1, Point2D& point2, Rect& 
     {
         const auto owner = Owner_HouseClass();
         std::sprintf(buffer, Fetch_String(TXT_POWER_DRAIN), owner->Power_Output(), owner->Power_Drain());
-        Plain_Text_Print(buffer, LogicSurface, &rect, &point2, COLOR_WHITE, COLOR_TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_EFNT, colorschemetype, 1);
+        Plain_Text_Print(buffer, *LogicSurface, rect, point2, COLOR_WHITE, COLOR_TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_EFNT, colorschemetype, 1);
     }
 
     /**
@@ -1737,7 +1737,7 @@ void TechnoClassExt::_Draw_Text_Overlay(Point2D& point1, Point2D& point2, Rect& 
     if (IsLeader)
     {
         const int text = RTTI == RTTI_BUILDING && reinterpret_cast<const BuildingClass*>(this)->Class->Width() == 1 ? TXT_PRI : TXT_PRIMARY;
-        Plain_Text_Print(text, LogicSurface, &rect, &point2, COLOR_WHITE, COLOR_TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_EFNT, colorschemetype, 1);
+        Plain_Text_Print(text, *LogicSurface, rect, point2, COLOR_WHITE, COLOR_TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_EFNT, colorschemetype, 1);
     }
 }
 
