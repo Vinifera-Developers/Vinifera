@@ -383,7 +383,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
  */
 WeaponSlotType TechnoClassExt::_What_Weapon_Should_I_Use(AbstractClass * target) const
 {
-    if (!Target_Legal(target)) {
+    if (target == nullptr) {
         return WEAPON_SLOT_PRIMARY;
     }
 
@@ -702,7 +702,7 @@ FireErrorType TechnoClassExt::_Can_Fire(AbstractClass * target, WeaponSlotType w
     /**
      *  Don't allow firing if the target is illegal.
      */
-    if (!Target_Legal(target))
+    if (target == nullptr)
         return FIRE_ILLEGAL;
 
     const auto ext = Extension::Fetch(this);
@@ -948,7 +948,7 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
     /**
      *  Human-controlled units that have a target don't retaliate.
      */
-    if (House->Is_Human_Player() && Target_Legal(TarCom))
+    if (House->Is_Human_Player() && TarCom != nullptr)
         return false;
 
     /**
@@ -1049,7 +1049,7 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
      *  Compare potential threat of the current target and the potential new target. Don't retaliate
      *  if it is currently attacking the greater threat.
      */
-    if (!House->Is_Human_Player() && Target_Legal(TarCom) && Is_Target_Object(TarCom))
+    if (!House->Is_Human_Player() && TarCom != nullptr && Is_Target_Object(TarCom))
     {
         const float current_val = Target_Threat(static_cast<TechnoClass*>(TarCom), Coord(0, 0, 0));
         const float source_val = Target_Threat(source, Coord(0, 0, 0));

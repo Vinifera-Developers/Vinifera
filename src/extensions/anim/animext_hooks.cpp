@@ -85,7 +85,7 @@ public:
  */
 LayerType AnimClassExt::_In_Which_Layer() const
 {
-    if (Target_Legal(xObject)) {
+    if (xObject != nullptr) {
         return LAYER_GROUND;
     }
 
