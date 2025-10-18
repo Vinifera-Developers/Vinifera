@@ -956,15 +956,15 @@ void TacticalExtension::Beacon_Mode_Control(int control)
  *
  *  @author: ZivDero
  */
-void TacticalExtension::Draw_Beacon_Text(std::string const& text, ColorScheme const& scheme, Point2D const& drawpoint, Rect const& cliprect, bool centered, int offset)
+void TacticalExtension::Draw_Beacon_Text(std::string const& text, ColorScheme& scheme, Point2D const& drawpoint, Rect const& cliprect, bool centered, int offset)
 {
-    WWFontClass* font = Font6Ptr;
+    FontClass* font = Font6Ptr;
 
     /**
      *  Determine the text bounds.
      */
     Rect text_rect;
-    font->String_Pixel_Rect(text.c_str(), &text_rect);
+    font->String_Pixel_Bounds(text.c_str(), text_rect);
     text_rect += drawpoint;
     text_rect.Y += offset;
 
@@ -989,5 +989,5 @@ void TacticalExtension::Draw_Beacon_Text(std::string const& text, ColorScheme co
     CompositeSurface->Fill_Rect_Trans(visible_box_rect, RGBClass(0, 0, 0), 50);
     CompositeSurface->Draw_Rect(visible_box_rect, fore);
 
-    Fancy_Text_Print(text.c_str(), CompositeSurface, const_cast<Rect*>(&cliprect), &(text_rect.TopLeft - cliprect.TopLeft), const_cast<ColorScheme*>(&scheme), COLOR_TBLACK, TPF_6POINT | TPF_NOSHADOW);
+    Fancy_Text_Print(text.c_str(), *CompositeSurface, cliprect, text_rect.TopLeft - cliprect.TopLeft, &scheme, COLOR_TBLACK, TPF_6POINT | TPF_NOSHADOW);
 }
