@@ -83,91 +83,91 @@ Vinifera modifies the vanilla "Deploy" keyboard command to work with air transpo
 
 ### `[ ]` Place Building
 
-- Enters the manual placement mode when a building is complete and pending on the sidebar. Defaults to `Z`.
+- Enters the manual placement mode when a building is complete and pending on the sidebar.
 
 ### `[ ]` Veterancy Filter
 
-- Cycles through green/veteran/elite units among the initially selected group. Defaults to `Y`.
+- Cycles through green/veteran/elite units among the initially selected group.
 
 ### `[ ]` Health Level Filter
 
-- Cycles through red/yellow/green HP units among the initially selected group. Defaults to `U`.
+- Cycles through red/yellow/green HP units among the initially selected group.
 
 ### `[ ]` Toggle Special Timers
 
-- Toggles the visibility of Super Weapon timers. Defaults to `<none>`.
+- Toggles the visibility of Super Weapon timers.
 
 ### `[ ]` Repeat Last Building
 
-- Queue the last structure that was built. Defaults to `Ctrl` + `Q` if the new sidebar is enabled, otherwise to `Ctrl` + `Z`.
+- Queue the last structure that was built.
 
 ### `[ ]` Repeat Last Infantry
 
-- Queue the last infantry that was built. Defaults to `<none>`.
+- Queue the last infantry that was built.
 
 ### `[ ]` Repeat Last Unit
 
-- Queue the last vehicle that was built. Defaults to `<none>`.
+- Queue the last vehicle that was built.
 
 ### `[ ]` Repeat Last Aircraft
 
-- Queue the last aircraft that was built. Defaults to `<none>`.
+- Queue the last aircraft that was built.
 
 ### `[ ]` Select Building Tab
 
-- Switch the command bar to the Building Tab and select the completed building if any. Defaults to `Q` if the new sidebar is enabled, otherwise to `<none>`.
+- Switch the command bar to the Building Tab and select the completed building if any.
 
 ### `[ ]` Select Infantry Tab
 
-- Switch the command bar to the Infantry Tab. Defaults to `W` if the new sidebar is enabled, otherwise to `<none>`.
+- Switch the command bar to the Infantry Tab.
 
 ### `[ ]` Select Vehicles Tab
 
-- Switch the command bar to the Vehicle Tab. Defaults to `E` if the new sidebar is enabled, otherwise to `<none>`.
+- Switch the command bar to the Vehicle Tab.
 
 ### `[ ]` Select Specials Tab
 
-- Switch the command bar to the Special Tab. Defaults to `R` if the new sidebar is enabled, otherwise to `<none>`.
+- Switch the command bar to the Special Tab.
 
 ### `[ ]` Jump Camera West
 
-- Jump the tactical map camera to the west edge of the map. Defaults to `Ctrl` + `Left Arrow`.
+- Jump the tactical map camera to the west edge of the map.
 
 ### `[ ]` Jump Camera East
 
-- Jump the tactical map camera to the east edge of the map. Defaults to `Ctrl` + `Right Arrow`.
+- Jump the tactical map camera to the east edge of the map.
 
 ### `[ ]` Jump Camera North
 
-- Jump the tactical map camera to the north edge of the map. Defaults to `Ctrl` + `Up Arrow`.
+- Jump the tactical map camera to the north edge of the map.
 
 ### `[ ]` Jump Camera South
 
-- Jump the tactical map camera to the north edge of the map. Defaults to `Ctrl` + `Down Arrow`.
+- Jump the tactical map camera to the north edge of the map.
 
 ### `[ ]` Scroll North-East
 
-- Scroll the camera North-East. Defaults to `<none>`.
+- Scroll the camera North-East.
 
 ### `[ ]` Scroll South-East
 
-- Scroll the camera South-East. Defaults to `<none>`.
+- Scroll the camera South-East.
 
 ### `[ ]` Scroll South-West
 
-- Scroll the camera South-West. Defaults to `<none>`.
+- Scroll the camera South-West.
 
 ### `[ ]` Scroll North-West
 
-- Scroll the camera North-West. Defaults to `<none>`.
+- Scroll the camera North-West.
 
 ### `[ ]` Previous Track
 
-- Plays the previous music track. Defaults to `[`.
+- Plays the previous music track.
 
 ### `[ ]` Next Track
 
-- Plays the next music track. Defaults to `]`.
+- Plays the next music track.
 
 ![image](https://user-images.githubusercontent.com/73803386/123566309-4ade4600-d7b7-11eb-9b77-5c9de7959822.png)
 
