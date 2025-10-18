@@ -170,7 +170,7 @@ endif()
 
 
 ################################################################################
-# Disable warnings.
+# Disable/Enable warnings.
 ################################################################################
 # Set warning level 4
 add_compile_options(/W4)
@@ -211,6 +211,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4239") # disable C4239: 'nonstandard 
 
 # disable D9035: 'option 'QIfist' has been deprecated and will be removed in a future release.' Yeah yeah, we need it for now though...
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd9035") # Not allowed to disable command line warnings.
+
+# Promote some useful warnings to errors
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /we4477") # enable C4477: 'function' : format string 'string' requires an argument of type 'type', but variadic argument number has type 'type'. Really don't want to pass wrong things to sprintf, especially TStringID
 
 
 ################################################################################

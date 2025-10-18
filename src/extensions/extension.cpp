@@ -1179,7 +1179,7 @@ void Extension::Print_CRCs(EventClass *ev)
     char filename_buffer[512];
     std::snprintf(filename_buffer, sizeof(filename_buffer), "%s\\SYNC_%s-%02d_%02u-%02u-%04u_%02u-%02u-%02u-%d.LOG",
         Vinifera_DebugDirectory,
-        PlayerPtr->IniName,
+        PlayerPtr->IniName.c_str(),
         PlayerPtr->HeapID,
         Execute_Day, Execute_Month, Execute_Year, Execute_Hour, Execute_Min, Execute_Sec, Frame);
 
@@ -1259,7 +1259,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
 
     std::fprintf(fp, "Frames: %d\n", Frame);
     std::fprintf(fp, "Player ID: %02d\n", PlayerPtr->HeapID);
-    std::fprintf(fp, "Player Name: %s\n", PlayerPtr->IniName);
+    std::fprintf(fp, "Player Name: %s\n", PlayerPtr->IniName.c_str());
     //std::fprintf(fp, "Average FPS: %d\n", total_cycles_or_iterations_ > 0 ? total_fps_ / total_cycles_or_iterations_ : 0);
     std::fprintf(fp, "Max MaxAhead: %d\n", Session.MaxMaxAhead);
     std::fprintf(fp, "FrameSendRate: %d\n", Session.FrameSendRate);
@@ -1450,7 +1450,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
             //const char *a = HouseTypes[housep->HeapID]->Name();
             //const char *b = housep->ActLike != HOUSE_NONE ? HouseTypes[housep->ActLike]->Name() : "<none>";
             std::fprintf(fp, "%s: IsHuman:%d  Color:%s  HeapID:%d  Credits:%d  Power:%d  Drain:%d  HouseType:%s  ActLike:%s\n",
-                housep->IniName,
+                housep->IniName.c_str(),
                 housep->IsHuman,
                 ColorSchemes[housep->Scheme]->Name,
                 housep->HeapID,
@@ -1472,7 +1472,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         HouseClass *housep = Houses[house];
         if (housep) {
             GameCRC = 0;
-            std::fprintf(fp, "------------- %s (%s %d) %s ------------\n", housep->Class->Name(), housep->IniName, housep->HeapID, Extension::Utility::Get_TypeID_Name<InfantryClass>().c_str());
+            std::fprintf(fp, "------------- %s (%s %d) %s ------------\n", housep->Class->Name(), housep->IniName.c_str(), housep->HeapID, Extension::Utility::Get_TypeID_Name<InfantryClass>().c_str());
             for (int index = 0; index < Infantry.Count(); ++index) {
                 InfantryClass *ptr = Infantry[index];
                 if (ptr->Owner() == house) {
@@ -1518,7 +1518,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         HouseClass *housep = Houses[house];
         if (housep) {
             GameCRC = 0;
-            std::fprintf(fp, "------------- %s (%s %d) %s ------------\n", housep->Class->Name(), housep->IniName, housep->HeapID, Extension::Utility::Get_TypeID_Name<UnitClass>().c_str());
+            std::fprintf(fp, "------------- %s (%s %d) %s ------------\n", housep->Class->Name(), housep->IniName.c_str(), housep->HeapID, Extension::Utility::Get_TypeID_Name<UnitClass>().c_str());
             for (int index = 0; index < Units.Count(); ++index) {
                 UnitClass *ptr = Units[index];
                 if (ptr->Owner() == house) {
@@ -1563,7 +1563,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         HouseClass *housep = Houses[house];
         if (housep) {
             GameCRC = 0;
-            std::fprintf(fp, "------------- %s (%s %d) %s ------------\n", housep->Class->Name(), housep->IniName, housep->HeapID, Extension::Utility::Get_TypeID_Name<BuildingClass>().c_str());
+            std::fprintf(fp, "------------- %s (%s %d) %s ------------\n", housep->Class->Name(), housep->IniName.c_str(), housep->HeapID, Extension::Utility::Get_TypeID_Name<BuildingClass>().c_str());
             for (int index = 0; index < Buildings.Count(); ++index) {
                 BuildingClass *ptr = Buildings[index];
                 if (ptr->Owner() == house) {
@@ -1596,7 +1596,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         HouseClass *housep = Houses[house];
         if (housep) {
             GameCRC = 0;
-            std::fprintf(fp, "------------- %s (%s %d) %s ------------\n", housep->Class->Name(), housep->IniName, housep->HeapID, Extension::Utility::Get_TypeID_Name<AircraftClass>().c_str());
+            std::fprintf(fp, "------------- %s (%s %d) %s ------------\n", housep->Class->Name(), housep->IniName.c_str(), housep->HeapID, Extension::Utility::Get_TypeID_Name<AircraftClass>().c_str());
             for (int index = 0; index < Aircrafts.Count(); ++index) {
                 AircraftClass *ptr = Aircrafts[index];
                 if (ptr->Owner() == house) {
@@ -1640,7 +1640,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
     for (int index = 0; index < Bullets.Count(); ++index) {
         BulletClass *bullet = Bullets[index];
 
-        const char *bullet_name = bullet->Class_Of()->IniName;
+        const char *bullet_name = bullet->Class_Of()->IniName.c_str();
 
         const char* payback = "None";
         const char* payback_owner = "None";
@@ -1649,7 +1649,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         if (bullet->Payback) {
             payback = bullet->Payback->Full_Name();
 
-            payback_owner = bullet->Payback->Owner_HouseClass()->IniName;
+            payback_owner = bullet->Payback->Owner_HouseClass()->IniName.c_str();
             owner_id = bullet->Payback->Owner();
         }
 
@@ -1732,7 +1732,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
             };
             HouseClass *housep = objp->Owner_HouseClass();
             if (housep) {
-                std::fprintf(fp, "Owner: %s\n", housep->Class->IniName);
+                std::fprintf(fp, "Owner: %s\n", housep->Class->IniName.c_str());
             } else {
                 std::fprintf(fp, "Owner: NONE\n");
             }
@@ -1785,7 +1785,7 @@ void Extension::Print_CRCs(FILE *fp, EventClass *ev)
         };
         HouseClass *housep = objp->Owner_HouseClass();
         if (housep) {
-            std::fprintf(fp, "Owner: %s\n", housep->Class->IniName);
+            std::fprintf(fp, "Owner: %s\n", housep->Class->IniName.c_str());
         } else {
             std::fprintf(fp, "Owner: NONE\n");
         }

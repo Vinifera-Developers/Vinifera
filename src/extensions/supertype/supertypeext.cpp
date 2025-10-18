@@ -61,7 +61,8 @@ SuperWeaponTypeClassExtension::SuperWeaponTypeClassExtension(const SuperWeaponTy
  *  @author: CCHyper
  */
 SuperWeaponTypeClassExtension::SuperWeaponTypeClassExtension(const NoInitClass &noinit) :
-    AbstractTypeClassExtension(noinit)
+    AbstractTypeClassExtension(noinit),
+    SidebarImage(noinit)
 {
     //EXT_DEBUG_TRACE("SuperWeaponTypeClassExtension::SuperWeaponTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -121,7 +122,7 @@ HRESULT SuperWeaponTypeClassExtension::Load(IStream *pStm)
     /**
      *  Fetch the cameo image surface if it exists.
      */
-    BSurface *imagesurface = Vinifera_Get_Image_Surface(SidebarImage);
+    BSurface *imagesurface = Vinifera_Get_Image_Surface(SidebarImage.c_str());
     if (imagesurface) {
         CameoImageSurface = imagesurface;
     }
@@ -142,7 +143,7 @@ HRESULT SuperWeaponTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
     /**
      *  Store the graphic name strings as raw data, these are used by the load operation.
      */
-    std::strncpy(SidebarImage, This()->SidebarImage, sizeof(SidebarImage));
+    SidebarImage = This()->SidebarImage;
 
     HRESULT hr = AbstractTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
@@ -208,7 +209,7 @@ bool SuperWeaponTypeClassExtension::Read_INI(CCINIClass &ini)
     /**
      *  Fetch the cameo image surface if it exists.
      */
-    BSurface *imagesurface = Vinifera_Get_Image_Surface(This()->SidebarImage);
+    BSurface *imagesurface = Vinifera_Get_Image_Surface(This()->SidebarImage.c_str());
     if (imagesurface) {
         CameoImageSurface = imagesurface;
     }

@@ -43,6 +43,7 @@
 #include "asserthandler.h"
 #include "resource.h"
 #include "fetchres.h"
+#include "stringid.h"
 #include "windialog.h"
 #include "tspp_gitinfo.h"
 #include "vinifera_gitinfo.h"
@@ -300,7 +301,7 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
     /**
      *  Clear the buffer just in case we did a previous dump (like in a recursive situation).
      */
-    ExceptionBuffer.Clear();
+    ExceptionBuffer.clear();
 
     Init_Symbol_Info();
 
@@ -387,11 +388,11 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
     /**
      *  Has additional info for this EIP been loaded from the exception database?
      */
-    if (ExceptionInfoDescription.Peek_Buffer()[0] != '\0') {
+    if (!ExceptionInfoDescription.empty()) {
         Exception_Printf("Additional Information:\r\n");
         DEBUG_WARNING("\r\nAdditional Information:\n");
-        Exception_Printf("  %s\r\n", ExceptionInfoDescription.Peek_Buffer());
-        DEBUG_WARNING("  %s\n\n", ExceptionInfoDescription.Peek_Buffer());
+        Exception_Printf("  %s\r\n", ExceptionInfoDescription.c_str());
+        DEBUG_WARNING("  %s\n\n", ExceptionInfoDescription.c_str());
         Exception_Printf("\r\n");
     }
 
@@ -671,7 +672,7 @@ static void Dump_Exception_Info(unsigned int e_code, struct _EXCEPTION_POINTERS 
     /**
      *  Calculate unique crc for the exception data (used for checking recursive exceptions).
      */
-    CurrentExceptionCRC = CRC32_Memory(ExceptionBuffer.Peek_Buffer(), ExceptionBuffer.Get_Length());
+    CurrentExceptionCRC = CRC32_Memory(ExceptionBuffer.data(), ExceptionBuffer.size());
 
     DEBUG_WARNING("****************************** END EXEPTION DUMP ******************************!\n");
 }
@@ -749,7 +750,7 @@ static INT_PTR CALLBACK Exception_Dialog_Proc(HWND hDlg, UINT uMsg, WPARAM wPara
              *  Send the exception buffer to the dialog.
              */
             if (ExceptionDumpFinished) {
-                SetDlgItemTextA(hDlg, IDC_EXCEPTION_LOG, ExceptionBuffer.Peek_Buffer()); // Debug edit box.
+                SetDlgItemTextA(hDlg, IDC_EXCEPTION_LOG, ExceptionBuffer.c_str()); // Debug edit box.
             }
 
             SetFocus(hDlg);
@@ -831,7 +832,7 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
      */
     ExceptionInfoCanContinue = false;
     ExceptionInfoIgnore = false;
-    ExceptionInfoDescription.Clear();
+    ExceptionInfoDescription.clear();
 
     /**
      *  
@@ -907,7 +908,7 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
      */
     if (RecursionCount < 2) {
 
-        ExceptionBuffer.Clear();
+        ExceptionBuffer.clear();
 
         DEBUG_WARNING("About to call Dump_Exception_Info()\n");
         Dump_Exception_Info(e_code, e_info);
@@ -925,7 +926,7 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
         /**
          *  Write the exception log buffer to the file.
          */
-        ExceptionFile.Write(ExceptionBuffer.Peek_Buffer(), ExceptionBuffer.Get_Length());
+        ExceptionFile.Write(ExceptionBuffer.c_str(), ExceptionBuffer.size());
 
         if (LastExceptionCRC && CurrentExceptionCRC == LastExceptionCRC) {
             DEBUG_WARNING("Exception dump is identical to the previous exception!\n");

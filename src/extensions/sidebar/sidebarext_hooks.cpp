@@ -1903,7 +1903,7 @@ void StripClassExt::_Draw_It(bool complete)
                     obj = Fetch_Techno_Type(Buildables[index].BuildableType, Buildables[index].BuildableID);
                     if (obj != nullptr)
                     {
-                        name = obj->FullName;
+                        name = obj->GivenName.c_str();
                         darken = false;
 
                         /**
@@ -1961,7 +1961,7 @@ void StripClassExt::_Draw_It(bool complete)
                 {
                     spc = (SuperWeaponType)Buildables[index].BuildableID;
 
-                    name = SuperWeaponTypes[spc]->FullName;
+                    name = SuperWeaponTypes[spc]->GivenName.c_str();
                     shapefile = Get_Special_Cameo(spc);
                     auto supertypeext = Extension::Fetch(PlayerPtr->SuperWeapon[spc]->Class);
                     if (supertypeext->CameoImageSurface != nullptr)
@@ -2454,11 +2454,11 @@ DECLARE_PATCH(_SidebarClass_StripClass_Help_Text_Extended_Tooltip_Patch)
     // so there should be no issue.
     if (description[0] == '\0') {
         // If there is no extended description, then simply show the name and price.
-        sprintf(extended_description, "%s@$%d", technotype->FullName, cost);
+        sprintf(extended_description, "%s@$%d", technotype->GivenName.c_str(), cost);
     }
     else {
         // If there is an extended description, then show the name, price, and the description.
-        sprintf(extended_description, "%s@$%d@@%s", technotype->FullName, cost, technotypeext->Description);
+        sprintf(extended_description, "%s@$%d@@%s", technotype->GivenName.c_str(), cost, technotypeext->Description);
     }
 
     // Set up return value

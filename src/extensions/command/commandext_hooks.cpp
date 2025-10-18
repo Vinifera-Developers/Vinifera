@@ -311,26 +311,6 @@ void Init_Vinifera_Commands()
 
 
 /**
- *  Set the default key assignments.
- * 
- *  @author: ZivDero
- */
-static void Process_Vinifera_Hotkey_Defaults()
-{
-    for (int i = 0; i < Commands.Count(); i++)
-    {
-        auto vcmd = dynamic_cast<ViniferaCommandClass*>(Commands[i]);
-        if (vcmd) {
-            KeyNumType key = vcmd->Default_Key();
-            if (key != KN_NONE && !HotkeyIndex.Is_Present(key) && HotkeyIndex.Fetch_ID_By_Data(vcmd) == -1) {
-                HotkeyIndex.Add_Index(key, vcmd);
-            }
-        }
-    }
-}
-
-
-/**
  *  Patch for initializing the new hotkey commands.
  * 
  *  @author: CCHyper
@@ -343,8 +323,6 @@ DECLARE_PATCH(_Init_Commands_Patch)
      *  Stolen bytes/code here.
      */
     Load_Keyboard_Hotkeys();
-
-    Process_Vinifera_Hotkey_Defaults();
 
     JMP(0x004E6FAE);
 }

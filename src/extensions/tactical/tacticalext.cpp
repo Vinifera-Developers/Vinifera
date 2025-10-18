@@ -267,7 +267,7 @@ void TacticalExtension::Draw_Debug_Overlay()
         strupr(Scen->ScenarioName),
         Session.DesiredFrameRate,
         FramesPerSecond,
-        CurrentObjects.Count() == 1 ? CurrentObjects.Fetch_Head() : 0
+        CurrentObjects.Count() == 1 ? reinterpret_cast<int>(CurrentObjects.Fetch_Head()) : 0
     );
 
     /**
@@ -745,7 +745,7 @@ void TacticalExtension::Draw_Super_Timers()
                 row_index++,
                 ColorSchemes[super->House->Scheme],
                 super->Control.Value() / TICKS_PER_SECOND,
-                super->Class->FullName,
+                super->Class->GivenName.c_str(),
                 &superext->FlashTimeEnd,
                 &superext->TimerFlashState
             );

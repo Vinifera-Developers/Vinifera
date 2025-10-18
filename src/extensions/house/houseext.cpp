@@ -401,7 +401,7 @@ ProdFailType HouseClassExtension::Begin_Production(RTTIType type, int id, bool r
         if (who != nullptr) {
             onhold = true;
         } else {
-            DEBUG_INFO("Request to Begin_Production of '%s' was rejected. No-one can build.\n", tech->FullName);
+            DEBUG_INFO("Request to Begin_Production of '%s' was rejected. No-one can build.\n", tech->GivenName.c_str());
             return PROD_CANT;
         }
     }
@@ -412,7 +412,7 @@ ProdFailType HouseClassExtension::Begin_Production(RTTIType type, int id, bool r
         fptr = new FactoryClass;
 
         if (fptr == nullptr) {
-            DEBUG_INFO("Request to Begin_Production of '%s' was rejected. Unable to create factory\n", tech->FullName);
+            DEBUG_INFO("Request to Begin_Production of '%s' was rejected. Unable to create factory\n", tech->GivenName.c_str());
             return PROD_CANT;
         }
     }
@@ -423,7 +423,7 @@ ProdFailType HouseClassExtension::Begin_Production(RTTIType type, int id, bool r
     */
     if (fptr != nullptr) {
         if (fptr->Is_Building() && type == RTTI_BUILDINGTYPE) {
-            DEBUG_INFO("Request to Begin_Production of '%s' was rejected. Cannot queue buildings.\n", tech->FullName);
+            DEBUG_INFO("Request to Begin_Production of '%s' was rejected. Cannot queue buildings.\n", tech->GivenName.c_str());
             return PROD_CANT;
         }
     }
@@ -465,7 +465,7 @@ ProdFailType HouseClassExtension::Begin_Production(RTTIType type, int id, bool r
         return PROD_OK;
     }
 
-    DEBUG_INFO("Request to Begin_Production of '%s' was rejected. Factory was unable to create the requested object\n", tech->FullName);
+    DEBUG_INFO("Request to Begin_Production of '%s' was rejected. Factory was unable to create the requested object\n", tech->GivenName.c_str());
 
     /*
     **  Output debug information if production failed.
@@ -1073,7 +1073,7 @@ bool HouseClassExtension::Has_Prerequisite(StructType building)
     /*
     **  If this isn't an upgrade, just check the counter.
     */
-    if (btype->PowersUpBuilding[0] == '\0') {
+    if (btype->PowersUpBuilding.empty()) {
         return This()->ActiveBQuantity.Value(building) > 0;
     }
 
