@@ -104,6 +104,7 @@ Vanilla fixes:
 - Fix a bug where paradropped vehicles would be placed off-center in the cell (by ZivDero)
 - Fix a bug where vehicles paradropped from a carryall would be drawn with an offset (by ZivDero)
 - Fix a bug where paradrops didn't take cell passability and bridges into account (by ZivDero)
+- Fix a bug where units in guard mode would not abandon targets out of their range (by ZivDero)
 
 :::
 

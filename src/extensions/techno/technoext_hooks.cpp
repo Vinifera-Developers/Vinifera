@@ -531,15 +531,16 @@ bool TechnoClassExt::_Spawner_Fire_At(AbstractClass * target, WeaponTypeClass* w
  */
 bool TechnoClassExt::_Target_Something_Nearby(Coord& coord, ThreatType threat)
 {
-    auto extension = Extension::Fetch(this);
+    threat &= THREAT_RANGE | THREAT_AREA;
 
+    auto extension = Extension::Fetch(this);
     extension->LastTargetFrame = Frame;
 
     /**
      *  Determine that if there is an existing target it is still legal
      *  and within range.
      */
-    if (TarCom != nullptr && extension->HasOpportunityFireTarget) {
+    if (TarCom != nullptr && (extension->HasOpportunityFireTarget || (threat & THREAT_RANGE))) {
         WeaponSlotType primary = What_Weapon_Should_I_Use(TarCom);
         FireErrorType fire = Can_Fire(TarCom, primary);
 
@@ -558,14 +559,14 @@ bool TechnoClassExt::_Target_Something_Nearby(Coord& coord, ThreatType threat)
      *  If there is no target, then try to find one and assign it as
      *  the target for this unit.
      */
-    if (!Target_Legal(TarCom)) {
-        Assign_Target(Greatest_Threat(threat & (THREAT_RANGE | THREAT_AREA), coord));
+    if (TarCom == nullptr) {
+        Assign_Target(Greatest_Threat(threat, coord));
     }
 
     /**
      *  Return with answer to question: Does this unit now have a target?
      */
-    return Target_Legal(TarCom);
+    return TarCom != nullptr;
 }
 
 
