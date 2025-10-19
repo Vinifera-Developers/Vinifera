@@ -44,6 +44,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "house.h"
 #include "isotiletype.h"
 #include "isotiletypeext.h"
 #include "overlaytype.h"
@@ -64,6 +65,7 @@ public:
     bool _Can_Tiberium_Germinate(TiberiumClass const* tiberium) const;
     bool _Can_Place_Veins() const;
     bool _Spread_Tiberium(bool forced);
+    void _Recalc_Passability();
 };
 
 
@@ -155,6 +157,76 @@ bool CellClassExt::_Can_Place_Veins() const
 bool CellClassExt::_Spread_Tiberium(bool forced)
 {
     return CellClassExtension::Spread_Tiberium(this, forced);
+}
+
+
+/**
+ *  Re-implementation of CellClass::Recalc_Passability.
+ *
+ *  @author: ZivDero, tomsons26
+ */
+void CellClassExt::_Recalc_Passability()
+{
+    if (!Map.In_Local_Radar(CellID)) {
+        Passability = PASSABLE_OUTSIDE;
+        return;
+    }
+
+    if (Overlay != OVERLAY_NONE) {
+        OverlayTypeClass const* overlay = OverlayTypes[Overlay];
+        if (overlay->IsCrushable) {
+            Passability = PASSABLE_CRUSH;
+            return;
+        }
+        if (overlay->IsWall) {
+            Passability = PASSABLE_BLOCKED;
+            return;
+        }
+        if (Ground[overlay->Land].Cost[SPEED_WHEEL] == 0) {
+            Passability = PASSABLE_NO;
+            return;
+        }
+    }
+
+    if (Land == LAND_WATER || Land == LAND_BEACH || (Land == LAND_TUNNEL && ITType != ISOTILE_NONE && Extension::Fetch(IsoTileTypes[ITType])->IsWaterTunnel)) {
+        Passability = PASSABLE_WATER;
+        return;
+    }
+
+    if (Ground[Land].Cost[SPEED_WHEEL] <= 0.01) {
+        Passability = PASSABLE_NO;
+        return;
+    }
+
+    ObjectClass* occupier = OccupierPtr;
+    while (occupier != nullptr) {
+        switch (occupier->RTTI) {
+        case RTTI_BUILDING:
+            if (static_cast<BuildingClass*>(occupier)->Class->IsFirestormWall) {
+                if (static_cast<BuildingClass*>(occupier)->House->IsFirestormActive) {
+                    Passability = PASSABLE_NO;
+                    return;
+                }
+            } else if (static_cast<BuildingClass*>(occupier)->Class->IsLaserFence) {
+                if (static_cast<BuildingClass*>(occupier)->LaserFenceFrame != 12 && static_cast<BuildingClass*>(occupier)->LaserFenceFrame != 8) {
+                    Passability = PASSABLE_NO;
+                }
+            }
+            break;
+
+        case RTTI_TERRAIN:
+            if ((Scen->Theater == THEATER_TEMPERATE && static_cast<TerrainClass*>(occupier)->Class->TemperateOccupationBits != 7) || (Scen->Theater == THEATER_SNOW && static_cast<TerrainClass*>(occupier)->Class->SnowOccupationBits != 7)) {
+                Passability = PASSABLE_PARTIALLY_BLOCKED;
+                return;
+            }
+
+            Passability = PASSABLE_BLOCKED;
+            return;
+        }
+        occupier = occupier->Next;
+    }
+
+    Passability = PASSABLE_LAND;
 }
 
 
@@ -379,5 +451,6 @@ void CellClassExtension_Hooks()
     Patch_Jump(0x004596C0, &CellClassExt::_Can_Tiberium_Germinate);
     Patch_Jump(0x0045B0D0, &CellClassExt::_Can_Place_Veins);
     Patch_Jump(0x004594D0, &CellClassExt::_Spread_Tiberium);
+    Patch_Jump(0x00459A00, &CellClassExt::_Recalc_Passability);
     Patch_Jump(0x004531E4, &_CellClass_Update_Wall_Owner_Skip_Buildings_That_Cannot_Own_Walls_Patch);
 }

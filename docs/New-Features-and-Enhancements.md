@@ -279,7 +279,18 @@ AllowedSmudges=   ; list of SmudgeTypes, which Smudges can appear on this tile. 
 In `TEMPERAT.INI` (or other theater file):
 ```ini
 [SOMEISOTILESET]  ; IsometricTileType
-AllowVeins=yes    ; boolean, can Veins can grow on this tile.
+AllowVeins=yes    ; boolean, can Veins can grow on this tile?
+```
+
+
+### WaterTunnel
+
+- The `WaterTunnel` key turns this tile's `Tunnel` LandType tiles water-passable.
+
+In `TEMPERAT.INI` (or other theater file):
+```ini
+[SOMEISOTILESET]   ; IsometricTileType
+WaterTunnel=yes    ; boolean, is this tile's tunnel on water?
 ```
 
 ## Infantry
