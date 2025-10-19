@@ -219,7 +219,7 @@ const char *TSpp_Version_String()
  * 
  *  @author: CCHyper
  */
-void Vinifera_Draw_Version_Text(XSurface *surface, bool pre_init)
+void Vinifera_Draw_Version_Text(Surface *surface, bool pre_init)
 {
     if (!surface) {
         return;
@@ -256,11 +256,11 @@ void Vinifera_Draw_Version_Text(XSurface *surface, bool pre_init)
      *  This is just to retrieve the font height, we don't need to know
      *  the width as we print with right alignment.
      */
-    WWFontClass *font = Font_Ptr(style);
-    font->Set_X_Spacing(2);
+    FontClass *font = Font_Ptr(style);
+    font->Set_XSpacing(2);
 
     Rect print_rect;
-    font->String_Pixel_Rect("X", &print_rect);
+    font->String_Pixel_Bounds("X", print_rect);
 
     int offset = 3; // Pixels from edge
         
@@ -288,30 +288,30 @@ void Vinifera_Draw_Version_Text(XSurface *surface, bool pre_init)
         /**
          *  Draw the version string.
          */
-        Simple_Text_Print(Vinifera_Version_Git_String(), surface, &surfrect, &version_pos, NormalDrawer, version_color, back_color, style);
+        Simple_Text_Print(Vinifera_Version_Git_String(), *surface, surfrect, version_pos, *NormalDrawer, version_color, back_color, style);
 
         /**
          *  Draw the warning string.
          */
     #if defined(NIGHTLY)
-        Simple_Text_Print(TXT_VINIFERA_NIGHTLY_BUILD, surface, &surfrect, &warning_pos, NormalDrawer, nightly_color, nightly_back_color, style);
+        Simple_Text_Print(TXT_VINIFERA_NIGHTLY_BUILD, *surface, surfrect, warning_pos, *NormalDrawer, nightly_color, nightly_back_color, style);
     #elif defined(PREVIEW)
-        Simple_Text_Print(TXT_VINIFERA_PREVIEW_BUILD, surface, &surfrect, &warning_pos, NormalDrawer, preview_color, preview_back_color, style);
+        Simple_Text_Print(TXT_VINIFERA_PREVIEW_BUILD, *surface, surfrect, warning_pos, *NormalDrawer, preview_color, preview_back_color, style);
     #else
         Simple_Text_Print(Vinifera_Git_Uncommitted_Changes() ? TXT_VINIFERA_LOCAL_BUILD : TXT_VINIFERA_UNOFFICIAL_BUILD,
-            surface, &surfrect, &warning_pos, NormalDrawer, warning_color, warning_back_color, style);
+            *surface, surfrect, warning_pos, *NormalDrawer, warning_color, warning_back_color, style);
     #endif
 
         /**
          *  Draw the vinifera name string.
          */
-        Simple_Text_Print(Vinifera_Name_String(), surface, &surfrect, &vinifera_pos, NormalDrawer, version_color, back_color, style);
+        Simple_Text_Print(Vinifera_Name_String(), *surface, surfrect, vinifera_pos, *NormalDrawer, version_color, back_color, style);
 #else
 
         /**
          *  Draw the vinifera name string.
          */
-        Simple_Text_Print(Vinifera_Version_String(), surface, &surfrect, &version_pos, NormalDrawer, version_color, back_color, style);
+        Simple_Text_Print(Vinifera_Version_String(), *surface, surfrect, version_pos, *NormalDrawer, version_color, back_color, style);
 #endif
 
     } else {
@@ -321,30 +321,30 @@ void Vinifera_Draw_Version_Text(XSurface *surface, bool pre_init)
         /**
          *  Draw the version string.
          */
-        Fancy_Text_Print(Vinifera_Version_Git_String(), surface, &surfrect, &version_pos, color_white, back_color, style);
+        Fancy_Text_Print(Vinifera_Version_Git_String(), *surface, surfrect, version_pos, color_white, back_color, style);
 
         /**
          *  Draw the warning string.
          */
     #if defined(NIGHTLY)
-        Fancy_Text_Print(TXT_VINIFERA_NIGHTLY_BUILD, surface, &surfrect, &warning_pos, color_white, nightly_back_color, style);
+        Fancy_Text_Print(TXT_VINIFERA_NIGHTLY_BUILD, *surface, surfrect, warning_pos, color_white, nightly_back_color, style);
     #elif defined(PREVIEW)
-        Fancy_Text_Print(TXT_VINIFERA_PREVIEW_BUILD, surface, &surfrect, &warning_pos, color_white, preview_back_color, style);
+        Fancy_Text_Print(TXT_VINIFERA_PREVIEW_BUILD, *surface, surfrect, warning_pos, color_white, preview_back_color, style);
     #else
         Fancy_Text_Print(Vinifera_Git_Uncommitted_Changes() ? TXT_VINIFERA_LOCAL_BUILD : TXT_VINIFERA_UNOFFICIAL_BUILD,
-            surface, &surfrect, &warning_pos, color_yellow, warning_back_color, style);
+            *surface, surfrect, warning_pos, color_yellow, warning_back_color, style);
     #endif
 
         /**
          *  Draw the vinifera name string.
          */
-        Fancy_Text_Print(Vinifera_Name_String(), surface, &surfrect, &vinifera_pos, color_white, back_color, style);
+        Fancy_Text_Print(Vinifera_Name_String(), *surface, surfrect, vinifera_pos, color_white, back_color, style);
 #else
 
         /**
          *  Draw the version string.
          */
-        Fancy_Text_Print(Vinifera_Version_String(), surface, &surfrect, &version_pos, color_white, back_color, style);
+        Fancy_Text_Print(Vinifera_Version_String(), *surface, surfrect, version_pos, color_white, back_color, style);
 #endif
 
     }

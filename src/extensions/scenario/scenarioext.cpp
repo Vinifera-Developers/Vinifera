@@ -46,6 +46,7 @@
 #include "swizzle.h"
 #include "vinifera_saveload.h"
 #include "asserthandler.h"
+#include "beacon.h"
 #include "debughandler.h"
 #include "houseext.h"
 #include "tacticalext.h"
@@ -247,6 +248,8 @@ bool ScenarioClassExtension::Read_INI(CCINIClass &ini)
      */
     Read_Tutorial_INI(ini, true);
 
+    BeaconManager.Load_Art();
+
     return true;
 }
 
@@ -413,7 +416,7 @@ void ScenarioClassExtension::Clear_Waypoint(WAYPOINT wp)
     //EXT_DEBUG_TRACE("ScenarioClassExtension::Clear_Waypoint - 0x%08X\n", (uintptr_t)(This()));
     ASSERT_FATAL(wp < Waypoint.Length());
 
-    Waypoint[wp] = Cell();
+    Waypoint[wp] = Cell(0, 0);
 }
 
 
@@ -1007,9 +1010,7 @@ void ScenarioClassExtension::Assign_Houses()
          *  in the HouseClass array.
          */
         housep = new HouseClass(HouseTypes[node.Player.House]);
-
-        std::memset((char *)housep->IniName, 0, MPLAYER_NAME_MAX);
-        std::strncpy((char *)housep->IniName, node.Name, MPLAYER_NAME_MAX-1);
+        housep->IniName = node.Name;
 
         /**
          *  Set the house's IsHuman, Credits, ActLike, and RemapTable.
@@ -1018,7 +1019,7 @@ void ScenarioClassExtension::Assign_Houses()
 
         housep->Control.TechLevel = BuildLevel;
         housep->Init_Data(node.Player.Color, node.Player.House, Session.Options.Credits);
-        housep->Scheme = Session.Player_Color_To_Scheme_Color(node.Player.Color);
+        housep->Scheme = Session.Scheme_From_Color_ID(node.Player.Color);
         housep->Initialize_Radar_Color();
 
         /**
@@ -1094,10 +1095,10 @@ void ScenarioClassExtension::Assign_Houses()
 
         housep->Control.TechLevel = BuildLevel;
         housep->Init_Data((PlayerColorType)color, pref_house, Session.Options.Credits);
-        housep->Scheme = Session.Player_Color_To_Scheme_Color((PlayerColorType)color);
+        housep->Scheme = Session.Scheme_From_Color_ID((PlayerColorType)color);
         housep->Initialize_Radar_Color();
 
-        std::strcpy(housep->IniName, Text_String(TXT_COMPUTER));
+        housep->IniName = Text_String(TXT_COMPUTER);
 
         if (Session.Type != GAME_NORMAL) {
             housep->IQ = Rule->MaxIQ;
@@ -1666,14 +1667,14 @@ void ScenarioClassExtension::Create_Units(bool official)
          *  Skip passive houses.
          */
         if (hptr->Class->IsMultiplayPassive) {
-            DEV_DEBUG_INFO("House %d (%s - \"%s\") is passive, skipping.\n", house, hptr->Class->Name(), hptr->IniName);
+            DEV_DEBUG_INFO("House %d (%s - \"%s\") is passive, skipping.\n", house, hptr->Class->Name(), hptr->IniName.c_str());
             continue;
         }
 
         int owner_id = 1 << hptr->Class->HeapID;
 
         DEBUG_INFO("Generating units for house %d (Name: %s - \"%s\", Color: %s)...\n",
-            house, hptr->Class->Name(), hptr->IniName, ColorSchemes[hptr->Scheme]->Name);
+            house, hptr->Class->Name(), hptr->IniName.c_str(), ColorSchemes[hptr->Scheme]->Name);
 
         /**
          *  Generate list of starting units for this house.

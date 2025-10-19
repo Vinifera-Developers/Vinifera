@@ -29,6 +29,7 @@
 
 #include "always.h"
 #include "iomap.h"
+#include "vinifera_defines.h"
 #include "wstring.h"
 
 
@@ -65,6 +66,6 @@ class ActionTypeClass
         MouseType ShadowMouse;
 
     private:
-        static ActionTypeClass ActionControl[ACTION_COUNT];
-        static const char *ActionNames[ACTION_COUNT];
+        static ActionTypeClass ActionControl[EXT_ACTION_COUNT];
+        static const char* ActionNames[EXT_ACTION_COUNT];
 };

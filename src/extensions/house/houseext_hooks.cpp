@@ -250,10 +250,10 @@ int HouseClassExt::_AI_Building()
     /**
      *  Check if this is a building upgrade if we can actually place the upgrade where it's scheduled to be placed.
      */
-    if (b->PowersUpToLevel == -1 && node->CellID != Cell(0, 0) && b->PowersUpBuilding[0]) {
+    if (b->PowersUpToLevel == -1 && node->CellID != Cell(0, 0) && !b->PowersUpBuilding.empty()) {
 
         BuildingClass* existing_building = Map[node->CellID].Cell_Building();
-        BuildingTypeClass* node_building = BuildingTypes[BuildingTypeClass::From_Name(b->PowersUpBuilding)];
+        BuildingTypeClass* node_building = BuildingTypes[BuildingTypeClass::From_Name(b->PowersUpBuilding.c_str())];
 
         if (existing_building == nullptr) {
             node->CellID = Cell(0, 0);
@@ -587,7 +587,7 @@ DECLARE_PATCH(_HouseClass_Can_Build_BuildCheat_Patch)
              *  if true, force this 
              */
             if (((1 << this_ptr->Class->HeapID) & objecttype->Get_Ownable()) != 0) {
-                //DEBUG_INFO("Forcing \"%s\" available.\n", objecttype->IniName);
+                //DEBUG_INFO("Forcing \"%s\" available.\n", objecttype->IniName.c_str());
                 goto return_true;
             }
         }

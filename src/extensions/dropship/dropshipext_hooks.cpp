@@ -137,7 +137,7 @@ static void Draw_Dropship_Loadout_Help_Text(XSurface *surface)
     text_pos.X = surfrect.Width/2;
     text_pos.Y = (surfrect.Height/2)+185;
 
-    Fancy_Text_Print(TEXT_PRESS_SPACE, surface, &surfrect, &text_pos, color_white, back_color, style);
+    Fancy_Text_Print(TEXT_PRESS_SPACE, *surface, surfrect, text_pos, color_white, back_color, style);
 }
 
 DECLARE_PATCH(_Dropship_Loadout_Help_Text_Patch)

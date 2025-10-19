@@ -812,7 +812,7 @@ void TEventClassExt::_Build_INI_Entry(char* ptr) const
         break;
 
     case 1:
-        std::sprintf(ptr, "%d,%d,%s", Event, code, Team->IniName);
+        std::sprintf(ptr, "%d,%d,%s", Event, code, Team->IniName.c_str());
         break;
 
     case 2:

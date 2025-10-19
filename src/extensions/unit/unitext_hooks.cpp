@@ -91,7 +91,7 @@ public:
  */
 void UnitClassExt::_Firing_AI()
 {
-    if (Target_Legal(TarCom) && Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon)
+    if (TarCom != nullptr && Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon)
     {
         /**
          *  Determine which weapon can fire. First check for the primary weapon. If that weapon
@@ -152,7 +152,7 @@ void UnitClassExt::_Firing_AI()
         case FIRE_FACING:
             if (Class->IsLockTurret || !Class->IsTurretEquipped)
             {
-                if (!Target_Legal(NavCom) && !Locomotion->Is_Moving()) {
+                if (NavCom == nullptr && !Locomotion->Is_Moving()) {
                     PrimaryFacing.Set_Desired(Direction(TarCom));
                     SecondaryFacing.Set_Desired(PrimaryFacing.Desired());
                 }

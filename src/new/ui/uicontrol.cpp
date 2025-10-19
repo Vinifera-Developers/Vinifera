@@ -96,10 +96,24 @@ UIControlsClass::UIControlsClass() :
     IsNavComQueueLineThick(false),
     NavComQueueLineColor{ 74, 77, 255 }, // COLOR_LTBLUE
     NavComQueueLineDropShadowColor{ 0, 0, 0 },
-    IsCenterSidebarButtonsOnRadar(false)
+    IsCenterSidebarButtonsOnRadar(false),
+    BeaconAnimFramesPerSecond(25),
+    RadarBeaconAnimFramesPerSecond(25),
+    BeaconTextOffset(32),
+    BeaconPreviewTextOffset(20)
 {
     BandBoxTintColors.Add(RGBStruct{ 0, 0, 0 });
     BandBoxTintColors.Add(RGBStruct{ 255, 255, 255 });
+
+    BeaconText[0] = "Expand";
+    BeaconText[1] = "Attack";
+    BeaconText[2] = "Move";
+    BeaconText[5] = "Defend";
+
+    BeaconPreviewText[0] = "Expand";
+    BeaconPreviewText[1] = "Attack";
+    BeaconPreviewText[2] = "Move";
+    BeaconPreviewText[5] = "Defend";
 }
 
 
@@ -193,6 +207,23 @@ bool UIControlsClass::Read_INI(CCINIClass &ini)
     NavComQueueLineDropShadowColor = ini.Get_RGB(INGAME, "NavComQueueLineDropShadowColor", NavComQueueLineDropShadowColor);
 
     IsCenterSidebarButtonsOnRadar = ini.Get_Bool(INGAME, "CenterSidebarButtonsOnRadar", IsCenterSidebarButtonsOnRadar);
+
+    BeaconAnimFramesPerSecond = ini.Get_Int(INGAME, "BeaconAnimFramesPerSecond", BeaconAnimFramesPerSecond);
+    RadarBeaconAnimFramesPerSecond = ini.Get_Int(INGAME, "RadarBeaconAnimFramesPerSecond", RadarBeaconAnimFramesPerSecond);
+    BeaconTextOffset = ini.Get_Int(INGAME, "BeaconTextOffset", BeaconTextOffset);
+    BeaconPreviewTextOffset = ini.Get_Int(INGAME, "BeaconPreviewTextOffset", BeaconPreviewTextOffset);
+
+    for (int i = 0; i < std::size(BeaconText); i++) {
+        char key[32], buffer[512];
+        std::sprintf(key, "BeaconText%d", i + 1);
+        if (ini.Get_String(INGAME, key, BeaconText[i].c_str(), buffer, std::size(buffer)) > 0) {
+            BeaconText[i] = buffer;
+        }
+        std::sprintf(key, "BeaconPreviewText%d", i + 1);
+        if (ini.Get_String(INGAME, key, BeaconPreviewText[i].c_str(), buffer, std::size(buffer)) > 0) {
+            BeaconPreviewText[i] = buffer;
+        }
+    }
 
     return true;
 }

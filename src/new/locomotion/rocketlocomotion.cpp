@@ -111,7 +111,7 @@ RocketLocomotionClass::RocketLocomotionClass(const NoInitClass& noinit) : Locomo
  */
 IFACEMETHODIMP_(bool) RocketLocomotionClass::Is_Moving()
 {
-    return DestinationCoord != Coord();
+    return DestinationCoord != Coord(0, 0, 0);
 }
 
 

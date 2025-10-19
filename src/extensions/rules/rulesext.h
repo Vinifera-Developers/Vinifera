@@ -28,10 +28,10 @@
 #pragma once
 
 #include "always.h"
-#include "tibsun_defines.h"
-#include "rules.h"
 #include "extension.h"
 #include "point.h"
+#include "rules.h"
+#include "tibsun_defines.h"
 
 
 class CCINIClass;
@@ -39,149 +39,159 @@ class CCINIClass;
 
 class RulesClassExtension final : public GlobalExtensionClass<RulesClass>
 {
-    public:
-        IFACEMETHOD(Load)(IStream *pStm);
-        IFACEMETHOD(Save)(IStream *pStm, BOOL fClearDirty);
+public:
+    IFACEMETHOD(Load)(IStream* pStm);
+    IFACEMETHOD(Save)(IStream* pStm, BOOL fClearDirty);
 
-    public:
-        RulesClassExtension(const RulesClass *this_ptr);
-        RulesClassExtension(const NoInitClass &noinit);
-        virtual ~RulesClassExtension();
+public:
+    RulesClassExtension(const RulesClass* this_ptr);
+    RulesClassExtension(const NoInitClass& noinit);
+    virtual ~RulesClassExtension();
 
-        virtual int Get_Object_Size() const override;
-        virtual void Detach(AbstractClass * target, bool all = true) override;
-        virtual void Object_CRC(CRCEngine &crc) const override;
+    virtual int Get_Object_Size() const override;
+    virtual void Detach(AbstractClass* target, bool all = true) override;
+    virtual void Object_CRC(CRCEngine& crc) const override;
 
-        virtual const char *Name() const override { return "Rule"; }
-        virtual const char *Full_Name() const override { return "Rule"; }
+    virtual const char* Name() const override { return "Rule"; }
+    virtual const char* Full_Name() const override { return "Rule"; }
 
-        void Process(CCINIClass &ini);
-        void Initialize(CCINIClass &ini);
+    void Process(CCINIClass& ini);
+    void Initialize(CCINIClass& ini);
 
-        bool Objects(CCINIClass &ini);
+    bool Objects(CCINIClass& ini);
 
-        bool General(CCINIClass &ini);
-        bool MPlayer(CCINIClass &ini);
-        bool AudioVisual(CCINIClass &ini);
-        bool CombatDamage(CCINIClass &ini);
-        bool AI(CCINIClass& ini);
-        bool Weapons(CCINIClass &ini);
-        bool Armors(CCINIClass &ini);
-        bool Rockets(CCINIClass &ini);
-        bool Tiberiums(CCINIClass &ini);
-        bool PrerequisiteGroups(CCINIClass &ini);
+    bool General(CCINIClass& ini);
+    bool MPlayer(CCINIClass& ini);
+    bool AudioVisual(CCINIClass& ini);
+    bool CombatDamage(CCINIClass& ini);
+    bool AI(CCINIClass& ini);
+    bool Weapons(CCINIClass& ini);
+    bool Armors(CCINIClass& ini);
+    bool Rockets(CCINIClass& ini);
+    bool Tiberiums(CCINIClass& ini);
+    bool PrerequisiteGroups(CCINIClass& ini);
 
-        static bool Set_Voxel_Light_Angle(float azimuth, float elevation, float offset);
+    static bool Set_Voxel_Light_Angle(float azimuth, float elevation, float offset);
 
-    private:
-        void Check();
-        void Fixups(CCINIClass &ini);
+private:
+    void Check();
+    void Fixups(CCINIClass& ini);
 
-    public:
-        /**
-         *  Should the MCV unit auto deploy on game start?
-         */
-        bool IsMPAutoDeployMCV;
+public:
+    /**
+     *  Should the MCV unit auto deploy on game start?
+     */
+    bool IsMPAutoDeployMCV;
 
-        /**
-         *  Are construction yards pre-placed on the map rather than a MCV given to the player?
-         */
-        bool IsMPPrePlacedConYards;
+    /**
+     *  Are construction yards pre-placed on the map rather than a MCV given to the player?
+     */
+    bool IsMPPrePlacedConYards;
 
-        /**
-         *  Can players build their own structures adjacent to structures owned by their allies?
-         */
-        bool IsBuildOffAlly;
+    /**
+     *  Can players build their own structures adjacent to structures owned by their allies?
+     */
+    bool IsBuildOffAlly;
 
-        /**
-         *  Should active super weapons show their recharge timer display
-         *  on the tactical view?
-         */
-        bool IsShowSuperWeaponTimers;
+    /**
+     *  Should active super weapons show their recharge timer display
+     *  on the tactical view?
+     */
+    bool IsShowSuperWeaponTimers;
 
-        /**
-         *  Defines the strength of ice. Higher values make ice less likely
-         *  to break from a shot.
-         */
-        int IceStrength;
+    /**
+     *  Defines the strength of ice. Higher values make ice less likely
+     *  to break from a shot.
+     */
+    int IceStrength;
 
-        /**
-         *  Storage pip used for weeds.
-         */
-        int WeedPipIndex;
+    /**
+     *  Storage pip used for weeds.
+     */
+    int WeedPipIndex;
 
-        /**
-         *  Customizable maximum counts for drawing different pips.
-         */
-        TypeList<int> MaxPips;
+    /**
+     *  Customizable maximum counts for drawing different pips.
+     */
+    TypeList<int> MaxPips;
 
-        /**
-         *  When looking for refineries, harvesters will prefer a distant free
-         *  refinery over a closer occupied refinery if the refineries' distance
-         *  difference in cells is less than this.
-         */
-        int MaxFreeRefineryDistanceBias;
+    /**
+     *  When looking for refineries, harvesters will prefer a distant free
+     *  refinery over a closer occupied refinery if the refineries' distance
+     *  difference in cells is less than this.
+     */
+    int MaxFreeRefineryDistanceBias;
 
-        /**
-         *  Should prerequisites be rechecked when buildings are lost, making the player lose access to units/buildings?
-         */
-        bool IsRecheckPrerequisites;
+    /**
+     *  Should prerequisites be rechecked when buildings are lost, making the player lose access to units/buildings?
+     */
+    bool IsRecheckPrerequisites;
 
-        /**
-         *  Should the game assume there is more than one MCV (that factions don't share their MCV?)
-         */
-        bool IsMultiMCV;
+    /**
+     *  Should the game assume there is more than one MCV (that factions don't share their MCV?)
+     */
+    bool IsMultiMCV;
 
-        /**
-         *  The distance in cells the computer player can place their Naval Yard from their Construction Yard.
-         */
-        int AINavalYardAdjacency;
+    /**
+     *  The distance in cells the computer player can place their Naval Yard from their Construction Yard.
+     */
+    int AINavalYardAdjacency;
 
-        /**
-         *  The "double penalty" or "half penalty". Multiply this by the power
-         *  units you are short of to get the actual penalty to the build speed.
-         */
-        float LowPowerPenaltyModifier;
+    /**
+     *  The "double penalty" or "half penalty". Multiply this by the power
+     *  units you are short of to get the actual penalty to the build speed.
+     */
+    float LowPowerPenaltyModifier;
 
-        /**
-         *  The maximum number of factories that can be considered when calculating
-         *  the multiple factory bonus on an object's build time.
-         */
-        int MultipleFactoryCap;
+    /**
+     *  The maximum number of factories that can be considered when calculating
+     *  the multiple factory bonus on an object's build time.
+     */
+    int MultipleFactoryCap;
 
-        /**
-         *  Horizontal direction of the light source.
-         */
-        float VoxelLightAzimuth;
+    /**
+     *  Horizontal direction of the light source.
+     */
+    float VoxelLightAzimuth;
 
-        /**
-         *  Vertical angle of the light source.
-         */
-        float VoxelLightElevation;
+    /**
+     *  Vertical angle of the light source.
+     */
+    float VoxelLightElevation;
 
-        /**
-         *  How much the shadow is offset from the unit.
-         */
-        float VoxelShadowOffset;
+    /**
+     *  How much the shadow is offset from the unit.
+     */
+    float VoxelShadowOffset;
 
-        /**
-         *  Determines whether the Tiberium storage logic is enabled.
-         */
-        bool IsTiberiumStorage;
+    /**
+     *  Determines whether the Tiberium storage logic is enabled.
+     */
+    bool IsTiberiumStorage;
 
-        /**
-         *  Sounds played when a unit is promoted.
-         */
-        VocType UpgradeVeteranSound;
-        VocType UpgradeEliteSound;
+    /**
+     *  Sounds played when a unit is promoted.
+     */
+    VocType UpgradeVeteranSound;
+    VocType UpgradeEliteSound;
 
-        /**
-         *  EVA announcement when a unit is promoted.
-         */
-        VoxType VoxUnitPromoted;
+    /**
+     *  EVA announcement when a unit is promoted.
+     */
+    VoxType VoxUnitPromoted;
 
-        /**
-         *  The number of frames that a newly elite unit will flash for.
-         */
-        int EliteFlashTimer;
+    /**
+     *  The number of frames that a newly elite unit will flash for.
+     */
+    int EliteFlashTimer;
+
+    /**
+     *  Controls for beacons.
+     */
+    bool IsBeaconsEnabled;
+    bool IsSPBeacons;
+    int MaxBeacons;
+    VocType PlaceBeaconSound;
+    VoxType PlaceBeaconVoice;
+    VoxType DetectBeaconVoice;
 };

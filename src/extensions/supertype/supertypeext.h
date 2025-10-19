@@ -68,7 +68,7 @@ SuperWeaponTypeClassExtension final : public AbstractTypeClassExtension
         /**
          *  These are only to be accessed for save and load operations!
          */
-        char SidebarImage[24 + 1];
+        FixedString<24> SidebarImage;
 
     public:
         /**

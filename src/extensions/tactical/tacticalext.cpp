@@ -53,7 +53,12 @@
 #include "vinifera_saveload.h"
 #include "extension.h"
 #include "asserthandler.h"
+#include "beacon.h"
 #include "debughandler.h"
+#include "mouse.h"
+#include "tibsun_functions.h"
+#include "uicontrol.h"
+#include "wwmouse.h"
 
 
 /**
@@ -77,7 +82,9 @@ TacticalExtension::TacticalExtension(const Tactical* this_ptr) :
     TemplatedTextColor(COLORSCHEME_NONE),
     TemplatedTextStyle(TPF_6PT_GRAD | TPF_DROPSHADOW),
     IsTemplatedTextCached(false),
-    TemplatedTextCache {""}
+    TemplatedTextCache {""},
+    IsBeaconPlacementMode(false),
+    IsEditingBeaconText(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TacticalExtension::TacticalExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -249,7 +256,7 @@ void TacticalExtension::Draw_Version_Number_Text()
 void TacticalExtension::Draw_Debug_Overlay()
 {
     RGBClass rgb_black(0, 0, 0);
-    unsigned color_black = DSurface::RGB_To_Pixel(0, 0, 0);
+    unsigned color_black = DSurface::Build_Hicolor_Pixel(0, 0, 0);
     ColorScheme *text_color = Fetch_Scheme_By_Name("White");
 
     int padding = 2;
@@ -260,14 +267,14 @@ void TacticalExtension::Draw_Debug_Overlay()
         strupr(Scen->ScenarioName),
         Session.DesiredFrameRate,
         FramesPerSecond,
-        CurrentObjects.Count() == 1 ? CurrentObjects.Fetch_Head() : 0
+        CurrentObjects.Count() == 1 ? reinterpret_cast<int>(CurrentObjects.Fetch_Head()) : 0
     );
 
     /**
      * Fetch the text occupy area.
      */
     Rect text_rect;
-    GradFont6Ptr->String_Pixel_Rect(buffer, &text_rect);
+    GradFont6Ptr->String_Pixel_Bounds(buffer, text_rect);
 
     /**
      *  Fill the background area.
@@ -290,14 +297,13 @@ void TacticalExtension::Draw_Debug_Overlay()
     /**
      *  Draw the overlay text.
      */
-    Fancy_Text_Print(buffer, CompositeSurface, &CompositeSurface->Get_Rect(),
-        &Point2D(text_rect.X, text_rect.Y), text_color, COLOR_TBLACK, TextPrintType(TPF_6PT_GRAD | TPF_NOSHADOW));
+    Fancy_Text_Print(buffer, *CompositeSurface, CompositeSurface->Get_Rect(), Point2D(text_rect.X, text_rect.Y), text_color, COLOR_TBLACK, TPF_6PT_GRAD | TPF_NOSHADOW);
 
     /**
      *  Draw the current frame number.
      */
     std::snprintf(buffer, sizeof(buffer), "%d", Frame);
-    GradFont6Ptr->String_Pixel_Rect(buffer, &text_rect);
+    GradFont6Ptr->String_Pixel_Bounds(buffer, text_rect);
 
     fill_rect.Width = text_rect.Width + (padding + 1);
     fill_rect.Height = 16;
@@ -310,8 +316,7 @@ void TacticalExtension::Draw_Debug_Overlay()
     text_rect.Width += padding;
     text_rect.Height += 3;
 
-    Fancy_Text_Print(buffer, CompositeSurface, &CompositeSurface->Get_Rect(),
-        &Point2D(text_rect.X, text_rect.Y), text_color, COLOR_TBLACK, TextPrintType(TPF_RIGHT | TPF_6PT_GRAD | TPF_NOSHADOW));
+    Fancy_Text_Print(buffer, *CompositeSurface, CompositeSurface->Get_Rect(), Point2D(text_rect.X, text_rect.Y), text_color, COLOR_TBLACK, TPF_RIGHT | TPF_6PT_GRAD | TPF_NOSHADOW);
 }
 
 
@@ -350,12 +355,12 @@ bool TacticalExtension::Debug_Draw_Facings()
     screen.X += TacticalRect.X;
     screen.Y += TacticalRect.Y;
 
-    LogicSurface->Fill_Rect(TacticalRect, Rect(screen.X, screen.Y, 2, 2), DSurface::RGB_To_Pixel(255, 0, 0));
+    LogicSurface->Fill_Rect(TacticalRect, Rect(screen.X, screen.Y, 2, 2), DSurface::Build_Hicolor_Pixel(255, 0, 0));
 
     TextPrintType style = TPF_CENTER | TPF_FULLSHADOW | TPF_6POINT;
-    WWFontClass* font = Font_Ptr(style);
+    FontClass* font = Font_Ptr(style);
 
-    screen.Y -= font->Get_Char_Height() / 2;
+    screen.Y -= font->Get_Height() / 2;
 
     char buffer1[32];
     char buffer2[32];
@@ -363,10 +368,10 @@ bool TacticalExtension::Debug_Draw_Facings()
     std::snprintf(buffer1, sizeof(buffer1), "%d", unit->PrimaryFacing.Current().Get_Dir());
     std::snprintf(buffer2, sizeof(buffer2), "%d", unit->PrimaryFacing.Current().Get_Raw());
 
-    Simple_Text_Print(buffer1, LogicSurface, &TacticalRect, &screen, Fetch_Scheme_By_Name("White"), style);
+    Simple_Text_Print(buffer1, *LogicSurface, TacticalRect, screen, Fetch_Scheme_By_Name("White"), COLOR_TBLACK, style, 1);
 
     screen.Y += 10;
-    Simple_Text_Print(buffer2, LogicSurface, &TacticalRect, &screen, Fetch_Scheme_By_Name("White"), style);
+    Simple_Text_Print(buffer2, *LogicSurface, TacticalRect, screen, Fetch_Scheme_By_Name("White"), COLOR_TBLACK, style, 1);
 
     return true;
 }
@@ -381,7 +386,7 @@ bool TacticalExtension::Debug_Draw_Facings()
 void TacticalExtension::Draw_FrameStep_Overlay()
 {
     RGBClass rgb_black(0, 0, 0);
-    unsigned color_black = DSurface::RGB_To_Pixel(0, 0, 0);
+    unsigned color_black = DSurface::Build_Hicolor_Pixel(0, 0, 0);
     ColorScheme *text_color = Fetch_Scheme_By_Name("White");
 
     int padding = 2;
@@ -392,7 +397,7 @@ void TacticalExtension::Draw_FrameStep_Overlay()
      * Fetch the text occupy area.
      */
     Rect text_rect;
-    GradFont6Ptr->String_Pixel_Rect(text, &text_rect);
+    GradFont6Ptr->String_Pixel_Bounds(text, text_rect);
 
     /**
      *  Fill the background area.
@@ -415,8 +420,7 @@ void TacticalExtension::Draw_FrameStep_Overlay()
     /**
      *  Draw the overlay text.
      */
-    Fancy_Text_Print(text, CompositeSurface, &CompositeSurface->Get_Rect(),
-        &Point2D(text_rect.X, text_rect.Y), text_color, COLOR_TBLACK, TextPrintType(TPF_RIGHT | TPF_6PT_GRAD | TPF_NOSHADOW));
+    Fancy_Text_Print(text, *CompositeSurface, CompositeSurface->Get_Rect(), Point2D(text_rect.X, text_rect.Y), text_color, COLOR_TBLACK, TPF_RIGHT | TPF_6PT_GRAD | TPF_NOSHADOW);
 }
 
 
@@ -439,7 +443,7 @@ void TacticalExtension::Draw_Information_Text()
      * Fetch the text occupy area.
      */
     Rect text_rect;
-    GradFont6Ptr->String_Pixel_Rect(text, &text_rect);
+    GradFont6Ptr->String_Pixel_Bounds(text, text_rect);
 
     Rect fill_rect;
 
@@ -539,8 +543,7 @@ void TacticalExtension::Draw_Information_Text()
     /**
      *  Draw the overlay text.
      */
-    Fancy_Text_Print(text, CompositeSurface, &CompositeSurface->Get_Rect(),
-        &Point2D(text_rect.X, text_rect.Y), Fetch_Scheme_By_Name("White"), COLOR_TBLACK, style);
+    Fancy_Text_Print(text, *CompositeSurface, CompositeSurface->Get_Rect(), Point2D(text_rect.X, text_rect.Y), Fetch_Scheme_By_Name("White"), COLOR_TBLACK, style);
 }
 
 
@@ -556,14 +559,24 @@ void TacticalExtension::Render_Post()
     /**
      *  Draw any new post effects here.
      */
-     //DEV_DEBUG_INFO("Before EBoltClass::Draw_All\n");
     EBoltClass::Draw_All();
-    //DEV_DEBUG_INFO("After EBoltClass::Draw_All\n");
+    BeaconManager.Draw(LogicSurface, TacticalRect);
 
     /**
      *  Draw any overlay text.
      */
     Draw_Super_Timers();
+
+    /**
+     *  In beacon placement mode, holding modifier keys can give you a preset text
+     *  (e.g. attack, defend). Draw it.
+     */
+    if (IsBeaconPlacementMode) {
+        char const* beacon_text = BeaconManagerClass::Beacon_Preview_Text(BeaconManagerClass::Pick_Beacon_Placement_Action());
+        if (beacon_text != nullptr) {
+            Draw_Beacon_Text(beacon_text, *ColorSchemes[PlayerPtr->Scheme], WWMouse->Get_Mouse_XY(), VisibleRect, false, UIControls->BeaconPreviewTextOffset);
+        }
+    }
 }
 
 
@@ -574,7 +587,7 @@ void TacticalExtension::Render_Post()
  */
 void TacticalExtension::Super_Draw_Timer(int row_index, ColorScheme * color, int time, const char* name, unsigned long* flash_time, bool* flash_state)
 {
-    static WWFontClass* _font = nullptr;
+    static FontClass* _font = nullptr;
 
     TextPrintType style = TPF_8POINT | TPF_RIGHT | TPF_NOSHADOW | TPF_METAL12 | TPF_SOLIDBLACK_BG;
 
@@ -588,7 +601,7 @@ void TacticalExtension::Super_Draw_Timer(int row_index, ColorScheme * color, int
     int text_width = -1;
     int flash_delay = 500; // was 1000
     bool to_flash = false;
-    unsigned color_black = DSurface::RGB_To_Pixel(0, 0, 0);
+    unsigned color_black = DSurface::Build_Hicolor_Pixel(0, 0, 0);
     RGBClass rgb_black(0, 0, 0);
     ColorScheme *white_color = Fetch_Scheme_By_Name("White", 1);
     int background_tint = 50;
@@ -622,13 +635,13 @@ void TacticalExtension::Super_Draw_Timer(int row_index, ColorScheme * color, int
     }
 
     Rect name_rect;
-    _font->String_Pixel_Rect(namebuff, &name_rect);
+    _font->String_Pixel_Bounds(namebuff, name_rect);
 
     Rect timer_rect;
-    _font->String_Pixel_Rect(timerbuff, &timer_rect);
+    _font->String_Pixel_Bounds(timerbuff, timer_rect);
 
-    int font_width = _font->Get_Font_Width();
-    int font_height = _font->Get_Font_Height();
+    int font_width = _font->Get_Width();
+    int font_height = _font->Get_Height();
 
     int y_pos = TacticalRect.Height - (row_index * (font_height + 2)) + 3;
 
@@ -651,11 +664,9 @@ void TacticalExtension::Super_Draw_Timer(int row_index, ColorScheme * color, int
     //CompositeSurface->Fill_Rect(CompositeSurface->Get_Rect(), fill_rect, color_black);
     CompositeSurface->Fill_Rect_Trans(fill_rect, rgb_black, background_tint);
 
-    Fancy_Text_Print(timerbuff, CompositeSurface, &CompositeSurface->Get_Rect(),
-        &timer_point, to_flash ? white_color : color, COLOR_TBLACK, style);
+    Fancy_Text_Print(timerbuff, *CompositeSurface, CompositeSurface->Get_Rect(), timer_point, to_flash ? white_color : color, COLOR_TBLACK, style);
 
-    Fancy_Text_Print(namebuff, CompositeSurface, &CompositeSurface->Get_Rect(),
-        &name_point, color, COLOR_TBLACK, style);
+    Fancy_Text_Print(namebuff, *CompositeSurface, CompositeSurface->Get_Rect(), name_point, color, COLOR_TBLACK, style);
 }
 
 
@@ -734,7 +745,7 @@ void TacticalExtension::Draw_Super_Timers()
                 row_index++,
                 ColorSchemes[super->House->Scheme],
                 super->Control.Value() / TICKS_PER_SECOND,
-                super->Class->FullName,
+                super->Class->GivenName.c_str(),
                 &superext->FlashTimeEnd,
                 &superext->TimerFlashState
             );
@@ -772,7 +783,7 @@ void TacticalExtension::Draw_Templated_Text()
      *  Fetch the text occupy area.
      */
     Rect text_rect;
-    GradFont6Ptr->String_Pixel_Rect(TemplatedTextCache, &text_rect);
+    GradFont6Ptr->String_Pixel_Bounds(TemplatedTextCache, text_rect);
 
     Rect fill_rect;
 
@@ -877,8 +888,7 @@ void TacticalExtension::Draw_Templated_Text()
     /**
      *  Draw the overlay text.
      */
-    Fancy_Text_Print(TemplatedTextCache, CompositeSurface, &CompositeSurface->Get_Rect(),
-        &Point2D(text_rect.X, text_rect.Y), ColorSchemes[color], COLOR_TBLACK, style);
+    Fancy_Text_Print(TemplatedTextCache, *CompositeSurface, CompositeSurface->Get_Rect(), Point2D(text_rect.X, text_rect.Y), ColorSchemes[color], COLOR_TBLACK, style);
 }
 
 
@@ -895,4 +905,89 @@ void TacticalExtension::Flag_Cell(CellClass& cell)
         CellRedraw[TacticalMap->CellRedrawCount] = &cell;
         TacticalMap->CellRedrawCount++;
     }
+}
+
+
+/**
+ *  Toggles beacon mode (analogous to Sell_Mode_Control, etc.)
+ *
+ *  @author: ZivDero
+ */
+void TacticalExtension::Beacon_Mode_Control(int control)
+{
+    if (!RuleExtension->IsBeaconsEnabled) {
+        return;
+    }
+
+    bool mode = IsBeaconPlacementMode;
+    switch (control) {
+    case 0:
+        mode = false;
+        break;
+
+    case -1:
+        mode = (IsBeaconPlacementMode == false);
+        break;
+
+    case 1:
+        mode = true;
+        break;
+    }
+
+    if (mode != IsBeaconPlacementMode && !Map.PendingObject) {
+        Map.IsSellMode = false;
+        Map.IsPowerMode = false;
+        Map.IsWaypointMode = false;
+        Map.IsRepairMode = false;
+        Map.Set_Default_Mouse(MOUSE_NORMAL, false);
+        if (mode) {
+            IsBeaconPlacementMode = true;
+            Unselect_All();
+        } else {
+            IsBeaconPlacementMode = false;
+            Map.Revert_Mouse_Shape();
+        }
+    }
+}
+
+
+/**
+ *  Draws beacon text.
+ *
+ *  @author: ZivDero
+ */
+void TacticalExtension::Draw_Beacon_Text(std::string const& text, ColorScheme& scheme, Point2D const& drawpoint, Rect const& cliprect, bool centered, int offset)
+{
+    FontClass* font = Font6Ptr;
+
+    /**
+     *  Determine the text bounds.
+     */
+    Rect text_rect;
+    font->String_Pixel_Bounds(text.c_str(), text_rect);
+    text_rect += drawpoint;
+    text_rect.Y += offset;
+
+    if (centered) {
+        text_rect.X -= text_rect.Width / 2;
+    }
+
+    /**
+     *  Determine the size of the box encompassing the text.
+     *  Center the box if necessary.
+     */
+    Rect box_rect = text_rect;
+    box_rect.X -= 4;
+    box_rect.Y -= 4;
+    box_rect.Width += 8;
+    box_rect.Height += 8;
+
+    RGBClass rgb = scheme.HSV;
+    int fore = DSurface::Build_Hicolor_Pixel(rgb.Get_Red(), rgb.Get_Green(), rgb.Get_Blue());
+
+    Rect visible_box_rect = Intersect(box_rect, cliprect);
+    CompositeSurface->Fill_Rect_Trans(visible_box_rect, RGBClass(0, 0, 0), 50);
+    CompositeSurface->Draw_Rect(visible_box_rect, fore);
+
+    Fancy_Text_Print(text.c_str(), *CompositeSurface, cliprect, text_rect.TopLeft - cliprect.TopLeft, &scheme, COLOR_TBLACK, TPF_6POINT | TPF_NOSHADOW);
 }

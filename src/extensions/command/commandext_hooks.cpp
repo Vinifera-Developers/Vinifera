@@ -225,6 +225,7 @@ void Init_Vinifera_Commands()
     Commands.Add(new VeterancyFilterAddNextCommandClass);
     Commands.Add(new HealthFilterCommandClass);
     Commands.Add(new HealthFilterAddNextCommandClass);
+    Commands.Add(new BeaconPlacementCommandClass);
 
     /**
      *  Initialize hotkeys for the sidebar tabs, if sidebar tabs are enabled.
@@ -310,26 +311,6 @@ void Init_Vinifera_Commands()
 
 
 /**
- *  Set the default key assignments.
- * 
- *  @author: ZivDero
- */
-static void Process_Vinifera_Hotkey_Defaults()
-{
-    for (int i = 0; i < Commands.Count(); i++)
-    {
-        auto vcmd = dynamic_cast<ViniferaCommandClass*>(Commands[i]);
-        if (vcmd) {
-            KeyNumType key = vcmd->Default_Key();
-            if (key != KN_NONE && !HotkeyIndex.Is_Present(key) && HotkeyIndex.Fetch_ID_By_Data(vcmd) == -1) {
-                HotkeyIndex.Add_Index(key, vcmd);
-            }
-        }
-    }
-}
-
-
-/**
  *  Patch for initializing the new hotkey commands.
  * 
  *  @author: CCHyper
@@ -342,8 +323,6 @@ DECLARE_PATCH(_Init_Commands_Patch)
      *  Stolen bytes/code here.
      */
     Load_Keyboard_Hotkeys();
-
-    Process_Vinifera_Hotkey_Defaults();
 
     JMP(0x004E6FAE);
 }
@@ -366,6 +345,15 @@ void CommandExtension_Hooks()
     Hook_Virtual(0x004EAAD0, PNGScreenCaptureCommandClass::Get_Category);
     Hook_Virtual(0x004EAAF0, PNGScreenCaptureCommandClass::Get_Description);
     Hook_Virtual(0x004EAB00, PNGScreenCaptureCommandClass::Process);
+
+    /**
+     *  Replace DeleteWaypointCommandClass with DeleteCommandClass.
+     */
+    Hook_Virtual(0x004EAEE0, DeleteCommandClass::Get_Name);
+    Hook_Virtual(0x004EAEF0, DeleteCommandClass::Get_UI_Name);
+    Hook_Virtual(0x004EAF00, DeleteCommandClass::Get_Category);
+    Hook_Virtual(0x004EAF10, DeleteCommandClass::Get_Description);
+    Hook_Virtual(0x004EAF20, DeleteCommandClass::Process);
 
     Patch_Jump(0x004E95C2, &_GuardCommandClass_Process_Harvesters_Set_Mission_Patch);
 

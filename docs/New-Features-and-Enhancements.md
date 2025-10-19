@@ -279,7 +279,18 @@ AllowedSmudges=   ; list of SmudgeTypes, which Smudges can appear on this tile. 
 In `TEMPERAT.INI` (or other theater file):
 ```ini
 [SOMEISOTILESET]  ; IsometricTileType
-AllowVeins=yes    ; boolean, can Veins can grow on this tile.
+AllowVeins=yes    ; boolean, can Veins can grow on this tile?
+```
+
+
+### WaterTunnel
+
+- The `WaterTunnel` key turns this tile's `Tunnel` LandType tiles water-passable.
+
+In `TEMPERAT.INI` (or other theater file):
+```ini
+[SOMEISOTILESET]  ; IsometricTileType
+WaterTunnel=no    ; boolean, is this tile's tunnel on water?
 ```
 
 ## Infantry
@@ -301,6 +312,18 @@ OmniHealer=no   ; boolean, should this infantry consider other infantry, unit, a
 
 ```{note}
 When an infantry with `Mechanic=yes` and `OmniHealer=yes` is selected and the mouse is over a transport unit or aircraft, holding down the `ALT` key (Force Move) will allow you to enter the transport instead of healing it.
+```
+
+## Overlays
+
+### WaterTunnel
+
+- If the cell the overlay is on has the `Tunnel` LandType, the `WaterTunnel` key turns this tile water-passable.
+
+In `RULES.INI`:
+```ini
+[SOMEOVERLAY]   ; OverlayType
+WaterTunnel=no  ; boolean, is this tile's tunnel on water?
 ```
 
 ## Projectiles
@@ -621,6 +644,15 @@ Vanilla actions are always present implicitly, but their properties **can** be o
     DropPod=AirStrike,AirStrike
     RallyToPoint=CanMove,Normal
     AttackSupport=Normal,Normal
+    PlaceBeacon=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon1=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon2=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon3=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon4=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon5=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon6=PlaceWaypoint,PlaceWaypoint
+    PlaceBeacon7=PlaceWaypoint,PlaceWaypoint
+    SelectBeacon=SelectWaypoint,SelectWaypoint
 
     ```
    :::

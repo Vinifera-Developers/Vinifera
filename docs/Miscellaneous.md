@@ -11,7 +11,8 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 - Harvesters used to drop their cargo as Tiberium Riparius on death. They will now drop the Tiberium types they are carrying, instead.
 - It is no longer required to list all Tiberiums in a map to override some Tiberium's properties.
 - `FreeUnit` or `PadAircraft` would in some cases affect the cost of a building. This functionality has been removed.
-- Allow pre-placed units to have missions in multiplayer (by Rampastring)
+- Pre-placed units can now have missions in multiplayer.
+- Parachute animations with `AltPalette=yes` now remap to the parachuted unit owner's color.
 
 ## Quality of Life
 
@@ -155,6 +156,25 @@ In `RULES.INI`:
 ```ini
 [General]
 TiberiumStorage=yes  ; boolean, does the player need storage (silos) to collect Tiberium?
+```
+
+## Water Movement Zone
+
+- Red Alert 2 adds a few new movement zones, among them is the `Water` movement zone, used for ships.
+
+- Unfortunately, it is not trivial to add new movement zones to Tiberian Sun. However, Vinifera allows overriding any of the existing movement zones with a copy of the RA2 `Water` movement zone.
+
+```ini
+[General]
+WaterMovementZoneOverride=  ; MZoneType, the name of the movement zone which will be replaced with Water.
+```
+
+```{note}
+Movement zone `Normal` cannot be overridden this way.
+```
+
+```{note}
+Once a movement zone is replaced with water, it cannot be reverted.
 ```
 
 ## File System

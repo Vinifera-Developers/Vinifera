@@ -176,7 +176,7 @@ bool AircraftClassExt::_Cell_Seems_Ok(Cell& cell, bool strict) const
      *  If we're a carryall, we can enter a potential totable unit's cell.
      */
     bool can_tote = false;
-    if (Class->IsCarryall && Target_Legal(NavCom) && NavCom->RTTI == RTTI_UNIT)
+    if (Class->IsCarryall && NavCom != nullptr && NavCom->RTTI == RTTI_UNIT)
         can_tote = true;
 
     /**

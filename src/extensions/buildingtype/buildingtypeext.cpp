@@ -244,21 +244,21 @@ void BuildingTypeClassExtension::Fetch_Building_Normal_Image(TheaterType theater
     char fullname[MAX_PATH];
     char buffer[64];
 
-    ArtINI.Get_String(This()->GraphicName, "RoofDeployingAnim", "", buffer, sizeof(buffer));
+    ArtINI.Get_String(This()->GraphicName.c_str(), "RoofDeployingAnim", "", buffer, sizeof(buffer));
     if (strlen(buffer) != 0) {
         _makepath(fullname, nullptr, nullptr, buffer, ".SHP");
         This()->Theater_Naming_Convention(fullname, theater);
         RoofDeployingAnim = static_cast<ShapeSet const*>(MixFileClass::Retrieve(fullname));
     }
 
-    ArtINI.Get_String(This()->GraphicName, "RoofDoorAnim", "", buffer, sizeof(buffer));
+    ArtINI.Get_String(This()->GraphicName.c_str(), "RoofDoorAnim", "", buffer, sizeof(buffer));
     if (strlen(buffer) != 0) {
         _makepath(fullname, nullptr, nullptr, buffer, ".SHP");
         This()->Theater_Naming_Convention(fullname, theater);
         RoofDoorAnim = static_cast<ShapeSet const*>(MixFileClass::Retrieve(fullname));
     }
 
-    ArtINI.Get_String(This()->GraphicName, "UnderRoofDoorAnim", "", buffer, sizeof(buffer));
+    ArtINI.Get_String(This()->GraphicName.c_str(), "UnderRoofDoorAnim", "", buffer, sizeof(buffer));
     if (strlen(buffer) != 0) {
         _makepath(fullname, nullptr, nullptr, buffer, ".SHP");
         This()->Theater_Naming_Convention(fullname, theater);

@@ -111,7 +111,7 @@ DECLARE_PATCH(_AnimTypeClass_Init_Theater_Patch)
     GET_REGISTER_STATIC(TheaterType, theater, ebp);
     LEA_STACK_STATIC(char *, fullname, esp, 0x10); // char [_MAX_FNAME+_MAX_EXT]
 
-    std::snprintf(fullname, 512, "%s.%s", this_ptr->IniName, TheaterTypeClass::Suffix_From(theater));
+    std::snprintf(fullname, 512, "%s.%s", this_ptr->IniName.c_str(), TheaterTypeClass::Suffix_From(theater));
 
     JMP(0x00418942);
 }
@@ -128,7 +128,7 @@ DECLARE_PATCH(_AnimTypeClass_entry_64_Theater_Patch)
     GET_REGISTER_STATIC(TheaterType, theater, eax);
     LEA_STACK_STATIC(char *, fullname, esp, 0x4); // char [_MAX_FNAME+_MAX_EXT]
 
-    std::snprintf(fullname, 512, "%s.%s", this_ptr->IniName, TheaterTypeClass::Suffix_From(theater));
+    std::snprintf(fullname, 512, "%s.%s", this_ptr->IniName.c_str(), TheaterTypeClass::Suffix_From(theater));
 
     JMP(0x00418A35);
 }
@@ -146,7 +146,7 @@ DECLARE_PATCH(_AnimTypeClass_Load_Theater_Patch)
     GET_REGISTER_STATIC(TheaterType, theater, eax);
     LEA_STACK_STATIC(char *, fullname, esp, 0x8); // char [_MAX_FNAME+_MAX_EXT]
 
-    std::snprintf(fullname, 512, "%s.%s", this_ptr->IniName, TheaterTypeClass::Suffix_From(theater));
+    std::snprintf(fullname, 512, "%s.%s", this_ptr->IniName.c_str(), TheaterTypeClass::Suffix_From(theater));
 
     JMP(0x00419742);
 }
@@ -163,7 +163,7 @@ DECLARE_PATCH(_AnimTypeClass_Get_Image_Data_Theater_Patch)
     GET_REGISTER_STATIC(TheaterType, theater, eax);
     LEA_STACK_STATIC(char *, fullname, esp, 0x68); // char [_MAX_FNAME+_MAX_EXT]
 
-    std::snprintf(fullname, 512, "%s.%s", this_ptr->IniName, TheaterTypeClass::Suffix_From(theater));
+    std::snprintf(fullname, 512, "%s.%s", this_ptr->IniName.c_str(), TheaterTypeClass::Suffix_From(theater));
 
     JMP(0x00419AB3);
 }
@@ -180,7 +180,7 @@ DECLARE_PATCH(_BuildingTypeClass_Init_Theater_Patch)
     GET_REGISTER_STATIC(TheaterType, theater, edi);
     LEA_STACK_STATIC(char *, fullname, esp, 0x14); // char [_MAX_FNAME+_MAX_EXT]
 
-    std::snprintf(fullname, 512, "%s.%s", this_ptr->GraphicName, TheaterTypeClass::Suffix_From(theater));
+    std::snprintf(fullname, 512, "%s.%s", this_ptr->GraphicName.c_str(), TheaterTypeClass::Suffix_From(theater));
 
     JMP(0x0043FCD4);
 }
@@ -197,7 +197,7 @@ DECLARE_PATCH(_BuildingTypeClass_Init_Buildup_Theater_Patch)
     GET_REGISTER_STATIC(TheaterType, theater, edi);
     LEA_STACK_STATIC(char *, fullname, esp, 0x14); // char [_MAX_FNAME+_MAX_EXT]
 
-    std::snprintf(fullname, 512, "%s.%s", this_ptr->BuildupFilename, TheaterTypeClass::Suffix_From(theater));
+    std::snprintf(fullname, 512, "%s.%s", this_ptr->BuildupFilename.c_str(), TheaterTypeClass::Suffix_From(theater));
 
     JMP(0x0043FD1E);
 }
@@ -218,9 +218,9 @@ DECLARE_PATCH(_BuildingTypeClass_Load_Shape_Data_Theater_Patch)
     LEA_STACK_STATIC(char *, buff, esp, 0x64); // char [_MAX_FNAME]
 
     if (!this_ptr->IsTheater || (theater == THEATER_NONE || theater >= TheaterTypes.Count())) {
-        std::snprintf(buff, 512, "%s.SHP", this_ptr->GraphicName);
+        std::snprintf(buff, 512, "%s.SHP", this_ptr->GraphicName.c_str());
     } else {
-        std::snprintf(buff, 512, "%s.%s", this_ptr->GraphicName, TheaterTypeClass::Suffix_From(theater));
+        std::snprintf(buff, 512, "%s.%s", this_ptr->GraphicName.c_str(), TheaterTypeClass::Suffix_From(theater));
     }
 
     _asm { mov eax, theater }
@@ -240,7 +240,7 @@ DECLARE_PATCH(_OverlayTypeClass_Init_Theater_Patch)
     GET_REGISTER_STATIC(TheaterType, theater, edi);
     LEA_STACK_STATIC(char *, fullname, esp, 0x0C); // char [_MAX_FNAME+_MAX_EXT]
 
-    std::snprintf(fullname, 512, "%s.%s", this_ptr->GraphicName, TheaterTypeClass::Suffix_From(theater));
+    std::snprintf(fullname, 512, "%s.%s", this_ptr->GraphicName.c_str(), TheaterTypeClass::Suffix_From(theater));
 
     JMP(0x0058D3F9);
 }
@@ -258,7 +258,7 @@ DECLARE_PATCH(_OverlayTypeClass_Load_Theater_Patch)
     GET_REGISTER_STATIC(TheaterType, theater, eax);
     LEA_STACK_STATIC(char *, fullname, esp, 0x8); // char [_MAX_FNAME+_MAX_EXT]
 
-    std::snprintf(fullname, 512, "%s.%s", this_ptr->GraphicName, TheaterTypeClass::Suffix_From(theater));
+    std::snprintf(fullname, 512, "%s.%s", this_ptr->GraphicName.c_str(), TheaterTypeClass::Suffix_From(theater));
 
     JMP(0x0058D88F);
 }
@@ -275,7 +275,7 @@ DECLARE_PATCH(_SmudgeTypeClass_Init_Theater_Patch)
     GET_REGISTER_STATIC(TheaterType, theater, edi);
     LEA_STACK_STATIC(char *, fullname, esp, 0x0C); // char [_MAX_FNAME+_MAX_EXT]
 
-    std::snprintf(fullname, 512, "%s.%s", this_ptr->IniName, TheaterTypeClass::Suffix_From(theater));
+    std::snprintf(fullname, 512, "%s.%s", this_ptr->IniName.c_str(), TheaterTypeClass::Suffix_From(theater));
 
     JMP(0x005FB419);
 }
@@ -292,7 +292,7 @@ DECLARE_PATCH(_SmudgeTypeClass_Read_INI_Theater_Patch)
     GET_REGISTER_STATIC(TheaterType, theater, eax);
     LEA_STACK_STATIC(char *, fullname, esp, 0x08); // char [_MAX_FNAME+_MAX_EXT]
 
-    std::snprintf(fullname, 512, "%s.%s", this_ptr->GraphicName, TheaterTypeClass::Suffix_From(theater));
+    std::snprintf(fullname, 512, "%s.%s", this_ptr->GraphicName.c_str(), TheaterTypeClass::Suffix_From(theater));
 
     JMP(0x005FB69B);
 }
@@ -343,7 +343,7 @@ DECLARE_PATCH(_OverlayTypeClass_Get_Image_Data_Theater_Patch)
     GET_REGISTER_STATIC(TheaterType, theater, eax);
     LEA_STACK_STATIC(char *, fullname, esp, 0x68); // char [_MAX_FNAME+_MAX_EXT]
 
-    std::snprintf(fullname, 512, "%s.%s", this_ptr->GraphicName, TheaterTypeClass::Suffix_From(theater));
+    std::snprintf(fullname, 512, "%s.%s", this_ptr->GraphicName.c_str(), TheaterTypeClass::Suffix_From(theater));
 
     JMP(0x0058DB8C);
 }
@@ -360,7 +360,7 @@ DECLARE_PATCH(_TerrainTypeClass_Init_Theater_Patch)
     GET_REGISTER_STATIC(TheaterType, theater, edi);
     LEA_STACK_STATIC(char *, fullname, esp, 0x0C); // char [_MAX_FNAME+_MAX_EXT]
 
-    std::snprintf(fullname, 512, "%s.%s", this_ptr->IniName, TheaterTypeClass::Suffix_From(theater));
+    std::snprintf(fullname, 512, "%s.%s", this_ptr->IniName.c_str(), TheaterTypeClass::Suffix_From(theater));
 
     JMP(0x00641710);
 }

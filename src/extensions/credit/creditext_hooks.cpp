@@ -101,7 +101,7 @@ void Draw_Tooltip_Rectangle(DSurface* surface, Rect& drawrect)
     const ColorScheme* colorscheme = ColorSchemes[colorschemetype];
 
     RGBClass rgb = colorscheme->HSV.operator RGBClass();
-    surface->Draw_Rect(drawrect, DSurface::RGB_To_Pixel(rgb));
+    surface->Draw_Rect(drawrect, DSurface::Build_Hicolor_Pixel(rgb));
 }
 
 

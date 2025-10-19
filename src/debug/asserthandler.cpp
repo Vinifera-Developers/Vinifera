@@ -30,7 +30,7 @@
 #include "debughandler.h"
 #include "stackdump.h"
 #include "textfile.h"
-#include "fixedstring.h"
+#include "stringid.h"
 #include "tibsun_globals.h"
 #include "vinifera_globals.h"
 #include "vinifera_util.h"
@@ -137,7 +137,7 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
      */
     file = (std::strrchr(file, '\\') ? std::strrchr(file, '\\') + 1 : file);
 
-    if (StackBuffer.Get_Length() > 0) {
+    if (!StackBuffer.empty()) {
         std::snprintf(buffer,
             sizeof(buffer),
             "Assertion failed!\n\n"
@@ -152,7 +152,7 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
             line,
             expr,
             msgbuff,
-            StackBuffer.Peek_Buffer());
+            StackBuffer.c_str());
     } else {
         std::snprintf(buffer,
             sizeof(buffer),
@@ -228,7 +228,7 @@ void Vinifera_Assert(AssertType type, const char *expr, const char *file, int li
     /**
      *  Clear the previous callstack buffer.
      */
-    StackBuffer.Clear();
+    StackBuffer.clear();
 }
 
 
@@ -267,7 +267,7 @@ void Vinifera_Assert_StackDump()
     /**
      *  Write the buffer to the file.
      */
-    StackFile.Write(StackBuffer.Peek_Buffer(), StackBuffer.Get_Length());
+    StackFile.Write(StackBuffer.c_str(), StackBuffer.size());
 
     DEBUG_ERROR("\n");
     DEBUG_ERROR("***** Dumping stack! *****\n");
@@ -277,8 +277,8 @@ void Vinifera_Assert_StackDump()
      */
     DEBUG_ERROR("See call stack in debugger for more information.\n");
     DEBUG_ERROR("\n");
-    if (!StackBuffer.Empty()) {
-        DEBUG_ERROR(StackBuffer.Peek_Buffer());
+    if (!StackBuffer.empty()) {
+        DEBUG_ERROR(StackBuffer.c_str());
         DEBUG_ERROR("\n");
     }
 
@@ -286,5 +286,5 @@ void Vinifera_Assert_StackDump()
     std::snprintf(buffer, sizeof(buffer),
         "Memory alloc error!\n\n"
         "See STACK_<date-time>.TXT in the application directory for more details.\n\n"
-        "%s", StackBuffer.Peek_Buffer());
+        "%s", StackBuffer.c_str());
 }

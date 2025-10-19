@@ -85,7 +85,7 @@ public:
  */
 LayerType AnimClassExt::_In_Which_Layer() const
 {
-    if (Target_Legal(xObject)) {
+    if (xObject != nullptr) {
         return LAYER_GROUND;
     }
 
@@ -120,7 +120,7 @@ static void Do_Anim_Damage(AnimClass* anim, int damage)
     /*
      *  INVISO is hardcoded to use C4Warhead, let's leave that just in case.
      */
-    if (std::strcmp(anim->Class->IniName, "INVISO") == 0) {
+    if (anim->Class->IniName == "INVISO") {
         Explosion_Damage(anim->Center_Coord(), damage, nullptr, Rule->C4Warhead);
     }
     /*
