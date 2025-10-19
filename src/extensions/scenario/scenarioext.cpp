@@ -46,6 +46,7 @@
 #include "swizzle.h"
 #include "vinifera_saveload.h"
 #include "asserthandler.h"
+#include "beacon.h"
 #include "debughandler.h"
 #include "houseext.h"
 #include "tacticalext.h"
@@ -246,6 +247,8 @@ bool ScenarioClassExtension::Read_INI(CCINIClass &ini)
      *  Fetch additional tutorial message data (if present) from the scenario.
      */
     Read_Tutorial_INI(ini, true);
+
+    BeaconManager.Load_Art();
 
     return true;
 }

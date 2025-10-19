@@ -85,6 +85,9 @@ public:
     void Render_Post();
     void Flag_Cell(CellClass& cell);
 
+    void Beacon_Mode_Control(int control);
+    void Draw_Beacon_Text(std::string const& text, ColorScheme& scheme, Point2D const& drawpoint, Rect const& cliprect, bool centered, int offset);
+
 #ifndef NDEBUG
     bool Debug_Draw_Facings();
 #endif
@@ -172,4 +175,14 @@ public:
      *  The cached string containing the formatted templated text.
      */
     char TemplatedTextCache[512];
+
+    /**
+     *  Is the player currently placing a beacon?
+     */
+    bool IsBeaconPlacementMode;
+
+    /**
+     *  Is the player currently editing a beacon's text?
+     */
+    bool IsEditingBeaconText;
 };

@@ -72,6 +72,7 @@
 #include "hooker.h"
 #include "hooker_macros.h"
 #include "houseext.h"
+#include "miscutil.h"
 #include "msgbox.h"
 #include "optionsext.h"
 #include "rulesext.h"
@@ -2607,9 +2608,9 @@ bool SelectClassExt::_Action(unsigned flags, KeyNumType& key)
 
                         int count_to_abandon = 1;
 
-                        if ((GetAsyncKeyState(VK_SHIFT) & 0x8000))
+                        if (Key_Down(VK_SHIFT))
                             count_to_abandon = factory->Total_Queued(*choice);
-                        else if ((GetAsyncKeyState(VK_CONTROL) & 0x8000))
+                        else if (Key_Down(VK_CONTROL))
                             count_to_abandon = std::clamp(5, 0, factory->Total_Queued(*choice));
 
                         for (int i = 0; i < count_to_abandon; i++)
@@ -2625,9 +2626,9 @@ bool SelectClassExt::_Action(unsigned flags, KeyNumType& key)
                     if (factory && factory->Is_Queued(*choice)) {
                         int count_to_abandon = 1;
 
-                        if ((GetAsyncKeyState(VK_SHIFT) & 0x8000))
+                        if (Key_Down(VK_SHIFT))
                             count_to_abandon = factory->Total_Queued(*choice);
-                        else if ((GetAsyncKeyState(VK_CONTROL) & 0x8000))
+                        else if (Key_Down(VK_CONTROL))
                             count_to_abandon = std::clamp(5, 0, factory->Total_Queued(*choice));
 
                         for (int i = 0; i < count_to_abandon; i++)
@@ -2714,7 +2715,7 @@ bool SelectClassExt::_Action(unsigned flags, KeyNumType& key)
                         } else {
                             Speak(VOX_BUILDING);
                         }
-                        const int count_to_produce = (GetAsyncKeyState(VK_SHIFT) & 0x8000) ? 5 : 1;
+                        const int count_to_produce = Key_Down(VK_SHIFT) ? 5 : 1;
                         for (int i = 0; i < count_to_produce; i++) {
                             OutList.Add(EventClassExt(PlayerPtr->Fetch_Heap_ID(), EVENT_PRODUCE, Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID,
                                 TechnoTypeClassExtension::Get_Production_Flags(Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID)).As_Event());

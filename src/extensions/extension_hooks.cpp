@@ -103,6 +103,7 @@
 //#include "veinholemonsterext_hooks.h"
 
 #include "aircrafttracker_hooks.h"
+#include "beacon_hooks.h"
 #include "rulesext_hooks.h"
 #include "scenarioext_hooks.h"
 #include "sessionext_hooks.h"
@@ -132,6 +133,7 @@
 #include "textprintext_hooks.h"
 
 #include "combatext_hooks.h"
+#include "conquerext_hooks.h"
 #include "dropshipext_hooks.h"
 #include "environmentext_hooks.h"
 #include "eventext_hooks.h"
@@ -294,6 +296,7 @@ void Extension_Hooks()
     MultiScoreExtension_Hooks();
     ScoreClassExtension_Hooks();
     MultiMissionExtension_Hooks();
+    ConquerExtension_Hooks();
 
     /**
      *  Dialogs and associated code.
@@ -314,4 +317,5 @@ void Extension_Hooks()
     SpawnManager_Hooks();
     AircraftTracker_Hooks();
     PrerequisiteGroup_Hooks();
+    Beacon_Hooks();
 }

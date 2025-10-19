@@ -75,6 +75,23 @@ public:
 
 
 /**
+ *  Replacement for DeleteWaypointCommandClass.
+ */
+class DeleteCommandClass : public ViniferaCommandClass
+{
+public:
+    DeleteCommandClass() : ViniferaCommandClass() {}
+    virtual ~DeleteCommandClass() {}
+
+    virtual const char* Get_Name() const override;
+    virtual const char* Get_UI_Name() const override;
+    virtual const char* Get_Category() const override;
+    virtual const char* Get_Description() const override;
+    virtual bool Process() override;
+};
+
+
+/**
  *  Enter the manual placement mode when a building is complete
  *  and pending placement on the sidebar.
  */
@@ -645,6 +662,20 @@ public:
     HealthFilterAddNextCommandClass() : ViniferaCommandClass() { IsDeveloper = false; }
     virtual ~HealthFilterAddNextCommandClass() {}
 
+    virtual const char* Get_Name() const override;
+    virtual const char* Get_UI_Name() const override;
+    virtual const char* Get_Category() const override;
+    virtual const char* Get_Description() const override;
+    virtual bool Process() override;
+};
+
+
+/**
+ *  Enters beacon placement mode.
+ */
+class BeaconPlacementCommandClass : public ViniferaCommandClass
+{
+public:
     virtual const char* Get_Name() const override;
     virtual const char* Get_UI_Name() const override;
     virtual const char* Get_Category() const override;

@@ -70,6 +70,8 @@ New:
 - Implement `BarGate` for buildings (by ZivDero)
 - Parachute animations with `AltPalette=yes` now remap to the parachuted unit owner's color (by ZivDero)
 - Add Water movement zone override (by ZivDero)
+- Implement multiplayer beacons (by ZivDero)
+- Chat improvements (by ZivDero)
 
 
 Vinifera fixes:

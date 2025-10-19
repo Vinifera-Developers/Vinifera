@@ -74,4 +74,11 @@ class OptionsClassExtension final : public GlobalExtensionClass<OptionsClass>
          *  Are harvesters and MCVs excluded from a band-box selection that includes combat units?
          */
         bool FilterBandBoxSelection;
+
+        /**
+         *  Customizable hotkeys for starting a chat.
+         */
+        int KeyChatToAll1;
+        int KeyChatToAll2;
+        int KeyChatToAllies;
 };

@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          MSGLISTEXT_HOOKS.CPP
+ *  @file          CONQUEREXT_HOOKS.H
  *
- *  @author        CCHyper
+ *  @author        ZivDero
  *
- *  @brief         Contains the hooks for the extended message input function.
+ *  @brief         Contains the hooks for conquer.cpp.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -25,20 +25,6 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "msglistext_hooks.h"
-#include "fatal.h"
-#include "debughandler.h"
-#include "asserthandler.h"
+#pragma once
 
-#include "hooker.h"
-#include "hooker_macros.h"
-
-
-/**
- *  Main function for patching the hooks.
- */
-void MessageListClassExtension_Hooks()
-{
-    // Replace the message format to add a space after the semicolon after the message author's name.
-    Patch_Dword(0x00573161 + 1, reinterpret_cast<uintptr_t>(&"%s: %s"));
-}
+void ConquerExtension_Hooks();

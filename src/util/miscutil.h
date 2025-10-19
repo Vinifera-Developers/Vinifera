@@ -36,6 +36,7 @@
 
 struct VoxelObject;
 typedef int clockid_t;
+enum KeyNumType;
 
 
 char const *Get_Text_Time();
@@ -76,3 +77,5 @@ const char *Get_User_Documents_Path();
 const char *Filename_From_Path(const char *filename);
 
 bool Parse_Boolean(const char* value, bool defval);
+
+bool Key_Down(int key);

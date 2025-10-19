@@ -53,7 +53,12 @@
 #include "vinifera_saveload.h"
 #include "extension.h"
 #include "asserthandler.h"
+#include "beacon.h"
 #include "debughandler.h"
+#include "mouse.h"
+#include "tibsun_functions.h"
+#include "uicontrol.h"
+#include "wwmouse.h"
 
 
 /**
@@ -77,7 +82,9 @@ TacticalExtension::TacticalExtension(const Tactical* this_ptr) :
     TemplatedTextColor(COLORSCHEME_NONE),
     TemplatedTextStyle(TPF_6PT_GRAD | TPF_DROPSHADOW),
     IsTemplatedTextCached(false),
-    TemplatedTextCache {""}
+    TemplatedTextCache {""},
+    IsBeaconPlacementMode(false),
+    IsEditingBeaconText(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("TacticalExtension::TacticalExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -552,14 +559,24 @@ void TacticalExtension::Render_Post()
     /**
      *  Draw any new post effects here.
      */
-     //DEV_DEBUG_INFO("Before EBoltClass::Draw_All\n");
     EBoltClass::Draw_All();
-    //DEV_DEBUG_INFO("After EBoltClass::Draw_All\n");
+    BeaconManager.Draw(LogicSurface, TacticalRect);
 
     /**
      *  Draw any overlay text.
      */
     Draw_Super_Timers();
+
+    /**
+     *  In beacon placement mode, holding modifier keys can give you a preset text
+     *  (e.g. attack, defend). Draw it.
+     */
+    if (IsBeaconPlacementMode) {
+        char const* beacon_text = BeaconManagerClass::Beacon_Preview_Text(BeaconManagerClass::Pick_Beacon_Placement_Action());
+        if (beacon_text != nullptr) {
+            Draw_Beacon_Text(beacon_text, *ColorSchemes[PlayerPtr->Scheme], WWMouse->Get_Mouse_XY(), VisibleRect, false, UIControls->BeaconPreviewTextOffset);
+        }
+    }
 }
 
 
@@ -888,4 +905,89 @@ void TacticalExtension::Flag_Cell(CellClass& cell)
         CellRedraw[TacticalMap->CellRedrawCount] = &cell;
         TacticalMap->CellRedrawCount++;
     }
+}
+
+
+/**
+ *  Toggles beacon mode (analogous to Sell_Mode_Control, etc.)
+ *
+ *  @author: ZivDero
+ */
+void TacticalExtension::Beacon_Mode_Control(int control)
+{
+    if (!RuleExtension->IsBeaconsEnabled) {
+        return;
+    }
+
+    bool mode = IsBeaconPlacementMode;
+    switch (control) {
+    case 0:
+        mode = false;
+        break;
+
+    case -1:
+        mode = (IsBeaconPlacementMode == false);
+        break;
+
+    case 1:
+        mode = true;
+        break;
+    }
+
+    if (mode != IsBeaconPlacementMode && !Map.PendingObject) {
+        Map.IsSellMode = false;
+        Map.IsPowerMode = false;
+        Map.IsWaypointMode = false;
+        Map.IsRepairMode = false;
+        Map.Set_Default_Mouse(MOUSE_NORMAL, false);
+        if (mode) {
+            IsBeaconPlacementMode = true;
+            Unselect_All();
+        } else {
+            IsBeaconPlacementMode = false;
+            Map.Revert_Mouse_Shape();
+        }
+    }
+}
+
+
+/**
+ *  Draws beacon text.
+ *
+ *  @author: ZivDero
+ */
+void TacticalExtension::Draw_Beacon_Text(std::string const& text, ColorScheme& scheme, Point2D const& drawpoint, Rect const& cliprect, bool centered, int offset)
+{
+    FontClass* font = Font6Ptr;
+
+    /**
+     *  Determine the text bounds.
+     */
+    Rect text_rect;
+    font->String_Pixel_Bounds(text.c_str(), text_rect);
+    text_rect += drawpoint;
+    text_rect.Y += offset;
+
+    if (centered) {
+        text_rect.X -= text_rect.Width / 2;
+    }
+
+    /**
+     *  Determine the size of the box encompassing the text.
+     *  Center the box if necessary.
+     */
+    Rect box_rect = text_rect;
+    box_rect.X -= 4;
+    box_rect.Y -= 4;
+    box_rect.Width += 8;
+    box_rect.Height += 8;
+
+    RGBClass rgb = scheme.HSV;
+    int fore = DSurface::Build_Hicolor_Pixel(rgb.Get_Red(), rgb.Get_Green(), rgb.Get_Blue());
+
+    Rect visible_box_rect = Intersect(box_rect, cliprect);
+    CompositeSurface->Fill_Rect_Trans(visible_box_rect, RGBClass(0, 0, 0), 50);
+    CompositeSurface->Draw_Rect(visible_box_rect, fore);
+
+    Fancy_Text_Print(text.c_str(), *CompositeSurface, cliprect, text_rect.TopLeft - cliprect.TopLeft, &scheme, COLOR_TBLACK, TPF_6POINT | TPF_NOSHADOW);
 }

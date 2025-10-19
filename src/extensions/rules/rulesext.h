@@ -184,4 +184,14 @@ public:
      *  The number of frames that a newly elite unit will flash for.
      */
     int EliteFlashTimer;
+
+    /**
+     *  Controls for beacons.
+     */
+    bool IsBeaconsEnabled;
+    bool IsSPBeacons;
+    int MaxBeacons;
+    VocType PlaceBeaconSound;
+    VoxType PlaceBeaconVoice;
+    VoxType DetectBeaconVoice;
 };

@@ -77,6 +77,68 @@ Due to limitations of the game's tooltip system, the length of the description i
 Due to implementation details, it is recommended that you do not make the queue longer than 50 units. Dequeueing more than 63 units at a time could potentially result in other actions being done by the player on the same frame being ignored by the game.
 ```
 
+## Beacons
+
+Vinifera implements multiplayer beacons, similar to those seen in Red Alert 2.
+
+In `RULES.INI`:
+```ini
+[General]
+BeaconsEnabled=no  ; boolean, are beacons enabled?
+SPBeacons=no       ; boolean, can the player place beacons in single-player?
+MaxBeacons=-1      ; integer, maximum beacons per player. When the cap is reached, the oldest beacon will be deleted when a new beacon is placed. Negative numbers mean there is no cap.
+```
+
+- When a beacon is placed/detected, a sound effect and an EVA line are played.
+
+```ini
+[AudioVisual]
+PlaceBeaconSound=   ; VocType, the sound played when the player places a beacon.
+PlaceBeaconVoice=   ; VoxType, the EVA line played when the player places a beacon.
+DetectBeaconVoice=  ; VoxType, the EVA line played another player places a beacon.
+```
+
+- Beacons can have a text label.
+- Additionally, beacons may be placed with a preset label by holding `CTRL`, `SHIFT`, `ALT`, or a combination of them. The text that is shows as the preview, and the text that is set on the placed beacon can be configured.
+
+In `UI.INI`:
+```ini
+[Ingame]
+BeaconTextOffset=32         ; integer, the Y offset for the beacon text.
+BeaconPreviewTextOffset=20  ; integer, the Y offset for the beacon text during preview.
+
+BeaconText1=Expand  ; string, shown when placing with Shift.
+BeaconText2=Attack  ; string, shown when placing with Ctrl.
+BeaconText3=Move    ; string, shown when placing with Alt.
+BeaconText4=        ; string, shown when placing with Ctrl+Shift.
+BeaconText5=        ; string, shown when placing with Alt+Shift.
+BeaconText6=Defend  ; string, shown when placing with Ctrl+Alt.
+BeaconText7=        ; string, shown when placing with Ctrl+Alt+Shift.
+
+BeaconPreviewText1=Expand  ; string, preview shown with Shift.
+BeaconPreviewText2=Attack  ; string, preview shown with Ctrl.
+BeaconPreviewText3=Move    ; string, preview shown with Alt.
+BeaconPreviewText4=        ; string, preview shown with Ctrl+Shift.
+BeaconPreviewText5=        ; string, preview shown with Alt+Shift.
+BeaconPreviewText6=Defend  ; string, preview shown with Ctrl+Alt.
+BeaconPreviewText7=        ; string, preview shown with Ctrl+Alt+Shift.
+```
+
+- When drawn on the map, beacons use `PBEACON.SHP`. The animation is drawn using the unit palette, and is remapped to the beacon owner's house color. The second half of the animation is played when the beacon is selected.
+
+- When drawn on the radar, beacons use `RDRBEACN.SHP`.
+
+- Beacon animations are not tied to game FPS and instead play at a set framerate.
+
+In `UI.INI`:
+```ini
+[Ingame]
+BeaconAnimFramesPerSecond=25       ; integer, the framerate at which the beacon anim is played.
+RadarBeaconAnimFramesPerSecond=25  ; integer, the framerate at which the radar beacon anim is played.
+```
+
+- Beacon placement/selection uses new mouse actions. For their defaults, please refer to [Actions](New-Features-and-Enhancements.md/#actions).
+
 ## Hotkey Commands
 
 Vinifera modifies the vanilla "Deploy" keyboard command to work with air transports and carryalls.
@@ -169,6 +231,10 @@ Vinifera modifies the vanilla "Deploy" keyboard command to work with air transpo
 
 - Plays the next music track.
 
+### `[ ]` Place Beacon
+
+- Enters beacon placement mode.
+
 ![image](https://user-images.githubusercontent.com/73803386/123566309-4ade4600-d7b7-11eb-9b77-5c9de7959822.png)
 
 ### Customizable Vanilla Modifier Keys
@@ -221,6 +287,15 @@ ShowTimer=no       ; boolean, when this superweapon is active, does its recharge
 - Additionally, Vinifera implements the system to echo the user's sent messages back to them in-game as a confirmation they were sent. This is an enhancement from Red Alert 2.
 ![image](https://user-images.githubusercontent.com/73803386/137031682-3f265d48-7f28-410f-bf0d-3260e24f1748.png)
 
+- Vinifera allows players to send a message to only their allies. Additionally, all messages now display their recipient ("to all", "to team" or "to PlayerName").
+
+In `KEYBOARD.INI`:
+```ini
+[Hotkey]
+ChatToAll=13    ; key number, RETURN
+ChatToAll2=119  ; key number, F8
+ChatToAllies=8  ; key number, BACKSPACE
+```
 
 In `UI.INI`:
 ```ini

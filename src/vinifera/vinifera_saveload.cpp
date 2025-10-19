@@ -130,6 +130,7 @@
 
 #include "aircrafttracker.h"
 #include "animtypeext.h"
+#include "beacon.h"
 #include "buildingtypeext.h"
 #include "hooker.h"
 #include "isotiletypeext.h"
@@ -717,6 +718,8 @@ void Vinifera_Post_Load_Game()
     for (auto isotype_extension : IsometricTileTypeExtensions) {
         isotype_extension->Read_INI(theater_ini);
     }
+
+    BeaconManager.Load_Art();
 }
 
 

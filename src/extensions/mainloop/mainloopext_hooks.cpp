@@ -41,11 +41,18 @@
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
-
+#include "beacon.h"
+#include "fetchres.h"
+#include "ipxmgr.h"
+#include "language.h"
+#include "netdlg.h"
+#include "nullmgr.h"
+#include "optionsext.h"
+#include "rulesext.h"
+#include "sessionext.h"
 #include "hooker.h"
 #include "hooker_macros.h"
-#include "rulesext.h"
-#include "voxelinit.h"
+#include "tacticalext.h"
 
 
 /**
@@ -345,6 +352,323 @@ DECLARE_PATCH(_Sync_Delay_Check_Keyboard_Input_Allowed_Patch2)
 
 
 /**
+ *  Adds a new edit (message being typed).
+ *
+ *  @author: ZivDero
+ */
+static void New_Edit(char const* to, bool enable_overflow = true, int width = -1)
+{
+    /**
+     *  Set the prefix (e.g. "From:").
+     */
+    char txt[80 + MAX_MESSAGE_LENGTH + 32];
+    strcpy(txt, to);
+
+    /**
+     *  Create the edit.
+     */
+    Session.Messages.Add_Edit(static_cast<ColorSchemeType>(Session.ColorIdx), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, txt, 0, width);
+    //Session.Messages.EnableOverflow = enable_overflow; // disabled because overflow is off in vanilla by default
+
+    /**
+     *  Flag the map to be redrawn so that the text shows up.
+     */
+    Map.Flag_To_Redraw();
+}
+
+
+/**
+ *  Checks if we're beginning input.
+ *
+ *  @author: tomsons26, ZivDero
+ */
+static bool Begin_Message(KeyNumType input)
+{
+    /*
+    **  Check if we've got an active message already.
+    */
+    if (Session.Messages.Is_Edit()) {
+        return false;
+    }
+
+    /*
+    **  Check if player is trying to type a beacon message.
+    */
+    if (input == OptionsExtension->KeyChatToAll1 || input == OptionsExtension->KeyChatToAll2 || input == OptionsExtension->KeyChatToAllies) {
+        BeaconClass* beacon = BeaconManager.Find_Selected_Beacon(PlayerPtr->HeapID);
+        if (beacon != nullptr) {
+            New_Edit("Beacon Message: ", false, 10000);
+            BeaconManager.Set_Beacon_Text("_", HOUSE_NONE, -1, false);
+            TacticalMapExtension->IsEditingBeaconText = true;
+            return true;
+        }
+    }
+
+    /*
+    **  Check keyboard input for a request to send a message.
+    **  The 'to' argument for Add_Edit is prefixed to the message buffer; the
+    **  message buffer is big enough for the 'to' field plus MAX_MESSAGE_LENGTH.
+    **  To send the message, calling Get_Edit_Buf retrieves the buffer minus the
+    **  'to' portion.  At the other end, the buffer allocated to display the
+    **  message must be MAX_MESSAGE_LENGTH plus the size of "From: xxx (house)".
+    */
+    if (Session.Type != GAME_NORMAL && Session.Type != GAME_SKIRMISH) {
+        if (input >= KN_F1 && input < KN_F7 || input == OptionsExtension->KeyChatToAll1 || input == OptionsExtension->KeyChatToAll2 || input == OptionsExtension->KeyChatToAllies) {
+
+            /*
+            **  Reset the chat to allies flag.
+            */
+            SessionExtension->IsChatToAllies = false;
+
+            switch (Session.Type) {
+
+                /*
+                **  For a serial game, send a message on F1 or any of the chat keys; set "to" text to the
+                **  "Message:" string & add an editable message to the list.
+                */
+            case GAME_NULL_MODEM:
+            case GAME_MODEM:
+                if (input == KN_F1 || input == OptionsExtension->KeyChatToAll1 || input == OptionsExtension->KeyChatToAll2 || input == OptionsExtension->KeyChatToAllies) {
+                    New_Edit("Message: ");
+                    return true;
+                }
+                break;
+
+                /*
+                **  For a network game:
+                **  F1-F7 = "To <name> (house):" (only allowed if we're not in ObiWan mode)
+                **  Backspace = "To Allies:" (only allowed if we're not in ObiWan mode)
+                **  F8/Enter = "To All:"
+                */
+            case GAME_IPX:
+            case GAME_INTERNET:
+                if (input == OptionsExtension->KeyChatToAll1 || input == OptionsExtension->KeyChatToAll2) {
+                    Session.MessageAddress = IPXAddressClass(); // set to broadcast
+                    New_Edit("Send to all: ");
+                    return true;
+                }
+
+                if (input == OptionsExtension->KeyChatToAllies && !Session.ObiWan) {
+                    Session.MessageAddress = IPXAddressClass(); // set to broadcast
+                    SessionExtension->IsChatToAllies = true;    // set to filter to allies only
+                    New_Edit("Send to team: ");
+                    return true;
+                }
+
+                if (input - KN_F1 < Ipx.Num_Connections() && !Session.ObiWan) {
+                    char txt[80 + MAX_MESSAGE_LENGTH + 32];
+                    int id = Ipx.Connection_ID(input - KN_F1);
+                    Session.MessageAddress = *Ipx.Connection_Address(id);
+                    std::strncpy(SessionExtension->MessageRecipientName, Ipx.Connection_Name(id), std::size(SessionExtension->MessageRecipientName));
+                    std::sprintf(txt, "Send to %s: ", SessionExtension->MessageRecipientName);
+                    New_Edit(txt);
+                    return true;
+                }
+                break;
+
+            default:
+                break;
+            }
+        }
+    }
+
+    return false;
+}
+
+
+/**
+ *  Replacement for Message_Input.
+ *
+ *  @author: tomsons26, ZivDero
+ */
+void _Message_Input(KeyNumType& input)
+{
+    /*
+    **  Check if we should begin recording input right now.
+    */
+    if (Begin_Message(input)) {
+        input = KN_NONE;
+    }
+
+    /*
+    **  Process message-system input; send the message out if RETURN is hit.
+    */
+    KeyNumType copy_input = input;
+    int rc = Session.Messages.Input(input);
+
+    /*
+    **  1 = caller should redraw the message list (no need to complete
+    **      refresh, though)
+    **  2 = caller should completely refresh the display.
+    **  3 = caller should send the edit message.
+    **      (sets 'input' to 0 if it processes it.)
+    **  4 = caller should send the Overflow buffer
+    */
+
+    if (rc == 1 || rc == 2) {
+
+        /*
+        **  If a single character has been added to an edit buffer, update the display.
+        */
+        if (rc == 1) {
+            Map.Flag_To_Redraw();
+        }
+
+        /*
+        **  If backspace was hit, redraw the map.  If the edit message was removed,
+        **  the map must be force-drawn, since it won't be able to compute the
+        **  cells to redraw; otherwise, let the map compute the cells to redraw,
+        **  by not force-drawing it, but just setting the IsToRedraw bit.
+        */
+        else if (rc == 2) {
+            if (copy_input == KN_ESC) {
+                Map.Flag_To_Redraw(GS_REDRAW_ALL);
+            } else {
+                Map.Flag_To_Redraw();
+            }
+        }
+
+        /*
+        **  If we're typing a beacon message, save it into the beacon.
+        **  If the player has hit the escape button, clear it instead.
+        **  The fact that it's being typed is reflected by a blinking underscore.
+        */
+        if (TacticalMapExtension->IsEditingBeaconText) {
+            BeaconManager.Input(copy_input, false);
+        }
+    }
+
+    /*
+    **  Send a message
+    */
+    if (rc == 3 || rc == 4) {
+
+        /*
+        **  If we're typing a beacon message, save it accordingly.
+        */
+        if (TacticalMapExtension->IsEditingBeaconText) {
+            BeaconManager.Input(copy_input, true);
+        }
+
+        /*
+        **  Serial game: fill in a SerialPacketType & send it.
+        **  (Note: The size of the SerialPacketType.Command must be the same as
+        **  the EventClass.Type!)
+        */
+        else if (Session.Type == GAME_NULL_MODEM || Session.Type == GAME_MODEM) {
+            SerialPacketType* serial_packet = reinterpret_cast<SerialPacketType*>(NullModem.BuildBuf);
+
+            serial_packet->Command = SERIAL_MESSAGE;
+            strcpy(serial_packet->Name, Session.Players[0]->Name);
+            serial_packet->ID = Session.ColorIdx;
+
+            if (rc == 3) {
+                strcpy(serial_packet->Message.Message, Session.Messages.Get_Edit_Buf());
+            } else {
+                strcpy(serial_packet->Message.Message, Session.Messages.Get_Overflow_Buf());
+                Session.Messages.Clear_Overflow_Buf();
+            }
+
+            /*
+            ** Send the message, and store this message in our LastMessage
+            ** buffer; the computer may send us a version of it later.
+            */
+            NullModem.Send_Message(NullModem.BuildBuf, sizeof(SerialPacketType), 1);
+
+            /*
+            **  Print the message for the sender player as well.
+            */
+            Session.Messages.Add_Message(serial_packet->Name, serial_packet->ID, serial_packet->Message.Message, static_cast<ColorSchemeType>(serial_packet->ID), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, Rule->MessageDelay * TICKS_PER_MINUTE);
+
+            /*
+            **  Store this message in our LastMessage buffer; the computer may send
+            **  us a version of it later.
+            */
+            strcpy(Session.LastMessage, serial_packet->Message.Message);
+        } else if (Session.Type == GAME_IPX || Session.Type == GAME_INTERNET) {
+
+            /*
+            **  Network game: fill in a GlobalPacketType & send it.
+            */
+            ExtGlobalPacketType& packet = reinterpret_cast<ExtGlobalPacketType&>(Session.GPacket);
+            packet.Command = static_cast<ExtNetCommandType>(NET_MESSAGE);
+            strcpy(packet.Name, Session.Players[0]->Name);
+            packet.Message.Color = Session.ColorIdx;
+            packet.Message.NameCRC = Compute_Name_CRC(Session.GameName);
+
+            /*
+            **  Add a scope marker.
+            */
+            if (Session.MessageAddress.Is_Broadcast()) {
+                if (SessionExtension->IsChatToAllies) {
+                    strcpy(packet.Message.Scope, "to team");
+                } else {
+                    strcpy(packet.Message.Scope, "to all");
+                }
+            } else {
+                std::snprintf(packet.Message.Scope, std::size(packet.Message.Scope), "to %s", SessionExtension->MessageRecipientName);
+            }
+
+            if (rc == 3) {
+                std::strncpy(packet.Message.Buf, Session.Messages.Get_Edit_Buf(), std::size(packet.Message.Buf) - 1);
+            } else {
+                std::strncpy(packet.Message.Buf, Session.Messages.Get_Overflow_Buf(), std::size(packet.Message.Buf) - 1);
+                Session.Messages.Clear_Overflow_Buf();
+            }
+
+            /*
+            **  If the chat to all key was hit, MessageAddress will be a broadcast address; send
+            **  the message to every player we have a connection with.
+            */
+            if (Session.MessageAddress.Is_Broadcast()) {
+                for (int i = 0; i < Ipx.Num_Connections(); i++) {
+
+                    /*
+                    **  If this is a "to allies" message, check if the player is allied to the target house.
+                    */
+                    if (!SessionExtension->IsChatToAllies || PlayerPtr->Is_Ally(Session.Players[i + 1]->Player.ID)) {
+                        Ipx.Send_Global_Message(&Session.GPacket, sizeof(GlobalPacketType), 1, Ipx.Connection_Address(Ipx.Connection_ID(i)));
+                        Ipx.Service();
+                    }
+                }
+            } else {
+
+                /*
+                **  Otherwise, MessageAddress contains the exact address to send to.
+                **  Send to that address only.
+                */
+                Ipx.Send_Global_Message(&Session.GPacket, sizeof(GlobalPacketType), 1, &Session.MessageAddress);
+                Ipx.Service();
+            }
+
+            /*
+            **  Print the message for the sender player as well.
+            */
+            char name[32];
+            std::snprintf(name, std::size(name), "%s [%s]" , packet.Name, packet.Message.Scope);
+            Session.Messages.Add_Message(name, packet.Message.Color, packet.Message.Buf, Session.Scheme_From_Color_ID(packet.Message.Color), TPF_6PT_GRAD | TPF_USE_GRAD_PAL | TPF_FULLSHADOW, static_cast<int>(Rule->MessageDelay * TICKS_PER_MINUTE));
+
+            /*
+            **  Tell the map to do an update.
+            */
+            Map.Flag_To_Redraw(GS_REDRAW_ALL);
+
+            /*
+            **  Store this message in our LastMessage buffer; the computer may send
+            **  us a version of it later.
+            */
+            strcpy(Session.LastMessage, Session.GPacket.Message.Buf);
+        }
+
+        /*
+        **  Tell the map to completely update itself, since a message is now missing.
+        */
+        Map.Flag_To_Redraw(GS_REDRAW_ALL);
+    }
+}
+
+
+/**
  *  Main function for patching the hooks.
  */
 void MainLoop_Hooks()
@@ -365,4 +689,6 @@ void MainLoop_Hooks()
     Patch_Jump(0x0050945C, &_Keyboard_Process_Check_Keyboard_Input_Allowed);
     Patch_Jump(0x00509632, &_Sync_Delay_Check_Keyboard_Input_Allowed_Patch1);
     Patch_Jump(0x00509747, &_Sync_Delay_Check_Keyboard_Input_Allowed_Patch2);
+
+    Patch_Jump(0x005098D0, &_Message_Input);
 }
