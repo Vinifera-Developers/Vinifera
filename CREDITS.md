@@ -297,3 +297,6 @@ This page lists all the individual contributions to the project by their author.
   - Add Water movement zone override.
   - Implement multiplayer beacons.
   - Chat improvements.
+  - Fix a bug where under some circumstances Tiberium would halt spreading and/or growing temporarily.
+  - Fix a bug where Tiberium spawned by animations wouldn't grow or spread.
+  - Fix a bug where carryalls assign their ROT to the unit they're carrying.

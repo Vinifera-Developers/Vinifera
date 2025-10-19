@@ -111,4 +111,9 @@ TerrainTypeClassExtension final : public ObjectTypeClassExtension
          *  If SpawnsTiberium=yes, the number of Tiberium overlays that will be spawned (min, max).
          */
         Point2D TiberiumSpawnCount;
+
+        /**
+         *  If SpawnsTiberium=yes, should TIberium be spawned randomly in the range instead of spreading from the center.
+         */
+        bool IsTiberiumScatterSpawn;
 };
