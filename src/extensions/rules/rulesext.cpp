@@ -671,6 +671,15 @@ bool RulesClassExtension::General(CCINIClass &ini)
     IsSPBeacons = ini.Get_Bool(GENERAL, "SPBeacons", IsSPBeacons);
     MaxBeacons = ini.Get_Int(GENERAL, "MaxBeacons", MaxBeacons);
 
+    /**
+     *  Allow replacing any signle movement zone with a copy of RA2's water MZone.
+     */
+    MZoneType mzone_water = ini.Get_MZoneType(GENERAL, "WaterMovementZoneOverride", MZONE_NORMAL);
+    if (mzone_water != MZONE_NORMAL) {
+        int water[7] = {2, 2, 2, 1, 2, 2, 3}; // LAND = NO, CRUSH = NO, BLOCKED = NO, WATER = YES, PARTIALLY_BLOCKED = NO, NO = NO, OUTSIDE = ILLEGAL
+        std::copy(std::begin(water), std::end(water), MovementZonePassability[mzone_water]);
+    }
+
     return true;
 }
 

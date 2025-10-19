@@ -294,5 +294,6 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where vehicles paradropped from a carryall would be drawn with an offset.
   - Parachute animations with `AltPalette=yes` now remap to the parachuted unit owner's color.
   - Fix a bug where paradrops didn't take cell passability and bridges into account.
+  - Add Water movement zone override.
   - Implement multiplayer beacons.
   - Chat improvements.
