@@ -706,7 +706,7 @@ ActionType BuildingClassExt::_What_Action(ObjectClass const* object, bool disall
                          *
                          *  @author: Rampastring
                          */
-                        if (Map[cell].Passability != PASSABLE_OK && !(Extension::Fetch(Class)->IsNaval && Map[cell].Passability == PASSABLE_WATER)) {
+                        if (Map[cell].Passability != PASSABLE_LAND && !(Extension::Fetch(Class)->IsNaval && Map[cell].Passability == PASSABLE_WATER)) {
                             action = ACTION_NOMOVE;
                         }
                     }
@@ -752,7 +752,7 @@ ActionType BuildingClassExt::_What_Action(const Cell& cell, bool check_fog, bool
                  *
                  *  @author: Rampastring
                  */
-                if (Map[cell].Passability != PASSABLE_OK && !(Extension::Fetch(Class)->IsNaval && Map[cell].Passability == PASSABLE_WATER)) {
+                if (Map[cell].Passability != PASSABLE_LAND && !(Extension::Fetch(Class)->IsNaval && Map[cell].Passability == PASSABLE_WATER)) {
                     action = ACTION_NOMOVE;
                 }
                 

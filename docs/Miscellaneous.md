@@ -158,6 +158,25 @@ In `RULES.INI`:
 TiberiumStorage=yes  ; boolean, does the player need storage (silos) to collect Tiberium?
 ```
 
+## Water Movement Zone
+
+- Red Alert 2 adds a few new movement zones, among them is the `Water` movement zone, used for ships.
+
+- Unfortunately, it is not trivial to add new movement zones to Tiberian Sun. However, Vinifera allows overriding any of the existing movement zones with a copy of the RA2 `Water` movement zone.
+
+```ini
+[General]
+WaterMovementZoneOverride=  ; MZoneType, the name of the movement zone which will be replaced with Water.
+```
+
+```{note}
+Movement zone `Normal` cannot be overridden this way.
+```
+
+```{note}
+Once a movement zone is replaced with water, it cannot be reverted.
+```
+
 ## File System
 
 - `GENERIC.MIX` and `ISOGEN.MIX` mixfiles can now be used to place common assets between theaters.

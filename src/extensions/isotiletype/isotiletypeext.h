@@ -87,4 +87,9 @@ IsometricTileTypeClassExtension final : public ObjectTypeClassExtension
          *  Can veins grow on this tile type?
          */
         bool IsAllowVeins;
+
+        /**
+         *  Is this a water tunnel entrance?
+         */
+        bool IsWaterTunnel;
 };

@@ -69,6 +69,7 @@ New:
 - Add Tiberium spreader customization (by ZivDero)
 - Implement `BarGate` for buildings (by ZivDero)
 - Parachute animations with `AltPalette=yes` now remap to the parachuted unit owner's color (by ZivDero)
+- Add Water movement zone override (by ZivDero)
 
 
 Vinifera fixes:
