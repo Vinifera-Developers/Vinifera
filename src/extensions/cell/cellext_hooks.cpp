@@ -48,6 +48,7 @@
 #include "isotiletype.h"
 #include "isotiletypeext.h"
 #include "overlaytype.h"
+#include "overlaytypeext.h"
 #include "terrain.h"
 #include "terraintype.h"
 #include "tiberium.h"
@@ -174,6 +175,10 @@ void CellClassExt::_Recalc_Passability()
 
     if (Overlay != OVERLAY_NONE) {
         OverlayTypeClass const* overlay = OverlayTypes[Overlay];
+        if (Land == LAND_TUNNEL && Extension::Fetch(overlay)->IsWaterTunnel) {
+            Passability = PASSABLE_WATER;
+            return;
+        }
         if (overlay->IsCrushable) {
             Passability = PASSABLE_CRUSH;
             return;

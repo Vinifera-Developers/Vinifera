@@ -289,8 +289,8 @@ AllowVeins=yes    ; boolean, can Veins can grow on this tile?
 
 In `TEMPERAT.INI` (or other theater file):
 ```ini
-[SOMEISOTILESET]   ; IsometricTileType
-WaterTunnel=yes    ; boolean, is this tile's tunnel on water?
+[SOMEISOTILESET]  ; IsometricTileType
+WaterTunnel=no    ; boolean, is this tile's tunnel on water?
 ```
 
 ## Infantry
@@ -312,6 +312,18 @@ OmniHealer=no   ; boolean, should this infantry consider other infantry, unit, a
 
 ```{note}
 When an infantry with `Mechanic=yes` and `OmniHealer=yes` is selected and the mouse is over a transport unit or aircraft, holding down the `ALT` key (Force Move) will allow you to enter the transport instead of healing it.
+```
+
+## Overlays
+
+### WaterTunnel
+
+- If the cell the overlay is on has the `Tunnel` LandType, the `WaterTunnel` key turns this tile water-passable.
+
+In `RULES.INI`:
+```ini
+[SOMEOVERLAY]   ; OverlayType
+WaterTunnel=no  ; boolean, is this tile's tunnel on water?
 ```
 
 ## Projectiles
