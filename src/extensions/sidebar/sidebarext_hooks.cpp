@@ -72,6 +72,7 @@
 #include "hooker.h"
 #include "hooker_macros.h"
 #include "houseext.h"
+#include "miscutil.h"
 #include "msgbox.h"
 #include "optionsext.h"
 #include "rulesext.h"
@@ -687,7 +688,7 @@ void SidebarClassExt::_AI(KeyNumType& input, Point2D& xy)
 void SidebarClassExt::_Draw_It(bool complete)
 {
     complete |= IsToFullRedraw;
-    Map.field_1214 = Rect();
+    Map.LastDrawRect = Rect(0, 0, 0, 0);
     PowerClass::Draw_It(complete);
 
     Surface* oldsurface = LogicSurface;
@@ -1902,7 +1903,7 @@ void StripClassExt::_Draw_It(bool complete)
                     obj = Fetch_Techno_Type(Buildables[index].BuildableType, Buildables[index].BuildableID);
                     if (obj != nullptr)
                     {
-                        name = obj->FullName;
+                        name = obj->GivenName.c_str();
                         darken = false;
 
                         /**
@@ -1960,7 +1961,7 @@ void StripClassExt::_Draw_It(bool complete)
                 {
                     spc = (SuperWeaponType)Buildables[index].BuildableID;
 
-                    name = SuperWeaponTypes[spc]->FullName;
+                    name = SuperWeaponTypes[spc]->GivenName.c_str();
                     shapefile = Get_Special_Cameo(spc);
                     auto supertypeext = Extension::Fetch(PlayerPtr->SuperWeapon[spc]->Class);
                     if (supertypeext->CameoImageSurface != nullptr)
@@ -2058,7 +2059,7 @@ void StripClassExt::_Draw_It(bool complete)
                             factory->Object->TClass != nullptr && factory->Object->TClass != obj))
                     {
                         Point2D drawpoint(x + QUEUE_COUNT_X_OFFSET, y + TEXT_Y_OFFSET);
-                        Fancy_Text_Print("%d", SidebarSurface, &rect, &drawpoint, Fetch_Scheme_By_Name("LightGrey", 1), COLOR_TBLACK, TPF_RIGHT | TPF_FULLSHADOW | TPF_8POINT, total);
+                        Fancy_Text_Print("%d", *SidebarSurface, rect, drawpoint, Fetch_Scheme_By_Name("LightGrey", 1), COLOR_TBLACK, TPF_RIGHT | TPF_FULLSHADOW | TPF_8POINT, total);
                         hasqueuecount = true;
                     }
                 }
@@ -2073,7 +2074,7 @@ void StripClassExt::_Draw_It(bool complete)
                 if (state != nullptr)
                 {
                     Point2D drawpoint(x + TEXT_X_OFFSET, y + TEXT_Y_OFFSET);
-                    Fancy_Text_Print(state, SidebarSurface, &rect, &drawpoint, Fetch_Scheme_By_Name("LightBlue", 1), COLOR_TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_8POINT);
+                    Fancy_Text_Print(state, *SidebarSurface, rect, drawpoint, Fetch_Scheme_By_Name("LightBlue", 1), COLOR_TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_8POINT);
                 }
 
                 if (!completed)
@@ -2105,12 +2106,12 @@ void StripClassExt::_Draw_It(bool complete)
                         if (hasqueuecount)
                         {
                             Point2D drawpoint2(x, y + TEXT_Y_OFFSET);
-                            Fancy_Text_Print(TXT_HOLD, SidebarSurface, &rect, &drawpoint2, Fetch_Scheme_By_Name("LightGrey", 1), COLOR_TBLACK, TPF_FULLSHADOW | TPF_8POINT);
+                            Fancy_Text_Print(TXT_HOLD, *SidebarSurface, rect, drawpoint2, Fetch_Scheme_By_Name("LightGrey", 1), COLOR_TBLACK, TPF_FULLSHADOW | TPF_8POINT);
                         }
                         else
                         {
                             Point2D drawpoint2(x + TEXT_X_OFFSET, y + TEXT_Y_OFFSET);
-                            Fancy_Text_Print(TXT_HOLD, SidebarSurface, &rect, &drawpoint2, Fetch_Scheme_By_Name("LightGrey", 1), COLOR_TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_8POINT);
+                            Fancy_Text_Print(TXT_HOLD, *SidebarSurface, rect, drawpoint2, Fetch_Scheme_By_Name("LightGrey", 1), COLOR_TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_8POINT);
                         }
                     }
                 }
@@ -2453,11 +2454,11 @@ DECLARE_PATCH(_SidebarClass_StripClass_Help_Text_Extended_Tooltip_Patch)
     // so there should be no issue.
     if (description[0] == '\0') {
         // If there is no extended description, then simply show the name and price.
-        sprintf(extended_description, "%s@$%d", technotype->FullName, cost);
+        sprintf(extended_description, "%s@$%d", technotype->GivenName.c_str(), cost);
     }
     else {
         // If there is an extended description, then show the name, price, and the description.
-        sprintf(extended_description, "%s@$%d@@%s", technotype->FullName, cost, technotypeext->Description);
+        sprintf(extended_description, "%s@$%d@@%s", technotype->GivenName.c_str(), cost, technotypeext->Description);
     }
 
     // Set up return value
@@ -2607,9 +2608,9 @@ bool SelectClassExt::_Action(unsigned flags, KeyNumType& key)
 
                         int count_to_abandon = 1;
 
-                        if ((GetAsyncKeyState(VK_SHIFT) & 0x8000))
+                        if (Key_Down(VK_SHIFT))
                             count_to_abandon = factory->Total_Queued(*choice);
-                        else if ((GetAsyncKeyState(VK_CONTROL) & 0x8000))
+                        else if (Key_Down(VK_CONTROL))
                             count_to_abandon = std::clamp(5, 0, factory->Total_Queued(*choice));
 
                         for (int i = 0; i < count_to_abandon; i++)
@@ -2625,9 +2626,9 @@ bool SelectClassExt::_Action(unsigned flags, KeyNumType& key)
                     if (factory && factory->Is_Queued(*choice)) {
                         int count_to_abandon = 1;
 
-                        if ((GetAsyncKeyState(VK_SHIFT) & 0x8000))
+                        if (Key_Down(VK_SHIFT))
                             count_to_abandon = factory->Total_Queued(*choice);
-                        else if ((GetAsyncKeyState(VK_CONTROL) & 0x8000))
+                        else if (Key_Down(VK_CONTROL))
                             count_to_abandon = std::clamp(5, 0, factory->Total_Queued(*choice));
 
                         for (int i = 0; i < count_to_abandon; i++)
@@ -2714,7 +2715,7 @@ bool SelectClassExt::_Action(unsigned flags, KeyNumType& key)
                         } else {
                             Speak(VOX_BUILDING);
                         }
-                        const int count_to_produce = (GetAsyncKeyState(VK_SHIFT) & 0x8000) ? 5 : 1;
+                        const int count_to_produce = Key_Down(VK_SHIFT) ? 5 : 1;
                         for (int i = 0; i < count_to_produce; i++) {
                             OutList.Add(EventClassExt(PlayerPtr->Fetch_Heap_ID(), EVENT_PRODUCE, Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID,
                                 TechnoTypeClassExtension::Get_Production_Flags(Strip->Buildables[index].BuildableType, Strip->Buildables[index].BuildableID)).As_Event());

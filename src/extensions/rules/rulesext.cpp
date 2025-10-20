@@ -76,7 +76,7 @@
  *  
  *  @author: CCHyper
  */
-RulesClassExtension::RulesClassExtension(const RulesClass *this_ptr) :
+RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     GlobalExtensionClass(this_ptr),
     IsMPAutoDeployMCV(false),
     IsMPPrePlacedConYards(false),
@@ -97,7 +97,13 @@ RulesClassExtension::RulesClassExtension(const RulesClass *this_ptr) :
     UpgradeVeteranSound(VOC_NONE),
     UpgradeEliteSound(VOC_NONE),
     VoxUnitPromoted(VOX_NONE),
-    EliteFlashTimer(0)
+    EliteFlashTimer(0),
+    IsBeaconsEnabled(false),
+    IsSPBeacons(false),
+    MaxBeacons(-1),
+    PlaceBeaconSound(VOC_NONE),
+    PlaceBeaconVoice(VOX_NONE),
+    DetectBeaconVoice(VOX_NONE)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
@@ -661,6 +667,18 @@ bool RulesClassExtension::General(CCINIClass &ini)
     LowPowerPenaltyModifier = ini.Get_Float(GENERAL, "LowPowerPenaltyModifier", LowPowerPenaltyModifier);
     MultipleFactoryCap = ini.Get_Int(GENERAL, "MultipleFactoryCap", MultipleFactoryCap);
     IsTiberiumStorage = ini.Get_Bool(GENERAL, "TiberiumStorage", IsTiberiumStorage);
+    IsBeaconsEnabled = ini.Get_Bool(GENERAL, "BeaconsEnabled", IsBeaconsEnabled);
+    IsSPBeacons = ini.Get_Bool(GENERAL, "SPBeacons", IsSPBeacons);
+    MaxBeacons = ini.Get_Int(GENERAL, "MaxBeacons", MaxBeacons);
+
+    /**
+     *  Allow replacing any signle movement zone with a copy of RA2's water MZone.
+     */
+    MZoneType mzone_water = ini.Get_MZoneType(GENERAL, "WaterMovementZoneOverride", MZONE_NORMAL);
+    if (mzone_water != MZONE_NORMAL) {
+        int water[7] = {2, 2, 2, 1, 2, 2, 3}; // LAND = NO, CRUSH = NO, BLOCKED = NO, WATER = YES, PARTIALLY_BLOCKED = NO, NO = NO, OUTSIDE = ILLEGAL
+        std::copy(std::begin(water), std::end(water), MovementZonePassability[mzone_water]);
+    }
 
     return true;
 }
@@ -695,6 +713,11 @@ bool RulesClassExtension::AudioVisual(CCINIClass &ini)
     UpgradeEliteSound = ini.Get_VocType(AUDIOVISUAL, "UpgradeEliteSound", UpgradeEliteSound);
     VoxUnitPromoted = ini.Get_VoxType(AUDIOVISUAL, "VoxUnitPromoted", VoxUnitPromoted);
     EliteFlashTimer = ini.Get_Int(AUDIOVISUAL, "EliteFlashTimer", EliteFlashTimer);
+
+    
+    PlaceBeaconSound = ini.Get_VocType(AUDIOVISUAL, "PlaceBeaconSound", PlaceBeaconSound);
+    PlaceBeaconVoice = ini.Get_VoxType(AUDIOVISUAL, "PlaceBeaconVoice", PlaceBeaconVoice);
+    DetectBeaconVoice = ini.Get_VoxType(AUDIOVISUAL, "DetectBeaconVoice", DetectBeaconVoice);
 
     return true;
 }

@@ -141,6 +141,7 @@ This page lists all the individual contributions to the project by their author.
   - Implement 'OmniFire' for WeaponTypes.
   - Implement MeteorShowerCommandClass and MeteorImpactCommandClass.
   - Add the "Underground" layer to the tactical display Next and Prev search.
+  - Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2.
 - **hacklex**:
   - Add Veterancy and Health Filter hotkeys.
 - **Kerbiter (Metadorius)**:
@@ -190,6 +191,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix a buffer overflow crash in `MapClass::Place_Down`.
   - Allow pre-placed units to have missions in multiplayer.
   - Original implementations of actions in ts-patches.
+  - Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:
@@ -277,3 +279,24 @@ This page lists all the individual contributions to the project by their author.
   - Fix a bug where `OpportunityFire=true` would make technos abandon targets assigned by the player.
   - Fix a bug where `OpportunityFire=true` units could drive to crush their opportunity fire targets.
   - Fix a bug where per-type modifiers on warheads wouldn't impact weapon selection.
+  - Fix a bug where `Totable=no` did not work.
+  - Fix a bug where the "Building exists" event would fire when you queued a building on the sidebar.
+  - Fix a bug where using the "Destroy Tag" trigger action could lead to trying to free invalid memory.
+  - Implement `BarGate` for buildings.
+  - Add Tiberium spreader customization.
+  - Fix a bug where carryalls would unload infantry like they unload vehicles.
+  - Fix a bug where carryalls would draw their infantry passenger's shadow.
+  - Fix a bug where carryalls would try to drop off units when landing on a helipad.
+  - Fix a bug where carryalls would land too high when carrying infantry.
+  - Fix a bug where carryalls would allow boarding in some situations when they shouldn't.
+  - Fix a bug where carryalls assign their ROT to the unit they're carrying.
+  - Fix a bug where paradropped vehicles would be placed off-center in the cell.
+  - Fix a bug where vehicles paradropped from a carryall would be drawn with an offset.
+  - Parachute animations with `AltPalette=yes` now remap to the parachuted unit owner's color.
+  - Fix a bug where paradrops didn't take cell passability and bridges into account.
+  - Add Water movement zone override.
+  - Implement multiplayer beacons.
+  - Chat improvements.
+  - Fix a bug where under some circumstances Tiberium would halt spreading and/or growing temporarily.
+  - Fix a bug where Tiberium spawned by animations wouldn't grow or spread.
+  - Fix a bug where carryalls assign their ROT to the unit they're carrying.

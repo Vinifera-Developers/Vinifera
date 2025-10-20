@@ -39,6 +39,8 @@
  */
 class EventClassExt
 {
+    friend void EventClassExtension_Hooks();
+
 public:
     EventClassExt() { Type = EVENT_EMPTY; }
     EventClassExt(int index, EventType type, RTTIType object, int id, ProductionFlags flags);

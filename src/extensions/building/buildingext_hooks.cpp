@@ -406,7 +406,7 @@ void BuildingClassExt::_Draw_It(Point2D const& xdrawpoint, Rect const& xcliprect
         shapefile = Get_Image_Data();
 
         ZGradientType zgrad = ZGRAD_GROUND;
-        if (shapenum < Class->GateStages / 2) {
+        if (shapenum < Class->GateStages / 2 || type_ext->IsBarGate) {
             zgrad = ZGRAD_90DEG;
         }
 
@@ -706,7 +706,7 @@ ActionType BuildingClassExt::_What_Action(ObjectClass const* object, bool disall
                          *
                          *  @author: Rampastring
                          */
-                        if (Map[cell].Passability != PASSABLE_OK && !(Extension::Fetch(Class)->IsNaval && Map[cell].Passability == PASSABLE_WATER)) {
+                        if (Map[cell].Passability != PASSABLE_LAND && !(Extension::Fetch(Class)->IsNaval && Map[cell].Passability == PASSABLE_WATER)) {
                             action = ACTION_NOMOVE;
                         }
                     }
@@ -752,7 +752,7 @@ ActionType BuildingClassExt::_What_Action(const Cell& cell, bool check_fog, bool
                  *
                  *  @author: Rampastring
                  */
-                if (Map[cell].Passability != PASSABLE_OK && !(Extension::Fetch(Class)->IsNaval && Map[cell].Passability == PASSABLE_WATER)) {
+                if (Map[cell].Passability != PASSABLE_LAND && !(Extension::Fetch(Class)->IsNaval && Map[cell].Passability == PASSABLE_WATER)) {
                     action = ACTION_NOMOVE;
                 }
                 
@@ -1043,9 +1043,7 @@ bool _BuildingClass_Mission_Repair_Assign_Unit_Destination(BuildingClass *buildi
 
     if (building->ArchiveTarget != nullptr)
     {
-        bool is_object = Target_As_Object(building->ArchiveTarget) != nullptr;
-
-        if (Target_Legal(building->ArchiveTarget, is_object))
+        if (building->ArchiveTarget != nullptr)
             target = building->ArchiveTarget;
     }
 
@@ -1643,8 +1641,8 @@ DECLARE_PATCH(_BuildingClass_Mission_Deconstruction_ConYard_Survivors_Patch)
 DECLARE_PATCH(_BuildingClass_Mission_Deconstruction_ConYard_Unlimbo_Patch)
 {
     GET_REGISTER_STATIC(UnitClass*, mcv, ebp);
-    LEA_STACK_STATIC(Coord*, coords, esp, 0x40);
     GET_REGISTER_STATIC(Dir256, dir, eax);
+    LEA_STACK_STATIC(Coord*, coords, esp, 0x40);
 
     static bool result;
 

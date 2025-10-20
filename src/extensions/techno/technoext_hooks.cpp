@@ -319,7 +319,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
 
             std::snprintf(buffer, std::size(buffer), "%d", group >= 10 ? 0 : group);
             const ColorSchemeType colorschemetype = Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor;
-            Plain_Text_Print(buffer, LogicSurface, &rect, &drawpoint, COLOR_WHITE, COLOR_TBLACK, TPF_FULLSHADOW | TPF_EFNT, colorschemetype, 1);
+            Plain_Text_Print(buffer, *LogicSurface, rect, drawpoint, COLOR_WHITE, COLOR_TBLACK, TPF_FULLSHADOW | TPF_EFNT, colorschemetype, 1);
         }
     }
 
@@ -383,7 +383,7 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
  */
 WeaponSlotType TechnoClassExt::_What_Weapon_Should_I_Use(AbstractClass * target) const
 {
-    if (!Target_Legal(target)) {
+    if (target == nullptr) {
         return WEAPON_SLOT_PRIMARY;
     }
 
@@ -531,15 +531,16 @@ bool TechnoClassExt::_Spawner_Fire_At(AbstractClass * target, WeaponTypeClass* w
  */
 bool TechnoClassExt::_Target_Something_Nearby(Coord& coord, ThreatType threat)
 {
-    auto extension = Extension::Fetch(this);
+    threat &= THREAT_RANGE | THREAT_AREA;
 
+    auto extension = Extension::Fetch(this);
     extension->LastTargetFrame = Frame;
 
     /**
      *  Determine that if there is an existing target it is still legal
      *  and within range.
      */
-    if (TarCom != nullptr && extension->HasOpportunityFireTarget) {
+    if (TarCom != nullptr && (extension->HasOpportunityFireTarget || (threat & THREAT_RANGE))) {
         WeaponSlotType primary = What_Weapon_Should_I_Use(TarCom);
         FireErrorType fire = Can_Fire(TarCom, primary);
 
@@ -558,14 +559,14 @@ bool TechnoClassExt::_Target_Something_Nearby(Coord& coord, ThreatType threat)
      *  If there is no target, then try to find one and assign it as
      *  the target for this unit.
      */
-    if (!Target_Legal(TarCom)) {
-        Assign_Target(Greatest_Threat(threat & (THREAT_RANGE | THREAT_AREA), coord));
+    if (TarCom == nullptr) {
+        Assign_Target(Greatest_Threat(threat, coord));
     }
 
     /**
      *  Return with answer to question: Does this unit now have a target?
      */
-    return Target_Legal(TarCom);
+    return TarCom != nullptr;
 }
 
 
@@ -701,7 +702,7 @@ FireErrorType TechnoClassExt::_Can_Fire(AbstractClass * target, WeaponSlotType w
     /**
      *  Don't allow firing if the target is illegal.
      */
-    if (!Target_Legal(target))
+    if (target == nullptr)
         return FIRE_ILLEGAL;
 
     const auto ext = Extension::Fetch(this);
@@ -843,10 +844,10 @@ FireErrorType TechnoClassExt::_Can_Fire(AbstractClass * target, WeaponSlotType w
     /**
      *  An object can only have one instance of a particle/wave active at a time.
      */
-    if (weapon->IsUseFireParticles && ParticleSystems[ATTACHED_PARTICLE_FIRE]) return FIRE_CANT;
-    if (weapon->IsRailgun && ParticleSystems[ATTACHED_PARTICLE_RAILGUN]) return FIRE_CANT;
-    if (weapon->IsUseSparkParticles && ParticleSystems[ATTACHED_PARTICLE_SPARK]) return FIRE_CANT;
-    if (weapon->IsSonic && Wave) return FIRE_CANT;
+    if (weapon->IsUseFireParticles && ParticleSystems[ATTACHED_PARTICLE_FIRE]) return FIRE_BUSY;
+    if (weapon->IsRailgun && ParticleSystems[ATTACHED_PARTICLE_RAILGUN]) return FIRE_BUSY;
+    if (weapon->IsUseSparkParticles && ParticleSystems[ATTACHED_PARTICLE_SPARK]) return FIRE_BUSY;
+    if (weapon->IsSonic && Wave) return FIRE_BUSY;
 
     /**
      *  The target must be within range in order to allow firing.
@@ -947,7 +948,7 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
     /**
      *  Human-controlled units that have a target don't retaliate.
      */
-    if (House->Is_Human_Player() && Target_Legal(TarCom))
+    if (House->Is_Human_Player() && TarCom != nullptr)
         return false;
 
     /**
@@ -1048,10 +1049,10 @@ bool TechnoClassExt::_Is_Allowed_To_Retaliate(TechnoClass* source, WarheadTypeCl
      *  Compare potential threat of the current target and the potential new target. Don't retaliate
      *  if it is currently attacking the greater threat.
      */
-    if (!House->Is_Human_Player() && Target_Legal(TarCom) && Is_Target_Object(TarCom))
+    if (!House->Is_Human_Player() && TarCom != nullptr && Is_Target_Object(TarCom))
     {
-        const float current_val = Target_Threat(static_cast<TechnoClass*>(TarCom), Coord());
-        const float source_val = Target_Threat(source, Coord());
+        const float current_val = Target_Threat(static_cast<TechnoClass*>(TarCom), Coord(0, 0, 0));
+        const float source_val = Target_Threat(source, Coord(0, 0, 0));
 
         if (source_val < current_val)
             return false;
@@ -1155,7 +1156,7 @@ double TechnoClassExt::_Target_Threat(TechnoClass* target, Coord& firing_coord) 
      *  Adjust threat if the target is outside our threat range.
      */
     int dist;
-    if (firing_coord == Coord())
+    if (firing_coord == Coord(0, 0, 0))
         dist = (Center_Coord() - target->Center_Coord()).Length() / 256;
     else
         dist = (firing_coord - target->Center_Coord()).Length();
@@ -1727,7 +1728,7 @@ void TechnoClassExt::_Draw_Text_Overlay(Point2D& point1, Point2D& point2, Rect& 
     {
         const auto owner = Owner_HouseClass();
         std::sprintf(buffer, Fetch_String(TXT_POWER_DRAIN), owner->Power_Output(), owner->Power_Drain());
-        Plain_Text_Print(buffer, LogicSurface, &rect, &point2, COLOR_WHITE, COLOR_TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_EFNT, colorschemetype, 1);
+        Plain_Text_Print(buffer, *LogicSurface, rect, point2, COLOR_WHITE, COLOR_TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_EFNT, colorschemetype, 1);
     }
 
     /**
@@ -1736,7 +1737,7 @@ void TechnoClassExt::_Draw_Text_Overlay(Point2D& point1, Point2D& point2, Rect& 
     if (IsLeader)
     {
         const int text = RTTI == RTTI_BUILDING && reinterpret_cast<const BuildingClass*>(this)->Class->Width() == 1 ? TXT_PRI : TXT_PRIMARY;
-        Plain_Text_Print(text, LogicSurface, &rect, &point2, COLOR_WHITE, COLOR_TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_EFNT, colorschemetype, 1);
+        Plain_Text_Print(text, *LogicSurface, rect, point2, COLOR_WHITE, COLOR_TBLACK, TPF_CENTER | TPF_FULLSHADOW | TPF_EFNT, colorschemetype, 1);
     }
 }
 
@@ -2828,7 +2829,7 @@ bool _TechnoClass_Evaluate_Object_Zone_Evaluation_Is_Valid_Target(TechnoClass* t
     }
 
     // For some reason the target zone scan type was invalid. Something is wrong.
-    Fatal("Invalid TargetZoneScanType for techno type %s", technotype->IniName);
+    Fatal("Invalid TargetZoneScanType for techno type %s", technotype->IniName.c_str());
     return false;
 }
 

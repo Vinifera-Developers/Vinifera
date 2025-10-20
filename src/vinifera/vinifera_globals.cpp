@@ -99,7 +99,7 @@ DynamicVectorClass<PrerequisiteGroupClass *> PrerequisiteGroups;
 KamikazeTrackerClass* KamikazeTracker = nullptr;
 AircraftTrackerClass* AircraftTracker = nullptr;
 
-int EnvironmentGlobals[std::size(ScenExtension->GlobalFlags)];
+int EnvironmentGlobals[/*std::size(ScenExtension->GlobalFlags)*/500];
 
 MFCD *GenericMix = nullptr;
 MFCD *IsoGenericMix = nullptr;
@@ -114,6 +114,5 @@ bool Vinifera_SkipToInternet = false;
 bool Vinifera_ExitAfterSkip = false;
 
 bool Vinifera_NewSidebar = false;
-bool Vinifera_NoVersionString = false;
 
 DynamicVectorClass<ExceptionInfoDatabaseStruct> ExceptionInfoDatabase;

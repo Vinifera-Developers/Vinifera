@@ -57,6 +57,7 @@ private:
     static bool Do_TEXT_TRIGGER(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     static bool Do_DESTROY_TRIGGER(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     static bool Do_ENABLE_TRIGGER(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
+    static bool Do_DESTROY_TAG(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     static bool Do_PLAY_SOUND_RANDOM(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
 
     /**

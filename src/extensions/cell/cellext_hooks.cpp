@@ -39,17 +39,21 @@
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
-#include "building.h"
+#include "cellext.h"
 #include "extension.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "house.h"
 #include "isotiletype.h"
 #include "isotiletypeext.h"
 #include "overlaytype.h"
+#include "overlaytypeext.h"
 #include "terrain.h"
 #include "terraintype.h"
 #include "tiberium.h"
+#include "tiberiumext.h"
+#include "tactical.h"
 
 /**
  *  A fake class for implementing new member functions which allow
@@ -62,7 +66,11 @@ static DECLARE_EXTENDING_CLASS_AND_PAIR(CellClass)
 {
 public:
     bool _Can_Tiberium_Germinate(TiberiumClass const* tiberium) const;
+    bool _Can_Tiberium_Spread();
     bool _Can_Place_Veins() const;
+    bool _Spread_Tiberium(bool forced);
+    void _Recalc_Passability();
+    int _Reduce_Tiberium(int levels);
 };
 
 
@@ -101,8 +109,36 @@ bool CellClassExt::_Can_Tiberium_Germinate(TiberiumClass const* tiberium) const
 
         auto ittype_ext = Extension::Fetch(ittype);
 
-        if (ittype_ext->AllowedTiberiums.Count() > 0 && !ittype_ext->AllowedTiberiums.Is_Present(const_cast<TiberiumClass*>(tiberium))) return false;
+        if (tiberium != nullptr && ittype_ext->AllowedTiberiums.Count() > 0 && !ittype_ext->AllowedTiberiums.Is_Present(tiberium->HeapID)) return false;
     }
+
+    return true;
+}
+
+
+/**
+ *  Re-implementation of CellClass::Can_Tiberium_Spread.
+ *
+ *  @author: ZivDero, tomsons26
+ */
+bool CellClassExt::_Can_Tiberium_Spread()
+{
+    if (!Scen->Special.IsTSpread) return false;
+
+    TiberiumType tiberium = Tiberium_Type_Here();
+
+    if (tiberium == TIBERIUM_NONE) return false;
+
+    /**
+     *  Use the new setting as the minimum stage to spread.
+     */
+    if (OverlayData < Extension::Fetch(Tiberiums[tiberium])->MinSpreadStage) return false;
+
+    if (Tiberiums[tiberium]->SpreadPercentage < 0.00001) return false;
+
+    if (Cell_Occupier() != nullptr) return false;
+
+    if (OverlayData)
 
     return true;
 }
@@ -143,6 +179,138 @@ bool CellClassExt::_Can_Place_Veins() const
         }
     }
     return false;
+}
+
+
+/**
+ *  Proxy for CellClassExt::Spread_Tiberium.
+ *
+ *  @author: ZivDero
+ */
+bool CellClassExt::_Spread_Tiberium(bool forced)
+{
+    return CellClassExtension::Spread_Tiberium(this, forced);
+}
+
+
+/**
+ *  Re-implementation of CellClass::Recalc_Passability.
+ *
+ *  @author: ZivDero, tomsons26
+ */
+void CellClassExt::_Recalc_Passability()
+{
+    if (!Map.In_Local_Radar(CellID)) {
+        Passability = PASSABLE_OUTSIDE;
+        return;
+    }
+
+    if (Overlay != OVERLAY_NONE) {
+        OverlayTypeClass const* overlay = OverlayTypes[Overlay];
+        if (Land == LAND_TUNNEL && Extension::Fetch(overlay)->IsWaterTunnel) {
+            Passability = PASSABLE_WATER;
+            return;
+        }
+        if (overlay->IsCrushable) {
+            Passability = PASSABLE_CRUSH;
+            return;
+        }
+        if (overlay->IsWall) {
+            Passability = PASSABLE_BLOCKED;
+            return;
+        }
+        if (Ground[overlay->Land].Cost[SPEED_WHEEL] == 0) {
+            Passability = PASSABLE_NO;
+            return;
+        }
+    }
+
+    if (Land == LAND_WATER || Land == LAND_BEACH || (Land == LAND_TUNNEL && ITType != ISOTILE_NONE && Extension::Fetch(IsoTileTypes[ITType])->IsWaterTunnel)) {
+        Passability = PASSABLE_WATER;
+        return;
+    }
+
+    if (Ground[Land].Cost[SPEED_WHEEL] <= 0.01) {
+        Passability = PASSABLE_NO;
+        return;
+    }
+
+    ObjectClass* occupier = OccupierPtr;
+    while (occupier != nullptr) {
+        switch (occupier->RTTI) {
+        case RTTI_BUILDING:
+            if (static_cast<BuildingClass*>(occupier)->Class->IsFirestormWall) {
+                if (static_cast<BuildingClass*>(occupier)->House->IsFirestormActive) {
+                    Passability = PASSABLE_NO;
+                    return;
+                }
+            } else if (static_cast<BuildingClass*>(occupier)->Class->IsLaserFence) {
+                if (static_cast<BuildingClass*>(occupier)->LaserFenceFrame != 12 && static_cast<BuildingClass*>(occupier)->LaserFenceFrame != 8) {
+                    Passability = PASSABLE_NO;
+                }
+            }
+            break;
+
+        case RTTI_TERRAIN:
+            if ((Scen->Theater == THEATER_TEMPERATE && static_cast<TerrainClass*>(occupier)->Class->TemperateOccupationBits != 7) || (Scen->Theater == THEATER_SNOW && static_cast<TerrainClass*>(occupier)->Class->SnowOccupationBits != 7)) {
+                Passability = PASSABLE_PARTIALLY_BLOCKED;
+                return;
+            }
+
+            Passability = PASSABLE_BLOCKED;
+            return;
+        }
+        occupier = occupier->Next;
+    }
+
+    Passability = PASSABLE_LAND;
+}
+
+
+/**
+ *  Re-implementation of CellClass::Reduce_Tiberium.
+ *
+ *  @author: ZivDero
+ */
+int CellClassExt::_Reduce_Tiberium(int levels)
+{
+    Rect dirty = Union(Overlay_Render_Rect(), Overlay_Shadow_Render_Rect());
+    dirty.Y -= TacticalRect.Y;
+
+    TiberiumType tibtype = Tiberium_Type_Here();
+    int reducer = levels;
+
+    if (levels > 0 && tibtype != TIBERIUM_NONE) {
+        TiberiumClass* tiberium = Tiberiums[tibtype];
+        if (OverlayData == tiberium->FrameCount - 1) {
+            tiberium->Queue_Growth(CellID);
+        }
+        if (OverlayData + 1 > levels) {
+            OverlayData -= levels;
+            reducer = levels;
+        } else {
+            PassabilityType passability = Passability;
+            Overlay = OVERLAY_NONE;
+            reducer = OverlayData;
+            OverlayData = 0;
+            Recalc_Attributes();
+            if (passability != Passability) {
+                Map.Update_Cell_Zone(CellID);
+                Map.Update_Cell_Subzones(CellID);
+            }
+            Map.Flag_Background_Update(CellID);
+            tiberium->Clear_Spread_State(CellID);
+            for (int facing = FACING_FIRST; facing < FACING_COUNT; facing++) {
+                Cell adjacent = ::Adjacent_Cell(CellID, static_cast<FacingType>(facing));
+                if (Map.In_Radar(adjacent) && !Extension::Fetch(tiberium)->SpreadState[Map_Cell_Index(adjacent)]) {
+                    tiberium->Queue_Spread(adjacent);
+                }
+            }
+        }
+        TacticalMap->Register_Dirty_Area(dirty);
+        return reducer;
+    }
+    return 0;
 }
 
 
@@ -365,6 +533,10 @@ void CellClassExtension_Hooks()
     Patch_Jump(0x00454E60, &_CellClass_Draw_Shroud_Fog_Patch);
     Patch_Jump(0x00455130, &_CellClass_Draw_Fog_Patch);
     Patch_Jump(0x004596C0, &CellClassExt::_Can_Tiberium_Germinate);
+    Patch_Jump(0x00459300, &CellClassExt::_Can_Tiberium_Spread);
     Patch_Jump(0x0045B0D0, &CellClassExt::_Can_Place_Veins);
+    Patch_Jump(0x004594D0, &CellClassExt::_Spread_Tiberium);
+    Patch_Jump(0x00459A00, &CellClassExt::_Recalc_Passability);
+    Patch_Jump(0x00456BF0, &CellClassExt::_Reduce_Tiberium);
     Patch_Jump(0x004531E4, &_CellClass_Update_Wall_Owner_Skip_Buildings_That_Cannot_Own_Walls_Patch);
 }

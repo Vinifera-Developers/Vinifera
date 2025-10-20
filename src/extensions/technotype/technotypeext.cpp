@@ -176,8 +176,8 @@ HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
      *  We need to reload the "Cameo" key because TechnoTypeClass does
      *  not store the entry value. 
      */
-    const char *ini_name = IniName;
-    const char *graphic_name = GraphicName;
+    const char *ini_name = IniName.c_str();
+    const char* graphic_name = GraphicName.c_str();
 
     char cameo_buffer[32];
     
@@ -387,7 +387,7 @@ bool TechnoTypeClassExtension::Read_INI(CCINIClass &ini)
     /**
      *  Fetch the cameo image surface if it exists.
      */
-    BSurface* imagesurface = Vinifera_Get_Image_Surface(This()->CameoFilename);
+    BSurface* imagesurface = Vinifera_Get_Image_Surface(This()->CameoFilename.c_str());
     if (imagesurface) {
         CameoImageSurface = imagesurface;
     }

@@ -52,6 +52,8 @@ DynamicVectorClass<SmudgeClassExtension *> SmudgeExtensions;
 DynamicVectorClass<SmudgeTypeClassExtension *> SmudgeTypeExtensions;
 DynamicVectorClass<SuperClassExtension *> SuperExtensions;
 DynamicVectorClass<SuperWeaponTypeClassExtension *> SuperWeaponTypeExtensions;
+DynamicVectorClass<TeamClassExtension*> TeamExtensions;
+DynamicVectorClass<TeamTypeClassExtension*> TeamTypeExtensions;
 DynamicVectorClass<TerrainClassExtension *> TerrainExtensions;
 DynamicVectorClass<TerrainTypeClassExtension *> TerrainTypeExtensions;
 DynamicVectorClass<TiberiumClassExtension *> TiberiumExtensions;

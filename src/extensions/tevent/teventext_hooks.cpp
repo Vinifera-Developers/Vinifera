@@ -508,7 +508,7 @@ bool TEventClassExt::_Operator_Parens_Intercept(TEventType event, HouseClass con
             **  Verify that the structure has been built.
             */
         case TEVENT_BUILDING_EXISTS:
-            if (house->BQuantity.Value(Data.Structure) == 0) return false;
+            if (house->ActiveBQuantity.Value(Data.Structure) == 0) return false;
             is_perm = true;
             break;
 
@@ -630,6 +630,7 @@ bool TEventClassExt::_Is_Temporal() const
     case TEVENT_ATTACKED_BY:
     case TEVENT_DESTROYED:
     case TEVENT_DESTROYED_ANY:
+    case TEVENT_DESTROYED_ANY_X:
     case TEVENT_EVAC_CIVILIAN:
     case TEVENT_BUILD:
     case TEVENT_BUILD_UNIT:
@@ -648,11 +649,11 @@ bool TEventClassExt::_Is_Temporal() const
     case TEVENT_FIRST_DAMAGED_ANY:
     case TEVENT_ENTER_YELLOW_ANY:
     case TEVENT_ENTER_RED_ANY:
+    case TEVENT_BRIDGE_DESTROYED:
     case TEVENT_PARALYZED:
     case TEVENT_ENEMY_IN_SPOTLIGHT_REPEATING:
     case TEVENT_LIMPED:
         return true;
-
     }
     return false;
 }
@@ -811,7 +812,7 @@ void TEventClassExt::_Build_INI_Entry(char* ptr) const
         break;
 
     case 1:
-        std::sprintf(ptr, "%d,%d,%s", Event, code, Team->IniName);
+        std::sprintf(ptr, "%d,%d,%s", Event, code, Team->IniName.c_str());
         break;
 
     case 2:

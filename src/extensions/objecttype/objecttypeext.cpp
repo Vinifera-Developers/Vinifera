@@ -65,7 +65,9 @@ ObjectTypeClassExtension::ObjectTypeClassExtension(const ObjectTypeClass *this_p
  *  @author: CCHyper
  */
 ObjectTypeClassExtension::ObjectTypeClassExtension(const NoInitClass &noinit) :
-    AbstractTypeClassExtension(noinit)
+    AbstractTypeClassExtension(noinit),
+    GraphicName(noinit),
+    AlphaGraphicName(noinit)
 {
     //EXT_DEBUG_TRACE("ObjectTypeClassExtension::ObjectTypeClassExtension(NoInitClass) - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -108,7 +110,7 @@ HRESULT ObjectTypeClassExtension::Load(IStream *pStm)
     NoSpawnVoxel.Clear();
     WaterVoxel.Clear();
 
-    Fetch_Voxel_Image(GraphicName);
+    Fetch_Voxel_Image(GraphicName.c_str());
     
     return hr;
 }
@@ -124,10 +126,10 @@ HRESULT ObjectTypeClassExtension::Save(IStream *pStm, BOOL fClearDirty)
     //EXT_DEBUG_TRACE("ObjectTypeClassExtension::Save - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
     /**
-     *  Store the graphic name strings as raw data, these are used by the load operation.
+     *  Store the graphic name strings, these are used by the load operation.
      */
-    std::strncpy(GraphicName, Graphic_Name(), sizeof(GraphicName));
-    std::strncpy(AlphaGraphicName, Alpha_Graphic_Name(), sizeof(AlphaGraphicName));
+    GraphicName = Graphic_Name();
+    AlphaGraphicName = Alpha_Graphic_Name();
 
     HRESULT hr = AbstractTypeClassExtension::Save(pStm, fClearDirty);
     if (FAILED(hr)) {
@@ -172,7 +174,7 @@ bool ObjectTypeClassExtension::Read_INI(CCINIClass &ini)
     const char* ini_name = Name();
 
     if (!IsInitialized) {
-        WaterAlt = strcmpi(This()->IniName, "APC") == 0;
+        WaterAlt = strcmpi(This()->IniName.c_str(), "APC") == 0;
     }
 
     if (!AbstractTypeClassExtension::Read_INI(ini)) {

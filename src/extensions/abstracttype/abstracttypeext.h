@@ -28,6 +28,7 @@
 #pragma once
 
 #include "abstractext.h"
+#include "stringid.h"
 
 
 class AbstractTypeClass;
@@ -57,8 +58,8 @@ class AbstractTypeClassExtension : public AbstractClassExtension
         /**
          *  These are only to be accessed for save and load operations!
          */
-        char IniName[24 + 1];
-        char FullName[48 + 1];
+        FixedString<24> IniName;
+        FixedString<48> GivenName;
 
         /**
          *  Has this extension already executed Read_INI?

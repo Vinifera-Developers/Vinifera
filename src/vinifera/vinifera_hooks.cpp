@@ -52,6 +52,7 @@
 #include "kamikazetracker.h"
 #include "spawnmanager.h"
 #include "armortype.h"
+#include "beacon.h"
 #include "layer.h"
 #include "prerequisitegroup.h"
 #include "rockettype.h"
@@ -129,6 +130,8 @@ static void _Free_Heaps_Intercept()
         delete PrerequisiteGroups[0];
     }
     Delete_Marked();
+
+    BeaconManager.Reset();
 
     --ScenarioInit;
 }

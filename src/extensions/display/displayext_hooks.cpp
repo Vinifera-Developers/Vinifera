@@ -274,7 +274,7 @@ DECLARE_PATCH(_DisplayClass_Passes_Proximity_Passes_Check_Patch)
                 buildingtypeext = Extension::Fetch(base->Class);
                 if (buildingtypeext->IsEligibleForAllyBuilding) {
 #ifndef NDEBUG
-                    //DEV_DEBUG_INFO("Ally \"%s's\" building \"%s\" is eligible for building off.\n", base->House->IniName, base->Name());
+                    //DEV_DEBUG_INFO("Ally \"%s's\" building \"%s\" is eligible for building off.\n", base->House->IniName.c_str(), base->Name());
 #endif
                     passes();
                 }

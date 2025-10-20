@@ -26,13 +26,6 @@
  *
  ******************************************************************************/
 #include "msglistext_hooks.h"
-#include "vinifera_globals.h"
-#include "tibsun_globals.h"
-#include "session.h"
-#include "msglist.h"
-#include "house.h"
-#include "housetype.h"
-#include "rules.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
@@ -41,52 +34,11 @@
 #include "hooker_macros.h"
 
 
-static int Get_Message_Delay()
-{
-    return Rule->MessageDelay * TICKS_PER_MINUTE;
-}
-
-
-/**
- *  #issue-37
- * 
- *  Echo the users sent messages back to them (as a confirmation that it was sent).
- * 
- *  @author: CCHyper (based on research by Iran, back ported from Red Alert 2)
- */
-DECLARE_PATCH(_MessageListClass_Echo_Sent_Messages_Patch)
-{
-    GET_REGISTER_STATIC(MessageListClass *, this_ptr, esi);
-    GET_ADDRESS_STATIC(char *, Session_GPacket_Message_Buf, 0x007E3AD0);
-    static char echobuff[MAX_MESSAGE_LENGTH]; 
-
-    /**
-     *  Original code:
-     * 
-     *  Store this message in our LastMessage buffer.
-     */
-    std::strcpy(Session.LastMessage, Session_GPacket_Message_Buf);
-
-    /**
-     *  Echo the last sent message back to the user.
-     */
-    std::snprintf(echobuff, sizeof(echobuff), TEXT_S_S, PlayerPtr->IniName, Session.LastMessage);
-  	Session.Messages.Add_Message(
-        nullptr, 0, echobuff, PlayerPtr->Scheme,
-        TPF_6PT_GRAD|TPF_USE_GRAD_PAL|TPF_FULLSHADOW,
-        Get_Message_Delay());
-
-    /**
-     *  Flag screen to redraw.
-     */
-    JMP_REG(ecx, 0x00509D36);
-}
-
-
 /**
  *  Main function for patching the hooks.
  */
 void MessageListClassExtension_Hooks()
 {
-    Patch_Jump(0x00509D16, &_MessageListClass_Echo_Sent_Messages_Patch);
+    // Replace the message format to add a space after the semicolon after the message author's name.
+    Patch_Dword(0x00573161 + 1, reinterpret_cast<uintptr_t>(&"%s: %s"));
 }

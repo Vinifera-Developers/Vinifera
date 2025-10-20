@@ -66,6 +66,12 @@ New:
 - Implement integer varialbes, and trigger actiosn and events to operate on them (by ZivDero)
 - Veterancy and Health Filter kotkeys (by hacklex)
 - Add unit promotion sounds, EVA and flashing (by ZivDero)
+- Add Tiberium spreader customization (by ZivDero)
+- Implement `BarGate` for buildings (by ZivDero)
+- Parachute animations with `AltPalette=yes` now remap to the parachuted unit owner's color (by ZivDero)
+- Add Water movement zone override (by ZivDero)
+- Implement multiplayer beacons (by ZivDero)
+- Chat improvements (by ZivDero)
 
 
 Vinifera fixes:
@@ -76,6 +82,10 @@ Vinifera fixes:
 - Fix a bug where `OpportunityFire=true` would make technos abandon targets assigned by the player (by ZivDero)
 - Fix a bug where `OpportunityFire=true` units could drive to crush their opportunity fire targets (by ZivDero)
 - Fix a bug where per-type modifiers on warheads wouldn't impact weapon selection (by ZivDero)
+- Fix a bug where `Totable=no` did not work (by ZivDero)
+- Fix a crash that could happen if you lost a factory while producing something (by ZivDero)
+- Fix problems with new IsometricTileType flags during save/load (by ZivDero)
+- Fix a bug where when undeploying a building, the resulting unit would face the wrong way (by ZivDero)
 
 
 Vanilla fixes:
@@ -85,6 +95,22 @@ Vanilla fixes:
 - Fix a bug where a weeder could be ordered to dock with a waste facility that wasn't listed in the weeder's `Dock=` key (by ZivDero)
 - Fix a bug where the player couldn't repair aircraft on allied repair bays under some circumstances (by ZivDero)
 - Fix a buffer overflow crash in `MapClass::Place_Down` (by Rampastring)
+- Fix a bug where the "Building exists" event would fire when you queued a building on the sidebar (by ZivDero)
+- Fix a bug where using the "Destroy Tag" trigger action could lead to trying to free invalid memory (by ZivDero)
+- Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2 (by tomsons26, Rampastring)
+- Fix a bug where carryalls would unload infantry like they unload vehicles (by ZivDero)
+- Fix a bug where carryalls would draw their infantry passenger's shadow (by ZivDero)
+- Fix a bug where carryalls would try to drop off units when landing on a helipad (by ZivDero)
+- Fix a bug where carryalls would land too high when carrying infantry (by ZivDero)
+- Fix a bug where carryalls would allow boarding in some situations when they shouldn't (by ZivDero)
+- Fix a bug where carryalls assign their ROT to the unit they're carrying (by ZivDero)
+- Fix a bug where paradropped vehicles would be placed off-center in the cell (by ZivDero)
+- Fix a bug where vehicles paradropped from a carryall would be drawn with an offset (by ZivDero)
+- Fix a bug where paradrops didn't take cell passability and bridges into account (by ZivDero)
+- Fix a bug where units in guard mode would not abandon targets out of their range (by ZivDero)
+- Fix a bug where under some circumstances Tiberium would halt spreading and/or growing temporarily (by ZivDero)
+- Fix a bug where Tiberium spawned by animations wouldn't grow or spread (by ZivDero)
+- Fix a bug where carryalls assign their ROT to the unit they're carrying (by ZivDero)
 
 :::
 

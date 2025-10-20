@@ -80,3 +80,16 @@ This page lists all vanilla bugs fixed by Vinifera.
 - Fix the player being able to land an aircraft onto a helipad even if it's not listed as `Dock=` of this aircraft.
 - Fix a bug where the player couldn't repair aircraft on allied repair bays under some circumstances.
 - Fix a buffer overflow crash in `MapClass::Place_Down`.
+- Fix a bug where the "Building exists" event would fire when you queued a building on the sidebar.
+- Fix a bug where using the "Destroy Tag" trigger action could lead to trying to free invalid memory.
+- Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2.
+- Fix a bug where carryalls would unload infantry like they unload vehicles.
+- Fix a bug where carryalls would draw their infantry passenger's shadow.
+- Fix a bug where carryalls would try to drop off units when landing on a helipad.
+- Fix a bug where carryalls would land too high when carrying infantry.
+- Fix a bug where carryalls would allow boarding in some situations when they shouldn't.
+- Fix a bug where carryalls assign their ROT to the unit they're carrying.
+- Fix a bug where paradropped vehicles would be placed off-center in the cell.
+- Fix a bug where vehicles paradropped from a carryall would be drawn with an offset.
+- Fix a bug where paradrops didn't take cell passability and bridges into account.
+- Fix a bug where carryalls assign their ROT to the unit they're carrying.

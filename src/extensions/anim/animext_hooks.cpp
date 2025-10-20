@@ -85,7 +85,7 @@ public:
  */
 LayerType AnimClassExt::_In_Which_Layer() const
 {
-    if (Target_Legal(xObject)) {
+    if (xObject != nullptr) {
         return LAYER_GROUND;
     }
 
@@ -120,7 +120,7 @@ static void Do_Anim_Damage(AnimClass* anim, int damage)
     /*
      *  INVISO is hardcoded to use C4Warhead, let's leave that just in case.
      */
-    if (std::strcmp(anim->Class->IniName, "INVISO") == 0) {
+    if (anim->Class->IniName == "INVISO") {
         Explosion_Damage(anim->Center_Coord(), damage, nullptr, Rule->C4Warhead);
     }
     /*
@@ -225,11 +225,15 @@ void AnimClassExt::_AI()
                             if ((int)sqrt((double)x * (double)x + (double)y * (double)y) <= Class->TiberiumSpreadRadius) {
                                 CellClass* tibcell = &Map[Adjacent_Cell(coord.As_Cell(), FacingType(x))];
                                 if (tibcell->Can_Tiberium_Germinate(nullptr) && Class->TiberiumSpawnType != nullptr) {
-                                    new OverlayClass(OverlayTypes[Class->TiberiumSpawnType->HeapID + Random_Pick(0, 3)], tibcell->Cell_Number());
+                                    new OverlayClass(OverlayTypes[Class->TiberiumSpawnType->HeapID + Random_Pick(0, 3)], tibcell->Fetch_CellID());
                                     tibcell->OverlayData = Random_Pick(0, 2);
-                                    Rect overlayrect = tibcell->Get_Overlay_Rect();
+                                    Rect overlayrect = tibcell->Overlay_Render_Rect();
                                     overlayrect.Y -= TacticalRect.Y;
                                     updaterect = Union(updaterect, overlayrect);
+                                    TiberiumType tiberium = tibcell->Tiberium_Type_Here();
+                                    if (tiberium != TIBERIUM_NONE) {
+                                        Tiberiums[tiberium]->Queue_Growth(tibcell->CellID);
+                                    }
                                 }
                             }
                         }

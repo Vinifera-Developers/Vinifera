@@ -26,6 +26,7 @@
  *
  ******************************************************************************/
 #include "teamext_hooks.h"
+#include "teamext_init.h"
 #include "team.h"
 #include "cell.h"
 #include "iomap.h"
@@ -114,6 +115,8 @@ DECLARE_PATCH(_TeamClass_TMission_PATROL_WaypointMax)
  */
 void TeamClassExtension_Hooks()
 {
+    TeamClassExtension_Init();
+
     Patch_Jump(0x00622B2C, &_TeamClass_AI_MoveCell_FixCellCalc_Patch);
     Patch_Jump(0x00625886, &_TeamClass_TMission_PATROL_WaypointMax);
 }

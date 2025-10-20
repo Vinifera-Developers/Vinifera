@@ -45,7 +45,10 @@
 OptionsClassExtension::OptionsClassExtension(const OptionsClass *this_ptr) :
     GlobalExtensionClass(this_ptr),
     SortDefensesAsLast(true),
-    FilterBandBoxSelection(true)
+    FilterBandBoxSelection(true),
+    KeyChatToAll1(KN_RETURN),
+    KeyChatToAll2(KN_F8),
+    KeyChatToAllies(KN_BACKSPACE)
 {
     //EXT_DEBUG_TRACE("OptionsClassExtension::OptionsClassExtension - 0x%08X\n", (uintptr_t)(This()));
 }
@@ -168,7 +171,7 @@ void OptionsClassExtension::Load_Settings()
     }
 
     /**
-     *  Read hardcoded modifier keys from Keyboard.ini.
+     *  Read keys from Keyboard.ini.
      *
      *  @author: ZivDero
      */
@@ -179,14 +182,18 @@ void OptionsClassExtension::Load_Settings()
 
         keyboard_ini.Load(keyboard_file, false);
 
-        Options.KeyForceMove1 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "ForceMove", VK_MENU);
-        Options.KeyForceMove2 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "ForceMove", VK_MENU);
-        Options.KeyForceAttack1 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "ForceAttack", VK_CONTROL);
-        Options.KeyForceAttack2 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "ForceAttack", VK_CONTROL);
-        Options.KeySelect1 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "Select", VK_SHIFT);
-        Options.KeySelect2 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "Select", VK_SHIFT);
-        Options.KeyQueueMove1 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "QueueMove", Vinifera_NewSidebar ? KN_Z : KN_Q);
-        Options.KeyQueueMove2 = (KeyNumType)keyboard_ini.Get_Int("Hotkey", "QueueMove", Vinifera_NewSidebar ? KN_Z : KN_Q);
+        Options.KeyForceMove1 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "ForceMove", VK_MENU));
+        Options.KeyForceMove2 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "ForceMove", VK_MENU));
+        Options.KeyForceAttack1 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "ForceAttack", VK_CONTROL));
+        Options.KeyForceAttack2 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "ForceAttack", VK_CONTROL));
+        Options.KeySelect1 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "Select", VK_SHIFT));
+        Options.KeySelect2 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "Select", VK_SHIFT));
+        Options.KeyQueueMove1 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "QueueMove", Vinifera_NewSidebar ? KN_Z : KN_Q));
+        Options.KeyQueueMove2 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "QueueMove", Vinifera_NewSidebar ? KN_Z : KN_Q));
+
+        KeyChatToAll1 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "ChatToAll", KeyChatToAll1));
+        KeyChatToAll2 = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "ChatToAll2", KeyChatToAll2));
+        KeyChatToAllies = static_cast<KeyNumType>(keyboard_ini.Get_Int("Hotkey", "ChatToAllies", KeyChatToAllies));
     }
 }
 
@@ -216,7 +223,7 @@ void OptionsClassExtension::Save_Settings()
     RawFileClass file("SUN.INI");
 
     /**
-     *  Save hardcoded modifier keys to Keyboard.ini.
+     *  Save keys to Keyboard.ini.
      *
      *  @author: ZivDero
      */
@@ -231,6 +238,10 @@ void OptionsClassExtension::Save_Settings()
         keyboard_ini.Put_Int("Hotkey", "ForceAttack", Options.KeyForceAttack1);
         keyboard_ini.Put_Int("Hotkey", "Select", Options.KeySelect1);
         keyboard_ini.Put_Int("Hotkey", "QueueMove", Options.KeyQueueMove1);
+
+        keyboard_ini.Put_Int("Hotkey", "ChatToAll", KeyChatToAll1);
+        keyboard_ini.Put_Int("Hotkey", "ChatToAll2", KeyChatToAll2);
+        keyboard_ini.Put_Int("Hotkey", "ChatToAllies", KeyChatToAllies);
 
         keyboard_ini.Save(keyboard_file, false);
     }

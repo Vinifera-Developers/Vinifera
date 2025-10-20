@@ -88,10 +88,10 @@ bool TextLabelClassExt::_Draw_Me(bool forced)
     if (UIControls->TextLabelBackgroundTransparency > 0) {
 
         RGBClass black_color(0,0,0);
-        WWFontClass *font = Font_Ptr(style);
+        FontClass *font = Font_Ptr(style);
 
         Rect text_rect;
-        font->String_Pixel_Rect(Text, &text_rect);
+        font->String_Pixel_Bounds(Text, text_rect);
 
         /**
          *  Kludge to remove the space at the end of a line as it is being typed.
@@ -113,7 +113,7 @@ bool TextLabelClassExt::_Draw_Me(bool forced)
         }
 
         LogicSurface->Fill_Rect_Trans(text_rect, black_color,
-            UIControls->TextLabelBackgroundTransparency);
+                                      UIControls->TextLabelBackgroundTransparency);
     }
 
     /**
@@ -128,9 +128,9 @@ bool TextLabelClassExt::_Draw_Me(bool forced)
     }
 
     if (PixWidth == -1) {
-        Simple_Text_Print(Text, LogicSurface, &rect, &xy, scheme, COLOR_TBLACK, style);
+        Simple_Text_Print(Text, *LogicSurface, rect, xy, scheme, COLOR_TBLACK, style, TPF_8POINT | TPF_DROPSHADOW);
     } else {
-        Conquer_Clip_Text_Print(Text, LogicSurface, &rect, &xy, scheme, COLOR_TBLACK, style, PixWidth);
+        Conquer_Clip_Text_Print(Text, *LogicSurface, rect, xy, scheme, COLOR_TBLACK, style, PixWidth);
     }
 
 #ifndef NDEBUG

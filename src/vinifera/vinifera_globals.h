@@ -124,7 +124,7 @@ extern MFCD *SideCTMix;
 extern KamikazeTrackerClass *KamikazeTracker;
 extern AircraftTrackerClass *AircraftTracker;
 
-extern int EnvironmentGlobals[std::size(ScenExtension->GlobalFlags)];
+extern int EnvironmentGlobals[/*std::size(ScenExtension->GlobalFlags)*/500];
 
 
 /**
@@ -153,7 +153,6 @@ extern bool Vinifera_ExitAfterSkip;
 
 
 extern bool Vinifera_NewSidebar;
-extern bool Vinifera_NoVersionString;
 
 
 /**

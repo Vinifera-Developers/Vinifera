@@ -39,7 +39,8 @@
  *  @author: CCHyper
  */
 OverlayTypeClassExtension::OverlayTypeClassExtension(const OverlayTypeClass *this_ptr) :
-    ObjectTypeClassExtension(this_ptr)
+    ObjectTypeClassExtension(this_ptr),
+    IsWaterTunnel(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("OverlayTypeClassExtension::OverlayTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 
@@ -184,6 +185,8 @@ bool OverlayTypeClassExtension::Read_INI(CCINIClass &ini)
     if (!ini.Is_Present(ini_name)) {
         return false;
     }
+
+    IsWaterTunnel = ini.Get_Bool(ini_name, "WaterTunnel", IsWaterTunnel);
 
     IsInitialized = true;
     
