@@ -119,7 +119,7 @@ DECLARE_PATCH(_Start_Scenario_Dropship_Loadout_Show_Mouse_Patch)
  * 
  *  @author: CCHyper
  */
-static void Draw_Dropship_Loadout_Help_Text(XSurface *surface)
+static void Draw_Dropship_Loadout_Help_Text(Surface *surface)
 {
     #define TEXT_PRESS_SPACE "Press SPACE to start the mission"
 

@@ -100,7 +100,7 @@ LONG (* __stdcall Exception_Intercept_Func_Ptr)(unsigned int code, EXCEPTION_POI
 
 bool Any_Surface_Locked()
 {
-    return (PrimarySurface && PrimarySurface->Is_Locked())
+    return (VisibleSurface && VisibleSurface->Is_Locked())
         || (HiddenSurface && HiddenSurface->Is_Locked())
         || (CompositeSurface && CompositeSurface->Is_Locked())
         || (TileSurface && TileSurface->Is_Locked())
@@ -111,7 +111,7 @@ bool Any_Surface_Locked()
 
 void Clear_All_Surfaces()
 {
-    if (PrimarySurface) PrimarySurface->Clear();
+    if (VisibleSurface) VisibleSurface->Clear();
     if (HiddenSurface) HiddenSurface->Clear();
     if (CompositeSurface) CompositeSurface->Clear();
     if (TileSurface) TileSurface->Clear();

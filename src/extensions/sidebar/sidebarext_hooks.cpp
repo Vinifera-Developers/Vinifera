@@ -360,7 +360,7 @@ void SidebarClassExt::_Init_For_House()
     PaletteClass pal("SIDEBAR.PAL");
 
     delete SidebarDrawer;
-    SidebarDrawer = new ConvertClass(&pal, &pal, PrimarySurface, 1);
+    SidebarDrawer = new ConvertClass(&pal, &pal, VisibleSurface, 1);
 
     Sell.Set_Shape(MFCD::RetrieveT<ShapeSet>("SELL.SHP"));
     Sell.ShapeDrawer = SidebarDrawer;
@@ -691,7 +691,7 @@ void SidebarClassExt::_Draw_It(bool complete)
     Map.LastDrawRect = Rect(0, 0, 0, 0);
     PowerClass::Draw_It(complete);
 
-    DSurface* oldsurface = LogicSurface;
+    Surface* oldsurface = LogicSurface;
     LogicSurface = SidebarSurface;
 
     Rect rect(0, 0, SidebarSurface->Get_Width(), SidebarSurface->Get_Height());

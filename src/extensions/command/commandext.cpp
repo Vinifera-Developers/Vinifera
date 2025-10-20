@@ -285,7 +285,7 @@ bool PNGScreenCaptureCommandClass::Process()
     /**
      *  Blit primary surface to the hidden.
      */
-    bool blit = HiddenSurface->Copy_From(dest, *PrimarySurface, src);
+    bool blit = HiddenSurface->Blit_From(dest, *VisibleSurface, src);
     ASSERT(blit);
 
     /**

@@ -113,7 +113,7 @@ bool TextLabelClassExt::_Draw_Me(bool forced)
         }
 
         LogicSurface->Fill_Rect_Trans(text_rect, black_color,
-            UIControls->TextLabelBackgroundTransparency);
+                                      UIControls->TextLabelBackgroundTransparency);
     }
 
     /**

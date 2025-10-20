@@ -50,11 +50,11 @@ static bool Scale_Surface_ImageResampler(XSurface *src, XSurface *dst, VN_IMAGE_
 
     int src_width = src->Get_Width();
     int src_height = src->Get_Height();
-    int src_bpp = src->Get_Bytes_Per_Pixel();
+    int src_bpp = src->Bytes_Per_Pixel();
 
     int dst_width = dst->Get_Width();
     int dst_height = dst->Get_Height();
-    int dst_bpp = dst->Get_Bytes_Per_Pixel();
+    int dst_bpp = dst->Bytes_Per_Pixel();
 
     if (src_bpp != 2 || dst_bpp != 2) {
         return false;
