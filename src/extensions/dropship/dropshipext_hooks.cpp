@@ -96,13 +96,13 @@ DECLARE_PATCH(_Start_Scenario_Dropship_Loadout_Show_Mouse_Patch)
         Theme.Play_Song(theme);
     }
 
-    WWMouse->Release_Mouse();
-    WWMouse->Show_Mouse();
+    MouseCursor->Release_Mouse();
+    MouseCursor->Show_Mouse();
 
     Dropship_Loadout();
 
-    WWMouse->Hide_Mouse();
-    WWMouse->Capture_Mouse();
+    MouseCursor->Hide_Mouse();
+    MouseCursor->Capture_Mouse();
 
     if (Theme.Still_Playing()) {
         Theme.Stop(true); // Smoothly fade out the track.

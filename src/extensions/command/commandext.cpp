@@ -280,7 +280,7 @@ bool PNGScreenCaptureCommandClass::Process()
     /**
      *  We don't want the mouse to appear in screenshots!
      */
-    WWMouse->Hide_Mouse();
+    MouseCursor->Hide_Mouse();
 
     /**
      *  Blit primary surface to the hidden.
@@ -291,7 +291,7 @@ bool PNGScreenCaptureCommandClass::Process()
     /**
      *  Now show the mouse again.
      */
-    WWMouse->Show_Mouse();
+    MouseCursor->Show_Mouse();
 
     char buffer[256];
 
@@ -386,7 +386,7 @@ bool DeleteCommandClass::Process()
             }
         }
 
-        WWMouse->Show_Mouse();
+        MouseCursor->Show_Mouse();
     }
 
     BeaconManager.Delete_Beacon(HOUSE_NONE, -1);
@@ -2918,7 +2918,7 @@ bool SpawnAllCommandClass::Process()
      *  If mouse position is valid, convert to world coordinates and update
      *  the spawn origin position to that of the mouse position.
      */
-    if (WWMouse->Get_Mouse_XY() != Point2D(0, 0)) {
+    if (MouseCursor->Get_Mouse_Point() != Point2D(0, 0)) {
         origin = Get_Cell_Under_Mouse();
     }
 
