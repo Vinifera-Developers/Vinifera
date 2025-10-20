@@ -34,6 +34,8 @@
 #include "tibsun_globals.h"
 #include "SDL3/SDL_timer.h"
 
+#include <dsound.h>
+
 
 void _Wait_Blit()
 {
@@ -206,6 +208,8 @@ void SDL_Hooks()
     Patch_Jump(0x00472BC0, &Destroy_SDL);
     Patch_Jump(0x00472DF0, &SDL_Set_Video_Mode);
     Patch_Jump(0x00472FF0, &SDL_Reset_Video_Mode);
+
+    Patch_Byte(0x00487D2B+1, DSSCL_NORMAL);
 
     // Patch_Jump(0x005F3C61, &_SidebarClass_Blit_Sidebar_SDL_Update_Window_Patch);
     //Patch_Jump(0x005640CD, &_MovieClass_Blit_SDL_Update_Window_Patch_1);

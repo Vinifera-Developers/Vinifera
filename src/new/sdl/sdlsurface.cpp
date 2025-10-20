@@ -218,7 +218,7 @@ SDLSurface::SDLSurface() :
  *=============================================================================================*/
 SDLSurface::~SDLSurface()
 {
-    if (SDLSurfacePtr != nullptr) {
+    if (SDLSurfacePtr) {
         SDL_DestroySurface(SDLSurfacePtr);
         SDLSurfacePtr = nullptr;
     }
@@ -426,7 +426,6 @@ void* SDLSurface::Lock(Point2D point) const
                 return nullptr; // failed to lock
             }
         }
-        BytesPerPixel = SDL_GetPixelFormatDetails(SDLSurfacePtr->format)->bytes_per_pixel;
         LockPtr = SDLSurfacePtr->pixels;
     }
     XSurface::Lock();

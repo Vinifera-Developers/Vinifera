@@ -1,9 +1,8 @@
-
-
 #include <algorithm>
 
 #include "sdl_init.h"
 #include "debughandler.h"
+#include "filepng.h"
 #include "mouse.h"
 #include "rect.h"
 #include "sdlsurface.h"
@@ -95,65 +94,13 @@ bool SDL_Allocate_Surfaces(const Rect& hidden_rect, const Rect& composite_rect, 
 
 void Prep_SDL()
 {
-#if 0
-    DEBUG_INFO("Prep SDL.\n");
 
-    if (SDLWindow != nullptr) {
-        return;
-    }
-
-    // Initialize SDL Video subsystem
-    if (!SDL_Init(SDL_INIT_VIDEO)) {
-        DEBUG_WARNING("SDL_Init failed: %s\n", SDL_GetError());
-        return;
-    }
-
-    SDL_PropertiesID props = SDL_CreateProperties();
-    SDL_SetPointerProperty(props, SDL_PROP_WINDOW_CREATE_WIN32_HWND_POINTER, MainWindow); // wrap existing HWND
-    if (!WindowedMode) {
-        SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_FULLSCREEN_BOOLEAN, true); // fullscreen
-    }
-
-    SDLWindow = SDL_CreateWindowWithProperties(props);
-    if (!SDLWindow) {
-        DEBUG_WARNING("SDL_CreateWindowFrom failed: %s\n", SDL_GetError());
-        return;
-    }
-
-    SDL_ShowWindow(SDLWindow);
-
-    // Create a renderer for drawing
-    SDLWindowRenderer = SDL_CreateRenderer(SDLWindow, nullptr);
-    if (!SDLWindowRenderer) {
-        DEBUG_WARNING("SDL_CreateRenderer failed: %s\n", SDL_GetError());
-        SDL_DestroyWindow(SDLWindow);
-        SDLWindow = nullptr;
-        return;
-    }
-
-    SDL_Cursor* cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT);
-    SDL_SetCursor(cursor); 
-
-    DEBUG_INFO("SDL initialized with existing HWND.\n");
-#endif
 }
 
 
 void Destroy_SDL()
 {
-#if 0
-    if (SDLWindowRenderer) {
-        SDL_DestroyRenderer(SDLWindowRenderer);
-        SDLWindowRenderer = nullptr;
-    }
-    if (SDLWindow) {
-        SDL_DestroyWindow(SDLWindow); // Note: may or may not destroy MainWindow depending on SDL
-        SDLWindow = nullptr;
-    }
 
-    SDL_QuitSubSystem(SDL_INIT_VIDEO);
-    DEBUG_INFO("SDL destroyed.\n");
-#endif
 }
 
 
@@ -210,72 +157,6 @@ bool SDL_Set_Video_Mode(HWND, int w, int h, int bits_per_pixel)
     DEBUG_INFO("SDLWindowTexture created.\n");
 
     /**
-     *  Get window surface.
-     */
-    //SDLWindowSurface = SDL_CreateRGBSurfaceWithFormat(0, width, height, 32, SDL_PIXELFORMAT_RGB888);
-    //// SDLWindowSurface = SDL_GetWindowSurface(SDLWindow);
-    //if (SDLWindowSurface == nullptr) {
-    //    DEBUG_ERROR("SDLWindowSurface could not be created! SDL_Error: %s\n", SDL_GetError());
-    //    return false;
-    //}
-    //DEBUG_INFO("SDLWindowSurface created.\n");
-
-
-    //SDL_RendererInfo info;
-    //if (SDL_GetRendererInfo(SDLWindowRenderer, &info) != 0) {
-    //    DEBUG_ERROR("SDL_GetRendererInfo failed to get info! SDL Error: %s\n", SDL_GetError());
-    //    SDL_Reset_Video_Mode();
-    //    return false;
-    //}
-
-    ///**
-    // *  Clear the window screen to black.
-    // */
-    //SDL_Clear_Screen();
-    //SDL_Update_Screen(nullptr);
-
-    //DEBUG_INFO("Initialized SDL2 driver '%s'\n", info.name);
-    //DEBUG_INFO("  flags:\n");
-    //if (info.flags & SDL_RENDERER_SOFTWARE) {
-    //    DEBUG_INFO("    SDL_RENDERER_SOFTWARE\n");
-    //}
-    //if (info.flags & SDL_RENDERER_ACCELERATED) {
-    //    DEBUG_INFO("    SDL_RENDERER_ACCELERATED\n");
-    //}
-    //if (info.flags & SDL_RENDERER_PRESENTVSYNC) {
-    //    DEBUG_INFO("    SDL_RENDERER_PRESENT_VSYNC\n");
-    //}
-    //if (info.flags & SDL_RENDERER_TARGETTEXTURE) {
-    //    DEBUG_INFO("    SDL_RENDERER_TARGETTEXTURE\n");
-    //}
-
-    //// DEBUG_INFO("  Max texture size: %dx%d\n", info.max_texture_width, info.max_texture_height);
-    //DEBUG_INFO("  %d texture formats supported\n", info.num_texture_formats);
-
-    ///*
-    //** Pick the first pixel format or the user requested one. It better be RGB.
-    //*/
-    //pixel_format = SDL_PIXELFORMAT_UNKNOWN;
-    //for (int i = 0; i < info.num_texture_formats; i++) {
-    //    if (pixel_format == SDL_PIXELFORMAT_UNKNOWN && i == 0) {
-    //        pixel_format = info.texture_formats[i];
-    //    }
-    //}
-
-    //for (int i = 0; i < info.num_texture_formats; i++) {
-    //    DEBUG_INFO("    %s%s\n", SDL_GetPixelFormatName(info.texture_formats[i]), (pixel_format == info.texture_formats[i] ? " (selected)" : ""));
-    //}
-
-    ///*
-    //** Set requested scaling algorithm.
-    //*/
-    //if (!SDL_SetHintWithPriority(SDL_HINT_RENDER_SCALE_QUALITY, "nearest", SDL_HINT_OVERRIDE)) {
-    //    DEBUG_WARNING("  scaler 'nearest' is unsupported!\n");
-    //} else {
-    //    DEBUG_INFO("  scaler set to 'nearest'\n");
-    //}
-
-    /**
      *  Explicitly set input focus to the window.
      */
     SDL_RaiseWindow(SDLWindow);
@@ -308,23 +189,11 @@ void SDL_Reset_Video_Mode()
     SDL_DestroyRenderer(SDLWindowRenderer);
     SDLWindowRenderer = nullptr;
 
-    ///**
-    // *  Deallocate surface.
-    // */
-    //SDL_DestroySurface(SDLWindowSurface);
-    //SDLWindowSurface = nullptr;
-
     /**
      *  Deallocate texture.
      */
     SDL_DestroyTexture(SDLWindowTexture);
     SDLWindowTexture = nullptr;
-
-    ///**
-    // *  Deallocate palette.
-    // */
-    //SDL_DestroyPalette(SDLPalette);
-    //SDLPalette = nullptr;
 
     VideoWidth = 0;
     VideoHeight = 0;
@@ -443,6 +312,20 @@ void SDL_Update_Visible_Surface(bool flip_mouse, Surface* surface, Rect* rect)
 }
 
 
+static LRESULT CALLBACK GameMessageHook(int code, WPARAM wParam, LPARAM lParam)
+{
+    if (code == HC_ACTION) {
+        MSG* msg = reinterpret_cast<MSG*>(lParam);
+
+        // Dispatch to your game’s existing handler
+        // (e.g. OwnerDraw::DefaultDialogProc, etc.)
+        Windows_Procedure(msg->hwnd, msg->message, msg->wParam, msg->lParam);
+    }
+
+    return CallNextHookEx(nullptr, code, wParam, lParam);
+}
+
+
 /**
  *
  *
@@ -506,31 +389,31 @@ bool SDL_Create_Main_Window(HINSTANCE hInstance, int width, int height)
         SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_FULLSCREEN_BOOLEAN, true);
 
     } else {
-        int wnd_xpos;
-        int wnd_ypos;
+        //int wnd_xpos;
+        //int wnd_ypos;
 
-        int num_displays;
-        SDL_DisplayID* displays = SDL_GetDisplays(&num_displays);
-        if (num_displays > 0) {
-            const SDL_DisplayMode* dm = SDL_GetCurrentDisplayMode(displays[0]);
-            wnd_xpos = (dm->w - width) / 2;
-            wnd_ypos = (dm->h - height) / 2;
-        } else {
-            wnd_xpos = 0;
-            wnd_ypos = 0;
-        }
+        //int num_displays;
+        //SDL_DisplayID* displays = SDL_GetDisplays(&num_displays);
+        //if (num_displays > 0) {
+        //    const SDL_DisplayMode* dm = SDL_GetCurrentDisplayMode(displays[0]);
+        //    wnd_xpos = (dm->w - width) / 2;
+        //    wnd_ypos = (dm->h - height) / 2;
+        //} else {
+        //    wnd_xpos = 0;
+        //    wnd_ypos = 0;
+        //}
 
-        if (SDLBorderless) {
-            DEBUG_INFO("Creating borderless window.\n");
-            SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_BORDERLESS_BOOLEAN, true);
-        } else {
-            wnd_ypos += 38; // Take into account the window title bar.
-        }
+        //if (SDLBorderless) {
+        //    DEBUG_INFO("Creating borderless window.\n");
+        //    SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_BORDERLESS_BOOLEAN, true);
+        //} else {
+        //    wnd_ypos += 38; // Take into account the window title bar.
+        //}
 
         SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, width);
         SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, height);
-        SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_X_NUMBER, wnd_xpos);
-        SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_Y_NUMBER, wnd_ypos);
+        SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_X_NUMBER, SDL_WINDOWPOS_CENTERED);
+        SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_Y_NUMBER, SDL_WINDOWPOS_CENTERED);
     }
 
     const char* window_title = "Tiberian Sun";
@@ -558,12 +441,13 @@ bool SDL_Create_Main_Window(HINSTANCE hInstance, int width, int height)
     SDL_Cursor* cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT);
     SDL_SetCursor(cursor);
 
-    MainWindow = static_cast<HWND>(SDL_GetPointerProperty(props, SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr));
+    MainWindow = static_cast<HWND>(SDL_GetPointerProperty(SDL_GetWindowProperties(SDLWindow), SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr));
 
     /**
      *  Set the games windows proc function to the window.
      */
-    SetWindowLong(MainWindow, GWL_WNDPROC, (LONG)Windows_Procedure_Wrapper);
+    SetWindowsHookEx(WH_GETMESSAGE, GameMessageHook, nullptr, GetCurrentThreadId());
+    //SetWindowLong(MainWindow, GWL_WNDPROC, (LONG)Windows_Procedure_Wrapper);
 
     return true;
 }
@@ -589,7 +473,7 @@ void SDL_Destroy_Main_Window()
  *
  *  @author: CCHyper, tomsons26
  */
-bool SDL_Update_Screen(SDLSurface* surface, SDL_Rect* src_rect, SDL_Rect* dest_rect)
+bool SDL_Update_Screen(SDLSurface* surface)
 {
     // DEBUG_INFO("SDL_Update_Screen\n");
 
@@ -605,16 +489,19 @@ bool SDL_Update_Screen(SDLSurface* surface, SDL_Rect* src_rect, SDL_Rect* dest_r
         /**
          *  Convert the 16bit pixel data from the surface to the SDL window 32bit texture.
          */
-        void* pixels;
-        int pitch;
-        SDL_LockTexture(SDLWindowTexture, nullptr, &pixels, &pitch);
-        SDL_ConvertPixels(surf->w, surf->h, surf->format, surf->pixels, surf->pitch, SDL_PIXELFORMAT_RGB565, pixels, pitch);
-        SDL_UnlockTexture(SDLWindowTexture);
+        //void* pixels;
+        //int pitch;
+        //SDL_LockTexture(SDLWindowTexture, nullptr, &pixels, &pitch);
+        //SDL_ConvertPixels(surf->w, surf->h, surf->format, surf->pixels, surf->pitch, SDL_PIXELFORMAT_RGB565, pixels, pitch);
+        //SDL_UnlockTexture(SDLWindowTexture);
 
         /**
          *  Update the window texture.
          */
-        SDL_UpdateTexture(SDLWindowTexture, nullptr, pixels, pitch);
+        if (void* pixels = surface->Lock()) {
+            SDL_UpdateTexture(SDLWindowTexture, nullptr, pixels, surface->Stride());
+            surface->Unlock();
+        }
 
         /**
          *  Copy the texture to the renderer.
