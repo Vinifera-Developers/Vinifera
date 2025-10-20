@@ -68,7 +68,7 @@ SDL_Renderer* SDLWindowRenderer = nullptr;
 //SDL_Surface* SDLWindowSurface = nullptr;
 SDL_Texture* SDLWindowTexture = nullptr;
 bool SDLHardwareRenderer = true;
-bool SDLBorderless = true;
+bool SDLBorderless = false;
 bool SDLBorderlessFullscreen = false;
 bool SDLClipMouseToWindow = true;
 

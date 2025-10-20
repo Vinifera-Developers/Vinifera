@@ -19,10 +19,8 @@
 #pragma once
 
 #include "palette.h"
-#include "xsurface.h"
+#include "dsurface.h"
 #include "SDL3/SDL_surface.h"
-
-#include <ddraw.h>
 
 
 enum SDLSurfaceColorMode {
@@ -38,12 +36,12 @@ enum SDLSurfaceColorMode {
  *  This is a concrete surface class that is based on the DirectDraw
  *  API.
  */
-class SDLSurface : public XSurface
+class SDLSurface : public DSurface
 {
     typedef XSurface BASECLASS;
 
 public:
-    virtual ~SDLSurface();
+    ~SDLSurface() override;
 
     /**
      *  Default constructor.
@@ -56,11 +54,6 @@ public:
     SDLSurface(int width, int height);
 
     /**
-     *  Creates a surface from a previously created DirectDraw surface object.
-     */
-    SDLSurface(SDL_Surface* surfaceptr);
-
-    /**
      *  Get/Release a windows device context from a DirectX surface
      */
     HDC GetDC();
@@ -69,90 +62,42 @@ public:
     /**
      *  Create a surface object that represents the currently visible screen.
      */
-    static SDLSurface* Create_Primary(SDLSurface** backsurface1 = nullptr);
-
-    /**
-     *  Copies regions from one surface to another.
-     */
-    virtual bool Blit_From(Rect const& dcliprect, Rect const& destrect, Surface const& source, Rect const& scliprect, Rect const& sourcerect, bool trans = false, bool a7 = true) override;
-    virtual bool Blit_From(Rect const& destrect, Surface const& source, Rect const& sourcerect, bool trans = false, bool a5 = true) override;
-    virtual bool Blit_From(Surface const& source, bool trans = false, bool a3 = true) override { return XSurface::Blit_From(source, trans, a3); }
-
-    /**
-     *  Fills a region with a constant color.
-     */
-    virtual bool Fill_Rect(Rect const& rect, int color) override;
-    virtual bool Fill_Rect(Rect const& cliprect, Rect const& fillrect, int color) override;
-    virtual bool Fill_Rect_Trans(Rect const& rect, RGBClass const& color, int opacity) override;
+    static SDLSurface* Create_Primary(void* = nullptr);
 
     /**
      *  Gets and frees a direct pointer to the video memory.
      */
-    virtual void* Lock(Point2D point = Point2D(0, 0)) const override;
-    virtual bool Unlock() const override;
-    virtual bool Can_Lock(int x = 0, int y = 0) const override;
+    void* Lock(Point2D point = Point2D(0, 0)) const override;
+    bool Unlock() const override;
+    bool Can_Lock(int x = 0, int y = 0) const override;
 
-    /**
-     *  Queries information about the surface.
-     */
-    virtual int Bytes_Per_Pixel() const override;
-    virtual int Stride() const override;
+    /*
+    **  Queries information about the surface.
+    */
+    int Stride() const override;
 
-    /**
-     *  Verifies that this is a direct draw enabled surface.
-     */
-    virtual bool Is_Direct_Draw() const override { return true; }
+    /*
+    **  Verifies that this is not a direct draw enabled surface.
+    */
+    bool Is_Direct_Draw() const override { return false; }
 
-    virtual bool Can_Blit() const;
-    SDL_Surface* Get_SDL_Surface() const { return SurfacePtr; }
+    bool Can_Blit() const override;
+    SDL_Surface* Get_SDL_Surface() const { return SDLSurfacePtr; }
     bool Restore_Check() const;
     void Blit_To_Window(Rect const* region = nullptr) const;
-
-    virtual bool Fill(int color) override;
-    //virtual bool Draw_Ellipse(Point2D point, int radius_x, int radius_y, Rect clip, int color) override;
-    //virtual bool Put_Pixel(Point2D const& point, int color) override;
-    //virtual bool Draw_Line(Point2D const& startpoint, Point2D const& endpoint, int color) override;
-    //virtual bool Draw_Line(Rect const& cliprect, Point2D const& startpoint, Point2D const& endpoint, int color) override;
-    //virtual bool Draw_Line_entry_34(Rect const& cliprect, Point2D const& startpoint, Point2D const& endpoint, unsigned color, int a5, int a6, bool z_only = false) override;
-    //virtual bool Draw_Line_entry_38(Rect const& cliprect, Point2D const& startpoint, Point2D const& endpoint, int a4, int a5, int a6, bool a7 = false) override;
-    //virtual bool Draw_Line_entry_3C(Rect const& cliprect, Point2D const& startpoint, Point2D const& endpoint, RGBClass& color, int a5, int a6, bool a7, bool a8, bool a9, bool a10, float a11) override;
-    //virtual bool Plot_Line(Rect& area, Point2D& start, Point2D& end, void (*drawer_callback)(Point2D&)) override;
-    //virtual int Draw_Dashed_Line(Point2D& start, Point2D& end, unsigned color, bool pattern[], int offset) override;
-    //virtual int entry_48(Point2D& start, Point2D& end, unsigned color, bool pattern[], int offset, bool a6) override;
-    //virtual bool entry_4C(Point2D& start, Point2D& end, unsigned a4, bool a5) override;
-    //virtual bool Draw_Rect(Rect const& rect, int color) override;
-    //virtual bool Draw_Rect(Rect const& cliprect, Rect const& rect, int color) override;
-    //virtual bool entry_84(Point2D const& point, int color, Rect const& rect) override;
 
 protected:
 
     /**
-     *  Convenient copy of the bytes per pixel value to speed accessing it. It
-     *  gets accessed frequently.
-     */
-    mutable int BytesPerPixel;
-
-    /**
-     *  Lock count and pointer values. This is used to keep track of the levels
-     *  of locking the graphic data. This is only here because DirectDraw prohibits
-     *  the blitter from working on a surface that has been locked.
-     */
-    mutable void* LockPtr;
-
-    /**
-     *  If this surface object represents the one that is visible and associated
-     *  with the system GDI, then this flag will be true.
-     */
-    bool IsPrimary;
-
-    /**
      *  Direct draw specific data.
      */
-    SDL_Surface* SurfacePtr;
+    SDL_Surface* SDLSurfacePtr;
 
-    mutable HDC GDIDC = nullptr;
-    mutable HBITMAP GDIBitmap = nullptr;
-    mutable void* GDIBuffer = nullptr; // Points directly to SDL's pixel buffer
+    int Pitch;
+
+    mutable HDC GDIDC;
+    mutable HBITMAP GDIBitmap;
+    mutable void* GDIBuffer; // Points directly to SDL's pixel buffer
 
     /**
      *  Pixel format of primary surface.

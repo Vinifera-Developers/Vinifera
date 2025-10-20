@@ -40,7 +40,7 @@ public:
 
 DSurface* DSurfaceExt::CTOR_Proxy(int width, int height, bool system_memory)
 {
-    return reinterpret_cast<DSurface*>(new (this) SDLSurface(width, height));
+    return new (this) SDLSurface(width, height);
 }
 
 

@@ -208,15 +208,15 @@ void SDL_Hooks()
     Patch_Jump(0x00472FF0, &SDL_Reset_Video_Mode);
 
     // Patch_Jump(0x005F3C61, &_SidebarClass_Blit_Sidebar_SDL_Update_Window_Patch);
-    Patch_Jump(0x005640CD, &_MovieClass_Blit_SDL_Update_Window_Patch_1);
-    Patch_Jump(0x00564787, &_MovieClass_Blit_SDL_Update_Window_Patch_2);
-    Patch_Jump(0x00571116, &_MSEngine_Blit_SDL_Update_Window_Patch);
-    Patch_Jump(0x005711F5, &_MSEngine_Draw_SDL_Update_Window_Patch);
-    Patch_Jump(0x00592356, &_OwnerDraw_DialogProc_SDL_Update_Window_Patch_Return_1);
-    Patch_Jump(0x0059264F, &_OwnerDraw_DialogProc_SDL_Update_Window_Patch_Return_0);
-    Patch_Jump(0x005926D8, &_OwnerDraw_DialogProc_SDL_Update_Window_Patch_Return_1);
-    Patch_Jump(0x00592802, &_OwnerDraw_DialogProc_SDL_Update_Window_Patch_Return_1);
-    Patch_Jump(0x005944EF, &_OwnerDraw_DialogProc_SDL_Update_Window_Patch_Return_1);
-    Patch_Jump(0x005944FE, &_OwnerDraw_DialogProc_SDL_Update_Window_Patch_Return_Var);
-    Patch_Jump(0x004B9A42, &_GScreenClass_Do_Blit_SDL_Update_Window_Patch);
+    //Patch_Jump(0x005640CD, &_MovieClass_Blit_SDL_Update_Window_Patch_1);
+    //Patch_Jump(0x00564787, &_MovieClass_Blit_SDL_Update_Window_Patch_2);
+    //Patch_Jump(0x00571116, &_MSEngine_Blit_SDL_Update_Window_Patch);
+    //Patch_Jump(0x005711F5, &_MSEngine_Draw_SDL_Update_Window_Patch);
+    //Patch_Jump(0x00592356, &_OwnerDraw_DialogProc_SDL_Update_Window_Patch_Return_1);
+    //Patch_Jump(0x0059264F, &_OwnerDraw_DialogProc_SDL_Update_Window_Patch_Return_0);
+    //Patch_Jump(0x005926D8, &_OwnerDraw_DialogProc_SDL_Update_Window_Patch_Return_1);
+    //Patch_Jump(0x00592802, &_OwnerDraw_DialogProc_SDL_Update_Window_Patch_Return_1);
+    //Patch_Jump(0x005944EF, &_OwnerDraw_DialogProc_SDL_Update_Window_Patch_Return_1);
+    //Patch_Jump(0x005944FE, &_OwnerDraw_DialogProc_SDL_Update_Window_Patch_Return_Var);
+    //Patch_Jump(0x004B9A42, &_GScreenClass_Do_Blit_SDL_Update_Window_Patch);
 }
