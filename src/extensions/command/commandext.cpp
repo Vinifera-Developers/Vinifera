@@ -386,7 +386,7 @@ bool DeleteCommandClass::Process()
             }
         }
 
-        WWMouse->Show_Mouse();
+        MouseCursor->Show_Mouse();
     }
 
     BeaconManager.Delete_Beacon(HOUSE_NONE, -1);

@@ -27,7 +27,7 @@
  ******************************************************************************/
 #include "surfacescale.h"
 #include "vinifera_util.h"
-#include "xsurface.h"
+#include "Surface.h"
 #include "vnImagine.h"
 
 
@@ -42,7 +42,7 @@
  * 
  *  @author: CCHyper
  */
-static bool Scale_Surface_ImageResampler(Surface*src, Surface*dst, VN_IMAGE_KERNEL_TYPE kernel)
+static bool Scale_Surface_ImageResampler(Surface *src, Surface *dst, VN_IMAGE_KERNEL_TYPE kernel)
 {
     if (!src || !dst) {
         return false;
@@ -110,27 +110,27 @@ static bool Scale_Surface_ImageResampler(Surface*src, Surface*dst, VN_IMAGE_KERN
  * 
  *  @author: CCHyper
  */
-bool Scale_Surface_Nearest(Surface*src, Surface*dst)
+bool Scale_Surface_Nearest(Surface *src, Surface *dst)
 {
     return Scale_Surface_ImageResampler(src, dst, VN_IMAGE_KERNEL_NEAREST);
 }
 
-bool Scale_Surface_Bilinear(Surface*src, Surface*dst)
+bool Scale_Surface_Bilinear(Surface *src, Surface *dst)
 {
     return Scale_Surface_ImageResampler(src, dst, VN_IMAGE_KERNEL_BILINEAR);
 }
 
-bool Scale_Surface_Bicubic(Surface*src, Surface*dst)
+bool Scale_Surface_Bicubic(Surface *src, Surface *dst)
 {
     return Scale_Surface_ImageResampler(src, dst, VN_IMAGE_KERNEL_BICUBIC);
 }
 
-bool Scale_Surface_Cardinal(Surface*src, Surface*dst)
+bool Scale_Surface_Cardinal(Surface *src, Surface *dst)
 {
     return Scale_Surface_ImageResampler(src, dst, VN_IMAGE_KERNEL_CARDINAL);
 }
 
-bool Scale_Surface_Lanczos(Surface*src, Surface*dst)
+bool Scale_Surface_Lanczos(Surface *src, Surface *dst)
 {
     return Scale_Surface_ImageResampler(src, dst, VN_IMAGE_KERNEL_LANCZOS3);
 }

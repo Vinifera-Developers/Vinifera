@@ -33,8 +33,8 @@
 class Surface;
 
 
-bool Scale_Surface_Nearest(Surface* src, Surface* dst);
-bool Scale_Surface_Bilinear(Surface* src, Surface* dst);
-bool Scale_Surface_Bicubic(Surface* src, Surface* dst);
-bool Scale_Surface_Cardinal(Surface *src, Surface* dst);
-bool Scale_Surface_Lanczos(Surface* src, Surface* dst);
+bool Scale_Surface_Nearest(Surface *src, Surface *dst);
+bool Scale_Surface_Bilinear(Surface *src, Surface *dst);
+bool Scale_Surface_Bicubic(Surface *src, Surface *dst);
+bool Scale_Surface_Cardinal(Surface *src, Surface *dst);
+bool Scale_Surface_Lanczos(Surface *src, Surface *dst);
