@@ -164,7 +164,7 @@ SDLSurface::SDLSurface() :
 /**
  *  Calculate bit shifts to properly extract channel data.
  */
-static void Calculate_Mask_Info(unsigned int mask, int& right, int& left)
+static void Calculate_Mask_Info(unsigned int mask, int right, int left)
 {
     /**
      *  Figure out how far to shift bits to the left.
