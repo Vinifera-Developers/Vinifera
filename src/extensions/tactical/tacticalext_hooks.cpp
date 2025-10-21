@@ -138,12 +138,12 @@ bool TacticalExt::_Clamp_To_Tactical_Rect(Point2D& pixel)
  */
 void TacticalExt::_Draw_Band_Box()
 {
-    if (Band.X || Band.Y)
+    if (RubberBandStart != Point2D(0, 0))
     {
-        int x = Band.X;
-        int y = Band.Y;
-        int width = Band.Width;
-        int height = Band.Height;
+        int x = RubberBandStart.X;
+        int y = RubberBandStart.Y;
+        int width = RubberBandEnd.X;
+        int height = RubberBandEnd.Y;
 
         if (width < x) {
             std::swap(width, x);

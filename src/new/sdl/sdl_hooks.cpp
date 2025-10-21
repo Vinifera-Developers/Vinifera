@@ -26,12 +26,18 @@
  *
  ******************************************************************************/
 #pragma once
+#include "bsurface.h"
 #include "dsurface.h"
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "options.h"
 #include "sdl_init.h"
 #include "sdlsurface.h"
+#include "shapeset.h"
 #include "tibsun_globals.h"
+#include "wwmouse.h"
+#include "drawshape.h"
+#include "tactical.h"
 #include "SDL3/SDL_timer.h"
 
 #include <dsound.h>
@@ -206,11 +212,72 @@ DECLARE_PATCH(_CtrlProc_Update_SDL_Screen_Patch)
 }
 
 
+BOOL WINAPI Patched_ClientToScreen(HWND hwnd, LPPOINT point)
+{
+    return TRUE;
+}
+
+bool& AllowNegativeY = Make_Global<bool>(0x00867510);
+
+class WWMouseClassExt : public WWMouseClass
+{
+public:
+    void _Get_Bounded_Position(int& x, int& y) const
+    {
+        /*
+        ** Get the mouse's current real cursor position
+        */
+        POINT pt;
+        GetCursorPos(&pt); // get the current cursor position
+        ScreenToClient(Window, &pt);
+        x = pt.x;
+        y = pt.y;
+        Convert_Coordinate(x, y);
+    }
+
+    void _Process_Mouse(void)
+    {
+        static bool _forced = false;
+
+        if (SurfacePtr != NULL) {
+            Block_Mouse();
+
+            /*
+            ** Fetch and update the mouse position.
+            */
+            int x;
+            int y;
+            Get_Bounded_Position(x, y);
+            if (!SurfacePtr->entry_64() && !_forced) {
+                MouseX = x;
+                MouseY = y;
+                _forced = true;
+            } else {
+                Update_Mouse_Position(x, y, _forced);
+                _forced = false;
+            }
+
+            Unblock_Mouse();
+        }
+    }
+};
+
+
+void CALLBACK _Callback_Process_Mouse(UINT, UINT, DWORD, DWORD, DWORD)
+{
+    if (MouseCursor != NULL) {
+        MouseCursor->Process_Mouse();
+    }
+}
+
+
 /**
  *  Main function for patching the hooks.
  */
 void SDL_Hooks()
 {
+    Patch_Dword(0x006CA384, (uintptr_t)&Patched_ClientToScreen);
+
     Patch_Jump(0x00473330, &_Wait_Blit);
     Patch_Jump(0x00473280, &_Wait_Blit);
     Patch_Jump(0x004E7310, &SDL_Allocate_Surfaces);
@@ -218,6 +285,11 @@ void SDL_Hooks()
     Patch_Jump(0x00472BC0, &Destroy_SDL);
     Patch_Jump(0x00472DF0, &SDL_Set_Video_Mode);
     Patch_Jump(0x00472FF0, &SDL_Reset_Video_Mode);
+
+    Patch_Jump(0x006A6420, &WWMouseClassExt::_Get_Bounded_Position);
+    Patch_Jump(0x006A66C0, &WWMouseClassExt::_Process_Mouse);
+
+    Patch_Jump(0x006A4E10, &_Callback_Process_Mouse);
 
     //Patch_Byte(0x00487D2B + 1, DSSCL_NORMAL);
     Patch_Jump(0x0059449F, &_CtrlProc_Update_SDL_Screen_Patch);
