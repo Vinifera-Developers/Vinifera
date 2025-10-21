@@ -122,12 +122,12 @@ static bool Scale_Video_Rect(Rect &rect, int max_width, int max_height, bool mai
  *
  *  @author: CCHyper, Rampastring
  */
-void Scale_Movie_Helper(MovieClass* this_ptr)
+void Scale_Movie_Helper(VQHandle* this_ptr)
 {
     /**
      *  Calculate the stretched rect for this video, maintaining the video ratio.
      */
-    Rect stretched_rect = this_ptr->VideoRect;
+    Rect stretched_rect = this_ptr->InitialRect;
     if (Scale_Video_Rect(stretched_rect, HiddenSurface->Width, HiddenSurface->Height, true)) {
 
         /**
@@ -135,8 +135,8 @@ void Scale_Movie_Helper(MovieClass* this_ptr)
          */
         this_ptr->StretchRect = stretched_rect;
 
-        DEBUG_INFO("Stretching movie - VideoRect: %d,%d -> StretchRect: %d,%d\n",
-            this_ptr->VideoRect.Width, this_ptr->VideoRect.Height,
+        DEBUG_INFO("Stretching movie - InitialRect: %d,%d -> StretchRect: %d,%d\n",
+            this_ptr->InitialRect.Width, this_ptr->InitialRect.Height,
             this_ptr->StretchRect.Width, this_ptr->StretchRect.Height);
     }
 }
@@ -151,7 +151,7 @@ void Scale_Movie_Helper(MovieClass* this_ptr)
  */
 DECLARE_PATCH(_Play_Movie_Scale_By_Ratio_Patch)
 {
-    GET_REGISTER_STATIC(MovieClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(VQHandle*, this_ptr, esi);
     Scale_Movie_Helper(this_ptr);
     JMP(0x00563805);
 }
