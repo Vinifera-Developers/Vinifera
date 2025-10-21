@@ -346,15 +346,111 @@ DECLARE_PATCH(_Windows_Procudure_Return_Patch)
     }
 }
 
+int _ODMoveDialog(HWND window, int x, int y)
+{
+    int xpos;
+    int ypos;
 
+    RECT rect1;
+    rect1.left = 0;
+    rect1.top = 0;
+    rect1.right = VideoWidth;
+    rect1.bottom = VideoHeight;
+
+    ClientToScreen(MainWindow, (LPPOINT)&rect1);
+    ClientToScreen(MainWindow, (LPPOINT)&rect1.right);
+
+    RECT rect2;
+    GetWindowRect(window, &rect2);
+
+    rect2.right -= rect2.left;
+    rect2.bottom -= rect2.top;
+
+    if (x == -1) {
+        xpos = rect2.left - rect1.left;
+    } else {
+        xpos = x;
+    }
+    rect2.left = xpos;
+
+    if (y == -1) {
+        ypos = rect2.top - rect1.top;
+    } else {
+        ypos = y;
+    }
+    rect2.top = ypos;
+
+    return (MoveWindow(window, rect2.left, rect2.top, rect2.right, rect2.bottom, FALSE));
+}
+
+
+void _Center_Window_Within_Window(HWND window, HWND parent)
+{
+    RECT rcl;
+    GetClientRect(parent, &rcl);
+
+    if (parent == MainWindow) {
+        rcl.right = VideoWidth;
+        rcl.bottom = VideoHeight;
+    }
+
+    ClientToScreen(parent, (LPPOINT)&rcl);
+    ClientToScreen(parent, (LPPOINT)&rcl.right);
+    rcl.right -= rcl.left;
+    rcl.bottom -= rcl.top;
+
+    RECT rect;
+    GetClientRect(window, &rect);
+    ClientToScreen(window, (LPPOINT)&rect);
+    ClientToScreen(window, (LPPOINT)&rect.right);
+    rect.right -= rect.left;
+    rect.bottom -= rect.top;
+    int x = (rcl.right - rect.right + 1) / 2;
+    int y = (rcl.bottom - rect.bottom + 1) / 2;
+
+    if (x < 0) {
+        x = 0;
+    }
+    if (y < 0) {
+        y = 0;
+    }
+
+    SetWindowPos(window, 0, x, y, -1, -1, SWP_NOSIZE | SWP_NOZORDER);
+}
+
+
+BOOL _GetDisplayRect(HWND window, LPRECT rect)
+{
+    RECT c;
+    BOOL res = GetWindowRect(window, rect);
+    if (!res) {
+        return (res);
+    }
+    GetClientRect(MainWindow, &c);
+    ClientToScreen(MainWindow, (LPPOINT)&c);
+    rect->left -= c.left;
+    rect->right -= c.left;
+    rect->top -= c.top;
+    rect->bottom -= c.top;
+    return (res);
+}
+//
+//void* cts = &ClientToScreen;
 
 /**
  *  Main function for patching the hooks.
  */
 void SDL_Hooks()
 {
+    //Patch_Dword(0x00685635 + 2, (uintptr_t)&cts);
+    //Patch_Dword(0x005A0BA9 + 2, (uintptr_t)&cts);
+
+    //Patch_Jump(0x005A0BA0, &_ODMoveDialog);
+    //Patch_Jump(0x00685600, &_Center_Window_Within_Window);
+    Patch_Jump(0x00685600, &_GetDisplayRect);
+
     Patch_Jump(0x00685C08, &_Windows_Procudure_Return_Patch);
-    Patch_Jump(0x00685FCE, &_Windows_Procudure_Return_Patch);
+    Patch_Jump(0x00682F80, &_Windows_Procudure_Return_Patch);
 
     //Patch_Jump(0x0059449F, &_CtrlProc_Update_SDL_Screen_Patch__);
 
