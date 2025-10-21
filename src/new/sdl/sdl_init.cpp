@@ -205,13 +205,28 @@ static LRESULT CALLBACK GameMessageHook(int code, WPARAM wParam, LPARAM lParam)
 {
     if (code == HC_ACTION) {
         MSG* msg = reinterpret_cast<MSG*>(lParam);
-
-        // Dispatch to your game’s existing handler
-        // (e.g. OwnerDraw::DefaultDialogProc, etc.)
-        Windows_Procedure(msg->hwnd, msg->message, msg->wParam, msg->lParam);
+        if (msg->hwnd == MainWindow) {
+            Windows_Procedure(msg->hwnd, msg->message, msg->wParam, msg->lParam);
+        }
     }
 
     return CallNextHookEx(nullptr, code, wParam, lParam);
+}
+
+
+static WNDPROC SDL_Proc = nullptr;
+
+LRESULT CALLBACK HookedSDLProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    // 2. Feed other messages to the game’s original handler
+    LRESULT game_result = Windows_Procedure(hwnd, msg, wParam, lParam);
+
+    // 3. Optionally let SDL see everything else too, if you want SDL to handle unknowns
+    LRESULT sdl_result = CallWindowProc(SDL_Proc, hwnd, msg, wParam, lParam);
+
+    // 4. Decide which result to return
+    // Normally, return the game’s result unless SDL needs to override (rare)
+    return game_result ? game_result : sdl_result;
 }
 
 
@@ -280,7 +295,8 @@ bool SDL_Create_Main_Window(HINSTANCE hInstance, int width, int height)
     /**
      *  Set the games windows proc function to the window.
      */
-    SetWindowsHookEx(WH_GETMESSAGE, GameMessageHook, nullptr, GetCurrentThreadId());
+    //SetWindowsHookEx(WH_GETMESSAGE, GameMessageHook, nullptr, GetCurrentThreadId());
+    SDL_Proc = (WNDPROC)SetWindowLongPtr(MainWindow, GWLP_WNDPROC, (LONG_PTR)HookedSDLProc);
 
     return true;
 }

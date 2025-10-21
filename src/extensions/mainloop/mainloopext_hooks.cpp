@@ -52,7 +52,6 @@
 #include "sessionext.h"
 #include "hooker.h"
 #include "hooker_macros.h"
-#include "sdl_init.h"
 #include "sdlsurface.h"
 #include "tacticalext.h"
 
@@ -193,8 +192,6 @@ static void After_Main_Loop()
          */
         Vinifera_Developer_IsToReloadRules = false;
     }
-
-    SDL_Update_Screen(static_cast<SDLSurface*>(VisibleSurface));
 }
 
 

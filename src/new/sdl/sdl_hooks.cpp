@@ -37,7 +37,9 @@
 #include "tibsun_globals.h"
 #include "wwmouse.h"
 #include "drawshape.h"
-#include "tactical.h"
+#include "filepng.h"
+#include "msgloop.h"
+#include "winuser.h"
 #include "SDL3/SDL_timer.h"
 
 #include <dsound.h>
@@ -53,7 +55,7 @@ void _Set_Palette(void const* palette)
 }
 
 
-DECLARE_PATCH(_GScreenClass_Do_Blit_SDL_Update_Window_Patch)
+DECLARE_PATCH(_Update_Visible_Surface_SDL_Update_Window_Patch)
 {
     SDL_Update_Screen(static_cast<SDLSurface*>(VisibleSurface));
 
@@ -82,7 +84,7 @@ DECLARE_PATCH(_Main_Loop_SDL_Update_Window_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_MovieClass_Blit_SDL_Update_Window_Patch_1)
+DECLARE_PATCH(_Movie_Blit_To_Screen_SDL_Update_Window_Patch_1)
 {
     // PrimarySurface (ecx) -> Copy_From
     _asm { mov eax, [edx+8] }
@@ -105,7 +107,7 @@ DECLARE_PATCH(_MovieClass_Blit_SDL_Update_Window_Patch_1)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_MovieClass_Blit_SDL_Update_Window_Patch_2)
+DECLARE_PATCH(_Movie_Update_Visisble_Surface_SDL_Update_Window_Patch_2)
 {
     // PrimarySurface (ecx) -> Copy_From
     _asm { mov eax, [edx+8] }
@@ -123,7 +125,7 @@ DECLARE_PATCH(_MovieClass_Blit_SDL_Update_Window_Patch_2)
 }
 
 
-DECLARE_PATCH(_MSEngine_Blit_SDL_Update_Window_Patch)
+DECLARE_PATCH(_MSEngine_BlitAll_SDL_Update_Window_Patch)
 {
     // PrimarySurface (ecx) -> Copy_From
     _asm { push eax }
@@ -137,7 +139,7 @@ DECLARE_PATCH(_MSEngine_Blit_SDL_Update_Window_Patch)
     JMP(0x0057111C);
 }
 
-DECLARE_PATCH(_MSEngine_Draw_SDL_Update_Window_Patch)
+DECLARE_PATCH(_MSEngine_BlitRect_SDL_Update_Window_Patch)
 {
     // PrimarySurface (ecx) -> Copy_From
     _asm { push edx }
@@ -202,13 +204,22 @@ DECLARE_PATCH(_OwnerDraw_DialogProc_SDL_Update_Window_Patch_Return_Var)
 }
 
 
+void Save()
+{
+    Write_PNG_File(&RawFileClass("alt.png"), *AlternateSurface, &GamePalette);
+}
+
 //59449F
 DECLARE_PATCH(_CtrlProc_Update_SDL_Screen_Patch)
 {
-    AlternateSurface->Unlock();
-    VisibleSurface->Unlock();
+    _asm push eax
+
+    Save();
     SDL_Update_Screen(static_cast<SDLSurface*>(VisibleSurface));
-    JMP(0x005944B5);
+
+    _asm pop eax
+    _asm add esp, 2E8h
+    _asm retn 10h
 }
 
 
@@ -271,39 +282,152 @@ void CALLBACK _Callback_Process_Mouse(UINT, UINT, DWORD, DWORD, DWORD)
 }
 
 
+int DefaultDialogProc(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
+DEFINE_IMPLEMENTATION(int DefaultDialogProc(HWND, UINT, WPARAM, LPARAM), 0x005A0840);
+
+
+int DefaultDialogProcProxy(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
+{
+    int res =  DefaultDialogProc(window, message, wparam, lparam);
+    if (message == WM_PAINT)
+    SDL_Update_Screen(static_cast<SDLSurface*>(VisibleSurface));
+    return res;
+}
+
+void WMH_Intercept(void)
+{
+    SDL_Update_Screen(static_cast<SDLSurface*>(VisibleSurface));
+
+    Windows_Message_Handler();
+}
+
+
+BOOL __stdcall ValidateRectProxy(HWND hWnd, const RECT* lpRect)
+{
+    BOOL res = ValidateRect(hWnd, lpRect);
+
+    if (AlternateSurface) Write_PNG_File(&RawFileClass("alt.png"), *AlternateSurface, &GamePalette);
+    SDL_Update_Screen(static_cast<SDLSurface*>(VisibleSurface));
+    return res;
+}
+
+
+//59449F
+DECLARE_PATCH(_CtrlProc_Update_SDL_Screen_Patch__)
+{
+    AlternateSurface->Unlock();
+    VisibleSurface->Unlock();
+    Save();
+    SDL_Update_Screen(static_cast<SDLSurface*>(VisibleSurface));
+    JMP(0x005944B5);
+}
+
+LRESULT CALLBACK CtrlProc(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
+DEFINE_IMPLEMENTATION(LRESULT CALLBACK CtrlProc(HWND window, UINT message, WPARAM wparam, LPARAM lparam), 0x00592340);
+
+
+LRESULT CALLBACK CtrlProcProxy(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
+{
+    LRESULT result = CtrlProc(window, message, wparam, lparam);
+    if (message == WM_PAINT) {
+        SDL_Update_Screen(static_cast<SDLSurface*>(VisibleSurface));
+    }
+    return result;
+}
+
+
+DECLARE_PATCH(_Windows_Procudure_Return_Patch)
+{
+    _asm {
+        xor eax, eax
+        pop esi
+        pop ebp
+        retn 10h
+    }
+}
+
+
+
 /**
  *  Main function for patching the hooks.
  */
 void SDL_Hooks()
 {
-    Patch_Dword(0x006CA384, (uintptr_t)&Patched_ClientToScreen);
+    Patch_Jump(0x00685C08, &_Windows_Procudure_Return_Patch);
+    Patch_Jump(0x00685FCE, &_Windows_Procudure_Return_Patch);
 
+    //Patch_Jump(0x0059449F, &_CtrlProc_Update_SDL_Screen_Patch__);
+
+    Patch_Dword(0x006CA384, (uintptr_t)&Patched_ClientToScreen);
+    //Patch_Dword(0x006CA3C4, (uintptr_t)&ValidateRectProxy);
+    Patch_Dword(0x00591739 + 1, (uintptr_t)&CtrlProcProxy);
+
+    // Dummies
     Patch_Jump(0x00473330, &_Wait_Blit);
     Patch_Jump(0x00473280, &_Wait_Blit);
-    Patch_Jump(0x004E7310, &SDL_Allocate_Surfaces);
     Patch_Jump(0x00472AD0, &Prep_SDL);
     Patch_Jump(0x00472BC0, &Destroy_SDL);
+
+    Patch_Jump(0x004E7310, &SDL_Allocate_Surfaces);
     Patch_Jump(0x00472DF0, &SDL_Set_Video_Mode);
     Patch_Jump(0x00472FF0, &SDL_Reset_Video_Mode);
 
     Patch_Jump(0x006A6420, &WWMouseClassExt::_Get_Bounded_Position);
     Patch_Jump(0x006A66C0, &WWMouseClassExt::_Process_Mouse);
-
     Patch_Jump(0x006A4E10, &_Callback_Process_Mouse);
 
-    //Patch_Byte(0x00487D2B + 1, DSSCL_NORMAL);
-    Patch_Jump(0x0059449F, &_CtrlProc_Update_SDL_Screen_Patch);
+    //Patch_Jump(0x005944F5, &_CtrlProc_Update_SDL_Screen_Patch);
+    //Patch_Jump(0x00594506, &_CtrlProc_Update_SDL_Screen_Patch);
 
-    Patch_Jump(0x005F3C61, &_SidebarClass_Blit_Sidebar_SDL_Update_Window_Patch);
-    Patch_Jump(0x005640CD, &_MovieClass_Blit_SDL_Update_Window_Patch_1);
-    Patch_Jump(0x00564787, &_MovieClass_Blit_SDL_Update_Window_Patch_2);
-    Patch_Jump(0x00571116, &_MSEngine_Blit_SDL_Update_Window_Patch);
-    Patch_Jump(0x005711F5, &_MSEngine_Draw_SDL_Update_Window_Patch);
-    Patch_Jump(0x00592356, &_OwnerDraw_DialogProc_SDL_Update_Window_Patch_Return_1);
-    Patch_Jump(0x0059264F, &_OwnerDraw_DialogProc_SDL_Update_Window_Patch_Return_0);
-    Patch_Jump(0x005926D8, &_OwnerDraw_DialogProc_SDL_Update_Window_Patch_Return_1);
-    Patch_Jump(0x00592802, &_OwnerDraw_DialogProc_SDL_Update_Window_Patch_Return_1);
-    Patch_Jump(0x005944EF, &_OwnerDraw_DialogProc_SDL_Update_Window_Patch_Return_1);
-    Patch_Jump(0x005944FE, &_OwnerDraw_DialogProc_SDL_Update_Window_Patch_Return_Var);
-    Patch_Jump(0x004B9A42, &_GScreenClass_Do_Blit_SDL_Update_Window_Patch);
+    // VQA
+    Patch_Jump(0x005640CD, &_Movie_Blit_To_Screen_SDL_Update_Window_Patch_1);
+    Patch_Jump(0x00564787, &_Movie_Update_Visisble_Surface_SDL_Update_Window_Patch_2);
+
+    // MSEngine
+    Patch_Jump(0x00571116, &_MSEngine_BlitAll_SDL_Update_Window_Patch);
+    Patch_Jump(0x005711F5, &_MSEngine_BlitRect_SDL_Update_Window_Patch);
+
+    // Most other cases
+    Patch_Jump(0x004B9A42, &_Update_Visible_Surface_SDL_Update_Window_Patch);
+
+
+    // Patch_Jump(0x005F3C61, &_SidebarClass_Blit_Sidebar_SDL_Update_Window_Patch);
+    //Patch_Jump(0x00592356, &_OwnerDraw_DialogProc_SDL_Update_Window_Patch_Return_1);
+    //Patch_Jump(0x0059264F, &_OwnerDraw_DialogProc_SDL_Update_Window_Patch_Return_0);
+    //Patch_Jump(0x005926D8, &_OwnerDraw_DialogProc_SDL_Update_Window_Patch_Return_1);
+    //Patch_Jump(0x00592802, &_OwnerDraw_DialogProc_SDL_Update_Window_Patch_Return_1);
+    //Patch_Jump(0x005944EF, &_OwnerDraw_DialogProc_SDL_Update_Window_Patch_Return_1);
+    //Patch_Jump(0x005944FE, &_OwnerDraw_DialogProc_SDL_Update_Window_Patch_Return_Var);
+
+    //Patch_Call(0x005A0B50, &WMH_Intercept);
+
+    //Patch_Call(0x00407019, &DefaultDialogProcProxy);
+    //Patch_Call(0x00407019, &DefaultDialogProcProxy);
+    //Patch_Call(0x004B68CC, &DefaultDialogProcProxy);
+    //Patch_Call(0x004B6F39, &DefaultDialogProcProxy);
+    //Patch_Call(0x004E321A, &DefaultDialogProcProxy);
+    //Patch_Call(0x004E4B38, &DefaultDialogProcProxy);
+    //Patch_Call(0x004E523C, &DefaultDialogProcProxy);
+    //Patch_Call(0x00504A5A, &DefaultDialogProcProxy);
+    //Patch_Call(0x00504B6A, &DefaultDialogProcProxy);
+    //Patch_Call(0x00504C5A, &DefaultDialogProcProxy);
+    //Patch_Call(0x0050A719, &DefaultDialogProcProxy);
+    //Patch_Call(0x0050A7B9, &DefaultDialogProcProxy);
+    //Patch_Call(0x0050B379, &DefaultDialogProcProxy);
+    //Patch_Call(0x0050B3CC, &DefaultDialogProcProxy);
+    //Patch_Call(0x0053A51A, &DefaultDialogProcProxy);
+    //Patch_Call(0x0055A8E8, &DefaultDialogProcProxy);
+    //Patch_Call(0x0055D4E9, &DefaultDialogProcProxy);
+    //Patch_Call(0x00564CBA, &DefaultDialogProcProxy);
+    //Patch_Call(0x005729FA, &DefaultDialogProcProxy);
+    //Patch_Call(0x00581379, &DefaultDialogProcProxy);
+    //Patch_Call(0x0058A66A, &DefaultDialogProcProxy);
+    //Patch_Call(0x005A0D99, &DefaultDialogProcProxy);
+    //Patch_Call(0x005A82F9, &DefaultDialogProcProxy);
+    //Patch_Call(0x005A8F3C, &DefaultDialogProcProxy);
+    //Patch_Call(0x005AE168, &DefaultDialogProcProxy);
+    //Patch_Call(0x005EB5C7, &DefaultDialogProcProxy);
+    //Patch_Call(0x005F74FA, &DefaultDialogProcProxy);
+    //Patch_Call(0x005FC1A0, &DefaultDialogProcProxy);
+    //Patch_Call(0x0069F329, &DefaultDialogProcProxy);
 }
