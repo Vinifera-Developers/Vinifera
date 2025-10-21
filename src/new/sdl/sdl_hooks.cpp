@@ -114,7 +114,6 @@ DECLARE_PATCH(_MSEngine_BlitAll_SDL_Update_Window_Patch)
     _asm { mov eax, [edx+0x8] }
     _asm { call eax }
 
-    DEBUG_INFO("MSEngine::Blit() - Copying to VisibleSurface.\n");
     SDL_Update_Screen(VisibleSurface);
 
     JMP(0x0057111C);
@@ -128,7 +127,6 @@ DECLARE_PATCH(_MSEngine_BlitRect_SDL_Update_Window_Patch)
     _asm { mov eax, [ecx+0x8] }
     _asm { call eax }
 
-    DEBUG_INFO("MSEngine::Draw() - Copying to VisibleSurface.\n");
     SDL_Update_Screen(VisibleSurface);
 
     JMP(0x005711F8);
@@ -331,19 +329,29 @@ BOOL _GetDisplayRect(HWND window, LPRECT rect)
     return (res);
 }
 
+
+BOOL _GetWindowRect(HWND window, LPRECT rect)
+{
+    return GetWindowRect(window, rect);
+}
+
 /**
  *  Main function for patching the hooks.
  */
 void SDL_Hooks()
 {
+    // These 3 need to use the real ClientToScreen so that dialogs are where they should be
     Patch_Jump(0x005A0BA0, &_ODMoveDialog);
     Patch_Jump(0x00685600, &_Center_Window_Within_Window);
     Patch_Jump(0x00682F80, &_GetDisplayRect);
 
+    // Except for this GetDisplayRect, it's used only for drawing offset, and returning GetWindowRect makes the offset 0
+    Patch_Call(0x005924F0, &_GetWindowRect);
+    
+    // Disable some drawing calls
     Patch_Dword(0x006CA384, (uintptr_t)&Fake_ClientToScreen);
     Patch_Dword(0x006CA3C4, (uintptr_t)&Fake_ValidateRect);
     //Patch_Dword(0x006CA3C8, (uintptr_t)&Fake_InvalidateRect);
-    Patch_Dword(0x00591739 + 1, (uintptr_t)&CtrlProcProxy);
 
     // Dummies
     Patch_Jump(0x00473330, &_Wait_Blit);
@@ -351,10 +359,12 @@ void SDL_Hooks()
     Patch_Jump(0x00472AD0, &Prep_SDL);
     Patch_Jump(0x00472BC0, &Destroy_SDL);
 
+    // SDL prep
     Patch_Jump(0x004E7310, &SDL_Allocate_Surfaces);
     Patch_Jump(0x00472DF0, &SDL_Set_Video_Mode);
     Patch_Jump(0x00472FF0, &SDL_Reset_Video_Mode);
 
+    // Fix the mouse (at least in windowed)
     Patch_Jump(0x006A6420, &WWMouseClassExt::_Get_Bounded_Position);
     Patch_Jump(0x006A66C0, &WWMouseClassExt::_Process_Mouse);
     Patch_Jump(0x006A4E10, &_Callback_Process_Mouse);
@@ -370,7 +380,11 @@ void SDL_Hooks()
     // Most other cases
     Patch_Jump(0x004B9A42, &_Update_Visible_Surface_SDL_Update_Window_Patch);
 
-    // TODO: Doesn't work, DefaultDialogProc is called too early, before anything is actually drawn
+    // Copy over the surface after a control has been redrawn
+    Patch_Dword(0x00591739 + 1, (uintptr_t)&CtrlProcProxy);
+
+    // Copy over the surface after a window has been redrawn
+    // TODO: Doesn't work, DefaultDialogProc is called too early, before anything is actually drawn -> no window animations
     //Patch_Call(0x00407019, &DefaultDialogProcProxy);
     //Patch_Call(0x00407019, &DefaultDialogProcProxy);
     //Patch_Call(0x004B68CC, &DefaultDialogProcProxy);
