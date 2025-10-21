@@ -156,6 +156,8 @@ bool SDL_Set_Video_Mode(HWND, int w, int h, int bits_per_pixel)
     }
     DEBUG_INFO("SDLWindowTexture created.\n");
 
+    SDL_SetTextureScaleMode(SDLWindowTexture,SDL_SCALEMODE_NEAREST);
+
     /**
      *  Explicitly set input focus to the window.
      */
