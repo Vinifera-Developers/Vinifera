@@ -81,6 +81,9 @@ public:
     bool Unlock() const override;
     bool Can_Lock(int x = 0, int y = 0) const override;
 
+    bool Fill_Rect(Rect const & rect,int color) override;
+    bool Fill_Rect(Rect const & cliprect,Rect const & fillrect,int color) override;
+
     /*
     **  Queries information about the surface.
     */
@@ -89,6 +92,7 @@ public:
     /*
     **  Verifies that this is not a direct draw enabled surface.
     */
+    bool In_Video_Ram(void) const { return(false); }
     bool Is_Direct_Draw() const override { return false; }
 
     bool Can_Blit() const override;
