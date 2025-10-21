@@ -206,20 +206,6 @@ void CALLBACK _Callback_Process_Mouse(UINT, UINT, DWORD, DWORD, DWORD)
 }
 
 
-int DefaultDialogProc(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
-DEFINE_IMPLEMENTATION(int DefaultDialogProc(HWND, UINT, WPARAM, LPARAM), 0x005A0840);
-
-
-int DefaultDialogProcProxy(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
-{
-    int res = DefaultDialogProc(window, message, wparam, lparam);
-    if (message == WM_PAINT) {
-        SDL_Update_Screen(VisibleSurface);
-    }
-    return res;
-}
-
-
 LRESULT CALLBACK CtrlProc(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
 DEFINE_IMPLEMENTATION(LRESULT CALLBACK CtrlProc(HWND window, UINT message, WPARAM wparam, LPARAM lparam), 0x00592340);
 
@@ -231,6 +217,46 @@ LRESULT CALLBACK CtrlProcProxy(HWND window, UINT message, WPARAM wparam, LPARAM 
         SDL_Update_Screen(VisibleSurface);
     }
     return result;
+}
+
+
+// 593F8D
+DECLARE_PATCH(_CtrlProc_SDL_Update_Screen1)
+{
+    AlternateSurface->Unlock();
+    VisibleSurface->Unlock();
+    SDL_Update_Screen(VisibleSurface);
+    JMP(0x00593FA3);
+}
+
+
+//594101
+DECLARE_PATCH(_CtrlProc_SDL_Update_Screen2)
+{
+    AlternateSurface->Unlock();
+    VisibleSurface->Unlock();
+    SDL_Update_Screen(VisibleSurface);
+    JMP(0x00594117);
+}
+
+
+// 59437C
+DECLARE_PATCH(_CtrlProc_SDL_Update_Screen3)
+{
+    AlternateSurface->Unlock();
+    VisibleSurface->Unlock();
+    SDL_Update_Screen(VisibleSurface);
+    JMP(0x00594387);
+}
+
+
+// 59449F
+DECLARE_PATCH(_CtrlProc_SDL_Update_Screen4)
+{
+    AlternateSurface->Unlock();
+    VisibleSurface->Unlock();
+    SDL_Update_Screen(VisibleSurface);
+    JMP(0x005944B5);
 }
 
 
@@ -383,35 +409,9 @@ void SDL_Hooks()
     // Copy over the surface after a control has been redrawn
     Patch_Dword(0x00591739 + 1, (uintptr_t)&CtrlProcProxy);
 
-    // Copy over the surface after a window has been redrawn
-    // TODO: Doesn't work, DefaultDialogProc is called too early, before anything is actually drawn -> no window animations
-    //Patch_Call(0x00407019, &DefaultDialogProcProxy);
-    //Patch_Call(0x00407019, &DefaultDialogProcProxy);
-    //Patch_Call(0x004B68CC, &DefaultDialogProcProxy);
-    //Patch_Call(0x004B6F39, &DefaultDialogProcProxy);
-    //Patch_Call(0x004E321A, &DefaultDialogProcProxy);
-    //Patch_Call(0x004E4B38, &DefaultDialogProcProxy);
-    //Patch_Call(0x004E523C, &DefaultDialogProcProxy);
-    //Patch_Call(0x00504A5A, &DefaultDialogProcProxy);
-    //Patch_Call(0x00504B6A, &DefaultDialogProcProxy);
-    //Patch_Call(0x00504C5A, &DefaultDialogProcProxy);
-    //Patch_Call(0x0050A719, &DefaultDialogProcProxy);
-    //Patch_Call(0x0050A7B9, &DefaultDialogProcProxy);
-    //Patch_Call(0x0050B379, &DefaultDialogProcProxy);
-    //Patch_Call(0x0050B3CC, &DefaultDialogProcProxy);
-    //Patch_Call(0x0053A51A, &DefaultDialogProcProxy);
-    //Patch_Call(0x0055A8E8, &DefaultDialogProcProxy);
-    //Patch_Call(0x0055D4E9, &DefaultDialogProcProxy);
-    //Patch_Call(0x00564CBA, &DefaultDialogProcProxy);
-    //Patch_Call(0x005729FA, &DefaultDialogProcProxy);
-    //Patch_Call(0x00581379, &DefaultDialogProcProxy);
-    //Patch_Call(0x0058A66A, &DefaultDialogProcProxy);
-    //Patch_Call(0x005A0D99, &DefaultDialogProcProxy);
-    //Patch_Call(0x005A82F9, &DefaultDialogProcProxy);
-    //Patch_Call(0x005A8F3C, &DefaultDialogProcProxy);
-    //Patch_Call(0x005AE168, &DefaultDialogProcProxy);
-    //Patch_Call(0x005EB5C7, &DefaultDialogProcProxy);
-    //Patch_Call(0x005F74FA, &DefaultDialogProcProxy);
-    //Patch_Call(0x005FC1A0, &DefaultDialogProcProxy);
-    //Patch_Call(0x0069F329, &DefaultDialogProcProxy);
+    // Update surface during the window sliding open animation
+    Patch_Jump(0x00593F8D, &_CtrlProc_SDL_Update_Screen1);
+    Patch_Jump(0x00594101, &_CtrlProc_SDL_Update_Screen2);
+    Patch_Jump(0x0059437C, &_CtrlProc_SDL_Update_Screen3);
+    Patch_Jump(0x0059449F, &_CtrlProc_SDL_Update_Screen4);
 }
