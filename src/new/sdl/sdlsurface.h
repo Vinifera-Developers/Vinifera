@@ -61,6 +61,7 @@ public:
     /**
      *  Fills a region with a constant color.
      */
+    bool Fill_Rect(Rect const& rect, int color) override;
     bool Fill_Rect(Rect const& cliprect, Rect const& fillrect, int color) override;
 
     /**
@@ -80,9 +81,6 @@ public:
     void* Lock(Point2D point = Point2D(0, 0)) const override;
     bool Unlock() const override;
     bool Can_Lock(int x = 0, int y = 0) const override;
-
-    bool Fill_Rect(Rect const & rect,int color) override;
-    bool Fill_Rect(Rect const & cliprect,Rect const & fillrect,int color) override;
 
     /*
     **  Queries information about the surface.

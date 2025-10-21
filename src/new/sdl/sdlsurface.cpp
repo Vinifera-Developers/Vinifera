@@ -360,6 +360,28 @@ bool SDLSurface::Blit_From(Rect const& dcliprect, Rect const& destrect, Surface 
 
 
 /***********************************************************************************************
+ * SDLSurface::Fill_Rect -- This routine will fill the specified rectangle.                      *
+ *                                                                                             *
+ *    This routine will fill the specified rectangle with a color.                             *
+ *                                                                                             *
+ * INPUT:   fillrect -- The rectangle to fill.                                                 *
+ *                                                                                             *
+ *          color    -- The color to fill with.                                                *
+ *                                                                                             *
+ * OUTPUT:  bool; Was the fill performed without error?                                        *
+ *                                                                                             *
+ * WARNINGS:   none                                                                            *
+ *                                                                                             *
+ * HISTORY:                                                                                    *
+ *   02/07/1997 JLB : Created.                                                                 *
+ *=============================================================================================*/
+bool SDLSurface::Fill_Rect(Rect const& fillrect, int color)
+{
+    return (SDLSurface::Fill_Rect(Get_Rect(), fillrect, color));
+}
+
+
+/***********************************************************************************************
  * SDLSurface::Fill_Rect -- Fills a rectangle with clipping control.                             *
  *                                                                                             *
  *    This routine will fill a rectangle on this surface, but will clip the request against    *
@@ -591,111 +613,4 @@ bool SDLSurface::Restore_Check() const
 void SDLSurface::Blit_To_Window(Rect const* region) const
 {
     return;
-}
-
-
-/***********************************************************************************************
- * SDLSurface::Fill_Rect -- This routine will fill the specified rectangle.                      *
- *                                                                                             *
- *    This routine will fill the specified rectangle with a color.                             *
- *                                                                                             *
- * INPUT:   fillrect -- The rectangle to fill.                                                 *
- *                                                                                             *
- *          color    -- The color to fill with.                                                *
- *                                                                                             *
- * OUTPUT:  bool; Was the fill performed without error?                                        *
- *                                                                                             *
- * WARNINGS:   none                                                                            *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   02/07/1997 JLB : Created.                                                                 *
- *=============================================================================================*/
-bool SDLSurface::Fill_Rect(Rect const & fillrect,int color)
-{
-    return(SDLSurface::Fill_Rect(Get_Rect(),fillrect,color));
-}
-
-
-/***********************************************************************************************
- * SDLSurface::Fill_Rect -- Fills a rectangle with clipping control.                             *
- *                                                                                             *
- *    This routine will fill a rectangle on this surface, but will clip the request against    *
- *    a clipping rectangle first.                                                              *
- *                                                                                             *
- * INPUT:   cliprect -- The clipping rectangle to use for this surface.                        *
- *                                                                                             *
- *          fillrect -- The rectangle to fill with the specified color. The rectangle is       *
- *                      relative to the clipping rectangle.                                    *
- *                                                                                             *
- *          color    -- The color (surface dependant format) to use when filling the rectangle *
- *                      pixels.                                                                *
- *                                                                                             *
- * OUTPUT:  bool; Was a fill operation performed? A 'false' return value would mean that the   *
- *                fill request was clipped into nothing.                                       *
- *                                                                                             *
- * WARNINGS:   none                                                                            *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   05/27/1997 JLB : Created.                                                                 *
- *=============================================================================================*/
-bool SDLSurface::Fill_Rect(Rect const & cliprect,Rect const & fillrect,int color)
-{
-    //if (SurfacePtr == NULL || !fillrect.Is_Valid()) return(false);
-    if(SDLSurfacePtr == NULL || !fillrect.Is_Valid()) return(false);
-
-    /*
-    **	If the buffer is locked, then using the blitter to perform the fill is not possible.
-    **	In such a case, perform a manual fill of the region.
-    */
-#if 0
-    if(!AllowHWFill || Is_Locked() || !DSurface::Can_Blit()){
-        return(XSurface::Fill_Rect(cliprect,fillrect,color));
-    }
-#endif
-    if(Is_Locked() || !SDLSurface::Can_Blit()){
-        return(XSurface::Fill_Rect(cliprect,fillrect,color));
-    }
-
-    if(!Restore_Check()) return(false);
-
-    /*
-    **	Ensure that the clipping rectangle is legal.
-    */
-    Rect crect = Intersect(cliprect,Get_Rect());
-
-    /*
-    **	Bias the fill rect to the clipping rectangle.
-    */
-    Rect frect = fillrect.Bias_To(cliprect);
-
-    /*
-    **	Find the region that should be filled after being clipped by the
-    **	clipping rectangle. This could result in no fill operation being performed
-    **	if the desired fill rectangle has been completely clipped away.
-    */
-    frect = Intersect(frect,crect);
-    if(!frect.Is_Valid()) return(false);
-
-    SDL_Rect rect;
-    rect.x = frect.X;
-    rect.y = frect.Y;
-    rect.w = frect.Width;
-    rect.h = frect.Height;
-
-#if 0
-    RECT rect;
-    rect.left = frect.X;
-    rect.top = frect.Y;
-    rect.right = rect.left + frect.Width;
-    rect.bottom = rect.top + frect.Height;
-
-    DDBLTFX fx;
-    memset(&fx,'\0',sizeof(fx));
-    fx.dwSize = sizeof(fx);
-    fx.dwFillColor = color;
-    HRESULT result = SurfacePtr->Blt(&rect,NULL,NULL,DDBLT_WAIT | DDBLT_COLORFILL,&fx);
-    return(result == DD_OK);
-#endif
-    bool result = SDL_FillSurfaceRect(SDLSurfacePtr,&rect,color);
-    return(result == true);
 }

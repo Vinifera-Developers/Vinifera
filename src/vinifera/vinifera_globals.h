@@ -94,12 +94,13 @@ extern bool Vinifera_Developer_IsToReloadRules;
  */
 extern SDL_Window* SDLWindow;
 extern SDL_Renderer* SDLWindowRenderer;
-//extern SDL_Surface* SDLWindowSurface;
 extern SDL_Texture* SDLWindowTexture;
 extern bool SDLHardwareRenderer;
 extern bool SDLBorderless;
 extern bool SDLBorderlessFullscreen;
 extern bool SDLClipMouseToWindow;
+extern int SDLWindowWidth;
+extern int SDLWindowHeight;
 
 
 /**

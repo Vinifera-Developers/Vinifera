@@ -35,6 +35,7 @@
 #include "sdlsurface.h"
 #include "shapeset.h"
 #include "tibsun_globals.h"
+#include "vinifera_globals.h"
 #include "wwmouse.h"
 #include "winuser.h"
 #include "SDL3/SDL_timer.h"
@@ -194,6 +195,25 @@ public:
 
             Unblock_Mouse();
         }
+    }
+
+    void _Convert_Coordinate(int& x, int& y) const
+    {
+        float x_scale = SDLWindowWidth / VideoWidth;
+        float y_scale = SDLWindowHeight / VideoHeight;
+
+        x /= x_scale;
+        y /= y_scale;
+
+        /*
+        **	Convert the mouse position to legal bounds.
+        */
+        x -= ConfiningRect.X;
+        y -= ConfiningRect.Y;
+        if (x < 0) x = 0;
+        if (y < 0 && !AllowNegativeY) y = 0;
+        if (x >= ConfiningRect.Width) x = ConfiningRect.Width - 1;
+        if (y >= ConfiningRect.Height) y = ConfiningRect.Height - 1;
     }
 };
 
@@ -394,6 +414,7 @@ void SDL_Hooks()
     Patch_Jump(0x006A6420, &WWMouseClassExt::_Get_Bounded_Position);
     Patch_Jump(0x006A66C0, &WWMouseClassExt::_Process_Mouse);
     Patch_Jump(0x006A4E10, &_Callback_Process_Mouse);
+    Patch_Jump(0x006A63C0, &WWMouseClassExt::_Convert_Coordinate);
 
     // VQA
     Patch_Jump(0x005640CD, &_Movie_Blit_To_Screen_SDL_Update_Window_Patch_1);

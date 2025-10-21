@@ -48,7 +48,10 @@ OptionsClassExtension::OptionsClassExtension(const OptionsClass *this_ptr) :
     FilterBandBoxSelection(true),
     KeyChatToAll1(KN_RETURN),
     KeyChatToAll2(KN_F8),
-    KeyChatToAllies(KN_BACKSPACE)
+    KeyChatToAllies(KN_BACKSPACE),
+    WindowWidth(-1),
+    WindowHeight(-1),
+    ScaleMode(SDL_SCALEMODE_NEAREST)
 {
     //EXT_DEBUG_TRACE("OptionsClassExtension::OptionsClassExtension - 0x%08X\n", (uintptr_t)(This()));
 }
@@ -168,6 +171,20 @@ void OptionsClassExtension::Load_Settings()
 
         SortDefensesAsLast = sun_ini.Get_Bool("Options", "SortDefensesAsLast", SortDefensesAsLast);
         FilterBandBoxSelection = sun_ini.Get_Bool("Options", "FilterBandBoxSelection", FilterBandBoxSelection);
+
+	    WindowWidth = sun_ini.Get_Int("Video", "WindowWidth", WindowWidth);
+        WindowHeight = sun_ini.Get_Int("Video", "WindowHeight", WindowHeight);
+
+        char buffer[256];
+        if (sun_ini.Get_String("Video", "ScaleMode", "", buffer, std::size(buffer)) > 0) {
+            if (stricmp(buffer, "Linear") == 0) {
+                ScaleMode = SDL_SCALEMODE_LINEAR;
+            } else if (stricmp(buffer, "Nearest") == 0) {
+                ScaleMode = SDL_SCALEMODE_NEAREST;
+            } else if (stricmp(buffer, "PixelArt") == 0) {
+                ScaleMode = SDL_SCALEMODE_PIXELART;
+            }
+        }
     }
 
     /**

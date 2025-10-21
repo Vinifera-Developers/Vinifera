@@ -65,12 +65,13 @@ bool Vinifera_Developer_IsToReloadRules = false;
 
 SDL_Window* SDLWindow = nullptr;
 SDL_Renderer* SDLWindowRenderer = nullptr;
-//SDL_Surface* SDLWindowSurface = nullptr;
 SDL_Texture* SDLWindowTexture = nullptr;
 bool SDLHardwareRenderer = true;
 bool SDLBorderless = false;
-bool SDLBorderlessFullscreen = false;
+bool SDLBorderlessFullscreen = true;
 bool SDLClipMouseToWindow = true;
+int SDLWindowWidth = 0;
+int SDLWindowHeight = 0;
 
 bool Vinifera_SkipLogoMovies = false;
 bool Vinifera_SkipStartupMovies = false;

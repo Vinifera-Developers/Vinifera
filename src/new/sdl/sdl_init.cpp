@@ -4,6 +4,7 @@
 #include "debughandler.h"
 #include "filepng.h"
 #include "mouse.h"
+#include "optionsext.h"
 #include "rect.h"
 #include "sdlsurface.h"
 #include "tactical.h"
@@ -146,6 +147,10 @@ bool SDL_Set_Video_Mode(HWND, int w, int h, int bits_per_pixel)
     }
     DEBUG_INFO("SDLWindowRenderer created.\n");
 
+    if (OptionsExtension->ScaleMode != SDL_SCALEMODE_INVALID) {
+        SDL_SetDefaultTextureScaleMode(SDLWindowRenderer, OptionsExtension->ScaleMode);
+    }
+
     /**
      *  Create window texture.
      */
@@ -155,8 +160,6 @@ bool SDL_Set_Video_Mode(HWND, int w, int h, int bits_per_pixel)
         return false;
     }
     DEBUG_INFO("SDLWindowTexture created.\n");
-
-    SDL_SetTextureScaleMode(SDLWindowTexture,SDL_SCALEMODE_NEAREST);
 
     /**
      *  Explicitly set input focus to the window.
@@ -294,9 +297,11 @@ bool SDL_Create_Main_Window(HINSTANCE hInstance, int width, int height)
         DEBUG_ERROR("SDLWindow could not be created! SDL_Error: %s\n", SDL_GetError());
         return false;
     }
+    props = SDL_GetWindowProperties(SDLWindow);
     DEBUG_INFO("SDLWindow created.\n");
 
-    props = SDL_GetWindowProperties(SDLWindow);
+    SDL_GetWindowSize(SDLWindow, &SDLWindowWidth, &SDLWindowHeight);
+    DEBUG_INFO("SDLWindow size: %d X %d.\n", SDLWindowWidth, SDLWindowHeight);
 
     /**
      *  Do various stuff to make the SDL window intersect with the game correctly.

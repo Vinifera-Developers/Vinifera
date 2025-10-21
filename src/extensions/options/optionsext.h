@@ -30,6 +30,7 @@
 #include "always.h"
 #include "extension.h"
 #include "options.h"
+#include "SDL3/SDL_surface.h"
 
 
 class CCINIClass;
@@ -81,4 +82,8 @@ class OptionsClassExtension final : public GlobalExtensionClass<OptionsClass>
         int KeyChatToAll1;
         int KeyChatToAll2;
         int KeyChatToAllies;
+
+        int WindowWidth;
+        int WindowHeight;
+        SDL_ScaleMode ScaleMode;
 };

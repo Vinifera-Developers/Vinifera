@@ -51,6 +51,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "optionsext.h"
 #include "sdl_init.h"
 
 
@@ -275,215 +276,36 @@ static bool Vinifera_Detect_Addons()
  * 
  *  @author: CCHyper
  */
-void Vinifera_Create_Main_Window(HINSTANCE hInstance, int nCmdShow, int width, int height)
+void Vinifera_Create_Main_Window_480p(HINSTANCE hInstance, int command_show, int width, int height)
 {
     //DEV_DEBUG_INFO("Create_Main_Window(enter)\n");
 
     SDL_Create_Main_Window(hInstance, width, height);
-    return;
-
-    MainWindow = nullptr;
-
-    HWND hWnd = nullptr;
-    BOOL rc;
-    WNDCLASSEX wc;
-    tagRECT rect;
-    HICON hIcon = nullptr;
-    HICON hSmIcon = nullptr;
-    HCURSOR hCursor = nullptr;
-
-    //DEV_DEBUG_INFO("Create_Main_Window() - About to call InitCommonControls()\n");
-
-    InitCommonControls();
-
-    //DEV_DEBUG_INFO("Create_Main_Window() - Preparing window name (with version info).\n");
-
-    DWORD dwPid = GetProcessId(GetCurrentProcess());
-    if (!dwPid) {
-        DEBUG_ERROR("Create_Main_Window() - Failed to get the process id!\n");
-        return;
-    }
-
-    //DEV_DEBUG_INFO("Create_Main_Window() - Loading icon and cursor resources.\n");
-
-    /**
-     *  Load the Vinifera icon and cursor resources, falling back to the GAME.EXE
-     *  resources if not available or failed to load.
-     */
-    if (Vinifera_IconName[0] != '\0') {
-        DEBUG_INFO("Loading custom icon \"%s\"\n", Vinifera_IconName);
-        hIcon = (HICON)LoadImage(
-            nullptr,
-            Vinifera_IconName,
-            IMAGE_ICON,
-            0,
-            0,
-            LR_LOADFROMFILE);
-        DEBUG_INFO("Loading custom small icon \"%s\"\n", Vinifera_IconName);
-        hSmIcon = (HICON)LoadImage(
-            nullptr,
-            Vinifera_IconName,
-            IMAGE_ICON,
-            GetSystemMetrics(SM_CXSMICON),
-            GetSystemMetrics(SM_CXSMICON),
-            LR_LOADFROMFILE);
-    }
-    if (!hIcon) {
-        hIcon = LoadIcon((HINSTANCE)DLLInstance, MAKEINTRESOURCE(VINIFERA_MAINICON));
-        if (!hIcon) {
-            hIcon = LoadIcon((HINSTANCE)hInstance, MAKEINTRESOURCE(TS_MAINICON));
-        }
-    }
-    if (Vinifera_CursorName[0] != '\0') {
-        DEBUG_INFO("Loading custom cursor \"%s\"\n", Vinifera_CursorName);
-        hCursor = LoadCursorFromFile(Vinifera_CursorName);
-    }
-    if (!hCursor) {
-        hCursor = LoadCursor(nullptr, VINIFERA_MAINCURSOR); // IDC_ARROW is a system resource, does not require module.
-        if (!hCursor) {
-            hCursor = LoadCursor((HINSTANCE)hInstance, MAKEINTRESOURCE(TS_MAINCURSOR));
-        }
-    }
-
-    //DEV_DEBUG_INFO("Create_Main_Window() - Setting up window class info.\n");
-
-    /**
-     *  Register the window class.
-     */
-    wc.cbSize         = sizeof(WNDCLASSEX);
-    wc.style          = CS_HREDRAW|CS_VREDRAW;
-    wc.lpfnWndProc    = Windows_Procedure;
-    wc.cbClsExtra     = 0;
-    wc.cbWndExtra     = 0;
-    wc.hInstance      = (HINSTANCE)hInstance;
-    wc.hIcon          = hIcon;
-    wc.hCursor        = hCursor;
-    wc.hbrBackground  = nullptr;
-    wc.lpszMenuName   = nullptr;
-    wc.lpszClassName  = "Vinifera";
-    wc.hIconSm        = (hSmIcon ? hSmIcon : hIcon);
-
-    //DEV_DEBUG_INFO("Create_Main_Window() - About to call RegisterClass()\n");
-
-    /**
-     *  Register window class.
-     */
-    rc = RegisterClassEx(&wc);
-    if (!rc) {
-        DEBUG_INFO("Create_Main_Window() - Failed to register window class!\n");
-        return;
-    }
-
-    /**
-     *  Get the dimensions of the primary display.
-     */
-    int display_width = GetSystemMetrics(SM_CXSCREEN);
-    int display_height = GetSystemMetrics(SM_CYSCREEN);
-
-    //DEV_DEBUG_INFO("Create_Main_Window() - Desktop size %d x %d\n", display_width, display_height);
-
-    /**
-     *  Create our main window.
-     */
-    if (WindowedMode) {
-
-        DEBUG_INFO("Create_Main_Window() - Creating desktop window (%d x %d).\n", width, height);
-
-        hWnd = CreateWindowEx(
-            WS_EX_LEFT|WS_EX_TOPMOST,
-            "Vinifera",
-            Vinifera_Get_Window_Title(dwPid),
-            WS_SYSMENU|WS_MINIMIZEBOX|WS_CLIPCHILDREN|WS_CAPTION,
-            0, 0, 0, 0,
-            nullptr,
-            nullptr,
-            (HINSTANCE)hInstance,
-            nullptr);
-
-        SetRect(&rect, 0, 0, width, height);
-
-        AdjustWindowRectEx(&rect,
-            GetWindowLong(hWnd, GWL_STYLE),
-            GetMenu(hWnd) != nullptr,
-            GetWindowLong(hWnd, GWL_EXSTYLE));
-
-        /**
-         *  #BUGFIX:
-         * 
-         *  Fetch the desktop size, calculate the screen center position the window and move it.
-         */
-        RECT workarea;
-        SystemParametersInfo(SPI_GETWORKAREA, 0, &workarea, 0);
-
-        int x_pos = (display_width - width) / 2;
-        int y_pos = (((display_height - height) / 2) - (display_height - workarea.bottom));
-        
-        DEBUG_INFO("Create_Main_Window() - Moving window (%d,%d,%d,%d).\n",
-            x_pos, y_pos, (rect.right - rect.left), (rect.bottom - rect.top));
-
-        MoveWindow(hWnd, x_pos, y_pos, (rect.right - rect.left), (rect.bottom - rect.top), TRUE);
-
-    } else {
-
-        DEBUG_INFO("Create_Main_Window() - Creating fullscreen window.\n");
-
-        hWnd = CreateWindowEx(
-            WS_EX_TOPMOST,
-            "Vinifera",
-            Vinifera_Get_Window_Title(dwPid),
-            WS_POPUP|WS_CLIPCHILDREN,
-            0, 0,
-            display_width,
-            display_height,
-            nullptr,
-            nullptr,
-            (HINSTANCE)hInstance,
-            nullptr);
-    }
-
-    if (!hWnd) {
-        DEBUG_INFO("Create_Main_Window() - Failed to create window!\n");
-        return;
-    }
-
-    //DEV_DEBUG_INFO("Create_Main_Window() - About to call ShowWindow()\n");
-
-    ShowWindow(hWnd, SW_SHOWNORMAL);
-    ShowCommand = nCmdShow;
-
-    //DEV_DEBUG_INFO("Create_Main_Window() - About to call UpdateWindow()\n");
-
-    UpdateWindow(hWnd);
-
-    //DEV_DEBUG_INFO("Create_Main_Window() - About to call SetFocus()\n");
-
-    SetFocus(hWnd);
-
-    //DEV_DEBUG_INFO("Create_Main_Window() - About to call RegisterHotKey()\n");
-
-    RegisterHotKey(hWnd, 1, MOD_ALT|MOD_CONTROL|MOD_SHIFT, VK_M);
-
-    //DEV_DEBUG_INFO("Create_Main_Window() - About to call SetCursor()\n");
-
-    SetCursor(hCursor);
-
-    Audio.AudioFocusLossFunction = &Focus_Loss;
-
-    /**
-     *  Save the handle to our main window.
-     */
-    MainWindow = hWnd;
-    ProgramInstance = hInstance;
-
-    /**
-     *  #NOTE:
-     *  This had been added to resolved a issue where the game gets stuck in a
-     *  focus checking loop, this could be because the DLL now creates the 
-     *  window in its thread.
-     */
-    GameInFocus = true;
+    ShowCommand = command_show;
+    Audio.Audio_Focus_Loss_Function = Focus_Loss;
 
     //DEV_DEBUG_INFO("Create_Main_Window(exit)\n");
+}
+
+
+
+void Vinifera_Create_Main_Window_Custom(HINSTANCE hInstance, int command_show, int width, int height)
+{
+    // DEV_DEBUG_INFO("Create_Main_Window(enter)\n");
+
+    width = Options.ScreenWidth;
+    height = Options.ScreenHeight;
+
+    if (OptionsExtension->WindowWidth > 0 && OptionsExtension->WindowHeight > 0) {
+        width = OptionsExtension->WindowWidth;
+        height = OptionsExtension->WindowHeight;
+    }
+
+    SDL_Create_Main_Window(hInstance, width, height);
+    ShowCommand = command_show;
+    Audio.Audio_Focus_Loss_Function = Focus_Loss;
+
+    // DEV_DEBUG_INFO("Create_Main_Window(exit)\n");
 }
 
 
@@ -1009,7 +831,8 @@ void GameInit_Hooks()
     Patch_Jump(0x004E3D20, &Vinifera_Init_Bootstrap_Mixfiles);
     Patch_Jump(0x004E4120, &Vinifera_Init_Secondary_Mixfiles);
     Patch_Jump(0x004E7EB0, &Vinifera_Prep_For_Side);
-    Patch_Jump(0x00686190, &Vinifera_Create_Main_Window);
+    Patch_Call(0x006013AB, &Vinifera_Create_Main_Window_480p);
+    Patch_Call(0x00601696, &Vinifera_Create_Main_Window_Custom);
 
     /**
      *  #issue-110
