@@ -54,6 +54,16 @@ public:
     SDLSurface(int width, int height);
 
     /**
+     *  Copies regions from one surface to another.
+     */
+    bool Blit_From(Rect const& dcliprect, Rect const& destrect, Surface const& source, Rect const& scliprect, Rect const& sourcerect, bool trans = false, bool = true) override;
+
+    /**
+     *  Fills a region with a constant color.
+     */
+    bool Fill_Rect(Rect const& cliprect, Rect const& fillrect, int color) override;
+
+    /**
      *  Get/Release a windows device context from a DirectX surface
      */
     HDC GetDC();

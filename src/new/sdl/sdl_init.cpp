@@ -221,6 +221,16 @@ LRESULT CALLBACK HookedSDLProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
     switch (msg) {
     case WM_ERASEBKGND:
         return 1; // skip default background erase
+
+    //case WM_SETFOCUS:
+    //    EnumChildWindows(
+    //        MainWindow,
+    //        [](HWND hwnd, LPARAM) -> BOOL {
+    //            InvalidateRect(hwnd, NULL, TRUE);
+    //            return TRUE;
+    //        },
+    //        0);
+    //    break;
     }
 
     // 2. Feed other messages to the game's original handler

@@ -324,6 +324,96 @@ SDLSurface* SDLSurface::Create_Primary(void*)
 
 
 /***********************************************************************************************
+ * SDLSurface::Blit_From -- Blit from one surface to this one.                                   *
+ *                                                                                             *
+ *    Use this routine to blit a rectangle from the specified surface to this surface while    *
+ *    performing clipping upon the blit rectangles specified.                                  *
+ *                                                                                             *
+ * INPUT:   dcliprect   -- The clipping rectangle to use for this surface.                     *
+ *                                                                                             *
+ *          destrect    -- The destination rectangle of the blit. The is relative to the       *
+ *                         dcliprect parameter.                                                *
+ *                                                                                             *
+ *          ssource     -- The source surface of the blit.                                     *
+ *                                                                                             *
+ *          scliprect   -- The source clipping rectangle.                                      *
+ *                                                                                             *
+ *          sourcrect   -- The source rectangle of the blit. This rectangle is relative to     *
+ *                         the source clipping rectangle.                                      *
+ *                                                                                             *
+ *          trans       -- Is this a transparent blit request?                                 *
+ *                                                                                             *
+ * OUTPUT:  bool; Was there a blit performed? A 'false' return value would indicate that the   *
+ *                blit was clipped into nothing.                                               *
+ *                                                                                             *
+ * WARNINGS:   none                                                                            *
+ *                                                                                             *
+ * HISTORY:                                                                                    *
+ *   05/27/1997 JLB : Created.                                                                 *
+ *=============================================================================================*/
+bool SDLSurface::Blit_From(Rect const& dcliprect, Rect const& destrect, Surface const& ssource, Rect const& scliprect, Rect const& sourcerect, bool trans, bool)
+{
+    if (!dcliprect.Is_Valid() || !scliprect.Is_Valid() || !destrect.Is_Valid() || !sourcerect.Is_Valid()) return false;
+
+    return XSurface::Blit_From(destrect, ssource, sourcerect, trans, true);
+}
+
+
+/***********************************************************************************************
+ * SDLSurface::Fill_Rect -- Fills a rectangle with clipping control.                             *
+ *                                                                                             *
+ *    This routine will fill a rectangle on this surface, but will clip the request against    *
+ *    a clipping rectangle first.                                                              *
+ *                                                                                             *
+ * INPUT:   cliprect -- The clipping rectangle to use for this surface.                        *
+ *                                                                                             *
+ *          fillrect -- The rectangle to fill with the specified color. The rectangle is       *
+ *                      relative to the clipping rectangle.                                    *
+ *                                                                                             *
+ *          color    -- The color (surface dependant format) to use when filling the rectangle *
+ *                      pixels.                                                                *
+ *                                                                                             *
+ * OUTPUT:  bool; Was a fill operation performed? A 'false' return value would mean that the   *
+ *                fill request was clipped into nothing.                                       *
+ *                                                                                             *
+ * WARNINGS:   none                                                                            *
+ *                                                                                             *
+ * HISTORY:                                                                                    *
+ *   05/27/1997 JLB : Created.                                                                 *
+ *=============================================================================================*/
+bool SDLSurface::Fill_Rect(Rect const& cliprect, Rect const& fillrect, int color)
+{
+    if (SDLSurfacePtr == nullptr || !fillrect.Is_Valid()) return false;
+
+    /*
+    **  Ensure that the clipping rectangle is legal.
+    */
+    Rect crect = Intersect(cliprect, Get_Rect());
+
+    /*
+    **  Bias the fill rect to the clipping rectangle.
+    */
+    Rect frect = fillrect.Bias_To(cliprect);
+
+    /*
+    **  Find the region that should be filled after being clipped by the
+    **  clipping rectangle. This could result in no fill operation being performed
+    **  if the desired fill rectangle has been completely clipped away.
+    */
+    frect = Intersect(frect, crect);
+    if (!frect.Is_Valid()) return false;
+
+    SDL_Rect rect;
+    rect.x = frect.X;
+    rect.y = frect.Y;
+    rect.w = frect.Width;
+    rect.h = frect.Height;
+
+    return SDL_FillSurfaceRect(SDLSurfacePtr, &rect, color);
+}
+
+
+/***********************************************************************************************
  * SDLSurface::GetDC -- Get the windows device context from our surface                          *
  *                                                                                             *
  * INPUT:   none                                                                               *
