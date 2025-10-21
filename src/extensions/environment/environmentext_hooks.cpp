@@ -81,7 +81,7 @@ public:
 /**
  *  Since we're not making a new instance, ensure that the size is the same
  */
-static_assert(sizeof(ExtEnvironmentClass) == sizeof(EnvironmentClass));
+static_assert(sizeof(ExtEnvironmentClass) == sizeof(EnvironmentClass), "sizeof(ExtEnvironmentClass) != sizeof(EnvironmentClass)");
 
 
 /**
