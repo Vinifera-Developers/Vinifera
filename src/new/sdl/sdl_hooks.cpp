@@ -330,7 +330,7 @@ LRESULT CALLBACK CtrlProcProxy(HWND window, UINT message, WPARAM wparam, LPARAM 
 {
     LRESULT result = CtrlProc(window, message, wparam, lparam);
     if (message == WM_PAINT) {
-        SDL_Update_Screen(static_cast<SDLSurface*>(VisibleSurface));
+        SDL_Update_Screen(static_cast<SDLSurface*>(AlternateSurface));
     }
     return result;
 }
@@ -447,10 +447,10 @@ void SDL_Hooks()
 
     //Patch_Jump(0x005A0BA0, &_ODMoveDialog);
     //Patch_Jump(0x00685600, &_Center_Window_Within_Window);
-    Patch_Jump(0x00685600, &_GetDisplayRect);
+    Patch_Jump(0x00682F80, &_GetDisplayRect);
 
-    Patch_Jump(0x00685C08, &_Windows_Procudure_Return_Patch);
-    Patch_Jump(0x00682F80, &_Windows_Procudure_Return_Patch);
+    //Patch_Jump(0x00685C08, &_Windows_Procudure_Return_Patch);
+    //Patch_Jump(0x00682F80, &_Windows_Procudure_Return_Patch);
 
     //Patch_Jump(0x0059449F, &_CtrlProc_Update_SDL_Screen_Patch__);
 
