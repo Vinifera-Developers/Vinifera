@@ -389,26 +389,10 @@ bool SDL_Create_Main_Window(HINSTANCE hInstance, int width, int height)
         SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_FULLSCREEN_BOOLEAN, true);
 
     } else {
-        //int wnd_xpos;
-        //int wnd_ypos;
-
-        //int num_displays;
-        //SDL_DisplayID* displays = SDL_GetDisplays(&num_displays);
-        //if (num_displays > 0) {
-        //    const SDL_DisplayMode* dm = SDL_GetCurrentDisplayMode(displays[0]);
-        //    wnd_xpos = (dm->w - width) / 2;
-        //    wnd_ypos = (dm->h - height) / 2;
-        //} else {
-        //    wnd_xpos = 0;
-        //    wnd_ypos = 0;
-        //}
-
-        //if (SDLBorderless) {
-        //    DEBUG_INFO("Creating borderless window.\n");
-        //    SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_BORDERLESS_BOOLEAN, true);
-        //} else {
-        //    wnd_ypos += 38; // Take into account the window title bar.
-        //}
+        if (SDLBorderless) {
+            DEBUG_INFO("Creating borderless window.\n");
+            SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_BORDERLESS_BOOLEAN, true);
+        }
 
         SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, width);
         SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, height);
@@ -416,11 +400,7 @@ bool SDL_Create_Main_Window(HINSTANCE hInstance, int width, int height)
         SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_Y_NUMBER, SDL_WINDOWPOS_CENTERED);
     }
 
-    const char* window_title = "Tiberian Sun";
-    char buffer[64];
-    std::snprintf(buffer, sizeof(buffer), "%s (SDL)", window_title);
-
-    SDL_SetStringProperty(props, SDL_PROP_WINDOW_CREATE_TITLE_STRING, buffer);
+    SDL_SetStringProperty(props, SDL_PROP_WINDOW_CREATE_TITLE_STRING, "Tiberian Sun");
 
     /**
      *  Create the window.
@@ -432,6 +412,8 @@ bool SDL_Create_Main_Window(HINSTANCE hInstance, int width, int height)
     }
     DEBUG_INFO("SDLWindow created.\n");
 
+    props = SDL_GetWindowProperties(SDLWindow);
+
     /**
      *  Do various stuff to make the SDL window intersect with the game correctly.
      */
@@ -441,13 +423,12 @@ bool SDL_Create_Main_Window(HINSTANCE hInstance, int width, int height)
     SDL_Cursor* cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT);
     SDL_SetCursor(cursor);
 
-    MainWindow = static_cast<HWND>(SDL_GetPointerProperty(SDL_GetWindowProperties(SDLWindow), SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr));
+    MainWindow = static_cast<HWND>(SDL_GetPointerProperty(props, SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr));
 
     /**
      *  Set the games windows proc function to the window.
      */
     SetWindowsHookEx(WH_GETMESSAGE, GameMessageHook, nullptr, GetCurrentThreadId());
-    //SetWindowLong(MainWindow, GWL_WNDPROC, (LONG)Windows_Procedure_Wrapper);
 
     return true;
 }
@@ -483,17 +464,6 @@ bool SDL_Update_Screen(SDLSurface* surface)
      *  Blit games surface to SDL's window surface.
      */
     if (surface) {
-
-        SDL_Surface* surf = surface->Get_SDL_Surface();
-
-        /**
-         *  Convert the 16bit pixel data from the surface to the SDL window 32bit texture.
-         */
-        //void* pixels;
-        //int pitch;
-        //SDL_LockTexture(SDLWindowTexture, nullptr, &pixels, &pitch);
-        //SDL_ConvertPixels(surf->w, surf->h, surf->format, surf->pixels, surf->pitch, SDL_PIXELFORMAT_RGB565, pixels, pitch);
-        //SDL_UnlockTexture(SDLWindowTexture);
 
         /**
          *  Update the window texture.
