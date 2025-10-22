@@ -34,6 +34,7 @@
 #include "setup_hooks.h"
 
 #include "miscutil.h"
+#include "sdl_init.h"
 #include "vinifera_util.h"
 
 
@@ -116,6 +117,8 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved
         case DLL_PROCESS_DETACH:
         {
             OutputDebugString("\n\nAbout to call StopHooking()...\n\n");
+
+            //scaler.Stop();
 
             if (!StopHooking()) {
                 return FALSE;
