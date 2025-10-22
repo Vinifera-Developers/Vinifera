@@ -437,6 +437,6 @@ void SDL_Hooks()
     Patch_Jump(0x0059437C, &_CtrlProc_SDL_Update_Screen3);
     Patch_Jump(0x0059449F, &_CtrlProc_SDL_Update_Screen4);
 
-    //Patch_Dword(0x00685621 + 2, SDLWindowWidth);
-    //Patch_Dword(0x00685627 + 2, SDLWindowHeight);
+    Patch_Dword(0x00685621 + 2, SDLWindowWidth);
+    Patch_Dword(0x00685627 + 2, SDLWindowHeight);
 }

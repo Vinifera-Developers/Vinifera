@@ -118,8 +118,6 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved
         {
             OutputDebugString("\n\nAbout to call StopHooking()...\n\n");
 
-            //scaler.Stop();
-
             if (!StopHooking()) {
                 return FALSE;
             }

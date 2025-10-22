@@ -399,7 +399,6 @@ LRESULT CALLBACK Combined_Windows_Procedure(HWND hwnd, UINT msg, WPARAM wParam, 
     return game_result ? game_result : sdl_result;
 }
 
-MouseScaler scaler;
 
 /**
  *
@@ -474,10 +473,6 @@ bool SDL_Create_Main_Window(HINSTANCE hInstance, int width, int height)
      */
     SDL_Proc = (WNDPROC)SetWindowLongPtr(MainWindow, GWLP_WNDPROC, (LONG_PTR)Combined_Windows_Procedure);
 
-    //scaler.SetTargetWindow(MainWindow); // HWND MainWindow already created
-    //scaler.SetScaleFactor(0.5);         // 50% scaling
-    //scaler.Start();                     // starts background hook thread
-
     return true;
 }
 
@@ -527,7 +522,7 @@ bool SDL_Update_Screen(Surface* surface)
         /**
          *  Copy the texture to the renderer.
          */
-        SDL_RenderTexture(SDLWindowRenderer, SDLWindowTexture, nullptr, &dst_rect);
+        SDL_RenderTexture(SDLWindowRenderer, SDLWindowTexture, nullptr, nullptr);
     }
 
     /**
