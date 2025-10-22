@@ -153,7 +153,7 @@ DECLARE_PATCH(_Dropship_Loadout_Help_Text_Patch)
      *  Stolen bytes/code.
      */
 original_code:
-    GScreenClass::Blit(true, HiddenSurface);
+    Update_Visible_Surface(true, HiddenSurface);
 
     _asm { mov ebx, Scen }
     _asm { mov ebx, [ebx] } // Second dereference required due to the global reference in TS++.

@@ -305,7 +305,7 @@ DECLARE_PATCH(_InfantryClass_What_Action_Mechanic_Patch)
              *  If we are force-moving into an Transport, don't try to heal it!
              */
             if (object->TClass->MaxPassengers > 0) {
-                if (WWKeyboard->Down(Options.KeyForceMove1) || WWKeyboard->Down(Options.KeyForceMove2)) {
+                if (Keyboard->Down(Options.KeyForceMove1) || Keyboard->Down(Options.KeyForceMove2)) {
                     goto next_check;
                 }
             }
@@ -340,7 +340,7 @@ DECLARE_PATCH(_InfantryClass_What_Action_Mechanic_Patch)
              *  If we are force-moving into an Transport, don't try to heal it!
              */
             if (object->TClass->MaxPassengers > 0) {
-                if (WWKeyboard->Down(Options.KeyForceMove1) || WWKeyboard->Down(Options.KeyForceMove2)) {
+                if (Keyboard->Down(Options.KeyForceMove1) || Keyboard->Down(Options.KeyForceMove2)) {
                     goto next_check;
                 }
             }

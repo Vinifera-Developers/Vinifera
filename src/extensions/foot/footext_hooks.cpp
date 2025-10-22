@@ -310,7 +310,7 @@ void FootClassExt::_Draw_Action_Line() const
         return;
     }
 
-    if (!UIControls->IsAlwaysShowActionLines && ActionLineTimer.Expired() && !WWKeyboard->Down(Options.KeyQueueMove1) && !WWKeyboard->Down(Options.KeyQueueMove2)) {
+    if (!UIControls->IsAlwaysShowActionLines && ActionLineTimer.Expired() && !Keyboard->Down(Options.KeyQueueMove1) && !Keyboard->Down(Options.KeyQueueMove2)) {
         return;
     }
 

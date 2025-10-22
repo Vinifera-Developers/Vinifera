@@ -689,7 +689,7 @@ ActionType BuildingClassExt::_What_Action(ObjectClass const* object, bool disall
         if (!Can_Player_Move()) {
             action = ACTION_SELECT;
         } else if (Class->ToBuild == RTTI_INFANTRYTYPE || Class->ToBuild == RTTI_UNITTYPE || Class->ToBuild == RTTI_AIRCRAFTTYPE) {
-            bool altdown = WWKeyboard->Down(Options.KeyForceMove1) || WWKeyboard->Down(Options.KeyForceMove2);
+            bool altdown = Keyboard->Down(Options.KeyForceMove1) || Keyboard->Down(Options.KeyForceMove2);
             if (!altdown) {
                 action = ACTION_SELECT;
             } else {

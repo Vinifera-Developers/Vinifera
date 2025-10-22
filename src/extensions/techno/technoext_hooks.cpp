@@ -1214,7 +1214,7 @@ ActionType TechnoClassExt::_What_Action(ObjectClass* object, bool disallow_force
 
     if (action == ACTION_ATTACK)
     {
-        const bool ctrldown = WWKeyboard->Down(Options.KeyForceAttack1) || WWKeyboard->Down(Options.KeyForceAttack2);
+        const bool ctrldown = Keyboard->Down(Options.KeyForceAttack1) || Keyboard->Down(Options.KeyForceAttack2);
         const FireErrorType error = Can_Fire(object, What_Weapon_Should_I_Use(object));
 
         if (error == FIRE_ILLEGAL && !ctrldown)

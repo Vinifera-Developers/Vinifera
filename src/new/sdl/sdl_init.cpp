@@ -1,21 +1,29 @@
 #include <algorithm>
 
 #include "sdl_init.h"
+
+#include "cctooltip.h"
+#include "cdctrl.h"
+#include "command.h"
 #include "debughandler.h"
 #include "filepng.h"
 #include "mouse.h"
 #include "optionsext.h"
+#include "playmovie.h"
 #include "rect.h"
 #include "sdlsurface.h"
 #include "tactical.h"
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
 #include "vinifera_globals.h"
+#include "wsproto.h"
 #include "wwmouse.h"
 #include "SDL3/SDL_init.h"
 #include "SDL3/SDL_oldnames.h"
 #include "SDL3/SDL_version.h"
 #include "SDL3/SDL_video.h"
+
+#include <windowsx.h>
 
 bool SDL_Allocate_Surfaces(const Rect& hidden_rect, const Rect& composite_rect, const Rect& tile_rect, const Rect& sidebar_rect, bool hidden_first)
 {
@@ -205,37 +213,179 @@ void SDL_Reset_Video_Mode()
     VideoBitsPerPixel = 0;
 }
 
+static WNDPROC SDL_Proc = nullptr;
 
-static LRESULT CALLBACK GameMessageHook(int code, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    if (code == HC_ACTION) {
-        MSG* msg = reinterpret_cast<MSG*>(lParam);
-        if (msg->hwnd == MainWindow) {
-            Windows_Procedure(msg->hwnd, msg->message, msg->wParam, msg->lParam);
+    /*
+    **  Pass on any messages intended for the winsock message handler.
+    */
+    if (PacketTransport) {
+        if (message == (UINT)PacketTransport->Protocol_Event_Message()) {
+            if (PacketTransport->Message_Handler(hwnd, message, wParam, lParam)) {
+                return CallWindowProc(SDL_Proc, hwnd, message, wParam, lParam);
+            } else {
+                return 0;
+            }
         }
     }
 
-    return CallNextHookEx(nullptr, code, wParam, lParam);
+    Map.Message_Handler(hwnd, message, wParam, lParam);
+
+    if (MainWindow) {
+        GetMenu(MainWindow);
+    }
+
+    switch (message) {
+
+    case WM_SHOWWINDOW:
+        break; // return 0;
+
+    case WM_PAINT:
+        if (GameInFocus == true || WindowedMode == true) {
+            if (MouseCursor != nullptr && VisibleSurface != nullptr && HiddenSurface != nullptr && CompositeSurface != nullptr) {
+                if (ScenarioStarted == true) {
+                    Update_Visible_Surface(MouseCursor->Is_Captured(), CompositeSurface);
+                    Map.Blit_Sidebar(true);
+                } else if (Movie_Is_Playing() == true) {
+                    Movie_Update_Visible_Surface();
+                } else {
+                    Update_Visible_Surface(MouseCursor->Is_Captured(), HiddenSurface);
+                }
+            }
+        }
+        //ValidateRect(hwnd, nullptr);
+        break;
+
+    case WM_ERASEBKGND:
+        return 1;
+
+    case WM_CLOSE:
+        CDControl.Unlock_All_CD_Trays();
+        break;
+
+    case WM_CREATE:
+        ToolTips = new CCToolTip(hwnd);
+        if (ToolTips) {
+            ToolTips->Set_Timer_Delay(500);
+        }
+        break;
+
+    case WM_MOVE:
+        if (WindowedMode == true && MouseCursor != nullptr) {
+            MouseCursor->Calc_Confining_Rect();
+        }
+        break;
+
+        /*
+        **  Windoze message says we have to shut down. Try and do it cleanly.
+        */
+    case WM_DESTROY:
+        if (ToolTips != nullptr) {
+            delete ToolTips;
+            ToolTips = nullptr;
+        }
+        CDControl.Unlock_All_CD_Trays();
+        MainWindow = nullptr;
+
+        /*
+        **  If we are shutting down gracefully than flag that the message loop has finished.
+        **  If this is a forced shutdown (ReadyToQuit == 0) then try and close down everything
+        **  before we exit.
+        */
+        switch (ReadyToQuit) {
+        default:
+        case 1:
+            ReadyToQuit = 2;
+            break;
+
+        case 0:
+            break;
+        }
+        break; // return 0;
+
+    case WM_ACTIVATEAPP:
+        if (hwnd == MainWindow && GameInFocus != (wParam != 0)) {
+            GameInFocus = wParam != 0;
+            if (!GameInFocus) {
+                Focus_Loss();
+                //DEBUG_INFO("Focus lost\n");
+            } else {
+                Focus_Restore();
+                //DEBUG_INFO("Focus gained\n");
+            }
+            SurfacesRestored = true;
+        }
+        break; // return 0;
+
+    case WM_RBUTTONUP:
+        Map.field_1D0C = false;
+        break;
+
+    case WM_MOVING:
+        return On_WM_MOVING(hwnd, wParam, lParam);
+
+    case WM_MOUSEWHEEL:
+        if (!_MouseWheel) {
+            _MouseWheel = true;
+            if (GET_WHEEL_DELTA_WPARAM(wParam) < 0) {
+                Do_Command("SidebarDown");
+            } else {
+                Do_Command("SidebarUp");
+            }
+            _MouseWheel = false;
+        }
+        break;
+
+    case WM_SYSCOMMAND:
+        switch (wParam) {
+
+        case SC_CLOSE:
+            CDControl.Unlock_All_CD_Trays();
+            /*
+            **  Windows sent us a close message. Probably in response to Alt-F4. Ignore it by
+            **  pretending to handle the message and returning true;
+            */
+            break; // return 0;
+
+        case SC_SCREENSAVE:
+            /*
+            **  Windoze is about to start the screen saver. If we just return without passing
+            **  this message to DefWindowProc then the screen saver will not be allowed to start.
+            */
+            return 0;
+        }
+        break;
+    }
+
+    /*
+    **  Pass this message through to the keyboard handler. If the message
+    **  was processed and requires no further action, then return with
+    **  this information.
+    */
+    if (Keyboard->Message_Handler(hwnd, message, wParam, lParam)) {
+        //return 0;
+    }
+
+    return CallWindowProc(SDL_Proc, hwnd, message, wParam, lParam);
 }
 
 
-static WNDPROC SDL_Proc = nullptr;
-
-LRESULT CALLBACK HookedSDLProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK Combined_Windows_Procedure(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch (msg) {
     case WM_ERASEBKGND:
         return 1; // skip default background erase
 
-    //case WM_SETFOCUS:
-    //    EnumChildWindows(
-    //        MainWindow,
-    //        [](HWND hwnd, LPARAM) -> BOOL {
-    //            InvalidateRect(hwnd, NULL, TRUE);
-    //            return TRUE;
-    //        },
-    //        0);
-    //    break;
+        // case WM_SETFOCUS:
+        //     EnumChildWindows(
+        //         MainWindow,
+        //         [](HWND hwnd, LPARAM) -> BOOL {
+        //             InvalidateRect(hwnd, NULL, TRUE);
+        //             return TRUE;
+        //         },
+        //         0);
+        //     break;
     }
 
     // 2. Feed other messages to the game's original handler
@@ -321,8 +471,7 @@ bool SDL_Create_Main_Window(HINSTANCE hInstance, int width, int height)
     /**
      *  Set the games windows proc function to the window.
      */
-    //SetWindowsHookEx(WH_GETMESSAGE, GameMessageHook, nullptr, GetCurrentThreadId());
-    SDL_Proc = (WNDPROC)SetWindowLongPtr(MainWindow, GWLP_WNDPROC, (LONG_PTR)HookedSDLProc);
+    SDL_Proc = (WNDPROC)SetWindowLongPtr(MainWindow, GWLP_WNDPROC, (LONG_PTR)Combined_Windows_Procedure);
 
     return true;
 }
@@ -367,10 +516,13 @@ bool SDL_Update_Screen(Surface* surface)
             surface->Unlock();
         }
 
+        Rect src_rect = surface->Get_Rect();
+        SDL_FRect dst_rect = {(float)src_rect.X, (float)src_rect.Y, (float)src_rect.Width, (float)src_rect.Height};
+
         /**
          *  Copy the texture to the renderer.
          */
-        SDL_RenderTexture(SDLWindowRenderer, SDLWindowTexture, nullptr, nullptr);
+        SDL_RenderTexture(SDLWindowRenderer, SDLWindowTexture, nullptr, &dst_rect);
     }
 
     /**

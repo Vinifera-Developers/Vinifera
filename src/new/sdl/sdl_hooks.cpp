@@ -41,6 +41,7 @@
 #include "SDL3/SDL_timer.h"
 #include <dsound.h>
 #include <algorithm>
+#include <windowsx.h>
 
 
 void _Wait_Blit()
@@ -414,7 +415,7 @@ void SDL_Hooks()
     Patch_Jump(0x006A6420, &WWMouseClassExt::_Get_Bounded_Position);
     Patch_Jump(0x006A66C0, &WWMouseClassExt::_Process_Mouse);
     Patch_Jump(0x006A4E10, &_Callback_Process_Mouse);
-    Patch_Jump(0x006A63C0, &WWMouseClassExt::_Convert_Coordinate);
+    //Patch_Jump(0x006A63C0, &WWMouseClassExt::_Convert_Coordinate);
 
     // VQA
     Patch_Jump(0x005640CD, &_Movie_Blit_To_Screen_SDL_Update_Window_Patch_1);
@@ -435,4 +436,7 @@ void SDL_Hooks()
     Patch_Jump(0x00594101, &_CtrlProc_SDL_Update_Screen2);
     Patch_Jump(0x0059437C, &_CtrlProc_SDL_Update_Screen3);
     Patch_Jump(0x0059449F, &_CtrlProc_SDL_Update_Screen4);
+
+    //Patch_Dword(0x00685621 + 2, SDLWindowWidth);
+    //Patch_Dword(0x00685627 + 2, SDLWindowHeight);
 }

@@ -776,8 +776,8 @@ void SidebarClassExt::_Draw_It(bool complete)
         }
     }
 
-    if (ToolTipHandler)
-        ToolTipHandler->Force_Redraw(true);
+    if (ToolTips)
+        ToolTips->Force_Redraw(true);
 
     IsToRedraw = false;
     IsToFullRedraw = false;
@@ -874,13 +874,13 @@ void SidebarClassExt::_Set_Dimensions()
      *  Create the tooltips for the sidebar.
      */
 
-    if (ToolTipHandler)
+    if (ToolTips)
     {
         ToolTip tooltip;
 
         for (int i = 0; i < 100; i++)
         {
-            ToolTipHandler->Remove(1000 + i);
+            ToolTips->Remove(1000 + i);
         }
 
         int max_visible = SidebarClassExtension::Max_Visible();
@@ -907,32 +907,32 @@ void SidebarClassExt::_Set_Dimensions()
             tooltip.Region = Rect(SidebarExtension->SelectButton[0][i].X, SidebarExtension->SelectButton[0][i].Y, SidebarExtension->SelectButton[0][i].Width, SidebarExtension->SelectButton[0][i].Height);
             tooltip.ID = 1000 + i;
             tooltip.Text = TXT_NONE;
-            ToolTipHandler->Add(&tooltip);
+            ToolTips->Add(&tooltip);
         }
 
         tooltip.Region = Rect(Repair.X, Repair.Y, Repair.Width, Repair.Height);
         tooltip.ID = BUTTON_REPAIR;
         tooltip.Text = TXT_REPAIR_MODE;
-        ToolTipHandler->Remove(tooltip.ID);
-        ToolTipHandler->Add(&tooltip);
+        ToolTips->Remove(tooltip.ID);
+        ToolTips->Add(&tooltip);
 
         tooltip.Region = Rect(Power.X, Power.Y, Power.Width, Power.Height);
         tooltip.ID = BUTTON_POWER;
         tooltip.Text = TXT_POWER_MODE;
-        ToolTipHandler->Remove(tooltip.ID);
-        ToolTipHandler->Add(&tooltip);
+        ToolTips->Remove(tooltip.ID);
+        ToolTips->Add(&tooltip);
 
         tooltip.Region = Rect(Sell.X, Sell.Y, Sell.Width, Sell.Height);
         tooltip.ID = BUTTON_SELL;
         tooltip.Text = TXT_SELL_MODE;
-        ToolTipHandler->Remove(tooltip.ID);
-        ToolTipHandler->Add(&tooltip);
+        ToolTips->Remove(tooltip.ID);
+        ToolTips->Add(&tooltip);
 
         tooltip.Region = Rect(Waypoint.X, Waypoint.Y, Waypoint.Width, Waypoint.Height);
         tooltip.ID = BUTTON_WAYPOINT;
         tooltip.Text = TXT_WAYPOINTMODE;
-        ToolTipHandler->Remove(tooltip.ID);
-        ToolTipHandler->Add(&tooltip);
+        ToolTips->Remove(tooltip.ID);
+        ToolTips->Add(&tooltip);
     }
 
     Background.Set_Position(Options.SidebarSide ? TacticalRect.X + TacticalRect.Width : 0, RadarButton.Height + RadarButton.Y);
