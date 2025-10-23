@@ -90,11 +90,11 @@ public:
     Point2D Get_Mouse_Point() const override { return Point2D(MouseX, MouseY); }
 
     /*
-    ** The following two routines can be used to render the mouse onto an alternate
+    **  The following two routines can be used to render the mouse onto an alternate
     **  surface.
     */
-    void Draw_Mouse(Surface* scr, bool issidebarsurface = false) override;
-    void Erase_Mouse(Surface* scr, bool issidebarsurface = false) override;
+    void Draw_Mouse(Surface* = nullptr, bool = false) override;
+    void Erase_Mouse(Surface* = nullptr, bool = false) override;
 
     /*
     **  Converts O/S screen coordinates into game coordinates.
@@ -123,11 +123,11 @@ private:
     */
     MMRESULT TimerHandle;
 
-    void Get_Bounded_Position(int& x, int& y) const;
     void Update_Mouse_Position(int x, int y, bool forced);
 
     void Delete_Cursor_Image();
     void Convert_Cursor_Image(ShapeSet const* shapes);
+    void Clear_Cursor();
     void Set_System_Cursor();
 };
 

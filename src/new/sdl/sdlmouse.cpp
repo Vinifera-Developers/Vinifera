@@ -194,12 +194,7 @@ void SDLMouseClass::Set_Cursor(Point2D const& hotspot, ShapeSet const* cursor, i
         MouseShape = cursor;
     }
 
-    SDL_SetCursor(nullptr);
-    if (Cursor != nullptr) {
-        SDL_DestroyCursor(Cursor);
-        Cursor = nullptr;
-    }
-
+    Clear_Cursor();
     Cursor = SDL_CreateColorCursor(CursorSurfaces[shape], hotspot.X, hotspot.Y);
     SDL_SetCursor(Cursor);
 }
@@ -380,7 +375,7 @@ int SDLMouseClass::Get_Mouse_State() const
  * HISTORY:                                                                                    *
  *   03/10/1997 JLB : Created.                                                                 *
  *=============================================================================================*/
-void SDLMouseClass::Draw_Mouse(Surface* surface, bool issidebarsurface)
+void SDLMouseClass::Draw_Mouse(Surface*, bool)
 {
 
 }
@@ -402,7 +397,7 @@ void SDLMouseClass::Draw_Mouse(Surface* surface, bool issidebarsurface)
  * HISTORY:                                                                                    *
  *   03/10/1997 JLB : Created.                                                                 *
  *=============================================================================================*/
-void SDLMouseClass::Erase_Mouse(Surface* surface, bool issidebarsurface)
+void SDLMouseClass::Erase_Mouse(Surface*, bool)
 {
 
 }
@@ -427,33 +422,6 @@ void SDLMouseClass::Erase_Mouse(Surface* surface, bool issidebarsurface)
 void SDLMouseClass::Convert_Coordinate(int& x, int& y) const
 {
 
-}
-
-
-/***********************************************************************************************
- * SDLMouseClass::Get_Bounded_Position -- Fetches the mouse position from the O/S.              *
- *                                                                                             *
- *    Fetches the mouse coordinates from the O/S and converts them into logical coordinates.   *
- *                                                                                             *
- * INPUT:   x,y   -- Reference to the coordinates that will be set by this routine.            *
- *                                                                                             *
- * OUTPUT:  none                                                                               *
- *                                                                                             *
- * WARNINGS:   none                                                                            *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   03/10/1997 JLB : Created.                                                                 *
- *=============================================================================================*/
-void SDLMouseClass::Get_Bounded_Position(int& x, int& y) const
-{
-    /*
-    ** Get the mouse's current real cursor position
-    */
-    float fx, fy;
-    SDL_GetMouseState(&fx, &fy);
-    
-    x = fx;
-    y = fy;
 }
 
 
@@ -531,13 +499,18 @@ void SDLMouseClass::Convert_Cursor_Image(ShapeSet const* shapes)
     }
 }
 
-void SDLMouseClass::Set_System_Cursor()
+void SDLMouseClass::Clear_Cursor()
 {
     SDL_SetCursor(nullptr);
     if (Cursor != nullptr) {
         SDL_DestroyCursor(Cursor);
         Cursor = nullptr;
     }
+}
+
+void SDLMouseClass::Set_System_Cursor()
+{
+    Clear_Cursor();
     Cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT);
     SDL_SetCursor(Cursor);
 }
