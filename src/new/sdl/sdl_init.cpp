@@ -218,15 +218,42 @@ static WNDPROC SDL_Proc = nullptr;
 
 LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    if (SDL_Should_Scale()) {
+        switch (message) {
+        case WM_MOUSEMOVE:
+        case WM_LBUTTONDOWN:
+        case WM_LBUTTONUP:
+        case WM_LBUTTONDBLCLK:
+        case WM_RBUTTONDOWN:
+        case WM_RBUTTONUP:
+        case WM_RBUTTONDBLCLK:
+        case WM_MBUTTONDOWN:
+        case WM_MBUTTONUP:
+        case WM_MBUTTONDBLCLK:
+        case WM_MOUSEWHEEL:
+        case WM_XBUTTONDOWN:
+        case WM_XBUTTONUP: {
+            int x = GET_X_LPARAM(lParam);
+            int y = GET_Y_LPARAM(lParam);
+
+            x = static_cast<int>(x * SDL_XScale());
+            y = static_cast<int>(y * SDL_YScale());
+
+            lParam = MAKELPARAM(x, y);
+            break;
+        }
+        }
+    }
+
     /*
     **  Pass on any messages intended for the winsock message handler.
     */
     if (PacketTransport) {
         if (message == (UINT)PacketTransport->Protocol_Event_Message()) {
             if (PacketTransport->Message_Handler(hwnd, message, wParam, lParam)) {
-                return CallWindowProc(SDL_Proc, hwnd, message, wParam, lParam);
+                //return CallWindowProc(SDL_Proc, hwnd, message, wParam, lParam);
             } else {
-                return 0;
+                //return 0;
             }
         }
     }
@@ -243,23 +270,20 @@ LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, L
         break; // return 0;
 
     case WM_PAINT:
-        if (GameInFocus == true || WindowedMode == true) {
-            if (MouseCursor != nullptr && VisibleSurface != nullptr && HiddenSurface != nullptr && CompositeSurface != nullptr) {
-                if (ScenarioStarted == true) {
-                    Update_Visible_Surface(MouseCursor->Is_Captured(), CompositeSurface);
-                    Map.Blit_Sidebar(true);
-                } else if (Movie_Is_Playing() == true) {
-                    Movie_Update_Visible_Surface();
-                } else {
-                    Update_Visible_Surface(MouseCursor->Is_Captured(), HiddenSurface);
-                }
+        if (MouseCursor != nullptr && VisibleSurface != nullptr && HiddenSurface != nullptr && CompositeSurface != nullptr) {
+            if (ScenarioStarted == true) {
+                Update_Visible_Surface(MouseCursor->Is_Captured(), CompositeSurface);
+                Map.Blit_Sidebar(true);
+            } else if (Movie_Is_Playing() == true) {
+                Movie_Update_Visible_Surface();
+            } else {
+                Update_Visible_Surface(MouseCursor->Is_Captured(), HiddenSurface);
             }
         }
-        //ValidateRect(hwnd, nullptr);
         break;
 
     case WM_ERASEBKGND:
-        return 1;
+        break; // return 1;
 
     case WM_CLOSE:
         CDControl.Unlock_All_CD_Trays();
@@ -269,12 +293,6 @@ LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, L
         ToolTips = new CCToolTip(hwnd);
         if (ToolTips) {
             ToolTips->Set_Timer_Delay(500);
-        }
-        break;
-
-    case WM_MOVE:
-        if (WindowedMode == true && MouseCursor != nullptr) {
-            MouseCursor->Calc_Confining_Rect();
         }
         break;
 
@@ -324,7 +342,8 @@ LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, L
         break;
 
     case WM_MOVING:
-        return On_WM_MOVING(hwnd, wParam, lParam);
+        On_WM_MOVING(hwnd, wParam, lParam);
+        return CallWindowProc(SDL_Proc, hwnd, message, wParam, lParam);
 
     case WM_MOUSEWHEEL:
         if (!_MouseWheel) {
@@ -374,6 +393,33 @@ LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, L
 
 LRESULT CALLBACK Combined_Windows_Procedure(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+    if (SDL_Should_Scale()) {
+        switch (msg) {
+        case WM_MOUSEMOVE:
+        case WM_LBUTTONDOWN:
+        case WM_LBUTTONUP:
+        case WM_LBUTTONDBLCLK:
+        case WM_RBUTTONDOWN:
+        case WM_RBUTTONUP:
+        case WM_RBUTTONDBLCLK:
+        case WM_MBUTTONDOWN:
+        case WM_MBUTTONUP:
+        case WM_MBUTTONDBLCLK:
+        case WM_MOUSEWHEEL:
+        case WM_XBUTTONDOWN:
+        case WM_XBUTTONUP: {
+            int x = GET_X_LPARAM(lParam);
+            int y = GET_Y_LPARAM(lParam);
+
+            x = static_cast<int>(x * SDL_XScale());
+            y = static_cast<int>(y * SDL_YScale());
+
+            lParam = MAKELPARAM(x, y);
+            break;
+        }
+        }
+    }
+
     switch (msg) {
     case WM_ERASEBKGND:
         return 1; // skip default background erase
@@ -457,11 +503,7 @@ bool SDL_Create_Main_Window(HINSTANCE hInstance, int width, int height)
     /**
      *  Do various stuff to make the SDL window intersect with the game correctly.
      */
-
-    // SDL_ShowCursor(SDL_DISABLE);
-
-    SDL_Cursor* cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT);
-    SDL_SetCursor(cursor);
+    //SDL_SetWindowRelativeMouseMode(SDLWindow, true);
 
     MainWindow = static_cast<HWND>(SDL_GetPointerProperty(props, SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr));
 
@@ -520,7 +562,7 @@ bool SDL_Update_Screen(Surface* surface)
         /**
          *  Copy the texture to the renderer.
          */
-        if (WSDialogCount > 0) {
+        if (!SDL_Should_Scale()) {
             Rect src_rect = surface->Get_Rect();
             SDL_FRect dst_rect = {static_cast<float>(src_rect.X), static_cast<float>(src_rect.Y), static_cast<float>(src_rect.Width), static_cast<float>(src_rect.Height)};
             SDL_RenderTexture(SDLWindowRenderer, SDLWindowTexture, nullptr, &dst_rect);
@@ -537,3 +579,10 @@ bool SDL_Update_Screen(Surface* surface)
 
     return true;
 }
+
+
+bool SDL_Should_Scale()
+{
+    return WSDialogCount == 0;
+}
+

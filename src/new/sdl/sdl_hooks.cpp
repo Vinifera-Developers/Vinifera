@@ -154,78 +154,6 @@ BOOL WINAPI Fake_InvalidateRect(HWND hwnd, LPCRECT lpRect, BOOL bErase)
     return InvalidateRect(hwnd, lpRect, bErase);   // let USER32 handle child dialogs normally
 }
 
-bool& AllowNegativeY = Make_Global<bool>(0x00867510);
-
-class WWMouseClassExt : public WWMouseClass
-{
-public:
-    void _Get_Bounded_Position(int& x, int& y) const
-    {
-        /*
-        ** Get the mouse's current real cursor position
-        */
-        POINT pt;
-        GetCursorPos(&pt); // get the current cursor position
-        ScreenToClient(Window, &pt);
-        x = pt.x;
-        y = pt.y;
-        Convert_Coordinate(x, y);
-    }
-
-    void _Process_Mouse()
-    {
-        static bool _forced = false;
-
-        if (SurfacePtr != nullptr) {
-            Block_Mouse();
-
-            /*
-            ** Fetch and update the mouse position.
-            */
-            int x;
-            int y;
-            Get_Bounded_Position(x, y);
-            if (!SurfacePtr->entry_64() && !_forced) {
-                MouseX = x;
-                MouseY = y;
-                _forced = true;
-            } else {
-                Update_Mouse_Position(x, y, _forced);
-                _forced = false;
-            }
-
-            Unblock_Mouse();
-        }
-    }
-
-    void _Convert_Coordinate(int& x, int& y) const
-    {
-        float x_scale = SDLWindowWidth / VideoWidth;
-        float y_scale = SDLWindowHeight / VideoHeight;
-
-        x /= x_scale;
-        y /= y_scale;
-
-        /*
-        **	Convert the mouse position to legal bounds.
-        */
-        x -= ConfiningRect.X;
-        y -= ConfiningRect.Y;
-        if (x < 0) x = 0;
-        if (y < 0 && !AllowNegativeY) y = 0;
-        if (x >= ConfiningRect.Width) x = ConfiningRect.Width - 1;
-        if (y >= ConfiningRect.Height) y = ConfiningRect.Height - 1;
-    }
-};
-
-
-void CALLBACK _Callback_Process_Mouse(UINT, UINT, DWORD, DWORD, DWORD)
-{
-    if (MouseCursor != nullptr) {
-        MouseCursor->Process_Mouse();
-    }
-}
-
 
 LRESULT CALLBACK CtrlProc(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
 DEFINE_IMPLEMENTATION(LRESULT CALLBACK CtrlProc(HWND window, UINT message, WPARAM wparam, LPARAM lparam), 0x00592340);
@@ -410,12 +338,6 @@ void SDL_Hooks()
     Patch_Jump(0x004E7310, &SDL_Allocate_Surfaces);
     Patch_Jump(0x00472DF0, &SDL_Set_Video_Mode);
     Patch_Jump(0x00472FF0, &SDL_Reset_Video_Mode);
-
-    // Fix the mouse (at least in windowed)
-    Patch_Jump(0x006A6420, &WWMouseClassExt::_Get_Bounded_Position);
-    Patch_Jump(0x006A66C0, &WWMouseClassExt::_Process_Mouse);
-    Patch_Jump(0x006A4E10, &_Callback_Process_Mouse);
-    //Patch_Jump(0x006A63C0, &WWMouseClassExt::_Convert_Coordinate);
 
     // VQA
     Patch_Jump(0x005640CD, &_Movie_Blit_To_Screen_SDL_Update_Window_Patch_1);

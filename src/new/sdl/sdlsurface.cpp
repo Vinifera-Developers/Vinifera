@@ -1,54 +1,30 @@
-/*
-**	Command & Conquer Generals(tm)
-**	Copyright 2025 Electronic Arts Inc.
-**
-**	This program is free software: you can redistribute it and/or modify
-**	it under the terms of the GNU General Public License as published by
-**	the Free Software Foundation, either version 3 of the License, or
-**	(at your option) any later version.
-**
-**	This program is distributed in the hope that it will be useful,
-**	but WITHOUT ANY WARRANTY; without even the implied warranty of
-**	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-**	GNU General Public License for more details.
-**
-**	You should have received a copy of the GNU General Public License
-**	along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
-/***********************************************************************************************
- ***              C O N F I D E N T I A L  ---  W E S T W O O D  S T U D I O S               ***
- ***********************************************************************************************
- *                                                                                             *
- *                 Project Name : Command & Conquer                                            *
- *                                                                                             *
- *                     $Archive:: /G/wwlib/SDLSurface.cpp                                       $*
- *                                                                                             *
- *                      $Author:: Neal_k                                                      $*
- *                                                                                             *
- *                     $Modtime:: 6/23/00 2:26p                                               $*
- *                                                                                             *
- *                    $Revision:: 2                                                           $*
- *                                                                                             *
- *---------------------------------------------------------------------------------------------*
- * Functions:                                                                                  *
- *   SDLSurface::Blit_From -- Blit from one surface to this one.                                 *
- *   SDLSurface::Blit_From -- Blit graphic memory from one rectangle to another.                 *
- *   SDLSurface::Build_Hicolor_Pixel -- Construct a hicolor pixel according to the surface pixel *
- *   SDLSurface::Build_Remap_Table -- Build a highcolor remap table.                             *
- *   SDLSurface::Bytes_Per_Pixel -- Fetches the bytes per pixel of the surface.                  *
- *   SDLSurface::Create_Primary -- Creates a primary (visible) surface.                          *
- *   SDLSurface::SDLSurface -- Create a surface attached to specified DDraw Surface Object.        *
- *   SDLSurface::SDLSurface -- Default constructor for surface object.                             *
- *   SDLSurface::SDLSurface -- Off screen direct draw surface constructor.                         *
- *   SDLSurface::Fill_Rect -- Fills a rectangle with clipping control.                           *
- *   SDLSurface::Fill_Rect -- This routine will fill the specified rectangle.                    *
- *   SDLSurface::Lock -- Fetches a working pointer into surface memory.                          *
- *   SDLSurface::Restore_Check -- Checks for and restores surface memory if necessary.           *
- *   SDLSurface::Stride -- Fetches the bytes between rows.                                       *
- *   SDLSurface::Unlock -- Unlock a previously locked surface.                                   *
- *   SDLSurface::~SDLSurface -- Destructor for a direct draw surface object.                       *
- * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+/*******************************************************************************
+/*                 O P E N  S O U R C E  --  V I N I F E R A                  **
+/*******************************************************************************
+ *
+ *  @project       Vinifera
+ *
+ *  @file          SDLSURFACE.CPP
+ *
+ *  @author        ZivDero, tomsons26
+ *
+ *  @brief         SDL Surface class.
+ *
+ *  @license       Vinifera is free software: you can redistribute it and/or
+ *                 modify it under the terms of the GNU General Public License
+ *                 as published by the Free Software Foundation, either version
+ *                 3 of the License, or (at your option) any later version.
+ *
+ *                 Vinifera is distributed in the hope that it will be
+ *                 useful, but WITHOUT ANY WARRANTY; without even the implied
+ *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ *                 PURPOSE. See the GNU General Public License for more details.
+ *
+ *                 You should have received a copy of the GNU General Public
+ *                 License along with this program.
+ *                 If not, see <http://www.gnu.org/licenses/>.
+ *
+ ******************************************************************************/
 
 #include "always.h"
 #include "sdlsurface.h"
