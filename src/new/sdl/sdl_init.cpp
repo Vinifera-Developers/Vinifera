@@ -16,6 +16,7 @@
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
 #include "vinifera_globals.h"
+#include "windialog.h"
 #include "wsproto.h"
 #include "wwmouse.h"
 #include "SDL3/SDL_init.h"
@@ -516,13 +517,17 @@ bool SDL_Update_Screen(Surface* surface)
             surface->Unlock();
         }
 
-        Rect src_rect = surface->Get_Rect();
-        SDL_FRect dst_rect = {(float)src_rect.X, (float)src_rect.Y, (float)src_rect.Width, (float)src_rect.Height};
-
         /**
          *  Copy the texture to the renderer.
          */
-        SDL_RenderTexture(SDLWindowRenderer, SDLWindowTexture, nullptr, nullptr);
+        if (WSDialogCount > 0) {
+            Rect src_rect = surface->Get_Rect();
+            SDL_FRect dst_rect = {static_cast<float>(src_rect.X), static_cast<float>(src_rect.Y), static_cast<float>(src_rect.Width), static_cast<float>(src_rect.Height)};
+            SDL_RenderTexture(SDLWindowRenderer, SDLWindowTexture, nullptr, &dst_rect);
+        } else {
+            SDL_RenderTexture(SDLWindowRenderer, SDLWindowTexture, nullptr, nullptr);
+        }
+        
     }
 
     /**
