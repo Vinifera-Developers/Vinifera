@@ -417,7 +417,7 @@ MAKE_EXTENSION_PAIR(SmudgeClass);
 MAKE_EXTENSION_PAIR(SmudgeTypeClass);
 MAKE_EXTENSION_PAIR(SuperWeaponTypeClass);
 //MAKE_EXTENSION_PAIR(TaskForceClass);                                  // Not yet implemented
-//MAKE_EXTENSION_PAIR(TeamClass);                                       // Not yet implemented
+MAKE_EXTENSION_PAIR(TeamClass);
 MAKE_EXTENSION_PAIR(TeamTypeClass);
 MAKE_EXTENSION_PAIR(TerrainClass);
 MAKE_EXTENSION_PAIR(TerrainTypeClass);
