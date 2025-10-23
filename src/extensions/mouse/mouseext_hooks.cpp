@@ -84,7 +84,7 @@ void MouseClassExt::_Mouse_Small(bool wsmall)
     int frame = Get_Mouse_Current_Frame(CurrentMouseShape, wsmall);
     Point2D hotspot = Get_Mouse_Hotspot(CurrentMouseShape);
 
-    WWMouse->Set_Cursor(&hotspot, MouseShapes, frame);
+    MouseCursor->Set_Cursor(hotspot, MouseShapes, frame);
 }
 
 
@@ -126,7 +126,7 @@ bool MouseClassExt::_Override_Mouse_Shape(MouseType mouse, bool wsmall)
 
         baseshp = Get_Mouse_Current_Frame(mouse, wsmall);
         Point2D hotspot = Get_Mouse_Hotspot(mouse);
-        WWMouse->Set_Cursor(&hotspot, MouseShapes, baseshp);
+        MouseCursor->Set_Cursor(hotspot, MouseShapes, baseshp);
         CurrentMouseShape = mouse;
         return true;
     }
@@ -153,7 +153,7 @@ void MouseClassExt::_AI(KeyNumType &input, Point2D &xy)
         Timer = IsSmall ? control->SmallFrameRate : control->FrameRate;
         int baseframe = Get_Mouse_Current_Frame(CurrentMouseShape, IsSmall);
         Point2D hotspot = Get_Mouse_Hotspot(CurrentMouseShape);
-        WWMouse->Set_Cursor(&hotspot, MouseShapes, baseframe);
+        MouseCursor->Set_Cursor(hotspot, MouseShapes, baseframe);
     }
 
     ScrollClass::AI(input, xy);

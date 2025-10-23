@@ -505,7 +505,7 @@ bool SidebarClassExtension::TabButtonClass::Action(unsigned flags, KeyNumType& k
     */
     if (flags & LEFTRELEASE)
     {
-        bool overbutton = (WWMouse->Get_Mouse_X() - X) < Width && (WWMouse->Get_Mouse_Y() - Y) < Height;
+        bool overbutton = (Get_Mouse_X() - X) < Width && (Get_Mouse_Y() - Y) < Height;
         if (!IsSelected && overbutton)
         {
             IsSelected = true;
