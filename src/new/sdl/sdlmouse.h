@@ -130,7 +130,8 @@ private:
     void Clear_Cursor();
     void Set_System_Cursor();
 
-    static int Get_Cursor_Scale_Factor();
+    static int Get_Cursor_XScale();
+    static int Get_Cursor_YScale();
 };
 
 void CALLBACK SDL_Callback_Process_Mouse(UINT, UINT, DWORD, DWORD, DWORD);

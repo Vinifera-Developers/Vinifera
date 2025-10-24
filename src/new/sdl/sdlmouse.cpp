@@ -197,9 +197,9 @@ void SDLMouseClass::Set_Cursor(Point2D const& hotspot, ShapeSet const* cursor, i
 
     Clear_Cursor();
 
-    Point2D scaled_hotspot = hotspot * Get_Cursor_Scale_Factor();
-    scaled_hotspot.X = std::clamp(scaled_hotspot.X, 0, CursorSurfaces[shape]->w - 1);
-    scaled_hotspot.Y = std::clamp(scaled_hotspot.Y, 0, CursorSurfaces[shape]->h - 1);
+    Point2D scaled_hotspot = hotspot;
+    scaled_hotspot.X = std::clamp(scaled_hotspot.X * Get_Cursor_XScale(), 0, CursorSurfaces[shape]->w - 1);
+    scaled_hotspot.Y = std::clamp(scaled_hotspot.Y * Get_Cursor_YScale(), 0, CursorSurfaces[shape]->h - 1);
     Cursor = SDL_CreateColorCursor(CursorSurfaces[shape], scaled_hotspot.X, scaled_hotspot.Y);
     SDL_SetCursor(Cursor);
 }
@@ -269,8 +269,9 @@ void SDLMouseClass::Show_Mouse()
  *=============================================================================================*/
 void SDLMouseClass::Release_Mouse()
 {
-    SDL_SetWindowMouseGrab(SDL_GetWindowFromID(1), false);
-    SDL_SetWindowRelativeMouseMode(SDL_GetWindowFromID(1), false);
+    //SDL_CaptureMouse(false);
+    SDL_SetWindowMouseGrab(SDLWindow, false);
+    //SDL_SetWindowRelativeMouseMode(SDL_GetWindowFromID(1), false);
 }
 
 
@@ -292,8 +293,9 @@ void SDLMouseClass::Release_Mouse()
  *=============================================================================================*/
 void SDLMouseClass::Capture_Mouse()
 {
-    SDL_SetWindowMouseGrab(SDL_GetWindowFromID(1), true);
-    SDL_SetWindowRelativeMouseMode(SDL_GetWindowFromID(1), true);
+    //SDL_CaptureMouse(true);
+    SDL_SetWindowMouseGrab(SDLWindow, true);
+    //SDL_SetWindowRelativeMouseMode(SDL_GetWindowFromID(1), true);
 }
 
 
@@ -508,7 +510,7 @@ void SDLMouseClass::Convert_Cursor_Image(ShapeSet const* shapes)
         }
 
         // Now create ARGB destination with correct scaling
-        SDL_Surface* destination = SDL_CreateSurface(width * Get_Cursor_Scale_Factor(), height * Get_Cursor_Scale_Factor(), SDL_PIXELFORMAT_ARGB8888);
+        SDL_Surface* destination = SDL_CreateSurface(width * Get_Cursor_XScale(), height * Get_Cursor_YScale(), SDL_PIXELFORMAT_ARGB8888);
 
         // Use pixel-art scaling for crisp edges
         SDL_BlitSurfaceScaled(source, nullptr, destination, nullptr, SDL_SCALEMODE_PIXELART);
@@ -535,7 +537,7 @@ void SDLMouseClass::Set_System_Cursor()
 }
 
 
-int SDLMouseClass::Get_Cursor_Scale_Factor()
+int SDLMouseClass::Get_Cursor_XScale()
 {
     if (OptionsExtension->CursorScale < 0) {
         return 1;
@@ -545,7 +547,21 @@ int SDLMouseClass::Get_Cursor_Scale_Factor()
         return OptionsExtension->CursorScale;
     }
 
-    return static_cast<int>(std::round(static_cast<float>(VideoHeight) / 480.0f));
+    return static_cast<int>(std::round(1.0 / SDL_XScale()));
+}
+
+
+int SDLMouseClass::Get_Cursor_YScale()
+{
+    if (OptionsExtension->CursorScale < 0) {
+        return 1;
+    }
+
+    if (OptionsExtension->CursorScale > 0) {
+        return OptionsExtension->CursorScale;
+    }
+
+    return static_cast<int>(std::round(1.0 / SDL_YScale()));
 }
 
 
