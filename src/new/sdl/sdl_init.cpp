@@ -5,6 +5,7 @@
 #include "cctooltip.h"
 #include "cdctrl.h"
 #include "command.h"
+#include "convert.h"
 #include "debughandler.h"
 #include "filepng.h"
 #include "mouse.h"
@@ -128,19 +129,16 @@ void Destroy_SDL()
  *=============================================================================================*/
 bool SDL_Set_Video_Mode(HWND, int w, int h, int bits_per_pixel)
 {
-    if (!SDLWindow) {
+    if (SDLWindow == nullptr) {
         DEBUG_ERROR("SDLWindow is null!\n");
         return false;
     }
 
-    if (SDLWindowRenderer) {
-        DEBUG_WARNING("Video mode has already been set!\n");
-        return true;
-    }
+    SDL_Reset_Video_Mode();
 
     SDL_PixelFormat pixel_format = SDL_GetWindowPixelFormat(SDLWindow);
     if (pixel_format == SDL_PIXELFORMAT_UNKNOWN || SDL_BITSPERPIXEL(pixel_format) < 16) {
-        DEBUG_ERROR("SDL2 window pixel format unsupported: %s (%d bpp)\n", SDL_GetPixelFormatName(pixel_format), SDL_BITSPERPIXEL(pixel_format));
+        DEBUG_ERROR("SDL3 window pixel format unsupported: %s (%d bpp)\n", SDL_GetPixelFormatName(pixel_format), SDL_BITSPERPIXEL(pixel_format));
         return false;
     }
 
@@ -468,7 +466,7 @@ bool SDL_Create_Main_Window(HINSTANCE hInstance, int width, int height)
         SDL_SetWindowMouseGrab(SDLWindow, true);
     }
 
-    if (SDLBorderlessFullscreen) {
+    if (!WindowedMode) {
         DEBUG_INFO("Creating fullscreen desktop window.\n");
         SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_FULLSCREEN_BOOLEAN, true);
 
@@ -515,6 +513,8 @@ bool SDL_Create_Main_Window(HINSTANCE hInstance, int width, int height)
      *  Set the games windows proc function to the window.
      */
     SDL_Proc = (WNDPROC)SetWindowLongPtr(MainWindow, GWLP_WNDPROC, (LONG_PTR)Combined_Windows_Procedure);
+
+    GameInFocus = true;
 
     return true;
 }
@@ -586,3 +586,123 @@ bool SDL_Should_Scale()
     return WSDialogCount == 0;
 }
 
+bool SDL_Change_Display_Mode(int width, int height)
+{
+    DEBUG_INFO("About to set video mode\n");
+
+    Hide_Mouse();
+
+    /**
+     *  Delete the old surfaces.
+     */
+    if (VisibleSurface != nullptr) {
+        DEBUG_INFO("Deleting VisibleSurface\n");
+        delete VisibleSurface;
+        VisibleSurface = nullptr;
+    }
+
+    if (HiddenSurface != nullptr) {
+        DEBUG_INFO("Deleting HiddenSurface\n");
+        delete HiddenSurface;
+        HiddenSurface = nullptr;
+    }
+
+    if (TileSurface != nullptr) {
+        DEBUG_INFO("Deleting TileSurface\n");
+        delete TileSurface;
+        TileSurface = nullptr;
+    }
+
+    if (SidebarSurface != nullptr) {
+        DEBUG_INFO("Deleting SidebarSurface\n");
+        delete SidebarSurface;
+        SidebarSurface = nullptr;
+    }
+
+    if (CompositeSurface != nullptr) {
+        DEBUG_INFO("Deleting CompositeSurface\n");
+        delete CompositeSurface;
+        CompositeSurface = nullptr;
+    }
+
+    /**
+     *  Set the new surface resultion.
+     */
+    VisibleRect = Rect(0, 0, width, height);
+    VideoWidth = width;
+    VideoHeight = height;
+    DEBUG_INFO("VisibleRect: %dx%d\n", width, height);
+
+    /**
+     *  If the window size isn't set manually, resize the window to refect the new resolution.
+     */
+    if (WindowedMode) {
+        int window_width = width;
+        int window_height = height;
+
+        if (OptionsExtension->WindowWidth > 0 && OptionsExtension->WindowHeight > 0) {
+            window_width = OptionsExtension->WindowWidth;
+            window_height = OptionsExtension->WindowHeight;
+        }
+
+        SDL_SetWindowSize(SDLWindow, window_width, window_height);
+        SDLWindowWidth = window_width;
+        SDLWindowHeight = window_height;
+        DEBUG_INFO("SDLWindow size: %d X %d.\n", SDLWindowWidth, SDLWindowHeight);
+    }
+
+    /**
+     *  Recreate all the SDL intermediates (texture, renderer).
+     */
+    Set_Video_Mode(MainWindow, width, height, 16);
+
+    /**
+     *  Re-allocate all the game surfaces.
+     */
+    VisibleSurface = SDLSurface::Create_Primary();
+
+    Rect temp = VisibleRect;
+    temp.X = ((Options.SidebarSide || Debug_Map) ? 0 : 168);
+    temp.Y = 16;
+    temp.Width -= 168;
+    temp.Height -= 16;
+
+    Allocate_Surfaces(VisibleRect, Rect(0, 0, temp.Width, VisibleRect.Height), Rect(0, 0, temp.Width, VisibleRect.Height), Rect(0, 0, 168, VisibleRect.Height));
+    LogicalSurface = HiddenSurface;
+
+    /**
+     *  Reset the mouse cursor, since it's scaled.
+     */
+    void const* mouseshp = MFCD::Retrieve("MOUSE.SHP");
+    if (mouseshp != nullptr) {
+        Point2D hotspot = Point2D(0, 0);
+        Set_Mouse_Cursor(hotspot, (ShapeSet const*)mouseshp, 0);
+    }
+
+    /**
+     *  Recalc color remap tables.
+     */
+    int redleft = DSurface::Get_Red_Left();
+    int redright = DSurface::Get_Red_Right();
+    int greenleft = DSurface::Get_Green_Left();
+    int greenright = DSurface::Get_Green_Right();
+    int blueleft = DSurface::Get_Blue_Left();
+    int blueright = DSurface::Get_Blue_Right();
+
+    DEBUG_INFO("Recalc color remap tables\n");
+    ConvertClass::Reinitialize_Hicolor_Tables(redleft, redright, greenleft, greenright, blueleft, blueright);
+
+    /**
+     *  Resize the game UI.
+     */
+    Map.Set_View_Dimensions(temp);
+    Map.Init_IO();
+    Map.Activate(1);
+    Map.Set_Dimensions();
+    Map.Flag_To_Redraw(GS_REDRAW_ALL);
+    Show_Mouse();
+
+    DEBUG_INFO("Mode change complete.\n");
+
+    return true;
+}

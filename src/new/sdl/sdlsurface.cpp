@@ -262,7 +262,7 @@ SDLSurface* SDLSurface::Create_Primary(void*)
     AllowHWFill = false;
 
     DEBUG_INFO("SDLSurface::Create_Primary - Creating surface\n");
-    SDLSurface* surface = new SDLSurface(Options.ScreenWidth, Options.ScreenHeight);
+    SDLSurface* surface = new SDLSurface(VideoWidth, VideoHeight);
     surface->IsPrimary = true;
 
     /**

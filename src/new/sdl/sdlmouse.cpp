@@ -270,8 +270,8 @@ void SDLMouseClass::Show_Mouse()
 void SDLMouseClass::Release_Mouse()
 {
     //SDL_CaptureMouse(false);
-    SDL_SetWindowMouseGrab(SDLWindow, false);
-    //SDL_SetWindowRelativeMouseMode(SDL_GetWindowFromID(1), false);
+    SDL_SetWindowMouseGrab(SDL_GetWindowFromID(1), false);
+    SDL_SetWindowRelativeMouseMode(SDL_GetWindowFromID(1), false);
 }
 
 
@@ -294,8 +294,8 @@ void SDLMouseClass::Release_Mouse()
 void SDLMouseClass::Capture_Mouse()
 {
     //SDL_CaptureMouse(true);
-    SDL_SetWindowMouseGrab(SDLWindow, true);
-    //SDL_SetWindowRelativeMouseMode(SDL_GetWindowFromID(1), true);
+    SDL_SetWindowMouseGrab(SDL_GetWindowFromID(1), true);
+    SDL_SetWindowRelativeMouseMode(SDL_GetWindowFromID(1), true);
 }
 
 

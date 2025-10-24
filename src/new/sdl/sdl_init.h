@@ -18,6 +18,7 @@ bool SDL_Create_Main_Window(HINSTANCE hInstance, int width, int height);
 void SDL_Destroy_Main_Window();
 bool SDL_Update_Screen(Surface* surface);
 bool SDL_Should_Scale();
+bool SDL_Change_Display_Mode(int width, int height);
 
 inline float SDL_XScale()
 {

@@ -57,7 +57,7 @@ void SDLSurface_Hooks()
     Patch_Call(0x0059E0C7, &SDLSurface::ReleaseDC);
     Patch_Call(0x0059F30E, &SDLSurface::ReleaseDC);
 
-    Patch_Jump(0x00685A6D, 0x00685B67); // Skip Restore_Check calls in Focus_Restore
+    Patch_Jump(0x00685A73, 0x00685B67); // Skip Restore_Check calls in Focus_Restore
 
     Patch_Byte(0x00491587, sizeof(SDLSurface)); // Show_Who_Was_Responsible
     Patch_Byte(0x0056848A, sizeof(SDLSurface)); // MultiScore::Init

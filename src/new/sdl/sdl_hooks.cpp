@@ -31,6 +31,7 @@
 #include "hooker.h"
 #include "hooker_macros.h"
 #include "sdl_init.h"
+#include "tibsun_functions.h"
 #include "tibsun_globals.h"
 #include "vinifera_globals.h"
 #include "winuser.h"
@@ -303,6 +304,7 @@ void SDL_Hooks()
     Patch_Jump(0x004E7310, &SDL_Allocate_Surfaces);
     Patch_Jump(0x00472DF0, &SDL_Set_Video_Mode);
     Patch_Jump(0x00472FF0, &SDL_Reset_Video_Mode);
+    Patch_Jump(0x0050AC30, &SDL_Change_Display_Mode);
 
     // VQA
     Patch_Jump(0x005640CD, &_Movie_Blit_To_Screen_SDL_Update_Window_Patch_1);
@@ -323,4 +325,7 @@ void SDL_Hooks()
     Patch_Jump(0x00594101, &_CtrlProc_SDL_Update_Screen2);
     Patch_Jump(0x0059437C, &_CtrlProc_SDL_Update_Screen3);
     Patch_Jump(0x0059449F, &_CtrlProc_SDL_Update_Screen4);
+
+    Patch_Jump(0x006016B8, 0x006016F3); // jump over trying to set the DDraw video mode
+    Patch_Jump(0x006016BF, 0x006015A9);
 }
