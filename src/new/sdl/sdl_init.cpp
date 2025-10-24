@@ -103,18 +103,6 @@ bool SDL_Allocate_Surfaces(const Rect& hidden_rect, const Rect& composite_rect, 
 }
 
 
-void Prep_SDL()
-{
-
-}
-
-
-void Destroy_SDL()
-{
-
-}
-
-
 /***********************************************************************************************
  * Set_Video_Mode -- Initializes Direct Draw and sets the required Video Mode                  *
  *                                                                                             *
@@ -391,6 +379,25 @@ LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, L
 
 LRESULT CALLBACK Combined_Windows_Procedure(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+    // force controls to repaint when we activate the window - so that when we alt-tab back in we don't
+    // end up with invisible menus.
+    if (msg == WM_ACTIVATEAPP) {
+        GameInFocus = (wParam != 0);
+        if (GameInFocus) {
+            // Force all child controls to redraw when regaining focus.
+            EnumChildWindows(
+                hwnd,
+                [](HWND child, LPARAM) -> BOOL {
+                    RedrawWindow(child, nullptr, nullptr, RDW_INVALIDATE | RDW_UPDATENOW | RDW_ERASE | RDW_ALLCHILDREN);
+                    return TRUE;
+                },
+                0);
+
+            // Optionally redraw the main window, too
+            RedrawWindow(hwnd, nullptr, nullptr, RDW_INVALIDATE | RDW_UPDATENOW | RDW_ERASE | RDW_ALLCHILDREN);
+        }
+    }
+
     if (SDL_Should_Scale()) {
         switch (msg) {
         case WM_MOUSEMOVE:
@@ -676,21 +683,8 @@ bool SDL_Change_Display_Mode(int width, int height)
     void const* mouseshp = MFCD::Retrieve("MOUSE.SHP");
     if (mouseshp != nullptr) {
         Point2D hotspot = Point2D(0, 0);
-        Set_Mouse_Cursor(hotspot, (ShapeSet const*)mouseshp, 0);
+        Set_Mouse_Cursor(hotspot, static_cast<ShapeSet const*>(mouseshp), 0);
     }
-
-    /**
-     *  Recalc color remap tables.
-     */
-    int redleft = DSurface::Get_Red_Left();
-    int redright = DSurface::Get_Red_Right();
-    int greenleft = DSurface::Get_Green_Left();
-    int greenright = DSurface::Get_Green_Right();
-    int blueleft = DSurface::Get_Blue_Left();
-    int blueright = DSurface::Get_Blue_Right();
-
-    DEBUG_INFO("Recalc color remap tables\n");
-    ConvertClass::Reinitialize_Hicolor_Tables(redleft, redright, greenleft, greenright, blueleft, blueright);
 
     /**
      *  Resize the game UI.

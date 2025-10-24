@@ -214,6 +214,9 @@ SDLSurface::~SDLSurface()
  */
 static void Calculate_Mask_Info(unsigned int mask, unsigned int& right, unsigned int& left)
 {
+    right = 0;
+    left = 0;
+
     /**
      *  Figure out how far to shift bits to the left.
      */
@@ -269,12 +272,10 @@ SDLSurface* SDLSurface::Create_Primary(void*)
      *  If this is a hicolor surface, then build the shift values for
      *  building and extracting the colors from the hicolor pixel.
      */
-    if (surface->Bytes_Per_Pixel() == 2) {
+    if (PrimaryColorMode == COLORMODE_INVALID) {
         Calculate_Mask_Info(PixelFormat->Rmask, RedRight, RedLeft);
         Calculate_Mask_Info(PixelFormat->Gmask, GreenRight, GreenLeft);
         Calculate_Mask_Info(PixelFormat->Bmask, BlueRight, BlueLeft);
-
-        PrimaryColorMode = COLORMODE_INVALID;
 
         /**
          *  Create the halfbright mask.
