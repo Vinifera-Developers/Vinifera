@@ -49,18 +49,31 @@ DSurface* DSurfaceExt::CTOR_Proxy(int width, int height, bool system_memory)
  */
 void SDLSurface_Hooks()
 {
-    Patch_Jump(0x0048AD60, &SDLSurface::Create_Primary);
-    Patch_Jump(0x0048B510, &SDLSurface::Restore_Check);
-    Patch_Jump(0x0048B2E0, &SDLSurface::GetDC);
-    Patch_Jump(0x0048B320, &SDLSurface::ReleaseDC);
+    Patch_Call(0x0060141E, &SDLSurface::Create_Primary);
+    Patch_Call(0x0059C506, &SDLSurface::GetDC);
+    Patch_Call(0x0059E063, &SDLSurface::GetDC);
+    Patch_Call(0x0059F227, &SDLSurface::GetDC);
+    Patch_Call(0x0059C5B8, &SDLSurface::ReleaseDC);
+    Patch_Call(0x0059E0C7, &SDLSurface::ReleaseDC);
+    Patch_Call(0x0059F30E, &SDLSurface::ReleaseDC);
 
+    Patch_Jump(0x00685A6D, 0x00685B67); // Skip Restore_Check calls in Focus_Restore
+
+    Patch_Byte(0x00491587, sizeof(SDLSurface)); // Show_Who_Was_Responsible
     Patch_Byte(0x0056848A, sizeof(SDLSurface)); // MultiScore::Init
-    Patch_Byte(0x005AC325, sizeof(SDLSurface)); // PreviewClass::Create_Preview
-    Patch_Byte(0x005ACA6B, sizeof(SDLSurface)); // PreviewClass::Read_INI
-    Patch_Byte(0x005ACD43, sizeof(SDLSurface)); // PreviewClass::Read_PCX_Preview
-    Patch_Byte(0x005AD4C8, sizeof(SDLSurface)); // PreviewClass::Create_Preview_Surface
+    Patch_Byte(0x005AC325, sizeof(SDLSurface)); // MapPreviewClass::Create_Preview
+    Patch_Byte(0x005ACA6B, sizeof(SDLSurface)); // MapPreviewClass::Read_INI
+    Patch_Byte(0x005ACD43, sizeof(SDLSurface)); // MapPreviewClass::Read_PCX_Preview
+    Patch_Byte(0x005AD4C8, sizeof(SDLSurface)); // MapPreviewClass::Create_Preview_Surface
     Patch_Byte(0x005ACA6B, sizeof(SDLSurface)); // RadarClass::Compute_Radar_Image
     Patch_Byte(0x005E304E, sizeof(SDLSurface)); // ScoreClass::Presentation
 
-    Patch_Jump(0x0048ABB0, &DSurfaceExt::CTOR_Proxy);
+    Patch_Call(0x004915A5, &DSurfaceExt::CTOR_Proxy); // Show_Who_Was_Responsible
+    Patch_Call(0x005684A5, &DSurfaceExt::CTOR_Proxy); // MultiScore::Init
+    Patch_Call(0x005AC33C, &DSurfaceExt::CTOR_Proxy); // MapPreviewClass::Create_Preview
+    Patch_Call(0x005ACA97, &DSurfaceExt::CTOR_Proxy); // MapPreviewClass::Read_INI
+    Patch_Call(0x005ACD66, &DSurfaceExt::CTOR_Proxy); // MapPreviewClass::Read_PCX_Preview
+    Patch_Call(0x005AD4DF, &DSurfaceExt::CTOR_Proxy); // MapPreviewClass::Create_Preview_Surface
+    Patch_Call(0x005B9CDF, &DSurfaceExt::CTOR_Proxy); // RadarClass::Compute_Radar_Image
+    Patch_Call(0x005E307D, &DSurfaceExt::CTOR_Proxy); // ScoreClass::Presentation
 }

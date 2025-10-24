@@ -30,26 +30,16 @@
 #include "dsurface.h"
 #include "hooker.h"
 #include "hooker_macros.h"
-#include "options.h"
 #include "sdl_init.h"
-#include "sdlsurface.h"
-#include "shapeset.h"
 #include "tibsun_globals.h"
 #include "vinifera_globals.h"
-#include "wwmouse.h"
 #include "winuser.h"
 #include "SDL3/SDL_timer.h"
 #include <dsound.h>
 #include <algorithm>
-#include <windowsx.h>
 
 
 void _Wait_Blit()
-{
-}
-
-
-void _Set_Palette(void const* palette)
 {
 }
 
@@ -81,7 +71,7 @@ DECLARE_PATCH(_Movie_Blit_To_Screen_SDL_Update_Window_Patch_1)
     _asm { pop esi }
     _asm { pop ebx }
 
-    SDL_Update_Screen(VisibleSurface /*, &src_rect, &dest_rect*/);
+    SDL_Update_Screen(VisibleSurface);
     
     JMP(0x005640D3);
 }
@@ -148,13 +138,6 @@ BOOL WINAPI Fake_ValidateRect(HWND hwnd, LPCRECT lpRect)
 }
 
 
-BOOL WINAPI Fake_InvalidateRect(HWND hwnd, LPCRECT lpRect, BOOL bErase)
-{
-    if (hwnd == MainWindow) return TRUE; // do nothing for SDL main window
-    return InvalidateRect(hwnd, lpRect, bErase);   // let USER32 handle child dialogs normally
-}
-
-
 LRESULT CALLBACK CtrlProc(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
 DEFINE_IMPLEMENTATION(LRESULT CALLBACK CtrlProc(HWND window, UINT message, WPARAM wparam, LPARAM lparam), 0x00592340);
 
@@ -169,7 +152,6 @@ LRESULT CALLBACK CtrlProcProxy(HWND window, UINT message, WPARAM wparam, LPARAM 
 }
 
 
-// 593F8D
 DECLARE_PATCH(_CtrlProc_SDL_Update_Screen1)
 {
     AlternateSurface->Unlock();
@@ -179,7 +161,6 @@ DECLARE_PATCH(_CtrlProc_SDL_Update_Screen1)
 }
 
 
-//594101
 DECLARE_PATCH(_CtrlProc_SDL_Update_Screen2)
 {
     AlternateSurface->Unlock();
@@ -189,7 +170,6 @@ DECLARE_PATCH(_CtrlProc_SDL_Update_Screen2)
 }
 
 
-// 59437C
 DECLARE_PATCH(_CtrlProc_SDL_Update_Screen3)
 {
     AlternateSurface->Unlock();
@@ -199,7 +179,6 @@ DECLARE_PATCH(_CtrlProc_SDL_Update_Screen3)
 }
 
 
-// 59449F
 DECLARE_PATCH(_CtrlProc_SDL_Update_Screen4)
 {
     AlternateSurface->Unlock();
@@ -208,16 +187,6 @@ DECLARE_PATCH(_CtrlProc_SDL_Update_Screen4)
     JMP(0x005944B5);
 }
 
-
-DECLARE_PATCH(_Windows_Procudure_Return_Patch)
-{
-    _asm {
-        xor eax, eax
-        pop esi
-        pop ebp
-        retn 10h
-    }
-}
 
 int _ODMoveDialog(HWND window, int x, int y)
 {
@@ -253,7 +222,7 @@ int _ODMoveDialog(HWND window, int x, int y)
     }
     rect2.top = ypos;
 
-    return (MoveWindow(window, rect2.left, rect2.top, rect2.right, rect2.bottom, FALSE));
+    return MoveWindow(window, rect2.left, rect2.top, rect2.right, rect2.bottom, FALSE);
 }
 
 
@@ -293,7 +262,7 @@ BOOL _GetDisplayRect(HWND window, LPRECT rect)
     RECT c;
     BOOL res = GetWindowRect(window, rect);
     if (!res) {
-        return (res);
+        return res;
     }
     GetClientRect(MainWindow, &c);
     ClientToScreen(MainWindow, (LPPOINT)&c);
@@ -301,7 +270,7 @@ BOOL _GetDisplayRect(HWND window, LPRECT rect)
     rect->right -= c.left;
     rect->top -= c.top;
     rect->bottom -= c.top;
-    return (res);
+    return res;
 }
 
 
@@ -326,13 +295,9 @@ void SDL_Hooks()
     // Disable some drawing calls
     Patch_Dword(0x006CA384, (uintptr_t)&Fake_ClientToScreen);
     Patch_Dword(0x006CA3C4, (uintptr_t)&Fake_ValidateRect);
-    //Patch_Dword(0x006CA3C8, (uintptr_t)&Fake_InvalidateRect);
 
     // Dummies
     Patch_Jump(0x00473330, &_Wait_Blit);
-    Patch_Jump(0x00473280, &_Wait_Blit);
-    Patch_Jump(0x00472AD0, &Prep_SDL);
-    Patch_Jump(0x00472BC0, &Destroy_SDL);
 
     // SDL prep
     Patch_Jump(0x004E7310, &SDL_Allocate_Surfaces);
@@ -358,7 +323,4 @@ void SDL_Hooks()
     Patch_Jump(0x00594101, &_CtrlProc_SDL_Update_Screen2);
     Patch_Jump(0x0059437C, &_CtrlProc_SDL_Update_Screen3);
     Patch_Jump(0x0059449F, &_CtrlProc_SDL_Update_Screen4);
-
-    Patch_Dword(0x00685621 + 2, SDLWindowWidth);
-    Patch_Dword(0x00685627 + 2, SDLWindowHeight);
 }
