@@ -366,7 +366,7 @@ const char* DeleteCommandClass::Get_Category() const
 
 const char* DeleteCommandClass::Get_Description() const
 {
-    return "Deletes the selected object.";
+    return "Deletes the selected waypoint or beacon.";
 }
 
 bool DeleteCommandClass::Process()
