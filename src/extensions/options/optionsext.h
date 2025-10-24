@@ -86,4 +86,6 @@ class OptionsClassExtension final : public GlobalExtensionClass<OptionsClass>
         int WindowWidth;
         int WindowHeight;
         SDL_ScaleMode ScaleMode;
+
+        int CursorScale;
 };

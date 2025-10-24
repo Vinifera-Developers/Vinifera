@@ -37,6 +37,7 @@
 #include "debughandler.h"
 #include "drawshape.h"
 #include "options.h"
+#include "optionsext.h"
 #include "sdl_init.h"
 #include "sdlsurface.h"
 #include "SDL3/SDL_mouse.h"
@@ -195,7 +196,11 @@ void SDLMouseClass::Set_Cursor(Point2D const& hotspot, ShapeSet const* cursor, i
     }
 
     Clear_Cursor();
-    Cursor = SDL_CreateColorCursor(CursorSurfaces[shape], hotspot.X, hotspot.Y);
+
+    Point2D scaled_hotspot = hotspot * Get_Cursor_Scale_Factor();
+    scaled_hotspot.X = std::clamp(scaled_hotspot.X, 0, CursorSurfaces[shape]->w - 1);
+    scaled_hotspot.Y = std::clamp(scaled_hotspot.Y, 0, CursorSurfaces[shape]->h - 1);
+    Cursor = SDL_CreateColorCursor(CursorSurfaces[shape], scaled_hotspot.X, scaled_hotspot.Y);
     SDL_SetCursor(Cursor);
 }
 
@@ -480,21 +485,35 @@ void SDLMouseClass::Convert_Cursor_Image(ShapeSet const* shapes)
     }
 
     for (int i = 0; i < shapes->Get_Count(); i++) {
-        Rect shape_rect = shapes->Get_Rect(i);
-        SDL_Surface* source = SDL_CreateSurface(shape_rect.Width, shape_rect.Height, SDL_PIXELFORMAT_INDEX8);
+        // Full image dimensions
+        int width = shapes->Get_Width();
+        int height = shapes->Get_Height();
+
+        // Non-empty area (cropped data region)
+        Rect r = shapes->Get_Rect(i);
+
+        // Create 8-bit surface for the shape
+        SDL_Surface* source = SDL_CreateSurface(width, height, SDL_PIXELFORMAT_INDEX8);
         SDL_SetSurfacePalette(source, palette);
         SDL_SetSurfaceColorKey(source, true, 0);
 
         uint8_t* dst = static_cast<uint8_t*>(source->pixels);
         const uint8_t* src = static_cast<const uint8_t*>(shapes->Get_Data(i));
-        for (int y = 0; y < shape_rect.Height; ++y) {
-            memcpy(dst + y * source->pitch, src + y * shape_rect.Width, shape_rect.Width);
+
+        // Copy cropped data into the correct offset in the full surface
+        for (int y = 0; y < r.Height; ++y) {
+            uint8_t* dst_row = dst + (r.Y + y) * source->pitch + r.X;
+            const uint8_t* src_row = src + y * r.Width;
+            memcpy(dst_row, src_row, r.Width);
         }
 
-        SDL_Surface* destination = SDL_CreateSurface(shapes->Get_Rect(i).Width * 5, shapes->Get_Rect(i).Height * 5, SDL_PIXELFORMAT_RGBA32);
-        SDL_BlitSurfaceScaled(source, nullptr, destination, nullptr, SDL_SCALEMODE_PIXELART);
-        CursorSurfaces.emplace_back(destination);
+        // Now create ARGB destination with correct scaling
+        SDL_Surface* destination = SDL_CreateSurface(width * Get_Cursor_Scale_Factor(), height * Get_Cursor_Scale_Factor(), SDL_PIXELFORMAT_ARGB8888);
 
+        // Use pixel-art scaling for crisp edges
+        SDL_BlitSurfaceScaled(source, nullptr, destination, nullptr, SDL_SCALEMODE_PIXELART);
+
+        CursorSurfaces.emplace_back(destination);
         SDL_DestroySurface(source);
     }
 }
@@ -513,6 +532,20 @@ void SDLMouseClass::Set_System_Cursor()
     Clear_Cursor();
     Cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT);
     SDL_SetCursor(Cursor);
+}
+
+
+int SDLMouseClass::Get_Cursor_Scale_Factor()
+{
+    if (OptionsExtension->CursorScale < 0) {
+        return 1;
+    }
+
+    if (OptionsExtension->CursorScale > 0) {
+        return OptionsExtension->CursorScale;
+    }
+
+    return static_cast<int>(std::round(static_cast<float>(VideoHeight) / 480.0f));
 }
 
 

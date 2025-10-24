@@ -208,7 +208,6 @@ Point2D MouseClassExt::_Get_Mouse_Hotspot(MouseType mouse) const
                 break;
             case MOUSE_HOTSPOT_MIN:
             default:
-                hotspot.X = std::clamp(hotspot_x, -MouseShapes->Get_Width(), MouseShapes->Get_Width());
                 break;
         };
 
@@ -221,7 +220,6 @@ Point2D MouseClassExt::_Get_Mouse_Hotspot(MouseType mouse) const
                 break;
             case MOUSE_HOTSPOT_MIN:
             default:
-                hotspot.Y = std::clamp(hotspot_y, -MouseShapes->Get_Height(), MouseShapes->Get_Height());
                 break;
         };
 

@@ -129,6 +129,8 @@ private:
     void Convert_Cursor_Image(ShapeSet const* shapes);
     void Clear_Cursor();
     void Set_System_Cursor();
+
+    static int Get_Cursor_Scale_Factor();
 };
 
 void CALLBACK SDL_Callback_Process_Mouse(UINT, UINT, DWORD, DWORD, DWORD);
