@@ -772,7 +772,7 @@ LONG AircraftClassExt::_Landing_Altitude()
 
         /**
          *  We're picking something up.
-         *  Check for RTTI is new to prevent landing too high on buildings we're in contact with.
+         *  Added check for RTTI to prevent landing too high on buildings we're in contact with.
          */
         if (In_Radio_Contact() && Contact_With_Whom()->RTTI == RTTI_UNIT) {
             return 100;
