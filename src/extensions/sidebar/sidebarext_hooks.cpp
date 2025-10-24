@@ -691,8 +691,8 @@ void SidebarClassExt::_Draw_It(bool complete)
     Map.LastDrawRect = Rect(0, 0, 0, 0);
     PowerClass::Draw_It(complete);
 
-    Surface* oldsurface = LogicSurface;
-    LogicSurface = SidebarSurface;
+    Surface* oldsurface = LogicalSurface;
+    LogicalSurface = SidebarSurface;
 
     Rect rect(0, 0, SidebarSurface->Get_Width(), SidebarSurface->Get_Height());
 
@@ -782,7 +782,7 @@ void SidebarClassExt::_Draw_It(bool complete)
     IsToRedraw = false;
     IsToFullRedraw = false;
     Blit_Sidebar(complete);
-    LogicSurface = oldsurface;
+    LogicalSurface = oldsurface;
 }
 
 

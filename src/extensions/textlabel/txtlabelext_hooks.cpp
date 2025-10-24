@@ -75,7 +75,7 @@ bool TextLabelClassExt::_Draw_Me(bool forced)
     }
 
     Point2D xy = Point2D(X, Y);
-    Rect rect = LogicSurface->Get_Rect();
+    Rect rect = LogicalSurface->Get_Rect();
     TextPrintType style = Style;
 
     /**
@@ -112,7 +112,7 @@ bool TextLabelClassExt::_Draw_Me(bool forced)
             text_rect.Height -= 2;
         }
 
-        LogicSurface->Fill_Rect_Trans(text_rect, black_color,
+        LogicalSurface->Fill_Rect_Trans(text_rect, black_color,
                                       UIControls->TextLabelBackgroundTransparency);
     }
 
@@ -128,9 +128,9 @@ bool TextLabelClassExt::_Draw_Me(bool forced)
     }
 
     if (PixWidth == -1) {
-        Simple_Text_Print(Text, *LogicSurface, rect, xy, scheme, COLOR_TBLACK, style, TPF_8POINT | TPF_DROPSHADOW);
+        Simple_Text_Print(Text, *LogicalSurface, rect, xy, scheme, COLOR_TBLACK, style, TPF_8POINT | TPF_DROPSHADOW);
     } else {
-        Conquer_Clip_Text_Print(Text, *LogicSurface, rect, xy, scheme, COLOR_TBLACK, style, PixWidth);
+        Conquer_Clip_Text_Print(Text, *LogicalSurface, rect, xy, scheme, COLOR_TBLACK, style, PixWidth);
     }
 
 #ifndef NDEBUG

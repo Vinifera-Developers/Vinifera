@@ -60,7 +60,7 @@ DECLARE_PATCH(_TabClass_Draw_It_Faction_Specific_Options_Button_Color_Scheme_Pat
     colorscheme = ColorSchemes[colorschemetype];
 
     _asm mov edx, colorscheme 
-    _asm mov ecx, LogicSurface
+    _asm mov ecx, LogicalSurface
     _asm mov ecx, [ecx]
     JMP(0x0060E5B4);
 }
