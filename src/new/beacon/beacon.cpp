@@ -344,7 +344,19 @@ bool BeaconManagerClass::Are_Beacons_Enabled()
         return false;
     }
 
-    if (!RuleExtension->IsSPBeacons && (Session.Type == GAME_NORMAL || Session.Type == GAME_SKIRMISH)) {
+    /**
+     *  Skirmish supports beacons, but they should be enabled separately if the modder
+     *  thinks they're necessary.
+     */
+    if (Session.Type == GAME_SKIRMISH && !RuleExtension->IsSPBeacons) {
+        return false;
+    }
+
+    /**
+     *  Campaign, on the other hand, probably won't work well with how
+     *  the beacon manager is designed, so disallow it.
+     */
+    if (Session.Type == GAME_NORMAL) {
         return false;
     }
 
