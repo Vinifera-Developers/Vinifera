@@ -173,7 +173,7 @@ void OptionsClassExtension::Load_Settings()
         SortDefensesAsLast = sun_ini.Get_Bool("Options", "SortDefensesAsLast", SortDefensesAsLast);
         FilterBandBoxSelection = sun_ini.Get_Bool("Options", "FilterBandBoxSelection", FilterBandBoxSelection);
 
-	    WindowWidth = sun_ini.Get_Int("Video", "WindowWidth", WindowWidth);
+        WindowWidth = sun_ini.Get_Int("Video", "WindowWidth", WindowWidth);
         WindowHeight = sun_ini.Get_Int("Video", "WindowHeight", WindowHeight);
 
         char buffer[256];
@@ -188,6 +188,7 @@ void OptionsClassExtension::Load_Settings()
         }
 
         CursorScale = sun_ini.Get_Int("Video", "CursorScale", CursorScale);
+        WindowedMode = sun_ini.Get_Bool("Video", "Windowed", WindowedMode);
     }
 
     /**

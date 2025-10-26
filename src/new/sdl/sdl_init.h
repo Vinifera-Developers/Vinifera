@@ -14,7 +14,7 @@ void Destroy_SDL();
 bool SDL_Set_Video_Mode(HWND, int w, int h, int bits_per_pixel);
 void SDL_Reset_Video_Mode();
 void SDL_Update_Visible_Surface(bool flip_mouse, Surface* surface, Rect* rect);
-bool SDL_Create_Main_Window(HINSTANCE hInstance, int width, int height);
+bool SDL_Create_Main_Window(HINSTANCE instance, int width, int height);
 void SDL_Destroy_Main_Window();
 bool SDL_Update_Screen(Surface* surface);
 bool SDL_Should_Scale();

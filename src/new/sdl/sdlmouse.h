@@ -101,6 +101,8 @@ public:
     */
     void Convert_Coordinate(int& x, int& y) const override;
 
+    void Recacl_Cursor_Image();
+
 private:
     /*
     **  This specifies the mouse shape data. It records the shape set
@@ -108,6 +110,7 @@ private:
     */
     ShapeSet const* MouseShape;
     int ShapeNumber;
+    Point2D Hotspot;
     std::vector<SDL_Surface*> CursorSurfaces;
 
     SDL_Cursor* Cursor;

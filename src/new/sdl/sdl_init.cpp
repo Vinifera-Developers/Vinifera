@@ -12,6 +12,7 @@
 #include "optionsext.h"
 #include "playmovie.h"
 #include "rect.h"
+#include "sdlmouse.h"
 #include "sdlsurface.h"
 #include "tactical.h"
 #include "tibsun_functions.h"
@@ -99,7 +100,7 @@ bool SDL_Allocate_Surfaces(const Rect& hidden_rect, const Rect& composite_rect, 
         DEBUG_INFO("AlternateSurface (%dx%d)\n", hidden_rect.Width, hidden_rect.Height);
     }
 
-    return (success);
+    return success;
 }
 
 
@@ -155,12 +156,6 @@ bool SDL_Set_Video_Mode(HWND, int w, int h, int bits_per_pixel)
         return false;
     }
     DEBUG_INFO("SDLWindowTexture created.\n");
-
-    /**
-     *  Explicitly set input focus to the window.
-     */
-    SDL_RaiseWindow(SDLWindow);
-    GameInFocus = true; // The SDL window needs this initially otherwise we need to alt-tab to gain focus.
 
     VideoWidth = w;
     VideoHeight = h;
@@ -382,7 +377,7 @@ LRESULT CALLBACK Combined_Windows_Procedure(HWND hwnd, UINT msg, WPARAM wParam, 
     // force controls to repaint when we activate the window - so that when we alt-tab back in we don't
     // end up with invisible menus.
     if (msg == WM_ACTIVATEAPP) {
-        GameInFocus = (wParam != 0);
+        GameInFocus = wParam != 0;
         if (GameInFocus) {
             // Force all child controls to redraw when regaining focus.
             EnumChildWindows(
@@ -457,7 +452,7 @@ LRESULT CALLBACK Combined_Windows_Procedure(HWND hwnd, UINT msg, WPARAM wParam, 
  *
  *  @author: CCHyper
  */
-bool SDL_Create_Main_Window(HINSTANCE hInstance, int width, int height)
+bool SDL_Create_Main_Window(HINSTANCE instance, int width, int height)
 {
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         DEBUG_ERROR("SDL_Init failed! SDL_Error: %s\n", SDL_GetError());
@@ -466,27 +461,13 @@ bool SDL_Create_Main_Window(HINSTANCE hInstance, int width, int height)
 
     SDL_PropertiesID props = SDL_CreateProperties();
 
-    SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_HIDDEN_BOOLEAN, false);
-
-    if (SDLClipMouseToWindow) {
-        SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_MOUSE_GRABBED_BOOLEAN, true);
-        SDL_SetWindowMouseGrab(SDLWindow, true);
-    }
-
-    if (!WindowedMode) {
-        DEBUG_INFO("Creating fullscreen desktop window.\n");
-        SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_FULLSCREEN_BOOLEAN, true);
-
-    } else {
-        if (SDLBorderless) {
-            DEBUG_INFO("Creating borderless window.\n");
-            SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_BORDERLESS_BOOLEAN, true);
-        }
-
+    if (WindowedMode) {
         SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, width);
         SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, height);
         SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_X_NUMBER, SDL_WINDOWPOS_CENTERED);
         SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_Y_NUMBER, SDL_WINDOWPOS_CENTERED);
+    } else {
+        SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_FULLSCREEN_BOOLEAN, true);
     }
 
     SDL_SetStringProperty(props, SDL_PROP_WINDOW_CREATE_TITLE_STRING, "Tiberian Sun");
@@ -499,19 +480,24 @@ bool SDL_Create_Main_Window(HINSTANCE hInstance, int width, int height)
         DEBUG_ERROR("SDLWindow could not be created! SDL_Error: %s\n", SDL_GetError());
         return false;
     }
-    props = SDL_GetWindowProperties(SDLWindow);
     DEBUG_INFO("SDLWindow created.\n");
-
+    
+    /**
+     *  Record the size that the window has been created at.
+     */
     SDL_GetWindowSize(SDLWindow, &SDLWindowWidth, &SDLWindowHeight);
     DEBUG_INFO("SDLWindow size: %d X %d.\n", SDLWindowWidth, SDLWindowHeight);
 
     /**
-     *  Do various stuff to make the SDL window intersect with the game correctly.
+     *  Save the window handle for the game to use.
      */
-    //SDL_SetWindowRelativeMouseMode(SDLWindow, true);
-
+    props = SDL_GetWindowProperties(SDLWindow);
     MainWindow = static_cast<HWND>(SDL_GetPointerProperty(props, SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr));
 
+    /**
+     *  We draw Win32 child windows as part of the main window, so we need to disable clipping.
+     *  Otherwise, we will see black boxes where child windows are.
+     */
     LONG_PTR style = GetWindowLongPtr(MainWindow, GWL_STYLE);
     style &= ~(WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
     SetWindowLongPtr(MainWindow, GWL_STYLE, style);
@@ -521,7 +507,11 @@ bool SDL_Create_Main_Window(HINSTANCE hInstance, int width, int height)
      */
     SDL_Proc = (WNDPROC)SetWindowLongPtr(MainWindow, GWLP_WNDPROC, (LONG_PTR)Combined_Windows_Procedure);
 
-    GameInFocus = true;
+    /**
+     *  Explicitly set input focus to the window.
+     */
+    SDL_RaiseWindow(SDLWindow);
+    GameInFocus = true; // The SDL window needs this initially otherwise we need to alt-tab to gain focus.
 
     /**
      *  This used to happen on WM_CREATE but our proc is no longer the proc that's used when
@@ -658,12 +648,39 @@ bool SDL_Change_Display_Mode(int width, int height)
         int window_width = width;
         int window_height = height;
 
+        /**
+         *  If the window size isn't set manually, resize the window to refect the new resolution.
+         */
         if (OptionsExtension->WindowWidth > 0 && OptionsExtension->WindowHeight > 0) {
             window_width = OptionsExtension->WindowWidth;
             window_height = OptionsExtension->WindowHeight;
         }
 
+        /**
+         *  Get the current window size and position.
+         */
+        int old_x, old_y, old_w, old_h;
+        SDL_GetWindowPosition(SDLWindow, &old_x, &old_y);
+        SDL_GetWindowSize(SDLWindow, &old_w, &old_h);
+
+        /**
+         *  Compute the current center point.
+         */
+        int center_x = old_x + old_w / 2;
+        int center_y = old_y + old_h / 2;
+
+        /**
+         *  Compute new top-left corner so that the center stays the same.
+         */
+        int new_x = center_x - window_width / 2;
+        int new_y = center_y - window_height / 2;
+
+        /**
+         *  Apply and save the new position and size.
+         */
+        SDL_SetWindowPosition(SDLWindow, new_x, new_y);
         SDL_SetWindowSize(SDLWindow, window_width, window_height);
+
         SDLWindowWidth = window_width;
         SDLWindowHeight = window_height;
         DEBUG_INFO("SDLWindow size: %d X %d.\n", SDLWindowWidth, SDLWindowHeight);
@@ -680,7 +697,7 @@ bool SDL_Change_Display_Mode(int width, int height)
     VisibleSurface = SDLSurface::Create_Primary();
 
     Rect temp = VisibleRect;
-    temp.X = ((Options.SidebarSide || Debug_Map) ? 0 : 168);
+    temp.X = Options.SidebarSide || Debug_Map ? 0 : 168;
     temp.Y = 16;
     temp.Width -= 168;
     temp.Height -= 16;
@@ -691,11 +708,9 @@ bool SDL_Change_Display_Mode(int width, int height)
     /**
      *  Reset the mouse cursor, since it's scaled.
      */
-    void const* mouseshp = MFCD::Retrieve("MOUSE.SHP");
-    if (mouseshp != nullptr) {
-        Point2D hotspot = Point2D(0, 0);
-        Set_Mouse_Cursor(hotspot, static_cast<ShapeSet const*>(mouseshp), 0);
-    }
+    Hide_Mouse();
+    static_cast<SDLMouseClass*>(MouseCursor)->Recacl_Cursor_Image();
+    Show_Mouse();
 
     /**
      *  Resize the game UI.
