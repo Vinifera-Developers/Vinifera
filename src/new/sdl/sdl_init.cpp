@@ -23,7 +23,6 @@
 #include "wwmouse.h"
 #include "SDL3/SDL_init.h"
 #include "SDL3/SDL_oldnames.h"
-#include "SDL3/SDL_version.h"
 #include "SDL3/SDL_video.h"
 
 #include <windowsx.h>
@@ -199,21 +198,24 @@ static WNDPROC SDL_Proc = nullptr;
 
 LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    if (SDL_Should_Scale()) {
-        switch (message) {
-        case WM_MOUSEMOVE:
-        case WM_LBUTTONDOWN:
-        case WM_LBUTTONUP:
-        case WM_LBUTTONDBLCLK:
-        case WM_RBUTTONDOWN:
-        case WM_RBUTTONUP:
-        case WM_RBUTTONDBLCLK:
-        case WM_MBUTTONDOWN:
-        case WM_MBUTTONUP:
-        case WM_MBUTTONDBLCLK:
-        case WM_MOUSEWHEEL:
-        case WM_XBUTTONDOWN:
-        case WM_XBUTTONUP: {
+    /*
+    **  Scale mouse inputs before they are processed by SDL or the game.
+    */
+    switch (message) {
+    case WM_MOUSEMOVE:
+    case WM_LBUTTONDOWN:
+    case WM_LBUTTONUP:
+    case WM_LBUTTONDBLCLK:
+    case WM_RBUTTONDOWN:
+    case WM_RBUTTONUP:
+    case WM_RBUTTONDBLCLK:
+    case WM_MBUTTONDOWN:
+    case WM_MBUTTONUP:
+    case WM_MBUTTONDBLCLK:
+    case WM_MOUSEWHEEL:
+    case WM_XBUTTONDOWN:
+    case WM_XBUTTONUP:
+        if (SDL_Should_Scale()) {
             int x = GET_X_LPARAM(lParam);
             int y = GET_Y_LPARAM(lParam);
 
@@ -221,9 +223,10 @@ LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, L
             y = static_cast<int>(y * SDL_YScale());
 
             lParam = MAKELPARAM(x, y);
-            break;
         }
-        }
+        break;
+    default:
+        break;
     }
 
     /*
@@ -232,24 +235,20 @@ LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, L
     if (PacketTransport) {
         if (message == (UINT)PacketTransport->Protocol_Event_Message()) {
             if (PacketTransport->Message_Handler(hwnd, message, wParam, lParam)) {
-                //return CallWindowProc(SDL_Proc, hwnd, message, wParam, lParam);
+                return DefWindowProc(hwnd, message, wParam, lParam);
             } else {
-                //return 0;
+                return 0;
             }
         }
     }
 
     Map.Message_Handler(hwnd, message, wParam, lParam);
 
-    if (MainWindow) {
-        GetMenu(MainWindow);
-    }
-
     switch (message) {
 
-    case WM_SHOWWINDOW:
-        break; // return 0;
-
+        /*
+        **  Refresh the window.
+        */
     case WM_PAINT:
         if (MouseCursor != nullptr && VisibleSurface != nullptr && HiddenSurface != nullptr && CompositeSurface != nullptr) {
             if (ScenarioStarted == true) {
@@ -261,20 +260,24 @@ LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, L
                 Update_Visible_Surface(MouseCursor->Is_Captured(), HiddenSurface);
             }
         }
-        break;
 
-    case WM_ERASEBKGND:
-        break; // return 1;
+        /*
+        **  Tell SDL that the window needs refreshing to simulate what it does itself.
+        */
+        SDL_Event event;
+        event.type = SDL_EVENT_WINDOW_EXPOSED;
+        event.window.windowID = SDL_GetWindowID(SDLWindow);
+        event.window.data1 = 0;
+        event.window.data2 = 0;
+        SDL_PushEvent(&event);
+
+        /*
+        **  But don't let SDL handle this event, or it will break Win32 controls' drawing.
+        */
+        return DefWindowProc(hwnd, message, wParam, lParam);
 
     case WM_CLOSE:
         CDControl.Unlock_All_CD_Trays();
-        break;
-
-    case WM_CREATE:
-        ToolTips = new CCToolTip(hwnd);
-        if (ToolTips) {
-            ToolTips->Set_Timer_Delay(500);
-        }
         break;
 
         /*
@@ -302,21 +305,32 @@ LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, L
         case 0:
             break;
         }
-        break; // return 0;
+        return 0;
 
     case WM_ACTIVATEAPP:
         if (hwnd == MainWindow && GameInFocus != (wParam != 0)) {
             GameInFocus = wParam != 0;
             if (!GameInFocus) {
                 Focus_Loss();
-                //DEBUG_INFO("Focus lost\n");
             } else {
                 Focus_Restore();
-                //DEBUG_INFO("Focus gained\n");
+
+                /*
+                **  Force all child controls to redraw when regaining focus.
+                */
+                EnumChildWindows(
+                    hwnd,
+                    [](HWND child, LPARAM) -> BOOL {
+                        RedrawWindow(child, nullptr, nullptr, RDW_INVALIDATE | RDW_UPDATENOW | RDW_ERASE | RDW_ALLCHILDREN);
+                        return TRUE;
+                    },
+                    0);
+
+                RedrawWindow(hwnd, nullptr, nullptr, RDW_INVALIDATE | RDW_UPDATENOW | RDW_ERASE | RDW_ALLCHILDREN);
             }
             SurfacesRestored = true;
         }
-        break; // return 0;
+        return 0;
 
     case WM_RBUTTONUP:
         Map.field_1D0C = false;
@@ -343,11 +357,12 @@ LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, L
 
         case SC_CLOSE:
             CDControl.Unlock_All_CD_Trays();
+
             /*
             **  Windows sent us a close message. Probably in response to Alt-F4. Ignore it by
             **  pretending to handle the message and returning true;
             */
-            break; // return 0;
+            return 0;
 
         case SC_SCREENSAVE:
             /*
@@ -355,95 +370,19 @@ LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, L
             **  this message to DefWindowProc then the screen saver will not be allowed to start.
             */
             return 0;
+
+        default:
+            break;
         }
         break;
     }
 
     /*
-    **  Pass this message through to the keyboard handler. If the message
-    **  was processed and requires no further action, then return with
-    **  this information.
+    **  Pass this message through to the keyboard handler.
     */
-    if (Keyboard->Message_Handler(hwnd, message, wParam, lParam)) {
-        //return 0;
-    }
+    Keyboard->Message_Handler(hwnd, message, wParam, lParam);
 
     return CallWindowProc(SDL_Proc, hwnd, message, wParam, lParam);
-}
-
-
-LRESULT CALLBACK Combined_Windows_Procedure(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-    // force controls to repaint when we activate the window - so that when we alt-tab back in we don't
-    // end up with invisible menus.
-    if (msg == WM_ACTIVATEAPP) {
-        GameInFocus = wParam != 0;
-        if (GameInFocus) {
-            // Force all child controls to redraw when regaining focus.
-            EnumChildWindows(
-                hwnd,
-                [](HWND child, LPARAM) -> BOOL {
-                    RedrawWindow(child, nullptr, nullptr, RDW_INVALIDATE | RDW_UPDATENOW | RDW_ERASE | RDW_ALLCHILDREN);
-                    return TRUE;
-                },
-                0);
-
-            // Optionally redraw the main window, too
-            RedrawWindow(hwnd, nullptr, nullptr, RDW_INVALIDATE | RDW_UPDATENOW | RDW_ERASE | RDW_ALLCHILDREN);
-        }
-    }
-
-    if (SDL_Should_Scale()) {
-        switch (msg) {
-        case WM_MOUSEMOVE:
-        case WM_LBUTTONDOWN:
-        case WM_LBUTTONUP:
-        case WM_LBUTTONDBLCLK:
-        case WM_RBUTTONDOWN:
-        case WM_RBUTTONUP:
-        case WM_RBUTTONDBLCLK:
-        case WM_MBUTTONDOWN:
-        case WM_MBUTTONUP:
-        case WM_MBUTTONDBLCLK:
-        case WM_MOUSEWHEEL:
-        case WM_XBUTTONDOWN:
-        case WM_XBUTTONUP: {
-            int x = GET_X_LPARAM(lParam);
-            int y = GET_Y_LPARAM(lParam);
-
-            x = static_cast<int>(x * SDL_XScale());
-            y = static_cast<int>(y * SDL_YScale());
-
-            lParam = MAKELPARAM(x, y);
-            break;
-        }
-        }
-    }
-
-    switch (msg) {
-    case WM_ERASEBKGND:
-        return 1; // skip default background erase
-
-        // case WM_SETFOCUS:
-        //     EnumChildWindows(
-        //         MainWindow,
-        //         [](HWND hwnd, LPARAM) -> BOOL {
-        //             InvalidateRect(hwnd, NULL, TRUE);
-        //             return TRUE;
-        //         },
-        //         0);
-        //     break;
-    }
-
-    // 2. Feed other messages to the game's original handler
-    LRESULT game_result = Windows_Procedure(hwnd, msg, wParam, lParam);
-
-    // 3. Optionally let SDL see everything else too, if you want SDL to handle unknowns
-    LRESULT sdl_result = CallWindowProc(SDL_Proc, hwnd, msg, wParam, lParam);
-
-    // 4. Decide which result to return
-    // Normally, return the game's result unless SDL needs to override (rare)
-    return game_result ? game_result : sdl_result;
 }
 
 
@@ -505,7 +444,7 @@ bool SDL_Create_Main_Window(HINSTANCE instance, int width, int height)
     /**
      *  Set the games windows proc function to the window.
      */
-    SDL_Proc = (WNDPROC)SetWindowLongPtr(MainWindow, GWLP_WNDPROC, (LONG_PTR)Combined_Windows_Procedure);
+    SDL_Proc = (WNDPROC)SetWindowLongPtr(MainWindow, GWLP_WNDPROC, (LONG_PTR)SDL_Windows_Procedure);
 
     /**
      *  Explicitly set input focus to the window.
