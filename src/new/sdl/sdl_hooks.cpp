@@ -104,10 +104,9 @@ DECLARE_PATCH(_Movie_Update_Visisble_Surface_SDL_Update_Window_Patch_2)
 DECLARE_PATCH(_MSEngine_BlitAll_SDL_Update_Window_Patch)
 {
     // VisibleSurface (ecx) -> Blit_From
-    _asm { push eax }
     _asm { mov edx, [ecx] }
-    _asm { mov eax, [edx+0x8] }
-    _asm { call eax }
+    _asm { push eax }
+    _asm { call [edx + 0x8] }
 
     SDL_Update_Screen(VisibleSurface);
 
@@ -117,10 +116,9 @@ DECLARE_PATCH(_MSEngine_BlitAll_SDL_Update_Window_Patch)
 DECLARE_PATCH(_MSEngine_BlitRect_SDL_Update_Window_Patch)
 {
     // VisibleSurface (ecx) -> Blit_From
+    _asm { mov eax, [ecx] }
     _asm { push edx }
-    _asm { mov ecx, [ecx] }
-    _asm { mov eax, [ecx+0x8] }
-    _asm { call eax }
+    _asm { call [eax+8] }
 
     SDL_Update_Screen(VisibleSurface);
 
@@ -333,7 +331,7 @@ void SDL_Hooks()
 
     // MSEngine
     Patch_Jump(0x00571116, &_MSEngine_BlitAll_SDL_Update_Window_Patch);
-    Patch_Jump(0x005711F5, &_MSEngine_BlitRect_SDL_Update_Window_Patch);
+    Patch_Jump(0x005711F2, &_MSEngine_BlitRect_SDL_Update_Window_Patch);
 
     // Most other cases
     Patch_Jump(0x004B9A42, &_Update_Visible_Surface_SDL_Update_Window_Patch);
