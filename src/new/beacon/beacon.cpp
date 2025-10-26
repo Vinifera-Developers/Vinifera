@@ -344,7 +344,19 @@ bool BeaconManagerClass::Are_Beacons_Enabled()
         return false;
     }
 
-    if (!RuleExtension->IsSPBeacons && (Session.Type == GAME_NORMAL || Session.Type == GAME_SKIRMISH)) {
+    /**
+     *  Skirmish supports beacons, but they should be enabled separately if the modder
+     *  thinks they're necessary.
+     */
+    if (Session.Type == GAME_SKIRMISH && !RuleExtension->IsSPBeacons) {
+        return false;
+    }
+
+    /**
+     *  Campaign, on the other hand, probably won't work well with how
+     *  the beacon manager is designed, so disallow it.
+     */
+    if (Session.Type == GAME_NORMAL) {
         return false;
     }
 
@@ -436,6 +448,10 @@ int BeaconManagerClass::Get_Radar_Shape_Frame() const
  */
 void BeaconManagerClass::Place_Beacon(HousesType house, Coord const& coord, int beacon_id, char const* text)
 {
+    if (house < HOUSE_FIRST || house >= Session.Players.Count()) {
+        return;
+    }
+
     BeaconClass* beacon = new BeaconClass;
 
     if (beacon_id != -1) {
@@ -514,7 +530,7 @@ void BeaconManagerClass::Delete_Beacon(HousesType house, int beacon_id)
     if (house == HOUSE_NONE && beacon_id == -1) {
         is_local_action = true;
         beacon = Find_Selected_Beacon(house);
-    } else {
+    } else if (house >= HOUSE_FIRST && house < Session.Players.Count() && Beacons[house].find(beacon_id) != Beacons[house].end()) {
         beacon = Beacons[house][beacon_id].get();
     }
 
@@ -575,7 +591,7 @@ void BeaconManagerClass::Set_Beacon_Text(char const* text, HousesType house, int
 
     if (house == HOUSE_NONE && beacon_id == -1) {
         beacon = Find_Selected_Beacon(house);
-    } else {
+    } else if (house >= HOUSE_FIRST && house < Session.Players.Count() && Beacons[house].find(beacon_id) != Beacons[house].end()) {
         beacon = Beacons[house][beacon_id].get();
     }
 

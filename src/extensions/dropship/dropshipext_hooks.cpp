@@ -97,11 +97,11 @@ DECLARE_PATCH(_Start_Scenario_Dropship_Loadout_Show_Mouse_Patch)
     }
 
     MouseCursor->Release_Mouse();
-    MouseCursor->Show_Mouse();
+    Show_Mouse();
 
     Dropship_Loadout();
 
-    MouseCursor->Hide_Mouse();
+    Hide_Mouse();
     MouseCursor->Capture_Mouse();
 
     if (Theme.Still_Playing()) {

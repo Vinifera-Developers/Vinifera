@@ -192,6 +192,7 @@ This page lists all the individual contributions to the project by their author.
   - Allow pre-placed units to have missions in multiplayer.
   - Original implementations of actions in ts-patches.
   - Fix a bug where the game could freeze in the score screen in `Clip_Line` when running on Windows 11 24H2.
+  - Fix an edge case crash when AI raises money.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:

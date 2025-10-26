@@ -308,8 +308,8 @@ DECLARE_PATCH(_DisplayClass_Mouse_Left_Release_PlaceAnywhere_BugFix_Patch)
      *  Find out where the mouse cursor is, if its over the sidebar
      *  then invalidate the proximity checks, fixing the glitch.
      */
-    mouse_pos.X = MouseCursor->Get_Mouse_X();
-    mouse_pos.Y = MouseCursor->Get_Mouse_Y();
+    mouse_pos.X = Get_Mouse_X();
+    mouse_pos.Y = Get_Mouse_Y();
     if (mouse_pos.X >= (TacticalRect.Width-1)) {
         this_ptr->IsProximityCheck = false;
         this_ptr->IsShroudCheck = false;

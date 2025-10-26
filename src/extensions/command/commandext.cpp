@@ -280,7 +280,7 @@ bool PNGScreenCaptureCommandClass::Process()
     /**
      *  We don't want the mouse to appear in screenshots!
      */
-    MouseCursor->Hide_Mouse();
+    Hide_Mouse();
 
     /**
      *  Blit primary surface to the hidden.
@@ -291,7 +291,7 @@ bool PNGScreenCaptureCommandClass::Process()
     /**
      *  Now show the mouse again.
      */
-    MouseCursor->Show_Mouse();
+    Show_Mouse();
 
     char buffer[256];
 
@@ -366,7 +366,7 @@ const char* DeleteCommandClass::Get_Category() const
 
 const char* DeleteCommandClass::Get_Description() const
 {
-    return "Deletes the selected object.";
+    return "Deletes the selected waypoint or beacon.";
 }
 
 bool DeleteCommandClass::Process()
@@ -386,7 +386,7 @@ bool DeleteCommandClass::Process()
             }
         }
 
-        MouseCursor->Show_Mouse();
+        Show_Mouse();
     }
 
     BeaconManager.Delete_Beacon(HOUSE_NONE, -1);
@@ -2918,7 +2918,7 @@ bool SpawnAllCommandClass::Process()
      *  If mouse position is valid, convert to world coordinates and update
      *  the spawn origin position to that of the mouse position.
      */
-    if (MouseCursor->Get_Mouse_Point() != Point2D(0, 0)) {
+    if (Get_Mouse_Point() != Point2D(0, 0)) {
         origin = Get_Cell_Under_Mouse();
     }
 
