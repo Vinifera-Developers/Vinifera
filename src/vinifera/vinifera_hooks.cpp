@@ -188,7 +188,7 @@ static void _On_Load_Clear_Scenario_Intercept()
  */
 DECLARE_PATCH(_Version_Text_Draw_Patch)
 {
-    GET_REGISTER_STATIC(XSurface *, surface, ecx);
+    GET_REGISTER_STATIC(Surface*, surface, ecx);
 
     Vinifera_Draw_Version_Text(surface);
 

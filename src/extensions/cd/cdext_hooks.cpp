@@ -75,5 +75,5 @@ function_return:
  */
 void CDExtension_Hooks()
 {
-	Patch_Jump(0x0044E7AE, &_CD_Is_Available_Local_Files_Patch);
+	//Patch_Jump(0x0044E7AE, &_CD_Is_Available_Local_Files_Patch);
 }

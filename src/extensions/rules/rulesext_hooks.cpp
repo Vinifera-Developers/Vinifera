@@ -46,6 +46,7 @@
 #include "armortype.h"
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "tibsun_functions.h"
 
 
 extern HMODULE DLLInstance;
@@ -152,7 +153,7 @@ LRESULT CALLBACK Rules_Dialog_Procedure(HWND hWnd, UINT uMsg, UINT wParam, LONG 
             break;
         }
         case WM_MOVING:
-            WinDialogClass::Dialog_Move(hWnd, wParam, lParam, uMsg);
+            On_WM_MOVING(hWnd, wParam, lParam);
             break;
         case WM_HELP:
             //Show_Help_File(lparam);

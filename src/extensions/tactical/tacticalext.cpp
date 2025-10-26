@@ -355,7 +355,7 @@ bool TacticalExtension::Debug_Draw_Facings()
     screen.X += TacticalRect.X;
     screen.Y += TacticalRect.Y;
 
-    LogicSurface->Fill_Rect(TacticalRect, Rect(screen.X, screen.Y, 2, 2), DSurface::Build_Hicolor_Pixel(255, 0, 0));
+    LogicalSurface->Fill_Rect(TacticalRect, Rect(screen.X, screen.Y, 2, 2), DSurface::Build_Hicolor_Pixel(255, 0, 0));
 
     TextPrintType style = TPF_CENTER | TPF_FULLSHADOW | TPF_6POINT;
     FontClass* font = Font_Ptr(style);
@@ -368,10 +368,10 @@ bool TacticalExtension::Debug_Draw_Facings()
     std::snprintf(buffer1, sizeof(buffer1), "%d", unit->PrimaryFacing.Current().Get_Dir());
     std::snprintf(buffer2, sizeof(buffer2), "%d", unit->PrimaryFacing.Current().Get_Raw());
 
-    Simple_Text_Print(buffer1, *LogicSurface, TacticalRect, screen, Fetch_Scheme_By_Name("White"), COLOR_TBLACK, style, 1);
+    Simple_Text_Print(buffer1, *LogicalSurface, TacticalRect, screen, Fetch_Scheme_By_Name("White"), COLOR_TBLACK, style, 1);
 
     screen.Y += 10;
-    Simple_Text_Print(buffer2, *LogicSurface, TacticalRect, screen, Fetch_Scheme_By_Name("White"), COLOR_TBLACK, style, 1);
+    Simple_Text_Print(buffer2, *LogicalSurface, TacticalRect, screen, Fetch_Scheme_By_Name("White"), COLOR_TBLACK, style, 1);
 
     return true;
 }
@@ -560,7 +560,7 @@ void TacticalExtension::Render_Post()
      *  Draw any new post effects here.
      */
     EBoltClass::Draw_All();
-    BeaconManager.Draw(LogicSurface, TacticalRect);
+    BeaconManager.Draw(LogicalSurface, TacticalRect);
 
     /**
      *  Draw any overlay text.

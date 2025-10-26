@@ -381,7 +381,7 @@ void Vinifera_Create_Main_Window(HINSTANCE hInstance, int nCmdShow, int width, i
     /**
      *  Create our main window.
      */
-    if (Debug_Windowed) {
+    if (WindowedMode) {
 
         DEBUG_INFO("Create_Main_Window() - Creating desktop window (%d x %d).\n", width, height);
 
@@ -463,7 +463,7 @@ void Vinifera_Create_Main_Window(HINSTANCE hInstance, int nCmdShow, int width, i
 
     SetCursor(hCursor);
 
-    Audio.AudioFocusLossFunction = &Focus_Loss;
+    Audio.Audio_Focus_Loss_Function = &Focus_Loss;
 
     /**
      *  Save the handle to our main window.

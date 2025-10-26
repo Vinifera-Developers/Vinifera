@@ -44,6 +44,7 @@
 #include "resource.h"
 #include "fetchres.h"
 #include "stringid.h"
+#include "tibsun_functions.h"
 #include "windialog.h"
 #include "tspp_gitinfo.h"
 #include "vinifera_gitinfo.h"
@@ -697,7 +698,7 @@ static INT_PTR CALLBACK Exception_Dialog_Proc(HWND hDlg, UINT uMsg, WPARAM wPara
 
     switch (uMsg) {
         case WM_MOVING:
-            result = WinDialogClass::Dialog_Move(hDlg, wParam, lParam, uMsg);
+            result = On_WM_MOVING(hDlg, wParam, lParam);
             break;
 
         case WM_COMMAND:
@@ -776,18 +777,18 @@ static INT_PTR Exception_Dialog()
 {
     switch (RecursionCount) {
         case 1:
-            CDControl.Unlock_All_CD_Drives();
+            CDControl.Unlock_All_CD_Trays();
             DEBUG_ERROR("Recursive exception detected!\n");
             MessageBox(nullptr, "Recursive exception detected!\n", "Error!", MB_OK|MB_ICONEXCLAMATION);
             Sleep(1000); // was 4000
             return IDC_EXCEPTION_QUIT; // Quit button
 
         case 2:
-            CDControl.Unlock_All_CD_Drives();
+            CDControl.Unlock_All_CD_Trays();
             return IDC_EXCEPTION_QUIT; // Quit button
 
         case 3:
-            CDControl.Unlock_All_CD_Drives();
+            CDControl.Unlock_All_CD_Trays();
             ExitProcess(EXIT_SUCCESS);
             break; //return IDC_EXCEPTION_QUIT; // Quit button
 
@@ -817,7 +818,7 @@ static INT_PTR Exception_Dialog()
         DEBUG_ERROR("Unable to find the exception dialog resource!\n");
     }
     
-    CDControl.Unlock_All_CD_Drives();
+    CDControl.Unlock_All_CD_Trays();
 
     return retval;
 }
@@ -1122,7 +1123,7 @@ LONG Vinifera_Exception_Handler(unsigned int e_code, struct _EXCEPTION_POINTERS 
         WinDialogClass::End_Dialog(WinDialogClass::CurrentWindowHandle);
     }
     
-    CDControl.Unlock_All_CD_Drives();
+    CDControl.Unlock_All_CD_Trays();
 
     Vinifera_Collect_Debug_Files();
 

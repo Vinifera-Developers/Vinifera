@@ -142,18 +142,18 @@ static void Draw_Dropship_Loadout_Help_Text(Surface *surface)
 
 DECLARE_PATCH(_Dropship_Loadout_Help_Text_Patch)
 {
-    Draw_Dropship_Loadout_Help_Text(HiddenSurface);
+    Draw_Dropship_Loadout_Help_Text((Surface*)HiddenSurface);
 
     /**
      *  Draws the version text over the menu background.
      */
-    Vinifera_Draw_Version_Text(HiddenSurface);
+    Vinifera_Draw_Version_Text((Surface*)HiddenSurface);
 
     /**
      *  Stolen bytes/code.
      */
 original_code:
-    GScreenClass::Blit(true, HiddenSurface);
+    Update_Visible_Surface(true, HiddenSurface);
 
     _asm { mov ebx, Scen }
     _asm { mov ebx, [ebx] } // Second dereference required due to the global reference in TS++.
