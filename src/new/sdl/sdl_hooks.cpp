@@ -347,8 +347,13 @@ void SDL_Hooks()
     Patch_Jump(0x0059437C, &_CtrlProc_SDL_Update_Screen3);
     Patch_Jump(0x0059449F, &_CtrlProc_SDL_Update_Screen4);
 
+    // call Set_Video_Mode even when windowed
+    Patch_Jump(0x006016B8, 0x006016F3);
+    Patch_Jump(0x006016BF, 0x006015A9);
+
     // Skip SetCooperativeMode for DDraw, causes issues with a wrapper present
     Patch_Jump(0x00472B57, 0x00472BBA);
 
+    // patch ToolTipManager to use MouseCursor for the mouse coordinates instead of asking Windows
     Patch_Jump(0x0064743E, &_ToolTopManager_Message_Handler_Mouse_Pos_Patch_);
 }
