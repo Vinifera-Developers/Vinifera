@@ -291,6 +291,48 @@ DECLARE_PATCH(_ToolTopManager_Message_Handler_Mouse_Pos_Patch_)
 
 
 
+int* _EnumDisplayModes(DWORD minw, DWORD minh, DWORD maxw, DWORD maxh, DWORD bitdepth)
+{
+    std::vector<std::pair<int, int>> modes;
+    DEVMODE devmode;
+    DWORD mode_index = 0;
+
+    // Enumerate all available display modes
+    while (EnumDisplaySettings(nullptr, mode_index++, &devmode)) {
+        const DWORD w = devmode.dmPelsWidth;
+        const DWORD h = devmode.dmPelsHeight;
+        const DWORD bpp = devmode.dmBitsPerPel;
+
+        if (w >= minw && h >= minh && w <= maxw && h <= maxh && bpp == bitdepth) {
+            modes.emplace_back(static_cast<int>(w), static_cast<int>(h));
+        }
+    }
+
+    if (modes.empty()) {
+        return nullptr;
+    }
+
+    // Sort and remove duplicates
+    std::sort(modes.begin(), modes.end());
+    modes.erase(std::unique(modes.begin(), modes.end()), modes.end());
+
+    // Allocate contiguous buffer for result (two ints per mode, plus a trailing 0)
+    const size_t count = modes.size();
+    const size_t bytes = sizeof(int) * (count * 2 + 1);
+
+    int* list = static_cast<int*>(operator new[](bytes));
+    std::memset(list, 0, bytes);
+
+    int* ptr = list;
+    for (const auto& mode : modes) {
+        *ptr++ = mode.first;
+        *ptr++ = mode.second;
+    }
+
+    return list;
+}
+
+
 /**
  *  Main function for patching the hooks.
  */
@@ -346,4 +388,6 @@ void SDL_Hooks()
 
     Change_Virtual_Address(0x006EC110, (uintptr_t)&"NQXZJYVPRKMTLUGHSBDCFIEWOAQRMZNPLXTYVJHKSQGBFUACEL.DLL"); // replace DDRAW.DLL by a very unlikely library in the import table
     Patch_Jump(0x00472AD3, 0x00472B16); // skip Prep_Direct_Draw
+
+    Patch_Jump(0x00473400, &_EnumDisplayModes);
 }
