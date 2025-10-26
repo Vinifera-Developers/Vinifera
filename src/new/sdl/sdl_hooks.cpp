@@ -4,7 +4,7 @@
  *
  *  @project       Vinifera
  *
- *  @file          SDL_HOOKS.H
+ *  @file          SDL_HOOKS.CPP
  *
  *  @author        ZivDero
  *
@@ -25,7 +25,6 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#pragma once
 #include "bsurface.h"
 #include "dsurface.h"
 #include "hooker.h"
@@ -40,11 +39,6 @@
 #include "SDL3/SDL_timer.h"
 #include <dsound.h>
 #include <algorithm>
-
-
-void _Wait_Blit()
-{
-}
 
 
 DECLARE_PATCH(_Update_Visible_Surface_SDL_Update_Window_Patch)
@@ -64,11 +58,10 @@ DECLARE_PATCH(_Update_Visible_Surface_SDL_Update_Window_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Movie_Blit_To_Screen_SDL_Update_Window_Patch_1)
+DECLARE_PATCH(_Movie_Blit_To_Screen_SDL_Update_Window_Patch)
 {
     // VisibleSurface (ecx) -> Blit_From
-    _asm { mov eax, [edx+8] }
-    _asm { call eax }
+    _asm { call [edx + 0x8] }
 
     _asm { pop edi }
     _asm { pop esi }
@@ -85,11 +78,10 @@ DECLARE_PATCH(_Movie_Blit_To_Screen_SDL_Update_Window_Patch_1)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Movie_Update_Visisble_Surface_SDL_Update_Window_Patch_2)
+DECLARE_PATCH(_Movie_Update_Visisble_Surface_SDL_Update_Window_Patch)
 {
     // VisibleSurface (ecx) -> Blit_From
-    _asm { mov eax, [edx+8] }
-    _asm { call eax }
+    _asm { call [edx + 0x8] }
 
     _asm { pop edi }
     _asm { pop esi }
@@ -316,8 +308,8 @@ void SDL_Hooks()
     Patch_Dword(0x006CA384, (uintptr_t)&Fake_ClientToScreen);
     Patch_Dword(0x006CA3C4, (uintptr_t)&Fake_ValidateRect);
 
-    // Dummies
-    Patch_Jump(0x00473330, &_Wait_Blit);
+    // Skip Wait_Blit
+    Patch_Jump(0x00473330, 0x00473348);
 
     // SDL prep
     Patch_Jump(0x004E7310, &SDL_Allocate_Surfaces);
@@ -326,8 +318,8 @@ void SDL_Hooks()
     Patch_Jump(0x0050AC30, &SDL_Change_Display_Mode);
 
     // VQA
-    Patch_Jump(0x005640CD, &_Movie_Blit_To_Screen_SDL_Update_Window_Patch_1);
-    Patch_Jump(0x00564787, &_Movie_Update_Visisble_Surface_SDL_Update_Window_Patch_2);
+    Patch_Jump(0x005640CD, &_Movie_Blit_To_Screen_SDL_Update_Window_Patch);
+    Patch_Jump(0x00564787, &_Movie_Update_Visisble_Surface_SDL_Update_Window_Patch);
 
     // MSEngine
     Patch_Jump(0x00571116, &_MSEngine_BlitAll_SDL_Update_Window_Patch);
