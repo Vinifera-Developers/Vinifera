@@ -194,14 +194,11 @@ void SDLMouseClass::Set_Cursor(Point2D const& hotspot, ShapeSet const* cursor, i
         MouseShape = cursor;
     }
 
-    Clear_Cursor();
-
     Hotspot = hotspot;
     Hotspot.X = std::clamp(Hotspot.X * Get_Cursor_Scale(), 0, CursorSurfaces[shape]->w - 1);
     Hotspot.Y = std::clamp(Hotspot.Y * Get_Cursor_Scale(), 0, CursorSurfaces[shape]->h - 1);
 
-    Cursor = SDL_CreateColorCursor(CursorSurfaces[shape], Hotspot.X, Hotspot.Y);
-    SDL_SetCursor(Cursor);
+    Replace_Cursor(SDL_CreateColorCursor(CursorSurfaces[shape], Hotspot.X, Hotspot.Y));
 }
 
 
@@ -438,7 +435,6 @@ void SDLMouseClass::Recacl_Cursor_Image()
     int shape_number = ShapeNumber;
 
     Delete_Cursor_Image();
-    Set_System_Cursor();
     Set_Cursor(Hotspot, shape, shape_number);
 }
 
@@ -533,18 +529,23 @@ void SDLMouseClass::Convert_Cursor_Image(ShapeSet const* shapes)
 
 void SDLMouseClass::Clear_Cursor()
 {
-    SDL_SetCursor(nullptr);
-    if (Cursor != nullptr) {
-        SDL_DestroyCursor(Cursor);
-        Cursor = nullptr;
+    Replace_Cursor(nullptr);
+}
+
+void SDLMouseClass::Replace_Cursor(SDL_Cursor* cursor)
+{
+    SDL_Cursor* old_cursor = Cursor;
+    Cursor = cursor;
+    SDL_SetCursor(Cursor);
+
+    if (old_cursor != nullptr) {
+        SDL_DestroyCursor(old_cursor);
     }
 }
 
 void SDLMouseClass::Set_System_Cursor()
 {
-    Clear_Cursor();
-    Cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT);
-    SDL_SetCursor(Cursor);
+    Replace_Cursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT));
 }
 
 
