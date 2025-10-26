@@ -341,9 +341,12 @@ void SDL_Hooks()
     Patch_Jump(0x006016B8, 0x006016F3);
     Patch_Jump(0x006016BF, 0x006015A9);
 
-    // Skip SetCooperativeMode for DDraw, causes issues with a wrapper present
-    Patch_Jump(0x00472B57, 0x00472BBA);
-
     // patch ToolTipManager to use MouseCursor for the mouse coordinates instead of asking Windows
     Patch_Jump(0x0064743E, &_ToolTopManager_Message_Handler_Mouse_Pos_Patch_);
+
+#ifndef TS_CLIENT // can't do this with ts-patches because the import tables are moved by gcc
+    Patch_Dword(0x006EC110, (uintptr_t)&"NQXZJYVPRKMTLUGHSBDCFIEWOAQRMZNPLXTYVJHKSQGBFUACEL.DLL"); // replace DDRAW.DLL by a very unlikely library in the import table
+#endif
+
+    Patch_Jump(0x00472AD3, 0x00472B16); // skip Prep_Direct_Draw
 }
