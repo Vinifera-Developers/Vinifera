@@ -162,17 +162,9 @@ void OptionsClassExtension::Object_CRC(CRCEngine &crc) const
 void OptionsClassExtension::Load_Settings()
 {
     //EXT_DEBUG_TRACE("OptionsClassExtension::Load_Settings - 0x%08X\n", (uintptr_t)(This()));
-    
-    RawFileClass file("SUN.INI");
-    CCINIClass sun_ini;
 
-    if (file.Is_Available()) {
-
-        sun_ini.Load(file, false);
-
-        SortDefensesAsLast = sun_ini.Get_Bool("Options", "SortDefensesAsLast", SortDefensesAsLast);
-        FilterBandBoxSelection = sun_ini.Get_Bool("Options", "FilterBandBoxSelection", FilterBandBoxSelection);
-    }
+    SortDefensesAsLast = ConfigINI.Get_Bool("Options", "SortDefensesAsLast", SortDefensesAsLast);
+    FilterBandBoxSelection = ConfigINI.Get_Bool("Options", "FilterBandBoxSelection", FilterBandBoxSelection);
 
     /**
      *  Read keys from Keyboard.ini.
@@ -210,31 +202,23 @@ void OptionsClassExtension::Load_Settings()
 void OptionsClassExtension::Load_Init_Settings()
 {
     //EXT_DEBUG_TRACE("OptionsClassExtension::Load_Settings - 0x%08X\n", (uintptr_t)(This()));
-    
-    RawFileClass file("SUN.INI");
-    CCINIClass sun_ini;
 
-    if (file.Is_Available()) {
+    WindowWidth = ConfigINI.Get_Int("Video", "WindowWidth", WindowWidth);
+    WindowHeight = ConfigINI.Get_Int("Video", "WindowHeight", WindowHeight);
 
-        sun_ini.Load(file, false);
-
-        WindowWidth = sun_ini.Get_Int("Video", "WindowWidth", WindowWidth);
-        WindowHeight = sun_ini.Get_Int("Video", "WindowHeight", WindowHeight);
-
-        char buffer[256];
-        if (sun_ini.Get_String("Video", "ScaleMode", "", buffer, std::size(buffer)) > 0) {
-            if (stricmp(buffer, "Linear") == 0) {
-                ScaleMode = SDL_SCALEMODE_LINEAR;
-            } else if (stricmp(buffer, "Nearest") == 0) {
-                ScaleMode = SDL_SCALEMODE_NEAREST;
-            } else if (stricmp(buffer, "PixelArt") == 0) {
-                ScaleMode = SDL_SCALEMODE_PIXELART;
-            }
+    char buffer[256];
+    if (ConfigINI.Get_String("Video", "ScaleMode", "", buffer, std::size(buffer)) > 0) {
+        if (stricmp(buffer, "Linear") == 0) {
+            ScaleMode = SDL_SCALEMODE_LINEAR;
+        } else if (stricmp(buffer, "Nearest") == 0) {
+            ScaleMode = SDL_SCALEMODE_NEAREST;
+        } else if (stricmp(buffer, "PixelArt") == 0) {
+            ScaleMode = SDL_SCALEMODE_PIXELART;
         }
-
-        CursorScale = sun_ini.Get_Int("Video", "CursorScale", CursorScale);
-        WindowedMode = sun_ini.Get_Bool("Video", "Windowed", WindowedMode);
     }
+
+    CursorScale = ConfigINI.Get_Int("Video", "CursorScale", CursorScale);
+    WindowedMode = ConfigINI.Get_Bool("Video", "Windowed", WindowedMode);
 }
 
 
