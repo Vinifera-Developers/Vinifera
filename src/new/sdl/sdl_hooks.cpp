@@ -33,8 +33,10 @@
 #include "sdl_init.h"
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
+#include "tooltip.h"
 #include "vinifera_globals.h"
 #include "winuser.h"
+#include "xmouse.h"
 #include "SDL3/SDL_timer.h"
 #include <dsound.h>
 #include <algorithm>
@@ -280,6 +282,25 @@ BOOL _GetWindowRect(HWND window, LPRECT rect)
     return GetWindowRect(window, rect);
 }
 
+
+void Update_ToolTip_Mouse_Pos(ToolTipManager* tooltips)
+{
+    tooltips->LastMousePos = MouseCursor->Get_Mouse_Point();
+}
+
+
+//64743E
+DECLARE_PATCH(_ToolTopManager_Message_Handler_Mouse_Pos_Patch_)
+{
+    GET_REGISTER_STATIC(ToolTipManager*, tooltips, esi);
+
+    Update_ToolTip_Mouse_Pos(tooltips);
+
+    JMP(0x00647450);
+}
+
+
+
 /**
  *  Main function for patching the hooks.
  */
@@ -326,6 +347,8 @@ void SDL_Hooks()
     Patch_Jump(0x0059437C, &_CtrlProc_SDL_Update_Screen3);
     Patch_Jump(0x0059449F, &_CtrlProc_SDL_Update_Screen4);
 
-    Patch_Jump(0x006016B8, 0x006016F3); // jump over trying to set the DDraw video mode
-    Patch_Jump(0x006016BF, 0x006015A9);
+    // Skip SetCooperativeMode for DDraw, causes issues with a wrapper present
+    Patch_Jump(0x00472B57, 0x00472BBA);
+
+    Patch_Jump(0x0064743E, &_ToolTopManager_Message_Handler_Mouse_Pos_Patch_);
 }

@@ -523,6 +523,17 @@ bool SDL_Create_Main_Window(HINSTANCE hInstance, int width, int height)
 
     GameInFocus = true;
 
+    /**
+     *  This used to happen on WM_CREATE but our proc is no longer the proc that's used when
+     *  the window is created, so it never happens.
+     */
+    if (!ToolTips) {
+        ToolTips = new CCToolTip(MainWindow);
+        if (ToolTips) {
+            ToolTips->Set_Timer_Delay(500);
+        }
+    }
+
     return true;
 }
 
