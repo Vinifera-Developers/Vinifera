@@ -293,9 +293,13 @@ GlobSources(GLOB HOOKER_SOURCES ${HOOKER_INCLUDE_DIR})
 
 
 ################################################################################
-# Include the TS++ submodule in the solution.
+# Include the TS++ and SDL submodules in the solution.
 ################################################################################
 add_subdirectory(${CMAKE_SOURCE_DIR}/TSpp)
+
+set(SDL_STATIC ON)
+set(SDL_SHARED OFF)
+set(SDL_TEST_LIBRARY OFF)
 add_subdirectory(${CMAKE_SOURCE_DIR}/SDL)
 
 
