@@ -429,16 +429,6 @@ void SDLMouseClass::Convert_Coordinate(int& x, int& y) const
 }
 
 
-void SDLMouseClass::Recacl_Cursor_Image()
-{
-    ShapeSet const* shape = MouseShape;
-    int shape_number = ShapeNumber;
-
-    Delete_Cursor_Image();
-    Set_Cursor(Hotspot, shape, shape_number);
-}
-
-
 /***********************************************************************************************
  * SDLMouseClass::Update_Mouse_Position -- Updates the mouse position to match that specified.  *
  *                                                                                             *
@@ -474,11 +464,17 @@ void SDLMouseClass::Delete_Cursor_Image()
         SDL_DestroySurface(*CursorSurfaces.begin());
         CursorSurfaces.erase(CursorSurfaces.begin());
     }
+
+    MouseShape = nullptr;
 }
 
 
 void SDLMouseClass::Convert_Cursor_Image(ShapeSet const* shapes)
 {
+    if (!shapes) {
+        return;
+    }
+
     static SDL_Palette* palette = nullptr;
     if (palette == nullptr) {
         palette = SDL_CreatePalette(256);
@@ -527,14 +523,11 @@ void SDLMouseClass::Convert_Cursor_Image(ShapeSet const* shapes)
     }
 }
 
-void SDLMouseClass::Clear_Cursor()
-{
-    Replace_Cursor(nullptr);
-}
 
 void SDLMouseClass::Replace_Cursor(SDL_Cursor* cursor)
 {
     SDL_Cursor* old_cursor = Cursor;
+
     Cursor = cursor;
     SDL_SetCursor(Cursor);
 
@@ -543,14 +536,29 @@ void SDLMouseClass::Replace_Cursor(SDL_Cursor* cursor)
     }
 }
 
+
 void SDLMouseClass::Set_System_Cursor()
 {
     Replace_Cursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT));
 }
 
 
+void SDLMouseClass::Recacl_Cursor_Image()
+{
+    ShapeSet const* shape = MouseShape;
+    int shape_number = ShapeNumber;
+
+    Delete_Cursor_Image();
+    Set_Cursor(Hotspot, shape, shape_number);
+}
+
+
 int SDLMouseClass::Get_Cursor_Scale()
 {
+    if (!SDL_Should_Scale()) {
+        return 1;
+    }
+
     if (OptionsExtension->CursorScale < 0) {
         return 1;
     }

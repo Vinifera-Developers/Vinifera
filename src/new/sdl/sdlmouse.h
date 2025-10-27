@@ -130,7 +130,6 @@ private:
 
     void Delete_Cursor_Image();
     void Convert_Cursor_Image(ShapeSet const* shapes);
-    void Clear_Cursor();
     void Replace_Cursor(SDL_Cursor* cursor);
     void Set_System_Cursor();
 

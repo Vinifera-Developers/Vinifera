@@ -505,6 +505,8 @@ bool SDL_Update_Screen(Surface* surface)
             surface->Unlock();
         }
 
+        static bool scaled = SDL_Should_Scale();
+
         /**
          *  Copy the texture to the renderer.
          */
@@ -515,7 +517,11 @@ bool SDL_Update_Screen(Surface* surface)
         } else {
             SDL_RenderTexture(SDLWindowRenderer, SDLWindowTexture, nullptr, nullptr);
         }
-        
+
+        if (scaled != SDL_Should_Scale()) {
+            scaled = SDL_Should_Scale();
+            static_cast<SDLMouseClass*>(MouseCursor)->Recacl_Cursor_Image();
+        }
     }
 
     /**
