@@ -102,7 +102,7 @@ public:
     /*
     **  Recalculates the cursor's image using the same shape.
     */
-    void Recacl_Cursor_Image();
+    void Recalc_Cursor_Image();
 
 private:
     /*

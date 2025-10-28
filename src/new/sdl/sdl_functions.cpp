@@ -567,7 +567,7 @@ bool SDL_Update_Screen(Surface* surface)
          */
         if (scaled != SDL_Should_Scale()) {
             scaled = SDL_Should_Scale();
-            static_cast<SDLMouseClass*>(MouseCursor)->Recacl_Cursor_Image();
+            static_cast<SDLMouseClass*>(MouseCursor)->Recalc_Cursor_Image();
         }
     }
 
@@ -713,7 +713,7 @@ bool SDL_Change_Display_Mode(int width, int height)
      *  Reset the mouse cursor, since it's scaled.
      */
     Hide_Mouse();
-    static_cast<SDLMouseClass*>(MouseCursor)->Recacl_Cursor_Image();
+    static_cast<SDLMouseClass*>(MouseCursor)->Recalc_Cursor_Image();
     Show_Mouse();
 
     /**

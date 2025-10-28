@@ -410,7 +410,7 @@ void SDLMouseClass::Set_System_Cursor()
  *
  *  @author: ZivDero
  */
-void SDLMouseClass::Recacl_Cursor_Image()
+void SDLMouseClass::Recalc_Cursor_Image()
 {
     ShapeSet const* shape = MouseShape;
     int shape_number = ShapeNumber;
