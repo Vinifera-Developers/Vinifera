@@ -183,13 +183,13 @@ void SDLMouseClass::Process_Mouse()
  *=============================================================================================*/
 void SDLMouseClass::Set_Cursor(Point2D const& hotspot, ShapeSet const* cursor, int shape)
 {
-    if (cursor == nullptr) {
+    if (cursor == nullptr || shape < 0 || shape >= cursor->Get_Count()) {
         Delete_Cursor_Image();
         Set_System_Cursor();
         return;
     }
 
-    if (cursor != MouseShape || shape < 0 || shape >= cursor->Get_Count()) {
+    if (cursor != MouseShape) {
         Delete_Cursor_Image();
         Convert_Cursor_Image(cursor);
         MouseShape = cursor;
