@@ -34,7 +34,7 @@
 #include "setup_hooks.h"
 
 #include "miscutil.h"
-#include "sdl_init.h"
+#include "sdl_functions.h"
 #include "vinifera_util.h"
 
 

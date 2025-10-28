@@ -25,12 +25,20 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#pragma once
 #include "dsurface.h"
 #include "hooker.h"
 #include "sdlsurface.h"
 
 
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or destructor.
+ *
+ *  @note: All functions must not be virtual and must also be prefixed
+ *         with "_" to prevent accidental virtualization.
+ */
 class DSurfaceExt : public DSurface
 {
 public:
@@ -38,6 +46,11 @@ public:
 };
 
 
+/**
+ *  A function imitating a constructor because we can't take the address of a constructor.
+ *
+ *  @author: ZivDero
+ */
 DSurface* DSurfaceExt::CTOR_Proxy(int width, int height, bool system_memory)
 {
     return new (this) SDLSurface(width, height);

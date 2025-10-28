@@ -1,20 +1,43 @@
+/*******************************************************************************
+/*                 O P E N  S O U R C E  --  V I N I F E R A                  **
+/*******************************************************************************
+ *
+ *  @project       Vinifera
+ *
+ *  @file          SDL_FUNCTIONS.CPP
+ *
+ *  @author        ZivDero
+ *
+ *  @brief         Contains functions for the SDL system.
+ *
+ *  @license       Vinifera is free software: you can redistribute it and/or
+ *                 modify it under the terms of the GNU General Public License
+ *                 as published by the Free Software Foundation, either version
+ *                 3 of the License, or (at your option) any later version.
+ *
+ *                 Vinifera is distributed in the hope that it will be
+ *                 useful, but WITHOUT ANY WARRANTY; without even the implied
+ *                 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ *                 PURPOSE. See the GNU General Public License for more details.
+ *
+ *                 You should have received a copy of the GNU General Public
+ *                 License along with this program.
+ *                 If not, see <http://www.gnu.org/licenses/>.
+ *
+ ******************************************************************************/
+#include "sdl_functions.h"
 #include <algorithm>
-
-#include "sdl_init.h"
-
 #include "cctooltip.h"
 #include "cdctrl.h"
 #include "command.h"
 #include "convert.h"
 #include "debughandler.h"
-#include "filepng.h"
 #include "mouse.h"
 #include "optionsext.h"
 #include "playmovie.h"
 #include "rect.h"
 #include "sdlmouse.h"
 #include "sdlsurface.h"
-#include "tactical.h"
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
 #include "vinifera_globals.h"
@@ -24,13 +47,16 @@
 #include "SDL3/SDL_init.h"
 #include "SDL3/SDL_oldnames.h"
 #include "SDL3/SDL_video.h"
-
 #include <windowsx.h>
 
+
+/**
+ *  Allocates all game surfaces with the given sizes.
+ *
+ *  @author: ZivDero, tomsons26
+ */
 bool SDL_Allocate_Surfaces(const Rect& hidden_rect, const Rect& composite_rect, const Rect& tile_rect, const Rect& sidebar_rect, bool hidden_first)
 {
-    bool success = true;
-
     DEBUG_INFO("Allocating new surfaces\n");
 
     if (AlternateSurface != nullptr) {
@@ -99,31 +125,30 @@ bool SDL_Allocate_Surfaces(const Rect& hidden_rect, const Rect& composite_rect, 
         DEBUG_INFO("AlternateSurface (%dx%d)\n", hidden_rect.Width, hidden_rect.Height);
     }
 
-    return success;
+    return true;
 }
 
 
-/***********************************************************************************************
- * Set_Video_Mode -- Initializes Direct Draw and sets the required Video Mode                  *
- *                                                                                             *
- * INPUT:  		int width   			- the width of the video mode in pixels						  *
- *					int height           - the height of the video mode in pixels                   *
- *					int bits_per_pixel	- the number of bits per pixel the video mode supports     *
- *                                                                                             *
- * OUTPUT:     none                                                                            *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   09/26/1995 PWG : Created.                                                                 *
- *=============================================================================================*/
-bool SDL_Set_Video_Mode(HWND, int w, int h, int bits_per_pixel)
+/**
+ *  Initializes the SDL presentation layer.
+ *
+ *  @author: ZivDero
+ */
+bool SDL_Set_Video_Mode(HWND, int width, int height, int bits_per_pixel)
 {
     if (SDLWindow == nullptr) {
         DEBUG_ERROR("SDLWindow is null!\n");
         return false;
     }
-
+    
+    /**
+     *  We need to delete the existing presentation layer first.
+     */
     SDL_Reset_Video_Mode();
-
+    
+    /**
+     *  Query the window's pixel format.
+     */
     SDL_PixelFormat pixel_format = SDL_GetWindowPixelFormat(SDLWindow);
     if (pixel_format == SDL_PIXELFORMAT_UNKNOWN || SDL_BITSPERPIXEL(pixel_format) < 16) {
         DEBUG_ERROR("SDL3 window pixel format unsupported: %s (%d bpp)\n", SDL_GetPixelFormatName(pixel_format), SDL_BITSPERPIXEL(pixel_format));
@@ -133,7 +158,7 @@ bool SDL_Set_Video_Mode(HWND, int w, int h, int bits_per_pixel)
     DEBUG_INFO("Pixel format: %s (%d bpp)\n", SDL_GetPixelFormatName(pixel_format), SDL_BITSPERPIXEL(pixel_format));
 
     /**
-     *  Create renderer for window.
+     *  Create the renderer for window.
      */
     SDLWindowRenderer = SDL_CreateRenderer(SDLWindow, nullptr);
     if (SDLWindowRenderer == nullptr) {
@@ -142,60 +167,72 @@ bool SDL_Set_Video_Mode(HWND, int w, int h, int bits_per_pixel)
     }
     DEBUG_INFO("SDLWindowRenderer created.\n");
 
+    /**
+     *  Set the scaling mode if specified.
+     */
     if (OptionsExtension->ScaleMode != SDL_SCALEMODE_INVALID) {
         SDL_SetDefaultTextureScaleMode(SDLWindowRenderer, OptionsExtension->ScaleMode);
     }
 
     /**
-     *  Create window texture.
+     *  Create the window texture.
      */
-    SDLWindowTexture = SDL_CreateTexture(SDLWindowRenderer, SDL_PIXELFORMAT_RGB565, SDL_TEXTUREACCESS_STREAMING, w, h);
+    SDLWindowTexture = SDL_CreateTexture(SDLWindowRenderer, SDL_PIXELFORMAT_RGB565, SDL_TEXTUREACCESS_STREAMING, width, height);
     if (SDLWindowTexture == nullptr) {
         DEBUG_ERROR("SDLWindowTexture could not be created! SDL_Error: %s\n", SDL_GetError());
         return false;
     }
     DEBUG_INFO("SDLWindowTexture created.\n");
 
-    VideoWidth = w;
-    VideoHeight = h;
+    /**
+     *  Save video mode information.
+     */
+    VideoWidth = width;
+    VideoHeight = height;
     VideoBitsPerPixel = bits_per_pixel;
 
     return true;
 }
 
-/***********************************************************************************************
- * Reset_Video_Mode -- Resets video mode and deletes Direct Draw Object                        *
- *                                                                                             *
- * INPUT:		none                                                                            *
- *                                                                                             *
- * OUTPUT:     none                                                                            *
- *                                                                                             *
- * WARNINGS:                                                                                   *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   09/26/1995 PWG : Created.                                                                 *
- *=============================================================================================*/
+
+/**
+ *  Resets video mode and deletes the SDL presentation layer.
+ *
+ *  @author: ZivDero
+ */
 void SDL_Reset_Video_Mode()
 {
     /**
-     *  Destroy renderer.
+     *  Destroy the renderer.
      */
     SDL_DestroyRenderer(SDLWindowRenderer);
     SDLWindowRenderer = nullptr;
 
     /**
-     *  Deallocate texture.
+     *  Deallocate the texture.
      */
     SDL_DestroyTexture(SDLWindowTexture);
     SDLWindowTexture = nullptr;
 
+    /**
+     *  Clear video mode information.
+     */
     VideoWidth = 0;
     VideoHeight = 0;
     VideoBitsPerPixel = 0;
 }
 
+
+/**
+ *  Pointer to the window procedure set by SDL.
+ */
 static WNDPROC SDL_Proc = nullptr;
 
+/**
+ *  Replacement window procedure for the main window.
+ *
+ *  @author: tomsons26, ZivDero
+ */
 LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     /*
@@ -310,9 +347,7 @@ LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, L
     case WM_ACTIVATEAPP:
         if (hwnd == MainWindow && GameInFocus != (wParam != 0)) {
             GameInFocus = wParam != 0;
-            if (!GameInFocus) {
-                Focus_Loss();
-            } else {
+            if (GameInFocus) {
                 Focus_Restore();
 
                 /*
@@ -327,11 +362,17 @@ LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, L
                     0);
 
                 RedrawWindow(hwnd, nullptr, nullptr, RDW_INVALIDATE | RDW_UPDATENOW | RDW_ERASE | RDW_ALLCHILDREN);
+            } else {
+                Focus_Loss();
             }
         }
         return 0;
 
     case WM_RBUTTONUP:
+
+        /*
+        **  Set some kind of scolling flag, perhaps "CanScroll".
+        */
         Map.field_1D0C = false;
         break;
 
@@ -364,6 +405,7 @@ LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, L
             return 0;
 
         case SC_SCREENSAVE:
+
             /*
             **  Windoze is about to start the screen saver. If we just return without passing
             **  this message to DefWindowProc then the screen saver will not be allowed to start.
@@ -373,6 +415,9 @@ LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, L
         default:
             break;
         }
+        break;
+
+    default:
         break;
     }
 
@@ -386,9 +431,9 @@ LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, L
 
 
 /**
+ *  Creates the main game window.
  *
- *
- *  @author: CCHyper
+ *  @author: ZivDero, CCHyper
  */
 bool SDL_Create_Main_Window(HINSTANCE instance, int width, int height)
 {
@@ -467,7 +512,7 @@ bool SDL_Create_Main_Window(HINSTANCE instance, int width, int height)
 
 
 /**
- *
+ *  Destroys the main game window.
  *
  *  @author: CCHyper
  */
@@ -484,21 +529,19 @@ void SDL_Destroy_Main_Window()
 /**
  *  Update the screen with any rendering performed since the previous call.
  *
- *  @author: CCHyper, tomsons26
+ *  @author: ZivDero, CCHyper, tomsons26
  */
 bool SDL_Update_Screen(Surface* surface)
 {
-    // DEBUG_INFO("SDL_Update_Screen\n");
-
     SDL_RenderClear(SDLWindowRenderer);
 
     /**
-     *  Blit games surface to SDL's window surface.
+     *  Blit game's surface to SDL's window surface.
      */
     if (surface) {
 
         /**
-         *  Update the window texture.
+         *  First, update the texture with the pixels from the game's surface.
          */
         if (void* pixels = surface->Lock()) {
             SDL_UpdateTexture(SDLWindowTexture, nullptr, pixels, surface->Stride());
@@ -508,7 +551,7 @@ bool SDL_Update_Screen(Surface* surface)
         static bool scaled = SDL_Should_Scale();
 
         /**
-         *  Copy the texture to the renderer.
+         *  Then, copy the texture to the renderer.
          */
         if (!SDL_Should_Scale()) {
             Rect src_rect = surface->Get_Rect();
@@ -518,6 +561,9 @@ bool SDL_Update_Screen(Surface* surface)
             SDL_RenderTexture(SDLWindowRenderer, SDLWindowTexture, nullptr, nullptr);
         }
 
+        /**
+         *  If the scale has changed, recalculate the mouse cursor image.
+         */
         if (scaled != SDL_Should_Scale()) {
             scaled = SDL_Should_Scale();
             static_cast<SDLMouseClass*>(MouseCursor)->Recacl_Cursor_Image();
@@ -525,7 +571,7 @@ bool SDL_Update_Screen(Surface* surface)
     }
 
     /**
-     *  Update the renderer to the window.
+     *  Present the image to the window.
      */
     SDL_RenderPresent(SDLWindowRenderer);
 
@@ -533,11 +579,24 @@ bool SDL_Update_Screen(Surface* surface)
 }
 
 
+/**
+ *  Returns if scaling should currently be applied.
+ *  We turn off scaling when any windows dialogs are open
+ *  because we cannot properly scale their input.
+ *
+ *  @author: ZivDero
+ */
 bool SDL_Should_Scale()
 {
     return WSDialogCount == 0 && SpecialDialog == SDLG_NONE;
 }
 
+
+/**
+ *  Changes the display mode to the given resolution.
+ *
+ *  @author: ZivDero, tomsons26
+ */
 bool SDL_Change_Display_Mode(int width, int height)
 {
     DEBUG_INFO("About to set video mode\n");

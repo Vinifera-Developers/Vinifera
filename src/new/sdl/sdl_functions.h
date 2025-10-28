@@ -4,11 +4,11 @@
  *
  *  @project       Vinifera
  *
- *  @file          SDLMOUSE_HOOKS.CPP
+ *  @file          SDL_FUNCTIONS.H
  *
  *  @author        ZivDero
  *
- *  @brief         Contains the hooks for the SDLMouse class.
+ *  @brief         Contains functions for the SDL system.
  *
  *  @license       Vinifera is free software: you can redistribute it and/or
  *                 modify it under the terms of the GNU General Public License
@@ -25,45 +25,40 @@
  *                 If not, see <http://www.gnu.org/licenses/>.
  *
  ******************************************************************************/
-#include "dsurface.h"
-#include "hooker.h"
-#include "sdlmouse.h"
-#include "sdlsurface.h"
-#include "wwmouse.h"
+#pragma once
+#include "rect.h"
+#include "tibsun_globals.h"
+#include "vinifera_globals.h"
 
+class Surface;
 
-/**
- *  A fake class for implementing new member functions which allow
- *  access to the "this" pointer of the intended class.
- *
- *  @note: This must not contain a constructor or destructor.
- *
- *  @note: All functions must not be virtual and must also be prefixed
- *         with "_" to prevent accidental virtualization.
- */
-class WWMouseClassExt : public WWMouseClass
-{
-public:
-    SDLMouseClass* CTOR_Proxy(Surface*, HWND);
-};
-
+bool SDL_Allocate_Surfaces(const Rect& hidden_rect, const Rect& composite_rect, const Rect& tile_rect, const Rect& sidebar_rect, bool hidden_first);
+bool SDL_Set_Video_Mode(HWND, int width, int height, int bits_per_pixel);
+void SDL_Reset_Video_Mode();
+void SDL_Update_Visible_Surface(bool flip_mouse, Surface* surface, Rect* rect);
+bool SDL_Create_Main_Window(HINSTANCE instance, int width, int height);
+void SDL_Destroy_Main_Window();
+bool SDL_Update_Screen(Surface* surface);
+bool SDL_Should_Scale();
+bool SDL_Change_Display_Mode(int width, int height);
 
 /**
- *  A function imitating a constructor because we can't take the address of a constructor.
+ *  Returns the current X-axis scaling factor.
  *
  *  @author: ZivDero
  */
-SDLMouseClass* WWMouseClassExt::CTOR_Proxy(Surface*, HWND)
+inline float SDL_XScale()
 {
-    return new (reinterpret_cast<SDLMouseClass*>(this)) SDLMouseClass;
+    return static_cast<float>(VideoWidth) / static_cast<float>(SDLWindowWidth);
 }
-
 
 /**
- *  Main function for patching the hooks.
+ *  Returns the current X-axis scaling factor.
+ *
+ *  @author: ZivDero
  */
-void SDLMouse_Hooks()
+inline float SDL_YScale()
 {
-    Patch_Byte(0x00601857, sizeof(SDLMouseClass));
-    Patch_Call(0x00601877, &WWMouseClassExt::CTOR_Proxy);
+    return static_cast<float>(VideoHeight) / static_cast<float>(SDLWindowHeight);
 }
+

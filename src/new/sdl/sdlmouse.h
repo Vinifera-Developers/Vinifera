@@ -42,7 +42,7 @@ class SDLMouseClass : public Mouse
 {
 public:
     /*
-    **  Private constructor.
+    **  Constructor/destructor.
     */
     SDLMouseClass();
     ~SDLMouseClass() override;
@@ -101,6 +101,9 @@ public:
     */
     void Convert_Coordinate(int& x, int& y) const override;
 
+    /*
+    **  Recalculates the cursor's image using the same shape.
+    */
     void Recacl_Cursor_Image();
 
 private:
@@ -110,9 +113,21 @@ private:
     */
     ShapeSet const* MouseShape;
     int ShapeNumber;
-    Point2D Hotspot;
+
+    /*
+    **  This vector contains pointers to SDL_Surfaces that contain
+    **  the converted shape frames.
+    */
     std::vector<SDL_Surface*> CursorSurfaces;
 
+    /*
+    **  The hotspot for the currently used cursor image.
+    */
+    Point2D Hotspot;
+
+    /*
+    **  The currently used cursor.
+    */
     SDL_Cursor* Cursor;
 
     /*
@@ -134,8 +149,10 @@ private:
     */
     MMRESULT TimerHandle;
 
-    void Update_Mouse_Position(int x, int y, bool forced);
-
+    /*
+    **  Various private utility routines.
+    */
+    void Update_Mouse_Position(int x, int y);
     void Delete_Cursor_Image();
     void Convert_Cursor_Image(ShapeSet const* shapes);
     void Replace_Cursor(SDL_Cursor* cursor);

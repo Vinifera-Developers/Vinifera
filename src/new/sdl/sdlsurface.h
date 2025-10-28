@@ -47,15 +47,8 @@ enum SDLSurfaceColorMode {
  */
 class SDLSurface : public DSurface
 {
-    typedef XSurface BASECLASS;
-
 public:
     ~SDLSurface() override;
-
-    /**
-     *  Default constructor.
-     */
-    SDLSurface();
 
     /**
      *  Constructs a working surface (not visible).
@@ -91,34 +84,38 @@ public:
     bool Unlock() const override;
     bool Can_Lock(int x = 0, int y = 0) const override;
 
-    /*
-    **  Queries information about the surface.
-    */
+    /**
+     *  Queries information about the surface.
+     */
     int Stride() const override;
 
-    /*
-    **  Verifies that this is not a direct draw enabled surface.
-    */
-    bool In_Video_Ram(void) const { return(false); }
+    /**
+     *  Verifies that this is not a direct draw enabled surface.
+     */
     bool Is_Direct_Draw() const override { return false; }
 
     bool Can_Blit() const override;
     SDL_Surface* Get_SDL_Surface() const { return SDLSurfacePtr; }
-    bool Restore_Check() const;
-    void Blit_To_Window(Rect const* region = nullptr) const;
 
 protected:
 
     /**
-     *  Direct draw specific data.
+     *  The SDL_Surface representation of this surface.
      */
     SDL_Surface* SDLSurfacePtr;
 
-    int Pitch;
-
+    /**
+     *  The GDI representation of this surface.
+     *  GDI is what actually owns the memory.
+     */
     mutable HDC GDIDC;
     mutable HBITMAP GDIBitmap;
-    mutable void* GDIBuffer; // Points directly to SDL's pixel buffer
+    mutable void* GDIBuffer;
+
+    /**
+     *  The surface's pitch.
+     */
+    int Pitch;
 
     /**
      *  Pixel format of primary surface.

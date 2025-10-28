@@ -34,19 +34,21 @@
 #include "debughandler.h"
 #include "dsurface.h"
 #include "options.h"
-#include "sdl_init.h"
+#include "sdl_functions.h"
 #include "tibsun_functions.h"
 #include "tibsun_globals.h"
 #include "vinifera_globals.h"
-#include "SDL3/SDL_oldnames.h"
 
 
-/*
-**
-*/
+/**
+ *  The pixel format of the SDL surfaces created.
+ */
 const SDL_PixelFormatDetails* SDLSurface::PixelFormat = nullptr;
 
 
+/**
+ *  Struct used to create GDI DIB sections.
+ */
 struct BitmapInfo
 {
     BITMAPINFOHEADER Header;
@@ -54,34 +56,18 @@ struct BitmapInfo
 };
 
 
-/***********************************************************************************************
- * SDLSurface::SDLSurface -- Off screen direct draw surface constructor.                           *
- *                                                                                             *
- *    This constructor will create a Direct Draw enabled surface in video memory if possible.  *
- *    Such a surface will be able to use hardware assist if possible. The surface created      *
- *    is NOT visible. It only exists as a work surface and cannot be flipped to the visible    *
- *    surface. It can only be blitted to the visible surface.                                  *
- *                                                                                             *
- * INPUT:   width    -- The width of the surface to create.                                    *
- *                                                                                             *
- *          height   -- The height of the surface to create.                                   *
- *                                                                                             *
- * OUTPUT:  none                                                                               *
- *                                                                                             *
- * WARNINGS:   The surface pixel format is the same as that of the visible display mode. It    *
- *             is important to construct surfaces using this routine, only AFTER the display   *
- *             mode has been set.                                                              *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   02/07/1997 JLB : Created.                                                                 *
- *=============================================================================================*/
+/**
+ *  SDLSurface constructor.
+ *
+ *  @author: ZivDero
+ */
 SDLSurface::SDLSurface(int width, int height) :
     DSurface(), // use the default constructor so that we don't initialize the DDraw portions of the surface
     SDLSurfacePtr(nullptr),
-    Pitch(0),
     GDIDC(nullptr),
     GDIBitmap(nullptr),
-    GDIBuffer(nullptr)
+    GDIBuffer(nullptr),
+    Pitch(0)
 {
     /**
      *  If this is our first surface, fetch the pixel format.
@@ -149,49 +135,11 @@ SDLSurface::SDLSurface(int width, int height) :
 }
 
 
-/***********************************************************************************************
- * SDLSurface::SDLSurface -- Default constructor for surface object.                           *
- *                                                                                             *
- *    This default constructor for a surface object should not be used. Although it properly   *
- *    creates a non-functional surface, there is no use for such a surface. This default       *
- *    constructor is provided for those rare cases where semantics require a default           *
- *    constructor.                                                                             *
- *                                                                                             *
- * INPUT:   none                                                                               *
- *                                                                                             *
- * OUTPUT:  none                                                                               *
- *                                                                                             *
- * WARNINGS:   none                                                                            *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   02/07/1997 JLB : Created.                                                                 *
- *=============================================================================================*/
-SDLSurface::SDLSurface() :
-    DSurface(),
-    SDLSurfacePtr(nullptr),
-    Pitch(0),
-    GDIDC(nullptr),
-    GDIBitmap(nullptr),
-    GDIBuffer(nullptr)
-{
-
-}
-
-
-/***********************************************************************************************
- * SDLSurface::~SDLSurface -- Destructor for a direct draw surface object.                     *
- *                                                                                             *
- *    This will destruct (make invalid) the direct draw surface.                               *
- *                                                                                             *
- * INPUT:   none                                                                               *
- *                                                                                             *
- * OUTPUT:  none                                                                               *
- *                                                                                             *
- * WARNINGS:   none                                                                            *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   02/07/1997 JLB : Created.                                                                 *
- *=============================================================================================*/
+/**
+ *  SDLSurface destructor.
+ *
+ *  @author: ZivDero
+ */
 SDLSurface::~SDLSurface()
 {
     if (SDLSurfacePtr) {
@@ -211,6 +159,8 @@ SDLSurface::~SDLSurface()
 
 /**
  *  Calculate bit shifts to properly extract channel data.
+ *
+ *  @author: ZivDero, tomsons26
  */
 static void Calculate_Mask_Info(unsigned int mask, unsigned int& right, unsigned int& left)
 {
@@ -237,26 +187,13 @@ static void Calculate_Mask_Info(unsigned int mask, unsigned int& right, unsigned
 }
 
 
-/***********************************************************************************************
- * SDLSurface::Create_Primary -- Creates a primary (visible) surface.                            *
- *                                                                                             *
- *    This routine is used to create the surface object that represents the currently          *
- *    visible display. The surface is not allocated, it is merely linked to the preexisting    *
- *    surface that the Windows GDI is also currently using.                                    *
- *                                                                                             *
- * INPUT:   backsurface -- Optional pointer to specify where the backpage (flip enabled)       *
- *                         pointer will be placed. If this parameter is NULL, then no          *
- *                         back surface will be created.                                       *
- *                                                                                             *
- * OUTPUT:  Returns with a pointer to the primary surface.                                     *
- *                                                                                             *
- * WARNINGS:   There can be only one primary surface. If an additional call to this routine    *
- *             is made, another surface pointer will be returned, but it will point to the     *
- *             same surface as before.                                                         *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   02/07/1997 JLB : Created.                                                                 *
- *=============================================================================================*/
+/**
+ *  With DSurface, this would create the priamry (visible) surface.
+ *  There is no such thing with SDL, but we take this opportunity to
+ *  initialize some static variables used for color conversions.
+ *
+ *  @author: ZivDero, tomsons26
+ */
 SDLSurface* SDLSurface::Create_Primary(void*)
 {
     DEBUG_INFO("SDLSurface::Create_Primary\n");
@@ -300,34 +237,11 @@ SDLSurface* SDLSurface::Create_Primary(void*)
 }
 
 
-/***********************************************************************************************
- * SDLSurface::Blit_From -- Blit from one surface to this one.                                   *
- *                                                                                             *
- *    Use this routine to blit a rectangle from the specified surface to this surface while    *
- *    performing clipping upon the blit rectangles specified.                                  *
- *                                                                                             *
- * INPUT:   dcliprect   -- The clipping rectangle to use for this surface.                     *
- *                                                                                             *
- *          destrect    -- The destination rectangle of the blit. The is relative to the       *
- *                         dcliprect parameter.                                                *
- *                                                                                             *
- *          ssource     -- The source surface of the blit.                                     *
- *                                                                                             *
- *          scliprect   -- The source clipping rectangle.                                      *
- *                                                                                             *
- *          sourcrect   -- The source rectangle of the blit. This rectangle is relative to     *
- *                         the source clipping rectangle.                                      *
- *                                                                                             *
- *          trans       -- Is this a transparent blit request?                                 *
- *                                                                                             *
- * OUTPUT:  bool; Was there a blit performed? A 'false' return value would indicate that the   *
- *                blit was clipped into nothing.                                               *
- *                                                                                             *
- * WARNINGS:   none                                                                            *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   05/27/1997 JLB : Created.                                                                 *
- *=============================================================================================*/
+/**
+ *  Blit from one surface to this one.
+ *
+ *  @author: ZivDero, tomsons26
+ */
 bool SDLSurface::Blit_From(Rect const& dcliprect, Rect const& destrect, Surface const& ssource, Rect const& scliprect, Rect const& sourcerect, bool trans, bool)
 {
     if (!dcliprect.Is_Valid() || !scliprect.Is_Valid() || !destrect.Is_Valid() || !sourcerect.Is_Valid()) return false;
@@ -336,69 +250,41 @@ bool SDLSurface::Blit_From(Rect const& dcliprect, Rect const& destrect, Surface 
 }
 
 
-/***********************************************************************************************
- * SDLSurface::Fill_Rect -- This routine will fill the specified rectangle.                      *
- *                                                                                             *
- *    This routine will fill the specified rectangle with a color.                             *
- *                                                                                             *
- * INPUT:   fillrect -- The rectangle to fill.                                                 *
- *                                                                                             *
- *          color    -- The color to fill with.                                                *
- *                                                                                             *
- * OUTPUT:  bool; Was the fill performed without error?                                        *
- *                                                                                             *
- * WARNINGS:   none                                                                            *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   02/07/1997 JLB : Created.                                                                 *
- *=============================================================================================*/
+/**
+ *  This routine will fill the specified rectangle.
+ *
+ *  @author: ZivDero, tomsons26
+ */
 bool SDLSurface::Fill_Rect(Rect const& fillrect, int color)
 {
-    return (SDLSurface::Fill_Rect(Get_Rect(), fillrect, color));
+    return SDLSurface::Fill_Rect(Get_Rect(), fillrect, color);
 }
 
 
-/***********************************************************************************************
- * SDLSurface::Fill_Rect -- Fills a rectangle with clipping control.                             *
- *                                                                                             *
- *    This routine will fill a rectangle on this surface, but will clip the request against    *
- *    a clipping rectangle first.                                                              *
- *                                                                                             *
- * INPUT:   cliprect -- The clipping rectangle to use for this surface.                        *
- *                                                                                             *
- *          fillrect -- The rectangle to fill with the specified color. The rectangle is       *
- *                      relative to the clipping rectangle.                                    *
- *                                                                                             *
- *          color    -- The color (surface dependant format) to use when filling the rectangle *
- *                      pixels.                                                                *
- *                                                                                             *
- * OUTPUT:  bool; Was a fill operation performed? A 'false' return value would mean that the   *
- *                fill request was clipped into nothing.                                       *
- *                                                                                             *
- * WARNINGS:   none                                                                            *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   05/27/1997 JLB : Created.                                                                 *
- *=============================================================================================*/
+/**
+ *  Fills a rectangle with clipping control.
+ *
+ *  @author: ZivDero, tomsons26
+ */
 bool SDLSurface::Fill_Rect(Rect const& cliprect, Rect const& fillrect, int color)
 {
     if (SDLSurfacePtr == nullptr || !fillrect.Is_Valid()) return false;
 
-    /*
-    **  Ensure that the clipping rectangle is legal.
-    */
+    /**
+     *  Ensure that the clipping rectangle is legal.
+     */
     Rect crect = Intersect(cliprect, Get_Rect());
 
-    /*
-    **  Bias the fill rect to the clipping rectangle.
-    */
+    /**
+     *  Bias the fill rect to the clipping rectangle.
+     */
     Rect frect = fillrect.Bias_To(cliprect);
 
-    /*
-    **  Find the region that should be filled after being clipped by the
-    **  clipping rectangle. This could result in no fill operation being performed
-    **  if the desired fill rectangle has been completely clipped away.
-    */
+    /**
+     *  Find the region that should be filled after being clipped by the
+     *  clipping rectangle. This could result in no fill operation being performed
+     *  if the desired fill rectangle has been completely clipped away.
+     */
     frect = Intersect(frect, crect);
     if (!frect.Is_Valid()) return false;
 
@@ -412,18 +298,11 @@ bool SDLSurface::Fill_Rect(Rect const& cliprect, Rect const& fillrect, int color
 }
 
 
-/***********************************************************************************************
- * SDLSurface::GetDC -- Get the windows device context from our surface                          *
- *                                                                                             *
- * INPUT:   none                                                                               *
- *                                                                                             *
- * OUTPUT:  none                                                                               *
- *                                                                                             *
- * WARNINGS: Any current locks will get unlocked while the DC is held                          *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   06/21/2000 NAK : Created.                                                                 *
- *=============================================================================================*/
+/**
+ *  Get the windows device context from our surface.
+ *
+ *  @author: ZivDero
+ */
 HDC SDLSurface::GetDC()
 {
     if (GDIDC == nullptr) {
@@ -435,25 +314,17 @@ HDC SDLSurface::GetDC()
 }
 
 
-/***********************************************************************************************
- * SDLSurface::ReleaseDC -- Release the windows device context from our surface                  *
- *                                                                                             *
- * INPUT:   none                                                                               *
- *                                                                                             *
- * OUTPUT:  none                                                                               *
- *                                                                                             *
- * WARNINGS: Restores any locks held before the call to GetDC()                                *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   06/21/2000 NAK : Created.                                                                 *
- *=============================================================================================*/
+/**
+ *  Release the windows device context from our surface.
+ *
+ *  @author: ZivDero
+ */
 int SDLSurface::ReleaseDC(HDC hdc)
 {
     if (!GDIDC || hdc != GDIDC) {
         return 0;
     }
 
-    // Unlock SDL surface (GDI has already written into shared pixels)
     if (LockCount > 0) {
         LockCount--;
     }
@@ -462,49 +333,22 @@ int SDLSurface::ReleaseDC(HDC hdc)
 }
 
 
-/***********************************************************************************************
- * SDLSurface::Stride -- Fetches the bytes between rows.                                         *
- *                                                                                             *
- *    This routine will return the number of bytes to add so that the pointer will be          *
- *    positioned at the same column, but one row down the screen. This value may very well     *
- *    NOT be equal to the width multiplied by the bytes per pixel.                             *
- *                                                                                             *
- * INPUT:   none                                                                               *
- *                                                                                             *
- * OUTPUT:  Returns with the byte difference between subsequent pixel rows.                    *
- *                                                                                             *
- * WARNINGS:   none                                                                            *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   02/07/1997 JLB : Created.                                                                 *
- *=============================================================================================*/
+/**
+ *  Fetches the bytes between rows.
+ *
+ *  @author: ZivDero
+ */
 int SDLSurface::Stride() const
 {
     return Pitch;
 }
 
 
-/***********************************************************************************************
- * SDLSurface::Lock -- Fetches a working pointer into surface memory.                            *
- *                                                                                             *
- *    This routine will return with a pointer to the pixel at the location specified. In order *
- *    to directly manipulate surface memory, the surface memory must be mapped into the        *
- *    program's logical address space. In addition, all blitter activity on the surface will   *
- *    be suspended. Every call to Lock must be have a corresponding call to Unlock if the      *
- *    pointer returned is not equal to NULL.                                                   *
- *                                                                                             *
- * INPUT:   point -- Pixel coordinate to return a pointer to.                                  *
- *                                                                                             *
- * OUTPUT:  Returns with a pointer to the pixel specified. If the return value is NULL, then   *
- *          the surface could not be locked and no call to Unlock should be performed.         *
- *                                                                                             *
- * WARNINGS:   It is important not to keep a surface locked indefinately since the blitter     *
- *             will not be able to function. Due to the time that locking consumes, it is      *
- *             also important to not perform unnecessarily frequent Lock calls.                *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   02/07/1997 JLB : Created.                                                                 *
- *=============================================================================================*/
+/**
+ *  Fetches a working pointer into surface memory.
+ *
+ *  @author: ZivDero, tomsons26
+ */
 void* SDLSurface::Lock(Point2D point) const
 {
     if (point.X < 0 || point.Y < 0) return nullptr;
@@ -522,34 +366,33 @@ void* SDLSurface::Lock(Point2D point) const
 }
 
 
+/**
+ *  Returns if the surface can be locked.
+ *
+ *  @author: ZivDero
+ */
 bool SDLSurface::Can_Lock(int x, int y) const
 {
     return SDLSurfacePtr != nullptr;
 }
 
 
+/**
+ *  Returns if the surface can be blitted to.
+ *
+ *  @author: ZivDero
+ */
 bool SDLSurface::Can_Blit() const
 {
     return SDLSurfacePtr != nullptr;
 }
 
 
-/***********************************************************************************************
- * SDLSurface::Unlock -- Unlock a previously locked surface.                                     *
- *                                                                                             *
- *    After a surface has been successfully locked, a call to the Unlock() function is         *
- *    required.                                                                                *
- *                                                                                             *
- * INPUT:   none                                                                               *
- *                                                                                             *
- * OUTPUT:  bool; Was the unlock successful?                                                   *
- *                                                                                             *
- * WARNINGS:   Only pair a call to Unlock if the prior Lock actually returned a non-NULL       *
- *             value.                                                                          *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   02/07/1997 JLB : Created.                                                                 *
- *=============================================================================================*/
+/**
+ *  Unlock a previously locked surface.
+ *
+ *  @author: ZivDero
+ */
 bool SDLSurface::Unlock() const
 {
     if (LockCount > 0) {
@@ -563,31 +406,4 @@ bool SDLSurface::Unlock() const
         return true;
     }
     return false;
-}
-
-
-/***********************************************************************************************
- * SDLSurface::Restore_Check -- Checks for and restores surface memory if necessary.             *
- *                                                                                             *
- *    This routine will check to see if surface memory has been lost to the surface. If it     *
- *    has, then the surface memory will be restored.                                           *
- *                                                                                             *
- * INPUT:   none                                                                               *
- *                                                                                             *
- * OUTPUT:  none                                                                               *
- *                                                                                             *
- * WARNINGS:   none                                                                            *
- *                                                                                             *
- * HISTORY:                                                                                    *
- *   02/07/1997 JLB : Created.                                                                 *
- *=============================================================================================*/
-bool SDLSurface::Restore_Check() const
-{
-    return true;
-}
-
-
-void SDLSurface::Blit_To_Window(Rect const* region) const
-{
-    return;
 }

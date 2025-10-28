@@ -29,8 +29,7 @@
 #include "dsurface.h"
 #include "hooker.h"
 #include "hooker_macros.h"
-#include "sdl_init.h"
-#include "tibsun_functions.h"
+#include "sdl_functions.h"
 #include "tibsun_globals.h"
 #include "tooltip.h"
 #include "vinifera_globals.h"
@@ -41,6 +40,12 @@
 #include <algorithm>
 
 
+
+/**
+ *  Update the window after updating the visible surface.
+ *
+ *  @author: CCHyper
+ */
 DECLARE_PATCH(_Update_Visible_Surface_SDL_Update_Window_Patch)
 {
     SDL_Update_Screen(VisibleSurface);
@@ -49,12 +54,13 @@ DECLARE_PATCH(_Update_Visible_Surface_SDL_Update_Window_Patch)
     _asm { pop edi }
     _asm { pop ebp }
     _asm { pop ebx }
+
     JMP(0x004B9A47);
 }
 
 
 /**
- *  Flip hidden surface onto the primary SDL surface when drawing movie frame.
+ *  Update the window after updating the visible surface when drawing a movie frame.
  * 
  *  @author: CCHyper
  */
@@ -74,7 +80,7 @@ DECLARE_PATCH(_Movie_Blit_To_Screen_SDL_Update_Window_Patch)
 
 
 /**
- *  Flip hidden surface onto the primary SDL surface when drawing movie frame.
+ *  Update the window after updating the visible surface when drawing movie frame.
  * 
  *  @author: CCHyper
  */
@@ -93,6 +99,11 @@ DECLARE_PATCH(_Movie_Update_Visisble_Surface_SDL_Update_Window_Patch)
 }
 
 
+/**
+ *  Update the window after updating the visible surface when drawing in MSEngine.
+ *
+ *  @author: CCHyper
+ */
 DECLARE_PATCH(_MSEngine_BlitAll_SDL_Update_Window_Patch)
 {
     // VisibleSurface (ecx) -> Blit_From
@@ -105,6 +116,12 @@ DECLARE_PATCH(_MSEngine_BlitAll_SDL_Update_Window_Patch)
     JMP(0x0057111C);
 }
 
+
+/**
+ *  Update the window after updating the visible surface when drawing in MSEngine.
+ *
+ *  @author: CCHyper
+ */
 DECLARE_PATCH(_MSEngine_BlitRect_SDL_Update_Window_Patch)
 {
     // VisibleSurface (ecx) -> Blit_From
@@ -118,22 +135,26 @@ DECLARE_PATCH(_MSEngine_BlitRect_SDL_Update_Window_Patch)
 }
 
 
+/**
+ *  Dummy replacement for ClientToScreen. SDL uses client coordinates directly,
+ *  so most of these calls are now not necessary.
+ *
+ *  @author: ZivDero
+ */
 BOOL WINAPI Fake_ClientToScreen(HWND hwnd, LPPOINT point)
 {
     return TRUE;
 }
 
 
-BOOL WINAPI Fake_ValidateRect(HWND hwnd, LPCRECT lpRect)
-{
-    if (hwnd == MainWindow) return TRUE; // do nothing for SDL main window
-    return ValidateRect(hwnd, lpRect);   // let USER32 handle child dialogs normally
-}
-
-
+/**
+ *  CtrlProc is the main window procedure for all Tiberian Sun window controls.
+ *  We substitute it with a proxy so that after it is done, can update the screen.
+ *
+ *  @author: ZivDero
+ */
 LRESULT CALLBACK CtrlProc(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
 DEFINE_IMPLEMENTATION(LRESULT CALLBACK CtrlProc(HWND window, UINT message, WPARAM wparam, LPARAM lparam), 0x00592340);
-
 
 LRESULT CALLBACK CtrlProcProxy(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
 {
@@ -145,6 +166,12 @@ LRESULT CALLBACK CtrlProcProxy(HWND window, UINT message, WPARAM wparam, LPARAM 
 }
 
 
+/**
+ *  Windows have a sliding opening animation that happens within a single WM_PAINT call,
+ *  so we need to hook multiple locations within CtrlProc to ensure the screen is updated.
+ *
+ *  @author: ZivDero
+ */
 DECLARE_PATCH(_CtrlProc_SDL_Update_Screen1)
 {
     AlternateSurface->Unlock();
@@ -152,7 +179,6 @@ DECLARE_PATCH(_CtrlProc_SDL_Update_Screen1)
     SDL_Update_Screen(VisibleSurface);
     JMP(0x00593FA3);
 }
-
 
 DECLARE_PATCH(_CtrlProc_SDL_Update_Screen2)
 {
@@ -162,7 +188,6 @@ DECLARE_PATCH(_CtrlProc_SDL_Update_Screen2)
     JMP(0x00594117);
 }
 
-
 DECLARE_PATCH(_CtrlProc_SDL_Update_Screen3)
 {
     AlternateSurface->Unlock();
@@ -170,7 +195,6 @@ DECLARE_PATCH(_CtrlProc_SDL_Update_Screen3)
     SDL_Update_Screen(VisibleSurface);
     JMP(0x00594387);
 }
-
 
 DECLARE_PATCH(_CtrlProc_SDL_Update_Screen4)
 {
@@ -181,6 +205,12 @@ DECLARE_PATCH(_CtrlProc_SDL_Update_Screen4)
 }
 
 
+/**
+ *  This function moves a dialog window to a specified position.
+ *  It needs to use the real ClientToScreen so that dialogs are where they should be.
+ *
+ *  @author: tomsons26, ZivDero
+ */
 int _ODMoveDialog(HWND window, int x, int y)
 {
     int xpos;
@@ -219,6 +249,12 @@ int _ODMoveDialog(HWND window, int x, int y)
 }
 
 
+/**
+ *  This function centers a window within a parent window.
+ *  It needs to use the real ClientToScreen so that dialogs are where they should be.
+ *
+ *  @author: tomsons26, ZivDero
+ */
 void _Center_Window_Within_Window(HWND window, HWND parent)
 {
     RECT rcl;
@@ -250,6 +286,12 @@ void _Center_Window_Within_Window(HWND window, HWND parent)
 }
 
 
+/**
+ *  This function gets the display rectangle of a window.
+ *  It needs to use the real ClientToScreen so that dialogs are where they should be.
+ *
+ *  @author: tomsons26, ZivDero
+ */
 BOOL _GetDisplayRect(HWND window, LPRECT rect)
 {
     RECT c;
@@ -267,19 +309,27 @@ BOOL _GetDisplayRect(HWND window, LPRECT rect)
 }
 
 
+/**
+ *  Proxy for GetWindowRect because we cannot take the address of GetWindowRect directly.
+ *
+ *  @author: ZivDero
+ */
 BOOL _GetWindowRect(HWND window, LPRECT rect)
 {
     return GetWindowRect(window, rect);
 }
 
 
+/**
+ *  Patch to make tooltips use MouseCursor for mouse position instead of querying Windows.
+ *
+ *  @author: ZivDero
+ */
 void Update_ToolTip_Mouse_Pos(ToolTipManager* tooltips)
 {
     tooltips->LastMousePos = MouseCursor->Get_Mouse_Point();
 }
 
-
-//64743E
 DECLARE_PATCH(_ToolTopManager_Message_Handler_Mouse_Pos_Patch_)
 {
     GET_REGISTER_STATIC(ToolTipManager*, tooltips, esi);
@@ -290,14 +340,21 @@ DECLARE_PATCH(_ToolTopManager_Message_Handler_Mouse_Pos_Patch_)
 }
 
 
-
+/**
+ *  Replacement for EnumDisplayModes that uses Windows API to enumerate display modes
+ *  instead of relying on DirectDraw.
+ *
+ *  @author: ZivDero
+ */
 int* _EnumDisplayModes(DWORD minw, DWORD minh, DWORD maxw, DWORD maxh, DWORD bitdepth)
 {
     std::vector<std::pair<int, int>> modes;
     DEVMODE devmode;
     DWORD mode_index = 0;
 
-    // Enumerate all available display modes
+    /**
+     *  Enumerate all available display modes.
+     */
     while (EnumDisplaySettings(nullptr, mode_index++, &devmode)) {
         const DWORD w = devmode.dmPelsWidth;
         const DWORD h = devmode.dmPelsHeight;
@@ -312,11 +369,15 @@ int* _EnumDisplayModes(DWORD minw, DWORD minh, DWORD maxw, DWORD maxh, DWORD bit
         return nullptr;
     }
 
-    // Sort and remove duplicates
+    /**
+     *  Sort and remove duplicates.
+     */
     std::sort(modes.begin(), modes.end());
     modes.erase(std::unique(modes.begin(), modes.end()), modes.end());
 
-    // Allocate contiguous buffer for result (two ints per mode, plus a trailing 0)
+    /**
+     *  Allocate contiguous buffer for result (two ints per mode, plus a trailing 0).
+     */
     const size_t count = modes.size();
     const size_t bytes = sizeof(int) * (count * 2 + 1);
 
@@ -338,56 +399,65 @@ int* _EnumDisplayModes(DWORD minw, DWORD minh, DWORD maxw, DWORD maxh, DWORD bit
  */
 void SDL_Hooks()
 {
-    // These 3 need to use the real ClientToScreen so that dialogs are where they should be
+    /**
+     *  Disable ClientToScreen.
+     */
+    Patch_Dword(0x006CA384, (uintptr_t)&Fake_ClientToScreen);
+
+    /**
+     *  But these 3 need to use the real ClientToScreen so that dialogs are where they should be.
+     */
     Patch_Jump(0x005A0BA0, &_ODMoveDialog);
     Patch_Jump(0x00685600, &_Center_Window_Within_Window);
     Patch_Jump(0x00682F80, &_GetDisplayRect);
 
-    // Except for this GetDisplayRect, it's used only for drawing offset, and returning GetWindowRect makes the offset 0
+    /**
+     *  Except for this GetDisplayRect, it's used only for drawing offset, and returning GetWindowRect makes the offset 0.
+     */
     Patch_Call(0x005924F0, &_GetWindowRect);
-    
-    // Disable some drawing calls
-    Patch_Dword(0x006CA384, (uintptr_t)&Fake_ClientToScreen);
-    Patch_Dword(0x006CA3C4, (uintptr_t)&Fake_ValidateRect);
 
-    // Skip Wait_Blit
+    /**
+     *  Skip Wait_Blit.
+     */
     Patch_Jump(0x00473330, 0x00473348);
 
-    // SDL prep
+    /**
+     *  SDL rendering prep.
+     */
     Patch_Jump(0x004E7310, &SDL_Allocate_Surfaces);
     Patch_Jump(0x00472DF0, &SDL_Set_Video_Mode);
     Patch_Jump(0x00472FF0, &SDL_Reset_Video_Mode);
     Patch_Jump(0x0050AC30, &SDL_Change_Display_Mode);
 
-    // VQA
-    Patch_Jump(0x005640CD, &_Movie_Blit_To_Screen_SDL_Update_Window_Patch);
-    Patch_Jump(0x00564787, &_Movie_Update_Visisble_Surface_SDL_Update_Window_Patch);
+    /**
+     *  Update the window surface when the game updates its VisibleSurface.
+     */
+    Patch_Jump(0x005640CD, &_Movie_Blit_To_Screen_SDL_Update_Window_Patch);             // VQA
+    Patch_Jump(0x00564787, &_Movie_Update_Visisble_Surface_SDL_Update_Window_Patch);    // VQA
+    Patch_Jump(0x00571116, &_MSEngine_BlitAll_SDL_Update_Window_Patch);                 // MSEngine
+    Patch_Jump(0x005711F2, &_MSEngine_BlitRect_SDL_Update_Window_Patch);                // MSEngine
+    Patch_Dword(0x00591739 + 1, (uintptr_t)&CtrlProcProxy);                            // Windows controls
+    Patch_Jump(0x00593F8D, &_CtrlProc_SDL_Update_Screen1);                              // Window sliding animation
+    Patch_Jump(0x00594101, &_CtrlProc_SDL_Update_Screen2);                              // Window sliding animation
+    Patch_Jump(0x0059437C, &_CtrlProc_SDL_Update_Screen3);                              // Window sliding animation
+    Patch_Jump(0x0059449F, &_CtrlProc_SDL_Update_Screen4);                              // Window sliding animation
+    Patch_Jump(0x004B9A42, &_Update_Visible_Surface_SDL_Update_Window_Patch);           // Most other cases
 
-    // MSEngine
-    Patch_Jump(0x00571116, &_MSEngine_BlitAll_SDL_Update_Window_Patch);
-    Patch_Jump(0x005711F2, &_MSEngine_BlitRect_SDL_Update_Window_Patch);
-
-    // Most other cases
-    Patch_Jump(0x004B9A42, &_Update_Visible_Surface_SDL_Update_Window_Patch);
-
-    // Copy over the surface after a control has been redrawn
-    Patch_Dword(0x00591739 + 1, (uintptr_t)&CtrlProcProxy);
-
-    // Update surface during the window sliding open animation
-    Patch_Jump(0x00593F8D, &_CtrlProc_SDL_Update_Screen1);
-    Patch_Jump(0x00594101, &_CtrlProc_SDL_Update_Screen2);
-    Patch_Jump(0x0059437C, &_CtrlProc_SDL_Update_Screen3);
-    Patch_Jump(0x0059449F, &_CtrlProc_SDL_Update_Screen4);
-
-    // call Set_Video_Mode even when windowed
+    /**
+     *  Call Set_Video_Mode even when windowed.
+     */
     Patch_Jump(0x006016B8, 0x006016F3);
     Patch_Jump(0x006016BF, 0x006015A9);
 
-    // patch ToolTipManager to use MouseCursor for the mouse coordinates instead of asking Windows
+    /**
+     *  Patch ToolTipManager to use MouseCursor for the mouse coordinates instead of asking Windows
+     */
     Patch_Jump(0x0064743E, &_ToolTopManager_Message_Handler_Mouse_Pos_Patch_);
 
+    /**
+     *  Disable DirectDraw.
+     */
     Change_Virtual_Address(0x006EC110, (uintptr_t)&"NQXZJYVPRKMTLUGHSBDCFIEWOAQRMZNPLXTYVJHKSQGBFUACEL.DLL"); // replace DDRAW.DLL by a very unlikely library in the import table
     Patch_Jump(0x00472AD3, 0x00472B16); // skip Prep_Direct_Draw
-
-    Patch_Jump(0x00473400, &_EnumDisplayModes);
+    Patch_Jump(0x00473400, &_EnumDisplayModes); // relies on DirectDraw to enumerate display modes
 }

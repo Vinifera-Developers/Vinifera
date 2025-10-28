@@ -26,7 +26,6 @@
  *
  ******************************************************************************/
 #include "initext_hooks.h"
-#include "vinifera_const.h"
 #include "vinifera_globals.h"
 #include "vinifera_util.h"
 #include "tibsun_globals.h"
@@ -41,18 +40,14 @@
 #include "session.h"
 #include "iomap.h"
 #include "dsaudio.h"
-#include "vinifera_gitinfo.h"
-#include "tspp_gitinfo.h"
-#include "resource.h"
 #include "asserthandler.h"
 #include "debughandler.h"
+#include "optionsext.h"
+#include "sdl_functions.h"
 #include <Windows.h>
 #include <commctrl.h>
-
 #include "hooker.h"
 #include "hooker_macros.h"
-#include "optionsext.h"
-#include "sdl_init.h"
 
 
 extern HMODULE DLLInstance;
