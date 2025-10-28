@@ -26,21 +26,16 @@
  *
  ******************************************************************************/
 #include "sdlmouse.h"
-#include "blit.h"
-#include "bsurface.h"
-#include "shapeset.h"
-#include "surface.h"
-#include "wwmouse.h"
-#include <assert.h>
 #include "always.h"
 #include "convert.h"
-#include "debughandler.h"
 #include "drawshape.h"
-#include "options.h"
 #include "optionsext.h"
 #include "sdl_functions.h"
 #include "sdlsurface.h"
+#include "shapeset.h"
+#include "wwmouse.h"
 #include "SDL3/SDL_mouse.h"
+#include <cassert>
 
 /**
  *  Persistent mouse object pointer that is used to facilitate access to the mouse
@@ -123,7 +118,7 @@ void SDLMouseClass::Process_Mouse()
 /**
  *  Set the mouse cursor shape.
  *
- *  @author: ZivDero
+ *  @author: ZivDero, tomsons26
  */
 void SDLMouseClass::Set_Cursor(Point2D const& hotspot, ShapeSet const* cursor, int shape)
 {
@@ -133,11 +128,17 @@ void SDLMouseClass::Set_Cursor(Point2D const& hotspot, ShapeSet const* cursor, i
         return;
     }
 
+    if (MouseShape == cursor && ShapeNumber == shape) {
+        return;
+    }
+
     if (cursor != MouseShape) {
         Delete_Cursor_Image();
         Convert_Cursor_Image(cursor);
-        MouseShape = cursor;
     }
+
+    MouseShape = cursor;
+    ShapeNumber = shape;
 
     Hotspot = hotspot;
     Hotspot.X = std::clamp(Hotspot.X * Get_Cursor_Scale(), 0, CursorSurfaces[shape]->w - 1);
@@ -266,8 +267,7 @@ void SDLMouseClass::Update_Mouse_Position(int x, int y)
 {
     /**
      *  If the desired position is not the same as the current
-     *  position, then hide the mouse, reposition it, then show
-     *  the mouse.
+     *  position, then reposition it.
      */
     if (x != MouseX || y != MouseY) {
         MouseX = x;
@@ -289,6 +289,7 @@ void SDLMouseClass::Delete_Cursor_Image()
     }
 
     MouseShape = nullptr;
+    ShapeNumber = 0;
 }
 
 
