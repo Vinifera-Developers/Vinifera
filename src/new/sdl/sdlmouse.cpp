@@ -447,5 +447,5 @@ int SDLMouseClass::Get_Cursor_Scale()
     /**
      *  Scale automatically based on the Y-axis scaling factor.
      */
-    return static_cast<int>(std::round(1.0 / SDL_YScale()));
+    return std::max(1, static_cast<int>(std::round(1.0 / SDL_YScale())));
 }
