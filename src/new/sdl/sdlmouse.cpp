@@ -96,6 +96,7 @@ SDLMouseClass::SDLMouseClass() :
     ShapeNumber(0),
     Hotspot(0, 0),
     Cursor(nullptr),
+    IsCaptured(false),
     MouseX(0),
     MouseY(0),
     TimerHandle(0)
@@ -266,9 +267,14 @@ void SDLMouseClass::Show_Mouse()
  *=============================================================================================*/
 void SDLMouseClass::Release_Mouse()
 {
-    //SDL_CaptureMouse(false);
-    SDL_SetWindowMouseGrab(SDL_GetWindowFromID(1), false);
-    SDL_SetWindowRelativeMouseMode(SDL_GetWindowFromID(1), false);
+    if (WindowedMode || !IsCaptured) {
+        return;
+    }
+
+    // Release system capture and unlock cursor
+    ClipCursor(nullptr);
+
+    IsCaptured = false;
 }
 
 
@@ -290,9 +296,23 @@ void SDLMouseClass::Release_Mouse()
  *=============================================================================================*/
 void SDLMouseClass::Capture_Mouse()
 {
-    //SDL_CaptureMouse(true);
-    SDL_SetWindowMouseGrab(SDL_GetWindowFromID(1), true);
-    SDL_SetWindowRelativeMouseMode(SDL_GetWindowFromID(1), true);
+    if (WindowedMode || IsCaptured) {
+        return;
+    }
+
+    // Compute the client area in screen coordinates
+    RECT client_rect;
+    GetClientRect(MainWindow, &client_rect);
+    POINT ul = {client_rect.left, client_rect.top};
+    POINT lr = {client_rect.right, client_rect.bottom};
+    MapWindowPoints(MainWindow, nullptr, &ul, 1);
+    MapWindowPoints(MainWindow, nullptr, &lr, 1);
+    RECT clip_rect = {ul.x, ul.y, lr.x, lr.y};
+
+    // Lock cursor inside window
+    ClipCursor(&clip_rect);
+
+    IsCaptured = true;
 }
 
 

@@ -73,7 +73,7 @@ public:
     */
     void Release_Mouse() override;
     void Capture_Mouse() override;
-    bool Is_Captured() const override { return true; }
+    bool Is_Captured() const override { return IsCaptured; }
 
     /*
     **  Hide the mouse if it falls within this game screen region.
@@ -114,6 +114,14 @@ private:
     std::vector<SDL_Surface*> CursorSurfaces;
 
     SDL_Cursor* Cursor;
+
+    /*
+    **  If the mouse is being managed by this class (for the game), then this flag
+    **  will be true. When the mouse has been released to be managed by the operating
+    **  system, this flag will be false. However, this class will still track the mouse
+    **  position.
+    */
+    bool IsCaptured;
 
     /*
     **  This is the last recorded mouse position that it was drawn to.
