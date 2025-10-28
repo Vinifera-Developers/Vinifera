@@ -140,6 +140,9 @@ void SDLMouseClass::Set_Cursor(Point2D const& hotspot, ShapeSet const* cursor, i
     MouseShape = cursor;
     ShapeNumber = shape;
 
+    /**
+     *  Scale the hotspot. The max value is surface dimension - 1 as required by SDL.
+     */
     Hotspot = hotspot;
     Hotspot.X = std::clamp(Hotspot.X * Get_Cursor_Scale(), 0, CursorSurfaces[shape]->w - 1);
     Hotspot.Y = std::clamp(Hotspot.Y * Get_Cursor_Scale(), 0, CursorSurfaces[shape]->h - 1);
