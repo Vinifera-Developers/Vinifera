@@ -42,8 +42,9 @@ enum SDLSurfaceColorMode {
 
 
 /**
- *  This is a concrete surface class that is based on the DirectDraw
- *  API.
+ *  This is a concrete surface class that allocates memory as  GDI DIB and
+ *  wraps it in an SDL_Surface structure for use with SDL rendering.
+ *  It is derived from DSurface to inherit most of the drawing routines.
  */
 class SDLSurface : public DSurface
 {
