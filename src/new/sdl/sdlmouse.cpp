@@ -94,14 +94,16 @@ SDLMouseClass::~SDLMouseClass()
 {
     if (TimerHandle != NULL) {
         timeKillEvent(TimerHandle);
-        _MousePtr = nullptr;
         TimerHandle = NULL;
     }
+    Delete_Cursor_Image();
     if (Cursor) {
         SDL_DestroyCursor(Cursor);
         Cursor = nullptr;
     }
-    if (_MousePtr == this) _MousePtr = nullptr;
+    if (_MousePtr == this) {
+        _MousePtr = nullptr;
+    }
 }
 
 
