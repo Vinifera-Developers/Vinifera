@@ -535,7 +535,7 @@ bool SDL_Update_Screen(Surface* surface)
 
 bool SDL_Should_Scale()
 {
-    return WSDialogCount == 0;
+    return WSDialogCount == 0 && SpecialDialog == SDLG_NONE;
 }
 
 bool SDL_Change_Display_Mode(int width, int height)
