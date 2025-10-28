@@ -435,7 +435,7 @@ void SDL_Hooks()
     Patch_Jump(0x00564787, &_Movie_Update_Visisble_Surface_SDL_Update_Window_Patch);    // VQA
     Patch_Jump(0x00571116, &_MSEngine_BlitAll_SDL_Update_Window_Patch);                 // MSEngine
     Patch_Jump(0x005711F2, &_MSEngine_BlitRect_SDL_Update_Window_Patch);                // MSEngine
-    Patch_Dword(0x00591739 + 1, (uintptr_t)&CtrlProcProxy);                            // Windows controls
+    Patch_Dword(0x00591739 + 1, (uintptr_t)&CtrlProcProxy);                             // Windows controls
     Patch_Jump(0x00593F8D, &_CtrlProc_SDL_Update_Screen1);                              // Window sliding animation
     Patch_Jump(0x00594101, &_CtrlProc_SDL_Update_Screen2);                              // Window sliding animation
     Patch_Jump(0x0059437C, &_CtrlProc_SDL_Update_Screen3);                              // Window sliding animation
