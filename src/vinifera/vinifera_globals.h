@@ -31,8 +31,6 @@
 #include "vector.h"
 #include "ccfile.h"
 #include "extension_globals.h"
-#include "scenarioext.h"
-#include "SDL3/SDL_render.h"
 
 
 class PrerequisiteGroupClass;
@@ -45,7 +43,9 @@ class ArmorTypeClass;
 class RocketTypeClass;
 class MouseTypeClass;
 class ActionTypeClass;
-class PrerequisiteGroupClass;
+struct SDL_Window;
+struct SDL_Renderer;
+struct SDL_Texture;
 
 
 extern bool Vinifera_DeveloperMode;

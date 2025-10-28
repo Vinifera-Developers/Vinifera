@@ -267,9 +267,9 @@ static bool Vinifera_Detect_Addons()
 
 
 /**
- *  Creates the main window for Tiberian Sun
+ *  Creates the main window for Tiberian Sun at 480p resolution.
  * 
- *  @author: CCHyper
+ *  @author: ZivDero
  */
 void Vinifera_Create_Main_Window_480p(HINSTANCE hInstance, int command_show, int width, int height)
 {
@@ -283,7 +283,11 @@ void Vinifera_Create_Main_Window_480p(HINSTANCE hInstance, int command_show, int
 }
 
 
-
+/**
+ *  Creates the main window for Tiberian Sun at a custom resolution.
+ *
+ *  @author: ZivDero
+ */
 void Vinifera_Create_Main_Window_Custom(HINSTANCE hInstance, int command_show, int width, int height)
 {
     // DEV_DEBUG_INFO("Create_Main_Window(enter)\n");

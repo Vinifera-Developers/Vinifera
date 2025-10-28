@@ -83,9 +83,19 @@ class OptionsClassExtension final : public GlobalExtensionClass<OptionsClass>
         int KeyChatToAll2;
         int KeyChatToAllies;
 
+        /**
+         *  Window size override.
+         */
         int WindowWidth;
         int WindowHeight;
+
+        /**
+         *  Scaling mode.
+         */
         SDL_ScaleMode ScaleMode;
 
+        /**
+         *  Cursor scale factor.
+         */
         int CursorScale;
 };

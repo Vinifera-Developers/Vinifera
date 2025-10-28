@@ -256,42 +256,6 @@ int SDLMouseClass::Get_Mouse_State() const
 
 
 /**
- *  Would draw the mouse to the specified surface.
- *  However, we now use a hardware cursor, so this is a no-op.
- *
- *  @author: ZivDero
- */
-void SDLMouseClass::Draw_Mouse(Surface*, bool)
-{
-
-}
-
-
-/**
- *  Would erase the mouse from the specified surface.
- *  However, we now use a hardware cursor, so this is a no-op.
- *
- *  @author: ZivDero
- */
-void SDLMouseClass::Erase_Mouse(Surface*, bool)
-{
-
-}
-
-
-/**
- *  Would convert O/S coordinates to game coordinates.
- *  However, SDL uses client coordinates directly, so this is a no-op.
- *
- *  @author: ZivDero
- */
-void SDLMouseClass::Convert_Coordinate(int& x, int& y) const
-{
-
-}
-
-
-/**
  *  Updates the mouse position to match that specified.
  *
  *  @author: ZivDero, tomsons26

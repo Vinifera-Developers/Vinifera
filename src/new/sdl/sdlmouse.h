@@ -65,11 +65,8 @@ public:
     void Show_Mouse() override;
 
     /*
-    **  Takes control of and releases control of the mouse with
-    **  respect to the operating system. The mouse must be released
-    **  during operations with the operating system. When the mouse is
-    **  relased, it may move outside of the confining rectangle and its
-    **  shape is controlled by the operating sytem.
+    **  Confines or releases the mouse cursor from the window rect.
+    **  Only operates in full screen mode.
     */
     void Release_Mouse() override;
     void Capture_Mouse() override;
@@ -90,16 +87,17 @@ public:
     Point2D Get_Mouse_Point() const override { return Point2D(MouseX, MouseY); }
 
     /*
-    **  The following two routines can be used to render the mouse onto an alternate
-    **  surface.
+    **  The following two routines would render the mouse onto a surface.
+    **  However, we now use a hardware cursor, so these are no-ops.
     */
-    void Draw_Mouse(Surface* = nullptr, bool = false) override;
-    void Erase_Mouse(Surface* = nullptr, bool = false) override;
+    void Draw_Mouse(Surface* = nullptr, bool = false) override {}
+    void Erase_Mouse(Surface* = nullptr, bool = false) override {}
 
     /*
-    **  Converts O/S screen coordinates into game coordinates.
+    **  Would convert O/S coordinates to game coordinates.
+    **  However, SDL uses client coordinates directly, so this is a no-op.
     */
-    void Convert_Coordinate(int& x, int& y) const override;
+    void Convert_Coordinate(int& x, int& y) const override {}
 
     /*
     **  Recalculates the cursor's image using the same shape.

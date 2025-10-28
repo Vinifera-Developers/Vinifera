@@ -51,7 +51,7 @@ OptionsClassExtension::OptionsClassExtension(const OptionsClass *this_ptr) :
     KeyChatToAllies(KN_BACKSPACE),
     WindowWidth(-1),
     WindowHeight(-1),
-    ScaleMode(SDL_SCALEMODE_NEAREST),
+    ScaleMode(SDL_SCALEMODE_PIXELART),
     CursorScale(0)
 {
     //EXT_DEBUG_TRACE("OptionsClassExtension::OptionsClassExtension - 0x%08X\n", (uintptr_t)(This()));

@@ -40,7 +40,6 @@
 #include <algorithm>
 
 
-
 /**
  *  Update the window after updating the visible surface.
  *
