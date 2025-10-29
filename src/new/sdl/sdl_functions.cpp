@@ -399,6 +399,15 @@ LRESULT CALLBACK SDL_Windows_Procedure(HWND hwnd, UINT message, WPARAM wParam, L
         case SC_CLOSE:
             CDControl.Unlock_All_CD_Trays();
 
+#ifdef TS_CLIENT
+            /*
+            **  TS Client users are used to Alt+F4 aborting the game, which in turn closes the game
+            **  because there is no main menu in the TS Client.
+            */
+            if (GameActive) {
+                Queue_Exit();
+            }
+#endif
             /*
             **  Windows sent us a close message. Probably in response to Alt-F4. Ignore it by
             **  pretending to handle the message and returning true;
