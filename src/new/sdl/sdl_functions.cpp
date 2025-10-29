@@ -545,7 +545,11 @@ bool SDL_Update_Screen(Surface* surface)
          *  First, update the texture with the pixels from the game's surface.
          */
         if (void* pixels = surface->Lock()) {
-            SDL_UpdateTexture(SDLWindowTexture, nullptr, pixels, surface->Stride());
+            void* tex_pixels;
+            int tex_pitch;
+            SDL_LockTexture(SDLWindowTexture, nullptr, &tex_pixels, &tex_pitch);
+            memcpy(tex_pixels, pixels, surface->Get_Height() * surface->Stride());
+            SDL_UnlockTexture(SDLWindowTexture);
             surface->Unlock();
         }
 
