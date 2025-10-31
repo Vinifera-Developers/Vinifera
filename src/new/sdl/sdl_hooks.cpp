@@ -416,6 +416,12 @@ void SDL_Hooks()
     Patch_Call(0x005924F0, &_GetWindowRect);
 
     /**
+     *  ComboDropWinCtrlProc, fix the dropdown being offset by the main window origin by patching out 2 add instructions.
+     */
+    Patch_Byte_Range(0x0058FFB2, 0x90, 2);
+    Patch_Byte_Range(0x0058FFBF, 0x90, 2);
+
+    /**
      *  Skip Wait_Blit.
      */
     Patch_Jump(0x00473330, 0x00473348);
