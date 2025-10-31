@@ -188,7 +188,7 @@ static void Calculate_Mask_Info(unsigned int mask, unsigned int& right, unsigned
 
 
 /**
- *  With DSurface, this would create the priamry (visible) surface.
+ *  With DSurface, this would create the primary (visible) surface.
  *  There is no such thing with SDL, but we take this opportunity to
  *  initialize some static variables used for color conversions.
  *
@@ -203,7 +203,6 @@ SDLSurface* SDLSurface::Create_Primary(void*)
 
     DEBUG_INFO("SDLSurface::Create_Primary - Creating surface\n");
     SDLSurface* surface = new SDLSurface(VideoWidth, VideoHeight);
-    surface->IsPrimary = true;
 
     /**
      *  If this is a hicolor surface, then build the shift values for
