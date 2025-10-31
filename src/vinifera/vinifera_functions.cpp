@@ -27,7 +27,6 @@
  ******************************************************************************/
 #include "vinifera_functions.h"
 #include "vinifera_globals.h"
-#include "vinifera_newdel.h"
 #include "tibsun_globals.h"
 #include "cncnet4.h"
 #include "cncnet4_globals.h"
@@ -693,8 +692,6 @@ bool Vinifera_Shutdown()
 
     delete AircraftTracker;
     AircraftTracker = nullptr;
-
-    DEV_DEBUG_INFO("Shutdown - New Count: %d, Delete Count: %d\n", Vinifera_New_Count, Vinifera_Delete_Count);
 
     return true;
 }

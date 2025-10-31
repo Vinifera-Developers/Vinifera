@@ -51,7 +51,6 @@
 #include "vinifera_globals.h"
 #include "vinifera_util.h"
 #include "tibsun_globals.h"
-#include "vinifera_newdel.h"
 #include <Windows.h>
 #include <dbghelp.h>
 #include <eh.h>
