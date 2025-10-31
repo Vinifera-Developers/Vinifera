@@ -590,7 +590,7 @@ int ScenarioClassExtension::Set_Global_To(int global, int value)
         int previous = GlobalFlags[global].Value;
         if (previous != value) {
             GlobalFlags[global].Value = value;
-            Scen->IsGlobalChanged = true;
+            This()->IsGlobalChanged = true;
 
             /*
             **  Special case to scan through all triggers and if any are found that depend on this
@@ -602,7 +602,9 @@ int ScenarioClassExtension::Set_Global_To(int global, int value)
             /*
             **  Clear the templated text cache as it may contain this variable.
             */
-            TacticalMapExtension->Clear_Templated_Text_Cache();
+            if (TacticalMapExtension) {
+                TacticalMapExtension->Clear_Templated_Text_Cache();
+            }
         }
         return previous;
     }
@@ -697,12 +699,12 @@ bool ScenarioClassExtension::Read_Global_INI(INIClass& ini)
  */
 int ScenarioClassExtension::Set_Local_To(int local, int value)
 {
-    if (static_cast<size_t>(local) < std::size(Scen->LocalFlags)) {
+    if (static_cast<size_t>(local) < std::size(LocalFlags)) {
 
         int previous = LocalFlags[local].Value;
         if (previous != value) {
             LocalFlags[local].Value = value;
-            Scen->IsGlobalChanged = true;
+            This()->IsGlobalChanged = true;
 
             /*
             **  Special case to scan through all triggers and if any are found that depend on this
@@ -714,7 +716,9 @@ int ScenarioClassExtension::Set_Local_To(int local, int value)
             /*
             **  Clear the templated text cache as it may contain this variable.
             */
-            TacticalMapExtension->Clear_Templated_Text_Cache();
+            if (TacticalMapExtension) {
+                TacticalMapExtension->Clear_Templated_Text_Cache();
+            }
         }
         return previous;
     }
@@ -744,7 +748,7 @@ int ScenarioClassExtension::Set_Local_To(char const* name, int value)
  */
 bool ScenarioClassExtension::Get_Local_Value(int local, int& value)
 {
-    if (local >= 0 && local < std::size(Scen->LocalFlags)) {
+    if (local >= 0 && local < std::size(LocalFlags)) {
         value = LocalFlags[local].Value;
         return true;
     }
@@ -774,7 +778,7 @@ bool ScenarioClassExtension::Get_Local_Value(char const* name, int& value)
  */
 int ScenarioClassExtension::Find_Local_Variable_Index(char const* name)
 {
-    for (int i = 0; i < std::size(Scen->LocalFlags); i++) {
+    for (int i = 0; i < std::size(LocalFlags); i++) {
         if (!strcmp(name, LocalFlags[i].VariableName)) {
             return i;
         }
@@ -792,11 +796,11 @@ bool ScenarioClassExtension::Read_Local_INI(INIClass& ini)
 {
     char buffer[128];
 
-    for (int i = 0; i < std::size(Scen->LocalFlags); i++) {
+    for (int i = 0; i < std::size(LocalFlags); i++) {
         LocalFlags[i].VariableName[0] = 0;
     }
 
-    int count = std::min(ini.Entry_Count("VariableNames"), static_cast<int>(std::size(Scen->LocalFlags)));
+    int count = std::min(ini.Entry_Count("VariableNames"), static_cast<int>(std::size(LocalFlags)));
 
     for (int i = 0; i < count; i++) {
         const char* entry = ini.Get_Entry("VariableNames", i);
@@ -2122,5 +2126,5 @@ void ScenarioClassExtension::Create_Units(bool official)
         }
     }
 
-    DEBUG_INFO("Finished unit generation. Random number is %d\n", Scen->RandomNumber);
+    DEBUG_INFO("Finished unit generation. Random number is %d\n", Scen->RandomNumber());
 }

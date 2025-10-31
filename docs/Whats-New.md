@@ -86,6 +86,7 @@ Vinifera fixes:
 - Fix a crash that could happen if you lost a factory while producing something (by ZivDero)
 - Fix problems with new IsometricTileType flags during save/load (by ZivDero)
 - Fix a bug where when undeploying a building, the resulting unit would face the wrong way (by ZivDero)
+- Fix a bug where only local variables up to 50 would be used (by ZivDero)
 
 
 Vanilla fixes:
