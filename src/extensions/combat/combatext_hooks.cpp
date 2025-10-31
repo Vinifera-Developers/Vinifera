@@ -297,12 +297,11 @@ void Damage_Overlay(Cell const & cell, const WarheadTypeClass * warhead, int str
     if (cellptr->Overlay != OVERLAY_NONE) {
         OverlayTypeClass const* optr = OverlayTypes[cellptr->Overlay];
 
-        if (optr->IsChainReactive) {
-            if (!(optr->IsTiberium && !warhead->IsTiberiumDestroyer) && do_chain_reaction) {
-                Chain_Reaction_Damage(cell);
-                cellptr->Reduce_Tiberium(strength / 10);
-            }
+        if (optr->IsChainReactive && (!optr->IsTiberium || warhead->IsTiberiumDestroyer) && do_chain_reaction) {
+            Chain_Reaction_Damage(cell);
+            cellptr->Reduce_Tiberium(strength / 10);
         }
+
         if (optr->IsWall) {
 
             /**
@@ -316,10 +315,15 @@ void Damage_Overlay(Cell const & cell, const WarheadTypeClass * warhead, int str
             if (warheadtypeext->IsWallAbsoluteDestroyer) {
                 Map[cell].Reduce_Wall(-1);
             }
-            else if (warhead->IsWallDestroyer || (warhead->IsWoodDestroyer && optr->Armor == ARMOR_WOOD)) {
+            else if (warhead->IsWallDestroyer) {
                 Map[cell].Reduce_Wall(strength);
             }
         }
+
+        if (warhead->IsWoodDestroyer && optr->Armor == ARMOR_WOOD) {
+            Map[cell].Reduce_Wall(strength);
+        }
+
         if (cellptr->Overlay == OVERLAY_NONE) {
             TechnoClass::Update_Mission_Targets(cellptr);
         }
