@@ -580,8 +580,6 @@ bool HouseClassExtension::Place_Object(RTTIType type, Cell const& cell, Producti
             if (!factory_ext->HasSpoken && factory->House == PlayerPtr) {
                 if (tech->Is_Foot()) {
                     Speak(VOX_UNIT_READY);
-                } else if (tech->RTTI == RTTI_BUILDING) {
-                    Speak(VOX_CONSTRUCTION);
                 }
                 factory_ext->HasSpoken = true;
             }

@@ -1462,6 +1462,7 @@ bool StripClassExt::_AI(KeyNumType& input, Point2D const&)
 
                         case RTTI_BUILDING:
                             SidebarExtension->TabButtons[ID].Start_Flashing();
+                            Speak(VOX_CONSTRUCTION);
                             break;
 
                         default:
@@ -1743,7 +1744,7 @@ bool StripClassExt::_AI_Vanilla(KeyNumType& input, Point2D const& xy)
                         case RTTI_UNIT:
                         case RTTI_AIRCRAFT:
                             OutList.Add(EventClassExt(pending->Owner(), EVENT_PLACE, pending->Fetch_RTTI(), CELL_NONE, TechnoTypeClassExtension::Get_Production_Flags(pending)).As_Event());
-                            Speak(VOX_UNIT_READY);
+                            //Speak(VOX_UNIT_READY);
                             break;
 
                         case RTTI_BUILDING:
@@ -1752,7 +1753,7 @@ bool StripClassExt::_AI_Vanilla(KeyNumType& input, Point2D const& xy)
 
                         case RTTI_INFANTRY:
                             OutList.Add(EventClassExt(pending->Owner(), EVENT_PLACE, pending->Fetch_RTTI(), CELL_NONE, TechnoTypeClassExtension::Get_Production_Flags(pending)).As_Event());
-                            Speak(VOX_UNIT_READY);
+                            //Speak(VOX_UNIT_READY);
                             break;
                         }
                     }
