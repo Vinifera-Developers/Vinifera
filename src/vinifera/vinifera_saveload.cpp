@@ -31,7 +31,6 @@
 #include "tibsun_util.h"
 #include "vinifera_util.h"
 #include "vinifera_gitinfo.h"
-#include "wstring.h"
 #include "saveload.h"
 #include "extension.h"
 #include "debughandler.h"

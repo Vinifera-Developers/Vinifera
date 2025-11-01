@@ -35,7 +35,7 @@
 /**
  *  These are the ASCII names for the mouse control types.
  */
-const char *MouseTypeClass::MouseNames[MOUSE_COUNT] = {
+static const char* MouseNames[MOUSE_COUNT] = {
     "Normal",               // MOUSE_NORMAL
 
     "ScrollN",              // MOUSE_N
@@ -113,77 +113,90 @@ const char *MouseTypeClass::MouseNames[MOUSE_COUNT] = {
  *  This array of structures is used to control the mouse animation
  *  sequences.
  */
-MouseTypeClass MouseTypeClass::MouseControl[MOUSE_COUNT] = {
-    MouseTypeClass(MouseNames[MOUSE_NORMAL],              0,   1,  0, 1,   1,  0, { MOUSE_HOTSPOT_MIN,    MOUSE_HOTSPOT_MIN    }, { MOUSE_HOTSPOT_MIN,    MOUSE_HOTSPOT_MIN    }), // MOUSE_NORMAL,
+struct MouseControlType
+{
+    const char * Name;
+    int StartFrame;
+    int FrameCount;
+    int FrameRate;
+    int SmallFrame;
+    int SmallFrameCount;
+    int SmallFrameRate;
+    Point2D Hotspot;
+    Point2D SmallHotspot;
+};
+
+static MouseControlType MouseControl[MOUSE_COUNT] = {
+    MouseControlType {MouseNames[MOUSE_NORMAL],              0,   1,  0, 1,   1,  0, { MOUSE_HOTSPOT_MIN,    MOUSE_HOTSPOT_MIN    }, { MOUSE_HOTSPOT_MIN,    MOUSE_HOTSPOT_MIN    }}, // MOUSE_NORMAL,
   
-    MouseTypeClass(MouseNames[MOUSE_N],                   2,   1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_MIN    }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_MIN    }), // MOUSE_N,
-    MouseTypeClass(MouseNames[MOUSE_NE],                  3,   1,  0, -1,  1,  0, { MOUSE_HOTSPOT_MAX,    MOUSE_HOTSPOT_MIN    }, { MOUSE_HOTSPOT_MAX,    MOUSE_HOTSPOT_MIN    }), // MOUSE_NE,
-    MouseTypeClass(MouseNames[MOUSE_E],                   4,   1,  0, -1,  1,  0, { MOUSE_HOTSPOT_MAX,    MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_MAX,    MOUSE_HOTSPOT_CENTER }), // MOUSE_E,
-    MouseTypeClass(MouseNames[MOUSE_SE],                  5,   1,  0, -1,  1,  0, { MOUSE_HOTSPOT_MAX,    MOUSE_HOTSPOT_MAX    }, { MOUSE_HOTSPOT_MAX,    MOUSE_HOTSPOT_MAX    }), // MOUSE_SE,
-    MouseTypeClass(MouseNames[MOUSE_S],                   6,   1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_MAX    }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_MAX    }), // MOUSE_S,
-    MouseTypeClass(MouseNames[MOUSE_SW],                  7,   1,  0, -1,  1,  0, { MOUSE_HOTSPOT_MIN,    MOUSE_HOTSPOT_MAX    }, { MOUSE_HOTSPOT_MIN,    MOUSE_HOTSPOT_MAX    }), // MOUSE_SW,
-    MouseTypeClass(MouseNames[MOUSE_W],                   8,   1,  0, -1,  1,  0, { MOUSE_HOTSPOT_MIN,    MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_MIN,    MOUSE_HOTSPOT_CENTER }), // MOUSE_W,
-    MouseTypeClass(MouseNames[MOUSE_NW],                  9,   1,  0, -1,  1,  0, { MOUSE_HOTSPOT_MIN,    MOUSE_HOTSPOT_MIN    }, { MOUSE_HOTSPOT_MIN,    MOUSE_HOTSPOT_MIN    }), // MOUSE_NW,
-    MouseTypeClass(MouseNames[MOUSE_NO_N],                10,  1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_MIN    }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_MIN    }), // MOUSE_NO_N,
-    MouseTypeClass(MouseNames[MOUSE_NO_NE],               11,  1,  0, -1,  1,  0, { MOUSE_HOTSPOT_MAX,    MOUSE_HOTSPOT_MIN    }, { MOUSE_HOTSPOT_MAX,    MOUSE_HOTSPOT_MIN    }), // MOUSE_NO_NE,
-    MouseTypeClass(MouseNames[MOUSE_NO_E],                12,  1,  0, -1,  1,  0, { MOUSE_HOTSPOT_MAX,    MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_MAX,    MOUSE_HOTSPOT_CENTER }), // MOUSE_NO_E,
-    MouseTypeClass(MouseNames[MOUSE_NO_SE],               13,  1,  0, -1,  1,  0, { MOUSE_HOTSPOT_MAX,    MOUSE_HOTSPOT_MAX    }, { MOUSE_HOTSPOT_MAX,    MOUSE_HOTSPOT_MAX    }), // MOUSE_NO_SE,
-    MouseTypeClass(MouseNames[MOUSE_NO_S],                14,  1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_MAX    }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_MAX    }), // MOUSE_NO_S,
-    MouseTypeClass(MouseNames[MOUSE_NO_SW],               15,  1,  0, -1,  1,  0, { MOUSE_HOTSPOT_MIN,    MOUSE_HOTSPOT_MAX    }, { MOUSE_HOTSPOT_MIN,    MOUSE_HOTSPOT_MAX    }), // MOUSE_NO_SW,
-    MouseTypeClass(MouseNames[MOUSE_NO_W],                16,  1,  0, -1,  1,  0, { MOUSE_HOTSPOT_MIN,    MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_MIN,    MOUSE_HOTSPOT_CENTER }), // MOUSE_NO_W,
-    MouseTypeClass(MouseNames[MOUSE_NO_NW],               17,  1,  0, -1,  1,  0, { MOUSE_HOTSPOT_MIN,    MOUSE_HOTSPOT_MIN    }, { MOUSE_HOTSPOT_MIN,    MOUSE_HOTSPOT_MIN    }), // MOUSE_NO_NW,
+    MouseControlType {MouseNames[MOUSE_N],                   2,   1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_MIN    }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_MIN    }}, // MOUSE_N,
+    MouseControlType {MouseNames[MOUSE_NE],                  3,   1,  0, -1,  1,  0, { MOUSE_HOTSPOT_MAX,    MOUSE_HOTSPOT_MIN    }, { MOUSE_HOTSPOT_MAX,    MOUSE_HOTSPOT_MIN    }}, // MOUSE_NE,
+    MouseControlType {MouseNames[MOUSE_E],                   4,   1,  0, -1,  1,  0, { MOUSE_HOTSPOT_MAX,    MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_MAX,    MOUSE_HOTSPOT_CENTER }}, // MOUSE_E,
+    MouseControlType {MouseNames[MOUSE_SE],                  5,   1,  0, -1,  1,  0, { MOUSE_HOTSPOT_MAX,    MOUSE_HOTSPOT_MAX    }, { MOUSE_HOTSPOT_MAX,    MOUSE_HOTSPOT_MAX    }}, // MOUSE_SE,
+    MouseControlType {MouseNames[MOUSE_S],                   6,   1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_MAX    }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_MAX    }}, // MOUSE_S,
+    MouseControlType {MouseNames[MOUSE_SW],                  7,   1,  0, -1,  1,  0, { MOUSE_HOTSPOT_MIN,    MOUSE_HOTSPOT_MAX    }, { MOUSE_HOTSPOT_MIN,    MOUSE_HOTSPOT_MAX    }}, // MOUSE_SW,
+    MouseControlType {MouseNames[MOUSE_W],                   8,   1,  0, -1,  1,  0, { MOUSE_HOTSPOT_MIN,    MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_MIN,    MOUSE_HOTSPOT_CENTER }}, // MOUSE_W,
+    MouseControlType {MouseNames[MOUSE_NW],                  9,   1,  0, -1,  1,  0, { MOUSE_HOTSPOT_MIN,    MOUSE_HOTSPOT_MIN    }, { MOUSE_HOTSPOT_MIN,    MOUSE_HOTSPOT_MIN    }}, // MOUSE_NW,
+    MouseControlType {MouseNames[MOUSE_NO_N],                10,  1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_MIN    }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_MIN    }}, // MOUSE_NO_N,
+    MouseControlType {MouseNames[MOUSE_NO_NE],               11,  1,  0, -1,  1,  0, { MOUSE_HOTSPOT_MAX,    MOUSE_HOTSPOT_MIN    }, { MOUSE_HOTSPOT_MAX,    MOUSE_HOTSPOT_MIN    }}, // MOUSE_NO_NE,
+    MouseControlType {MouseNames[MOUSE_NO_E],                12,  1,  0, -1,  1,  0, { MOUSE_HOTSPOT_MAX,    MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_MAX,    MOUSE_HOTSPOT_CENTER }}, // MOUSE_NO_E,
+    MouseControlType {MouseNames[MOUSE_NO_SE],               13,  1,  0, -1,  1,  0, { MOUSE_HOTSPOT_MAX,    MOUSE_HOTSPOT_MAX    }, { MOUSE_HOTSPOT_MAX,    MOUSE_HOTSPOT_MAX    }}, // MOUSE_NO_SE,
+    MouseControlType {MouseNames[MOUSE_NO_S],                14,  1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_MAX    }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_MAX    }}, // MOUSE_NO_S,
+    MouseControlType {MouseNames[MOUSE_NO_SW],               15,  1,  0, -1,  1,  0, { MOUSE_HOTSPOT_MIN,    MOUSE_HOTSPOT_MAX    }, { MOUSE_HOTSPOT_MIN,    MOUSE_HOTSPOT_MAX    }}, // MOUSE_NO_SW,
+    MouseControlType {MouseNames[MOUSE_NO_W],                16,  1,  0, -1,  1,  0, { MOUSE_HOTSPOT_MIN,    MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_MIN,    MOUSE_HOTSPOT_CENTER }}, // MOUSE_NO_W,
+    MouseControlType {MouseNames[MOUSE_NO_NW],               17,  1,  0, -1,  1,  0, { MOUSE_HOTSPOT_MIN,    MOUSE_HOTSPOT_MIN    }, { MOUSE_HOTSPOT_MIN,    MOUSE_HOTSPOT_MIN    }}, // MOUSE_NO_NW,
   
-    MouseTypeClass(MouseNames[MOUSE_CAN_SELECT],          18,  13, 4, -1,  13, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_CAN_SELECT,
-    MouseTypeClass(MouseNames[MOUSE_CAN_MOVE],            31,  10, 4, 42,  10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_CAN_MOVE,
-    MouseTypeClass(MouseNames[MOUSE_NO_MOVE],             41,  1,  0, 52,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_NO_MOVE,
-    MouseTypeClass(MouseNames[MOUSE_STAY_ATTACK],         53,  5,  4, 63,  5,  4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_STAY_ATTACK,
-    MouseTypeClass(MouseNames[MOUSE_CAN_ATTACK],          58,  5,  4, 63,  5,  4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_CAN_ATTACK,
-    MouseTypeClass(MouseNames[MOUSE_AREA_GUARD],          68,  5,  4, 73,  5,  4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_AREA_GUARD,
-    MouseTypeClass(MouseNames[MOUSE_TOTE],                78,  10, 4, -1,  10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_TOTE,
-    MouseTypeClass(MouseNames[MOUSE_NO_TOTE],             88,  1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_NO_TOTE,
-    MouseTypeClass(MouseNames[MOUSE_ENTER],               89,  10, 4, 100, 10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_ENTER,
-    MouseTypeClass(MouseNames[MOUSE_NO_ENTER],            99,  1,  0, 63,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_NO_ENTER,
-    MouseTypeClass(MouseNames[MOUSE_DEPLOY],              110, 9,  4, -1,  9,  4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_DEPLOY,
-    MouseTypeClass(MouseNames[MOUSE_NO_DEPLOY],           119, 1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_NO_DEPLOY,
-    MouseTypeClass(MouseNames[MOUSE_UNDEPLOY],            120, 9,  4, -1,  9,  4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_UNDEPLOY,
-    MouseTypeClass(MouseNames[MOUSE_SELL_BACK],           129, 10, 4, -1,  10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_SELL_BACK,
-    MouseTypeClass(MouseNames[MOUSE_SELL_UNIT],           139, 10, 4, -1,  10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_SELL_UNIT,
-    MouseTypeClass(MouseNames[MOUSE_NO_SELL_BACK],        149, 1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_NO_SELL_BACK,
-    MouseTypeClass(MouseNames[MOUSE_GREPAIR],             150, 20, 4, -1,  20, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_GREPAIR,             // Engineer entering friendly building to heal it.
-    MouseTypeClass(MouseNames[MOUSE_REPAIR],              170, 20, 4, -1,  20, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_REPAIR,              // Engineer entering building to damage it.
-    MouseTypeClass(MouseNames[MOUSE_NO_REPAIR],           190, 1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_NO_REPAIR,
-    MouseTypeClass(MouseNames[MOUSE_WAYPOINT],            191, 10, 4, -1,  10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_WAYPOINT,
-    MouseTypeClass(MouseNames[MOUSE_PLACE_WAYPOINT],      201, 10, 4, -1,  10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_PLACE_WAYPOINT,
-    MouseTypeClass(MouseNames[MOUSE_NO_PLACE_WAYPOINT],   211, 1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_NO_PLACE_WAYPOINT,
-    MouseTypeClass(MouseNames[MOUSE_SELECT_WAYPOINT],     212, 7,  4, -1,  7,  4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_SELECT_WAYPOINT,
-    MouseTypeClass(MouseNames[MOUSE_ENTER_WAYPOINT_MODE], 219, 10, 4, -1,  10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_ENTER_WAYPOINT_MODE,
-    MouseTypeClass(MouseNames[MOUSE_FOLLOW_WAYPOINT],     229, 10, 4, -1,  10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_FOLLOW_WAYPOINT,
-    MouseTypeClass(MouseNames[MOUSE_WAYPOINT_TOTE],       239, 10, 4, -1,  10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_WAYPOINT_TOTE,
-    MouseTypeClass(MouseNames[MOUSE_WAYPOINT_REPAIR],     249, 10, 4, -1,  10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_WAYPOINT_REPAIR,
-    MouseTypeClass(MouseNames[MOUSE_ATTACK_WAYPOINT],     259, 10, 4, -1,  10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_ATTACK_WAYPOINT,
-    MouseTypeClass(MouseNames[MOUSE_ENTER_WAYPOINT],      269, 10, 4, -1,  10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_ENTER_WAYPOINT,
-    MouseTypeClass(MouseNames[MOUSE_LOOP_WAYPOINT_PATH],  356, 1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_LOOP_WAYPOINT_PATH,
-    MouseTypeClass(MouseNames[MOUSE_AIR_STRIKE],          279, 20, 4, -1,  20, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_AIR_STRIKE,
-    MouseTypeClass(MouseNames[MOUSE_CHEMBOMB],            299, 10, 4, -1,  10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_CHEMBOMB,
-    MouseTypeClass(MouseNames[MOUSE_DEMOLITIONS],         309, 10, 4, -1,  10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_DEMOLITIONS,
-    MouseTypeClass(MouseNames[MOUSE_NUCLEAR_BOMB],        319, 10, 4, -1,  10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_NUCLEAR_BOMB,
-    MouseTypeClass(MouseNames[MOUSE_TOGGLE_POWER],        329, 16, 2, -1,  16, 2, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_TOGGLE_POWER,
-    MouseTypeClass(MouseNames[MOUSE_NO_TOGGLE_POWER],     345, 1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_NO_TOGGLE_POWER,
-    MouseTypeClass(MouseNames[MOUSE_HEAL],                346, 10, 4, 42,  10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_HEAL,
-    MouseTypeClass(MouseNames[MOUSE_EM_PULSE],            357, 20, 3, -1,  20, 3, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_EM_PULSE,
-    MouseTypeClass(MouseNames[MOUSE_EM_PULSE_RANGE],      377, 1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_EM_PULSE_RANGE,  
+    MouseControlType {MouseNames[MOUSE_CAN_SELECT],          18,  13, 4, -1,  13, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_CAN_SELECT,
+    MouseControlType {MouseNames[MOUSE_CAN_MOVE],            31,  10, 4, 42,  10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_CAN_MOVE,
+    MouseControlType {MouseNames[MOUSE_NO_MOVE],             41,  1,  0, 52,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_NO_MOVE,
+    MouseControlType {MouseNames[MOUSE_STAY_ATTACK],         53,  5,  4, 63,  5,  4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_STAY_ATTACK,
+    MouseControlType {MouseNames[MOUSE_CAN_ATTACK],          58,  5,  4, 63,  5,  4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_CAN_ATTACK,
+    MouseControlType {MouseNames[MOUSE_AREA_GUARD],          68,  5,  4, 73,  5,  4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_AREA_GUARD,
+    MouseControlType {MouseNames[MOUSE_TOTE],                78,  10, 4, -1,  10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_TOTE,
+    MouseControlType {MouseNames[MOUSE_NO_TOTE],             88,  1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_NO_TOTE,
+    MouseControlType {MouseNames[MOUSE_ENTER],               89,  10, 4, 100, 10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_ENTER,
+    MouseControlType {MouseNames[MOUSE_NO_ENTER],            99,  1,  0, 63,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_NO_ENTER,
+    MouseControlType {MouseNames[MOUSE_DEPLOY],              110, 9,  4, -1,  9,  4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_DEPLOY,
+    MouseControlType {MouseNames[MOUSE_NO_DEPLOY],           119, 1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_NO_DEPLOY,
+    MouseControlType {MouseNames[MOUSE_UNDEPLOY],            120, 9,  4, -1,  9,  4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_UNDEPLOY,
+    MouseControlType {MouseNames[MOUSE_SELL_BACK],           129, 10, 4, -1,  10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_SELL_BACK,
+    MouseControlType {MouseNames[MOUSE_SELL_UNIT],           139, 10, 4, -1,  10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_SELL_UNIT,
+    MouseControlType {MouseNames[MOUSE_NO_SELL_BACK],        149, 1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_NO_SELL_BACK,
+    MouseControlType {MouseNames[MOUSE_GREPAIR],             150, 20, 4, -1,  20, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_GREPAIR,             // Engineer entering friendly building to heal it.
+    MouseControlType {MouseNames[MOUSE_REPAIR],              170, 20, 4, -1,  20, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_REPAIR,              // Engineer entering building to damage it.
+    MouseControlType {MouseNames[MOUSE_NO_REPAIR],           190, 1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_NO_REPAIR,
+    MouseControlType {MouseNames[MOUSE_WAYPOINT],            191, 10, 4, -1,  10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_WAYPOINT,
+    MouseControlType {MouseNames[MOUSE_PLACE_WAYPOINT],      201, 10, 4, -1,  10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_PLACE_WAYPOINT,
+    MouseControlType {MouseNames[MOUSE_NO_PLACE_WAYPOINT],   211, 1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_NO_PLACE_WAYPOINT,
+    MouseControlType {MouseNames[MOUSE_SELECT_WAYPOINT],     212, 7,  4, -1,  7,  4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_SELECT_WAYPOINT,
+    MouseControlType {MouseNames[MOUSE_ENTER_WAYPOINT_MODE], 219, 10, 4, -1,  10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_ENTER_WAYPOINT_MODE,
+    MouseControlType {MouseNames[MOUSE_FOLLOW_WAYPOINT],     229, 10, 4, -1,  10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_FOLLOW_WAYPOINT,
+    MouseControlType {MouseNames[MOUSE_WAYPOINT_TOTE],       239, 10, 4, -1,  10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_WAYPOINT_TOTE,
+    MouseControlType {MouseNames[MOUSE_WAYPOINT_REPAIR],     249, 10, 4, -1,  10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_WAYPOINT_REPAIR,
+    MouseControlType {MouseNames[MOUSE_ATTACK_WAYPOINT],     259, 10, 4, -1,  10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_ATTACK_WAYPOINT,
+    MouseControlType {MouseNames[MOUSE_ENTER_WAYPOINT],      269, 10, 4, -1,  10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_ENTER_WAYPOINT,
+    MouseControlType {MouseNames[MOUSE_LOOP_WAYPOINT_PATH],  356, 1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_LOOP_WAYPOINT_PATH,
+    MouseControlType {MouseNames[MOUSE_AIR_STRIKE],          279, 20, 4, -1,  20, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_AIR_STRIKE,
+    MouseControlType {MouseNames[MOUSE_CHEMBOMB],            299, 10, 4, -1,  10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_CHEMBOMB,
+    MouseControlType {MouseNames[MOUSE_DEMOLITIONS],         309, 10, 4, -1,  10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_DEMOLITIONS,
+    MouseControlType {MouseNames[MOUSE_NUCLEAR_BOMB],        319, 10, 4, -1,  10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_NUCLEAR_BOMB,
+    MouseControlType {MouseNames[MOUSE_TOGGLE_POWER],        329, 16, 2, -1,  16, 2, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_TOGGLE_POWER,
+    MouseControlType {MouseNames[MOUSE_NO_TOGGLE_POWER],     345, 1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_NO_TOGGLE_POWER,
+    MouseControlType {MouseNames[MOUSE_HEAL],                346, 10, 4, 42,  10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_HEAL,
+    MouseControlType {MouseNames[MOUSE_EM_PULSE],            357, 20, 3, -1,  20, 3, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_EM_PULSE,
+    MouseControlType {MouseNames[MOUSE_EM_PULSE_RANGE],      377, 1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_EM_PULSE_RANGE,  
   
-    MouseTypeClass(MouseNames[MOUSE_SCROLL_COASTING],     378, 1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_SCROLL_COASTING,
-    MouseTypeClass(MouseNames[MOUSE_SCROLL_COASTING_N],   379, 1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_SCROLL_COASTING_N,
-    MouseTypeClass(MouseNames[MOUSE_SCROLL_COASTING_NE],  380, 1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_SCROLL_COASTING_NE,
-    MouseTypeClass(MouseNames[MOUSE_SCROLL_COASTING_E],   381, 1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_SCROLL_COASTING_E,
-    MouseTypeClass(MouseNames[MOUSE_SCROLL_COASTING_SE],  382, 1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_SCROLL_COASTING_SE,
-    MouseTypeClass(MouseNames[MOUSE_SCROLL_COASTING_S],   383, 1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_SCROLL_COASTING_S,
-    MouseTypeClass(MouseNames[MOUSE_SCROLL_COASTING_SW],  384, 1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_SCROLL_COASTING_SW,
-    MouseTypeClass(MouseNames[MOUSE_SCROLL_COASTING_W],   385, 1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_SCROLL_COASTING_W,
-    MouseTypeClass(MouseNames[MOUSE_SCROLL_COASTING_NW],  386, 1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }), // MOUSE_SCROLL_COASTING_NW,
+    MouseControlType {MouseNames[MOUSE_SCROLL_COASTING],     378, 1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_SCROLL_COASTING,
+    MouseControlType {MouseNames[MOUSE_SCROLL_COASTING_N],   379, 1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_SCROLL_COASTING_N,
+    MouseControlType {MouseNames[MOUSE_SCROLL_COASTING_NE],  380, 1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_SCROLL_COASTING_NE,
+    MouseControlType {MouseNames[MOUSE_SCROLL_COASTING_E],   381, 1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_SCROLL_COASTING_E,
+    MouseControlType {MouseNames[MOUSE_SCROLL_COASTING_SE],  382, 1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_SCROLL_COASTING_SE,
+    MouseControlType {MouseNames[MOUSE_SCROLL_COASTING_S],   383, 1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_SCROLL_COASTING_S,
+    MouseControlType {MouseNames[MOUSE_SCROLL_COASTING_SW],  384, 1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_SCROLL_COASTING_SW,
+    MouseControlType {MouseNames[MOUSE_SCROLL_COASTING_W],   385, 1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_SCROLL_COASTING_W,
+    MouseControlType {MouseNames[MOUSE_SCROLL_COASTING_NW],  386, 1,  0, -1,  1,  0, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}, // MOUSE_SCROLL_COASTING_NW,
   
-    MouseTypeClass(MouseNames[MOUSE_PATROL_WAYPOINT],     387, 10, 4, -1,  10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER })  // MOUSE_PATROL_WAYPOINT,
+    MouseControlType {MouseNames[MOUSE_PATROL_WAYPOINT],     387, 10, 4, -1,  10, 4, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }, { MOUSE_HOTSPOT_CENTER, MOUSE_HOTSPOT_CENTER }}  // MOUSE_PATROL_WAYPOINT,
 };
 
 
@@ -266,7 +279,7 @@ void MouseTypeClass::One_Time()
     for (MouseType mouse = MOUSE_NORMAL; mouse < MOUSE_COUNT; ++mouse) {
 
         MouseTypeClass *mousetype = new MouseTypeClass(
-            MouseControl[mouse].Name.Peek_Buffer(),
+            MouseControl[mouse].Name,
             MouseControl[mouse].StartFrame,
             MouseControl[mouse].FrameCount,
             MouseControl[mouse].FrameRate,
@@ -316,30 +329,30 @@ bool MouseTypeClass::Read_INI(CCINIClass &ini)
 
         tok = std::strtok(buffer, ",");
         mousectrl->StartFrame = std::strtol(tok, nullptr, 10);
-        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse StartFrame for %s!", mousectrl->Name.Peek_Buffer());
+        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse StartFrame for %s!", mousectrl->Name.c_str());
 
         tok = std::strtok(nullptr, ",");
         mousectrl->FrameCount = std::strtol(tok, nullptr, 10);
-        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse FrameCount for %s!", mousectrl->Name.Peek_Buffer());
+        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse FrameCount for %s!", mousectrl->Name.c_str());
 
         tok = std::strtok(nullptr, ",");
         mousectrl->FrameRate = std::strtol(tok, nullptr, 10);
-        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse FrameRate for %s!", mousectrl->Name.Peek_Buffer());
+        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse FrameRate for %s!", mousectrl->Name.c_str());
 
         tok = std::strtok(nullptr, ",");
         mousectrl->SmallFrame = std::strtol(tok, nullptr, 10);
-        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse SmallFrame for %s!", mousectrl->Name.Peek_Buffer());
+        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse SmallFrame for %s!", mousectrl->Name.c_str());
 
         tok = std::strtok(nullptr, ",");
-        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse SmallFrameCount for %s!", mousectrl->Name.Peek_Buffer());
+        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse SmallFrameCount for %s!", mousectrl->Name.c_str());
         mousectrl->SmallFrameCount = std::strtol(tok, nullptr, 10);
 
         tok = std::strtok(nullptr, ",");
-        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse SmallFrameRate for %s!", mousectrl->Name.Peek_Buffer());
+        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse SmallFrameRate for %s!", mousectrl->Name.c_str());
         mousectrl->SmallFrameRate = std::strtol(tok, nullptr, 10);
 
         tok = std::strtok(nullptr, ",");
-        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse HotspotX for %s!", mousectrl->Name.Peek_Buffer());
+        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse HotspotX for %s!", mousectrl->Name.c_str());
         if (!strcmpi(tok, "left")) {
             value = MOUSE_HOTSPOT_MIN;
         } else if (!strcmpi(tok, "center")) {
@@ -352,7 +365,7 @@ bool MouseTypeClass::Read_INI(CCINIClass &ini)
         mousectrl->Hotspot.X = value;
 
         tok = std::strtok(nullptr, ",");
-        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse HotspotY for %s!", mousectrl->Name.Peek_Buffer());
+        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse HotspotY for %s!", mousectrl->Name.c_str());
         if (!strcmpi(tok, "top")) {
             value = MOUSE_HOTSPOT_MIN;
         } else if (!strcmpi(tok, "middle")) {
@@ -386,15 +399,14 @@ bool MouseTypeClass::Write_Default_INI(CCINIClass &ini)
     char buffer[1024];
 
     for (MouseType mouse = MOUSE_NORMAL; mouse < MOUSE_COUNT; ++mouse) {
-
-        MouseTypeClass &mousectrl = MouseControl[mouse];
+        auto const& control = MouseControl[mouse];
 
         const char *hotspot_x = nullptr;
         const char *hotspot_y = nullptr;
         const char *smallhotspot_x = nullptr;
         const char *smallhotspot_y = nullptr;
 
-        switch (mousectrl.Hotspot.X) {
+        switch (control.Hotspot.X) {
             case MOUSE_HOTSPOT_MIN:
                 hotspot_x = "left";
                 break;
@@ -405,11 +417,11 @@ bool MouseTypeClass::Write_Default_INI(CCINIClass &ini)
                 hotspot_x = "right";
                 break;
             default:
-                DEBUG_ERROR("Mouse: Invalid hotspot X for %s!\n", mousectrl.Name.Peek_Buffer());
+                DEBUG_ERROR("Mouse: Invalid hotspot X for %s!\n", control.Name);
                 return false;
-        };
+        }
 
-        switch (mousectrl.Hotspot.Y) {
+        switch (control.Hotspot.Y) {
             case MOUSE_HOTSPOT_MIN:
                 hotspot_y = "top";
                 break;
@@ -420,11 +432,11 @@ bool MouseTypeClass::Write_Default_INI(CCINIClass &ini)
                 hotspot_y = "bottom";
                 break;
             default:
-                DEBUG_ERROR("Mouse: Invalid hotspot Y for %s!\n", mousectrl.Name.Peek_Buffer());
+                DEBUG_ERROR("Mouse: Invalid hotspot Y for %s!\n", control.Name);
                 return false;
-        };
+        }
 
-        switch (mousectrl.SmallHotspot.X) {
+        switch (control.SmallHotspot.X) {
             case MOUSE_HOTSPOT_MIN:
                 smallhotspot_x = "left";
                 break;
@@ -435,11 +447,11 @@ bool MouseTypeClass::Write_Default_INI(CCINIClass &ini)
                 smallhotspot_x = "right";
                 break;
             default:
-                DEBUG_ERROR("Mouse: Invalid hotspot X for %s!\n", mousectrl.Name.Peek_Buffer());
+                DEBUG_ERROR("Mouse: Invalid hotspot X for %s!\n", control.Name);
                 return false;
-        };
+        }
 
-        switch (mousectrl.SmallHotspot.Y) {
+        switch (control.SmallHotspot.Y) {
             case MOUSE_HOTSPOT_MIN:
                 smallhotspot_y = "top";
                 break;
@@ -450,23 +462,23 @@ bool MouseTypeClass::Write_Default_INI(CCINIClass &ini)
                 smallhotspot_y = "bottom";
                 break;
             default:
-                DEBUG_ERROR("Mouse: Invalid hotspot Y for %s!\n", mousectrl.Name.Peek_Buffer());
+                DEBUG_ERROR("Mouse: Invalid hotspot Y for %s!\n", control.Name);
                 return false;
-        };
+        }
 
         std::snprintf(buffer, sizeof(buffer), "%d,%d,%d,%d,%d,%d,%s,%s,%s,%s",
-                                    mousectrl.StartFrame,
-                                    mousectrl.FrameCount,
-                                    mousectrl.FrameRate,
-                                    mousectrl.SmallFrame,
-                                    mousectrl.SmallFrameCount,
-                                    mousectrl.SmallFrameRate,
+                                    control.StartFrame,
+                                    control.FrameCount,
+                                    control.FrameRate,
+                                    control.SmallFrame,
+                                    control.SmallFrameCount,
+                                    control.SmallFrameRate,
                                     hotspot_x,
                                     hotspot_y,
                                     smallhotspot_x,
                                     smallhotspot_y);
 
-        ini.Put_String(MOUSE, mousectrl.Name.Peek_Buffer(), buffer);
+        ini.Put_String(MOUSE, control.Name, buffer);
     }
 
     return true;
@@ -483,7 +495,7 @@ MouseType MouseTypeClass::From_Name(const char *name)
 {
     ASSERT(name != nullptr);
 
-    if (Wstring(name) == "<none>" || Wstring(name) == "none") {
+    if (nonstd::string_view(name) == "<none>" || nonstd::string_view(name) == "none") {
         return MOUSE_NORMAL;
     }
 
@@ -506,7 +518,7 @@ MouseType MouseTypeClass::From_Name(const char *name)
  */
 const char *MouseTypeClass::Name_From(MouseType type)
 {
-    return (type >= MOUSE_NORMAL && type < MouseTypes.Count() ? MouseTypes[type]->Name.Peek_Buffer() : "<none>");
+    return (type >= MOUSE_NORMAL && type < MouseTypes.Count() ? MouseTypes[type]->Name.c_str() : "<none>");
 }
 
 
@@ -519,7 +531,7 @@ MouseTypeClass *MouseTypeClass::Find_Or_Make(const char *name)
 {
     ASSERT(name != nullptr);
 
-    if (Wstring(name) == "<none>" || Wstring(name) == "none") {
+    if (nonstd::string_view(name) == "<none>" || nonstd::string_view(name) == "none") {
         return nullptr;
     }
 

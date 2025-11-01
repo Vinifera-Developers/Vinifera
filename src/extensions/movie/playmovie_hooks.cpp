@@ -35,7 +35,6 @@
 #include "movie.h"
 #include "playmovie.h"
 #include "cd.h"
-#include "wstring.h"
 #include "extension.h"
 #include "fatal.h"
 #include "debughandler.h"

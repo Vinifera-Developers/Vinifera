@@ -33,7 +33,6 @@
 #include "debughandler.h"
 #include "vinifera_globals.h"
 #include "tibsun_globals.h"
-#include "wstring.h"
 #include "swizzle.h"
 #include "newswizzle.h"
 

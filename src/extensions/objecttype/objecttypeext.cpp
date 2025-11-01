@@ -53,7 +53,13 @@ ObjectTypeClassExtension::ObjectTypeClassExtension(const ObjectTypeClass *this_p
     AbstractTypeClassExtension(this_ptr),
     GraphicName(),
     AlphaGraphicName(),
-    NoSpawnAlt(false)
+    NoSpawnAlt(false),
+    NoSpawnVoxel(),
+    NoSpawnVoxelIndex(),
+    WaterAlt(false),
+    WaterVoxel(),
+    WaterVoxelIndex()
+
 {
     //if (this_ptr) EXT_DEBUG_TRACE("ObjectTypeClassExtension::ObjectTypeClassExtension - Name: %s (0x%08X)\n", Name(), (uintptr_t)(This()));
 }
@@ -107,8 +113,11 @@ HRESULT ObjectTypeClassExtension::Load(IStream *pStm)
     new (&NoSpawnVoxelIndex) VoxelIndexClass;
     new (&WaterVoxelIndex) VoxelIndexClass;
 
-    NoSpawnVoxel.Clear();
-    WaterVoxel.Clear();
+    NoSpawnVoxel.MotionLibrary = nullptr;
+    NoSpawnVoxel.VoxelLibrary = nullptr;
+
+    WaterVoxel.MotionLibrary = nullptr;
+    WaterVoxel.VoxelLibrary = nullptr;
 
     Fetch_Voxel_Image(GraphicName.c_str());
     

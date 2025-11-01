@@ -31,7 +31,6 @@
 #include "tibsun_defines.h"
 #include "vinifera_defines.h"
 #include "verses.h"
-#include "wstring.h"
 
 class CCINIClass;
 

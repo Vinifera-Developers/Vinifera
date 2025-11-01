@@ -182,7 +182,7 @@ HRESULT TechnoTypeClassExtension::Load(IStream *pStm)
     char cameo_buffer[32];
     
     ArtINI.Get_String(ini_name, "Cameo", "XXICON", cameo_buffer, sizeof(cameo_buffer));
-    if (Wstring(cameo_buffer) != "XXICON") {
+    if (nonstd::string_view(cameo_buffer) != "XXICON") {
 
         ArtINI.Get_String(graphic_name, "Cameo", "XXICON", cameo_buffer, sizeof(cameo_buffer));
 

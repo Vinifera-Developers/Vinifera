@@ -32,7 +32,6 @@
 #include "tactical.h"
 #include "ttimer.h"
 #include "stimer.h"
-#include "wstring.h"
 #include "point.h"
 #include "textprint.h"
 #include <objidl.h>

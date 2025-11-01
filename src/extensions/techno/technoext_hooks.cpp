@@ -2537,21 +2537,19 @@ void TechnoClassExt::_AI_Abandon_Detour()
     }
 
     if (Frame % 16 == 0) {
-        if (Mission != MISSION_CAPTURE && Mission != MISSION_SABOTAGE) {
-            WeaponSlotType which = What_Weapon_Should_I_Use(TarCom);
-            FireErrorType fire = Can_Fire(TarCom, which);
+        RadioClass* radio = Contact_With_Whom();
+        if (!radio || radio->RTTI != RTTI_BUILDING || radio->Mission != MISSION_UNLOAD) {
+            if (Mission != MISSION_CAPTURE && Mission != MISSION_SABOTAGE) {
+                WeaponSlotType which = What_Weapon_Should_I_Use(TarCom);
+                FireErrorType fire = Can_Fire(TarCom, which);
 
-            if (fire == FIRE_ILLEGAL || fire == FIRE_CANT) {
-                WeaponTypeClass* weapon = const_cast<WeaponTypeClass*>(Get_Weapon(which)->Weapon);
-                bool is_firing_particles = weapon && (
-                    (weapon->IsUseFireParticles && ParticleSystems[ATTACHED_PARTICLE_FIRE]) ||
-                    (weapon->IsRailgun && ParticleSystems[ATTACHED_PARTICLE_RAILGUN]) ||
-                    (weapon->IsUseSparkParticles && ParticleSystems[ATTACHED_PARTICLE_SPARK]) ||
-                    (weapon->IsSonic && Wave)
-                );
+                if (fire == FIRE_ILLEGAL || fire == FIRE_CANT) {
+                    WeaponTypeClass* weapon = const_cast<WeaponTypeClass*>(Get_Weapon(which)->Weapon);
+                    bool is_firing_particles = weapon && ((weapon->IsUseFireParticles && ParticleSystems[ATTACHED_PARTICLE_FIRE]) || (weapon->IsRailgun && ParticleSystems[ATTACHED_PARTICLE_RAILGUN]) || (weapon->IsUseSparkParticles && ParticleSystems[ATTACHED_PARTICLE_SPARK]) || (weapon->IsSonic && Wave));
 
-                if (!is_firing_particles || fire == FIRE_ILLEGAL) {
-                    Assign_Target(nullptr);
+                    if (!is_firing_particles || fire == FIRE_ILLEGAL) {
+                        Assign_Target(nullptr);
+                    }
                 }
             }
         }

@@ -734,25 +734,25 @@ BSurface *Vinifera_Get_Image_Surface(const char *filename)
     BSurface *surface = nullptr;
     CCFileClass file;
 
-    Wstring fname = filename;
-    fname.To_Upper();
+    std::string fname = filename;
+    std::transform(fname.begin(), fname.end(), fname.begin(), ::toupper);
 
-    Wstring png_fname = fname;
+    std::string png_fname = fname;
     png_fname += ".PNG";
 
-    file.Set_Name(png_fname.Peek_Buffer());
+    file.Set_Name(png_fname.c_str());
 
     surface = Read_PNG_File(&file);
     if (surface) {
         return surface;
     }
 
-    surface = Get_BMP_Image_Surface(fname.Peek_Buffer());
+    surface = Get_BMP_Image_Surface(fname.c_str());
     if (surface) {
         return surface;
     }
 
-    surface = Get_PCX_Image_Surface(fname.Peek_Buffer());
+    surface = Get_PCX_Image_Surface(fname.c_str());
     if (surface) {
         return surface;
     }
