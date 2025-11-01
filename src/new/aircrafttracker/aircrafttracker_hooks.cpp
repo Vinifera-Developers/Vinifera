@@ -135,33 +135,32 @@ DECLARE_PATCH(_FlyLocomotionClass_Process_Landing_AircraftTracker_Patch)
 }
 
 
-void Levitate_Update_Position_Helper(LevitateLocomotionClass* loco)
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or destructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+static class LevitateLocomotionClassExt : public LevitateLocomotionClass
 {
-    FootClassExtension* linked_ext;
-    Cell oldcell, newcell;
+public:
+    void _func_4FDF80();
+};
 
-    linked_ext = Extension::Fetch(loco->LinkedTo);
 
-    oldcell = linked_ext->Get_Last_Flight_Cell();
-    newcell = loco->LinkedTo->Get_Cell();
+void LevitateLocomotionClassExt::_func_4FDF80()
+{
+    func_4FDF80();
+
+    FootClassExtension* linked_ext = Extension::Fetch(LinkedTo);
+
+    Cell oldcell = linked_ext->Get_Last_Flight_Cell();
+    Cell newcell = LinkedTo->Get_Cell();
 
     if (newcell != oldcell) {
-        AircraftTracker->Update_Position(loco->LinkedTo, oldcell, newcell);
+        AircraftTracker->Update_Position(LinkedTo, oldcell, newcell);
     }
-}
-
-
-DECLARE_PATCH(_LevitateLocomotionClass_State_AI_AircraftTracker_Patch)
-{
-    GET_REGISTER_STATIC(ILocomotion*, loco, ebp);
-    static int result;
-
-    Levitate_Update_Position_Helper(static_cast<LevitateLocomotionClass*>(loco));
-
-    result = loco->Is_Moving();
-
-    _asm mov eax, result
-    JMP_REG(edi, 0x00500C01);
 }
 
 
@@ -174,5 +173,5 @@ void AircraftTracker_Hooks()
     Patch_Jump(0x00499F51, &_FlyLocomotionClass_Movement_AI_AircraftTracker_Patch1);
     Patch_Jump(0x0049A07D, &_FlyLocomotionClass_Movement_AI_AircraftTracker_Patch2);
     Patch_Jump(0x0049B92C, &_FlyLocomotionClass_Process_Landing_AircraftTracker_Patch);
-    Patch_Jump(0x00500BFA, &_LevitateLocomotionClass_State_AI_AircraftTracker_Patch);
+    Patch_Call(0x00500BF5, &LevitateLocomotionClassExt::_func_4FDF80);
 }
