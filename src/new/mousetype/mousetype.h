@@ -105,8 +105,4 @@ class MouseTypeClass
          *  Hotspot X and Y offset for the small version (if any).
          */
         Point2D SmallHotspot;
-
-    private:
-        static MouseTypeClass MouseControl[MOUSE_COUNT];
-        static const char *MouseTypeClass::MouseNames[MOUSE_COUNT];
 };
