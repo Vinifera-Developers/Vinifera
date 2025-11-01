@@ -35,7 +35,6 @@
 #include "side.h"
 #include "armortype.h"
 #include "rockettype.h"
-#include "wstring.h"
 #include "wwcrc.h"
 #include "noinit.h"
 #include "swizzle.h"
@@ -317,8 +316,6 @@ void RulesClassExtension::Process(CCINIClass &ini)
     for (int index = 0; index < BuildingTypes.Count(); ++index) {
 
         BuildingTypeClass *btype = BuildingTypes[index];
-        Wstring name = btype->Name();
-        Wstring graphic_name = btype->Graphic_Name();
 
         /**
          *  This is a edge case issue we exposed in the original RULES.INI where the
@@ -328,7 +325,7 @@ void RulesClassExtension::Process(CCINIClass &ini)
          *  BuildingTypes (see RulesClass::Objects()), we make sure NARADR has the
          *  default value of "IsNewTheater" set to true.
          */
-        if (name == "NARADR" && btype->IsNewTheater == false) {
+        if (btype->IniName == "NARADR" && btype->IsNewTheater == false) {
             DEBUG_WARNING("Rules: Changing the default value of IsNewTheater for NARADR to 'true'!\n");
             DEBUG_WARNING("Rules: Please consider changing NewTheater on NARADR to 'yes'!\n");
             btype->IsNewTheater = true;
@@ -1136,11 +1133,11 @@ void RulesClassExtension::Fixups(CCINIClass &ini)
              *   - The HouseType's Side name is "GDI"
              *   - Side 1 name is "Nod"
              */
-            if (Wstring(housetype->Name()) == Wstring("Nod")
+            if (housetype->IniName == "Nod"
                 && housetype->Fetch_Heap_ID() == HOUSE_NOD
                 && housetype->Side == SIDE_GDI
-                && Wstring(Sides[housetype->Side]->Name()) == Wstring("GDI")
-                && Wstring(Sides[SIDE_NOD]->Name()) == Wstring("Nod")) {
+                && Sides[housetype->Side]->IniName == "GDI"
+                && Sides[SIDE_NOD]->IniName == "Nod") {
 
                 DEBUG_WARNING("Rules: House \"%s\" (%d) has \"Side=GDI\", changing Side to \"Nod\"!\n",
                     housetype->Name(), housetype->Fetch_Heap_ID());
@@ -1164,7 +1161,7 @@ void RulesClassExtension::Fixups(CCINIClass &ini)
              *   - HouseType "Nod" is index 1
              *   - HouseType "Nod" has Prefix=B
              */
-            if (Wstring(housetype->Name()) == Wstring("Nod")
+            if (housetype->IniName == "Nod"
                 && housetype->Fetch_Heap_ID() == HOUSE_NOD
                 && housetype->Prefix == 'B') {
 

@@ -30,7 +30,6 @@
 #include "always.h"
 #include "iomap.h"
 #include "point.h"
-#include "wstring.h"
 
 
 class CCINIClass;
@@ -51,8 +50,6 @@ class MouseTypeClass
         MouseTypeClass(const NoInitClass &noinit);
         virtual ~MouseTypeClass();
 
-        Wstring Get_Name() const { return Name; }
-
         static void One_Time();
 
         static bool Read_INI(CCINIClass &ini);
@@ -67,7 +64,7 @@ class MouseTypeClass
         static MouseTypeClass *Find_Or_Make(const char *name);
 
     private:
-        Wstring Name;
+        std::string Name;
 
         /**
          *  Starting frame number.

@@ -29,7 +29,6 @@
 #include "tibsun_functions.h"
 #include "vinifera_saveload.h"
 #include "vinifera_util.h"
-#include "wstring.h"
 #include "vector.h"
 #include "tclassfactory.h"
 #include "swizzle.h"
@@ -437,7 +436,7 @@ static bool Extension_Request_Pointer_Remap(const DynamicVectorClass<BASE_CLASS 
                 continue; //return false;
             }
 
-            Wstring extptr_name;
+            std::string extptr_name;
             extptr_name += Extension::Utility::Get_TypeID_Name(object).c_str();
             extptr_name += "::ExtPtr";
 
@@ -445,7 +444,7 @@ static bool Extension_Request_Pointer_Remap(const DynamicVectorClass<BASE_CLASS 
              *  Inform the swizzle manager that we need to remap the pointer.
              */
             uintptr_t **ext_ptr_addr = ABSTRACT_EXTENSION_POINTER_REMAP_MACRO(object);
-            VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(*ext_ptr_addr, extptr_name.Peek_Buffer());
+            VINIFERA_SWIZZLE_REQUEST_POINTER_REMAP(*ext_ptr_addr, extptr_name.c_str());
 
             EXT_DEBUG_INFO("  Requested remap of index %d extension pointer complete.\n", index);
         }
@@ -1125,7 +1124,7 @@ static bool Print_Event_List(FILE *fp, QueueClass<T, I> &list)
         EventClass *ev = &list[index];
         if (ev) {
             char ev_byte_format[4];
-            Wstring ev_data_buffer;
+            std::string ev_data_buffer;
             int ev_size = EventClassExt::Event_Length(ev->Type);
             const char* ev_name = EventClassExt::Event_Name(ev->Type);
             for (int i = 0; i < ev_size; ++i) {

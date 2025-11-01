@@ -34,7 +34,6 @@
 #include "house.h"
 #include "housetype.h"
 #include "scenario.h"
-#include "wstring.h"
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"

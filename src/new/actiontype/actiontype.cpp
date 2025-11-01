@@ -224,7 +224,7 @@ void ActionTypeClass::One_Time()
     for (ActionType action = ACTION_NONE; action < std::size(ActionControl); ++action) {
          
         ActionTypeClass *actiontype = new ActionTypeClass(
-            ActionControl[action].Name.Peek_Buffer(),
+            ActionControl[action].Name.c_str(),
             ActionControl[action].Mouse,
             ActionControl[action].ShadowMouse);
 
@@ -267,14 +267,14 @@ bool ActionTypeClass::Read_INI(CCINIClass &ini)
 
         tok = std::strtok(buffer, ",");
         actiontype->Mouse = MouseTypeClass::From_Name(tok);
-        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse Mouse for %s!", actiontype->Name.Peek_Buffer());
+        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse Mouse for %s!", actiontype->Name.c_str());
 
         tok = std::strtok(nullptr, ",");
         actiontype->ShadowMouse = MouseTypeClass::From_Name(tok);
-        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse ShadowMouse for %s!", actiontype->Name.Peek_Buffer());
+        ASSERT_FATAL_PRINT(tok != nullptr, "Unable to parse ShadowMouse for %s!", actiontype->Name.c_str());
 
         DEV_DEBUG_INFO("Action: Name: %s Mouse: %s ShadowMouse: %s\n",
-            actiontype->Name.Peek_Buffer(), MouseTypeClass::Name_From(actiontype->Mouse), MouseTypeClass::Name_From(actiontype->ShadowMouse));
+            actiontype->Name.c_str(), MouseTypeClass::Name_From(actiontype->Mouse), MouseTypeClass::Name_From(actiontype->ShadowMouse));
     }
 
     return true;
@@ -301,7 +301,7 @@ bool ActionTypeClass::Write_Default_INI(CCINIClass &ini)
                                     MouseTypeClass::Name_From(actionctrl.Mouse),
                                     MouseTypeClass::Name_From(actionctrl.ShadowMouse));
 
-        ini.Put_String(ACTION, actionctrl.Name.Peek_Buffer(), buffer);
+        ini.Put_String(ACTION, actionctrl.Name.c_str(), buffer);
     }
 
     return true;
@@ -318,7 +318,7 @@ ActionType ActionTypeClass::From_Name(const char *name)
 {
     ASSERT(name != nullptr);
 
-    if (Wstring(name) == "<none>" || Wstring(name) == "none") {
+    if (nonstd::string_view(name) == "<none>" || nonstd::string_view(name) == "none") {
         return ACTION_NONE;
     }
 
@@ -341,7 +341,7 @@ ActionType ActionTypeClass::From_Name(const char *name)
  */
 const char *ActionTypeClass::Name_From(ActionType type)
 {
-    return (type >= ACTION_NONE && type < ActionTypes.Count() ? ActionTypes[type]->Name.Peek_Buffer() : "<none>");
+    return (type >= ACTION_NONE && type < ActionTypes.Count() ? ActionTypes[type]->Name.c_str() : "<none>");
 }
 
 
@@ -354,7 +354,7 @@ ActionTypeClass *ActionTypeClass::Find_Or_Make(const char *name)
 {
     ASSERT(name != nullptr);
 
-    if (Wstring(name) == "<none>" || Wstring(name) == "none") {
+    if (nonstd::string_view(name) == "<none>" || nonstd::string_view(name) == "none") {
         return nullptr;
     }
 

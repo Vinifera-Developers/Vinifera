@@ -64,7 +64,7 @@
 #include "setup_hooks.h"
 
 
-static DynamicVectorClass<Wstring> ViniferaSearchPaths;
+static DynamicVectorClass<std::string> ViniferaSearchPaths;
 
 
 /**
@@ -570,7 +570,7 @@ bool Vinifera_Startup()
          */
         for (int i = 0; i < ViniferaSearchPaths.Count(); ++i) {
             if (i != 0) std::strcat(new_path, ";");
-            std::strcat(new_path, ViniferaSearchPaths[i].Peek_Buffer());
+            std::strcat(new_path, ViniferaSearchPaths[i].c_str());
         }
 
         /**
