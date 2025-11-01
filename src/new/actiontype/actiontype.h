@@ -63,8 +63,4 @@ class ActionTypeClass
         std::string Name;
         MouseType Mouse;
         MouseType ShadowMouse;
-
-    private:
-        static ActionTypeClass ActionControl[EXT_ACTION_COUNT];
-        static const char* ActionNames[EXT_ACTION_COUNT];
 };
