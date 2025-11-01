@@ -199,6 +199,12 @@ void ScenarioClassExtension::Init_Clear()
          *  Clear the any previously loaded tutorial messages in preperation for
          *  reloading the TUTORIAL.INI as they might contain scenario overrides.
          */
+        for (int i = 0; i < TutorialText.Count(); i++) {
+            const char* txt = TutorialText.Fetch_By_Position(i);
+            if (txt != nullptr) {
+                free(const_cast<char*>(txt));
+            }
+        }
         TutorialText.Clear();
 
         /**
