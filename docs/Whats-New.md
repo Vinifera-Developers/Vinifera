@@ -72,6 +72,7 @@ New:
 - Add Water movement zone override (by ZivDero)
 - Implement multiplayer beacons (by ZivDero)
 - Chat improvements (by ZivDero)
+- Replace DirectDraw with SDL (by ZivDero, tomsons26, CCHyper)
 
 
 Vinifera fixes:

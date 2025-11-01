@@ -22,6 +22,32 @@ This page describes every change in Vinifera that wasn't categorized into a prop
 - Vinifera changes the default value of `AllowHiResModes` to true.
 - Factories now hold their object if there is no war factory available for the unit to exit from instead of refuding construction.
 
+### DirectDraw replacement
+
+- Vinifera replaced the old DirectDraw (`ddraw.dll`) API with SDL. As a result, DirectDraw wrappers are no longer necessary for the game to run properly, and may even be harmful.
+- Accordingly, some new video settings are available in `SUN.INI`.
+
+In `SUN.INI`:
+```ini
+[Video]
+Windowed=no         ; boolean, should the game start in a window
+WindowWidth=-1      ; integer, if positive and Windowed=true, sets the window width override
+WindowHeight=-1     ; integer, if positive and Windowed=true, sets the window height override
+ScaleMode=PixelArt  ; scale mode, valid options are "Linear", "Nearest" and "PixelArt"
+CursorScale=0       ; integer, cursor scale factor override
+```
+
+```{note}
+`CursorScale` options:
+- `<0` - disable scaling
+- `0` - scale automatically
+- `>0` - explicit scale value
+```
+
+```{warning}
+Fullscreen mode uses a borderless window; exclusive fullscreen is not supported. To disable the windowed mode entirely, set `Windowed` to `false`.
+```
+
 ### Starting Unit Placement
 
 - Vinifera changes starting units to be placed in the same way as they are in Red Alert 2.
