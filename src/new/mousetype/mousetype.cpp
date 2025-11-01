@@ -115,7 +115,7 @@ static const char* MouseNames[MOUSE_COUNT] = {
  */
 struct MouseControlType
 {
-    nonstd::string_view Name;
+    const char * Name;
     int StartFrame;
     int FrameCount;
     int FrameRate;
@@ -279,7 +279,7 @@ void MouseTypeClass::One_Time()
     for (MouseType mouse = MOUSE_NORMAL; mouse < MOUSE_COUNT; ++mouse) {
 
         MouseTypeClass *mousetype = new MouseTypeClass(
-            std::string(MouseControl[mouse].Name).c_str(),
+            MouseControl[mouse].Name,
             MouseControl[mouse].StartFrame,
             MouseControl[mouse].FrameCount,
             MouseControl[mouse].FrameRate,
@@ -417,7 +417,7 @@ bool MouseTypeClass::Write_Default_INI(CCINIClass &ini)
                 hotspot_x = "right";
                 break;
             default:
-                DEBUG_ERROR("Mouse: Invalid hotspot X for %s!\n", std::string(control.Name).c_str());
+                DEBUG_ERROR("Mouse: Invalid hotspot X for %s!\n", control.Name);
                 return false;
         }
 
@@ -432,7 +432,7 @@ bool MouseTypeClass::Write_Default_INI(CCINIClass &ini)
                 hotspot_y = "bottom";
                 break;
             default:
-                DEBUG_ERROR("Mouse: Invalid hotspot Y for %s!\n", std::string(control.Name).c_str());
+                DEBUG_ERROR("Mouse: Invalid hotspot Y for %s!\n", control.Name);
                 return false;
         }
 
@@ -447,7 +447,7 @@ bool MouseTypeClass::Write_Default_INI(CCINIClass &ini)
                 smallhotspot_x = "right";
                 break;
             default:
-                DEBUG_ERROR("Mouse: Invalid hotspot X for %s!\n", std::string(control.Name).c_str());
+                DEBUG_ERROR("Mouse: Invalid hotspot X for %s!\n", control.Name);
                 return false;
         }
 
@@ -462,7 +462,7 @@ bool MouseTypeClass::Write_Default_INI(CCINIClass &ini)
                 smallhotspot_y = "bottom";
                 break;
             default:
-                DEBUG_ERROR("Mouse: Invalid hotspot Y for %s!\n", std::string(control.Name).c_str());
+                DEBUG_ERROR("Mouse: Invalid hotspot Y for %s!\n", control.Name);
                 return false;
         }
 
@@ -478,7 +478,7 @@ bool MouseTypeClass::Write_Default_INI(CCINIClass &ini)
                                     smallhotspot_x,
                                     smallhotspot_y);
 
-        ini.Put_String(MOUSE, std::string(control.Name).c_str(), buffer);
+        ini.Put_String(MOUSE, control.Name, buffer);
     }
 
     return true;

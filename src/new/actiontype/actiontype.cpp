@@ -107,7 +107,7 @@ static const char* ActionNames[EXT_ACTION_COUNT] = {
  *  This array of structures is used to control the cursors used by various actions.
  */
 struct ActionControlType {
-    nonstd::string_view Name;
+    const char * Name;
     MouseType Mouse;
     MouseType ShadowMouse;
 };
@@ -228,7 +228,7 @@ void ActionTypeClass::One_Time()
      *  Create the default action type controls.
      */
     for (ActionType action = ACTION_NONE; action < std::size(ActionControl); ++action) {
-        ActionTypeClass* actiontype = new ActionTypeClass(std::string(ActionControl[action].Name).c_str(), ActionControl[action].Mouse, ActionControl[action].ShadowMouse);
+        ActionTypeClass* actiontype = new ActionTypeClass(ActionControl[action].Name, ActionControl[action].Mouse, ActionControl[action].ShadowMouse);
         ASSERT(actiontype != nullptr);
     }
 }
@@ -296,7 +296,7 @@ bool ActionTypeClass::Write_Default_INI(CCINIClass &ini)
     for (ActionType action = ACTION_NONE; action < std::size(ActionControl); ++action) {
         auto const& control = ActionControl[action];
         std::snprintf(buffer, sizeof(buffer), "%s,%s", MouseTypeClass::Name_From(control.Mouse), MouseTypeClass::Name_From(control.ShadowMouse));
-        ini.Put_String(ACTION, std::string(control.Name).c_str(), buffer);
+        ini.Put_String(ACTION, control.Name, buffer);
     }
 
     return true;
