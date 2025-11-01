@@ -135,6 +135,24 @@ DECLARE_PATCH(_MSEngine_BlitRect_SDL_Update_Window_Patch)
 
 
 /**
+ *  Update the window after updating the visible surface when drawing in ScoreClass.
+ *
+ *  @author: ZivDero
+ */
+DECLARE_PATCH(_ScoreClass_Call_Back_Delay_SDL_Update_Window_Patch)
+{
+    SDL_Update_Screen(VisibleSurface);
+
+    // This no longer does anything in SDLMouseClass, but keep the call just in case.
+    if (MouseCursor) {
+        MouseCursor->Erase_Mouse(HiddenSurface);
+    }
+
+    JMP(0x005E6480);
+}
+
+
+/**
  *  Dummy replacement for ClientToScreen. SDL uses client coordinates directly,
  *  so most of these calls are now not necessary.
  *
@@ -441,6 +459,7 @@ void SDL_Hooks()
     Patch_Jump(0x00564787, &_Movie_Update_Visisble_Surface_SDL_Update_Window_Patch);    // VQA
     Patch_Jump(0x00571116, &_MSEngine_BlitAll_SDL_Update_Window_Patch);                 // MSEngine
     Patch_Jump(0x005711F2, &_MSEngine_BlitRect_SDL_Update_Window_Patch);                // MSEngine
+    Patch_Jump(0x005E6468, &_ScoreClass_Call_Back_Delay_SDL_Update_Window_Patch);       // ScoreClass
     Patch_Dword(0x00591739 + 1, (uintptr_t)&CtrlProcProxy);                             // Windows controls
     Patch_Jump(0x00593F8D, &_CtrlProc_SDL_Update_Screen1);                              // Window sliding animation
     Patch_Jump(0x00594101, &_CtrlProc_SDL_Update_Screen2);                              // Window sliding animation
