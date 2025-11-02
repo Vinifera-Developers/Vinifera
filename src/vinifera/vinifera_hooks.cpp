@@ -553,6 +553,8 @@ DECLARE_PATCH(_Do_Lose_Create_Lose_WWMessageBox)
 {
     static int ret;
 
+    MAKE_STACK_FRAME(0x20)
+
     /**
      *  Show the message box.
      */
@@ -561,19 +563,15 @@ retry_dialog:
     switch (ret) {
         default:
         case 0: // User pressed "Yes"
+            END_STACK_FRAME();
             JMP(0x005DCE1A);
 
         case 1: // User pressed "No"
+            END_STACK_FRAME();
             JMP(0x005DCE56);
 
         case 2: // User pressed "Load Game"
         {
-#if 0 //!defined(RELEASE) && defined(NDEBUG)
-            /**
-             *  We disable loading in non-release.
-             */
-            Vinifera_Do_WWMessageBox("Saving and Loading is disabled for non-release builds.", Text_String(TXT_OK));
-#else
             /**
              *  If no save games are available, notify the user and return back
              *  and reissue the main dialog.
@@ -589,16 +587,16 @@ retry_dialog:
             ret = _Do_Load_Dialog();
             if (ret) {
                 Theme.Stop();
+                END_STACK_FRAME();
                 JMP(0x005DCE48);
             }
-#endif
 
             /**
              *  Reissue the dialog if the user pressed cancel on the load dialog.
              */
             goto retry_dialog;
         }
-    };
+    }
 }
 
 

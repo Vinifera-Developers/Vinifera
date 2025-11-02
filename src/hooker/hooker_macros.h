@@ -52,6 +52,19 @@
     _asm { mov esp, ebp } \
     _asm { pop ebp }
 
+/**
+ *  Create a stack frame for our naked hook.
+ */
+#define MAKE_STACK_FRAME(size) \
+    _asm { pushad } \
+    _asm { push ebp } \
+    _asm { mov ebp, esp } \
+    _asm { sub esp, size }
+
+#define END_STACK_FRAME() \
+    _asm { mov esp, ebp } \
+    _asm { pop ebp } \
+    _asm { popad } \
 
 /**
  *  Jumps
