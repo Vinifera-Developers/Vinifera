@@ -292,3 +292,19 @@ EXPORT_FUNC(funcname)
 // CAUTION: funcname must be the same as in DEFINE_HOOK.
 #define DEFINE_HOOK_AGAIN(hook, funcname, size) \
 declhook(hook, funcname, size)
+
+
+#define GET(clsname, var, reg) clsname var = R->reg<clsname>();
+
+// it's really not a good idea to GET_STACK(not_a_pointer)
+// no, really
+#define LEA_STACK(clsname, var, offset) clsname var = R->lea_Stack<clsname>(offset);
+
+#define REF_STACK(clsname, var, offset) clsname& var = R->ref_Stack<clsname>(offset);
+
+#define GET_STACK(clsname, var, offset) clsname var = R->Stack<clsname>(offset);
+
+#define GET_BASE(clsname, var, offset) clsname var = R->Base<clsname>(offset);
+
+#define STACK_OFFSET(cur_offset, wanted_offset) (cur_offset + wanted_offset)
+
