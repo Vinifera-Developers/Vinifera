@@ -1082,6 +1082,8 @@ DECLARE_PATCH(_BuildingClass_Captured_Update_Factories_Patch)
     GET_STACK_STATIC(HouseClass*, newowner, esp, 0x18);
     GET_STACK_STATIC(HouseClass*, oldowner, esp, 0x60);
 
+    MAKE_STACK_FRAME(0x20);
+
     static BuildingTypeClassExtension* type_ext;
     static HouseClassExtension* old_house_ext;
     static HouseClassExtension* new_house_ext;
@@ -1095,6 +1097,8 @@ DECLARE_PATCH(_BuildingClass_Captured_Update_Factories_Patch)
         new_house_ext = Extension::Fetch(oldowner);
         new_house_ext->Update_Factories(this_ptr->Class->ToBuild, type_ext->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
     }
+
+    END_STACK_FRAME();
 
     JMP(0x0042FD28);
 }

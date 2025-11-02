@@ -87,6 +87,8 @@ DECLARE_PATCH(_FlyLocomotionClass_Movement_AI_AircraftTracker_Patch1)
     static FootClassExtension* linked_ext;
     static Cell oldcell, newcell;
 
+    MAKE_STACK_FRAME(0x20)
+
     linked_ext = Extension::Fetch(loco->LinkedTo);
 
     oldcell = linked_ext->Get_Last_Flight_Cell();
@@ -95,6 +97,8 @@ DECLARE_PATCH(_FlyLocomotionClass_Movement_AI_AircraftTracker_Patch1)
     if (newcell != oldcell && loco->Is_Moving_Now()) {
         AircraftTracker->Update_Position(loco->LinkedTo, oldcell, newcell);
     }
+
+    END_STACK_FRAME()
 
     // Stolen instructions
     _asm mov ecx, [edi+4]

@@ -735,9 +735,13 @@ DECLARE_PATCH(_AircraftClass_Draw_It_Carry_All_Patch)
     GET_STACK_STATIC(Rect*, cliprect, esp, 0xD0);
     LEA_STACK_STATIC(Point2D*, drawpoint, esp, 0x10);
 
+    MAKE_STACK_FRAME(0x20)
+
     if (this_ptr->Cargo.Is_Something_Attached(RTTI_UNIT) && this_ptr->Class->IsCarryall) {
         this_ptr->Cargo.Attached_Object(RTTI_UNIT)->Draw_It(*drawpoint, *cliprect);
     }
+
+    END_STACK_FRAME()
 
     JMP(0x00408C27);
 }
@@ -808,11 +812,15 @@ DECLARE_PATCH(_AircraftClass_AI_Carryall_Facing_Patch)
 {
     GET_REGISTER_STATIC(AircraftClass*, this_ptr, ebp);
 
+    MAKE_STACK_FRAME(0x30);
+
     if (this_ptr->Cargo.Is_Something_Attached(RTTI_UNIT) && this_ptr->Class->IsCarryall) {
         this_ptr->Cargo.Attached_Object()->PrimaryFacing.Set(this_ptr->SecondaryFacing.Current());
         this_ptr->Cargo.Attached_Object()->SecondaryFacing.Set(this_ptr->SecondaryFacing.Current());
         this_ptr->Cargo.Attached_Object()->PositionCoord = this_ptr->PositionCoord;
     }
+
+    END_STACK_FRAME();
 
     JMP(0x004093DE);
 }

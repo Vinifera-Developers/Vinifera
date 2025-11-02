@@ -973,10 +973,14 @@ DECLARE_PATCH(_BuildingClass_Draw_Overlays_Fetch_Factory_Patch)
 {
     GET_REGISTER_STATIC(BuildingClass*, this_ptr, esi);
 
+    MAKE_STACK_FRAME(0x20)
+
     static FactoryClass* factory;
     static BuildingTypeClassExtension const* type_ext;
     type_ext = Extension::Fetch(this_ptr->Class);
     factory = Extension::Fetch(this_ptr->House)->Fetch_Factory(this_ptr->Class->ToBuild, type_ext->IsNaval ? PRODFLAG_NAVAL : PRODFLAG_NONE);
+
+    END_STACK_FRAME();
 
     _asm mov eax, factory
     JMP_REG(ecx, 0x00428AC4);
@@ -1512,6 +1516,8 @@ DECLARE_PATCH(_BuildingClass_Draw_Spied_Cameo_Palette_Patch)
     static Surface *pcx_image;
     static Rect pcxrect;
 
+    MAKE_STACK_FRAME(0x30)
+
     technotype = factory_obj->TClass;
 
     /**
@@ -1546,6 +1552,8 @@ DECLARE_PATCH(_BuildingClass_Draw_Spied_Cameo_Palette_Patch)
          */
         Draw_Shape(*LogicalSurface, *CameoDrawer, cameo_shape, 0, *pos_xy, *window_rect, SHAPE_CENTER|SHAPE_WIN_REL|SHAPE_ALPHA|SHAPE_NORMAL);
     }
+
+    END_STACK_FRAME()
 
     JMP(0x00428B13);
 }
@@ -1638,25 +1646,28 @@ DECLARE_PATCH(_BuildingClass_Mission_Deconstruction_ConYard_Survivors_Patch)
  *
  *  @author: ZivDero
  */
+static bool Unlimbo_Helper(UnitClass* unit, Coord const& coord, Dir256 dir)
+{
+    ScenarioInit++;
+    bool result = unit->Unlimbo(coord, dir);
+    ScenarioInit--;
+
+    if (!result) {
+        delete unit;
+    }
+
+    return result;
+}
+
 DECLARE_PATCH(_BuildingClass_Mission_Deconstruction_ConYard_Unlimbo_Patch)
 {
     GET_REGISTER_STATIC(UnitClass*, mcv, ebp);
     GET_REGISTER_STATIC(Dir256, dir, eax);
-    LEA_STACK_STATIC(Coord*, coords, esp, 0x40);
+    LEA_STACK_STATIC(Coord const*, coord, esp, 0x40);
 
-    static bool result;
-
-    ScenarioInit++;
-    result = mcv->Unlimbo(*coords, dir);
-    ScenarioInit--;
-
-    if (result)
-    {
+    if (Unlimbo_Helper(mcv, *coord, dir)) {
         JMP(0x00430A1A);
-    }
-    else
-    {
-        delete mcv;
+    } else {
         JMP(0x00430B37);
     }
 }

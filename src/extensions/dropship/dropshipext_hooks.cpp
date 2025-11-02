@@ -73,13 +73,13 @@ DECLARE_PATCH(_Dropship_Draw_Info_Text_ArmorName_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Start_Scenario_Dropship_Loadout_Show_Mouse_Patch)
+static void Dropship_Helper()
 {
     /**
      *  issue-284
-     * 
+     *
      *  Play a background theme during the loadout menu.
-     * 
+     *
      *  @author: CCHyper
      */
     if (!Theme.Still_Playing()) {
@@ -107,7 +107,11 @@ DECLARE_PATCH(_Start_Scenario_Dropship_Loadout_Show_Mouse_Patch)
     if (Theme.Still_Playing()) {
         Theme.Stop(true); // Smoothly fade out the track.
     }
+}
 
+DECLARE_PATCH(_Start_Scenario_Dropship_Loadout_Show_Mouse_Patch)
+{
+    Dropship_Helper();
     JMP(0x005DB3C0);
 }
 

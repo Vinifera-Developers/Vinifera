@@ -47,6 +47,8 @@ DECLARE_PATCH(_VQA_Mix_File_Handler_Use_CCFileClass_Patch)
     GET_REGISTER_STATIC(VQAClass *, this_ptr, esi);
     GET_STACK_STATIC(char *, filename, esp, 0xC);
 
+    MAKE_STACK_FRAME(0x20)
+
     static int error;
 
     /**
@@ -70,15 +72,11 @@ DECLARE_PATCH(_VQA_Mix_File_Handler_Use_CCFileClass_Patch)
      */
     this_ptr->File.Set_Name(filename);
 
-    // #REMOVED: This fails as CDFileClass does not implement Is_Available to search the paths.
-    //if (this_ptr->File.Is_Available()) {
-    //    error = 1;
-    //    goto exit_label;
-    //}
-
     this_ptr->field_64 = this_ptr->File.Open(FILE_ACCESS_READ);
 
     error = !this_ptr->field_64;
+
+    END_STACK_FRAME();
 
 exit_label:
     _asm { xor eax, eax }
