@@ -83,7 +83,7 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved
             if (lpReserved) {
                 OutputDebugString(VINIFERA_DLL " is being loaded statically.\n");
             } else {
-                OutputDebugString(VINIFERA_DLL " is being loaded dynamicly.\n");
+                OutputDebugString(VINIFERA_DLL " is being loaded dynamically.\n");
             }
 
             OutputDebugString(VINIFERA_DLL " attached to " VINIFERA_TARGET_EXE ".\n");
