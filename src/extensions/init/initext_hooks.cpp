@@ -48,6 +48,8 @@
 #include "debughandler.h"
 #include <Windows.h>
 #include <commctrl.h>
+#include <tlhelp32.h>
+#include <bcrypt.h>
 
 #include "hooker.h"
 #include "hooker_macros.h"
@@ -996,9 +998,71 @@ bool Vinifera_Init_Bootstrap_Mixfiles()
 }
 
 
-DEFINE_HOOK(0x005FFC2A, WinMain_Syringe_Log_Patch, 0x5)
+/**
+ *  Detaches the debugger from the current process.
+ *
+ *  @author: secsome
+ */
+bool Detach_Debugger()
 {
-    DEBUG_INFO("[Vinifera] Syringe is active.");
+    auto GetDebuggerProcessId = [](DWORD dwSelfProcessId) -> DWORD {
+        DWORD dwParentProcessId = -1;
+        HANDLE hSnapshot = CreateToolhelp32Snapshot(2, 0);
+        PROCESSENTRY32 pe32;
+        pe32.dwSize = sizeof(PROCESSENTRY32);
+        Process32First(hSnapshot, &pe32);
+        do {
+            if (pe32.th32ProcessID == dwSelfProcessId) {
+                dwParentProcessId = pe32.th32ParentProcessID;
+                break;
+            }
+        } while (Process32Next(hSnapshot, &pe32));
+        CloseHandle(hSnapshot);
+        return dwParentProcessId;
+    };
+
+    HMODULE hModule = LoadLibrary("ntdll.dll");
+    if (hModule != NULL) {
+        auto const NtRemoveProcessDebug = reinterpret_cast<NTSTATUS(__stdcall*)(HANDLE, HANDLE)>(GetProcAddress(hModule, "NtRemoveProcessDebug"));
+        auto const NtSetInformationDebugObject = reinterpret_cast<NTSTATUS(__stdcall*)(HANDLE, ULONG, PVOID, ULONG, PULONG)>(GetProcAddress(hModule, "NtSetInformationDebugObject"));
+        auto const NtQueryInformationProcess = reinterpret_cast<NTSTATUS(__stdcall*)(HANDLE, ULONG, PVOID, ULONG, PULONG)>(GetProcAddress(hModule, "NtQueryInformationProcess"));
+        auto const NtClose = reinterpret_cast<NTSTATUS(__stdcall*)(HANDLE)>(GetProcAddress(hModule, "NtClose"));
+
+        HANDLE hDebug;
+        HANDLE hCurrentProcess = GetCurrentProcess();
+        NTSTATUS status = NtQueryInformationProcess(hCurrentProcess, 30, &hDebug, sizeof(HANDLE), 0);
+        if (status >= 0) {
+            ULONG killProcessOnExit = FALSE;
+            status = NtSetInformationDebugObject(hDebug, 1, &killProcessOnExit, sizeof(ULONG), NULL);
+            if (status >= 0) {
+                const auto pid = GetDebuggerProcessId(GetProcessId(hCurrentProcess));
+                status = NtRemoveProcessDebug(hCurrentProcess, hDebug);
+                if (status >= 0) {
+                    HANDLE hDbgProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
+                    if (INVALID_HANDLE_VALUE != hDbgProcess) {
+                        BOOL ret = TerminateProcess(hDbgProcess, EXIT_SUCCESS);
+                        CloseHandle(hDbgProcess);
+                        return ret;
+                    }
+                }
+            }
+            NtClose(hDebug);
+        }
+        FreeLibrary(hModule);
+    }
+
+    return false;
+}
+
+
+DEFINE_HOOK(0x006B7E22, WinMainCRTStartup_Syringe_Patch, 0x9)
+{
+    DEBUG_INFO("Syringe is active.");
+
+    if (Detach_Debugger() && !IsDebuggerPresent()) {
+        MessageBox(nullptr, "[Syringe] Attach the debugger now or continue.", "Vinifera", MB_OK | MB_SERVICE_NOTIFICATION);
+    }
+
     return 0;
 }
 

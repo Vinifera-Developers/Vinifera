@@ -70,13 +70,13 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved
              */
 #if !defined(NDEBUG) && defined(TS_CLIENT)
             if (!IsDebuggerPresent()) {
-                MessageBox(NULL, "Attach the debugger now or continue.", "Vinifera", MB_OK|MB_SERVICE_NOTIFICATION);
+                MessageBox(nullptr, "Attach the debugger now or continue.", "Vinifera", MB_OK|MB_SERVICE_NOTIFICATION);
             }
 #elif defined(TS_CLIENT)
             const char *cmdline = GetCommandLineA();
             bool wait_for_debugger = (std::strstr(cmdline, "-DEBUGGER_ATTACH") != nullptr);
             if (wait_for_debugger) {
-                MessageBox(NULL, "Attach the debugger now or continue.", "Vinifera", MB_OK|MB_SERVICE_NOTIFICATION);
+                MessageBox(nullptr, "Attach the debugger now or continue.", "Vinifera", MB_OK | MB_SERVICE_NOTIFICATION);
             }
 #endif
 
