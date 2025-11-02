@@ -51,6 +51,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "syringe.h"
 
 
 extern HMODULE DLLInstance;
@@ -992,6 +993,13 @@ bool Vinifera_Init_Bootstrap_Mixfiles()
     CD::SetRequiredDisk(temp);
 
     return true;
+}
+
+
+DEFINE_HOOK(0x005FFC2A, WinMain_Syringe_Log_Patch, 0x5)
+{
+    DEBUG_INFO("[Vinifera] Syringe is active.");
+    return 0;
 }
 
 
