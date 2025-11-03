@@ -77,6 +77,7 @@ New:
 - Replace DirectDraw with SDL (by ZivDero, tomsons26, CCHyper)
 - Make it possible to prevent buildings from repeatedly catching fire when rapidly switching between damage stages (by Rampastring)
 - Improve alternative factory selection when the primary factory is blocked (by Rampstring)
+- Add "Adjust House Modifier" trigger action (by Rampstring)
 
 
 Vinifera fixes:

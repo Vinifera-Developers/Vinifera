@@ -190,7 +190,20 @@ NAME = [Action Count], [TActionType], [NeedCode], [PARAM1], [PARAM2], [PARAM3], 
 |          | Displays a line of text on the screen with variable substitution. The text may include placeholders like `{{g_variableName}}` or `{{l_variableName}}`, which are replaced with the corresponding global or local variable values. Color `-1` uses the color of the player's house. | Other (0) | Text Index (#)     | Color (#) | *unused*   | *unused*   | *unused*   | *unused*   |
 | 134      | Disable Templated Text           |
 |          | Removes the currently active templated text from the screen. | Other (0) | *unused*           | *unused*            | *unused*   | *unused*   | *unused*   | *unused*   |
+| 135      | Adjust House Modifier           |
+|          | Adjusts a house modifier by given percentage points. | Other (0) | Modifier (#)           | Amount (%)            | *unused*   | *unused*   | *unused*   | *unused*   |
 
+### [135] Adjust House Modifier — Modifier Types
+
+| Number | Modifier |
+|---|--------|
+| 0 | Firepower |
+| 1 | Armor |
+| 2 | Groundspeed |
+| 3 | Airspeed |
+| 4 | Rate of Fire |
+| 5 | Cost |
+| 6 | Build Time |
 
 ## Trigger Events
 

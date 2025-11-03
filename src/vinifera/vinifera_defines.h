@@ -238,6 +238,7 @@ typedef enum ExtTActionType
     EXT_TACTION_PRINT_LOCAL,
     EXT_TACTION_ENABLE_TEMPLATED_TEXT,
     EXT_TACTION_DISABLE_TEMPLATED_TEXT,
+    EXT_TACTION_ADJUST_HOUSE_MODIFIER,
 
     /**
      *  The new total ExtTActionType count.

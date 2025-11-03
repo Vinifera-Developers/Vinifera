@@ -78,6 +78,7 @@ TActionClass::ActionDescriptionStruct TActionClassExtension::ExtActionDescriptio
     { "Print local", "Prints the value of a local variable." },
     { "Enable templated text", "Displays a line of text on the screen with variable substitution. The text may include placeholders like {{g_variableName}} or {{l_variableName}}, which are replaced with the corresponding global or local variable values. Color `-1` uses the color of the player's house." },
     { "Disable templated text", "Removes the currently active templated text from the screen." },
+    { "Adjust House Modifier", "Adjusts a house modifier by given percentage points." },
 };
 
 
@@ -188,6 +189,7 @@ bool TActionClassExtension::Execute(TActionClass& taction, HouseClass* house, Ob
         EXT_DISPATCH(PRINT_LOCAL);
         EXT_DISPATCH(ENABLE_TEMPLATED_TEXT);
         EXT_DISPATCH(DISABLE_TEMPLATED_TEXT);
+        EXT_DISPATCH(ADJUST_HOUSE_MODIFIER);
 
         /**
          *  Used to print the current difficulty in ts-patches, available to be repurposed.
@@ -1357,3 +1359,42 @@ bool TActionClassExtension::Do_DISABLE_TEMPLATED_TEXT(TActionClass& taction, Hou
     TacticalMapExtension->Disable_Templated_Text();
     return true;
 }
+
+
+/**
+ *  Adjusts a house modifier.
+ *
+ *  @author: Rampastring
+ */
+bool TActionClassExtension::Do_ADJUST_HOUSE_MODIFIER(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell)
+{
+    int amount = taction.TriggerRect.X;
+
+    switch (taction.Data.Value)
+    {
+    case 0:
+        house->FirepowerBias += (double)amount / 100.0;
+        break;
+    case 1:
+        house->ArmorBias += (double)amount / 100.0;
+        break;
+    case 2:
+        house->GroundspeedBias += (double)amount / 100.0;
+        break;
+    case 3:
+        house->AirspeedBias += (double)amount / 100.0;
+        break;
+    case 4:
+        house->ROFBias += (double)amount / 100.0;
+        break;
+    case 5:
+        house->CostBias += (double)amount / 100.0;
+        break;
+    case 6:
+        house->BuildSpeedBias += (double)amount / 100.0;
+        break;
+    }
+
+    return true;
+}
+

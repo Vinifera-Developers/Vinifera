@@ -197,6 +197,7 @@ This page lists all the individual contributions to the project by their author.
   - Fix an edge case crash when AI raises money.
   - Make it possible to prevent buildings from repeatedly catching fire when rapidly switching between damage stages.
   - Improve alternative factory selection when the primary factory is blocked.
+  - Add "Adjust House Modifier" trigger action.
 - **secsome**:
   - Add support for up to 32767 waypoints to be used in scenarios.
 - **Starkku**:

@@ -91,6 +91,7 @@ private:
     static bool Do_PRINT_LOCAL(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     static bool Do_ENABLE_TEMPLATED_TEXT(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
     static bool Do_DISABLE_TEMPLATED_TEXT(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
+    static bool Do_ADJUST_HOUSE_MODIFIER(TActionClass& taction, HouseClass* house, ObjectClass* object, TriggerClass* trig, const Cell& cell);
 
 private:
     static TActionClass::ActionDescriptionStruct ExtActionDescriptions[EXT_TACTION_COUNT - EXT_TACTION_FIRST];
