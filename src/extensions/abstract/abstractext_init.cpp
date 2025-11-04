@@ -34,6 +34,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -47,8 +48,8 @@
  */
 DECLARE_EXTENDING_CLASS_AND_PAIR(AbstractClass)
 {
-    public:
-        IFACEMETHOD_(LONG, IsDirty)();
+public:
+    IFACEMETHOD_(LONG, IsDirty)();
 };
 
 
@@ -69,21 +70,14 @@ LONG STDMETHODCALLTYPE AbstractClassExt::IsDirty()
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_AbstractClass_Constructor_Extension)
+EXPORT_FUNC(_AbstractClass_Constructor_Extension)
 {
-    _asm { mov eax, ecx }
-    _asm { xor ecx, ecx }
+    GET(AbstractClass*, this_ptr, EAX);
 
-    _asm { mov [eax+0x8], 0xFFFFFFFF } // ID
-    _asm { mov [eax+0x0C], ecx } // HeapID
+    // IsDirty, now reused as an extension pointer, so we need to clear the whole DWORD.
+    reinterpret_cast<int&>(this_ptr->Dirty) = 0;
 
-    // AbstractClassExtension * ExtPtr;
-    _asm { mov [eax+0x10], ecx } // IsDirty, now reused as a extension pointer, so we need to clear the whole DWORD.
-
-    _asm { mov [eax+0x0], 0x006CAA6C } // offset const AbstractClass::`vftable'
-    _asm { mov [eax+0x4], 0x006CAA54 } // offset const AbstractClass::`vftable' for IRTTITypeInfo
-
-    _asm { retn }
+    return 0;
 }
 
 
@@ -98,6 +92,6 @@ void AbstractClassExtension_Init()
      *  Removes the branch from AbstractClass::Internal_Save which clears IsDirty.
      */
     Patch_Byte_Range(0x00405CF8, 0x90, 12);
-
-    Patch_Jump(0x00405B50, &_AbstractClass_Constructor_Extension);
 }
+
+declhook(0x00405B61, _AbstractClass_Constructor_Extension, 0x6);

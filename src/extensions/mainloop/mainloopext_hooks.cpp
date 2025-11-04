@@ -42,6 +42,7 @@
 #include "debughandler.h"
 #include "asserthandler.h"
 #include "beacon.h"
+#include "event.h"
 #include "fetchres.h"
 #include "ipxmgr.h"
 #include "language.h"
@@ -52,6 +53,7 @@
 #include "sessionext.h"
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "syringe.h"
 #include "tacticalext.h"
 
 
@@ -62,25 +64,22 @@
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Queue_Options_Frame_Step_Check_Patch)
+bool _Queue_Options()
 {
-    _asm { sub esp, 0x30 }
-
     if (Vinifera_Developer_FrameStep) {
-        goto function_return;
+        return false;
     }
 
-    if (!PlayerPtr->IsToWin && !PlayerPtr->IsToLose && !PlayerPtr->IsToDie) {
-        goto create_event;
+    if (PlayerPtr->IsToWin || PlayerPtr->IsToLose || PlayerPtr->IsToDie) {
+        return false;
     }
 
-function_return:
-    JMP_REG(ecx, 0x005B1171);
+    if (!OutList.Add(EventClass(PlayerPtr->HeapID, EVENT_OPTIONS))) {
+        return false;
+    } else {
+        return true;
+    }
 
-create_event:
-    _asm { mov ecx, PlayerPtr } // Second dereference required due to the global reference in TS++.
-    _asm { mov eax, [ecx] }
-    JMP_REG(ecx, 0x005B1116);
 }
 
 
@@ -304,7 +303,7 @@ static bool Main_Loop_Intercept()
 
 void Process_Command_If_Allowed(CommandClass* command)
 {
-    if (!Scen->InputLock || (CommandClass::From_Type(COMMAND_OPTIONS) == command)) {
+    if (!Scen->InputLock || CommandClass::From_Type(COMMAND_OPTIONS) == command) {
         command->Process();
     }
 }
@@ -317,37 +316,32 @@ void Process_Command_If_Allowed(CommandClass* command)
  *
  *  @author: Rampastring
  */
-DECLARE_PATCH(_Main_Loop_Check_Keyboard_Input_Allowed)
+EXPORT_FUNC(_Main_Loop_Check_Keyboard_Input_Allowed)
 {
-    GET_REGISTER_STATIC(CommandClass*, command, ECX);
+    GET(CommandClass*, command, ECX);
     Process_Command_If_Allowed(command);
-    JMP(0x00508EA8);
+    return 0x00508EA8;
 }
 
-DECLARE_PATCH(_Keyboard_Process_Check_Keyboard_Input_Allowed)
+EXPORT_FUNC(_Keyboard_Process_Check_Keyboard_Input_Allowed)
 {
-    GET_REGISTER_STATIC(CommandClass*, command, ECX);
+    GET(CommandClass*, command, ECX);
     Process_Command_If_Allowed(command);
-
-    // Rebuild function epilogue, we destroyed one byte of it
-    // by jumping to this hack
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { retn }
+    return 0x00509461;
 }
 
-DECLARE_PATCH(_Sync_Delay_Check_Keyboard_Input_Allowed_Patch1)
+EXPORT_FUNC(_Sync_Delay_Check_Keyboard_Input_Allowed_Patch1)
 {
-    GET_REGISTER_STATIC(CommandClass*, command, EAX);
+    GET(CommandClass*, command, EAX);
     Process_Command_If_Allowed(command);
-    JMP(0x00509659);
+    return 0x00509659;
 }
 
-DECLARE_PATCH(_Sync_Delay_Check_Keyboard_Input_Allowed_Patch2)
+EXPORT_FUNC(_Sync_Delay_Check_Keyboard_Input_Allowed_Patch2)
 {
-    GET_REGISTER_STATIC(CommandClass*, command, ECX);
+    GET(CommandClass*, command, ECX);
     Process_Command_If_Allowed(command);
-    JMP(0x0050976C);
+    return 0x0050976C;
 }
 
 
@@ -676,19 +670,18 @@ void MainLoop_Hooks()
     Patch_Call(0x00462A8E, &Main_Loop_Intercept);
     Patch_Call(0x00462A9C, &Main_Loop_Intercept);
     Patch_Call(0x005A0B85, &Main_Loop_Intercept);
-    Patch_Jump(0x005B10F0, &_Queue_Options_Frame_Step_Check_Patch);
-
-    /**
-     *  #issue-255
-     *
-     *  Keyboard processing patches.
-     *  Technically not all are directly in the main loop,
-     *  but all of these are similar to the main loop patch so we include them all here.
-     */
-    Patch_Jump(0x00508E83, &_Main_Loop_Check_Keyboard_Input_Allowed);
-    Patch_Jump(0x0050945C, &_Keyboard_Process_Check_Keyboard_Input_Allowed);
-    Patch_Jump(0x00509632, &_Sync_Delay_Check_Keyboard_Input_Allowed_Patch1);
-    Patch_Jump(0x00509747, &_Sync_Delay_Check_Keyboard_Input_Allowed_Patch2);
-
+    Patch_Jump(0x005B10F0, &_Queue_Options);
     Patch_Jump(0x005098D0, &_Message_Input);
 }
+
+/**
+ *  #issue-255
+ *
+ *  Keyboard processing patches.
+ *  Technically not all are directly in the main loop,
+ *  but all of these are similar to the main loop patch so we include them all here.
+ */
+declhook(0x00508E83, _Main_Loop_Check_Keyboard_Input_Allowed, 0);
+declhook(0x0050945C, _Keyboard_Process_Check_Keyboard_Input_Allowed, 0);
+declhook(0x00509632, _Sync_Delay_Check_Keyboard_Input_Allowed_Patch1, 0);
+declhook(0x00509747, _Sync_Delay_Check_Keyboard_Input_Allowed_Patch2, 0);

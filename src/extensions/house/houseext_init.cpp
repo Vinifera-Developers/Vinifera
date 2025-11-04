@@ -38,7 +38,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
-#include "storageext.h"
+#include "syringe.h"
 
 
 /**
@@ -48,10 +48,9 @@
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_HouseClass_Constructor_Patch)
+EXPORT_FUNC(_HouseClass_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(HouseClass *, this_ptr, EBP); // "this" pointer.
-    GET_STACK_STATIC(const char *, ini_name, esp, 0xC); // ini name.
+    GET(HouseClass *, this_ptr, EBP); // "this" pointer.
 
     /**
      *  If we are performing a load operation, the Windows API will invoke the
@@ -66,17 +65,8 @@ DECLARE_PATCH(_HouseClass_Constructor_Patch)
      */
     Extension::Make<HouseClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { pop ebx }
-    _asm { add esp, 0x2C }
-    _asm { ret 4 }
+    return 0;
 }
 
 
@@ -87,9 +77,9 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_HouseClass_Destructor_Patch)
+EXPORT_FUNC(_HouseClass_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(HouseClass *, this_ptr, ESI);
+    GET(HouseClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
@@ -100,8 +90,7 @@ DECLARE_PATCH(_HouseClass_Destructor_Patch)
      *  Stolen bytes here.
      */
 original_code:
-    _asm { mov edx, ds:0x007E1558 } // Houses.vtble
-    JMP_REG(eax, 0x004BB9BD);
+    return 0;
 }
 
 
@@ -110,6 +99,9 @@ original_code:
  */
 void HouseClassExtension_Init()
 {
-    Patch_Jump(0x004BAEBE, &_HouseClass_Constructor_Patch);
-    Patch_Jump(0x004BB9B7, &_HouseClass_Destructor_Patch);
+
 }
+
+
+declhook(0x004BAEBE, _HouseClass_Constructor_Patch, 0x5);
+declhook(0x004BB9B7, _HouseClass_Destructor_Patch, 0x6);

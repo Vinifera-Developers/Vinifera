@@ -74,10 +74,10 @@ extern HMODULE DLLInstance;
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Main_Window_Procedure_Scroll_Sidebar_Check_Patch)
+EXPORT_FUNC(_Main_Window_Procedure_Scroll_Sidebar_Check_Patch)
 {
-    GET_STACK_STATIC(UINT, wParam, esp, 0x14);
-    static bool _mouse_wheel_scolling;
+    GET_STACK(UINT, wParam, 0x14);
+    static bool _mouse_wheel_scolling = false;
 
     /**
      *  The code before this patch checks for WM_MOUSEWHEEL.
@@ -112,10 +112,10 @@ DECLARE_PATCH(_Main_Window_Procedure_Scroll_Sidebar_Check_Patch)
     _mouse_wheel_scolling = false;
 
 executed:
-    JMP_REG(eax, 0x00685F9C);
+    return 0x00685F9C;
 
 message_handler:
-    JMP_REG(ecx, 0x00685FA0);
+    return 0x00685FA0;
 }
 
 
@@ -127,10 +127,8 @@ message_handler:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Init_CDROM_Access_Local_Files_Patch)
+EXPORT_FUNC(_Init_CDROM_Access_Local_Files_Patch)
 {
-    _asm { add esp, 4 }
-
     /**
      *  If there are search drives specified then all files are to be
      *  considered local.
@@ -155,13 +153,13 @@ DECLARE_PATCH(_Init_CDROM_Access_Local_Files_Patch)
      *  Continue to initialise the CD-ROM code.
      */
 init_cdrom:
-    JMP(0x004E0471);
+    return 0x004E0471;
 
     /**
      *  Flag files as being local, no CD-ROM init.
      */
 files_local:
-    JMP(0x004E06F5);
+    return 0x004E06F5;
 }
 
 
@@ -222,7 +220,7 @@ static bool Vinifera_Play_Startup_Movies()
     return true;
 }
 
-DECLARE_PATCH(_Init_Game_Skip_Startup_Movies_Patch)
+EXPORT_FUNC(_Init_Game_Skip_Startup_Movies_Patch)
 {
     if (Vinifera_SkipStartupMovies) {
         DEBUG_INFO("Skipping startup movies.\n");
@@ -234,15 +232,15 @@ DECLARE_PATCH(_Init_Game_Skip_Startup_Movies_Patch)
     }
 
 loading_screen:
-    _asm { or ebx, 0xFFFFFFFF }
-    JMP(0x004E0848);
+    R->EBX(-1);
+    return 0x004E0848;
 
 skip_loading_screen:
-    JMP(0x004E084D);
+    return 0x004E084D;
 
 failed:
-    _asm { mov ebx, 1 }
-    JMP(0x004E08B3);
+    R->EBX(1);
+    return 0x004E08B3;
 }
 
 
@@ -1072,8 +1070,6 @@ DEFINE_HOOK(0x006B7E22, WinMainCRTStartup_Syringe_Patch, 0x9)
  */
 void GameInit_Hooks()
 {
-    Patch_Jump(0x004E0786, &_Init_Game_Skip_Startup_Movies_Patch);
-    Patch_Jump(0x004E0461, &_Init_CDROM_Access_Local_Files_Patch);
     Patch_Jump(0x004E3D20, &Vinifera_Init_Bootstrap_Mixfiles);
     Patch_Jump(0x004E4120, &Vinifera_Init_Secondary_Mixfiles);
     Patch_Jump(0x004E7EB0, &Vinifera_Prep_For_Side);
@@ -1110,8 +1106,6 @@ void GameInit_Hooks()
     Patch_Call(0x004E86F5, &Addon_Enabled);
     Patch_Call(0x004E8735, &Addon_Enabled);
 
-    Patch_Jump(0x00685F69, &_Main_Window_Procedure_Scroll_Sidebar_Check_Patch);
-
     /**
      *  Fixes a bug where CompositeSurface is used instead of HiddenSurface in Allocate_Surfaces.
      */
@@ -1124,3 +1118,7 @@ void GameInit_Hooks()
     //Patch_Jump(0x00407050, &Vinifera_Detect_Addons);
 #endif
 }
+
+declhook(0x004E0786, _Init_Game_Skip_Startup_Movies_Patch, 0);
+declhook(0x004E0469, _Init_CDROM_Access_Local_Files_Patch, 0);
+declhook(0x00685F69, _Main_Window_Procedure_Scroll_Sidebar_Check_Patch, 0);
