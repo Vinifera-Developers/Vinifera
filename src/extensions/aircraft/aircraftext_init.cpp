@@ -39,6 +39,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -48,9 +49,9 @@
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_AircraftClass_Constructor_Patch)
+EXPORT_FUNC(_AircraftClass_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(AircraftClass *, this_ptr, esi); // Current "this" pointer.
+    GET(AircraftClass *, this_ptr, ESI); // Current "this" pointer.
 
     /**
      *  If we are performing a load operation, the Windows API will invoke the
@@ -69,12 +70,7 @@ DECLARE_PATCH(_AircraftClass_Constructor_Patch)
      *  Stolen bytes here.
      */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { pop ebx }
-    _asm { ret 8 }
+    return 0;
 }
 
 
@@ -85,9 +81,9 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_AircraftClass_Destructor_Patch)
+EXPORT_FUNC(_AircraftClass_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(AircraftClass *, this_ptr, esi);
+    GET(AircraftClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
@@ -98,8 +94,7 @@ DECLARE_PATCH(_AircraftClass_Destructor_Patch)
      *  Stolen bytes here.
      */
 original_code:
-    _asm { mov edx, ds:0x007E4058 } // Aircraft.vtble
-    JMP_REG(eax, 0x0040DBBE);
+    return 0;
 }
 
 
@@ -108,6 +103,8 @@ original_code:
  */
 void AircraftClassExtension_Init()
 {
-    Patch_Jump(0x0040880C, &_AircraftClass_Constructor_Patch);
-    Patch_Jump(0x0040DBB8, &_AircraftClass_Destructor_Patch);
+
 }
+
+declhook(0x0040880C, _AircraftClass_Constructor_Patch, 0x5);
+declhook(0x0040DBB8, _AircraftClass_Destructor_Patch, 0x6);
