@@ -35,7 +35,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
-
+#include "syringe.h"
 
 
 /**
@@ -76,28 +76,18 @@ static void OverlayTypeClass_Free_Image(OverlayTypeClass *this_ptr)
  *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_OverlayTypeClass_DTOR_Free_Image_Patch) { GET_REGISTER_STATIC(OverlayTypeClass *, this_ptr, ESI); OverlayTypeClass_Free_Image(this_ptr); JMP(0x0058D192); }
-DECLARE_PATCH(_OverlayTypeClass_SDDTOR_Free_Image_Patch) { GET_REGISTER_STATIC(OverlayTypeClass *, this_ptr, ESI); OverlayTypeClass_Free_Image(this_ptr); JMP(0x0058DC82); }
-
-
-/**
- *  Patches in an assertion check for image data.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_OverlayTypeClass_Get_Image_Data_Assertion_Patch)
+EXPORT_FUNC(_OverlayTypeClass_DTOR_Free_Image_Patch)
 {
-    GET_REGISTER_STATIC(OverlayTypeClass *, this_ptr, ESI);
-    GET_REGISTER_STATIC(const ShapeSet *, image, EAX);
+    GET(OverlayTypeClass*, this_ptr, ESI);
+    OverlayTypeClass_Free_Image(this_ptr);
+    return 0x0058D192;
+}
 
-    if (image == nullptr) {
-        DEBUG_WARNING("Overlay %s has NULL image data!\n", this_ptr->Name());
-    }
-
-    _asm { mov eax, image } // restore eax state.
-    _asm { pop esi }
-    _asm { add esp, 0x264 }
-    _asm { ret }
+EXPORT_FUNC(_OverlayTypeClass_SDDTOR_Free_Image_Patch)
+{
+    GET(OverlayTypeClass*, this_ptr, ESI);
+    OverlayTypeClass_Free_Image(this_ptr);
+    return 0x0058DC82;
 }
 
 
@@ -110,9 +100,7 @@ void OverlayTypeClassExtension_Hooks()
      *  Initialises the extended class.
      */
     OverlayTypeClassExtension_Init();
-
-    //Patch_Jump(0x0058DC18, &_OverlayTypeClass_Get_Image_Data_Assertion_Patch);
-
-    Patch_Jump(0x0058D17B, &_OverlayTypeClass_DTOR_Free_Image_Patch);
-    Patch_Jump(0x0058DC6B, &_OverlayTypeClass_SDDTOR_Free_Image_Patch);
 }
+
+declhook(0x0058D17B, _OverlayTypeClass_DTOR_Free_Image_Patch, 0);
+declhook(0x0058DC6B, _OverlayTypeClass_SDDTOR_Free_Image_Patch, 0);

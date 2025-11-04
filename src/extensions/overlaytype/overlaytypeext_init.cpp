@@ -38,6 +38,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -47,10 +48,10 @@
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_OverlayTypeClass_Constructor_Patch)
+DEFINE_HOOK_AGAIN(0x0058D12D, _OverlayTypeClass_Constructor_Patch, 0x7)
+DEFINE_HOOK(0x0058D120, _OverlayTypeClass_Constructor_Patch, 0x7)
 {
-    GET_REGISTER_STATIC(OverlayTypeClass *, this_ptr, ESI); // "this" pointer.
-    GET_STACK_STATIC(const char *, ini_name, esp, 0xC); // ini name.
+    GET(OverlayTypeClass *, this_ptr, ESI); // "this" pointer.
 
     /**
      *  If we are performing a load operation, the Windows API will invoke the
@@ -65,39 +66,8 @@ DECLARE_PATCH(_OverlayTypeClass_Constructor_Patch)
      */
     Extension::Make<OverlayTypeClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop esi }
-    _asm { pop ebx }
-    _asm { ret 4 }
-}
-
-
-/**
- *  Patch for including the extended class members in the destruction process.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_OverlayTypeClass_Destructor_Patch)
-{
-    GET_REGISTER_STATIC(OverlayTypeClass *, this_ptr, ESI);
-
-    /**
-     *  Remove the extended class from the global index.
-     */
-    Extension::Destroy<OverlayTypeClassExtension>(this_ptr);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { mov edx, ds:0x007E22A0 } // OverlayTypes.vtble
-    JMP_REG(eax, 0x0058D1A1);
+    return 0;
 }
 
 
@@ -108,9 +78,9 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_OverlayTypeClass_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x0058DC8B, _OverlayTypeClass_Scalar_Destructor_Patch, 0x6)
 {
-    GET_REGISTER_STATIC(OverlayTypeClass *, this_ptr, ESI);
+    GET(OverlayTypeClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
@@ -121,8 +91,7 @@ DECLARE_PATCH(_OverlayTypeClass_Scalar_Destructor_Patch)
      *  Stolen bytes here.
      */
 original_code:
-    _asm { mov edx, ds:0x007E22A0 } // OverlayTypes.vtble
-    JMP_REG(eax, 0x0058DC91);
+    return 0;
 }
 
 
@@ -131,8 +100,5 @@ original_code:
  */
 void OverlayTypeClassExtension_Init()
 {
-    Patch_Jump(0x0058D120, &_OverlayTypeClass_Constructor_Patch);
-    Patch_Jump(0x0058D12D, &_OverlayTypeClass_Constructor_Patch);
-    //Patch_Jump(0x0058D19B, &_OverlayTypeClass_Destructor_Patch); // Destructor is actually inlined in scalar destructor!
-    Patch_Jump(0x0058DC8B, &_OverlayTypeClass_Scalar_Destructor_Patch);
+
 }

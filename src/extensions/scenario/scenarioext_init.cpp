@@ -38,6 +38,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -47,31 +48,17 @@
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_ScenarioClass_Constructor_Patch)
+EXPORT_FUNC(_ScenarioClass_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(ScenarioClass *, this_ptr, EBP); // "this" pointer.
+    GET(ScenarioClass *, this_ptr, EBP); // "this" pointer.
 
     /**
      *  Create the extended class instance.
      */
     ScenExtension = Extension::Singleton::Make<ScenarioClass, ScenarioClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-
-    /**
-     *  We can't assign to Views directly without trashing the stack, so clear the whole array.
-     */
-    std::memset(&this_ptr->Views, 0, sizeof(this_ptr->Views));
-
-    _asm { mov eax, this_ptr }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { pop ebx }
-    _asm { ret }
+    return 0;
 }
 
 
@@ -82,10 +69,8 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_ScenarioClass_Destructor_Patch)
+EXPORT_FUNC(_ScenarioClass_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(ScenarioClass *, this_ptr, ESI);
-
     /**
      *  Remove the extended class instance.
      */
@@ -95,9 +80,7 @@ DECLARE_PATCH(_ScenarioClass_Destructor_Patch)
      *  Stolen bytes here.
      */
 original_code:
-    Scen = nullptr;
-
-    JMP(0x006023D2);
+    return 0;
 }
 
 
@@ -108,10 +91,8 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_ScenarioClass_Init_Clear_Patch)
+EXPORT_FUNC(_ScenarioClass_Init_Clear_Patch)
 {
-    GET_REGISTER_STATIC(ScenarioClass *, this_ptr, ESI);
-
     /**
      *  This is a odd case; ScenarioClass::Init_Clear is called within the class
      *  constructor, so the first time this patch is called, ScenExtension is NULL.
@@ -122,16 +103,8 @@ DECLARE_PATCH(_ScenarioClass_Init_Clear_Patch)
         ScenExtension->Init_Clear();
     }
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { pop ebx }
-    _asm { add esp, 0x0C }
-    _asm { ret }
+    return 0;
 }
 
 
@@ -142,20 +115,16 @@ original_code:
  *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_ScenarioClass_Read_INI_Patch)
+EXPORT_FUNC(_ScenarioClass_Read_INI_Patch)
 {
-    GET_REGISTER_STATIC(CCINIClass *, ini, EBP);
-    static bool retval;
+    GET(CCINIClass *, ini, EBP);
 
-    /**
-     *  Stolen bytes/code.
-     */
+    bool retval = false;
     retval |= Scen->Read_INI(*ini);
-
     retval |= ScenExtension->Read_INI(*ini);
 
-    _asm { mov al, retval }
-    JMP_REG(ecx, 0x005DD947);
+    R->AL(retval);
+    return 0x005DD947;
 }
 
 
@@ -164,8 +133,10 @@ DECLARE_PATCH(_ScenarioClass_Read_INI_Patch)
  */
 void ScenarioClassExtension_Init()
 {
-    Patch_Jump(0x005DADDE, &_ScenarioClass_Constructor_Patch);
-    Patch_Jump(0x006023CC, &_ScenarioClass_Destructor_Patch); // Inlined in game shutdown.
-    Patch_Jump(0x005DB166, &_ScenarioClass_Init_Clear_Patch);
-    Patch_Jump(0x005DD93B, &_ScenarioClass_Read_INI_Patch);
+
 }
+
+declhook(0x005DADDE, _ScenarioClass_Constructor_Patch, 0x9);
+declhook(0x006023CC, _ScenarioClass_Destructor_Patch, 0x6); // Inlined in game shutdown.
+declhook(0x005DB166, _ScenarioClass_Init_Clear_Patch, 0x7);
+declhook(0x005DD93B, _ScenarioClass_Read_INI_Patch, 0x6);

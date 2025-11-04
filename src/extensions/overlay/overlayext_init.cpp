@@ -37,6 +37,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -46,9 +47,9 @@
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_OverlayClass_Constructor_Patch)
+EXPORT_FUNC(_OverlayClass_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(OverlayClass *, this_ptr, ESI); // Current "this" pointer.
+    GET(OverlayClass *, this_ptr, ESI); // Current "this" pointer.
 
     /**
      *  If we are performing a load operation, the Windows API will invoke the
@@ -63,14 +64,8 @@ DECLARE_PATCH(_OverlayClass_Constructor_Patch)
      */
     Extension::Make<OverlayClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop esi }
-    _asm { add esp, 0x0C }
-    _asm { ret 0x0C }
+    return 0;
 }
 
 
@@ -81,22 +76,17 @@ original_code:
  *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_OverlayClass_Scalar_Destructor_Patch)
+EXPORT_FUNC(_OverlayClass_Scalar_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(OverlayClass *, this_ptr, ESI);
+    GET(OverlayClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
      */
     Extension::Destroy<OverlayClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov dword ptr [esi+0x4C], 0 } // this->Class = nullptr;
-    this_ptr->ObjectClass::~ObjectClass();
-    JMP(0x0058CB7F);
+    return 0;
 }
 
 
@@ -105,6 +95,8 @@ original_code:
  */
 void OverlayClassExtension_Init()
 {
-    Patch_Jump(0x0058B545, &_OverlayClass_Constructor_Patch);
-    Patch_Jump(0x0058CB71, &_OverlayClass_Scalar_Destructor_Patch);
+
 }
+
+declhook(0x0058B545, _OverlayClass_Constructor_Patch, 0x6);
+declhook(0x0058CB73, _OverlayClass_Scalar_Destructor_Patch, 0x6);

@@ -39,6 +39,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -48,7 +49,7 @@
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_OptionsClass_Constructor_Patch)
+EXPORT_FUNC(_OptionsClass_Constructor_Patch)
 {
     GET_REGISTER_STATIC(OptionsClass *, this_ptr, EAX); // "this" pointer.
 
@@ -66,9 +67,6 @@ DECLARE_PATCH(_OptionsClass_Constructor_Patch)
      */
     OptionsExtension = Extension::Singleton::Make<OptionsClass, OptionsClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
 
     /**
@@ -89,40 +87,8 @@ original_code:
      */
     this_ptr->IsScoreShuffle = true;
 
-    _asm { ret }
+    return 0;
 }
-
-
-/**
- *  OptionsClass has no destructor to hook! See Vinifera shutdown for cleaning
- *  up the extension instance.
- */
-#if 0
-/**
- *  Patch for including the extended class members in the destruction process.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_OptionsClass_Destructor_Patch)
-{
-    GET_REGISTER_STATIC(OptionsClass *, this_ptr, ESI);
-
-    /**
-     *  Remove the extended class instance.
-     */
-    Extension::Singleton::Destroy<OptionsClass, OptionsClassExtension>(OptionsExtension);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop esi }
-    _asm { ret 4 }
-}
-#endif
 
 
 /**
@@ -132,21 +98,15 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_OptionsClass_Load_Settings_Patch)
+EXPORT_FUNC(_OptionsClass_Load_Settings_Patch)
 {
-    GET_REGISTER_STATIC(OptionsClass *, this_ptr, ESI);
-
     /**
      *  Load ini.
      */
     OptionsExtension->Load_Settings();
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { pop esi }
-    _asm { ret }
+    return 0;
 }
 
 
@@ -157,10 +117,8 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_WinMain_Load_Init_Options_Settings_Patch)
+EXPORT_FUNC(_WinMain_Load_Init_Options_Settings_Patch)
 {
-    GET_REGISTER_STATIC(OptionsClass *, this_ptr, ESI);
-
     /**
      *  Load ini.
      */
@@ -170,8 +128,7 @@ DECLARE_PATCH(_WinMain_Load_Init_Options_Settings_Patch)
      *  Stolen bytes here.
      */
 original_code:
-    _asm { push 0x31C /* sizeof(WWKeyboardClass) */ }
-    JMP(0x00601283);
+    return 0;
 }
 
 
@@ -182,22 +139,15 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_OptionsClass_Save_Settings_Patch)
+EXPORT_FUNC(_OptionsClass_Save_Settings_Patch)
 {
-    GET_REGISTER_STATIC(OptionsClass *, this_ptr, ESI);
-
     /**
      *  Save ini.
      */
     OptionsExtension->Save_Settings();
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { pop esi }
-    _asm { add esp, 0x64 }
-    _asm { ret }
+    return 0;
 }
 
 
@@ -208,10 +158,8 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_OptionsClass_Set_Patch)
+EXPORT_FUNC(_OptionsClass_Set_Patch)
 {
-    GET_REGISTER_STATIC(OptionsClass *, this_ptr, ESI);
-
     /**
      *  Set options.
      */
@@ -221,10 +169,7 @@ DECLARE_PATCH(_OptionsClass_Set_Patch)
      *  Stolen bytes here.
      */
 original_code:
-    TechnoClass::Set_Action_Lines(this_ptr->ActionLines);
-
-    _asm { pop esi }
-    _asm { ret }
+    return 0;
 }
 
 
@@ -233,10 +178,11 @@ original_code:
  */
 void OptionsClassExtension_Init()
 {
-    Patch_Jump(0x00589A12, &_OptionsClass_Constructor_Patch);
-    //Patch_Jump(0x, &_OptionsClass_Destructor_Patch);
-    Patch_Jump(0x0058A132, &_OptionsClass_Load_Settings_Patch);
-    Patch_Jump(0x0060127E, &_WinMain_Load_Init_Options_Settings_Patch);
-    Patch_Jump(0x0058A3C3, &_OptionsClass_Save_Settings_Patch);
-    Patch_Jump(0x0058A5F7, &_OptionsClass_Set_Patch);
+
 }
+
+declhook(0x00589A12, _OptionsClass_Constructor_Patch, 0x1);
+declhook(0x0058A132, _OptionsClass_Load_Settings_Patch, 0x2);
+declhook(0x0060127E, _WinMain_Load_Init_Options_Settings_Patch, 0x5);
+declhook(0x0058A3C3, _OptionsClass_Save_Settings_Patch, 0x5);
+declhook(0x0058A5F7, _OptionsClass_Set_Patch, 0x9);
