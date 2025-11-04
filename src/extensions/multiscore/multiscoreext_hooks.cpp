@@ -58,6 +58,7 @@ EXPORT_FUNC(_MultiScore_Tally_Score_Fetch_Largest_CreditsSpent_Score)
     for (int i = 0; i < Houses.Count(); i++) {
         MostCreditsSpent = std::max<unsigned int>(Houses[i]->CreditsSpent, MostCreditsSpent);
     }
+    return 0;
 }
 
 

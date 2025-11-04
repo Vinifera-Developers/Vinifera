@@ -55,6 +55,7 @@
 #include "tiberium.h"
 #include "tiberiumext.h"
 #include "tactical.h"
+#include "theatertype.h"
 
 /**
  *  A fake class for implementing new member functions which allow
@@ -253,7 +254,7 @@ void CellClassExt::_Recalc_Passability()
             break;
 
         case RTTI_TERRAIN:
-            if ((Scen->Theater == THEATER_TEMPERATE && static_cast<TerrainClass*>(occupier)->Class->TemperateOccupationBits != 7) || (Scen->Theater == THEATER_SNOW && static_cast<TerrainClass*>(occupier)->Class->SnowOccupationBits != 7)) {
+            if ((!TheaterTypeClass::Is_Arctic(Scen->Theater) && static_cast<TerrainClass*>(occupier)->Class->TemperateOccupationBits != 7) || (TheaterTypeClass::Is_Arctic(Scen->Theater) && static_cast<TerrainClass*>(occupier)->Class->SnowOccupationBits != 7)) {
                 Passability = PASSABLE_PARTIALLY_BLOCKED;
                 return;
             }
