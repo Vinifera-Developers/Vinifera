@@ -38,6 +38,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -47,10 +48,9 @@
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_BulletTypeClass_Constructor_Patch)
+EXPORT_FUNC(_BulletTypeClass_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(BulletTypeClass *, this_ptr, ESI); // "this" pointer.
-    GET_STACK_STATIC(const char *, ini_name, esp, 0xC); // ini name.
+    GET(BulletTypeClass *, this_ptr, ESI); // "this" pointer.
 
     /**
      *  If we are performing a load operation, the Windows API will invoke the
@@ -65,39 +65,8 @@ DECLARE_PATCH(_BulletTypeClass_Constructor_Patch)
      */
     Extension::Make<BulletTypeClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop esi }
-    _asm { pop ebx }
-    _asm { ret 4 }
-}
-
-
-/**
- *  Patch for including the extended class members in the destruction process.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_BulletTypeClass_Destructor_Patch)
-{
-    GET_REGISTER_STATIC(BulletTypeClass *, this_ptr, ESI);
-
-    /**
-     *  Remove the extended class from the global index.
-     */
-    Extension::Destroy<BulletTypeClassExtension>(this_ptr);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { mov edx, ds:0x007E21B8 } // BulletTypes.vtble
-    JMP_REG(eax, 0x00447E17);
+    return 0;
 }
 
 
@@ -108,21 +77,17 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_BulletTypeClass_Scalar_Destructor_Patch)
+EXPORT_FUNC(_BulletTypeClass_Scalar_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(BulletTypeClass *, this_ptr, ESI);
+    GET(BulletTypeClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
      */
     Extension::Destroy<BulletTypeClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov edx, ds:0x007E21B8 } // BulletTypes.vtble
-    JMP_REG(eax, 0x00448777);
+    return 0;
 }
 
 
@@ -131,7 +96,8 @@ original_code:
  */
 void BulletTypeClassExtension_Init()
 {
-    Patch_Jump(0x00447D86, &_BulletTypeClass_Constructor_Patch);
-    //Patch_Jump(0x00447E11, &_BulletTypeClass_Destructor_Patch); // Destructor is actually inlined in scalar destructor!
-    Patch_Jump(0x00448771, &_BulletTypeClass_Scalar_Destructor_Patch);
+
 }
+
+declhook(0x00447D86, _BulletTypeClass_Constructor_Patch, 0x7);
+declhook(0x00448771, _BulletTypeClass_Scalar_Destructor_Patch, 0x6);

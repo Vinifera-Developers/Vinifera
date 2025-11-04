@@ -40,6 +40,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -49,9 +50,9 @@
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_BuildingClass_Constructor_Patch)
+EXPORT_FUNC(_BuildingClass_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(BuildingClass *, this_ptr, ESI); // Current "this" pointer.
+    GET(BuildingClass *, this_ptr, ESI); // Current "this" pointer.
 
     /**
      *  If we are performing a load operation, the Windows API will invoke the
@@ -70,12 +71,7 @@ DECLARE_PATCH(_BuildingClass_Constructor_Patch)
      *  Stolen bytes here.
      */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { pop ebx }
-    _asm { ret 8 }
+    return 0;
 }
 
 
@@ -86,9 +82,9 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_BuildingClass_Destructor_Patch)
+EXPORT_FUNC(_BuildingClass_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(BuildingClass *, this_ptr, ESI);
+    GET(BuildingClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
@@ -99,8 +95,7 @@ DECLARE_PATCH(_BuildingClass_Destructor_Patch)
      *  Stolen bytes here.
      */
 original_code:
-    _asm { mov edx, ds:0x007E4708 } // Buildings.vtble
-    JMP_REG(eax, 0x00426674);
+    return 0;
 }
 
 
@@ -109,6 +104,8 @@ original_code:
  */
 void BuildingClassExtension_Init()
 {
-    Patch_Jump(0x00426615, &_BuildingClass_Constructor_Patch);
-    Patch_Jump(0x0042666E, &_BuildingClass_Destructor_Patch);
+
 }
+
+declhook(0x00426615, _BuildingClass_Constructor_Patch, 0x5);
+declhook(0x0042666E, _BuildingClass_Destructor_Patch, 0x6);

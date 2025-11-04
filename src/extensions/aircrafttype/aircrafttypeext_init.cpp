@@ -35,9 +35,11 @@
 #include "fatal.h"
 #include "debughandler.h"
 #include "asserthandler.h"
+#include "findmake.h"
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -47,10 +49,9 @@
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_AircraftTypeClass_Constructor_Patch)
+EXPORT_FUNC(_AircraftTypeClass_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(AircraftTypeClass *, this_ptr, ESI); // "this" pointer.
-    GET_STACK_STATIC(const char *, ini_name, esp, 0x0C); // ini name.
+    GET(AircraftTypeClass *, this_ptr, ESI); // "this" pointer.
 
     /**
      *  If we are performing a load operation, the Windows API will invoke the
@@ -65,58 +66,8 @@ DECLARE_PATCH(_AircraftTypeClass_Constructor_Patch)
      */
     Extension::Make<AircraftTypeClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop esi }
-    _asm { pop ebx }
-    _asm { ret 4 }
-}
-
-
-/**
- *  Patch for removing the inlined constructor and replacing it with a direct call.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_AircraftTypeClass_Find_Or_Make_Patch)
-{
-    static uintptr_t constructor_addr = 0x0040FBC0;
-
-    _asm { push edi } // edi == ini_name
-    _asm { mov ecx, eax } // eax == memory pointer
-    _asm { call constructor_addr } // AircraftTypeClass::AircraftTypeClass()
-
-    JMP(0x00410165);
-}
-
-
-/**
- *  Patch for including the extended class members in the destruction process.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_AircraftTypeClass_Destructor_Patch)
-{
-    GET_REGISTER_STATIC(AircraftTypeClass *, this_ptr, ESI);
-
-    /**
-     *  Remove the extended class from the global index.
-     */
-    Extension::Destroy<AircraftTypeClassExtension>(this_ptr);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { mov edx, ds:0x007E2420 } // AircraftTypes.vtble
-    JMP_REG(eax, 0x0040FCDE);
+    return 0;
 }
 
 
@@ -127,21 +78,42 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_AircraftTypeClass_Scalar_Destructor_Patch)
+EXPORT_FUNC(_AircraftTypeClass_Scalar_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(AircraftTypeClass *, this_ptr, ESI);
+    GET(AircraftTypeClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
      */
     Extension::Destroy<AircraftTypeClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov edx, ds:0x007E2420 } // AircraftTypes.vtble
-    JMP_REG(eax, 0x0041022E);
+    return 0;
+}
+
+
+/**
+ *  A fake class for implementing new member functions which allow
+ *  access to the "this" pointer of the intended class.
+ *
+ *  @note: This must not contain a constructor or destructor!
+ *  @note: All functions must be prefixed with "_" to prevent accidental virtualization.
+ */
+class AircraftTypeClassExt : public AircraftTypeClass
+{
+public:
+    static AircraftTypeClass* _Find_Or_Make(char const* name);
+};
+
+
+/**
+ *  Replacement AircraftTypeClass::Find_Or_Make as it has the constructor inlined.
+ *
+ *  @author: ZivDero
+ */
+AircraftTypeClass* AircraftTypeClassExt::_Find_Or_Make(char const* name)
+{
+    return TFind_Or_Make<AircraftTypeClass>(name, AircraftTypes);
 }
 
 
@@ -150,8 +122,8 @@ original_code:
  */
 void AircraftTypeClassExtension_Init()
 {
-    Patch_Jump(0x0040FC8F, &_AircraftTypeClass_Constructor_Patch);
-    Patch_Jump(0x0041009C, &_AircraftTypeClass_Find_Or_Make_Patch); // Constructor is also inlined in AircraftTypeClass::Find_Or_Make!
-    //Patch_Jump(0x0040FCD8, &_AircraftTypeClass_Destructor_Patch); // Destructor is actually inlined in scalar destructor!
-    Patch_Jump(0x00410228, &_AircraftTypeClass_Scalar_Destructor_Patch);
+    Patch_Jump(0x00410020, &AircraftTypeClassExt::_Find_Or_Make);
 }
+
+declhook(0x0040FC8F, _AircraftTypeClass_Constructor_Patch, 0x7);
+declhook(0x00410228, _AircraftTypeClass_Scalar_Destructor_Patch, 0x6);

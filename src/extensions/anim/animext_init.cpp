@@ -39,6 +39,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -48,10 +49,9 @@
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_AnimClass_Constructor_Patch)
+EXPORT_FUNC(_AnimClass_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(AnimClass *, this_ptr, ESI); // Current "this" pointer.
-    static AnimTypeClassExtension *animtypeext;
+    GET(AnimClass *, this_ptr, ESI); // Current "this" pointer.
 
     /**
      *  If we are performing a load operation, the Windows API will invoke the
@@ -92,24 +92,11 @@ DECLARE_PATCH(_AnimClass_Constructor_Patch)
      *  @author: CCHyper
      */
     if (!this_ptr->ZAdjust) {
-        animtypeext = Extension::Fetch(this_ptr->Class);
-        this_ptr->ZAdjust = animtypeext->ZAdjust;
+        this_ptr->ZAdjust = Extension::Fetch(this_ptr->Class)->ZAdjust;
     }
 
 original_code:
-    /**
-     *  Stolen bytes/code.
-     */
-    this_ptr->IsActive = true;
-
-    /**
-     *  Restore some registers.
-     */
-    _asm { mov ecx, this_ptr }
-    _asm { mov edx, [ecx+0x64] } // this->Class
-    _asm { mov ecx, edx }
-
-    JMP_REG(edx, 0x00413C80);
+    return 0;
 
     /**
      *  Report that the anim type instance was invalid.
@@ -122,8 +109,7 @@ destroy_anim:
      */
     this_ptr->Delete_Me();
     
-    _asm { mov esi, this_ptr }
-    JMP_REG(edx, 0x00414157);
+    return 0x00414157;
 }
 
 
@@ -134,9 +120,9 @@ destroy_anim:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_AnimClass_Default_Constructor_Patch)
+EXPORT_FUNC(_AnimClass_Default_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(AnimClass *, this_ptr, ESI); // Current "this" pointer.
+    GET(AnimClass *, this_ptr, ESI); // Current "this" pointer.
 
     /**
      *  If we are performing a load operation, the Windows API will invoke the
@@ -151,14 +137,8 @@ DECLARE_PATCH(_AnimClass_Default_Constructor_Patch)
      */
     Extension::Make<AnimClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop esi }
-    _asm { pop ebx }
-    _asm { ret }
+    return 0;
 }
 
 
@@ -169,7 +149,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_AnimClass_Destructor_Patch)
+EXPORT_FUNC(_AnimClass_Destructor_Patch)
 {
     GET_REGISTER_STATIC(AnimClass *, this_ptr, ESI);
 
@@ -187,12 +167,8 @@ DECLARE_PATCH(_AnimClass_Destructor_Patch)
      */
     Extension::Destroy<AnimClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov eax, ds:0x007E4580 } // GameActive
-    JMP_REG(ebx, 0x004142D0);
+    return 0;
 }
 
 
@@ -201,9 +177,10 @@ original_code:
  */
 void AnimClassExtension_Init()
 {
-    Patch_Jump(0x00413C79, &_AnimClass_Constructor_Patch);
-    Patch_Jump(0x004142A6, &_AnimClass_Default_Constructor_Patch);
     Patch_Jump(0x0041441F, 0x00414475); // This jump goes from duplicate code in the destructor to our patch, removing the need for two hooks.
     Patch_Jump(0x00413C89, 0x00413D3E); // Skip part of the AnimClass constructor that's re-implemented in the extension constructor.
-    Patch_Jump(0x004142CB, &_AnimClass_Destructor_Patch);
 }
+
+declhook(0x00413C79, _AnimClass_Constructor_Patch, 0x7);
+declhook(0x004142A6, _AnimClass_Default_Constructor_Patch, 0x5);
+declhook(0x004142CB, _AnimClass_Destructor_Patch, 0x5);

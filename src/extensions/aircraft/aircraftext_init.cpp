@@ -66,9 +66,6 @@ EXPORT_FUNC(_AircraftClass_Constructor_Patch)
      */
     Extension::Make<AircraftClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
     return 0;
 }
@@ -90,9 +87,6 @@ EXPORT_FUNC(_AircraftClass_Destructor_Patch)
      */
     Extension::Destroy<AircraftClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
     return 0;
 }

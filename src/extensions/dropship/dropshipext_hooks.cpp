@@ -42,6 +42,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -51,17 +52,14 @@
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Dropship_Draw_Info_Text_ArmorName_Patch)
+EXPORT_FUNC(_Dropship_Draw_Info_Text_ArmorName_Patch)
 {
-    GET_REGISTER_STATIC(ArmorType, armor, EDX);
-    static const char* armor_name;
-    _asm push ecx
+    GET(ArmorType, armor, EDX);
+    GET(char*, dest, ECX)
 
-    armor_name = ArmorTypeClass::Name_From(armor);
+    std::sprintf(dest, "Armor: %s", ArmorTypeClass::Name_From(armor));
 
-    _asm mov eax, armor_name
-    _asm pop ecx
-    JMP_REG(edx, 0x00487071);
+    return 0x0048707D;
 }
 
 
@@ -73,7 +71,7 @@ DECLARE_PATCH(_Dropship_Draw_Info_Text_ArmorName_Patch)
  * 
  *  @author: CCHyper
  */
-static void Dropship_Helper()
+EXPORT_FUNC(_Start_Scenario_Dropship_Loadout_Show_Mouse_Patch)
 {
     /**
      *  issue-284
@@ -107,12 +105,8 @@ static void Dropship_Helper()
     if (Theme.Still_Playing()) {
         Theme.Stop(true); // Smoothly fade out the track.
     }
-}
 
-DECLARE_PATCH(_Start_Scenario_Dropship_Loadout_Show_Mouse_Patch)
-{
-    Dropship_Helper();
-    JMP(0x005DB3C0);
+    return 0x005DB3C0;
 }
 
 
@@ -144,25 +138,16 @@ static void Draw_Dropship_Loadout_Help_Text(Surface *surface)
     Fancy_Text_Print(TEXT_PRESS_SPACE, *surface, surfrect, text_pos, color_white, back_color, style);
 }
 
-DECLARE_PATCH(_Dropship_Loadout_Help_Text_Patch)
+EXPORT_FUNC(_Dropship_Loadout_Help_Text_Patch)
 {
-    Draw_Dropship_Loadout_Help_Text((Surface*)HiddenSurface);
+    Draw_Dropship_Loadout_Help_Text(HiddenSurface);
 
     /**
      *  Draws the version text over the menu background.
      */
-    Vinifera_Draw_Version_Text((Surface*)HiddenSurface);
+    Vinifera_Draw_Version_Text(HiddenSurface);
 
-    /**
-     *  Stolen bytes/code.
-     */
-original_code:
-    Update_Visible_Surface(true, HiddenSurface);
-
-    _asm { mov ebx, Scen }
-    _asm { mov ebx, [ebx] } // Second dereference required due to the global reference in TS++.
-
-    JMP(0x00486910);
+    return 0;
 }
 
 
@@ -171,7 +156,9 @@ original_code:
  */
 void DropshipExtension_Hooks()
 {
-    Patch_Jump(0x004868FB, &_Dropship_Loadout_Help_Text_Patch);
-    Patch_Jump(0x005DB3BB, &_Start_Scenario_Dropship_Loadout_Show_Mouse_Patch);
-    Patch_Jump(0x0048706A, &_Dropship_Draw_Info_Text_ArmorName_Patch);
+
 }
+
+declhook(0x004868FB, _Dropship_Loadout_Help_Text_Patch, 0x6);
+declhook(0x005DB3BB, _Start_Scenario_Dropship_Loadout_Show_Mouse_Patch, 0);
+declhook(0x0048706A, _Dropship_Draw_Info_Text_ArmorName_Patch, 0);

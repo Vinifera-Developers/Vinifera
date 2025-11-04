@@ -37,6 +37,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "syringe.h"
 
 /**
  *  #issue-181
@@ -47,12 +48,11 @@
  *
  *  @author: Rampastring
  */
-DECLARE_PATCH(_EMPulseClass_Create_Building_EMPImmune_Patch)
+EXPORT_FUNC(_EMPulseClass_Create_Building_EMPImmune_Patch)
 {
-    GET_REGISTER_STATIC(BuildingTypeClass *, buildingtype, EAX);
-    static BuildingTypeClassExtension *exttype_ptr;
+    GET(BuildingTypeClass *, buildingtype, EAX);
 
-    exttype_ptr = Extension::Fetch(buildingtype);
+    auto exttype_ptr = Extension::Fetch(buildingtype);
 
     /**
      *  Is this building immune to EMP weapons?
@@ -69,14 +69,13 @@ original_code:
         goto loop_continue;
     }
 
-    _asm {mov eax, buildingtype}
-    JMP_REG(ecx, 0x00492C53);
+    return 0x00492C53;
 
     /**
      *  Continue looping through affected cells.
      */
 loop_continue:
-    JMP(0x00492F93);
+    return 0x00492F93;
 }
 
 /**
@@ -89,13 +88,11 @@ loop_continue:
  *
  *  @author: Rampastring
  */
-DECLARE_PATCH(_EMPulseClass_Create_Foot_EMPImmune_Patch)
+EXPORT_FUNC(_EMPulseClass_Create_Foot_EMPImmune_Patch)
 {
-    GET_REGISTER_STATIC(FootClass *, foot, ESI);
-    static ILocomotion *loco;
-    static TechnoTypeClassExtension *exttype_ptr;
+    GET(FootClass *, foot, ESI);
 
-    exttype_ptr = Extension::Fetch(foot->TClass);
+    auto exttype_ptr = Extension::Fetch(foot->TClass);
 
     /**
      *  Is this object immune to EMP weapons?
@@ -108,16 +105,15 @@ DECLARE_PATCH(_EMPulseClass_Create_Foot_EMPImmune_Patch)
      *  Stolen bytes/code.
      */
 original_code:
-    loco = foot->Locomotor_Ptr();
-    loco->Power_Off();
+    foot->Locomotion->Power_Off();
 
-    JMP(0x00492EB8);
+    return 0x00492EB8;
 
     /**
      *  Continue looping through the cell occupiers.
      */
 loop_continue:
-    JMP(0x00492F78);
+    return 0x00492F78;
 }
 
 
@@ -126,6 +122,7 @@ loop_continue:
  */
 void EMPulseClassExtension_Hooks()
 {
-    Patch_Jump(0x00492E84, _EMPulseClass_Create_Foot_EMPImmune_Patch);
-    Patch_Jump(0x00492C45, _EMPulseClass_Create_Building_EMPImmune_Patch);
 }
+
+declhook(0x00492E84, _EMPulseClass_Create_Foot_EMPImmune_Patch, 0);
+declhook(0x00492C45, _EMPulseClass_Create_Building_EMPImmune_Patch, 0);
