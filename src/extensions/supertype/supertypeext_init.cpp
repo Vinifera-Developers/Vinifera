@@ -49,7 +49,7 @@
  */
 DECLARE_PATCH(_SuperWeaponTypeClass_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(SuperWeaponTypeClass *, this_ptr, ebp); // "this" pointer.
+    GET_REGISTER_STATIC(SuperWeaponTypeClass *, this_ptr, EBP); // "this" pointer.
     GET_STACK_STATIC(const char *, ini_name, esp, 0x14); // ini name.
 
     /**
@@ -87,7 +87,7 @@ original_code:
  */
 DECLARE_PATCH(_SuperWeaponTypeClass_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(SuperWeaponTypeClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(SuperWeaponTypeClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
@@ -112,7 +112,7 @@ original_code:
  */
 DECLARE_PATCH(_SuperWeaponTypeClass_Scalar_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(SuperWeaponTypeClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(SuperWeaponTypeClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.

@@ -49,7 +49,7 @@
  */
 DECLARE_PATCH(_RulesClass_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(RulesClass *, this_ptr, esi); // "this" pointer.
+    GET_REGISTER_STATIC(RulesClass *, this_ptr, ESI); // "this" pointer.
 
     /**
      *  Create the extended class instance.
@@ -78,7 +78,7 @@ original_code:
  */
 DECLARE_PATCH(_RulesClass_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(RulesClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(RulesClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class instance.
@@ -106,8 +106,8 @@ original_code:
  */
 DECLARE_PATCH(_RulesClass_Process_Patch)
 {
-    GET_REGISTER_STATIC(RulesClass *, this_ptr, ebp);
-    GET_REGISTER_STATIC(CCINIClass *, ini, esi);
+    GET_REGISTER_STATIC(RulesClass *, this_ptr, EBP);
+    GET_REGISTER_STATIC(CCINIClass *, ini, ESI);
 
     RuleExtension->Process(*ini);
 
@@ -133,8 +133,8 @@ original_code:
  */
 DECLARE_PATCH(_RulesClass_MPlayer_Patch)
 {
-    GET_REGISTER_STATIC(RulesClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(CCINIClass *, ini, edi);
+    GET_REGISTER_STATIC(RulesClass *, this_ptr, ESI);
+    GET_REGISTER_STATIC(CCINIClass *, ini, EDI);
 
     RuleExtension->MPlayer(*ini);
 

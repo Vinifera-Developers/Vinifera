@@ -76,8 +76,8 @@ static void OverlayTypeClass_Free_Image(OverlayTypeClass *this_ptr)
  *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_OverlayTypeClass_DTOR_Free_Image_Patch) { GET_REGISTER_STATIC(OverlayTypeClass *, this_ptr, esi); OverlayTypeClass_Free_Image(this_ptr); JMP(0x0058D192); }
-DECLARE_PATCH(_OverlayTypeClass_SDDTOR_Free_Image_Patch) { GET_REGISTER_STATIC(OverlayTypeClass *, this_ptr, esi); OverlayTypeClass_Free_Image(this_ptr); JMP(0x0058DC82); }
+DECLARE_PATCH(_OverlayTypeClass_DTOR_Free_Image_Patch) { GET_REGISTER_STATIC(OverlayTypeClass *, this_ptr, ESI); OverlayTypeClass_Free_Image(this_ptr); JMP(0x0058D192); }
+DECLARE_PATCH(_OverlayTypeClass_SDDTOR_Free_Image_Patch) { GET_REGISTER_STATIC(OverlayTypeClass *, this_ptr, ESI); OverlayTypeClass_Free_Image(this_ptr); JMP(0x0058DC82); }
 
 
 /**
@@ -87,8 +87,8 @@ DECLARE_PATCH(_OverlayTypeClass_SDDTOR_Free_Image_Patch) { GET_REGISTER_STATIC(O
  */
 DECLARE_PATCH(_OverlayTypeClass_Get_Image_Data_Assertion_Patch)
 {
-    GET_REGISTER_STATIC(OverlayTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(const ShapeSet *, image, eax);
+    GET_REGISTER_STATIC(OverlayTypeClass *, this_ptr, ESI);
+    GET_REGISTER_STATIC(const ShapeSet *, image, EAX);
 
     if (image == nullptr) {
         DEBUG_WARNING("Overlay %s has NULL image data!\n", this_ptr->Name());

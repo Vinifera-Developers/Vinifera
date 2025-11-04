@@ -66,7 +66,7 @@ static UnitClass* Make_HunterSeeker(HouseClass* house)
  */
 DECLARE_PATCH(_SuperClass_Place_HunterSeeker_Type_Patch)
 {
-    GET_REGISTER_STATIC(SuperClass*, this_ptr, esi);
+    GET_REGISTER_STATIC(SuperClass*, this_ptr, ESI);
     static UnitClass* hunter_seeker;
 
     /**
@@ -98,8 +98,8 @@ DECLARE_PATCH(_SuperClass_Place_HunterSeeker_Type_Patch)
  */
 DECLARE_PATCH(_SuperClass_Place_NukeType)
 {
-    GET_REGISTER_STATIC(SuperClass*, this_ptr, eax);
-    GET_REGISTER_STATIC(BuildingClass*, launchsite, esi);
+    GET_REGISTER_STATIC(SuperClass*, this_ptr, EAX);
+    GET_REGISTER_STATIC(BuildingClass*, launchsite, ESI);
 
     launchsite->field_298 = this_ptr->Class->HeapID;
 

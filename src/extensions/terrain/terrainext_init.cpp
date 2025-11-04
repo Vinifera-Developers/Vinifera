@@ -48,7 +48,7 @@
  */
 DECLARE_PATCH(_TerrainClass_Default_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(TerrainClass *, this_ptr, esi); // Current "this" pointer.
+    GET_REGISTER_STATIC(TerrainClass *, this_ptr, ESI); // Current "this" pointer.
     GET_STACK_STATIC(const TerrainTypeClass *, classof, esp, 0x20);
     GET_STACK_STATIC(const Cell *, cell, esp, 0x24);
 
@@ -88,7 +88,7 @@ original_code:
  */
 DECLARE_PATCH(_TerrainClass_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(TerrainClass *, this_ptr, esi); // Current "this" pointer.
+    GET_REGISTER_STATIC(TerrainClass *, this_ptr, ESI); // Current "this" pointer.
 
     /**
      *  Create an extended class instance.
@@ -121,7 +121,7 @@ original_code:
  */
 DECLARE_PATCH(_TerrainClass_Constructor_Before_Unlimbo_Patch)
 {
-    GET_REGISTER_STATIC(TerrainClass *, this_ptr, esi); // Current "this" pointer.
+    GET_REGISTER_STATIC(TerrainClass *, this_ptr, ESI); // Current "this" pointer.
     GET_STACK_STATIC(Cell *, cell, esp, 0x24);
 
     /**
@@ -150,7 +150,7 @@ original_code:
  */
 DECLARE_PATCH(_TerrainClass_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(TerrainClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(TerrainClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
@@ -175,7 +175,7 @@ original_code:
  */
 DECLARE_PATCH(_TerrainClass_Scalar_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(TerrainClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(TerrainClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.

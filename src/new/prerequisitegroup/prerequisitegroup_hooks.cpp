@@ -78,8 +78,8 @@ TypeList<int> Get_Prerequisites(CCINIClass const& ini, char const* section, char
  */
 DECLARE_PATCH(_HouseClass_Can_Build_Prereq_Groups_Patch)
 {
-    GET_REGISTER_STATIC(int, prereq, eax);
-    GET_REGISTER_STATIC(HouseClass*, house, ebp);
+    GET_REGISTER_STATIC(int, prereq, EAX);
+    GET_REGISTER_STATIC(HouseClass*, house, EBP);
 
     _asm pushad
 

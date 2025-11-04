@@ -277,7 +277,7 @@ static void MapSeedClass_Init_Houses(CCINIClass &ini)
  */
 DECLARE_PATCH(_MapSeedClass_Init_Random_Map_Init_Houses_Patch)
 {
-    //GET_REGISTER_STATIC(MapSeedClass *, this_ptr, edi);
+    //GET_REGISTER_STATIC(MapSeedClass *, this_ptr, EDI);
     LEA_STACK_STATIC(CCINIClass *, ini, esp, 0x128);
 
     DEBUG_INFO("Initalising houses for RMG...\n");
@@ -298,7 +298,7 @@ DECLARE_PATCH(_MapSeedClass_Init_Random_Map_Init_Houses_Patch)
  */
 DECLARE_PATCH(_MapClass_Set_Map_Dimensions_WaypointMax)
 {
-    GET_REGISTER_STATIC(int, i, esi);
+    GET_REGISTER_STATIC(int, i, ESI);
 
     if (i < NEW_WAYPOINT_COUNT)
     {

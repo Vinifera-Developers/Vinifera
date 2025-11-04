@@ -501,7 +501,7 @@ Cell FootClassExt::_Search_For_Tiberium(int rad, bool a2)
 static bool Foot_Target_Something_Nearby_Coord(FootClass *this_ptr, ThreatType threat) { return this_ptr->Target_Something_Nearby(this_ptr->PositionCoord, threat); }
 DECLARE_PATCH(_FootClass_Mission_Move_Can_Passive_Acquire_Patch)
 {
-    GET_REGISTER_STATIC(FootClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(FootClass *, this_ptr, ESI);
     static TechnoClassExtension *technoclassext;
 
     technoclassext = Extension::Fetch(this_ptr);
@@ -532,7 +532,7 @@ finish_mission_process:
  */
 DECLARE_PATCH(_FootClass_Mission_Guard_Can_Passive_Acquire_Patch)
 {
-    GET_REGISTER_STATIC(FootClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(FootClass *, this_ptr, ESI);
     static TechnoClassExtension *technoclassext;
 
     technoclassext = Extension::Fetch(this_ptr);
@@ -569,7 +569,7 @@ random_animate:
 static bool Foot_Target_Something_Nearby_Archive(FootClass *this_ptr, ThreatType threat) { return this_ptr->Target_Something_Nearby(this_ptr->ArchiveTarget->Center_Coord(), threat); }
 DECLARE_PATCH(_FootClass_Mission_Guard_Area_Can_Passive_Acquire_Patch)
 {
-    GET_REGISTER_STATIC(FootClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(FootClass *, this_ptr, ESI);
     static TechnoClassExtension *technoclassext;
 
     technoclassext = Extension::Fetch(this_ptr);
@@ -601,8 +601,8 @@ tarcom_check:
 static bool Locomotion_Is_Moving_Now(FootClass *this_ptr) { return this_ptr->Locomotion->Is_Moving_Now(); }
 DECLARE_PATCH(_FootClass_AI_IdleRate_Patch)
 {
-    GET_REGISTER_STATIC(FootClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(ILocomotion *, loco, edi);
+    GET_REGISTER_STATIC(FootClass *, this_ptr, ESI);
+    GET_REGISTER_STATIC(ILocomotion *, loco, EDI);
     static TechnoTypeClassExtension *technotypeext;
 
     technotypeext = Extension::Fetch(this_ptr->TClass);
@@ -639,8 +639,8 @@ DECLARE_PATCH(_FootClass_AI_IdleRate_Patch)
  */
 DECLARE_PATCH(_FootClass_Is_Allowed_To_Recloak_Cloak_Stop_BugFix_Patch)
 {
-    GET_REGISTER_STATIC(FootClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(TechnoTypeClass *, technotype, eax);
+    GET_REGISTER_STATIC(FootClass *, this_ptr, ESI);
+    GET_REGISTER_STATIC(TechnoTypeClass *, technotype, EAX);
     static ILocomotion *loco;
 
     /**

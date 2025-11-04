@@ -139,8 +139,8 @@ static bool Health_Low_Enough_To_Capture(TechnoClass *tech)
  */
 DECLARE_PATCH(_InfantryClass_Per_Cell_Process_Engineer_Capture_Damage_Patch)
 {
-    GET_REGISTER_STATIC(InfantryClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(TechnoClass *, tech, edi);      // From "cellptr->Cell_Building()".
+    GET_REGISTER_STATIC(InfantryClass *, this_ptr, ESI);
+    GET_REGISTER_STATIC(TechnoClass *, tech, EDI);      // From "cellptr->Cell_Building()".
     GET_REGISTER_STATIC(bool, iscapturable, bl);
     static int damage;
 
@@ -180,8 +180,8 @@ capture:
  */
 DECLARE_PATCH(_InfantryClass_Per_Cell_Process_Transport_Attach_Sound_Patch)
 {
-    GET_REGISTER_STATIC(InfantryClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(TechnoClass *, techno, edi);        // Radio contact
+    GET_REGISTER_STATIC(InfantryClass *, this_ptr, ESI);
+    GET_REGISTER_STATIC(TechnoClass *, techno, EDI);        // Radio contact
     static TechnoTypeClassExtension *radio_technotypeext;
 
     /**
@@ -210,8 +210,8 @@ DECLARE_PATCH(_InfantryClass_Per_Cell_Process_Transport_Attach_Sound_Patch)
  */
 DECLARE_PATCH(_InfantryClass_Firing_AI_Mechanic_Patch)
 {
-    GET_REGISTER_STATIC(InfantryClass *, this_ptr, ebp);
-    GET_REGISTER_STATIC(ObjectClass *, targ, esi);      // TarCom as ObjectClass.
+    GET_REGISTER_STATIC(InfantryClass *, this_ptr, EBP);
+    GET_REGISTER_STATIC(ObjectClass *, targ, ESI);      // TarCom as ObjectClass.
     static InfantryTypeClassExtension *infantrytypeext;
 
     infantrytypeext = Extension::Fetch(this_ptr->Class);
@@ -274,8 +274,8 @@ health_ratio_check:
  */
 DECLARE_PATCH(_InfantryClass_What_Action_Mechanic_Patch)
 {
-    GET_REGISTER_STATIC(InfantryClass *, this_ptr, edi);
-    GET_REGISTER_STATIC(/*const */ObjectClass *, object, esi);  // target
+    GET_REGISTER_STATIC(InfantryClass *, this_ptr, EDI);
+    GET_REGISTER_STATIC(/*const */ObjectClass *, object, ESI);  // target
     static InfantryTypeClassExtension *infantrytypeext;
 
     infantrytypeext = Extension::Fetch(this_ptr->Class);
@@ -395,7 +395,7 @@ health_ratio_check:
  */
 DECLARE_PATCH(_InfantryClass_Can_Fire_Target_Check_Patch)
 {
-    GET_REGISTER_STATIC(InfantryClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(InfantryClass *, this_ptr, ESI);
     GET_STACK_STATIC(AbstractClass *, target, esp, 0x10);
     GET_STACK_STATIC(int, which, esp, 0x14);
     static TechnoClass *targ;
@@ -425,7 +425,7 @@ return_FIRE_ILLEGAL:
  */
 DECLARE_PATCH(_InfantryClass_Doing_AI_JumpJet_Idle_Patch)
 {
-    GET_REGISTER_STATIC(InfantryClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(InfantryClass *, this_ptr, ESI);
     static const InfantryTypeClass *infantrytype;
 
     infantrytype = reinterpret_cast<const InfantryTypeClass *>(this_ptr->Class_Of());
@@ -478,7 +478,7 @@ DECLARE_PATCH(_InfantryClass_Doing_AI_JumpJet_Idle_Patch)
  */
 DECLARE_PATCH(_InfantryClass_AI_JumpJet_Idle_Between_Firing_Patch)
 {
-    GET_REGISTER_STATIC(InfantryClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(InfantryClass *, this_ptr, ESI);
     static const InfantryTypeClass *infantrytype;
 
     infantrytype = reinterpret_cast<const InfantryTypeClass *>(this_ptr->Class_Of());
@@ -524,7 +524,7 @@ DECLARE_PATCH(_InfantryClass_AI_JumpJet_Idle_Between_Firing_Patch)
  */
 DECLARE_PATCH(_InfantryClass_Movement_AI_JumpJet_Not_Moving_Patch)
 {
-    GET_REGISTER_STATIC(InfantryClass *, this_ptr, ebp);
+    GET_REGISTER_STATIC(InfantryClass *, this_ptr, EBP);
     static const InfantryTypeClass *infantrytype;
 
     infantrytype = reinterpret_cast<const InfantryTypeClass *>(this_ptr->Class_Of());
@@ -567,7 +567,7 @@ DECLARE_PATCH(_InfantryClass_Movement_AI_JumpJet_Not_Moving_Patch)
  */
 DECLARE_PATCH(_InfantryClass_Firing_AI_JumpJet_In_Air_Patch)
 {
-    GET_REGISTER_STATIC(InfantryClass *, this_ptr, ebp);
+    GET_REGISTER_STATIC(InfantryClass *, this_ptr, EBP);
 
     /**
      *  Make sure its in the air before assigning the hover firing graphic sequence.
@@ -589,7 +589,7 @@ DECLARE_PATCH(_InfantryClass_Firing_AI_JumpJet_In_Air_Patch)
  */
 DECLARE_PATCH(_InfantryClass_Per_Cell_Process_Tiberium_Damage_Patch)
 {
-    GET_REGISTER_STATIC(int, tib_id, eax);
+    GET_REGISTER_STATIC(int, tib_id, EAX);
 
     static int damage;
     damage = Extension::Fetch(Tiberiums[tib_id])->DamageToInfantry;
@@ -627,7 +627,7 @@ void _Set_Infantry_Facing_After_Doing_Check_For_Do_Nothing(InfantryClass* this_p
 
 DECLARE_PATCH(_InfantryClass_Doing_AI_Fix_Invalid_Facing_Set)
 {
-    GET_REGISTER_STATIC(InfantryClass*, inf, esi);
+    GET_REGISTER_STATIC(InfantryClass*, inf, ESI);
     _Set_Infantry_Facing_After_Doing_Check_For_Do_Nothing(inf);
     JMP(0x004D8C14);
 }

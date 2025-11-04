@@ -46,7 +46,7 @@
  */
 DECLARE_PATCH(_ToolTipManager_Message_Handler_CursorPosition_Patch)
 {
-    GET_REGISTER_STATIC(ToolTipManager *, this_ptr, esi);
+    GET_REGISTER_STATIC(ToolTipManager *, this_ptr, ESI);
 
     /**
      *  If the cursor position command is activated, skip all

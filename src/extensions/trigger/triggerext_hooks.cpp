@@ -51,7 +51,7 @@
  */
 DECLARE_PATCH(_TriggerClass_Constructor_Enabled_For_Difficulty_Patch)
 {
-    GET_REGISTER_STATIC(TriggerClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(TriggerClass *, this_ptr, ESI);
 
     /**
      *  This is direct port of the code from Red Alert 2, which looks to fix this issue.

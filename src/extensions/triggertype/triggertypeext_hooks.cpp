@@ -48,7 +48,7 @@
  */
 DECLARE_PATCH(_TriggerTypeClass_Read_INI_Load_Difficulty_Patch)
 {
-    GET_REGISTER_STATIC(TriggerTypeClass *, this_ptr, ebp);
+    GET_REGISTER_STATIC(TriggerTypeClass *, this_ptr, EBP);
     static char *tok;
 
     tok = std::strtok(nullptr, ",");

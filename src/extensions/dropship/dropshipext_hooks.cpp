@@ -53,7 +53,7 @@
  */
 DECLARE_PATCH(_Dropship_Draw_Info_Text_ArmorName_Patch)
 {
-    GET_REGISTER_STATIC(ArmorType, armor, edx);
+    GET_REGISTER_STATIC(ArmorType, armor, EDX);
     static const char* armor_name;
     _asm push ecx
 

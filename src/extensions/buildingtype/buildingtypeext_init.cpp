@@ -49,7 +49,7 @@
  */
 DECLARE_PATCH(_BuildingTypeClass_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, esi); // "this" pointer.
+    GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, ESI); // "this" pointer.
     GET_STACK_STATIC(const char *, ini_name, esp, 0x4); // ini name.
 
     /**
@@ -87,7 +87,7 @@ original_code:
  */
 DECLARE_PATCH(_BuildingTypeClass_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
@@ -112,7 +112,7 @@ original_code:
  */
 DECLARE_PATCH(_BuildingTypeClass_Scalar_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.

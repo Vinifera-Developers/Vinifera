@@ -94,7 +94,7 @@ static void Set_Addon_Mode(bool firestorm)
 static bool firsttime = true;
 DECLARE_PATCH(_NewMenuClass_Process_SkipToMenus_Patch)
 {
-    GET_REGISTER_STATIC(NewMenuClass *, newmenu, ecx);
+    GET_REGISTER_STATIC(NewMenuClass *, newmenu, ECX);
     static int gamemode;
     static int mode;
 

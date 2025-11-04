@@ -392,7 +392,7 @@ int Scan_Place_Object_Proxy(ObjectClass* obj, Cell const& cell)
  */
 DECLARE_PATCH(_Create_Units_Save_Spawn_Waypoint_Patch)
 {
-    GET_REGISTER_STATIC(HouseClass*, house, edi);
+    GET_REGISTER_STATIC(HouseClass*, house, EDI);
     static bool bases;
 
     _asm pushad

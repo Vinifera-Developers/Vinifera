@@ -152,9 +152,9 @@ static void BuildingTypeClass_Free_Buildup_Image(BuildingTypeClass *this_ptr)
  *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_BuildingTypeClass_SDDTOR_Free_Buildup_Image_Patch) { GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, esi); BuildingTypeClass_Free_Buildup_Image(this_ptr); JMP(0x00444079); }
-DECLARE_PATCH(_BuildingTypeClass_Init_Free_Buildup_Image_Patch) { GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, esi); BuildingTypeClass_Free_Buildup_Image(this_ptr); JMP(0x0043FDBF); }
-DECLARE_PATCH(_BuildingTypeClass_DTOR_Free_Buildup_Image_Patch) { GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, esi); BuildingTypeClass_Free_Buildup_Image(this_ptr); JMP(0x0043F949); }
+DECLARE_PATCH(_BuildingTypeClass_SDDTOR_Free_Buildup_Image_Patch) { GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, ESI); BuildingTypeClass_Free_Buildup_Image(this_ptr); JMP(0x00444079); }
+DECLARE_PATCH(_BuildingTypeClass_Init_Free_Buildup_Image_Patch) { GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, ESI); BuildingTypeClass_Free_Buildup_Image(this_ptr); JMP(0x0043FDBF); }
+DECLARE_PATCH(_BuildingTypeClass_DTOR_Free_Buildup_Image_Patch) { GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, ESI); BuildingTypeClass_Free_Buildup_Image(this_ptr); JMP(0x0043F949); }
 
 
 /**
@@ -195,9 +195,9 @@ static void BuildingTypeClass_Free_Image(BuildingTypeClass *this_ptr)
  *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_BuildingTypeClass_SDDTOR_Free_Image_Patch) { GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, esi); BuildingTypeClass_Free_Image(this_ptr); JMP(0x00444052); }
-DECLARE_PATCH(_BuildingTypeClass_Init_Free_Image_Patch) { GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, esi); BuildingTypeClass_Free_Image(this_ptr); JMP(0x0043FD9E); }
-DECLARE_PATCH(_BuildingTypeClass_DTOR_Free_Image_Patch) { GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, esi); BuildingTypeClass_Free_Image(this_ptr); JMP(0x0043F922); }
+DECLARE_PATCH(_BuildingTypeClass_SDDTOR_Free_Image_Patch) { GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, ESI); BuildingTypeClass_Free_Image(this_ptr); JMP(0x00444052); }
+DECLARE_PATCH(_BuildingTypeClass_Init_Free_Image_Patch) { GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, ESI); BuildingTypeClass_Free_Image(this_ptr); JMP(0x0043FD9E); }
+DECLARE_PATCH(_BuildingTypeClass_DTOR_Free_Image_Patch) { GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, ESI); BuildingTypeClass_Free_Image(this_ptr); JMP(0x0043F922); }
 
 /**
  *  Patches in an assertion check for image data.
@@ -206,8 +206,8 @@ DECLARE_PATCH(_BuildingTypeClass_DTOR_Free_Image_Patch) { GET_REGISTER_STATIC(Bu
  */
 DECLARE_PATCH(_BuildingTypeClass_Get_Image_Data_Assertion_Patch)
 {
-    GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(const ShapeSet *, image, eax);
+    GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, ESI);
+    GET_REGISTER_STATIC(const ShapeSet *, image, EAX);
 
     if (image == nullptr) {
         DEBUG_WARNING("Building %s has NULL image data!\n", this_ptr->Name());
@@ -255,8 +255,8 @@ int BuildingTypeClassExt::_Cost_Of(HouseClass* house)
  */
 DECLARE_PATCH(_BuildingTypeClass_Init_Fetch_Image_Patch)
 {
-    GET_REGISTER_STATIC(BuildingTypeClass*, btype, esi);
-    GET_REGISTER_STATIC(TheaterType, theater, edi);
+    GET_REGISTER_STATIC(BuildingTypeClass*, btype, ESI);
+    GET_REGISTER_STATIC(TheaterType, theater, EDI);
 
     btype->Fetch_Building_Normal_Image(theater);
 

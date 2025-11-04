@@ -164,7 +164,7 @@ public:
  */
 DECLARE_PATCH(_SidebarClass_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(SidebarClass*, this_ptr, esi); // "this" pointer.
+    GET_REGISTER_STATIC(SidebarClass*, this_ptr, ESI); // "this" pointer.
 
     /**
      *  Create the extended class instance.
@@ -196,7 +196,7 @@ DECLARE_PATCH(_SidebarClass_Constructor_Patch)
  */
 DECLARE_PATCH(_SidebarClass_Destructor_Patch)
 {
-    //GET_REGISTER_STATIC(SidebarClass*, this_ptr, edi);
+    //GET_REGISTER_STATIC(SidebarClass*, this_ptr, EDI);
 
     /**
      *  Remove the extended class instance.
@@ -2244,11 +2244,11 @@ void StripClassExt::_Fake_Flag_To_Redraw_Current()
  */
 DECLARE_PATCH(_GadgetClass_Input_Mouse_Enter_Leave)
 {
-    GET_REGISTER_STATIC(int, key, eax);
-    GET_REGISTER_STATIC(int, mousex, ebp);
-    GET_REGISTER_STATIC(int, mousey, ebx);
-    GET_REGISTER_STATIC(unsigned, flags, edi);
-    GET_REGISTER_STATIC(GadgetClass*, this_ptr, esi);
+    GET_REGISTER_STATIC(int, key, EAX);
+    GET_REGISTER_STATIC(int, mousex, EBP);
+    GET_REGISTER_STATIC(int, mousey, EBX);
+    GET_REGISTER_STATIC(unsigned, flags, EDI);
+    GET_REGISTER_STATIC(GadgetClass*, this_ptr, ESI);
 
     _asm push eax
     _asm push edx
@@ -2332,7 +2332,7 @@ static BSurface* _SidebarClass_StripClass_CustomImage = nullptr;
  */
 DECLARE_PATCH(_SidebarClass_StripClass_ObjectTypeClass_Custom_Cameo_Image_Patch)
 {
-    GET_REGISTER_STATIC(const ObjectTypeClass*, obj, ebp);
+    GET_REGISTER_STATIC(const ObjectTypeClass*, obj, EBP);
     static const TechnoTypeClassExtension* technotypeext;
     static const ShapeSet* shapefile;
 
@@ -2353,7 +2353,7 @@ DECLARE_PATCH(_SidebarClass_StripClass_ObjectTypeClass_Custom_Cameo_Image_Patch)
 
 DECLARE_PATCH(_SidebarClass_StripClass_SuperWeaponType_Custom_Cameo_Image_Patch)
 {
-    GET_REGISTER_STATIC(const SuperWeaponTypeClass*, supertype, eax);
+    GET_REGISTER_STATIC(const SuperWeaponTypeClass*, supertype, EAX);
     static const SuperWeaponTypeClassExtension* supertypeext;
     static const ShapeSet* shapefile;
 
@@ -2390,9 +2390,9 @@ DECLARE_PATCH(_SidebarClass_StripClass_Custom_Cameo_Image_Patch)
 {
     GET_STACK_STATIC(SidebarClass::StripClass*, this_ptr, esp, 0x24);
     LEA_STACK_STATIC(Rect*, window_rect, esp, 0x34);
-    GET_REGISTER_STATIC(int, pos_x, edi);
-    GET_REGISTER_STATIC(int, pos_y, esi);
-    GET_REGISTER_STATIC(const ShapeSet*, shapefile, ebx);
+    GET_REGISTER_STATIC(int, pos_x, EDI);
+    GET_REGISTER_STATIC(int, pos_y, ESI);
+    GET_REGISTER_STATIC(const ShapeSet*, shapefile, EBX);
     static BSurface* image_surface;
 
     image_surface = nullptr;
@@ -2443,8 +2443,8 @@ draw_darken_shape:
 static char extended_description[512];
 DECLARE_PATCH(_SidebarClass_StripClass_Help_Text_Extended_Tooltip_Patch)
 {
-    GET_REGISTER_STATIC(int, cost, eax);
-    GET_REGISTER_STATIC(TechnoTypeClass*, technotype, esi);
+    GET_REGISTER_STATIC(int, cost, EAX);
+    GET_REGISTER_STATIC(TechnoTypeClass*, technotype, ESI);
 
     static TechnoTypeClassExtension* technotypeext;
     static char* description;
@@ -2475,7 +2475,7 @@ DECLARE_PATCH(_SidebarClass_StripClass_Help_Text_Extended_Tooltip_Patch)
  */
 DECLARE_PATCH(_StripClass_Draw_It_Fetch_Factory_Patch1)
 {
-    GET_REGISTER_STATIC(TechnoTypeClass*, ttype, ebp);
+    GET_REGISTER_STATIC(TechnoTypeClass*, ttype, EBP);
 
     static FactoryClass* factory;
     factory = Extension::Fetch(PlayerPtr)->Fetch_Factory(ttype->RTTI, TechnoTypeClassExtension::Get_Production_Flags(ttype));

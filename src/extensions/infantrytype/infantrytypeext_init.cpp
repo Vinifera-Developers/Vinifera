@@ -49,7 +49,7 @@
  */
 DECLARE_PATCH(_InfantryTypeClass_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(InfantryTypeClass *, this_ptr, esi); // "this" pointer.
+    GET_REGISTER_STATIC(InfantryTypeClass *, this_ptr, ESI); // "this" pointer.
     GET_STACK_STATIC(const char *, ini_name, esp, 0x0C); // ini name.
 
     /**
@@ -85,7 +85,7 @@ original_code:
  */
 DECLARE_PATCH(_InfantryTypeClass_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(InfantryTypeClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(InfantryTypeClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
@@ -110,7 +110,7 @@ original_code:
  */
 DECLARE_PATCH(_InfantryTypeClass_Scalar_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(InfantryTypeClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(InfantryTypeClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.

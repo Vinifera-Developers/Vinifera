@@ -1804,8 +1804,8 @@ int TechnoClassExt::_How_Many_Survivors() const
  */
 DECLARE_PATCH(_TechnoClass_Evaluate_Object_Is_Legal_Target_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass *, this_ptr, edi);
-    GET_REGISTER_STATIC(const TechnoClass *, object, esi); // The target object being evaluated.
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, EDI);
+    GET_REGISTER_STATIC(const TechnoClass *, object, ESI); // The target object being evaluated.
     static TechnoClassExtension *this_technoext;
     static TechnoClassExtension *object_technoext;
     static const TechnoTypeClass *object_tclass;
@@ -1852,8 +1852,8 @@ return_false:
  */
 DECLARE_PATCH(_TechnoClass_Evaluate_Object_PassiveAcquire_Armor_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass*, this_ptr, edi);
-    GET_REGISTER_STATIC(TechnoClass*, object, esi);
+    GET_REGISTER_STATIC(TechnoClass*, this_ptr, EDI);
+    GET_REGISTER_STATIC(TechnoClass*, object, ESI);
 
     static WeaponTypeClass* weapon;
 
@@ -1886,7 +1886,7 @@ return_false:
 DECLARE_PATCH(_TechnoClass_Base_Is_Attacked_Armor1_Patch)
 {
     GET_STACK_STATIC(TechnoClass*, enemy, esp, 0x84);
-    GET_REGISTER_STATIC(UnitClass*, unit, esi);
+    GET_REGISTER_STATIC(UnitClass*, unit, ESI);
 
     if (Verses::Get_Modifier(enemy->TClass->Armor, unit->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon->WarheadPtr))
     {
@@ -1907,7 +1907,7 @@ DECLARE_PATCH(_TechnoClass_Base_Is_Attacked_Armor1_Patch)
 DECLARE_PATCH(_TechnoClass_Base_Is_Attacked_Armor2_Patch)
 {
     GET_STACK_STATIC(TechnoClass*, enemy, esp, 0x84);
-    GET_REGISTER_STATIC(InfantryClass*, unit, esi);
+    GET_REGISTER_STATIC(InfantryClass*, unit, ESI);
 
     if (Verses::Get_Modifier(enemy->TClass->Armor, unit->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon->WarheadPtr) != 0)
     {
@@ -1929,8 +1929,8 @@ DECLARE_PATCH(_TechnoClass_Base_Is_Attacked_Armor2_Patch)
  */
 DECLARE_PATCH(_TechnoClass_Fire_At_Electric_Bolt_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(WeaponTypeClass const *, weapon, ebx);
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, ESI);
+    GET_REGISTER_STATIC(WeaponTypeClass const *, weapon, EBX);
     GET_STACK_STATIC(AbstractClass *, target, ebp, 0x8);
     static WeaponTypeClassExtension *weapontypeext;
     static TechnoClassExtension *technoext;
@@ -1969,9 +1969,9 @@ DECLARE_PATCH(_TechnoClass_Fire_At_Electric_Bolt_Patch)
  */
 DECLARE_PATCH(_TechnoClass_Fire_At_Suicide_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(WeaponTypeClass *, weap, ebx);
-    GET_REGISTER_STATIC(BulletTypeClass *, bullet, edx);
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, ESI);
+    GET_REGISTER_STATIC(WeaponTypeClass *, weap, EBX);
+    GET_REGISTER_STATIC(BulletTypeClass *, bullet, EDX);
     GET_STACK_STATIC(AbstractClass *, target, ebp, 0x8);
     static WeaponTypeClassExtension *weapontypeext;
     static int damage;
@@ -2101,8 +2101,8 @@ static void Techno_Player_Assign_Mission_Response_Switch(TechnoClass *this_ptr, 
  */
 DECLARE_PATCH(_TechnoClass_Player_Assign_Mission_Response_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(MissionType, mission, edi);
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, ESI);
+    GET_REGISTER_STATIC(MissionType, mission, EDI);
 
     Techno_Player_Assign_Mission_Response_Switch(this_ptr, mission);
 
@@ -2119,7 +2119,7 @@ DECLARE_PATCH(_TechnoClass_Player_Assign_Mission_Response_Patch)
  */
 DECLARE_PATCH(_TechnoClass_Refund_Amount_Soylent_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, ESI);
     static TechnoTypeClassExtension *technotypext;
     const static TechnoTypeClass *technotype;
     static int cost;
@@ -2161,9 +2161,9 @@ return_amount:
  */
 DECLARE_PATCH(_TechnoClass_Greatest_Threat_Infantry_Mechanic_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(InfantryClass *, infantry_this_ptr, esi);
-    GET_REGISTER_STATIC(ThreatType, method, ebx);
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, ESI);
+    GET_REGISTER_STATIC(InfantryClass *, infantry_this_ptr, ESI);
+    GET_REGISTER_STATIC(ThreatType, method, EBX);
     static InfantryTypeClassExtension *infantrytypeext;
 
     /**
@@ -2204,7 +2204,7 @@ DECLARE_PATCH(_TechnoClass_Greatest_Threat_Infantry_Mechanic_Patch)
  */
 DECLARE_PATCH(_TechnoClass_Draw_Health_Bars_Infantry_Draw_Pos_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass *, this_ptr, ebx);
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, EBX);
     static int x_pos;
     static int y_pos;
 
@@ -2227,7 +2227,7 @@ DECLARE_PATCH(_TechnoClass_Draw_Health_Bars_Infantry_Draw_Pos_Patch)
  */
 DECLARE_PATCH(_TechnoClass_Draw_Health_Bars_Unit_Draw_Pos_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass *, this_ptr, ebx);
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, EBX);
     static int x_pos;
     static int y_pos;
 
@@ -2254,7 +2254,7 @@ DECLARE_PATCH(_TechnoClass_Draw_Health_Bars_Unit_Draw_Pos_Patch)
  */
 DECLARE_PATCH(_TechnoClass_Take_Damage_IsAffectsAllies_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, ESI);
     GET_STACK_STATIC(int *, damage, esp, 0xEC);
     GET_STACK_STATIC(int, distance, esp, 0xF0);
     GET_STACK_STATIC(const WarheadTypeClass *, warhead, esp, 0xF4);
@@ -2314,7 +2314,7 @@ return_RESULT_NONE:
  */
 DECLARE_PATCH(_TechnoClass_Is_Ready_To_Uncloak_Cloak_Stop_BugFix_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, ESI);
     GET_REGISTER_STATIC(bool, cloaked_by_house, al);
 
     /**
@@ -2391,8 +2391,8 @@ static AnimTypeClass *Techno_Get_Firing_Anim(TechnoClass *this_ptr, WeaponTypeCl
 
 DECLARE_PATCH(_TechnoClass_Fire_At_Weapon_Anim_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(WeaponTypeClass *, weapon, ebx);
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, ESI);
+    GET_REGISTER_STATIC(WeaponTypeClass *, weapon, EBX);
     static AnimTypeClass *anim;
 
     anim = Techno_Get_Firing_Anim(this_ptr, weapon);
@@ -2411,8 +2411,8 @@ DECLARE_PATCH(_TechnoClass_Fire_At_Weapon_Anim_Patch)
  */
 DECLARE_PATCH(_TechnoClass_Do_Cloak_Cloak_Sound_Patch)
 {
-    GET_REGISTER_STATIC(Coord *, coord, eax);
-    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(Coord *, coord, EAX);
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, ESI);
     const static TechnoTypeClass *technotype;
     static TechnoTypeClassExtension *technotypeext;
     static VocType voc;
@@ -2454,8 +2454,8 @@ DECLARE_PATCH(_TechnoClass_Do_Cloak_Cloak_Sound_Patch)
  */
 DECLARE_PATCH(_TechnoClass_Do_Uncloak_Uncloak_Sound_Patch)
 {
-    GET_REGISTER_STATIC(Coord *, coord, eax);
-    GET_REGISTER_STATIC(TechnoClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(Coord *, coord, EAX);
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, ESI);
     static const TechnoTypeClass *technotype;
     static TechnoTypeClassExtension *technotypeext;
     static VocType voc;
@@ -2498,7 +2498,7 @@ DECLARE_PATCH(_TechnoClass_Do_Uncloak_Uncloak_Sound_Patch)
  */
 DECLARE_PATCH(_TechnoClass_Null_House_Warning_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass *, this_ptr, ecx);
+    GET_REGISTER_STATIC(TechnoClass *, this_ptr, ECX);
     static HouseClass *house;
     static int id;
     
@@ -2636,7 +2636,7 @@ bool TechnoClassExt::_Can_Deploy_Now() const
 
 DECLARE_PATCH(_TechnoClass_AI_Abandon_Invalid_Target_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClassExt*, this_ptr, esi);
+    GET_REGISTER_STATIC(TechnoClassExt*, this_ptr, ESI);
 
     this_ptr->_AI_Abandon_Detour();
 
@@ -2651,7 +2651,7 @@ DECLARE_PATCH(_TechnoClass_AI_Abandon_Invalid_Target_Patch)
  */
 DECLARE_PATCH(_TechnoClass_Take_Damage_Drop_Tiberium_Type_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClassExt*, this_ptr, esi);
+    GET_REGISTER_STATIC(TechnoClassExt*, this_ptr, ESI);
 
     this_ptr->_Drop_Tiberium();
 
@@ -2668,7 +2668,7 @@ DECLARE_PATCH(_TechnoClass_Take_Damage_Drop_Tiberium_Type_Patch)
 static void _Tag_Spring_Entered(TechnoClass* this_ptr) { this_ptr->Tag->Spring(TEVENT_PLAYER_ENTERED, this_ptr); }
 DECLARE_PATCH(_TechnoClass_Captured_Spawn_Manager_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass*, this_ptr, esi);
+    GET_REGISTER_STATIC(TechnoClass*, this_ptr, ESI);
     static TechnoClassExtension* extension;
 
     extension = Extension::Fetch(this_ptr);
@@ -2691,7 +2691,7 @@ DECLARE_PATCH(_TechnoClass_Captured_Spawn_Manager_Patch)
  */
 DECLARE_PATCH(_TechnoClass_Assign_Target_Spawn_Manager_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass*, this_ptr, esi);
+    GET_REGISTER_STATIC(TechnoClass*, this_ptr, ESI);
     static TechnoClassExtension* extension;
 
     extension = Extension::Fetch(this_ptr);
@@ -2713,9 +2713,9 @@ DECLARE_PATCH(_TechnoClass_Assign_Target_Spawn_Manager_Patch)
  */
 DECLARE_PATCH(_TechnoClass_Fire_At_Spawn_Manager_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClassExt*, this_ptr, esi);
-    GET_REGISTER_STATIC(WeaponTypeClass*, weapon, ebx);
-    GET_REGISTER_STATIC(AbstractClass *, target, edi);
+    GET_REGISTER_STATIC(TechnoClassExt*, this_ptr, ESI);
+    GET_REGISTER_STATIC(WeaponTypeClass*, weapon, EBX);
+    GET_REGISTER_STATIC(AbstractClass *, target, EDI);
 
     // Stolen instructions
     if (((weapon->IsSonic && this_ptr->Wave)
@@ -2747,7 +2747,7 @@ DECLARE_PATCH(_TechnoClass_Fire_At_Spawn_Manager_Patch)
  */
 DECLARE_PATCH(_TechnoClass_Railgun_Damage_Apply_Damage_Modifier_Patch)
 {
-    GET_REGISTER_STATIC(int, damage, ecx);
+    GET_REGISTER_STATIC(int, damage, ECX);
     GET_STACK_STATIC(TechnoClass*, this_ptr, esp, 0x74);
 
     damage = damage * (this_ptr->FirepowerBias * this_ptr->House->FirepowerBias);
@@ -2767,7 +2767,7 @@ DECLARE_PATCH(_TechnoClass_Railgun_Damage_Apply_Damage_Modifier_Patch)
  */
 DECLARE_PATCH(_TechnoClass_Fire_At_TargetLaserTimer_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass*, this_ptr, esi);
+    GET_REGISTER_STATIC(TechnoClass*, this_ptr, ESI);
 
     this_ptr->TargetingLaserTimer = UIControls->TargetLaserTime;
 
@@ -2844,10 +2844,10 @@ bool _TechnoClass_Evaluate_Object_Zone_Evaluation_Is_Valid_Target(TechnoClass* t
  */
 DECLARE_PATCH(_TechnoClass_Evaluate_Object_Zone_Evaluation_TargetZoneScanType_Patch)
 {
-    GET_REGISTER_STATIC(int, targetzone, eax);
-    GET_REGISTER_STATIC(int, ourzone, ebp);
-    GET_REGISTER_STATIC(AbstractClass *, target, esi);
-    GET_REGISTER_STATIC(TechnoClass*, this_ptr, edi);
+    GET_REGISTER_STATIC(int, targetzone, EAX);
+    GET_REGISTER_STATIC(int, ourzone, EBP);
+    GET_REGISTER_STATIC(AbstractClass *, target, ESI);
+    GET_REGISTER_STATIC(TechnoClass*, this_ptr, EDI);
 
     enum {
         Continue = 0x0062D220,

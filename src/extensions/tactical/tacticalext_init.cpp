@@ -49,7 +49,7 @@
  */
 DECLARE_PATCH(_Tactical_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(Tactical *, this_ptr, esi); // "this" pointer.
+    GET_REGISTER_STATIC(Tactical *, this_ptr, ESI); // "this" pointer.
 
     /**
      *  Create the extended class instance.
@@ -77,7 +77,7 @@ original_code:
  */
 DECLARE_PATCH(_Tactical_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(Tactical *, this_ptr, esi);
+    GET_REGISTER_STATIC(Tactical *, this_ptr, ESI);
 
     /**
      *  Remove the extended class instance.
@@ -102,7 +102,7 @@ original_code:
  */
 DECLARE_PATCH(_Tactical_Scalar_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(Tactical *, this_ptr, esi);
+    GET_REGISTER_STATIC(Tactical *, this_ptr, ESI);
 
     /**
      *  Remove the extended class instance.

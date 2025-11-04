@@ -50,7 +50,7 @@
  */
 DECLARE_PATCH(_HouseClass_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(HouseClass *, this_ptr, ebp); // "this" pointer.
+    GET_REGISTER_STATIC(HouseClass *, this_ptr, EBP); // "this" pointer.
     GET_STACK_STATIC(const char *, ini_name, esp, 0xC); // ini name.
 
     /**
@@ -89,7 +89,7 @@ original_code:
  */
 DECLARE_PATCH(_HouseClass_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(HouseClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(HouseClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.

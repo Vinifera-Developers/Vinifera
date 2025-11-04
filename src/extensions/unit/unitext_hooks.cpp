@@ -251,7 +251,7 @@ DECLARE_PATCH(_UnitClass_Draw_Voxel_Patch)
     LEA_STACK_STATIC(Matrix3D*, matrix, esp, 0x90);
     GET_STACK_STATIC(int, color, esp, 0x17C);
     GET_STACK_STATIC(int, flags, esp, 0x4C);
-    GET_REGISTER_STATIC(UnitClassExt*, this_ptr, ebp);
+    GET_REGISTER_STATIC(UnitClassExt*, this_ptr, EBP);
 
     this_ptr->_Draw_Voxel(frame, key, *rect, *point, *matrix, color, flags);
 
@@ -270,8 +270,8 @@ DECLARE_PATCH(_UnitClass_Draw_Voxel_Patch)
  */
 DECLARE_PATCH(_UnitClass_Can_Fire_IsOmniFire_Patch)
 {
-    GET_REGISTER_STATIC(UnitClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(WeaponTypeClass *, weapon, ebx);
+    GET_REGISTER_STATIC(UnitClass *, this_ptr, ESI);
+    GET_REGISTER_STATIC(WeaponTypeClass *, weapon, EBX);
     static WeaponTypeClassExtension *weapontypeext;
 
     _asm pushad
@@ -425,7 +425,7 @@ void UnitClassExt::_Approach_Target()
 static CellClass *Unit_Get_Current_Cell(UnitClass *this_ptr) { return &Map[this_ptr->PositionCoord]; }
 DECLARE_PATCH(_UnitClass_Mission_Harvest_Block_Harvesting_On_Bridge_Patch)
 {
-    GET_REGISTER_STATIC(UnitClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(UnitClass *, this_ptr, ESI);
     static CellClass *cellptr;
 
     /**
@@ -461,7 +461,7 @@ function_return:
  */
 DECLARE_PATCH(_UnitClass_Enter_Idle_Mode_Block_Harvesting_On_Bridge_Patch)
 {
-    GET_REGISTER_STATIC(UnitClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(UnitClass *, this_ptr, ESI);
     static CellClass *cellptr;
 
     /**
@@ -502,8 +502,8 @@ function_return:
  */
 DECLARE_PATCH(_UnitClass_What_Action_ACTION_HARVEST_Block_On_Bridge_Patch)
 {
-    GET_REGISTER_STATIC(UnitClass *, this_ptr, edi);
-    GET_REGISTER_STATIC(Cell *, cell, esi);
+    GET_REGISTER_STATIC(UnitClass *, this_ptr, EDI);
+    GET_REGISTER_STATIC(Cell *, cell, ESI);
     static CellClass *cellptr;
     static ActionType action;
 
@@ -545,9 +545,9 @@ DECLARE_PATCH(_UnitClass_What_Action_ACTION_HARVEST_Block_On_Bridge_Patch)
 static bool Locomotion_Is_Moving(UnitClass *this_ptr) { return this_ptr->Locomotion->Is_Moving(); }
 DECLARE_PATCH(_UnitClass_Draw_Shape_IdleRate_Patch)
 {
-    GET_REGISTER_STATIC(UnitClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(int, facing, ebx);
-    GET_REGISTER_STATIC(ShapeSet *, shape, edi);
+    GET_REGISTER_STATIC(UnitClass *, this_ptr, ESI);
+    GET_REGISTER_STATIC(int, facing, EBX);
+    GET_REGISTER_STATIC(ShapeSet *, shape, EDI);
     static UnitTypeClassExtension *unittypeext;
     static const UnitTypeClass *unittype;
     static int frame;
@@ -630,7 +630,7 @@ continue_to_draw:
  */
 DECLARE_PATCH(_UnitClass_Mission_Unload_Transport_Detach_Sound_Patch)
 {
-    GET_REGISTER_STATIC(UnitClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(UnitClass *, this_ptr, ESI);
     static FootClass *passenger;
     static TechnoTypeClassExtension *radio_technotypeext;
 
@@ -675,8 +675,8 @@ add_to_team:
  */
 DECLARE_PATCH(_UnitClass_Draw_It_Unloading_Harvester_Patch)
 {
-    GET_REGISTER_STATIC(UnitClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(UnitTypeClass *, unittype, eax);
+    GET_REGISTER_STATIC(UnitClass *, this_ptr, ESI);
+    GET_REGISTER_STATIC(UnitTypeClass *, unittype, EAX);
     static const UnitTypeClass *unloading_class;
     static const UnitTypeClassExtension *unittypeext;
 
@@ -784,8 +784,8 @@ static int Facing_To_Frame_Number(FacingClass &facing, int facing_count)
  */
 DECLARE_PATCH(_UnitClass_Draw_Shape_Primary_Facing_Patch)
 {
-    GET_REGISTER_STATIC(UnitClass *, this_ptr, ebp);
-    GET_REGISTER_STATIC(const UnitTypeClass *, unittype, eax);
+    GET_REGISTER_STATIC(UnitClass *, this_ptr, EBP);
+    GET_REGISTER_STATIC(const UnitTypeClass *, unittype, EAX);
     //const UnitTypeClass *unittype;
     static int shape_number;
 
@@ -822,8 +822,8 @@ DECLARE_PATCH(_UnitClass_Draw_Shape_Primary_Facing_Patch)
  */
 DECLARE_PATCH(_UnitClass_Draw_Shape_Turret_Facing_Patch)
 {
-    GET_REGISTER_STATIC(UnitClass *, this_ptr, ebp);
-    GET_REGISTER_STATIC(const void *, shape, edi);
+    GET_REGISTER_STATIC(UnitClass *, this_ptr, EBP);
+    GET_REGISTER_STATIC(const void *, shape, EDI);
     static const UnitTypeClass *unittype;
     static const UnitTypeClassExtension *unittypeext;
     static int shape_number;
@@ -972,7 +972,7 @@ static void UnitClass_Shake_Screen(UnitClass *unit)
 
 DECLARE_PATCH(_UnitClass_Explode_ShakeScreen_Division_BugFix_Patch)
 {
-    GET_REGISTER_STATIC(UnitClass *, this_ptr, edi);
+    GET_REGISTER_STATIC(UnitClass *, this_ptr, EDI);
 
     /**
      *  Stolen bytes/code.
@@ -999,8 +999,8 @@ function_return:
  */
 DECLARE_PATCH(_UnitClass_Per_Cell_Process_AutoHarvest_Assign_Harvest_Mission_Patch)
 {
-    GET_REGISTER_STATIC(UnitClass *, this_ptr, ebp);
-    GET_REGISTER_STATIC(AbstractClass *, target, esi);
+    GET_REGISTER_STATIC(UnitClass *, this_ptr, EBP);
+    GET_REGISTER_STATIC(AbstractClass *, target, ESI);
     static BuildingClass *building_contact;
     static UnitTypeClass *unittype;
 
@@ -1057,8 +1057,8 @@ void UnitClass_Jellyfish_AI_Armor_Helper(UnitClass* this_ptr, TechnoClass* targe
 
 DECLARE_PATCH(_UnitClass_Jellyfish_AI_Armor_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass*, target, esi);
-    GET_REGISTER_STATIC(UnitClass*, this_ptr, ebp);
+    GET_REGISTER_STATIC(TechnoClass*, target, ESI);
+    GET_REGISTER_STATIC(UnitClass*, this_ptr, EBP);
     GET_STACK_STATIC(WeaponTypeClass*, weapon, esp, 0x20);
     GET_STACK_STATIC(WarheadTypeClass*, warhead, esp, 0x14);
 
@@ -1224,7 +1224,7 @@ TransformReturnValue _UnitClass_Try_To_Deploy_Transform_To_Vehicle_Patch_Func(Un
  *  @author: Rampastring
  */
 DECLARE_PATCH(_UnitClass_Try_To_Deploy_Transform_To_Vehicle_Patch) {
-    GET_REGISTER_STATIC(UnitClass*, this_ptr, esi);
+    GET_REGISTER_STATIC(UnitClass*, this_ptr, ESI);
     static int address;
     address = (int)(_UnitClass_Try_To_Deploy_Transform_To_Vehicle_Patch_Func(this_ptr));
     JMP(address);
@@ -1240,7 +1240,7 @@ DECLARE_PATCH(_UnitClass_Try_To_Deploy_Transform_To_Vehicle_Patch) {
  *  @author: Rampastring
  */
 DECLARE_PATCH(_UnitClass_What_Action_Self_Check_For_Vehicle_Transform_Patch) {
-    GET_REGISTER_STATIC(UnitClass*, this_ptr, esi);
+    GET_REGISTER_STATIC(UnitClass*, this_ptr, ESI);
     static UnitTypeClass* unittype;
     static UnitTypeClassExtension* unittypeext;
     static ActionType action;
@@ -1309,7 +1309,7 @@ DECLARE_PATCH(_UnitClass_What_Action_Self_Check_For_Vehicle_Transform_Patch) {
  *  @author: Rampastring
  */
 DECLARE_PATCH(_UnitClass_Mission_Unload_Transform_To_Vehicle_Patch) {
-    GET_REGISTER_STATIC(UnitTypeClass*, unittype, eax);
+    GET_REGISTER_STATIC(UnitTypeClass*, unittype, EAX);
     static UnitTypeClassExtension* unittypeext;
 
     /**
@@ -1398,7 +1398,7 @@ DECLARE_PATCH(_UnitClass_Mission_Harvest_FINDHOME_Find_Nearest_Refinery_Patch)
     };
 
 
-    GET_REGISTER_STATIC(UnitClass*, harvester, esi);
+    GET_REGISTER_STATIC(UnitClass*, harvester, ESI);
     static RadioMessageType response;
     static UnitClassExtension* unitext;
     static int free_refinery_distance_bias;

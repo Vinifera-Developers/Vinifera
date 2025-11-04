@@ -188,7 +188,7 @@ static void _On_Load_Clear_Scenario_Intercept()
  */
 DECLARE_PATCH(_Version_Text_Draw_Patch)
 {
-    GET_REGISTER_STATIC(Surface*, surface, ecx);
+    GET_REGISTER_STATIC(Surface*, surface, ECX);
 
     Vinifera_Draw_Version_Text(surface);
 
@@ -261,7 +261,7 @@ DECLARE_PATCH(_Load_Title_Page_Version_Text_Patch)
  */
 DECLARE_PATCH(_WinMain_Parse_Command_Line)
 {
-    GET_REGISTER_STATIC(int, argc, edi);
+    GET_REGISTER_STATIC(int, argc, EDI);
     static char **argv; _asm { lea eax, [ebp-0x178] } _asm { mov argv, eax }
 
     /**
@@ -339,8 +339,8 @@ DECLARE_PATCH(_Game_Shutdown_Vinifera_Shutdown)
  */
 DECLARE_PATCH(_Main_Game_Vinifera_Init_Game)
 {
-    GET_REGISTER_STATIC(int, argc, ecx);
-    GET_REGISTER_STATIC(char **, argv, edx);
+    GET_REGISTER_STATIC(int, argc, ECX);
+    GET_REGISTER_STATIC(char **, argv, EDX);
     static int retval;
 
     retval = Vinifera_Pre_Init_Game(argc, argv);
@@ -469,7 +469,7 @@ DECLARE_PATCH(_SwizzleManagerClass_Process_Tables_Remap_Failed_Error)
 
     _asm { mov eax, [edi+0x4] }
     _asm { mov old_ptr, eax }
-    //GET_REGISTER_STATIC(int, old_ptr, edi);
+    //GET_REGISTER_STATIC(int, old_ptr, EDI);
 
     DEBUG_ERROR("Swizzle Manager - Failed to remap pointer! (old_ptr = 0x%08X)!\n", old_ptr);
 
@@ -500,7 +500,7 @@ DECLARE_PATCH(_SwizzleManagerClass_Process_Tables_Remap_Failed_Error)
  */
 DECLARE_PATCH(_SaveLoad_Disable_Buttons)
 {
-    GET_REGISTER_STATIC(HWND, hDlg, ebp);
+    GET_REGISTER_STATIC(HWND, hDlg, EBP);
 
     EnableWindow(GetDlgItem(hDlg, 1310), FALSE); // Load button
     EnableWindow(GetDlgItem(hDlg, 1311), FALSE); // Save button

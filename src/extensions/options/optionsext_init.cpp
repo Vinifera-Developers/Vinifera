@@ -50,7 +50,7 @@
  */
 DECLARE_PATCH(_OptionsClass_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(OptionsClass *, this_ptr, eax); // "this" pointer.
+    GET_REGISTER_STATIC(OptionsClass *, this_ptr, EAX); // "this" pointer.
 
     /**
      *  The OptionsClass constructor is actually called twice as there are
@@ -107,7 +107,7 @@ original_code:
  */
 DECLARE_PATCH(_OptionsClass_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(OptionsClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(OptionsClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class instance.
@@ -134,7 +134,7 @@ original_code:
  */
 DECLARE_PATCH(_OptionsClass_Load_Settings_Patch)
 {
-    GET_REGISTER_STATIC(OptionsClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(OptionsClass *, this_ptr, ESI);
 
     /**
      *  Load ini.
@@ -159,7 +159,7 @@ original_code:
  */
 DECLARE_PATCH(_WinMain_Load_Init_Options_Settings_Patch)
 {
-    GET_REGISTER_STATIC(OptionsClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(OptionsClass *, this_ptr, ESI);
 
     /**
      *  Load ini.
@@ -184,7 +184,7 @@ original_code:
  */
 DECLARE_PATCH(_OptionsClass_Save_Settings_Patch)
 {
-    GET_REGISTER_STATIC(OptionsClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(OptionsClass *, this_ptr, ESI);
 
     /**
      *  Save ini.
@@ -210,7 +210,7 @@ original_code:
  */
 DECLARE_PATCH(_OptionsClass_Set_Patch)
 {
-    GET_REGISTER_STATIC(OptionsClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(OptionsClass *, this_ptr, ESI);
 
     /**
      *  Set options.

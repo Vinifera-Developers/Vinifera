@@ -49,7 +49,7 @@
  */
 DECLARE_PATCH(_CampaignClass_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(CampaignClass *, this_ptr, ebp); // "this" pointer.
+    GET_REGISTER_STATIC(CampaignClass *, this_ptr, EBP); // "this" pointer.
     GET_STACK_STATIC(const char *, ini_name, esp, 0x10); // ini name.
 
     // Campaign's are not saved to file, so this case is not required.
@@ -89,7 +89,7 @@ original_code:
  */
 DECLARE_PATCH(_CampaignClass_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(CampaignClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(CampaignClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
@@ -136,7 +136,7 @@ DECLARE_PATCH(_CampaignClass_Process_Patch)
  */
 DECLARE_PATCH(_CampaignClass_Scalar_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(CampaignClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(CampaignClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
@@ -161,9 +161,9 @@ original_code:
  */
 DECLARE_PATCH(_CampaignClass_Read_INI_Patch)
 {
-    GET_REGISTER_STATIC(int, required_addon, eax);  // Return from ini.Get_Int("RequiredAddon")
-    GET_REGISTER_STATIC(CampaignClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(CCINIClass *, ini, ebx);
+    GET_REGISTER_STATIC(int, required_addon, EAX);  // Return from ini.Get_Int("RequiredAddon")
+    GET_REGISTER_STATIC(CampaignClass *, this_ptr, ESI);
+    GET_REGISTER_STATIC(CCINIClass *, ini, EBX);
     static CampaignClassExtension *exttype_ptr;
 
     /**

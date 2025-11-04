@@ -85,7 +85,7 @@ DECLARE_PATCH(_MultiScore_Tally_Score_Fetch_Largest_CreditsSpent_Score)
  */
 DECLARE_PATCH(_MultiScore_Tally_Score_Calculate_Economy_Score)
 {
-    GET_REGISTER_STATIC(HouseClass *, house, ebx);
+    GET_REGISTER_STATIC(HouseClass *, house, EBX);
     static int economy_score;
 
     /*

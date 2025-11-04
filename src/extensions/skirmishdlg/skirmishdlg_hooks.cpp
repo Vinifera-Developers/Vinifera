@@ -51,7 +51,7 @@
  */
 DECLARE_PATCH(_SkirmishDialog_InitDialog_RestoreSideIndex_Patch)
 {
-    GET_REGISTER_STATIC(HWND, hSideComboBox, edi);
+    GET_REGISTER_STATIC(HWND, hSideComboBox, EDI);
     static int side_index;
 
     /**
@@ -83,7 +83,7 @@ DECLARE_PATCH(_SkirmishDialog_InitDialog_RestoreSideIndex_Patch)
  */
 DECLARE_PATCH(_SkirmishDialog_InitDialog_AIPlayers_Patch)
 {
-    GET_REGISTER_STATIC(HWND, hAICountSlider, ebp);
+    GET_REGISTER_STATIC(HWND, hAICountSlider, EBP);
     static int initial_pos;
 
     /**

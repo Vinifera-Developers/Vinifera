@@ -139,7 +139,7 @@ void ObjectTypeClassExt::_Assign_Theater_Name(char *fname, TheaterType theater)
  */
 DECLARE_PATCH(_ObjectTypeClass_Load_Theater_Art_Assign_Theater_Name_Theater_Patch)
 {
-    GET_REGISTER_STATIC(ObjectTypeClass *, this_ptr, edi);
+    GET_REGISTER_STATIC(ObjectTypeClass *, this_ptr, EDI);
     LEA_STACK_STATIC(char *, fullname, esp, 0x0C);
     LEA_STACK_STATIC(char *, destbuffer, esp, 0x08);
 

@@ -50,7 +50,7 @@
  */
 DECLARE_PATCH(_AnimClass_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(AnimClass *, this_ptr, esi); // Current "this" pointer.
+    GET_REGISTER_STATIC(AnimClass *, this_ptr, ESI); // Current "this" pointer.
     static AnimTypeClassExtension *animtypeext;
 
     /**
@@ -136,7 +136,7 @@ destroy_anim:
  */
 DECLARE_PATCH(_AnimClass_Default_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(AnimClass *, this_ptr, esi); // Current "this" pointer.
+    GET_REGISTER_STATIC(AnimClass *, this_ptr, ESI); // Current "this" pointer.
 
     /**
      *  If we are performing a load operation, the Windows API will invoke the
@@ -171,7 +171,7 @@ original_code:
  */
 DECLARE_PATCH(_AnimClass_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(AnimClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(AnimClass *, this_ptr, ESI);
 
     /**
      *  If this anim instance was destoryed because it has a NULL class type, then

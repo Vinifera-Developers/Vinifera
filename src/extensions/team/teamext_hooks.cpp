@@ -99,7 +99,7 @@ coordinate_move:
  */
 DECLARE_PATCH(_TeamClass_TMission_PATROL_WaypointMax)
 {
-    GET_REGISTER_STATIC(ScriptMissionClass*, mission, eax);
+    GET_REGISTER_STATIC(ScriptMissionClass*, mission, EAX);
 
     if (mission->Data.Value < NEW_WAYPOINT_COUNT)
     {

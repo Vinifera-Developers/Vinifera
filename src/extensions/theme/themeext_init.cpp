@@ -49,7 +49,7 @@
  */
 DECLARE_PATCH(_ThemeClass_ThemeControl_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(ThemeClass::ThemeControl *, this_ptr, eax); // "this" pointer.
+    GET_REGISTER_STATIC(ThemeClass::ThemeControl *, this_ptr, EAX); // "this" pointer.
     static ThemeControlExtension *ext_ptr;
 
     /**
@@ -94,8 +94,8 @@ DECLARE_PATCH(_ThemeClass_ThemeControl_Inlined_Constructor_Patch)
  */
 DECLARE_PATCH(_ThemeClass_ThemeControl_Read_INI_Patch)
 {
-    GET_REGISTER_STATIC(ThemeClass::ThemeControl *, this_ptr, esi);
-    GET_REGISTER_STATIC(CCINIClass *, ini, edi);
+    GET_REGISTER_STATIC(ThemeClass::ThemeControl *, this_ptr, ESI);
+    GET_REGISTER_STATIC(CCINIClass *, ini, EDI);
     static ThemeControlExtension *exttype_ptr;
 
     /**

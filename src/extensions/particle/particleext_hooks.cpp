@@ -62,8 +62,8 @@ UnitClass* Create_Visceroid(ObjectClass* destroyedobject)
  */
 DECLARE_PATCH(_ParticleClass_Smoke_And_WeakGas_Behaviour_AI_Tiberium_Death_Patch)
 {
-    GET_REGISTER_STATIC(ObjectClass*, destroyedobject, esi);
-    GET_REGISTER_STATIC(ResultType, result, eax);
+    GET_REGISTER_STATIC(ObjectClass*, destroyedobject, ESI);
+    GET_REGISTER_STATIC(ResultType, result, EAX);
     GET_STACK_STATIC(ObjectClass*, nextobject, esp, 0x40);
     static UnitClass* visceroid;
 

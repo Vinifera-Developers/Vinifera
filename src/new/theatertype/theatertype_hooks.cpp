@@ -53,8 +53,8 @@
  */
 DECLARE_PATCH(_Init_Theater_Patch)
 {
-    GET_REGISTER_STATIC(TheaterType, theater, ebp);
-    GET_REGISTER_STATIC(void *, _imp_wsprintfA, edi); // Just to make sure we are not overwriting it.
+    GET_REGISTER_STATIC(TheaterType, theater, EBP);
+    GET_REGISTER_STATIC(void *, _imp_wsprintfA, EDI); // Just to make sure we are not overwriting it.
     LEA_STACK_STATIC(char *, root_name, esp, 0x14); // char [16]
     LEA_STACK_STATIC(char *, iso_root, esp, 0x34); // char [16]
     LEA_STACK_STATIC(char *, suffix_name, esp, 0x24); // char [16]
@@ -107,8 +107,8 @@ DECLARE_PATCH(_Init_Theater_INI_Patch)
  */
 DECLARE_PATCH(_AnimTypeClass_Init_Theater_Patch)
 {
-    GET_REGISTER_STATIC(AnimTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(TheaterType, theater, ebp);
+    GET_REGISTER_STATIC(AnimTypeClass *, this_ptr, ESI);
+    GET_REGISTER_STATIC(TheaterType, theater, EBP);
     LEA_STACK_STATIC(char *, fullname, esp, 0x10); // char [_MAX_FNAME+_MAX_EXT]
 
     std::snprintf(fullname, 512, "%s.%s", this_ptr->IniName.c_str(), TheaterTypeClass::Suffix_From(theater));
@@ -124,8 +124,8 @@ DECLARE_PATCH(_AnimTypeClass_Init_Theater_Patch)
  */
 DECLARE_PATCH(_AnimTypeClass_entry_64_Theater_Patch)
 {
-    GET_REGISTER_STATIC(AnimTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(TheaterType, theater, eax);
+    GET_REGISTER_STATIC(AnimTypeClass *, this_ptr, ESI);
+    GET_REGISTER_STATIC(TheaterType, theater, EAX);
     LEA_STACK_STATIC(char *, fullname, esp, 0x4); // char [_MAX_FNAME+_MAX_EXT]
 
     std::snprintf(fullname, 512, "%s.%s", this_ptr->IniName.c_str(), TheaterTypeClass::Suffix_From(theater));
@@ -142,8 +142,8 @@ DECLARE_PATCH(_AnimTypeClass_entry_64_Theater_Patch)
  */
 DECLARE_PATCH(_AnimTypeClass_Load_Theater_Patch)
 {
-    GET_REGISTER_STATIC(AnimTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(TheaterType, theater, eax);
+    GET_REGISTER_STATIC(AnimTypeClass *, this_ptr, ESI);
+    GET_REGISTER_STATIC(TheaterType, theater, EAX);
     LEA_STACK_STATIC(char *, fullname, esp, 0x8); // char [_MAX_FNAME+_MAX_EXT]
 
     std::snprintf(fullname, 512, "%s.%s", this_ptr->IniName.c_str(), TheaterTypeClass::Suffix_From(theater));
@@ -159,8 +159,8 @@ DECLARE_PATCH(_AnimTypeClass_Load_Theater_Patch)
  */
 DECLARE_PATCH(_AnimTypeClass_Get_Image_Data_Theater_Patch)
 {
-    GET_REGISTER_STATIC(AnimTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(TheaterType, theater, eax);
+    GET_REGISTER_STATIC(AnimTypeClass *, this_ptr, ESI);
+    GET_REGISTER_STATIC(TheaterType, theater, EAX);
     LEA_STACK_STATIC(char *, fullname, esp, 0x68); // char [_MAX_FNAME+_MAX_EXT]
 
     std::snprintf(fullname, 512, "%s.%s", this_ptr->IniName.c_str(), TheaterTypeClass::Suffix_From(theater));
@@ -176,8 +176,8 @@ DECLARE_PATCH(_AnimTypeClass_Get_Image_Data_Theater_Patch)
  */
 DECLARE_PATCH(_BuildingTypeClass_Init_Theater_Patch)
 {
-    GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(TheaterType, theater, edi);
+    GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, ESI);
+    GET_REGISTER_STATIC(TheaterType, theater, EDI);
     LEA_STACK_STATIC(char *, fullname, esp, 0x14); // char [_MAX_FNAME+_MAX_EXT]
 
     std::snprintf(fullname, 512, "%s.%s", this_ptr->GraphicName.c_str(), TheaterTypeClass::Suffix_From(theater));
@@ -193,8 +193,8 @@ DECLARE_PATCH(_BuildingTypeClass_Init_Theater_Patch)
  */
 DECLARE_PATCH(_BuildingTypeClass_Init_Buildup_Theater_Patch)
 {
-    GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(TheaterType, theater, edi);
+    GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, ESI);
+    GET_REGISTER_STATIC(TheaterType, theater, EDI);
     LEA_STACK_STATIC(char *, fullname, esp, 0x14); // char [_MAX_FNAME+_MAX_EXT]
 
     std::snprintf(fullname, 512, "%s.%s", this_ptr->BuildupFilename.c_str(), TheaterTypeClass::Suffix_From(theater));
@@ -213,8 +213,8 @@ DECLARE_PATCH(_BuildingTypeClass_Init_Buildup_Theater_Patch)
  */
 DECLARE_PATCH(_BuildingTypeClass_Load_Shape_Data_Theater_Patch)
 {
-    GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, ebx);
-    GET_REGISTER_STATIC(TheaterType, theater, esi);
+    GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, EBX);
+    GET_REGISTER_STATIC(TheaterType, theater, ESI);
     LEA_STACK_STATIC(char *, buff, esp, 0x64); // char [_MAX_FNAME]
 
     if (!this_ptr->IsTheater || (theater == THEATER_NONE || theater >= TheaterTypes.Count())) {
@@ -236,8 +236,8 @@ DECLARE_PATCH(_BuildingTypeClass_Load_Shape_Data_Theater_Patch)
  */
 DECLARE_PATCH(_OverlayTypeClass_Init_Theater_Patch)
 {
-    GET_REGISTER_STATIC(OverlayTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(TheaterType, theater, edi);
+    GET_REGISTER_STATIC(OverlayTypeClass *, this_ptr, ESI);
+    GET_REGISTER_STATIC(TheaterType, theater, EDI);
     LEA_STACK_STATIC(char *, fullname, esp, 0x0C); // char [_MAX_FNAME+_MAX_EXT]
 
     std::snprintf(fullname, 512, "%s.%s", this_ptr->GraphicName.c_str(), TheaterTypeClass::Suffix_From(theater));
@@ -254,8 +254,8 @@ DECLARE_PATCH(_OverlayTypeClass_Init_Theater_Patch)
  */
 DECLARE_PATCH(_OverlayTypeClass_Load_Theater_Patch)
 {
-    GET_REGISTER_STATIC(OverlayTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(TheaterType, theater, eax);
+    GET_REGISTER_STATIC(OverlayTypeClass *, this_ptr, ESI);
+    GET_REGISTER_STATIC(TheaterType, theater, EAX);
     LEA_STACK_STATIC(char *, fullname, esp, 0x8); // char [_MAX_FNAME+_MAX_EXT]
 
     std::snprintf(fullname, 512, "%s.%s", this_ptr->GraphicName.c_str(), TheaterTypeClass::Suffix_From(theater));
@@ -271,8 +271,8 @@ DECLARE_PATCH(_OverlayTypeClass_Load_Theater_Patch)
  */
 DECLARE_PATCH(_SmudgeTypeClass_Init_Theater_Patch)
 {
-    GET_REGISTER_STATIC(SmudgeTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(TheaterType, theater, edi);
+    GET_REGISTER_STATIC(SmudgeTypeClass *, this_ptr, ESI);
+    GET_REGISTER_STATIC(TheaterType, theater, EDI);
     LEA_STACK_STATIC(char *, fullname, esp, 0x0C); // char [_MAX_FNAME+_MAX_EXT]
 
     std::snprintf(fullname, 512, "%s.%s", this_ptr->IniName.c_str(), TheaterTypeClass::Suffix_From(theater));
@@ -288,8 +288,8 @@ DECLARE_PATCH(_SmudgeTypeClass_Init_Theater_Patch)
  */
 DECLARE_PATCH(_SmudgeTypeClass_Read_INI_Theater_Patch)
 {
-    GET_REGISTER_STATIC(SmudgeTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(TheaterType, theater, eax);
+    GET_REGISTER_STATIC(SmudgeTypeClass *, this_ptr, ESI);
+    GET_REGISTER_STATIC(TheaterType, theater, EAX);
     LEA_STACK_STATIC(char *, fullname, esp, 0x08); // char [_MAX_FNAME+_MAX_EXT]
 
     std::snprintf(fullname, 512, "%s.%s", this_ptr->GraphicName.c_str(), TheaterTypeClass::Suffix_From(theater));
@@ -305,7 +305,7 @@ DECLARE_PATCH(_SmudgeTypeClass_Read_INI_Theater_Patch)
  */
 DECLARE_PATCH(_VeinholeMonsterClass_Init_Theater_Patch)
 {
-    GET_REGISTER_STATIC(TheaterType, theater, ecx);
+    GET_REGISTER_STATIC(TheaterType, theater, ECX);
     LEA_STACK_STATIC(char *, buffer, esp, 0x0);
 
     std::snprintf(buffer, 32, "VEINHOLE.%s", TheaterTypeClass::Suffix_From(theater));
@@ -321,9 +321,9 @@ DECLARE_PATCH(_VeinholeMonsterClass_Init_Theater_Patch)
  */
 DECLARE_PATCH(_ObjectTypeClass_Load_Theater_Art_Theater_Patch)
 {
-    //GET_REGISTER_STATIC(ObjectTypeClass *, this_ptr, edi);
-    GET_REGISTER_STATIC(TheaterType, theater, eax);
-    GET_REGISTER_STATIC(char *, ini_name, esi);
+    //GET_REGISTER_STATIC(ObjectTypeClass *, this_ptr, EDI);
+    GET_REGISTER_STATIC(TheaterType, theater, EAX);
+    GET_REGISTER_STATIC(char *, ini_name, ESI);
     LEA_STACK_STATIC(char *, fullname, esp, 0x0C); // char [PATH_MAX]
 
     std::snprintf(fullname, PATH_MAX, "%s.%s", ini_name, TheaterTypeClass::Suffix_From(theater));
@@ -339,8 +339,8 @@ DECLARE_PATCH(_ObjectTypeClass_Load_Theater_Art_Theater_Patch)
  */
 DECLARE_PATCH(_OverlayTypeClass_Get_Image_Data_Theater_Patch)
 {
-    GET_REGISTER_STATIC(OverlayTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(TheaterType, theater, eax);
+    GET_REGISTER_STATIC(OverlayTypeClass *, this_ptr, ESI);
+    GET_REGISTER_STATIC(TheaterType, theater, EAX);
     LEA_STACK_STATIC(char *, fullname, esp, 0x68); // char [_MAX_FNAME+_MAX_EXT]
 
     std::snprintf(fullname, 512, "%s.%s", this_ptr->GraphicName.c_str(), TheaterTypeClass::Suffix_From(theater));
@@ -356,8 +356,8 @@ DECLARE_PATCH(_OverlayTypeClass_Get_Image_Data_Theater_Patch)
  */
 DECLARE_PATCH(_TerrainTypeClass_Init_Theater_Patch)
 {
-    GET_REGISTER_STATIC(SmudgeTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(TheaterType, theater, edi);
+    GET_REGISTER_STATIC(SmudgeTypeClass *, this_ptr, ESI);
+    GET_REGISTER_STATIC(TheaterType, theater, EDI);
     LEA_STACK_STATIC(char *, fullname, esp, 0x0C); // char [_MAX_FNAME+_MAX_EXT]
 
     std::snprintf(fullname, 512, "%s.%s", this_ptr->IniName.c_str(), TheaterTypeClass::Suffix_From(theater));
@@ -374,7 +374,7 @@ DECLARE_PATCH(_TerrainTypeClass_Init_Theater_Patch)
 DECLARE_PATCH(_IsometricTileTypeClass_Read_INI_SlopeZ_Theater_Patch)
 {
     LEA_STACK_STATIC(char *, fullname, esp, 0x1D8); // char [20]
-    GET_REGISTER_STATIC(TheaterType, theater, esi);
+    GET_REGISTER_STATIC(TheaterType, theater, ESI);
     static const char *suffix;
 
     suffix = (char *)TheaterTypeClass::Suffix_From(theater);
@@ -476,7 +476,7 @@ not_allowed:
  */
 DECLARE_PATCH(_Init_Theater_Palette_Theater_Patch)
 {
-    GET_REGISTER_STATIC(TheaterType, theater, ebp);
+    GET_REGISTER_STATIC(TheaterType, theater, EBP);
     static char _buffer[PATH_MAX];
 
     if (theater == THEATER_NONE || theater >= TheaterTypes.Count()) {
@@ -498,8 +498,8 @@ retrieve_file:
  */
 DECLARE_PATCH(_TerrainClass_Set_Occupy_Bit_Theater_Patch)
 {
-    GET_REGISTER_STATIC(TerrainClass *, this_ptr, ecx);
-    GET_REGISTER_STATIC(ScenarioClass *, scen, eax);
+    GET_REGISTER_STATIC(TerrainClass *, this_ptr, ECX);
+    GET_REGISTER_STATIC(ScenarioClass *, scen, EAX);
 
     /**
      *  Is this theater considered arctic?
@@ -525,8 +525,8 @@ temperate_bits:
  */
 DECLARE_PATCH(_TerrainClass_Clear_Occupy_Bit_Theater_Patch)
 {
-    GET_REGISTER_STATIC(TerrainClass *, this_ptr, ecx);
-    GET_REGISTER_STATIC(ScenarioClass *, scen, eax);
+    GET_REGISTER_STATIC(TerrainClass *, this_ptr, ECX);
+    GET_REGISTER_STATIC(ScenarioClass *, scen, EAX);
 
     /**
      *  Is this theater considered arctic?
@@ -587,7 +587,7 @@ skip_generation:
  */
 DECLARE_PATCH(_MapClass_Ice_Growth_AI_Theater_Patch)
 {
-    GET_REGISTER_STATIC(ScenarioClass *, scen, eax);
+    GET_REGISTER_STATIC(ScenarioClass *, scen, EAX);
 
     /**
      *  Is this theater flagged to handle the ice growth logic?
@@ -638,7 +638,7 @@ return_false:
  */
 DECLARE_PATCH(_MapClass_Smooth_Ice_Shore_Theater_Patch)
 {
-    GET_REGISTER_STATIC(ScenarioClass *, scen, eax);
+    GET_REGISTER_STATIC(ScenarioClass *, scen, EAX);
 
     /**
      *  Stolen bytes/code.
@@ -668,7 +668,7 @@ function_return:
  */
 DECLARE_PATCH(_MapClass_Smooth_Ice_Theater_Patch_1)
 {
-    GET_REGISTER_STATIC(ScenarioClass *, scen, eax);
+    GET_REGISTER_STATIC(ScenarioClass *, scen, EAX);
 
     /**
      *  Stolen bytes/code.
@@ -698,7 +698,7 @@ function_return:
  */
 DECLARE_PATCH(_MapClass_Smooth_Ice_Theater_Patch_2)
 {
-    GET_REGISTER_STATIC(ScenarioClass *, scen, eax);
+    GET_REGISTER_STATIC(ScenarioClass *, scen, EAX);
 
     /**
      *  Stolen bytes/code.
@@ -728,8 +728,8 @@ function_return:
  */
 DECLARE_PATCH(_MapClass_Smooth_Ice_Theater_Patch_3)
 {
-    GET_REGISTER_STATIC(MapClass *, this_ptr, ecx);
-    GET_REGISTER_STATIC(ScenarioClass *, scen, eax);
+    GET_REGISTER_STATIC(MapClass *, this_ptr, ECX);
+    GET_REGISTER_STATIC(ScenarioClass *, scen, EAX);
 
     /**
      *  Is this theater flagged to handle the ice growth logic?
@@ -841,7 +841,7 @@ DECLARE_PATCH(_IsometricTileTypeClass_Read_INI_MarbleMadness_Theater_Patch)
  */
 DECLARE_PATCH(_CellClass_Cell_Color_Theater_Patch_1)
 {
-    GET_REGISTER_STATIC(TheaterType, theater, edx);
+    GET_REGISTER_STATIC(TheaterType, theater, EDX);
     static long rgb;    // Actually is a RGBClass instance.
     static long val;
 
@@ -869,7 +869,7 @@ DECLARE_PATCH(_CellClass_Cell_Color_Theater_Patch_1)
  */
 DECLARE_PATCH(_CellClass_Cell_Color_Theater_Patch_2)
 {
-    GET_REGISTER_STATIC(TheaterType, theater, edx);
+    GET_REGISTER_STATIC(TheaterType, theater, EDX);
     static long rgb;    // Actually is a RGBClass instance.
     static long val;
     
@@ -897,7 +897,7 @@ DECLARE_PATCH(_CellClass_Cell_Color_Theater_Patch_2)
  */
 DECLARE_PATCH(_CellClass_Cell_Color_Theater_Patch_3)
 {
-    GET_REGISTER_STATIC(TheaterType, theater, edx);
+    GET_REGISTER_STATIC(TheaterType, theater, EDX);
     static long rgb;    // Actually is a RGBClass instance.
     static long val;
     
@@ -925,7 +925,7 @@ DECLARE_PATCH(_CellClass_Cell_Color_Theater_Patch_3)
  */
 DECLARE_PATCH(_CellClass_Cell_Color_Theater_Patch_4)
 {
-    GET_REGISTER_STATIC(TheaterType, theater, eax);
+    GET_REGISTER_STATIC(TheaterType, theater, EAX);
     static long rgb;    // Actually is an address to a RGBClass instance.
     static long val;
     
@@ -953,8 +953,8 @@ DECLARE_PATCH(_CellClass_Cell_Color_Theater_Patch_4)
  */
 DECLARE_PATCH(_CellClass_Set_Attributes_Theater_Patch)
 {
-    GET_REGISTER_STATIC(CellClass *, this_ptr, edi);
-    GET_REGISTER_STATIC(TerrainClass *, terrain, esi);
+    GET_REGISTER_STATIC(CellClass *, this_ptr, EDI);
+    GET_REGISTER_STATIC(TerrainClass *, terrain, ESI);
 
     /**
      *  Is this theater considered arctic?

@@ -49,7 +49,7 @@
  */
 DECLARE_PATCH(_AircraftTypeClass_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(AircraftTypeClass *, this_ptr, esi); // "this" pointer.
+    GET_REGISTER_STATIC(AircraftTypeClass *, this_ptr, ESI); // "this" pointer.
     GET_STACK_STATIC(const char *, ini_name, esp, 0x0C); // ini name.
 
     /**
@@ -104,7 +104,7 @@ DECLARE_PATCH(_AircraftTypeClass_Find_Or_Make_Patch)
  */
 DECLARE_PATCH(_AircraftTypeClass_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(AircraftTypeClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(AircraftTypeClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
@@ -129,7 +129,7 @@ original_code:
  */
 DECLARE_PATCH(_AircraftTypeClass_Scalar_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(AircraftTypeClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(AircraftTypeClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.

@@ -83,7 +83,7 @@ void FlyLocomotionClassExt::_Take_Off()
 
 DECLARE_PATCH(_FlyLocomotionClass_Movement_AI_AircraftTracker_Patch1)
 {
-    GET_REGISTER_STATIC(FlyLocomotionClass*, loco, edi);
+    GET_REGISTER_STATIC(FlyLocomotionClass*, loco, EDI);
     static FootClassExtension* linked_ext;
     static Cell oldcell, newcell;
 
@@ -110,7 +110,7 @@ DECLARE_PATCH(_FlyLocomotionClass_Movement_AI_AircraftTracker_Patch1)
 
 DECLARE_PATCH(_FlyLocomotionClass_Movement_AI_AircraftTracker_Patch2)
 {
-    GET_REGISTER_STATIC(FootClass*, linked_to, ecx);
+    GET_REGISTER_STATIC(FootClass*, linked_to, ECX);
 
     AircraftTracker->Untrack(linked_to);
 
@@ -123,7 +123,7 @@ DECLARE_PATCH(_FlyLocomotionClass_Movement_AI_AircraftTracker_Patch2)
 
 DECLARE_PATCH(_FlyLocomotionClass_Process_Landing_AircraftTracker_Patch)
 {
-    GET_REGISTER_STATIC(FlyLocomotionClass*, loco, esi);
+    GET_REGISTER_STATIC(FlyLocomotionClass*, loco, ESI);
 
     _asm pushad
 

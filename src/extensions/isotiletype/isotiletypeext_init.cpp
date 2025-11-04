@@ -49,7 +49,7 @@
  */
 DECLARE_PATCH(_IsometricTileTypeClass_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(IsometricTileTypeClass *, this_ptr, ebp); // "this" pointer.
+    GET_REGISTER_STATIC(IsometricTileTypeClass *, this_ptr, EBP); // "this" pointer.
     GET_STACK_STATIC(const char *, ini_name, esp, 0x50); // ini name.
 
     // IsoTileTypes's are not saved to file, so this case is not required.
@@ -90,7 +90,7 @@ original_code:
  */
 DECLARE_PATCH(_IsometricTileTypeClass_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(IsometricTileTypeClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(IsometricTileTypeClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
@@ -141,7 +141,7 @@ original_code:
  */
 DECLARE_PATCH(_IsometricTileTypeClass_Read_INI_Patch_1)
 {
-    GET_REGISTER_STATIC(IsometricTileTypeClass *, this_ptr, ebp);
+    GET_REGISTER_STATIC(IsometricTileTypeClass *, this_ptr, EBP);
     LEA_STACK_STATIC(CCINIClass *, ini, esp, 0x30);
     LEA_STACK_STATIC(/*const*/ char *, tileset_name, esp, 0x1F8);
     LEA_STACK_STATIC(/*const*/ char *, set_name, esp, 0x29C);
@@ -201,7 +201,7 @@ original_code:
  */
 DECLARE_PATCH(_IsometricTileTypeClass_Read_INI_Patch_2)
 {
-    GET_REGISTER_STATIC(IsometricTileTypeClass *, this_ptr, ebp);
+    GET_REGISTER_STATIC(IsometricTileTypeClass *, this_ptr, EBP);
     LEA_STACK_STATIC(CCINIClass *, ini, esp, 0x30);
     LEA_STACK_STATIC(/*const*/ char *, tileset_name, esp, 0x1F8);
     LEA_STACK_STATIC(/*const*/ char *, set_name, esp, 0x29C);

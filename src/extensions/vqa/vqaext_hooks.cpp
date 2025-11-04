@@ -44,7 +44,7 @@
  */
 DECLARE_PATCH(_VQA_Mix_File_Handler_Use_CCFileClass_Patch)
 {
-    GET_REGISTER_STATIC(VQAClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(VQAClass *, this_ptr, ESI);
     GET_STACK_STATIC(char *, filename, esp, 0xC);
 
     MAKE_STACK_FRAME(0x20)

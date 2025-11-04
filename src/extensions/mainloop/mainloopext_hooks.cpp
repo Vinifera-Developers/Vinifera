@@ -319,14 +319,14 @@ void Process_Command_If_Allowed(CommandClass* command)
  */
 DECLARE_PATCH(_Main_Loop_Check_Keyboard_Input_Allowed)
 {
-    GET_REGISTER_STATIC(CommandClass*, command, ecx);
+    GET_REGISTER_STATIC(CommandClass*, command, ECX);
     Process_Command_If_Allowed(command);
     JMP(0x00508EA8);
 }
 
 DECLARE_PATCH(_Keyboard_Process_Check_Keyboard_Input_Allowed)
 {
-    GET_REGISTER_STATIC(CommandClass*, command, ecx);
+    GET_REGISTER_STATIC(CommandClass*, command, ECX);
     Process_Command_If_Allowed(command);
 
     // Rebuild function epilogue, we destroyed one byte of it
@@ -338,14 +338,14 @@ DECLARE_PATCH(_Keyboard_Process_Check_Keyboard_Input_Allowed)
 
 DECLARE_PATCH(_Sync_Delay_Check_Keyboard_Input_Allowed_Patch1)
 {
-    GET_REGISTER_STATIC(CommandClass*, command, eax);
+    GET_REGISTER_STATIC(CommandClass*, command, EAX);
     Process_Command_If_Allowed(command);
     JMP(0x00509659);
 }
 
 DECLARE_PATCH(_Sync_Delay_Check_Keyboard_Input_Allowed_Patch2)
 {
-    GET_REGISTER_STATIC(CommandClass*, command, ecx);
+    GET_REGISTER_STATIC(CommandClass*, command, ECX);
     Process_Command_If_Allowed(command);
     JMP(0x0050976C);
 }

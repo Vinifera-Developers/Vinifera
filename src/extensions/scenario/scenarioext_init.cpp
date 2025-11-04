@@ -49,7 +49,7 @@
  */
 DECLARE_PATCH(_ScenarioClass_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(ScenarioClass *, this_ptr, ebp); // "this" pointer.
+    GET_REGISTER_STATIC(ScenarioClass *, this_ptr, EBP); // "this" pointer.
 
     /**
      *  Create the extended class instance.
@@ -84,7 +84,7 @@ original_code:
  */
 DECLARE_PATCH(_ScenarioClass_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(ScenarioClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(ScenarioClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class instance.
@@ -110,7 +110,7 @@ original_code:
  */
 DECLARE_PATCH(_ScenarioClass_Init_Clear_Patch)
 {
-    GET_REGISTER_STATIC(ScenarioClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(ScenarioClass *, this_ptr, ESI);
 
     /**
      *  This is a odd case; ScenarioClass::Init_Clear is called within the class
@@ -144,7 +144,7 @@ original_code:
  */
 DECLARE_PATCH(_ScenarioClass_Read_INI_Patch)
 {
-    GET_REGISTER_STATIC(CCINIClass *, ini, ebp);
+    GET_REGISTER_STATIC(CCINIClass *, ini, EBP);
     static bool retval;
 
     /**

@@ -109,7 +109,7 @@ void TiberiumClassExt::_Deinitialize_Tiberium_Growth_System()
  */
 DECLARE_PATCH(_Get_Tiberium_Type_Debug_Info_Patch)
 {
-    GET_REGISTER_STATIC(OverlayTypeClass*, overlaytype, eax);
+    GET_REGISTER_STATIC(OverlayTypeClass*, overlaytype, EAX);
 
     DEBUG_FATAL("Overlay %s [%d] is not really Tiberium!\nAll overlays with Tiberium=yes must be used by a Tiberium!\n", overlaytype->Full_Name(), overlaytype->Fetch_Heap_ID());
 
@@ -125,7 +125,7 @@ DECLARE_PATCH(_Get_Tiberium_Type_Debug_Info_Patch)
  */
 DECLARE_PATCH(_CellClass_Place_Tiberium_Variety_Patch)
 {
-    GET_REGISTER_STATIC(TiberiumClass*, tiberium, ebp);
+    GET_REGISTER_STATIC(TiberiumClass*, tiberium, EBP);
     static int frame;
 
     frame = Random_Pick(0, tiberium->Variety - 1);

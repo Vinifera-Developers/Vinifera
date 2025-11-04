@@ -48,7 +48,7 @@
  */
 DECLARE_PATCH(_SessionClass_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(SessionClass *, this_ptr, ebp); // "this" pointer.
+    GET_REGISTER_STATIC(SessionClass *, this_ptr, EBP); // "this" pointer.
 
     /**
      *  Create the extended class instance.
@@ -78,7 +78,7 @@ original_code:
  */
 DECLARE_PATCH(_SessionClass_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(SessionClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(SessionClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class instance.
@@ -104,7 +104,7 @@ original_code:
  */
 DECLARE_PATCH(_SessionClass_Read_MultiPlayer_Settings_Patch)
 {
-    GET_REGISTER_STATIC(SessionClass *, this_ptr, ebp);
+    GET_REGISTER_STATIC(SessionClass *, this_ptr, EBP);
 
     /**
      *  Load ini.
@@ -132,7 +132,7 @@ original_code:
  */
 DECLARE_PATCH(_SessionClass_Write_MultiPlayer_Settings_Patch)
 {
-    GET_REGISTER_STATIC(SessionClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(SessionClass *, this_ptr, ESI);
 
     /**
      *  Save ini.

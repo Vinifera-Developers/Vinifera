@@ -150,7 +150,7 @@ void Scale_Movie_Helper(VQHandle* this_ptr)
  */
 DECLARE_PATCH(_Play_Movie_Scale_By_Ratio_Patch)
 {
-    GET_REGISTER_STATIC(VQHandle*, this_ptr, esi);
+    GET_REGISTER_STATIC(VQHandle*, this_ptr, ESI);
     Scale_Movie_Helper(this_ptr);
     JMP(0x00563805);
 }
@@ -247,8 +247,8 @@ static bool Play_Intro_Movie(CampaignType campaign_id)
 
 DECLARE_PATCH(_Start_Scenario_Intro_Movie_Patch)
 {
-    GET_REGISTER_STATIC(CampaignType, campaign_id, ebx);
-    GET_REGISTER_STATIC(char *, name, ebp);
+    GET_REGISTER_STATIC(CampaignType, campaign_id, EBX);
+    GET_REGISTER_STATIC(char *, name, EBP);
 
     Play_Intro_Movie(campaign_id);
 

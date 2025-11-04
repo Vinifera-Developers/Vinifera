@@ -213,7 +213,7 @@ static void Display_Set_Mouse_Cursor(ActionType action, bool shadow, bool wsmall
  */
 DECLARE_PATCH(_DisplayClass_Mouse_Left_Up_Set_Mouse)
 {
-    GET_REGISTER_STATIC(ActionType, action, ebx);
+    GET_REGISTER_STATIC(ActionType, action, EBX);
     GET_STACK_STATIC8(bool, shadow, esp, 0x20);
     GET_STACK_STATIC(CellClass *, cellptr, esp, 0x10);
     GET_STACK_STATIC8(bool, wsmall, esp, 0x2C);
@@ -237,7 +237,7 @@ DECLARE_PATCH(_DisplayClass_Mouse_Left_Up_Set_Mouse)
 DECLARE_PATCH(_DisplayClass_Passes_Proximity_Passes_Check_Patch)
 {
     //GET_REGISTER_STATIC(DisplayClass *, this_ptr, ?);   // No access to "this".
-    GET_REGISTER_STATIC(BuildingClass *, base, eax);
+    GET_REGISTER_STATIC(BuildingClass *, base, EAX);
     GET_STACK_STATIC(HousesType, house, esp, 0x38);
     //GET_STACK_STATIC8(bool, passes, esp, 0x3C);
     static BuildingTypeClassExtension *buildingtypeext;
@@ -300,7 +300,7 @@ continue_scan:
  */
 DECLARE_PATCH(_DisplayClass_Mouse_Left_Release_PlaceAnywhere_BugFix_Patch)
 {
-    GET_REGISTER_STATIC(DisplayClass *, this_ptr, ebx);
+    GET_REGISTER_STATIC(DisplayClass *, this_ptr, EBX);
 
     static Point2D mouse_pos;
 
@@ -370,7 +370,7 @@ static void Get_Mouse_Cursor_Coords()
  */
 DECLARE_PATCH(_DisplayClass_Help_Text_GetCursorPosition_Patch)
 {
-    GET_REGISTER_STATIC(DisplayClass *, this_ptr, ebx);
+    GET_REGISTER_STATIC(DisplayClass *, this_ptr, EBX);
     LEA_STACK_STATIC(Coord *, coordinate, esp, 0x2C);
     static char _cursor_position_buffer[128];
 

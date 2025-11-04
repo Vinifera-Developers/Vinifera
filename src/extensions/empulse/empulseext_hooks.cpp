@@ -49,7 +49,7 @@
  */
 DECLARE_PATCH(_EMPulseClass_Create_Building_EMPImmune_Patch)
 {
-    GET_REGISTER_STATIC(BuildingTypeClass *, buildingtype, eax);
+    GET_REGISTER_STATIC(BuildingTypeClass *, buildingtype, EAX);
     static BuildingTypeClassExtension *exttype_ptr;
 
     exttype_ptr = Extension::Fetch(buildingtype);
@@ -91,7 +91,7 @@ loop_continue:
  */
 DECLARE_PATCH(_EMPulseClass_Create_Foot_EMPImmune_Patch)
 {
-    GET_REGISTER_STATIC(FootClass *, foot, esi);
+    GET_REGISTER_STATIC(FootClass *, foot, ESI);
     static ILocomotion *loco;
     static TechnoTypeClassExtension *exttype_ptr;
 

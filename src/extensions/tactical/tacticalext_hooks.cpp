@@ -593,7 +593,7 @@ DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_Text_Color_Patch)
  */
 DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_NormaliseLineAnimation_Patch)
 {
-    GET_REGISTER_STATIC(unsigned, color, eax);
+    GET_REGISTER_STATIC(unsigned, color, EAX);
     GET_STACK_STATIC8(bool, blit, esp, 0x90);
     LEA_STACK_STATIC(Point2D *, start_pos, esp, 0x34);
     LEA_STACK_STATIC(Point2D *, end_pos, esp, 0x3C);
@@ -671,7 +671,7 @@ DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_NormaliseLineAnimation_Patch)
  */
 DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_DrawNormalLine_Patch)
 {
-    GET_REGISTER_STATIC(unsigned, color, eax);
+    GET_REGISTER_STATIC(unsigned, color, EAX);
     GET_STACK_STATIC8(bool, blit, esp, 0x90);
     LEA_STACK_STATIC(Point2D *, start_pos, esp, 0x34);
     LEA_STACK_STATIC(Point2D *, end_pos, esp, 0x3C);
@@ -720,7 +720,7 @@ DECLARE_PATCH(_Tactical_Draw_Waypoint_Paths_DrawNormalLine_Patch)
  */
 DECLARE_PATCH(_Tactical_Render_Post_Effects_Patch)
 {
-    GET_REGISTER_STATIC(Tactical *, this_ptr, ebp);
+    GET_REGISTER_STATIC(Tactical *, this_ptr, EBP);
 
     /**
      *  Stolen bytes/code.
@@ -744,7 +744,7 @@ DECLARE_PATCH(_Tactical_Render_Post_Effects_Patch)
  */
 DECLARE_PATCH(_Tactical_Render_Overlay_Patch)
 {
-    GET_REGISTER_STATIC(Tactical *, this_ptr, ebp);
+    GET_REGISTER_STATIC(Tactical *, this_ptr, EBP);
 
     /**
      *  If the developer mode is active, draw the developer overlay.

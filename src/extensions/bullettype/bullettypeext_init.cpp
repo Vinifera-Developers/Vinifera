@@ -49,7 +49,7 @@
  */
 DECLARE_PATCH(_BulletTypeClass_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(BulletTypeClass *, this_ptr, esi); // "this" pointer.
+    GET_REGISTER_STATIC(BulletTypeClass *, this_ptr, ESI); // "this" pointer.
     GET_STACK_STATIC(const char *, ini_name, esp, 0xC); // ini name.
 
     /**
@@ -85,7 +85,7 @@ original_code:
  */
 DECLARE_PATCH(_BulletTypeClass_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(BulletTypeClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(BulletTypeClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
@@ -110,7 +110,7 @@ original_code:
  */
 DECLARE_PATCH(_BulletTypeClass_Scalar_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(BulletTypeClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(BulletTypeClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.

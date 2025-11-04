@@ -49,7 +49,7 @@
  */
 DECLARE_PATCH(_WeaponTypeClass_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(WeaponTypeClass *, this_ptr, esi); // "this" pointer.
+    GET_REGISTER_STATIC(WeaponTypeClass *, this_ptr, ESI); // "this" pointer.
     GET_STACK_STATIC(const char *, ini_name, esp, 0x10); // ini name.
 
     /**
@@ -86,7 +86,7 @@ original_code:
  */
 DECLARE_PATCH(_WeaponTypeClass_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(WeaponTypeClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(WeaponTypeClass *, this_ptr, ESI);
 
     /**
      *  Stolen bytes here.
@@ -117,7 +117,7 @@ original_code:
  */
 DECLARE_PATCH(_WeaponTypeClass_Scalar_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(WeaponTypeClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(WeaponTypeClass *, this_ptr, ESI);
 
     /**
      *  Stolen bytes here.

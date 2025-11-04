@@ -49,7 +49,7 @@
  */
 DECLARE_PATCH(_FactoryClass_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(FactoryClass *, this_ptr, esi); // "this" pointer.
+    GET_REGISTER_STATIC(FactoryClass *, this_ptr, ESI); // "this" pointer.
 
     /**
      *  If we are performing a load operation, the Windows API will invoke the
@@ -85,7 +85,7 @@ original_code:
  */
 DECLARE_PATCH(_FactoryClass_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(FactoryClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(FactoryClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
@@ -112,7 +112,7 @@ original_code:
  */
 DECLARE_PATCH(_FactoryClass_Scalar_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(FactoryClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(FactoryClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.

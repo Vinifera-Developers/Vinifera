@@ -125,8 +125,8 @@ void AnimTypeClassExt::_Load_Image(TheaterType theater)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_AnimTypeClass_DTOR_Free_Image_Patch) { GET_REGISTER_STATIC(AnimTypeClass *, this_ptr, esi); this_ptr->Free_Image(); JMP(0x004187F2); }
-DECLARE_PATCH(_AnimTypeClass_SDDTOR_Free_Image_Patch) { GET_REGISTER_STATIC(AnimTypeClass *, this_ptr, esi); this_ptr->Free_Image(); JMP(0x00419C22); }
+DECLARE_PATCH(_AnimTypeClass_DTOR_Free_Image_Patch) { GET_REGISTER_STATIC(AnimTypeClass *, this_ptr, ESI); this_ptr->Free_Image(); JMP(0x004187F2); }
+DECLARE_PATCH(_AnimTypeClass_SDDTOR_Free_Image_Patch) { GET_REGISTER_STATIC(AnimTypeClass *, this_ptr, ESI); this_ptr->Free_Image(); JMP(0x00419C22); }
 
 
 /**
@@ -136,8 +136,8 @@ DECLARE_PATCH(_AnimTypeClass_SDDTOR_Free_Image_Patch) { GET_REGISTER_STATIC(Anim
  */
 DECLARE_PATCH(_AnimTypeClass_Get_Image_Data_Assertion_Patch)
 {
-    GET_REGISTER_STATIC(AnimTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(const ShapeSet *, image, eax);
+    GET_REGISTER_STATIC(AnimTypeClass *, this_ptr, ESI);
+    GET_REGISTER_STATIC(const ShapeSet *, image, EAX);
 
     if (image == nullptr) {
         DEBUG_WARNING("Anim %s has NULL image data!\n", this_ptr->Name());

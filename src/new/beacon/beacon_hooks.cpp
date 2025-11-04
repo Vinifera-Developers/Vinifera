@@ -50,7 +50,7 @@
  */
 DECLARE_PATCH(_RadarClass_Render_Radar_Redraw_Beacons_Patch)
 {
-    GET_REGISTER_STATIC(RadarClass*, this_ptr, esi);
+    GET_REGISTER_STATIC(RadarClass*, this_ptr, ESI);
 
     if (this_ptr->BackgroundUpdateStack.Count() > 0 ||
         BeaconManager.Is_To_Redraw_Radar()) {
@@ -88,8 +88,8 @@ DECLARE_PATCH(_RadarClass_Render_Radar_Draw_Beacons_Patch)
  */
 DECLARE_PATCH(_HouseClass_MPlayer_Defeated_Delete_Beacons_Patch)
 {
-    GET_REGISTER_STATIC(HouseClass*, this_ptr, ebx);
-    GET_REGISTER_STATIC(MouseClass*, map, ecx);
+    GET_REGISTER_STATIC(HouseClass*, this_ptr, EBX);
+    GET_REGISTER_STATIC(MouseClass*, map, ECX);
 
     Session.ObiWan = true;
     BeaconManager.Delete_Owned_Beacons(this_ptr->HeapID);
@@ -287,7 +287,7 @@ void DisplayClassExt::_Mouse_Right_Release(Point2D const& point)
  */
 DECLARE_PATCH(_DisplayClass_Waypoint_Mode_Control_BeaconMode_Patch)
 {
-    GET_REGISTER_STATIC(DisplayClass*, this_ptr, esi);
+    GET_REGISTER_STATIC(DisplayClass*, this_ptr, ESI);
 
     this_ptr->IsPowerMode = false;
     TacticalMapExtension->IsBeaconPlacementMode = false;
@@ -322,7 +322,7 @@ void Select_Beacon(Cell* cell)
 DECLARE_PATCH(_DisplayClass_Mouse_Left_Release_Beacon_Patch)
 {
     GET_REGISTER_STATIC(ActionType, action, edi)
-    GET_REGISTER_STATIC(Cell*, cell, ebp);
+    GET_REGISTER_STATIC(Cell*, cell, EBP);
 
     if (BeaconManagerClass::Is_Beacon_Placement_Action(action)) {
         Place_Beacon(cell, action);
@@ -358,9 +358,9 @@ void Process_Select(ObjectClass* object, TechnoClass* techno, ActionType& action
 
 DECLARE_PATCH(_ScrollClass_What_Action_Select_Beacon_Patch)
 {
-    GET_REGISTER_STATIC(ObjectClass*, object, esi);
-    GET_REGISTER_STATIC(TechnoClass*, techno, edi);
-    GET_REGISTER_STATIC(ActionType, action, ebp);
+    GET_REGISTER_STATIC(ObjectClass*, object, ESI);
+    GET_REGISTER_STATIC(TechnoClass*, techno, EDI);
+    GET_REGISTER_STATIC(ActionType, action, EBP);
     GET_STACK_STATIC(Cell*, cell, esp, 0x20);
 
     Process_Select(object, techno, action, cell);

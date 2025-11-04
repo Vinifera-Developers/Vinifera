@@ -47,7 +47,7 @@
  */
 DECLARE_PATCH(_EventClass_Execute_IDLE_Spawn_Manager_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass*, techno, esi);
+    GET_REGISTER_STATIC(TechnoClass*, techno, ESI);
     static TechnoClassExtension* extension;
     static RTTIType rtti;
 
@@ -75,7 +75,7 @@ DECLARE_PATCH(_EventClass_Execute_IDLE_Spawn_Manager_Patch)
  */
 DECLARE_PATCH(_DriveLocomotionClass_Start_Of_Move_Spawn_Manager_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass*, linked_to, eax);
+    GET_REGISTER_STATIC(TechnoClass*, linked_to, EAX);
     static TechnoClassExtension* extension;
 
     _asm pushad

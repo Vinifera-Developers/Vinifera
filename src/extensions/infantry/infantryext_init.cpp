@@ -50,7 +50,7 @@
  */
 DECLARE_PATCH(_InfantryClass_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(InfantryClass *, this_ptr, esi); // Current "this" pointer.
+    GET_REGISTER_STATIC(InfantryClass *, this_ptr, ESI); // Current "this" pointer.
 
     /**
      *  If we are performing a load operation, the Windows API will invoke the
@@ -86,7 +86,7 @@ original_code:
  */
 DECLARE_PATCH(_InfantryClass_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(InfantryClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(InfantryClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.

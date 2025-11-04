@@ -43,7 +43,7 @@
  */
 DECLARE_PATCH(_ParticleSystemClass_Spawn_Particle_Particle_System_Patch)
 {
-	GET_REGISTER_STATIC(ParticleSystemClass *, this_ptr, esi);
+	GET_REGISTER_STATIC(ParticleSystemClass *, this_ptr, ESI);
 
 	_asm { mov ecx, [esp+0x10] }
 	_asm { mov edx, [esp+0x0C] }

@@ -45,7 +45,7 @@
  */
 DECLARE_PATCH(_EventClass_Execute_New_Events)
 {
-    GET_REGISTER_STATIC(EventClassExt*, event, esi);
+    GET_REGISTER_STATIC(EventClassExt*, event, ESI);
 
     _asm pushad
 

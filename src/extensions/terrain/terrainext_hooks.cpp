@@ -157,7 +157,7 @@ static LightSourceClass *Terrain_New_LightSource(TerrainClass *this_ptr)
  */
 DECLARE_PATCH(_TerrainClass_Unlimbo_LightSource_Patch)
 {
-    GET_REGISTER_STATIC(TerrainClass *, this_ptr, edi);
+    GET_REGISTER_STATIC(TerrainClass *, this_ptr, EDI);
     static TerrainClassExtension *terrainext;
     static TerrainTypeClassExtension *terraintypeext;
     static TerrainTypeClass *terraintype;
@@ -217,7 +217,7 @@ function_return:
  */
 DECLARE_PATCH(_TerrainClass_Take_Damage_LightSource_Patch)
 {
-    GET_REGISTER_STATIC(TerrainClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(TerrainClass *, this_ptr, ESI);
     static TerrainClassExtension *terrainext;
 
     /**

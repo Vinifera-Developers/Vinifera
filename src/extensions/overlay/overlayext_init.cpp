@@ -48,7 +48,7 @@
  */
 DECLARE_PATCH(_OverlayClass_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(OverlayClass *, this_ptr, esi); // Current "this" pointer.
+    GET_REGISTER_STATIC(OverlayClass *, this_ptr, ESI); // Current "this" pointer.
 
     /**
      *  If we are performing a load operation, the Windows API will invoke the
@@ -83,7 +83,7 @@ original_code:
  */
 DECLARE_PATCH(_OverlayClass_Scalar_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(OverlayClass *, this_ptr, esi);
+    GET_REGISTER_STATIC(OverlayClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.

@@ -72,7 +72,7 @@ bool Passes_Cloak_Check(TechnoClass* techno)
  */
 DECLARE_PATCH(_ScrollClass_Input_Allied_Cloaked_Object_Patch1)
 {
-	GET_REGISTER_STATIC(TechnoClass*, techno, esi);
+	GET_REGISTER_STATIC(TechnoClass*, techno, ESI);
 
 	if (Passes_Cloak_Check(techno))
 	{
@@ -93,7 +93,7 @@ DECLARE_PATCH(_ScrollClass_Input_Allied_Cloaked_Object_Patch1)
  */
 DECLARE_PATCH(_ScrollClass_Input_Allied_Cloaked_Object_Patch2)
 {
-	GET_REGISTER_STATIC(BuildingClass*, building, edi);
+	GET_REGISTER_STATIC(BuildingClass*, building, EDI);
 
 	if (Passes_Cloak_Check(building))
 	{
@@ -115,7 +115,7 @@ DECLARE_PATCH(_ScrollClass_Input_Allied_Cloaked_Object_Patch2)
  */
 DECLARE_PATCH(_Tactical_Get_Object_At_Cell_Allied_Cloaked_Object_Patch)
 {
-	GET_REGISTER_STATIC(TechnoClass*, techno, eax);
+	GET_REGISTER_STATIC(TechnoClass*, techno, EAX);
 
 	if (Passes_Cloak_Check(techno))
 	{
