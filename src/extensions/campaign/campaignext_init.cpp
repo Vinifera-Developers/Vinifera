@@ -83,7 +83,7 @@ original_code:
 EXPORT_FUNC(_CampaignClass_Process_Patch)
 {
     GET(CampaignClass*, this_ptr, EBP);
-    GET_STACK(char const*, ini_name, 0x18);
+    LEA_STACK(char const*, ini_name, 0x18);
 
     new (this_ptr) CampaignClass(ini_name);
 

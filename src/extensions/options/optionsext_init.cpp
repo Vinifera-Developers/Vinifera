@@ -185,4 +185,4 @@ declhook(0x00589A12, _OptionsClass_Constructor_Patch, 0x1);
 declhook(0x0058A132, _OptionsClass_Load_Settings_Patch, 0x2);
 declhook(0x0060127E, _WinMain_Load_Init_Options_Settings_Patch, 0x5);
 declhook(0x0058A3C3, _OptionsClass_Save_Settings_Patch, 0x5);
-declhook(0x0058A5F7, _OptionsClass_Set_Patch, 0x9);
+declhook(0x0058A5E6, _OptionsClass_Set_Patch, 0x6);

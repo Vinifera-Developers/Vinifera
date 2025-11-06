@@ -99,5 +99,5 @@ void HouseTypeClassExtension_Init()
 
 }
 
-declhook(0x004CDE57, _HouseTypeClass_Constructor_Patch, 0x5);
+declhook(0x004CDE54, _HouseTypeClass_Constructor_Patch, 0x5);
 declhook(0x004CE608, _HouseTypeClass_Scalar_Destructor_Patch, 0x6);

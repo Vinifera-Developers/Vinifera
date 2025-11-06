@@ -426,7 +426,7 @@ continue_checks:
     return 0x00520F70;
 
 return_false:
-    return 0x00520F59;
+    return 0;
 }
 
 
@@ -529,6 +529,11 @@ temperate_bits:
  */
 EXPORT_FUNC(_MapSeedClass_Generate_Allow_Veinholes_Theater_Patch)
 {
+    /**
+     *  Stolen bytes/code.
+     */
+    R->ESP(R->ESP() + 0x4);
+
     /**
      *  Is this theater allowed to be used in the map generator?
      */
@@ -901,7 +906,8 @@ EXPORT_FUNC(_CellClass_Cell_Color_Theater_Patch_4)
  */
 void TheaterTypeClassExtension_Hooks()
 {
-
+    // Patch away a 2-byte jump that's in the way of our hook
+    Patch_Byte_Range(0x00520F57, 0x90, 2);
 }
 
 declhook(0x004E7B63, _Init_Theater_Patch, 0);
@@ -937,10 +943,10 @@ declhook(0x00651A40, _UnitClass_Per_Cell_Process_Ice_Check_Theater_Patch, 0);
 declhook(0x0063F9A6, _TerrainClass_Set_Occupy_Bit_Theater_Patch, 0);
 declhook(0x0063F916, _TerrainClass_Clear_Occupy_Bit_Theater_Patch, 0);
 
-declhook(0x0053D36E, _MapSeedClass_Generate_Allow_Veinholes_Theater_Patch, 0);
+declhook(0x0053D365, _MapSeedClass_Generate_Allow_Veinholes_Theater_Patch, 0);
 
 declhook(0x00520719, _MapClass_Process_Ice_Tile_Theater_Patch, 0);
-declhook(0x00520F57, _MapClass_Cracked_Ice_AI_Theater_Patch, 0);
+declhook(0x00520F59, _MapClass_Cracked_Ice_AI_Theater_Patch, 0x6);
 declhook(0x00520DBB, _MapClass_Ice_Growth_AI_Theater_Patch, 0);
 declhook(0x005209B1, _MapClass_Moving_Over_Ice_Theater_Patch, 0);
 declhook(0x0051FBD9, _MapClass_Smooth_Ice_Shore_Theater_Patch, 0);
