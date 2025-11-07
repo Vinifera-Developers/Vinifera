@@ -40,6 +40,7 @@
 #include "technotype.h"
 #include "kamikazetracker.h"
 #include "levitatelocomotion.h"
+#include "syringe.h"
 #include "tibsun_globals.h"
 #include "veinholemonster.h"
 #include "vinifera_globals.h"
@@ -81,61 +82,41 @@ void FlyLocomotionClassExt::_Take_Off()
 }
 
 
-DECLARE_PATCH(_FlyLocomotionClass_Movement_AI_AircraftTracker_Patch1)
+EXPORT_FUNC(_FlyLocomotionClass_Movement_AI_AircraftTracker_Patch1)
 {
-    GET_REGISTER_STATIC(FlyLocomotionClass*, loco, EDI);
-    static FootClassExtension* linked_ext;
-    static Cell oldcell, newcell;
+    GET(FlyLocomotionClass*, loco, EDI);
 
-    MAKE_STACK_FRAME(0x20)
+    auto linked_ext = Extension::Fetch(loco->LinkedTo);
 
-    linked_ext = Extension::Fetch(loco->LinkedTo);
-
-    oldcell = linked_ext->Get_Last_Flight_Cell();
-    newcell = loco->LinkedTo->Get_Cell();
+    Cell oldcell = linked_ext->Get_Last_Flight_Cell();
+    Cell newcell = loco->LinkedTo->Get_Cell();
 
     if (newcell != oldcell && loco->Is_Moving_Now()) {
         AircraftTracker->Update_Position(loco->LinkedTo, oldcell, newcell);
     }
 
-    END_STACK_FRAME()
-
-    // Stolen instructions
-    _asm mov ecx, [edi+4]
-    _asm lea ebp, [edi+4]
-
-    JMP(0x00499F57);
+    return 0;
 }
 
 
-DECLARE_PATCH(_FlyLocomotionClass_Movement_AI_AircraftTracker_Patch2)
+EXPORT_FUNC(_FlyLocomotionClass_Movement_AI_AircraftTracker_Patch2)
 {
-    GET_REGISTER_STATIC(FootClass*, linked_to, ECX);
+    GET(FootClass*, linked_to, ECX);
 
     AircraftTracker->Untrack(linked_to);
 
     // Stolen instruction
-    linked_to->HeightAGL = 0;
-
-    JMP(0x0049A087);
+    return 0;
 }
 
 
-DECLARE_PATCH(_FlyLocomotionClass_Process_Landing_AircraftTracker_Patch)
+EXPORT_FUNC(_FlyLocomotionClass_Process_Landing_AircraftTracker_Patch)
 {
-    GET_REGISTER_STATIC(FlyLocomotionClass*, loco, ESI);
-
-    _asm pushad
+    GET(FlyLocomotionClass*, loco, ESI);
 
     AircraftTracker->Untrack(loco->LinkedTo);
 
-    // Stolen instructions
-    loco->CurrentSpeed = 0;
-    loco->TargetSpeed = 0;
-
-    _asm popad
-
-    JMP(0x0049B938);
+    return 0;
 }
 
 
@@ -174,8 +155,9 @@ void LevitateLocomotionClassExt::_func_4FDF80()
 void AircraftTracker_Hooks()
 {
     Patch_Jump(0x0049CB00, &FlyLocomotionClassExt::_Take_Off);
-    Patch_Jump(0x00499F51, &_FlyLocomotionClass_Movement_AI_AircraftTracker_Patch1);
-    Patch_Jump(0x0049A07D, &_FlyLocomotionClass_Movement_AI_AircraftTracker_Patch2);
-    Patch_Jump(0x0049B92C, &_FlyLocomotionClass_Process_Landing_AircraftTracker_Patch);
     Patch_Call(0x00500BF5, &LevitateLocomotionClassExt::_func_4FDF80);
 }
+
+declhook(0x00499F51, _FlyLocomotionClass_Movement_AI_AircraftTracker_Patch1, 0x6);
+declhook(0x0049A07D, _FlyLocomotionClass_Movement_AI_AircraftTracker_Patch2, 0x10);
+declhook(0x0049B92C, _FlyLocomotionClass_Process_Landing_AircraftTracker_Patch, 0x6);
