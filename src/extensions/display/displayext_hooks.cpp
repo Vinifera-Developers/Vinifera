@@ -173,9 +173,9 @@ ObjectClass * DisplayClassExt::_Prev_Object(ObjectClass * object)  const
 EXPORT_FUNC(_DisplayClass_Mouse_Left_Up_Set_Mouse)
 {
     GET(ActionType, action, EBX);
-    GET_STACK(bool, shadow, 0x20);
-    GET_STACK(CellClass*, cellptr, 0x10);
-    GET_STACK(bool, wsmall, 0x2C);
+    GET_STACK(bool, shadow, 0x1C);
+    GET_STACK(CellClass*, cellptr, 0xC);
+    GET_STACK(bool, wsmall, 0x28);
 
     MouseType mouse = MOUSE_NORMAL;
 
@@ -421,7 +421,7 @@ declhook(0x00478974, _DisplayClass_Mouse_Left_Release_PlaceAnywhere_BugFix_Patch
 declhook(0x004762E4, _DisplayClass_Passes_Proximity_Passes_Check_Patch, 0);
 #endif
 
-declhook(0x004782CF, _DisplayClass_Mouse_Left_Up_Set_Mouse, 0x8);
+declhook(0x004782CF, _DisplayClass_Mouse_Left_Up_Set_Mouse, 0);
 
 /**
  *  #issue-71
