@@ -1057,6 +1057,9 @@ DEFINE_HOOK(0x006B7E22, WinMainCRTStartup_Syringe_Patch, 0x9)
 {
     DEBUG_INFO("Syringe is active.");
 
+    /**
+     *  Give the user time to attach the debugger if one is not already present.
+     */
     if (Detach_Debugger() && !IsDebuggerPresent()) {
         MessageBox(nullptr, "[Syringe] Attach the debugger now or continue.", "Vinifera", MB_OK | MB_SERVICE_NOTIFICATION);
     }
