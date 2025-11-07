@@ -37,6 +37,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -46,9 +47,9 @@
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_SessionClass_Constructor_Patch)
+EXPORT_FUNC(_SessionClass_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(SessionClass *, this_ptr, EBP); // "this" pointer.
+    GET(SessionClass *, this_ptr, EBP); // "this" pointer.
 
     /**
      *  Create the extended class instance.
@@ -59,13 +60,7 @@ DECLARE_PATCH(_SessionClass_Constructor_Patch)
      *  Stolen bytes here.
      */
 original_code:
-    _asm { mov eax, ebp }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { pop ebx }
-    _asm { pop ecx }
-    _asm { ret }
+    return 0;
 }
 
 
@@ -76,10 +71,8 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_SessionClass_Destructor_Patch)
+EXPORT_FUNC(_SessionClass_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(SessionClass *, this_ptr, ESI);
-
     /**
      *  Remove the extended class instance.
      */
@@ -89,9 +82,7 @@ DECLARE_PATCH(_SessionClass_Destructor_Patch)
      *  Stolen bytes here.
      */
 original_code:
-    _asm { pop esi }
-    _asm { pop ebx }
-    _asm { ret }
+    return 0;
 }
 
 
@@ -102,10 +93,8 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_SessionClass_Read_MultiPlayer_Settings_Patch)
+EXPORT_FUNC(_SessionClass_Read_MultiPlayer_Settings_Patch)
 {
-    GET_REGISTER_STATIC(SessionClass *, this_ptr, EBP);
-
     /**
      *  Load ini.
      */
@@ -116,10 +105,7 @@ DECLARE_PATCH(_SessionClass_Read_MultiPlayer_Settings_Patch)
      *  Stolen bytes here.
      */
 original_code:
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { add esp, 0x0F8 }
-    _asm { ret }
+    return 0;
 }
 
 
@@ -130,10 +116,8 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_SessionClass_Write_MultiPlayer_Settings_Patch)
+EXPORT_FUNC(_SessionClass_Write_MultiPlayer_Settings_Patch)
 {
-    GET_REGISTER_STATIC(SessionClass *, this_ptr, ESI);
-
     /**
      *  Save ini.
      */
@@ -144,11 +128,7 @@ DECLARE_PATCH(_SessionClass_Write_MultiPlayer_Settings_Patch)
      *  Stolen bytes here.
      */
 original_code:
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebx }
-    _asm { add esp, 0x0AC }
-    _asm { ret }
+    return 0;
 }
 
 
@@ -157,8 +137,10 @@ original_code:
  */
 void SessionClassExtension_Init()
 {
-    Patch_Jump(0x005ED1AA, &_SessionClass_Constructor_Patch);
-    Patch_Jump(0x005ED465, &_SessionClass_Destructor_Patch);
-    Patch_Jump(0x005EE17F, &_SessionClass_Read_MultiPlayer_Settings_Patch);
-    Patch_Jump(0x005EE7BA, &_SessionClass_Write_MultiPlayer_Settings_Patch);
+
 }
+
+declhook(0x005ED1AA, _SessionClass_Constructor_Patch, 0x5);
+declhook(0x005ED465, _SessionClass_Destructor_Patch, 0x3);
+declhook(0x005EE17F, _SessionClass_Read_MultiPlayer_Settings_Patch, 0x8);
+declhook(0x005EE7BA, _SessionClass_Write_MultiPlayer_Settings_Patch, 0x9);
