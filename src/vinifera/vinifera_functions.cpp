@@ -62,6 +62,7 @@
 #include "newjumpjetlocomotion.h"
 #include "prerequisitegroup.h"
 #include "setup_hooks.h"
+#include "tibsun_functions.h"
 
 
 static DynamicVectorClass<std::string> ViniferaSearchPaths;
@@ -259,6 +260,13 @@ bool Vinifera_Parse_Command_Line(int argc, char *argv[])
 {
     if (argc > 1) {
         DEBUG_INFO("Parsing command line arguments...\n");
+    }
+
+    /**
+     *  Let the game parse the arguments first.
+     */
+    if (!Parse_Command_Line(argc, argv)) {
+        return false;
     }
 
     bool menu_skip = false;
