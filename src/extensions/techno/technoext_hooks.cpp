@@ -87,6 +87,7 @@
 #include "utracker.h"
 #include "aircraft.h"
 #include "houseext.h"
+#include "syringe.h"
 #include "vox.h"
 
 
@@ -336,11 +337,11 @@ void TechnoClassExt::_Draw_Pips(Point2D& bottomleft, Point2D& center, Rect& rect
         const int specialpip = Extension::Fetch(TClass)->SpecialPipIndex;
         if (specialpip >= 0)
         {
-            Draw_Shape(*LogicalSurface, *NormalDrawer, pips1, specialpip, (Point2D(drawx, drawy) + UIControls->Get_Special_Pip_Offset(RTTI)), rect, SHAPE_WIN_REL | SHAPE_CENTER);
+            Draw_Shape(*LogicalSurface, *NormalDrawer, pips1, specialpip, Point2D(drawx, drawy) + UIControls->Get_Special_Pip_Offset(RTTI), rect, SHAPE_WIN_REL | SHAPE_CENTER);
         }
         else if (RTTI == RTTI_INFANTRY && Combat_Damage() < 0)
         {
-            Draw_Shape(*LogicalSurface,* NormalDrawer, pips1, 6, (Point2D(drawx, drawy) + UIControls->Get_Special_Pip_Offset(RTTI)), rect, SHAPE_WIN_REL | SHAPE_CENTER);
+            Draw_Shape(*LogicalSurface,* NormalDrawer, pips1, 6, Point2D(drawx, drawy) + UIControls->Get_Special_Pip_Offset(RTTI), rect, SHAPE_WIN_REL | SHAPE_CENTER);
         }
 
         /**
@@ -540,7 +541,7 @@ bool TechnoClassExt::_Target_Something_Nearby(Coord& coord, ThreatType threat)
      *  Determine that if there is an existing target it is still legal
      *  and within range.
      */
-    if (TarCom != nullptr && (extension->HasOpportunityFireTarget || (threat & THREAT_RANGE))) {
+    if (TarCom != nullptr && (extension->HasOpportunityFireTarget || threat & THREAT_RANGE)) {
         WeaponSlotType primary = What_Weapon_Should_I_Use(TarCom);
         FireErrorType fire = Can_Fire(TarCom, primary);
 
@@ -1189,7 +1190,7 @@ int TechnoClassExt::_Anti_Infantry() const
         BulletTypeClass const* bullet = weapon->Bullet;
         const int mrange = std::min(static_cast<int>(weapon->Range), minrange);
 
-        int value = ((weapon->Attack * Verses::Get_Modifier(ARMOR_NONE, weapon->WarheadPtr)) * mrange * weapon->WarheadPtr->SpreadFactor) / weapon->ROF;
+        int value = weapon->Attack * Verses::Get_Modifier(ARMOR_NONE, weapon->WarheadPtr) * mrange * weapon->WarheadPtr->SpreadFactor / weapon->ROF;
         if (TClass->Is_Two_Shooter())
             value *= 2;
         
@@ -1689,8 +1690,8 @@ void TechnoClassExt::_Draw_Target_Laser() const
      */
     if (is_dropshadow) {
 
-        const int drop_point_size = is_thick ? (point_size + 3) : (point_size + 2);
-        const Point2D drop_point_offset = is_thick ? (point_offset + Point2D(-2, -2)) : (point_offset + Point2D(-1, -1));
+        const int drop_point_size = is_thick ? point_size + 3 : point_size + 2;
+        const Point2D drop_point_offset = is_thick ? point_offset + Point2D(-2, -2) : point_offset + Point2D(-1, -1);
 
         if (is_thick) {
             point_size -= 1;
@@ -1802,20 +1803,13 @@ int TechnoClassExt::_How_Many_Survivors() const
  *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_TechnoClass_Evaluate_Object_Is_Legal_Target_Patch)
+EXPORT_FUNC(_TechnoClass_Evaluate_Object_Is_Legal_Target_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass *, this_ptr, EDI);
-    GET_REGISTER_STATIC(const TechnoClass *, object, ESI); // The target object being evaluated.
-    static TechnoClassExtension *this_technoext;
-    static TechnoClassExtension *object_technoext;
-    static const TechnoTypeClass *object_tclass;
-    static const TechnoTypeClassExtension *object_tclassext;
+    GET(TechnoClass *, this_ptr, EDI);
+    GET(const TechnoClass *, object, ESI); // The target object being evaluated.
 
-    //this_technoext = Extension::Fetch(this_ptr);
-    //object_technoext = Extension::Fetch(object);
-
-    object_tclass = object->TClass;
-    object_tclassext = Extension::Fetch(object_tclass);
+    auto object_tclass = object->TClass;
+    auto object_tclassext = Extension::Fetch(object_tclass);
 
     /**
      *  Determine if the target is theoretically allowed to be a target.
@@ -1835,13 +1829,13 @@ DECLARE_PATCH(_TechnoClass_Evaluate_Object_Is_Legal_Target_Patch)
      *  Target object passed the "theoretical" check, for now...
      */
 continue_eval:
-    JMP_REG(edx, 0x0062D4D8);
+    return 0x0062D4D8;
 
     /**
      *  Target object is not a "theoretically legal" target.
      */
 return_false:
-    JMP_REG(edx, 0x0062D8C0);
+    return 0x0062D8C0;
 }
 
 
@@ -1850,31 +1844,31 @@ return_false:
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_TechnoClass_Evaluate_Object_PassiveAcquire_Armor_Patch)
+EXPORT_FUNC(_TechnoClass_Evaluate_Object_PassiveAcquire_Armor_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass*, this_ptr, EDI);
-    GET_REGISTER_STATIC(TechnoClass*, object, ESI);
-
-    static WeaponTypeClass* weapon;
+    GET(TechnoClass*, this_ptr, EDI);
+    GET(TechnoClass*, object, ESI);
 
     /**
      *  Determine if the target object has an armor type that this warhead is not allowed to passive acquire.
      */
-    weapon = const_cast<WeaponTypeClass*>(this_ptr->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon);
-    if (weapon && weapon->WarheadPtr && !Verses::Get_PassiveAcquire(object->TClass->Armor, weapon->WarheadPtr))
+    auto weapon = this_ptr->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon;
+    if (weapon && weapon->WarheadPtr && !Verses::Get_PassiveAcquire(object->TClass->Armor, weapon->WarheadPtr)) {
         goto return_false;
+    }
 
     /**
      *  An object with no health shouldn't be targeted.
      */
-    if (!object->Strength)
+    if (!object->Strength) {
         goto return_false;
+    }
 
 continue_checks:
-    JMP(0x0062D129);
+    return 0x0062D129;
 
 return_false:
-    JMP(0x0062D8C0);
+    return 0x0062D8C0;
 }
 
 
@@ -1883,19 +1877,16 @@ return_false:
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_TechnoClass_Base_Is_Attacked_Armor1_Patch)
+EXPORT_FUNC(_TechnoClass_Base_Is_Attacked_Armor1_Patch)
 {
-    GET_STACK_STATIC(TechnoClass*, enemy, esp, 0x84);
-    GET_REGISTER_STATIC(UnitClass*, unit, ESI);
+    GET_STACK(TechnoClass*, enemy, 0x84);
+    GET(UnitClass*, unit, ESI);
 
-    if (Verses::Get_Modifier(enemy->TClass->Armor, unit->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon->WarheadPtr))
-    {
-        _asm mov esi, unit
-        JMP(0x00636C36);
+    if (Verses::Get_Modifier(enemy->TClass->Armor, unit->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon->WarheadPtr)) {
+        return 0x00636C36;
     }
 
-    _asm mov esi, unit
-    JMP(0x00636D60);
+    return 0x00636D60;
 }
 
 
@@ -1904,19 +1895,16 @@ DECLARE_PATCH(_TechnoClass_Base_Is_Attacked_Armor1_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_TechnoClass_Base_Is_Attacked_Armor2_Patch)
+EXPORT_FUNC(_TechnoClass_Base_Is_Attacked_Armor2_Patch)
 {
-    GET_STACK_STATIC(TechnoClass*, enemy, esp, 0x84);
-    GET_REGISTER_STATIC(InfantryClass*, unit, ESI);
+    GET_STACK(TechnoClass*, enemy, 0x84);
+    GET(InfantryClass*, unit, ESI);
 
-    if (Verses::Get_Modifier(enemy->TClass->Armor, unit->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon->WarheadPtr) != 0)
-    {
-        _asm mov esi, unit
-        JMP(0x006369E8);
+    if (Verses::Get_Modifier(enemy->TClass->Armor, unit->Get_Weapon(WEAPON_SLOT_PRIMARY)->Weapon->WarheadPtr) != 0) {
+        return 0x006369E8;
     }
 
-    _asm mov esi, unit
-    JMP(0x00636B14);
+    return 0x00636B14;
 }
 
 
@@ -1927,36 +1915,28 @@ DECLARE_PATCH(_TechnoClass_Base_Is_Attacked_Armor2_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_TechnoClass_Fire_At_Electric_Bolt_Patch)
+EXPORT_FUNC(_TechnoClass_Fire_At_Electric_Bolt_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass *, this_ptr, ESI);
-    GET_REGISTER_STATIC(WeaponTypeClass const *, weapon, EBX);
-    GET_STACK_STATIC(AbstractClass *, target, ebp, 0x8);
-    static WeaponTypeClassExtension *weapontypeext;
-    static TechnoClassExtension *technoext;
+    GET(TechnoClass *, this_ptr, ESI);
+    GET(WeaponTypeClass const *, weapon, EBX);
+    GET_BASE(AbstractClass*, target, 0x8);
 
     /**
      *  Spawn the electric bolt.
      */
-    weapontypeext = Extension::Fetch(weapon);
+    auto weapontypeext = Extension::Fetch(weapon);
     if (weapontypeext->IsElectricBolt) {
 
-        technoext = Extension::Fetch(this_ptr);
+        auto technoext = Extension::Fetch(this_ptr);
         technoext->Electric_Bolt(target);
 
         /**
          *  Proceed to check for ammo.
          */
-        JMP(0x0063126F);
-
-    /**
-     *  Spawn the laser.
-     */
-    } else if (weapon->IsLaser) {
-        JMP_REG(edi, 0x00631231);
+        return 0x0063126F;
     }
 
-    JMP(0x006312CD);
+    return 0;
 }
 
 
@@ -1967,12 +1947,12 @@ DECLARE_PATCH(_TechnoClass_Fire_At_Electric_Bolt_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_TechnoClass_Fire_At_Suicide_Patch)
+EXPORT_FUNC(_TechnoClass_Fire_At_Suicide_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass *, this_ptr, ESI);
-    GET_REGISTER_STATIC(WeaponTypeClass *, weap, EBX);
-    GET_REGISTER_STATIC(BulletTypeClass *, bullet, EDX);
-    GET_STACK_STATIC(AbstractClass *, target, ebp, 0x8);
+    GET(TechnoClass *, this_ptr, ESI);
+    GET(WeaponTypeClass *, weap, EBX);
+    GET(BulletTypeClass *, bullet, EDX);
+    GET_BASE(AbstractClass *, target, 0x8);
     static WeaponTypeClassExtension *weapontypeext;
     static int damage;
 
@@ -2028,15 +2008,13 @@ DECLARE_PATCH(_TechnoClass_Fire_At_Suicide_Patch)
      *  Continue checks.
      */
 limpet_check:
-    _asm { mov edi, target }    // Restore EDI to expected pointer.
-    JMP(0x0063039B);
+    return 0x0063039B;
 
     /**
      *  Return null (didn't fire, no bullet returned).
      */
 return_null:
-    _asm { mov edi, target }
-    JMP(0x006304D2);
+    return 0x006304D2;
 }
 
 
@@ -2099,14 +2077,14 @@ static void Techno_Player_Assign_Mission_Response_Switch(TechnoClass *this_ptr, 
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_TechnoClass_Player_Assign_Mission_Response_Patch)
+EXPORT_FUNC(_TechnoClass_Player_Assign_Mission_Response_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass *, this_ptr, ESI);
-    GET_REGISTER_STATIC(MissionType, mission, EDI);
+    GET(TechnoClass *, this_ptr, ESI);
+    GET(MissionType, mission, EDI);
 
     Techno_Player_Assign_Mission_Response_Switch(this_ptr, mission);
 
-    JMP(0x0063167E);
+    return 0x0063167E;
 }
 
 
@@ -2117,38 +2095,31 @@ DECLARE_PATCH(_TechnoClass_Player_Assign_Mission_Response_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_TechnoClass_Refund_Amount_Soylent_Patch)
+EXPORT_FUNC(_TechnoClass_Refund_Amount_Soylent_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass *, this_ptr, ESI);
-    static TechnoTypeClassExtension *technotypext;
-    const static TechnoTypeClass *technotype;
-    static int cost;
+    GET(TechnoClass *, this_ptr, ESI);
 
     /**
      *  Stolen bytes/code.
      */
-    technotype = this_ptr->TClass;
+    const TechnoTypeClass* technotype = this_ptr->TClass;
 
     /**
      *  Fetch the extension instance.
      */
-    technotypext = Extension::Fetch(technotype);
+    TechnoTypeClassExtension* technotypext = Extension::Fetch(technotype);
 
     /**
      *  If the object has a soylent value defined, return this.
      */
     if (technotypext->SoylentValue > 0) {
-        cost = technotypext->SoylentValue;
-        goto return_amount;
+        int cost = technotypext->SoylentValue;
+        R->EDI(cost);
+        return 0x006380DC;
     }
 
 continue_function:
-    _asm { mov eax, technotype }    // restore EAX pointer.
-    JMP_REG(ecx, 0x0063809D);
-
-return_amount:
-    _asm { mov edi, [cost] }
-    JMP(0x006380DC);
+    return 0x0063809D;
 }
 
 
@@ -2159,18 +2130,16 @@ return_amount:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_TechnoClass_Greatest_Threat_Infantry_Mechanic_Patch)
+EXPORT_FUNC(_TechnoClass_Greatest_Threat_Infantry_Mechanic_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass *, this_ptr, ESI);
-    GET_REGISTER_STATIC(InfantryClass *, infantry_this_ptr, ESI);
-    GET_REGISTER_STATIC(ThreatType, method, EBX);
-    static InfantryTypeClassExtension *infantrytypeext;
+    GET(TechnoClass *, this_ptr, ESI);
+    GET(InfantryClass *, infantry_this_ptr, ESI);
+    GET(ThreatType, method, EBX);
 
     /**
      *  #NOTE: This case is already within a infantry check.
      */
-
-    method = (method & (THREAT_RANGE|THREAT_AREA));
+    method = method & (THREAT_RANGE|THREAT_AREA);
     
     /**
      *  The following;
@@ -2181,7 +2150,7 @@ DECLARE_PATCH(_TechnoClass_Greatest_Threat_Infantry_Mechanic_Patch)
      *  #NOTE: Removed THREAT_AIR for IsMechanic and IsOmniHealer infantry and it causes
      *         them to chase down damaged friendly aircraft in the air.
      */
-    infantrytypeext = Extension::Fetch(infantry_this_ptr->Class);
+    auto infantrytypeext = Extension::Fetch(infantry_this_ptr->Class);
     if (infantrytypeext->IsOmniHealer) {
         method = method|(THREAT_INFANTRY|THREAT_VEHICLES/*|THREAT_AIR*/|THREAT_4000);
     } else if (infantrytypeext->IsMechanic) {
@@ -2190,8 +2159,8 @@ DECLARE_PATCH(_TechnoClass_Greatest_Threat_Infantry_Mechanic_Patch)
         method = method|(THREAT_INFANTRY|THREAT_4000);
     }
 
-    _asm { mov ebx, method }
-    JMP(0x0062DDB1);
+    R->EBX(method);
+    return 0x0062DDB1;
 }
 
 
@@ -2202,19 +2171,12 @@ DECLARE_PATCH(_TechnoClass_Greatest_Threat_Infantry_Mechanic_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_TechnoClass_Draw_Health_Bars_Infantry_Draw_Pos_Patch)
+EXPORT_FUNC(_TechnoClass_Draw_Health_Bars_Infantry_Draw_Pos_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass *, this_ptr, EBX);
-    static int x_pos;
-    static int y_pos;
+    R->ECX(UIControls->InfantryHealthBarDrawPos.X);
+    R->EAX(UIControls->InfantryHealthBarDrawPos.Y);
 
-    x_pos = UIControls->InfantryHealthBarDrawPos.X;
-    y_pos = UIControls->InfantryHealthBarDrawPos.Y;
-
-    _asm { mov ecx, [x_pos] }
-    _asm { mov eax, [y_pos] }
-
-    JMP_REG(esi, 0x0062C565);
+    return 0x0062C565;
 }
 
 
@@ -2225,19 +2187,12 @@ DECLARE_PATCH(_TechnoClass_Draw_Health_Bars_Infantry_Draw_Pos_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_TechnoClass_Draw_Health_Bars_Unit_Draw_Pos_Patch)
+EXPORT_FUNC(_TechnoClass_Draw_Health_Bars_Unit_Draw_Pos_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass *, this_ptr, EBX);
-    static int x_pos;
-    static int y_pos;
+    R->ECX(UIControls->UnitHealthBarDrawPos.X);
+    R->EAX(UIControls->UnitHealthBarDrawPos.Y);
 
-    x_pos = UIControls->UnitHealthBarDrawPos.X;
-    y_pos = UIControls->UnitHealthBarDrawPos.Y;
-
-    _asm { mov ecx, [x_pos] }
-    _asm { mov eax, [y_pos] }
-
-    JMP_REG(esi, 0x0062C5DF);
+    return 0x0062C5DF;
 }
 
 
@@ -2252,24 +2207,19 @@ DECLARE_PATCH(_TechnoClass_Draw_Health_Bars_Unit_Draw_Pos_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_TechnoClass_Take_Damage_IsAffectsAllies_Patch)
+EXPORT_FUNC(_TechnoClass_Take_Damage_IsAffectsAllies_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass *, this_ptr, ESI);
-    GET_STACK_STATIC(int *, damage, esp, 0xEC);
-    GET_STACK_STATIC(int, distance, esp, 0xF0);
-    GET_STACK_STATIC(const WarheadTypeClass *, warhead, esp, 0xF4);
-    GET_STACK_STATIC(TechnoClass *, source, esp, 0xF8);
-    GET_STACK_STATIC8(bool, forced, esp, 0xFC);
-    GET_STACK_STATIC(int, a6, esp, 0x100);
-    static WarheadTypeClassExtension *warheadtypeext;
-    static ResultType result;
+    GET(TechnoClass *, this_ptr, ESI);
+    GET_STACK(int *, damage, 0xEC);
+    GET_STACK(const WarheadTypeClass *, warhead, 0xF4);
+    GET_STACK(TechnoClass *, source, 0xF8);
 
     if (warhead) {
 
         /**
          *  Is the warhead that hit us one that affects units allied with its firing owner?
          */
-        warheadtypeext = Extension::Fetch(warhead);
+        WarheadTypeClassExtension* warheadtypeext = Extension::Fetch(warhead);
         if (!warheadtypeext->IsAffectsAllies) {
 
             /**
@@ -2285,23 +2235,13 @@ DECLARE_PATCH(_TechnoClass_Take_Damage_IsAffectsAllies_Patch)
 
     }
 
-    /**
-     *  Stolen bytes/code.
-     */
-    _asm { mov ecx, a6 }
-
-    /**
-     *   Restore a few registers to be safe.
-     */
-    _asm { mov ebx, source }
-    //_asm { mov edi, damage }
-    JMP_REG(edx, 0x006328E5);
+    return 0;
 
     /**
      *  Function returns RESULT_NONE.
      */
 return_RESULT_NONE:
-    JMP_REG(edi, 0x00632882);
+    return 0x00632882;
 }
 
 
@@ -2312,15 +2252,14 @@ return_RESULT_NONE:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_TechnoClass_Is_Ready_To_Uncloak_Cloak_Stop_BugFix_Patch)
+EXPORT_FUNC(_TechnoClass_Is_Ready_To_Uncloak_Cloak_Stop_BugFix_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass *, this_ptr, ESI);
-    GET_REGISTER_STATIC(bool, cloaked_by_house, al);
+    GET(TechnoClass *, this_ptr, ESI);
+    GET(bool, cloaked_by_house, EAX);
 
     /**
      *  Is this object unable to recloak or is it disabled by an EMP?
      */
-    //if (!this_ptr->Is_Allowed_To_Recloak() && !this_ptr->IsCloakable || this_ptr->Is_Immobilized()) { // Original code.
     if (!this_ptr->Is_Allowed_To_Recloak() || !this_ptr->IsCloakable || this_ptr->Is_Immobilized()) {
         goto continue_check;
     }
@@ -2329,14 +2268,14 @@ DECLARE_PATCH(_TechnoClass_Is_Ready_To_Uncloak_Cloak_Stop_BugFix_Patch)
      *  Object is not allowed to un-cloak at this time.
      */
 return_false:
-    JMP_REG(ecx, 0x0062F746);
+    return 0x0062F746;
 
     /**
      *  Continue checks.
      */
 continue_check:
-    _asm { mov bl, cloaked_by_house }
-    JMP_REG(ecx, 0x0062F6DD);
+    R->BL(cloaked_by_house);
+    return 0x0062F6DD;
 }
 
 
@@ -2389,16 +2328,15 @@ static AnimTypeClass *Techno_Get_Firing_Anim(TechnoClass *this_ptr, WeaponTypeCl
     return anim;
 }
 
-DECLARE_PATCH(_TechnoClass_Fire_At_Weapon_Anim_Patch)
+EXPORT_FUNC(_TechnoClass_Fire_At_Weapon_Anim_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass *, this_ptr, ESI);
-    GET_REGISTER_STATIC(WeaponTypeClass *, weapon, EBX);
-    static AnimTypeClass *anim;
+    GET(TechnoClass *, this_ptr, ESI);
+    GET(WeaponTypeClass *, weapon, EBX);
 
-    anim = Techno_Get_Firing_Anim(this_ptr, weapon);
+    AnimTypeClass* anim = Techno_Get_Firing_Anim(this_ptr, weapon);
 
-    _asm { mov edi, anim }
-    JMP(0x006310A6);
+    R->EDI(anim);
+    return 0x006310A6;
 }
 
 
@@ -2409,25 +2347,22 @@ DECLARE_PATCH(_TechnoClass_Fire_At_Weapon_Anim_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_TechnoClass_Do_Cloak_Cloak_Sound_Patch)
+EXPORT_FUNC(_TechnoClass_Do_Cloak_Cloak_Sound_Patch)
 {
-    GET_REGISTER_STATIC(Coord *, coord, EAX);
-    GET_REGISTER_STATIC(TechnoClass *, this_ptr, ESI);
-    const static TechnoTypeClass *technotype;
-    static TechnoTypeClassExtension *technotypeext;
-    static VocType voc;
+    GET(Coord *, coord, EAX);
+    GET(TechnoClass *, this_ptr, ESI);
 
-    technotype = this_ptr->TClass;
+    const TechnoTypeClass* technotype = this_ptr->TClass;
 
     /**
      *  Fetch the default cloaking sound.
      */
-    voc = Rule->CloakSound;
+    VocType voc = Rule->CloakSound;
 
     /**
      *  Fetch the extension instance.
      */
-    technotypeext = Extension::Fetch(technotype);
+    TechnoTypeClassExtension* technotypeext = Extension::Fetch(technotype);
 
     /**
      *  Does this object have a custom cloaking sound? If so, use it.
@@ -2441,7 +2376,7 @@ DECLARE_PATCH(_TechnoClass_Do_Cloak_Cloak_Sound_Patch)
      */
     Static_Sound(voc, *coord);
 
-    JMP(0x00633C8B);
+    return 0x00633C8B;
 }
 
 
@@ -2452,25 +2387,22 @@ DECLARE_PATCH(_TechnoClass_Do_Cloak_Cloak_Sound_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_TechnoClass_Do_Uncloak_Uncloak_Sound_Patch)
+EXPORT_FUNC(_TechnoClass_Do_Uncloak_Uncloak_Sound_Patch)
 {
-    GET_REGISTER_STATIC(Coord *, coord, EAX);
-    GET_REGISTER_STATIC(TechnoClass *, this_ptr, ESI);
-    static const TechnoTypeClass *technotype;
-    static TechnoTypeClassExtension *technotypeext;
-    static VocType voc;
+    GET(Coord *, coord, EAX);
+    GET(TechnoClass *, this_ptr, ESI);
 
-    technotype = this_ptr->TClass;
+    const TechnoTypeClass* technotype = this_ptr->TClass;
 
     /**
      *  Fetch the default cloaking sound.
      */
-    voc = Rule->CloakSound;
+    VocType voc = Rule->CloakSound;
 
     /**
      *  Fetch the extension instance.
      */
-    technotypeext = Extension::Fetch(technotype);
+    TechnoTypeClassExtension* technotypeext = Extension::Fetch(technotype);
 
     /**
      *  Does this object have a custom decloaking sound? If so, use it.
@@ -2484,7 +2416,7 @@ DECLARE_PATCH(_TechnoClass_Do_Uncloak_Uncloak_Sound_Patch)
      */
     Static_Sound(voc, *coord);
 
-    JMP(0x00633BE7);
+    return 0x00633BE7;
 }
 
 
@@ -2496,24 +2428,18 @@ DECLARE_PATCH(_TechnoClass_Do_Uncloak_Uncloak_Sound_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_TechnoClass_Null_House_Warning_Patch)
+EXPORT_FUNC(_TechnoClass_Null_House_Warning_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass *, this_ptr, ECX);
-    static HouseClass *house;
-    static int id;
+    GET(TechnoClass *, this_ptr, ECX);
     
-    house = this_ptr->House;
+    HouseClass* house = this_ptr->House;
     if (!house) {
         DEBUG_WARNING("Techno \"%s\" has an invalid house!", this_ptr->Name());
         Vinifera_DeveloperMode_Warning_WWMessageBox("Techno \"%s\" has an invalid house!", this_ptr->Name());
         Fatal("Null house pointer in TechnoClass::Owner!\n");
-
-    } else {
-        id = house->HeapID;
     }
-    
-    _asm { mov eax, id }
-    _asm { ret }
+
+    return 0;
 }
 
 
@@ -2634,13 +2560,13 @@ bool TechnoClassExt::_Can_Deploy_Now() const
 
 
 
-DECLARE_PATCH(_TechnoClass_AI_Abandon_Invalid_Target_Patch)
+EXPORT_FUNC(_TechnoClass_AI_Abandon_Invalid_Target_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClassExt*, this_ptr, ESI);
+    GET(TechnoClassExt*, this_ptr, ESI);
 
     this_ptr->_AI_Abandon_Detour();
 
-    JMP(0x0062EB6F);
+    return 0x0062EB6F;
 }
 
 
@@ -2649,14 +2575,14 @@ DECLARE_PATCH(_TechnoClass_AI_Abandon_Invalid_Target_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_TechnoClass_Take_Damage_Drop_Tiberium_Type_Patch)
+EXPORT_FUNC(_TechnoClass_Take_Damage_Drop_Tiberium_Type_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClassExt*, this_ptr, ESI);
+    GET(TechnoClassExt*, this_ptr, ESI);
 
     this_ptr->_Drop_Tiberium();
 
     // Return from the function
-    JMP(0x00633073);
+    return 0x00633073;
 }
 
 
@@ -2665,22 +2591,22 @@ DECLARE_PATCH(_TechnoClass_Take_Damage_Drop_Tiberium_Type_Patch)
  *
  *  @author: ZivDero
  */
-static void _Tag_Spring_Entered(TechnoClass* this_ptr) { this_ptr->Tag->Spring(TEVENT_PLAYER_ENTERED, this_ptr); }
-DECLARE_PATCH(_TechnoClass_Captured_Spawn_Manager_Patch)
+EXPORT_FUNC(_TechnoClass_Captured_Spawn_Manager_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass*, this_ptr, ESI);
-    static TechnoClassExtension* extension;
+    GET(TechnoClass*, this_ptr, ESI);
 
-    extension = Extension::Fetch(this_ptr);
+    TechnoClassExtension* extension = Extension::Fetch(this_ptr);
 
-    if (extension->SpawnManager)
+    if (extension->SpawnManager) {
         extension->SpawnManager->Detach_Spawns();
+    }
 
     // Stolen instructions
-    if (this_ptr->Tag)
-        _Tag_Spring_Entered(this_ptr);
+    if (this_ptr->Tag) {
+        this_ptr->Tag->Spring(TEVENT_PLAYER_ENTERED, this_ptr);
+    }
 
-    JMP(0x00632518);
+    return 0x00632518;
 }
 
 
@@ -2689,20 +2615,17 @@ DECLARE_PATCH(_TechnoClass_Captured_Spawn_Manager_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_TechnoClass_Assign_Target_Spawn_Manager_Patch)
+EXPORT_FUNC(_TechnoClass_Assign_Target_Spawn_Manager_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass*, this_ptr, ESI);
-    static TechnoClassExtension* extension;
+    GET(TechnoClass*, this_ptr, ESI);
 
-    extension = Extension::Fetch(this_ptr);
+    TechnoClassExtension* extension = Extension::Fetch(this_ptr);
 
-    if (extension->SpawnManager)
+    if (extension->SpawnManager) {
         extension->SpawnManager->Queue_Target(nullptr);
+    }
 
-    // Stolen instructions
-    this_ptr->BurstIndex = 0;
-
-    JMP(0x0062FDE8);
+    return 0;
 }
 
 
@@ -2711,30 +2634,30 @@ DECLARE_PATCH(_TechnoClass_Assign_Target_Spawn_Manager_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_TechnoClass_Fire_At_Spawn_Manager_Patch)
+EXPORT_FUNC(_TechnoClass_Fire_At_Spawn_Manager_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClassExt*, this_ptr, ESI);
-    GET_REGISTER_STATIC(WeaponTypeClass*, weapon, EBX);
-    GET_REGISTER_STATIC(AbstractClass *, target, EDI);
+    GET(TechnoClassExt*, this_ptr, ESI);
+    GET(WeaponTypeClass*, weapon, EBX);
+    GET(AbstractClass *, target, EDI);
 
     // Stolen instructions
-    if (((weapon->IsSonic && this_ptr->Wave)
-      || (weapon->IsRailgun && this_ptr->ParticleSystems[4])
-      || (weapon->IsUseFireParticles && this_ptr->ParticleSystems[0])
-      || (weapon->IsUseSparkParticles && this_ptr->ParticleSystems[1])))
+    if ((weapon->IsSonic && this_ptr->Wave)
+        || (weapon->IsRailgun && this_ptr->ParticleSystems[4])
+        || (weapon->IsUseFireParticles && this_ptr->ParticleSystems[0])
+        || (weapon->IsUseSparkParticles && this_ptr->ParticleSystems[1]))
     {
         // return FIRE_OK;
-        JMP(0x006304D2);
+        return 0x006304D2;
     }
 
     if (this_ptr->_Spawner_Fire_At(target, weapon))
     {
         // return FIRE_OK;
-        JMP(0x006304D2);
+        return 0x006304D2;
     }
 
     // Continue checks
-    JMP(0x0063052D);
+    return 0x0063052D;
 }
 
 
@@ -2745,18 +2668,15 @@ DECLARE_PATCH(_TechnoClass_Fire_At_Spawn_Manager_Patch)
  *
  *  @author: Rampastring
  */
-DECLARE_PATCH(_TechnoClass_Railgun_Damage_Apply_Damage_Modifier_Patch)
+EXPORT_FUNC(_TechnoClass_Railgun_Damage_Apply_Damage_Modifier_Patch)
 {
-    GET_REGISTER_STATIC(int, damage, ECX);
-    GET_STACK_STATIC(TechnoClass*, this_ptr, esp, 0x74);
+    GET(int, damage, ECX);
+    GET_STACK(TechnoClass*, this_ptr, 0x74);
 
-    damage = damage * (this_ptr->FirepowerBias * this_ptr->House->FirepowerBias);
-    _asm { mov  ecx, dword ptr ds : damage }
-    _asm { mov[esp + 0x4C], ecx }
+    damage *= this_ptr->FirepowerBias * this_ptr->House->FirepowerBias;
+    R->ECX(damage);
 
-    // Restore code that we destroyed by jumping to our code and continue damage applying logic
-    _asm { mov  edx, [esp + 0x14] }
-    JMP(0x006396D9);
+    return 0;
 }
 
 
@@ -2765,13 +2685,13 @@ DECLARE_PATCH(_TechnoClass_Railgun_Damage_Apply_Damage_Modifier_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_TechnoClass_Fire_At_TargetLaserTimer_Patch)
+EXPORT_FUNC(_TechnoClass_Fire_At_TargetLaserTimer_Patch)
 {
-    GET_REGISTER_STATIC(TechnoClass*, this_ptr, ESI);
+    GET(TechnoClass*, this_ptr, ESI);
 
     this_ptr->TargetingLaserTimer = UIControls->TargetLaserTime;
 
-    JMP(0x00631223);
+    return 0x00631223;
 }
 
 
@@ -2823,7 +2743,7 @@ bool _TechnoClass_Evaluate_Object_Zone_Evaluation_Is_Valid_Target(TechnoClass* t
             return false;
         }
 
-        return (distance * CELL_LEPTON_W) < weaponinfo->Weapon->Range;
+        return distance * CELL_LEPTON_W < weaponinfo->Weapon->Range;
     }
 
     // For some reason the target zone scan type was invalid. Something is wrong.
@@ -2842,12 +2762,12 @@ bool _TechnoClass_Evaluate_Object_Zone_Evaluation_Is_Valid_Target(TechnoClass* t
  *
  *  @author: Rampastring
  */
-DECLARE_PATCH(_TechnoClass_Evaluate_Object_Zone_Evaluation_TargetZoneScanType_Patch)
+EXPORT_FUNC(_TechnoClass_Evaluate_Object_Zone_Evaluation_TargetZoneScanType_Patch)
 {
-    GET_REGISTER_STATIC(int, targetzone, EAX);
-    GET_REGISTER_STATIC(int, ourzone, EBP);
-    GET_REGISTER_STATIC(AbstractClass *, target, ESI);
-    GET_REGISTER_STATIC(TechnoClass*, this_ptr, EDI);
+    GET(int, targetzone, EAX);
+    GET(int, ourzone, EBP);
+    GET(AbstractClass *, target, ESI);
+    GET(TechnoClass*, this_ptr, EDI);
 
     enum {
         Continue = 0x0062D220,
@@ -2855,14 +2775,14 @@ DECLARE_PATCH(_TechnoClass_Evaluate_Object_Zone_Evaluation_TargetZoneScanType_Pa
     };
 
     if (targetzone == ourzone) {
-        JMP(Continue);
+        return Continue;
     }
 
     if (!_TechnoClass_Evaluate_Object_Zone_Evaluation_Is_Valid_Target(this_ptr, target, ourzone, targetzone)) {
-        JMP(InvalidTarget);
+        return InvalidTarget;
     }
 
-    JMP(Continue);
+    return Continue;
 }
 
 
@@ -2871,43 +2791,19 @@ DECLARE_PATCH(_TechnoClass_Evaluate_Object_Zone_Evaluation_TargetZoneScanType_Pa
  */
 void TechnoClassExtension_Hooks()
 {
-    Patch_Jump(0x00633C78, &_TechnoClass_Do_Cloak_Cloak_Sound_Patch);
-    Patch_Jump(0x00633BD4, &_TechnoClass_Do_Uncloak_Uncloak_Sound_Patch);
-    Patch_Jump(0x0063105C, &_TechnoClass_Fire_At_Weapon_Anim_Patch);
-    Patch_Jump(0x0062F6B7, &_TechnoClass_Is_Ready_To_Uncloak_Cloak_Stop_BugFix_Patch);
-    Patch_Jump(0x0062E6F0, &_TechnoClass_Null_House_Warning_Patch);
-    Patch_Jump(0x006328DE, &_TechnoClass_Take_Damage_IsAffectsAllies_Patch);
-    Patch_Jump(0x0062C5D5, &_TechnoClass_Draw_Health_Bars_Unit_Draw_Pos_Patch);
-    Patch_Jump(0x0062C55B, &_TechnoClass_Draw_Health_Bars_Infantry_Draw_Pos_Patch);
-    Patch_Jump(0x0062DD70, &_TechnoClass_Greatest_Threat_Infantry_Mechanic_Patch);
-    Patch_Jump(0x00638095, &_TechnoClass_Refund_Amount_Soylent_Patch);
-    Patch_Jump(0x00631661, &_TechnoClass_Player_Assign_Mission_Response_Patch);
-    Patch_Jump(0x00630390, &_TechnoClass_Fire_At_Suicide_Patch);
-    Patch_Jump(0x00631223, &_TechnoClass_Fire_At_Electric_Bolt_Patch);
-    Patch_Jump(0x0062D4CA, &_TechnoClass_Evaluate_Object_Is_Legal_Target_Patch);
     Patch_Jump(0x00637540, &TechnoClassExt::_Draw_Pips);
     Patch_Jump(0x0062A0D0, &TechnoClassExt::_What_Weapon_Should_I_Use);
     Patch_Jump(0x00636F00, &TechnoClassExt::_Is_Allowed_To_Retaliate);
     Patch_Jump(0x00639810, &TechnoClassExt::_Target_Threat);
     Patch_Jump(0x00638240, &TechnoClassExt::_Anti_Infantry);
-    Patch_Jump(0x00636BFE, &_TechnoClass_Base_Is_Attacked_Armor1_Patch);
-    Patch_Jump(0x006369B0, &_TechnoClass_Base_Is_Attacked_Armor2_Patch);
-    Patch_Jump(0x0062D11E, &_TechnoClass_Evaluate_Object_PassiveAcquire_Armor_Patch);
     Patch_Call(0x0042EC25, &TechnoClassExt::_What_Action);
     Patch_Call(0x004A8532, &TechnoClassExt::_What_Action);
-    Patch_Jump(0x0062EB27, &_TechnoClass_AI_Abandon_Invalid_Target_Patch);
-    Patch_Jump(0x00632F4C, &_TechnoClass_Take_Damage_Drop_Tiberium_Type_Patch);
     Patch_Jump(0x00632070, &TechnoClassExt::_Can_Deploy_Now);
     Patch_Call(0x00637FF5, &TechnoClassExt::_Cell_Distance_Squared); // Patch Find_Docking_Bay to call our own distance function that avoids overflows
-    Patch_Jump(0x006396D1, &_TechnoClass_Railgun_Damage_Apply_Damage_Modifier_Patch);
     Patch_Jump(0x006313D0, &TechnoClassExt::_Draw_Target_Laser);
-    Patch_Jump(0x00631207, &_TechnoClass_Fire_At_TargetLaserTimer_Patch);
     Patch_Jump(0x00637D60, &TechnoClassExt::_Draw_Text_Overlay);
     Patch_Jump(0x006364A0, &TechnoClassExt::_Crew_Type);
     Patch_Jump(0x0062A300, &TechnoClassExt::_How_Many_Survivors);
-    Patch_Jump(0x006324FF, &_TechnoClass_Captured_Spawn_Manager_Patch);
-    Patch_Jump(0x0062FDE2, &_TechnoClass_Assign_Target_Spawn_Manager_Patch);
-    Patch_Jump(0x006304DD, &_TechnoClass_Fire_At_Spawn_Manager_Patch);
     Patch_Jump(0x00637450, &TechnoClassExt::_Target_Something_Nearby);
     Patch_Jump(0x0062FD20, &TechnoClassExt::_Stun);
     Patch_Call(0x0062E9D1, &TechnoClassExt::_Mission_AI);
@@ -2915,8 +2811,33 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x00631FF0, &TechnoClassExt::_Can_Player_Move);
     Patch_Jump(0x006336F0, &TechnoClassExt::_Record_The_Kill);
     //Patch_Jump(0x0062A3D0, &TechnoClassExt::_Fire_Coord); // Disabled because it's functionally identical to the vanilla function when there's no secondary coordinate
-    Patch_Jump(0x00633745, (uintptr_t)0x00633762); // Do not trigger "Discovered by Player" when an object is destroyed
-    Patch_Jump(0x0062D218, &_TechnoClass_Evaluate_Object_Zone_Evaluation_TargetZoneScanType_Patch);
+    Patch_Jump(0x00633745, 0x00633762); // Do not trigger "Discovered by Player" when an object is destroyed
     Patch_Jump(0x0062A970, &TechnoClassExt::_Time_To_Build);
     Patch_Jump(0x0062FD70, &TechnoClassExt::_Assign_Target);
 }
+
+declhook(0x00633C78, _TechnoClass_Do_Cloak_Cloak_Sound_Patch, 0);
+declhook(0x00633BD4, _TechnoClass_Do_Uncloak_Uncloak_Sound_Patch, 0);
+declhook(0x0063105C, _TechnoClass_Fire_At_Weapon_Anim_Patch, 0);
+declhook(0x0062F6B7, _TechnoClass_Is_Ready_To_Uncloak_Cloak_Stop_BugFix_Patch, 0);
+declhook(0x0062E6F0, _TechnoClass_Null_House_Warning_Patch, 0x6);
+declhook(0x006328DE, _TechnoClass_Take_Damage_IsAffectsAllies_Patch, 0x7);
+declhook(0x0062C5D5, _TechnoClass_Draw_Health_Bars_Unit_Draw_Pos_Patch, 0);
+declhook(0x0062C55B, _TechnoClass_Draw_Health_Bars_Infantry_Draw_Pos_Patch, 0);
+declhook(0x0062DD70, _TechnoClass_Greatest_Threat_Infantry_Mechanic_Patch, 0);
+declhook(0x00638095, _TechnoClass_Refund_Amount_Soylent_Patch, 0);
+declhook(0x00631661, _TechnoClass_Player_Assign_Mission_Response_Patch, 0);
+declhook(0x00630390, _TechnoClass_Fire_At_Suicide_Patch, 0);
+declhook(0x00631223, _TechnoClass_Fire_At_Electric_Bolt_Patch, 0x6);
+declhook(0x0062D4CA, _TechnoClass_Evaluate_Object_Is_Legal_Target_Patch, 0);
+declhook(0x00636BFE, _TechnoClass_Base_Is_Attacked_Armor1_Patch, 0);
+declhook(0x006369B0, _TechnoClass_Base_Is_Attacked_Armor2_Patch, 0);
+declhook(0x0062D11E, _TechnoClass_Evaluate_Object_PassiveAcquire_Armor_Patch, 0);
+declhook(0x0062EB27, _TechnoClass_AI_Abandon_Invalid_Target_Patch, 0);
+declhook(0x00632F4C, _TechnoClass_Take_Damage_Drop_Tiberium_Type_Patch, 0);
+declhook(0x006396D1, _TechnoClass_Railgun_Damage_Apply_Damage_Modifier_Patch, 0x8);
+declhook(0x00631207, _TechnoClass_Fire_At_TargetLaserTimer_Patch, 0);
+declhook(0x006324FF, _TechnoClass_Captured_Spawn_Manager_Patch, 0);
+declhook(0x0062FDE2, _TechnoClass_Assign_Target_Spawn_Manager_Patch, 0x6);
+declhook(0x006304DD, _TechnoClass_Fire_At_Spawn_Manager_Patch, 0);
+declhook(0x0062D218, _TechnoClass_Evaluate_Object_Zone_Evaluation_TargetZoneScanType_Patch, 0);
