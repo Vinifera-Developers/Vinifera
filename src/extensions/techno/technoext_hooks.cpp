@@ -1951,10 +1951,7 @@ EXPORT_FUNC(_TechnoClass_Fire_At_Suicide_Patch)
 {
     GET(TechnoClass *, this_ptr, ESI);
     GET(WeaponTypeClass *, weap, EBX);
-    GET(BulletTypeClass *, bullet, EDX);
     GET_BASE(AbstractClass *, target, 0x8);
-    static WeaponTypeClassExtension *weapontypeext;
-    static int damage;
 
     /**
      *  Stolen bytes/code.
@@ -1966,7 +1963,7 @@ EXPORT_FUNC(_TechnoClass_Fire_At_Suicide_Patch)
     /**
      *  Fetch the extension instance for the firing weapon.
      */
-    weapontypeext = Extension::Fetch(weap);
+    auto weapontypeext = Extension::Fetch(weap);
 
     /**
      *  Firing unit must be active in the game world when performing suicide.
@@ -1998,7 +1995,7 @@ EXPORT_FUNC(_TechnoClass_Fire_At_Suicide_Patch)
                 goto limpet_check;
             }
 
-            damage = this_ptr->TClass->MaxStrength;
+            int damage = this_ptr->TClass->MaxStrength;
             this_ptr->Take_Damage(damage, 0, Rule->C4Warhead, nullptr, true, false);
         }
 
@@ -2008,7 +2005,7 @@ EXPORT_FUNC(_TechnoClass_Fire_At_Suicide_Patch)
      *  Continue checks.
      */
 limpet_check:
-    return 0x0063039B;
+    return 0;
 
     /**
      *  Return null (didn't fire, no bullet returned).
@@ -2827,7 +2824,7 @@ declhook(0x0062C55B, _TechnoClass_Draw_Health_Bars_Infantry_Draw_Pos_Patch, 0);
 declhook(0x0062DD70, _TechnoClass_Greatest_Threat_Infantry_Mechanic_Patch, 0);
 declhook(0x00638095, _TechnoClass_Refund_Amount_Soylent_Patch, 0);
 declhook(0x00631661, _TechnoClass_Player_Assign_Mission_Response_Patch, 0);
-declhook(0x00630390, _TechnoClass_Fire_At_Suicide_Patch, 0);
+declhook(0x0063039B, _TechnoClass_Fire_At_Suicide_Patch, 0x5);
 declhook(0x00631223, _TechnoClass_Fire_At_Electric_Bolt_Patch, 0x6);
 declhook(0x0062D4CA, _TechnoClass_Evaluate_Object_Is_Legal_Target_Patch, 0);
 declhook(0x00636BFE, _TechnoClass_Base_Is_Attacked_Armor1_Patch, 0);
