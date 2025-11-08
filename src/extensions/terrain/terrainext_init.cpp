@@ -37,6 +37,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -46,11 +47,9 @@
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_TerrainClass_Default_Constructor_Patch)
+EXPORT_FUNC(_TerrainClass_Default_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(TerrainClass *, this_ptr, ESI); // Current "this" pointer.
-    GET_STACK_STATIC(const TerrainTypeClass *, classof, esp, 0x20);
-    GET_STACK_STATIC(const Cell *, cell, esp, 0x24);
+    GET(TerrainClass *, this_ptr, ESI); // Current "this" pointer.
 
     /**
      *  If we are performing a load operation, the Windows API will invoke the
@@ -65,47 +64,8 @@ DECLARE_PATCH(_TerrainClass_Default_Constructor_Patch)
      */
     Extension::Make<TerrainClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { pop ebx }
-    _asm { add esp, 0x8 }
-    _asm { ret }
-}
-
-
-/**
- *  Patch for including the extended class members in the creation process.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_TerrainClass_Constructor_Patch)
-{
-    GET_REGISTER_STATIC(TerrainClass *, this_ptr, ESI); // Current "this" pointer.
-
-    /**
-     *  Create an extended class instance.
-     */
-    Extension::Make<TerrainClassExtension>(this_ptr);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { pop ebx }
-    _asm { add esp, 0x0C }
-    _asm { ret 8 }
+    return 0;
 }
 
 
@@ -119,50 +79,17 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_TerrainClass_Constructor_Before_Unlimbo_Patch)
+EXPORT_FUNC(_TerrainClass_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(TerrainClass *, this_ptr, ESI); // Current "this" pointer.
-    GET_STACK_STATIC(Cell *, cell, esp, 0x24);
+    GET(TerrainClass *, this_ptr, ESI); // Current "this" pointer.
 
     /**
      *  Create an extended class instance.
      */
     Extension::Make<TerrainClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov esi, this_ptr }
-    _asm { mov edx, [esi+0x64] } // this->Class
-    _asm { mov ecx, cell }
-
-    JMP(0x0063F55D);
-}
-
-
-/**
- *  Patch for including the extended class members in the destruction process.
- * 
- *  @warning: Do not touch this unless you know what you are doing!
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_TerrainClass_Destructor_Patch)
-{
-    GET_REGISTER_STATIC(TerrainClass *, this_ptr, ESI);
-
-    /**
-     *  Remove the extended class from the global index.
-     */
-    Extension::Destroy<TerrainClassExtension>(this_ptr);
-
-    /**
-     *  Stolen bytes here.
-     */
-original_code:
-    _asm { mov edx, ds:0x007E4568 } // Terrains.vtble
-    JMP_REG(eax, 0x0063F193);
+    return 0;
 }
 
 
@@ -173,21 +100,17 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_TerrainClass_Scalar_Destructor_Patch)
+EXPORT_FUNC(_TerrainClass_Scalar_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(TerrainClass *, this_ptr, ESI);
+    GET(TerrainClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
      */
     Extension::Destroy<TerrainClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov edx, ds:0x007E4568 } // Terrains.vtble
-    JMP_REG(eax, 0x00640C43);
+    return 0;
 }
 
 
@@ -196,9 +119,9 @@ original_code:
  */
 void TerrainClassExtension_Init()
 {
-    Patch_Jump(0x0063F88C, _TerrainClass_Default_Constructor_Patch);
-    //Patch_Jump(0x0063F701, _TerrainClass_Constructor_Patch);
-    Patch_Jump(0x0063F556, _TerrainClass_Constructor_Before_Unlimbo_Patch);
-    Patch_Jump(0x0063F18D, _TerrainClass_Destructor_Patch); // Destructor is actually inlined in scalar destructor!
-    Patch_Jump(0x00640C3D, _TerrainClass_Scalar_Destructor_Patch);
+
 }
+
+declhook(0x0063F88C, _TerrainClass_Default_Constructor_Patch, 0x5);
+declhook(0x0063F556, _TerrainClass_Constructor_Patch, 0x7);
+declhook(0x00640C3D, _TerrainClass_Scalar_Destructor_Patch, 0x6);

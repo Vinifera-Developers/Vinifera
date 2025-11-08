@@ -38,6 +38,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -47,10 +48,9 @@
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_ThemeClass_ThemeControl_Constructor_Patch)
+EXPORT_FUNC(_ThemeClass_ThemeControl_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(ThemeClass::ThemeControl *, this_ptr, EAX); // "this" pointer.
-    static ThemeControlExtension *ext_ptr;
+    GET(ThemeClass::ThemeControl *, this_ptr, EAX); // "this" pointer.
 
     /**
      *  Create an extended class instance.
@@ -67,21 +67,21 @@ original_code:
 
 
 /**
- *  This patch replaces a inlined copy of the constructor with a call to the constructor.
+ *  This patch replaces an inlined copy of the constructor with a call to the constructor.
  * 
  *  @warning: Do not touch this unless you know what you are doing!
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_ThemeClass_ThemeControl_Inlined_Constructor_Patch)
+EXPORT_FUNC(_ThemeClass_ThemeControl_Inlined_Constructor_Patch)
 {
-    _asm { mov ecx, eax }
-    _asm { mov eax, 0x006439B0 } // ThemeClass::ThemeControl::ThemeControl()
-    _asm { call eax }
+    GET(ThemeClass::ThemeControl*, this_ptr, EAX);
 
-    _asm { mov ebp, eax } // ebp = "this".
+    new (this_ptr) ThemeClass::ThemeControl;
 
-    JMP(0x00643B7C);
+    R->EBP(this_ptr);
+
+    return 0x00643B7C;
 }
 
 
@@ -92,30 +92,23 @@ DECLARE_PATCH(_ThemeClass_ThemeControl_Inlined_Constructor_Patch)
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_ThemeClass_ThemeControl_Read_INI_Patch)
+EXPORT_FUNC(_ThemeClass_ThemeControl_Fill_In_Patch)
 {
-    GET_REGISTER_STATIC(ThemeClass::ThemeControl *, this_ptr, ESI);
-    GET_REGISTER_STATIC(CCINIClass *, ini, EDI);
-    static ThemeControlExtension *exttype_ptr;
+    GET(ThemeClass::ThemeControl*, this_ptr, ESI);
+    GET(CCINIClass*, ini, EDI);
 
     /**
      *  Find the extension instance.
      */
-    exttype_ptr = Extension::List::Fetch<ThemeClass::ThemeControl, ThemeControlExtension>(this_ptr, ThemeControlExtensions);
+    auto exttype_ptr = Extension::List::Fetch<ThemeClass::ThemeControl, ThemeControlExtension>(this_ptr, ThemeControlExtensions);
 
     /**
      *  Read type class ini.
      */
     exttype_ptr->Read_INI(*ini);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov al, 1 }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { ret 4 }
+    return 0;
 }
 
 
@@ -124,8 +117,9 @@ original_code:
  */
 void ThemeClassExtension_Init()
 {
-    Patch_Jump(0x006439E5, &_ThemeClass_ThemeControl_Constructor_Patch);
-    Patch_Jump(0x00643B45, &_ThemeClass_ThemeControl_Inlined_Constructor_Patch);
-    //Patch_Jump(0x, &_ThemeClass_ThemeControl_Destructor_Patch); // No destructor to hook, extension should clean up on exit.
-    Patch_Jump(0x00643AAB, &_ThemeClass_ThemeControl_Read_INI_Patch);
+
 }
+
+declhook(0x006439E5, _ThemeClass_ThemeControl_Constructor_Patch, 0x1);
+declhook(0x00643B45, _ThemeClass_ThemeControl_Inlined_Constructor_Patch, 0);
+declhook(0x00643AAB, _ThemeClass_ThemeControl_Fill_In_Patch, 0x7);

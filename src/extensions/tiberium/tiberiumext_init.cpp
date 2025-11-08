@@ -38,6 +38,7 @@
 
 #include "hooker.h"
 #include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -47,10 +48,9 @@
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_TiberiumClass_Constructor_Patch)
+EXPORT_FUNC(_TiberiumClass_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(TiberiumClass *, this_ptr, ESI); // "this" pointer.
-    GET_STACK_STATIC(const char *, ini_name, esp, 0x10); // ini name.
+    GET(TiberiumClass *, this_ptr, ESI); // "this" pointer.
 
     /**
      *  If we are performing a load operation, the Windows API will invoke the
@@ -65,15 +65,8 @@ DECLARE_PATCH(_TiberiumClass_Constructor_Patch)
      */
     Extension::Make<TiberiumClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebx }
-    _asm { ret 4 }
+    return 0;
 }
 
 
@@ -84,21 +77,17 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_TiberiumClass_Destructor_Patch)
+EXPORT_FUNC(_TiberiumClass_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(TiberiumClass *, this_ptr, ESI);
+    GET(TiberiumClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
      */
     Extension::Destroy<TiberiumClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov edx, ds:0x0080F408 } // Tiberiums.vtble
-    JMP_REG(eax, 0x00644A99);
+    return 0;
 }
 
 
@@ -107,6 +96,8 @@ original_code:
  */
 void TiberiumClassExtension_Init()
 {
-    Patch_Jump(0x00644A20, &_TiberiumClass_Constructor_Patch);
-    Patch_Jump(0x00644A93, &_TiberiumClass_Destructor_Patch);
+
 }
+
+declhook(0x00644A20, _TiberiumClass_Constructor_Patch, 0x8);
+declhook(0x00644A93, _TiberiumClass_Destructor_Patch, 0x6);
