@@ -70,7 +70,6 @@
 #include "wwkeyboard.h"
 #include "options.h"
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "language.h"
 #include "ionstorm.h"
 #include "storageext.h"

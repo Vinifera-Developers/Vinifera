@@ -45,7 +45,6 @@
 
 #include "armortype.h"
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "syringe.h"
 #include "tibsun_functions.h"
 

@@ -50,7 +50,6 @@
 #include "coord.h"
 #include "debughandler.h"
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "infantry.h"
 #include "infantrytype.h"
 #include "mouse.h"

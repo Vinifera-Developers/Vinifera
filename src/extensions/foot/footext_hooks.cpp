@@ -52,7 +52,6 @@
 #include "debughandler.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "ionstorm.h"
 #include "levitatelocomotion.h"
 #include "radarevent.h"

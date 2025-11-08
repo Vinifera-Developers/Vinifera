@@ -43,7 +43,6 @@
 #include "extension.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "house.h"
 #include "isotiletype.h"
 #include "isotiletypeext.h"

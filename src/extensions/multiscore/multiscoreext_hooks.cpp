@@ -36,7 +36,6 @@
 #include "vector.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "scenario.h"
 #include "syringe.h"
 #include "vinifera_globals.h"

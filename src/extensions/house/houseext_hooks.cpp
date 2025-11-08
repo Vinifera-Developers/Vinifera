@@ -52,7 +52,6 @@
 #include "tiberium.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "houseext.h"
 #include "msgbox.h"
 #include "prerequisitegroup.h"
@@ -1260,12 +1259,12 @@ EXPORT_FUNC(_HouseClass_AI_Raise_Money_Fix_Memory_Corruption)
     // Stolen bytes / code. Do not insert element to Base Nodes vector
     // if buildable index is 0.
     if (buildable_index == 0) {
-        JMP(0x004C10BC);
+        return 0x004C10BC;
     }
 
     // Bugfix: also do not insert element if buildable index is -1. (or below 0)
     if (buildable_index < 0) {
-        JMP(0x004C10BC);
+        return 0x004C10BC;
     }
 
     // Apply node index variable and also save it in eax,

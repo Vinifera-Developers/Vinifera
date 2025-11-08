@@ -74,7 +74,6 @@
 #include "session.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "houseext.h"
 #include "jumpjetlocomotion.h"
 #include "rulesext.h"
@@ -1626,7 +1625,7 @@ EXPORT_FUNC(_BuildingClass_Mission_Deconstruction_ConYard_Unlimbo_Patch)
 {
     GET(UnitClass*, mcv, EBP);
     GET(Dir256, dir, EAX);
-    LEA_STACK_STATIC(Coord const*, coord, esp, 0x40);
+    LEA_STACK(Coord const*, coord, 0x40);
 
     if (Unlimbo_Helper(mcv, *coord, dir)) {
         return 0x00430A1A;

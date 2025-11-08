@@ -54,7 +54,6 @@
 #include "tibsun_inline.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "sideext.h"
 #include "syringe.h"
 
@@ -601,7 +600,7 @@ void _Set_Infantry_Facing_After_Doing_Check_For_Do_Nothing(InfantryClass* this_p
 
 EXPORT_FUNC(_InfantryClass_Doing_AI_Fix_Invalid_Facing_Set)
 {
-    GET_REGISTER_STATIC(InfantryClass*, inf, ESI);
+    GET(InfantryClass*, inf, ESI);
     _Set_Infantry_Facing_After_Doing_Check_For_Do_Nothing(inf);
     return 0x004D8C14;
 }

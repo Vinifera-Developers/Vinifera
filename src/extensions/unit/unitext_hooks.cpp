@@ -58,7 +58,6 @@
 #include "asserthandler.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "house.h"
 #include "spawnmanager.h"
 #include "syringe.h"

@@ -33,7 +33,6 @@
 #include "extension.h"
 #include "foot.h"
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "house.h"
 #include "mouse.h"
 #include "radar.h"

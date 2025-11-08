@@ -49,7 +49,6 @@
 #include "asserthandler.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "house.h"
 #include "rules.h"
 #include "syringe.h"

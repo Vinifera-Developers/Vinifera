@@ -44,7 +44,6 @@
 #include "motionlib.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "miscutil.h"
 #include "rulesext.h"
 #include "syringe.h"

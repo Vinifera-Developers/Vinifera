@@ -36,7 +36,6 @@
 #include "cell.h"
 #include "extension.h"
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "debughandler.h"
 #include "syringe.h"
 #include "tibsun_inline.h"
@@ -110,7 +109,7 @@ void TiberiumClassExt::_Deinitialize_Tiberium_Growth_System()
  */
 EXPORT_FUNC(_Get_Tiberium_Type_Debug_Info_Patch)
 {
-    GET_REGISTER_STATIC(OverlayTypeClass*, overlaytype, EAX);
+    GET(OverlayTypeClass*, overlaytype, EAX);
 
     DEBUG_FATAL("Overlay %s [%d] is not really Tiberium!\nAll overlays with Tiberium=yes must be used by a Tiberium!\n", overlaytype->IniName.c_str(), overlaytype->HeapID);
 

@@ -45,7 +45,6 @@
 #include "language.h"
 #include "extension.h"
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "debughandler.h"
 #include "asserthandler.h"
 #include "ebolt.h"

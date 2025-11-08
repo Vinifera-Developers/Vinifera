@@ -38,7 +38,6 @@
 #include "debughandler.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "syringe.h"
 
 
@@ -151,7 +150,7 @@ original_code:
  */
 EXPORT_FUNC(_AnimClass_Destructor_Patch)
 {
-    GET_REGISTER_STATIC(AnimClass *, this_ptr, ESI);
+    GET(AnimClass *, this_ptr, ESI);
 
     /**
      *  If this anim instance was destoryed because it has a NULL class type, then

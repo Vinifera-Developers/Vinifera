@@ -38,7 +38,6 @@
 #include "asserthandler.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "syringe.h"
 
 
@@ -51,7 +50,7 @@
  */
 EXPORT_FUNC(_OptionsClass_Constructor_Patch)
 {
-    GET_REGISTER_STATIC(OptionsClass *, this_ptr, EAX); // "this" pointer.
+    GET(OptionsClass *, this_ptr, EAX); // "this" pointer.
 
     /**
      *  The OptionsClass constructor is actually called twice as there are

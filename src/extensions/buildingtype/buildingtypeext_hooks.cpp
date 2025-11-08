@@ -40,7 +40,6 @@
 #include "extension.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "syringe.h"
 #include "tibsun_globals.h"
 #include "verses.h"

@@ -33,7 +33,6 @@
 #include "flylocomotion.h"
 #include "footext.h"
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "jumpjetlocomotion.h"
 #include "spawnmanager.h"
 #include "techno.h"

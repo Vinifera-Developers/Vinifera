@@ -52,7 +52,6 @@
 #include "rulesext.h"
 #include "sessionext.h"
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "syringe.h"
 #include "tacticalext.h"
 

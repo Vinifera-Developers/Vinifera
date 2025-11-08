@@ -158,7 +158,6 @@
 #include "swizzle.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "objectext_hooks.h"
 #include "prerequisitegroup_hooks.h"
 #include "spawnmanager_hooks.h"

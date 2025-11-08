@@ -31,7 +31,6 @@
 
 #include "extension.h"
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "spawnmanager.h"
 #include "techno.h"
 #include "technoext.h"

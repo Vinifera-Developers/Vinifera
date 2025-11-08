@@ -45,7 +45,6 @@
 #include "environmentext_hooks.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "houseext.h"
 #include "kamikazetracker.h"
 #include "mouse.h"
