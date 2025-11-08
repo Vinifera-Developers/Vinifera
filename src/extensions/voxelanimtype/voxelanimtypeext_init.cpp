@@ -98,5 +98,5 @@ void VoxelAnimTypeClassExtension_Init()
 
 }
 
-declhook(0x0065F584, _VoxelAnimTypeClass_Constructor_Patch, 0x6);
+declhook(0x0065F584, _VoxelAnimTypeClass_Constructor_Patch, 0x7);
 declhook(0x006600E1, _VoxelAnimTypeClass_Scalar_Destructor_Patch, 0x6);

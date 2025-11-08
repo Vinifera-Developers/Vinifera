@@ -95,5 +95,6 @@ EXPORT_FUNC(_HouseClass_Can_Build_Prereq_Groups_Patch)
 void PrerequisiteGroup_Hooks()
 {
     Patch_Jump(0x0044CB30, &Get_Prerequisites);
-    Patch_Jump(0x004BBD3E, &_HouseClass_Can_Build_Prereq_Groups_Patch);
 }
+
+declhook(0x004BBD3E, _HouseClass_Can_Build_Prereq_Groups_Patch, 0);

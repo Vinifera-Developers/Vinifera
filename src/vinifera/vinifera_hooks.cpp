@@ -573,7 +573,7 @@ void Vinifera_Hooks()
     /**
      *  Add in Vinifera startup/shutdown hooks.
      */
-    Patch_Call(0x006010780, &Vinifera_Parse_Command_Line);
+    Patch_Call(0x00601078, &Vinifera_Parse_Command_Line);
 
 #ifndef NDEBUG
     /**

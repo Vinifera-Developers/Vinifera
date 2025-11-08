@@ -56,12 +56,8 @@ EXPORT_FUNC(_ThemeClass_ThemeControl_Constructor_Patch)
      */
     Extension::List::Make<ThemeClass::ThemeControl, ThemeControlExtension>(this_ptr, ThemeControlExtensions);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { ret }
+    return 0;
 }
 
 

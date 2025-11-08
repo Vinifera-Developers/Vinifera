@@ -678,7 +678,7 @@ EXPORT_FUNC(_AircraftClass_Do_MISSION_MOVE_CARRYALL_Drop_Off_Patch)
 {
     GET(AircraftClass*, this_ptr, ESI);
 
-    _asm add esp, 4
+    R->ESP(R->ESP() + 0x4);
 
     if (this_ptr->Cargo.Is_Something_Attached(RTTI_UNIT)) {
         return 0;
