@@ -49,6 +49,7 @@
 #include "isotiletypeext.h"
 #include "overlaytype.h"
 #include "overlaytypeext.h"
+#include "rulesext.h"
 #include "terrain.h"
 #include "terraintype.h"
 #include "tiberium.h"
@@ -225,7 +226,16 @@ void CellClassExt::_Recalc_Passability()
         }
     }
 
-    if (Land == LAND_WATER || Land == LAND_BEACH || (Land == LAND_TUNNEL && ITType != ISOTILE_NONE && Extension::Fetch(IsoTileTypes[ITType])->IsWaterTunnel)) {
+    if (Land == LAND_BEACH) {
+        if (RuleExtension->IsBeachIsCrush) {
+            Passability = PASSABLE_CRUSH;
+        } else {
+            Passability = PASSABLE_WATER;
+        }
+        return;
+    }
+
+    if (Land == LAND_WATER || (Land == LAND_TUNNEL && ITType != ISOTILE_NONE && Extension::Fetch(IsoTileTypes[ITType])->IsWaterTunnel)) {
         Passability = PASSABLE_WATER;
         return;
     }

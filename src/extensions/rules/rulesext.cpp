@@ -102,7 +102,8 @@ RulesClassExtension::RulesClassExtension(const RulesClass* this_ptr) :
     MaxBeacons(-1),
     PlaceBeaconSound(VOC_NONE),
     PlaceBeaconVoice(VOX_NONE),
-    DetectBeaconVoice(VOX_NONE)
+    DetectBeaconVoice(VOX_NONE),
+    IsBeachIsCrush(false)
 {
     //if (this_ptr) EXT_DEBUG_TRACE("RulesClassExtension::RulesClassExtension - 0x%08X\n", (uintptr_t)(ThisPtr));
 
@@ -677,6 +678,8 @@ bool RulesClassExtension::General(CCINIClass &ini)
         std::copy(std::begin(water), std::end(water), MovementZonePassability[mzone_water]);
     }
 
+    IsBeachIsCrush = ini.Get_Bool(GENERAL, "BeachIsCrush", IsBeachIsCrush);
+
     return true;
 }
 
@@ -711,7 +714,6 @@ bool RulesClassExtension::AudioVisual(CCINIClass &ini)
     VoxUnitPromoted = ini.Get_VoxType(AUDIOVISUAL, "VoxUnitPromoted", VoxUnitPromoted);
     EliteFlashTimer = ini.Get_Int(AUDIOVISUAL, "EliteFlashTimer", EliteFlashTimer);
 
-    
     PlaceBeaconSound = ini.Get_VocType(AUDIOVISUAL, "PlaceBeaconSound", PlaceBeaconSound);
     PlaceBeaconVoice = ini.Get_VoxType(AUDIOVISUAL, "PlaceBeaconVoice", PlaceBeaconVoice);
     DetectBeaconVoice = ini.Get_VoxType(AUDIOVISUAL, "DetectBeaconVoice", DetectBeaconVoice);
