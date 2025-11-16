@@ -285,7 +285,8 @@ DEFINE_HOOK(0x00600F6E, _WinMain_Register_Com_Objects, 0)
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x00602474, _Game_Shutdown_Vinifera_Shutdown, 3)
+//DEFINE_HOOK(0x00602474, _Game_Shutdown_Vinifera_Shutdown, 3) // TS-Patches places a call here
+DEFINE_HOOK(0x0060246E, _Game_Shutdown_Vinifera_Shutdown, 6)
 {
     if (!Vinifera_Shutdown()) {
 
