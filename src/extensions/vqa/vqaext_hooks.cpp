@@ -72,8 +72,6 @@ DEFINE_HOOK(0x0066C0FD, _VQA_Mix_File_Handler_Use_CCFileClass_Patch, 0)
 
     int error = !this_ptr->field_64;
 
-    END_STACK_FRAME();
-
 exit_label:
     R->EAX(error != 0);
     return 0x0066C175;

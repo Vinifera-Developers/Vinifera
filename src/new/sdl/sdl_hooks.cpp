@@ -30,6 +30,7 @@
 #include "hooker.h"
 #include "hooker_macros.h"
 #include "sdl_functions.h"
+#include "syringe.h"
 #include "tibsun_globals.h"
 #include "tooltip.h"
 #include "vinifera_globals.h"
@@ -45,16 +46,11 @@
  *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Update_Visible_Surface_SDL_Update_Window_Patch)
+DEFINE_HOOK(0x004B9A42, _Update_Visible_Surface_SDL_Update_Window_Patch, 5)
 {
     SDL_Update_Screen(VisibleSurface);
 
-    _asm { test bl, bl }
-    _asm { pop edi }
-    _asm { pop ebp }
-    _asm { pop ebx }
-
-    JMP(0x004B9A47);
+    return 0;
 }
 
 
@@ -103,16 +99,11 @@ DECLARE_PATCH(_Movie_Update_Visisble_Surface_SDL_Update_Window_Patch)
  *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_MSEngine_BlitAll_SDL_Update_Window_Patch)
+DEFINE_HOOK(0x0057111C, _MSEngine_BlitAll_SDL_Update_Window_Patch, 7)
 {
-    // VisibleSurface (ecx) -> Blit_From
-    _asm { mov edx, [ecx] }
-    _asm { push eax }
-    _asm { call [edx + 0x8] }
-
     SDL_Update_Screen(VisibleSurface);
 
-    JMP(0x0057111C);
+    return 0;
 }
 
 
@@ -121,16 +112,11 @@ DECLARE_PATCH(_MSEngine_BlitAll_SDL_Update_Window_Patch)
  *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_MSEngine_BlitRect_SDL_Update_Window_Patch)
+DEFINE_HOOK(0x005711F8, _MSEngine_BlitRect_SDL_Update_Window_Patch, 6)
 {
-    // VisibleSurface (ecx) -> Blit_From
-    _asm { mov eax, [ecx] }
-    _asm { push edx }
-    _asm { call [eax+8] }
-
     SDL_Update_Screen(VisibleSurface);
 
-    JMP(0x005711F8);
+    return 0;
 }
 
 
@@ -139,16 +125,11 @@ DECLARE_PATCH(_MSEngine_BlitRect_SDL_Update_Window_Patch)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_ScoreClass_Call_Back_Delay_SDL_Update_Window_Patch)
+DEFINE_HOOK(0x005E6468, _ScoreClass_Call_Back_Delay_SDL_Update_Window_Patch, 6)
 {
     SDL_Update_Screen(VisibleSurface);
 
-    // This no longer does anything in SDLMouseClass, but keep the call just in case.
-    if (MouseCursor) {
-        MouseCursor->Erase_Mouse(HiddenSurface);
-    }
-
-    JMP(0x005E6480);
+    return 0;
 }
 
 
@@ -189,38 +170,14 @@ LRESULT CALLBACK CtrlProcProxy(HWND window, UINT message, WPARAM wparam, LPARAM 
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_CtrlProc_SDL_Update_Screen1)
+DEFINE_HOOK(0x00593F8D, _CtrlProc_SDL_Update_Screen, 6)
 {
-    AlternateSurface->Unlock();
-    VisibleSurface->Unlock();
     SDL_Update_Screen(VisibleSurface);
-    JMP(0x00593FA3);
+    return 0;
 }
-
-DECLARE_PATCH(_CtrlProc_SDL_Update_Screen2)
-{
-    AlternateSurface->Unlock();
-    VisibleSurface->Unlock();
-    SDL_Update_Screen(VisibleSurface);
-    JMP(0x00594117);
-}
-
-DECLARE_PATCH(_CtrlProc_SDL_Update_Screen3)
-{
-    AlternateSurface->Unlock();
-    VisibleSurface->Unlock();
-    SDL_Update_Screen(VisibleSurface);
-    JMP(0x00594387);
-}
-
-DECLARE_PATCH(_CtrlProc_SDL_Update_Screen4)
-{
-    AlternateSurface->Unlock();
-    VisibleSurface->Unlock();
-    SDL_Update_Screen(VisibleSurface);
-    JMP(0x005944B5);
-}
-
+DEFINE_HOOK_AGAIN(0x00594101, _CtrlProc_SDL_Update_Screen, 6);
+DEFINE_HOOK_AGAIN(0x0059437C, _CtrlProc_SDL_Update_Screen, 6);
+DEFINE_HOOK_AGAIN(0x0059449F, _CtrlProc_SDL_Update_Screen, 6);
 
 /**
  *  This function moves a dialog window to a specified position.
@@ -342,18 +299,13 @@ BOOL _GetWindowRect(HWND window, LPRECT rect)
  *
  *  @author: ZivDero
  */
-void Update_ToolTip_Mouse_Pos(ToolTipManager* tooltips)
+DEFINE_HOOK(0x0064743E, _ToolTopManager_Message_Handler_Mouse_Pos_Patch_, 0)
 {
+    GET(ToolTipManager*, tooltips, ESI);
+
     tooltips->LastMousePos = MouseCursor->Get_Mouse_Point();
-}
 
-DECLARE_PATCH(_ToolTopManager_Message_Handler_Mouse_Pos_Patch_)
-{
-    GET_REGISTER_STATIC(ToolTipManager*, tooltips, esi);
-
-    Update_ToolTip_Mouse_Pos(tooltips);
-
-    JMP(0x00647450);
+    return 0x00647450;
 }
 
 
@@ -457,15 +409,15 @@ void SDL_Hooks()
      */
     Patch_Jump(0x005640CD, &_Movie_Blit_To_Screen_SDL_Update_Window_Patch);             // VQA
     Patch_Jump(0x00564787, &_Movie_Update_Visisble_Surface_SDL_Update_Window_Patch);    // VQA
-    Patch_Jump(0x00571116, &_MSEngine_BlitAll_SDL_Update_Window_Patch);                 // MSEngine
-    Patch_Jump(0x005711F2, &_MSEngine_BlitRect_SDL_Update_Window_Patch);                // MSEngine
-    Patch_Jump(0x005E6468, &_ScoreClass_Call_Back_Delay_SDL_Update_Window_Patch);       // ScoreClass
+    //Patch_Jump(0x00571116, &_MSEngine_BlitAll_SDL_Update_Window_Patch);                 // MSEngine
+    //Patch_Jump(0x005711F2, &_MSEngine_BlitRect_SDL_Update_Window_Patch);                // MSEngine
+    //Patch_Jump(0x005E6468, &_ScoreClass_Call_Back_Delay_SDL_Update_Window_Patch);       // ScoreClass
     Patch_Dword(0x00591739 + 1, (uintptr_t)&CtrlProcProxy);                             // Windows controls
-    Patch_Jump(0x00593F8D, &_CtrlProc_SDL_Update_Screen1);                              // Window sliding animation
-    Patch_Jump(0x00594101, &_CtrlProc_SDL_Update_Screen2);                              // Window sliding animation
-    Patch_Jump(0x0059437C, &_CtrlProc_SDL_Update_Screen3);                              // Window sliding animation
-    Patch_Jump(0x0059449F, &_CtrlProc_SDL_Update_Screen4);                              // Window sliding animation
-    Patch_Jump(0x004B9A42, &_Update_Visible_Surface_SDL_Update_Window_Patch);           // Most other cases
+    //Patch_Jump(0x00593F8D, &_CtrlProc_SDL_Update_Screen1);                              // Window sliding animation
+    //Patch_Jump(0x00594101, &_CtrlProc_SDL_Update_Screen2);                              // Window sliding animation
+    //Patch_Jump(0x0059437C, &_CtrlProc_SDL_Update_Screen3);                              // Window sliding animation
+    //Patch_Jump(0x0059449F, &_CtrlProc_SDL_Update_Screen4);                              // Window sliding animation
+    //Patch_Jump(0x004B9A42, &_Update_Visible_Surface_SDL_Update_Window_Patch);           // Most other cases
 
     /**
      *  Call Set_Video_Mode even when windowed.
