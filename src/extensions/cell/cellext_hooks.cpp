@@ -139,8 +139,6 @@ bool CellClassExt::_Can_Tiberium_Spread()
 
     if (Cell_Occupier() != nullptr) return false;
 
-    if (OverlayData)
-
     return true;
 }
 
