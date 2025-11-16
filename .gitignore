@@ -31,6 +31,9 @@
 *.out
 *.app
 
+# Allow Syringe.exe
+!Syringe.exe
+
 # MSVC
 build/
 build_*/

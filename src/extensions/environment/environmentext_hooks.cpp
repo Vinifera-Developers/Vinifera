@@ -35,7 +35,6 @@
 #include "extension_globals.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "house.h"
 #include "scenarioext.h"
 #include "vinifera_globals.h"

@@ -41,7 +41,7 @@
 #include "asserthandler.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -148,11 +148,11 @@ void Scale_Movie_Helper(VQHandle* this_ptr)
  *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_Play_Movie_Scale_By_Ratio_Patch)
+DEFINE_HOOK(0x00563795, _Play_Movie_Scale_By_Ratio_Patch, 0)
 {
-    GET_REGISTER_STATIC(VQHandle*, this_ptr, esi);
+    GET(VQHandle*, this_ptr, ESI);
     Scale_Movie_Helper(this_ptr);
-    JMP(0x00563805);
+    return 0x00563805;
 }
 
 
@@ -245,15 +245,15 @@ static bool Play_Intro_Movie(CampaignType campaign_id)
     return true;
 }
 
-DECLARE_PATCH(_Start_Scenario_Intro_Movie_Patch)
+DEFINE_HOOK(0x005DB2DE, _Start_Scenario_Intro_Movie_Patch, 0)
 {
-    GET_REGISTER_STATIC(CampaignType, campaign_id, ebx);
-    GET_REGISTER_STATIC(char *, name, ebp);
+    GET(CampaignType, campaign_id, EBX);
+    GET(char *, name, EBP);
 
     Play_Intro_Movie(campaign_id);
 
 read_scenario:
-    //JMP(0x005DB319);
+    //return 0x005DB319;
 
     /**
      *  The First Decade" and "Freeware TS" EXE's actually have patched code at
@@ -261,7 +261,7 @@ read_scenario:
      *  jump back at a safe location.
      */
     DEBUG_GAME("Reading scenario: %s\n", name);
-    JMP(0x005DB327);
+    return 0x005DB327;
 }
 
 
@@ -338,11 +338,11 @@ static void Play_Intro_SneakPeak_Movies()
 }
 
 
-DECLARE_PATCH(_Select_Game_Intro_SneakPeak_Movies_Patch)
+DEFINE_HOOK(0x004E2796, _Select_Game_Intro_SneakPeak_Movies_Patch, 0)
 {
     Play_Intro_SneakPeak_Movies();
 
-    JMP(0x004E288B);
+    return 0x004E288B;
 }
 
 
@@ -351,9 +351,6 @@ DECLARE_PATCH(_Select_Game_Intro_SneakPeak_Movies_Patch)
  */
 void PlayMovieExtension_Hooks()
 {
-    Patch_Jump(0x005DB2DE, &_Start_Scenario_Intro_Movie_Patch);
-    Patch_Jump(0x004E2796, &_Select_Game_Intro_SneakPeak_Movies_Patch);
-
     /**
      *  #issue-287
      * 
@@ -364,6 +361,5 @@ void PlayMovieExtension_Hooks()
      */
     Patch_Byte(0x0057FF34+1, 0); // TS_TITLE.VQA
     Patch_Byte(0x0057FECF+1, 0); // FS_TITLE.VQA
-
-    Patch_Jump(0x00563795, &_Play_Movie_Scale_By_Ratio_Patch);
 }
+

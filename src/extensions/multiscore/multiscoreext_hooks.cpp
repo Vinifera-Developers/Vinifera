@@ -26,6 +26,8 @@
  *
  ******************************************************************************/
 #include "multiscoreext_hooks.h"
+
+#include <algorithm>
 #include "debughandler.h"
 #include "asserthandler.h"
 
@@ -34,23 +36,9 @@
 #include "vector.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "scenario.h"
+#include "syringe.h"
 #include "vinifera_globals.h"
-
-
-static int MostCreditsSpent;
-
-static void _MultiScore_Tally_Score_Get_Largest_CreditsSpent_Score()
-{
-    MostCreditsSpent = 0;
-
-    for (int i = 0; i < Houses.Count(); i++) {
-        if (Houses[i]->CreditsSpent > MostCreditsSpent) {
-            MostCreditsSpent = Houses[i]->CreditsSpent;
-        }
-    }
-}
 
 
 /**
@@ -62,15 +50,14 @@ static void _MultiScore_Tally_Score_Get_Largest_CreditsSpent_Score()
  *
  *  @author: Rampastring
  */
-DECLARE_PATCH(_MultiScore_Tally_Score_Fetch_Largest_CreditsSpent_Score)
+static int MostCreditsSpent;
+DEFINE_HOOK(0x005687A9, _MultiScore_Tally_Score_Fetch_Largest_CreditsSpent_Score, 6)
 {
-    _MultiScore_Tally_Score_Get_Largest_CreditsSpent_Score();
-
-    /**
-     *  Stolen bytes / code.
-     */
-    _asm { mov ecx, dword ptr ds:0x007E1568 }
-    JMP(0x005687AF);
+    MostCreditsSpent = 0;
+    for (int i = 0; i < Houses.Count(); i++) {
+        MostCreditsSpent = std::max<unsigned int>(Houses[i]->CreditsSpent, MostCreditsSpent);
+    }
+    return 0;
 }
 
 
@@ -83,10 +70,10 @@ DECLARE_PATCH(_MultiScore_Tally_Score_Fetch_Largest_CreditsSpent_Score)
  *
  *  @author: Rampastring
  */
-DECLARE_PATCH(_MultiScore_Tally_Score_Calculate_Economy_Score)
+DEFINE_HOOK(0x005689D5, _MultiScore_Tally_Score_Calculate_Economy_Score, 0)
 {
-    GET_REGISTER_STATIC(HouseClass *, house, ebx);
-    static int economy_score;
+    GET(HouseClass *, house, EBX);
+    int economy_score;
 
     /*
      * Calculate a percentage of how many credits this house has
@@ -109,12 +96,12 @@ DECLARE_PATCH(_MultiScore_Tally_Score_Calculate_Economy_Score)
         economy_score = 0;
     }
 
-    _asm { mov eax, [economy_score] };
+    R->EAX(economy_score);
 
     /**
      *  Assign economy score and continue score processing.
      */
-    JMP_REG(ecx, 0x005689E0);
+    return 0x005689E0;
 }
 
 
@@ -124,13 +111,11 @@ DECLARE_PATCH(_MultiScore_Tally_Score_Calculate_Economy_Score)
  *
  *  @author: ZivDero
  */
-DECLARE_PATCH(_MultiScore_568BE0_ElapsedTime_Patch)
+DEFINE_HOOK(0x00568D10, _MultiScore_568BE0_ElapsedTime_Patch, 0)
 {
-    static unsigned elapsed_time;
-    elapsed_time = Scen->ElapsedTimer.Value() + Vinifera_TotalPlayTime;
-
-    _asm mov ebx, elapsed_time
-    JMP(0x00568D38);
+    unsigned elapsed_time = Scen->ElapsedTimer.Value() + Vinifera_TotalPlayTime;
+    R->EBX(elapsed_time);
+    return 0x00568D38;
 }
 
 
@@ -139,10 +124,6 @@ DECLARE_PATCH(_MultiScore_568BE0_ElapsedTime_Patch)
  */
 void MultiScoreExtension_Hooks()
 {
-    Patch_Jump(0x005687A9, &_MultiScore_Tally_Score_Fetch_Largest_CreditsSpent_Score);
-    Patch_Jump(0x005689D5, &_MultiScore_Tally_Score_Calculate_Economy_Score);
-    Patch_Jump(0x00568D10, &_MultiScore_568BE0_ElapsedTime_Patch);
-
     /**
      *  #issue-187
      *  
@@ -150,6 +131,6 @@ void MultiScoreExtension_Hooks()
      * 
      *  @author: CCHyper
      */
-    static const char *TEXT_LOSER = "Loser";
-    Patch_Dword(0x00568A05+1, (uintptr_t)TEXT_LOSER); // +1 skips "mov eax," opcode
+    Patch_Dword(0x00568A05 + 1, (uintptr_t)&"Loser"); // +1 skips "mov eax," opcode
 }
+

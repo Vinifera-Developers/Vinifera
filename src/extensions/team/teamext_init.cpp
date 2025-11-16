@@ -37,7 +37,7 @@
 #include "asserthandler.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -47,9 +47,10 @@
  * 
  *  @author: Rampastring
  */
-DECLARE_PATCH(_TeamClass_Constructor_Patch)
+DEFINE_HOOK_AGAIN(0x0062240D, _TeamClass_Constructor_Patch, 7)
+DEFINE_HOOK(0x00622419, _TeamClass_Constructor_Patch, 7)
 {
-    GET_REGISTER_STATIC(TeamClass *, this_ptr, esi); // "this" pointer.
+    GET(TeamClass *, this_ptr, ESI); // "this" pointer.
 
     /**
      *  If we are performing a load operation, the Windows API will invoke the
@@ -64,14 +65,8 @@ DECLARE_PATCH(_TeamClass_Constructor_Patch)
      */
     Extension::Make<TeamClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov eax, this_ptr }
-    _asm { pop esi }
-    _asm { pop ebx }
-    _asm { ret 0Ch }
+    return 0;
 }
 
 
@@ -82,21 +77,17 @@ original_code:
  * 
  *  @author: Rampastring
  */
-DECLARE_PATCH(_TeamClass_Destructor_Patch)
+DEFINE_HOOK(0x0062260C, _TeamClass_Destructor_Patch, 6)
 {
-    GET_REGISTER_STATIC(TeamClass *, this_ptr, esi);
+    GET(TeamClass *, this_ptr, ESI);
 
     /**
      *  Remove the extended class from the global index.
      */
     Extension::Destroy<TeamClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
-    _asm { mov edx, ds:0x007B3438 }
-    JMP_REG(eax, 0x00622612);
+    return 0;
 }
 
 
@@ -105,7 +96,5 @@ original_code:
  */
 void TeamClassExtension_Init()
 {
-    Patch_Jump(0x00622419, &_TeamClass_Constructor_Patch);
-    Patch_Jump(0x0062240D, &_TeamClass_Constructor_Patch);
-    Patch_Jump(0x0062260C, &_TeamClass_Destructor_Patch);
+
 }

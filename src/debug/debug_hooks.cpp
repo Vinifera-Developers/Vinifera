@@ -34,7 +34,6 @@
 #include "tspp_assert.h"
 #include "winutil.h"
 #include "hooker.h"
-#include "hooker_macros.h"
 #include <string>
 #include <stdarg.h>
 

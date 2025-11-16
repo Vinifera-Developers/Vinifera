@@ -194,4 +194,9 @@ public:
     VocType PlaceBeaconSound;
     VoxType PlaceBeaconVoice;
     VoxType DetectBeaconVoice;
+
+    /**
+     *  Is LandType Beach considered as "requires crushing" for passability purposes, as opposed to water?
+     */
+    bool IsBeachIsCrush;
 };

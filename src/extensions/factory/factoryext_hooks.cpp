@@ -38,7 +38,6 @@
 #include "techno.h"
 #include "technotype.h"
 #include "hooker.h"
-#include "hooker_macros.h"
 #include "houseext.h"
 #include "mouse.h"
 #include "rulesext.h"

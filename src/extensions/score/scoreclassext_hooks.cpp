@@ -35,44 +35,19 @@
 #include "scenarioext.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
 
-static char r;
-static char g;
-static char b;
 
 /**
  *  Macro for applying color to the score bar.
  *  Saves and restores ecx to avoid the compiler trashing it
  *  since in every case it is used after reading in the color.
  */
-#define APPLY_SCORE_BAR_COLOR(funcname, jumpaddr) \
-_asm { push ecx } \
-funcname(); \
-_asm { mov al, byte ptr ds:r } \
-_asm { mov [esp+0x1C], al } \
-_asm { mov al, byte ptr ds:g } \
-_asm { mov [esp+0x1C+1], al } \
-_asm { mov al, byte ptr ds:b } \
-_asm { mov [esp+0x1C+2], al } \
-_asm { pop ecx } \
-JMP(jumpaddr)
-
-
-void Fetch_Player_Score_Color_From_ScenExtension()
-{
-    r = ScenExtension->ScorePlayerColor.R;
-    g = ScenExtension->ScorePlayerColor.G;
-    b = ScenExtension->ScorePlayerColor.B;
-}
-
-
-void Fetch_Enemy_Score_Color_From_ScenExtension()
-{
-    r = ScenExtension->ScoreEnemyColor.R;
-    g = ScenExtension->ScoreEnemyColor.G;
-    b = ScenExtension->ScoreEnemyColor.B;
-}
+#define APPLY_SCORE_BAR_COLOR(color, jumpaddr) \
+R->Stack<char>(0x1C, (color).R); \
+R->Stack<char>(0x1C + 1, (color).G); \
+R->Stack<char>(0x1C + 2, (color).B); \
+return (jumpaddr)
 
 
 /**
@@ -82,34 +57,34 @@ void Fetch_Enemy_Score_Color_From_ScenExtension()
  *
  *  Author: Rampastring
  */
-DECLARE_PATCH(_ScoreClass_Draw_Dual_Bars_Player_RGB_Patch_1)
+DEFINE_HOOK(0x005E532A, _ScoreClass_Draw_Dual_Bars_Player_RGB_Patch_1, 0)
 {
-    APPLY_SCORE_BAR_COLOR(Fetch_Player_Score_Color_From_ScenExtension, 0x005E5338);
+    APPLY_SCORE_BAR_COLOR(ScenExtension->ScorePlayerColor, 0x005E5338);
 }
 
-DECLARE_PATCH(_ScoreClass_Draw_Dual_Bars_Player_RGB_Patch_2)
+DEFINE_HOOK(0x005E536B, _ScoreClass_Draw_Dual_Bars_Player_RGB_Patch_2, 0)
 {
-    APPLY_SCORE_BAR_COLOR(Fetch_Player_Score_Color_From_ScenExtension, 0x005E5379);
+    APPLY_SCORE_BAR_COLOR(ScenExtension->ScorePlayerColor, 0x005E5379);
 }
 
-DECLARE_PATCH(_ScoreClass_Draw_Dual_Bars_Player_RGB_Patch_3)
+DEFINE_HOOK(0x005E53AC, _ScoreClass_Draw_Dual_Bars_Player_RGB_Patch_3, 0)
 {
-    APPLY_SCORE_BAR_COLOR(Fetch_Player_Score_Color_From_ScenExtension, 0x005E53BA);
+    APPLY_SCORE_BAR_COLOR(ScenExtension->ScorePlayerColor, 0x005E53BA);
 }
 
-DECLARE_PATCH(_ScoreClass_Draw_Dual_Bars_Enemy_RGB_Patch_1)
+DEFINE_HOOK(0x005E53F8, _ScoreClass_Draw_Dual_Bars_Enemy_RGB_Patch_1, 0)
 {
-    APPLY_SCORE_BAR_COLOR(Fetch_Enemy_Score_Color_From_ScenExtension, 0x005E5405);
+    APPLY_SCORE_BAR_COLOR(ScenExtension->ScoreEnemyColor, 0x005E5405);
 }
 
-DECLARE_PATCH(_ScoreClass_Draw_Dual_Bars_Enemy_RGB_Patch_2)
+DEFINE_HOOK(0x005E543B, _ScoreClass_Draw_Dual_Bars_Enemy_RGB_Patch_2, 0)
 {
-    APPLY_SCORE_BAR_COLOR(Fetch_Enemy_Score_Color_From_ScenExtension, 0x005E5448);
+    APPLY_SCORE_BAR_COLOR(ScenExtension->ScoreEnemyColor, 0x005E5448);
 }
 
-DECLARE_PATCH(_ScoreClass_Draw_Dual_Bars_Enemy_RGB_Patch_3)
+DEFINE_HOOK(0x005E547E, _ScoreClass_Draw_Dual_Bars_Enemy_RGB_Patch_3, 0)
 {
-    APPLY_SCORE_BAR_COLOR(Fetch_Enemy_Score_Color_From_ScenExtension, 0x005E548B);
+    APPLY_SCORE_BAR_COLOR(ScenExtension->ScoreEnemyColor, 0x005E548B);
 }
 
 /**
@@ -117,10 +92,6 @@ DECLARE_PATCH(_ScoreClass_Draw_Dual_Bars_Enemy_RGB_Patch_3)
  */
 void ScoreClassExtension_Hooks()
 {
-    Patch_Jump(0x005E532A, &_ScoreClass_Draw_Dual_Bars_Player_RGB_Patch_1);
-    Patch_Jump(0x005E536B, &_ScoreClass_Draw_Dual_Bars_Player_RGB_Patch_2);
-    Patch_Jump(0x005E53AC, &_ScoreClass_Draw_Dual_Bars_Player_RGB_Patch_3);
-    Patch_Jump(0x005E53F8, &_ScoreClass_Draw_Dual_Bars_Enemy_RGB_Patch_1);
-    Patch_Jump(0x005E543B, &_ScoreClass_Draw_Dual_Bars_Enemy_RGB_Patch_2);
-    Patch_Jump(0x005E547E, &_ScoreClass_Draw_Dual_Bars_Enemy_RGB_Patch_3);
+
 }
+

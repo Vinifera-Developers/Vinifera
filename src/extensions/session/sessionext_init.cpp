@@ -36,7 +36,7 @@
 #include "asserthandler.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
 
 
 /**
@@ -46,9 +46,9 @@
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_SessionClass_Constructor_Patch)
+DEFINE_HOOK(0x005ED1AA, _SessionClass_Constructor_Patch, 5)
 {
-    GET_REGISTER_STATIC(SessionClass *, this_ptr, ebp); // "this" pointer.
+    GET(SessionClass *, this_ptr, EBP); // "this" pointer.
 
     /**
      *  Create the extended class instance.
@@ -59,13 +59,7 @@ DECLARE_PATCH(_SessionClass_Constructor_Patch)
      *  Stolen bytes here.
      */
 original_code:
-    _asm { mov eax, ebp }
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { pop ebx }
-    _asm { pop ecx }
-    _asm { ret }
+    return 0;
 }
 
 
@@ -76,10 +70,8 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_SessionClass_Destructor_Patch)
+DEFINE_HOOK(0x005ED465, _SessionClass_Destructor_Patch, 3)
 {
-    GET_REGISTER_STATIC(SessionClass *, this_ptr, esi);
-
     /**
      *  Remove the extended class instance.
      */
@@ -89,9 +81,7 @@ DECLARE_PATCH(_SessionClass_Destructor_Patch)
      *  Stolen bytes here.
      */
 original_code:
-    _asm { pop esi }
-    _asm { pop ebx }
-    _asm { ret }
+    return 0;
 }
 
 
@@ -102,10 +92,8 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_SessionClass_Read_MultiPlayer_Settings_Patch)
+DEFINE_HOOK(0x005EE17F, _SessionClass_Read_MultiPlayer_Settings_Patch, 8)
 {
-    GET_REGISTER_STATIC(SessionClass *, this_ptr, ebp);
-
     /**
      *  Load ini.
      */
@@ -116,10 +104,7 @@ DECLARE_PATCH(_SessionClass_Read_MultiPlayer_Settings_Patch)
      *  Stolen bytes here.
      */
 original_code:
-    _asm { pop esi }
-    _asm { pop ebp }
-    _asm { add esp, 0x0F8 }
-    _asm { ret }
+    return 0;
 }
 
 
@@ -130,10 +115,8 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DECLARE_PATCH(_SessionClass_Write_MultiPlayer_Settings_Patch)
+DEFINE_HOOK(0x005EE7BA, _SessionClass_Write_MultiPlayer_Settings_Patch, 9)
 {
-    GET_REGISTER_STATIC(SessionClass *, this_ptr, esi);
-
     /**
      *  Save ini.
      */
@@ -144,11 +127,7 @@ DECLARE_PATCH(_SessionClass_Write_MultiPlayer_Settings_Patch)
      *  Stolen bytes here.
      */
 original_code:
-    _asm { pop edi }
-    _asm { pop esi }
-    _asm { pop ebx }
-    _asm { add esp, 0x0AC }
-    _asm { ret }
+    return 0;
 }
 
 
@@ -157,8 +136,6 @@ original_code:
  */
 void SessionClassExtension_Init()
 {
-    Patch_Jump(0x005ED1AA, &_SessionClass_Constructor_Patch);
-    Patch_Jump(0x005ED465, &_SessionClass_Destructor_Patch);
-    Patch_Jump(0x005EE17F, &_SessionClass_Read_MultiPlayer_Settings_Patch);
-    Patch_Jump(0x005EE7BA, &_SessionClass_Write_MultiPlayer_Settings_Patch);
+
 }
+

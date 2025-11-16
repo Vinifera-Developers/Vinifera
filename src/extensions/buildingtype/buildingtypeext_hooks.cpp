@@ -40,7 +40,7 @@
 #include "extension.h"
 
 #include "hooker.h"
-#include "hooker_macros.h"
+#include "syringe.h"
 #include "tibsun_globals.h"
 #include "verses.h"
 #include "warheadtypeext.h"
@@ -152,9 +152,26 @@ static void BuildingTypeClass_Free_Buildup_Image(BuildingTypeClass *this_ptr)
  *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_BuildingTypeClass_SDDTOR_Free_Buildup_Image_Patch) { GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, esi); BuildingTypeClass_Free_Buildup_Image(this_ptr); JMP(0x00444079); }
-DECLARE_PATCH(_BuildingTypeClass_Init_Free_Buildup_Image_Patch) { GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, esi); BuildingTypeClass_Free_Buildup_Image(this_ptr); JMP(0x0043FDBF); }
-DECLARE_PATCH(_BuildingTypeClass_DTOR_Free_Buildup_Image_Patch) { GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, esi); BuildingTypeClass_Free_Buildup_Image(this_ptr); JMP(0x0043F949); }
+DEFINE_HOOK(0x00444052, _BuildingTypeClass_SDDTOR_Free_Buildup_Image_Patch, 0)
+{
+    GET(BuildingTypeClass*, this_ptr, ESI);
+    BuildingTypeClass_Free_Buildup_Image(this_ptr);
+    return 0x00444079;
+}
+
+DEFINE_HOOK(0x0043FDB0, _BuildingTypeClass_Init_Free_Buildup_Image_Patch, 0)
+{
+    GET(BuildingTypeClass*, this_ptr, ESI);
+    BuildingTypeClass_Free_Buildup_Image(this_ptr);
+    return 0x0043FDBF;
+}
+
+DEFINE_HOOK(0x0043F936, _BuildingTypeClass_DTOR_Free_Buildup_Image_Patch, 0)
+{
+    GET(BuildingTypeClass*, this_ptr, ESI);
+    BuildingTypeClass_Free_Buildup_Image(this_ptr);
+    return 0x0043F949;
+}
 
 
 /**
@@ -195,28 +212,25 @@ static void BuildingTypeClass_Free_Image(BuildingTypeClass *this_ptr)
  *
  *  @author: CCHyper
  */
-DECLARE_PATCH(_BuildingTypeClass_SDDTOR_Free_Image_Patch) { GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, esi); BuildingTypeClass_Free_Image(this_ptr); JMP(0x00444052); }
-DECLARE_PATCH(_BuildingTypeClass_Init_Free_Image_Patch) { GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, esi); BuildingTypeClass_Free_Image(this_ptr); JMP(0x0043FD9E); }
-DECLARE_PATCH(_BuildingTypeClass_DTOR_Free_Image_Patch) { GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, esi); BuildingTypeClass_Free_Image(this_ptr); JMP(0x0043F922); }
-
-/**
- *  Patches in an assertion check for image data.
- * 
- *  @author: CCHyper
- */
-DECLARE_PATCH(_BuildingTypeClass_Get_Image_Data_Assertion_Patch)
+DEFINE_HOOK(0x0044403B, _BuildingTypeClass_SDDTOR_Free_Image_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingTypeClass *, this_ptr, esi);
-    GET_REGISTER_STATIC(const ShapeSet *, image, eax);
+    GET(BuildingTypeClass*, this_ptr, ESI);
+    BuildingTypeClass_Free_Image(this_ptr);
+    return 0x00444052;
+}
 
-    if (image == nullptr) {
-        DEBUG_WARNING("Building %s has NULL image data!\n", this_ptr->Name());
-    }
+DEFINE_HOOK(0x0043FD83, _BuildingTypeClass_Init_Free_Image_Patch, 0)
+{
+    GET(BuildingTypeClass*, this_ptr, ESI);
+    BuildingTypeClass_Free_Image(this_ptr);
+    return 0x0043FD9E;
+}
 
-    _asm { mov eax, image } // restore eax state.
-    _asm { pop esi }
-    _asm { add esp, 0x64 }
-    _asm { ret }
+DEFINE_HOOK(0x0043F90B, _BuildingTypeClass_DTOR_Free_Image_Patch, 0)
+{
+    GET(BuildingTypeClass*, this_ptr, ESI);
+    BuildingTypeClass_Free_Image(this_ptr);
+    return 0x0043F922;
 }
 
 
@@ -253,18 +267,16 @@ int BuildingTypeClassExt::_Cost_Of(HouseClass* house)
  *
  *  Author: ZivDero
  */
-DECLARE_PATCH(_BuildingTypeClass_Init_Fetch_Image_Patch)
+DEFINE_HOOK(0x0043FDBF, _BuildingTypeClass_Init_Fetch_Image_Patch, 0)
 {
-    GET_REGISTER_STATIC(BuildingTypeClass*, btype, esi);
-    GET_REGISTER_STATIC(TheaterType, theater, edi);
+    GET(BuildingTypeClass*, btype, ESI);
+    GET(TheaterType, theater, EDI);
 
     btype->Fetch_Building_Normal_Image(theater);
 
-    static BuildingTypeClassExtension* bext;
-    bext = Extension::Fetch(btype);
-    bext->Fetch_Building_Normal_Image(theater);
+    Extension::Fetch(btype)->Fetch_Building_Normal_Image(theater);
 
-    JMP(0x0043FDC7);
+    return 0x0043FDC7;
 }
 
 
@@ -278,18 +290,9 @@ void BuildingTypeClassExtension_Hooks()
      */
     BuildingTypeClassExtension_Init();
 
-    //Patch_Jump(0x00440365, &_BuildingTypeClass_Get_Image_Data_Assertion_Patch);
-
     Patch_Jump(0x00443CF0, &BuildingTypeClassExt::_Free_Buildup_Image);
     Patch_Jump(0x00443D20, &BuildingTypeClassExt::_Set_Base_Defense_Values);
-
-    Patch_Jump(0x0044403B, &_BuildingTypeClass_SDDTOR_Free_Image_Patch);
-    Patch_Jump(0x0043FD83, &_BuildingTypeClass_Init_Free_Image_Patch);
-    Patch_Jump(0x0043F90B, &_BuildingTypeClass_DTOR_Free_Image_Patch);
-    Patch_Jump(0x00444052, &_BuildingTypeClass_SDDTOR_Free_Buildup_Image_Patch);
-    Patch_Jump(0x0043FDB0, &_BuildingTypeClass_Init_Free_Buildup_Image_Patch);
-    Patch_Jump(0x0043F936, &_BuildingTypeClass_DTOR_Free_Buildup_Image_Patch);
     Patch_Jump(0x00440000, &BuildingTypeClassExt::_Raw_Cost);
     Patch_Jump(0x00440080, &BuildingTypeClassExt::_Cost_Of);
-    Patch_Jump(0x0043FDBF, &_BuildingTypeClass_Init_Fetch_Image_Patch);
 }
+
