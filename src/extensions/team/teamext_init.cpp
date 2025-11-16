@@ -47,7 +47,7 @@
  * 
  *  @author: Rampastring
  */
-DEFINE_HOOK_AGAIN(0x0062240D, _TeamClass_Constructor_Patch, 0x7)
+DEFINE_HOOK_AGAIN(0x0062240D, _TeamClass_Constructor_Patch, 7)
 DEFINE_HOOK(0x00622419, _TeamClass_Constructor_Patch, 7)
 {
     GET(TeamClass *, this_ptr, ESI); // "this" pointer.
