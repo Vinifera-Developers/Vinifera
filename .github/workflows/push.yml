@@ -59,7 +59,7 @@ jobs:
           ls -p | grep -v /
           cp ./build/Vinifera.dll ./artifact/Vinifera.dll
           cp ./build/Vinifera.pdb ./artifact/Vinifera.pdb
-          cp ./build/LaunchVinifera.exe ./artifact/LaunchVinifera.exe
+          cp ./Syringe/Syringe.exe ./artifact/LaunchVinifera.dat
           cp ./TSpp/pdb/Game.pdb ./artifact/Game.pdb
           cp ./TSpp/edb/Game.edb ./artifact/Game.edb
           cp ./vinifera-files/files/VINIFERA.VQA ./artifact/Movies/VINIFERA.VQA
@@ -119,7 +119,7 @@ jobs:
           ls -p | grep -v /
           cp ./build/Vinifera.dll ./artifact/Vinifera.dll
           cp ./build/Vinifera.pdb ./artifact/Vinifera.pdb
-          cp ./build/LaunchVinifera.exe ./artifact/LaunchVinifera.dat
+          cp ./Syringe/Syringe.exe ./artifact/LaunchVinifera.dat
           cp ./TSpp/pdb/Game.pdb ./artifact/Game.pdb
           cp ./TSpp/edb/Game.edb ./artifact/Game.edb
           cp ./vinifera-files/files/VINIFERA.VQA ./artifact/Movies/VINIFERA.VQA
