@@ -322,7 +322,7 @@ int CellClassExt::_Reduce_Tiberium(int levels)
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x00454E60, _CellClass_Draw_Shroud_Fog_Patch, 0x5)
+DEFINE_HOOK(0x00454E60, _CellClass_Draw_Shroud_Fog_Patch, 5)
 {
     static bool _shroud_one_time = false;
     static const ShapeSet *_shroud_shape;
@@ -363,7 +363,7 @@ DEFINE_HOOK(0x00454E60, _CellClass_Draw_Shroud_Fog_Patch, 0x5)
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x00455130, _CellClass_Draw_Fog_Patch, 0x5)
+DEFINE_HOOK(0x00455130, _CellClass_Draw_Fog_Patch, 5)
 {
     static bool _fog_one_time = false;
     static const ShapeSet *_fog_shape;

@@ -558,7 +558,7 @@ DEFINE_HOOK(0x004BD30B, _HouseClass_Super_Weapon_Handler_InstantRecharge_Patch, 
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x004BBD26, _HouseClass_Can_Build_BuildCheat_Patch, 0x8)
+DEFINE_HOOK(0x004BBD26, _HouseClass_Can_Build_BuildCheat_Patch, 8)
 {
     GET(HouseClass *, this_ptr, EBP);
     GET_STACK(TechnoTypeClass *, objecttype, 0x30);
@@ -716,7 +716,7 @@ DEFINE_HOOK(0x004BC187, _HouseClass_Can_Build_BuildLimit_Handle_Vehicle_Transfor
  *
  *  Author: Rampastring
  */
-DEFINE_HOOK(0x004CB6C1, _HouseClass_Enable_SWs_Check_For_Building_Power, 0x6)
+DEFINE_HOOK(0x004CB6C1, _HouseClass_Enable_SWs_Check_For_Building_Power, 6)
 {
     GET(int, quiet, EAX);
     GET(BuildingClass*, building, ESI);
@@ -878,7 +878,7 @@ Cell HouseClassExt::_Find_Build_Location(BuildingTypeClass* btype, int(__fastcal
  *
  *  Author: ZivDero
  */
-DEFINE_HOOK(0x004BBC74, _Can_Build_Required_Forbidden_Houses_Patch, 0x9)
+DEFINE_HOOK(0x004BBC74, _Can_Build_Required_Forbidden_Houses_Patch, 9)
 {
     GET(TechnoTypeClass*, techno_type, EDI);
     GET(HouseClassExt*, this_ptr, EBP);
@@ -899,7 +899,7 @@ DEFINE_HOOK(0x004BBC74, _Can_Build_Required_Forbidden_Houses_Patch, 0x9)
  *
  *  Author: ZivDero
  */
-DEFINE_HOOK(0x004BC0B7, _HouseClass_Can_Build_Multi_MCV_Patch, 0x6)
+DEFINE_HOOK(0x004BC0B7, _HouseClass_Can_Build_Multi_MCV_Patch, 6)
 {
     if (RuleExtension->IsMultiMCV) {
         return 0x004BC102;

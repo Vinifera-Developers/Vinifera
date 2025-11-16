@@ -47,7 +47,7 @@
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x005DADDE, _ScenarioClass_Constructor_Patch, 0x9)
+DEFINE_HOOK(0x005DADDE, _ScenarioClass_Constructor_Patch, 9)
 {
     GET(ScenarioClass *, this_ptr, EBP); // "this" pointer.
 
@@ -68,7 +68,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x006023CC, _ScenarioClass_Destructor_Patch, 0x6)
+DEFINE_HOOK(0x006023CC, _ScenarioClass_Destructor_Patch, 6)
 {
     /**
      *  Remove the extended class instance.
@@ -90,7 +90,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x005DB166, _ScenarioClass_Init_Clear_Patch, 0x7)
+DEFINE_HOOK(0x005DB166, _ScenarioClass_Init_Clear_Patch, 7)
 {
     /**
      *  This is a odd case; ScenarioClass::Init_Clear is called within the class
@@ -114,7 +114,7 @@ original_code:
  *
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x005DD93B, _ScenarioClass_Read_INI_Patch, 0x6)
+DEFINE_HOOK(0x005DD93B, _ScenarioClass_Read_INI_Patch, 6)
 {
     GET(CCINIClass *, ini, EBP);
 

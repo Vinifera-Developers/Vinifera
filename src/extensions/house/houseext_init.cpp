@@ -47,7 +47,7 @@
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x004BAEBE, _HouseClass_Constructor_Patch, 0x5)
+DEFINE_HOOK(0x004BAEBE, _HouseClass_Constructor_Patch, 5)
 {
     GET(HouseClass *, this_ptr, EBP); // "this" pointer.
 
@@ -76,7 +76,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x004BB9B7, _HouseClass_Destructor_Patch, 0x6)
+DEFINE_HOOK(0x004BB9B7, _HouseClass_Destructor_Patch, 6)
 {
     GET(HouseClass *, this_ptr, ESI);
 

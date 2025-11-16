@@ -47,7 +47,7 @@
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x0065BA96, _UnitTypeClass_Constructor_Patch, 0x5)
+DEFINE_HOOK(0x0065BA96, _UnitTypeClass_Constructor_Patch, 5)
 {
     GET(UnitTypeClass *, this_ptr, ESI); // "this" pointer.
 
@@ -76,7 +76,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x0065C798, _UnitTypeClass_Scalar_Destructor_Patch, 0x6)
+DEFINE_HOOK(0x0065C798, _UnitTypeClass_Scalar_Destructor_Patch, 6)
 {
     GET(UnitTypeClass *, this_ptr, ESI);
 

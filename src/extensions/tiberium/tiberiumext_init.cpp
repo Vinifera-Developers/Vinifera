@@ -47,7 +47,7 @@
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x00644A20, _TiberiumClass_Constructor_Patch, 0x8)
+DEFINE_HOOK(0x00644A20, _TiberiumClass_Constructor_Patch, 8)
 {
     GET(TiberiumClass *, this_ptr, ESI); // "this" pointer.
 
@@ -76,7 +76,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x00644A93, _TiberiumClass_Destructor_Patch, 0x6)
+DEFINE_HOOK(0x00644A93, _TiberiumClass_Destructor_Patch, 6)
 {
     GET(TiberiumClass *, this_ptr, ESI);
 

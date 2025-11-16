@@ -48,7 +48,7 @@
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x004D21E1, _InfantryClass_Constructor_Patch, 0x5)
+DEFINE_HOOK(0x004D21E1, _InfantryClass_Constructor_Patch, 5)
 {
     GET(InfantryClass *, this_ptr, ESI); // Current "this" pointer.
 
@@ -77,7 +77,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x004D22E1, _InfantryClass_Destructor_Patch, 0x5)
+DEFINE_HOOK(0x004D22E1, _InfantryClass_Destructor_Patch, 5)
 {
     GET(InfantryClass *, this_ptr, ESI);
 

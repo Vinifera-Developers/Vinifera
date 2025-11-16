@@ -47,7 +47,7 @@
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x0060F08A, _Tactical_Constructor_Patch, 0x5)
+DEFINE_HOOK(0x0060F08A, _Tactical_Constructor_Patch, 5)
 {
     GET(Tactical *, this_ptr, ESI); // "this" pointer.
 
@@ -68,7 +68,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x0060F0DD, _Tactical_Destructor_Patch, 0xA)
+DEFINE_HOOK(0x0060F0DD, _Tactical_Destructor_Patch, 10)
 {
     /**
      *  Remove the extended class instance.
@@ -87,7 +87,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x00618020, _Tactical_Scalar_Destructor_Patch, 0xA)
+DEFINE_HOOK(0x00618020, _Tactical_Scalar_Destructor_Patch, 10)
 {
     GET(Tactical *, this_ptr, ESI);
 

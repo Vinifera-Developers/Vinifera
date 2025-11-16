@@ -81,7 +81,7 @@ DEFINE_HOOK(0x005BC83F, _RadarClass_Render_Radar_Draw_Beacons_Patch, 0)
  *
  *  @author: ZivDero
  */
-DEFINE_HOOK(0x004BF5CC, _HouseClass_MPlayer_Defeated_Delete_Beacons_Patch, 0x6)
+DEFINE_HOOK(0x004BF5CC, _HouseClass_MPlayer_Defeated_Delete_Beacons_Patch, 10)
 {
     GET(HouseClass*, this_ptr, EBX);
 
@@ -277,7 +277,7 @@ void DisplayClassExt::_Mouse_Right_Release(Point2D const& point)
  *
  *  @author: ZivDero
  */
-DEFINE_HOOK(0x004795CF, _DisplayClass_Waypoint_Mode_Control_BeaconMode_Patch, 0x7)
+DEFINE_HOOK(0x004795CF, _DisplayClass_Waypoint_Mode_Control_BeaconMode_Patch, 7)
 {
     TacticalMapExtension->IsBeaconPlacementMode = false;
 

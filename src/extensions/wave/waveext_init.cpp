@@ -50,7 +50,7 @@
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x00670189, _WaveClass_Default_Constructor_Patch, 0x5)
+DEFINE_HOOK(0x00670189, _WaveClass_Default_Constructor_Patch, 5)
 {
     GET(WaveClass *, this_ptr, ESI); // Current "this" pointer.
 
@@ -82,7 +82,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x0066FECF, _WaveClass_Constructor_Patch, 0x5)
+DEFINE_HOOK(0x0066FECF, _WaveClass_Constructor_Patch, 5)
 {
     GET(WaveClass *, this_ptr, ESI); // Current "this" pointer.
 
@@ -111,7 +111,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x00672E78, _WaveClass_Scalar_Destructor_Patch, 0x6)
+DEFINE_HOOK(0x00672E78, _WaveClass_Scalar_Destructor_Patch, 6)
 {
     GET(WaveClass *, this_ptr, EDI);
 

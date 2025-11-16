@@ -716,7 +716,7 @@ DEFINE_HOOK(0x00413D3E, _AnimClass_Constructor_Layer_Set_Z_Height_Patch, 0)
  *  @author: ZivDero
  */
 static AnimClass* _CurrentlyDrawnAnim = nullptr;
-DEFINE_HOOK(0x00414B42, _AnimClass_Draw_It_Shadow_Patch, 0x6)
+DEFINE_HOOK(0x00414B42, _AnimClass_Draw_It_Shadow_Patch, 6)
 {
     GET(AnimClass*, anim, ESI);
 

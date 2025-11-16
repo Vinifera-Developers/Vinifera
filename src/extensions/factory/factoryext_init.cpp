@@ -47,7 +47,7 @@
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x00496D97, _FactoryClass_Constructor_Patch, 0x7)
+DEFINE_HOOK(0x00496D97, _FactoryClass_Constructor_Patch, 7)
 {
     GET(FactoryClass *, this_ptr, ESI); // "this" pointer.
 
@@ -76,7 +76,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x00497B6F, _FactoryClass_Scalar_Destructor_Patch, 0x6)
+DEFINE_HOOK(0x00497B6F, _FactoryClass_Scalar_Destructor_Patch, 6)
 {
     GET(FactoryClass *, this_ptr, ESI);
 

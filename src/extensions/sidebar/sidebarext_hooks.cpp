@@ -163,7 +163,7 @@ public:
  *
  *  @author: ZivDero
  */
-DEFINE_HOOK(0x005F23A6, _SidebarClass_Constructor_Patch, 0x6)
+DEFINE_HOOK(0x005F23A6, _SidebarClass_Constructor_Patch, 6)
 {
     GET(SidebarClass*, this_ptr, ESI); // "this" pointer.
 
@@ -189,7 +189,7 @@ DEFINE_HOOK(0x005F23A6, _SidebarClass_Constructor_Patch, 0x6)
  *
  *  @author: ZivDero
  */
-DEFINE_HOOK(0x005B8B7D, _SidebarClass_Destructor_Patch, 0x5)
+DEFINE_HOOK(0x005B8B7D, _SidebarClass_Destructor_Patch, 5)
 {
     /**
      *  Remove the extended class instance.

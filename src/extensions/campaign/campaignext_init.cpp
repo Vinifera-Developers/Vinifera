@@ -47,7 +47,7 @@
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x00448AC4, _CampaignClass_Constructor_Patch, 0x6)
+DEFINE_HOOK(0x00448AC4, _CampaignClass_Constructor_Patch, 6)
 {
     GET(CampaignClass *, this_ptr, EBP); // "this" pointer.
 
@@ -99,7 +99,7 @@ DEFINE_HOOK(0x00448CD0, _CampaignClass_Process_Patch, 0)
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x00448EF8, _CampaignClass_Scalar_Destructor_Patch, 0x6)
+DEFINE_HOOK(0x00448EF8, _CampaignClass_Scalar_Destructor_Patch, 6)
 {
     GET(CampaignClass *, this_ptr, ESI);
 
@@ -123,7 +123,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x00448C1E, _CampaignClass_Read_INI_Patch, 0x5)
+DEFINE_HOOK(0x00448C1E, _CampaignClass_Read_INI_Patch, 5)
 {
     GET(CampaignClass *, this_ptr, ESI);
     GET(CCINIClass *, ini, EBX);

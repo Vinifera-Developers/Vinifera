@@ -48,7 +48,7 @@
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x00413C79, _AnimClass_Constructor_Patch, 0x7)
+DEFINE_HOOK(0x00413C79, _AnimClass_Constructor_Patch, 7)
 {
     GET(AnimClass *, this_ptr, ESI); // Current "this" pointer.
 
@@ -119,7 +119,7 @@ destroy_anim:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x004142A6, _AnimClass_Default_Constructor_Patch, 0x5)
+DEFINE_HOOK(0x004142A6, _AnimClass_Default_Constructor_Patch, 5)
 {
     GET(AnimClass *, this_ptr, ESI); // Current "this" pointer.
 
@@ -148,7 +148,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x004142CB, _AnimClass_Destructor_Patch, 0x5)
+DEFINE_HOOK(0x004142CB, _AnimClass_Destructor_Patch, 5)
 {
     GET(AnimClass *, this_ptr, ESI);
 

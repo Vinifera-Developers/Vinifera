@@ -1702,7 +1702,7 @@ DEFINE_HOOK(0x0042F799, _BuildingClass_Captured_DontScore_Patch, 0)
  *
  *  @author: Rampastring
  */
-DEFINE_HOOK(0x0042E5F5, _BuildingClass_Grand_Opening_Assign_FreeUnit_LastDockedBuilding_Patch, 0x6)
+DEFINE_HOOK(0x0042E5F5, _BuildingClass_Grand_Opening_Assign_FreeUnit_LastDockedBuilding_Patch, 6)
 {
     GET(BuildingClass*, this_ptr, ESI);
     GET(UnitClass*, unit, EDI);

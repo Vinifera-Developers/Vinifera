@@ -47,7 +47,7 @@
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x0043F8B1, _BuildingTypeClass_Constructor_Patch, 0x5)
+DEFINE_HOOK(0x0043F8B1, _BuildingTypeClass_Constructor_Patch, 5)
 {
     GET(BuildingTypeClass *, this_ptr, ESI); // "this" pointer.
     GET_STACK(const char *, ini_name, 0x4); // ini name.
@@ -77,7 +77,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x00444082, _BuildingTypeClass_Scalar_Destructor_Patch, 0x6)
+DEFINE_HOOK(0x00444082, _BuildingTypeClass_Scalar_Destructor_Patch, 6)
 {
     GET(BuildingTypeClass *, this_ptr, ESI);
 

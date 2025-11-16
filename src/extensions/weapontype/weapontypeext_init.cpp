@@ -47,7 +47,7 @@
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x00680BEF, _WeaponTypeClass_Constructor_Patch, 0x5)
+DEFINE_HOOK(0x00680BEF, _WeaponTypeClass_Constructor_Patch, 5)
 {
     GET(WeaponTypeClass *, this_ptr, ESI); // "this" pointer.
 
@@ -76,7 +76,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x006819AE, _WeaponTypeClass_Scalar_Destructor_Patch, 0x6)
+DEFINE_HOOK(0x006819AE, _WeaponTypeClass_Scalar_Destructor_Patch, 6)
 {
     GET(WeaponTypeClass *, this_ptr, ESI);
 

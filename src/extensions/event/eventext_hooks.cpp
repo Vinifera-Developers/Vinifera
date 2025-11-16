@@ -43,7 +43,7 @@
  *
  *  @author: ZivDero
  */
-DEFINE_HOOK(0x00494294, _EventClass_Execute_New_Events, 0x5)
+DEFINE_HOOK(0x00494294, _EventClass_Execute_New_Events, 5)
 {
     GET(EventClassExt*, event, ESI);
 

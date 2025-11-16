@@ -69,7 +69,7 @@ LONG STDMETHODCALLTYPE AbstractClassExt::IsDirty()
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x00405B61, _AbstractClass_Constructor_Extension, 0x6)
+DEFINE_HOOK(0x00405B61, _AbstractClass_Constructor_Extension, 6)
 {
     GET(AbstractClass*, this_ptr, EAX);
 

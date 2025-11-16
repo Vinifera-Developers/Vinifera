@@ -48,7 +48,7 @@
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x00589A12, _OptionsClass_Constructor_Patch, 0x1)
+DEFINE_HOOK(0x00589A12, _OptionsClass_Constructor_Patch, 1)
 {
     GET(OptionsClass *, this_ptr, EAX); // "this" pointer.
 
@@ -97,7 +97,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x0058A132, _OptionsClass_Load_Settings_Patch, 0x2)
+DEFINE_HOOK(0x0058A132, _OptionsClass_Load_Settings_Patch, 2)
 {
     /**
      *  Load ini.
@@ -116,7 +116,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x0060127E, _WinMain_Load_Init_Options_Settings_Patch, 0x5)
+DEFINE_HOOK(0x0060127E, _WinMain_Load_Init_Options_Settings_Patch, 5)
 {
     /**
      *  Load ini.
@@ -138,7 +138,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x0058A3C3, _OptionsClass_Save_Settings_Patch, 0x5)
+DEFINE_HOOK(0x0058A3C3, _OptionsClass_Save_Settings_Patch, 5)
 {
     /**
      *  Save ini.
@@ -157,7 +157,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x0058A5E6, _OptionsClass_Set_Patch, 0x6)
+DEFINE_HOOK(0x0058A5E6, _OptionsClass_Set_Patch, 6)
 {
     /**
      *  Set options.

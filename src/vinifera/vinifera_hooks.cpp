@@ -197,7 +197,7 @@ void _ShowVersionText(Surface* surface)
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x005ADFBE, _ProgressClass_Load_Screen_Version_Text_Patch, 0x6)
+DEFINE_HOOK(0x005ADFBE, _ProgressClass_Load_Screen_Version_Text_Patch, 6)
 {
     Vinifera_Draw_Version_Text(HiddenSurface);
 
@@ -238,7 +238,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x004E3B7A, _Load_Title_Page_Version_Text_Patch, 0x1)
+DEFINE_HOOK(0x004E3B7A, _Load_Title_Page_Version_Text_Patch, 1)
 {
     Vinifera_Draw_Version_Text(HiddenSurface, true);
 
@@ -285,7 +285,7 @@ DEFINE_HOOK(0x00600F6E, _WinMain_Register_Com_Objects, 0)
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x00602474, _Game_Shutdown_Vinifera_Shutdown, 0x3)
+DEFINE_HOOK(0x00602474, _Game_Shutdown_Vinifera_Shutdown, 3)
 {
     if (!Vinifera_Shutdown()) {
 

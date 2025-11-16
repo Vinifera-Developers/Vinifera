@@ -817,7 +817,7 @@ original_code:
  *
  *  @author: Rampastring
  */
-DEFINE_HOOK(0x0060F953, _Tactical_Center_On_Location_Unfollow_Object_Patch, 0x7)
+DEFINE_HOOK(0x0060F953, _Tactical_Center_On_Location_Unfollow_Object_Patch, 7)
 {
     Map.Break_Follow_Mode();
 
@@ -830,7 +830,7 @@ DEFINE_HOOK(0x0060F953, _Tactical_Center_On_Location_Unfollow_Object_Patch, 0x7)
  *
  *  @authors: Belonit, ZivDero
  */
-DEFINE_HOOK(0x00611BBB, _Tactical_Render_Fill_With_Black_Patch, 0x6)
+DEFINE_HOOK(0x00611BBB, _Tactical_Render_Fill_With_Black_Patch, 6)
 {
     const int max_width = TacticalRect.Width - Map.LocalRect.Width * CELL_PIXEL_W;
     if (max_width > 0) {

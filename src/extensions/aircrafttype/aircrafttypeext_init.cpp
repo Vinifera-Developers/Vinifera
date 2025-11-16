@@ -48,7 +48,7 @@
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x0040FC8F, _AircraftTypeClass_Constructor_Patch, 0x7)
+DEFINE_HOOK(0x0040FC8F, _AircraftTypeClass_Constructor_Patch, 7)
 {
     GET(AircraftTypeClass *, this_ptr, ESI); // "this" pointer.
 
@@ -77,7 +77,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x00410228, _AircraftTypeClass_Scalar_Destructor_Patch, 0x6)
+DEFINE_HOOK(0x00410228, _AircraftTypeClass_Scalar_Destructor_Patch, 6)
 {
     GET(AircraftTypeClass *, this_ptr, ESI);
 

@@ -1052,7 +1052,7 @@ bool Detach_Debugger()
 }
 
 
-DEFINE_HOOK(0x006B7E22, WinMainCRTStartup_Syringe_Patch, 0x9)
+DEFINE_HOOK(0x006B7E22, WinMainCRTStartup_Syringe_Patch, 9)
 {
     DEBUG_INFO("Syringe is active.");
 

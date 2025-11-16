@@ -674,7 +674,7 @@ DEFINE_HOOK(0x004097FF, _AircraftClass_Do_MISSION_UNLOAD_Carryall_Drop_Off_Patch
     return 0x00409833;
 }
 
-DEFINE_HOOK(0x0040AD82, _AircraftClass_Do_MISSION_MOVE_CARRYALL_Drop_Off_Patch, 0x6)
+DEFINE_HOOK(0x0040AD82, _AircraftClass_Do_MISSION_MOVE_CARRYALL_Drop_Off_Patch, 6)
 {
     GET(AircraftClass*, this_ptr, ESI);
 

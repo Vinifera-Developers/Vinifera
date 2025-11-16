@@ -236,9 +236,6 @@ struct SyringeHandshakeInfo
 
 #define SYRINGE_HANDSHAKE(pInfo) extern "C" __declspec(dllexport) HRESULT __cdecl SyringeHandshake(SyringeHandshakeInfo* pInfo)
 
-
-#if SYR_VER == 2
-
 #pragma pack(push, 16)
 #pragma warning(push)
 #pragma warning( disable : 4324)
@@ -272,22 +269,23 @@ namespace SyringeData { namespace Hosts { __declspec(allocate(".syexe00")) hostd
 #define declhook(hook, funcname, size) \
 namespace SyringeData { namespace Hooks { __declspec(allocate(".syhks00")) hookdecl _hk__ ## hook ## funcname  {  hook, size, #funcname }; }; };
 
-#endif // SYR_VER == 2
-
-
-// create empty macros
-#ifndef declhost
-#define declhost(exename, checksum)
-#endif // declhost
-
-#ifndef declhook
-#define declhook(hook, funcname, size)
-#endif // declhook
-
 // Defines a hook at the specified address with the specified name and saving the specified amount of instruction bytes to be restored if return to the same address is used. In addition to the injgen-declaration, also includes the function opening.
+#if 1
 #define DEFINE_HOOK(hook, funcname, size) \
 declhook(hook, funcname, size) \
 EXPORT_FUNC(funcname)
+#else
+#define DEFINE_HOOK(hook, funcname, size) \
+EXPORT_FUNC(funcname##_DebugStub) \
+{ \
+	DEBUG_INFO("[Syringe] Hook %s entered at %08X.\n", #funcname, hook); \
+	return 0; \
+} \
+declhook(hook, funcname##_DebugStub, size) \
+declhook(hook, funcname, size) \
+EXPORT_FUNC(funcname)
+#endif
+
 // Does the same as DEFINE_HOOK but no function opening, use for injgen-declaration when repeating the same hook at multiple addresses.
 // CAUTION: funcname must be the same as in DEFINE_HOOK.
 #define DEFINE_HOOK_AGAIN(hook, funcname, size) \

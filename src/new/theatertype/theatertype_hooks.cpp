@@ -412,7 +412,7 @@ return_false:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x00520F59, _MapClass_Cracked_Ice_AI_Theater_Patch, 0x6)
+DEFINE_HOOK(0x00520F59, _MapClass_Cracked_Ice_AI_Theater_Patch, 6)
 {
     /**
      *  Is this theater flagged to handle the ice growth logic?

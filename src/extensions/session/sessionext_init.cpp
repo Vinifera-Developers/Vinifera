@@ -46,7 +46,7 @@
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x005ED1AA, _SessionClass_Constructor_Patch, 0x5)
+DEFINE_HOOK(0x005ED1AA, _SessionClass_Constructor_Patch, 5)
 {
     GET(SessionClass *, this_ptr, EBP); // "this" pointer.
 
@@ -70,7 +70,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x005ED465, _SessionClass_Destructor_Patch, 0x3)
+DEFINE_HOOK(0x005ED465, _SessionClass_Destructor_Patch, 3)
 {
     /**
      *  Remove the extended class instance.
@@ -92,7 +92,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x005EE17F, _SessionClass_Read_MultiPlayer_Settings_Patch, 0x8)
+DEFINE_HOOK(0x005EE17F, _SessionClass_Read_MultiPlayer_Settings_Patch, 8)
 {
     /**
      *  Load ini.
@@ -115,7 +115,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x005EE7BA, _SessionClass_Write_MultiPlayer_Settings_Patch, 0x9)
+DEFINE_HOOK(0x005EE7BA, _SessionClass_Write_MultiPlayer_Settings_Patch, 9)
 {
     /**
      *  Save ini.

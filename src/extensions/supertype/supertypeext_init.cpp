@@ -47,7 +47,7 @@
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x0060D04A, _SuperWeaponTypeClass_Constructor_Patch, 0x5)
+DEFINE_HOOK(0x0060D04A, _SuperWeaponTypeClass_Constructor_Patch, 5)
 {
     GET(SuperWeaponTypeClass *, this_ptr, EBP); // "this" pointer.
 

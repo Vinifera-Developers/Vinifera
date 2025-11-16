@@ -48,7 +48,7 @@
  *  @author: CCHyper
  */
 DEFINE_HOOK_AGAIN(0x005FB2DB, _SmudgeTypeClass_Constructor_Patch, 0x5)
-DEFINE_HOOK(0x005FB2CE, _SmudgeTypeClass_Constructor_Patch, 0x5)
+DEFINE_HOOK(0x005FB2CE, _SmudgeTypeClass_Constructor_Patch, 5)
 {
     GET(SmudgeTypeClass *, this_ptr, ESI); // "this" pointer.
 
@@ -77,7 +77,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x005FC028, _SmudgeTypeClass_Scalar_Destructor_Patch, 0x6)
+DEFINE_HOOK(0x005FC028, _SmudgeTypeClass_Scalar_Destructor_Patch, 6)
 {
     GET(SmudgeTypeClass *, this_ptr, ESI);
 

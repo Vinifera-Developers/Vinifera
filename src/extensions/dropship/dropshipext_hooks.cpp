@@ -137,7 +137,7 @@ static void Draw_Dropship_Loadout_Help_Text(Surface *surface)
     Fancy_Text_Print(TEXT_PRESS_SPACE, *surface, surfrect, text_pos, color_white, back_color, style);
 }
 
-DEFINE_HOOK(0x004868FB, _Dropship_Loadout_Help_Text_Patch, 0x6)
+DEFINE_HOOK(0x004868FB, _Dropship_Loadout_Help_Text_Patch, 6)
 {
     Draw_Dropship_Loadout_Help_Text(HiddenSurface);
 

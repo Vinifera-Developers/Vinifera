@@ -51,7 +51,7 @@
  *  @author: Rampastring
  */
 static int MostCreditsSpent;
-DEFINE_HOOK(0x005687A9, _MultiScore_Tally_Score_Fetch_Largest_CreditsSpent_Score, 0x6)
+DEFINE_HOOK(0x005687A9, _MultiScore_Tally_Score_Fetch_Largest_CreditsSpent_Score, 6)
 {
     MostCreditsSpent = 0;
     for (int i = 0; i < Houses.Count(); i++) {

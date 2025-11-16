@@ -47,7 +47,7 @@
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x0060B352, _SuperClass_Default_Constructor_Patch, 0x4)
+DEFINE_HOOK(0x0060B352, _SuperClass_Default_Constructor_Patch, 4)
 {
     GET(SuperClass *, this_ptr, ESI); // Current "this" pointer.
 
@@ -76,7 +76,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x0060B4AB, _SuperClass_Constructor_Patch, 0x7)
+DEFINE_HOOK(0x0060B4AB, _SuperClass_Constructor_Patch, 7)
 {
     GET(SuperClass *, this_ptr, ESI); // Current "this" pointer.
 
@@ -105,7 +105,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x0060B51A, _SuperClass_Destructor_Patch, 0x6)
+DEFINE_HOOK(0x0060B51A, _SuperClass_Destructor_Patch, 6)
 {
     GET(SuperClass *, this_ptr, ESI);
 
@@ -129,7 +129,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x0060CC2A, _SuperClass_Scalar_Destructor_Patch, 0x6)
+DEFINE_HOOK(0x0060CC2A, _SuperClass_Scalar_Destructor_Patch, 6)
 {
     GET(SuperClass *, this_ptr, ESI);
 

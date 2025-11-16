@@ -47,7 +47,7 @@
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x005F1AC6, _SideClass_Constructor_Patch, 0x7)
+DEFINE_HOOK(0x005F1AC6, _SideClass_Constructor_Patch, 7)
 {
     GET(SideClass *, this_ptr, ESI); // "this" pointer.
 
@@ -76,7 +76,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x005F1D98, _SideClass_Scalar_Destructor_Patch, 0x6)
+DEFINE_HOOK(0x005F1D98, _SideClass_Scalar_Destructor_Patch, 6)
 {
     GET(SideClass *, this_ptr, ESI);
 

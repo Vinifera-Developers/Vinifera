@@ -46,7 +46,7 @@
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x0063F88C, _TerrainClass_Default_Constructor_Patch, 0x5)
+DEFINE_HOOK(0x0063F88C, _TerrainClass_Default_Constructor_Patch, 5)
 {
     GET(TerrainClass *, this_ptr, ESI); // Current "this" pointer.
 
@@ -78,7 +78,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x0063F556, _TerrainClass_Constructor_Patch, 0x7)
+DEFINE_HOOK(0x0063F556, _TerrainClass_Constructor_Patch, 7)
 {
     GET(TerrainClass *, this_ptr, ESI); // Current "this" pointer.
 
@@ -99,7 +99,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x00640C3D, _TerrainClass_Scalar_Destructor_Patch, 0x6)
+DEFINE_HOOK(0x00640C3D, _TerrainClass_Scalar_Destructor_Patch, 6)
 {
     GET(TerrainClass *, this_ptr, ESI);
 

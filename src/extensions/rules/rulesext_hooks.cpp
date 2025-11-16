@@ -172,7 +172,7 @@ LRESULT CALLBACK Rules_Dialog_Procedure(HWND hWnd, UINT uMsg, UINT wParam, LONG 
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x004E138B, _Init_Rules_Extended_Class_Patch, 0x5)
+DEFINE_HOOK(0x004E138B, _Init_Rules_Extended_Class_Patch, 5)
 {
     /**
      *  #issue-583

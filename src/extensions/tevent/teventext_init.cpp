@@ -46,7 +46,7 @@
  * 
  *  @author: ZivDero
  */
-DEFINE_HOOK(0x00642207, _TEventClass_Constructor_Patch, 0x5)
+DEFINE_HOOK(0x00642207, _TEventClass_Constructor_Patch, 5)
 {
     GET(TEventClass *, this_ptr, ESI); // Current "this" pointer.
 
@@ -75,7 +75,7 @@ original_code:
  * 
  *  @author: ZivDero
  */
-DEFINE_HOOK(0x00642F28, _TEventClass_Scalar_Destructor_Patch, 0x6)
+DEFINE_HOOK(0x00642F28, _TEventClass_Scalar_Destructor_Patch, 6)
 {
     GET(TEventClass *, this_ptr, ESI);
 

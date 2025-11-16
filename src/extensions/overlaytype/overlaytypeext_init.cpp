@@ -48,7 +48,7 @@
  *  @author: CCHyper
  */
 DEFINE_HOOK_AGAIN(0x0058D12D, _OverlayTypeClass_Constructor_Patch, 0x7)
-DEFINE_HOOK(0x0058D120, _OverlayTypeClass_Constructor_Patch, 0x7)
+DEFINE_HOOK(0x0058D120, _OverlayTypeClass_Constructor_Patch, 7)
 {
     GET(OverlayTypeClass *, this_ptr, ESI); // "this" pointer.
 
@@ -77,7 +77,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x0058DC8B, _OverlayTypeClass_Scalar_Destructor_Patch, 0x6)
+DEFINE_HOOK(0x0058DC8B, _OverlayTypeClass_Scalar_Destructor_Patch, 6)
 {
     GET(OverlayTypeClass *, this_ptr, ESI);
 

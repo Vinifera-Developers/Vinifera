@@ -1914,7 +1914,7 @@ DEFINE_HOOK(0x006369B0, _TechnoClass_Base_Is_Attacked_Armor2_Patch, 0)
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x00631223, _TechnoClass_Fire_At_Electric_Bolt_Patch, 0x6)
+DEFINE_HOOK(0x00631223, _TechnoClass_Fire_At_Electric_Bolt_Patch, 6)
 {
     GET(TechnoClass *, this_ptr, ESI);
     GET(WeaponTypeClass const *, weapon, EBX);
@@ -1946,7 +1946,7 @@ DEFINE_HOOK(0x00631223, _TechnoClass_Fire_At_Electric_Bolt_Patch, 0x6)
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x0063039B, _TechnoClass_Fire_At_Suicide_Patch, 0x5)
+DEFINE_HOOK(0x0063039B, _TechnoClass_Fire_At_Suicide_Patch, 5)
 {
     GET(TechnoClass *, this_ptr, ESI);
     GET(WeaponTypeClass *, weap, EBX);
@@ -2203,7 +2203,7 @@ DEFINE_HOOK(0x0062C5D5, _TechnoClass_Draw_Health_Bars_Unit_Draw_Pos_Patch, 0)
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x006328DE, _TechnoClass_Take_Damage_IsAffectsAllies_Patch, 0x7)
+DEFINE_HOOK(0x006328DE, _TechnoClass_Take_Damage_IsAffectsAllies_Patch, 7)
 {
     GET(TechnoClass *, this_ptr, ESI);
     GET_STACK(int *, damage, 0xEC);
@@ -2424,7 +2424,7 @@ DEFINE_HOOK(0x00633BD4, _TechnoClass_Do_Uncloak_Uncloak_Sound_Patch, 0)
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x0062E6F0, _TechnoClass_Null_House_Warning_Patch, 0x6)
+DEFINE_HOOK(0x0062E6F0, _TechnoClass_Null_House_Warning_Patch, 6)
 {
     GET(TechnoClass *, this_ptr, ECX);
     
@@ -2611,7 +2611,7 @@ DEFINE_HOOK(0x006324FF, _TechnoClass_Captured_Spawn_Manager_Patch, 0)
  *
  *  @author: ZivDero
  */
-DEFINE_HOOK(0x0062FDE2, _TechnoClass_Assign_Target_Spawn_Manager_Patch, 0x6)
+DEFINE_HOOK(0x0062FDE2, _TechnoClass_Assign_Target_Spawn_Manager_Patch, 6)
 {
     GET(TechnoClass*, this_ptr, ESI);
 
@@ -2664,7 +2664,7 @@ DEFINE_HOOK(0x006304DD, _TechnoClass_Fire_At_Spawn_Manager_Patch, 0)
  *
  *  @author: Rampastring
  */
-DEFINE_HOOK(0x006396D1, _TechnoClass_Railgun_Damage_Apply_Damage_Modifier_Patch, 0x8)
+DEFINE_HOOK(0x006396D1, _TechnoClass_Railgun_Damage_Apply_Damage_Modifier_Patch, 8)
 {
     GET(int, damage, ECX);
     GET_STACK(TechnoClass*, this_ptr, 0x74);
