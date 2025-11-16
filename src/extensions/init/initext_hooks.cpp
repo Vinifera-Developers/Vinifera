@@ -996,6 +996,33 @@ bool Vinifera_Init_Bootstrap_Mixfiles()
 
 
 /**
+ *  Sets up to close Syringe when the game exits.
+ *  We don't do it immediately so that the client doesn't think
+ *  the game has exited once Syringe closes.
+ *
+ *  @author: ZivDero, secsome
+ */
+static DWORD DebuggerPID = 0;
+
+void _cdecl Kill_Debugger()
+{
+    if (DebuggerPID != 0) {
+        HANDLE handle = OpenProcess(PROCESS_TERMINATE, FALSE, DebuggerPID);
+        if (handle) {
+            TerminateProcess(handle, EXIT_SUCCESS);
+            CloseHandle(handle);
+        }
+    }
+}
+
+void Setup_Kill_Debugger(DWORD pid)
+{
+    DebuggerPID = pid;
+    atexit(Kill_Debugger);
+}
+
+
+/**
  *  Detaches the debugger from the current process.
  *
  *  @author: secsome
@@ -1035,12 +1062,8 @@ bool Detach_Debugger()
                 const auto pid = GetDebuggerProcessId(GetProcessId(hCurrentProcess));
                 status = NtRemoveProcessDebug(hCurrentProcess, hDebug);
                 if (status >= 0) {
-                    HANDLE hDbgProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
-                    if (INVALID_HANDLE_VALUE != hDbgProcess) {
-                        BOOL ret = TerminateProcess(hDbgProcess, EXIT_SUCCESS);
-                        CloseHandle(hDbgProcess);
-                        return ret;
-                    }
+                    Setup_Kill_Debugger(pid);
+                    return true;
                 }
             }
             NtClose(hDebug);
@@ -1051,16 +1074,17 @@ bool Detach_Debugger()
     return false;
 }
 
-
+/**
+ *  Give the user time to attach the debugger if one is not already present.
+ *
+ *  @author: ZivDero, CCHyper
+ */
 DEFINE_HOOK(0x006B7E22, WinMainCRTStartup_Syringe_Patch, 9)
 {
     DEBUG_INFO("Syringe is active.");
 
-    /**
-     *  Give the user time to attach the debugger if one is not already present.
-     */
     if (Detach_Debugger() && !IsDebuggerPresent()) {
-        MessageBox(nullptr, "[Syringe] Attach the debugger now or continue.", "Vinifera", MB_OK | MB_SERVICE_NOTIFICATION);
+        MessageBox(nullptr, "Attach the debugger now or continue.", "Vinifera", MB_OK | MB_SERVICE_NOTIFICATION);
     }
 
     return 0;
