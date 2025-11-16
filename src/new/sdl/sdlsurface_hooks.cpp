@@ -78,7 +78,7 @@ void SDLSurface_Hooks()
     Patch_Byte(0x005ACA6B, sizeof(SDLSurface)); // MapPreviewClass::Read_INI
     Patch_Byte(0x005ACD43, sizeof(SDLSurface)); // MapPreviewClass::Read_PCX_Preview
     Patch_Byte(0x005AD4C8, sizeof(SDLSurface)); // MapPreviewClass::Create_Preview_Surface
-    Patch_Byte(0x005ACA6B, sizeof(SDLSurface)); // RadarClass::Compute_Radar_Image
+    Patch_Byte(0x005B9CB0, sizeof(SDLSurface)); // RadarClass::Compute_Radar_Image
     Patch_Byte(0x005E304E, sizeof(SDLSurface)); // ScoreClass::Presentation
 
     Patch_Call(0x004915A5, &DSurfaceExt::CTOR_Proxy); // Show_Who_Was_Responsible
