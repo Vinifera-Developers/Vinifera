@@ -51,7 +51,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_Dropship_Draw_Info_Text_ArmorName_Patch)
+DEFINE_HOOK(0x0048706A, _Dropship_Draw_Info_Text_ArmorName_Patch, 0)
 {
     GET(ArmorType, armor, EDX);
     GET(char*, dest, ECX)
@@ -70,7 +70,7 @@ EXPORT_FUNC(_Dropship_Draw_Info_Text_ArmorName_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_Start_Scenario_Dropship_Loadout_Show_Mouse_Patch)
+DEFINE_HOOK(0x005DB3BB, _Start_Scenario_Dropship_Loadout_Show_Mouse_Patch, 0)
 {
     /**
      *  issue-284
@@ -137,7 +137,7 @@ static void Draw_Dropship_Loadout_Help_Text(Surface *surface)
     Fancy_Text_Print(TEXT_PRESS_SPACE, *surface, surfrect, text_pos, color_white, back_color, style);
 }
 
-EXPORT_FUNC(_Dropship_Loadout_Help_Text_Patch)
+DEFINE_HOOK(0x004868FB, _Dropship_Loadout_Help_Text_Patch, 0x6)
 {
     Draw_Dropship_Loadout_Help_Text(HiddenSurface);
 
@@ -158,6 +158,3 @@ void DropshipExtension_Hooks()
 
 }
 
-declhook(0x004868FB, _Dropship_Loadout_Help_Text_Patch, 0x6);
-declhook(0x005DB3BB, _Start_Scenario_Dropship_Loadout_Show_Mouse_Patch, 0);
-declhook(0x0048706A, _Dropship_Draw_Info_Text_ArmorName_Patch, 0);

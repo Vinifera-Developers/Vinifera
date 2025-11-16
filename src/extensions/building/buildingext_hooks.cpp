@@ -969,7 +969,7 @@ SuperWeaponType BuildingClassExt::_Fetch_Super_Weapon2() const
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_BuildingClass_Draw_Overlays_Fetch_Factory_Patch)
+DEFINE_HOOK(0x00428AA4, _BuildingClass_Draw_Overlays_Fetch_Factory_Patch, 0)
 {
     GET(BuildingClass*, this_ptr, ESI);
 
@@ -987,7 +987,7 @@ EXPORT_FUNC(_BuildingClass_Draw_Overlays_Fetch_Factory_Patch)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_BuildingClass_Detach_Detach_Anim_Patch)
+DEFINE_HOOK(0x00433F1D, _BuildingClass_Detach_Detach_Anim_Patch, 0)
 {
     GET(BuildingClass*, this_ptr, ESI);
     GET(AnimClass*, anim, ECX);
@@ -1006,7 +1006,7 @@ EXPORT_FUNC(_BuildingClass_Detach_Detach_Anim_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_BuildingClass_Mission_Repair_ReloadRate_Patch)
+DEFINE_HOOK(0x0043266C, _BuildingClass_Mission_Repair_ReloadRate_Patch, 0)
 {
     GET(BuildingClass*, this_ptr, EBP);
 
@@ -1080,7 +1080,7 @@ bool _BuildingClass_Mission_Repair_Assign_Unit_Destination(BuildingClass *buildi
  *
  *  @author: Rampastring
  */
-EXPORT_FUNC(_BuildingClass_Mission_Repair_Assign_Rally_Destination_When_No_Repair_Needed)
+DEFINE_HOOK(0x00432184, _BuildingClass_Mission_Repair_Assign_Rally_Destination_When_No_Repair_Needed, 0)
 {
     GET(BuildingClass*, building, EBP);
     GET(TechnoClass*, techno, ESI);
@@ -1105,7 +1105,7 @@ EXPORT_FUNC(_BuildingClass_Mission_Repair_Assign_Rally_Destination_When_No_Repai
  *
  *  @author: Rampastring
  */
-EXPORT_FUNC(_BuildingClass_Mission_Repair_Assign_Rally_Destination_After_Repair_Complete)
+DEFINE_HOOK(0x00431DAB, _BuildingClass_Mission_Repair_Assign_Rally_Destination_After_Repair_Complete, 0)
 {
     GET(BuildingClass *, building, EBP);
     GET(TechnoClass *, techno, ESI);
@@ -1138,7 +1138,7 @@ fail_return:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_BuildingClass_AI_ProduceCash_Patch)
+DEFINE_HOOK(0x00429A96, _BuildingClass_AI_ProduceCash_Patch, 0)
 {
     GET(BuildingClass *, this_ptr, ESI);
 
@@ -1168,7 +1168,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_BuildingClass_Captured_ProduceCash_Patch)
+DEFINE_HOOK(0x0042F67D, _BuildingClass_Captured_ProduceCash_Patch, 0)
 {
     GET(BuildingClass *, this_ptr, ESI);
     GET_STACK(HouseClass *, newowner, 0x58);
@@ -1241,7 +1241,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_BuildingClass_Grand_Opening_ProduceCash_Patch)
+DEFINE_HOOK(0x0042E179, _BuildingClass_Grand_Opening_ProduceCash_Patch, 0)
 {
     GET_STACK(bool, captured, 0x40);
     GET(BuildingClass *, this_ptr, ESI);
@@ -1304,7 +1304,7 @@ has_opened_else:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_BuildingClass_Mission_Open_Gate_Open_Sound_Patch)
+DEFINE_HOOK(0x00433BB5, _BuildingClass_Mission_Open_Gate_Open_Sound_Patch, 0)
 {
     GET(Coord *, coord, EAX);
     GET(BuildingClass *, this_ptr, ESI);
@@ -1336,7 +1336,7 @@ EXPORT_FUNC(_BuildingClass_Mission_Open_Gate_Open_Sound_Patch)
     return 0x00433BC8;
 }
 
-EXPORT_FUNC(_BuildingClass_Mission_Open_Gate_Close_Sound_Patch)
+DEFINE_HOOK(0x00433C6F, _BuildingClass_Mission_Open_Gate_Close_Sound_Patch, 0)
 {
     GET(Coord *, coord, EAX);
     GET(BuildingClass *, this_ptr, ESI);
@@ -1442,7 +1442,7 @@ static void BuildingClass_Shake_Screen(BuildingClass *building)
     }
 }
 
-EXPORT_FUNC(_BuildingClass_Explode_ShakeScreen_Division_BugFix_Patch)
+DEFINE_HOOK(0x0042B250, _BuildingClass_Explode_ShakeScreen_Division_BugFix_Patch, 0)
 {
     GET(BuildingClass *, this_ptr, ESI);
 
@@ -1476,7 +1476,7 @@ continue_function:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_BuildingClass_Draw_Spied_Cameo_Palette_Patch)
+DEFINE_HOOK(0x00428AD3, _BuildingClass_Draw_Spied_Cameo_Palette_Patch, 0)
 {
     GET(TechnoClass *, factory_obj, EAX);
     GET(Point2D *, pos_xy, EDI);
@@ -1538,7 +1538,7 @@ EXPORT_FUNC(_BuildingClass_Draw_Spied_Cameo_Palette_Patch)
  *
  *  @author: Rampastring
  */
-EXPORT_FUNC(_BuildingClass_Assign_Target_No_Deconstruction_With_Null_UndeploysInto)
+DEFINE_HOOK(0x0042C624, _BuildingClass_Assign_Target_No_Deconstruction_With_Null_UndeploysInto, 0)
 {
     GET(BuildingClass*, this_ptr, ESI);
 
@@ -1582,7 +1582,7 @@ bool Is_Allowed_Harvester(BuildingClass* building, UnitClass* harvester)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_BuildingClass_Mission_Deconstruction_ConYard_Survivors_Patch)
+DEFINE_HOOK(0x00430CC2, _BuildingClass_Mission_Deconstruction_ConYard_Survivors_Patch, 0)
 {
     GET(BuildingClass*, this_ptr, ESI);
 
@@ -1621,7 +1621,7 @@ static bool Unlimbo_Helper(UnitClass* unit, Coord const& coord, Dir256 dir)
     return result;
 }
 
-EXPORT_FUNC(_BuildingClass_Mission_Deconstruction_ConYard_Unlimbo_Patch)
+DEFINE_HOOK(0x00430A01, _BuildingClass_Mission_Deconstruction_ConYard_Unlimbo_Patch, 0)
 {
     GET(UnitClass*, mcv, EBP);
     GET(Dir256, dir, EAX);
@@ -1642,7 +1642,7 @@ EXPORT_FUNC(_BuildingClass_Mission_Deconstruction_ConYard_Unlimbo_Patch)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_BuildingClass_Mission_Deconstruction_Double_Survivors_Patch)
+DEFINE_HOOK(0x00430F2B, _BuildingClass_Mission_Deconstruction_Double_Survivors_Patch, 0)
 {
     GET(BuildingClass*, this_ptr, ESI);
 
@@ -1662,7 +1662,7 @@ EXPORT_FUNC(_BuildingClass_Mission_Deconstruction_Double_Survivors_Patch)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_EventClass_Execute_Archive_Selling_Patch)
+DEFINE_HOOK(0x0049436A, _EventClass_Execute_Archive_Selling_Patch, 0)
 {
     GET(TechnoClass*, techno, EDI);
     GET(AbstractClass *, target, EAX);
@@ -1681,7 +1681,7 @@ EXPORT_FUNC(_EventClass_Execute_Archive_Selling_Patch)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_BuildingClass_Captured_DontScore_Patch)
+DEFINE_HOOK(0x0042F799, _BuildingClass_Captured_DontScore_Patch, 0)
 {
     GET(BuildingClass*, this_ptr, ESI);
 
@@ -1702,7 +1702,7 @@ EXPORT_FUNC(_BuildingClass_Captured_DontScore_Patch)
  *
  *  @author: Rampastring
  */
-EXPORT_FUNC(_BuildingClass_Grand_Opening_Assign_FreeUnit_LastDockedBuilding_Patch)
+DEFINE_HOOK(0x0042E5F5, _BuildingClass_Grand_Opening_Assign_FreeUnit_LastDockedBuilding_Patch, 0x6)
 {
     GET(BuildingClass*, this_ptr, ESI);
     GET(UnitClass*, unit, EDI);
@@ -1786,7 +1786,7 @@ int _BuildingClass_Mission_Missile_LAUNCH_DOWN(BuildingClass* this_ptr)
 }
 
 
-EXPORT_FUNC(_BuildingClass_Mission_Missile_INITIAL_Patch)
+DEFINE_HOOK(0x00432709, _BuildingClass_Mission_Missile_INITIAL_Patch, 0)
 {
     GET(BuildingClass*, this_ptr, ESI);
 
@@ -1799,7 +1799,7 @@ EXPORT_FUNC(_BuildingClass_Mission_Missile_INITIAL_Patch)
 
 
 
-EXPORT_FUNC(_BuildingClass_Mission_Missile_DOOR_OPENING_Patch)
+DEFINE_HOOK(0x00432729, _BuildingClass_Mission_Missile_DOOR_OPENING_Patch, 0)
 {
     GET(BuildingClass*, this_ptr, ESI);
     int delay;
@@ -1811,7 +1811,7 @@ EXPORT_FUNC(_BuildingClass_Mission_Missile_DOOR_OPENING_Patch)
 }
 
 
-EXPORT_FUNC(_BuildingClass_Mission_Missile_LAUNCH_DOWN_Patch)
+DEFINE_HOOK(0x00432957, _BuildingClass_Mission_Missile_LAUNCH_DOWN_Patch, 0)
 {
     GET(BuildingClass*, this_ptr, ESI);
 
@@ -1827,7 +1827,7 @@ EXPORT_FUNC(_BuildingClass_Mission_Missile_LAUNCH_DOWN_Patch)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_BuildingClass_Mission_Missile_LAUNCH_DOWN_Voice_Patch)
+DEFINE_HOOK(0x00432937, _BuildingClass_Mission_Missile_LAUNCH_DOWN_Voice_Patch, 0)
 {
     GET(BuildingClass*, this_ptr, ESI);
 
@@ -1973,7 +1973,7 @@ bool Unlimbo_Naval_Helper(BuildingClass* building, TechnoClass* techno)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_BuildingClass_Exit_Object_Naval_Patch)
+DEFINE_HOOK(0x0042CA98, _BuildingClass_Exit_Object_Naval_Patch, 0)
 {
     GET(BuildingClass*, this_ptr, ESI);
     GET(TechnoClass*, techno, EDI);
@@ -1998,7 +1998,7 @@ EXPORT_FUNC(_BuildingClass_Exit_Object_Naval_Patch)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_BuildingClass_Exit_Object_BuildNavalUnit_Patch)
+DEFINE_HOOK(0x0042CA35, _BuildingClass_Exit_Object_BuildNavalUnit_Patch, 0)
 {
     GET(BuildingClass*, this_ptr, ESI);
     GET(TechnoClass*, techno, EDI);
@@ -2307,7 +2307,7 @@ RadioMessageType BuildingClassExt::_Receive_Message(RadioClass* from, RadioMessa
 }
 
 
-EXPORT_FUNC(_BuildingClass_Load_SwizzleLightSource_Patch)
+DEFINE_HOOK(0x004381F8, _BuildingClass_Load_SwizzleLightSource_Patch, 0)
 {
     GET(BuildingClassExt*, this_ptr, ESI);
 
@@ -2348,30 +2348,3 @@ void BuildingClassExtension_Hooks()
     Patch_Jump(0x004268C0, &BuildingClassExt::_Receive_Message);
 }
 
-declhook(0x00428AD3, _BuildingClass_Draw_Spied_Cameo_Palette_Patch, 0);
-declhook(0x0042B250, _BuildingClass_Explode_ShakeScreen_Division_BugFix_Patch, 0);
-declhook(0x00433BB5, _BuildingClass_Mission_Open_Gate_Open_Sound_Patch, 0);
-declhook(0x00433C6F, _BuildingClass_Mission_Open_Gate_Close_Sound_Patch, 0);
-declhook(0x00429A96, _BuildingClass_AI_ProduceCash_Patch, 0);
-declhook(0x0042F67D, _BuildingClass_Captured_ProduceCash_Patch, 0);
-declhook(0x0042E179, _BuildingClass_Grand_Opening_ProduceCash_Patch, 0);
-declhook(0x004325F9, _BuildingClass_Mission_Repair_ReloadRate_Patch, 0);
-declhook(0x0043266C, _BuildingClass_Mission_Repair_ReloadRate_Patch, 0);
-declhook(0x00432184, _BuildingClass_Mission_Repair_Assign_Rally_Destination_When_No_Repair_Needed, 0);
-declhook(0x00431DAB, _BuildingClass_Mission_Repair_Assign_Rally_Destination_After_Repair_Complete, 0);
-declhook(0x0042C624, _BuildingClass_Assign_Target_No_Deconstruction_With_Null_UndeploysInto, 0);
-declhook(0x00430CC2, _BuildingClass_Mission_Deconstruction_ConYard_Survivors_Patch, 0);
-declhook(0x00430A01, _BuildingClass_Mission_Deconstruction_ConYard_Unlimbo_Patch, 0);
-declhook(0x00430F2B, _BuildingClass_Mission_Deconstruction_Double_Survivors_Patch, 0);
-declhook(0x0049436A, _EventClass_Execute_Archive_Selling_Patch, 0);
-declhook(0x0042F799, _BuildingClass_Captured_DontScore_Patch, 0);
-declhook(0x0042E5F5, _BuildingClass_Grand_Opening_Assign_FreeUnit_LastDockedBuilding_Patch, 0x6);
-declhook(0x00433F1D, _BuildingClass_Detach_Detach_Anim_Patch, 0);
-declhook(0x00432709, _BuildingClass_Mission_Missile_INITIAL_Patch, 0);
-declhook(0x00432729, _BuildingClass_Mission_Missile_DOOR_OPENING_Patch, 0);
-declhook(0x00432957, _BuildingClass_Mission_Missile_LAUNCH_DOWN_Patch, 0);
-declhook(0x00432937, _BuildingClass_Mission_Missile_LAUNCH_DOWN_Voice_Patch, 0);
-declhook(0x00428AA4, _BuildingClass_Draw_Overlays_Fetch_Factory_Patch, 0);
-declhook(0x0042CA98, _BuildingClass_Exit_Object_Naval_Patch, 0);
-declhook(0x0042CA35, _BuildingClass_Exit_Object_BuildNavalUnit_Patch, 0);
-declhook(0x004381F8, _BuildingClass_Load_SwizzleLightSource_Patch, 0);

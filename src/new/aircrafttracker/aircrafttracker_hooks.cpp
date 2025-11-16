@@ -81,7 +81,7 @@ void FlyLocomotionClassExt::_Take_Off()
 }
 
 
-EXPORT_FUNC(_FlyLocomotionClass_Movement_AI_AircraftTracker_Patch1)
+DEFINE_HOOK(0x00499F51, _FlyLocomotionClass_Movement_AI_AircraftTracker_Patch1, 0x6)
 {
     GET(FlyLocomotionClass*, loco, EDI);
 
@@ -98,7 +98,7 @@ EXPORT_FUNC(_FlyLocomotionClass_Movement_AI_AircraftTracker_Patch1)
 }
 
 
-EXPORT_FUNC(_FlyLocomotionClass_Movement_AI_AircraftTracker_Patch2)
+DEFINE_HOOK(0x0049A07D, _FlyLocomotionClass_Movement_AI_AircraftTracker_Patch2, 0x10)
 {
     GET(FootClass*, linked_to, ECX);
 
@@ -109,7 +109,7 @@ EXPORT_FUNC(_FlyLocomotionClass_Movement_AI_AircraftTracker_Patch2)
 }
 
 
-EXPORT_FUNC(_FlyLocomotionClass_Process_Landing_AircraftTracker_Patch)
+DEFINE_HOOK(0x0049B92C, _FlyLocomotionClass_Process_Landing_AircraftTracker_Patch, 0x6)
 {
     GET(FlyLocomotionClass*, loco, ESI);
 
@@ -157,6 +157,3 @@ void AircraftTracker_Hooks()
     Patch_Call(0x00500BF5, &LevitateLocomotionClassExt::_func_4FDF80);
 }
 
-declhook(0x00499F51, _FlyLocomotionClass_Movement_AI_AircraftTracker_Patch1, 0x6);
-declhook(0x0049A07D, _FlyLocomotionClass_Movement_AI_AircraftTracker_Patch2, 0x10);
-declhook(0x0049B92C, _FlyLocomotionClass_Process_Landing_AircraftTracker_Patch, 0x6);

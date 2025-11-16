@@ -160,7 +160,7 @@ bool BulletClassExt::_Is_Forced_To_Explode(Coord& coord)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_BulletClass_AI_SpawnDelay_Patch)
+DEFINE_HOOK(0x004447BF, _BulletClass_AI_SpawnDelay_Patch, 0)
 {
     GET(BulletClass *, this_ptr, EBP);
 
@@ -191,7 +191,7 @@ create_trailer_anim:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_BulletClass_Logic_ShakeScreen_Patch)
+DEFINE_HOOK(0x00446652, _BulletClass_Logic_ShakeScreen_Patch, 0)
 {
     GET(WarheadTypeClass *, warhead, EAX);
     GET_STACK(Coord*, coord, 0x0A8);
@@ -229,6 +229,3 @@ void BulletClassExtension_Hooks()
     Patch_Jump(0x004462C0, &BulletClassExt::_Is_Forced_To_Explode);
 }
 
-
-declhook(0x00446652, _BulletClass_Logic_ShakeScreen_Patch, 0);
-declhook(0x004447BF, _BulletClass_AI_SpawnDelay_Patch, 0);

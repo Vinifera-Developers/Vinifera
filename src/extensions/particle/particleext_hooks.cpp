@@ -60,7 +60,7 @@ UnitClass* Create_Visceroid(ObjectClass* destroyedobject)
  *
  *  @author: Rampastring
  */
-EXPORT_FUNC(_ParticleClass_Smoke_And_WeakGas_Behaviour_AI_Tiberium_Death_Patch)
+DEFINE_HOOK(0x005A389C, _ParticleClass_Smoke_And_WeakGas_Behaviour_AI_Tiberium_Death_Patch, 0)
 {
     GET(ObjectClass*, destroyedobject, ESI);
     GET(ResultType, result, EAX);
@@ -102,4 +102,3 @@ void ParticleClassExtension_Hooks()
     
 }
 
-declhook(0x005A389C, _ParticleClass_Smoke_And_WeakGas_Behaviour_AI_Tiberium_Death_Patch, 0);

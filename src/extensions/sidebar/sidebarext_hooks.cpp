@@ -163,7 +163,7 @@ public:
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_SidebarClass_Constructor_Patch)
+DEFINE_HOOK(0x005F23A6, _SidebarClass_Constructor_Patch, 0x6)
 {
     GET(SidebarClass*, this_ptr, ESI); // "this" pointer.
 
@@ -189,7 +189,7 @@ EXPORT_FUNC(_SidebarClass_Constructor_Patch)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_SidebarClass_Destructor_Patch)
+DEFINE_HOOK(0x005B8B7D, _SidebarClass_Destructor_Patch, 0x5)
 {
     /**
      *  Remove the extended class instance.
@@ -2310,7 +2310,7 @@ static BSurface* _SidebarClass_StripClass_CustomImage = nullptr;
  *
  *  @author: CCHyper
  */
-EXPORT_FUNC(_SidebarClass_StripClass_ObjectTypeClass_Custom_Cameo_Image_Patch)
+DEFINE_HOOK(0x005F5188, _SidebarClass_StripClass_ObjectTypeClass_Custom_Cameo_Image_Patch, 0)
 {
     GET(const ObjectTypeClass*, obj, EBP);
 
@@ -2329,7 +2329,7 @@ EXPORT_FUNC(_SidebarClass_StripClass_ObjectTypeClass_Custom_Cameo_Image_Patch)
     return 0x005F5193;
 }
 
-EXPORT_FUNC(_SidebarClass_StripClass_SuperWeaponType_Custom_Cameo_Image_Patch)
+DEFINE_HOOK(0x005F5216, _SidebarClass_StripClass_SuperWeaponType_Custom_Cameo_Image_Patch, 0)
 {
     GET(const SuperWeaponTypeClass*, supertype, EAX);
 
@@ -2356,7 +2356,7 @@ EXPORT_FUNC(_SidebarClass_StripClass_SuperWeaponType_Custom_Cameo_Image_Patch)
  *
  *  @author: CCHyper
  */
-EXPORT_FUNC(_SidebarClass_StripClass_Custom_Cameo_Image_Patch)
+DEFINE_HOOK(0x005F52AF, _SidebarClass_StripClass_Custom_Cameo_Image_Patch, 0)
 {
     GET_STACK(SidebarClass::StripClass*, this_ptr, 0x24);
     REF_STACK(const Rect, window_rect, 0x34);
@@ -2411,7 +2411,7 @@ draw_darken_shape:
  *
  *  @author: Rampastring
  */
-EXPORT_FUNC(_SidebarClass_StripClass_Help_Text_Extended_Tooltip_Patch)
+DEFINE_HOOK(0x005F4EDD, _SidebarClass_StripClass_Help_Text_Extended_Tooltip_Patch, 0)
 {
     GET(int, cost, EAX);
     GET(TechnoTypeClass*, technotype, ESI);
@@ -2442,7 +2442,7 @@ EXPORT_FUNC(_SidebarClass_StripClass_Help_Text_Extended_Tooltip_Patch)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_StripClass_Draw_It_Fetch_Factory_Patch1)
+DEFINE_HOOK(0x005F5120, _StripClass_Draw_It_Fetch_Factory_Patch1, 0)
 {
     GET(TechnoTypeClass*, ttype, EBP);
 
@@ -2452,7 +2452,7 @@ EXPORT_FUNC(_StripClass_Draw_It_Fetch_Factory_Patch1)
     return 0x005F5132;
 }
 
-EXPORT_FUNC(_StripClass_Draw_It_Fetch_Factory_Patch2)
+DEFINE_HOOK(0x005F537C, _StripClass_Draw_It_Fetch_Factory_Patch2, 0)
 {
     GET_STACK_STATIC(TechnoTypeClass*, ttype, esp, 0x18);
 
@@ -2731,18 +2731,10 @@ void SidebarClassExtension_Hooks()
 }
 
 
-declhook(0x005F23A6, _SidebarClass_Constructor_Patch, 0x6);
-declhook(0x005B8B7D, _SidebarClass_Destructor_Patch, 0x5);
 
 /**
  *  Legacy patches for the old sidebar.
  */
-declhook(0x005F5188, _SidebarClass_StripClass_ObjectTypeClass_Custom_Cameo_Image_Patch, 0);
-declhook(0x005F5216, _SidebarClass_StripClass_SuperWeaponType_Custom_Cameo_Image_Patch, 0);
-declhook(0x005F52AF, _SidebarClass_StripClass_Custom_Cameo_Image_Patch, 0);
-declhook(0x005F5120, _StripClass_Draw_It_Fetch_Factory_Patch1, 0);
-declhook(0x005F537C, _StripClass_Draw_It_Fetch_Factory_Patch2, 0);
-declhook(0x005F4EDD, _SidebarClass_StripClass_Help_Text_Extended_Tooltip_Patch, 0);
 
 
 /**
@@ -2803,3 +2795,4 @@ void SidebarClassExtension_Conditional_Hooks()
         Patch_Jump(0x004E6045, 0x004E611F); // Don't add LSidebarPageDownCommandClass and RSidebarPageDownCommandClass
     }
 }
+

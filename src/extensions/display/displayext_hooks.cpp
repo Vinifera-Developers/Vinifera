@@ -169,7 +169,7 @@ ObjectClass * DisplayClassExt::_Prev_Object(ObjectClass * object)  const
  *
  *  @author: CCHyper, ZivDero
  */
-EXPORT_FUNC(_DisplayClass_Mouse_Left_Up_Set_Mouse)
+DEFINE_HOOK(0x004782CF, _DisplayClass_Mouse_Left_Up_Set_Mouse, 0)
 {
     GET(ActionType, action, EBX);
     GET_STACK(bool, shadow, 0x1C);
@@ -200,6 +200,10 @@ EXPORT_FUNC(_DisplayClass_Mouse_Left_Up_Set_Mouse)
     return 0x004786C5;
 }
 
+/**
+ *  The ts-patches spawner has its own Build off Ally implementation.
+ */
+#ifndef TS_CLIENT
 
 /**
  *  #issue-171
@@ -208,7 +212,7 @@ EXPORT_FUNC(_DisplayClass_Mouse_Left_Up_Set_Mouse)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_DisplayClass_Passes_Proximity_Passes_Check_Patch)
+DEFINE_HOOK(0x004762E4, _DisplayClass_Passes_Proximity_Passes_Check_Patch, 0)
 {
     GET(BuildingClass *, base, EAX);
     GET_STACK(HousesType, house, 0x38);
@@ -249,6 +253,8 @@ continue_scan:
     return 0x00476308;
 }
 
+#endif
+
 
 /**
  *  #issue-344
@@ -259,7 +265,7 @@ continue_scan:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_DisplayClass_Mouse_Left_Release_PlaceAnywhere_BugFix_Patch)
+DEFINE_HOOK(0x00478974, _DisplayClass_Mouse_Left_Release_PlaceAnywhere_BugFix_Patch, 0)
 {
     GET(DisplayClass *, this_ptr, EBX);
 
@@ -306,7 +312,7 @@ place_it:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_DisplayClass_Help_Text_GetCursorPosition_Patch)
+DEFINE_HOOK(0x0047AFA6, _DisplayClass_Help_Text_GetCursorPosition_Patch, 0)
 {
     LEA_STACK(Coord *, coordinate, 0x2C);
     static char _cursor_position_buffer[128];
@@ -368,7 +374,7 @@ return_label:
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_DisplayClass_47A790_Patch)
+DEFINE_HOOK(0x0047A856, _DisplayClass_47A790_Patch, 0)
 {
     GET(int, i, EDI);
 
@@ -409,24 +415,3 @@ void DisplayClassExtension_Hooks()
     Patch_Jump(0x00477390, &DisplayClassExt::_Next_Object);
     Patch_Jump(0x00477430, &DisplayClassExt::_Prev_Object);
 }
-
-declhook(0x0047AFA6, _DisplayClass_Help_Text_GetCursorPosition_Patch, 0);
-declhook(0x00478974, _DisplayClass_Mouse_Left_Release_PlaceAnywhere_BugFix_Patch, 0);
-
-/**
- *  The ts-patches spawner has its own Build off Ally implementation.
- */
-#ifndef TS_CLIENT
-declhook(0x004762E4, _DisplayClass_Passes_Proximity_Passes_Check_Patch, 0);
-#endif
-
-declhook(0x004782CF, _DisplayClass_Mouse_Left_Up_Set_Mouse, 0);
-
-/**
- *  #issue-71
- *
- *  Increases the amount of available waypoints (see ScenarioClassExtension for implementation).
- *
- *  @author: ZivDero
- */
-declhook(0x0047A856, _DisplayClass_47A790_Patch, 0);

@@ -44,7 +44,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_ToolTipManager_Message_Handler_CursorPosition_Patch)
+DEFINE_HOOK(0x006473D4, _ToolTipManager_Message_Handler_CursorPosition_Patch, 0)
 {
     GET(ToolTipManager *, this_ptr, ESI);
 
@@ -96,4 +96,3 @@ void ToolTipManagerExtension_Hooks()
 
 }
 
-declhook(0x006473D4, _ToolTipManager_Message_Handler_CursorPosition_Patch, 0);

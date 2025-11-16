@@ -47,7 +47,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_RulesClass_Constructor_Patch)
+DEFINE_HOOK(0x005C59A1, _RulesClass_Constructor_Patch, 0x5)
 {
     GET(RulesClass *, this_ptr, ESI); // "this" pointer.
 
@@ -68,7 +68,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_RulesClass_Destructor_Patch)
+DEFINE_HOOK(0x005C6120, _RulesClass_Destructor_Patch, 0x5)
 {
     /**
      *  Remove the extended class instance.
@@ -87,7 +87,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_RulesClass_Process_Patch)
+DEFINE_HOOK(0x005C6A4D, _RulesClass_Process_Patch, 0x7)
 {
     GET(CCINIClass*, ini, ESI);
 
@@ -108,7 +108,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_RulesClass_MPlayer_Patch)
+DEFINE_HOOK(0x005CC3BF, _RulesClass_MPlayer_Patch, 0x7)
 {
     GET(CCINIClass*, ini, EDI);
 
@@ -130,7 +130,3 @@ void RulesClassExtension_Init()
 
 }
 
-declhook(0x005C59A1, _RulesClass_Constructor_Patch, 0x5);
-declhook(0x005C6120, _RulesClass_Destructor_Patch, 0x5);
-declhook(0x005C6A4D, _RulesClass_Process_Patch, 0x7);
-declhook(0x005CC3BF, _RulesClass_MPlayer_Patch, 0x7);

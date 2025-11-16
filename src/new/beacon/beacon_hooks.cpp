@@ -48,7 +48,7 @@
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_RadarClass_Render_Radar_Redraw_Beacons_Patch)
+DEFINE_HOOK(0x005BC4BB, _RadarClass_Render_Radar_Redraw_Beacons_Patch, 0)
 {
     GET(RadarClass*, this_ptr, ESI);
 
@@ -67,7 +67,7 @@ EXPORT_FUNC(_RadarClass_Render_Radar_Redraw_Beacons_Patch)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_RadarClass_Render_Radar_Draw_Beacons_Patch)
+DEFINE_HOOK(0x005BC83F, _RadarClass_Render_Radar_Draw_Beacons_Patch, 0)
 {
     RadarEventClass::Draw_Events();
     BeaconManager.Draw_On_Radar(Map.RadarSurface, Map.RadarSurface->Get_Rect());
@@ -81,7 +81,7 @@ EXPORT_FUNC(_RadarClass_Render_Radar_Draw_Beacons_Patch)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_HouseClass_MPlayer_Defeated_Delete_Beacons_Patch)
+DEFINE_HOOK(0x004BF5CC, _HouseClass_MPlayer_Defeated_Delete_Beacons_Patch, 0x6)
 {
     GET(HouseClass*, this_ptr, EBX);
 
@@ -277,7 +277,7 @@ void DisplayClassExt::_Mouse_Right_Release(Point2D const& point)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_DisplayClass_Waypoint_Mode_Control_BeaconMode_Patch)
+DEFINE_HOOK(0x004795CF, _DisplayClass_Waypoint_Mode_Control_BeaconMode_Patch, 0x7)
 {
     TacticalMapExtension->IsBeaconPlacementMode = false;
 
@@ -308,7 +308,7 @@ void Select_Beacon(Cell const& cell)
     BeaconManager.Select_Beacon(coord);
 }
 
-EXPORT_FUNC(_DisplayClass_Mouse_Left_Release_Beacon_Patch)
+DEFINE_HOOK(0x00478C6D, _DisplayClass_Mouse_Left_Release_Beacon_Patch, 0)
 {
     GET(ActionType, action, EDI);
     GET(Cell const*, cell, EBP);
@@ -332,7 +332,7 @@ EXPORT_FUNC(_DisplayClass_Mouse_Left_Release_Beacon_Patch)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_ScrollClass_What_Action_Select_Beacon_Patch)
+DEFINE_HOOK(0x005E8A1B, _ScrollClass_What_Action_Select_Beacon_Patch, 0)
 {
     GET(ObjectClass*, object, ESI);
     GET(TechnoClass*, techno, EDI);
@@ -360,7 +360,7 @@ EXPORT_FUNC(_ScrollClass_What_Action_Select_Beacon_Patch)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_ScrollClass_What_Action_Place_Beacon_Patch)
+DEFINE_HOOK(0x005E8C41, _ScrollClass_What_Action_Place_Beacon_Patch, 0)
 {
     if (TacticalMapExtension->IsBeaconPlacementMode) {
         ActionType action = BeaconManagerClass::Pick_Beacon_Placement_Action();
@@ -385,10 +385,3 @@ void Beacon_Hooks()
     Patch_Jump(0x00477D30, &DisplayClassExt::_Mouse_Right_Release);
 }
 
-declhook(0x005BC4BB, _RadarClass_Render_Radar_Redraw_Beacons_Patch, 0);
-declhook(0x005BC83F, _RadarClass_Render_Radar_Draw_Beacons_Patch, 0);
-declhook(0x004BF5CC, _HouseClass_MPlayer_Defeated_Delete_Beacons_Patch, 0x6);
-declhook(0x004795CF, _DisplayClass_Waypoint_Mode_Control_BeaconMode_Patch, 0x7);
-declhook(0x00478C6D, _DisplayClass_Mouse_Left_Release_Beacon_Patch, 0);
-declhook(0x005E8A1B, _ScrollClass_What_Action_Select_Beacon_Patch, 0);
-declhook(0x005E8C41, _ScrollClass_What_Action_Place_Beacon_Patch, 0);

@@ -42,7 +42,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_VQA_Mix_File_Handler_Use_CCFileClass_Patch)
+DEFINE_HOOK(0x0066C0FD, _VQA_Mix_File_Handler_Use_CCFileClass_Patch, 0)
 {
     GET(VQAClass *, this_ptr, ESI);
     GET_STACK(char *, filename, 0xC);
@@ -86,4 +86,3 @@ void VQAExtension_Hooks()
 
 }
 
-declhook(0x0066C0FD, _VQA_Mix_File_Handler_Use_CCFileClass_Patch, 0);

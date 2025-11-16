@@ -64,7 +64,7 @@ static UnitClass* Make_HunterSeeker(HouseClass* house)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_SuperClass_Place_HunterSeeker_Type_Patch)
+DEFINE_HOOK(0x0060C5DE, _SuperClass_Place_HunterSeeker_Type_Patch, 0)
 {
     GET(SuperClass*, this_ptr, ESI);
 
@@ -96,7 +96,7 @@ EXPORT_FUNC(_SuperClass_Place_HunterSeeker_Type_Patch)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_SuperClass_Place_NukeType)
+DEFINE_HOOK(0x0060C49E, _SuperClass_Place_NukeType, 0)
 {
     GET(SuperClass*, this_ptr, EAX);
     GET(BuildingClass*, launchsite, ESI);
@@ -118,5 +118,3 @@ void SuperClassExtension_Hooks()
     SuperClassExtension_Init();
 }
 
-declhook(0x0060C5DE, _SuperClass_Place_HunterSeeker_Type_Patch, 0);
-declhook(0x0060C49E, _SuperClass_Place_NukeType, 0);

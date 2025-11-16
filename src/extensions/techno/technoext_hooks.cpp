@@ -1802,7 +1802,7 @@ int TechnoClassExt::_How_Many_Survivors() const
  *
  *  @author: CCHyper
  */
-EXPORT_FUNC(_TechnoClass_Evaluate_Object_Is_Legal_Target_Patch)
+DEFINE_HOOK(0x0062D4CA, _TechnoClass_Evaluate_Object_Is_Legal_Target_Patch, 0)
 {
     GET(TechnoClass *, this_ptr, EDI);
     GET(const TechnoClass *, object, ESI); // The target object being evaluated.
@@ -1843,7 +1843,7 @@ return_false:
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_TechnoClass_Evaluate_Object_PassiveAcquire_Armor_Patch)
+DEFINE_HOOK(0x0062D11E, _TechnoClass_Evaluate_Object_PassiveAcquire_Armor_Patch, 0)
 {
     GET(TechnoClass*, this_ptr, EDI);
     GET(TechnoClass*, object, ESI);
@@ -1876,7 +1876,7 @@ return_false:
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_TechnoClass_Base_Is_Attacked_Armor1_Patch)
+DEFINE_HOOK(0x00636BFE, _TechnoClass_Base_Is_Attacked_Armor1_Patch, 0)
 {
     GET_STACK(TechnoClass*, enemy, 0x84);
     GET(UnitClass*, unit, ESI);
@@ -1894,7 +1894,7 @@ EXPORT_FUNC(_TechnoClass_Base_Is_Attacked_Armor1_Patch)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_TechnoClass_Base_Is_Attacked_Armor2_Patch)
+DEFINE_HOOK(0x006369B0, _TechnoClass_Base_Is_Attacked_Armor2_Patch, 0)
 {
     GET_STACK(TechnoClass*, enemy, 0x84);
     GET(InfantryClass*, unit, ESI);
@@ -1914,7 +1914,7 @@ EXPORT_FUNC(_TechnoClass_Base_Is_Attacked_Armor2_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_TechnoClass_Fire_At_Electric_Bolt_Patch)
+DEFINE_HOOK(0x00631223, _TechnoClass_Fire_At_Electric_Bolt_Patch, 0x6)
 {
     GET(TechnoClass *, this_ptr, ESI);
     GET(WeaponTypeClass const *, weapon, EBX);
@@ -1946,7 +1946,7 @@ EXPORT_FUNC(_TechnoClass_Fire_At_Electric_Bolt_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_TechnoClass_Fire_At_Suicide_Patch)
+DEFINE_HOOK(0x0063039B, _TechnoClass_Fire_At_Suicide_Patch, 0x5)
 {
     GET(TechnoClass *, this_ptr, ESI);
     GET(WeaponTypeClass *, weap, EBX);
@@ -2073,7 +2073,7 @@ static void Techno_Player_Assign_Mission_Response_Switch(TechnoClass *this_ptr, 
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_TechnoClass_Player_Assign_Mission_Response_Patch)
+DEFINE_HOOK(0x00631661, _TechnoClass_Player_Assign_Mission_Response_Patch, 0)
 {
     GET(TechnoClass *, this_ptr, ESI);
     GET(MissionType, mission, EDI);
@@ -2091,7 +2091,7 @@ EXPORT_FUNC(_TechnoClass_Player_Assign_Mission_Response_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_TechnoClass_Refund_Amount_Soylent_Patch)
+DEFINE_HOOK(0x00638095, _TechnoClass_Refund_Amount_Soylent_Patch, 0)
 {
     GET(TechnoClass *, this_ptr, ESI);
 
@@ -2126,7 +2126,7 @@ continue_function:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_TechnoClass_Greatest_Threat_Infantry_Mechanic_Patch)
+DEFINE_HOOK(0x0062DD70, _TechnoClass_Greatest_Threat_Infantry_Mechanic_Patch, 0)
 {
     GET(TechnoClass *, this_ptr, ESI);
     GET(InfantryClass *, infantry_this_ptr, ESI);
@@ -2167,7 +2167,7 @@ EXPORT_FUNC(_TechnoClass_Greatest_Threat_Infantry_Mechanic_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_TechnoClass_Draw_Health_Bars_Infantry_Draw_Pos_Patch)
+DEFINE_HOOK(0x0062C55B, _TechnoClass_Draw_Health_Bars_Infantry_Draw_Pos_Patch, 0)
 {
     R->ECX(UIControls->InfantryHealthBarDrawPos.X);
     R->EAX(UIControls->InfantryHealthBarDrawPos.Y);
@@ -2183,7 +2183,7 @@ EXPORT_FUNC(_TechnoClass_Draw_Health_Bars_Infantry_Draw_Pos_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_TechnoClass_Draw_Health_Bars_Unit_Draw_Pos_Patch)
+DEFINE_HOOK(0x0062C5D5, _TechnoClass_Draw_Health_Bars_Unit_Draw_Pos_Patch, 0)
 {
     R->ECX(UIControls->UnitHealthBarDrawPos.X);
     R->EAX(UIControls->UnitHealthBarDrawPos.Y);
@@ -2203,7 +2203,7 @@ EXPORT_FUNC(_TechnoClass_Draw_Health_Bars_Unit_Draw_Pos_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_TechnoClass_Take_Damage_IsAffectsAllies_Patch)
+DEFINE_HOOK(0x006328DE, _TechnoClass_Take_Damage_IsAffectsAllies_Patch, 0x7)
 {
     GET(TechnoClass *, this_ptr, ESI);
     GET_STACK(int *, damage, 0xEC);
@@ -2248,7 +2248,7 @@ return_RESULT_NONE:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_TechnoClass_Is_Ready_To_Uncloak_Cloak_Stop_BugFix_Patch)
+DEFINE_HOOK(0x0062F6B7, _TechnoClass_Is_Ready_To_Uncloak_Cloak_Stop_BugFix_Patch, 0)
 {
     GET(TechnoClass *, this_ptr, ESI);
     GET(bool, cloaked_by_house, EAX);
@@ -2324,7 +2324,7 @@ static AnimTypeClass *Techno_Get_Firing_Anim(TechnoClass *this_ptr, WeaponTypeCl
     return anim;
 }
 
-EXPORT_FUNC(_TechnoClass_Fire_At_Weapon_Anim_Patch)
+DEFINE_HOOK(0x0063105C, _TechnoClass_Fire_At_Weapon_Anim_Patch, 0)
 {
     GET(TechnoClass *, this_ptr, ESI);
     GET(WeaponTypeClass *, weapon, EBX);
@@ -2343,7 +2343,7 @@ EXPORT_FUNC(_TechnoClass_Fire_At_Weapon_Anim_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_TechnoClass_Do_Cloak_Cloak_Sound_Patch)
+DEFINE_HOOK(0x00633C78, _TechnoClass_Do_Cloak_Cloak_Sound_Patch, 0)
 {
     GET(Coord *, coord, EAX);
     GET(TechnoClass *, this_ptr, ESI);
@@ -2383,7 +2383,7 @@ EXPORT_FUNC(_TechnoClass_Do_Cloak_Cloak_Sound_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_TechnoClass_Do_Uncloak_Uncloak_Sound_Patch)
+DEFINE_HOOK(0x00633BD4, _TechnoClass_Do_Uncloak_Uncloak_Sound_Patch, 0)
 {
     GET(Coord *, coord, EAX);
     GET(TechnoClass *, this_ptr, ESI);
@@ -2424,7 +2424,7 @@ EXPORT_FUNC(_TechnoClass_Do_Uncloak_Uncloak_Sound_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_TechnoClass_Null_House_Warning_Patch)
+DEFINE_HOOK(0x0062E6F0, _TechnoClass_Null_House_Warning_Patch, 0x6)
 {
     GET(TechnoClass *, this_ptr, ECX);
     
@@ -2556,7 +2556,7 @@ bool TechnoClassExt::_Can_Deploy_Now() const
 
 
 
-EXPORT_FUNC(_TechnoClass_AI_Abandon_Invalid_Target_Patch)
+DEFINE_HOOK(0x0062EB27, _TechnoClass_AI_Abandon_Invalid_Target_Patch, 0)
 {
     GET(TechnoClassExt*, this_ptr, ESI);
 
@@ -2571,7 +2571,7 @@ EXPORT_FUNC(_TechnoClass_AI_Abandon_Invalid_Target_Patch)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_TechnoClass_Take_Damage_Drop_Tiberium_Type_Patch)
+DEFINE_HOOK(0x00632F4C, _TechnoClass_Take_Damage_Drop_Tiberium_Type_Patch, 0)
 {
     GET(TechnoClassExt*, this_ptr, ESI);
 
@@ -2587,7 +2587,7 @@ EXPORT_FUNC(_TechnoClass_Take_Damage_Drop_Tiberium_Type_Patch)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_TechnoClass_Captured_Spawn_Manager_Patch)
+DEFINE_HOOK(0x006324FF, _TechnoClass_Captured_Spawn_Manager_Patch, 0)
 {
     GET(TechnoClass*, this_ptr, ESI);
 
@@ -2611,7 +2611,7 @@ EXPORT_FUNC(_TechnoClass_Captured_Spawn_Manager_Patch)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_TechnoClass_Assign_Target_Spawn_Manager_Patch)
+DEFINE_HOOK(0x0062FDE2, _TechnoClass_Assign_Target_Spawn_Manager_Patch, 0x6)
 {
     GET(TechnoClass*, this_ptr, ESI);
 
@@ -2630,7 +2630,7 @@ EXPORT_FUNC(_TechnoClass_Assign_Target_Spawn_Manager_Patch)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_TechnoClass_Fire_At_Spawn_Manager_Patch)
+DEFINE_HOOK(0x006304DD, _TechnoClass_Fire_At_Spawn_Manager_Patch, 0)
 {
     GET(TechnoClassExt*, this_ptr, ESI);
     GET(WeaponTypeClass*, weapon, EBX);
@@ -2664,7 +2664,7 @@ EXPORT_FUNC(_TechnoClass_Fire_At_Spawn_Manager_Patch)
  *
  *  @author: Rampastring
  */
-EXPORT_FUNC(_TechnoClass_Railgun_Damage_Apply_Damage_Modifier_Patch)
+DEFINE_HOOK(0x006396D1, _TechnoClass_Railgun_Damage_Apply_Damage_Modifier_Patch, 0x8)
 {
     GET(int, damage, ECX);
     GET_STACK(TechnoClass*, this_ptr, 0x74);
@@ -2681,7 +2681,7 @@ EXPORT_FUNC(_TechnoClass_Railgun_Damage_Apply_Damage_Modifier_Patch)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_TechnoClass_Fire_At_TargetLaserTimer_Patch)
+DEFINE_HOOK(0x00631207, _TechnoClass_Fire_At_TargetLaserTimer_Patch, 0)
 {
     GET(TechnoClass*, this_ptr, ESI);
 
@@ -2758,7 +2758,7 @@ bool _TechnoClass_Evaluate_Object_Zone_Evaluation_Is_Valid_Target(TechnoClass* t
  *
  *  @author: Rampastring
  */
-EXPORT_FUNC(_TechnoClass_Evaluate_Object_Zone_Evaluation_TargetZoneScanType_Patch)
+DEFINE_HOOK(0x0062D218, _TechnoClass_Evaluate_Object_Zone_Evaluation_TargetZoneScanType_Patch, 0)
 {
     GET(int, targetzone, EAX);
     GET(int, ourzone, EBP);
@@ -2812,28 +2812,3 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x0062FD70, &TechnoClassExt::_Assign_Target);
 }
 
-declhook(0x00633C78, _TechnoClass_Do_Cloak_Cloak_Sound_Patch, 0);
-declhook(0x00633BD4, _TechnoClass_Do_Uncloak_Uncloak_Sound_Patch, 0);
-declhook(0x0063105C, _TechnoClass_Fire_At_Weapon_Anim_Patch, 0);
-declhook(0x0062F6B7, _TechnoClass_Is_Ready_To_Uncloak_Cloak_Stop_BugFix_Patch, 0);
-declhook(0x0062E6F0, _TechnoClass_Null_House_Warning_Patch, 0x6);
-declhook(0x006328DE, _TechnoClass_Take_Damage_IsAffectsAllies_Patch, 0x7);
-declhook(0x0062C5D5, _TechnoClass_Draw_Health_Bars_Unit_Draw_Pos_Patch, 0);
-declhook(0x0062C55B, _TechnoClass_Draw_Health_Bars_Infantry_Draw_Pos_Patch, 0);
-declhook(0x0062DD70, _TechnoClass_Greatest_Threat_Infantry_Mechanic_Patch, 0);
-declhook(0x00638095, _TechnoClass_Refund_Amount_Soylent_Patch, 0);
-declhook(0x00631661, _TechnoClass_Player_Assign_Mission_Response_Patch, 0);
-declhook(0x0063039B, _TechnoClass_Fire_At_Suicide_Patch, 0x5);
-declhook(0x00631223, _TechnoClass_Fire_At_Electric_Bolt_Patch, 0x6);
-declhook(0x0062D4CA, _TechnoClass_Evaluate_Object_Is_Legal_Target_Patch, 0);
-declhook(0x00636BFE, _TechnoClass_Base_Is_Attacked_Armor1_Patch, 0);
-declhook(0x006369B0, _TechnoClass_Base_Is_Attacked_Armor2_Patch, 0);
-declhook(0x0062D11E, _TechnoClass_Evaluate_Object_PassiveAcquire_Armor_Patch, 0);
-declhook(0x0062EB27, _TechnoClass_AI_Abandon_Invalid_Target_Patch, 0);
-declhook(0x00632F4C, _TechnoClass_Take_Damage_Drop_Tiberium_Type_Patch, 0);
-declhook(0x006396D1, _TechnoClass_Railgun_Damage_Apply_Damage_Modifier_Patch, 0x8);
-declhook(0x00631207, _TechnoClass_Fire_At_TargetLaserTimer_Patch, 0);
-declhook(0x006324FF, _TechnoClass_Captured_Spawn_Manager_Patch, 0);
-declhook(0x0062FDE2, _TechnoClass_Assign_Target_Spawn_Manager_Patch, 0x6);
-declhook(0x006304DD, _TechnoClass_Fire_At_Spawn_Manager_Patch, 0);
-declhook(0x0062D218, _TechnoClass_Evaluate_Object_Zone_Evaluation_TargetZoneScanType_Patch, 0);

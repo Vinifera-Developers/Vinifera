@@ -47,7 +47,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_WeaponTypeClass_Constructor_Patch)
+DEFINE_HOOK(0x00680BEF, _WeaponTypeClass_Constructor_Patch, 0x5)
 {
     GET(WeaponTypeClass *, this_ptr, ESI); // "this" pointer.
 
@@ -76,7 +76,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_WeaponTypeClass_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x006819AE, _WeaponTypeClass_Scalar_Destructor_Patch, 0x6)
 {
     GET(WeaponTypeClass *, this_ptr, ESI);
 
@@ -98,5 +98,3 @@ void WeaponTypeClassExtension_Init()
 
 }
 
-declhook(0x00680BEF, _WeaponTypeClass_Constructor_Patch, 0x5);
-declhook(0x006819AE, _WeaponTypeClass_Scalar_Destructor_Patch, 0x6);

@@ -304,7 +304,7 @@ static ActionType Get_Action(ObjectClass* obj, Cell& cellnum, bool check_fog)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_ScrollClass_What_Action_Attack_Cursor_Patch)
+DEFINE_HOOK(0x005E8920, _ScrollClass_What_Action_Attack_Cursor_Patch, 0)
 {
     GET_STACK(Cell*, cellnum, 0x18);
     GET_STACK(ObjectClass*, obj, 0x1C);
@@ -332,4 +332,3 @@ void MouseClassExtension_Hooks()
     Patch_Jump(0x00563240, &MouseClassExt::_Get_Mouse_Frame_Count);
 }
 
-declhook(0x005E8920, _ScrollClass_What_Action_Attack_Cursor_Patch, 0);

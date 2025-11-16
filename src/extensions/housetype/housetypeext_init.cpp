@@ -47,7 +47,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_HouseTypeClass_Constructor_Patch)
+DEFINE_HOOK(0x004CDE54, _HouseTypeClass_Constructor_Patch, 0x5)
 {
     GET(HouseTypeClass *, this_ptr, ESI); // "this" pointer.
 
@@ -76,7 +76,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_HouseTypeClass_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x004CE608, _HouseTypeClass_Scalar_Destructor_Patch, 0x6)
 {
     GET(HouseTypeClass *, this_ptr, ESI);
 
@@ -98,5 +98,3 @@ void HouseTypeClassExtension_Init()
 
 }
 
-declhook(0x004CDE54, _HouseTypeClass_Constructor_Patch, 0x5);
-declhook(0x004CE608, _HouseTypeClass_Scalar_Destructor_Patch, 0x6);

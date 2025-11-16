@@ -310,33 +310,41 @@ void Process_Command_If_Allowed(CommandClass* command)
 /**
  *  #issue-255
  *
+ *  Keyboard processing patches.
+ *  Technically not all are directly in the main loop,
+ *  but all of these are similar to the main loop patch so we include them all here.
+ */
+
+/**
+ *  #issue-255
+ *
  *  Fixes the user being able to do keyboard input and as such, affect
  *  game state while input is locked.
  *
  *  @author: Rampastring
  */
-EXPORT_FUNC(_Main_Loop_Check_Keyboard_Input_Allowed)
+DEFINE_HOOK(0x00508E83, _Main_Loop_Check_Keyboard_Input_Allowed, 0)
 {
     GET(CommandClass*, command, ECX);
     Process_Command_If_Allowed(command);
     return 0x00508EA8;
 }
 
-EXPORT_FUNC(_Keyboard_Process_Check_Keyboard_Input_Allowed)
+DEFINE_HOOK(0x0050945C, _Keyboard_Process_Check_Keyboard_Input_Allowed, 0)
 {
     GET(CommandClass*, command, ECX);
     Process_Command_If_Allowed(command);
     return 0x00509461;
 }
 
-EXPORT_FUNC(_Sync_Delay_Check_Keyboard_Input_Allowed_Patch1)
+DEFINE_HOOK(0x00509632, _Sync_Delay_Check_Keyboard_Input_Allowed_Patch1, 0)
 {
     GET(CommandClass*, command, EAX);
     Process_Command_If_Allowed(command);
     return 0x00509659;
 }
 
-EXPORT_FUNC(_Sync_Delay_Check_Keyboard_Input_Allowed_Patch2)
+DEFINE_HOOK(0x00509747, _Sync_Delay_Check_Keyboard_Input_Allowed_Patch2, 0)
 {
     GET(CommandClass*, command, ECX);
     Process_Command_If_Allowed(command);
@@ -672,15 +680,3 @@ void MainLoop_Hooks()
     Patch_Jump(0x005B10F0, &_Queue_Options);
     Patch_Jump(0x005098D0, &_Message_Input);
 }
-
-/**
- *  #issue-255
- *
- *  Keyboard processing patches.
- *  Technically not all are directly in the main loop,
- *  but all of these are similar to the main loop patch so we include them all here.
- */
-declhook(0x00508E83, _Main_Loop_Check_Keyboard_Input_Allowed, 0);
-declhook(0x0050945C, _Keyboard_Process_Check_Keyboard_Input_Allowed, 0);
-declhook(0x00509632, _Sync_Delay_Check_Keyboard_Input_Allowed_Patch1, 0);
-declhook(0x00509747, _Sync_Delay_Check_Keyboard_Input_Allowed_Patch2, 0);

@@ -45,7 +45,7 @@
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_EventClass_Execute_IDLE_Spawn_Manager_Patch)
+DEFINE_HOOK(0x00494AB5, _EventClass_Execute_IDLE_Spawn_Manager_Patch, 0)
 {
     GET(TechnoClass*, techno, ESI);
 
@@ -68,7 +68,7 @@ EXPORT_FUNC(_EventClass_Execute_IDLE_Spawn_Manager_Patch)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_DriveLocomotionClass_Start_Of_Move_Spawn_Manager_Patch)
+DEFINE_HOOK(0x0047FE2F, _DriveLocomotionClass_Start_Of_Move_Spawn_Manager_Patch, 0)
 {
     GET(TechnoClass*, linked_to, EAX);
 
@@ -88,7 +88,7 @@ EXPORT_FUNC(_DriveLocomotionClass_Start_Of_Move_Spawn_Manager_Patch)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_LogicClass_AI_Kamikaze_AI_Patch)
+DEFINE_HOOK(0x00507000, _LogicClass_AI_Kamikaze_AI_Patch, 0)
 {
     // Stolen instruction
     VeinholeMonsterClass::Update_All();
@@ -107,6 +107,3 @@ void SpawnManager_Hooks()
 
 }
 
-declhook(0x00494AB5, _EventClass_Execute_IDLE_Spawn_Manager_Patch, 0);
-declhook(0x0047FE2F, _DriveLocomotionClass_Start_Of_Move_Spawn_Manager_Patch, 0);
-declhook(0x00507000, _LogicClass_AI_Kamikaze_AI_Patch, 0);

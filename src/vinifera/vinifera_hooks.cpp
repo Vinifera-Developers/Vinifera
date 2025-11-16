@@ -197,7 +197,7 @@ void _ShowVersionText(Surface* surface)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_ProgressClass_Load_Screen_Version_Text_Patch)
+DEFINE_HOOK(0x005ADFBE, _ProgressClass_Load_Screen_Version_Text_Patch, 0x6)
 {
     Vinifera_Draw_Version_Text(HiddenSurface);
 
@@ -216,7 +216,7 @@ EXPORT_FUNC(_ProgressClass_Load_Screen_Version_Text_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_Init_Game_Loading_Screen_Version_Text_Patch)
+DEFINE_HOOK(0x004E084D, _Init_Game_Loading_Screen_Version_Text_Patch, 0)
 {
     /**
      *  Flag as pre-init, as we need to draw this differently.
@@ -238,7 +238,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_Load_Title_Page_Version_Text_Patch)
+DEFINE_HOOK(0x004E3B7A, _Load_Title_Page_Version_Text_Patch, 0x1)
 {
     Vinifera_Draw_Version_Text(HiddenSurface, true);
 
@@ -251,7 +251,7 @@ EXPORT_FUNC(_Load_Title_Page_Version_Text_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_WinMain_Vinifera_Startup)
+DEFINE_HOOK(0x005FF81C, _WinMain_Vinifera_Startup, 0)
 {
     if (Vinifera_Startup()) {
         return 0x005FFC41;
@@ -272,7 +272,7 @@ EXPORT_FUNC(_WinMain_Vinifera_Startup)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_WinMain_Register_Com_Objects)
+DEFINE_HOOK(0x00600F6E, _WinMain_Register_Com_Objects, 0)
 {
     Vinifera_Register_Com_Objects();
 
@@ -285,7 +285,7 @@ EXPORT_FUNC(_WinMain_Register_Com_Objects)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_Game_Shutdown_Vinifera_Shutdown)
+DEFINE_HOOK(0x00602474, _Game_Shutdown_Vinifera_Shutdown, 0x3)
 {
     if (!Vinifera_Shutdown()) {
 
@@ -305,7 +305,7 @@ EXPORT_FUNC(_Game_Shutdown_Vinifera_Shutdown)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_Main_Game_Vinifera_Init_Game)
+DEFINE_HOOK(0x00462927, _Main_Game_Vinifera_Init_Game, 0)
 {
     GET(int, argc, ECX);
     GET(char **, argv, EDX);
@@ -394,7 +394,7 @@ static void _Remove_External_Blowfish_Dependency_Patch()
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_Select_Game_Clear_Globals_Patch)
+DEFINE_HOOK(0x004E1F24, _Select_Game_Clear_Globals_Patch, 0)
 {
     /**
      *  Clear any developer mode globals.
@@ -431,7 +431,7 @@ EXPORT_FUNC(_Select_Game_Clear_Globals_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_Do_Lose_Create_Lose_WWMessageBox)
+DEFINE_HOOK(0x005DCDFD, _Do_Lose_Create_Lose_WWMessageBox, 0)
 {
     while (true) {
 
@@ -764,25 +764,3 @@ void Vinifera_Hooks()
 
     Patch_Jump(0x00600A54, 0x00600A91); // Skip registering vanilla JumpjetLocomotionClass in WinMain
 }
-
-/**
- *  Draw the build version info on the bottom on the screen.
- */
-declhook(0x005ADFBE, _ProgressClass_Load_Screen_Version_Text_Patch, 0x6);
-declhook(0x004E084D, _Init_Game_Loading_Screen_Version_Text_Patch, 0);
-declhook(0x004E3B7A, _Load_Title_Page_Version_Text_Patch, 0x1);
-
-/**
- *  Add in Vinifera startup/shutdown hooks.
- */
-declhook(0x005FF81C, _WinMain_Vinifera_Startup, 0);
-declhook(0x00600F6E, _WinMain_Register_Com_Objects, 0);
-declhook(0x00602474, _Game_Shutdown_Vinifera_Shutdown, 0x3); // 0x3
-declhook(0x00462927, _Main_Game_Vinifera_Init_Game, 0);
-
-/**
- *  Clear any game session and global variables before next game.
- */
-declhook(0x004E1F24, _Select_Game_Clear_Globals_Patch, 0);
-
-declhook(0x005DCDFD, _Do_Lose_Create_Lose_WWMessageBox, 0);

@@ -50,7 +50,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_WaveClass_Default_Constructor_Patch)
+DEFINE_HOOK(0x00670189, _WaveClass_Default_Constructor_Patch, 0x5)
 {
     GET(WaveClass *, this_ptr, ESI); // Current "this" pointer.
 
@@ -82,7 +82,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_WaveClass_Constructor_Patch)
+DEFINE_HOOK(0x0066FECF, _WaveClass_Constructor_Patch, 0x5)
 {
     GET(WaveClass *, this_ptr, ESI); // Current "this" pointer.
 
@@ -111,7 +111,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_WaveClass_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x00672E78, _WaveClass_Scalar_Destructor_Patch, 0x6)
 {
     GET(WaveClass *, this_ptr, EDI);
 
@@ -133,6 +133,3 @@ void WaveClassExtension_Init()
 
 }
 
-declhook(0x00670189, _WaveClass_Default_Constructor_Patch, 0x5);
-declhook(0x0066FECF, _WaveClass_Constructor_Patch, 0x5);
-declhook(0x00672E78, _WaveClass_Scalar_Destructor_Patch, 0x6);

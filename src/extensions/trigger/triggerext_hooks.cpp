@@ -49,7 +49,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_TriggerClass_Constructor_Enabled_For_Difficulty_Patch)
+DEFINE_HOOK(0x00649171, _TriggerClass_Constructor_Enabled_For_Difficulty_Patch, 0)
 {
     GET(TriggerClass *, this_ptr, ESI);
 
@@ -91,4 +91,3 @@ void TriggerClassExtension_Hooks()
 
 }
 
-declhook(0x00649171, _TriggerClass_Constructor_Enabled_For_Difficulty_Patch, 0);

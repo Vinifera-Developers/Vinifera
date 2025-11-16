@@ -47,7 +47,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_TiberiumClass_Constructor_Patch)
+DEFINE_HOOK(0x00644A20, _TiberiumClass_Constructor_Patch, 0x8)
 {
     GET(TiberiumClass *, this_ptr, ESI); // "this" pointer.
 
@@ -76,7 +76,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_TiberiumClass_Destructor_Patch)
+DEFINE_HOOK(0x00644A93, _TiberiumClass_Destructor_Patch, 0x6)
 {
     GET(TiberiumClass *, this_ptr, ESI);
 
@@ -98,5 +98,3 @@ void TiberiumClassExtension_Init()
 
 }
 
-declhook(0x00644A20, _TiberiumClass_Constructor_Patch, 0x8);
-declhook(0x00644A93, _TiberiumClass_Destructor_Patch, 0x6);

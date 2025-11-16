@@ -47,7 +47,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_SideClass_Constructor_Patch)
+DEFINE_HOOK(0x005F1AC6, _SideClass_Constructor_Patch, 0x7)
 {
     GET(SideClass *, this_ptr, ESI); // "this" pointer.
 
@@ -76,7 +76,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_SideClass_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x005F1D98, _SideClass_Scalar_Destructor_Patch, 0x6)
 {
     GET(SideClass *, this_ptr, ESI);
 
@@ -98,5 +98,3 @@ void SideClassExtension_Init()
 
 }
 
-declhook(0x005F1AC6, _SideClass_Constructor_Patch, 0x7);
-declhook(0x005F1D98, _SideClass_Scalar_Destructor_Patch, 0x6);

@@ -48,7 +48,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_AnimClass_Constructor_Patch)
+DEFINE_HOOK(0x00413C79, _AnimClass_Constructor_Patch, 0x7)
 {
     GET(AnimClass *, this_ptr, ESI); // Current "this" pointer.
 
@@ -119,7 +119,7 @@ destroy_anim:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_AnimClass_Default_Constructor_Patch)
+DEFINE_HOOK(0x004142A6, _AnimClass_Default_Constructor_Patch, 0x5)
 {
     GET(AnimClass *, this_ptr, ESI); // Current "this" pointer.
 
@@ -148,7 +148,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_AnimClass_Destructor_Patch)
+DEFINE_HOOK(0x004142CB, _AnimClass_Destructor_Patch, 0x5)
 {
     GET(AnimClass *, this_ptr, ESI);
 
@@ -180,6 +180,3 @@ void AnimClassExtension_Init()
     Patch_Jump(0x00413C89, 0x00413D3E); // Skip part of the AnimClass constructor that's re-implemented in the extension constructor.
 }
 
-declhook(0x00413C79, _AnimClass_Constructor_Patch, 0x7);
-declhook(0x004142A6, _AnimClass_Default_Constructor_Patch, 0x5);
-declhook(0x004142CB, _AnimClass_Destructor_Patch, 0x5);

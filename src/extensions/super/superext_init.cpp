@@ -47,7 +47,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_SuperClass_Default_Constructor_Patch)
+DEFINE_HOOK(0x0060B352, _SuperClass_Default_Constructor_Patch, 0x4)
 {
     GET(SuperClass *, this_ptr, ESI); // Current "this" pointer.
 
@@ -76,7 +76,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_SuperClass_Constructor_Patch)
+DEFINE_HOOK(0x0060B4AB, _SuperClass_Constructor_Patch, 0x7)
 {
     GET(SuperClass *, this_ptr, ESI); // Current "this" pointer.
 
@@ -105,7 +105,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_SuperClass_Destructor_Patch)
+DEFINE_HOOK(0x0060B51A, _SuperClass_Destructor_Patch, 0x6)
 {
     GET(SuperClass *, this_ptr, ESI);
 
@@ -129,7 +129,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_SuperClass_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x0060CC2A, _SuperClass_Scalar_Destructor_Patch, 0x6)
 {
     GET(SuperClass *, this_ptr, ESI);
 
@@ -172,7 +172,3 @@ void SuperClassExtension_Init()
     Patch_Jump(0x0060C7A8, &_SuperClass_Load_Patch);
 }
 
-declhook(0x0060B352, _SuperClass_Default_Constructor_Patch, 0x4);
-declhook(0x0060B4AB, _SuperClass_Constructor_Patch, 0x7);
-declhook(0x0060B51A, _SuperClass_Destructor_Patch, 0x6);
-declhook(0x0060CC2A, _SuperClass_Scalar_Destructor_Patch, 0x6);

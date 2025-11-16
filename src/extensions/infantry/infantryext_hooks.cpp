@@ -119,7 +119,7 @@ static int Get_Engineer_Damage(TechnoClass *tech)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_InfantryClass_Per_Cell_Process_Engineer_Capture_Damage_Patch)
+DEFINE_HOOK(0x004D35F9, _InfantryClass_Per_Cell_Process_Engineer_Capture_Damage_Patch, 0)
 {
     GET(InfantryClass *, this_ptr, ESI);
     GET(TechnoClass *, tech, EDI);      // From "cellptr->Cell_Building()".
@@ -161,7 +161,7 @@ capture:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_InfantryClass_Per_Cell_Process_Transport_Attach_Sound_Patch)
+DEFINE_HOOK(0x004D3A7B, _InfantryClass_Per_Cell_Process_Transport_Attach_Sound_Patch, 0)
 {
     GET(InfantryClass *, this_ptr, ESI);
     GET(TechnoClass *, techno, EDI);        // Radio contact
@@ -190,7 +190,7 @@ EXPORT_FUNC(_InfantryClass_Per_Cell_Process_Transport_Attach_Sound_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_InfantryClass_Firing_AI_Mechanic_Patch)
+DEFINE_HOOK(0x004D87E9, _InfantryClass_Firing_AI_Mechanic_Patch, 0)
 {
     GET(InfantryClass *, this_ptr, EBP);
     GET(ObjectClass *, targ, ESI);      // TarCom as ObjectClass.
@@ -253,7 +253,7 @@ health_ratio_check:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_InfantryClass_What_Action_Mechanic_Patch)
+DEFINE_HOOK(0x004D7168, _InfantryClass_What_Action_Mechanic_Patch, 0)
 {
     GET(InfantryClass *, this_ptr, EDI);
     GET(/*const */ObjectClass *, object, ESI);  // target
@@ -373,7 +373,7 @@ health_ratio_check:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_InfantryClass_Can_Fire_Target_Check_Patch)
+DEFINE_HOOK(0x004D5AB4, _InfantryClass_Can_Fire_Target_Check_Patch, 0)
 {
     GET_STACK(AbstractClass *, target, 0x10);
 
@@ -400,7 +400,7 @@ return_FIRE_ILLEGAL:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_InfantryClass_Doing_AI_JumpJet_Idle_Patch)
+DEFINE_HOOK(0x004D8C83, _InfantryClass_Doing_AI_JumpJet_Idle_Patch, 0)
 {
     GET(InfantryClass *, this_ptr, ESI);
 
@@ -452,7 +452,7 @@ EXPORT_FUNC(_InfantryClass_Doing_AI_JumpJet_Idle_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_InfantryClass_AI_JumpJet_Idle_Between_Firing_Patch)
+DEFINE_HOOK(0x004D50C9, _InfantryClass_AI_JumpJet_Idle_Between_Firing_Patch, 0)
 {
     GET(InfantryClass *, this_ptr, ESI);
 
@@ -497,7 +497,7 @@ EXPORT_FUNC(_InfantryClass_AI_JumpJet_Idle_Between_Firing_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_InfantryClass_Movement_AI_JumpJet_Not_Moving_Patch)
+DEFINE_HOOK(0x004D9076, _InfantryClass_Movement_AI_JumpJet_Not_Moving_Patch, 0)
 {
     GET(InfantryClass *, this_ptr, EBP);
 
@@ -539,7 +539,7 @@ EXPORT_FUNC(_InfantryClass_Movement_AI_JumpJet_Not_Moving_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_InfantryClass_Firing_AI_JumpJet_In_Air_Patch)
+DEFINE_HOOK(0x004D88FA, _InfantryClass_Firing_AI_JumpJet_In_Air_Patch, 0)
 {
     GET(InfantryClass *, this_ptr, EBP);
 
@@ -561,7 +561,7 @@ EXPORT_FUNC(_InfantryClass_Firing_AI_JumpJet_In_Air_Patch)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_InfantryClass_Per_Cell_Process_Tiberium_Damage_Patch)
+DEFINE_HOOK(0x004D3F5D, _InfantryClass_Per_Cell_Process_Tiberium_Damage_Patch, 0)
 {
     GET(int, tib_id, EAX);
 
@@ -598,7 +598,7 @@ void _Set_Infantry_Facing_After_Doing_Check_For_Do_Nothing(InfantryClass* this_p
 }
 
 
-EXPORT_FUNC(_InfantryClass_Doing_AI_Fix_Invalid_Facing_Set)
+DEFINE_HOOK(0x004D8BE4, _InfantryClass_Doing_AI_Fix_Invalid_Facing_Set, 0)
 {
     GET(InfantryClass*, inf, ESI);
     _Set_Infantry_Facing_After_Doing_Check_For_Do_Nothing(inf);
@@ -619,14 +619,3 @@ void InfantryClassExtension_Hooks()
     Patch_Jump(0x004D90B0, &InfantryClassExt::_Get_Image_Data);
 }
 
-declhook(0x004D88FA, _InfantryClass_Firing_AI_JumpJet_In_Air_Patch, 0);
-declhook(0x004D8C83, _InfantryClass_Doing_AI_JumpJet_Idle_Patch, 0);
-declhook(0x004D50C9, _InfantryClass_AI_JumpJet_Idle_Between_Firing_Patch, 0);
-declhook(0x004D9076, _InfantryClass_Movement_AI_JumpJet_Not_Moving_Patch, 0);
-declhook(0x004D5AB4, _InfantryClass_Can_Fire_Target_Check_Patch, 0);
-declhook(0x004D7168, _InfantryClass_What_Action_Mechanic_Patch, 0);
-declhook(0x004D87E9, _InfantryClass_Firing_AI_Mechanic_Patch, 0);
-declhook(0x004D3A7B, _InfantryClass_Per_Cell_Process_Transport_Attach_Sound_Patch, 0);
-declhook(0x004D35F9, _InfantryClass_Per_Cell_Process_Engineer_Capture_Damage_Patch, 0);
-declhook(0x004D3F5D, _InfantryClass_Per_Cell_Process_Tiberium_Damage_Patch, 0);
-declhook(0x004D8BE4, _InfantryClass_Doing_AI_Fix_Invalid_Facing_Set, 0);

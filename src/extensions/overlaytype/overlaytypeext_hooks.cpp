@@ -75,14 +75,14 @@ static void OverlayTypeClass_Free_Image(OverlayTypeClass *this_ptr)
  *
  *  @author: CCHyper
  */
-EXPORT_FUNC(_OverlayTypeClass_DTOR_Free_Image_Patch)
+DEFINE_HOOK(0x0058D17B, _OverlayTypeClass_DTOR_Free_Image_Patch, 0)
 {
     GET(OverlayTypeClass*, this_ptr, ESI);
     OverlayTypeClass_Free_Image(this_ptr);
     return 0x0058D192;
 }
 
-EXPORT_FUNC(_OverlayTypeClass_SDDTOR_Free_Image_Patch)
+DEFINE_HOOK(0x0058DC6B, _OverlayTypeClass_SDDTOR_Free_Image_Patch, 0)
 {
     GET(OverlayTypeClass*, this_ptr, ESI);
     OverlayTypeClass_Free_Image(this_ptr);
@@ -101,5 +101,3 @@ void OverlayTypeClassExtension_Hooks()
     OverlayTypeClassExtension_Init();
 }
 
-declhook(0x0058D17B, _OverlayTypeClass_DTOR_Free_Image_Patch, 0);
-declhook(0x0058DC6B, _OverlayTypeClass_SDDTOR_Free_Image_Patch, 0);

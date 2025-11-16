@@ -46,7 +46,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_MapSeedClass_Generate_Place_Units_And_Infantry_Neutral_House_Crash_Fix)
+DEFINE_HOOK(0x0054E7DE, _MapSeedClass_Generate_Place_Units_And_Infantry_Neutral_House_Crash_Fix, 0)
 {
     /**
      *  Stolen bytes/code.
@@ -72,7 +72,7 @@ function_return:
     return 0x0054EB6D;
 }
 
-EXPORT_FUNC(_MapSeedClass_Generate_Place_Town_Buildings_Neutral_House_Crash_Fix)
+DEFINE_HOOK(0x0054E498, _MapSeedClass_Generate_Place_Town_Buildings_Neutral_House_Crash_Fix, 0)
 {
     HousesType house = HouseTypeClass::From_Name("Neutral");
     HouseClass* hptr = House_From_HousesType(house);
@@ -93,7 +93,7 @@ function_return:
     return 0x0054E79C;
 }
 
-EXPORT_FUNC(_MapSeedClass_Generate_Place_Town_Infantry_Neutral_House_Crash_Fix)
+DEFINE_HOOK(0x0054C701, _MapSeedClass_Generate_Place_Town_Infantry_Neutral_House_Crash_Fix, 0)
 {
     /**
      *  Stolen bytes/code.
@@ -119,7 +119,7 @@ function_return:
     return 0x0054CA6A;
 }
 
-EXPORT_FUNC(_MapSeedClass_Generate_Place_City_Buildings_Neutral_House_Crash_Fix)
+DEFINE_HOOK(0x0054C31C, _MapSeedClass_Generate_Place_City_Buildings_Neutral_House_Crash_Fix, 0)
 {
     HousesType house = HouseTypeClass::From_Name("Neutral");
     HouseClass *hptr = House_From_HousesType(house);
@@ -140,7 +140,7 @@ function_return:
     return 0x0054C6C2;
 }
 
-EXPORT_FUNC(_MapSeedClass_Generate_Place_Tiberium_Wildlife_Neutral_House_Crash_Fix)
+DEFINE_HOOK(0x00546A4B, _MapSeedClass_Generate_Place_Tiberium_Wildlife_Neutral_House_Crash_Fix, 0)
 {
     /**
      *  Stolen bytes/code.
@@ -166,7 +166,7 @@ return_false:
     return 0x005471A1;
 }
 
-EXPORT_FUNC(_MapSeedClass_Generate_Bridge_Hut_Neutral_House_Crash_Fix)
+DEFINE_HOOK(0x00535434, _MapSeedClass_Generate_Bridge_Hut_Neutral_House_Crash_Fix, 0)
 {
     HousesType house = HouseTypeClass::From_Name("Neutral");
     HouseClass* hptr = House_From_HousesType(house);
@@ -195,7 +195,7 @@ return_false:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_MapSeedClass_Generate_Add_Lights_Special_House_Crash_Fix)
+DEFINE_HOOK(0x0054F41D, _MapSeedClass_Generate_Add_Lights_Special_House_Crash_Fix, 0)
 {
     HousesType house = HouseTypeClass::From_Name("Special");
     HouseClass* hptr = House_From_HousesType(house);
@@ -244,7 +244,7 @@ static void MapSeedClass_Init_Houses(CCINIClass &ini)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_MapSeedClass_Init_Random_Map_Init_Houses_Patch)
+DEFINE_HOOK(0x0053E48B, _MapSeedClass_Init_Random_Map_Init_Houses_Patch, 0)
 {
     LEA_STACK(CCINIClass *, ini, 0x128);
 
@@ -264,7 +264,7 @@ EXPORT_FUNC(_MapSeedClass_Init_Random_Map_Init_Houses_Patch)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_MapClass_Set_Map_Dimensions_WaypointMax)
+DEFINE_HOOK(0x005104FD, _MapClass_Set_Map_Dimensions_WaypointMax, 0)
 {
     GET(int, i, ESI);
 
@@ -284,12 +284,3 @@ void MapSeedClassExtension_Hooks()
 
 }
 
-declhook(0x0053E48B, _MapSeedClass_Init_Random_Map_Init_Houses_Patch, 0);
-declhook(0x0054F41D, _MapSeedClass_Generate_Add_Lights_Special_House_Crash_Fix, 0);
-declhook(0x00535434, _MapSeedClass_Generate_Bridge_Hut_Neutral_House_Crash_Fix, 0);
-declhook(0x00546A4B, _MapSeedClass_Generate_Place_Tiberium_Wildlife_Neutral_House_Crash_Fix, 0);
-declhook(0x0054C31C, _MapSeedClass_Generate_Place_City_Buildings_Neutral_House_Crash_Fix, 0);
-declhook(0x0054C701, _MapSeedClass_Generate_Place_Town_Infantry_Neutral_House_Crash_Fix, 0);
-declhook(0x0054E498, _MapSeedClass_Generate_Place_Town_Buildings_Neutral_House_Crash_Fix, 0);
-declhook(0x0054E7DE, _MapSeedClass_Generate_Place_Units_And_Infantry_Neutral_House_Crash_Fix, 0);
-declhook(0x005104FD, _MapClass_Set_Map_Dimensions_WaypointMax, 0);

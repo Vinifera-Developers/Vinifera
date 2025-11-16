@@ -46,7 +46,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_TerrainClass_Default_Constructor_Patch)
+DEFINE_HOOK(0x0063F88C, _TerrainClass_Default_Constructor_Patch, 0x5)
 {
     GET(TerrainClass *, this_ptr, ESI); // Current "this" pointer.
 
@@ -78,7 +78,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_TerrainClass_Constructor_Patch)
+DEFINE_HOOK(0x0063F556, _TerrainClass_Constructor_Patch, 0x7)
 {
     GET(TerrainClass *, this_ptr, ESI); // Current "this" pointer.
 
@@ -99,7 +99,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_TerrainClass_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x00640C3D, _TerrainClass_Scalar_Destructor_Patch, 0x6)
 {
     GET(TerrainClass *, this_ptr, ESI);
 
@@ -121,6 +121,3 @@ void TerrainClassExtension_Init()
 
 }
 
-declhook(0x0063F88C, _TerrainClass_Default_Constructor_Patch, 0x5);
-declhook(0x0063F556, _TerrainClass_Constructor_Patch, 0x7);
-declhook(0x00640C3D, _TerrainClass_Scalar_Destructor_Patch, 0x6);

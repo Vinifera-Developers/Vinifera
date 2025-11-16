@@ -47,7 +47,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_VoxelAnimTypeClass_Constructor_Patch)
+DEFINE_HOOK(0x0065F584, _VoxelAnimTypeClass_Constructor_Patch, 0x7)
 {
     GET(VoxelAnimTypeClass *, this_ptr, ESI); // "this" pointer.
 
@@ -76,7 +76,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_VoxelAnimTypeClass_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x006600E1, _VoxelAnimTypeClass_Scalar_Destructor_Patch, 0x6)
 {
     GET(VoxelAnimTypeClass *, this_ptr, ESI);
 
@@ -98,5 +98,3 @@ void VoxelAnimTypeClassExtension_Init()
 
 }
 
-declhook(0x0065F584, _VoxelAnimTypeClass_Constructor_Patch, 0x7);
-declhook(0x006600E1, _VoxelAnimTypeClass_Scalar_Destructor_Patch, 0x6);

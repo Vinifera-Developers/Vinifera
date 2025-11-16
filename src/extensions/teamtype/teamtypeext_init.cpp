@@ -47,7 +47,7 @@
  * 
  *  @author: Rampastring
  */
-EXPORT_FUNC(_TeamTypeClass_Constructor_Patch)
+DEFINE_HOOK(0x00627ED4, _TeamTypeClass_Constructor_Patch, 0x5)
 {
     GET(TeamTypeClass *, this_ptr, ESI); // "this" pointer.
 
@@ -76,7 +76,7 @@ original_code:
  * 
  *  @author: Rampastring
  */
-EXPORT_FUNC(_TeamTypeClass_Destructor_Patch)
+DEFINE_HOOK(0x00627EF8, _TeamTypeClass_Destructor_Patch, 0x6)
 {
     GET(TeamTypeClass *, this_ptr, ESI);
 
@@ -97,7 +97,7 @@ original_code:
  * 
  *  @author: Rampastring
  */
-EXPORT_FUNC(_TeamTypeClass_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x00629298, _TeamTypeClass_Scalar_Destructor_Patch, 0x6)
 {
     GET(TeamTypeClass *, this_ptr, ESI);
 
@@ -122,6 +122,3 @@ void TeamTypeClassExtension_Init()
 
 }
 
-declhook(0x00627ED4, _TeamTypeClass_Constructor_Patch, 0x5);
-declhook(0x00627EF8, _TeamTypeClass_Destructor_Patch, 0x6); // Destructor is actually inlined in scalar destructor!
-declhook(0x00629298, _TeamTypeClass_Scalar_Destructor_Patch, 0x6);

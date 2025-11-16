@@ -100,7 +100,7 @@ void RulesClassExt::_Initialize(CCINIClass& ini)
  *  
  *  @author: CCHyper
  */
-EXPORT_FUNC(_Init_Rules_Show_Rules_Select_Dialog_Patch)
+DEFINE_HOOK(0x004E12EB, _Init_Rules_Show_Rules_Select_Dialog_Patch, 0)
 {
     if (!Vinifera_DeveloperMode) {
         goto use_rules_ini;
@@ -172,7 +172,7 @@ LRESULT CALLBACK Rules_Dialog_Procedure(HWND hWnd, UINT uMsg, UINT wParam, LONG 
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_Init_Rules_Extended_Class_Patch)
+DEFINE_HOOK(0x004E138B, _Init_Rules_Extended_Class_Patch, 0x5)
 {
     /**
      *  #issue-583
@@ -221,5 +221,3 @@ void RulesClassExtension_Hooks()
     Patch_Jump(0x004E17B0, &Rules_Dialog_Procedure);
 }
 
-declhook(0x004E138B, _Init_Rules_Extended_Class_Patch, 0x5);
-declhook(0x004E12EB, _Init_Rules_Show_Rules_Select_Dialog_Patch, 0);

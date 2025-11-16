@@ -486,7 +486,7 @@ RadioMessageType AircraftClassExt::_Receive_Message(RadioClass* from, RadioMessa
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET0_Can_Fire_FIRE_FACING_Patch)
+DEFINE_HOOK(0x0040BDCF, _AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET0_Can_Fire_FIRE_FACING_Patch, 0)
 {
     GET(AircraftClass *, this_ptr, ESI);
 
@@ -498,7 +498,7 @@ EXPORT_FUNC(_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET0_Can_Fi
 
 }
 
-EXPORT_FUNC(_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_Fire_FIRE_OK_Patch)
+DEFINE_HOOK(0x0040C054, _AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_Fire_FIRE_OK_Patch, 0)
 {
     GET(AircraftClass *, this_ptr, ESI);
 
@@ -509,7 +509,7 @@ EXPORT_FUNC(_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_Fi
     return 0x0040BFA8;
 }
 
-EXPORT_FUNC(_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_Fire_FIRE_FACING_Patch)
+DEFINE_HOOK(0x0040BF9D, _AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_Fire_FIRE_FACING_Patch, 0)
 {
     GET(AircraftClass *, this_ptr, ESI);
 
@@ -520,7 +520,7 @@ EXPORT_FUNC(_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_Fi
     return 0x0040C060;
 }
 
-EXPORT_FUNC(_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_Fire_DEFAULT_Patch)
+DEFINE_HOOK(0x0040C0AC, _AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_Fire_DEFAULT_Patch, 0)
 {
     GET(AircraftClass *, this_ptr, ESI);
 
@@ -539,7 +539,7 @@ EXPORT_FUNC(_AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_Fi
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_AircraftClass_Mission_Unload_Transport_Detach_Sound_Patch)
+DEFINE_HOOK(0x0040988C, _AircraftClass_Mission_Unload_Transport_Detach_Sound_Patch, 0)
 {
     GET(AircraftClass *, this_ptr, ESI);
 
@@ -594,7 +594,7 @@ EXPORT_FUNC(_AircraftClass_Mission_Unload_Transport_Detach_Sound_Patch)
  * 
  *  @author: tomsons26, CCHyper
  */
-EXPORT_FUNC(_AircraftClass_Mission_Move_LAND_Is_Moving_Check_Patch)
+DEFINE_HOOK(0x0040A413, _AircraftClass_Mission_Move_LAND_Is_Moving_Check_Patch, 0)
 {
     GET(AircraftClass *, this_ptr, ESI);
     
@@ -621,7 +621,7 @@ EXPORT_FUNC(_AircraftClass_Mission_Move_LAND_Is_Moving_Check_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_AircraftClass_Init_IsCloakable_BugFix_Patch)
+DEFINE_HOOK(0x00408898, _AircraftClass_Init_IsCloakable_BugFix_Patch, 0)
 {
     GET(AircraftClass *, this_ptr, ESI);
     GET(AircraftTypeClass *, aircrafttype, EAX);
@@ -641,7 +641,7 @@ EXPORT_FUNC(_AircraftClass_Init_IsCloakable_BugFix_Patch)
 }
 
 
-EXPORT_FUNC(_AircraftClass_Enter_Idle_Mode_Spawner_Patch)
+DEFINE_HOOK(0x0040B3A6, _AircraftClass_Enter_Idle_Mode_Spawner_Patch, 0)
 {
     GET(AircraftClass*, this_ptr, ESI);
     GET(int, layer, EAX);
@@ -663,7 +663,7 @@ EXPORT_FUNC(_AircraftClass_Enter_Idle_Mode_Spawner_Patch)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_AircraftClass_Do_MISSION_UNLOAD_Carryall_Drop_Off_Patch)
+DEFINE_HOOK(0x004097FF, _AircraftClass_Do_MISSION_UNLOAD_Carryall_Drop_Off_Patch, 0)
 {
     GET(AircraftClass*, this_ptr, ESI);
 
@@ -674,7 +674,7 @@ EXPORT_FUNC(_AircraftClass_Do_MISSION_UNLOAD_Carryall_Drop_Off_Patch)
     return 0x00409833;
 }
 
-EXPORT_FUNC(_AircraftClass_Do_MISSION_MOVE_CARRYALL_Drop_Off_Patch)
+DEFINE_HOOK(0x0040AD82, _AircraftClass_Do_MISSION_MOVE_CARRYALL_Drop_Off_Patch, 0x6)
 {
     GET(AircraftClass*, this_ptr, ESI);
 
@@ -687,7 +687,7 @@ EXPORT_FUNC(_AircraftClass_Do_MISSION_MOVE_CARRYALL_Drop_Off_Patch)
     return 0x0040ADD0;
 }
 
-EXPORT_FUNC(_AircraftClass_Do_MISSION_ENTER_Drop_Off_Patch)
+DEFINE_HOOK(0x0040D60D, _AircraftClass_Do_MISSION_ENTER_Drop_Off_Patch, 0)
 {
     GET(AircraftClass*, this_ptr, ESI);
 
@@ -705,7 +705,7 @@ EXPORT_FUNC(_AircraftClass_Do_MISSION_ENTER_Drop_Off_Patch)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_AircraftClass_Draw_It_Carry_All_Patch)
+DEFINE_HOOK(0x00408BF3, _AircraftClass_Draw_It_Carry_All_Patch, 0)
 {
     GET(AircraftClass*, this_ptr, EBP);
     GET_STACK(Rect*, cliprect, 0xD0);
@@ -780,7 +780,7 @@ LONG AircraftClassExt::_Landing_Altitude_Thunk()
  *
  *  Author: ZivDero
  */
-EXPORT_FUNC(_AircraftClass_AI_Carryall_Facing_Patch)
+DEFINE_HOOK(0x00409366, _AircraftClass_AI_Carryall_Facing_Patch, 0)
 {
     GET(AircraftClass*, this_ptr, EBP);
 
@@ -819,20 +819,3 @@ void AircraftClassExtension_Hooks()
     Patch_Jump(0x0040EDD0, &AircraftClassExt::_Landing_Altitude_Thunk);
     Patch_Jump(0x0040C8A0, &AircraftClassExt::_Receive_Message);
 }
-
-/**
- *  Syringe hooks.
- */
-declhook(0x00408898, _AircraftClass_Init_IsCloakable_BugFix_Patch, 0);
-declhook(0x0040A413, _AircraftClass_Mission_Move_LAND_Is_Moving_Check_Patch, 0);
-declhook(0x0040988C, _AircraftClass_Mission_Unload_Transport_Detach_Sound_Patch, 0);
-declhook(0x0040BDCF, _AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET0_Can_Fire_FIRE_FACING_Patch, 0);
-declhook(0x0040C054, _AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_Fire_FIRE_OK_Patch, 0);
-declhook(0x0040BF9D, _AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_Fire_FIRE_FACING_Patch, 0);
-declhook(0x0040C0AC, _AircraftClass_Mission_Attack_IsCurleyShuffle_FIRE_AT_TARGET2_Can_Fire_DEFAULT_Patch, 0);
-declhook(0x0040B3A6, _AircraftClass_Enter_Idle_Mode_Spawner_Patch, 0);
-declhook(0x004097FF, _AircraftClass_Do_MISSION_UNLOAD_Carryall_Drop_Off_Patch, 0);
-declhook(0x0040AD82, _AircraftClass_Do_MISSION_MOVE_CARRYALL_Drop_Off_Patch, 0x6);
-declhook(0x0040D60D, _AircraftClass_Do_MISSION_ENTER_Drop_Off_Patch, 0);
-declhook(0x00408BF3, _AircraftClass_Draw_It_Carry_All_Patch, 0);
-declhook(0x00409366, _AircraftClass_AI_Carryall_Facing_Patch, 0);

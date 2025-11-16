@@ -502,7 +502,7 @@ void HouseClassExt::_Harvested(int tiberium, TiberiumType slot)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_HouseClass_Super_Weapon_Handler_InstantRecharge_Patch)
+DEFINE_HOOK(0x004BD30B, _HouseClass_Super_Weapon_Handler_InstantRecharge_Patch, 0)
 {
     GET(HouseClass *, this_ptr, EDI);
     GET(SuperClass *, special, ESI);
@@ -558,7 +558,7 @@ EXPORT_FUNC(_HouseClass_Super_Weapon_Handler_InstantRecharge_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_HouseClass_Can_Build_BuildCheat_Patch)
+DEFINE_HOOK(0x004BBD26, _HouseClass_Can_Build_BuildCheat_Patch, 0x8)
 {
     GET(HouseClass *, this_ptr, EBP);
     GET_STACK(TechnoTypeClass *, objecttype, 0x30);
@@ -651,7 +651,7 @@ int _HouseClass_ShouldDisableCameo_Get_Queued_Count(FactoryClass* factory, Techn
  *  Also updates the build limit logic with unit queuing to
  *  take our unit transformation logic into account.
  */
-EXPORT_FUNC(_HouseClass_ShouldDisableCameo_BuildLimit_Fix)
+DEFINE_HOOK(0x004CB777, _HouseClass_ShouldDisableCameo_BuildLimit_Fix, 0)
 {
     GET(FactoryClass*, factory, ECX);
     GET(TechnoTypeClass*, technotype, ESI);
@@ -673,7 +673,7 @@ EXPORT_FUNC(_HouseClass_ShouldDisableCameo_BuildLimit_Fix)
  *
  *  Author: Rampastring
  */
-EXPORT_FUNC(_HouseClass_Can_Build_BuildLimit_Handle_Vehicle_Transform)
+DEFINE_HOOK(0x004BC187, _HouseClass_Can_Build_BuildLimit_Handle_Vehicle_Transform, 0)
 {
     GET(UnitTypeClass*, unittype, EDI);
     GET(HouseClass*, house, EBP);
@@ -716,7 +716,7 @@ EXPORT_FUNC(_HouseClass_Can_Build_BuildLimit_Handle_Vehicle_Transform)
  *
  *  Author: Rampastring
  */
-EXPORT_FUNC(_HouseClass_Enable_SWs_Check_For_Building_Power)
+DEFINE_HOOK(0x004CB6C1, _HouseClass_Enable_SWs_Check_For_Building_Power, 0x6)
 {
     GET(int, quiet, EAX);
     GET(BuildingClass*, building, ESI);
@@ -878,7 +878,7 @@ Cell HouseClassExt::_Find_Build_Location(BuildingTypeClass* btype, int(__fastcal
  *
  *  Author: ZivDero
  */
-EXPORT_FUNC(_Can_Build_Required_Forbidden_Houses_Patch)
+DEFINE_HOOK(0x004BBC74, _Can_Build_Required_Forbidden_Houses_Patch, 0x9)
 {
     GET(TechnoTypeClass*, techno_type, EDI);
     GET(HouseClassExt*, this_ptr, EBP);
@@ -899,7 +899,7 @@ EXPORT_FUNC(_Can_Build_Required_Forbidden_Houses_Patch)
  *
  *  Author: ZivDero
  */
-EXPORT_FUNC(_HouseClass_Can_Build_Multi_MCV_Patch)
+DEFINE_HOOK(0x004BC0B7, _HouseClass_Can_Build_Multi_MCV_Patch, 0x6)
 {
     if (RuleExtension->IsMultiMCV) {
         return 0x004BC102;
@@ -988,7 +988,7 @@ TechnoTypeClass const* HouseClassExt::_Suggest_New_Object(RTTIType objecttype, b
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_HouseClass_Exhausted_Build_Limit_Fetch_Factory_Patch)
+DEFINE_HOOK(0x004CB73D, _HouseClass_Exhausted_Build_Limit_Fetch_Factory_Patch, 0)
 {
     GET(HouseClass*, this_ptr, EBX);
     GET(TechnoTypeClass const*, ttype, ESI);
@@ -1010,7 +1010,7 @@ static void Update_Factories_Helper(BuildingClass* building)
 }
 
 
-EXPORT_FUNC(_BuildingClass_Unlimbo_Update_Factories_Patch)
+DEFINE_HOOK(0x0042AACF, _BuildingClass_Unlimbo_Update_Factories_Patch, 0)
 {
     GET(BuildingClass*, this_ptr, ESI);
     Update_Factories_Helper(this_ptr);
@@ -1018,7 +1018,7 @@ EXPORT_FUNC(_BuildingClass_Unlimbo_Update_Factories_Patch)
 }
 
 
-EXPORT_FUNC(_BuildingClass_Limbo_Update_Factories_Patch)
+DEFINE_HOOK(0x0042DFBE, _BuildingClass_Limbo_Update_Factories_Patch, 0)
 {
     GET(BuildingClass*, this_ptr, EDI);
     Update_Factories_Helper(this_ptr);
@@ -1026,7 +1026,7 @@ EXPORT_FUNC(_BuildingClass_Limbo_Update_Factories_Patch)
 }
 
 
-EXPORT_FUNC(_BuildingClass_Captured_Update_Factories_Patch)
+DEFINE_HOOK(0x0042FCF8, _BuildingClass_Captured_Update_Factories_Patch, 0)
 {
     GET(BuildingClass*, this_ptr, ESI);
     GET_STACK(HouseClass*, oldowner, 0x60);
@@ -1045,7 +1045,7 @@ EXPORT_FUNC(_BuildingClass_Captured_Update_Factories_Patch)
 }
 
 
-EXPORT_FUNC(_BuildingClass_Read_INI_Update_Factories_Patch)
+DEFINE_HOOK(0x00434C78, _BuildingClass_Read_INI_Update_Factories_Patch, 0)
 {
     GET(BuildingClass*, this_ptr, ESI);
     Update_Factories_Helper(this_ptr);
@@ -1053,7 +1053,7 @@ EXPORT_FUNC(_BuildingClass_Read_INI_Update_Factories_Patch)
 }
 
 
-EXPORT_FUNC(_BuildingClass_Turn_On_Update_Factories_Patch)
+DEFINE_HOOK(0x00436855, _BuildingClass_Turn_On_Update_Factories_Patch, 0)
 {
     GET(BuildingClass*, this_ptr, ESI);
     Update_Factories_Helper(this_ptr);
@@ -1061,7 +1061,7 @@ EXPORT_FUNC(_BuildingClass_Turn_On_Update_Factories_Patch)
 }
 
 
-EXPORT_FUNC(_BuildingClass_Turn_Off_Update_Factories_Patch)
+DEFINE_HOOK(0x00436911, _BuildingClass_Turn_Off_Update_Factories_Patch, 0)
 {
     GET(BuildingClass*, this_ptr, ESI);
     Update_Factories_Helper(this_ptr);
@@ -1074,7 +1074,7 @@ EXPORT_FUNC(_BuildingClass_Turn_Off_Update_Factories_Patch)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_HouseClass_Raise_Money_BuildNavalUnit_Patch)
+DEFINE_HOOK(0x004C0F40, _HouseClass_Raise_Money_BuildNavalUnit_Patch, 0)
 {
     GET(HouseClass*, this_ptr, ESI);
     GET(bool, needs_harvester, ECX);
@@ -1128,7 +1128,7 @@ void HouseClassExt::_Production_Check()
     }
 }
 
-EXPORT_FUNC(_HouseClass_AI_BuildNavalUnit_Patch)
+DEFINE_HOOK(0x004BD0E5, _HouseClass_AI_BuildNavalUnit_Patch, 0)
 {
     GET(HouseClassExt*, this_ptr, ESI);
     this_ptr->_Production_Check();
@@ -1204,7 +1204,7 @@ bool HouseClassExt::_AI_Has_Prerequisites(const TechnoTypeClass* type, DynamicVe
  *
  *  Author: Rampastring
  */
-EXPORT_FUNC(_HouseClass_AI_Fix_Player_Losing_When_Their_Allies_Win)
+DEFINE_HOOK(0x004BC78D, _HouseClass_AI_Fix_Player_Losing_When_Their_Allies_Win, 0)
 {
     GET(HouseClass*, this_ptr, ESI);
 
@@ -1228,7 +1228,7 @@ EXPORT_FUNC(_HouseClass_AI_Fix_Player_Losing_When_Their_Allies_Win)
  *
  *  Author: Rampastring
  */
-EXPORT_FUNC(_HouseClass_AI_Fix_Player_Winning_When_Their_Allies_Lose)
+DEFINE_HOOK(0x004BC855, _HouseClass_AI_Fix_Player_Winning_When_Their_Allies_Lose, 0)
 {
     GET(HouseClass*, this_ptr, ESI);
 
@@ -1248,7 +1248,7 @@ EXPORT_FUNC(_HouseClass_AI_Fix_Player_Winning_When_Their_Allies_Lose)
  *
  *  Author: Rampastring
  */
-EXPORT_FUNC(_HouseClass_AI_Raise_Money_Fix_Memory_Corruption)
+DEFINE_HOOK(0x004C0F87, _HouseClass_AI_Raise_Money_Fix_Memory_Corruption, 0)
 {
     GET(HouseClass*, this_ptr, ESI);
     GET(StructType, buildingtype, EAX);
@@ -1311,26 +1311,3 @@ void HouseClassExtension_Hooks()
     Patch_Jump(0x004BF180, &HouseClassExt::_Suggest_New_Object);
     Patch_Jump(0x004BD590, &HouseClassExt::_Harvested);
 }
-
-/**
- *  Syringe hooks.
- */
-declhook(0x004BBC74, _Can_Build_Required_Forbidden_Houses_Patch, 0x9);
-declhook(0x004BBD26, _HouseClass_Can_Build_BuildCheat_Patch, 0x8);
-declhook(0x004BD30B, _HouseClass_Super_Weapon_Handler_InstantRecharge_Patch, 0);
-declhook(0x004CB777, _HouseClass_ShouldDisableCameo_BuildLimit_Fix, 0);
-declhook(0x004BC187, _HouseClass_Can_Build_BuildLimit_Handle_Vehicle_Transform, 0);
-declhook(0x004CB6C1, _HouseClass_Enable_SWs_Check_For_Building_Power, 0x6);
-declhook(0x004BC0B7, _HouseClass_Can_Build_Multi_MCV_Patch, 0x6);
-declhook(0x004CB73D, _HouseClass_Exhausted_Build_Limit_Fetch_Factory_Patch, 0);
-declhook(0x0042DFBE, _BuildingClass_Limbo_Update_Factories_Patch, 0);
-declhook(0x00434C78, _BuildingClass_Read_INI_Update_Factories_Patch, 0);
-declhook(0x00436855, _BuildingClass_Turn_On_Update_Factories_Patch, 0);
-declhook(0x00436911, _BuildingClass_Turn_Off_Update_Factories_Patch, 0);
-declhook(0x004C0F40, _HouseClass_Raise_Money_BuildNavalUnit_Patch, 0);
-declhook(0x004BD0E5, _HouseClass_AI_BuildNavalUnit_Patch, 0);
-declhook(0x004BC78D, _HouseClass_AI_Fix_Player_Losing_When_Their_Allies_Win, 0);
-declhook(0x004BC855, _HouseClass_AI_Fix_Player_Winning_When_Their_Allies_Lose, 0);
-declhook(0x004C0F87, _HouseClass_AI_Raise_Money_Fix_Memory_Corruption, 0);
-declhook(0x0042AACF, _BuildingClass_Unlimbo_Update_Factories_Patch, 0)
-declhook(0x0042FCF8, _BuildingClass_Captured_Update_Factories_Patch, 0)

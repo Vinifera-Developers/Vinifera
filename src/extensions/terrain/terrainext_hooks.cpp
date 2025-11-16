@@ -155,7 +155,7 @@ static LightSourceClass *Terrain_New_LightSource(TerrainClass *this_ptr)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_TerrainClass_Unlimbo_LightSource_Patch)
+DEFINE_HOOK(0x006409C3, _TerrainClass_Unlimbo_LightSource_Patch, 0x7)
 {
     GET(TerrainClass *, this_ptr, EDI);
 
@@ -204,7 +204,7 @@ function_return:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_TerrainClass_Take_Damage_LightSource_Patch)
+DEFINE_HOOK(0x0063F4D9, _TerrainClass_Take_Damage_LightSource_Patch, 0x6)
 {
     GET(TerrainClass *, this_ptr, ESI);
 
@@ -246,5 +246,3 @@ void TerrainClassExtension_Hooks()
     Patch_Jump(0x0063FFB0, &TerrainClassExt::_AI);
 }
 
-declhook(0x006409C3, _TerrainClass_Unlimbo_LightSource_Patch, 0x7);
-declhook(0x0063F4D9, _TerrainClass_Take_Damage_LightSource_Patch, 0x6);

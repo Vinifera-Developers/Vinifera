@@ -51,7 +51,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_Init_Theater_Patch)
+DEFINE_HOOK(0x004E7B63, _Init_Theater_Patch, 0)
 {
     GET(TheaterType, theater, EBP);
     LEA_STACK(char *, root_name, 0x14); // char [16]
@@ -86,7 +86,7 @@ EXPORT_FUNC(_Init_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_Init_Theater_INI_Patch)
+DEFINE_HOOK(0x004F3D6C, _Init_Theater_INI_Patch, 0)
 {
     LEA_STACK(char *, ini_name, 0x344); // char [20]
     GET_STACK(TheaterType, theater, 0x98);
@@ -102,7 +102,7 @@ EXPORT_FUNC(_Init_Theater_INI_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_AnimTypeClass_Init_Theater_Patch)
+DEFINE_HOOK(0x00418921, _AnimTypeClass_Init_Theater_Patch, 0)
 {
     GET(AnimTypeClass *, this_ptr, ESI);
     GET(TheaterType, theater, EBP);
@@ -119,7 +119,7 @@ EXPORT_FUNC(_AnimTypeClass_Init_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_AnimTypeClass_entry_64_Theater_Patch)
+DEFINE_HOOK(0x00418A15, _AnimTypeClass_entry_64_Theater_Patch, 0)
 {
     GET(AnimTypeClass *, this_ptr, ESI);
     GET(TheaterType, theater, EAX);
@@ -137,7 +137,7 @@ EXPORT_FUNC(_AnimTypeClass_entry_64_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_AnimTypeClass_Load_Theater_Patch)
+DEFINE_HOOK(0x00419722, _AnimTypeClass_Load_Theater_Patch, 0)
 {
     GET(AnimTypeClass *, this_ptr, ESI);
     GET(TheaterType, theater, EAX);
@@ -154,7 +154,7 @@ EXPORT_FUNC(_AnimTypeClass_Load_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_AnimTypeClass_Get_Image_Data_Theater_Patch)
+DEFINE_HOOK(0x00419A93, _AnimTypeClass_Get_Image_Data_Theater_Patch, 0)
 {
     GET(AnimTypeClass *, this_ptr, ESI);
     GET(TheaterType, theater, EAX);
@@ -171,7 +171,7 @@ EXPORT_FUNC(_AnimTypeClass_Get_Image_Data_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_BuildingTypeClass_Init_Theater_Patch)
+DEFINE_HOOK(0x0043FCB3, _BuildingTypeClass_Init_Theater_Patch, 0)
 {
     GET(BuildingTypeClass *, this_ptr, ESI);
     GET(TheaterType, theater, EDI);
@@ -188,7 +188,7 @@ EXPORT_FUNC(_BuildingTypeClass_Init_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_BuildingTypeClass_Init_Buildup_Theater_Patch)
+DEFINE_HOOK(0x0043FCFD, _BuildingTypeClass_Init_Buildup_Theater_Patch, 0)
 {
     GET(BuildingTypeClass *, this_ptr, ESI);
     GET(TheaterType, theater, EDI);
@@ -208,7 +208,7 @@ EXPORT_FUNC(_BuildingTypeClass_Init_Buildup_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_BuildingTypeClass_Load_Shape_Data_Theater_Patch)
+DEFINE_HOOK(0x0044065F, _BuildingTypeClass_Load_Shape_Data_Theater_Patch, 0)
 {
     GET(BuildingTypeClass *, this_ptr, EBX);
     GET(TheaterType, theater, ESI);
@@ -231,7 +231,7 @@ EXPORT_FUNC(_BuildingTypeClass_Load_Shape_Data_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_OverlayTypeClass_Init_Theater_Patch)
+DEFINE_HOOK(0x0058D3D6, _OverlayTypeClass_Init_Theater_Patch, 0)
 {
     GET(OverlayTypeClass *, this_ptr, ESI);
     GET(TheaterType, theater, EDI);
@@ -249,7 +249,7 @@ EXPORT_FUNC(_OverlayTypeClass_Init_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_OverlayTypeClass_Load_Theater_Patch)
+DEFINE_HOOK(0x0058D86C, _OverlayTypeClass_Load_Theater_Patch, 0)
 {
     GET(OverlayTypeClass *, this_ptr, ESI);
     GET(TheaterType, theater, EAX);
@@ -266,7 +266,7 @@ EXPORT_FUNC(_OverlayTypeClass_Load_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_SmudgeTypeClass_Init_Theater_Patch)
+DEFINE_HOOK(0x005FB3F9, _SmudgeTypeClass_Init_Theater_Patch, 0)
 {
     GET(SmudgeTypeClass *, this_ptr, ESI);
     GET(TheaterType, theater, EDI);
@@ -283,7 +283,7 @@ EXPORT_FUNC(_SmudgeTypeClass_Init_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_SmudgeTypeClass_Read_INI_Theater_Patch)
+DEFINE_HOOK(0x005FB678, _SmudgeTypeClass_Read_INI_Theater_Patch, 0)
 {
     GET(SmudgeTypeClass *, this_ptr, ESI);
     GET(TheaterType, theater, EAX);
@@ -300,7 +300,7 @@ EXPORT_FUNC(_SmudgeTypeClass_Read_INI_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_VeinholeMonsterClass_Init_Theater_Patch)
+DEFINE_HOOK(0x006619F6, _VeinholeMonsterClass_Init_Theater_Patch, 0)
 {
     GET(TheaterType, theater, ECX);
     LEA_STACK(char *, buffer, 0x0);
@@ -316,7 +316,7 @@ EXPORT_FUNC(_VeinholeMonsterClass_Init_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_ObjectTypeClass_Load_Theater_Art_Theater_Patch)
+DEFINE_HOOK(0x005888ED, _ObjectTypeClass_Load_Theater_Art_Theater_Patch, 0)
 {
     GET(TheaterType, theater, EAX);
     GET(char *, ini_name, ESI);
@@ -333,7 +333,7 @@ EXPORT_FUNC(_ObjectTypeClass_Load_Theater_Art_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_OverlayTypeClass_Get_Image_Data_Theater_Patch)
+DEFINE_HOOK(0x0058DB69, _OverlayTypeClass_Get_Image_Data_Theater_Patch, 0)
 {
     GET(OverlayTypeClass *, this_ptr, ESI);
     GET(TheaterType, theater, EAX);
@@ -350,7 +350,7 @@ EXPORT_FUNC(_OverlayTypeClass_Get_Image_Data_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_TerrainTypeClass_Init_Theater_Patch)
+DEFINE_HOOK(0x006416E9, _TerrainTypeClass_Init_Theater_Patch, 0)
 {
     GET(SmudgeTypeClass *, this_ptr, ESI);
     GET(TheaterType, theater, EDI);
@@ -367,7 +367,7 @@ EXPORT_FUNC(_TerrainTypeClass_Init_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_IsometricTileTypeClass_Read_INI_SlopeZ_Theater_Patch)
+DEFINE_HOOK(0x004F3B67, _IsometricTileTypeClass_Read_INI_SlopeZ_Theater_Patch, 0)
 {
     LEA_STACK(char *, fullname, 0x1D8); // char [20]
     GET(TheaterType, theater, ESI);
@@ -390,7 +390,7 @@ EXPORT_FUNC(_IsometricTileTypeClass_Read_INI_SlopeZ_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_MapClass_Process_Ice_Tile_Theater_Patch)
+DEFINE_HOOK(0x00520719, _MapClass_Process_Ice_Tile_Theater_Patch, 0)
 {
     /**
      *  Is this theater flagged to handle the ice growth logic?
@@ -412,7 +412,7 @@ return_false:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_MapClass_Cracked_Ice_AI_Theater_Patch)
+DEFINE_HOOK(0x00520F59, _MapClass_Cracked_Ice_AI_Theater_Patch, 0x6)
 {
     /**
      *  Is this theater flagged to handle the ice growth logic?
@@ -434,7 +434,7 @@ return_false:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_UnitClass_Per_Cell_Process_Ice_Check_Theater_Patch)
+DEFINE_HOOK(0x00651A40, _UnitClass_Per_Cell_Process_Ice_Check_Theater_Patch, 0)
 {
     /**
      *  Is this theater flagged to handle the ice growth logic?
@@ -456,7 +456,7 @@ not_allowed:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_Init_Theater_Palette_Theater_Patch)
+DEFINE_HOOK(0x004E7D78, _Init_Theater_Palette_Theater_Patch, 0)
 {
     GET(TheaterType, theater, EBP);
     static char _buffer[PATH_MAX];
@@ -478,7 +478,7 @@ retrieve_file:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_TerrainClass_Set_Occupy_Bit_Theater_Patch)
+DEFINE_HOOK(0x0063F9A6, _TerrainClass_Set_Occupy_Bit_Theater_Patch, 0)
 {
     GET(ScenarioClass *, scen, EAX);
 
@@ -502,7 +502,7 @@ temperate_bits:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_TerrainClass_Clear_Occupy_Bit_Theater_Patch)
+DEFINE_HOOK(0x0063F916, _TerrainClass_Clear_Occupy_Bit_Theater_Patch, 0)
 {
     GET(ScenarioClass *, scen, EAX);
 
@@ -526,7 +526,7 @@ temperate_bits:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_MapSeedClass_Generate_Allow_Veinholes_Theater_Patch)
+DEFINE_HOOK(0x0053D365, _MapSeedClass_Generate_Allow_Veinholes_Theater_Patch, 0)
 {
     /**
      *  Stolen bytes/code.
@@ -561,7 +561,7 @@ skip_generation:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_MapClass_Ice_Growth_AI_Theater_Patch)
+DEFINE_HOOK(0x00520DBB, _MapClass_Ice_Growth_AI_Theater_Patch, 0)
 {
     GET(ScenarioClass *, scen, EAX);
 
@@ -588,7 +588,7 @@ return_false:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_MapClass_Moving_Over_Ice_Theater_Patch)
+DEFINE_HOOK(0x005209B1, _MapClass_Moving_Over_Ice_Theater_Patch, 0)
 {
     /**
      *  Is this theater flagged to handle the ice growth logic?
@@ -611,7 +611,7 @@ return_false:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_MapClass_Smooth_Ice_Shore_Theater_Patch)
+DEFINE_HOOK(0x0051FBD9, _MapClass_Smooth_Ice_Shore_Theater_Patch, 0)
 {
     GET(ScenarioClass *, scen, EAX);
 
@@ -635,7 +635,7 @@ function_return:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_MapClass_Smooth_Ice_Theater_Patch_1)
+DEFINE_HOOK(0x0051F5C9, _MapClass_Smooth_Ice_Theater_Patch_1, 0)
 {
     GET(ScenarioClass *, scen, EAX);
 
@@ -659,7 +659,7 @@ function_return:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_MapClass_Smooth_Ice_Theater_Patch_2)
+DEFINE_HOOK(0x0051F039, _MapClass_Smooth_Ice_Theater_Patch_2, 0)
 {
     GET(ScenarioClass *, scen, EAX);
 
@@ -683,7 +683,7 @@ function_return:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_MapClass_Smooth_Ice_Theater_Patch_3)
+DEFINE_HOOK(0x0051EBDE, _MapClass_Smooth_Ice_Theater_Patch_3, 0)
 {
     GET(ScenarioClass *, scen, EAX);
 
@@ -707,7 +707,7 @@ function_return:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_LogicClass_Old_AI_Ice_Timer_Theater_Patch)
+DEFINE_HOOK(0x00507320, _LogicClass_Old_AI_Ice_Timer_Theater_Patch, 0)
 {
     /**
      *  Is this theater flagged to handle the ice growth logic?
@@ -729,7 +729,7 @@ skip_ice_update:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_LogicClass_AI_Ice_Timer_Theater_Patch)
+DEFINE_HOOK(0x00506F47, _LogicClass_AI_Ice_Timer_Theater_Patch, 0)
 {
     /**
      *  Is this theater flagged to handle the ice growth logic?
@@ -751,7 +751,7 @@ skip_ice_update:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_IsometricTileTypeClass_Read_INI_Process_Ice_Tilesets_Theater_Patch)
+DEFINE_HOOK(0x004F5535, _IsometricTileTypeClass_Read_INI_Process_Ice_Tilesets_Theater_Patch, 0)
 {
     GET_STACK(TheaterType, theater, 0x98);
 
@@ -775,7 +775,7 @@ function_return:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_IsometricTileTypeClass_Read_INI_MarbleMadness_Theater_Patch)
+DEFINE_HOOK(0x004F51DF, _IsometricTileTypeClass_Read_INI_MarbleMadness_Theater_Patch, 0)
 {
     GET_STACK(TheaterType, theater, 0xAC);
     GET(char *, filename, EAX); // char [128]
@@ -793,7 +793,7 @@ EXPORT_FUNC(_IsometricTileTypeClass_Read_INI_MarbleMadness_Theater_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_CellClass_Cell_Color_Theater_Patch_1)
+DEFINE_HOOK(0x00451EC4, _CellClass_Cell_Color_Theater_Patch_1, 0)
 {
     GET(TheaterType, theater, EDX);
     long rgb;    // Actually is a RGBClass instance.
@@ -821,7 +821,7 @@ EXPORT_FUNC(_CellClass_Cell_Color_Theater_Patch_1)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_CellClass_Cell_Color_Theater_Patch_2)
+DEFINE_HOOK(0x00451EF5, _CellClass_Cell_Color_Theater_Patch_2, 0)
 {
     GET(TheaterType, theater, EDX);
     long rgb;    // Actually is a RGBClass instance.
@@ -849,7 +849,7 @@ EXPORT_FUNC(_CellClass_Cell_Color_Theater_Patch_2)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_CellClass_Cell_Color_Theater_Patch_3)
+DEFINE_HOOK(0x00451F26, _CellClass_Cell_Color_Theater_Patch_3, 0)
 {
     GET(TheaterType, theater, EDX);
     long rgb;    // Actually is a RGBClass instance.
@@ -877,7 +877,7 @@ EXPORT_FUNC(_CellClass_Cell_Color_Theater_Patch_3)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_CellClass_Cell_Color_Theater_Patch_4)
+DEFINE_HOOK(0x00451F48, _CellClass_Cell_Color_Theater_Patch_4, 0)
 {
     GET(TheaterType, theater, EAX);
     static long rgb;    // Actually is an address to a RGBClass instance.
@@ -909,54 +909,3 @@ void TheaterTypeClassExtension_Hooks()
     Patch_Byte_Range(0x00520F57, 0x90, 2);
 }
 
-declhook(0x004E7B63, _Init_Theater_Patch, 0);
-
-declhook(0x004F3D6C, _Init_Theater_INI_Patch, 0);
-declhook(0x004E7D78, _Init_Theater_Palette_Theater_Patch, 0);
-
-declhook(0x00418921, _AnimTypeClass_Init_Theater_Patch, 0);
-declhook(0x00418A15, _AnimTypeClass_entry_64_Theater_Patch, 0);
-declhook(0x00419722, _AnimTypeClass_Load_Theater_Patch, 0);
-declhook(0x00419A93, _AnimTypeClass_Get_Image_Data_Theater_Patch, 0);
-declhook(0x0043FCB3, _BuildingTypeClass_Init_Theater_Patch, 0);
-declhook(0x0043FCFD, _BuildingTypeClass_Init_Buildup_Theater_Patch, 0);
-
-declhook(0x0044065F, _BuildingTypeClass_Load_Shape_Data_Theater_Patch, 0);
-
-declhook(0x0058D3D6, _OverlayTypeClass_Init_Theater_Patch, 0);
-declhook(0x0058D86C, _OverlayTypeClass_Load_Theater_Patch, 0);
-declhook(0x0058DB69, _OverlayTypeClass_Get_Image_Data_Theater_Patch, 0);
-declhook(0x005FB3F9, _SmudgeTypeClass_Init_Theater_Patch, 0);
-declhook(0x005FB678, _SmudgeTypeClass_Read_INI_Theater_Patch, 0);
-declhook(0x005888ED, _ObjectTypeClass_Load_Theater_Art_Theater_Patch, 0);
-declhook(0x006416E9, _TerrainTypeClass_Init_Theater_Patch, 0);
-
-declhook(0x004F3B67, _IsometricTileTypeClass_Read_INI_SlopeZ_Theater_Patch, 0);
-declhook(0x004F5535, _IsometricTileTypeClass_Read_INI_Process_Ice_Tilesets_Theater_Patch, 0);
-
-declhook(0x004F51DF, _IsometricTileTypeClass_Read_INI_MarbleMadness_Theater_Patch, 0);
-
-declhook(0x006619F6, _VeinholeMonsterClass_Init_Theater_Patch, 0);
-
-declhook(0x00651A40, _UnitClass_Per_Cell_Process_Ice_Check_Theater_Patch, 0);
-declhook(0x0063F9A6, _TerrainClass_Set_Occupy_Bit_Theater_Patch, 0);
-declhook(0x0063F916, _TerrainClass_Clear_Occupy_Bit_Theater_Patch, 0);
-
-declhook(0x0053D365, _MapSeedClass_Generate_Allow_Veinholes_Theater_Patch, 0);
-
-declhook(0x00520719, _MapClass_Process_Ice_Tile_Theater_Patch, 0);
-declhook(0x00520F59, _MapClass_Cracked_Ice_AI_Theater_Patch, 0x6);
-declhook(0x00520DBB, _MapClass_Ice_Growth_AI_Theater_Patch, 0);
-declhook(0x005209B1, _MapClass_Moving_Over_Ice_Theater_Patch, 0);
-declhook(0x0051FBD9, _MapClass_Smooth_Ice_Shore_Theater_Patch, 0);
-declhook(0x0051F5C9, _MapClass_Smooth_Ice_Theater_Patch_1, 0);
-declhook(0x0051F039, _MapClass_Smooth_Ice_Theater_Patch_2, 0);
-declhook(0x0051EBDE, _MapClass_Smooth_Ice_Theater_Patch_3, 0);
-
-declhook(0x00507320, _LogicClass_Old_AI_Ice_Timer_Theater_Patch, 0);
-declhook(0x00506F47, _LogicClass_AI_Ice_Timer_Theater_Patch, 0);
-
-declhook(0x00451EC4, _CellClass_Cell_Color_Theater_Patch_1, 0);
-declhook(0x00451EF5, _CellClass_Cell_Color_Theater_Patch_2, 0);
-declhook(0x00451F26, _CellClass_Cell_Color_Theater_Patch_3, 0);
-declhook(0x00451F48, _CellClass_Cell_Color_Theater_Patch_4, 0);

@@ -47,7 +47,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_ThemeClass_ThemeControl_Constructor_Patch)
+DEFINE_HOOK(0x006439E5, _ThemeClass_ThemeControl_Constructor_Patch, 0x1)
 {
     GET(ThemeClass::ThemeControl *, this_ptr, EAX); // "this" pointer.
 
@@ -68,7 +68,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_ThemeClass_ThemeControl_Inlined_Constructor_Patch)
+DEFINE_HOOK(0x00643B45, _ThemeClass_ThemeControl_Inlined_Constructor_Patch, 0)
 {
     GET(ThemeClass::ThemeControl*, this_ptr, EAX);
 
@@ -87,7 +87,7 @@ EXPORT_FUNC(_ThemeClass_ThemeControl_Inlined_Constructor_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_ThemeClass_ThemeControl_Fill_In_Patch)
+DEFINE_HOOK(0x00643AAB, _ThemeClass_ThemeControl_Fill_In_Patch, 0x7)
 {
     GET(ThemeClass::ThemeControl*, this_ptr, ESI);
     GET(CCINIClass*, ini, EDI);
@@ -115,6 +115,3 @@ void ThemeClassExtension_Init()
 
 }
 
-declhook(0x006439E5, _ThemeClass_ThemeControl_Constructor_Patch, 0x1);
-declhook(0x00643B45, _ThemeClass_ThemeControl_Inlined_Constructor_Patch, 0);
-declhook(0x00643AAB, _ThemeClass_ThemeControl_Fill_In_Patch, 0x7);

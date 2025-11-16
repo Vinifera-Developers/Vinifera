@@ -51,7 +51,7 @@
  *
  *  @author: Rampastring, ZivDero
  */
-EXPORT_FUNC(_TabClass_Draw_It_Faction_Specific_Options_Button_Color_Scheme_Patch)
+DEFINE_HOOK(0x0060E5AE, _TabClass_Draw_It_Faction_Specific_Options_Button_Color_Scheme_Patch, 0x6)
 {
     ColorSchemeType colorschemetype = Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor;
     ColorScheme* colorscheme = ColorSchemes[colorschemetype];
@@ -66,7 +66,7 @@ EXPORT_FUNC(_TabClass_Draw_It_Faction_Specific_Options_Button_Color_Scheme_Patch
  *
  *  @author: Rampastring, ZivDero
  */
-EXPORT_FUNC(_CreditClass_Graphic_Logic_Faction_Specific_Color_Scheme_Patch)
+DEFINE_HOOK(0x004714E6, _CreditClass_Graphic_Logic_Faction_Specific_Color_Scheme_Patch, 0x8)
 {
     ColorSchemeType colorschemetype = Extension::Fetch(Sides[PlayerPtr->Class->Side])->UIColor;
     ColorScheme* colorscheme = ColorSchemes[colorschemetype];
@@ -98,7 +98,7 @@ void Draw_Tooltip_Rectangle(Surface* surface, Rect& drawrect)
  *
  *  @author: Rampastring
  */
-EXPORT_FUNC(_CCToolTip_Draw_Faction_Specific_Color_Scheme_Rect_Patch)
+DEFINE_HOOK(0x0044E682, _CCToolTip_Draw_Faction_Specific_Color_Scheme_Rect_Patch, 0)
 {
     GET(Surface*, surface, ESI);
     GET(Rect*, drawrect, EAX);
@@ -114,7 +114,7 @@ EXPORT_FUNC(_CCToolTip_Draw_Faction_Specific_Color_Scheme_Rect_Patch)
  *
  *  @author: Rampastring, ZivDero
  */
-EXPORT_FUNC(_CCToolTip_Draw_Faction_Specific_Color_Scheme_Text_Patch)
+DEFINE_HOOK(0x0044E6F3, _CCToolTip_Draw_Faction_Specific_Color_Scheme_Text_Patch, 0)
 {
     ColorSchemeType colorschemetype = Extension::Fetch(Sides[PlayerPtr->Class->Side])->ToolTipColor;
     ColorScheme* colorscheme = ColorSchemes[colorschemetype];
@@ -132,8 +132,3 @@ void CreditClassExtension_Hooks()
     
 }
 
-
-declhook(0x0060E5AE, _TabClass_Draw_It_Faction_Specific_Options_Button_Color_Scheme_Patch, 0x6);
-declhook(0x004714E6, _CreditClass_Graphic_Logic_Faction_Specific_Color_Scheme_Patch, 0x8);
-declhook(0x0044E682, _CCToolTip_Draw_Faction_Specific_Color_Scheme_Rect_Patch, 0);
-declhook(0x0044E6F3, _CCToolTip_Draw_Faction_Specific_Color_Scheme_Text_Patch, 0);

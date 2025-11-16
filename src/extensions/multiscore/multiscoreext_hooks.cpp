@@ -51,7 +51,7 @@
  *  @author: Rampastring
  */
 static int MostCreditsSpent;
-EXPORT_FUNC(_MultiScore_Tally_Score_Fetch_Largest_CreditsSpent_Score)
+DEFINE_HOOK(0x005687A9, _MultiScore_Tally_Score_Fetch_Largest_CreditsSpent_Score, 0x6)
 {
     MostCreditsSpent = 0;
     for (int i = 0; i < Houses.Count(); i++) {
@@ -70,7 +70,7 @@ EXPORT_FUNC(_MultiScore_Tally_Score_Fetch_Largest_CreditsSpent_Score)
  *
  *  @author: Rampastring
  */
-EXPORT_FUNC(_MultiScore_Tally_Score_Calculate_Economy_Score)
+DEFINE_HOOK(0x005689D5, _MultiScore_Tally_Score_Calculate_Economy_Score, 0)
 {
     GET(HouseClass *, house, EBX);
     int economy_score;
@@ -111,7 +111,7 @@ EXPORT_FUNC(_MultiScore_Tally_Score_Calculate_Economy_Score)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_MultiScore_568BE0_ElapsedTime_Patch)
+DEFINE_HOOK(0x00568D10, _MultiScore_568BE0_ElapsedTime_Patch, 0)
 {
     unsigned elapsed_time = Scen->ElapsedTimer.Value() + Vinifera_TotalPlayTime;
     R->EBX(elapsed_time);
@@ -134,6 +134,3 @@ void MultiScoreExtension_Hooks()
     Patch_Dword(0x00568A05 + 1, (uintptr_t)&"Loser"); // +1 skips "mov eax," opcode
 }
 
-declhook(0x005687A9, _MultiScore_Tally_Score_Fetch_Largest_CreditsSpent_Score, 0x6);
-declhook(0x005689D5, _MultiScore_Tally_Score_Calculate_Economy_Score, 0);
-declhook(0x00568D10, _MultiScore_568BE0_ElapsedTime_Patch, 0);

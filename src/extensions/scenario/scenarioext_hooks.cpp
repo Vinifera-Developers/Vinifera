@@ -144,7 +144,7 @@ public:
  *
  *  @author: CCHyper
  */
-EXPORT_FUNC(_Clear_Scenario_Patch)
+DEFINE_HOOK(0x005DC85A, _Clear_Scenario_Patch, 0)
 {
     //DEBUG_INFO("Clearing waypoints...\n");
     ScenExtension->Clear_All_Waypoints();
@@ -163,7 +163,7 @@ EXPORT_FUNC(_Clear_Scenario_Patch)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_Fill_In_Data_Home_Cell_Patch)
+DEFINE_HOOK(0x005DC0A0, _Fill_In_Data_Home_Cell_Patch, 0)
 {
     Map.SidebarClass::Activate(1);
     if (Session.Type == GAME_NORMAL) {
@@ -276,7 +276,7 @@ static bool Rule_Addition(const char *fname, bool with_digest = false)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_Read_Scenario_INI_MPlayer_INI_Patch)
+DEFINE_HOOK(0x005DD8D5, _Read_Scenario_INI_MPlayer_INI_Patch, 0)
 {
     if (Session.Type != GAME_NORMAL && Session.Type != GAME_WDT) {
 
@@ -312,7 +312,7 @@ EXPORT_FUNC(_Read_Scenario_INI_MPlayer_INI_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_Do_Win_Skip_MPlayer_Score_Screen_Patch)
+DEFINE_HOOK(0x005DC9D4, _Do_Win_Skip_MPlayer_Score_Screen_Patch, 0)
 {
     /**
      *  Stolen bytes/code.
@@ -326,7 +326,7 @@ EXPORT_FUNC(_Do_Win_Skip_MPlayer_Score_Screen_Patch)
     return 0x005DC9DF;
 }
 
-EXPORT_FUNC(_Do_Lose_Skip_MPlayer_Score_Screen_Patch)
+DEFINE_HOOK(0x005DCD92, _Do_Lose_Skip_MPlayer_Score_Screen_Patch, 0)
 {
     /**
      *  Stolen bytes/code.
@@ -371,7 +371,7 @@ int Scan_Place_Object_Proxy(ObjectClass* obj, Cell const& cell)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_Create_Units_Save_Spawn_Waypoint_Patch)
+DEFINE_HOOK(0x005DEBFA, _Create_Units_Save_Spawn_Waypoint_Patch, 0)
 {
     GET(HouseClass*, house, EDI);
 
@@ -389,7 +389,7 @@ EXPORT_FUNC(_Create_Units_Save_Spawn_Waypoint_Patch)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_ScenarioClass_Do_Win_GlobalFlags_Patch)
+DEFINE_HOOK(0x005DCB59, _ScenarioClass_Do_Win_GlobalFlags_Patch, 0)
 {
     if (ScenExtension->GlobalFlags[1].Value) {
 
@@ -412,7 +412,7 @@ EXPORT_FUNC(_ScenarioClass_Do_Win_GlobalFlags_Patch)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_Clear_Scenario_Clear_Globals_Patch)
+DEFINE_HOOK(0x005DC64D, _Clear_Scenario_Clear_Globals_Patch, 0)
 {
     for (int i = 0; i < std::size(ScenExtension->GlobalFlags); i++) {
         ScenExtension->Set_Global_To(i, 0);
@@ -426,7 +426,7 @@ EXPORT_FUNC(_Clear_Scenario_Clear_Globals_Patch)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_Read_Scenario_INI_Read_Global_INI_Patch)
+DEFINE_HOOK(0x005DD85D, _Read_Scenario_INI_Read_Global_INI_Patch, 0)
 {
     ScenExtension->Read_Global_INI(*RuleINI);
     return 0x005DD8D5;
@@ -509,14 +509,3 @@ void ScenarioClassExtension_Hooks()
     Patch_Jump(0x005DFDA0, &ScenarioClassExt::_Num_Locals);
 }
 
-declhook(0x005DEBFA, _Create_Units_Save_Spawn_Waypoint_Patch, 0);
-declhook(0x005DC9D4, _Do_Win_Skip_MPlayer_Score_Screen_Patch, 0);
-declhook(0x005DCD92, _Do_Lose_Skip_MPlayer_Score_Screen_Patch, 0);
-declhook(0x005DD8D5, _Read_Scenario_INI_MPlayer_INI_Patch, 0);
-declhook(0x005DC85A, _Clear_Scenario_Patch, 0);
-declhook(0x005DC0A0, _Fill_In_Data_Home_Cell_Patch, 0);
-declhook(0x00673330, _Waypoint_From_Name, 0);
-declhook(0x006732B0, _Waypoint_To_Name, 0);
-declhook(0x005DCB59, _ScenarioClass_Do_Win_GlobalFlags_Patch, 0);
-declhook(0x005DC64D, _Clear_Scenario_Clear_Globals_Patch, 0);
-declhook(0x005DD85D, _Read_Scenario_INI_Read_Global_INI_Patch, 0);

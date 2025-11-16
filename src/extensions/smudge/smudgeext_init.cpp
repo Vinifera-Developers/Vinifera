@@ -46,7 +46,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_SmudgeClass_Constructor_Patch)
+DEFINE_HOOK(0x005FAAB3, _SmudgeClass_Constructor_Patch, 0x6)
 {
     GET(SmudgeClass *, this_ptr, ESI); // Current "this" pointer.
 
@@ -75,7 +75,7 @@ original_code:
  *
  *  @author: CCHyper
  */
-EXPORT_FUNC(_SmudgeClass_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x005FAF63, _SmudgeClass_Scalar_Destructor_Patch, 0x7)
 {
     GET(SmudgeClass *, this_ptr, ESI);
 
@@ -97,5 +97,3 @@ void SmudgeClassExtension_Init()
 
 }
 
-declhook(0x005FAAB3, _SmudgeClass_Constructor_Patch, 0x6);
-declhook(0x005FAF63, _SmudgeClass_Scalar_Destructor_Patch, 0x7);

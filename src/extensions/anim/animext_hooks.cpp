@@ -682,7 +682,7 @@ void AnimClassExt::_Delete_Me()
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_AnimClass_Constructor_Layer_Set_Z_Height_Patch)
+DEFINE_HOOK(0x00413D3E, _AnimClass_Constructor_Layer_Set_Z_Height_Patch, 0)
 {
     GET(AnimClass *, this_ptr, ESI);
 
@@ -716,7 +716,7 @@ EXPORT_FUNC(_AnimClass_Constructor_Layer_Set_Z_Height_Patch)
  *  @author: ZivDero
  */
 static AnimClass* _CurrentlyDrawnAnim = nullptr;
-EXPORT_FUNC(_AnimClass_Draw_It_Shadow_Patch)
+DEFINE_HOOK(0x00414B42, _AnimClass_Draw_It_Shadow_Patch, 0x6)
 {
     GET(AnimClass*, anim, ESI);
 
@@ -799,5 +799,3 @@ void AnimClassExtension_Hooks()
     Patch_Jump(0x004167C0, &AnimClassExt::_Delete_Me);
 }
 
-declhook(0x00413D3E, _AnimClass_Constructor_Layer_Set_Z_Height_Patch, 0);
-declhook(0x00414B42, _AnimClass_Draw_It_Shadow_Patch, 0x6);

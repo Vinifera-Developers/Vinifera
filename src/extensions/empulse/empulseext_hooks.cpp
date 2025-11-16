@@ -47,7 +47,7 @@
  *
  *  @author: Rampastring
  */
-EXPORT_FUNC(_EMPulseClass_Create_Building_EMPImmune_Patch)
+DEFINE_HOOK(0x00492C45, _EMPulseClass_Create_Building_EMPImmune_Patch, 0)
 {
     GET(BuildingTypeClass *, buildingtype, EAX);
 
@@ -87,7 +87,7 @@ loop_continue:
  *
  *  @author: Rampastring
  */
-EXPORT_FUNC(_EMPulseClass_Create_Foot_EMPImmune_Patch)
+DEFINE_HOOK(0x00492E84, _EMPulseClass_Create_Foot_EMPImmune_Patch, 0)
 {
     GET(FootClass *, foot, ESI);
 
@@ -123,5 +123,3 @@ void EMPulseClassExtension_Hooks()
 {
 }
 
-declhook(0x00492E84, _EMPulseClass_Create_Foot_EMPImmune_Patch, 0);
-declhook(0x00492C45, _EMPulseClass_Create_Building_EMPImmune_Patch, 0);

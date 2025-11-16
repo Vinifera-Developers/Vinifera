@@ -264,7 +264,7 @@ bool CCINIClassExt::_Put_ArmorType(const char *section, const char *entry, Armor
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_WeaponTypeClass_Read_INI_Get_AnimTypes_Patch)
+DEFINE_HOOK(0x00680F07, _WeaponTypeClass_Read_INI_Get_AnimTypes_Patch, 0)
 {
     GET(WeaponTypeClass *, this_ptr, ESI);
     GET(CCINIClassExt *, ini, EBX);
@@ -301,4 +301,3 @@ void CCINIClassExtension_Hooks()
     Patch_Jump(0x0044AC20, &CCINIClassExt::_Get_ActionType);
 }
 
-declhook(0x00680F07, _WeaponTypeClass_Read_INI_Get_AnimTypes_Patch, 0);

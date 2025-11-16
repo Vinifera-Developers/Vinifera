@@ -124,14 +124,14 @@ void AnimTypeClassExt::_Load_Image(TheaterType theater)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_AnimTypeClass_DTOR_Free_Image_Patch)
+DEFINE_HOOK(0x004187DB, _AnimTypeClass_DTOR_Free_Image_Patch, 0)
 {
     GET(AnimTypeClass*, this_ptr, ESI);
     this_ptr->Free_Image();
     return 0x004187F2;
 }
 
-EXPORT_FUNC(_AnimTypeClass_SDDTOR_Free_Image_Patch)
+DEFINE_HOOK(0x00419C0B, _AnimTypeClass_SDDTOR_Free_Image_Patch, 0)
 {
     GET(AnimTypeClass*, this_ptr, ESI);
     this_ptr->Free_Image();
@@ -152,6 +152,3 @@ void AnimTypeClassExtension_Hooks()
     Patch_Jump(0x00419B40, &AnimTypeClassExt::_Free_Image);
     Patch_Jump(0x00418A70, &AnimTypeClassExt::_Load_Image);
 }
-
-declhook(0x004187DB, _AnimTypeClass_DTOR_Free_Image_Patch, 0);
-declhook(0x00419C0B, _AnimTypeClass_SDDTOR_Free_Image_Patch, 0)

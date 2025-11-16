@@ -43,7 +43,7 @@
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_EventClass_Execute_New_Events)
+DEFINE_HOOK(0x00494294, _EventClass_Execute_New_Events, 0x5)
 {
     GET(EventClassExt*, event, ESI);
 
@@ -475,4 +475,3 @@ void EventClassExtension_Hooks()
     Patch_Jump(0x00494B9A, 0x00494BAA); // Jump over code that prevents deploying with aircraft
 }
 
-declhook(0x00494294, _EventClass_Execute_New_Events, 0x5);

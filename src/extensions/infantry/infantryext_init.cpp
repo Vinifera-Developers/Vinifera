@@ -48,7 +48,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_InfantryClass_Constructor_Patch)
+DEFINE_HOOK(0x004D21E1, _InfantryClass_Constructor_Patch, 0x5)
 {
     GET(InfantryClass *, this_ptr, ESI); // Current "this" pointer.
 
@@ -77,7 +77,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_InfantryClass_Destructor_Patch)
+DEFINE_HOOK(0x004D22E1, _InfantryClass_Destructor_Patch, 0x5)
 {
     GET(InfantryClass *, this_ptr, ESI);
 
@@ -99,5 +99,3 @@ void InfantryClassExtension_Init()
 
 }
 
-declhook(0x004D21E1, _InfantryClass_Constructor_Patch, 0x5);
-declhook(0x004D22E1, _InfantryClass_Destructor_Patch, 0x5);

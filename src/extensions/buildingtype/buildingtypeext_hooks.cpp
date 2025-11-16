@@ -152,21 +152,21 @@ static void BuildingTypeClass_Free_Buildup_Image(BuildingTypeClass *this_ptr)
  *
  *  @author: CCHyper
  */
-EXPORT_FUNC(_BuildingTypeClass_SDDTOR_Free_Buildup_Image_Patch)
+DEFINE_HOOK(0x00444052, _BuildingTypeClass_SDDTOR_Free_Buildup_Image_Patch, 0)
 {
     GET(BuildingTypeClass*, this_ptr, ESI);
     BuildingTypeClass_Free_Buildup_Image(this_ptr);
     return 0x00444079;
 }
 
-EXPORT_FUNC(_BuildingTypeClass_Init_Free_Buildup_Image_Patch)
+DEFINE_HOOK(0x0043FDB0, _BuildingTypeClass_Init_Free_Buildup_Image_Patch, 0)
 {
     GET(BuildingTypeClass*, this_ptr, ESI);
     BuildingTypeClass_Free_Buildup_Image(this_ptr);
     return 0x0043FDBF;
 }
 
-EXPORT_FUNC(_BuildingTypeClass_DTOR_Free_Buildup_Image_Patch)
+DEFINE_HOOK(0x0043F936, _BuildingTypeClass_DTOR_Free_Buildup_Image_Patch, 0)
 {
     GET(BuildingTypeClass*, this_ptr, ESI);
     BuildingTypeClass_Free_Buildup_Image(this_ptr);
@@ -212,21 +212,21 @@ static void BuildingTypeClass_Free_Image(BuildingTypeClass *this_ptr)
  *
  *  @author: CCHyper
  */
-EXPORT_FUNC(_BuildingTypeClass_SDDTOR_Free_Image_Patch)
+DEFINE_HOOK(0x0044403B, _BuildingTypeClass_SDDTOR_Free_Image_Patch, 0)
 {
     GET(BuildingTypeClass*, this_ptr, ESI);
     BuildingTypeClass_Free_Image(this_ptr);
     return 0x00444052;
 }
 
-EXPORT_FUNC(_BuildingTypeClass_Init_Free_Image_Patch)
+DEFINE_HOOK(0x0043FD83, _BuildingTypeClass_Init_Free_Image_Patch, 0)
 {
     GET(BuildingTypeClass*, this_ptr, ESI);
     BuildingTypeClass_Free_Image(this_ptr);
     return 0x0043FD9E;
 }
 
-EXPORT_FUNC(_BuildingTypeClass_DTOR_Free_Image_Patch)
+DEFINE_HOOK(0x0043F90B, _BuildingTypeClass_DTOR_Free_Image_Patch, 0)
 {
     GET(BuildingTypeClass*, this_ptr, ESI);
     BuildingTypeClass_Free_Image(this_ptr);
@@ -267,7 +267,7 @@ int BuildingTypeClassExt::_Cost_Of(HouseClass* house)
  *
  *  Author: ZivDero
  */
-EXPORT_FUNC(_BuildingTypeClass_Init_Fetch_Image_Patch)
+DEFINE_HOOK(0x0043FDBF, _BuildingTypeClass_Init_Fetch_Image_Patch, 0)
 {
     GET(BuildingTypeClass*, btype, ESI);
     GET(TheaterType, theater, EDI);
@@ -296,10 +296,3 @@ void BuildingTypeClassExtension_Hooks()
     Patch_Jump(0x00440080, &BuildingTypeClassExt::_Cost_Of);
 }
 
-declhook(0x0044403B, _BuildingTypeClass_SDDTOR_Free_Image_Patch, 0);
-declhook(0x0043FD83, _BuildingTypeClass_Init_Free_Image_Patch, 0);
-declhook(0x0043F90B, _BuildingTypeClass_DTOR_Free_Image_Patch, 0);
-declhook(0x00444052, _BuildingTypeClass_SDDTOR_Free_Buildup_Image_Patch, 0);
-declhook(0x0043FDB0, _BuildingTypeClass_Init_Free_Buildup_Image_Patch, 0);
-declhook(0x0043F936, _BuildingTypeClass_DTOR_Free_Buildup_Image_Patch, 0);
-declhook(0x0043FDBF, _BuildingTypeClass_Init_Fetch_Image_Patch, 0);

@@ -92,7 +92,7 @@ static void Set_Addon_Mode(bool firestorm)
  *  @author: CCHyper
  */
 static bool firsttime = true;
-EXPORT_FUNC(_NewMenuClass_Process_SkipToMenus_Patch)
+DEFINE_HOOK(0x004E8831, _NewMenuClass_Process_SkipToMenus_Patch, 0x7)
 {
     GET(NewMenuClass *, newmenu, ECX);
 
@@ -244,4 +244,3 @@ void NewMenuExtension_Hooks()
     
 }
 
-declhook(0x004E8831, _NewMenuClass_Process_SkipToMenus_Patch, 0x7);

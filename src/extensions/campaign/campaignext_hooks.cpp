@@ -46,7 +46,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_Choose_Campaign_Debug_Only_Patch)
+DEFINE_HOOK(0x004E337D, _Choose_Campaign_Debug_Only_Patch, 0)
 {
     GET(CampaignClass *, campaign, ESI);
     GET(int, index, EDI);
@@ -114,4 +114,3 @@ void CampaignClassExtension_Hooks()
     Patch_Byte_Range(0x004E3377, 0x90, 3); // Removes "or ecx, 0x0FFFFFFFF"
 }
 
-declhook(0x004E337D, _Choose_Campaign_Debug_Only_Patch, 0);

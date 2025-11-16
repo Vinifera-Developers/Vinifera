@@ -49,7 +49,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_BuildingClass_Constructor_Patch)
+DEFINE_HOOK(0x00426615, _BuildingClass_Constructor_Patch, 0x5)
 {
     GET(BuildingClass *, this_ptr, ESI); // Current "this" pointer.
 
@@ -81,7 +81,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_BuildingClass_Destructor_Patch)
+DEFINE_HOOK(0x0042666E, _BuildingClass_Destructor_Patch, 0x6)
 {
     GET(BuildingClass *, this_ptr, ESI);
 
@@ -106,5 +106,3 @@ void BuildingClassExtension_Init()
 
 }
 
-declhook(0x00426615, _BuildingClass_Constructor_Patch, 0x5);
-declhook(0x0042666E, _BuildingClass_Destructor_Patch, 0x6);

@@ -47,7 +47,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_AnimTypeClass_Constructor_Patch)
+DEFINE_HOOK(0x00418798, _AnimTypeClass_Constructor_Patch, 0x5)
 {
     GET(AnimTypeClass *, this_ptr, ESI); // "this" pointer.
 
@@ -76,7 +76,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_AnimTypeClass_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x00419C22, _AnimTypeClass_Scalar_Destructor_Patch, 0x6)
 {
     GET(AnimTypeClass *, this_ptr, ESI);
 
@@ -98,5 +98,3 @@ void AnimTypeClassExtension_Init()
 
 }
 
-declhook(0x00418798, _AnimTypeClass_Constructor_Patch, 0x5);
-declhook(0x00419C22, _AnimTypeClass_Scalar_Destructor_Patch, 0x6);

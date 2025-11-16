@@ -322,7 +322,7 @@ int CellClassExt::_Reduce_Tiberium(int levels)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_CellClass_Draw_Shroud_Fog_Patch)
+DEFINE_HOOK(0x00454E60, _CellClass_Draw_Shroud_Fog_Patch, 0x5)
 {
     static bool _shroud_one_time = false;
     static const ShapeSet *_shroud_shape;
@@ -363,7 +363,7 @@ EXPORT_FUNC(_CellClass_Draw_Shroud_Fog_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_CellClass_Draw_Fog_Patch)
+DEFINE_HOOK(0x00455130, _CellClass_Draw_Fog_Patch, 0x5)
 {
     static bool _fog_one_time = false;
     static const ShapeSet *_fog_shape;
@@ -403,7 +403,7 @@ EXPORT_FUNC(_CellClass_Draw_Fog_Patch)
  * 
  *  @author: CCHyper (based on research by Rampastring)
  */
-EXPORT_FUNC(_CellClass_Goodie_Check_Crates_Disabled_Respawn_BugFix_Patch)
+DEFINE_HOOK(0x00457EAB, _CellClass_Goodie_Check_Crates_Disabled_Respawn_BugFix_Patch, 0)
 {
     /**
      *  Random crates are only thing in multiplayer.
@@ -436,7 +436,7 @@ continue_function:
  * 
  *  @author: CCHyper (based on research by Iran)
  */
-EXPORT_FUNC(_CellClass_Goodie_Check_Veterency_Trainable_BugFix_Patch)
+DEFINE_HOOK(0x0045882C, _CellClass_Goodie_Check_Veterency_Trainable_BugFix_Patch, 0)
 {
     GET(ObjectClass *, object, ECX);
 
@@ -473,7 +473,7 @@ passes_check:
  * 
  *  Author: Rampastring
  */
-EXPORT_FUNC(_CellClass_Update_Wall_Owner_Skip_Buildings_That_Cannot_Own_Walls_Patch)
+DEFINE_HOOK(0x004531E4, _CellClass_Update_Wall_Owner_Skip_Buildings_That_Cannot_Own_Walls_Patch, 0)
 {
     GET(BuildingClass*, building, ESI);
 
@@ -514,8 +514,3 @@ void CellClassExtension_Hooks()
     Patch_Jump(0x00456BF0, &CellClassExt::_Reduce_Tiberium);
 }
 
-declhook(0x0045882C, _CellClass_Goodie_Check_Veterency_Trainable_BugFix_Patch, 0);
-declhook(0x00457EAB, _CellClass_Goodie_Check_Crates_Disabled_Respawn_BugFix_Patch, 0);
-declhook(0x00454E60, _CellClass_Draw_Shroud_Fog_Patch, 0x5);
-declhook(0x00455130, _CellClass_Draw_Fog_Patch, 0x5);
-declhook(0x004531E4, _CellClass_Update_Wall_Owner_Skip_Buildings_That_Cannot_Own_Walls_Patch, 0);

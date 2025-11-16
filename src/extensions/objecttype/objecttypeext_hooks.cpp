@@ -137,7 +137,7 @@ void ObjectTypeClassExt::_Assign_Theater_Name(char *fname, TheaterType theater)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_ObjectTypeClass_Load_Theater_Art_Assign_Theater_Name_Theater_Patch)
+DEFINE_HOOK(0x0058891D, _ObjectTypeClass_Load_Theater_Art_Assign_Theater_Name_Theater_Patch, 0)
 {
     GET(ObjectTypeClass *, this_ptr, EDI);
     LEA_STACK(char *, fullname, 0x0C);
@@ -249,4 +249,3 @@ void ObjectTypeClassExtension_Hooks()
     Patch_Jump(0x00587B20, &ObjectTypeClassExt::_Who_Can_Build_Me);
 }
 
-declhook(0x0058891D, _ObjectTypeClass_Load_Theater_Art_Assign_Theater_Name_Theater_Patch, 0);

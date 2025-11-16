@@ -73,7 +73,7 @@ extern HMODULE DLLInstance;
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_Main_Window_Procedure_Scroll_Sidebar_Check_Patch)
+DEFINE_HOOK(0x00685F69, _Main_Window_Procedure_Scroll_Sidebar_Check_Patch, 0)
 {
     GET_STACK(UINT, wParam, 0x14);
     static bool _mouse_wheel_scolling = false;
@@ -126,7 +126,7 @@ message_handler:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_Init_CDROM_Access_Local_Files_Patch)
+DEFINE_HOOK(0x004E0469, _Init_CDROM_Access_Local_Files_Patch, 0)
 {
     /**
      *  If there are search drives specified then all files are to be
@@ -219,7 +219,7 @@ static bool Vinifera_Play_Startup_Movies()
     return true;
 }
 
-EXPORT_FUNC(_Init_Game_Skip_Startup_Movies_Patch)
+DEFINE_HOOK(0x004E0786, _Init_Game_Skip_Startup_Movies_Patch, 0)
 {
     if (Vinifera_SkipStartupMovies) {
         DEBUG_INFO("Skipping startup movies.\n");
@@ -1121,6 +1121,3 @@ void GameInit_Hooks()
 #endif
 }
 
-declhook(0x004E0786, _Init_Game_Skip_Startup_Movies_Patch, 0);
-declhook(0x004E0469, _Init_CDROM_Access_Local_Files_Patch, 0);
-declhook(0x00685F69, _Main_Window_Procedure_Scroll_Sidebar_Check_Patch, 0);

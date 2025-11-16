@@ -57,32 +57,32 @@ return (jumpaddr)
  *
  *  Author: Rampastring
  */
-EXPORT_FUNC(_ScoreClass_Draw_Dual_Bars_Player_RGB_Patch_1)
+DEFINE_HOOK(0x005E532A, _ScoreClass_Draw_Dual_Bars_Player_RGB_Patch_1, 0)
 {
     APPLY_SCORE_BAR_COLOR(ScenExtension->ScorePlayerColor, 0x005E5338);
 }
 
-EXPORT_FUNC(_ScoreClass_Draw_Dual_Bars_Player_RGB_Patch_2)
+DEFINE_HOOK(0x005E536B, _ScoreClass_Draw_Dual_Bars_Player_RGB_Patch_2, 0)
 {
     APPLY_SCORE_BAR_COLOR(ScenExtension->ScorePlayerColor, 0x005E5379);
 }
 
-EXPORT_FUNC(_ScoreClass_Draw_Dual_Bars_Player_RGB_Patch_3)
+DEFINE_HOOK(0x005E53AC, _ScoreClass_Draw_Dual_Bars_Player_RGB_Patch_3, 0)
 {
     APPLY_SCORE_BAR_COLOR(ScenExtension->ScorePlayerColor, 0x005E53BA);
 }
 
-EXPORT_FUNC(_ScoreClass_Draw_Dual_Bars_Enemy_RGB_Patch_1)
+DEFINE_HOOK(0x005E53F8, _ScoreClass_Draw_Dual_Bars_Enemy_RGB_Patch_1, 0)
 {
     APPLY_SCORE_BAR_COLOR(ScenExtension->ScoreEnemyColor, 0x005E5405);
 }
 
-EXPORT_FUNC(_ScoreClass_Draw_Dual_Bars_Enemy_RGB_Patch_2)
+DEFINE_HOOK(0x005E543B, _ScoreClass_Draw_Dual_Bars_Enemy_RGB_Patch_2, 0)
 {
     APPLY_SCORE_BAR_COLOR(ScenExtension->ScoreEnemyColor, 0x005E5448);
 }
 
-EXPORT_FUNC(_ScoreClass_Draw_Dual_Bars_Enemy_RGB_Patch_3)
+DEFINE_HOOK(0x005E547E, _ScoreClass_Draw_Dual_Bars_Enemy_RGB_Patch_3, 0)
 {
     APPLY_SCORE_BAR_COLOR(ScenExtension->ScoreEnemyColor, 0x005E548B);
 }
@@ -95,9 +95,3 @@ void ScoreClassExtension_Hooks()
 
 }
 
-declhook(0x005E532A, _ScoreClass_Draw_Dual_Bars_Player_RGB_Patch_1, 0);
-declhook(0x005E536B, _ScoreClass_Draw_Dual_Bars_Player_RGB_Patch_2, 0);
-declhook(0x005E53AC, _ScoreClass_Draw_Dual_Bars_Player_RGB_Patch_3, 0);
-declhook(0x005E53F8, _ScoreClass_Draw_Dual_Bars_Enemy_RGB_Patch_1, 0);
-declhook(0x005E543B, _ScoreClass_Draw_Dual_Bars_Enemy_RGB_Patch_2, 0);
-declhook(0x005E547E, _ScoreClass_Draw_Dual_Bars_Enemy_RGB_Patch_3, 0);

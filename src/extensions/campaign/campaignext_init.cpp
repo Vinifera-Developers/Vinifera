@@ -47,7 +47,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_CampaignClass_Constructor_Patch)
+DEFINE_HOOK(0x00448AC4, _CampaignClass_Constructor_Patch, 0x6)
 {
     GET(CampaignClass *, this_ptr, EBP); // "this" pointer.
 
@@ -79,7 +79,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_CampaignClass_Process_Patch)
+DEFINE_HOOK(0x00448CD0, _CampaignClass_Process_Patch, 0)
 {
     GET(CampaignClass*, this_ptr, EBP);
     LEA_STACK(char const*, ini_name, 0x18);
@@ -99,7 +99,7 @@ EXPORT_FUNC(_CampaignClass_Process_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_CampaignClass_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x00448EF8, _CampaignClass_Scalar_Destructor_Patch, 0x6)
 {
     GET(CampaignClass *, this_ptr, ESI);
 
@@ -123,7 +123,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_CampaignClass_Read_INI_Patch)
+DEFINE_HOOK(0x00448C1E, _CampaignClass_Read_INI_Patch, 0x5)
 {
     GET(CampaignClass *, this_ptr, ESI);
     GET(CCINIClass *, ini, EBX);
@@ -150,7 +150,3 @@ void CampaignClassExtension_Init()
 
 }
 
-declhook(0x00448AC4, _CampaignClass_Constructor_Patch, 0x6);
-declhook(0x00448CD0, _CampaignClass_Process_Patch, 0); // Constructor is also inlined in CampaignClass::Process!
-declhook(0x00448EF8, _CampaignClass_Scalar_Destructor_Patch, 0x6);
-declhook(0x00448C1E, _CampaignClass_Read_INI_Patch, 0x5);

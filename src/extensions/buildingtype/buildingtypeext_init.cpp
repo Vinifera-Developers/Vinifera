@@ -47,7 +47,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_BuildingTypeClass_Constructor_Patch)
+DEFINE_HOOK(0x0043F8B1, _BuildingTypeClass_Constructor_Patch, 0x5)
 {
     GET(BuildingTypeClass *, this_ptr, ESI); // "this" pointer.
     GET_STACK(const char *, ini_name, 0x4); // ini name.
@@ -77,7 +77,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_BuildingTypeClass_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x00444082, _BuildingTypeClass_Scalar_Destructor_Patch, 0x6)
 {
     GET(BuildingTypeClass *, this_ptr, ESI);
 
@@ -99,5 +99,3 @@ void BuildingTypeClassExtension_Init()
     
 }
 
-declhook(0x0043F8B1, _BuildingTypeClass_Constructor_Patch, 0x5);
-declhook(0x00444082, _BuildingTypeClass_Scalar_Destructor_Patch, 0x6);

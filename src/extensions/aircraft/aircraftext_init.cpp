@@ -48,7 +48,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_AircraftClass_Constructor_Patch)
+DEFINE_HOOK(0x0040880C, _AircraftClass_Constructor_Patch, 0x5)
 {
     GET(AircraftClass *, this_ptr, ESI); // Current "this" pointer.
 
@@ -77,7 +77,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_AircraftClass_Destructor_Patch)
+DEFINE_HOOK(0x0040DBB8, _AircraftClass_Destructor_Patch, 0x6)
 {
     GET(AircraftClass *, this_ptr, ESI);
 
@@ -99,5 +99,3 @@ void AircraftClassExtension_Init()
 
 }
 
-declhook(0x0040880C, _AircraftClass_Constructor_Patch, 0x5);
-declhook(0x0040DBB8, _AircraftClass_Destructor_Patch, 0x6);

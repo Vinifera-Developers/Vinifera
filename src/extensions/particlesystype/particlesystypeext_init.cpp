@@ -47,7 +47,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_ParticleSystemTypeClass_Constructor_Patch)
+DEFINE_HOOK(0x005AE537, _ParticleSystemTypeClass_Constructor_Patch, 0x7)
 {
     GET(ParticleSystemTypeClass *, this_ptr, ESI); // "this" pointer.
 
@@ -76,7 +76,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_ParticleSystemTypeClass_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x005AEC68, _ParticleSystemTypeClass_Scalar_Destructor_Patch, 0x6)
 {
     GET(ParticleSystemTypeClass *, this_ptr, ESI);
 
@@ -98,5 +98,3 @@ void ParticleSystemTypeClassExtension_Init()
 
 }
 
-declhook(0x005AE537, _ParticleSystemTypeClass_Constructor_Patch, 0x7);
-declhook(0x005AEC68, _ParticleSystemTypeClass_Scalar_Destructor_Patch, 0x6);

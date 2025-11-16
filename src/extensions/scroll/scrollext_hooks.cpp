@@ -67,7 +67,7 @@ bool Passes_Cloak_Check(TechnoClass* techno)
  *
  *  Author: Rampastring
  */
-EXPORT_FUNC(_ScrollClass_Input_Allied_Cloaked_Object_Patch1)
+DEFINE_HOOK(0x005E8840, _ScrollClass_Input_Allied_Cloaked_Object_Patch1, 0)
 {
     GET(TechnoClass*, techno, ESI);
 
@@ -87,7 +87,7 @@ EXPORT_FUNC(_ScrollClass_Input_Allied_Cloaked_Object_Patch1)
  *
  *  Author: Rampastring
  */
-EXPORT_FUNC(_ScrollClass_Input_Allied_Cloaked_Object_Patch2)
+DEFINE_HOOK(0x005E88AA, _ScrollClass_Input_Allied_Cloaked_Object_Patch2, 0)
 {
     GET(BuildingClass*, building, EDI);
 
@@ -108,7 +108,7 @@ EXPORT_FUNC(_ScrollClass_Input_Allied_Cloaked_Object_Patch2)
  *
  *  Author: Rampastring
  */
-EXPORT_FUNC(_Tactical_Get_Object_At_Cell_Allied_Cloaked_Object_Patch)
+DEFINE_HOOK(0x006167E3, _Tactical_Get_Object_At_Cell_Allied_Cloaked_Object_Patch, 0)
 {
     GET(TechnoClass*, techno, EAX);
 
@@ -130,6 +130,3 @@ void ScrollClassExtension_Hooks()
 
 }
 
-declhook(0x005E8840, _ScrollClass_Input_Allied_Cloaked_Object_Patch1, 0);
-declhook(0x005E88AA, _ScrollClass_Input_Allied_Cloaked_Object_Patch2, 0);
-declhook(0x006167E3, _Tactical_Get_Object_At_Cell_Allied_Cloaked_Object_Patch, 0);

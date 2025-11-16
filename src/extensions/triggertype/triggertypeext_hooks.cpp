@@ -46,7 +46,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_TriggerTypeClass_Read_INI_Load_Difficulty_Patch)
+DEFINE_HOOK(0x0064A2CE, _TriggerTypeClass_Read_INI_Load_Difficulty_Patch, 0)
 {
     GET(TriggerTypeClass *, this_ptr, EBP);
 
@@ -75,4 +75,3 @@ void TriggerTypeClassExtension_Hooks()
     Patch_Jump(0x0064A35A, 0x0064A3A7);
 }
 
-declhook(0x0064A2CE, _TriggerTypeClass_Read_INI_Load_Difficulty_Patch, 0);

@@ -47,7 +47,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_BulletTypeClass_Constructor_Patch)
+DEFINE_HOOK(0x00447D86, _BulletTypeClass_Constructor_Patch, 0x7)
 {
     GET(BulletTypeClass *, this_ptr, ESI); // "this" pointer.
 
@@ -76,7 +76,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_BulletTypeClass_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x00448771, _BulletTypeClass_Scalar_Destructor_Patch, 0x6)
 {
     GET(BulletTypeClass *, this_ptr, ESI);
 
@@ -98,5 +98,3 @@ void BulletTypeClassExtension_Init()
 
 }
 
-declhook(0x00447D86, _BulletTypeClass_Constructor_Patch, 0x7);
-declhook(0x00448771, _BulletTypeClass_Scalar_Destructor_Patch, 0x6);

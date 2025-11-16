@@ -46,7 +46,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_SessionClass_Constructor_Patch)
+DEFINE_HOOK(0x005ED1AA, _SessionClass_Constructor_Patch, 0x5)
 {
     GET(SessionClass *, this_ptr, EBP); // "this" pointer.
 
@@ -70,7 +70,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_SessionClass_Destructor_Patch)
+DEFINE_HOOK(0x005ED465, _SessionClass_Destructor_Patch, 0x3)
 {
     /**
      *  Remove the extended class instance.
@@ -92,7 +92,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_SessionClass_Read_MultiPlayer_Settings_Patch)
+DEFINE_HOOK(0x005EE17F, _SessionClass_Read_MultiPlayer_Settings_Patch, 0x8)
 {
     /**
      *  Load ini.
@@ -115,7 +115,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_SessionClass_Write_MultiPlayer_Settings_Patch)
+DEFINE_HOOK(0x005EE7BA, _SessionClass_Write_MultiPlayer_Settings_Patch, 0x9)
 {
     /**
      *  Save ini.
@@ -139,7 +139,3 @@ void SessionClassExtension_Init()
 
 }
 
-declhook(0x005ED1AA, _SessionClass_Constructor_Patch, 0x5);
-declhook(0x005ED465, _SessionClass_Destructor_Patch, 0x3);
-declhook(0x005EE17F, _SessionClass_Read_MultiPlayer_Settings_Patch, 0x8);
-declhook(0x005EE7BA, _SessionClass_Write_MultiPlayer_Settings_Patch, 0x9);

@@ -49,7 +49,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_SkirmishDialog_InitDialog_RestoreSideIndex_Patch)
+DEFINE_HOOK(0x005F7812, _SkirmishDialog_InitDialog_RestoreSideIndex_Patch, 0)
 {
     GET(HWND, hSideComboBox, EDI);
 
@@ -80,7 +80,7 @@ EXPORT_FUNC(_SkirmishDialog_InitDialog_RestoreSideIndex_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_SkirmishDialog_InitDialog_AIPlayers_Patch)
+DEFINE_HOOK(0x005F7759, _SkirmishDialog_InitDialog_AIPlayers_Patch, 0)
 {
     GET(HWND, hAICountSlider, EBP);
 
@@ -125,5 +125,3 @@ void SkirmishDialog_Hooks()
 
 }
 
-declhook(0x005F7759, _SkirmishDialog_InitDialog_AIPlayers_Patch, 0);
-declhook(0x005F7812, _SkirmishDialog_InitDialog_RestoreSideIndex_Patch, 0);

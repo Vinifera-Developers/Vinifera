@@ -47,7 +47,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_Tactical_Constructor_Patch)
+DEFINE_HOOK(0x0060F08A, _Tactical_Constructor_Patch, 0x5)
 {
     GET(Tactical *, this_ptr, ESI); // "this" pointer.
 
@@ -68,7 +68,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_Tactical_Destructor_Patch)
+DEFINE_HOOK(0x0060F0DD, _Tactical_Destructor_Patch, 0xA)
 {
     /**
      *  Remove the extended class instance.
@@ -87,7 +87,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_Tactical_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x00618020, _Tactical_Scalar_Destructor_Patch, 0xA)
 {
     GET(Tactical *, this_ptr, ESI);
 
@@ -112,6 +112,3 @@ void TacticalExtension_Init()
 
 }
 
-declhook(0x0060F08A, _Tactical_Constructor_Patch, 0x5);
-declhook(0x0060F0DD, _Tactical_Destructor_Patch, 0xA);
-declhook(0x00618020, _Tactical_Scalar_Destructor_Patch, 0xA);

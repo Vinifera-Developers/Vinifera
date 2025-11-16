@@ -47,7 +47,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_FactoryClass_Constructor_Patch)
+DEFINE_HOOK(0x00496D97, _FactoryClass_Constructor_Patch, 0x7)
 {
     GET(FactoryClass *, this_ptr, ESI); // "this" pointer.
 
@@ -76,7 +76,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_FactoryClass_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x00497B6F, _FactoryClass_Scalar_Destructor_Patch, 0x6)
 {
     GET(FactoryClass *, this_ptr, ESI);
 
@@ -97,5 +97,3 @@ void FactoryClassExtension_Init()
 {
 }
 
-declhook(0x00496D97, _FactoryClass_Constructor_Patch, 0x7);
-declhook(0x00497B6F, _FactoryClass_Scalar_Destructor_Patch, 0x6);

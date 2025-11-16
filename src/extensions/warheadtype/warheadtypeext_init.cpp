@@ -47,7 +47,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_WarheadTypeClass_Constructor_Patch)
+DEFINE_HOOK(0x0066EEF4, _WarheadTypeClass_Constructor_Patch, 0x7)
 {
     GET(WarheadTypeClass *, this_ptr, EBP); // "this" pointer.
 
@@ -76,7 +76,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_WarheadTypeClass_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x0066FA98, _WarheadTypeClass_Scalar_Destructor_Patch, 0x6)
 {
     GET(WarheadTypeClass *, this_ptr, ESI);
 
@@ -98,5 +98,3 @@ void WarheadTypeClassExtension_Init()
 
 }
 
-declhook(0x0066EEF4, _WarheadTypeClass_Constructor_Patch, 0x7);
-declhook(0x0066FA98, _WarheadTypeClass_Scalar_Destructor_Patch, 0x6);

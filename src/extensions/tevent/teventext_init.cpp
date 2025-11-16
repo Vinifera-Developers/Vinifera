@@ -46,7 +46,7 @@
  * 
  *  @author: ZivDero
  */
-EXPORT_FUNC(_TEventClass_Constructor_Patch)
+DEFINE_HOOK(0x00642207, _TEventClass_Constructor_Patch, 0x5)
 {
     GET(TEventClass *, this_ptr, ESI); // Current "this" pointer.
 
@@ -75,7 +75,7 @@ original_code:
  * 
  *  @author: ZivDero
  */
-EXPORT_FUNC(_TEventClass_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x00642F28, _TEventClass_Scalar_Destructor_Patch, 0x6)
 {
     GET(TEventClass *, this_ptr, ESI);
 
@@ -97,5 +97,3 @@ void TEventClassExtension_Init()
 
 }
 
-declhook(0x00642207, _TEventClass_Constructor_Patch, 0x5);
-declhook(0x00642F28, _TEventClass_Scalar_Destructor_Patch, 0x6);

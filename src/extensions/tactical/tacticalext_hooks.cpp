@@ -574,7 +574,7 @@ void TacticalExt::_Draw_Rally_Points(bool blit)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_Tactical_Draw_Waypoint_Paths_Text_Color_Patch)
+DEFINE_HOOK(0x00616FDA, _Tactical_Draw_Waypoint_Paths_Text_Color_Patch, 0)
 {
     R->EAX(14);
 
@@ -592,7 +592,7 @@ EXPORT_FUNC(_Tactical_Draw_Waypoint_Paths_Text_Color_Patch)
  * 
  *  @authors: CCHyper
  */
-EXPORT_FUNC(_Tactical_Draw_Waypoint_Paths_NormaliseLineAnimation_Patch)
+DEFINE_HOOK(0x006172DB, _Tactical_Draw_Waypoint_Paths_NormaliseLineAnimation_Patch, 0)
 {
     GET(unsigned, color, EAX);
     GET_STACK(bool, blit, 0x90);
@@ -656,7 +656,7 @@ EXPORT_FUNC(_Tactical_Draw_Waypoint_Paths_NormaliseLineAnimation_Patch)
  * 
  *  @authors: CCHyper
  */
-EXPORT_FUNC(_Tactical_Draw_Waypoint_Paths_DrawNormalLine_Patch)
+DEFINE_HOOK(0x00617327, _Tactical_Draw_Waypoint_Paths_DrawNormalLine_Patch, 0)
 {
     GET(unsigned, color, EAX);
     GET_STACK(bool, blit, 0x90);
@@ -700,7 +700,7 @@ EXPORT_FUNC(_Tactical_Draw_Waypoint_Paths_DrawNormalLine_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_Tactical_Render_Post_Effects_Patch)
+DEFINE_HOOK(0x00611AF9, _Tactical_Render_Post_Effects_Patch, 0)
 {
     GET(Tactical *, this_ptr, EBP);
 
@@ -724,7 +724,7 @@ EXPORT_FUNC(_Tactical_Render_Post_Effects_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_Tactical_Render_Overlay_Patch)
+DEFINE_HOOK(0x00611BCB, _Tactical_Render_Overlay_Patch, 0)
 {
     GET(Tactical *, this_ptr, EBP);
 
@@ -817,7 +817,7 @@ original_code:
  *
  *  @author: Rampastring
  */
-EXPORT_FUNC(_Tactical_Center_On_Location_Unfollow_Object_Patch)
+DEFINE_HOOK(0x0060F953, _Tactical_Center_On_Location_Unfollow_Object_Patch, 0x7)
 {
     Map.Break_Follow_Mode();
 
@@ -830,7 +830,7 @@ EXPORT_FUNC(_Tactical_Center_On_Location_Unfollow_Object_Patch)
  *
  *  @authors: Belonit, ZivDero
  */
-EXPORT_FUNC(_Tactical_Render_Fill_With_Black_Patch)
+DEFINE_HOOK(0x00611BBB, _Tactical_Render_Fill_With_Black_Patch, 0x6)
 {
     const int max_width = TacticalRect.Width - Map.LocalRect.Width * CELL_PIXEL_W;
     if (max_width > 0) {
@@ -874,7 +874,7 @@ HRESULT STDMETHODCALLTYPE TacticalExt::_Save(IStream* stream, BOOL cleardirty)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_TacticalClass_Flag_Cell_New_Array_Patch)
+DEFINE_HOOK(0x00616C07, _TacticalClass_Flag_Cell_New_Array_Patch, 0)
 {
     GET_STACK(CellClass*, cell, 0x20);
 
@@ -946,11 +946,3 @@ void TacticalExtension_Hooks()
     Patch_Jump(0x00610FB1, _TacticalClass_SubRender8_Patch);
 }
 
-declhook(0x00611AF9, _Tactical_Render_Post_Effects_Patch, 0);
-declhook(0x00611BCB, _Tactical_Render_Overlay_Patch, 0);
-declhook(0x006172DB, _Tactical_Draw_Waypoint_Paths_NormaliseLineAnimation_Patch, 0);
-declhook(0x00617327, _Tactical_Draw_Waypoint_Paths_DrawNormalLine_Patch, 0);
-declhook(0x0060F953, _Tactical_Center_On_Location_Unfollow_Object_Patch, 0x7);
-declhook(0x00616FDA, _Tactical_Draw_Waypoint_Paths_Text_Color_Patch, 0);
-declhook(0x00611BBB, _Tactical_Render_Fill_With_Black_Patch, 0x6);
-declhook(0x00616C07, _TacticalClass_Flag_Cell_New_Array_Patch, 0);

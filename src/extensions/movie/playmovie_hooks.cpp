@@ -148,7 +148,7 @@ void Scale_Movie_Helper(VQHandle* this_ptr)
  *
  *  @author: CCHyper
  */
-EXPORT_FUNC(_Play_Movie_Scale_By_Ratio_Patch)
+DEFINE_HOOK(0x00563795, _Play_Movie_Scale_By_Ratio_Patch, 0)
 {
     GET(VQHandle*, this_ptr, ESI);
     Scale_Movie_Helper(this_ptr);
@@ -245,7 +245,7 @@ static bool Play_Intro_Movie(CampaignType campaign_id)
     return true;
 }
 
-EXPORT_FUNC(_Start_Scenario_Intro_Movie_Patch)
+DEFINE_HOOK(0x005DB2DE, _Start_Scenario_Intro_Movie_Patch, 0)
 {
     GET(CampaignType, campaign_id, EBX);
     GET(char *, name, EBP);
@@ -338,7 +338,7 @@ static void Play_Intro_SneakPeak_Movies()
 }
 
 
-EXPORT_FUNC(_Select_Game_Intro_SneakPeak_Movies_Patch)
+DEFINE_HOOK(0x004E2796, _Select_Game_Intro_SneakPeak_Movies_Patch, 0)
 {
     Play_Intro_SneakPeak_Movies();
 
@@ -362,8 +362,4 @@ void PlayMovieExtension_Hooks()
     Patch_Byte(0x0057FF34+1, 0); // TS_TITLE.VQA
     Patch_Byte(0x0057FECF+1, 0); // FS_TITLE.VQA
 }
-
-declhook(0x005DB2DE, _Start_Scenario_Intro_Movie_Patch, 0);
-declhook(0x004E2796, _Select_Game_Intro_SneakPeak_Movies_Patch, 0);
-declhook(0x00563795, _Play_Movie_Scale_By_Ratio_Patch, 0);
 

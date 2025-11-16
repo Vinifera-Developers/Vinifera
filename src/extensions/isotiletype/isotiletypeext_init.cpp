@@ -47,7 +47,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_IsometricTileTypeClass_Constructor_Patch)
+DEFINE_HOOK(0x004F32C4, _IsometricTileTypeClass_Constructor_Patch, 0x5)
 {
     GET(IsometricTileTypeClass *, this_ptr, EBP); // "this" pointer.
     GET_STACK(const char *, ini_name, 0x50); // ini name.
@@ -80,7 +80,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_IsometricTileTypeClass_Destructor_Patch)
+DEFINE_HOOK(0x004F33C6, _IsometricTileTypeClass_Destructor_Patch, 0x6)
 {
     GET(IsometricTileTypeClass *, this_ptr, ESI);
 
@@ -104,7 +104,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_IsometricTileTypeClass_Init_Patch)
+DEFINE_HOOK(0x004F55F2, _IsometricTileTypeClass_Init_Patch, 0x5)
 {
     LEA_STACK(CCINIClass *, ini, 0x30);
 
@@ -128,7 +128,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_IsometricTileTypeClass_Read_INI_Patch_1)
+DEFINE_HOOK(0x004F50AE, _IsometricTileTypeClass_Read_INI_Patch_1, 0)
 {
     GET(IsometricTileTypeClass *, this_ptr, EBP);
     LEA_STACK(CCINIClass *, ini, 0x30);
@@ -184,7 +184,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_IsometricTileTypeClass_Read_INI_Patch_2)
+DEFINE_HOOK(0x004F53E9, _IsometricTileTypeClass_Read_INI_Patch_2, 0x6)
 {
     GET(IsometricTileTypeClass *, this_ptr, EBP);
     LEA_STACK(CCINIClass *, ini, 0x30);
@@ -230,8 +230,3 @@ void IsometricTileTypeClassExtension_Init()
 
 }
 
-declhook(0x004F32C4, _IsometricTileTypeClass_Constructor_Patch, 0x5);
-declhook(0x004F33C6, _IsometricTileTypeClass_Destructor_Patch, 0x6);
-declhook(0x004F55F2, _IsometricTileTypeClass_Init_Patch, 0x5);
-declhook(0x004F50AE, _IsometricTileTypeClass_Read_INI_Patch_1, 0);
-declhook(0x004F53E9, _IsometricTileTypeClass_Read_INI_Patch_2, 0x6);

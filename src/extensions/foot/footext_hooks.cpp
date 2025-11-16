@@ -498,7 +498,7 @@ Cell FootClassExt::_Search_For_Tiberium(int rad, bool a2)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_FootClass_Mission_Move_Can_Passive_Acquire_Patch)
+DEFINE_HOOK(0x004A102F, _FootClass_Mission_Move_Can_Passive_Acquire_Patch, 0)
 {
     GET(FootClass *, this_ptr, ESI);
 
@@ -528,7 +528,7 @@ finish_mission_process:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_FootClass_Mission_Guard_Can_Passive_Acquire_Patch)
+DEFINE_HOOK(0x004A1AAE, _FootClass_Mission_Guard_Can_Passive_Acquire_Patch, 0)
 {
     GET(FootClass *, this_ptr, ESI);
 
@@ -563,7 +563,7 @@ random_animate:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_FootClass_Mission_Guard_Area_Can_Passive_Acquire_Patch)
+DEFINE_HOOK(0x004A2BE7, _FootClass_Mission_Guard_Area_Can_Passive_Acquire_Patch, 0)
 {
     GET(FootClass *, this_ptr, ESI);
 
@@ -593,7 +593,7 @@ tarcom_check:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_FootClass_AI_IdleRate_Patch)
+DEFINE_HOOK(0x004A59E1, _FootClass_AI_IdleRate_Patch, 0)
 {
     GET(FootClass *, this_ptr, ESI);
     GET(ILocomotion *, loco, EDI);
@@ -628,7 +628,7 @@ EXPORT_FUNC(_FootClass_AI_IdleRate_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_FootClass_Is_Allowed_To_Recloak_Cloak_Stop_BugFix_Patch)
+DEFINE_HOOK(0x004A6866, _FootClass_Is_Allowed_To_Recloak_Cloak_Stop_BugFix_Patch, 0)
 {
     GET(FootClass *, this_ptr, ESI);
     GET(TechnoTypeClass *, technotype, EAX);
@@ -791,8 +791,3 @@ void FootClassExtension_Hooks()
     Patch_Jump(0x004A5E80, &FootClassExt::_Limbo);
 }
 
-declhook(0x004A6866, _FootClass_Is_Allowed_To_Recloak_Cloak_Stop_BugFix_Patch, 0);
-declhook(0x004A59E1, _FootClass_AI_IdleRate_Patch, 0);
-declhook(0x004A2BE7, _FootClass_Mission_Guard_Area_Can_Passive_Acquire_Patch, 0);
-declhook(0x004A1AAE, _FootClass_Mission_Guard_Can_Passive_Acquire_Patch, 0);
-declhook(0x004A102F, _FootClass_Mission_Move_Can_Passive_Acquire_Patch, 0);

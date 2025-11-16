@@ -107,7 +107,7 @@ void TiberiumClassExt::_Deinitialize_Tiberium_Growth_System()
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_Get_Tiberium_Type_Debug_Info_Patch)
+DEFINE_HOOK(0x0058C934, _Get_Tiberium_Type_Debug_Info_Patch, 0)
 {
     GET(OverlayTypeClass*, overlaytype, EAX);
 
@@ -123,7 +123,7 @@ EXPORT_FUNC(_Get_Tiberium_Type_Debug_Info_Patch)
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_CellClass_Place_Tiberium_Variety_Patch)
+DEFINE_HOOK(0x0045CEB9, _CellClass_Place_Tiberium_Variety_Patch, 0)
 {
     GET(TiberiumClass*, tiberium, EBP);
 
@@ -172,5 +172,3 @@ void TiberiumClassExtension_Hooks()
     Patch_Jump(0x00645C30, &TiberiumClassExt::_Clear_Spread_State);
 }
 
-declhook(0x0058C934, _Get_Tiberium_Type_Debug_Info_Patch, 0);
-declhook(0x0045CEB9, _CellClass_Place_Tiberium_Variety_Patch, 0);

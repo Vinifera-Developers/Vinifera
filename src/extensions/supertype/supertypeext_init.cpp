@@ -47,7 +47,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_SuperWeaponTypeClass_Constructor_Patch)
+DEFINE_HOOK(0x0060D04A, _SuperWeaponTypeClass_Constructor_Patch, 0x5)
 {
     GET(SuperWeaponTypeClass *, this_ptr, EBP); // "this" pointer.
 
@@ -76,7 +76,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_SuperWeaponTypeClass_Destructor_Patch)
+DEFINE_HOOK(0x0060D0EA, _SuperWeaponTypeClass_Destructor_Patch, 0)
 {
     GET(SuperWeaponTypeClass *, this_ptr, ESI);
 
@@ -98,7 +98,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_SuperWeaponTypeClass_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x0060D87A, _SuperWeaponTypeClass_Scalar_Destructor_Patch, 0)
 {
     GET(SuperWeaponTypeClass *, this_ptr, ESI);
 
@@ -124,6 +124,3 @@ void SuperWeaponTypeClassExtension_Init()
 
 }
 
-declhook(0x0060D04A, _SuperWeaponTypeClass_Constructor_Patch, 0x5);
-declhook(0x0060D0EA, _SuperWeaponTypeClass_Destructor_Patch, 0);
-declhook(0x0060D87A, _SuperWeaponTypeClass_Scalar_Destructor_Patch, 0);

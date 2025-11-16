@@ -671,7 +671,7 @@ static int Scale_Float_To_Int(float value, int scale)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_Do_Flash_CombatLightSize_Patch)
+DEFINE_HOOK(0x00460477, _Do_Flash_CombatLightSize_Patch, 0)
 {
     GET(int, damage, ECX);
     GET(const WarheadTypeClass *, warhead, EDX);
@@ -733,4 +733,3 @@ void CombatExtension_Hooks()
     Patch_Jump(0x0045EEB0, &Vinifera_Explosion_Damage);
 }
 
-declhook(0x00460477, _Do_Flash_CombatLightSize_Patch, 0);

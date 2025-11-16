@@ -42,7 +42,7 @@
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_Hotkey_Dialog_Proc_Keyboard_INI_RawFileClass_Patch)
+DEFINE_HOOK(0x0058AA18, _Hotkey_Dialog_Proc_Keyboard_INI_RawFileClass_Patch, 0)
 {
     RawFileClass keyboard_ini("Keyboard.ini");
     keyboard_ini.Delete();
@@ -61,4 +61,3 @@ void OptionsClassExtension_Hooks()
     OptionsClassExtension_Init();
 }
 
-declhook(0x0058AA18, _Hotkey_Dialog_Proc_Keyboard_INI_RawFileClass_Patch, 0);

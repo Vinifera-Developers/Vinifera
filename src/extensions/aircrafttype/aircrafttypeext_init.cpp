@@ -48,7 +48,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_AircraftTypeClass_Constructor_Patch)
+DEFINE_HOOK(0x0040FC8F, _AircraftTypeClass_Constructor_Patch, 0x7)
 {
     GET(AircraftTypeClass *, this_ptr, ESI); // "this" pointer.
 
@@ -77,7 +77,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_AircraftTypeClass_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x00410228, _AircraftTypeClass_Scalar_Destructor_Patch, 0x6)
 {
     GET(AircraftTypeClass *, this_ptr, ESI);
 
@@ -124,5 +124,3 @@ void AircraftTypeClassExtension_Init()
     Patch_Jump(0x00410020, &AircraftTypeClassExt::_Find_Or_Make);
 }
 
-declhook(0x0040FC8F, _AircraftTypeClass_Constructor_Patch, 0x7);
-declhook(0x00410228, _AircraftTypeClass_Scalar_Destructor_Patch, 0x6);

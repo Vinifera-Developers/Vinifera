@@ -69,7 +69,7 @@ LONG STDMETHODCALLTYPE AbstractClassExt::IsDirty()
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_AbstractClass_Constructor_Extension)
+DEFINE_HOOK(0x00405B61, _AbstractClass_Constructor_Extension, 0x6)
 {
     GET(AbstractClass*, this_ptr, EAX);
 
@@ -93,4 +93,3 @@ void AbstractClassExtension_Init()
     Patch_Byte_Range(0x00405CF8, 0x90, 12);
 }
 
-declhook(0x00405B61, _AbstractClass_Constructor_Extension, 0x6);

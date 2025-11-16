@@ -50,7 +50,7 @@
  * 
  *  @author: CCHyper (based on research by E1Elite)
  */
-EXPORT_FUNC(_TeamClass_AI_MoveCell_FixCellCalc_Patch)
+DEFINE_HOOK(0x00622B2C, _TeamClass_AI_MoveCell_FixCellCalc_Patch, 0)
 {
     GET_STACK(unsigned, argument, 0x24);
 
@@ -96,7 +96,7 @@ coordinate_move:
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_TeamClass_TMission_PATROL_WaypointMax)
+DEFINE_HOOK(0x00625886, _TeamClass_TMission_PATROL_WaypointMax, 0)
 {
     GET(ScriptMissionClass*, mission, EAX);
 
@@ -116,5 +116,3 @@ void TeamClassExtension_Hooks()
     TeamClassExtension_Init();
 }
 
-declhook(0x00622B2C, _TeamClass_AI_MoveCell_FixCellCalc_Patch, 0);
-declhook(0x00625886, _TeamClass_TMission_PATROL_WaypointMax, 0);

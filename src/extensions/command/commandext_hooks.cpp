@@ -91,13 +91,18 @@ static void Populate_Command_Categories(HWND hWnd, const char *category)
     }
 }
 
+/**
+ *  This can not be in client compatible builds currently as the additional
+ *  commands added do not have runtime type information.
+ */
+#if !defined(TS_CLIENT)
 
 /**
  *  Patch to intercept the populating of the keyboard command list box.
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_OptionsClass_Keyboard_Options_Dialog_Populate_Intercept_Patch)
+DEFINE_HOOK(0x0058A72E, _OptionsClass_Keyboard_Options_Dialog_Populate_Intercept_Patch, 0)
 {
     GET(HWND, hWnd, EBP);
     LEA_STACK(const char *, category, 0x0A4);
@@ -106,6 +111,8 @@ EXPORT_FUNC(_OptionsClass_Keyboard_Options_Dialog_Populate_Intercept_Patch)
 
     return 0x0058A79C;
 }
+
+#endif
 
 
 /**
@@ -121,7 +128,7 @@ EXPORT_FUNC(_OptionsClass_Keyboard_Options_Dialog_Populate_Intercept_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_GuardCommandClass_Process_Harvesters_Set_Mission_Patch)
+DEFINE_HOOK(0x004E95C2, _GuardCommandClass_Process_Harvesters_Set_Mission_Patch, 0)
 {
     GET(TechnoClass *, techno, ESI);
 
@@ -312,7 +319,7 @@ void Init_Vinifera_Commands()
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_Init_Commands_Patch)
+DEFINE_HOOK(0x004E6FA9, _Init_Commands_Patch, 0)
 {
     Init_Vinifera_Commands();
 
@@ -350,14 +357,3 @@ void CommandExtension_Hooks()
     Hook_Virtual(0x004EAF10, DeleteCommandClass::Get_Description);
     Hook_Virtual(0x004EAF20, DeleteCommandClass::Process);
 }
-
-declhook(0x004E6FA9, _Init_Commands_Patch, 0);
-declhook(0x004E95C2, _GuardCommandClass_Process_Harvesters_Set_Mission_Patch, 0);
-
-/**
- *  This can not be in client compatible builds currently as the additional
- *  commands added do not have runtime type information.
- */
-#if !defined(TS_CLIENT)
-declhook(0x0058A72E, _OptionsClass_Keyboard_Options_Dialog_Populate_Intercept_Patch, 0);
-#endif

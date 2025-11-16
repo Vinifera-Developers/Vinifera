@@ -236,7 +236,7 @@ void UnitClassExt::_Draw_Voxel(unsigned int frame, int key, Rect& rect, Point2D&
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_UnitClass_Draw_Voxel_Patch)
+DEFINE_HOOK(0x006527B1, _UnitClass_Draw_Voxel_Patch, 0)
 {
     GET_STACK(unsigned int, frame, 0x58);
     GET_STACK(int, key, 0x40);
@@ -262,7 +262,7 @@ EXPORT_FUNC(_UnitClass_Draw_Voxel_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_UnitClass_Can_Fire_IsOmniFire_Patch)
+DEFINE_HOOK(0x00656F99, _UnitClass_Can_Fire_IsOmniFire_Patch, 0)
 {
     GET(UnitClass *, this_ptr, ESI);
     GET(WeaponTypeClass *, weapon, EBX);
@@ -447,7 +447,7 @@ DEFINE_HOOK(0x00656623, _UnitClass_What_Action_ACTION_HARVEST_Block_On_Bridge_Pa
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_UnitClass_Draw_Shape_IdleRate_Patch)
+DEFINE_HOOK(0x00653114, _UnitClass_Draw_Shape_IdleRate_Patch, 0)
 {
     GET(UnitClass *, this_ptr, ESI);
     GET(int, facing, EBX);
@@ -523,7 +523,7 @@ continue_to_draw:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_UnitClass_Mission_Unload_Transport_Detach_Sound_Patch)
+DEFINE_HOOK(0x00654399, _UnitClass_Mission_Unload_Transport_Detach_Sound_Patch, 0)
 {
     GET(UnitClass *, this_ptr, ESI);
 
@@ -565,7 +565,7 @@ add_to_team:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_UnitClass_Draw_It_Unloading_Harvester_Patch)
+DEFINE_HOOK(0x00653D7F, _UnitClass_Draw_It_Unloading_Harvester_Patch, 0)
 {
     GET(UnitClass *, this_ptr, ESI);
     GET(UnitTypeClass *, unittype, EAX);
@@ -664,7 +664,7 @@ static int Facing_To_Frame_Number(FacingClass &facing, int facing_count)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_UnitClass_Draw_Shape_Primary_Facing_Patch)
+DEFINE_HOOK(0x006530EB, _UnitClass_Draw_Shape_Primary_Facing_Patch, 0)
 {
     GET(UnitClass *, this_ptr, EBP);
     GET(const UnitTypeClass *, unittype, EAX);
@@ -692,7 +692,7 @@ EXPORT_FUNC(_UnitClass_Draw_Shape_Primary_Facing_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_UnitClass_Draw_Shape_Turret_Facing_Patch)
+DEFINE_HOOK(0x006537A8, _UnitClass_Draw_Shape_Turret_Facing_Patch, 0)
 {
     GET(UnitClass *, this_ptr, EBP);
 
@@ -760,7 +760,7 @@ EXPORT_FUNC(_UnitClass_Draw_Shape_Turret_Facing_Patch)
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_UnitClass_Explode_ShakeScreen_Division_BugFix_Patch)
+DEFINE_HOOK(0x0065B554, _UnitClass_Explode_ShakeScreen_Division_BugFix_Patch, 0)
 {
     GET(UnitClass *, this_ptr, EDI);
 
@@ -838,7 +838,7 @@ function_return:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_UnitClass_Per_Cell_Process_AutoHarvest_Assign_Harvest_Mission_Patch)
+DEFINE_HOOK(0x006517BE, _UnitClass_Per_Cell_Process_AutoHarvest_Assign_Harvest_Mission_Patch, 0)
 {
     GET(UnitClass *, this_ptr, EBP);
     GET(AbstractClass *, target, ESI);
@@ -888,7 +888,7 @@ continue_check_scatter:
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_UnitClass_Jellyfish_AI_Armor_Patch)
+DEFINE_HOOK(0x0064F2BE, _UnitClass_Jellyfish_AI_Armor_Patch, 0)
 {
     GET(TechnoClass*, target, ESI);
     GET(UnitClass*, this_ptr, EBP);
@@ -991,7 +991,7 @@ enum TransformReturnValue {
  *
  *  @author: Rampastring
  */
-EXPORT_FUNC(_UnitClass_Try_To_Deploy_Transform_To_Vehicle_Patch)
+DEFINE_HOOK(0x00650BAE, _UnitClass_Try_To_Deploy_Transform_To_Vehicle_Patch, 0)
 {
     GET(UnitClass*, this_ptr, ESI);
 
@@ -1057,7 +1057,7 @@ EXPORT_FUNC(_UnitClass_Try_To_Deploy_Transform_To_Vehicle_Patch)
  *
  *  @author: Rampastring
  */
-EXPORT_FUNC(_UnitClass_What_Action_Self_Check_For_Vehicle_Transform_Patch)
+DEFINE_HOOK(0x00656017, _UnitClass_What_Action_Self_Check_For_Vehicle_Transform_Patch, 0)
 {
     GET(UnitClass*, this_ptr, ESI);
 
@@ -1117,7 +1117,7 @@ EXPORT_FUNC(_UnitClass_What_Action_Self_Check_For_Vehicle_Transform_Patch)
  *
  *  @author: Rampastring
  */
-EXPORT_FUNC(_UnitClass_Mission_Unload_Transform_To_Vehicle_Patch)
+DEFINE_HOOK(0x006543DB, _UnitClass_Mission_Unload_Transform_To_Vehicle_Patch, 0)
 {
     GET(UnitTypeClass*, unittype, EAX);
 
@@ -1191,7 +1191,7 @@ void UnitClassExtension_Find_Nearest_Refinery(UnitClass* this_ptr, BuildingClass
  *
  *  @author: Rampastring
  */
-EXPORT_FUNC(_UnitClass_Mission_Harvest_FINDHOME_Find_Nearest_Refinery_Patch)
+DEFINE_HOOK(0x00654EEE, _UnitClass_Mission_Harvest_FINDHOME_Find_Nearest_Refinery_Patch, 0)
 {
     /**
      *  Enum for MISSION_HARVEST status constants.
@@ -1323,17 +1323,3 @@ void UnitClassExtension_Hooks()
     Patch_Byte(0x00658961, 0xEB); // Allow pre-placed units to have missions in multiplayer, change JZ to JMP
 }
 
-declhook(0x006517BE, _UnitClass_Per_Cell_Process_AutoHarvest_Assign_Harvest_Mission_Patch, 0);
-declhook(0x0065B554, _UnitClass_Explode_ShakeScreen_Division_BugFix_Patch, 0);
-declhook(0x006530EB, _UnitClass_Draw_Shape_Primary_Facing_Patch, 0);
-declhook(0x006537A8, _UnitClass_Draw_Shape_Turret_Facing_Patch, 0);
-declhook(0x00653D7F, _UnitClass_Draw_It_Unloading_Harvester_Patch, 0);
-declhook(0x00654399, _UnitClass_Mission_Unload_Transport_Detach_Sound_Patch, 0);
-declhook(0x00653114, _UnitClass_Draw_Shape_IdleRate_Patch, 0);
-declhook(0x0064F2BE, _UnitClass_Jellyfish_AI_Armor_Patch, 0);
-declhook(0x00650BAE, _UnitClass_Try_To_Deploy_Transform_To_Vehicle_Patch, 0);
-declhook(0x00656017, _UnitClass_What_Action_Self_Check_For_Vehicle_Transform_Patch, 0);
-declhook(0x006543DB, _UnitClass_Mission_Unload_Transform_To_Vehicle_Patch, 0);
-declhook(0x006527B1, _UnitClass_Draw_Voxel_Patch, 0);
-declhook(0x00654EEE, _UnitClass_Mission_Harvest_FINDHOME_Find_Nearest_Refinery_Patch, 0);
-declhook(0x00656F99, _UnitClass_Can_Fire_IsOmniFire_Patch, 0);

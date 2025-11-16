@@ -47,7 +47,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_UnitTypeClass_Constructor_Patch)
+DEFINE_HOOK(0x0065BA96, _UnitTypeClass_Constructor_Patch, 0x5)
 {
     GET(UnitTypeClass *, this_ptr, ESI); // "this" pointer.
 
@@ -76,7 +76,7 @@ original_code:
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_UnitTypeClass_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x0065C798, _UnitTypeClass_Scalar_Destructor_Patch, 0x6)
 {
     GET(UnitTypeClass *, this_ptr, ESI);
 
@@ -98,5 +98,3 @@ void UnitTypeClassExtension_Init()
 
 }
 
-declhook(0x0065BA96, _UnitTypeClass_Constructor_Patch, 0x5);
-declhook(0x0065C798, _UnitTypeClass_Scalar_Destructor_Patch, 0x6);

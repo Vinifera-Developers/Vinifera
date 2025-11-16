@@ -46,7 +46,7 @@
  * 
  *  @author: CCHyper
  */
-EXPORT_FUNC(_OverlayClass_Constructor_Patch)
+DEFINE_HOOK(0x0058B545, _OverlayClass_Constructor_Patch, 0x6)
 {
     GET(OverlayClass *, this_ptr, ESI); // Current "this" pointer.
 
@@ -75,7 +75,7 @@ original_code:
  *
  *  @author: CCHyper
  */
-EXPORT_FUNC(_OverlayClass_Scalar_Destructor_Patch)
+DEFINE_HOOK(0x0058CB73, _OverlayClass_Scalar_Destructor_Patch, 0x7)
 {
     GET(OverlayClass *, this_ptr, ESI);
 
@@ -97,5 +97,3 @@ void OverlayClassExtension_Init()
 
 }
 
-declhook(0x0058B545, _OverlayClass_Constructor_Patch, 0x6);
-declhook(0x0058CB73, _OverlayClass_Scalar_Destructor_Patch, 0x7);

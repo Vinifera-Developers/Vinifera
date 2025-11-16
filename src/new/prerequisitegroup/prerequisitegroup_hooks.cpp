@@ -76,7 +76,7 @@ TypeList<int> Get_Prerequisites(CCINIClass const& ini, char const* section, char
  *
  *  @author: ZivDero
  */
-EXPORT_FUNC(_HouseClass_Can_Build_Prereq_Groups_Patch)
+DEFINE_HOOK(0x004BBD3E, _HouseClass_Can_Build_Prereq_Groups_Patch, 0)
 {
     GET(int, prereq, EAX);
     GET(HouseClass*, house, EBP);
@@ -97,4 +97,3 @@ void PrerequisiteGroup_Hooks()
     Patch_Jump(0x0044CB30, &Get_Prerequisites);
 }
 
-declhook(0x004BBD3E, _HouseClass_Can_Build_Prereq_Groups_Patch, 0);
