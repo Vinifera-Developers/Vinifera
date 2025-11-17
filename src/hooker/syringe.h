@@ -6,7 +6,7 @@
  *
  *  @file          SYRINGE.H
  *
- *  @author        PD
+ *  @author        Patrick "pd" Dinklage
  *
  *  @contributors  Ares Contributors, Phobos Contributors, ZivDero
  *
