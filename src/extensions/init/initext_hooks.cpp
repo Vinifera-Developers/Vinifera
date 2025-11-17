@@ -996,33 +996,6 @@ bool Vinifera_Init_Bootstrap_Mixfiles()
 
 
 /**
- *  Sets up to close Syringe when the game exits.
- *  We don't do it immediately so that the client doesn't think
- *  the game has exited once Syringe closes.
- *
- *  @author: ZivDero, secsome
- */
-static DWORD DebuggerPID = 0;
-
-void _cdecl Kill_Debugger()
-{
-    if (DebuggerPID != 0) {
-        HANDLE handle = OpenProcess(PROCESS_TERMINATE, FALSE, DebuggerPID);
-        if (handle) {
-            TerminateProcess(handle, EXIT_SUCCESS);
-            CloseHandle(handle);
-        }
-    }
-}
-
-void Setup_Kill_Debugger(DWORD pid)
-{
-    DebuggerPID = pid;
-    atexit(Kill_Debugger);
-}
-
-
-/**
  *  Detaches the debugger from the current process.
  *
  *  @author: secsome
@@ -1062,7 +1035,6 @@ bool Detach_Debugger()
                 const auto pid = GetDebuggerProcessId(GetProcessId(hCurrentProcess));
                 status = NtRemoveProcessDebug(hCurrentProcess, hDebug);
                 if (status >= 0) {
-                    Setup_Kill_Debugger(pid);
                     return true;
                 }
             }
