@@ -1055,8 +1055,19 @@ DEFINE_HOOK(0x006B7E22, WinMainCRTStartup_Syringe_Patch, 9)
 {
     DEBUG_INFO("Syringe is active.");
 
-    if (Detach_Debugger() && !IsDebuggerPresent()) {
-        MessageBox(nullptr, "Attach the debugger now or continue.", "Vinifera", MB_OK | MB_SERVICE_NOTIFICATION);
+    if (Detach_Debugger()) {
+        if (!IsDebuggerPresent()) {
+#if !defined(NDEBUG) && defined(TS_CLIENT)
+            bool wait_for_debugger = true;
+#elif defined(TS_CLIENT)
+            const char* cmdline = GetCommandLineA();
+            bool wait_for_debugger = (std::strstr(cmdline, "-DEBUGGER_ATTACH") != nullptr);
+#endif
+
+            if (wait_for_debugger) {
+                MessageBox(nullptr, "Attach the debugger now or continue.", "Vinifera", MB_OK | MB_SERVICE_NOTIFICATION);
+            }
+        }
     }
 
     return 0;
