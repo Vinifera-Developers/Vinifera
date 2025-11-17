@@ -288,15 +288,10 @@ namespace Hosts
 #define declhost(exename, checksum) \
 namespace SyringeData { namespace Hosts { __declspec(allocate(".syexe00")) hostdecl _hst__ ## exename  { checksum, #exename }; }; };
 
-#define declhook(address, funcname, size) \
-namespace SyringeData { namespace Hooks { __declspec(allocate(".syhks00")) hookdecl _hk__ ## address ## funcname  {  address, size, #funcname }; }; };
-
+#define _declhook(address, funcname, size) \
+namespace SyringeData { namespace Hooks { __declspec(allocate(".syhks00")) hookdecl _hk__##address##funcname {address, size, #funcname}; }; };
 
 /**
- *  DEFINE_HOOK defines a hook at the specified address with the specified name and saving
- *  the specified amount of instruction bytes to be restored if return to the same address is used.
- *  In addition to the injgen-declaration, also includes the function opening.
- *
  *  If HOOK_LOGGING is defined, a logging stub is created that logs when the hook is entered.
  *  If HOOK_LOGGING_VERBOSE is also defined, the logging stub will print detailed information.
  */
@@ -305,39 +300,44 @@ namespace SyringeData { namespace Hooks { __declspec(allocate(".syhks00")) hookd
 
 #ifdef HOOK_LOGGING
 
+    // Verbose version
     #ifdef HOOK_LOGGING_VERBOSE
-        #define DEFINE_HOOK(address, funcname, size) \
-            EXPORT_FUNC(funcname##_DebugStub) \
+        #define declhook(address, funcname, size) \
+            EXPORT_FUNC(funcname##address##_DebugStub) \
             { \
                 DEBUG_INFO("[Syringe] Hook %s entered at %08X.\n", #funcname, address); \
                 return 0; \
             } \
-            declhook(address, funcname##_DebugStub, size) \
-            declhook(address, funcname, size) \
-        EXPORT_FUNC(funcname)
+            _declhook(address, funcname##address##_DebugStub, size) \
+            _declhook(address, funcname, size) \
 
     #else
-        // Non-verbose: store R->Origin() in a pointer variable, no logging.
+        // Non-verbose version
         extern void* LastHookOrigin;
-        #define DEFINE_HOOK(address, funcname, size) \
-            EXPORT_FUNC(funcname##_DebugStub) \
+        #define declhook(address, funcname, size) \
+            EXPORT_FUNC(funcname##address##_DebugStub) \
             { \
                 LastHookOrigin = reinterpret_cast<void*>(R->Origin()); \
                 return 0; \
             } \
-            declhook(address, funcname##_DebugStub, size) \
-            declhook(address, funcname, size) \
-        EXPORT_FUNC(funcname)
+            _declhook(address, funcname##address##_DebugStub, size) \
+            _declhook(address, funcname, size) \
 
     #endif // HOOK_LOGGING_VERBOSE
 
 #else
 
-    #define DEFINE_HOOK(address, funcname, size) \
-        declhook(address, funcname, size) \
-        EXPORT_FUNC(funcname)
+    // No logging: only one hookdecl
+    #define declhook(address, funcname, size) _declhook(address, funcname, size)
 
 #endif // HOOK_LOGGING
+
+/**
+ *  DEFINE_HOOK defines a hook at the specified address with the specified name and saving
+ *  the specified amount of instruction bytes to be restored if return to the same address is used.
+ *  In addition to the injgen-declaration, also includes the function opening.
+ */
+#define DEFINE_HOOK(address, funcname, size) declhook(address, funcname, size) EXPORT_FUNC(funcname)
 
 /**
  *  DEFINE_HOOK_AGAIN does the same as DEFINE_HOOK but no function opening,
