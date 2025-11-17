@@ -98,7 +98,7 @@ DEFINE_HOOK(0x00499F51, _FlyLocomotionClass_Movement_AI_AircraftTracker_Patch1, 
 }
 
 
-DEFINE_HOOK(0x0049A07D, _FlyLocomotionClass_Movement_AI_AircraftTracker_Patch2, 16)
+DEFINE_HOOK(0x0049A07D, _FlyLocomotionClass_Movement_AI_AircraftTracker_Patch2, 10)
 {
     GET(FootClass*, linked_to, ECX);
 
