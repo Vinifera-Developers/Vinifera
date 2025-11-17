@@ -286,7 +286,7 @@ namespace Hosts
 } // namespace SyringeData
 
 #define declhost(exename, checksum) \
-namespace SyringeData { namespace Hosts { __declspec(allocate(".syexe00")) hostdecl _hst__ ## exename  { checksum, #exename }; }; };
+namespace SyringeData { namespace Hosts { __declspec(allocate(".syexe00")) hostdecl _hst__##exename {checksum, #exename}; }; };
 
 #define _declhook(address, funcname, size) \
 namespace SyringeData { namespace Hooks { __declspec(allocate(".syhks00")) hookdecl _hk__##address##funcname {address, size, #funcname}; }; };
