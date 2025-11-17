@@ -44,9 +44,9 @@
  *  since in every case it is used after reading in the color.
  */
 #define APPLY_SCORE_BAR_COLOR(color, jumpaddr) \
-R->Stack<char>(0x1C, (color).R); \
-R->Stack<char>(0x1C + 1, (color).G); \
-R->Stack<char>(0x1C + 2, (color).B); \
+R->Stack<unsigned char>(0x18, (color).R); \
+R->Stack<unsigned char>(0x18 + 1, (color).G); \
+R->Stack<unsigned char>(0x18 + 2, (color).B); \
 return (jumpaddr)
 
 
