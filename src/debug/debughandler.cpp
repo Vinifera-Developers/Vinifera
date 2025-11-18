@@ -667,4 +667,3 @@ void Vinifera_Escape_Percent_Sign(char* string, size_t buffer_length)
 
     std::snprintf(string, buffer_length, "%s", buffer);
 }
-

@@ -245,4 +245,3 @@ void TerrainClassExtension_Hooks()
 
     Patch_Jump(0x0063FFB0, &TerrainClassExt::_AI);
 }
-

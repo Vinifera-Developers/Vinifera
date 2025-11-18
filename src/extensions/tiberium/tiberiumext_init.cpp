@@ -97,4 +97,3 @@ void TiberiumClassExtension_Init()
 {
 
 }
-

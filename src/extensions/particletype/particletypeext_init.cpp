@@ -97,4 +97,3 @@ void ParticleTypeClassExtension_Init()
 {
 
 }
-

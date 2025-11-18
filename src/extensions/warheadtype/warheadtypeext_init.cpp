@@ -97,4 +97,3 @@ void WarheadTypeClassExtension_Init()
 {
 
 }
-

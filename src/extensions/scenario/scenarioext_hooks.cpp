@@ -508,4 +508,3 @@ void ScenarioClassExtension_Hooks()
     Patch_Jump(0x005DFDC0, &ScenarioClassExt::_Find_Free_Local);
     Patch_Jump(0x005DFDA0, &ScenarioClassExt::_Num_Locals);
 }
-

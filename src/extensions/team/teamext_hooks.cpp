@@ -115,4 +115,3 @@ void TeamClassExtension_Hooks()
 {
     TeamClassExtension_Init();
 }
-

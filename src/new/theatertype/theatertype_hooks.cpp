@@ -908,4 +908,3 @@ void TheaterTypeClassExtension_Hooks()
     // Patch away a 2-byte jump that's in the way of our hook
     Patch_Byte_Range(0x00520F57, 0x90, 2);
 }
-

@@ -300,4 +300,3 @@ void CCINIClassExtension_Hooks()
 
     Patch_Jump(0x0044AC20, &CCINIClassExt::_Get_ActionType);
 }
-

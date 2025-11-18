@@ -100,4 +100,3 @@ void OverlayTypeClassExtension_Hooks()
      */
     OverlayTypeClassExtension_Init();
 }
-

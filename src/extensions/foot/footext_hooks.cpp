@@ -790,4 +790,3 @@ void FootClassExtension_Hooks()
     Patch_Jump(0x004A2C70, &FootClassExt::_Unlimbo);
     Patch_Jump(0x004A5E80, &FootClassExt::_Limbo);
 }
-

@@ -97,4 +97,3 @@ void WeaponTypeClassExtension_Init()
 {
 
 }
-

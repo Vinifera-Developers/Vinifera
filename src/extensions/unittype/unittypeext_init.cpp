@@ -97,4 +97,3 @@ void UnitTypeClassExtension_Init()
 {
 
 }
-

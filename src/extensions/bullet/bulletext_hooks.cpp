@@ -228,4 +228,3 @@ void BulletClassExtension_Hooks()
 {
     Patch_Jump(0x004462C0, &BulletClassExt::_Is_Forced_To_Explode);
 }
-

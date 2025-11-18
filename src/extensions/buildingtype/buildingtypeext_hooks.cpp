@@ -332,4 +332,3 @@ void BuildingTypeClassExtension_Hooks()
     Patch_Jump(0x00440080, &BuildingTypeClassExt::_Cost_Of);
     Patch_Jump(0x0043FB50, &BuildingTypeClassExt::_Fetch_Z_Data);
 }
-

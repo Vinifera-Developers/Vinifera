@@ -179,4 +179,3 @@ void OptionsClassExtension_Init()
 {
 
 }
-

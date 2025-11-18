@@ -129,4 +129,3 @@ void ScrollClassExtension_Hooks()
 {
 
 }
-

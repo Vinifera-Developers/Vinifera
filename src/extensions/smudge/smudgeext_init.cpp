@@ -96,4 +96,3 @@ void SmudgeClassExtension_Init()
 {
 
 }
-

@@ -156,4 +156,3 @@ void AircraftTracker_Hooks()
     Patch_Jump(0x0049CB00, &FlyLocomotionClassExt::_Take_Off);
     Patch_Call(0x00500BF5, &LevitateLocomotionClassExt::_func_4FDF80);
 }
-

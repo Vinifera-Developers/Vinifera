@@ -2804,4 +2804,3 @@ void TechnoClassExtension_Hooks()
     Patch_Jump(0x0062FD70, &TechnoClassExt::_Assign_Target);
     Patch_Jump(0x00638090, &TechnoClassExt::_Refund_Amount);
 }
-

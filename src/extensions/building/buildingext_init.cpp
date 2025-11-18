@@ -105,4 +105,3 @@ void BuildingClassExtension_Init()
 {
 
 }
-

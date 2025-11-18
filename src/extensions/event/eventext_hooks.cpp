@@ -474,4 +474,3 @@ void EventClassExtension_Hooks()
 
     Patch_Jump(0x00494B9A, 0x00494BAA); // Jump over code that prevents deploying with aircraft
 }
-

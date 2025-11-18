@@ -798,4 +798,3 @@ void AnimClassExtension_Hooks()
     Patch_Jump(0x00415F40, &AnimClassExt::_Middle);
     Patch_Jump(0x004167C0, &AnimClassExt::_Delete_Me);
 }
-

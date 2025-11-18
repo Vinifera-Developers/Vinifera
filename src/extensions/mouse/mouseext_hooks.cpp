@@ -331,4 +331,3 @@ void MouseClassExtension_Hooks()
     Patch_Jump(0x00563220, &MouseClassExt::_Get_Mouse_Start_Frame);
     Patch_Jump(0x00563240, &MouseClassExt::_Get_Mouse_Frame_Count);
 }
-

@@ -123,4 +123,3 @@ void AircraftTypeClassExtension_Init()
 {
     Patch_Jump(0x00410020, &AircraftTypeClassExt::_Find_Or_Make);
 }
-

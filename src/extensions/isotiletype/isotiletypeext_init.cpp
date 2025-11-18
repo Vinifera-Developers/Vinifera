@@ -229,4 +229,3 @@ void IsometricTileTypeClassExtension_Init()
 {
 
 }
-

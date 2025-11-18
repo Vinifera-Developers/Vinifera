@@ -117,4 +117,3 @@ void SuperClassExtension_Hooks()
      */
     SuperClassExtension_Init();
 }
-

@@ -248,4 +248,3 @@ void ObjectTypeClassExtension_Hooks()
     Patch_Jump(0x00589030, &ObjectTypeClassExt::_Clear_Voxel_Indexes);
     Patch_Jump(0x00587B20, &ObjectTypeClassExt::_Who_Can_Build_Me);
 }
-

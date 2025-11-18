@@ -171,4 +171,3 @@ void TiberiumClassExtension_Hooks()
     Patch_Jump(0x00645FD0, &TiberiumClassExt::_Deinitialize_Tiberium_Growth_System);
     Patch_Jump(0x00645C30, &TiberiumClassExt::_Clear_Spread_State);
 }
-

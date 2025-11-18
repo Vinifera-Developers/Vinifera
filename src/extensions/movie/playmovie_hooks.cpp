@@ -362,4 +362,3 @@ void PlayMovieExtension_Hooks()
     Patch_Byte(0x0057FF34+1, 0); // TS_TITLE.VQA
     Patch_Byte(0x0057FECF+1, 0); // FS_TITLE.VQA
 }
-

@@ -74,4 +74,3 @@ void TriggerTypeClassExtension_Hooks()
      */
     Patch_Jump(0x0064A35A, 0x0064A3A7);
 }
-

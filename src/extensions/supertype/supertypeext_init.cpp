@@ -123,4 +123,3 @@ void SuperWeaponTypeClassExtension_Init()
 {
 
 }
-

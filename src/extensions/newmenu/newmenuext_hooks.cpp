@@ -243,4 +243,3 @@ void NewMenuExtension_Hooks()
 {
     
 }
-

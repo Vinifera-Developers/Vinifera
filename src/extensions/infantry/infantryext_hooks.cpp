@@ -612,4 +612,3 @@ void InfantryClassExtension_Hooks()
 
     Patch_Jump(0x004D90B0, &InfantryClassExt::_Get_Image_Data);
 }
-

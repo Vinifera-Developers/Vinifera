@@ -132,4 +132,3 @@ void WaveClassExtension_Init()
 {
 
 }
-

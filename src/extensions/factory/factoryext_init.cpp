@@ -96,4 +96,3 @@ original_code:
 void FactoryClassExtension_Init()
 {
 }
-

@@ -138,4 +138,3 @@ void SessionClassExtension_Init()
 {
 
 }
-

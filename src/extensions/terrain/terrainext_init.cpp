@@ -120,4 +120,3 @@ void TerrainClassExtension_Init()
 {
 
 }
-

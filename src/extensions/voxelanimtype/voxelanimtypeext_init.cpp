@@ -97,4 +97,3 @@ void VoxelAnimTypeClassExtension_Init()
 {
 
 }
-

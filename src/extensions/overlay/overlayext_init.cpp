@@ -96,4 +96,3 @@ void OverlayClassExtension_Init()
 {
 
 }
-

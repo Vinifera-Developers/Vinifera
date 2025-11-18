@@ -2795,4 +2795,3 @@ void SidebarClassExtension_Conditional_Hooks()
         Patch_Jump(0x004E6045, 0x004E611F); // Don't add LSidebarPageDownCommandClass and RSidebarPageDownCommandClass
     }
 }
-

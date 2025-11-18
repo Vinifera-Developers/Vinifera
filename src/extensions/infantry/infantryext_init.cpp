@@ -98,4 +98,3 @@ void InfantryClassExtension_Init()
 {
 
 }
-

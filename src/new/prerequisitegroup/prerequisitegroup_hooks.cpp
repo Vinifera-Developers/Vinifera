@@ -96,4 +96,3 @@ void PrerequisiteGroup_Hooks()
 {
     Patch_Jump(0x0044CB30, &Get_Prerequisites);
 }
-

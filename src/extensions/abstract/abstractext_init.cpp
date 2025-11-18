@@ -92,4 +92,3 @@ void AbstractClassExtension_Init()
      */
     Patch_Byte_Range(0x00405CF8, 0x90, 12);
 }
-
