@@ -1062,6 +1062,8 @@ DEFINE_HOOK(0x006B7E22, WinMainCRTStartup_Syringe_Patch, 9)
 #elif defined(TS_CLIENT)
             const char* cmdline = GetCommandLineA();
             bool wait_for_debugger = (std::strstr(cmdline, "-DEBUGGER_ATTACH") != nullptr);
+#else
+            bool wait_for_debugger = false;
 #endif
 
             if (wait_for_debugger) {
