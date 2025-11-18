@@ -300,27 +300,28 @@ namespace SyringeData { namespace Hooks { __declspec(allocate(".syhks00")) hookd
 
 #ifdef HOOK_LOGGING
 
+    extern void* LastHookOrigin;
     // Verbose version
     #ifdef HOOK_LOGGING_VERBOSE
         #define declhook(address, funcname, size) \
-            EXPORT_FUNC(funcname##address##_DebugStub) \
+            EXPORT_FUNC(funcname##_##address##_LogStub) \
             { \
                 DEBUG_INFO("[Syringe] Hook %s entered at %08X.\n", #funcname, address); \
+                LastHookOrigin = reinterpret_cast<void*>(R->Origin()); \
                 return 0; \
             } \
-            _declhook(address, funcname##address##_DebugStub, size) \
+            _declhook(address, funcname##_##address##_LogStub, size) \
             _declhook(address, funcname, size) \
 
     #else
         // Non-verbose version
-        extern void* LastHookOrigin;
         #define declhook(address, funcname, size) \
-            EXPORT_FUNC(funcname##address##_DebugStub) \
+            EXPORT_FUNC(funcname##_##address##_LogStub) \
             { \
                 LastHookOrigin = reinterpret_cast<void*>(R->Origin()); \
                 return 0; \
             } \
-            _declhook(address, funcname##address##_DebugStub, size) \
+            _declhook(address, funcname##_##address##_LogStub, size) \
             _declhook(address, funcname, size) \
 
     #endif // HOOK_LOGGING_VERBOSE
