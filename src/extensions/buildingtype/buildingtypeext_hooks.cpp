@@ -54,11 +54,12 @@
  */
 DECLARE_EXTENDING_CLASS_AND_PAIR(BuildingTypeClass)
 {
-    public:
-        void _Free_Buildup_Image();
-        void _Set_Base_Defense_Values();
-        int _Raw_Cost();
-        int _Cost_Of(HouseClass* house);
+public:
+    void _Free_Buildup_Image();
+    void _Set_Base_Defense_Values();
+    int _Raw_Cost();
+    int _Cost_Of(HouseClass * house);
+    static void _Fetch_Z_Data();
 };
 
 
@@ -249,6 +250,41 @@ int BuildingTypeClassExt::_Cost_Of(HouseClass* house)
 
 
 /**
+ *  Pads the building Z shape data with a bunch of empty space to prevent out of bounds reads.
+ *
+ *  Author: ZivDero, tomsons26
+ */
+void BuildingTypeClassExt::_Fetch_Z_Data()
+{
+    static char* real_array = nullptr;
+
+    if (real_array != nullptr) {
+        delete[] real_array;
+        real_array = nullptr;
+        BuildingZShape = nullptr;
+    }
+
+    int size = CCFileClass("BUILDNGZ.SHP").Size();
+    real_array = new char[size * 3];
+    memset(real_array, 0, size * 3);
+    BuildingZShape = reinterpret_cast<ShapeSet*>(&real_array[size]);
+    memcpy(const_cast<ShapeSet*>(BuildingZShape), MFCD::Retrieve("BUILDNGZ.SHP"), size);
+
+    char* data = static_cast<char*>(BuildingZShape->Get_Data(0));
+    int width = BuildingZShape->Get_Width();
+    int height = BuildingZShape->Get_Height();
+
+    for (int h = 0; h < height; h++) {
+        for (int w = 0; w < width; w++) {
+            if (data[h * width + w] != 0) {
+                data[h * width + w] -= 39;
+            }
+        }
+    }
+}
+
+
+/**
  *  Patch to fetch the new building images.
  *
  *  Author: ZivDero
@@ -292,4 +328,5 @@ void BuildingTypeClassExtension_Hooks()
     Patch_Jump(0x00440000, &BuildingTypeClassExt::_Raw_Cost);
     Patch_Jump(0x00440080, &BuildingTypeClassExt::_Cost_Of);
     Patch_Jump(0x0043FDBF, &_BuildingTypeClass_Init_Fetch_Image_Patch);
+    Patch_Jump(0x0043FB50, &BuildingTypeClassExt::_Fetch_Z_Data);
 }
