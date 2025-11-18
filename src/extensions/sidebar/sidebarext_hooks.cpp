@@ -2731,12 +2731,6 @@ void SidebarClassExtension_Hooks()
 }
 
 
-
-/**
- *  Legacy patches for the old sidebar.
- */
-
-
 /**
  *  Function for patching the hooks that require use to read VINIFERA.INI first.
  */

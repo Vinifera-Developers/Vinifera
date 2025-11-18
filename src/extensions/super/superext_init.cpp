@@ -114,9 +114,6 @@ DEFINE_HOOK(0x0060B51A, _SuperClass_Destructor_Patch, 6)
      */
     Extension::Destroy<SuperClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
     return 0;
 }

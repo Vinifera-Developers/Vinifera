@@ -55,9 +55,6 @@ DEFINE_HOOK(0x005ED1AA, _SessionClass_Constructor_Patch, 5)
      */
     SessionExtension = Extension::Singleton::Make<SessionClass, SessionClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
     return 0;
 }
@@ -77,9 +74,6 @@ DEFINE_HOOK(0x005ED465, _SessionClass_Destructor_Patch, 3)
      */
     Extension::Singleton::Destroy<SessionClass, SessionClassExtension>(SessionExtension);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
     return 0;
 }
@@ -100,9 +94,6 @@ DEFINE_HOOK(0x005EE17F, _SessionClass_Read_MultiPlayer_Settings_Patch, 8)
     //DEBUG_INFO("Reading extended session settings\n");
     SessionExtension->Read_MultiPlayer_Settings();
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
     return 0;
 }
@@ -123,9 +114,6 @@ DEFINE_HOOK(0x005EE7BA, _SessionClass_Write_MultiPlayer_Settings_Patch, 9)
     //DEBUG_INFO("Writing extended session settings\n");
     SessionExtension->Write_MultiPlayer_Settings();
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
     return 0;
 }

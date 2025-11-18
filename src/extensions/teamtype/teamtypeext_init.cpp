@@ -106,9 +106,6 @@ DEFINE_HOOK(0x00629298, _TeamTypeClass_Scalar_Destructor_Patch, 6)
      */
     Extension::Destroy<TeamTypeClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
     return 0;
 }

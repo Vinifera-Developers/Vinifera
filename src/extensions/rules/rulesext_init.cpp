@@ -93,9 +93,6 @@ DEFINE_HOOK(0x005C6A4D, _RulesClass_Process_Patch, 7)
 
     RuleExtension->Process(*ini);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
     return 0;
 }
@@ -114,9 +111,6 @@ DEFINE_HOOK(0x005CC3BF, _RulesClass_MPlayer_Patch, 7)
 
     RuleExtension->MPlayer(*ini);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
     return 0;
 }

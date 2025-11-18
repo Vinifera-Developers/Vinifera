@@ -411,7 +411,6 @@ void UnitClassExt::_Approach_Target()
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK_AGAIN(0x0065665D, _UnitClass_What_Action_ACTION_HARVEST_Block_On_Bridge_Patch, 0)
 DEFINE_HOOK(0x00656623, _UnitClass_What_Action_ACTION_HARVEST_Block_On_Bridge_Patch, 0)
 {
     GET(Cell *, cell, ESI);
@@ -435,6 +434,7 @@ DEFINE_HOOK(0x00656623, _UnitClass_What_Action_ACTION_HARVEST_Block_On_Bridge_Pa
     R->EAX(action);
     return 0x006566CC;
 }
+DEFINE_HOOK_AGAIN(0x0065665D, _UnitClass_What_Action_ACTION_HARVEST_Block_On_Bridge_Patch, 0)
 
 
 /**

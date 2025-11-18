@@ -75,9 +75,6 @@ DEFINE_HOOK(0x006023CC, _ScenarioClass_Destructor_Patch, 6)
      */
     Extension::Singleton::Destroy<ScenarioClass, ScenarioClassExtension>(ScenExtension);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
     return 0;
 }

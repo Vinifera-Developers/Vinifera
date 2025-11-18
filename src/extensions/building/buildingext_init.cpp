@@ -66,9 +66,6 @@ DEFINE_HOOK(0x00426615, _BuildingClass_Constructor_Patch, 5)
      */
     Extension::Make<BuildingClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
     return 0;
 }
@@ -90,9 +87,6 @@ DEFINE_HOOK(0x0042666E, _BuildingClass_Destructor_Patch, 6)
      */
     Extension::Destroy<BuildingClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
     return 0;
 }

@@ -89,9 +89,6 @@ DEFINE_HOOK(0x004F33C6, _IsometricTileTypeClass_Destructor_Patch, 6)
      */
     Extension::Destroy<IsometricTileTypeClassExtension>(this_ptr);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
     return 0;
 }
@@ -113,9 +110,6 @@ DEFINE_HOOK(0x004F55F2, _IsometricTileTypeClass_Init_Patch, 5)
      */
     IsometricTileTypeClassExtension::Init(*ini);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
     return 0;
 }
@@ -164,9 +158,6 @@ DEFINE_HOOK(0x004F50AE, _IsometricTileTypeClass_Read_INI_Patch_1, 0)
      */
     exttype_ptr->Read_INI(*ini);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
     return 0x004F50BD;
 }
@@ -214,9 +205,6 @@ DEFINE_HOOK(0x004F53E9, _IsometricTileTypeClass_Read_INI_Patch_2, 6)
      */
     exttype_ptr->Read_INI(*ini);
 
-    /**
-     *  Stolen bytes here.
-     */
 original_code:
     return 0;
 }
