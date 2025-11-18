@@ -2074,7 +2074,7 @@ static void Techno_Player_Assign_Mission_Response_Switch(TechnoClass *this_ptr, 
  * 
  *  @author: CCHyper
  */
-DEFINE_HOOK(0x00631661, _TechnoClass_Player_Assign_Mission_Response_Patch, 0)
+DEFINE_HOOK(0x00631663, _TechnoClass_Player_Assign_Mission_Response_Patch, 0)
 {
     GET(TechnoClass *, this_ptr, ESI);
     GET(MissionType, mission, EDI);
