@@ -1008,7 +1008,7 @@ In `ART.INI`:
 [SOMETECHNO]     ; TechnoType
 WakeAnim=        ; AnimType, the wake graphic to show as the object moves across water.
 WakeAnimRate=10  ; integer, the rate at which this object creates the wake animation while moving.
-IdleWakeAnim=    ; AnimType
+IdleWakeAnim=    ; AnimType, the wake graphic to show when the object is staying still on water.
 ```
 
 ### ImmuneToEMP

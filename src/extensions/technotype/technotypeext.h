@@ -369,7 +369,7 @@ public:
     /**
      *  The wake graphic to show as the object moves across water.
      */
-    const AnimTypeClass *WakeAnim;
+    const AnimTypeClass* WakeAnim;
 
     /**
      *  The rate at which this object creates the wake animation while moving.
@@ -377,7 +377,7 @@ public:
     int WakeAnimRate;
 
     /**
-     *  The wake graphic to show as the object moves across water.
+     *  The wake graphic to show when the object is staying still on water.
      */
-    const AnimTypeClass *IdleWakeAnim;
+    const AnimTypeClass* IdleWakeAnim;
 };

@@ -127,5 +127,5 @@ class TechnoClassExtension : public RadioClassExtension
         /**
          *  The idle wake animation attached to this object.
          */
-        AnimClass *IdleWakeAnim;
+        AnimClass* IdleWakeAnim;
 };
